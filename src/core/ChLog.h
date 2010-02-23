@@ -1,0 +1,160 @@
+#ifndef CHLOG_H
+#define CHLOG_H
+
+//////////////////////////////////////////////////
+//  
+//   ChLog.h
+//
+//   Console output for debugging/logging purposes,
+//
+//   HEADER file for CHRONO,
+//	 Multibody dynamics engine
+//
+// ------------------------------------------------
+// 	 Copyright:Alessandro Tasora / DeltaKnowledge
+//             www.deltaknowledge.com
+// ------------------------------------------------
+///////////////////////////////////////////////////
+
+#include <assert.h>
+#include "ChStream.h"
+
+
+
+namespace chrono
+{
+
+
+
+
+//////////////////////////////////////////////////////////////////
+//  LOG
+//
+/// Base class for output of errors, messages, warnings, etc.
+/// (logging class). Must be specialized for specific output,
+/// for example output to console, to windows, etc. by inheriting
+/// custom classes. See below, an example for logging to std::cout
+
+class ChLog : public ChStreamOutAscii  
+{
+public:
+
+			/// There are different levels of log messages. This is 
+			/// indifferent for the base class, but more sophisticated
+			/// specializations of the ChLog class may handle message output
+			/// in different ways (for example a ChLogForGUIapplication may
+			/// print logs in STATUS level only to the bottom of the window, etc.)
+	enum eChLogLevel {
+		ChERROR = 0,			
+		ChWARNING,
+		ChMESSAGE,
+		ChSTATUS,	
+		ChQUIET		 
+	};
+
+protected: 
+	eChLogLevel current_level;
+	eChLogLevel default_level;
+
+public:
+			/// Creates the ChLog, and sets the level at MESSAGE
+	ChLog();
+
+			/// Forces output of message buffers, if any.
+			/// Also, should restore the default eChLogLevel
+			/// This base class does pretty nothing, but inherited classes
+			/// should override this method with more specific implementations.
+	virtual void Flush() { RestoreDefaultLevel(); };
+
+
+			/// Sets the default level, to be used from now on.
+	void SetDefaultLevel(eChLogLevel mlev) {default_level = mlev;};
+
+			/// Sets the current level, to be used until new flushing.
+	void SetCurrentLevel(eChLogLevel mlev) {current_level = mlev;};
+
+			/// Gets the current level
+	eChLogLevel GetCurrentLevel() {return current_level;};
+
+			/// Restore the default level.
+	void RestoreDefaultLevel() {current_level = default_level;};
+
+			/// Using the - operator is easy to set the status of the 
+			/// log, so in you code you can write, for example:
+			///   GetLog() - ChLog::ChERROR << "a big error in " << mynumber << " items \n" ;
+	ChLog& operator - (eChLogLevel mnewlev);
+
+			/// Prints current time to the log 
+	//void PrintCurTime();
+
+private:
+
+};
+
+
+
+////////////////////////////////////////////////////////
+//  LOG TO CONSOLE
+//
+/// Specialized class for logging errors in std::cout.
+/// Messages, warnings, etc. go always into the standard console.
+
+
+class ChLogConsole : public ChLog , public ChStreamFileWrapper  
+{
+public:
+			/// Create default logger: this will use the std::cout
+	ChLogConsole() : ChStreamFileWrapper(&std::cout)  {}
+
+	virtual ~ChLogConsole() {};
+
+			/// Redirect output stream to file wrapper.
+	virtual void	Output(const char* data, int n) 
+		{ 
+			if (current_level != ChQUIET)
+				ChStreamFileWrapper::Write(data, n); 
+		}
+
+
+private:
+
+};
+
+
+
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+ 
+
+/// Global function to get the current ChLog object
+ChLog& GetLog();
+
+/// Global function to set another ChLog object as current 'global' logging system.
+/// For example, a plugin developer may like to see logs on a GUI dialog: if so, he
+/// can inherit a specialized ChLog class (overriding the Output() function) and 
+/// use the SetLog() function to have it available all times.
+/// Doing so, in your code you can write, for example:
+///
+///   chrono::GetLog() << "message";
+///
+
+void   SetLog(ChLog& new_logobject);
+
+/// Global function to set the default ChLogConsole output to std::output.
+void   SetLogDefault();
+
+
+
+
+
+
+ 
+
+
+
+
+} // END_OF_NAMESPACE____
+
+
+#endif  // END of header
+

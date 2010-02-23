@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="chrono_proj_config"
+	OutputDirectory="$(ChronoEngineDir)\bin\Win32_VisualStudio"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalIncludeDirectories="&quot;$(IrrklangDir)\include&quot;;&quot;$(ChronoEngineDir)\source&quot;;&quot;$(IrrlichtDir)\include&quot;"
+		PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_DEPRECATE"
+	/>
+	<UserMacro
+		Name="ChronoEngineDir"
+		Value="..\..\..\..\ChronoEngine"
+	/>
+	<UserMacro
+		Name="IrrlichtDir"
+		Value="C:\engine_demo\irrlicht-1.5"
+	/>
+	<UserMacro
+		Name="IrrklangDir"
+		Value="C:\engine_demo\irrKlang-1.1.2"
+	/>
+</VisualStudioPropertySheet>
