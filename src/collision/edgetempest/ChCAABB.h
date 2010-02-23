@@ -1,0 +1,133 @@
+#ifndef CHC_AABB_H
+#define CHC_AABB_H
+
+//////////////////////////////////////////////////
+//  
+//   ChCAABB.h
+//
+//   Header for the Axially Aligned Bounding Box
+//   class. Useful for BSP collision queries.
+//
+//   HEADER file for CHRONO,
+//	 Multibody dynamics engine
+//
+// ------------------------------------------------
+// 	 Copyright:Alessandro Tasora / DeltaKnowledge
+//             www.deltaknowledge.com
+// ------------------------------------------------
+///////////////////////////////////////////////////
+
+
+#include <math.h>
+#include <vector>
+#include "geometry/ChCGeometry.h"
+#include "ChCCompile.h"
+
+
+using namespace chrono::geometry;
+
+namespace chrono 
+{
+namespace collision 
+{
+
+
+///
+/// Class for Axially Aligned Bounding Box (AABB).
+/// This class is useful for collision tests based on
+/// trees of bounding volumes.
+///
+
+
+class CHAABB
+{
+public:
+  			// DATA
+
+  Vector To;			///< Position of center of aabb
+
+  Vector  d;			///< Size, (half) dimensions of obb
+
+
+  int first_child;      ///< Positive value is index of first_child AABB.
+                        ///  Negative value is -(index + 1) of geometry in geom.list
+
+
+			// FUNCTIONS
+  CHAABB();
+  ~CHAABB();
+  			// Copy constructor 
+  CHAABB(const CHAABB& other) {To=other.To; d=other.d; first_child=other.first_child;}
+
+						
+						/// Return 1 if this is a leaf 
+  inline int IsLeaf()  { return first_child < 0; }
+						
+						/// Returns the index of the geometry in the geometry vector of the model
+						/// Caution: must be used only if IsLeaf()==true
+  inline int GetGeometryIndex()	{return (-first_child -1);}
+
+						/// Returns the index of the first child box, in box vector of the model
+						/// Caution: must be used only if IsLeaf()==false
+  inline int GetFirstChildIndex()	{return first_child;}
+
+ 						/// Returns the index of the second child box, in box vector of the model
+						/// Caution: must be used only if IsLeaf()==false
+  inline int GetSecondChildIndex()	{return first_child+1;}
+
+
+						/// Returns the size of the bounding box (sphere radius)
+  double   GetSize() { return (d.x*d.x + d.y*d.y + d.z*d.z);}
+  
+
+						/// Given  a list of geometric object, this function recomputes the
+						/// bounding box in order to enclose 'ngeos' geometries, 
+						/// from index 'firstgeo' up to 'firstgeo+ngeos', not included.
+						/// 
+  void     FitToGeometries( std::vector<ChGeometry*> mgeos, ///< vector of geometric objects 
+							int firstgeo,	///< geometries will be fit from this index... 
+							int ngeos,		///< .. up to this index
+							double envelope ///< inflate all boxes by this amount
+							);	
+
+
+						/// Find if two box AABB are overlapping, given relative 
+						/// rotation matrix, relative translation, and the two AABB
+						/// \return true if overlapping
+						///
+  static bool AABB_Overlap(	ChMatrix33<>& B,		///< relative rotation matrix
+							Vector T,		///< relative translation
+							CHAABB *b1,		///< first bounding box
+							CHAABB *b2		///< second bounding box
+						  );
+
+						/// Find if two box AABB are overlapping, given relative 
+						/// rotation matrix B, relative translation T, and the two AABB,
+						/// Optimized for case when the absolute fabsB matrix is precomputed, since
+						/// B and fabsB do not change during the many overlap tests on AABB of two models.
+						/// \return true if overlapping
+						///
+  static bool AABB_Overlap( ChMatrix33<>& B,		///< relative rotation matrix
+							ChMatrix33<>& fabsB,	///< relative rotation, but with absolute values 
+							Vector T,		///< relative translation
+							CHAABB *b1,		///< first bounding box
+							CHAABB *b2		///< second bounding box
+						  );
+
+
+
+
+};
+
+
+
+
+
+} // END_OF_NAMESPACE____
+} // END_OF_NAMESPACE____
+
+
+
+#endif
+
+

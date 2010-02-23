@@ -1,0 +1,241 @@
+-------------------------------------------------------
+
+  HOW TO COMPILE THE API OF CHRONO::ENGINE
+
+-------------------------------------------------------
+
+This info is NOT needed if you simply want to use 
+the Chrono::Engine libraries in your C++ projects, 
+because the SDK already contains the precompiled
+libraries in form of DLL in the chrono/bin directory.
+
+However, if you have the open-source version of 
+Chrono::Engine and want to compile the entire API
+in order to make your 'cutomized' versions of the 
+libraries, you must follow these guidelines.
+The process is a bit different in case
+you build the SDK under Windows or under Windows.
+
+Summary:
+
+- Chapter 1 --- BUILD ON A WINDOWS PLATFORM 
+- Chapter 2 --- BUILD ON A LINUX PLATFORM 
+- Chapter 3 --- NOTES
+
+-------------------------------------------------------
+
+
+
+=== Chapter 1 --- BUILD ON A WINDOWS PLATFORM 
+
+
+
+--0
+Install the Microsoft Foundation SDK (not needed for professional 
+Visual Studio versions).
+
+--1
+Be sure that you have the 'sed' tool installed in your
+system (it can be downloaded from many sites, for example
+from http://unxutils.sourceforge.net ). 
+It must be accessible from console.
+
+--2
+Be sure that you have the 'dlltool' installed in your
+system (it can be downloaded from the MinGW 'binutils'
+toolset, for example at http://www.mingw.org/download.shtml
+or http://prdownloads.sf.net/mingw/MinGW-3.1.0-1.exe?download).
+It must be accessible from console.
+
+--3
+Be sure that you have the latest 'SpiderMonkey' javascript
+engine SDK installed. It can be downloaded, for example,
+at http://ftp.mozilla.org/pub/mozilla.org/js/
+Unpack where you prefer. 
+
+--4 
+Follow the preparatory guidelines for compiling demos (i.e.
+check that you have the compiler installed, edit the
+config.mak, etc.)
+
+--5
+Edit also the config.mak file , in the ChronoEngine/makes/
+directory, following the instructions inside that file.
+ (Note forSVN users: if there is no config.mak in 
+  ChronoEngine/makes/, simply copy __template_config.mak to 
+  config.mak and edit it. This avoids conflicts if multiple
+  SVN users access the same config.mak with different personal
+  settings)
+
+--6
+That's all. Now, suppose you want to compile the API 
+libraries using the Microsoft compiler and nmake tool,
+in release mode, do this: open a console, set the compiler
+environment vars if needed, 'cd' to the chrono/source directory
+and type:
+
+      nmake /f "make-chrono_lib" build=RELEASE
+
+This will make and link ChronoEngine.dll and ChronoEngine.lib
+(you will find them in the chrono/bin/Win32_VisualStudio/ directory.)
+More in detail, a more precise build command can be for example:
+ nmake /f "make-chrono_lib" build=RELEASE compiler=COMPILER_MSVC lib
+
+
+--6b
+
+Alternatively, if you do not like to type the 'nmake ...' commands
+in the console, you can use the Microsoft VisualC++ IDE.
+If so, follow these instructions:
+. copy the file "__template_ChronoEngine.vcproj" to "ChronoEngine.vcproj"
+  (in this way, ChronoEngine.vcproj is unversioned in SVN, and won't cause
+  problems if multiple developers want to customize it);
+. in VisualC++ IDE, open the project "ChronoEngine.vcproj". 
+  The trick is that the IDE project simply calls 
+    "nmake /f "make-chrono_lib" build=RELEASE" etc etc.(see
+  the property window for the IDE subprojects: you'll find that these
+  are 'makefile' type of projects, each calling the command-line 
+  nmake tool with some argoments);
+. select "ChronoEngine Debug" or "ChronoEngine Release" in the 
+  solution configuration, depending on what you want to compile,
+  then press F7 to compile the API (it will take few minutes).
+This IDE approach can be good for many reasons (you will be able to see all
+the chronoengine source files in the solution explorer window at the
+left, you'll have automatic completion of keywords, etc)
+This is the way I usually compile the SDK.
+
+
+
+-------------------------------------------------------
+
+
+=== Chapter 2 --- BUILD ON A LINUX PLATFORM 
+
+
+The build process in a Linux platform is similar to the
+process in Windows. Follows these guidelines:
+
+--1
+Install the GNU gcc c++ compiler, if you already haven't installed
+it, for example by typing in the shell:
+
+	sudo apt-get install build-essential
+
+--2 
+Download and the latest Irrlicht library (ex. Irrlicht-1.7.1.zip).
+It is not mandatory, but it will be used by many demos.
+
+ --2b
+Compile Irrlicht, by going in the source/ directory of Irrlicht
+and by typing 'make'. After some minutes it will create the file
+'libIrlicht.a' into Irrlicht source/ directory. 
+
+ --2c
+Some Irrlicht distributions have a bug: instead of copying 
+'libIrlicht.a' into Irrlicht/lib/Linux/ directory, they rename
+it and move in lib/ as 'Linux'. If so, re-create Irrlicht/lib/Linux/ 
+by hand, and move 'libIrlicht.a' into that directory.
+
+
+--3 
+You need the SpiderMonkey javascript engine. So, download packets 
+     libmozjs0d [???]
+     libmozjs-dev [???]
+   or better..
+   
+--3b
+. download and unzip latest SpiderMonkey SDK, 
+. cd into js/src/  directory,
+. build the javascript SDK with "make -f Makefile.ref BUILD_OPT=1"
+. copy js/src/Linux_All_OPT.OBJ/jsautocfg.h into js/src/
+. copy js/src/Linux_All_OPT.OBJ/libjs.a  into ChronoEngine/lib/Linux32_gcc
+
+--4
+Install the following packets (you can find them on the web) if
+not already installed on your system:
+. X11    / Debian (Ubuntu) : load packets "libxxf86vm1" and "libxxf86vm-dev"
+. OpenGl / Debien (Ubuntu): load packets "freeglut3" and "freeglut3-dev"
+
+--5
+Edit also the config.mak file , in the ChronoEngine/makes/
+directory, following the instructions inside that file.
+ (Note forSVN users: if there is no config.mak in 
+  ChronoEngine/makes/, simply copy __template_config.mak to 
+  config.mak and edit it. This avoids conflicts if multiple
+  SVN users access the same config.mak with different personal
+  settings)
+IMPORTANT: in the last part of the config.mak file, type:
+ include  $(CH_CHRONODIR)/makes/__gnu_make_config.mak.linux
+instead of the usual "include  $(CH_CHRONODIR)/makes/__gnu_make_config.mak".
+
+--5
+To compile ChronoEngine static library:
+. cd in "source" directory
+. type "make -f make-chrono_lib.linux lib"
+Note, you can easily change debug/release as follows:
+"make -f make-chrono_lib lib build=RELEASE" or ..build=DEBUG
+
+--6
+To compile demos source files:
+. cd in "demos" directory
+. type "make"
+
+
+
+
+-------------------------------------------------------
+
+
+
+=== Chapter 3 --- NOTES
+
+
+
+IMPORTANT NOTE!!
+Currently the 'make-chrono_lib' makefile I enclosed in the SDK does NOT
+support the "depend" feature!
+This means that, if you change some .cpp file , there re no problems
+if you simply call nmake /f "make-chrono_lib" build=RELEASE to update 
+everything (or you press F7 in the IDE project)... a .obj file will be
+generated and .lib and .dll will be linked again. 
+However.. if you change some .h header file, you should recompile all .cpp 
+and .h which depend on it, BUT this does not automatically happen because 
+there's no "depend" automatism in the makefile system that I implemented. 
+In this last case, compiling and linking could go on without troubles, 
+but runtime execution may find random umpredictable crash errors!!! 
+Thus, the current 'tricks' for circumventing the lack of "depend" automatism in 
+makefile are those:
+- you manually change (simply by adding a whitespace or a newline at the end) the .h and 
+  .cpp that you know that depend on the .h that you modified, then recompile
+  (in this way nmake will compile also the .cpp depending on the modified .h)
+- or simply use Mobjdelete_all.bat to delete ALL the .obj in the SDK, so that
+  the next compilation will recompile _everything_ . This is the safest and
+  fool-proof way to go, but recompiling everything requires some time... 
+
+In future, I'd like to switch to the CMake or JAM build tools, so that this
+complication will be removed.
+
+
+----------------------
+
+
+Also look at Mbuild_all_sdk.bat, which builds _all_ combinations
+of RELEASE, DEBUG, with compiler msvc or gcc, and finally also
+creates doxygen documentation, msvc examples, and the installer.
+
+----------------------
+
+
+- To compile the API documentation, type:
+    nmake /f "make-chrono_lib" doxygen
+  This step requires that you have installed:
+      Doxygen,  from http://www.stack.nl/~dimitri/doxygen/
+      GraphWiz, from http://www.graphviz.org 
+      Microsoft Help Workshop (to compile .chm) , ex.
+       form http://go.microsoft.com/fwlink/?LinkId=14188
+
+- To delete all intermediate objects (.o or .obj), type: 
+    nmake /f "make-chrono_lib" clean
+
+
+-------------------------------------------------------

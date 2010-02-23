@@ -1,0 +1,407 @@
+#
+# CHRONO LIB
+#
+# Makefile for building the Chrono library (ex. dll)
+# The redistributable Chrono library can be used for standalone
+# or embedded applications, using the Chrono API/SDK
+#
+# 
+
+include ../makes/config.mak 
+     
+	# From now on, thank to config.mak, some useful variables
+	# have been automatically set.
+	
+  
+
+
+# List of files to compile to make the chrono library
+
+CPPFILES_LIB = \
+	core/ChLog.cpp \
+	core/ChClassRegister.cpp \
+	core/ChFileutils.cpp \
+	core/ChFile.cpp \
+	core/ChStream.cpp \
+	core/ChMathematics.cpp \
+	core/ChVector.cpp \
+	core/ChQuaternion.cpp \
+	core/ChCoordsys.cpp \
+	core/ChMatrix.cpp \
+	core/ChMemory.cpp \
+	core/ChSpmatrix.cpp \
+	physics/ChApidll.cpp \
+	physics/ChFilePS.cpp \
+	physics/ChNlsolver.cpp \
+	physics/ChFormule.cpp \
+	physics/ChParser.cpp \
+	physics/ChFunction.cpp \
+	physics/ChLimit.cpp \
+	physics/ChQuadra.cpp \
+	physics/ChObject.cpp \
+	physics/ChMarker.cpp \
+	physics/ChForce.cpp \
+	physics/ChBody.cpp \
+	physics/ChFem.cpp \
+	physics/ChFem-br1.cpp \
+	physics/ChFem-te1.cpp \
+	physics/ChMesh.cpp \
+	physics/ChLinkforce.cpp \
+	physics/ChLinkMask.cpp \
+	physics/ChLink.cpp \
+	physics/ChLinkDistance.cpp \
+	physics/ChLinkMasked.cpp \
+	physics/ChLinkMarkers.cpp \
+	physics/ChLinkNumdiff.cpp \
+	physics/ChLinkLock.cpp \
+	physics/ChLinkBrake.cpp \
+	physics/ChLinkEngine.cpp \
+	physics/ChLinkContact.cpp \
+	physics/ChLinkFastContact.cpp \
+	physics/ChLinkGPUcontact.cpp \
+	physics/ChLinkGear.cpp \
+	physics/ChLinkPulley.cpp \
+	physics/ChLinkLinActuator.cpp \
+	physics/ChLinkPneumaticActuator.cpp \
+	physics/ChLinkScrew.cpp \
+	physics/ChLinkSpring.cpp \
+	physics/ChLinkWheel.cpp \
+	physics/ChLinkClearance.cpp \
+	physics/ChLinkPointSpline.cpp \
+	physics/ChLinkTrajectory.cpp \
+	physics/ChHistory.cpp \
+	physics/ChSystem.cpp \
+	physics/ChGlobal.cpp \
+	physics/ChEvents.cpp \
+	physics/ChMocap.cpp \
+	physics/ChOptvar.cpp \
+	physics/ChSolvmin.cpp \
+	physics/ChCollide.cpp \
+	physics/ChProbe.cpp \
+	physics/ChControls.cpp \
+	physics/ChIntegrator.cpp \
+	physics/ChController.cpp \
+	physics/ChImpacts.cpp \
+	physics/ChIterative.cpp \
+	physics/ChRef.cpp \
+	physics/ChConstraint.cpp \
+	physics/ChPhysicsItem.cpp \
+	physics/ChParticlesClones.cpp \
+	physics/ChIndexedParticles.cpp \
+	physics/ChIndexedNodes.cpp \
+	physics/ChNodeBody.cpp \
+	physics/ChMatterSPH.cpp \
+	physics/ChContact.cpp \
+	physics/ChContactRolling.cpp \
+	physics/ChContactGPUsimple.cpp \
+	physics/ChContactContainerBase.cpp \
+	physics/ChContactContainer.cpp \
+	physics/ChContactContainerGPUsimple.cpp \
+	physics/ChProximityContainerBase.cpp \
+	physics/ChProximityContainerSPH.cpp \
+	physics/ChShaft.cpp \
+	physics/ChShaftsGear.cpp \
+	physics/ChShaftsClutch.cpp \
+	physics/ChShaftsPlanetary.cpp \
+	physics/ChShaftsMotor.cpp \
+	physics/ChShaftsBody.cpp \
+	physics/ChShaftsTorsionSpring.cpp \
+	physics/ChContinuumMaterial.cpp \
+	geometry/ChCGeometry.cpp \
+	geometry/ChCSphere.cpp \
+	geometry/ChCBox.cpp \
+	geometry/ChCLine.cpp \
+	geometry/ChCLineCam.cpp \
+	geometry/ChCLinePoly.cpp \
+	geometry/ChCTriangle.cpp \
+	collision/ChCCollisionModel.cpp \
+	collision/ChCModelGPU.cpp \
+	collision/ChCModelBullet.cpp \
+	collision/ChCModelBulletBody.cpp \
+	collision/ChCModelBulletParticle.cpp \
+	collision/ChCModelBulletNode.cpp \
+	collision/ChCCollisionSystemBullet.cpp \
+	collision/ChCCollisionSystemGPU.cpp \
+	collision/edgetempest/ChCCollisionTree.cpp \
+	collision/edgetempest/ChCOBBTree.cpp \
+	collision/edgetempest/ChCAABBTree.cpp \
+	collision/edgetempest/ChCOBB.cpp \
+	collision/edgetempest/ChCAABB.cpp \
+	collision/edgetempest/ChCOBBcollider.cpp \
+	collision/edgetempest/ChCAABBcollider.cpp \
+	collision/edgetempest/ChCNarrowPhaseCollider.cpp \
+	collision/edgetempest/ChCGeometryCollider.cpp \
+	collision/convexdecomp/NvConcavityVolume.cpp \
+	collision/convexdecomp/NvConvexDecomposition.cpp \
+	collision/convexdecomp/NvFloatMath.cpp \
+	collision/convexdecomp/NvMeshIslandGeneration.cpp \
+	collision/convexdecomp/NvRayCast.cpp \
+	collision/convexdecomp/NvRemoveTjunctions.cpp \
+	collision/convexdecomp/NvSplitMesh.cpp \
+	collision/convexdecomp/NvStanHull.cpp \
+	collision/convexdecomp/NvThreadConfig.cpp \
+	chjs/ChJs_Engine.cpp \
+	chjs/ChJs_utils.cpp \
+	chjs/ChJs_all.cpp \
+	chjs/ChJs_math.cpp \
+	chjs/ChJs_chobject.cpp \
+	chjs/ChJs_system.cpp \
+	chjs/ChJs_body.cpp \
+	chjs/ChJs_marker.cpp \
+	chjs/ChJs_force.cpp \
+	chjs/ChJs_link.cpp \
+	chjs/ChJs_funct.cpp \
+	chjs/ChJs_optimizer.cpp \
+	chjs/ChJs_geometry.cpp \
+	chjs/ChJs_controller.cpp \
+	chjs/ChJs_constraint.cpp \
+	chjs/ChJs_impact.cpp \
+	pneumatica/assepneumatico.cpp \
+	pneumatica/pistone.cpp \
+	pneumatica/pistone_3_2.cpp \
+	pneumatica/pistone_3_2_prop.cpp \
+	pneumatica/sis_attuatore_3_2.cpp \
+	pneumatica/sis_attuatore_3_2_prop.cpp \
+	pneumatica/sistema.cpp \
+	pneumatica/ugello.cpp \
+	pneumatica/ugello_controllato.cpp \
+	pneumatica/ugello_controllato_PA.cpp \
+	pneumatica/ugello_controllato_RA.cpp \
+	pneumatica/valvola_3_2.cpp \
+	pneumatica/valvola_3_2_prop.cpp \
+	lcp/ChLcpSolver.cpp \
+	lcp/ChLcpIterativeSOR.cpp \
+	lcp/ChLcpIterativeSORmultithread.cpp \
+	lcp/ChLcpIterativeJacobi.cpp \
+	lcp/ChLcpIterativeSymmSOR.cpp \
+	lcp/ChLcpIterativeCudaSolver.cpp \
+	lcp/ChLcpConstraintTwoGPUcontN.cpp \
+	lcp/ChLcpConstraintTwoGPUcontT.cpp \
+	lcp/ChLcpSimplexSolver.cpp \
+	lcp/ChLcpConstraint.cpp \
+	lcp/ChLcpConstraintTwo.cpp \
+	lcp/ChLcpConstraintTwoGeneric.cpp \
+	lcp/ChLcpConstraintTwoGenericBoxed.cpp \
+	lcp/ChLcpConstraintTwoBodies.cpp \
+	lcp/ChLcpConstraintTwoFrictionT.cpp \
+	lcp/ChLcpConstraintTwoContactN.cpp \
+	lcp/ChLcpConstraintTwoRollingT.cpp \
+	lcp/ChLcpConstraintTwoRollingN.cpp \
+	lcp/ChLcpConstraintThree.cpp \
+	lcp/ChLcpConstraintThreeGeneric.cpp \
+	lcp/ChLcpConstraintThreeBBShaft.cpp \
+	lcp/ChLcpVariables.cpp \
+	lcp/ChLcpVariablesGeneric.cpp \
+	lcp/ChLcpVariablesBody.cpp \
+	lcp/ChLcpVariablesBodySharedMass.cpp \
+	lcp/ChLcpVariablesBodyOwnMass.cpp \
+	lcp/ChLcpVariablesNode.cpp \
+	collision/bullet/BulletCollision/BroadphaseCollision/btAxisSweep3.cpp \
+	collision/bullet/BulletCollision/BroadphaseCollision/btSimpleBroadphase.cpp \
+	collision/bullet/BulletCollision/BroadphaseCollision/btOverlappingPairCache.cpp \
+	collision/bullet/BulletCollision/BroadphaseCollision/btBroadphaseProxy.cpp \
+	collision/bullet/BulletCollision/BroadphaseCollision/btDispatcher.cpp \
+	collision/bullet/BulletCollision/BroadphaseCollision/btMultiSapBroadphase.cpp \
+	collision/bullet/BulletCollision/BroadphaseCollision/btCollisionAlgorithm.cpp \
+	collision/bullet/BulletCollision/BroadphaseCollision/btDbvt.cpp \
+	collision/bullet/BulletCollision/BroadphaseCollision/btDbvtBroadphase.cpp \
+	collision/bullet/BulletCollision/BroadphaseCollision/btQuantizedBvh.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btUnionFind.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btCollisionDispatcher.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btCollisionObject.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btSphereBoxCollisionAlgorithm.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btCollisionWorld.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btSimulationIslandManager.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btCompoundCollisionAlgorithm.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btManifoldResult.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btConvexConcaveCollisionAlgorithm.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btEmptyCollisionAlgorithm.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btSphereTriangleCollisionAlgorithm.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btConvexConvexAlgorithm.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/SphereTriangleDetector.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btConvexPlaneCollisionAlgorithm.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btActivatingCollisionAlgorithm.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btBox2dBox2dCollisionAlgorithm.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btBoxBoxCollisionAlgorithm.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btBoxBoxDetector.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btGhostObject.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btConvex2dConvex2dAlgorithm.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btBarrelShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btBoxShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btTriangleMeshShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btBvhTriangleMeshShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btTriangleMesh.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btTriangleIndexVertexArray.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btCollisionShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btTriangleCallback.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btCompoundShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btTetrahedronShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btConcaveShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btStridingMeshInterface.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btConeShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btStaticPlaneShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btConvexHullShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btSphereShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btConvexShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btConvexTriangleMeshShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btOptimizedBvh.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btCylinderShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btMultiSphereShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btEmptyShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btMinkowskiSumShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btTriangleBuffer.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btHeightfieldTerrainShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btCapsuleShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btConvexInternalShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btUniformScalingShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btBox2dShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btConvex2dShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btConvexPointCloudShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btMultimaterialTriangleMeshShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btShapeHull.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btTriangleIndexVertexMaterialArray.cpp \
+	collision/bullet/BulletCollision/NarrowPhaseCollision/btContinuousConvexCollision.cpp \
+	collision/bullet/BulletCollision/NarrowPhaseCollision/btSubSimplexConvexCast.cpp \
+	collision/bullet/BulletCollision/NarrowPhaseCollision/btConvexCast.cpp \
+	collision/bullet/BulletCollision/NarrowPhaseCollision/btRaycastCallback.cpp \
+	collision/bullet/BulletCollision/NarrowPhaseCollision/btPersistentManifold.cpp \
+	collision/bullet/BulletCollision/NarrowPhaseCollision/btMinkowskiPenetrationDepthSolver.cpp \
+	collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkConvexCast.cpp \
+	collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkEpaPenetrationDepthSolver.cpp \
+	collision/bullet/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.cpp \
+	collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkPairDetector.cpp \
+	collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkEpa2.cpp \
+	collision/bullet/LinearMath/btQuickprof.cpp \
+	collision/bullet/LinearMath/btAlignedAllocator.cpp \
+	collision/bullet/LinearMath/btGeometryUtil.cpp \
+	collision/bullet/LinearMath/btConvexHull.cpp \
+	collision/gimpact/GIMPACT/core/gim_box_set.cpp \
+	collision/gimpact/GIMPACT/core/gim_contact.cpp \
+	collision/gimpact/GIMPACT/core/gim_memory.cpp \
+	collision/gimpact/GIMPACT/core/gim_tri_collision.cpp \
+	collision/gimpact/GIMPACT/Bullet/btContactProcessing.cpp \
+	collision/gimpact/GIMPACT/Bullet/btGenericPoolAllocator.cpp \
+	collision/gimpact/GIMPACT/Bullet/btGImpactBvh.cpp \
+	collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.cpp \
+	collision/gimpact/GIMPACT/Bullet/btGImpactQuantizedBvh.cpp \
+	collision/gimpact/GIMPACT/Bullet/btGImpactShape.cpp \
+	collision/gimpact/GIMPACT/Bullet/btTriangleShapeEx.cpp \
+	collision/gimpact/GIMPACTUtils/btGImpactConvexDecompositionShape.cpp \
+	collision/gimpact/ConvexDecomposition/bestfit.cpp \
+	collision/gimpact/ConvexDecomposition/bestfitobb.cpp \
+	collision/gimpact/ConvexDecomposition/cd_hull.cpp \
+	collision/gimpact/ConvexDecomposition/concavity.cpp \
+	collision/gimpact/ConvexDecomposition/ConvexBuilder.cpp \
+	collision/gimpact/ConvexDecomposition/ConvexDecomposition.cpp \
+	collision/gimpact/ConvexDecomposition/fitsphere.cpp \
+	collision/gimpact/ConvexDecomposition/float_math.cpp \
+	collision/gimpact/ConvexDecomposition/meshvolume.cpp \
+	collision/gimpact/ConvexDecomposition/planetri.cpp \
+	collision/gimpact/ConvexDecomposition/raytri.cpp \
+	collision/gimpact/ConvexDecomposition/splitplane.cpp \
+	collision/gimpact/ConvexDecomposition/vlookup.cpp \
+	parallel/ChThreads.cpp \
+	parallel/ChThreadsPOSIX.cpp \
+	parallel/ChThreadsWIN32.cpp
+	
+	
+CUDAFILES_LIB = \
+	lcp/ChLcpIterativeCuda.cu \
+	collision/collide.cu
+	
+
+
+# Rules for compilation
+
+
+OFILES_LIB= $(CPPFILES_LIB:.cpp=.obj) $(CUDAFILES_LIB:.cu=.obj)
+
+
+.SUFFIXES:
+.SUFFIXES: .cpp .c .obj .cu
+
+.cu.obj:
+	$(CH_NVCC_COMPILER) $(CH_NVCCFLAGS) -c $< $(CH_INCLUDES) -o "$*.obj"
+	$(CH_NVCC_COMPILER2)
+
+.cpp.obj:
+	$(CC) $(CH_COMPILERFLAGS) $(CH_INCLUDES) -c $< $(CH_COMPILERFLAG_FILEOUT)"$*.obj"
+
+
+
+# TARGETS
+ 
+
+# For default building: deletes objects, creates the library, creates the
+# API documentation with doxygen, etc.
+
+all: clean lib doxygen
+
+ 
+
+# For building .lib, .DLL etc.
+#
+#  We want to export all symbols from objects, as in Unix systems. We will use
+#  an omnicomprensive .def file to be passed to the linker for that purpose. 
+#  To genereate the updated .def file, we use the command:.
+#
+#	dlltool --output-def "$(CH_LIBDIR)/$(CH_LIBNAME).def" --export-all-symbols $(OFILES_LIB)
+#
+# ..but then we must delete all the block of entries in .def file which begin with    ??_G...
+#   and -most important- all the block of entries beginning with  _real... or _... (we do
+#   this with the SED tool)
+
+
+lib:  $(CPPFILES_LIB) $(OFILES_LIB) 
+	IF EXIST $(CH_LIBDIR)\$(CH_LIBNAME).defx $(DEL) $(CH_LIBDIR)\$(CH_LIBNAME).defx
+	IF EXIST $(CH_LIBDIR)\$(CH_LIBNAME).def  $(DEL) $(CH_LIBDIR)\$(CH_LIBNAME).def
+	IF EXIST $(CH_LIBDIR)\$(CH_LIBNAME).exp  $(DEL) $(CH_LIBDIR)\$(CH_LIBNAME).exp
+	$(DLLTOOL) --output-def "$(CH_LIBDIR)/$(CH_LIBNAME).defx" --export-all-symbols --kill-at $(OFILES_LIB)
+	sed -e "/^	_/d" -e "/^	??_G/d" -e "/^	_real@/d" -e "/^	CTA/d" -e "/^	CT??/d" -e "/^	TI[0-9]/d" $(CH_LIBDIR)/$(CH_LIBNAME).defx  >>  $(CH_LIBDIR)/$(CH_LIBNAME).def
+	$(LD) $(CH_LINKSHAREDFLAGS) \
+	      $(CH_LIBRARIES_ENGINE) \
+	      $(OFILES_LIB) \
+	      $(CH_LINKERFLAG_FILEOUT)"$(CH_BINDIR)/$(CH_LIBNAME).dll" \
+	      $(CH_LINKERFLAG_DEF)"$(CH_LIBDIR)/$(CH_LIBNAME).def" \
+	      $(CH_LINKERFLAG_IMPLIB)"$(CH_LIBDIR)/$(CH_LIBNAMEPREFIX)$(CH_LIBNAME)$(CH_LIBNAMEPOSTFIX)"
+	$(MT) -manifest $(CH_BINDIR)/$(CH_LIBNAME).dll.manifest -outputresource:$(CH_BINDIR)/$(CH_LIBNAME).dll;#2
+	$(DEL) $(CH_BINDIR)$(D)$(CH_LIBNAME).dll.manifest
+	IF EXIST $(CH_R3RUNDIR) copy /Y $(CH_BINDIR)\$(CH_LIBNAME).dll $(CH_R3RUNDIR)\$(CH_R3BINDIR)\$(CH_LIBNAME).dll
+	IF EXIST $(CH_LIBDIR)\$(CH_LIBNAME).defx $(DEL) $(CH_LIBDIR)\$(CH_LIBNAME).defx
+	IF EXIST $(CH_LIBDIR)\$(CH_LIBNAME).def  $(DEL) $(CH_LIBDIR)\$(CH_LIBNAME).def
+	IF EXIST $(CH_LIBDIR)\$(CH_LIBNAME).exp  $(DEL) $(CH_LIBDIR)\$(CH_LIBNAME).exp
+
+
+# For cleaning all the .o, .obj, and other intermediate files
+
+clean:
+	$(DEL) *.obj
+	$(DEL) *.o
+	$(DEL) ..$(D)demos$(D)*.o
+	$(DEL) ..$(D)demos$(D)msvc$(D)oscillator$(D)Debug
+	$(DEL) ..$(D)demos$(D)msvc$(D)oscillator$(D)Release
+	$(DEL) ..$(D)demos$(D)msvc$(D)racing$(D)Debug
+	$(DEL) ..$(D)demos$(D)msvc$(D)racing$(D)Release
+
+
+# For making the Doxygen documentation of the API
+
+doxygen:
+	$(DEL) ..\docs\html\*.*
+	$(DEL) C:\tasora\lavori\html\chronoengine\api\*.*
+	$(CP)  ..\doxygen\logo_chronoengine_middle.png ..\docs\html
+	$(CP)  ..\doxygen\logo_chronoengine_small.png  ..\docs\html
+	doxygen "..\doxygen\doxyfile"
+	$(DEL) ..\docs\html\*.hhc
+	$(DEL) ..\docs\html\*.hhk
+	$(DEL) ..\docs\html\*.hhp
+	$(DEL) ..\docs\html\*.map
+	$(DEL) ..\docs\html\*.md5
+	$(DEL) ..\docs\html\*.dot
+	move ..\docs\html\*.* C:\tasora\lavori\html\chronoengine\api
+	move C:\tasora\lavori\html\chronoengine\api\help.chm ..\docs\html\help.chm 
+

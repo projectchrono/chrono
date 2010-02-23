@@ -1,0 +1,102 @@
+CHRONO::ENGINE LICENSE
+
+This license applies to Chrono::Engine API.
+
+You should carefully read the following terms and conditions
+before using this software.  Use, distribution, or installation
+of this copy of Chrono::Engine indicates your acceptance of this 
+License.
+
+If you do not agree to any of the terms of this License, then do
+not install, distribute or use this copy of Chrono::Engine API
+to develop software.
+
+DEFINITIONS, ABBREVIATIONS, TERMS, ALIASES:
+'The licensor': DeltaKnowledge developement team.
+'The middleware': the Chrono::Engine software.
+'The Developer': the licensee, that is the developer who is given
+  the permission to use the Chrono::Engine middleware in its projects.
+'The client software': the software being developed by the licensee,
+  which includes Chrono::Engine libraries or some of its sub-components.
+'The customers': the licensee's customers, who buy client software
+  from the licensee.
+   
+1) ROYALTY-FREE LICENSE
+The Chrono::Engine middleware is FREE for non-business 
+software developement, that is hobby, academic researches and 
+non-profit researches. In these cases, the Developer is free to use 
+and modify Chrono::Engine components and source code; also, 
+the Developer can distribute his client software as long as he
+states that he used Chrono::Engine in his documentation.
+Client software based on this license of Chrono::Engine can be 
+freely distributed, but only if it is freeware and is meant to be 
+used at home or in non-profit organizations.
+The client software can be either open-source or closed-source.
+The Chrono::Engine code, headers and documentations must be
+distributed all together - not separately.
+
+
+2) BUSINESS LICENSE
+For business/commercial uses (ex: developement of non-freeware
+software, or use in non-academic researches) a license fee
+must be paid to DeltaEngineering, depending on the two 
+following sub-cases:
+
+2.1) - BUSINESS LICENSE FOR DEVELOPING IN-HOUSE SOFTWARE
+In this case the Developer uses Chrono::Engine to make custom 
+client software, provided that the user of the application
+will be the developer himself (for a maximum of 5 copies
+running simultaneously in the developer's offices) OR
+a single third-party customer (for a maximum of 2 copies 
+running simultaneously in the customer's offices).
+
+2.2) - OEM BUSINESS LICENSE FOR COMMERCIAL SOFTWARE
+In this case the Developer uses Chrono::Engine to make custom
+applications to be put on the market and to be sold to 
+third-party customers, as for videogames, simulators, 
+CAD tools, etc.
+A fee must be paid to DeltaKnowledge, based on the number
+of copies of client applications and/or on a fixed fee, negotiable
+between the Developer and DeltaKnowledge.
+
+Under special case-by-case agreements between the parties the 
+source code of the middleware can be released to the Developer, 
+with an additional fee and only for licenses of the 2.1) or 2.2) type,
+but in this case the source code must be kept confidential and should 
+not be distributed outside the offices of the Developer.
+
+THIS SOFTWARE, AND ALL ACCOMPANYING FILES, DATA AND MATERIALS,
+ARE DISTRIBUTED "AS IS" AND WITH NO WARRANTIES OF ANY KIND,
+WHETHER EXPRESS OR IMPLIED.  
+
+IN NO EVENT WE AUTHORIZE YOU TO USE CHRONO::ENGINE IN APPLICATIONS 
+OR SYSTEMS WHERE A FAILURE TO SIMULATE EXACRT RESULTS
+CAN REASONABLY BE EXPECTED TO CAUSE PHYSICAL OR ECONOMICAL DAMAGES,
+OR SIGNIFICANT PHYSICAL INJURIES, OR LOSS OF LIFES. (FOR EXAMPLE,
+IN NUCLEAR PLANTS, IN AREOSPACE ENGINEERING, IN CIVIL BUILDINGS, 
+IN MISSILISTIC ENGINEERING, IN AUTOMOTIVE DESIGN, ETC.).
+ANY SUCH USE BY YOU IS ENTIRELY AT YOUR OWN RISK, AND YOU AGREE 
+TO HOLD CHRONO'S AUTORS HARMLESS FROM ANY CLAIMS OR LOSSES 
+RELATING TO SUCH UNAUTHORIZED USE.
+
+EVEN IF CHRONO::ENGINE HAS BEEN DEVELOPED ACCORDING TO  
+ADVANCED NUMERICAL METHODS FOR SYSTEM'S DYNAMICS, YOU 
+CANNOT EXPECT THE RESULTS OF ITS SIMULATIONS TO BE EXACT:
+ERRORS IN CODE, OR ERRORS IN INACCURATE MODELLING, OR ERRORS
+IN MATHEMATICAL THEORIES, OR TRUNCATION ERRORS, OR NUMERICAL 
+APPROXIMATION ERRORS, CAN ALL BE CAUSE OF WRONG RESULTS IN
+SIMULATIONS. (ALSO, EVEN IN A COMPLETELY DETERMINISTIC CONTEXT,
+A VERY LITTLE MODIFICATION TO A STARTING CONDITION SOMETIME MAY
+MAY BE CAUSE OF UNEXPECTED HUGE MODIFICATION OF SYSTEM'S 
+BEHAVIOUR: THIS IS THE PHENOMENA OF 'DETERMINISTIC CHAOS'. HENCE,
+ANALYTICAL CLOSED-FORM EXACTENSS CANNOT BE EXPECTED IN 
+CHRONO::ENGINE).
+
+The licensing agreement and/or the rights, obligations and terms 
+thereof may not be sold, given, assigned or otherwise conveyed to 
+any party who is not a signatory to the agreement.
+
+This Agreement is the complete statement of the Agreement between
+the parties on the subject matter, and merges and supersedes all
+other or prior understandings, agreements and arrangements.  
+
