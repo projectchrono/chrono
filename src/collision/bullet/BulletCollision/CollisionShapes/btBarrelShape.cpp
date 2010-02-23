@@ -27,6 +27,7 @@ btBarrelShape::btBarrelShape(btScalar sY_low, btScalar sY_high, btScalar sR_vert
 	R_vert = sR_vert; 
 	R_hor  = sR_hor; 
 	R_offset = sR_offset;
+	m_shapeType = BARREL_SHAPE_PROXYTYPE;
 }
 
 #include <stdio.h>
