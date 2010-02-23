@@ -48,7 +48,7 @@ public:
 
 	virtual void	batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const;
 	
-	virtual int	getShapeType() const { return BARREL_SHAPE_PROXYTYPE; }
+	//virtual int	getShapeType() const { return BARREL_SHAPE_PROXYTYPE; }
 
 	virtual const char*	getName()const 
 	{
