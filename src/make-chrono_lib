@@ -139,7 +139,6 @@ CPPFILES_LIB = \
 	collision/convexdecomp/NvRemoveTjunctions.cpp \
 	collision/convexdecomp/NvSplitMesh.cpp \
 	collision/convexdecomp/NvStanHull.cpp \
-	collision/convexdecomp/NvThreadConfig.cpp \
 	chjs/ChJs_Engine.cpp \
 	chjs/ChJs_utils.cpp \
 	chjs/ChJs_all.cpp \

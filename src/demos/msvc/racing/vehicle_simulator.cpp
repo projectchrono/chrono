@@ -47,7 +47,7 @@ MySimulator::MySimulator()
 {
 	// CREATE THE IRRLICHT CONTEXT (device, etc.)
 	device = createDevice(video::EDT_DIRECT3D9, 
-							core::dimension2d<s32>(640, 480),	// resolution
+							core::dimension2d<u32>(640, 480),	// resolution
 							32,									// 32 bit depth 
 							false,								// full screen
 							true,								// do shadows (might be slow on old PC!)
@@ -55,7 +55,7 @@ MySimulator::MySimulator()
 	if (device == 0)
 	{
 		GetLog() << "Cannot use DirectX - switch to OpenGL \n"; 
-		device = createDevice(video::EDT_OPENGL, core::dimension2d<s32>(640, 480));
+		device = createDevice(video::EDT_OPENGL, core::dimension2d<u32>(640, 480));
 		if (!device) return;
 	}
 
@@ -318,7 +318,7 @@ void MySimulator::UpdateVideoCamera()
 		core::matrix4 irrMat;
 		ChQuaternion<> chq = mycar->truss->GetBody()->GetRot();
 		core::quaternion irrQuat(chq.e0, chq.e1, chq.e2, chq.e3);
-		irrQuat.getMatrix(irrMat);
+		irrMat = irrQuat.getMatrix();
 		camera->setRotation(irrMat.getRotationDegrees());
 		camera->updateAbsolutePosition();
 	}

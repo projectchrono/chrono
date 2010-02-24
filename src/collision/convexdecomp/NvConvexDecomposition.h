@@ -85,7 +85,7 @@ public:
 											 NxF32 volumeSplitThresholdPercent=0.1f, // The percentage of the total volume of the object above which splits will still occur.
 											 bool  useInitialIslandGeneration=true,	// whether or not to perform initial island generation on the input mesh.
 											 bool  useIslandGeneration=false,		// Whether or not to perform island generation at each split.  Currently disabled due to bug in RemoveTjunctions
-											 bool  useBackgroundThread=true) = 0;	// Whether or not to compute the convex decomposition in a background thread, the default is true.
+											 bool  useBackgroundThread=true) = 0;	// ***DISABLED***Whether or not to compute the convex decomposition in a background thread, the default is true.
 
 	virtual bool isComputeComplete(void) = 0; // if building the convex hulls in a background thread, this returns true if it is complete.
 

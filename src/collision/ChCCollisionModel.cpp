@@ -57,7 +57,7 @@ double GetDefaultSuggestedMargin()
 
 bool ChCollisionModel::AddConvexHullsFromFile(ChStreamInAscii& mstream, ChVector<>* pos, ChMatrix33<>* rot)
 {
-	std::vector<ChVector<>> ptlist; 
+	std::vector< ChVector<double> > ptlist; 
 
 	char bufdata[200];
 	int  linechar =0;

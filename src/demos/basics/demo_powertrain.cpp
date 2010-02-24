@@ -390,7 +390,8 @@ int main(int argc, char* argv[])
 				// We must specify the direction (in body coordinates) along which the 
 				// shaft will affect the body.
 		ChSharedPtr<ChShaftsBody> my_shaftbody_connection(new ChShaftsBody);
-		my_shaftbody_connection->Initialize(my_shaftA, my_bodyB, ChVector<>(VECT_Z));
+		ChVector<> mshaftdir(VECT_Z);
+		my_shaftbody_connection->Initialize(my_shaftA, my_bodyB, mshaftdir);
 		my_system.Add(my_shaftbody_connection);
 	
 		GetLog() << "\n\n\nHere's the system hierarchy: \n\n ";

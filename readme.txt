@@ -3,12 +3,12 @@
   
   History of API changes, bug fixes, new features
 
-Release 0.9
-xx-x-xxxx
+Release 0.9.0
+23-2-2010
 
 - The convex decomposition code has been updated and improved.
   Now there is a class collision/ChCConvexDecomposition.h that
-  manages the convex decomposition for concave meshes, with fine
+  manages the convex decomposition for concave meshes, with 
   settings.
   
 - New demo 'demo_decomposition.exe', that shows interactively the

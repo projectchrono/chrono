@@ -16,7 +16,7 @@
 	/>
 	<UserMacro
 		Name="IrrlichtDir"
-		Value="C:\engine_demo\irrlicht-1.5"
+		Value="C:\engine_demo\irrlicht-1.7.1"
 	/>
 	<UserMacro
 		Name="IrrklangDir"

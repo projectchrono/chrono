@@ -46,23 +46,23 @@ public:
 						 this->ConvertFromMatrix(msource);
 					  };
 
-	inline Real& XX()   { return ElementN(0); };
-	inline const Real& XX () const { return ElementN(0); };
+	inline Real& XX()   { return ChMatrix<Real>::ElementN(0); };
+	inline const Real& XX () const { return ChMatrix<Real>::ElementN(0); };
 
-	inline Real& YY()   { return ElementN(1); };
-	inline const Real& YY () const { return ElementN(1); };
+	inline Real& YY()   { return ChMatrix<Real>::ElementN(1); };
+	inline const Real& YY () const { return ChMatrix<Real>::ElementN(1); };
 
-	inline Real& ZZ()   { return ElementN(2); };
-	inline const Real& ZZ () const { return ElementN(2); };
+	inline Real& ZZ()   { return ChMatrix<Real>::ElementN(2); };
+	inline const Real& ZZ () const { return ChMatrix<Real>::ElementN(2); };
 
-	inline Real& XY()   { return ElementN(3); };
-	inline const Real& XY () const { return ElementN(3); };
+	inline Real& XY()   { return ChMatrix<Real>::ElementN(3); };
+	inline const Real& XY () const { return ChMatrix<Real>::ElementN(3); };
 
-	inline Real& XZ()   { return ElementN(4); };
-	inline const Real& XZ () const { return ElementN(4); };
+	inline Real& XZ()   { return ChMatrix<Real>::ElementN(4); };
+	inline const Real& XZ () const { return ChMatrix<Real>::ElementN(4); };
 
-	inline Real& YZ()   { return ElementN(5); };
-	inline const Real& YZ () const { return ElementN(5); };
+	inline Real& YZ()   { return ChMatrix<Real>::ElementN(5); };
+	inline const Real& YZ () const { return ChMatrix<Real>::ElementN(5); };
 		
 			/// Convert from a typical 3D rank-two stress or strain tensor (a 3x3 matrix)
 	template <class RealB>
@@ -120,7 +120,7 @@ public:
 			/// Compute the Von Mises equivalent stress
 	double GetVonMisesStressV2() 
 			{	
-				return sqrt( 0.5*(pow(XX()-YY(),2.) + pow(YY()-ZZ(),2.) + pow(ZZ()-XX(),2.)) + 3.0*( XY()*XY() + XZ()*XZ() + YZ()*YZ()) );
+				return sqrt( 0.5*(pow(this->XX()-this->YY(),2.) + pow(this->YY()-this->ZZ(),2.) + pow(this->ZZ()-this->XX(),2.)) + 3.0*( this->XY()*this->XY() + this->XZ()*this->XZ() + this->YZ()*this->YZ()) );
 			}
 };
 

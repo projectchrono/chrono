@@ -8,7 +8,7 @@
 ; Copyright 2009 A.Tasora
 
 #define MyAppName "ChronoEngine"
-#define MyAppVersion "v0.8.0"
+#define MyAppVersion "v0.9.0"
 #define MyAppPublisher "Alessandro Tasora"
 #define MyAppURL "http://www.deltaknowledge.com"
 #define MyChronoEngineSDK "C:\tasora\code\dynamics\code\ChronoEngine"
