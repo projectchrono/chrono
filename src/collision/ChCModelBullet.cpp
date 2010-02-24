@@ -280,7 +280,7 @@ bool ChModelBullet::AddBarrel (double Y_low, double Y_high, double R_vert, doubl
 
 
 
-bool ChModelBullet::AddConvexHull (std::vector<ChVector<>>& pointlist, ChVector<>* pos, ChMatrix33<>* rot)
+bool ChModelBullet::AddConvexHull (std::vector< ChVector<double> >& pointlist, ChVector<>* pos, ChMatrix33<>* rot)
 {
 		// adjust default inward margin (if object too thin)
 	//this->SetSafeMargin((btScalar)ChMin(this->GetSafeMargin(), ... );

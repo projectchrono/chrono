@@ -36,6 +36,7 @@ NvHashMap.h : A simple hash map and array template class to avoid introducing de
 #if (defined(NX_WINDOWS) | defined(NX_X360))
 #include <typeinfo.h>
 #endif
+#include <typeinfo> //***ALEX***
 
 #include <new>
 #include <stdlib.h>

@@ -127,7 +127,7 @@ class ChTimer
      time_t			 m_tz;
 	#else
      struct	timezone m_tz;
-	#endif;
+	#endif
   public:
 				/// Start the timer
     void start() { gettimeofday(&m_start, &m_tz); }

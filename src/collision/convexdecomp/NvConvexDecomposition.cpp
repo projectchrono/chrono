@@ -66,8 +66,7 @@ NvConvexDecomposition.cpp : The main interface to the convex decomposition libra
 #include "NvStanHull.h"
 #include "NvConcavityVolume.h"
 #include "NvSplitMesh.h"
-#include "NvThreadConfig.h"
-
+//#include "NvThreadConfig.h"
 
 #pragma warning(disable:4996 4100 4189)
 
@@ -247,7 +246,7 @@ public:
 
 typedef Array< ConvexHull *> ConvexHullVector;
 
-class ConvexDecomposition : public iConvexDecomposition, public CONVEX_DECOMPOSITION::Memalloc, public ThreadInterface
+class ConvexDecomposition : public iConvexDecomposition, public CONVEX_DECOMPOSITION::Memalloc //***ALEX***, public ThreadInterface
 {
 public:
 	ConvexDecomposition(void)
@@ -255,22 +254,26 @@ public:
 		mVertexIndex = 0;
 		mComplete = false;
 		mCancel = false;
-		mThread = 0;
+		//***ALEX*** mThread = 0;
 	}
 
 	~ConvexDecomposition(void)
 	{
 		wait();
 		reset();
+		/* ***ALEX***
 		if ( mThread )
 		{
 			tc_releaseThread(mThread);
 		}
+		*/
 	}
 
 	void wait(void) const
 	{
+		/* ***ALEX***
 		while ( mThread && !mComplete );
+		*/
 	}
 
 	virtual void reset(void)  // reset the input mesh data.
@@ -345,8 +348,10 @@ public:
 	{
 		NxU32 ret = 0;
 
+		/* ***ALEX***
 		if ( mThread )
 			return 0;
+		*/
 
 		if ( mVertexIndex )
 		{
@@ -364,7 +369,8 @@ public:
 
 			if ( useThreads )
 			{
-				mThread = tc_createThread(this);
+				// mThread = tc_createThread(this); //***ALEX
+				assert(false); // Background thread not supported 
 			}
 			else
 			{
@@ -610,6 +616,7 @@ public:
 	{
 		bool ret = true;
 
+		/* ***ALEX***
 		if ( mThread )
 		{
 			ret = mComplete;
@@ -619,6 +626,7 @@ public:
 				mThread = 0;
 			}
 		}
+		*/
 
 		return ret;
 	}
@@ -742,11 +750,13 @@ public:
 	{
 		bool ret = false;
 
+		/* ***ALEX***
 		if ( mThread && !mComplete )
 		{
 			mCancel = true;
 			ret = true;
 		}
+		*/
 
 		return ret;
 	}
@@ -758,7 +768,7 @@ private:
 	NxU32Array			mIndices;
 	NxF32				mOverallMeshVolume;
 	ConvexHullVector	mHulls;
-	Thread				*mThread;
+	// Thread				*mThread; ***ALEX***
 
 	NxF32 				mSkinWidth;
 	NxU32 				mDecompositionDepth;

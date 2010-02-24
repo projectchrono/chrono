@@ -89,7 +89,7 @@ public:
   		/// Add a convex hull to this model. A convex hull is simply a point cloud that describe
 		/// a convex polytope. Connectivity between the vertexes, as faces/edges in triangle meshes is not necessary.
 		/// Points are passed as a list, that is instantly copied into the model.
-  virtual bool AddConvexHull (std::vector<ChVector<>>& pointlist, ChVector<>* pos=0, ChMatrix33<>* rot=0);
+  virtual bool AddConvexHull (std::vector< ChVector<double> >& pointlist, ChVector<>* pos=0, ChMatrix33<>* rot=0);
 
 		/// Add a triangle mesh to this model, passing a triangle mesh (do not delete the triangle mesh
 		/// until the collision model, because depending on the implementation of inherited ChCollisionModel

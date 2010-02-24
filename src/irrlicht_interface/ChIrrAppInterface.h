@@ -232,7 +232,7 @@ public:
 			if (device == 0) 
 			{      
 				chrono::GetLog() << "Cannot use default video driver - fall back to OpenGL \n"; 
-				device = createDevice(video::EDT_OPENGL, core::dimension2d<u32>(640, 480));
+				device = createDevice(video::EDT_OPENGL, core::dimension2d<u32>(800, 600));
 				if (!device) return;
 			}
 

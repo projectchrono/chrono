@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
 		while (myiter != my_system.IterEndLinks())
 		{ 
 			GetLog() << "   Link class: " << (*myiter)->GetRTTI()->GetName() << "  , leaves n.DOFs: "  << (*myiter)->GetLeftDOF() << "\n";
-			myiter++;
+			++myiter;
 		}
 		
 
