@@ -108,9 +108,12 @@ public:
 	virtual ~ChProximityContainerSPH ();
 
 
+
 				//
 	  			// FUNCTIONS
 				//
+
+
 					/// Tell the number of added contacts
 	virtual int GetNproximities  () {return n_added;}
 
@@ -139,8 +142,15 @@ public:
 	virtual void ReportAllProximities(ChReportProximityCallback* mcallback);
 
 
-					/// Compute SPH forces and meshless forces in general.
-	virtual void Update (double mtime);			
+					/// Update
+	virtual void Update (double mtime);	
+
+					// Perform some SPH per-edge initializations and accumulations of values 
+					// into the connected pairs of particles (summation into partcle's  J, Amoment, m_v, UserForce -viscous only- )
+	virtual void AccumulateStep1();
+
+					// Perform some SPH per-edge transfer of forces, given stress tensors in A B nodes
+	virtual void AccumulateStep2();
 	
 				//
 				// LCP INTERFACE

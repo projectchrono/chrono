@@ -190,46 +190,11 @@ double W_sq_visco(double r, double h)
 }
 
 
-void ChProximityContainerSPH::VariablesFbLoadForces(double factor)
+
+void ChProximityContainerSPH::AccumulateStep1()
 {
-	ChVector<> Xforce;
-	
-	// Per-node data initialization.  
-	// (but looping on edges) Btw: might be better to move it in the ChMatterSPH class, 
-	// looping on nodes directly, to avoid the problem of multiple iitializations if multiple edges 
-	// act on same node.
-
-	std::list<ChProximitySPH*>::iterator iterproximity = proximitylist.begin();
-	while(iterproximity != proximitylist.end())
-	{
-		ChMatterSPH* mmatA = (ChMatterSPH*)(*iterproximity)->GetModelA()->GetPhysicsItem();
-		ChMatterSPH* mmatB = (ChMatterSPH*)(*iterproximity)->GetModelB()->GetPhysicsItem();
-		ChNodeSPH* mnodeA =(ChNodeSPH*) &mmatA->GetNode ( ((ChModelBulletNode*)(*iterproximity)->GetModelA())->GetNodeId()  );
-		ChNodeSPH* mnodeB =(ChNodeSPH*) &mmatB->GetNode ( ((ChModelBulletNode*)(*iterproximity)->GetModelB())->GetNodeId()  );
-		
-		mnodeA->J.FillElem(0.0);
-		mnodeA->Amoment.FillElem(0.0);
-		mnodeA->t_strain.FillElem(0.0);
-		mnodeA->t_stress.FillElem(0.0);
-		mnodeA->m_v = VNULL;
-		mnodeA->edge_processed = false;
-		mnodeA->UserForce = VNULL;
-
-		mnodeB->J.FillElem(0.0);
-		mnodeB->Amoment.FillElem(0.0);
-		mnodeB->t_strain.FillElem(0.0);
-		mnodeB->t_stress.FillElem(0.0);
-		mnodeB->m_v = VNULL;
-		mnodeB->edge_processed = false;
-		mnodeB->UserForce = VNULL;
-		
-		++iterproximity;
-	}
-
-
 	// Per-edge data computation
-
-	iterproximity = proximitylist.begin();
+	std::list<ChProximitySPH*>::iterator iterproximity = proximitylist.begin();
 	while(iterproximity != proximitylist.end())
 	{
 		ChMatterSPH* mmatA = (ChMatterSPH*)(*iterproximity)->GetModelA()->GetPhysicsItem();
@@ -252,6 +217,9 @@ void ChProximityContainerSPH::VariablesFbLoadForces(double factor)
 
 		// increment data of connected nodes
 
+		mnodeA->density += mnodeB->GetMass() * W_BA;
+		mnodeB->density += mnodeA->GetMass() * W_AB;
+
 		ChMatrixNM<double, 3,1> mdist;
 		mdist.PasteVector(d_BA,0,0);
 		ChMatrixNM<double, 3,1> mdistT;
@@ -267,9 +235,13 @@ void ChProximityContainerSPH::VariablesFbLoadForces(double factor)
 		mnodeB->Amoment.MatrInc(ddAB);	// increment the moment matrix: Ab += d_AB*d_AB'*W_AB
 
 
-		ChVector<> m_inc_BA = d_BA * W_BA;
-		mnodeA->m_v = mnodeA->m_v + m_inc_BA; // increment the m_v vector
-		
+		ChVector<> m_inc_BA = (d_BA)  * W_BA;
+		mnodeA->m_v = mnodeA->m_v - m_inc_BA; // increment the m_v vector
+
+		ChVector<> m_inc_AB = (-d_BA) * W_AB;
+		mnodeB->m_v = mnodeB->m_v - m_inc_AB; // increment the m_v vector
+
+
 		ChVector<> dwg;					// increment the J matrix
 		dwg = m_inc_BA * g_BA.x;
 		mnodeA->J.PasteSumVector(dwg,0,0);
@@ -278,9 +250,6 @@ void ChProximityContainerSPH::VariablesFbLoadForces(double factor)
 		dwg = m_inc_BA * g_BA.z;
 		mnodeA->J.PasteSumVector(dwg,0,2);		
 
-		ChVector<> m_inc_AB = (-d_BA) * W_AB;
-		mnodeB->m_v = mnodeB->m_v + m_inc_AB; // increment the m_v vector
-	
 		dwg = m_inc_AB * (-g_BA.x);		// increment the J matrix
 		mnodeB->J.PasteSumVector(dwg,0,0);
 		dwg = m_inc_AB * (-g_BA.y);
@@ -300,119 +269,55 @@ void ChProximityContainerSPH::VariablesFbLoadForces(double factor)
 		++iterproximity;
 	}
 
-	// Per-node data computation  
-	// (but looping on edges) Btw: might be better to move it in the ChMatterSPH class, 
-	// looping on nodes directly, to avoid the mnodeA->edge_processed trick..
+}
 
-	iterproximity = proximitylist.begin();
+void ChProximityContainerSPH::AccumulateStep2()
+{
+	// Per-edge data computation (transfer stress to forces)
+	std::list<ChProximitySPH*>::iterator iterproximity = proximitylist.begin();
 	while(iterproximity != proximitylist.end())
 	{
 		ChMatterSPH* mmatA = (ChMatterSPH*)(*iterproximity)->GetModelA()->GetPhysicsItem();
 		ChMatterSPH* mmatB = (ChMatterSPH*)(*iterproximity)->GetModelB()->GetPhysicsItem();
 		ChNodeSPH* mnodeA =(ChNodeSPH*) &mmatA->GetNode ( ((ChModelBulletNode*)(*iterproximity)->GetModelA())->GetNodeId()  );
 		ChNodeSPH* mnodeB =(ChNodeSPH*) &mmatB->GetNode ( ((ChModelBulletNode*)(*iterproximity)->GetModelB())->GetNodeId()  );
+	
+		ChVector<> x_A  = mnodeA->GetPos();
+		ChVector<> x_B  = mnodeB->GetPos();
+		ChVector<> x_Aref  = mnodeA->GetPosReference();
+		ChVector<> x_Bref  = mnodeB->GetPosReference();
+		ChVector<> u_A = (x_A -x_Aref);
+		ChVector<> u_B = (x_B -x_Bref);
 
-		if (!mnodeA->edge_processed)	// avoid multiple calls on single node from multiple concurrent edges
-		{
-			// Compute A inverse
-			ChMatrix33<> M_tmp = mnodeA->Amoment;
-			double det = M_tmp.FastInvert(&mnodeA->Amoment);
-			if (fabs(det)<0.00001) 
-			{
-				mnodeA->Amoment.FillElem(0); // deactivate if not possible to invert
-			}
+		ChVector<> d_BA = x_Bref - x_Aref;
 
-			// Compute J = ( A^-1 * [dwg | dwg | dwg] )' + I
-			M_tmp.MatrMultiply(mnodeA->Amoment, mnodeA->J);
-			M_tmp.Element(0,0) +=1; 
-			M_tmp.Element(1,1) +=1;
-			M_tmp.Element(2,2) +=1;	
-			mnodeA->J.CopyFromMatrixT(M_tmp);
+		double dist_BA = d_BA.Length();
+		double W_BA =  W_sph( dist_BA, mnodeA->GetKernelRadius() );
+		double W_AB =  W_sph( dist_BA, mnodeB->GetKernelRadius() );
 
-			// Compute strain tensor  epsilon = J'*J - I
-			ChMatrix33<> mtensor;
-			mtensor.MatrMultiply(M_tmp, mnodeA->J);
-			mtensor.Element(0,0)-=1;
-			mtensor.Element(1,1)-=1;
-			mtensor.Element(2,2)-=1;
+		// increment forces of connected nodes
 
-			ChStrainTensor<> elasticstrain;
-			mnodeA->t_strain.ConvertFromMatrix(mtensor);
-			elasticstrain.MatrSub( mnodeA->t_strain , mnodeA->p_strain);
-			mmatA->GetMaterial().ComputeElasticStress(mnodeA->t_stress, elasticstrain);
-			mnodeA->t_stress.ConvertToMatrix(mtensor);
+		ChMatrix33<> mtensor;
 
-			Xforce      = (mnodeA->J * (mtensor * (mnodeA->Amoment * mnodeA->m_v))) * (2*mnodeA->volume);
-			
-			mnodeA->Variables().Get_fb().PasteSumVector( Xforce * factor ,0,0);
-			//mnodeA->UserForce = Xforce;
-			mnodeA->Variables().Get_fb().PasteSumVector( mnodeA->UserForce * factor ,0,0); // visco effects
+		mnodeA->t_stress.ConvertToMatrix(mtensor);
+		ChVector<> elasticForceB  = (mnodeA->J * (mtensor * (mnodeA->Amoment * (-d_BA)  ))) * (2*mnodeA->volume)  * W_BA ;
+		mnodeB->UserForce += elasticForceB;
 
-
-			// absorb deformation in plastic tensor, as in Muller paper.
-		    mnodeA->p_strain.MatrSub(mnodeA->p_strain , mnodeA->t_strain);
-		    mnodeA->t_strain.FillElem(0);
-		    mnodeA->pos_ref = mnodeA->pos;
-
-			mnodeA->edge_processed = true;
-		}
-
-		if (!mnodeB->edge_processed)	// avoid multiple calls on single node from multiple concurrent edges
-		{
-			// Compute A inverse
-			ChMatrix33<> M_tmp = mnodeB->Amoment;
-			double det = M_tmp.FastInvert(&mnodeB->Amoment);
-			if (fabs(det)<0.00001) 
-			{
-				mnodeB->Amoment.FillElem(0); // deactivate if not possible to invert
-			}
-			// Compute J = ( A^-1 * [dwg | dwg | dwg] )' + I
-			M_tmp.MatrMultiply(mnodeB->Amoment, mnodeB->J);
-			M_tmp.Element(0,0) +=1; 
-			M_tmp.Element(1,1) +=1;
-			M_tmp.Element(2,2) +=1;	
-			mnodeB->J.CopyFromMatrixT(M_tmp);
-
-			// Compute strain tensor  epsilon = J'*J - I
-			ChMatrix33<> mtensor;
-			mtensor.MatrMultiply(M_tmp, mnodeB->J);
-			mtensor.Element(0,0)-=1; 
-			mtensor.Element(1,1)-=1;
-			mtensor.Element(2,2)-=1;
-
-			ChStrainTensor<> elasticstrain;
-			mnodeB->t_strain.ConvertFromMatrix(mtensor);
-			elasticstrain.MatrSub( mnodeB->t_strain , mnodeB->p_strain);
-			mmatB->GetMaterial().ComputeElasticStress(mnodeB->t_stress, elasticstrain);
-			mnodeB->t_stress.ConvertToMatrix(mtensor);
-
-			Xforce      = (mnodeB->J * (mtensor * (mnodeB->Amoment * mnodeB->m_v))) * (2*mnodeB->volume);
-			
-			mnodeB->Variables().Get_fb().PasteSumVector( Xforce * factor ,0,0);
-			//mnodeB->UserForce = Xforce;
-			mnodeB->Variables().Get_fb().PasteSumVector( mnodeB->UserForce * factor ,0,0); // visco effects
-
-			// absorb deformation in plastic tensor, as in Muller paper.
-		    mnodeB->p_strain.MatrSub(mnodeB->p_strain , mnodeB->t_strain);
-		    mnodeB->t_strain.FillElem(0);
-		    mnodeB->pos_ref = mnodeB->pos;
-
-			mnodeB->edge_processed = true;
-		}
+		mnodeB->t_stress.ConvertToMatrix(mtensor);
+		ChVector<> elasticForceA  = (mnodeB->J * (mtensor * (mnodeB->Amoment * ( d_BA)  ))) * (2*mnodeB->volume)  * W_AB ;
+		mnodeA->UserForce += elasticForceA;
 
 		++iterproximity;
 	}
 
-	iterproximity = proximitylist.begin();
-	while(iterproximity != proximitylist.end())
-	{
+}
 
-		++iterproximity;
-	}
 
-	// add applied forces and torques (and also the gyroscopic torque!) to 'fb' vector
-	//this->variables.Get_fb().PasteSumVector( Xforce * factor ,0,0);
-	//this->variables.Get_fb().PasteSumVector((Xtorque + gyro)* factor ,3,0);
+
+void ChProximityContainerSPH::VariablesFbLoadForces(double factor)
+{
+	// do nothing
+
 }
 
 

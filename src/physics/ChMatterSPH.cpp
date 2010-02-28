@@ -16,6 +16,7 @@
 #include "physics/ChSystem.h"
 
 #include "physics/ChExternalObject.h"
+#include "physics/ChProximityContainerSPH.h"
 #include "collision/ChCModelBulletNode.h"
 #include "core/ChLinearAlgebra.h"
 
@@ -50,6 +51,7 @@ ChNodeSPH::ChNodeSPH()
 	this->coll_rad = 0.001;
 	this->SetMass(0.01);
 	this->volume = 0.01;
+	this->density = this->GetMass()/this->volume;
 }
 
 ChNodeSPH::~ChNodeSPH()
@@ -72,6 +74,7 @@ ChNodeSPH::ChNodeSPH (const ChNodeSPH& other) :
 	this->SetCollisionRadius(other.coll_rad);
 	this->SetMass(other.GetMass());
 	this->volume = other.volume;
+	this->density = other.density;
 	
 	this->t_strain = other.t_strain;
 	this->p_strain = other.p_strain;
@@ -99,7 +102,8 @@ ChNodeSPH& ChNodeSPH::operator= (const ChNodeSPH& other)
 	this->SetCollisionRadius(other.coll_rad);
 	this->SetMass(other.GetMass());
 	this->volume = other.volume;
-
+	this->density = other.density;
+	
 	this->t_strain = other.t_strain;
 	this->p_strain = other.p_strain;
 	this->t_stress = other.t_stress;
@@ -240,15 +244,111 @@ void ChMatterSPH::VariablesFbReset()
 
 void ChMatterSPH::VariablesFbLoadForces(double factor)
 {
+
+	// COMPUTE THE SPH FORCES HERE
+
+	// First, find if any ChProximityContainerSPH object is present
+	// in the system,
+
+	ChProximityContainerSPH* edges =0;
+	std::list<ChPhysicsItem*>::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
+	while (iterotherphysics != this->GetSystem()->Get_otherphysicslist()->end())
+	{
+		if (edges=dynamic_cast<ChProximityContainerSPH*>(*iterotherphysics))
+			break;
+		iterotherphysics++;
+	}
+	assert(edges); // If using a ChMatterSPH, you must add also a ChProximityContainerSPH.
+	
+
+	// 1- Per-node initialization
+
+	for (unsigned int j = 0; j < nodes.size(); j++)
+	{
+		this->nodes[j]->J.FillElem(0.0);
+		this->nodes[j]->Amoment.FillElem(0.0);
+		this->nodes[j]->t_strain.FillElem(0.0);
+		this->nodes[j]->t_stress.FillElem(0.0); 
+		this->nodes[j]->m_v = VNULL;
+		this->nodes[j]->UserForce = VNULL;
+		this->nodes[j]->density = 0;
+	}
+
+	// 2- Per-edge initialization and accumulation of values in particles's J, Amoment, m_v, density
+
+	edges->AccumulateStep1();
+
+	// 3- Per-node inversion of A and computation of strain stress
+
+	for (unsigned int j = 0; j < nodes.size(); j++)
+	{
+		ChNodeSPH* mnode = this->nodes[j];
+
+		// node volume is v=mass/density
+		if (mnode->density)
+			mnode->volume = mnode->GetMass()/mnode->density;
+		else 
+			mnode->volume = 10e20;
+
+		// Compute A inverse
+		ChMatrix33<> M_tmp = mnode->Amoment;
+		double det = M_tmp.FastInvert(&mnode->Amoment);
+		if (fabs(det)<0.00001) 
+		{
+			mnode->Amoment.FillElem(0); // deactivate if not possible to invert
+		}
+		else
+		{
+			// Compute J = ( A^-1 * [dwg | dwg | dwg] )' + I
+			M_tmp.MatrMultiply(mnode->Amoment, mnode->J);
+			M_tmp.Element(0,0) +=1; 
+			M_tmp.Element(1,1) +=1;
+			M_tmp.Element(2,2) +=1;	
+			mnode->J.CopyFromMatrixT(M_tmp);
+
+			// Compute strain tensor  epsilon = J'*J - I
+			ChMatrix33<> mtensor;
+			mtensor.MatrMultiply(M_tmp, mnode->J);
+			mtensor.Element(0,0)-=1;
+			mtensor.Element(1,1)-=1;
+			mtensor.Element(2,2)-=1;
+
+			ChStrainTensor<> elasticstrain;
+			mnode->t_strain.ConvertFromMatrix(mtensor);
+			elasticstrain.MatrSub( mnode->t_strain , mnode->p_strain);
+			this->GetMaterial().ComputeElasticStress(mnode->t_stress, elasticstrain);		
+
+		}
+	}
+
+	// 4- Per-edge force transfer from stress, and add also viscous forces
+
+	edges->AccumulateStep2();
+
+
+	// 5- Per-node load force
+
 	for (unsigned int j = 0; j < nodes.size(); j++)
 	{
 		// particle gyroscopic force:
 		// none.
 
-		// add applied forces and torques (and also gravity!) to 'fb' vector
+		// add gravity 
 		ChVector<> Gforce = GetSystem()->Get_G_acc() * this->nodes[j]->GetMass();
-		this->nodes[j]->variables.Get_fb().PasteSumVector((this->nodes[j]->UserForce + Gforce) * factor ,0,0);
+		ChVector<> TotForce = this->nodes[j]->UserForce + Gforce; 
+
+		ChNodeSPH* mnode = this->nodes[j];
+
+		mnode->variables.Get_fb().PasteSumVector(TotForce * factor ,0,0);
+
+			// absorb deformation in plastic tensor, as in Muller paper.
+		/*
+			mnode->p_strain.MatrDec(mnode->t_strain);
+			mnode->t_strain.FillElem(0);
+			mnode->pos_ref = mnode->pos;
+		*/
 	}
+
 }
 
 
@@ -284,6 +384,19 @@ void ChMatterSPH::VariablesQbIncrementPosition(double dt_step)
 	//if (!this->IsActive()) 
 	//	return;
 
+	// Integrate plastic flow 
+	for (unsigned int j = 0; j < nodes.size(); j++)
+	{
+		ChNodeSPH* mnode = this->nodes[j];
+
+		ChStrainTensor<> plasticflow;
+		this->material.ComputePlasticStrainFlow(plasticflow, mnode->t_strain);
+		//if (plasticflow.NormInf() >0)
+		//	GetLog() << "Flow " << plasticflow.NormInf() << "    in node " << j << "\n";
+		this->nodes[j]->p_strain.MatrInc(plasticflow*dt_step);
+	
+	}
+
 	for (unsigned int j = 0; j < nodes.size(); j++)
 	{
 		// Updates position with incremental action of speed contained in the
@@ -294,6 +407,8 @@ void ChMatterSPH::VariablesQbIncrementPosition(double dt_step)
 		// ADVANCE POSITION: pos' = pos + dt * vel
 		this->nodes[j]->SetPos( this->nodes[j]->GetPos() + newspeed * dt_step);
 	}
+
+
 }
 
 
@@ -335,16 +450,6 @@ void ChMatterSPH::Update (double mytime)
 	//TrySleeping();		// See if the body can fall asleep; if so, put it to sleeping 
 	//ClampSpeed();			// Apply limits (if in speed clamping mode) to speeds.
 	
-	//GetLog() << "\n time " << this->GetChTime() <<"\n";
-/*
-	for (unsigned int j = 0; j < nodes.size(); j++)
-	{
-		// absorb deformation in plastic tensor, as in Muller paper.
-		this->nodes[j]->p_strain.MatrSub(this->nodes[j]->p_strain , this->nodes[j]->t_strain);
-		this->nodes[j]->t_strain.FillElem(0);
-		this->nodes[j]->pos_ref = this->nodes[j]->pos;
-	}
-*/
 }
 
 

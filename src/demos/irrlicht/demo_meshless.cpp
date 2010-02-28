@@ -66,14 +66,14 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 	int samples_y = 12;
 	int samples_z = 5;
 	double step_x = size_x/(samples_x-1);
-	double step_y =  size_y/(samples_y-1);
+	double step_y = size_y/(samples_y-1);
 	double step_z = size_z/(samples_z-1);
 	for (int iy = samples_y; iy >0 ; iy--)
 		for (int ix = 0; ix < samples_x; ix++)  
 			for (int iz = 0; iz < samples_z; iz++) 
 			{
-				ChVector<> pos (	ix*step_x,
-									iy*step_y,	
+				ChVector<> pos (	iy*step_y,
+									ix*step_x,	
 									iz*step_z  );
 				mymatter->AddNode(pos);
 			}
@@ -86,12 +86,15 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 		ChNodeSPH* mnode = (ChNodeSPH*)&(mymatter->GetNode(ip));
 		mnode->SetKernelRadius(0.45);
 		mnode->SetCollisionRadius(0.01);
+		mnode->SetMass(0.1);
 	}
 
 
-	mymatter->GetMaterial().Set_v(0);
-	mymatter->GetMaterial().Set_E(5000);
-	mymatter->SetViscosity(0.0000);
+	mymatter->GetMaterial().Set_v(0.38);
+	mymatter->GetMaterial().Set_E(250);
+	mymatter->GetMaterial().Set_elastic_yeld(0.12);
+	mymatter->GetMaterial().Set_flow_rate(100.5);
+	mymatter->SetViscosity(0.3);
 
 
 	ChBodySceneNode* mrigidBody; 
@@ -207,20 +210,24 @@ int main(int argc, char* argv[])
 	// global functions are needed. 
 	ChGlobals* GLOBAL_Vars = DLL_CreateGlobals();
 
+	ChStrainTensor<> mstrain;
 	ChStressTensor<> mstress;
-mstress.XX() = 12;
-mstress.YY() = 13;
-mstress.ZZ() = 14;
-mstress.XY() = 3;
-mstress.XZ() = 4;
-mstress.YZ() = 5;
-GetLog() << "Voight:\n" << mstress << "\n\n";
-ChMatrix33<> mst;
-mstress.ConvertToMatrix(mst);
-mst *=10;
-GetLog() << "3x3:\n" << mst << "\n\n";
-mstress.ConvertFromMatrix(mst);
-GetLog() << "Voight:\n" << mstress << "\n\n";
+mstrain.XX() = 2;
+mstrain.YY() = 13;
+mstrain.ZZ() = 1;
+mstrain.XY() = 4;
+mstrain.XZ() = 2;
+mstrain.YZ() = 6;
+GetLog() << "mstrain:\n" << mstrain << "\n\n";
+
+ChContinuumMaterial mmat;
+mmat.Set_E(100);
+mmat.Set_v(0.4);
+mmat.ComputeElasticStress(mstress,mstrain);
+GetLog() << "mstress:\n" << mstress << "\n\n";
+
+mmat.ComputeElasticStrain(mstrain,mstress);
+GetLog() << "mstress:\n" << mstrain << "\n\n";
 
 
 	// Create a ChronoENGINE physical system
@@ -302,19 +309,21 @@ GetLog() << "Voight:\n" << mstress << "\n\n";
 									(irr::f32)mv.x+rad ,(irr::f32)mv.y+rad , (irr::f32)mv.z+rad )   ,
 									video::SColor(300,200,200,230) );
 					*/
-
-					//ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(mnode->UserForce * 0.002), video::SColor(255,255,0,0),false);
-					/*
-					double strain_scale =10;
-					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_X*mnode->t_strain.XX()* strain_scale), video::SColor(255,255,0,0),false);
-					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_Y*mnode->t_strain.YY()* strain_scale), video::SColor(255,0,255,0),false);
-					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_Z*mnode->t_strain.ZZ()* strain_scale), video::SColor(255,0,0,255),false);
-					*/
 					
-					double stress_scale =0.00001;
-					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_X*mnode->t_stress.XX()* stress_scale), video::SColor(255,255,0,0),false);
-					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_Y*mnode->t_stress.YY()* stress_scale), video::SColor(255,0,255,0),false);
-					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_Z*mnode->t_stress.ZZ()* stress_scale), video::SColor(255,0,0,255),false);
+					/*
+					double strain_scale =50;
+					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_X*mnode->p_strain.XX()* strain_scale), video::SColor(255,255,0,0),false);
+					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_Y*mnode->p_strain.YY()* strain_scale), video::SColor(255,0,255,0),false);
+					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_Z*mnode->p_strain.ZZ()* strain_scale), video::SColor(255,0,0,255),false);
+					*/
+
+					/*
+					double stress_scale =0.03;
+					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_X*mnode->t_stress.XX()* stress_scale), video::SColor(100,255,0,0),false);
+					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_Y*mnode->t_stress.YY()* stress_scale), video::SColor(100,0,255,0),false);
+					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_Z*mnode->t_stress.ZZ()* stress_scale), video::SColor(100,0,0,255),false);
+					*/
+					//ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(mnode->UserForce * 0.1), video::SColor(100,0,0,0),false);
 					
 				}
 			}
