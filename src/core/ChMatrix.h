@@ -434,7 +434,7 @@ public:
 								ElementN(nel)+= (Real)matra.ElementN(nel);
 						}
 
-					/// Decrements this matrix with another matrix A, as: [this]+=[A]
+					/// Decrements this matrix with another matrix A, as: [this]-=[A]
 	template <class RealB>
 	void MatrDec	( const ChMatrix<RealB>& matra)
 						{

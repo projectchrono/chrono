@@ -78,5 +78,68 @@ void ChContinuumMaterial::StreamIN(ChStreamInBinary& mstream)
 }
 
 
+
+///////////////////////////////
+
+
+ChContinuumElastoplastic::ChContinuumElastoplastic(double myoung, double mpoisson, double mdensity,
+												   double melastic_yeld, double  mplastic_yeld) : 
+							ChContinuumMaterial(myoung, mpoisson, mdensity)
+{
+	elastic_yeld = melastic_yeld;
+	plastic_yeld = mplastic_yeld;
+	flow_rate = 1;
+}
+
+
+void ChContinuumElastoplastic::ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow, const ChStrainTensor<>& mtotstrain) const
+{
+	double vonm = mtotstrain.GetEquivalentVonMises();
+	if (vonm > this->elastic_yeld)
+	{
+		ChVoightTensor<> mdev;
+		mtotstrain.GetDeviatoricPart(mdev);
+		mplasticstrainflow.CopyFromMatrix(mdev * ((vonm - this->elastic_yeld)/(vonm)));
+	}
+	else
+	{
+		mplasticstrainflow.FillElem(0);
+	}
+}
+
+void ChContinuumElastoplastic::StreamOUT(ChStreamOutBinary& mstream)
+{
+			// class version number
+	mstream.VersionWrite(1);
+
+		// stream out parent class
+	ChContinuumMaterial::StreamOUT(mstream);
+
+		// stream out all member data
+	mstream << this->elastic_yeld;
+	mstream << this->plastic_yeld;
+	mstream << this->flow_rate;
+}
+
+void ChContinuumElastoplastic::StreamIN(ChStreamInBinary& mstream)
+{
+		// class version number
+	int version = mstream.VersionRead();
+
+		// stream out parent class
+	ChContinuumMaterial::StreamIN(mstream);
+
+		// stream in all member data
+	mstream >> this->elastic_yeld;
+	mstream >> this->plastic_yeld;
+	mstream >> this->flow_rate;
+}
+
+
+
+
+
+
+
 } // END_OF_NAMESPACE____
 

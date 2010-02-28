@@ -100,6 +100,7 @@ public:
 	ChVector<> UserForce;		
 
 	double volume; 
+	double density;
 	double h_rad;
 	double coll_rad;
 };
@@ -124,7 +125,7 @@ private:
 						// The nodes: 
 	std::vector<ChNodeSPH*> nodes;				
 
-	ChContinuumMaterial material;
+	ChContinuumElastoplastic material;
 	
 	double viscosity;
 
@@ -244,7 +245,7 @@ public:
 
 
 				/// Access the material
-	ChContinuumMaterial&  GetMaterial() {return material;}
+	ChContinuumElastoplastic&  GetMaterial() {return material;}
 	
 	void SetViscosity(double mvisc) { viscosity=mvisc;}
 	double GetViscosity() {return viscosity;}
