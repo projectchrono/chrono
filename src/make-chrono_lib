@@ -94,9 +94,11 @@ CPPFILES_LIB = \
 	physics/ChContact.cpp \
 	physics/ChContactRolling.cpp \
 	physics/ChContactGPUsimple.cpp \
+	physics/ChContactNode.cpp \
 	physics/ChContactContainerBase.cpp \
 	physics/ChContactContainer.cpp \
 	physics/ChContactContainerGPUsimple.cpp \
+	physics/ChContactContainerNodes.cpp \
 	physics/ChProximityContainerBase.cpp \
 	physics/ChProximityContainerSPH.cpp \
 	physics/ChShaft.cpp \
@@ -186,6 +188,8 @@ CPPFILES_LIB = \
 	lcp/ChLcpConstraintTwoContactN.cpp \
 	lcp/ChLcpConstraintTwoRollingT.cpp \
 	lcp/ChLcpConstraintTwoRollingN.cpp \
+	lcp/ChLcpConstraintNodeFrictionT.cpp \
+	lcp/ChLcpConstraintNodeContactN.cpp \
 	lcp/ChLcpConstraintThree.cpp \
 	lcp/ChLcpConstraintThreeGeneric.cpp \
 	lcp/ChLcpConstraintThreeBBShaft.cpp \

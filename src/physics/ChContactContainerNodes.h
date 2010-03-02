@@ -1,13 +1,12 @@
-#ifndef CHCONTACTCONTAINER_H
-#define CHCONTACTCONTAINER_H
+#ifndef CHCONTACTCONTAINERNODES_H
+#define CHCONTACTCONTAINERNODES_H
 
 ///////////////////////////////////////////////////
 //
-//   ChContactContainer.h
+//   ChContactContainerNodes.h
 //
 //   Class for container of many contacts, as CPU
-//   typical linked list of ChContact objects (that
-//   is contacts between two 6DOF bodies)
+//   typical linked list of ChContactNode objects
 //
 //   HEADER file for CHRONO,
 //	 Multibody dynamics engine
@@ -21,8 +20,7 @@
 
 
 #include "physics/ChContactContainerBase.h"
-#include "physics/ChContact.h"
-#include "physics/ChContactRolling.h"
+#include "physics/ChContactNode.h"
 #include <list>
 
 namespace chrono
@@ -31,50 +29,41 @@ namespace chrono
 
 ///
 /// Class representing a container of many contacts, 
-/// implemented as a typical linked list of ChContact 
-/// objects (that is, contacts between two 6DOF bodies).
-/// It also contains rolling contact objects, if needed.
-/// This is the default contact container used in most
-/// cases.
+/// implemented as a typical linked list of ChContactNode
+/// objects (contacts between 3DOF nodes and 6DOF bodies)
 ///
 
-class ChContactContainer : public ChContactContainerBase {
+class ChContactContainerNodes : public ChContactContainerBase {
 
-	CH_RTTI(ChContactContainer,ChContactContainerBase);
+	CH_RTTI(ChContactContainerNodes,ChContactContainerBase);
 
 protected:
 				//
 	  			// DATA
 				//
 
-	std::list<ChContact*>   contactlist; 
+	std::list<ChContactNode*>   contactlist; 
 
 	int n_added;
 
-	std::list<ChContact*>::iterator lastcontact;
+	std::list<ChContactNode*>::iterator lastcontact;
 
-
-	std::list<ChContactRolling*>   contactlist_roll; 
-
-	int n_added_roll;
-
-	std::list<ChContactRolling*>::iterator lastcontact_roll;
 
 public:
 				//
 	  			// CONSTRUCTORS
 				//
 
-	ChContactContainer ();
+	ChContactContainerNodes ();
 
-	virtual ~ChContactContainer ();
+	virtual ~ChContactContainerNodes ();
 
 
 				//
 	  			// FUNCTIONS
 				//
 					/// Tell the number of added contacts
-	virtual int GetNcontacts  () {return n_added + n_added_roll;}
+	virtual int GetNcontacts  () {return n_added;}
 
 					/// Remove (delete) all contained contact data.
 	virtual void RemoveAllContacts();
@@ -106,7 +95,7 @@ public:
 
 					/// Tell the number of scalar bilateral constraints (actually, friction
 					/// constraints aren't exactly as unilaterals, but count them too)
-	virtual int GetDOC_d  () {return (n_added * 3) + (n_added_roll * 6);}
+	virtual int GetDOC_d  () {return (n_added * 3);}
 
 					/// In detail, it computes jacobians, violations, etc. and stores 
 					/// results in inner structures of contacts.
