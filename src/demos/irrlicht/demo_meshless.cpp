@@ -25,6 +25,7 @@
 #include "physics/ChMatterSPH.h"
 #include "physics/ChNodeBody.h"
 #include "physics/ChProximityContainerSPH.h"
+#include "physics/ChContactContainerNodes.h"
 #include "irrlicht_interface/ChBodySceneNode.h"
 #include "irrlicht_interface/ChBodySceneNodeTools.h" 
 #include "irrlicht_interface/ChIrrAppInterface.h"
@@ -62,7 +63,7 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 	double size_x = 3.;
 	double size_y = 3.;
 	double size_z = 1.;
-	int samples_x = 12;
+	int samples_x = 9;
 	int samples_y = 12;
 	int samples_z = 5;
 	double step_x = size_x/(samples_x-1);
@@ -72,8 +73,8 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 		for (int ix = 0; ix < samples_x; ix++)  
 			for (int iz = 0; iz < samples_z; iz++) 
 			{
-				ChVector<> pos (	iy*step_y,
-									ix*step_x,	
+				ChVector<> pos (	ix*step_x,
+									-iy*step_y,	
 									iz*step_z  );
 				mymatter->AddNode(pos);
 			}
@@ -91,19 +92,19 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 
 
 	mymatter->GetMaterial().Set_v(0.38);
-	mymatter->GetMaterial().Set_E(250);
-	mymatter->GetMaterial().Set_elastic_yeld(0.12);
-	mymatter->GetMaterial().Set_flow_rate(100.5);
-	mymatter->SetViscosity(0.3);
+	mymatter->GetMaterial().Set_E(850.0);
+	mymatter->GetMaterial().Set_elastic_yeld(0.012);
+	mymatter->GetMaterial().Set_flow_rate(10000.5);
+	mymatter->SetViscosity(0.2);
 
 
 	ChBodySceneNode* mrigidBody; 
 
-	for (int bi = 0; bi < 4; bi++) 
+	for (int bi = 0; bi < 14; bi++) 
 	{    
 		mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easySphere(
 											mphysicalSystem, msceneManager,
-											1.0,
+											10.0,
 											ChVector<>(-5+ChRandom()*10, 4+bi*0.05, -5+ChRandom()*10),
 											1.1);
    
@@ -169,7 +170,7 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 	mrigidBody->GetBody()->SetBodyFixed(true);
 	mrigidBody->setMaterialTexture(0,	cubeMap);
  
-
+/*
 	// Join some nodes of SPH matter to a ChBody
 	ChSharedPtr<ChIndexedNodes> mnodes = mymatter;
 	for (int ij = 0; ij < 120; ij++)
@@ -180,7 +181,7 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 									mrigidBody->GetBody());
 		mphysicalSystem->Add(myjointnodebody);
 	}
-
+*/
 
 	/*
 	// Add also few spherical particles
@@ -263,9 +264,15 @@ GetLog() << "mstress:\n" << mstrain << "\n\n";
  
 	mphysicalSystem.SetUseSleeping(true);
  
+	// IMPORTANT!
 	// This takes care of the interaction between the SPH particles
 	ChSharedPtr<ChProximityContainerSPH> my_sph_proximity(new ChProximityContainerSPH);
 	mphysicalSystem.Add(my_sph_proximity);
+	
+	// IMPORTANT!
+	// This takes care of the contact between the SPH particles and the wall
+	ChSharedPtr<ChContactContainerNodes> my_nodes_container(new ChContactContainerNodes);
+	mphysicalSystem.Add(my_nodes_container);
 	
 
 

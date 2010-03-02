@@ -172,7 +172,7 @@ Release 0.8
   The same for the new ' Remove(ChPhysicsItem*) ' function.
 
 - To scan through all the contacts, now you should use a callback.
-  Use ChContactContainer::ReportAllContacts(ChReportContactCallback* mcallback)
+  Use ChContactContainerBase::ReportAllContacts(ChReportContactCallback* mcallback)
   for this purpose. (Previously, one iterated through the ChLink list until
   he found a ChLink of contact type, but the new design based on contact containers
   made this obsolete). See inside ChIrrDisplayTools.h for an example.

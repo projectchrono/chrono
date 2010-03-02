@@ -1,12 +1,12 @@
-#ifndef CHCONTACT_H
-#define CHCONTACT_H
+#ifndef CHCONTACTNODE_H
+#define CHCONTACTNODE_H
 
 ///////////////////////////////////////////////////
 //
-//   ChContact.h
+//   ChContactNode.h
 //
 //   Classes for enforcing constraints (contacts)
-//   created by collision detection.
+//   between nodes (3DOF) and bodies (6DOF)
 //
 //   HEADER file for CHRONO,
 //	 Multibody dynamics engine
@@ -19,7 +19,7 @@
 
 
 #include "core/ChFrame.h"
-#include "lcp/ChLcpConstraintTwoContactN.h"
+#include "lcp/ChLcpConstraintNodeContactN.h"
 #include "lcp/ChLcpSystemDescriptor.h"
 #include "collision/ChCCollisionModel.h"
 
@@ -29,10 +29,10 @@ namespace chrono
 
 ///
 /// Class representing an unilateral contact constraint
-/// between two 6DOF rigid bodies.
+/// between a 3DOF node and a 6DOF body
 ///
 
-class ChContact {
+class ChContactNode {
 
 protected:
 				//
@@ -54,9 +54,9 @@ protected:
 
 							// The three scalar constraints, to be feed into the 
 							// system solver. They contain jacobians data and special functions.
-	ChLcpConstraintTwoContactN  Nx;
-	ChLcpConstraintTwoFrictionT Tu;
-	ChLcpConstraintTwoFrictionT Tv; 
+	ChLcpConstraintNodeContactN  Nx;
+	ChLcpConstraintNodeFrictionT Tu;
+	ChLcpConstraintNodeFrictionT Tv; 
 
 	ChVector<> react_force;
 
@@ -65,14 +65,14 @@ public:
 	  			// CONSTRUCTORS
 				//
 
-	ChContact ();
+	ChContactNode ();
 
-	ChContact (			collision::ChCollisionModel* mmodA,	///< model A
-						collision::ChCollisionModel* mmodB,	///< model B
-						const ChLcpVariablesBody* varA, ///< pass A vars
-						const ChLcpVariablesBody* varB, ///< pass B vars
-						const ChFrame<>* frameA,		///< pass A frame
-						const ChFrame<>* frameB,		///< pass B frame
+	ChContactNode (		collision::ChCollisionModel* mmodA,	///< model A (body)
+						collision::ChCollisionModel* mmodB,	///< model B (node)
+						const ChLcpVariablesBody* varA, ///< pass B vars (body)
+						const ChLcpVariablesNode* varB, ///< pass A vars (node)
+						const ChFrame<>*  frameA,		///< pass A frame
+						const ChVector<>* posB,			///< pass B position
 						const ChVector<>& vpA,			///< pass coll.point on A, in absolute coordinates
 						const ChVector<>& vpB,			///< pass coll.point on B, in absolute coordinates
 						const ChVector<>& vN, 			///< pass coll.normal, respect to A, in absolute coordinates
@@ -81,7 +81,7 @@ public:
 						float  mfriction				///< friction coeff.
 				);
 
-	virtual ~ChContact ();
+	virtual ~ChContactNode ();
 
 
 				//
@@ -89,18 +89,18 @@ public:
 				//
 
 					/// Initialize again this constraint.
-	virtual void Reset(	collision::ChCollisionModel* mmodA,	///< model A
-						collision::ChCollisionModel* mmodB,	///< model B
-						const ChLcpVariablesBody* varA, ///< pass A vars
-						const ChLcpVariablesBody* varB, ///< pass B vars
-						const ChFrame<>* frameA,		///< pass A frame
-						const ChFrame<>* frameB,		///< pass B frame
+	virtual void Reset(		collision::ChCollisionModel* mmodA,	///< model A (body)
+						collision::ChCollisionModel* mmodB,	///< model B (node)
+						const ChLcpVariablesBody* varA, ///< pass B vars (body)
+						const ChLcpVariablesNode* varB, ///< pass A vars (node)
+						const ChFrame<>*  frameA,		///< pass A frame
+						const ChVector<>* posB,			///< pass B position
 						const ChVector<>& vpA,			///< pass coll.point on A, in absolute coordinates
 						const ChVector<>& vpB,			///< pass coll.point on B, in absolute coordinates
 						const ChVector<>& vN, 			///< pass coll.normal, respect to A, in absolute coordinates
 						double mdistance,				///< pass the distance (negative for penetration)
 						float* mreaction_cache,			///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
-						float mfriction					///< friction coeff.
+						float  mfriction				///< friction coeff.
 				);
 
 					/// Get the contact coordinate system, expressed in absolute frame.

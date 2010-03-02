@@ -102,7 +102,7 @@ public:
 					};
 
 
-	virtual ChLcpConstraintTwoGeneric* new_Duplicate () {return new ChLcpConstraintTwoGeneric(*this);};
+	virtual ChLcpConstraint* new_Duplicate () {return new ChLcpConstraintTwoGeneric(*this);};
 
 					/// Assignment operator: copy from other object
 	ChLcpConstraintTwoGeneric& operator=(const ChLcpConstraintTwoGeneric& other);
