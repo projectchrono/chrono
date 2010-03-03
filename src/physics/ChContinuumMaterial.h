@@ -142,12 +142,42 @@ public:
 
 
 
+
+/// Base class for properties of materials 
+/// in a continuum. 
+
+class ChContinuumMaterial
+{
+private:
+	double density;
+
+public:
+
+	ChContinuumMaterial(double mdensity=1000) : density(mdensity) {};
+
+	virtual ~ChContinuumMaterial() {};
+	
+			/// Set the density of the material, in kg/m^2.
+	void   Set_density (double m_density) {density = m_density;}
+			/// Get the density of the material, in kg/m^2.
+	double Get_density () {return density;}
+
+				/// Method to allow deserializing
+	void StreamIN(ChStreamInBinary& mstream);
+
+				/// Method to allow serializing 
+	void StreamOUT(ChStreamOutBinary& mstream);
+
+};
+
+
+
 /// Class for the basic properties of materials 
 /// in an elastic continuum. 
 /// This is a base material with isothropic hookean 
 /// elasticity.
 
-class ChContinuumMaterial 
+class ChContinuumElastic : public ChContinuumMaterial
 {
 private:
 
@@ -156,16 +186,14 @@ private:
 	double G;			// shear modulus
 	double l;			// Lame's modulus
 
-	double density;		// density
-
 public:
 
 			/// Create a continuum isothropic hookean material. 
 			/// Default value for Young elastic modulus is low (like a 
 			/// rubber-type material), and same for density.
-	ChContinuumMaterial(double myoung = 10000000, double mpoisson=0.4, double mdensity=1000);
+	ChContinuumElastic(double myoung = 10000000, double mpoisson=0.4, double mdensity=1000);
 
-	virtual ~ChContinuumMaterial();
+	virtual ~ChContinuumElastic();
 	
 
 			/// Set the Young E elastic modulus, in Pa (N/m^2), as the ratio of the uniaxial 
@@ -195,11 +223,6 @@ public:
 	void   Set_G (double m_G);
 			/// Get the shear modulus G, in Pa (N/m^2)
 	double Get_G () {return G;}
-	
-			/// Set the density of the material, in kg/m^2.
-	void   Set_density (double m_density) {density = m_density;}
-			/// Get the density of the material, in kg/m^2.
-	double Get_density () {return density;}
 
 			/// Get Lamé first parameter (the second is shear modulus, so Get_G() )
 	double Get_l () {return l;}
@@ -260,7 +283,7 @@ public:
 /// Class for the basic properties of materials 
 /// in an elastoplastic continuum, with strain yeld limit.
 
-class ChContinuumElastoplastic : public ChContinuumMaterial
+class ChContinuumElastoplastic : public ChContinuumElastic
 {
 private:
 
@@ -321,6 +344,7 @@ public:
 	void StreamOUT(ChStreamOutBinary& mstream);
 
 };
+
 
 
 
