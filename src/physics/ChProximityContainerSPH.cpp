@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////
 //
-//   ChProximityContainerSPH.cpp
+//   ChProximityContainerMeshless.cpp
 //
 // ------------------------------------------------
 // 	 Copyright:Alessandro Tasora / DeltaKnowledge
@@ -57,14 +57,6 @@ ChProximityContainerSPH::~ChProximityContainerSPH ()
 	n_added = 0;
 }
 
-
-
-void ChProximityContainerSPH::Update (double mytime)
-{
-    // Inherit time changes of parent class, basically doing nothing :)
-    ChProximityContainerBase::Update(mytime);
-
-}
 
 
 void ChProximityContainerSPH::RemoveAllProximities()
@@ -170,7 +162,7 @@ void ChProximityContainerSPH::ReportAllProximities(ChReportProximityCallback* mc
 
 ////////// LCP INTERFACES ////
 
-double W_sph(double r, double h)
+static double W_poly6(double r, double h)
 {
 	if (r < h)
 	{
@@ -180,7 +172,7 @@ double W_sph(double r, double h)
 }
 
 
-double W_sq_visco(double r, double h)
+static double W_sq_visco(double r, double h)
 {
 	if (r < h)
 	{
@@ -189,6 +181,15 @@ double W_sq_visco(double r, double h)
 	else return 0;
 }
 
+static void W_gr_press(ChVector<>& Wresult, const ChVector<>& r, const double r_length, const double h)
+{
+	if (r_length < h)
+	{
+		Wresult = r;
+		Wresult *= -(45.0 / (CH_C_PI * pow(h,6)) ) * pow((h - r_length),2.0) ;
+	}
+	else Wresult = VNULL;
+}
 
 
 void ChProximityContainerSPH::AccumulateStep1()
@@ -204,67 +205,16 @@ void ChProximityContainerSPH::AccumulateStep1()
 	
 		ChVector<> x_A  = mnodeA->GetPos();
 		ChVector<> x_B  = mnodeB->GetPos();
-		ChVector<> x_Aref  = mnodeA->GetPosReference();
-		ChVector<> x_Bref  = mnodeB->GetPosReference();
-		ChVector<> u_A = (x_A -x_Aref);
-		ChVector<> u_B = (x_B -x_Bref);
 
-		ChVector<> d_BA = x_Bref - x_Aref;
-		ChVector<> g_BA = u_B - u_A;
-		double dist_BA = d_BA.Length();
-		double W_BA =  W_sph( dist_BA, mnodeA->GetKernelRadius() );
-		double W_AB =  W_sph( dist_BA, mnodeB->GetKernelRadius() );
+		ChVector<> r_BA = x_B  - x_A ;
+		double dist_BA = r_BA.Length();
+
+		double W_k_poly6 =  W_poly6( dist_BA, mnodeA->GetKernelRadius() );
 
 		// increment data of connected nodes
 
-		mnodeA->density += mnodeB->GetMass() * W_BA;
-		mnodeB->density += mnodeA->GetMass() * W_AB;
-
-		ChMatrixNM<double, 3,1> mdist;
-		mdist.PasteVector(d_BA,0,0);
-		ChMatrixNM<double, 3,1> mdistT;
-		mdistT.PasteVector(d_BA,0,0);
-		ChMatrix33<> ddBA; 
-		ddBA.MatrMultiplyT(mdist, mdistT);
-		ChMatrix33<> ddAB(ddBA);
-
-		ddBA.MatrScale(W_BA);
-		mnodeA->Amoment.MatrInc(ddBA);	// increment the moment matrix: Aa += d_BA*d_BA'*W_BA
-			
-		ddAB.MatrScale(W_AB);
-		mnodeB->Amoment.MatrInc(ddAB);	// increment the moment matrix: Ab += d_AB*d_AB'*W_AB
-
-
-		ChVector<> m_inc_BA = (d_BA)  * W_BA;
-		mnodeA->m_v = mnodeA->m_v - m_inc_BA; // increment the m_v vector
-
-		ChVector<> m_inc_AB = (-d_BA) * W_AB;
-		mnodeB->m_v = mnodeB->m_v - m_inc_AB; // increment the m_v vector
-
-
-		ChVector<> dwg;					// increment the J matrix
-		dwg = m_inc_BA * g_BA.x;
-		mnodeA->J.PasteSumVector(dwg,0,0);
-		dwg = m_inc_BA * g_BA.y;
-		mnodeA->J.PasteSumVector(dwg,0,1);
-		dwg = m_inc_BA * g_BA.z;
-		mnodeA->J.PasteSumVector(dwg,0,2);		
-
-		dwg = m_inc_AB * (-g_BA.x);		// increment the J matrix
-		mnodeB->J.PasteSumVector(dwg,0,0);
-		dwg = m_inc_AB * (-g_BA.y);
-		mnodeB->J.PasteSumVector(dwg,0,1);
-		dwg = m_inc_AB * (-g_BA.z);
-		mnodeB->J.PasteSumVector(dwg,0,2);
-
-		// viscous forces..
-		double W_BA_visc =  W_sq_visco( dist_BA, mnodeA->GetKernelRadius() );
-		double W_AB_visc =  W_sq_visco( dist_BA, mnodeB->GetKernelRadius() );
-		ChVector<> velBA =  mnodeB->GetPos_dt() - mnodeA->GetPos_dt();
-		ChVector<> viscforceBA =  velBA *   ( 0.5*(mmatA->GetViscosity()+mmatB->GetViscosity()) * mnodeB->volume * W_BA_visc );
-		mnodeA->UserForce += viscforceBA;
-		ChVector<> viscforceAB = -velBA *   ( 0.5*(mmatA->GetViscosity()+mmatB->GetViscosity()) * mnodeA->volume * W_AB_visc );
-		mnodeB->UserForce += viscforceAB;
+		mnodeA->density += mnodeB->GetMass() * W_k_poly6;
+		mnodeB->density += mnodeA->GetMass() * W_k_poly6;
 
 		++iterproximity;
 	}
@@ -284,28 +234,35 @@ void ChProximityContainerSPH::AccumulateStep2()
 	
 		ChVector<> x_A  = mnodeA->GetPos();
 		ChVector<> x_B  = mnodeB->GetPos();
-		ChVector<> x_Aref  = mnodeA->GetPosReference();
-		ChVector<> x_Bref  = mnodeB->GetPosReference();
-		ChVector<> u_A = (x_A -x_Aref);
-		ChVector<> u_B = (x_B -x_Bref);
 
-		ChVector<> d_BA = x_Bref - x_Aref;
+		ChVector<> r_BA = x_B - x_A;
+		double dist_BA = r_BA.Length();
 
-		double dist_BA = d_BA.Length();
-		double W_BA =  W_sph( dist_BA, mnodeA->GetKernelRadius() );
-		double W_AB =  W_sph( dist_BA, mnodeB->GetKernelRadius() );
+		// increment pressure forces
 
-		// increment forces of connected nodes
+		ChVector<> W_k_press;
+		W_gr_press( W_k_press, r_BA, dist_BA, mnodeA->GetKernelRadius() );
 
-		ChMatrix33<> mtensor;
+		double avg_press = 0.5*(mnodeA->pressure + mnodeB->pressure);
+	
+		ChVector<> pressureForceA  =   W_k_press * mnodeA->volume * avg_press * mnodeB->volume;
+		mnodeA->UserForce += pressureForceA;
 
-		mnodeA->t_stress.ConvertToMatrix(mtensor);
-		ChVector<> elasticForceB  = (mnodeA->J * (mtensor * (mnodeA->Amoment * (-d_BA)  ))) * (2*mnodeA->volume)  * W_BA ;
-		mnodeB->UserForce += elasticForceB;
+		//ChVector<> pressureForceB  = - W_k_press * mnodeB->volume * avg_dens * mnodeA->volume;
+		mnodeB->UserForce -= pressureForceA;
 
-		mnodeB->t_stress.ConvertToMatrix(mtensor);
-		ChVector<> elasticForceA  = (mnodeB->J * (mtensor * (mnodeB->Amoment * ( d_BA)  ))) * (2*mnodeB->volume)  * W_AB ;
-		mnodeA->UserForce += elasticForceA;
+
+		// increment viscous forces..
+
+		double W_k_visc =  W_sq_visco( dist_BA, mnodeA->GetKernelRadius() );
+		ChVector<> velBA =  mnodeB->GetPos_dt() - mnodeA->GetPos_dt();
+
+		double avg_viscosity =  0.5*(mmatA->GetMaterial().Get_viscosity() + mmatB->GetMaterial().Get_viscosity());
+
+		ChVector<> viscforceBA =  velBA * ( mnodeA->volume * avg_viscosity * mnodeB->volume * W_k_visc );
+		mnodeA->UserForce += viscforceBA;
+		mnodeB->UserForce -= viscforceBA;
+
 
 		++iterproximity;
 	}
@@ -313,12 +270,6 @@ void ChProximityContainerSPH::AccumulateStep2()
 }
 
 
-
-void ChProximityContainerSPH::VariablesFbLoadForces(double factor)
-{
-	// do nothing
-
-}
 
 
 } // END_OF_NAMESPACE____

@@ -22,9 +22,9 @@
  
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
-#include "physics/ChMatterSPH.h"
 #include "physics/ChNodeBody.h"
-#include "physics/ChProximityContainerSPH.h"
+#include "physics/ChProximityContainerMeshless.h"
+#include "physics/ChMatterMeshless.h"
 #include "physics/ChContactContainerNodes.h"
 #include "irrlicht_interface/ChBodySceneNode.h"
 #include "irrlicht_interface/ChBodySceneNodeTools.h" 
@@ -59,7 +59,7 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 	ISceneManager* msceneManager = mapp.GetSceneManager();
 	IVideoDriver* driver = mapp.GetVideoDriver();
 
-	ChSharedPtr<ChMatterSPH> mymatter(new ChMatterSPH);
+	ChSharedPtr<ChMatterMeshless> mymatter(new ChMatterMeshless);
 	double size_x = 3.;
 	double size_y = 3.;
 	double size_z = 1.;
@@ -84,7 +84,7 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 	GetLog() << "Steps x y z " << step_x << "  " << step_y << "  " << step_z << "\n\n";
 	for (int ip = 0; ip < mymatter->GetNnodes(); ip++)
 	{
-		ChNodeSPH* mnode = (ChNodeSPH*)&(mymatter->GetNode(ip));
+		ChNodeMeshless* mnode = (ChNodeMeshless*)&(mymatter->GetNode(ip));
 		mnode->SetKernelRadius(0.45);
 		mnode->SetCollisionRadius(0.01);
 		mnode->SetMass(0.1);
@@ -95,7 +95,7 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 	mymatter->GetMaterial().Set_E(850.0);
 	mymatter->GetMaterial().Set_elastic_yeld(0.012);
 	mymatter->GetMaterial().Set_flow_rate(10000.5);
-	mymatter->SetViscosity(0.2);
+	mymatter->SetViscosity(2);
 
 
 	ChBodySceneNode* mrigidBody; 
@@ -171,7 +171,7 @@ void create_some_falling_items(ChIrrAppInterface& mapp)
 	mrigidBody->setMaterialTexture(0,	cubeMap);
  
 /*
-	// Join some nodes of SPH matter to a ChBody
+	// Join some nodes of meshless matter to a ChBody
 	ChSharedPtr<ChIndexedNodes> mnodes = mymatter;
 	for (int ij = 0; ij < 120; ij++)
 	{
@@ -221,7 +221,7 @@ mstrain.XZ() = 2;
 mstrain.YZ() = 6;
 GetLog() << "mstrain:\n" << mstrain << "\n\n";
 
-ChContinuumMaterial mmat;
+ChContinuumElastic mmat;
 mmat.Set_E(100);
 mmat.Set_v(0.4);
 mmat.ComputeElasticStress(mstress,mstrain);
@@ -265,12 +265,12 @@ GetLog() << "mstress:\n" << mstrain << "\n\n";
 	mphysicalSystem.SetUseSleeping(true);
  
 	// IMPORTANT!
-	// This takes care of the interaction between the SPH particles
-	ChSharedPtr<ChProximityContainerSPH> my_sph_proximity(new ChProximityContainerSPH);
+	// This takes care of the interaction between the particles of the meshless material
+	ChSharedPtr<ChProximityContainerMeshless> my_sph_proximity(new ChProximityContainerMeshless);
 	mphysicalSystem.Add(my_sph_proximity);
 	
 	// IMPORTANT!
-	// This takes care of the contact between the SPH particles and the wall
+	// This takes care of the contact between the particles of the meshless material and the wall
 	ChSharedPtr<ChContactContainerNodes> my_nodes_container(new ChContactContainerNodes);
 	mphysicalSystem.Add(my_nodes_container);
 	
@@ -291,7 +291,7 @@ GetLog() << "mstress:\n" << mstrain << "\n\n";
 		ChSystem::IteratorOtherPhysicsItems myiter = mphysicalSystem.IterBeginOtherPhysicsItems();
 		while (myiter != mphysicalSystem.IterEndOtherPhysicsItems())
 		{ 
-			if (ChMatterSPH* mymatter = dynamic_cast<ChMatterSPH*> ( (*myiter).get_ptr() ) )
+			if (ChMatterMeshless* mymatter = dynamic_cast<ChMatterMeshless*> ( (*myiter).get_ptr() ) )
 			{
 				++printed_prox;
 				if (printed_prox>15)
@@ -302,7 +302,7 @@ GetLog() << "mstress:\n" << mstrain << "\n\n";
 
 				for (unsigned int ip = 0; ip < mymatter->GetNnodes(); ip++)
 				{
-					ChNodeSPH* mnode = (ChNodeSPH*)&(mymatter->GetNode(ip));
+					ChNodeMeshless* mnode = (ChNodeMeshless*)&(mymatter->GetNode(ip));
 					ChVector<> mv = mnode->GetPos();
 					float rad = (float)mnode->GetKernelRadius(); 
 					core::vector3df mpos((irr::f32)mv.x, (irr::f32)mv.y, (irr::f32)mv.z);

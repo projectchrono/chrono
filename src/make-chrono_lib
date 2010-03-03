@@ -91,6 +91,7 @@ CPPFILES_LIB = \
 	physics/ChIndexedNodes.cpp \
 	physics/ChNodeBody.cpp \
 	physics/ChMatterSPH.cpp \
+	physics/ChMatterMeshless.cpp \
 	physics/ChContact.cpp \
 	physics/ChContactRolling.cpp \
 	physics/ChContactGPUsimple.cpp \
@@ -101,6 +102,7 @@ CPPFILES_LIB = \
 	physics/ChContactContainerNodes.cpp \
 	physics/ChProximityContainerBase.cpp \
 	physics/ChProximityContainerSPH.cpp \
+	physics/ChProximityContainerMeshless.cpp \
 	physics/ChShaft.cpp \
 	physics/ChShaftsGear.cpp \
 	physics/ChShaftsClutch.cpp \

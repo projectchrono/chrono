@@ -1,9 +1,9 @@
-#ifndef CHPROXIMITYCONTAINERSPH_H
-#define CHPROXIMITYCONTAINERSPH_H
+#ifndef CHPROXIMITYCONTAINERMESHLESS_H
+#define CHPROXIMITYCONTAINERMESHLESS_H
 
 ///////////////////////////////////////////////////
 //
-//   ChProximityContainerSPH.h
+//   ChProximityContainerMeshless.h
 //
 //   Class for container of many proximity pairs for SPH (Smooth 
 //   Particle Hydrodinamics and similar meshless force computations), 
@@ -30,21 +30,21 @@ namespace chrono
 
 
 ///
-/// Class for a proximity pair information in a SPH cluster 
-/// of particles - that is, an 'edge' topological connectivity in
-/// in a meshless FEM approach, like the Smoothed Particle Hydrodynamics.
+/// Class for a proximity pair information in a meshless deformable continumm,
+/// made with a cluster of particles - that is, an 'edge' topological connectivity in
+/// in a meshless FEM approach, similar to the Smoothed Particle Hydrodynamics.
 /// 
 
-class ChProximitySPH
+class ChProximityMeshless
 {
 public:
-	ChProximitySPH(collision::ChModelBulletNode* mmodA,	///< model A
+	ChProximityMeshless(collision::ChModelBulletNode* mmodA,	///< model A
 				   collision::ChModelBulletNode* mmodB)	///< model B
 	{
 		Reset(mmodA, mmodB);
 	}
 
-	virtual ~ChProximitySPH () {};
+	virtual ~ChProximityMeshless () {};
 
 				//
 	  			// FUNCTIONS
@@ -77,25 +77,27 @@ private:
 
 
 ///
-/// Class for container of many proximity pairs for SPH (Smooth 
-/// Particle Hydrodinamics and similar meshless force computations), 
-/// as CPU typical linked list of ChProximitySPH objects.
+/// Class for container of many proximity pairs for a meshless
+/// deformable continuum (necessary for inter-particle material forces), 
+/// as CPU typical linked list of ChProximityMeshless objects.
+/// Such an item must be addd to the physical system if you added
+/// an object of class ChMatterMeshless.
 ///
 
-class ChProximityContainerSPH : public ChProximityContainerBase {
+class ChProximityContainerMeshless : public ChProximityContainerBase {
 
-	CH_RTTI(ChProximityContainerSPH,ChProximityContainerBase);
+	CH_RTTI(ChProximityContainerMeshless,ChProximityContainerBase);
 
 protected:
 				//
 	  			// DATA
 				//
 
-	std::list<ChProximitySPH*>   proximitylist; 
+	std::list<ChProximityMeshless*>   proximitylist; 
 
 	int n_added;
 
-	std::list<ChProximitySPH*>::iterator lastproximity;
+	std::list<ChProximityMeshless*>::iterator lastproximity;
 
 
 public:
@@ -103,9 +105,9 @@ public:
 	  			// CONSTRUCTORS
 				//
 
-	ChProximityContainerSPH ();
+	ChProximityContainerMeshless ();
 
-	virtual ~ChProximityContainerSPH ();
+	virtual ~ChProximityContainerMeshless ();
 
 
 
@@ -142,13 +144,14 @@ public:
 	virtual void ReportAllProximities(ChReportProximityCallback* mcallback);
 
 
+
 					// Perform some SPH per-edge initializations and accumulations of values 
 					// into the connected pairs of particles (summation into partcle's  J, Amoment, m_v, UserForce -viscous only- )
-					// Will be called by the ChMatterSPH item.
+					// Will be called by the ChMatterMeshless item.
 	virtual void AccumulateStep1();
 
 					// Perform some SPH per-edge transfer of forces, given stress tensors in A B nodes
-					// Will be called by the ChMatterSPH item.
+					// Will be called by the ChMatterMeshless item.
 	virtual void AccumulateStep2();
 	
 

@@ -57,11 +57,6 @@ public:
 					// FUNCTIONS
 					//
 
-			// Reference (initial) position of the node - in absolute csys.
-			// Note that the simulation algorithm might reset this once in a while, exp. for highly plastic objects.
-	ChVector<> GetPosReference() {return pos_ref;}
-			// Reference (initial) position of the node - in absolute csys. 
-	void SetPosReference(const ChVector<>& mpos) {pos_ref = mpos;}
 
 			// Get the kernel radius (max. radius while checking surrounding particles)
 	double GetKernelRadius() {return h_rad;}
@@ -82,19 +77,9 @@ public:
 					//
 					// DATA
 					// 
-	ChVector<> pos_ref; 
 	
-	bool edge_processed; // temp trick to avoid double updates if processed on a per-edge basis
-
-	ChMatrix33<> Amoment;
-	ChMatrix33<> J;
-	ChVector<>   m_v; 
-
-	ChStrainTensor<> t_strain; // total strain = elastic strain + plastic strain
-	ChStrainTensor<> p_strain; // plastic strain
-	ChStressTensor<> t_stress; // stress
-
 	ChLcpVariablesNode	variables;
+
 	ChCollisionModel*	collision_model;
 
 	ChVector<> UserForce;		
@@ -103,7 +88,59 @@ public:
 	double density;
 	double h_rad;
 	double coll_rad;
+	double pressure;
 };
+
+
+
+/// Class for SPH fluid material, with basic property 
+/// of uncompressible fluid. 
+
+class ChContinuumSPH : public ChContinuumMaterial
+{
+private:
+
+	double viscosity;
+	double surface_tension;
+	double pressure_stiffness;
+
+public:
+
+			/// Create a continuum isothropic elastoplastic material,
+			/// where you can define also plastic and elastic max. stress (yeld limits
+			/// for transition elastic->blastic and plastic->fracture).
+	ChContinuumSPH(double m_refdensity = 1000, double mviscosity = 0.1, double mtension= 0) 
+				: viscosity(mviscosity), surface_tension(mtension), pressure_stiffness(100), ChContinuumMaterial(m_refdensity) {};
+
+	virtual ~ChContinuumSPH() {};
+	
+
+			/// Set the viscosity, in [Pa s] units. 
+	void   Set_viscosity (double mvisc) {viscosity = mvisc;}
+			/// Get the viscosity.
+	double Get_viscosity () {return viscosity;}
+
+			/// Set the surface tension coefficient. 
+	void   Set_surface_tension (double mten) {surface_tension = mten;}
+			/// Get the surface tension coefficient.
+	double Get_surface_tension() {return surface_tension;}
+
+			/// Set the pressure stiffness (should be infinite for water
+			/// or other almost-incompressible fluids, but too large 
+			/// values can cause numerical troubles).
+	void   Set_pressure_stiffness (double mst) {pressure_stiffness = mst;}
+			/// Set the pressure stiffness.
+	double Get_pressure_stiffness() {return pressure_stiffness;}
+
+
+				/// Method to allow deserializing 
+	void StreamIN(ChStreamInBinary& mstream);
+
+				/// Method to allow serializing 
+	void StreamOUT(ChStreamOutBinary& mstream);
+
+};
+
 
 
 
@@ -125,9 +162,7 @@ private:
 						// The nodes: 
 	std::vector<ChNodeSPH*> nodes;				
 
-	ChContinuumElastoplastic material;
-	
-	double viscosity;
+	ChContinuumSPH material;
 
 	bool do_collide;
 
@@ -245,10 +280,8 @@ public:
 
 
 				/// Access the material
-	ChContinuumElastoplastic&  GetMaterial() {return material;}
+	ChContinuumSPH&  GetMaterial() {return material;}
 	
-	void SetViscosity(double mvisc) { viscosity=mvisc;}
-	double GetViscosity() {return viscosity;}
 
 
 			//
