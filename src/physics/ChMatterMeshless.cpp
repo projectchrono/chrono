@@ -78,7 +78,8 @@ ChNodeMeshless::ChNodeMeshless (const ChNodeMeshless& other) :
 	
 	this->t_strain = other.t_strain;
 	this->p_strain = other.p_strain;
-	this->t_stress = other.t_stress;
+	this->e_strain = other.e_strain;
+	this->e_stress = other.e_stress;
 
 	this->variables = other.variables;
 }
@@ -106,7 +107,8 @@ ChNodeMeshless& ChNodeMeshless::operator= (const ChNodeMeshless& other)
 	
 	this->t_strain = other.t_strain;
 	this->p_strain = other.p_strain;
-	this->t_stress = other.t_stress;
+	this->e_strain = other.e_strain;
+	this->e_stress = other.e_stress;
 
 	this->variables = other.variables;
 	
@@ -222,6 +224,62 @@ void ChMatterMeshless::AddNode(ChVector<double> initial_state)
 
 
 
+void ChMatterMeshless::FillBox (const ChVector<> size,	
+				  const double spacing,		
+				  const double initial_density, 
+				  const ChCoordsys<> boxcoords, 
+				  const bool do_centeredcube,	
+				  const double kernel_sfactor,  
+				  const double randomness
+				  )
+{
+	int samples_x = (int)(size.x/spacing);
+	int samples_y = (int)(size.y/spacing);
+	int samples_z = (int)(size.z/spacing);
+	int totsamples = 0;
+
+	double mrandomness= randomness;
+	if (do_centeredcube)
+		mrandomness = randomness*0.5;
+
+	for (int ix = 0; ix < samples_x; ix++)
+		for (int iy = 0; iy < samples_y; iy++)  
+			for (int iz = 0; iz < samples_z; iz++) 
+			{
+				ChVector<> pos (	ix*spacing  -0.5*size.x, 
+									iy*spacing  -0.5*size.y,	
+									iz*spacing  -0.5*size.z);
+				pos += ChVector<>(mrandomness*ChRandom()*spacing, mrandomness*ChRandom()*spacing, mrandomness*ChRandom()*spacing);
+				this->AddNode(boxcoords.TrasformLocalToParent(pos));
+				totsamples++;
+
+				if (do_centeredcube)
+				{
+					ChVector<> pos2 = pos + 0.5*ChVector<>(spacing,spacing,spacing);
+					pos2 += ChVector<>(mrandomness*ChRandom()*spacing, mrandomness*ChRandom()*spacing, mrandomness*ChRandom()*spacing);
+					this->AddNode(boxcoords.TrasformLocalToParent(pos2));
+					totsamples++;
+				}
+			}
+
+	double mtotvol  = size.x * size.y * size.z;
+	double mtotmass = mtotvol * initial_density;
+	double nodemass = mtotmass/(double)totsamples;
+	double kernelrad = kernel_sfactor*spacing;
+
+	for (int ip = 0; ip < this->GetNnodes(); ip++)
+	{
+		ChNodeMeshless* mnode = (ChNodeMeshless*)&(this->GetNode(ip));
+		mnode->SetKernelRadius(kernelrad);
+		mnode->SetCollisionRadius(spacing*0.1); 
+		mnode->SetMass(nodemass);
+	}
+
+	this->GetMaterial().Set_density(initial_density);
+}
+
+
+
 
 //// 
 void ChMatterMeshless::InjectVariables(ChLcpSystemDescriptor& mdescriptor)
@@ -268,8 +326,7 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor)
 		this->nodes[j]->J.FillElem(0.0);
 		this->nodes[j]->Amoment.FillElem(0.0);
 		this->nodes[j]->t_strain.FillElem(0.0);
-		this->nodes[j]->t_stress.FillElem(0.0); 
-		this->nodes[j]->m_v = VNULL;
+		this->nodes[j]->e_stress.FillElem(0.0); 
 		this->nodes[j]->UserForce = VNULL;
 		this->nodes[j]->density = 0;
 	}
@@ -285,17 +342,18 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor)
 		ChNodeMeshless* mnode = this->nodes[j];
 
 		// node volume is v=mass/density
-		if (mnode->density)
+		if (mnode->density>0)
 			mnode->volume = mnode->GetMass()/mnode->density;
 		else 
-			mnode->volume = 10e20;
+			mnode->volume = 0;
 
 		// Compute A inverse
 		ChMatrix33<> M_tmp = mnode->Amoment;
 		double det = M_tmp.FastInvert(&mnode->Amoment);
-		if (fabs(det)<0.00001) 
+		if (fabs(det)<0.00003) 
 		{
 			mnode->Amoment.FillElem(0); // deactivate if not possible to invert
+			mnode->e_strain.FillElem(0.0); // detach
 		}
 		else
 		{
@@ -306,18 +364,23 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor)
 			M_tmp.Element(2,2) +=1;	
 			mnode->J.CopyFromMatrixT(M_tmp);
 
-			// Compute strain tensor  epsilon = J'*J - I
+			// Compute step strain tensor  epsilon = J'*J - I
 			ChMatrix33<> mtensor;
 			mtensor.MatrMultiply(M_tmp, mnode->J);
 			mtensor.Element(0,0)-=1;
 			mtensor.Element(1,1)-=1;
 			mtensor.Element(2,2)-=1;
 
-			ChStrainTensor<> elasticstrain;
-			mnode->t_strain.ConvertFromMatrix(mtensor);
-			elasticstrain.MatrSub( mnode->t_strain , mnode->p_strain);
-			this->GetMaterial().ComputeElasticStress(mnode->t_stress, elasticstrain);		
+			// Compute elastic stress tensor  sigma= C*epsilon
+			ChStrainTensor<> step_e_strain;
+			step_e_strain.ConvertFromMatrix(mtensor); 
+			mnode->t_strain.MatrAdd(mnode->e_strain, step_e_strain);
+			this->GetMaterial().ComputeElasticStress(mnode->e_stress, mnode->t_strain);
+			mnode->e_stress.ConvertToMatrix(mtensor);
 
+			// Precompute 2*v*J*sigma*A^-1
+			mnode->FA = mnode->J * (mtensor * (mnode->Amoment));
+			mnode->FA.MatrScale(2*mnode->volume);
 		}
 	}
 
@@ -340,13 +403,7 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor)
 		ChNodeMeshless* mnode = this->nodes[j];
 
 		mnode->variables.Get_fb().PasteSumVector(TotForce * factor ,0,0);
-
-			// absorb deformation in plastic tensor, as in Muller paper.
-		/*
-			mnode->p_strain.MatrDec(mnode->t_strain);
-			mnode->t_strain.FillElem(0);
-			mnode->pos_ref = mnode->pos;
-		*/
+		
 	}
 
 }
@@ -383,22 +440,30 @@ void ChMatterMeshless::VariablesQbIncrementPosition(double dt_step)
 {
 	//if (!this->IsActive()) 
 	//	return;
-
-	// Integrate plastic flow 
+ 
 	for (unsigned int j = 0; j < nodes.size(); j++)
 	{
 		ChNodeMeshless* mnode = this->nodes[j];
 
+		// Increment total elastic tensor, instead of absorbing it in plastic tensor as in Muller paper.
+		this->nodes[j]->e_strain = this->nodes[j]->t_strain; 
+		this->nodes[j]->pos_ref = this->nodes[j]->pos;
+
+		// Integrate plastic flow 
 		ChStrainTensor<> plasticflow;
-		this->material.ComputePlasticStrainFlow(plasticflow, mnode->t_strain);
-		//if (plasticflow.NormInf() >0)
-		//	GetLog() << "Flow " << plasticflow.NormInf() << "    in node " << j << "\n";
-		this->nodes[j]->p_strain.MatrInc(plasticflow*dt_step);
-	
+		this->material.ComputePlasticStrainFlow(plasticflow, mnode->e_strain);
+		double dtpfact = dt_step* this->material.Get_flow_rate();
+		if (dtpfact>1.0)
+			dtpfact = 1.0; // clamp if dt is larger than plastic flow duration
+
+		this->nodes[j]->p_strain.MatrInc(plasticflow*dtpfact);
+		this->nodes[j]->e_strain.MatrDec(plasticflow*dtpfact);
+
 	}
 
 	for (unsigned int j = 0; j < nodes.size(); j++)
 	{
+
 		// Updates position with incremental action of speed contained in the
 		// 'qb' vector:  pos' = pos + dt * speed   , like in an Eulero step.
 

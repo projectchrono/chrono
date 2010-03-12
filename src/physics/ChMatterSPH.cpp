@@ -240,6 +240,60 @@ void ChMatterSPH::AddNode(ChVector<double> initial_state)
 
 
 
+void ChMatterSPH::FillBox (const ChVector<> size,	
+				  const double spacing,		
+				  const double initial_density, 
+				  const ChCoordsys<> boxcoords, 
+				  const bool do_centeredcube,	
+				  const double kernel_sfactor,  
+				  const double randomness
+				  )
+{
+	int samples_x = (int)(size.x/spacing);
+	int samples_y = (int)(size.y/spacing);
+	int samples_z = (int)(size.z/spacing);
+	int totsamples = 0;
+
+	double mrandomness= randomness;
+	if (do_centeredcube)
+		mrandomness = randomness*0.5;
+
+	for (int ix = 0; ix < samples_x; ix++)
+		for (int iy = 0; iy < samples_y; iy++)  
+			for (int iz = 0; iz < samples_z; iz++) 
+			{
+				ChVector<> pos (	ix*spacing  -0.5*size.x, 
+									iy*spacing  -0.5*size.y,	
+									iz*spacing  -0.5*size.z);
+				pos += ChVector<>(mrandomness*ChRandom()*spacing, mrandomness*ChRandom()*spacing, mrandomness*ChRandom()*spacing);
+				this->AddNode(boxcoords.TrasformLocalToParent(pos));
+				totsamples++;
+
+				if (do_centeredcube)
+				{
+					ChVector<> pos2 = pos + 0.5*ChVector<>(spacing,spacing,spacing);
+					pos2 += ChVector<>(mrandomness*ChRandom()*spacing, mrandomness*ChRandom()*spacing, mrandomness*ChRandom()*spacing);
+					this->AddNode(boxcoords.TrasformLocalToParent(pos2));
+					totsamples++;
+				}
+			}
+
+	double mtotvol  = size.x * size.y * size.z;
+	double mtotmass = mtotvol * initial_density;
+	double nodemass = mtotmass/(double)totsamples;
+	double kernelrad = kernel_sfactor*spacing;
+
+	for (int ip = 0; ip < this->GetNnodes(); ip++)
+	{
+		ChNodeSPH* mnode = (ChNodeSPH*)&(this->GetNode(ip));
+		mnode->SetKernelRadius(kernelrad);
+		mnode->SetCollisionRadius(spacing*0.1); 
+		mnode->SetMass(nodemass);
+	}
+
+	this->GetMaterial().Set_density(initial_density);
+}
+
 
 
 //// 
@@ -302,9 +356,9 @@ void ChMatterSPH::VariablesFbLoadForces(double factor)
 		if (mnode->density)
 			mnode->volume = mnode->GetMass()/mnode->density;
 		else 
-			mnode->volume = 10e20;
+			mnode->volume = 0; 
 
-		// node pressure = k(dens-dens_0);
+		// node pressure = k(dens - dens_0);
 		mnode->pressure = this->material.Get_pressure_stiffness() * ( mnode->density - this->material.Get_density() );
 	}
 

@@ -84,11 +84,12 @@ public:
 	
 	ChMatrix33<> Amoment;
 	ChMatrix33<> J;
-	ChVector<>   m_v; 
+	ChMatrix33<> FA;
 
 	ChStrainTensor<> t_strain; // total strain = elastic strain + plastic strain
 	ChStrainTensor<> p_strain; // plastic strain
-	ChStressTensor<> t_stress; // stress
+	ChStrainTensor<> e_strain; // elastic strain
+	ChStressTensor<> e_stress; // stress
 
 	ChLcpVariablesNode	variables;
 	ChCollisionModel*	collision_model;
@@ -215,8 +216,23 @@ public:
 				/// Access the material
 	ChContinuumElastoplastic&  GetMaterial() {return material;}
 	
+				/// Set the Newtonian viscosity of the material
 	void SetViscosity(double mvisc) { viscosity=mvisc;}
+				/// Get the Newtonian viscosity of the material
 	double GetViscosity() {return viscosity;}
+
+				/// Initialize the material as a prismatic region filled with nodes,
+				/// initially well ordered as a lattice. This is a helper function
+				/// so that you avoid to create all nodes one by one with many calls
+				/// to AddNode() .
+	void FillBox (const ChVector<> size,	///< x,y,z sizes of the box to fill (better if integer multiples of spacing)
+				  const double spacing,		///< the spacing between two near nodes
+				  const double initial_density, ///< density of the material inside the box, for initialization of node's masses
+				  const ChCoordsys<> cords = CSYSNORM, ///< position and rotation of the box
+				  const bool do_centeredcube =false,   ///< if false, array is simply cubic, if true is centered cubes (highest regularity)
+				  const double kernel_sfactor =2.2,  ///< the radius of kernel of the particle is 'spacing' multiplied this value
+				  const double randomness = 0.0	///< randomness of the initial distribution lattice, 0...1
+				  );
 
 
 			//

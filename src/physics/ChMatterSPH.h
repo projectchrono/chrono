@@ -282,6 +282,18 @@ public:
 				/// Access the material
 	ChContinuumSPH&  GetMaterial() {return material;}
 	
+				/// Initialize the fluid as a prismatic region filled with nodes,
+				/// initially well ordered as a lattice. This is a helper function
+				/// so that you avoid to create all nodes one by one with many calls
+				/// to AddNode() .
+	void FillBox (const ChVector<> size,	///< x,y,z sizes of the box to fill (better if integer multiples of spacing)
+				  const double spacing,		///< the spacing between two near nodes
+				  const double initial_density, ///< density of the material inside the box, for initialization of node's masses
+				  const ChCoordsys<> cords = CSYSNORM, ///< position and rotation of the box
+				  const bool do_centeredcube =true,	///< if false, array is simply cubic, if true is centered cubes (highest regularity)
+				  const double kernel_sfactor =2.2,  ///< the radius of kernel of the particle is 'spacing' multiplied this value
+				  const double randomness = 0.0	///< randomness of the initial distribution lattice, 0...1
+				  );
 
 
 			//
