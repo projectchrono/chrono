@@ -6,6 +6,29 @@
 Release 1.0.0
 XX-XX-XXXX
 
+- Major feature: new ChMatterMeshless object to simulate 
+  point-based plastic deformable materials, using the 
+  meshless FEM approach. Useful for simulating mud, etc.
+  
+- Major feature: new ChMatterSPH object to simulate 
+  fluids. 
+  
+- Improved ChVoightTensor class (computation of invariants
+  etc.). 
+  
+- New classes for continumm material properties: density,
+  viscosity etc. Basic hookean material properties and 
+  tensor transformations are added. 
+  
+- New classes for elastoplastic materials, with plastic
+  flow. 
+  
+- Experimental classes for different models of plastic
+  flow: the strain-yeld-based Von Mises, and the 
+  Drucker-Prager criterion (the latter is under 
+  development)
+
+
 
 Release 0.9.0
 23-2-2010

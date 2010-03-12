@@ -108,6 +108,42 @@ public:
 						mdeviatoric.ZZ() -= mM;
 					}
 
+			/// Compute the I1 invariant
+	Real GetInvariant_I1()
+			{
+				return XX()+YY()+ZZ();
+			}
+
+			/// Compute the I2 invariant
+	Real GetInvariant_I2()
+			{
+				return XX()*YY() + YY()*ZZ() + XX()*ZZ() 
+					 - XY()*XY() - YZ()*YZ() - XZ()*XZ();
+			}
+
+			/// Compute the I3 invariant
+	Real GetInvariant_I3()
+			{
+				return XX()*YY()*ZZ() + 2*XY()*YZ()*XZ() 
+					  -XY()*XY()*ZZ() - YZ()*YZ()*XX() - XZ()*XZ()*YY();
+			}
+
+			/// Compute the J1 invariant of the deviatoric part (that is always 0)
+	Real GetInvariant_J1() { return 0;}
+			 
+			/// Compute the J2 invariant of the deviatoric part
+	Real GetInvariant_J2() 
+	{
+		return (pow(this->GetInvariant_I1(),2)-this->GetInvariant_I2()) / 3.0;
+	}
+			/// Compute the J3 invariant of the deviatoric part
+	Real GetInvariant_J3() 
+	{
+		return ( pow(this->GetInvariant_I1(),3)*(2./27.)
+			        -this->GetInvariant_I1()*this->GetInvariant_I2()*(1./3.)
+					+this->GetInvariant_I3() );
+	}
+
 		  /// FORMULAS THAT ARE USEFUL FOR YELD CRITERIONS: 
 
 			/// Compute the Von Mises equivalent
@@ -280,10 +316,29 @@ public:
 
 
 
-/// Class for the basic properties of materials 
-/// in an elastoplastic continuum, with strain yeld limit.
+
+/// Class for all elastic materials that can undergo plastic flow
+/// Defines simply some interface functions.
 
 class ChContinuumElastoplastic : public ChContinuumElastic
+{
+public:
+	ChContinuumElastoplastic(double myoung = 10000000, double mpoisson=0.4, double mdensity=1000) : ChContinuumElastic(myoung,mpoisson,mdensity) {};
+
+			/// Compute plastic strain flow (flow derivative dE_plast/dt) from strain,
+			/// according to VonMises strain yeld theory. 
+	virtual void ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow, const ChStrainTensor<>& mtotstrain) const =0;
+};
+
+
+
+
+
+/// Class for the basic properties of materials 
+/// in an elastoplastic continuum, with strain yeld limit
+/// based on Von Mises yeld
+
+class ChContinuumPlasticVonMises : public ChContinuumElastoplastic
 {
 private:
 
@@ -297,43 +352,41 @@ public:
 			/// Create a continuum isothropic elastoplastic material,
 			/// where you can define also plastic and elastic max. stress (yeld limits
 			/// for transition elastic->blastic and plastic->fracture).
-	ChContinuumElastoplastic(double myoung = 10000000, double mpoisson=0.4, double mdensity=1000,
+	ChContinuumPlasticVonMises(double myoung = 10000000, double mpoisson=0.4, double mdensity=1000,
 							double melastic_yeld = 0.1, double  mplastic_yeld = 0.2);
 
-	virtual ~ChContinuumElastoplastic() {};
+	virtual ~ChContinuumPlasticVonMises() {};
 	
 
-			/// Set the elastic yeld modulus, as the
-			/// maximum VonMises strain that can be withstood by material before
+			/// Set the elastic yeld modulus as the maximum VonMises
+			/// equivalent strain that can be withstood by material before
 			/// starting plastic flow. It defines the transition elastic->plastic.
 	void   Set_elastic_yeld (double melastic_yeld) {elastic_yeld = melastic_yeld;};
-			/// Set the plastic yeld modulus, in Pa (N/m^2).
+			/// Get the elastic yeld modulus.
 	double Get_elastic_yeld () {return elastic_yeld;}
 
-			/// Set the plastic yeld modulus, as the
-			/// maximum VonMises strain that can be withstood by material before
+			/// Set the plastic yeld modulus as the maximum VonMises
+			/// equivalent strain that can be withstood by material before
 			/// fracture. It defines the transition plastic->fracture.
 	void   Set_plastic_yeld (double mplastic_yeld) {plastic_yeld = mplastic_yeld;};
-			/// Set the plastic yeld modulus, in Pa (N/m^2).
+			/// Get the plastic yeld modulus.
 	double Get_plastic_yeld () {return plastic_yeld;}
 
 			/// Set the plastic flow rate. The lower the value, the slower 
 			/// the plastic flow during dynamic simulations.
 	void   Set_flow_rate (double mflow_rate) {flow_rate = mflow_rate;};
-			/// Set the plastic yeld modulus, in Pa (N/m^2).
+			/// Set the plastic flow rate.
 	double Get_flow_rate () {return flow_rate;}
 
 
-			/// Compute plastic strain flow (flow derivative dE_plast/dt) from total strain E_t
-			/// according to VonMises strain yeld theory. Remember E_tot=E_elastic + \int (dE_plast/dt) dt
-	void ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow, const ChStrainTensor<>& mtotstrain) const;
-
+			/// Compute plastic strain flow (flow derivative dE_plast/dt) from strain,
+			/// according to VonMises strain yeld theory. 
+	void ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow, const ChStrainTensor<>& mestrain) const;
 
 
 			//
 			// STREAMING
 			//
-
 
 				/// Method to allow deserializing a persistent binary archive (ex: a file)
 				/// into transient data.
@@ -347,6 +400,85 @@ public:
 
 
 
+
+/// Class for the basic properties of elastoplastic materials 
+/// of Drucker-Prager type, that are useful for simulating
+/// soils
+
+class ChContinuumDruckerPrager : public ChContinuumElastoplastic
+{
+private:
+
+	double elastic_yeld;
+	double alpha;
+	double dilatancy;
+	double hardening_speed;
+	double hardening_limit;
+	double flow_rate;
+
+public:
+
+			/// Create a continuum isothropic Drucker-Prager material
+	ChContinuumDruckerPrager(double myoung = 10000000, double mpoisson=0.4, double mdensity=1000,
+							double melastic_yeld = 0.1, double  malpha = 0.5, double mdilatancy = 0);
+
+	virtual ~ChContinuumDruckerPrager() {};
+	
+
+			/// Set the elastic tangential (cohesion) yeld modulus, for Drucker-Prager
+			/// yeld. It defines the transition elastic->plastic.
+	void   Set_elastic_yeld (double melastic_yeld) {elastic_yeld = melastic_yeld;};
+			/// Get the elastic yeld modulus
+	double Get_elastic_yeld () {return elastic_yeld;}
+
+			
+			/// Set the plastic flow rate multiplier. The lower the value, the slower 
+			/// the plastic flow during dynamic simulations.
+	void   Set_flow_rate (double mflow_rate) {flow_rate = mflow_rate;};
+			/// Get the flow rate multiplier.
+	double Get_flow_rate () {return flow_rate;}
+
+			/// Set the internal friction coefficient
+	void   Set_alpha (double malpha) {alpha = malpha;};
+			/// Get the internal friction coefficient
+	double Get_alpha () {return alpha;}
+
+			/// Set the internal dilatancy coefficient (usually 0.. < int.friction)
+	void   Set_dilatancy (double mdilatancy) {dilatancy = mdilatancy;};
+			/// Get the internal dilatancy coefficient 
+	double Get_dilatancy () {return dilatancy;}
+
+			/// Set the hardening limit (usually a bit larger than yeld), or softening
+	void   Set_hardening_limit (double mhl) {hardening_limit = mhl;};
+			/// Get the hardening limit 
+	double Get_hardening_limit () {return hardening_limit;}
+
+			/// Set the hardening inverse speed coeff. for exponential hardening 
+			/// (the larger, the slower the hardening or softening process that 
+			/// will asymptotycally make yeld = hardening_limit )
+	void   Set_hardening_speed (double mhl) {hardening_speed = mhl;};
+			/// Get the hardening speed
+	double Get_hardening_speed () {return hardening_speed;}
+
+
+			/// Compute plastic strain flow direction from strain
+			/// according to Drucker-Prager. 
+	void ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow, const ChStrainTensor<>& mestrain) const;
+
+
+			//
+			// STREAMING
+			//
+
+				/// Method to allow deserializing a persistent binary archive (ex: a file)
+				/// into transient data.
+	void StreamIN(ChStreamInBinary& mstream);
+
+				/// Method to allow serializing transient data into a persistent
+				/// binary archive (ex: a file).
+	void StreamOUT(ChStreamOutBinary& mstream);
+
+};
 
 
 

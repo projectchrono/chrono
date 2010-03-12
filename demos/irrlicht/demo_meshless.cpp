@@ -110,12 +110,26 @@ int main(int argc, char* argv[])
 					false,				// do a centered cubic lattice initial arrangement 
 					2.2);				// set the kernel radius (as multiples of step)
 
+	GetLog() << "Added "<< mymatter->GetNnodes() <<" nodes \n";
+
 		// Set some material properties of the meshless matter
-	mymatter->GetMaterial().Set_v(0.38);
-	mymatter->GetMaterial().Set_E(600000.0);
-	mymatter->GetMaterial().Set_elastic_yeld(0.06);
-	mymatter->GetMaterial().Set_flow_rate(1000);
+	ChContinuumDruckerPrager& mmaterial = (ChContinuumDruckerPrager&)mymatter->GetMaterial(); //***TEST*** 
+	mmaterial.Set_v(0.38);
+	mmaterial.Set_E(600000.0);
+	mmaterial.Set_elastic_yeld(1000);
+	mmaterial.Set_alpha(45 * CH_C_DEG_TO_RAD);
+	mmaterial.Set_dilatancy(0 * CH_C_DEG_TO_RAD);
+	mmaterial.Set_flow_rate(50.0);
 	mymatter->SetViscosity(500);
+
+	/*
+	ChContinuumPlasticVonMises& mmaterial = (ChContinuumPlasticVonMises&)mymatter->GetMaterial();
+	mmaterial.Set_v(0.38);
+	mmaterial.Set_E(600000.0);
+	mmaterial.Set_elastic_yeld(0.06);
+	mmaterial.Set_flow_rate(10000.0);
+	mymatter->SetViscosity(500);
+	*/
 
 		// Add the matter to the physical system
 	mymatter->SetCollide(true);
@@ -186,7 +200,7 @@ int main(int argc, char* argv[])
 					*/
 					
 					/*
-					double strain_scale =1;
+					double strain_scale =10;
 					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_X*mnode->p_strain.XX()* strain_scale), video::SColor(255,255,0,0),false);
 					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_Y*mnode->p_strain.YY()* strain_scale), video::SColor(255,0,255,0),false);
 					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_Z*mnode->p_strain.ZZ()* strain_scale), video::SColor(255,0,0,255),false);

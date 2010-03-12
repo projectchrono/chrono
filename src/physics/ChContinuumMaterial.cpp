@@ -107,11 +107,13 @@ void ChContinuumElastic::StreamIN(ChStreamInBinary& mstream)
 
 
 ///////////////////////////////
+//////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
 
 
-ChContinuumElastoplastic::ChContinuumElastoplastic(double myoung, double mpoisson, double mdensity,
+ChContinuumPlasticVonMises::ChContinuumPlasticVonMises(double myoung, double mpoisson, double mdensity,
 												   double melastic_yeld, double  mplastic_yeld) : 
-							ChContinuumElastic(myoung, mpoisson, mdensity)
+							ChContinuumElastoplastic(myoung, mpoisson, mdensity)
 {
 	elastic_yeld = melastic_yeld;
 	plastic_yeld = mplastic_yeld;
@@ -119,7 +121,7 @@ ChContinuumElastoplastic::ChContinuumElastoplastic(double myoung, double mpoisso
 }
 
 
-void ChContinuumElastoplastic::ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow, const ChStrainTensor<>& mtotstrain) const
+void ChContinuumPlasticVonMises::ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow, const ChStrainTensor<>& mtotstrain) const
 {
 	double vonm = mtotstrain.GetEquivalentVonMises();
 	if (vonm > this->elastic_yeld)
@@ -134,7 +136,79 @@ void ChContinuumElastoplastic::ComputePlasticStrainFlow(ChStrainTensor<>& mplast
 	}
 }
 
-void ChContinuumElastoplastic::StreamOUT(ChStreamOutBinary& mstream)
+void ChContinuumPlasticVonMises::StreamOUT(ChStreamOutBinary& mstream)
+{
+			// class version number
+	mstream.VersionWrite(1);
+
+		// stream out parent class
+	ChContinuumElastoplastic::StreamOUT(mstream);
+
+		// stream out all member data
+	mstream << this->elastic_yeld;
+	mstream << this->plastic_yeld;
+	mstream << this->flow_rate;
+}
+
+void ChContinuumPlasticVonMises::StreamIN(ChStreamInBinary& mstream)
+{
+		// class version number
+	int version = mstream.VersionRead();
+
+		// stream in parent class
+	ChContinuumElastoplastic::StreamIN(mstream);
+
+		// stream in all member data
+	mstream >> this->elastic_yeld;
+	mstream >> this->plastic_yeld;
+	mstream >> this->flow_rate;
+}
+
+
+
+
+///////////////////////////////
+//////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+
+ChContinuumDruckerPrager::ChContinuumDruckerPrager(double myoung, double mpoisson, double mdensity,
+							double melastic_yeld, double  malpha, double mdilatancy) : 
+						ChContinuumElastoplastic(myoung, mpoisson, mdensity)
+{
+	elastic_yeld = melastic_yeld;
+	alpha = malpha;
+	dilatancy = mdilatancy;
+	hardening_limit = elastic_yeld;
+	hardening_speed =0;
+	flow_rate = 1;
+}
+
+
+void ChContinuumDruckerPrager::ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow, const ChStrainTensor<>& mestrain) const
+{
+	ChStressTensor<> mstress;
+	this->ComputeElasticStress(mstress,mestrain);
+	double prager = mstress.GetInvariant_I1() * this->alpha + sqrt (mstress.GetInvariant_J2());
+	if (prager > this->elastic_yeld)
+	{
+		ChVoightTensor<> mdev;
+		mstress.GetDeviatoricPart(mdev);
+		double divisor = 2.*sqrt(mstress.GetInvariant_J2());
+		if (divisor>10e-20)
+			mdev.MatrScale(1./ divisor );
+		mdev.XX()+=this->dilatancy;
+		mdev.YY()+=this->dilatancy;
+		mdev.ZZ()+=this->dilatancy;
+		mplasticstrainflow.CopyFromMatrix(mdev);
+	}
+	else
+	{
+		mplasticstrainflow.FillElem(0);
+	}
+}
+
+void ChContinuumDruckerPrager::StreamOUT(ChStreamOutBinary& mstream)
 {
 			// class version number
 	mstream.VersionWrite(1);
@@ -144,11 +218,14 @@ void ChContinuumElastoplastic::StreamOUT(ChStreamOutBinary& mstream)
 
 		// stream out all member data
 	mstream << this->elastic_yeld;
-	mstream << this->plastic_yeld;
+	mstream << this->alpha;
+	mstream << this->dilatancy;
+	mstream << this->hardening_speed;
+	mstream << this->hardening_limit;
 	mstream << this->flow_rate;
 }
 
-void ChContinuumElastoplastic::StreamIN(ChStreamInBinary& mstream)
+void ChContinuumDruckerPrager::StreamIN(ChStreamInBinary& mstream)
 {
 		// class version number
 	int version = mstream.VersionRead();
@@ -158,7 +235,10 @@ void ChContinuumElastoplastic::StreamIN(ChStreamInBinary& mstream)
 
 		// stream in all member data
 	mstream >> this->elastic_yeld;
-	mstream >> this->plastic_yeld;
+	mstream >> this->alpha;
+	mstream >> this->dilatancy;
+	mstream >> this->hardening_speed;
+	mstream >> this->hardening_limit;
 	mstream >> this->flow_rate;
 }
 
