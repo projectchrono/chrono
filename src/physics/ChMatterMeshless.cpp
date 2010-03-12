@@ -52,6 +52,7 @@ ChNodeMeshless::ChNodeMeshless()
 	this->SetMass(0.01);
 	this->volume = 0.01;
 	this->density = this->GetMass()/this->volume;
+	this->hardening = 0;
 }
 
 ChNodeMeshless::~ChNodeMeshless()
@@ -75,6 +76,7 @@ ChNodeMeshless::ChNodeMeshless (const ChNodeMeshless& other) :
 	this->SetMass(other.GetMass());
 	this->volume = other.volume;
 	this->density = other.density;
+	this->hardening = other.hardening;
 	
 	this->t_strain = other.t_strain;
 	this->p_strain = other.p_strain;
@@ -104,7 +106,8 @@ ChNodeMeshless& ChNodeMeshless::operator= (const ChNodeMeshless& other)
 	this->SetMass(other.GetMass());
 	this->volume = other.volume;
 	this->density = other.density;
-	
+	this->hardening = other.hardening; 
+
 	this->t_strain = other.t_strain;
 	this->p_strain = other.p_strain;
 	this->e_strain = other.e_strain;

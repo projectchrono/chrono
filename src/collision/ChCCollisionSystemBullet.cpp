@@ -45,7 +45,7 @@ ChCollisionSystemBullet::ChCollisionSystemBullet(unsigned int max_objects, doubl
 	bt_collision_world = new btCollisionWorld(bt_dispatcher, bt_broadphase, bt_collision_configuration);
 
 	// custom collision for sphere-sphere case ***OBSOLETE***?
-	bt_dispatcher->registerCollisionCreateFunc(SPHERE_SHAPE_PROXYTYPE,SPHERE_SHAPE_PROXYTYPE,new btSphereSphereCollisionAlgorithm::CreateFunc);
+//	bt_dispatcher->registerCollisionCreateFunc(SPHERE_SHAPE_PROXYTYPE,SPHERE_SHAPE_PROXYTYPE,new btSphereSphereCollisionAlgorithm::CreateFunc);
 
 	// register custom collision for GIMPACT mesh case too
 	btGImpactCollisionAlgorithm::registerAlgorithm(bt_dispatcher);

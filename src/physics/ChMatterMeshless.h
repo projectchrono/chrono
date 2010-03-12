@@ -86,7 +86,7 @@ public:
 	ChMatrix33<> J;
 	ChMatrix33<> FA;
 
-	ChStrainTensor<> t_strain; // total strain = elastic strain + plastic strain
+	ChStrainTensor<> t_strain; //
 	ChStrainTensor<> p_strain; // plastic strain
 	ChStrainTensor<> e_strain; // elastic strain
 	ChStressTensor<> e_stress; // stress
@@ -100,6 +100,7 @@ public:
 	double density;
 	double h_rad;
 	double coll_rad;
+	double hardening;
 };
 
 
@@ -122,8 +123,9 @@ private:
 						// The nodes: 
 	std::vector<ChNodeMeshless*> nodes;				
 
-	ChContinuumElastoplastic material;
-	
+	//ChContinuumPlasticVonMises material;
+	ChContinuumDruckerPrager material; //***TEST***
+
 	double viscosity;
 
 	bool do_collide;
