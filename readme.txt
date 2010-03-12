@@ -3,6 +3,10 @@
   
   History of API changes, bug fixes, new features
 
+Release 1.0.0
+XX-XX-XXXX
+
+
 Release 0.9.0
 23-2-2010
 

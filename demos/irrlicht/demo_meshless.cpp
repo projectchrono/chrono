@@ -31,7 +31,6 @@
 #include "irrlicht_interface/ChIrrAppInterface.h"
 #include "core/ChRealtimeStep.h"
 #include "irrlicht_interface/ChParticlesSceneNode.h" //***TEST****
-#include "physics/ChContinuumMaterial.h" //***TEST****
 
 #include <irrlicht.h>
  
@@ -53,155 +52,7 @@ using namespace gui;
 
 
 
-void create_some_falling_items(ChIrrAppInterface& mapp) 
-{
-	ChSystem* mphysicalSystem = mapp.GetSystem();
-	ISceneManager* msceneManager = mapp.GetSceneManager();
-	IVideoDriver* driver = mapp.GetVideoDriver();
-
-	ChSharedPtr<ChMatterMeshless> mymatter(new ChMatterMeshless);
-	double size_x = 3.;
-	double size_y = 3.;
-	double size_z = 1.;
-	int samples_x = 9;
-	int samples_y = 12;
-	int samples_z = 5;
-	double step_x = size_x/(samples_x-1);
-	double step_y = size_y/(samples_y-1);
-	double step_z = size_z/(samples_z-1);
-	for (int iy = samples_y; iy >0 ; iy--)
-		for (int ix = 0; ix < samples_x; ix++)  
-			for (int iz = 0; iz < samples_z; iz++) 
-			{
-				ChVector<> pos (	ix*step_x,
-									-iy*step_y,	
-									iz*step_z  );
-				mymatter->AddNode(pos);
-			}
-	mymatter->SetCollide(true);
-	mphysicalSystem->Add(mymatter);
-
-	GetLog() << "Steps x y z " << step_x << "  " << step_y << "  " << step_z << "\n\n";
-	for (int ip = 0; ip < mymatter->GetNnodes(); ip++)
-	{
-		ChNodeMeshless* mnode = (ChNodeMeshless*)&(mymatter->GetNode(ip));
-		mnode->SetKernelRadius(0.45);
-		mnode->SetCollisionRadius(0.01);
-		mnode->SetMass(0.1);
-	}
-
-
-	mymatter->GetMaterial().Set_v(0.38);
-	mymatter->GetMaterial().Set_E(850.0);
-	mymatter->GetMaterial().Set_elastic_yeld(0.012);
-	mymatter->GetMaterial().Set_flow_rate(10000.5);
-	mymatter->SetViscosity(2);
-
-
-	ChBodySceneNode* mrigidBody; 
-
-	for (int bi = 0; bi < 14; bi++) 
-	{    
-		mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easySphere(
-											mphysicalSystem, msceneManager,
-											10.0,
-											ChVector<>(-5+ChRandom()*10, 4+bi*0.05, -5+ChRandom()*10),
-											1.1);
-   
-		mrigidBody->GetBody()->SetFriction(0.2f); 
-		mrigidBody->addShadowVolumeSceneNode();
-
-
-		video::ITexture* sphereMap = driver->getTexture("../data/bluwhite.png");
-		mrigidBody->setMaterialTexture(0,	sphereMap);
-	} 
-
-
-
-	// Create the five walls of the rectangular container, using
-	// fixed rigid bodies of 'box' type:
-
-	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											mphysicalSystem, msceneManager,
-											100.0,
-											ChVector<>(0,-5,0),
-											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(20,1,20) );
-	mrigidBody->GetBody()->SetBodyFixed(true);
-
-	video::ITexture* cubeMap = driver->getTexture("../data/concrete.jpg");
-	mrigidBody->setMaterialTexture(0,	cubeMap);
-
-
-	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											mphysicalSystem, msceneManager,
-											100.0,
-											ChVector<>(-10,0,0),
-											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(1,10,20.99) );
-	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->setMaterialTexture(0,	cubeMap);
-
-
-	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											mphysicalSystem, msceneManager,
-											100.0,
-											ChVector<>(10,0,0),
-											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(1,10,20.99) );
-	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->setMaterialTexture(0,	cubeMap);
-
-	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											mphysicalSystem, msceneManager,
-											100.0,
-											ChVector<>(0,0,-10),
-											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(20.99,10,1) );
-	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->setMaterialTexture(0,	cubeMap);
-
-	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											mphysicalSystem, msceneManager,
-											100.0,
-											ChVector<>(0,0, 10),
-											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(20.99,10,1) );
-	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->setMaterialTexture(0,	cubeMap);
- 
-/*
-	// Join some nodes of meshless matter to a ChBody
-	ChSharedPtr<ChIndexedNodes> mnodes = mymatter;
-	for (int ij = 0; ij < 120; ij++)
-	{
-		ChSharedPtr<ChNodeBody> myjointnodebody(new ChNodeBody);
-		myjointnodebody->Initialize(mnodes, 
-									ij, 
-									mrigidBody->GetBody());
-		mphysicalSystem->Add(myjointnodebody);
-	}
-*/
-
-	/*
-	// Add also few spherical particles
-	 ChParticlesSceneNode* mParticles = (ChParticlesSceneNode*)addChParticlesSceneNode_easySpheres(
-												mphysicalSystem, msceneManager,
-												0.8, // mass
-												0.4 // radius
-												);
-
-	 for (int np = 0; np <10; np++) 
-	 {
-		 mParticles->GetParticles()->AddParticle(ChCoordsys<>(ChVector<>(-1,np,0), QUNIT));
-	 }
-	*/
-
-} 
      
-  
-
- 
    
  
 int main(int argc, char* argv[])
@@ -213,22 +64,6 @@ int main(int argc, char* argv[])
 
 	ChStrainTensor<> mstrain;
 	ChStressTensor<> mstress;
-mstrain.XX() = 2;
-mstrain.YY() = 13;
-mstrain.ZZ() = 1;
-mstrain.XY() = 4;
-mstrain.XZ() = 2;
-mstrain.YZ() = 6;
-GetLog() << "mstrain:\n" << mstrain << "\n\n";
-
-ChContinuumElastic mmat;
-mmat.Set_E(100);
-mmat.Set_v(0.4);
-mmat.ComputeElasticStress(mstress,mstrain);
-GetLog() << "mstress:\n" << mstress << "\n\n";
-
-mmat.ComputeElasticStrain(mstrain,mstress);
-GetLog() << "mstress:\n" << mstrain << "\n\n";
 
 
 	// Create a ChronoENGINE physical system
@@ -246,24 +81,59 @@ GetLog() << "mstress:\n" << mstrain << "\n\n";
 	ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0,3,-3));
 
  
-	// Create all the rigid bodies.
+	// CREATE A FLOOR
 
-	create_some_falling_items(application);
- 
+	ChBodySceneNode* mfloorBody; 
+	mfloorBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
+											&mphysicalSystem, application.GetSceneManager(),
+											100.0,
+											ChVector<>(0,-5,0),
+											ChQuaternion<>(1,0,0,0), 
+											ChVector<>(20,1,20) );
+	mfloorBody->GetBody()->SetBodyFixed(true);
+
+	video::ITexture* cubeMap = application.GetVideoDriver()->getTexture("../data/concrete.jpg");
+	mfloorBody->setMaterialTexture(0,	cubeMap);
 
 
-	// Modify some setting of the physical system for the simulation, if you want
 
-	mphysicalSystem.SetIntegrationType(ChSystem::INT_ANITESCU); 
+	// CREATE THE ELASTOPLASTIC MESHLESS CONTINUUM
 
-	mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-	//mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_GPU);
+		// Create elastoplastic matter
+	ChSharedPtr<ChMatterMeshless> mymatter(new ChMatterMeshless);
 
-	mphysicalSystem.SetIterLCPmaxItersSpeed(20);
-	mphysicalSystem.SetIterLCPmaxItersStab(5);
- 
-	mphysicalSystem.SetUseSleeping(true);
- 
+		// Use the FillBox easy way to create the set of nodes in the meshless matter
+	mymatter->FillBox(ChVector<>(4,3,2), // size of box 
+					3.0/7.0,			// resolution step
+					1000,				// initial density
+					ChCoordsys<>(ChVector<>(0,-1,0),QUNIT), // position & rotation of box
+					false,				// do a centered cubic lattice initial arrangement 
+					2.2);				// set the kernel radius (as multiples of step)
+
+		// Set some material properties of the meshless matter
+	mymatter->GetMaterial().Set_v(0.38);
+	mymatter->GetMaterial().Set_E(600000.0);
+	mymatter->GetMaterial().Set_elastic_yeld(0.06);
+	mymatter->GetMaterial().Set_flow_rate(1000);
+	mymatter->SetViscosity(500);
+
+		// Add the matter to the physical system
+	mymatter->SetCollide(true);
+	mphysicalSystem.Add(mymatter);
+	
+		// Join some nodes of meshless matter to a ChBody
+	/*
+	ChSharedPtr<ChIndexedNodes> mnodes = mymatter;
+	for (int ij = 0; ij < 120; ij++)
+	{
+		ChSharedPtr<ChNodeBody> myjointnodebody(new ChNodeBody);
+		myjointnodebody->Initialize(mnodes, 
+									ij, 
+									mfloorBody->GetBody());
+		mphysicalSystem.Add(myjointnodebody);
+	}
+	*/
+
 	// IMPORTANT!
 	// This takes care of the interaction between the particles of the meshless material
 	ChSharedPtr<ChProximityContainerMeshless> my_sph_proximity(new ChProximityContainerMeshless);
@@ -274,6 +144,11 @@ GetLog() << "mstress:\n" << mstrain << "\n\n";
 	ChSharedPtr<ChContactContainerNodes> my_nodes_container(new ChContactContainerNodes);
 	mphysicalSystem.Add(my_nodes_container);
 	
+
+
+	// Modify some setting of the physical system for the simulation, if you want
+
+	mphysicalSystem.SetIterLCPmaxItersSpeed(8); // lower the LCP iters, no needed here
 
 
 	// 
@@ -293,13 +168,6 @@ GetLog() << "mstress:\n" << mstrain << "\n\n";
 		{ 
 			if (ChMatterMeshless* mymatter = dynamic_cast<ChMatterMeshless*> ( (*myiter).get_ptr() ) )
 			{
-				++printed_prox;
-				if (printed_prox>15)
-				{
-					GetLog() << "T=" <<mphysicalSystem.GetChTime() << ", Nproximities=" << my_sph_proximity->GetNproximities() << "   Avg.prox-per-node: " << (double)my_sph_proximity->GetNproximities()/(double)(15*15*5)<< "\n";
-					printed_prox = 0;
-				}
-
 				for (unsigned int ip = 0; ip < mymatter->GetNnodes(); ip++)
 				{
 					ChNodeMeshless* mnode = (ChNodeMeshless*)&(mymatter->GetNode(ip));
@@ -318,18 +186,19 @@ GetLog() << "mstress:\n" << mstrain << "\n\n";
 					*/
 					
 					/*
-					double strain_scale =50;
+					double strain_scale =1;
 					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_X*mnode->p_strain.XX()* strain_scale), video::SColor(255,255,0,0),false);
 					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_Y*mnode->p_strain.YY()* strain_scale), video::SColor(255,0,255,0),false);
 					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_Z*mnode->p_strain.ZZ()* strain_scale), video::SColor(255,0,0,255),false);
 					*/
 
 					/*
-					double stress_scale =0.03;
-					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_X*mnode->t_stress.XX()* stress_scale), video::SColor(100,255,0,0),false);
-					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_Y*mnode->t_stress.YY()* stress_scale), video::SColor(100,0,255,0),false);
-					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_Z*mnode->t_stress.ZZ()* stress_scale), video::SColor(100,0,0,255),false);
+					double stress_scale =0.008;
+					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_X*mnode->e_stress.XX()* stress_scale), video::SColor(100,255,0,0),false);
+					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_Y*mnode->e_stress.YY()* stress_scale), video::SColor(100,0,255,0),false);
+					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_Z*mnode->e_stress.ZZ()* stress_scale), video::SColor(100,0,0,255),false);
 					*/
+
 					//ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(mnode->UserForce * 0.1), video::SColor(100,0,0,0),false);
 					
 				}

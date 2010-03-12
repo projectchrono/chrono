@@ -86,7 +86,8 @@ class ChCollisionSystemBullet : public ChCollisionSystem
 private:
 	btCollisionConfiguration* bt_collision_configuration;
 	btCollisionDispatcher*  bt_dispatcher;
-	bt32BitAxisSweep3*		bt_broadphase;
+	//bt32BitAxisSweep3*		bt_broadphase; //***OLD***
+	btDbvtBroadphase*		bt_broadphase;
 	btCollisionWorld*		bt_collision_world; 
 
 };

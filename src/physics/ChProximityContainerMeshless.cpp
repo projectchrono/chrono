@@ -229,11 +229,8 @@ void ChProximityContainerMeshless::AccumulateStep1()
 
 
 		ChVector<> m_inc_BA = (d_BA)  * W_BA;
-		mnodeA->m_v = mnodeA->m_v - m_inc_BA; // increment the m_v vector
 
 		ChVector<> m_inc_AB = (-d_BA) * W_AB;
-		mnodeB->m_v = mnodeB->m_v - m_inc_AB; // increment the m_v vector
-
 
 		ChVector<> dwg;					// increment the J matrix
 		dwg = m_inc_BA * g_BA.x;
@@ -281,16 +278,12 @@ void ChProximityContainerMeshless::AccumulateStep2()
 		double W_AB =  W_sph( dist_BA, mnodeB->GetKernelRadius() );
 
 		// increment elastoplastic forces of connected nodes
+	
+		mnodeA->UserForce += mnodeA->FA * (d_BA*W_BA);
+		mnodeB->UserForce -= mnodeA->FA * (d_BA*W_BA);
 
-		ChMatrix33<> mtensor;
-
-		mnodeA->t_stress.ConvertToMatrix(mtensor);
-		ChVector<> elasticForceB  = (mnodeA->J * (mtensor * (mnodeA->Amoment * (-d_BA)  ))) * (2*mnodeA->volume)  * W_BA ;
-		mnodeB->UserForce += elasticForceB;
-
-		mnodeB->t_stress.ConvertToMatrix(mtensor);
-		ChVector<> elasticForceA  = (mnodeB->J * (mtensor * (mnodeB->Amoment * ( d_BA)  ))) * (2*mnodeB->volume)  * W_AB ;
-		mnodeA->UserForce += elasticForceA;
+		mnodeB->UserForce += mnodeB->FA * (d_BA*(-W_AB));
+		mnodeA->UserForce -= mnodeB->FA * (d_BA*(-W_AB));
 
 		// increment viscous forces..
 
