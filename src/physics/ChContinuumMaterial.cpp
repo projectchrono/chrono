@@ -120,6 +120,32 @@ ChContinuumPlasticVonMises::ChContinuumPlasticVonMises(double myoung, double mpo
 	flow_rate = 1;
 }
 
+double ChContinuumPlasticVonMises::ComputeYeldFunction(const ChStressTensor<>& mstress) const
+{
+	return (mstress.GetEquivalentVonMises() - this->elastic_yeld);
+}
+
+void ChContinuumPlasticVonMises::ComputeReturnMapping(ChStrainTensor<>& mplasticstrainflow, 
+									const ChStrainTensor<>&	mincrementstrain, 
+									const ChStrainTensor<>& mlastelasticstrain,
+									const ChStrainTensor<>& mlastplasticstrain) const
+{
+	ChStrainTensor<> guesselstrain(mlastelasticstrain);
+	guesselstrain.MatrInc(mincrementstrain); // assume increment is all elastic
+
+	double vonm = guesselstrain.GetEquivalentVonMises();
+	if (vonm > this->elastic_yeld)
+	{
+		ChVoightTensor<> mdev;
+		guesselstrain.GetDeviatoricPart(mdev);
+		mplasticstrainflow.CopyFromMatrix(mdev * ((vonm - this->elastic_yeld)/(vonm)));
+	}
+	else
+	{
+		mplasticstrainflow.FillElem(0);
+	}
+}
+
 
 void ChContinuumPlasticVonMises::ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow, const ChStrainTensor<>& mtotstrain) const
 {
@@ -184,7 +210,86 @@ ChContinuumDruckerPrager::ChContinuumDruckerPrager(double myoung, double mpoisso
 	flow_rate = 1;
 }
 
+void ChContinuumDruckerPrager::Set_from_MohrCoulomb(double phi, double cohesion, bool inner_approx)
+{
+	if (inner_approx)
+	{
+		alpha =			(2*sin(phi))/(sqrt(3.0)*(3.0-sin(phi)));
+		elastic_yeld =  (6*cohesion*cos(phi))/(sqrt(3.0)*(3.0-sin(phi)));
+	} else
+	{
+		alpha =			(2*sin(phi))/(sqrt(3.0)*(3.0+sin(phi)));
+		elastic_yeld =  (6*cohesion*cos(phi))/(sqrt(3.0)*(3.0+sin(phi)));
+	}
+}
 
+double ChContinuumDruckerPrager::ComputeYeldFunction(const ChStressTensor<>& mstress) const
+{
+	return (mstress.GetInvariant_I1() * this->alpha + sqrt (mstress.GetInvariant_J2()) - this->elastic_yeld);
+}
+
+void ChContinuumDruckerPrager::ComputeReturnMapping(ChStrainTensor<>& mplasticstrainflow, 
+									const ChStrainTensor<>&	mincrementstrain, 
+									const ChStrainTensor<>& mlastelasticstrain,
+									const ChStrainTensor<>& mlastplasticstrain) const
+{
+	ChStrainTensor<> guesselstrain(mlastelasticstrain);
+	guesselstrain.MatrInc(mincrementstrain); // assume increment is all elastic
+	
+	ChStressTensor<> mstress;
+	this->ComputeElasticStress(mstress,guesselstrain);
+	double fprager = mstress.GetInvariant_I1() * this->alpha + sqrt (mstress.GetInvariant_J2())  - this->elastic_yeld;
+	if (fprager >0 )
+	{
+		ChStrainTensor<> dFdS;
+		ChStrainTensor<> dGdS;
+		double devsq = sqrt(mstress.GetInvariant_J2());
+		if (devsq > 10e-20)
+		{
+			double sixdevsq = 6 * devsq;
+
+			dFdS.XX() = this->alpha + (2* mstress.XX() - mstress.YY()   - mstress.ZZ() )/sixdevsq;
+			dFdS.YY() = this->alpha + (- mstress.XX() + 2*mstress.YY()  - mstress.ZZ() )/sixdevsq;
+			dFdS.ZZ() = this->alpha + (- mstress.XX() -  mstress.YY() + 2*mstress.ZZ() )/sixdevsq;
+			dFdS.XY() = mstress.XY()/devsq;
+			dFdS.YZ() = mstress.YZ()/devsq;
+			dFdS.XZ() = mstress.XZ()/devsq;
+
+			dGdS.XX() = this->dilatancy + (2* mstress.XX() - mstress.YY()   - mstress.ZZ() )/sixdevsq;
+			dGdS.YY() = this->dilatancy + (- mstress.XX() + 2*mstress.YY()  - mstress.ZZ() )/sixdevsq;
+			dGdS.ZZ() = this->dilatancy + (- mstress.XX() -  mstress.YY() + 2*mstress.ZZ() )/sixdevsq;
+			dGdS.XY() = mstress.XY()/devsq;
+			dGdS.YZ() = mstress.YZ()/devsq;
+			dGdS.XZ() = mstress.XZ()/devsq;
+		}
+		else
+		{
+			//GetLog() << "Singular! devsq=" << devsq << "  ";
+			// singularity for pure hydrostatic stress
+			dFdS.FillElem(0); 
+			dFdS.XX() = 1; dFdS.YY() = 1; dFdS.ZZ() = 1;
+			dGdS.FillElem(0); 
+			dGdS.XX() = 1; dGdS.YY() = 1; dGdS.ZZ() = 1;
+		}
+		ChStressTensor<> aux_dFdS_C;
+		this->ComputeElasticStress(aux_dFdS_C, dFdS);
+
+		ChMatrixNM<double,1,1> inner_up;
+		inner_up.MatrTMultiply(aux_dFdS_C, mincrementstrain);
+		ChMatrixNM<double,1,1> inner_dw;
+		inner_dw.MatrTMultiply(aux_dFdS_C, dGdS);
+
+		mplasticstrainflow.CopyFromMatrix(dGdS);
+		mplasticstrainflow.MatrScale(inner_up(0)/inner_dw(0));
+		//GetLog() << "scale " << inner_up(0)/inner_dw(0) << "  Fyeld " << fprager <<  "\n";
+	} 
+	else
+	{
+		mplasticstrainflow.FillElem(0);
+	}
+}
+
+//***OBSOLETE***
 void ChContinuumDruckerPrager::ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow, const ChStrainTensor<>& mestrain) const
 {
 	ChStressTensor<> mstress;

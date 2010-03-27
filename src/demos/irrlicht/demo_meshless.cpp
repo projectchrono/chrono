@@ -113,23 +113,27 @@ int main(int argc, char* argv[])
 	GetLog() << "Added "<< mymatter->GetNnodes() <<" nodes \n";
 
 		// Set some material properties of the meshless matter
-	ChContinuumDruckerPrager& mmaterial = (ChContinuumDruckerPrager&)mymatter->GetMaterial(); //***TEST*** 
-	mmaterial.Set_v(0.38);
-	mmaterial.Set_E(600000.0);
-	mmaterial.Set_elastic_yeld(1000);
-	mmaterial.Set_alpha(45 * CH_C_DEG_TO_RAD);
-	mmaterial.Set_dilatancy(0 * CH_C_DEG_TO_RAD);
-	mmaterial.Set_flow_rate(50.0);
-	mymatter->SetViscosity(500);
-
+	
+	ChSharedPtr<ChContinuumDruckerPrager> mmaterial(new ChContinuumDruckerPrager);
+	mymatter->ReplaceMaterial(mmaterial); 
+	mmaterial->Set_v(0.38);
+	mmaterial->Set_E(600000.0);
+	mmaterial->Set_elastic_yeld(100);
+	mmaterial->Set_alpha(30 * CH_C_DEG_TO_RAD);
+	//mmaterial->Set_from_MohrCoulomb(30 * CH_C_DEG_TO_RAD, 1000);
+	mmaterial->Set_dilatancy(30 * CH_C_DEG_TO_RAD);
+	mmaterial->Set_flow_rate(500000.0);
+	mmaterial->Set_hardening_speed(1000000);
 	/*
-	ChContinuumPlasticVonMises& mmaterial = (ChContinuumPlasticVonMises&)mymatter->GetMaterial();
-	mmaterial.Set_v(0.38);
-	mmaterial.Set_E(600000.0);
-	mmaterial.Set_elastic_yeld(0.06);
-	mmaterial.Set_flow_rate(10000.0);
-	mymatter->SetViscosity(500);
+	ChSharedPtr<ChContinuumPlasticVonMises> mmaterial(new ChContinuumPlasticVonMises); 
+	mymatter->ReplaceMaterial(mmaterial);
+	mmaterial->Set_v(0.38);
+	mmaterial->Set_E(60000.0);
+	mmaterial->Set_elastic_yeld(0.06);
+	mmaterial->Set_flow_rate(300);
 	*/
+
+	mymatter->SetViscosity(500);
 
 		// Add the matter to the physical system
 	mymatter->SetCollide(true);
@@ -178,10 +182,13 @@ int main(int argc, char* argv[])
 		application.DrawAll();
 		
 		ChSystem::IteratorOtherPhysicsItems myiter = mphysicalSystem.IterBeginOtherPhysicsItems();
+		
 		while (myiter != mphysicalSystem.IterEndOtherPhysicsItems())
 		{ 
-			if (ChMatterMeshless* mymatter = dynamic_cast<ChMatterMeshless*> ( (*myiter).get_ptr() ) )
+			if ( (*myiter).IsType<ChMatterMeshless>() )
 			{
+				ChSharedPtr<ChMatterMeshless> mymatter(*myiter);
+
 				for (unsigned int ip = 0; ip < mymatter->GetNnodes(); ip++)
 				{
 					ChNodeMeshless* mnode = (ChNodeMeshless*)&(mymatter->GetNode(ip));
