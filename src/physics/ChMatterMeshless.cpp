@@ -147,9 +147,9 @@ ChMatterMeshless::ChMatterMeshless ()
 {
 	this->do_collide = false;
 	
-	this->material.Set_E(1000000);
-	this->material.Set_v(0.2);
-	this->material.Set_density(1000);
+	// By default, make a VonMises material
+	ChSharedPtr<ChContinuumPlasticVonMises> defaultmaterial (new ChContinuumPlasticVonMises);
+	this->material = defaultmaterial;
 	
 	this->viscosity = 0.0;
 
@@ -179,7 +179,10 @@ void ChMatterMeshless::Copy(ChMatterMeshless* source)
 }
 
 
-
+void  ChMatterMeshless::ReplaceMaterial(ChSharedPtr<ChContinuumElastoplastic> newmaterial)
+{
+	this->material = newmaterial;
+}
 
 void ChMatterMeshless::ResizeNnodes(int newsize)
 {
@@ -278,7 +281,7 @@ void ChMatterMeshless::FillBox (const ChVector<> size,
 		mnode->SetMass(nodemass);
 	}
 
-	this->GetMaterial().Set_density(initial_density);
+	this->GetMaterial()->Set_density(initial_density);
 }
 
 
@@ -367,7 +370,7 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor)
 			M_tmp.Element(2,2) +=1;	
 			mnode->J.CopyFromMatrixT(M_tmp);
 
-			// Compute step strain tensor  epsilon = J'*J - I
+			// Compute step strain tensor  de = J'*J - I
 			ChMatrix33<> mtensor;
 			mtensor.MatrMultiply(M_tmp, mnode->J);
 			mtensor.Element(0,0)-=1;
@@ -375,10 +378,22 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor)
 			mtensor.Element(2,2)-=1;
 
 			// Compute elastic stress tensor  sigma= C*epsilon
-			ChStrainTensor<> step_e_strain;
-			step_e_strain.ConvertFromMatrix(mtensor); 
-			mnode->t_strain.MatrAdd(mnode->e_strain, step_e_strain);
-			this->GetMaterial().ComputeElasticStress(mnode->e_stress, mnode->t_strain);
+			//   NOTE: it should be better to perform stress computation on corrected e_strain, _after_ the
+			//   return mapping (see later), but for small timestep it could be the same.
+			//ChStrainTensor<> step_e_strain;
+			//step_e_strain.ConvertFromMatrix(mtensor); 
+			//mnode->t_strain.MatrAdd(mnode->e_strain, step_e_strain);
+			//this->GetMaterial()->ComputeElasticStress(mnode->e_stress, mnode->t_strain); 
+			//mnode->e_stress.ConvertToMatrix(mtensor);
+
+			mnode->t_strain.ConvertFromMatrix(mtensor); // store 'step strain' de, change in total strain
+			
+			// Compute elastic stress tensor  sigma= C*epsilon
+			//   NOTE: it should be better to perform stress computation on corrected e_strain, _after_ the
+			//   return mapping (see later), but for small timestep it could be the same.
+			ChStrainTensor<> guesstot_e_strain; // anticipate the computation of total strain for anticipating strains
+			guesstot_e_strain.MatrAdd(mnode->e_strain, mnode->t_strain);
+			this->GetMaterial()->ComputeElasticStress(mnode->e_stress, guesstot_e_strain); 
 			mnode->e_stress.ConvertToMatrix(mtensor);
 
 			// Precompute 2*v*J*sigma*A^-1
@@ -448,21 +463,28 @@ void ChMatterMeshless::VariablesQbIncrementPosition(double dt_step)
 	{
 		ChNodeMeshless* mnode = this->nodes[j];
 
-		// Increment total elastic tensor, instead of absorbing it in plastic tensor as in Muller paper.
-		this->nodes[j]->e_strain = this->nodes[j]->t_strain; 
-		this->nodes[j]->pos_ref = this->nodes[j]->pos;
+		//ChStrainTensor<> last_e_strain(nodes[j]->e_strain); 
+		//last_e_strain.MatrDec(nodes[j]->t_strain);
 
-		// Integrate plastic flow 
-		ChStrainTensor<> plasticflow;
-		this->material.ComputePlasticStrainFlow(plasticflow, mnode->e_strain);
-		double dtpfact = dt_step* this->material.Get_flow_rate();
+		// Integrate plastic flow  
+		ChStrainTensor<> strainplasticflow;
+		this->material->ComputeReturnMapping(strainplasticflow,	 // dEp, flow of elastic strain (correction)
+											 nodes[j]->t_strain, // increment of total strain
+											 nodes[j]->e_strain, // last elastic strain
+											 nodes[j]->p_strain  // last plastic strain
+											 );
+		double dtpfact = dt_step* this->material->Get_flow_rate();
 		if (dtpfact>1.0)
 			dtpfact = 1.0; // clamp if dt is larger than plastic flow duration
 
-		this->nodes[j]->p_strain.MatrInc(plasticflow*dtpfact);
-		this->nodes[j]->e_strain.MatrDec(plasticflow*dtpfact);
+		this->nodes[j]->p_strain.MatrInc(strainplasticflow*dtpfact);
 
-	}
+		// Increment total elastic tensor, instead of absorbing it in plastic tensor as in Muller paper. 
+		this->nodes[j]->pos_ref = this->nodes[j]->pos;
+	 	this->nodes[j]->e_strain.MatrInc(this->nodes[j]->t_strain);
+		this->nodes[j]->e_strain.MatrDec(strainplasticflow*dtpfact);
+
+	} 
 
 	for (unsigned int j = 0; j < nodes.size(); j++)
 	{
@@ -614,7 +636,7 @@ void ChMatterMeshless::StreamOUT(ChStreamOutBinary& mstream)
 	ChIndexedNodes::StreamOUT(mstream);
 
 		// stream out all member data
-	mstream << this->material;
+	mstream.AbstractWrite(this->material.get_ptr());
 
 	//***TO DO*** stream nodes
 
@@ -630,8 +652,9 @@ void ChMatterMeshless::StreamIN(ChStreamInBinary& mstream)
 
 
 		// stream in all member data
-
-	mstream >> this->material;
+	ChContinuumMaterial* mmat;
+	mstream.AbstractReadCreate(&mmat);
+	this->material = ChSharedPtr<ChContinuumMaterial>(mmat);
 
 	//***TO DO*** unstream nodes
 }

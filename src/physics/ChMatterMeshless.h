@@ -124,7 +124,7 @@ private:
 	std::vector<ChNodeMeshless*> nodes;				
 
 	//ChContinuumPlasticVonMises material;
-	ChContinuumDruckerPrager material; //***TEST***
+	ChSharedPtr<ChContinuumElastoplastic> material; //* ChContinuumDruckerPrager material; //***TEST***
 
 	double viscosity;
 
@@ -216,8 +216,11 @@ public:
 
 
 				/// Access the material
-	ChContinuumElastoplastic&  GetMaterial() {return material;}
-	
+	ChSharedPtr<ChContinuumElastoplastic>&  GetMaterial() {return material;}
+				/// Change the default material (by default it is a ChContinuumPlasticVonMises )
+				/// with a new one, that you create and handle with smart pointer, so you do not have to worry about deletion.
+	void ReplaceMaterial(ChSharedPtr<ChContinuumElastoplastic> newmaterial);
+
 				/// Set the Newtonian viscosity of the material
 	void SetViscosity(double mvisc) { viscosity=mvisc;}
 				/// Get the Newtonian viscosity of the material

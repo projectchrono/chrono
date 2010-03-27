@@ -43,6 +43,7 @@ public:
 			/// Constructor for initializing with dynamically allocated data, with new()
 			/// Mandatory way of using it:
 			///  ChSmartPtr<MyClass> pointerA(new MyClass);
+			/// Thank to automatic reference counting, you never have to call delete()!
     explicit ChSmartPtr(T* p = 0) 
         : itsCounter(0) 
 			{
@@ -52,21 +53,38 @@ public:
 			/// Copy constructor for the case 
 			///  ChSmartPtr<MyClassA> pointerA(pointerB);
     ChSmartPtr(const ChSmartPtr& r) throw()
-			{acquire(r);}
+			{
+				acquire(r);
+			}
 
 			/// Copy constructor and converter for the case 
 			///  ChSmartPtr<MyClassA> pointerA(pointerB);
 			/// when pointerB comes from a class MyClassB which is inherited from MyClassA. 
-			/// Warnings! - no check on MyClassB being really inherited from MyClassB,
-			///           - MyClassA & children should have virtual destructors.
+			/// If casting is not possible, the created shared pointer is invalidated (IsNull() = true).
+			/// Warnings! - upcast (MyClassA is parent of MyClassB) exactness and..
+			///			  - downcast (MyClassA is child of MyClassB) exactness  
+			///				is done in runtime with dynamic_cast; MyClassA & MyClassB must be polimorphic.
+			///           - MyClassA & MyClassB MUST have virtual destructors, if you want to use casting!
 	template <class T_other>
 	ChSmartPtr(const ChSmartPtr<T_other>& r) throw()
-			{acquire (r);}
+			{
+				if (dynamic_cast<T*>(r.get_ptr()))
+					acquire (r);
+				else
+					itsCounter = 0;
+			}
 
 			/// Destructor decrements the reference count and automatically delete only 
 			/// when the last reference is destroyed
 	~ChSmartPtr()
-			{release();}
+			{
+				release();
+			}
+
+			/// Bool type casting, true if the pointer is still bound to an object, or
+			/// false if unbound and invalidated (ex. after unsuccesfull casting). Example:
+			///    if(mysharedptr) {...}
+	operator bool() const { return itsCounter ? itsCounter->ptr!=0 : 0; }
 
 			/// Assignment form for an already-constructed smart-pointer.
     ChSmartPtr& operator=(const ChSmartPtr& r)
@@ -96,6 +114,24 @@ public:
 			/// never need to use this.
 	T* get_ptr() const throw() {return itsCounter ? itsCounter->ptr : 0;} 
 	T* get()	 const throw() {return itsCounter ? itsCounter->ptr : 0;}
+
+			/// Occasionally, the shared pointer can be invalidated (unbound from
+			/// object), for instance if you create it with null default
+			/// ChSharedPtr<MyClass> pointerA;   instead of typical   
+			/// ChSharedPtr<MyClass> pointerA(new MyClass);
+	bool IsNull() const throw() {return itsCounter ? itsCounter->ptr==0 : true;};
+
+			/// Unbind the shared pointer from referenced shared object,
+			/// and automatically delete in case of last reference. It should
+			/// be used sparingly, because this unbinding already happens automatically
+			/// when the shared pointer dies. Use this only to 'force' premature unbinding.
+    void SetNull() { this->release(); }
+
+			/// Tells if the referenced object is inherited from a specific class
+			/// and can be cast with copy constructor, for example 
+			///   if (ptrA.IsType<classB>() ) { ChSharedPtr<classB> ptrB (ptrA); }
+	template <class T_other>
+	bool IsType() { return itsCounter ? dynamic_cast<T_other*>(this->get_ptr()) : false }
 
 private:
 
@@ -174,14 +210,15 @@ public:
 
 			/// Constructor for initializing with dynamically allocated data, with new()
 			/// Mandatory way of using it:
-			///  ChSharedPtr<MyClass> pointerA(new MyClass);
+			///   ChSharedPtr<MyClass> pointerA(new MyClass);
+			/// Thank to automatic reference counting, you never have to call delete()!
     explicit ChSharedPtr(T* p = 0) 
 			{
 				ptr = p;
 			}
 
 			/// Copy constructor for the case 
-			///  ChSharedPtr<MyClassA> pointerA(pointerB);
+			///   ChSharedPtr<MyClassA> pointerA(pointerB);
 	ChSharedPtr(const ChSharedPtr& r) throw()
 			{
 				acquire(r);
@@ -190,17 +227,18 @@ public:
 			/// Copy constructor and converter for the case 
 			///  ChSharedPtr<MyClassA> pointerA(pointerB);
 			/// when pointerB comes from a class MyClassB which is inherited from MyClassA or viceversa.
-			/// Warnings! - upcast (MyClassA is parent of MyClassB) exactness and 
-			///			  - downcast (MyClassA is child of MyClassB) exactness and 
-			///           - check that pointerB is really inherited from MyClassB/MyClassA 
-			///				is done in runtime in debug version only! via assert() and
-			///             dynamic cast, so MyClassA & MyClassB must be polimorphic.
-			///           - MyClassA & MyClassB should have virtual destructors, if you want to use casting.
+			/// If casting is not possible, the created shared pointer is invalidated (IsNull() = true). 
+			/// Warnings! - upcast (MyClassA is parent of MyClassB) exactness and..
+			///			  - downcast (MyClassA is child of MyClassB) exactness  
+			///				is done in runtime with dynamic_cast; MyClassA & MyClassB must be polimorphic.
+			///           - MyClassA & MyClassB MUST have virtual destructors, if you want to use casting!
 	template <class T_other>
 	ChSharedPtr(const ChSharedPtr<T_other>& r) throw()
 			{
-				assert(dynamic_cast<T*>(r.get_ptr()));
-				acquire (r);
+				if (dynamic_cast<T*>(r.get_ptr()))
+					acquire (r);
+				else
+					ptr = 0;
 			}
 
 			/// Destructor decrements the reference count and automatically delete only 
@@ -209,6 +247,12 @@ public:
 			{
 				release();
 			}
+
+
+			/// Bool type casting, true if the pointer is still bound to an object, or
+			/// false if unbound and invalidated (ex. after unsuccesfull casting). Example:
+			///    if(mysharedptr) {...}
+	operator bool() const { return ptr!=0; }
 
 			/// Assignment form for an already-constructed smart-pointer.
     ChSharedPtr& operator=(const ChSharedPtr& r)
@@ -240,6 +284,24 @@ public:
 			/// never need to use this.
 	T* get_ptr() const throw()  {return ptr;} 
     T* get()     const throw()  {return ptr;}
+
+			/// Occasionally, the shared pointer can be invalidated (unbound from
+			/// object), for instance if you create it with null default
+			/// ChSharedPtr<MyClass> pointerA;   instead of typical   
+			/// ChSharedPtr<MyClass> pointerA(new MyClass);
+	bool IsNull() const throw() {return ptr == 0};
+
+			/// Unbind the shared pointer from referenced shared object,
+			/// and automatically delete in case of last reference. It should
+			/// be used sparingly, because this unbinding already happens automatically
+			/// when the shared pointer dies. Use this only to 'force' premature unbinding.
+    void SetNull() { this->release(); ptr =0;}
+
+			/// Tells if the referenced object is inherited from a specific class
+			/// and can be cast with copy constructor, for example 
+			///   if (ptrA.IsType<classB>() ) { ChSharedPtr<classB> ptrB (ptrA); }
+	template <class T_other>
+	bool IsType() {return dynamic_cast<T_other*>(ptr); }
 
 private:
 

@@ -28,7 +28,9 @@ XX-XX-XXXX
   Drucker-Prager criterion (the latter is under 
   development)
 
-
+- Improved ChSharedPtr and ChSmartPtr classes (added 
+  functions IsNull, boolean type casting, safer casting, etc.)
+  
 
 Release 0.9.0
 23-2-2010

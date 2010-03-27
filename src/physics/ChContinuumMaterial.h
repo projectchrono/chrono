@@ -21,7 +21,7 @@
 #include <stdlib.h>
 
 #include "core/ChMath.h"
-
+#include "core/ChShared.h"
 
 namespace chrono 
 {
@@ -109,35 +109,35 @@ public:
 					}
 
 			/// Compute the I1 invariant
-	Real GetInvariant_I1()
+	Real GetInvariant_I1() const
 			{
 				return XX()+YY()+ZZ();
 			}
 
 			/// Compute the I2 invariant
-	Real GetInvariant_I2()
+	Real GetInvariant_I2() const
 			{
 				return XX()*YY() + YY()*ZZ() + XX()*ZZ() 
 					 - XY()*XY() - YZ()*YZ() - XZ()*XZ();
 			}
 
 			/// Compute the I3 invariant
-	Real GetInvariant_I3()
+	Real GetInvariant_I3() const
 			{
 				return XX()*YY()*ZZ() + 2*XY()*YZ()*XZ() 
 					  -XY()*XY()*ZZ() - YZ()*YZ()*XX() - XZ()*XZ()*YY();
 			}
 
 			/// Compute the J1 invariant of the deviatoric part (that is always 0)
-	Real GetInvariant_J1() { return 0;}
+	Real GetInvariant_J1() const { return 0;}
 			 
 			/// Compute the J2 invariant of the deviatoric part
-	Real GetInvariant_J2() 
+	Real GetInvariant_J2() const
 	{
 		return (pow(this->GetInvariant_I1(),2)-this->GetInvariant_I2()) / 3.0;
 	}
 			/// Compute the J3 invariant of the deviatoric part
-	Real GetInvariant_J3() 
+	Real GetInvariant_J3() const
 	{
 		return ( pow(this->GetInvariant_I1(),3)*(2./27.)
 			        -this->GetInvariant_I1()*this->GetInvariant_I2()*(1./3.)
@@ -182,7 +182,7 @@ public:
 /// Base class for properties of materials 
 /// in a continuum. 
 
-class ChContinuumMaterial
+class ChContinuumMaterial : public ChShared
 {
 private:
 	double density;
@@ -325,9 +325,25 @@ class ChContinuumElastoplastic : public ChContinuumElastic
 public:
 	ChContinuumElastoplastic(double myoung = 10000000, double mpoisson=0.4, double mdensity=1000) : ChContinuumElastic(myoung,mpoisson,mdensity) {};
 
+			/// Return a scalar value that is 0 on the yeld surface, <0 inside (elastic), >0 outside (incompatible->plastic flow)
+	virtual double ComputeYeldFunction(const ChStressTensor<>& mstress) const = 0;
+
 			/// Compute plastic strain flow (flow derivative dE_plast/dt) from strain,
 			/// according to VonMises strain yeld theory. 
 	virtual void ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow, const ChStrainTensor<>& mtotstrain) const =0;
+
+			/// Correct the strain-stress by enforcing that elastic stress must remain on the yeld 
+			/// surface, computing a plastic flow to be added to plastic strain while integrating.
+	virtual void ComputeReturnMapping(ChStrainTensor<>& mplasticstrainflow, 
+									const ChStrainTensor<>&	mincrementstrain, 
+									const ChStrainTensor<>& mlastelasticstrain,
+									const ChStrainTensor<>& mlastplasticstrain) const = 0;
+
+			/// Set the plastic flow rate, i.e. the 'creep' speed. The lower the value, the slower 
+			/// the plastic flow during dynamic simulations, with delayed plasticity. 
+	virtual void   Set_flow_rate (double mflow_rate)=0;
+			/// Set the plastic flow rate.
+	virtual double Get_flow_rate ()=0;
 };
 
 
@@ -379,6 +395,14 @@ public:
 	double Get_flow_rate () {return flow_rate;}
 
 
+	virtual double ComputeYeldFunction(const ChStressTensor<>& mstress) const;
+
+	virtual void ComputeReturnMapping(ChStrainTensor<>& mplasticstrainflow, 
+									const ChStrainTensor<>&	mincrementstrain, 
+									const ChStrainTensor<>& mlastelasticstrain,
+									const ChStrainTensor<>& mlastplasticstrain) const;
+
+
 			/// Compute plastic strain flow (flow derivative dE_plast/dt) from strain,
 			/// according to VonMises strain yeld theory. 
 	void ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow, const ChStrainTensor<>& mestrain) const;
@@ -425,23 +449,29 @@ public:
 	virtual ~ChContinuumDruckerPrager() {};
 	
 
-			/// Set the elastic tangential (cohesion) yeld modulus, for Drucker-Prager
+			/// Set the D-P yeld modulus C, for Drucker-Prager
 			/// yeld. It defines the transition elastic->plastic.
 	void   Set_elastic_yeld (double melastic_yeld) {elastic_yeld = melastic_yeld;};
-			/// Get the elastic yeld modulus
+			/// Get the elastic yeld modulus C
 	double Get_elastic_yeld () {return elastic_yeld;}
 
-			
+			/// Set the internal friction coefficient A
+	void   Set_alpha (double malpha) {alpha = malpha;};
+			/// Get the internal friction coefficient A
+	double Get_alpha () {return alpha;}	
+
+			/// Sets the C and A parameters of the Drucker-Prager model
+			/// starting from more 'practical' values of inner friction angle phi
+			/// and cohesion, as used in the faceted Mohr-Coulomb model. 
+			/// Use the optional parameter inner_approx to set if the faceted
+			/// Mohr-Coulomg must be approximated with D-P inscribed (default) or circumscribed.
+	void   Set_from_MohrCoulomb(double phi, double cohesion, bool inner_approx=true);
+
 			/// Set the plastic flow rate multiplier. The lower the value, the slower 
 			/// the plastic flow during dynamic simulations.
 	void   Set_flow_rate (double mflow_rate) {flow_rate = mflow_rate;};
 			/// Get the flow rate multiplier.
 	double Get_flow_rate () {return flow_rate;}
-
-			/// Set the internal friction coefficient
-	void   Set_alpha (double malpha) {alpha = malpha;};
-			/// Get the internal friction coefficient
-	double Get_alpha () {return alpha;}
 
 			/// Set the internal dilatancy coefficient (usually 0.. < int.friction)
 	void   Set_dilatancy (double mdilatancy) {dilatancy = mdilatancy;};
@@ -460,6 +490,13 @@ public:
 			/// Get the hardening speed
 	double Get_hardening_speed () {return hardening_speed;}
 
+
+	virtual double ComputeYeldFunction(const ChStressTensor<>& mstress) const;
+
+	virtual void ComputeReturnMapping(ChStrainTensor<>& mplasticstrainflow, 
+									const ChStrainTensor<>&	mincrementstrain, 
+									const ChStrainTensor<>& mlastelasticstrain,
+									const ChStrainTensor<>& mlastplasticstrain) const;
 
 			/// Compute plastic strain flow direction from strain
 			/// according to Drucker-Prager. 
