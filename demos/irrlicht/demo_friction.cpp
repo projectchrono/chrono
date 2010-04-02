@@ -76,7 +76,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 		mrigidBody->GetBody()->SetFriction(0.4);
 
 		// Set a non zero value of rolling friction to have a rolling resisting torque:
-		mrigidBody->GetBody()->SetRollingfriction( ((double)bi/10.)*0.2 );
+		mrigidBody->GetBody()->SetRollingFriction( ((double)bi/10.)*0.2 );
 
 		// Some aesthetics for 3d view..
 		mrigidBody->addShadowVolumeSceneNode();

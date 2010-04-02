@@ -413,9 +413,9 @@ public:
 			// in debug mode.
 			// NOTE! adding/removing items to the system doesn't call Update() automatically.
 				
-				/// Attach a body to this system. 
+				/// Attach a body to this system. Must be an object of exactly ChBody class.
 	void AddBody (ChSharedPtr<ChBody> newbody);
-				/// Attach a link to this system.
+				/// Attach a link to this system. Must be an object of ChLink or derived classes.
 	void AddLink (ChSharedPtr<ChLink> newlink);
 	void AddLink (ChLink* newlink);  // _internal use
 				/// Attach a ChPhysicsItem object that is not a body or link
@@ -426,7 +426,7 @@ public:
 	void AddControls (ChSharedPtr<ChControls>& newcontrols);
 				/// Attach whatever type of ChPhysicsItem (ex a ChBody, or a 
 				/// ChParticles, or a ChLink, etc.) to the system. It will take care
-				/// of adding it to the proper list: of bodies, oof links, or of other generic 
+				/// of adding it to the proper list: of bodies, of links, or of other generic 
 				/// physic item. (i.e. it calls AddBody(), AddLink() or AddOtherPhysicsItem() ).
 	void Add (ChSharedPtr<ChPhysicsItem> newitem);
 

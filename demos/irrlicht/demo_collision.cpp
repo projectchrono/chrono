@@ -292,8 +292,6 @@ int main(int argc, char* argv[])
 
 	// Modify some setting of the physical system for the simulation, if you want
 
-	mphysicalSystem.SetIntegrationType(ChSystem::INT_ANITESCU); 
-
 	mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
 	//mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_GPU);
 

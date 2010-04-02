@@ -6,6 +6,11 @@
 Release 1.0.0
 XX-XX-XXXX
 
+- New ChConveyor class for creating conveyor belts.
+ 
+- New demo_conveyor.exe to show an example of usage of 
+  the new ChConveyor class.
+
 - Major feature: new ChMatterMeshless object to simulate 
   point-based plastic deformable materials, using the 
   meshless FEM approach. Useful for simulating mud, etc.
