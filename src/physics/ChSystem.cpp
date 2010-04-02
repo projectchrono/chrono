@@ -974,7 +974,7 @@ void ChSystem::RemoveOtherPhysicsItem (ChSharedPtr<ChPhysicsItem> mitem)
 
 void ChSystem::Add (ChSharedPtr<ChPhysicsItem> newitem)
 {
-	if (dynamic_cast<ChBody*>(newitem.get_ptr()))
+	if (typeid(newitem.get_ptr())==typeid(ChBody))
 	{
 		AddBody((ChSharedPtr<ChBody>)newitem);
 	}else
@@ -987,7 +987,7 @@ void ChSystem::Add (ChSharedPtr<ChPhysicsItem> newitem)
 
 void ChSystem::Remove (ChSharedPtr<ChPhysicsItem> newitem)
 {
-	if (dynamic_cast<ChBody*>(newitem.get_ptr()))
+	if (typeid(newitem.get_ptr())==typeid(ChBody))
 	{
 		RemoveBody((ChSharedPtr<ChBody>)newitem);
 	}else
@@ -1607,8 +1607,6 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
 			PHpointer->ConstraintsBiLoad_C(C_factor, recovery_clamp, do_clamp);
 		if (Ct_factor)
 			PHpointer->ConstraintsBiLoad_Ct(Ct_factor);			// Ct
-		if (F_factor)
-			PHpointer->ConstraintsFbLoadForces(F_factor);		// f*dt
 		if (load_jacobians)
 			PHpointer->ConstraintsLoadJacobians();
 		HIER_OTHERPHYSICS_NEXT

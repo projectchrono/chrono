@@ -337,7 +337,7 @@ public:
 				/// Note! a non-zero value will make the simulation 2x slower! Also, the
 				/// GPU solver currently does not support rolling friction. Default: 0.
 	float  GetRollingFriction() {return rolling_friction;}
-	void   SetRollingfriction(float mval) {rolling_friction = mval;}
+	void   SetRollingFriction(float mval) {rolling_friction = mval;}
 
 				/// The spinning friction coefficient. Usually a very low coefficient.
 				/// Note! a non-zero value will make the simulation 2x slower! Also, the

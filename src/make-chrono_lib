@@ -111,6 +111,7 @@ CPPFILES_LIB = \
 	physics/ChShaftsBody.cpp \
 	physics/ChShaftsTorsionSpring.cpp \
 	physics/ChContinuumMaterial.cpp \
+	physics/ChConveyor.cpp \
 	geometry/ChCGeometry.cpp \
 	geometry/ChCSphere.cpp \
 	geometry/ChCBox.cpp \
