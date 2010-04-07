@@ -11,6 +11,6 @@ all depend strings clean:
 	@echo "Making $@ in basics"   $(S) cd basics   $(S) $(CH_MAKETOOL) build=$(build) $@  $(S)  cd ..
 	@echo "Making $@ in irrlicht" $(S) cd irrlicht $(S) $(CH_MAKETOOL) build=$(build) $@  $(S)  cd ..
 	@echo "Making $@ in lcp_solver" $(S) cd lcp_solver $(S) $(CH_MAKETOOL) build=$(build) $@  $(S) cd ..
-	@echo "Making $@ in matlab"   $(S) cd matlab   $(S) $(CH_MAKETOOL) build=$(build) $@  $(S) cd ..
+	
 
 
