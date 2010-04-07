@@ -173,7 +173,7 @@ To compile ChronoEngine static library:
 . cd in "source" directory
 . type "make -f make-chrono_lib.linux lib"
 Note, you can easily change debug/release as follows:
-"make -f make-chrono_lib lib build=RELEASE" or ..build=DEBUG
+"make -f make-chrono_lib.linux lib build=RELEASE" or ..build=DEBUG
 
 --6
 To compile demos source files:
