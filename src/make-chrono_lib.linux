@@ -92,6 +92,33 @@ CPPFILES_LIB = \
 	physics/ChIterative.cpp \
 	physics/ChRef.cpp \
 	physics/ChConstraint.cpp \
+	physics/ChPhysicsItem.cpp \
+	physics/ChParticlesClones.cpp \
+	physics/ChIndexedParticles.cpp \
+	physics/ChIndexedNodes.cpp \
+	physics/ChNodeBody.cpp \
+	physics/ChMatterSPH.cpp \
+	physics/ChMatterMeshless.cpp \
+	physics/ChContact.cpp \
+	physics/ChContactRolling.cpp \
+	physics/ChContactGPUsimple.cpp \
+	physics/ChContactNode.cpp \
+	physics/ChContactContainerBase.cpp \
+	physics/ChContactContainer.cpp \
+	physics/ChContactContainerGPUsimple.cpp \
+	physics/ChContactContainerNodes.cpp \
+	physics/ChProximityContainerBase.cpp \
+	physics/ChProximityContainerSPH.cpp \
+	physics/ChProximityContainerMeshless.cpp \
+	physics/ChShaft.cpp \
+	physics/ChShaftsGear.cpp \
+	physics/ChShaftsClutch.cpp \
+	physics/ChShaftsPlanetary.cpp \
+	physics/ChShaftsMotor.cpp \
+	physics/ChShaftsBody.cpp \
+	physics/ChShaftsTorsionSpring.cpp \
+	physics/ChContinuumMaterial.cpp \
+	physics/ChConveyor.cpp \
 	geometry/ChCGeometry.cpp \
 	geometry/ChCSphere.cpp \
 	geometry/ChCBox.cpp \
@@ -100,8 +127,13 @@ CPPFILES_LIB = \
 	geometry/ChCLinePoly.cpp \
 	geometry/ChCTriangle.cpp \
 	collision/ChCCollisionModel.cpp \
+	collision/ChCModelGPU.cpp \
 	collision/ChCModelBullet.cpp \
+	collision/ChCModelBulletBody.cpp \
+	collision/ChCModelBulletParticle.cpp \
+	collision/ChCModelBulletNode.cpp \
 	collision/ChCCollisionSystemBullet.cpp \
+	collision/ChCCollisionSystemGPU.cpp \
 	collision/edgetempest/ChCCollisionTree.cpp \
 	collision/edgetempest/ChCOBBTree.cpp \
 	collision/edgetempest/ChCAABBTree.cpp \
@@ -111,6 +143,14 @@ CPPFILES_LIB = \
 	collision/edgetempest/ChCAABBcollider.cpp \
 	collision/edgetempest/ChCNarrowPhaseCollider.cpp \
 	collision/edgetempest/ChCGeometryCollider.cpp \
+	collision/convexdecomp/NvConcavityVolume.cpp \
+	collision/convexdecomp/NvConvexDecomposition.cpp \
+	collision/convexdecomp/NvFloatMath.cpp \
+	collision/convexdecomp/NvMeshIslandGeneration.cpp \
+	collision/convexdecomp/NvRayCast.cpp \
+	collision/convexdecomp/NvRemoveTjunctions.cpp \
+	collision/convexdecomp/NvSplitMesh.cpp \
+	collision/convexdecomp/NvStanHull.cpp \
 	chjs/ChJs_Engine.cpp \
 	chjs/ChJs_utils.cpp \
 	chjs/ChJs_all.cpp \
@@ -144,7 +184,6 @@ CPPFILES_LIB = \
 	lcp/ChLcpIterativeSOR.cpp \
 	lcp/ChLcpIterativeSORmultithread.cpp \
 	lcp/ChLcpIterativeJacobi.cpp \
-	lcp/ChLcpIterativeGPUsw.cpp \
 	lcp/ChLcpIterativeSymmSOR.cpp \
 	lcp/ChLcpIterativeCudaSolver.cpp \
 	lcp/ChLcpConstraintTwoGPUcontN.cpp \
@@ -153,12 +192,23 @@ CPPFILES_LIB = \
 	lcp/ChLcpConstraint.cpp \
 	lcp/ChLcpConstraintTwo.cpp \
 	lcp/ChLcpConstraintTwoGeneric.cpp \
+	lcp/ChLcpConstraintTwoGenericBoxed.cpp \
 	lcp/ChLcpConstraintTwoBodies.cpp \
 	lcp/ChLcpConstraintTwoFrictionT.cpp \
 	lcp/ChLcpConstraintTwoContactN.cpp \
+	lcp/ChLcpConstraintTwoRollingT.cpp \
+	lcp/ChLcpConstraintTwoRollingN.cpp \
+	lcp/ChLcpConstraintNodeFrictionT.cpp \
+	lcp/ChLcpConstraintNodeContactN.cpp \
+	lcp/ChLcpConstraintThree.cpp \
+	lcp/ChLcpConstraintThreeGeneric.cpp \
+	lcp/ChLcpConstraintThreeBBShaft.cpp \
 	lcp/ChLcpVariables.cpp \
 	lcp/ChLcpVariablesGeneric.cpp \
 	lcp/ChLcpVariablesBody.cpp \
+	lcp/ChLcpVariablesBodySharedMass.cpp \
+	lcp/ChLcpVariablesBodyOwnMass.cpp \
+	lcp/ChLcpVariablesNode.cpp \
 	collision/bullet/BulletCollision/BroadphaseCollision/btAxisSweep3.cpp \
 	collision/bullet/BulletCollision/BroadphaseCollision/btSimpleBroadphase.cpp \
 	collision/bullet/BulletCollision/BroadphaseCollision/btOverlappingPairCache.cpp \
@@ -166,6 +216,9 @@ CPPFILES_LIB = \
 	collision/bullet/BulletCollision/BroadphaseCollision/btDispatcher.cpp \
 	collision/bullet/BulletCollision/BroadphaseCollision/btMultiSapBroadphase.cpp \
 	collision/bullet/BulletCollision/BroadphaseCollision/btCollisionAlgorithm.cpp \
+	collision/bullet/BulletCollision/BroadphaseCollision/btDbvt.cpp \
+	collision/bullet/BulletCollision/BroadphaseCollision/btDbvtBroadphase.cpp \
+	collision/bullet/BulletCollision/BroadphaseCollision/btQuantizedBvh.cpp \
 	collision/bullet/BulletCollision/CollisionDispatch/btUnionFind.cpp \
 	collision/bullet/BulletCollision/CollisionDispatch/btCollisionDispatcher.cpp \
 	collision/bullet/BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.cpp \
@@ -182,6 +235,12 @@ CPPFILES_LIB = \
 	collision/bullet/BulletCollision/CollisionDispatch/SphereTriangleDetector.cpp \
 	collision/bullet/BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.cpp \
 	collision/bullet/BulletCollision/CollisionDispatch/btConvexPlaneCollisionAlgorithm.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btActivatingCollisionAlgorithm.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btBox2dBox2dCollisionAlgorithm.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btBoxBoxCollisionAlgorithm.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btBoxBoxDetector.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btGhostObject.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btConvex2dConvex2dAlgorithm.cpp \
 	collision/bullet/BulletCollision/CollisionShapes/btBarrelShape.cpp \
 	collision/bullet/BulletCollision/CollisionShapes/btBoxShape.cpp \
 	collision/bullet/BulletCollision/CollisionShapes/btTriangleMeshShape.cpp \
@@ -211,6 +270,13 @@ CPPFILES_LIB = \
 	collision/bullet/BulletCollision/CollisionShapes/btCapsuleShape.cpp \
 	collision/bullet/BulletCollision/CollisionShapes/btConvexInternalShape.cpp \
 	collision/bullet/BulletCollision/CollisionShapes/btUniformScalingShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btBox2dShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btConvex2dShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btConvexPointCloudShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btMultimaterialTriangleMeshShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btShapeHull.cpp \
+	collision/bullet/BulletCollision/CollisionShapes/btTriangleIndexVertexMaterialArray.cpp \
 	collision/bullet/BulletCollision/NarrowPhaseCollision/btContinuousConvexCollision.cpp \
 	collision/bullet/BulletCollision/NarrowPhaseCollision/btSubSimplexConvexCast.cpp \
 	collision/bullet/BulletCollision/NarrowPhaseCollision/btConvexCast.cpp \
@@ -218,13 +284,14 @@ CPPFILES_LIB = \
 	collision/bullet/BulletCollision/NarrowPhaseCollision/btPersistentManifold.cpp \
 	collision/bullet/BulletCollision/NarrowPhaseCollision/btMinkowskiPenetrationDepthSolver.cpp \
 	collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkConvexCast.cpp \
-	collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkEpa.cpp \
 	collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkEpaPenetrationDepthSolver.cpp \
 	collision/bullet/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.cpp \
 	collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkPairDetector.cpp \
+	collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkEpa2.cpp \
 	collision/bullet/LinearMath/btQuickprof.cpp \
 	collision/bullet/LinearMath/btAlignedAllocator.cpp \
 	collision/bullet/LinearMath/btGeometryUtil.cpp \
+	collision/bullet/LinearMath/btConvexHull.cpp \
 	collision/gimpact/GIMPACT/core/gim_box_set.cpp \
 	collision/gimpact/GIMPACT/core/gim_contact.cpp \
 	collision/gimpact/GIMPACT/core/gim_memory.cpp \
@@ -251,11 +318,13 @@ CPPFILES_LIB = \
 	collision/gimpact/ConvexDecomposition/splitplane.cpp \
 	collision/gimpact/ConvexDecomposition/vlookup.cpp \
 	parallel/ChThreads.cpp \
+	parallel/ChThreadsPOSIX.cpp \
 	parallel/ChThreadsWIN32.cpp
-
-
+	
+	
 CUDAFILES_LIB = \
-	lcp/ChLcpIterativeCuda.cu
+	lcp/ChLcpIterativeCuda.cu \
+	collision/collide.cu
 
 
 # Rules for compilation
