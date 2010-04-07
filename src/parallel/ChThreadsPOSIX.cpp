@@ -87,8 +87,6 @@ static void *threadFunction(void *argument)
 void ChThreadsPOSIX::sendRequest(uint32_t uiCommand, void* uiUserPtr, unsigned int threadId)//(uint32_t uiCommand, uint32_t uiArgument0, uint32_t taskId)
 {
 	ChThreadStatePOSIX&	spuStatus = m_activeSpuStatus[threadId];
-	btAssert(taskId >= 0);
-	btAssert(taskId < m_activeSpuStatus.size());
 
 	spuStatus.m_commandId = uiCommand;
 	spuStatus.m_status = 1;
