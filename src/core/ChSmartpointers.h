@@ -131,7 +131,7 @@ public:
 			/// and can be cast with copy constructor, for example 
 			///   if (ptrA.IsType<classB>() ) { ChSharedPtr<classB> ptrB (ptrA); }
 	template <class T_other>
-	bool IsType() { return itsCounter ? dynamic_cast<T_other*>(this->get_ptr()) : false }
+	bool IsType() { return itsCounter ? dynamic_cast<T_other*>(this->get_ptr()) : false ;}
 
 private:
 
@@ -289,7 +289,7 @@ public:
 			/// object), for instance if you create it with null default
 			/// ChSharedPtr<MyClass> pointerA;   instead of typical   
 			/// ChSharedPtr<MyClass> pointerA(new MyClass);
-	bool IsNull() const throw() {return ptr == 0};
+	bool IsNull() const throw() {return ptr == 0;};
 
 			/// Unbind the shared pointer from referenced shared object,
 			/// and automatically delete in case of last reference. It should

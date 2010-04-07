@@ -7,7 +7,7 @@
 #
 # 
 
-include ../makes/config.mak.linux 
+include ../makes/config.mak 
 
 # From now on, thank to config.mak, some useful variables
 # have been automatically set.

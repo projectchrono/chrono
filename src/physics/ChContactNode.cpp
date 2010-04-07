@@ -83,7 +83,8 @@ void ChContactNode::Reset(		collision::ChCollisionModel* mmodA,	///< model A (bo
 	assert (varA);
 	assert (varB);
 	assert (frameA);
-	assert (frameB);
+	assert (posB);
+
 
 	this->modA = mmodA;
 	this->modB = mmodB;
