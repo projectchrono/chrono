@@ -94,9 +94,13 @@ void ChContactGPUsimple::Reset(	collision::ChCollisionModel* mmodA,	///< model A
 	Tu.SetVariables(const_cast<ChLcpVariablesBody*>(varA),const_cast<ChLcpVariablesBody*>(varB));
 	Tv.SetVariables(const_cast<ChLcpVariablesBody*>(varA),const_cast<ChLcpVariablesBody*>(varB));
 
-	Nx.SetP1(ChVector<>(vpA));
-	Nx.SetP2(ChVector<>(vpB));
-	Nx.SetNormal(ChVector<float>(vN));
+	ChVector<double> mp1(vpA);
+	ChVector<double> mp2(vpB);
+	ChVector<float> mn(vN);
+
+	Nx.SetP1(mp1);
+	Nx.SetP2(mp2);
+	Nx.SetNormal(mn);
 	Nx.SetContactCache(mreaction_cache);
 	Nx.SetFrictionCoefficient(mfriction);
 
