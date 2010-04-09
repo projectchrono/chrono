@@ -104,7 +104,14 @@ the chronoengine source files in the solution explorer window at the
 left, you'll have automatic completion of keywords, etc)
 This is the way I usually compile the SDK.
 
+--NOTE
 
+If you are recompiling the API with the CUDA support enabled (for
+GPU acceleration features), that is with CH_NOCUDA=FALSE in config.mak,
+before step n.6 you must 
+. install the Nvidia CUDA toolkit
+. install the Nvidia CUDA SDK
+ 
 
 -------------------------------------------------------
 
@@ -180,7 +187,14 @@ To compile demos source files:
 . cd in "demos" directory
 . type "make"
 
+--NOTE
 
+If you are recompiling the API with the CUDA support enabled (for
+GPU acceleration features), that is with CH_NOCUDA=FALSE in config.mak,
+before step n.5 you must 
+. install the Nvidia CUDA toolkit
+. install the Nvidia CUDA SDK 
+according to the instructions providen by Nvidia.
 
 
 -------------------------------------------------------
