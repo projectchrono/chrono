@@ -331,7 +331,7 @@ OFILES_LIB= $(CPPFILES_LIB:.cpp=.obj) $(CUDAFILES_LIB:.cu=.obj)
 .SUFFIXES: .cpp .c .obj .cu
 
 .cu.obj:
-	$(CH_NVCC_COMPILER) $(CH_NVCCFLAGS) -c $< $(CH_INCLUDES) -o "$*.obj"
+	$(CH_NVCC_COMPILER) $(CH_NVCCFLAGS) -c $< $(CH_INCLUDES) -o "$*.obj" >nul
 	$(CH_NVCC_COMPILER2)
 
 .cpp.obj:

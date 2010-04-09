@@ -94,7 +94,7 @@ void MultiGPU::cudaCollisions(thrust::host_vector<contact_Data> &contactdata, in
 	thrust::device_vector<uint> Bins_IntersectedDV(0);
 	mParam.flag=0;
 	//cout<<"Blocks: "<<nB.x<<" "<<nB.y<<endl;
-
+fg
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(mBinSize,&mParam.mBinSize,sizeof(mParam.mBinSize)));
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(mNumBodies,&mParam.mNumBodies,sizeof(mParam.mNumBodies)));
