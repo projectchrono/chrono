@@ -14,7 +14,7 @@
 #include "physics/ChContactContainerGPUsimple.h"
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"
-#include "physics/ChParticles.h"
+#include "physics/ChParticlesClones.h"
 #include "lcp/ChLcpConstraintTwoContactN.h"
 #include "collision/ChCModelBulletBody.h"
 #include "collision/ChCModelBulletParticle.h"
@@ -129,8 +129,9 @@ void ChContactContainerGPUsimple::AddContact(const collision::ChCollisionInfo& m
 	if (ChModelBulletParticle* mmpaA = dynamic_cast<ChModelBulletParticle*>(mcontact.modelA))
 	{
 		frameA = &(mmpaA->GetParticles()->GetParticle(mmpaA->GetParticleId()));
-		varA    = &(mmpaA->GetParticles()->GetParticle(mmpaA->GetParticleId())).variables;
-		frictionA = mmpaA->GetParticles()->GetSfriction();
+		varA   = (ChLcpVariablesBody*) &(mmpaA->GetParticles()->GetParticle(mmpaA->GetParticleId())).Variables();
+		if (ChParticlesClones* mpclone = dynamic_cast<ChParticlesClones*>(mmpaA->GetParticles()))
+			frictionA = mpclone->GetSfriction();
 	}
 
 	if (ChModelBulletBody* mmboB = dynamic_cast<ChModelBulletBody*>(mcontact.modelB))
@@ -143,12 +144,14 @@ void ChContactContainerGPUsimple::AddContact(const collision::ChCollisionInfo& m
 	if (ChModelBulletParticle* mmpaB = dynamic_cast<ChModelBulletParticle*>(mcontact.modelB))
 	{
 		frameB = &(mmpaB->GetParticles()->GetParticle(mmpaB->GetParticleId()));
-		varB    = &(mmpaB->GetParticles()->GetParticle(mmpaB->GetParticleId())).variables;
-		frictionB = mmpaB->GetParticles()->GetSfriction();
+		varB   = (ChLcpVariablesBody*) &(mmpaB->GetParticles()->GetParticle(mmpaB->GetParticleId())).Variables();
+		if (ChParticlesClones* mpclone = dynamic_cast<ChParticlesClones*>(mmpaB->GetParticles()))
+			frictionB = mpclone->GetSfriction();
 	}
 
-	assert (frameA);
-	assert (frameB);
+	if (!(frameA && frameB))
+		return;
+
 	assert (varA);
 	assert (varB);
 
@@ -159,8 +162,6 @@ void ChContactContainerGPUsimple::AddContact(const collision::ChCollisionInfo& m
 
 	ChMaterialCouple mat;
 	mat.static_friction = (frictionA + frictionB)*0.5f;
-	//mat.sliding_friction = ...
-	//mat.rolling_friction = ... etc //***TO DO***
 
 
 	// Launch the contact callback, if any, to set custom friction & material 
