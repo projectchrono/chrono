@@ -64,6 +64,9 @@ NvRemoveTjunctions.cpp : A code snippet to remove tjunctions from a triangle mes
 #include "NvRemoveTjunctions.h"
 #include "NvFloatMath.h"
 
+// this is only a hack! (should be removed)
+uint UINT_MAX=1000000;
+
 #pragma warning(disable:4189)
 
 using namespace CONVEX_DECOMPOSITION;
