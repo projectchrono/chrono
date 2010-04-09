@@ -333,6 +333,7 @@ CUDAFILES_LIB = \
 
 # <JLC> was : OFILES_LIB= $(CPPFILES_LIB:.cpp=.o) $(CUDAFILES_LIB:.cu=.o) </JLC>
 OFILES_LIB= $(CPPFILES_LIB:.cpp=.o)
+CUDAOFILES_LIB= $(CUDAFILES_LIB:.cu=.o)
 
 
 .SUFFIXES:
@@ -358,7 +359,7 @@ lib: $(CH_CHRONOLIB)
 
 #$(CPPFILES_LIB) 
 
-$(CH_CHRONOLIB) :  $(OFILES_LIB)
+$(CH_CHRONOLIB) :  $(OFILES_LIB) $(CUDAOFILES_LIB)
 		ar -rs $@ $?		 
 
 # For cleaning all the .o, .obj, and other intermediate files
