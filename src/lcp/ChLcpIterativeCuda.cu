@@ -1036,7 +1036,7 @@ __global__ void ChKernelContactsPreprocess__OLD__(CH_REALNUMBER4* deviceContacts
    regS.x = reg03.x;
    regS.y = reg03.y;
    regS.z = reg03.z;
-   reg_uInt = unsigned int (reg03.w);
+   reg_uInt = (unsigned int) reg03.w;
    reg69 = deviceBodies[2*deviceBodyPitch+reg_uInt]; 
    regS.x -= reg69.x;                                
    regS.y -= reg69.y;                                
@@ -1238,7 +1238,7 @@ __global__ void ChKernelContactsPreprocess__OLD__(CH_REALNUMBER4* deviceContacts
    regS.x = reg03.x;
    regS.y = reg03.y;
    regS.z = reg03.z;
-   reg_uInt = unsigned int (reg03.w);
+   reg_uInt = (unsigned int) reg03.w;
    reg69 = deviceBodies[2*deviceBodyPitch+reg_uInt]; 
    regS.x -= reg69.x;                                
    regS.y -= reg69.y;                                
