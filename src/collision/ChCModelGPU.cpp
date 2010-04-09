@@ -27,35 +27,46 @@ namespace collision
 
 ChModelGPU::ChModelGPU()
 {
-	this->rad = 0.f;
 	this->posX = 0.f;
 	this->posY = 0.f;
 	this->posZ = 0.f;
-	rigidBody = 0;
+	nSpheres = 0;
+	colSpheres = 0;
+	rMax = 0.f;
+	colFam = 0;
+	noCollWith = -1;
 }
 
 
 ChModelGPU::~ChModelGPU()
 {
-	ClearModel();
-	rad=0;
-	posX=0;
-	posY=0;
-	posZ=0;
+	//ClearModel(); not possible, would call GetPhysicsItem() that is pure virtual, enough to use instead..
+	if (colSpheres) delete colSpheres;
+	colSpheres = 0;
 }
 
  
 
 int ChModelGPU::ClearModel()
 {
-	if (GetBody()->GetSystem())
-	  if (GetBody()->GetCollide())
-		GetBody()->GetSystem()->GetCollisionSystem()->Remove(this);
+	if (GetPhysicsItem()->GetSystem())
+	{
+	  if (GetPhysicsItem()->GetCollide())
+	  {
+		GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Remove(this);
+	  }
+	}
 	
-	rad=0.f;
+	if (colSpheres) delete colSpheres;
+
 	posX = 0.f;
 	posY = 0.f;
 	posZ = 0.f;
+
+	nSpheres=0;
+	rMax = 0.f;
+	colFam = 0;
+	noCollWith = -1;
 
 	return 1;
 } 
@@ -63,17 +74,41 @@ int ChModelGPU::ClearModel()
 
 int ChModelGPU::BuildModel()
 {
-	assert(GetBody());
-	if (GetBody()->GetSystem())
-	  if (GetBody()->GetCollide())
-		GetBody()->GetSystem()->GetCollisionSystem()->Add(this);
+	//assert((ChBody*)GetPhysicsItem());
+	if (GetPhysicsItem()->GetSystem())
+	  if (GetPhysicsItem()->GetCollide())
+		GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Add(this);
 
 	return 1;
 }
 
+bool ChModelGPU::AddCompoundBody(int numSpheres, double* pX, double* pY, double* pZ, double* pR)
+{
+	if(numSpheres<=0)
+		return false;
+
+	nSpheres = numSpheres;
+	colSpheres = new float[4*nSpheres];
+	
+	for(int ii=0; ii<nSpheres; ii++)
+	{
+		colSpheres[ii*4+0] = (float)pX[ii];
+		colSpheres[ii*4+1] = (float)pY[ii];
+		colSpheres[ii*4+2] = (float)pZ[ii];
+		colSpheres[ii*4+3] = (float)pR[ii];
+
+		if(((float)pR[ii])>rMax)
+			rMax = (float)pR[ii];
+	}
+
+	return true;
+}
+
 bool ChModelGPU::AddSphere(double radius,  ChVector<>* pos)
 {
-	rad = radius;
+	//add a sphere body - this collision geometry has one collision sphere at the body coordinate origin
+	nSpheres = 1;
+	colSpheres = new float[4*nSpheres];
 	if(pos==0)
 	{
 		posX=0.f;
@@ -86,6 +121,13 @@ bool ChModelGPU::AddSphere(double radius,  ChVector<>* pos)
 		posY = (*pos).y;
 		posZ = (*pos).z;
 	}
+
+	colSpheres[0] = 0.f; //x
+	colSpheres[1] = 0.f; //y
+	colSpheres[2] = 0.f; //z
+	colSpheres[3] = (float) radius; //r
+
+	rMax = (float) radius;
 
 	return true;
 }
@@ -130,41 +172,27 @@ bool ChModelGPU::AddCopyOfAnotherModel (ChCollisionModel* another)
 }
 
 
-
-
-ChBody* ChModelGPU::GetBody()
+ChVector<> ChModelGPU::GetSpherePos(int ID)
 {
-	return rigidBody;
-	//OLD STUFF BELOW
-	/*
-	return (ChBody*) bt_collision_object->getUserPointer();
-	*/
+	//ChVector<> pos(colSpheres[4*n+0],colSpheres[4*n+1],colSpheres[4*n+2]);
+	ChVector<> pos;
+	pos.x = colSpheres[4*ID+0];
+	pos.y = colSpheres[4*ID+1];
+	pos.z = colSpheres[4*ID+2];
+	return pos;
 }
 
-void ChModelGPU::SetBody(ChBody* mbo)
+float ChModelGPU::GetSphereR(int ID)
 {
-	rigidBody = mbo;
-	//OLD STUFF BELOW
-	/*
-	bt_collision_object->setUserPointer((void*) mbo);
-	*/
-}
+	if (ID>nSpheres)
+		return -1.f;
 
-
-
-void ChModelGPU::SyncPosition()
-{
-	ChBody* bpointer = GetBody();
-	assert(bpointer);
-	assert(bpointer->GetSystem());
-
-	posX=bpointer->GetPos().x;
-	posY=bpointer->GetPos().y;
-	posZ=bpointer->GetPos().z;
+	return colSpheres[4*ID+3];
 }
 
 void  ChModelGPU::SetFamily(int mfamily)
 {
+	colFam = mfamily;
 	/*
 	assert(mfamily<16);
 	if (!bt_collision_object->getBroadphaseHandle()) return;
@@ -196,11 +224,13 @@ int   ChModelGPU::GetFamily()
 			return fam;
 	return fam;
 	*/
-	return 1;
+	return colFam;
+	//return 1;
 }
 
 void  ChModelGPU::SetFamilyMaskNoCollisionWithFamily(int mfamily)
 {
+	noCollWith = mfamily;
 	/*
 	assert(mfamily<16);
 	if (!bt_collision_object->getBroadphaseHandle()) return;
@@ -225,6 +255,11 @@ void  ChModelGPU::SetFamilyMaskNoCollisionWithFamily(int mfamily)
 
 void  ChModelGPU::SetFamilyMaskDoCollisionWithFamily(int mfamily)
 {
+	if(noCollWith = mfamily)
+	{
+		noCollWith = -1;
+	}
+
 	/*
 	assert(mfamily<16);
 	if (!bt_collision_object->getBroadphaseHandle()) return;
@@ -249,6 +284,7 @@ void  ChModelGPU::SetFamilyMaskDoCollisionWithFamily(int mfamily)
 
 bool ChModelGPU::GetFamilyMaskDoesCollisionWithFamily(int mfamily)
 {
+	return (noCollWith!=mfamily);
 	/*
 	assert(mfamily<16);
 	if (!bt_collision_object->getBroadphaseHandle()) return false;
@@ -256,6 +292,11 @@ bool ChModelGPU::GetFamilyMaskDoesCollisionWithFamily(int mfamily)
 	return bt_collision_object->getBroadphaseHandle()->m_collisionFilterMask & familyflag;
 	*/
 	return true;
+}
+
+int ChModelGPU::GetNoCollFamily()
+{
+	return noCollWith;
 }
 
 

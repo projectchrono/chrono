@@ -1,243 +1,204 @@
-#ifndef CH_NOCUDA 
-
-#ifdef _WIN32
-#  define NOMINMAX 
-#endif
-
-#include <cudpp/cudpp.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <cutil.h>
-#include <string.h>
-#include <math.h>
-#include <cutil_inline.h>
 #include <collision/collide_kernel.cu>
-#include <collision/new_radixsort.h>
-#include <collision/new_radixsort.cu>
+#include <thrust/sorting/radix_sort.h>
+#include "collide.h"
 
-int NBodies=0;
+using namespace chrono::collision;
+#define ICAST (int*)thrust::raw_pointer_cast
+#define UCAST (uint*)thrust::raw_pointer_cast
+#define F4CAST (float4*)thrust::raw_pointer_cast
+#define CDCAST (contact_Data*)thrust::raw_pointer_cast
 
-extern "C" void initDevice(int device_number){
-	//cutilSafeCall(cudaSetDevice(device_number));
+/*
+
+__constant__ unsigned int  mBinSize;
+__constant__ float3        mGlobalOrigin;
+__constant__ unsigned int  SIDE;
+__constant__ unsigned int  mfin;
+
+*/
+
+inline uint nearestPow(int x){
+	/*if(!((x & -x) == x)){
+	for (int i=1; i<32; i<<=1){
+	x = x | x >> i;
+	}
+	x+=1;
+	}*/
+	return x;
 }
-extern "C"
-void cudaCollisions(float *x,float *y,float *z,float *r, contact_Data *&contactdata, int &numContacts, int numBodies, float binSize, float limits[3][2])
-{
-	NBodies=numBodies;
-	if(!((NBodies & -NBodies) == NBodies))
-	{
-		NBodies = NBodies | (NBodies >> 1);
-		NBodies = NBodies | (NBodies >> 2);
-		NBodies = NBodies | (NBodies >> 4);
-		NBodies = NBodies | (NBodies >> 8);
-		NBodies = NBodies | (NBodies >> 16);
-		NBodies = NBodies+1;
+void MultiGPU::cudaCollisions(thrust::host_vector<contact_Data> &contactdata, int &numContacts){
+	int NBodies=mParam.mNumBodies;
+	int numBodies=mParam.mNumBodies;
+	mParam.mBinSize=mBinSize_;
+	mParam.mfin=0;
+
+	thrust::host_vector<float4> DataH(numBodies);
+
+	float3 cMax,cMin;
+	DataH=mData;
+	for(int i=0; i<numBodies; ++i){
+		if(i==0){
+			cMin.x = cMax.x = DataH[i].x;
+			cMin.y = cMax.y = DataH[i].y;
+			cMin.z = cMax.z = DataH[i].z;
+		}
+		if(cMax.x<(DataH[i].x)){cMax.x=(DataH[i].x);}
+		if(cMax.y<(DataH[i].y)){cMax.y=(DataH[i].y);}
+		if(cMax.z<(DataH[i].z)){cMax.z=(DataH[i].z);}
+		if(cMin.x>(DataH[i].x)){cMin.x=(DataH[i].x);}
+		if(cMin.y>(DataH[i].y)){cMin.y=(DataH[i].y);}
+		if(cMin.z>(DataH[i].z)){cMin.z=(DataH[i].z);}
 	}
 
-
-	//void*HData;
-	//cutilSafeCall(cudaMallocHost(&HData,sizeof(float4) *numBodies ));
-	//float4* DataH=(float4*) HData;
-	float4 *DataH =	(float4*) malloc(sizeof(float4) *numBodies );
-	for(int i=numBodies-1; i>=0; --i){
-		DataH[i].x=x[i];
-		DataH[i].y=y[i];
-		DataH[i].z=z[i];
-		DataH[i].w=r[i];
+	mParam.mGlobalOrigin=cMin;
+	for(int i=0; i<numBodies; ++i){
+		DataH[i].x -= cMin.x;
+		DataH[i].y -= cMin.y;
+		DataH[i].z -= cMin.z;
 	}
-float Max_X=0,Max_Y=0,Max_Z=0,Max_B=0,Max_R=0;
-float Min_X=0,Min_Y=0,Min_Z=0;
-for(int i=0; i<numBodies; ++i){
-		if(Max_X<(DataH[i].x)){Max_X=(DataH[i].x);}
-		if(Max_Y<(DataH[i].y)){Max_Y=(DataH[i].y);}
-		if(Max_Z<(DataH[i].z)){Max_Z=(DataH[i].z);}
-		if(Max_R<DataH[i].w){Max_R=DataH[i].w;}
-		if(Min_X>(DataH[i].x)){Min_X=(DataH[i].x);}
-		if(Min_Y>(DataH[i].y)){Min_Y=(DataH[i].y);}
-		if(Min_Z>(DataH[i].z)){Min_Z=(DataH[i].z);}
-	}
-
-limits[0][0]=Min_X;
-limits[1][0]=Min_Y;
-limits[2][0]=Min_Z;
-
-limits[0][1]=Max_X;
-limits[1][1]=Max_Y;
-limits[2][1]=Max_Z;
-
-	float3 globalOrigin;
-	//globalOrigin.x=0;
-	//globalOrigin.y=0;
-	//globalOrigin.z=0;
-
-	globalOrigin.x=abs(min(0.0f,limits[0][0]))/*+(binSize/2.0)*/;
-	globalOrigin.y=abs(min(0.0f,limits[1][0]))/*+(binSize/2.0)*/;
-	globalOrigin.z=abs(min(0.0f,limits[2][0]))/*+(binSize/2.0)*/;
-
-	int3 SIDE3;
-	SIDE3.x=ceil((abs(limits[0][0]-limits[0][1])+binSize/2.0)/binSize);
-	SIDE3.y=ceil((abs(limits[1][0]-limits[1][1])+binSize/2.0)/binSize);
-	SIDE3.z=ceil((abs(limits[2][0]-limits[2][1])+binSize/2.0)/binSize);
-	printf("dims %d %d %d\t",SIDE3.x,SIDE3.y,SIDE3.z);
-	//maxbounds(DataH, numBodies);
-
-
-	//printf("min: %f %f %f %f\n",Max_X,Max_Y,Max_Z,Max_R);
-	//printf("min: %f %f %f %f \n",limits[0][1],limits[1][1],limits[2][1], binSize/2.0);
-	//cutilSafeCall(cudaSetDevice(3));
-
-	//printf("number of bodies: %d    %f\n", NBodies, binSize);
-	//--------------------------------------------haxhaxhax----------------------------------------------
-	//int*	Hax					= NULL;
-	//CUT_SAFE_CALL(cudaMalloc((void**) &Hax,				sizeof(int)*0));
-	//---------------------------------------------------------------------------------------------------
-
-	unsigned int timer;
+	mParam.SIDE.x=ceil((abs((cMax.x-cMin.x)))/mParam.mBinSize)+1;
+	mParam.SIDE.y=ceil((abs((cMax.y-cMin.y)))/mParam.mBinSize)+1;
+	mParam.SIDE.z=ceil((abs((cMax.z-cMin.z)))/mParam.mBinSize)+1;
+	/*if(!((NBodies & -NBodies) == NBodies)){
+		NBodies--;
+		for (int i=1; i<32; i<<=1){
+			NBodies = NBodies | NBodies >> i;
+		}
+		NBodies+=1;
+	}*/
+	//cout<<"DIMS: "<<mParam.SIDE.x<<" "<<mParam.SIDE.y<<" "<<mParam.SIDE.z<<endl;
+	////////cout<<"---------------------------------------------------------------------------------------------------------------------"<<endl;
+	uint timer;
 	CUT_SAFE_CALL(cutCreateTimer(&timer));
 	cutStartTimer(timer);
-	//---------------------------------------------------------------------------------------------------------------------
-	float4*			DataD					= {0};
-	uint*			Bins_IntersectedD		= {0};
-	uint*			Bins_IntersectedDK		= {0};
-	uint*			Bins_IntersectedDO		= {0};
-	uint*			Bins_IntersectedDV		= {0};
-	uint*			Num_ContactD			= {0};
-	uint*			Num_ContactDO			= {0};
-	uint*			Bin_StartDK				= {0};
-	uint*			Bin_StartDV				= {0};
-	contact_Data*	contactdataD			= {0};
-	uint*			Last					= {0};
+	////cout<<"---------------------------------------------------------------------------------------------------------------------"<<endl;
 	uint			Num_ContactH			=  0 ;
-	//---------------------------------------------------------------------------------------------------------------------
-	dim3 nBlocks(NBodies/BLOCK_SIZE,1,1);
-	dim3 nThreads(BLOCK_SIZE,1,1);
+	uint			Bins_IntersectedH		=  0 ;
+	//uint			LastH					=  0 ;
+	dim3 nB,nT;
+	int maxblock=65535;
+	////cout<<"Compute Number of Blocks and Threads---------------------------------------------------------------------------------"<<endl;
+	dim3 nBlocks(ceil(NBodies/(float)B_SIZE)+1,1,1);
+	dim3 nThreads(B_SIZE,1,1);
 	if(nBlocks.x==0){nBlocks.x=1;}
 
+	nB=dim3(min(maxblock,nBlocks.x),1,1);
+	if((nBlocks.x)>maxblock){
+		nB.y=ceil((nBlocks.x)/float(maxblock));
+	}
+	//cout<<"Determine Number of bins intersected---------------------------------------------------------------------------------"<<endl;
+	thrust::device_vector<float4> DataD = DataH;
 
-	//---------------------------------------------------------------------------------------------------------------------
-	printf("1");
-	cutilSafeCall(cudaMalloc((void**) &DataD,				sizeof(float4)*numBodies));
-	cutilSafeCall(cudaMalloc((void**) &Bins_IntersectedD, sizeof(uint)*numBodies	));
-	cutilSafeCall(cudaMemcpy(DataD, DataH, sizeof(float4)*numBodies, cudaMemcpyHostToDevice));
-	Bins_Intersected<<<nBlocks,  nThreads>>>(DataD,Bins_IntersectedD,Bins_IntersectedDK,Bins_IntersectedDV,SIDE3,0, binSize,globalOrigin,numBodies);
-	////cutilCheckMsg("Kernel execution failed");
-	cutilSafeThreadSync();
+	thrust::device_vector<uint> Bins_IntersectedD(numBodies);
+	thrust::device_vector<uint> Bins_IntersectedDK(0);
+	thrust::device_vector<uint> Bins_IntersectedDV(0);
+	mParam.flag=0;
+	//cout<<"Blocks: "<<nB.x<<" "<<nB.y<<endl;
 
-	//---------------------------------------------------------------------------------------------------------------------	
-	printf("2");
-	cutilSafeCall(cudaMalloc((void**) &Bins_IntersectedDO, sizeof(uint)*(numBodies)));
-	CUDPPConfiguration config;
-	config.op				= CUDPP_ADD;
-	config.datatype			= CUDPP_UINT;
-	config.algorithm		= CUDPP_SCAN;
-	config.options			= CUDPP_OPTION_FORWARD | CUDPP_OPTION_INCLUSIVE;
-	CUDPPHandle scanplan	= 0;
-	CUDPPResult result		= cudppPlan(&scanplan, config, numBodies, 1, 0);  
-	if (CUDPP_SUCCESS != result){	printf("Error creating CUDPPPlan\n");	exit(-1);	}
-	cudppScan(scanplan, Bins_IntersectedDO, Bins_IntersectedD, numBodies);
-	cutilSafeThreadSync();
-	cutilSafeCall(cudaFree(Bins_IntersectedD));
-	cudppDestroyPlan(scanplan);
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(mBinSize,&mParam.mBinSize,sizeof(mParam.mBinSize)));
 
-	//---------------------------------------------------------------------------------------------------------------------	
-	printf("3");
-	uint Bins_IntersectedH=0;
-	cutilSafeCall(cudaMemcpy(&Bins_IntersectedH, &Bins_IntersectedDO[numBodies-1], sizeof(uint), cudaMemcpyDeviceToHost));
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(mNumBodies,&mParam.mNumBodies,sizeof(mParam.mNumBodies)));
 
-	cutilSafeCall(cudaMalloc((void**) & Bins_IntersectedDK , sizeof(uint)*(Bins_IntersectedH)));
-	cutilSafeCall(cudaMalloc((void**) & Bins_IntersectedDV, sizeof(uint)*(Bins_IntersectedH)));
-	Bins_Intersected<<<nBlocks,  nThreads>>>(DataD,Bins_IntersectedDO,Bins_IntersectedDK,Bins_IntersectedDV,SIDE3,1, binSize,globalOrigin,numBodies);
-	////cutilCheckMsg("Kernel execution failed");
-	cutilSafeThreadSync();
-	cutilSafeCall(cudaFree(Bins_IntersectedDO));
-	//---------------------------------------------------------------------------------------------------------------------	
-	NewRadixSort sorter(Bins_IntersectedH);
-	sorter.sort(Bins_IntersectedDK, Bins_IntersectedDV, Bins_IntersectedH, 32);
-	printf("4");
-	cutilSafeCall(cudaMalloc((void**) & Bin_StartDK, sizeof(uint)*(SIDE3.x*SIDE3.y*SIDE3.z)));
-	cutilSafeCall(cudaMalloc((void**) & Bin_StartDV, sizeof(uint)*(SIDE3.x*SIDE3.y*SIDE3.z)));
-	cutilSafeCall(cudaMemset(Bin_StartDK, 0xffffffff,sizeof(uint)*(SIDE3.x*SIDE3.y*SIDE3.z)));
-	cutilSafeCall(cudaMemset(Bin_StartDV, 0xffffffff,sizeof(uint)*(SIDE3.x*SIDE3.y*SIDE3.z)));
-	printf("5");
-	fstart<<<ceil(float(Bins_IntersectedH/BLOCK_SIZE))+1,BLOCK_SIZE>>>(Bins_IntersectedDK,Bin_StartDK,Bin_StartDV,Bins_IntersectedH);
-	cutilCheckMsg("Kernel execution failed");
-	cutilSafeThreadSync();
-	cutilSafeCall(cudaFree(Bins_IntersectedDK));
-	//---------------------------------------------------------------------------------------------------------------------	
-	NewRadixSort sorter2((SIDE3.x*SIDE3.y*SIDE3.z));
-	sorter2.sort(Bin_StartDK, Bin_StartDV, (SIDE3.x*SIDE3.y*SIDE3.z), 32);
-	printf("6");
-	uint LastH=0;
-	cudaMalloc((void**) & Last, sizeof(uint));
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(SIDE,&mParam.SIDE,sizeof(mParam.SIDE)));
 
-	fend<<<ceil((SIDE3.x*SIDE3.y*SIDE3.z)/float(BLOCK_SIZE))+1,BLOCK_SIZE>>>(Bin_StartDK,(SIDE3.x*SIDE3.y*SIDE3.z),Last);
-	cutilCheckMsg("Kernel execution failed");
-	cutilSafeThreadSync();
-	printf("7");
-	cudaMemcpy(&LastH,Last, sizeof(uint), cudaMemcpyDeviceToHost);
-	cutilSafeCall(cudaFree(Last));
-	//---------------------------------------------------------------------------------------------------------------------	
-	cutilSafeCall(cudaMalloc((void**) &Num_ContactD, sizeof(uint)*LastH));
-	printf("Last=%d, BlockSize=%d\n",LastH,BLOCK_SIZE);
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(mGlobalOrigin,&mParam.mGlobalOrigin,sizeof(mParam.mGlobalOrigin)));
 	
-	data<<<(LastH/(DATA_SIZE))+8,DATA_SIZE>>>(Bins_IntersectedDV ,Bin_StartDK,Bin_StartDV,DataD,Num_ContactD,LastH,contactdataD, 0,SIDE3, binSize,globalOrigin);
-	cutilCheckMsg("Kernel execution failed");
+	Bins_Intersected<<<nB,  nThreads>>>(F4CAST(&DataD[0]),UCAST(&Bins_IntersectedD[0]),UCAST(&Bins_IntersectedDK[0]),UCAST(&Bins_IntersectedDV[0]),mParam.flag);
 	cutilSafeThreadSync();
-	printf("7.5");
-	cutilSafeCall(cudaMalloc((void**) &Num_ContactDO, sizeof(uint)*LastH));
-	CUDPPConfiguration config2;
-	config2.op				= CUDPP_ADD;
-	config2.datatype		= CUDPP_UINT;
-	config2.algorithm		= CUDPP_SCAN;
-	config2.options			= CUDPP_OPTION_FORWARD | CUDPP_OPTION_EXCLUSIVE;
-	CUDPPHandle scanplan2	= 0;
-	CUDPPResult result2		= cudppPlan(&scanplan2, config2, LastH, 1, 0);  
-	printf("8");
-	if (CUDPP_SUCCESS != result2){	printf("Error creating CUDPPPlan\n");	exit(-1);	}
-
-	cudppScan(scanplan2, Num_ContactDO, Num_ContactD, LastH);
+	//cout<<"Scan operation to get offsets and total------------------------------------------------------------------------------"<<endl;
+	thrust::inclusive_scan(Bins_IntersectedD.begin(),Bins_IntersectedD.end(), Bins_IntersectedD.begin());
+	//cout<<"Determine Bin intersections------------------------------------------------------------------------------------------"<<endl;	
+	Bins_IntersectedH=Bins_IntersectedD[numBodies-1];
+	Bins_IntersectedDK.resize(Bins_IntersectedH,0);
+	Bins_IntersectedDV.resize(Bins_IntersectedH,0);
+	mParam.flag=1;
+	//cout<<"Blocks: "<<nB.x<<" "<<nB.y<<endl;
+	Bins_Intersected<<<nB,  nThreads>>>(F4CAST(&DataD[0]),UCAST(&Bins_IntersectedD[0]),UCAST(&Bins_IntersectedDK[0]),UCAST(&Bins_IntersectedDV[0]),mParam.flag);
 	cutilSafeThreadSync();
-	cutilSafeCall(cudaFree(Num_ContactD));
-	cudppDestroyPlan(scanplan2);
-
-	//---------------------------------------------------------------------------------------------------------------------	
-	printf("9");
-	cutilSafeCall(cudaMemcpy(&Num_ContactH, &Num_ContactDO[LastH-1], sizeof(uint),cudaMemcpyDeviceToHost));
-	cutilSafeCall(cudaMalloc((void**) &contactdataD, Num_ContactH*sizeof(contact_Data)));
-	//void*Hcontactdata;
-	//cutilSafeCall(cudaMallocHost(&Hcontactdata,sizeof(contact_Data)*Num_ContactH));
-	//contactdata=(contact_Data*) Hcontactdata;
-
-	data<<<float(LastH/(DATA_SIZE)+8),DATA_SIZE>>>(Bins_IntersectedDV ,Bin_StartDK,Bin_StartDV,DataD,Num_ContactDO,LastH,contactdataD, 1,SIDE3, binSize,globalOrigin);
-	cutilCheckMsg("Kernel execution failed");
+	Bins_IntersectedD.clear();
+	//cout<<"Sort Intersections---------------------------------------------------------------------------------------------------"<<endl;	
+	thrust::sorting::radix_sort_by_key(Bins_IntersectedDK.begin(),Bins_IntersectedDK.end(),Bins_IntersectedDV.begin());
+	int val=Bins_IntersectedDK[Bins_IntersectedH-1];
+	//cout<<"Find start of each bin in sorted list--------------------------------------------------------------------------------"<<endl;
+	thrust::device_vector<uint> Bin_StartDK(mParam.SIDE.x*mParam.SIDE.y*mParam.SIDE.z,0xffffffff);
+	thrust::device_vector<uint> Bin_StartDV(mParam.SIDE.x*mParam.SIDE.y*mParam.SIDE.z,0xffffffff);
+	nB=dim3(min(maxblock,Bins_IntersectedH/(FSE_SIZE)+1),1,1);
+	if((Bins_IntersectedH/(FSE_SIZE)+1)>maxblock){
+		nB.y=ceil((Bins_IntersectedH/(FSE_SIZE)+1)/float(maxblock));
+	}
+	//cout<<"Blocks: "<<nB.x<<" "<<nB.y<<" Bin Intersect: "<<Bins_IntersectedH<<endl;
+	fstart<<<nB,FSE_SIZE>>>(UCAST(&Bins_IntersectedDK[0]),UCAST(&Bin_StartDK[0]),UCAST(&Bin_StartDV[0]),Bins_IntersectedH);
+	//cout<<"Sort bin start list to remove unused bins----------------------------------------------------------------------------"<<endl;	
 	cutilSafeThreadSync();
-	printf("10");
-	contactdata= (contact_Data*) malloc(Num_ContactH*sizeof(contact_Data));
-	cutilSafeCall(cudaMemcpy(contactdata, contactdataD, Num_ContactH*sizeof(contact_Data),cudaMemcpyDeviceToHost));
-	cutilSafeCall(cudaFree(contactdataD));
-	numContacts=Num_ContactH;
+	//cout<<"Sort bin start list to remove unused bins----------------------------------------------------------------------------"<<endl;	
+	Bins_IntersectedDK.clear();
+	//cout<<"Sort bin start list to remove unused bins----------------------------------------------------------------------------"<<endl;	
+	////cout<<"LASTH"<<mParam.mfin<<endl;
+	////cout<<"ASDF"<<Bins_IntersectedH<<endl;
+	//???????
 	
-	//---------------------------------------------------------------------------------------------------------------------	
+	//Bin_StartDK.push_back(Bins_IntersectedH);
+	//Bin_StartDV.push_back(Bin_StartDV[mParam.mfin-1]);
+	////cout<<"Sort bin start list to remove unused bins----------------------------------------------------------------------------"<<endl;	
+	////cout<<"Sort bin start list to remove unused bins----------------------------------------------------------------------------"<<endl;	
+	thrust::sorting::radix_sort_by_key(Bin_StartDK.begin(),Bin_StartDK.end(),Bin_StartDV.begin());
+	//cout<<"Determine last active bin--------------------------------------------------------------------------------------------"<<endl;	
+	thrust::device_vector<uint> Last (1);
+	//cout<<"Blocks: "<<nB.x<<" "<<nB.y<<endl;
+	int numB=mParam.SIDE.x*mParam.SIDE.y*mParam.SIDE.z;
+	nB=dim3(min(maxblock,(numB/FSE_SIZE)+2),1,1);
+	if(((numB)/float(FSE_SIZE))+2>maxblock){
+		nB.y=((numB)/float(FSE_SIZE)+2)/float(maxblock);
+	}
+	fend<<<nB,FSE_SIZE>>>(UCAST(&Bin_StartDK[0]),(mParam.SIDE.x*mParam.SIDE.y*mParam.SIDE.z),UCAST(&Last[0]));
+	cutilSafeThreadSync();
+	mParam.mfin=Last[0];
+	//cout<<"Determine number of contacts-----------------------------------------------------------------------------------------"<<endl;	
+	thrust::device_vector<uint> Num_ContactD(mParam.mfin);
+	
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(mfin,&mParam.mfin,sizeof(mParam.mfin)));
+	
+	if(mParam.mfin>0){
+		thrust::device_vector<contact_Data> contactdataD(0);
+		mParam.flag=0;
+		thrust::device_vector<int> D_bodyID=(bodyID);
+		thrust::device_vector<int> D_noCollWith=(noCollWith);
+		thrust::device_vector<int> D_colFam=(colFam);
+		nB=dim3(min(maxblock,(int)(mParam.mfin/float(D_SIZE))+1),1,1);
+		if((mParam.mfin/float(D_SIZE))+1>maxblock){
+			nB.y=(int)ceil(((mParam.mfin/float(D_SIZE))+1)/float(maxblock));
+		}
+		//cout<<"Blocks: "<<nB.x<<" "<<nB.y<<endl;
+		data<<<nB,D_SIZE>>>(UCAST(&Bins_IntersectedDV[0]) ,UCAST(&Bin_StartDK[0]),UCAST(&Bin_StartDV[0]),F4CAST(&DataD[0]),UCAST(&Num_ContactD[0]),CDCAST(&contactdataD[0]), mParam.flag,ICAST(&D_bodyID[0]),ICAST(&D_noCollWith[0]),ICAST(&D_colFam[0]));
+		cutilSafeThreadSync();
+		//cout<<"Scan operation to get offsets and total------------------------------------------------------------------------------"<<endl;
+		thrust::exclusive_scan(Num_ContactD.begin(), Num_ContactD.end(), Num_ContactD.begin());
+		//cout<<"Determine contact data-----------------------------------------------------------------------------------------------"<<endl;
+		Num_ContactH=Num_ContactD[mParam.mfin-1];
+		if(Num_ContactH>0){
+			contactdataD.resize(Num_ContactH);
+			mParam.flag=1;
+			data<<<nB,D_SIZE>>>(UCAST(&Bins_IntersectedDV[0]) ,UCAST(&Bin_StartDK[0]),UCAST(&Bin_StartDV[0]),F4CAST(&DataD[0]),UCAST(&Num_ContactD[0]),CDCAST(&contactdataD[0]), mParam.flag,ICAST(&D_bodyID[0]),ICAST(&D_noCollWith[0]),ICAST(&D_colFam[0]));
+			cutilSafeThreadSync();
+			contactdata=contactdataD;
 
-	cutStopTimer(timer);
-	float timeSec = cutGetTimerValue(timer)/(1000.f);
-	printf("11");
-	printf("   Collision Time: %f sec ", timeSec);
+			contactdataD.clear();
+		}
+		//cout<<"Done-----------------------------------------------------------------------------------------------------------------"<<endl;
+		numContacts=Num_ContactH;
+		cutStopTimer(timer);
+		float timeSec = cutGetTimerValue(timer)/(1000.f);
+		//printf("C Time: %f sec ", timeSec);
+		D_bodyID.clear();
+		D_noCollWith.clear();
+		D_colFam.clear();
+	}
 
-	//FILE * rFile;
-	//rFile = fopen ("myfile.txt","a");
-	//fprintf (rFile,"%d\t%d\t%f\n",numBodies,Num_ContactH,timeSec);
-	//fclose (rFile);
-	//---------------------------------------------------------------------------------------------------------------------
 
-	cutilSafeCall(cudaFree(DataD));
-	cutilSafeCall(cudaFree(Bins_IntersectedDV));
-	cutilSafeCall(cudaFree(Bin_StartDK));
-	cutilSafeCall(cudaFree(Bin_StartDV));
-	cutilSafeCall(cudaFree(Num_ContactDO));
-	free(DataH);
-
-	printf("Contacts :%d\n",Num_ContactH);
-
+	Bins_IntersectedDV.clear();
+	Bin_StartDK.clear();
+	Bin_StartDV.clear();
+	Num_ContactD.clear();
+	DataD.clear();
+	DataH.clear();
 }
-#endif  // end of ! CH_NOCUDA

@@ -121,6 +121,7 @@ CPPFILES_LIB = \
 	geometry/ChCTriangle.cpp \
 	collision/ChCCollisionModel.cpp \
 	collision/ChCModelGPU.cpp \
+	collision/ChCModelGPUBody.cpp \
 	collision/ChCModelBullet.cpp \
 	collision/ChCModelBulletBody.cpp \
 	collision/ChCModelBulletParticle.cpp \
@@ -317,8 +318,7 @@ CPPFILES_LIB = \
 	
 CUDAFILES_LIB = \
 	lcp/ChLcpIterativeCuda.cu \
-	collision/collide.cu
-	
+	collision/collide.cu 
 
 
 # Rules for compilation

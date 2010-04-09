@@ -39,13 +39,16 @@ namespace collision
 
 class ChModelGPU : public ChCollisionModel
 {
-private:
-			// Some object containing geometries
-	float rad;
+protected:
+	//represent the CM of the body in global coords
 	float posX;
 	float posY;
 	float posZ;
-	ChBody* rigidBody;
+	int nSpheres; //number of spheres used to represent the collision geometry
+	float* colSpheres; //pointer to array of sphere data (in body coords)
+	float rMax; //max radius of the spheres in this model
+	int colFam;
+	int noCollWith;
 
 
 public:
@@ -112,16 +115,6 @@ public:
   virtual bool AddCopyOfAnotherModel (ChCollisionModel* another);
 
 
-    	/// Gets the pointer to the client owner rigid body. 
-  virtual ChBody* GetBody();
-		/// Sets the pointer to the client owner rigid body
-  virtual void SetBody(ChBody* mbo);
-
-		/// Sets the position and oriantation of the collision
-		/// model as the rigid body current position.
-  virtual void SyncPosition();
-
-
   virtual void SetFamily(int mfamily);
   virtual int  GetFamily();
   virtual void SetFamilyMaskNoCollisionWithFamily(int mfamily);
@@ -132,7 +125,12 @@ public:
   float GetXPos(){return posX;}
   float GetYPos(){return posY;}
   float GetZPos(){return posZ;}
-  float GetRad(){return rad;}
+  int GetNSpheres(){return nSpheres;}
+  virtual bool AddCompoundBody (int numSpheres, double* pX, double* pY, double* pZ, double* pR );/// Add a compound body to this model, for collision purposes
+  ChVector<> GetSpherePos(int ID);
+  float GetSphereR(int ID);
+  int GetNoCollFamily();
+  
 
 	  
 };
