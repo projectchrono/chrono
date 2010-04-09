@@ -34,7 +34,7 @@
  
 #ifndef CH_NOCUDA
  #include "lcp/ChLcpIterativeCudaSolver.h"
- #include "physics/ChLinkGPUcontact.h"
+ #include "physics/ChLinkGPUContact.h"
  #include "physics/ChContactContainerGPUsimple.h"
 #endif 
 
