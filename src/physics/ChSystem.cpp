@@ -724,8 +724,50 @@ void ChSystem::SetFrictionProjection(eCh_frictionProjection mval)
 }
 
 
+// Plug-in components configuration
 
 
+void ChSystem::SetLcpSystemDescriptor(ChLcpSystemDescriptor* newdescriptor)
+{
+	assert (newdescriptor);
+	if (this->LCP_descriptor) 
+		delete (this->LCP_descriptor);
+	this->LCP_descriptor = newdescriptor;
+}
+void ChSystem::SetLcpSolverSpeed(ChLcpSolver* newsolver)
+{
+	assert (newsolver);
+	if (this->LCP_solver_speed) 
+		delete (this->LCP_solver_speed);
+	this->LCP_solver_speed = newsolver;
+}
+
+void ChSystem::SetLcpSolverStab(ChLcpSolver* newsolver)
+{
+	assert (newsolver);
+	if (this->LCP_solver_stab) 
+		delete (this->LCP_solver_stab);
+	this->LCP_solver_stab = newsolver;
+} 
+
+void ChSystem::SetContactContainer(ChContactContainerBase* newcontainer)
+{
+	assert (newcontainer);
+	if (this->contact_container) 
+		delete (this->contact_container);
+	this->contact_container = newcontainer;
+}
+
+void ChSystem::SetCollisionSystem(ChCollisionSystem* newcollsystem)
+{
+	assert (this->GetNbodies()==0);
+	assert (newcollsystem);
+	if (this->collision_system) 
+		delete (this->collision_system);
+	this->collision_system = newcollsystem;
+}
+
+// JS commands
 
 
 int ChSystem::SetJsForStartFile(char* mfile)

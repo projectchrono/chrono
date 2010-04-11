@@ -355,12 +355,35 @@ public:
 				/// Tell the 'sharpness lambda' factor for the speed solver, (if iterative type).
 	double GetIterLCPsharpnessLambda();
 
-				/// Access directly the LCP solver, configured to be used for the main differential
-				/// inclusion problem (LCP on speed-impulses). Use mostly for diagnostics.
-	ChLcpSolver* GetLcpSolverSpeed();
+				/// Instead of using SetLcpSolverType(), you can create your own
+				/// custom lcp solver (suffice it is inherited from ChLcpSolver) and plug
+				/// it into the system using this function. The replaced solver is automatically deleted. 
+				/// When the system is deleted, the custom solver that you plugged will be automatically deleted.
+	void SetLcpSolverStab(ChLcpSolver* newsolver);
+
 				/// Access directly the LCP solver, configured to be used for the stabilization
 				/// of constraints (solve delta positions). Use mostly for diagnostics.
 	ChLcpSolver* GetLcpSolverStab();
+
+				/// Instead of using SetLcpSolverType(), you can create your own
+				/// custom lcp solver (suffice it is inherited from ChLcpSolver) and plug
+				/// it into the system using this function. The replaced solver is automatically deleted. 
+				/// When the system is deleted, the custom solver that you plugged will be automatically deleted.
+	void SetLcpSolverSpeed(ChLcpSolver* newsolver);
+
+				/// Access directly the LCP solver, configured to be used for the main differential
+				/// inclusion problem (LCP on speed-impulses). Use mostly for diagnostics.
+	ChLcpSolver* GetLcpSolverSpeed();
+
+				/// Instead of using the default LCP 'system descriptor', you can create your own
+				/// custom descriptor (suffice it is inherited from ChLcpSystemDescriptor) and plug
+				/// it into the system using this function. The replaced descriptor is automatically deleted. 
+				/// When the system is deleted, the custom descriptor that you plugged will be automatically deleted.
+	void SetLcpSystemDescriptor(ChLcpSystemDescriptor* newdescriptor);
+
+				/// Access directly the LCP 'system descriptor'. Use mostly for diagnostics.
+	ChLcpSystemDescriptor* GetLcpSystemDescriptor() {return this->LCP_descriptor;};
+
 
 				/// Changes the number of parallel threads (by default=2).
 				/// Note that this value is meaningless if you do not use parallel solvers like,
@@ -390,6 +413,8 @@ public:
 				/// Returns true if the GPU is used for the LCP problem (ex. because
 				/// the LCP_ITERATIVE_GPU solver is used)
 	bool GetUseGPU() {return use_GPU;}
+
+
 
 
 				/// Sets the G (gravity) acceleration vector, affecting all the bodies in the system. 
@@ -523,7 +548,14 @@ public:
 				/// remove or add items (use the appropriate Remove.. and Add.. 
 				/// functions instead!)
 	std::list<ChPhysicsItem*>* Get_otherphysicslist() {return &otherphysicslist;}
-				/// Get the container of the contacts
+
+				/// For higher performance (ex. when GPU coprocessors are available) you can create your own
+				/// custom contact container (suffice it is inherited from ChContactContainerBase) and plug
+				/// it into the system using this function. The replaced container is automatically deleted. 
+				/// When the system is deleted, the custom container that you plugged will be automatically deleted.
+	void SetContactContainer(ChContactContainerBase* newcontainer);
+
+				/// Get the contact container
 	ChContactContainerBase* GetContactContainer() {return contact_container;}
 
 				/// Searches a body from its ChObject name -OBSOLETE
@@ -768,6 +800,14 @@ public:
 	void CollisionLinkListRemove();
 
 	public:
+
+				/// For higher performance (ex. when GPU coprocessors are available) you can create your own
+				/// custom collision engine (suffice it is inherited from ChCollisionSystem) and plug
+				/// it into the system using this function. The replaced engine is automatically deleted. 
+				/// When the system is deleted, the custom engine that you plugged will be automatically deleted.
+				/// Note: use only _before_ you start adding colliding bodies to the system!
+	void SetCollisionSystem(ChCollisionSystem* newcollsystem);
+
 				/// Access the collision system, the engine which 
 				/// computes the contact points (usually you don't need to
 				/// access it, since it is automatically handled by the
