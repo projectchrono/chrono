@@ -181,7 +181,7 @@ void ChBody::VariablesFbLoadForces(double factor)
 {
 	// add applied forces and torques (and also the gyroscopic torque!) to 'fb' vector
 	this->variables.Get_fb().PasteSumVector( Xforce * factor ,0,0);
-	this->variables.Get_fb().PasteSumVector((Xtorque + gyro)* factor ,3,0);
+	this->variables.Get_fb().PasteSumVector((Xtorque - gyro)* factor ,3,0);
 }
 
 
@@ -466,7 +466,7 @@ void ChBody::Accumulate_script_torque (Vector torque, int local)
 void ChBody::ComputeGyro ()
 {
 	ChVector<> Wvel = this->GetWvel_loc();
-	gyro = Vcross (Wvel, (variables.GetBodyInertia().Matr_x_Vect (Wvel)));	// in W space
+	gyro = Vcross ( Wvel, (variables.GetBodyInertia().Matr_x_Vect (Wvel)));	// in W space
 
 /* ***CHECK*** it should be the same, if in quaternion space..
 	static Vector vtemp;

@@ -228,7 +228,8 @@ double ChContinuumDruckerPrager::ComputeYeldFunction(const ChStressTensor<>& mst
 	return (mstress.GetInvariant_I1() * this->alpha + sqrt (mstress.GetInvariant_J2()) - this->elastic_yeld);
 }
 
-void ChContinuumDruckerPrager::ComputeReturnMapping(ChStrainTensor<>& mplasticstrainflow, 
+void ChContinuumDruckerPrager::ComputeReturnMapping( 
+									ChStrainTensor<>& mplasticstrainflow,
 									const ChStrainTensor<>&	mincrementstrain, 
 									const ChStrainTensor<>& mlastelasticstrain,
 									const ChStrainTensor<>& mlastplasticstrain) const
@@ -238,50 +239,67 @@ void ChContinuumDruckerPrager::ComputeReturnMapping(ChStrainTensor<>& mplasticst
 	
 	ChStressTensor<> mstress;
 	this->ComputeElasticStress(mstress,guesselstrain);
-	double fprager = mstress.GetInvariant_I1() * this->alpha + sqrt (mstress.GetInvariant_J2())  - this->elastic_yeld;
+	double fprager = this->ComputeYeldFunction(mstress);
+
 	if (fprager >0 )
 	{
-		ChStrainTensor<> dFdS;
-		ChStrainTensor<> dGdS;
-		double devsq = sqrt(mstress.GetInvariant_J2());
-		if (devsq > 10e-20)
+		if (mstress.GetInvariant_I1() * this->alpha - sqrt (mstress.GetInvariant_J2()) * this->alpha * this->alpha - this->elastic_yeld > 0)
 		{
-			double sixdevsq = 6 * devsq;
-
-			dFdS.XX() = this->alpha + (2* mstress.XX() - mstress.YY()   - mstress.ZZ() )/sixdevsq;
-			dFdS.YY() = this->alpha + (- mstress.XX() + 2*mstress.YY()  - mstress.ZZ() )/sixdevsq;
-			dFdS.ZZ() = this->alpha + (- mstress.XX() -  mstress.YY() + 2*mstress.ZZ() )/sixdevsq;
-			dFdS.XY() = mstress.XY()/devsq;
-			dFdS.YZ() = mstress.YZ()/devsq;
-			dFdS.XZ() = mstress.XZ()/devsq;
-
-			dGdS.XX() = this->dilatancy + (2* mstress.XX() - mstress.YY()   - mstress.ZZ() )/sixdevsq;
-			dGdS.YY() = this->dilatancy + (- mstress.XX() + 2*mstress.YY()  - mstress.ZZ() )/sixdevsq;
-			dGdS.ZZ() = this->dilatancy + (- mstress.XX() -  mstress.YY() + 2*mstress.ZZ() )/sixdevsq;
-			dGdS.XY() = mstress.XY()/devsq;
-			dGdS.YZ() = mstress.YZ()/devsq;
-			dGdS.XZ() = mstress.XZ()/devsq;
+			// Case: tentative stress is in polar cone; a singular region where the gradient of
+			// the yeld function (or flow potential) is not defined. Just project to vertex.
+			ChStressTensor<> vertexstress;
+			double vertcoord = this->elastic_yeld / (3*this->alpha);
+			vertexstress.XX() = vertcoord;
+			vertexstress.YY() = vertcoord;
+			vertexstress.ZZ() = vertcoord;
+			ChStrainTensor<> vertexstrain;
+			this->ComputeElasticStrain(vertexstrain, vertexstress);
+			mplasticstrainflow.MatrSub(guesselstrain, vertexstrain);
 		}
 		else
 		{
-			//GetLog() << "Singular! devsq=" << devsq << "  ";
-			// singularity for pure hydrostatic stress
-			dFdS.FillElem(0); 
-			dFdS.XX() = 1; dFdS.YY() = 1; dFdS.ZZ() = 1;
-			dGdS.FillElem(0); 
-			dGdS.XX() = 1; dGdS.YY() = 1; dGdS.ZZ() = 1;
+			// Case: tentative stress is out of the yeld cone.
+			// Just project using the yeld (or flow potential) gradient.
+			ChStrainTensor<> dFdS;
+			ChStrainTensor<> dGdS;
+			double devsq = sqrt(mstress.GetInvariant_J2());
+			if (devsq > 10e-16)
+			{
+				double sixdevsq = 6 * devsq;
+
+				dFdS.XX() = this->alpha + (2* mstress.XX() - mstress.YY()   - mstress.ZZ() )/sixdevsq;
+				dFdS.YY() = this->alpha + (- mstress.XX() + 2*mstress.YY()  - mstress.ZZ() )/sixdevsq;
+				dFdS.ZZ() = this->alpha + (- mstress.XX() -  mstress.YY() + 2*mstress.ZZ() )/sixdevsq;
+				dFdS.XY() = mstress.XY()/devsq;
+				dFdS.YZ() = mstress.YZ()/devsq;
+				dFdS.XZ() = mstress.XZ()/devsq;
+
+				dGdS.XX() = this->dilatancy + (2* mstress.XX() - mstress.YY()   - mstress.ZZ() )/sixdevsq;
+				dGdS.YY() = this->dilatancy + (- mstress.XX() + 2*mstress.YY()  - mstress.ZZ() )/sixdevsq;
+				dGdS.ZZ() = this->dilatancy + (- mstress.XX() -  mstress.YY() + 2*mstress.ZZ() )/sixdevsq;
+				dGdS.XY() = mstress.XY()/devsq;
+				dGdS.YZ() = mstress.YZ()/devsq;
+				dGdS.XZ() = mstress.XZ()/devsq;
+			}
+			else
+			{
+				GetLog() << "      ... axial singularity - SHOULD NEVER OCCUR  - handled by polar cone\n";
+				dFdS.FillElem(0); 
+				dFdS.XX() = 1; dFdS.YY() = 1; dFdS.ZZ() = 1;
+				dGdS.FillElem(0); 
+				dGdS.XX() = 1; dGdS.YY() = 1; dGdS.ZZ() = 1;
+			}
+			ChStressTensor<> aux_dFdS_C;
+			this->ComputeElasticStress(aux_dFdS_C, dFdS);
+
+			ChMatrixNM<double,1,1> inner_up;
+			inner_up.MatrTMultiply(aux_dFdS_C, mincrementstrain);
+			ChMatrixNM<double,1,1> inner_dw;
+			inner_dw.MatrTMultiply(aux_dFdS_C, dGdS);
+
+			mplasticstrainflow.CopyFromMatrix(dGdS);
+			mplasticstrainflow.MatrScale(inner_up(0)/inner_dw(0));
 		}
-		ChStressTensor<> aux_dFdS_C;
-		this->ComputeElasticStress(aux_dFdS_C, dFdS);
-
-		ChMatrixNM<double,1,1> inner_up;
-		inner_up.MatrTMultiply(aux_dFdS_C, mincrementstrain);
-		ChMatrixNM<double,1,1> inner_dw;
-		inner_dw.MatrTMultiply(aux_dFdS_C, dGdS);
-
-		mplasticstrainflow.CopyFromMatrix(dGdS);
-		mplasticstrainflow.MatrScale(inner_up(0)/inner_dw(0));
-		//GetLog() << "scale " << inner_up(0)/inner_dw(0) << "  Fyeld " << fprager <<  "\n";
 	} 
 	else
 	{

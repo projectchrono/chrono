@@ -359,7 +359,7 @@ public:
 				/// custom lcp solver (suffice it is inherited from ChLcpSolver) and plug
 				/// it into the system using this function. The replaced solver is automatically deleted. 
 				/// When the system is deleted, the custom solver that you plugged will be automatically deleted.
-	void SetLcpSolverStab(ChLcpSolver* newsolver);
+	void ChangeLcpSolverStab(ChLcpSolver* newsolver);
 
 				/// Access directly the LCP solver, configured to be used for the stabilization
 				/// of constraints (solve delta positions). Use mostly for diagnostics.
@@ -369,7 +369,7 @@ public:
 				/// custom lcp solver (suffice it is inherited from ChLcpSolver) and plug
 				/// it into the system using this function. The replaced solver is automatically deleted. 
 				/// When the system is deleted, the custom solver that you plugged will be automatically deleted.
-	void SetLcpSolverSpeed(ChLcpSolver* newsolver);
+	void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
 
 				/// Access directly the LCP solver, configured to be used for the main differential
 				/// inclusion problem (LCP on speed-impulses). Use mostly for diagnostics.
@@ -379,7 +379,7 @@ public:
 				/// custom descriptor (suffice it is inherited from ChLcpSystemDescriptor) and plug
 				/// it into the system using this function. The replaced descriptor is automatically deleted. 
 				/// When the system is deleted, the custom descriptor that you plugged will be automatically deleted.
-	void SetLcpSystemDescriptor(ChLcpSystemDescriptor* newdescriptor);
+	void ChangeLcpSystemDescriptor(ChLcpSystemDescriptor* newdescriptor);
 
 				/// Access directly the LCP 'system descriptor'. Use mostly for diagnostics.
 	ChLcpSystemDescriptor* GetLcpSystemDescriptor() {return this->LCP_descriptor;};
@@ -553,7 +553,7 @@ public:
 				/// custom contact container (suffice it is inherited from ChContactContainerBase) and plug
 				/// it into the system using this function. The replaced container is automatically deleted. 
 				/// When the system is deleted, the custom container that you plugged will be automatically deleted.
-	void SetContactContainer(ChContactContainerBase* newcontainer);
+	void ChangeContactContainer(ChContactContainerBase* newcontainer);
 
 				/// Get the contact container
 	ChContactContainerBase* GetContactContainer() {return contact_container;}
@@ -806,7 +806,7 @@ public:
 				/// it into the system using this function. The replaced engine is automatically deleted. 
 				/// When the system is deleted, the custom engine that you plugged will be automatically deleted.
 				/// Note: use only _before_ you start adding colliding bodies to the system!
-	void SetCollisionSystem(ChCollisionSystem* newcollsystem);
+	void ChangeCollisionSystem(ChCollisionSystem* newcollsystem);
 
 				/// Access the collision system, the engine which 
 				/// computes the contact points (usually you don't need to

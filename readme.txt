@@ -36,6 +36,7 @@ XX-XX-XXXX
 - Improved ChSharedPtr and ChSmartPtr classes (added 
   functions IsNull, boolean type casting, safer casting, etc.)
   
+- Gyroscopic torque calculation contained a bug
 
 Release 0.9.0
 23-2-2010

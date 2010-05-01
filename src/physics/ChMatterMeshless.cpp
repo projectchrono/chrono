@@ -377,17 +377,21 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor)
 			mtensor.Element(1,1)-=1;
 			mtensor.Element(2,2)-=1;
 
-			// Compute elastic stress tensor  sigma= C*epsilon
-			//   NOTE: it should be better to perform stress computation on corrected e_strain, _after_ the
-			//   return mapping (see later), but for small timestep it could be the same.
-			//ChStrainTensor<> step_e_strain;
-			//step_e_strain.ConvertFromMatrix(mtensor); 
-			//mnode->t_strain.MatrAdd(mnode->e_strain, step_e_strain);
-			//this->GetMaterial()->ComputeElasticStress(mnode->e_stress, mnode->t_strain); 
-			//mnode->e_stress.ConvertToMatrix(mtensor);
-
 			mnode->t_strain.ConvertFromMatrix(mtensor); // store 'step strain' de, change in total strain
 			
+			ChStrainTensor<> strainplasticflow;
+			this->material->ComputeReturnMapping(strainplasticflow,	 // dEp, flow of elastic strain (correction)
+											 nodes[j]->t_strain, // increment of total strain
+											 nodes[j]->e_strain, // last elastic strain
+											 nodes[j]->p_strain  // last plastic strain
+											 );
+			ChStrainTensor<> proj_e_strain; 
+			proj_e_strain.MatrSub(nodes[j]->e_strain, strainplasticflow);
+			proj_e_strain.MatrInc(nodes[j]->t_strain);
+			this->GetMaterial()->ComputeElasticStress(mnode->e_stress, proj_e_strain); 
+			mnode->e_stress.ConvertToMatrix(mtensor);
+
+			/*
 			// Compute elastic stress tensor  sigma= C*epsilon
 			//   NOTE: it should be better to perform stress computation on corrected e_strain, _after_ the
 			//   return mapping (see later), but for small timestep it could be the same.
@@ -395,6 +399,7 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor)
 			guesstot_e_strain.MatrAdd(mnode->e_strain, mnode->t_strain);
 			this->GetMaterial()->ComputeElasticStress(mnode->e_stress, guesstot_e_strain); 
 			mnode->e_stress.ConvertToMatrix(mtensor);
+			*/
 
 			// Precompute 2*v*J*sigma*A^-1
 			mnode->FA = mnode->J * (mtensor * (mnode->Amoment));
@@ -462,11 +467,8 @@ void ChMatterMeshless::VariablesQbIncrementPosition(double dt_step)
 	for (unsigned int j = 0; j < nodes.size(); j++)
 	{
 		ChNodeMeshless* mnode = this->nodes[j];
-
-		//ChStrainTensor<> last_e_strain(nodes[j]->e_strain); 
-		//last_e_strain.MatrDec(nodes[j]->t_strain);
-
-		// Integrate plastic flow  
+		
+		// Integrate plastic flow 
 		ChStrainTensor<> strainplasticflow;
 		this->material->ComputeReturnMapping(strainplasticflow,	 // dEp, flow of elastic strain (correction)
 											 nodes[j]->t_strain, // increment of total strain
@@ -479,11 +481,11 @@ void ChMatterMeshless::VariablesQbIncrementPosition(double dt_step)
 
 		this->nodes[j]->p_strain.MatrInc(strainplasticflow*dtpfact);
 
-		// Increment total elastic tensor, instead of absorbing it in plastic tensor as in Muller paper. 
+		// Increment total elastic tensor and proceed for next step 
 		this->nodes[j]->pos_ref = this->nodes[j]->pos;
 	 	this->nodes[j]->e_strain.MatrInc(this->nodes[j]->t_strain);
-		this->nodes[j]->e_strain.MatrDec(strainplasticflow*dtpfact);
-
+	 //	this->nodes[j]->e_strain.MatrDec(strainplasticflow*dtpfact);
+		this->nodes[j]->t_strain.FillElem(0.0); // unuseful? will be overwritten anyway
 	} 
 
 	for (unsigned int j = 0; j < nodes.size(); j++)
