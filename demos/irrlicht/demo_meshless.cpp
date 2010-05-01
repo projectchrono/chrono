@@ -31,6 +31,7 @@
 #include "irrlicht_interface/ChIrrAppInterface.h"
 #include "core/ChRealtimeStep.h"
 #include "irrlicht_interface/ChParticlesSceneNode.h" //***TEST****
+#include "physics/ChContinuumMaterial.h" //***TEST****
 
 #include <irrlicht.h>
  
@@ -50,9 +51,6 @@ using namespace io;
 using namespace gui; 
 
 
-
-
-     
    
  
 int main(int argc, char* argv[])
@@ -61,9 +59,6 @@ int main(int argc, char* argv[])
 	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
 	// global functions are needed. 
 	ChGlobals* GLOBAL_Vars = DLL_CreateGlobals();
-
-	ChStrainTensor<> mstrain;
-	ChStressTensor<> mstress;
 
 
 	// Create a ChronoENGINE physical system
@@ -103,12 +98,12 @@ int main(int argc, char* argv[])
 	ChSharedPtr<ChMatterMeshless> mymatter(new ChMatterMeshless);
 
 		// Use the FillBox easy way to create the set of nodes in the meshless matter
-	mymatter->FillBox(ChVector<>(4,3,2), // size of box 
-					3.0/7.0,			// resolution step
+	mymatter->FillBox(ChVector<>(4,2,4), // size of box 
+					4.0/10.0,			// resolution step
 					1000,				// initial density
-					ChCoordsys<>(ChVector<>(0,-1,0),QUNIT), // position & rotation of box
-					false,				// do a centered cubic lattice initial arrangement 
-					2.2);				// set the kernel radius (as multiples of step)
+					ChCoordsys<>(ChVector<>(0,-3.9,0),QUNIT), // position & rotation of box
+					true,				// do a centered cubic lattice initial arrangement 
+					2.1);				// set the kernel radius (as multiples of step)
 
 	GetLog() << "Added "<< mymatter->GetNnodes() <<" nodes \n";
 
@@ -116,24 +111,26 @@ int main(int argc, char* argv[])
 	
 	ChSharedPtr<ChContinuumDruckerPrager> mmaterial(new ChContinuumDruckerPrager);
 	mymatter->ReplaceMaterial(mmaterial); 
-	mmaterial->Set_v(0.38);
-	mmaterial->Set_E(600000.0);
-	mmaterial->Set_elastic_yeld(100);
+	mmaterial->Set_v(0.35);
+	mmaterial->Set_E(30000.0);
+	mmaterial->Set_elastic_yeld(0);
 	mmaterial->Set_alpha(30 * CH_C_DEG_TO_RAD);
 	//mmaterial->Set_from_MohrCoulomb(30 * CH_C_DEG_TO_RAD, 1000);
 	mmaterial->Set_dilatancy(30 * CH_C_DEG_TO_RAD);
-	mmaterial->Set_flow_rate(500000.0);
-	mmaterial->Set_hardening_speed(1000000);
-	/*
+	mmaterial->Set_flow_rate(50000000.0);
+	mmaterial->Set_hardening_limit(mmaterial->Get_elastic_yeld());
+	mmaterial->Set_hardening_speed(100000000);
+
+/*	
 	ChSharedPtr<ChContinuumPlasticVonMises> mmaterial(new ChContinuumPlasticVonMises); 
 	mymatter->ReplaceMaterial(mmaterial);
 	mmaterial->Set_v(0.38);
 	mmaterial->Set_E(60000.0);
 	mmaterial->Set_elastic_yeld(0.06);
 	mmaterial->Set_flow_rate(300);
-	*/
+*/
 
-	mymatter->SetViscosity(500);
+	mymatter->SetViscosity(5000);
 
 		// Add the matter to the physical system
 	mymatter->SetCollide(true);
@@ -163,10 +160,18 @@ int main(int argc, char* argv[])
 	mphysicalSystem.Add(my_nodes_container);
 	
 
+	ChBodySceneNode* msphere; 
+	msphere = (ChBodySceneNode*)addChBodySceneNode_easySphere(
+											&mphysicalSystem, application.GetSceneManager(),
+											16000.0,
+											ChVector<>(0,-0.5,0), 2);
+	msphere->GetBody()->SetInertiaXX(ChVector<>(16000,16000,16000));
+	//msphere->GetBody()->SetBodyFixed(true);
+
 
 	// Modify some setting of the physical system for the simulation, if you want
 
-	mphysicalSystem.SetIterLCPmaxItersSpeed(8); // lower the LCP iters, no needed here
+	mphysicalSystem.SetIterLCPmaxItersSpeed(25); // lower the LCP iters, no needed here
 
 
 	// 
@@ -220,6 +225,11 @@ int main(int argc, char* argv[])
 					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_Z*mnode->e_stress.ZZ()* stress_scale), video::SColor(100,0,0,255),false);
 					*/
 
+					
+					double stress_scale =0.00001;
+					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_X*mnode->e_stress.GetInvariant_I1()* stress_scale), video::SColor(100,255,0,0),false);
+
+					GetLog() << "Mass i="<< ip << "   m=" << mnode->GetMass() << "\n";
 					//ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(mnode->UserForce * 0.1), video::SColor(100,0,0,0),false);
 					
 				}
@@ -229,7 +239,7 @@ int main(int argc, char* argv[])
 
 		
 
-		mphysicalSystem.DoStepDynamics( 0.001);
+		mphysicalSystem.DoStepDynamics( 0.002);
 		
 		application.GetVideoDriver()->endScene();  
 	}

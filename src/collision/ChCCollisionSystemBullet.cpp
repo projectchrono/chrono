@@ -37,15 +37,22 @@ ChCollisionSystemBullet::ChCollisionSystemBullet(unsigned int max_objects, doubl
 	// btDefaultCollisionConstructionInfo conf_info(...); ***TODO***
 	bt_collision_configuration = new btDefaultCollisionConfiguration(); 
 	bt_dispatcher = new btCollisionDispatcher(bt_collision_configuration);  
+	
+	  //***OLD***
+	
 	btScalar sscene_size = (btScalar)scene_size;
 	 btVector3	worldAabbMin(-sscene_size,-sscene_size,-sscene_size);
 	 btVector3	worldAabbMax(sscene_size,sscene_size,sscene_size);
-	//bt_broadphase = new bt32BitAxisSweep3(worldAabbMin,worldAabbMax, max_objects); //***OLD***
+	bt_broadphase = new bt32BitAxisSweep3(worldAabbMin,worldAabbMax, max_objects, 0, true); // true for disabling raycast accelerator
+	
+/*
+	  //***NEW***
 	bt_broadphase = new btDbvtBroadphase();
+*/
 	bt_collision_world = new btCollisionWorld(bt_dispatcher, bt_broadphase, bt_collision_configuration);
 
-	// custom collision for sphere-sphere case ***OBSOLETE***?
-//	bt_dispatcher->registerCollisionCreateFunc(SPHERE_SHAPE_PROXYTYPE,SPHERE_SHAPE_PROXYTYPE,new btSphereSphereCollisionAlgorithm::CreateFunc);
+	// custom collision for sphere-sphere case ***OBSOLETE***
+	//bt_dispatcher->registerCollisionCreateFunc(SPHERE_SHAPE_PROXYTYPE,SPHERE_SHAPE_PROXYTYPE,new btSphereSphereCollisionAlgorithm::CreateFunc);
 
 	// register custom collision for GIMPACT mesh case too
 	btGImpactCollisionAlgorithm::registerAlgorithm(bt_dispatcher);
@@ -76,6 +83,7 @@ void ChCollisionSystemBullet::Add(ChCollisionModel* model)
 {
 	if (((ChModelBullet*)model)->GetBulletModel()->getCollisionShape())
 	{
+		model->SyncPosition();
 		bt_collision_world->addCollisionObject(((ChModelBullet*)model)->GetBulletModel(),1,0xFF);
 	}
 }
@@ -165,6 +173,8 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainerBase* mcontactcon
 		//contactManifold->clearManifold();	
 	}
 	mcontactcontainer->EndAddContact();
+
+	GetLog()<<" ReportContacts: broadph.pairs=" <<  bt_collision_world->getDispatcher()->getNumManifolds() << "   contacts=" << mcontactcontainer->GetNcontacts() << "\n";
 }
 
 

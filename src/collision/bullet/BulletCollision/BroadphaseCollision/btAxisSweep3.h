@@ -25,7 +25,7 @@
 #include "btBroadphaseProxy.h"
 #include "btOverlappingPairCallback.h"
 #include "btDbvtBroadphase.h"
-
+#include <stdio.h>
 //#define DEBUG_BROADPHASE 1
 #define USE_OVERLAP_TEST_ON_REMOVES 1
 
@@ -477,6 +477,8 @@ void btAxisSweep3Internal<BP_FP_INT_TYPE>::freeHandle(BP_FP_INT_TYPE handle)
 template <typename BP_FP_INT_TYPE>
 BP_FP_INT_TYPE btAxisSweep3Internal<BP_FP_INT_TYPE>::addHandle(const btVector3& aabbMin,const btVector3& aabbMax, void* pOwner,short int collisionFilterGroup,short int collisionFilterMask,btDispatcher* dispatcher,void* multiSapProxy)
 {
+	//printf("   addHandle MIN: %f %f %f  MAX: %f %f %f \n", aabbMin.x(), aabbMin.y(), aabbMin.z(), aabbMax.x(), aabbMax.y(), aabbMax.z());
+
 	// quantize the bounds
 	BP_FP_INT_TYPE min[3], max[3];
 	quantize(min, aabbMin, 0);
@@ -516,7 +518,7 @@ BP_FP_INT_TYPE btAxisSweep3Internal<BP_FP_INT_TYPE>::addHandle(const btVector3& 
 		pHandle->m_minEdges[axis] = static_cast<BP_FP_INT_TYPE>(limit - 1);
 		pHandle->m_maxEdges[axis] = limit;
 	}
-
+	  
 	// now sort the new edges to their correct position
 	sortMinDown(0, pHandle->m_minEdges[0], dispatcher,false);
 	sortMaxDown(0, pHandle->m_maxEdges[0], dispatcher,false);
@@ -524,7 +526,6 @@ BP_FP_INT_TYPE btAxisSweep3Internal<BP_FP_INT_TYPE>::addHandle(const btVector3& 
 	sortMaxDown(1, pHandle->m_maxEdges[1], dispatcher,false);
 	sortMinDown(2, pHandle->m_minEdges[2], dispatcher,true);
 	sortMaxDown(2, pHandle->m_maxEdges[2], dispatcher,true);
-
 
 	return handle;
 }

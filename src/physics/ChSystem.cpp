@@ -334,10 +334,10 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size)
 	min_bounce_speed = 0.15;
 	max_penetration_recovery_speed = 0.6;
 
-	///***TOBY*** change this line if you want to plug-in your custom GPU contact container
+	// default contact container
 	this->contact_container = new ChContactContainer();
 
-	///***TOBY*** change this line if you want to plug-in your custom GPU collision engine
+	// default GPU collision engine
 	collision_system = new ChCollisionSystemBullet(max_objects, scene_size);
 	
 
@@ -727,14 +727,14 @@ void ChSystem::SetFrictionProjection(eCh_frictionProjection mval)
 // Plug-in components configuration
 
 
-void ChSystem::SetLcpSystemDescriptor(ChLcpSystemDescriptor* newdescriptor)
+void ChSystem::ChangeLcpSystemDescriptor(ChLcpSystemDescriptor* newdescriptor)
 {
 	assert (newdescriptor);
 	if (this->LCP_descriptor) 
 		delete (this->LCP_descriptor);
 	this->LCP_descriptor = newdescriptor;
 }
-void ChSystem::SetLcpSolverSpeed(ChLcpSolver* newsolver)
+void ChSystem::ChangeLcpSolverSpeed(ChLcpSolver* newsolver)
 {
 	assert (newsolver);
 	if (this->LCP_solver_speed) 
@@ -742,7 +742,7 @@ void ChSystem::SetLcpSolverSpeed(ChLcpSolver* newsolver)
 	this->LCP_solver_speed = newsolver;
 }
 
-void ChSystem::SetLcpSolverStab(ChLcpSolver* newsolver)
+void ChSystem::ChangeLcpSolverStab(ChLcpSolver* newsolver)
 {
 	assert (newsolver);
 	if (this->LCP_solver_stab) 
@@ -750,7 +750,7 @@ void ChSystem::SetLcpSolverStab(ChLcpSolver* newsolver)
 	this->LCP_solver_stab = newsolver;
 } 
 
-void ChSystem::SetContactContainer(ChContactContainerBase* newcontainer)
+void ChSystem::ChangeContactContainer(ChContactContainerBase* newcontainer)
 {
 	assert (newcontainer);
 	if (this->contact_container) 
@@ -758,7 +758,7 @@ void ChSystem::SetContactContainer(ChContactContainerBase* newcontainer)
 	this->contact_container = newcontainer;
 }
 
-void ChSystem::SetCollisionSystem(ChCollisionSystem* newcollsystem)
+void ChSystem::ChangeCollisionSystem(ChCollisionSystem* newcollsystem)
 {
 	assert (this->GetNbodies()==0);
 	assert (newcollsystem);

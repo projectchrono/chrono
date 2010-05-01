@@ -134,7 +134,7 @@ public:
 			/// Compute the J2 invariant of the deviatoric part
 	Real GetInvariant_J2() const
 	{
-		return (pow(this->GetInvariant_I1(),2)-this->GetInvariant_I2()) / 3.0;
+		return ChMax(0.0,  ((pow(this->GetInvariant_I1(),2))/3.0) -this->GetInvariant_I2() );
 	}
 			/// Compute the J3 invariant of the deviatoric part
 	Real GetInvariant_J3() const
