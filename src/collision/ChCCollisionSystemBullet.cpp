@@ -87,7 +87,7 @@ void ChCollisionSystemBullet::Add(ChCollisionModel* model)
 		bt_collision_world->addCollisionObject(((ChModelBullet*)model)->GetBulletModel(),1,0xFF);
 	}
 }
-				
+		 		
 void ChCollisionSystemBullet::Remove(ChCollisionModel* model)
 {
 	if (((ChModelBullet*)model)->GetBulletModel()->getCollisionShape())

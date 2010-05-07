@@ -163,7 +163,7 @@ int main(int argc, char* argv[])
 	ChBodySceneNode* msphere; 
 	msphere = (ChBodySceneNode*)addChBodySceneNode_easySphere(
 											&mphysicalSystem, application.GetSceneManager(),
-											16000.0,
+											160000.0,
 											ChVector<>(0,-0.5,0), 2);
 	msphere->GetBody()->SetInertiaXX(ChVector<>(16000,16000,16000));
 	//msphere->GetBody()->SetBodyFixed(true);
@@ -229,7 +229,7 @@ int main(int argc, char* argv[])
 					double stress_scale =0.00001;
 					ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(VECT_X*mnode->e_stress.GetInvariant_I1()* stress_scale), video::SColor(100,255,0,0),false);
 
-					GetLog() << "Mass i="<< ip << "   m=" << mnode->GetMass() << "\n";
+					//GetLog() << "Mass i="<< ip << "   m=" << mnode->GetMass() << "\n";
 					//ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(), mnode->GetPos()+(mnode->UserForce * 0.1), video::SColor(100,0,0,0),false);
 					
 				}
