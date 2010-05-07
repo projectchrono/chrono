@@ -18,7 +18,7 @@ subject to the following restrictions:
 #include "LinearMath/btTransform.h"
 
 
-btScalar					gContactBreakingThreshold = btScalar(0.02);
+btScalar					gContactBreakingThreshold = btScalar(0.0001); //***ALEX
 ContactDestroyedCallback	gContactDestroyedCallback = 0;
 ContactProcessedCallback	gContactProcessedCallback = 0;
 
