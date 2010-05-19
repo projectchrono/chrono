@@ -196,31 +196,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\collision\ChCModelGPUBody.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\collision\ChCModelGPUBody.h"
+				>
+			</File>
+			<File
 				RelativePath=".\collision\collide.cu"
 				>
 			</File>
 			<File
 				RelativePath=".\collision\collide_kernel.cu"
-				>
-			</File>
-			<File
-				RelativePath=".\collision\radixsort.cu"
-				>
-			</File>
-			<File
-				RelativePath=".\collision\radixsort.cuh"
-				>
-			</File>
-			<File
-				RelativePath=".\collision\radixsort_kernel.cu"
-				>
-			</File>
-			<File
-				RelativePath=".\collision\scan.cu"
-				>
-			</File>
-			<File
-				RelativePath=".\collision\scanLargeArray_kernel.cu"
 				>
 			</File>
 			<Filter
@@ -1644,11 +1632,27 @@
 				>
 			</File>
 			<File
+				RelativePath=".\physics\ChContactContainerNodes.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\physics\ChContactContainerNodes.h"
+				>
+			</File>
+			<File
 				RelativePath=".\physics\ChContactGPUsimple.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\physics\ChContactGPUsimple.h"
+				>
+			</File>
+			<File
+				RelativePath=".\physics\ChContactNode.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\physics\ChContactNode.h"
 				>
 			</File>
 			<File
@@ -1681,6 +1685,14 @@
 			</File>
 			<File
 				RelativePath="physics\ChControls.h"
+				>
+			</File>
+			<File
+				RelativePath=".\physics\ChConveyor.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\physics\ChConveyor.h"
 				>
 			</File>
 			<File
@@ -2032,6 +2044,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\physics\ChMatterMeshless.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\physics\ChMatterMeshless.h"
+				>
+			</File>
+			<File
 				RelativePath=".\physics\ChMatterSPH.cpp"
 				>
 			</File>
@@ -2129,6 +2149,14 @@
 			</File>
 			<File
 				RelativePath=".\physics\ChProximityContainerBase.h"
+				>
+			</File>
+			<File
+				RelativePath=".\physics\ChProximityContainerMeshless.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\physics\ChProximityContainerMeshless.h"
 				>
 			</File>
 			<File
@@ -2471,6 +2499,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\demos\irrlicht\demo_conveyor.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\demos\irrlicht\demo_crank.cpp"
 					>
 				</File>
@@ -2504,6 +2536,10 @@
 				</File>
 				<File
 					RelativePath="..\demos\irrlicht\demo_pendulum.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\demos\irrlicht\demo_sph.cpp"
 					>
 				</File>
 				<File
@@ -2661,6 +2697,22 @@
 			</File>
 			<File
 				RelativePath="lcp\ChLcpConstraint.h"
+				>
+			</File>
+			<File
+				RelativePath=".\lcp\ChLcpConstraintNodeContactN.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\lcp\ChLcpConstraintNodeContactN.h"
+				>
+			</File>
+			<File
+				RelativePath=".\lcp\ChLcpConstraintNodeFrictionT.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\lcp\ChLcpConstraintNodeFrictionT.h"
 				>
 			</File>
 			<File
