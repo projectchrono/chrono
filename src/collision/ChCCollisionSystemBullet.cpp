@@ -173,8 +173,6 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainerBase* mcontactcon
 		//contactManifold->clearManifold();	
 	}
 	mcontactcontainer->EndAddContact();
-
-	GetLog()<<" ReportContacts: broadph.pairs=" <<  bt_collision_world->getDispatcher()->getNumManifolds() << "   contacts=" << mcontactcontainer->GetNcontacts() << "\n";
 }
 
 
