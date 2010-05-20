@@ -363,9 +363,9 @@ all: clean lib doxygen
 
 
 lib:  $(CPPFILES_LIB) $(OFILES_LIB) 
-	IF EXIST $(CH_LIBDIR)\$(CH_LIBNAME).defx $(DEL) $(CH_LIBDIR)\$(CH_LIBNAME).defx
-	IF EXIST $(CH_LIBDIR)\$(CH_LIBNAME).def  $(DEL) $(CH_LIBDIR)\$(CH_LIBNAME).def
-	IF EXIST $(CH_LIBDIR)\$(CH_LIBNAME).exp  $(DEL) $(CH_LIBDIR)\$(CH_LIBNAME).exp
+	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME).defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).defx"
+	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME).def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).def"
+	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME).exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).exp"
 	$(DLLTOOL) --output-def "$(CH_LIBDIR)/$(CH_LIBNAME).defx" --export-all-symbols --kill-at $(OFILES_LIB)
 	sed -e "/^	_/d" -e "/^	??_G/d" -e "/^	_real@/d" -e "/^	CTA/d" -e "/^	CT??/d" -e "/^	TI[0-9]/d" "$(CH_LIBDIR)/$(CH_LIBNAME).defx"  >>  "$(CH_LIBDIR)/$(CH_LIBNAME).def"
 	$(LD) $(CH_LINKSHAREDFLAGS) \
@@ -375,11 +375,11 @@ lib:  $(CPPFILES_LIB) $(OFILES_LIB)
 	      $(CH_LINKERFLAG_DEF)"$(CH_LIBDIR)/$(CH_LIBNAME).def" \
 	      $(CH_LINKERFLAG_IMPLIB)"$(CH_LIBDIR)/$(CH_LIBNAMEPREFIX)$(CH_LIBNAME)$(CH_LIBNAMEPOSTFIX)"
 	$(MT) -manifest "$(CH_BINDIR)/$(CH_LIBNAME).dll.manifest" -outputresource:"$(CH_BINDIR)/$(CH_LIBNAME).dll";#2
-	$(DEL) $(CH_BINDIR)$(D)$(CH_LIBNAME).dll.manifest
-	IF EXIST $(CH_R3RUNDIR) copy /Y $(CH_BINDIR)\$(CH_LIBNAME).dll $(CH_R3RUNDIR)\$(CH_R3BINDIR)\$(CH_LIBNAME).dll
-	IF EXIST $(CH_LIBDIR)\$(CH_LIBNAME).defx $(DEL) $(CH_LIBDIR)\$(CH_LIBNAME).defx
-	IF EXIST $(CH_LIBDIR)\$(CH_LIBNAME).def  $(DEL) $(CH_LIBDIR)\$(CH_LIBNAME).def
-	IF EXIST $(CH_LIBDIR)\$(CH_LIBNAME).exp  $(DEL) $(CH_LIBDIR)\$(CH_LIBNAME).exp
+	$(DEL) "$(CH_BINDIR)$(D)$(CH_LIBNAME).dll.manifest"
+	IF EXIST "$(CH_R3RUNDIR)" copy /Y "$(CH_BINDIR)\$(CH_LIBNAME).dll" "$(CH_R3RUNDIR)\$(CH_R3BINDIR)\$(CH_LIBNAME).dll"
+	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME).defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).defx"
+	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME).def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).def"
+	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME).exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).exp"
 
 
 # For cleaning all the .o, .obj, and other intermediate files
