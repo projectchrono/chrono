@@ -138,7 +138,30 @@ int main(int argc, char* argv[])
 	// Ok, now present the result to the user, with some
 	// statistical information:
 	double max_res, max_LCPerr;
-	msolver_iter.ComputeFeasabilityViolation(vconstr, max_res, max_LCPerr);
+	mdescriptor.ComputeFeasabilityViolation(max_res, max_LCPerr);
+
+	// If needed, dump the full system M and Cq matrices 
+	// on disk, in Matlab sparse format:
+	ChSparseMatrix matrM;
+	ChSparseMatrix matrCq;
+
+	mdescriptor.BuildMatrices(&matrCq, &matrM);
+
+	try
+	{
+		ChStreamOutAsciiFile fileM ("dump_M.dat");
+		ChStreamOutAsciiFile fileCq ("dump_Cq.dat");
+		matrM.StreamOUTsparseMatlabFormat(fileM);
+		matrCq.StreamOUTsparseMatlabFormat(fileCq);
+	}
+	catch (ChException myex)
+	{
+		GetLog() << "FILE ERROR: " << myex.what();
+	}
+
+
+	// Other checks
+
 	GetLog() << "**** Using ChLcpIterativeSOR  ********** \n\n"; 
 	GetLog() << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "  \n\n";
 	GetLog() << "vars q_a and q_b -------------------\n";
@@ -175,7 +198,7 @@ mXiter(7,0) = -mcb.Get_l_i();
 
 	msolver_simpl.Solve(mdescriptor);
  
-	msolver_simpl.ComputeFeasabilityViolation(vconstr, max_res, max_LCPerr);
+	mdescriptor.ComputeFeasabilityViolation(max_res, max_LCPerr);
 	GetLog() << "**** Using ChLcpSimplexSolver ********* \n\n"; 
 	GetLog() << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "  \n\n";
 	GetLog() << "vars q_a and q_b -------------------\n";

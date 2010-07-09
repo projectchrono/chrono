@@ -313,6 +313,7 @@ int main(int argc, char* argv[])
 		
 		mphysicalSystem.DoStepDynamics( 0.02);
 		
+
 		application.GetVideoDriver()->endScene();  
 	}
 	

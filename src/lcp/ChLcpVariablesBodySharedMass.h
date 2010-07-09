@@ -238,7 +238,7 @@ public:
 						storage.SetElement(insrow+0, inscol+0, sharedmass->mass);
 						storage.SetElement(insrow+1, inscol+1, sharedmass->mass);
 						storage.SetElement(insrow+2, inscol+2, sharedmass->mass);
-						storage.PasteMatrix(&(sharedmass->inertia), insrow, inscol);
+						storage.PasteMatrix(&(sharedmass->inertia), insrow+3, inscol+3);
 					};
 
 

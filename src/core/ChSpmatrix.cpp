@@ -1751,6 +1751,26 @@ int ChSparseMatrix::SolveLCP(ChMatrix<>* B, ChMatrix<>* X,
 }
 
 
+
+void ChSparseMatrix::StreamOUTsparseMatlabFormat(ChStreamOutAscii& mstream)
+{
+	for(int ii=0; ii<this->GetRows(); ii++)
+	{
+		for(int jj=0; jj<this->GetColumns(); jj++)
+		{
+			double elVal = this->GetElement(ii,jj);
+			if (elVal)
+				mstream << ii+1 << " " << jj+1 << " " << elVal << "\n";
+		}
+	}
+}
+
+
+
+
+
+
+
 } // END_OF_NAMESPACE____
 
 // END

@@ -254,11 +254,11 @@ void ChParticlesClones::VariablesFbLoadForces(double factor)
 	{
 		// particle gyroscopic force:
 		ChVector<> Wvel = this->particles[j]->GetWvel_loc();
-		ChVector<> gyro = Vcross (Wvel, (this->particle_mass.GetBodyInertia().Matr_x_Vect (Wvel)));	// in W space
+		ChVector<> gyro = Vcross (Wvel, (this->particle_mass.GetBodyInertia().Matr_x_Vect (Wvel)));
 
 		// add applied forces and torques (and also the gyroscopic torque and gravity!) to 'fb' vector
 		this->particles[j]->variables.Get_fb().PasteSumVector((this->particles[j]->UserForce + Gforce) * factor ,0,0);
-		this->particles[j]->variables.Get_fb().PasteSumVector((this->particles[j]->UserTorque+ gyro)  * factor ,3,0);
+		this->particles[j]->variables.Get_fb().PasteSumVector((this->particles[j]->UserTorque- gyro)  * factor ,3,0);
 	}
 }
 

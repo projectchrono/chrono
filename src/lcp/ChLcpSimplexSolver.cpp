@@ -136,7 +136,8 @@ double ChLcpSimplexSolver::Solve(
 		  if (mconstraints[ic]->IsLinear())
 			if (mconstraints[ic]->IsUnilateral())
 			{
-				mconstraints[ic]->Build_Cq(*MC, n_q + n_c + s_d);// .. fills MC (Cq and Cq' part)
+				mconstraints[ic]->Build_Cq (*MC, n_q + n_c + s_d);// .. fills MC (Cq  part)
+				mconstraints[ic]->Build_CqT(*MC, n_q + n_c + s_d);// .. fills MC (Cq' part)
 				B->SetElement(n_q + n_c + s_d, 0, 
 						-mconstraints[ic]->Get_b_i() );			// .. fills B  (c part)
 						unilaterals[s_d].status = CONSTR_UNILATERAL_OFF;
@@ -144,7 +145,8 @@ double ChLcpSimplexSolver::Solve(
 			}
 			else
 			{
-				mconstraints[ic]->Build_Cq(*MC, n_q + s_c);
+				mconstraints[ic]->Build_Cq (*MC, n_q + s_c);
+				mconstraints[ic]->Build_CqT(*MC, n_q + s_c);
 				B->SetElement(n_q + s_c,       0,
 						-mconstraints[ic]->Get_b_i() );
 				s_c++;

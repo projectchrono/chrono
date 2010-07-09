@@ -38,6 +38,19 @@ XX-XX-XXXX
   
 - Gyroscopic torque calculation contained a bug
 
+- In case Chrono::Engine was installed in a path with spaces
+  (ex. C:\blabla\Doucuments and Settings\blabla...) the make-chrono_lib
+  did not work properly. Fixed.
+
+- StreamOUTsparseMatlabFormat() for ChSparseMatrix, to dump sparse 
+  matrices on disk, for example, in Matlab sparse format.
+ 
+- ComputeFeasabilityViolation, FromVariablesToVector, FromVectorToVariables
+  moved from ChLcpSolver to ChLcpSystemDescriptor.
+  Also, new method BuildMatrices() in ChLcpSystemDescriptor, for 
+  debugging, testing, etc., allowing to dump full mass and jacobian matrices.
+  
+
 Release 0.9.0
 23-2-2010
 

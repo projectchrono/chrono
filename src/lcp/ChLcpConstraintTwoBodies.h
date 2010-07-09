@@ -182,10 +182,13 @@ public:
 							storage.PasteMatrixFloat(&Cq_a, insrow, variables_a->GetOffset());
 						if (variables_b->IsActive())
 							storage.PasteMatrixFloat(&Cq_b, insrow, variables_b->GetOffset());
+					}
+	virtual void Build_CqT(ChSparseMatrix& storage, int inscol)
+					{
 						if (variables_a->IsActive())
-							storage.PasteTranspMatrixFloat(&Cq_a, variables_a->GetOffset(), insrow);
+							storage.PasteTranspMatrixFloat(&Cq_a, variables_a->GetOffset(), inscol);
 						if (variables_b->IsActive())
-							storage.PasteTranspMatrixFloat(&Cq_b, variables_b->GetOffset(), insrow);
+							storage.PasteTranspMatrixFloat(&Cq_b, variables_b->GetOffset(), inscol);
 					}
 
 

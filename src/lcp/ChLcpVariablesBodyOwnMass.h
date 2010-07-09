@@ -200,7 +200,7 @@ public:
 						storage.SetElement(insrow+0, inscol+0, mass);
 						storage.SetElement(insrow+1, inscol+1, mass);
 						storage.SetElement(insrow+2, inscol+2, mass);
-						storage.PasteMatrix(&inertia, insrow, inscol);
+						storage.PasteMatrix(&inertia, insrow+3, inscol+3);
 					};
 
 
