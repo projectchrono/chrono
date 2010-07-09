@@ -180,8 +180,7 @@ public:
 
 				/// Puts the jacobian parts into the 'insrow' row of a sparse matrix,
 				/// where both portions of the jacobian are shifted in order to match the 
-				/// offset of the corresponding ChLcpVariable.The same is done
-				/// on the 'insrow' column, so that the sparse matrix is kept symmetric.
+				/// offset of the corresponding ChLcpVariable.
 				/// This is used only by the ChLcpSimplex solver (iterative solvers 
 				/// don't need to know jacobians explicitly)
 	virtual void Build_Cq(ChSparseMatrix& storage, int insrow)
@@ -192,12 +191,15 @@ public:
 							storage.PasteMatrixFloat(&Cq_b, insrow, variables_b->GetOffset());
 						if (variables_c->IsActive())
 							storage.PasteMatrixFloat(&Cq_c, insrow, variables_c->GetOffset());
+					}
+	virtual void Build_CqT(ChSparseMatrix& storage, int inscol)
+					{
 						if (variables_a->IsActive())
-							storage.PasteTranspMatrixFloat(&Cq_a, variables_a->GetOffset(), insrow);
+							storage.PasteTranspMatrixFloat(&Cq_a, variables_a->GetOffset(), inscol);
 						if (variables_b->IsActive())
-							storage.PasteTranspMatrixFloat(&Cq_b, variables_b->GetOffset(), insrow);
+							storage.PasteTranspMatrixFloat(&Cq_b, variables_b->GetOffset(), inscol);
 						if (variables_c->IsActive())
-							storage.PasteTranspMatrixFloat(&Cq_c, variables_c->GetOffset(), insrow);
+							storage.PasteTranspMatrixFloat(&Cq_c, variables_c->GetOffset(), inscol);
 					}
 
 

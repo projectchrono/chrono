@@ -105,7 +105,8 @@ public:
 	virtual ChMatrix<float>* Get_Eq_b() {assert (false); return 0;}
 	virtual double Compute_Cq_q() {assert (false); return 0;}
 	virtual void Increment_q(const double deltal) {assert (false);};
-	virtual void Build_Cq(ChSparseMatrix& storage, int insrow) {assert (false);};
+	virtual void Build_Cq (ChSparseMatrix& storage, int insrow) {assert (false);};
+	virtual void Build_CqT(ChSparseMatrix& storage, int inscol) {assert (false);};
 
 				/// Set references to the constrained objects
 	virtual void SetVariables(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b)

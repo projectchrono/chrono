@@ -249,6 +249,15 @@ class ChSparseMatrix : public ChMatrix<double> {
 						   int maxiters = 200,
 						   bool keep_unilateral_status = false,
 						   ChUnilateralData constr_data[] = NULL);
+
+
+
+					/// Method to allow serializing transient data into in ascii stream (es a file)
+					/// as a Matlab sparse matrix format ( each row in file has three elements: 
+					///     row,    column,    value 
+					/// Note: the row and column indexes start from 1, not 0 as in C language.
+	void StreamOUTsparseMatlabFormat(ChStreamOutAscii& mstream);
+
 };
 
 

@@ -2069,7 +2069,7 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 					GetStep(),      // f*dt
 					1.0,		    // Ct   (needed, for rheonomic motors)
 					1.0/GetStep(),  // C/dt
-					max_penetration_recovery_speed,	 // max penetrations recovery speed (positive for exiting)
+					max_penetration_recovery_speed,	 // vlim, max penetrations recovery speed (positive for exiting)
 					true);			// do above max. clamping on -C/dt
 
 	// if warm start is used, can exploit cached multipliers from last step...
@@ -2459,7 +2459,7 @@ int ChSystem::DoAssembly(int action, int mflags)
 
 			// exit Newton loop if reached tolerance..
 			double max_res, max_LCPerr;
-			this->LCP_solver_stab->ComputeFeasabilityViolation(this->LCP_descriptor->GetConstraintsList(), max_res, max_LCPerr);
+			this->LCP_descriptor->ComputeFeasabilityViolation(max_res, max_LCPerr);
 			if (max_res <= this->tol)
 			{
 				//reached_tolerance = TRUE;

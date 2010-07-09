@@ -466,20 +466,7 @@ void ChBody::Accumulate_script_torque (Vector torque, int local)
 void ChBody::ComputeGyro ()
 {
 	ChVector<> Wvel = this->GetWvel_loc();
-	gyro = Vcross ( Wvel, (variables.GetBodyInertia().Matr_x_Vect (Wvel)));	// in W space
-
-/* ***CHECK*** it should be the same, if in quaternion space..
-	static Vector vtemp;
-	static ChMatrixNM<double,3,1> mtemp;
-	static ChMatrixNM<double,3,4> Gl_dt;
-
-	ChFrame<>::SetMatrix_Gl(Gl_dt, pos_dt.rot);  // Gl_dt.Set_Gl_matrix(pos_dt.rot);
-	vtemp = XInertia->Matr_x_Vect(Vmul(Wvel, -2));
-	mtemp.PasteVector(vtemp,0,0);				// Qgyro = -2 [Gl]'[Ix] W
-
-	Qgyro->MatrTMultiply(Gl_dt, mtemp);		// in Q space
-*/
-
+	gyro = Vcross ( Wvel, (variables.GetBodyInertia().Matr_x_Vect (Wvel)));	
 }
 
 bool ChBody::TrySleeping()
