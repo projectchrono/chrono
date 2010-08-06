@@ -79,7 +79,7 @@ ChBody::ChBody ()
 	impactC  = 0.0f;
 	impactCt = 0.0f;
 	s_friction = 0.6f;
-	k_friction = 0.5f;
+	k_friction = 0.6f;
 	rolling_friction = 0;
 	spinning_friction = 0;
 

@@ -318,19 +318,22 @@ public:
 	float  GetImpactC() {return impactC;}
 	void   SetImpactC(float mval) {impactC = mval;}
 
-				/// The tangential restitution coefficient, for collisions.
+				/// The tangential restitution coefficient, for collisions (--not used--)
 	float  GetImpactCt() {return impactCt;}
 	void   SetImpactCt(float mval) {impactCt = mval;}
 
-				/// The kinetic friction coefficient. Usually in 0..1 range, rarely above.
+				/// The kinetic friction coefficient. 
+				/// Usually in 0..1 range, rarely above. Default 0.6 
+				/// Note: currently the static friction will be used instead, anyway, because of an issue in the solver.
 	float  GetKfriction() {return k_friction;}
 	void   SetKfriction(float mval) {k_friction = mval;}
 
-				/// The static friction coefficient. Usually a bit higher than kinetic coeff.
+				/// The static friction coefficient. 
+				/// Usually a bit higher than kinetic coeff. Default 0.6
 	float  GetSfriction() {return s_friction;}
 	void   SetSfriction(float mval) {s_friction = mval;}
 
-				/// Set both static friction and kinetic friction at once, with same value
+				/// Set both static friction and kinetic friction at once, with same value.
 	void   SetFriction(float mval) {SetSfriction(mval); SetKfriction(mval);}
 
 				/// The rolling friction coefficient. Usually a very low coefficient.

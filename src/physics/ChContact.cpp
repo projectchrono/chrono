@@ -12,6 +12,7 @@
 #include "physics/ChContact.h"
 #include "physics/ChSystem.h"
 #include "lcp/ChLcpConstraintTwoContactN.h"
+#include "collision/ChCModelBulletBody.h"
 
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
 
@@ -176,13 +177,51 @@ void ChContact::ConstraintsBiReset()
  
 void ChContact::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp)
 {
-	//Tu.Set_b_i(Tu.Get_b_i +0.);  //increment nothing
-	//Tv.Set_b_i(Tv.Get_b_i +0.);
+	bool bounced = false;
 
-	if (do_clamp)
-		Nx.Set_b_i( Nx.Get_b_i() + ChMax (factor * this->norm_dist, -recovery_clamp)  );
-	else
-		Nx.Set_b_i( Nx.Get_b_i() + factor * this->norm_dist  );
+	// Elastic Restitution model (use simple Newton model with coeffcient e=v(+)/v(-))
+	// Note that this works only if the two connected items are two ChBody.
+
+	ChModelBulletBody* bm1 = dynamic_cast<ChModelBulletBody*>(this->modA);
+	ChModelBulletBody* bm2 = dynamic_cast<ChModelBulletBody*>(this->modB);
+	if (bm1&&bm2)
+	{
+		ChBody* bb1 = bm1->GetBody();
+		ChBody* bb2 = bm2->GetBody();
+		double mrest_coeff =  (bb1->GetImpactC() + bb2->GetImpactC())*0.5; // = this->restitution;
+		if (mrest_coeff)
+		{
+			//compute normal rebounce speed 
+			double Ct = 0;
+			
+			Vector Pl1 = bb1->Point_World2Body(&this->p1);
+			Vector Pl2 = bb2->Point_World2Body(&this->p2);
+			Vector V1_w = bb1->PointSpeedLocalToParent(Pl1);
+			Vector V2_w = bb2->PointSpeedLocalToParent(Pl2);
+			Vector Vrel_w = V2_w-V1_w;
+			Vector Vrel_cplane = this->contact_plane.MatrT_x_Vect(Vrel_w);
+		 
+			double neg_rebounce_speed = Vrel_cplane.x * mrest_coeff;
+			if (neg_rebounce_speed < -  bb1->GetSystem()->GetMinBounceSpeed() )
+			{
+				// CASE: BOUNCE
+				bounced = true;
+				Nx.Set_b_i( Nx.Get_b_i() + neg_rebounce_speed );
+			}
+		}
+	}
+
+	if (!bounced)
+	{
+		// CASE: SETTLE (most often, and also default if two colliding items are not two ChBody)
+		if (do_clamp)
+			Nx.Set_b_i( Nx.Get_b_i() + ChMax (factor * this->norm_dist, -recovery_clamp)  );
+		else
+			Nx.Set_b_i( Nx.Get_b_i() + factor * this->norm_dist  );
+	}
+
+	//Tu.Set_b_i(Tu.Get_b_i +0.);  // nothing to add in tangential dir
+	//Tv.Set_b_i(Tv.Get_b_i +0.);
 }
 
 void ChContact::ConstraintsFetch_react(double factor)
