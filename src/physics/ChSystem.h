@@ -273,7 +273,13 @@ public:
 	void SetMaxStepsCollide(int mval) {msteps_collide = mval;}
 	int  GetMaxStepsCollide() {return msteps_collide;}
 	
+				/// For elastic collisions, with objects that have nonzero
+				/// restitution coefficient: objects will rebounce only if their
+				/// relative colliding speed is above this threshold. Default 0.15 m/s.
+				/// If this is too low, aliasing problems can happen with small high frequency
+				/// rebounces, and settling to static stacking might be more difficult. 
 	void SetMinBounceSpeed(double mval) {min_bounce_speed = mval;}
+				/// Objects will rebounce only if their relative colliding speed is above this threshold.
 	double GetMinBounceSpeed() {return min_bounce_speed;}
 
 				/// For the Anitescu stepper, you can limit the speed of exiting from penetration
