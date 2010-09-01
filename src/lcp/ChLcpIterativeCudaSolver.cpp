@@ -1,4 +1,4 @@
-#ifndef CH_NOCUDA 
+#ifdef CH_UNIT_CUDA 
 
 ///////////////////////////////////////////////////
 //
@@ -938,5 +938,5 @@ void ChLcpIterativeCuda::IntegrateTimeStep(double mdt)
 } // END_OF_NAMESPACE____
 
 
-#endif  // end of ! CH_NOCUDA
+#endif  // end of   CH_UNIT_CUDA
  

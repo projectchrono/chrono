@@ -35,15 +35,11 @@ int main(int argc, char* argv[])
 	GetLog() << "CHRONO foundation classes demo: math\n\n";   
      
 
-	/* 
-	 *  													--IMPORTANT--
-	 *
-	 * Initialize DLL (also returns the handle to the global structure 
-	 *     with global settings, maybe you need to use them later..)
-	 */
+	// The DLL_CreateGlobals() - DLL_DeleteGlobals()  pair is needed if
+	// global functions are needed.
 
+	DLL_CreateGlobals();
 
-	ChGlobals* GLOBAL_Vars = DLL_CreateGlobals();
 
 	//
 	// Some examples of math, using Chrono::Engine core features.

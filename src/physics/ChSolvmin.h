@@ -17,8 +17,13 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
+//****
+//**** WARNING! This has been recently refactored, and we still must
+//****          test is the heavy changes have broken some functionality!!!
+//****
 
-#include "physics/ChOptvar.h"
+#include "physics/ChFx.h"
+#include "physics/ChObject.h"
 
 
 // forward reference
@@ -26,6 +31,7 @@ struct JSScript;
 
 namespace chrono
 {
+
 
 
 
@@ -52,32 +58,14 @@ namespace chrono
 class ChOptimizer : public ChObj {
 
 protected:
-	char function[300];		// the objective formula to be maximized, as ASCII expression
+	ChFx* afunction;		// the function to be maximized
+	ChFx* afunctionGrad;	// the gradient of the function to be maximized, or null for default BDF.
 
-	ChOptVar* optvarlist;	// list of variables to be optimized;
-	void* database;			// points to an object derived by ChObj (ex: a PSystem )which can
-							// evaluate both variables and objective function [obsolete]
+	int C_vars;			// number of input variables
 
-	int C_vars;				// If NULL, the number of optimized variables is automatically
-							// computed from list of ASCII variables (see "optvarlist" above),
-							// otherwise must be set >0 to use the following C evaluation of formulas..
-
-							/// The user can provide the evaluation fx also in form of
-							/// a generic C function of N parameters (passed as a vector double[] p),
-							/// which will be used if C_vars >0 and by providing the function "*funct",
-							/// otherwise NULL for parsing of the ASCII formula "function".
-	double (*func)(double p[], void* my_data);				// function evaluation
-
-							/// Same as above, but to compute gradient. If NULL (as default),
-							/// the gradient is obtained numerically by differentiation.
-	void (*dfunc)(double p[], double dp[], void* my_data);	// gradient evaluation
-
-	void* my_data;			// Optional data to be passed to the *func and *dfunc
-	double* xv;			// Vector of variables, for C function above, also 1st approximation.
-	double* xv_sup;		// When using C fx eval, these are the hi/lo limits for the variables.
+	double* xv;			// Vector of variables, also 1st approximation.
+	double* xv_sup;		// These are the hi/lo limits for the variables,
 	double* xv_inf;		// these are not used by all optimizer, and can be NULL for gradient, for example, but needed for genetic.
-
-	JSScript* fx_script;	// JavaScript script coming from compilation of function[]   {internal}
 
 public:
 
@@ -106,40 +94,23 @@ public:
 	virtual ~ChOptimizer();
 	virtual void Copy(ChOptimizer* source);
 
-				/// Sets the objective function to maximize, as ASCII interpreted formula
-				/// Such fourmula will be interpreted by the "database" object.
-	virtual void SetObjective (char* mformula);
-	char* GetObjective () {return function;};
+				/// Sets the objective function to maximize
+	virtual void  SetObjective (ChFx* mformula)  {this->afunction=mformula;};
+	virtual ChFx* GetObjective () {return this->afunction;};
 
-				/// Sets the database which will be accessed by interpreted formulas [obsolete]
-	void SetDatabase (void* newdb) {database = newdb; };
-	void* GetDatabase () {return database;};
-
-				/// Sets the optimization variables
-	virtual void AddOptVar (ChOptVar* newvar);
-	virtual void RemoveOptVar (ChOptVar* newvar);
-
-	virtual ChOptVar* GetVarList() {return optvarlist;};
-	virtual void SetVarList(ChOptVar* mv) {optvarlist = mv;};
-
-	virtual int  CompileOptVar();	// to speed up code..
-
-
-				/// returns the number of optimization variables set.
-	virtual int  GetNumOfVars();
+				/// Sets the objective function gradient (not mandatory,
+				/// because if not set, the default bacward differentiation is used).
+	virtual void  SetObjectiveGrad (ChFx* mformula)  {this->afunctionGrad=mformula;};
+	virtual ChFx* GetObjectiveGrad () {return this->afunctionGrad;};
 
 				/// Set the number of optimization variables.
-				/// note: if you use the ChOptVar "ascii" variables,
-				/// this is not needed -the count is automatic- but you
-				/// MUST set it > 0 if you want to use the "C" evaluation of *funct()!!!
+				/// Note: this must be set properly as the number of variables used in the objective function!
 	virtual void  SetNumOfVars(int mv) {C_vars = mv;};
+				/// Returns the number of optimization variables.
+	virtual int  GetNumOfVars() {return C_vars;};
 
-				/// Set the C function which will be used for fx evaluation
-				/// instead of parsing of "ascii" objective formula.
-	virtual void  SetObjective (double (*m_func)(double p[], void* my_data)) {func = m_func;};
-	virtual void  SetDObjective (void (*m_dfunc)(double p[], double dp[], void* my_data)) {dfunc = m_dfunc;};
 
-				// Gets the vector of variables, if C function is used
+				// Gets the vector of variables
 	double* GetXv() {return xv;};
 	double* GetXv_sup() {return xv_sup;};
 	double* GetXv_inf() {return xv_inf;};
@@ -147,30 +118,16 @@ public:
 	void SetXv_sup(double* mx) {xv_sup = mx;};
 	void SetXv_inf(double* mx) {xv_inf = mx;};
 
-				/// Function optional argument: the "my_data" generic pointer..
-	void* GetMyData() {return my_data;};
-	void SetMyData(void* mmy_data) {my_data= mmy_data;};
-
-
-				/// The multibody system "database" gets the current state of
-				/// variables. Ret. null if can't set values
-	int Vars_to_System(double  x[]);
-	int Vars_to_System(ChMatrix<>* x);
-
-				/// The variables gets their corresponding values in multibody system.
-				/// Return null if can't get values
-	int System_to_Vars(double  x[]);
-	int System_to_Vars(ChMatrix<>* x);
 
 				/// Returns the value of the functional, for given state of variables
 				/// and with the given "database" multibody system. Here evaluates the string "function".
 	double Eval_fx(double x[]);
-	double Eval_fx(ChMatrix<>* x);
+	double Eval_fx(const ChMatrix<>* x);
 
 				/// Computes the gradient of objective function, for given state of variables.
 				/// The gradient is stored into gr vector.
 	void   Eval_grad(double x[], double gr[]);
-	void   Eval_grad(ChMatrix<>* x, ChMatrix<>* gr);
+	void   Eval_grad(const ChMatrix<>* x, ChMatrix<>* gr);
 
 
 				/// Performs the optimization of the ChSystem pointed by "database"
@@ -188,7 +145,6 @@ public:
 				/// Each break_cycles number of times this fx is called, the function break_funct() is
 				/// evaluated (if any) and if positive, the variable user_break becomes true.
 	void DoBreakCheck();
-
 
 };
 
@@ -467,14 +423,10 @@ public:
 	virtual ~ChOptimizerHybrid();
 	virtual void Copy(ChOptimizerHybrid* source);
 
-	void SetObjective (char* mformula);
-	void SetObjective (double (*m_func)(double p[], void* my_data));
-	void SetDObjective (void (*m_dfunc)(double p[], double dp[], void* my_data));
+	virtual void  SetObjective (ChFx* mformula);
+	virtual void  SetObjectiveGrad (ChFx* mformula);
 
 	void SetNumOfVars(int mv);
-	void SetDatabase (void* newdb);
-	void AddOptVar (ChOptVar* newvar);
-	void RemoveOptVar (ChOptVar* newvar);
 
 
 		// Performs the optimization of the PSystem pointed by "database"

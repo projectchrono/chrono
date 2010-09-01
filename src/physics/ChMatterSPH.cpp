@@ -168,7 +168,7 @@ ChMatterSPH::ChMatterSPH ()
 
 	this->nodes.clear();
 
-	SetIdentifier(GLOBAL_Vars->GetUniqueIntID()); // mark with unique ID
+	SetIdentifier(ChGLOBALS().GetUniqueIntID()); // mark with unique ID
 
 }
 

@@ -36,7 +36,7 @@ ChShaftsTorsionSpring::ChShaftsTorsionSpring ()
 	this->stiffness = 0;
 	this->damping = 0;
 
-	SetIdentifier(GLOBAL_Vars->GetUniqueIntID()); // mark with unique ID
+	SetIdentifier(ChGLOBALS().GetUniqueIntID()); // mark with unique ID
 }
 
 

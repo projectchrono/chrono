@@ -36,7 +36,6 @@ ChGlobals* GLOBAL_Vars =0;
   
 ChGlobals::ChGlobals()
 {
-
 	WriteComments = 1;
 	WriteAllFeatures = 0;
 
@@ -51,40 +50,38 @@ ChGlobals::ChGlobals()
 	nt = localtime(&ltime);
 	int_identifier = (int)(3600*nt->tm_hour + 60*nt->tm_min + nt->tm_sec);
 
-						// by default, scripting language outputs to cout
-	scripting_log = NULL;
-
-	chjsEngine = new ChJavascriptEngine;
 }
 
 
 
 ChGlobals::~ChGlobals() 
 {
-
-	if (chjsEngine)
-		delete chjsEngine;
-	chjsEngine=0;
 	
 };
 
 
 
+//
+// The pointer to the global 'ChGlobals'
+//
 
-ChLog& ChGlobals::GetScriptingLog()
+static ChGlobals*  GlobalGlobals = 0 ;
+
+ChGlobals& ChGLOBALS()
 {
-	if ( this->scripting_log != NULL )
-	{
-        return (*this->scripting_log);	// use custom logger or...
-	}
+	if ( GlobalGlobals != NULL )
+        return (*GlobalGlobals);
 	else
 	{
-		return GetLog();				// use default logger 
+		static ChGlobals static_globals;
+		return static_globals;
 	}
 }
 
-
-
+void SetChGLOBALS(ChGlobals* my_globals)
+{
+	GlobalGlobals = my_globals;
+}
 
 
 

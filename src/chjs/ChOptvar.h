@@ -1,5 +1,5 @@
-#ifndef CHOPTVARS_H
-#define CHOPTVARS_H
+#ifndef CHOPTVAR_H
+#define CHOPTVAR_H
 
 //////////////////////////////////////////////////
 //   
@@ -7,7 +7,8 @@
 //   
 //   Optimize variable structure  -definition.
 //   (used in Chrono to represent variables which
-//    can be modified by optimization engines).
+//    can be modified by optimization engine when
+//    using the ChFxJavascript).
 //
 //   HEADER file for CHRONO,
 //	 Multibody dynamics engine

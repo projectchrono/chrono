@@ -32,6 +32,7 @@
 #include "ChJs_impact.h"
 #include "ChJs_constraint.h"
 #include "ChJs_Engine.h"
+#include "ChGlobalJS.h"
 
 #include "physics/ChGlobal.h"
 #include "jsapi.h"
@@ -100,10 +101,10 @@ void __InitChronoJavaClasses(JSContext* cx, JSObject*  glob)
 	JSObject* jsclass_FunctionIntegrate= ChJS_InitClass_FunctionIntegrate(cx, glob, jsclass_Function);
 	JSObject* jsclass_FunctionMirror   = ChJS_InitClass_FunctionMirror(cx, glob, jsclass_Function);
 	JSObject* jsclass_FunctionRepeat   = ChJS_InitClass_FunctionRepeat(cx, glob, jsclass_Function);
- 	JSObject* jsclass_ChOptimizer			= ChJS_InitClass_ChOptimizer(cx, glob, jsclass_ChObj);
-	JSObject* jsclass_ChLocalOptimizer		= ChJS_InitClass_ChLocalOptimizer(cx, glob, jsclass_ChOptimizer);
-	JSObject* jsclass_ChGeneticOptimizer	= ChJS_InitClass_ChGeneticOptimizer(cx, glob, jsclass_ChOptimizer);
-	JSObject* jsclass_ChHybridOptimizer		= ChJS_InitClass_ChHybridOptimizer(cx, glob, jsclass_ChOptimizer);
+ 	//JSObject* jsclass_ChOptimizer			= ChJS_InitClass_ChOptimizer(cx, glob, jsclass_ChObj);
+	//JSObject* jsclass_ChLocalOptimizer		= ChJS_InitClass_ChLocalOptimizer(cx, glob, jsclass_ChOptimizer);
+	//JSObject* jsclass_ChGeneticOptimizer	= ChJS_InitClass_ChGeneticOptimizer(cx, glob, jsclass_ChOptimizer);
+	//JSObject* jsclass_ChHybridOptimizer		= ChJS_InitClass_ChHybridOptimizer(cx, glob, jsclass_ChOptimizer);
  	JSObject* jsclass_ChControllerPID		= ChJS_InitClass_ChControllerPID(cx, glob, jsclass_ChObj);
 	JSObject* jsclass_Impact		   = ChJS_InitClass_Impact(cx, glob, NULL);
 	JSObject* jsclass_Constraint		   = ChJS_InitClass_Constraint(cx, glob, NULL);
@@ -135,7 +136,7 @@ extern "C" void InitChronoJavaClasses(JSContext* cx, JSObject*  glob)
 
 extern "C" void InitChronoJavaClassesGlobalContext()
 {
-	chrono::__InitChronoJavaClasses(chrono::GLOBAL_Vars->chjsEngine->cx, chrono::GLOBAL_Vars->chjsEngine->jglobalObj);
+	chrono::__InitChronoJavaClasses(chrono::ChGLOBALS().chjsEngine->cx, chrono::ChGLOBALS().chjsEngine->jglobalObj);
 }
 */
 

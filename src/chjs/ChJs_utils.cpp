@@ -17,6 +17,7 @@
 
 #include "ChJs_utils.h"
 #include "ChJs_Engine.h"
+#include "ChGlobalJS.h"
 #include "physics/ChGlobal.h"
 
 #include "jsdbgapi.h"
@@ -77,7 +78,7 @@ static JSBool js_print(JSContext *cx, JSObject *jso, uintN argc, jsval *argv, js
 
      for(i = 0; i < argc; i++)
          if(str = JS_ValueToString(cx, argv[i]))
-			GLOBAL_Vars->chjsEngine->chjs_Print(JS_GetStringBytes(str));
+			ChGLOBALS_JS().chjsEngine->chjs_Print(JS_GetStringBytes(str));
 
      return JS_TRUE;
 }
@@ -161,9 +162,9 @@ void chjs_print_objtree(JSContext *cx, int tab, ChList<chjs_propdata>* mylist)
 	for (ChNode<chjs_propdata>* mnode = mylist->GetHead(); mnode != NULL; mnode= mnode->next)
 	{
 		for (int i=0; i<tab; i++)
-			GLOBAL_Vars->chjsEngine->chjs_Print("  ");
-		GLOBAL_Vars->chjsEngine->chjs_Print(mnode->data->propname);
-		GLOBAL_Vars->chjsEngine->chjs_Print("\n");
+			ChGLOBALS_JS().chjsEngine->chjs_Print("  ");
+		ChGLOBALS_JS().chjsEngine->chjs_Print(mnode->data->propname);
+		ChGLOBALS_JS().chjsEngine->chjs_Print("\n");
 		if (mnode->data->children.GetHead())
 			chjs_print_objtree(cx, tab+1, &mnode->data->children);
 	}
@@ -177,7 +178,7 @@ static JSBool js_objtree(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, 
 	if (argc == 1)
 		lookobj = JSVAL_TO_OBJECT(argv[0]);
 	if (argc == 0)
-	    lookobj = GLOBAL_Vars->chjsEngine->jglobalObj;
+	    lookobj = ChGLOBALS_JS().chjsEngine->jglobalObj;
 	if (argc > 1)
 	    return JS_FALSE;
 
@@ -192,16 +193,16 @@ static JSBool js_objtree(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, 
 
 static JSBool js_context(JSContext *cx, JSObject *jso, uintN argc, jsval *argv, jsval *rval)
 {
-     if ((GLOBAL_Vars->chjsEngine->chjs_contextclass == NULL) || (GLOBAL_Vars->chjsEngine->chjs_contextdata == NULL))
-		*rval = OBJECT_TO_JSVAL(GLOBAL_Vars->chjsEngine->jglobalObj);  // no context, return global
+     if ((ChGLOBALS_JS().chjsEngine->chjs_contextclass == NULL) || (ChGLOBALS_JS().chjsEngine->chjs_contextdata == NULL))
+		*rval = OBJECT_TO_JSVAL(ChGLOBALS_JS().chjsEngine->jglobalObj);  // no context, return global
 	 else
-		chjs_from_data(cx, rval, GLOBAL_Vars->chjsEngine->chjs_contextdata, GLOBAL_Vars->chjsEngine->chjs_contextclass);
+		chjs_from_data(cx, rval, ChGLOBALS_JS().chjsEngine->chjs_contextdata, ChGLOBALS_JS().chjsEngine->chjs_contextclass);
      return JS_TRUE;
 }
 
 static JSBool js_globals(JSContext *cx, JSObject *jso, uintN argc, jsval *argv, jsval *rval)
 {
-	*rval = OBJECT_TO_JSVAL(GLOBAL_Vars->chjsEngine->jglobalObj);  // no context, return global
+	*rval = OBJECT_TO_JSVAL(ChGLOBALS_JS().chjsEngine->jglobalObj);  // no context, return global
 	return JS_TRUE;
 }
 

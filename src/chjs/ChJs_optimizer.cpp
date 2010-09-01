@@ -15,6 +15,9 @@
 #include "physics/ChOptvar.h"
 #include "physics/ChGlobal.h"
 
+//*** DISABLED!!!***
+#ifdef __12321__ 
+
 namespace chrono
 {
 
@@ -428,3 +431,4 @@ JSObject* ChJS_InitClass_ChHybridOptimizer(JSContext* cx, JSObject* glob, JSObje
 
 } // END_OF_NAMESPACE____
 
+#endif

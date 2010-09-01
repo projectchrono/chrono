@@ -80,7 +80,7 @@ ChNodeBase& ChNodeBase::operator= (const ChNodeBase& other)
 
 ChIndexedNodes::ChIndexedNodes ()
 {
-	SetIdentifier(GLOBAL_Vars->GetUniqueIntID()); // mark with unique ID
+	SetIdentifier(ChGLOBALS().GetUniqueIntID()); // mark with unique ID
 }
 
 

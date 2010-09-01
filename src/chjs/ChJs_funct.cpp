@@ -13,7 +13,8 @@
 #include "ChJs_math.h"
 #include "ChJs_funct.h"
 #include "ChJs_Engine.h"
-#include "physics/ChFunction.h"
+#include "ChGlobalJS.h"
+#include "ChFunctionJS.h"
 #include "physics/ChGlobal.h"
 
 
@@ -179,7 +180,7 @@ DEF_JS_FUNCTION(jsOptVarList, ChFunction*, 0)
   while (mynode)
   {
 
-	  GLOBAL_Vars->chjsEngine->chjs_Print(mynode->data->propname);
+	  ChGLOBALS_JS().chjsEngine->chjs_Print(mynode->data->propname);
 	  mynode= mynode->next;
   }
   mytree.KillAll();
@@ -190,12 +191,12 @@ DEF_JS_FUNEND
 
 DEF_JS_FUNCTION(jsOptVarToVect, ChFunction*, 1)
   PARChK(0, &chjs_Matrix);
-  chjs_from_int(cx, rval, this_data->OptVariablesToVector((ChMatrix<>*)chjs_to_data(cx, argv+0), 0 ) );
+  chjs_from_int(cx, rval, ChFunctionOptvarToolsJS::OptVariablesToVector(this_data, (ChMatrix<>*)chjs_to_data(cx, argv+0), 0 ) );
 DEF_JS_FUNEND
 
 DEF_JS_FUNCTION(jsVectToOptVar, ChFunction*, 1)
   PARChK(0, &chjs_Matrix);
-  chjs_from_int(cx, rval, this_data->VectorToOptVariables((ChMatrix<>*)chjs_to_data(cx, argv+0), 0 ) );
+  chjs_from_int(cx, rval, ChFunctionOptvarToolsJS::VectorToOptVariables(this_data, (ChMatrix<>*)chjs_to_data(cx, argv+0), 0 ) );
 DEF_JS_FUNEND
 
 DEF_JS_FUNCTION(jsOptVarCount, ChFunction*, 0)

@@ -29,20 +29,28 @@ extern int DLL_TEST(int a, int b)
 namespace chrono 
 {
 
+static ChGlobals* my_dll_globals = 0;
  
+
 extern ChGlobals* DLL_CreateGlobals()
 {
-	if (GLOBAL_Vars==0)
-		GLOBAL_Vars = new ChGlobals;
+	//if (GLOBAL_Vars==0)
+	//	GLOBAL_Vars = new ChGlobals;  //***OBOSLETE*** GLOBAL_Vars will disappear soon
+	if (my_dll_globals==0)
+	{
+		my_dll_globals = new ChGlobals;
+		SetChGLOBALS (my_dll_globals);
+		GLOBAL_Vars = my_dll_globals;  //***OBOSLETE*** GLOBAL_Vars will disappear soon
+	}
 
-	return GLOBAL_Vars;
+	return my_dll_globals;
 }
 
 extern void DLL_DeleteGlobals()
 {
-	if (GLOBAL_Vars)
-		delete GLOBAL_Vars; 
-	GLOBAL_Vars=0;
+	if (my_dll_globals)
+		delete my_dll_globals;
+	my_dll_globals=0;
 }
 
 

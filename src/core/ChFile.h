@@ -132,7 +132,7 @@ public:
 	int Write (ChMatrix<>* m_matrix, int transpose);
 	int Write (ChMatrix<>* m_matrix);
 	int Write (ChSparseMatrix* m_matrix);
-	int WriteAngle (double m_double);  // auto converts into degrees if set in GLOBAL_vars 
+	int WriteAngle (double m_double);  // auto converts into degrees if set in ChGLOBALS() 
 	
 					/// Output carriage return in Ascii file.
 	void CR() { if (CanWrite()) fprintf (handler, "\n");};	

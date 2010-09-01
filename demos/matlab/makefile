@@ -39,16 +39,11 @@ include ../../makes/config.mak
 # If you do not have Matlab installed, you cannot compile this 
 # demo!
 	
-CH_MATLABSDK=C:/Programmi/MATLAB/R2006b/extern
-
-CH_MATLABINC=-I"$(CH_MATLABSDK)/include"
-CH_MATLABLIB=$(CH_MATLABSDK)/lib/win32/microsoft/libeng.lib \
-             $(CH_MATLABSDK)/lib/win32/microsoft/libmx.lib
-
+	
 
 CPPFILE_DEMO_MATLAB = \
 	demo_matlab.cpp 
-
+	
 
 
 OFILE_DEMO_MATLAB=$(CPPFILE_DEMO_MATLAB:.cpp=.o) 

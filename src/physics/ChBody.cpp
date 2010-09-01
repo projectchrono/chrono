@@ -88,7 +88,7 @@ ChBody::ChBody ()
 	last_coll_pos = CSYSNORM;
 	last_coll_pos_dt = CSYSNULL;
 
-	SetIdentifier(GLOBAL_Vars->GetUniqueIntID()); // mark with unique ID
+	SetIdentifier(ChGLOBALS().GetUniqueIntID()); // mark with unique ID
 
 	max_speed = 0.5f;
 	max_wvel  = 2.0f*float(CH_C_PI);

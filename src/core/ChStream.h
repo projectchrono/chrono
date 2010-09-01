@@ -190,7 +190,7 @@ public:
 			/// Output comment with preceding trailer (ex #)
 	void Comment (char m_string[])
 				{
-					//if (GLOBAL_Vars->WriteComments)
+					//if (ChGLOBALS().WriteComments)
 					//{
 						TAB(); TAB(); TAB();
 						*this << comment_trailer << m_string;

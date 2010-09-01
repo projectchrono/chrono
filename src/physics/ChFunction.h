@@ -182,13 +182,13 @@ public:
 
 		// Functions which build the tree of optimization variables (or expands it, from given tree)
 		// Each function class should implement (at least) the OPT_VARIABLES_START/END macro, that is return a null-terminated
-		// array of Javascript variables which can be get/set as floating point during optimizations.
+		// array of variables which can be get/set as floating point during optimizations.
+		// Variables are strings in C++ /Java/Javascript syntax, that must be interpreted with 
+		// some scripting engine (ex. the Javascript one); see OptVariablesToVector and VectorToOptVariables js tools.
 
 	virtual int MakeOptVariableTree(ChList<chjs_propdata>* mtree);
 	static int  VariableTreeToFullNameVar(ChList<chjs_propdata>* mtree, ChList<chjs_fullnamevar>* mlist);
 	virtual int OptVariableCount();
-	virtual int OptVariablesToVector(ChMatrix<>* mv, int offset);
-	virtual int VectorToOptVariables(ChMatrix<>* mv, int offset);
 
 
 	OPT_VARIABLES_START		// here expose no vars ('C' var is added hard-wired in MakeOptVariableTree)
@@ -971,6 +971,7 @@ public:
 
 
 
+
 #define CHF_MATLAB_STRING_LEN 200
 
 ////////////////////////////////////////////
@@ -1004,52 +1005,6 @@ public:
 
 };
 
-
-
-
-#define CHF_JSCRIPT_STRING_LEN 200
-
-
-
-////////////////////////////////////////////
-/// JAVASCRIPT FUNCTION:
-/// y = javascript evaluation of function y=f(x)  
-/// 
-
-class ChFunction_Jscript : public ChFunction
-{
-	CH_RTTI(ChFunction_Jscript, ChFunction);
-
-private:
-	char js_command[CHF_JSCRIPT_STRING_LEN];			// jscript command or file
-	JSScript *js_script;								// jscript compiled script, if any
-	int js_error;							// set to true when can't compile/execute (reset false by next SetCommand())
-public:
-	ChFunction_Jscript();
-	~ChFunction_Jscript() {};
-	void Copy (ChFunction_Jscript* source);
-	ChFunction* new_Duplicate ();
-
-		/// Set the javascript command to be executed each time Get_y() is called. 
-	void Set_Command  (char* m_command);
-		/// Get the javascript command to be executed each time Get_y() is called. 
-	char* Get_Command  ()  {return js_command;};
-	
-		/// Set/initialize a javascript variable, which can be used by the js command. 
-	void Set_Variable (char* variablename, double value);
-
-		/// Get false if no javascript parsing error.
-	int Get_js_error  ()  {return js_error;};
-
-	double Get_y      (double x);
-
-	int Get_Type () {return (FUNCT_JSCRIPT);}
-
-	void StreamOUT(ChStreamOutAscii& mstream);
-	void StreamIN(ChStreamInBinary& mstream);
-	void StreamOUT(ChStreamOutBinary& mstream);
-
-};
 
 
 ////////////////////////////////////////////

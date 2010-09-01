@@ -29,12 +29,13 @@ namespace chrono
 {
 
 
-		/// Create and returns the GLOBAL_Vars object.
-		/// Must be called ALWAYS at the beginning of the program using Chrono dll.
+		/// Create a ChGlobal data, sets it as the default return for the ChGLOBALS() 
+		/// function, and returns the ChGlobal object.
+		/// Must be called ALWAYS once at the beginning of the program using Chrono dll.
 extern ChGlobals* DLL_CreateGlobals();
 
-		/// Deletes the GLOBAL_Vars object.
-		/// Must be called ALWAYS at the end of the program using Chrono dll.
+		/// Deletes the global data created with DLL_CreateGlobals().
+		/// Must be called ALWAYS once at the end of the program using Chrono dll.
 extern void DLL_DeleteGlobals();
 
 

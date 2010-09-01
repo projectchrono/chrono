@@ -20,7 +20,6 @@
  
 #include "physics/ChSystem.h"
 #include "physics/ChGlobal.h"
-#include "physics/ChSolvmin.h"
 #include "physics/ChCollide.h"
 #include "physics/ChContactContainer.h"
 #include "physics/ChProximityContainerBase.h"
@@ -32,7 +31,7 @@
 #include "lcp/ChLcpIterativeSORmultithread.h"
 #include "lcp/ChLcpIterativeJacobi.h"
  
-#ifndef CH_NOCUDA
+#ifdef CH_UNIT_CUDA
  #include "lcp/ChLcpIterativeCudaSolver.h"
  #include "physics/ChLinkGPUContact.h"
  #include "physics/ChContactContainerGPUsimple.h"
@@ -42,7 +41,6 @@
 #include "collision/ChCCollisionSystemGPU.h"
 #include "collision/ChCCollisionSystemBullet.h"
 #include "collision/ChCModelBulletBody.h"
-#include "chjs/ChJs_Engine.h"
 
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
 
@@ -367,14 +365,15 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size)
 	last_err = 0;
 	strcpy (err_message, "");
  
-	jsForStart = NULL;
-	jsForUpdate = NULL;
-	jsForStep = NULL;
-	jsFor3DStep = NULL;
-	strcpy (jsForStartFile, "");
-	strcpy (jsForUpdateFile, "");
-	strcpy (jsForStepFile, "");
-	strcpy (jsFor3DStepFile, "");
+	scriptEngine = 0;
+	scriptForStart = NULL;
+	scriptForUpdate = NULL;
+	scriptForStep = NULL;
+	scriptFor3DStep = NULL;
+	strcpy (scriptForStartFile, "");
+	strcpy (scriptForUpdateFile, "");
+	strcpy (scriptForStepFile, "");
+	strcpy (scriptFor3DStepFile, "");
 
 	events = new ChEvents(250);
 
@@ -405,10 +404,10 @@ ChSystem::~ChSystem()
 
 	if (events) delete events; events = 0;
 
-	if (jsForStart)	 JS_DestroyScript(GLOBAL_Vars->chjsEngine->cx, jsForStart);
-	if (jsForUpdate) JS_DestroyScript(GLOBAL_Vars->chjsEngine->cx, jsForUpdate);
-	if (jsForStep)   JS_DestroyScript(GLOBAL_Vars->chjsEngine->cx, jsForStep);
-	if (jsFor3DStep) JS_DestroyScript(GLOBAL_Vars->chjsEngine->cx, jsFor3DStep);
+	if (scriptForStart)	 delete scriptForStart;
+	if (scriptForUpdate) delete scriptForUpdate;
+	if (scriptForStep)   delete scriptForStep;
+	if (scriptFor3DStep) delete scriptFor3DStep;
 }
 
 void ChSystem::Copy(ChSystem* source)
@@ -487,10 +486,10 @@ void ChSystem::Copy(ChSystem* source)
 	events->ResetAllEvents(); // don't copy events.
 
 
-	SetJsForStartFile(source->jsForStartFile);
-	SetJsForUpdateFile(source->jsForUpdateFile);
-	SetJsForStepFile(source->jsForStepFile);
-	SetJsFor3DStepFile(source->jsFor3DStepFile);
+	SetScriptForStartFile(source->scriptForStartFile);
+	SetScriptForUpdateFile(source->scriptForUpdateFile);
+	SetScriptForStepFile(source->scriptForStepFile);
+	SetScriptFor3DStepFile(source->scriptFor3DStepFile);
 
 	ChTime = source->ChTime;
 }
@@ -569,7 +568,7 @@ void ChSystem::SetLcpSolverType(eCh_lcpSolver mval)
 		LCP_solver_stab = new ChLcpIterativeSORmultithread("posLCP",parallel_thread_number);
 		break;
 	case LCP_ITERATIVE_GPU:
-#ifndef CH_NOCUDA
+#ifdef CH_UNIT_CUDA
 		use_GPU = true;
 		LCP_solver_speed = new ChLcpIterativeCuda();
 		LCP_solver_stab  = new ChLcpIterativeCuda();
@@ -770,58 +769,54 @@ void ChSystem::ChangeCollisionSystem(ChCollisionSystem* newcollsystem)
 // JS commands
 
 
-int ChSystem::SetJsForStartFile(char* mfile)
+int ChSystem::SetScriptForStartFile(char* mfile)
 {
-	strcpy (this->jsForStartFile, mfile);
-	return GLOBAL_Vars->chjsEngine->chjs_FileToScript(&this->jsForStart, mfile);
+	if (!this->scriptEngine) return 0;
+	strcpy (this->scriptForStartFile, mfile);
+	this->scriptForStart = this->scriptEngine->CreateScript();
+	return this->scriptEngine->FileToScript(*this->scriptForStart, mfile);
 }
-int ChSystem::SetJsForUpdateFile(char* mfile)
+int ChSystem::SetScriptForUpdateFile(char* mfile)
 {
-	strcpy (this->jsForUpdateFile, mfile);
-	return GLOBAL_Vars->chjsEngine->chjs_FileToScript(&this->jsForUpdate, mfile);
+	if (!this->scriptEngine) return 0;
+	strcpy (this->scriptForUpdateFile, mfile);
+	this->scriptForUpdate = this->scriptEngine->CreateScript();
+	return this->scriptEngine->FileToScript(*this->scriptForUpdate, mfile);
 }
-int ChSystem::SetJsForStepFile(char* mfile)
+int ChSystem::SetScriptForStepFile(char* mfile)
 {
-	strcpy (this->jsForStepFile, mfile);
-	return GLOBAL_Vars->chjsEngine->chjs_FileToScript(&this->jsForStep, mfile);
+	if (!this->scriptEngine) return 0;
+	strcpy (this->scriptForStepFile, mfile);
+	this->scriptForStep = this->scriptEngine->CreateScript();
+	return this->scriptEngine->FileToScript(*this->scriptForStep, mfile);
 }
-int ChSystem::SetJsFor3DStepFile(char* mfile)
+int ChSystem::SetScriptFor3DStepFile(char* mfile)
 {
-	strcpy (this->jsFor3DStepFile, mfile);
-	return GLOBAL_Vars->chjsEngine->chjs_FileToScript(&this->jsFor3DStep, mfile);
+	if (!this->scriptEngine) return 0;
+	strcpy (this->scriptFor3DStepFile, mfile);
+	this->scriptFor3DStep = this->scriptEngine->CreateScript();
+	return this->scriptEngine->FileToScript(*this->scriptFor3DStep, mfile);
 }
 
-int ChSystem::ExecuteJsForStart()
+int ChSystem::ExecuteScriptForStart()
 {
-	jsval jsresult;
-	if (this->jsForStart) {
-		JS_ExecuteScript(GLOBAL_Vars->chjsEngine->cx, GLOBAL_Vars->chjsEngine->jglobalObj,
-						 this->jsForStart, &jsresult);
-	} return true;
+	if (!this->scriptEngine) return 0;
+	return this->scriptEngine->ExecuteScript(*this->scriptForStart);
 }
-int ChSystem::ExecuteJsForUpdate()
+int ChSystem::ExecuteScriptForUpdate()
 {
-	jsval jsresult;
-	if (this->jsForUpdate) {
-		JS_ExecuteScript(GLOBAL_Vars->chjsEngine->cx, GLOBAL_Vars->chjsEngine->jglobalObj,
-						 this->jsForUpdate, &jsresult);
-	} return true;
+	if (!this->scriptEngine) return 0;
+	return this->scriptEngine->ExecuteScript(*this->scriptForUpdate);
 }
-int ChSystem::ExecuteJsForStep()
+int ChSystem::ExecuteScriptForStep()
 {
-	jsval jsresult;
-	if (this->jsForStep) {
-		JS_ExecuteScript(GLOBAL_Vars->chjsEngine->cx, GLOBAL_Vars->chjsEngine->jglobalObj,
-						 this->jsForStep, &jsresult);
-	} return true;
+	if (!this->scriptEngine) return 0;
+	return this->scriptEngine->ExecuteScript(*this->scriptForStep);
 }
-int ChSystem::ExecuteJsFor3DStep()
+int ChSystem::ExecuteScriptFor3DStep()
 {
-	jsval jsresult;
-	if (this->jsFor3DStep) {
-		JS_ExecuteScript(GLOBAL_Vars->chjsEngine->cx, GLOBAL_Vars->chjsEngine->jglobalObj,
-						 this->jsFor3DStep, &jsresult);
-	} return true;
+	if (!this->scriptEngine) return 0;
+	return this->scriptEngine->ExecuteScript(*this->scriptFor3DStep);
 }
 
 
@@ -860,45 +855,45 @@ int ChSystem::ResetAllProbes()
 // CONTROLS STUFF
 
 
-int ChSystem::ExecuteControlsJsForStart()
+int ChSystem::ExecuteControlsForStart()
 {
 	HIER_CONTROLS_INIT
 	while HIER_CONTROLS_NOSTOP
 	{
-		Cpointer->ExecuteJsForStart();
+		Cpointer->ExecuteForStart();
 		HIER_CONTROLS_NEXT
 	}
 	return TRUE;
 }
 
-int ChSystem::ExecuteControlsJsForUpdate()
+int ChSystem::ExecuteControlsForUpdate()
 {
 	HIER_CONTROLS_INIT
 	while HIER_CONTROLS_NOSTOP
 	{
-		Cpointer->ExecuteJsForUpdate();
+		Cpointer->ExecuteForUpdate();
 		HIER_CONTROLS_NEXT
 	}
 	return TRUE;
 }
 
-int ChSystem::ExecuteControlsJsForStep()
+int ChSystem::ExecuteControlsForStep()
 {
 	HIER_CONTROLS_INIT
 	while HIER_CONTROLS_NOSTOP
 	{
-		Cpointer->ExecuteJsForStep();
+		Cpointer->ExecuteForStep();
 		HIER_CONTROLS_NEXT
 	}
 	return TRUE;
 }
 
-int ChSystem::ExecuteControlsJsFor3DStep()
+int ChSystem::ExecuteControlsFor3DStep()
 {
 	HIER_CONTROLS_INIT
 	while HIER_CONTROLS_NOSTOP
 	{
-		Cpointer->ExecuteJsFor3DStep();
+		Cpointer->ExecuteFor3DStep();
 		HIER_CONTROLS_NEXT
 	}
 	return TRUE;
@@ -1449,11 +1444,11 @@ void ChSystem::Update()
 
 	events->Record(CHEVENT_UPDATE); // Record an update event
 
-									// Executes the "forUpdate" javascript, if any
-	ExecuteJsForUpdate();
-									// Executes the "forUpdate" javascript
+									// Executes the "forUpdate" script, if any
+	ExecuteScriptForUpdate();
+									// Executes the "forUpdate" script
 									// in all controls of controlslist
-	ExecuteControlsJsForUpdate();
+	ExecuteControlsForUpdate();
 
 									// --------------------------------------
 									// Spread state vector Y to bodies
@@ -1662,7 +1657,7 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
 		contact_container->ConstraintsLoadJacobians();
 
 
-#ifndef CH_NOCUDA
+#ifdef CH_UNIT_CUDA
 	double mclamp = recovery_clamp;
 	if (!do_clamp)
 		mclamp = 10e25;
@@ -2021,11 +2016,11 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 
 	events->Record(CHEVENT_TIMESTEP);
 
-								// Executes the "forStep" javascript, if any
-	ExecuteJsForStep();
-								// Executes the "forStep" javascript
+								// Executes the "forStep" script, if any
+	ExecuteScriptForStep();
+								// Executes the "forStep" script
 								// in all controls of controlslist
-	ExecuteControlsJsForStep();
+	ExecuteControlsForStep();
 
 
 	this->stepcount++;
@@ -2078,7 +2073,7 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 	// make vectors of variables and constraints, used by the following LCP solver
 	LCPprepare_inject(*this->LCP_descriptor);
 
-	#ifndef CH_NOCUDA
+	#ifdef CH_UNIT_CUDA
 	if (ChLcpIterativeCuda* spesolv = dynamic_cast<ChLcpIterativeCuda*>(LCP_solver_speed))
 	{
 		spesolv->SetDt(this->step);
@@ -2106,7 +2101,7 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 
 	bool cpu_eulero_step = true;
 
-	#ifndef CH_NOCUDA
+	#ifdef CH_UNIT_CUDA
 	 if (ChLcpIterativeCuda* spesolv = dynamic_cast<ChLcpIterativeCuda*>(LCP_solver_speed)) 
 	 {
 		 if (spesolv->Get_do_integration_step())
@@ -2191,11 +2186,11 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 
 	events->Record(CHEVENT_TIMESTEP);
 
-								// Executes the "forStep" javascript, if any
-	ExecuteJsForStep();
-								// Executes the "forStep" javascript
+								// Executes the "forStep" script, if any
+	ExecuteScriptForStep();
+								// Executes the "forStep" script
 								// in all controls of controlslist
-	ExecuteControlsJsForStep();
+	ExecuteControlsForStep();
 
 
 	this->stepcount++;
@@ -2248,7 +2243,7 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 	// make vectors of variables and constraints, used by the following LCP solver
 	LCPprepare_inject(*this->LCP_descriptor);
 
-	#ifndef CH_NOCUDA
+	#ifdef CH_UNIT_CUDA
 	if (ChLcpIterativeCuda* spesolv = dynamic_cast<ChLcpIterativeCuda*>(LCP_solver_speed))
 	{
 		spesolv->SetDt(this->step);
@@ -2274,7 +2269,7 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 
 	bool cpu_eulero_step = true;
 
-	#ifndef CH_NOCUDA
+	#ifdef CH_UNIT_CUDA
 	 if (ChLcpIterativeCuda* spesolv = dynamic_cast<ChLcpIterativeCuda*>(LCP_solver_speed)) 
 	 {
 		 if (spesolv->Get_do_integration_step())
@@ -2944,10 +2939,10 @@ void ChSystem::StreamOUT(ChStreamOutBinary& mstream)
 	mstream << GetMonolattol();
 	mstream << GetIntegrtol();
 	mstream << GetAutoAssembly();
-	mstream << GetJsForStartFile();
-	mstream << GetJsForUpdateFile();
-	mstream << GetJsForStepFile();
-	mstream << GetJsFor3DStepFile();
+	mstream << GetScriptForStartFile();
+	mstream << GetScriptForUpdateFile();
+	mstream << GetScriptForStepFile();
+	mstream << GetScriptFor3DStepFile();
 	mstream << GetMaxStepsCollide();
 	mstream << GetMinBounceSpeed();
 	// v2
@@ -3002,10 +2997,10 @@ void ChSystem::StreamIN(ChStreamInBinary& mstream)
 	mstream >> mdouble;		SetMonolattol(mdouble);
 	mstream >> mdouble;		SetIntegrtol(mdouble);
 	mstream >> mint;		SetAutoAssembly(mint);
-	mstream >> buffer;		SetJsForStartFile(buffer);
-	mstream >> buffer;		SetJsForUpdateFile(buffer);
-	mstream >> buffer;		SetJsForStepFile(buffer);
-	mstream >> buffer;		SetJsFor3DStepFile(buffer);
+	mstream >> buffer;		SetScriptForStartFile(buffer);
+	mstream >> buffer;		SetScriptForUpdateFile(buffer);
+	mstream >> buffer;		SetScriptForStepFile(buffer);
+	mstream >> buffer;		SetScriptFor3DStepFile(buffer);
 	mstream >> mint;		SetMaxStepsCollide(mint);
 	mstream >> mdouble;		SetMinBounceSpeed(mdouble);
 
@@ -3259,24 +3254,15 @@ int ChSystem::FileWriteChR (ChStreamOutBinary& m_file)
 	return 1;
 }
 
-	// process a javascript instruction file
+	// process a scripting instruction file
 int ChSystem::FileProcessJS (char* m_file)
 {
-	int mok = 0;
-	JSScript* mJSscript = NULL;
-	jsval jsresult;
+	if (!this->scriptEngine) return 0;
 
-	GLOBAL_Vars->chjsEngine->chjs_FileToScript(&mJSscript, m_file);
-
-	if (mJSscript)
-	{
-		mok = JS_ExecuteScript(GLOBAL_Vars->chjsEngine->cx, GLOBAL_Vars->chjsEngine->jglobalObj,
-						 mJSscript, &jsresult);
-
-		JS_DestroyScript(GLOBAL_Vars->chjsEngine->cx, mJSscript);
-	}
-
-	return mok;
+	ChScript* mscript = this->scriptEngine->CreateScript();
+	if (!this->scriptEngine->ExecuteScript(*mscript)) return 0;
+	delete mscript;
+	return 1;
 }
 
 

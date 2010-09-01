@@ -423,7 +423,7 @@ int main(int argc, char* argv[])
 
 	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
 	// global functions are needed.
-	ChGlobals* GLOBAL_Vars = DLL_CreateGlobals();
+	DLL_CreateGlobals();
 
 	// 1- Create a ChronoENGINE physical system: all bodies and constraints
 	//    will be handled by this ChSystem object.

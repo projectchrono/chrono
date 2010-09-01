@@ -11,6 +11,7 @@
 
 
 #include "physics/ChLink.h"
+#include "physics/ChGlobal.h"
 #include "physics/ChSystem.h"
 #include "physics/ChExternalObject.h"
 
@@ -45,7 +46,7 @@ ChLink::ChLink ()
 	valid = true;
     disabled = false;
  
-    SetIdentifier(GLOBAL_Vars->GetUniqueIntID()); // mark with unique ID
+    SetIdentifier(ChGLOBALS().GetUniqueIntID()); // mark with unique ID
 }
 
 

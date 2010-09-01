@@ -45,7 +45,7 @@ ChShaftsPlanetary::ChShaftsPlanetary ()
 	this->shaft2 = 0;
 	this->shaft3 = 0;
 
-	SetIdentifier(GLOBAL_Vars->GetUniqueIntID()); // mark with unique ID
+	SetIdentifier(ChGLOBALS().GetUniqueIntID()); // mark with unique ID
 
 	//variables.SetUserData((void*)this);
 }

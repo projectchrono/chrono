@@ -1,7 +1,7 @@
 #ifndef CHC_MODELGPU_H
 #define CHC_MODELGPU_H
 
-#ifndef CH_NOCUDA 
+#ifdef CH_UNIT_CUDA 
  
 //////////////////////////////////////////////////
 //  
@@ -143,7 +143,7 @@ public:
 } // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____
 
-#endif  // end of ! CH_NOCUDA
+#endif  // end of ! CH_UNIT_CUDA
 
 #endif
 

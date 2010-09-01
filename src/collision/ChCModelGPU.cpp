@@ -8,7 +8,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
  
-#ifndef CH_NOCUDA 
+#ifdef CH_UNIT_CUDA 
  
  
 #include "ChCModelGPU.h" 
@@ -303,4 +303,4 @@ int ChModelGPU::GetNoCollFamily()
 } // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____
 
-#endif  // end of ! CH_NOCUDA
+#endif  // end of ! CH_UNIT_CUDA

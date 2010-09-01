@@ -18,9 +18,13 @@
 #include "core/ChLog.h"
 #include "physics/ChSolvmin.h"
 #include "chjs/ChJs_Engine.h"
+#include "chjs/ChGlobalJS.h"
+
 
 namespace chrono
 {
+
+
 
 
 
@@ -35,15 +39,11 @@ void null_entry_solv_opt(double x[],double g[]){}
 // build
 ChOptimizer::ChOptimizer()
 {
-	strcpy (function, "");
-	optvarlist = NULL;
-	database = NULL;
 	strcpy (err_message, "");
-	//oparser = new ChParser();
 	C_vars = 0;
-	func = NULL;
-	dfunc = NULL;
-	my_data = NULL;
+	afunction = 0;
+	afunctionGrad = 0;
+
 	xv = NULL;
 	xv_sup = NULL;
 	xv_inf = NULL;
@@ -54,7 +54,6 @@ ChOptimizer::ChOptimizer()
 	fx_evaluations = 0;
 	grad_evaluations = 0;
 	grad_step = 1.e-12;
-	fx_script = NULL;
 
 	break_funct = NULL;
 	break_cycles = 10;
@@ -66,12 +65,7 @@ ChOptimizer::ChOptimizer()
 // destroy
 ChOptimizer::~ChOptimizer()
 {
-	if (optvarlist != NULL) { KillList ((ChObj**)&optvarlist);}
-	//if (oparser) delete oparser;
 
-	if (fx_script)
-		JS_DestroyScript(GLOBAL_Vars->chjsEngine->cx, fx_script);
-	fx_script = NULL;
 }
 
 
@@ -81,33 +75,16 @@ void ChOptimizer::Copy(ChOptimizer* source)
 	// first copy the parent class data...
 	ChObj::Copy(source);
 
-	// copy function string
-	strcpy (function, source->function);
-
 	// copy error message
 	strcpy (err_message, source->err_message);
 
-	// Copy variable list
-	if (optvarlist != NULL) { KillList ((ChObj**)&optvarlist); optvarlist = NULL;}
-	ChOptVar* Vlistsource = source->optvarlist;
-	while (Vlistsource != NULL)
-	{
-		Vlistsource->AddToList ((ChObj**) &optvarlist);
-		Vlistsource = (ChOptVar*) Vlistsource->GetNext();
-	}
-
-	database = source->database;
-
-	opt_fx = source->opt_fx;
 	minimize = source->minimize;
 	error_code = source->error_code;
 	fx_evaluations = source->fx_evaluations;
 	grad_evaluations = source->grad_evaluations;
 	grad_step = source->grad_step;
 	C_vars = source->C_vars;
-	func = source->func;
-	dfunc = source->dfunc;
-	my_data = source->my_data;
+
 	xv = source->xv;
 	xv_sup = source->xv_sup;
 	xv_inf = source->xv_inf;
@@ -117,181 +94,23 @@ void ChOptimizer::Copy(ChOptimizer* source)
 	break_cyclecounter = source->break_cyclecounter;
 	user_break = source->user_break;
 
-	if (fx_script)
-		JS_DestroyScript(GLOBAL_Vars->chjsEngine->cx, fx_script);
-	fx_script = NULL;
 }
 
-
-// variables and functions
-
-void ChOptimizer::AddOptVar (ChOptVar* newvar)
-{
-	newvar->AddToList ((ChObj**) &optvarlist);
-}
-
-void ChOptimizer::RemoveOptVar (ChOptVar* newvar)
-{
-	newvar->RemoveFromList((ChObj**) &optvarlist);
-}
-
-int  ChOptimizer::CompileOptVar()
-{
-	int i = 1;
-	for (ChOptVar* myvar = GetVarList(); myvar != NULL; myvar = (ChOptVar*) myvar->GetNext())
-	{
-		if (!myvar->Compile(GetDatabase()))
-		{
-				sprintf (err_message, "Error: bad syntax in variable n.%d, cannot set&fetch float scalar value", i);
-				user_break = TRUE;
-				return FALSE;
-		}
-		i++;
-	}
-	return TRUE;
-}
-
-
-void ChOptimizer::SetObjective (char* mformula)
-{
-	strcpy (function, mformula);
-}
-
-//
-
-int ChOptimizer::GetNumOfVars()
-{
-	if (this->C_vars >0) return C_vars; // if using the C function
-			// evaluation, no need to use the ChOptVar list of "ascii" functions!
-
-	int nvars = 0;
-	ChOptVar* Vlistsource = optvarlist;
-	while (Vlistsource != NULL)
-	{
-		if (Vlistsource->GetLock()== FALSE)
-			nvars++;
-		Vlistsource = (ChOptVar*) Vlistsource->GetNext();
-	}
-	return nvars;
-}
-
-
-
-
-// The following are bookkeeping routines useful for imposing/getting
-// variables to/from the physical system
-
-int ChOptimizer::Vars_to_System(double x[])
-{
-	ChOptVar* mvar = GetVarList();
-
-	int index = 0;
-	while (mvar != NULL)
-	{
-		mvar->SetVarValue( x[index], GetDatabase() );
-
-		index++;
-		mvar = (ChOptVar*) mvar->GetNext();
-	}
-	return TRUE;
-}
-
-int ChOptimizer::System_to_Vars(double x[])
-{
-	ChOptVar* mvar = GetVarList();
-
-	int index = 0;
-	while (mvar != NULL)
-	{
-		x[index] = mvar->GetVarValue(GetDatabase());
-
-		index++;
-		mvar = (ChOptVar*) mvar->GetNext();
-	}
-	return TRUE;
-}
-
-int ChOptimizer::Vars_to_System(ChMatrix<>* x)
-{
-	ChOptVar* mvar = GetVarList();
-
-	int index = 0;
-	while (mvar != NULL)
-	{
-		mvar->SetVarValue( x->GetElement(index,0), GetDatabase() );
-		index++;
-		mvar = (ChOptVar*) mvar->GetNext();
-	}
-	return TRUE;
-}
-
-int ChOptimizer::System_to_Vars(ChMatrix<>* x)
-{
-	ChOptVar* mvar = GetVarList();
-
-	int index = 0;
-	while (mvar != NULL)
-	{
-		x->SetElement(index,0, mvar->GetVarValue(GetDatabase()));
-		index++;
-		mvar = (ChOptVar*) mvar->GetNext();
-	}
-	return TRUE;
-}
 
 // Evaluates the function ("function" string) in database, with given state
 // of variables.
 
 double ChOptimizer::Eval_fx(double x[])
 {
-	double fx = 0;
-	int ok;
+	ChMatrixDynamic<> Vin	(this->C_vars,1);
+	ChMatrixDynamic<> Vout	(1,1);
 
-	// --------- if  C   FUNCTION ---------------------
+	for(int i=0; i<Vin.GetRows(); i++) Vin(i,0)=x[i];
+	this->afunction->Eval(Vout, Vin);
 
-	// if a C function is provided, use it, otherwise use the
-	// parsing of the ASCII function.
-	if ((this->func)&&(this->C_vars > 0))
-	{
-		fx = (*func)(x, this->my_data);
-	}
-	else
-	{
-		// --------- if  Ascii  FUNCTION ------------------
+	this->fx_evaluations++;
 
-		// -1-
-		// Update the system with the variables in X state:
-		this->Vars_to_System(x);
-
-		// -2-
-		// Execute the objective function and gets the value.
-		// It assumes that the function to be evaluated is alredy compiled,
-		// (it has been already compiled at the beginning of the optimization
-		// thank to Ch_optimizer::Optimize()  function).
-
-		jsval rval;
-		ok = JS_ExecuteScript(
-						GLOBAL_Vars->chjsEngine->cx,
-						GLOBAL_Vars->chjsEngine->jglobalObj,
-						this->fx_script,
-						&rval);
-
-		if (ok)
-			ok = JS_ValueToNumber(GLOBAL_Vars->chjsEngine->cx, rval, &fx);
-
-		if (!ok)
-		{
-			sprintf (err_message, "Error: cannot execute Javascript optimization function.");
-			user_break = TRUE;
-		}
-	}
-
-	fx_evaluations++;		// increment the counter of total number of evaluations
-
-	DoBreakCheck();			// set the "user_break"  variable to TRUE , when needed
-
-	if (minimize == TRUE) return -fx;	// minimize
-	else				  return  fx;	// maximize
+	return Vout(0,0);
 }
 
 
@@ -302,17 +121,18 @@ double ChOptimizer::Eval_fx(double x[])
 
 void ChOptimizer::Eval_grad(double x[], double gr[])
 {
-	// ------ if C function explicitly provided ------
-
-	if ((this->dfunc)&&(this->C_vars > 0))
+	if (this->afunctionGrad)
 	{
-		(*dfunc)(x, gr, this->my_data);
+		ChMatrixDynamic<> Vin	(this->C_vars,1);
+		ChMatrixDynamic<> Vout	(this->C_vars,1);
+
+		for(int i=0; i<Vin.GetRows(); i++) Vin(i,0)=x[i];
+		this->afunctionGrad->Eval(Vout, Vin);
+		for(int i=0; i<Vin.GetRows(); i++) gr[i]=Vout(i,0);
 	}
 	else
 	{
-
 		// ------ otherwise use BDF  ---------------------
-
 		int mtotvars = GetNumOfVars();
 		double oldval;
 		double mf, mfd;
@@ -332,19 +152,48 @@ void ChOptimizer::Eval_grad(double x[], double gr[])
 			x[mvar]=oldval;
 		}
 	}
-
-	grad_evaluations++;		// increment the counter of total number of gradient evaluations
+	this->grad_evaluations++;		// increment the counter of total number of gradient evaluations
 }
 
 
-double ChOptimizer::Eval_fx(ChMatrix<>* x)
+double ChOptimizer::Eval_fx(const ChMatrix<>* x)
 {
-	return Eval_fx(x->GetAddress());
+	ChMatrixDynamic<> out(1,1);
+	this->afunction->Eval(out, *x);
+	this->fx_evaluations++;
+	return out(0,0);
 }
 
-void   ChOptimizer::Eval_grad(ChMatrix<>* x, ChMatrix<>* gr)
+void   ChOptimizer::Eval_grad(const ChMatrix<>* x, ChMatrix<>* gr)
 {
-	Eval_grad(x->GetAddress(), gr->GetAddress());
+	//Eval_grad(x->GetAddress(), gr->GetAddress());
+	if (this->afunctionGrad)
+	{
+		this->afunctionGrad->Eval(*gr, *x);
+	}
+	else
+	{
+		// ------ otherwise use BDF  ---------------------
+		int mtotvars = GetNumOfVars();
+		double oldval;
+		double mf, mfd;
+
+		// Evaluate central value of function
+		mf = Eval_fx(x);
+		ChMatrixDynamic<> mdx(*x);
+
+		for (int mvar = 0; mvar < mtotvars; mvar++)
+		{
+			oldval = (*x)(mvar);
+			// increment one variable
+			mdx(mvar)=oldval + this->grad_step;
+			mfd = Eval_fx(x);
+			// compute gradient by BDF
+			(*gr)(mvar)= ((mfd-mf)/(this->grad_step));
+			// back to original value
+			mdx(mvar)=oldval;
+		}
+	}
 }
 
 
@@ -384,28 +233,6 @@ int ChOptimizer::PreOptimize()
 	if (nv<1) { error_code = OPT_ERR_NOVARS;
 				strcpy (err_message, "Error: no variables defined");
 				return FALSE;}
-
-	if (!C_vars)
-	{
-		// compile function
-		if (fx_script)
-			JS_DestroyScript(GLOBAL_Vars->chjsEngine->cx, fx_script);
-		fx_script = JS_CompileScript(
-						GLOBAL_Vars->chjsEngine->cx,
-						GLOBAL_Vars->chjsEngine->jglobalObj,
-						this->function,
-						strlen(this->function),
-						"Optimizing function", 0);
-
-		if (!fx_script)  {
-			sprintf (err_message, "Error: Javascript objective function can't be compiled.");
-			return FALSE; }
-
-		// compile the optimization variables to speed up the code...
-		if (!CompileOptVar())	{
-			sprintf (err_message, "Error: variables can't be compiled.");
-			return FALSE;	}
-	}
 
 	return TRUE;
 }
@@ -565,7 +392,7 @@ int ChOptimizerLocal::DoOptimize()
 
 			// populate vector with starting approximation
 			// system->vector
-		System_to_Vars(xv);
+	    //	System_to_Vars(xv);
 	}
 
 	double inires = this->Eval_fx(xv);
@@ -605,7 +432,7 @@ int ChOptimizerLocal::DoOptimize()
 		// delete variables vector
 	if (!this->C_vars)
 	{
-		Vars_to_System(xv);
+		// Vars_to_System(xv);
 		if (xv)
 			delete [] xv;
 		xv = NULL;
@@ -1292,11 +1119,13 @@ int ChOptimizerGenetic::DoOptimize()
 	int nv= GetNumOfVars();
 
 	// allocate -if needed- the upper-lower boundaries arrays
+/*
 	if (!this->C_vars)
 	{
 		this->xv_sup = (double*) calloc (nv, sizeof(double));
 		this->xv_inf = (double*) calloc (nv, sizeof(double));
 		int mvar = 0;
+
 		for (ChOptVar* Vovar = optvarlist; Vovar != NULL; Vovar = (ChOptVar*) Vovar->GetNext())
 		{
 			this->xv_sup[mvar] = Vovar->GetLimSup();
@@ -1304,6 +1133,7 @@ int ChOptimizerGenetic::DoOptimize()
 			mvar++;
 		}
 	}
+*/
 
 	this->CreatePopulation(population, popsize);
 	this->InitializePopulation();
@@ -1406,10 +1236,10 @@ int ChOptimizerGenetic::DoOptimize()
 			GetLog() << "\n   "; 
 			GetLog() << myvars[mvar];
 		}
-	if (this->C_vars)
-		memcpy (this->xv, myvars, (sizeof(double) * nv));
-	else
-		Vars_to_System(myvars);
+	
+	memcpy (this->xv, myvars, (sizeof(double) * nv));
+	//	Vars_to_System(myvars);
+
 	free (myvars); // delete the array of variables
 
 	GetLog() << "\n with fitness (objective fx obtained) equal to = ";
@@ -1521,12 +1351,8 @@ int ChOptimizerGradient::DoOptimize()
 	// populate vector with starting approximation
 	// system->vector
 
-	if (this->C_vars)
-	{
-		for (int i = 0; i < nv; i++) { mX(i,0) = this->xv[i]; };
-	}
-	else
-		System_to_Vars(&mX);
+	for (int i = 0; i < nv; i++) { mX(i,0) = this->xv[i]; };
+	//System_to_Vars(&mX);
 
 	fx = Eval_fx(&mX);
 
@@ -1712,11 +1538,6 @@ ChOptimizerHybrid::ChOptimizerHybrid()
 // destroy
 ChOptimizerHybrid::~ChOptimizerHybrid()
 {
-	// reset list pointers from the two optimizer lists, otherwise they
-	// delete variables twice.
-	genetic_opt->SetVarList(NULL);
-	local_opt->SetVarList(NULL);
-
 	// delete the two incapsulated optimizers;
 	delete genetic_opt;
 	delete local_opt;
@@ -1734,12 +1555,8 @@ void ChOptimizerHybrid::Copy(ChOptimizerHybrid* source)
 	use_local = source->use_local;
 
 	// copy everything also in the two optmimizers
-	genetic_opt->SetVarList(NULL);
-	local_opt->SetVarList(NULL);
 	genetic_opt->Copy(source->genetic_opt);
 	local_opt->Copy(source->local_opt);
-	genetic_opt->SetVarList(this->GetVarList());
-	local_opt->SetVarList(this->GetVarList());
 }
 
 
@@ -1763,8 +1580,6 @@ int ChOptimizerHybrid::DoOptimize()
 	local_opt->SetXv(this->xv);
 	local_opt->SetXv_sup(this->xv_sup);
 	local_opt->SetXv_inf(this->xv_inf);
-	genetic_opt->SetMyData(this->my_data);
-	local_opt->SetMyData(this->my_data);
 
 	genetic_opt->break_funct = this->break_funct;
 	local_opt->break_funct = this->break_funct;
@@ -1817,7 +1632,7 @@ int ChOptimizerHybrid::DoOptimize()
 	GetLog() << "\nCurrent system variables after optimization:";
 	int nv = this->GetNumOfVars();
 	double* myvars = (double*) calloc (nv, sizeof(double));
-	this->System_to_Vars(myvars);
+	//this->System_to_Vars(myvars);
 	for (int mvar = 0; mvar <nv; mvar++)
 		{
 			GetLog() << "\n   "; 
@@ -1833,56 +1648,25 @@ int ChOptimizerHybrid::DoOptimize()
 }
 
 
-void ChOptimizerHybrid::SetObjective (char* mformula)
+void  ChOptimizerHybrid::SetObjective (ChFx* mformula)
 {
 	ChOptimizer::SetObjective(mformula);
 	genetic_opt->SetObjective(mformula);
 	local_opt->SetObjective(mformula);
 }
+void  ChOptimizerHybrid::SetObjectiveGrad (ChFx* mformula)
+{
+	ChOptimizer::SetObjectiveGrad(mformula);
+	genetic_opt->SetObjectiveGrad(mformula);
+	local_opt->SetObjectiveGrad(mformula);
+}
 
-void ChOptimizerHybrid::SetObjective (double (*m_func)(double p[], void* my_data))
-{
-	func = m_func;
-	genetic_opt->SetObjective(m_func);
-	local_opt->SetObjective(m_func);
-};
-void ChOptimizerHybrid::SetDObjective (void (*m_dfunc)(double p[], double dp[], void* my_data))
-{
-	dfunc = m_dfunc;
-	genetic_opt->SetDObjective(m_dfunc);
-	local_opt->SetDObjective(m_dfunc);
-};
 void ChOptimizerHybrid::SetNumOfVars(int mv)
 {
 	C_vars = mv;
 	genetic_opt->SetNumOfVars(mv);
 	local_opt->SetNumOfVars(mv);
 };
-
-
-void ChOptimizerHybrid::SetDatabase (void* newdb)
-{
-	ChOptimizer::SetDatabase(newdb);
-	genetic_opt->SetDatabase(newdb);
-	local_opt->SetDatabase(newdb);
-}
-
-
-void ChOptimizerHybrid::AddOptVar (ChOptVar* newvar)
-{
-	ChOptimizer::AddOptVar(newvar);
-	genetic_opt->SetVarList(this->GetVarList());
-	local_opt->SetVarList(this->GetVarList());
-}
-
-void ChOptimizerHybrid::RemoveOptVar (ChOptVar* newvar)
-{
-	ChOptimizer::RemoveOptVar(newvar);
-	genetic_opt->SetVarList(this->GetVarList());
-	local_opt->SetVarList(this->GetVarList());
-}
-
-
 
 
 

@@ -12,12 +12,22 @@
 #include "core/ChLog.h"
 #include "core/ChMathematics.h"
 #include "ChJs_Engine.h"
+#include "ChGlobalJS.h"
 #include "physics/ChGlobal.h"
 
 
 namespace chrono
 {
 
+
+	void ChJavascriptScript::DestroyJSScript() 
+		{
+			if (jscript) 
+			{
+				JS_DestroyScript(this->jengine->cx, this->jscript);
+				this->jengine = 0; this->jscript = 0;
+			}
+		};
 
 
 
@@ -190,7 +200,7 @@ int ChJavascriptEngine::chjs_SetVar(char* mvarname, double mval)
 
 int ChJavascriptEngine::chjs_Print(char* msource)
 {
-	GLOBAL_Vars->GetScriptingLog() << msource;
+	ChGLOBALS_JS().GetScriptingLog() << msource;
 
 	return TRUE;
 }
@@ -210,6 +220,29 @@ int ChJavascriptEngine::chjs_FileToScript(JSScript** script, char* file)
 	return TRUE;
 }
 
+int ChJavascriptEngine::FileToScript(ChScript& script, char* file)
+{
+	if (ChJavascriptScript* mjs = dynamic_cast<ChJavascriptScript*> (&script))
+	{
+		if (mjs->jscript)	
+			JS_DestroyScript(mjs->jengine->cx, mjs->jscript);
+		mjs->jengine = this;
+		return chjs_FileToScript(&mjs->jscript, file);
+	}
+	return false;
+}
+
+int ChJavascriptEngine::ExecuteScript(ChScript& script) 
+{
+	if (ChJavascriptScript* mjs = dynamic_cast<ChJavascriptScript*> (&script))
+	{
+		if (!mjs->jscript) return 0;
+		jsval jsresult;
+		return JS_ExecuteScript(this->cx, this->jglobalObj,
+			mjs->jscript, &jsresult);
+	}
+	return 0;
+};
 
 
 						/* custom Javascript error reporter */
@@ -224,7 +257,7 @@ extern void chjs_errorReporter(JSContext *cx, const char *message, JSErrorReport
 		sprintf((char*)merbuf,"Javascript error! \n\n %s \n line: %i \n error: %s \n",
 				report->filename, report->lineno, message);
 	}
-	GLOBAL_Vars->chjsEngine->chjs_Print(merbuf);
+	ChGLOBALS_JS().chjsEngine->chjs_Print(merbuf);
 }
 
 

@@ -117,7 +117,7 @@ ChParticlesClones::ChParticlesClones ()
 	s_friction = 0.6f;
 	k_friction = 0.5f;
 
-	SetIdentifier(GLOBAL_Vars->GetUniqueIntID()); // mark with unique ID
+	SetIdentifier(ChGLOBALS().GetUniqueIntID()); // mark with unique ID
 
 	max_speed = 0.5f;
 	max_wvel  = 2.0f*float(CH_C_PI);

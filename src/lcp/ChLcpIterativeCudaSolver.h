@@ -1,7 +1,7 @@
 #ifndef CHLCPITERATIVECUDASOLVER_H
 #define CHLCPITERATIVECUDASOLVER_H
 
-#ifndef CH_NOCUDA
+#ifdef CH_UNIT_CUDA
 
 ///////////////////////////////////////////////////
 //
@@ -168,7 +168,7 @@ private:
 } // END_OF_NAMESPACE____
 
 
-#endif  // end of ! CH_NOCUDA
+#endif  // end of  CH_UNIT_CUDA
 
 
 #endif 

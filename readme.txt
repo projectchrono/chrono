@@ -3,9 +3,42 @@
   
   History of API changes, bug fixes, new features
 
-Release 1.0.0
+
+Release 1.1.0
 XX-XX-XXXX
 
+
+- The Javascript code is now completely separated from the
+  main ChronoEngine.dll. This means that Javascript API is
+  no longer needed if one wants to recompile C::E on 
+  platforms where JS is not easily available. 
+  The Javascript features are in ChronoEngineJS.dll .
+  
+- The CH_NOCUDA flag has been renamed CH_UNIT_CUDA, and
+  its behaviour is reversed (TRUE enables CUDA).
+  
+- The GLOBAL_Vars global variable is deprecated. Use
+  ChGLOBALS() function instead. Also, implementation of
+  static global data have been improved. 
+   
+- If the user forgets the DLL_CreateGlobals() and 
+  DLL_DeleteGlobals pair at the beginning/end of the
+  program, a static default ChGlobal is used anyway.
+  
+  
+
+Release 1.0.0
+01-09-2010
+
+- Elastic restitution is added. Use mybody->SetImpactC()
+  to set the restitution coefficient. The Newton model
+  is used (coefficient = ratio between pre/post impact 
+  normal speeds).
+ 
+- Added SetMinBounceSpeed() in ChSystem class, to set
+  a clamping that avoids high frequency rebounces with 
+  nonzero restitution coefficients.
+  
 - New ChConveyor class for creating conveyor belts.
  
 - New demo_conveyor.exe to show an example of usage of 

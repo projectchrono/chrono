@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
      
 	// The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
 	// global functions are needed.
-	ChGlobals* GLOBAL_Vars = DLL_CreateGlobals();
+	DLL_CreateGlobals();
 
 	//
 	// Some methods to achieve coordinate transformations, and some
@@ -307,45 +307,45 @@ int main(int argc, char* argv[])
 	int numcycles =  100000;
 	int i;
 
-	GLOBAL_Vars->Timer_START();
+	ChGLOBALS().Timer_START();
 	for (i= 0; i<1000000; i++)
 	{ 
 		testa.TrasformLocalToParent(testPl,testPw);
 	}
-	GLOBAL_Vars->Timer_STOP();
-	GetLog() << "TEST 10e6 of ChFrameMoving::TrasformLocalToParent (1.38) Time: " <<  GLOBAL_Vars->t_duration << " \n";
+	ChGLOBALS().Timer_STOP();
+	GetLog() << "TEST 10e6 of ChFrameMoving::TrasformLocalToParent (1.38) Time: " <<  ChGLOBALS().t_duration << " \n";
 	// VC6   : 1.380
 	// VC2003: 0.861
 	// VC2005: 0.691
 	// GCC   : 0.661
 
-	GLOBAL_Vars->Timer_START();
+	ChGLOBALS().Timer_START();
 	for (i= 0; i<1000000; i++)
 	{ 
 		mvect2 = mvect1 >> mframeA; 
 	} 
-	GLOBAL_Vars->Timer_STOP();
-	GetLog() << "TEST 10e6 of mvect2 = mvect1 >> mframeA; (0.03)" <<  GLOBAL_Vars->t_duration << " \n";
+	ChGLOBALS().Timer_STOP();
+	GetLog() << "TEST 10e6 of mvect2 = mvect1 >> mframeA; (0.03)" <<  ChGLOBALS().t_duration << " \n";
 	// VC6   : 0.03
 	// VC2003: 0.03
 	// VC2005: 0.03
 	// GCC   : 0.03
 
 
-	GLOBAL_Vars->Timer_START();
+	ChGLOBALS().Timer_START();
 	for (i= 0; i<1000000; i++)
 	{ 
 		testa.PointAccelerationParentToLocal(vtraslA,vtraslA,vtraslA);
 	}
-	GLOBAL_Vars->Timer_STOP();
-	GetLog() << "TEST 10e6 of PointAccelerationParentToLocal (0.811)" <<  GLOBAL_Vars->t_duration << " \n";
+	ChGLOBALS().Timer_STOP();
+	GetLog() << "TEST 10e6 of PointAccelerationParentToLocal (0.811)" <<  ChGLOBALS().t_duration << " \n";
 	// VC6   : 0.811
 	// VC2003: 0.531
 	// VC2005: 0.410
 	// GCC   : 0.320
 
  /*
-	GLOBAL_Vars->Timer_START();
+	ChGLOBALS().Timer_START();
 	for (i= 0; i<numcycles; i++)
 	{ 
 		for (int j = 0; j<100; j++)
@@ -358,76 +358,75 @@ int main(int argc, char* argv[])
 			// three expensive frame*frame operations, and a last frame*vector.
 		}
 	}
-	GLOBAL_Vars->Timer_STOP();
-	GetLog() << "Test 3 frame transf. with >> ChFrame operator: " <<  GLOBAL_Vars->t_duration << " \n";
+	ChGLOBALS().Timer_STOP();
+	GetLog() << "Test 3 frame transf. with >> ChFrame operator: " <<  ChGLOBALS().t_duration << " \n";
 
 
-	GLOBAL_Vars->Timer_START();
+	ChGLOBALS().Timer_START();
 	for (i= 0; i<1000000; i++)
 	{  
 		testa.SetCoord(vtraslA,qrotA);
 	}
-	GLOBAL_Vars->Timer_STOP();
-	GetLog() << "Test ChFrame::SetPos() " <<  GLOBAL_Vars->t_duration << " \n";
+	ChGLOBALS().Timer_STOP();
+	GetLog() << "Test ChFrame::SetPos() " <<  ChGLOBALS().t_duration << " \n";
 
 
 //Quaternion mqdt(1, 2, 3, 4);
-	GLOBAL_Vars->Timer_START();
+	ChGLOBALS().Timer_START();
 	for (i= 0; i<1000000; i++)
 	{ 
 		testa.SetRot_dt(mqdt);
 	}
-	GLOBAL_Vars->Timer_STOP();
-	GetLog() << "Test ChFrame::SetRot_dt() " <<  GLOBAL_Vars->t_duration << " \n";
+	ChGLOBALS().Timer_STOP();
+	GetLog() << "Test ChFrame::SetRot_dt() " <<  ChGLOBALS().t_duration << " \n";
 
-	GLOBAL_Vars->Timer_START();
+	ChGLOBALS().Timer_START();
 	for (i= 0; i<1000000; i++)
 	{ 
 		testa.SetRot_dtdt(mqdt);
 	}
-	GLOBAL_Vars->Timer_STOP();
-	GetLog() << "Test ChFrame::SetRot_dtdt() " <<  GLOBAL_Vars->t_duration << " \n";
+	ChGLOBALS().Timer_STOP();
+	GetLog() << "Test ChFrame::SetRot_dtdt() " <<  ChGLOBALS().t_duration << " \n";
 
 
 Vector mv(1, 2, 3);
-	GLOBAL_Vars->Timer_START();
+	ChGLOBALS().Timer_START();
 	for (i= 0; i<1000000; i++)
 	{ 
 		testa.SetWvel_loc(mv);
 	}
-	GLOBAL_Vars->Timer_STOP();
-	GetLog() << "Test ChFrame::SetWvel_loc() " <<  GLOBAL_Vars->t_duration << " \n";
+	ChGLOBALS().Timer_STOP();
+	GetLog() << "Test ChFrame::SetWvel_loc() " <<  ChGLOBALS().t_duration << " \n";
 
-	GLOBAL_Vars->Timer_START();
+	ChGLOBALS().Timer_START();
 	for (i= 0; i<1000000; i++)
 	{ 
 		testa.SetWacc_loc(mv);
 	}
-	GLOBAL_Vars->Timer_STOP();
-	GetLog() << "Test ChFrame::SetWacc_loc() " <<  GLOBAL_Vars->t_duration << " \n";
+	ChGLOBALS().Timer_STOP();
+	GetLog() << "Test ChFrame::SetWacc_loc() " <<  ChGLOBALS().t_duration << " \n";
 
-	GLOBAL_Vars->Timer_START();
+	ChGLOBALS().Timer_START();
 	for (i= 0; i<1000000; i++)
 	{ 
 		Vector p= testa.GetWvel_loc();
 	} 
-	GLOBAL_Vars->Timer_STOP();
-	GetLog() << "Test ChFrame::GetWvel_loc() " <<  GLOBAL_Vars->t_duration << " \n";
+	ChGLOBALS().Timer_STOP();
+	GetLog() << "Test ChFrame::GetWvel_loc() " <<  ChGLOBALS().t_duration << " \n";
  
-	GLOBAL_Vars->Timer_START();
+	ChGLOBALS().Timer_START();
 	for (i= 0; i<1000000; i++)
 	{ 
 		Vector p= testa.GetWacc_loc();
 	}
-	GLOBAL_Vars->Timer_STOP();
-	GetLog() << "Test ChFrame::GetWacc_loc() " <<  GLOBAL_Vars->t_duration << " \n";
+	ChGLOBALS().Timer_STOP();
+	GetLog() << "Test ChFrame::GetWacc_loc() " <<  ChGLOBALS().t_duration << " \n";
  
 
 */
 
 	GetLog() << "\n  CHRONO execution terminated.";
 	
-
 	DLL_DeleteGlobals();
 
 	return 0;

@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
 
 	// The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
 	// global functions are needed.
-	ChGlobals* GLOBAL_Vars = DLL_CreateGlobals();
+	DLL_CreateGlobals();
 
 	if (false)
 	{

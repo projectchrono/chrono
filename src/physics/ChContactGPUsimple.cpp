@@ -1,4 +1,4 @@
-#ifndef CH_NOCUDA 
+#ifdef CH_UNIT_CUDA 
 
 ///////////////////////////////////////////////////
 //
@@ -215,7 +215,7 @@ void  ChContactGPUsimple::ConstraintsLiFetchSuggestedPositionSolution()
 
 
 
-#endif  // end of ! CH_NOCUDA
+#endif  // end of   CH_UNIT_CUDA
  
 
 
