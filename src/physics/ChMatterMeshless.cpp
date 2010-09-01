@@ -155,7 +155,7 @@ ChMatterMeshless::ChMatterMeshless ()
 
 	this->nodes.clear();
 
-	SetIdentifier(GLOBAL_Vars->GetUniqueIntID()); // mark with unique ID
+	SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
 
 }
 

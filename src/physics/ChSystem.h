@@ -44,6 +44,8 @@
 #include "physics/ChControls.h"
 #include "physics/ChImpacts.h"
 #include "physics/ChMaterialCouple.h"
+#include "physics/ChScriptEngine.h"
+#include "physics/ChGlobal.h"
 #include "collision/ChCCollisionSystem.h"
 
 
@@ -722,26 +724,32 @@ public:
 	int ResetAllProbes();
 
 
+				/// Set the script engine (ex. a Javascript engine). 
+				/// The user must take care of creating and deleting the script 
+				/// engine , if any, and deletion must happen after deletion of the ChSystem.
+	void SetScriptEngine(ChScriptEngine* mengine) {this->scriptEngine = mengine;}
+	ChScriptEngine* GetScriptEngine() {return this->scriptEngine;}
+
+	char* GetScriptForStartFile() {return scriptForStartFile;}
+	char* GetScriptForUpdateFile() {return scriptForUpdateFile;}
+	char* GetScriptForStepFile() {return scriptForStepFile;}
+	char* GetScriptFor3DStepFile() {return scriptFor3DStepFile;}
+	int SetScriptForStartFile(char* mfile);
+	int SetScriptForUpdateFile(char* mfile);
+	int SetScriptForStepFile(char* mfile);
+	int SetScriptFor3DStepFile(char* mfile);
+	int ExecuteScriptForStart();
+	int ExecuteScriptForUpdate();
+	int ExecuteScriptForStep();
+	int ExecuteScriptFor3DStep();
+
 				/// If ChControl() objects are added to this system, using the following commands 
 				/// you call the execution of their scripts. You seldom call these functions directly,
 				/// since the ChSystem() methods already call them automatically, at each step, update, etc. 
-	int ExecuteControlsJsForStart();
-	int ExecuteControlsJsForUpdate();
-	int ExecuteControlsJsForStep();
-	int ExecuteControlsJsFor3DStep();
-
-	char* GetJsForStartFile() {return jsForStartFile;}
-	char* GetJsForUpdateFile() {return jsForUpdateFile;}
-	char* GetJsForStepFile() {return jsForStepFile;}
-	char* GetJsFor3DStepFile() {return jsFor3DStepFile;}
-	int SetJsForStartFile(char* mfile);
-	int SetJsForUpdateFile(char* mfile);
-	int SetJsForStepFile(char* mfile);
-	int SetJsFor3DStepFile(char* mfile);
-	int ExecuteJsForStart();
-	int ExecuteJsForUpdate();
-	int ExecuteJsForStep();
-	int ExecuteJsFor3DStep();
+	int ExecuteControlsForStart();
+	int ExecuteControlsForUpdate();
+	int ExecuteControlsForStep();
+	int ExecuteControlsFor3DStep();
 
 				/// Getting the array of pivots and the number of redundant costraints
 				/// as provided by the Gauss solution routine, it sets the "redundant"
@@ -988,10 +996,10 @@ public:
 					/// hierarchy (bodies, forces, links, etc.) (deprecated function - obsolete)
 	int FileWriteChR   (ChStreamOutBinary& m_file);
 
-
-					/// Process a ".js" file containing Chrono Javascript
+					/// If you have initialized SetScriptEngine(), here you can process 
+					/// a script file, i.e. a file containing a Chrono scripted
 					/// program (it may build a system and perform simulations, and write to files)
-					/// Such javascript file can contain generic javascript commands.
+					/// Example, a ".js"  jvascript file that contain generic javascript commands.
 	int FileProcessJS (char* m_file);
 
 
@@ -1018,7 +1026,7 @@ private:
 	std::vector<ChProbe*> probelist;
 
 						// list of 'controls' script objects (objects containing 
-						//javascript programs and GUI panels, exp. for 3rd party apps)
+						// scripting programs and GUI panels, exp. for 3rd party apps)
 	std::vector<ChControls*> controlslist;
 
 						// the container of contacts
@@ -1106,14 +1114,15 @@ private:
 
 	ChEvents* events;		// the cyclic buffer which records event IDs
 
-	JSScript* jsForStart;		// this javascript (from a .js file) is executed when simulation starts.
-	char jsForStartFile[200];
-	JSScript* jsForUpdate;		// this javascript (from a .js file) is executed for each Update step.
-	char jsForUpdateFile[200];
-	JSScript* jsForStep;		// this javascript (from a .js file) is executed for each integration step
-	char jsForStepFile[200];
-	JSScript* jsFor3DStep;		// this javascript (from a .js file) is executed for each 3d interface macro step
-	char jsFor3DStepFile[200];
+	ChScriptEngine* scriptEngine;	// points to a script engine
+	ChScript* scriptForStart;		// this script is executed when simulation starts.
+	char scriptForStartFile[200];
+	ChScript* scriptForUpdate;		// this script is executed for each Update step.
+	char scriptForUpdateFile[200];
+	ChScript* scriptForStep;		// this script is executed for each integration step
+	char scriptForStepFile[200];
+	ChScript* scriptFor3DStep;		// this script is executed for each 3d interface macro step
+	char scriptFor3DStepFile[200];
 
 							// timers for profiling execution speed
 	double timer_step;

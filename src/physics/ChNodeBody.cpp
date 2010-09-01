@@ -40,7 +40,7 @@ ChNodeBody::ChNodeBody ()
 	this->node_index = 0;
 	this->body = 0;
 
-	SetIdentifier(GLOBAL_Vars->GetUniqueIntID()); // mark with unique ID
+	SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
 }
 
 

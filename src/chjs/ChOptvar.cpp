@@ -17,9 +17,10 @@
 #include <float.h>
 #include <memory.h>
 
-#include "physics/ChOptvar.h"
 #include "physics/ChSystem.h"
+#include "chjs/ChOptvar.h"
 #include "chjs/ChJs_Engine.h"
+#include "chjs/ChGlobalJS.h"
 
 namespace chrono
 {
@@ -68,12 +69,12 @@ void  ChOptVar::SetVarName (char myname[])
 	compiled = FALSE;
 
 	double mvalue;
-	if (!GLOBAL_Vars->chjsEngine->chjs_Eval(this->GetVarName(),&mvalue))
+	if (!CHGLOBALS_JS().chjsEngine->chjs_Eval(this->GetVarName(),&mvalue))
 	{
 		jsdouble jsd = 0.0;
 		jsval vp;
-		JS_NewDoubleValue(GLOBAL_Vars->chjsEngine->cx, jsd, &vp);
-		JS_SetProperty(GLOBAL_Vars->chjsEngine->cx, GLOBAL_Vars->chjsEngine->jglobalObj, this->GetVarName(), &vp);
+		JS_NewDoubleValue(CHGLOBALS_JS().chjsEngine->cx, jsd, &vp);
+		JS_SetProperty(CHGLOBALS_JS().chjsEngine->cx, CHGLOBALS_JS().chjsEngine->jglobalObj, this->GetVarName(), &vp);
 	}
 }
 
@@ -88,11 +89,11 @@ double ChOptVar::GetVarValue(void* database)
 	double mvalue = 0;
 	if (!compiled)
 	{
-		GLOBAL_Vars->chjsEngine->chjs_Eval(this->GetVarName(),&mvalue);
+		CHGLOBALS_JS().chjsEngine->chjs_Eval(this->GetVarName(),&mvalue);
 	}
 	else
 	{
-		GLOBAL_Vars->chjsEngine->chjs_Eval(this->GetVarName(),&mvalue);		//**TO DO** use compiled vars
+		CHGLOBALS_JS().chjsEngine->chjs_Eval(this->GetVarName(),&mvalue);		//**TO DO** use compiled vars
 	}
 	return mvalue;
 }
@@ -102,9 +103,9 @@ int ChOptVar::SetVarValue(double mval, void* database)
 {
 	jsdouble jsd = mval;
 	jsval vp;
-	JS_NewDoubleValue(GLOBAL_Vars->chjsEngine->cx, jsd, &vp);
+	JS_NewDoubleValue(CHGLOBALS_JS().chjsEngine->cx, jsd, &vp);
 
-	JS_SetProperty(GLOBAL_Vars->chjsEngine->cx, GLOBAL_Vars->chjsEngine->jglobalObj, this->GetVarName(), &vp);
+	JS_SetProperty(CHGLOBALS_JS().chjsEngine->cx, CHGLOBALS_JS().chjsEngine->jglobalObj, this->GetVarName(), &vp);
 
 	return TRUE;
 }
@@ -114,7 +115,7 @@ int ChOptVar::SetVarValue(double mval, void* database)
 int ChOptVar::IsValid(void* database)
 {
 	double mvalue;
-	if (GLOBAL_Vars->chjsEngine->chjs_Eval(this->GetVarName(),&mvalue))
+	if (CHGLOBALS_JS().chjsEngine->chjs_Eval(this->GetVarName(),&mvalue))
 		return TRUE;
 	else
 		return FALSE;

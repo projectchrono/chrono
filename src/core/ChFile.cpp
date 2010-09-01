@@ -362,7 +362,7 @@ void ChFile::Comment (char m_string[])
 {
 	if (CanWrite())
 	{
-		if (GLOBAL_Vars->WriteComments)
+		if (CHGLOBALS().WriteComments)
 		{
 			TAB(); TAB(); TAB();
 			Write ("#");

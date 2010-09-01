@@ -8,7 +8,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#ifndef CH_NOCUDA 
+#ifdef CH_UNIT_CUDA 
 
 
 #include "ChCModelGPUBody.h"
@@ -344,4 +344,4 @@ namespace chrono
 
 
 
-#endif  // end of ! CH_NOCUDA
+#endif  // end of ! CH_UNIT_CUDA

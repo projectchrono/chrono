@@ -42,8 +42,6 @@ class ChGlobals
 {
 private:
 
-	ChLog* scripting_log;
-
 	int int_identifier;
 
 public:
@@ -69,30 +67,6 @@ public:
 			/// Return an unique identifier, of type integer. 
 	int GetUniqueIntID() {int_identifier++; return int_identifier;};
 
-
-			/// The logging for output of scripting languages. Never returns null, because
-			/// returns by default at least a ChLogConsole() if none provided.
-	ChLog& GetScriptingLog();
-
-			/// Sets the logging for output of scripting language. 
-			/// This logger won't be deleted on ChGlobals deletion.
-	void   SetScriptingLog(ChLog& mlog) {scripting_log = &mlog;};
-
-			/// Use this if you want to use default ChLogConsole(). You may
-			/// need to delete previous logger.
-	void   SetDefaultScriptingLog() {scripting_log = NULL;}
-
-
-			// JAVASCRIPT
-
-			/// The Javascript engine, which is able to parse js syntax wrapping
-			/// lot of Chrono classes and functions. This engine is started
-			/// as soon as the ChGlobal object is created, and it is stopped when
-			/// the ChGlobal is destroyed. 
-	ChJavascriptEngine* chjsEngine;
-
-
-
 };
 
 
@@ -101,13 +75,22 @@ public:
 
 ///
 ///  DECLARE THAT THERE'S A GLOBAL POINTER TO A "GLOBAL_Vars" OBJECT!!!
-///  (this global object will be created, for example, at plugin loading,
-///  or as soon as a main() has begun. The pointer will be set there!
-///  Using a DLL, you can create global vars and initialize them by using
-///  the shortcut DLL_CreateGlobals(), for example, in ChApidll.h.
 ///  
 
-extern ChGlobals* GLOBAL_Vars;
+extern ChGlobals* GLOBAL_Vars;  ///***OBSOLETE*** better use the following..
+
+
+	/// Global function to get the current ChGlobals object
+	/// (this is an easy way to access a single instance of globally visible
+	/// data)
+ChGlobals& CHGLOBALS();
+
+	/// Create an istance of ChGlobals, then use this function at the beginning 
+	/// of your program to set it as a globally visible data. 
+	/// So that following calls to CHGLOBALS() will always return it.
+	/// If setting 0, the default static globals will be returned by CHGLOBALS().
+void SetCHGLOBALS(ChGlobals* my_globals);
+
 
 //
 //////////////////////////////////////////////////////////////////////////

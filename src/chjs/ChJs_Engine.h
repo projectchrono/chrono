@@ -20,6 +20,7 @@
 
 #include <math.h>
 
+#include "physics/ChScriptEngine.h"
 #include "jsapi.h"
 #include "jsobj.h"
 #include "jsmath.h"
@@ -28,6 +29,28 @@
 namespace chrono 
 {
 
+// forward ref.
+class ChJavascriptEngine;
+
+///
+/// Script (wraps Javascript compiled scripts)
+///
+
+class ChJavascriptScript : public ChScript
+{
+public:
+	ChJavascriptScript() { jscript = 0; jengine = 0; };
+	virtual ~ChJavascriptScript() 
+		{ 
+			DestroyJSScript();
+		};
+
+	void DestroyJSScript();
+
+	JSScript* jscript;
+	ChJavascriptEngine* jengine;
+};
+
 
 
 ///
@@ -35,7 +58,7 @@ namespace chrono
 /// programs, which wraps Chrono function/classes.
 ///
 
-class ChJavascriptEngine
+class ChJavascriptEngine : public ChScriptEngine
 {
 public:
 		
@@ -81,6 +104,30 @@ public:
 			/// Destructor. Kills context and runtime.
 	~ChJavascriptEngine();
 
+
+			// 
+			// Implement the interface
+			//
+
+							// Set the reporter mode, 0=no report
+	virtual void SetReporterMode(int mmode) {this->chjs_SetReporterMode(mmode);};
+
+					// Simplified evaluation of a string, result goes in double*. 
+					// Returns TRUE if success. 
+	virtual int Eval(char* a, double* b)  {return this->chjs_Eval(a,b);}; 
+					// Evaluation of a string, the result is converted in string anyway 
+					// (return string must be already allocated!).
+	virtual int Eval(char* a, char* b)   {return this->chjs_Eval(a,b);}; 
+					// Set a variable to a double value, if any. Otherwise creates it. 
+	virtual int SetVar(char* a, double b)   {return this->chjs_SetVar(a,b);}; 	
+					// If shell is open, prints something.
+	virtual int Print(char* a) {return this->chjs_Print(a);}; 
+					// Create a script object
+	virtual ChScript* CreateScript() { return new ChJavascriptScript(); };
+					// Loads a file and compile it into a script 
+	virtual int FileToScript(ChScript& script, char* file);
+					// Execute a precompiled script  
+	virtual int ExecuteScript(ChScript& script);
 };
 
 

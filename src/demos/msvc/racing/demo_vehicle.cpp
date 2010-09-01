@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
 {
 		// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
 		// global functions are needed.
-	ChGlobals* GLOBAL_Vars = DLL_CreateGlobals();
+	DLL_CreateGlobals();
 
 
 		// Here create an instance of the simulator (here, the creation code of the 

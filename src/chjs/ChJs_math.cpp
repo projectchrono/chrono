@@ -14,6 +14,7 @@
 #include "ChJs_math.h"
 #include "ChJs_geometry.h"
 #include "ChJs_Engine.h"
+#include "ChGlobalJS.h"
 #include "core/ChMath.h" 
 #include "core/ChLinearAlgebra.h" 
 #include "physics/ChIterative.h"
@@ -810,8 +811,8 @@ DEF_JS_FUNCTION(jsMaPrint, ChMatrix<>*, 0)
 for (int mi= 0; mi< this_data->GetRows(); mi++) {
 	for (int mj= 0;  mj< this_data->GetColumns();   mj++)  {
 		char num[30]; sprintf(num, "%g	", this_data->GetElement(mi,mj)); 
-		GLOBAL_Vars->chjsEngine->chjs_Print(num); }
-	GLOBAL_Vars->chjsEngine->chjs_Print("\n"); }
+		CHGLOBALS_JS().chjsEngine->chjs_Print(num); }
+	CHGLOBALS_JS().chjsEngine->chjs_Print("\n"); }
 DEF_JS_FUNEND
 
 DEF_JS_FUNCTION(jsMaToString, ChMatrix<>*, 0)

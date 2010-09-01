@@ -107,7 +107,7 @@ This is the way I usually compile the SDK.
 --NOTE
 
 If you are recompiling the API with the CUDA support enabled (for
-GPU acceleration features), that is with CH_NOCUDA=FALSE in config.mak,
+GPU acceleration features), that is with CH_UNIT_CUDA=TRUE in config.mak,
 before step n.6 you must 
 . install the Nvidia CUDA toolkit
 . install the Nvidia CUDA SDK
@@ -190,7 +190,7 @@ To compile demos source files:
 --NOTE
 
 If you are recompiling the API with the CUDA support enabled (for
-GPU acceleration features), that is with CH_NOCUDA=FALSE in config.mak,
+GPU acceleration features), that is with CH_UNIT_CUDA=TRUE in config.mak,
 before step n.5 you must 
 . install the Nvidia CUDA toolkit
 . install the Nvidia CUDA SDK 

@@ -10,9 +10,10 @@
 
 
 #include "physics/ChShaftsBody.h"
-#include "physics/ChSystem.h"
+#include "physics/ChGlobal.h"
 
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
+
 
 namespace chrono
 {
@@ -40,7 +41,7 @@ ChShaftsBody::ChShaftsBody ()
 	this->body = 0;
 	this->shaft_dir = VECT_Z;
 
-	SetIdentifier(GLOBAL_Vars->GetUniqueIntID()); // mark with unique ID
+	SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
 }
 
 

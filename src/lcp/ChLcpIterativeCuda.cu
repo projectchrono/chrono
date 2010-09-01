@@ -1,4 +1,4 @@
-#ifndef CH_NOCUDA 
+#ifdef CH_UNIT_CUDA 
 
 ///////////////////////////////////////////////////
 //
@@ -2300,4 +2300,4 @@ void ChRunKernelIntegrateTimeStep (dim3 dim_grid,
 
 
 
-#endif  // end of ! CH_NOCUDA
+#endif  // end of  CH_UNIT_CUDA

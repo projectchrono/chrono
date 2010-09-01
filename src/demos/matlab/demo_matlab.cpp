@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
 {
 	// The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
 	// global functions are needed.
-	ChGlobals* GLOBAL_Vars = DLL_CreateGlobals();
+	DLL_CreateGlobals();
 
 	// Better put the Matlab stuff inside a try{}, since it may throw exception if 
 	// the engine is not started (because Matlab not properly installed)
@@ -85,7 +85,6 @@ int main(int argc, char* argv[])
 		ChMatrixDynamic<double> m_matr;
 		matlab_engine.GetVariable(m_matr, "m_matr");
 		GetLog() << m_matr;
-
 
 		// Wait some seconds before closing all
 

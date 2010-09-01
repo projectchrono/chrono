@@ -21,10 +21,6 @@
 #include "physics/ChGlobal.h"
 #include "core/ChLinearAlgebra.h"
 
- #include "jsapi.h"
- #include "chjs/ChJs_funct.h"
- #include "chjs/ChJs_Engine.h"
-
 
 namespace chrono
 {
@@ -236,68 +232,6 @@ int ChFunction::OptVariableCount()
 
 
 
-int ChFunction::OptVariablesToVector(ChMatrix<>* mv, int offset)
-{
-	ChList<chjs_propdata>    mtree;
-	ChList<chjs_fullnamevar> mlist;
-	double mval=0;
-	int    ind= 0;
-
-	MakeOptVariableTree(&mtree);
-	VariableTreeToFullNameVar(&mtree, &mlist);
-	if (mv->GetColumns()!=1)
-		mv->Reset(mlist.Count()+offset,1);
-
-   #ifdef CH_JAVASCRIPT
-	GLOBAL_Vars->chjsEngine->chjs_contextclass = chjs_cast_funct(this);
-	GLOBAL_Vars->chjsEngine->chjs_contextdata  = this;	// *** ...INTO CONTEXT
-
-	for (ChNode<chjs_fullnamevar>* mnode = mlist.GetHead(); mnode; mnode=mnode->next)
-	{
-		if (GLOBAL_Vars->chjsEngine->chjs_Eval(mnode->data->propname, &mval))
-		{
-			mv->SetElement(offset+ind, 0 , mval);
-			ind++;
-		}
-	}
-
-	GLOBAL_Vars->chjsEngine->chjs_contextclass = NULL;
-	GLOBAL_Vars->chjsEngine->chjs_contextdata  = NULL;	// *** ...OUT FROM CONTEXT
-   #endif
-
-	return ind;
-}
-
-
-int ChFunction::VectorToOptVariables(ChMatrix<>* mv, int offset)
-{
-	ChList<chjs_propdata>    mtree;
-	ChList<chjs_fullnamevar> mlist;
-	double mval=0;
-	int    ind= 0;
-	jsval vp;
-
-	MakeOptVariableTree(&mtree);
-	VariableTreeToFullNameVar(&mtree, &mlist);
-
-   #ifdef CH_JAVASCRIPT
-	GLOBAL_Vars->chjsEngine->chjs_contextclass = chjs_cast_funct(this);
-	GLOBAL_Vars->chjsEngine->chjs_contextdata  = this;	// *** ...INTO CONTEXT
-
-	for (ChNode<chjs_fullnamevar>* mnode = mlist.GetHead(); mnode; mnode=mnode->next)
-	{
-		jsdouble jsd = mv->GetElement(offset+ind,0);
-		JS_NewDoubleValue(GLOBAL_Vars->chjsEngine->cx, jsd, &vp);
-		JS_SetProperty(GLOBAL_Vars->chjsEngine->cx, GLOBAL_Vars->chjsEngine->jglobalObj, mnode->data->propname, &vp);
-		ind++;
-	}
-
-	GLOBAL_Vars->chjsEngine->chjs_contextclass = NULL;
-	GLOBAL_Vars->chjsEngine->chjs_contextdata  = NULL;	// *** ...OUT FROM CONTEXT
-   #endif
-
-	return ind;
-}
 
 ////////////
 
@@ -3024,7 +2958,7 @@ double ChFunction_Matlab::Get_y      (double x)
 	 sprintf (m_eval_command, "x=%g;ans=%s;", x,this->mat_command);
 
 	 // EVAL string, retrieving y = "ans"
-	 ret = GLOBAL_Vars->Mat_Eng_Eval(m_eval_command);
+	 ret = CHGLOBALS().Mat_Eng_Eval(m_eval_command);
 
 	#else
 	 ret = 0.0;
@@ -3062,122 +2996,6 @@ void ChFunction_Matlab::StreamOUT(ChStreamOutAscii& mstream)
 	//***TO DO***
 }
 
-
-
-
-
-
-//////////////////////////////////////
-//////////////////////////////////////
-// CLASS ChFunction_Jscript
-
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChFunction_Jscript> a_registration_jscript;
-
-
-ChFunction_Jscript::ChFunction_Jscript ()
-{
-	strcpy(this->js_command,"0");
-	this->js_script= 0;
-	this->js_error = 0;
-}
-
-void ChFunction_Jscript::Copy (ChFunction_Jscript* source)
-{
-	this->Set_Command(source->Get_Command());
-	//strcpy(this->js_command, source->js_command);
-	//this->js_script= NULL;
-	//this->js_error = source->js_error;
-}
-
-ChFunction* ChFunction_Jscript::new_Duplicate ()
-{
-	ChFunction_Jscript* m_func;
-	m_func = new ChFunction_Jscript;
-	m_func->Copy(this);
-	return (m_func);
-}
-
-void ChFunction_Jscript::Set_Command  (char* m_command)
-{
-	strcpy (this->js_command, m_command);
-
-	// Just to have the evaluation with error reporter...
-	double ret; int ok;
-	ok = GLOBAL_Vars->chjsEngine->chjs_Eval(this->js_command, &ret);
-
-	if (!ok) 	this->js_error = TRUE;
-	else 		this->js_error = FALSE;
-}
-
-void ChFunction_Jscript::Set_Variable (char* variablename, double value)
-{
-	jsdouble jsd = value;
-	jsval vp;
-	JS_NewDoubleValue(GLOBAL_Vars->chjsEngine->cx, jsd, &vp);
-	JS_SetProperty(GLOBAL_Vars->chjsEngine->cx, GLOBAL_Vars->chjsEngine->jglobalObj, variablename, &vp);
-}
-
-
-double ChFunction_Jscript::Get_y      (double x)
-{
-	double ret = 0;
-
-	// no function: shortcut!
-	if (*this->js_command == 0) return 0.0;	// <<<<<
-
-	// set the x value for the function
-	Set_Variable("x", x);
-
-	// The standard evaluation of this object won't report errors!
-	// (error reporter will work only if the user does ::Set_Command() )
-	int m_old_repmode = GLOBAL_Vars->chjsEngine->chjs_reporter_mode;
-	//if (this->js_error)
-	GLOBAL_Vars->chjsEngine->chjs_SetReporterMode(0); // NO REPORT!
-
-	// >>>> EVALUATION
-	// if not yet compiled, compile it!
-	//
-	int ok = GLOBAL_Vars->chjsEngine->chjs_Eval(this->js_command, &ret);
-
-	if (!ok) 	this->js_error = TRUE;
-	else 		this->js_error = FALSE;
-
-	//if (this->js_error)
-	GLOBAL_Vars->chjsEngine->chjs_SetReporterMode(m_old_repmode); // Restore rerror reporter
-
-	return ret;
-}
-
-void ChFunction_Jscript::StreamOUT(ChStreamOutBinary& mstream)
-{
-		// class version number
-	mstream.VersionWrite(1);
-		// serialize parent class too
-	ChFunction::StreamOUT(mstream);
-
-		// stream out all member data
-	mstream << js_command;
-}
-
-void ChFunction_Jscript::StreamIN(ChStreamInBinary& mstream)
-{
-		// class version number
-	int version = mstream.VersionRead();
-		// deserialize parent class too
-	ChFunction::StreamIN(mstream);
-
-		// stream in all member data
-	mstream >> js_command;
-}
-
-void ChFunction_Jscript::StreamOUT(ChStreamOutAscii& mstream)
-{
-	mstream << "FUNCT_JSCRIPT  \n";
-
-	//***TO DO***
-}
 
 
 

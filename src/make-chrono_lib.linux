@@ -81,7 +81,6 @@ CPPFILES_LIB = \
 	physics/ChGlobal.cpp \
 	physics/ChEvents.cpp \
 	physics/ChMocap.cpp \
-	physics/ChOptvar.cpp \
 	physics/ChSolvmin.cpp \
 	physics/ChCollide.cpp \
 	physics/ChProbe.cpp \
@@ -119,6 +118,7 @@ CPPFILES_LIB = \
 	physics/ChShaftsTorsionSpring.cpp \
 	physics/ChContinuumMaterial.cpp \
 	physics/ChConveyor.cpp \
+	physics/ChFx.cpp \
 	geometry/ChCGeometry.cpp \
 	geometry/ChCSphere.cpp \
 	geometry/ChCBox.cpp \
@@ -152,22 +152,6 @@ CPPFILES_LIB = \
 	collision/convexdecomp/NvRemoveTjunctions.cpp \
 	collision/convexdecomp/NvSplitMesh.cpp \
 	collision/convexdecomp/NvStanHull.cpp \
-	chjs/ChJs_Engine.cpp \
-	chjs/ChJs_utils.cpp \
-	chjs/ChJs_all.cpp \
-	chjs/ChJs_math.cpp \
-	chjs/ChJs_chobject.cpp \
-	chjs/ChJs_system.cpp \
-	chjs/ChJs_body.cpp \
-	chjs/ChJs_marker.cpp \
-	chjs/ChJs_force.cpp \
-	chjs/ChJs_link.cpp \
-	chjs/ChJs_funct.cpp \
-	chjs/ChJs_optimizer.cpp \
-	chjs/ChJs_geometry.cpp \
-	chjs/ChJs_controller.cpp \
-	chjs/ChJs_constraint.cpp \
-	chjs/ChJs_impact.cpp \
 	pneumatica/assepneumatico.cpp \
 	pneumatica/pistone.cpp \
 	pneumatica/pistone_3_2.cpp \
@@ -181,6 +165,7 @@ CPPFILES_LIB = \
 	pneumatica/ugello_controllato_RA.cpp \
 	pneumatica/valvola_3_2.cpp \
 	pneumatica/valvola_3_2_prop.cpp \
+	lcp/ChLcpSystemDescriptor.cpp \
 	lcp/ChLcpSolver.cpp \
 	lcp/ChLcpIterativeSOR.cpp \
 	lcp/ChLcpIterativeSORmultithread.cpp \
@@ -323,6 +308,32 @@ CPPFILES_LIB = \
 	parallel/ChThreadsWIN32.cpp
 	
 	
+# List of files to compile to make the 'javascript for Chrono' library unit
+
+CPPFILES_LIB_JS = \
+	chjs/ChGlobalJS.cpp \
+	chjs/ChControlsJS.cpp \
+	chjs/ChFunctionJS.cpp \
+	chjs/ChFxJavascript.cpp \
+	chjs/ChOptvar.cpp \
+	chjs/ChJs_Engine.cpp \
+	chjs/ChJs_utils.cpp \
+	chjs/ChJs_all.cpp \
+	chjs/ChJs_math.cpp \
+	chjs/ChJs_chobject.cpp \
+	chjs/ChJs_system.cpp \
+	chjs/ChJs_body.cpp \
+	chjs/ChJs_marker.cpp \
+	chjs/ChJs_force.cpp \
+	chjs/ChJs_link.cpp \
+	chjs/ChJs_funct.cpp \
+	chjs/ChJs_optimizer.cpp \
+	chjs/ChJs_geometry.cpp \
+	chjs/ChJs_controller.cpp \
+	chjs/ChJs_constraint.cpp \
+	chjs/ChJs_impact.cpp 
+	
+	
 CUDAFILES_LIB = \
 	lcp/ChLcpIterativeCuda.cu \
 	collision/collide.cu
@@ -361,6 +372,12 @@ lib: $(CH_CHRONOLIB)
 
 $(CH_CHRONOLIB) :  $(OFILES_LIB) $(CUDAOFILES_LIB)
 		ar -rs $@ $?		 
+
+
+lib_js: $(OFILES_LIB_JS)
+		ar -rs $@ $?
+
+
 
 # For cleaning all the .o, .obj, and other intermediate files
 

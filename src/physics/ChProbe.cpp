@@ -32,7 +32,7 @@ namespace chrono
 
 ChProbe::ChProbe()
 {
-	this->SetIdentifier(GLOBAL_Vars->GetUniqueIntID()); // mark with unique ID
+	this->SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
 }
 
 ChProbe::~ChProbe()

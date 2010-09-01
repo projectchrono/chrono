@@ -73,6 +73,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 											1.1);
    
 		mrigidBody->GetBody()->SetFriction(0.2); 
+		mrigidBody->GetBody()->SetImpactC(1.0); 
 		mrigidBody->addShadowVolumeSceneNode();
 
 
@@ -267,7 +268,7 @@ int main(int argc, char* argv[])
 
 	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
 	// global functions are needed. 
-	ChGlobals* GLOBAL_Vars = DLL_CreateGlobals();
+	DLL_CreateGlobals();
 
 	// Create a ChronoENGINE physical system
 	ChSystem mphysicalSystem;
