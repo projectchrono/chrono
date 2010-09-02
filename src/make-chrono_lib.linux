@@ -366,16 +366,16 @@ CUDAOFILES_LIB= $(CUDAFILES_LIB:.cu=.o)
 
 all: clean lib doxygen
 
-lib: $(CH_CHRONOLIB)
+lib: lib_chronoengine $(CH_JAVASCRIPTLIB_MAKETARGET) $(CH_MPILIB_MAKETARGET)
 
 #$(CPPFILES_LIB) 
 
-$(CH_CHRONOLIB) :  $(OFILES_LIB) $(CUDAOFILES_LIB)
-		ar -rs $@ $?		 
+lib_chronoengine :  $(OFILES_LIB) $(CUDAOFILES_LIB)
+		ar -rs $(CH_CHRONOLIB) $?		 
 
 
-lib_js: $(OFILES_LIB_JS)
-		ar -rs $@ $?
+lib_chronoengineJS: $(OFILES_LIB_JS) 
+		ar -rs $(CH_CHRONOLIB)JS $?
 
 
 
