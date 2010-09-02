@@ -31,11 +31,16 @@
 #include "lcp/ChLcpIterativeSORmultithread.h"
 #include "lcp/ChLcpIterativeJacobi.h"
  
-#ifdef CH_UNIT_CUDA
+/*
+// ***OBSOLETE*** -Note for H.M.-
+// I am removing all CUDA related stuff from the main
+// ChronoEngine libary. CUDA stuff must be independent,
+// in fact the plan is that it becomes an 'additional' module (dll).
  #include "lcp/ChLcpIterativeCudaSolver.h"
  #include "physics/ChLinkGPUContact.h"
  #include "physics/ChContactContainerGPUsimple.h"
 #endif 
+*/
 
 #include "core/ChTimer.h"
 #include "collision/ChCCollisionSystemGPU.h"
@@ -568,6 +573,15 @@ void ChSystem::SetLcpSolverType(eCh_lcpSolver mval)
 		LCP_solver_stab = new ChLcpIterativeSORmultithread("posLCP",parallel_thread_number);
 		break;
 	case LCP_ITERATIVE_GPU:
+/*
+// ***OBSOLETE*** -Note for H.M.-
+// The SetLcpSolverType() cannot be used anymore for 
+// using the GPU solver. Now, in your .exe, you should allocate
+// the custom solvers/contact containers/etc. and use the new functions
+//    ChangeLcpSolverStab(..)
+//    ChangeLcpSolverSpeed(..)
+//    ChangeContactContainer(..)   etc.
+//  
 #ifdef CH_UNIT_CUDA
 		use_GPU = true;
 		LCP_solver_speed = new ChLcpIterativeCuda();
@@ -586,6 +600,7 @@ void ChSystem::SetLcpSolverType(eCh_lcpSolver mval)
 		GetLog() << "\n    (You asked LCP_ITERATIVE_GPU, but will use default SOR)\n\n";
 		break;
 #endif 
+*/
 	default:
 		LCP_solver_speed = new ChLcpIterativeSymmSOR();
 		LCP_solver_stab  = new ChLcpIterativeSymmSOR();
@@ -1656,7 +1671,23 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
 	if (load_jacobians)
 		contact_container->ConstraintsLoadJacobians();
 
-
+/*
+// ***OBSOLETE*** -Note for H.M.-
+// Of the 5 values, here only three were used in my Cuda code. 
+// - the C_factor and maxrecoveryspeed were used in the 'contact preprocessing' stage
+//   done on the GPU, by the CCP solver (it transforms collision normals/points in gpu
+//   buffer into jacobians and residuals).
+//   In future, if some contact preprocessing must be done, it is better that it is
+//   performed by the GPU contact container (it will get infos on C_factor etc. automatically,
+//   see few lines above). Or add a stub ChPhysicsItem in the system
+//   that 'talks' with the GPU solver w.preprocessor when this LCPprepare_load() funct 
+//   is called.
+// - the dt was used, again by the CCP solver, because it embedded a kernel that also
+//   performs the timestep integration on the GPU after the CCP solution. This is not
+//   a clean trick, and will be removed. In future, this GPU integration will be dealt
+//   directly by physic objects of 'sphere cluster' type on the GPU. So timestep integration
+//   on the CCP solver will be disabled here.
+//  
 #ifdef CH_UNIT_CUDA
 	double mclamp = recovery_clamp;
 	if (!do_clamp)
@@ -1678,6 +1709,7 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
 		possolv->SetMaxRecoverySpeed(mclamp);
 	}
 #endif 
+*/
 
 } 
 
@@ -2073,6 +2105,17 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 	// make vectors of variables and constraints, used by the following LCP solver
 	LCPprepare_inject(*this->LCP_descriptor);
 
+	/*
+	// ***OBSOLETE*** -Note for H.M.-
+	// Once, the CCP gpu solver was used also for advancing the timestep,
+	// that is a simple pos'=pos+dt*vel operation that easily fitted in a 
+	// kernel. But the problem is that the CCP solver is not a proper place
+	// to do this. In future, this could be done by custom GPU objects like
+	// 'cluster of spheres' that will react to the call (see few line below)
+	//   Bpointer->VariablesQbIncrementPosition(this->GetStep());
+	// by doing the position increment via a kernel. 
+	// [To avoid confusion, I simply removed this feature here - the penalty
+	// is small because anyway it takes small time compared to CCP solution.]
 	#ifdef CH_UNIT_CUDA
 	if (ChLcpIterativeCuda* spesolv = dynamic_cast<ChLcpIterativeCuda*>(LCP_solver_speed))
 	{
@@ -2081,6 +2124,7 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 		//spesolv->Set_do_integration_step(false); //***TEST***
 	}
 	#endif
+	*/
 
 	// Solve the LCP problem.
 	// Solution variables are new speeds 'v_new'
@@ -2099,6 +2143,12 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
  
 	// perform an Eulero integration step (1st order stepping as pos+=v_new*dt)
 
+	/*
+	// ***OBSOLETE*** -Note for H.M.-
+	// See comments 20 lines above!
+	// Here I am switching off the experimental time integration on my CCP solver.
+	// aiming at a more clean code/architecture.
+
 	bool cpu_eulero_step = true;
 
 	#ifdef CH_UNIT_CUDA
@@ -2108,17 +2158,18 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 			cpu_eulero_step = false;
 	 }
     #endif;
+	*/
 
 	HIER_BODY_INIT
 	while HIER_BODY_NOSTOP
 	{
 		// EULERO INTEGRATION: pos+=v_new*dt  (do not do this, if GPU already computed it)
-		if (cpu_eulero_step)
-		{
+		//if (cpu_eulero_step)
+		//{
 			Bpointer->VariablesQbIncrementPosition(this->GetStep());
 			// Set body speed, and approximates the acceleration by differentiation.
 			Bpointer->VariablesQbSetSpeed(this->GetStep());
-		}
+		//}
 		// Now also updates all markers & forces
 		Bpointer->Update(this->ChTime);
 		HIER_BODY_NEXT
@@ -2127,12 +2178,12 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 	while HIER_OTHERPHYSICS_NOSTOP
 	{
 		// EULERO INTEGRATION: pos+=v_new*dt  (do not do this, if GPU already computed it)
-		if (cpu_eulero_step)
-		{
+		//if (cpu_eulero_step)
+		//{
 			PHpointer->VariablesQbIncrementPosition(this->GetStep());
 			// Set body speed, and approximates the acceleration by differentiation.
 			PHpointer->VariablesQbSetSpeed(this->GetStep());
-		}
+		//}
 		// Now also updates all markers & forces
 		PHpointer->Update(this->ChTime);
 		HIER_OTHERPHYSICS_NEXT
@@ -2243,6 +2294,10 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 	// make vectors of variables and constraints, used by the following LCP solver
 	LCPprepare_inject(*this->LCP_descriptor);
 
+	/*
+	// ***OBSOLETE*** -Note for H.M.-
+	// See comments in Integrate_Y_impulse_Anitescu()
+	//
 	#ifdef CH_UNIT_CUDA
 	if (ChLcpIterativeCuda* spesolv = dynamic_cast<ChLcpIterativeCuda*>(LCP_solver_speed))
 	{
@@ -2250,6 +2305,7 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 		spesolv->Set_do_integration_step(true);
 	}
 	#endif
+	*/
 
 	// Solve the LCP problem. 
 	// Solution variables are new speeds 'v_new'
@@ -2267,6 +2323,10 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 
 	// perform an Eulero integration step (1st order stepping as pos+=v_new*dt)
 
+	/*
+	// ***OBSOLETE*** -Note for H.M.-
+	// See comments in Integrate_Y_impulse_Anitescu()
+	//
 	bool cpu_eulero_step = true;
 
 	#ifdef CH_UNIT_CUDA
@@ -2276,36 +2336,35 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 			cpu_eulero_step = false;
 	 }
     #endif;
+	*/
 
+	HIER_BODY_INIT
+	while HIER_BODY_NOSTOP
 	{
-		HIER_BODY_INIT
-		while HIER_BODY_NOSTOP
-		{
-			if (cpu_eulero_step)
-			{
-				// EULERO INTEGRATION: pos+=v_new*dt
-				Bpointer->VariablesQbIncrementPosition(this->GetStep());
-				// Set body speed, and approximates the acceleration by differentiation.
-				Bpointer->VariablesQbSetSpeed(this->GetStep());
-			}
-			// Now also updates all markers & forces
-			//Bpointer->UpdateALL(this->ChTime); // not needed - will be done later anyway
-			HIER_BODY_NEXT
-		}
-		HIER_OTHERPHYSICS_INIT
-		while HIER_OTHERPHYSICS_NOSTOP
-		{
-			if (cpu_eulero_step)
-			{
-				// EULERO INTEGRATION: pos+=v_new*dt
-				PHpointer->VariablesQbIncrementPosition(this->GetStep());
-				// Set body speed, and approximates the acceleration by differentiation.
-				PHpointer->VariablesQbSetSpeed(this->GetStep());
-			}
-			// Now also updates all markers & forces
-			//PHpointer->UpdateALL(this->ChTime); // not needed - will be done later anyway
-			HIER_OTHERPHYSICS_NEXT
-		}
+		//if (cpu_eulero_step)
+		//{
+			// EULERO INTEGRATION: pos+=v_new*dt
+			Bpointer->VariablesQbIncrementPosition(this->GetStep());
+			// Set body speed, and approximates the acceleration by differentiation.
+			Bpointer->VariablesQbSetSpeed(this->GetStep());
+		//}
+		// Now also updates all markers & forces
+		//Bpointer->UpdateALL(this->ChTime); // not needed - will be done later anyway
+		HIER_BODY_NEXT
+	}
+	HIER_OTHERPHYSICS_INIT
+	while HIER_OTHERPHYSICS_NOSTOP
+	{
+		//if (cpu_eulero_step)
+		//{
+			// EULERO INTEGRATION: pos+=v_new*dt
+			PHpointer->VariablesQbIncrementPosition(this->GetStep());
+			// Set body speed, and approximates the acceleration by differentiation.
+			PHpointer->VariablesQbSetSpeed(this->GetStep());
+		//}
+		// Now also updates all markers & forces
+		//PHpointer->UpdateALL(this->ChTime); // not needed - will be done later anyway
+		HIER_OTHERPHYSICS_NEXT
 	}
 
 	this->ChTime = ChTime + GetStep();

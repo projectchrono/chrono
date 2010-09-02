@@ -58,7 +58,6 @@ CPPFILES_LIB = \
 	physics/ChLinkEngine.cpp \
 	physics/ChLinkContact.cpp \
 	physics/ChLinkFastContact.cpp \
-	physics/ChLinkGPUcontact.cpp \
 	physics/ChLinkGear.cpp \
 	physics/ChLinkPulley.cpp \
 	physics/ChLinkLinActuator.cpp \
@@ -93,11 +92,9 @@ CPPFILES_LIB = \
 	physics/ChMatterMeshless.cpp \
 	physics/ChContact.cpp \
 	physics/ChContactRolling.cpp \
-	physics/ChContactGPUsimple.cpp \
 	physics/ChContactNode.cpp \
 	physics/ChContactContainerBase.cpp \
 	physics/ChContactContainer.cpp \
-	physics/ChContactContainerGPUsimple.cpp \
 	physics/ChContactContainerNodes.cpp \
 	physics/ChProximityContainerBase.cpp \
 	physics/ChProximityContainerSPH.cpp \
@@ -120,14 +117,11 @@ CPPFILES_LIB = \
 	geometry/ChCLinePoly.cpp \
 	geometry/ChCTriangle.cpp \
 	collision/ChCCollisionModel.cpp \
-	collision/ChCModelGPU.cpp \
-	collision/ChCModelGPUBody.cpp \
 	collision/ChCModelBullet.cpp \
 	collision/ChCModelBulletBody.cpp \
 	collision/ChCModelBulletParticle.cpp \
 	collision/ChCModelBulletNode.cpp \
 	collision/ChCCollisionSystemBullet.cpp \
-	collision/ChCCollisionSystemGPU.cpp \
 	collision/edgetempest/ChCCollisionTree.cpp \
 	collision/edgetempest/ChCOBBTree.cpp \
 	collision/edgetempest/ChCAABBTree.cpp \
@@ -164,9 +158,6 @@ CPPFILES_LIB = \
 	lcp/ChLcpIterativeSORmultithread.cpp \
 	lcp/ChLcpIterativeJacobi.cpp \
 	lcp/ChLcpIterativeSymmSOR.cpp \
-	lcp/ChLcpIterativeCudaSolver.cpp \
-	lcp/ChLcpConstraintTwoGPUcontN.cpp \
-	lcp/ChLcpConstraintTwoGPUcontT.cpp \
 	lcp/ChLcpSimplexSolver.cpp \
 	lcp/ChLcpConstraint.cpp \
 	lcp/ChLcpConstraintTwo.cpp \
@@ -327,17 +318,37 @@ CPPFILES_LIB_JS = \
 	chjs/ChJs_impact.cpp 
 	
 	
+# List of files to compile to make the 'Chrono for MPI' library unit
+
+CPPFILES_LIB_MPI = \
+	unit_MPI/ChMpi.cpp 
+	
+# List of files to compile to make the 'Chrono for CUDA' library unit
+
+CPPFILES_LIB_CUDA = \
+	physics/ChLinkGPUcontact.cpp \
+	physics/ChContactContainerGPUsimple.cpp \
+	physics/ChContactGPUsimple.cpp \
+	collision/ChCModelGPU.cpp \
+	collision/ChCModelGPUBody.cpp \
+	collision/ChCCollisionSystemGPU.cpp \
+	lcp/ChLcpIterativeCudaSolver.cpp \
+	lcp/ChLcpConstraintTwoGPUcontN.cpp \
+	lcp/ChLcpConstraintTwoGPUcontT.cpp 
+	
 CUDAFILES_LIB = \
 	lcp/ChLcpIterativeCuda.cu \
 	collision/collide.cu 
+	
 
 
 # Rules for compilation
 
 
-OFILES_LIB= $(CPPFILES_LIB:.cpp=.obj) $(CUDAFILES_LIB:.cu=.obj)
+OFILES_LIB= $(CPPFILES_LIB:.cpp=.obj)
 OFILES_LIB_JS= $(CPPFILES_LIB_JS:.cpp=.obj) 
-
+OFILES_LIB_MPI= $(CPPFILES_LIB_MPI:.cpp=.obj)
+OFILES_LIB_CUDA= $(CPPFILES_LIB_CUDA:.cpp=.obj) $(CUDAFILES_LIB:.cu=.obj)
 
 .SUFFIXES:
 .SUFFIXES: .cpp .c .obj .cu
@@ -374,7 +385,11 @@ all: clean lib doxygen
 #   this with the SED tool)
 
 
-lib:  $(CPPFILES_LIB) $(OFILES_LIB) 
+#lib: lib_chronoengine $(CH_JAVASCRIPTLIB_MAKETARGET) $(CH_MPILIB_MAKETARGET) $(CH_CUDALIB_MAKETARGET)
+
+lib: $(CH_CUDALIB_MAKETARGET)
+
+lib_chronoengine:  $(OFILES_LIB) 
 	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME).defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).defx"
 	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME).def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).def"
 	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME).exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).exp"
@@ -393,7 +408,7 @@ lib:  $(CPPFILES_LIB) $(OFILES_LIB)
 	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME).def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).def"
 	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME).exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).exp"
 	
-lib_js: $(CPPFILES_LIB_JS) $(OFILES_LIB_JS) lib
+lib_chronoengineJS:  $(OFILES_LIB_JS) lib_chronoengine
 	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)JS.defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)JS.defx"
 	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)JS.def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)JS.def"
 	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)JS.exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)JS.exp"
@@ -401,6 +416,7 @@ lib_js: $(CPPFILES_LIB_JS) $(OFILES_LIB_JS) lib
 	sed -e "/^	_/d" -e "/^	??_G/d" -e "/^	_real@/d" -e "/^	CTA/d" -e "/^	CT??/d" -e "/^	TI[0-9]/d" "$(CH_LIBDIR)/$(CH_LIBNAME)JS.defx"  >>  "$(CH_LIBDIR)/$(CH_LIBNAME)JS.def"
 	$(LD) $(CH_LINKSHAREDFLAGS) \
 	      $(CH_CHRONOLIB) \
+	      $(CH_JAVASCRIPTLIB) \
 	      $(OFILES_LIB_JS) \
 	      $(CH_LINKERFLAG_FILEOUT)"$(CH_BINDIR)/$(CH_LIBNAME)JS.dll" \
 	      $(CH_LINKERFLAG_DEF)"$(CH_LIBDIR)/$(CH_LIBNAME)JS.def" \
@@ -411,6 +427,44 @@ lib_js: $(CPPFILES_LIB_JS) $(OFILES_LIB_JS) lib
 	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)JS.defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)JS.defx"
 	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)JS.def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)JS.def"
 	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)JS.exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)JS.exp"
+
+lib_chronoengineMPI: $(OFILES_LIB_MPI) lib_chronoengine
+	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)MPI.defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)MPI.defx"
+	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)MPI.def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)MPI.def"
+	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)MPI.exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)MPI.exp"
+	$(DLLTOOL) --output-def "$(CH_LIBDIR)/$(CH_LIBNAME)MPI.defx" --export-all-symbols --kill-at $(OFILES_LIB_MPI)
+	sed -e "/^	_/d" -e "/^	??_G/d" -e "/^	_real@/d" -e "/^	CTA/d" -e "/^	CT??/d" -e "/^	TI[0-9]/d" "$(CH_LIBDIR)/$(CH_LIBNAME)MPI.defx"  >>  "$(CH_LIBDIR)/$(CH_LIBNAME)MPI.def"
+	$(LD) $(CH_LINKSHAREDFLAGS) \
+	      $(CH_CHRONOLIB) \
+	      $(CH_MPILIB) \
+	      $(OFILES_LIB_MPI) \
+	      $(CH_LINKERFLAG_FILEOUT)"$(CH_BINDIR)/$(CH_LIBNAME)MPI.dll" \
+	      $(CH_LINKERFLAG_DEF)"$(CH_LIBDIR)/$(CH_LIBNAME)MPI.def" \
+	      $(CH_LINKERFLAG_IMPLIB)"$(CH_LIBDIR)/$(CH_LIBNAMEPREFIX)$(CH_LIBNAME)MPI$(CH_LIBNAMEPOSTFIX)"
+	$(MT) -manifest "$(CH_BINDIR)/$(CH_LIBNAME)MPI.dll.manifest" -outputresource:"$(CH_BINDIR)/$(CH_LIBNAME)MPI.dll";#2
+	$(DEL) "$(CH_BINDIR)$(D)$(CH_LIBNAME)MPI.dll.manifest"
+	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)MPI.defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)MPI.defx"
+	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)MPI.def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)MPI.def"
+	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)MPI.exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)MPI.exp"
+
+lib_chronoengineCUDA: $(OFILES_LIB_CUDA) lib_chronoengine
+	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)CUDA.defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)CUDA.defx"
+	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)CUDA.def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)CUDA.def"
+	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)CUDA.exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)CUDA.exp"
+	$(DLLTOOL) --output-def "$(CH_LIBDIR)/$(CH_LIBNAME)CUDA.defx" --export-all-symbols --kill-at $(OFILES_LIB_CUDA)
+	sed -e "/^	_/d" -e "/^	??_G/d" -e "/^	_real@/d" -e "/^	CTA/d" -e "/^	CT??/d" -e "/^	TI[0-9]/d" "$(CH_LIBDIR)/$(CH_LIBNAME)CUDA.defx"  >>  "$(CH_LIBDIR)/$(CH_LIBNAME)CUDA.def"
+	$(LD) $(CH_LINKSHAREDFLAGS) \
+	      $(CH_CHRONOLIB) \
+	      $(CH_CUDA_LIB) \
+	      $(OFILES_LIB_CUDA) \
+	      $(CH_LINKERFLAG_FILEOUT)"$(CH_BINDIR)/$(CH_LIBNAME)CUDA.dll" \
+	      $(CH_LINKERFLAG_DEF)"$(CH_LIBDIR)/$(CH_LIBNAME)CUDA.def" \
+	      $(CH_LINKERFLAG_IMPLIB)"$(CH_LIBDIR)/$(CH_LIBNAMEPREFIX)$(CH_LIBNAME)CUDA$(CH_LIBNAMEPOSTFIX)"
+	$(MT) -manifest "$(CH_BINDIR)/$(CH_LIBNAME)CUDA.dll.manifest" -outputresource:"$(CH_BINDIR)/$(CH_LIBNAME)CUDA.dll";#2
+	$(DEL) "$(CH_BINDIR)$(D)$(CH_LIBNAME)CUDA.dll.manifest"
+	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)CUDA.defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)CUDA.defx"
+	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)CUDA.def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)CUDA.def"
+	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)CUDA.exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)CUDA.exp"
 
 
 # For cleaning all the .o, .obj, and other intermediate files

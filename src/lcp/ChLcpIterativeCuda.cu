@@ -1,5 +1,3 @@
-#ifdef CH_UNIT_CUDA 
-
 ///////////////////////////////////////////////////
 //
 //   ChLcpIterativeCuda.cu
@@ -2293,11 +2291,3 @@ void ChRunKernelIntegrateTimeStep (dim3 dim_grid,
 
 
 
-
-
-
-
-
-
-
-#endif  // end of  CH_UNIT_CUDA
