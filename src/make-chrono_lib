@@ -323,6 +323,7 @@ CPPFILES_LIB_JS = \
 CPPFILES_LIB_MPI = \
 	unit_MPI/ChMpi.cpp 
 	
+	
 # List of files to compile to make the 'Chrono for CUDA' library unit
 
 CPPFILES_LIB_CUDA = \
@@ -388,82 +389,83 @@ all: clean lib doxygen
 lib: lib_chronoengine $(CH_JAVASCRIPTLIB_MAKETARGET) $(CH_MPILIB_MAKETARGET) $(CH_CUDALIB_MAKETARGET)
 
 
-lib_chronoengine:  $(OFILES_LIB) 
-	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME).defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).defx"
-	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME).def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).def"
-	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME).exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).exp"
+lib_chronoengine:  $(OFILES_LIB)
+	echo $(CH_CUDALIB_MAKETARGET)
+	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME).defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).defx"
+	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME).def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).def"
+	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME).exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).exp"
 	$(DLLTOOL) --output-def "$(CH_LIBDIR)/$(CH_LIBNAME).defx" --export-all-symbols --kill-at $(OFILES_LIB)
-	sed -e "/^	_/d" -e "/^	??_G/d" -e "/^	_real@/d" -e "/^	CTA/d" -e "/^	CT??/d" -e "/^	TI[0-9]/d" "$(CH_LIBDIR)/$(CH_LIBNAME).defx"  >>  "$(CH_LIBDIR)/$(CH_LIBNAME).def"
+	$(SEDTOOL) -e "/^	_/d" -e "/^	??_G/d" -e "/^	_real@/d" -e "/^	CTA/d" -e "/^	CT??/d" -e "/^	TI[0-9]/d" "$(CH_LIBDIR)/$(CH_LIBNAME).defx"  >>  "$(CH_LIBDIR)/$(CH_LIBNAME).def"
 	$(LD) $(CH_LINKSHAREDFLAGS) \
 	      $(CH_LIBRARIES_ENGINE) \
 	      $(OFILES_LIB) \
-	      $(CH_LINKERFLAG_FILEOUT)"$(CH_BINDIR)/$(CH_LIBNAME).dll" \
+	      $(CH_LINKERFLAG_FILEOUT)"$(CH_CHRONOSHAREDLNAME)" \
 	      $(CH_LINKERFLAG_DEF)"$(CH_LIBDIR)/$(CH_LIBNAME).def" \
-	      $(CH_LINKERFLAG_IMPLIB)"$(CH_LIBDIR)/$(CH_LIBNAMEPREFIX)$(CH_LIBNAME)$(CH_LIBNAMEPOSTFIX)"
+	      $(CH_LINKERFLAG_IMPLIB)"$(CH_CHRONOLIBRARYNAME)"
 	$(MT) -manifest "$(CH_BINDIR)/$(CH_LIBNAME).dll.manifest" -outputresource:"$(CH_BINDIR)/$(CH_LIBNAME).dll";#2
 	$(DEL) "$(CH_BINDIR)$(D)$(CH_LIBNAME).dll.manifest"
-	IF EXIST "$(CH_R3RUNDIR)" copy /Y "$(CH_BINDIR)\$(CH_LIBNAME).dll" "$(CH_R3RUNDIR)\$(CH_R3BINDIR)\$(CH_LIBNAME).dll"
-	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME).defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).defx"
-	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME).def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).def"
-	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME).exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).exp"
+	$(IFEXIST) "$(CH_R3RUNDIR)" copy /Y "$(CH_BINDIR)\$(CH_LIBNAME).dll" "$(CH_R3RUNDIR)\$(CH_R3BINDIR)\$(CH_LIBNAME).dll"
+	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME).defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).defx"
+	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME).def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).def"
+	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME).exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).exp"
 	
 lib_chronoengineJS:  $(OFILES_LIB_JS) lib_chronoengine
-	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)JS.defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)JS.defx"
-	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)JS.def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)JS.def"
-	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)JS.exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)JS.exp"
-	$(DLLTOOL) --output-def "$(CH_LIBDIR)/$(CH_LIBNAME)JS.defx" --export-all-symbols --kill-at $(OFILES_LIB_JS)
-	sed -e "/^	_/d" -e "/^	??_G/d" -e "/^	_real@/d" -e "/^	CTA/d" -e "/^	CT??/d" -e "/^	TI[0-9]/d" "$(CH_LIBDIR)/$(CH_LIBNAME)JS.defx"  >>  "$(CH_LIBDIR)/$(CH_LIBNAME)JS.def"
+	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_JS.defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_JS.defx"
+	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_JS.def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_JS.def"
+	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_JS.exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_JS.exp"
+	$(DLLTOOL) --output-def "$(CH_LIBDIR)/$(CH_LIBNAME)_JS.defx" --export-all-symbols --kill-at $(OFILES_LIB_JS)
+	$(SEDTOOL) -e "/^	_/d" -e "/^	??_G/d" -e "/^	_real@/d" -e "/^	CTA/d" -e "/^	CT??/d" -e "/^	TI[0-9]/d" "$(CH_LIBDIR)/$(CH_LIBNAME)_JS.defx"  >>  "$(CH_LIBDIR)/$(CH_LIBNAME)_JS.def"
 	$(LD) $(CH_LINKSHAREDFLAGS) \
 	      $(CH_CHRONOLIB) \
 	      $(CH_JAVASCRIPTLIB) \
 	      $(OFILES_LIB_JS) \
-	      $(CH_LINKERFLAG_FILEOUT)"$(CH_BINDIR)/$(CH_LIBNAME)JS.dll" \
-	      $(CH_LINKERFLAG_DEF)"$(CH_LIBDIR)/$(CH_LIBNAME)JS.def" \
-	      $(CH_LINKERFLAG_IMPLIB)"$(CH_LIBDIR)/$(CH_LIBNAMEPREFIX)$(CH_LIBNAME)JS$(CH_LIBNAMEPOSTFIX)"
-	$(MT) -manifest "$(CH_BINDIR)/$(CH_LIBNAME)JS.dll.manifest" -outputresource:"$(CH_BINDIR)/$(CH_LIBNAME)JS.dll";#2
-	$(DEL) "$(CH_BINDIR)$(D)$(CH_LIBNAME)JS.dll.manifest"
-	IF EXIST "$(CH_R3RUNDIR)" copy /Y "$(CH_BINDIR)\$(CH_LIBNAME)JS.dll" "$(CH_R3RUNDIR)\$(CH_R3BINDIR)\$(CH_LIBNAME)JS.dll"
-	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)JS.defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)JS.defx"
-	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)JS.def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)JS.def"
-	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)JS.exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)JS.exp"
+	      $(CH_LINKERFLAG_FILEOUT)"$(CH_CHRONOJSSHAREDLNAME)"  \
+	      $(CH_LINKERFLAG_DEF)"$(CH_LIBDIR)/$(CH_LIBNAME)_JS.def" \
+	      $(CH_LINKERFLAG_IMPLIB)"$(CH_CHRONOJSLIBRARYNAME)"
+	$(MT) -manifest "$(CH_BINDIR)/$(CH_LIBNAME)_JS.dll.manifest" -outputresource:"$(CH_BINDIR)/$(CH_LIBNAME)_JS.dll";#2
+	$(DEL) "$(CH_BINDIR)$(D)$(CH_LIBNAME)_JS.dll.manifest"
+	$(IFEXIST) "$(CH_R3RUNDIR)" copy /Y "$(CH_BINDIR)\$(CH_LIBNAME)_JS.dll" "$(CH_R3RUNDIR)\$(CH_R3BINDIR)\$(CH_LIBNAME)_JS.dll"
+	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_JS.defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_JS.defx"
+	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_JS.def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_JS.def"
+	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_JS.exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_JS.exp"
 
-lib_chronoengineMPI: $(OFILES_LIB_MPI) lib_chronoengine
-	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)MPI.defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)MPI.defx"
-	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)MPI.def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)MPI.def"
-	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)MPI.exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)MPI.exp"
-	$(DLLTOOL) --output-def "$(CH_LIBDIR)/$(CH_LIBNAME)MPI.defx" --export-all-symbols --kill-at $(OFILES_LIB_MPI)
-	sed -e "/^	_/d" -e "/^	??_G/d" -e "/^	_real@/d" -e "/^	CTA/d" -e "/^	CT??/d" -e "/^	TI[0-9]/d" "$(CH_LIBDIR)/$(CH_LIBNAME)MPI.defx"  >>  "$(CH_LIBDIR)/$(CH_LIBNAME)MPI.def"
+lib_chronoengineMPI: $(OFILES_LIB_MPI) 
+	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_MPI.defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_MPI.defx"
+	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_MPI.def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_MPI.def"
+	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_MPI.exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_MPI.exp"
+	$(DLLTOOL) --output-def "$(CH_LIBDIR)/$(CH_LIBNAME)_MPI.defx" --export-all-symbols --kill-at $(OFILES_LIB_MPI)
+	$(SEDTOOL) -e "/^	_/d" -e "/^	??_G/d" -e "/^	_real@/d" -e "/^	CTA/d" -e "/^	CT??/d" -e "/^	TI[0-9]/d" "$(CH_LIBDIR)/$(CH_LIBNAME)_MPI.defx"  >>  "$(CH_LIBDIR)/$(CH_LIBNAME)_MPI.def"
 	$(LD) $(CH_LINKSHAREDFLAGS) \
 	      $(CH_CHRONOLIB) \
 	      $(CH_MPILIB) \
 	      $(OFILES_LIB_MPI) \
-	      $(CH_LINKERFLAG_FILEOUT)"$(CH_BINDIR)/$(CH_LIBNAME)MPI.dll" \
-	      $(CH_LINKERFLAG_DEF)"$(CH_LIBDIR)/$(CH_LIBNAME)MPI.def" \
-	      $(CH_LINKERFLAG_IMPLIB)"$(CH_LIBDIR)/$(CH_LIBNAMEPREFIX)$(CH_LIBNAME)MPI$(CH_LIBNAMEPOSTFIX)"
-	$(MT) -manifest "$(CH_BINDIR)/$(CH_LIBNAME)MPI.dll.manifest" -outputresource:"$(CH_BINDIR)/$(CH_LIBNAME)MPI.dll";#2
-	$(DEL) "$(CH_BINDIR)$(D)$(CH_LIBNAME)MPI.dll.manifest"
-	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)MPI.defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)MPI.defx"
-	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)MPI.def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)MPI.def"
-	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)MPI.exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)MPI.exp"
+	      $(CH_LINKERFLAG_FILEOUT)"$(CH_CHRONOMPISHAREDLNAME)" \
+	      $(CH_LINKERFLAG_DEF)"$(CH_LIBDIR)/$(CH_LIBNAME)_MPI.def" \
+	      $(CH_LINKERFLAG_IMPLIB)"$(CH_CHRONOMPILIBRARYNAME)"
+	$(MT) -manifest "$(CH_BINDIR)/$(CH_LIBNAME)_MPI.dll.manifest" -outputresource:"$(CH_BINDIR)/$(CH_LIBNAME)_MPI.dll";#2
+	$(DEL) "$(CH_BINDIR)$(D)$(CH_LIBNAME)_MPI.dll.manifest"
+	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_MPI.defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_MPI.defx"
+	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_MPI.def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_MPI.def"
+	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_MPI.exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_MPI.exp"
 
 lib_chronoengineCUDA: $(OFILES_LIB_CUDA) lib_chronoengine
-	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)CUDA.defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)CUDA.defx"
-	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)CUDA.def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)CUDA.def"
-	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)CUDA.exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)CUDA.exp"
-	$(DLLTOOL) --output-def "$(CH_LIBDIR)/$(CH_LIBNAME)CUDA.defx" --export-all-symbols --kill-at $(OFILES_LIB_CUDA)
-	sed -e "/^	_/d" -e "/^	??_G/d" -e "/^	_real@/d" -e "/^	CTA/d" -e "/^	CT??/d" -e "/^	TI[0-9]/d" "$(CH_LIBDIR)/$(CH_LIBNAME)CUDA.defx"  >>  "$(CH_LIBDIR)/$(CH_LIBNAME)CUDA.def"
+	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_CUDA.defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_CUDA.defx"
+	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_CUDA.def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_CUDA.def"
+	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_CUDA.exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_CUDA.exp"
+	$(DLLTOOL) --output-def "$(CH_LIBDIR)/$(CH_LIBNAME)_CUDA.defx" --export-all-symbols --kill-at $(OFILES_LIB_CUDA)
+	$(SEDTOOL) -e "/^	_/d" -e "/^	??_G/d" -e "/^	_real@/d" -e "/^	CTA/d" -e "/^	CT??/d" -e "/^	TI[0-9]/d" "$(CH_LIBDIR)/$(CH_LIBNAME)_CUDA.defx"  >>  "$(CH_LIBDIR)/$(CH_LIBNAME)_CUDA.def"
 	$(LD) $(CH_LINKSHAREDFLAGS) \
 	      $(CH_CHRONOLIB) \
 	      $(CH_CUDA_LIB) \
 	      $(OFILES_LIB_CUDA) \
-	      $(CH_LINKERFLAG_FILEOUT)"$(CH_BINDIR)/$(CH_LIBNAME)CUDA.dll" \
-	      $(CH_LINKERFLAG_DEF)"$(CH_LIBDIR)/$(CH_LIBNAME)CUDA.def" \
-	      $(CH_LINKERFLAG_IMPLIB)"$(CH_LIBDIR)/$(CH_LIBNAMEPREFIX)$(CH_LIBNAME)CUDA$(CH_LIBNAMEPOSTFIX)"
-	$(MT) -manifest "$(CH_BINDIR)/$(CH_LIBNAME)CUDA.dll.manifest" -outputresource:"$(CH_BINDIR)/$(CH_LIBNAME)CUDA.dll";#2
-	$(DEL) "$(CH_BINDIR)$(D)$(CH_LIBNAME)CUDA.dll.manifest"
-	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)CUDA.defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)CUDA.defx"
-	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)CUDA.def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)CUDA.def"
-	IF EXIST "$(CH_LIBDIR)\$(CH_LIBNAME)CUDA.exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)CUDA.exp"
+	      $(CH_LINKERFLAG_FILEOUT)"$(CH_CHRONOCUDASHAREDLNAME)" \
+	      $(CH_LINKERFLAG_DEF)"$(CH_LIBDIR)/$(CH_LIBNAME)_CUDA.def" \
+	      $(CH_LINKERFLAG_IMPLIB)"$(CH_CHRONOCUDALIBRARYNAME)"
+	$(MT) -manifest "$(CH_BINDIR)/$(CH_LIBNAME)_CUDA.dll.manifest" -outputresource:"$(CH_BINDIR)/$(CH_LIBNAME)_CUDA.dll";#2
+	$(DEL) "$(CH_BINDIR)$(D)$(CH_LIBNAME)_CUDA.dll.manifest"
+	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_CUDA.defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_CUDA.defx"
+	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_CUDA.def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_CUDA.def"
+	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_CUDA.exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_CUDA.exp"
 
 
 # For cleaning all the .o, .obj, and other intermediate files

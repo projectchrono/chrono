@@ -21,7 +21,7 @@ include ../Delta/ChronoEngine/makes/config.mak
 	# From now on, thank to config.mak, some useful variables
 	# have been automatically set. Most important are:
 	#   CH_CHRONODIR (the directory of Chrono sdk)
-	#   CH_LIBRARIES (the Chrono API libraries to be linked), 
+	#   CH_CHRONOLIB (the Chrono API library to be linked), 
 	#   CH_INCLUDES (directories of header files, needed by compiler), 
 	#   CH_LINKEXEFLAGS (needed flags for linker, to make executables),
 	#   CH_COMPILERFLAGS (needed flags for the compiler), 
@@ -63,6 +63,6 @@ all: $(OFILE_DEMO_VEHICLE) \
      $(OFILE_VEHICLE_CAR) \
      $(OFILE_VEHICLE_GUI) \
      $(OFILE_VEHICLE_SIMULATOR)
-	$(LD) $(CH_LINKEXEFLAGS) /FORCE:MULTIPLE $(CH_LIBRARIES) $(CH_IRRLICHTLIB) $(OFILE_DEMO_VEHICLE) $(OFILE_VEHICLE_CAR) $(OFILE_VEHICLE_GUI) $(OFILE_VEHICLE_SIMULATOR) $(CH_LINKERFLAG_FILEOUT)$(BINFILE_DEMO_VEHICLE)
+	$(LD) $(CH_LINKEXEFLAGS) /FORCE:MULTIPLE $(CH_CHRONOLIB) $(CH_IRRLICHTLIB) $(OFILE_DEMO_VEHICLE) $(OFILE_VEHICLE_CAR) $(OFILE_VEHICLE_GUI) $(OFILE_VEHICLE_SIMULATOR) $(CH_LINKERFLAG_FILEOUT)$(BINFILE_DEMO_VEHICLE)
 	$(MT) -manifest $(BINFILE_DEMO_VEHICLE).manifest -outputresource:$(BINFILE_DEMO_VEHICLE);#1
 	$(DEL) $(BINFILE_DEMO_VEHICLE).manifest

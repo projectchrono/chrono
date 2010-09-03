@@ -22,6 +22,7 @@ include ../makes/config.mak
 #		 $(DEMO_DIR)/msvc/racing  \
 		 $(DEMO_DIR)/track	
 
+
 # List of files to compile to make the chrono library
 
 CPPFILES_LIB = \
@@ -65,7 +66,6 @@ CPPFILES_LIB = \
 	physics/ChLinkEngine.cpp \
 	physics/ChLinkContact.cpp \
 	physics/ChLinkFastContact.cpp \
-	physics/ChLinkGPUcontact.cpp \
 	physics/ChLinkGear.cpp \
 	physics/ChLinkPulley.cpp \
 	physics/ChLinkLinActuator.cpp \
@@ -100,11 +100,9 @@ CPPFILES_LIB = \
 	physics/ChMatterMeshless.cpp \
 	physics/ChContact.cpp \
 	physics/ChContactRolling.cpp \
-	physics/ChContactGPUsimple.cpp \
 	physics/ChContactNode.cpp \
 	physics/ChContactContainerBase.cpp \
 	physics/ChContactContainer.cpp \
-	physics/ChContactContainerGPUsimple.cpp \
 	physics/ChContactContainerNodes.cpp \
 	physics/ChProximityContainerBase.cpp \
 	physics/ChProximityContainerSPH.cpp \
@@ -127,14 +125,11 @@ CPPFILES_LIB = \
 	geometry/ChCLinePoly.cpp \
 	geometry/ChCTriangle.cpp \
 	collision/ChCCollisionModel.cpp \
-	collision/ChCModelGPU.cpp \
-	collision/ChCModelGPUBody.cpp \
 	collision/ChCModelBullet.cpp \
 	collision/ChCModelBulletBody.cpp \
 	collision/ChCModelBulletParticle.cpp \
 	collision/ChCModelBulletNode.cpp \
 	collision/ChCCollisionSystemBullet.cpp \
-	collision/ChCCollisionSystemGPU.cpp \
 	collision/edgetempest/ChCCollisionTree.cpp \
 	collision/edgetempest/ChCOBBTree.cpp \
 	collision/edgetempest/ChCAABBTree.cpp \
@@ -171,9 +166,6 @@ CPPFILES_LIB = \
 	lcp/ChLcpIterativeSORmultithread.cpp \
 	lcp/ChLcpIterativeJacobi.cpp \
 	lcp/ChLcpIterativeSymmSOR.cpp \
-	lcp/ChLcpIterativeCudaSolver.cpp \
-	lcp/ChLcpConstraintTwoGPUcontN.cpp \
-	lcp/ChLcpConstraintTwoGPUcontT.cpp \
 	lcp/ChLcpSimplexSolver.cpp \
 	lcp/ChLcpConstraint.cpp \
 	lcp/ChLcpConstraintTwo.cpp \
@@ -334,9 +326,30 @@ CPPFILES_LIB_JS = \
 	chjs/ChJs_impact.cpp 
 	
 	
+# List of files to compile to make the 'Chrono for MPI' library unit
+
+CPPFILES_LIB_MPI = \
+	unit_MPI/ChMpi.cpp 
+	
+	
+# List of files to compile to make the 'Chrono for CUDA' library unit
+
+CPPFILES_LIB_CUDA = \
+	physics/ChLinkGPUcontact.cpp \
+	physics/ChContactContainerGPUsimple.cpp \
+	physics/ChContactGPUsimple.cpp \
+	collision/ChCModelGPU.cpp \
+	collision/ChCModelGPUBody.cpp \
+	collision/ChCCollisionSystemGPU.cpp \
+	lcp/ChLcpIterativeCudaSolver.cpp \
+	lcp/ChLcpConstraintTwoGPUcontN.cpp \
+	lcp/ChLcpConstraintTwoGPUcontT.cpp 
+	
 CUDAFILES_LIB = \
 	lcp/ChLcpIterativeCuda.cu \
-	collision/collide.cu
+	collision/collide.cu 
+	
+
 
 
 # Rules for compilation
@@ -344,11 +357,12 @@ CUDAFILES_LIB = \
 
 # <JLC> was : OFILES_LIB= $(CPPFILES_LIB:.cpp=.o) $(CUDAFILES_LIB:.cu=.o) </JLC>
 OFILES_LIB= $(CPPFILES_LIB:.cpp=.o)
-CUDAOFILES_LIB= $(CUDAFILES_LIB:.cu=.o)
-
+OFILES_LIB_JS= $(CPPFILES_LIB_JS:.cpp=.o) 
+OFILES_LIB_MPI= $(CPPFILES_LIB_MPI:.cpp=.o)
+OFILES_LIB_CUDA= $(CPPFILES_LIB_CUDA:.cpp=.o) $(CUDAFILES_LIB:.cu=.o)
 
 .SUFFIXES:
-.SUFFIXES: .cpp .c .o .cu
+.SUFFIXES: .cpp .c .obj .cu
 
 .cu.o:
 	$(CH_NVCC_COMPILER) $(CH_NVCCFLAGS) -c $< $(CH_INCLUDES) -o "$*.o"
@@ -373,10 +387,14 @@ lib: lib_chronoengine $(CH_JAVASCRIPTLIB_MAKETARGET) $(CH_MPILIB_MAKETARGET)
 lib_chronoengine :  $(OFILES_LIB) $(CUDAOFILES_LIB)
 		ar -rs $(CH_CHRONOLIB) $?		 
 
-
 lib_chronoengineJS: $(OFILES_LIB_JS) 
 		ar -rs $(CH_CHRONOLIB)JS $?
 
+lib_chronoengineMPI: $(OFILES_LIB_MPI) 
+		ar -rs $(CH_CHRONOLIB)MPI $?
+		
+lib_chronoengineCUDA: $(OFILES_LIB_CUDA) 
+		ar -rs $(CH_CHRONOLIB)CUDA $?
 
 
 # For cleaning all the .o, .obj, and other intermediate files
