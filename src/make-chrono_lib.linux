@@ -362,7 +362,7 @@ OFILES_LIB_MPI= $(CPPFILES_LIB_MPI:.cpp=.o)
 OFILES_LIB_CUDA= $(CPPFILES_LIB_CUDA:.cpp=.o) $(CUDAFILES_LIB:.cu=.o)
 
 .SUFFIXES:
-.SUFFIXES: .cpp .c .obj .cu
+.SUFFIXES: .cpp .c .o .cu
 
 .cu.o:
 	$(CH_NVCC_COMPILER) $(CH_NVCCFLAGS) -c $< $(CH_INCLUDES) -o "$*.o"
@@ -380,21 +380,20 @@ OFILES_LIB_CUDA= $(CPPFILES_LIB_CUDA:.cpp=.o) $(CUDAFILES_LIB:.cu=.o)
 
 all: clean lib doxygen
 
-lib: lib_chronoengine $(CH_JAVASCRIPTLIB_MAKETARGET) $(CH_MPILIB_MAKETARGET)
+lib: lib_chronoengine $(CH_JAVASCRIPTLIB_MAKETARGET)  $(CH_MPILIB_MAKETARGET) $(CH_CUDALIB_MAKETARGET)
 
-#$(CPPFILES_LIB) 
 
-lib_chronoengine :  $(OFILES_LIB) $(CUDAOFILES_LIB)
+lib_chronoengine :  $(OFILES_LIB)
 		ar -rs $(CH_CHRONOLIB) $?		 
 
 lib_chronoengineJS: $(OFILES_LIB_JS) 
-		ar -rs $(CH_CHRONOLIB)JS $?
+		ar -rs $(CH_CHRONOJSLIB) $?
 
 lib_chronoengineMPI: $(OFILES_LIB_MPI) 
-		ar -rs $(CH_CHRONOLIB)MPI $?
+		ar -rs $(CH_CHRONOMPILIB) $?
 		
-lib_chronoengineCUDA: $(OFILES_LIB_CUDA) 
-		ar -rs $(CH_CHRONOLIB)CUDA $?
+lib_chronoengineCUDA: $(OFILES_LIB_CUDA) $(CUDAOFILES_LIB)
+		ar -rs $(CH_CHRONOCUDALIB) $?
 
 
 # For cleaning all the .o, .obj, and other intermediate files
