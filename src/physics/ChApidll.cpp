@@ -14,8 +14,7 @@
    
   
 #include "physics/ChApidll.h"
-#include "chjs/ChJs_all.h"
-#include "chjs/ChJs_Engine.h"
+
  
 // external reference, implemented in ChJs_all.cpp
 //extern "C" void InitChronoJavaClassesGlobalContext();
