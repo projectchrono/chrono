@@ -23,7 +23,7 @@ include ../../makes/config.mak
 	# From now on, thank to config.mak, some useful variables
 	# have been automatically set. Most important are:
 	#   CH_CHRONODIR (the directory of Chrono sdk)
-	#   CH_LIBRARIES (the Chrono API libraries to be linked), 
+	#   CH_CHRONOLIB (the Chrono API library to be linked), 
 	#   CH_INCLUDES (directories of header files, needed by compiler), 
 	#   CH_LINKEXEFLAGS (needed flags for linker, to make executables),
 	#   CH_COMPILERFLAGS (needed flags for the compiler), 
@@ -58,7 +58,7 @@ BINFILE_DEMO_MATLAB="$(CH_BINDIR)$(D)$(CPPFILE_DEMO_MATLAB:.cpp=.exe)"
 
 
 all: $(OFILE_DEMO_MATLAB)
-	$(LD)  $(CH_LINKEXEFLAGS) $(OFILE_DEMO_MATLAB) $(CH_LIBRARIES) $(CH_MATLABLIB) $(CH_LINKERFLAG_FILEOUT)$(BINFILE_DEMO_MATLAB)
+	$(LD)  $(CH_LINKEXEFLAGS) $(OFILE_DEMO_MATLAB) $(CH_CHRONOLIB) $(CH_MATLABLIB) $(CH_LINKERFLAG_FILEOUT)$(BINFILE_DEMO_MATLAB)
 	$(MT) -manifest $(BINFILE_DEMO_MATLAB).manifest -outputresource:$(BINFILE_DEMO_MATLAB);#1 $(S)\
 	$(DEL) $(BINFILE_DEMO_MATLAB).manifest
 
