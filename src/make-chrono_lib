@@ -478,9 +478,9 @@ clean:
 	$(DEL) ..$(D)demos$(D)msvc$(D)oscillator$(D)Release
 	$(DEL) ..$(D)demos$(D)msvc$(D)racing$(D)Debug
 	$(DEL) ..$(D)demos$(D)msvc$(D)racing$(D)Release
-
-
-# For making the Doxygen documentation of the API
+	
+	
+# For making the Doxygen documentation of the API (Win only)
 
 doxygen:
 	$(DEL) ..\docs\html\*.*
