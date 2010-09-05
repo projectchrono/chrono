@@ -18,7 +18,6 @@
 #include "physics/ChGlobal.h"
 
 #include "physics/ChExternalObject.h"
-#include "collision/ChCModelGPU.h"
 #include "collision/ChCModelBulletParticle.h"
 #include "core/ChLinearAlgebra.h"
 

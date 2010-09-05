@@ -614,7 +614,7 @@ int main(int argc, char* argv[])
 	application.SetUserEventReceiver(&receiver);
 
       // Force display of infos
-	//application.SetShowInfos(true);
+	application.SetShowInfos(true);
 
 	//
 	// SETTINGS 

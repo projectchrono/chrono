@@ -29,8 +29,8 @@
 #include "irrlicht_interface/ChIrrAppInterface.h"
 #include "core/ChRealtimeStep.h"
 
-#include "lcp/ChLcpIterativeCudaSolver.h"	// <--
-#include "physics/ChContactContainerGPUsimple.h"	// <--
+#include "unit_GPU/ChLcpIterativeSolverGPUsimple.h"		// <--
+#include "unit_GPU/ChContactContainerGPUsimple.h"		// <--
 
 #include <irrlicht.h>
  
@@ -226,7 +226,8 @@ int main(int argc, char* argv[])
 	// by plugging in some GPU-enabled components.
 	//
 	// In this example, we use the ChLcpIterativeCuda (implementation by A.Tasora)
-	// for the solver, and no GPU for collision detection.
+	// for the solver (that must be used together with a ChContactContainerGPUsimple!) 
+	// and no GPU for collision detection.
 	// Note that currently the  ChLcpIterativeCuda  does not have fall-back
 	// for the case of default contact data, so it _necessarily_ needs that
 	// you also plug-in the ChContactContainerGPUsimple  contact container (it
@@ -234,13 +235,13 @@ int main(int argc, char* argv[])
 	// More advanced GPU components (ex. the H.Mazhar work) allow plugging in
 	// also GPU collision detection that avoids bottlenecks in cd->solver data transfer.
 	
-	ChContactContainerGPUsimple mGPUcontactcontainer;
-	ChLcpIterativeCuda			mGPUsolverPos;
-	ChLcpIterativeCuda			mGPUsolverSpeed;
+	ChContactContainerGPUsimple		mGPUcontactcontainer;
+	ChLcpIterativeSolverGPUsimple	mGPUsolverPos(&mGPUcontactcontainer);
+	ChLcpIterativeSolverGPUsimple	mGPUsolverSpeed(&mGPUcontactcontainer);
 
-	mphysicalSystem.ChangeContactContainer(mGPUcontactcontainer);
-	mphysicalSystem.ChangeLcpSolverSpeed(mGPUsolverSpeed);
-	mphysicalSystem.ChangeLcpSolverPos(mGPUsolverSpeed);  // this is used only with Tasora timestepping, unneded for Anitescu
+	mphysicalSystem.ChangeContactContainer(&mGPUcontactcontainer);
+	mphysicalSystem.ChangeLcpSolverSpeed(&mGPUsolverSpeed);
+	mphysicalSystem.ChangeLcpSolverStab(&mGPUsolverSpeed);  // this is used only with Tasora timestepping, unneded for Anitescu
 	
 
 	// 

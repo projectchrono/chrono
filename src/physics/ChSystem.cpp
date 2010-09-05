@@ -43,7 +43,6 @@
 */
 
 #include "core/ChTimer.h"
-#include "collision/ChCCollisionSystemGPU.h"
 #include "collision/ChCCollisionSystemBullet.h"
 #include "collision/ChCModelBulletBody.h"
 

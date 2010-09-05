@@ -144,14 +144,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\collision\ChCCollisionSystemGPU.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\collision\ChCCollisionSystemGPU.h"
-				>
-			</File>
-			<File
 				RelativePath=".\collision\ChCConvexDecomposition.h"
 				>
 			</File>
@@ -185,30 +177,6 @@
 			</File>
 			<File
 				RelativePath=".\collision\ChCModelBulletParticle.h"
-				>
-			</File>
-			<File
-				RelativePath=".\collision\ChCModelGPU.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\collision\ChCModelGPU.h"
-				>
-			</File>
-			<File
-				RelativePath=".\collision\ChCModelGPUBody.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\collision\ChCModelGPUBody.h"
-				>
-			</File>
-			<File
-				RelativePath=".\collision\collide.cu"
-				>
-			</File>
-			<File
-				RelativePath=".\collision\collide_kernel.cu"
 				>
 			</File>
 			<Filter
@@ -1433,8 +1401,40 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="chjs"
+			Name="unit_JS"
 			>
+			<File
+				RelativePath=".\chjs\ChControlsJS.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\chjs\ChControlsJS.h"
+				>
+			</File>
+			<File
+				RelativePath=".\chjs\ChFunctionJS.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\chjs\ChFunctionJS.h"
+				>
+			</File>
+			<File
+				RelativePath=".\chjs\ChFxJavascript.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\chjs\ChFxJavascript.h"
+				>
+			</File>
+			<File
+				RelativePath=".\chjs\ChGlobalJS.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\chjs\ChGlobalJS.h"
+				>
+			</File>
 			<File
 				RelativePath="chjs\ChJs_all.cpp"
 				>
@@ -1563,6 +1563,14 @@
 				RelativePath="chjs\ChJs_utils.h"
 				>
 			</File>
+			<File
+				RelativePath=".\chjs\ChOptvar.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\chjs\ChOptvar.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="physics"
@@ -1624,27 +1632,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\physics\ChContactContainerGPUsimple.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\physics\ChContactContainerGPUsimple.h"
-				>
-			</File>
-			<File
 				RelativePath=".\physics\ChContactContainerNodes.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\physics\ChContactContainerNodes.h"
-				>
-			</File>
-			<File
-				RelativePath=".\physics\ChContactGPUsimple.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\physics\ChContactGPUsimple.h"
 				>
 			</File>
 			<File
@@ -1908,14 +1900,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\physics\ChLinkGPUcontact.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\physics\ChLinkGPUContact.h"
-				>
-			</File>
-			<File
 				RelativePath="physics\ChLinkLinActuator.cpp"
 				>
 			</File>
@@ -2097,14 +2081,6 @@
 			</File>
 			<File
 				RelativePath="physics\ChObject.h"
-				>
-			</File>
-			<File
-				RelativePath="physics\ChOptvar.cpp"
-				>
-			</File>
-			<File
-				RelativePath="physics\ChOptvar.h"
 				>
 			</File>
 			<File
@@ -2583,6 +2559,30 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="gpu"
+				>
+				<File
+					RelativePath="..\demos\gpu\demo_gpubasic.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\demos\gpu\makefile"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="mpi"
+				>
+				<File
+					RelativePath="..\demos\mpi\demo_mpibasic.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\demos\mpi\makefile"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="irrlicht_interface"
@@ -2788,22 +2788,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\lcp\ChLcpConstraintTwoGPUcontN.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\lcp\ChLcpConstraintTwoGPUcontN.h"
-				>
-			</File>
-			<File
-				RelativePath=".\lcp\ChLcpConstraintTwoGPUcontT.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\lcp\ChLcpConstraintTwoGPUcontT.h"
-				>
-			</File>
-			<File
 				RelativePath=".\lcp\ChLcpConstraintTwoRollingN.cpp"
 				>
 			</File>
@@ -2821,22 +2805,6 @@
 			</File>
 			<File
 				RelativePath=".\lcp\ChLcpDirectSolver.h"
-				>
-			</File>
-			<File
-				RelativePath=".\lcp\ChLcpIterativeCuda.cu"
-				>
-			</File>
-			<File
-				RelativePath=".\lcp\ChLcpIterativeCuda.h"
-				>
-			</File>
-			<File
-				RelativePath=".\lcp\ChLcpIterativeCudaSolver.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\lcp\ChLcpIterativeCudaSolver.h"
 				>
 			</File>
 			<File
@@ -2985,6 +2953,122 @@
 			>
 			<File
 				RelativePath=".\matlab_interface\ChMatlabEngine.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="unit_MPI"
+			>
+			<File
+				RelativePath=".\unit_MPI\ChMpi.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_MPI\ChMpi.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="unit_GPU"
+			>
+			<File
+				RelativePath=".\unit_GPU\ChCCollisionSystemGPU.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\ChCCollisionSystemGPU.h"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\ChCCollisionSystemGPU.obj"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\ChCModelGPU.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\ChCModelGPU.h"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\ChCModelGPU.obj"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\ChCModelGPUBody.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\ChCModelGPUBody.h"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\ChCModelGPUBody.obj"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\ChContactContainerGPUsimple.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\ChContactContainerGPUsimple.h"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\ChContactGPUsimple.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\ChContactGPUsimple.h"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\ChCuda.h"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\ChLcpConstraintTwoGPUcontN.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\ChLcpConstraintTwoGPUcontN.h"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\ChLcpConstraintTwoGPUcontT.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\ChLcpConstraintTwoGPUcontT.h"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\ChLcpIterativeSolverGPUsimple.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\ChLcpIterativeSolverGPUsimple.h"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\ChLcpIterativeSolverGPUsimpleCU.cu"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\ChLcpIterativeSolverGPUsimpleCU.h"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\collide.cu"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\collide.h"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\collide_kernel.cu"
 				>
 			</File>
 		</Filter>

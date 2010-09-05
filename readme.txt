@@ -7,12 +7,36 @@
 Release 1.1.0
 XX-XX-XXXX
 
+- New unit: ChronoEngine_MPI.dll.
+  This will be used to host code for cluster computing.
+  It contains features for exploiting the MPI interface
+  for high performance parallel computing. Compatibility
+  is tested under MPICH-2. 
+  Under development. 
+
+- All CUDA code, previously spread in many directories
+  and mixed with normal code, now is grouped in a
+  single directory: unit_GPU. 
+
+- ChLcpIterativeCuda renamed ChLcpIterativeSolverGPUsimple.
+  For this reason, and for the previous one, some
+  includes have been changed.
+  
+- ChModelBullet::SetFamilyMaskNoCollisionWithFamily was
+  broken in last release, since the Bullet collision code
+  was updated with different functionalities. Bug fixed.
 
 - The Javascript code is now completely separated from the
   main ChronoEngine.dll. This means that Javascript API is
   no longer needed if one wants to recompile C::E on 
   platforms where JS is not easily available. 
-  The Javascript features are in ChronoEngineJS.dll .
+  The Javascript features are in ChronoEngine_JS.dll .
+  
+- The Cuda/GPU code is now completely separated from the
+  main ChronoEngine.dll. This means that Cuda API is
+  no longer needed if one wants to recompile C::E on 
+  platforms where Cuda is not easily available. 
+  The Cuda/GPU features are in ChronoEngine_GPU.dll .
   
 - The CH_NOCUDA flag has been renamed CH_UNIT_CUDA, and
   its behaviour is reversed (TRUE enables CUDA).

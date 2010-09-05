@@ -23,6 +23,7 @@ include ../makes/config.mak
 		 $(DEMO_DIR)/track	
 
 
+
 # List of files to compile to make the chrono library
 
 CPPFILES_LIB = \
@@ -303,27 +304,27 @@ CPPFILES_LIB = \
 # List of files to compile to make the 'javascript for Chrono' library unit
 
 CPPFILES_LIB_JS = \
-	chjs/ChGlobalJS.cpp \
-	chjs/ChControlsJS.cpp \
-	chjs/ChFunctionJS.cpp \
-	chjs/ChFxJavascript.cpp \
-	chjs/ChOptvar.cpp \
-	chjs/ChJs_Engine.cpp \
-	chjs/ChJs_utils.cpp \
-	chjs/ChJs_all.cpp \
-	chjs/ChJs_math.cpp \
-	chjs/ChJs_chobject.cpp \
-	chjs/ChJs_system.cpp \
-	chjs/ChJs_body.cpp \
-	chjs/ChJs_marker.cpp \
-	chjs/ChJs_force.cpp \
-	chjs/ChJs_link.cpp \
-	chjs/ChJs_funct.cpp \
-	chjs/ChJs_optimizer.cpp \
-	chjs/ChJs_geometry.cpp \
-	chjs/ChJs_controller.cpp \
-	chjs/ChJs_constraint.cpp \
-	chjs/ChJs_impact.cpp 
+	unit_JS/ChGlobalJS.cpp \
+	unit_JS/ChControlsJS.cpp \
+	unit_JS/ChFunctionJS.cpp \
+	unit_JS/ChFxJavascript.cpp \
+	unit_JS/ChOptvar.cpp \
+	unit_JS/ChJs_Engine.cpp \
+	unit_JS/ChJs_utils.cpp \
+	unit_JS/ChJs_all.cpp \
+	unit_JS/ChJs_math.cpp \
+	unit_JS/ChJs_chobject.cpp \
+	unit_JS/ChJs_system.cpp \
+	unit_JS/ChJs_body.cpp \
+	unit_JS/ChJs_marker.cpp \
+	unit_JS/ChJs_force.cpp \
+	unit_JS/ChJs_link.cpp \
+	unit_JS/ChJs_funct.cpp \
+	unit_JS/ChJs_optimizer.cpp \
+	unit_JS/ChJs_geometry.cpp \
+	unit_JS/ChJs_controller.cpp \
+	unit_JS/ChJs_constraint.cpp \
+	unit_JS/ChJs_impact.cpp 
 	
 	
 # List of files to compile to make the 'Chrono for MPI' library unit
@@ -335,20 +336,18 @@ CPPFILES_LIB_MPI = \
 # List of files to compile to make the 'Chrono for CUDA' library unit
 
 CPPFILES_LIB_CUDA = \
-	physics/ChLinkGPUcontact.cpp \
-	physics/ChContactContainerGPUsimple.cpp \
-	physics/ChContactGPUsimple.cpp \
-	collision/ChCModelGPU.cpp \
-	collision/ChCModelGPUBody.cpp \
-	collision/ChCCollisionSystemGPU.cpp \
-	lcp/ChLcpIterativeCudaSolver.cpp \
-	lcp/ChLcpConstraintTwoGPUcontN.cpp \
-	lcp/ChLcpConstraintTwoGPUcontT.cpp 
+	unit_GPU/ChCModelGPU.cpp \
+	unit_GPU/ChCModelGPUBody.cpp \
+	unit_GPU/ChCCollisionSystemGPU.cpp \
+	unit_GPU/ChContactContainerGPUsimple.cpp \
+	unit_GPU/ChContactGPUsimple.cpp \
+	unit_GPU/ChLcpIterativeSolverGPUsimple.cpp \
+	unit_GPU/ChLcpConstraintTwoGPUcontN.cpp \
+	unit_GPU/ChLcpConstraintTwoGPUcontT.cpp 
 	
 CUDAFILES_LIB = \
-	lcp/ChLcpIterativeCuda.cu \
-	collision/collide.cu 
-	
+	unit_GPU/ChLcpIterativeSolverGPUsimpleCU.cu \
+	unit_GPU/collide.cu 
 
 
 
