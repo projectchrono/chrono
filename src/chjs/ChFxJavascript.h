@@ -20,8 +20,8 @@
 
 
 #include "physics/ChFx.h"
-#include "chjs/ChOptvar.h"
-#include "chjs/ChGlobalJS.h"
+#include "unit_JS/ChOptvar.h"
+#include "unit_JS/ChGlobalJS.h"
 
 struct JSScript;
 

@@ -9,8 +9,8 @@
 ///////////////////////////////////////////////////
 
 
-#include "chjs/ChFxJavascript.h"
-#include "chjs/ChJs_Engine.h"
+#include "unit_JS/ChFxJavascript.h"
+#include "unit_JS/ChJs_Engine.h"
 
 
 namespace chrono

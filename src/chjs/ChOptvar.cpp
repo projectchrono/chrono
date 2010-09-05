@@ -18,9 +18,9 @@
 #include <memory.h>
 
 #include "physics/ChSystem.h"
-#include "chjs/ChOptvar.h"
-#include "chjs/ChJs_Engine.h"
-#include "chjs/ChGlobalJS.h"
+#include "unit_JS/ChOptvar.h"
+#include "unit_JS/ChJs_Engine.h"
+#include "unit_JS/ChGlobalJS.h"
 
 namespace chrono
 {
