@@ -15,7 +15,7 @@
 #include "physics/ChGlobal.h" 
 #include "physics/ChBody.h" 
 #include "physics/ChSystem.h" 
-#include "chjs/ChJs_Engine.h"
+#include "unit_JS/ChJs_Engine.h"
  
  
 namespace chrono 

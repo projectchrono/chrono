@@ -17,8 +17,8 @@
 
 #include "core/ChLog.h"
 #include "physics/ChSolvmin.h"
-#include "chjs/ChJs_Engine.h"
-#include "chjs/ChGlobalJS.h"
+#include "unit_JS/ChJs_Engine.h"
+#include "unit_JS/ChGlobalJS.h"
 
 
 namespace chrono
