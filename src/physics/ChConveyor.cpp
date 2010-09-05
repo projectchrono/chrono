@@ -16,7 +16,6 @@
 #include "physics/ChConveyor.h"
 #include "physics/ChSystem.h"
 
-#include "collision/ChCModelGPU.h"
 #include "collision/ChCModelBulletBody.h"
 
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.

@@ -20,7 +20,6 @@
 #include "physics/ChSystem.h"
 
 #include "physics/ChExternalObject.h"
-#include "collision/ChCModelGPU.h"
 #include "collision/ChCModelBulletBody.h"
 #include "core/ChLinearAlgebra.h"
 
