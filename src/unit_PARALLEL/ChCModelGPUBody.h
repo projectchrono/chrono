@@ -17,7 +17,7 @@
 ///////////////////////////////////////////////////
 
 
-#include "collision/ChCModelGPU.h"
+#include "ChCModelGPU.h"
 
 
 namespace chrono 
