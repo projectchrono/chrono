@@ -83,6 +83,9 @@ class ChCollisionSystemBullet : public ChCollisionSystem
 					/// Perform a raycast (ray-hit test with the collision models).
 	virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult);
 
+					// For Bullet related stuff
+	btCollisionWorld* GetBulletCollisionWorld() {return bt_collision_world;}
+
 private:
 	btCollisionConfiguration* bt_collision_configuration;
 	btCollisionDispatcher*  bt_dispatcher;

@@ -327,19 +327,18 @@ CPPFILES_LIB_MPI = \
 # List of files to compile to make the 'Chrono for CUDA' library unit
 
 CPPFILES_LIB_CUDA = \
-	physics/ChLinkGPUcontact.cpp \
-	physics/ChContactContainerGPUsimple.cpp \
-	physics/ChContactGPUsimple.cpp \
-	collision/ChCModelGPU.cpp \
-	collision/ChCModelGPUBody.cpp \
-	collision/ChCCollisionSystemGPU.cpp \
-	lcp/ChLcpIterativeCudaSolver.cpp \
-	lcp/ChLcpConstraintTwoGPUcontN.cpp \
-	lcp/ChLcpConstraintTwoGPUcontT.cpp 
+	unit_GPU/ChCModelGPU.cpp \
+	unit_GPU/ChCModelGPUBody.cpp \
+	unit_GPU/ChCCollisionSystemGPU.cpp \
+	unit_GPU/ChContactContainerGPUsimple.cpp \
+	unit_GPU/ChContactGPUsimple.cpp \
+	unit_GPU/ChLcpIterativeSolverGPUsimple.cpp \
+	unit_GPU/ChLcpConstraintTwoGPUcontN.cpp \
+	unit_GPU/ChLcpConstraintTwoGPUcontT.cpp 
 	
 CUDAFILES_LIB = \
-	lcp/ChLcpIterativeCuda.cu \
-	collision/collide.cu 
+	unit_GPU/ChLcpIterativeSolverGPUsimpleCU.cu \
+	unit_GPU/collide.cu 
 	
 
 
@@ -390,7 +389,6 @@ lib: lib_chronoengine $(CH_JAVASCRIPTLIB_MAKETARGET) $(CH_MPILIB_MAKETARGET) $(C
 
 
 lib_chronoengine:  $(OFILES_LIB)
-	echo $(CH_CUDALIB_MAKETARGET)
 	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME).defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).defx"
 	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME).def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).def"
 	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME).exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).exp"

@@ -17,7 +17,7 @@
 #include "GIMPACTUtils/btGImpactConvexDecompositionShape.h"
 #include "BulletCollision/CollisionShapes/btBarrelShape.h"
 #include "collision/bullet/btBulletCollisionCommon.h"
-
+#include "collision/ChCCollisionSystemBullet.h"
 
 namespace chrono 
 {
@@ -436,6 +436,7 @@ bool ChModelBullet::AddCopyOfAnotherModel (ChCollisionModel* another)
 void  ChModelBullet::SetFamily(int mfamily)
 {
 	assert(mfamily<16);
+
 	if (!bt_collision_object->getBroadphaseHandle()) return;
 
 	this->SyncPosition();
@@ -444,17 +445,9 @@ void  ChModelBullet::SetFamily(int mfamily)
 	ChCollisionSystem* mcosys =this->GetPhysicsItem()->GetSystem()->GetCollisionSystem();
 	short int original_mask = bt_collision_object->getBroadphaseHandle()->m_collisionFilterMask;
 	mcosys->Remove(this);
-	
-	btVector3 original_pos = bt_collision_object->getWorldTransform().getOrigin();
 
-	bt_collision_object->getWorldTransform().setOrigin(btVector3(100,100,100)); // hopefully out of overlapping pairs
-	mcosys->Add(this);
-
-	bt_collision_object->getBroadphaseHandle()->m_collisionFilterGroup = (short int)0x1 << mfamily;
-	bt_collision_object->getBroadphaseHandle()->m_collisionFilterMask = original_mask; // restore mask, cause mcosys->Add() has resetted
-
-	// back to original position - future broadphase operations will create proper coll.pairs
-	bt_collision_object->getWorldTransform().setOrigin(original_pos);	
+	ChCollisionSystemBullet* mcs = (ChCollisionSystemBullet*) mcosys;
+	mcs->GetBulletCollisionWorld()->addCollisionObject(bt_collision_object, (short int)0x1 << mfamily , original_mask);
 }
 
 int   ChModelBullet::GetFamily()
@@ -470,6 +463,7 @@ int   ChModelBullet::GetFamily()
 void  ChModelBullet::SetFamilyMaskNoCollisionWithFamily(int mfamily)
 {
 	assert(mfamily<16);
+
 	if (!bt_collision_object->getBroadphaseHandle()) return;
 
 	this->SyncPosition();
@@ -477,25 +471,18 @@ void  ChModelBullet::SetFamilyMaskNoCollisionWithFamily(int mfamily)
 	// Trick to avoid troubles if setting mask or family when model is already overlapping to some other model
 	ChCollisionSystem* mcosys =this->GetPhysicsItem()->GetSystem()->GetCollisionSystem();
 	short int original_family = bt_collision_object->getBroadphaseHandle()->m_collisionFilterGroup;
+	short int original_mask   = bt_collision_object->getBroadphaseHandle()->m_collisionFilterMask;
 	mcosys->Remove(this);
 
-	btVector3 btoriginal_pos = bt_collision_object->getWorldTransform().getOrigin();
-
-	bt_collision_object->getWorldTransform().setOrigin(btVector3(100,100,100)); // hopefully out of overlapping pairs
-	mcosys->Add(this); 
-
 	short int familyflag = (short int)0x1 << mfamily;
-	bt_collision_object->getBroadphaseHandle()->m_collisionFilterMask  &= ~familyflag;
-	bt_collision_object->getBroadphaseHandle()->m_collisionFilterGroup = original_family; // restore group, cause mcosys->Add() has resetted
-
-	// back to original position - future broadphase operations will create proper coll.pairs
-	bt_collision_object->getWorldTransform().setOrigin(btoriginal_pos);
-
+	ChCollisionSystemBullet* mcs = (ChCollisionSystemBullet*) mcosys;
+	mcs->GetBulletCollisionWorld()->addCollisionObject(bt_collision_object, original_family , original_mask & ~familyflag);
 } 
 
 void  ChModelBullet::SetFamilyMaskDoCollisionWithFamily(int mfamily)
 {
 	assert(mfamily<16);
+
 	if (!bt_collision_object->getBroadphaseHandle()) return;
 
 	this->SyncPosition();
@@ -503,18 +490,12 @@ void  ChModelBullet::SetFamilyMaskDoCollisionWithFamily(int mfamily)
 	// Trick to avoid troubles if setting mask or family when model is already overlapping to some other model
 	ChCollisionSystem* mcosys =this->GetPhysicsItem()->GetSystem()->GetCollisionSystem();
 	short int original_family = bt_collision_object->getBroadphaseHandle()->m_collisionFilterGroup;
+	short int original_mask   = bt_collision_object->getBroadphaseHandle()->m_collisionFilterMask;
 	mcosys->Remove(this);
 
-	btVector3 original_pos = bt_collision_object->getWorldTransform().getOrigin();
-	bt_collision_object->getWorldTransform().setOrigin(btVector3(100,100,100)); // hopefully out of overlapping pairs
-	mcosys->Add(this);  
-
 	short int familyflag = (short int)0x1 << mfamily;
-	bt_collision_object->getBroadphaseHandle()->m_collisionFilterMask |= familyflag;
-	bt_collision_object->getBroadphaseHandle()->m_collisionFilterGroup = original_family; // restore group, cause mcosys->Add() has resetted
-
-	// back to original position - future broadphase operations will create proper coll.pairs
-	bt_collision_object->getWorldTransform().setOrigin(original_pos);	
+	ChCollisionSystemBullet* mcs = (ChCollisionSystemBullet*) mcosys;
+	mcs->GetBulletCollisionWorld()->addCollisionObject(bt_collision_object, original_family , original_mask | familyflag);
 }
 
 bool ChModelBullet::GetFamilyMaskDoesCollisionWithFamily(int mfamily)
