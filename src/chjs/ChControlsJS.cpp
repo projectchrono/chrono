@@ -12,9 +12,9 @@
   
 #include <math.h>
 
-#include "chjs/ChControlsJS.h"
-#include "chjs/ChJs_Engine.h"
-#include "chjs/ChGlobalJS.h"
+#include "unit_JS/ChControlsJS.h"
+#include "unit_JS/ChJs_Engine.h"
+#include "unit_JS/ChGlobalJS.h"
 
 namespace chrono 
 {

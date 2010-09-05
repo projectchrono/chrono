@@ -16,10 +16,10 @@
 #include "physics/ChGlobal.h"
 
 #include "jsapi.h"
-#include "chjs/ChJs_funct.h"
-#include "chjs/ChJs_Engine.h"
-#include "chjs/ChGlobalJS.h"
-#include "chjs/ChFunctionJS.h"
+#include "unit_JS/ChJs_funct.h"
+#include "unit_JS/ChJs_Engine.h"
+#include "unit_JS/ChGlobalJS.h"
+#include "unit_JS/ChFunctionJS.h"
 
 namespace chrono
 {

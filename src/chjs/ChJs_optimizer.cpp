@@ -12,7 +12,7 @@
 #include "ChJs_utils.h"
 #include "ChJs_optimizer.h"
 #include "physics/ChSolvmin.h"
-#include "chjs/ChOptvar.h"
+#include "unit_JS/ChOptvar.h"
 #include "physics/ChGlobal.h"
 
 //*** DISABLED!!!***

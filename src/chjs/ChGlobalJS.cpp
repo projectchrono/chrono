@@ -13,8 +13,8 @@
 
 #include "physics/ChBody.h" 
 #include "physics/ChSystem.h"
-#include "chjs/ChGlobalJS.h" 
-#include "chjs/ChJs_Engine.h"
+#include "unit_JS/ChGlobalJS.h" 
+#include "unit_JS/ChJs_Engine.h"
  
  
 namespace chrono 
