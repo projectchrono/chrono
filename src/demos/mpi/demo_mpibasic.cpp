@@ -24,6 +24,9 @@
 #include "physics/ChApidll.h" 
 #include "unit_MPI/ChMpi.h"
 
+#include "mpi.h"
+
+
 using namespace chrono;
 
  
@@ -33,12 +36,14 @@ int main(int argc, char* argv[])
 {
 	// The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
 	// global functions are needed.
-	DLL_CreateGlobals();
+	DLL_CreateGlobals(); 
 
+	CHMPI::Init(argc,argv);
 
 	Ch_test_mpi mtest;
-	mtest.run_test();
-
+	mtest.run_test_matrix();
+ 
+	CHMPI::Finalize();
 
 	// Remember this at the end of the program, if you started
 	// with DLL_CreateGlobals();
