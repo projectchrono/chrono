@@ -82,6 +82,21 @@ NvSimpleTypes.h : Defines basic data types for integers and floats.
 
 	typedef float				NxF32;
 	typedef double				NxF64;
+
+#elif WIN64
+	typedef __int64				NxI64;
+	typedef signed int			NxI32;
+	typedef signed short		NxI16;
+	typedef signed char			NxI8;
+
+	typedef unsigned __int64	NxU64;
+	typedef unsigned int		NxU32;
+	typedef unsigned short		NxU16;
+	typedef unsigned char		NxU8;
+
+	typedef float				NxF32;
+	typedef double				NxF64;
+		
 		
 #elif LINUX
 	typedef long long			NxI64;
