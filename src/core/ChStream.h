@@ -569,10 +569,11 @@ public:
 
 
 ///
-/// This is a wrapper for already-opened files (like std::cout or similar)
+/// This is a wrapper for already-opened std::ostream 
+/// output streams (like std::cout or similar)
 ///
 
-class ChStreamFileWrapper
+class ChStreamOstreamWrapper
 {
 private:
 				/// Handler to a C++ file
@@ -581,11 +582,11 @@ private:
 public:
 				/// Creates a wrapper for an already existing, already opened,
 				/// ostream, given the pointer to that ostream.
-	ChStreamFileWrapper(std::ostream* mfile);
+	ChStreamOstreamWrapper(std::ostream* mfile);
 
 				/// Deleting this stream wrapper does not delete nor closes
 				/// the wrapped ostream!
-	virtual ~ChStreamFileWrapper();
+	virtual ~ChStreamOstreamWrapper();
 
 				/// Writes raw data to file, up to n chars.
 				/// If does not succeed, throws exception.
@@ -593,6 +594,71 @@ public:
 
 				/// Returns true if end of stream reached.
 	virtual bool End_of_stream() { return afile->eof();};
+	
+				/// Reference to ostream encapsulated here.
+	std::ostream* GetOstream() { return afile;}
+};
+
+///
+/// This is a wrapper for already-opened std::istream 
+/// input streams 
+///
+
+class ChStreamIstreamWrapper
+{
+private:
+				/// Handler to a C++ stream
+	std::istream* afile;
+
+public:
+				/// Creates a wrapper for an already existing, already opened,
+				/// istream, given the pointer to that istream.
+	ChStreamIstreamWrapper(std::istream* mfile);
+
+				/// Deleting this stream wrapper does not delete nor closes
+				/// the wrapped istream!
+	virtual ~ChStreamIstreamWrapper();
+
+				/// Reads from stream, up to n chars.
+				/// If does not succeed, throws exception.
+	virtual void	Read(char* data, int n);
+
+				/// Returns true if end of stream reached.
+	virtual bool End_of_stream() { return afile->eof();};
+
+				/// Reference to istream encapsulated here.
+	std::istream* GetIstream() { return afile;}
+};
+
+
+///
+/// This is a specialized class for BINARY output to wrapped std::ostream,
+///
+
+class ChStreamOutBinaryStream : public ChStreamOstreamWrapper , public ChStreamOutBinary
+{
+public:
+	ChStreamOutBinaryStream(std::ostream* mfile)  : ChStreamOstreamWrapper(mfile), ChStreamOutBinary() {};
+	virtual ~ChStreamOutBinaryStream() {};
+
+	virtual bool End_of_stream() { return ChStreamOstreamWrapper::End_of_stream(); }
+private:
+	virtual void Output(const char* data, int n) { ChStreamOstreamWrapper::Write(data, n); }
+};
+
+///
+/// This is a specialized class for BINARY input from wrapped std::istream,
+///
+
+class ChStreamInBinaryStream : public ChStreamIstreamWrapper , public ChStreamInBinary
+{
+public:
+	ChStreamInBinaryStream(std::istream* mfile)  : ChStreamIstreamWrapper(mfile), ChStreamInBinary() {};
+	virtual ~ChStreamInBinaryStream() {};
+
+	virtual bool End_of_stream() { return ChStreamIstreamWrapper::End_of_stream(); }
+private:
+	virtual void Input(char* data, int n) { ChStreamIstreamWrapper::Read(data, n); }
 };
 
 

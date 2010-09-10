@@ -775,6 +775,15 @@ public:
 									Element (i+insrow, j+inscol) = (Real)matra->Element (i+cliprow,j+clipcol);
 						}
 
+					/// Paste a clipped portion of the matrix "matra" into "this", performing a sum with preexisting values,
+					/// inserting the clip (of size nrows, ncolumns) at the location insrow-inscol.
+	template <class RealB>
+	void PasteSumClippedMatrix (ChMatrix<RealB>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol)
+						{
+							for (int i=0;i < nrows;++i)
+								for (int j=0;j < ncolumns;++j)
+									Element (i+insrow, j+inscol) += (Real)matra->Element (i+cliprow,j+clipcol);
+						}
 
 					/// Paste a vector "va" into the matrix.
 	template <class RealB>
