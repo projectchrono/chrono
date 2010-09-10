@@ -695,13 +695,36 @@ void ChStreamFile::Read(char* data, int n)
 	catch (std::exception){throw ChException("Cannot read from stream");};
 }
 
+//////////////////////////////////
+
+ChStreamOstreamWrapper::ChStreamOstreamWrapper(std::ostream* mfile)
+{
+	assert(mfile);
+	afile = mfile;
+};
+ChStreamOstreamWrapper::~ChStreamOstreamWrapper() {};
 
 
-
-void ChStreamFileWrapper::Write(const char* data, int n)
+void ChStreamOstreamWrapper::Write(const char* data, int n)
 {
 	try{ afile->write(data, n); }
 	catch (std::exception){throw ChException("Cannot write to wrapped stream");};
+}
+
+//////////////////////////////////
+
+ChStreamIstreamWrapper::ChStreamIstreamWrapper(std::istream* mfile)
+{
+	assert(mfile);
+	afile = mfile;
+};
+ChStreamIstreamWrapper::~ChStreamIstreamWrapper() {};
+
+
+void ChStreamIstreamWrapper::Read(char* data, int n)
+{
+	try{ afile->read(data, n); }
+	catch (std::exception){throw ChException("Cannot read from wrapped stream");};
 }
 
 
@@ -739,12 +762,6 @@ ChBinaryArchive::~ChBinaryArchive() {};
 ChStreamInBinary::ChStreamInBinary() {};
 ChStreamInBinary::~ChStreamInBinary() {};
 
-ChStreamFileWrapper::ChStreamFileWrapper(std::ostream* mfile)
-{
-	assert(mfile);
-	afile = mfile;
-};
-ChStreamFileWrapper::~ChStreamFileWrapper() {};
 
 ChStreamOutBinaryFile::ChStreamOutBinaryFile(const char* filename) : ChStreamFile(filename, std::ios::out| std::ios::trunc| std::ios::binary) {};
 ChStreamOutBinaryFile::~ChStreamOutBinaryFile() {};

@@ -30,7 +30,7 @@
 #include "core/ChVector.h"
 #include "core/ChClassRegister.h"
 #include "core/ChException.h"               
- 
+#include <sstream>
  
 using namespace chrono;
            
@@ -364,7 +364,41 @@ int main(int argc, char* argv[])
 	}
 
 
-	
+
+
+	/*
+	 *  TEST std:: STREAM WRAPPING
+	 */
+
+	// In the previous examples we showed how to use Chrono::Engine 
+	// file streams such as  ChStreamInBinaryFile and ChStreamOutBinaryFile,
+	// but in the following we show that we can also wrap whatever object
+	// of type std::istream or std::ostream (already opened files, string streams,
+	// console logs, etc), thank to ChStreamOutBinaryStream and
+	// ChStreamInBinaryStream. All the concepts learned until now, such as
+	// serialization through << and >> , are still possible.
+
+	try 
+	{ 
+		std::stringstream mstream;
+
+		ChStreamOutBinaryStream mchstreamo(&mstream);
+		ChVector<> mv(12,23,45.34);
+		mchstreamo << mv;
+		//GetLog() << "Vector a: " << mv;
+
+		ChVector<> mz;
+		ChStreamInBinaryStream mchstreami(&mstream);
+		mchstreami >> mz;
+		//GetLog() << "Vector b: " << mz;
+	}
+	catch (ChException myex)
+	{
+			// Ops.. some error.. echo what happened!
+		GetLog() << "ERROR: " << myex.what();
+	}
+
+
 
 	return 0;
 }

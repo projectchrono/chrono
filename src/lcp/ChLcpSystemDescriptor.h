@@ -118,12 +118,14 @@ public:
 								bool only_bilaterals = false, 
 								bool skip_contacts_uv = false);
 
+
+
 				/// Using this function, one may get a vector with all the variables 'q'
 				/// ordered into a column vector. The column vector must be passed as a ChMatrix<>
 				/// object, which will be automatically reset and resized to the proper length.
 				/// \return  the number of scalar variables (i.e. the rows of the column vector).
 	virtual int FromVariablesToVector(
-								ChMatrix<>& mvector						///< matrix which will contain the entire vector of 'q'
+								ChMatrix<>& mvector					///< matrix which will contain the entire vector of 'q'
 								);
 
 				/// Using this function, one may go in the opposite direction of the FromVariablesToVector()

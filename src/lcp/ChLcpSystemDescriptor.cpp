@@ -176,8 +176,7 @@ int ChLcpSystemDescriptor::FromVectorToVariables(
 	{
 		if (vvariables[iv]->IsActive())
 		{
-			vvariables[iv]->Get_qb().PasteClippedMatrix(&mvector, s_q, 0,  vvariables[iv]->Get_ndof(),1,  0,0);
-			mvector.PasteMatrix(&vvariables[iv]->Get_qb(), s_q, 0);
+			//vvariables[iv]->Get_qb().PasteClippedMatrix(&mvector, s_q, 0,  vvariables[iv]->Get_ndof(),1,  0,0);
 			s_q += vvariables[iv]->Get_ndof();
 		}
 	}

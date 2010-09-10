@@ -100,11 +100,11 @@ private:
 /// Messages, warnings, etc. go always into the standard console.
 
 
-class ChLogConsole : public ChLog , public ChStreamFileWrapper  
+class ChLogConsole : public ChLog , public ChStreamOstreamWrapper  
 {
 public:
 			/// Create default logger: this will use the std::cout
-	ChLogConsole() : ChStreamFileWrapper(&std::cout)  {}
+	ChLogConsole() : ChStreamOstreamWrapper(&std::cout)  {}
 
 	virtual ~ChLogConsole() {};
 
@@ -112,7 +112,7 @@ public:
 	virtual void	Output(const char* data, int n) 
 		{ 
 			if (current_level != CHQUIET)
-				ChStreamFileWrapper::Write(data, n); 
+				ChStreamOstreamWrapper::Write(data, n); 
 		}
 
 

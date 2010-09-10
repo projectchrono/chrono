@@ -49,7 +49,12 @@ XX-XX-XXXX
   DLL_DeleteGlobals pair at the beginning/end of the
   program, a static default ChGlobal is used anyway.
   
-  
+- New classes ChStreamOstreamWrapper, ChStreamIstreamWrapper,
+  ChStreamOutBinaryStream, ChStreamInBinaryStream.
+  Class ChStreamWrapper renamed ChStreamOstreamWrapper
+
+
+
 
 Release 1.0.0
 01-09-2010
