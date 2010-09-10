@@ -97,7 +97,8 @@ int main(int argc, char* argv[])
 	{
 		vars.push_back (new ChLcpVariablesGeneric(1));
 		vars[im]->GetMass()(0)=10;
-		vars[im]->Get_fb()(0)=-0.098; 
+		vars[im]->GetInvMass()(0)=1./vars[im]->GetMass()(0);
+		vars[im]->Get_fb()(0)=-9.8*vars[im]->GetMass()(0)*0.01; 
 		mdescriptor.InsertVariables(vars[im]);
 		if (im>0)
 		{
@@ -119,16 +120,15 @@ int main(int argc, char* argv[])
 	if (myid == 0)
 	{
 		ChLcpSharedVarMPI msh;
-		msh.var = vars[10];
+		msh.var = vars.back(); //vars[10];
 		msh.uniqueID = 1012; // must be unique! (important if many shares in single interface)
 		mdescriptor.GetSharedInterfacesList()[0].InsertSharedVariable(msh);
 	}
-	// Last variable of 1st domain is shared with 1st variable of 2nd domain:
 	if (myid == 1)
 	{
 		ChLcpSharedVarMPI msh;
 		msh.var = vars[0];
-		msh.uniqueID = 1012; // must be unique! (important if many shares in single interface)
+		msh.uniqueID = 1014; // must be unique! (important if many shares in single interface)
 		mdescriptor.GetSharedInterfacesList()[0].InsertSharedVariable(msh);
 	}
 
@@ -156,11 +156,12 @@ int main(int argc, char* argv[])
 	// approximate (but very fast) solution:
 	//
 	// .. create the solver 
-	ChLcpIterativeSchwarzMPI msolver_iter( 118,	// max iterations
-									false,	// don't use warm start
-									0.0,	// termination tolerance
-									1.0,	// omega
-									20);	// n.iters each Schwarz synchronization
+	ChLcpIterativeSchwarzMPI msolver_iter(20,	// outer iterations (updates between domains) 
+										  480,	// inner iterations
+										 false,	// don't use warm start
+										 0.0,	// termination tolerance
+										 1.0	// omega
+										);	
 
 	// .. pass the constraint and the variables to the solver 
 	//    to solve - that's all.
