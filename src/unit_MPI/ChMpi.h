@@ -62,16 +62,16 @@ public:
 	static int Finalize();
 
 	/// Return the total number of processes
-	int CommSize();
+	static int CommSize();
 
 	/// Return the ID of this process
-	int CommRank();
+	static int CommRank();
 
 	/// Wait until a request is complete (for nonblocking send or receive).
-	int Wait(ChMPIrequest* mreq, ChMPIstatus* mstatus);
+	static int Wait(ChMPIrequest* mreq, ChMPIstatus* mstatus);
 
 	/// Test if a request is complete (for nonblocking send or receive).
-	bool Test(ChMPIrequest* mreq, ChMPIstatus* mstatus);
+	static bool Test(ChMPIrequest* mreq, ChMPIstatus* mstatus);
 
 	/// Modes for send/receive
 	enum eCh_mpiCommMode{

@@ -85,7 +85,7 @@ bool ChMPI::Test(ChMPIrequest* mreq, ChMPIstatus* mstatus)
 {
 	int flag;
 	MPI_Test( (MPI_Request*) mreq->mpireq, &flag,  (MPI_Status*) mstatus->mpistat);
-	return (bool)(flag);
+	return (flag!=0);
 }
 
 
@@ -214,9 +214,9 @@ int ChMPI::ReceiveMatrix( int sourceID,
 		err = MPI_Irecv( &mmatr, 1, Matrixtype, sourceID, 1001, MPI_COMM_WORLD, (MPI_Request*)mreq->mpireq);
 	}
 
-	int nnelements;
-	MPI_Get_elements ( (MPI_Status*)mstatus->mpistat, Matrixtype, &nnelements );
-	GetLog() << " n.elements:" << nnelements << "\n";
+	//int nnelements;
+	//MPI_Get_count ( (MPI_Status*)mstatus->mpistat, Matrixtype, &nnelements );
+	//GetLog() << " n.elements:" << nnelements << "\n";
 
 	MPI_Type_free( &Matrixtype);
 
@@ -294,7 +294,7 @@ int ChMPI::ReceiveString(int sourceID,				///< source rank
 	int incoming_msg_size =0;
 	MPI_Probe(sourceID, 1002,	MPI_COMM_WORLD, &status);
     MPI_Get_count(&status, MPI_BYTE, &incoming_msg_size);
-GetLog() << "   size:" << incoming_msg_size << "   \n";
+	//GetLog() << "   size:" << incoming_msg_size << "   \n";
 
 	dest_str.resize(incoming_msg_size);
 
@@ -303,9 +303,7 @@ GetLog() << "   size:" << incoming_msg_size << "   \n";
 	int err = 0;
 	if (incoming_msg_size)
 	{
-		GetLog() << "   MPI_Recv  \n ";
 		err = MPI_Recv( data, incoming_msg_size, MPI_BYTE, sourceID, 1002, MPI_COMM_WORLD, (MPI_Status*)mstatus->mpistat);
-		GetLog() << "   data:" << (char*)data << "\n";
 	}
 	return err;
 }
@@ -382,54 +380,7 @@ int ccmain(int argc,char *argv[])
     MPI_Finalize();
     return 0;
 }
-/*
-int ccmain()
-{
-    int n, myid, numprocs, i;
-    double PI25DT = 3.141592653589793238462643;
-    double mypi, pi, h, sum, x;
-    double startwtime = 0.0, endwtime;
-    int  namelen;
-    char processor_name[MPI_MAX_PROCESSOR_NAME];
 
-   // MPI::Init(argc,argv);
-	MPI::Init();
-    numprocs = MPI::COMM_WORLD.Get_size();
-    myid     = MPI::COMM_WORLD.Get_rank();
-    MPI::Get_processor_name(processor_name,namelen);
-
-	GetLog() << "Process " << myid << " of " << numprocs << " is on " << processor_name << "\n";
- //   cout << "Process " << myid << " of " << numprocs << " is on " <<
-	
-
-    n = 10000;			
-    if (myid == 0)
-	startwtime = MPI::Wtime();
-
-    MPI::COMM_WORLD.Bcast(&n, 1, MPI_INT, 0);
-
-    h   = 1.0 / (double) n;
-    sum = 0.0;
-
-    for (i = myid + 1; i <= n; i += numprocs)
-    {
-	x = h * ((double)i - 0.5);
-	sum += f(x);
-    }
-    mypi = h * sum;
-
-    MPI::COMM_WORLD.Reduce(&mypi, &pi, 1, MPI_DOUBLE, MPI_SUM, 0);
-
-    if (myid == 0) {
-		endwtime = MPI::Wtime();
-		GetLog() << "pi is approximately " << pi << " Error is " << fabs(pi - PI25DT) << "\n";
-		GetLog() << "wall clock time = " << endwtime-startwtime << "\n";
-    }
-
-    MPI::Finalize();
-    return 0;
-}
-*/ 
 
 void Ch_test_mpi::run_test()
 {
@@ -437,66 +388,6 @@ void Ch_test_mpi::run_test()
 	ccmain(foo, &faa);
 }
 
-void Ch_test_mpi::run_test_matrix()
-{
-	int numprocs, myid;
-	MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
-    MPI_Comm_rank(MPI_COMM_WORLD,&myid);
-
-	if (myid==0)
-		GetLog() << "Number of processes : " << numprocs << "\n";
-
-	if (numprocs != 2)
-	{
-		GetLog() << "Use at least 2 processes! \n";
-		return;
-	}
-
-	if (myid==0) // sender
-	{
-		ChMatrixDynamic<> mmatr(3,4);
-		for (int i=0; i<3; i++)
-			for (int j=0; j<4; j++)
-				mmatr(i,j)=i*j;
-		GetLog() << "Id 0: Sender: " << mmatr << "\n";
-		ChMPI::SendMatrix(1, mmatr, ChMPI::MPI_STANDARD, false,0);
-	}
-
-	if (myid==1) // receiver
-	{
-		ChMatrixDynamic<> mmatr(3,4);
-		//for (int i=0; i++; i<3)
-		//	for int(j=0; j++; j<4)
-		//		mmatr(i,j)=i*j;
-		ChMPIstatus mstatus;
-		ChMPI::ReceiveMatrix(0, mmatr, &mstatus, false,0);
-		
-		GetLog() << "Id 1: Receiver: " << mmatr << "\n";
-	}
-
-	if (myid==0) // sender
-	{
-		std::stringstream mstrbuf(std::stringstream::in | std::stringstream::out);
-		mstrbuf << "bla bla test stringbuffer 1222!";
-		GetLog() << "String Id 0: Sender: " << mstrbuf.rdbuf()->str() << "\n";
-		ChMPI::SendString(1, mstrbuf.rdbuf()->str(), ChMPI::MPI_STANDARD, false,0);
-	}
-
-	if (myid==1) // receiver
-	{
-		GetLog() << "Receive...\n"; 
-		std::stringstream mstrbuf2(std::stringstream::in | std::stringstream::out);
-		ChMPIstatus mstatus;
-		std::string mstr;
-		ChMPI::ReceiveString(0, mstr, &mstatus);
-		
-		GetLog() << "String Id 1: Receiver: " << mstr << "\n";
-
-	}
-
-	
-
-}
 
 
 } // END_OF_NAMESPACE____
