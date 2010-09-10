@@ -93,142 +93,149 @@ double ChLcpIterativeSchwarzMPI::Solve(
 	// 4)  Perform the iteration loops
 	//
 
-	int domainsteps = 1;
-
-
-	for (int iter = 0; iter < max_iterations; iter++)
+	for (int outeriters = 0; outeriters < this->domain_iters; outeriters++)
 	{
-		// The iteration on all constraints
-		//
-
-		maxviolation = 0;
-		maxdeltalambda = 0;
-		i_friction_comp = 0;
-
-		for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
-		{
-			// skip computations if constraint not active.
-			if (mconstraints[ic]->IsActive())
-			{
-				// compute residual  c_i = [Cq_i]*q + b_i
-				double mresidual = mconstraints[ic]->Compute_Cq_q() + mconstraints[ic]->Get_b_i();
-
-				// true constraint violation may be different from 'mresidual' (ex:clamped if unilateral)
-				double candidate_violation = fabs(mconstraints[ic]->Violation(mresidual));
-
-				// compute:  delta_lambda = -(omega/g_i) * ([Cq_i]*q + b_i )
-				double deltal = ( omega / mconstraints[ic]->Get_g_i() ) *
-								( -mresidual );
-
-				if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC)
-				{
-					candidate_violation = 0;
-
-					// update:   lambda += delta_lambda;
-					old_lambda_friction[i_friction_comp] = mconstraints[ic]->Get_l_i();
-					mconstraints[ic]->Set_l_i( old_lambda_friction[i_friction_comp]  + deltal);
-					i_friction_comp++;
-					
-					if (i_friction_comp==1)
-						candidate_violation = fabs(ChMin(0.0,mresidual));
-
-					if (i_friction_comp==3)
-					{ 
-						mconstraints[ic-2]->Project(); // the N normal component will take care of N,U,V
-						double new_lambda_0 = mconstraints[ic-2]->Get_l_i() ;
-						double new_lambda_1 = mconstraints[ic-1]->Get_l_i() ;
-						double new_lambda_2 = mconstraints[ic-0]->Get_l_i() ;
-						// Apply the smoothing: lambda= sharpness*lambda_new_projected + (1-sharpness)*lambda_old
-						if (this->shlambda!=1.0)
-						{
-							new_lambda_0 = shlambda*new_lambda_0 + (1.0-shlambda)*old_lambda_friction[0];
-							new_lambda_1 = shlambda*new_lambda_1 + (1.0-shlambda)*old_lambda_friction[1];
-							new_lambda_2 = shlambda*new_lambda_2 + (1.0-shlambda)*old_lambda_friction[2];
-							mconstraints[ic-2]->Set_l_i(new_lambda_0);
-							mconstraints[ic-1]->Set_l_i(new_lambda_1);
-							mconstraints[ic-0]->Set_l_i(new_lambda_2);
-						}
-						double true_delta_0 = new_lambda_0 - old_lambda_friction[0];
-						double true_delta_1 = new_lambda_1 - old_lambda_friction[1];
-						double true_delta_2 = new_lambda_2 - old_lambda_friction[2];
-						mconstraints[ic-2]->Increment_q(true_delta_0);
-						mconstraints[ic-1]->Increment_q(true_delta_1);
-						mconstraints[ic-0]->Increment_q(true_delta_2);
-						
-						if (this->record_violation_history)
-						{
-							maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta_0));
-							maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta_1));
-							maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta_2));
-						}
-						i_friction_comp =0;
-					}
-				} 
-				else
-				{
-					// update:   lambda += delta_lambda;
-					double old_lambda = mconstraints[ic]->Get_l_i();
-					mconstraints[ic]->Set_l_i( old_lambda + deltal);
-
-					// If new lagrangian multiplier does not satisfy inequalities, project
-					// it into an admissible orthant (or, in general, onto an admissible set)
-					mconstraints[ic]->Project();
-
-					// After projection, the lambda may have changed a bit..
-					double new_lambda = mconstraints[ic]->Get_l_i() ;
-
-					// Apply the smoothing: lambda= sharpness*lambda_new_projected + (1-sharpness)*lambda_old
-					if (this->shlambda!=1.0)
-					{
-						new_lambda = shlambda*new_lambda + (1.0-shlambda)*old_lambda;
-						mconstraints[ic]->Set_l_i(new_lambda);
-					}
-
-					double true_delta = new_lambda - old_lambda;
-
-					// For all items with variables, add the effect of incremented
-					// (and projected) lagrangian reactions:
-					mconstraints[ic]->Increment_q(true_delta);
-
-					if (this->record_violation_history)
-						maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta)); 
-				}
-
-				maxviolation = ChMax(maxviolation, fabs(candidate_violation));
-
-			}	// end IsActive()
-
-		}	// end loop on constraints
- 
-		// For recording into violaiton history, if debugging
-		if (this->record_violation_history)
-			AtIterationEnd(maxviolation, maxdeltalambda, iter);
-
 		// ########## SCHWARZ synchronization #########
 		//  This could be a time-consuming step! 
 		//
-		domainsteps++;
-		if (domainsteps > this->domain_iters)
+		if (outeriters >0) // skip 1st update
 		{
 			ChLcpSystemDescriptorMPI* domain_desc = dynamic_cast<ChLcpSystemDescriptorMPI*>(&sysd);
-			domain_desc->PerformCommunication(); 
-			domainsteps = 1;
-
+			
+			// zeroes q, and apply forces
 			for (unsigned int iv = 0; iv< mvariables.size(); iv++)
 				if (mvariables[iv]->IsActive())
 					mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb());
+			
+			// reapply last known duals
 			for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
 				if (mconstraints[ic]->IsActive())
-					mconstraints[ic]->Increment_q(mconstraints[ic]->Get_l_i());
+					mconstraints[ic]->Increment_q(mconstraints[ic]->Get_l_i());		
+			
+			// here send, then receive all infos from other domains,
+			// adding neighbouring effect to the q vector (like it is an 'apply forces').
+			domain_desc->PerformCommunication(); 
+
 		}
-		
 
-		// Terminate the loop if violation in constraints has been succesfully limited.
-		if (maxviolation < tolerance)
-			break;
+		// ######### subdomain solver ##################
 
-	} // end iteration loop
+		for (int iter = 0; iter < max_iterations; iter++)
+		{
+			// The iteration on all constraints
+			//
 
+			maxviolation = 0;
+			maxdeltalambda = 0;
+			i_friction_comp = 0;
+
+			for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
+			{
+				// skip computations if constraint not active.
+				if (mconstraints[ic]->IsActive())
+				{
+					// compute residual  c_i = [Cq_i]*q + b_i
+					double mresidual = mconstraints[ic]->Compute_Cq_q() + mconstraints[ic]->Get_b_i();
+
+					// true constraint violation may be different from 'mresidual' (ex:clamped if unilateral)
+					double candidate_violation = fabs(mconstraints[ic]->Violation(mresidual));
+
+					// compute:  delta_lambda = -(omega/g_i) * ([Cq_i]*q + b_i )
+					double deltal = ( omega / mconstraints[ic]->Get_g_i() ) *
+									( -mresidual );
+
+					if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC)
+					{
+						candidate_violation = 0;
+
+						// update:   lambda += delta_lambda;
+						old_lambda_friction[i_friction_comp] = mconstraints[ic]->Get_l_i();
+						mconstraints[ic]->Set_l_i( old_lambda_friction[i_friction_comp]  + deltal);
+						i_friction_comp++;
+						
+						if (i_friction_comp==1)
+							candidate_violation = fabs(ChMin(0.0,mresidual));
+
+						if (i_friction_comp==3)
+						{ 
+							mconstraints[ic-2]->Project(); // the N normal component will take care of N,U,V
+							double new_lambda_0 = mconstraints[ic-2]->Get_l_i() ;
+							double new_lambda_1 = mconstraints[ic-1]->Get_l_i() ;
+							double new_lambda_2 = mconstraints[ic-0]->Get_l_i() ;
+							// Apply the smoothing: lambda= sharpness*lambda_new_projected + (1-sharpness)*lambda_old
+							if (this->shlambda!=1.0)
+							{
+								new_lambda_0 = shlambda*new_lambda_0 + (1.0-shlambda)*old_lambda_friction[0];
+								new_lambda_1 = shlambda*new_lambda_1 + (1.0-shlambda)*old_lambda_friction[1];
+								new_lambda_2 = shlambda*new_lambda_2 + (1.0-shlambda)*old_lambda_friction[2];
+								mconstraints[ic-2]->Set_l_i(new_lambda_0);
+								mconstraints[ic-1]->Set_l_i(new_lambda_1);
+								mconstraints[ic-0]->Set_l_i(new_lambda_2);
+							}
+							double true_delta_0 = new_lambda_0 - old_lambda_friction[0];
+							double true_delta_1 = new_lambda_1 - old_lambda_friction[1];
+							double true_delta_2 = new_lambda_2 - old_lambda_friction[2];
+							mconstraints[ic-2]->Increment_q(true_delta_0);
+							mconstraints[ic-1]->Increment_q(true_delta_1);
+							mconstraints[ic-0]->Increment_q(true_delta_2);
+							
+							if (this->record_violation_history)
+							{
+								maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta_0));
+								maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta_1));
+								maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta_2));
+							}
+							i_friction_comp =0;
+						}
+					} 
+					else
+					{
+						// update:   lambda += delta_lambda;
+						double old_lambda = mconstraints[ic]->Get_l_i();
+						mconstraints[ic]->Set_l_i( old_lambda + deltal);
+
+						// If new lagrangian multiplier does not satisfy inequalities, project
+						// it into an admissible orthant (or, in general, onto an admissible set)
+						mconstraints[ic]->Project();
+
+						// After projection, the lambda may have changed a bit..
+						double new_lambda = mconstraints[ic]->Get_l_i() ;
+
+						// Apply the smoothing: lambda= sharpness*lambda_new_projected + (1-sharpness)*lambda_old
+						if (this->shlambda!=1.0)
+						{
+							new_lambda = shlambda*new_lambda + (1.0-shlambda)*old_lambda;
+							mconstraints[ic]->Set_l_i(new_lambda);
+						}
+
+						double true_delta = new_lambda - old_lambda;
+
+						// For all items with variables, add the effect of incremented
+						// (and projected) lagrangian reactions:
+						mconstraints[ic]->Increment_q(true_delta);
+
+						if (this->record_violation_history)
+							maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta)); 
+					}
+
+					maxviolation = ChMax(maxviolation, fabs(candidate_violation));
+
+				}	// end IsActive()
+
+			}	// end loop on constraints
+	 
+			// For recording into violation history, if debugging
+			if (this->record_violation_history)
+				AtIterationEnd(maxviolation, maxdeltalambda, iter);
+
+
+			// Terminate the loop if violation in constraints has been succesfully limited.
+			if (maxviolation < tolerance)
+				break;
+
+		} // end inner iteration loop
+
+	} // end outer (domain) iteration loop
 
 	return maxviolation;
 

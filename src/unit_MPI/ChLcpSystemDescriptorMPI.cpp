@@ -109,7 +109,7 @@ void ChLcpSharedInterfaceMPI::ReceiveMPIandAdd ()
 		if (sharedvariables[iv].var->IsActive())
 		{
 			GetLog() << "ID=" << ChMPI::CommRank() << "     receive dfb=" << shared_vector(s_q,0) << "\n";
-			sharedvariables[iv].var->Get_fb().PasteSumClippedMatrix(&shared_vector, s_q, 0,  sharedvariables[iv].var->Get_ndof(),1,  0,0);
+			sharedvariables[iv].var->Get_qb().PasteSumClippedMatrix(&shared_vector, s_q, 0,  sharedvariables[iv].var->Get_ndof(),1,  0,0);
 			s_q += sharedvariables[iv].var->Get_ndof();
 		}
 	}
@@ -150,15 +150,16 @@ void ChLcpSystemDescriptorMPI::PerformCommunication()
 	for (unsigned int is = 0; is < shared_interfaces.size(); is++)
 		shared_interfaces[is].SendMPI();
 
+	//    ***Trick end: restore backup-ed sparse vars (qb vectors) of entire domain,
+	//    because we used the qb vectors for sparse computation of df = [invM]*[Cq_i]'*l
+	this->FromVectorToVariables(q_backup);
+
 	//    MPI!! Now it is possible to let all shared interfaces to receive
-	//    informations from their matching domains and to add to fb vectors in variables.
+	//    informations from their matching domains and to add to qb vectors in variables.
 	for (unsigned int is = 0; is < shared_interfaces.size(); is++)
 		shared_interfaces[is].ReceiveMPIandAdd();
 
-	//    ***Trick end: restore backup-ed sparse vars (qb vectors) of entire domain,
-	//    because we used the qb vectors for sparse computation of df = [invM]*[Cq_i]'*l
-
-	this->FromVectorToVariables(q_backup);
+	
 
 	GetLog() << "ID=" << ChMPI::CommRank() << "  ...end PerformCommunication \n";
 }

@@ -45,13 +45,13 @@ public:
 			//
 
 	ChLcpIterativeSchwarzMPI(
-				int mmax_iters=60,      ///< max.number of iterations (counted as tot. inner solver iters)
+				int mdomain_iters=10,	///< number of outer iterations (Schwarz inter-domain updates)
+				int minner_iters=20,    ///< number of inner domain solver iterations
 				bool mwarm_start=false,	///< uses warm start?
 				double mtolerance=0.0,  ///< tolerance for termination criterion
-				double momega=1.0,      ///< overrelaxation criterion
-				int mdomain_iters=10	///< performs an inter-domain schwarz update each domain_iters iters 	
+				double momega=1.0      ///< overrelaxation criterion
 				)  
-			: ChLcpIterativeSolver(mmax_iters,mwarm_start, mtolerance,momega) 
+			: ChLcpIterativeSolver(minner_iters,mwarm_start, mtolerance,momega) 
 			{
 				domain_iters = mdomain_iters;
 			};
@@ -62,11 +62,9 @@ public:
 			// FUNCTIONS
 			//
 
-				/// Performs an inter-domain Schwarz update each n iters, that you can
-				/// can set here. For instance, if you set 4, if 'o' represents the
-				/// inner domain solver iteration and '|' represents the Schwarz update,
-				/// the pattern will be oooo|oooo|oooo|... until end of mmax_iters.
+				/// Set outer (Schwarz) iterations, for domain updates. 
 	void SetDomainIters(int niters) {domain_iters = niters;}
+				/// Get outer (Schwarz) iterations, for domain updates.
 	int  GetDomainIters() {return domain_iters;}
 
 				/// Performs the solution of the LCP.
