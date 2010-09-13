@@ -10,9 +10,9 @@
 //#include <omp.h>
 #include <algorithm>
 #include <iostream>
-#include <thrust/scan.h>
-#include <thrust/host_vector.h>
-#include <thrust/device_vector.h>
+#include "thrust/scan.h"
+#include "thrust/host_vector.h"
+#include "thrust/device_vector.h"
 #include <fstream>
 using namespace std;
 namespace chrono 
