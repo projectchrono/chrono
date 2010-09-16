@@ -236,13 +236,14 @@ int main(int argc, char* argv[])
 	// also GPU collision detection that avoids bottlenecks in cd->solver data transfer.
 	
 	ChContactContainerGPUsimple		mGPUcontactcontainer;
-	ChLcpIterativeSolverGPUsimple	mGPUsolverPos(&mGPUcontactcontainer);
-	ChLcpIterativeSolverGPUsimple	mGPUsolverSpeed(&mGPUcontactcontainer);
+	ChLcpIterativeSolverGPUsimple	mGPUsolverSpeed(&mGPUcontactcontainer, 50, false, 0, 0.2, 20000, 3000, 1000);
+	ChLcpIterativeSolverGPUsimple	mGPUsolverPos(&mGPUcontactcontainer,  50, false, 0, 0.2, 20000, 3000, 1000);
 
 	mphysicalSystem.ChangeContactContainer(&mGPUcontactcontainer);
 	mphysicalSystem.ChangeLcpSolverSpeed(&mGPUsolverSpeed);
-	mphysicalSystem.ChangeLcpSolverStab(&mGPUsolverSpeed);  // this is used only with Tasora timestepping, unneded for Anitescu
+	mphysicalSystem.ChangeLcpSolverStab(&mGPUsolverPos);  // this is used only with Tasora timestepping, unneded for Anitescu
 	
+	mphysicalSystem.SetIterLCPmaxItersSpeed(20);
 
 	// 
 	// THE SOFT-REAL-TIME CYCLE
