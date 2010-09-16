@@ -119,10 +119,12 @@ ChLcpIterativeSolverGPUsimple::ChLcpIterativeSolverGPUsimple(
 				GetLog() << "There is no GPU device for CUDA.\n"; 
 				exit(EXIT_FAILURE);                                                  
 			}                                                                        
-			int dev;                                                                 
+			int dev; 
+			GetLog() << "ChLcpIterativeSolverGPUsimple device count = " << deviceCount << "\n";
 			for (dev = 0; dev < deviceCount; ++dev) {                                
 				cudaDeviceProp deviceProp;                                           
 				CUDA_SAFE_CALL_NO_SYNC(cudaGetDeviceProperties(&deviceProp, dev)); 
+				GetLog() << " Installed CUDA device n." << dev << " n.mprocessors=" << deviceProp.multiProcessorCount << " - " <<  deviceProp.name  << "\n";
 				if (deviceProp.major == 9999)
 					GetLog() << "Warning:  CUDA hardware not available!\n\n";
 
@@ -133,8 +135,17 @@ ChLcpIterativeSolverGPUsimple::ChLcpIterativeSolverGPUsimple(
 				GetLog() << "There's no device supporting CUDA v.1.0 or higher \n";
 				exit(EXIT_FAILURE);                                                  
 			}                                                                       
-			else                                                                     
-				CUDA_SAFE_CALL(cudaSetDevice(dev));                                  
+			else 
+			{
+				int already_dev;
+				if (! (cudaSuccess == cudaGetDevice(&already_dev)))
+				{
+					GetLog() << "ChLcpIterativeSolverGPUsimple will set GPU device.\n";
+					CUDA_SAFE_CALL(cudaSetDevice(dev));
+				}
+				else
+					GetLog() << "ChLcpIterativeSolverGPUsimple tried to set GPU device, but already =" << already_dev << "\n";
+			}
 		} while (0);
 
 	#endif

@@ -99,8 +99,9 @@ public:
 
 				/// Set the integration dt step. Remember to update this value before calling Solve() , because 
 				/// the postprocessing will take care of time step integration, which depends on the dt.
-	void SetDt(double mdt) {if (mdt>0) this->dt = mdt; } //***OBSOLETE***
-	double GetDt() {return dt;} //***OBSOLETE***
+				/// ***OBSOLETE**** do not use this
+	void SetDt(double mdt) {if (mdt>0) this->dt = mdt; }
+	double GetDt() {return dt;} 
 
 				/// Set the maximum recovery speed for stabilization. Remember to update this value 
 				/// before calling Solve() , because the preprocessing will take care of building contact 
@@ -120,6 +121,7 @@ public:
 				/// GPU kernel for doing the first order Eulero integration of body positions as p=p+v*dt 
 				/// The integration kernel reuses the same data structures just used for the Solve(), so it
 				/// can be much faster then doing the integration on the serial processor.
+				/// ***OBSOLETE**** do not use this
 	virtual void IntegrateTimeStep(double mdt);
 
 				/// Turn on this functionality if you want that the integration step is
