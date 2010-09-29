@@ -233,6 +233,12 @@ public:
   static double GetDefaultSuggestedEnvelope();
   static double GetDefaultSuggestedMargin();
 
+		/// Returns the axis aligned bounding box (AABB) of the collision model,
+		/// i.e. max-min along the x,y,z world axes. Remember that SyncPosition()
+		/// should be invoked before calling this.
+		/// MUST be implemented by child classes! 
+  virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const = 0;
+
 protected:
 
 	virtual float GetSuggestedFullMargin() 

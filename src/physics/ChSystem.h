@@ -124,7 +124,7 @@ public:
 	ChSystem(unsigned int max_objects = 16000, double scene_size = 500);
 
 				/// Destructor
-	~ChSystem();
+	virtual ~ChSystem();
 				/// Copy from another ChSystem.
 				/// Note! All settings are copied, but the hierarchy of children
 				/// bodies, links, probes etc. are NOT copied.
@@ -214,13 +214,6 @@ public:
 				/// Activate timestep adaption (ONLY if supported by integration method)
 	void SetAdaption (int m_adapt) {adaption = m_adapt;}
 	int  GetAdaption	() {return adaption;}
-
-				/// Activates the Baumgarte method for constraint stabilization (only for backward compatibility,
-				/// since it'sconsidered an old and imprecise approach to constraint stabilization)
-	void SetBaumgarteStabilize (int m_stab) {stabilize = m_stab;}
-	int  GetBaumgarteStabilize () {return stabilize;}
-				/// Gets a suggested value for the Baumgarte stabilization coefficient.
-	double GetBaumgarte () {return 	(st_region / step);}
 
 				/// Activates the stabilization in constraints as a LCP on position level,
 				/// for acceleration/force integration methods where this is optional. (Not yet used). 
@@ -403,20 +396,6 @@ public:
 				/// you are not using a parallel solver (other solvers will use a single thread anyway).
 	int GetParallelThreadNumber() {return parallel_thread_number;}
 
-				/// Available types of friction cone projection for the LCP solution
-				/// (only in case of iterative LCP solvers). ***OSOLETE***
-					enum eCh_frictionProjection{ 
-						 FRI_CONEORTHO = 0,
-						 FRI_CONEAPPROXIMATE =1
-					};
-				/// Set the method used to compute the projection of friction forces 
-				/// (only in case an iterative LCP solver is used). The FRI_CONEORTHO
-				/// is the correct non-expansive mapping, changing all three contact 
-				/// forces at once, while FRI_CONEAPPROXIMATE is sequential (and approximate) ***OSOLETE***
-	void SetFrictionProjection(eCh_frictionProjection mval);
-				/// Set the method used to compute the projection of friction forces 
-				/// (only in case an iterative LCP solver is used). ***OSOLETE***
-	eCh_frictionProjection GetFrictionProjection() {return lcp_friction_projection;}
 
 				/// Returns true if the GPU is used for the LCP problem (ex. because
 				/// the LCP_ITERATIVE_GPU solver is used)
@@ -679,7 +658,7 @@ protected:
 				/// resets all the bi terms in ChConstraints (for example constraints
 				/// defined in ChLinks, and resets all the fb vectors of ChVariables
 				/// contained, for example, in ChBodies)
-	void LCPprepare_reset();
+	virtual void LCPprepare_reset();
 
 				/// Fills the all the known terms of the sparse LCP (that is,
 				/// fills all the bi terms in ChConstraints (for example constraints
@@ -687,7 +666,7 @@ protected:
 				/// contained, for example, in ChBodies).
 				/// The parameters of this function specify which data must be loaded
 				/// in the known terms.
-	void LCPprepare_load(      bool load_jacobians, ///< load jacobians into ChConstraints
+	virtual void LCPprepare_load(      bool load_jacobians, ///< load jacobians into ChConstraints
 							   bool load_v,			///< load v_old (current speeds) in q (to use LCP solver with option 'add_Mq_to_f')
 							   double F_factor, 	///< load F (forces) in fb: fb+=F*F_factor
 							   double Ct_factor,	///< load Ct into bi:  bi+= Ct*Ct_factor
@@ -698,16 +677,16 @@ protected:
 
 				/// Pushes back all ChConstraints and ChVariables contained in links,bodies,etc. 
 				/// into the LCP descriptor. 
-	void LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor);
+	virtual void LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor);
 
 				/// The following constraints<->system functions are used before and after the solution of a LCP, because
 				/// iterative LCP solvers may converge faster to the Li lagrangian multiplier solutions if 'guessed' 
 				/// values provided (exploit the fact that ChLink classes implement caches with 'last computed multipliers').
-	void LCPprepare_Li_from_speed_cache();
-	void LCPprepare_Li_from_position_cache();
-	void LCPresult_Li_into_speed_cache();
-	void LCPresult_Li_into_position_cache();
-	void LCPresult_Li_into_reactions(double mfactor);
+	virtual void LCPprepare_Li_from_speed_cache();
+	virtual void LCPprepare_Li_from_position_cache();
+	virtual void LCPresult_Li_into_speed_cache();
+	virtual void LCPresult_Li_into_position_cache();
+	virtual void LCPresult_Li_into_reactions(double mfactor);
 
 public:
 
@@ -723,6 +702,9 @@ public:
 				/// the ChProbe::Reset() on all them, at once.				
 	int ResetAllProbes();
 
+				/// Executes custom processing at the end of step. By default it does nothing, 
+				/// but if you inherit a special ChSystem you can implement this.
+	virtual void CustomEndOfStep() {};
 
 				/// Set the script engine (ex. a Javascript engine). 
 				/// The user must take care of creating and deleting the script 
@@ -766,7 +748,6 @@ public:
 				/// All bodies with collision detection data are requested to
 				/// store the current position as "last position collision-checked"
 	void SynchronizeLastCollPositions();
-	void SynchronizeLastCollSpeeds();
 
 
 				/// Perform the collision detection.
@@ -805,13 +786,6 @@ public:
 	void	SetCustomCollisionPointCallback(ChCustomCollisionPointCallback* mcallb) {collisionpoint_callback = mcallb;};
 
 
-				/// Removes contact constraints, if any, from the linklist
-				/// of this system. Usually, contact constraints are kept updated 
-				/// by ComputeCollisions(), which automatically take care of renewing the list,
-				/// and deleting the old contacts, but maybe you want to force deletion of
-				/// contacts in some special cases, so you can use this.
-				///***OBSOLETE***
-	void CollisionLinkListRemove();
 
 	public:
 
@@ -1047,7 +1021,6 @@ private:
 	int maxiter;		// max iterations for tolerance convergence
 	double st_region;	// stability interval of expl.integrator
 	int adaption;		// adaption of time step, for variable-step integr.
-	int stabilize;		// true = use Baumgarte to stabilize links //***OBSOLETE***
 	int dynaclose;		// true = close constraint clearances during dynamics, as following:
 	int ns_close_pos;	//  each ns steps close position constraints (def = 1, each step);
 	int ns_close_speed;	//  each ns steps close speed constraints (def = 3, each 3 steps);
@@ -1075,8 +1048,6 @@ private:
 	int iterLCPmaxIters;	// maximum n.of iterations for the iterative LCP solver
 	int iterLCPmaxItersStab;// maximum n.of iterations for the iterative LCP solver when used for stabilizing constraints
 	int simplexLCPmaxSteps;	// maximum number of steps for the simplex solver.
-
-	eCh_frictionProjection lcp_friction_projection;  // method used to compute friction projection ***OBSOLETE***
 
 	double min_bounce_speed; // maximum speed for rebounce after impacts. If lower speed at rebounce, it is clamped to zero.
 	double max_penetration_recovery_speed; // For Anitescu stepper, this value limits the speed of penetration recovery (>0, speed of exiting)

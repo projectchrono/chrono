@@ -316,7 +316,6 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size)
 	maxiter = 6;
 	order = 1;
 	SetMultisteps(1);
-	stabilize = FALSE;
 	dynaclose = 1;
 	ns_close_pos = 1;
 	ns_close_speed = 3;
@@ -352,7 +351,6 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size)
 	simplexLCPmaxSteps = 100;
 	SetLcpSolverType(LCP_ITERATIVE_SYMMSOR);
 	parallel_thread_number = 2;
-	lcp_friction_projection = FRI_CONEORTHO;
 	use_GPU = false;
 	use_sleeping = false;
 
@@ -432,7 +430,6 @@ void ChSystem::Copy(ChSystem* source)
 	normtype = source->GetNormType();
 	maxiter = source->GetMaxiter();
 	adaption = source->GetAdaption();
-	stabilize = source->GetBaumgarteStabilize();
 	nbodies = source->GetNbodies();
 	nlinks = source->GetNlinks();
 	ncoords = source->GetNcoords();
@@ -467,7 +464,6 @@ void ChSystem::Copy(ChSystem* source)
 	simplexLCPmaxSteps = source->simplexLCPmaxSteps;
 	SetLcpSolverType(GetLcpSolverType());
 	parallel_thread_number = source->parallel_thread_number;
-	lcp_friction_projection = source->lcp_friction_projection;
 	use_GPU = source->use_GPU;
 	use_sleeping = source->use_sleeping;
 	timer_step = source->timer_step;
@@ -720,21 +716,6 @@ void ChSystem::SetParallelThreadNumber(int mthreads)
 }
 
 
-
-
-void ChSystem::SetFrictionProjection(eCh_frictionProjection mval)
-{
-	if (mval== lcp_friction_projection) 
-		return;
-
-	lcp_friction_projection = mval;
-
-		// From now on, created ChLinkContact objects will contain other
-		// type of constraint ojects, hence remove the last ones, which cannot be
-		// reused with simple reinitialization.
-	this->CollisionLinkListRemove();
-
-}
 
 
 // Plug-in components configuration
@@ -1091,8 +1072,6 @@ void ChSystem::RemoveAllBodies()
 
 void ChSystem::RemoveAllLinks() 
 { 
-	// First, remove contacts, if any, by forcing the 'delete' since not created by shared pointers
-	CollisionLinkListRemove();
 
 	HIER_LINK_INIT
 	while (HIER_LINK_NOSTOP)
@@ -1868,16 +1847,6 @@ void ChSystem::SynchronizeLastCollPositions()
 	}
 }
 
-void ChSystem::SynchronizeLastCollSpeeds()
-{
-	HIER_BODY_INIT
-	while HIER_BODY_NOSTOP
-	{
-		if (Bpointer->GetCollide())
-			Bpointer->SynchronizeLastCollPos_dt();
-		HIER_BODY_NEXT
-	}
-}
  
 
 
@@ -1967,26 +1936,6 @@ double ChSystem::ComputeCollisions()
 
 
 
-//***OBSOLETE***
-void ChSystem::CollisionLinkListRemove()
-{
-	// remove all contacts in linklist
-	std::list<ChLink*>::iterator iterlink = linklist.begin();
-	while(iterlink != linklist.end())
-	{
-		if ((*iterlink)->IsCreatedByCollisionDetection())
-		{
-			ChLinkContact* mcontact= (ChLinkContact*)(*iterlink);
-			iterlink=RemoveLinkIter(iterlink);
-			delete(mcontact); // because RemoveLinkIter() just decrements the reference, but contact was created with new()
-		}
-		else
-			iterlink++;
-	}
-}
-
-
-
 
 
 ///////////////////////////////////
@@ -2061,12 +2010,10 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 	ComputeCollisions();
 
 
-	Setup();	// This is mostly for counters and for setting up global 
-				// bookkeeping structures(if any)
+	Setup();	// Counts dofs, statistics, etc.
 
 
-	Update();	// Update everything, including the contact monolateral links.
-				// At this point, if some object can go to sleep, it goes.
+	Update();	// Update everything - and put to sleep bodies that need it
 
 				// Re-wake the bodies that cannot sleep because they are in contact with
 				// some body that is not in sleep state.
@@ -2190,28 +2137,17 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
  
 	this->ChTime = ChTime + GetStep();
 
+	// Executes custom processing at the end of step
+	CustomEndOfStep();
 
-
-	// The contact constraints above used the last coll.speed to make Ct,
-	// but lagging one step, for better stability. Now resync.
-	SynchronizeLastCollSpeeds();
-
-
-	// -  RECORD VARIABLES INTO PROBES
-	//           If there are some probe objects in the probe list,
-	//			 tell them to record their variables (ususally x-y couples
-	//			 of type (time,
-
+	// If there are some probe objects in the probe list,
+	// tell them to record their variables (ususally x-y couples)
 	RecordAllProbes();
-
-
 
 	// Time elapsed for step..
 	mtimer_step.stop();
 	timer_step = mtimer_step();
 
-	// END
-	//
 
 	return (ret_code);
 }
@@ -2251,15 +2187,13 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 	ComputeCollisions();
 
 
-	Setup();	// This will also update references in LinkContacts
-				// and will add them in the physical system.
+	Setup();	// Counts dofs, statistics, etc.
 
-	Update();	// Update everything, including the contact monolateral links.
+	Update();	// Update everything - and put to sleep bodies that need it
 
-
-	// The beginning of the step is recorded in each body, for further
-	// collision stuff at next step.
-	SynchronizeLastCollPositions();
+				// Re-wake the bodies that cannot sleep because they are in contact with
+				// some body that is not in sleep state.
+	WakeUpSleepingBodies();
 
 
 	ChTimer<double> mtimer_lcp;
@@ -2426,29 +2360,18 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 	mtimer_lcp.stop();
 	timer_lcp = mtimer_lcp();
 
+	// Executes custom processing at the end of step
+	CustomEndOfStep();
 
-
-	// The contact constraints above used the last coll.speed to make Ct,
-	// but lagging one step, for better stability. Now resync.
-	SynchronizeLastCollSpeeds();
-
-
-	// -  RECORD VARIABLES INTO PROBES
-	//           If there are some probe objects in the probe list,
-	//			 tell them to record their variables (ususally x-y couples
-	//			 of type (time,
-
+	// If there are some probe objects in the probe list,
+	// tell them to record their variables (ususally x-y couples)
 	RecordAllProbes();
-
-
 
 
 	// Time elapsed for step..
 	mtimer_step.stop();
 	timer_step = mtimer_step();
 
-	// END
-	//
 
 	return (ret_code);
 }
@@ -2466,9 +2389,6 @@ int ChSystem::DoAssembly(int action, int mflags)
 	Setup();
 	Update();
 
-	// for further collision stuff at next step.
-	SynchronizeLastCollPositions();
-
 
 	if (action & ASS_POSITION)		// (1)--------  POSITION
 	{
@@ -2481,14 +2401,10 @@ int ChSystem::DoAssembly(int action, int mflags)
 				// Compute new contacts and create contact constraints
 				ComputeCollisions();
 
-				Setup();	// This will also update references in LinkContacts
+				Setup();	// Counts dofs, statistics, etc.
 				Update();	// Update everything
 			}
-			else
-			{
-				CollisionLinkListRemove();
-			}
-
+			
 
 			// reset known-term vectors
 			LCPprepare_reset();
@@ -2544,7 +2460,7 @@ int ChSystem::DoAssembly(int action, int mflags)
 				HIER_OTHERPHYSICS_NEXT
 			}
 
-			Update();
+			Update(); // Update everything
 
 		} // end loop Newton iterations
 
@@ -2929,7 +2845,7 @@ int ChSystem::DoStepKinematics (double m_step)
 	
 	ChTime += m_step;
 
-	Update();
+	Update(); 
 
 	DoAssembly(ASS_POSITION|ASS_SPEED|ASS_ACCEL);		// ***  Newton Raphson kinematic equations solver
 
@@ -2984,7 +2900,7 @@ void ChSystem::StreamOUT(ChStreamOutBinary& mstream)
 	mstream << GetOrder();
 	mstream << GetMultisteps();
 	mstream << GetAdaption();
-	mstream << GetBaumgarteStabilize();
+	mstream << 0; //GetBaumgarteStabilize();
 	mstream << GetDynaclose();
 	mstream << GetDynatol();
 	mstream << GetPredict();
@@ -3009,7 +2925,7 @@ void ChSystem::StreamOUT(ChStreamOutBinary& mstream)
 	mstream << simplexLCPmaxSteps;
 	mstream << (int)GetLcpSolverType();
 	// v3,v4
-	mstream << (int)GetFrictionProjection();
+	mstream << (int)0;//GetFrictionProjection();
 	// v5
 	mstream << parallel_thread_number;
 	mstream << max_penetration_recovery_speed;
@@ -3042,7 +2958,7 @@ void ChSystem::StreamIN(ChStreamInBinary& mstream)
 	mstream >> mint;		SetOrder(mint);
 	mstream >> mint;		SetMultisteps(mint);
 	mstream >> mint;		SetAdaption (mint);
-	mstream >> mint;		SetBaumgarteStabilize(mint);
+	mstream >> mint;		//SetBaumgarteStabilize(mint);
 	mstream >> mint;		SetDynaclose(mint);
 	mstream >> mdouble;		SetDynatol(mdouble);
 	mstream >> mint;		SetPredict(mint);
@@ -3071,8 +2987,8 @@ void ChSystem::StreamIN(ChStreamInBinary& mstream)
 	}
 	if (version>=3)
 	{
-		mstream >> mint;	SetFrictionProjection((eCh_frictionProjection) mint);
-		if (version==3) SetFrictionProjection(FRI_CONEORTHO); // for v3, ortho proj anyway
+		mstream >> mint;	//SetFrictionProjection((eCh_frictionProjection) mint);
+		if (version==3) {}; //SetFrictionProjection(FRI_CONEORTHO); // for v3, ortho proj anyway
 	}
 	if (version>=5)
 	{

@@ -323,8 +323,10 @@ CPPFILES_LIB_JS = \
 CPPFILES_LIB_MPI = \
 	unit_MPI/ChMpi.cpp \
 	unit_MPI/ChLcpSystemDescriptorMPI.cpp \
-	unit_MPI/ChLcpIterativeSchwarzMPI.cpp
-	
+	unit_MPI/ChLcpIterativeSchwarzMPI.cpp \
+	unit_MPI/ChSystemMPI.cpp \
+	unit_MPI/ChBodyMPI.cpp\
+	unit_MPI/ChDomainLatticePartitioning.cpp
 	
 # List of files to compile to make the 'Chrono for CUDA' library unit
 

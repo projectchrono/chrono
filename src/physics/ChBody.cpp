@@ -85,7 +85,6 @@ ChBody::ChBody ()
 	density = 1000.0f;
 
 	last_coll_pos = CSYSNORM;
-	last_coll_pos_dt = CSYSNULL;
 
 	SetIdentifier(ChGLOBALS().GetUniqueIntID()); // mark with unique ID
 
@@ -147,7 +146,6 @@ void ChBody::Copy(ChBody* source)
 	Scr_torque = source->Scr_torque;
 
 	last_coll_pos = source->last_coll_pos;
-	last_coll_pos_dt = source->last_coll_pos_dt;
 
 	max_speed = source->max_speed;
 	max_wvel  = source->max_wvel;
