@@ -125,6 +125,11 @@ public:
   virtual void SetFamilyMaskDoCollisionWithFamily(int mfamily);
   virtual bool GetFamilyMaskDoesCollisionWithFamily(int mfamily);
 
+		/// Returns the axis aligned bounding box (AABB) of the collision model,
+		/// i.e. max-min along the x,y,z world axes. Remember that SyncPosition()
+		/// should be invoked before calling this.
+  virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const;
+
 	  //
 	  // CUSTOM BULLET
 	  //

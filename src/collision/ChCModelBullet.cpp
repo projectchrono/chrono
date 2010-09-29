@@ -510,6 +510,18 @@ bool ChModelBullet::GetFamilyMaskDoesCollisionWithFamily(int mfamily)
 
 
 
+void ChModelBullet::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const
+{
+	btVector3 btmin;
+	btVector3 btmax;
+	bt_collision_object->getCollisionShape()->getAabb( bt_collision_object->getWorldTransform(), btmin, btmax);
+	bbmin.Set(btmin.x(), btmin.y(), btmin.z());
+	bbmax.Set(btmax.x(), btmax.y(), btmax.z());
+}
+
+
+
+
 } // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____
 

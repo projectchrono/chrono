@@ -122,8 +122,7 @@ private:
 						// when collision detection routines require to know
 						// the last time that coll.detect. was satisfied.
 	ChCoordsys<> last_coll_pos;
-						// (same as above, for speeds)
-	ChCoordsys<> last_coll_pos_dt;
+						
 
 	float density;		// used when doing the 'recompute mass' operation.
 
@@ -306,11 +305,6 @@ public:
 				/// Stores the current position in the last-collision-position buffer.
 	void SynchronizeLastCollPos() {last_coll_pos = this->coord;}
 
-				/// Gets the last speed when the collision detection was
-				/// performed last time (i.e. last time SynchronizeLastCollPos_dt() was used)
-	Coordsys GetLastCollPos_dt () { return last_coll_pos_dt; }
-				/// Stores the current speed in the last-collision-position buffer.
-	void SynchronizeLastCollPos_dt() {last_coll_pos_dt = this->coord_dt;}
 
 
 				/// The normal restitution coefficient, for collisions.
