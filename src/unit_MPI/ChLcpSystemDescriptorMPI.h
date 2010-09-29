@@ -40,9 +40,6 @@ public:
 	//ChMatrixDynamic<> b;
 	
 	// operator overloading is needed to enable the stl sorting
-	//bool operator<=(const ChVector<Real>&other) const { return x<=other.x && y<=other.y && z<=other.z;};
-	//bool operator>=(const ChVector<Real>&other) const { return x>=other.x && y>=other.y && z>=other.z;};
-	//bool operator<(const ChVector<Real>&other) const { return x<other.x && y<other.y && z<other.z;};
 	bool operator < (const ChLcpSharedVarMPI& other) const { return uniqueID < other.uniqueID;}
 	//bool operator ==(const ChLcpSharedVarMPI& other) const { return uniqueID == other.uniqueID;}	
 };
@@ -174,6 +171,35 @@ public:
 
 };
 
+
+
+/// System descriptor for domain decomposition of 
+/// complementarity problems, where the decomposition
+/// corresponds to a 3D cubic lattice partitioning of the space.
+
+class ChSystemDescriptorMPIlattice3D : public ChLcpSystemDescriptorMPI
+{
+
+public:
+			//
+			// DATA
+			//
+		ChVector<> min_box;
+		ChVector<> max_box;
+
+public:
+
+			//
+			// CONSTRUCTORS
+			//
+
+	ChSystemDescriptorMPIlattice3D()
+					{
+						min_box.Set(0,0,0);
+						max_box.Set(0,0,0);		
+					};
+
+};
 
 
 
