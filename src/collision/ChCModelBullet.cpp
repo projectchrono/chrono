@@ -514,7 +514,8 @@ void ChModelBullet::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const
 {
 	btVector3 btmin;
 	btVector3 btmax;
-	bt_collision_object->getCollisionShape()->getAabb( bt_collision_object->getWorldTransform(), btmin, btmax);
+	if (bt_collision_object->getCollisionShape())
+		bt_collision_object->getCollisionShape()->getAabb( bt_collision_object->getWorldTransform(), btmin, btmax);
 	bbmin.Set(btmin.x(), btmin.y(), btmin.z());
 	bbmax.Set(btmax.x(), btmax.y(), btmax.z());
 }

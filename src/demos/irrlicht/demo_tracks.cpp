@@ -461,31 +461,28 @@ class MyEventReceiver : public IEventReceiver
 {
 public:
 
-	MyEventReceiver(ChSystem* asystem,  
-					IrrlichtDevice *adevice,
+	MyEventReceiver(ChIrrAppInterface* myapp,
 					MySimpleTank* atank)
 			{
-				// store pointer to physical system & other stuff so we can tweak them by user keyboard
-				msystem = asystem;
-				mdevice = adevice;
+				// store pointer application
+				application = myapp;
+				// store pointer to other stuff
 				mtank  = atank;
 
-				adevice->setEventReceiver(this);
-
 				// ..add a GUI slider to control throttle left via mouse
-				scrollbar_throttleL = mdevice->getGUIEnvironment()->addScrollBar(
+				scrollbar_throttleL = application->GetIGUIEnvironment()->addScrollBar(
 								true, rect<s32>(310, 60, 450, 75), 0, 101);
 				scrollbar_throttleL->setMax(100); 
 				scrollbar_throttleL->setPos(50);
-				text_throttleL = mdevice->getGUIEnvironment()->addStaticText(
+				text_throttleL = application->GetIGUIEnvironment()->addStaticText(
 							L"Left throttle ", rect<s32>(450,60,550,75), false);
 
 				// ..add a GUI slider to control gas throttle right via mouse
-				scrollbar_throttleR = mdevice->getGUIEnvironment()->addScrollBar(
+				scrollbar_throttleR = application->GetIGUIEnvironment()->addScrollBar(
 								true, rect<s32>(310, 85, 450, 100), 0, 102);
 				scrollbar_throttleR->setMax(100); 
 				scrollbar_throttleR->setPos(50);
-				text_throttleR = mdevice->getGUIEnvironment()->addStaticText(
+				text_throttleR = application->GetIGUIEnvironment()->addStaticText(
 							L"Right throttle", rect<s32>(450,85,550,100), false);
 			}
 
@@ -496,7 +493,7 @@ public:
 				if (event.EventType == EET_GUI_EVENT)
 				{
 					s32 id = event.GUIEvent.Caller->getID();
-					IGUIEnvironment* env = mdevice->getGUIEnvironment();
+					IGUIEnvironment* env = application->GetIGUIEnvironment();
 
 					switch(event.GUIEvent.EventType)
 					{
@@ -526,8 +523,7 @@ public:
 			}
 
 private:
-	ChSystem*       msystem;
-	IrrlichtDevice* mdevice;
+	ChIrrAppInterface* application;
 	MySimpleTank*    mtank;
 
 	IGUIStaticText* text_throttleL;
@@ -606,22 +602,20 @@ int main(int argc, char* argv[])
 	// USER INTERFACE
 	//
 	 
+
 	// Create some graphical-user-interface (GUI) items to show on the screen.
 	// This requires an event receiver object.
-	MyEventReceiver receiver(&my_system, application.GetDevice(), mytank);
-
-	  // note how to add a custom event receiver to the default interface:
+	MyEventReceiver receiver(&application, mytank);
+	  // note how to add the custom event receiver to the default interface:
 	application.SetUserEventReceiver(&receiver);
 
-      // Force display of infos
-	application.SetShowInfos(true);
 
 	//
 	// SETTINGS 
 	// 	
 
 	my_system.SetIterLCPmaxItersSpeed(100); // the higher, the easier to keep the constraints 'mounted'.
-	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD); 
+	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR); 
 
 
 
