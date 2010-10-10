@@ -17,7 +17,7 @@
 
 #include "ChMpi.h"
 #include "physics/ChSystem.h"
-#include "ChLcpSystemDescriptorMPI.h"
+#include "ChDomainNodeMPI.h"
 
 namespace chrono 
 {
@@ -35,10 +35,13 @@ public:
 
 	// Override base class functions
 
-				/// Pushes back all ChConstraints and ChVariables contained in links,bodies,etc. 
-				/// into the LCP descriptor. If the LCP descriptor is of ChLcpSystemDescriptorMPI
-				/// also sets the custom data with shared variables etc.
-	//virtual void LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor);
+				/// Executes custom processing at the end of step. In detail,
+				/// performs the MPI inter-domain exchange of objects that spill out
+				/// of the domains, by streaming to binary buffers, sending them via MPI 
+				/// to domains that receive them, and by deserializing and adding to receiving domain. 
+	virtual void CustomEndOfStep();
+
+	ChDomainNodeMPIlattice3D nodeMPI;
 
 private:
 

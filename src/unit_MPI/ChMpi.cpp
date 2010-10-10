@@ -238,6 +238,7 @@ int ChMPI::SendString(int destID,					///< destination rank
 	char* data = (char*)source_str.data(); // should not access directly std::string data, but this is efficient!
 	int nbytes = source_str.size();
 	int err = 0;
+GetLog() << "   SendString size=" << nbytes << "\n";
 
 	if (nonblocking == false)
 	{

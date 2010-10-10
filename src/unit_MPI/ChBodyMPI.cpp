@@ -43,51 +43,68 @@ static const int mask_ysup = 0x70381C0;
 static const int mask_zinf = 0x1249249;
 static const int mask_zsup = 0x4924924;
 
+
+int ChBodyMPI::ComputeOverlapFlags(ChDomainNodeMPIlattice3D& mnode)
+{
+	// See if it is overlapping to one of the surrounding domains
+	ChVector<> bbmin, bbmax;
+	this->GetCollisionModel()->GetAABB(bbmin, bbmax);
+
+	if (bbmin.x < mnode.min_box.x ||
+		bbmin.y < mnode.min_box.y ||
+		bbmin.z < mnode.min_box.z ||
+		bbmax.x > mnode.max_box.x ||
+		bbmax.y > mnode.max_box.y ||
+		bbmax.z > mnode.max_box.z )
+	{
+		// Start with: overlap to all 27 domains, then refine
+		int overlapflags = 0x3FFFFFF; 
+		// Remove the non overlapping 9-plets of surrounding domains
+		if (bbmin.x > mnode.min_box.x)
+			overlapflags &= ~ mask_xinf;
+		if (bbmax.x < mnode.max_box.x)
+			overlapflags &= ~ mask_xsup;
+		if (bbmin.y > mnode.min_box.y)
+			overlapflags &= ~ mask_yinf;
+		if (bbmax.y < mnode.max_box.y)
+			overlapflags &= ~ mask_ysup;
+		if (bbmin.z > mnode.min_box.z)
+			overlapflags &= ~ mask_zinf;
+		if (bbmax.z < mnode.max_box.z)
+			overlapflags &= ~ mask_zsup;
+		// Not interested in 13th domain that is the central domain itself
+		overlapflags &= ~ (1 << 13);
+
+		this->last_shared = overlapflags;
+		return this->last_shared;
+
+	} // end of overlap code
+}
+
+
 void ChBodyMPI::InjectVariables(ChLcpSystemDescriptor& mdescriptor)
 {	
 	this->Variables().SetDisabled(!this->IsActive());
 
 	mdescriptor.InsertVariables(&this->Variables());
 
-	if (ChSystemDescriptorMPIlattice3D* mpidescr = dynamic_cast<ChSystemDescriptorMPIlattice3D*>(&mdescriptor))
-	{
-		// See if it is overlapping to one of the surrounding domains
-		ChVector<> bbmin, bbmax;
-		this->GetCollisionModel()->GetAABB(bbmin, bbmax);
-		if (bbmin.x < mpidescr->min_box.x ||
-			bbmin.y < mpidescr->min_box.y ||
-			bbmin.z < mpidescr->min_box.z ||
-			bbmax.x > mpidescr->max_box.x ||
-			bbmax.y > mpidescr->max_box.y ||
-			bbmax.z > mpidescr->max_box.z )
-		{
-			// Start with: overlap to all 27 domains, then refine
-			int overlapflags = 0x3FFFFFF; 
-			// Remove the non overlapping 9-plets of surrounding domains
-			if (bbmin.x > mpidescr->min_box.x)
-				overlapflags &= ~ mask_xinf;
-			if (bbmax.x < mpidescr->max_box.x)
-				overlapflags &= ~ mask_xsup;
-			if (bbmin.y > mpidescr->min_box.y)
-				overlapflags &= ~ mask_yinf;
-			if (bbmax.y < mpidescr->max_box.y)
-				overlapflags &= ~ mask_ysup;
-			if (bbmin.z > mpidescr->min_box.z)
-				overlapflags &= ~ mask_zinf;
-			if (bbmax.z < mpidescr->max_box.z)
-				overlapflags &= ~ mask_zsup;
-			// Not interested in 13th domainm that is the central domain itself
-			overlapflags &= ~ (1 << 13);
 
-			// Now add the body to the boundaries with whom it overlaps
+	if (ChSystemDescriptorMPIlattice3D* mpidescr = dynamic_cast<ChSystemDescriptorMPIlattice3D*>(&mdescriptor))
+	{	
+		if (this->last_shared) // do not care about objects not overlapping
+		{
+			//  add the body to the boundaries with whom it overlaps
 			for (int bi = 0; bi<27; bi++)
 			{
-				if ( (0x1 << bi) & overlapflags )	
+				if ( (0x1 << bi) & this->last_shared )	
 				{
-					ChLcpSharedVarMPI mshvar;
-					mshvar.var		= &this->Variables();
-					mshvar.uniqueID = this->GetIdentifier();
-					(mpidescr->GetSharedInterfacesList()[bi]).InsertSharedVariable(mshvar);
+					if ((mpidescr->GetSharedInterfacesList()[bi]).GetMPIfriend() != -1) // exclude unexisting domains
+					{
+						ChLcpSharedVarMPI mshvar;
+						mshvar.var		= &this->Variables();
+						mshvar.uniqueID = this->GetIdentifier();
+						(mpidescr->GetSharedInterfacesList()[bi]).InsertSharedVariable(mshvar);
+					}
 				}
 			}
 

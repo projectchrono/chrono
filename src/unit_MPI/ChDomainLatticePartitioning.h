@@ -16,7 +16,7 @@
 
 
 #include "ChMpi.h"
-#include "ChLcpSystemDescriptorMPI.h"
+#include "ChDomainNodeMPI.h"
 
 namespace chrono 
 {
@@ -58,19 +58,27 @@ public:
 		}
 
 
-		/// Setup the MPI interfaces and AABB for a system descriptor of a 
-		/// node with indexes nx ny nz in the lattice. If the node is at the
+		/// Setup the MPI interfaces and AABB for a MPI node oc ChDomainNodeMPIlattice3D 
+		/// type, given indexes nx ny nz in the lattice. If the node is at the
 		/// world min/max neighbour, it extends infinitely in that direction.
 		/// Return false if out of index ranges.
-	bool SetupDescriptor(ChSystemDescriptorMPIlattice3D& mdescriptor, int nx, int ny, int nz) const;
+	bool SetupNode(ChDomainNodeMPIlattice3D& mnode, int nx, int ny, int nz) const;
 
+		/// Setup the MPI interfaces and AABB for a MPI node oc ChDomainNodeMPIlattice3D 
+		/// type, given MPI rank index. We assume that all rank indexes will be used
+		/// to setup all nodes (rank will be converted in nx ny nz indexes). This is
+		/// easier to use than SetupNode(ChDomainNodeMPIlattice3D& mnode, int nx, int ny, int nz),
+		/// but less flexible.
+		/// If the node is at the world min/max neighbour, it extends infinitely in that direction.
+		/// Return false if out of index ranges.
+	bool SetupNode(ChDomainNodeMPIlattice3D& mnode, int nrank) const;
 
 		// 
 		// Utils
 		//
 
 		/// Compute the MPI id (the rank) from the x,y,z indexes, assuming all are used
-	int ComputeIDfromIxIyIz(int ix, int iy, int iz) const  {return ix+(iy*x_domains)+(iz*y_domains*x_domains);}
+	int ComputeIDfromIxIyIz(int ix, int iy, int iz) const  {return iz+(iy*z_domains)+(ix*y_domains*z_domains);}
 
 		/// Get the size of the world (x y z size of the AABB of the entire lattice)
 	ChVector<> GetWorldSize() const {return world_size;}

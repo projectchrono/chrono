@@ -19,6 +19,7 @@
 
 
 #include "lcp/ChLcpSystemDescriptor.h"
+#include "ChDomainNodeMPI.h"
 
 
 namespace chrono
@@ -184,8 +185,7 @@ public:
 			//
 			// DATA
 			//
-		ChVector<> min_box;
-		ChVector<> max_box;
+		ChDomainNodeMPIlattice3D* lattice_node;
 
 public:
 
@@ -193,10 +193,13 @@ public:
 			// CONSTRUCTORS
 			//
 
-	ChSystemDescriptorMPIlattice3D()
+	ChSystemDescriptorMPIlattice3D(ChDomainNodeMPIlattice3D* mnode)
 					{
-						min_box.Set(0,0,0);
-						max_box.Set(0,0,0);		
+						lattice_node = mnode;
+						this->shared_interfaces.resize(27);
+
+						for (int i = 0; i < 27; i++)
+							this->shared_interfaces[i].SetMPIfriend (mnode->interfaces[i].id_MPI);
 					};
 
 };

@@ -20,6 +20,7 @@
 
 #include "physics/ChBody.h"
 #include "ChMpi.h"
+#include "ChDomainNodeMPI.h"
 
 
 namespace chrono
@@ -51,6 +52,13 @@ public:
 				/// When the ChLcpSystemDescriptor is a ChSystemDescriptorMPIlattice3D special
 				/// type, it also sets the 'shared variables' information into it.
 	virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
+
+				/// Gets the 27 bits about which boundary is overlapping with, and returns it.
+	int GetOverlapFlags() {return last_shared;};
+				
+
+				/// Sets the 27 bits about which boundary is overlapping with, and returns it.
+	int ComputeOverlapFlags(ChDomainNodeMPIlattice3D& mnode);
 
 
 			//
