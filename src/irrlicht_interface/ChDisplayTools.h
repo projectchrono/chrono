@@ -267,6 +267,52 @@ public:
 			return 0;
 	}
 
+			/// Easy-to-use function which draws collision objects bounding boxes 
+			/// for rigid bodies - if they have a collision shape.
+
+	static int drawAllBoundingBoxes(chrono::ChSystem& mphysicalSystem, 
+							video::IVideoDriver* driver)
+	{ 
+			if (mphysicalSystem.GetNbodiesTotal()==0)
+				return 0;
+
+			driver->setTransform(video::ETS_WORLD, core::matrix4());
+			video::SMaterial mattransp;
+			mattransp.ZBuffer= true;
+			mattransp.Lighting=false;
+			driver->setMaterial(mattransp);
+
+			chrono::ChSystem::IteratorBodies myiter = mphysicalSystem.IterBeginBodies();
+			while (myiter != mphysicalSystem.IterEndBodies())
+			{
+				if ((*myiter)->GetCollisionModel())
+				{
+					video::SColor mcol;
+					if ((*myiter)->GetSleeping()) 
+						mcol=video::SColor(70,0,50,255);  // blue: sleeping
+					else
+						mcol=video::SColor(70,30,200,200);  // cyan: not sleeping
+					chrono::ChVector<> hi = chrono::VNULL;
+					chrono::ChVector<> lo = chrono::VNULL;
+					(*myiter)->GetCollisionModel()->GetAABB(lo,hi);
+					driver->draw3DLine(core::vector3dfCH(lo), core::vector3dfCH(chrono::ChVector<>(hi.x,lo.y,lo.z)), mcol );
+					driver->draw3DLine(core::vector3dfCH(lo), core::vector3dfCH(chrono::ChVector<>(lo.x,hi.y,lo.z)), mcol );
+					driver->draw3DLine(core::vector3dfCH(lo), core::vector3dfCH(chrono::ChVector<>(lo.x,lo.y,hi.z)), mcol );
+					driver->draw3DLine(core::vector3dfCH(hi), core::vector3dfCH(chrono::ChVector<>(hi.x,hi.y,lo.z)), mcol );
+					driver->draw3DLine(core::vector3dfCH(hi), core::vector3dfCH(chrono::ChVector<>(lo.x,hi.y,hi.z)), mcol );
+					driver->draw3DLine(core::vector3dfCH(hi), core::vector3dfCH(chrono::ChVector<>(hi.x,lo.y,hi.z)), mcol );
+					driver->draw3DLine(core::vector3dfCH(chrono::ChVector<>(lo.x,lo.y,hi.z)), core::vector3dfCH(chrono::ChVector<>(hi.x,lo.y,hi.z)), mcol );
+					driver->draw3DLine(core::vector3dfCH(chrono::ChVector<>(lo.x,lo.y,hi.z)), core::vector3dfCH(chrono::ChVector<>(lo.x,hi.y,hi.z)), mcol );
+					driver->draw3DLine(core::vector3dfCH(chrono::ChVector<>(lo.x,hi.y,lo.z)), core::vector3dfCH(chrono::ChVector<>(lo.x,hi.y,hi.z)), mcol );
+					driver->draw3DLine(core::vector3dfCH(chrono::ChVector<>(lo.x,hi.y,lo.z)), core::vector3dfCH(chrono::ChVector<>(hi.x,hi.y,lo.z)), mcol );
+					driver->draw3DLine(core::vector3dfCH(chrono::ChVector<>(hi.x,lo.y,lo.z)), core::vector3dfCH(chrono::ChVector<>(hi.x,lo.y,hi.z)), mcol );
+					driver->draw3DLine(core::vector3dfCH(chrono::ChVector<>(hi.x,lo.y,lo.z)), core::vector3dfCH(chrono::ChVector<>(hi.x,hi.y,lo.z)), mcol );
+				}
+				++myiter;
+			}
+			return 0;
+	}
+
 
 
 

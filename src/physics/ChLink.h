@@ -182,12 +182,14 @@ public:
 				/// If some constraint is redundant, return to normal state  //***OBSOLETE***
 	virtual int  RestoreRedundant() {return 0;};  ///< \return number of changed constraints
 
-				// Sets the link to work only in 2D mode (deprecated feature) 
+				// Sets the link to work only in 2D mode  //***OBSOLETE***
 				// mode=1 use only constraints for 2D xy plane, mode=0 switch back to 3D.
 	virtual void Set2Dmode(int mode);  
 
-
-
+				/// Tells if this link requires that the connected ChBody objects
+				/// must be waken if they are sleeping. By default =true, i.e. always keep awaken, but
+				/// child classes might return false for optimizing sleeping, in case no time-dependant.
+	virtual bool IsRequiringWaking() {return true;}
 
 			//
 			// UPDATING FUNCTIONS

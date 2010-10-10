@@ -167,6 +167,11 @@ public:
 							this->app->GetSystem()->SetMaxPenetrationRecoverySpeed( (3.0/50.0)* ((gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos() );
 							break;
 						}
+						if (id == 9912) 
+						{
+							this->app->GetSystem()->SetMinBounceSpeed( (1.0/200.0)* ((gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos() );
+							break;
+						}
 
 				case gui::EGET_COMBO_BOX_ChANGED:
 						if (id == 9907)
@@ -197,7 +202,12 @@ public:
 						{	
 							this->app->GetSystem()->SetIterLCPwarmStarting( ((gui::IGUICheckBox*)event.GUIEvent.Caller)->isChecked() );
 							break;
-						}	
+						}
+						if (id == 9913)
+						{	
+							this->app->GetSystem()->SetUseSleeping( ((gui::IGUICheckBox*)event.GUIEvent.Caller)->isChecked() );
+							break;
+						}
 
 				}
 			} 
@@ -249,9 +259,9 @@ public:
 			gad_tab2 = gad_tabbed->addTab(L"System");
 
 			// create GUI gadgets
-			gad_textFPS = GetIGUIEnvironment()->addStaticText(L"FPS", core::rect<s32>(10,10,200,280), true, true, gad_tab1);
+			gad_textFPS = GetIGUIEnvironment()->addStaticText(L"FPS", core::rect<s32>(10,10,200,250), true, true, gad_tab1);
 
-			gad_labelcontacts = GetIGUIEnvironment()->addComboBox(core::rect<s32>(10,290, 200,290+20), gad_tab1, 9901);
+			gad_labelcontacts = GetIGUIEnvironment()->addComboBox(core::rect<s32>(10,260, 200,260+20), gad_tab1, 9901);
 				gad_labelcontacts->addItem(L"Contact distances");
 				gad_labelcontacts->addItem(L"Contact force modulus");
 				gad_labelcontacts->addItem(L"Contact force (normal)");
@@ -262,13 +272,16 @@ public:
 				gad_labelcontacts->addItem(L"Don't print contact values");
 			gad_labelcontacts->setSelected(7);
 
-			gad_drawcontacts = GetIGUIEnvironment()->addComboBox(core::rect<s32>(10,310, 200,310+20), gad_tab1, 9901);
+			gad_drawcontacts = GetIGUIEnvironment()->addComboBox(core::rect<s32>(10,280, 200,280+20), gad_tab1, 9901);
 				gad_drawcontacts->addItem(L"Contact normals");
 				gad_drawcontacts->addItem(L"Contact distances");
 				gad_drawcontacts->addItem(L"Contact N forces");
 				gad_drawcontacts->addItem(L"Contact forces");
 				gad_drawcontacts->addItem(L"Don't draw contacts");
 			gad_drawcontacts->setSelected(4);
+
+			gad_plot_aabb = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(10,310, 200,310+20),
+								gad_tab1, 9914, L"Draw AABB");
 
 			gad_plot_convergence = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(10,340, 200,340+20),
 								gad_tab1, 9902, L"Plot convergence");
@@ -283,23 +296,13 @@ public:
 			gad_pos_iternumber->setMax(80);
 			gad_pos_iternumber_info = GetIGUIEnvironment()->addStaticText(L"", core::rect<s32>(155,40, 220,40+20), false, false, gad_tab2);
 
-			gad_omega   = GetIGUIEnvironment()->addScrollBar(true,    core::rect<s32>(10, 160, 150,160+20), gad_tab2, 9909);
-			gad_omega->setMax(100);
-			gad_omega_info = GetIGUIEnvironment()->addStaticText(L"", core::rect<s32>(155,160, 220,160+20), false, false, gad_tab2);
-
-			gad_lambda   = GetIGUIEnvironment()->addScrollBar(true,    core::rect<s32>(10, 190, 150,190+20), gad_tab2, 9910);
-			gad_lambda->setMax(100);
-			gad_lambda_info = GetIGUIEnvironment()->addStaticText(L"", core::rect<s32>(155,190, 220,190+20), false, false, gad_tab2);
-
-			gad_clamping   = GetIGUIEnvironment()->addScrollBar(true,    core::rect<s32>(10, 220, 150,220+20), gad_tab2, 9911);
-			gad_clamping->setMax(100);
-			gad_clamping_info = GetIGUIEnvironment()->addStaticText(L"", core::rect<s32>(155,220, 220,220+20), false, false, gad_tab2);
-
-
 			gad_warmstart = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(10,70, 200,70+20),
 								gad_tab2, 9906, L"Warm starting");
 
-			gad_ccpsolver = GetIGUIEnvironment()->addComboBox(core::rect<s32>(10,100, 200,100+20), gad_tab2, 9907);
+			gad_usesleep  = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(10,100, 200,100+20),
+								gad_tab2, 9913, L"Enable sleeping");
+
+			gad_ccpsolver = GetIGUIEnvironment()->addComboBox(core::rect<s32>(10,130, 200,130+20), gad_tab2, 9907);
 				gad_ccpsolver->addItem(L"Projected SOR");
 				gad_ccpsolver->addItem(L"Projected SSOR");
 				gad_ccpsolver->addItem(L"Projected Jacobi");
@@ -308,10 +311,26 @@ public:
 				gad_ccpsolver->addItem(L" ");
 			gad_ccpsolver->setSelected(5);
 
-			gad_stepper = GetIGUIEnvironment()->addComboBox(core::rect<s32>(10,130, 200,130+20), gad_tab2, 9908);
+			gad_stepper = GetIGUIEnvironment()->addComboBox(core::rect<s32>(10,160, 200,160+20), gad_tab2, 9908);
 				gad_stepper->addItem(L"Anitescu stepper");
 				gad_stepper->addItem(L"Tasora stepper");
 			gad_stepper->setSelected(0);
+
+			gad_omega   = GetIGUIEnvironment()->addScrollBar(true,    core::rect<s32>(10, 190, 150,190+20), gad_tab2, 9909);
+			gad_omega->setMax(100);
+			gad_omega_info = GetIGUIEnvironment()->addStaticText(L"", core::rect<s32>(155,190, 220,190+20), false, false, gad_tab2);
+
+			gad_lambda   = GetIGUIEnvironment()->addScrollBar(true,    core::rect<s32>(10, 220, 150,220+20), gad_tab2, 9910);
+			gad_lambda->setMax(100);
+			gad_lambda_info = GetIGUIEnvironment()->addStaticText(L"", core::rect<s32>(155,220, 220,220+20), false, false, gad_tab2);
+
+			gad_clamping   = GetIGUIEnvironment()->addScrollBar(true,    core::rect<s32>(10, 250, 150,250+20), gad_tab2, 9911);
+			gad_clamping->setMax(100);
+			gad_clamping_info = GetIGUIEnvironment()->addStaticText(L"", core::rect<s32>(155,250, 220,250+20), false, false, gad_tab2);
+
+			gad_minbounce   = GetIGUIEnvironment()->addScrollBar(true,    core::rect<s32>(10, 280, 150,280+20), gad_tab2, 9912);
+			gad_minbounce->setMax(100);
+			gad_minbounce_info = GetIGUIEnvironment()->addStaticText(L"", core::rect<s32>(155,280, 220,280+20), false, false, gad_tab2);
 
 
 			///
@@ -389,14 +408,19 @@ public:
 			int lmode = this->gad_labelcontacts->getSelected();
 			ChIrrTools::drawAllContactLabels(*system, GetDevice(), (ChIrrTools::eCh_ContactsLabelMode)lmode);
 
+			if (this->gad_plot_aabb->isChecked())
+				ChIrrTools::drawAllBoundingBoxes(*system, GetVideoDriver());
+
 			if (this->gad_plot_convergence->isChecked())
 				ChIrrTools::drawHUDviolation(GetVideoDriver(), GetDevice(), *system,  240,370,300,100, 100.0, 500.0);
+
 
 			gad_tabbed->setVisible(show_infos);
 
 			if (this->gad_speed_iternumber_info->isVisible())
 			{
 				this->gad_warmstart->setChecked(GetSystem()->GetIterLCPwarmStarting());
+				this->gad_usesleep->setChecked(GetSystem()->GetUseSleeping());
 
 				char message[50]; 
 
@@ -416,9 +440,13 @@ public:
 				sprintf(message,"%g lambda", this->GetSystem()->GetIterLCPsharpnessLambda() );
 				gad_lambda_info->setText(core::stringw(message).c_str());
 
-				gad_clamping->setPos((s32)(50.0*(this->GetSystem()->GetMaxPenetrationRecoverySpeed())));
+				gad_clamping->setPos((s32)((50.0/3.0)*(this->GetSystem()->GetMaxPenetrationRecoverySpeed())));
 				sprintf(message,"%g stab.clamp", this->GetSystem()->GetMaxPenetrationRecoverySpeed() );
 				gad_clamping_info->setText(core::stringw(message).c_str());
+
+				gad_minbounce->setPos((s32)(200.0*(this->GetSystem()->GetMinBounceSpeed())));
+				sprintf(message,"%g min.bounce v", this->GetSystem()->GetMinBounceSpeed() );
+				gad_minbounce_info->setText(core::stringw(message).c_str());
 
 				switch(this->GetSystem()->GetLcpSolverType())
 				{	
@@ -461,6 +489,7 @@ private:
 	gui::IGUIStaticText* gad_textFPS;
 	gui::IGUIComboBox*   gad_drawcontacts;
 	gui::IGUIComboBox*   gad_labelcontacts;
+	gui::IGUICheckBox*   gad_plot_aabb;
 	gui::IGUICheckBox*   gad_plot_convergence;
 
 	gui::IGUIScrollBar*  gad_speed_iternumber;
@@ -473,9 +502,12 @@ private:
 	gui::IGUIStaticText* gad_lambda_info;
 	gui::IGUIScrollBar*  gad_clamping;
 	gui::IGUIStaticText* gad_clamping_info;
+	gui::IGUIScrollBar*  gad_minbounce;
+	gui::IGUIStaticText* gad_minbounce_info;
 	gui::IGUIScrollBar*  gad_dt;
 	gui::IGUIStaticText* gad_dt_info;
 	gui::IGUICheckBox*   gad_warmstart;
+	gui::IGUICheckBox*   gad_usesleep;
 	gui::IGUIComboBox*   gad_ccpsolver;
 	gui::IGUIComboBox*   gad_stepper;
 

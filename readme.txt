@@ -53,7 +53,9 @@ XX-XX-XXXX
   ChStreamOutBinaryStream, ChStreamInBinaryStream.
   Class ChStreamWrapper renamed ChStreamOstreamWrapper
 
-
+- In demos using Irrlicht realtime 3d view, now the AABB
+  bounding boxes of rigid bodies can be drawn (press 'i'
+  to show debugging GUI).
 
 
 Release 1.0.0

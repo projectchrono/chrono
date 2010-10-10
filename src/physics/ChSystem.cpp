@@ -285,7 +285,7 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size)
 	probelist.clear();
 	controlslist.clear();
 	
-
+	
 	nbodies=0;
 	nlinks=0;
 	ndof=0;
@@ -384,7 +384,6 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size)
 	timer_collision_broad = 0;
 	timer_collision_narrow = 0;
 	timer_update = 0;
-
 }
 
 
@@ -1310,13 +1309,25 @@ void ChSystem::WakeUpSleepingBodies()
 
 	if (this->GetUseSleeping())
 	{
-		for (int i=0; i<5; i++)  //***TO DO*** reconfigurable number of wakeup cycles
+		for (int i=0; i<1; i++)  //***TO DO*** reconfigurable number of wakeup cycles
 		{
 			my_waker.someone_sleeps = false;
+
+			// scan all links and wake connected bodies
+			HIER_LINK_INIT
+			while HIER_LINK_NOSTOP
+			{
+				if (Lpointer->IsRequiringWaking())
+				{
+					Lpointer->GetBody1()->SetSleeping(false);
+					Lpointer->GetBody2()->SetSleeping(false);
+				}
+				HIER_LINK_NEXT
+			}
 			
 			// scan all contacts and wake neighbouring bodies
 			this->contact_container->ReportAllContacts(&my_waker);
-
+			
 			// bailout wakeup cycle prematurely, if all bodies are not sleeping
 			if (!my_waker.someone_sleeps) 
 				break; 

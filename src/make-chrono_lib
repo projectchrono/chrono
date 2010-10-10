@@ -389,7 +389,8 @@ all: clean lib doxygen
 #   this with the SED tool)
 
 
-lib: lib_chronoengine $(CH_JAVASCRIPTLIB_MAKETARGET) $(CH_MPILIB_MAKETARGET) $(CH_CUDALIB_MAKETARGET)
+#lib: lib_chronoengine $(CH_JAVASCRIPTLIB_MAKETARGET) $(CH_MPILIB_MAKETARGET) $(CH_CUDALIB_MAKETARGET)
+lib: $(CH_MPILIB_MAKETARGET)
 
 lib_chronoengine:  $(OFILES_LIB)
 	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME).defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).defx"

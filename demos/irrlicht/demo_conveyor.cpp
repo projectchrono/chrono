@@ -161,6 +161,7 @@ void create_debris(ChIrrAppInterface& application, double dt, double particles_s
 												15,8, parent);
 			mrigidBody->GetBody()->SetInertiaXX(ChVector<>(sphinertia,sphinertia,sphinertia));
 			mrigidBody->GetBody()->SetFriction(0.2f); 
+			mrigidBody->GetBody()->SetImpactC(0.8); 
 
 			mrigidBody->addShadowVolumeSceneNode();
 			mrigidBody->setMaterialTexture(0,	bluwhiteMap);

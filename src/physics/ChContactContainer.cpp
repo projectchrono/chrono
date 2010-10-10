@@ -145,8 +145,8 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 
 	ChFrame<>* frameA =0;
 	ChFrame<>* frameB =0;
-	bool fixedA = false;
-	bool fixedB = false;
+	bool inactiveA = false;
+	bool inactiveB = false;
 	float frictionA, frictionB;
 	float rollfrictionA =0;
 	float rollfrictionB=0;
@@ -159,7 +159,7 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 	{
 		frameA = mmboA->GetBody();
 		varA    =&mmboA->GetBody()->Variables();
-		fixedA  = mmboA->GetBody()->GetBodyFixed();
+		inactiveA = !mmboA->GetBody()->IsActive();
 		frictionA = mmboA->GetBody()->GetSfriction();
 		rollfrictionA = mmboA->GetBody()->GetRollingFriction();
 		spinfrictionA = mmboA->GetBody()->GetSpinningFriction();
@@ -176,7 +176,7 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 	{
 		frameB = mmboB->GetBody();
 		varB    =&mmboB->GetBody()->Variables();
-		fixedB  = mmboB->GetBody()->GetBodyFixed();
+		inactiveB = !mmboB->GetBody()->IsActive();
 		frictionB = mmboB->GetBody()->GetSfriction();
 		rollfrictionB = mmboB->GetBody()->GetRollingFriction();
 		spinfrictionB = mmboB->GetBody()->GetSpinningFriction();
@@ -195,7 +195,7 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 	assert (varA);
 	assert (varB);
 
-	if ((fixedA && fixedB))
+	if ((inactiveA && inactiveB))
 		return;
 
 	// Compute default material-couple values
