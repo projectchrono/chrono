@@ -21,7 +21,8 @@
 
 
 
-#include "physics/ChApidll.h" 
+#include "physics/ChApidll.h"
+#include "physics/ChBody.h"
 #include "unit_MPI/ChMpi.h"
 #include <iostream>
 #include <sstream>
@@ -109,8 +110,6 @@ int main(int argc, char* argv[])
 
 	}
 
-
-
 	//
 	// TEST 3   -   send and receive whatever serializable chrono object
 	//              i.e. objects that implements StreamIN() and StreamOUT()
@@ -119,31 +118,36 @@ int main(int argc, char* argv[])
 
 	if (myid==0) // sender
 	{
-		std::stringstream mstream;
-		ChStreamOutBinaryStream mchstreamo(&mstream);
+		std::vector<char> outstream;
+		ChStreamOutBinaryVector outstreamwrapper(&outstream);
 	
-		ChVector<> mv(12,23,45.34);
-		mchstreamo << mv;	// serialize object to binary stream, in memory.
+		ChVector<> mv(34,11,45.34);
+		outstreamwrapper << mv;	// serialize object to binary stream, in memory.
+
+		ChBody mybody;
+		outstreamwrapper.AbstractWrite(&mybody); 	// serialize object to binary stream, in memory.
 
 		GetLog() << "Id 0: sending serialized ChVector: " << mv << "\n";
-		ChMPI::SendString(1, mstream.rdbuf()->str(), ChMPI::MPI_STANDARD, false,0);
+		ChMPI::SendBuffer(1, outstream, ChMPI::MPI_STANDARD, false,0);
 	}
 
 	if (myid==1) // receiver
 	{
 		ChMPIstatus mstatus;
-		std::string mstr;
-		ChMPI::ReceiveString(0, mstr, &mstatus);
+		std::vector<char> instream;
+		ChStreamInBinaryVector instreamwrapper(&instream);
 
-		std::stringstream mstream;
-		mstream << mstr;
-		ChStreamInBinaryStream mchstreami(&mstream);
+		ChMPI::ReceiveBuffer(0, instream, &mstatus);
 
 		ChVector<> mv;
-		mchstreami >> mv;	// deserialize object from binary stream.
+		instreamwrapper >> mv;	// deserialize object from binary stream.
+
+		ChObj* myobj;
+		instreamwrapper.AbstractReadCreate(&myobj); // deserialize unknown object from binary stream.
+		
+		if (myobj) GetLog() << "Id 1: created obj of type:" << myobj->GetRTTI()->GetName() << "\n";
 		GetLog() << "Id 1: received serialized ChVector: " << mv << "\n";
 	}
-
 
 
 	// Terminate the MPI functionality.
