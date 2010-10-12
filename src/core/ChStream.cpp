@@ -728,6 +728,38 @@ void ChStreamIstreamWrapper::Read(char* data, int n)
 }
 
 
+//////////////////////////////////
+
+ChStreamVectorWrapper::ChStreamVectorWrapper(std::vector<char>* mchars)
+{
+	assert(mchars);
+	vbuffer = mchars;
+	pos = 0;
+};
+ChStreamVectorWrapper::~ChStreamVectorWrapper() {};
+
+
+void ChStreamVectorWrapper::Write(const char* data, int n)
+{
+	std::copy(data, data+n, std::back_inserter(*vbuffer));
+}
+void ChStreamVectorWrapper::Read(char* data, int n)
+{
+	if (pos+n > vbuffer->size())
+		n = vbuffer->size()-pos;
+
+	for (int i=0; i<n; i++)
+	{
+		data[i] = (*vbuffer)[pos];
+		pos++;
+	}
+}
+bool ChStreamVectorWrapper::End_of_stream()
+{
+	if (pos >= vbuffer->size()) 
+		return true;
+	return false;
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////
 

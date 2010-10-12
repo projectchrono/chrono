@@ -27,6 +27,7 @@
 #include "unit_mpi/ChBodyMPI.h"
 #include "unit_mpi/ChLcpSystemDescriptorMPI.h"
 #include "unit_mpi/ChDomainLatticePartitioning.h"
+#include <sstream> // TEST
 
 // Remember to use the namespace 'chrono' because all classes 
 // of Chrono::Engine belong to this namespace and its children...
@@ -53,7 +54,7 @@ int main(int argc, char* argv[])
 	// and about the ID of this specific process.
 	int numprocs = CHMPI::CommSize();
 	int myid     = CHMPI::CommRank();
-/*
+
 	if (numprocs != 12)
 	{
 		if (myid == 0)
@@ -66,12 +67,40 @@ int main(int argc, char* argv[])
 		DLL_DeleteGlobals();
 		return 0;
 	}
-*/
+
 	// Instead of using the usual ChSystem, rather use ChSystemMPI. It is
 	// a specialized class for physical systems that can be used 
 	// for domain decomposition with MPI communication. 
 
 	ChSystemMPI mysystem;
+
+//***TEST***
+	try 
+	{
+		std::vector<char> ovect;
+		ChStreamOutBinaryVector* mchvecto = new ChStreamOutBinaryVector(&ovect);
+
+		ovect.clear();
+		mchvecto->Seek(0);
+
+		ChBodyMPI* cbody = new ChBodyMPI;
+		mchvecto->AbstractWrite(cbody);
+		GetLog() << "Vector len=" << mchvecto->GetVector()->size() << "\n";
+		
+		std::vector<char> ivect;
+		ivect= ovect;
+		ChStreamInBinaryVector* mchvecti = new ChStreamInBinaryVector(&ivect);
+
+		ChObj* mm;
+		mchvecti->AbstractReadCreate(&mm);
+		GetLog() << "Vector len=" << mchvecti->GetVector()->size() << "\n";
+		GetLog() << "Deserialized type: " << mm->GetRTTI()->GetName() << "\n\n";
+		
+	}
+	catch (ChException myex)
+	{
+		GetLog() << "ERROR deserializing:\n " << myex.what() << "\n";
+	} 
 
 	// Since we run multiple processes of this program, we must
 	// set a 'topology' between them. Currently, cubic lattice

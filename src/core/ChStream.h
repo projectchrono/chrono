@@ -631,6 +631,50 @@ public:
 };
 
 
+
+///
+/// This is a wrapper for a std::vector<char> (buffer of chars)
+///
+
+class ChStreamVectorWrapper
+{
+private:
+				/// Handler to a C++ stream
+	std::vector<char>* vbuffer;
+	int pos;
+
+public:
+				/// Creates a wrapper for an already existing std::vector<char>,
+				/// given the pointer to that vector.
+	ChStreamVectorWrapper(std::vector<char>* mchars);
+
+				/// Deleting this wrapper does not delete nor closes
+				/// the wrapped buffer!
+	virtual ~ChStreamVectorWrapper();
+
+				/// Reads from vector, up to n chars.
+				/// If does not succeed, throws exception.
+	virtual void	Read(char* data, int n);
+
+				/// Writes raw data to vector, up to n chars.
+				/// If does not succeed, throws exception.
+	virtual void	Write(const char* data, int n);
+
+				/// Returns true if end of stream (end of vector) reached.
+	virtual bool End_of_stream();
+
+				/// Direct reference to std::vector<char> encapsulated here.
+	std::vector<char>* GetVector() { return vbuffer;}
+
+				/// Rewind read position to char number (0= beginning). 
+				/// Write position is always at the end (append).
+	void Seek(int position) { pos = position;}
+};
+
+
+
+
+
 ///
 /// This is a specialized class for BINARY output to wrapped std::ostream,
 ///
@@ -661,6 +705,36 @@ private:
 	virtual void Input(char* data, int n) { ChStreamIstreamWrapper::Read(data, n); }
 };
 
+
+///
+/// This is a specialized class for BINARY output to wrapped std::vector<char>,
+///
+
+class ChStreamOutBinaryVector : public ChStreamVectorWrapper , public ChStreamOutBinary
+{
+public:
+	ChStreamOutBinaryVector(std::vector<char>* mchars)  : ChStreamVectorWrapper(mchars), ChStreamOutBinary() {};
+	virtual ~ChStreamOutBinaryVector() {};
+
+	virtual bool End_of_stream() { return ChStreamVectorWrapper::End_of_stream(); }
+private:
+	virtual void Output(const char* data, int n) { ChStreamVectorWrapper::Write(data, n); }
+};
+
+///
+/// This is a specialized class for BINARY input from wrapped std::vector<char>,
+///
+
+class ChStreamInBinaryVector : public ChStreamVectorWrapper , public ChStreamInBinary
+{
+public:
+	ChStreamInBinaryVector(std::vector<char>* mchars)  : ChStreamVectorWrapper(mchars), ChStreamInBinary() {};
+	virtual ~ChStreamInBinaryVector() {};
+
+	virtual bool End_of_stream() { return ChStreamVectorWrapper::End_of_stream(); }
+private:
+	virtual void Input(char* data, int n) { ChStreamVectorWrapper::Read(data, n); }
+};
 
 
 
