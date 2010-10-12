@@ -63,7 +63,6 @@ void ChSystemMPI::CustomEndOfStep()
 
 	// 1 - serialize objects that 'spill out' to interface buffers
 
-GetLog() << "ID=" << this->nodeMPI.id_MPI << " CustomEndOfStep 1 \n";
 /*
 	HIER_BODY_INIT
 	while HIER_BODY_NOSTOP
@@ -101,9 +100,8 @@ GetLog() << "ID=" << this->nodeMPI.id_MPI << " CustomEndOfStep 1 \n";
 		if (ChBodyMPI* mpibody = dynamic_cast<ChBodyMPI*>(PHpointer))
 		{
 			int oldflags = mpibody->GetOverlapFlags();
-			GetLog() << "ID=" << this->nodeMPI.id_MPI << " CustomEndOfStep 3 oldflags = " << oldflags <<  "\n";
 			int newflags = mpibody->ComputeOverlapFlags(this->nodeMPI);
-			GetLog() << "ID=" << this->nodeMPI.id_MPI << " CustomEndOfStep 4 newflags = " << newflags <<  "\n";
+
 			int changeflags = newflags & ~oldflags; // deal only with last overlapped domains 
 			if (changeflags)
 			{
@@ -141,8 +139,6 @@ GetLog() << "ID=" << this->nodeMPI.id_MPI << " CustomEndOfStep 1 \n";
 	{
 		if  ( this->nodeMPI.interfaces[bi].id_MPI != -1) // exclude unexisting domains
 		{
-			GetLog() << "ID=" << this->nodeMPI.id_MPI << " send buffer to " << this->nodeMPI.interfaces[bi].id_MPI << " \n";
-
 			int err = ChMPI::SendBuffer( this->nodeMPI.interfaces[bi].id_MPI, 
 							   *(this->nodeMPI.interfaces[bi].mstreamo), 
 							   ChMPI::MPI_STANDARD, 
@@ -198,8 +194,6 @@ GetLog() << "ID=" << this->nodeMPI.id_MPI << " CustomEndOfStep 1 \n";
 			ChMPI::Wait(&mrequest[bi], &mstatus);
 		}
 	}
-
-GetLog() << "ID=" << this->nodeMPI.id_MPI << " CustomEndOfStep END \n";
 }
 
 

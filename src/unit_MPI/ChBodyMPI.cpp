@@ -79,6 +79,7 @@ int ChBodyMPI::ComputeOverlapFlags(ChDomainNodeMPIlattice3D& mnode)
 		return this->last_shared;
 
 	} // end of overlap code
+	return this->last_shared;
 }
 
 
