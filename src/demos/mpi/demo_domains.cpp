@@ -73,34 +73,7 @@ int main(int argc, char* argv[])
 	// for domain decomposition with MPI communication. 
 
 	ChSystemMPI mysystem;
-
-//***TEST***
-	try 
-	{
-		std::vector<char> ovect;
-		ChStreamOutBinaryVector* mchvecto = new ChStreamOutBinaryVector(&ovect);
-
-		ovect.clear();
-		mchvecto->Seek(0);
-
-		ChBodyMPI* cbody = new ChBodyMPI;
-		mchvecto->AbstractWrite(cbody);
-		GetLog() << "Vector len=" << mchvecto->GetVector()->size() << "\n";
-		
-		std::vector<char> ivect;
-		ivect= ovect;
-		ChStreamInBinaryVector* mchvecti = new ChStreamInBinaryVector(&ivect);
-
-		ChObj* mm;
-		mchvecti->AbstractReadCreate(&mm);
-		GetLog() << "Vector len=" << mchvecti->GetVector()->size() << "\n";
-		GetLog() << "Deserialized type: " << mm->GetRTTI()->GetName() << "\n\n";
-		
-	}
-	catch (ChException myex)
-	{
-		GetLog() << "ERROR deserializing:\n " << myex.what() << "\n";
-	} 
+ 
 
 	// Since we run multiple processes of this program, we must
 	// set a 'topology' between them. Currently, cubic lattice
@@ -120,9 +93,12 @@ int main(int argc, char* argv[])
 	mysystem.ChangeLcpSystemDescriptor(&mydescriptor);
 
 	GetLog() << "ID=" << CHMPI::CommRank() << "  id_MPI=" << mysystem.nodeMPI.id_MPI << "\n";
+/*	
+	// Some logging for debugging..
+
 	GetLog() << "	min_box" << mysystem.nodeMPI.min_box << "\n";
 	GetLog() << "	max_box" << mysystem.nodeMPI.max_box << "\n";
-/*
+
 	GetLog() << "	   interfaces:\n";
 	for (int j = 0; j<9; j++)	
 		GetLog() << j << "=" << mysystem.nodeMPI.interfaces[j].id_MPI << " ";
@@ -141,37 +117,29 @@ int main(int argc, char* argv[])
 		// Create a body of the type that can cross boundaries and support 
 		// MPI domain decomposition.
 		ChSharedPtr<ChBodyMPI> mybody(new ChBodyMPI);
-/*
+
 		mybody->SetCollide(true);
 		mybody->GetCollisionModel()->ClearModel();
-		mybody->GetCollisionModel()->AddBox(1,1,1, &ChVector<>(-5,-6,-5) );
+		mybody->GetCollisionModel()->AddBox(0.1,0.1,0.1, &ChVector<>(-4,-3.35,0) );
 		mybody->GetCollisionModel()->BuildModel();
-*/		
+		
 		mysystem.Add(mybody);
 	
-		GetLog() << "ID=" << mysystem.nodeMPI.id_MPI << " Body n: " << mysystem.GetNbodies() << "\n";
+		//mybody->GetCollisionModel()->SyncPosition();
+		//ChVector<> vmin;
+		//ChVector<> vmax;
+		//mybody->GetCollisionModel()->GetAABB(vmin,vmax);
+		//GetLog() << "ID=" << mysystem.nodeMPI.id_MPI << "      bbox = " << vmin << "\n" << vmax << "\n\n";
 	}
 	
 	// Test the serializing-deserializing of objects that spill out of boundaries
+	GetLog() << "ID=" << mysystem.nodeMPI.id_MPI << " CustomEndOfStep.. \n";
 	mysystem.CustomEndOfStep();
+	GetLog() << "ID=" << mysystem.nodeMPI.id_MPI << " CustomEndOfStep.. \n";
+	mysystem.CustomEndOfStep(); // mmmhh, error because spilled body flags must be updated after deserializing..
 
 	
-/*
-	GetLog() << "ID=" << CHMPI::CommRank();
-	GetLog() << " METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "  \n\n";
-	GetLog() << "ID=" << CHMPI::CommRank();
-	GetLog() << "  Primal vars: (qb) ---------------\n";
-	for (int im = 0; im < n_masses; im++)
-	{
-		GetLog() << "   " << vars[im]->Get_qb()(0) << "\n";
-	}
-	GetLog() << "\nID=" << CHMPI::CommRank();
-	GetLog() << "  Dual vars: (constr.lambdas) -----\n\n";
-	for (int im = 0; im < n_masses-1; im++)
-	{
-		GetLog() << "   " << constraints[im]->Get_l_i() << "\n"; // << "  res: " << constraints[im]->Get_c_i() << "\n";
-	}
-*/
+
 
 	// Terminate the MPI functionality.
 	CHMPI::Finalize();
