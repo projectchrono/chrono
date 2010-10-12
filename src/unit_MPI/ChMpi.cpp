@@ -238,7 +238,6 @@ int ChMPI::SendString(int destID,					///< destination rank
 	char* data = (char*)source_str.data(); // should not access directly std::string data, but this is efficient!
 	int nbytes = source_str.size();
 	int err = 0;
-GetLog() << "   SendString size=" << nbytes << "\n";
 
 	if (nonblocking == false)
 	{
@@ -295,9 +294,10 @@ int ChMPI::ReceiveString(int sourceID,				///< source rank
 	int incoming_msg_size =0;
 	MPI_Probe(sourceID, 1002,	MPI_COMM_WORLD, &status);
     MPI_Get_count(&status, MPI_BYTE, &incoming_msg_size);
-	//GetLog() << "   size:" << incoming_msg_size << "   \n";
 
 	dest_str.resize(incoming_msg_size);
+
+	//GetLog() << "   ReceiveString size=" << dest_str.size() << "\n";
 
 	void* data = (void*)dest_str.data(); // should not access directly std::string data! but this is efficient!
 
@@ -311,6 +311,97 @@ int ChMPI::ReceiveString(int sourceID,				///< source rank
 
 
 
+int ChMPI::SendBuffer(int destID,						///< destination rank
+							std::vector<char>& source_buf,///< source buffer
+							eCh_mpiCommMode mmode,		///< send mode
+							bool nonblocking,			///< set true for nonblocking (immediate) send
+							ChMPIrequest* mreq			///< if nonblocking=true, must use this
+							)
+{
+	assert ((!nonblocking & !mreq) || (nonblocking & mreq));
+
+	int nbytes = source_buf.size();
+	char* data;
+	if (nbytes)
+		data = (char*)&(source_buf[0]); // stl vectors are assured to be sequential
+	else
+		data = ""; // stub, in case null length messages, stl vector has no [0] element address
+
+	int err = 0;
+
+	if (nonblocking == false)
+	{
+		switch (mmode)
+		{
+			case ChMPI::MPI_STANDARD:
+				err = MPI_Send( data, nbytes, MPI_BYTE, destID, 1002, MPI_COMM_WORLD);
+				break;
+			case ChMPI::MPI_BUFFERED:
+				err = MPI_Bsend( data, nbytes, MPI_BYTE, destID, 1002, MPI_COMM_WORLD);
+				break;
+			case ChMPI::MPI_SYNCHRONOUS:
+				err = MPI_Ssend( data, nbytes, MPI_BYTE, destID, 1002, MPI_COMM_WORLD);
+				break;
+			case ChMPI::MPI_READY:
+				err = MPI_Rsend( data, nbytes, MPI_BYTE, destID, 1002, MPI_COMM_WORLD);
+				break;
+			default:
+				break;
+		}
+	}
+	else
+	{
+		switch (mmode)
+		{
+			case ChMPI::MPI_STANDARD:
+				err = MPI_Isend (  data, nbytes, MPI_BYTE, destID, 1002, MPI_COMM_WORLD, (MPI_Request*) mreq->mpireq);
+				break;
+			case ChMPI::MPI_BUFFERED:
+				err = MPI_Ibsend(  data, nbytes, MPI_BYTE, destID, 1002, MPI_COMM_WORLD, (MPI_Request*) mreq->mpireq);
+				break;
+			case ChMPI::MPI_SYNCHRONOUS:
+				err = MPI_Issend(  data, nbytes, MPI_BYTE, destID, 1002, MPI_COMM_WORLD, (MPI_Request*) mreq->mpireq);
+				break;
+			case ChMPI::MPI_READY:
+				err = MPI_Irsend(  data, nbytes, MPI_BYTE, destID, 1002, MPI_COMM_WORLD, (MPI_Request*) mreq->mpireq);
+				break;
+			default:
+				break;
+		}
+	}
+
+	return err;
+}
+
+
+
+int ChMPI::ReceiveBuffer(int sourceID,				///< source rank
+							std::vector<char>& dest_buf, ///< destination buffer - will be resized
+							ChMPIstatus* mstatus
+							)
+{
+	MPI_Status status;
+	int nbytes =0;
+	MPI_Probe(sourceID, 1002,	MPI_COMM_WORLD, &status);
+    MPI_Get_count(&status, MPI_BYTE, &nbytes);
+
+	dest_buf.resize(nbytes);
+
+	//GetLog() << "   ReceiveBuffer size=" << nbytes << "\n";
+
+	void* data;
+	if (nbytes)
+		data = (char*)&(dest_buf[0]); // stl vectors are assured to be sequential. // should not access directly std::vector data, but this is efficient!
+	else
+		data = ""; // stub, in case null length messages, stl vector has no [0] element address
+	
+	int err = 0;
+	if (nbytes)
+	{
+		err = MPI_Recv( data, nbytes, MPI_BYTE, sourceID, 1002, MPI_COMM_WORLD, (MPI_Status*)mstatus->mpistat);
+	}
+	return err;
+}
 
 
 

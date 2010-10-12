@@ -57,12 +57,14 @@ void ChSystemMPI::CustomEndOfStep()
 	{
 		this->nodeMPI.interfaces[i].mstreami->clear();
 		this->nodeMPI.interfaces[i].mstreamo->clear();
+		this->nodeMPI.interfaces[i].mchstreami->Seek(0);
+		this->nodeMPI.interfaces[i].mchstreamo->Seek(0);
 	}
 
 	// 1 - serialize objects that 'spill out' to interface buffers
 
 GetLog() << "ID=" << this->nodeMPI.id_MPI << " CustomEndOfStep 1 \n";
-
+/*
 	HIER_BODY_INIT
 	while HIER_BODY_NOSTOP
 	{
@@ -82,9 +84,9 @@ GetLog() << "ID=" << this->nodeMPI.id_MPI << " CustomEndOfStep 1 \n";
 						if (this->nodeMPI.interfaces[bi].id_MPI != -1) // exclude unexisting domains
 						{
 							// serialize to interface stream
-GetLog() << "ID=" << this->nodeMPI.id_MPI << " SEND: " << mpibody->GetRTTI()->GetName() << "  to ID=" << bi << "\n";
+							GetLog() << "ID=" << this->nodeMPI.id_MPI << " SEND: " << mpibody->GetRTTI()->GetName() << "  to ID=" << this->nodeMPI.interfaces[bi].id_MPI << "\n";
 							this->nodeMPI.interfaces[bi].mchstreamo->AbstractWrite(mpibody);
-GetLog() << "ID=" << this->nodeMPI.id_MPI << " .SENT: " << mpibody->GetRTTI()->GetName() << "  to ID=" << bi << "\n";
+							GetLog() << "ID=" << this->nodeMPI.id_MPI << " .SENT: " << mpibody->GetRTTI()->GetName() << "  to ID=" << this->nodeMPI.interfaces[bi].id_MPI << "\n";
 						}
 					}
 				}
@@ -92,7 +94,7 @@ GetLog() << "ID=" << this->nodeMPI.id_MPI << " .SENT: " << mpibody->GetRTTI()->G
 		}
 		HIER_BODY_NEXT
 	}
-
+*/
 	HIER_OTHERPHYSICS_INIT
 	while HIER_OTHERPHYSICS_NOSTOP
 	{
@@ -111,9 +113,18 @@ GetLog() << "ID=" << this->nodeMPI.id_MPI << " .SENT: " << mpibody->GetRTTI()->G
 					{
 						if (this->nodeMPI.interfaces[bi].id_MPI != -1) // exclude unexisting domains
 						{
-							// serialize to interface stream
-GetLog() << "ID=" << this->nodeMPI.id_MPI << " SERIALIZE: " << mpibody->GetRTTI()->GetName() << "  to neighbour=" << bi << "\n";
-							this->nodeMPI.interfaces[bi].mchstreamo->AbstractWrite(mpibody);
+							try 
+							{
+								// serialize to interface stream
+								GetLog() << "ID=" << this->nodeMPI.id_MPI << " SERIALIZE: " << mpibody->GetRTTI()->GetName() << "  to ID=" << this->nodeMPI.interfaces[bi].id_MPI << "\n";
+								this->nodeMPI.interfaces[bi].mchstreamo->AbstractWrite(mpibody);
+							}
+							catch (ChException myex)
+							{
+								GetLog() << "ERROR serializing MPI item:\n " << myex.what() << "\n";
+							}
+
+
 						}
 					}
 				}
@@ -122,26 +133,23 @@ GetLog() << "ID=" << this->nodeMPI.id_MPI << " SERIALIZE: " << mpibody->GetRTTI(
 		HIER_OTHERPHYSICS_NEXT
 	}
 
-GetLog() << "ID=" << this->nodeMPI.id_MPI << " CustomEndOfStep 6 \n";
-
 	// 2 - send buffers using MPI
+
+	ChMPIrequest mrequest[27];
 
 	for (int bi = 0; bi<27; bi++)
 	{
 		if  ( this->nodeMPI.interfaces[bi].id_MPI != -1) // exclude unexisting domains
 		{
-			ChMPIrequest mrequest;
-			GetLog() << "ID=" << this->nodeMPI.id_MPI << " send string='" << this->nodeMPI.interfaces[bi].mstreamo->rdbuf()->str() << "' to " << this->nodeMPI.interfaces[bi].id_MPI << " \n";
-			ChMPI::SendString( this->nodeMPI.interfaces[bi].id_MPI, 
-							   this->nodeMPI.interfaces[bi].mstreamo->rdbuf()->str(), 
+			GetLog() << "ID=" << this->nodeMPI.id_MPI << " send buffer to " << this->nodeMPI.interfaces[bi].id_MPI << " \n";
+
+			int err = ChMPI::SendBuffer( this->nodeMPI.interfaces[bi].id_MPI, 
+							   *(this->nodeMPI.interfaces[bi].mstreamo), 
 							   ChMPI::MPI_STANDARD, 
 							   true,	// non blocking send, as  MPI_Isend
-							   &mrequest);
-							   
+							   &(mrequest[bi]));				   
 		}
 	}
-	
-GetLog() << "ID=" << this->nodeMPI.id_MPI << " CustomEndOfStep 7 \n";
 
 	// 3 - receive buffers using MPI, deserialize and add to system
 	for (int bi = 0; bi<27; bi++)
@@ -149,36 +157,45 @@ GetLog() << "ID=" << this->nodeMPI.id_MPI << " CustomEndOfStep 7 \n";
 		if ( this->nodeMPI.interfaces[bi].id_MPI != -1) // exclude unexisting domains
 		{
 			ChMPIstatus mstatus;
-			std::string mstr;
 			
-			ChMPI::ReceiveString(   this->nodeMPI.interfaces[bi].id_MPI, 
-									mstr, 
-									&mstatus 
-								);
-								
-			*( this->nodeMPI.interfaces[bi].mstreami) << mstr;
+			int err = ChMPI::ReceiveBuffer(   this->nodeMPI.interfaces[bi].id_MPI, 
+											*(this->nodeMPI.interfaces[bi].mstreami), 
+											&mstatus 
+										   );				
 			
-			if (mstr.size())
-			while (! this->nodeMPI.interfaces[bi].mchstreami->End_of_stream())
+			if (this->nodeMPI.interfaces[bi].mstreami->size())
 			{
-				// deserialize received data, with class factory
-				ChPhysicsItem* newitem = 0;
-				try 
+				while (! this->nodeMPI.interfaces[bi].mchstreami->End_of_stream())
 				{
-					this->nodeMPI.interfaces[bi].mchstreami->AbstractReadCreate(&newitem);
-GetLog() << "ID=" << this->nodeMPI.id_MPI << " DESERIALIZE: " << newitem->GetRTTI()->GetName() << " from neighbour=" << bi << "\n";
-				}
-				catch (ChException myex)
-				{
-					GetLog() << "ERROR deserializing MPI item:\n " << myex.what() << "\n";
-				}
-				ChSharedPtr<ChPhysicsItem> ptritem(newitem);
+					// deserialize received data, with class factory
+					ChPhysicsItem* newitem = 0;
+					try 
+					{
+						this->nodeMPI.interfaces[bi].mchstreami->AbstractReadCreate(&newitem);
+						GetLog() << "ID=" << this->nodeMPI.id_MPI << " DESERIALIZED: " << newitem->GetRTTI()->GetName() << " from neighbour=" << nodeMPI.interfaces[bi].id_MPI << "\n";
+					}
+					catch (ChException myex)
+					{
+						GetLog() << "ERROR deserializing MPI item:\n " << myex.what() << "\n";
+					}
+					ChSharedPtr<ChPhysicsItem> ptritem(newitem);
 
-				// add to system
-				if (newitem)
-					this->Add(ptritem);
+					// add to system
+					if (newitem)
+						this->Add(ptritem);
+				}
 			}
 
+		}
+	}
+
+	// wait that all messages are sent before proceeding
+	for (int bi = 0; bi<27; bi++)
+	{
+		if  ( this->nodeMPI.interfaces[bi].id_MPI != -1) // exclude unexisting domains
+		{
+			ChMPIstatus mstatus;
+			ChMPI::Wait(&mrequest[bi], &mstatus);
 		}
 	}
 

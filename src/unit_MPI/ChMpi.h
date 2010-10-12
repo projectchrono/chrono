@@ -116,6 +116,20 @@ public:
 							ChMPIstatus* mstatus			///< return status here
 							);
 
+	/// Send a std::vector<char> (a buffer of bytes) to the process with rank destID 
+	static int SendBuffer(int destID,						///< destination rank
+							std::vector<char>& source_buf,	///< source buffer
+							eCh_mpiCommMode mmode,			///< send mode
+							bool nonblocking=false,			///< set true for nonblocking (immediate) send
+							ChMPIrequest* mreq= 0			///< if nonblocking=true, must use this
+							);
+	/// Receive a std::vector<char> (a buffer of bytes) from the process with rank sourceID.
+	/// The size of the buffer can be unknown: the destination
+	/// vector buffer is properly resized when receiving.
+	static int ReceiveBuffer(int sourceID,					///< source rank
+							std::vector<char>& dest_buf,	///< destination buffer - will be resized
+							ChMPIstatus* mstatus			///< return status here
+							);
 };
 
 class Ch_test_mpi

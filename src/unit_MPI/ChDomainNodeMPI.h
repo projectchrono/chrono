@@ -29,28 +29,28 @@ class ChDomainNodeInterfaceMPI
 {
 public:
 	int id_MPI;
-	std::stringstream* mstreamo;
-	ChStreamOutBinaryStream* mchstreamo;
-	std::stringstream* mstreami;
-	ChStreamInBinaryStream* mchstreami;
+	std::vector<char>* mstreamo;
+	ChStreamOutBinaryVector* mchstreamo;
+	std::vector<char>* mstreami;
+	ChStreamInBinaryVector* mchstreami;
 
 				/// Builder.
 	ChDomainNodeInterfaceMPI ()
 	{
 		id_MPI = 0;
-		mstreamo = new std::stringstream;
-		mstreami = new std::stringstream;
-		mchstreamo = new ChStreamOutBinaryStream(mstreamo);
-		mchstreami = new ChStreamInBinaryStream(mstreami);
+		mstreamo = new std::vector<char>;
+		mstreami = new std::vector<char>;
+		mchstreamo = new ChStreamOutBinaryVector(mstreamo);
+		mchstreami = new ChStreamInBinaryVector(mstreami);
 	}
 
 	ChDomainNodeInterfaceMPI( ChDomainNodeInterfaceMPI const& rhs )
 	{
 		id_MPI = 0;
-		mstreamo = new std::stringstream;
-		mstreami = new std::stringstream;
-		mchstreamo = new ChStreamOutBinaryStream(mstreamo);
-		mchstreami = new ChStreamInBinaryStream(mstreami);
+		mstreamo = new std::vector<char>;
+		mstreami = new std::vector<char>;
+		mchstreamo = new ChStreamOutBinaryVector(mstreamo);
+		mchstreami = new ChStreamInBinaryVector(mstreami);
 		// do not copy data, it is only for supporting std::vector
 	}
 
