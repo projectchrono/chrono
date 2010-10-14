@@ -16,7 +16,9 @@
 
 
 #include "ChMpi.h"
+#include "core/ChHashTable.h"
 #include <sstream>
+
 
 
 namespace chrono 
@@ -33,6 +35,7 @@ public:
 	ChStreamOutBinaryVector* mchstreamo;
 	std::vector<char>* mstreami;
 	ChStreamInBinaryVector* mchstreami;
+	ChHashTable<int, ChPhysicsItem*> shared_items;
 
 				/// Builder.
 	ChDomainNodeInterfaceMPI ()
@@ -62,6 +65,7 @@ public:
 		delete mchstreamo;
 		delete mchstreami;
 	}
+
 };
 
 
@@ -79,9 +83,14 @@ public:
 		id_MPI = 0;
 	}
 
-	~ChDomainNodeMPI ()
+	virtual ~ChDomainNodeMPI ()
 	{
 	}
+
+	virtual bool IsInto(ChVector<>& point)= 0;
+	virtual bool IsAABBinside (ChVector<>& aabbmin, ChVector<>& aabbmax)= 0;
+	virtual bool IsAABBoutside(ChVector<>& aabbmin, ChVector<>& aabbmax)= 0;
+	virtual bool IsAABBoverlappingInterface(int n_interface, ChVector<>& aabbmin, ChVector<>& aabbmax)= 0;
 };
 
 
@@ -100,6 +109,50 @@ public:
 		interfaces.resize(27);
 		min_box.Set(0,0,0);
 		max_box.Set(0,0,0);	
+	}
+
+	virtual bool IsInto(ChVector<>& point)
+	{
+		if (point.x > this->min_box.x &&
+			point.y > this->min_box.y &&
+			point.z > this->min_box.z &&
+			point.x < this->max_box.x &&
+			point.y < this->max_box.y &&
+			point.z < this->max_box.z ) 
+			return true;
+		else
+			return false; 
+	}
+
+	virtual bool IsAABBinside(ChVector<>& aabbmin, ChVector<>& aabbmax)
+	{
+		if (aabbmin.x > this->min_box.x &&
+			aabbmin.y > this->min_box.y &&
+			aabbmin.z > this->min_box.z &&
+			aabbmax.x < this->max_box.x &&
+			aabbmax.y < this->max_box.y &&
+			aabbmax.z < this->max_box.z ) 
+			return true;
+		else
+			return false;
+	}
+
+	virtual bool IsAABBoutside(ChVector<>& aabbmin, ChVector<>& aabbmax)
+	{
+		if (aabbmax.x < this->min_box.x ||
+			aabbmax.y < this->min_box.y ||
+			aabbmax.z < this->min_box.z ||
+			aabbmin.x > this->max_box.x ||
+			aabbmin.y > this->max_box.y ||
+			aabbmin.z > this->max_box.z ) 
+			return true;
+		else
+			return false;
+	}
+	virtual bool IsAABBoverlappingInterface(int n_interface, ChVector<>& aabbmin, ChVector<>& aabbmax)
+	{
+		//***TO DO***
+		return true;
 	}
 };
 
