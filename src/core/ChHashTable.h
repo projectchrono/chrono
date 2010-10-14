@@ -123,7 +123,7 @@ public:
 		
 		/// Remove all elements from the hash table
   void erase(void);
-  
+
 		/// Provide the std::map equivalent clear function
   void clear(void);
 
@@ -803,6 +803,7 @@ bool ChHashTable<K,T,H,E>::erase(const K& key)
   }
   return false;
 }
+
 
 template<typename K, typename T, class H, class E>
 void ChHashTable<K,T,H,E>::clear(void)
