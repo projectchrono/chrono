@@ -813,6 +813,17 @@ void ChBody::RemoveCollisionModelsFromSystem()
 	this->GetSystem()->GetCollisionSystem()->Remove(this->GetCollisionModel());
 }
 
+
+
+void ChBody::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax)
+{
+	if (this->GetCollisionModel())
+		this->GetCollisionModel()->GetAABB(bbmin, bbmax);
+	else 
+		ChPhysicsItem::GetAABB(bbmin, bbmax); // default: infinite aabb
+}
+
+
 //////// FILE I/O
 
 void ChBody::StreamOUT(ChStreamOutBinary& mstream)
@@ -926,6 +937,34 @@ void ChBody::StreamIN(ChStreamInBinary& mstream)
 		mstream >> dfoo;		spinning_friction= (float)dfoo;
 	}
 }
+
+
+
+
+void ChBody::StreamOUTstate(ChStreamOutBinary& mstream)
+{
+	// Do not serialize parent classes and do not
+	// implement versioning, because this must be efficient 
+	// and will be used just for domain decomposition.
+	mstream << this->GetCoord();
+	mstream << this->GetCoord_dt();
+}
+
+void ChBody::StreamINstate(ChStreamInBinary& mstream)
+{
+	// Do not serialize parent classes and do not
+	// implement versioning, because this must be efficient 
+	// and will be used just for domain decomposition.
+	ChCoordsys<> mcoord;
+	mstream >> mcoord;
+	this->SetCoord(mcoord);
+	mstream >> mcoord;
+	this->SetCoord_dt(mcoord);
+
+	this->Update();
+	this->SyncCollisionModels();
+}
+
 
 #define CH_ChUNK_END 1234
 

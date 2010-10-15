@@ -39,6 +39,21 @@ void ChPhysicsItem::Copy(ChPhysicsItem* source)
 
 
 
+
+void ChPhysicsItem::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax)
+{
+	bbmin.Set(-1e200, -1e200, -1e200);
+	bbmax.Set( 1e200,  1e200,  1e200);
+}
+				
+void ChPhysicsItem::GetCenter(ChVector<>& mcenter)
+{
+	ChVector<> mmin, mmax;
+	this->GetAABB(mmin, mmax);
+	mcenter = (mmin+mmax)*0.5;
+}
+
+
 /////////
 ///////// FILE I/O
 /////////

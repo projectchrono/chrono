@@ -305,7 +305,14 @@ public:
 				/// Stores the current position in the last-collision-position buffer.
 	void SynchronizeLastCollPos() {last_coll_pos = this->coord;}
 
+				/// Get the entire AABB axis-aligned bounding box of the object,
+				/// as defined by the collision model (if any).
+	virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax);
 
+				/// Method to deserialize only the state (position, speed)
+	virtual void StreamINstate(ChStreamInBinary& mstream);
+				/// Method to serialize only the state (position, speed)
+	virtual void StreamOUTstate(ChStreamOutBinary& mstream);	
 
 				/// The normal restitution coefficient, for collisions.
 				/// Should be in 0..1 range.
