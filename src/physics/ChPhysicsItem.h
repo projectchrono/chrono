@@ -93,7 +93,28 @@ public:
 				/// remove them from the system's collision engine.
 	virtual void RemoveCollisionModelsFromSystem() {};
 
+			// Functions used by domain decomposition
 
+				/// Get the entire AABB axis-aligned bounding box of the object.
+				/// The AABB must enclose the collision models, if any.
+				/// By default is infinite AABB.
+				/// Should be overridden by child classes.
+	virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax);
+
+				/// Get a symbolic 'center' of the object. By default this 
+				/// function returns the center of the AABB.
+				/// It could be overridden by child classes, anyway it must 
+				/// always get a point that must be inside AABB.
+	virtual void GetCenter(ChVector<>& mcenter);
+
+				/// Method to deserialize only the state (position, speed)
+				/// Must be implemented by child classes. 
+	virtual void StreamINstate(ChStreamInBinary& mstream) {};
+				/// Method to serialize only the state (position, speed)
+				/// Must be implemented by child classes. 
+	virtual void StreamOUTstate(ChStreamOutBinary& mstream) {};				
+
+			// Updating
 
 				/// This is an important function, which is called by the 
 				/// owner ChSystem at least once per integration step.
@@ -241,6 +262,7 @@ public:
 					/// Method to allow serializing transient data into a persistent
 					/// binary archive (ex: a file).
 	virtual void StreamOUT(ChStreamOutBinary& mstream);
+
 
 };
 

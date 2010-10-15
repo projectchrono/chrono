@@ -113,17 +113,24 @@ int main(int argc, char* argv[])
 
 	if (myid == 0)
 	{
+		int added_id=0;
+
 		GetLog() << "ID=" << mysystem.nodeMPI.id_MPI << " Adding body.. \n";
 		// Create a body of the type that can cross boundaries and support 
 		// MPI domain decomposition.
 		ChSharedPtr<ChBodyMPI> mybody(new ChBodyMPI);
 
+		// Set unique identifier, among entire multi-domain world.
+		// Here numbering trick is to allow 2 million of bodies per domain.
+		mybody->SetIdentifier(mysystem.nodeMPI.id_MPI*(2e6) + added_id);
+		added_id++;
+
 		mybody->SetCollide(true);
 		mybody->GetCollisionModel()->ClearModel();
-		mybody->GetCollisionModel()->AddBox(0.1,0.1,0.1, &ChVector<>(-4,-3.35,0) );
+		mybody->GetCollisionModel()->AddBox(0.1,0.1,0.1, &ChVector<>(-4,-6, 0.01) );
 		mybody->GetCollisionModel()->BuildModel();
 		
-		mysystem.Add(mybody);
+	 	mysystem.Add(mybody);
 	
 		//mybody->GetCollisionModel()->SyncPosition();
 		//ChVector<> vmin;
@@ -133,10 +140,11 @@ int main(int argc, char* argv[])
 	}
 	
 	// Test the serializing-deserializing of objects that spill out of boundaries
-	GetLog() << "ID=" << mysystem.nodeMPI.id_MPI << " CustomEndOfStep.. \n";
 	mysystem.CustomEndOfStep();
-	GetLog() << "ID=" << mysystem.nodeMPI.id_MPI << " CustomEndOfStep.. \n";
-	mysystem.CustomEndOfStep(); // mmmhh, error because spilled body flags must be updated after deserializing..
+
+	mysystem.CustomEndOfStep();
+	//GetLog() << "ID=" << mysystem.nodeMPI.id_MPI << " CustomEndOfStep.. \n";
+	//mysystem.CustomEndOfStep(); // mmmhh, error because spilled body flags must be updated after deserializing..
 
 	
 
