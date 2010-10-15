@@ -29,6 +29,7 @@ class ChMPIrequest
 {
 public:
 	ChMPIrequest();
+	ChMPIrequest(ChMPIrequest const& rhs); // only for supporting std::vector, do not copy
 	~ChMPIrequest();
 	void* mpireq;
 };

@@ -53,14 +53,321 @@ ChSystemMPI::~ChSystemMPI()
 
 void ChSystemMPI::CustomEndOfStep()
 {
+	GetLog() << "ID=" << this->nodeMPI.id_MPI << " InterDomainSyncronizeStates \n";
+	InterDomainSyncronizeStates();
+	GetLog() << "ID=" << this->nodeMPI.id_MPI << " InterDomainSetup \n";
+	InterDomainSetup();
+	GetLog() << "ID=" << this->nodeMPI.id_MPI << " Ok! end CustomEndOfStep \n";
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+
+
+void ChSystemMPI::InterDomainSyncronizeStates()
+{
 	unsigned int num_interfaces = this->nodeMPI.interfaces.size();
 
-	for (unsigned int i=0; i < num_interfaces; i++)
+	////// STEP 1
+	// 
+	// Synchronize positions to old master because on different domains the 
+	// states might be slightly different after timestep integration (numerical roundoff, etc.)
+
+	// Reset buffers to be used for MPI communication
+	for (unsigned int ni=0; ni < num_interfaces; ni++)
 	{
-		this->nodeMPI.interfaces[i].mstreami->clear();
-		this->nodeMPI.interfaces[i].mstreamo->clear();
-		this->nodeMPI.interfaces[i].mchstreami->Seek(0);
-		this->nodeMPI.interfaces[i].mchstreamo->Seek(0);
+		this->nodeMPI.interfaces[ni].mstreami->clear();
+		this->nodeMPI.interfaces[ni].mstreamo->clear();
+		this->nodeMPI.interfaces[ni].mchstreami->Seek(0);
+		this->nodeMPI.interfaces[ni].mchstreamo->Seek(0);
+	}
+
+	// 1 - Send states of items of interfaces,
+	//     to synchronize master-slaves :
+
+	for (unsigned int ni = 0; ni < num_interfaces; ni++)
+	{
+		if (this->nodeMPI.interfaces[ni].id_MPI != -1) 
+		{
+			//***TEST*** check interface matching correctness
+			(*this->nodeMPI.interfaces[ni].mchstreamo) << (int)this->nodeMPI.interfaces[ni].shared_items.size();
+
+			ChHashTable<int,ChInterfaceItem>::iterator hiterator = this->nodeMPI.interfaces[ni].shared_items.begin();
+			while (hiterator != this->nodeMPI.interfaces[ni].shared_items.end())
+			{
+				int item_key =  hiterator->first;
+				ChPhysicsItem* item = hiterator->second.item;
+				ChInterfaceItem::eChInterfaceItemType type = hiterator->second.type;
+
+				//***TEST*** check interface matching correctness
+				(*this->nodeMPI.interfaces[ni].mchstreamo) << item_key;
+			
+				// Serialize the state
+				if (type == ChInterfaceItem::INTERF_MASTER)
+					item->StreamOUTstate(*this->nodeMPI.interfaces[ni].mchstreamo);
+				
+				++hiterator;
+			}
+		}
+	}
+
+	// 2 - send buffers using MPI
+
+	std::vector<ChMPIrequest> mrequest(num_interfaces);
+
+	for (unsigned int ni = 0; ni<num_interfaces; ni++)
+	{
+		if  ( this->nodeMPI.interfaces[ni].id_MPI != -1) // exclude unexisting domains
+		{
+			int err = ChMPI::SendBuffer( this->nodeMPI.interfaces[ni].id_MPI, 
+							   *(this->nodeMPI.interfaces[ni].mstreamo), 
+							   ChMPI::MPI_STANDARD, 
+							   true,	// non blocking send, as  MPI_Isend
+							   &(mrequest[ni]));				   
+		}
+	}
+
+	// 3 - receive buffers using MPI, 
+	//     and synchronize slaves to master
+
+	for (unsigned int ni = 0; ni<num_interfaces; ni++)
+	{
+		if ( this->nodeMPI.interfaces[ni].id_MPI != -1) // exclude unexisting domains
+		{
+			ChMPIstatus mstatus;
+			
+			int err = ChMPI::ReceiveBuffer(   this->nodeMPI.interfaces[ni].id_MPI, 
+											*(this->nodeMPI.interfaces[ni].mstreami), 
+											&mstatus 
+										   );				
+			
+			if (this->nodeMPI.interfaces[ni].mstreami->size())
+			{
+				//***TEST*** check interface matching correctness
+				int check_size;
+				(*this->nodeMPI.interfaces[ni].mchstreami) >> check_size;
+				if (check_size != this->nodeMPI.interfaces[ni].shared_items.size())
+				{
+					GetLog() << "ID=" << this->nodeMPI.id_MPI;
+					GetLog() << " ERROR! InterDomainSyncronizeStates in interface=" 
+							 << ni
+							 << " n.keys=" <<  this->nodeMPI.interfaces[ni].shared_items.size()
+							 << " but receive n.keys=" << check_size << "\n";
+					break;
+				}
+
+				ChHashTable<int,ChInterfaceItem>::iterator hiterator = this->nodeMPI.interfaces[ni].shared_items.begin();
+				while (hiterator != this->nodeMPI.interfaces[ni].shared_items.end())
+				{
+					int item_key =  hiterator->first;
+					ChPhysicsItem* item = hiterator->second.item;
+					ChInterfaceItem::eChInterfaceItemType type = hiterator->second.type;
+
+					//***TEST*** check interface matching correctness
+					int check_key;
+					(*this->nodeMPI.interfaces[ni].mchstreami) >> check_key;
+					if (item_key != check_key)
+					{
+						GetLog() << "ID=" << this->nodeMPI.id_MPI;
+						GetLog() << " ERROR! InterDomainSyncronizeStates in interface=" << ni
+							 << " own key=" << item_key
+							 << " but got key=" << check_key << "\n";
+							break;
+					}
+
+					// Deserialize the state
+					if (type = ChInterfaceItem::INTERF_SLAVE)
+						item->StreamINstate(*this->nodeMPI.interfaces[ni].mchstreami);
+
+					++hiterator;
+				}
+
+			}
+
+		}
+	}
+
+	// wait that all messages are sent before proceeding
+	for (unsigned int ni = 0; ni<num_interfaces; ni++)
+	{
+		if  ( this->nodeMPI.interfaces[ni].id_MPI != -1) // exclude unexisting domains
+		{
+			ChMPIstatus mstatus;
+			ChMPI::Wait(&mrequest[ni], &mstatus);
+		}
+	}
+
+
+	///// STEP 2 
+	//
+	//  After step 1 all objects have the same position of last known 'master'. 
+	//  However now it might happen that the COG moved beyond some interface, so
+	//  the master role must be passed to another copy of item, in other domain.
+	//  Must reset types master/slave/slaveslave if some aabb center moved into 
+	//  another domain, so the master role could be switched to another domain
+
+	// Reset buffers to be used for MPI communication
+	for (unsigned int ni=0; ni < num_interfaces; ni++)
+	{
+		this->nodeMPI.interfaces[ni].mstreami->clear();
+		this->nodeMPI.interfaces[ni].mstreamo->clear();
+		this->nodeMPI.interfaces[ni].mchstreami->Seek(0);
+		this->nodeMPI.interfaces[ni].mchstreamo->Seek(0);
+	}
+
+	// 1 - Send flags of interfaces,
+	//     to reset master-slave roles:
+
+	for (unsigned int ni = 0; ni < num_interfaces; ni++)
+	{
+		if (this->nodeMPI.interfaces[ni].id_MPI != -1) 
+		{
+			ChHashTable<int,ChInterfaceItem>::iterator hiterator = this->nodeMPI.interfaces[ni].shared_items.begin();
+			while (hiterator != this->nodeMPI.interfaces[ni].shared_items.end())
+			{
+				int item_key =  hiterator->first;
+				ChPhysicsItem* item = hiterator->second.item;
+
+				// default fallback:
+				hiterator->second.type = ChInterfaceItem::INTERF_SLAVESLAVE;
+				
+				// Send "is master" info
+				int master = 0;
+				ChVector<> mcenter;
+				item->GetCenter(mcenter);
+				if (this->nodeMPI.IsInto(mcenter))
+				{
+					master = 1;
+					hiterator->second.type = ChInterfaceItem::INTERF_MASTER;
+				}
+				(*this->nodeMPI.interfaces[ni].mchstreamo) << master;
+				
+				++hiterator;
+			}
+		}
+	}
+
+	// 2 - send buffers using MPI
+
+//	std::vector<ChMPIrequest> mrequest(num_interfaces);
+
+	for (unsigned int ni = 0; ni<num_interfaces; ni++)
+	{
+		if  ( this->nodeMPI.interfaces[ni].id_MPI != -1) // exclude unexisting domains
+		{
+			int err = ChMPI::SendBuffer( this->nodeMPI.interfaces[ni].id_MPI, 
+							   *(this->nodeMPI.interfaces[ni].mstreamo), 
+							   ChMPI::MPI_STANDARD, 
+							   true,	// non blocking send, as  MPI_Isend
+							   &(mrequest[ni]));				   
+		}
+	}
+
+	// 3 - receive buffers using MPI, 
+	//     and find 'slaves' when receiving '1' flags from masters
+
+	for (unsigned int ni = 0; ni<num_interfaces; ni++)
+	{
+		if ( this->nodeMPI.interfaces[ni].id_MPI != -1) // exclude unexisting domains
+		{
+			ChMPIstatus mstatus;
+			
+			int err = ChMPI::ReceiveBuffer(   this->nodeMPI.interfaces[ni].id_MPI, 
+											*(this->nodeMPI.interfaces[ni].mstreami), 
+											&mstatus 
+										   );				
+			
+			if (this->nodeMPI.interfaces[ni].mstreami->size())
+			{
+				ChHashTable<int,ChInterfaceItem>::iterator hiterator = this->nodeMPI.interfaces[ni].shared_items.begin();
+				while (hiterator != this->nodeMPI.interfaces[ni].shared_items.end())
+				{
+					int item_key =  hiterator->first;
+					ChPhysicsItem* item = hiterator->second.item;
+
+					// Deserialize the state
+					int near_master;
+					(*this->nodeMPI.interfaces[ni].mchstreami) >> near_master;
+
+					if (near_master)
+						hiterator->second.type = ChInterfaceItem::INTERF_MASTER;
+
+					++hiterator;
+				}
+			}
+		}
+	}
+
+	// wait that all messages are sent before proceeding
+	for (unsigned int ni = 0; ni<num_interfaces; ni++)
+	{
+		if  ( this->nodeMPI.interfaces[ni].id_MPI != -1) // exclude unexisting domains
+		{
+			ChMPIstatus mstatus;
+			ChMPI::Wait(&mrequest[ni], &mstatus);
+		}
+	}
+
+
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+
+
+void ChSystemMPI::InterDomainSetup()
+{
+	unsigned int num_interfaces = this->nodeMPI.interfaces.size();
+
+	// Reset buffers to be used for MPI communication
+	for (unsigned int ni=0; ni < num_interfaces; ni++)
+	{
+		this->nodeMPI.interfaces[ni].mstreami->clear();
+		this->nodeMPI.interfaces[ni].mstreamo->clear();
+		this->nodeMPI.interfaces[ni].mchstreami->Seek(0);
+		this->nodeMPI.interfaces[ni].mchstreamo->Seek(0);
+	}
+
+
+	// Purge interface shared hash tables from items that aren't 
+	// overlapping any longer:
+
+	for (unsigned int ni = 0; ni < num_interfaces; ni++)
+	{
+		if (this->nodeMPI.interfaces[ni].id_MPI != -1) 
+		{
+			ChHashTable<int,ChInterfaceItem>::iterator hiterator = this->nodeMPI.interfaces[ni].shared_items.begin();
+			while (hiterator != this->nodeMPI.interfaces[ni].shared_items.end())
+			{
+				int current_key =  hiterator->first;
+				GetLog() << "ID=" << this->nodeMPI.id_MPI << "    hash iterator to key=" << current_key << "\n"; 
+				ChPhysicsItem* item = hiterator->second.item;
+				++hiterator;
+
+				ChVector<> bbmin, bbmax;
+				item->GetAABB(bbmin, bbmax);
+				bool erase = false;
+				
+				// tirst two checks are meant for early bailout, otherwise it could be only the third one 
+				if (this->nodeMPI.IsAABBoutside(bbmin, bbmax))
+					erase = true;
+				else 
+				 if (this->nodeMPI.IsAABBinside(bbmin, bbmax))
+					erase = true;
+				 else 
+				  if (!this->nodeMPI.IsAABBoverlappingInterface(ni, bbmin, bbmax))
+					erase = true;
+
+				if (erase)
+				{
+					GetLog() << "ID=" << this->nodeMPI.id_MPI << "    must purge key=" << current_key << "\n";
+					this->nodeMPI.interfaces[ni].shared_items.erase(current_key);
+				}
+				
+			}
+		}
 	}
 
 
@@ -74,88 +381,77 @@ void ChSystemMPI::CustomEndOfStep()
 	HIER_BODY_INIT
 	while HIER_BODY_NOSTOP
 	{
-		if (ChBodyMPI* mpibody = dynamic_cast<ChBodyMPI*>(Bpointer))
-		{
-			int oldflags = mpibody->GetOverlapFlags();
-			GetLog() << "ID=" << this->nodeMPI.id_MPI << " CustomEndOfStep 3 oldflags = " << oldflags <<  "\n";
-			int newflags = mpibody->ComputeOverlapFlags(this->nodeMPI);
-			GetLog() << "ID=" << this->nodeMPI.id_MPI << " CustomEndOfStep 4 newflags = " << newflags <<  "\n";
-			int changeflags = newflags & ~oldflags; // deal only with last overlapped domains 
-			if (changeflags)
-			{
-				for (int bi = 0; bi<num_interfaces; bi++)
-				{
-					if ( (0x1 << bi) & changeflags )	
-					{
-						if (this->nodeMPI.interfaces[bi].id_MPI != -1) // exclude unexisting domains
-						{
-							// serialize to interface stream
-							GetLog() << "ID=" << this->nodeMPI.id_MPI << " SEND: " << mpibody->GetRTTI()->GetName() << "  to ID=" << this->nodeMPI.interfaces[bi].id_MPI << "\n";
-							this->nodeMPI.interfaces[bi].mchstreamo->AbstractWrite(mpibody);
-							GetLog() << "ID=" << this->nodeMPI.id_MPI << " .SENT: " << mpibody->GetRTTI()->GetName() << "  to ID=" << this->nodeMPI.interfaces[bi].id_MPI << "\n";
-						}
-					}
-				}
-			}
-		}
+		//***TO DO*** as for HIER_OTHERPHYSICS
 		HIER_BODY_NEXT
 	}
 */
+	GetLog() << "ID=" << this->nodeMPI.id_MPI << "   step1 \n";
 
 	HIER_OTHERPHYSICS_INIT
 	while HIER_OTHERPHYSICS_NOSTOP
 	{	
 		to_delete = false;
+		ChPhysicsItem* item = PHpointer;
 
-		if (ChBodyMPI* mpibody = dynamic_cast<ChBodyMPI*>(PHpointer))
+		ChVector<> bbmin, bbmax, mcenter;
+		item->GetAABB(bbmin, bbmax);
+		item->GetCenter(mcenter);
+
+		if (this->nodeMPI.IsAABBoutside(bbmin, bbmax))
 		{
-			ChVector<> bbmin, bbmax;
-			mpibody->GetCollisionModel()->GetAABB(bbmin, bbmax);
+			// delete (at the end of while loop) the item, because it
+			// went off the domain
+			to_delete = true;
 
-			if (this->nodeMPI.IsAABBoutside(bbmin, bbmax))
+			// erase body from shared hash tables, if it was previously shared 
+			GetLog() << "ID=" << this->nodeMPI.id_MPI << "   must hash remove obj key="<< item->GetIdentifier() << "\n";
+			
+			for (unsigned int ni = 0; ni < num_interfaces; ni++)
 			{
-				// delete (at the end of while loop) the item, because it
-				// went off the domain
-				to_delete = true;
-
-				// erase body from shared hash tables, if it was previously shared 
-				for (unsigned int n_interface = 0; n_interface < num_interfaces; n_interface++)
-					this->nodeMPI.interfaces[n_interface].shared_items.erase(mpibody->GetIdentifier());
+				this->nodeMPI.interfaces[ni].shared_items.erase(item->GetIdentifier()); // uneeded? already done in purge?
 			}
-			else
-			 if (!this->nodeMPI.IsAABBinside(bbmin, bbmax))
+		}
+		else
+		 if (!this->nodeMPI.IsAABBinside(bbmin, bbmax))
+		{
+			// Early fast checks failed: it was not completely outside, it was not 
+			// completely inside, so this means that aabb is overlapping with some interface; 
+			// hence now spend some time finding the specific overlap with n-th interfaces.
+			for (unsigned int ni = 0; ni < num_interfaces; ni++)
 			{
-				// Early fast checks failed: it was not completely outside, it was not 
-				// completely inside, so this means that aabb is overlapping with some interface; 
-				// hence now spend some time finding the specific overlap with n-th interfaces.
-
-				for (unsigned int n_interface = 0; n_interface < num_interfaces; n_interface++)
+				if (this->nodeMPI.interfaces[ni].id_MPI != -1) // do not deal with inactive interfaces
+				 if (this->nodeMPI.IsAABBoverlappingInterface(ni, bbmin, bbmax))
+				  if (this->nodeMPI.IsInto(mcenter)) // only master can send clones
 				{
-					if (this->nodeMPI.interfaces[n_interface].id_MPI != -1) // do not deal with inactive interfaces
-					 if (this->nodeMPI.IsAABBoverlappingInterface(n_interface, bbmin, bbmax))
+					// Ok, the object must be shared with the node at interface 'ni'.
+					// Do not stream if already added - use hash table - 
+					if (! this->nodeMPI.interfaces[ni].shared_items.present(item->GetIdentifier()))
 					{
-						// Ok, the object must be shared with the node at interface 'n_interface'.
-						// Do not stream if already added - use hash table - 
-						if (! this->nodeMPI.interfaces[n_interface].shared_items.present(mpibody->GetIdentifier()))
-						{
-							// Must be sent to neighbour domain, so:
-							//  1- add to interface hash table
-							this->nodeMPI.interfaces[n_interface].shared_items.insert(mpibody->GetIdentifier(), mpibody);
+						// Must be sent to neighbour domain, so:
+						//  1- Add to interface hash table, as 'master'
+						this->nodeMPI.interfaces[ni].shared_items.insert(item->GetIdentifier(), ChInterfaceItem(item,ChInterfaceItem::INTERF_MASTER));
 
-							//  2- serialize to persistent data to be sent via MPI
-							try 
-							{
-								GetLog() << "ID=" << this->nodeMPI.id_MPI << " SERIALIZE: " << mpibody->GetRTTI()->GetName() << "  to ID=" << this->nodeMPI.interfaces[n_interface].id_MPI << "\n";
-								this->nodeMPI.interfaces[n_interface].mchstreamo->AbstractWrite(mpibody);
-							}
-							catch (ChException myex)
-							{
-								GetLog() << "ERROR serializing MPI item:\n " << myex.what() << "\n";
-							}
+						//  2- Serialize to persistent data to be sent via MPI.
+						//     Only the 'owner' domain (the one with the center of aabb) 
+						//     will send data, to avoid n-uple sends at the corners.
+						try 
+						{
+							GetLog() << "ID=" << this->nodeMPI.id_MPI 
+									 << " SERIALIZE: " << item->GetRTTI()->GetName() 
+									 << "  key=" << item->GetIdentifier()
+									 << "  to ID=" << this->nodeMPI.interfaces[ni].id_MPI << "\n";
+
+							this->nodeMPI.interfaces[ni].mchstreamo->AbstractWrite(item);
 						}
+						catch (ChException myex)
+						{
+							GetLog() << "ERROR serializing MPI item:\n " << myex.what() << "\n";
+						}
+
 					}
-				} // end interfaces loop
-			}
+				}
+			} // end interfaces loop
+			
 			/*
 			int oldflags = mpibody->GetOverlapFlags();
 			int newflags = mpibody->ComputeOverlapFlags(this->nodeMPI);
@@ -163,17 +459,17 @@ void ChSystemMPI::CustomEndOfStep()
 			int changeflags = newflags & ~oldflags; // deal only with last overlapped domains 
 			if (changeflags)
 			{
-				for (int bi = 0; bi<num_interfaces; bi++)
+				for (int ni = 0; ni<num_interfaces; ni++)
 				{
-					if ( (0x1 << bi) & changeflags )	
+					if ( (0x1 << ni) & changeflags )	
 					{
-						if (this->nodeMPI.interfaces[bi].id_MPI != -1) // exclude unexisting domains
+						if (this->nodeMPI.interfaces[ni].id_MPI != -1) // exclude unexisting domains
 						{
 							try 
 							{
 								// serialize to interface stream
-								GetLog() << "ID=" << this->nodeMPI.id_MPI << " SERIALIZE: " << mpibody->GetRTTI()->GetName() << "  to ID=" << this->nodeMPI.interfaces[bi].id_MPI << "\n";
-								this->nodeMPI.interfaces[bi].mchstreamo->AbstractWrite(mpibody);
+								GetLog() << "ID=" << this->nodeMPI.id_MPI << " SERIALIZE: " << mpibody->GetRTTI()->GetName() << "  to ID=" << this->nodeMPI.interfaces[ni].id_MPI << "\n";
+								this->nodeMPI.interfaces[ni].mchstreamo->AbstractWrite(mpibody);
 							}
 							catch (ChException myex)
 							{
@@ -195,6 +491,7 @@ void ChSystemMPI::CustomEndOfStep()
 		// it went away, so do it now:
 		if (to_delete)
 		{
+			GetLog() << "ID=" << this->nodeMPI.id_MPI << " must Remove obj with key="<< olditem->GetIdentifier() << "\n";
 			ChSharedPtr<ChPhysicsItem> shpointer(olditem);
 			olditem->AddRef(); // because wrapping normal (not new) ptr with shared pointer
 			this->Remove(shpointer);
@@ -202,72 +499,38 @@ void ChSystemMPI::CustomEndOfStep()
 		
 	}
 
-	// Purge interface shared hash tables from items that aren't 
-	// overlapping any longer:
-
-	for (unsigned int n_interface = 0; n_interface < num_interfaces; n_interface++)
-	{
-		if (this->nodeMPI.interfaces[n_interface].id_MPI != -1) 
-		{
-			ChHashTable<int,ChPhysicsItem*>::iterator hiterator = this->nodeMPI.interfaces[n_interface].shared_items.begin();
-			while (hiterator != this->nodeMPI.interfaces[n_interface].shared_items.end())
-			{
-				int current_key = (*hiterator).first;
-				ChPhysicsItem* mitem = hiterator->second;
-				++hiterator;
-				if (ChBodyMPI* mpibody = dynamic_cast<ChBodyMPI*>(PHpointer))
-				{
-					ChVector<> bbmin, bbmax;
-					mpibody->GetCollisionModel()->GetAABB(bbmin, bbmax);
-					bool erase = false;
-					
-					if (this->nodeMPI.IsAABBoutside(bbmin, bbmax))
-						erase = true;
-					else 
-					 if (this->nodeMPI.IsAABBinside(bbmin, bbmax))
-						erase = true;
-					 else 
-					  if (!this->nodeMPI.IsAABBoverlappingInterface(n_interface, bbmin, bbmax))
-						erase = true;
-
-					if (erase)
-						this->nodeMPI.interfaces[n_interface].shared_items.erase(current_key);
-				}
-			}
-		}
-	}
 
 	// 2 - send buffers using MPI
 
 	std::vector<ChMPIrequest> mrequest(num_interfaces);
 
-	for (unsigned int bi = 0; bi<num_interfaces; bi++)
+	for (unsigned int ni = 0; ni<num_interfaces; ni++)
 	{
-		if  ( this->nodeMPI.interfaces[bi].id_MPI != -1) // exclude unexisting domains
+		if  ( this->nodeMPI.interfaces[ni].id_MPI != -1) // exclude unexisting domains
 		{
-			int err = ChMPI::SendBuffer( this->nodeMPI.interfaces[bi].id_MPI, 
-							   *(this->nodeMPI.interfaces[bi].mstreamo), 
+			int err = ChMPI::SendBuffer( this->nodeMPI.interfaces[ni].id_MPI, 
+							   *(this->nodeMPI.interfaces[ni].mstreamo), 
 							   ChMPI::MPI_STANDARD, 
 							   true,	// non blocking send, as  MPI_Isend
-							   &(mrequest[bi]));				   
+							   &(mrequest[ni]));				   
 		}
 	}
 
 	// 3 - receive buffers using MPI, deserialize and add to system
-	for (unsigned int bi = 0; bi<num_interfaces; bi++)
+	for (unsigned int ni = 0; ni<num_interfaces; ni++)
 	{
-		if ( this->nodeMPI.interfaces[bi].id_MPI != -1) // exclude unexisting domains
+		if ( this->nodeMPI.interfaces[ni].id_MPI != -1) // exclude unexisting domains
 		{
 			ChMPIstatus mstatus;
 			
-			int err = ChMPI::ReceiveBuffer(   this->nodeMPI.interfaces[bi].id_MPI, 
-											*(this->nodeMPI.interfaces[bi].mstreami), 
+			int err = ChMPI::ReceiveBuffer(   this->nodeMPI.interfaces[ni].id_MPI, 
+											*(this->nodeMPI.interfaces[ni].mstreami), 
 											&mstatus 
 										   );				
 			
-			if (this->nodeMPI.interfaces[bi].mstreami->size())
+			if (this->nodeMPI.interfaces[ni].mstreami->size())
 			{
-				while (! this->nodeMPI.interfaces[bi].mchstreami->End_of_stream())
+				while (! this->nodeMPI.interfaces[ni].mchstreami->End_of_stream())
 				{
 					// Must receive items from neighbour domain, so:
 
@@ -275,8 +538,11 @@ void ChSystemMPI::CustomEndOfStep()
 					ChPhysicsItem* newitem = 0;
 					try 
 					{
-						this->nodeMPI.interfaces[bi].mchstreami->AbstractReadCreate(&newitem);
-						GetLog() << "ID=" << this->nodeMPI.id_MPI << " DESERIALIZED: " << newitem->GetRTTI()->GetName() << " from neighbour=" << nodeMPI.interfaces[bi].id_MPI << "\n";
+						this->nodeMPI.interfaces[ni].mchstreami->AbstractReadCreate(&newitem);
+						GetLog() << "ID=" << this->nodeMPI.id_MPI 
+								 << " DESERIALIZED: " << newitem->GetRTTI()->GetName() 
+								 << "  key=" << newitem->GetIdentifier()
+								 << "  from ID=" << nodeMPI.interfaces[ni].id_MPI << "\n";
 					}
 					catch (ChException myex)
 					{
@@ -288,9 +554,22 @@ void ChSystemMPI::CustomEndOfStep()
 					if (newitem)
 						this->Add(ptritem);
 
-					// 3-add to interface hash table, to avoid sending back in next steps
-					this->nodeMPI.interfaces[bi].shared_items.insert(newitem->GetIdentifier(), newitem);
+					ChVector<> bbmin, bbmax;
+					newitem->GetAABB(bbmin, bbmax);
 
+					// 3-add to other interfaces hash table, 
+					for (unsigned int sui = 0; sui<num_interfaces; sui++)
+						if  ( this->nodeMPI.interfaces[sui].id_MPI != -1) // exclude unexisting domains
+						{
+							// Set as 'slave' for the interface with master (avoid sending back in next steps).
+							if (sui==ni)
+								this->nodeMPI.interfaces[ni].shared_items.insert(newitem->GetIdentifier(), ChInterfaceItem(newitem,ChInterfaceItem::INTERF_SLAVE) );
+							else
+							{
+								if (this->nodeMPI.IsAABBoverlappingInterface(sui, bbmin, bbmax))
+									this->nodeMPI.interfaces[ni].shared_items.insert(newitem->GetIdentifier(), ChInterfaceItem(newitem,ChInterfaceItem::INTERF_SLAVESLAVE) );
+							}
+						}
 				}
 			}
 
@@ -298,12 +577,12 @@ void ChSystemMPI::CustomEndOfStep()
 	}
 
 	// wait that all messages are sent before proceeding
-	for (unsigned int bi = 0; bi<num_interfaces; bi++)
+	for (unsigned int ni = 0; ni<num_interfaces; ni++)
 	{
-		if  ( this->nodeMPI.interfaces[bi].id_MPI != -1) // exclude unexisting domains
+		if  ( this->nodeMPI.interfaces[ni].id_MPI != -1) // exclude unexisting domains
 		{
 			ChMPIstatus mstatus;
-			ChMPI::Wait(&mrequest[bi], &mstatus);
+			ChMPI::Wait(&mrequest[ni], &mstatus);
 		}
 	}
 }

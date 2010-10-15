@@ -27,7 +27,10 @@ ChMPIrequest::ChMPIrequest()
 {
 	this->mpireq = new MPI_Request;
 }
-
+ChMPIrequest::ChMPIrequest(ChMPIrequest const& rhs)
+{
+	this->mpireq = new MPI_Request;
+}
 ChMPIrequest::~ChMPIrequest()
 {
 	MPI_Request* mr = static_cast<MPI_Request*>(this->mpireq);

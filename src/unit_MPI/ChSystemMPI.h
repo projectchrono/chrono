@@ -35,10 +35,24 @@ public:
 
 	// Override base class functions
 
-				/// Executes custom processing at the end of step. In detail,
-				/// performs the MPI inter-domain exchange of objects that spill out
+
+				/// For shared items that overlap the domain boundaries, this
+				/// function does some MPI communication to be sure that the 
+				/// speeds and positions of shared objects (hence in multiple copies,
+				/// in neighbouring domains) really have the same values. In fact
+				/// different integration schemes/numerical issues in domains could
+				/// lead to small differences between the n copies of the same shared item.
+	virtual void InterDomainSyncronizeStates();
+
+				/// Performs the MPI inter-domain exchange of objects that spill out
 				/// of the domains, by streaming to binary buffers, sending them via MPI 
-				/// to domains that receive them, and by deserializing and adding to receiving domain. 
+				/// to domains that receive them, and by deserializing and adding to receiving domain.
+				/// Also, remove objects from domains when they entirely exit from domains. 
+	virtual void InterDomainSetup();
+
+				/// Executes custom processing at the end of step: performs 
+				///	  InterDomainSyncronizeStates()
+				///   InterDomainSetup()   
 	virtual void CustomEndOfStep();
 
 	ChDomainNodeMPIlattice3D nodeMPI;
