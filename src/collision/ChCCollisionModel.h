@@ -239,6 +239,20 @@ public:
 		/// MUST be implemented by child classes! 
   virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const = 0;
 
+  	
+			//
+			// STREAMING
+			//
+
+		/// Method to allow deserializing a persistent binary archive (ex: a file)
+		/// into transient data.
+  virtual void StreamIN(ChStreamInBinary& mstream) =0;
+
+		/// Method to allow serializing transient data into a persistent
+		/// binary archive (ex: a file).
+  virtual void StreamOUT(ChStreamOutBinary& mstream) =0;
+
+
 protected:
 
 	virtual float GetSuggestedFullMargin() 

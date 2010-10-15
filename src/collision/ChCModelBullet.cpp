@@ -523,6 +523,26 @@ void ChModelBullet::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const
 
 
 
+void ChModelBullet::StreamIN(ChStreamInBinary& mstream)
+{
+		// class version number
+	mstream.VersionWrite(1);
+
+	//***TO DO***
+}
+
+		
+void ChModelBullet::StreamOUT(ChStreamOutBinary& mstream)
+{
+		// class version number
+	int version = mstream.VersionRead();
+
+	//***TO DO***
+
+}
+
+
+
 } // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____
 
