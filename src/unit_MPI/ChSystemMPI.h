@@ -43,6 +43,7 @@ public:
 				/// different integration schemes/numerical issues in domains could
 				/// lead to small differences between the n copies of the same shared item.
 	virtual void InterDomainSyncronizeStates();
+	virtual void InterDomainSyncronizeFlags();
 
 				/// Performs the MPI inter-domain exchange of objects that spill out
 				/// of the domains, by streaming to binary buffers, sending them via MPI 

@@ -53,9 +53,9 @@ ChSystemMPI::~ChSystemMPI()
 
 void ChSystemMPI::CustomEndOfStep()
 {
-	GetLog() << "ID=" << this->nodeMPI.id_MPI << " InterDomainSyncronizeStates \n";
+	GetLog() << "ID=" << this->nodeMPI.id_MPI << " CustomEndOfStep \n";
 	InterDomainSyncronizeStates();
-	GetLog() << "ID=" << this->nodeMPI.id_MPI << " InterDomainSetup \n";
+	InterDomainSyncronizeFlags();
 	InterDomainSetup();
 	GetLog() << "ID=" << this->nodeMPI.id_MPI << " Ok! end CustomEndOfStep \n";
 }
@@ -91,7 +91,7 @@ void ChSystemMPI::InterDomainSyncronizeStates()
 		if (this->nodeMPI.interfaces[ni].id_MPI != -1) 
 		{
 			//***TEST*** check interface matching correctness
-			(*this->nodeMPI.interfaces[ni].mchstreamo) << (int)this->nodeMPI.interfaces[ni].shared_items.size();
+	 		(*this->nodeMPI.interfaces[ni].mchstreamo) << (int)this->nodeMPI.interfaces[ni].shared_items.size();
 
 			ChHashTable<int,ChInterfaceItem>::iterator hiterator = this->nodeMPI.interfaces[ni].shared_items.begin();
 			while (hiterator != this->nodeMPI.interfaces[ni].shared_items.end())
@@ -114,7 +114,7 @@ void ChSystemMPI::InterDomainSyncronizeStates()
 
 	// 2 - send buffers using MPI
 
-	std::vector<ChMPIrequest> mrequest(num_interfaces);
+	std::vector<ChMPIrequest> mrequestA(num_interfaces);
 
 	for (unsigned int ni = 0; ni<num_interfaces; ni++)
 	{
@@ -124,7 +124,7 @@ void ChSystemMPI::InterDomainSyncronizeStates()
 							   *(this->nodeMPI.interfaces[ni].mstreamo), 
 							   ChMPI::MPI_STANDARD, 
 							   true,	// non blocking send, as  MPI_Isend
-							   &(mrequest[ni]));				   
+							   &(mrequestA[ni]));				   
 		}
 	}
 
@@ -194,10 +194,14 @@ void ChSystemMPI::InterDomainSyncronizeStates()
 		if  ( this->nodeMPI.interfaces[ni].id_MPI != -1) // exclude unexisting domains
 		{
 			ChMPIstatus mstatus;
-			ChMPI::Wait(&mrequest[ni], &mstatus);
+			ChMPI::Wait(&mrequestA[ni], &mstatus);
 		}
 	}
+}
 
+void ChSystemMPI::InterDomainSyncronizeFlags()
+{
+	unsigned int num_interfaces = this->nodeMPI.interfaces.size();
 
 	///// STEP 2 
 	//
@@ -250,7 +254,7 @@ void ChSystemMPI::InterDomainSyncronizeStates()
 
 	// 2 - send buffers using MPI
 
-//	std::vector<ChMPIrequest> mrequest(num_interfaces);
+	std::vector<ChMPIrequest> mrequestB(num_interfaces);
 
 	for (unsigned int ni = 0; ni<num_interfaces; ni++)
 	{
@@ -260,7 +264,7 @@ void ChSystemMPI::InterDomainSyncronizeStates()
 							   *(this->nodeMPI.interfaces[ni].mstreamo), 
 							   ChMPI::MPI_STANDARD, 
 							   true,	// non blocking send, as  MPI_Isend
-							   &(mrequest[ni]));				   
+							   &(mrequestB[ni]));				   
 		}
 	}
 
@@ -277,7 +281,7 @@ void ChSystemMPI::InterDomainSyncronizeStates()
 											*(this->nodeMPI.interfaces[ni].mstreami), 
 											&mstatus 
 										   );				
-			
+
 			if (this->nodeMPI.interfaces[ni].mstreami->size())
 			{
 				ChHashTable<int,ChInterfaceItem>::iterator hiterator = this->nodeMPI.interfaces[ni].shared_items.begin();
@@ -305,7 +309,7 @@ void ChSystemMPI::InterDomainSyncronizeStates()
 		if  ( this->nodeMPI.interfaces[ni].id_MPI != -1) // exclude unexisting domains
 		{
 			ChMPIstatus mstatus;
-			ChMPI::Wait(&mrequest[ni], &mstatus);
+			ChMPI::Wait(&mrequestB[ni], &mstatus);
 		}
 	}
 
@@ -342,7 +346,6 @@ void ChSystemMPI::InterDomainSetup()
 			while (hiterator != this->nodeMPI.interfaces[ni].shared_items.end())
 			{
 				int current_key =  hiterator->first;
-				GetLog() << "ID=" << this->nodeMPI.id_MPI << "    hash iterator to key=" << current_key << "\n"; 
 				ChPhysicsItem* item = hiterator->second.item;
 				++hiterator;
 
@@ -385,7 +388,7 @@ void ChSystemMPI::InterDomainSetup()
 		HIER_BODY_NEXT
 	}
 */
-	GetLog() << "ID=" << this->nodeMPI.id_MPI << "   step1 \n";
+	//GetLog() << "ID=" << this->nodeMPI.id_MPI << "   step1 \n";
 
 	HIER_OTHERPHYSICS_INIT
 	while HIER_OTHERPHYSICS_NOSTOP
@@ -404,7 +407,7 @@ void ChSystemMPI::InterDomainSetup()
 			to_delete = true;
 
 			// erase body from shared hash tables, if it was previously shared 
-			GetLog() << "ID=" << this->nodeMPI.id_MPI << "   must hash remove obj key="<< item->GetIdentifier() << "\n";
+			GetLog() << "ID=" << this->nodeMPI.id_MPI << "   must remove obj key="<< item->GetIdentifier() << "\n";
 			
 			for (unsigned int ni = 0; ni < num_interfaces; ni++)
 			{
@@ -417,6 +420,9 @@ void ChSystemMPI::InterDomainSetup()
 			// Early fast checks failed: it was not completely outside, it was not 
 			// completely inside, so this means that aabb is overlapping with some interface; 
 			// hence now spend some time finding the specific overlap with n-th interfaces.
+
+			//GetLog() << "ID=" << this->nodeMPI.id_MPI 
+			//		 << "    center: " << mcenter << "\n"; 
 			for (unsigned int ni = 0; ni < num_interfaces; ni++)
 			{
 				if (this->nodeMPI.interfaces[ni].id_MPI != -1) // do not deal with inactive interfaces
@@ -491,7 +497,7 @@ void ChSystemMPI::InterDomainSetup()
 		// it went away, so do it now:
 		if (to_delete)
 		{
-			GetLog() << "ID=" << this->nodeMPI.id_MPI << " must Remove obj with key="<< olditem->GetIdentifier() << "\n";
+			GetLog() << "ID=" << this->nodeMPI.id_MPI << "   must Remove obj with key="<< olditem->GetIdentifier() << "\n";
 			ChSharedPtr<ChPhysicsItem> shpointer(olditem);
 			olditem->AddRef(); // because wrapping normal (not new) ptr with shared pointer
 			this->Remove(shpointer);
@@ -527,7 +533,7 @@ void ChSystemMPI::InterDomainSetup()
 											*(this->nodeMPI.interfaces[ni].mstreami), 
 											&mstatus 
 										   );				
-			
+
 			if (this->nodeMPI.interfaces[ni].mstreami->size())
 			{
 				while (! this->nodeMPI.interfaces[ni].mchstreami->End_of_stream())
@@ -549,6 +555,15 @@ void ChSystemMPI::InterDomainSetup()
 						GetLog() << "ERROR deserializing MPI item:\n " << myex.what() << "\n";
 					}
 					ChSharedPtr<ChPhysicsItem> ptritem(newitem);
+
+		//***TEST*** until collision shape serialization not ready
+		if (ChBody* mybody = dynamic_cast<ChBody*>(newitem))
+		{
+			mybody->SetCollide(true);
+			mybody->GetCollisionModel()->ClearModel();
+			mybody->GetCollisionModel()->AddBox(0.1,0.1,0.1, &ChVector<>(-4,-6, -0.01) );
+			mybody->GetCollisionModel()->BuildModel();
+		}
 
 					// 2-add to system
 					if (newitem)

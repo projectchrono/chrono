@@ -305,10 +305,10 @@ int ChMPI::ReceiveString(int sourceID,				///< source rank
 	void* data = (void*)dest_str.data(); // should not access directly std::string data! but this is efficient!
 
 	int err = 0;
-	if (incoming_msg_size)
-	{
+	//if (incoming_msg_size)
+	//{
 		err = MPI_Recv( data, incoming_msg_size, MPI_BYTE, sourceID, 1002, MPI_COMM_WORLD, (MPI_Status*)mstatus->mpistat);
-	}
+	//}
 	return err;
 }
 
@@ -399,10 +399,10 @@ int ChMPI::ReceiveBuffer(int sourceID,				///< source rank
 		data = ""; // stub, in case null length messages, stl vector has no [0] element address
 	
 	int err = 0;
-	if (nbytes)
-	{
+	//if (nbytes)
+	//{
 		err = MPI_Recv( data, nbytes, MPI_BYTE, sourceID, 1002, MPI_COMM_WORLD, (MPI_Status*)mstatus->mpistat);
-	}
+	//}
 	return err;
 }
 
