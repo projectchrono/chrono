@@ -108,6 +108,29 @@ bool ChCollisionModel::AddConvexHullsFromFile(ChStreamInAscii& mstream, ChVector
 
 
 
+
+void ChCollisionModel::StreamIN(ChStreamInBinary& mstream)
+{
+		// class version number
+	int version = mstream.VersionRead();
+
+	mstream >> this->model_envelope;
+	mstream >> this->model_safe_margin;
+	
+}
+
+		
+void ChCollisionModel::StreamOUT(ChStreamOutBinary& mstream)
+{
+		// class version number
+	mstream.VersionWrite(1);
+
+	mstream << this->model_envelope;
+	mstream << this->model_safe_margin;
+}
+
+
+
 } // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____
 

@@ -13,11 +13,12 @@
 #include "ChCModelBullet.h" 
 #include "physics/ChPhysicsItem.h"
 #include "physics/ChSystem.h"
+#include "collision/bullet/btBulletCollisionCommon.h"
 #include "GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
 #include "GIMPACTUtils/btGImpactConvexDecompositionShape.h"
 #include "BulletCollision/CollisionShapes/btBarrelShape.h"
-#include "collision/bullet/btBulletCollisionCommon.h"
 #include "collision/ChCCollisionSystemBullet.h"
+#include "BulletWorldImporter/btBulletWorldImporter.h"
 
 namespace chrono 
 {
@@ -31,6 +32,9 @@ ChModelBullet::ChModelBullet()
 	bt_collision_object = new btCollisionObject;
 	bt_collision_object->setCollisionShape(0);
 	bt_collision_object->setUserPointer((void*) this);
+
+	this->family_group = 1;
+	this->family_mask  = 0xFF;
 
 	shapes.clear();
 }
@@ -134,8 +138,7 @@ void ChModelBullet::_injectShape(ChVector<>* pos, ChMatrix33<>* rot, btCollision
 	{
 		if (centered)
 		{
-			//shapes.push_back(mshape); //  ***SHAREDSHAPES***
-			 shapes.push_back(ChSmartPtr<btCollisionShape>(mshape)); //  ***SHAREDSHAPES***
+			 shapes.push_back(ChSmartPtr<btCollisionShape>(mshape)); 
 			bt_collision_object->setCollisionShape(mshape);
 			// end_vector=  | centered shape | 
 			return;
@@ -143,10 +146,8 @@ void ChModelBullet::_injectShape(ChVector<>* pos, ChMatrix33<>* rot, btCollision
 		else
 		{
 			btCompoundShape* mcompound = new btCompoundShape(true);
-			//shapes.push_back(mcompound);//  ***SHAREDSHAPES***
-			 shapes.push_back(ChSmartPtr<btCollisionShape>(mcompound)); //  ***SHAREDSHAPES***
-			//shapes.push_back(mshape); //  ***SHAREDSHAPES***
-			 shapes.push_back(ChSmartPtr<btCollisionShape>(mshape)); //  ***SHAREDSHAPES***
+			 shapes.push_back(ChSmartPtr<btCollisionShape>(mcompound)); 
+			 shapes.push_back(ChSmartPtr<btCollisionShape>(mshape)); 
 			bt_collision_object->setCollisionShape(mcompound);
 			btTransform mtrasform;
 			ChPosMatrToBullet(pos,rot, mtrasform);
@@ -159,17 +160,15 @@ void ChModelBullet::_injectShape(ChVector<>* pos, ChMatrix33<>* rot, btCollision
 	if (shapes.size()==1)
 	{
 		btTransform mtrasform;
-		shapes.push_back(shapes[0]);
-		//shapes.push_back(mshape); //  ***SHAREDSHAPES***
-		 shapes.push_back(ChSmartPtr<btCollisionShape>(mshape)); //  ***SHAREDSHAPES***
+		 shapes.push_back(shapes[0]);
+		 shapes.push_back(ChSmartPtr<btCollisionShape>(mshape));
 		btCompoundShape* mcompound = new btCompoundShape(true);
-		//shapes[0] = mcompound; //  ***SHAREDSHAPES***
-		 shapes[0] = ChSmartPtr<btCollisionShape>(mcompound); //  ***SHAREDSHAPES***
+		 shapes[0] = ChSmartPtr<btCollisionShape>(mcompound); 
 		bt_collision_object->setCollisionShape(mcompound);
 		ChPosMatrToBullet(&defpos, &defrot, mtrasform);
-		mcompound->addChildShape(mtrasform, shapes[1].get_ptr()); //  ***SHAREDSHAPES***
+		mcompound->addChildShape(mtrasform, shapes[1].get_ptr()); 
 		ChPosMatrToBullet(pos,rot, mtrasform);
-		mcompound->addChildShape(mtrasform, shapes[2].get_ptr()); //  ***SHAREDSHAPES***
+		mcompound->addChildShape(mtrasform, shapes[2].get_ptr()); 
 		// vector=  | compound | old centered shape | new shape | ...
 		return;
 	}
@@ -177,11 +176,10 @@ void ChModelBullet::_injectShape(ChVector<>* pos, ChMatrix33<>* rot, btCollision
 	if (shapes.size()>1)
 	{
 		btTransform mtrasform;
-		//shapes.push_back(mshape); //  ***SHAREDSHAPES***
-			shapes.push_back(ChSmartPtr<btCollisionShape>(mshape)); //  ***SHAREDSHAPES***
+		 shapes.push_back(ChSmartPtr<btCollisionShape>(mshape)); 
 		ChPosMatrToBullet(pos,rot, mtrasform);
-		btCollisionShape* mcom = shapes[0].get_ptr(); //  ***SHAREDSHAPES***
-		((btCompoundShape*)mcom)->addChildShape(mtrasform, mshape); //  ***SHAREDSHAPES***
+		btCollisionShape* mcom = shapes[0].get_ptr(); 
+		((btCompoundShape*)mcom)->addChildShape(mtrasform, mshape); 
 		// vector=  | compound | old | old.. | new shape | ...
 		return;
 	}
@@ -443,11 +441,13 @@ void  ChModelBullet::SetFamily(int mfamily)
 
 	// Trick to avoid troubles if setting mask or family when model is already overlapping to some other model
 	ChCollisionSystem* mcosys =this->GetPhysicsItem()->GetSystem()->GetCollisionSystem();
-	short int original_mask = bt_collision_object->getBroadphaseHandle()->m_collisionFilterMask;
+	//short int original_mask = bt_collision_object->getBroadphaseHandle()->m_collisionFilterMask;
 	mcosys->Remove(this);
 
+	this->family_group = (short int)0x1 << mfamily;
+
 	ChCollisionSystemBullet* mcs = (ChCollisionSystemBullet*) mcosys;
-	mcs->GetBulletCollisionWorld()->addCollisionObject(bt_collision_object, (short int)0x1 << mfamily , original_mask);
+	mcs->GetBulletCollisionWorld()->addCollisionObject(bt_collision_object, this->family_group , this->family_mask);
 }
 
 int   ChModelBullet::GetFamily()
@@ -470,13 +470,15 @@ void  ChModelBullet::SetFamilyMaskNoCollisionWithFamily(int mfamily)
 
 	// Trick to avoid troubles if setting mask or family when model is already overlapping to some other model
 	ChCollisionSystem* mcosys =this->GetPhysicsItem()->GetSystem()->GetCollisionSystem();
-	short int original_family = bt_collision_object->getBroadphaseHandle()->m_collisionFilterGroup;
-	short int original_mask   = bt_collision_object->getBroadphaseHandle()->m_collisionFilterMask;
+	//short int original_family = bt_collision_object->getBroadphaseHandle()->m_collisionFilterGroup;
+	//short int original_mask   = bt_collision_object->getBroadphaseHandle()->m_collisionFilterMask;
 	mcosys->Remove(this);
 
 	short int familyflag = (short int)0x1 << mfamily;
+	this->family_mask = this->family_mask & ~familyflag;
+
 	ChCollisionSystemBullet* mcs = (ChCollisionSystemBullet*) mcosys;
-	mcs->GetBulletCollisionWorld()->addCollisionObject(bt_collision_object, original_family , original_mask & ~familyflag);
+	mcs->GetBulletCollisionWorld()->addCollisionObject(bt_collision_object, this->family_group , this->family_mask);
 } 
 
 void  ChModelBullet::SetFamilyMaskDoCollisionWithFamily(int mfamily)
@@ -489,13 +491,15 @@ void  ChModelBullet::SetFamilyMaskDoCollisionWithFamily(int mfamily)
 
 	// Trick to avoid troubles if setting mask or family when model is already overlapping to some other model
 	ChCollisionSystem* mcosys =this->GetPhysicsItem()->GetSystem()->GetCollisionSystem();
-	short int original_family = bt_collision_object->getBroadphaseHandle()->m_collisionFilterGroup;
-	short int original_mask   = bt_collision_object->getBroadphaseHandle()->m_collisionFilterMask;
+	//short int original_family = bt_collision_object->getBroadphaseHandle()->m_collisionFilterGroup;
+	//short int original_mask   = bt_collision_object->getBroadphaseHandle()->m_collisionFilterMask;
 	mcosys->Remove(this);
 
 	short int familyflag = (short int)0x1 << mfamily;
+	this->family_mask = this->family_mask | familyflag;
+
 	ChCollisionSystemBullet* mcs = (ChCollisionSystemBullet*) mcosys;
-	mcs->GetBulletCollisionWorld()->addCollisionObject(bt_collision_object, original_family , original_mask | familyflag);
+	mcs->GetBulletCollisionWorld()->addCollisionObject(bt_collision_object, this->family_group , this->family_mask);
 }
 
 bool ChModelBullet::GetFamilyMaskDoesCollisionWithFamily(int mfamily)
@@ -521,23 +525,95 @@ void ChModelBullet::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const
 }
 
 
+void __recurse_add_newcollshapes(btCollisionShape* ashape, std::vector<smartptrshapes>& shapes)
+{
+	if (ashape)
+	{
+		shapes.push_back(ChSmartPtr<btCollisionShape>(ashape));
+
+		if (ashape->getShapeType() == COMPOUND_SHAPE_PROXYTYPE)
+		{
+			btCompoundShape* compoundShape = (btCompoundShape*) ashape;
+			for (int shi = 0; shi < compoundShape->getNumChildShapes(); shi++)
+			{
+				__recurse_add_newcollshapes(compoundShape->getChildShape(shi), shapes);
+			}
+		}
+	}
+}
+
 
 
 void ChModelBullet::StreamIN(ChStreamInBinary& mstream)
 {
 		// class version number
-	mstream.VersionWrite(1);
+	int version = mstream.VersionRead();
 
-	//***TO DO***
+		// parent class deserialize
+	ChCollisionModel::StreamIN(mstream);
+
+		// deserialize custom data:
+
+	
+	this->ClearModel(); // remove shape 
+
+	int buffer_len=0;
+
+	mstream >> buffer_len;
+
+	char* mbuffer = new char[buffer_len];
+
+	for (int mpt= 0; mpt <  buffer_len; mpt++)
+		mstream >> mbuffer[mpt];
+
+	btBulletWorldImporter import(0);//don't store info into the world
+	import.setVerboseMode(false);
+
+	if (import.loadFileFromMemory(mbuffer, buffer_len))
+	{
+		int numShape = import.getNumCollisionShapes();
+		if (numShape)
+		{
+			btCollisionShape* mshape = import.getCollisionShapeByIndex(0);
+			if (mshape)
+				bt_collision_object->setCollisionShape(mshape);
+
+			// Update the list of sharedpointers to newly created shapes, so that 
+			// the deletion will be automatic
+			__recurse_add_newcollshapes(mshape, this->shapes);
+		}
+	}
+
+	delete[] mbuffer;
+	
 }
 
 		
 void ChModelBullet::StreamOUT(ChStreamOutBinary& mstream)
 {
 		// class version number
-	int version = mstream.VersionRead();
+	mstream.VersionWrite(1);
 
-	//***TO DO***
+		// parent class serialize
+	ChCollisionModel::StreamOUT(mstream);
+
+		// serialize custom data:
+	
+	int maxSerializeBufferSize = 1024*1024*5;	//***TO DO*** make this more efficient
+	btDefaultSerializer*	serializer = new btDefaultSerializer(maxSerializeBufferSize);
+
+	serializer->startSerialization();
+	
+	this->bt_collision_object->getCollisionShape()->serializeSingleShape(serializer);
+
+	serializer->finishSerialization();
+
+	mstream << serializer->getCurrentBufferSize();
+
+	for (int mpt= 0; mpt <  serializer->getCurrentBufferSize(); mpt++)
+		mstream << (char)(*(serializer->getBufferPointer()+mpt));
+
+	delete serializer;
 
 }
 

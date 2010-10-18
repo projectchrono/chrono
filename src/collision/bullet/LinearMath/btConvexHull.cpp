@@ -16,9 +16,9 @@ subject to the following restrictions:
 #include <string.h>
 
 #include "btConvexHull.h"
-#include "LinearMath/btAlignedObjectArray.h"
-#include "LinearMath/btMinMax.h"
-#include "LinearMath/btVector3.h"
+#include "btAlignedObjectArray.h"
+#include "btMinMax.h"
+#include "btVector3.h"
 
 
 
@@ -1011,9 +1011,9 @@ bool  HullLibrary::CleanupVertices(unsigned int svcount,
 				btScalar y = v[1];
 				btScalar z = v[2];
 
-				btScalar dx = fabsf(x - px );
-				btScalar dy = fabsf(y - py );
-				btScalar dz = fabsf(z - pz );
+				btScalar dx = btFabs(x - px );
+				btScalar dy = btFabs(y - py );
+				btScalar dz = btFabs(z - pz );
 
 				if ( dx < normalepsilon && dy < normalepsilon && dz < normalepsilon )
 				{
@@ -1156,7 +1156,7 @@ void HullLibrary::BringOutYourDead(const btVector3* verts,unsigned int vcount, b
 
 			for (int k=0;k<m_vertexIndexMapping.size();k++)
 			{
-				if (tmpIndices[k]==v)
+				if (tmpIndices[k]==int(v))
 					m_vertexIndexMapping[k]=ocount;
 			}
 

@@ -211,6 +211,7 @@ CPPFILES_LIB = \
 	collision/bullet/BulletCollision/CollisionDispatch/btBoxBoxDetector.cpp \
 	collision/bullet/BulletCollision/CollisionDispatch/btGhostObject.cpp \
 	collision/bullet/BulletCollision/CollisionDispatch/btConvex2dConvex2dAlgorithm.cpp \
+	collision/bullet/BulletCollision/CollisionDispatch/btInternalEdgeUtility.cpp \
 	collision/bullet/BulletCollision/CollisionShapes/btBarrelShape.cpp \
 	collision/bullet/BulletCollision/CollisionShapes/btBoxShape.cpp \
 	collision/bullet/BulletCollision/CollisionShapes/btTriangleMeshShape.cpp \
@@ -258,10 +259,16 @@ CPPFILES_LIB = \
 	collision/bullet/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.cpp \
 	collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkPairDetector.cpp \
 	collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkEpa2.cpp \
+	collision/bullet/BulletFileLoader/bChunk.cpp \
+	collision/bullet/BulletFileLoader/bDNA.cpp \
+	collision/bullet/BulletFileLoader/bFile.cpp \
+	collision/bullet/BulletFileLoader/btBulletFile.cpp \
+	collision/bullet/BulletWorldImporter/btBulletWorldImporter.cpp \
 	collision/bullet/LinearMath/btQuickprof.cpp \
 	collision/bullet/LinearMath/btAlignedAllocator.cpp \
 	collision/bullet/LinearMath/btGeometryUtil.cpp \
 	collision/bullet/LinearMath/btConvexHull.cpp \
+	collision/bullet/LinearMath/btSerializer.cpp \
 	collision/gimpact/GIMPACT/core/gim_box_set.cpp \
 	collision/gimpact/GIMPACT/core/gim_contact.cpp \
 	collision/gimpact/GIMPACT/core/gim_memory.cpp \
@@ -389,8 +396,8 @@ all: clean lib doxygen
 #   this with the SED tool)
 
 
-#lib: lib_chronoengine $(CH_JAVASCRIPTLIB_MAKETARGET) $(CH_MPILIB_MAKETARGET) $(CH_CUDALIB_MAKETARGET)
-lib: $(CH_MPILIB_MAKETARGET)
+lib: lib_chronoengine $(CH_JAVASCRIPTLIB_MAKETARGET) $(CH_MPILIB_MAKETARGET) $(CH_CUDALIB_MAKETARGET)
+#lib: $(CH_MPILIB_MAKETARGET)
 
 lib_chronoengine:  $(OFILES_LIB)
 	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME).defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).defx"

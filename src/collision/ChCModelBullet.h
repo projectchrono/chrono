@@ -19,8 +19,7 @@
 
 
 #include <vector>
-#include "ChCCollisionModel.h"
-//#include "collision/bullet/btBulletCollisionCommon.h" 
+#include "ChCCollisionModel.h" 
 #include "core/ChSmartpointers.h"
 
 // forward references
@@ -49,6 +48,9 @@ protected:
 
 			// Vector of shared pointers to geometric objects.
     std::vector<smartptrshapes> shapes; 
+
+	short int	family_group;
+	short int	family_mask;
 
 public:
 
@@ -151,6 +153,8 @@ public:
 		/// Return the pointer to the Bullet model
   btCollisionObject* GetBulletModel() {return this->bt_collision_object;}
 	  
+  short int GetFamilyGroup() {return this->family_group;}
+  short int GetFamilyMask() {return this->family_mask;}
 
 private:
 	void _injectShape(ChVector<>* pos, ChMatrix33<>* rot, btCollisionShape* mshape);

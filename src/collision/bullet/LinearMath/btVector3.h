@@ -19,13 +19,23 @@ subject to the following restrictions:
 
 
 #include "btScalar.h"
-#include "btScalar.h"
 #include "btMinMax.h"
+
+#ifdef BT_USE_DOUBLE_PRECISION
+#define btVector3Data btVector3DoubleData
+#define btVector3DataName "btVector3DoubleData"
+#else
+#define btVector3Data btVector3FloatData
+#define btVector3DataName "btVector3FloatData"
+#endif //BT_USE_DOUBLE_PRECISION
+
+
+
+
 /**@brief btVector3 can be used to represent 3D points and vectors.
  * It has an un-used w component to suit 16-byte alignment when btVector3 is stored in containers. This extra component can be used by derived classes (Quaternion?) or by user
  * Ideally, this class should be replaced by a platform optimized SIMD version that keeps the data in registers
  */
-
 ATTRIBUTE_ALIGNED16(class) btVector3
 {
 public:
@@ -39,7 +49,7 @@ public:
 	}
 public:
 #else //__CELLOS_LV2__ __SPU__
-#ifdef BT_USE_SSE // WIN32
+#ifdef BT_USE_SSE // _WIN32
 	union {
 		__m128 mVec128;
 		btScalar	m_floats[4];
@@ -138,6 +148,19 @@ public:
    * This is symantically treating the vector like a point */
 	SIMD_FORCE_INLINE btScalar distance(const btVector3& v) const;
 
+	SIMD_FORCE_INLINE btVector3& safeNormalize() 
+	{
+		btVector3 absVec = this->absolute();
+		int maxIndex = absVec.maxAxis();
+		if (absVec[maxIndex]>0)
+		{
+			*this /= absVec[maxIndex];
+			return *this /= length();
+		}
+		setValue(1,0,0);
+		return *this;
+	}
+
   /**@brief Normalize this vector 
    * x^2 + y^2 + z^2 = 1 */
 	SIMD_FORCE_INLINE btVector3& normalize() 
@@ -148,10 +171,10 @@ public:
   /**@brief Return a normalized version of this vector */
 	SIMD_FORCE_INLINE btVector3 normalized() const;
 
-  /**@brief Rotate this vector 
+  /**@brief Return a rotated version of this vector
    * @param wAxis The axis to rotate about 
    * @param angle The angle to rotate by */
-	SIMD_FORCE_INLINE btVector3 rotate( const btVector3& wAxis, const btScalar angle );
+	SIMD_FORCE_INLINE btVector3 rotate( const btVector3& wAxis, const btScalar angle ) const;
 
   /**@brief Return the angle between this and another vector
    * @param v The other vector */
@@ -318,6 +341,28 @@ public:
 			setValue(btScalar(0.),btScalar(0.),btScalar(0.));
 		}
 
+		SIMD_FORCE_INLINE bool isZero() const 
+		{
+			return m_floats[0] == btScalar(0) && m_floats[1] == btScalar(0) && m_floats[2] == btScalar(0);
+		}
+
+		SIMD_FORCE_INLINE bool fuzzyZero() const 
+		{
+			return length2() < SIMD_EPSILON;
+		}
+
+		SIMD_FORCE_INLINE	void	serialize(struct	btVector3Data& dataOut) const;
+
+		SIMD_FORCE_INLINE	void	deSerialize(const struct	btVector3Data& dataIn);
+
+		SIMD_FORCE_INLINE	void	serializeFloat(struct	btVector3FloatData& dataOut) const;
+
+		SIMD_FORCE_INLINE	void	deSerializeFloat(const struct	btVector3FloatData& dataIn);
+
+		SIMD_FORCE_INLINE	void	serializeDouble(struct	btVector3DoubleData& dataOut) const;
+
+		SIMD_FORCE_INLINE	void	deSerializeDouble(const struct	btVector3DoubleData& dataIn);
+
 };
 
 /**@brief Return the sum of two vectors (Point symantics)*/
@@ -446,7 +491,7 @@ SIMD_FORCE_INLINE btVector3 btVector3::normalized() const
 	return *this / length();
 } 
 
-SIMD_FORCE_INLINE btVector3 btVector3::rotate( const btVector3& wAxis, const btScalar angle )
+SIMD_FORCE_INLINE btVector3 btVector3::rotate( const btVector3& wAxis, const btScalar angle ) const
 {
 	// wAxis must be a unit lenght vector
 
@@ -587,8 +632,6 @@ public:
 		}
 
 
- 
-
 };
 
 
@@ -637,24 +680,87 @@ SIMD_FORCE_INLINE void	btUnSwapVector3Endian(btVector3& vector)
 	vector = swappedVec;
 }
 
-SIMD_FORCE_INLINE void btPlaneSpace1 (const btVector3& n, btVector3& p, btVector3& q)
+template <class T>
+SIMD_FORCE_INLINE void btPlaneSpace1 (const T& n, T& p, T& q)
 {
-  if (btFabs(n.z()) > SIMDSQRT12) {
+  if (btFabs(n[2]) > SIMDSQRT12) {
     // choose p in y-z plane
     btScalar a = n[1]*n[1] + n[2]*n[2];
     btScalar k = btRecipSqrt (a);
-    p.setValue(0,-n[2]*k,n[1]*k);
+    p[0] = 0;
+	p[1] = -n[2]*k;
+	p[2] = n[1]*k;
     // set q = n x p
-    q.setValue(a*k,-n[0]*p[2],n[0]*p[1]);
+    q[0] = a*k;
+	q[1] = -n[0]*p[2];
+	q[2] = n[0]*p[1];
   }
   else {
     // choose p in x-y plane
-    btScalar a = n.x()*n.x() + n.y()*n.y();
+    btScalar a = n[0]*n[0] + n[1]*n[1];
     btScalar k = btRecipSqrt (a);
-    p.setValue(-n.y()*k,n.x()*k,0);
+    p[0] = -n[1]*k;
+	p[1] = n[0]*k;
+	p[2] = 0;
     // set q = n x p
-    q.setValue(-n.z()*p.y(),n.z()*p.x(),a*k);
+    q[0] = -n[2]*p[1];
+	q[1] = n[2]*p[0];
+	q[2] = a*k;
   }
 }
+
+
+struct	btVector3FloatData
+{
+	float	m_floats[4];
+};
+
+struct	btVector3DoubleData
+{
+	double	m_floats[4];
+
+};
+
+SIMD_FORCE_INLINE	void	btVector3::serializeFloat(struct	btVector3FloatData& dataOut) const
+{
+	///could also do a memcpy, check if it is worth it
+	for (int i=0;i<4;i++)
+		dataOut.m_floats[i] = float(m_floats[i]);
+}
+
+SIMD_FORCE_INLINE void	btVector3::deSerializeFloat(const struct	btVector3FloatData& dataIn)
+{
+	for (int i=0;i<4;i++)
+		m_floats[i] = btScalar(dataIn.m_floats[i]);
+}
+
+
+SIMD_FORCE_INLINE	void	btVector3::serializeDouble(struct	btVector3DoubleData& dataOut) const
+{
+	///could also do a memcpy, check if it is worth it
+	for (int i=0;i<4;i++)
+		dataOut.m_floats[i] = double(m_floats[i]);
+}
+
+SIMD_FORCE_INLINE void	btVector3::deSerializeDouble(const struct	btVector3DoubleData& dataIn)
+{
+	for (int i=0;i<4;i++)
+		m_floats[i] = btScalar(dataIn.m_floats[i]);
+}
+
+
+SIMD_FORCE_INLINE	void	btVector3::serialize(struct	btVector3Data& dataOut) const
+{
+	///could also do a memcpy, check if it is worth it
+	for (int i=0;i<4;i++)
+		dataOut.m_floats[i] = m_floats[i];
+}
+
+SIMD_FORCE_INLINE void	btVector3::deSerialize(const struct	btVector3Data& dataIn)
+{
+	for (int i=0;i<4;i++)
+		m_floats[i] = dataIn.m_floats[i];
+}
+
 
 #endif //SIMD__VECTOR3_H

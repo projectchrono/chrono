@@ -19,6 +19,7 @@ subject to the following restrictions:
 #include "btConvexShape.h"
 #include "LinearMath/btAabbUtil2.h"
 
+
 ///The btConvexInternalShape is an internal base class, shared by most convex shape implementations.
 class btConvexInternalShape : public btConvexShape
 {
@@ -50,6 +51,15 @@ public:
 	const btVector3& getImplicitShapeDimensions() const
 	{
 		return m_implicitShapeDimensions;
+	}
+
+	///warning: use setImplicitShapeDimensions with care
+	///changing a collision shape while the body is in the world is not recommended,
+	///it is best to remove the body from the world, then make the change, and re-add it
+	///alternatively flush the contact points, see documentation for 'cleanProxyFromPairs'
+	void	setImplicitShapeDimensions(const btVector3& dimensions)
+	{
+		m_implicitShapeDimensions = dimensions;
 	}
 
 	///getAabb's default implementation is brute force, expected derived classes to implement a fast dedicated version
@@ -100,9 +110,50 @@ public:
 		btAssert(0);
 	}
 
+	virtual	int	calculateSerializeBufferSize() const;
+
+	///fills the dataBuffer and returns the struct name (and 0 on failure)
+	virtual	const char*	serialize(void* dataBuffer, btSerializer* serializer) const;
 
 	
 };
+
+///do not change those serialization structures, it requires an updated sBulletDNAstr/sBulletDNAstr64
+struct	btConvexInternalShapeData
+{
+	btCollisionShapeData	m_collisionShapeData;
+
+	btVector3FloatData	m_localScaling;
+
+	btVector3FloatData	m_implicitShapeDimensions;
+	
+	float			m_collisionMargin;
+
+	int	m_padding;
+
+};
+
+
+
+SIMD_FORCE_INLINE	int	btConvexInternalShape::calculateSerializeBufferSize() const
+{
+	return sizeof(btConvexInternalShapeData);
+}
+
+///fills the dataBuffer and returns the struct name (and 0 on failure)
+SIMD_FORCE_INLINE	const char*	btConvexInternalShape::serialize(void* dataBuffer, btSerializer* serializer) const
+{
+	btConvexInternalShapeData* shapeData = (btConvexInternalShapeData*) dataBuffer;
+	btCollisionShape::serialize(&shapeData->m_collisionShapeData, serializer);
+
+	m_implicitShapeDimensions.serializeFloat(shapeData->m_implicitShapeDimensions);
+	m_localScaling.serializeFloat(shapeData->m_localScaling);
+	shapeData->m_collisionMargin = float(m_collisionMargin);
+
+	return "btConvexInternalShapeData";
+}
+
+
 
 
 ///btConvexInternalAabbCachingShape adds local aabb caching for convex shapes, to avoid expensive bounding box calculations

@@ -89,7 +89,31 @@ public:
 	///in case we receive negative scaling
 	virtual void	setLocalScaling(const btVector3& scaling);
 
+	virtual	int	calculateSerializeBufferSize() const;
+
+	///fills the dataBuffer and returns the struct name (and 0 on failure)
+	virtual	const char*	serialize(void* dataBuffer, btSerializer* serializer) const;
+
 };
+
+///do not change those serialization structures, it requires an updated sBulletDNAstr/sBulletDNAstr64
+struct	btConvexHullShapeData
+{
+	btConvexInternalShapeData	m_convexInternalShapeData;
+
+	btVector3FloatData	*m_unscaledPointsFloatPtr;
+	btVector3DoubleData	*m_unscaledPointsDoublePtr;
+
+	int		m_numUnscaledPoints;
+	char m_padding3[4];
+
+};
+
+
+SIMD_FORCE_INLINE	int	btConvexHullShape::calculateSerializeBufferSize() const
+{
+	return sizeof(btConvexHullShapeData);
+}
 
 
 #endif //CONVEX_HULL_SHAPE_H

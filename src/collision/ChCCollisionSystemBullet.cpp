@@ -84,7 +84,9 @@ void ChCollisionSystemBullet::Add(ChCollisionModel* model)
 	if (((ChModelBullet*)model)->GetBulletModel()->getCollisionShape())
 	{
 		model->SyncPosition();
-		bt_collision_world->addCollisionObject(((ChModelBullet*)model)->GetBulletModel(),1,0xFF);
+		bt_collision_world->addCollisionObject(((ChModelBullet*)model)->GetBulletModel(),
+			((ChModelBullet*)model)->GetFamilyGroup(),
+			((ChModelBullet*)model)->GetFamilyMask());
 	}
 }
 		 		

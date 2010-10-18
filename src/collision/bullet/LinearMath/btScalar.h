@@ -17,6 +17,12 @@ subject to the following restrictions:
 #ifndef SIMD___SCALAR_H
 #define SIMD___SCALAR_H
 
+#ifdef BT_MANAGED_CODE
+//Aligned data types not supported in managed code
+#pragma unmanaged
+#endif
+
+
 #include <math.h>
 #include <stdlib.h>//size_t for MSVC 6.0
 #include <cstdlib>
@@ -24,7 +30,7 @@ subject to the following restrictions:
 #include <float.h>
 
 /* SVN $Revision$ on $Date$ from http://bullet.googlecode.com*/
-#define BT_BULLET_VERSION 275
+#define BT_BULLET_VERSION 277
 
 inline int	btGetVersion()
 {
@@ -36,12 +42,13 @@ inline int	btGetVersion()
 #endif
 
 
-#ifdef WIN32
+#ifdef _WIN32
 
 		#if defined(__MINGW32__) || defined(__CYGWIN__) || (defined (_MSC_VER) && _MSC_VER < 1300)
 
 			#define SIMD_FORCE_INLINE inline
 			#define ATTRIBUTE_ALIGNED16(a) a
+			#define ATTRIBUTE_ALIGNED64(a) a
 			#define ATTRIBUTE_ALIGNED128(a) a
 		#else
 			//#define BT_HAS_ALIGNED_ALLOCATOR
@@ -52,6 +59,7 @@ inline int	btGetVersion()
 
 			#define SIMD_FORCE_INLINE __forceinline
 			#define ATTRIBUTE_ALIGNED16(a) __declspec(align(16)) a
+			#define ATTRIBUTE_ALIGNED64(a) __declspec(align(64)) a
 			#define ATTRIBUTE_ALIGNED128(a) __declspec (align(128)) a
 		#ifdef _XBOX
 			#define BT_USE_VMX128
@@ -61,7 +69,7 @@ inline int	btGetVersion()
  			#define btFsel(a,b,c) __fsel((a),(b),(c))
 		#else
 
-#if (defined (WIN32) && (_MSC_VER) && _MSC_VER >= 1400) && (!defined (BT_USE_DOUBLE_PRECISION))
+#if (defined (_WIN32) && (_MSC_VER) && _MSC_VER >= 1400) && (!defined (BT_USE_DOUBLE_PRECISION))
 			#define BT_USE_SSE
 			#include <emmintrin.h>
 #endif
@@ -85,14 +93,22 @@ inline int	btGetVersion()
 #else
 	
 #if defined	(__CELLOS_LV2__)
-		#define SIMD_FORCE_INLINE inline
+		#define SIMD_FORCE_INLINE inline __attribute__((always_inline))
 		#define ATTRIBUTE_ALIGNED16(a) a __attribute__ ((aligned (16)))
+		#define ATTRIBUTE_ALIGNED64(a) a __attribute__ ((aligned (64)))
 		#define ATTRIBUTE_ALIGNED128(a) a __attribute__ ((aligned (128)))
 		#ifndef assert
 		#include <assert.h>
 		#endif
 #ifdef BT_DEBUG
-		#define btAssert assert
+#ifdef __SPU__
+#include <spu_printf.h>
+#define printf spu_printf
+	#define btAssert(x) {if(!(x)){printf("Assert "__FILE__ ":%u ("#x")\n", __LINE__);spu_hcmpeq(0,0);}}
+#else
+	#define btAssert assert
+#endif
+	
 #else
 		#define btAssert(x)
 #endif
@@ -108,6 +124,7 @@ inline int	btGetVersion()
 
 		#define SIMD_FORCE_INLINE __inline
 		#define ATTRIBUTE_ALIGNED16(a) a __attribute__ ((aligned (16)))
+		#define ATTRIBUTE_ALIGNED64(a) a __attribute__ ((aligned (64)))
 		#define ATTRIBUTE_ALIGNED128(a) a __attribute__ ((aligned (128)))
 		#ifndef assert
 		#include <assert.h>
@@ -135,6 +152,7 @@ inline int	btGetVersion()
 	#define SIMD_FORCE_INLINE inline
 ///@todo: check out alignment methods for other platforms/compilers
 	#define ATTRIBUTE_ALIGNED16(a) a __attribute__ ((aligned (16)))
+	#define ATTRIBUTE_ALIGNED64(a) a __attribute__ ((aligned (64)))
 	#define ATTRIBUTE_ALIGNED128(a) a __attribute__ ((aligned (128)))
 	#ifndef assert
 	#include <assert.h>
@@ -156,8 +174,10 @@ inline int	btGetVersion()
 		#define SIMD_FORCE_INLINE inline
 		///@todo: check out alignment methods for other platforms/compilers
 		///#define ATTRIBUTE_ALIGNED16(a) a __attribute__ ((aligned (16)))
+		///#define ATTRIBUTE_ALIGNED64(a) a __attribute__ ((aligned (64)))
 		///#define ATTRIBUTE_ALIGNED128(a) a __attribute__ ((aligned (128)))
 		#define ATTRIBUTE_ALIGNED16(a) a
+		#define ATTRIBUTE_ALIGNED64(a) a
 		#define ATTRIBUTE_ALIGNED128(a) a
 		#ifndef assert
 		#include <assert.h>
@@ -213,8 +233,8 @@ SIMD_FORCE_INLINE btScalar btFabs(btScalar x) { return fabs(x); }
 SIMD_FORCE_INLINE btScalar btCos(btScalar x) { return cos(x); }
 SIMD_FORCE_INLINE btScalar btSin(btScalar x) { return sin(x); }
 SIMD_FORCE_INLINE btScalar btTan(btScalar x) { return tan(x); }
-SIMD_FORCE_INLINE btScalar btAcos(btScalar x) { return acos(x); }
-SIMD_FORCE_INLINE btScalar btAsin(btScalar x) { return asin(x); }
+SIMD_FORCE_INLINE btScalar btAcos(btScalar x) { if (x<btScalar(-1))	x=btScalar(-1); if (x>btScalar(1))	x=btScalar(1); return acos(x); }
+SIMD_FORCE_INLINE btScalar btAsin(btScalar x) { if (x<btScalar(-1))	x=btScalar(-1); if (x>btScalar(1))	x=btScalar(1); return asin(x); }
 SIMD_FORCE_INLINE btScalar btAtan(btScalar x) { return atan(x); }
 SIMD_FORCE_INLINE btScalar btAtan2(btScalar x, btScalar y) { return atan2(x, y); }
 SIMD_FORCE_INLINE btScalar btExp(btScalar x) { return exp(x); }
@@ -233,7 +253,7 @@ SIMD_FORCE_INLINE btScalar btSqrt(btScalar y)
 	tempf = y;
 	*tfptr = (0xbfcdd90a - *tfptr)>>1; /* estimate of 1/sqrt(y) */
 	x =  tempf;
-	z =  y*btScalar(0.5);                        /* hoist out the “/2”    */
+	z =  y*btScalar(0.5);
 	x = (btScalar(1.5)*x)-(x*x)*(x*z);         /* iteration formula     */
 	x = (btScalar(1.5)*x)-(x*x)*(x*z);
 	x = (btScalar(1.5)*x)-(x*x)*(x*z);
@@ -249,10 +269,19 @@ SIMD_FORCE_INLINE btScalar btCos(btScalar x) { return cosf(x); }
 SIMD_FORCE_INLINE btScalar btSin(btScalar x) { return sinf(x); }
 SIMD_FORCE_INLINE btScalar btTan(btScalar x) { return tanf(x); }
 SIMD_FORCE_INLINE btScalar btAcos(btScalar x) { 
-	btAssert(x <= btScalar(1.));
+	if (x<btScalar(-1))	
+		x=btScalar(-1); 
+	if (x>btScalar(1))	
+		x=btScalar(1);
 	return acosf(x); 
 }
-SIMD_FORCE_INLINE btScalar btAsin(btScalar x) { return asinf(x); }
+SIMD_FORCE_INLINE btScalar btAsin(btScalar x) { 
+	if (x<btScalar(-1))	
+		x=btScalar(-1); 
+	if (x>btScalar(1))	
+		x=btScalar(1);
+	return asinf(x); 
+}
 SIMD_FORCE_INLINE btScalar btAtan(btScalar x) { return atanf(x); }
 SIMD_FORCE_INLINE btScalar btAtan2(btScalar x, btScalar y) { return atan2f(x, y); }
 SIMD_FORCE_INLINE btScalar btExp(btScalar x) { return expf(x); }

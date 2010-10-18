@@ -238,8 +238,8 @@ struct btPerturbedContactResult : public btManifoldResult
 		:m_originalManifoldResult(originalResult),
 		m_transformA(transformA),
 		m_transformB(transformB),
-		m_perturbA(perturbA),
 		m_unPerturbedTransform(unPerturbedTransform),
+		m_perturbA(perturbA),
 		m_debugDrawer(debugDrawer)
 	{
 	}
@@ -332,7 +332,11 @@ void btConvexConvexAlgorithm ::processCollision (btCollisionObject* body0,btColl
 
 
 #ifdef USE_SEPDISTANCE_UTIL2
-	m_sepDistance.updateSeparatingDistance(body0->getWorldTransform(),body1->getWorldTransform());
+	if (dispatchInfo.m_useConvexConservativeDistanceUtil)
+	{
+		m_sepDistance.updateSeparatingDistance(body0->getWorldTransform(),body1->getWorldTransform());
+	}
+
 	if (!dispatchInfo.m_useConvexConservativeDistanceUtil || m_sepDistance.getConservativeSeparatingDistance()<=0.f)
 #endif //USE_SEPDISTANCE_UTIL2
 
@@ -353,7 +357,13 @@ void btConvexConvexAlgorithm ::processCollision (btCollisionObject* body0,btColl
 	} else
 #endif //USE_SEPDISTANCE_UTIL2
 	{
-		input.m_maximumDistanceSquared = min0->getMargin() + min1->getMargin() + m_manifoldPtr->getContactBreakingThreshold();
+		if (dispatchInfo.m_convexMaxDistanceUseCPT)
+		{
+			input.m_maximumDistanceSquared = min0->getMargin() + min1->getMargin() + m_manifoldPtr->getContactProcessingThreshold();
+		} else
+		{
+			input.m_maximumDistanceSquared = min0->getMargin() + min1->getMargin() + m_manifoldPtr->getContactBreakingThreshold();
+		}
 		input.m_maximumDistanceSquared*= input.m_maximumDistanceSquared;
 	}
 
@@ -363,8 +373,6 @@ void btConvexConvexAlgorithm ::processCollision (btCollisionObject* body0,btColl
 
 	gjkPairDetector.getClosestPoints(input,*resultOut,dispatchInfo.m_debugDraw);
 
-	btVector3 v0,v1;
-	btVector3 sepNormalWorldSpace;
 	
 
 #ifdef USE_SEPDISTANCE_UTIL2
@@ -376,8 +384,7 @@ void btConvexConvexAlgorithm ::processCollision (btCollisionObject* body0,btColl
 		{
 			sepDist += dispatchInfo.m_convexConservativeDistanceThreshold;
 			//now perturbe directions to get multiple contact points
-			sepNormalWorldSpace = gjkPairDetector.getCachedSeparatingAxis().normalized();
-			btPlaneSpace1(sepNormalWorldSpace,v0,v1);
+			
 		}
 	}
 #endif //USE_SEPDISTANCE_UTIL2
@@ -385,10 +392,16 @@ void btConvexConvexAlgorithm ::processCollision (btCollisionObject* body0,btColl
 	//now perform 'm_numPerturbationIterations' collision queries with the perturbated collision objects
 	
 	//perform perturbation when more then 'm_minimumPointsPerturbationThreshold' points
-	if (resultOut->getPersistentManifold()->getNumContacts() < m_minimumPointsPerturbationThreshold)
+	if (m_numPerturbationIterations && resultOut->getPersistentManifold()->getNumContacts() < m_minimumPointsPerturbationThreshold)
 	{
 		
 		int i;
+		btVector3 v0,v1;
+		btVector3 sepNormalWorldSpace;
+	
+		sepNormalWorldSpace = gjkPairDetector.getCachedSeparatingAxis().normalized();
+		btPlaneSpace1(sepNormalWorldSpace,v0,v1);
+
 
 		bool perturbeA = true;
 		const btScalar angleLimit = 0.125f * SIMD_PI;
@@ -418,6 +431,8 @@ void btConvexConvexAlgorithm ::processCollision (btCollisionObject* body0,btColl
 		
 		for ( i=0;i<m_numPerturbationIterations;i++)
 		{
+			if (v0.length2()>SIMD_EPSILON)
+			{
 			btQuaternion perturbeRot(v0,perturbeAngle);
 			btScalar iterationAngle = i*(SIMD_2_PI/btScalar(m_numPerturbationIterations));
 			btQuaternion rotq(sepNormalWorldSpace,iterationAngle);
@@ -441,7 +456,7 @@ void btConvexConvexAlgorithm ::processCollision (btCollisionObject* body0,btColl
 			
 			btPerturbedContactResult perturbedResultOut(resultOut,input.m_transformA,input.m_transformB,unPerturbedTransform,perturbeA,dispatchInfo.m_debugDraw);
 			gjkPairDetector.getClosestPoints(input,perturbedResultOut,dispatchInfo.m_debugDraw);
-			
+			}
 			
 		}
 	}

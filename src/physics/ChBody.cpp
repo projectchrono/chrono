@@ -815,12 +815,12 @@ void ChBody::RemoveCollisionModelsFromSystem()
 
 
 
-void ChBody::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax)
+void ChBody::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax)
 {
 	if (this->GetCollisionModel())
 		this->GetCollisionModel()->GetAABB(bbmin, bbmax);
 	else 
-		ChPhysicsItem::GetAABB(bbmin, bbmax); // default: infinite aabb
+		ChPhysicsItem::GetTotalAABB(bbmin, bbmax); // default: infinite aabb
 }
 
 
@@ -829,7 +829,7 @@ void ChBody::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax)
 void ChBody::StreamOUT(ChStreamOutBinary& mstream)
 {
 			// class version number
-	mstream.VersionWrite(5);
+	mstream.VersionWrite(6);
 
 		// serialize parent class too
 	ChPhysicsItem::StreamOUT(mstream);
@@ -860,6 +860,8 @@ void ChBody::StreamOUT(ChStreamOutBinary& mstream)
 
 	dfoo=(double)rolling_friction;mstream << dfoo;
 	dfoo=(double)spinning_friction;mstream << dfoo;
+
+	this->collision_model->StreamOUT(mstream); // also 	mstream << (*this->collision_model);
 }
 
 void ChBody::StreamIN(ChStreamInBinary& mstream)
@@ -935,6 +937,11 @@ void ChBody::StreamIN(ChStreamInBinary& mstream)
 		double dfoo;
 		mstream >> dfoo;		rolling_friction= (float)dfoo;
 		mstream >> dfoo;		spinning_friction= (float)dfoo;
+	}
+	if (version >=6)
+	{
+		this->collision_model->StreamIN(mstream); // also 	mstream >> (*collision_model);
+		this->collision_model->BuildModel(); // because previously removed from ChSystem, if any.
 	}
 }
 

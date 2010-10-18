@@ -142,6 +142,11 @@ BT_DECLARE_ALIGNED_ALLOCATOR();
 		return (proxyType < CONCAVE_SHAPES_START_HERE);
 	}
 
+	static SIMD_FORCE_INLINE bool	isNonMoving(int proxyType)
+	{
+		return (isConcave(proxyType) && !(proxyType==GIMPACT_SHAPE_PROXYTYPE));
+	}
+
 	static SIMD_FORCE_INLINE bool	isConcave(int proxyType)
 	{
 		return ((proxyType > CONCAVE_SHAPES_START_HERE) &&
@@ -151,6 +156,12 @@ BT_DECLARE_ALIGNED_ALLOCATOR();
 	{
 		return (proxyType == COMPOUND_SHAPE_PROXYTYPE);
 	}
+
+	static SIMD_FORCE_INLINE bool	isSoftBody(int proxyType)
+	{
+		return (proxyType == SOFTBODY_SHAPE_PROXYTYPE);
+	}
+
 	static SIMD_FORCE_INLINE bool isInfinite(int proxyType)
 	{
 		return (proxyType == STATIC_PLANE_PROXYTYPE);
