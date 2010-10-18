@@ -350,7 +350,7 @@ void ChSystemMPI::InterDomainSetup()
 				++hiterator;
 
 				ChVector<> bbmin, bbmax;
-				item->GetAABB(bbmin, bbmax);
+				item->GetTotalAABB(bbmin, bbmax);
 				bool erase = false;
 				
 				// tirst two checks are meant for early bailout, otherwise it could be only the third one 
@@ -397,7 +397,7 @@ void ChSystemMPI::InterDomainSetup()
 		ChPhysicsItem* item = PHpointer;
 
 		ChVector<> bbmin, bbmax, mcenter;
-		item->GetAABB(bbmin, bbmax);
+		item->GetTotalAABB(bbmin, bbmax);
 		item->GetCenter(mcenter);
 
 		if (this->nodeMPI.IsAABBoutside(bbmin, bbmax))
@@ -458,36 +458,7 @@ void ChSystemMPI::InterDomainSetup()
 				}
 			} // end interfaces loop
 			
-			/*
-			int oldflags = mpibody->GetOverlapFlags();
-			int newflags = mpibody->ComputeOverlapFlags(this->nodeMPI);
-
-			int changeflags = newflags & ~oldflags; // deal only with last overlapped domains 
-			if (changeflags)
-			{
-				for (int ni = 0; ni<num_interfaces; ni++)
-				{
-					if ( (0x1 << ni) & changeflags )	
-					{
-						if (this->nodeMPI.interfaces[ni].id_MPI != -1) // exclude unexisting domains
-						{
-							try 
-							{
-								// serialize to interface stream
-								GetLog() << "ID=" << this->nodeMPI.id_MPI << " SERIALIZE: " << mpibody->GetRTTI()->GetName() << "  to ID=" << this->nodeMPI.interfaces[ni].id_MPI << "\n";
-								this->nodeMPI.interfaces[ni].mchstreamo->AbstractWrite(mpibody);
-							}
-							catch (ChException myex)
-							{
-								GetLog() << "ERROR serializing MPI item:\n " << myex.what() << "\n";
-							}
-
-
-						}
-					}
-				}
-			}
-			*/
+			
 		}
 
 		ChPhysicsItem* olditem = PHpointer;
@@ -556,21 +527,12 @@ void ChSystemMPI::InterDomainSetup()
 					}
 					ChSharedPtr<ChPhysicsItem> ptritem(newitem);
 
-		//***TEST*** until collision shape serialization not ready
-		if (ChBody* mybody = dynamic_cast<ChBody*>(newitem))
-		{
-			mybody->SetCollide(true);
-			mybody->GetCollisionModel()->ClearModel();
-			mybody->GetCollisionModel()->AddBox(0.1,0.1,0.1, &ChVector<>(-4,-6, -0.01) );
-			mybody->GetCollisionModel()->BuildModel();
-		}
-
 					// 2-add to system
 					if (newitem)
 						this->Add(ptritem);
 
 					ChVector<> bbmin, bbmax;
-					newitem->GetAABB(bbmin, bbmax);
+					newitem->GetTotalAABB(bbmin, bbmax);
 
 					// 3-add to other interfaces hash table, 
 					for (unsigned int sui = 0; sui<num_interfaces; sui++)
