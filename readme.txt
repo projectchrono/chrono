@@ -7,6 +7,10 @@
 Release 1.1.0
 XX-XX-XXXX
 
+- Collision engine updated to Bullet 2.77.
+  Now also the collision shapes of rigid bodies can be
+  marshalled using the C::E serialization.
+
 - New unit: ChronoEngine_MPI.dll.
   This will be used to host code for cluster computing.
   It contains features for exploiting the MPI interface

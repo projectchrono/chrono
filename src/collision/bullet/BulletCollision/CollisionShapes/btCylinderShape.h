@@ -100,13 +100,28 @@ public:
 		return getHalfExtentsWithMargin().getX();
 	}
 
+	virtual void	setLocalScaling(const btVector3& scaling)
+	{
+		btVector3 oldMargin(getMargin(),getMargin(),getMargin());
+		btVector3 implicitShapeDimensionsWithMargin = m_implicitShapeDimensions+oldMargin;
+		btVector3 unScaledImplicitShapeDimensionsWithMargin = implicitShapeDimensionsWithMargin / m_localScaling;
+
+		btConvexInternalShape::setLocalScaling(scaling);
+
+		m_implicitShapeDimensions = (unScaledImplicitShapeDimensionsWithMargin * m_localScaling) - oldMargin;
+
+	}
+
 	//debugging
 	virtual const char*	getName()const
 	{
 		return "CylinderY";
 	}
 
+	virtual	int	calculateSerializeBufferSize() const;
 
+	///fills the dataBuffer and returns the struct name (and 0 on failure)
+	virtual	const char*	serialize(void* dataBuffer, btSerializer* serializer) const;
 
 };
 
@@ -139,10 +154,6 @@ public:
 	virtual btVector3	localGetSupportingVertexWithoutMargin(const btVector3& vec)const;
 	virtual void	batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const;
 
-	virtual int	getUpAxis() const
-	{
-		return 2;
-	}
 		//debugging
 	virtual const char*	getName()const
 	{
@@ -155,6 +166,34 @@ public:
 	}
 
 };
+
+///do not change those serialization structures, it requires an updated sBulletDNAstr/sBulletDNAstr64
+struct	btCylinderShapeData
+{
+	btConvexInternalShapeData	m_convexInternalShapeData;
+
+	int	m_upAxis;
+
+	char	m_padding[4];
+};
+
+SIMD_FORCE_INLINE	int	btCylinderShape::calculateSerializeBufferSize() const
+{
+	return sizeof(btCylinderShapeData);
+}
+
+	///fills the dataBuffer and returns the struct name (and 0 on failure)
+SIMD_FORCE_INLINE	const char*	btCylinderShape::serialize(void* dataBuffer, btSerializer* serializer) const
+{
+	btCylinderShapeData* shapeData = (btCylinderShapeData*) dataBuffer;
+	
+	btConvexInternalShape::serialize(&shapeData->m_convexInternalShapeData,serializer);
+
+	shapeData->m_upAxis = m_upAxis;
+	
+	return "btCylinderShapeData";
+}
+
 
 
 #endif //CYLINDER_MINKOWSKI_H

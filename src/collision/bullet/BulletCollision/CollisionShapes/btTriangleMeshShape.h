@@ -79,7 +79,11 @@ public:
 	//debugging
 	virtual const char*	getName()const {return "TRIANGLEMESH";}
 
+	
 
 };
+
+
+
 
 #endif //TRIANGLE_MESH_SHAPE_H

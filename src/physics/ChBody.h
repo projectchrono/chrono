@@ -307,7 +307,7 @@ public:
 
 				/// Get the entire AABB axis-aligned bounding box of the object,
 				/// as defined by the collision model (if any).
-	virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax);
+	virtual void GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax);
 
 				/// Method to deserialize only the state (position, speed)
 	virtual void StreamINstate(ChStreamInBinary& mstream);

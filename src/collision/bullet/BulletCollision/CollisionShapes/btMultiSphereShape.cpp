@@ -18,6 +18,7 @@ subject to the following restrictions:
 #include "btMultiSphereShape.h"
 #include "BulletCollision/CollisionShapes/btCollisionMargin.h"
 #include "LinearMath/btQuaternion.h"
+#include "LinearMath/btSerializer.h"
 
 btMultiSphereShape::btMultiSphereShape (const btVector3* positions,const btScalar* radi,int numSpheres)
 :btConvexInternalAabbCachingShape ()
@@ -135,6 +136,32 @@ void	btMultiSphereShape::calculateLocalInertia(btScalar mass,btVector3& inertia)
 					mass/(btScalar(12.0)) * (lx*lx + lz*lz),
 					mass/(btScalar(12.0)) * (lx*lx + ly*ly));
 
+}
+
+
+///fills the dataBuffer and returns the struct name (and 0 on failure)
+const char*	btMultiSphereShape::serialize(void* dataBuffer, btSerializer* serializer) const
+{
+	btMultiSphereShapeData* shapeData = (btMultiSphereShapeData*) dataBuffer;
+	btConvexInternalShape::serialize(&shapeData->m_convexInternalShapeData, serializer);
+
+	int numElem = m_localPositionArray.size();
+	shapeData->m_localPositionArrayPtr = numElem ? (btPositionAndRadius*)serializer->getUniquePointer((void*)&m_localPositionArray[0]):  0;
+	
+	shapeData->m_localPositionArraySize = numElem;
+	if (numElem)
+	{
+		btChunk* chunk = serializer->allocate(sizeof(btPositionAndRadius),numElem);
+		btPositionAndRadius* memPtr = (btPositionAndRadius*)chunk->m_oldPtr;
+		for (int i=0;i<numElem;i++,memPtr++)
+		{
+			m_localPositionArray[i].serializeFloat(memPtr->m_pos);
+			memPtr->m_radius = float(m_radiArray[i]);
+		}
+		serializer->finalizeChunk(chunk,"btPositionAndRadius",BT_ARRAY_CODE,(void*)&m_localPositionArray[0]);
+	}
+	
+	return "btMultiSphereShapeData";
 }
 
 

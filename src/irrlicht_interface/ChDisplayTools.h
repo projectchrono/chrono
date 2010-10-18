@@ -285,29 +285,27 @@ public:
 			chrono::ChSystem::IteratorBodies myiter = mphysicalSystem.IterBeginBodies();
 			while (myiter != mphysicalSystem.IterEndBodies())
 			{
-				if ((*myiter)->GetCollisionModel())
-				{
-					video::SColor mcol;
-					if ((*myiter)->GetSleeping()) 
-						mcol=video::SColor(70,0,50,255);  // blue: sleeping
-					else
-						mcol=video::SColor(70,30,200,200);  // cyan: not sleeping
-					chrono::ChVector<> hi = chrono::VNULL;
-					chrono::ChVector<> lo = chrono::VNULL;
-					(*myiter)->GetCollisionModel()->GetAABB(lo,hi);
-					driver->draw3DLine(core::vector3dfCH(lo), core::vector3dfCH(chrono::ChVector<>(hi.x,lo.y,lo.z)), mcol );
-					driver->draw3DLine(core::vector3dfCH(lo), core::vector3dfCH(chrono::ChVector<>(lo.x,hi.y,lo.z)), mcol );
-					driver->draw3DLine(core::vector3dfCH(lo), core::vector3dfCH(chrono::ChVector<>(lo.x,lo.y,hi.z)), mcol );
-					driver->draw3DLine(core::vector3dfCH(hi), core::vector3dfCH(chrono::ChVector<>(hi.x,hi.y,lo.z)), mcol );
-					driver->draw3DLine(core::vector3dfCH(hi), core::vector3dfCH(chrono::ChVector<>(lo.x,hi.y,hi.z)), mcol );
-					driver->draw3DLine(core::vector3dfCH(hi), core::vector3dfCH(chrono::ChVector<>(hi.x,lo.y,hi.z)), mcol );
-					driver->draw3DLine(core::vector3dfCH(chrono::ChVector<>(lo.x,lo.y,hi.z)), core::vector3dfCH(chrono::ChVector<>(hi.x,lo.y,hi.z)), mcol );
-					driver->draw3DLine(core::vector3dfCH(chrono::ChVector<>(lo.x,lo.y,hi.z)), core::vector3dfCH(chrono::ChVector<>(lo.x,hi.y,hi.z)), mcol );
-					driver->draw3DLine(core::vector3dfCH(chrono::ChVector<>(lo.x,hi.y,lo.z)), core::vector3dfCH(chrono::ChVector<>(lo.x,hi.y,hi.z)), mcol );
-					driver->draw3DLine(core::vector3dfCH(chrono::ChVector<>(lo.x,hi.y,lo.z)), core::vector3dfCH(chrono::ChVector<>(hi.x,hi.y,lo.z)), mcol );
-					driver->draw3DLine(core::vector3dfCH(chrono::ChVector<>(hi.x,lo.y,lo.z)), core::vector3dfCH(chrono::ChVector<>(hi.x,lo.y,hi.z)), mcol );
-					driver->draw3DLine(core::vector3dfCH(chrono::ChVector<>(hi.x,lo.y,lo.z)), core::vector3dfCH(chrono::ChVector<>(hi.x,hi.y,lo.z)), mcol );
-				}
+				video::SColor mcol;
+				if ((*myiter)->GetSleeping()) 
+					mcol=video::SColor(70,0,50,255);  // blue: sleeping
+				else
+					mcol=video::SColor(70,30,200,200);  // cyan: not sleeping
+				chrono::ChVector<> hi = chrono::VNULL;
+				chrono::ChVector<> lo = chrono::VNULL;
+				(*myiter)->GetTotalAABB(lo,hi);
+				driver->draw3DLine(core::vector3dfCH(lo), core::vector3dfCH(chrono::ChVector<>(hi.x,lo.y,lo.z)), mcol );
+				driver->draw3DLine(core::vector3dfCH(lo), core::vector3dfCH(chrono::ChVector<>(lo.x,hi.y,lo.z)), mcol );
+				driver->draw3DLine(core::vector3dfCH(lo), core::vector3dfCH(chrono::ChVector<>(lo.x,lo.y,hi.z)), mcol );
+				driver->draw3DLine(core::vector3dfCH(hi), core::vector3dfCH(chrono::ChVector<>(hi.x,hi.y,lo.z)), mcol );
+				driver->draw3DLine(core::vector3dfCH(hi), core::vector3dfCH(chrono::ChVector<>(lo.x,hi.y,hi.z)), mcol );
+				driver->draw3DLine(core::vector3dfCH(hi), core::vector3dfCH(chrono::ChVector<>(hi.x,lo.y,hi.z)), mcol );
+				driver->draw3DLine(core::vector3dfCH(chrono::ChVector<>(lo.x,lo.y,hi.z)), core::vector3dfCH(chrono::ChVector<>(hi.x,lo.y,hi.z)), mcol );
+				driver->draw3DLine(core::vector3dfCH(chrono::ChVector<>(lo.x,lo.y,hi.z)), core::vector3dfCH(chrono::ChVector<>(lo.x,hi.y,hi.z)), mcol );
+				driver->draw3DLine(core::vector3dfCH(chrono::ChVector<>(lo.x,hi.y,lo.z)), core::vector3dfCH(chrono::ChVector<>(lo.x,hi.y,hi.z)), mcol );
+				driver->draw3DLine(core::vector3dfCH(chrono::ChVector<>(lo.x,hi.y,lo.z)), core::vector3dfCH(chrono::ChVector<>(hi.x,hi.y,lo.z)), mcol );
+				driver->draw3DLine(core::vector3dfCH(chrono::ChVector<>(hi.x,lo.y,lo.z)), core::vector3dfCH(chrono::ChVector<>(hi.x,lo.y,hi.z)), mcol );
+				driver->draw3DLine(core::vector3dfCH(chrono::ChVector<>(hi.x,lo.y,lo.z)), core::vector3dfCH(chrono::ChVector<>(hi.x,hi.y,lo.z)), mcol );
+				
 				++myiter;
 			}
 			return 0;
