@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
 	//              i.e. objects that implements StreamIN() and StreamOUT()
 	//              i.e. objects that can be saved via << and >>.
 	//
-
+/*
 	if (myid==0) // sender
 	{
 		std::vector<char> outstream;
@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
 		if (myobj) GetLog() << "Id 1: created obj of type:" << myobj->GetRTTI()->GetName() << "\n";
 		GetLog() << "Id 1: received serialized ChVector: " << mv << "\n";
 	}
-
+*/
 
 	// Terminate the MPI functionality.
 	CHMPI::Finalize();
