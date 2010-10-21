@@ -27,7 +27,8 @@
 #include "unit_mpi/ChBodyMPI.h"
 #include "unit_mpi/ChLcpSystemDescriptorMPI.h"
 #include "unit_mpi/ChDomainLatticePartitioning.h"
-#include <sstream> // TEST
+//#include <sstream> // TEST
+#include <mpi.h> // TEST
 
 // Remember to use the namespace 'chrono' because all classes 
 // of Chrono::Engine belong to this namespace and its children...
@@ -120,8 +121,7 @@ int main(int argc, char* argv[])
 		// MPI domain decomposition.
 		ChSharedPtr<ChBodyMPI> mybody(new ChBodyMPI);
 
-		// Set unique identifier, among entire multi-domain world.
-		// Here numbering trick is to allow 2 million of bodies per domain.
+		// Set unique identifier, among entire multi-domain world. Every id works, but must be unique.
 		mybody->SetIdentifier(mysystem.nodeMPI.id_MPI*(2e6) + added_id);
 		added_id++;
 
@@ -133,18 +133,43 @@ int main(int argc, char* argv[])
 		mybody->GetCollisionModel()->BuildModel();
 		
 	 	mysystem.Add(mybody);
-	//mybody->SetPos( ChVector<>(-4,-6, -0.01) );
+		//mybody->SetPos( ChVector<>(-4,-6, -0.01) );
 		mybody->GetCollisionModel()->SyncPosition();
 		ChVector<> vmin;
 		ChVector<> vmax;
 		mybody->GetCollisionModel()->GetAABB(vmin,vmax);
 		GetLog() << "ID=" << mysystem.nodeMPI.id_MPI << "      bbox = " << vmin << "\n" << vmax << "\n\n";
 	}
+
+	bool save_positions_on_file = true;
+	ChMPIfile* posfile = 0;
 	
+	if (save_positions_on_file)
+		posfile = new ChMPIfile("output\\tempMPIout.txt", ChMPIfile::ChMPI_MODE_WRONLY | ChMPIfile::ChMPI_MODE_CREATE);
+
+	// Initial setup
+	mysystem.CustomEndOfStep();
+	
+	while(mysystem.GetChTime() < 0.2)
+	{ 
+		if (save_positions_on_file)
+		{
+			mysystem.WriteOrderedDumpAABB(*posfile);
+		}
+
+		// Advance the simulation time step
+		mysystem.DoStepDynamics( 0.01 );
+	}
+
+	if (save_positions_on_file)
+		delete posfile;
+	
+/*
 	// Test the serializing-deserializing of objects that spill out of boundaries
 	mysystem.CustomEndOfStep();
 	GetLog() << "\n";
 	mysystem.CustomEndOfStep();
+*/
 
 	//GetLog() << "ID=" << mysystem.nodeMPI.id_MPI << " CustomEndOfStep.. \n";
 	//mysystem.CustomEndOfStep(); // mmmhh, error because spilled body flags must be updated after deserializing..

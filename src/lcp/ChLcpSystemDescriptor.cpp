@@ -176,7 +176,7 @@ int ChLcpSystemDescriptor::FromVectorToVariables(
 	{
 		if (vvariables[iv]->IsActive())
 		{
-			//vvariables[iv]->Get_qb().PasteClippedMatrix(&mvector, s_q, 0,  vvariables[iv]->Get_ndof(),1,  0,0);
+			vvariables[iv]->Get_qb().PasteClippedMatrix(&mvector, s_q, 0,  vvariables[iv]->Get_ndof(),1,  0,0);
 			s_q += vvariables[iv]->Get_ndof();
 		}
 	}
@@ -184,6 +184,69 @@ int ChLcpSystemDescriptor::FromVectorToVariables(
 	return n_q;
 }
 
+
+
+int ChLcpSystemDescriptor::FromConstraintsToVector(	
+								ChMatrix<>& mvector						
+								)
+{
+	// Count active constraints..
+	int n_c=0;
+	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
+	{
+		if (vconstraints[ic]->IsActive())
+		{
+			n_c++;
+		}
+	}
+
+	mvector.Resize(n_c, 1);
+
+	// Fill the vector
+	int s_c=0;
+	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
+	{
+		if (vconstraints[ic]->IsActive())
+		{
+			mvector(s_c) = vconstraints[ic]->Get_l_i();
+			++s_c;
+		}
+	}
+
+	return n_c;
+}
+
+		
+
+int ChLcpSystemDescriptor::FromVectorToConstraints(
+								ChMatrix<>& mvector	
+								)
+{
+	// Count active constraints..
+	int n_c=0;
+	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
+	{
+		if (vconstraints[ic]->IsActive())
+		{
+			n_c++;
+		}
+	}
+
+	mvector.Resize(n_c, 1);
+
+	// Fill the vector
+	int s_c=0;
+	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
+	{
+		if (vconstraints[ic]->IsActive())
+		{
+			vconstraints[ic]->Set_l_i(mvector(s_c));
+			++s_c;
+		}
+	}
+
+	return n_c;
+}
 
 
 

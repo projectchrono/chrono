@@ -140,7 +140,25 @@ public:
 								ChMatrix<>& mvector					///< matrix which contains the entire vector of 'q'
 								);
 
+				/// Using this function, one may get a vector with all the constraint reactions 'l_i'
+				/// ordered into a column vector. The column vector must be passed as a ChMatrix<>
+				/// object, which will be automatically reset and resized to the proper length.
+				/// \return  the number of scalar constr.multipliers (i.e. the rows of the column vector).
+	virtual int FromConstraintsToVector(
+								ChMatrix<>& mvector					///< matrix which will contain the entire vector of 'l_i'
+								);
 
+				/// Using this function, one may go in the opposite direction of the FromConstraintsToVector()
+				/// function, i.e. one gives a vector with all the constr.reactions 'l_i' ordered into a column vector, and
+				/// the constraint objects are updated according to these values.
+				/// NOTE!!! differently from  FromConstraintsToVector(), which always works, this
+				/// function will fail if mvector does not match the amount and ordering of
+				/// the variable objects!!! (it is up to the user to check this!) btw: most often,
+				/// this is called after FromConstraintsToVector() to do a kind of 'undo', for example.
+				/// \return  the number of scalar constraint multipliers (i.e. the rows of the column vector).
+	virtual int FromVectorToConstraints(
+								ChMatrix<>& mvector					///< matrix which contains the entire vector of 'l_i'
+								);
 
 };
 
