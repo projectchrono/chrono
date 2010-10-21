@@ -53,11 +53,11 @@ ChSystemMPI::~ChSystemMPI()
 
 void ChSystemMPI::CustomEndOfStep()
 {
-	GetLog() << "ID=" << this->nodeMPI.id_MPI << " CustomEndOfStep \n";
+//	GetLog() << "ID=" << this->nodeMPI.id_MPI << " CustomEndOfStep \n";
 	InterDomainSyncronizeStates();
 	InterDomainSyncronizeFlags();
 	InterDomainSetup();
-	GetLog() << "ID=" << this->nodeMPI.id_MPI << " Ok! end CustomEndOfStep \n";
+//	GetLog() << "ID=" << this->nodeMPI.id_MPI << " Ok! end CustomEndOfStep \n";
 }
 
 
@@ -199,13 +199,13 @@ void ChSystemMPI::InterDomainSyncronizeStates()
 	}
 }
 
+
+
 void ChSystemMPI::InterDomainSyncronizeFlags()
 {
 	unsigned int num_interfaces = this->nodeMPI.interfaces.size();
 
-	///// STEP 2 
-	//
-	//  After step 1 all objects have the same position of last known 'master'. 
+	//  After InterDomainSyncronizeStates() all objects have the same position of last known 'master'. 
 	//  However now it might happen that the COG moved beyond some interface, so
 	//  the master role must be passed to another copy of item, in other domain.
 	//  Must reset types master/slave/slaveslave if some aabb center moved into 
@@ -295,7 +295,7 @@ void ChSystemMPI::InterDomainSyncronizeFlags()
 					(*this->nodeMPI.interfaces[ni].mchstreami) >> near_master;
 
 					if (near_master)
-						hiterator->second.type = ChInterfaceItem::INTERF_MASTER;
+						hiterator->second.type = ChInterfaceItem::INTERF_SLAVE;
 
 					++hiterator;
 				}
@@ -563,6 +563,59 @@ void ChSystemMPI::InterDomainSetup()
 		}
 	}
 }
+
+
+
+
+
+void ChSystemMPI::WriteOrderedDumpAABB(ChMPIfile& output)
+{
+	// save items contained in domain on file, if any, as simple xyz position
+	std::string mstring = "";
+	ChSystem::IteratorOtherPhysicsItems miterator = IterBeginOtherPhysicsItems();
+	while (miterator != IterEndOtherPhysicsItems())
+	{
+		ChVector<> mmin, mmax;
+		(*miterator)->GetTotalAABB(mmin, mmax);
+		
+		int mshared=-100;
+		if (this->nodeMPI.IsAABBinside(mmin, mmax))	// for quick bailout
+		{
+			mshared = 0;
+		}
+		else
+		{
+			// Test if it was shared with some interface
+			for (int i=0; i<this->nodeMPI.interfaces.size(); i++)
+			{
+				if (nodeMPI.interfaces[i].shared_items.present( (*miterator)->GetIdentifier() ) )
+				{
+					ChHashTable<int, ChInterfaceItem>::iterator mhashiter = nodeMPI.interfaces[i].shared_items.find( (*miterator)->GetIdentifier() );
+					if ((*mhashiter).second.type == ChInterfaceItem::INTERF_MASTER)
+					{
+						mshared = 1;
+						break;
+					}
+					if ((*mhashiter).second.type == ChInterfaceItem::INTERF_SLAVE)
+					{
+						mshared = 2;
+						break;
+					}
+					mshared = 3; //  slaveslave case, should never happen. At least one interface should set as 1 or 2.
+				}
+			}
+		}
+		
+		char buffer[100];
+		sprintf(buffer, "%d %d %g %g %g %g %g %g \n", this->nodeMPI.id_MPI, mshared, mmin.x, mmin.y, mmin.z, mmax.x, mmax.y, mmax.z);
+		mstring.append(buffer);
+		++miterator;
+	}
+
+	output.WriteOrdered((char*)mstring.c_str(), strlen(mstring.c_str()));
+}
+
+
 
 
 

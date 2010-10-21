@@ -46,6 +46,26 @@ public:
 };
 
 
+/// Class that wraps a basic MPI_File object, allowing to use
+/// the ChMPI functions without having to include MPI headers.
+
+class ChMPIfile
+{
+public:
+	ChMPIfile(char* filename, int flags = CHMPI_MODE_WRONLY | CHMPI_MODE_CREATE );
+	~ChMPIfile();
+	void* mpifile;
+
+	// for creation mode flags
+	static const int CHMPI_MODE_RDONLY = (1L << 0);
+	static const int CHMPI_MODE_RDWR   = (1L << 1);
+	static const int CHMPI_MODE_WRONLY = (1L << 2);
+	static const int CHMPI_MODE_CREATE = (1L << 3);
+
+	void WriteOrdered(char* buf, int length);
+};
+
+
 
 /// Class that defines useful utility functions based 
 /// on Message Passing Interface (MPI) for cluster

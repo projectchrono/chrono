@@ -49,9 +49,39 @@ ChMPIstatus::~ChMPIstatus()
 }
 
 
+ChMPIfile::ChMPIfile(char* filename, int flags)
+{
+	this->mpifile = new MPI_File;
+	
+	int amode = 0;
+	if (flags & CHMPI_MODE_RDONLY)	amode |= MPI_MODE_RDONLY;
+	if (flags & CHMPI_MODE_RDWR)	amode |= MPI_MODE_RDWR;
+	if (flags & CHMPI_MODE_WRONLY)	amode |= MPI_MODE_WRONLY;
+	if (flags & CHMPI_MODE_CREATE)	amode |= MPI_MODE_CREATE;
 
+	int rc = MPI_File_open( MPI_COMM_WORLD, filename, amode, MPI_INFO_NULL, ((MPI_File*)this->mpifile) );
+    if (rc) {
+       throw ChException("Unable to open MPI file.");
+    }
+}
 
+ChMPIfile::~ChMPIfile()
+{
+	if (this->mpifile)
+		MPI_File_close( (MPI_File*)this->mpifile );
 
+	MPI_File* mf = static_cast<MPI_File*>(this->mpifile);
+	delete (mf); this->mpifile=0;
+}
+
+void ChMPIfile::WriteOrdered(char* buf, int length)
+{
+	MPI_Status status;
+	int rc = MPI_File_write_ordered( (*(MPI_File*)this->mpifile), buf, length, MPI_ChAR, &status );
+	if (rc) {
+       throw ChException("Error while doing MPI write ordered.");
+    }
+}
 
 
 

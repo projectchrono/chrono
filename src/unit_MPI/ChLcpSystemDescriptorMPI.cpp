@@ -80,7 +80,6 @@ void ChLcpSharedInterfaceMPI::SendMPI ()
 
 	// 4) Send the vector using MPI
 	ChMPI::SendMatrix(this->id_MPI, shared_vector, ChMPI::MPI_STANDARD);
-	//ChMPI::SendMatrix(this->id_MPI, m_ids, ChMPI::MPI_STANDARD); //***DEBUG
 }
 
 
