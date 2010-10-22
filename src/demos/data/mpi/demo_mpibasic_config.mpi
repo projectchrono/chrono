@@ -1,0 +1,12 @@
+exe ..\..\Win32_VisualStudio\demo_mpibasic.exe
+n 2
+wdir .\
+hosts 
+cfg 
+mpich1 
+env 
+map 
+channel default
+extra 
+window no
+log no
