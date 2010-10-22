@@ -83,6 +83,23 @@ void ChMPIfile::WriteOrdered(char* buf, int length)
     }
 }
 
+bool ChMPIfile::FileDelete(char* filename)
+{
+	int rc = MPI_File_delete( filename , MPI_INFO_NULL);
+	if (!rc) 
+		return true;
+	if (rc == MPI_ERR_NO_SUCH_FILE)
+		return false;
+	else
+		throw ChException("Error while doing MPI file delete");
+	return false;
+}
+
+
+
+
+///////////
+
 
 
 int ChMPI::Init(int argc,char *argv[])

@@ -183,7 +183,7 @@ public:
 		assert (n_interface < 26);
 
 		// Start with: overlap to all 27 domains, then refine
-		int overlapflags = 0x3FFFFFF; 
+		int overlapflags = 0xFFFFFFF; 
 		// Remove the non overlapping 9-plets of surrounding domains
 		if (aabbmin.x >= this->min_box.x)
 			overlapflags &= ~ mask_xinf;

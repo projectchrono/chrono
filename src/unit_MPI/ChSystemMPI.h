@@ -59,11 +59,16 @@ public:
 				/// For debugging: call this function to dump all AABB bounding box information to the 
 				/// specified MPI ordered file, for debugging/visualization/postprocessing etc. 
 				/// The ASCII output file will have these infos at each line:
-				///    rank	shared xmin ymin zmin xmax ymax zmax 
+				///    rank, uniqueId, shared, xmin, ymin, zmin, xmax, ymax, zmax 
 				/// where shared can be 0=no shared, 1=shared:master, 2=shared:slave
 				/// NOTE: it must be called by all domains, no exceptions, becuse it contains 
 				/// a MPI_File_write_ordered()
 	virtual void WriteOrderedDumpAABB(ChMPIfile& output);
+
+				/// For debugging: call this function to dump interfce data etc. as ASCII
+				/// NOTE: it must be called by all domains, no exceptions, becuse it contains 
+				/// a MPI_File_write_ordered()
+	virtual void WriteOrderedDumpDebugging(ChMPIfile& output);
 
 
 		//

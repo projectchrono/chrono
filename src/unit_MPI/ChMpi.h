@@ -63,6 +63,8 @@ public:
 	static const int CHMPI_MODE_CREATE = (1L << 3);
 
 	void WriteOrdered(char* buf, int length);
+
+	static bool FileDelete(char* filename);
 };
 
 
