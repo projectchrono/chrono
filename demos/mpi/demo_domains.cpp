@@ -27,8 +27,7 @@
 #include "unit_mpi/ChBodyMPI.h"
 #include "unit_mpi/ChLcpSystemDescriptorMPI.h"
 #include "unit_mpi/ChDomainLatticePartitioning.h"
-//#include <sstream> // TEST
-#include <mpi.h> // TEST
+
 
 // Remember to use the namespace 'chrono' because all classes 
 // of Chrono::Engine belong to this namespace and its children...
@@ -62,7 +61,8 @@ int main(int argc, char* argv[])
 		{
 			GetLog() << "ERROR: you must use 12 processes! \n";
 			GetLog() << "       Note that this demo must be launched only \n" 
-					 << "       using the 'mpiexec', from the MPI toolset! \n";
+					 << "       using the 'mpiexec', from the MPI toolset! \n"
+					 << "       Also, the current directory must be bin/data/mpi \n";
 		}
 		ChMPI::Finalize();
 		DLL_DeleteGlobals();
@@ -74,106 +74,121 @@ int main(int argc, char* argv[])
 	// for domain decomposition with MPI communication. 
 
 	ChSystemMPI mysystem;
- 
+
+
 
 	// Since we run multiple processes of this program, we must
 	// set a 'topology' between them. Currently, cubic lattice
 	// subdivision is supported. 
 	// A 'partitioner' tool will help to setup this.
-	int xdomains = 1;
-	int ydomains = 2;
-	int zdomains = 2;
+
 	ChDomainLatticePartitioning mypartitioner(2,3,2,			// nx ny nz domains
-										ChVector<>(-5,-6,-5),	// max world
+										ChVector<>(-5,-4,-5),	// max world
 										ChVector<>( 5, 2, 5) );	// min world
 
-	mypartitioner.SetupNode(mysystem.nodeMPI, myid); // btw: take care that must be numprocs=nx*ny*nz
+	mypartitioner.SetupNode(mysystem.nodeMPI, myid); // btw: please take care that must be numprocs=nx*ny*nz
 
+
+	// Prepare the system with a special 'system descriptor' 
+	// that is necessary when doing simulations with MPI.
 	ChSystemDescriptorMPIlattice3D mydescriptor(&mysystem.nodeMPI);
-
 	mysystem.ChangeLcpSystemDescriptor(&mydescriptor);
 
-	GetLog() << "ID=" << ChMPI::CommRank() << "  id_MPI=" << mysystem.nodeMPI.id_MPI << "\n";
-	
-	// Some logging for debugging..
-/*
-	GetLog() << "	min_box" << mysystem.nodeMPI.min_box << "\n";
-	GetLog() << "	max_box" << mysystem.nodeMPI.max_box << "\n";
 
-	GetLog() << "	   interfaces:\n";
-	for (int j = 0; j<9; j++)	
-		GetLog() << j << "=" << mysystem.nodeMPI.interfaces[j].id_MPI << " ";
-	GetLog() << "\n";
-	for (int j = 9; j<18; j++)	
-		GetLog() << j << "=" << mysystem.nodeMPI.interfaces[j].id_MPI << " ";
-	GetLog() << "\n";
-	for (int j = 18; j<27; j++)	
-		GetLog() << j << "=" << mysystem.nodeMPI.interfaces[j].id_MPI << " ";
-	GetLog() << "\n";
-*/
 
-	if (myid == 0)
+	// Save on file the aabb of the boundaries of each domain, for debugging/visualization
+	bool save_domain_boxes_on_file = true;
+	ChMPIfile* domainfile = 0;
+	if (save_domain_boxes_on_file)
 	{
-		int added_id=0;
-
-		GetLog() << "ID=" << mysystem.nodeMPI.id_MPI << " Adding body.. \n";
-		// Create a body of the type that can cross boundaries and support 
-		// MPI domain decomposition.
-		ChSharedPtr<ChBodyMPI> mybody(new ChBodyMPI);
-
-		// Set unique identifier, among entire multi-domain world. Every id works, but must be unique.
-		mybody->SetIdentifier(mysystem.nodeMPI.id_MPI*(2e6) + added_id);
-		added_id++;
-
-		mybody->SetCollide(true);
-		mybody->GetCollisionModel()->ClearModel();
-		mybody->GetCollisionModel()->AddBox(0.1,0.1,0.1, &ChVector<>(-4,-6, -0.01) );
-		//mybody->GetCollisionModel()->AddSphere(0.06, &ChVector<>(-4,-6, -0.01) );
-		//mybody->GetCollisionModel()->AddSphere(0.06, &ChVector<>(-4,-6, -0.01) );
-		mybody->GetCollisionModel()->BuildModel();
-		
-	 	mysystem.Add(mybody);
-		//mybody->SetPos( ChVector<>(-4,-6, -0.01) );
-		mybody->GetCollisionModel()->SyncPosition();
-		ChVector<> vmin;
-		ChVector<> vmax;
-		mybody->GetCollisionModel()->GetAABB(vmin,vmax);
-		GetLog() << "ID=" << mysystem.nodeMPI.id_MPI << "      bbox = " << vmin << "\n" << vmax << "\n\n";
+		//ChMPIfile::FileDelete("output\\domains.dat"); // delete prev.file, if any. Otherwise might partially overwrite
+		domainfile = new ChMPIfile("output\\domains.dat", ChMPIfile::ChMPI_MODE_WRONLY | ChMPIfile::ChMPI_MODE_CREATE);
+		char buffer[100];
+		sprintf(buffer, "%d, %g, %g, %g, %g, %g, %g ,\n", 
+						mysystem.nodeMPI.id_MPI, 
+						mysystem.nodeMPI.min_box.x,	mysystem.nodeMPI.min_box.y,	mysystem.nodeMPI.min_box.z,
+						mysystem.nodeMPI.max_box.x,	mysystem.nodeMPI.max_box.y,	mysystem.nodeMPI.max_box.z);
+		domainfile->WriteOrdered((char*)buffer, strlen(buffer));
+		delete domainfile;
 	}
 
-	bool save_positions_on_file = true;
-	ChMPIfile* posfile = 0;
+	// Ok, now fill the ChSystemMPI (ie. the domain assigned to this process) by
+	// adding some rigid bodies, such as spheres, cubes, etc. 
+
+	int added_id=0;
+	for (int npart = 0; npart<60; npart++)
+	{
+		ChVector<> center(ChRandom()*2-1,ChRandom()*2-1,ChRandom()*2-1);
 	
-	if (save_positions_on_file)
-		posfile = new ChMPIfile("output\\tempMPIout.txt", ChMPIfile::ChMPI_MODE_WRONLY | ChMPIfile::ChMPI_MODE_CREATE);
+		// IMPORTANT: before adding a body, use the IsInto() check to see if the center
+		// of the body is inside the domain of this process, and add only if so. 
+		// No problem if the object AABB overlaps neighbouring domains. 
+		if (mysystem.nodeMPI.IsInto(center))
+		{
+			GetLog() << "ID=" << mysystem.nodeMPI.id_MPI << " Adding body.. \n";
+			// Create a body of the type that can cross boundaries and support 
+			// MPI domain decomposition.
+			ChSharedPtr<ChBodyMPI> mybody(new ChBodyMPI);
+
+			// Set unique identifier, among entire multi-domain world. Every id works, but must be unique.
+			mybody->SetIdentifier(npart);//mysystem.nodeMPI.id_MPI*(2e6) + added_id);
+			added_id++;
+
+			mybody->SetCollide(true);
+			mybody->GetCollisionModel()->ClearModel();
+			mybody->GetCollisionModel()->AddBox(0.1,0.1,0.1); 
+			//mybody->GetCollisionModel()->AddSphere(0.1);
+			mybody->GetCollisionModel()->BuildModel();
+			
+	 		mysystem.Add(mybody);
+			mybody->SetPos( center ); // BTW here I am sure that the object AABB center is the COG position too, that might not be true in general.
+			mybody->GetCollisionModel()->SyncPosition(); // really necessary?
+			mybody->Update(); // really necessary?
+		}
+
+	}
+
+	//
+	// PERFORM SOME TIME STEPS OF SIMULATION
+	// 
+
+	bool save_positions_on_file = true;
 
 	// Initial setup
 	mysystem.CustomEndOfStep();
 	
-	while(mysystem.GetChTime() < 0.2)
+	int totsavedsteps = 0;
+
+	while(mysystem.GetChTime() < 0.4)
 	{ 
+		//GetLog() << "ID=" << ChMPI::CommRank() << "     time =" << mysystem.GetChTime() << "\n";
+
 		if (save_positions_on_file)
 		{
+			char padnumber[100];
+			sprintf(padnumber, "%d", (totsavedsteps+10000));
+			char filename[100];
+
+			sprintf(filename, "output\\pos%s.dat", padnumber+1);
+			//ChMPIfile::FileDelete(filename); // Delete prev.,if any. Otherwise might partially overwrite
+			ChMPIfile* posfile = new ChMPIfile(filename, ChMPIfile::ChMPI_MODE_WRONLY | ChMPIfile::ChMPI_MODE_CREATE);
 			mysystem.WriteOrderedDumpAABB(*posfile);
+			delete posfile;
+
+			/*
+			sprintf(filename, "output\\debug%s.dat", padnumber+1);
+			//ChMPIfile::FileDelete(filename); // Delete prev.,if any. Otherwise might partially overwrite
+			ChMPIfile* debugfile = new ChMPIfile(filename, ChMPIfile::ChMPI_MODE_WRONLY | ChMPIfile::ChMPI_MODE_CREATE);
+			mysystem.WriteOrderedDumpDebugging(*debugfile);
+			delete debugfile;
+			*/
+
+			++totsavedsteps;
 		}
 
-		// Advance the simulation time step
-		mysystem.DoStepDynamics( 0.01 );
+		// Advance the simulation time step 
+		mysystem.DoStepDynamics( 0.02 );
 	}
-
-	if (save_positions_on_file)
-		delete posfile;
-	
-/*
-	// Test the serializing-deserializing of objects that spill out of boundaries
-	mysystem.CustomEndOfStep();
-	GetLog() << "\n";
-	mysystem.CustomEndOfStep();
-*/
-
-	//GetLog() << "ID=" << mysystem.nodeMPI.id_MPI << " CustomEndOfStep.. \n";
-	//mysystem.CustomEndOfStep(); // mmmhh, error because spilled body flags must be updated after deserializing..
-
 	
 
 
