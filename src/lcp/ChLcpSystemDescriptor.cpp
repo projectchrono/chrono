@@ -50,6 +50,36 @@ void ChLcpSystemDescriptor::ComputeFeasabilityViolation(
 
 
 
+
+int ChLcpSystemDescriptor::CountActiveVariables()
+{
+	int n_q=0;
+	for (unsigned int iv = 0; iv< vvariables.size(); iv++)
+	{
+		if (vvariables[iv]->IsActive())
+		{
+			vvariables[iv]->SetOffset(n_q);	// also store offsets in state and MC matrix
+			n_q += vvariables[iv]->Get_ndof();
+		}
+	}
+	return n_q;
+}
+
+				
+int ChLcpSystemDescriptor::CountActiveConstraints()
+{
+	int n_c=0;
+	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
+	{
+		if (vconstraints[ic]->IsActive())
+		{
+			n_c++;
+		}
+	}
+	return n_c;
+}
+
+
 void  ChLcpSystemDescriptor::BuildMatrices (ChSparseMatrix* Cq,
 								ChSparseMatrix* M,	
 								bool only_bilaterals, 
@@ -75,15 +105,7 @@ void  ChLcpSystemDescriptor::BuildMatrices (ChSparseMatrix* Cq,
 	// --
 	// Count active variables, by scanning through all variable blocks..
 
-	int n_q=0;
-	for (unsigned int iv = 0; iv< mvariables.size(); iv++)
-	{
-		if (mvariables[iv]->IsActive())
-		{
-			mvariables[iv]->SetOffset(n_q);	// also store offsets in state and MC matrix
-			n_q += mvariables[iv]->Get_ndof();
-		}
-	} 
+	int n_q=CountActiveVariables();
 
 	//if (n_q==0) return;
 
@@ -121,22 +143,60 @@ void  ChLcpSystemDescriptor::BuildMatrices (ChSparseMatrix* Cq,
 }
 
 
-
-int ChLcpSystemDescriptor::FromVariablesToVector(	
-								ChMatrix<>& mvector						
-								)
+int ChLcpSystemDescriptor::BuildFbVector(
+								ChMatrix<>& Fvector	///< matrix which will contain the entire vector of 'f'
+						)
 {
-	// Count active variables..
-	int n_q=0;
+	int n_q=CountActiveVariables();
+	Fvector.Reset(n_q,1);		// fast! Reset() method does not realloc if size doesn't change
+
+	// .. fills F
+	int s_q=0;
 	for (unsigned int iv = 0; iv< vvariables.size(); iv++)
 	{
 		if (vvariables[iv]->IsActive())
 		{
-			n_q += vvariables[iv]->Get_ndof();
+			Fvector.PasteMatrix(&vvariables[iv]->Get_fb(), s_q, 0);
+			s_q += vvariables[iv]->Get_ndof();
+		}
+	}
+	return  s_q; 
+}
+
+int ChLcpSystemDescriptor::BuildBiVector(
+								ChMatrix<>& Bvector	///< matrix which will contain the entire vector of 'b'
+						)
+{
+	int n_c=CountActiveConstraints();
+	Bvector.Resize(n_c, 1);
+	
+	// Fill the vector
+	int s_c=0;
+	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
+	{
+		if (vconstraints[ic]->IsActive())
+		{
+			Bvector(s_c) = vconstraints[ic]->Get_b_i();
+			++s_c;
 		}
 	}
 
-	mvector.Resize(n_q, 1);
+	return s_c;
+}
+
+
+
+int ChLcpSystemDescriptor::FromVariablesToVector(	
+								ChMatrix<>& mvector,	
+								bool resize_vector
+								)
+{
+	// Count active variables and resize vector if necessary
+	if (resize_vector)
+	{
+		int n_q= CountActiveVariables();
+		mvector.Resize(n_q, 1);
+	}
 
 	// Fill the vector
 	int s_q=0;
@@ -149,7 +209,7 @@ int ChLcpSystemDescriptor::FromVariablesToVector(
 		}
 	}
 
-	return n_q;
+	return  s_q;
 }
 
 		
@@ -158,17 +218,11 @@ int ChLcpSystemDescriptor::FromVectorToVariables(
 								ChMatrix<>& mvector	
 								)
 {
-	// Count active variables..
-	int n_q=0;
-	for (unsigned int iv = 0; iv< vvariables.size(); iv++)
-	{
-		if (vvariables[iv]->IsActive())
-		{
-			n_q += vvariables[iv]->Get_ndof();
-		}
-	}
-	assert(n_q == mvector.GetRows());
-	assert(mvector.GetColumns()==1);
+	#ifdef CH_DEBUG
+		int n_q= CountActiveVariables();
+		assert(n_q == mvector.GetRows());
+		assert(mvector.GetColumns()==1);
+	#endif
 
 	// fetch from the vector
 	int s_q=0;
@@ -181,26 +235,22 @@ int ChLcpSystemDescriptor::FromVectorToVariables(
 		}
 	}
 
-	return n_q;
+	return s_q;
 }
 
 
 
 int ChLcpSystemDescriptor::FromConstraintsToVector(	
-								ChMatrix<>& mvector						
+								ChMatrix<>& mvector,
+								bool resize_vector
 								)
 {
-	// Count active constraints..
-	int n_c=0;
-	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
+	// Count active constraints and resize vector if necessary
+	if (resize_vector)
 	{
-		if (vconstraints[ic]->IsActive())
-		{
-			n_c++;
-		}
+		int n_c=CountActiveConstraints();
+		mvector.Resize(n_c, 1);
 	}
-
-	mvector.Resize(n_c, 1);
 
 	// Fill the vector
 	int s_c=0;
@@ -213,7 +263,7 @@ int ChLcpSystemDescriptor::FromConstraintsToVector(
 		}
 	}
 
-	return n_c;
+	return s_c;
 }
 
 		
@@ -222,17 +272,11 @@ int ChLcpSystemDescriptor::FromVectorToConstraints(
 								ChMatrix<>& mvector	
 								)
 {
-	// Count active constraints..
-	int n_c=0;
-	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
-	{
-		if (vconstraints[ic]->IsActive())
-		{
-			n_c++;
-		}
-	}
-
-	mvector.Resize(n_c, 1);
+	#ifdef CH_DEBUG
+		int n_c=CountActiveConstraints();
+		assert(n_c == mvector.GetRows());
+		assert(mvector.GetColumns()==1);
+	#endif
 
 	// Fill the vector
 	int s_c=0;
@@ -245,13 +289,85 @@ int ChLcpSystemDescriptor::FromVectorToConstraints(
 		}
 	}
 
-	return n_c;
+	return s_c;
 }
 
 
 
+void ChLcpSystemDescriptor::ShurComplementProduct(	
+								ChMatrix<>&	result,	
+								ChMatrix<>* lvector,
+								std::vector<bool>* enabled  
+								)
+{
+	#ifdef CH_DEBUG
+		int n_c=CountActiveConstraints();
+		assert(result.GetRows() == n_c);
+		assert(result.GetColumns()==1);
+		if (enabled) assert(enabled->size() == n_c);
+	#endif
 
+	// Performs the sparse product    result = [N]*l = [Cq][M^(-1)][Cq']*l
+	// in different phases:
 
+	// 1 - set the qb vector (aka speeds, in each ChLcpVariable sparse data) as zero
+
+	for (unsigned int iv = 0; iv< vvariables.size(); iv++)
+		if (vvariables[iv]->IsActive())
+			vvariables[iv]->Get_qb().FillElem(0);
+
+	// 2 - performs    qb=[M^(-1)][Cq']*l   by
+	//     iterating over all constraints (when implemented in parallel this
+	//     could be non-trivial because race conditions might occur -> reduction buffer etc.)
+
+	int s_c=0;
+	for (unsigned int ic = 0; ic < vconstraints.size(); ic++)
+	{	
+		if (vconstraints[ic]->IsActive())
+		{
+			bool process=true;
+			if (enabled)
+				if ((*enabled)[ic]==false)
+					process = false;
+
+			if (process) 
+			{
+				double li;
+				if (lvector)
+					li = (*lvector)(ic,0);
+				else
+					li = vconstraints[ic]->Get_l_i();
+
+				vconstraints[ic]->Increment_q(li);	// <----!!!  fpu intensive
+			}
+
+			++s_c;
+		}
+	}
+
+	// 3 - performs    result=[Cq']*qb    by
+	//     iterating over all constraints (when implemented in parallel this is trivial)
+
+	s_c=0;
+	for (unsigned int ic = 0; ic < vconstraints.size(); ic++)
+	{	
+		if (vconstraints[ic]->IsActive())
+		{
+			bool process=true;
+			if (enabled)
+				if ((*enabled)[ic]==false)
+					process = false;
+			
+			if (process) 
+				result(s_c,0)= vconstraints[ic]->Compute_Cq_q();	// <----!!!  fpu intensive
+			else
+				result(s_c,0)= 0; // not enabled constraints, just set to 0 result 
+			
+			++s_c;
+		}
+	}
+
+}
 
 
 
