@@ -7,6 +7,14 @@
 Release 1.1.0
 XX-XX-XXXX
 
+- New feature: cohesion in contacts. This can be
+  activated using the ChCustomCollisionPointCallback
+  as shown in demo_cohesion.cpp 
+  
+- New demo 'demo_cohesion', showing the simplified
+  cohesion model, a new feature that allows to model
+  granular material with some sticking (ex. soil).
+  
 - Collision engine updated to Bullet 2.77.
   Now also the collision shapes of rigid bodies can be
   marshalled using the C::E serialization.
@@ -577,9 +585,7 @@ Release 0.3.3
 - New class ChLcpIterativeCuda: it is a solver which uses the GPU
   via CUDA parallel programming API (still at experimental stage).
   
-- The ChSystem class supports the GPU solver ChLcpIterativeCuda: just
-  use my_system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_GPU).
-  (still at experimental stage).
+- The ChSystem class supports the GPU solver ChLcpIterativeCuda
 
 - New classes ChLcpConstraintTwoGPUcontN and ChLcpConstraintTwoGPUcontT
   added in the HyperOctant solver. Meanwhile, some classes in the 

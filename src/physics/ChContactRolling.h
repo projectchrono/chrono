@@ -62,7 +62,8 @@ public:
 						float* mreaction_cache,			///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
 						float  mfriction,				///< friction coeff.
 						float  rollfriction,			///< rolling friction
-						float  spinningfriction			///< spinning friction
+						float  spinningfriction,		///< spinning friction
+						float  cohesion					///< cohesion
 				);
 
 	virtual ~ChContactRolling ();
@@ -86,7 +87,8 @@ public:
 						float* mreaction_cache,			///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
 						float  mfriction,				///< friction coeff.
 						float  rollfriction,			///< rolling friction
-						float  spinningfriction			///< spinning friction
+						float  spinningfriction,		///< spinning friction
+						float  cohesion					///< cohesion
 				);
 
 	

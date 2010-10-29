@@ -36,7 +36,7 @@ void ChLcpConstraintTwoContactN::Project()
 	// Anitescu-Tasora projection on cone generator and polar cone 
 	// (contractive, but performs correction on three components: normal,u,v)
 
-	double f_n = this->l_i;
+	double f_n = this->l_i + this->cohesion;
 	double f_u = constraint_U->Get_l_i();
 	double f_v = constraint_V->Get_l_i();;
 	double f_tang = sqrt (f_v*f_v + f_u*f_u );
@@ -76,7 +76,7 @@ void ChLcpConstraintTwoContactN::Project()
 	double f_u_proj = tproj_div_t * f_u;
 	double f_v_proj = tproj_div_t * f_v; 
 
-	this->Set_l_i( f_n_proj );
+	this->Set_l_i( f_n_proj -this->cohesion);
 	constraint_U->Set_l_i(f_u_proj);
 	constraint_V->Set_l_i(f_v_proj);					  
 }

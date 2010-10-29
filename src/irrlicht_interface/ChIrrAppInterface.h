@@ -183,7 +183,7 @@ public:
 								case 1: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_SYMMSOR); break;
 								case 2: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_JACOBI); break;
 								case 3: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD); break;
-								case 4: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_GPU); break;
+								case 4: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_PMINRES); break;
 							}
 							break;
 						}
@@ -307,7 +307,7 @@ public:
 				gad_ccpsolver->addItem(L"Projected SSOR");
 				gad_ccpsolver->addItem(L"Projected Jacobi");
 				gad_ccpsolver->addItem(L"Multithreaded SOR");
-				gad_ccpsolver->addItem(L"GPU");
+				gad_ccpsolver->addItem(L"Projected MINRES");
 				gad_ccpsolver->addItem(L" ");
 			gad_ccpsolver->setSelected(5);
 
@@ -454,7 +454,7 @@ public:
 					case chrono::ChSystem::LCP_ITERATIVE_SYMMSOR: 	gad_ccpsolver->setSelected(1); break;
 					case chrono::ChSystem::LCP_ITERATIVE_JACOBI: 	gad_ccpsolver->setSelected(2); break;
 					case chrono::ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD: 	gad_ccpsolver->setSelected(3); break;
-					case chrono::ChSystem::LCP_ITERATIVE_GPU: 		gad_ccpsolver->setSelected(4); break;
+					case chrono::ChSystem::LCP_ITERATIVE_PMINRES: 	gad_ccpsolver->setSelected(4); break;
 					default: gad_ccpsolver->setSelected(5); break;
 				}
 				switch(this->GetSystem()->GetIntegrationType())

@@ -22,7 +22,7 @@ namespace chrono
 /// Class to pass data about material properties of a contact pair.
 /// Used by ChAddContactCallback for generating cutom combinations
 /// of material properties (by default, friction & c. are average
-/// of values of the two parts in contac)
+/// of values of the two parts in contact)
 
 class ChMaterialCouple
 {
@@ -32,12 +32,14 @@ public:
 	float  rolling_friction;	
 	float  spinning_friction;			
 	float  restitution;	
+	float  cohesion;
 
 	ChMaterialCouple() :static_friction(0),
 						sliding_friction(0),
 						rolling_friction(0),
 						spinning_friction(0),
-						restitution(0) {};
+						restitution(0),
+						cohesion(0) {};
 };
 
 

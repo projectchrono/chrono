@@ -220,7 +220,6 @@ int main(int argc, char* argv[])
 	//mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_JACOBI); 
 	//mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD); 
 	//mphysicalSystem.SetParallelThreadNumber(4);
-	//mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_GPU);
 
 	mphysicalSystem.SetMaxPenetrationRecoverySpeed(1.6); // used by Anitescu stepper only
 	mphysicalSystem.SetIterLCPmaxItersSpeed(20);

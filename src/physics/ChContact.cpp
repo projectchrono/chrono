@@ -42,7 +42,8 @@ ChContact::ChContact (	collision::ChCollisionModel* mmodA,	///< model A
 						const ChVector<>& vN, 		  ///< pass coll.normal, respect to A
 						double mdistance,		  ///< pass the distance (negative for penetration)
 						float* mreaction_cache,	  ///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
-						float mfriction			  ///< friction coeff.
+						float mfriction,		  ///< friction coeff.
+						float mcohesion			  ///< cohesion
 				)
 { 
 	Nx.SetTangentialConstraintU(&Tu);
@@ -58,7 +59,8 @@ ChContact::ChContact (	collision::ChCollisionModel* mmodA,	///< model A
 			vN, 		  ///< pass coll.normal, respect to A
 			mdistance,		  ///< pass the distance (negative for penetration)
 			mreaction_cache,	  ///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
-			mfriction			  ///< friction coeff.
+			mfriction,			  ///< friction coeff.
+			mcohesion			  ///< cohesion
 				);
 }
 
@@ -78,7 +80,8 @@ void ChContact::Reset(	collision::ChCollisionModel* mmodA,	///< model A
 						const ChVector<>& vN, 		  ///< pass coll.normal, respect to A
 						double mdistance,		  ///< pass the distance (negative for penetration)
 						float* mreaction_cache,	  ///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
-						float mfriction			  ///< friction coeff.
+						float mfriction,			  ///< friction coeff.
+						float mcohesion				///< cohesion
 				)
 {
 	assert (varA);
@@ -94,6 +97,7 @@ void ChContact::Reset(	collision::ChCollisionModel* mmodA,	///< model A
 	Tv.SetVariables(const_cast<ChLcpVariablesBody*>(varA),const_cast<ChLcpVariablesBody*>(varB));
 
 	Nx.SetFrictionCoefficient(mfriction);
+	Nx.SetCohesion(mcohesion);
 
 	ChVector<> VN = vN;
 	ChVector<double> Vx, Vy, Vz;

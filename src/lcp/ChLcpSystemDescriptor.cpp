@@ -58,7 +58,7 @@ int ChLcpSystemDescriptor::CountActiveVariables()
 	{
 		if (vvariables[iv]->IsActive())
 		{
-			vvariables[iv]->SetOffset(n_q);	// also store offsets in state and MC matrix
+			//vvariables[iv]->SetOffset(n_q);	// also store offsets in state and MC matrix
 			n_q += vvariables[iv]->Get_ndof();
 		}
 	}
@@ -102,10 +102,20 @@ void  ChLcpSystemDescriptor::BuildMatrices (ChSparseMatrix* Cq,
 			  }
 	}
 
-	// --
-	// Count active variables, by scanning through all variable blocks..
 
-	int n_q=CountActiveVariables();
+	// Count active variables, by scanning through all variable blocks,
+	// and set offsets
+
+	int n_q=0;
+	for (unsigned int iv = 0; iv< vvariables.size(); iv++)
+	{
+		if (vvariables[iv]->IsActive())
+		{
+			vvariables[iv]->SetOffset(n_q);	// also store offsets in state and MC matrix
+			n_q += vvariables[iv]->Get_ndof();
+		}
+	}
+
 
 	//if (n_q==0) return;
 
@@ -327,14 +337,14 @@ void ChLcpSystemDescriptor::ShurComplementProduct(
 		{
 			bool process=true;
 			if (enabled)
-				if ((*enabled)[ic]==false)
+				if ((*enabled)[s_c]==false)
 					process = false;
 
 			if (process) 
 			{
 				double li;
 				if (lvector)
-					li = (*lvector)(ic,0);
+					li = (*lvector)(s_c,0);
 				else
 					li = vconstraints[ic]->Get_l_i();
 
@@ -355,7 +365,7 @@ void ChLcpSystemDescriptor::ShurComplementProduct(
 		{
 			bool process=true;
 			if (enabled)
-				if ((*enabled)[ic]==false)
+				if ((*enabled)[s_c]==false)
 					process = false;
 			
 			if (process) 

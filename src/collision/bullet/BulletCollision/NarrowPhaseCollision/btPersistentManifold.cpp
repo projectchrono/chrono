@@ -17,7 +17,7 @@ subject to the following restrictions:
 #include "btPersistentManifold.h"
 #include "LinearMath/btTransform.h"
 
-btScalar					gContactBreakingThreshold = btScalar(0.0001); //***ALEX
+btScalar					gContactBreakingThreshold = btScalar(0.001); //***ALEX***
 ContactDestroyedCallback	gContactDestroyedCallback = 0;
 ContactProcessedCallback	gContactProcessedCallback = 0;
 

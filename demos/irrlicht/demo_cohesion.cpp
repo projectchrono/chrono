@@ -2,10 +2,7 @@
 //
 //   Demo code about  
 //
-//     - collisions and contacts 
-//     - use the easy ChBodySceneNode class for 
-//       managing Irrlicht objects which encapsulates 
-//       ChBody items.
+//     - advanced contact feature: cohesion
 // 
 //       (This is just a possible method of integration 
 //       of Chrono::Engine + Irrlicht: many others
@@ -28,7 +25,6 @@
 #include "irrlicht_interface/ChBodySceneNode.h"
 #include "irrlicht_interface/ChBodySceneNodeTools.h" 
 #include "irrlicht_interface/ChIrrAppInterface.h"
-#include "core/ChRealtimeStep.h"
 #include "lcp/ChLcpIterativeMINRES.h"
 
 #include <irrlicht.h>
@@ -49,14 +45,89 @@ using namespace io;
 using namespace gui; 
 
 
+// Static values valid through the entire program (bad
+// programming practice, but enough for quick tests)
+
+double GLOBAL_friction = 0.3;
+double GLOBAL_cohesion = 300;
+
+
+
+// Define a MyEventReceiver class which will be used to manage input
+// from the GUI graphical user interface
+
+class MyEventReceiver : public IEventReceiver
+{
+public:
+
+	MyEventReceiver(ChIrrAppInterface* myapp)
+			{
+				// store pointer applicaiton
+				application = myapp;
+
+				// ..add a GUI slider to control friction 
+				scrollbar_friction = application->GetIGUIEnvironment()->addScrollBar(
+								true, rect<s32>(510, 85, 650, 100), 0, 101);
+				scrollbar_friction->setMax(100); 
+				scrollbar_friction->setPos(30);
+				text_friction = application->GetIGUIEnvironment()->addStaticText(
+								L"Friction coefficient:", rect<s32>(650,85,750,100), false);
+
+				// ..add GUI slider to control the speed
+				scrollbar_cohesion = application->GetIGUIEnvironment()->addScrollBar(
+								true, rect<s32>(510, 125, 650, 140), 0, 102);
+				scrollbar_cohesion->setMax(500); 
+				scrollbar_cohesion->setPos(300);
+				text_cohesion = application->GetIGUIEnvironment()->addStaticText(
+								L"Cohesion [N]:", rect<s32>(650,125,750,140), false);
+			}
+
+	bool OnEvent(const SEvent& event)
+			{
+
+				// check if user moved the sliders with mouse..
+				if (event.EventType == EET_GUI_EVENT)
+				{
+					s32 id = event.GUIEvent.Caller->getID();
+					IGUIEnvironment* env = application->GetIGUIEnvironment();
+
+					switch(event.GUIEvent.EventType)
+					{
+					case EGET_SCROLL_BAR_ChANGED:
+							if (id == 101) // id of 'flow' slider..
+							{
+								s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
+								GLOBAL_friction = (double)pos/100.0;
+							}
+							if (id == 102) // id of 'speed' slider..
+							{
+								s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
+								GLOBAL_cohesion = ((double)pos);
+							}
+					break;
+					}
+					
+				} 
+
+				return false;
+			}
+
+private: 
+	ChIrrAppInterface* application;
+
+	IGUIScrollBar*  scrollbar_friction;
+	IGUIStaticText* text_friction;
+	IGUIScrollBar*  scrollbar_cohesion;
+	IGUIStaticText* text_cohesion;
+};
 
 
 void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneManager, IVideoDriver* driver)
 {
 	ChBodySceneNode* mrigidBody; 
+ 
 
-
-	for (int bi = 0; bi < 29; bi++) 
+	for (int bi = 0; bi < 300; bi++) 
 	{    
 		// Create a bunch of ChronoENGINE rigid bodies (spheres and
 		// boxes) which will fall..
@@ -71,46 +142,15 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 											&mphysicalSystem, msceneManager,
 											1.0,
 											ChVector<>(-5+ChRandom()*10, 4+bi*0.05, -5+ChRandom()*10),
-											1.1);
+											0.85);
    
-		mrigidBody->GetBody()->SetFriction(0.2f); 
-		mrigidBody->GetBody()->SetImpactC(1.0f); 
+		mrigidBody->GetBody()->SetFriction(0.3); 
 		mrigidBody->addShadowVolumeSceneNode();
 
-
-		video::ITexture* sphereMap = driver->getTexture("../data/bluwhite.png");
+		video::ITexture* sphereMap = driver->getTexture("../data/pinkwhite.png");
 		mrigidBody->setMaterialTexture(0,	sphereMap);
 
-		mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											&mphysicalSystem, msceneManager,
-											1.0,
-											ChVector<>(-5+ChRandom()*10, 4+bi*0.05, -5+ChRandom()*10),
-											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(1.5,1.5,1.5) );
-
-		mrigidBody->GetBody()->SetInertiaXX(ChVector<>(1.2,1.2,1.2));
-		mrigidBody->GetBody()->SetFriction(0.4f);
-		mrigidBody->addShadowVolumeSceneNode(); 
-
-
-		mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyCylinder(
-											&mphysicalSystem, msceneManager,
-											1.0,
-											ChVector<>(-5+ChRandom()*10, 4+bi*0.05, -5+ChRandom()*10),
-											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(1.5,0.5,1.5) );
-
-		mrigidBody->GetBody()->SetInertiaXX(ChVector<>(1.2,1.2,1.2));
-		mrigidBody->GetBody()->SetFriction(0.4f);
-		mrigidBody->addShadowVolumeSceneNode();
-
-		video::ITexture* cylinderMap = driver->getTexture("../data/pinkwhite.png");
-		mrigidBody->setMaterialTexture(0,	cylinderMap);
-
 	} 
-
-
-
 
 
 	// Create the five walls of the rectangular container, using
@@ -165,38 +205,6 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 	mrigidBody->GetBody()->SetBodyFixed(true);
 	mrigidBody->setMaterialTexture(0,	cubeMap);
  
-/* 
-	/// NOTE: Instead of creating five separate 'box' bodies to make
-	/// the walls of the bowl, you could have used a single body
-	/// made of five box shapes, which build a single collision description,
-	/// as in the alternative approach:
-
-		// optional: maybe that you want to add a mesh for Irrlicht 3D viewing, maybe a
-		// mesh representing the 5 walls, and use it for this ChBodySceneNode
-	IAnimatedMesh* wallsMesh = msceneManager->getMesh("../data/nice_box_with_walls.obj");
-
-		// create a plain ChBodySceneNode (no colliding shape nor visualization mesh is used yet)
-	mrigidBody = (ChBodySceneNode*)addChBodySceneNode(
-											&mphysicalSystem, msceneManager,
-											wallsMesh, 1.0, 
-											ChVector<>(0,0,0)  );
-
-		// set the ChBodySceneNode as fixed body, and turn collision ON, otherwise no collide by default
-	mrigidBody->GetBody()->SetBodyFixed(true);	
-	mrigidBody->GetBody()->SetCollide(true);	 
-		
-		// Clear model. The colliding shape description MUST be between  ClearModel() .. BuildModel() pair.
-	mrigidBody->GetBody()->GetCollisionModel()->ClearModel();
-		// Describe the (invisible) colliding shape by adding five boxes (the walls and floor)
-	mrigidBody->GetBody()->GetCollisionModel()->AddBox(20,1,20, &ChVector<>(  0,-10,  0)); 
-	mrigidBody->GetBody()->GetCollisionModel()->AddBox(1,40,20, &ChVector<>(-11,  0,  0));
-	mrigidBody->GetBody()->GetCollisionModel()->AddBox(1,40,20, &ChVector<>( 11,  0,  0));
-	mrigidBody->GetBody()->GetCollisionModel()->AddBox(20,40,1, &ChVector<>(  0,  0,-11));
-	mrigidBody->GetBody()->GetCollisionModel()->AddBox(20,40,1, &ChVector<>(  0,  0, 11));
-		// Complete the description.
-	mrigidBody->GetBody()->GetCollisionModel()->BuildModel();
- 
- */ 
 
 	// Add the rotating mixer 
 	ChBodySceneNode* rotatingBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
@@ -219,44 +227,6 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 	my_motor->Get_spe_funct()->Set_yconst(CH_C_PI/2.0); // speed w=90°/s
 	mphysicalSystem.AddLink(my_motor);
 
-
-	// Add also an oddly shaped object, loading from a mesh saved in '.X' fileformat.
-	ChBodySceneNode* meshBody = (ChBodySceneNode*)addChBodySceneNode_easyGenericMesh(&mphysicalSystem, msceneManager,
-												1.0, ChVector<>(0,2,0),
-												QUNIT, 
-												"../data/rock.X" , 
-												false,	// not static 
-												true);	// true=convex; false=concave(do convex decomposition of concave mesh)
-	meshBody->addShadowVolumeSceneNode();
-
-	/*
-	// Add also a 'barrel' type object
-	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBarrel(
-											&mphysicalSystem, msceneManager,
-											1.0,
-											ChVector<>(0,6,1),
-											2, 4,
-											-0.8, 0.8, 
-											-0.5);
-	mrigidBody->GetBody()->SetWvel_loc(ChVector<>(0.3,0,0));
-	video::ITexture* barrellMap = driver->getTexture("../data/pinkwhite.png");
-	mrigidBody->setMaterialTexture(0,	barrellMap);
-	*/
-
-	/*
-	// Add also few spherical particles
-	 ChParticlesSceneNode* mParticles = (ChParticlesSceneNode*)addChParticlesSceneNode_easySpheres(
-												&mphysicalSystem, application.GetSceneManager(),
-												0.8, // mass
-												0.4 // radius
-												);
-
-	 for (int np = 0; np <10; np++) 
-	 {
-		 mParticles->GetParticles()->AddParticle(ChCoordsys<>(ChVector<>(-1,np,0), QUNIT));
-	 }
-	*/
-
 } 
      
   
@@ -276,7 +246,7 @@ int main(int argc, char* argv[])
 
 	// Create the Irrlicht visualization (open the Irrlicht device, 
 	// bind a simple user interface, etc. etc.)
-	ChIrrAppInterface application(&mphysicalSystem, L"Collisions between objects",core::dimension2d<u32>(800,600),false);
+	ChIrrAppInterface application(&mphysicalSystem, L"Contacts with cohesion",core::dimension2d<u32>(800,600),false);
 
 
 	// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
@@ -291,15 +261,64 @@ int main(int argc, char* argv[])
 	create_some_falling_items(mphysicalSystem, application.GetSceneManager(), application.GetVideoDriver());
  
 
+	// This is for GUI tweaking of system parameters..
+	MyEventReceiver receiver(&application);
+	  // note how to add the custom event receiver to the default interface:
+	application.SetUserEventReceiver(&receiver);
+
 
 	// Modify some setting of the physical system for the simulation, if you want
 
-	mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+	mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD);
 	mphysicalSystem.SetIterLCPmaxItersSpeed(20);
-	mphysicalSystem.SetIterLCPmaxItersStab(5);
+	//mphysicalSystem.SetIterLCPmaxItersStab(5);
 
- 
-	//mphysicalSystem.SetUseSleeping(true);
+/*
+// The new solver - under testing -
+mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES);
+ChLcpIterativeMINRES* msolver = (ChLcpIterativeMINRES*) mphysicalSystem.GetLcpSolverSpeed();
+msolver->SetMaxIterations(40);
+msolver->SetFeasTolerance(0.1);
+msolver->SetOmega(0.05);
+msolver->SetMaxFixedpointSteps(3);
+*/
+
+	// Differently from friction, that has always a default value that 
+	// is computed as the average of two friction values of the two rigid 
+	// bodies, the 'cohesion' has no body-specific setting (at least in 
+	// this Chrono::Engine release) so it is always zero by default. 
+	// Therefore it is up to the user to set it when each contact is created, 
+	// by instancing a callback as in the following example:
+
+	class MyContactCallback : public ChSystem::ChCustomCollisionPointCallback
+	{
+		public:	virtual void ContactCallback(
+								const collision::ChCollisionInfo& mcontactinfo, ///< get info about contact (cannot change it)				
+								ChMaterialCouple&  material )			  		///< you can modify this!	
+		{
+			// Set friction according to user setting:
+			material.cohesion = GLOBAL_friction;
+
+			// Set cohesion according to user setting:
+			// Note that we must scale the cohesion force value by time step, because 
+			// the material 'cohesion' value has the dimension of an impulse.
+			double my_cohesion_force = GLOBAL_cohesion;
+			material.cohesion = msystem->GetStep() * my_cohesion_force; //<- all contacts will have this cohesion!
+
+			// Note that here you might decide to modify the cohesion 
+			// depending on object sizes, type, time, position, etc. etc.
+			// For example, after some time disable cohesion at all, just
+			// add here:  
+			//    if (msystem->GetChTime() > 10) material.cohesion = 0;
+
+		};
+		ChSystem* msystem;
+	};
+
+	MyContactCallback mycontact_callback;  // create the callback object
+	mycontact_callback.msystem = &mphysicalSystem; // will be used by callback
+	// Tell the system to use the callback above, per each created contact!
+	mphysicalSystem.SetCustomCollisionPointCallback(&mycontact_callback);	
 
 
 	// 
@@ -311,10 +330,9 @@ int main(int argc, char* argv[])
 		application.GetVideoDriver()->beginScene(true, true, SColor(255,140,161,192));
 
 		application.DrawAll();
-		
+
 		mphysicalSystem.DoStepDynamics( 0.02);
 		
-
 		application.GetVideoDriver()->endScene();  
 	}
 	

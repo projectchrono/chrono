@@ -78,7 +78,8 @@ public:
 						const ChVector<>& vN, 			///< pass coll.normal, respect to A, in absolute coordinates
 						double mdistance,				///< pass the distance (negative for penetration)
 						float* mreaction_cache,			///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
-						float  mfriction				///< friction coeff.
+						float  mfriction,				///< friction coeff.
+						float  mcohesion				///< cohesion
 				);
 
 	virtual ~ChContact ();
@@ -100,7 +101,8 @@ public:
 						const ChVector<>& vN, 			///< pass coll.normal, respect to A, in absolute coordinates
 						double mdistance,				///< pass the distance (negative for penetration)
 						float* mreaction_cache,			///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
-						float mfriction					///< friction coeff.
+						float mfriction,				///< friction coeff.
+						float mcohesion					///< cohesion
 				);
 
 					/// Get the contact coordinate system, expressed in absolute frame.

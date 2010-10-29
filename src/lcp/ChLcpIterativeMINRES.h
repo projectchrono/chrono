@@ -41,7 +41,8 @@ protected:
 			//
 			// DATA
 			//
-
+	double	feas_tolerance;
+	int		max_fixedpoint_steps;
 
 public:
 			//
@@ -53,8 +54,11 @@ public:
 				bool mwarm_start=false,	///< uses warm start?
 				double mtolerance=0.0   ///< tolerance for termination criterion
 				)  
-			: ChLcpIterativeSolver(mmax_iters,mwarm_start, mtolerance,0)
-			{};
+			: ChLcpIterativeSolver(mmax_iters,mwarm_start, mtolerance,0.2)
+			{
+				feas_tolerance = 0.2;
+				max_fixedpoint_steps = 6;
+			};
 				
 	virtual ~ChLcpIterativeMINRES() {};
 
@@ -67,9 +71,15 @@ public:
 
 	virtual double Solve(
 				ChLcpSystemDescriptor& sysd,		///< system description with constraints and variables	
-				bool add_Mq_to_f = false					///< if true, takes the initial 'q' and adds [M]*q to 'f' vector  
+				bool add_Mq_to_f = false			///< if true, takes the initial 'q' and adds [M]*q to 'f' vector  
 				);
 
+
+	void   SetFeasTolerance (double mf) {this->feas_tolerance = mf;}
+	double GetFeasTolerance () {return this->feas_tolerance;}
+
+	void SetMaxFixedpointSteps (int mm) {this->max_fixedpoint_steps = mm;}
+	int  GetMaxFixedpointSteps () {return this->max_fixedpoint_steps;}
 
 
 };
