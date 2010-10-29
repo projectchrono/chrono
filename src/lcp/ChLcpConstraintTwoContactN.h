@@ -52,6 +52,8 @@ class ChLcpConstraintTwoContactN : public ChLcpConstraintTwoBodies
 protected:
 				/// the friction coefficient 'f', for  sqrt(Tx^2+Ty^2)<f*Nz
 	float friction;
+				/// the cohesion 'c', positive, if any, for  sqrt(Tx^2+Ty^2)<f*(Nz+c)
+	float cohesion;
 
 					/// the pointer to U tangential component
 	ChLcpConstraintTwoFrictionT* constraint_U;
@@ -68,6 +70,7 @@ public:
 					{
 						mode = CONSTRAINT_FRIC;
 						friction = 0.0;
+						cohesion = 0.0;
 						constraint_U = constraint_V = 0;
 					};
 
@@ -82,6 +85,7 @@ public:
 					{
 						mode = CONSTRAINT_FRIC;
 						friction=0.0;
+						cohesion=0.0;
 						constraint_U = aU;
 						constraint_V = aV;
 					};
@@ -91,6 +95,7 @@ public:
 			: ChLcpConstraintTwoBodies(other)
 					{
 						friction=other.friction;
+						cohesion=other.cohesion;
 						constraint_U = other.constraint_U;
 						constraint_V = other.constraint_V;
 					}
@@ -110,6 +115,7 @@ public:
 						ChLcpConstraintTwoBodies::operator=(other);
 						
 						friction = other.friction;
+						cohesion = other.cohesion;
 						constraint_U = other.constraint_U;
 						constraint_V = other.constraint_V;
 						return *this;
@@ -126,6 +132,11 @@ public:
 	float GetFrictionCoefficient() {return friction; }
 				/// Set the friction coefficient
 	void SetFrictionCoefficient(float mcoeff) {friction = mcoeff;}
+
+				/// Get the cohesion
+	float GetCohesion() {return cohesion; }
+				/// Set the friction coefficient
+	void SetCohesion(float mcoh) {cohesion = mcoh;}
 
 
 				/// Get pointer to U tangential component

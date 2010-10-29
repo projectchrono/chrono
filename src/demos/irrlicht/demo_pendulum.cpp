@@ -213,7 +213,9 @@ int main(int argc, char* argv[])
 	// real-time step of the simulation..
 	ChRealtimeStepTimer m_realtime_timer;
 
-	//my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_GPU);
+	
+	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES);
+
 
 	while(application.GetDevice()->run())
 	{
@@ -253,6 +255,8 @@ int main(int argc, char* argv[])
 
 
 		application.GetVideoDriver()->endScene(); 
+
+//if (my_system.GetChTime() > 0.1) break;
 
 	}
  

@@ -13,7 +13,7 @@
   
    
 #include "ChLcpIterativeMINRES.h"
-
+#include "ChLcpConstraintTwoFrictionT.h"
 
 namespace chrono
 {
@@ -27,19 +27,18 @@ double ChLcpIterativeMINRES::Solve(
 	std::vector<ChLcpVariables*>&  mvariables	= sysd.GetVariablesList();
 
 	double maxviolation = 0.;
-	double maxdeltalambda = 0.;
 	int i_friction_comp = 0;
-	double old_lambda_friction[3];
+	int iter_tot = 0;
 
+	bool verbose = false;
 
-	// 1)  Update auxiliary data in all constraints before starting,
-	//     that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
+	// Update auxiliary data in all constraints before starting,
+	// that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
 	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
 		mconstraints[ic]->Update_auxiliary();
 
 	// Average all g_i for the triplet of contact constraints n,u,v.
-	//
-	/*
+	//  Can be used for the fixed point phase and/or by preconditioner.
 	int j_friction_comp = 0;
 	double gi_values[3];
 	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
@@ -58,12 +57,13 @@ double ChLcpIterativeMINRES::Solve(
 			}
 		}	
 	}
-	*/
+
 
 	// Allocate auxiliary vectors;
 	
 	int nc = sysd.CountActiveConstraints();
 
+	if (verbose) GetLog() <<"nc = " << nc << "\n";
 	ChMatrixDynamic<> ml(nc,1);
 	ChMatrixDynamic<> mb(nc,1);
 	ChMatrixDynamic<> mr(nc,1);
@@ -71,11 +71,12 @@ double ChLcpIterativeMINRES::Solve(
 	ChMatrixDynamic<> mb_i(nc,1);
 	ChMatrixDynamic<> Nr(nc,1);
 	ChMatrixDynamic<> Np(nc,1);
+	std::vector<bool> en_l(nc);
 
 	// Compute the b_shur vector in the Shur complement equation N*l = b_shur
-	// with   
-	//   b_shur  = - c + D'*(M\k) = b_i + D'*(M\k)
+	// with 
 	//   N_shur  = D'* (M^-1) * D
+	//   b_shur  = - c + D'*(M\k) = b_i + D'*(M\k)
 	// but flipping the sign of lambdas,  b_shur = - b_i - D'*(M^-1)*k
 	// Do this in three steps:
 	
@@ -101,66 +102,258 @@ double ChLcpIterativeMINRES::Solve(
 	mb.MatrDec(mb_i);
 
 
+	// Optimization: backup the  q  sparse data computed above, 
+	// because   (M^-1)*k   will be needed at the end when computing primals.
+	ChMatrixDynamic<> mq; 
+	sysd.FromVariablesToVector(mq, true);	
+
+
 	// Initialize lambdas
 	if (warm_start)
 		sysd.FromConstraintsToVector(ml);
 	else
 		ml.FillElem(0);
 
+	// Initially all constraints are enabled
+	for (int ie= 0; ie < nc; ie++)
+		en_l[ie] = true;
 
-	// Compute initial residual
-	sysd.ShurComplementProduct(mr, &ml, 0);		// 1)  r = N*l ...
-	mr.MatrDec(mb);								// 2)  r = N*l - b_shur
-	mr.MatrNeg();								// 3)  r = - N*l + b_shur
+	//
+	// THE LOOP
+	//
 
-	// The MINRES loop:
-
-	mp = mr;
-
-	for (int iter = 0; iter < max_iterations; iter++)
+	while (true)
 	{
-		sysd.ShurComplementProduct(Nr, &mr,0);	// Nr  =  N * r
-		double rNr = mr.MatrDot(&mr,&Nr);		// rNr = r' * N * r
+		if (verbose) GetLog() <<"\n";	
 
-		sysd.ShurComplementProduct(Np, &mp,0);	// Np  =  N * p
-		double den = Np.NormTwo();				// den =  ((N*p)'(N*p))
-
-		if (den==0) break; 
-
-		double alpha = rNr / den;				// alpha = r'*N*r / ((N*p)'(N*p))
-
-		ml.MatrInc((mp*alpha));					// l = l + alpha * p;
+		//
+		// A)  The MINRES loop. Operates only on set defined by en_l
+		//
 		
-		mr.MatrDec((Np*alpha));					// r = r - alpha * N*p;
+		// Compute initial residual, with minus sign
+		sysd.ShurComplementProduct(mr, &ml, &en_l);	// 1)  r = N*l ...
+		mr.MatrDec(mb);								// 2)  r = N*l - b_shur ...
+		mr.MatrNeg();								// 3)  r = - N*l + b_shur
 
-		sysd.ShurComplementProduct(Nr, &mr,0);	// Nr  =  N * r
-		double rNr_ = mr.MatrDot(&mr,&Nr);		// rNr = r' * N * r
+		for (int row = 0; row < nc; row++)
+			if (en_l[row] == false)
+				mr(row) = 0;
 
-		double beta = rNr_ / rNr;				// beta = r'*(N*r)/ rjNrj;
-		
-		mp.MatrScale(beta);
-		mp.MatrInc(mr);							// p = r + beta*p;
+		mp = mr;
+
+		sysd.ShurComplementProduct(Nr, &mr,& en_l); // Nr  =  N * r
+		Np=Nr;									    // Np  =  N * p 
+
+		while (true)
+		{
+			if (verbose) GetLog() << "K";
+			//sysd.ShurComplementProduct(Nr, &mr,&en_l); // Nr  =  N * r  (no, recompute only when mr changes, see later)
+			double rNr = mr.MatrDot(&mr,&Nr);		// rNr = r' * N * r
+
+			//sysd.ShurComplementProduct(Np, &mp,&en_l); // Np  =  N * p  (no, see optimization at the end)
+			double den = pow(Np.NormTwo(),2);		// den =  ((N*p)'(N*p))
+
+	 		if (den==0) break; 
+
+			double alpha = rNr / den;				// alpha = r'*N*r / ((N*p)'(N*p))
+
+			//ml.MatrInc((mp*alpha));				// l = l + alpha * p;  done below, with projection too
+			
+			 // btw. must split projection in two loops to avoid troubles with frictional contacts (three updates, but project only at the end)
+			double norm_corr = 0;
+			double norm_jump = 0;
+			double norm_viol = 0;
+			double norm_dlam = 0;
+			int s_cc= 0;
+			for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
+				if (mconstraints[ic]->IsActive())
+				{
+					if (en_l[s_cc] == true)
+					{
+						double old_l = ml(s_cc);
+						double new_l = old_l + alpha * mp(s_cc);
+						
+						mconstraints[ic]->Set_l_i(new_l); 
+					}
+					++s_cc;
+				}
+			s_cc= 0;
+			for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
+				if (mconstraints[ic]->IsActive())
+				{
+					if (en_l[s_cc] == true)
+					{
+						double old_l = ml(s_cc);
+						double new_l = old_l + alpha * mp(s_cc);
+						
+						mconstraints[ic]->Project();
+						double new_lp = mconstraints[ic]->Get_l_i();
+					
+						double violation = mconstraints[ic]->Violation(mr(s_cc)); //?
+						if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC)
+							violation = fabs(ChMin(0.0,violation));
+
+						// ??? trouble with Tang. constraints, for the moment just disable norms 
+						if (!dynamic_cast<ChLcpConstraintTwoFrictionT*>(mconstraints[ic]))
+						{
+							norm_corr += pow (new_lp - new_l, 2);
+							norm_jump += pow (new_l  - old_l, 2);
+							norm_dlam += pow (new_lp - old_l, 2);
+							norm_viol += pow (violation, 2);
+						}
+					}
+					++s_cc;
+				}
+			norm_corr = sqrt(norm_corr);
+			norm_jump = sqrt(norm_jump);
+			norm_dlam = sqrt(norm_dlam);
+			norm_viol = sqrt(norm_viol);
+			
+			if (norm_corr > this->feas_tolerance * norm_jump)
+			{
+				if (verbose) GetLog() << " " << (norm_corr/norm_jump);
+				break;
+			}
+
+			s_cc = 0;
+			for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
+				if (mconstraints[ic]->IsActive())
+				{
+					if (en_l[s_cc] == true)
+					{
+						ml(s_cc) = mconstraints[ic]->Get_l_i();
+						
+					}
+					++s_cc;
+				}
+
+
+			
+			mr.MatrDec((Np*alpha));					// r = r - alpha * N*p;
+
+			sysd.ShurComplementProduct(Nr, &mr,&en_l); // Nr  =  N * r
+			double rNr_ = mr.MatrDot(&mr,&Nr);		// rNr = r' * N * r
+
+			double beta = rNr_ / rNr;				// beta = r'*(N*r)/ rjNrj;
+			
+			mp.MatrScale(beta);
+			mp.MatrInc(mr);							// p = r + beta*p;
+
+			Np.MatrScale(beta);						// Avoid matr x vector operation by doing:
+			Np.MatrInc(Nr);							// N*p' = Nr + beta * N*p
+
+			// For recording into violation history 
+			if (this->record_violation_history)
+				AtIterationEnd(0.0, norm_dlam, iter_tot); //(norm_viol, norm_dlam, iter_tot); ***DEBUG*** use 0.0 to show phase
+
+			++iter_tot;
+			if (iter_tot > this->max_iterations)
+				break;
+		}
+
+		if (iter_tot > this->max_iterations)
+			break;
+
+		if (verbose)  GetLog() <<"\n";
+
+
+		//
+		// B)  The FIXED POINT, it also will find active sets. Operates on entire set
+		//
+
+		for (int iter_fixedp = 0; iter_fixedp < this->max_fixedpoint_steps; iter_fixedp++)
+		{
+			if (verbose) GetLog() << "p";
+
+			// Compute residual  as  r = N*l - b_shur
+			sysd.ShurComplementProduct(mr, &ml, 0);		// 1)  r = N*l ...
+			mr.MatrDec(mb);								// 2)  r = N*l - b_shur
+
+														//	l = l - omega * (diag(N)^-1)* (res);
+			double norm_dlam=0;
+			double norm_viol=0;
+			// must split projection in two loops to avoid troubles with frictional contacts (three updates, but project only at the end)
+			int s_cc= 0;
+			for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
+				if (mconstraints[ic]->IsActive())
+				{
+					double dlam = -mr(s_cc) * (this->omega/mconstraints[ic]->Get_g_i());
+					ml(s_cc) +=  dlam;
+					mconstraints[ic]->Set_l_i(ml(s_cc));
+					norm_dlam += pow(dlam,2);
+					++s_cc;
+				}	
+			s_cc= 0;
+			for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
+				if (mconstraints[ic]->IsActive())
+				{			
+					mconstraints[ic]->Project();
+					ml(s_cc) = mconstraints[ic]->Get_l_i(); 
+
+					double violation = mconstraints[ic]->Violation(mr(s_cc));
+					if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC)
+							violation = fabs(ChMin(0.0,violation));
+
+					norm_viol += pow (violation, 2);
+
+					++s_cc;
+				}
+			norm_dlam= sqrt(norm_dlam);
+			norm_viol= sqrt(norm_viol);
+
+			// For recording into violation history 
+			if (this->record_violation_history)
+				AtIterationEnd(1.0, norm_dlam, iter_tot); //(norm_viol, norm_dlam, iter_tot); ***DEBUG*** use 1.0 to show phase
+
+			++iter_tot;
+			if (iter_tot > this->max_iterations)
+				break;
+		}
+
+		if (iter_tot > this->max_iterations)		
+			break;
+
+		if (verbose) GetLog() <<"\n";
+		//
+		// C)  The ACTIVE SET detection
+		//
+
+		for (int row = 0; row < nc; row++)
+		{
+			if (ml(row) == 0)
+			{
+				if (verbose) GetLog() <<"0";
+				en_l[row] = false;
+			}
+			else
+			{
+				if (verbose) GetLog() <<"1";
+				en_l[row] = true;
+			}
+		}
+
 	}
 
 
-	// Store ml temporary vector into ChLcpConstraint 'l_i' multipliers
-	sysd.FromConstraintsToVector(ml); 
+	if (verbose) GetLog() <<"-----\n";
 
-	// Finally, compute also the primal variables  v = (M^-1)(k - D*l); 
+	// Resulting DUAL variables:
+	// store ml temporary vector into ChLcpConstraint 'l_i' multipliers
+	sysd.FromVectorToConstraints(ml); 
 
-		// v = (M^-1)*k  ...
-	for (unsigned int iv = 0; iv< mvariables.size(); iv++)
-		if (mvariables[iv]->IsActive())
-			if (add_Mq_to_f)
-				mvariables[iv]->Compute_inc_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb()); // q = q_old + [M]'*fb 
-			else
-				mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb()); // q = [M]'*fb 
 
-		// ... - (M^-1)*D*l 
+	// Resulting PRIMAL variables:
+	// compute the primal variables as   v = (M^-1)(k + D*l) 
+
+		// v = (M^-1)*k  ...    (by rewinding to the backup vector computed ad the beginning)
+	sysd.FromVectorToVariables(mq);
+
+
+		// ... + (M^-1)*D*l     (this increment and also stores 'qb' in the ChLcpVariable items)
 	for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
 	{	
 		if (mconstraints[ic]->IsActive())
-			mconstraints[ic]->Increment_q( -mconstraints[ic]->Get_l_i() );
+			mconstraints[ic]->Increment_q( mconstraints[ic]->Get_l_i() );
 	}
 	
 

@@ -187,12 +187,10 @@ int main(int argc, char* argv[])
 	//mphysicalSystem.SetIntegrationType(ChSystem::INT_ANITESCU);
 	mphysicalSystem.SetIntegrationType(ChSystem::INT_TASORA); 
 
-	//mphysicalSystem.SetLcpSolverType(ChSystem::LCP_SIMPLEX); //1
-	mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR); //2
-	//mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD); //3
-	//mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SYMMSOR); //4
-	//mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_JACOBI); //5
-	//mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_GPU);
+	mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR); 
+	//mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD); 
+	//mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SYMMSOR); 
+	//mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_JACOBI); 
 	mphysicalSystem.SetUseSleeping(false);
 
 	mphysicalSystem.SetMaxPenetrationRecoverySpeed(1.6); // used by Anitescu stepper only, default = 1.6

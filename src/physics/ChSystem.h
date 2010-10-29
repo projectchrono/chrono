@@ -297,14 +297,18 @@ public:
 						 LCP_SIMPLEX,
 						 LCP_ITERATIVE_JACOBI,
 						 LCP_ITERATIVE_SOR_MULTITHREAD, 
-						 LCP_ITERATIVE_GPU};
+						 LCP_ITERATIVE_PMINRES};
 
-				/// Choose the LCP solver type, to be used for the
-				/// simultaneous solution of the constraints in dynamical
-				/// simulations (as well as in kinematics, statics, etc.)
+				/// Choose the LCP solver type, to be used for the simultaneous
+				/// solution of the constraints in dynamical simulations (as well as 
+				/// in kinematics, statics, etc.)
 				/// You can choose between the eCh_lcpSolver types, for 
 				/// example LCP_ITERATIVE_SOR for fast (not 100%precise) approach
 				/// to problems with contacts, or LCP_SIMPLEX (slow,precise), etc.
+				///  NOTE: This is a shortcut,that internally is equivalent to the two 
+				/// calls ChangeLcpSolverStab(..) and ChangeLcpSolverSpeed(...), so in 
+				/// future it is better to use directly those two more powerful functions, 
+				/// and this shourtcut will be deprecated.
 	void SetLcpSolverType(eCh_lcpSolver mval);
 				/// Gets the current LCP solver type.
 	eCh_lcpSolver GetLcpSolverType() {return lcp_solver_type;}

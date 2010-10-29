@@ -45,10 +45,11 @@ ChCollisionSystemBullet::ChCollisionSystemBullet(unsigned int max_objects, doubl
 	 btVector3	worldAabbMax(sscene_size,sscene_size,sscene_size);
 	bt_broadphase = new bt32BitAxisSweep3(worldAabbMin,worldAabbMax, max_objects, 0, true); // true for disabling raycast accelerator
 	
-/*
 	  //***NEW***
-	bt_broadphase = new btDbvtBroadphase();
-*/
+	//bt_broadphase = new btDbvtBroadphase();
+
+
+
 	bt_collision_world = new btCollisionWorld(bt_dispatcher, bt_broadphase, bt_collision_configuration);
 
 	// custom collision for sphere-sphere case ***OBSOLETE***
