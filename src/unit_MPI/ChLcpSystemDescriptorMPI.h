@@ -38,11 +38,11 @@ class ChLcpSharedVarMPI
 public:
 	ChLcpVariables*	var;
 	int				uniqueID;
+	bool			master;	
 	//ChMatrixDynamic<> b;
 	
 	// operator overloading is needed to enable the stl sorting
 	bool operator < (const ChLcpSharedVarMPI& other) const { return uniqueID < other.uniqueID;}
-	//bool operator ==(const ChLcpSharedVarMPI& other) const { return uniqueID == other.uniqueID;}	
 };
 
 

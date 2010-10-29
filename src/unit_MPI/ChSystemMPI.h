@@ -35,6 +35,15 @@ public:
 
 	// Override base class functions
 
+	virtual void LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor);
+
+				/// Executes custom processing at the end of step: performs 
+				///	  InterDomainSyncronizeStates()
+				///   InterDomainSyncronizeStates()
+				///   InterDomainSetup()   
+	virtual void CustomEndOfStep();
+
+	// Custom functions
 
 				/// For shared items that overlap the domain boundaries, this
 				/// function does some MPI communication to be sure that the 
@@ -43,6 +52,13 @@ public:
 				/// different integration schemes/numerical issues in domains could
 				/// lead to small differences between the n copies of the same shared item.
 	virtual void InterDomainSyncronizeStates();
+
+				/// For shared items that overlap the domain boundaries, this
+				/// function does some MPI communication so that only the items
+				/// that have their center in a domain will be 'master', then their
+				/// corresponding shared item in other domains are 'slaves', and 
+				/// also sets 'slaveslave' mode for items shared between two domains 
+				/// where in both cases the item do not have its center.
 	virtual void InterDomainSyncronizeFlags();
 
 				/// Performs the MPI inter-domain exchange of objects that spill out
@@ -51,10 +67,7 @@ public:
 				/// Also, remove objects from domains when they entirely exit from domains. 
 	virtual void InterDomainSetup();
 
-				/// Executes custom processing at the end of step: performs 
-				///	  InterDomainSyncronizeStates()
-				///   InterDomainSetup()   
-	virtual void CustomEndOfStep();
+
 
 				/// For debugging: call this function to dump all AABB bounding box information to the 
 				/// specified MPI ordered file, for debugging/visualization/postprocessing etc. 

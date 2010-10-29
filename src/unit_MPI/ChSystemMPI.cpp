@@ -13,7 +13,8 @@
 #include "ChMpi.h"
 #include "ChSystemMPI.h"
 #include "ChBodyMPI.h"
-
+#include "physics/ChContactContainer.h"
+#include "ChLcpSystemDescriptorMPI.h"
 
 
 // Shortcuts for hierarchy-handling functions
@@ -57,6 +58,81 @@ void ChSystemMPI::CustomEndOfStep()
 	InterDomainSyncronizeFlags();
 	InterDomainSetup();
 }
+
+
+
+void ChSystemMPI::LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor)
+{
+	mdescriptor.BeginInsertion(); // This resets the vectors of constr. and var. pointers.
+
+	HIER_LINK_INIT
+	while HIER_LINK_NOSTOP
+	{
+		Lpointer->InjectConstraints(mdescriptor);
+		HIER_LINK_NEXT
+	}
+	HIER_BODY_INIT
+	while HIER_BODY_NOSTOP
+	{
+		Bpointer->InjectVariables(mdescriptor);
+		HIER_BODY_NEXT
+	}
+	HIER_OTHERPHYSICS_INIT
+	while HIER_OTHERPHYSICS_NOSTOP
+	{
+		PHpointer->InjectVariables(mdescriptor);
+		PHpointer->InjectConstraints(mdescriptor);
+		HIER_OTHERPHYSICS_NEXT
+	}
+
+	// Now also fills the 'shared interfaces' for MPI solver
+	if (ChLcpSystemDescriptorMPI* mpi_descriptor = dynamic_cast<ChLcpSystemDescriptorMPI*> (this->LCP_descriptor) )
+	{
+		for (int ni = 0; ni < this->nodeMPI.interfaces.size(); ni++)
+		{
+			ChLcpSharedInterfaceMPI* lcp_interface = &mpi_descriptor->GetSharedInterfacesList()[ni];
+
+			// The interface of the LCP system descriptor will have the same MPI target as nodeMPI neighbours:
+			lcp_interface->SetMPIfriend( this->nodeMPI.interfaces[ni].id_MPI );
+			
+			// Instance a temporary system descriptor, it will be used to manage variables of the interface.
+			ChLcpSystemDescriptor auxdescr;
+			auxdescr.BeginInsertion();
+
+			// Scan all the shared ChPhysicsItem objects in the interfaces of nodeMPI
+			// and let them inject their ChLcpVariable pointers into a temporary ChLcpSystemDescriptor:
+			ChHashTable<int,ChInterfaceItem>::iterator hiterator = this->nodeMPI.interfaces[ni].shared_items.begin();
+			while (hiterator != this->nodeMPI.interfaces[ni].shared_items.end())
+			{
+				if ((*hiterator).second.type != ChInterfaceItem::INTERF_SLAVESLAVE)
+				{
+					auxdescr.GetVariablesList().clear();
+					(*hiterator).second.item->InjectVariables(auxdescr);
+					// Use for() because single ChPhysicsItem might have injected _multiple_ ChLcpVariable objects..
+					for (int iva = 0; iva < auxdescr.GetVariablesList().size(); iva++)
+					{	
+						ChLcpSharedVarMPI msharedvar;
+						msharedvar.uniqueID = (*hiterator).second.item->GetIdentifier();
+						msharedvar.var = auxdescr.GetVariablesList()[iva];
+						if ((*hiterator).second.type == ChInterfaceItem::INTERF_MASTER)
+							msharedvar.master = true;
+						else 
+							msharedvar.master = false;  // case of ChInterfaceItem::INTERF_SLAVE
+						lcp_interface->InsertSharedVariable(msharedvar);		
+					}
+				}
+				++hiterator;
+			}
+			auxdescr.EndInsertion(); // might be not needed? 
+		}
+	}
+
+
+	this->contact_container->InjectConstraints(mdescriptor);
+
+	mdescriptor.EndInsertion(); 
+}
+
 
 
 ///////////////////////////////////////////////////////////////////////////////////
