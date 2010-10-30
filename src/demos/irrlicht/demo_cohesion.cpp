@@ -127,7 +127,12 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 	ChBodySceneNode* mrigidBody; 
  
 
-	for (int bi = 0; bi < 300; bi++) 
+	// From now on, all created collision models will have a large outward envelope (needed
+	// to allow some complienace with the plastic deformation of cohesive bounds
+	ChCollisionModel::SetDefaultSuggestedEnvelope(0.3);
+
+
+	for (int bi = 0; bi < 400; bi++) 
 	{    
 		// Create a bunch of ChronoENGINE rigid bodies (spheres and
 		// boxes) which will fall..
@@ -142,12 +147,12 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 											&mphysicalSystem, msceneManager,
 											1.0,
 											ChVector<>(-5+ChRandom()*10, 4+bi*0.05, -5+ChRandom()*10),
-											0.85);
+											0.82);
    
 		mrigidBody->GetBody()->SetFriction(0.3); 
 		mrigidBody->addShadowVolumeSceneNode();
 
-		video::ITexture* sphereMap = driver->getTexture("../data/pinkwhite.png");
+		video::ITexture* sphereMap = driver->getTexture("../data/rock.jpg");
 		mrigidBody->setMaterialTexture(0,	sphereMap);
 
 	} 
@@ -212,7 +217,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 											1.0,
 											ChVector<>(0,-1.6,0),
 											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(10,5.5,1) ); 
+											ChVector<>(10,5,1) ); 
 	rotatingBody->GetBody()->SetMass(100);
 	rotatingBody->GetBody()->SetInertiaXX(ChVector<>(100,100,100));
 	rotatingBody->GetBody()->SetFriction(0.4);
@@ -297,13 +302,16 @@ msolver->SetMaxFixedpointSteps(3);
 								ChMaterialCouple&  material )			  		///< you can modify this!	
 		{
 			// Set friction according to user setting:
-			material.cohesion = GLOBAL_friction;
+			material.static_friction = GLOBAL_friction;
 
 			// Set cohesion according to user setting:
 			// Note that we must scale the cohesion force value by time step, because 
 			// the material 'cohesion' value has the dimension of an impulse.
 			double my_cohesion_force = GLOBAL_cohesion;
 			material.cohesion = msystem->GetStep() * my_cohesion_force; //<- all contacts will have this cohesion!
+
+			if (mcontactinfo.distance>0.12)
+				material.cohesion = 0;
 
 			// Note that here you might decide to modify the cohesion 
 			// depending on object sizes, type, time, position, etc. etc.

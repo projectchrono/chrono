@@ -214,14 +214,18 @@ void ChContact::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool d
 			}
 		}
 	}
-
+ 
 	if (!bounced)
 	{
 		// CASE: SETTLE (most often, and also default if two colliding items are not two ChBody)
 		if (do_clamp)
-			Nx.Set_b_i( Nx.Get_b_i() + ChMax (factor * this->norm_dist, -recovery_clamp)  );
+			if (this->Nx.GetCohesion())
+				Nx.Set_b_i( Nx.Get_b_i() + ChMin( 0.0, ChMax (factor * this->norm_dist, -recovery_clamp) ) );
+			else
+				Nx.Set_b_i( Nx.Get_b_i() + ChMax (factor * this->norm_dist, -recovery_clamp)  );
 		else
 			Nx.Set_b_i( Nx.Get_b_i() + factor * this->norm_dist  );
+		
 	}
 
 	//Tu.Set_b_i(Tu.Get_b_i +0.);  // nothing to add in tangential dir
