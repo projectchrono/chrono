@@ -73,6 +73,8 @@ Name: "{group}\demos\Matlab"; Filename: "{app}\bin\Win32_VisualStudio\demo_matla
 Name: "{group}\demos\Roll.friction"; Filename: "{app}\bin\Win32_VisualStudio\demo_friction.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
 Name: "{group}\demos\Forklift"; Filename: "{app}\bin\Win32_VisualStudio\demo_forklift.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
 Name: "{group}\demos\Tire convex decomp."; Filename: "{app}\bin\Win32_VisualStudio\demo_tire.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
+Name: "{group}\demos\Cohesion"; Filename: "{app}\bin\Win32_VisualStudio\demo_cohesion.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
+Name: "{group}\demos\Conveyor"; Filename: "{app}\bin\Win32_VisualStudio\demo_conveyor.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
 Name: "{group}\Uninstall"; Filename: "{uninstallexe}"
 
 [Run]
