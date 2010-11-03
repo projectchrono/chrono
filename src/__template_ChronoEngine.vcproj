@@ -321,6 +321,14 @@
 							>
 						</File>
 						<File
+							RelativePath=".\collision\bullet\BulletCollision\CollisionDispatch\btInternalEdgeUtility.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\collision\bullet\BulletCollision\CollisionDispatch\btInternalEdgeUtility.h"
+							>
+						</File>
+						<File
 							RelativePath=".\collision\bullet\BulletCollision\CollisionDispatch\btManifoldResult.cpp"
 							>
 						</File>
@@ -809,14 +817,6 @@
 							>
 						</File>
 						<File
-							RelativePath=".\collision\bullet\BulletCollision\NarrowPhaseCollision\btGjkEpa.cpp"
-							>
-						</File>
-						<File
-							RelativePath=".\collision\bullet\BulletCollision\NarrowPhaseCollision\btGjkEpa.h"
-							>
-						</File>
-						<File
 							RelativePath=".\collision\bullet\BulletCollision\NarrowPhaseCollision\btGjkEpa2.cpp"
 							>
 						</File>
@@ -946,10 +946,6 @@
 						>
 					</File>
 					<File
-						RelativePath=".\collision\bullet\LinearMath\btPoint3.h"
-						>
-					</File>
-					<File
 						RelativePath=".\collision\bullet\LinearMath\btQuadWord.h"
 						>
 					</File>
@@ -974,6 +970,14 @@
 						>
 					</File>
 					<File
+						RelativePath=".\collision\bullet\LinearMath\btSerializer.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\collision\bullet\LinearMath\btSerializer.h"
+						>
+					</File>
+					<File
 						RelativePath=".\collision\bullet\LinearMath\btSimdMinMax.h"
 						>
 					</File>
@@ -991,6 +995,62 @@
 					</File>
 					<File
 						RelativePath=".\collision\bullet\LinearMath\btVector3.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="BulletWorldImporter"
+					>
+					<File
+						RelativePath=".\collision\bullet\BulletWorldImporter\btBulletWorldImporter.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\collision\bullet\BulletWorldImporter\btBulletWorldImporter.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="BulletFileLoader"
+					>
+					<File
+						RelativePath=".\collision\bullet\BulletFileLoader\bChunk.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\collision\bullet\BulletFileLoader\bChunk.h"
+						>
+					</File>
+					<File
+						RelativePath=".\collision\bullet\BulletFileLoader\bCommon.h"
+						>
+					</File>
+					<File
+						RelativePath=".\collision\bullet\BulletFileLoader\bDefines.h"
+						>
+					</File>
+					<File
+						RelativePath=".\collision\bullet\BulletFileLoader\bDNA.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\collision\bullet\BulletFileLoader\bDNA.h"
+						>
+					</File>
+					<File
+						RelativePath=".\collision\bullet\BulletFileLoader\bFile.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\collision\bullet\BulletFileLoader\bFile.h"
+						>
+					</File>
+					<File
+						RelativePath=".\collision\bullet\BulletFileLoader\btBulletFile.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\collision\bullet\BulletFileLoader\btBulletFile.h"
 						>
 					</File>
 				</Filter>
@@ -2471,6 +2531,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\demos\irrlicht\demo_cohesion.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\demos\irrlicht\demo_collision.cpp"
 					>
 				</File>
@@ -2574,6 +2638,14 @@
 			<Filter
 				Name="mpi"
 				>
+				<File
+					RelativePath="..\demos\mpi\demo_domains.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\demos\mpi\demo_lcp_schwarz.cpp"
+					>
+				</File>
 				<File
 					RelativePath="..\demos\mpi\demo_mpibasic.cpp"
 					>
@@ -2816,6 +2888,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\lcp\ChLcpIterativeMINRES.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\lcp\ChLcpIterativeMINRES.h"
+				>
+			</File>
+			<File
 				RelativePath="lcp\ChLcpIterativeSolver.h"
 				>
 			</File>
@@ -2857,6 +2937,10 @@
 			</File>
 			<File
 				RelativePath=".\lcp\ChLcpSolver.h"
+				>
+			</File>
+			<File
+				RelativePath=".\lcp\ChLcpSystemDescriptor.cpp"
 				>
 			</File>
 			<File
@@ -2960,11 +3044,55 @@
 			Name="unit_MPI"
 			>
 			<File
+				RelativePath=".\unit_MPI\ChBodyMPI.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_MPI\ChBodyMPI.h"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_MPI\ChDomainLatticePartitioning.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_MPI\ChDomainLatticePartitioning.h"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_MPI\ChDomainNodeMPI.h"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_MPI\ChLcpIterativeSchwarzMPI.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_MPI\ChLcpIterativeSchwarzMPI.h"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_MPI\ChLcpSystemDescriptorMPI.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_MPI\ChLcpSystemDescriptorMPI.h"
+				>
+			</File>
+			<File
 				RelativePath=".\unit_MPI\ChMpi.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\unit_MPI\ChMpi.h"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_MPI\ChSystemMPI.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_MPI\ChSystemMPI.h"
 				>
 			</File>
 		</Filter>

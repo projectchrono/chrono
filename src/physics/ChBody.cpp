@@ -953,8 +953,8 @@ void ChBody::StreamOUTstate(ChStreamOutBinary& mstream)
 	// Do not serialize parent classes and do not
 	// implement versioning, because this must be efficient 
 	// and will be used just for domain decomposition.
-	mstream << this->GetCoord();
-	mstream << this->GetCoord_dt();
+	this->GetCoord().StreamOUT(mstream);
+	this->GetCoord_dt().StreamOUT(mstream);
 }
 
 void ChBody::StreamINstate(ChStreamInBinary& mstream)

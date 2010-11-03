@@ -5,7 +5,7 @@
 
 
 Release 1.1.0
-XX-XX-XXXX
+3-11-2010
 
 - New feature: cohesion in contacts. This can be
   activated using the ChCustomCollisionPointCallback
@@ -24,7 +24,7 @@ XX-XX-XXXX
   It contains features for exploiting the MPI interface
   for high performance parallel computing. Compatibility
   is tested under MPICH-2. 
-  Under development. 
+  Under development / please do not use it.
 
 - All CUDA code, previously spread in many directories
   and mixed with normal code, now is grouped in a
