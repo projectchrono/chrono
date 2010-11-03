@@ -145,7 +145,7 @@ int ChMPI::SendMatrix(int destID,
 					  bool nonblocking,
 					  ChMPIrequest* mreq)
 {
-	assert ((!nonblocking & !mreq) || (nonblocking & mreq));
+	assert ((!nonblocking && !mreq) || (nonblocking && mreq));
 
 	struct Matrixstruct
 	{
@@ -226,7 +226,7 @@ int ChMPI::ReceiveMatrix( int sourceID,
 						 bool nonblocking,
 						 ChMPIrequest* mreq)
 {
-	assert ((!nonblocking & !mreq & status) || (nonblocking & mreq & !status));
+	assert ((!nonblocking && !mreq && mstatus) || (nonblocking && mreq && !mstatus));
 
 	struct Matrixstruct
 	{
@@ -283,7 +283,7 @@ int ChMPI::SendString(int destID,					///< destination rank
 							ChMPIrequest* mreq			///< if nonblocking=true, must use this
 							)
 {
-	assert ((!nonblocking & !mreq) || (nonblocking & mreq));
+	assert ((!nonblocking && !mreq) || (nonblocking && mreq));
 
 	char* data = (char*)source_str.data(); // should not access directly std::string data, but this is efficient!
 	int nbytes = source_str.size();
@@ -368,7 +368,7 @@ int ChMPI::SendBuffer(int destID,						///< destination rank
 							ChMPIrequest* mreq			///< if nonblocking=true, must use this
 							)
 {
-	assert ((!nonblocking & !mreq) || (nonblocking & mreq));
+	assert ((!nonblocking && !mreq) || (nonblocking && mreq));
 
 	int nbytes = source_buf.size();
 	char* data;
