@@ -203,18 +203,19 @@ int main(int argc, char* argv[])
  
 	mphysicalSystem.SetIntegrationType(ChSystem::INT_ANITESCU); 
 
-	//mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES);
 	mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD);
-	//mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+
 	mphysicalSystem.SetUseSleeping(false);
 	
+	/*
 	mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES);
 	ChLcpIterativeMINRES* msolver = (ChLcpIterativeMINRES*) mphysicalSystem.GetLcpSolverSpeed();
 	msolver->SetMaxIterations(40);
 	msolver->SetFeasTolerance(0.1);
 	msolver->SetOmega(0.05);
 	msolver->SetMaxFixedpointSteps(3);
-	
+	*/
+
 	mphysicalSystem.SetMaxPenetrationRecoverySpeed(1.6); // used by Anitescu stepper only
 	mphysicalSystem.SetIterLCPmaxItersSpeed(40);
 	mphysicalSystem.SetIterLCPmaxItersStab(20); // unuseful for Anitescu, only Tasora uses this

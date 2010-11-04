@@ -8,7 +8,7 @@
 ; Copyright 2009 A.Tasora
 
 #define MyAppName "ChronoEngine"
-#define MyAppVersion "v0.9.0"
+#define MyAppVersion "v1.1.0"
 #define MyAppPublisher "Alessandro Tasora"
 #define MyAppURL "http://www.deltaknowledge.com"
 #define MyChronoEngineSDK "C:\tasora\code\dynamics\code\ChronoEngine"
@@ -35,7 +35,7 @@ OutputDir=c:\tasora\lavori\data_chrono
 OutputBaseFilename=ChronoEngine_{#MyAppVersion}
 
 [Files]
-Source: {#MyChronoEngineSDK}\*; Excludes: "*.c,*.cpp,doxygen,\source\*.txt,\source\collision\bullet,\source\collision\gimpact,\source\collision\edgetempest,source\makefile,\source\make-chrono_lib,\source\ChronoEngine.*,\source\HOWTO_COMPILE_API.txt,*.pdb,_obsolete,\installer,*.o,*.obj,*.ncb,*.bat,source\*.def,\source\tmp,\demos,____template_config.mak,__template_ChronoEngine.vcproj,*\.svn"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs
+Source: {#MyChronoEngineSDK}\*; Excludes: "*.c,*.cpp,*.cu,doxygen,\source\*.txt,\source\collision\bullet,\source\collision\gimpact,\source\collision\edgetempest,source\makefile,\source\make-chrono_lib,\source\ChronoEngine.*,\source\HOWTO_COMPILE_API.txt,*.pdb,_obsolete,\installer,*.o,*.obj,*.ncb,*.bat,source\*.def,\source\tmp,\demos,____template_config.mak,__template_ChronoEngine.vcproj,*\.svn"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs
 Source: {#MyChronoEngineSDK}\demos\*; Excludes: "*.o,*.obj,*.ncb,*\.svn"; DestDir: "{app}\demos"; Flags: recursesubdirs createallsubdirs
 Source: {#MyChronoEngineSDK}\bin\*; Excludes: "*.pdb,demo_benchmark.exe,*\.svn"; DestDir: "{app}\bin"; Flags: recursesubdirs createallsubdirs
 Source: "C:\tasora\lavori\html\chronoengine\install.html"; DestDir: "{app}\docs";
