@@ -7,6 +7,9 @@
 Release 1.1.0
 3-11-2010
 
+- The 64 bit versions of dll and lib are included
+  in the Windows distribution.
+  
 - New feature: cohesion in contacts. This can be
   activated using the ChCustomCollisionPointCallback
   as shown in demo_cohesion.cpp 
