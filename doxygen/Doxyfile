@@ -85,6 +85,10 @@ EXCLUDE                = C:/tasora/code/dynamics/code/ChronoEngine/source/plugin
                          C:/tasora/code/dynamics/code/ChronoEngine/source/_obsolete \
                          C:/tasora/code/dynamics/code/ChronoEngine/source/collision/bullet \
                          C:/tasora/code/dynamics/code/ChronoEngine/source/collision/gimpact \
+                         C:/tasora/code/dynamics/code/ChronoEngine/source/thrust \
+                         C:/tasora/code/dynamics/code/ChronoEngine/source/unit_GPU/collide.h \
+                         C:/tasora/code/dynamics/code/ChronoEngine/source/unit_GPU/collide.cu \
+                         C:/tasora/code/dynamics/code/ChronoEngine/source/unit_GPU/collide_kernel.cu \
                          C:/tasora/code/dynamics/code/ChronoEngine/source/collision/edgetempest
 EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = 
