@@ -88,9 +88,9 @@ MyOscillatorSystem::MyOscillatorSystem(IrrlichtDevice* mIrrDevice)
 				this->my_spring->Set_SpringRestLenght(X0*0.8);
 				this->physical_system.AddLink(this->my_spring);
 
-				ChFunction_Jscript* motionfunct = new ChFunction_Jscript;
-				motionfunct->Set_Command("0");
-				this->my_spring->GetMarker1()->SetMotion_X(motionfunct);
+				//ChFunction_Jscript* motionfunct = new ChFunction_Jscript;
+				//motionfunct->Set_Command("0");
+				//this->my_spring->GetMarker1()->SetMotion_X(motionfunct);
 	}
 
 #pragma managed
