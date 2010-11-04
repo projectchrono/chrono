@@ -14,7 +14,7 @@ Chrono::Engine and want to compile the entire API
 in order to make your 'cutomized' versions of the 
 libraries, you must follow these guidelines.
 The process is a bit different in case
-you build the SDK under Windows or under Windows.
+you build the SDK under Windows or under Linux.
 
 Summary:
 
@@ -31,8 +31,8 @@ Summary:
 
 
 --0
-Install the Microsoft Foundation SDK (not needed for professional 
-Visual Studio versions).
+Install the Microsoft Foundation SDK (not needed for 
+professional Visual Studio versions).
 
 --1
 Be sure that you have the 'sed' tool installed in your
@@ -47,18 +47,12 @@ toolset, for example at http://www.mingw.org/download.shtml
 or http://prdownloads.sf.net/mingw/MinGW-3.1.0-1.exe?download).
 It must be accessible from console.
 
---3
-Be sure that you have the latest 'SpiderMonkey' javascript
-engine SDK installed. It can be downloaded, for example,
-at http://ftp.mozilla.org/pub/mozilla.org/js/
-Unpack where you prefer. 
-
---4 
+--3 
 Follow the preparatory guidelines for compiling demos (i.e.
 check that you have the compiler installed, edit the
 config.mak, etc.)
 
---5
+--4
 Edit also the config.mak file , in the ChronoEngine/makes/
 directory, following the instructions inside that file.
  (Note forSVN users: if there is no config.mak in 
@@ -67,7 +61,7 @@ directory, following the instructions inside that file.
   SVN users access the same config.mak with different personal
   settings)
 
---6
+--5
 That's all. Now, suppose you want to compile the API 
 libraries using the Microsoft compiler and nmake tool,
 in release mode, do this: open a console, set the compiler
@@ -79,10 +73,9 @@ and type:
 This will make and link ChronoEngine.dll and ChronoEngine.lib
 (you will find them in the chrono/bin/Win32_VisualStudio/ directory.)
 More in detail, a more precise build command can be for example:
- nmake /f "make-chrono_lib" build=RELEASE compiler=COMPILER_MSVC lib
+     nmake /f "make-chrono_lib" build=RELEASE compiler=COMPILER_MSVC lib
 
-
---6b
+--5b
 
 Alternatively, if you do not like to type the 'nmake ...' commands
 in the console, you can use the Microsoft VisualC++ IDE.
@@ -102,16 +95,36 @@ If so, follow these instructions:
 This IDE approach can be good for many reasons (you will be able to see all
 the chronoengine source files in the solution explorer window at the
 left, you'll have automatic completion of keywords, etc)
-This is the way I usually compile the SDK.
+This is the way we usually compile the SDK.
 
---NOTE
 
-If you are recompiling the API with the CUDA support enabled (for
-GPU acceleration features), that is with CH_UNIT_CUDA=TRUE in config.mak,
-before step n.6 you must 
-. install the Nvidia CUDA toolkit
-. install the Nvidia CUDA SDK
- 
+--NOTES
+
+-OPTIONALLY: compile the CUDA unit for GPU support:
+   If you want to recompile the unit for CUDA support (allowing
+   GPU acceleration features), set CH_UNIT_CUDA=TRUE in config.mak,
+   and before step n.3 you must: 
+   . install the Nvidia CUDA toolkit
+   . install the Nvidia CUDA SDK
+   
+-OPTIONALLY: compile the JAVASCRIPT unit for JS scripting:
+   If you want to recompile the unit for JAVASCRIPT support
+   set CH_UNIT_JAVASCRIPT=TRUE in config.mak,
+   and before step n.3 you must: 
+   . install the latest 'SpiderMonkey' javascript engine.
+     It can be downloaded, for example, at
+     http://ftp.mozilla.org/pub/mozilla.org/js/
+     Unpack where you prefer. 
+   . set proper paths to JS API in config.mak 
+   
+-OPTIONALLY: compile the MPI unit for cluster computing:
+   If you want to recompile the unit for JAVASCRIPT support
+   set CH_UNIT_MPI=TRUE in config.mak,
+   and before step n.3 you must: 
+   . install a MPI sdk, such as the MPICH2 from Argonne
+     National Laboratories.
+   
+     
 
 -------------------------------------------------------
 
@@ -143,27 +156,13 @@ Some Irrlicht distributions have a bug: instead of copying
 it and move in lib/ as 'Linux'. If so, re-create Irrlicht/lib/Linux/ 
 by hand, and move 'libIrlicht.a' into that directory.
 
-
---3 
-You need the SpiderMonkey javascript engine. So, download packets 
-     libmozjs0d [???]
-     libmozjs-dev [???]
-   or better..
-   
---3b
-. download and unzip latest SpiderMonkey SDK, 
-. cd into js/src/  directory,
-. build the javascript SDK with "make -f Makefile.ref BUILD_OPT=1"
-. copy js/src/Linux_All_OPT.OBJ/jsautocfg.h into js/src/
-. copy js/src/Linux_All_OPT.OBJ/libjs.a  into ChronoEngine/lib/Linux32_gcc
-
---4
+--3
 Install the following packets (you can find them on the web) if
 not already installed on your system:
 . X11    / Debian (Ubuntu) : load packets "libxxf86vm1" and "libxxf86vm-dev"
 . OpenGl / Debien (Ubuntu): load packets "freeglut3" and "freeglut3-dev"
 
---5
+--4
 Edit also the config.mak file , in the ChronoEngine/makes/
 directory, following the instructions inside that file.
  (Note forSVN users: if there is no config.mak in 
@@ -187,14 +186,38 @@ To compile demos source files:
 . cd in "demos" directory
 . type "make"
 
+
+
 --NOTE
 
-If you are recompiling the API with the CUDA support enabled (for
-GPU acceleration features), that is with CH_UNIT_CUDA=TRUE in config.mak,
-before step n.5 you must 
-. install the Nvidia CUDA toolkit
-. install the Nvidia CUDA SDK 
-according to the instructions providen by Nvidia.
+-OPTIONALLY: compile the CUDA unit for GPU support:
+   If you want to recompile the unit for CUDA support (allowing
+   GPU acceleration features), set CH_UNIT_CUDA=TRUE in config.mak,
+   and before step n.3 you must: 
+   . install the Nvidia CUDA toolkit
+   . install the Nvidia CUDA SDK
+
+-OPTIONALLY: compile the JAVASCRIPT unit for JS scripting:
+   If you want to recompile the unit for JAVASCRIPT support
+   set CH_UNIT_JAVASCRIPT=TRUE in config.mak,
+   and before step n.3 you must: 
+  . install SpiderMonkey javascript engine. So, download packets 
+     libmozjs0d [???]
+     libmozjs-dev [???]
+    or equivalent
+  . download and unzip latest SpiderMonkey SDK, 
+  . cd into js/src/  directory,
+  . build the javascript SDK with "make -f Makefile.ref BUILD_OPT=1"
+  . copy js/src/Linux_All_OPT.OBJ/jsautocfg.h into js/src/
+  . copy js/src/Linux_All_OPT.OBJ/libjs.a  into ChronoEngine/lib/Linux32_gcc
+  
+-OPTIONALLY: compile the MPI unit for cluster computing:
+   If you want to recompile the unit for JAVASCRIPT support
+   set CH_UNIT_MPI=TRUE in config.mak,
+   and before step n.3 you must: 
+   . install a MPI sdk, such as the MPICH2 from Argonne
+     National Laboratories.
+
 
 
 -------------------------------------------------------
@@ -226,7 +249,7 @@ makefile are those:
   the next compilation will recompile _everything_ . This is the safest and
   fool-proof way to go, but recompiling everything requires some time... 
 
-In future, I'd like to switch to the CMake or JAM build tools, so that this
+In future, we might to switch to the CMake or JAM build tools, so that this
 complication will be removed.
 
 
