@@ -44,7 +44,8 @@ void	btCollisionShape::getBoundingSphere(btVector3& center,btScalar& radius) con
 
 btScalar	btCollisionShape::getContactBreakingThreshold(btScalar defaultContactThreshold) const
 {
-	return getAngularMotionDisc() * defaultContactThreshold;
+	// return getAngularMotionDisc() * defaultContactThreshold; // <-- original!
+	return getAngularMotionDisc() * getMargin()*0.2; //***ALEX*** modified because defaultContactThreshold is zero in C::E, with inward breaking threshold
 }
 
 btScalar	btCollisionShape::getAngularMotionDisc() const

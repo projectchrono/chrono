@@ -129,6 +129,9 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainerBase* mcontactcon
 
 		double envelopeA = icontact.modelA->GetEnvelope();
 		double envelopeB = icontact.modelB->GetEnvelope();
+		
+		double marginA = icontact.modelA->GetSafeMargin();
+		double marginB = icontact.modelB->GetSafeMargin();
 
 		// Execute custom broadphase callback, if any
 		bool do_narrow_contactgeneration = true;
@@ -142,32 +145,35 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainerBase* mcontactcon
 			for (int j=0;j<numContacts;j++)
 			{
 				btManifoldPoint& pt = contactManifold->getContactPoint(j);
- 
-				btVector3 ptA = pt.getPositionWorldOnA();
-				btVector3 ptB = pt.getPositionWorldOnB(); 
-				
-				icontact.vpA.Set(ptA.getX(), ptA.getY(), ptA.getZ());
-				icontact.vpB.Set(ptB.getX(), ptB.getY(), ptB.getZ());
-				
-				icontact.vN.Set( -pt.m_normalWorldOnB.getX(), 
-								 -pt.m_normalWorldOnB.getY(),
-								 -pt.m_normalWorldOnB.getZ());
-				icontact.vN.Normalize(); 
 
-				double ptdist = pt.getDistance();
+				if (pt.getDistance() < marginA+marginB) // to discard "too far" constraints (the Bullet engine also has its threshold)
+				{
+					btVector3 ptA = pt.getPositionWorldOnA();
+					btVector3 ptB = pt.getPositionWorldOnB(); 
+					
+					icontact.vpA.Set(ptA.getX(), ptA.getY(), ptA.getZ());
+					icontact.vpB.Set(ptB.getX(), ptB.getY(), ptB.getZ());
+					
+					icontact.vN.Set( -pt.m_normalWorldOnB.getX(), 
+									 -pt.m_normalWorldOnB.getY(),
+									 -pt.m_normalWorldOnB.getZ());
+					icontact.vN.Normalize(); 
 
-				icontact.vpA = icontact.vpA - icontact.vN*envelopeA;
-				icontact.vpB = icontact.vpB + icontact.vN*envelopeB;
-				icontact.distance = ptdist + envelopeA + envelopeB;	
+					double ptdist = pt.getDistance();
 
-				icontact.reaction_cache = pt.reactions_cache;
+					icontact.vpA = icontact.vpA - icontact.vN*envelopeA;
+					icontact.vpB = icontact.vpB + icontact.vN*envelopeB;
+					icontact.distance = ptdist + envelopeA + envelopeB;	
 
-				// Execute some user custom callback, if any
-				if (this->narrow_callback)
-					this->narrow_callback->NarrowCallback(icontact);
+					icontact.reaction_cache = pt.reactions_cache;
 
-				// Add to contact container
-				mcontactcontainer->AddContact(icontact); 
+					// Execute some user custom callback, if any
+					if (this->narrow_callback)
+						this->narrow_callback->NarrowCallback(icontact);
+
+					// Add to contact container
+					mcontactcontainer->AddContact(icontact); 
+				}
 
 			}
 		}

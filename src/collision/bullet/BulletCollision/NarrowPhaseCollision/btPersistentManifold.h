@@ -146,10 +146,11 @@ public:
 			m_pointCache[index] = m_pointCache[lastUsedIndex]; 
 			//get rid of duplicated userPersistentData pointer
 			m_pointCache[lastUsedIndex].m_userPersistentData = 0;
+			/* ***ALEX*** 
 			m_pointCache[lastUsedIndex].mConstraintRow[0].mAccumImpulse = 0.f;
 			m_pointCache[lastUsedIndex].mConstraintRow[1].mAccumImpulse = 0.f;
 			m_pointCache[lastUsedIndex].mConstraintRow[2].mAccumImpulse = 0.f;
-
+			*/
 			m_pointCache[lastUsedIndex].m_appliedImpulse = 0.f;
 			m_pointCache[lastUsedIndex].m_lateralFrictionInitialized = false;
 			m_pointCache[lastUsedIndex].m_appliedImpulseLateral1 = 0.f;
@@ -174,9 +175,11 @@ public:
 #define MAINTAIN_PERSISTENCY 1
 #ifdef MAINTAIN_PERSISTENCY
 		int	lifeTime = m_pointCache[insertIndex].getLifeTime();
+		/* ***ALEX*** 
 		btScalar	appliedImpulse = m_pointCache[insertIndex].mConstraintRow[0].mAccumImpulse;
 		btScalar	appliedLateralImpulse1 = m_pointCache[insertIndex].mConstraintRow[1].mAccumImpulse;
 		btScalar	appliedLateralImpulse2 = m_pointCache[insertIndex].mConstraintRow[2].mAccumImpulse;
+		*/
 //		bool isLateralFrictionInitialized = m_pointCache[insertIndex].m_lateralFrictionInitialized;
 		
 		
@@ -201,6 +204,8 @@ public:
 		m_pointCache[insertIndex].reactions_cache[5] = mh;
 
 		m_pointCache[insertIndex].m_userPersistentData = cache;
+
+/* ***ALEX*** 
 		m_pointCache[insertIndex].m_appliedImpulse = appliedImpulse;
 		m_pointCache[insertIndex].m_appliedImpulseLateral1 = appliedLateralImpulse1;
 		m_pointCache[insertIndex].m_appliedImpulseLateral2 = appliedLateralImpulse2;
@@ -208,7 +213,7 @@ public:
 		m_pointCache[insertIndex].mConstraintRow[0].mAccumImpulse =  appliedImpulse;
 		m_pointCache[insertIndex].mConstraintRow[1].mAccumImpulse = appliedLateralImpulse1;
 		m_pointCache[insertIndex].mConstraintRow[2].mAccumImpulse = appliedLateralImpulse2;
-
+		*/
 
 		m_pointCache[insertIndex].m_lifeTime = lifeTime;
 #else

@@ -72,10 +72,11 @@ class btManifoldPoint
 					m_contactCFM2(0.f),
 					m_lifeTime(0)
 			{
+				/* ***ALEX*** 
 				mConstraintRow[0].mAccumImpulse = 0.f;
 				mConstraintRow[1].mAccumImpulse = 0.f;
 				mConstraintRow[2].mAccumImpulse = 0.f;
-
+				*/ 
 				reactions_cache[0]=reactions_cache[1]=reactions_cache[2]=reactions_cache[3]=reactions_cache[4]=reactions_cache[5]=0; //***ALEX***
 			}
 
@@ -116,7 +117,7 @@ class btManifoldPoint
 
 
 
-			PfxConstraintRow mConstraintRow[3];
+		//	PfxConstraintRow mConstraintRow[3]; ***ALEX*** remove to save RAM
 
 
 			btScalar getDistance() const
