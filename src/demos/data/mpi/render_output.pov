@@ -24,12 +24,12 @@
 
 #declare draw_domains=1; 
 
-#declare draw_domains_all=0;    
+#declare draw_domains_all=1;    
 #declare draw_domain_onlyN=8;   // if draw_domains_all=0 here set the domain ID to render alone
   
 #declare draw_items=1;
 #declare draw_items_as_spheres=1;
-#declare draw_items_as_cages=1;
+#declare draw_items_as_cages=0;
 #declare draw_items_as_boxes=0;
 
 #declare cage_domain_thick=0.03;
@@ -73,12 +73,12 @@ camera {
 // from front  
 camera { 
         orthographic 
-        location <0, 9, -18>  
+        location <18, 0, 0>  
         look_at <0, 0, 0>  
         angle 14
 } 
-*/
-      
+*/  
+
 /*
 // from front closeup to nozzle
 camera { 

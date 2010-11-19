@@ -27,6 +27,7 @@
 #include "unit_mpi/ChBodyMPI.h"
 #include "unit_mpi/ChLcpSystemDescriptorMPI.h"
 #include "unit_mpi/ChDomainLatticePartitioning.h"
+#include "unit_mpi/ChLcpIterativeSchwarzMPI.h"
 
 
 // Remember to use the namespace 'chrono' because all classes 
@@ -94,6 +95,9 @@ int main(int argc, char* argv[])
 	ChSystemDescriptorMPIlattice3D mydescriptor(&mysystem.nodeMPI);
 	mysystem.ChangeLcpSystemDescriptor(&mydescriptor);
 
+	// Use the Schwarz solver
+	ChLcpIterativeSchwarzMPI mysolver;
+	mysystem.ChangeLcpSolverSpeed(&mysolver);
 
 
 	// Save on file the aabb of the boundaries of each domain, for debugging/visualization
@@ -116,7 +120,7 @@ int main(int argc, char* argv[])
 	// adding some rigid bodies, such as spheres, cubes, etc. 
 
 	int added_id=0;
-	for (int npart = 0; npart<60; npart++)
+	for (int npart = 0; npart<460; npart++)
 	{
 		ChVector<> center(ChRandom()*2-1,ChRandom()*2-1,ChRandom()*2-1);
 	
@@ -125,7 +129,6 @@ int main(int argc, char* argv[])
 		// No problem if the object AABB overlaps neighbouring domains. 
 		if (mysystem.nodeMPI.IsInto(center))
 		{
-			GetLog() << "ID=" << mysystem.nodeMPI.id_MPI << " Adding body.. \n";
 			// Create a body of the type that can cross boundaries and support 
 			// MPI domain decomposition.
 			ChSharedPtr<ChBodyMPI> mybody(new ChBodyMPI);
@@ -136,8 +139,8 @@ int main(int argc, char* argv[])
 
 			mybody->SetCollide(true);
 			mybody->GetCollisionModel()->ClearModel();
-			mybody->GetCollisionModel()->AddBox(0.1,0.1,0.1); 
-			//mybody->GetCollisionModel()->AddSphere(0.1);
+			//mybody->GetCollisionModel()->AddBox(0.1,0.1,0.1); 
+			mybody->GetCollisionModel()->AddSphere(0.1);
 			mybody->GetCollisionModel()->BuildModel();
 			
 	 		mysystem.Add(mybody);
@@ -147,6 +150,21 @@ int main(int argc, char* argv[])
 		}
 
 	}
+/*
+	ChSharedPtr<ChBodyMPI> mybody(new ChBodyMPI);
+	mybody->SetIdentifier(10000 + mysystem.nodeMPI.id_MPI );
+
+	//mybody->SetBodyFixed(true);
+	mybody->SetCollide(true);
+	mybody->GetCollisionModel()->ClearModel();
+	mybody->GetCollisionModel()->AddBox(2,0.1,2); 
+	mybody->GetCollisionModel()->BuildModel();
+			
+	mysystem.Add(mybody);
+	mybody->SetPos( ChVector<>(0.01,-1.2, 0.01) ); 
+	mybody->GetCollisionModel()->SyncPosition(); 
+	mybody->Update(); 
+*/
 
 	//
 	// PERFORM SOME TIME STEPS OF SIMULATION
@@ -156,10 +174,14 @@ int main(int argc, char* argv[])
 
 	// Initial setup
 	mysystem.CustomEndOfStep();
-	
+	//***TEST***
+	CHMPIfile* idebugfile = new CHMPIfile("mpi_debug_domains.txt", CHMPIfile::CHMPI_MODE_WRONLY | CHMPIfile::CHMPI_MODE_CREATE);
+	mysystem.WriteOrderedDumpDebugging(*idebugfile);
+	delete idebugfile;
+
 	int totsavedsteps = 0;
 
-	while(mysystem.GetChTime() < 0.4)
+	while(mysystem.GetChTime() < 2.50)
 	{ 
 		//GetLog() << "ID=" << CHMPI::CommRank() << "     time =" << mysystem.GetChTime() << "\n";
 
@@ -175,13 +197,13 @@ int main(int argc, char* argv[])
 			mysystem.WriteOrderedDumpAABB(*posfile);
 			delete posfile;
 
-			/*
+			
 			sprintf(filename, "output\\debug%s.dat", padnumber+1);
 			//CHMPIfile::FileDelete(filename); // Delete prev.,if any. Otherwise might partially overwrite
 			CHMPIfile* debugfile = new CHMPIfile(filename, CHMPIfile::CHMPI_MODE_WRONLY | CHMPIfile::CHMPI_MODE_CREATE);
 			mysystem.WriteOrderedDumpDebugging(*debugfile);
 			delete debugfile;
-			*/
+			
 
 			++totsavedsteps;
 		}

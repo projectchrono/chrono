@@ -4,6 +4,15 @@
   History of API changes, bug fixes, new features
 
 
+Release 1.2.0
+x-xx-xxxx
+
+- Fixed a bug in the collision detection engine, that
+  caused some collisions to be missed once in a while.
+  This was related to different ways of managing thresholds
+  in Bullet and Chrono::Engine.
+
+
 Release 1.1.0
 3-11-2010
 
