@@ -34,7 +34,8 @@ void ChLcpSharedInterfaceMPI::EndInsertion()
 		}
 	}
 
-	shared_vector.Resize(n_q, 1);
+	shared_vector_in.Resize(n_q, 1);
+	shared_vector_out.Resize(n_q, 1);
 
 }
 
@@ -62,42 +63,54 @@ void ChLcpSharedInterfaceMPI::SendMPI ()
 		
 	// 3) Fill the vector with actual value in 'q' sparse vectors of the variables
 
-	//ChMatrixDynamic<> m_ids(shared_vector); //***DEBUG
-
-	GetLog() << "ID=" << ChMPI::CommRank() << "     sharedvariables.size()=" << sharedvariables.size() << "\n";
-
+	if(shared_vector_out.GetRows() == 0) 
+		return;
+/*
+	GetLog() << "ID=" << ChMPI::CommRank() 
+		<< "     SendMPI to: " << this->id_MPI
+		<< "sharedvariables.size()="  << sharedvariables.size() 
+	    << "  vector_out rows=" << shared_vector_out.GetRows() <<   "\n";
+*/
  	int s_q=0;
 	for (unsigned int iv = 0; iv< sharedvariables.size(); iv++)
 	{
 		if (sharedvariables[iv].var->IsActive())
 		{
-			shared_vector.PasteMatrix(&sharedvariables[iv].var->Get_qb(), s_q, 0);
-			GetLog() << "ID=" << ChMPI::CommRank() << "     send dfb=" << shared_vector(s_q,0) << "\n";
+			shared_vector_out.PasteMatrix(&sharedvariables[iv].var->Get_qb(), s_q, 0);
 			s_q += sharedvariables[iv].var->Get_ndof();
 			//m_ids(sq,0)= sharedvariables[iv].uniqueID; //***DEBUG
 		}
 	}
 
 	// 4) Send the vector using MPI
-	ChMPI::SendMatrix(this->id_MPI, shared_vector, ChMPI::MPI_STANDARD);
+	ChMPI::SendMatrix(this->id_MPI, shared_vector_out, ChMPI::MPI_STANDARD, true, &this->mpi_request);
 }
 
 
 
 
-void ChLcpSharedInterfaceMPI::ReceiveMPIandAdd ()
-{
-	// [read comments in SendMPI() code above.
-
-	// 1) Sort the shared variables according to their unique IDs
-	//    ... should be already done in EndInsertion()
-
-	// 2) Count active scalar variables and resize the vector to assembly.
-	//    ... should be already done in EndInsertion()
-		
+void ChLcpSharedInterfaceMPI::ReceiveMPI ()
+{		
+	if(shared_vector_in.GetRows() == 0) 
+		return;
+/*
+	GetLog() << "ID=" << ChMPI::CommRank() 
+		<< "     ReceiveMPI from: " << this->id_MPI
+		<< "sharedvariables.size()="  << sharedvariables.size() 
+	    << "  vector_in rows=" << shared_vector_in.GetRows() 
+		<<   "\n";
+*/
 	// 3) Receive the vector using MPI
 	ChMPIstatus mstatus;
-	ChMPI::ReceiveMatrix(this->id_MPI, shared_vector, &mstatus);
+	ChMPI::ReceiveMatrix(this->id_MPI, shared_vector_in, &mstatus);
+	
+}
+
+
+void ChLcpSharedInterfaceMPI::AddReceivedMPI()
+{
+	if(shared_vector_in.GetRows() == 0) 
+		return;
 
 	// 4) Get data from the vector and sets to variable objects by adding
 	//    to their force sparse vectors 'f'.
@@ -107,13 +120,11 @@ void ChLcpSharedInterfaceMPI::ReceiveMPIandAdd ()
 	{
 		if (sharedvariables[iv].var->IsActive())
 		{
-			GetLog() << "ID=" << ChMPI::CommRank() << "     receive dfb=" << shared_vector(s_q,0) << "\n";
-			sharedvariables[iv].var->Get_qb().PasteSumClippedMatrix(&shared_vector, s_q, 0,  sharedvariables[iv].var->Get_ndof(),1,  0,0);
+			sharedvariables[iv].var->Get_qb().PasteSumClippedMatrix(&shared_vector_in, s_q, 0,  sharedvariables[iv].var->Get_ndof(),1,  0,0);
 			s_q += sharedvariables[iv].var->Get_ndof();
 		}
 	}
 
-	
 }
 
 
@@ -124,7 +135,7 @@ void ChLcpSystemDescriptorMPI::PerformCommunication()
 	//    so that the effect of the actual lambdas df = [invM]*[Cq_i]'*l can be computed via 
 	//    the method Increment_q() that all ChConstraint surely implement; 
 
-	GetLog() << "ID=" << ChMPI::CommRank() << "  PerformCommunication \n";
+	//GetLog() << "ID=" << ChMPI::CommRank() << "  PerformCommunication \n";
 
 	ChMatrixDynamic<> q_backup;
 	this->FromVariablesToVector(q_backup);
@@ -145,7 +156,7 @@ void ChLcpSystemDescriptorMPI::PerformCommunication()
 
 	//    MPI!!! Now it is possible to let all shared interfaces to send
 	//    qb informations to their matching domains.
-	GetLog() << "ID=" << ChMPI::CommRank() << "    shared_interfaces.size()=" << shared_interfaces.size() << "\n";
+	//GetLog() << "ID=" << ChMPI::CommRank() << "    shared_interfaces.size()=" << shared_interfaces.size() << "\n";
 	for (unsigned int is = 0; is < shared_interfaces.size(); is++)
 		shared_interfaces[is].SendMPI();
 
@@ -156,11 +167,22 @@ void ChLcpSystemDescriptorMPI::PerformCommunication()
 	//    MPI!! Now it is possible to let all shared interfaces to receive
 	//    informations from their matching domains and to add to qb vectors in variables.
 	for (unsigned int is = 0; is < shared_interfaces.size(); is++)
-		shared_interfaces[is].ReceiveMPIandAdd();
+		shared_interfaces[is].ReceiveMPI();
 
 	
+	for (unsigned int is = 0; is < shared_interfaces.size(); is++)
+	{
+		if (shared_interfaces[is].GetSharedVectorIn()->GetRows())
+		{
+			ChMPIstatus mstatus;
+			ChMPI::Wait(shared_interfaces[is].GetMPIrequest(), &mstatus);
+		}
+	}
 
-	GetLog() << "ID=" << ChMPI::CommRank() << "  ...end PerformCommunication \n";
+	for (unsigned int is = 0; is < shared_interfaces.size(); is++)
+		shared_interfaces[is].AddReceivedMPI();
+
+	//GetLog() << "ID=" << ChMPI::CommRank() << "  ...end PerformCommunication \n";
 }
 
 

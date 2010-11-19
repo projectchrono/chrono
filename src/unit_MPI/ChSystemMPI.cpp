@@ -15,6 +15,7 @@
 #include "ChBodyMPI.h"
 #include "physics/ChContactContainer.h"
 #include "ChLcpSystemDescriptorMPI.h"
+#include <algorithm>
 
 
 // Shortcuts for hierarchy-handling functions
@@ -54,15 +55,19 @@ ChSystemMPI::~ChSystemMPI()
 
 void ChSystemMPI::CustomEndOfStep()
 {
+	GetLog() << "ID=" << this->nodeMPI.id_MPI << "   CustomEndOfStep.." ;
 	InterDomainSyncronizeStates();
 	InterDomainSyncronizeFlags();
 	InterDomainSetup();
+	GetLog() << "   ..CustomEndOfStep\n" ;
 }
 
 
 
 void ChSystemMPI::LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor)
 {
+	GetLog() << "ID=" << this->nodeMPI.id_MPI << "   LCPprepare_inject.. " ;
+
 	mdescriptor.BeginInsertion(); // This resets the vectors of constr. and var. pointers.
 
 	HIER_LINK_INIT
@@ -85,45 +90,50 @@ void ChSystemMPI::LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor)
 		HIER_OTHERPHYSICS_NEXT
 	}
 
+
 	// Now also fills the 'shared interfaces' for MPI solver
 	if (ChLcpSystemDescriptorMPI* mpi_descriptor = dynamic_cast<ChLcpSystemDescriptorMPI*> (this->LCP_descriptor) )
 	{
 		for (int ni = 0; ni < this->nodeMPI.interfaces.size(); ni++)
 		{
-			ChLcpSharedInterfaceMPI* lcp_interface = &mpi_descriptor->GetSharedInterfacesList()[ni];
-
-			// The interface of the LCP system descriptor will have the same MPI target as nodeMPI neighbours:
-			lcp_interface->SetMPIfriend( this->nodeMPI.interfaces[ni].id_MPI );
-			
-			// Instance a temporary system descriptor, it will be used to manage variables of the interface.
-			ChLcpSystemDescriptor auxdescr;
-			auxdescr.BeginInsertion();
-
-			// Scan all the shared ChPhysicsItem objects in the interfaces of nodeMPI
-			// and let them inject their ChLcpVariable pointers into a temporary ChLcpSystemDescriptor:
-			ChHashTable<int,ChInterfaceItem>::iterator hiterator = this->nodeMPI.interfaces[ni].shared_items.begin();
-			while (hiterator != this->nodeMPI.interfaces[ni].shared_items.end())
+			if (nodeMPI.interfaces[ni].id_MPI != -1)
+			 if (nodeMPI.interfaces[ni].shared_items.size())
 			{
-				if ((*hiterator).second.type != ChInterfaceItem::INTERF_SLAVESLAVE)
+				ChLcpSharedInterfaceMPI* lcp_interface = &mpi_descriptor->GetSharedInterfacesList()[ni];
+
+				// The interface of the LCP system descriptor will have the same MPI target as nodeMPI neighbours:
+				lcp_interface->SetMPIfriend( this->nodeMPI.interfaces[ni].id_MPI );
+				
+				// Instance a temporary system descriptor, it will be used to manage variables of the interface.
+				ChLcpSystemDescriptor auxdescr;
+				auxdescr.BeginInsertion();
+
+				// Scan all the shared ChPhysicsItem objects in the interfaces of nodeMPI
+				// and let them inject their ChLcpVariable pointers into a temporary ChLcpSystemDescriptor:
+				ChHashTable<int,ChInterfaceItem>::iterator hiterator = this->nodeMPI.interfaces[ni].shared_items.begin();
+				while (hiterator != this->nodeMPI.interfaces[ni].shared_items.end())
 				{
-					auxdescr.GetVariablesList().clear();
-					(*hiterator).second.item->InjectVariables(auxdescr);
-					// Use for() because single ChPhysicsItem might have injected _multiple_ ChLcpVariable objects..
-					for (int iva = 0; iva < auxdescr.GetVariablesList().size(); iva++)
-					{	
-						ChLcpSharedVarMPI msharedvar;
-						msharedvar.uniqueID = (*hiterator).second.item->GetIdentifier();
-						msharedvar.var = auxdescr.GetVariablesList()[iva];
-						if ((*hiterator).second.type == ChInterfaceItem::INTERF_MASTER)
-							msharedvar.master = true;
-						else 
-							msharedvar.master = false;  // case of ChInterfaceItem::INTERF_SLAVE
-						lcp_interface->InsertSharedVariable(msharedvar);		
+					if ((*hiterator).second.type != ChInterfaceItem::INTERF_SLAVESLAVE)
+					{
+						auxdescr.GetVariablesList().clear();
+						(*hiterator).second.item->InjectVariables(auxdescr);
+						// Use for() because single ChPhysicsItem might have injected _multiple_ ChLcpVariable objects..
+						for (int iva = 0; iva < auxdescr.GetVariablesList().size(); iva++)
+						{	
+							ChLcpSharedVarMPI msharedvar;
+							msharedvar.uniqueID = (*hiterator).second.item->GetIdentifier();
+							msharedvar.var = auxdescr.GetVariablesList()[iva];
+							if ((*hiterator).second.type == ChInterfaceItem::INTERF_MASTER)
+								msharedvar.master = true;
+							else 
+								msharedvar.master = false;  // case of ChInterfaceItem::INTERF_SLAVE
+							lcp_interface->InsertSharedVariable(msharedvar);		
+						}
 					}
+					++hiterator;
 				}
-				++hiterator;
+				auxdescr.EndInsertion(); // might be not needed? 
 			}
-			auxdescr.EndInsertion(); // might be not needed? 
 		}
 	}
 
@@ -131,7 +141,13 @@ void ChSystemMPI::LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor)
 	this->contact_container->InjectConstraints(mdescriptor);
 
 	mdescriptor.EndInsertion(); 
+
+	GetLog() << "   ..LCPprepare_inject\n" ;
+
 }
+
+
+
 
 
 
@@ -152,6 +168,30 @@ void ChSystemMPI::InterDomainSyncronizeStates()
 	{
 		PHpointer->SyncCollisionModels();
 		HIER_OTHERPHYSICS_NEXT
+	}
+
+	// Prepare the sorted list of shared items (bacause hash maps aren't necessarily
+	// sorted even if they have the same number of elements)
+	for (unsigned int ni = 0; ni < this->nodeMPI.interfaces.size(); ni++)
+	{
+		if (this->nodeMPI.interfaces[ni].id_MPI != -1) 
+		{
+			this->nodeMPI.interfaces[ni].sorted_items.clear();
+
+			ChHashTable<int,ChInterfaceItem>::iterator hiterator = this->nodeMPI.interfaces[ni].shared_items.begin();
+			while (hiterator != this->nodeMPI.interfaces[ni].shared_items.end())
+			{
+				this->nodeMPI.interfaces[ni].sorted_items.push_back(
+						std::pair<int, ChInterfaceItem*> (hiterator->first, &hiterator->second)
+					);
+
+				++hiterator;
+			}
+		
+			// Perform the sort
+			std::sort(this->nodeMPI.interfaces[ni].sorted_items.begin(), 
+					  this->nodeMPI.interfaces[ni].sorted_items.end()    );
+		}
 	}
 
 
@@ -181,12 +221,14 @@ void ChSystemMPI::InterDomainSyncronizeStates()
 			//***TEST*** check interface matching correctness: a) size of shared objs.
 	 		(*this->nodeMPI.interfaces[ni].mchstreamo) << (int)this->nodeMPI.interfaces[ni].shared_items.size();
 
-			ChHashTable<int,ChInterfaceItem>::iterator hiterator = this->nodeMPI.interfaces[ni].shared_items.begin();
-			while (hiterator != this->nodeMPI.interfaces[ni].shared_items.end())
+			//ChHashTable<int,ChInterfaceItem>::iterator hiterator = this->nodeMPI.interfaces[ni].shared_items.begin();
+			//while (hiterator != this->nodeMPI.interfaces[ni].shared_items.end())
+			std::vector< std::pair<int,ChInterfaceItem*> >::iterator hiterator = this->nodeMPI.interfaces[ni].sorted_items.begin();
+			while (hiterator != this->nodeMPI.interfaces[ni].sorted_items.end())
 			{
-				int item_key =  hiterator->second.item->GetIdentifier();
-				ChPhysicsItem* item = hiterator->second.item;
-				ChInterfaceItem::eChInterfaceItemType type = hiterator->second.type;
+				int item_key =  hiterator->second->item->GetIdentifier();
+				ChPhysicsItem* item = hiterator->second->item;
+				ChInterfaceItem::eChInterfaceItemType type = hiterator->second->type;
 				
 				//***TEST*** check interface matching correctness: b) allkeys
 				(*this->nodeMPI.interfaces[ni].mchstreamo) << item_key;
@@ -240,17 +282,19 @@ void ChSystemMPI::InterDomainSyncronizeStates()
 					GetLog() << "ID=" << this->nodeMPI.id_MPI;
 					GetLog() << " ERROR! InterDomainSyncronizeStates in interface to dom.=" 
 							 << this->nodeMPI.interfaces[ni].id_MPI
-							 << " n.keys=" <<  this->nodeMPI.interfaces[ni].shared_items.size()
+							 << " DIFF.DIM!! n.keys=" <<  this->nodeMPI.interfaces[ni].shared_items.size()
 							 << " but receive n.keys=" << check_size << "\n";
 					break;
 				}
 
-				ChHashTable<int,ChInterfaceItem>::iterator hiterator = this->nodeMPI.interfaces[ni].shared_items.begin();
-				while (hiterator != this->nodeMPI.interfaces[ni].shared_items.end())
+				//ChHashTable<int,ChInterfaceItem>::iterator hiterator = this->nodeMPI.interfaces[ni].shared_items.begin();
+				//while (hiterator != this->nodeMPI.interfaces[ni].shared_items.end())
+				std::vector< std::pair<int,ChInterfaceItem*> >::iterator hiterator = this->nodeMPI.interfaces[ni].sorted_items.begin();
+				while (hiterator != this->nodeMPI.interfaces[ni].sorted_items.end())
 				{
 					int item_key =  hiterator->first;
-					ChPhysicsItem* item = hiterator->second.item;
-					ChInterfaceItem::eChInterfaceItemType type = hiterator->second.type;
+					ChPhysicsItem* item = hiterator->second->item;
+					ChInterfaceItem::eChInterfaceItemType type = hiterator->second->type;
 
 					//***TEST*** check interface matching correctness
 					int check_key;
@@ -290,6 +334,8 @@ void ChSystemMPI::InterDomainSyncronizeStates()
 
 
 
+
+
 void ChSystemMPI::InterDomainSyncronizeFlags()
 {
 	unsigned int num_interfaces = this->nodeMPI.interfaces.size();
@@ -316,14 +362,16 @@ void ChSystemMPI::InterDomainSyncronizeFlags()
 	{
 		if (this->nodeMPI.interfaces[ni].id_MPI != -1) 
 		{
-			ChHashTable<int,ChInterfaceItem>::iterator hiterator = this->nodeMPI.interfaces[ni].shared_items.begin();
-			while (hiterator != this->nodeMPI.interfaces[ni].shared_items.end())
+			//ChHashTable<int,ChInterfaceItem>::iterator hiterator = this->nodeMPI.interfaces[ni].shared_items.begin();
+			//while (hiterator != this->nodeMPI.interfaces[ni].shared_items.end())
+			std::vector< std::pair<int,ChInterfaceItem*> >::iterator hiterator = this->nodeMPI.interfaces[ni].sorted_items.begin();
+			while (hiterator != this->nodeMPI.interfaces[ni].sorted_items.end())
 			{
 				int item_key =  hiterator->first;
-				ChPhysicsItem* item = hiterator->second.item;
+				ChPhysicsItem* item = hiterator->second->item;
 
 				// default fallback:
-				hiterator->second.type = ChInterfaceItem::INTERF_SLAVESLAVE;
+				hiterator->second->type = ChInterfaceItem::INTERF_SLAVESLAVE;
 				
 				// Send "is master" info
 				int master = 0;
@@ -332,7 +380,7 @@ void ChSystemMPI::InterDomainSyncronizeFlags()
 				if (this->nodeMPI.IsInto(mcenter))
 				{
 					master = 1;
-					hiterator->second.type = ChInterfaceItem::INTERF_MASTER;
+					hiterator->second->type = ChInterfaceItem::INTERF_MASTER;
 				}
 				(*this->nodeMPI.interfaces[ni].mchstreamo) << master;
 				
@@ -373,18 +421,20 @@ void ChSystemMPI::InterDomainSyncronizeFlags()
 
 			if (this->nodeMPI.interfaces[ni].mstreami->size())
 			{
-				ChHashTable<int,ChInterfaceItem>::iterator hiterator = this->nodeMPI.interfaces[ni].shared_items.begin();
-				while (hiterator != this->nodeMPI.interfaces[ni].shared_items.end())
+				//ChHashTable<int,ChInterfaceItem>::iterator hiterator = this->nodeMPI.interfaces[ni].shared_items.begin();
+				//while (hiterator != this->nodeMPI.interfaces[ni].shared_items.end())
+				std::vector< std::pair<int,ChInterfaceItem*> >::iterator hiterator = this->nodeMPI.interfaces[ni].sorted_items.begin();
+				while (hiterator != this->nodeMPI.interfaces[ni].sorted_items.end())
 				{
 					int item_key =  hiterator->first;
-					ChPhysicsItem* item = hiterator->second.item;
+					ChPhysicsItem* item = hiterator->second->item;
 
 					// Deserialize the state
 					int near_master;
 					(*this->nodeMPI.interfaces[ni].mchstreami) >> near_master;
 
 					if (near_master)
-						hiterator->second.type = ChInterfaceItem::INTERF_SLAVE;
+						hiterator->second->type = ChInterfaceItem::INTERF_SLAVE;
 
 					++hiterator;
 				}
@@ -412,6 +462,7 @@ void ChSystemMPI::InterDomainSyncronizeFlags()
 
 void ChSystemMPI::InterDomainSetup()
 {
+GetLog() << "   .1." ;
 	unsigned int num_interfaces = this->nodeMPI.interfaces.size();
 
 	// Reset buffers to be used for MPI communication
@@ -461,7 +512,6 @@ void ChSystemMPI::InterDomainSetup()
 			}
 		}
 	}
-
 
 	// 1 - serialize objects that 'spill out' to interface buffers
 	//  Also: 
@@ -565,7 +615,6 @@ void ChSystemMPI::InterDomainSetup()
 		
 	}
 
-
 	// 2 - send buffers using MPI
 
 	std::vector<ChMPIrequest> mrequest(num_interfaces);
@@ -617,11 +666,13 @@ void ChSystemMPI::InterDomainSetup()
 						GetLog() << "ERROR deserializing MPI item:\n " << myex.what() << "\n";
 					}
 					ChSharedPtr<ChPhysicsItem> ptritem(newitem);
-
+GetLog() << "  c=" ;
+if (newitem) { GetLog() << (int)newitem << " ";
+				GetLog() << newitem->GetRTTI()->GetName() << " "; }
 					// 2-add to system
 					if (newitem)
 						this->Add(ptritem);
-
+GetLog() << "  d" ;
 					ChVector<> bbmin, bbmax;
 					newitem->SyncCollisionModels();
 					newitem->GetTotalAABB(bbmin, bbmax);
@@ -647,7 +698,7 @@ void ChSystemMPI::InterDomainSetup()
 
 		}
 	}
-
+GetLog() << "   .5." ;
 	// wait that all messages are sent before proceeding
 	for (unsigned int ni = 0; ni<num_interfaces; ni++)
 	{
@@ -657,6 +708,9 @@ void ChSystemMPI::InterDomainSetup()
 			ChMPI::Wait(&mrequest[ni], &mstatus);
 		}
 	}
+
+GetLog() << "   .6." ;
+
 }
 
 
@@ -739,7 +793,7 @@ void ChSystemMPI::WriteOrderedDumpDebugging(ChMPIfile& output)
 				if ((*hiterator).second.type == ChInterfaceItem::INTERF_MASTER)
 					mstring.append("MASTER       *");
 				if ((*hiterator).second.type == ChInterfaceItem::INTERF_SLAVE)
-					mstring.append("Slave");
+					mstring.append("Slave        .");
 				if ((*hiterator).second.type == ChInterfaceItem::INTERF_SLAVESLAVE)
 					mstring.append("slave/slave");
 				mstring.append("\n");

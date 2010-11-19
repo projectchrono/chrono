@@ -39,7 +39,6 @@ public:
 	ChLcpVariables*	var;
 	int				uniqueID;
 	bool			master;	
-	//ChMatrixDynamic<> b;
 	
 	// operator overloading is needed to enable the stl sorting
 	bool operator < (const ChLcpSharedVarMPI& other) const { return uniqueID < other.uniqueID;}
@@ -55,9 +54,14 @@ class ChLcpSharedInterfaceMPI
 protected:
 	std::vector<ChLcpSharedVarMPI>  sharedvariables;
 	int id_MPI;
-	ChMatrixDynamic<> shared_vector;
+	ChMatrixDynamic<> shared_vector_out;
+	ChMatrixDynamic<> shared_vector_in;
+	ChMPIrequest mpi_request;
 
 public:
+	
+	
+
 	ChLcpSharedInterfaceMPI()
 					{
 						sharedvariables.clear();
@@ -90,6 +94,10 @@ public:
 		/// Get the MPI rank of the other domain that shares this set of variables. 
 	virtual int  GetMPIfriend() {return id_MPI;}
 
+	virtual ChMatrixDynamic<>* GetSharedVectorIn()  {return &shared_vector_in;}
+	virtual ChMatrixDynamic<>* GetSharedVectorOut() {return &shared_vector_out;}
+	virtual ChMPIrequest*  GetMPIrequest() {return &mpi_request;}
+
 		/// Sends a single block of data to the friend domain that shares 
 		/// this set of variables. 
 		/// Note: this can be called only after EndInsertion() has been done, 
@@ -100,7 +108,9 @@ public:
 		/// this set of variables, and set to 'fb' sparse vectors, by ADDING values.
 		/// Note: this can be called only after EndInsertion() has been done, 
 		/// because of needed preoptimizations.
-	virtual void ReceiveMPIandAdd ();
+	virtual void ReceiveMPI ();
+
+	virtual void AddReceivedMPI ();
 
 };
 

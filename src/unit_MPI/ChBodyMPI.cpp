@@ -89,29 +89,6 @@ void ChBodyMPI::InjectVariables(ChLcpSystemDescriptor& mdescriptor)
 
 	mdescriptor.InsertVariables(&this->Variables());
 
-
-	if (ChSystemDescriptorMPIlattice3D* mpidescr = dynamic_cast<ChSystemDescriptorMPIlattice3D*>(&mdescriptor))
-	{	
-		if (this->last_shared) // do not care about objects not overlapping
-		{
-			//  add the body to the boundaries with whom it overlaps
-			for (int bi = 0; bi<27; bi++)
-			{
-				if ( (0x1 << bi) & this->last_shared )	
-				{
-					if ((mpidescr->GetSharedInterfacesList()[bi]).GetMPIfriend() != -1) // exclude unexisting domains
-					{
-						ChLcpSharedVarMPI mshvar;
-						mshvar.var		= &this->Variables();
-						mshvar.uniqueID = this->GetIdentifier();
-						(mpidescr->GetSharedInterfacesList()[bi]).InsertSharedVariable(mshvar);
-					}
-				}
-			}
-
-		} // end of overlap code
-		
-	} 
 }
 
 

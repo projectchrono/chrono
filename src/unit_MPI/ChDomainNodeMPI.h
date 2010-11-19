@@ -56,7 +56,9 @@ public:
 	ChStreamOutBinaryVector* mchstreamo;
 	std::vector<char>* mstreami;
 	ChStreamInBinaryVector* mchstreami;
+
 	ChHashTable<int, ChInterfaceItem> shared_items;
+	std::vector< std::pair<int,ChInterfaceItem*> > sorted_items;
 
 				/// Builder.
 	ChDomainNodeInterfaceMPI ()

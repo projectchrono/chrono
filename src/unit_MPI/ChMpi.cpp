@@ -427,13 +427,21 @@ int ChMPI::SendBuffer(int destID,						///< destination rank
 
 int ChMPI::ReceiveBuffer(int sourceID,				///< source rank
 							std::vector<char>& dest_buf, ///< destination buffer - will be resized
-							ChMPIstatus* mstatus
+							ChMPIstatus* mstatus,
+							int size
 							)
 {
 	MPI_Status status;
 	int nbytes =0;
-	MPI_Probe(sourceID, 1002,	MPI_COMM_WORLD, &status);
-    MPI_Get_count(&status, MPI_BYTE, &nbytes);
+	if (size == -1)
+	{
+		MPI_Probe(sourceID, 1002,	MPI_COMM_WORLD, &status);
+		MPI_Get_count(&status, MPI_BYTE, &nbytes);
+	}
+	else
+	{
+		nbytes = size;
+	}
 
 	dest_buf.resize(nbytes);
 
