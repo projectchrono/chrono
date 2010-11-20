@@ -326,7 +326,7 @@ light_source {
                                 box{<aminx,   aminy,  aminz >
                                     <amaxx,   amaxy,  amaxz > }        
                         #end
-                        #if (draw_items_as_spheres =1)
+                        #if ((draw_items_as_spheres =1) & (aitemid != 10009))
                                 sphere{<(aminx+amaxx)*0.5,   (aminy+amaxy)*0.5,  (aminz+amaxz)*0.5 >, sphererad }        
                         #end 
                         #if (atype = 0)

@@ -150,21 +150,28 @@ int main(int argc, char* argv[])
 		}
 
 	}
-/*
-	ChSharedPtr<ChBodyMPI> mybody(new ChBodyMPI);
-	mybody->SetIdentifier(10000 + mysystem.nodeMPI.id_MPI );
 
-	//mybody->SetBodyFixed(true);
-	mybody->SetCollide(true);
-	mybody->GetCollisionModel()->ClearModel();
-	mybody->GetCollisionModel()->AddBox(2,0.1,2); 
-	mybody->GetCollisionModel()->BuildModel();
-			
-	mysystem.Add(mybody);
-	mybody->SetPos( ChVector<>(0.01,-1.2, 0.01) ); 
-	mybody->GetCollisionModel()->SyncPosition(); 
-	mybody->Update(); 
-*/
+	// Add a flat box as a ground
+
+	ChVector<> groundcenter(0.01,-1.2, 0.01);
+	if (mysystem.nodeMPI.IsInto(groundcenter))
+	{
+
+		ChSharedPtr<ChBodyMPI> mybody(new ChBodyMPI);
+		mybody->SetIdentifier(10000 + mysystem.nodeMPI.id_MPI );
+
+		//mybody->SetBodyFixed(true);
+		mybody->SetCollide(true);
+		mybody->GetCollisionModel()->ClearModel();
+		mybody->GetCollisionModel()->AddBox(2,0.1,2); 
+		mybody->GetCollisionModel()->BuildModel();
+				
+		mysystem.Add(mybody);
+		mybody->SetPos( groundcenter ); 
+		mybody->GetCollisionModel()->SyncPosition(); 
+		mybody->Update(); 
+	}
+
 
 	//
 	// PERFORM SOME TIME STEPS OF SIMULATION
