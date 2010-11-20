@@ -16,7 +16,7 @@
 #include "physics/ChContactContainer.h"
 #include "ChLcpSystemDescriptorMPI.h"
 #include <algorithm>
-
+#include <typeinfo>
 
 // Shortcuts for hierarchy-handling functions
 
@@ -41,8 +41,14 @@
 using namespace std;
 
 
+
+
 namespace chrono
 {
+
+
+
+
 
 ChSystemMPI::ChSystemMPI()
 {
@@ -55,18 +61,15 @@ ChSystemMPI::~ChSystemMPI()
 
 void ChSystemMPI::CustomEndOfStep()
 {
-	GetLog() << "ID=" << this->nodeMPI.id_MPI << "   CustomEndOfStep.." ;
 	InterDomainSyncronizeStates();
 	InterDomainSyncronizeFlags();
 	InterDomainSetup();
-	GetLog() << "   ..CustomEndOfStep\n" ;
 }
 
 
 
 void ChSystemMPI::LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor)
 {
-	GetLog() << "ID=" << this->nodeMPI.id_MPI << "   LCPprepare_inject.. " ;
 
 	mdescriptor.BeginInsertion(); // This resets the vectors of constr. and var. pointers.
 
@@ -141,8 +144,6 @@ void ChSystemMPI::LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor)
 	this->contact_container->InjectConstraints(mdescriptor);
 
 	mdescriptor.EndInsertion(); 
-
-	GetLog() << "   ..LCPprepare_inject\n" ;
 
 }
 
@@ -462,7 +463,6 @@ void ChSystemMPI::InterDomainSyncronizeFlags()
 
 void ChSystemMPI::InterDomainSetup()
 {
-GetLog() << "   .1." ;
 	unsigned int num_interfaces = this->nodeMPI.interfaces.size();
 
 	// Reset buffers to be used for MPI communication
@@ -471,7 +471,9 @@ GetLog() << "   .1." ;
 		this->nodeMPI.interfaces[ni].mstreami->clear();
 		this->nodeMPI.interfaces[ni].mstreamo->clear();
 		this->nodeMPI.interfaces[ni].mchstreami->Seek(0);
+		this->nodeMPI.interfaces[ni].mchstreami->Init(); 
 		this->nodeMPI.interfaces[ni].mchstreamo->Seek(0);
+		this->nodeMPI.interfaces[ni].mchstreamo->Init();
 	}
 
 
@@ -666,13 +668,11 @@ GetLog() << "   .1." ;
 						GetLog() << "ERROR deserializing MPI item:\n " << myex.what() << "\n";
 					}
 					ChSharedPtr<ChPhysicsItem> ptritem(newitem);
-GetLog() << "  c=" ;
-if (newitem) { GetLog() << (int)newitem << " ";
-				GetLog() << newitem->GetRTTI()->GetName() << " "; }
+
 					// 2-add to system
 					if (newitem)
 						this->Add(ptritem);
-GetLog() << "  d" ;
+
 					ChVector<> bbmin, bbmax;
 					newitem->SyncCollisionModels();
 					newitem->GetTotalAABB(bbmin, bbmax);
@@ -698,7 +698,7 @@ GetLog() << "  d" ;
 
 		}
 	}
-GetLog() << "   .5." ;
+
 	// wait that all messages are sent before proceeding
 	for (unsigned int ni = 0; ni<num_interfaces; ni++)
 	{
@@ -709,7 +709,6 @@ GetLog() << "   .5." ;
 		}
 	}
 
-GetLog() << "   .6." ;
 
 }
 
