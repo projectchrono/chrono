@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
 	// and about the ID of this specific process.
 	int numprocs = ChMPI::CommSize();
 	int myid     = ChMPI::CommRank();
-
+/*
 	if (numprocs != 12)
 	{
 		if (myid == 0)
@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
 		DLL_DeleteGlobals();
 		return 0;
 	}
-
+*/
 	// Instead of using the usual ChSystem, rather use ChSystemMPI. It is
 	// a specialized class for physical systems that can be used 
 	// for domain decomposition with MPI communication. 
@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
 	// subdivision is supported. 
 	// A 'partitioner' tool will help to setup this.
 
-	ChDomainLatticePartitioning mypartitioner(2,3,2,			// nx ny nz domains
+	ChDomainLatticePartitioning mypartitioner(2,1,2,			// nx ny nz domains
 										ChVector<>(-5,-4,-5),	// max world
 										ChVector<>( 5, 2, 5) );	// min world
 
@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
 	// adding some rigid bodies, such as spheres, cubes, etc. 
 
 	int added_id=0;
-	for (int npart = 0; npart<460; npart++)
+	for (int npart = 0; npart<600; npart++)
 	{
 		ChVector<> center(ChRandom()*2-1,ChRandom()*2-1,ChRandom()*2-1);
 	
@@ -145,6 +145,9 @@ int main(int argc, char* argv[])
 			
 	 		mysystem.Add(mybody);
 			mybody->SetPos( center ); // BTW here I am sure that the object AABB center is the COG position too, that might not be true in general.
+
+			//mybody->SetInertiaXX(ChVector<>(0.1,0.1,0.1));
+			//mybody->SetMass(1.0);
 			mybody->GetCollisionModel()->SyncPosition(); // really necessary?
 			mybody->Update(); // really necessary?
 		}
@@ -160,7 +163,7 @@ int main(int argc, char* argv[])
 		ChSharedPtr<ChBodyMPI> mybody(new ChBodyMPI);
 		mybody->SetIdentifier(10000 + mysystem.nodeMPI.id_MPI );
 
-		//mybody->SetBodyFixed(true);
+		mybody->SetBodyFixed(true);
 		mybody->SetCollide(true);
 		mybody->GetCollisionModel()->ClearModel();
 		mybody->GetCollisionModel()->AddBox(2,0.1,2); 
@@ -188,7 +191,7 @@ int main(int argc, char* argv[])
 
 	int totsavedsteps = 0;
 
-	while(mysystem.GetChTime() < 2.50)
+	while(mysystem.GetChTime() < 3.90)
 	{ 
 		//GetLog() << "ID=" << ChMPI::CommRank() << "     time =" << mysystem.GetChTime() << "\n";
 
