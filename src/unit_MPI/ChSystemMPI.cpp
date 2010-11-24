@@ -140,8 +140,12 @@ void ChSystemMPI::LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor)
 		}
 	}
 
-
+	// Do not forget that there could be 'constraint' LCP objects
+	// created by the collision detection:
 	this->contact_container->InjectConstraints(mdescriptor);
+
+	// The following will finally sort the list of interfacing variables in the LCP descriptor, 
+	// according to their unique ID :
 
 	mdescriptor.EndInsertion(); 
 
@@ -171,7 +175,7 @@ void ChSystemMPI::InterDomainSyncronizeStates()
 		HIER_OTHERPHYSICS_NEXT
 	}
 
-	// Prepare the sorted list of shared items (bacause hash maps aren't necessarily
+	// Prepare the sorted list of shared items (because hash maps aren't necessarily
 	// sorted even if they have the same number of elements)
 	for (unsigned int ni = 0; ni < this->nodeMPI.interfaces.size(); ni++)
 	{
@@ -209,7 +213,9 @@ void ChSystemMPI::InterDomainSyncronizeStates()
 		this->nodeMPI.interfaces[ni].mstreami->clear();
 		this->nodeMPI.interfaces[ni].mstreamo->clear();
 		this->nodeMPI.interfaces[ni].mchstreami->Seek(0);
+		this->nodeMPI.interfaces[ni].mchstreami->Init();
 		this->nodeMPI.interfaces[ni].mchstreamo->Seek(0);
+		this->nodeMPI.interfaces[ni].mchstreamo->Init();
 	}
 
 	// 1 - Send states of items of interfaces,
@@ -353,7 +359,9 @@ void ChSystemMPI::InterDomainSyncronizeFlags()
 		this->nodeMPI.interfaces[ni].mstreami->clear();
 		this->nodeMPI.interfaces[ni].mstreamo->clear();
 		this->nodeMPI.interfaces[ni].mchstreami->Seek(0);
+		this->nodeMPI.interfaces[ni].mchstreami->Init();
 		this->nodeMPI.interfaces[ni].mchstreamo->Seek(0);
+		this->nodeMPI.interfaces[ni].mchstreamo->Init();
 	}
 
 	// 1 - Send flags of interfaces,

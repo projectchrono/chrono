@@ -67,6 +67,10 @@ double ChLcpIterativeSchwarzMPI::Solve(
 	// 2)  Compute, for all items with variables, the initial guess for
 	//     still unconstrained system:
 
+	ChMatrixDynamic<> previous_q;
+	if (add_Mq_to_f)
+		sysd.FromVariablesToVector(previous_q);
+
 	for (unsigned int iv = 0; iv< mvariables.size(); iv++)
 		if (mvariables[iv]->IsActive())
 			if (add_Mq_to_f)
@@ -102,11 +106,17 @@ double ChLcpIterativeSchwarzMPI::Solve(
 		{
 			ChLcpSystemDescriptorMPI* domain_desc = dynamic_cast<ChLcpSystemDescriptorMPI*>(&sysd);
 			
-			// zeroes q, and apply forces
+			// zeroes q, then apply forces (and also add previous speeds, if incremental)
+			if (add_Mq_to_f)
+				sysd.FromVectorToVariables(previous_q); 
+
 			for (unsigned int iv = 0; iv< mvariables.size(); iv++)
 				if (mvariables[iv]->IsActive())
-					mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb());
-			
+					if (add_Mq_to_f)
+						mvariables[iv]->Compute_inc_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb());
+					else
+						mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb());
+
 			// reapply last known duals
 			for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
 				if (mconstraints[ic]->IsActive())
@@ -230,8 +240,8 @@ double ChLcpIterativeSchwarzMPI::Solve(
 
 
 			// Terminate the loop if violation in constraints has been succesfully limited.
-			if (maxviolation < tolerance)
-				break;
+//			if (maxviolation < tolerance)
+//				break;
 
 		} // end inner iteration loop
 
