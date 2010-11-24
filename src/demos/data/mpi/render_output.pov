@@ -77,7 +77,7 @@ camera {
         look_at <0, 0, 0>  
         angle 14
 } 
-*/  
+*/
 
 /*
 // from front closeup to nozzle
@@ -311,23 +311,23 @@ light_source {
                 #end 
                 #declare  cage_offset_in  = cage_item_thick; 
                 #declare  cage_offset_out = 0; 
-                #declare  sphererad = (amaxx-aminx)*0.5;
+                #declare  sphererad = 0.1; // (amaxx-aminx)*0.5;
                 #if (atype = 1)
                          #declare cage_offset_out = cage_item_thick*0.1; // to show both master/slave cages not overlapping
                          #declare cage_offset_in  = cage_item_thick*1.1;  
-                         #declare sphererad = (amaxx-aminx)*0.5*1.05;
+                         #declare sphererad = sphererad*1.05;
                 #end
                 #if ((draw_domains_all) | (draw_domain_onlyN=aid)) 
                   union{      
                         #if (draw_items_as_cages =1)
                                 make_cage(aminx, aminy, aminz, amaxx, amaxy, amaxz, cage_offset_in, cage_offset_out)        
                         #end 
-                        #if (draw_items_as_boxes =1)
+                        #if ((draw_items_as_boxes =1) | ((aitemid > 10000)&(aid=0)) )
                                 box{<aminx,   aminy,  aminz >
                                     <amaxx,   amaxy,  amaxz > }        
                         #end
-                        #if ((draw_items_as_spheres =1) & (aitemid != 10009))
-                                sphere{<(aminx+amaxx)*0.5,   (aminy+amaxy)*0.5,  (aminz+amaxz)*0.5 >, sphererad }        
+                        #if ((draw_items_as_spheres =1) & (aitemid < 10000))
+                                sphere{<(aminx+amaxx)*0.5,   (aminy+amaxy)*0.5,  (aminz+amaxz)*0.5 >, sphererad }           
                         #end 
                         #if (atype = 0)
                                 pigment{rgb<0.8,0.8,0.8>}
