@@ -447,6 +447,7 @@ void ChSystemMPI::InterDomainSetup()
 				if (this->nodeMPI.interfaces[ni].id_MPI != -1) // do not deal with inactive interfaces
 				 if (this->nodeMPI.IsAABBoverlappingInterface(ni, bbmin, bbmax))
 				  if (!this->nodeMPI.interfaces[ni].shared_items.present(item->GetIdentifier())) // not yet added: add to interface!
+				   if (this->nodeMPI.IsInto(mcenter)) // only master can be cloned
 				  {
 						// Must be sent to neighbour domain, so:
 						//  1- Add to interface hash table (if not exited completely)
@@ -459,19 +460,21 @@ void ChSystemMPI::InterDomainSetup()
 						//     will send data, to avoid n-uple sends at the corners.
 						try 
 						{
-							//if (item->GetIdentifier() == 5)
-							{
-								GetLog() << "ID=" << this->nodeMPI.id_MPI 
-									 << "  SERIALIZE: " << item->GetRTTI()->GetName() 
-									 << "  key=" << item->GetIdentifier()
-									 << "  to ID=" << this->nodeMPI.interfaces[ni].id_MPI << "\n";
-							}
+								//GetLog() << "ID=" << this->nodeMPI.id_MPI 
+								//	 << "  SERIALIZE: " << item->GetRTTI()->GetName() 
+								//	 << "  key=" << item->GetIdentifier() << " ptr=" << (int)item 
+								//	 << "  to ID=" << this->nodeMPI.interfaces[ni].id_MPI << "\n";
 							this->nodeMPI.interfaces[ni].mchstreamo->AbstractWrite(item);
 						}
 						catch (ChException myex)
 						{
 							GetLog() << "ERROR serializing MPI item:\n " << myex.what() << "\n";
 						}
+				  }
+				   else
+				  {
+						this->nodeMPI.interfaces[ni].shared_items.insert(item->GetIdentifier(), 
+							ChInterfaceItem(item,ChInterfaceItem::INTERF_NOT_INITIALIZED));
 				  }
 	
 			} // end interfaces loop
@@ -533,13 +536,11 @@ void ChSystemMPI::InterDomainSetup()
 					try 
 					{
 						this->nodeMPI.interfaces[ni].mchstreami->AbstractReadCreate(&newitem);
-						//if (newitem->GetIdentifier() == 5)
-						{
-							GetLog() << "ID=" << this->nodeMPI.id_MPI 
-								 << "  DESERIALIZED: " << newitem->GetRTTI()->GetName() 
-								 << "  key=" << newitem->GetIdentifier()
-								 << "  from ID=" << nodeMPI.interfaces[ni].id_MPI << "\n";
-						}
+					
+							// GetLog() << "ID=" << this->nodeMPI.id_MPI 
+							//	 << "  DESERIALIZED: " << newitem->GetRTTI()->GetName() 
+							//	 << "  key=" << newitem->GetIdentifier() << " ptr=" << (int)newitem
+							//	 << "  from ID=" << nodeMPI.interfaces[ni].id_MPI << "\n";
 					}
 					catch (ChException myex)
 					{
