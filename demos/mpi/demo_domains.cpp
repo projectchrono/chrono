@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
 			// Set unique identifier, among entire multi-domain world. Every id works, but must be unique.
 			mybody->SetIdentifier(npart);//mysystem.nodeMPI.id_MPI*(2e6) + added_id);
 			added_id++;
-
+if (npart==5) GetLog() << "+++ADDED ID=5 ++++\n";
 			mybody->SetCollide(true);
 			mybody->GetCollisionModel()->ClearModel();
 			//mybody->GetCollisionModel()->AddBox(0.1,0.1,0.1); 
@@ -188,7 +188,19 @@ int main(int argc, char* argv[])
 	ChMPIfile* idebugfile = new ChMPIfile("mpi_debug_domains.txt", ChMPIfile::ChMPI_MODE_WRONLY | ChMPIfile::ChMPI_MODE_CREATE);
 	mysystem.WriteOrderedDumpDebugging(*idebugfile);
 	delete idebugfile;
+/*
+		mysystem.CustomEndOfStep();
+	//***TEST***
+	idebugfile = new ChMPIfile("mpi_debug_domains2.txt", ChMPIfile::ChMPI_MODE_WRONLY | ChMPIfile::ChMPI_MODE_CREATE);
+	mysystem.WriteOrderedDumpDebugging(*idebugfile);
+	delete idebugfile;
 
+	mysystem.CustomEndOfStep();
+	//***TEST***
+	idebugfile = new ChMPIfile("mpi_debug_domains3.txt", ChMPIfile::ChMPI_MODE_WRONLY | ChMPIfile::ChMPI_MODE_CREATE);
+	mysystem.WriteOrderedDumpDebugging(*idebugfile);
+	delete idebugfile;
+*/
 	int totsavedsteps = 0;
 
 	while(mysystem.GetChTime() < 3.90)
@@ -199,9 +211,11 @@ int main(int argc, char* argv[])
 		{
 			char padnumber[100];
 			sprintf(padnumber, "%d", (totsavedsteps+10000));
-			char filename[100];
+		 	char filename[100];
 
+GetLog() <<"\nID="<< myid << " frame=" << padnumber << "\n";
 			sprintf(filename, "output\\pos%s.dat", padnumber+1);
+
 			//ChMPIfile::FileDelete(filename); // Delete prev.,if any. Otherwise might partially overwrite
 			ChMPIfile* posfile = new ChMPIfile(filename, ChMPIfile::ChMPI_MODE_WRONLY | ChMPIfile::ChMPI_MODE_CREATE);
 			mysystem.WriteOrderedDumpAABB(*posfile);
