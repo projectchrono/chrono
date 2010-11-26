@@ -53,14 +53,6 @@ public:
 				/// lead to small differences between the n copies of the same shared item.
 	virtual void InterDomainSyncronizeStates();
 
-				/// For shared items that overlap the domain boundaries, this
-				/// function does some MPI communication so that only the items
-				/// that have their center in a domain will be 'master', then their
-				/// corresponding shared item in other domains are 'slaves', and 
-				/// also sets 'slaveslave' mode for items shared between two domains 
-				/// where in both cases the item do not have its center.
-	virtual void InterDomainSyncronizeFlags();
-
 				/// Performs the MPI inter-domain exchange of objects that spill out
 				/// of the domains, by streaming to binary buffers, sending them via MPI 
 				/// to domains that receive them, and by deserializing and adding to receiving domain.
@@ -84,6 +76,7 @@ public:
 	virtual void WriteOrderedDumpDebugging(ChMPIfile& output);
 
 
+	virtual void AddSafely (ChSharedPtr<ChPhysicsItem> newitem);
 		//
 		// DATA
 		//

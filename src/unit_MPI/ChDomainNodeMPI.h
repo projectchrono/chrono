@@ -36,7 +36,8 @@ public:
 	{
 		INTERF_SLAVE = 0,
 		INTERF_MASTER,
-		INTERF_SLAVESLAVE
+		INTERF_SLAVESLAVE,
+		INTERF_NOT_INITIALIZED
 	};
 
 	ChInterfaceItem(ChPhysicsItem*  mitem, eChInterfaceItemType ismaster) : item(mitem), type(ismaster) {};
@@ -111,6 +112,7 @@ public:
 	}
 
 	virtual bool IsInto(ChVector<>& point)= 0;
+	virtual bool IsIntoInterface(int n_interface, ChVector<>& point) = 0;
 	virtual bool IsAABBinside (ChVector<>& aabbmin, ChVector<>& aabbmax)= 0;
 	virtual bool IsAABBoutside(ChVector<>& aabbmin, ChVector<>& aabbmax)= 0;
 	virtual bool IsAABBoverlappingInterface(int n_interface, ChVector<>& aabbmin, ChVector<>& aabbmax)= 0;
@@ -204,6 +206,49 @@ public:
 			return true;
 		return false;
 	}
+
+	virtual bool IsIntoInterface(int n_interface, ChVector<>& point)
+	{
+		assert (n_interface < 26);
+
+		// Start with: overlap to all 27 domains, then refine
+		int overlapflags = 0xFFFFFFF; 
+		// Set overlapping 9-plets of surrounding domains
+		if (point.x <  this->min_box.x)
+			overlapflags &=   mask_xinf;
+		else 
+			overlapflags &= ~ mask_xinf;
+
+		if (point.x >= this->max_box.x)
+			overlapflags &=   mask_xsup;
+		else
+			overlapflags &= ~ mask_xsup;
+
+		if (point.y <  this->min_box.y)
+			overlapflags &=   mask_yinf;
+		else
+			overlapflags &= ~ mask_yinf;
+
+		if (point.y >= this->max_box.y)
+			overlapflags &=   mask_ysup;
+		else
+			overlapflags &= ~ mask_ysup;
+
+		if (point.z <  this->min_box.z)
+			overlapflags &=   mask_zinf;
+		else
+			overlapflags &= ~ mask_zinf;
+
+		if (point.z >= this->max_box.z)
+			overlapflags &=   mask_zsup;
+		else
+			overlapflags &= ~ mask_zsup;
+		
+		if ( (0x1 << n_interface) & overlapflags )
+			return true;
+		return false;
+	}
+
 
 };
 
