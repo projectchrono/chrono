@@ -184,16 +184,20 @@ if (npart==5) GetLog() << "+++ADDED ID=5 ++++\n";
 
 	// Initial setup
 	mysystem.CustomEndOfStep();
+
+/*
 	//***TEST***
 	CHMPIfile* idebugfile = new CHMPIfile("mpi_debug_domains.txt", CHMPIfile::CHMPI_MODE_WRONLY | CHMPIfile::CHMPI_MODE_CREATE);
 	mysystem.WriteOrderedDumpDebugging(*idebugfile);
 	delete idebugfile;
-/*
+
+	GetLog() <<"\nID="<< myid << " test B \n";
 		mysystem.CustomEndOfStep();
 	//***TEST***
 	idebugfile = new CHMPIfile("mpi_debug_domains2.txt", CHMPIfile::CHMPI_MODE_WRONLY | CHMPIfile::CHMPI_MODE_CREATE);
 	mysystem.WriteOrderedDumpDebugging(*idebugfile);
 	delete idebugfile;
+
 
 	mysystem.CustomEndOfStep();
 	//***TEST***
@@ -201,6 +205,8 @@ if (npart==5) GetLog() << "+++ADDED ID=5 ++++\n";
 	mysystem.WriteOrderedDumpDebugging(*idebugfile);
 	delete idebugfile;
 */
+
+
 	int totsavedsteps = 0;
 
 	while(mysystem.GetChTime() < 3.90)
@@ -233,7 +239,7 @@ GetLog() <<"\nID="<< myid << " frame=" << padnumber << "\n";
 		}
 
 		// Advance the simulation time step 
-		mysystem.DoStepDynamics( 0.02 );
+		mysystem.DoStepDynamics( 0.01 );
 	}
 	
 
