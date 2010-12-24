@@ -471,7 +471,7 @@ public:
 
 				/// Iterator to scan through the list of all added ChBody items 
 				/// using a safe smart pointer.
-	class IteratorBodies
+	class ChApi IteratorBodies
 	{
     public:
       IteratorBodies(std::vector<ChBody*>::iterator p) : node_(p) {}
@@ -489,7 +489,7 @@ public:
 
 				/// Iterator to scan through the list of all added ChLink items 
 				/// using a safe smart pointer.
-	class IteratorLinks
+	class ChApi IteratorLinks
 	{
     public:
       IteratorLinks(std::list<ChLink*>::iterator p) : node_(p) {}
@@ -507,7 +507,7 @@ public:
 
 				/// Iterator to scan through the list of all physics items 
 				/// that were not added to body or link lists, using a safe smart pointer.
-	class IteratorOtherPhysicsItems
+	class ChApi IteratorOtherPhysicsItems
 	{
     public:
       IteratorOtherPhysicsItems(std::list<ChPhysicsItem*>::iterator p) : node_(p) {}
@@ -763,7 +763,7 @@ public:
 
 
 					/// Class to be inherited by user and to use in SetCustomComputeCollisionCallback()
-			class ChCustomComputeCollisionCallback
+			class ChApi ChCustomComputeCollisionCallback
 			{
 				public: virtual void PerformCustomCollision(ChSystem* msys) {};
 			};
@@ -776,7 +776,7 @@ public:
 
 
 					/// Class to be inherited by user and to use in SetCustomCollisionPointCallback()
-			class ChCustomCollisionPointCallback
+			class  ChApi ChCustomCollisionPointCallback
 			{
 				public:	virtual void ContactCallback(
 							const collision::ChCollisionInfo& mcontactinfo, ///< get info about contact (cannot change it)				

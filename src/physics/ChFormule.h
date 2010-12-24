@@ -17,7 +17,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
+#include "core/ChApiCE.h"
 #include "core/ChLists.h"
 #include "physics/ChStack.h"
 #include "physics/ChFormule.h"
@@ -69,7 +69,7 @@ public:
 /// of strings. These can be used to build a stack and to access object's inner data (see
 /// the "translate" functions of objects).
 
-class ChTag {
+class ChApi ChTag {
 public:
 	int		tagID;		// unique data identifier of tag in own class (1,2,3,...)
 	int		classID;	// unique class identifier
@@ -98,7 +98,7 @@ public:
 /// Formulas will correspond to staks ChStack of operations and ChVar objects.
 
 
-class ChVar {
+class ChApi ChVar {
 public:
 			//
 			// DATA
@@ -162,7 +162,7 @@ public:
 /// Each formula, after parsing and 'compilation', will correspond to
 /// three stacks (program stack, work stack, data stack).
 
-class ChEvStacks {
+class ChApi ChEvStacks {
 public:
 	ChStack<ChTag>* prog_stack;
 	ChStack<ChVar>* work_stack;

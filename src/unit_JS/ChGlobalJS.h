@@ -91,7 +91,7 @@ ChGlobalsJS& ChGLOBALS_JS();
 	/// So that following calls to ChGLOBALS_JS() will always return it.
 	/// If setting 0, the default static globals will be returned by ChGLOBALS_JS().
 ChApiJS
-void ChApiJS SetChGLOBALS_JS(ChGlobalsJS* my_globals);
+void SetChGLOBALS_JS(ChGlobalsJS* my_globals);
 
 
 

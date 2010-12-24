@@ -122,6 +122,7 @@ CPPFILES_LIB = \
 	collision/ChCModelBulletParticle.cpp \
 	collision/ChCModelBulletNode.cpp \
 	collision/ChCCollisionSystemBullet.cpp \
+	collision/ChCConvexDecomposition.cpp \
 	collision/edgetempest/ChCCollisionTree.cpp \
 	collision/edgetempest/ChCOBBTree.cpp \
 	collision/edgetempest/ChCAABBTree.cpp \
@@ -381,7 +382,7 @@ lib_chronoengineMPI:
 	$(CH_IF_MPI) cd unit_MPI $(S)  $(CH_MAKETOOL) -f make-unit_MPI build=$(build) $@ $(S) cd .. 
 
 lib_chronoengineCUDA:  
-	$(CH_IF_CUDA) cd unit_GPU $(S)  $(CH_MAKETOOL) -f make-unit_GPU build=$(build) $@ $(S) cd ..
+	$(CH_IF_GPU) cd unit_GPU $(S)  $(CH_MAKETOOL) -f make-unit_GPU build=$(build) $@ $(S) cd ..
 			
 
 

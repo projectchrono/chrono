@@ -13,6 +13,6 @@ all depend strings clean:
 	@echo "Making $@ in lcp_solver" $(S) cd lcp_solver $(S) $(CH_MAKETOOL) build=$(build) $@  $(S) cd ..
 	$(CH_IF_MATLAB) @echo "Making $@ in matlab" $(S) cd matlab $(S) $(CH_MAKETOOL) build=$(build) $@  $(S) cd ..
 	$(CH_IF_MPI) @echo "Making $@ in mpi" $(S) cd mpi $(S) $(CH_MAKETOOL) build=$(build) $@  $(S) cd ..
-	$(CH_IF_CUDA) @echo "Making $@ in gpu" $(S) cd gpu $(S) $(CH_MAKETOOL) build=$(build) $@  $(S) cd ..
+	$(CH_IF_GPU) @echo "Making $@ in gpu" $(S) cd gpu $(S) $(CH_MAKETOOL) build=$(build) $@  $(S) cd ..
 
 

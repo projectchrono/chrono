@@ -18,6 +18,7 @@
 
 
 #include "core/ChLists.h"
+#include "unit_JS/ChApiJS.h"
 
 namespace chrono 
 {
@@ -25,7 +26,7 @@ namespace chrono
 
 //  To build a tree list of properties for objects
 
-class ChApi chjs_propdata {
+class chjs_propdata {
 public:
 	char propname[100];
 	char label[100];
@@ -33,7 +34,7 @@ public:
 	int haschildren;
 };
 
-class ChApi chjs_fullnamevar {
+class chjs_fullnamevar {
 public:
 	char propname[200];
 	char label[100];

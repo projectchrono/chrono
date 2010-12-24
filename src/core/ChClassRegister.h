@@ -101,7 +101,7 @@ public:
 /// with some pure virutal member, which cannot be instantiated with 'new'. )
 
 template <class t>
-class ChApi ChClassRegisterABSTRACT: public ChClassRegisterCommon
+class ChClassRegisterABSTRACT: public ChClassRegisterCommon
 {
 protected:
 
@@ -178,7 +178,7 @@ public:
 /// classes given their name ID.
 
 template <class t>
-class ChApi ChClassRegister: public ChClassRegisterABSTRACT <t>
+class ChClassRegister: public ChClassRegisterABSTRACT <t>
 {
 												  
 public:
@@ -205,7 +205,7 @@ public:
 ///	in *ppObj.
 
 template<class T>
-void ChApi create( std::string cls_name, T** ppObj)
+void create( std::string cls_name, T** ppObj)
 {
 	ChClassRegisterCommon* pCurrent = *ChClassRegisterCommon::GetStaticHeadAddr();
 
