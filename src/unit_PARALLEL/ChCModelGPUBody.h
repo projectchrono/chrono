@@ -33,7 +33,7 @@ namespace collision
 ///  Class for the collision model to be used in ChBody shapes,
 ///  using features of the Bullet library.
 
-class ChModelGPUBody : public ChModelGPU
+class ChApiGPU ChModelGPUBody : public ChModelGPU
 {
 
 public:

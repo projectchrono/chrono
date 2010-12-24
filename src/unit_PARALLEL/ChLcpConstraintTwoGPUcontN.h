@@ -32,7 +32,7 @@ namespace chrono
 /// It can be used only with the ChLcpIterativeCudaSolver or similar,
 /// which use the GPU hardware.
 
-class ChLcpConstraintTwoGPUcontN : public ChLcpConstraintTwo
+class ChApiGPU ChLcpConstraintTwoGPUcontN : public ChLcpConstraintTwo
 {
 	CH_RTTI(ChLcpConstraintTwoGPUcontN, ChLcpConstraintTwo)
 

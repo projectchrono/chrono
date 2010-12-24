@@ -39,7 +39,7 @@ namespace chrono
 /// ChContactContainerGPUsimple that uses GPU buffers for storing
 /// contacts, instead of vectors of structures like this one.)
 
-class ChContactGPUsimple {
+class ChApiGPU ChContactGPUsimple {
 
 protected:
 				//

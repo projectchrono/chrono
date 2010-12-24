@@ -8,6 +8,8 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
  
+
+
 #ifdef CH_UNIT_CUDA 
  
  
@@ -16,6 +18,12 @@
 #include "physics/ChSystem.h"
 #include "GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
 #include "GIMPACTUtils/btGImpactConvexDecompositionShape.h"
+
+#ifndef CH_API_COMPILE_UNIT_GPU
+#error Warning! You are compiling the CUDA GPU unit of Chrono::Engine, \
+	so you need to define CH_API_COMPILE_UNIT_GPU (add that symbol \
+	to the compiler defines, for all compiled files in this unit). 
+#endif 
 
 
 namespace chrono 

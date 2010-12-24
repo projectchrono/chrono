@@ -29,7 +29,7 @@ namespace chrono
 ///   This solver runs on GPU boards from NVIDIA, version G80 
 ///   or more recent. The GPU programming relies on CUDA library.
 
-class ChLcpIterativeSolverGPUsimple : public ChLcpIterativeSolver
+class ChApiGPU ChLcpIterativeSolverGPUsimple : public ChLcpIterativeSolver
 {
 protected:
 			//

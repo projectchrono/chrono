@@ -21,7 +21,7 @@
 
 #include <vector>
 #include "collision/ChCCollisionModel.h"
-
+#include "ChApiGPU.h"
 
 namespace chrono 
 {
@@ -37,7 +37,7 @@ namespace collision
 ///  A wrapper to use the Bullet collision detection
 ///  library
 
-class ChModelGPU : public ChCollisionModel
+class ChApiGPU ChModelGPU : public ChCollisionModel
 {
 protected:
 	//represent the CM of the body in global coords

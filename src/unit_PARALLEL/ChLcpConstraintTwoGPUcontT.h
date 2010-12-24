@@ -15,7 +15,7 @@
 ///////////////////////////////////////////////////
 
 
-
+#include "ChApiGPU.h"
 #include "lcp/ChLcpConstraintTwo.h"
 #include "lcp/ChLcpVariables.h"
 
@@ -26,7 +26,7 @@ namespace chrono
 /// Base class for friction constraints (see specialized children classes
 /// for more details - this is mostly an interface)
 
-class ChLcpConstraintTwoGPUcontT : public ChLcpConstraintTwo
+class ChApiGPU ChLcpConstraintTwoGPUcontT : public ChLcpConstraintTwo
 {
 	CH_RTTI(ChLcpConstraintTwoGPUcontT, ChLcpConstraintTwo)
 
