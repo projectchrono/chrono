@@ -8,7 +8,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
  
-#ifdef CH_UNIT_CUDA 
+#ifdef CH_UNIT_GPU 
   
  
 #include "ChCModelGPUBody.h" 
@@ -54,4 +54,4 @@ void ChModelGPUBody::SyncPosition()
 
 
 
-#endif  // end of ! CH_UNIT_CUDA
+#endif  // end of ! CH_UNIT_GPU

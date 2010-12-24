@@ -1,7 +1,7 @@
 #ifndef CHLCPITERATIVESOLVERGPUSIMPLE_H
 #define CHLCPITERATIVESOLVERGPUSIMPLE_H
 
-#ifdef CH_UNIT_CUDA
+#ifdef CH_UNIT_GPU
 
 ///////////////////////////////////////////////////
 //
@@ -16,7 +16,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
+#include "ChApiGPU.h"
 #include "lcp/ChLcpIterativeSolver.h"
 #include "ChContactContainerGPUsimple.h"
 
@@ -163,7 +163,7 @@ private:
 } // END_OF_NAMESPACE____
 
 
-#endif  // end of  CH_UNIT_CUDA
+#endif  // end of  CH_UNIT_GPU
 
 
 #endif 

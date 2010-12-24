@@ -18,7 +18,7 @@
 ///////////////////////////////////////////////////
 
 
-
+#include "ChApiGPU.h"
 #include "physics/ChContactContainerBase.h"
 #include "ChContactGPUsimple.h"
 #include <list>

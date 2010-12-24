@@ -1,7 +1,7 @@
 #ifndef CHC_COLLISIONSYSTEMGPU_H
 #define CHC_COLLISIONSYSTEMGPU_H
 
-#ifdef CH_UNIT_CUDA 
+#ifdef CH_UNIT_GPU 
 
 //////////////////////////////////////////////////
 //  
@@ -119,7 +119,7 @@ namespace chrono
 } // END_OF_NAMESPACE____
 
 
-#endif  // end of ! CH_UNIT_CUDA
+#endif  // end of ! CH_UNIT_GPU
 
 #endif
 

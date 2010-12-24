@@ -1,4 +1,4 @@
-#ifdef CH_UNIT_CUDA 
+#ifdef CH_UNIT_GPU 
 
 ///////////////////////////////////////////////////
 //
@@ -60,5 +60,5 @@ void ChLcpConstraintTwoGPUcontN::StreamIN(ChStreamInBinary& mstream)
 
 
 
-#endif  // end of  CH_UNIT_CUDA
+#endif  // end of  CH_UNIT_GPU
  
