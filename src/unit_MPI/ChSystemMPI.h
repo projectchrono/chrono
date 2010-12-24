@@ -26,7 +26,7 @@ namespace chrono
 /// Class for a specialized version of ChSystem that can be used
 /// in projects that run on multiple computing nodes (MPI)
 
-class ChSystemMPI : public ChSystem
+class ChApiMPI ChSystemMPI : public ChSystem
 {
 public:
 

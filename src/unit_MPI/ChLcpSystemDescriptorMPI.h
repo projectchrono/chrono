@@ -17,7 +17,7 @@
 ///////////////////////////////////////////////////
 
 
-
+#include "unit_MPI/ChApiMPI.h"
 #include "lcp/ChLcpSystemDescriptor.h"
 #include "ChDomainNodeMPI.h"
 
@@ -33,7 +33,7 @@ namespace chrono
 /// a vector of shared variables must be sorted before sending
 /// it via MPI (so that the other domain can remap in its shared vars).
 
-class ChLcpSharedVarMPI
+class ChApiMPI ChLcpSharedVarMPI
 {
 public:
 	ChLcpVariables*	var;
@@ -49,7 +49,7 @@ public:
 /// Class for defining a vector of variables of a domain that are
 /// shared with another domain (that can be reached via MPI)
 
-class ChLcpSharedInterfaceMPI
+class ChApiMPI ChLcpSharedInterfaceMPI
 {
 protected:
 	std::vector<ChLcpSharedVarMPI>  sharedvariables;
@@ -125,7 +125,7 @@ public:
 /// computers, if some Lcp solver that supports
 /// domain decomposition is used.
 
-class ChLcpSystemDescriptorMPI : public ChLcpSystemDescriptor
+class ChApiMPI ChLcpSystemDescriptorMPI : public ChLcpSystemDescriptor
 {
 
 protected:
@@ -188,7 +188,7 @@ public:
 /// complementarity problems, where the decomposition
 /// corresponds to a 3D cubic lattice partitioning of the space.
 
-class ChSystemDescriptorMPIlattice3D : public ChLcpSystemDescriptorMPI
+class ChApiMPI ChSystemDescriptorMPIlattice3D : public ChLcpSystemDescriptorMPI
 {
 
 public:

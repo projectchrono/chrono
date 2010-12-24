@@ -17,7 +17,7 @@
 ///////////////////////////////////////////////////
 
 
-
+#include "unit_MPI/ChApiMPI.h"
 #include "lcp/ChLcpIterativeSolver.h"
 
 
@@ -30,7 +30,7 @@ namespace chrono
 /// that can communicate via MPI. Hence, the solution
 /// comes from a Schwarz alternating method.
 
-class ChLcpIterativeSchwarzMPI : public ChLcpIterativeSolver
+class ChApiMPI ChLcpIterativeSchwarzMPI : public ChLcpIterativeSolver
 {
 protected:
 			//

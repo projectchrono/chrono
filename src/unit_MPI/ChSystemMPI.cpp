@@ -585,12 +585,6 @@ void ChSystemMPI::InterDomainSetup()
 				hiterator->second.item->GetTotalAABB(bbmin, bbmax);
 				hiterator->second.item->GetCenter(center);
 				
-				if (hiterator->second.item->GetIdentifier() == 5)
-				{
-					GetLog() << "ID=" << this->nodeMPI.id_MPI << "     int." << this->nodeMPI.interfaces[ni].id_MPI << " key 5: center " << center.x << " " << center.y << " " << center.z << " IsInto=" << this->nodeMPI.IsInto(center) << "   bbox ";
-					GetLog() << " " << bbmin.x << " " << bbmin.y << " " << bbmin.z << "   " << bbmax.x << " " << bbmax.y << " " << bbmax.z << "\n";
-				}
-
 				hiterator->second.type = ChInterfaceItem::INTERF_SLAVESLAVE;
 
 				if (this->nodeMPI.IsIntoInterface(ni,center))

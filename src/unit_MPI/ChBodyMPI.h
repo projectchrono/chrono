@@ -16,10 +16,8 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
-
-#include "physics/ChBody.h"
 #include "ChMpi.h"
+#include "physics/ChBody.h"
 #include "ChDomainNodeMPI.h"
 
 
@@ -29,7 +27,7 @@ namespace chrono
 /// Class for rigid bodies that can be used in MPI.
 /// These are able to cross boundaries of domain decomposition.
 
-class ChBodyMPI : public ChBody 
+class ChApiMPI ChBodyMPI : public ChBody 
 {
 public:
 						// Chrono simulation of RTTI, needed for serialization

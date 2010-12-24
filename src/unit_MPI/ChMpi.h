@@ -15,6 +15,7 @@
 ///////////////////////////////////////////////////
 
 
+#include "unit_MPI/ChApiMPI.h"
 #include "core/ChLog.h"
 #include "core/ChMath.h"
 
@@ -25,7 +26,7 @@ namespace chrono
 /// Class that wraps MPI_request structure, allowing to use
 /// the ChMPI functions without having to include MPI headers.
 
-class ChMPIrequest
+class ChApiMPI ChMPIrequest
 {
 public:
 	ChMPIrequest();
@@ -37,7 +38,7 @@ public:
 /// Class that wraps MPI_status structure, allowing to use
 /// the ChMPI functions without having to include MPI headers.
 
-class ChMPIstatus
+class ChApiMPI ChMPIstatus
 {
 public:
 	ChMPIstatus();
@@ -49,7 +50,7 @@ public:
 /// Class that wraps a basic MPI_File object, allowing to use
 /// the ChMPI functions without having to include MPI headers.
 
-class ChMPIfile
+class ChApiMPI ChMPIfile
 {
 public:
 	ChMPIfile(char* filename, int flags = CHMPI_MODE_WRONLY | CHMPI_MODE_CREATE );
@@ -75,7 +76,7 @@ public:
 /// functions for send/receive, expecially adapted for 
 /// communicating ChMatrix objects and binary streams.
 
-class ChMPI
+class ChApiMPI ChMPI
 {
 public:
 	/// Initialize MPI context. Must be called at the beginning of the program.
@@ -156,7 +157,7 @@ public:
 							);
 };
 
-class Ch_test_mpi
+class ChApiMPI Ch_test_mpi
 {
 public:
 	void run_test();

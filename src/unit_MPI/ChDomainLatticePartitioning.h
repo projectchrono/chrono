@@ -14,7 +14,6 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
 #include "ChMpi.h"
 #include "ChDomainNodeMPI.h"
 
@@ -28,7 +27,7 @@ namespace chrono
 /// easily setup the topology defined by the ChSystemDescriptorMPIlattice3D 
 /// objects.
 
-class ChDomainLatticePartitioning
+class ChApiMPI ChDomainLatticePartitioning
 {
 public:
 	ChDomainLatticePartitioning(int mx_domains, 

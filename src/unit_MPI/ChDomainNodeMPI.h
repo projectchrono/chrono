@@ -29,7 +29,7 @@ namespace chrono
 /// is is small data, just a bit more than a pointer (it also has
 /// info telling which side of the interface is the 'master')
 
-class ChInterfaceItem
+class ChApiMPI ChInterfaceItem
 {
 public:
 	enum eChInterfaceItemType
@@ -49,7 +49,7 @@ public:
 /// Class for connectivity between nodes in a MPI 
 /// multi-domain environment
 
-class ChDomainNodeInterfaceMPI
+class ChApiMPI ChDomainNodeInterfaceMPI
 {
 public:
 	int id_MPI;
@@ -96,7 +96,7 @@ public:
 /// Class for a node in a MPI 
 /// multi-domain environment
 
-class ChDomainNodeMPI
+class ChApiMPI ChDomainNodeMPI
 {
 public:
 	int id_MPI;
@@ -122,7 +122,7 @@ public:
 /// Class for a node in a MPI multi-domain environment
 /// splitted as a 3D lattice
 
-class ChDomainNodeMPIlattice3D : public ChDomainNodeMPI
+class ChApiMPI ChDomainNodeMPIlattice3D : public ChDomainNodeMPI
 {
 public:
 	ChVector<> min_box;

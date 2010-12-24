@@ -1,0 +1,66 @@
+#
+# Hand-made makefile for building the library of this unit
+#
+# 
+
+include ../../makes/config.mak 
+     
+	# From now on, thank to config.mak, some useful variables
+	# have been automatically set.
+
+	
+# List of files to compile to make the 'Chrono for MPI' library unit
+
+CPPFILES_LIB_MPI = \
+	ChMpi.cpp \
+	ChLcpSystemDescriptorMPI.cpp \
+	ChLcpIterativeSchwarzMPI.cpp \
+	ChSystemMPI.cpp \
+	ChBodyMPI.cpp\
+	ChDomainLatticePartitioning.cpp
+	
+
+# Rules for compilation
+
+
+OFILES_LIB_MPI= $(CPPFILES_LIB_MPI:.cpp=.obj)
+
+.SUFFIXES:
+.SUFFIXES: .cpp .c .obj .cu
+
+.cpp.obj:
+	$(CC) $(CH_COMPILERFLAGS) -DCH_API_COMPILE_UNIT_MPI $(CH_INCLUDES) -c $< $(CH_COMPILERFLAG_FILEOUT)"$*.obj"
+
+
+# TARGETS
+ 
+
+# For default building: deletes objects, creates the library, creates the
+# API documentation with doxygen, etc.
+
+all: clean lib doxygen
+
+ 
+
+# For building .lib, .DLL etc.
+#
+
+
+lib: $(CH_MPILIB_MAKETARGET)
+
+lib_chronoengineMPI: $(OFILES_LIB_MPI) 
+	$(LD) $(CH_LINKSHAREDFLAGS) \
+	      $(CH_CHRONOLIB) \
+	      $(CH_MPILIB) \
+	      $(OFILES_LIB_MPI) \
+	      $(CH_LINKERFLAG_FILEOUT)"$(CH_CHRONOMPISHAREDLNAME)" \
+	      $(CH_LINKERFLAG_IMPLIB)"$(CH_CHRONOMPILIBRARYNAME)"
+	$(MT) -manifest "$(CH_BINDIR)/$(CH_LIBNAME)_MPI.dll.manifest" -outputresource:"$(CH_BINDIR)/$(CH_LIBNAME)_MPI.dll";#2
+	$(DEL) "$(CH_BINDIR)$(D)$(CH_LIBNAME)_MPI.dll.manifest"
+
+
+# For cleaning all the .o, .obj, and other intermediate files
+
+clean:
+	$(DEL) *.obj
+	$(DEL) *.o

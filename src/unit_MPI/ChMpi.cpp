@@ -7,7 +7,7 @@
 //             www.deltaknowledge.com
 // ------------------------------------------------
 ///////////////////////////////////////////////////
-
+ 
 
 #include "mpi.h"
 #include <iostream>
@@ -15,6 +15,14 @@
 #include <math.h>
 
 #include "unit_MPI/ChMpi.h"
+
+
+#ifndef CH_API_COMPILE_UNIT_MPI
+#error Warning! You are compiling the MPI unit of Chrono::Engine, \
+	so you need to define CH_API_COMPILE_UNIT_MPI (add that symbol \
+	to the compiler defines, for all compiled files in this unit). 
+#endif 
+
 
 using namespace std;
 
