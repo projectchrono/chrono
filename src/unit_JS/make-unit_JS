@@ -1,0 +1,80 @@
+#
+# Hand-made makefile for building the library of this unit
+#
+# 
+
+include ../../makes/config.mak 
+     
+	# From now on, thank to config.mak, some useful variables
+	# have been automatically set.
+
+	
+# List of files to compile to make the 'javascript for Chrono' library unit
+
+CPPFILES_LIB_JS = \
+	ChGlobalJS.cpp \
+	ChControlsJS.cpp \
+	ChFunctionJS.cpp \
+	ChFxJavascript.cpp \
+	ChOptvar.cpp \
+	ChJs_Engine.cpp \
+	ChJs_utils.cpp \
+	ChJs_all.cpp \
+	ChJs_math.cpp \
+	ChJs_chobject.cpp \
+	ChJs_system.cpp \
+	ChJs_body.cpp \
+	ChJs_marker.cpp \
+	ChJs_force.cpp \
+	ChJs_link.cpp \
+	ChJs_funct.cpp \
+	ChJs_optimizer.cpp \
+	ChJs_geometry.cpp \
+	ChJs_controller.cpp \
+	ChJs_constraint.cpp \
+	ChJs_impact.cpp 
+	
+	
+
+# Rules for compilation
+
+OFILES_LIB_JS= $(CPPFILES_LIB_JS:.cpp=.obj) 
+
+.SUFFIXES:
+.SUFFIXES: .cpp .c .obj .cu
+
+.cpp.obj:
+	$(CC) $(CH_COMPILERFLAGS) -DCH_API_COMPILE_UNIT_JS $(CH_INCLUDES) -c $< $(CH_COMPILERFLAG_FILEOUT)"$*.obj"
+
+
+# TARGETS
+ 
+
+# For default building: deletes objects, creates the library, creates the
+# API documentation with doxygen, etc.
+
+all: clean lib doxygen
+
+ 
+
+# For building .lib, .DLL etc.
+#
+
+
+lib: $(CH_JAVASCRIPTLIB_MAKETARGET)
+
+lib_chronoengineJS: $(OFILES_LIB_JS) 
+	$(LD) $(CH_LINKSHAREDFLAGS) \
+	      $(CH_CHRONOLIB) \
+	      $(CH_JAVASCRIPTLIB) \
+	      $(OFILES_LIB_JS) \
+	      $(CH_LINKERFLAG_FILEOUT)"$(CH_CHRONOJSSHAREDLNAME)"  \
+	      $(CH_LINKERFLAG_IMPLIB)"$(CH_CHRONOJSLIBRARYNAME)"
+	$(MT) -manifest "$(CH_BINDIR)/$(CH_LIBNAME)_JS.dll.manifest" -outputresource:"$(CH_BINDIR)/$(CH_LIBNAME)_JS.dll";#2
+	$(DEL) "$(CH_BINDIR)$(D)$(CH_LIBNAME)_JS.dll.manifest"
+	
+# For cleaning all the .o, .obj, and other intermediate files
+
+clean:
+	$(DEL) *.obj
+	$(DEL) *.o

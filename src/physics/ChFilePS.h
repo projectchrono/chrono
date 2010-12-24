@@ -30,7 +30,7 @@ namespace chrono
 /// Class for x,y coordinate 
 /// on a PostScript page
 
-class ChPageVect {
+class ChApi ChPageVect {
 public:
 	double x;
 	double y; 
@@ -39,7 +39,7 @@ public:
 /// Class for RGB color for a PostScript
 /// item (line, circle, etc)
 
-class ChFile_ps_color {
+class ChApi ChFile_ps_color {
 public:
 	double r;
 	double g;
@@ -72,7 +72,7 @@ static char *ch_font_labels[] = {
 /// Class for settings of an axis (x or y, or t) of a 2D 
 /// plotting of a function on a EPS file.
 
-class ChFile_ps_axis_setting {
+class ChApi ChFile_ps_axis_setting {
 public:
 	bool			axis;
 	ChFile_ps_color axis_color;
@@ -100,7 +100,7 @@ public:
 /// Class for generic settings of a 2D 
 /// plotting of a function on a EPS file.
 
-class ChFile_ps_graph_setting {
+class ChApi ChFile_ps_graph_setting {
 public:
 	ChFile_ps_axis_setting Xaxis;
 	ChFile_ps_axis_setting Yaxis;
@@ -136,7 +136,7 @@ public:
 /// PostScript (TM) files incuding vectorial plots,
 /// graphs, lines, fonts, etc.
 
-class ChFile_ps : public ChStreamOutAsciiFile 
+class ChApi ChFile_ps : public ChStreamOutAsciiFile 
 {
 protected:
 
@@ -276,8 +276,8 @@ public:
 };
  
 
-extern ChPageVect pv_set(double x, double y);
-extern ChPageVect pv_set(Vector mv);
+extern ChApi ChPageVect pv_set(double x, double y);
+extern ChApi ChPageVect pv_set(Vector mv);
 
 #define PS_SPACE_PAGE  0
 #define PS_SPACE_GRAPH 1

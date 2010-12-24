@@ -47,7 +47,7 @@ class ChShaft;
 ///  output, the planetary gear have two inputs and one 
 ///  output (or, if you prefer, one input and two outputs).
 
-class ChShaftsPlanetary : public ChPhysicsItem {
+class ChApi ChShaftsPlanetary : public ChPhysicsItem {
 
 						// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChShaftsPlanetary,ChPhysicsItem);

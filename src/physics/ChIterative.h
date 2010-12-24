@@ -18,7 +18,7 @@
 
 
 #include <math.h>
-
+#include "core/ChApiCE.h"
 #include "core/ChMath.h"
 
 namespace chrono 
@@ -52,6 +52,7 @@ namespace chrono
 ///              as 3rd parameter, so it may be useful to pass some pointer to application, 
 ///              geometric or modeling data, etc., then avoiding the use of global vars.)
 
+ChApi 
 int ch_iterative_TFQMR(ChMatrix<>& x, ChMatrix<>& b,
 	  void (*SolveAX) (ChMatrix<>& inX, ChMatrix<>& outB, void* userdata),
 	  void (*M1_solve)(ChMatrix<>& eIn, ChMatrix<>& eOut, void* userdata),
@@ -63,6 +64,7 @@ int ch_iterative_TFQMR(ChMatrix<>& x, ChMatrix<>& b,
 
 /// As before, but with less parameters, easier to use.
 
+ChApi 
 int ch_iterative_TFQMR_easy(ChMatrix<>& A, ChMatrix<>& x, ChMatrix<>& b,
 	  double mkappa, int iterations);
 

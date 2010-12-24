@@ -36,7 +36,7 @@ namespace chrono
 /// This constraint can behave also as a clutch.
 ///
 
-class ChLinkBrake : public ChLinkLock {
+class ChApi ChLinkBrake : public ChLinkLock {
 
 	CH_RTTI(ChLinkBrake,ChLinkLock);
 

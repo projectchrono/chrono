@@ -25,7 +25,7 @@ namespace chrono
 
 //  To build a tree list of properties for objects
 
-class chjs_propdata {
+class ChApi chjs_propdata {
 public:
 	char propname[100];
 	char label[100];
@@ -33,7 +33,7 @@ public:
 	int haschildren;
 };
 
-class chjs_fullnamevar {
+class ChApi chjs_fullnamevar {
 public:
 	char propname[200];
 	char label[100];

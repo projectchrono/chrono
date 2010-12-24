@@ -38,7 +38,7 @@ namespace chrono
 /// an engine with a torque/speed custom curve. etc.
 ///
 
-class ChLinkEngine : public ChLinkLock {
+class ChApi ChLinkEngine : public ChLinkLock {
 
 	CH_RTTI(ChLinkEngine,ChLinkLock);
 

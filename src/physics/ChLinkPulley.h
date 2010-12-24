@@ -37,7 +37,7 @@ namespace chrono
 /// this link constraints only the rotation.
 ///
 
-class ChLinkPulley : public ChLinkLock {
+class ChApi ChLinkPulley : public ChLinkLock {
 
 	CH_RTTI(ChLinkPulley,ChLinkLock);
 

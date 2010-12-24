@@ -19,7 +19,7 @@
 
 
 #include <stdlib.h>
-
+#include "core/ChApiCE.h"
 #include "core/ChMath.h"
 #include "core/ChShared.h"
 
@@ -33,7 +33,7 @@ namespace chrono
 /// rows and three columns, that are symmetric.
 
 template <class Real = double>
-class ChVoightTensor : public ChMatrixNM<Real,6,1>
+class ChApi ChVoightTensor : public ChMatrixNM<Real,6,1>
 {
 public:
 					/// Constructors (default empty)
@@ -158,7 +158,7 @@ public:
 /// that is with 6 components in a column. 
 
 template <class Real = double>
-class ChStressTensor : public ChVoightTensor<Real>
+class ChApi ChStressTensor : public ChVoightTensor<Real>
 {
 public:
 
@@ -169,7 +169,7 @@ public:
 /// that is with 6 components in a column. 
 
 template <class Real = double>
-class ChStrainTensor : public ChVoightTensor<Real>
+class ChApi ChStrainTensor : public ChVoightTensor<Real>
 {
 public:
 
@@ -182,7 +182,7 @@ public:
 /// Base class for properties of materials 
 /// in a continuum. 
 
-class ChContinuumMaterial : public ChShared
+class ChApi ChContinuumMaterial : public ChShared
 {
 private:
 	double density;
@@ -213,7 +213,7 @@ public:
 /// This is a base material with isothropic hookean 
 /// elasticity.
 
-class ChContinuumElastic : public ChContinuumMaterial
+class ChApi ChContinuumElastic : public ChContinuumMaterial
 {
 private:
 
@@ -320,7 +320,7 @@ public:
 /// Class for all elastic materials that can undergo plastic flow
 /// Defines simply some interface functions.
 
-class ChContinuumElastoplastic : public ChContinuumElastic
+class ChApi ChContinuumElastoplastic : public ChContinuumElastic
 {
 public:
 	ChContinuumElastoplastic(double myoung = 10000000, double mpoisson=0.4, double mdensity=1000) : ChContinuumElastic(myoung,mpoisson,mdensity) {};
@@ -354,7 +354,7 @@ public:
 /// in an elastoplastic continuum, with strain yeld limit
 /// based on Von Mises yeld
 
-class ChContinuumPlasticVonMises : public ChContinuumElastoplastic
+class ChApi ChContinuumPlasticVonMises : public ChContinuumElastoplastic
 {
 private:
 
@@ -429,7 +429,7 @@ public:
 /// of Drucker-Prager type, that are useful for simulating
 /// soils
 
-class ChContinuumDruckerPrager : public ChContinuumElastoplastic
+class ChApi ChContinuumDruckerPrager : public ChContinuumElastoplastic
 {
 private:
 

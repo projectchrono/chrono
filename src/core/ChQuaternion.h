@@ -19,6 +19,7 @@
 
 
 #include "core/ChVector.h"
+#include "ChApiCE.h"
 
 
 namespace chrono
@@ -586,33 +587,33 @@ typedef ChQuaternion<float>  QuaternionF;
 // these functions - use the member functions or operators of 
 // the ChQuaternion class instead!
 
-double		Qlenght (Quaternion q);
-Quaternion	Qadd (Quaternion qa, Quaternion qb);
-Quaternion	Qsub (Quaternion qa, Quaternion qb);
-Quaternion	Qscale (Quaternion q, double fact);
-Quaternion	Qnorm (Quaternion q);
-Quaternion	Q_from_AngAxis (double angle, Vector axis);
-Quaternion  Q_from_NasaAngles(Vector RxRyRz);
-Vector      Q_to_NasaAngles(Quaternion mq);
-Quaternion  Q_from_AngZ (double angleZ);
-Quaternion  Q_from_AngX (double angleX);
-Quaternion  Q_from_AngY (double angleY);
-void		Q_to_AngAxis (Quaternion* quat, double* a_angle, Vector* a_axis);
-Quaternion	Qdt_from_Wrel (Vector w, Quaternion q);
-Quaternion	Qdt_from_Wabs (Vector w, Quaternion q);
-Quaternion	Qdt_from_AngAxis (Quaternion quat, double angle_dt, Vector axis);
-Quaternion	Qdtdt_from_Aabs (Vector a, Quaternion q, Quaternion q_dt);
-Quaternion	Qdtdt_from_Arel (Vector a, Quaternion q, Quaternion q_dt);
-Quaternion	Qdtdt_from_AngAxis (double angle_dtdt, Vector axis, Quaternion q, Quaternion q_dt);
-Quaternion	Qconjugate (Quaternion q);
-Quaternion	Qcross (Quaternion qa, Quaternion qb);
-int			Qequal (Quaternion* qa, Quaternion* qb);
-int			Qnotnull (Quaternion* qa);
-Quaternion  ImmQ_complete (Vector* qimm);
-Quaternion  ImmQ_dt_complete (Quaternion* mq, Vector* qimm_dt);
-Quaternion  ImmQ_dtdt_complete (Quaternion* mq, Quaternion* mqdt, Vector* qimm_dtdt);
+ChApi double		Qlenght (Quaternion q);
+ChApi Quaternion	Qadd (Quaternion qa, Quaternion qb);
+ChApi Quaternion	Qsub (Quaternion qa, Quaternion qb);
+ChApi Quaternion	Qscale (Quaternion q, double fact);
+ChApi Quaternion	Qnorm (Quaternion q);
+ChApi Quaternion	Q_from_AngAxis (double angle, Vector axis);
+ChApi Quaternion	Q_from_NasaAngles(Vector RxRyRz);
+ChApi Vector		Q_to_NasaAngles(Quaternion mq);
+ChApi Quaternion	Q_from_AngZ (double angleZ);
+ChApi Quaternion	Q_from_AngX (double angleX);
+ChApi Quaternion	Q_from_AngY (double angleY);
+ChApi void			Q_to_AngAxis (Quaternion* quat, double* a_angle, Vector* a_axis);
+ChApi Quaternion	Qdt_from_Wrel (Vector w, Quaternion q);
+ChApi Quaternion	Qdt_from_Wabs (Vector w, Quaternion q);
+ChApi Quaternion	Qdt_from_AngAxis (Quaternion quat, double angle_dt, Vector axis);
+ChApi Quaternion	Qdtdt_from_Aabs (Vector a, Quaternion q, Quaternion q_dt);
+ChApi Quaternion	Qdtdt_from_Arel (Vector a, Quaternion q, Quaternion q_dt);
+ChApi Quaternion	Qdtdt_from_AngAxis (double angle_dtdt, Vector axis, Quaternion q, Quaternion q_dt);
+ChApi Quaternion	Qconjugate (Quaternion q);
+ChApi Quaternion	Qcross (Quaternion qa, Quaternion qb);
+ChApi int			Qequal (Quaternion* qa, Quaternion* qb);
+ChApi int			Qnotnull (Quaternion* qa);
+ChApi Quaternion	ImmQ_complete (Vector* qimm);
+ChApi Quaternion	ImmQ_dt_complete (Quaternion* mq, Vector* qimm_dt);
+ChApi Quaternion	ImmQ_dtdt_complete (Quaternion* mq, Quaternion* mqdt, Vector* qimm_dtdt);
 
-Vector	    VaxisXfromQuat (Quaternion quat);
+ChApi Vector	    VaxisXfromQuat (Quaternion quat);
 
 
 //
@@ -631,11 +632,11 @@ Vector	    VaxisXfromQuat (Quaternion quat);
 
 	// Angle conversion utilities
 
-Vector     Quat_to_Angle (int angset, Quaternion* mquat);
-Vector	   Angle_to_Angle(int setfrom, int setto, Vector* mangles);
-Quaternion Angle_to_Quat (int angset, Vector* mangles);
-Quaternion AngleDT_to_QuatDT (int angset, Vector* mangles, Quaternion* q);
-Quaternion AngleDTDT_to_QuatDTDT (int angset, Vector* mangles, Quaternion* q);
+ChApi Vector     Quat_to_Angle (int angset, Quaternion* mquat);
+ChApi Vector	 Angle_to_Angle(int setfrom, int setto, Vector* mangles);
+ChApi Quaternion Angle_to_Quat (int angset, Vector* mangles);
+ChApi Quaternion AngleDT_to_QuatDT (int angset, Vector* mangles, Quaternion* q);
+ChApi Quaternion AngleDTDT_to_QuatDTDT (int angset, Vector* mangles, Quaternion* q);
 
 
 

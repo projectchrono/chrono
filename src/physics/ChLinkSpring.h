@@ -37,7 +37,7 @@ namespace chrono
 /// distance of two markers
 ///
 
-class ChLinkSpring : public ChLinkMarkers {
+class ChApi ChLinkSpring : public ChLinkMarkers {
 
 	CH_RTTI(ChLinkSpring,ChLinkMarkers);
 

@@ -39,7 +39,7 @@ namespace chrono
 /// two points which move respect to the bodies, please use 
 /// the more advanced ChLinkLinActuator.
 
-class ChLinkDistance : public ChLinkGeometric {
+class ChApi ChLinkDistance : public ChLinkGeometric {
 
 	CH_RTTI(ChLinkDistance,ChLinkGeometric);
 

@@ -16,6 +16,7 @@
 #include <math.h>
 #include <float.h>
 #include <assert.h>
+#include "ChApiCE.h"
 
 
 //
@@ -73,6 +74,7 @@ static const double BDF_STEP_TOOLOW  = 1.e-20;
 
 
 			/// Computes the atan2, returning angle given cosine and sine.
+ChApi
 double ChAtan2(double mcos, double msin);
 
 
@@ -84,13 +86,16 @@ double ChAtan2(double mcos, double msin);
 
 
 	/// Returns random value in (0..1) interval with Park-Miller method
+ChApi
 double ChRandom();
 
 	/// Sets the seed of the ChRandom function 	(Park-Miller method)
+ChApi
 void ChSetRandomSeed (long newseed);
 	
 
 	/// Computes a 1D harmonic multi-octave noise 
+ChApi
 double ChNoise(double x, double amp, double freq, int octaves, double amp_ratio); 
 
 
@@ -105,6 +110,7 @@ inline double ChMin( double a , double b ){   if( a < b ) return a;   return b;}
 
 	/// Parameter make periodic in 0..1 
 	/// (using 0..1 modulus if closed, otherwise clamping in 0..1 range)
+ChApi
 void ChPeriodicPar(double& u, int closed); 
 
 

@@ -49,7 +49,7 @@ namespace chrono
 /// Linear brick element, 3d constant stress, for Finite Element methods
 /// Uses the parametric element theory.
 
-class ChFelem_BrickLinear : public ChFelem
+class ChApi ChFelem_BrickLinear : public ChFelem
 {
 private:
 	static ChMatrix<>* Ematr;

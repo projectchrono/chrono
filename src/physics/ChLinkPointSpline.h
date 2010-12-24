@@ -38,7 +38,7 @@ namespace chrono
 /// curvilinear glyphs, etc.
 ///
 
-class ChLinkPointSpline : public ChLinkLock {
+class ChApi ChLinkPointSpline : public ChLinkLock {
 
 	CH_RTTI(ChLinkPointSpline,ChLinkLock);
 

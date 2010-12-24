@@ -41,7 +41,7 @@ namespace chrono
 /// ChLcpConstraintTwoFriction objects to call a projection on the cone, by
 /// modifying all the three components (normal, u, v) at once.
 
-class ChLcpConstraintTwoContactN : public ChLcpConstraintTwoBodies
+class ChApi ChLcpConstraintTwoContactN : public ChLcpConstraintTwoBodies
 {
 	CH_RTTI(ChLcpConstraintTwoContactN, ChLcpConstraintTwoBodies)
 

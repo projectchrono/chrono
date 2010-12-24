@@ -18,6 +18,7 @@
 
 
 #include "physics/ChFunction.h"
+#include "unit_JS/ChApiJS.h"
 
 
 struct JSScript; // forward reference;
@@ -28,7 +29,7 @@ namespace chrono
 
 
 
-class ChFunctionOptvarToolsJS
+class ChApiJS ChFunctionOptvarToolsJS
 {
 public:
 	static int OptVariablesToVector(ChFunction* funct, ChMatrix<>* mv, int offset);
@@ -48,7 +49,7 @@ public:
 /// y = javascript evaluation of function y=f(x)  
 /// 
 
-class ChFunction_Jscript : public ChFunction
+class ChApiJS ChFunction_Jscript : public ChFunction
 {
 	CH_RTTI(ChFunction_Jscript, ChFunction);
 

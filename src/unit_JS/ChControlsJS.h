@@ -22,6 +22,7 @@
 
 #include "physics/ChControls.h"
 #include "physics/ChGlobal.h"
+#include "unit_JS/ChApiJS.h"
 
 
 // forward reference
@@ -39,7 +40,7 @@ namespace chrono
 ///
 
 
-class ChControlsJS : public ChControls 
+class ChApiJS ChControlsJS : public ChControls 
 {
 								// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChControlsJS,ChControls);

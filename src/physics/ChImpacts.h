@@ -32,7 +32,7 @@ class ChLink;
 /// integration step. The PSystem object will process the list of Ch_Impact 
 /// datas at once.
 
-class ChImpact {
+class ChApi ChImpact {
 private:
 				// Absolute position where the impact must be applied (impact point position)
 	Vector Pabs;

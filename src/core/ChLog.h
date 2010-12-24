@@ -18,7 +18,7 @@
 
 #include <assert.h>
 #include "ChStream.h"
-
+#include "ChApiCE.h"
 
 
 namespace chrono
@@ -35,7 +35,7 @@ namespace chrono
 /// for example output to console, to windows, etc. by inheriting
 /// custom classes. See below, an example for logging to std::cout
 
-class ChLog : public ChStreamOutAscii  
+class ChApi ChLog : public ChStreamOutAscii  
 {
 public:
 
@@ -100,7 +100,7 @@ private:
 /// Messages, warnings, etc. go always into the standard console.
 
 
-class ChLogConsole : public ChLog , public ChStreamOstreamWrapper  
+class ChApi ChLogConsole : public ChLog , public ChStreamOstreamWrapper  
 {
 public:
 			/// Create default logger: this will use the std::cout
@@ -127,6 +127,7 @@ private:
  
 
 /// Global function to get the current ChLog object
+ChApi
 ChLog& GetLog();
 
 /// Global function to set another ChLog object as current 'global' logging system.
@@ -138,9 +139,11 @@ ChLog& GetLog();
 ///   chrono::GetLog() << "message";
 ///
 
+ChApi
 void   SetLog(ChLog& new_logobject);
 
 /// Global function to set the default ChLogConsole output to std::output.
+ChApi
 void   SetLogDefault();
 
 

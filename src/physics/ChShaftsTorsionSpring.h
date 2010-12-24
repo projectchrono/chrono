@@ -37,7 +37,7 @@ namespace chrono
 ///  simulating power trains modeled with full 3D ChBody
 ///  objects. 
 
-class ChShaftsTorsionSpring : public ChShaftsCouple {
+class ChApi ChShaftsTorsionSpring : public ChShaftsCouple {
 
 						// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChShaftsTorsionSpring,ChShaftsCouple);

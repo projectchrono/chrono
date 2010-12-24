@@ -40,7 +40,7 @@ class ChSystem;
 /// Class for a single 'point' node, that has 3 DOF degrees of
 /// freedom and a mass.
 
-class ChNodeBase    
+class ChApi ChNodeBase    
 {
 public:
 	ChNodeBase ();
@@ -90,7 +90,7 @@ public:
 /// be accessed with an index.
 /// Must be inherited by children classes.
 
-class ChIndexedNodes : public ChPhysicsItem
+class ChApi ChIndexedNodes : public ChPhysicsItem
 {
 						// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChIndexedNodes,ChPhysicsItem);

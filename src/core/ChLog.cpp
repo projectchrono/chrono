@@ -17,7 +17,12 @@
 #include "ChLog.h"
 
 
-
+// This check is here, but could be in any other C::E cpp source.
+#ifndef CH_API_COMPILE
+#error Warning! You are compiling the Chrono::Engine library, \
+	so you need to define CH_API_COMPILE (add that symbol \
+	to the compiler defines, for all compiled files in this unit). 
+#endif 
 
 
 namespace chrono

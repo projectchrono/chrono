@@ -35,7 +35,7 @@ namespace collision
 /// that are collections of frame-like items (each with 6 DOFs). 
 /// Uses features of the Bullet library.
 
-class ChModelBulletParticle : public ChModelBullet
+class ChApi ChModelBulletParticle : public ChModelBullet
 {
 
 public:

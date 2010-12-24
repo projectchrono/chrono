@@ -34,7 +34,7 @@ namespace chrono
 /// link type is able to couple translation and rotation.
 ///
 
-class ChLinkScrew : public ChLinkLock {
+class ChApi ChLinkScrew : public ChLinkLock {
 
 	CH_RTTI(ChLinkScrew,ChLinkLock);
 

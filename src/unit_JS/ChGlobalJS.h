@@ -20,7 +20,7 @@
 #include <math.h>
 
 #include "core/ChLog.h"
-
+#include "unit_JS/ChApiJS.h"
 
 
 namespace chrono 
@@ -35,7 +35,7 @@ namespace chrono
 /// access in all parts of the code 
 
 
-class ChGlobalsJS
+class ChApiJS ChGlobalsJS
 {
 private:
 
@@ -83,13 +83,15 @@ extern ChGlobalsJS* GLOBAL_VarsJS;	//***DEPRECATED*** , rather use the following
 	/// Global function to get the current ChGlobalsJS object
 	/// (this is an easy way to access a single instance of globally visible
 	/// data)
+ChApiJS
 ChGlobalsJS& CHGLOBALS_JS();
 
 	/// Create an istance of ChGlobalsJS, then use this function at the beginning 
 	/// of your program to set it as a globally visible data. 
 	/// So that following calls to CHGLOBALS_JS() will always return it.
 	/// If setting 0, the default static globals will be returned by CHGLOBALS_JS().
-void SetCHGLOBALS_JS(ChGlobalsJS* my_globals);
+ChApiJS
+void ChApiJS SetCHGLOBALS_JS(ChGlobalsJS* my_globals);
 
 
 

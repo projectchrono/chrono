@@ -39,7 +39,7 @@ class ChSystem;
 /// rigid bodies, mechanical joints, etc.
 
 
-class ChPhysicsItem :  public ChObj {
+class ChApi ChPhysicsItem :  public ChObj {
 
 	CH_RTTI(ChPhysicsItem,ChObj);
 

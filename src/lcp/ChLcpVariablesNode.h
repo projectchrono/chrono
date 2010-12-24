@@ -33,7 +33,7 @@ namespace chrono
 ///   associate variables (a 3 element vector, ex.speed)
 
 
-class ChLcpVariablesNode :  public ChLcpVariables
+class ChApi ChLcpVariablesNode :  public ChLcpVariables
 {
 	CH_RTTI(ChLcpVariablesNode, ChLcpVariables)
 

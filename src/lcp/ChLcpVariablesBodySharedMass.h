@@ -32,7 +32,7 @@ namespace chrono
 ///  Used by ChLcpVariablesBodySharedMass objects to 
 /// reference a single mass propery.
 
-class ChSharedMassBody
+class ChApi ChSharedMassBody
 {
 public:
 
@@ -88,7 +88,7 @@ public:
 ///   mass and inertia values are shared, that can be useful for
 ///   problems with thousands of equally-shaped objects.
 
-class ChLcpVariablesBodySharedMass :  public ChLcpVariablesBody
+class ChApi ChLcpVariablesBodySharedMass :  public ChLcpVariablesBody
 {
 	CH_RTTI(ChLcpVariablesBodySharedMass, ChLcpVariablesBody)
 

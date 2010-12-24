@@ -39,7 +39,7 @@ class ChSystem;
 /// Base class for a single particle to be used in ChIndexedParticles containers.
 /// It is an item that has 6 degrees of freedom, like a moving frame.
 
-class ChParticleBase : public ChFrameMoving<double>  
+class ChApi ChParticleBase : public ChFrameMoving<double>  
 {
 public:
 	ChParticleBase();
@@ -57,7 +57,7 @@ public:
 /// be accessed with an index.
 /// Must be inherited by children classes.
 
-class ChIndexedParticles : public ChPhysicsItem 
+class ChApi ChIndexedParticles : public ChPhysicsItem 
 {
 						// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChIndexedParticles,ChPhysicsItem);

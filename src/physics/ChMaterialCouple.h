@@ -24,7 +24,7 @@ namespace chrono
 /// of material properties (by default, friction & c. are average
 /// of values of the two parts in contact)
 
-class ChMaterialCouple
+class ChApi ChMaterialCouple
 {
 public:
 	float  static_friction;	

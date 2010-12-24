@@ -42,7 +42,7 @@ class ChSystem;
 /// (it does not define mass, inertia and shape becuase those
 /// data are _shared_ between them)
 
-class ChAparticle : public ChParticleBase  
+class ChApi ChAparticle : public ChParticleBase  
 {
 public:
 	ChAparticle();
@@ -77,7 +77,7 @@ public:
 /// ChSystem. This would be more efficient anyway than
 /// creating all shapes as ChBody.
 
-class ChParticlesClones : public ChIndexedParticles 
+class ChApi ChParticlesClones : public ChIndexedParticles 
 {
 						// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChParticlesClones,ChIndexedParticles);

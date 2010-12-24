@@ -73,7 +73,7 @@ typedef ChSharedPtr<ChMarker> ChSharedMarkerPtr;
 /// be associated to the body, for collision detection.
 ///
 
-class ChBody : public ChPhysicsItem , public ChFrameMoving<double> {
+class ChApi ChBody : public ChPhysicsItem , public ChFrameMoving<double> {
 
 						// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChBody,ChPhysicsItem);

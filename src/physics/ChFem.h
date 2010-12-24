@@ -36,7 +36,7 @@ namespace chrono
 /// Class for a generic finite element node 
 /// in 3D space  ***OBSOLETE***
 
-class ChFnode : public ChObj
+class ChApi ChFnode : public ChObj
 {
 public:
 	Vector X;		///< actual position
@@ -72,7 +72,7 @@ public:
 /// Base class for a generic finete element, with stiffness
 /// matrix, local coordinate system, mass, etc. ***OBSOLETE***
 
-class ChFelem : public ChObj
+class ChApi ChFelem : public ChObj
 {
 protected:
 

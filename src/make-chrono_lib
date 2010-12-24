@@ -300,57 +300,11 @@ CPPFILES_LIB = \
 	parallel/ChThreadsWIN32.cpp
 	
 	
-# List of files to compile to make the 'javascript for Chrono' library unit
 
-CPPFILES_LIB_JS = \
-	unit_JS/ChGlobalJS.cpp \
-	unit_JS/ChControlsJS.cpp \
-	unit_JS/ChFunctionJS.cpp \
-	unit_JS/ChFxJavascript.cpp \
-	unit_JS/ChOptvar.cpp \
-	unit_JS/ChJs_Engine.cpp \
-	unit_JS/ChJs_utils.cpp \
-	unit_JS/ChJs_all.cpp \
-	unit_JS/ChJs_math.cpp \
-	unit_JS/ChJs_chobject.cpp \
-	unit_JS/ChJs_system.cpp \
-	unit_JS/ChJs_body.cpp \
-	unit_JS/ChJs_marker.cpp \
-	unit_JS/ChJs_force.cpp \
-	unit_JS/ChJs_link.cpp \
-	unit_JS/ChJs_funct.cpp \
-	unit_JS/ChJs_optimizer.cpp \
-	unit_JS/ChJs_geometry.cpp \
-	unit_JS/ChJs_controller.cpp \
-	unit_JS/ChJs_constraint.cpp \
-	unit_JS/ChJs_impact.cpp 
 	
-	
-# List of files to compile to make the 'Chrono for MPI' library unit
 
-CPPFILES_LIB_MPI = \
-	unit_MPI/ChMpi.cpp \
-	unit_MPI/ChLcpSystemDescriptorMPI.cpp \
-	unit_MPI/ChLcpIterativeSchwarzMPI.cpp \
-	unit_MPI/ChSystemMPI.cpp \
-	unit_MPI/ChBodyMPI.cpp\
-	unit_MPI/ChDomainLatticePartitioning.cpp
 	
-# List of files to compile to make the 'Chrono for CUDA' library unit
 
-CPPFILES_LIB_CUDA = \
-	unit_GPU/ChCModelGPU.cpp \
-	unit_GPU/ChCModelGPUBody.cpp \
-	unit_GPU/ChCCollisionSystemGPU.cpp \
-	unit_GPU/ChContactContainerGPUsimple.cpp \
-	unit_GPU/ChContactGPUsimple.cpp \
-	unit_GPU/ChLcpIterativeSolverGPUsimple.cpp \
-	unit_GPU/ChLcpConstraintTwoGPUcontN.cpp \
-	unit_GPU/ChLcpConstraintTwoGPUcontT.cpp 
-	
-CUDAFILES_LIB = \
-	unit_GPU/ChLcpIterativeSolverGPUsimpleCU.cu \
-	unit_GPU/collide.cu 
 	
 
 
@@ -358,20 +312,13 @@ CUDAFILES_LIB = \
 
 
 OFILES_LIB= $(CPPFILES_LIB:.cpp=.obj)
-OFILES_LIB_JS= $(CPPFILES_LIB_JS:.cpp=.obj) 
-OFILES_LIB_MPI= $(CPPFILES_LIB_MPI:.cpp=.obj)
-OFILES_LIB_CUDA= $(CPPFILES_LIB_CUDA:.cpp=.obj) $(CUDAFILES_LIB:.cu=.obj)
+
 
 .SUFFIXES:
 .SUFFIXES: .cpp .c .obj .cu
 
-.cu.obj:
-	$(CH_NVCC_COMPILER) $(CH_NVCCFLAGS) -c $< $(CH_INCLUDES) -o "$*.obj" >nul
-	$(CH_NVCC_COMPILER2)
-
 .cpp.obj:
-	$(CC) $(CH_COMPILERFLAGS) $(CH_INCLUDES) -c $< $(CH_COMPILERFLAG_FILEOUT)"$*.obj"
-
+	$(CC) $(CH_COMPILERFLAGS) -DCH_API_COMPILE $(CH_INCLUDES) -c $< $(CH_COMPILERFLAG_FILEOUT)"$*.obj"
 
 
 # TARGETS
@@ -397,10 +344,9 @@ all: clean lib doxygen
 #   this with the SED tool)
 
 
-#lib: lib_chronoengine $(CH_JAVASCRIPTLIB_MAKETARGET) $(CH_MPILIB_MAKETARGET) $(CH_CUDALIB_MAKETARGET)
-lib: $(CH_MPILIB_MAKETARGET)
+lib: lib_chronoengine $(CH_JAVASCRIPTLIB_MAKETARGET) $(CH_MPILIB_MAKETARGET) $(CH_CUDALIB_MAKETARGET)
 
-lib_chronoengine:  $(OFILES_LIB)
+___lib_chronoengine_old:  $(OFILES_LIB)
 	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME).defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).defx"
 	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME).def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).def"
 	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME).exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).exp"
@@ -419,63 +365,25 @@ lib_chronoengine:  $(OFILES_LIB)
 	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME).def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).def"
 	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME).exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME).exp"
 	
-lib_chronoengineJS:  $(OFILES_LIB_JS) lib_chronoengine
-	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_JS.defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_JS.defx"
-	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_JS.def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_JS.def"
-	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_JS.exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_JS.exp"
-	$(DLLTOOL) --output-def "$(CH_LIBDIR)/$(CH_LIBNAME)_JS.defx" --export-all-symbols --kill-at $(OFILES_LIB_JS)
-	$(SEDTOOL) -e "/^	_/d" -e "/^	??_G/d" -e "/^	_real@/d" -e "/^	CTA/d" -e "/^	CT??/d" -e "/^	TI[0-9]/d" "$(CH_LIBDIR)/$(CH_LIBNAME)_JS.defx"  >>  "$(CH_LIBDIR)/$(CH_LIBNAME)_JS.def"
+lib_chronoengine:  $(OFILES_LIB)
 	$(LD) $(CH_LINKSHAREDFLAGS) \
-	      $(CH_CHRONOLIB) \
-	      $(CH_JAVASCRIPTLIB) \
-	      $(OFILES_LIB_JS) \
-	      $(CH_LINKERFLAG_FILEOUT)"$(CH_CHRONOJSSHAREDLNAME)"  \
-	      $(CH_LINKERFLAG_DEF)"$(CH_LIBDIR)/$(CH_LIBNAME)_JS.def" \
-	      $(CH_LINKERFLAG_IMPLIB)"$(CH_CHRONOJSLIBRARYNAME)"
-	$(MT) -manifest "$(CH_BINDIR)/$(CH_LIBNAME)_JS.dll.manifest" -outputresource:"$(CH_BINDIR)/$(CH_LIBNAME)_JS.dll";#2
-	$(DEL) "$(CH_BINDIR)$(D)$(CH_LIBNAME)_JS.dll.manifest"
-	$(IFEXIST) "$(CH_R3RUNDIR)" copy /Y "$(CH_BINDIR)\$(CH_LIBNAME)_JS.dll" "$(CH_R3RUNDIR)\$(CH_R3BINDIR)\$(CH_LIBNAME)_JS.dll"
-	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_JS.defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_JS.defx"
-	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_JS.def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_JS.def"
-	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_JS.exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_JS.exp"
+	      $(CH_LIBRARIES_ENGINE) \
+	      $(OFILES_LIB) \
+	      $(CH_LINKERFLAG_FILEOUT)"$(CH_CHRONOSHAREDLNAME)" \
+	      $(CH_LINKERFLAG_IMPLIB)"$(CH_CHRONOLIBRARYNAME)"
+	$(MT) -manifest "$(CH_BINDIR)/$(CH_LIBNAME).dll.manifest" -outputresource:"$(CH_BINDIR)/$(CH_LIBNAME).dll";#2
+	$(DEL) "$(CH_BINDIR)$(D)$(CH_LIBNAME).dll.manifest"
+	
+lib_chronoengineJS: 
+	$(CH_IF_JS) cd unit_JS $(S)  $(CH_MAKETOOL) -f make-unit_JS build=$(build) $@ $(S) cd ..  
 
-lib_chronoengineMPI: $(OFILES_LIB_MPI) 
-	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_MPI.defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_MPI.defx"
-	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_MPI.def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_MPI.def"
-	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_MPI.exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_MPI.exp"
-	$(DLLTOOL) --output-def "$(CH_LIBDIR)/$(CH_LIBNAME)_MPI.defx" --export-all-symbols --kill-at $(OFILES_LIB_MPI)
-	$(SEDTOOL) -e "/^	_/d" -e "/^	??_G/d" -e "/^	_real@/d" -e "/^	CTA/d" -e "/^	CT??/d" -e "/^	TI[0-9]/d" "$(CH_LIBDIR)/$(CH_LIBNAME)_MPI.defx"  >>  "$(CH_LIBDIR)/$(CH_LIBNAME)_MPI.def"
-	$(LD) $(CH_LINKSHAREDFLAGS) \
-	      $(CH_CHRONOLIB) \
-	      $(CH_MPILIB) \
-	      $(OFILES_LIB_MPI) \
-	      $(CH_LINKERFLAG_FILEOUT)"$(CH_CHRONOMPISHAREDLNAME)" \
-	      $(CH_LINKERFLAG_DEF)"$(CH_LIBDIR)/$(CH_LIBNAME)_MPI.def" \
-	      $(CH_LINKERFLAG_IMPLIB)"$(CH_CHRONOMPILIBRARYNAME)"
-	$(MT) -manifest "$(CH_BINDIR)/$(CH_LIBNAME)_MPI.dll.manifest" -outputresource:"$(CH_BINDIR)/$(CH_LIBNAME)_MPI.dll";#2
-	$(DEL) "$(CH_BINDIR)$(D)$(CH_LIBNAME)_MPI.dll.manifest"
-	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_MPI.defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_MPI.defx"
-	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_MPI.def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_MPI.def"
-	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_MPI.exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_MPI.exp"
+lib_chronoengineMPI:  
+	$(CH_IF_MPI) cd unit_MPI $(S)  $(CH_MAKETOOL) -f make-unit_MPI build=$(build) $@ $(S) cd .. 
 
-lib_chronoengineCUDA: $(OFILES_LIB_CUDA) lib_chronoengine
-	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_CUDA.defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_CUDA.defx"
-	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_CUDA.def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_CUDA.def"
-	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_CUDA.exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_CUDA.exp"
-	$(DLLTOOL) --output-def "$(CH_LIBDIR)/$(CH_LIBNAME)_CUDA.defx" --export-all-symbols --kill-at $(OFILES_LIB_CUDA)
-	$(SEDTOOL) -e "/^	_/d" -e "/^	??_G/d" -e "/^	_real@/d" -e "/^	CTA/d" -e "/^	CT??/d" -e "/^	TI[0-9]/d" "$(CH_LIBDIR)/$(CH_LIBNAME)_CUDA.defx"  >>  "$(CH_LIBDIR)/$(CH_LIBNAME)_CUDA.def"
-	$(LD) $(CH_LINKSHAREDFLAGS) \
-	      $(CH_CHRONOLIB) \
-	      $(CH_CUDA_LIB) \
-	      $(OFILES_LIB_CUDA) \
-	      $(CH_LINKERFLAG_FILEOUT)"$(CH_CHRONOCUDASHAREDLNAME)" \
-	      $(CH_LINKERFLAG_DEF)"$(CH_LIBDIR)/$(CH_LIBNAME)_CUDA.def" \
-	      $(CH_LINKERFLAG_IMPLIB)"$(CH_CHRONOCUDALIBRARYNAME)"
-	$(MT) -manifest "$(CH_BINDIR)/$(CH_LIBNAME)_CUDA.dll.manifest" -outputresource:"$(CH_BINDIR)/$(CH_LIBNAME)_CUDA.dll";#2
-	$(DEL) "$(CH_BINDIR)$(D)$(CH_LIBNAME)_CUDA.dll.manifest"
-	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_CUDA.defx" $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_CUDA.defx"
-	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_CUDA.def"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_CUDA.def"
-	$(IFEXIST) "$(CH_LIBDIR)\$(CH_LIBNAME)_CUDA.exp"  $(DEL) "$(CH_LIBDIR)\$(CH_LIBNAME)_CUDA.exp"
+lib_chronoengineCUDA:  
+	$(CH_IF_CUDA) cd unit_GPU $(S)  $(CH_MAKETOOL) -f make-unit_GPU build=$(build) $@ $(S) cd ..
+			
+
 
 
 # For cleaning all the .o, .obj, and other intermediate files

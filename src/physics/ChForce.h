@@ -63,7 +63,7 @@ class ChBody;
 /// such body. ChForce objects are able to represent
 /// either forces and torques, depending on a flag.
 
-class ChForce : public ChObj
+class ChApi ChForce : public ChObj
 {
 							// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChForce,ChObj);

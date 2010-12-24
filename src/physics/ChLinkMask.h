@@ -36,7 +36,7 @@ namespace chrono
 /// Mask structure for N scalar constraint equations between two bodies.
 ///
 
-class ChLinkMask {
+class ChApi ChLinkMask {
 
 	CH_RTTI_ROOT(ChLinkMask);
 
@@ -158,7 +158,7 @@ public:
 /// the ChLinkLock link.
 ///
 
-class ChLinkMaskLF : public  ChLinkMask
+class ChApi ChLinkMaskLF : public  ChLinkMask
 {
 	CH_RTTI(ChLinkMaskLF, ChLinkMask);
 

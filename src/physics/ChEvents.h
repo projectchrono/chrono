@@ -17,6 +17,7 @@
 ///////////////////////////////////////////////////
 
 #include <string>
+#include "core/ChApiCE.h"
 
 namespace chrono 
 {
@@ -31,7 +32,7 @@ namespace chrono
 /// really few resources and CPU cycles.
 ///
 
-class ChEvents {
+class ChApi ChEvents {
 protected:
 
 

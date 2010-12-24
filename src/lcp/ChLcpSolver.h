@@ -52,7 +52,7 @@ namespace chrono
 ///   as arising in the solution of QP with
 ///   inequalities or in multibody problems.
 
-class ChLcpSolver
+class ChApi ChLcpSolver
 {
 public:
 			//

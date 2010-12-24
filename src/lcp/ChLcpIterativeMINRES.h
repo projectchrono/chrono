@@ -35,7 +35,7 @@ namespace chrono
 ///
 /// or similar CCP problem.
 
-class ChLcpIterativeMINRES : public ChLcpIterativeSolver
+class ChApi ChLcpIterativeMINRES : public ChLcpIterativeSolver
 {
 protected:
 			//

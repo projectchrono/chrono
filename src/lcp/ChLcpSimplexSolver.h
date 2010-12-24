@@ -51,7 +51,7 @@ class ChUnilateralData;
 ///   inequalities or in multibody problems.
 
 
-class ChLcpSimplexSolver : public ChLcpDirectSolver
+class ChApi ChLcpSimplexSolver : public ChLcpDirectSolver
 {
 protected:
 			//

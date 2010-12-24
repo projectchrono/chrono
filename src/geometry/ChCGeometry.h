@@ -17,6 +17,7 @@
 
 
 #include "core/ChMath.h"
+#include "core/ChApiCE.h"
 
 
 namespace chrono 
@@ -36,7 +37,7 @@ namespace geometry
 /// Geometric object are used for collisions and such.
 ///
 
-class ChGeometry  {
+class ChApi ChGeometry  {
 
 								// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI_ROOT(ChGeometry);

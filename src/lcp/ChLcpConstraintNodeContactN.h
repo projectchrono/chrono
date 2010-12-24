@@ -34,7 +34,7 @@ namespace chrono
 /// and a 6 DOF body, only when also two ChLcpConstraintNodeFrictionT 
 /// objects are used to represent friction. 
 
-class ChLcpConstraintNodeContactN : public ChLcpConstraintTwoGeneric
+class ChApi ChLcpConstraintNodeContactN : public ChLcpConstraintTwoGeneric
 {
 	CH_RTTI(ChLcpConstraintNodeContactN, ChLcpConstraintTwoGeneric)
 

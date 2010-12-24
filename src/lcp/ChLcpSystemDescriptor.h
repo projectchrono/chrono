@@ -40,7 +40,7 @@ namespace chrono
 /// and variables structures with more efficient data schemes.
 
 
-class ChLcpSystemDescriptor
+class ChApi ChLcpSystemDescriptor
 {
 
 protected:

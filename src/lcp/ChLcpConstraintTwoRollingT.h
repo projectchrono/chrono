@@ -29,7 +29,7 @@ namespace chrono
 /// This is used to make the rolling friction constraint. This 
 /// must be used in twice copy each ChLcpConstraintTwoRollingN
 
-class ChLcpConstraintTwoRollingT: public ChLcpConstraintTwoBodies
+class ChApi ChLcpConstraintTwoRollingT: public ChLcpConstraintTwoBodies
 {
 	CH_RTTI(ChLcpConstraintTwoRollingT, ChLcpConstraintTwoBodies)
 

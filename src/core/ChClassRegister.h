@@ -61,7 +61,7 @@ namespace chrono
 /// ChClassRegisterCommon is a base abstract class which allows
 /// a common management of all template classes ChClassRegister<t>.
 
-class ChClassRegisterCommon
+class ChApi ChClassRegisterCommon
 {
 public:
 
@@ -101,7 +101,7 @@ public:
 /// with some pure virutal member, which cannot be instantiated with 'new'. )
 
 template <class t>
-class ChClassRegisterABSTRACT: public ChClassRegisterCommon
+class ChApi ChClassRegisterABSTRACT: public ChClassRegisterCommon
 {
 protected:
 
@@ -178,7 +178,7 @@ public:
 /// classes given their name ID.
 
 template <class t>
-class ChClassRegister: public ChClassRegisterABSTRACT <t>
+class ChApi ChClassRegister: public ChClassRegisterABSTRACT <t>
 {
 												  
 public:
@@ -205,7 +205,7 @@ public:
 ///	in *ppObj.
 
 template<class T>
-void create( std::string cls_name, T** ppObj)
+void ChApi create( std::string cls_name, T** ppObj)
 {
 	ChClassRegisterCommon* pCurrent = *ChClassRegisterCommon::GetStaticHeadAddr();
 

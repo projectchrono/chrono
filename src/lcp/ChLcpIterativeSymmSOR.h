@@ -41,7 +41,7 @@ namespace chrono
 ///    Note that this solver supports also the case of
 ///   boxed constraints on 'l', such as lmin<l<lmax
 
-class ChLcpIterativeSymmSOR : public ChLcpIterativeSolver
+class ChApi ChLcpIterativeSymmSOR : public ChLcpIterativeSolver
 {
 protected:
 			//

@@ -48,7 +48,7 @@ namespace chrono
 /// Tetrahedron, 3d constant stress, for Finite Element methods.
 /// Uses the parametric element theory.
 
-class ChFelem_TetraLinear : public ChFelem
+class ChApi ChFelem_TetraLinear : public ChFelem
 {
 private:
 	static ChMatrix<>* Ematr;

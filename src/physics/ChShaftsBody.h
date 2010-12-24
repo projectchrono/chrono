@@ -48,7 +48,7 @@ class ChBody;
 /// the former (at least, the wheels) to the latter using
 /// this constraint.
 
-class ChShaftsBody : public ChPhysicsItem {
+class ChApi ChShaftsBody : public ChPhysicsItem {
 
 						// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChShaftsBody,ChPhysicsItem);

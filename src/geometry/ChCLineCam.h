@@ -49,7 +49,7 @@ enum eChCamType{
 /// given the ChFunction which defines the motion law of the follower.
 
 
-class ChLineCam : public ChLine 
+class ChApi ChLineCam : public ChLine 
 {
 							// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChLineCam,ChLine);

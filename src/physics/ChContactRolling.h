@@ -30,7 +30,7 @@ namespace chrono
 /// ChContactContainer, that has also rolling friction. 
 ///
 
-class ChContactRolling : public ChContact {
+class ChApi ChContactRolling : public ChContact {
 
 protected:
 				//

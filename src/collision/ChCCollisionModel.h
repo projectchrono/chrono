@@ -22,7 +22,8 @@
 #include <vector>
 #include "core/ChCoordsys.h"
 #include "core/ChMatrix.h"
- 
+#include "core/ChApiCE.h"
+
 #include "geometry/ChCTriangleMesh.h"
 
 
@@ -45,7 +46,7 @@ namespace collision
 /// of the shape of the rigid body, for collision purposes.
 ///
 
-class ChCollisionModel
+class ChApi ChCollisionModel
 {
 
 

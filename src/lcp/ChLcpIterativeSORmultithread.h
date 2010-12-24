@@ -28,7 +28,7 @@ namespace chrono
 {
 
 
-class ChLcpIterativeSORmultithread : public ChLcpIterativeSolver
+class ChApi ChLcpIterativeSORmultithread : public ChLcpIterativeSolver
 {
 protected:
 			//

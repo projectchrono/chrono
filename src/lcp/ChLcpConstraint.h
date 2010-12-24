@@ -25,7 +25,7 @@
 ///////////////////////////////////////////////////
 
 
-
+#include "core/ChApiCE.h"
 #include "core/ChMatrix.h"
 #include "core/ChSpmatrix.h"
 #include "core/ChClassRegister.h"
@@ -65,7 +65,7 @@ enum eChConstraintMode {
 /// called by the solver. It is up to the inherited classes
 /// to implement these methods, and to add further features..
 
-class ChLcpConstraint
+class ChApi ChLcpConstraint
 {
 	CH_RTTI_ROOT(ChLcpConstraint)
 

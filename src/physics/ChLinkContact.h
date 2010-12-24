@@ -34,7 +34,7 @@ namespace chrono
 /// Not used directly - look at the children classes.
 ///
 
-class ChLinkContact : public ChLink {
+class ChApi ChLinkContact : public ChLink {
 
 	CH_RTTI(ChLinkContact,ChLink);
 

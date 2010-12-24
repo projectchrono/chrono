@@ -19,6 +19,7 @@
 
 
 #include "core/ChMath.h"
+#include "core/ChApiCE.h"
 
 
 namespace chrono 
@@ -36,7 +37,7 @@ namespace chrono
 ///	 -		    	Y (i= 0) time=0.06  (Y, the current Y)
 ///	 -			    Y (i=+1) time=0.09	(Ynew, for predictions, etc)
 
-class ChHistory
+class ChApi ChHistory
 {
 private:
 	int steps;

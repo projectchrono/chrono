@@ -16,6 +16,13 @@
 #include "unit_JS/ChGlobalJS.h" 
 #include "unit_JS/ChJs_Engine.h"
  
+
+#ifndef CH_API_COMPILE_UNIT_JS
+#error Warning! You are compiling the JS JavaScript unit of Chrono::Engine, \
+	so you need to define CH_API_COMPILE_UNIT_JS (add that symbol \
+	to the compiler defines, for all compiled files in this unit). 
+#endif 
+
  
 namespace chrono 
 {

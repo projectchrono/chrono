@@ -18,6 +18,7 @@
 ///////////////////////////////////////////////////
 
 
+#include "core/ChApiCE.h"
 #include "collision/ChCCollisionSystem.h"
 #include "collision/bullet/btBulletCollisionCommon.h" 
 
@@ -34,7 +35,7 @@ namespace collision
 /// methods.
 /// 
 
-class ChCollisionSystemBullet : public ChCollisionSystem
+class ChApi ChCollisionSystemBullet : public ChCollisionSystem
 {
   public:
 

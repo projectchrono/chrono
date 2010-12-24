@@ -44,7 +44,7 @@ class ChSystem;
 /// (it does not define mass, inertia and shape becuase those
 /// data are shared between them)
 
-class ChNodeSPH : public ChNodeBase  
+class ChApi ChNodeSPH : public ChNodeBase  
 {
 public:
 	ChNodeSPH();
@@ -96,7 +96,7 @@ public:
 /// Class for SPH fluid material, with basic property 
 /// of uncompressible fluid. 
 
-class ChContinuumSPH : public ChContinuumMaterial
+class ChApi ChContinuumSPH : public ChContinuumMaterial
 {
 private:
 
@@ -149,7 +149,7 @@ public:
 /// solid with the SPH Smooth Particle Hydrodynamics
 /// approach, that is with a 'meshless' FEM approach.
 
-class ChMatterSPH : public ChIndexedNodes
+class ChApi ChMatterSPH : public ChIndexedNodes
 {
 						// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChMatterSPH,ChIndexedNodes);

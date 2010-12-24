@@ -66,7 +66,7 @@ camera {
        location <40, 30, 70>*0.3
        direction 50*z 
        look_at <0, -1, 0>  
-       angle 10
+       angle 20
 }    
 
 /*

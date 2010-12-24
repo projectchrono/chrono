@@ -38,7 +38,7 @@ namespace chrono
 /// cases.
 ///
 
-class ChContactContainer : public ChContactContainerBase {
+class ChApi ChContactContainer : public ChContactContainerBase {
 
 	CH_RTTI(ChContactContainer,ChContactContainerBase);
 

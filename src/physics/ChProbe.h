@@ -33,7 +33,7 @@ namespace chrono
 /// once per time step, during simulation.
 ///
 
-class ChProbe : public ChObj {
+class ChApi ChProbe : public ChObj {
 
 public:
 	ChProbe();

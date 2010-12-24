@@ -31,7 +31,7 @@ namespace chrono
 /// Class used to represent friction constraint
 /// between a 3DOF node and a 6DOF body.
 
-class ChLcpConstraintNodeFrictionT : public ChLcpConstraintTwoGeneric
+class ChApi ChLcpConstraintNodeFrictionT : public ChLcpConstraintTwoGeneric
 {
 	CH_RTTI(ChLcpConstraintNodeFrictionT, ChLcpConstraintTwoGeneric)
 

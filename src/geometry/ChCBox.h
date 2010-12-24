@@ -37,7 +37,7 @@ namespace geometry
 /// Geometric object for collisions and such.
 ///
 
-class ChBox : public ChGeometry{
+class ChApi ChBox : public ChGeometry{
 
 							// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChBox,ChGeometry);

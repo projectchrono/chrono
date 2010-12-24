@@ -19,6 +19,7 @@
 
 
 #include "core/ChMatrix.h"  // ***g++
+#include "core/ChApiCE.h"
 
 
 namespace chrono
@@ -49,7 +50,7 @@ class ChBody;
 /// class, etc.
 ///
 
-class ChExternalObject
+class ChApi ChExternalObject
 {
 	CH_RTTI_ROOT(ChExternalObject);
 

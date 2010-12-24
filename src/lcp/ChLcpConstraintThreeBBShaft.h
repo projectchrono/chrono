@@ -32,7 +32,7 @@ namespace chrono
 /// A class for representing a constraint between 
 /// two bodies (2x6dof in space) and a 1D dof (a shaft)
 
-class ChLcpConstraintThreeBBShaft : public ChLcpConstraintThree
+class ChApi ChLcpConstraintThreeBBShaft : public ChLcpConstraintThree
 {
 	CH_RTTI(ChLcpConstraintThreeBBShaft, ChLcpConstraintThree)
 

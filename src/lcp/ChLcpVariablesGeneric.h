@@ -48,7 +48,7 @@ namespace chrono
 ///   of rigid bodies), so use the ChLcpVariablesBody in this case..
 
 
-class ChLcpVariablesGeneric :  public ChLcpVariables
+class ChApi ChLcpVariablesGeneric :  public ChLcpVariables
 {
 	CH_RTTI(ChLcpVariablesGeneric, ChLcpVariables)
 

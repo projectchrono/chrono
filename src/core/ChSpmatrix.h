@@ -21,7 +21,7 @@
 
 #include "core/ChMatrix.h"
 #include "core/ChLists.h"
-
+#include "core/ChApiCE.h"
 
 namespace chrono
 {
@@ -36,7 +36,8 @@ namespace chrono
 /// Generic element of a sparse matrix ChSparseMatrix
 ///
 
-class ChMelement {
+class ChApi ChMelement 
+{
 public:
 	double val;
 	ChMelement* next;
@@ -105,7 +106,7 @@ public:
 /// 
 
 
-class ChSparseMatrix : public ChMatrix<double> {
+class ChApi ChSparseMatrix : public ChMatrix<double> {
  private:
 	ChMelement** elarray;	// array of 1st column elements 
 

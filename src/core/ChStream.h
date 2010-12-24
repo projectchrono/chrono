@@ -29,7 +29,7 @@
 #include <vector>
 #include <ios>
 #include "ChException.h"
-
+#include "core/ChApiCE.h"
 
 namespace chrono
 {
@@ -39,7 +39,7 @@ namespace chrono
 /// This is a base class for input/output (streaming)
 ///
 
-class ChStream {
+class ChApi ChStream {
 
 public:
 				/// Modes for chrono files (the ch-modes) - obsolete -
@@ -69,7 +69,7 @@ protected:
 /// Does nothing special - it must be implemented by child classes
 ///
 
-class ChStreamOut : public ChStream
+class ChApi ChStreamOut : public ChStream
 {
 public:
 
@@ -95,7 +95,7 @@ protected:
 /// Does nothing special - it must be implemented by child classes
 ///
 
-class ChStreamIn : public ChStream
+class ChApi ChStreamIn : public ChStream
 {
 public:
 
@@ -132,7 +132,7 @@ protected:
 /// order to get some practical effect (file saving, etc.)
 ///
 
-class ChStreamOutAscii : public ChStreamOut
+class ChApi ChStreamOutAscii : public ChStreamOut
 {
 protected:
 	char number_format[10];
@@ -211,7 +211,7 @@ public:
 /// order to get some practical effect (file loading, etc.)
 ///
 
-class ChStreamInAscii : public ChStreamIn
+class ChApi ChStreamInAscii : public ChStreamIn
 {
 protected:
 	char number_format[10];
@@ -275,7 +275,7 @@ inline void StreamSwapBytes (T* ptData)
 /// data archive).
 ///
 
-class ChBinaryArchive
+class ChApi ChBinaryArchive
 {
 protected:
 	bool big_endian_machine;
@@ -327,7 +327,7 @@ public:
 /// order to get some practical effect (file saving, etc.)
 ///
 
-class ChStreamOutBinary : public ChStreamOut , public ChBinaryArchive
+class ChApi ChStreamOutBinary : public ChStreamOut , public ChBinaryArchive
 {
 private:
 
@@ -425,7 +425,7 @@ public:
 /// order to get some practical effect (file saving, etc.)
 ///
 
-class ChStreamInBinary : public ChStreamIn , public ChBinaryArchive
+class ChApi ChStreamInBinary : public ChStreamIn , public ChBinaryArchive
 {
 private:
 
@@ -533,7 +533,7 @@ public:
 /// on a disk, using the typical C++ 'fstream' handler.
 ///
 
-class ChStreamFile
+class ChApi ChStreamFile
 {
 private:
 				/// Handler to a C++ file
@@ -573,7 +573,7 @@ public:
 /// output streams (like std::cout or similar)
 ///
 
-class ChStreamOstreamWrapper
+class ChApi ChStreamOstreamWrapper
 {
 private:
 				/// Handler to a C++ file
@@ -604,7 +604,7 @@ public:
 /// input streams 
 ///
 
-class ChStreamIstreamWrapper
+class ChApi ChStreamIstreamWrapper
 {
 private:
 				/// Handler to a C++ stream
@@ -636,7 +636,7 @@ public:
 /// This is a wrapper for a std::vector<char> (buffer of chars)
 ///
 
-class ChStreamVectorWrapper
+class ChApi ChStreamVectorWrapper
 {
 private:
 				/// Handler to a C++ stream
@@ -679,7 +679,7 @@ public:
 /// This is a specialized class for BINARY output to wrapped std::ostream,
 ///
 
-class ChStreamOutBinaryStream : public ChStreamOstreamWrapper , public ChStreamOutBinary
+class ChApi ChStreamOutBinaryStream : public ChStreamOstreamWrapper , public ChStreamOutBinary
 {
 public:
 	ChStreamOutBinaryStream(std::ostream* mfile)  : ChStreamOstreamWrapper(mfile), ChStreamOutBinary() {};
@@ -694,7 +694,7 @@ private:
 /// This is a specialized class for BINARY input from wrapped std::istream,
 ///
 
-class ChStreamInBinaryStream : public ChStreamIstreamWrapper , public ChStreamInBinary
+class ChApi ChStreamInBinaryStream : public ChStreamIstreamWrapper , public ChStreamInBinary
 {
 public:
 	ChStreamInBinaryStream(std::istream* mfile)  : ChStreamIstreamWrapper(mfile), ChStreamInBinary() {};
@@ -710,7 +710,7 @@ private:
 /// This is a specialized class for BINARY output to wrapped std::vector<char>,
 ///
 
-class ChStreamOutBinaryVector : public ChStreamVectorWrapper , public ChStreamOutBinary
+class ChApi ChStreamOutBinaryVector : public ChStreamVectorWrapper , public ChStreamOutBinary
 {
 public:
 	ChStreamOutBinaryVector(std::vector<char>* mchars)  : ChStreamVectorWrapper(mchars), ChStreamOutBinary() {};
@@ -725,7 +725,7 @@ private:
 /// This is a specialized class for BINARY input from wrapped std::vector<char>,
 ///
 
-class ChStreamInBinaryVector : public ChStreamVectorWrapper , public ChStreamInBinary
+class ChApi ChStreamInBinaryVector : public ChStreamVectorWrapper , public ChStreamInBinary
 {
 public:
 	ChStreamInBinaryVector(std::vector<char>* mchars)  : ChStreamVectorWrapper(mchars), ChStreamInBinary() {};
@@ -743,7 +743,7 @@ private:
 /// This is a specialized class for BINARY output on system's file,
 ///
 
-class ChStreamOutBinaryFile : public ChStreamFile , public ChStreamOutBinary
+class ChApi ChStreamOutBinaryFile : public ChStreamFile , public ChStreamOutBinary
 {
 public:
 	ChStreamOutBinaryFile(const char* filename);
@@ -757,7 +757,7 @@ private:
 /// This is a specialized class for ASCII output on system's file,
 ///
 
-class ChStreamOutAsciiFile : public ChStreamFile , public ChStreamOutAscii
+class ChApi ChStreamOutAsciiFile : public ChStreamFile , public ChStreamOutAscii
 {
 public:
 	ChStreamOutAsciiFile(const char* filename);
@@ -772,7 +772,7 @@ private:
 /// This is a specialized class for BINARY input on system's file,
 ///
 
-class ChStreamInBinaryFile : public ChStreamFile , public ChStreamInBinary
+class ChApi ChStreamInBinaryFile : public ChStreamFile , public ChStreamInBinary
 {
 public:
 	ChStreamInBinaryFile(const char* filename);
@@ -787,7 +787,7 @@ private:
 /// This is a specialized class for ASCII input on system's file,
 ///
 
-class ChStreamInAsciiFile : public ChStreamFile , public ChStreamInAscii
+class ChApi ChStreamInAsciiFile : public ChStreamFile , public ChStreamInAscii
 {
 public:
 	ChStreamInAsciiFile(const char* filename);

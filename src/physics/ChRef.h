@@ -37,7 +37,7 @@ namespace chrono
 /// inherited implementation (see other classes below)
 
 
-class ChRef {
+class ChApi ChRef {
 
  protected:
 	bool valid;
@@ -67,7 +67,7 @@ class ChRef {
 /// referencing variables in ChFunction objects....
 
 
-class ChRefFunction : public ChRef {
+class ChApi ChRefFunction : public ChRef {
 
  protected:
 	ChFunction* function;
@@ -92,7 +92,7 @@ class ChRefFunction : public ChRef {
 
 #define CHREF_TREE_IDS_MAXLENGTH 20
 
-class ChRefFunctionSegment : public ChRefFunction {
+class ChApi ChRefFunctionSegment : public ChRefFunction {
 
  protected:
 		// identifier of child segment
@@ -124,7 +124,7 @@ class ChRefFunctionSegment : public ChRefFunction {
 /// A reference to an handle of a ChFunction, that is one of the points
 /// which can be also dragged with the mouse
 
-class ChRefFunctionHandle : public ChRefFunction {
+class ChApi ChRefFunctionHandle : public ChRefFunction {
 
  protected:
 		// identifier of handle
