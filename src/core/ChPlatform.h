@@ -42,6 +42,14 @@
 #endif
 
 
+// Disable the C4251 warning under MSVC, that happens when using
+// templated classes in data members of other exported classes.
+
+#pragma warning(disable:4251)
+
+
+
+
 
 #endif  // END of header
 

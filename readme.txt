@@ -7,10 +7,14 @@
 Release 1.2.0
 x-xx-xxxx
 
+- New API 
+
 - Fixed a bug in the collision detection engine, that
   caused some collisions to be missed once in a while.
   This was related to different ways of managing thresholds
   in Bullet and Chrono::Engine.
+
+- The CH_UNIT_CUDA flag has been renamed CH_UNIT_GPU.
 
 
 Release 1.1.0

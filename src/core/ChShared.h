@@ -45,7 +45,7 @@ namespace chrono
 
 
 
-class ChShared {
+class ChApi ChShared {
 						// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI_ROOT(ChShared);
 
