@@ -35,7 +35,7 @@ namespace chrono
 /// bearing at the origin of the two markers.
 ///
 
-class ChLinkLinActuator : public ChLinkLock {
+class ChApi ChLinkLinActuator : public ChLinkLock {
 
 	CH_RTTI(ChLinkLinActuator,ChLinkLock);
 

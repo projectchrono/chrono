@@ -40,7 +40,7 @@ namespace collision
 ///  A wrapper to use the Bullet collision detection
 ///  library
 
-class ChModelBullet : public ChCollisionModel
+class ChApi ChModelBullet : public ChCollisionModel
 {
 protected:
 			// The Bullet collision object containing Bullet geometries

@@ -42,7 +42,7 @@ class ChSystem;
 
 /// Class for a single node in the meshless FEM  cluster
 
-class ChNodeMeshless : public ChNodeBase  
+class ChApi ChNodeMeshless : public ChNodeBase  
 {
 public:
 	ChNodeMeshless();
@@ -110,7 +110,7 @@ public:
 /// using the approach in Mueller ("Point based.." 2004 paper)
 /// that is with a 'meshless' FEM approach.
 
-class ChMatterMeshless : public ChIndexedNodes
+class ChApi ChMatterMeshless : public ChIndexedNodes
 {
 						// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChMatterMeshless,ChIndexedNodes);

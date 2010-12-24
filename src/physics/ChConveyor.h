@@ -38,7 +38,7 @@ using namespace collision;
 /// in X direction. No cylindrical rounding is used at the ends.
 ///
 
-class ChConveyor : public ChBody 
+class ChApi ChConveyor : public ChBody 
 {
 
 	CH_RTTI(ChConveyor,ChBody);

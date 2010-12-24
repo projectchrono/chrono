@@ -18,7 +18,7 @@
 
 
 #include <math.h>
-
+#include "core/ChApiCE.h"
 #include "core/ChMath.h"
 #include "physics/ChObject.h"
 
@@ -36,7 +36,7 @@ namespace chrono
 /// input derivative by time, input integration
 ///
 
-class ChControllerPID : public ChObj  {
+class ChApi ChControllerPID : public ChObj  {
 
 private:
 	double In;			// internal, last input set into controller, at time 'last_t'

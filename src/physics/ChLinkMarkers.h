@@ -35,7 +35,7 @@ namespace chrono
 /// to be set between the two connected markers.
 ///
 
-class ChLinkMarkers : public ChLink {
+class ChApi ChLinkMarkers : public ChLink {
 
 	CH_RTTI(ChLinkMarkers,ChLink);
 

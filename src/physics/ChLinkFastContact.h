@@ -38,7 +38,7 @@ namespace chrono
 /// ChLinkFastContact)
 ///
 
-class ChLinkFastContact : public ChLinkContact {
+class ChApi ChLinkFastContact : public ChLinkContact {
 
 	CH_RTTI(ChLinkFastContact,ChLinkContact);
 

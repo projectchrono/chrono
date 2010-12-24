@@ -40,7 +40,7 @@ class ChBody;
 /// Nodes are 3-DOF points that are used in point-based 
 /// primitives, such as ChMatterSPH or finite elements.
 
-class ChNodeBody : public ChPhysicsItem {
+class ChApi ChNodeBody : public ChPhysicsItem {
 
 						// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChNodeBody,ChPhysicsItem);

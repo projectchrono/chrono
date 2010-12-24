@@ -105,7 +105,7 @@ class ChContactContainerBase;
 ///
 
 
-class ChSystem : public ChObj
+class ChApi ChSystem : public ChObj
 {
 
 	CH_RTTI(ChSystem,ChObj);

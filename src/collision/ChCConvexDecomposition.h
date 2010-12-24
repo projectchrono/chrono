@@ -18,7 +18,7 @@
 ///////////////////////////////////////////////////
 
 
-
+#include "core/ChApiCE.h"
 #include "collision/convexdecomp/NvConvexDecomposition.h"
 #include "geometry/ChCTriangleMesh.h"
 
@@ -41,7 +41,7 @@ namespace collision
 ///
 
 
-class ChConvexDecomposition
+class ChApi ChConvexDecomposition
 {
 public:
 

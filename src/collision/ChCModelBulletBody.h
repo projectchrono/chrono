@@ -35,7 +35,7 @@ namespace collision
 /// that are collections of point-like nodes (each with 3 DOFs)
 /// using features of the Bullet library.
 
-class ChModelBulletBody : public ChModelBullet
+class ChApi ChModelBulletBody : public ChModelBullet
 {
 
 public:

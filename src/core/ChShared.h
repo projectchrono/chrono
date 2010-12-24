@@ -18,6 +18,7 @@
 ///////////////////////////////////////////////////
 
 
+#include "core/ChApiCE.h"
 #include "ChRunTimeType.h"
 #include "ChSmartpointers.h"
 

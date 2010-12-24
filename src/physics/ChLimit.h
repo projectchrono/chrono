@@ -36,7 +36,7 @@ namespace chrono
 /// limits on elbow or knee rotations, etc.)
 /// Old code: Must be improved..
 
-class ChLinkLimit
+class ChApi ChLinkLimit
 {
 private:
 	int active;		// true/false

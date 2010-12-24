@@ -16,14 +16,7 @@
 #include "physics/ChApidll.h"
 
  
-// external reference, implemented in ChJs_all.cpp
-//extern "C" void InitChronoJavaClassesGlobalContext();
 
-
-extern int DLL_TEST(int a, int b)
-{
-	return a+b;
-}
 
 namespace chrono 
 {

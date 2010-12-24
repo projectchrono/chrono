@@ -38,7 +38,7 @@ namespace chrono
 /// of objects in space (for motion capture, for example).
 ///
 
-class ChLinkTrajectory : public ChLinkLock {
+class ChApi ChLinkTrajectory : public ChLinkLock {
 
 	CH_RTTI(ChLinkTrajectory,ChLinkLock);
 

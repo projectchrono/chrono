@@ -30,7 +30,7 @@ namespace chrono
 /// Base class for friction constraints (see specialized children classes
 /// for more details - this is mostly an interface)
 
-class ChLcpConstraintTwoFrictionT : public ChLcpConstraintTwoBodies
+class ChApi ChLcpConstraintTwoFrictionT : public ChLcpConstraintTwoBodies
 {
 	CH_RTTI(ChLcpConstraintTwoFrictionT, ChLcpConstraintTwoBodies)
 

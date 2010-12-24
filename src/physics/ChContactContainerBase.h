@@ -33,7 +33,7 @@ namespace chrono
 /// The user should implement an inherited class and
 /// implement a custom ContactCallback() function.
 
-class ChAddContactCallback
+class ChApi ChAddContactCallback
 {
 public:
 			/// Callback, used to report contact points being added to the container.
@@ -50,7 +50,7 @@ public:
 /// The user should implement an inherited class and
 /// implement a custom ReportContactCallback() function.
 
-class ChReportContactCallback
+class ChApi ChReportContactCallback
 {
 public:
 			/// Callback, used to report contact points already added to the container.
@@ -81,7 +81,7 @@ public:
 /// This is only the basic interface with the features that are in common.
 ///
 
-class ChContactContainerBase : public ChPhysicsItem {
+class ChApi ChContactContainerBase : public ChPhysicsItem {
 
 	CH_RTTI(ChContactContainerBase,ChPhysicsItem);
 

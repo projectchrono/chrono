@@ -28,7 +28,7 @@ namespace chrono
 /// Class for forces in link joints of type ChLink().
 ///
 
-class ChLinkForce
+class ChApi ChLinkForce
 {
 private:
 	int active;		// true/false

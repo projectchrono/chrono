@@ -38,7 +38,7 @@ namespace chrono
 		///    Pa = P1 + mua (P2 - P1)
 		///    Pb = P3 + mub (P4 - P3)
 		/// Return FALSE if no solution exists.
-
+ChApi 
 int ChLineLineIntersect(
    Vector p1, Vector p2,Vector p3,Vector p4,Vector *pa,Vector *pb,
    double *mua, double *mub);
@@ -48,14 +48,14 @@ int ChLineLineIntersect(
 		/// Calculate distance between a point p and a line identified
 		/// with segment dA,dB. Returns distance. Also, the mu value reference
 		/// tells if the nearest projection of point on line falls into segment (for mu 0...1)
-
+ChApi 
 double ChPointLineDistance(Vector p, Vector dA, Vector dB, double& mu, int& is_insegment);
 
 
 
 		/// Calculate distance of a point from a triangle surface. 
 		/// Also computes if projection is inside the triangle.
-
+ChApi 
 double ChPointTriangleDistance(Vector B, Vector A1, Vector A2, Vector A3, 
 							   double& mu, double& mv, int& is_into,
 							   Vector& Bprojected);

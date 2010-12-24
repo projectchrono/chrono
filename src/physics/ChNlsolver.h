@@ -20,6 +20,7 @@
 
 #include <math.h>
 
+#include "core/ChApiCE.h"
 #include "core/ChMatrix.h"
 
 
@@ -38,7 +39,7 @@ namespace chrono
 ///
 ///
 
-class ChNonlinearSolver
+class ChApi ChNonlinearSolver
 {
 public:
 

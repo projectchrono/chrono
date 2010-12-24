@@ -35,7 +35,7 @@ namespace chrono
 ///   here a full 6x6 mass matrix is not built, since only the 3x3
 ///   inertia matrix and the mass value are enough.
 
-class ChLcpVariablesBodyOwnMass :  public ChLcpVariablesBody
+class ChApi ChLcpVariablesBodyOwnMass :  public ChLcpVariablesBody
 {
 	CH_RTTI(ChLcpVariablesBodyOwnMass, ChLcpVariablesBody)
 

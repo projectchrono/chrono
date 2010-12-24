@@ -32,7 +32,7 @@ namespace chrono
 /// between a 3DOF node and a 6DOF body
 ///
 
-class ChContactNode {
+class ChApi ChContactNode {
 
 protected:
 				//

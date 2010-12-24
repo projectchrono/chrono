@@ -40,7 +40,7 @@ using namespace chrono::pneumatics;
 /// bearing at the origin of the two markers.
 ///
 
-class ChLinkPneumaticActuator : public ChLinkLock {
+class ChApi ChLinkPneumaticActuator : public ChLinkLock {
 
 	CH_RTTI(ChLinkPneumaticActuator,ChLinkLock);
 

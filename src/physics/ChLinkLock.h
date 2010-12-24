@@ -68,7 +68,7 @@ namespace chrono
 /// thank to the ChLinkLimit objects. 
 ///
 
-class ChLinkLock : public ChLinkMasked {
+class ChApi ChLinkLock : public ChLinkMasked {
 
 	CH_RTTI(ChLinkLock,ChLinkMasked);
 
@@ -247,7 +247,7 @@ public:
 /// Revolute joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock). 
 
-class ChLinkLockRevolute : public ChLinkLock 
+class ChApi ChLinkLockRevolute : public ChLinkLock 
 {
 	CH_RTTI(ChLinkLockRevolute,ChLinkLock);
 public:
@@ -257,7 +257,7 @@ public:
 /// 6-dof locked joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock). 
 
-class ChLinkLockLock : public ChLinkLock 
+class ChApi ChLinkLockLock : public ChLinkLock 
 {
 	CH_RTTI(ChLinkLockLock,ChLinkLock);
 public:
@@ -267,7 +267,7 @@ public:
 /// spherical joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock). 
 
-class ChLinkLockSpherical : public ChLinkLock 
+class ChApi ChLinkLockSpherical : public ChLinkLock 
 {
 	CH_RTTI(ChLinkLockSpherical,ChLinkLock);
 public:
@@ -277,7 +277,7 @@ public:
 /// cylindrical joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock). 
 
-class ChLinkLockCylindrical : public ChLinkLock 
+class ChApi ChLinkLockCylindrical : public ChLinkLock 
 {
 	CH_RTTI(ChLinkLockCylindrical,ChLinkLock);
 public:
@@ -287,7 +287,7 @@ public:
 /// prismatic joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock). 
 
-class ChLinkLockPrismatic : public ChLinkLock 
+class ChApi ChLinkLockPrismatic : public ChLinkLock 
 {
 	CH_RTTI(ChLinkLockPrismatic,ChLinkLock);
 public:
@@ -297,7 +297,7 @@ public:
 /// point-plane joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock). 
 
-class ChLinkLockPointPlane : public ChLinkLock 
+class ChApi ChLinkLockPointPlane : public ChLinkLock 
 {
 	CH_RTTI(ChLinkLockPointPlane,ChLinkLock);
 public:
@@ -307,7 +307,7 @@ public:
 /// point-line joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock). 
 
-class ChLinkLockPointLine : public ChLinkLock 
+class ChApi ChLinkLockPointLine : public ChLinkLock 
 {
 	CH_RTTI(ChLinkLockPointLine,ChLinkLock);
 public:
@@ -317,7 +317,7 @@ public:
 /// plane-plane joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock). 
 
-class ChLinkLockPlanePlane : public ChLinkLock 
+class ChApi ChLinkLockPlanePlane : public ChLinkLock 
 {
 	CH_RTTI(ChLinkLockPlanePlane,ChLinkLock);
 public:
@@ -327,7 +327,7 @@ public:
 /// oldham joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock). 
 
-class ChLinkLockOldham : public ChLinkLock 
+class ChApi ChLinkLockOldham : public ChLinkLock 
 {
 	CH_RTTI(ChLinkLockOldham,ChLinkLock);
 public:
@@ -337,7 +337,7 @@ public:
 /// free joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock). 
 
-class ChLinkLockFree : public ChLinkLock 
+class ChApi ChLinkLockFree : public ChLinkLock 
 {
 	CH_RTTI(ChLinkLockFree,ChLinkLock);
 public:
@@ -347,7 +347,7 @@ public:
 /// 'hook' joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock). 
 
-class ChLinkLockHook : public ChLinkLock 
+class ChApi ChLinkLockHook : public ChLinkLock 
 {
 	CH_RTTI(ChLinkLockHook,ChLinkLock);
 public:
@@ -357,7 +357,7 @@ public:
 /// align joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock). 
 
-class ChLinkLockAlign : public ChLinkLock 
+class ChApi ChLinkLockAlign : public ChLinkLock 
 {
 	CH_RTTI(ChLinkLockAlign,ChLinkLock);
 public:
@@ -367,7 +367,7 @@ public:
 /// parallel joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock). 
 
-class ChLinkLockParallel : public ChLinkLock 
+class ChApi ChLinkLockParallel : public ChLinkLock 
 {
 	CH_RTTI(ChLinkLockParallel,ChLinkLock);
 public:
@@ -377,7 +377,7 @@ public:
 /// perpendicularity joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock). 
 
-class ChLinkLockPerpend : public ChLinkLock 
+class ChApi ChLinkLockPerpend : public ChLinkLock 
 {
 	CH_RTTI(ChLinkLockPerpend,ChLinkLock);
 public:

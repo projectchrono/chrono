@@ -23,6 +23,7 @@
 #include "unit_JS/ChOptvar.h"
 #include "unit_JS/ChGlobalJS.h"
 
+
 struct JSScript;
 
 namespace chrono
@@ -33,7 +34,7 @@ namespace chrono
 /// is defined by a Javascript formula that returns a scalar value,
 /// and input variables are set from a list of Javascript names.
 
-class ChFxJavascript : public ChFx
+class ChApiJS ChFxJavascript : public ChFx
 {
 public:
 				/// Create the function wrapper.

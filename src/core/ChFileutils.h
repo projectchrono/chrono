@@ -12,7 +12,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
+#include "ChApiCE.h"
 
 namespace chrono
 {
@@ -22,7 +22,7 @@ namespace chrono
 /// file names and paths. ***TO DO*** use more modern programming style!
 ///
 
-class ChFileutils {
+class ChApi ChFileutils {
 public:
 			/// Set extension on a file identifier.
 			///   - force=1 forces change even if fid already has an extension

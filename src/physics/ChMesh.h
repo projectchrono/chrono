@@ -40,7 +40,7 @@ namespace chrono
 /// between nodes of class  ChFnode.  ***OBSOLETE***
 ///
 
-class ChFMesh : public ChObj 
+class ChApi ChFMesh : public ChObj 
 {
 private:
 

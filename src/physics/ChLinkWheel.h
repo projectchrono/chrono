@@ -39,7 +39,7 @@ namespace chrono
 /// of cars, etc.)
 ///
 
-class ChLinkWheel : public ChLinkLock {
+class ChApi ChLinkWheel : public ChLinkLock {
 
 	CH_RTTI(ChLinkWheel,ChLinkLock);
 

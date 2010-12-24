@@ -43,7 +43,7 @@ namespace chrono
 /// supposed to be less feature-rich but faster in execution.
 ///
 
-class ChLinkGeometric : public ChLink {
+class ChApi ChLinkGeometric : public ChLink {
 
 	CH_RTTI(ChLinkGeometric,ChLink);
 

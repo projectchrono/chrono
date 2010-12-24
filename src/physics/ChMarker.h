@@ -53,7 +53,7 @@ class ChBody;
 /// motion law of marker respect to parent ChBody, if
 /// needed to represent imposed trajectories etc.
 
-class ChMarker : public ChObj, public ChFrameMoving<double>  {
+class ChApi ChMarker : public ChObj, public ChFrameMoving<double>  {
 
 							// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChMarker,ChObj);

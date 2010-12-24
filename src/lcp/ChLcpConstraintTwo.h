@@ -41,7 +41,7 @@ namespace chrono
 /// values in constraints (and update them if necessary), i.e.
 /// must set at least the c_i and b_i values, and jacobians.
 
-class ChLcpConstraintTwo : public ChLcpConstraint
+class ChApi ChLcpConstraintTwo : public ChLcpConstraint
 {
 	CH_RTTI(ChLcpConstraintTwo, ChLcpConstraint)
 

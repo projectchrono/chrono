@@ -27,7 +27,7 @@
 #include <math.h>
 
 #include "physics/ChRef.h"
-
+#include "core/ChApiCE.h"
 
 namespace chrono 
 {
@@ -45,7 +45,7 @@ namespace chrono
 /// Child classes should implement at least Update() RestoreReferences() Get_Cn().
 
 
-class ChConstraint {
+class ChApi ChConstraint {
 
  private:
 
@@ -122,7 +122,7 @@ class ChConstraint {
 
 
 
-class ChConstraint_Chf : public ChConstraint{
+class ChApi ChConstraint_Chf : public ChConstraint{
 
  private:
 
@@ -157,7 +157,7 @@ class ChConstraint_Chf : public ChConstraint{
 ///
 
 
-class ChConstraint_Chf_ImposeVal : public ChConstraint_Chf{
+class ChApi ChConstraint_Chf_ImposeVal : public ChConstraint_Chf{
 
  private:
 	double T;
@@ -192,7 +192,7 @@ class ChConstraint_Chf_ImposeVal : public ChConstraint_Chf{
 ///
 
 
-class ChConstraint_Chf_Continuity : public ChConstraint_Chf{
+class ChApi ChConstraint_Chf_Continuity : public ChConstraint_Chf{
 
  private:
 	int continuity_order;
@@ -223,7 +223,7 @@ class ChConstraint_Chf_Continuity : public ChConstraint_Chf{
 ///
 
 
-class ChConstraint_Chf_HorDistance : public ChConstraint_Chf{
+class ChApi ChConstraint_Chf_HorDistance : public ChConstraint_Chf{
 
  private:
 
@@ -257,7 +257,7 @@ class ChConstraint_Chf_HorDistance : public ChConstraint_Chf{
 /// Impose segment vertical separation on Y axis, between two handles
 ///
 
-class ChConstraint_Chf_VertDistance : public ChConstraint_Chf{
+class ChApi ChConstraint_Chf_VertDistance : public ChConstraint_Chf{
 
  private:
 

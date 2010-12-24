@@ -19,6 +19,8 @@
 ///////////////////////////////////////////////////
 
 
+#include "core/ChApiCE.h"
+
 
 #if ((defined WIN32)|| (defined WIN64))
 	#include "ChThreadsWIN32.h"
@@ -34,7 +36,7 @@ namespace chrono
 {
 
 
-class ChThreads : private ChThreadsPlatformImplementation
+class ChApi ChThreads : private ChThreadsPlatformImplementation
 {
 public:
 

@@ -33,7 +33,7 @@ namespace chrono
 /// objects (contacts between 3DOF nodes and 6DOF bodies)
 ///
 
-class ChContactContainerNodes : public ChContactContainerBase {
+class ChApi ChContactContainerNodes : public ChContactContainerBase {
 
 	CH_RTTI(ChContactContainerNodes,ChContactContainerBase);
 

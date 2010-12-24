@@ -1880,8 +1880,10 @@ public:
 //
 // Conversion from/to matrix declarated as double[3][3]  \todo implement as class members
 //
-
+ChApi
 void Chrono_to_Marray   (ChMatrix33<>& ma, double marr[3][3]);
+
+ChApi
 void Chrono_from_Marray (ChMatrix33<>& ma, double marr[3][3]);
 
 

@@ -40,7 +40,7 @@ namespace chrono
 /// values in constraints (and update them if necessary), i.e.
 /// must set at least the c_i and b_i values, and jacobians.
 
-class ChLcpConstraintTwoGenericBoxed : public ChLcpConstraintTwoGeneric
+class ChApi ChLcpConstraintTwoGenericBoxed : public ChLcpConstraintTwoGeneric
 {
 	CH_RTTI(ChLcpConstraintTwoGenericBoxed, ChLcpConstraintTwoGeneric)
 

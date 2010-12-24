@@ -23,7 +23,7 @@
 ///////////////////////////////////////////////////
 
 
-
+#include "core/ChApiCE.h"
 #include "core/ChMatrix.h"
 #include "core/ChSpmatrix.h"
 #include "core/ChMemory.h" // must be after system's include (memory leak debugger).
@@ -55,7 +55,7 @@ namespace chrono
 
 
 
-class ChLcpVariables
+class ChApi ChLcpVariables
 {
 	CH_RTTI_ROOT(ChLcpVariables)
 

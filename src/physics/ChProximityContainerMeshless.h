@@ -35,7 +35,7 @@ namespace chrono
 /// in a meshless FEM approach, similar to the Smoothed Particle Hydrodynamics.
 /// 
 
-class ChProximityMeshless
+class ChApi ChProximityMeshless
 {
 public:
 	ChProximityMeshless(collision::ChModelBulletNode* mmodA,	///< model A
@@ -84,7 +84,7 @@ private:
 /// an object of class ChMatterMeshless.
 ///
 
-class ChProximityContainerMeshless : public ChProximityContainerBase {
+class ChApi ChProximityContainerMeshless : public ChProximityContainerBase {
 
 	CH_RTTI(ChProximityContainerMeshless,ChProximityContainerBase);
 

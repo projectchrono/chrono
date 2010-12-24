@@ -24,6 +24,7 @@
 #include <memory.h>
 #include <list>
 
+#include "core/ChApiCE.h"
 #include "core/ChMath.h"
 #include "physics/ChFilePS.h"
 #include "physics/ChProplist.h"
@@ -89,7 +90,7 @@ namespace chrono
 /// the type y= C.  Inherited classes must override at least the
 /// Get_y() method, in order to represent more complex functions.
 
-class ChFunction
+class ChApi ChFunction
 {
 						// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI_ROOT(ChFunction);
@@ -250,7 +251,7 @@ public:
 /// y = y0 + x * speed
 /// 
 
-class ChFunction_Ramp : public ChFunction
+class ChApi ChFunction_Ramp : public ChFunction
 {
 	CH_RTTI(ChFunction_Ramp, ChFunction);
 private:
@@ -302,7 +303,7 @@ public:
 /// SINE FUNCTION:
 /// y = sin (phase + w*x )     w=2*PI*freq
 
-class ChFunction_Sine : public ChFunction
+class ChApi ChFunction_Sine : public ChFunction
 {
 	CH_RTTI(ChFunction_Sine, ChFunction);
 private:
@@ -350,7 +351,7 @@ public:
 /// y = polynomial smooth ramp 
 
 
-class ChFunction_Sigma : public ChFunction
+class ChApi ChFunction_Sigma : public ChFunction
 {
 	CH_RTTI(ChFunction_Sigma, ChFunction);
 private:
@@ -399,7 +400,7 @@ public:
 /// MOTION CAPTURE (SAMPLE) FUNCTION
 /// y = (linear interpolated array of samples)
 
-class ChFunction_Mocap : public ChFunction
+class ChApi ChFunction_Mocap : public ChFunction
 {
 	CH_RTTI(ChFunction_Mocap, ChFunction);
 private:
@@ -460,7 +461,7 @@ public:
 /// y = a + bx + cx^2 + dx^3 + ...
 
 
-class ChFunction_Poly : public ChFunction
+class ChApi ChFunction_Poly : public ChFunction
 {
 	CH_RTTI(ChFunction_Poly, ChFunction);
 private:
@@ -501,7 +502,7 @@ public:
 /// av  = fraction of 1st acceleration end  (0..1)  
 /// aw  = fraction of 2nd acceleration start (0..1) , with aw>av;
 
-class ChFunction_ConstAcc : public ChFunction
+class ChApi ChFunction_ConstAcc : public ChFunction
 {
 	CH_RTTI(ChFunction_ConstAcc, ChFunction);
 private:
@@ -559,7 +560,7 @@ public:
 ///   - h   = height, amount of displacement
 ///   - end = duration of motion,
 
-class ChFunction_Poly345 : public ChFunction
+class ChApi ChFunction_Poly345 : public ChFunction
 {
 	CH_RTTI(ChFunction_Poly345, ChFunction);
 private:
@@ -610,7 +611,7 @@ public:
 ///  - y2 = y at the end
 ///  - dy2 = y' at the end
 
-class ChFunction_Fillet3 : public ChFunction
+class ChApi ChFunction_Fillet3 : public ChFunction
 {
 	CH_RTTI(ChFunction_Fillet, ChFunction);
 private:
@@ -676,7 +677,7 @@ enum {
 	ChOP_FUNCT,
 };
 
-class ChFunction_Operation : public ChFunction
+class ChApi ChFunction_Operation : public ChFunction
 {
 	CH_RTTI(ChFunction_Operation, ChFunction);
 private:
@@ -719,7 +720,7 @@ public:
 
 /////////////////////////////////////////////
 
-class ChRecPoint 
+class ChApi ChRecPoint 
 {
 public:
 	double x;	
@@ -735,7 +736,7 @@ public:
 /// y = interpolation of array of (x,y) data, 
 ///     where (x,y) points can be inserted randomly.
 
-class ChFunction_Recorder : public ChFunction
+class ChApi ChFunction_Recorder : public ChFunction
 {
 	CH_RTTI(ChFunction_Recorder, ChFunction);
 private:
@@ -782,7 +783,7 @@ public:
 /// between points, but may be faster and simplier to
 /// use in many cases.
 
-class ChFunction_Oscilloscope : public ChFunction
+class ChApi ChFunction_Oscilloscope : public ChFunction
 {
 	CH_RTTI(ChFunction_Oscilloscope, ChFunction);
 private:
@@ -851,7 +852,7 @@ public:
 /// Node for the list of functions 
 /// in a ChFunction_Sequence object.
 
-class ChFseqNode
+class ChApi ChFseqNode
 {
 public:
 	ChFunction* fx;
@@ -885,7 +886,7 @@ public:
 /// This function is very important because very complex motion
 /// laws can be created by sequencing many basic ChFunctions.
 
-class ChFunction_Sequence : public ChFunction
+class ChApi ChFunction_Sequence : public ChFunction
 {
 	CH_RTTI(ChFunction_Sequence, ChFunction);
 private:
@@ -979,7 +980,7 @@ public:
 /// y = matlab evaluation of function y=f(x)  
 /// 
 
-class ChFunction_Matlab : public ChFunction
+class ChApi ChFunction_Matlab : public ChFunction
 {
 	CH_RTTI(ChFunction_Matlab, ChFunction);
 private:
@@ -1012,7 +1013,7 @@ public:
 /// y = multi-octave noise with cubic interpolation  
 /// 
 
-class ChFunction_Noise : public ChFunction
+class ChApi ChFunction_Noise : public ChFunction
 {
 	CH_RTTI(ChFunction_Noise, ChFunction);
 private:
@@ -1053,7 +1054,7 @@ public:
 /// Uses a numerical differentiation method to compute the derivative
 /// of a generic function.
 
-class ChFunction_Derive : public ChFunction
+class ChApi ChFunction_Derive : public ChFunction
 {
 	CH_RTTI(ChFunction_Derive, ChFunction);
 private:
@@ -1093,7 +1094,7 @@ public:
 ///
 /// Uses a numerical quadrature method to compute the definite integral. 
 
-class ChFunction_Integrate : public ChFunction
+class ChApi ChFunction_Integrate : public ChFunction
 {
 	CH_RTTI(ChFunction_Integrate, ChFunction);
 private:
@@ -1149,7 +1150,7 @@ public:
 ///
 /// Mirrors a function about a vertical axis.
 
-class ChFunction_Mirror : public ChFunction
+class ChApi ChFunction_Mirror : public ChFunction
 {
 	CH_RTTI(ChFunction_Mirror, ChFunction);
 private:
@@ -1191,7 +1192,7 @@ public:
 ///
 /// Repeats a 'window' of a function, periodically.
 
-class ChFunction_Repeat : public ChFunction
+class ChApi ChFunction_Repeat : public ChFunction
 {
 	CH_RTTI(ChFunction_Repeat, ChFunction);
 private:

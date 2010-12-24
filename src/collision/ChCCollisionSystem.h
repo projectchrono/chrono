@@ -20,6 +20,7 @@
 
 #include "collision/ChCCollisionInfo.h"
 #include "core/ChFrame.h"
+#include "core/ChApiCE.h"
 
 namespace chrono 
 {
@@ -45,7 +46,7 @@ namespace collision
 /// implement a custom NarrowCallback() function.
 ///
 
-class ChNarrowPhaseCallback
+class ChApi ChNarrowPhaseCallback
 {
 public:
 			/// Callback, used to report contact points found by default
@@ -69,7 +70,7 @@ public:
 /// implement a custom BroadCallback(). 
 ///
 
-class ChBroadPhaseCallback
+class ChApi ChBroadPhaseCallback
 {
 public:
 			/// Callback used to report 'near enough' pairs of models.
@@ -93,7 +94,7 @@ public:
 /// by child classes.
 /// 
 
-class ChCollisionSystem
+class ChApi ChCollisionSystem
 {
   public:
 

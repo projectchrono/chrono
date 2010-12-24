@@ -37,7 +37,7 @@ namespace chrono
 /// given the teeth pressure angle.
 ///
 
-class ChLinkGear : public ChLinkLock {
+class ChApi ChLinkGear : public ChLinkLock {
 
 	CH_RTTI(ChLinkGear,ChLinkLock);
 

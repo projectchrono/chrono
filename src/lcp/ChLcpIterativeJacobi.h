@@ -43,7 +43,7 @@ namespace chrono
 ///    Note that this solver supports also the case of
 ///   boxed constraints on 'l', such as lmin<l<lmax
 
-class ChLcpIterativeJacobi : public ChLcpIterativeSolver
+class ChApi ChLcpIterativeJacobi : public ChLcpIterativeSolver
 {
 protected:
 			//

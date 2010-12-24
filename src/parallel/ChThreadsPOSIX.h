@@ -21,6 +21,7 @@
 
 
 #include <string>
+#include "core/ChApiCE.h"
 #include "parallel/ChThreadsFunct.h"
 #include "LinearMath/btAlignedObjectArray.h"
 
@@ -59,7 +60,7 @@ struct	ChThreadStatePOSIX
 
 
 
-class ChThreadsPOSIX 
+class ChApi ChThreadsPOSIX 
 {
 
 	btAlignedObjectArray<ChThreadStatePOSIX>	m_activeSpuStatus;

@@ -38,7 +38,7 @@ namespace geometry
 /// is controlled by control points.
 ///
 	
-class ChLinePoly : public ChLine 
+class ChApi ChLinePoly : public ChLine 
 {
 							// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChLinePoly,ChLine);

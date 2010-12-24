@@ -43,7 +43,7 @@ namespace geometry
 /// in 3D space.
 ///
 
-class ChLine : public ChGeometry 
+class ChApi ChLine : public ChGeometry 
 {
 							// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChLine,ChGeometry);

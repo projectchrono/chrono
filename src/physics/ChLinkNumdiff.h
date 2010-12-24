@@ -44,7 +44,7 @@ namespace chrono
 /// jacobians).
 ///
 
-class ChLinkNumdiff : public ChLinkMasked {
+class ChApi ChLinkNumdiff : public ChLinkMasked {
 
 	CH_RTTI(ChLinkNumdiff,ChLinkMasked);
 

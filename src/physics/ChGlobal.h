@@ -21,7 +21,7 @@
 #include <math.h>
 
 #include "core/ChLog.h"
-
+#include "core/ChApiCE.h"
 
 
 namespace chrono 
@@ -38,7 +38,7 @@ namespace chrono
 /// To be documented better...
 
 
-class ChGlobals
+class ChApi ChGlobals
 {
 private:
 
@@ -77,18 +77,21 @@ public:
 ///  DECLARE THAT THERE'S A GLOBAL POINTER TO A "GLOBAL_Vars" OBJECT!!!
 ///  
 
-extern ChGlobals* GLOBAL_Vars;  ///***OBSOLETE*** better use the following..
+extern
+ChGlobals* GLOBAL_Vars;  ///***OBSOLETE*** better use the following..
 
 
 	/// Global function to get the current ChGlobals object
 	/// (this is an easy way to access a single instance of globally visible
 	/// data)
+ChApi 
 ChGlobals& ChGLOBALS();
 
 	/// Create an istance of ChGlobals, then use this function at the beginning 
 	/// of your program to set it as a globally visible data. 
 	/// So that following calls to ChGLOBALS() will always return it.
 	/// If setting 0, the default static globals will be returned by ChGLOBALS().
+ChApi 
 void SetChGLOBALS(ChGlobals* my_globals);
 
 

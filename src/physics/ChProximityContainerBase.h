@@ -29,7 +29,7 @@ namespace chrono
 /// Class to be used as a callback interface for some user defined
 /// action to be taken each time a proximity info is added to the container.
 
-class ChAddProximityCallback
+class ChApi ChAddProximityCallback
 {
 public:
 			/// Callback, used to report proximity pairs being added to the container.
@@ -45,7 +45,7 @@ public:
 /// The user should implement an inherited class and
 /// implement a custom ReportProximityCallback() function.
 
-class ChReportProximityCallback
+class ChApi ChReportProximityCallback
 {
 public:
 			/// Callback, used to report contact points already added to the container.
@@ -72,7 +72,7 @@ public:
 /// This is only the basic interface with the features that are in common.
 ///
 
-class ChProximityContainerBase : public ChPhysicsItem {
+class ChApi ChProximityContainerBase : public ChPhysicsItem {
 
 	CH_RTTI(ChProximityContainerBase, ChPhysicsItem);
 

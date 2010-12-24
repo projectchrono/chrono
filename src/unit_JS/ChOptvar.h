@@ -30,6 +30,8 @@
 #include "physics/ChObject.h"
 #include "physics/ChGlobal.h"
 #include "physics/ChFormule.h"
+#include "unit_JS/ChApiJS.h"
+
 
 namespace chrono 
 {
@@ -44,7 +46,7 @@ namespace chrono
 /// Class for variables addressing properties of scriptable 
 /// objects which can be subject to optimization.
 
-class ChOptVar : public ChObj {
+class ChApiJS ChOptVar : public ChObj {
 
 private:
 	char varname[100];	// the variable 'string identifier'

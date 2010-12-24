@@ -35,7 +35,7 @@ namespace chrono
 /// 
 
 
-class ChControls : public ChObj 
+class ChApi ChControls : public ChObj 
 {
 								// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChControls,ChObj);

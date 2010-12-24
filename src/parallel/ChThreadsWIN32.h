@@ -21,6 +21,7 @@
 
 
 #include <string>
+#include "core/ChApiCE.h"
 #include "parallel/ChThreadsFunct.h"
 #include "LinearMath/btAlignedObjectArray.h"
 
@@ -58,7 +59,7 @@ struct	ChThreadStateWIN32
 
 
 
-class ChThreadsWIN32 // : public ChThreads
+class ChApi ChThreadsWIN32 // : public ChThreads
 {
 
 	btAlignedObjectArray<ChThreadStateWIN32>	m_activeSpuStatus;

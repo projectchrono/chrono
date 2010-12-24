@@ -29,7 +29,7 @@ namespace chrono
 /// shafts that can be used to build 1D models
 /// of power trains. 
 
-class ChShaftsCouple : public ChPhysicsItem {
+class ChApi ChShaftsCouple : public ChPhysicsItem {
 
 						// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChShaftsCouple,ChPhysicsItem);

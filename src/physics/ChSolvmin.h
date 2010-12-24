@@ -55,7 +55,7 @@ namespace chrono
 /// Base class for multi-variable optimization.
 ///
 
-class ChOptimizer : public ChObj {
+class ChApi ChOptimizer : public ChObj {
 
 protected:
 	ChFx* afunction;		// the function to be maximized
@@ -160,7 +160,7 @@ public:
 /// with the method of pseudo-Newton
 ///
 
-class ChOptimizerLocal : public ChOptimizer
+class ChApi ChOptimizerLocal : public ChOptimizer
 {
 public:
 
@@ -208,7 +208,7 @@ public:
 /// Class for individuals of the population;
 /// for the ChOptimizerGenetic optimization engine.
 
-class ChGenotype {
+class ChApi ChGenotype {
 public:
 	ChMatrix<>* genes;		// genetic information (variables defining the individual)
 	double fitness;		// fitness value
@@ -227,7 +227,7 @@ public:
 /// with the genetic method (evolutive simulation).
 ///
 
-class ChOptimizerGenetic : public ChOptimizer
+class ChApi ChOptimizerGenetic : public ChOptimizer
 {
 public:
 
@@ -353,7 +353,7 @@ enum eChGeneticReplaceMode{
 /// with the cheap method of gradient and bisection
 ///
 
-class ChOptimizerGradient : public ChOptimizer
+class ChApi ChOptimizerGradient : public ChOptimizer
 {
 public:
 
@@ -403,7 +403,7 @@ public:
 /// automatically set them for the genetic_opt and gradient_opt.
 
 
-class ChOptimizerHybrid : public ChOptimizer
+class ChApi ChOptimizerHybrid : public ChOptimizer
 {
 public:
 	// ------ DATA
@@ -452,8 +452,10 @@ public:
 // A 3rd party function which performs local optimization
 //
 
+ChApi 
 void null_entry_solv_opt(double x[],double g[]);
 
+ChApi 
 double solvopt(unsigned int n,
                double x[],
                double  fun(double x[],void * idData),

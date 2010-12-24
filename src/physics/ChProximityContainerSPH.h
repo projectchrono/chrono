@@ -35,7 +35,7 @@ namespace chrono
 /// in a meshless FEM approach, like the Smoothed Particle Hydrodynamics.
 /// 
 
-class ChProximitySPH
+class ChApi ChProximitySPH
 {
 public:
 	ChProximitySPH(collision::ChModelBulletNode* mmodA,	///< model A
@@ -82,7 +82,7 @@ private:
 /// as CPU typical linked list of ChProximitySPH objects.
 ///
 
-class ChProximityContainerSPH : public ChProximityContainerBase {
+class ChApi ChProximityContainerSPH : public ChProximityContainerBase {
 
 	CH_RTTI(ChProximityContainerSPH,ChProximityContainerBase);
 

@@ -34,7 +34,7 @@ namespace chrono
 ///    This is an abstract class, specialized for example in 
 ///   ChLcpVariablesBodyOwnMass and ChLcpVariablesBodySharedMass.
 
-class ChLcpVariablesBody :  public ChLcpVariables
+class ChApi ChLcpVariablesBody :  public ChLcpVariables
 {
 	CH_RTTI(ChLcpVariablesBody, ChLcpVariables)
 

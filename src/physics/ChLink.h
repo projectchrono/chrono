@@ -79,7 +79,7 @@ class ChSystem;
 /// _nothing_ unless it is specialized by some child class).
 ///
 
-class ChLink : public ChPhysicsItem 
+class ChApi ChLink : public ChPhysicsItem 
 {
 
 	CH_RTTI(ChLink,ChPhysicsItem);

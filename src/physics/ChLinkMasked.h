@@ -38,7 +38,7 @@ class ChSystem;
 /// set inner spring-damper features for each degree of freedom. 
 ///
 
-class ChLinkMasked : public ChLinkMarkers {
+class ChApi ChLinkMasked : public ChLinkMarkers {
 
 	CH_RTTI(ChLinkMasked,ChLinkMarkers);
 

@@ -43,7 +43,7 @@ namespace chrono
 /// quadrature (definite integral over nD intervals)
 ///
 
-class ChQuadrature: public ChObj
+class ChApi ChQuadrature: public ChObj
 {
 private:
 

@@ -35,7 +35,7 @@ namespace chrono
 /// ONLY when also two ChLcpConstraintTwoRollingT objects and a 
 /// ChLcpConstraintTwoContactN are used to represent contact. 
 
-class ChLcpConstraintTwoRollingN : public ChLcpConstraintTwoBodies
+class ChApi ChLcpConstraintTwoRollingN : public ChLcpConstraintTwoBodies
 {
 	CH_RTTI(ChLcpConstraintTwoRollingN, ChLcpConstraintTwoBodies)
 

@@ -40,7 +40,7 @@ namespace chrono
 ///   as arising in the solution of QP with
 ///   inequalities or in multibody problems.
 
-class ChLcpIterativeSolver : public ChLcpSolver
+class ChApi ChLcpIterativeSolver : public ChLcpSolver
 {
 protected:
 			//

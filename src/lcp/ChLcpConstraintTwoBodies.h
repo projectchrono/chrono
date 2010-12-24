@@ -38,7 +38,7 @@ namespace chrono
 /// IsGPUcompatible() as 'true' because here we're sure that 
 /// jacobians are 1x6 and 1x6, as required by the GPU solver.
 
-class ChLcpConstraintTwoBodies : public ChLcpConstraintTwo
+class ChApi ChLcpConstraintTwoBodies : public ChLcpConstraintTwo
 {
 	CH_RTTI(ChLcpConstraintTwoBodies, ChLcpConstraintTwo)
 

@@ -32,7 +32,7 @@ namespace chrono
 /// joints with clearance.
 ///
 
-class ChLinkClearance : public ChLinkLock {
+class ChApi ChLinkClearance : public ChLinkLock {
 
 	CH_RTTI(ChLinkClearance,ChLinkLock);
 

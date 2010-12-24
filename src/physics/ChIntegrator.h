@@ -44,7 +44,7 @@ namespace chrono
 /// Class for methods which perform numerical integration of ODEs
 /// (Ordinary Differential Equations).
 
-class ChIntegrator : public ChObj {
+class ChApi ChIntegrator : public ChObj {
 
 private:
 

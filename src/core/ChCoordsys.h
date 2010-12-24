@@ -191,6 +191,7 @@ typedef ChCoordsys<float>  CoordsysF;
 //
 
 			/// Force 3d coordsys to lie on a XY plane (note: no normaliz. on quat)
+ChApi 
 Coordsys  Force2Dcsys (Coordsys* cs); 
 
 

@@ -32,7 +32,7 @@ namespace chrono
 /// between two 6DOF rigid bodies.
 ///
 
-class ChContact {
+class ChApi ChContact {
 
 protected:
 				//
