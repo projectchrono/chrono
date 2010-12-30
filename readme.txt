@@ -7,8 +7,19 @@
 Release 1.2.0
 x-xx-xxxx
 
-- New API 
+- New API building process for exporting symbols from
+  the dll. Previously, if one needed to rebuild the 
+  entire Chrono::Engine dll, he needed also the dlltool.exe
+  and the sed.exe utilities, because a .def file was 
+  automatically generated. This was complicated and
+  a bit unusual, so now we use the __declspec() method
+  to mark exported classes (using macros in ChApiCE.h)
+  and this is a more 'standard' process in Windows.
 
+- The 'ChronoEngine/demos' directory has been moved to
+  the 'ChronoEngine/source/demos' directory, to be more
+  consistent (it contains source, for demo executables).
+   
 - Fixed a bug in the collision detection engine, that
   caused some collisions to be missed once in a while.
   This was related to different ways of managing thresholds

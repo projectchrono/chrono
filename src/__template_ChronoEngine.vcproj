@@ -27,12 +27,12 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="cd .. &amp;&amp; cd demos &amp;&amp;  nmake -f makefile build=RELEASE all"
-				ReBuildCommandLine="cd .. &amp;&amp; cd demos &amp;&amp;  nmake -f makefile build=RELEASE all /A"
+				BuildCommandLine="cd demos &amp;&amp;  nmake -f makefile build=RELEASE all"
+				ReBuildCommandLine="cd demos &amp;&amp;  nmake -f makefile build=RELEASE all /A"
 				CleanCommandLine=""
 				Output="PRchrono.exe"
 				PreprocessorDefinitions=""
-				IncludeSearchPath="&quot;C:\engine_demo\irrlicht-1.7.1\include&quot;;C:\tasora\code\dynamics\code\ChronoEngine\source;C:\tasora\code\dynamics\code\ChronoEngine\demos"
+				IncludeSearchPath="&quot;C:\engine_demo\irrlicht-1.7.1\include&quot;;C:\tasora\code\dynamics\code\ChronoEngine\source"
 				ForcedIncludes=""
 				AssemblySearchPath=""
 				ForcedUsingAssemblies=""
@@ -50,12 +50,12 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="cd .. &amp;&amp; cd demos &amp;&amp;  nmake -f makefile build=DEBUG all"
-				ReBuildCommandLine="cd .. &amp;&amp; cd demos &amp;&amp;  nmake -f makefile build=DEBUG all /A"
+				BuildCommandLine="cd demos &amp;&amp;  nmake -f makefile build=DEBUG all"
+				ReBuildCommandLine="cd demos &amp;&amp;  nmake -f makefile build=DEBUG all /A"
 				CleanCommandLine=""
 				Output="test_exe.exe"
 				PreprocessorDefinitions=""
-				IncludeSearchPath="&quot;C:\engine_demo\irrlicht-1.7.1\include&quot;;C:\tasora\code\dynamics\code\ChronoEngine\source;C:\tasora\code\dynamics\code\ChronoEngine\demos"
+				IncludeSearchPath="&quot;C:\engine_demo\irrlicht-1.7.1\include&quot;;C:\tasora\code\dynamics\code\ChronoEngine\source"
 				ForcedIncludes=""
 				AssemblySearchPath=""
 				ForcedUsingAssemblies=""
@@ -141,6 +141,10 @@
 			</File>
 			<File
 				RelativePath=".\collision\ChCCollisionSystemBullet.h"
+				>
+			</File>
+			<File
+				RelativePath=".\collision\ChCConvexDecomposition.cpp"
 				>
 			</File>
 			<File
@@ -1464,171 +1468,179 @@
 			Name="unit_JS"
 			>
 			<File
-				RelativePath=".\chjs\ChControlsJS.cpp"
+				RelativePath=".\unit_JS\ChApiJS.h"
 				>
 			</File>
 			<File
-				RelativePath=".\chjs\ChControlsJS.h"
+				RelativePath=".\unit_JS\ChControlsJS.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\chjs\ChFunctionJS.cpp"
+				RelativePath=".\unit_JS\ChControlsJS.h"
 				>
 			</File>
 			<File
-				RelativePath=".\chjs\ChFunctionJS.h"
+				RelativePath=".\unit_JS\ChFunctionJS.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\chjs\ChFxJavascript.cpp"
+				RelativePath=".\unit_JS\ChFunctionJS.h"
 				>
 			</File>
 			<File
-				RelativePath=".\chjs\ChFxJavascript.h"
+				RelativePath=".\unit_JS\ChFxJavascript.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\chjs\ChGlobalJS.cpp"
+				RelativePath=".\unit_JS\ChFxJavascript.h"
 				>
 			</File>
 			<File
-				RelativePath=".\chjs\ChGlobalJS.h"
+				RelativePath=".\unit_JS\ChGlobalJS.cpp"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_all.cpp"
+				RelativePath=".\unit_JS\ChGlobalJS.h"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_all.h"
+				RelativePath=".\unit_JS\ChJs_all.cpp"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_body.cpp"
+				RelativePath=".\unit_JS\ChJs_all.h"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_body.h"
+				RelativePath=".\unit_JS\ChJs_body.cpp"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_chobject.cpp"
+				RelativePath=".\unit_JS\ChJs_body.h"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_chobject.h"
+				RelativePath=".\unit_JS\ChJs_chobject.cpp"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_constraint.cpp"
+				RelativePath=".\unit_JS\ChJs_chobject.h"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_constraint.h"
+				RelativePath=".\unit_JS\ChJs_constraint.cpp"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_controller.cpp"
+				RelativePath=".\unit_JS\ChJs_constraint.h"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_controller.h"
+				RelativePath=".\unit_JS\ChJs_controller.cpp"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_Engine.cpp"
+				RelativePath=".\unit_JS\ChJs_controller.h"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_Engine.h"
+				RelativePath=".\unit_JS\ChJs_Engine.cpp"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_force.cpp"
+				RelativePath=".\unit_JS\ChJs_Engine.h"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_force.h"
+				RelativePath=".\unit_JS\ChJs_force.cpp"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_funct.cpp"
+				RelativePath=".\unit_JS\ChJs_force.h"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_funct.h"
+				RelativePath=".\unit_JS\ChJs_funct.cpp"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_geometry.cpp"
+				RelativePath=".\unit_JS\ChJs_funct.h"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_geometry.h"
+				RelativePath=".\unit_JS\ChJs_geometry.cpp"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_impact.cpp"
+				RelativePath=".\unit_JS\ChJs_geometry.h"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_impact.h"
+				RelativePath=".\unit_JS\ChJs_impact.cpp"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_link.cpp"
+				RelativePath=".\unit_JS\ChJs_impact.h"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_link.h"
+				RelativePath=".\unit_JS\ChJs_link.cpp"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_marker.cpp"
+				RelativePath=".\unit_JS\ChJs_link.h"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_marker.h"
+				RelativePath=".\unit_JS\ChJs_marker.cpp"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_math.cpp"
+				RelativePath=".\unit_JS\ChJs_marker.h"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_math.h"
+				RelativePath=".\unit_JS\ChJs_math.cpp"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_optimizer.cpp"
+				RelativePath=".\unit_JS\ChJs_math.h"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_optimizer.h"
+				RelativePath=".\unit_JS\ChJs_optimizer.cpp"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_system.cpp"
+				RelativePath=".\unit_JS\ChJs_optimizer.h"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_system.h"
+				RelativePath=".\unit_JS\ChJs_system.cpp"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_utils.cpp"
+				RelativePath=".\unit_JS\ChJs_system.h"
 				>
 			</File>
 			<File
-				RelativePath="chjs\ChJs_utils.h"
+				RelativePath=".\unit_JS\ChJs_utils.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\chjs\ChOptvar.cpp"
+				RelativePath=".\unit_JS\ChJs_utils.h"
 				>
 			</File>
 			<File
-				RelativePath=".\chjs\ChOptvar.h"
+				RelativePath=".\unit_JS\ChOptvar.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_JS\ChOptvar.h"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_JS\make-unit_JS"
 				>
 			</File>
 		</Filter>
@@ -2308,6 +2320,10 @@
 			Name="core"
 			>
 			<File
+				RelativePath=".\core\ChApiCE.h"
+				>
+			</File>
+			<File
 				RelativePath=".\core\ChChrono.h"
 				>
 			</File>
@@ -2412,6 +2428,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\core\ChPlatform.h"
+				>
+			</File>
+			<File
 				RelativePath="core\ChQuaternion.cpp"
 				>
 			</File>
@@ -2476,30 +2496,34 @@
 			Name="demos"
 			>
 			<File
-				RelativePath="..\demos\makefile"
+				RelativePath=".\demos\CMakeLists.txt"
+				>
+			</File>
+			<File
+				RelativePath=".\demos\makefile"
 				>
 			</File>
 			<Filter
 				Name="core"
 				>
 				<File
-					RelativePath="..\demos\core\demo_coords.cpp"
+					RelativePath=".\demos\core\demo_coords.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\core\demo_math.cpp"
+					RelativePath=".\demos\core\demo_math.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\core\demo_sharedptr.cpp"
+					RelativePath=".\demos\core\demo_sharedptr.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\core\demo_stream.cpp"
+					RelativePath=".\demos\core\demo_stream.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\core\makefile"
+					RelativePath=".\demos\core\makefile"
 					>
 				</File>
 			</Filter>
@@ -2507,15 +2531,19 @@
 				Name="basics"
 				>
 				<File
-					RelativePath="..\demos\basics\demo_buildsystem.cpp"
+					RelativePath=".\demos\basics\CMakeLists.txt"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\basics\demo_powertrain.cpp"
+					RelativePath=".\demos\basics\demo_buildsystem.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\basics\makefile"
+					RelativePath=".\demos\basics\demo_powertrain.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\demos\basics\makefile"
 					>
 				</File>
 			</Filter>
@@ -2523,79 +2551,83 @@
 				Name="irrlicht"
 				>
 				<File
-					RelativePath="..\demos\irrlicht\demo_benchmark.cpp"
+					RelativePath=".\demos\irrlicht\demo_benchmark.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\irrlicht\demo_bricks.cpp"
+					RelativePath=".\demos\irrlicht\demo_bricks.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\irrlicht\demo_cohesion.cpp"
+					RelativePath=".\demos\irrlicht\demo_cohesion.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\irrlicht\demo_collision.cpp"
+					RelativePath=".\demos\irrlicht\demo_collision.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\irrlicht\demo_conveyor.cpp"
+					RelativePath=".\demos\irrlicht\demo_conveyor.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\irrlicht\demo_crank.cpp"
+					RelativePath=".\demos\irrlicht\demo_crank.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\irrlicht\demo_decomposition.cpp"
+					RelativePath=".\demos\irrlicht\demo_decomposition.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\irrlicht\demo_forklift.cpp"
+					RelativePath=".\demos\irrlicht\demo_forklift.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\irrlicht\demo_fourbar.cpp"
+					RelativePath=".\demos\irrlicht\demo_fourbar.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\irrlicht\demo_friction.cpp"
+					RelativePath=".\demos\irrlicht\demo_friction.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\irrlicht\demo_gears.cpp"
+					RelativePath=".\demos\irrlicht\demo_gears.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\irrlicht\demo_mecanum.cpp"
+					RelativePath=".\demos\irrlicht\demo_mecanum.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\irrlicht\demo_meshless.cpp"
+					RelativePath=".\demos\irrlicht\demo_meshless.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\irrlicht\demo_pendulum.cpp"
+					RelativePath=".\demos\irrlicht\demo_pendulum.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\irrlicht\demo_sph.cpp"
+					RelativePath=".\demos\irrlicht\demo_polycollision.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\irrlicht\demo_suspension.cpp"
+					RelativePath=".\demos\irrlicht\demo_sph.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\irrlicht\demo_tire.cpp"
+					RelativePath=".\demos\irrlicht\demo_suspension.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\irrlicht\demo_tracks.cpp"
+					RelativePath=".\demos\irrlicht\demo_tire.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\irrlicht\makefile"
+					RelativePath=".\demos\irrlicht\demo_tracks.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\demos\irrlicht\makefile"
 					>
 				</File>
 			</Filter>
@@ -2603,11 +2635,11 @@
 				Name="lcp_solver"
 				>
 				<File
-					RelativePath="..\demos\lcp_solver\demo_LCPsolver.cpp"
+					RelativePath=".\demos\lcp_solver\demo_LCPsolver.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\lcp_solver\makefile"
+					RelativePath=".\demos\lcp_solver\makefile"
 					>
 				</File>
 			</Filter>
@@ -2615,11 +2647,11 @@
 				Name="matlab"
 				>
 				<File
-					RelativePath="..\demos\matlab\demo_matlab.cpp"
+					RelativePath=".\demos\matlab\demo_matlab.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\matlab\makefile"
+					RelativePath=".\demos\matlab\makefile"
 					>
 				</File>
 			</Filter>
@@ -2627,11 +2659,11 @@
 				Name="gpu"
 				>
 				<File
-					RelativePath="..\demos\gpu\demo_gpubasic.cpp"
+					RelativePath=".\demos\gpu\demo_gpubasic.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\gpu\makefile"
+					RelativePath=".\demos\gpu\makefile"
 					>
 				</File>
 			</Filter>
@@ -2639,19 +2671,19 @@
 				Name="mpi"
 				>
 				<File
-					RelativePath="..\demos\mpi\demo_domains.cpp"
+					RelativePath=".\demos\mpi\demo_domains.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\mpi\demo_lcp_schwarz.cpp"
+					RelativePath=".\demos\mpi\demo_lcp_schwarz.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\mpi\demo_mpibasic.cpp"
+					RelativePath=".\demos\mpi\demo_mpibasic.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\demos\mpi\makefile"
+					RelativePath=".\demos\mpi\makefile"
 					>
 				</File>
 			</Filter>
@@ -3044,6 +3076,10 @@
 			Name="unit_MPI"
 			>
 			<File
+				RelativePath=".\unit_MPI\ChApiMPI.h"
+				>
+			</File>
+			<File
 				RelativePath=".\unit_MPI\ChBodyMPI.cpp"
 				>
 			</File>
@@ -3095,20 +3131,24 @@
 				RelativePath=".\unit_MPI\ChSystemMPI.h"
 				>
 			</File>
+			<File
+				RelativePath=".\unit_MPI\make-unit_MPI"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="unit_GPU"
 			>
+			<File
+				RelativePath=".\unit_GPU\ChApiGPU.h"
+				>
+			</File>
 			<File
 				RelativePath=".\unit_GPU\ChCCollisionSystemGPU.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\unit_GPU\ChCCollisionSystemGPU.h"
-				>
-			</File>
-			<File
-				RelativePath=".\unit_GPU\ChCCollisionSystemGPU.obj"
 				>
 			</File>
 			<File
@@ -3120,19 +3160,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\unit_GPU\ChCModelGPU.obj"
-				>
-			</File>
-			<File
 				RelativePath=".\unit_GPU\ChCModelGPUBody.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\unit_GPU\ChCModelGPUBody.h"
-				>
-			</File>
-			<File
-				RelativePath=".\unit_GPU\ChCModelGPUBody.obj"
 				>
 			</File>
 			<File
@@ -3197,6 +3229,10 @@
 			</File>
 			<File
 				RelativePath=".\unit_GPU\collide_kernel.cu"
+				>
+			</File>
+			<File
+				RelativePath=".\unit_GPU\make-unit_GPU"
 				>
 			</File>
 		</Filter>
