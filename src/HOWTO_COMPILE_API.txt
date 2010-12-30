@@ -6,6 +6,26 @@
   
 -------------------------------------------------------
 
+
+  NEWS    NEWS    NEWS   NEWS   NEWS   NEWS   NEWS 
+   NEWS   NEWS   NEWS   NEWS   NEWS   NEWS   NEWS 
+
+   IMPORTANT! 
+   
+   The Chrono::Engine API is under a major revision:
+   we are updating it to support the CMAKE build system.
+   Therefore, the following informations are somewhat
+   outdated - the new CMAKE-based system does not require
+   any 'makefile' stuff...
+   
+   End news
+    
+
+
+old instructions here....
+-........................
+
+
 This info is NOT needed if you simply want to use 
 the Chrono::Engine libraries in your C++ projects, 
 because the SDK already contains the precompiled
