@@ -18,7 +18,7 @@
  
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
-#include "matlab_interface/ChMatlabEngine.h"
+#include "unit_MATLAB/ChMatlabEngine.h"
 
 
 // Use the namespace of Chrono
@@ -37,13 +37,15 @@ int main(int argc, char* argv[])
 	// the engine is not started (because Matlab not properly installed)
 	try
 	{
+		GetLog() << "PERFORM TESTS OF MATLAB<->CHRONOENGINE INTERACTION\n\n";
+		GetLog() << "(please wait few seconds: Matlab engine must be loaded)\n\n";
+
 		// This is the object that you can use to access the Matlab engine.
 		// As soon as created, it loads the Matlab engine (if troubles happen, it
 		// throws exception).
 		ChMatlabEngine matlab_engine;
 
 		
-		GetLog() << "PERFORM TESTS OF MATLAB<->CHRONOENGINE INTERACTION\n\n";
 
 		// 
 		// EXAMPLE 1: execute a Matlab command

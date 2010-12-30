@@ -1,0 +1,43 @@
+#--------------------------------------------------------------
+# Add executables
+
+
+ADD_EXECUTABLE(demo_coords   		demo_coords.cpp)
+SOURCE_GROUP(demos\\basics FILES  	demo_coords.cpp)
+SET_TARGET_PROPERTIES(demo_coords PROPERTIES 
+	FOLDER demos
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
+	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+TARGET_LINK_LIBRARIES(demo_coords 
+ 	optimized 	${CH_CHRONOLIB} 
+ 	debug 		${CH_CHRONOLIB_DBG})
+
+ADD_EXECUTABLE(demo_math   			demo_math.cpp)
+SOURCE_GROUP(demos\\basics FILES  	demo_math.cpp)
+SET_TARGET_PROPERTIES(demo_math PROPERTIES 
+	FOLDER demos
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
+	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+TARGET_LINK_LIBRARIES(demo_math 
+ 	optimized 	${CH_CHRONOLIB} 
+ 	debug 		${CH_CHRONOLIB_DBG})
+ 	
+ADD_EXECUTABLE(demo_sharedptr		demo_sharedptr.cpp)
+SOURCE_GROUP(demos\\basics FILES  	demo_sharedptr.cpp)
+SET_TARGET_PROPERTIES(demo_sharedptr PROPERTIES 
+	FOLDER demos
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
+	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+TARGET_LINK_LIBRARIES(demo_sharedptr 
+ 	optimized 	${CH_CHRONOLIB} 
+ 	debug 		${CH_CHRONOLIB_DBG})
+ 	
+ADD_EXECUTABLE(demo_stream			demo_stream.cpp)
+SOURCE_GROUP(demos\\basics FILES  	demo_stream.cpp)
+SET_TARGET_PROPERTIES(demo_stream PROPERTIES 
+	FOLDER demos
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
+	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+TARGET_LINK_LIBRARIES(demo_stream 
+ 	optimized 	${CH_CHRONOLIB} 
+ 	debug 		${CH_CHRONOLIB_DBG})

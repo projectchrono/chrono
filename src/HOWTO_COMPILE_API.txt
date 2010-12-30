@@ -2,6 +2,8 @@
 
   HOW TO COMPILE THE API OF CHRONO::ENGINE
 
+  ***WARNING*** this document is outdated...
+  
 -------------------------------------------------------
 
 This info is NOT needed if you simply want to use 

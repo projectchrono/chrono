@@ -16,7 +16,7 @@
 # 
 
 
-include ../../makes/config.mak
+include ../../../makes/config.mak
 
 
 	# From now on, thank to config.mak, some useful variables

@@ -4,7 +4,7 @@
 
 default: all
 
-include ../makes/config.mak
+include ../../makes/config.mak
 
 all depend strings clean:
 	@echo "Making $@ in core"     $(S) cd core     $(S) $(CH_MAKETOOL) build=$(build) $@  $(S)  cd ..
