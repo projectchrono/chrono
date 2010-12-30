@@ -1,8 +1,6 @@
 #ifndef CHC_MODELGPU_H
 #define CHC_MODELGPU_H
 
-#ifdef CH_UNIT_GPU 
- 
 //////////////////////////////////////////////////
 //  
 //   ChCModelGPU.h
@@ -143,7 +141,7 @@ public:
 } // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____
 
-#endif  // end of ! CH_UNIT_GPU
+
 
 #endif
 

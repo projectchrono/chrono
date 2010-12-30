@@ -1,5 +1,3 @@
-#ifdef CH_UNIT_GPU 
-
 ///////////////////////////////////////////////////
 //
 //   ChLcpIterativeSolverGPUsimple.cpp
@@ -957,5 +955,4 @@ void ChLcpIterativeSolverGPUsimple::IntegrateTimeStep(double mdt)
 } // END_OF_NAMESPACE____
 
 
-#endif  // end of   CH_UNIT_GPU
  

@@ -1,5 +1,3 @@
-#ifdef CH_UNIT_GPU 
-
 ///////////////////////////////////////////////////
 //
 //   ChContactGPUsimple.cpp
@@ -214,8 +212,6 @@ void  ChContactGPUsimple::ConstraintsLiFetchSuggestedPositionSolution()
 } // END_OF_NAMESPACE____
 
 
-
-#endif  // end of   CH_UNIT_GPU
  
 
 

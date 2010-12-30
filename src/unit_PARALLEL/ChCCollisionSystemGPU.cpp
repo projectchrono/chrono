@@ -8,7 +8,6 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#ifdef CH_UNIT_GPU 
 
 
 #include "ChCModelGPUBody.h"
@@ -344,4 +343,4 @@ namespace chrono
 
 
 
-#endif  // end of ! CH_UNIT_GPU
+

@@ -1,5 +1,3 @@
-#ifdef CH_UNIT_GPU 
-
 ///////////////////////////////////////////////////
 //
 //   ChLcpConstraintTwoContactN.cpp
@@ -60,5 +58,4 @@ void ChLcpConstraintTwoGPUcontN::StreamIN(ChStreamInBinary& mstream)
 
 
 
-#endif  // end of  CH_UNIT_GPU
  

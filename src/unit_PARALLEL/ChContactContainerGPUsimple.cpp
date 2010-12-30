@@ -1,5 +1,3 @@
-#ifdef CH_UNIT_GPU
-
 ///////////////////////////////////////////////////
 //
 //   ChContactContainerGPUsimple.cpp
@@ -360,5 +358,4 @@ void  ChContactContainerGPUsimple::ConstraintsLiFetchSuggestedPositionSolution()
 
 
 
-#endif  // end of CH_UNIT_GPU
  
