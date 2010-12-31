@@ -18,8 +18,7 @@ IF(ENABLE_UNIT_GPU)
 	#
 	
 	SET(ChronoEngine_unit_GPU_SOURCES 
-			ChCModelGPU.cpp
-			ChCModelGPUBody.cpp
+			ChCCollisionModelGPU.cpp
 			ChCCollisionSystemGPU.cpp
 			ChContactContainerGPUsimple.cpp
 			ChContactGPUsimple.cpp
@@ -30,19 +29,19 @@ IF(ENABLE_UNIT_GPU)
 	SET(ChronoEngine_unit_GPU_HEADERS 
 	    	ChApiGPU.h
 	    	ChCuda.h
-	    	collide.h
-			ChCModelGPU.h
-			ChCModelGPUBody.h
+	    	ChCCollisionGPU.h
+			ChCCollisionModelGPU.h
 			ChCCollisionSystemGPU.h
 			ChContactContainerGPUsimple.h
 			ChContactGPUsimple.h
 			ChLcpIterativeSolverGPUsimple.h
 			ChLcpConstraintTwoGPUcontN.h
 			ChLcpConstraintTwoGPUcontT.h
+			ChLcpSystemDescriptorGPU.h
 		)
 	SET(ChronoEngine_unit_GPU_CU 
 	    	ChLcpIterativeSolverGPUsimpleCU.cu 
-			collide.cu
+			ChCCollisionGPU.cu
 		)
 	#SET_SOURCE_FILES_PROPERTIES(ChronoEngine_unit_GPU_HEADERS PROPERTIES  HEADER_FILE_ONLY)
 	SOURCE_GROUP(unit_GPU FILES 
@@ -66,7 +65,7 @@ IF(ENABLE_UNIT_GPU)
 	if (CUDA_FOUND)
 	  message("CUDA found")
 	else()
-	  message(FATAL_ERROR "CUDA not found! (you may switch off ENABLE_UNIT_GPU and do without this unit)")
+	  message(FATAL_ERROR "CUDA not found! (you may switch off ENABLE_UNIT_GPU and build without this unit)")
 	endif()
 	
 
@@ -81,8 +80,8 @@ IF(ENABLE_UNIT_GPU)
 			#SET (CUDA_NVCC_FLAGS_DEBUG 	  "-Xcompiler /EHsc,/W3,/Od,/Z7,/MDd,-D_DEBUG  ${CH_NVCC_OPTIONS_DBG}")
 		ENDIF()
 		IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-			SET (CH_CUDA_LIBSDKUTIL "${CUDA_SDK_ROOT_DIR}/common/lib/cutil64.lib")
-			SET (CH_CUDA_LIBSDKCPP	"${CUDA_SDK_ROOT_DIR}/common/lib/cudpp64.lib")
+			SET (CH_CUDA_LIBSDKUTIL   "${CUDA_SDK_ROOT_DIR}/common/lib/cutil64.lib")
+			SET (CH_CUDA_LIBSDKCPP	  "${CUDA_SDK_ROOT_DIR}/common/lib/cudpp64.lib")
 			#SET (CUDA_NVCC_FLAGS_RELEASE  "-Xcompiler /EHsc,/W3,/O2,/MD,/DNDEBUG,/DWIN64       ${CH_NVCC_OPTIONS_REL}")
 			#SET (CUDA_NVCC_FLAGS_DEBUG	  "-Xcompiler /EHsc,/W3,/Od,/Z7,/MDd,-D_DEBUG,/DWIN64  ${CH_NVCC_OPTIONS_DBG}")
 		ENDIF()

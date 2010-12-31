@@ -1,3 +1,4 @@
+
 ///////////////////////////////////////////////////
 //
 //   ChLcpConstraintTwoContactN.cpp
@@ -54,8 +55,3 @@ void ChLcpConstraintTwoGPUcontN::StreamIN(ChStreamInBinary& mstream)
 
 
 } // END_OF_NAMESPACE____
-
-
-
-
- 

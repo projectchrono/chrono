@@ -1,6 +1,5 @@
-#ifndef CHC_COLLISIONSYSTEMGPU_H
-#define CHC_COLLISIONSYSTEMGPU_H
-
+#ifndef CHC_COLLISIONSYSTEMGPUA_H
+#define CHC_COLLISIONSYSTEMGPUA_H
 //////////////////////////////////////////////////
 //  
 //   ChCCollisionSystemGPU.h
@@ -16,30 +15,26 @@
 //             www.deltaknowledge.com
 // ------------------------------------------------
 ///////////////////////////////////////////////////
+#include "ChCuda.h"
+#include "ChCCollisionModelGPU.h"
+#include "physics/ChBody.h"
+#include "ChCCollisionGPU.h"
+#include "ChLcpSystemDescriptorGPU.h"
+#include "ChContactContainerGPUsimple.h"
+#include "../collision/ChCCollisionSystem.h"
+#include "../physics/ChProximityContainerBase.h"
 
-#include "collision/ChCCollisionSystem.h"
-#include "ChCModelGPUBody.h"
-#include "collide.h"
-
-//#include "collision/bullet/btBulletCollisionCommon.h" 
-class MultiGPU;
-
-namespace chrono 
-{
-	namespace collision 
-	{
-
-
+namespace chrono {
+	namespace collision {
 		///
 		/// Class for collision engine based on the spatial subdivision method.
 		/// Contains both the broadphase and the narrow phase methods.
 		/// 
 
-		class ChCollisionSystemGPU : public ChCollisionSystem
-		{
+		class ChApiGPU ChCollisionSystemGPU : public ChCollisionSystem{
 		public:
 
-			ChCollisionSystemGPU(unsigned int max_objects = 16000, double scene_size = 500);
+			ChCollisionSystemGPU(float mEnvelope=0.025, float mBinSize=0.1);
 
 			virtual ~ChCollisionSystemGPU();
 
@@ -61,7 +56,7 @@ namespace chrono
 
 			/// Run the algorithm and finds all the contacts.
 			/// (Contacts will be managed by the Bullet persistent contact cache).
-	virtual void Run();
+			virtual void Run();
 
 			/// After the Run() has completed, you can call this function to
 			/// fill a 'contact container', that is an object inherited from class 
@@ -71,7 +66,7 @@ namespace chrono
 			/// will call in sequence the functions BeginAddContact(), AddContact() (x n times), 
 			/// EndAddContact() of the contact container. But if a special container (say, GPU enabled)
 			/// is passed, a more rapid buffer copy might be performed)
-	virtual void ReportContacts(ChContactContainerBase* mcontactcontainer);
+			virtual void ReportContacts(ChContactContainerBase* mcontactcontainer);
 
 			/// After the Run() has completed, you can call this function to
 			/// fill a 'proximity container' (container of narrow phase pairs), that is 
@@ -81,43 +76,28 @@ namespace chrono
 			/// will call in sequence the functions BeginAddProximities(), AddProximity() (x n times), 
 			/// EndAddProximities() of the proximity container. But if a special container (say, GPU enabled)
 			/// is passed, a more rapid buffer copy might be performed)
-	virtual void ReportProximities(ChProximityContainerBase* mproximitycontainer);
-
+			virtual void ReportProximities(ChProximityContainerBase* mproximitycontainer);
 
 			/// Perform a raycast (ray-hit test with the collision models).
-	virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult);
+			virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult);
 
+			//virtual void SetContactContainer(ChContactContainerGPU* mcontainer);
+			virtual void SetSystemDescriptor(ChLcpSystemDescriptorGPU* mdescriptor);
 
-
+			ChCCollisionGPU mGPU;
 		private:
 			/// Update data structures to pass into GPU for collision detection
 			void updateDataStructures();
 
-		private:
-
-			MultiGPU mGPUColl;
-
-			//float	*x_data,*y_data,*z_data,*r_data;
-			float *reactionCache;
-			float maxSize;
-
-			int num_Bodies;
-			int num_Spheres;
-			int numContacts;
-			chrono::collision::ChModelGPUBody **colModels;
-
-			thrust::host_vector<contact_Data> contactdata;
+			int index,indexB, indexT;
+			//ChCoordsys<> bodyCoord;
+			ChVector<> localPos,gPos;
+			vector<chrono::collision::ChModelGPU*> colModels;
+			ChLcpSystemDescriptorGPU* mSystemDescriptor;
 		};
-
-
-
-
 
 	} // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____
-
-
-
 
 #endif
 

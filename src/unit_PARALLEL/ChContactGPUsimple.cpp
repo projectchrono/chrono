@@ -1,3 +1,5 @@
+
+
 ///////////////////////////////////////////////////
 //
 //   ChContactGPUsimple.cpp
@@ -210,7 +212,6 @@ void  ChContactGPUsimple::ConstraintsLiFetchSuggestedPositionSolution()
 
 
 } // END_OF_NAMESPACE____
-
 
  
 

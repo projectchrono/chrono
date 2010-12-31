@@ -12,18 +12,17 @@ include ../../makes/config.mak
 # List of files to compile to make the 'Chrono for CUDA' library unit
 
 CPPFILES_LIB_CUDA = \
-	ChCModelGPU.cpp \
-	ChCModelGPUBody.cpp \
+	ChCCollisionModelGPU.cpp \
 	ChCCollisionSystemGPU.cpp \
 	ChContactContainerGPUsimple.cpp \
 	ChContactGPUsimple.cpp \
 	ChLcpIterativeSolverGPUsimple.cpp \
 	ChLcpConstraintTwoGPUcontN.cpp \
-	ChLcpConstraintTwoGPUcontT.cpp 
+	ChLcpConstraintTwoGPUcontT.cpp \
 	
 CUDAFILES_LIB = \
 	ChLcpIterativeSolverGPUsimpleCU.cu \
-	collide.cu 
+	ChCCollisionGPU.cu 
 	
 	
 
