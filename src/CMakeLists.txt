@@ -90,9 +90,9 @@ ENDIF()
 # installed on your system).
 
 
-SET(ENABLE_UNIT_MATLAB   TRUE    CACHE BOOL   "Turn ON this to generate the Chrono::Engine demos with Matlab.")
-SET(ENABLE_UNIT_IRRLICHT TRUE    CACHE BOOL   "Turn ON this to generate the Chrono::Engine demos with Irrlicht 3D display")
-SET(ENABLE_DEMOS         TRUE    CACHE BOOL   "Turn ON this to generate Chrono::Engine demos")
+SET(ENABLE_UNIT_MATLAB   TRUE    CACHE BOOL   "Turn this ON to generate the Chrono::Engine demos with Matlab.")
+SET(ENABLE_UNIT_IRRLICHT TRUE    CACHE BOOL   "Turn this ON to generate the Chrono::Engine demos with Irrlicht 3D display")
+SET(ENABLE_DEMOS         TRUE    CACHE BOOL   "Turn this ON to generate Chrono::Engine demos")
 
 
 SET(CH_IRRLICHTDIR       ""    CACHE PATH   "Where is your Irrlicht SDK installed? You must set this path to compile demos with 3D display.")
@@ -103,10 +103,31 @@ SET(CH_MATLABSDK         ""    CACHE PATH   "Where is your Matlab SDK installed?
 # of them could be set automatically because CMake should recognize automatically 
 # the compiler, generator, platform, etc....
 
-SET(CH_COMPILER          "COMPILER_MSVC"    CACHE STRING   "Possible values: COMPILER_MSVC,COMPILER_GCC,COMPILER_MSVC_X64,COMPILER_GCC_X64")
-SET(CH_OS				 "WINDOWS"			CACHE STRING   "Possible values: WINDOWS, LINUX")
 
 
+
+
+
+
+
+
+#SET(CH_COMPILER          "COMPILER_MSVC_X64;COMPILER_GCC"    CACHE STRING   "Possible values: COMPILER_MSVC,COMPILER_GCC,COMPILER_MSVC_X64,COMPILER_GCC_X64")
+
+set(CH_COMPILER "COMPILER_MSVC" CACHE STRING "Set Compiler Type, Re-Run configure after changing")
+set(CH_COMPILER_VALUES "COMPILER_MSVC;COMPILER_GCC;COMPILER_MSVC_X64;COMPILER_GCC_X64")
+set_property(CACHE CH_COMPILER PROPERTY STRINGS ${CH_COMPILER_VALUES})
+message(STATUS "CH_COMPILER='${CH_COMPILER}'")
+
+SET(CH_OS "WINDOWS"			CACHE STRING   "Possible values: WINDOWS, LINUX")
+set(CH_OS "WINDOWS" CACHE STRING "Set OS, Re-Run configure after changing")
+set(CH_OS_VALUES "WINDOWS;LINUX")
+set_property(CACHE CH_OS PROPERTY STRINGS ${CH_OS_VALUES})
+message(STATUS "CH_OS='${CH_OS}'")
+
+
+
+#SET(ENABLE_WARNINGS						TRUE    CACHE BOOL   "Turn this ON to generate warnings")
+SET(ENABLE_MULTITHREADED_BUILD			TRUE    CACHE BOOL   "Turn this ON to compile using multiple threads")
 
 # To hide unneeded stuff from GUI (require refresh by pressing 'configure', anyway)
 
@@ -155,10 +176,15 @@ SET(CH_CHRONODIR         ""    CACHE PATH   "Where is your ChronoEngine SDK inst
 
 SET(CH_CHRONOSRC "${CH_CHRONODIR}/source" )
 
+SET(CH_PARALLELBUILD "")
+IF (ENABLE_MULTITHREADED_BUILD)
+		SET(CH_PARALLELBUILD "-MP")
+ENDIF()
+message(STATUS "CH_PARALLELBUILD='${CH_PARALLELBUILD}'")
 
 IF ("${CH_OS}" STREQUAL "WINDOWS")
 		IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-			SET (CH_BUILDFLAGS "-DWIN32")
+			SET (CH_BUILDFLAGS "-DWIN32";${CH_PARALLELBUILD})
 			SET (CH_LIBNAMEPREFIX "")
 			SET (CH_LIBNAMEPOSTFIX ".lib")
 			SET (CH_LIBNAMEPOSTFIXSHARED ".dll")
@@ -167,7 +193,7 @@ IF ("${CH_OS}" STREQUAL "WINDOWS")
 			SET (CH_IRRLICHTLIB "${CH_IRRLICHTDIR}/lib/Win32-VisualStudio/Irrlicht.lib")
 		ENDIF()
 		IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-			SET (CH_BUILDFLAGS "-DWIN64")
+			SET (CH_BUILDFLAGS "-DWIN64";${CH_PARALLELBUILD})
 			SET (CH_LIBNAMEPREFIX "")
 			SET (CH_LIBNAMEPOSTFIX ".lib")
 			SET (CH_LIBNAMEPOSTFIXSHARED ".dll")

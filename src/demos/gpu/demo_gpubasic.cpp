@@ -234,7 +234,7 @@ int main(int argc, char* argv[])
 	// creates and manages contact data that is better fit in the ChLcpIterativeCuda)
 	// More advanced GPU components (ex. the H.Mazhar work) allow plugging in
 	// also GPU collision detection that avoids bottlenecks in cd->solver data transfer.
-	
+	ChLcpSystemDescriptorGPU		newdescriptor(1000,1000*5, 1000);
 	ChContactContainerGPUsimple		mGPUcontactcontainer;
 	ChLcpIterativeSolverGPUsimple	mGPUsolverSpeed(&mGPUcontactcontainer, 50, false, 0, 0.2, 20000, 3000, 1000);
 	ChLcpIterativeSolverGPUsimple	mGPUsolverPos(&mGPUcontactcontainer,  50, false, 0, 0.2, 20000, 3000, 1000);
@@ -242,9 +242,10 @@ int main(int argc, char* argv[])
 	mphysicalSystem.ChangeContactContainer(&mGPUcontactcontainer);
 	mphysicalSystem.ChangeLcpSolverSpeed(&mGPUsolverSpeed);
 	mphysicalSystem.ChangeLcpSolverStab(&mGPUsolverPos);  // this is used only with Tasora timestepping, unneded for Anitescu
-	
+	mphysicalSystem.ChangeLcpSystemDescriptor(&newdescriptor);
 	mphysicalSystem.SetIterLCPmaxItersSpeed(20);
-
+	mGPUsolverSpeed.SetDt(0.02);
+	mGPUsolverPos.SetDt(0.02);
 	// 
 	// THE SOFT-REAL-TIME CYCLE
 	//
@@ -269,4 +270,3 @@ int main(int argc, char* argv[])
 
 	return 0;
 }
-  
