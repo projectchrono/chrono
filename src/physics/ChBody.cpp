@@ -72,8 +72,7 @@ ChBody::ChBody ()
 	Scr_force = VNULL;
 	Scr_torque = VNULL;
 
-	collision_model =(ChModelBulletBody*) new ChModelBulletBody();
-	((ChModelBulletBody*)collision_model)->SetBody(this);
+	collision_model=InstanceCollisionModel();
 
 	impactC  = 0.0f;
 	impactCt = 0.0f;
@@ -157,7 +156,11 @@ void ChBody::Copy(ChBody* source)
 }
 
 
-
+ChCollisionModel* ChBody::InstanceCollisionModel(){
+	ChCollisionModel* collision_model_t= (ChModelBulletBody*) new ChModelBulletBody();
+	((ChModelBulletBody*)collision_model_t)->SetBody(this);
+	return collision_model_t;
+}
 
 
 //// 

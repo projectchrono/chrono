@@ -78,6 +78,12 @@ class ChApi ChBody : public ChPhysicsItem , public ChFrameMoving<double> {
 						// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChBody,ChPhysicsItem);
 
+protected:
+	
+						// Pointer to the collision model, including the
+						// colliding geometry .
+	ChCollisionModel* collision_model;
+
 private:
 			//
 	  		// DATA
@@ -113,10 +119,6 @@ private:
 	float s_friction;	// static friction for rest-contact (sticking)
 	float rolling_friction; // rolling friction 
 	float spinning_friction; // rolling friction 
-
-						// Pointer to the collision model, including the
-						// colliding geometry .
-	ChCollisionModel* collision_model;
 	 
 						// Auxiliary, stores position/rotation once a while
 						// when collision detection routines require to know
@@ -278,7 +280,8 @@ public:
 	virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
 
 
-
+				/// Instantiate the collision model
+	virtual ChCollisionModel* InstanceCollisionModel();
 
 			   // Other functions
 
