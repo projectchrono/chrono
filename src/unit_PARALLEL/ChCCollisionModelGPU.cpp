@@ -18,24 +18,22 @@
 namespace chrono {
 	namespace collision {
 
-		ChModelGPU::ChModelGPU(){
+		ChCollisionModelGPU::ChCollisionModelGPU(){
 			this->mPos=make_float3(0,0,0);
-
-
 			nObjects = 0;
 			colFam = 0;
 			noCollWith = -1;
 			mType=0;
 		}
 
-		ChModelGPU::~ChModelGPU(){
+		ChCollisionModelGPU::~ChCollisionModelGPU(){
 			//ClearModel(); not possible, would call GetPhysicsItem() that is pure virtual, enough to use instead..
 			mData.clear();
 		}
 
 
 
-		int ChModelGPU::ClearModel(){
+		int ChCollisionModelGPU::ClearModel(){
 			//cout<<"CLEAR"<<endl;
 			if (GetPhysicsItem()->GetSystem()){
 				if (GetPhysicsItem()->GetCollide())
@@ -58,7 +56,7 @@ namespace chrono {
 		} 
 
 
-		int ChModelGPU::BuildModel(){
+		int ChCollisionModelGPU::BuildModel(){
 			//assert((ChBody*)GetPhysicsItem());
 			if (GetPhysicsItem()->GetSystem())
 				if (GetPhysicsItem()->GetCollide())
@@ -67,7 +65,7 @@ namespace chrono {
 			return 1;
 		}
 
-		bool ChModelGPU::AddCompoundBody(int numSpheres, vector<float4> &data){
+		bool ChCollisionModelGPU::AddCompoundBody(int numSpheres, vector<float4> &data){
 			mType=1;
 
 			if(numSpheres<=0){
@@ -84,7 +82,7 @@ namespace chrono {
 			return true;
 		}
 
-		bool ChModelGPU::AddSphere(double radius,  ChVector<>* pos){
+		bool ChCollisionModelGPU::AddSphere(double radius,  ChVector<>* pos){
 			mType=0;
 			//cout<<"MAKE Sphere"<<endl;
 			//add a sphere body - this collision geometry has one collision sphere at the body coordinate origin
@@ -103,11 +101,11 @@ namespace chrono {
 			mData.push_back(tData);
 			return true;
 		}
-		bool ChModelGPU::AddEllipsoid(double rx,  double ry,  double rz, ChVector<>* pos, ChMatrix33<>* rot){
+		bool ChCollisionModelGPU::AddEllipsoid(double rx,  double ry,  double rz, ChVector<>* pos, ChMatrix33<>* rot){
 			//NOT SUPPORTED
 			return false;
 		}
-		bool ChModelGPU::AddBox(double hx, double hy, double hz, ChVector<>* pos, ChMatrix33<>* rot){
+		bool ChCollisionModelGPU::AddBox(double hx, double hy, double hz, ChVector<>* pos, ChMatrix33<>* rot){
 			//cout<<"MAKE Boxx"<<endl;
 			mType=2;
 			nObjects = 1;
@@ -122,7 +120,7 @@ namespace chrono {
 
 			return true;
 		}
-		bool ChModelGPU::AddTriangle(ChVector<> A, ChVector<> B, ChVector<> C, ChVector<>* pos, ChMatrix33<>* rot){
+		bool ChCollisionModelGPU::AddTriangle(ChVector<> A, ChVector<> B, ChVector<> C, ChVector<>* pos, ChMatrix33<>* rot){
 			//cout<<"MAKE Triangle"<<endl;
 			mType=3;
 			nObjects = 1;
@@ -138,31 +136,31 @@ namespace chrono {
 			return true;
 		}
 		/// Add a cylinder to this model (default axis on Y direction), for collision purposes
-		bool ChModelGPU::AddCylinder (double rx, double rz, double hy, ChVector<>* pos, ChMatrix33<>* rot){
+		bool ChCollisionModelGPU::AddCylinder (double rx, double rz, double hy, ChVector<>* pos, ChMatrix33<>* rot){
 			//NOT SUPPORTED
 			return false;
 		}
 
-		bool ChModelGPU::AddConvexHull (std::vector<ChVector<double> >& pointlist, ChVector<>* pos, ChMatrix33<>* rot)
+		bool ChCollisionModelGPU::AddConvexHull (std::vector<ChVector<double> >& pointlist, ChVector<>* pos, ChMatrix33<>* rot)
 		{
 			//NOT SUPPORTED
 			return false;
 		}
-		bool ChModelGPU::AddBarrel (double Y_low, double Y_high, double R_vert, double R_hor, double R_offset, ChVector<>* pos, ChMatrix33<>* rot){
+		bool ChCollisionModelGPU::AddBarrel (double Y_low, double Y_high, double R_vert, double R_hor, double R_offset, ChVector<>* pos, ChMatrix33<>* rot){
 			//NOT SUPPORTED
 			return false;
 		}
 		/// Add a triangle mesh to this model
-		bool ChModelGPU::AddTriangleMesh (const  geometry::ChTriangleMesh& trimesh,	bool is_static, bool is_convex,  ChVector<>* pos, ChMatrix33<>* rot){
+		bool ChCollisionModelGPU::AddTriangleMesh (const  geometry::ChTriangleMesh& trimesh,	bool is_static, bool is_convex,  ChVector<>* pos, ChMatrix33<>* rot){
 			//NOT SUPPORTED
 			return false;
 		}
 
-		bool ChModelGPU::AddCopyOfAnotherModel (ChCollisionModel* another){
+		bool ChCollisionModelGPU::AddCopyOfAnotherModel (ChCollisionModel* another){
 			//NOT SUPPORTED
 			return false;
 		}
-		ChVector<> ChModelGPU::GetSpherePos(int ID){
+		ChVector<> ChCollisionModelGPU::GetSpherePos(int ID){
 			//ChVector<> pos(colSpheres[4*n+0],colSpheres[4*n+1],colSpheres[4*n+2]);
 			ChVector<> pos;
 			pos.x = mData[ID].A.x;
@@ -171,45 +169,45 @@ namespace chrono {
 			return pos;
 		}
 
-		void ChModelGPU::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const
+		void ChCollisionModelGPU::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const
 		{
 
 		}
 
-		float ChModelGPU::GetSphereR(int ID){
+		float ChCollisionModelGPU::GetSphereR(int ID){
 			if (ID>nObjects)
 				return -1.f;
 			return mData[ID].A.w;
 		}
 
-		int ChModelGPU::GetType(){
+		int ChCollisionModelGPU::GetType(){
 			return mType;
 		}
-		void  ChModelGPU::SetFamily(int mfamily){
+		void  ChCollisionModelGPU::SetFamily(int mfamily){
 			colFam = mfamily;
 		}
 
-		int   ChModelGPU::GetFamily(){
+		int   ChCollisionModelGPU::GetFamily(){
 			return colFam;
 		}
 
-		void  ChModelGPU::SetFamilyMaskNoCollisionWithFamily(int mfamily){
+		void  ChCollisionModelGPU::SetFamilyMaskNoCollisionWithFamily(int mfamily){
 			noCollWith = mfamily;
 		} 
 
-		void  ChModelGPU::SetFamilyMaskDoCollisionWithFamily(int mfamily){
+		void  ChCollisionModelGPU::SetFamilyMaskDoCollisionWithFamily(int mfamily){
 			if(noCollWith = mfamily){
 				noCollWith = -1;
 			}
 		}
-		bool ChModelGPU::GetFamilyMaskDoesCollisionWithFamily(int mfamily){
+		bool ChCollisionModelGPU::GetFamilyMaskDoesCollisionWithFamily(int mfamily){
 			return (noCollWith!=mfamily);
 		}
 
-		int ChModelGPU::GetNoCollFamily(){
+		int ChCollisionModelGPU::GetNoCollFamily(){
 			return noCollWith;
 		}
-		void ChModelGPU::SyncPosition()
+		void ChCollisionModelGPU::SyncPosition()
 		{
 			ChBody* bpointer = GetBody();
 			assert(bpointer);
@@ -217,7 +215,7 @@ namespace chrono {
 			mPos=make_float3(bpointer->GetPos().x,bpointer->GetPos().y,bpointer->GetPos().z);
 		}
 
-		ChPhysicsItem* ChModelGPU::GetPhysicsItem() {
+		ChPhysicsItem* ChCollisionModelGPU::GetPhysicsItem() {
 			return (ChPhysicsItem*)GetBody();
 		};
 

@@ -16,19 +16,11 @@
 ///////////////////////////////////////////////////
 
 #include "ChCuda.h"
-using namespace std;
 
-//#define B_SIZE 448
-//#define FSE_SIZE 512
-//#define D_SIZE 512
-
-#define B_SIZE 128
+#define BIN_INTERSECT_THREADS 128
 #define FSE_SIZE 128
 #define D_SIZE 128
 
-//#define ICAST (int*)thrust::raw_pointer_cast
-//#define UCAST (uint*)thrust::raw_pointer_cast
-//#define F4CAST (float4*)thrust::raw_pointer_cast
 
 namespace chrono {
 	namespace collision {
@@ -46,24 +38,31 @@ namespace chrono {
 
 			};
 			~ChCCollisionGPU(){
-				//DataD.clear();
-				//D_bodyID.clear();
-				//DataB.clear();
-				//DataT.clear();
+				mDataSpheres.clear();
+				mDataBoxes.clear();
+				mDataTriangles.clear();
+
+				DataS.clear();
+				DataB.clear();
+				DataT.clear();
+
+				IntersectedD.clear();
+				Bin_StartDK.clear();
+				Bin_StartDV.clear();
+				D_bodyID.clear();
+				mNoCollWithD.clear();	
+				mColFamD.clear();		
+				mCoeffFrictionD.clear();
+
 			}
-			void cudaCollisions();
+			void InitCudaCollision();
+			void CudaCollision();
 
-			thrust::host_vector<float4> mDataSpheres;
-			thrust::host_vector<bodyData> mDataBoxes;
-			thrust::host_vector<bodyData> mDataTriangles;
-			thrust::device_vector<float4> DataD ;
-			thrust::device_vector<bodyData> DataB;
-			thrust::device_vector<bodyData> DataT;
-			thrust::device_vector<uint> IntersectedD;
+			thrust::host_vector<float4>		mDataSpheres;
+			thrust::host_vector<bodyData>	mDataBoxes;
+			thrust::host_vector<bodyData>	mDataTriangles;
 
-			thrust::device_vector<uint> Bin_StartDK;
-			thrust::device_vector<uint> Bin_StartDV;
-			thrust::device_vector<int> D_bodyID;
+			thrust::device_vector<uint> *mContactBodyID;
 
 			uint
 				mNSpheres,
@@ -89,6 +88,19 @@ namespace chrono {
 
 			float4* mContactsGPU;
 
+		private:
+		
+			thrust::device_vector<float4>	DataS ;
+			thrust::device_vector<bodyData>	DataB;
+			thrust::device_vector<bodyData>	DataT;
+
+			thrust::device_vector<uint>		IntersectedD;
+			thrust::device_vector<uint>		Bin_StartDK;
+			thrust::device_vector<uint>		Bin_StartDV;
+			thrust::device_vector<uint>		D_bodyID;
+			thrust::device_vector<int>		mNoCollWithD;	
+			thrust::device_vector<int>		mColFamD;		
+			thrust::device_vector<float>	mCoeffFrictionD;
 		};
 	}
 }

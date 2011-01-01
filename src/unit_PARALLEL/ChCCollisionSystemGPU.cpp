@@ -12,7 +12,7 @@
 
 namespace chrono {
 	namespace collision {
-		ChCollisionSystemGPU::ChCollisionSystemGPU(float mEnvelope, float mBinSize){
+		ChCollisionSystemGPU::ChCollisionSystemGPU(float mEnvelope, float mBinSize, uint mMaxContact){
 			mGPU.mEnvelope=mEnvelope;
 			mGPU.mBinSize=mBinSize;
 			mGPU.mMaxRad=0;
@@ -20,6 +20,8 @@ namespace chrono {
 			mGPU.mNSpheres=0;
 			mGPU.mNBoxes=0;
 			mGPU.mNTriangles=0;
+			mGPU.mMaxContact=mMaxContact;
+			mGPU.InitCudaCollision();
 		}
 		ChCollisionSystemGPU::~ChCollisionSystemGPU(){
 			mGPU.mDataSpheres.clear();
@@ -35,13 +37,13 @@ namespace chrono {
 
 		void ChCollisionSystemGPU::SetSystemDescriptor(ChLcpSystemDescriptorGPU* mdescriptor){
 			mSystemDescriptor=mdescriptor;
+			mSystemDescriptor->maxContacts=mGPU.mMaxContact;
 			mGPU.mContactsGPU=mSystemDescriptor->vContactsGPU;
-			mGPU.mMaxContact=mSystemDescriptor->maxContacts;
-
+			mGPU.mContactBodyID=mSystemDescriptor->d_contact_bodyID;
 		}
 
 		void ChCollisionSystemGPU::Add(ChCollisionModel* model){
-			chrono::collision::ChModelGPU* modelGPU=(chrono::collision::ChModelGPU*)model;
+			chrono::collision::ChCollisionModelGPU* modelGPU=(chrono::collision::ChCollisionModelGPU*)model;
 			colModels.push_back(modelGPU);
 			if(modelGPU->GetType()==0){
 				mGPU.mNSpheres+=modelGPU->GetNObjects();
@@ -61,7 +63,7 @@ namespace chrono {
 		void ChCollisionSystemGPU::Run(){
 			updateDataStructures();
 			if(mGPU.mNSpheres>0){
-			mGPU.cudaCollisions();
+			mGPU.CudaCollision();
 			}
 			mSystemDescriptor->nContactsGPU=mGPU.mNumContacts;
 		}
@@ -74,7 +76,7 @@ namespace chrono {
 		bool ChCollisionSystemGPU::RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult){return false;}
 
 		void ChCollisionSystemGPU::updateDataStructures(){
-			chrono::collision::ChModelGPU* body;
+			chrono::collision::ChCollisionModelGPU* body;
 				mGPU.mSphereID.clear();
 				mGPU.mColFam.clear();
 				mGPU.mNoCollWith.clear();

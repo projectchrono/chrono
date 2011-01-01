@@ -18,6 +18,7 @@ IF(ENABLE_UNIT_GPU)
 	#
 	
 	SET(ChronoEngine_unit_GPU_SOURCES 
+			ChBodyGPU.cpp
 			ChCCollisionModelGPU.cpp
 			ChCCollisionSystemGPU.cpp
 			ChContactContainerGPUsimple.cpp
@@ -29,6 +30,7 @@ IF(ENABLE_UNIT_GPU)
 	SET(ChronoEngine_unit_GPU_HEADERS 
 	    	ChApiGPU.h
 	    	ChCuda.h
+	    	ChBodyGPU.h
 	    	ChCCollisionGPU.h
 			ChCCollisionModelGPU.h
 			ChCCollisionSystemGPU.h

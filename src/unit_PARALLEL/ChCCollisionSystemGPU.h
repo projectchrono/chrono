@@ -34,7 +34,7 @@ namespace chrono {
 		class ChApiGPU ChCollisionSystemGPU : public ChCollisionSystem{
 		public:
 
-			ChCollisionSystemGPU(float mEnvelope=0.025, float mBinSize=0.1);
+			ChCollisionSystemGPU(float mEnvelope=0.025, float mBinSize=0.1, uint mMaxContact=50000);
 
 			virtual ~ChCollisionSystemGPU();
 
@@ -92,7 +92,7 @@ namespace chrono {
 			int index,indexB, indexT;
 			//ChCoordsys<> bodyCoord;
 			ChVector<> localPos,gPos;
-			vector<chrono::collision::ChModelGPU*> colModels;
+			vector<chrono::collision::ChCollisionModelGPU*> colModels;
 			ChLcpSystemDescriptorGPU* mSystemDescriptor;
 		};
 

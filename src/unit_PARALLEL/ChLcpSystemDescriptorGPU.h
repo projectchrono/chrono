@@ -28,6 +28,7 @@ namespace chrono{
 			//nBodiesGPU=0;
 			CUDA_SAFE_CALL(cudaMalloc((void**) &vContactsGPU,		maxContacts*CH_CONTACT_VSIZE*CH_CONTACT_HSIZE));
 			//cudaMalloc((void**) &vBilateralsGPU,	maxBilaterals*CH_BILATERAL_VSIZE*CH_BILATERAL_HSIZE);
+			//d_contact_bodyID=new thrust::device_vector<uint>;
 		};
 
 		~ChLcpSystemDescriptorGPU(){
@@ -37,7 +38,7 @@ namespace chrono{
 
 		float4 *vContactsGPU;
 		//float4 *vBilateralsGPU;
-		//thrust::device_vector<uint> d_contact_bodyID;
+		thrust::device_vector<uint> *d_contact_bodyID;
 
 		uint nContactsGPU,nBilateralsGPU,nBodiesGPU;
 		uint maxContacts,maxBilaterals,maxBodies;

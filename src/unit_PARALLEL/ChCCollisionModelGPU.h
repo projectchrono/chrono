@@ -32,12 +32,12 @@ namespace chrono
 	{
 		///  A wrapper to uses GPU collision detection
 
-		class ChApiGPU ChModelGPU : public ChCollisionModel
+		class ChApiGPU ChCollisionModelGPU : public ChCollisionModel
 		{
 		public:
 
-			ChModelGPU();
-			virtual ~ChModelGPU();
+			ChCollisionModelGPU();
+			virtual ~ChCollisionModelGPU();
 
 			/// Deletes all inserted geometries.
 			/// Also, if you begin the definition of a model, AFTER adding
