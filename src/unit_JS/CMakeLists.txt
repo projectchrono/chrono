@@ -146,6 +146,8 @@ IF(ENABLE_UNIT_JS)
 		optimized 	${CH_CHRONOLIB}
 		debug 		${CH_CHRONOLIB_DBG}  )
 		
+	ADD_DEPENDENCIES (ChronoEngine_JS ChronoEngine)  # better, because not automatic
+		
 		
 	# Let some variables be visible also from outside this directory, using the PARENT_SCOPE trick
 	
