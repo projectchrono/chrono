@@ -96,7 +96,7 @@ SET(ENABLE_DEMOS         TRUE    CACHE BOOL   "Turn this ON to generate Chrono::
 
 
 SET(CH_IRRLICHTDIR       ""    CACHE PATH   "Where is your Irrlicht SDK installed? You must set this path to compile demos with 3D display.")
-SET(CH_MATLABSDK         ""    CACHE PATH   "Where is your Matlab SDK installed? You must set this path to compile demos with Matlab interface.")
+SET(CH_MATLABSDK         ""    CACHE PATH   "Where is your Matlab SDK installed? Ex. C:/Programs/MATLAB/R2006b/extern. You must set this path to compile demos with Matlab interface.")
 
 
 # Also, some variables that were used in previous makefile system (some
@@ -105,10 +105,20 @@ SET(CH_MATLABSDK         ""    CACHE PATH   "Where is your Matlab SDK installed?
 
 
 
+SET (DETECTED_CH_COMPILER "COMPILER_MSVC")
+SET (DETECTED_CH_OS "WINDOWS")
+IF (MSVC)
+ IF (CMAKE_CL_64)
+	set (DETECTED_CH_COMPILER "COMPILER_MSVC_X64")
+	set (DETECTED_CH_OS "WINDOWS")
+ ELSE()
+ 	set (DETECTED_CH_COMPILER "COMPILER_MSVC")
+	set (DETECTED_CH_OS "WINDOWS")
+ ENDIF()
+ENDIF()
 
-
-
-
+message(STATUS "Detected CH_COMPILER='${DETECTED_CH_COMPILER}'")
+message(STATUS "Detected CH_OS='${DETECTED_CH_OS}'")
 
 
 #SET(CH_COMPILER          "COMPILER_MSVC_X64;COMPILER_GCC"    CACHE STRING   "Possible values: COMPILER_MSVC,COMPILER_GCC,COMPILER_MSVC_X64,COMPILER_GCC_X64")

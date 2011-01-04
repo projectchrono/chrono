@@ -11,6 +11,7 @@ SET_TARGET_PROPERTIES(demo_coords PROPERTIES
 TARGET_LINK_LIBRARIES(demo_coords 
  	optimized 	${CH_CHRONOLIB} 
  	debug 		${CH_CHRONOLIB_DBG})
+ADD_DEPENDENCIES (demo_coords ChronoEngine)
 
 ADD_EXECUTABLE(demo_math   			demo_math.cpp)
 SOURCE_GROUP(demos\\basics FILES  	demo_math.cpp)
@@ -21,6 +22,7 @@ SET_TARGET_PROPERTIES(demo_math PROPERTIES
 TARGET_LINK_LIBRARIES(demo_math 
  	optimized 	${CH_CHRONOLIB} 
  	debug 		${CH_CHRONOLIB_DBG})
+ADD_DEPENDENCIES (demo_math ChronoEngine)
  	
 ADD_EXECUTABLE(demo_sharedptr		demo_sharedptr.cpp)
 SOURCE_GROUP(demos\\basics FILES  	demo_sharedptr.cpp)
@@ -31,6 +33,7 @@ SET_TARGET_PROPERTIES(demo_sharedptr PROPERTIES
 TARGET_LINK_LIBRARIES(demo_sharedptr 
  	optimized 	${CH_CHRONOLIB} 
  	debug 		${CH_CHRONOLIB_DBG})
+ADD_DEPENDENCIES (demo_sharedptr ChronoEngine)
  	
 ADD_EXECUTABLE(demo_stream			demo_stream.cpp)
 SOURCE_GROUP(demos\\basics FILES  	demo_stream.cpp)
@@ -41,3 +44,4 @@ SET_TARGET_PROPERTIES(demo_stream PROPERTIES
 TARGET_LINK_LIBRARIES(demo_stream 
  	optimized 	${CH_CHRONOLIB} 
  	debug 		${CH_CHRONOLIB_DBG})
+ADD_DEPENDENCIES (demo_stream ChronoEngine)

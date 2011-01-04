@@ -7,6 +7,7 @@ SET_TARGET_PROPERTIES(demo_buildsystem PROPERTIES
 TARGET_LINK_LIBRARIES(demo_buildsystem 
  	optimized 	${CH_CHRONOLIB} 
  	debug 		${CH_CHRONOLIB_DBG})
+ADD_DEPENDENCIES (demo_buildsystem ChronoEngine)
 
 ADD_EXECUTABLE(demo_powertrain 		demo_powertrain.cpp)
 SOURCE_GROUP(demos\\basics FILES  	demo_powertrain.cpp)
@@ -17,3 +18,4 @@ SET_TARGET_PROPERTIES(demo_powertrain PROPERTIES
 TARGET_LINK_LIBRARIES(demo_powertrain 
 	optimized 	${CH_CHRONOLIB} 
 	debug 		${CH_CHRONOLIB_DBG})
+ADD_DEPENDENCIES (demo_powertrain ChronoEngine)

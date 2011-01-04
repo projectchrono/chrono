@@ -20,7 +20,7 @@ TARGET_LINK_LIBRARIES(demo_domains
  	optimized 	${CH_CHRONOMPILIB} 
  	debug 		${CH_CHRONOMPILIB_DBG}
  	)
-
+ADD_DEPENDENCIES (demo_domains ChronoEngine_MPI)
  	
 ADD_EXECUTABLE(demo_lcp_schwarz   	demo_lcp_schwarz.cpp)
 SOURCE_GROUP(demos\\mpi FILES  	    demo_lcp_schwarz.cpp)
@@ -34,7 +34,7 @@ TARGET_LINK_LIBRARIES(demo_lcp_schwarz
  	optimized 	${CH_CHRONOMPILIB} 
  	debug 		${CH_CHRONOMPILIB_DBG}
  	)
- 	
+ADD_DEPENDENCIES (demo_lcp_schwarz ChronoEngine_MPI)
  	
 ADD_EXECUTABLE(demo_mpibasic   		demo_mpibasic.cpp)
 SOURCE_GROUP(demos\\mpi FILES  	    demo_mpibasic.cpp)
@@ -48,3 +48,4 @@ TARGET_LINK_LIBRARIES(demo_mpibasic
  	optimized 	${CH_CHRONOMPILIB} 
  	debug 		${CH_CHRONOMPILIB_DBG}
  	)
+ADD_DEPENDENCIES (demo_mpibasic ChronoEngine_MPI)

@@ -11,3 +11,4 @@ SET_TARGET_PROPERTIES(demo_LCPsolver PROPERTIES
 TARGET_LINK_LIBRARIES(demo_LCPsolver 
  	optimized 	${CH_CHRONOLIB} 
  	debug 		${CH_CHRONOLIB_DBG})
+ADD_DEPENDENCIES (demo_LCPsolver ChronoEngine)

@@ -19,3 +19,4 @@ TARGET_LINK_LIBRARIES(demo_matlab
 	${CH_MATLABLIB}
  	optimized 	${CH_CHRONOLIB} 
  	debug 		${CH_CHRONOLIB_DBG})
+ADD_DEPENDENCIES (demo_matlab ChronoEngine)
