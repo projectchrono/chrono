@@ -92,6 +92,8 @@ IF(ENABLE_UNIT_MPI)
 		optimized 	${CH_CHRONOLIB}
 		debug 		${CH_CHRONOLIB_DBG}  )
 		
+	ADD_DEPENDENCIES (ChronoEngine_MPI ChronoEngine)  # better, because not automatic
+		
 		
 	# Let some variables be visible also from outside this directory, using the PARENT_SCOPE trick
 	
