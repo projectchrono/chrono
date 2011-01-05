@@ -122,7 +122,7 @@ namespace third_dispatch
    
         RandomAccessIterator2 values_last = values_first + (keys_last - keys_first);
         thrust::detail::raw_cuda_device_buffer<ValueType> temp(values_first, values_last);
-        thrust::next::gather(permutation.begin(), permutation.end(), temp.begin(), values_first);
+        thrust::gather(permutation.begin(), permutation.end(), temp.begin(), values_first);
     }
     
     template<typename RandomAccessIterator1,
@@ -180,7 +180,7 @@ namespace second_dispatch
             (permutation.begin(), permutation.end(), indirect_comp<RandomAccessIterator,StrictWeakOrdering>(first, comp));
     
         thrust::detail::raw_cuda_device_buffer<KeyType> temp(first, last);
-        thrust::next::gather(permutation.begin(), permutation.end(), temp.begin(), first);
+        thrust::gather(permutation.begin(), permutation.end(), temp.begin(), first);
     }
     
     template<typename RandomAccessIterator,
@@ -211,12 +211,16 @@ namespace second_dispatch
         // decide whether to sort values indirectly
         typedef typename thrust::iterator_traits<RandomAccessIterator2>::value_type ValueType;
         static const bool sort_values_indirectly = sizeof(ValueType) != 4;
+
+        // XXX WAR nvcc 3.0 unused variable warning
+        (void) sort_values_indirectly;
+
         thrust::detail::device::cuda::third_dispatch::stable_merge_sort_by_key
             (permutation.begin(), permutation.end(), values_first, indirect_comp<RandomAccessIterator1,StrictWeakOrdering>(keys_first, comp),
              thrust::detail::integral_constant<bool, sort_values_indirectly>());
     
         thrust::detail::raw_cuda_device_buffer<KeyType> temp(keys_first, keys_last);
-        thrust::next::gather(permutation.begin(), permutation.end(), temp.begin(), keys_first);
+        thrust::gather(permutation.begin(), permutation.end(), temp.begin(), keys_first);
     }
     
     template<typename RandomAccessIterator1,

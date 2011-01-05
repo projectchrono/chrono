@@ -39,7 +39,9 @@ namespace thrust
  *  the assignments *\p result = *\p first, *(\p result + \c 1) = *(\p first + \c 1),
  *  and so on. Generally, for every integer \c n from \c 0 to \p last - \p first, \p copy
  *  performs the assignment *(\p result + \c n) = *(\p first + \c n). Unlike
- *  \c std::copy, \p copy offers no guarantee on order of operation.
+ *  \c std::copy, \p copy offers no guarantee on order of operation.  As a result,
+ *  calling \p copy with overlapping source and destination ranges has undefined
+ *  behavior.
  *
  *  The return value is \p result + (\p last - \p first).
  *
@@ -75,7 +77,20 @@ template<typename InputIterator, typename OutputIterator>
                       InputIterator last,
                       OutputIterator result);
 
-/*! \p copy_when conditionally copies elements from the range [\p first, \p last)
+// TODO remove this in v1.4
+/*! \p copy_when is deprecated in Thrust v1.3 and will be removed in Thrust v1.4.
+ *  The same operation can be implemented with \p transform_if or \p remove_if
+ *  depending on the context.  For example, if <tt>[first,last)</tt> is a sequence
+ *  of type \c int then the expression
+ *  \code
+ *  copy_when(first, last, stencil, result, pred);
+ *  \endcode
+ *  is equivalent to
+ *  \code
+ *  transform_if(first, last, stencil, result, pred, thrust::identity<int>);
+ *  \endcode
+ *
+ *  \p copy_when conditionally copies elements from the range [\p first, \p last)
  *  to the range [\p result, \p result + (\p last - \p first)). For each iterator
  *  \c i in the range [\p first, \p last) such that *(\p stencil + (\c i - \p first))
  *  is \c true, the value *\c i is assigned to *(\p result + \c i). Otherwise,
@@ -114,12 +129,27 @@ template<typename InputIterator, typename OutputIterator>
 template<typename InputIterator,
          typename PredicateIterator,
          typename OutputIterator>
+THRUST_DEPRECATED             
   OutputIterator copy_when(InputIterator first,
                            InputIterator last,
                            PredicateIterator stencil,
                            OutputIterator result);
 
-/*! \p copy_when conditionally copies elements from the range [\p first, \p last)
+// TODO remove this in v1.4
+/*! \p copy_when is deprecated in Thrust v1.3 and will be removed in Thrust v1.4.
+ *  The same operation can be implemented with \p transform_if or \p remove_if
+ *  depending on the context.  For example, if <tt>[first,last)</tt> is a sequence
+ *  of type \c int then the expression
+ *  \code
+ *  copy_when(first, last, stencil, result, pred);
+ *  \endcode
+ *  is equivalent to
+ *  \code
+ *  transform_if(first, last, stencil, result, pred, thrust::identity<int>);
+ *  \endcode
+ *
+ *
+ * \p copy_when conditionally copies elements from the range [\p first, \p last)
  *  to the range [\p result, \p result + (\p last - \p first)). For each iterator
  *  \c i in [\p first, \p last) such that \p pred(*(\p stencil + (\c i - \p last))) is
  *  \p true, the value *\c i is assigned to *(\p result + \c i). Otherwise,
@@ -171,6 +201,7 @@ template<typename InputIterator,
          typename PredicateIterator,
          typename OutputIterator,
          typename Predicate>
+THRUST_DEPRECATED             
   OutputIterator copy_when(InputIterator first,
                            InputIterator last,
                            PredicateIterator stencil,

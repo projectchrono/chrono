@@ -74,7 +74,7 @@ template<typename InputIterator,
   OutputIterator exclusive_scan(InputIterator first,
                                 InputIterator last,
                                 OutputIterator result,
-                                const T init)
+                                T init)
 {
     typedef typename thrust::iterator_traits<OutputIterator>::value_type OutputType;
 
@@ -89,12 +89,127 @@ template<typename InputIterator,
   OutputIterator exclusive_scan(InputIterator first,
                                 InputIterator last,
                                 OutputIterator result,
-                                const T init,
+                                T init,
                                 AssociativeOperator binary_op)
 {
     // dispatch on space
     return thrust::detail::dispatch::exclusive_scan(first, last, result, init, binary_op,
             typename thrust::iterator_space<InputIterator>::type(),
+            typename thrust::iterator_space<OutputIterator>::type());
+}
+
+/////////////////////
+// Key-Value Scans //
+/////////////////////
+
+template<typename InputIterator1,
+         typename InputIterator2,
+         typename OutputIterator>
+  OutputIterator inclusive_scan_by_key(InputIterator1 first1,
+                                       InputIterator1 last1,
+                                       InputIterator2 first2,
+                                       OutputIterator result)
+{
+    typedef typename thrust::iterator_traits<InputIterator1>::value_type InputType1;
+    return thrust::inclusive_scan_by_key(first1, last1, first2, result, thrust::equal_to<InputType1>());
+}
+
+template<typename InputIterator1,
+         typename InputIterator2,
+         typename OutputIterator,
+         typename BinaryPredicate>
+  OutputIterator inclusive_scan_by_key(InputIterator1 first1,
+                                       InputIterator1 last1,
+                                       InputIterator2 first2,
+                                       OutputIterator result,
+                                       BinaryPredicate binary_pred)
+{
+    typedef typename thrust::iterator_traits<OutputIterator>::value_type OutputType;
+    return thrust::inclusive_scan_by_key(first1, last1, first2, result, binary_pred, thrust::plus<OutputType>());
+}
+
+template<typename InputIterator1,
+         typename InputIterator2,
+         typename OutputIterator,
+         typename BinaryPredicate,
+         typename AssociativeOperator>
+  OutputIterator inclusive_scan_by_key(InputIterator1 first1,
+                                       InputIterator1 last1,
+                                       InputIterator2 first2,
+                                       OutputIterator result,
+                                       BinaryPredicate binary_pred,
+                                       AssociativeOperator binary_op)
+{
+    // dispatch on space
+    return thrust::detail::dispatch::inclusive_scan_by_key
+        (first1, last1, first2, result, binary_pred, binary_op,
+            typename thrust::iterator_space<InputIterator1>::type(),
+            typename thrust::iterator_space<InputIterator2>::type(),
+            typename thrust::iterator_space<OutputIterator>::type());
+}
+
+
+template<typename InputIterator1,
+         typename InputIterator2,
+         typename OutputIterator>
+  OutputIterator exclusive_scan_by_key(InputIterator1 first1,
+                                       InputIterator1 last1,
+                                       InputIterator2 first2,
+                                       OutputIterator result)
+{
+    typedef typename thrust::iterator_traits<OutputIterator>::value_type OutputType;
+    return thrust::exclusive_scan_by_key(first1, last1, first2, result, OutputType(0));
+}
+
+template<typename InputIterator1,
+         typename InputIterator2,
+         typename OutputIterator,
+         typename T>
+  OutputIterator exclusive_scan_by_key(InputIterator1 first1,
+                                       InputIterator1 last1,
+                                       InputIterator2 first2,
+                                       OutputIterator result,
+                                       T init)
+{
+    typedef typename thrust::iterator_traits<InputIterator1>::value_type InputType1;
+    return thrust::exclusive_scan_by_key(first1, last1, first2, result, init, thrust::equal_to<InputType1>());
+}
+
+template<typename InputIterator1,
+         typename InputIterator2,
+         typename OutputIterator,
+         typename T,
+         typename BinaryPredicate>
+  OutputIterator exclusive_scan_by_key(InputIterator1 first1,
+                                       InputIterator1 last1,
+                                       InputIterator2 first2,
+                                       OutputIterator result,
+                                       T init,
+                                       BinaryPredicate binary_pred)
+{
+    typedef typename thrust::iterator_traits<OutputIterator>::value_type OutputType;
+    return thrust::exclusive_scan_by_key(first1, last1, first2, result, init, binary_pred, thrust::plus<OutputType>());
+}
+
+template<typename InputIterator1,
+         typename InputIterator2,
+         typename OutputIterator,
+         typename T,
+         typename BinaryPredicate,
+         typename AssociativeOperator>
+  OutputIterator exclusive_scan_by_key(InputIterator1 first1,
+                                       InputIterator1 last1,
+                                       InputIterator2 first2,
+                                       OutputIterator result,
+                                       T init,
+                                       BinaryPredicate binary_pred,
+                                       AssociativeOperator binary_op)
+{
+    // dispatch on space
+    return thrust::detail::dispatch::exclusive_scan_by_key
+        (first1, last1, first2, result, init, binary_pred, binary_op,
+            typename thrust::iterator_space<InputIterator1>::type(),
+            typename thrust::iterator_space<InputIterator2>::type(),
             typename thrust::iterator_space<OutputIterator>::type());
 }
 

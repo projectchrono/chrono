@@ -1,0 +1,196 @@
+/*
+ *  Copyright 2008-2010 NVIDIA Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+
+/*! \file find.h
+ *  \brief Search for values in (unsorted) ranges.
+ */
+
+#pragma once
+
+#include <thrust/detail/config.h>
+
+namespace thrust
+{
+
+/*! \addtogroup algorithms
+ */
+
+/*! \addtogroup searching
+ *  \ingroup algorithms
+ *  \{
+ */
+
+
+/*! \p find returns the first iterator \c i in the range 
+ *  <tt>[first, last)</tt> such that <tt>*i == value</tt>
+ *  or \c last if no such iterator exists.
+ *
+ *  \param first Beginning of the sequence to search.
+ *  \param last End of the sequence to search.
+ *  \param value The value to find.
+ *  \return The first iterator \c i such that <tt>*i == value</tt> or \c last.
+ *
+ *  \tparam InputIterator is a model of <a href="http://www.sgi.com/tech/stl/InputIterator.html">Input Iterator</a>
+ *          and \p InputIterator's \c value_type is equality comparable to type \c T.
+ *  \tparam T is a model of <a href="http://www.sgi.com/tech/stl/LessThanComparable.html">EqualityComparable</a>. 
+ *
+ *  \code
+ *  #include <thrust/find.h>
+ *  #include <thrust/device_vector.h>
+ *  ...
+ *  thrust::device_vector<int> input(4);
+ *
+ *  input[0] = 0;
+ *  input[1] = 5;
+ *  input[2] = 3;
+ *  input[3] = 7;
+ *
+ *  thrust::device_vector<int>::iterator iter;
+ *
+ *  iter = thrust::find(input.begin(), input.end(), 3); // returns input.first() + 2
+ *  iter = thrust::find(input.begin(), input.end(), 5); // returns input.first() + 1
+ *  iter = thrust::find(input.begin(), input.end(), 9); // returns input.end()
+ *  \endcode
+ *
+ *  \see find_if
+ *  \see mismatch
+ */
+template <typename InputIterator, typename T>
+InputIterator find(InputIterator first,
+                   InputIterator last,
+                   const T& value);
+
+
+/*! \p find_if returns the first iterator \c i in the range 
+ *  <tt>[first, last)</tt> such that <tt>pred(*i)</tt> is \c true
+ *  or \c last if no such iterator exists.
+ *
+ *  \param first Beginning of the sequence to search.
+ *  \param last End of the sequence to search.
+ *  \param pred A predicate used to test range elements.
+ *  \return The first iterator \c i such that <tt>pred(*i)</tt> is \c true, or \c last.
+ *
+ *  \tparam InputIterator is a model of <a href="http://www.sgi.com/tech/stl/InputIterator.html">Input Iterator</a>.
+ *  \tparam Predicate is a model of <a href="http://www.sgi.com/tech/stl/Predicate.html">Predicate</a>.
+ *
+ *  \code
+ *  #include <thrust/find.h>
+ *  #include <thrust/device_vector.h>
+ *
+ *  struct greater_than_four
+ *  {
+ *      bool operator()(int x)
+ *      {
+ *          return x > 4;
+ *      }
+ *  };
+ *
+ *  struct greater_than_ten
+ *  {
+ *      bool operator()(int x)
+ *      {
+ *          return x > 10;
+ *      }
+ *  };
+ *
+ *  ...
+ *  thrust::device_vector<int> input(4);
+ *
+ *  input[0] = 0;
+ *  input[1] = 5;
+ *  input[2] = 3;
+ *  input[3] = 7;
+ *
+ *  thrust::device_vector<int>::iterator iter;
+ *
+ *  iter = thrust::find_if(input.begin(), input.end(), greater_than_four()); // returns input.first() + 1
+ *
+ *  iter = thrust::find_if(input.begin(), input.end(), greater_than_ten());  // returns input.end()
+ *  \endcode
+ *
+ *  \see find
+ *  \see find_if_not
+ *  \see mismatch
+ */
+template <typename InputIterator, typename Predicate>
+InputIterator find_if(InputIterator first,
+                      InputIterator last,
+                      Predicate pred);
+
+/*! \p find_if_not returns the first iterator \c i in the range 
+ *  <tt>[first, last)</tt> such that <tt>pred(*i)</tt> is \c false
+ *  or \c last if no such iterator exists.
+ *
+ *  \param first Beginning of the sequence to search.
+ *  \param last End of the sequence to search.
+ *  \param pred A predicate used to test range elements.
+ *  \return The first iterator \c i such that <tt>pred(*i)</tt> is \c false, or \c last.
+ *
+ *  \tparam InputIterator is a model of <a href="http://www.sgi.com/tech/stl/InputIterator.html">Input Iterator</a>.
+ *  \tparam Predicate is a model of <a href="http://www.sgi.com/tech/stl/Predicate.html">Predicate</a>.
+ *
+ *  \code
+ *  #include <thrust/find.h>
+ *  #include <thrust/device_vector.h>
+ *
+ *  struct greater_than_four
+ *  {
+ *      bool operator()(int x)
+ *      {
+ *          return x > 4;
+ *      }
+ *  };
+ *
+ *  struct greater_than_ten
+ *  {
+ *      bool operator()(int x)
+ *      {
+ *          return x > 10;
+ *      }
+ *  };
+ *
+ *  ...
+ *  thrust::device_vector<int> input(4);
+ *
+ *  input[0] = 0;
+ *  input[1] = 5;
+ *  input[2] = 3;
+ *  input[3] = 7;
+ *
+ *  thrust::device_vector<int>::iterator iter;
+ *
+ *  iter = thrust::find_if_not(input.begin(), input.end(), greater_than_four()); // returns input.first()
+ *
+ *  iter = thrust::find_if_not(input.begin(), input.end(), greater_than_ten());  // returns input.first()
+ *  \endcode
+ *
+ *  \see find
+ *  \see find_if
+ *  \see mismatch
+ */
+template <typename InputIterator, typename Predicate>
+InputIterator find_if_not(InputIterator first,
+                          InputIterator last,
+                          Predicate pred);
+
+/*! \} // end searching
+ */
+
+} // end namespace thrust
+
+#include <thrust/detail/find.inl>
+

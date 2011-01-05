@@ -54,7 +54,7 @@ template<typename Operation> struct binary_traits;
  *  struct sine : public thrust::unary_function<float,float>
  *  {
  *    __host__ __device__
- *    double operator()(float x) { return sinf(x); }
+ *    float operator()(float x) { return sinf(x); }
  *  };
  *  \endcode
  *
@@ -86,7 +86,7 @@ template<typename Argument,
  *  struct exponentiate : public thrust::binary_function<float,float,float>
  *  {
  *    __host__ __device__
- *    double operator()(float x, float y) { return powf(x,y); }
+ *    float operator()(float x, float y) { return powf(x,y); }
  *  };
  *  \endcode
  *
@@ -94,7 +94,7 @@ template<typename Argument,
  *  \c std::binary_function. We reserve it here for potential additional
  *  functionality at a later date.
  *
- *  \see http://www.sgi.com/tech/stl/unary_function.html
+ *  \see http://www.sgi.com/tech/stl/binary_function.html
  *  \see unary_function
  */
 template<typename Argument1,
@@ -131,7 +131,7 @@ template<typename Argument1,
  *  \code
  *  #include <thrust/device_vector.h>
  *  #include <thrust/functional.h>
- *  #include <thrust/range.h>
+ *  #include <thrust/sequence.h>
  *  #include <thrust/fill.h>
  *  #include <thrust/transform.h>
  *  ...
@@ -140,7 +140,7 @@ template<typename Argument1,
  *  thrust::device_vector<float> V2(N);
  *  thrust::device_vector<float> V3(N);
  *
- *  thrust::range(V1.begin(), V1.end(), 1);
+ *  thrust::sequence(V1.begin(), V1.end(), 1);
  *  thrust::fill(V2.begin(), V2.end(), 75);
  *
  *  thrust::transform(V1.begin(), V1.end(), V2.begin(), V3.begin(),
@@ -172,7 +172,7 @@ template<typename T>
  *  \code
  *  #include <thrust/device_vector.h>
  *  #include <thrust/functional.h>
- *  #include <thrust/range.h>
+ *  #include <thrust/sequence.h>
  *  #include <thrust/fill.h>
  *  #include <thrust/transform.h>
  *  ...
@@ -181,7 +181,7 @@ template<typename T>
  *  thrust::device_vector<float> V2(N);
  *  thrust::device_vector<float> V3(N);
  *
- *  thrust::range(V1.begin(), V1.end(), 1);
+ *  thrust::sequence(V1.begin(), V1.end(), 1);
  *  thrust::fill(V2.begin(), V2.end(), 75);
  *
  *  thrust::transform(V1.begin(), V1.end(), V2.begin(), V3.begin(),
@@ -213,7 +213,7 @@ template<typename T>
  *  \code
  *  #include <thrust/device_vector.h>
  *  #include <thrust/functional.h>
- *  #include <thrust/range.h>
+ *  #include <thrust/sequence.h>
  *  #include <thrust/fill.h>
  *  #include <thrust/transform.h>
  *  ...
@@ -222,7 +222,7 @@ template<typename T>
  *  thrust::device_vector<float> V2(N);
  *  thrust::device_vector<float> V3(N);
  *
- *  thrust::range(V1.begin(), V1.end(), 1);
+ *  thrust::sequence(V1.begin(), V1.end(), 1);
  *  thrust::fill(V2.begin(), V2.end(), 75);
  *
  *  thrust::transform(V1.begin(), V1.end(), V2.begin(), V3.begin(),
@@ -254,7 +254,7 @@ template<typename T>
  *  \code
  *  #include <thrust/device_vector.h>
  *  #include <thrust/functional.h>
- *  #include <thrust/range.h>
+ *  #include <thrust/sequence.h>
  *  #include <thrust/fill.h>
  *  #include <thrust/transform.h>
  *  ...
@@ -263,7 +263,7 @@ template<typename T>
  *  thrust::device_vector<float> V2(N);
  *  thrust::device_vector<float> V3(N);
  *
- *  thrust::range(V1.begin(), V1.end(), 1);
+ *  thrust::sequence(V1.begin(), V1.end(), 1);
  *  thrust::fill(V2.begin(), V2.end(), 75);
  *
  *  thrust::transform(V1.begin(), V1.end(), V2.begin(), V3.begin(),
@@ -295,7 +295,7 @@ template<typename T>
  *  \code
  *  #include <thrust/device_vector.h>
  *  #include <thrust/functional.h>
- *  #include <thrust/range.h>
+ *  #include <thrust/sequence.h>
  *  #include <thrust/fill.h>
  *  #include <thrust/transform.h>
  *  ...
@@ -304,7 +304,7 @@ template<typename T>
  *  thrust::device_vector<float> V2(N);
  *  thrust::device_vector<float> V3(N);
  *
- *  thrust::range(V1.begin(), V1.end(), 1);
+ *  thrust::sequence(V1.begin(), V1.end(), 1);
  *  thrust::fill(V2.begin(), V2.end(), 75);
  *
  *  thrust::transform(V1.begin(), V1.end(), V2.begin(), V3.begin(),
@@ -336,14 +336,14 @@ template<typename T>
  *  \code
  *  #include <thrust/device_vector.h>
  *  #include <thrust/functional.h>
- *  #include <thrust/range.h>
+ *  #include <thrust/sequence.h>
  *  #include <thrust/transform.h>
  *  ...
  *  const int N = 1000;
  *  thrust::device_vector<float> V1(N);
  *  thrust::device_vector<float> V2(N);
  *
- *  thrust::range(V1.begin(), V1.end(), 1);
+ *  thrust::sequence(V1.begin(), V1.end(), 1);
  *
  *  thrust::transform(V1.begin(), V1.end(), V2.begin(),
  *                     thrust::negate<float>());
@@ -361,6 +361,9 @@ template<typename T>
   __host__ __device__ T operator()(const T &x) const {return -x;}
 }; // end negate
 
+namespace deprecated
+{
+
 /*! \p absolute_value is a function object. Specifically, it is an Adaptable
  *  Unary Function. If \c f is an object of class <tt>absolute_value</tt>, and
  *  \c x is an object of class \c T, then <tt>f(x)</tt> returns
@@ -376,14 +379,14 @@ template<typename T>
  *  \code
  *  #include <thrust/device_vector.h>
  *  #include <thrust/functional.h>
- *  #include <thrust/range.h>
+ *  #include <thrust/sequence.h>
  *  #include <thrust/transform.h>
  *  ...
  *  const int N = 1000;
  *  thrust::device_vector<float> V1(N);
  *  thrust::device_vector<float> V2(N);
  *
- *  thrust::range(V1.begin(), V1.end(), 1, -1);
+ *  thrust::sequence(V1.begin(), V1.end(), 1, -1);
  *  // V1 is now {-1, -2, -3, ..., -1000}
  *
  *  thrust::transform(V1.begin(), V1.end(), V2.begin(),
@@ -391,15 +394,26 @@ template<typename T>
  *  // V2 is now {1, 2, 3, ..., 1000}
  *  \endcode
  *
+ *  \deprecated \p absolute_value will be removed in the next version of Thrust.
+ *
  *  \see unary_function
  */
+#if THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_MSVC
+#pragma deprecated(absolute_value)
+#endif
 template<typename T>
-  struct absolute_value : public unary_function<T,T>
+  struct 
+#if THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_GCC
+__attribute__((deprecated))
+#endif
+    absolute_value : public unary_function<T,T>
 {
   /*! Function call operator. The return value is <tt>x < 0 ? -x : x</tt>.
    */
   __host__ __device__ T operator()(const T &x) const {return x < T(0) ? -x : x;}
 }; // end absolute_value
+
+} // end deprecated
 
 /*! \}
  */
@@ -606,6 +620,134 @@ template<typename T>
 /*! \}
  */
 
+/*! \addtogroup bitwise_operations Bitwise Operations
+ *  \ingroup predefined_function_objects
+ *  \{
+ */
+
+/*! \p bit_and is a function object. Specifically, it is an Adaptable Binary Function.
+ *  If \c f is an object of class <tt>bit_and<T></tt>, and \c x and \c y are objects
+ *  of class \c T, then <tt>f(x,y)</tt> returns <tt>x&y</tt>.
+ *
+ *  \tparam T is a model of <a href="http://www.sgi.com/tech/stl/Assignable.html">Assignable</a>,
+ *          and if \c x and \c y are objects of type \p T, then <tt>x&y</tt> must be defined and must have a return type that is convertible to \c T.
+ *
+ *  The following code snippet demonstrates how to use <tt>bit_and</tt> to take
+ *  the bitwise AND of one device_vector of \c ints by another.
+ *
+ *  \code
+ *  #include <thrust/device_vector.h>
+ *  #include <thrust/functional.h>
+ *  #include <thrust/sequence.h>
+ *  #include <thrust/fill.h>
+ *  #include <thrust/transform.h>
+ *  ...
+ *  const int N = 1000;
+ *  thrust::device_vector<int> V1(N);
+ *  thrust::device_vector<int> V2(N);
+ *  thrust::device_vector<int> V3(N);
+ *
+ *  thrust::sequence(V1.begin(), V1.end(), 1);
+ *  thrust::fill(V2.begin(), V2.end(), 13);
+ *
+ *  thrust::transform(V1.begin(), V1.end(), V2.begin(), V3.begin(),
+ *                    thrust::bit_and<int>());
+ *  // V3 is now {1&13, 2&13, 3&13, ..., 1000%13}
+ *  \endcode
+ *
+ *  \see binary_function
+ */
+template<typename T>
+  struct bit_and : public binary_function<T,T,T>
+{
+  /*! Function call operator. The return value is <tt>lhs & rhs</tt>.
+   */
+  __host__ __device__ T operator()(const T &lhs, const T &rhs) const {return lhs & rhs;}
+}; // end bit_and
+
+/*! \p bit_or is a function object. Specifically, it is an Adaptable Binary Function.
+ *  If \c f is an object of class <tt>bit_and<T></tt>, and \c x and \c y are objects
+ *  of class \c T, then <tt>f(x,y)</tt> returns <tt>x|y</tt>.
+ *
+ *  \tparam T is a model of <a href="http://www.sgi.com/tech/stl/Assignable.html">Assignable</a>,
+ *          and if \c x and \c y are objects of type \p T, then <tt>x|y</tt> must be defined and must have a return type that is convertible to \c T.
+ *
+ *  The following code snippet demonstrates how to use <tt>bit_or</tt> to take
+ *  the bitwise OR of one device_vector of \c ints by another.
+ *
+ *  \code
+ *  #include <thrust/device_vector.h>
+ *  #include <thrust/functional.h>
+ *  #include <thrust/sequence.h>
+ *  #include <thrust/fill.h>
+ *  #include <thrust/transform.h>
+ *  ...
+ *  const int N = 1000;
+ *  thrust::device_vector<int> V1(N);
+ *  thrust::device_vector<int> V2(N);
+ *  thrust::device_vector<int> V3(N);
+ *
+ *  thrust::sequence(V1.begin(), V1.end(), 1);
+ *  thrust::fill(V2.begin(), V2.end(), 13);
+ *
+ *  thrust::transform(V1.begin(), V1.end(), V2.begin(), V3.begin(),
+ *                    thrust::bit_or<int>());
+ *  // V3 is now {1|13, 2|13, 3|13, ..., 1000|13}
+ *  \endcode
+ *
+ *  \see binary_function
+ */
+template<typename T>
+  struct bit_or : public binary_function<T,T,T>
+{
+  /*! Function call operator. The return value is <tt>lhs | rhs</tt>.
+   */
+  __host__ __device__ T operator()(const T &lhs, const T &rhs) const {return lhs | rhs;}
+}; // end bit_or
+
+/*! \p bit_xor is a function object. Specifically, it is an Adaptable Binary Function.
+ *  If \c f is an object of class <tt>bit_and<T></tt>, and \c x and \c y are objects
+ *  of class \c T, then <tt>f(x,y)</tt> returns <tt>x^y</tt>.
+ *
+ *  \tparam T is a model of <a href="http://www.sgi.com/tech/stl/Assignable.html">Assignable</a>,
+ *          and if \c x and \c y are objects of type \p T, then <tt>x^y</tt> must be defined and must have a return type that is convertible to \c T.
+ *
+ *  The following code snippet demonstrates how to use <tt>bit_xor</tt> to take
+ *  the bitwise XOR of one device_vector of \c ints by another.
+ *
+ *  \code
+ *  #include <thrust/device_vector.h>
+ *  #include <thrust/functional.h>
+ *  #include <thrust/sequence.h>
+ *  #include <thrust/fill.h>
+ *  #include <thrust/transform.h>
+ *  ...
+ *  const int N = 1000;
+ *  thrust::device_vector<int> V1(N);
+ *  thrust::device_vector<int> V2(N);
+ *  thrust::device_vector<int> V3(N);
+ *
+ *  thrust::sequence(V1.begin(), V1.end(), 1);
+ *  thrust::fill(V2.begin(), V2.end(), 13);
+ *
+ *  thrust::transform(V1.begin(), V1.end(), V2.begin(), V3.begin(),
+ *                    thrust::bit_xor<int>());
+ *  // V3 is now {1^13, 2^13, 3^13, ..., 1000^13}
+ *  \endcode
+ *
+ *  \see binary_function
+ */
+template<typename T>
+  struct bit_xor : public binary_function<T,T,T>
+{
+  /*! Function call operator. The return value is <tt>lhs ^ rhs</tt>.
+   */
+  __host__ __device__ T operator()(const T &lhs, const T &rhs) const {return lhs ^ rhs;}
+}; // end bit_xor
+
+/*! \}
+ */
+
 /*! \addtogroup generalized_identity_operations Generalized Identity Operations
  *  \ingroup predefined_function_objects
  *  \{
@@ -666,9 +808,9 @@ template<typename T>
 template<typename T>
   struct maximum : public binary_function<T,T,T>
 {
-  /*! Function call operator. The return value is <tt>lhs > rhs ? lhs : rhs</tt>.
+  /*! Function call operator. The return value is <tt>rhs < lhs ? lhs : rhs</tt>.
    */
-  __host__ __device__ const T &operator()(const T &lhs, const T &rhs) const {return lhs > rhs ? lhs : rhs;}
+  __host__ __device__ const T operator()(const T &lhs, const T &rhs) const {return lhs < rhs ? rhs : lhs;}
 }; // end maximum
 
 /*! \p minimum is a function object that takes two arguments and returns the lesser
@@ -687,7 +829,7 @@ template<typename T>
  *  ...
  *  int x =  137;
  *  int y = -137;
- *  thrust::maximum<int> mn;
+ *  thrust::minimum<int> mn;
  *  assert(y == mn(x,y));
  *  \endcode
  *
@@ -698,9 +840,9 @@ template<typename T>
 template<typename T>
   struct minimum : public binary_function<T,T,T>
 {
-  /*! Function call operator. The return value is <tt>lhs > rhs ? lhs : rhs</tt>.
+  /*! Function call operator. The return value is <tt>lhs < rhs ? lhs : rhs</tt>.
    */
-  __host__ __device__ const T &operator()(const T &lhs, const T &rhs) const {return lhs < rhs ? lhs : rhs;}
+  __host__ __device__ const T operator()(const T &lhs, const T &rhs) const {return lhs < rhs ? lhs : rhs;}
 }; // end minimum
 
 /*! \p project1st is a function object that takes two arguments and returns 
@@ -777,16 +919,16 @@ template<typename T1, typename T2>
  *  \see not1
  */
 template<typename Predicate>
-struct unary_negate
+struct unary_negate 
+    : public thrust::unary_function<typename Predicate::argument_type, bool>
 {
   __host__ __device__
-  unary_negate(Predicate p) : pred(p){}
+  explicit unary_negate(Predicate p) : pred(p){}
 
   /*! Function call operator. The return value is <tt>!pred(x)</tt>.
    */
-  template<typename T>
   __host__ __device__
-  bool operator()(const T x) { return !pred(x); }
+  bool operator()(const typename Predicate::argument_type& x) { return !pred(x); }
 
   Predicate pred;
 }; // end unary_negate
@@ -823,15 +965,20 @@ template<typename Predicate>
  */
 template<typename Predicate>
 struct binary_negate
+    : public thrust::binary_function<typename Predicate::first_argument_type,
+                                     typename Predicate::second_argument_type,
+                                     bool>
 {
   __host__ __device__
-  binary_negate(Predicate p) : pred(p){}
+  explicit binary_negate(Predicate p) : pred(p){}
 
   /*! Function call operator. The return value is <tt>!pred(x,y)</tt>.
    */
-  template<typename T>
   __host__ __device__
-  bool operator()(const T x, const T y) { return !pred(x,y); }
+  bool operator()(const typename Predicate::first_argument_type& x, const typename Predicate::second_argument_type& y)
+  { 
+      return !pred(x,y); 
+  }
 
   Predicate pred;
 }; // end binary_negate

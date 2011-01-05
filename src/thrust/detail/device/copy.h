@@ -22,20 +22,18 @@
 
 namespace thrust
 {
-
 namespace detail
 {
-
 namespace device
 {
 
 template<typename InputIterator,
          typename OutputIterator>
-  OutputIterator copy(InputIterator begin, 
-                      InputIterator end, 
+  OutputIterator copy(InputIterator  first, 
+                      InputIterator  last, 
                       OutputIterator result)
 {
-  return thrust::detail::device::dispatch::copy(begin, end, result,
+  return thrust::detail::device::dispatch::copy(first, last, result,
     typename thrust::iterator_space<InputIterator>::type(),
     typename thrust::iterator_space<OutputIterator>::type());
 }
@@ -49,13 +47,15 @@ template<typename InputIterator1,
                          InputIterator1 last,
                          InputIterator2 stencil,
                          OutputIterator result,
-                         Predicate pred);
+                         Predicate pred)
+{
+  return thrust::detail::device::dispatch::copy_if(first, last, stencil, result, pred,
+    typename thrust::iterator_space<InputIterator1>::type(),
+    typename thrust::iterator_space<InputIterator2>::type(),
+    typename thrust::iterator_space<OutputIterator>::type());
+}
 
-} // end device
-
-} // end detail
-
-} // end thrust
-
-#include "copy_if.inl"
+} // end namespace device
+} // end namespace detail
+} // end namespace thrust
 

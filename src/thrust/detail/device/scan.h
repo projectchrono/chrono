@@ -21,15 +21,10 @@
 
 #pragma once
 
-#include <thrust/detail/device/dispatch/scan.h>
-#include <thrust/iterator/iterator_traits.h>
-
 namespace thrust
 {
-
 namespace detail
 {
-
 namespace device
 {
 
@@ -39,14 +34,7 @@ template<typename InputIterator,
   OutputIterator inclusive_scan(InputIterator first,
                                 InputIterator last,
                                 OutputIterator result,
-                                AssociativeOperator binary_op)
-{
-    return thrust::detail::device::dispatch::inclusive_scan(first, last, result, binary_op,
-            typename thrust::iterator_space<InputIterator>::type(),
-            typename thrust::iterator_space<OutputIterator>::type());
-
-}
-
+                                AssociativeOperator binary_op);
 
 template<typename InputIterator,
          typename OutputIterator,
@@ -56,16 +44,37 @@ template<typename InputIterator,
                                 InputIterator last,
                                 OutputIterator result,
                                 T init,
-                                AssociativeOperator binary_op)
-{
-    return thrust::detail::device::dispatch::exclusive_scan(first, last, result, init, binary_op,
-            typename thrust::iterator_space<InputIterator>::type(),
-            typename thrust::iterator_space<OutputIterator>::type());
-}
+                                AssociativeOperator binary_op);
+
+template<typename InputIterator1,
+         typename InputIterator2,
+         typename OutputIterator,
+         typename BinaryPredicate,
+         typename AssociativeOperator>
+  OutputIterator inclusive_scan_by_key(InputIterator1 first1,
+                                       InputIterator1 last1,
+                                       InputIterator2 first2,
+                                       OutputIterator result,
+                                       BinaryPredicate binary_pred,
+                                       AssociativeOperator binary_op);
+
+template<typename InputIterator1,
+         typename InputIterator2,
+         typename OutputIterator,
+         typename T,
+         typename BinaryPredicate,
+         typename AssociativeOperator>
+  OutputIterator exclusive_scan_by_key(InputIterator1 first1,
+                                       InputIterator1 last1,
+                                       InputIterator2 first2,
+                                       OutputIterator result,
+                                       T init,
+                                       BinaryPredicate binary_pred,
+                                       AssociativeOperator binary_op);
 
 } // end namespace device
-
 } // end namespace detail
-
 } // end namespace thrust
+
+#include <thrust/detail/device/scan.inl>
 

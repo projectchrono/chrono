@@ -15,7 +15,7 @@
  */
 
 
-/*! \file stable_merge_sort.h
+/*! \file sort.h
  *  \brief Interface to OpenMP sorting functions.
  */
 

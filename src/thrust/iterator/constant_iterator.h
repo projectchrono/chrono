@@ -175,14 +175,13 @@ template<typename Value,
     { return m_value; }
   
   private: // Core iterator interface
-    __host__ __device__
     reference dereference(void) const
     {
       return m_value;
     }
 
   private:
-    const Value m_value;
+    Value m_value;
 
     /*! \endcond
      */

@@ -25,6 +25,7 @@
 #include <thrust/fill.h>
 #include <thrust/for_each.h>
 #include <thrust/detail/type_traits.h>
+#include <thrust/detail/internal_functional.h>
 
 namespace thrust
 {
@@ -46,24 +47,17 @@ template<typename ForwardIterator,
   thrust::fill(first, last, x);
 } // end uninitialized_fill()
 
-namespace detail
+// trivial copy constructor path
+template<typename ForwardIterator,
+         typename Size,
+         typename T>
+  ForwardIterator uninitialized_fill_n(ForwardIterator first,
+                                       Size n,
+                                       const T &x,
+                                       thrust::detail::true_type) // has_trivial_copy_constructor
 {
-
-template<typename T>
-  struct copy_constructor
-{
-  T exemplar;
-
-  copy_constructor(T x):exemplar(x){}
-
-  __host__ __device__
-  void operator()(T &x)
-  {
-    ::new(static_cast<void*>(&x)) T(exemplar);
-  } // end operator()()
-}; // end copy_constructor
-
-} // end detail
+  return thrust::fill_n(first, n, x);
+} // end uninitialized_fill_n()
 
 // non-trivial copy constructor path
 template<typename ForwardIterator,
@@ -75,12 +69,22 @@ template<typename ForwardIterator,
 {
   typedef typename iterator_traits<ForwardIterator>::value_type ValueType;
 
-  // XXX nvcc 3.0b can compile this, but leave it out until 3.0 final
-  //thrust::for_each(first, last, detail::copy_constructor<ValueType>(x));
-
-  // fallback to fill
-  thrust::fill(first, last, x);
+  thrust::for_each(first, last, thrust::detail::uninitialized_fill_functor<ValueType>(x));
 } // end uninitialized_fill()
+
+// non-trivial copy constructor path
+template<typename ForwardIterator,
+         typename Size,
+         typename T>
+  ForwardIterator uninitialized_fill_n(ForwardIterator first,
+                                       Size n,
+                                       const T &x,
+                                       thrust::detail::false_type) // has_trivial_copy_constructor
+{
+  typedef typename iterator_traits<ForwardIterator>::value_type ValueType;
+
+  return thrust::detail::for_each_n(first, n, thrust::detail::uninitialized_fill_functor<ValueType>(x));
+} // end uninitialized_fill_n()
 
 } // end dispatch
 

@@ -34,9 +34,18 @@
 #include <thrust/detail/device/dereference.h>
 
 #include <thrust/detail/device/cuda/extern_shared_ptr.h>
+#include <thrust/detail/device/cuda/synchronize.h>
 
 // to configure launch parameters
-#include <thrust/experimental/arch.h>
+#include <thrust/detail/device/cuda/arch.h>
+
+
+
+#if THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_MSVC
+// temporarily disable 'possible loss of data' warnings on MSVC
+#pragma warning(push)
+#pragma warning(disable : 4244 4267)
+#endif
 
 
 namespace thrust
@@ -302,14 +311,14 @@ OutputIterator inclusive_scan(InputIterator first,
     
     // determine maximal launch parameters
     const unsigned int smem_per_thread = sizeof(OutputType);
-    const unsigned int block_size = thrust::experimental::arch::max_blocksize_with_highest_occupancy(scan_intervals<InputIterator,OutputIterator,BinaryFunction>, smem_per_thread);
+    const unsigned int block_size = thrust::detail::device::cuda::arch::max_blocksize_with_highest_occupancy(scan_intervals<InputIterator,OutputIterator,BinaryFunction>, smem_per_thread);
     const unsigned int smem_size  = block_size * smem_per_thread;
-    const unsigned int max_blocks = thrust::experimental::arch::max_active_blocks(scan_intervals<InputIterator,OutputIterator,BinaryFunction>, block_size, smem_size);
+    const unsigned int max_blocks = thrust::detail::device::cuda::arch::max_active_blocks(scan_intervals<InputIterator,OutputIterator,BinaryFunction>, block_size, smem_size);
 
     // determine final launch parameters
     const unsigned int unit_size     = block_size;
     const unsigned int num_units     = thrust::detail::util::divide_ri(N, unit_size);
-    const unsigned int num_blocks    = std::min(max_blocks, num_units);
+    const unsigned int num_blocks    = (std::min)(max_blocks, num_units);
     const unsigned int num_iters     = thrust::detail::util::divide_ri(num_units, num_blocks);
     const unsigned int interval_size = unit_size * num_iters;
     
@@ -331,11 +340,12 @@ OutputIterator inclusive_scan(InputIterator first,
              output,
              thrust::raw_pointer_cast(&block_results[0]),
              binary_op);
+        synchronize_if_enabled("scan_intervals");
     }
   
     // second level inclusive scan of per-block results
     {
-        const unsigned int block_size_pass2 = thrust::experimental::arch::max_blocksize(scan_intervals<OutputType *, OutputType *, BinaryFunction>, smem_per_thread);
+        const unsigned int block_size_pass2 = thrust::detail::device::cuda::arch::max_blocksize(scan_intervals<OutputType *, OutputType *, BinaryFunction>, smem_per_thread);
         const unsigned int smem_size_pass2  = smem_per_thread * block_size_pass2;
 
         scan_intervals<<<         1, block_size_pass2, smem_size_pass2>>>
@@ -345,11 +355,12 @@ OutputIterator inclusive_scan(InputIterator first,
              thrust::raw_pointer_cast(&block_results[0]),
              thrust::raw_pointer_cast(&block_results[0]) + num_blocks,
              binary_op);
+        synchronize_if_enabled("scan_intervals");
     }
    
     // update intervals with result of second level scan
     {
-        const unsigned int block_size_pass3 = thrust::experimental::arch::max_blocksize_with_highest_occupancy(inclusive_update<OutputIterator,OutputType,BinaryFunction>, 0);
+        const unsigned int block_size_pass3 = thrust::detail::device::cuda::arch::max_blocksize_with_highest_occupancy(inclusive_update<OutputIterator,OutputType,BinaryFunction>, 0);
 
         inclusive_update<<<num_blocks, block_size_pass3>>>
             (output,
@@ -357,6 +368,7 @@ OutputIterator inclusive_scan(InputIterator first,
              interval_size,
              thrust::raw_pointer_cast(&block_results[0]),
              binary_op);
+        synchronize_if_enabled("inclusive_update");
     }
 
     return output + N;
@@ -382,14 +394,14 @@ OutputIterator exclusive_scan(InputIterator first,
     
     // determine maximal launch parameters
     const unsigned int smem_per_thread = sizeof(OutputType);
-    const unsigned int block_size = thrust::experimental::arch::max_blocksize_with_highest_occupancy(scan_intervals<InputIterator,OutputIterator,BinaryFunction>, smem_per_thread);
+    const unsigned int block_size = thrust::detail::device::cuda::arch::max_blocksize_with_highest_occupancy(scan_intervals<InputIterator,OutputIterator,BinaryFunction>, smem_per_thread);
     const unsigned int smem_size  = block_size * smem_per_thread;
-    const unsigned int max_blocks = thrust::experimental::arch::max_active_blocks(scan_intervals<InputIterator,OutputIterator,BinaryFunction>, block_size, smem_size);
+    const unsigned int max_blocks = thrust::detail::device::cuda::arch::max_active_blocks(scan_intervals<InputIterator,OutputIterator,BinaryFunction>, block_size, smem_size);
 
     // determine final launch parameters
     const unsigned int unit_size     = block_size;
     const unsigned int num_units     = thrust::detail::util::divide_ri(N, unit_size);
-    const unsigned int num_blocks    = std::min(max_blocks, num_units);
+    const unsigned int num_blocks    = (std::min)(max_blocks, num_units);
     const unsigned int num_iters     = thrust::detail::util::divide_ri(num_units, num_blocks);
     const unsigned int interval_size = unit_size * num_iters;
     
@@ -411,12 +423,13 @@ OutputIterator exclusive_scan(InputIterator first,
              output,
              thrust::raw_pointer_cast(&block_results[0]),
              binary_op);
+        synchronize_if_enabled("scan_intervals");
     }
         
     
     // second level inclusive scan of per-block results
     {
-        const unsigned int block_size_pass2 = thrust::experimental::arch::max_blocksize(scan_intervals<OutputType *, OutputType *, BinaryFunction>, smem_per_thread);
+        const unsigned int block_size_pass2 = thrust::detail::device::cuda::arch::max_blocksize(scan_intervals<OutputType *, OutputType *, BinaryFunction>, smem_per_thread);
         const unsigned int smem_size_pass2  = smem_per_thread * block_size_pass2;
 
         scan_intervals<<<         1, block_size_pass2, smem_size_pass2>>>
@@ -426,6 +439,7 @@ OutputIterator exclusive_scan(InputIterator first,
              thrust::raw_pointer_cast(&block_results[0]),
              thrust::raw_pointer_cast(&block_results[0]) + num_blocks,
              binary_op);
+        synchronize_if_enabled("scan_intervals");
     }
 
     // copy the initial value to the device
@@ -433,7 +447,7 @@ OutputIterator exclusive_scan(InputIterator first,
 
     // update intervals with result of second level scan
     {
-        const unsigned int block_size_pass3 = thrust::experimental::arch::max_blocksize_with_highest_occupancy(exclusive_update<OutputIterator,OutputType,BinaryFunction>, smem_per_thread);
+        const unsigned int block_size_pass3 = thrust::detail::device::cuda::arch::max_blocksize_with_highest_occupancy(exclusive_update<OutputIterator,OutputType,BinaryFunction>, smem_per_thread);
         const unsigned int smem_size_pass3  = smem_per_thread * block_size_pass3;
 
         exclusive_update<<<num_blocks, block_size_pass3, smem_size_pass3>>>
@@ -442,6 +456,7 @@ OutputIterator exclusive_scan(InputIterator first,
              interval_size,
              thrust::raw_pointer_cast(&block_results[0]),
              binary_op);
+        synchronize_if_enabled("exclusive_update");
     }
 
     return output + N;
@@ -453,6 +468,11 @@ OutputIterator exclusive_scan(InputIterator first,
 } // end namespace device
 } // end namespace detail
 } // end namespace thrust
+
+#if THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_MSVC
+// reenable 'possible loss of data' warnings
+#pragma warning(pop)
+#endif
 
 #endif // THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 

@@ -149,18 +149,22 @@ template<typename T> struct has_trivial_constructor
       >
 {};
 
-// these two are synonyms for each other
-//template<typename T> struct has_trivial_copy : public std::tr1::has_trivial_copy<T> {};
-//template<typename T> struct has_trivial_copy_constructor : public std::tr1::has_trivial_copy<T> {};
-//
-//template<typename T> struct has_trivial_destructor : public std::tr1::has_trivial_destructor<T> {};
-//template<typename T> struct has_trivial_assign : public std::tr1::has_trivial_assign<T> {};
-
-template<typename T> struct has_trivial_copy : public is_pod<T> {};
-template<typename T> struct has_trivial_copy_constructor : public is_pod<T> {};
+template<typename T> struct has_trivial_copy_constructor
+  : public integral_constant<
+      bool,
+      is_pod<T>::value
+#if THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_MSVC
+      || __has_trivial_copy(T)
+#elif THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_GCC
+// only use the intrinsic for >= 4.3
+#if (__GNUC__ >= 4) && (__GNUC_MINOR__ >= 3)
+      || __has_trivial_copy(T)
+#endif // GCC VERSION
+#endif // THRUST_HOST_COMPILER
+    >
+{};
 
 template<typename T> struct has_trivial_destructor : public is_pod<T> {};
-template<typename T> struct has_trivial_assign : public is_pod<T> {};
 
 template<typename T> struct is_const          : public false_type {};
 template<typename T> struct is_const<const T> : public true_type {};
@@ -275,47 +279,64 @@ template<typename T>
                                  && !is_volatile<type_sans_ref>::value));
 }; // end is_int_or_cref
 
-struct any_conversion
-{
-  template <typename T> any_conversion(const volatile T&);
-  template <typename T> any_conversion(T&);
-}; // end any_conversion
+
+#if THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_MSVC
+// temporarily disable 'possible loss of data' warnings on MSVC
+#pragma warning(push)
+#pragma warning(disable : 4244)
+#endif
 
 template<typename From, typename To>
-  struct is_convertible_simple
+  struct is_convertible_sfinae
 {
   private:
     typedef char                          one_byte;
     typedef struct { char two_chars[2]; } two_bytes;
 
-    static one_byte  test(To, int);
-    static two_bytes test(any_conversion, ...);
+    static one_byte  test(To);
+    static two_bytes test(...);
     static From      m_from;
 
   public:
-    static const bool value = sizeof(test(m_from, 0)) == 1;
-}; // end is_convertible_simple
+    static const bool value = sizeof(test(m_from)) == sizeof(one_byte);
+}; // end is_convertible_sfinae
 
-template<typename From, typename To,
-         bool = (is_void<From>::value || is_void<To>::value
-              // XXX maybe implement this later but i don't think we need it for anything right now -jph
-              //|| is_function<To>::value || is_array<To>::value
-              || (is_floating_point<typename
-                  remove_reference<From>::type>::value
-                  && is_int_or_cref<To>::value))>
-  struct is_convertible
-{
-  static const bool value = (is_convertible_simple<typename
-                             add_reference<From>::type, To>::value);
-}; // end is_convertible
+
+#if THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_MSVC
+// reenable 'possible loss of data' warnings
+#pragma warning(pop)
+#endif
+
 
 template<typename From, typename To>
-  struct is_convertible<From, To, true>
+  struct is_convertible_needs_simple_test
+{
+  static const bool from_is_void      = is_void<From>::value;
+  static const bool to_is_void        = is_void<To>::value;
+  static const bool from_is_float     = is_floating_point<typename remove_reference<From>::type>::value;
+  static const bool to_is_int_or_cref = is_int_or_cref<To>::value;
+
+  static const bool value = (from_is_void || to_is_void || (from_is_float && to_is_int_or_cref));
+}; // end is_convertible_needs_simple_test
+
+
+template<typename From, typename To,
+         bool = is_convertible_needs_simple_test<From,To>::value>
+  struct is_convertible
 {
   static const bool value = (is_void<To>::value
                              || (is_int_or_cref<To>::value
                                  && !is_void<From>::value));
 }; // end is_convertible
+
+
+template<typename From, typename To>
+  struct is_convertible<From, To, false>
+{
+  static const bool value = (is_convertible_sfinae<typename
+                             add_reference<From>::type, To>::value);
+}; // end is_convertible
+
 
 } // end tt_detail
 
@@ -476,4 +497,6 @@ struct largest_available_float
 } // end detail
 
 } // end thrust
+
+#include <thrust/detail/type_traits/has_trivial_assign.h>
 

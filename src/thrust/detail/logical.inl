@@ -19,9 +19,8 @@
  *  \brief Inline file for logical.h.
  */
 
-#include <thrust/functional.h>
-#include <thrust/transform_reduce.h>
-#include <thrust/iterator/iterator_traits.h>
+#include <thrust/find.h>
+#include <thrust/detail/internal_functional.h>
 
 namespace thrust
 {
@@ -29,19 +28,19 @@ namespace thrust
 template <class InputIterator, class Predicate>
 bool all_of(InputIterator first, InputIterator last, Predicate pred)
 {
-    return thrust::transform_reduce(first, last, pred, true, thrust::logical_and<bool>());
+    return thrust::find_if(first, last, thrust::detail::not1(pred)) == last;
 }
 
 template <class InputIterator, class Predicate>
 bool any_of(InputIterator first, InputIterator last, Predicate pred)
 {
-    return thrust::transform_reduce(first, last, pred, false, thrust::logical_or<bool>());
+    return thrust::find_if(first, last, pred) != last;
 }
 
 template <class InputIterator, class Predicate>
 bool none_of(InputIterator first, InputIterator last, Predicate pred)
 {
-    return !any_of(first, last, pred);
+    return !thrust::any_of(first, last, pred);
 }
 
 } // end namespace thrust

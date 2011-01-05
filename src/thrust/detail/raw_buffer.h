@@ -20,9 +20,10 @@
 
 #pragma once
 
-#include <thrust/device_malloc_allocator.h>
+#include <thrust/detail/device/internal_allocator.h>
 #include <thrust/iterator/detail/normal_iterator.h>
 #include <thrust/iterator/iterator_traits.h>
+#include <thrust/detail/contiguous_storage.h>
 #include <memory>
 
 namespace thrust
@@ -57,7 +58,7 @@ template<typename T, typename Space>
             // XXX this check is technically incorrect: any could convert to device
             is_convertible<Space, thrust::device_space_tag>::value,
 
-            identity_< device_malloc_allocator<T> >,
+            identity_< thrust::detail::device::internal_allocator<T> >,
 
             void
           >
@@ -68,54 +69,24 @@ template<typename T, typename Space>
 
 template<typename T, typename Space>
   class raw_buffer
+    : public contiguous_storage<
+               T,
+               typename choose_raw_buffer_allocator<T,Space>::type
+             >
 {
-  public:
-    typedef typename choose_raw_buffer_allocator<T,Space>::type allocator_type;
-    typedef T                                                   value_type;
-    typedef typename allocator_type::pointer                    pointer;
-    typedef typename allocator_type::const_pointer              const_pointer;
-    typedef typename allocator_type::reference                  reference;
-    typedef typename allocator_type::const_reference            const_reference;
-    typedef typename std::size_t                                size_type; 
-    typedef typename allocator_type::difference_type            difference_type;
+  private:
+    typedef contiguous_storage<
+      T,
+      typename choose_raw_buffer_allocator<T,Space>::type
+    > super_t;
 
-    typedef normal_iterator<pointer>                            iterator;
-    typedef normal_iterator<const_pointer>                      const_iterator;
+  public:
+    typedef typename super_t::size_type size_type;
 
     explicit raw_buffer(size_type n);
 
     template<typename InputIterator>
     raw_buffer(InputIterator first, InputIterator last);
-
-    ~raw_buffer(void);
-
-    size_type size(void) const;
-
-    iterator begin(void);
-
-    const_iterator begin(void) const;
-
-    const_iterator cbegin(void) const;
-
-    iterator end(void);
-
-    const_iterator end(void) const;
-
-    const_iterator cend(void) const;
-
-    reference operator[](size_type n);
-
-    const_reference operator[](size_type n) const;
-
-
-  protected:
-    allocator_type m_allocator;
-
-    iterator m_begin, m_end;
-
-  private:
-    // disallow assignment
-    raw_buffer &operator=(const raw_buffer &);
 }; // end raw_buffer
 
 
@@ -160,6 +131,59 @@ template<typename T>
     template<typename InputIterator>
     raw_host_buffer(InputIterator first, InputIterator last):super_t(first,last){}
 }; // end raw_host_buffer
+
+
+// XXX eliminate this when we do ranges for real
+template<typename Iterator>
+  class iterator_range
+{
+  public:
+    iterator_range(Iterator first, Iterator last)
+      : m_begin(first), m_end(last) {}
+
+    Iterator begin(void) const { return m_begin; }
+    Iterator end(void) const { return m_end; }
+
+  private:
+    Iterator m_begin, m_end;
+};
+
+
+// if the space of Iterator1 is convertible to Iterator2, then just make a shallow
+// copy of the range.  else, use a raw_buffer
+template<typename Iterator1, typename Iterator2>
+  struct move_to_space_base
+    : public eval_if<
+        is_convertible<
+          typename thrust::iterator_space<Iterator1>::type,
+          typename thrust::iterator_space<Iterator2>::type
+        >::value,
+        identity_<
+          iterator_range<Iterator1>
+        >,
+        identity_<
+          raw_buffer<
+            typename thrust::iterator_value<Iterator1>::type,
+            typename thrust::iterator_space<Iterator2>::type
+          >
+        >
+      >
+{};
+
+
+template<typename Iterator1, typename Iterator2>
+  class move_to_space
+    : public move_to_space_base<
+        Iterator1,
+        Iterator2
+      >::type
+{
+  typedef typename move_to_space_base<Iterator1,Iterator2>::type super_t;
+
+  public:
+    move_to_space(Iterator1 first, Iterator1 last)
+      : super_t(first, last) {}
+};
 
 } // end detail
 

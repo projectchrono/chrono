@@ -63,14 +63,34 @@ struct bidirectional_universal_iterator_tag
   operator detail::bidirectional_omp_device_iterator_tag () {return detail::bidirectional_omp_device_iterator_tag();};
 };
 
-struct random_access_universal_iterator_tag
-  : bidirectional_universal_iterator_tag
+
+namespace detail
 {
+
+// create this struct to control conversion precedence in random_access_universal_iterator_tag
+template<typename T>
+struct one_degree_of_separation
+  : T
+{
+};
+
+} // end detail
+
+
+struct random_access_universal_iterator_tag
+{
+  // these conversions are all P0
   operator random_access_host_iterator_tag () {return random_access_host_iterator_tag();};
+
+  operator random_access_device_iterator_tag () {return random_access_device_iterator_tag();};
 
   operator detail::random_access_cuda_device_iterator_tag () {return detail::random_access_cuda_device_iterator_tag();};
 
   operator detail::random_access_omp_device_iterator_tag () {return detail::random_access_omp_device_iterator_tag();};
+
+  // bidirectional_universal_iterator_tag is P1
+  operator detail::one_degree_of_separation<bidirectional_universal_iterator_tag> () {return detail::one_degree_of_separation<bidirectional_universal_iterator_tag>();}
+
 };
 
 

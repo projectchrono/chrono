@@ -15,14 +15,6 @@
  */
 
 
-/*! \file fast_scan.h
- *  \brief A fast scan for primitive types.
- */
-
-#pragma once
-
-#include <thrust/detail/config.h>
-
 // do not attempt to compile this file with any other compiler
 #if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 
@@ -32,9 +24,18 @@
 
 #include <thrust/detail/raw_buffer.h>
 #include <thrust/detail/device/dereference.h>
+#include <thrust/detail/device/cuda/synchronize.h>
 
 // to configure launch parameters
-#include <thrust/experimental/arch.h>
+#include <thrust/detail/device/cuda/arch.h>
+
+#include <thrust/detail/device/cuda/partition.h>
+
+#if THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_MSVC
+// temporarily disable 'possible loss of data' warnings on MSVC
+#pragma warning(push)
+#pragma warning(disable : 4244 4267)
+#endif
 
 
 namespace thrust
@@ -107,6 +108,7 @@ template <unsigned int CTA_SIZE,
           typename InputIterator,
           typename OutputIterator,
           typename BinaryFunction>
+__launch_bounds__(CTA_SIZE,1)          
 __global__
 void scan_intervals(InputIterator input,
                     const unsigned int N,
@@ -118,6 +120,8 @@ void scan_intervals(InputIterator input,
     typedef typename thrust::iterator_value<OutputIterator>::type OutputType;
 
     __shared__ OutputType sdata[K + 1][CTA_SIZE + 1];  // padded to avoid bank conflicts
+    
+    __syncthreads(); // TODO figure out why this seems necessary now
     
     const unsigned int interval_begin = interval_size * blockIdx.x;
     const unsigned int interval_end   = min(interval_begin + interval_size, N);
@@ -138,11 +142,11 @@ void scan_intervals(InputIterator input,
             sdata[offset % K][offset / K] = thrust::detail::device::dereference(temp);
         }
        
-        __syncthreads();
-       
         // carry in
         if (threadIdx.x == 0 && base != interval_begin)
-            sdata[0][threadIdx.x] = binary_op(sdata[K][blockDim.x - 1], sdata[0][threadIdx.x]);
+            sdata[0][0] = binary_op(sdata[K][CTA_SIZE - 1], sdata[0][0]);
+
+        __syncthreads();
 
         // scan local values
         OutputType sum = sdata[0][threadIdx.x];
@@ -179,6 +183,8 @@ void scan_intervals(InputIterator input,
             OutputIterator temp = output + (base + offset);
             thrust::detail::device::dereference(temp) = sdata[offset % K][offset / K];
         }   
+        
+        __syncthreads();
     }
 
     // process partially full unit at end of input (if necessary)
@@ -196,11 +202,11 @@ void scan_intervals(InputIterator input,
             }
         }
        
-        __syncthreads();
-       
         // carry in
         if (threadIdx.x == 0 && base != interval_begin)
-            sdata[0][threadIdx.x] = binary_op(sdata[K][blockDim.x - 1], sdata[0][threadIdx.x]);
+            sdata[0][0] = binary_op(sdata[K][CTA_SIZE - 1], sdata[0][0]);
+
+        __syncthreads();
 
         // scan local values
         OutputType sum = sdata[0][threadIdx.x];
@@ -266,6 +272,7 @@ template <unsigned int CTA_SIZE,
           typename OutputIterator,
           typename OutputType,
           typename BinaryFunction>
+__launch_bounds__(CTA_SIZE,1)          
 __global__
 void inclusive_update(OutputIterator output,
                       const unsigned int N,
@@ -303,6 +310,7 @@ template <unsigned int CTA_SIZE,
           typename OutputIterator,
           typename OutputType,
           typename BinaryFunction>
+__launch_bounds__(CTA_SIZE,1)          
 __global__
 void exclusive_update(OutputIterator output,
                       const unsigned int N,
@@ -312,6 +320,8 @@ void exclusive_update(OutputIterator output,
                       BinaryFunction binary_op)
 {
     __shared__ OutputType sdata[CTA_SIZE];
+
+    __syncthreads(); // TODO figure out why this seems necessary now
 
     const unsigned int interval_begin = interval_size * blockIdx.x;
     const unsigned int interval_end   = min(interval_begin + interval_size, N);
@@ -375,12 +385,11 @@ OutputIterator inclusive_scan(InputIterator first,
     const unsigned int N = last - first;
     
     const unsigned int unit_size  = CTA_SIZE * K;
-    const unsigned int num_units  = thrust::detail::util::divide_ri(N, unit_size);
-    const unsigned int max_blocks = thrust::experimental::arch::max_active_blocks(scan_intervals<CTA_SIZE,K,InputIterator,OutputIterator,BinaryFunction>, CTA_SIZE, 0);
-    const unsigned int num_blocks = std::min(max_blocks, num_units);
-    const unsigned int num_iters  = thrust::detail::util::divide_ri(num_units, num_blocks);
-
-    const unsigned int interval_size = unit_size * num_iters;
+    const unsigned int max_blocks = thrust::detail::device::cuda::arch::max_active_blocks(scan_intervals<CTA_SIZE,K,InputIterator,OutputIterator,BinaryFunction>, CTA_SIZE, 0);
+    
+    thrust::pair<unsigned int, unsigned int> splitting = uniform_interval_splitting<unsigned int>(N, unit_size, max_blocks);
+    const unsigned int interval_size = splitting.first;
+    const unsigned int num_blocks    = splitting.second;
 
     //std::cout << "N             " << N << std::endl;
     //std::cout << "max_blocks    " << max_blocks    << std::endl;
@@ -399,6 +408,7 @@ OutputIterator inclusive_scan(InputIterator first,
          output,
          thrust::raw_pointer_cast(&block_results[0]),
          binary_op);
+    synchronize_if_enabled("scan_intervals");
     
     // second level inclusive scan of per-block results
     scan_intervals<CTA_SIZE,K> <<<         1, CTA_SIZE>>>
@@ -408,6 +418,7 @@ OutputIterator inclusive_scan(InputIterator first,
          thrust::raw_pointer_cast(&block_results[0]),
          thrust::raw_pointer_cast(&block_results[0]) + num_blocks,
          binary_op);
+    synchronize_if_enabled("scan_intervals");
     
     // update intervals with result of second level scan
     inclusive_update<256> <<<num_blocks, 256>>>
@@ -416,6 +427,7 @@ OutputIterator inclusive_scan(InputIterator first,
          interval_size,
          thrust::raw_pointer_cast(&block_results[0]),
          binary_op);
+    synchronize_if_enabled("inclusive_update");
     
     return output + N;
 }
@@ -443,12 +455,11 @@ OutputIterator exclusive_scan(InputIterator first,
     const unsigned int N = last - first;
 
     const unsigned int unit_size  = CTA_SIZE * K;
-    const unsigned int num_units  = thrust::detail::util::divide_ri(N, unit_size);
-    const unsigned int max_blocks = thrust::experimental::arch::max_active_blocks(scan_intervals<CTA_SIZE,K,InputIterator,OutputIterator,BinaryFunction>, CTA_SIZE, 0);
-    const unsigned int num_blocks = std::min(max_blocks, num_units);
-    const unsigned int num_iters  = thrust::detail::util::divide_ri(num_units, num_blocks);
-
-    const unsigned int interval_size = unit_size * num_iters;
+    const unsigned int max_blocks = thrust::detail::device::cuda::arch::max_active_blocks(scan_intervals<CTA_SIZE,K,InputIterator,OutputIterator,BinaryFunction>, CTA_SIZE, 0);
+    
+    thrust::pair<unsigned int, unsigned int> splitting = uniform_interval_splitting<unsigned int>(N, unit_size, max_blocks);
+    const unsigned int interval_size = splitting.first;
+    const unsigned int num_blocks    = splitting.second;
 
     //std::cout << "N             " << N << std::endl;
     //std::cout << "max_blocks    " << max_blocks    << std::endl;
@@ -467,6 +478,7 @@ OutputIterator exclusive_scan(InputIterator first,
          output,
          thrust::raw_pointer_cast(&block_results[0]),
          binary_op);
+    synchronize_if_enabled("scan_intervals");
     
     // second level inclusive scan of per-block results
     scan_intervals<CTA_SIZE,K> <<<         1, CTA_SIZE>>>
@@ -476,6 +488,7 @@ OutputIterator exclusive_scan(InputIterator first,
          thrust::raw_pointer_cast(&block_results[0]),
          thrust::raw_pointer_cast(&block_results[0]) + num_blocks,
          binary_op);
+    synchronize_if_enabled("scan_intervals");
 
     // update intervals with result of second level scan
     exclusive_update<256> <<<num_blocks, 256>>>
@@ -485,6 +498,7 @@ OutputIterator exclusive_scan(InputIterator first,
          thrust::raw_pointer_cast(&block_results[0]),
          OutputType(init),
          binary_op);
+    synchronize_if_enabled("exclusive_update");
     
     return output + N;
 }
@@ -495,6 +509,12 @@ OutputIterator exclusive_scan(InputIterator first,
 } // end namespace device
 } // end namespace detail
 } // end namespace thrust
+
+
+#if THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_MSVC
+// reenable 'possible loss of data' warnings
+#pragma warning(pop)
+#endif
 
 #endif // THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 

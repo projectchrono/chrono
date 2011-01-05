@@ -25,7 +25,7 @@
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/iterator/counting_iterator.h>
 
-#include <thrust/detail/device/inner_product.h>
+#include <thrust/inner_product.h>
 
 namespace thrust
 {
@@ -38,11 +38,10 @@ namespace generic
 namespace detail
 {
 
-
 /////////////
 // Structs //
 /////////////
-
+//
 template<typename T> struct war_nvcc_31_crash { typedef T type; };
 
 // promote small types to int to WAR nvcc 3.1 crash
@@ -56,7 +55,6 @@ template <typename InputType, typename IndexType>
 struct element_pair
 {
     typename war_nvcc_31_crash<InputType>::type value;
-
     typename war_nvcc_31_crash<IndexType>::type index;
 }; // end element_pair
 
@@ -219,7 +217,7 @@ ForwardIterator min_element(ForwardIterator first, ForwardIterator last,
     detail::min_element_reduction<InputType, IndexType, BinaryPredicate> binary_op1(comp);
     detail::element_pair_functor<InputType, IndexType> binary_op2;
 
-    detail::element_pair<InputType, IndexType> result = thrust::detail::device::inner_product(first, last, index_first, init, binary_op1, binary_op2);
+    detail::element_pair<InputType, IndexType> result = thrust::inner_product(first, last, index_first, init, binary_op1, binary_op2);
 
     return first + result.index;
 } // end min_element()
@@ -239,7 +237,7 @@ ForwardIterator max_element(ForwardIterator first, ForwardIterator last,
     detail::max_element_reduction<InputType, IndexType, BinaryPredicate> binary_op1(comp);
     detail::element_pair_functor<InputType, IndexType> binary_op2;
 
-    detail::element_pair<InputType, IndexType> result = thrust::detail::device::inner_product(first, last, index_first, init, binary_op1, binary_op2);
+    detail::element_pair<InputType, IndexType> result = thrust::inner_product(first, last, index_first, init, binary_op1, binary_op2);
 
     return first + result.index;
 } // end max_element()
@@ -265,7 +263,7 @@ thrust::pair<ForwardIterator,ForwardIterator> minmax_element(ForwardIterator fir
 
     detail::minmax_element_pair_functor<InputType, IndexType> binary_op2;
 
-    detail::minmax_element_pair<InputType, IndexType> result = thrust::detail::device::inner_product(first, last, index_first, init, binary_op1, binary_op2);
+    detail::minmax_element_pair<InputType, IndexType> result = thrust::inner_product(first, last, index_first, init, binary_op1, binary_op2);
 
     return thrust::make_pair(first + result.min_pair.index, first + result.max_pair.index);
 } // end minmax_element()

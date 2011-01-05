@@ -24,10 +24,10 @@
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/transform.h>
 #include <thrust/scatter.h>
-#include <thrust/functional.h>
 #include <thrust/iterator/zip_iterator.h>
 #include <limits>
 
+#include <thrust/detail/internal_functional.h>
 #include <thrust/detail/device/scan.h>
 #include <thrust/detail/device/copy.h>
 #include <thrust/detail/raw_buffer.h>
@@ -95,12 +95,12 @@ template <typename InputIterator1,
     
     // compute head flags
     thrust::detail::raw_buffer<FlagType,Space> head_flags(n);
-    thrust::transform(keys_first, keys_last - 1, keys_first + 1, head_flags.begin() + 1, thrust::not2(binary_pred));
+    thrust::transform(keys_first, keys_last - 1, keys_first + 1, head_flags.begin() + 1, thrust::detail::not2(binary_pred));
     head_flags[0] = 1;
 
     // compute tail flags
     thrust::detail::raw_buffer<FlagType,Space> tail_flags(n); //COPY INSTEAD OF TRANSFORM
-    thrust::transform(keys_first, keys_last - 1, keys_first + 1, tail_flags.begin(), thrust::not2(binary_pred));
+    thrust::transform(keys_first, keys_last - 1, keys_first + 1, tail_flags.begin(), thrust::detail::not2(binary_pred));
     tail_flags[n-1] = 1;
 
     // scan the values by flag
@@ -113,7 +113,7 @@ template <typename InputIterator1,
          thrust::make_zip_iterator(thrust::make_tuple(scanned_values.begin(), scanned_tail_flags.begin())),
          detail::reduce_by_key_functor<ValueType, FlagType, BinaryFunction>(binary_op));
 
-    thrust::exclusive_scan(tail_flags.begin(), tail_flags.end(), scanned_tail_flags.begin());
+    thrust::detail::device::exclusive_scan(tail_flags.begin(), tail_flags.end(), scanned_tail_flags.begin(), FlagType(0), thrust::plus<FlagType>());
 
     // number of unique keys
     FlagType N = scanned_tail_flags[n - 1] + 1;
