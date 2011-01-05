@@ -21,16 +21,44 @@
 
 #pragma once
 
-#include <algorithm>
-
 namespace thrust
 {
-
 namespace detail
 {
-
 namespace host
 {
+
+template<typename ForwardIterator,
+         typename Predicate>
+  ForwardIterator remove_if(ForwardIterator first,
+                            ForwardIterator last,
+                            Predicate pred)
+{
+    // advance iterators until pred(*first) is true or we reach the end of input
+    while(first != last && !bool(pred(*first)))
+        ++first;
+
+    if(first == last)
+        return first;
+
+    // result always trails first 
+    ForwardIterator result = first;
+    
+    ++first;
+
+    while(first != last)
+    {
+        if(!bool(pred(*first)))
+        {
+            *result = *first;
+            ++result;
+        }
+        ++first;
+    }
+
+    return result;
+}
+
 
 template<typename ForwardIterator,
          typename InputIterator,
@@ -40,11 +68,11 @@ template<typename ForwardIterator,
                             InputIterator stencil,
                             Predicate pred)
 {
-    // advance iterators until pred(stencil) is true we reach the end of input
+    // advance iterators until pred(*stencil) is true or we reach the end of input
     while(first != last && !bool(pred(*stencil)))
     {
-        first++;
-        stencil++;
+        ++first;
+        ++stencil;
     }
 
     if(first == last)
@@ -53,22 +81,23 @@ template<typename ForwardIterator,
     // result always trails first 
     ForwardIterator result = first;
     
-    first++;
-    stencil++;
+    ++first;
+    ++stencil;
 
     while(first != last)
     {
         if(!bool(pred(*stencil)))
         {
             *result = *first;
-            result++;
+            ++result;
         }
-        first++;
-        stencil++;
+        ++first;
+        ++stencil;
     }
 
     return result;
 }
+
 
 template<typename InputIterator,
          typename OutputIterator,
@@ -78,7 +107,18 @@ template<typename InputIterator,
                                 OutputIterator result,
                                 Predicate pred)
 {
-    return std::remove_copy_if(first, last, result, pred);
+    while (first != last)
+    {
+        if (!bool(pred(*first)))
+        {
+            *result = *first;
+            ++result;
+        }
+
+        ++first;
+    }
+
+    return result;
 }
 
 template<typename InputIterator1,
@@ -96,20 +136,17 @@ template<typename InputIterator1,
         if (!bool(pred(*stencil)))
         {
             *result = *first;
-            result++;
+            ++result;
         }
-        first++;
-        stencil++;
+
+        ++first;
+        ++stencil;
     }
 
     return result;
 }
 
-
-
-} // last namespace host
-
-} // last namespace detail
-
-} // last namespace thrust
+} // end namespace host
+} // end namespace detail
+} // end namespace thrust
 

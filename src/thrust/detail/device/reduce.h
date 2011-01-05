@@ -21,10 +21,7 @@
 
 #pragma once
 
-#include <thrust/detail/device/dispatch/reduce.h>
-#include <thrust/detail/device/generic/reduce_by_key.h>
-
-#include <thrust/iterator/iterator_traits.h>
+#include <thrust/pair.h>
 
 namespace thrust
 {
@@ -39,12 +36,7 @@ template<typename InputIterator,
   OutputType reduce(InputIterator first,
                     InputIterator last,
                     OutputType init,
-                    BinaryFunction binary_op)
-{
-    // dispatch on space
-    return thrust::detail::device::dispatch::reduce(first, last, init, binary_op,
-            typename thrust::iterator_space<InputIterator>::type());
-}
+                    BinaryFunction binary_op);
 
 template <typename InputIterator1,
           typename InputIterator2,
@@ -59,13 +51,31 @@ template <typename InputIterator1,
                      OutputIterator1 keys_output,
                      OutputIterator2 values_output,
                      BinaryPredicate binary_pred,
-                     BinaryFunction binary_op)
-{
-    // use generic path
-    return thrust::detail::device::generic::reduce_by_key(keys_first, keys_last, values_first, keys_output, values_output, binary_pred, binary_op);
-}
+                     BinaryFunction binary_op);
+
+template<typename RandomAccessIterator,
+         typename SizeType,
+         typename OutputType,
+         typename BinaryFunction>
+  SizeType get_unordered_blocked_reduce_n_schedule(RandomAccessIterator first,
+                                                   SizeType n,
+                                                   OutputType init,
+                                                   BinaryFunction binary_op);
+
+template<typename RandomAccessIterator1,
+         typename SizeType1,
+         typename SizeType2,
+         typename BinaryFunction,
+         typename RandomAccessIterator2>
+  void unordered_blocked_reduce_n(RandomAccessIterator1 first,
+                                  SizeType1 n,
+                                  SizeType2 num_blocks,
+                                  BinaryFunction binary_op,
+                                  RandomAccessIterator2 result);
 
 } // end namespace device
 } // end namespace detail
 } // end namespace thrust
+
+#include <thrust/detail/device/reduce.inl>
 

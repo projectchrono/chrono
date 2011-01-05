@@ -21,9 +21,6 @@
 
 #pragma once
 
-#include <thrust/detail/device/dispatch/for_each.h>
-#include <thrust/iterator/iterator_traits.h>
-
 namespace thrust
 {
 
@@ -33,20 +30,27 @@ namespace detail
 namespace device
 {
 
+
+template<typename OutputIterator,
+         typename Size,
+         typename UnaryFunction>
+OutputIterator for_each_n(OutputIterator first,
+                          Size n,
+                          UnaryFunction f);
+
+
 template<typename InputIterator,
          typename UnaryFunction>
-void for_each(InputIterator first,
-              InputIterator last,
-              UnaryFunction f)
-{
-  // dispatch on space
-  thrust::detail::device::dispatch::for_each(first, last, f,
-      typename thrust::iterator_space<InputIterator>::type());
-}
+InputIterator for_each(InputIterator first,
+                       InputIterator last,
+                       UnaryFunction f);
+
 
 } // end namespace device
 
 } // end namespace detail
 
 } // end namespace thrust
+
+#include <thrust/detail/device/for_each.inl>
 

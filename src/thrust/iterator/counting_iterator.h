@@ -140,7 +140,6 @@ template<typename Incrementable,
   public:
     typedef Incrementable const & reference;
     typedef typename super_t::difference_type difference_type;
-    typedef counting_iterator device_dereferenceable_type;
 
     /*! \endcond
      */
@@ -171,7 +170,6 @@ template<typename Incrementable,
     /*! \cond
      */
   private:
-    __host__ __device__
     reference dereference(void) const
     {
       return this->base_reference();

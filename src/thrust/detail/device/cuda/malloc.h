@@ -21,9 +21,8 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
 #include <thrust/device_ptr.h>
-#include <cuda_runtime_api.h>
-#include <stdexcept>
 
 namespace thrust
 {
@@ -38,19 +37,7 @@ namespace cuda
 {
 
 template<unsigned int DummyParameterToPreventInstantiation>
-thrust::device_ptr<void> malloc(const std::size_t n)
-{
-  void *result = 0;
-
-  cudaError_t error = cudaMalloc(reinterpret_cast<void**>(&result), n);
-
-  if(error)
-  {
-    throw std::bad_alloc();
-  } // end if
-
-  return thrust::device_ptr<void>(result);
-} // end malloc()
+thrust::device_ptr<void> malloc(const std::size_t n);
 
 } // end namespace cuda
 
@@ -59,4 +46,6 @@ thrust::device_ptr<void> malloc(const std::size_t n)
 } // end namespace detail
 
 } // end namespace thrust
+
+#include <thrust/detail/device/cuda/malloc.inl>
 

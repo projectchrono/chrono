@@ -21,19 +21,26 @@
 
 #pragma once
 
-#include <thrust/distance.h>
-
-#include <algorithm>
-#include <thrust/partition.h>
+#include <thrust/pair.h>
+#include <thrust/host_vector.h>
 
 namespace thrust
 {
-
 namespace detail
 {
-
 namespace host
 {
+
+template <typename ForwardIterator1,
+          typename ForwardIterator2>
+void iter_swap(ForwardIterator1 iter1, ForwardIterator2 iter2)
+{
+    typedef typename thrust::iterator_value<ForwardIterator1>::type T;
+
+    T temp = *iter1;
+    *iter1 = *iter2;
+    *iter2 =  temp;
+}
 
 template<typename ForwardIterator,
          typename Predicate>
@@ -41,7 +48,27 @@ template<typename ForwardIterator,
                             ForwardIterator last,
                             Predicate pred)
 {
-    return std::partition(first, last, pred);
+    if (first == last)
+        return first;
+
+    while (pred(*first))
+    {
+        if (++first == last)
+            return first;
+    }
+
+    ForwardIterator next = first;
+
+    while (++next != last)
+    {
+        if (pred(*next))
+        {
+            iter_swap(first, next);
+            ++first;
+        }
+    }
+
+    return first;
 }
 
 
@@ -51,44 +78,82 @@ template<typename ForwardIterator,
                                    ForwardIterator last,
                                    Predicate pred)
 {
-    return std::stable_partition(first, last, pred);
-}
+    typedef typename thrust::iterator_value<ForwardIterator>::type T;
 
-template<typename ForwardIterator1,
-         typename ForwardIterator2,
-         typename Predicate>
-  ForwardIterator2 stable_partition_copy(ForwardIterator1 first,
-                                         ForwardIterator1 last,
-                                         ForwardIterator2 result,
-                                         Predicate pred)
-{
-    for(ForwardIterator1 iter = first; iter != last; iter++)
-        if(pred(*iter))
-            *result++ = *iter;
+    typedef thrust::host_vector<T>        TempRange;
+    typedef typename TempRange::iterator  TempIterator;
 
-    ForwardIterator2 middle = result;
-    
-    for(ForwardIterator1 iter = first; iter != last; iter++)
-        if(!pred(*iter))
-            *result++ = *iter;
+    TempRange temp(first, last);
+
+    for(TempIterator iter = temp.begin(); iter != temp.end(); ++iter)
+    {
+        if (pred(*iter))
+        {
+            *first = *iter;
+            ++first;
+        }
+    }
+
+    ForwardIterator middle = first;
+
+    for(TempIterator iter = temp.begin(); iter != temp.end(); ++iter)
+    {
+        if (!bool(pred(*iter)))
+        {
+            *first = *iter;
+            ++first;
+        }
+    }
 
     return middle;
 }
 
-template<typename ForwardIterator1,
-         typename ForwardIterator2,
+
+template<typename InputIterator,
+         typename OutputIterator1,
+         typename OutputIterator2,
          typename Predicate>
-  ForwardIterator2 partition_copy(ForwardIterator1 first,
-                                  ForwardIterator1 last,
-                                  ForwardIterator2 result,
-                                  Predicate pred)
+  thrust::pair<OutputIterator1,OutputIterator2>
+    stable_partition_copy(InputIterator first,
+                          InputIterator last,
+                          OutputIterator1 out_true,
+                          OutputIterator2 out_false,
+                          Predicate pred)
 {
-    return thrust::experimental::stable_partition_copy(first, last, result, pred);
+  for(; first != last; ++first)
+  {
+    if(pred(*first))
+    {
+      *out_true = *first;
+      ++out_true;
+    } // end if
+    else
+    {
+      *out_false = *first;
+      ++out_false;
+    } // end else
+  }
+
+  return thrust::make_pair(out_true, out_false);
 }
 
+
+template<typename InputIterator,
+         typename OutputIterator1,
+         typename OutputIterator2,
+         typename Predicate>
+  thrust::pair<OutputIterator1,OutputIterator2>
+    partition_copy(InputIterator first,
+                   InputIterator last,
+                   OutputIterator1 out_true,
+                   OutputIterator2 out_false,
+                   Predicate pred)
+{
+  return thrust::detail::host::stable_partition_copy(first,last,out_true,out_false,pred);
+}
+
+
 } // end namespace host
-
 } // end namespace detail
-
 } // end namespace thrust
 

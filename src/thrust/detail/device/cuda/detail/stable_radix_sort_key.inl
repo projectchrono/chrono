@@ -158,9 +158,9 @@ void stable_radix_sort_key_large_dev(KeyType * keys, unsigned int num_elements,
 
     // permute full keys so lower bits are sorted
     thrust::detail::raw_cuda_device_buffer<KeyType> permuted_keys(num_elements);
-    thrust::next::gather(permutation.begin(), permutation.end(),
-                         thrust::device_ptr<KeyType>(keys),
-                         permuted_keys.begin());
+    thrust::gather(permutation.begin(), permutation.end(),
+                   thrust::device_ptr<KeyType>(keys),
+                   permuted_keys.begin());
     
     // now sort on the upper 32 bits of the keys
     thrust::transform(permuted_keys.begin(),
@@ -174,9 +174,9 @@ void stable_radix_sort_key_large_dev(KeyType * keys, unsigned int num_elements,
                              thrust::raw_pointer_cast(&permutation[0]));
 
     // store sorted keys
-    thrust::next::gather(permutation.begin(), permutation.end(),
-                         permuted_keys.begin(),
-                         thrust::device_ptr<KeyType>(keys));
+    thrust::gather(permutation.begin(), permutation.end(),
+                   permuted_keys.begin(),
+                   thrust::device_ptr<KeyType>(keys));
 }
 
     
@@ -236,12 +236,24 @@ void stable_radix_sort(RandomAccessIterator first,
     // RandomAccessIterator should be a trivial iterator
     KeyType * keys = thrust::raw_pointer_cast(&*first);
 
+#if THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_MSVC
+// temporarily disable 'possible loss of data' warnings on MSVC
+#pragma warning(push)
+#pragma warning(disable : 4244 4267)
+#endif
+
     // we only handle < 2^32 elements right now
     unsigned int num_elements = last - first;
+
+#if THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_MSVC
+// reenable 'possible loss of data' warnings
+#pragma warning(pop)
+#endif
 
     // dispatch on sizeof(KeyType)
     stable_radix_sort_key_dev(keys, num_elements, thrust::detail::integral_constant<int, sizeof(KeyType)>());
 }
+
 
 } // end namespace detail
 } // end namespace cuda

@@ -24,13 +24,14 @@ TARGET_LINK_LIBRARIES(demo_gpubasic
  	debug	    ${CH_CHRONOGPULIB_DBG}	)
 ADD_DEPENDENCIES (demo_gpubasic ChronoEngine ChronoEngine_GPU)
  	
-ADD_EXECUTABLE(demo_gpuCD   		demo_gpuCD.cpp)
+
+ADD_EXECUTABLE(demo_gpuCD__hammad	demo_gpuCD.cpp)
 SOURCE_GROUP(demos\\gpu FILES  		demo_gpuCD.cpp)
-SET_TARGET_PROPERTIES(demo_gpuCD PROPERTIES 
+SET_TARGET_PROPERTIES(demo_gpuCD__hammad PROPERTIES 
 	FOLDER demos
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
-TARGET_LINK_LIBRARIES(demo_gpuCD 
+TARGET_LINK_LIBRARIES(demo_gpuCD__hammad 
 	${CH_IRRLICHTLIB}
 	${CUDA_SDK_ROOT_DIR}/common/lib/glut64.lib
 	${CUDA_SDK_ROOT_DIR}/common/lib/glut32.lib
@@ -41,4 +42,4 @@ TARGET_LINK_LIBRARIES(demo_gpuCD
  	debug 		${CH_CHRONOLIB_DBG} 
  	optimized 	${CH_CHRONOGPULIB}
  	debug	    ${CH_CHRONOGPULIB_DBG}	)
-ADD_DEPENDENCIES (demo_gpuCD ChronoEngine ChronoEngine_GPU)
+ADD_DEPENDENCIES (demo_gpuCD__hammad ChronoEngine ChronoEngine_GPU)

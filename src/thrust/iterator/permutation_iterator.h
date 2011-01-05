@@ -99,7 +99,7 @@ struct permutation_iterator_friend;
  *  iter[0]; // returns 2.0f;
  *  iter[1]; // returns 3.0f;
  *  iter[2]; // returns 1.0f;
- *  iter[3]; // returns 3.0f;
+ *  iter[3]; // returns 0.0f;
  *
  *  // iter[4] is an out-of-bounds error
  *  \endcode
@@ -158,7 +158,6 @@ template <typename ElementIterator,
   /*! \cond
    */
   private:
-    __host__ __device__
     typename super_t::reference dereference() const
     {
       return *(m_element_iterator + *this->base());

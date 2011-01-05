@@ -31,7 +31,7 @@
 
 #include <thrust/functional.h>
 #include <thrust/copy.h>
-#include <thrust/utility.h>
+#include <thrust/swap.h>
 
 #include <thrust/device_ptr.h>
 #include <thrust/detail/device/dereference.h>
@@ -40,33 +40,17 @@
 #include <thrust/iterator/iterator_traits.h>
 
 #include <thrust/detail/device/cuda/block/merging_sort.h>
+#include <thrust/detail/device/cuda/synchronize.h>
+#include <thrust/detail/device/cuda/arch.h>
 
-//#define THRUST_DEBUG_CUDA_MERGE_SORT
 
-#ifdef THRUST_DEBUG_CUDA_MERGE_SORT
-#include <fstream>
-#include <iostream>
-#include <thrust/pair.h>
-#include <thrust/device_reference.h>
-unsigned int launch_num = 0;
-unsigned int stable_odd_even_block_sort_kernel_launch_num = 0;
 
-template<typename T> struct is_pair : thrust::detail::false_type {};
-template<typename T1,typename T2> struct is_pair< thrust::pair<T1,T2> > : thrust::detail::true_type {};
-
-template<typename T>
-void serialize(std::ostream &os, T x, thrust::detail::true_type)
-{
-  os << x.first << " " << x.second;
-}
-
-template<typename T>
-void serialize(std::ostream &os, T x, thrust::detail::false_type)
-{
-  os << x;
-}
-
+#if THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_MSVC
+// temporarily disable 'possible loss of data' warnings on MSVC
+#pragma warning(push)
+#pragma warning(disable : 4244 4267)
 #endif
+
 
 namespace thrust
 {
@@ -92,7 +76,7 @@ namespace merge_sort_dev_namespace
 // define our own min() rather than #include <thrust/extrema.h>
 template<typename T>
   __host__ __device__
-  T min(const T &lhs, const T &rhs)
+  T min THRUST_PREVENT_MACRO_SUBSTITUTION (const T &lhs, const T &rhs)
 {
   return lhs < rhs ? lhs : rhs;
 } // end min()
@@ -142,7 +126,7 @@ static const unsigned int warp_size = 32;
 
 inline unsigned int max_grid_size(const unsigned int block_size)
 {
-  return 3 * thrust::experimental::arch::max_active_threads() / block_size;
+  return std::min<unsigned int>(16384, 3 * thrust::detail::device::cuda::arch::max_active_threads() / block_size);
 } // end max_grid_size()
 
 template<unsigned int N>
@@ -564,7 +548,8 @@ template<unsigned int log_tile_size,
 
   for(;
       block_idx < num_tile_pairs;
-      block_idx += gridDim.x, keys_result += num_splitters_per_grid, values_result += num_splitters_per_grid)
+      block_idx += gridDim.x, keys_result += num_splitters_per_grid, values_result += num_splitters_per_grid,
+      splitters_pos_first += num_splitters_per_tile * gridDim.x)
   {
     if(threadIdx.x == 0)
     {
@@ -944,69 +929,20 @@ template<typename RandomAccessIterator1,
   ++unused_variable_workaround;
 
   // Copy over the first merged splitter of each odd-even block pair to the output array
-  copy_first_splitters<log_block_size><<<num_oddeven_tile_pairs,1>>>(keys_first,
-                                                                     values_first,
-                                                                     splitters_pos_first, 
-                                                                     keys_result,
-                                                                     values_result,
-                                                                     log_num_merged_splitters_per_block,
-                                                                     num_oddeven_tile_pairs);
-#ifdef THRUST_DEBUG_CUDA_MERGE_SORT
-  {
-    cudaError_t error = cudaGetLastError();
-    if(error != cudaSuccess)
-    {
-      std::cerr << "CUDA error after copy_first_splitters(): " << cudaGetErrorString(error) << std::endl;
-      exit(-1);
-    }
-  }
-#endif
+  copy_first_splitters<log_block_size><<<grid_size,1>>>(keys_first,
+                                                        values_first,
+                                                        splitters_pos_first, 
+                                                        keys_result,
+                                                        values_result,
+                                                        log_num_merged_splitters_per_block,
+                                                        num_oddeven_tile_pairs);
+  synchronize_if_enabled("copy_first_splitters");
 
   const unsigned int block_size = merge_sort_dev_namespace::block_size<KeyType,ValueType>::result;
 
   max_num_blocks = max_grid_size(block_size);
 
   grid_size = min(num_splitters, max_num_blocks);
-
-#ifdef THRUST_DEBUG_CUDA_MERGE_SORT
-//  {
-//    char filename[256];
-//    sprintf(filename, "merge_subblocks_binarysearch_kernel.input.%d.txt", launch_num);
-//    std::fstream dumpfile(filename, std::fstream::out);
-//
-//    dumpfile << "grid_size: " << grid_size << std::endl;
-//    dumpfile << "block_size: " << block_size << std::endl;
-//    dumpfile << "shared_size: " << block_size*(2*sizeof(KeyType) + 2*sizeof(ValueType)) << std::endl;
-//    dumpfile << "datasize: " << datasize << std::endl;
-//
-//    dumpfile << "keys_first: " << std::endl;
-//    std::copy(keys_first, keys_first + datasize, std::ostream_iterator<int>(dumpfile, "\n"));
-//    dumpfile << std::endl;
-//
-//    dumpfile << "values_first: " << std::endl;
-//    std::copy(values_first, values_first + datasize, std::ostream_iterator<int>(dumpfile, "\n"));
-//    dumpfile << std::endl;
-//
-//    dumpfile << "num_splitters: " << num_splitters << std::endl;
-//
-//    dumpfile << "ranks_first1: " << std::endl;
-//    std::copy(ranks_first1, ranks_first1 + num_splitters, std::ostream_iterator<int>(dumpfile, "\n"));
-//    dumpfile << std::endl;
-//
-//    dumpfile << "ranks_first2: " << std::endl;
-//    std::copy(ranks_first2, ranks_first2 + num_splitters, std::ostream_iterator<int>(dumpfile, "\n"));
-//    dumpfile << std::endl;
-//
-//    dumpfile << "log_tile_size: " << log_tile_size << std::endl;
-//    dumpfile << "log_num_merged_splitters_per_block: " << log_num_merged_splitters_per_block << std::endl;
-//
-//    dumpfile.close();
-//    
-//    std::cerr << "launch_num: " << launch_num << std::endl;
-//
-//    ++launch_num;
-//  }
-#endif
 
   merge_subblocks_binarysearch_kernel<block_size,log_block_size><<<grid_size, block_size, block_size*(2*sizeof(KeyType) + 2*sizeof(ValueType))>>>(
   	keys_first,
@@ -1020,30 +956,7 @@ template<typename RandomAccessIterator1,
   	keys_result,
         values_result,
         comp);
-#ifdef THRUST_DEBUG_CUDA_MERGE_SORT
-  {
-    cudaError_t error = cudaGetLastError();
-    if(error != cudaSuccess)
-    {
-      std::cerr << "CUDA error after merge_subblocks_binarysearch_kernel(): " << cudaGetErrorString(error) << std::endl;
-      exit(-1);
-    }
-
-//    char filename[256];
-//    sprintf(filename, "merge_subblocks_binarysearch_kernel.output.%d.txt", launch_num-1);
-//    std::fstream dumpfile(filename, std::fstream::out);
-//
-//    dumpfile << "keys_result: " << std::endl;
-//    std::copy(keys_result, keys_result + datasize, std::ostream_iterator<int>(dumpfile, "\n"));
-//    dumpfile << std::endl;
-//
-//    dumpfile << "values_result: " << std::endl;
-//    std::copy(values_result, values_result + datasize, std::ostream_iterator<int>(dumpfile, "\n"));
-//    dumpfile << std::endl;
-//
-//    dumpfile.close();
-  }
-#endif
+  synchronize_if_enabled("merge_subblocks_binarysearch_kernel");
 }
 
 template<typename RandomAccessIterator1,
@@ -1104,16 +1017,7 @@ template<typename RandomAccessIterator1,
                                                                               values_result,
                                                                               log_tile_size,
                                                                               comp);
-#ifdef THRUST_DEBUG_CUDA_MERGE_SORT
-    {
-      cudaError_t error = cudaGetLastError();
-      if(error != cudaSuccess)
-      {
-        std::cerr << "CUDA error after merge_smalltiles_binarysearch(): " << cudaGetErrorString(error) << std::endl;
-        exit(-1);
-      }
-    }
-#endif
+    synchronize_if_enabled("merge_smalltiles_binarysearch");
 
     return;
   } // end if
@@ -1139,14 +1043,7 @@ template<typename RandomAccessIterator1,
   raw_cuda_device_buffer<unsigned int> merged_splitters_pos(num_splitters);
 
   extract_splitters<<<grid_size, block_size>>>(keys_first, n, splitters.begin(), splitters_pos.begin());
-#ifdef THRUST_DEBUG_CUDA_MERGE_SORT
-    cudaError_t error = cudaGetLastError();
-    if(error != cudaSuccess)
-    {
-      std::cerr << "CUDA error after extract_splitters(): " << cudaGetErrorString(error) << std::endl;
-      exit(-1);
-    }
-#endif
+  synchronize_if_enabled("extract_splitters");
 
   // compute the log base 2 of the block_size
   const unsigned int log_block_size = merge_sort_dev_namespace::log_block_size<KeyType,ValueType>::result;
@@ -1196,17 +1093,7 @@ template<typename RandomAccessIterator1,
        log_tile_size,
        log_num_merged_splitters_per_block,
        comp);
-
-#ifdef THRUST_DEBUG_CUDA_MERGE_SORT
-    {
-      cudaError_t error = cudaGetLastError();
-      if(error != cudaSuccess)
-      {
-        std::cerr << "CUDA error after find_splitter_ranks(): " << cudaGetErrorString(error) << std::endl;
-        exit(-1);
-      }
-    }
-#endif
+  synchronize_if_enabled("find_splitter_ranks");
 
   // Step 4 of the recursive case: merge each sub-block independently in parallel.
   merge_subblocks_binarysearch(keys_first,
@@ -1306,48 +1193,9 @@ template<typename RandomAccessIterator1,
 
   size_t grid_size = merge_sort_dev_namespace::min<size_t>(num_blocks, max_num_blocks);
 
-#ifdef THRUST_DEBUG_CUDA_MERGE_SORT
-  {
-    char filename[256];
-    sprintf(filename, "stable_odd_even_block_sort_kernel.input.%d.txt", stable_odd_even_block_sort_kernel_launch_num);
-    std::fstream dumpfile(filename, std::fstream::out);
-
-    dumpfile << "grid_size " << grid_size << std::endl;
-    dumpfile << "block_size " << block_size << std::endl;
-    dumpfile << "n " << n << std::endl;
-
-    dumpfile << "keys_first " << std::endl;
-    for(int i = 0; i < n; ++i)
-    {
-      serialize(dumpfile, (KeyType)keys_first[i], is_pair<KeyType>());
-      dumpfile << std::endl;
-    }
-
-    dumpfile << "values_first " << std::endl;
-    for(int i = 0; i < n; ++i)
-    {
-      serialize(dumpfile, (ValueType)values_first[i], is_pair<ValueType>());
-      dumpfile << std::endl;
-    }
-    dumpfile.close();
-
-    ++stable_odd_even_block_sort_kernel_launch_num;
-  }
-#endif
-
   // do an odd-even sort per block of data
   merge_sort_dev_namespace::stable_odd_even_block_sort_kernel<block_size><<<grid_size, block_size>>>(keys_first, values_first, comp, n);
-
-#ifdef THRUST_DEBUG_CUDA_MERGE_SORT
-  {
-    cudaError_t error = cudaGetLastError();
-    if(error != cudaSuccess)
-    {
-      std::cerr << "CUDA error after stable_odd_even_block_sort_kernel(): " << cudaGetErrorString(error) << std::endl;
-      exit(-1);
-    }
-  }
-#endif
+  synchronize_if_enabled("stable_odd_even_block_sort_kernel");
 
   // scratch space
   using namespace thrust::detail;
@@ -1384,6 +1232,12 @@ template<typename RandomAccessIterator1,
 } // end namespace device
 } // end namespace detail
 } // end namespace thrust
+
+
+#if THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_MSVC
+// reenable 'possible loss of data' warnings
+#pragma warning(pop)
+#endif
 
 #endif // THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 

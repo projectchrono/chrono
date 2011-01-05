@@ -24,45 +24,59 @@
 
 #include <thrust/iterator/iterator_categories.h>
 
-#include <algorithm>
+#include <thrust/detail/host/fill.h>
 #include <thrust/detail/device/fill.h>
 
 namespace thrust
 {
-
 namespace detail
 {
-
 namespace dispatch
 {
 
-///////////////
-// Host Path //
-///////////////
+////////////////
+// Host Paths //
+////////////////
 template<typename ForwardIterator, typename T>
   void fill(ForwardIterator first,
             ForwardIterator last,
-            const T &exemplar,
+            const T &value,
             thrust::host_space_tag)
 {
-  std::fill(first, last, exemplar);
+  thrust::detail::host::fill(first, last, value);
 }
 
-/////////////////
-// Device Path //
-/////////////////
+template<typename OutputIterator, typename Size, typename T>
+  OutputIterator fill_n(OutputIterator first,
+                        Size n,
+                        const T &value,
+                        thrust::host_space_tag)
+{
+  return thrust::detail::host::fill_n(first, n, value);
+}
+
+//////////////////
+// Device Paths //
+//////////////////
 template<typename ForwardIterator, typename T>
   void fill(ForwardIterator first,
             ForwardIterator last,
-            const T &exemplar,
+            const T &value,
             thrust::device_space_tag)
 {
-  thrust::detail::device::fill(first, last, exemplar);
+  thrust::detail::device::fill(first, last, value);
+}
+
+template<typename OutputIterator, typename Size, typename T>
+  OutputIterator fill_n(OutputIterator first,
+                        Size n,
+                        const T &value,
+                        thrust::device_space_tag)
+{
+  return thrust::detail::device::fill_n(first, n, value);
 }
 
 } // end namespace dispatch
-
 } // end namespace detail
-
 } // end namespace thrust
 

@@ -32,24 +32,41 @@ namespace device
 namespace dispatch
 {
 
-template<typename InputIterator,
+template<typename RandomAccessIterator,
+         typename Size,
          typename UnaryFunction>
-  void for_each(InputIterator first,
-                InputIterator last,
-                UnaryFunction f,
-                thrust::detail::omp_device_space_tag)
+  RandomAccessIterator for_each_n(RandomAccessIterator first,
+                                  Size n,
+                                  UnaryFunction f,
+                                  thrust::detail::omp_device_space_tag)
 {
-  thrust::detail::device::omp::for_each(first, last, f);
+  // OpenMP implementation
+  return thrust::detail::device::omp::for_each_n(first, n, f);
 }
 
-template<typename InputIterator,
+template<typename RandomAccessIterator,
+         typename Size,
          typename UnaryFunction>
-  void for_each(InputIterator first,
-                InputIterator last,
-                UnaryFunction f,
-                thrust::detail::cuda_device_space_tag)
+  RandomAccessIterator for_each_n(RandomAccessIterator first,
+                                  Size n,
+                                  UnaryFunction f,
+                                  thrust::detail::cuda_device_space_tag)
 {
-  thrust::detail::device::cuda::for_each(first, last, f);
+  // CUDA implementation
+  return thrust::detail::device::cuda::for_each_n(first, n, f);
+}
+
+template<typename RandomAccessIterator,
+         typename Size,
+         typename UnaryFunction>
+  RandomAccessIterator for_each_n(RandomAccessIterator first,
+                                  Size n,
+                                  UnaryFunction f,
+                                  thrust::any_space_tag)
+{
+  // default implementation
+  return thrust::detail::device::dispatch::for_each_n(first, n, f,
+    thrust::detail::default_device_space_tag());
 }
 
 } // end dispatch
