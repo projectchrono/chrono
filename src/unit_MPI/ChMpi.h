@@ -157,15 +157,7 @@ public:
 							);
 };
 
-class ChApiMPI Ch_test_mpi
-{
-public:
-	void run_test();
 
-	void run_test_matrix();
-
-
-};
 
 
 } // END_OF_NAMESPACE____
