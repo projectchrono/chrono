@@ -28,8 +28,6 @@ namespace chrono {
 			mGPU.mDataBoxes.clear();
 			mGPU.mDataTriangles.clear();
 			mGPU.mSphereID.clear();
-			mGPU.mNoCollWith.clear();
-			mGPU.mColFam.clear();
 			for(int i=0; i<mGPU.mNBodies; i++){delete colModels[i];}
 			colModels.clear();
 		}
@@ -78,8 +76,8 @@ namespace chrono {
 		void ChCollisionSystemGPU::updateDataStructures(){
 			chrono::collision::ChCollisionModelGPU* body;
 				mGPU.mSphereID.clear();
-				mGPU.mColFam.clear();
-				mGPU.mNoCollWith.clear();
+				//mGPU.mColFam.clear();
+				//mGPU.mNoCollWith.clear();
 				mGPU.mDataSpheres.clear();
 				
 			if(mGPU.mDataBoxes.size()!=mGPU.mNBoxes){
@@ -107,12 +105,9 @@ namespace chrono {
 				int type=body->GetType();
 				//cout<<"TYPE "<<type<<endl;;
 				if(type==0){
-						mGPU.mSphereID.push_back(i);
-						mGPU.mColFam.push_back(body->GetFamily());
-						mGPU.mNoCollWith.push_back(body->GetNoCollFamily());
+						mGPU.mSphereID.push_back(I3F(i,body->GetFamily(),body->GetNoCollFamily(),body->GetBody()->GetKfriction()));
 						gPos = body->GetBody()->GetCoord().TrasformLocalToParent(body->GetSpherePos(0));
 						mGPU.mDataSpheres.push_back(make_float4(gPos.x,gPos.y,gPos.z,body->GetSphereR(0)));	
-						mGPU.mCoeffFriction.push_back(body->GetBody()->GetKfriction());
 						mGPU.cMax.x=max(mGPU.cMax.x,(float)gPos.x);
 						mGPU.cMax.y=max(mGPU.cMax.y,(float)gPos.y);
 						mGPU.cMax.z=max(mGPU.cMax.z,(float)gPos.z);
@@ -123,12 +118,9 @@ namespace chrono {
 				}
 				else if(type==1){
 					for(int j=0; j<body->GetNObjects(); j++){
-						mGPU.mSphereID.push_back(i);
-						mGPU.mColFam.push_back(body->GetFamily());
-						mGPU.mNoCollWith.push_back(body->GetNoCollFamily());
+						mGPU.mSphereID.push_back(I3F(i,body->GetFamily(),body->GetNoCollFamily(),body->GetBody()->GetKfriction()));
 						gPos = body->GetBody()->GetCoord().TrasformLocalToParent(body->GetSpherePos(j));
 						mGPU.mDataSpheres.push_back(make_float4(gPos.x,gPos.y,gPos.z,body->GetSphereR(j)));	
-						mGPU.mCoeffFriction.push_back(body->GetBody()->GetKfriction());
 						mGPU.cMax.x=max(mGPU.cMax.x,(float)gPos.x);
 						mGPU.cMax.y=max(mGPU.cMax.y,(float)gPos.y);
 						mGPU.cMax.z=max(mGPU.cMax.z,(float)gPos.z);

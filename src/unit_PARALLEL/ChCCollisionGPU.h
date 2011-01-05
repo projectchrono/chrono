@@ -50,9 +50,6 @@ namespace chrono {
 				Bin_StartDK.clear();
 				Bin_StartDV.clear();
 				D_bodyID.clear();
-				mNoCollWithD.clear();	
-				mColFamD.clear();		
-				mCoeffFrictionD.clear();
 
 			}
 			void InitCudaCollision();
@@ -79,11 +76,7 @@ namespace chrono {
 			float3 mGlobalOrigin;
 			float3 cMax,cMin;
 			float cMax_x,cMax_y,cMax_z;
-			vector<int> mSphereID;
-			vector<int> mNoCollWith;
-			vector<int> mColFam;
-			vector<float> mCoeffFriction;
-
+			vector<int3f> mSphereID;
 			dim3 nB,nT,nBlocks,nThreads;
 
 			float4* mContactsGPU;
@@ -97,10 +90,7 @@ namespace chrono {
 			thrust::device_vector<uint>		IntersectedD;
 			thrust::device_vector<uint>		Bin_StartDK;
 			thrust::device_vector<uint>		Bin_StartDV;
-			thrust::device_vector<uint>		D_bodyID;
-			thrust::device_vector<int>		mNoCollWithD;	
-			thrust::device_vector<int>		mColFamD;		
-			thrust::device_vector<float>	mCoeffFrictionD;
+			thrust::device_vector<int3f>		D_bodyID;
 		};
 	}
 }

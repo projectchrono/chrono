@@ -71,7 +71,7 @@ __constant__ CH_REALNUMBER stepSize;
 //  
 //   Version 2.0 - Tasora
 //
-__global__ void ChKernelLCPiteration( CH_REALNUMBER4* contacts, CH_REALNUMBER4* bodies, CH_REALNUMBER3* velocity, CH_REALNUMBER3* omega, uint* offset) 
+__global__ void ChKernelLCPiteration( CH_REALNUMBER4* contacts, CH_REALNUMBER4* bodies, CH_REALNUMBER3* velocity, CH_REALNUMBER3* omega, uint* offset, CH_REALNUMBER* velocityOLD) 
 {
 	// Compute the i,deviceContactPitch values used to access data inside the large 'contact'
 	// array using pointer arithmetic.
@@ -183,6 +183,7 @@ __global__ void ChKernelLCPiteration( CH_REALNUMBER4* contacts, CH_REALNUMBER4* 
 		vect_mult_inc(vB, T1, -a.y); 
 		vect_mult_inc(vB, T2, -a.z); 
 		vect_inertia_multiply(vB,B1.w);
+		velocityOLD[offset[i]]=sqrtf(dot(velocity[offset[i]]-F3(vB),velocity[offset[i]]-F3(vB)));
 		velocity[offset[i]] = F3(vB);										//  ---> store  dv1  
 
 		/// ---- compute dw1 =  Inert.1' * J1w^ * deltagamma
@@ -201,6 +202,7 @@ __global__ void ChKernelLCPiteration( CH_REALNUMBER4* contacts, CH_REALNUMBER4* 
 		vect_mult_inc(vB, T1, a.y); 
 		vect_mult_inc(vB, T2, a.z); 
 		vect_inertia_multiply(vB,B2.w);
+		velocityOLD[offset[i+contactsGPU]]=sqrtf(dot(velocity[offset[i+contactsGPU]]-F3(vB),velocity[offset[i+contactsGPU]]-F3(vB)));
 		velocity[offset[i+contactsGPU]] = F3(vB);							//  ---> store  dv2  
 
 		/// ---- compute dw2 
@@ -1745,7 +1747,7 @@ namespace chrono{
 			<<max_iterations<<" "
 			<<n_bilaterals_GPU<<" "
 			<<n_contacts_GPU<<" "
-			<<n_bodies_GPU<<endl;
+			<<n_bodies_GPU;
 
 			thrust::device_vector<float4> d_buffer_bodies=h_bodies;
 			thrust::device_vector<float4> d_buffer_bilaterals=h_bilaterals;
@@ -1756,7 +1758,7 @@ namespace chrono{
 			thrust::device_vector<uint>		d_updateNum		((n_contacts_GPU+n_bilaterals_GPU)*2,0);
 			thrust::device_vector<uint>		d_update_offset	((n_contacts_GPU+n_bilaterals_GPU)*2,0);
 			thrust::device_vector<uint>		d_offset_counter((n_contacts_GPU+n_bilaterals_GPU)*2,0);
-			thrust::device_vector<float3>	d_vel_old((n_contacts_GPU+n_bilaterals_GPU)*2,F3(0));
+			thrust::device_vector<float>	d_vel_old((n_contacts_GPU+n_bilaterals_GPU)*2,0);
 
 
 			CUT_CHECK_ERROR("Allocate Memory");	
@@ -1794,14 +1796,16 @@ namespace chrono{
 
 			if(n_contacts_GPU>0||n_bilaterals_GPU>0){
 				for (int iter = 0; iter < max_iterations; iter++){
-					d_vel_old=d_buffer_vel;
 					if(n_contacts_GPU){
 						ChKernelLCPiteration<<< max(ceil((n_contacts_GPU)/((double)CH_LCPITERATION_TPB) ),1.0), CH_LCPITERATION_TPB >>>(
 							d_buffer_contacts, 
 							CASTF4(d_buffer_bodies), 
 							CASTF3(d_buffer_vel), 
 							CASTF3(d_buffer_omega) ,
-							CASTU1(d_update_offset));
+							CASTU1(d_update_offset),
+							
+							CASTF1(d_vel_old)
+							);
 						CUT_CHECK_ERROR("ChKernelLCPiteration");
 					}
 					if(n_bilaterals_GPU){
@@ -1821,11 +1825,10 @@ namespace chrono{
 						CASTU1(d_offset_counter),
 						updates);
 
-					thrust::transform(d_buffer_vel.begin(), d_buffer_vel.end(), d_vel_old.begin(), d_vel_old.begin(), deltaL());
-					int position = thrust::max_element(d_vel_old.begin(), d_vel_old.end(),less3()) - d_vel_old.begin();
-					float3 value = d_vel_old[position]; 
-					//printf("%f \n",length);
-					if(value.x<1e-3){break;}
+					int position = thrust::max_element(d_vel_old.begin(), d_vel_old.end()) - d_vel_old.begin();
+					float value = d_vel_old[position]; 
+					if(value<1e-3){cout<<" "<<iter<<endl;break;}
+					if(iter==max_iterations){cout<<" "<<iter<<endl;}
 				}
 			}
 			ChKernelIntegrateTimeStep<<< max(ceil(n_bodies_GPU/double(CH_LCPINTEGRATE_TPB)),1.0), CH_LCPINTEGRATE_TPB >>>(CASTF4(d_buffer_bodies), true);

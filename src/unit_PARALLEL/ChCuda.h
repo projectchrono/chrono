@@ -29,6 +29,7 @@ typedef unsigned int uint;
 #define F3	make_float3
 #define F4	make_float4
 #define I3	make_int3
+#define I3F make_int3f
 
 //defines to cast thrust vectors as raw pointers
 #define CASTU1(x) (uint*)thrust::raw_pointer_cast(&x[0])
@@ -42,17 +43,34 @@ typedef unsigned int uint;
 #define CASTF4(x) (float4*)thrust::raw_pointer_cast(&x[0])
 
 #define BDCAST(x) (bodyData*)thrust::raw_pointer_cast(&x[0])
+
+struct __align__(16) int3f
+{
+  int x,y,z;
+  float w;
+};
+
+
+static __inline__ __host__ __device__ int3f make_int3f(int x, int y, int z, float w)
+{
+  int3f t; 
+  t.x = x; 
+  t.y = y; 
+  t.z = z; 
+  t.w = w; 
+  return t;
+}
+
+#define CASTI3F(x) (int3f*)thrust::raw_pointer_cast(&x[0])
+
 //custom version of ceil used for float3's
 inline __host__ __device__ float3 ceil(float3 v)
 {
 	return make_float3(ceil(v.x), ceil(v.y), ceil(v.z));
 }
 
+
 //////////////////////////////////////////////////
-//
-//   ChLcpIterativeSolverGPUsimpleCU.h
-//
-///////////////////////////////////////////////////
 
 #define CH_CONTACT_VSIZE 10
 #define CH_CONTACT_HSIZE sizeof(CH_REALNUMBER4)
