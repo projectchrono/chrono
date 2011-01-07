@@ -51,7 +51,7 @@ double
 particle_radius = .004,
 tank_radius=1,
 envelope = 0.01,//0.0025
-time_step= 0.0005,
+time_step= 0.001,
 current_time = 0.0,
 particle_friction=.03,
 bin_size=.2;
@@ -120,33 +120,33 @@ void create_falling_items(ChSystem* mphysicalSystem, double body_radius, float f
 			}
 		}
 	}
-				//ChVector<> particle_pos(0,0,0);
-				//mrigidBody = ChSharedBodyPtr(new ChBody);
-				//mrigidBody.get_ptr()->SetMass(particle_mass);
-				//mrigidBody.get_ptr()->SetPos(particle_pos);
-				//mrigidBody.get_ptr()->GetCollisionModel()->ClearModel();
-				//mrigidBody.get_ptr()->GetCollisionModel()->AddSphere(rad/scale);
-				//mrigidBody.get_ptr()->GetCollisionModel()->BuildModel();
-				//mrigidBody->SetBodyFixed(false);
-				//mrigidBody.get_ptr()->SetCollide(true);
-				//mrigidBody.get_ptr()->SetImpactC(0.0);
-				//mrigidBody.get_ptr()->SetSfriction(0.05);
-				//mrigidBody.get_ptr()->SetKfriction(0.05);
-				//mphysicalSystem->AddBody(mrigidBody);
+	//ChVector<> particle_pos(0,0,0);
+	//mrigidBody = ChSharedBodyPtr(new ChBody);
+	//mrigidBody.get_ptr()->SetMass(particle_mass);
+	//mrigidBody.get_ptr()->SetPos(particle_pos);
+	//mrigidBody.get_ptr()->GetCollisionModel()->ClearModel();
+	//mrigidBody.get_ptr()->GetCollisionModel()->AddSphere(rad/scale);
+	//mrigidBody.get_ptr()->GetCollisionModel()->BuildModel();
+	//mrigidBody->SetBodyFixed(false);
+	//mrigidBody.get_ptr()->SetCollide(true);
+	//mrigidBody.get_ptr()->SetImpactC(0.0);
+	//mrigidBody.get_ptr()->SetSfriction(0.05);
+	//mrigidBody.get_ptr()->SetKfriction(0.05);
+	//mphysicalSystem->AddBody(mrigidBody);
 
-				//ChVector<> particle_pos2(.1,0,0);
-				//mrigidBody = ChSharedBodyPtr(new ChBody);
-				//mrigidBody.get_ptr()->SetMass(particle_mass);
-				//mrigidBody.get_ptr()->SetPos(particle_pos2);
-				//mrigidBody.get_ptr()->GetCollisionModel()->ClearModel();
-				//mrigidBody.get_ptr()->GetCollisionModel()->AddSphere(rad/scale);
-				//mrigidBody.get_ptr()->GetCollisionModel()->BuildModel();
-				//mrigidBody->SetBodyFixed(false);
-				//mrigidBody.get_ptr()->SetCollide(true);
-				//mrigidBody.get_ptr()->SetImpactC(0.0);
-				//mrigidBody.get_ptr()->SetSfriction(0.05);
-				//mrigidBody.get_ptr()->SetKfriction(0.05);
-				//mphysicalSystem->AddBody(mrigidBody);
+	//ChVector<> particle_pos2(.1,0,0);
+	//mrigidBody = ChSharedBodyPtr(new ChBody);
+	//mrigidBody.get_ptr()->SetMass(particle_mass);
+	//mrigidBody.get_ptr()->SetPos(particle_pos2);
+	//mrigidBody.get_ptr()->GetCollisionModel()->ClearModel();
+	//mrigidBody.get_ptr()->GetCollisionModel()->AddSphere(rad/scale);
+	//mrigidBody.get_ptr()->GetCollisionModel()->BuildModel();
+	//mrigidBody->SetBodyFixed(false);
+	//mrigidBody.get_ptr()->SetCollide(true);
+	//mrigidBody.get_ptr()->SetImpactC(0.0);
+	//mrigidBody.get_ptr()->SetSfriction(0.05);
+	//mrigidBody.get_ptr()->SetKfriction(0.05);
+	//mphysicalSystem->AddBody(mrigidBody);
 
 	//ChVector<> particle_pos2(0,-tank_radius+.05,0);
 	//mrigidBody = ChSharedBodyPtr(new ChBody);
@@ -255,7 +255,7 @@ void renderScene(){
 		ofile.open(ss.str().c_str());
 		filecount++;
 	}
-	//if(ofile.fail()){cout<<ss.str()<<endl;exit(1);}
+	if(ofile.fail()){cout<<ss.str()<<endl;exit(1);}
 
 
 	while (abody != mphysicalSystemG->Get_bodylist()->end()){
@@ -354,9 +354,9 @@ void renderScene(){
 	frame_number++;
 	if(mphysicalSystemG->GetChTime()>=10){exit(0);}
 	//mgroundBody->SetPos(ChVector<>(sin(frame_number/500.0),0.0,0.0));
-	if(frame_number%every_x_file==0&&save){
-		ofile.close();
-	}
+	//if(frame_number%every_x_file==0&&save){
+	//	ofile.close();
+	//}
 }
 void changeSize(int w, int h) {
 	if(h == 0) {h = 1;}
@@ -396,11 +396,12 @@ int main(int argc, char* argv[]){
 	ChSystem mphysicalSystem(num_particles+100, 50); 
 
 	ChLcpIterativeSolverGPUsimple	mGPUsolverSpeed(&mGPUcontactcontainer, 500, false, 0, 0.2, num_particles*5, num_particles+100, 1);
-mGPUsolverSpeed.SetDt(time_step);
+	mGPUsolverSpeed.SetDt(time_step);
+	mphysicalSystem.ChangeLcpSystemDescriptor(&newdescriptor);
+
 	mphysicalSystem.ChangeContactContainer(&mGPUcontactcontainer);
 	mphysicalSystem.ChangeLcpSolverSpeed(&mGPUsolverSpeed);
 	mphysicalSystem.ChangeCollisionSystem(&mGPUCollisionEngine);
-	mphysicalSystem.ChangeLcpSystemDescriptor(&newdescriptor);
 
 	mGPUCollisionEngine.SetSystemDescriptor(&newdescriptor);
 	mGPUsolverSpeed.SetSystemDescriptor(&newdescriptor);
@@ -411,21 +412,21 @@ mGPUsolverSpeed.SetDt(time_step);
 	mphysicalSystem.SetIterLCPwarmStarting(false);
 	mphysicalSystem.Set_G_acc(ChVector<>(0,-9.834,0));
 	mphysicalSystemG=&mphysicalSystem;
-	ChVector<> cgpos(0,0,0);
-	mgroundBody= ChSharedBodyGPUPtr(new ChBodyGPU);
-	mgroundBody->SetMass(100000);
-	mgroundBody->SetPos(ChVector<>(0.0,0.0,0.0));
-	((ChCollisionModelGPU*)mgroundBody.get_ptr()->GetCollisionModel())->ClearModel();
-	((ChCollisionModelGPU*)mgroundBody.get_ptr()->GetCollisionModel())->AddBox(tank_radius,tank_radius,tank_radius,&cgpos); 
-	((ChCollisionModelGPU*)mgroundBody.get_ptr()->GetCollisionModel())->BuildModel();
-	mgroundBody->SetBodyFixed(true);
-	mgroundBody->SetCollide(true);
-	mgroundBody->SetSfriction(0.05);
-	mgroundBody->SetKfriction(0.05);
-	mgroundBody->SetImpactC(0.0);
-	mphysicalSystemG->AddBody(mgroundBody);
+	//ChVector<> cgpos(0,0,0);
+	//mgroundBody= ChSharedBodyGPUPtr(new ChBodyGPU);
+	//mgroundBody->SetMass(100000);
+	//mgroundBody->SetPos(ChVector<>(0.0,0.0,0.0));
+	//((ChCollisionModelGPU*)mgroundBody.get_ptr()->GetCollisionModel())->ClearModel();
+	//((ChCollisionModelGPU*)mgroundBody.get_ptr()->GetCollisionModel())->AddBox(tank_radius,tank_radius,tank_radius,&cgpos); 
+	//((ChCollisionModelGPU*)mgroundBody.get_ptr()->GetCollisionModel())->BuildModel();
+	//mgroundBody->SetBodyFixed(true);
+	//mgroundBody->SetCollide(true);
+	//mgroundBody->SetSfriction(0.05);
+	//mgroundBody->SetKfriction(0.05);
+	//mgroundBody->SetImpactC(0.0);
+	//mphysicalSystemG->AddBody(mgroundBody);
 
-	//loadTriangleMesh("teapotc.txt");
+	loadTriangleMesh("plane.txt");
 	//vector<float4> spheres;
 	//create_falling_items(mphysicalSystemG, particle_radius, particle_friction, 1,tank_radius);
 

@@ -93,7 +93,7 @@ ENDIF()
 SET(ENABLE_UNIT_MATLAB   TRUE    CACHE BOOL   "Turn this ON to generate the Chrono::Engine demos with Matlab.")
 SET(ENABLE_UNIT_IRRLICHT TRUE    CACHE BOOL   "Turn this ON to generate the Chrono::Engine demos with Irrlicht 3D display")
 SET(ENABLE_DEMOS         TRUE    CACHE BOOL   "Turn this ON to generate Chrono::Engine demos")
-SET(ENABLE_UNIT_TESTS       FALSE    CACHE BOOL   "Turn this ON to generate Chrono::Engine unit tests")
+SET(ENABLE_UNIT_TESTS    FALSE    CACHE BOOL   "Turn this ON to generate Chrono::Engine unit tests")
 
 SET(CH_IRRLICHTDIR       ""    CACHE PATH   "Where is your Irrlicht SDK installed? You must set this path to compile demos with 3D display.")
 SET(CH_MATLABSDK         ""    CACHE PATH   "Where is your Matlab SDK installed? Ex. C:/Programs/MATLAB/R2006b/extern. You must set this path to compile demos with Matlab interface.")
@@ -190,7 +190,6 @@ SET(CH_PARALLELBUILD "")
 IF (ENABLE_MULTITHREADED_BUILD)
 		SET(CH_PARALLELBUILD "-MP")
 ENDIF()
-message(STATUS "CH_PARALLELBUILD='${CH_PARALLELBUILD}'")
 
 IF ("${CH_OS}" STREQUAL "WINDOWS")
 		IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
@@ -785,8 +784,8 @@ SOURCE_GROUP(lcp FILES
 		${ChronoEngine_lcp_SOURCES}
 		${ChronoEngine_lcp_HEADERS}
 		)
-
-
+	
+	
 SET(ChronoEngine_collision_bullet_SOURCES
 	collision/bullet/BulletCollision/BroadphaseCollision/btAxisSweep3.cpp 
 	collision/bullet/BulletCollision/BroadphaseCollision/btSimpleBroadphase.cpp 
@@ -878,7 +877,10 @@ SET(ChronoEngine_collision_bullet_SOURCES
 	collision/bullet/LinearMath/btGeometryUtil.cpp 
 	collision/bullet/LinearMath/btConvexHull.cpp 
 	collision/bullet/LinearMath/btSerializer.cpp 
+	
 )
+
+
 SOURCE_GROUP("collision\\bullet" FILES  ${ChronoEngine_collision_bullet_SOURCES})
 
 
@@ -978,5 +980,24 @@ ENDIF(ENABLE_DEMOS)
 
 
 IF (ENABLE_UNIT_TESTS)
-  ADD_SUBDIRECTORY(testing)
+	#Bullet is used for unit testing the collision detection
+	SET (BT_LIBNAME "BulletLibrary")
+	SET (BT_LIBRARYNAME "${CH_LIBDIR}/${CH_LIBNAMEPREFIX}${BT_LIBNAME}${CH_LIBNAMEPOSTFIX}")
+	SET (BT_SHAREDLNAME "${CH_BINDIR}/${BT_LIBNAME}${CH_LIBNAMEPOSTFIXSHARED}")
+	SET (BT_LIB  "${BT_LIBRARYNAME}")
+	SET (BT_LIBRARYNAME_DBG "${CH_LIBDIR}/${CH_LIBNAMEPREFIX}${BT_LIBNAME}DBG${CH_LIBNAMEPOSTFIX}")
+	SET (BT_SHAREDLNAME_DBG "${CH_BINDIR}/${BT_LIBNAME}DBG${CH_LIBNAMEPOSTFIXSHARED}")
+	SET (BT_LIB_DBG  "${BT_LIBRARYNAME_DBG}")
+
+	ADD_LIBRARY(BulletLibrary STATIC 	
+		${ChronoEngine_collision_bullet_SOURCES}
+	)
+
+	SET_TARGET_PROPERTIES(BulletLibrary PROPERTIES 
+		ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CH_LIBDIR}"
+		ARCHIVE_OUTPUT_DIRECTORY_DEBUG   "${CH_LIBDIR}"
+		ARCHIVE_OUTPUT_NAME_DEBUG "BulletLibraryDBG"
+	)
+
+	ADD_SUBDIRECTORY(testing)
 ENDIF(ENABLE_UNIT_TESTS)

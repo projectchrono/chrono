@@ -29,13 +29,14 @@ void gpu_sphere_sphere(int num_Bodies,vector<Contact> &CPU_contact_storage, vect
 bool sphere_sphere(int);
 //void sphere_triangle();
 //void sphere_box();
-bool verify();
+bool verify(vector<Contact> A, vector<Contact> B);
 bool test_func(Contact one, Contact two);
 
 
 int main(){
+	cudaSetDevice(0);
 	cout<<"Bullet Collision Detection "<<endl;
-	sphere_sphere(100);	//tests n random spheres against each other
+	sphere_sphere(10000);	//tests n random spheres against each other
 	//sphere_triangle();
 	//sphere_box();
 
@@ -107,73 +108,73 @@ void bullet_sphere_sphere(int num_Bodies,vector<Contact> &CPU_contact_storage, v
 	sort(CPU_contact_storage.begin(),CPU_contact_storage.end(),test_func);
 }
 void gpu_sphere_sphere(int num_Bodies,vector<Contact> &contact_storage, vector<float4> &bData, int &totalC){
-	float envelope =1;
-	float bin_size= 1;
+	float envelope =0;
+	float bin_size= .5;
 	int mMaxContact=num_Bodies*5;
 
 
-	ChLcpSystemDescriptorGPU		newdescriptor(num_Bodies+100,num_Bodies*5, 1 );
-	ChCollisionSystemGPU			mGPUCollisionEngine(envelope,bin_size, num_Bodies*5);
+	ChLcpSystemDescriptorGPU		newdescriptor(num_Bodies+100,mMaxContact, 1 );
+	ChCollisionSystemGPU			mGPUCollisionEngine(envelope,bin_size, mMaxContact);
 	mGPUCollisionEngine.SetSystemDescriptor(&newdescriptor);
 	//totalC+= numContacts;
 	mGPUCollisionEngine.mGPU.cMax=make_float3(-FLT_MAX  ,-FLT_MAX  ,-FLT_MAX  );
 	mGPUCollisionEngine.mGPU.cMin=make_float3(FLT_MAX  ,FLT_MAX  ,FLT_MAX  );
+	mGPUCollisionEngine.mGPU.mNBodies=num_Bodies;
+	mGPUCollisionEngine.mGPU.mNSpheres=num_Bodies;
+	mGPUCollisionEngine.mGPU.mMaxRad=100;
 	for(int i=0; i<num_Bodies; ++i){
 		mGPUCollisionEngine.mGPU.mDataSpheres.push_back(bData[i]);
 
-
-						mGPUCollisionEngine.mGPU.cMax.x=max(mGPUCollisionEngine.mGPU.cMax.x,(float)bData[i].x);
-						mGPUCollisionEngine.mGPU.cMax.y=max(mGPUCollisionEngine.mGPU.cMax.y,(float)bData[i].y);
-						mGPUCollisionEngine.mGPU.cMax.z=max(mGPUCollisionEngine.mGPU.cMax.z,(float)bData[i].z);
-						mGPUCollisionEngine.mGPU.cMin.x=min(mGPUCollisionEngine.mGPU.cMin.x,(float)bData[i].x);
-						mGPUCollisionEngine.mGPU.cMin.y=min(mGPUCollisionEngine.mGPU.cMin.y,(float)bData[i].y);
-						mGPUCollisionEngine.mGPU.cMin.z=min(mGPUCollisionEngine.mGPU.cMin.z,(float)bData[i].z);
-
-
+		mGPUCollisionEngine.mGPU.cMax.x=max(mGPUCollisionEngine.mGPU.cMax.x,(float)bData[i].x);
+		mGPUCollisionEngine.mGPU.cMax.y=max(mGPUCollisionEngine.mGPU.cMax.y,(float)bData[i].y);
+		mGPUCollisionEngine.mGPU.cMax.z=max(mGPUCollisionEngine.mGPU.cMax.z,(float)bData[i].z);
+		mGPUCollisionEngine.mGPU.cMin.x=min(mGPUCollisionEngine.mGPU.cMin.x,(float)bData[i].x);
+		mGPUCollisionEngine.mGPU.cMin.y=min(mGPUCollisionEngine.mGPU.cMin.y,(float)bData[i].y);
+		mGPUCollisionEngine.mGPU.cMin.z=min(mGPUCollisionEngine.mGPU.cMin.z,(float)bData[i].z);
 
 		int3f temp=I3F(i,1,0,1);
-		mGPUCollisionEngine.mGPU.mSphereID.push_back(temp);
+		mGPUCollisionEngine.mGPU.mAuxData.push_back(temp);
 	}
-	
-	
-	mGPUCollisionEngine.Run();
+
+	cout<<"RUN"<<endl;
+	mGPUCollisionEngine.mGPU.InitCudaCollision();
+	mGPUCollisionEngine.mGPU.CudaCollision();
 	totalC=mGPUCollisionEngine.mGPU.mNumContacts;
 
-	thrust::host_vector<float4> GPU_contacts=mGPUCollisionEngine.mGPU.CopyContactstoHost();
+	vector<float4> GPU_contacts=mGPUCollisionEngine.mGPU.CopyContactstoHost();
 	Contact temp;
 
-
-
-//CData[offset+mMaxContactD*0]=make_float4(n,0);
-//	CData[offset+mMaxContactD*3]=make_float4(onA,A);
-//	CData[offset+mMaxContactD*6]=make_float4(onB,B);
-//	CData[offset+mMaxContactD*9]=make_float4(0,0,0,mKF1*mKF2);
+	//CData[offset+mMaxContactD*0]=make_float4(n,0);
+	//	CData[offset+mMaxContactD*3]=make_float4(onA,A);
+	//	CData[offset+mMaxContactD*6]=make_float4(onB,B);
+	//	CData[offset+mMaxContactD*9]=make_float4(0,0,0,mKF1*mKF2);
 
 
 
 	for(int i=0; i<totalC; i++){
-		temp.nx=GPU_contacts[i+mMaxContact*0].x;
-		temp.ny=GPU_contacts[i+mMaxContact*0].y;
-		temp.nz=GPU_contacts[i+mMaxContact*0].z;
+		temp.nx=GPU_contacts[i*3].x;
+		temp.ny=GPU_contacts[i*3].y;
+		temp.nz=GPU_contacts[i*3].z;
 
-		temp.x1=GPU_contacts[i+mMaxContact*3].x;
-		temp.y1=GPU_contacts[i+mMaxContact*3].y;
-		temp.z1=GPU_contacts[i+mMaxContact*3].z;
-		temp.a =GPU_contacts[i+mMaxContact*3].w;
-		
-		temp.x2=GPU_contacts[i+mMaxContact*6].x;
-		temp.y2=GPU_contacts[i+mMaxContact*6].y;
-		temp.z2=GPU_contacts[i+mMaxContact*6].z;
-		temp.b =GPU_contacts[i+mMaxContact*6].w;
+		temp.x1=GPU_contacts[i*3+1].x;
+		temp.y1=GPU_contacts[i*3+1].y;
+		temp.z1=GPU_contacts[i*3+1].z;
+		temp.a =GPU_contacts[i*3+1].w;
 
+		temp.x2=GPU_contacts[i*3+2].x;
+		temp.y2=GPU_contacts[i*3+2].y;
+		temp.z2=GPU_contacts[i*3+2].z;
+		temp.b =GPU_contacts[i*3+2].w;
+		contact_storage.push_back(temp);
 	}
 	sort(contact_storage.begin(),contact_storage.end(),test_func);
+	mGPUCollisionEngine.mGPU.mNBodies=0;
 }
 bool sphere_sphere(int num_Bodies){
 	//generate data on host
 	vector<float4> bData;
 	for(int i=0; i<num_Bodies; i++){
-		float4 temp=make_float4(rand()%100,rand()%100,rand()%100,rand()%100);
+		float4 temp=make_float4(rand()%10000/100.0,rand()%10000/100.0,rand()%10000/100.0,rand()%1000/1000.0);
 		bData.push_back(temp);
 	}
 
@@ -184,10 +185,17 @@ bool sphere_sphere(int num_Bodies){
 
 	bullet_sphere_sphere(num_Bodies,CPU_contact_storage, bData, totalCPU);
 	gpu_sphere_sphere(num_Bodies,GPU_contact_storage, bData, totalGPU);
-
 	cout<<totalCPU<<endl;
 	cout<<totalGPU<<endl;
+	if(totalCPU!=totalGPU){cout<<"FAIL"<<endl;}
+	else if(!verify(CPU_contact_storage,GPU_contact_storage)){
+	cout<<"FAIL VERIFY"<<endl;
+	}
+	else {cout<<"PASS"<<endl;}
+
+
 	CPU_contact_storage.clear();
+	GPU_contact_storage.clear();
 	return true;
 }
 
@@ -198,6 +206,26 @@ bool test_func(Contact one, Contact two){
 	{return one.a < two.a;}
 }
 
+bool verify(vector<Contact> A, vector<Contact> B){
+	float angle_tolerance=cos(double((10.0*3.14)/180.0));
+	for(int i=0; i<A.size(); ++i){
+		if(A[i].a!=B[i].a){cout<<B[i].a<<" "<<A[i].a<<endl;return false;}
+		if(A[i].b!=B[i].b){cout<<B[i].b<<" "<<A[i].b<<endl;return false;}
+
+		if(B[i].x1>A[i].x1+.1||B[i].x1<A[i].x1-.1){cout<<B[i].x1<<" "<<A[i].x1<<endl; return false;}
+		if(B[i].y1>A[i].y1+.1||B[i].y1<A[i].y1-.1){cout<<B[i].y1<<" "<<A[i].y1<<endl; return false;}
+		if(B[i].z1>A[i].z1+.1||B[i].z1<A[i].z1-.1){cout<<B[i].z1<<" "<<A[i].z1<<endl; return false;}
+
+		if(B[i].x2>A[i].x2+.1||B[i].x2<A[i].x2-.1){cout<<B[i].x2<<" "<<A[i].x2<<endl; return false;}
+		if(B[i].y2>A[i].y2+.1||B[i].y2<A[i].y2-.1){cout<<B[i].y2<<" "<<A[i].y2<<endl; return false;}
+		if(B[i].z2>A[i].z2+.1||B[i].z2<A[i].z2-.1){cout<<B[i].z2<<" "<<A[i].z2<<endl; return false;}
+
+		float dotp=A[i].nx*B[i].nx+A[i].ny*B[i].ny+A[i].nz*B[i].nz;
+
+		if (dotp<angle_tolerance){cout<<A[i].nx<<" "<<B[i].nx<<" "<<A[i].ny<<" "<<B[i].ny<<" "<<A[i].nz<<" "<<B[i].nz<<endl; return false;}
+	}
+return true;
+}
 
 //bool verify(void) {
 //	cout<<"Verifying Results"<<endl;
