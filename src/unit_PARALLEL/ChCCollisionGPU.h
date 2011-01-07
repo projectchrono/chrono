@@ -54,6 +54,7 @@ namespace chrono {
 			}
 			void InitCudaCollision();
 			void CudaCollision();
+			thrust::host_vector<float4> CopyContactstoHost();
 
 			thrust::host_vector<float4>		mDataSpheres;
 			thrust::host_vector<bodyData>	mDataBoxes;
