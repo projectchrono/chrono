@@ -93,7 +93,7 @@ ENDIF()
 SET(ENABLE_UNIT_MATLAB   TRUE    CACHE BOOL   "Turn this ON to generate the Chrono::Engine demos with Matlab.")
 SET(ENABLE_UNIT_IRRLICHT TRUE    CACHE BOOL   "Turn this ON to generate the Chrono::Engine demos with Irrlicht 3D display")
 SET(ENABLE_DEMOS         TRUE    CACHE BOOL   "Turn this ON to generate Chrono::Engine demos")
-
+SET(ENABLE_UNIT_TESTS       FALSE    CACHE BOOL   "Turn this ON to generate Chrono::Engine unit tests")
 
 SET(CH_IRRLICHTDIR       ""    CACHE PATH   "Where is your Irrlicht SDK installed? You must set this path to compile demos with 3D display.")
 SET(CH_MATLABSDK         ""    CACHE PATH   "Where is your Matlab SDK installed? Ex. C:/Programs/MATLAB/R2006b/extern. You must set this path to compile demos with Matlab interface.")
@@ -975,3 +975,8 @@ ADD_SUBDIRECTORY(unit_JS)
 IF (ENABLE_DEMOS)
 #   ADD_SUBDIRECTORY(demos)
 ENDIF(ENABLE_DEMOS)
+
+
+IF (ENABLE_UNIT_TESTS)
+  ADD_SUBDIRECTORY(testing)
+ENDIF(ENABLE_UNIT_TESTS)
