@@ -27,7 +27,17 @@ inline __host__ __device__ float dot_three(const float4 & a, const float4 & b)
 { 
 	return a.x * b.x + a.y * b.y + a.z * b.z;
 }
+inline __host__ __device__ float dot_three(const float4 & a, const float3 & b)
+{ 
+	return a.x * b.x + a.y * b.y + a.z * b.z;
+}
 inline __host__ __device__ void vect_mult_inc(float4& a, const float4 &b, const float &c)
+{ 
+	a.x += (b.x * c);
+	a.y += (b.y * c);
+	a.z += (b.z * c);
+}
+inline __host__ __device__ void vect_mult_inc(float3& a, const float4 &b, const float &c)
 { 
 	a.x += (b.x * c);
 	a.y += (b.y * c);
@@ -39,7 +49,25 @@ inline __host__ __device__ void vect_mult(float4& a, const float4 &b, const floa
 	a.y = b.y * c;
 	a.z = b.z * c;
 }
+inline __host__ __device__ void vect_mult(float4& a, const float3 &b, const float &c)
+{ 
+	a.x = b.x * c;
+	a.y = b.y * c;
+	a.z = b.z * c;
+}
+inline __host__ __device__ void vect_mult(float3& a, const float4 &b, const float &c)
+{ 
+	a.x = b.x * c;
+	a.y = b.y * c;
+	a.z = b.z * c;
+}
 inline __host__ __device__ void vect_inertia_multiply(float4& a, const float4 &b)
+{ 
+	a.x *= b.x;
+	a.y *= b.y;
+	a.z *= b.z;
+}
+inline __host__ __device__ void vect_inertia_multiply(float3& a, const float4 &b)
 { 
 	a.x *= b.x;
 	a.y *= b.y;
@@ -51,6 +79,13 @@ inline __host__ __device__ void vect_inertia_multiply(float4& a, const float &b)
 	a.y *= b;
 	a.z *= b;
 }
+inline __host__ __device__ void vect_inertia_multiply(float3& a, const float &b)
+{ 
+	a.x *= b;
+	a.y *= b;
+	a.z *= b;
+}
+
 
 __constant__ CH_REALNUMBER deviceLcpOmega;
 __constant__ unsigned int  deviceBodyPitch;
@@ -79,8 +114,9 @@ __global__ void ChKernelLCPiteration( CH_REALNUMBER4* contacts, CH_REALNUMBER4* 
 	if(i>=contactsGPU){return;}
 	// In all phases of the following computations, try to use only those following
 	// vars, hoping this will help the compiler to minimize register requirements..
-	CH_REALNUMBER4 vA,vB; 
+	CH_REALNUMBER3 vB; 
 	CH_REALNUMBER3 a; 
+	CH_REALNUMBER2 vA;
 	CH_REALNUMBER eta; 
 
 	float4 T0 = contacts[i + 0*deviceContactPitch];
@@ -99,12 +135,12 @@ __global__ void ChKernelLCPiteration( CH_REALNUMBER4* contacts, CH_REALNUMBER4* 
 	if (!B1_active)
 	{
 		// J1w x w1  
-		vB = bodies[B1_index+deviceBodyPitch]; // w1
+		vB  = F3(bodies[B1_index+deviceBodyPitch]); // w1
 		a.x = dot_three (T3 , vB);
 		a.y = dot_three (T4 , vB);
 		a.z = dot_three (T5 , vB);
 		// -J12x x v1     ... + b 
-		vB = B1; // v1
+		vB = F3(B1); // v1
 		a.x -= dot_three (T0 , vB);
 		a.x += T0.w; // +bx
 		a.y -= dot_three ( T1 , vB);
@@ -125,14 +161,14 @@ __global__ void ChKernelLCPiteration( CH_REALNUMBER4* contacts, CH_REALNUMBER4* 
 	if (!B2_active)
 	{
 		// J2w x w2  
-		vB = bodies[B2_index+deviceBodyPitch]; // w2
+		vB = F3(bodies[B2_index+deviceBodyPitch]); // w2
 		a.x += dot_three ( T6 , vB);
 		a.y += dot_three ( T7 , vB);
 		a.z += dot_three ( T8 , vB);
 		eta = T8.w;
 
 		// J12x x v2  
-		vB = B2; // v1
+		vB = F3(B2); // v1
 		a.x += dot_three ( T0 , vB);
 		a.y += dot_three ( T1 , vB);
 		a.z += dot_three ( T2 , vB);
@@ -143,37 +179,34 @@ __global__ void ChKernelLCPiteration( CH_REALNUMBER4* contacts, CH_REALNUMBER4* 
 
 	a *= deviceLcpOmega*eta;	// deviceLcpOmega is in constant memory 
 	/// ---- perform a = gammas - a ; in place.
+	float4 T=contacts[deviceContactPitch *9  + i];
 
-	vB = contacts[deviceContactPitch *9  + i];
-	a = F3(vB) - a;
+	vB = F3(T);
+	eta=T.w;
+	a = (vB) - a;
 
 	/// ---- perform projection of 'a' onto friction cone  -----------
 
-	//CH_REALNUMBER mu = vB.w; // save this register: use vB.w instead
+	//CH_REALNUMBER mu = eta; // save this register: use eta instead
 
 	// reuse vA as registers   
-	vA.w = sqrt (a.y*a.y + a.z*a.z ); // vA.w = f_tang
-	// inside upper cone? keep untouched! ( vB.w = friction coeff. mu )
-	if (vA.w > (vB.w * a.x))
-	{
-		// inside lower cone? reset  normal,u,v to zero!
-		if ((vB.w * vA.w) < -a.x)
-		{
+	vA.y = sqrt (a.y*a.y + a.z*a.z );									// vA.y = f_tang
+	if (vA.y > (eta * a.x)){											// inside upper cone? keep untouched! ( eta = friction coeff. mu )
+		if ((eta * vA.y) < -a.x){										// inside lower cone? reset  normal,u,v to zero!
 			a = F3(0.f,0.f,0.f);
-		} else{
-			// remaining case: project orthogonally to generator segment of upper cone
-			a.x =  ( vA.w * vB.w + a.x ) / (vB.w*vB.w + 1.f) ;
-			vA.z = a.x * vB.w / vA.w;      //  vA.z = tproj_div_t
-			a.y *= vA.z ;
-			a.z *= vA.z ; 
+		} else{															// remaining case: project orthogonally to generator segment of upper cone
+			a.x =  ( vA.y * eta + a.x ) / (eta*eta + 1.f) ;
+			vA.x = a.x * eta / vA.y;      //  vA.x = tproj_div_t
+			a.y *= vA.x ;
+			a.z *= vA.x ; 
 		}
 	}
 
 	// ----- store gamma_new
-	contacts[i + 9*deviceContactPitch ] = F4(a,vB.w);
+	contacts[i + 9*deviceContactPitch ] = F4(a,eta);
 
 	/// ---- compute delta in multipliers: a = gamma_new - gamma_old   = delta_gamma    , in place.
-	a -= F3(vB.x,vB.y,vB.z);// assuming no one touched vB={gamma_old ,mu}  during previos projection phase!
+	a -= vB;// assuming no one touched vB={gamma_old ,mu}  during previos projection phase!
 
 	if (!B1_active)
 	{
@@ -183,15 +216,15 @@ __global__ void ChKernelLCPiteration( CH_REALNUMBER4* contacts, CH_REALNUMBER4* 
 		vect_mult_inc(vB, T1, -a.y); 
 		vect_mult_inc(vB, T2, -a.z); 
 		vect_inertia_multiply(vB,B1.w);
-		velocityOLD[offset[i]]=sqrtf(dot(velocity[offset[i]]-F3(vB),velocity[offset[i]]-F3(vB)));
-		velocity[offset[i]] = F3(vB);										//  ---> store  dv1  
+		velocityOLD[offset[i]]=sqrtf(dot(velocity[offset[i]]-(vB),velocity[offset[i]]-(vB)));
+		velocity[offset[i]] = (vB);										//  ---> store  dv1  
 
 		/// ---- compute dw1 =  Inert.1' * J1w^ * deltagamma
 		vect_mult    (vB, T3, a.x); 
 		vect_mult_inc(vB, T4, a.y); 
 		vect_mult_inc(vB, T5, a.z); 
 		vect_inertia_multiply(vB,B1);
-		omega[offset[i]] = F3(vB);											//  ---> store  dw1
+		omega[offset[i]] = (vB);											//  ---> store  dw1
 	}
 
 	if (!B2_active)
@@ -202,15 +235,15 @@ __global__ void ChKernelLCPiteration( CH_REALNUMBER4* contacts, CH_REALNUMBER4* 
 		vect_mult_inc(vB, T1, a.y); 
 		vect_mult_inc(vB, T2, a.z); 
 		vect_inertia_multiply(vB,B2.w);
-		velocityOLD[offset[i+contactsGPU]]=sqrtf(dot(velocity[offset[i+contactsGPU]]-F3(vB),velocity[offset[i+contactsGPU]]-F3(vB)));
-		velocity[offset[i+contactsGPU]] = F3(vB);							//  ---> store  dv2  
+		velocityOLD[offset[i+contactsGPU]]=sqrtf(dot(velocity[offset[i+contactsGPU]]-(vB),velocity[offset[i+contactsGPU]]-(vB)));
+		velocity[offset[i+contactsGPU]] = (vB);							//  ---> store  dv2  
 
 		/// ---- compute dw2 
 		vect_mult    (vB, T6, a.x); 
 		vect_mult_inc(vB, T7, a.y); 
 		vect_mult_inc(vB, T8, a.z); 
 		vect_inertia_multiply(vB,B2);
-		omega[offset[i+contactsGPU]] = F3(vB);								//  ---> store  dw2
+		omega[offset[i+contactsGPU]] = (vB);								//  ---> store  dw2
 	}
 } 
 
@@ -1702,21 +1735,21 @@ __global__ void ChKernelLCPspeedupdate2(CH_REALNUMBER4* bodies , CH_REALNUMBER3*
 //};
 
 //using namespace thrust;
-struct less3
-{
-	__host__ __device__ bool operator()(const float3 a, const float3 b) const 
-	{
-		return a.x<b.x;
-	}
-};
-struct deltaL
-{
-	__host__ __device__ float3 operator()(const float3 a, const float3 b) const 
-	{
-		float3 T=a-b;
-		return F3(sqrtf(dot(T,T)),0,0);
-	}
-};
+//struct less3
+//{
+//	__host__ __device__ bool operator()(const float3 a, const float3 b) const 
+//	{
+//		return a.x<b.x;
+//	}
+//};
+//struct deltaL
+//{
+//	__host__ __device__ float3 operator()(const float3 a, const float3 b) const 
+//	{
+//		float3 T=a-b;
+//		return F3(sqrtf(dot(T,T)),0,0);
+//	}
+//};
 namespace chrono{
 	void ChRunSolverTimestep(
 		bool do_integration_step,
@@ -1749,16 +1782,15 @@ namespace chrono{
 			<<n_contacts_GPU<<" "
 			<<n_bodies_GPU;
 
-			thrust::device_vector<float4> d_buffer_bodies=h_bodies;
-			thrust::device_vector<float4> d_buffer_bilaterals=h_bilaterals;
-
-			thrust::device_vector<float3>	d_buffer_vel	((n_contacts_GPU+n_bilaterals_GPU)*2);
-			thrust::device_vector<float3>	d_buffer_omega	((n_contacts_GPU+n_bilaterals_GPU)*2);
-			thrust::device_vector<uint>		d_bodyNum		((n_contacts_GPU+n_bilaterals_GPU)*2,0);
-			thrust::device_vector<uint>		d_updateNum		((n_contacts_GPU+n_bilaterals_GPU)*2,0);
-			thrust::device_vector<uint>		d_update_offset	((n_contacts_GPU+n_bilaterals_GPU)*2,0);
-			thrust::device_vector<uint>		d_offset_counter((n_contacts_GPU+n_bilaterals_GPU)*2,0);
-			thrust::device_vector<float>	d_vel_old((n_contacts_GPU+n_bilaterals_GPU)*2,0);
+			thrust::device_vector<float4>	d_buffer_bodies			=h_bodies;
+			thrust::device_vector<float4>	d_buffer_bilaterals		=h_bilaterals;
+			thrust::device_vector<float3>	d_buffer_vel		((n_contacts_GPU+n_bilaterals_GPU)*2);
+			thrust::device_vector<float3>	d_buffer_omega		((n_contacts_GPU+n_bilaterals_GPU)*2);
+			thrust::device_vector<uint>		d_bodyNum			((n_contacts_GPU+n_bilaterals_GPU)*2,0);
+			thrust::device_vector<uint>		d_updateNum			((n_contacts_GPU+n_bilaterals_GPU)*2,0);
+			thrust::device_vector<uint>		d_update_offset		((n_contacts_GPU+n_bilaterals_GPU)*2,0);
+			thrust::device_vector<uint>		d_offset_counter	((n_contacts_GPU+n_bilaterals_GPU)*2,0);
+			thrust::device_vector<float>	d_delta_correction	((n_contacts_GPU+n_bilaterals_GPU)*2,0);
 
 
 			CUT_CHECK_ERROR("Allocate Memory");	
@@ -1803,8 +1835,7 @@ namespace chrono{
 							CASTF3(d_buffer_vel), 
 							CASTF3(d_buffer_omega) ,
 							CASTU1(d_update_offset),
-							
-							CASTF1(d_vel_old)
+							CASTF1(d_delta_correction)
 							);
 						CUT_CHECK_ERROR("ChKernelLCPiteration");
 					}
@@ -1825,8 +1856,8 @@ namespace chrono{
 						CASTU1(d_offset_counter),
 						updates);
 
-					int position = thrust::max_element(d_vel_old.begin(), d_vel_old.end()) - d_vel_old.begin();
-					float value = d_vel_old[position]; 
+					int position = thrust::max_element(d_delta_correction.begin(), d_delta_correction.end()) - d_delta_correction.begin();
+					float value = d_delta_correction[position]; 
 					if(value<1e-3){cout<<" "<<iter<<endl;break;}
 					if(iter==max_iterations){cout<<" "<<iter<<endl;}
 				}
@@ -1834,7 +1865,7 @@ namespace chrono{
 			ChKernelIntegrateTimeStep<<< max(ceil(n_bodies_GPU/double(CH_LCPINTEGRATE_TPB)),1.0), CH_LCPINTEGRATE_TPB >>>(CASTF4(d_buffer_bodies), true);
 			CUT_CHECK_ERROR("ChKernelIntegrateTimeStep");
 
-			h_bodies=d_buffer_bodies;
-			h_bilaterals=d_buffer_bilaterals;
+			h_bodies		=	d_buffer_bodies;
+			h_bilaterals	=	d_buffer_bilaterals;
 	}
 }

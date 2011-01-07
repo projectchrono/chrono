@@ -27,7 +27,7 @@ namespace chrono {
 			mGPU.mDataSpheres.clear();
 			mGPU.mDataBoxes.clear();
 			mGPU.mDataTriangles.clear();
-			mGPU.mSphereID.clear();
+			mGPU.mAuxData.clear();
 			for(int i=0; i<mGPU.mNBodies; i++){delete colModels[i];}
 			colModels.clear();
 		}
@@ -75,7 +75,7 @@ namespace chrono {
 
 		void ChCollisionSystemGPU::updateDataStructures(){
 			chrono::collision::ChCollisionModelGPU* body;
-				mGPU.mSphereID.clear();
+				mGPU.mAuxData.clear();
 				//mGPU.mColFam.clear();
 				//mGPU.mNoCollWith.clear();
 				mGPU.mDataSpheres.clear();
@@ -105,7 +105,7 @@ namespace chrono {
 				int type=body->GetType();
 				//cout<<"TYPE "<<type<<endl;;
 				if(type==0){
-						mGPU.mSphereID.push_back(I3F(i,body->GetFamily(),body->GetNoCollFamily(),body->GetBody()->GetKfriction()));
+						mGPU.mAuxData.push_back(I3F(i,body->GetFamily(),body->GetNoCollFamily(),body->GetBody()->GetKfriction()));
 						gPos = body->GetBody()->GetCoord().TrasformLocalToParent(body->GetSpherePos(0));
 						mGPU.mDataSpheres.push_back(make_float4(gPos.x,gPos.y,gPos.z,body->GetSphereR(0)));	
 						mGPU.cMax.x=max(mGPU.cMax.x,(float)gPos.x);
@@ -118,7 +118,7 @@ namespace chrono {
 				}
 				else if(type==1){
 					for(int j=0; j<body->GetNObjects(); j++){
-						mGPU.mSphereID.push_back(I3F(i,body->GetFamily(),body->GetNoCollFamily(),body->GetBody()->GetKfriction()));
+						mGPU.mAuxData.push_back(I3F(i,body->GetFamily(),body->GetNoCollFamily(),body->GetBody()->GetKfriction()));
 						gPos = body->GetBody()->GetCoord().TrasformLocalToParent(body->GetSpherePos(j));
 						mGPU.mDataSpheres.push_back(make_float4(gPos.x,gPos.y,gPos.z,body->GetSphereR(j)));	
 						mGPU.cMax.x=max(mGPU.cMax.x,(float)gPos.x);

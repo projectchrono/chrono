@@ -264,7 +264,7 @@ namespace chrono
 			bodies_data_pitch, 
 			contacts_data_pitch, 
 			bilaterals_data_pitch,
-			(CH_REALNUMBER)this->omega*2, 
+			(CH_REALNUMBER)this->omega, 
 			1000, 
 			n_bilaterals_GPU,
 			mSystemDescriptor->nContactsGPU , 

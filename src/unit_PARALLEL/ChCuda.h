@@ -24,6 +24,7 @@ typedef unsigned int uint;
 
 #define CH_REALNUMBER4 float4
 #define CH_REALNUMBER3 float3
+#define CH_REALNUMBER2 float2
 #define CH_REALNUMBER  float 
 
 #define F3	make_float3

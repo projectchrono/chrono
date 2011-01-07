@@ -49,12 +49,12 @@ namespace chrono {
 				IntersectedD.clear();
 				Bin_StartDK.clear();
 				Bin_StartDV.clear();
-				D_bodyID.clear();
+				AuxDataD.clear();
 
 			}
 			void InitCudaCollision();
 			void CudaCollision();
-			thrust::host_vector<float4> CopyContactstoHost();
+			vector<float4> CopyContactstoHost();
 
 			thrust::host_vector<float4>		mDataSpheres;
 			thrust::host_vector<bodyData>	mDataBoxes;
@@ -77,7 +77,7 @@ namespace chrono {
 			float3 mGlobalOrigin;
 			float3 cMax,cMin;
 			float cMax_x,cMax_y,cMax_z;
-			vector<int3f> mSphereID;
+			vector<int3f> mAuxData;
 			dim3 nB,nT,nBlocks,nThreads;
 
 			float4* mContactsGPU;
@@ -91,7 +91,7 @@ namespace chrono {
 			thrust::device_vector<uint>		IntersectedD;
 			thrust::device_vector<uint>		Bin_StartDK;
 			thrust::device_vector<uint>		Bin_StartDV;
-			thrust::device_vector<int3f>		D_bodyID;
+			thrust::device_vector<int3f>	AuxDataD;
 		};
 	}
 }
