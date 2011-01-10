@@ -37,7 +37,7 @@ namespace chrono {
 			mSystemDescriptor=mdescriptor;
 			mSystemDescriptor->maxContacts=mGPU.mMaxContact;
 			mGPU.mContactsGPU=mSystemDescriptor->vContactsGPU;
-			mGPU.mContactBodyID=mSystemDescriptor->d_contact_bodyID;
+			//mGPU.mContactBodyID=mSystemDescriptor->d_contact_bodyID;
 		}
 
 		void ChCollisionSystemGPU::Add(ChCollisionModel* model){

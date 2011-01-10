@@ -47,8 +47,8 @@ namespace chrono {
 				DataT.clear();
 
 				IntersectedD.clear();
-				Bin_StartDK.clear();
-				Bin_StartDV.clear();
+				Bin_Start.clear();
+				//Bin_StartDV.clear();
 				AuxDataD.clear();
 
 			}
@@ -59,8 +59,6 @@ namespace chrono {
 			thrust::host_vector<float4>		mDataSpheres;
 			thrust::host_vector<bodyData>	mDataBoxes;
 			thrust::host_vector<bodyData>	mDataTriangles;
-
-			thrust::device_vector<uint> *mContactBodyID;
 
 			uint
 				mNSpheres,
@@ -89,8 +87,8 @@ namespace chrono {
 			thrust::device_vector<bodyData>	DataT;
 
 			thrust::device_vector<uint>		IntersectedD;
-			thrust::device_vector<uint>		Bin_StartDK;
-			thrust::device_vector<uint>		Bin_StartDV;
+			thrust::device_vector<uint>		Bin_Start;
+			//thrust::device_vector<uint>		Bin_StartDV;
 			thrust::device_vector<int3f>	AuxDataD;
 		};
 	}
