@@ -32,14 +32,15 @@ bool sphere_sphere(int);
 bool verify(vector<Contact> A, vector<Contact> B);
 bool test_func(Contact one, Contact two);
 
+int testNumber=0;
 
 int main(){
 	cudaSetDevice(0);
-	//cout<<"Bullet Collision Detection "<<endl;
 	for(int i=0; i<100; i++){
-	sphere_sphere(10);	//tests n random spheres against each other
-	//sphere_triangle();
-	//sphere_box();
+		sphere_sphere(100);	//tests n random spheres against each other
+		//sphere_triangle();
+		//sphere_box();
+		testNumber++;
 	}
 	return 0;
 }
@@ -111,7 +112,7 @@ void bullet_sphere_sphere(int num_Bodies,vector<Contact> &CPU_contact_storage, v
 void gpu_sphere_sphere(int num_Bodies,vector<Contact> &contact_storage, vector<float4> &bData, int &totalC){
 	float envelope =0;
 	float bin_size= .1;
-	int mMaxContact=num_Bodies*50;
+	int mMaxContact=50000;
 
 
 	ChLcpSystemDescriptorGPU		newdescriptor(num_Bodies+100,mMaxContact, 1 );
@@ -122,7 +123,7 @@ void gpu_sphere_sphere(int num_Bodies,vector<Contact> &contact_storage, vector<f
 	mGPUCollisionEngine.mGPU.cMin=make_float3(FLT_MAX  ,FLT_MAX  ,FLT_MAX  );
 	mGPUCollisionEngine.mGPU.mNBodies=num_Bodies;
 	mGPUCollisionEngine.mGPU.mNSpheres=num_Bodies;
-	mGPUCollisionEngine.mGPU.mMaxRad=100;
+	mGPUCollisionEngine.mGPU.mMaxRad=(10/13.0);
 	mGPUCollisionEngine.mGPU.mAuxData.clear();
 	for(int i=0; i<num_Bodies; ++i){
 		mGPUCollisionEngine.mGPU.mDataSpheres.push_back(bData[i]);
@@ -192,18 +193,34 @@ bool sphere_sphere(int num_Bodies){
 
 	bullet_sphere_sphere(num_Bodies,A, bData, totalCPU);
 	gpu_sphere_sphere(num_Bodies,B, bData, totalGPU);
-	cout<<totalCPU<<endl;
-	cout<<totalGPU<<endl;
-	
+	cout<<totalCPU<<"\t"<<totalGPU;
+
 	//cout<<bData[32].x<<" "<<bData[32].y<<" "<<bData[32].z<<" "<<bData[32].w<<endl;
 	//cout<<bData[45].x<<" "<<bData[45].y<<" "<<bData[45].z<<" "<<bData[45].w<<endl;
-	
-	if(totalCPU!=totalGPU){cout<<"FAIL"<<endl;}
+
+	if(totalCPU!=totalGPU){cout<<"\t FAIL"<<endl;
+	stringstream ss;
+	ss<<"data\\"<<testNumber<<".txt";
+	ofstream ofile (ss.str().c_str());
+	for(int i=0; i<num_Bodies; i++){
+		ofile<<bData[i].x<<"\t"<<bData[i].y<<"\t"<<bData[i].z<<"\t"<<bData[i].w<<endl;
+	}
+
+	ofile<<"\n-----------------------------------\n";
+		for(int i=0; i<A.size(); ++i){
+			ofile<<i<<" "<<A[i].a<<" "<<A[i].b<<endl;
+		}
+		ofile<<"\n-----------------------------------\n";
+			for(int i=0; i<B.size(); ++i){
+				ofile<<i<<" "<<B[i].a<<" "<<B[i].b<<endl;
+			}
+			ofile.close();
+	}
 	//if(!verify(A,B)){
 	//cout<<"FAIL VERIFY"<<endl;
 	//}
-	else {cout<<"PASS"<<endl;}
-	
+	else {cout<<"\t PASS"<<endl;}
+
 	A.clear();
 	B.clear();
 	return true;
@@ -224,7 +241,7 @@ bool verify(vector<Contact> A, vector<Contact> B){
 		//cout<<B[i].x1<<" "<<A[i].x1<<endl;
 		//cout<<B[i].y1<<" "<<A[i].y1<<endl;
 		//cout<<B[i].z1<<" "<<A[i].z1<<endl;
-		
+
 		//return false;
 		}
 
@@ -240,7 +257,7 @@ bool verify(vector<Contact> A, vector<Contact> B){
 
 		if (dotp<angle_tolerance){cout<<A[i].nx<<" "<<B[i].nx<<" "<<A[i].ny<<" "<<B[i].ny<<" "<<A[i].nz<<" "<<B[i].nz<<endl; return false;}*/
 	}
-return true;
+	return true;
 }
 
 //bool verify(void) {
