@@ -30,6 +30,7 @@ typedef unsigned int uint;
 #define F3	make_float3
 #define F4	make_float4
 #define I3	make_int3
+#define U3	make_uint3
 #define I3F make_int3f
 
 //defines to cast thrust vectors as raw pointers

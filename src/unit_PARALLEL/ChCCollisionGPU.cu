@@ -11,13 +11,13 @@ __constant__ float		mEnvelopeD;
 #define mBinsPerSideD 1000000
 
 int maxblock=65535;
-__device__ inline int3 Hash_Min(const float3 &A){
-	return I3(floor(A.x/mBinSizeD),floor(A.y/mBinSizeD),floor(A.z/mBinSizeD));
+__device__ inline uint3 Hash_Min(const float3 &A){
+	return U3(max(floor(A.x/mBinSizeD),0.0),max(floor(A.y/mBinSizeD),0.0),max(floor(A.z/mBinSizeD),0.0));
 }
-__device__ inline int3 Hash_Max(const float3 &A){
-	return I3(ceil(A.x/mBinSizeD),ceil(A.y/mBinSizeD),ceil(A.z/mBinSizeD));
+__device__ inline uint3 Hash_Max(const float3 &A){
+	return U3(ceil(A.x/mBinSizeD),ceil(A.y/mBinSizeD),ceil(A.z/mBinSizeD));
 }
-__device__ inline int Hash_Index(const int3 &A){
+__device__ inline uint Hash_Index(const uint3 &A){
 	return A.x+A.y*mBinsPerSideD+A.z*mBinsPerSideD*mBinsPerSideD;
 }
 __device__ inline void adC(int A,int B, float3 n, float3 onA, float3 onB, float4* CData,uint offset, float mKF1, float mKF2 ){
@@ -33,15 +33,15 @@ __global__ void Bins_Intersect_Sphere(float4* DataD,uint* Bins_Intersected,uint 
 	if(Index>=mNumSpheresD){return;}
 	float4 BodyD=DataD[Index]-F4(mGlobalOriginD);
 	int count=0;
-	int3 gridPosmin = Hash_Min(F3(BodyD)-F3(BodyD.w));
-	int3 gridPosmax = Hash_Max(F3(BodyD)+F3(BodyD.w));
+	uint3 gridPosmin = Hash_Min(F3(BodyD)-F3(BodyD.w));
+	uint3 gridPosmax = Hash_Max(F3(BodyD)+F3(BodyD.w));
 
 	for(int i=gridPosmin.x; i<=gridPosmax.x; i++){
 		for(int j=gridPosmin.y; j<=gridPosmax.y; j++){
 			for(int k=gridPosmin.z; k<=gridPosmax.z; k++){
 				if(flag){
 					int mInd=(!Index) ? 0 : Bins_Intersected[Index-1];
-					Bins_IntersectedK[mInd+count]=Hash_Index(I3(i,j,k));
+					Bins_IntersectedK[mInd+count]=Hash_Index(U3(i,j,k));
 					Bins_IntersectedV[mInd+count]=Index;
 				}
 				count++;
@@ -87,13 +87,12 @@ __global__ void Sphere_Sphere(
 			if (centerDist <= rAB*rAB){
 				p=p/sqrtf(centerDist);
 				float3 onB=F3(B)-B.w*p;
-				float3 onA=F3(A)+A.w*p;
-				if(Bin_StartDV[Index]==Hash_Index(Hash_Max((onA-mGlobalOriginD+onB-mGlobalOriginD)/2.0))){
+				if(Bin_StartDV[Index]==Hash_Index(Hash_Max((onB-mGlobalOriginD)))){
 					if(flag){
+						float3 onA=F3(A)+A.w*p;
 						int offset=(!Index) ? 0 : Num_ContactD[Index-1];
 						adC(auxI.x,auxK.x, -p, onA, onB,CData,offset+count,auxI.w,auxK.w);
 					}
-
 					count++;
 				}
 			}
@@ -224,8 +223,8 @@ void ChCCollisionGPU::CudaCollision(){
 
 	//Code will exit if mBinsPerSide has a invalid value
 	//if(mBinsPerSide.x<0||mBinsPerSide.y<0||mBinsPerSide.z<0){system("pause");exit(0);}
-	cMin+=F3(100);
 	//Copy constants to GPU
+	cMin+=F3(mMaxRad*4);
 	cudaMemcpyToSymbolAsync(mBinSizeD,&mBinSize,sizeof(mBinSize));
 	cudaMemcpyToSymbolAsync(mMaxContactD,&mMaxContact,sizeof(mMaxContact));
 	cudaMemcpyToSymbolAsync(mEnvelopeD,&mEnvelope,sizeof(mEnvelope));
