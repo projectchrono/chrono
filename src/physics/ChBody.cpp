@@ -755,7 +755,7 @@ void ChBody::SetBodyFixed (bool mev)
 }
  
 // collision stuff
-void ChBody::SetCollide (int mcoll)
+void ChBody::SetCollide (bool mcoll)
 {
 	if (mcoll == BFlagGet(BF_COLLIDE)) 
 		return;
@@ -900,7 +900,7 @@ void ChBody::StreamIN(ChStreamInBinary& mstream)
 		mstream >> dfoo;		s_friction =  (float)dfoo;
 		mstream >> bflag;
 		mstream >> dfoo;		density = (float)dfoo;
-		SetBodyFixed((bool)mlock);
+		SetBodyFixed(mlock != 0);
 	}
 	if (version >=2)
 	{

@@ -34,6 +34,8 @@ namespace chrono
 /// reference it.
 ///  This kind of pointer does not perform copy of pointed data when copied.
 
+
+
 template <class T> 
 class ChSmartPtr
 {
@@ -47,7 +49,7 @@ public:
     explicit ChSmartPtr(T* p = 0) 
         : itsCounter(0) 
 			{
-				if (p) itsCounter = new counter(p);
+				if (p) itsCounter = new ChCounter (p);
 			}
 
 			/// Copy constructor for the case 
@@ -135,12 +137,13 @@ public:
 
 private:
 
-    struct counter 
+	class ChCounter 
 	{
-        counter(T* p = 0, unsigned c = 1) : ptr(p), count(c) {}
-        T*          ptr;
-        unsigned    count;
-    }* itsCounter;
+	public:
+        ChCounter(T* p = 0, unsigned int c = 1) : ptr(p), count(c) {}
+        T*           ptr;
+        unsigned int count;
+	}* itsCounter;
 
 			// increment the count
 	template <class T_other>
@@ -154,8 +157,9 @@ private:
     void release()
 			{ 
 				if (itsCounter) {
-					if (--itsCounter->count == 0) {
-						delete itsCounter->ptr;
+					if (--itsCounter->count == 0) 
+					{
+						delete (T*)(itsCounter->ptr);
 						delete itsCounter;
 					}
 					itsCounter = 0;

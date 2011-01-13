@@ -127,7 +127,7 @@ void ChContactContainerNodes::AddContact(const collision::ChCollisionInfo& mcont
 	ChVector<>* posB =0;
 	bool fixedA = false;
 	bool fixedB = false;
-	float frictionA, frictionB;
+	float frictionA; //float frictionB;
 	ChLcpVariablesBody* varA = 0;
 	ChLcpVariablesNode* varB = 0;
 

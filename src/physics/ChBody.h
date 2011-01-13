@@ -188,10 +188,10 @@ public:
 	bool GetEvalContactSf() {return BFlagGet(BF_EVAL_CONTACT_SF);}
 
 				/// Enable/disable the collision for this rigid body.
-				/// After setting ON, remember RecomputeCollisionModel()
-				/// before anim starts (it is not automatically
-				/// recomputed here because of performance issues.)
-	void  SetCollide (int mcoll);
+				/// (After setting ON, you may need RecomputeCollisionModel()
+				/// before anim starts, if you added an external object 
+				/// that implements onAddCollisionGeometries(), ex. in a plugin for a CAD)
+	void  SetCollide (bool mcoll);
 	bool  GetCollide() {return BFlagGet(BF_COLLIDE);}
 
 				/// Show collision mesh in 3D views.

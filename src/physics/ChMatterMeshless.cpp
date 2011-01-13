@@ -273,7 +273,7 @@ void ChMatterMeshless::FillBox (const ChVector<> size,
 	double nodemass = mtotmass/(double)totsamples;
 	double kernelrad = kernel_sfactor*spacing;
 
-	for (int ip = 0; ip < this->GetNnodes(); ip++)
+	for (unsigned int ip = 0; ip < this->GetNnodes(); ip++)
 	{
 		ChNodeMeshless* mnode = (ChNodeMeshless*)&(this->GetNode(ip));
 		mnode->SetKernelRadius(kernelrad);

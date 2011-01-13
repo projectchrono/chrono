@@ -189,6 +189,7 @@ int main(int argc, char* argv[])
 			// smart pointers behave exactly as traditional pointers... -> and . operators
 		mtest4->Normalize();
 		
+
 		
 			//  Finally, you DO NOT NEED TO CALL delete(), because the 
 			// deletion of the instanced Quaternion object will happen _automatically_ 

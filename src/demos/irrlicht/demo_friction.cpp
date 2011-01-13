@@ -203,15 +203,7 @@ int main(int argc, char* argv[])
 
  
 	// Create all the rigid bodies.
-//	create_some_falling_items(mphysicalSystem, application.GetSceneManager(), application.GetVideoDriver());
- 
-ChBodySceneNode* mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easySphere(
-											&mphysicalSystem, application.GetSceneManager(),
-											12, // mass
-											ChVector<>(-8, 1-0.5, 1*2.5), // pos
-											1, // radius
-											20,  // hslices
-											15); // vslices
+	create_some_falling_items(mphysicalSystem, application.GetSceneManager(), application.GetVideoDriver());
     
 
 	// Modify some setting of the physical system for the simulation, if you want

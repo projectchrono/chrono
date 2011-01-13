@@ -41,6 +41,7 @@ class vector3dfCH : public vector3df
 {
 public:
 	vector3dfCH(chrono::ChVector<>& mch) { X=((f32)mch.x); Y=((f32)mch.y); Z=((f32)mch.z);};
+	vector3dfCH(chrono::ChVector<>* mch) { X=((f32)mch->x); Y=((f32)mch->y); Z=((f32)mch->z);};
 };
 
 }
@@ -293,18 +294,36 @@ public:
 				chrono::ChVector<> hi = chrono::VNULL;
 				chrono::ChVector<> lo = chrono::VNULL;
 				(*myiter)->GetTotalAABB(lo,hi);
-				driver->draw3DLine(core::vector3dfCH(lo), core::vector3dfCH(chrono::ChVector<>(hi.x,lo.y,lo.z)), mcol );
-				driver->draw3DLine(core::vector3dfCH(lo), core::vector3dfCH(chrono::ChVector<>(lo.x,hi.y,lo.z)), mcol );
-				driver->draw3DLine(core::vector3dfCH(lo), core::vector3dfCH(chrono::ChVector<>(lo.x,lo.y,hi.z)), mcol );
-				driver->draw3DLine(core::vector3dfCH(hi), core::vector3dfCH(chrono::ChVector<>(hi.x,hi.y,lo.z)), mcol );
-				driver->draw3DLine(core::vector3dfCH(hi), core::vector3dfCH(chrono::ChVector<>(lo.x,hi.y,hi.z)), mcol );
-				driver->draw3DLine(core::vector3dfCH(hi), core::vector3dfCH(chrono::ChVector<>(hi.x,lo.y,hi.z)), mcol );
-				driver->draw3DLine(core::vector3dfCH(chrono::ChVector<>(lo.x,lo.y,hi.z)), core::vector3dfCH(chrono::ChVector<>(hi.x,lo.y,hi.z)), mcol );
-				driver->draw3DLine(core::vector3dfCH(chrono::ChVector<>(lo.x,lo.y,hi.z)), core::vector3dfCH(chrono::ChVector<>(lo.x,hi.y,hi.z)), mcol );
-				driver->draw3DLine(core::vector3dfCH(chrono::ChVector<>(lo.x,hi.y,lo.z)), core::vector3dfCH(chrono::ChVector<>(lo.x,hi.y,hi.z)), mcol );
-				driver->draw3DLine(core::vector3dfCH(chrono::ChVector<>(lo.x,hi.y,lo.z)), core::vector3dfCH(chrono::ChVector<>(hi.x,hi.y,lo.z)), mcol );
-				driver->draw3DLine(core::vector3dfCH(chrono::ChVector<>(hi.x,lo.y,lo.z)), core::vector3dfCH(chrono::ChVector<>(hi.x,lo.y,hi.z)), mcol );
-				driver->draw3DLine(core::vector3dfCH(chrono::ChVector<>(hi.x,lo.y,lo.z)), core::vector3dfCH(chrono::ChVector<>(hi.x,hi.y,lo.z)), mcol );
+				chrono::ChVector<> p1(hi.x,lo.y,lo.z);
+				chrono::ChVector<> p2(lo.x,hi.y,lo.z);
+				chrono::ChVector<> p3 (lo.x,lo.y,hi.z);
+				chrono::ChVector<> p4 (hi.x,hi.y,lo.z);
+				chrono::ChVector<> p5 (lo.x,hi.y,hi.z);
+				chrono::ChVector<> p6 (hi.x,lo.y,hi.z);
+				chrono::ChVector<> p7 (lo.x,lo.y,hi.z);
+				chrono::ChVector<> p8 (lo.x,lo.y,hi.z);
+				chrono::ChVector<> p9 (lo.x,hi.y,lo.z);
+				chrono::ChVector<> p10(lo.x,hi.y,lo.z);
+				chrono::ChVector<> p11(hi.x,lo.y,lo.z);
+				chrono::ChVector<> p12(hi.x,lo.y,lo.z);
+				chrono::ChVector<> p14(hi.x,lo.y,hi.z);
+				chrono::ChVector<> p15(lo.x,hi.y,hi.z);
+				chrono::ChVector<> p16(lo.x,hi.y,hi.z);
+				chrono::ChVector<> p17(hi.x,hi.y,lo.z);
+				chrono::ChVector<> p18(hi.x,lo.y,hi.z);
+				chrono::ChVector<> p19(hi.x,hi.y,lo.z);
+				driver->draw3DLine(core::vector3dfCH(lo), core::vector3dfCH(p1), mcol );
+				driver->draw3DLine(core::vector3dfCH(lo), core::vector3dfCH(p2), mcol );
+				driver->draw3DLine(core::vector3dfCH(lo), core::vector3dfCH(p3), mcol );
+				driver->draw3DLine(core::vector3dfCH(hi), core::vector3dfCH(p4), mcol );
+				driver->draw3DLine(core::vector3dfCH(hi), core::vector3dfCH(p5), mcol );
+				driver->draw3DLine(core::vector3dfCH(hi), core::vector3dfCH(p6), mcol );
+				driver->draw3DLine(core::vector3dfCH(p7), core::vector3dfCH(p14), mcol );
+				driver->draw3DLine(core::vector3dfCH(p8), core::vector3dfCH(p15), mcol );
+				driver->draw3DLine(core::vector3dfCH(p9), core::vector3dfCH(p16), mcol );
+				driver->draw3DLine(core::vector3dfCH(p10), core::vector3dfCH(p17), mcol );
+				driver->draw3DLine(core::vector3dfCH(p11), core::vector3dfCH(p18), mcol );
+				driver->draw3DLine(core::vector3dfCH(p12), core::vector3dfCH(p19), mcol );
 				
 				++myiter;
 			}

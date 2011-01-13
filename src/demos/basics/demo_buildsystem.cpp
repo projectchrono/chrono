@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
 	// global functions are needed.
 	DLL_CreateGlobals();
 
- 
+
 	{
 		//
 		// EXAMPLE 1:
@@ -78,6 +78,7 @@ int main(int argc, char* argv[])
 		my_body_A->AddForce (my_force_a2);
 		my_body_B->AddMarker(my_marker_b1);
 		my_body_B->AddMarker(my_marker_b2);
+
 
 				// Ok, remember that rigid bodies must be added to 
 				// the physical system.

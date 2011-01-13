@@ -95,13 +95,14 @@ int main(int argc, char* argv[])
 	{
 		std::stringstream mstrbuf(std::stringstream::in | std::stringstream::out);
 		mstrbuf << "The quick lazy fog jumped on the brown dog.";
-		GetLog() << "Id 0: sending string: " << mstrbuf.rdbuf()->str() << "\n";
-		CHMPI::SendString(1, mstrbuf.rdbuf()->str(), CHMPI::MPI_STANDARD, false,0);
+		std::string mstr = mstrbuf.rdbuf()->str();
+		GetLog() << "Id 0: sending string: " << mstr << "\n";
+		CHMPI::SendString(1, mstr, CHMPI::MPI_STANDARD, false,0);
 	}
 
 	if (myid==1) // receiver
 	{
-		std::stringstream mstrbuf2(std::stringstream::in | std::stringstream::out);
+		//std::stringstream mstrbuf2(std::stringstream::in | std::stringstream::out);
 		CHMPIstatus mstatus;
 		std::string mstr;
 		CHMPI::ReceiveString(0, mstr, &mstatus);

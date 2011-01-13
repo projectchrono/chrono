@@ -22,6 +22,9 @@
 
 namespace chrono 
 {
+
+
+
 namespace collision 
 {
 
@@ -37,13 +40,41 @@ ChModelBullet::ChModelBullet()
 	this->family_mask  = 0xFF;
 
 	shapes.clear();
+
+//***TEST***
+//***      WILL CRASH BECAUSE OF DELETION... TO BE FIXED ***
+{
+
+	btSphereShape* ashape = new btSphereShape((btScalar) (1.0 + this->GetEnvelope()) );
+
+	//btCollisionShape* msh = ashape;
+	//delete (msh); // OK
+
+	//ChCounter<btSphereShape>* mcounter = new ChCounter<btSphereShape>(ashape);
+	//delete mcounter;	// OK
+
+	//ChSmartPtr<btCollisionShape> myptr(ashape); // FAIL
+	//_ChSmartPtr<btCollisionShape> myptr(ashape); // OK
+
+	//_ChCounter<btCollisionShape>* mcounter1 = new _ChCounter<btCollisionShape>(ashape1);
+	//delete mcounter1;  // OK
+
+	//ChCounter<btCollisionShape>* mcounter3 = new ChCounter<btCollisionShape>(ashape);
+	//delete mcounter3;  // FAIL
+
+	ChSmartPtr<btCollisionShape> myptr(ashape); // OK
+
+	//ChSmartPtr<btSphereShape> myptr(ashape); // OK
+}
+//***TEST*** end
+
 }
 
 
 ChModelBullet::~ChModelBullet()
-{
+{ 
 	//ClearModel(); not possible, would call GetPhysicsItem() that is pure virtual, enough to use instead..
-	 shapes.clear();
+	shapes.clear();
 
 	bt_collision_object->setCollisionShape(0);
 
@@ -507,7 +538,7 @@ bool ChModelBullet::GetFamilyMaskDoesCollisionWithFamily(int mfamily)
 	assert(mfamily<16);
 	if (!bt_collision_object->getBroadphaseHandle()) return false;
 	short int familyflag = (short int)0x1 << mfamily;
-	return bt_collision_object->getBroadphaseHandle()->m_collisionFilterMask & familyflag;
+	return (bt_collision_object->getBroadphaseHandle()->m_collisionFilterMask & familyflag) != 0;
 }
 
 

@@ -57,6 +57,7 @@ int main(int argc, char* argv[])
 	// global functions are needed.
 	DLL_CreateGlobals();
 
+
 	// Create the IRRLICHT context (device, etc.)
 	IrrlichtDevice* device = createDevice(video::EDT_DIRECT3D9, core::dimension2d<u32>(640, 480), 24, false, false, true);
 	if (device == 0)
