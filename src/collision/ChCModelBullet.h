@@ -21,10 +21,11 @@
 #include <vector>
 #include "ChCCollisionModel.h" 
 #include "core/ChSmartpointers.h"
+#include "BulletCollision/CollisionShapes/btCollisionShape.h"
 
 // forward references
 class btCollisionObject;
-class btCollisionShape;
+//class btCollisionShape;
 
 namespace chrono 
 {

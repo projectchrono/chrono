@@ -761,7 +761,7 @@ std::pair<typename ChHashTable<K,T,H,E>::iterator, bool> ChHashTable<K,T,H,E>::i
   // remember to increment the size count
   m_size++;
   // construct an iterator from the list node, and return whether inserted
-  return std::make_pair(ChHashTable<K,T,H,E>::iterator(this,hash_value,new_item), inserted);
+  return std::make_pair(typename ChHashTable<K,T,H,E>::iterator(this,hash_value,new_item), inserted);
 }
 
 // insert a key with an empty data field ready to be filled in later
@@ -823,7 +823,7 @@ typename ChHashTable<K,T,H,E>::const_iterator ChHashTable<K,T,H,E>::find(const K
   for (hash_element<K,T>* current = m_values[hash_value]; current; current = current->m_next)
   {
     if (current->m_hash == hash_value_full && E()(current->m_value.first, key))
-      return ChHashTable<K,T,H,E>::const_iterator(this, hash_value, current);
+      return typename ChHashTable<K,T,H,E>::const_iterator(this, hash_value, current);
   }
   return end();
 }
@@ -837,7 +837,7 @@ typename ChHashTable<K,T,H,E>::iterator ChHashTable<K,T,H,E>::find(const K& key)
   for (hash_element<K,T>* current = m_values[hash_value]; current; current = current->m_next)
   {
     if (current->m_hash == hash_value_full && E()(current->m_value.first, key))
-      return ChHashTable<K,T,H,E>::iterator(this, hash_value, current);
+      return typename ChHashTable<K,T,H,E>::iterator(this, hash_value, current);
   }
   return end();
 }
@@ -873,25 +873,25 @@ T& ChHashTable<K,T,H,E>::operator[] (const K& key)
 template<typename K, typename T, class H, class E>
 typename ChHashTable<K,T,H,E>::const_iterator ChHashTable<K,T,H,E>::begin(void) const
 {
-  return ChHashTable<K,T,H,E>::const_iterator(this,0,0);
+  return typename ChHashTable<K,T,H,E>::const_iterator(this,0,0);
 }
 
 template<typename K, typename T, class H, class E>
 typename ChHashTable<K,T,H,E>::iterator ChHashTable<K,T,H,E>::begin(void)
 {
-  return ChHashTable<K,T,H,E>::iterator(this,0,0);
+  return typename ChHashTable<K,T,H,E>::iterator(this,0,0);
 }
 
 template<typename K, typename T, class H, class E>
 typename ChHashTable<K,T,H,E>::const_iterator ChHashTable<K,T,H,E>::end(void) const
 {
-  return ChHashTable<K,T,H,E>::const_iterator(this,m_bins,0);
+  return typename ChHashTable<K,T,H,E>::const_iterator(this,m_bins,0);
 }
 
 template<typename K, typename T, class H, class E>
 typename ChHashTable<K,T,H,E>::iterator ChHashTable<K,T,H,E>::end(void)
 {
-  return ChHashTable<K,T,H,E>::iterator(this,m_bins,0);
+  return typename ChHashTable<K,T,H,E>::iterator(this,m_bins,0);
 }
 
 

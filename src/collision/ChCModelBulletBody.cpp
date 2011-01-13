@@ -36,7 +36,7 @@ void ChModelBulletBody::SyncPosition()
 {
 	ChBody* bpointer = GetBody();
 	assert(bpointer);
-	assert(bpointer->GetSystem());
+	//assert(bpointer->GetSystem());
 
 	bt_collision_object->getWorldTransform().setOrigin(btVector3(
 								(btScalar)bpointer->GetPos().x,
