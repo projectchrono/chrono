@@ -8,6 +8,23 @@
 SET(ENABLE_UNIT_GPU      TRUE    CACHE BOOL   "Turn ON this to generate the Chrono::Engine GPU unit.")
 
 
+# To hide unneeded option stuff from GUI, if any (require refresh by pressing 'configure', anyway)
+IF(ENABLE_UNIT_GPU)
+	MARK_AS_ADVANCED(CLEAR CUDA_BUILD_CUBIN)
+	MARK_AS_ADVANCED(CLEAR CUDA_BUILD_EMULATION)
+	MARK_AS_ADVANCED(CLEAR CUDA_SDK_ROOT_DIR)
+	MARK_AS_ADVANCED(CLEAR CUDA_TOOLKIT_ROOT_DIR)
+	MARK_AS_ADVANCED(CLEAR CUDA_VERBOSE_BUILD)	
+ELSE()
+	MARK_AS_ADVANCED(FORCE CUDA_BUILD_CUBIN)
+	MARK_AS_ADVANCED(FORCE CUDA_BUILD_EMULATION)
+	MARK_AS_ADVANCED(FORCE CUDA_SDK_ROOT_DIR)
+	MARK_AS_ADVANCED(FORCE CUDA_TOOLKIT_ROOT_DIR)
+	MARK_AS_ADVANCED(FORCE CUDA_VERBOSE_BUILD)
+ENDIF()
+
+
+
 IF(ENABLE_UNIT_GPU)
 
 	#-----------------------------------------------------------------------------	
@@ -65,7 +82,7 @@ IF(ENABLE_UNIT_GPU)
 	find_package(CUDA QUIET)
 
 	if (CUDA_FOUND)
-	  message("CUDA found")
+	  message(STATUS "CUDA found")
 	else()
 	  message(FATAL_ERROR "CUDA not found! (you may switch off ENABLE_UNIT_GPU and build without this unit)")
 	endif()
@@ -145,7 +162,7 @@ IF(ENABLE_UNIT_GPU)
 				${ChronoEngine_unit_GPU_CU})
 	
 	SET_TARGET_PROPERTIES(ChronoEngine_GPU PROPERTIES 
-	                          LINK_FLAGS "" 
+	                          LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
 	                          COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_GPU"
 	                          ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CH_LIBDIR}"
 	                          ARCHIVE_OUTPUT_DIRECTORY_DEBUG   "${CH_LIBDIR}"
