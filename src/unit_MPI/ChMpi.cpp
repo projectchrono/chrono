@@ -459,7 +459,7 @@ int ChMPI::ReceiveBuffer(int sourceID,				///< source rank
 	if (nbytes)
 		data = (char*)&(dest_buf[0]); // stl vectors are assured to be sequential. // should not access directly std::vector data, but this is efficient!
 	else
-		data = ""; // stub, in case null length messages, stl vector has no [0] element address
+		data = (char*)""; // stub, in case null length messages, stl vector has no [0] element address
 	
 	int err = 0;
 	//if (nbytes)
