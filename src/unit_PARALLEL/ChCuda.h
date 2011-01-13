@@ -71,7 +71,16 @@ inline __host__ __device__ float3 ceil(float3 v)
 	return make_float3(ceil(v.x), ceil(v.y), ceil(v.z));
 }
 
+//custom version of max used to get the maximum of a single float3
+inline __host__ __device__ float max(float3 a)
+{
+    return max(a.x,max(a.y,a.z));
+}
 
+inline __host__ __device__ float maxf3(float3 a)
+{
+    return max(a.x,max(a.y,a.z));
+}
 //////////////////////////////////////////////////
 
 #define CH_CONTACT_VSIZE 10

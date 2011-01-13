@@ -74,6 +74,7 @@ namespace chrono {
 			int3 mBinsPerSide;
 			float3 mGlobalOrigin;
 			float3 cMax,cMin;
+			float mMaxDim;
 			float cMax_x,cMax_y,cMax_z;
 			vector<int3f> mAuxData;
 			dim3 nB,nT,nBlocks,nThreads;
