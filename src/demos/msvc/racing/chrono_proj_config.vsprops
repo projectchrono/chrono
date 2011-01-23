@@ -7,12 +7,12 @@
 	>
 	<Tool
 		Name="VCCLCompilerTool"
-		AdditionalIncludeDirectories="&quot;$(IrrklangDir)\include&quot;;&quot;$(ChronoEngineDir)\source&quot;;&quot;$(IrrlichtDir)\include&quot;"
+		AdditionalIncludeDirectories="&quot;$(IrrklangDir)\include&quot;;&quot;$(ChronoEngineDir)\source&quot;;&quot;$(ChronoEngineDir)\source\collision\bullet&quot;;&quot;$(IrrlichtDir)\include&quot;"
 		PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_DEPRECATE"
 	/>
 	<UserMacro
 		Name="ChronoEngineDir"
-		Value="..\..\..\..\ChronoEngine"
+		Value="..\..\..\..\..\ChronoEngine"
 	/>
 	<UserMacro
 		Name="IrrlichtDir"

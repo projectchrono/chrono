@@ -24,6 +24,12 @@
 namespace chrono 
 {
 
+	// TO DO:
+	//   - add other Krylov methods (CG, MINRES, etc)
+	//   - enclose them in a class as in ChLinarAlgebra.h, with similar interfaces
+	//   - maybe move in core/ dir? or move both this and ChLinarAlgebra.h in a new dir 'source/numerical/' ?
+
+
 /// TF-QMR
 ///
 /// TRANSPOSE-FREE QUASI-MINIMAL-RESIDUAL solver for linear systems.

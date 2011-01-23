@@ -37,7 +37,7 @@ OutputBaseFilename=ChronoEngine_{#MyAppVersion}
 [Files]
 Source: {#MyChronoEngineSDK}\*; Excludes: "*.c,*.cpp,*.cu,doxygen,\source\*.txt,\source\collision\bullet,\source\collision\gimpact,\source\collision\edgetempest,source\makefile,\source\make-chrono_lib,\source\ChronoEngine.*,\source\HOWTO_COMPILE_API.txt,*.pdb,_obsolete,\installer,*.o,*.obj,*.ncb,*.bat,source\*.def,\source\tmp,\demos,____template_config.mak,__template_ChronoEngine.vcproj,*\.svn"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs
 Source: {#MyChronoEngineSDK}\demos\*; Excludes: "*.o,*.obj,*.ncb,*\.svn"; DestDir: "{app}\demos"; Flags: recursesubdirs createallsubdirs
-Source: {#MyChronoEngineSDK}\bin\*; Excludes: "*.pdb,demo_benchmark.exe,*\.svn"; DestDir: "{app}\bin"; Flags: recursesubdirs createallsubdirs
+Source: {#MyChronoEngineSDK}\bin\*; Excludes: "*.pdb,demo_benchmark.exe,*\.svn,*\.ilk,*\.idb"; DestDir: "{app}\bin"; Flags: recursesubdirs createallsubdirs
 Source: "C:\tasora\lavori\html\chronoengine\install.html"; DestDir: "{app}\docs";
 Source: "C:\tasora\lavori\html\chronoengine\tutorials.html"; DestDir: "{app}\docs";
 Source: "C:\tasora\lavori\html\chronoengine\tutorials\*.*"; Excludes: "*.php"; DestDir: "{app}\docs\tutorials";  Flags: recursesubdirs

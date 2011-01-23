@@ -5,7 +5,8 @@
 //  
 //   ChFunction.h
 //
-//   Function objects.
+//   Function objects, 
+//   as scalar functions of scalar variable y=f(t)
 //
 //   HEADER file for CHRONO,
 //	 Multibody dynamics engine

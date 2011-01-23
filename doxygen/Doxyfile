@@ -79,16 +79,14 @@ INPUT                  = C:/tasora/code/dynamics/code/ChronoEngine/source
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = 
 RECURSIVE              = YES
-EXCLUDE                = C:/tasora/code/dynamics/code/ChronoEngine/source/plugin \
+EXCLUDE                = C:/tasora/code/dynamics/code/ChronoEngine/source/demos \
+						 C:/tasora/code/dynamics/code/ChronoEngine/source/testing \
                          C:/tasora/code/dynamics/code/ChronoEngine/source/chjs \
-                         C:/tasora/code/dynamics/code/ChronoEngine/source/selector \
                          C:/tasora/code/dynamics/code/ChronoEngine/source/_obsolete \
                          C:/tasora/code/dynamics/code/ChronoEngine/source/collision/bullet \
                          C:/tasora/code/dynamics/code/ChronoEngine/source/collision/gimpact \
                          C:/tasora/code/dynamics/code/ChronoEngine/source/thrust \
-                         C:/tasora/code/dynamics/code/ChronoEngine/source/unit_GPU/collide.h \
-                         C:/tasora/code/dynamics/code/ChronoEngine/source/unit_GPU/collide.cu \
-                         C:/tasora/code/dynamics/code/ChronoEngine/source/unit_GPU/collide_kernel.cu \
+                         C:/tasora/code/dynamics/code/ChronoEngine/source/unit_GPU \
                          C:/tasora/code/dynamics/code/ChronoEngine/source/collision/edgetempest
 EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = 
@@ -197,7 +195,10 @@ EXPAND_ONLY_PREDEF     = NO
 SEARCH_INCLUDES        = YES
 INCLUDE_PATH           = 
 INCLUDE_FILE_PATTERNS  = 
-PREDEFINED             = 
+PREDEFINED             = "ChApi = " \
+						 "ChApiJS = " \
+						 "ChApiMPI = " \
+						 "ChApiGPU = "
 EXPAND_AS_DEFINED      = 
 SKIP_FUNCTION_MACROS   = YES
 #---------------------------------------------------------------------------

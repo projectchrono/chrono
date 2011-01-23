@@ -8,6 +8,8 @@
 //   Class for quick parsing/compilation of textual
 //   formulas and handling of variables
 //
+//     ***OBSOLETE*** - not used anymore
+//
 //   HEADER file for CHRONO,
 //	 Multibody dynamics engine
 //
