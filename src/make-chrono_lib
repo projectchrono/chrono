@@ -406,6 +406,7 @@ doxygen:
 	$(DEL) C:\tasora\lavori\html\chronoengine\api\*.*
 	$(CP)  ..\doxygen\logo_chronoengine_middle.png ..\docs\html
 	$(CP)  ..\doxygen\logo_chronoengine_small.png  ..\docs\html
+	$(CP)  ..\doxygen\logo_ce_web_left.gif  ..\docs\html
 	doxygen "..\doxygen\doxyfile"
 	$(DEL) ..\docs\html\*.hhc
 	$(DEL) ..\docs\html\*.hhk

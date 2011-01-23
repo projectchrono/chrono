@@ -27,8 +27,7 @@
 namespace chrono 
 {
 
- class ChJavascriptEngine; // Forward reference: do not need to include'jsapi.h'
-						   // header from SpiderMonkey javascript engine.
+
 
 
 //////////////////////////////////////////////////

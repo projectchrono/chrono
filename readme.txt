@@ -4,9 +4,43 @@
   History of API changes, bug fixes, new features
 
 
-Release 1.2.0
+Release 1.3.0
 x-xx-xxxx
 
+- Modified CMakeLists.txt to support also MingW GNU 
+  c++ under Windows.
+
+- Other improvements in CMakeLists. In particular, the 
+  user can choose if to build only the demos or only the API,
+  or both, and advanced units compilation can be disabled/enabled.
+  Also, the path to ChronoEngine API is automatically initialized. 
+
+- Fixed a bug in deallocation of smart pointers in vectors of 
+  btCollisionShape items in ChCollisionShape deletion: it caused 
+  crashes when closing demos, in debug mode.
+  
+- Various warnings removed.
+
+- Hash table classes improved for better compability with
+  the GNU compiler.
+  
+- Better Doxygen template 
+
+- The MSVC wizard did not work properly with the latest release:
+  now it is fixed. 
+
+  
+Release 1.2.0
+12-1-2011
+
+- MAJOR IMPROVEMENT: new build system based on CMake.  
+  This means that developers will exploit the power
+  of IDE editors at their best, and the dependency of
+  files is completely automated.
+  [The previous system, based on the makefiles and config.mak,
+  is -unsupported- even if the files will stay in the
+  SVN for a while.]
+  
 - New API building process for exporting symbols from
   the dll. Previously, if one needed to rebuild the 
   entire Chrono::Engine dll, he needed also the dlltool.exe
@@ -26,6 +60,7 @@ x-xx-xxxx
   in Bullet and Chrono::Engine.
 
 - The CH_UNIT_CUDA flag has been renamed CH_UNIT_GPU.
+
 
 
 Release 1.1.0
