@@ -3,7 +3,7 @@
 
 //////////////////////////////////////////////////
 //  
-//   ChApiGPU.h
+//   ChApiGPU.h 
 //
 //   Base header for all headers that have symbols
 //   that can be exported.
