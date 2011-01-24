@@ -29,6 +29,10 @@ x-xx-xxxx
 - The MSVC wizard did not work properly with the latest release:
   now it is fixed. 
 
+- Added the /template_project/ directory, with files that can
+  be used as a template for CMake-based external projects that
+  use Chrono::Engine.
+  
   
 Release 1.2.0
 12-1-2011
