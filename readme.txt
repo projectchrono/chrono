@@ -33,7 +33,9 @@ x-xx-xxxx
   be used as a template for CMake-based external projects that
   use Chrono::Engine.
   
-  
+- License has been switched to GPL v.3
+
+ 
 Release 1.2.0
 12-1-2011
 
