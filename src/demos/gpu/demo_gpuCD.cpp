@@ -51,14 +51,14 @@ double
 particle_radius = .004,
 tank_radius=1,
 envelope = 0.01,//0.0025
-time_step= 0.001,
+time_step= 0.005,
 current_time = 0.0,
 particle_friction=.03,
 bin_size=.2;
 
 unsigned int NSPSide=2;
 bool ogl=0;
-int num_particles = 50000;
+int num_particles = 5000;
 int pieces=1,frame_number = 0,numP=0;
 bool save=false;
 int every_x_file=(1/.001)/100.0; 
@@ -96,11 +96,11 @@ void create_falling_items(ChSystem* mphysicalSystem, double body_radius, float f
 	//ifstream ifile("dom.txt");
 	float x,y,z;
 	float a=6;
-	for (int yy=0; yy<5; yy++){
-		for (int zz=0; zz<5; zz++){
-			for (int xx=0; xx<5; xx++){
+	for (int yy=0; yy<10; yy++){
+		for (int zz=0; zz<10; zz++){
+			for (int xx=0; xx<10; xx++){
 				//ChVector<> particle_pos((xx-5)/a+4,yy/a+23,(zz-5)/a-4.2);
-				ChVector<> particle_pos((xx-2)/a+rand()%1000/10000.0,yy/a-tank_radius+3+rand()%1000/10000.0,(zz-2)/a+rand()%1000/10000.0);					//flow
+				ChVector<> particle_pos((xx-5)/a+rand()%1000/10000.0,yy/a-tank_radius+3+rand()%1000/10000.0,(zz-5)/a+rand()%1000/10000.0);					//flow
 				//ChVector<> particle_pos((xx-10)/a+rand()%1000/10000.0,yy/a+3,(zz-10)/a+rand()%1000/10000.0); //teapot
 				//ChVector<> particle_pos(rand()%100/100.0-.5,-tank_radius+.2+rand()%100/10000.0,rand()%100/100.0-.5);
 				mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
@@ -224,7 +224,7 @@ int filecount=0;
 void renderScene(){
 	if(numP<num_particles&&frame_number%100==0){
 		create_falling_items(mphysicalSystemG, particle_radius, particle_friction, NSPSide*NSPSide*NSPSide,tank_radius);
-		numP+=5*5*5;
+		numP+=10*10*10;
 	}
 	mphysicalSystemG->DoStepDynamics( time_step );
 
@@ -352,7 +352,7 @@ void renderScene(){
 	<<"\t"<<((ChLcpSystemDescriptorGPU*)(mphysicalSystem->GetLcpSystemDescriptor()))->n_Contacts_GPU<<endl;*/
 	current_time+=time_step;
 	frame_number++;
-	if(mphysicalSystemG->GetChTime()>=10){exit(0);}
+	if(mphysicalSystemG->GetChTime()>=.005){exit(0);}
 	//mgroundBody->SetPos(ChVector<>(sin(frame_number/500.0),0.0,0.0));
 	//if(frame_number%every_x_file==0&&save){
 	//	ofile.close();
@@ -380,7 +380,7 @@ int main(int argc, char* argv[]){
 	//sA>>NSPSide>>devNum>>ogl;
 	//num_particles=NSPSide*NSPSide*NSPSide;
 	//devNum=0;
-	ogl=1;
+	ogl=0;
 	tank_radius=(NSPSide/10.0);
 	if(NSPSide==0){tank_radius=(10*particle_radius)*2;}
 	//stringstream ss;
@@ -407,26 +407,27 @@ int main(int argc, char* argv[]){
 	mGPUsolverSpeed.SetSystemDescriptor(&newdescriptor);
 
 	mphysicalSystem.SetIntegrationType(ChSystem::INT_ANITESCU);
-	mphysicalSystem.SetIterLCPmaxItersSpeed(10);
-	mphysicalSystem.SetMaxPenetrationRecoverySpeed(.1);
+	//mphysicalSystem.SetIterLCPmaxItersSpeed(10);
+	//mphysicalSystem.SetMaxPenetrationRecoverySpeed(.1);
 	mphysicalSystem.SetIterLCPwarmStarting(false);
 	mphysicalSystem.Set_G_acc(ChVector<>(0,-9.834,0));
 	mphysicalSystemG=&mphysicalSystem;
-	//ChVector<> cgpos(0,0,0);
-	//mgroundBody= ChSharedBodyGPUPtr(new ChBodyGPU);
-	//mgroundBody->SetMass(100000);
-	//mgroundBody->SetPos(ChVector<>(0.0,0.0,0.0));
-	//((ChCollisionModelGPU*)mgroundBody.get_ptr()->GetCollisionModel())->ClearModel();
-	//((ChCollisionModelGPU*)mgroundBody.get_ptr()->GetCollisionModel())->AddBox(tank_radius,tank_radius,tank_radius,&cgpos); 
-	//((ChCollisionModelGPU*)mgroundBody.get_ptr()->GetCollisionModel())->BuildModel();
-	//mgroundBody->SetBodyFixed(true);
-	//mgroundBody->SetCollide(true);
-	//mgroundBody->SetSfriction(0.05);
-	//mgroundBody->SetKfriction(0.05);
-	//mgroundBody->SetImpactC(0.0);
-	//mphysicalSystemG->AddBody(mgroundBody);
 
-	loadTriangleMesh("plane.txt");
+	ChVector<> cgpos(0,0,0);
+	mgroundBody= ChSharedBodyGPUPtr(new ChBodyGPU);
+	mgroundBody->SetMass(100000);
+	mgroundBody->SetPos(ChVector<>(0.0,0.0,0.0));
+	((ChCollisionModelGPU*)mgroundBody.get_ptr()->GetCollisionModel())->ClearModel();
+	((ChCollisionModelGPU*)mgroundBody.get_ptr()->GetCollisionModel())->AddBox(tank_radius,tank_radius,tank_radius,&cgpos); 
+	((ChCollisionModelGPU*)mgroundBody.get_ptr()->GetCollisionModel())->BuildModel();
+	mgroundBody->SetBodyFixed(true);
+	mgroundBody->SetCollide(true);
+	mgroundBody->SetSfriction(0.05);
+	mgroundBody->SetKfriction(0.05);
+	mgroundBody->SetImpactC(0.0);
+	mphysicalSystemG->AddBody(mgroundBody);
+
+	//loadTriangleMesh("plane.txt");
 	//vector<float4> spheres;
 	//create_falling_items(mphysicalSystemG, particle_radius, particle_friction, 1,tank_radius);
 
