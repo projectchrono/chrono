@@ -21,7 +21,6 @@
 //#include "ChLcpIterativeSolverGPUsimple.h"
 #include <cutil_math.h>
 
-
 // dot product of the first three elements of two float4 values
 inline __host__ __device__ float dot_three(const float4 & a, const float4 & b)
 { 
@@ -101,6 +100,8 @@ __constant__ CH_REALNUMBER Cfactor;				// usually 1/dt
 __constant__ CH_REALNUMBER stepSize;
 ///////////////////////////////////////////////////////////////////////////////////
 
+texture<float4> texContacts;
+texture<float4> texBody;
 
 // Kernel for a single iteration of the LCP over all contacts
 //  
@@ -126,7 +127,7 @@ __global__ void ChKernelLCPiteration( CH_REALNUMBER4* contacts, CH_REALNUMBER4* 
 	float4 T4 = contacts[i + 4*deviceContactPitch];
 	float4 T5 = contacts[i + 5*deviceContactPitch];
 	int B1_index = T3.w ; //__float_as_int(vA.w);
-	float4 B1=bodies[B1_index];
+	float4 B1=tex1Dfetch(texBody,B1_index);//bodies[B1_index];
 	int B1_active = B1.w;
 
 	// ---- perform   a = ([J1 J2] {v1 | v2}^ + b) 
@@ -135,7 +136,7 @@ __global__ void ChKernelLCPiteration( CH_REALNUMBER4* contacts, CH_REALNUMBER4* 
 	if (!B1_active)
 	{
 		// J1w x w1  
-		vB  = F3(bodies[B1_index+deviceBodyPitch]); // w1
+		vB  = F3(tex1Dfetch(texBody,B1_index+deviceBodyPitch));//bodies[B1_index+deviceBodyPitch]); // w1
 		a.x = dot_three (T3 , vB);
 		a.y = dot_three (T4 , vB);
 		a.z = dot_three (T5 , vB);
@@ -156,12 +157,11 @@ __global__ void ChKernelLCPiteration( CH_REALNUMBER4* contacts, CH_REALNUMBER4* 
 	float4 T7 = contacts[i + 7*deviceContactPitch];
 	float4 T8 = contacts[i + 8*deviceContactPitch];
 	int B2_index = T6.w ; //__float_as_int(vA.w);
-	float4 B2=bodies[B2_index];
+	float4 B2=tex1Dfetch(texBody,B2_index);//bodies[B2_index];
 	int B2_active = B2.w;
-	if (!B2_active)
-	{
+	if (!B2_active){
 		// J2w x w2  
-		vB = F3(bodies[B2_index+deviceBodyPitch]); // w2
+		vB = F3(tex1Dfetch(texBody,B2_index+deviceBodyPitch));//bodies[B2_index+deviceBodyPitch]); // w2
 		a.x += dot_three ( T6 , vB);
 		a.y += dot_three ( T7 , vB);
 		a.z += dot_three ( T8 , vB);
@@ -210,40 +210,42 @@ __global__ void ChKernelLCPiteration( CH_REALNUMBER4* contacts, CH_REALNUMBER4* 
 
 	if (!B1_active)
 	{
-		B1=bodies[B1_index+ 4*deviceBodyPitch];
+		uint off=offset[i];
+		B1=tex1Dfetch(texBody,B1_index+ 4*deviceBodyPitch);//bodies[B1_index+ 4*deviceBodyPitch];
 		/// ---- compute dv1 
 		vect_mult    (vB, T0, -a.x); 
 		vect_mult_inc(vB, T1, -a.y); 
 		vect_mult_inc(vB, T2, -a.z); 
 		vect_inertia_multiply(vB,B1.w);
-		velocityOLD[offset[i]]=sqrtf(dot(velocity[offset[i]]-(vB),velocity[offset[i]]-(vB)));
-		velocity[offset[i]] = (vB);										//  ---> store  dv1  
+		velocityOLD[off]=sqrtf(dot(velocity[off]-(vB),velocity[off]-(vB)));
+		velocity[off] = (vB);										//  ---> store  dv1  
 
 		/// ---- compute dw1 =  Inert.1' * J1w^ * deltagamma
 		vect_mult    (vB, T3, a.x); 
 		vect_mult_inc(vB, T4, a.y); 
 		vect_mult_inc(vB, T5, a.z); 
 		vect_inertia_multiply(vB,B1);
-		omega[offset[i]] = (vB);											//  ---> store  dw1
+		omega[off] = (vB);											//  ---> store  dw1
 	}
 
 	if (!B2_active)
 	{
-		B2=bodies[B2_index+ 4*deviceBodyPitch];
+		uint off=offset[i+contactsGPU];
+		B2=tex1Dfetch(texBody,B2_index+ 4*deviceBodyPitch);//bodies[B2_index+ 4*deviceBodyPitch];
 		/// ---- compute dv2 
 		vect_mult    (vB, T0, a.x); 
 		vect_mult_inc(vB, T1, a.y); 
 		vect_mult_inc(vB, T2, a.z); 
 		vect_inertia_multiply(vB,B2.w);
-		velocityOLD[offset[i+contactsGPU]]=sqrtf(dot(velocity[offset[i+contactsGPU]]-(vB),velocity[offset[i+contactsGPU]]-(vB)));
-		velocity[offset[i+contactsGPU]] = (vB);							//  ---> store  dv2  
+		velocityOLD[off]=sqrtf(dot(velocity[off]-(vB),velocity[off]-(vB)));
+		velocity[off] = (vB);							//  ---> store  dv2  
 
 		/// ---- compute dw2 
 		vect_mult    (vB, T6, a.x); 
 		vect_mult_inc(vB, T7, a.y); 
 		vect_mult_inc(vB, T8, a.z); 
 		vect_inertia_multiply(vB,B2);
-		omega[offset[i+contactsGPU]] = (vB);								//  ---> store  dw2
+		omega[off] = (vB);								//  ---> store  dw2
 	}
 } 
 
@@ -1017,15 +1019,15 @@ __global__ void ChKernelContactsPreprocess(CH_REALNUMBER4* deviceContacts, CH_RE
 	//computation
 	__shared__  float shMemData[CH_PREPROCESSING_SH_MEM_BLOCK_SIZE*CH_PREPROCESSING_TPB];
 
-	register CH_REALNUMBER4 reg03;
-	register CH_REALNUMBER  reg4;
-	register CH_REALNUMBER  reg5;
-	register CH_REALNUMBER4 reg69;
-	register CH_REALNUMBER3 regS;
-	register CH_REALNUMBER  eta = 0.;
+	CH_REALNUMBER4 reg03;
+	CH_REALNUMBER  reg4;
+	CH_REALNUMBER  reg5;
+	CH_REALNUMBER4 reg69;
+	CH_REALNUMBER3 regS;
+	CH_REALNUMBER  eta = 0.;
 
-	register unsigned int memAddress = blockDim.x*blockIdx.x + threadIdx.x;
-	register  int reg_uInt;
+	unsigned int memAddress = blockDim.x*blockIdx.x + threadIdx.x;
+	int reg_uInt;
 
 	//fetch in data from contact, regarding body 1:
 	reg03 = deviceContacts[memAddress];   //reg03 contains the components of the contact normal, pointing towards the exterior of what is now considered "body 1"
@@ -1792,21 +1794,23 @@ namespace chrono{
 			thrust::device_vector<uint>		d_offset_counter	((n_contacts_GPU+n_bilaterals_GPU)*2,0);
 			thrust::device_vector<float>	d_delta_correction	((n_contacts_GPU+n_bilaterals_GPU)*2,0);
 
-
+			//cudaBindTexture( NULL, texContacts,   CASTF4(d_buffer_contacts),   contacts_data_pitch*CH_CONTACT_VSIZE*CH_CONTACT_HSIZE );
+			cudaBindTexture( NULL, texBody,   CASTF4(d_buffer_bodies),   h_bodies.size()*sizeof(float4) );
 			CUT_CHECK_ERROR("Allocate Memory");	
 			CH_REALNUMBER mforceFactor=1.0;
 			CH_REALNUMBER negated_recspeed = -max_recovery_speed;
-			CUDA_SAFE_CALL(cudaMemcpyToSymbolAsync(deviceBodyPitch,&bodies_data_pitch,sizeof(bodies_data_pitch)));				//body_pitch should end up in constant memory
-			CUDA_SAFE_CALL(cudaMemcpyToSymbolAsync(deviceContactPitch,&contacts_data_pitch,sizeof(contacts_data_pitch)));		//contact pitch should end up in constant memory
-			CUDA_SAFE_CALL(cudaMemcpyToSymbolAsync(Cfactor,&mCfactor,sizeof(mCfactor)));										//stepsize should end up in constant memory
-			CUDA_SAFE_CALL(cudaMemcpyToSymbolAsync(maxRecoverySpeedNeg,&negated_recspeed,sizeof(negated_recspeed)));			//clamp of recovery speed should end up in constant memory
-			CUDA_SAFE_CALL(cudaMemcpyToSymbolAsync(deviceBilateralPitch,&bilaterals_data_pitch,sizeof(bilaterals_data_pitch)));//bilaterals pitch should end up in constant memory
-			CUDA_SAFE_CALL(cudaMemcpyToSymbolAsync(deviceLcpOmega,&mLcpOmega,sizeof(mLcpOmega)));								//omega should end up in constant memory
-			CUDA_SAFE_CALL(cudaMemcpyToSymbolAsync(forceFactor,&mforceFactor,sizeof(mforceFactor)));							//stepsize should end up in constant memory
-			CUDA_SAFE_CALL(cudaMemcpyToSymbolAsync(stepSize,&mstepSize,sizeof(mstepSize)));										//stepsize should end up in constant memory
-			CUDA_SAFE_CALL(cudaMemcpyToSymbolAsync(contactsGPU,&n_contacts_GPU,sizeof(n_contacts_GPU)));						//number of contacts should end up in constant memory
-			CUDA_SAFE_CALL(cudaMemcpyToSymbolAsync(bilateralsGPU,&n_bilaterals_GPU,sizeof(n_bilaterals_GPU)));					//number of bilaterals should end up in constant memory
-			CUDA_SAFE_CALL(cudaMemcpyToSymbolAsync(bodiesGPU, &n_bodies_GPU,sizeof(n_bodies_GPU)));								//number of bodies should end up in constant memory
+			
+			CUDA_SAFE_CALL(cudaMemcpyToSymbolAsync(deviceBodyPitch,		&bodies_data_pitch,		sizeof(bodies_data_pitch)));		//body_pitch should end up in constant memory
+			CUDA_SAFE_CALL(cudaMemcpyToSymbolAsync(deviceContactPitch,	&contacts_data_pitch,	sizeof(contacts_data_pitch)));		//contact pitch should end up in constant memory
+			CUDA_SAFE_CALL(cudaMemcpyToSymbolAsync(Cfactor,				&mCfactor,				sizeof(mCfactor)));					//stepsize should end up in constant memory
+			CUDA_SAFE_CALL(cudaMemcpyToSymbolAsync(maxRecoverySpeedNeg,	&negated_recspeed,		sizeof(negated_recspeed)));			//clamp of recovery speed should end up in constant memory
+			CUDA_SAFE_CALL(cudaMemcpyToSymbolAsync(deviceBilateralPitch,&bilaterals_data_pitch,	sizeof(bilaterals_data_pitch)));	//bilaterals pitch should end up in constant memory
+			CUDA_SAFE_CALL(cudaMemcpyToSymbolAsync(deviceLcpOmega,		&mLcpOmega,				sizeof(mLcpOmega)));				//omega should end up in constant memory
+			CUDA_SAFE_CALL(cudaMemcpyToSymbolAsync(forceFactor,			&mforceFactor,			sizeof(mforceFactor)));				//stepsize should end up in constant memory
+			CUDA_SAFE_CALL(cudaMemcpyToSymbolAsync(stepSize,			&mstepSize,				sizeof(mstepSize)));				//stepsize should end up in constant memory
+			CUDA_SAFE_CALL(cudaMemcpyToSymbolAsync(contactsGPU,			&n_contacts_GPU,		sizeof(n_contacts_GPU)));			//number of contacts should end up in constant memory
+			CUDA_SAFE_CALL(cudaMemcpyToSymbolAsync(bilateralsGPU,		&n_bilaterals_GPU,		sizeof(n_bilaterals_GPU)));			//number of bilaterals should end up in constant memory
+			CUDA_SAFE_CALL(cudaMemcpyToSymbolAsync(bodiesGPU,			&n_bodies_GPU,			sizeof(n_bodies_GPU)));				//number of bodies should end up in constant memory
 
 			CUT_CHECK_ERROR("COPY CONSTANTS");	
 			//thrust::equal_to<uint> binary_pred;
@@ -1858,7 +1862,7 @@ namespace chrono{
 
 					int position = thrust::max_element(d_delta_correction.begin(), d_delta_correction.end()) - d_delta_correction.begin();
 					float value = d_delta_correction[position]; 
-					if(value<1e-3){cout<<" "<<iter<<endl;break;}
+					if(value<1e-5){cout<<" "<<iter<<endl;break;}
 					if(iter==max_iterations){cout<<" "<<iter<<endl;}
 				}
 			}
@@ -1867,5 +1871,7 @@ namespace chrono{
 
 			h_bodies		=	d_buffer_bodies;
 			h_bilaterals	=	d_buffer_bilaterals;
+			cudaUnbindTexture( texBody );
 	}
+	
 }

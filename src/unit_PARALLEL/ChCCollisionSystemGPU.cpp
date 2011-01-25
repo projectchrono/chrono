@@ -105,21 +105,20 @@ namespace chrono {
 				int type=body->GetType();
 				//cout<<"TYPE "<<type<<endl;;
 				if(type==0){
-						mGPU.mAuxData.push_back(I3F(i,body->GetFamily(),body->GetNoCollFamily(),body->GetBody()->GetKfriction()));
+						mGPU.mAuxData.push_back(F4(i,body->GetFamily(),body->GetNoCollFamily(),body->GetBody()->GetKfriction()));
 						gPos = body->GetBody()->GetCoord().TrasformLocalToParent(body->GetSpherePos(0));
 						mGPU.mDataSpheres.push_back(make_float4(gPos.x,gPos.y,gPos.z,body->GetSphereR(0)));
 						mGPU.mMaxRad=max(mGPU.mMaxRad,body->GetSphereR(0));
-						mGPU.cMax.x=max(mGPU.cMax.x,(float)gPos.x);
-						mGPU.cMax.y=max(mGPU.cMax.y,(float)gPos.y);
-						mGPU.cMax.z=max(mGPU.cMax.z,(float)gPos.z);
-						mGPU.cMin.x=min(mGPU.cMin.x,(float)gPos.x);
-						mGPU.cMin.y=min(mGPU.cMin.y,(float)gPos.y);
-						mGPU.cMin.z=min(mGPU.cMin.z,(float)gPos.z);
-						//cout<<"ADDED SPHERE"<<endl;
+						mGPU.cMax.x=max(mGPU.cMax.x,(float)gPos.x+body->GetSphereR(0));
+						mGPU.cMax.y=max(mGPU.cMax.y,(float)gPos.y+body->GetSphereR(0));
+						mGPU.cMax.z=max(mGPU.cMax.z,(float)gPos.z+body->GetSphereR(0));
+						mGPU.cMin.x=min(mGPU.cMin.x,(float)gPos.x-body->GetSphereR(0));
+						mGPU.cMin.y=min(mGPU.cMin.y,(float)gPos.y-body->GetSphereR(0));
+						mGPU.cMin.z=min(mGPU.cMin.z,(float)gPos.z-body->GetSphereR(0));
 				}
 				else if(type==1){
 					for(int j=0; j<body->GetNObjects(); j++){
-						mGPU.mAuxData.push_back(I3F(i,body->GetFamily(),body->GetNoCollFamily(),body->GetBody()->GetKfriction()));
+						mGPU.mAuxData.push_back(F4(i,body->GetFamily(),body->GetNoCollFamily(),body->GetBody()->GetKfriction()));
 						gPos = body->GetBody()->GetCoord().TrasformLocalToParent(body->GetSpherePos(j));
 						mGPU.mDataSpheres.push_back(make_float4(gPos.x,gPos.y,gPos.z,body->GetSphereR(j)));	
 						mGPU.mMaxRad=max(mGPU.mMaxRad,body->GetSphereR(j));

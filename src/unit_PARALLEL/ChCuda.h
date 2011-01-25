@@ -35,6 +35,8 @@ typedef unsigned int uint;
 
 //defines to cast thrust vectors as raw pointers
 #define CASTU1(x) (uint*)thrust::raw_pointer_cast(&x[0])
+#define CASTU2(x) (uint2*)thrust::raw_pointer_cast(&x[0])
+#define CASTU3(x) (uint3*)thrust::raw_pointer_cast(&x[0])
 #define CASTI1(x) (int*)thrust::raw_pointer_cast(&x[0])
 #define CASTI2(x) (int2*)thrust::raw_pointer_cast(&x[0])
 #define CASTI3(x) (int3*)thrust::raw_pointer_cast(&x[0])
@@ -139,13 +141,13 @@ inline __host__ __device__ float maxf3(float3 a)
 //   
 //  'contacts' buffer is made with an horizontal array of:
 //		[             , bx ]      0
-//		[ matr.J12(x) ,  0 ]      1
-//		[_____________,  0 ]      2
+//		[ matr.J12(x) , -  ]      1
+//		[_____________, -  ]      2
 //		[             , B1 ]	  3
-//		[ matr.J1(w)  ,    ]	  4
-//		[_____________,    ]	  5
+//		[ matr.J1(w)  , -  ]	  4
+//		[_____________, -  ]	  5
 //		[             , B2 ]	  6
-//		[ matr.J2(w)  ,    ]	  7
+//		[ matr.J2(w)  , -  ]	  7
 //		[_____________, et ]	  8
 //		[ gx,  gy,  gz, mu ]      9
 //   
@@ -184,7 +186,7 @@ inline __host__ __device__ float maxf3(float3 a)
 //  kernel. Such kernel prepares the 'contacts' buffer in-place, starting from the state below:
 //
 //  'contacts' buffer  before preprocessing:
-//		[   Normal    , 0  ]      0
+//		[   Normal    ,  0 ]      0
 //		[  -   -   -  ,  - ]      1
 //		[  -   -   -  ,  - ]      2
 //		[     P1      , B1 ]	  3
@@ -194,4 +196,3 @@ inline __host__ __device__ float maxf3(float3 a)
 //		[  -   -   -  ,  - ]	  7
 //		[  -   -   -  ,  - ]	  8
 //		[ gx,  gy,  gz, mu ]      9
-//      [  -   -   -  ,  - ]     10  

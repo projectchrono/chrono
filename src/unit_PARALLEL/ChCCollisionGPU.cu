@@ -3,22 +3,32 @@ using namespace chrono::collision;
 __constant__ float		mBinSizeD;
 __constant__ int		mNumSpheresD;
 __constant__ float3     mGlobalOriginD;
-__constant__ float		mMaxDimD;
+//__constant__ float		mMaxDimD;
 __constant__ int		mLastBinD;
 __constant__ uint		mMaxContactD;
 __constant__ float		mEnvelopeD;
 
+texture<float4> texSphere;
+texture<float4> texSphereAux;
+
+
 #define mBinsPerSideD 1500.0
 
 int maxblock=65535;
-__device__ inline uint3 Hash_Min(const float3 &A){
-	return U3(floor(A.x/mBinSizeD),floor(A.y/mBinSizeD),floor(A.z/mBinSizeD));
+//__device__ inline uint3 Hash_Min(const float3 &A){
+//	return U3(floor(A.x/mBinSizeD),floor(A.y/mBinSizeD),floor(A.z/mBinSizeD));
+//}
+//__device__ inline uint3 Hash_Max(const float3 &A){
+//	return U3(ceil(A.x/mBinSizeD),ceil(A.y/mBinSizeD),ceil(A.z/mBinSizeD));
+//}
+__device__ inline uint3 Hash(const float3 &A){
+	return U3(A.x/mBinSizeD,A.y/mBinSizeD,A.z/mBinSizeD);
 }
-__device__ inline uint3 Hash_Max(const float3 &A){
-	return U3(ceil(A.x/mBinSizeD),ceil(A.y/mBinSizeD),ceil(A.z/mBinSizeD));
-}
-__device__ inline uint Hash_Index(const uint3 &A){
-	return A.x+A.y*mBinsPerSideD+A.z*mBinsPerSideD*mBinsPerSideD;
+//__device__ inline uint Hash_Index(const uint3 &A){
+//	return A.x+A.y*mBinsPerSideD+A.z*mBinsPerSideD*mBinsPerSideD;
+//}
+__device__ inline uint Hash_Index2(const uint3 &A){
+	return (A.x * 73856093) ^ (A.y * 19349663) ^ (A.z * 83492791);
 }
 __device__ inline void adC(int A,int B, float3 n, float3 onA, float3 onB, float4* CData,uint offset, float mKF1, float mKF2 ){
 	CData[offset+mMaxContactD*0]=make_float4(n,0);
@@ -27,84 +37,120 @@ __device__ inline void adC(int A,int B, float3 n, float3 onA, float3 onB, float4
 	CData[offset+mMaxContactD*9]=make_float4(0,0,0,mKF1*mKF2);
 	//printf("CD %d %d \n",A, B);
 }
-__global__ void Bins_Intersect_Sphere(float4* DataD,uint* Bins_Intersected,uint * Bins_IntersectedK,uint * Bins_IntersectedV,const int flag ){
+__global__ void Bins_Intersect_Sphere_Count(uint* Bins_Intersected,uint * Bins_IntersectedK,uint * Bins_IntersectedV,const int flag ){
 	//uint Index = threadIdx.x+blockDim.x*threadIdx.y+(blockIdx.x*blockDim.x*blockDim.y)+(blockIdx.y*blockDim.x*blockDim.y*gridDim.x);
 	uint Index = blockIdx.x* blockDim.x + threadIdx.x;
 	if(Index>=mNumSpheresD){return;}
-	float4 BodyD=(DataD[Index]+F4(mGlobalOriginD));
-	uint count=0;
-	uint3 gridPosmin = Hash_Min(F3(BodyD)-F3(BodyD.w)*2);
-	uint3 gridPosmax = Hash_Max(F3(BodyD)+F3(BodyD.w)*2);
 
-	for(uint i=gridPosmin.x; i<=gridPosmax.x; i++){
-		for(uint j=gridPosmin.y; j<=gridPosmax.y; j++){
-			for(uint k=gridPosmin.z; k<=gridPosmax.z; k++){
-				if(flag){
-					uint mInd=(!Index) ? 0 : Bins_Intersected[Index-1];
-					Bins_IntersectedK[mInd+count]=Hash_Index(U3(i,j,k));
-					Bins_IntersectedV[mInd+count]=Index;
-				}
+	float4 BodyD=(tex1Dfetch(texSphere,Index)+F4(mGlobalOriginD));
+	uint count=0, i, j, k;
+	uint3 gmin = Hash(F3(BodyD)-F3(BodyD.w)*1.001);
+	uint3 gmax = Hash(F3(BodyD)+F3(BodyD.w)*1.001);
+	for(i=gmin.x; i<=gmax.x; ++i){
+		for(j=gmin.y; j<=gmax.y; ++j){
+			for(k=gmin.z; k<=gmax.z; ++k){
 				count++;
 			}
 		}
 	}
-	if(!flag){
-		Bins_Intersected[Index]=count;
-	}
+	Bins_Intersected[Index]=count;
 }
 
-__global__ void Sphere_Sphere(
-							  uint * B_I_DV ,
-							  uint * Bin_StartDK,
-							  uint * Bin_StartDV,
-							  float4 * DataD,
-							  uint* Num_ContactD, 
-							  float4* CData,
-							  int flag, 
-							  int3f * auxData
-							  )
+__global__ void Bins_Intersect_Sphere_Store(uint* Bins_Intersected,uint * Bins_IntersectedK,uint * Bins_IntersectedV,const int flag ){
+	//uint Index = threadIdx.x+blockDim.x*threadIdx.y+(blockIdx.x*blockDim.x*blockDim.y)+(blockIdx.y*blockDim.x*blockDim.y*gridDim.x);
+	uint Index = blockIdx.x* blockDim.x + threadIdx.x;
+	if(Index>=mNumSpheresD){return;}
+
+	float4 BodyD=(tex1Dfetch(texSphere,Index)+F4(mGlobalOriginD));
+	uint count=0, i, j, k;
+	uint3 gmin = Hash(F3(BodyD)-F3(BodyD.w)*1.001);
+	uint3 gmax = Hash(F3(BodyD)+F3(BodyD.w)*1.001);
+	uint mInd=(!Index) ? 0 : Bins_Intersected[Index-1];
+	for(i=gmin.x; i<=gmax.x; ++i){
+		for(j=gmin.y; j<=gmax.y; ++j){
+			for(k=gmin.z; k<=gmax.z; ++k){
+				Bins_IntersectedK[mInd+count]=Hash_Index2(U3(i,j,k));
+				Bins_IntersectedV[mInd+count]=Index;
+				count++;
+			}
+		}
+	}
+}
+__global__ void Sphere_Sphere_Count(
+									uint * B_I_DV ,
+									uint * Bin_StartDK,
+									uint * Bin_StartDV,
+									uint* Num_ContactD, 
+									float4* CData)
 {
 	uint Index = blockIdx.x* blockDim.x + threadIdx.x;
 	//uint Index = threadIdx.x+blockDim.x*threadIdx.y+(blockIdx.x*blockDim.x*blockDim.y)+(blockIdx.y*blockDim.x*blockDim.y*gridDim.x);
 
 	if(Index>=mLastBinD){return;}
 	uint count=0;
-	int end=Bin_StartDK[Index];
-	int i=(!Index) ? 0 : Bin_StartDK[Index-1];
-	if(end-i>1){
+	uint end=Bin_StartDK[Index];
+	uint i=(!Index) ? 0 : Bin_StartDK[Index-1];
+	uint Bin=Bin_StartDV[Index];
 	for(i; i<end; i++){
-		int bidI=B_I_DV[i];
-		float4 A=DataD[B_I_DV[i]];
-		int3f auxI=auxData[bidI];
-		for(int k=i+1; k<end; k++){
-			int bidK=B_I_DV[k];
-			float4 B=DataD[bidK];
-			int3f auxK=auxData[bidK];
-			if((auxI.x == auxK.x) || (auxK.y==auxI.z) || (auxI.y==auxK.z)){continue;}
+		uint bidI=B_I_DV[i];
+		float4 A=tex1Dfetch(texSphere,bidI);//DataD[];
+		float4 auxI=tex1Dfetch(texSphereAux,bidI);//auxData[bidI];
+		for(uint k=i+1; k<end; k++){
+			uint bidK=B_I_DV[k];
+			float4 B=tex1Dfetch(texSphere,bidK);//DataD[bidK];
+			float4 auxK=tex1Dfetch(texSphereAux,bidK);//auxData[bidK];
+			if((auxK.y==auxI.z) || (auxI.y==auxK.z)){continue;}
 			float3 p=F3(B-A);
 			float centerDist =dot(p,p);
-			float rAB =B.w + A.w;
+			float rAB =B.w + A.w+mEnvelopeD*2;
 			if (centerDist <= rAB*rAB){
-				p=p/sqrtf(centerDist);
-				float3 onB=F3(B)-B.w*p;
-				if(Bin_StartDV[Index]==Hash_Index(Hash_Max((onB+mGlobalOriginD)))){
-					if(flag){
-						float3 onA=F3(A)+A.w*p;
-						int offset=(!Index) ? 0 : Num_ContactD[Index-1];
-						adC(auxI.x,auxK.x, -p, onA, onB,CData,offset+count,auxI.w,auxK.w);
-					}
+				float3 onB=F3(B)-B.w*p/sqrtf(centerDist);
+				if(Bin==Hash_Index2(Hash(onB+mGlobalOriginD))){
 					count++;
 				}
 			}
 		}
 	}
-	}
-	if(!flag){
-		Num_ContactD[Index]=count;
+	Num_ContactD[Index]=count;
+}
+__global__ void Sphere_Sphere_Store(
+									uint * B_I_DV ,
+									uint * Bin_StartDK,
+									uint * Bin_StartDV,
+									uint* Num_ContactD, 
+									float4* CData)
+{
+	uint Index = blockIdx.x* blockDim.x + threadIdx.x;
+	//uint Index = threadIdx.x+blockDim.x*threadIdx.y+(blockIdx.x*blockDim.x*blockDim.y)+(blockIdx.y*blockDim.x*blockDim.y*gridDim.x);
+	if(Index>=mLastBinD){return;}
+	uint count=0;
+	uint end=Bin_StartDK[Index];
+	uint Bin=Bin_StartDV[Index];
+	uint offset=(!Index) ? 0 : Num_ContactD[Index-1];
+	for(uint i=(!Index) ? 0 : Bin_StartDK[Index-1]; i<end; i++){
+		uint bidI=B_I_DV[i];
+		float4 A=tex1Dfetch(texSphere,bidI);//DataD[];
+		float4 auxI=tex1Dfetch(texSphereAux,bidI);//auxData[bidI];
+		for(uint k=i+1; k<end; k++){
+			uint bidK=B_I_DV[k];
+			float4 B=tex1Dfetch(texSphere,bidK);//DataD[bidK];
+			float4 auxK=tex1Dfetch(texSphereAux,bidK);//auxData[bidK];
+			if((auxK.y==auxI.z) || (auxI.y==auxK.z)){continue;}
+			float3 p=F3(B-A);
+			float centerDist =dot(p,p);
+			float rAB =B.w + A.w+mEnvelopeD*2;
+			if (centerDist <= rAB*rAB){
+				p=p/sqrtf(centerDist);
+				float3 onB=F3(B)-B.w*p;
+				if(Bin==Hash_Index2(Hash(onB+mGlobalOriginD))){
+					adC(auxI.x,auxK.x, p, F3(A)+A.w*p, onB,CData,offset+count,auxI.w,auxK.w);
+					count++;
+				}
+			}
+		}
 	}
 }
-
-__global__ void Sphere_Box(float4 * sD,bodyData * bD,uint * nC, float4 * cD,int3f * bID,int f, int nB, int nCs){
+__global__ void Sphere_Box(float4 * sD,bodyData * bD,uint * nC, float4 * cD,float4 * bID,int f, int nB, int nCs){
 	uint I = threadIdx.x+blockDim.x*threadIdx.y+(blockIdx.x*blockDim.x*blockDim.y)+(blockIdx.y*blockDim.x*blockDim.y*gridDim.x);
 	if(I<mNumSpheresD){
 		float4 S=sD[I];
@@ -165,7 +211,7 @@ __device__ float  SegmentSqrDistance(const float3& from, const float3& to,const 
 	return dot(diff,diff);	
 }
 
-__global__ void Sphere_Triangle(float4 * sD,bodyData * bD,uint * nC, float4 * cD,int3f * bID,int f, int nB, int nCs){
+__global__ void Sphere_Triangle(float4 * sD,bodyData * bD,uint * nC, float4 * cD,float4 * bID,int f, int nB, int nCs){
 	uint I = threadIdx.x+blockDim.x*threadIdx.y+(blockIdx.x*blockDim.x*blockDim.y)+(blockIdx.y*blockDim.x*blockDim.y*gridDim.x);
 	if(I<mNumSpheresD){
 		float4 DD=sD[I];
@@ -210,49 +256,66 @@ __global__ void Sphere_Triangle(float4 * sD,bodyData * bD,uint * nC, float4 * cD
 		if(!f){nC[I]=c;}
 	}
 }
-void ChCCollisionGPU::InitCudaCollision(){
-	//Copy constants to GPU
+
+__global__ void Bin_Info(uint* binStart, uint3* binInfo, uint * binNum){
+	uint Index = blockIdx.x* blockDim.x + threadIdx.x;
+	if(Index>=mLastBinD){return;}
+	uint3 temp;
+	temp.y=binStart[Index];
+	temp.x=(!Index) ? 0 : binStart[Index-1];
+	temp.z=binNum[Index];
+	binInfo[Index]=temp;
 
 }
-
-
+void ChCCollisionGPU::InitCudaCollision(){
+	//Copy constants to GPU
+}
 void ChCCollisionGPU::CudaCollision(){
+	//cout<<endl;
+
+	//for(int i=0; i<100; i++){
+	//cudaEvent_t start, stop;
+
+	/*float elapsedTime=0;
+	cudaEventCreate(&start); 
+	cudaEventCreate(&stop);
+	cudaEventRecord(start, 0);*/
 
 	cMin=fabs(cMin);
 	mMaxDim=maxf3(cMin+cMax);
-	mBinSize=mMaxDim/10.0;
+	mBinSize=mMaxDim/float(15);
+	//cout<<mBinSize<<" "<<mMaxDim<<" "<<cMin.x<<" "<<cMin.y<<" "<<cMin.z<<" "<<cMax.x/mBinSize<<" "<<cMax.y/mBinSize<<" "<<cMax.z/mBinSize<<" ";
 
 	cudaMemcpyToSymbolAsync(mBinSizeD,&mBinSize,sizeof(mBinSize));
 	cudaMemcpyToSymbolAsync(mMaxContactD,&mMaxContact,sizeof(mMaxContact));
 	cudaMemcpyToSymbolAsync(mEnvelopeD,&mEnvelope,sizeof(mEnvelope));
 	cudaMemcpyToSymbolAsync(mNumSpheresD,&mNSpheres,sizeof(mNSpheres));
-	cudaMemcpyToSymbolAsync(mMaxDimD,&mMaxDim,sizeof(mMaxDim));
+	//cudaMemcpyToSymbolAsync(mMaxDimD,&mMaxDim,sizeof(mMaxDim));
 	cudaMemcpyToSymbolAsync(mGlobalOriginD,&cMin,sizeof(cMin));
 
 	DataS			=	mDataSpheres;		//Copy Sphere data
-	DataB			=	mDataBoxes;			//Copy Box data
-	DataT			=	mDataTriangles;		//Copy Triangle data
 	AuxDataD		=	mAuxData;			//Copy Auxilirary data
-
 	IntersectedD.resize(mNSpheres);
 
-	Bins_Intersect_Sphere<<<max((int)ceil(mNSpheres/(float)BIN_INTERSECT_THREADS),1),  BIN_INTERSECT_THREADS>>>(
-		CASTF4(DataS),
+	cudaBindTexture( NULL, texSphere,   CASTF4(DataS),   mDataSpheres.size()*sizeof(float4) );
+	cudaBindTexture( NULL, texSphereAux,CASTF4(AuxDataD),mAuxData.size()*sizeof(float4) );
+
+	Bins_Intersect_Sphere_Count<<<max((int)ceil(mNSpheres/(float)BIN_INTERSECT_THREADS),1),  BIN_INTERSECT_THREADS>>>(
 		CASTU1(IntersectedD),
 		CASTU1(IntersectedD),
 		CASTU1(IntersectedD),
 		0);																					//Count number of body-bin intersections
 	thrust::inclusive_scan(IntersectedD.begin(),IntersectedD.end(), IntersectedD.begin());	//Scan to determine totals
 	uint Total_Bin_Intersections=IntersectedD[mNSpheres-1];									//Total intersections
-	thrust::device_vector<uint> Bin_Number(Total_Bin_Intersections);						//store bin number for intersection
-	thrust::device_vector<uint> Body_Number(Total_Bin_Intersections);						//store body number for intersection
-	Bins_Intersect_Sphere<<<max((int)ceil(mNSpheres/(float)BIN_INTERSECT_THREADS),1), BIN_INTERSECT_THREADS>>>(
-		CASTF4(DataS),
+
+	Bin_Number.resize(Total_Bin_Intersections);						//store bin number for intersection
+	Body_Number.resize(Total_Bin_Intersections);					//store body number for intersection
+
+	Bins_Intersect_Sphere_Store<<<max((int)ceil(mNSpheres/(float)BIN_INTERSECT_THREADS),1), BIN_INTERSECT_THREADS>>>(
 		CASTU1(IntersectedD),
 		CASTU1(Bin_Number),
 		CASTU1(Body_Number),
 		1);																					//Store intersection information	
-	//cout<<"Total_Bin_Intersections "<<Total_Bin_Intersections<<endl;
 	Bin_Start.resize(Total_Bin_Intersections);												//Start of bin in memory
 
 	thrust::sort_by_key(Bin_Number.begin(),Bin_Number.end(),Body_Number.begin());			//Sort bin number
@@ -264,57 +327,67 @@ void ChCCollisionGPU::CudaCollision(){
 		Bin_Number.begin(),
 		Bin_Start.begin()
 		).first-Bin_Number.begin();
-	//cout<<"mLastBin "<<mLastBin<<endl;
 	cudaMemcpyToSymbolAsync(mLastBinD,&mLastBin,sizeof(mLastBin));
 
 	thrust::inclusive_scan(Bin_Start.begin(), Bin_Start.end(), Bin_Start.begin());
 	IntersectedD.resize(mLastBin);
 
-	nB=dim3(min(maxblock,(int)(mLastBin/float(D_SIZE))+1),1,1);
-	Sphere_Sphere<<<nB,D_SIZE>>>(
+	nB=dim3(min(maxblock,(int)(mLastBin/float(D_SIZE))+2),1,1);
+	if((mDataSpheres.size()/float(D_SIZE))+1>maxblock){
+		nB.y=(int)ceil(((mLastBin/float(D_SIZE))+1)/float(maxblock));
+	}
+
+
+	Sphere_Sphere_Count<<<nB,D_SIZE>>>(
 		CASTU1(Body_Number) ,
 		CASTU1(Bin_Start),
 		CASTU1(Bin_Number),
-		CASTF4(DataS),
 		CASTU1(IntersectedD),
-		mContactsGPU, 
-		0,
-		CASTI3F(AuxDataD));
+		mContactsGPU);
 
 	thrust::inclusive_scan(IntersectedD.begin(), IntersectedD.end(), IntersectedD.begin());
 
 	mNumContacts=IntersectedD[mLastBin-1];
-	//cout<<"mNumContacts "<<mNumContacts<<endl;
-	Sphere_Sphere<<<nB,D_SIZE>>>(
+
+	Sphere_Sphere_Store<<<nB,D_SIZE>>>(
 		CASTU1(Body_Number),
 		CASTU1(Bin_Start),
 		CASTU1(Bin_Number),
-		CASTF4(DataS),
 		CASTU1(IntersectedD),
-		mContactsGPU, 
-		1,
-		CASTI3F(AuxDataD));
+		mContactsGPU);
 
-	//nB=dim3(min(maxblock,(int)(mDataSpheres.size()/float(D_SIZE))+2),1,1);
-	//if((mDataSpheres.size()/float(D_SIZE))+1>maxblock){
-	//	nB.y=(int)ceil(((mDataSpheres.size()/float(D_SIZE))+1)/float(maxblock));
+	nB=dim3(min(maxblock,(int)(mDataSpheres.size()/float(D_SIZE))+2),1,1);
+	if((mDataSpheres.size()/float(D_SIZE))+1>maxblock){
+		nB.y=(int)ceil(((mDataSpheres.size()/float(D_SIZE))+1)/float(maxblock));
+	}
+
+	DataB			=	mDataBoxes;			//Copy Box data
+	IntersectedD.resize(mDataSpheres.size());
+	Sphere_Box<<<nB,D_SIZE>>>(CASTF4(DataS),BDCAST(DataB),CASTU1(IntersectedD),mContactsGPU,CASTF4(AuxDataD),0,mDataBoxes.size(), 0);
+	thrust::exclusive_scan(IntersectedD.begin(), IntersectedD.end(), IntersectedD.begin());
+	IntersectedD.push_back(IntersectedD[IntersectedD.size()-1]+IntersectedD[IntersectedD.size()-1]);
+	Sphere_Box<<<nB,D_SIZE>>>(CASTF4(DataS),BDCAST(DataB),CASTU1(IntersectedD),mContactsGPU,CASTF4(AuxDataD),1,mDataBoxes.size(),mNumContacts );
+
+	mNumContacts+=IntersectedD[IntersectedD.size()-1];
+
+	DataT			=	mDataTriangles;		//Copy Triangle data
+	IntersectedD.resize(mDataSpheres.size());
+	Sphere_Triangle<<<nB,D_SIZE>>>(CASTF4(DataS),BDCAST(DataT),CASTU1(IntersectedD),mContactsGPU,CASTF4(AuxDataD),0,mDataTriangles.size(), 0);
+	thrust::exclusive_scan(IntersectedD.begin(), IntersectedD.end(), IntersectedD.begin());
+	IntersectedD.push_back(IntersectedD[IntersectedD.size()-1]+IntersectedD[IntersectedD.size()-1]);
+	Sphere_Triangle<<<nB,D_SIZE>>>(CASTF4(DataS),BDCAST(DataT),CASTU1(IntersectedD),mContactsGPU,CASTF4(AuxDataD),1,mDataTriangles.size(),mNumContacts );
+
+	mNumContacts+=IntersectedD[IntersectedD.size()-1];
+
+	cudaUnbindTexture( texSphere );
+	cudaUnbindTexture( texSphereAux );
+	/*cudaEventRecord(stop, 0);
+	cudaThreadSynchronize();
+	cudaEventElapsedTime(&elapsedTime, start, stop);
+	cudaEventDestroy(start); 
+	cudaEventDestroy(stop);*/
+	//printf("\t\t Time Taken: %f %d %d %d %d\n",elapsedTime,Total_Bin_Intersections,mLastBin,mNumContacts,i);
 	//}
-	//IntersectedD.resize(mDataSpheres.size());
-	//Sphere_Box<<<nB,D_SIZE>>>(CASTF4(DataS),BDCAST(DataB),CASTU1(IntersectedD),mContactsGPU,CASTI3F(AuxDataD),0,mDataBoxes.size(), 0);
-	//last=IntersectedD[IntersectedD.size()-1];
-	//thrust::exclusive_scan(IntersectedD.begin(), IntersectedD.end(), IntersectedD.begin());
-	//IntersectedD.push_back(IntersectedD[IntersectedD.size()-1]+last);
-	//Sphere_Box<<<nB,D_SIZE>>>(CASTF4(DataS),BDCAST(DataB),CASTU1(IntersectedD),mContactsGPU,CASTI3F(AuxDataD),1,mDataBoxes.size(),mNumContacts );
-
-	//mNumContacts+=IntersectedD[IntersectedD.size()-1];
-
-	//IntersectedD.resize(mDataSpheres.size());
-	//Sphere_Triangle<<<nB,D_SIZE>>>(CASTF4(DataS),BDCAST(DataT),CASTU1(IntersectedD),mContactsGPU,CASTI3F(AuxDataD),0,mDataTriangles.size(), 0);
-	//thrust::exclusive_scan(IntersectedD.begin(), IntersectedD.end(), IntersectedD.begin());
-	//IntersectedD.push_back(IntersectedD[IntersectedD.size()-1]+IntersectedD[IntersectedD.size()-1]);
-	//Sphere_Triangle<<<nB,D_SIZE>>>(CASTF4(DataS),BDCAST(DataT),CASTU1(IntersectedD),mContactsGPU,CASTI3F(AuxDataD),1,mDataTriangles.size(),mNumContacts );
-
-	//mNumContacts+=IntersectedD[IntersectedD.size()-1];
 }
 
 vector<float4> ChCCollisionGPU::CopyContactstoHost(){
@@ -327,6 +400,4 @@ vector<float4> ChCCollisionGPU::CopyContactstoHost(){
 		host[i*3+2]=(device_ptr[i+mMaxContact*6]);
 	}
 	return host;
-
-
 }

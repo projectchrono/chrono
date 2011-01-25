@@ -18,7 +18,6 @@
 #include "ChCuda.h"
 
 #define BIN_INTERSECT_THREADS 128
-#define FSE_SIZE 128
 #define D_SIZE 128
 
 
@@ -48,8 +47,9 @@ namespace chrono {
 
 				IntersectedD.clear();
 				Bin_Start.clear();
-				//Bin_StartDV.clear();
 				AuxDataD.clear();
+				Bin_Number.clear();
+				Body_Number.clear();
 
 			}
 			void InitCudaCollision();
@@ -76,21 +76,23 @@ namespace chrono {
 			float3 cMax,cMin;
 			float mMaxDim;
 			float cMax_x,cMax_y,cMax_z;
-			vector<int3f> mAuxData;
+			vector<float4> mAuxData;
 			dim3 nB,nT,nBlocks,nThreads;
 
 			float4* mContactsGPU;
 
 		private:
-		
+
 			thrust::device_vector<float4>	DataS ;
 			thrust::device_vector<bodyData>	DataB;
 			thrust::device_vector<bodyData>	DataT;
 
 			thrust::device_vector<uint>		IntersectedD;
 			thrust::device_vector<uint>		Bin_Start;
-			//thrust::device_vector<uint>		Bin_StartDV;
-			thrust::device_vector<int3f>	AuxDataD;
+			thrust::device_vector<float4>	AuxDataD;
+			thrust::device_vector<uint>		Bin_Number;
+			thrust::device_vector<uint>		Body_Number;
+
 		};
 	}
 }
