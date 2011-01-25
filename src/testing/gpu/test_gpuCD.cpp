@@ -23,7 +23,7 @@
 using namespace std;
 using namespace chrono::collision;
 using namespace chrono;
-	float mult=20.0;
+float mult=20.0;
 struct Contact{
 	int a,b;
 	float x1,y1,z1,x2,y2,z2,nx,ny,nz;
@@ -63,13 +63,12 @@ int testNumber=0;
 int main(int argc, char** argv){
 	cudaSetDevice(0);
 	for(int i=0; i<1; i++){
-		sphere_sphere(1000);	//tests n random spheres against each other
+		sphere_sphere(1000000);	//tests n random spheres against each other
 		//sphere_triangle();
 		//sphere_box();
 		testNumber++;
 	}
-
-//glutInit(&argc, argv);
+	//glutInit(&argc, argv);
 
 	return 0;
 }
@@ -154,27 +153,27 @@ void bullet_sphere_sphere(int num_Bodies,vector<Contact> &CPU_contact_storage, v
 		int numContacts = contactManifold->getNumContacts();
 
 		totalC+= numContacts;
-		//	for (int j=0;j<numContacts;j++)
-		//	{
-		//		btManifoldPoint& pt = contactManifold->getContactPoint(j);
-		//		Contact temp;
-		//		temp.a=obA->getCompanionId();
-		//		temp.b=obB->getCompanionId();
-		//		temp.x1=pt.m_positionWorldOnA.x();
-		//		temp.y1=pt.m_positionWorldOnA.y();
-		//		temp.z1=pt.m_positionWorldOnA.z();
-		//		temp.x2=pt.m_positionWorldOnB.x();
-		//		temp.y2=pt.m_positionWorldOnB.y();
-		//		temp.z2=pt.m_positionWorldOnB.z();
-		//		temp.nx=pt.m_normalWorldOnB.x();
-		//		temp.ny=pt.m_normalWorldOnB.y();
-		//		temp.nz=pt.m_normalWorldOnB.z();
+		//for (int j=0;j<numContacts;j++)
+		//{
+		//	btManifoldPoint& pt = contactManifold->getContactPoint(j);
+		//	Contact temp;
+		//	temp.a=obA->getCompanionId();
+		//	temp.b=obB->getCompanionId();
+		//	temp.x1=pt.m_positionWorldOnA.x();
+		//	temp.y1=pt.m_positionWorldOnA.y();
+		//	temp.z1=pt.m_positionWorldOnA.z();
+		//	temp.x2=pt.m_positionWorldOnB.x();
+		//	temp.y2=pt.m_positionWorldOnB.y();
+		//	temp.z2=pt.m_positionWorldOnB.z();
+		//	temp.nx=pt.m_normalWorldOnB.x();
+		//	temp.ny=pt.m_normalWorldOnB.y();
+		//	temp.nz=pt.m_normalWorldOnB.z();
 
-		//		CPU_contact_storage.push_back(temp);
-		//	}
-		//	contactManifold->clearManifold();
+		//	CPU_contact_storage.push_back(temp);
+		//}
+		contactManifold->clearManifold();
 	}
-	////cout<<totalC<<" Contacts found"<<endl;
+	//////cout<<totalC<<" Contacts found"<<endl;
 	//sort(CPU_contact_storage.begin(),CPU_contact_storage.end(),test_func);
 }
 void gpu_sphere_sphere(int num_Bodies,vector<Contact> &contact_storage, vector<float4> &bData, int &totalC){
@@ -183,7 +182,7 @@ void gpu_sphere_sphere(int num_Bodies,vector<Contact> &contact_storage, vector<f
 	QueryPerformanceCounter((LARGE_INTEGER *)&ctr1);
 	float envelope =0;
 	float bin_size= 1;
-	int mMaxContact=100000;
+	int mMaxContact=4000000;
 
 	ChLcpSystemDescriptorGPU		newdescriptor(num_Bodies+100,mMaxContact, 1 );
 	ChCollisionSystemGPU			mGPUCollisionEngine(envelope,bin_size, mMaxContact);
@@ -193,7 +192,7 @@ void gpu_sphere_sphere(int num_Bodies,vector<Contact> &contact_storage, vector<f
 	mGPUCollisionEngine.mGPU.cMin=make_float3(FLT_MAX  ,FLT_MAX  ,FLT_MAX  );
 	mGPUCollisionEngine.mGPU.mNBodies=num_Bodies;
 	mGPUCollisionEngine.mGPU.mNSpheres=num_Bodies;
-	
+
 	float maxrad=0;
 
 	mGPUCollisionEngine.mGPU.mAuxData.clear();
@@ -206,14 +205,14 @@ void gpu_sphere_sphere(int num_Bodies,vector<Contact> &contact_storage, vector<f
 		mGPUCollisionEngine.mGPU.cMin.x=min(mGPUCollisionEngine.mGPU.cMin.x,(float)bData[i].x-bData[i].w);
 		mGPUCollisionEngine.mGPU.cMin.y=min(mGPUCollisionEngine.mGPU.cMin.y,(float)bData[i].y-bData[i].w);
 		mGPUCollisionEngine.mGPU.cMin.z=min(mGPUCollisionEngine.mGPU.cMin.z,(float)bData[i].z-bData[i].w);
-		
+
 		maxrad=max(maxrad,bData[i].w);
 
-		int3f temp=I3F(i,1,0,1);
+		float4 temp=F4(i,1,0,1);
 		mGPUCollisionEngine.mGPU.mAuxData.push_back(temp);
 	}
-mGPUCollisionEngine.mGPU.mMaxRad=maxrad;
-	
+	mGPUCollisionEngine.mGPU.mMaxRad=maxrad;
+
 	mGPUCollisionEngine.mGPU.InitCudaCollision();
 	mGPUCollisionEngine.mGPU.CudaCollision();
 	totalC=mGPUCollisionEngine.mGPU.mNumContacts;
@@ -248,9 +247,9 @@ mGPUCollisionEngine.mGPU.mMaxRad=maxrad;
 	//	temp.y2=GPU_contacts[i*3+2].y;
 	//	temp.z2=GPU_contacts[i*3+2].z;
 	//	temp.b =GPU_contacts[i*3+2].w;
-	//	contact_storage.push_back(temp);300/
+	//	contact_storage.push_back(temp);
 	//}
-	////cout<<"SORT"<<endl;
+	//////cout<<"SORT"<<endl;
 	//sort(contact_storage.begin(),contact_storage.end(),test_func);
 	mGPUCollisionEngine.mGPU.mNBodies=0;
 }
@@ -258,15 +257,16 @@ mGPUCollisionEngine.mGPU.mMaxRad=maxrad;
 bool sphere_sphere(int num_Bodies){
 	//generate data on host
 	mData.clear();
-for(int a=0; a<num_Bodies; a++){
-		float w=4;
-		float randx=rand()%1000/30.0-(1000/30.0)/2.0;
-		float randy=rand()%1000/30.0-(1000/30.0)/2.0;
-		float randz=rand()%1000/30.0-(1000/30.0)/2.0;
+	for(int a=0; a<num_Bodies; a++){
+		float w=rand()%100/10.0+.1;
+		float randx=rand()%1000-(1000)/2.0;
+		float randy=rand()%1000-(1000)/2.0;
+		float randz=rand()%1000-(1000)/2.0;
 		float4 temp=make_float4(randx,randy,randz,w);
 		mData.push_back(temp);
 
-}
+
+	}
 	vector<Contact> A;
 	vector<Contact> B;
 	int totalCPU=0;
@@ -280,31 +280,12 @@ for(int a=0; a<num_Bodies; a++){
 	//cout<<bData[32].x<<" "<<bData[32].y<<" "<<bData[32].z<<" "<<bData[32].w<<endl;
 	//cout<<bData[45].x<<" "<<bData[45].y<<" "<<bData[45].z<<" "<<bData[45].w<<endl;
 
-	if(totalCPU!=totalGPU){cout<<"\t FAIL"<<endl;
-	/*stringstream ss;
-	ss<<"data\\"<<testNumber<<".txt";
-	ofstream ofile (ss.str().c_str());
-	for(int i=0; i<num_Bodies; i++){
-	ofile<<bData[i].x<<"\t"<<bData[i].y<<"\t"<<bData[i].z<<"\t"<<bData[i].w<<endl;
-	}
-
-	ofile<<"\n-----------------------------------\n";
-	for(int i=0; i<A.size(); ++i){
-	ofile<<i<<" "<<A[i].a<<" "<<A[i].b<<endl;
-	}
-	ofile<<"\n-----------------------------------\n";
-	for(int i=0; i<B.size(); ++i){
-	ofile<<i<<" "<<B[i].a<<" "<<B[i].b<<endl;
-	}
-	ofile.close();*/
-	}
-	//if(!verify(A,B)){/*cout<<"\t FAIL"<<endl;*/}
+	if(totalCPU!=totalGPU){cout<<"\t FAIL"<<endl;}
+	//if(!verify(A,B)){cout<<"\t FAIL"<<endl;}
 	else {cout<<"\t PASS"<<endl;}
 
 	//A.clear();
 	//B.clear();
-
-	
 	/*glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(0,0);
 	glutInitWindowSize(600	,600);
@@ -348,6 +329,7 @@ bool test_func(Contact one, Contact two){
 bool verify(vector<Contact> A, vector<Contact> B){
 	float angle_tolerance=cos(double((10.0*3.14)/180.0));
 	for(int i=0; i<A.size(); ++i){
+		//cout<<A[i].a<<" "<<B[i].a<<" "<<A[i].b<<" "<<B[i].b<<endl;
 		if(A[i].a!=B[i].a||A[i].b!=B[i].b){return false;}
 		if(B[i].x1>A[i].x1+.1||B[i].x1<A[i].x1-.1){return false;}
 		if(B[i].y1>A[i].y1+.1||B[i].y1<A[i].y1-.1){return false;}
