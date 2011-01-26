@@ -106,37 +106,44 @@ SET(CH_MATLABSDK         ""    CACHE PATH   "Where is your Matlab SDK installed?
 
 
 
-SET (DETECTED_CH_COMPILER "COMPILER_MSVC")
-SET (DETECTED_CH_OS "WINDOWS")
+SET (DETECTED_CH_COMPILER "")
+SET (DETECTED_CH_OS "")
+
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+ 	set(DETECTED_CH_OS "LINUX")
+ENDIF()
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	set(DETECTED_CH_OS "WINDOWS")
+ENDIF()
+
+IF (MINGW OR CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+ IF (CMAKE_SIZEOF_VOID_P MATCHES 4)
+	set (DETECTED_CH_COMPILER "COMPILER_GCC")
+ ELSE()
+	set (DETECTED_CH_COMPILER "COMPILER_GCC_X64")
+ ENDIF()
+ENDIF()
 IF (MSVC)
  IF (CMAKE_CL_64)
 	set (DETECTED_CH_COMPILER "COMPILER_MSVC_X64")
-	set (DETECTED_CH_OS "WINDOWS")
  ELSE()
  	set (DETECTED_CH_COMPILER "COMPILER_MSVC")
-	set (DETECTED_CH_OS "WINDOWS")
  ENDIF()
 ENDIF()
 
 message(STATUS "Detected CH_COMPILER='${DETECTED_CH_COMPILER}'")
 message(STATUS "Detected CH_OS='${DETECTED_CH_OS}'")
-
-
-
-
-
-#SET(CH_COMPILER          "COMPILER_MSVC_X64;COMPILER_GCC"    CACHE STRING   "Possible values: COMPILER_MSVC,COMPILER_GCC,COMPILER_MSVC_X64,COMPILER_GCC_X64")
-
-set(CH_COMPILER "COMPILER_MSVC" CACHE STRING "Set Compiler Type, Re-Run configure after changing")
+
+set(CH_COMPILER "${DETECTED_CH_COMPILER}" CACHE STRING "Set Compiler Type, Re-Run configure after changing")
 set(CH_COMPILER_VALUES "COMPILER_MSVC;COMPILER_GCC;COMPILER_MSVC_X64;COMPILER_GCC_X64")
 set_property(CACHE CH_COMPILER PROPERTY STRINGS ${CH_COMPILER_VALUES})
-message(STATUS "CH_COMPILER='${CH_COMPILER}'")
 
-SET(CH_OS "WINDOWS"			CACHE STRING   "Possible values: WINDOWS, LINUX")
-set(CH_OS "WINDOWS" CACHE STRING "Set OS, Re-Run configure after changing")
+
+# SET(CH_OS "WINDOWS" CACHE STRING   "Possible values: WINDOWS, LINUX")
+set(CH_OS "${DETECTED_CH_OS}" CACHE STRING "Set OS, Re-Run configure after changing")
 set(CH_OS_VALUES "WINDOWS;LINUX")
 set_property(CACHE CH_OS PROPERTY STRINGS ${CH_OS_VALUES})
-message(STATUS "CH_OS='${CH_OS}'")
+
 
 
 
@@ -256,24 +263,24 @@ IF ("${CH_OS}" STREQUAL "LINUX")
 		IF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
 			SET (CH_BUILDFLAGS "-DLINUX -D__linux__")
 			SET (CH_LINKERFLAG_EXE "")
-			SET	(CH_LINKERFLAG_SHARED "")
+			SET (CH_LINKERFLAG_SHARED "-lpthread")
 			SET (CH_LIBNAMEPREFIX "lib")
-			SET (CH_LIBNAMEPOSTFIX ".a")
+			SET (CH_LIBNAMEPOSTFIX ".so")
 			SET (CH_LIBNAMEPOSTFIXSHARED ".so")
-			SET (CH_LIBDIR  "${CH_CHRONODIR}/lib/Linux32_gcc")
+			SET (CH_LIBDIR  "${CH_CHRONODIR}/bin/Linux32_gcc")
 			SET (CH_BINDIR  "${CH_CHRONODIR}/bin/Linux32_gcc")
-			SET (CH_IRRLICHTLIB "${CH_IRRLICHTDIR}/lib/linux/libIrrlicht.a" -lXxf86vm -lglut)
+			SET (CH_IRRLICHTLIB "${CH_IRRLICHTDIR}/lib/Linux/libIrrlicht.a" -lXxf86vm -lglut)
 		ENDIF()
 		IF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
 			SET (CH_BUILDFLAGS "-DLINUX -D__linux__")
 			SET (CH_LINKERFLAG_EXE "")
-			SET	(CH_LINKERFLAG_SHARED "")
+			SET (CH_LINKERFLAG_SHARED "-lpthread")
 			SET (CH_LIBNAMEPREFIX "lib")
-			SET (CH_LIBNAMEPOSTFIX ".a")
+			SET (CH_LIBNAMEPOSTFIX ".so")
 			SET (CH_LIBNAMEPOSTFIXSHARED ".so")
-			SET (CH_LIBDIR  "${CH_CHRONODIR}/lib/Linux64_gcc")
+			SET (CH_LIBDIR  "${CH_CHRONODIR}/bin/Linux64_gcc")
 			SET (CH_BINDIR  "${CH_CHRONODIR}/bin/Linux64_gcc")
-			SET (CH_IRRLICHTLIB "${CH_IRRLICHTDIR}/lib/linux/libIrrlicht.a" -lXxf86vm -lglut)
+			SET (CH_IRRLICHTLIB "${CH_IRRLICHTDIR}/lib/Linux/libIrrlicht.a" -lXxf86vm -lglut)
 		ENDIF()
 		MESSAGE( "WARNING!, GPU building under LINUX is not yet tested! Check libs paths etc!")
 ENDIF()
@@ -380,7 +387,7 @@ IF (BUILD_CH_SDK)
 		core/ChQuaternion.h
 		core/ChRunTimeType.h
 		core/ChShared.h
-		core/ChSmartPointers.h 
+		core/ChSmartpointers.h 
 		core/ChFileutils.h 
 		core/ChFile.h 
 		core/ChRealtimeStep.h 
@@ -389,7 +396,7 @@ IF (BUILD_CH_SDK)
 		core/ChTrasform.h  
 		core/ChVector.h   
 		core/ChSpmatrix.h 
-		core/ChWraphashmap.h 
+		core/ChWrapHashmap.h 
 		)
 	SOURCE_GROUP(core FILES 
 			${ChronoEngine_core_SOURCES}
@@ -985,7 +992,10 @@ IF (BUILD_CH_SDK)
 	                          ARCHIVE_OUTPUT_DIRECTORY_DEBUG   "${CH_LIBDIR}"
 	                          RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
 	                          RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}"
+		                  LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
+	                          LIBRARY_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}"
 	                          RUNTIME_OUTPUT_NAME_DEBUG "ChronoEngineDBG"
+	                          LIBRARY_OUTPUT_NAME_DEBUG "ChronoEngineDBG"
 	                          ARCHIVE_OUTPUT_NAME_DEBUG "ChronoEngineDBG")
 	
 
