@@ -1007,14 +1007,17 @@ ENDIF (BUILD_CH_SDK)
 # Propagates the CMake build to other directories
 #
 
-# IF(EXISTS unit_MPI)
+# IF(EXISTS "${CH_CHRONOSRC}/unit_MPI/")
 # 	ADD_SUBDIRECTORY(unit_MPI)
 ENDIF()
 
-# ADD_SUBDIRECTORY(unit_GPU)
+# IF(EXISTS "${CH_CHRONOSRC}/unit_GPU/")
+# 	ADD_SUBDIRECTORY(unit_GPU)
+ENDIF()
 
-
-ADD_SUBDIRECTORY(unit_JS)
+IF(EXISTS "${CH_CHRONOSRC}/unit_JS/")
+	ADD_SUBDIRECTORY(unit_JS)
+ENDIF()
 
 
 
