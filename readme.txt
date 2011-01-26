@@ -8,12 +8,19 @@ Release 1.3.0
 x-xx-xxxx
 
 - Modified CMakeLists.txt to support also MingW GNU 
-  c++ under Windows.
+  c++ under Windows and GNU C++ under Linux.
+  
+- From this release, the old 'makefile' based system
+  is not_supported_anymore because there is the new 
+  CMake system. Files such as 'config.mak' and similar
+  hae been removed.
 
 - Other improvements in CMakeLists. In particular, the 
   user can choose if to build only the demos or only the API,
   or both, and advanced units compilation can be disabled/enabled.
   Also, the path to ChronoEngine API is automatically initialized. 
+
+- License has been switched to GPL v.3
 
 - Fixed a bug in deallocation of smart pointers in vectors of 
   btCollisionShape items in ChCollisionShape deletion: it caused 
@@ -33,8 +40,10 @@ x-xx-xxxx
   be used as a template for CMake-based external projects that
   use Chrono::Engine.
   
-- License has been switched to GPL v.3
-
+- A new WIKI has been started in the web site, aimed at containing
+  instructions and tutorials.
+  
+  
  
 Release 1.2.0
 12-1-2011

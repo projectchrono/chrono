@@ -7,29 +7,34 @@
 -------------------------------------------------------
 
 
-  NEWS    NEWS    NEWS   NEWS   NEWS   NEWS   NEWS 
-   NEWS   NEWS   NEWS   NEWS   NEWS   NEWS    
-  
+   NEWS    NEWS    NEWS   NEWS   NEWS   NEWS   NEWS 
+   
    IMPORTANT! 
    
    The Chrono::Engine API is under a major revision:
-   we are updating it to support the CMAKE build system.
+   we updated it to support the CMAKE build system.
    Therefore, the following informations are somewhat
    outdated - the new CMAKE-based system does not require
-   any 'makefile' stuff...
+   any 'makefile' stuff.
+   To understand how to install and compile, follow the
+   new guidelines at the link 
+      
+   http://dynamics.eng.unipr.it/mediawiki/index.php/Main_Page
    
-   End news
-    
+   The instructions are updated from time to time.
+   
+
+   
+-------------------------------------------------------
 
 
-old instructions here....
--........................
+old (outdated) instructions here....
+........................
 
 
 This info is NOT needed if you simply want to use 
-the Chrono::Engine libraries in your C++ projects, 
-because the SDK already contains the precompiled
-libraries in form of DLL in the chrono/bin directory.
+the _precompiled_ Chrono::Engine libraries in your 
+C++ projects, 
 
 However, if you have the open-source version of 
 Chrono::Engine and want to compile the entire API
