@@ -38,13 +38,13 @@ OutputBaseFilename=ChronoEngine_{#MyAppVersion}
 Source: {#MyChronoEngineSDK}\*; Excludes: "*.c,*.cpp,*.cu,doxygen,\source\*.txt,\source\collision\bullet,\source\collision\gimpact,\source\collision\edgetempest,source\makefile,\source\make-chrono_lib,\source\ChronoEngine.*,\source\HOWTO_COMPILE_API.txt,*.pdb,_obsolete,\installer,*.o,*.obj,*.ncb,*.bat,source\*.def,\source\tmp,\demos,____template_config.mak,__template_ChronoEngine.vcproj,*\.svn"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs
 Source: {#MyChronoEngineSDK}\demos\*; Excludes: "*.o,*.obj,*.ncb,*\.svn"; DestDir: "{app}\demos"; Flags: recursesubdirs createallsubdirs
 Source: {#MyChronoEngineSDK}\bin\*; Excludes: "*.pdb,demo_benchmark.exe,*\.svn,*\.ilk,*\.idb"; DestDir: "{app}\bin"; Flags: recursesubdirs createallsubdirs
-Source: "C:\tasora\lavori\html\chronoengine\install.html"; DestDir: "{app}\docs";
-Source: "C:\tasora\lavori\html\chronoengine\tutorials.html"; DestDir: "{app}\docs";
-Source: "C:\tasora\lavori\html\chronoengine\tutorials\*.*"; Excludes: "*.php"; DestDir: "{app}\docs\tutorials";  Flags: recursesubdirs
+;Source: "C:\tasora\lavori\html\chronoengine\install.html"; DestDir: "{app}\docs";
+;Source: "C:\tasora\lavori\html\chronoengine\tutorials.html"; DestDir: "{app}\docs";
+;Source: "C:\tasora\lavori\html\chronoengine\tutorials\*.*"; Excludes: "*.php"; DestDir: "{app}\docs\tutorials";  Flags: recursesubdirs
 Source: "C:\tasora\lavori\html\chronoengine\chronoengine_clock_small.jpg"; DestDir: "{app}\docs";
 Source: "chronostyle.css"; DestDir: "{app}\docs";
 
-Source: {#MyChronoEngineSDK}\makes\____template_config.mak; DestDir: {app}\makes; DestName: config.mak; AfterInstall: myAfterMakesInstall; Flags: ignoreversion
+;Source: {#MyChronoEngineSDK}\makes\____template_config.mak; DestDir: {app}\makes; DestName: config.mak; AfterInstall: myAfterMakesInstall; Flags: ignoreversion
 
 Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\*; DestDir: {code:myGetPathVisual9}VCWizards\ChronoEngineWizard; Check: myFoundVisual9; Flags: recursesubdirs createallsubdirs
 Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\HTML\1033\default.htm; DestDir: {code:myGetPathVisual9}VCWizards\ChronoEngineWizard\HTML\1033; AfterInstall: myAfterWizardInstall; Check: myFoundVisual9; Flags: ignoreversion
@@ -137,6 +137,7 @@ begin
   Result := output_string;
 end;
 
+// Not used anymore (it was used to init config.mak)
 procedure myAfterMakesInstall();
 var
   myContent: String;
@@ -204,16 +205,15 @@ begin
   // Select components to be configured
   //
   
-  mTitleIrrOptions := 'This installer can help you to conficure the Chrono::Engine SDK. '#13+
-                                   'In fact, Chrono::Engine uses the Irrlicht as a visualization library to show'#13+
-                                   '3D views of the demos, and the building system must know where to find Irrlicht'#13+
-                                   'in order to compile the demos. To save you from manually modify the configuration '#13+
-                                   'makefiles, this installer can do this task for you.'#13+
-                                   'Also, if you are using Microsoft Visual Studio, this installer will add a new '#13+
+  mTitleIrrOptions :=              ' If you are using Microsoft Visual Studio, this installer will add a new '#13+
                                    'wizard type to the VC++ project templates, to ease the creation of new projects.'#13+
+                                   'This installer can help you to configure the VC++ wizard. '#13+
+                                   'In fact, Chrono::Engine uses the Irrlicht as a visualization library to show'#13+
+                                   '3D views of the demos, and the VC++ wizard must know where to find Irrlicht'#13+
+                                   'in order to create new projects. '#13+
                                    ''#13+
                                    'NOTE 1: although Irrlicht is not mandatory, we suggest you to install Irrlicht before installing Chrono::Engine.'#13+
-                                  ''#13+
+                                   ''#13+
                                    'NOTE 2: IrrKlang is a library for sound effects: it is optional.';
                                    
   ConfigOptionPage := CreateInputOptionPage(wpSelectDir,
@@ -250,7 +250,7 @@ begin
 
   IrrklangDirPage := CreateInputDirPage(IrrlichtDirPage.ID,
     'Set Irrklang directory', 'Where have you installed IrrKlang SDK?',
-    'Here you must set the directory where you installed your IrrKlang SDK (for example C:\Programs\irrKlang-1.1.2) ',
+    'Here you can set the directory where you installed your IrrKlang SDK (for example C:\Programs\irrKlang-1.1.2) ',
     False, '');
   IrrklangDirPage.Add('');
   IrrklangDirPage.Values[0] := '';
