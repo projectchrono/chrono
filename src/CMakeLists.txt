@@ -1007,9 +1007,9 @@ ENDIF (BUILD_CH_SDK)
 # Propagates the CMake build to other directories
 #
 
-
-# ADD_SUBDIRECTORY(unit_MPI)
-
+# IF(EXISTS unit_MPI)
+# 	ADD_SUBDIRECTORY(unit_MPI)
+ENDIF()
 
 # ADD_SUBDIRECTORY(unit_GPU)
 
