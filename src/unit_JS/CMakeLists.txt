@@ -138,8 +138,11 @@ IF(ENABLE_UNIT_JS)
 	                          ARCHIVE_OUTPUT_DIRECTORY_DEBUG   "${CH_LIBDIR}"
 	                          RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
 	                          RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}"
-	                          RUNTIME_OUTPUT_NAME_DEBUG "ChronoEngine_JSDBG"
-	                          ARCHIVE_OUTPUT_NAME_DEBUG "ChronoEngine_JSDBG")
+	                          LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
+	                          LIBRARY_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}"
+	                           RUNTIME_OUTPUT_NAME_DEBUG "ChronoEngine_JSDBG"
+	                           LIBRARY_OUTPUT_NAME_DEBUG "ChronoEngine_JSDBG"
+	                           ARCHIVE_OUTPUT_NAME_DEBUG "ChronoEngine_JSDBG")
 	                          
 	TARGET_LINK_LIBRARIES(ChronoEngine_JS
 		${CH_JAVASCRIPTLIB} 
