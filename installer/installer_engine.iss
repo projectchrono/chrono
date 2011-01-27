@@ -8,7 +8,7 @@
 ; Copyright 2009 A.Tasora
 
 #define MyAppName "ChronoEngine"
-#define MyAppVersion "v1.1.0"
+#define MyAppVersion "v1.3.0"
 #define MyAppPublisher "Alessandro Tasora"
 #define MyAppURL "http://www.deltaknowledge.com"
 #define MyChronoEngineSDK "C:\tasora\code\dynamics\code\ChronoEngine"
@@ -44,7 +44,6 @@ Source: {#MyChronoEngineSDK}\bin\*; Excludes: "*.pdb,demo_benchmark.exe,*\.svn,*
 Source: "C:\tasora\lavori\html\chronoengine\chronoengine_clock_small.jpg"; DestDir: "{app}\docs";
 Source: "chronostyle.css"; DestDir: "{app}\docs";
 
-;Source: {#MyChronoEngineSDK}\makes\____template_config.mak; DestDir: {app}\makes; DestName: config.mak; AfterInstall: myAfterMakesInstall; Flags: ignoreversion
 
 Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\*; DestDir: {code:myGetPathVisual9}VCWizards\ChronoEngineWizard; Check: myFoundVisual9; Flags: recursesubdirs createallsubdirs
 Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\HTML\1033\default.htm; DestDir: {code:myGetPathVisual9}VCWizards\ChronoEngineWizard\HTML\1033; AfterInstall: myAfterWizardInstall; Check: myFoundVisual9; Flags: ignoreversion

@@ -133,13 +133,11 @@ ENDIF()
 
 message(STATUS "Detected CH_COMPILER='${DETECTED_CH_COMPILER}'")
 message(STATUS "Detected CH_OS='${DETECTED_CH_OS}'")
-
+
 set(CH_COMPILER "${DETECTED_CH_COMPILER}" CACHE STRING "Set Compiler Type, Re-Run configure after changing")
 set(CH_COMPILER_VALUES "COMPILER_MSVC;COMPILER_GCC;COMPILER_MSVC_X64;COMPILER_GCC_X64")
 set_property(CACHE CH_COMPILER PROPERTY STRINGS ${CH_COMPILER_VALUES})
 
-
-# SET(CH_OS "WINDOWS" CACHE STRING   "Possible values: WINDOWS, LINUX")
 set(CH_OS "${DETECTED_CH_OS}" CACHE STRING "Set OS, Re-Run configure after changing")
 set(CH_OS_VALUES "WINDOWS;LINUX")
 set_property(CACHE CH_OS PROPERTY STRINGS ${CH_OS_VALUES})
@@ -992,11 +990,11 @@ IF (BUILD_CH_SDK)
 	                          ARCHIVE_OUTPUT_DIRECTORY_DEBUG   "${CH_LIBDIR}"
 	                          RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
 	                          RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}"
-		                  LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
+		            		  LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
 	                          LIBRARY_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}"
-	                          RUNTIME_OUTPUT_NAME_DEBUG "ChronoEngineDBG"
-	                          LIBRARY_OUTPUT_NAME_DEBUG "ChronoEngineDBG"
-	                          ARCHIVE_OUTPUT_NAME_DEBUG "ChronoEngineDBG")
+	                           RUNTIME_OUTPUT_NAME_DEBUG "ChronoEngineDBG"
+	                           LIBRARY_OUTPUT_NAME_DEBUG "ChronoEngineDBG"
+	                           ARCHIVE_OUTPUT_NAME_DEBUG "ChronoEngineDBG")
 	
 
 	                          
