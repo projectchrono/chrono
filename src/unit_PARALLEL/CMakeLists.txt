@@ -168,8 +168,11 @@ IF(ENABLE_UNIT_GPU)
 	                          ARCHIVE_OUTPUT_DIRECTORY_DEBUG   "${CH_LIBDIR}"
 	                          RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
 	                          RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}"
-	                          RUNTIME_OUTPUT_NAME_DEBUG "ChronoEngine_GPUDBG"
-	                          ARCHIVE_OUTPUT_NAME_DEBUG "ChronoEngine_GPUDBG")
+	                          LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
+	                          LIBRARY_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}"
+	                           RUNTIME_OUTPUT_NAME_DEBUG "ChronoEngine_GPUDBG"
+	                           LIBRARY_OUTPUT_NAME_DEBUG "ChronoEngine_GPUDBG"
+	                           ARCHIVE_OUTPUT_NAME_DEBUG "ChronoEngine_GPUDBG")
 	                          
 	TARGET_LINK_LIBRARIES(ChronoEngine_GPU
 		${CH_CUDA_LIBSDKUTIL} 
