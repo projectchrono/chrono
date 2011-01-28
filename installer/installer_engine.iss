@@ -49,6 +49,10 @@ Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\*; DestDir: {code:my
 Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\HTML\1033\default.htm; DestDir: {code:myGetPathVisual9}VCWizards\ChronoEngineWizard\HTML\1033; AfterInstall: myAfterWizardInstall; Check: myFoundVisual9; Flags: ignoreversion
 Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngine\*; DestDir: {code:myGetPathVisual9}Express\VCProjects\ChronoEngine; Check: myFoundVisual9;
 
+Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\*; DestDir: {code:myGetPathVisual10}VCWizards\ChronoEngineWizard; Check: myFoundVisual10; Flags: recursesubdirs createallsubdirs
+Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\HTML\1033\default.htm; DestDir: {code:myGetPathVisual10}VCWizards\ChronoEngineWizard\HTML\1033; AfterInstall: myAfterWizardInstall; Check: myFoundVisual10; Flags: ignoreversion
+Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngine\*; DestDir: {code:myGetPathVisual10}Express\VCProjects\ChronoEngine; Check: myFoundVisual10;
+
 
 
 [Icons]
@@ -83,10 +87,10 @@ Filename: "{app}\docs\tutorials.html"; Flags: shellexec postinstall
 
 [Code]
 var
-  mPathVisual8: String;
-  mFoundVisual8: Boolean;
   mPathVisual9: String;
   mFoundVisual9: Boolean;
+  mPathVisual10: String;
+  mFoundVisual10: Boolean;
   ConfigOptionPage: TInputOptionWizardPage;
   IrrlichtDirPage: TInputDirWizardPage;
   mPathIrrlicht: String;
@@ -108,6 +112,14 @@ end;
 function myGetPathVisual9(Param: String): String;
 begin
   Result := mPathVisual9;
+end;
+function myFoundVisual10(): Boolean;
+begin
+  Result := mFoundVisual10;
+end;
+function myGetPathVisual10(Param: String): String;
+begin
+  Result := mPathVisual10;
 end;
 function myGetPathIrrlicht(Param: String): String;
 begin
@@ -179,15 +191,6 @@ var
   mTitleIrrOptions : String;
 begin
 
-  // CHECK MICROSOFT VISUAL C++ 8.0 INSTALLATION
-  mFoundVisual8 := False;
-  if RegQueryStringValue(HKEY_LOCAL_MACHINE,
-                  'SOFTWARE\Microsoft\VCExpress\8.0\Setup\VC',
-                  'ProductDir',
-                  mPathVisual8) then
-  begin
-        mFoundVisual8 := True;
-  end
   // CHECK MICROSOFT VISUAL C++ 9.0 INSTALLATION
   mFoundVisual9 := False;
   if RegQueryStringValue(HKEY_LOCAL_MACHINE,
@@ -196,6 +199,15 @@ begin
                   mPathVisual9) then
   begin
         mFoundVisual9 := True;
+  end
+  // CHECK MICROSOFT VISUAL C++ 10.0 INSTALLATION
+  mFoundVisual10 := False;
+  if RegQueryStringValue(HKEY_LOCAL_MACHINE,
+                  'SOFTWARE\Microsoft\VCExpress\10.0\Setup\VC',
+                  'ProductDir',
+                  mPathVisual10) then
+  begin
+        mFoundVisual10 := True;
   end
 
   { Create the pages }
@@ -281,9 +293,15 @@ begin
   S := S + 'The Chrono::Engine SDK will be installed in:' + NewLine;
   S := S + Space + ExpandConstant('{app}') + NewLine + NewLine;
   
-  if (mFoundVisual8 = True)  then
+  if (mFoundVisual9 = True)  then
   begin
-      S := S + 'A copy of Visual Studio Express has been found in:' + NewLine;
+      S := S + 'A copy of Visual Studio Express 9 has been found in:' + NewLine;
+      S := S + Space + mPathVisual8 + NewLine;
+      S := S + '(a new code wizard will be added to your Visual C++ editor)' + NewLine + NewLine;
+  end
+  if (mFoundVisual10 = True)  then
+  begin
+      S := S + 'A copy of Visual Studio Express 10 has been found in:' + NewLine;
       S := S + Space + mPathVisual8 + NewLine;
       S := S + '(a new code wizard will be added to your Visual C++ editor)' + NewLine + NewLine;
   end
