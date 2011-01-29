@@ -19,22 +19,22 @@ bool useOpenGL=1;
 bool saveTimingData=0;
 bool saveSimData;
 
-double mSphereRadius=.4;
+double mSphereRadius=.2;
 double mSphereEnvelope=.01;
 double mSphereMass = .001;
 double mSphereRestitution=0.0;
-double mTimeStep=.01;
+double mTimeStep=.005;
 double mCurrentTime=0;
-double mMu=.1;
+double mMu=0;
 double mTriangleScale=1/10.0;
-double mEndTime=10.0;
+double mEndTime=100;
 double mCameraX=0, mCameraY=0, mCameraZ=0;
 double mBoundingBoxSize=10;
 
 double mOffsetX=0;
 double mOffsetY=0;
 double mOffsetZ=0;
-int mNumSpheres=10000;
+int mNumSpheres=100000;
 int mNumCurrentSpheres=0;
 int mNumBoxes=1;
 int mNumTriangles=0;
@@ -94,9 +94,9 @@ void createSpheres(int x, int y, int z, double posX, double posY, double posZ){
 	for (int xx=0; xx<x; xx++){
 		for (int yy=0; yy<y; yy++){
 			for (int zz=0; zz<z; zz++){
-				ChVector<> mParticlePos((xx-x/2.0)-mOffsetX+rand()%1000/10000.0,yy-mOffsetY+rand()%1000/10000.0,(zz-z/2.0)-mOffsetZ+rand()%1000/10000.0);
+				ChVector<> mParticlePos((xx-x/2.0)-mOffsetX+rand()%1000/10000.0,(yy-y/2.0)-mOffsetY+rand()%1000/10000.0,(zz-z/2.0)-mOffsetZ+rand()%1000/10000.0);
 				mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
-				makeSphere(mrigidBody, mSphereRadius, mSphereMass, mParticlePos, mMu, mMu, mSphereRestitution, true);
+				makeSphere(mrigidBody, mSphereRadius, mSphereMass, mParticlePos/2.0, mMu, mMu, mSphereRestitution, true);
 				mPhysicalSystem->AddBody(mrigidBody);
 			}
 		}
@@ -150,6 +150,12 @@ void loadTriangleMesh(string name){
 	}
 }
 void doTimeStep(){
+	
+	if(mNumCurrentSpheres<mNumSpheres&&mFrameNumber%100==0){
+		createSpheres(10, 10, 10, 0, 0, 0);
+		mNumCurrentSpheres+=10*10*10;
+	}
+	mPhysicalSystem->DoStepDynamics( mTimeStep );
 	cout<<"T:   "<<mPhysicalSystem->GetChTime()
 		<<"\tC: "<<mPhysicalSystem->GetTimerStep()
 		<<"\tG: "<<mPhysicalSystem->GetTimerCollisionBroad()
@@ -157,11 +163,7 @@ void doTimeStep(){
 		<<"\tB: "<<mPhysicalSystem->GetNbodies()
 		<<"\tC: "<<((ChLcpSystemDescriptorGPU*)(mPhysicalSystem->GetLcpSystemDescriptor()))->nContactsGPU<<endl;
 
-	if(mNumCurrentSpheres<mNumSpheres&&mFrameNumber%1000==0){
-		createSpheres(10, 10, 10, 0, 0, 0);
-		mNumCurrentSpheres+=10*10*10;
-	}
-	mPhysicalSystem->DoStepDynamics( mTimeStep );
+	
 	mCurrentTime+=mTimeStep;
 	mFrameNumber++;
 	if(mPhysicalSystem->GetChTime()>=mEndTime){exit(0);}
@@ -265,25 +267,24 @@ void changeSize(int w, int h) {
 int main(int argc, char* argv[]){ 
 	cudaSetDevice(mCudaDevice);
 	DLL_CreateGlobals();
-	ChLcpSystemDescriptorGPU		mGPUDescriptor(mNumSpheres+100,mNumSpheres*5, 1 );
+	ChLcpSystemDescriptorGPU		mGPUDescriptor(mNumSpheres+100,mNumSpheres*6, 1 );
 	ChContactContainerGPUsimple		mGPUContactContainer;
-	ChCollisionSystemGPU			mGPUCollisionEngine(mSphereEnvelope,0, mNumSpheres*5);
-
+	ChCollisionSystemGPU			mGPUCollisionEngine(mSphereEnvelope,0, mNumSpheres*6);
 	ChSystem mphysicalSystem(mNumSpheres+100, 50); 
 
-	ChLcpIterativeSolverGPUsimple	mGPUsolverSpeed(&mGPUContactContainer, 150, 1e-3, 0.2);
+	ChLcpIterativeSolverGPUsimple	mGPUsolverSpeed(&mGPUContactContainer, 100, 1e-3, 0.2);
 	mGPUsolverSpeed.SetDt(mTimeStep);
 	mphysicalSystem.ChangeLcpSystemDescriptor(&mGPUDescriptor);
-
+	
 	mphysicalSystem.ChangeContactContainer(&mGPUContactContainer);
 	mphysicalSystem.ChangeLcpSolverSpeed(&mGPUsolverSpeed);
 	mphysicalSystem.ChangeCollisionSystem(&mGPUCollisionEngine);
-
+	
 	mGPUCollisionEngine.SetSystemDescriptor(&mGPUDescriptor);
 	mGPUsolverSpeed.SetSystemDescriptor(&mGPUDescriptor);
 
 	mphysicalSystem.SetIntegrationType(ChSystem::INT_ANITESCU);
-	mphysicalSystem.SetIterLCPmaxItersSpeed(10);
+	//mphysicalSystem.SetIterLCPmaxItersSpeed(10);
 	mphysicalSystem.SetMaxPenetrationRecoverySpeed(.1);
 	mphysicalSystem.SetIterLCPwarmStarting(false);
 	mphysicalSystem.Set_G_acc(ChVector<>(0,-9.834,0));
