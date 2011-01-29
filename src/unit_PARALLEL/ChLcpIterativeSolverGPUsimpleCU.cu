@@ -1725,6 +1725,45 @@ __global__ void ChKernelLCPspeedupdate2(CH_REALNUMBER4* bodies , CH_REALNUMBER3*
 	bodies[id]+=mUpdateV;
 	bodies[id+deviceBodyPitch]+=mUpdateO;
 }
+//__global__ void ChKernelLCPspeedupdate3(CH_REALNUMBER4* bodies , CH_REALNUMBER3* d_vel_update,CH_REALNUMBER3* d_omega_update, uint* d_body_num,/*int* d_omega_key,*/ uint* counter, int siz){
+//	unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+//	uint tid= threadIdx.x;
+//	if(i>=siz){return;}
+//	int start=(i>0)*counter[i-1], end=counter[i];
+//	int updates=end-start;
+//	int completed=updates;
+//	__shared__ float4 mUpdateV[32];
+//	__shared__ float4 mUpdateO[32];
+//	for(int j=0; j<32; j++){
+//		mUpdateV[j]=mUpdateO[j]=F4(0);
+//	}
+//	int id=d_body_num[start];
+//	for(int j=0; j<updates; j+=32){
+//		if(tid<completed){
+//			mUpdateV[tid]+=make_float4((d_vel_update[j+start]),0);
+//			mUpdateO[tid]+=make_float4((d_omega_update[j+start]),0);
+//		}
+//		if(tid<16){
+//			mUpdateV[tid]+=mUpdateV[tid+8];
+//			mUpdateO[tid]+=mUpdateO[tid+8];
+//		}
+//		if(tid<8){
+//			mUpdateV[tid]+=mUpdateV[tid+4];
+//			mUpdateO[tid]+=mUpdateO[tid+4];
+//		}
+//		if(tid<4){
+//			mUpdateV[tid]+=mUpdateV[tid+2];
+//			mUpdateO[tid]+=mUpdateO[tid+2];
+//		}
+//		if(tid<2){
+//			mUpdateV[tid]+=mUpdateV[tid+1];
+//			mUpdateO[tid]+=mUpdateO[tid+1];
+//		}
+//		completed-=32;
+//	}
+//	bodies[id]+=mUpdateV[0];
+//	bodies[id+deviceBodyPitch]+=mUpdateO[0];
+//}
 //using namespace thrust;
 //struct addTuple
 //{
@@ -1754,10 +1793,10 @@ __global__ void ChKernelLCPspeedupdate2(CH_REALNUMBER4* bodies , CH_REALNUMBER3*
 //};
 namespace chrono{
 	void ChRunSolverTimestep(
-		bool do_integration_step,
 		CH_REALNUMBER max_recovery_speed,
 		CH_REALNUMBER mCfactor,
 		CH_REALNUMBER mstepSize,
+		CH_REALNUMBER tolerance,
 		uint bodies_data_pitch,
 		uint contacts_data_pitch,
 		uint bilaterals_data_pitch,
@@ -1771,8 +1810,7 @@ namespace chrono{
 		thrust::host_vector<float4> &h_bodies,
 		thrust::host_vector<float4> &h_bilaterals){
 			CUT_CHECK_ERROR("START Solver");	
-			cout<<do_integration_step<<" "
-			<<max_recovery_speed<<" "
+			/*cout<<max_recovery_speed<<" "
 			<<mCfactor<<" "
 			<<mstepSize<<" "
 			<<bodies_data_pitch<<" "
@@ -1782,17 +1820,17 @@ namespace chrono{
 			<<max_iterations<<" "
 			<<n_bilaterals_GPU<<" "
 			<<n_contacts_GPU<<" "
-			<<n_bodies_GPU;
+			<<n_bodies_GPU;*/
+			unsigned int n_total_constraints=n_contacts_GPU+n_bilaterals_GPU;
 
-			thrust::device_vector<float4>	d_buffer_bodies			=h_bodies;
-			thrust::device_vector<float4>	d_buffer_bilaterals		=h_bilaterals;
-			thrust::device_vector<float3>	d_buffer_vel		((n_contacts_GPU+n_bilaterals_GPU)*2);
-			thrust::device_vector<float3>	d_buffer_omega		((n_contacts_GPU+n_bilaterals_GPU)*2);
-			thrust::device_vector<uint>		d_bodyNum			((n_contacts_GPU+n_bilaterals_GPU)*2,0);
-			thrust::device_vector<uint>		d_updateNum			((n_contacts_GPU+n_bilaterals_GPU)*2,0);
-			thrust::device_vector<uint>		d_update_offset		((n_contacts_GPU+n_bilaterals_GPU)*2,0);
-			thrust::device_vector<uint>		d_offset_counter	((n_contacts_GPU+n_bilaterals_GPU)*2,0);
-			thrust::device_vector<float>	d_delta_correction	((n_contacts_GPU+n_bilaterals_GPU)*2,0);
+			thrust::device_vector<float4>	d_buffer_bodies		=h_bodies;
+			thrust::device_vector<float4>	d_buffer_bilaterals	=h_bilaterals;
+			thrust::device_vector<float3>	d_buffer_vel		((n_total_constraints)*2);
+			thrust::device_vector<float3>	d_buffer_omega		((n_total_constraints)*2);
+			thrust::device_vector<uint>		d_bodyNum			((n_total_constraints)*2,0);
+			thrust::device_vector<uint>		d_updateNum			((n_total_constraints)*2,0);
+			thrust::device_vector<uint>		d_update_offset		((n_total_constraints)*2,0);
+			thrust::device_vector<float>	d_delta_correction	((n_total_constraints)*2,0);
 
 			//cudaBindTexture( NULL, texContacts,   CASTF4(d_buffer_contacts),   contacts_data_pitch*CH_CONTACT_VSIZE*CH_CONTACT_HSIZE );
 			cudaBindTexture( NULL, texBody,   CASTF4(d_buffer_bodies),   h_bodies.size()*sizeof(float4) );
@@ -1813,11 +1851,10 @@ namespace chrono{
 			CUDA_SAFE_CALL(cudaMemcpyToSymbolAsync(bodiesGPU,			&n_bodies_GPU,			sizeof(n_bodies_GPU)));				//number of bodies should end up in constant memory
 
 			CUT_CHECK_ERROR("COPY CONSTANTS");	
-			//thrust::equal_to<uint> binary_pred;
 
-			ChKernelContactsPreprocess<<< max(ceil((n_contacts_GPU)/((double)CH_PREPROCESSING_TPB)),1.0), CH_PREPROCESSING_TPB >>>(d_buffer_contacts, CASTF4(d_buffer_bodies));CUT_CHECK_ERROR("ChKernelContactsPreprocess");
-			ChKernelLCPaddForces<<< ceil((n_bodies_GPU)/((double)CH_LCPADDFORCES_TPB)), CH_LCPADDFORCES_TPB >>>(CASTF4(d_buffer_bodies) );	CUT_CHECK_ERROR("ChKernelLCPaddForces");	
-			ChKernelLCPcomputeOffsets<<< max(ceil((n_contacts_GPU+n_bilaterals_GPU)/((double)CH_PREPROCESSING_TPB)),1.0), CH_PREPROCESSING_TPB >>>(d_buffer_contacts,CASTF4(d_buffer_bilaterals),CASTU1(d_bodyNum));
+			ChKernelContactsPreprocess	<<< max(ceil(n_contacts_GPU		/double(CH_PREPROCESSING_TPB)),1.0)	, CH_PREPROCESSING_TPB	>>>(d_buffer_contacts, CASTF4(d_buffer_bodies));						CUT_CHECK_ERROR("ChKernelContactsPreprocess");
+			ChKernelLCPaddForces		<<< max(ceil(n_bodies_GPU		/double(CH_LCPADDFORCES_TPB)),1.0)	, CH_LCPADDFORCES_TPB	>>>(CASTF4(d_buffer_bodies) );											CUT_CHECK_ERROR("ChKernelLCPaddForces");	
+			ChKernelLCPcomputeOffsets	<<< max(ceil(n_total_constraints/double(CH_PREPROCESSING_TPB)),1.0)	, CH_PREPROCESSING_TPB	>>>(d_buffer_contacts,CASTF4(d_buffer_bilaterals),CASTU1(d_bodyNum));	CUT_CHECK_ERROR("ChKernelLCPcomputeOffsets");
 
 			thrust::sequence(d_updateNum.begin(),d_updateNum.end());
 			thrust::sort_by_key(d_bodyNum.begin(),d_bodyNum.end(),d_updateNum.begin());
@@ -1825,10 +1862,10 @@ namespace chrono{
 			thrust::sequence(d_update_offset.begin(),d_update_offset.end());
 			thrust::sort_by_key(d_updateNum.begin(),d_updateNum.end(),d_update_offset.begin());
 
-			thrust::fill(d_offset_counter.begin(),d_offset_counter.end(),0);
+			//thrust::fill(d_offset_counter.begin(),d_offset_counter.end(),0);
 
-			int updates=thrust::reduce_by_key(d_bodyNum.begin(), d_bodyNum.end(), thrust::constant_iterator<uint>(1), d_updateNum.begin(), d_offset_counter.begin()).first-d_updateNum.begin();
-			thrust::inclusive_scan(d_offset_counter.begin(), d_offset_counter.end(), d_offset_counter.begin());
+			int updates=thrust::reduce_by_key(d_bodyNum.begin(), d_bodyNum.end(), thrust::constant_iterator<uint>(1), d_updateNum.begin(), d_updateNum.begin()).first-d_updateNum.begin();
+			thrust::inclusive_scan(d_updateNum.begin(), d_updateNum.end(), d_updateNum.begin());
 
 			if(n_contacts_GPU>0||n_bilaterals_GPU>0){
 				for (int iter = 0; iter < max_iterations; iter++){
@@ -1857,12 +1894,12 @@ namespace chrono{
 						CASTF3(d_buffer_vel),
 						CASTF3(d_buffer_omega),  
 						CASTU1(d_bodyNum),
-						CASTU1(d_offset_counter),
+						CASTU1(d_updateNum),
 						updates);
 
 					int position = thrust::max_element(d_delta_correction.begin(), d_delta_correction.end()) - d_delta_correction.begin();
 					float value = d_delta_correction[position]; 
-					if(value<1e-5){cout<<" "<<iter<<endl;break;}
+					if(value<tolerance){cout<<" "<<iter<<endl;break;}
 					if(iter==max_iterations){cout<<" "<<iter<<endl;}
 				}
 			}

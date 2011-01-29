@@ -50,19 +50,19 @@ typedef unsigned int uint;
 
 struct __align__(16) int3f
 {
-  int x,y,z;
-  float w;
+	int x,y,z;
+	float w;
 };
 
 
 static __inline__ __host__ __device__ int3f make_int3f(int x, int y, int z, float w)
 {
-  int3f t; 
-  t.x = x; 
-  t.y = y; 
-  t.z = z; 
-  t.w = w; 
-  return t;
+	int3f t; 
+	t.x = x; 
+	t.y = y; 
+	t.z = z; 
+	t.w = w; 
+	return t;
 }
 
 #define CASTI3F(x) (int3f*)thrust::raw_pointer_cast(&x[0])
@@ -76,12 +76,19 @@ inline __host__ __device__ float3 ceil(float3 v)
 //custom version of max used to get the maximum of a single float3
 inline __host__ __device__ float max(float3 a)
 {
-    return max(a.x,max(a.y,a.z));
+	return max(a.x,max(a.y,a.z));
 }
 
 inline __host__ __device__ float maxf3(float3 a)
 {
-    return max(a.x,max(a.y,a.z));
+	return max(a.x,max(a.y,a.z));
+}
+
+float __host_int_as_float(int a)
+{ 
+	union {int a; float b;} u; 
+	u.a = a; 
+	return u.b; 
 }
 //////////////////////////////////////////////////
 
@@ -101,25 +108,25 @@ inline __host__ __device__ float maxf3(float3 a)
 #define CH_PREPROCESSING_SH_MEM_BLOCK_SIZE 13 //note that this odd number will ensure no bank conflicts
 
 #ifndef CH_CUDAGPUEMULATION
-	//***ALEX*** TO DO: FIND OPTIMAL VALUES FOR THESE DEFs, SEE OCCUPANCY & .cubin
+//***ALEX*** TO DO: FIND OPTIMAL VALUES FOR THESE DEFs, SEE OCCUPANCY & .cubin
 
-   // optimized values for cuda 1.1 (to be improved!!)
- #define CH_PREPROCESSING_TPB 128   
- #define CH_LCPADDFORCES_TPB 128
- #define CH_LCPITERATION_TPB 128
- #define CH_LCPITERATIONBILATERALS_TPB 128
- #define CH_LCPINTEGRATE_TPB 128
- #define CH_REDUCTION_TPB 128
- #define CH_SPEEDUPDATE_TPB 128
+// optimized values for cuda 1.1 (to be improved!!)
+#define CH_PREPROCESSING_TPB 128   
+#define CH_LCPADDFORCES_TPB 128
+#define CH_LCPITERATION_TPB 128
+#define CH_LCPITERATIONBILATERALS_TPB 128
+#define CH_LCPINTEGRATE_TPB 128
+#define CH_REDUCTION_TPB 128
+#define CH_SPEEDUPDATE_TPB 128
 #else
- // for device emulation (using too may threads slow down things too much..)
- #define CH_PREPROCESSING_TPB 8
- #define CH_LCPADDFORCES_TPB 8
- #define CH_LCPITERATION_TPB 8
- #define CH_LCPITERATIONBILATERALS_TPB 8
- #define CH_LCPINTEGRATE_TPB 8
- #define CH_REDUCTION_TPB 8
- #define CH_SPEEDUPDATE_TPB 8
+// for device emulation (using too may threads slow down things too much..)
+#define CH_PREPROCESSING_TPB 8
+#define CH_LCPADDFORCES_TPB 8
+#define CH_LCPITERATION_TPB 8
+#define CH_LCPITERATIONBILATERALS_TPB 8
+#define CH_LCPINTEGRATE_TPB 8
+#define CH_REDUCTION_TPB 8
+#define CH_SPEEDUPDATE_TPB 8
 #endif
 
 

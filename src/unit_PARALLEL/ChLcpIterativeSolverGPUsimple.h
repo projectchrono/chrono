@@ -33,15 +33,11 @@ namespace chrono{
 		//
 
 		ChLcpIterativeSolverGPUsimple(
-			ChContactContainerGPUsimple* mcont = 0, ///< this solver can be used _only_ together with a ChContactContainerGPUsimple 
-			int mmax_iters=50,      ///< max.number of iterations
-			bool mwarm_start=false,	///< uses warm start?
-			double mtolerance=0.0,  ///< tolerance for termination criterion
-			double momega=0.2,      ///< overrelaxation criterion
-			int max_num_GPU_contacts=60000,  ///< maximum allowed number of contacts
-			int max_num_GPU_bodies=10000,	 ///< maximum allowed number of bodies
-			int max_num_GPU_bilaterals=1024  ///< maximum allowed number of bilateral constraints
-			)  ;
+			ChContactContainerGPUsimple* container = 0, ///< this solver can be used _only_ together with a ChContactContainerGPUsimple 
+			int maxIteration=50,						///< max.number of iterations
+			double tolerance=1e-5,						///< tolerance for termination criterion
+			double omega=0.2							///< overrelaxation criterion
+			);
 
 
 		virtual ~ChLcpIterativeSolverGPUsimple();
@@ -65,22 +61,20 @@ namespace chrono{
 		/// Set the integration dt step. Remember to update this value before calling Solve() , because 
 		/// the postprocessing will take care of time step integration, which depends on the dt.
 		/// ***OBSOLETE**** do not use this
-		void SetDt(double mdt) {if (mdt>0) this->dt = mdt; }
-		double GetDt() {return dt;} 
+		void SetDt(double dt) {if (dt>0) mDt = dt; }
+		double GetDt() {return mDt;} 
 
 		/// Set the maximum recovery speed for stabilization. Remember to update this value 
 		/// before calling Solve() , because the preprocessing will take care of building contact 
 		/// residuals with stabilization factors, which depends on this recovery speed value.
-		void SetMaxRecoverySpeed(double mrs) {if (mrs>0) this->max_recoveryspeed = mrs; }
-		double GetMaxRecoverySpeed() {return max_recoveryspeed;}
+		void SetMaxRecoverySpeed(double mrs) {if (mrs>0) mMaxRecoverySpeed = mrs; }
+		double GetMaxRecoverySpeed() {return mMaxRecoverySpeed;}
 
 		/// Set the multiplier for the contact residuals. Remember to update this value 
 		/// before calling Solve() , because the preprocessing will take care of building contact 
 		/// residuals with stabilization factors, which depends on this recovery speed value.
-		void SetC_factor(double mf) {if (mf>0) this->C_factor = mf; }
-		double GetC_factor() {return C_factor;}
-
-
+		void SetC_factor(double mf) {if (mf>0) mCFactor = mf; }
+		double GetC_factor() {return mCFactor;}
 
 		/// After you performed Solve(), you can call the following function to execute a
 		/// GPU kernel for doing the first order Eulero integration of body positions as p=p+v*dt 
@@ -91,8 +85,8 @@ namespace chrono{
 
 		/// Turn on this functionality if you want that the integration step is
 		/// performed by a CUDA kernel, right after the solution of the LCP.
-		virtual void Set_do_integration_step(bool md) {this->do_integration_step = md;}
-		virtual bool Get_do_integration_step() {return this->do_integration_step;}
+		virtual void Set_do_integration_step(bool md) {this->mDoIntegrationStep = md;}
+		virtual bool Get_do_integration_step() {return this->mDoIntegrationStep;}
 
 		void SetSystemDescriptor(ChLcpSystemDescriptorGPU* mdescriptor);
 
@@ -102,26 +96,21 @@ namespace chrono{
 		//
 
 		// for the preprocesing of contacts
-		double dt;
-		double max_recoveryspeed;
-		double C_factor;
+		double mDt;					//Timestep
+		double mTolerance;			//Tolerance for Solver
+		double mMaxRecoverySpeed;
+		double mCFactor;
+		double mOmega;
 
-		unsigned int max_GPU_bodies;
-		unsigned int max_GPU_contacts;
-		unsigned int max_GPU_bilaterals;
+		bool mDoIntegrationStep;	
+		unsigned int mStepCounter; // this to have normalization on quaternion only each N steps
+		unsigned int mMaxIterations;
 
-		unsigned int n_bodies_GPU;
-		unsigned int n_contacts_GPU;
-		unsigned int n_bilaterals_GPU;
+		thrust::host_vector<float4>   h_bodies;		//Host vector for bodyData
+		thrust::host_vector<float4>   h_bilaterals;	//Device vector for bodyData
 
-		bool do_integration_step;
-		unsigned int step_counter; // this to have normalization on quaternion only each N steps
-
-		thrust::host_vector<float4>   h_bodies;
-		thrust::host_vector<float4>   h_bilaterals;
-
-		ChContactContainerGPUsimple* gpu_contact_container; // will be asked which was C factor,max.speed.clamping etc. so to perform contact preprocessing in solver (Dan' jacobian/residual gpu computation)
-		ChLcpSystemDescriptorGPU* mSystemDescriptor;
+		ChContactContainerGPUsimple*  gpu_contact_container; // will be asked which was C factor,max.speed.clamping etc. so to perform contact preprocessing in solver (Dan' jacobian/residual gpu computation)
+		ChLcpSystemDescriptorGPU*	  mSystemDescriptor;	
 
 
 	private:
@@ -156,10 +145,10 @@ namespace chrono{
 
 	
 void ChRunSolverTimestep(
-		bool do_integration_step,
 		CH_REALNUMBER max_recovery_speed,
 		CH_REALNUMBER mCfactor,
 		CH_REALNUMBER mstepSize,
+		CH_REALNUMBER tolerance,
 		uint bodies_data_pitch,
 		uint contacts_data_pitch,
 		uint bilaterals_data_pitch,

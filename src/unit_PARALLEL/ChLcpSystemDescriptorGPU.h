@@ -39,7 +39,7 @@ namespace chrono{
 		float4 *vContactsGPU;
 		//float4 *vBilateralsGPU;
 		thrust::device_vector<uint> *d_contact_bodyID;
-
+		
 		uint nContactsGPU,nBilateralsGPU,nBodiesGPU;
 		uint maxContacts,maxBilaterals,maxBodies;
 	};
