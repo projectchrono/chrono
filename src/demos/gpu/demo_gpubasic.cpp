@@ -236,8 +236,8 @@ int main(int argc, char* argv[])
 	// also GPU collision detection that avoids bottlenecks in cd->solver data transfer.
 	ChLcpSystemDescriptorGPU		newdescriptor(1000,1000*5, 1000);
 	ChContactContainerGPUsimple		mGPUcontactcontainer;
-	ChLcpIterativeSolverGPUsimple	mGPUsolverSpeed(&mGPUcontactcontainer, 50, false, 0, 0.2, 20000, 3000, 1000);
-	ChLcpIterativeSolverGPUsimple	mGPUsolverPos(&mGPUcontactcontainer,  50, false, 0, 0.2, 20000, 3000, 1000);
+	ChLcpIterativeSolverGPUsimple	mGPUsolverSpeed(&mGPUcontactcontainer, 50, 1e-5, 0.2);
+	ChLcpIterativeSolverGPUsimple	mGPUsolverPos(&mGPUcontactcontainer,  50, 1e-5, 0.2);
 
 	mphysicalSystem.ChangeContactContainer(&mGPUcontactcontainer);
 	mphysicalSystem.ChangeLcpSolverSpeed(&mGPUsolverSpeed);

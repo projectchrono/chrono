@@ -1,27 +1,67 @@
-#define OGL 1
-#include "physics/ChApidll.h" 
-#include "physics/ChSystem.h"
-#include "unit_GPU/ChCCollisionModelGPU.h"
-#include "unit_GPU/ChBodyGPU.h"
-#include "physics/ChContactContainerBase.h"
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <GL/glut.h>
 #include <cutil_inline.h>
+#include "physics/ChApidll.h" 
+#include "physics/ChSystem.h"
+#include "physics/ChContactContainerBase.h"
 #include "unit_GPU/ChLcpIterativeSolverGPUsimple.h"
 #include "unit_GPU/ChContactContainerGPUsimple.h"
 #include "unit_GPU/ChCCollisionSystemGPU.h"
 #include "unit_GPU/ChLcpSystemDescriptorGPU.h"
-#include <GL/glut.h>
-
-
+#include "unit_GPU/ChCCollisionModelGPU.h"
+#include "unit_GPU/ChBodyGPU.h"
 using namespace chrono;
 using namespace std;
 
+bool useOpenGL=1;
+bool saveTimingData=0;
+bool saveSimData;
 
+double mSphereRadius=.4;
+double mSphereEnvelope=.01;
+double mSphereMass = .001;
+double mSphereRestitution=0.0;
+double mTimeStep=.01;
+double mCurrentTime=0;
+double mMu=.1;
+double mTriangleScale=1/10.0;
+double mEndTime=10.0;
+double mCameraX=0, mCameraY=0, mCameraZ=0;
+double mBoundingBoxSize=10;
 
-float3 GetColour(double v,double vmin,double vmax)
-{
+double mOffsetX=0;
+double mOffsetY=0;
+double mOffsetZ=0;
+int mNumSpheres=10000;
+int mNumCurrentSpheres=0;
+int mNumBoxes=1;
+int mNumTriangles=0;
+int mFrameNumber=0;
+int mSaveEveryX=(1/mTimeStep)/100.0;
+int mCudaDevice=0;
+
+ChSystem* mPhysicalSystem;
+
+ofstream mTimingFile;
+ofstream mDataFile;
+
+ChSharedBodyPtr mgroundBody;
+
+void makeSphere(ChSharedBodyPtr &body, double radius, double mass,ChVector<> pos,double sfric,double kfric,double restitution,double collide){
+	body.get_ptr()->SetMass(mass);
+	body.get_ptr()->SetPos(pos);
+	body.get_ptr()->GetCollisionModel()->ClearModel();
+	body.get_ptr()->GetCollisionModel()->AddSphere(mSphereRadius);
+	body.get_ptr()->GetCollisionModel()->BuildModel();
+	body.get_ptr()->SetCollide(collide);
+	body.get_ptr()->SetImpactC(restitution);
+	body.get_ptr()->SetSfriction(sfric);
+	body.get_ptr()->SetKfriction(kfric);
+}
+
+float3 GetColour(double v,double vmin,double vmax){
 	float3 c = {1.0,1.0,1.0}; // white
 	double dv;
 
@@ -47,130 +87,25 @@ float3 GetColour(double v,double vmin,double vmax)
 	return(c);
 }
 
-double 
-particle_radius = .004,
-tank_radius=1,
-envelope = 0.01,//0.0025
-time_step= 0.005,
-current_time = 0.0,
-particle_friction=.03,
-bin_size=.2;
 
-unsigned int NSPSide=2;
-bool ogl=0;
-int num_particles = 5000;
-int pieces=1,frame_number = 0,numP=0;
-bool save=false;
-int every_x_file=(1/.001)/100.0; 
-ChSystem* mphysicalSystemG;
-ofstream timer_file;
-ofstream out_file;
-ChSharedBodyPtr mgroundBody;
-
-
-
-
-void create_falling_items(ChSystem* mphysicalSystem, double body_radius, float fric, int n_bodies,double tank_radius){
-	double particle_mass = .0001;
+//creates a grid of spheres at a certain location
+void createSpheres(int x, int y, int z, double posX, double posY, double posZ){
 	ChSharedBodyPtr mrigidBody;
-	//ifstream domfile("domino.txt");
-	vector<float4> spheres;
-	float scale =10.0;
-	float rad=particle_radius*scale*20;
-	//for(int i=0; i<4; i++){
-	//	float4 temp;
-	//	domfile>>temp.x>>temp.z>>temp.y;
-	//	temp.w=rad;
-	//	cout<<temp.x<<"\t"<<temp.y<<"\t"<<temp.z<<endl;;
-	//	spheres.push_back(temp/scale);
-	//}
-	//spheres.push_back(make_float4(0,	0,	0	,rad*10)/scale);
-	/*spheres.push_back(make_float4(-.3,	0,	-.3	,rad)/scale);
-	spheres.push_back(make_float4(.3,	0,	-.3	,rad)/scale);
-	spheres.push_back(make_float4(-.3,	0,	.3	,rad)/scale);
-	spheres.push_back(make_float4(.3,	0,	.3	,rad)/scale);
-	spheres.push_back(make_float4(-.3,	.3,	-.3	,rad)/scale);
-	spheres.push_back(make_float4(.3,	.3,	-.3	,rad)/scale);
-	spheres.push_back(make_float4(-.3,	.3,	.3	,rad)/scale);
-	spheres.push_back(make_float4(.3,	.3,	.3	,rad)/scale);*/
-	//ifstream ifile("dom.txt");
-	float x,y,z;
-	float a=6;
-	for (int yy=0; yy<10; yy++){
-		for (int zz=0; zz<10; zz++){
-			for (int xx=0; xx<10; xx++){
-				//ChVector<> particle_pos((xx-5)/a+4,yy/a+23,(zz-5)/a-4.2);
-				ChVector<> particle_pos((xx-5)/a+rand()%1000/10000.0,yy/a-tank_radius+3+rand()%1000/10000.0,(zz-5)/a+rand()%1000/10000.0);					//flow
-				//ChVector<> particle_pos((xx-10)/a+rand()%1000/10000.0,yy/a+3,(zz-10)/a+rand()%1000/10000.0); //teapot
-				//ChVector<> particle_pos(rand()%100/100.0-.5,-tank_radius+.2+rand()%100/10000.0,rand()%100/100.0-.5);
+	for (int xx=0; xx<x; xx++){
+		for (int yy=0; yy<y; yy++){
+			for (int zz=0; zz<z; zz++){
+				ChVector<> mParticlePos((xx-x/2.0)-mOffsetX+rand()%1000/10000.0,yy-mOffsetY+rand()%1000/10000.0,(zz-z/2.0)-mOffsetZ+rand()%1000/10000.0);
 				mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
-				mrigidBody.get_ptr()->SetMass(particle_mass);
-				mrigidBody.get_ptr()->SetPos(particle_pos);
-				mrigidBody.get_ptr()->GetCollisionModel()->ClearModel();
-				//cModel->AddCompoundBody(8, spheres);
-				mrigidBody.get_ptr()->GetCollisionModel()->AddSphere(rad/scale);
-				mrigidBody.get_ptr()->GetCollisionModel()->BuildModel();
-				mrigidBody.get_ptr()->SetCollide(true);
-				mrigidBody.get_ptr()->SetImpactC(0.0);
-				//mrigidBody->SetInertiaXX(chrono::Vector(.000005333,.000005333,.000005333));
-				///mrigidBody->SetInertiaXY(chrono::Vector(0,0,0));
-				mrigidBody.get_ptr()->SetSfriction(0.05);
-				mrigidBody.get_ptr()->SetKfriction(0.05);
-				mphysicalSystem->AddBody(mrigidBody);
+				makeSphere(mrigidBody, mSphereRadius, mSphereMass, mParticlePos, mMu, mMu, mSphereRestitution, true);
+				mPhysicalSystem->AddBody(mrigidBody);
 			}
 		}
 	}
-	//ChVector<> particle_pos(0,0,0);
-	//mrigidBody = ChSharedBodyPtr(new ChBody);
-	//mrigidBody.get_ptr()->SetMass(particle_mass);
-	//mrigidBody.get_ptr()->SetPos(particle_pos);
-	//mrigidBody.get_ptr()->GetCollisionModel()->ClearModel();
-	//mrigidBody.get_ptr()->GetCollisionModel()->AddSphere(rad/scale);
-	//mrigidBody.get_ptr()->GetCollisionModel()->BuildModel();
-	//mrigidBody->SetBodyFixed(false);
-	//mrigidBody.get_ptr()->SetCollide(true);
-	//mrigidBody.get_ptr()->SetImpactC(0.0);
-	//mrigidBody.get_ptr()->SetSfriction(0.05);
-	//mrigidBody.get_ptr()->SetKfriction(0.05);
-	//mphysicalSystem->AddBody(mrigidBody);
-
-	//ChVector<> particle_pos2(.1,0,0);
-	//mrigidBody = ChSharedBodyPtr(new ChBody);
-	//mrigidBody.get_ptr()->SetMass(particle_mass);
-	//mrigidBody.get_ptr()->SetPos(particle_pos2);
-	//mrigidBody.get_ptr()->GetCollisionModel()->ClearModel();
-	//mrigidBody.get_ptr()->GetCollisionModel()->AddSphere(rad/scale);
-	//mrigidBody.get_ptr()->GetCollisionModel()->BuildModel();
-	//mrigidBody->SetBodyFixed(false);
-	//mrigidBody.get_ptr()->SetCollide(true);
-	//mrigidBody.get_ptr()->SetImpactC(0.0);
-	//mrigidBody.get_ptr()->SetSfriction(0.05);
-	//mrigidBody.get_ptr()->SetKfriction(0.05);
-	//mphysicalSystem->AddBody(mrigidBody);
-
-	//ChVector<> particle_pos2(0,-tank_radius+.05,0);
-	//mrigidBody = ChSharedBodyPtr(new ChBody);
-	//mrigidBody.get_ptr()->SetMass(1);
-	//mrigidBody.get_ptr()->SetPos(particle_pos2);
-	//mrigidBody.get_ptr()->GetCollisionModel()->ClearModel();
-	//mrigidBody.get_ptr()->GetCollisionModel()->AddSphere(.05);
-	//mrigidBody.get_ptr()->GetCollisionModel()->BuildModel();
-	//mrigidBody.get_ptr()->SetCollide(true);
-	//mrigidBody.get_ptr()->SetImpactC(0.0);
-	//mrigidBody.get_ptr()->SetSfriction(0.05);
-	//mrigidBody.get_ptr()->SetKfriction(0.05);
-	//mphysicalSystem->AddBody(mrigidBody);
-
-
-
-
 }
 
 
 void loadTriangleMesh(string name){
 	ChSharedBodyPtr mrigidBody;
-
-
 	ifstream ifile(name.c_str());
 	string temp,j;
 	vector<float3> pos, tri;
@@ -180,13 +115,11 @@ void loadTriangleMesh(string name){
 		if(temp.size()>2&&temp[0]!='#'&&temp[0]!='g'){
 			if(temp[0]=='v'){
 				stringstream ss(temp);
-				//cout<<temp<<endl;
 				ss>>j>>tempF.x>>tempF.y>>tempF.z;
 				pos.push_back(tempF);
 			}
 			if(temp[0]=='f'){
 				stringstream ss(temp);
-				//cout<<temp<<endl;
 				ss>>j>>tempF.x>>tempF.y>>tempF.z;
 				tri.push_back(tempF);
 			}
@@ -196,14 +129,13 @@ void loadTriangleMesh(string name){
 		ChVector<> A(pos[tri[i].x-1].x,pos[tri[i].x-1].y,pos[tri[i].x-1].z);
 		ChVector<> B(pos[tri[i].y-1].x,pos[tri[i].y-1].y,pos[tri[i].y-1].z);
 		ChVector<> C(pos[tri[i].z-1].x,pos[tri[i].z-1].y,pos[tri[i].z-1].z);
-		A/=10.0;
-		B/=10.0;
-		C/=10.0;
+		A*=mTriangleScale;
+		B*=mTriangleScale;
+		C*=mTriangleScale;
 
-		//cout<<tri[i].x<<" "<<tri[i].y<<" "<<tri[i].z<<endl;//<<" "<<B.x<<" "<<B.y<<" "<<B.z<<" "<<C.x<<" "<<C.y<<" "<<C.z<<endl;
 		mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
 		mrigidBody.get_ptr()->SetMass(100000);
-		ChVector<> particle_pos2(0,-tank_radius,0);
+		ChVector<> particle_pos2(0,-mOffsetY,0);
 		mrigidBody.get_ptr()->SetPos(particle_pos2);
 		mrigidBody.get_ptr()->GetCollisionModel()->ClearModel();
 		((ChCollisionModelGPU*)mrigidBody.get_ptr()->GetCollisionModel())->AddTriangle(A,B,C);
@@ -213,22 +145,32 @@ void loadTriangleMesh(string name){
 		mrigidBody.get_ptr()->SetImpactC(0.0);
 		mrigidBody.get_ptr()->SetSfriction(0.05);
 		mrigidBody.get_ptr()->SetKfriction(0.05);
-		mphysicalSystemG->AddBody(mrigidBody);
+		mPhysicalSystem->AddBody(mrigidBody);
 
 	}
-	cout<<"DONE Loading Triangles"<<endl;
+}
+void doTimeStep(){
+	cout<<"T:   "<<mPhysicalSystem->GetChTime()
+		<<"\tC: "<<mPhysicalSystem->GetTimerStep()
+		<<"\tG: "<<mPhysicalSystem->GetTimerCollisionBroad()
+		<<"\tG: "<<mPhysicalSystem->GetTimerLcp()
+		<<"\tB: "<<mPhysicalSystem->GetNbodies()
+		<<"\tC: "<<((ChLcpSystemDescriptorGPU*)(mPhysicalSystem->GetLcpSystemDescriptor()))->nContactsGPU<<endl;
+
+	if(mNumCurrentSpheres<mNumSpheres&&mFrameNumber%1000==0){
+		createSpheres(10, 10, 10, 0, 0, 0);
+		mNumCurrentSpheres+=10*10*10;
+	}
+	mPhysicalSystem->DoStepDynamics( mTimeStep );
+	mCurrentTime+=mTimeStep;
+	mFrameNumber++;
+	if(mPhysicalSystem->GetChTime()>=mEndTime){exit(0);}
 }
 
-float x=.5, y=.5, z=.5;
-int filecount=0;
 void renderScene(){
-	if(numP<num_particles&&frame_number%100==0){
-		create_falling_items(mphysicalSystemG, particle_radius, particle_friction, NSPSide*NSPSide*NSPSide,tank_radius);
-		numP+=10*10*10;
-	}
-	mphysicalSystemG->DoStepDynamics( time_step );
+	doTimeStep();
 
-	if(ogl){
+	if(useOpenGL){
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
 		glFrontFace(GL_CCW);
@@ -239,36 +181,18 @@ void renderScene(){
 
 		glPointSize(2);
 		glLoadIdentity();
-		gluLookAt(cos(x)*tank_radius*5, 0, sin(z)*tank_radius*5, 
+		gluLookAt(cos(mCameraX)*mBoundingBoxSize*5, mCameraY, sin(mCameraZ)*mBoundingBoxSize*5, 
 			0,0,0,
 			0.0f,1.0f,0.0f);
 		glColor3f (1,1,1);
-		glutWireCube(tank_radius*2);
+		glutWireCube(mBoundingBoxSize*2);
 	}
-	std::vector<ChBody*>::iterator abody = mphysicalSystemG->Get_bodylist()->begin();
-	//int a=0;
-
-	ofstream ofile;
-	stringstream ss; ss<<"dataflow\\frame"<<filecount<<".txt";
-	if(frame_number%every_x_file==0&&save){
-
-		ofile.open(ss.str().c_str());
-		filecount++;
-	}
-	if(ofile.fail()){cout<<ss.str()<<endl;exit(1);}
-
-
-	while (abody != mphysicalSystemG->Get_bodylist()->end()){
+	std::vector<ChBody*>::iterator abody = mPhysicalSystem->Get_bodylist()->begin();
+	while (abody != mPhysicalSystem->Get_bodylist()->end()){
 		//ChCollisionModelGPU* bpointer = (chrono::collision::ChCollisionModelGPU*)(*abody);
 		ChCollisionModelGPU* cModel = (ChCollisionModelGPU*)((*abody)->GetCollisionModel());
 		int type=cModel->GetType();
-		if(frame_number%every_x_file==0&&save){
-			ChVector<> temp=	(*abody)->GetPos();
-			ChQuaternion<> tempR=	(*abody)->GetRot();
-			tempR.Normalize();
-			ofile<<temp.x<<","<<temp.y<<","<<temp.z<<","<<endl;
-		}
-		if(ogl){
+		if(useOpenGL){
 			if(type==0){
 
 				ChVector<> gPos = (*abody)->GetCoord().TrasformLocalToParent(cModel->GetSpherePos(0));
@@ -310,53 +234,19 @@ void renderScene(){
 					glVertex3f(gB.x,gB.y,gB.z);//bottom of window
 					glVertex3f(gC.x,gC.y,gC.z);//right of window
 					glEnd();//end drawing of line loop
-
-
-					/*glPushMatrix();
-					glTranslatef (gPos.x, gPos.y, gPos.z);
-					glutSolidSphere(.01,10,10);
-					glPopMatrix();
-					gPos = (*abody)->GetCoord().TrasformLocalToParent(BB);
-					glPushMatrix();
-					glTranslatef (gPos.x, gPos.y, gPos.z);
-					glutSolidSphere(.01,10,10);
-					glPopMatrix();
-					gPos = (*abody)->GetCoord().TrasformLocalToParent(CC);
-					glPushMatrix();
-					glTranslatef (gPos.x, gPos.y, gPos.z);
-					glutSolidSphere(.01,10,10);
-					glPopMatrix();*/
 				}
 
 			}
 		}
 		abody++;
 	}
-	if(ogl){
+	if(useOpenGL){
 		glutSwapBuffers();
-		x+=.01;
-		y+=.01;
-		z+=.01;
+		mCameraX+=.01;
+		mCameraZ+=.01;
 	}
-	cout<<"T:   "<<mphysicalSystemG->GetChTime()
-		<<"\tC: "<<mphysicalSystemG->GetTimerStep()
-		<<"\tG: "<<mphysicalSystemG->GetTimerCollisionBroad()
-		<<"\tG: "<<mphysicalSystemG->GetTimerLcp()
-		<<"\tB: "<<mphysicalSystemG->GetNbodies()
-		<<"\tC: "<<((ChLcpSystemDescriptorGPU*)(mphysicalSystemG->GetLcpSystemDescriptor()))->nContactsGPU<<"\t";
-	/*timer_file<<""<<mphysicalSystem->GetChTime()
-	<<"\t"<<mphysicalSystem->GetTimerStep()
-	<<"\t"<<mphysicalSystem->GetTimerCollisionBroad()
-	<<"\t"<<mphysicalSystem->GetTimerLcp()
-	<<"\t"<<mphysicalSystem->GetNbodies()
-	<<"\t"<<((ChLcpSystemDescriptorGPU*)(mphysicalSystem->GetLcpSystemDescriptor()))->n_Contacts_GPU<<endl;*/
-	current_time+=time_step;
-	frame_number++;
-	if(mphysicalSystemG->GetChTime()>=.005){exit(0);}
-	//mgroundBody->SetPos(ChVector<>(sin(frame_number/500.0),0.0,0.0));
-	//if(frame_number%every_x_file==0&&save){
-	//	ofile.close();
-	//}
+
+
 }
 void changeSize(int w, int h) {
 	if(h == 0) {h = 1;}
@@ -369,74 +259,56 @@ void changeSize(int w, int h) {
 	glLoadIdentity();
 	gluLookAt(
 		0.0,0.0,0.0, 
-		0.0,0.0,-tank_radius,
+		0.0,0.0,-mBoundingBoxSize,
 		0.0f,1.0f,0.0f);
 }
 int main(int argc, char* argv[]){ 
-	NSPSide=40;
-	unsigned int devNum=0;
-	//stringstream sA;
-	//sA<<argv[1]<<" "<<argv[2]<<" "<<argv[3];
-	//sA>>NSPSide>>devNum>>ogl;
-	//num_particles=NSPSide*NSPSide*NSPSide;
-	//devNum=0;
-	ogl=0;
-	tank_radius=(NSPSide/10.0);
-	if(NSPSide==0){tank_radius=(10*particle_radius)*2;}
-	//stringstream ss;
-	//ss<<"dataW//"<<num_particles<<".txt";
-	//timer_file.open(ss.str().c_str());
-	//timer_file<<"WTime: "<<"\tCPU : "<<"\tGPU Coll : "<<"\tGPU LCP : "<<"\tBodies: "<<"\tContacts: "<<endl;
-	cudaSetDevice(devNum);
+	cudaSetDevice(mCudaDevice);
 	DLL_CreateGlobals();
-	ChLcpSystemDescriptorGPU		newdescriptor(num_particles+100,num_particles*5, 1 );
-	ChContactContainerGPUsimple		mGPUcontactcontainer;
-	ChCollisionSystemGPU			mGPUCollisionEngine(envelope,bin_size, num_particles*5);
+	ChLcpSystemDescriptorGPU		mGPUDescriptor(mNumSpheres+100,mNumSpheres*5, 1 );
+	ChContactContainerGPUsimple		mGPUContactContainer;
+	ChCollisionSystemGPU			mGPUCollisionEngine(mSphereEnvelope,0, mNumSpheres*5);
 
-	ChSystem mphysicalSystem(num_particles+100, 50); 
+	ChSystem mphysicalSystem(mNumSpheres+100, 50); 
 
-	ChLcpIterativeSolverGPUsimple	mGPUsolverSpeed(&mGPUcontactcontainer, 500, false, 0, 0.2, num_particles*5, num_particles+100, 1);
-	mGPUsolverSpeed.SetDt(time_step);
-	mphysicalSystem.ChangeLcpSystemDescriptor(&newdescriptor);
+	ChLcpIterativeSolverGPUsimple	mGPUsolverSpeed(&mGPUContactContainer, 150, 1e-3, 0.2);
+	mGPUsolverSpeed.SetDt(mTimeStep);
+	mphysicalSystem.ChangeLcpSystemDescriptor(&mGPUDescriptor);
 
-	mphysicalSystem.ChangeContactContainer(&mGPUcontactcontainer);
+	mphysicalSystem.ChangeContactContainer(&mGPUContactContainer);
 	mphysicalSystem.ChangeLcpSolverSpeed(&mGPUsolverSpeed);
 	mphysicalSystem.ChangeCollisionSystem(&mGPUCollisionEngine);
 
-	mGPUCollisionEngine.SetSystemDescriptor(&newdescriptor);
-	mGPUsolverSpeed.SetSystemDescriptor(&newdescriptor);
+	mGPUCollisionEngine.SetSystemDescriptor(&mGPUDescriptor);
+	mGPUsolverSpeed.SetSystemDescriptor(&mGPUDescriptor);
 
 	mphysicalSystem.SetIntegrationType(ChSystem::INT_ANITESCU);
-	//mphysicalSystem.SetIterLCPmaxItersSpeed(10);
-	//mphysicalSystem.SetMaxPenetrationRecoverySpeed(.1);
+	mphysicalSystem.SetIterLCPmaxItersSpeed(10);
+	mphysicalSystem.SetMaxPenetrationRecoverySpeed(.1);
 	mphysicalSystem.SetIterLCPwarmStarting(false);
 	mphysicalSystem.Set_G_acc(ChVector<>(0,-9.834,0));
-	mphysicalSystemG=&mphysicalSystem;
+	mPhysicalSystem=&mphysicalSystem;
 
 	ChVector<> cgpos(0,0,0);
 	mgroundBody= ChSharedBodyGPUPtr(new ChBodyGPU);
 	mgroundBody->SetMass(100000);
 	mgroundBody->SetPos(ChVector<>(0.0,0.0,0.0));
 	((ChCollisionModelGPU*)mgroundBody.get_ptr()->GetCollisionModel())->ClearModel();
-	((ChCollisionModelGPU*)mgroundBody.get_ptr()->GetCollisionModel())->AddBox(tank_radius,tank_radius,tank_radius,&cgpos); 
+	((ChCollisionModelGPU*)mgroundBody.get_ptr()->GetCollisionModel())->AddBox(mBoundingBoxSize,mBoundingBoxSize,mBoundingBoxSize,&cgpos); 
 	((ChCollisionModelGPU*)mgroundBody.get_ptr()->GetCollisionModel())->BuildModel();
 	mgroundBody->SetBodyFixed(true);
 	mgroundBody->SetCollide(true);
 	mgroundBody->SetSfriction(0.05);
 	mgroundBody->SetKfriction(0.05);
 	mgroundBody->SetImpactC(0.0);
-	mphysicalSystemG->AddBody(mgroundBody);
+	mPhysicalSystem->AddBody(mgroundBody);
 
-	//loadTriangleMesh("plane.txt");
-	//vector<float4> spheres;
-	//create_falling_items(mphysicalSystemG, particle_radius, particle_friction, 1,tank_radius);
-
-	if(!ogl){
+	if(!useOpenGL){
 		while(true){
 			renderScene();
 		}
 	}
-	if(ogl){
+	if(useOpenGL){
 		glutInit(&argc, argv);
 		glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 		glutInitWindowPosition(0,0);
