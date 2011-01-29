@@ -35,9 +35,8 @@ OutputDir=c:\tasora\lavori\data_chrono
 OutputBaseFilename=ChronoEngine_{#MyAppVersion}
 
 [Files]
-Source: {#MyChronoEngineSDK}\*; Excludes: "*.c,*.cpp,*.cu,doxygen,\source\*.txt,\source\collision\bullet,\source\collision\gimpact,\source\collision\edgetempest,source\makefile,\source\make-chrono_lib,\source\ChronoEngine.*,\source\HOWTO_COMPILE_API.txt,*.pdb,_obsolete,\installer,*.o,*.obj,*.ncb,*.bat,source\*.def,\source\tmp,\demos,____template_config.mak,__template_ChronoEngine.vcproj,*\.svn"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs
-Source: {#MyChronoEngineSDK}\demos\*; Excludes: "*.o,*.obj,*.ncb,*\.svn"; DestDir: "{app}\demos"; Flags: recursesubdirs createallsubdirs
-Source: {#MyChronoEngineSDK}\bin\*; Excludes: "*.pdb,demo_benchmark.exe,*\.svn,*\.ilk,*\.idb"; DestDir: "{app}\bin"; Flags: recursesubdirs createallsubdirs
+Source: {#MyChronoEngineSDK}\*; Excludes: "*.c,*.cpp,*.cu,doxygen,\bin,\scripts,\source\collision\gimpact,\source\collision\edgetempest,\source\HOWTO_COMPILE_API.txt,*.pdb,_obsolete,\installer,*.o,*.obj,*.ncb,*.bat,source\*.def,*\.svn"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs
+Source: {#MyChronoEngineSDK}\bin\*; Excludes: "*.pdb,demo_benchmark.exe,*\.svn,*.ilk,*.idb,\data\mpi"; DestDir: "{app}\bin"; Flags: recursesubdirs createallsubdirs
 ;Source: "C:\tasora\lavori\html\chronoengine\install.html"; DestDir: "{app}\docs";
 ;Source: "C:\tasora\lavori\html\chronoengine\tutorials.html"; DestDir: "{app}\docs";
 ;Source: "C:\tasora\lavori\html\chronoengine\tutorials\*.*"; Excludes: "*.php"; DestDir: "{app}\docs\tutorials";  Flags: recursesubdirs
@@ -56,8 +55,8 @@ Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngine\*; DestDir: {code:myGetPat
 
 
 [Icons]
-Name: "{group}\Getting started"; Filename: "{app}\docs\install.html"
-Name: "{group}\Tutorials"; Filename: "{app}\docs\tutorials.html"
+;Name: "{group}\Getting started"; Filename: "{app}\docs\install.html"
+;Name: "{group}\Tutorials"; Filename: "{app}\docs\tutorials.html"
 Name: "{group}\API documentation"; Filename: "{app}\docs\html\help.chm"
 Name: "{group}\Readme"; Filename: "{app}\readme.txt"
 Name: "{group}\Convex decomp. utility"; Filename: "{app}\bin\Win32_VisualStudio\demo_decomposition.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
@@ -80,8 +79,8 @@ Name: "{group}\demos\Cohesion"; Filename: "{app}\bin\Win32_VisualStudio\demo_coh
 Name: "{group}\demos\Conveyor"; Filename: "{app}\bin\Win32_VisualStudio\demo_conveyor.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
 Name: "{group}\Uninstall"; Filename: "{uninstallexe}"
 
-[Run]
-Filename: "{app}\docs\tutorials.html"; Flags: shellexec postinstall
+;[Run]
+;Filename: "{app}\docs\tutorials.html"; Flags: shellexec postinstall
 
 
 
@@ -97,14 +96,7 @@ var
   IrrklangDirPage: TInputDirWizardPage;
   mPathIrrklang: String;
 
-function myFoundVisual8(): Boolean;
-begin
-  Result := mFoundVisual8;
-end;
-function myGetPathVisual8(Param: String): String;
-begin
-  Result := mPathVisual8;
-end;
+
 function myFoundVisual9(): Boolean;
 begin
   Result := mFoundVisual9;
@@ -296,13 +288,13 @@ begin
   if (mFoundVisual9 = True)  then
   begin
       S := S + 'A copy of Visual Studio Express 9 has been found in:' + NewLine;
-      S := S + Space + mPathVisual8 + NewLine;
+      S := S + Space + mPathVisual9 + NewLine;
       S := S + '(a new code wizard will be added to your Visual C++ editor)' + NewLine + NewLine;
   end
   if (mFoundVisual10 = True)  then
   begin
       S := S + 'A copy of Visual Studio Express 10 has been found in:' + NewLine;
-      S := S + Space + mPathVisual8 + NewLine;
+      S := S + Space + mPathVisual10 + NewLine;
       S := S + '(a new code wizard will be added to your Visual C++ editor)' + NewLine + NewLine;
   end
   if (ConfigOptionPage.Values[0] = True)  then
