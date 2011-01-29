@@ -168,11 +168,13 @@ __global__ void Sphere_Sphere_Store(
 	}
 }
 __global__ void Sphere_Box(float4 * sD,bodyData * bD,uint * nC, float4 * cD,float4 * bID,int f, int nB, int nCs){
-	uint I = threadIdx.x+blockDim.x*threadIdx.y+(blockIdx.x*blockDim.x*blockDim.y)+(blockIdx.y*blockDim.x*blockDim.y*gridDim.x);
+	uint I = blockIdx.x* blockDim.x + threadIdx.x;
 	if(I<mNumSpheresD){
 		float4 S=sD[I];
 		float3 A,B;
-		int idA,  idC=nC[I]+nCs, c=0,idB=bID[I].x;
+		uint idA,  idC=(!I) ? nCs : nC[I-1]+nCs;
+
+		uint c=0,idB=bID[I].x;
 		for(int j=0; j<nB; j++){
 			A=F3(bD[j].A);
 			B=F3(bD[j].B);
@@ -289,122 +291,140 @@ void ChCCollisionGPU::InitCudaCollision(){
 }
 void ChCCollisionGPU::CudaCollision(){
 	//cout<<endl;
+	mRunningTime=1000000;
+	mOptimalBinSize=0;
+	int start=0, end=1;
+	if(mTune==true){start=10; end=100;}
+	for(int i=start; i<end; i++){
+		cudaEvent_t start, stop;
+		cMin=fabs(cMin);
+		mMaxDim=maxf3(cMin+cMax);
+		float elapsedTime=0;
 
-	//for(int i=0; i<100; i++){
-	//cudaEvent_t start, stop;
+		cudaEventCreate(&start); 
+		cudaEventCreate(&stop);
+		cudaEventRecord(start, 0);
+		if(mTune){
+			mBinSize=mMaxDim/float(i+1);
+		}
 
-	/*float elapsedTime=0;
-	cudaEventCreate(&start); 
-	cudaEventCreate(&stop);
-	cudaEventRecord(start, 0);*/
 
-	cMin=fabs(cMin);
-	mMaxDim=maxf3(cMin+cMax);
-	mBinSize=mMaxDim/float(15);
-	//cout<<mBinSize<<" "<<mMaxDim<<" "<<cMin.x<<" "<<cMin.y<<" "<<cMin.z<<" "<<cMax.x/mBinSize<<" "<<cMax.y/mBinSize<<" "<<cMax.z/mBinSize<<" ";
+		//cout<<mBinSize<<" "<<mMaxDim<<" "<<cMin.x<<" "<<cMin.y<<" "<<cMin.z<<" "<<cMax.x/mBinSize<<" "<<cMax.y/mBinSize<<" "<<cMax.z/mBinSize<<" ";
 
-	cudaMemcpyToSymbolAsync(mBinSizeD,&mBinSize,sizeof(mBinSize));
-	cudaMemcpyToSymbolAsync(mMaxContactD,&mMaxContact,sizeof(mMaxContact));
-	cudaMemcpyToSymbolAsync(mEnvelopeD,&mEnvelope,sizeof(mEnvelope));
-	cudaMemcpyToSymbolAsync(mNumSpheresD,&mNSpheres,sizeof(mNSpheres));
-	//cudaMemcpyToSymbolAsync(mMaxDimD,&mMaxDim,sizeof(mMaxDim));
-	cudaMemcpyToSymbolAsync(mGlobalOriginD,&cMin,sizeof(cMin));
+		cudaMemcpyToSymbolAsync(mBinSizeD,&mBinSize,sizeof(mBinSize));
+		cudaMemcpyToSymbolAsync(mMaxContactD,&mMaxContact,sizeof(mMaxContact));
+		cudaMemcpyToSymbolAsync(mEnvelopeD,&mEnvelope,sizeof(mEnvelope));
+		cudaMemcpyToSymbolAsync(mNumSpheresD,&mNSpheres,sizeof(mNSpheres));
+		//cudaMemcpyToSymbolAsync(mMaxDimD,&mMaxDim,sizeof(mMaxDim));
+		cudaMemcpyToSymbolAsync(mGlobalOriginD,&cMin,sizeof(cMin));
 
-	DataS			=	mDataSpheres;		//Copy Sphere data
-	AuxDataD		=	mAuxData;			//Copy Auxilirary data
-	IntersectedD.resize(mNSpheres);
+		DataS			=	mDataSpheres;		//Copy Sphere data
+		AuxDataD		=	mAuxData;			//Copy Auxilirary data
+		IntersectedD.resize(mNSpheres);
 
-	cudaBindTexture( NULL, texSphere,   CASTF4(DataS),   mDataSpheres.size()*sizeof(float4) );
-	cudaBindTexture( NULL, texSphereAux,CASTF4(AuxDataD),mAuxData.size()*sizeof(float4) );
+		cudaBindTexture( NULL, texSphere,   CASTF4(DataS),   mDataSpheres.size()*sizeof(float4) );
+		cudaBindTexture( NULL, texSphereAux,CASTF4(AuxDataD),mAuxData.size()*sizeof(float4) );
 
-	Bins_Intersect_Sphere_Count<<<max((int)ceil(mNSpheres/(float)BIN_INTERSECT_THREADS),1),  BIN_INTERSECT_THREADS>>>(
-		CASTU1(IntersectedD),
-		CASTU1(IntersectedD),
-		CASTU1(IntersectedD),
-		0);																					//Count number of body-bin intersections
-	thrust::inclusive_scan(IntersectedD.begin(),IntersectedD.end(), IntersectedD.begin());	//Scan to determine totals
-	uint Total_Bin_Intersections=IntersectedD[mNSpheres-1];									//Total intersections
+		Bins_Intersect_Sphere_Count<<<max((int)ceil(mNSpheres/(float)BIN_INTERSECT_THREADS),1),  BIN_INTERSECT_THREADS>>>(
+			CASTU1(IntersectedD),
+			CASTU1(IntersectedD),
+			CASTU1(IntersectedD),
+			0);																					//Count number of body-bin intersections
+		thrust::inclusive_scan(IntersectedD.begin(),IntersectedD.end(), IntersectedD.begin());	//Scan to determine totals
+		uint Total_Bin_Intersections=IntersectedD[mNSpheres-1];									//Total intersections
 
-	Bin_Number.resize(Total_Bin_Intersections);						//store bin number for intersection
-	Body_Number.resize(Total_Bin_Intersections);					//store body number for intersection
+		Bin_Number.resize(Total_Bin_Intersections);						//store bin number for intersection
+		Body_Number.resize(Total_Bin_Intersections);					//store body number for intersection
 
-	Bins_Intersect_Sphere_Store<<<max((int)ceil(mNSpheres/(float)BIN_INTERSECT_THREADS),1), BIN_INTERSECT_THREADS>>>(
-		CASTU1(IntersectedD),
-		CASTU1(Bin_Number),
-		CASTU1(Body_Number),
-		1);																					//Store intersection information	
-	Bin_Start.resize(Total_Bin_Intersections);												//Start of bin in memory
+		Bins_Intersect_Sphere_Store<<<max((int)ceil(mNSpheres/(float)BIN_INTERSECT_THREADS),1), BIN_INTERSECT_THREADS>>>(
+			CASTU1(IntersectedD),
+			CASTU1(Bin_Number),
+			CASTU1(Body_Number),
+			1);																					//Store intersection information	
+		Bin_Start.resize(Total_Bin_Intersections);												//Start of bin in memory
 
-	thrust::sort_by_key(Bin_Number.begin(),Bin_Number.end(),Body_Number.begin());			//Sort bin number
+		thrust::sort_by_key(Bin_Number.begin(),Bin_Number.end(),Body_Number.begin());			//Sort bin number
 
-	mLastBin=thrust::reduce_by_key(
-		Bin_Number.begin(),
-		Bin_Number.end(),
-		thrust::constant_iterator<uint>(1),
-		Bin_Number.begin(),
-		Bin_Start.begin()
-		).first-Bin_Number.begin();
-	cudaMemcpyToSymbolAsync(mLastBinD,&mLastBin,sizeof(mLastBin));
+		mLastBin=thrust::reduce_by_key(
+			Bin_Number.begin(),
+			Bin_Number.end(),
+			thrust::constant_iterator<uint>(1),
+			Bin_Number.begin(),
+			Bin_Start.begin()
+			).first-Bin_Number.begin();
+		cudaMemcpyToSymbolAsync(mLastBinD,&mLastBin,sizeof(mLastBin));
 
-	thrust::inclusive_scan(Bin_Start.begin(), Bin_Start.end(), Bin_Start.begin());
-	IntersectedD.resize(mLastBin);
+		thrust::inclusive_scan(Bin_Start.begin(), Bin_Start.end(), Bin_Start.begin());
+		IntersectedD.resize(mLastBin);
 
-	nB=dim3(min(maxblock,(int)(mLastBin/float(D_SIZE))+2),1,1);
-	if((mDataSpheres.size()/float(D_SIZE))+1>maxblock){
-		nB.y=(int)ceil(((mLastBin/float(D_SIZE))+1)/float(maxblock));
+		nB=dim3(min(maxblock,(int)(mLastBin/float(D_SIZE))+2),1,1);
+		if((mDataSpheres.size()/float(D_SIZE))+1>maxblock){
+			nB.y=(int)ceil(((mLastBin/float(D_SIZE))+1)/float(maxblock));
+		}
+
+
+		Sphere_Sphere_Count<<<nB,D_SIZE>>>(
+			CASTU1(Body_Number) ,
+			CASTU1(Bin_Start),
+			CASTU1(Bin_Number),
+			CASTU1(IntersectedD),
+			mContactsGPU);
+
+		thrust::inclusive_scan(IntersectedD.begin(), IntersectedD.end(), IntersectedD.begin());
+
+		mNumContacts=IntersectedD[mLastBin-1];
+
+		Sphere_Sphere_Store<<<nB,D_SIZE>>>(
+			CASTU1(Body_Number),
+			CASTU1(Bin_Start),
+			CASTU1(Bin_Number),
+			CASTU1(IntersectedD),
+			mContactsGPU);
+
+		nB=dim3(min(maxblock,(int)(mDataSpheres.size()/float(D_SIZE))+2),1,1);
+		if((mDataSpheres.size()/float(D_SIZE))+1>maxblock){
+			nB.y=(int)ceil(((mDataSpheres.size()/float(D_SIZE))+1)/float(maxblock));
+		}
+
+		DataB			=	mDataBoxes;			//Copy Box data
+		IntersectedD.resize(mDataSpheres.size());
+		Sphere_Box<<<mDataSpheres.size()/float(D_SIZE)+1,D_SIZE>>>(CASTF4(DataS),BDCAST(DataB),CASTU1(IntersectedD),mContactsGPU,CASTF4(AuxDataD),0,mDataBoxes.size(), mNumContacts);
+		thrust::inclusive_scan(IntersectedD.begin(), IntersectedD.end(), IntersectedD.begin());
+		//IntersectedD.push_back(IntersectedD[IntersectedD.size()-1]+IntersectedD[IntersectedD.size()-1]);
+		Sphere_Box<<<mDataSpheres.size()/float(D_SIZE)+1,D_SIZE>>>(CASTF4(DataS),BDCAST(DataB),CASTU1(IntersectedD),mContactsGPU,CASTF4(AuxDataD),1,mDataBoxes.size(),mNumContacts );
+
+		mNumContacts+=IntersectedD[IntersectedD.size()-1];
+
+		DataT			=	mDataTriangles;		//Copy Triangle data
+		IntersectedD.resize(mDataSpheres.size());
+		Sphere_Triangle<<<nB,D_SIZE>>>(CASTF4(DataS),BDCAST(DataT),CASTU1(IntersectedD),mContactsGPU,CASTF4(AuxDataD),0,mDataTriangles.size(), 0);
+		thrust::inclusive_scan(IntersectedD.begin(), IntersectedD.end(), IntersectedD.begin());
+		//IntersectedD.push_back(IntersectedD[IntersectedD.size()-1]+IntersectedD[IntersectedD.size()-1]);
+		Sphere_Triangle<<<nB,D_SIZE>>>(CASTF4(DataS),BDCAST(DataT),CASTU1(IntersectedD),mContactsGPU,CASTF4(AuxDataD),1,mDataTriangles.size(),mNumContacts );
+
+		mNumContacts+=IntersectedD[IntersectedD.size()-1];
+
+		cudaUnbindTexture( texSphere );
+		cudaUnbindTexture( texSphereAux );
+
+		cudaEventRecord(stop, 0);
+		cudaThreadSynchronize();
+		cudaEventElapsedTime(&elapsedTime, start, stop);
+		cudaEventDestroy(start); 
+		cudaEventDestroy(stop);
+		
+		if(mTune){
+			if(mRunningTime>elapsedTime){mRunningTime=elapsedTime; mOptimalBinSize=mBinSize;}
+			printf("Time Taken: %f",elapsedTime);
+			printf(" %d %d %d %d %f\n",Total_Bin_Intersections,mLastBin,mNumContacts,i,mOptimalBinSize );	
+		}
+		clear();
 	}
-
-
-	Sphere_Sphere_Count<<<nB,D_SIZE>>>(
-		CASTU1(Body_Number) ,
-		CASTU1(Bin_Start),
-		CASTU1(Bin_Number),
-		CASTU1(IntersectedD),
-		mContactsGPU);
-
-	thrust::inclusive_scan(IntersectedD.begin(), IntersectedD.end(), IntersectedD.begin());
-
-	mNumContacts=IntersectedD[mLastBin-1];
-
-	Sphere_Sphere_Store<<<nB,D_SIZE>>>(
-		CASTU1(Body_Number),
-		CASTU1(Bin_Start),
-		CASTU1(Bin_Number),
-		CASTU1(IntersectedD),
-		mContactsGPU);
-
-	nB=dim3(min(maxblock,(int)(mDataSpheres.size()/float(D_SIZE))+2),1,1);
-	if((mDataSpheres.size()/float(D_SIZE))+1>maxblock){
-		nB.y=(int)ceil(((mDataSpheres.size()/float(D_SIZE))+1)/float(maxblock));
+	if(mTune){
+		cout<<"Tuning Complete"<<endl;;
+		mBinSize=mOptimalBinSize;
+		mTune=false;
 	}
-
-	DataB			=	mDataBoxes;			//Copy Box data
-	IntersectedD.resize(mDataSpheres.size());
-	Sphere_Box<<<nB,D_SIZE>>>(CASTF4(DataS),BDCAST(DataB),CASTU1(IntersectedD),mContactsGPU,CASTF4(AuxDataD),0,mDataBoxes.size(), 0);
-	thrust::exclusive_scan(IntersectedD.begin(), IntersectedD.end(), IntersectedD.begin());
-	IntersectedD.push_back(IntersectedD[IntersectedD.size()-1]+IntersectedD[IntersectedD.size()-1]);
-	Sphere_Box<<<nB,D_SIZE>>>(CASTF4(DataS),BDCAST(DataB),CASTU1(IntersectedD),mContactsGPU,CASTF4(AuxDataD),1,mDataBoxes.size(),mNumContacts );
-
-	mNumContacts+=IntersectedD[IntersectedD.size()-1];
-
-	DataT			=	mDataTriangles;		//Copy Triangle data
-	IntersectedD.resize(mDataSpheres.size());
-	Sphere_Triangle<<<nB,D_SIZE>>>(CASTF4(DataS),BDCAST(DataT),CASTU1(IntersectedD),mContactsGPU,CASTF4(AuxDataD),0,mDataTriangles.size(), 0);
-	thrust::exclusive_scan(IntersectedD.begin(), IntersectedD.end(), IntersectedD.begin());
-	IntersectedD.push_back(IntersectedD[IntersectedD.size()-1]+IntersectedD[IntersectedD.size()-1]);
-	Sphere_Triangle<<<nB,D_SIZE>>>(CASTF4(DataS),BDCAST(DataT),CASTU1(IntersectedD),mContactsGPU,CASTF4(AuxDataD),1,mDataTriangles.size(),mNumContacts );
-
-	mNumContacts+=IntersectedD[IntersectedD.size()-1];
-
-	cudaUnbindTexture( texSphere );
-	cudaUnbindTexture( texSphereAux );
-	/*cudaEventRecord(stop, 0);
-	cudaThreadSynchronize();
-	cudaEventElapsedTime(&elapsedTime, start, stop);
-	cudaEventDestroy(start); 
-	cudaEventDestroy(stop);*/
-	//printf("\t\t Time Taken: %f %d %d %d %d\n",elapsedTime,Total_Bin_Intersections,mLastBin,mNumContacts,i);
-	//}
 }
 
 vector<float4> ChCCollisionGPU::CopyContactstoHost(){

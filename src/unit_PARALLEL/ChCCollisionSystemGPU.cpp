@@ -16,12 +16,13 @@ namespace chrono {
 			mGPU.mEnvelope=mEnvelope;
 			mGPU.mBinSize=mBinSize;
 			mGPU.mMaxRad=0;
-
+			
 			mGPU.mNSpheres=0;
 			mGPU.mNBoxes=0;
 			mGPU.mNTriangles=0;
 			mGPU.mMaxContact=mMaxContact;
 			mGPU.InitCudaCollision();
+			mGPU.mTune=true;
 		}
 		ChCollisionSystemGPU::~ChCollisionSystemGPU(){
 			mGPU.mDataSpheres.clear();
@@ -109,12 +110,12 @@ namespace chrono {
 						gPos = body->GetBody()->GetCoord().TrasformLocalToParent(body->GetSpherePos(0));
 						mGPU.mDataSpheres.push_back(make_float4(gPos.x,gPos.y,gPos.z,body->GetSphereR(0)));
 						mGPU.mMaxRad=max(mGPU.mMaxRad,body->GetSphereR(0));
-						mGPU.cMax.x=max(mGPU.cMax.x,(float)gPos.x+body->GetSphereR(0));
-						mGPU.cMax.y=max(mGPU.cMax.y,(float)gPos.y+body->GetSphereR(0));
-						mGPU.cMax.z=max(mGPU.cMax.z,(float)gPos.z+body->GetSphereR(0));
-						mGPU.cMin.x=min(mGPU.cMin.x,(float)gPos.x-body->GetSphereR(0));
-						mGPU.cMin.y=min(mGPU.cMin.y,(float)gPos.y-body->GetSphereR(0));
-						mGPU.cMin.z=min(mGPU.cMin.z,(float)gPos.z-body->GetSphereR(0));
+						mGPU.cMax.x=max(mGPU.cMax.x,(float)gPos.x+body->GetSphereR(0)*2);
+						mGPU.cMax.y=max(mGPU.cMax.y,(float)gPos.y+body->GetSphereR(0)*2);
+						mGPU.cMax.z=max(mGPU.cMax.z,(float)gPos.z+body->GetSphereR(0)*2);
+						mGPU.cMin.x=min(mGPU.cMin.x,(float)gPos.x-body->GetSphereR(0)*2);
+						mGPU.cMin.y=min(mGPU.cMin.y,(float)gPos.y-body->GetSphereR(0)*2);
+						mGPU.cMin.z=min(mGPU.cMin.z,(float)gPos.z-body->GetSphereR(0)*2);
 				}
 				else if(type==1){
 					for(int j=0; j<body->GetNObjects(); j++){

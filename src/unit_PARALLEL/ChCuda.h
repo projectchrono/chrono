@@ -105,7 +105,7 @@ float __host_int_as_float(int a)
 #define CH_REDUCTION_HSIZE sizeof(CH_REALNUMBER4)
 
 
-#define CH_PREPROCESSING_SH_MEM_BLOCK_SIZE 13 //note that this odd number will ensure no bank conflicts
+#define CH_SH_MEM_SIZE 13 //note that this odd number will ensure no bank conflicts
 
 #ifndef CH_CUDAGPUEMULATION
 //***ALEX*** TO DO: FIND OPTIMAL VALUES FOR THESE DEFs, SEE OCCUPANCY & .cubin

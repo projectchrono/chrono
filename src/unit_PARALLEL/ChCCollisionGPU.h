@@ -52,6 +52,18 @@ namespace chrono {
 				Body_Number.clear();
 
 			}
+
+			void clear(){
+				DataS.clear();
+				DataB.clear();
+				DataT.clear();
+
+				IntersectedD.clear();
+				Bin_Start.clear();
+				AuxDataD.clear();
+				Bin_Number.clear();
+				Body_Number.clear();
+			}
 			void InitCudaCollision();
 			void CudaCollision();
 			vector<float4> CopyContactstoHost();
@@ -68,7 +80,10 @@ namespace chrono {
 				mNumContacts,
 				mMaxContact;
 			float mBinSize,mEnvelope, mMaxRad;
-
+			float mOptimalBinSize;
+			float mRunningTime;
+			
+			bool mTune;
 			int mLastBin;
 
 			int3 mBinsPerSide;
