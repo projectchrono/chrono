@@ -185,7 +185,7 @@ void gpu_sphere_sphere(int num_Bodies,vector<Contact> &contact_storage, vector<f
 	int mMaxContact=4000000;
 
 	ChLcpSystemDescriptorGPU		newdescriptor(num_Bodies+100,mMaxContact, 1 );
-	ChCollisionSystemGPU			mGPUCollisionEngine(envelope,bin_size, mMaxContact);
+	ChCollisionSystemGPU			mGPUCollisionEngine(envelope);
 	mGPUCollisionEngine.SetSystemDescriptor(&newdescriptor);
 	//totalC+= numContacts;
 	mGPUCollisionEngine.mGPU.cMax=make_float3(-FLT_MAX  ,-FLT_MAX  ,-FLT_MAX  );
