@@ -49,9 +49,9 @@ __device__ inline uint Hash_Index2(const uint3 &A){
 }
 __device__ inline void adC(int A,int B, float3 n, float3 onA, float3 onB, float4* CData,uint offset, float mKF1, float mKF2 ){
 	CData[offset+mMaxContactD*0]=make_float4(n,0);
-	CData[offset+mMaxContactD*3]=make_float4(onA,A);
-	CData[offset+mMaxContactD*6]=make_float4(onB,B);
-	CData[offset+mMaxContactD*9]=make_float4(0,0,0,mKF1*mKF2);
+	CData[offset+mMaxContactD*1]=make_float4(onA,A);
+	CData[offset+mMaxContactD*2]=make_float4(onB,B);
+	CData[offset+mMaxContactD*3]=make_float4(0,0,0,mKF1*mKF2);
 	//printf("CD %d %d \n",A, B);
 }
 __global__ void Bins_Intersect_Sphere_Count(uint* Bins_Intersected,uint * Bins_IntersectedK,uint * Bins_IntersectedV,const int flag ){
@@ -415,8 +415,8 @@ void ChCCollisionGPU::CudaCollision(){
 		
 		if(mTune){
 			if(mRunningTime>elapsedTime){mRunningTime=elapsedTime; mOptimalBinSize=mBinSize;}
-			printf("Time Taken: %f",elapsedTime);
-			printf(" %d %d %d %d %f\n",Total_Bin_Intersections,mLastBin,mNumContacts,i,mOptimalBinSize );	
+			//printf("Time Taken: %f",elapsedTime);
+			//printf(" %d %d %d %d %f\n",Total_Bin_Intersections,mLastBin,mNumContacts,i,mOptimalBinSize );	
 		}
 		clear();
 	}

@@ -34,7 +34,7 @@ namespace chrono {
 		class ChApiGPU ChCollisionSystemGPU : public ChCollisionSystem{
 		public:
 
-			ChCollisionSystemGPU(float mEnvelope=0.025, float mBinSize=0.1, uint mMaxContact=50000);
+			ChCollisionSystemGPU(float mEnvelope=0.025);
 
 			virtual ~ChCollisionSystemGPU();
 

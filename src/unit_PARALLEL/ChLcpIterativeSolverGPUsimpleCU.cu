@@ -20,7 +20,16 @@
 #include "ChCuda.h"
 //#include "ChLcpIterativeSolverGPUsimple.h"
 #include <cutil_math.h>
-
+__device__ void devicePreprocess(CH_REALNUMBER4* deviceContacts,uint &Index, 
+						   float4 &shared0,
+						   float4 &shared1,
+						   float4 &shared2,
+						   float4 &shared3,
+						   float4 &shared4,
+						   float4 &shared5,
+						   float4 &shared6,
+						   float4 &shared7,
+						   float4 &shared8);
 // dot product of the first three elements of two float4 values
 inline __host__ __device__ float dot_three(const float4 & a, const float4 & b)
 { 
@@ -116,21 +125,28 @@ __global__ void ChKernelLCPiteration( CH_REALNUMBER4* contacts, CH_REALNUMBER4* 
 	if(i>=contactsGPU){return;}
 	// In all phases of the following computations, try to use only those following
 	// vars, hoping this will help the compiler to minimize register requirements..
+	float4 T0, T3, T6, T8;
+	float4 T1,T2, T4, T5, T7;
+
+	unsigned int Index = blockDim.x*blockIdx.x + threadIdx.x;
+	if(Index>contactsGPU){return;}
+	devicePreprocess(contacts,Index, T0,T1,T2,T3,T4,T5,T6,T7,T8);
+	
 	CH_REALNUMBER3 vB; 
 	CH_REALNUMBER3 a; 
 	CH_REALNUMBER3 vA;
 	CH_REALNUMBER eta; 
 
-	float4 T0 = contacts[i + 0*deviceContactPitch];
-	float4 T1 = contacts[i + 1*deviceContactPitch];
-	float4 T2 = contacts[i + 2*deviceContactPitch];
-	float4 T3 = contacts[i + 3*deviceContactPitch];
-	float4 T4 = contacts[i + 4*deviceContactPitch];
-	float4 T5 = contacts[i + 5*deviceContactPitch];
+	
 	int B1_index = T3.w ; //__float_as_int(vA.w);
+	int B2_index = T6.w ; //__float_as_int(vA.w);
 	float4 B1=tex1Dfetch(texBody,B1_index);//bodies[B1_index];
+	float4 B2=tex1Dfetch(texBody,B2_index);//bodies[B2_index];
 	int B1_active = B1.w;
 
+	
+	
+	int B2_active = B2.w;
 	// ---- perform   a = ([J1 J2] {v1 | v2}^ + b) 
 	a.x = a.y = a.z = 0.0;
 
@@ -153,12 +169,8 @@ __global__ void ChKernelLCPiteration( CH_REALNUMBER4* contacts, CH_REALNUMBER4* 
 		// a.y +=vA.w; // +by
 		// a.z +=vA.w; // +bz
 	}
-	float4 T6 = contacts[i + 6*deviceContactPitch];
-	float4 T7 = contacts[i + 7*deviceContactPitch];
-	float4 T8 = contacts[i + 8*deviceContactPitch];
-	int B2_index = T6.w ; //__float_as_int(vA.w);
-	float4 B2=tex1Dfetch(texBody,B2_index);//bodies[B2_index];
-	int B2_active = B2.w;
+	
+	
 	if (!B2_active){
 		// J2w x w2  
 		vB = F3(tex1Dfetch(texBody,B2_index+deviceBodyPitch));//bodies[B2_index+deviceBodyPitch]); // w2
@@ -179,7 +191,7 @@ __global__ void ChKernelLCPiteration( CH_REALNUMBER4* contacts, CH_REALNUMBER4* 
 
 	a *= deviceLcpOmega*eta;	// deviceLcpOmega is in constant memory 
 	/// ---- perform a = gammas - a ; in place.
-	float4 T=contacts[deviceContactPitch *9  + i];
+	float4 T=contacts[deviceContactPitch *3  + i];
 
 	vB = F3(T);
 	eta=T.w;
@@ -203,7 +215,7 @@ __global__ void ChKernelLCPiteration( CH_REALNUMBER4* contacts, CH_REALNUMBER4* 
 	}
 
 	// ----- store gamma_new
-	contacts[i + 9*deviceContactPitch ] = F4(a,eta);
+	contacts[i + 3*deviceContactPitch ] = F4(a,eta);
 
 	/// ---- compute delta in multipliers: a = gamma_new - gamma_old   = delta_gamma    , in place.
 	a -= vB;// assuming no one touched vB={gamma_old ,mu}  during previos projection phase!
@@ -427,12 +439,7 @@ __global__ void ChKernelLCPaddForces(CH_REALNUMBER4* bodies)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-//variables already declared in device constant memory  
-
-
-
-// Kernel for preprocessing the contact information for the CCP. 
+// Device Function for preprocessing the contact information for the CCP. 
 //   Version 1.1 - Negrut
 //
 //  This kernel expects to find the data arranged as float4 in a horizontal
@@ -441,13 +448,19 @@ __global__ void ChKernelLCPaddForces(CH_REALNUMBER4* bodies)
 //  ones get overwritten.  Take a look at the MS-Word doc "dataFormatGPU.doc" in the 
 //  folder "docs" to see the content of the deviceContacts buffer upon entry
 //  and exit from this kernel.
-__global__ void ChKernelContactsPreprocess(CH_REALNUMBER4* deviceContacts, CH_REALNUMBER4* deviceBodies) 
-{
-	//shared memory allocated dynamically; the way the computation is handled, there is
-	//one block per multiprocessor.  Since the number of threads per block right
-	//now is 512 I can statically allocate the amount of shared memory at the onset of 
-	//computation
-	__shared__  float shMemData[CH_SH_MEM_SIZE*CH_PREPROCESSING_TPB];
+
+//variables already declared in device constant memory  
+
+__device__ void devicePreprocess(CH_REALNUMBER4* contacts,uint &Index, 
+						   float4 &shared0,
+						   float4 &shared1,
+						   float4 &shared2,
+						   float4 &shared3,
+						   float4 &shared4,
+						   float4 &shared5,
+						   float4 &shared6,
+						   float4 &shared7,
+						   float4 &shared8){
 
 	CH_REALNUMBER4 reg03;
 	CH_REALNUMBER  reg4;
@@ -455,144 +468,96 @@ __global__ void ChKernelContactsPreprocess(CH_REALNUMBER4* deviceContacts, CH_RE
 	CH_REALNUMBER4 reg69;
 	CH_REALNUMBER3 regS;
 	CH_REALNUMBER  eta = 0.;
-
-	unsigned int memAddress = blockDim.x*blockIdx.x + threadIdx.x;
+	float shared9,shared10,shared11,shared12;
 	int reg_uInt;
-
 	//fetch in data from contact, regarding body 1:
-	reg03 = deviceContacts[memAddress];   //reg03 contains the components of the contact normal, pointing towards the exterior of what is now considered "body 1"
+	shared0 = (contacts[Index]);   //reg03 contains the components of the contact normal, pointing towards the exterior of what is now considered "body 1"
 
 	//normalize the vector
-	reg4  = reg03.x;
-	reg4 *= reg4;
-
-	reg5  = reg03.y;
-	reg5 *= reg5;
-	reg4 += reg5;
-
-	reg5  = reg03.z;
-	reg5 *= reg5;
-	reg4 += reg5;
-
-	reg4 = sqrt(reg4); // <--- this is the magnitude of the normal
+	shared1.x  = shared0.x*shared0.x+shared0.y*shared0.y+shared0.z*shared0.z;
+	shared1.x = sqrtf(shared1.x); // <--- this is the magnitude of the normal
 
 	//avoid division by zero; if normal is undefined, make it be the world X direction
-	if( reg4==0. ) {
-		reg03.x = 1.;
-		reg03.y = 0.;
-		reg03.z = 0.;
-		reg4    = 1.;
+	if( shared1.x==0. ) {
+		shared0 = F4(1.0, 0.0, 0.0, 0.0);
+		shared1.x    = 1.;
 	}
-
 	//now do the scaling to get a healthy X axis
-	reg03.x /= reg4; shMemData[CH_SH_MEM_SIZE*threadIdx.x  ] = reg03.x;
-	reg03.y /= reg4; shMemData[CH_SH_MEM_SIZE*threadIdx.x+1] = reg03.y;
-	reg03.z /= reg4; shMemData[CH_SH_MEM_SIZE*threadIdx.x+2] = reg03.z;
+	shared0 = shared0/ shared1.x;
+
 
 	//some type of Gramm Schmidt; work with the global axis that is "most perpendicular" to the contact 
 	//normal vector; effectively this means looking for the smallest component (in abs) and using the 
 	//corresponding direction to carry out cross product.  Some thread divergence here...
-	reg4 = fabs(reg03.x);
+	shared2.x = fabs(shared0.x);
 	reg_uInt = 0;
-	reg5 = fabs(reg03.y);
-	if( reg4>reg5 ) {
-		reg4 = reg5;
+	shared2.y = fabs(shared0.y);
+	if( shared2.x>shared2.y ) {
+		shared2.x = shared2.y;
 		reg_uInt = 1;
 	}
-	reg5 = fabs(reg03.z);
-	if( reg4>reg5 ) {
+	shared2.y = fabs(shared0.z);
+	if( shared2.x>shared2.y ) {
 		//it turns out that Z axis is closest to being perpendicular to contact vector;
 		//drop stuff directly into the shared memory
 		reg_uInt = 2;
-		shMemData[CH_SH_MEM_SIZE*threadIdx.x+3] =  reg03.y;
-		shMemData[CH_SH_MEM_SIZE*threadIdx.x+4] = -reg03.x;
-		shMemData[CH_SH_MEM_SIZE*threadIdx.x+5] =      0.0;
+		shared1.x =  shared0.y;
+		shared1.y = -shared0.x;
+		shared1.z =      0.0;
 	}
 
 	//store stuff in shared memory
 	if( reg_uInt==0 ){
 		//it turns out that X axis is closest to being perpendicular to contact vector;
 		//store values temporarily into the shared memory
-		shMemData[CH_SH_MEM_SIZE*threadIdx.x+3] =      0.0;
-		shMemData[CH_SH_MEM_SIZE*threadIdx.x+4] =  reg03.z;
-		shMemData[CH_SH_MEM_SIZE*threadIdx.x+5] = -reg03.y;
+		shared1.x =      0.0;
+		shared1.y =  shared0.z;
+		shared1.z = -shared0.y;
 	}
 	else if( reg_uInt==1 ){
 		//it turns out that Y axis is closest to being perpendicular to contact vector;
 		//store values temporarily into the shared memory
-		shMemData[CH_SH_MEM_SIZE*threadIdx.x+3] = -reg03.z;
-		shMemData[CH_SH_MEM_SIZE*threadIdx.x+4] =      0.0;
-		shMemData[CH_SH_MEM_SIZE*threadIdx.x+5] =  reg03.x;
+		shared1.x = -shared0.z;
+		shared1.y =      0.0;
+		shared1.z =  shared0.x;
 	}
 
 	//normalized the local contact Y axis (therefore automatically the 
 	//local contact Z axis will be normalized and you need do nothing)
-	reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+3];
-	reg4 *= reg4;
-	reg5  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+4];
-	reg5 *= reg5;
-	reg4 += reg5;
-	reg5  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+5];
-	reg5 *= reg5;
-	reg4 += reg5;
-	reg4 = sqrt(reg4);
-	shMemData[CH_SH_MEM_SIZE*threadIdx.x+3] /= reg4;
-	shMemData[CH_SH_MEM_SIZE*threadIdx.x+4] /= reg4;
-	shMemData[CH_SH_MEM_SIZE*threadIdx.x+5] /= reg4;
+	shared9  = shared1.x*shared1.x+shared1.y*shared1.y+shared1.z*shared1.z;
+	shared9 = sqrtf(shared9);
+	shared1.x /= shared9;
+	shared1.y /= shared9;
+	shared1.z /= shared9;
 
 	//now carry out the last cross product to find out the contact local Z axis;
 	//to this end multiply the contact normal by the local Y component
-	reg4 = reg03.y*shMemData[CH_SH_MEM_SIZE*threadIdx.x+5];
-	reg5 = reg03.z*shMemData[CH_SH_MEM_SIZE*threadIdx.x+4];
-	shMemData[CH_SH_MEM_SIZE*threadIdx.x+6] = reg4 - reg5;
-
-	reg4 = reg03.z*shMemData[CH_SH_MEM_SIZE*threadIdx.x+3];
-	reg5 = reg03.x*shMemData[CH_SH_MEM_SIZE*threadIdx.x+5];
-	shMemData[CH_SH_MEM_SIZE*threadIdx.x+7] = reg4 - reg5;
-
-	reg4 = reg03.x*shMemData[CH_SH_MEM_SIZE*threadIdx.x+4];
-	reg5 = reg03.y*shMemData[CH_SH_MEM_SIZE*threadIdx.x+3];
-	shMemData[CH_SH_MEM_SIZE*threadIdx.x+8] = reg4 - reg5;
+	shared2.x = shared0.y*shared1.z - shared0.z*shared1.y;
+	shared2.y = shared0.z*shared1.x - shared0.x*shared1.z;
+	shared2.z = shared0.x*shared1.y - shared0.y*shared1.x;
 
 	// The gap distance is the dot product <(s2-s1), contact_normal>, since contact_normal is normalized
-	reg03 = deviceContacts[memAddress+6*deviceContactPitch]; //fetches s_2,w
-	reg69 = deviceContacts[memAddress+3*deviceContactPitch]; //fetches s_1,w
+	reg03 = contacts[Index+2*deviceContactPitch]; //fetches s_2,w
+	shared6=reg03;
+	reg69 =  contacts[Index+1*deviceContactPitch];//fetches s_1,w
 	reg03 -= reg69;
-	reg03.w  = reg03.x * shMemData[CH_SH_MEM_SIZE*threadIdx.x  ]; 
-	reg03.w += reg03.y * shMemData[CH_SH_MEM_SIZE*threadIdx.x+1]; 
-	reg03.w += reg03.z * shMemData[CH_SH_MEM_SIZE*threadIdx.x+2]; 
+	reg03.w  = reg03.x * shared0.x; 
+	reg03.w += reg03.y * shared0.y; 
+	reg03.w += reg03.z * shared0.z; 
 	reg03.w *= Cfactor;	
 
 	// Clamp Anitescu stabilization coefficient: 
-
-	if (reg03.w < maxRecoverySpeedNeg)		
-		reg03.w = maxRecoverySpeedNeg;	
-
+	if (reg03.w < maxRecoverySpeedNeg)		{reg03.w = maxRecoverySpeedNeg;}
 
 	//ok, a first batch of things is now computed, copy stuff back to global memory;
 	//what gets passed back is --> A_c^T <--  
 	//copy first column of A_c in reg03.x, reg03.y, reg03.z; note that reg03.w hols on to the gap
-	reg03.x = shMemData[CH_SH_MEM_SIZE*threadIdx.x  ]; 
-	reg03.y = shMemData[CH_SH_MEM_SIZE*threadIdx.x+1]; 
-	reg03.z = shMemData[CH_SH_MEM_SIZE*threadIdx.x+2]; 
-	deviceContacts[memAddress] = reg03;   //reg03 contains the components of the contact normal, pointing towards the exterior of what is now considered "body 1"
-	memAddress += deviceContactPitch; 
-
+	shared0.w=maxRecoverySpeedNeg;
+	//contacts[Index] = F4(shared0.x,shared0.y, shared0.z, maxRecoverySpeedNeg);   // contains the components of the contact normal, pointing towards the exterior of what is now considered "body 1"
 	//second column of A_c
-	reg03.x = shMemData[CH_SH_MEM_SIZE*threadIdx.x+3];
-	reg03.y = shMemData[CH_SH_MEM_SIZE*threadIdx.x+4];
-	reg03.z = shMemData[CH_SH_MEM_SIZE*threadIdx.x+5];
-	reg03.w = 0.;  
-	deviceContacts[memAddress] = reg03;   //reg03 contains the components of the contact Y axis
-	memAddress += deviceContactPitch; 
-
+	//contacts[Index+1*deviceContactPitch] = F4(shared1.x,shared1.y, shared1.z, 0.0);   // contains the components of the contact Y axis
 	//third column of A_c
-	reg03.x = shMemData[CH_SH_MEM_SIZE*threadIdx.x+6];
-	reg03.y = shMemData[CH_SH_MEM_SIZE*threadIdx.x+7];
-	reg03.z = shMemData[CH_SH_MEM_SIZE*threadIdx.x+8];
-	reg03.w = 0.;
-	deviceContacts[memAddress] = reg03;   //reg03 contains the components of the contact Z axis
-	memAddress += deviceContactPitch; 
+	//contacts[Index+2*deviceContactPitch] = F4(shared2.x,shared2.y, shared2.z, 0.0);   // contains the components of the contact Z axis
 
 
 	//////////////////////////////////////////////////////////////////////////
@@ -601,40 +566,27 @@ __global__ void ChKernelContactsPreprocess(CH_REALNUMBER4* deviceContacts, CH_RE
 	//bring in the location of the contact point P on body 1, as well as indexB1.
 	//Store them in reg03.  Then bring the location of the body center of mass
 	//and store in reg69.  The vector s_1,w is finally stored in the regS register
-	memAddress = blockDim.x*blockIdx.x + threadIdx.x;
-	memAddress  += (3*deviceContactPitch);
-	reg03 = deviceContacts[memAddress];
-	regS.x = reg03.x;
-	regS.y = reg03.y;
-	regS.z = reg03.z;
+	reg03 = reg69;
+	regS = F3(reg03);
 	reg_uInt = int (reg03.w);
 
-	if (reg_uInt >= 0)
-	{
-		reg69 = deviceBodies[2*deviceBodyPitch+reg_uInt]; 
-		regS.x -= reg69.x;                                
-		regS.y -= reg69.y;                                
-		regS.z -= reg69.z;                                
+	if (reg_uInt >= 0){
+		regS -= F3(tex1Dfetch(texBody,2*deviceBodyPitch+reg_uInt));                                
 
 		//bring in the inertia attributes; store in shared memory; to be used to compute \eta
-		reg69 = deviceBodies[4*deviceBodyPitch+reg_uInt];
-		shMemData[CH_SH_MEM_SIZE*threadIdx.x+9 ] = reg69.x;  // this is the inverse of I_x  
-		shMemData[CH_SH_MEM_SIZE*threadIdx.x+10] = reg69.y;  // this is the inverse of I_y
-		shMemData[CH_SH_MEM_SIZE*threadIdx.x+11] = reg69.z;  // this is the inverse of I_z
-		shMemData[CH_SH_MEM_SIZE*threadIdx.x+12] = reg69.w;  // this is the inverse of mass
+		reg69 = tex1Dfetch(texBody,4*deviceBodyPitch+reg_uInt);
+		shared9  = reg69.x;  // this is the inverse of I_x  
+		shared10 = reg69.y;  // this is the inverse of I_y
+		shared11 = reg69.z;  // this is the inverse of I_z
+		shared12 = reg69.w;  // this is the inverse of mass
 
 		//bring in the Euler parameters associated with body 1; note that after this, reg03.w is not needed anymore, hang on to reguInt though
-		reg69 = deviceBodies[3*deviceBodyPitch+reg_uInt];
+		reg69 = tex1Dfetch(texBody,3*deviceBodyPitch+reg_uInt);
 
 		//start computing A_c^T \tilde s E G^T.  Start by getting the first row of A_c^T \tilde s:
-		reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+1]*regS.z;
-		reg4 -= shMemData[CH_SH_MEM_SIZE*threadIdx.x+2]*regS.y;
-
-		reg5  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+2]*regS.x;
-		reg5 -= shMemData[CH_SH_MEM_SIZE*threadIdx.x  ]*regS.z;
-
-		reg03.w  = shMemData[CH_SH_MEM_SIZE*threadIdx.x  ]*regS.y;  //<-- NOTE: reg03.w used to hold on to index for body 1, not needed anymore...
-		reg03.w -= shMemData[CH_SH_MEM_SIZE*threadIdx.x+1]*regS.x;
+		reg4 = shared0.y*regS.z-shared0.z*regS.y;
+		reg5 =shared0.z*regS.x-shared0.x*regS.z;
+		reg03.w =shared0.x*regS.y-shared0.y*regS.x;//<-- NOTE: reg03.w used to hold on to index for body 1, not needed anymore...
 
 		//next, compute the first row of A_c^T \tilde s E G^T; overwrite reg03.x, reg03.y, reg03.z
 		reg4 *= 2.;
@@ -655,31 +607,18 @@ __global__ void ChKernelContactsPreprocess(CH_REALNUMBER4* deviceContacts, CH_RE
 
 		reg03.w = reg_uInt; //<-- index of body 1, put it back; after this, i'm ready to copy back the row in the contact structure
 
-		deviceContacts[memAddress] = reg03;
-		memAddress += deviceContactPitch;
+		//contacts[Index+3*deviceContactPitch] = reg03;
+		shared3=reg03;
 
 		//before spoiling reg03, update expression of eta
-		reg03.x *= reg03.x;
-		reg03.x *= shMemData[CH_SH_MEM_SIZE*threadIdx.x+ 9];
-		eta     += reg03.x;
-
-		reg03.y *= reg03.y;
-		reg03.y *= shMemData[CH_SH_MEM_SIZE*threadIdx.x+10];
-		eta     += reg03.y;
-
-		reg03.z *= reg03.z;
-		reg03.z *= shMemData[CH_SH_MEM_SIZE*threadIdx.x+11];
-		eta     += reg03.z;
+		eta     += reg03.x*reg03.x*shared9;
+		eta     += reg03.y*reg03.y*shared10;
+		eta     += reg03.z*reg03.z*shared11;
 
 		//work now on the second row of the product A_c^T \tilde s E G^T; 
-		reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+4]*regS.z;
-		reg4 -= shMemData[CH_SH_MEM_SIZE*threadIdx.x+5]*regS.y;
-
-		reg5  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+5]*regS.x;
-		reg5 -= shMemData[CH_SH_MEM_SIZE*threadIdx.x+3]*regS.z;
-
-		reg03.w  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+3]*regS.y;  //<-- NOTE: reg03.w used to hold on to index for body 1, not needed anymore...
-		reg03.w -= shMemData[CH_SH_MEM_SIZE*threadIdx.x+4]*regS.x;
+		reg4 =shared1.y*regS.z-shared1.z*regS.y;
+		reg5 = shared1.z*regS.x-shared1.x*regS.z;
+		reg03.w = shared1.x*regS.y-shared1.y*regS.x;//<-- NOTE: reg03.w used to hold on to index for body 1, not needed anymore...
 
 		//next, compute the second row of A_c^T \tilde s E G^T; overwrite reg03.x, reg03.y, reg03.z
 		reg4 *= 2.;
@@ -698,32 +637,18 @@ __global__ void ChKernelContactsPreprocess(CH_REALNUMBER4* deviceContacts, CH_RE
 		reg03.z += reg5*(reg69.z*reg69.w - reg69.x*reg69.y);
 		reg03.z += reg03.w*(reg69.x*reg69.x + reg69.w*reg69.w - 0.5f);
 
-		deviceContacts[memAddress] = reg03;
-		memAddress += deviceContactPitch;
+		//contacts[Index+4*deviceContactPitch] = reg03;
+		shared4=reg03;
 
 		//before spoiling reg03, update expression of eta
-		reg03.x *= reg03.x;
-		reg03.x *= shMemData[CH_SH_MEM_SIZE*threadIdx.x+ 9];
-		eta     += reg03.x;
-
-		reg03.y *= reg03.y;
-		reg03.y *= shMemData[CH_SH_MEM_SIZE*threadIdx.x+10];
-		eta     += reg03.y;
-
-		reg03.z *= reg03.z;
-		reg03.z *= shMemData[CH_SH_MEM_SIZE*threadIdx.x+11];
-		eta     += reg03.z;
-
+		eta     += reg03.x*reg03.x*shared9;
+		eta     += reg03.y*reg03.y*shared10;
+		eta     += reg03.z*reg03.z*shared11;
 
 		//work now on the third row of the product A_c^T \tilde s E G^T; 
-		reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+7]*regS.z;
-		reg4 -= shMemData[CH_SH_MEM_SIZE*threadIdx.x+8]*regS.y;
-
-		reg5  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+8]*regS.x;
-		reg5 -= shMemData[CH_SH_MEM_SIZE*threadIdx.x+6]*regS.z;
-
-		reg03.w  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+6]*regS.y;  //<-- NOTE: reg03.w used to hold on to index for body 1, not needed anymore...
-		reg03.w -= shMemData[CH_SH_MEM_SIZE*threadIdx.x+7]*regS.x;
+		reg4 = shared2.y*regS.z-shared2.z*regS.y;
+		reg5 = shared2.z*regS.x-shared2.x*regS.z;
+		reg03.w = shared2.x*regS.y-shared2.y*regS.x;//<-- NOTE: reg03.w used to hold on to index for body 1, not needed anymore...
 
 		//next, compute the third row of A_c^T \tilde s E G^T; overwrite reg03.x, reg03.y, reg03.z
 		reg4 *= 2.;
@@ -742,61 +667,21 @@ __global__ void ChKernelContactsPreprocess(CH_REALNUMBER4* deviceContacts, CH_RE
 		reg03.z += reg5*(reg69.z*reg69.w - reg69.x*reg69.y);
 		reg03.z += reg03.w*(reg69.x*reg69.x + reg69.w*reg69.w - 0.5f);
 
-		deviceContacts[memAddress] = reg03;
-		memAddress += deviceContactPitch;
+		//contacts[Index+5*deviceContactPitch] = reg03;
+		shared5=reg03;
 
 		//before spoiling reg03, update expression of eta
-		reg03.x *= reg03.x;
-		reg03.x *= shMemData[CH_SH_MEM_SIZE*threadIdx.x+ 9];
-		eta     += reg03.x;
-
-		reg03.y *= reg03.y;
-		reg03.y *= shMemData[CH_SH_MEM_SIZE*threadIdx.x+10];
-		eta     += reg03.y;
-
-		reg03.z *= reg03.z;
-		reg03.z *= shMemData[CH_SH_MEM_SIZE*threadIdx.x+11];
-		eta     += reg03.z;
+		eta     += reg03.x*reg03.x*shared9;
+		eta     += reg03.y*reg03.y*shared10;
+		eta     += reg03.z*reg03.z*shared11;
 
 		//add to eta the contribution that comes out of the mass and matrix A_c.
-		reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x  ];
-		reg4 *= reg4;
-		reg5  = reg4;
-
-		reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+1];
-		reg4 *= reg4;
-		reg5 += reg4;
-
-		reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+2];
-		reg4 *= reg4;
-		reg5 += reg4;
-
-		reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+3];
-		reg4 *= reg4;
-		reg5 += reg4;
-
-		reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+4];
-		reg4 *= reg4;
-		reg5 += reg4;
-
-		reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+5];
-		reg4 *= reg4;
-		reg5 += reg4;
-
-		reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+6];
-		reg4 *= reg4;
-		reg5 += reg4;
-
-		reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+7];
-		reg4 *= reg4;
-		reg5 += reg4;
-
-		reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+8];
-		reg4 *= reg4;
-		reg5 += reg4;
+		reg5  = shared0.x*shared0.x+shared0.y*shared0.y+shared0.z*shared0.z+
+			shared1.x*shared1.x+shared1.y*shared1.y+shared1.z*shared1.z+
+			shared2.x*shared2.x+shared2.y*shared2.y+shared2.z*shared2.z;
 
 		//take care of what needs to be done for eta
-		reg5 *= shMemData[CH_SH_MEM_SIZE*threadIdx.x+12];  //multiply by inverse of mass matrix of B1
+		reg5 *= shared12;  //multiply by inverse of mass matrix of B1
 		eta += reg5;
 	}
 
@@ -806,40 +691,27 @@ __global__ void ChKernelContactsPreprocess(CH_REALNUMBER4* deviceContacts, CH_RE
 	//bring in the location of the contact point P on body 2, as well as indexB2.
 	//Store them in reg03.  Then bring the location of the body center of mass
 	//and store in reg69.  The vector s_2,w is finally stored in the regS register
-	memAddress = blockIdx.x* blockDim.x + threadIdx.x;
-	memAddress += (6*deviceContactPitch);
-	reg03 = deviceContacts[memAddress];
-	regS.x = reg03.x;
-	regS.y = reg03.y;
-	regS.z = reg03.z;
+	reg03 = shared6;
+	regS = F3(reg03);
 	reg_uInt = int (reg03.w);
 
-	if (reg_uInt >= 0)
-	{
-		reg69 = deviceBodies[2*deviceBodyPitch+reg_uInt]; 
-		regS.x -= reg69.x;                                
-		regS.y -= reg69.y;                                
-		regS.z -= reg69.z;                                
+	if (reg_uInt >= 0){
+		regS -= F3(tex1Dfetch(texBody,2*deviceBodyPitch+reg_uInt));                              
 
 		//bring in the inertia attributes; store in shared memory; to be used to compute \eta
-		reg69 = deviceBodies[4*deviceBodyPitch+reg_uInt];
-		shMemData[CH_SH_MEM_SIZE*threadIdx.x+9 ] = reg69.x;  // this is the inverse of I_x  
-		shMemData[CH_SH_MEM_SIZE*threadIdx.x+10] = reg69.y;  // this is the inverse of I_y
-		shMemData[CH_SH_MEM_SIZE*threadIdx.x+11] = reg69.z;  // this is the inverse of I_z
-		shMemData[CH_SH_MEM_SIZE*threadIdx.x+12] = reg69.w;  // this is the inverse of mass
+		reg69 = tex1Dfetch(texBody,4*deviceBodyPitch+reg_uInt);
+		shared9 = reg69.x;  // this is the inverse of I_x  
+		shared10 = reg69.y;  // this is the inverse of I_y
+		shared11 = reg69.z;  // this is the inverse of I_z
+		shared12 = reg69.w;  // this is the inverse of mass
 
 		//bring in the Euler parameters associated with body 2; note that after this, reg03.w is not needed anymore, hang on to reguInt though
-		reg69 = deviceBodies[3*deviceBodyPitch+reg_uInt];
+		reg69 = tex1Dfetch(texBody,3*deviceBodyPitch+reg_uInt);
 
 		//start computing A_c^T \tilde s E G^T.  Start by getting the first row of A_c^T \tilde s:
-		reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+1]*regS.z;
-		reg4 -= shMemData[CH_SH_MEM_SIZE*threadIdx.x+2]*regS.y;
-
-		reg5  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+2]*regS.x;
-		reg5 -= shMemData[CH_SH_MEM_SIZE*threadIdx.x  ]*regS.z;
-
-		reg03.w  = shMemData[CH_SH_MEM_SIZE*threadIdx.x  ]*regS.y;  //<-- NOTE: reg03.w used to hold on to index for body 1, not needed anymore...
-		reg03.w -= shMemData[CH_SH_MEM_SIZE*threadIdx.x+1]*regS.x;
+		reg4 = shared0.y*regS.z-shared0.z*regS.y;
+		reg5 = shared0.z*regS.x-shared0.x*regS.z;
+		reg03.w = shared0.x*regS.y-shared0.y*regS.x;//<-- NOTE: reg03.w used to hold on to index for body 1, not needed anymore...
 
 		//next, compute the first row of A_c^T \tilde s E G^T; overwrite reg03.x, reg03.y, reg03.z
 		reg4 *= 2.;
@@ -863,31 +735,18 @@ __global__ void ChKernelContactsPreprocess(CH_REALNUMBER4* deviceContacts, CH_RE
 
 		reg03.w = reg_uInt; //<-- index of body 2, put it back; after this, i'm ready to copy back the row in the contact structure
 
-		deviceContacts[memAddress] = reg03;
-		memAddress += deviceContactPitch;
+		//contacts[Index+6*deviceContactPitch] = reg03;
+		shared6=reg03;
 
 		//before spoiling reg03, update expression of eta
-		reg03.x *= reg03.x;
-		reg03.x *= shMemData[CH_SH_MEM_SIZE*threadIdx.x+ 9];
-		eta     += reg03.x;
-
-		reg03.y *= reg03.y;
-		reg03.y *= shMemData[CH_SH_MEM_SIZE*threadIdx.x+10];
-		eta     += reg03.y;
-
-		reg03.z *= reg03.z;
-		reg03.z *= shMemData[CH_SH_MEM_SIZE*threadIdx.x+11];
-		eta     += reg03.z;
+		eta     += reg03.x*reg03.x*shared9;
+		eta     += reg03.y*reg03.y*shared10;
+		eta     += reg03.z*reg03.z*shared11;
 
 		//work now on the second row of the product A_c^T \tilde s E G^T; 
-		reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+4]*regS.z;
-		reg4 -= shMemData[CH_SH_MEM_SIZE*threadIdx.x+5]*regS.y;
-
-		reg5  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+5]*regS.x;
-		reg5 -= shMemData[CH_SH_MEM_SIZE*threadIdx.x+3]*regS.z;
-
-		reg03.w  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+3]*regS.y;  //<-- NOTE: reg03.w used to hold on to index for body 1, not needed anymore...
-		reg03.w -= shMemData[CH_SH_MEM_SIZE*threadIdx.x+4]*regS.x;
+		reg4 = shared1.y*regS.z-shared1.z*regS.y;
+		reg5 = shared1.z*regS.x-shared1.x*regS.z;
+		reg03.w = shared1.x*regS.y-shared1.y*regS.x;//<-- NOTE: reg03.w used to hold on to index for body 1, not needed anymore...
 
 		//next, compute the second row of A_c^T \tilde s E G^T; overwrite reg03.x, reg03.y, reg03.z
 		reg4 *= 2.;
@@ -909,31 +768,18 @@ __global__ void ChKernelContactsPreprocess(CH_REALNUMBER4* deviceContacts, CH_RE
 		reg03.z +=  reg03.w*(reg69.x*reg69.x + reg69.w*reg69.w - 0.5f);
 		reg03.z  = -reg03.z;  // <--- note the "-" sign on this quantity
 
-		deviceContacts[memAddress] = reg03;
-		memAddress += deviceContactPitch;
+		//contacts[Index+7*deviceContactPitch] = reg03;
+		shared7=reg03;
 
 		//before spoiling reg03, update expression of eta
-		reg03.x *= reg03.x;
-		reg03.x *= shMemData[CH_SH_MEM_SIZE*threadIdx.x+ 9];
-		eta     += reg03.x;
-
-		reg03.y *= reg03.y;
-		reg03.y *= shMemData[CH_SH_MEM_SIZE*threadIdx.x+10];
-		eta     += reg03.y;
-
-		reg03.z *= reg03.z;
-		reg03.z *= shMemData[CH_SH_MEM_SIZE*threadIdx.x+11];
-		eta     += reg03.z;
+		eta     += reg03.x*reg03.x*shared9;
+		eta     += reg03.y*reg03.y*shared10;
+		eta     += reg03.z*reg03.z*shared11;
 
 		//work now on the third row of the product A_c^T \tilde s E G^T; 
-		reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+7]*regS.z;
-		reg4 -= shMemData[CH_SH_MEM_SIZE*threadIdx.x+8]*regS.y;
-
-		reg5  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+8]*regS.x;
-		reg5 -= shMemData[CH_SH_MEM_SIZE*threadIdx.x+6]*regS.z;
-
-		reg03.w  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+6]*regS.y;  //<-- NOTE: reg03.w used to hold on to index for body 1, not needed anymore...
-		reg03.w -= shMemData[CH_SH_MEM_SIZE*threadIdx.x+7]*regS.x;
+		reg4 = shared2.y*regS.z-shared2.z*regS.y;
+		reg5 = shared2.z*regS.x-shared2.x*regS.z;
+		reg03.w = shared2.x*regS.y-shared2.y*regS.x;//<-- NOTE: reg03.w used to hold on to index for body 1, not needed anymore...
 
 		//next, compute the third row of A_c^T \tilde s E G^T; overwrite reg03.x, reg03.y, reg03.z
 		reg4 *= 2.;
@@ -957,67 +803,25 @@ __global__ void ChKernelContactsPreprocess(CH_REALNUMBER4* deviceContacts, CH_RE
 
 		//contribution of last row to value of eta; this is slightly different 
 		//since i cannot step on the values in reg03 yet.
-		reg4  = reg03.x;
-		reg4 *= reg4;
-		reg4 *= shMemData[CH_SH_MEM_SIZE*threadIdx.x+ 9];
-		eta     += reg4;
-
-		reg4  = reg03.y;
-		reg4 *= reg4;
-		reg4 *= shMemData[CH_SH_MEM_SIZE*threadIdx.x+10];
-		eta     += reg4;
-
-		reg4  = reg03.z;
-		reg4 *= reg4;
-		reg4 *= shMemData[CH_SH_MEM_SIZE*threadIdx.x+11];
-		eta     += reg4; 
+		eta     += reg03.x*reg03.x*shared9 ;
+		eta     += reg03.y*reg03.y*shared10;
+		eta     += reg03.z*reg03.z*shared11; 
 
 		//add to eta the contribution that comes out of the mass and matrix A_c.
-		reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x  ];
-		reg4 *= reg4;
-		reg5  = reg4;
-
-		reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+1];
-		reg4 *= reg4;
-		reg5 += reg4;
-
-		reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+2];
-		reg4 *= reg4;
-		reg5 += reg4;
-
-		reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+3];
-		reg4 *= reg4;
-		reg5 += reg4;
-
-		reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+4];
-		reg4 *= reg4;
-		reg5 += reg4;
-
-		reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+5];
-		reg4 *= reg4;
-		reg5 += reg4;
-
-		reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+6];
-		reg4 *= reg4;
-		reg5 += reg4;
-
-		reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+7];
-		reg4 *= reg4;
-		reg5 += reg4;
-
-		reg4  = shMemData[CH_SH_MEM_SIZE*threadIdx.x+8];
-		reg4 *= reg4;
-		reg5 += reg4;
+		reg5  = shared0.x*shared0.x+shared0.y*shared0.y+shared0.z*shared0.z+
+			shared1.x*shared1.x+shared1.y*shared1.y+shared1.z*shared1.z+
+			shared2.x*shared2.x+shared2.y*shared2.y+shared2.z*shared2.z;
 
 		//take care of what needs to be done for eta
-		reg5 *= shMemData[CH_SH_MEM_SIZE*threadIdx.x+12];  //multiply by inverse of mass matrix of B1
+		reg5 *= shared12;  //multiply by inverse of mass matrix of B1
 		eta += reg5;
 	}
 
 	eta = 3./eta;  // <-- final value of eta
 	reg03.w = eta; // <-- value of eta is passed back to global
-	deviceContacts[( blockIdx.x* blockDim.x + threadIdx.x) + (8*deviceContactPitch)] = reg03;
-} 
+	//contacts[Index + (8*deviceContactPitch)] = reg03;
+	shared8=reg03;
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1093,7 +897,7 @@ __global__ void  ChKernelIntegrateTimeStep(CH_REALNUMBER4* bodies, bool normaliz
 	// Do 1st order integration of quaternion position as q[t+dt] = qw_abs^(dt) * q[dt] = q[dt] * qw_local^(dt)
 	// where qw^(dt) is the quaternion { cos(0.5|w|), wx/|w| sin(0.5|w|), wy/|w| sin(0.5|w|), wz/|w| sin(0.5|w|)}^dt
 	// that is argument of sine and cosines are multiplied by dt.
-	
+
 	CH_REALNUMBER4 Rw = bodies[deviceBodyPitch *1 + i];
 
 	CH_REALNUMBER wlen = sqrtf(Rw.x*Rw.x + Rw.y*Rw.y + Rw.z*Rw.z);
@@ -1112,8 +916,8 @@ __global__ void  ChKernelIntegrateTimeStep(CH_REALNUMBER4* bodies, bool normaliz
 __global__ void ChKernelLCPcomputeOffsets(CH_REALNUMBER4* contacts ,CH_REALNUMBER4* bilaterals,  uint* Body){
 	uint i = blockIdx.x * blockDim.x + threadIdx.x;
 	if(i<contactsGPU){
-		Body[i]								=contacts[i+ deviceContactPitch *3].w;
-		Body[i+contactsGPU]					=contacts[i+ deviceContactPitch *6].w;
+		Body[i]								=contacts[i+ deviceContactPitch *1].w;
+		Body[i+contactsGPU]					=contacts[i+ deviceContactPitch *2].w;
 	}
 	if(i<bilateralsGPU){
 		Body[2*contactsGPU+i]				=bilaterals[i].w;
@@ -1183,7 +987,7 @@ namespace chrono{
 
 			CUT_CHECK_ERROR("COPY CONSTANTS");	
 
-			ChKernelContactsPreprocess	<<< max(ceil(n_contacts_GPU		/double(CH_PREPROCESSING_TPB)),1.0)	, CH_PREPROCESSING_TPB	>>>(d_buffer_contacts, CASTF4(d_buffer_bodies));						CUT_CHECK_ERROR("ChKernelContactsPreprocess");
+			//ChKernelContactsPreprocess	<<< max(ceil(n_contacts_GPU		/double(CH_PREPROCESSING_TPB)),1.0)	, CH_PREPROCESSING_TPB	>>>(d_buffer_contacts, CASTF4(d_buffer_bodies));						CUT_CHECK_ERROR("ChKernelContactsPreprocess");
 			ChKernelLCPaddForces		<<< max(ceil(n_bodies_GPU		/double(CH_LCPADDFORCES_TPB)),1.0)	, CH_LCPADDFORCES_TPB	>>>(CASTF4(d_buffer_bodies) );											CUT_CHECK_ERROR("ChKernelLCPaddForces");	
 			ChKernelLCPcomputeOffsets	<<< max(ceil(n_total_constraints/double(CH_PREPROCESSING_TPB)),1.0)	, CH_PREPROCESSING_TPB	>>>(d_buffer_contacts,CASTF4(d_buffer_bilaterals),CASTU1(d_bodyNum));	CUT_CHECK_ERROR("ChKernelLCPcomputeOffsets");
 
@@ -1197,11 +1001,11 @@ namespace chrono{
 
 			int updates=thrust::reduce_by_key(d_bodyNum.begin(), d_bodyNum.end(), thrust::constant_iterator<uint>(1), d_updateNum.begin(), d_offset_counter.begin()).first-d_updateNum.begin();
 			thrust::inclusive_scan(d_offset_counter.begin(), d_offset_counter.end(), d_offset_counter.begin());
-			
+
 			CUDA_SAFE_CALL(cudaMemcpyToSymbolAsync(updatesGPU,			&updates,			sizeof(updates)));
-				int iter=0;
+			int iter=0;
 			if(n_contacts_GPU>0||n_bilaterals_GPU>0){
-			
+
 				for (iter = 0; iter < max_iterations; iter++){
 					if(n_contacts_GPU){
 						ChKernelLCPiteration<<< max(ceil((n_contacts_GPU)/((double)CH_LCPITERATION_TPB) ),1.0), CH_LCPITERATION_TPB >>>(
@@ -1215,13 +1019,13 @@ namespace chrono{
 						CUT_CHECK_ERROR("ChKernelLCPiteration");
 					}
 					/*if(n_bilaterals_GPU){
-						ChKernelLCPiterationBilaterals<<< ceil((n_bilaterals_GPU)/((double)CH_LCPITERATIONBILATERALS_TPB)), CH_LCPITERATIONBILATERALS_TPB >>>(
-							CASTF4(d_buffer_bilaterals), 
-							CASTF4(d_buffer_bodies), 
-							CASTF3(d_buffer_vel), 
-							CASTF3(d_buffer_omega), 
-							CASTU1(d_update_offset));
-						CUT_CHECK_ERROR("ChKernelLCPiterationBilaterals");
+					ChKernelLCPiterationBilaterals<<< ceil((n_bilaterals_GPU)/((double)CH_LCPITERATIONBILATERALS_TPB)), CH_LCPITERATIONBILATERALS_TPB >>>(
+					CASTF4(d_buffer_bilaterals), 
+					CASTF4(d_buffer_bodies), 
+					CASTF3(d_buffer_vel), 
+					CASTF3(d_buffer_omega), 
+					CASTU1(d_update_offset));
+					CUT_CHECK_ERROR("ChKernelLCPiterationBilaterals");
 					}*/
 					ChKernelLCPspeedupdate<<< max(ceil((n_contacts_GPU+n_bilaterals_GPU)/((double)CH_PREPROCESSING_TPB)),1.0), CH_PREPROCESSING_TPB >>>(
 						CASTF4(d_buffer_bodies), 

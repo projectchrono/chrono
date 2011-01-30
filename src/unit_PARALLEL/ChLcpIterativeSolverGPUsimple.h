@@ -89,6 +89,7 @@ namespace chrono{
 		virtual bool Get_do_integration_step() {return this->mDoIntegrationStep;}
 
 		void SetSystemDescriptor(ChLcpSystemDescriptorGPU* mdescriptor);
+		thrust::host_vector<float4>   h_bodies;		//Host vector for bodyData
 
 	protected:
 		//
@@ -106,7 +107,7 @@ namespace chrono{
 		unsigned int mStepCounter; // this to have normalization on quaternion only each N steps
 		unsigned int mMaxIterations;
 
-		thrust::host_vector<float4>   h_bodies;		//Host vector for bodyData
+		
 		thrust::host_vector<float4>   h_bilaterals;	//Device vector for bodyData
 
 		ChContactContainerGPUsimple*  gpu_contact_container; // will be asked which was C factor,max.speed.clamping etc. so to perform contact preprocessing in solver (Dan' jacobian/residual gpu computation)

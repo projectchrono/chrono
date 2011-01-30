@@ -12,15 +12,12 @@
 
 namespace chrono {
 	namespace collision {
-		ChCollisionSystemGPU::ChCollisionSystemGPU(float mEnvelope, float mBinSize, uint mMaxContact){
+		ChCollisionSystemGPU::ChCollisionSystemGPU(float mEnvelope){
 			mGPU.mEnvelope=mEnvelope;
-			mGPU.mBinSize=mBinSize;
 			mGPU.mMaxRad=0;
-			
 			mGPU.mNSpheres=0;
 			mGPU.mNBoxes=0;
 			mGPU.mNTriangles=0;
-			mGPU.mMaxContact=mMaxContact;
 			mGPU.InitCudaCollision();
 			mGPU.mTune=true;
 		}
@@ -36,7 +33,7 @@ namespace chrono {
 
 		void ChCollisionSystemGPU::SetSystemDescriptor(ChLcpSystemDescriptorGPU* mdescriptor){
 			mSystemDescriptor=mdescriptor;
-			mSystemDescriptor->maxContacts=mGPU.mMaxContact;
+			mGPU.mMaxContact=mSystemDescriptor->maxContacts;
 			mGPU.mContactsGPU=mSystemDescriptor->vContactsGPU;
 			//mGPU.mContactBodyID=mSystemDescriptor->d_contact_bodyID;
 		}

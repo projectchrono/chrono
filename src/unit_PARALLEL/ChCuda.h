@@ -92,7 +92,7 @@ float __host_int_as_float(int a)
 }
 //////////////////////////////////////////////////
 
-#define CH_CONTACT_VSIZE 10
+#define CH_CONTACT_VSIZE 4
 #define CH_CONTACT_HSIZE sizeof(CH_REALNUMBER4)
 
 #define CH_BODY_VSIZE 7
@@ -146,7 +146,7 @@ float __host_int_as_float(int a)
 //   n1 and n2 tell the repetition index of the body (0,1,2,..) in reduction buffer.
 // 
 //   
-//  'contacts' buffer is made with an horizontal array of:
+//  'contacts' buffer is made with an horizontal array of://*OLD, there is no more preprocess stage, merged with iteration//*
 //		[             , bx ]      0
 //		[ matr.J12(x) , -  ]      1
 //		[_____________, -  ]      2
@@ -192,7 +192,7 @@ float __host_int_as_float(int a)
 //  that is later transformed in the above 'contact' buffer thank to the ChKernelContactsPreprocess
 //  kernel. Such kernel prepares the 'contacts' buffer in-place, starting from the state below:
 //
-//  'contacts' buffer  before preprocessing:
+//  'contacts' buffer  before preprocessing://*OLD//*
 //		[   Normal    ,  0 ]      0
 //		[  -   -   -  ,  - ]      1
 //		[  -   -   -  ,  - ]      2
@@ -203,3 +203,11 @@ float __host_int_as_float(int a)
 //		[  -   -   -  ,  - ]	  7
 //		[  -   -   -  ,  - ]	  8
 //		[ gx,  gy,  gz, mu ]      9
+
+
+//*NEW//*
+//  'contacts' buffer:
+//		[   Normal    ,  0 ]      0
+//		[     P1      , B1 ]	  1
+//		[     P2      , B2 ]	  2
+//		[ gx,  gy,  gz, mu ]      3
