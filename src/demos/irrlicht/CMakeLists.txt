@@ -9,6 +9,20 @@ INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC}
 # Add executables
 
 
+ADD_EXECUTABLE(demo_collision   	demo_collision.cpp)
+SOURCE_GROUP(demos\\irrlicht FILES  demo_collision.cpp)
+SET_TARGET_PROPERTIES(demo_collision PROPERTIES 
+	FOLDER demos
+	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
+	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+TARGET_LINK_LIBRARIES(demo_collision
+	${CH_IRRLICHTLIB}
+ 	optimized 	${CH_CHRONOLIB} 
+ 	debug 		${CH_CHRONOLIB_DBG})
+ADD_DEPENDENCIES (demo_collision ChronoEngine)
+
+
 ADD_EXECUTABLE(demo_benchmark   	demo_benchmark.cpp)
 SOURCE_GROUP(demos\\irrlicht FILES  demo_benchmark.cpp)
 SET_TARGET_PROPERTIES(demo_benchmark PROPERTIES 
