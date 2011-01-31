@@ -1,13 +1,10 @@
 ; Script for INNO SETUP
 ;
-; This script generates the ChronoEngine_v.xxx.exe SDK installer (the 'setup exe' which can
-; be distributed to people which want to use the chrono::engine SDK)
-; It copies the .h headers, the libs, the dls, the docs etc. on the target system. Also,
-; it installs a new VisualStudio wizard.
+; This script generates the Visual Studio C++ wizard installer (as a 'setup exe')
 ;
 ; Copyright 2009 A.Tasora
 
-#define MyAppName "ChronoEngine"
+#define MyAppName "ChronoEngine_wizard"
 #define MyAppVersion "v1.3.0"
 #define MyAppPublisher "Alessandro Tasora"
 #define MyAppURL "http://dynamics.eng.unipr.it"
@@ -32,18 +29,9 @@ Compression=lzma
 ;SolidCompression=yes
 Uninstallable=yes
 OutputDir=c:\tasora\lavori\data_chrono
-OutputBaseFilename=ChronoEngine_{#MyAppVersion}
+OutputBaseFilename=ChronoEngine_wizard_{#MyAppVersion}
 
 [Files]
-Source: {#MyChronoEngineSDK}\*; Excludes: "*.c,*.cpp,*.cu,doxygen,\bin,\scripts,\source\collision\gimpact,\source\collision\edgetempest,\source\HOWTO_COMPILE_API.txt,*.pdb,_obsolete,\installer,*.o,*.obj,*.ncb,*.bat,source\*.def,*\.svn"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs
-Source: {#MyChronoEngineSDK}\bin\*; Excludes: "*.pdb,demo_benchmark.exe,*\.svn,*.ilk,*.idb,\data\mpi"; DestDir: "{app}\bin"; Flags: recursesubdirs createallsubdirs
-;Source: "C:\tasora\lavori\html\chronoengine\install.html"; DestDir: "{app}\docs";
-;Source: "C:\tasora\lavori\html\chronoengine\tutorials.html"; DestDir: "{app}\docs";
-;Source: "C:\tasora\lavori\html\chronoengine\tutorials\*.*"; Excludes: "*.php"; DestDir: "{app}\docs\tutorials";  Flags: recursesubdirs
-Source: "C:\tasora\lavori\html\chronoengine\chronoengine_clock_small.jpg"; DestDir: "{app}\docs";
-Source: "chronostyle.css"; DestDir: "{app}\docs";
-
-
 Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\*; DestDir: {code:myGetPathVisual9}VCWizards\ChronoEngineWizard; Check: myFoundVisual9; Flags: recursesubdirs createallsubdirs
 Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\HTML\1033\default.htm; DestDir: {code:myGetPathVisual9}VCWizards\ChronoEngineWizard\HTML\1033; AfterInstall: myAfterWizardInstall; Check: myFoundVisual9; Flags: ignoreversion
 Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngine\*; DestDir: {code:myGetPathVisual9}Express\VCProjects\ChronoEngine; Check: myFoundVisual9;
@@ -54,34 +42,6 @@ Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngine\*; DestDir: {code:myGetPat
 
 
 
-[Icons]
-;Name: "{group}\Getting started"; Filename: "{app}\docs\install.html"
-;Name: "{group}\Tutorials"; Filename: "{app}\docs\tutorials.html"
-Name: "{group}\API documentation"; Filename: "{app}\docs\html\help.chm"
-Name: "{group}\Readme"; Filename: "{app}\readme.txt"
-Name: "{group}\Convex decomp. utility"; Filename: "{app}\bin\Win32_VisualStudio\demo_decomposition.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
-Name: "{group}\demos\Crank"; Filename: "{app}\bin\Win32_VisualStudio\demo_crank.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
-Name: "{group}\demos\Four bar"; Filename: "{app}\bin\Win32_VisualStudio\demo_fourbar.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
-Name: "{group}\demos\Pendulum"; Filename: "{app}\bin\Win32_VisualStudio\demo_pendulum.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
-Name: "{group}\demos\Collision"; Filename: "{app}\bin\Win32_VisualStudio\demo_collision.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
-Name: "{group}\demos\Bricks"; Filename: "{app}\bin\Win32_VisualStudio\demo_bricks.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
-Name: "{group}\demos\Suspension"; Filename: "{app}\bin\Win32_VisualStudio\demo_suspension.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
-Name: "{group}\demos\Racing"; Filename: "{app}\bin\Win32_VisualStudio\demo_racing.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
-Name: "{group}\demos\Oscillator"; Filename: "{app}\bin\Win32_VisualStudio\demo_oscillator.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
-Name: "{group}\demos\Gears"; Filename: "{app}\bin\Win32_VisualStudio\demo_gears.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
-Name: "{group}\demos\Tracks"; Filename: "{app}\bin\Win32_VisualStudio\demo_tracks.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
-Name: "{group}\demos\Mecanum"; Filename: "{app}\bin\Win32_VisualStudio\demo_mecanum.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
-Name: "{group}\demos\Matlab"; Filename: "{app}\bin\Win32_VisualStudio\demo_matlab.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
-Name: "{group}\demos\Roll.friction"; Filename: "{app}\bin\Win32_VisualStudio\demo_friction.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
-Name: "{group}\demos\Forklift"; Filename: "{app}\bin\Win32_VisualStudio\demo_forklift.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
-Name: "{group}\demos\Tire convex decomp."; Filename: "{app}\bin\Win32_VisualStudio\demo_tire.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
-Name: "{group}\demos\Cohesion"; Filename: "{app}\bin\Win32_VisualStudio\demo_cohesion.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
-Name: "{group}\demos\Conveyor"; Filename: "{app}\bin\Win32_VisualStudio\demo_conveyor.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
-Name: "{group}\Uninstall"; Filename: "{uninstallexe}"
-
-;[Run]
-;Filename: "{app}\docs\tutorials.html"; Flags: shellexec postinstall
-
 
 
 [Code]
@@ -91,11 +51,12 @@ var
   mPathVisual10: String;
   mFoundVisual10: Boolean;
   ConfigOptionPage: TInputOptionWizardPage;
+  ChronoDirPage: TInputDirWizardPage;
+  mPathChrono: String;
   IrrlichtDirPage: TInputDirWizardPage;
   mPathIrrlicht: String;
   IrrklangDirPage: TInputDirWizardPage;
   mPathIrrklang: String;
-
 
 function myFoundVisual9(): Boolean;
 begin
@@ -113,14 +74,7 @@ function myGetPathVisual10(Param: String): String;
 begin
   Result := mPathVisual10;
 end;
-function myGetPathIrrlicht(Param: String): String;
-begin
-  Result := mPathIrrlicht;
-end;
-function myGetPathIrrklang(Param: String): String;
-begin
-  Result := mPathIrrklang;
-end;
+
 
 function BackslashToDoubleBackslash(const input_string: String): String;
 var
@@ -140,23 +94,7 @@ begin
   Result := output_string;
 end;
 
-// Not used anymore (it was used to init config.mak)
-procedure myAfterMakesInstall();
-var
-  myContent: String;
-  myContentFile: String;
-  myIrrlichtDir: String;
-  myIrrklangDir: String;
-  myChronoDir: String;
-begin
-  myContentFile := ExpandConstant(CurrentFileName);
-  myChronoDir   :=  ExpandConstant('{app}');
-  myIrrlichtDir :=  IrrlichtDirPage.Values[0];
-  LoadStringFromFile(myContentFile, myContent);
-  StringChange(myContent, '***CHRONODIR***', myChronoDir);
-  StringChange(myContent, '***IRRLICHTDIR***', myIrrlichtDir);
-  SaveStringToFile(myContentFile, myContent, false);
-end;
+
 
 procedure myAfterWizardInstall();
 var
@@ -167,7 +105,7 @@ var
   myChronoDir: String;
 begin
   myContentFile := ExpandConstant(CurrentFileName);
-  myChronoDir   := BackslashToDoubleBackslash( ExpandConstant('{app}') );
+  myChronoDir   := BackslashToDoubleBackslash(ChronoDirPage.Values[0]);
   myIrrlichtDir := BackslashToDoubleBackslash(IrrlichtDirPage.Values[0]);
   myIrrklangDir := BackslashToDoubleBackslash(IrrklangDirPage.Values[0]);
   LoadStringFromFile(myContentFile, myContent);
@@ -235,12 +173,23 @@ begin
   ConfigOptionPage.Values[1] := False;
 
 
+  //
+  // Select directory dialog for Irrlicht
+  //
+
+  ChronoDirPage := CreateInputDirPage(ConfigOptionPage.ID,
+    'Set Chrono::Engine directory', 'Where have you installed the Chrono::Engine SDK?',
+    'Here you must set the directory where you installed your Chrono::Engine SDK (for example C:\code\ChronoEngine) ',
+    False, '');
+  ChronoDirPage.Add('');
+  ChronoDirPage.Values[0] := '';
+
 
   //
   // Select directory dialog for Irrlicht
   //
 
-  IrrlichtDirPage := CreateInputDirPage(ConfigOptionPage.ID,
+  IrrlichtDirPage := CreateInputDirPage(ChronoDirPage.ID,
     'Set Irrlicht directory', 'Where have you installed Irrlicht SDK?',
     'Here you must set the directory where you installed your Irrlicht SDK (for example C:\Programs\irrlicht-1.7.1) ',
     False, '');
@@ -266,6 +215,10 @@ function ShouldSkipPage(PageID: Integer): Boolean;
 begin
   Result := False;
 
+  { Skip SDK dest. dir, that is not used by the wizard }
+  if (PageID = wpSelectDir) then
+    Result := True;
+    
   { Skip pages that shouldn't be shown }
   if (PageID = IrrlichtDirPage.ID)and(ConfigOptionPage.Values[0]=False) then
     Result := True
@@ -281,31 +234,36 @@ var
 begin
 
   S := '';
-
-  S := S + 'The Chrono::Engine SDK will be installed in:' + NewLine;
-  S := S + Space + ExpandConstant('{app}') + NewLine + NewLine;
   
-  if (mFoundVisual9 = True)  then
+  if (mFoundVisual9 = False) and (mFoundVisual10 = False) then
   begin
-      S := S + 'A copy of Visual Studio Express 9 has been found in:' + NewLine;
+      S := S + 'ERROR. No copy of Visual Studio 9 or 10 has been detected.' + NewLine;
+      S := S + '       The Visual Studio wizard cannot be installed, sorry.' + NewLine;
+  end
+  else
+  begin
+   if (mFoundVisual9 = True)  then
+   begin
+      S := S + 'A copy of Visual Studio 9 has been found in:' + NewLine;
       S := S + Space + mPathVisual9 + NewLine;
       S := S + '(a new code wizard will be added to your Visual C++ editor)' + NewLine + NewLine;
-  end
-  if (mFoundVisual10 = True)  then
-  begin
-      S := S + 'A copy of Visual Studio Express 10 has been found in:' + NewLine;
+   end
+   if (mFoundVisual10 = True)  then
+   begin
+      S := S + 'A copy of Visual Studio 10 has been found in:' + NewLine;
       S := S + Space + mPathVisual10 + NewLine;
       S := S + '(a new code wizard will be added to your Visual C++ editor)' + NewLine + NewLine;
-  end
-  if (ConfigOptionPage.Values[0] = True)  then
-  begin
+   end
+   if (ConfigOptionPage.Values[0] = True)  then
+   begin
     S := S + 'The Irrlicht directory is:' + NewLine;
     S := S + Space + IrrlichtDirPage.Values[0] + NewLine;
-  end
-  if (ConfigOptionPage.Values[1] = True)  then
-  begin
+   end
+   if (ConfigOptionPage.Values[1] = True)  then
+   begin
     S := S + 'The IrrKlang directory is:' + NewLine;
     S := S + Space + IrrKlangDirPage.Values[0] + NewLine;
+   end
   end
   
   Result := S;
