@@ -34,13 +34,13 @@ OutputBaseFilename=ChronoEngine_wizard_{#MyAppVersion}
 
 
 [Files]
-Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\*; DestDir: {code:myGetPathVisual9}VCWizards\ChronoEngineWizard; Check: myFoundVisual9; Flags: recursesubdirs createallsubdirs
+Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\*; DestDir: {code:myGetPathVisual9}VCWizards\ChronoEngineWizard; Check: myFoundVisual9; Flags: recursesubdirs createallsubdirs ignoreversion
 Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\HTML\1033\default.htm; DestDir: {code:myGetPathVisual9}VCWizards\ChronoEngineWizard\HTML\1033; AfterInstall: myAfterWizardInstall; Check: myFoundVisual9; Flags: ignoreversion
-Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngine\*; DestDir: {code:myGetPathVisual9pr}ChronoEngine; Check: myFoundVisual9;
+Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngine\*; DestDir: {code:myGetPathVisual9pr}ChronoEngine; Check: myFoundVisual9; Flags: ignoreversion
 
-Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\*; DestDir: {code:myGetPathVisual10}VCWizards\ChronoEngineWizard; Check: myFoundVisual10; Flags: recursesubdirs createallsubdirs
+Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\*; DestDir: {code:myGetPathVisual10}VCWizards\ChronoEngineWizard; Check: myFoundVisual10; Flags: recursesubdirs createallsubdirs ignoreversion
 Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\HTML\1033\default.htm; DestDir: {code:myGetPathVisual10}VCWizards\ChronoEngineWizard\HTML\1033; AfterInstall: myAfterWizardInstall; Check: myFoundVisual10; Flags: ignoreversion
-Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngine\*; DestDir: {code:myGetPathVisual10pr}ChronoEngine; Check: myFoundVisual10;
+Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngine\*; DestDir: {code:myGetPathVisual10pr}ChronoEngine; Check: myFoundVisual10; Flags: ignoreversion
 
 
 
