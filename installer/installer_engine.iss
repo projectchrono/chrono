@@ -47,11 +47,11 @@ Source: "chronostyle.css"; DestDir: "{app}\docs";
 
 Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\*; DestDir: {code:myGetPathVisual9}VCWizards\ChronoEngineWizard; Check: myFoundVisual9; Flags: recursesubdirs createallsubdirs
 Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\HTML\1033\default.htm; DestDir: {code:myGetPathVisual9}VCWizards\ChronoEngineWizard\HTML\1033; AfterInstall: myAfterWizardInstall; Check: myFoundVisual9; Flags: ignoreversion
-Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngine\*; DestDir: {code:myGetPathVisual9}Express\VCProjects\ChronoEngine; Check: myFoundVisual9;
+Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngine\*; DestDir: {code:myGetPathVisual9pr}ChronoEngine; Check: myFoundVisual9;
 
 Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\*; DestDir: {code:myGetPathVisual10}VCWizards\ChronoEngineWizard; Check: myFoundVisual10; Flags: recursesubdirs createallsubdirs
 Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\HTML\1033\default.htm; DestDir: {code:myGetPathVisual10}VCWizards\ChronoEngineWizard\HTML\1033; AfterInstall: myAfterWizardInstall; Check: myFoundVisual10; Flags: ignoreversion
-Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngine\*; DestDir: {code:myGetPathVisual10}Express\VCProjects\ChronoEngine; Check: myFoundVisual10;
+Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngine\*; DestDir: {code:myGetPathVisual10pr}ChronoEngine; Check: myFoundVisual10;
 
 
 
@@ -88,8 +88,10 @@ Name: "{group}\Uninstall"; Filename: "{uninstallexe}"
 [Code]
 var
   mPathVisual9: String;
+  mPathVisual9pr: String;
   mFoundVisual9: Boolean;
   mPathVisual10: String;
+  mPathVisual10pr: String;
   mFoundVisual10: Boolean;
   
   ConfigOptionPage: TInputOptionWizardPage;
@@ -107,6 +109,10 @@ function myGetPathVisual9(Param: String): String;
 begin
   Result := mPathVisual9;
 end;
+function myGetPathVisual9pr(Param: String): String;
+begin
+  Result := mPathVisual9pr;
+end;
 function myFoundVisual10(): Boolean;
 begin
   Result := mFoundVisual10;
@@ -115,6 +121,11 @@ function myGetPathVisual10(Param: String): String;
 begin
   Result := mPathVisual10;
 end;
+function myGetPathVisual10pr(Param: String): String;
+begin
+  Result := mPathVisual10pr;
+end;
+
 function myGetPathIrrlicht(Param: String): String;
 begin
   Result := mPathIrrlicht;
@@ -192,6 +203,7 @@ begin
                   'ProductDir',
                   mPathVisual9) then
   begin
+        mPathVisual9pr  :=  mPathVisual9 + 'Express\VCProjects\';
         mFoundVisual9 := True;
   end
   if RegQueryStringValue(HKEY_LOCAL_MACHINE,
@@ -199,6 +211,7 @@ begin
                   'ProductDir',
                   mPathVisual9) then
   begin
+        mPathVisual9pr  :=  mPathVisual9 + 'Express\VCProjects\';
         mFoundVisual9 := True;
   end
   if RegQueryStringValue(HKEY_LOCAL_MACHINE,
@@ -206,6 +219,7 @@ begin
                   'ProductDir',
                   mPathVisual9) then
   begin
+        mPathVisual9pr  :=  mPathVisual9 + 'VCProjects\';
         mFoundVisual9 := True;
   end
   if RegQueryStringValue(HKEY_LOCAL_MACHINE,
@@ -213,6 +227,7 @@ begin
                   'ProductDir',
                   mPathVisual9) then
   begin
+        mPathVisual9pr  :=  mPathVisual9 + 'VCProjects\';
         mFoundVisual9 := True;
   end
 
@@ -223,6 +238,7 @@ begin
                   'ProductDir',
                   mPathVisual10) then
   begin
+        mPathVisual10pr  :=  mPathVisual10 + 'Express\VCProjects\';
         mFoundVisual10 := True;
   end
   if RegQueryStringValue(HKEY_LOCAL_MACHINE,
@@ -230,6 +246,7 @@ begin
                   'ProductDir',
                   mPathVisual10) then
   begin
+        mPathVisual10pr  :=  mPathVisual10 + 'Express\VCProjects\';
         mFoundVisual10 := True;
   end
   if RegQueryStringValue(HKEY_LOCAL_MACHINE,
@@ -237,6 +254,7 @@ begin
                   'ProductDir',
                   mPathVisual10) then
   begin
+        mPathVisual10pr  :=  mPathVisual10 + 'VCProjects\';
         mFoundVisual10 := True;
   end
   if RegQueryStringValue(HKEY_LOCAL_MACHINE,
@@ -244,6 +262,7 @@ begin
                   'ProductDir',
                   mPathVisual10) then
   begin
+        mPathVisual10pr  :=  mPathVisual10 + 'VCProjects\';
         mFoundVisual10 := True;
   end
 
