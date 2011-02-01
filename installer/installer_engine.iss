@@ -38,11 +38,6 @@ OutputBaseFilename=ChronoEngine_{#MyAppVersion}
 [Files]
 Source: {#MyChronoEngineSDK}\*; Excludes: "*.c,*.cpp,*.cu,doxygen,\bin,\scripts,\source\collision\gimpact,\source\collision\edgetempest,\source\HOWTO_COMPILE_API.txt,*.pdb,_obsolete,\installer,*.o,*.obj,*.ncb,*.bat,source\*.def,*\.svn"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs
 Source: {#MyChronoEngineSDK}\bin\*; Excludes: "*.pdb,demo_benchmark.exe,*\.svn,*.ilk,*.idb,\data\mpi"; DestDir: "{app}\bin"; Flags: recursesubdirs createallsubdirs
-;Source: "C:\tasora\lavori\html\chronoengine\install.html"; DestDir: "{app}\docs";
-;Source: "C:\tasora\lavori\html\chronoengine\tutorials.html"; DestDir: "{app}\docs";
-;Source: "C:\tasora\lavori\html\chronoengine\tutorials\*.*"; Excludes: "*.php"; DestDir: "{app}\docs\tutorials";  Flags: recursesubdirs
-Source: "C:\tasora\lavori\html\dynamics\website\www\chronoengine\chronoengine_clock_small.jpg"; DestDir: "{app}\docs";
-Source: "chronostyle.css"; DestDir: "{app}\docs";
 
 
 Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\*; DestDir: {code:myGetPathVisual9}VCWizards\ChronoEngineWizard; Check: myFoundVisual9; Flags: recursesubdirs createallsubdirs
@@ -56,8 +51,8 @@ Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngine\*; DestDir: {code:myGetPat
 
 
 [Icons]
-;Name: "{group}\Getting started"; Filename: "{app}\docs\install.html"
-;Name: "{group}\Tutorials"; Filename: "{app}\docs\tutorials.html"
+Name: "{group}\Getting started"; Filename: "{app}\docs\WebDocumentation.URL"
+Name: "{group}\Tutorials"; Filename: "{app}\docs\WebTutorials.URL"
 Name: "{group}\API documentation"; Filename: "{app}\docs\html\help.chm"
 Name: "{group}\Readme"; Filename: "{app}\readme.txt"
 Name: "{group}\Convex decomp. utility"; Filename: "{app}\bin\Win32_VisualStudio\demo_decomposition.exe"; WorkingDir: "{app}\bin\Win32_VisualStudio"
