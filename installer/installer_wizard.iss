@@ -8,8 +8,8 @@
 #define MyAppVersion "v1.3.0"
 #define MyAppPublisher "Alessandro Tasora"
 #define MyAppURL "http://dynamics.eng.unipr.it"
-;#define MyChronoEngineSDK "C:\tasora\code\dynamics\code\ChronoEngine"
-#define MyChronoEngineSDK "C:\tasora\code\nightly_repo\code\ChronoEngine"
+#define MyChronoEngineSDK "C:\tasora\code\dynamics\code\ChronoEngine"
+;#define MyChronoEngineSDK "C:\tasora\code\nightly_repo\code\ChronoEngine"
 
 [Setup]
 AppName={#MyAppName}
@@ -31,6 +31,7 @@ Compression=lzma
 Uninstallable=yes
 OutputDir=c:\tasora\lavori\data_chrono
 OutputBaseFilename=ChronoEngine_wizard_{#MyAppVersion}
+
 
 [Files]
 Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\*; DestDir: {code:myGetPathVisual9}VCWizards\ChronoEngineWizard; Check: myFoundVisual9; Flags: recursesubdirs createallsubdirs

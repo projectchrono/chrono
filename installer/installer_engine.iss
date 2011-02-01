@@ -41,7 +41,7 @@ Source: {#MyChronoEngineSDK}\bin\*; Excludes: "*.pdb,demo_benchmark.exe,*\.svn,*
 ;Source: "C:\tasora\lavori\html\chronoengine\install.html"; DestDir: "{app}\docs";
 ;Source: "C:\tasora\lavori\html\chronoengine\tutorials.html"; DestDir: "{app}\docs";
 ;Source: "C:\tasora\lavori\html\chronoengine\tutorials\*.*"; Excludes: "*.php"; DestDir: "{app}\docs\tutorials";  Flags: recursesubdirs
-Source: "C:\tasora\lavori\html\chronoengine\chronoengine_clock_small.jpg"; DestDir: "{app}\docs";
+Source: "C:\tasora\lavori\html\dynamics\website\www\chronoengine\chronoengine_clock_small.jpg"; DestDir: "{app}\docs";
 Source: "chronostyle.css"; DestDir: "{app}\docs";
 
 
