@@ -11,7 +11,8 @@
 #define MyAppVersion "v1.3.0"
 #define MyAppPublisher "Alessandro Tasora"
 #define MyAppURL "http://dynamics.eng.unipr.it"
-#define MyChronoEngineSDK "C:\tasora\code\dynamics\code\ChronoEngine"
+;#define MyChronoEngineSDK "C:\tasora\code\dynamics\code\ChronoEngine"
+#define MyChronoEngineSDK "C:\tasora\code\nightly_repo\code\ChronoEngine"
 
 [Setup]
 AppName={#MyAppName}
@@ -90,6 +91,7 @@ var
   mFoundVisual9: Boolean;
   mPathVisual10: String;
   mFoundVisual10: Boolean;
+  
   ConfigOptionPage: TInputOptionWizardPage;
   IrrlichtDirPage: TInputDirWizardPage;
   mPathIrrlicht: String;
@@ -183,8 +185,15 @@ var
   mTitleIrrOptions : String;
 begin
 
-  // CHECK MICROSOFT VISUAL C++ 9.0 INSTALLATION
+  // CHECK MICROSOFT VISUAL C++ 9.0 INSTALLATION (try Express, than Pro)
   mFoundVisual9 := False;
+  if RegQueryStringValue(HKEY_LOCAL_MACHINE,
+                  'SOFTWARE\Wow6432Node\Microsoft\VCExpress\9.0\Setup\VC',
+                  'ProductDir',
+                  mPathVisual9) then
+  begin
+        mFoundVisual9 := True;
+  end
   if RegQueryStringValue(HKEY_LOCAL_MACHINE,
                   'SOFTWARE\Microsoft\VCExpress\9.0\Setup\VC',
                   'ProductDir',
@@ -192,10 +201,46 @@ begin
   begin
         mFoundVisual9 := True;
   end
-  // CHECK MICROSOFT VISUAL C++ 10.0 INSTALLATION
+  if RegQueryStringValue(HKEY_LOCAL_MACHINE,
+                  'SOFTWARE\Wow6432Node\Microsoft\VisualStudio\9.0\Setup\VC',
+                  'ProductDir',
+                  mPathVisual9) then
+  begin
+        mFoundVisual9 := True;
+  end
+  if RegQueryStringValue(HKEY_LOCAL_MACHINE,
+                  'SOFTWARE\Microsoft\VisualStudio\9.0\Setup\VC',
+                  'ProductDir',
+                  mPathVisual9) then
+  begin
+        mFoundVisual9 := True;
+  end
+
+  // CHECK MICROSOFT VISUAL C++ 10.0 INSTALLATION (try Express, than Pro)
   mFoundVisual10 := False;
   if RegQueryStringValue(HKEY_LOCAL_MACHINE,
+                  'SOFTWARE\Wow6432Node\Microsoft\VCExpress\10.0\Setup\VC',
+                  'ProductDir',
+                  mPathVisual10) then
+  begin
+        mFoundVisual10 := True;
+  end
+  if RegQueryStringValue(HKEY_LOCAL_MACHINE,
                   'SOFTWARE\Microsoft\VCExpress\10.0\Setup\VC',
+                  'ProductDir',
+                  mPathVisual10) then
+  begin
+        mFoundVisual10 := True;
+  end
+  if RegQueryStringValue(HKEY_LOCAL_MACHINE,
+                  'SOFTWARE\Wow6432Node\Microsoft\VisualStudio\10.0\Setup\VC',
+                  'ProductDir',
+                  mPathVisual10) then
+  begin
+        mFoundVisual10 := True;
+  end
+  if RegQueryStringValue(HKEY_LOCAL_MACHINE,
+                  'SOFTWARE\Microsoft\VisualStudio\10.0\Setup\VC',
                   'ProductDir',
                   mPathVisual10) then
   begin
