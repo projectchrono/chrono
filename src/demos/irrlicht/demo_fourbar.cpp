@@ -139,15 +139,6 @@ int main(int argc, char* argv[])
 	// 1- Create a ChronoENGINE physical system: all bodies and constraints
 	//    will be handled by this ChSystem object.
 	ChSystem my_system;
- 
-	//    ..maybe you want to use the INT_TASORA solver, which performs two
-	//    distinct LCP solutions per each time steps, one to satisfy speeds and
-	//    accelerations, and one to enforce precise closure of constraints on the
-	//    position level (hence avoids the 'spongy' behaviour of the default INT_ANITESCU 
-	//    solver, which operates only on speed-impulse level and keeps constraints'closed'
-	//    by a continuous stabilization)
- 
-	my_system.SetIntegrationType(ChSystem::INT_TASORA); // avoids very well the constraint drifting 
 
 
 	// 2- Create the rigid bodies of the four-bar mechanical system
@@ -241,7 +232,10 @@ int main(int argc, char* argv[])
 	// fast, but may allow some geometric error in constraints (because it is 
 	// based on constraint stabilization). Alternatively, the INT_TASORA
 	// stepper is less fast, but it is based on constraint projection, so
-	// gaps in constraints are less noticeable. 
+	// gaps in constraints are less noticeable (hence avoids the 'spongy' 
+	// behaviour of the default INT_ANITESCU solver, which operates only 
+	// on speed-impulse level and keeps constraints'closed' by a continuous 
+	// stabilization)
 	my_system.SetIntegrationType(ChSystem::INT_TASORA);
 	 
 
