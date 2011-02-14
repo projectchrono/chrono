@@ -51,7 +51,7 @@ PROJECT_LOGO           =
 # If a relative path is entered, it will be relative to the location 
 # where doxygen was started. If left blank the current directory will be used.
 
-OUTPUT_DIRECTORY       = C:/tasora/code/dynamics/code/ChronoEngine/docs
+OUTPUT_DIRECTORY       = ../docs
 
 # If the CREATE_SUBDIRS tag is set to YES, then doxygen will create 
 # 4096 sub-directories (in 2 levels) under the output directory of each output 
@@ -602,7 +602,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = C:/tasora/code/dynamics/code/ChronoEngine/source
+INPUT                  = ../source
 
 # This tag can be used to specify the character encoding of the source files 
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is 
@@ -632,16 +632,16 @@ RECURSIVE              = YES
 # excluded from the INPUT source files. This way you can easily exclude a 
 # subdirectory from a directory tree whose root is specified with the INPUT tag.
 
-EXCLUDE                = C:/tasora/code/dynamics/code/ChronoEngine/source/demos \
-                         C:/tasora/code/dynamics/code/ChronoEngine/source/testing \
-                         C:/tasora/code/dynamics/code/ChronoEngine/source/chjs \
-                         C:/tasora/code/dynamics/code/ChronoEngine/source/_obsolete \
-                         C:/tasora/code/dynamics/code/ChronoEngine/source/collision/bullet \
-                         C:/tasora/code/dynamics/code/ChronoEngine/source/collision/convexdecomp \
-                         C:/tasora/code/dynamics/code/ChronoEngine/source/collision/gimpact \
-                         C:/tasora/code/dynamics/code/ChronoEngine/source/thrust \
-                         C:/tasora/code/dynamics/code/ChronoEngine/source/unit_GPU \
-                         C:/tasora/code/dynamics/code/ChronoEngine/source/collision/edgetempest
+EXCLUDE                = ../source/demos \
+                         ../source/testing \
+                         ../source/chjs \
+                         ../source/_obsolete \
+                         ../source/collision/bullet \
+                         ../source/collision/convexdecomp \
+                         ../source/collision/gimpact \
+                         ../source/thrust \
+                         ../source/unit_GPU \
+                         ../source/collision/edgetempest
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or 
 # directories that are symbolic links (a Unix file system feature) are excluded 
@@ -827,13 +827,13 @@ HTML_FILE_EXTENSION    = .html
 # each generated HTML page. If it is left blank doxygen will generate a 
 # standard header.
 
-HTML_HEADER            = C:/tasora/code/dynamics/code/ChronoEngine/doxygen/header.html
+HTML_HEADER            = ./header.html
 
 # The HTML_FOOTER tag can be used to specify a personal HTML footer for 
 # each generated HTML page. If it is left blank doxygen will generate a 
 # standard footer.
 
-HTML_FOOTER            = C:/tasora/code/dynamics/code/ChronoEngine/doxygen/footer.html
+HTML_FOOTER            = ./footer.html
 
 # The HTML_STYLESHEET tag can be used to specify a user-defined cascading 
 # style sheet that is used by each HTML page. It can be used to 

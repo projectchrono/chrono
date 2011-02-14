@@ -5,7 +5,7 @@
 
 
 Release 1.3.0
-x-xx-xxxx
+2-2-2011
 
 - Modified CMakeLists.txt to support also MingW GNU 
   c++ under Windows and GNU C++ under Linux.

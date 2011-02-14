@@ -346,13 +346,13 @@ begin
   
   if (mFoundVisual9 = True)  then
   begin
-      S := S + 'A copy of Visual Studio Express 9 has been found in:' + NewLine;
+      S := S + 'A copy of Visual Studio 9 has been found in:' + NewLine;
       S := S + Space + mPathVisual9 + NewLine;
       S := S + '(a new code wizard will be added to your Visual C++ editor)' + NewLine + NewLine;
   end
   if (mFoundVisual10 = True)  then
   begin
-      S := S + 'A copy of Visual Studio Express 10 has been found in:' + NewLine;
+      S := S + 'A copy of Visual Studio 10 has been found in:' + NewLine;
       S := S + Space + mPathVisual10 + NewLine;
       S := S + '(a new code wizard will be added to your Visual C++ editor)' + NewLine + NewLine;
   end
