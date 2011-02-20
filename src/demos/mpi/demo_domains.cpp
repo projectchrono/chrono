@@ -22,12 +22,12 @@
 #include "lcp/ChLcpVariablesBody.h"
 #include "lcp/ChLcpConstraintTwoGeneric.h"
 #include "core/ChLinearAlgebra.h"
-#include "unit_mpi/ChMpi.h"
-#include "unit_mpi/ChSystemMPI.h"
-#include "unit_mpi/ChBodyMPI.h"
-#include "unit_mpi/ChLcpSystemDescriptorMPI.h"
-#include "unit_mpi/ChDomainLatticePartitioning.h"
-#include "unit_mpi/ChLcpIterativeSchwarzMPI.h"
+#include "unit_MPI/ChMpi.h"
+#include "unit_MPI/ChSystemMPI.h"
+#include "unit_MPI/ChBodyMPI.h"
+#include "unit_MPI/ChLcpSystemDescriptorMPI.h"
+#include "unit_MPI/ChDomainLatticePartitioning.h"
+#include "unit_MPI/ChLcpIterativeSchwarzMPI.h"
 
 
 // Remember to use the namespace 'chrono' because all classes 

@@ -22,9 +22,9 @@
 #include "lcp/ChLcpVariablesBody.h"
 #include "lcp/ChLcpConstraintTwoGeneric.h"
 #include "core/ChLinearAlgebra.h"
-#include "unit_mpi/ChMpi.h"
-#include "unit_mpi/ChLcpIterativeSchwarzMPI.h"
-#include "unit_mpi/ChLcpSystemDescriptorMPI.h"
+#include "unit_MPI/ChMpi.h"
+#include "unit_MPI/ChLcpIterativeSchwarzMPI.h"
+#include "unit_MPI/ChLcpSystemDescriptorMPI.h"
 
 // Remember to use the namespace 'chrono' because all classes 
 // of Chrono::Engine belong to this namespace and its children...
