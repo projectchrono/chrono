@@ -6,7 +6,6 @@
 
 
 SET(ENABLE_UNIT_MPI      TRUE    CACHE BOOL   "Turn ON this to generate the Chrono::Engine MPI unit.")
-SET(CH_MPIDIR      		 ""      CACHE PATH   "Where is your MPICH2 SDK installed? You must set this path to compile the MPI unit.")
 
 # To hide unneeded option stuff from GUI (require refresh by pressing 'configure', anyway)
 IF(ENABLE_UNIT_MPI)
@@ -53,29 +52,21 @@ IF(ENABLE_UNIT_MPI)
 	#-----------------------------------------------------------------------------	
 	# In most cases, you do not need to edit the lines below.
 	
+	FIND_PACKAGE("MPI")
+
+	IF(NOT MPI_FOUND)
+		MESSAGE("MPI not found. Please manually set MPI_LIBRARY and MPI_INCLUDE_PATH")
+		MARK_AS_ADVANCED(CLEAR MPI_LIBRARY MPI_INCLUDE_PATH)
+	ENDIF()
 	
+	SET (CH_MPIINC "${MPI_INCLUDE_PATH}")
+	SET (CH_MPILIB "${MPI_LIBRARY}")
 	
-	SET (CH_MPIINC "${CH_MPIDIR}/include")
 	IF ("${CH_OS}" STREQUAL "WINDOWS")
 		SET (CH_JAVASCRIPTFLAGS "${CH_JAVASCRIPTFLAGS} -DXP_WIN")
 		SET (CH_JAVASCRIPTINC   "${CH_JAVASRC}/src")
-		
-		IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-			SET (CH_MPILIB "${CH_MPIDIR}/lib/mpi.lib")
-		ENDIF()
-		IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-			SET (CH_MPILIB "${CH_MPIDIR}/lib/mpi.lib")
-		ENDIF()
-		IF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
-			SET (CH_MPILIB "${CH_MPIDIR}/lib/libmpi.a")
-		ENDIF()
-		IF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
-			SET (CH_MPILIB "${CH_MPIDIR}/lib/libmpi.a")
-		ENDIF()
 	ENDIF()
 	IF ("${CH_OS}" STREQUAL "LINUX")
-		SET (CH_MPILIB "${CH_MPIDIR}/lib/libmpi.a")
-		
 		MESSAGE( "WARNING!, MPI building under LINUX is not yet tested! Check libs paths etc!")
 	ENDIF()
 	
@@ -87,7 +78,6 @@ IF(ENABLE_UNIT_MPI)
 	SET (CH_CHRONOMPISHAREDLNAME_DBG "${CH_BINDIR}/${CH_LIBNAME}_MPIDBG${CH_LIBNAMEPOSTFIXSHARED}")
 	SET (CH_CHRONOMPILIB_DBG  "${CH_CHRONOMPILIBRARYNAME_DBG}")
 	
-	SET (CH_MPIINC "${CH_MPIDIR}/include")
 	
 	INCLUDE_DIRECTORIES( ${CH_MPIINC} )
 	
