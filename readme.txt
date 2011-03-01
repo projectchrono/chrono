@@ -4,6 +4,18 @@
   History of API changes, bug fixes, new features
 
 
+- New unit 'unit_CASCADE', in source/ dir. 
+  This new unit can be used to load CAD models in STEP format,
+  using the conversion features of the OpenCASCADE opensource library.
+  Note that you need to install the huge OpenCASCADE SDK in order to
+  be able to compile the 'unit_CASCADE' (if you do not want to 
+  compile it, simply disable it in the CMake interface).
+
+- The new demo 'demo_converter' shows how to load a 3D model
+  in STEP format, that you have saved using a CAD. It also allows to 
+  save its triangulated mesh in .obj format. It requires the OpenCASCADE 
+  library - without that library, you cannot compile and/or run the demo.
+  
 - New funcitons in ChCModelBullet: AddTriangleMeshConcave() and 
   AddTriangleMeshConcaveDecomposed() , to allow more control on 
   the concave meshes for collision detection. The already-known 

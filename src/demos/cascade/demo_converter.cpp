@@ -22,9 +22,9 @@
 #include "core/ChRealtimeStep.h"
 #include "collision/ChCConvexDecomposition.h"
 
-#include "ChCascadeDoc.h"
-#include "ChCascadeMeshTools.h"
-#include "ChIrrCascadeMeshTools.h"
+#include "unit_CASCADE/ChCascadeDoc.h"
+#include "unit_CASCADE/ChCascadeMeshTools.h"
+#include "unit_CASCADE/ChIrrCascadeMeshTools.h"
 
 #include <irrlicht.h>
 
@@ -675,7 +675,7 @@ int main(int argc, char* argv[])
 
 	// Easy shortcuts to add logo, camera, lights and sky in Irrlicht scene:
 	//ChIrrWizard::add_typical_Logo(application.GetDevice());
-	ChIrrWizard::add_typical_Sky(application.GetDevice(),"data/skybox/");
+	ChIrrWizard::add_typical_Sky(application.GetDevice());
 	ChIrrWizard::add_typical_Lights(application.GetDevice(), core::vector3df(30,100,30), core::vector3df(30,-80,-30),200,130);
 	ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0,1.5,-2));
 

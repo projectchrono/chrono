@@ -1,7 +1,9 @@
 #--------------------------------------------------------------
 # Additional include paths and stuff
 
-INCLUDE_DIRECTORIES( "${CH_CASCADEINC}" )
+INCLUDE_DIRECTORIES( "${CH_CASCADEINC}" 
+					 "${CH_IRRLICHTINC}"
+					 )
 	
 ADD_DEFINITIONS( "/DWNT" )
 	
@@ -18,10 +20,12 @@ SET_TARGET_PROPERTIES(demo_converter PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
 TARGET_LINK_LIBRARIES(demo_converter 
+	${CH_IRRLICHTLIB}
+	${CH_CASCADELIBS}
  	optimized 	${CH_CHRONOLIB} 
  	debug 		${CH_CHRONOLIB_DBG}
  	optimized 	${CH_CHRONOCASCADELIB} 
  	debug 		${CH_CHRONOCASCADELIB_DBG}
  	)
-ADD_DEPENDENCIES (demo_converter ChronoEngine_CASCADE)
+ADD_DEPENDENCIES (demo_converter ChronoEngine ChronoEngine_CASCADE)
  	
