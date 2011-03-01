@@ -102,7 +102,7 @@ void DecomposeModel(ChIrrAppInterface* application)
 					concavity,   // concavity threshold percent 
 					merge,		 // merge threshold percent
 					volumep,     // volume split percent
-					true, // initial islands
+					useinitialislands, // initial islands
 					false);
 	
 	// Visualize the resulting convex decomposition by creating many

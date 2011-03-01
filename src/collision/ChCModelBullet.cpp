@@ -19,6 +19,8 @@
 #include "BulletCollision/CollisionShapes/btBarrelShape.h"
 #include "collision/ChCCollisionSystemBullet.h"
 #include "BulletWorldImporter/btBulletWorldImporter.h"
+#include "collision/ChCConvexDecomposition.h"
+
 
 namespace chrono 
 {
@@ -41,32 +43,6 @@ ChModelBullet::ChModelBullet()
 
 	shapes.clear();
 
-//***TEST***
-//***      WILL CRASH BECAUSE OF DELETION... TO BE FIXED ***
-{
-
-	btSphereShape* ashape = new btSphereShape((btScalar) (1.0 + this->GetEnvelope()) );
-
-	//btCollisionShape* msh = ashape;
-	//delete (msh); // OK
-
-	//ChCounter<btSphereShape>* mcounter = new ChCounter<btSphereShape>(ashape);
-	//delete mcounter;	// OK
-
-	//ChSmartPtr<btCollisionShape> myptr(ashape); // FAIL
-	//_ChSmartPtr<btCollisionShape> myptr(ashape); // OK
-
-	//_ChCounter<btCollisionShape>* mcounter1 = new _ChCounter<btCollisionShape>(ashape1);
-	//delete mcounter1;  // OK
-
-	//ChCounter<btCollisionShape>* mcounter3 = new ChCounter<btCollisionShape>(ashape);
-	//delete mcounter3;  // FAIL
-
-	ChSmartPtr<btCollisionShape> myptr(ashape); // OK
-
-	//ChSmartPtr<btSphereShape> myptr(ashape); // OK
-}
-//***TEST*** end
 
 }
 
@@ -378,13 +354,29 @@ public:
 };
 
 
-class btGImpactMeshShape_handlemesh : public btGImpactConvexDecompositionShape //btGImpactMeshShape
+class btGImpactConvexDecompositionShape_handlemesh : public btGImpactConvexDecompositionShape 
+{
+	btStridingMeshInterface* minterface;
+public:
+	btGImpactConvexDecompositionShape_handlemesh(btStridingMeshInterface* meshInterface) :  
+	        btGImpactConvexDecompositionShape (meshInterface, btVector3(1.f,1.f,1.f), btScalar(0.01)),
+			minterface(meshInterface) 
+			{
+				//this->setLocalScaling(btVector3(1.f,1.f,1.f));
+			};
+
+	virtual ~btGImpactConvexDecompositionShape_handlemesh()
+	{
+		if (minterface) delete minterface; minterface = 0; // also delete the mesh interface
+	} 
+};
+ 
+class btGImpactMeshShape_handlemesh : public btGImpactMeshShape
 {
 	btStridingMeshInterface* minterface;
 public:
 	btGImpactMeshShape_handlemesh(btStridingMeshInterface* meshInterface) : 
-			//btGImpactMeshShape(meshInterface), 
-	        btGImpactConvexDecompositionShape (meshInterface, btVector3(1.f,1.f,1.f), btScalar(0.01)),
+			btGImpactMeshShape(meshInterface), 
 			minterface(meshInterface) 
 			{
 				//this->setLocalScaling(btVector3(1.f,1.f,1.f));
@@ -395,7 +387,6 @@ public:
 		if (minterface) delete minterface; minterface = 0; // also delete the mesh interface
 	} 
 };
- 
 
 
 	/// Add a triangle mesh to this model
@@ -407,10 +398,12 @@ bool ChModelBullet::AddTriangleMesh (const  geometry::ChTriangleMesh& trimesh,	b
 	btTriangleMesh* bulletMesh = new btTriangleMesh;
 	for (int i=0; i<trimesh.getNumTriangles(); i++)
 	{
+		//bulletMesh->m_weldingThreshold = ...
 		bulletMesh->addTriangle(
 			ChVectToBullet(&trimesh.getTriangle(i).p1), 
 			ChVectToBullet(&trimesh.getTriangle(i).p2), 
-			ChVectToBullet(&trimesh.getTriangle(i).p3));
+			ChVectToBullet(&trimesh.getTriangle(i).p3), 
+			true); // try to remove duplicate vertices
 	}
 
 	if (is_static) 
@@ -434,14 +427,98 @@ bool ChModelBullet::AddTriangleMesh (const  geometry::ChTriangleMesh& trimesh,	b
 		} 
 		else
 		{
-			btCollisionShape* pShape = (btGImpactMeshShape*) new btGImpactMeshShape_handlemesh(bulletMesh);
-			//pShape->setMargin( (btScalar) this->GetSafeMargin()  );
+			
+			/*
+		      // use this (using GImpact) :
+			  this->AddTriangleMeshConcave(trimesh,pos,rot);
+			*/
+	    
+			
+			   // ..or use this (using a defalt convex decomposition) : 
+			ChConvexDecomposition mydecomposition;
+			mydecomposition.AddTriangleMesh(trimesh);
+			mydecomposition.ComputeConvexDecomposition(0, // skin width
+														9, 64, // depht, max vertices in hull
+														5, // concavity percent
+														5, // merge treshold percent
+														5, // split threshold percent
+														true, // use initial island generation 
+														false // use island generation (unsupported-disabled)
+														);
+			//mydecomposition.WriteConvexHullsAsWavefrontObj(ChStreamOutAsciiFile("test_hulls.obj")); // debug
+			this->AddTriangleMeshConcaveDecomposed(mydecomposition, pos, rot);
+
+			/*
+		       // or this (using the default GI convex decomposition) :
+			btCollisionShape* pShape = (btGImpactConvexDecompositionShape_handlemesh*) new btGImpactConvexDecompositionShape_handlemesh(bulletMesh);
+			 pShape->setMargin( (btScalar) this->GetEnvelope() ); 
 			((btGImpactMeshShape_handlemesh*)pShape)->updateBound();
 			_injectShape (pos,rot, pShape);
+			*/
+
 		}
 	}
 	return true;
 }
+
+
+
+bool ChModelBullet::AddTriangleMeshConcave(const  geometry::ChTriangleMesh& trimesh,	///< the concave triangle mesh
+								ChVector<>* pos, ChMatrix33<>* rot ///< displacement respect to COG (optional)
+								)
+{
+	if (!trimesh.getNumTriangles()) 
+		return false;
+
+	btTriangleMesh* bulletMesh = new btTriangleMesh;
+	for (int i=0; i<trimesh.getNumTriangles(); i++)
+	{
+		//bulletMesh->m_weldingThreshold = ...
+		bulletMesh->addTriangle(
+			ChVectToBullet(&trimesh.getTriangle(i).p1), 
+			ChVectToBullet(&trimesh.getTriangle(i).p2), 
+			ChVectToBullet(&trimesh.getTriangle(i).p3), 
+			true); // try to remove duplicate vertices
+	}
+
+	// Use the GImpact custom mesh-mesh algorithm
+	btCollisionShape* pShape = (btGImpactMeshShape*) new btGImpactMeshShape_handlemesh(bulletMesh);
+	pShape->setMargin( (btScalar) this->GetEnvelope() ); 
+	this->SetSafeMargin(0);
+
+	((btGImpactMeshShape_handlemesh*)pShape)->updateBound();
+	_injectShape (pos,rot, pShape);
+
+	return true;
+}
+
+bool ChModelBullet::AddTriangleMeshConcaveDecomposed(
+							    ChConvexDecomposition& mydecomposition,
+								ChVector<>* pos, ChMatrix33<>* rot ///< displacement respect to COG (optional)
+								)
+{
+	// note: since the convex hulls are ot shrunk, the safe margin will be set to zero (must be set before adding them)
+	this->SetSafeMargin(0);
+
+	for (unsigned int j = 0; j< mydecomposition.GetHullCount(); j++)
+	{
+		std::vector< ChVector<double> > ptlist;
+
+		CONVEX_DECOMPOSITION::ConvexHullResult result;
+		if (!mydecomposition.GetDecompositionObject()->getConvexHullResult(j, result)) return false;
+		for (unsigned int i=0; i<result.mVcount; i++)
+		{
+			ChVector<double> pt ( (double)result.mVertices[3*i+0], (double)result.mVertices[3*i+1], (double)result.mVertices[3*i+2] );
+			ptlist.push_back(pt);
+		}
+
+		if (ptlist.size())
+			this->AddConvexHull(ptlist,pos,rot);
+	}
+
+	return true;
+}
+
 
 
 bool ChModelBullet::AddCopyOfAnotherModel (ChCollisionModel* another)

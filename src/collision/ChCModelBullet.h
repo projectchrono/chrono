@@ -37,6 +37,7 @@ typedef ChSmartPtr<btCollisionShape> smartptrshapes;
 namespace collision 
 {
 
+class ChConvexDecomposition;
 
 ///  A wrapper to use the Bullet collision detection
 ///  library
@@ -104,6 +105,27 @@ public:
 								bool is_convex,			///< true if mesh is used as a convex hull(only for simple mesh). May improve robustness
 								ChVector<>* pos=0, ChMatrix33<>* rot=0 ///< displacement respect to COG (optional)
 								);  
+
+		/// CUSTOM for this class only: add a concave triangle mesh that will be managed
+		/// by GImpact mesh-mesh algorithm. Note that, despite this can work with
+		/// arbitrary meshes, there could be issues of robustness and precision, so 
+		/// when possible, prefer simplified representations as compounds of convex 
+		/// shapes of boxes/spheres/etc.. type.
+    virtual bool AddTriangleMeshConcave (const  geometry::ChTriangleMesh& trimesh,	///< the concave triangle mesh
+								ChVector<>* pos=0, ChMatrix33<>* rot=0 ///< displacement respect to COG (optional)
+								); 
+		/// CUSTOM for this class only: add a concave triangle mesh that will be decomposed
+		/// into a compound of convex shapes. Decomposition could be more efficient than 
+		/// AddTriangleMeshConcave(), but preprocessing decomposition might take a while, and
+		/// decomposition result is often approximate. Therefore, despite this can work with
+		/// arbitrary meshes, there could be issues of robustness and precision, so 
+		/// when possible, prefer simplified representations as compounds of convex 
+		/// shapes of boxes/spheres/etc.. type.
+    virtual bool AddTriangleMeshConcaveDecomposed (
+								ChConvexDecomposition& mydecomposition, ///< the concave triangle mesh, already decomposed
+								ChVector<>* pos=0, ChMatrix33<>* rot=0 ///< displacement respect to COG (optional)
+								);
+
 
    		/// Add a barrel-like shape to this model (main axis on Y direction), for collision purposes.
 		/// The barrel shape is made by lathing an arc of an ellipse around the vertical Y axis.

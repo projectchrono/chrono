@@ -98,15 +98,15 @@ public:
 				double shoewidth = 0.3;
 				double shoemass = 2;
 				double radiustrack = 0.31;
-				double wheeldiameter = 0.287*2;	
+				double wheeldiameter = 0.280*2;	
 				int nwrap = 6;
 				int ntiles = 7;
 				double rlwidth = 1.5;
 				double passo = (ntiles+1)*shoelength;
 
-				ChVector<> cyl_displA(0,  0.15,0);
-				ChVector<> cyl_displB(0, -0.15,0);
-				double cyl_hthickness = 0.06;
+				ChVector<> cyl_displA(0,  0.075+0.02,0);
+				ChVector<> cyl_displB(0, -0.075-0.02,0);
+				double cyl_hthickness = 0.045;
 
 				// --- The tank body --- 
 
@@ -379,6 +379,7 @@ public:
 								ChCoordsys<>( linkpos , QUNIT) );
 					my_system.AddLink(link_revolute_shoeshoe);
 				
+
 				}
 
 		
