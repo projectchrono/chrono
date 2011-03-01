@@ -310,8 +310,6 @@ ISceneNode* addChBodySceneNode_easyGenericMesh(chrono::ChSystem* asystem,
 	ChBodySceneNode* rigidBodyZ = (ChBodySceneNode*)addChBodySceneNode(asystem, amanager, genericMesh, mmass, position, rotation, aparent, mid);
 	
 	rigidBodyZ->GetBody()->GetCollisionModel()->ClearModel();
-	rigidBodyZ->GetBody()->GetCollisionModel()->SetSafeMargin(0.04);
-	rigidBodyZ->GetBody()->GetCollisionModel()->SetEnvelope(0.03);
 	rigidBodyZ->GetBody()->GetCollisionModel()->AddTriangleMesh(temp_trianglemesh, is_static, is_convex); 
 	rigidBodyZ->GetBody()->GetCollisionModel()->BuildModel();
 	rigidBodyZ->GetBody()->SetCollide(true);

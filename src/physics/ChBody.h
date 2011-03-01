@@ -407,7 +407,6 @@ public:
 
 
 
-
 			//
 			// Point/vector transf.(NOTE! you may also use operators of ChMovingFrame)
 			//
