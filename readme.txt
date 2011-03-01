@@ -4,6 +4,14 @@
   History of API changes, bug fixes, new features
 
 
+- New funcitons in ChCModelBullet: AddTriangleMeshConcave() and 
+  AddTriangleMeshConcaveDecomposed() , to allow more control on 
+  the concave meshes for collision detection. The already-known 
+  basic method AddTriangleMesh(), in case of dynamic concave mesh, 
+  falls back to AddTriangleMeshConcaveDecomposed() with a default 
+  decomposition threshold.
+  
+  
 Release 1.3.0
 2-2-2011
 
