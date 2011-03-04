@@ -362,6 +362,20 @@ public:
 							if (GetRows()>8) mstream << "... \n\n";
 						}
 
+					/// Method to allow serializing transient data into an ascii stream (ex. a file)
+					/// as a Matlab .dat file (all numbers in a row, separated by space, then CR)
+	void StreamOUTdenseMatlabFormat(ChStreamOutAscii& mstream)
+						{
+							for(int ii=0; ii<this->GetRows(); ii++)
+								for(int jj=0; jj<this->GetColumns(); jj++)
+								{
+									mstream << this->GetElement(ii,jj);
+									if (jj<(this->GetColumns()-1))
+										mstream << " ";
+								}
+								mstream << "\n";
+						}
+
 					/// Method to allow serializing transient data into a persistent
 					/// binary archive (ex: a file).
 	void StreamOUT(ChStreamOutBinary& mstream)
