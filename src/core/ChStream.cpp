@@ -12,6 +12,7 @@
 #include <math.h>
 #include <stdarg.h>
 #include <errno.h>
+#include <iterator>
 
 #include "core/ChStream.h"
 #include "core/ChException.h"
