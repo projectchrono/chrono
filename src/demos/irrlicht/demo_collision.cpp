@@ -216,7 +216,8 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 				ChCoordsys<>(ChVector<>(0,0,0),
 							 Q_from_AngAxis(CH_C_PI_2, VECT_X)) );
 	my_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-	my_motor->Get_spe_funct()->Set_yconst(CH_C_PI/2.0); // speed w=90°/s
+	if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(my_motor->Get_spe_funct()))
+		mfun->Set_yconst(CH_C_PI/2.0); // speed w=90°/s
 	mphysicalSystem.AddLink(my_motor);
 
 

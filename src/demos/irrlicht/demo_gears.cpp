@@ -131,7 +131,8 @@ int main(int argc, char* argv[])
 					ChCoordsys<>(ChVector<>(0, 0, 0) , QUNIT ) );
 		link_engine->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_LOCK); // also works as revolute support
 		link_engine->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-		link_engine->Get_spe_funct()->Set_yconst(6); // rad/s  angular speed
+		if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(link_engine->Get_spe_funct()))
+			mfun->Set_yconst(6); // rad/s  angular speed
 	mphysicalSystem.AddLink(link_engine);
 
 	// ...the second gear

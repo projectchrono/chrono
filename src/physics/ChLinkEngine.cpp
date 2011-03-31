@@ -34,13 +34,13 @@ ChLinkEngine::ChLinkEngine ()
 {
     type = LNK_ENGINE;      // initializes type
 
-    rot_funct =   new ChFunction (0);
-    spe_funct =   new ChFunction (0);
-    tor_funct =   new ChFunction (0);
-    torque_w  =   new ChFunction (1);
+    rot_funct =   new ChFunction_Const (0);
+    spe_funct =   new ChFunction_Const (0);
+    tor_funct =   new ChFunction_Const (0);
+    torque_w  =   new ChFunction_Const (1);
 
-	rot_funct_x =   new ChFunction (0);
-	rot_funct_y =   new ChFunction (0);
+	rot_funct_x =   new ChFunction_Const (0);
+	rot_funct_y =   new ChFunction_Const (0);
 
     mot_rot = mot_rot_dt = mot_rot_dtdt = 0.0;
     mot_rerot = mot_rerot_dt = mot_rerot_dtdt = 0.0;
@@ -271,22 +271,22 @@ void ChLinkEngine::Set_eng_mode(int mset)
         if (rot_funct->Get_Type() != FUNCT_CONST) // if wasn't constant f()..
         {
             delete (rot_funct); rot_funct = NULL;
-            rot_funct = new ChFunction;
+            rot_funct = new ChFunction_Const;
         }
 
 	if (this->eng_mode == ENG_MODE_KEY_POLAR)
 	{
         if (rot_funct->Get_Type() != FUNCT_CONST)  {
             delete (rot_funct); rot_funct = NULL;
-            rot_funct = new ChFunction;
+            rot_funct = new ChFunction_Const;
         }
 		if (rot_funct_x->Get_Type() != FUNCT_CONST)  {
             delete (rot_funct_x); rot_funct_x = NULL;
-            rot_funct_x = new ChFunction;
+            rot_funct_x = new ChFunction_Const;
         }
 		if (rot_funct_y->Get_Type() != FUNCT_CONST)  {
             delete (rot_funct_y); rot_funct_y = NULL;
-            rot_funct_y = new ChFunction;
+            rot_funct_y = new ChFunction_Const;
         }
 	}
 }

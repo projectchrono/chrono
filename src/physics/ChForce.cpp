@@ -53,18 +53,18 @@ ChForce::ChForce()
 	vreldir = VECT_X;
 	restpos = VNULL;
 	mforce = 0;
-	modula =   new ChFunction (1);
+	modula =   new ChFunction_Const (1);
 
 	align = FDIR_BODY;
 	frame = FPOS_BODY;
 	mode = FTYPE_FORCE;
 
-	move_x = new ChFunction (0);
-	move_y = new ChFunction (0);
-	move_z = new ChFunction (0);
-	f_x = new ChFunction (0);
-	f_y = new ChFunction (0);
-	f_z = new ChFunction (0);
+	move_x = new ChFunction_Const (0);
+	move_y = new ChFunction_Const (0);
+	move_z = new ChFunction_Const (0);
+	f_x = new ChFunction_Const (0);
+	f_y = new ChFunction_Const (0);
+	f_z = new ChFunction_Const (0);
 
 	ChTime = 0;
 }

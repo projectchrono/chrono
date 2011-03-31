@@ -504,7 +504,8 @@ public:
 								s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
 								double newthrottle =  ((double)(pos)-50)/50.0 ;
 								this->mtank->throttleL=newthrottle;
-								this->mtank->link_revoluteLB->Get_spe_funct()->Set_yconst(newthrottle*6);
+								if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(this->mtank->link_revoluteLB->Get_spe_funct()))
+									mfun->Set_yconst(newthrottle*6);
 								return true;
 							}
 							if (id == 102) // id of 'throttleR' slider..
@@ -512,7 +513,8 @@ public:
 								s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
 								double newthrottle =  ((double)(pos)-50)/50.0 ;
 								this->mtank->throttleR=newthrottle;
-								this->mtank->link_revoluteRB->Get_spe_funct()->Set_yconst(newthrottle*6);
+								if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(this->mtank->link_revoluteRB->Get_spe_funct()))
+									mfun->Set_yconst(newthrottle*6);
 								return true;
 							}
 					break;

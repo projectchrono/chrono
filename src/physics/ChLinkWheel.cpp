@@ -60,14 +60,14 @@ ChLinkWheel::ChLinkWheel ()
 {
     type = LNK_WHEEL;       // initializes type
 
-    wheel_rotation = new ChFunction (0);
+    wheel_rotation = new ChFunction_Const (0);
     wcollision = NULL;
     speed_handled = NULL;
     radius = 0.1;
     thickness = 0.0;
     friction = 0.7;
-    fri_spe =  new ChFunction (1);
-    fri_norm = new ChFunction (1);
+    fri_spe =  new ChFunction_Const (1);
+    fri_norm = new ChFunction_Const (1);
     allow_sticking = FALSE;
     slip_treshold = 0.01;
     static_friction = 1;
@@ -76,7 +76,7 @@ ChLinkWheel::ChLinkWheel ()
     rad_k =   1000;
     rad_r =  0.001;
     rad_p = 100000; // about 1 atm..
-    rad_k_def = new ChFunction (1);
+    rad_k_def = new ChFunction_Const (1);
     pneus_h = 0.2;
 
     angle = angle_dt = angle_dtdt = slipping = f_slip =

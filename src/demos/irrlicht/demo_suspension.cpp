@@ -481,8 +481,10 @@ public:
 				// it is half of the shaft torque  (multiplied the conic gear transmission ratio)
 				double singlewheeltorque = 0.5 * shafttorque * (1.0/this->conic_tau);
 				// Set the wheel torque in both 'engine' links, connecting the wheels to the truss;
-				this->link_engineL->Get_tor_funct()->Set_yconst(singlewheeltorque);
-				this->link_engineR->Get_tor_funct()->Set_yconst(singlewheeltorque);
+				if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(this->link_engineL->Get_tor_funct()))
+					mfun->Set_yconst(singlewheeltorque);
+				if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(this->link_engineR->Get_tor_funct()))
+					mfun->Set_yconst(singlewheeltorque);
 				//debug:print infos on screen:
 				   //GetLog() << "motor torque="<< motortorque<< "  speed=" << motorspeed << "  wheel torqe=" << singlewheeltorque <<"\n";
 				// If needed, return also the value of wheel torque:

@@ -256,7 +256,6 @@ int main(int argc, char* argv[])
 
 		application.GetVideoDriver()->endScene(); 
 
-//if (my_system.GetChTime() > 0.1) break;
 
 	}
  

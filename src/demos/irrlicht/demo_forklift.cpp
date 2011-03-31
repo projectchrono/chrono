@@ -363,28 +363,36 @@ public:
 			switch (event.KeyInput.Key)
 			{
 			case irr::KEY_KEY_Q: 
-				forklift->link_steer_engineB->Get_rot_funct()->Set_yconst(-0.6+forklift->link_steer_engineB->Get_rot_funct()->Get_yconst());
+				if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(forklift->link_steer_engineB->Get_rot_funct())) 
+					mfun->Set_yconst(-0.6+mfun->Get_yconst());
 				return true;
 			case irr::KEY_KEY_W: 
-				forklift->link_steer_engineB->Get_rot_funct()->Set_yconst(+0.3+forklift->link_steer_engineB->Get_rot_funct()->Get_yconst());
+				if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(forklift->link_steer_engineB->Get_rot_funct())) 
+					mfun->Set_yconst(+0.3+mfun->Get_yconst());
 				return true;
 			case irr::KEY_KEY_A: 
-				forklift->link_engineB->Get_spe_funct()->Set_yconst(0.5+forklift->link_engineB->Get_spe_funct()->Get_yconst());
+				if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(forklift->link_engineB->Get_spe_funct())) 
+					mfun->Set_yconst(0.5+mfun->Get_yconst());
 				return true;
 			case irr::KEY_KEY_Z: 
-				forklift->link_engineB->Get_spe_funct()->Set_yconst(-0.5+forklift->link_engineB->Get_spe_funct()->Get_yconst());
+				if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(forklift->link_engineB->Get_spe_funct()))
+					mfun->Set_yconst(-0.5+mfun->Get_yconst());
 				return true;
 			case irr::KEY_KEY_S: 
-				forklift->link_actuatorFork->Get_dist_funct()->Set_yconst(0.05+forklift->link_actuatorFork->Get_dist_funct()->Get_yconst());
+				if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(forklift->link_actuatorFork->Get_dist_funct()))
+					mfun->Set_yconst(0.05+mfun->Get_yconst());
 				return true;
 			case irr::KEY_KEY_X: 
-				forklift->link_actuatorFork->Get_dist_funct()->Set_yconst(-0.05+forklift->link_actuatorFork->Get_dist_funct()->Get_yconst());
+				if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(forklift->link_actuatorFork->Get_dist_funct()))
+					mfun->Set_yconst(-0.05+mfun->Get_yconst());
 				return true;
 			case irr::KEY_KEY_D: 
-				forklift->link_engineArm->Get_rot_funct()->Set_yconst(0.005+forklift->link_engineArm->Get_rot_funct()->Get_yconst());
+				if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(forklift->link_engineArm->Get_rot_funct()))
+					mfun->Set_yconst(0.005+mfun->Get_yconst());
 				return true;
 			case irr::KEY_KEY_C: 
-				forklift->link_engineArm->Get_rot_funct()->Set_yconst(-0.005+forklift->link_engineArm->Get_rot_funct()->Get_yconst());
+				if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(forklift->link_engineArm->Get_rot_funct()))
+					mfun->Set_yconst(-0.005+mfun->Get_yconst());
 				return true;
 
 			}

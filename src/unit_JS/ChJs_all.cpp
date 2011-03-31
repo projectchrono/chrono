@@ -85,6 +85,7 @@ void __InitChronoJavaClasses(JSContext* cx, JSObject*  glob)
  	JSObject* jsclass_LinkBrake = ChJS_InitClass_LinkBrake(cx, glob, jsclass_LinkLock);
  	JSObject* jsclass_LinkClearance = ChJS_InitClass_LinkClearance(cx, glob, jsclass_LinkLock);
  	JSObject* jsclass_Function  = ChJS_InitClass_Function(cx, glob, NULL);
+	JSObject* jsclass_FunctionConst    = ChJS_InitClass_FunctionRamp(cx, glob, jsclass_Function);
  	JSObject* jsclass_FunctionRamp     = ChJS_InitClass_FunctionRamp(cx, glob, jsclass_Function);
 	JSObject* jsclass_FunctionSine     = ChJS_InitClass_FunctionSine(cx, glob, jsclass_Function);
 	JSObject* jsclass_FunctionSigma    = ChJS_InitClass_FunctionSigma(cx, glob, jsclass_Function);

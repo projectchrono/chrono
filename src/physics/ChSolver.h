@@ -54,7 +54,9 @@ protected:
 	int C_vars;				// If NULL, the number of optimized variables is automatically
 							// computed from list of ASCII variables (see "optvarlist" above),
 							// otherwise must be set >0 to use the following C evaluation of formulas..
-
+	//***TO DO*** 
+	// use the more generic ChFx classes instead of function pointers to c-style *funct and *Jfunct
+	// ..
 							// The user can provide the evaluation fxs also in form of
 							// a generic C function of N parameters (passed as a vector double[] p),
 							// returning N residuals (stored into vector double[] r),

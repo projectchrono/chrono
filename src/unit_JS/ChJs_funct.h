@@ -28,7 +28,8 @@ namespace chrono
 
 // CLASSES
 
-extern JSClass chjs_Function; 
+extern JSClass chjs_Function;
+extern JSClass chjs_FunctionConst;
 extern JSClass chjs_FunctionRamp; 
 extern JSClass chjs_FunctionSine; 
 extern JSClass chjs_FunctionSigma; 
@@ -53,6 +54,7 @@ extern JSClass chjs_FunctionDerive;
 // hierarchy must be built.
  
 JSObject* ChJS_InitClass_Function(JSContext* cx, JSObject* glob, JSObject* parent);
+JSObject* ChJS_InitClass_FunctionConst(JSContext* cx, JSObject* glob, JSObject* parent);
 JSObject* ChJS_InitClass_FunctionRamp(JSContext* cx, JSObject* glob, JSObject* parent);
 JSObject* ChJS_InitClass_FunctionSine(JSContext* cx, JSObject* glob, JSObject* parent);
 JSObject* ChJS_InitClass_FunctionSigma(JSContext* cx, JSObject* glob, JSObject* parent);

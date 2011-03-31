@@ -4,6 +4,21 @@
   History of API changes, bug fixes, new features
 
 
+- New demo source/demos/basics/demo_chfunctions.cpp
+
+- All the classes that were in the file source/physics/ChFunction.h 
+  are now placed in separate .h and .cpp files, in a new directory
+  named source/motion_functions/ , and this will make easier to
+  introduce new scalar functions.
+  The old ChFunction.h simply loads the headers in motion_functions/
+  for backward compability. 
+  
+- Important API change: the old ChFunction class was used both as
+  a base class for other functions (ex. ChFunction_Sine) and as a
+  'y=constant' function; now it is only a base class, a pure interface,
+  that does not implement Set_yconst() anymore. If you used the Set_yconst
+  function, now you may need to do a dynamic_cast<ChFunction_Const>() before. 
+  
 - New unit 'unit_CASCADE', in source/ dir. 
   This new unit can be used to load CAD models in STEP format,
   using the conversion features of the OpenCASCADE opensource library.

@@ -260,7 +260,8 @@ int main(int argc, char* argv[])
 								 mTrussPlatform->GetBody(), 
 							     (f1 >> f2_wA).GetCoord());
 	 my_link_shaftA->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-	 my_link_shaftA->Get_spe_funct()->Set_yconst(0.0);
+	 if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(my_link_shaftA->Get_spe_funct()))
+		 mfun->Set_yconst(0.0);
 	 mphysicalSystem.AddLink(my_link_shaftA);
 
 	ChBodySceneNode* spindle_B = create_mecanum_wheel(mphysicalSystem, application.GetSceneManager(), application.GetVideoDriver(),
@@ -278,7 +279,8 @@ int main(int argc, char* argv[])
 								 mTrussPlatform->GetBody(), 
 							     (f1 >> f2_wB).GetCoord());
 	 my_link_shaftB->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-	 my_link_shaftB->Get_spe_funct()->Set_yconst(0.0);
+	 if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(my_link_shaftB->Get_spe_funct()))
+		 mfun->Set_yconst(0.0);
 	 mphysicalSystem.AddLink(my_link_shaftB);
 
 
@@ -298,7 +300,8 @@ int main(int argc, char* argv[])
 								 mTrussPlatform->GetBody(), 
 							     (f1 >> f2_wC).GetCoord());
 	 my_link_shaftC->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-	 my_link_shaftC->Get_spe_funct()->Set_yconst(0.0); 
+	 if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(my_link_shaftC->Get_spe_funct()))
+		 mfun->Set_yconst(0.0); 
 	 mphysicalSystem.AddLink(my_link_shaftC);
 
 
@@ -357,9 +360,12 @@ int main(int argc, char* argv[])
 		ChFrame<> abs_roll_wC = roll_twist >> f2_wC >> ChFrame<>(mTrussPlatform->GetBody()->GetCoord());
 		double wheel_C_rotspeed = (STATIC_rot_speed * platform_radius) + ((abs_roll_wC.GetA()->MatrT_x_Vect(imposed_speed)).x / sin(roller_angle))/wheel_radius;
 
-		my_link_shaftA->Get_spe_funct()->Set_yconst(wheel_A_rotspeed);
-		my_link_shaftB->Get_spe_funct()->Set_yconst(wheel_B_rotspeed);
-		my_link_shaftC->Get_spe_funct()->Set_yconst(wheel_C_rotspeed);
+		if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(my_link_shaftA->Get_spe_funct()))
+			mfun->Set_yconst(wheel_A_rotspeed);
+		if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(my_link_shaftB->Get_spe_funct()))
+			mfun->Set_yconst(wheel_B_rotspeed);
+		if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(my_link_shaftC->Get_spe_funct()))
+			mfun->Set_yconst(wheel_C_rotspeed);
 
 
 

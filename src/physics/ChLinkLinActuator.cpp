@@ -37,7 +37,7 @@ ChLinkLinActuator::ChLinkLinActuator ()
 {
     type = LNK_LINACTUATOR;     // initializes type
 
-    dist_funct =   new ChFunction (0);
+    dist_funct =   new ChFunction_Const (0);
     learn = FALSE;
     offset = 0.1;
 

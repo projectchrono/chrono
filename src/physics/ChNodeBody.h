@@ -21,7 +21,6 @@
 ///////////////////////////////////////////////////
 
 #include "physics/ChBody.h"
-#include "physics/ChShaft.h"
 #include "lcp/ChLcpConstraintTwoGeneric.h"
 
 

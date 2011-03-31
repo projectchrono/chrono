@@ -33,6 +33,7 @@ int main(int argc, char* argv[])
 	// global functions are needed.
 	DLL_CreateGlobals();
 
+	
 	// Better put the Matlab stuff inside a try{}, since it may throw exception if 
 	// the engine is not started (because Matlab not properly installed)
 	try
@@ -43,9 +44,12 @@ int main(int argc, char* argv[])
 		// This is the object that you can use to access the Matlab engine.
 		// As soon as created, it loads the Matlab engine (if troubles happen, it
 		// throws exception).
+
+		Engine* me = engOpen(NULL);
+
+	
 		ChMatlabEngine matlab_engine;
 
-		
 
 		// 
 		// EXAMPLE 1: execute a Matlab command
@@ -97,7 +101,7 @@ int main(int argc, char* argv[])
 	{
 		GetLog() << mex.what(); // Print error on console, if Matlab did not start.
 	}
- 
+
 	// Remember this at the end of the program, if you started
 	// with DLL_CreateGlobals();
 	DLL_DeleteGlobals();

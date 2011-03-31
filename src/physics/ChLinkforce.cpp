@@ -20,13 +20,13 @@ ChLinkForce::ChLinkForce()
 	active = 0;		// default: inactive limit
 
 	iforce = 0;
-	modul_iforce= new ChFunction (1);  // default: const.modulation of iforce
+	modul_iforce= new ChFunction_Const (1);  // default: const.modulation of iforce
 
 	K = 0;
-	modul_K =	new ChFunction (1);  // default: const.modulation of K
+	modul_K =	new ChFunction_Const (1);  // default: const.modulation of K
 
 	R = 0;
-	modul_R =   new ChFunction (1);  // default: const.modulation of R
+	modul_R =   new ChFunction_Const (1);  // default: const.modulation of R
 }
 
 
