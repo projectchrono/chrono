@@ -731,6 +731,54 @@ IF (BUILD_CH_SDK)
 			${ChronoEngine_pneumatica_HEADERS}
 			)
 	
+	SET(ChronoEngine_motion_functions_SOURCES
+		motion_functions/ChFunction_Base.cpp
+		motion_functions/ChFunction_Const.cpp
+		motion_functions/ChFunction_ConstAcc.cpp
+		motion_functions/ChFunction_Derive.cpp
+		motion_functions/ChFunction_Fillet3.cpp
+		motion_functions/ChFunction_Integrate.cpp
+		motion_functions/ChFunction_Matlab.cpp
+		motion_functions/ChFunction_Mirror.cpp
+		motion_functions/ChFunction_Mocap.cpp
+		motion_functions/ChFunction_Noise.cpp
+		motion_functions/ChFunction_Operation.cpp
+		motion_functions/ChFunction_Oscilloscope.cpp
+		motion_functions/ChFunction_Poly345.cpp
+		motion_functions/ChFunction_Poly.cpp
+		motion_functions/ChFunction_Ramp.cpp
+		motion_functions/ChFunction_Recorder.cpp
+		motion_functions/ChFunction_Repeat.cpp
+		motion_functions/ChFunction_Sequence.cpp
+		motion_functions/ChFunction_Sigma.cpp
+		motion_functions/ChFunction_Sine.cpp
+	)
+	SET(ChronoEngine_motion_functions_HEADERS
+		motion_functions/ChFunction_Base.h
+		motion_functions/ChFunction_Const.h
+		motion_functions/ChFunction_ConstAcc.h
+		motion_functions/ChFunction_Derive.h
+		motion_functions/ChFunction_Fillet3.h
+		motion_functions/ChFunction_Integrate.h
+		motion_functions/ChFunction_Matlab.h
+		motion_functions/ChFunction_Mirror.h
+		motion_functions/ChFunction_Mocap.h
+		motion_functions/ChFunction_Noise.h
+		motion_functions/ChFunction_Operation.h
+		motion_functions/ChFunction_Oscilloscope.h
+		motion_functions/ChFunction_Poly345.h
+		motion_functions/ChFunction_Poly.h
+		motion_functions/ChFunction_Ramp.h
+		motion_functions/ChFunction_Recorder.h
+		motion_functions/ChFunction_Repeat.h
+		motion_functions/ChFunction_Sequence.h
+		motion_functions/ChFunction_Sigma.h
+		motion_functions/ChFunction_Sine.h
+	)
+	SOURCE_GROUP(motion_functions FILES  
+			${ChronoEngine_motion_functions_SOURCES}
+			${ChronoEngine_motion_functions_HEADERS}
+			)
 	
 	SET(ChronoEngine_parallel_SOURCES
 		parallel/ChThreads.cpp 
@@ -969,6 +1017,8 @@ IF (BUILD_CH_SDK)
 		${ChronoEngine_collision_convexdecomp_HEADERS}
 		${ChronoEngine_pneumatica_SOURCES}
 		${ChronoEngine_pneumatica_HEADERS}
+		${ChronoEngine_motion_functions_SOURCES}
+		${ChronoEngine_motion_functions_HEADERS}
 		${ChronoEngine_parallel_SOURCES}
 		${ChronoEngine_parallel_HEADERS}
 		${ChronoEngine_collision_bullet_SOURCES}

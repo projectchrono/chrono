@@ -40,7 +40,7 @@ ChLineCam::ChLineCam ()
 	center = VNULL;
 	e = 0;
 	s = Rb;
-	law = new ChFunction(0);
+	law = new ChFunction_Const(0);
 	negative = FALSE;
 	internal = FALSE;
 }

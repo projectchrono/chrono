@@ -41,11 +41,11 @@ ChLinkSpring::ChLinkSpring ()
     spr_r = 5;
     spr_f = 0;
 
-    mod_f_time =   new ChFunction (1);
-    mod_k_d =   new ChFunction (1);
-    mod_k_speed =   new ChFunction (1);
-    mod_r_d =   new ChFunction (1);
-    mod_r_speed =   new ChFunction (1);
+    mod_f_time =   new ChFunction_Const (1);
+    mod_k_d =   new ChFunction_Const (1);
+    mod_k_speed =   new ChFunction_Const (1);
+    mod_r_d =   new ChFunction_Const (1);
+    mod_r_speed =   new ChFunction_Const (1);
 
     spr_react = 0.0;
 }

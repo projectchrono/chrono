@@ -27,11 +27,11 @@ ChLinkLimit::ChLinkLimit()
 	Rmax= 100;  Rmin =  100;
 	minElastic = 0.0;
 	maxElastic = 0.0;
-	modul_Kmax =   new ChFunction (1);  // default: const.modulation of K
-	modul_Kmin =   new ChFunction (1);  // default: const.modulation of K
-	modul_Rmax =   new ChFunction (1);  // default: const.modulation of K
-	modul_Rmin =   new ChFunction (1);  // default: const.modulation of K
-	polar_Max  =   new ChFunction (1);	// default function for polar limits
+	modul_Kmax =   new ChFunction_Const (1);  // default: const.modulation of K
+	modul_Kmin =   new ChFunction_Const (1);  // default: const.modulation of K
+	modul_Rmax =   new ChFunction_Const (1);  // default: const.modulation of K
+	modul_Rmin =   new ChFunction_Const (1);  // default: const.modulation of K
+	polar_Max  =   new ChFunction_Const (1);  // default function for polar limits
 	constr_upper.SetMode(CONSTRAINT_UNILATERAL);
 	constr_lower.SetMode(CONSTRAINT_UNILATERAL);
 }

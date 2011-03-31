@@ -33,7 +33,7 @@ JSClass* chjs_cast_funct(ChFunction* myfx)
 	switch (myfx->Get_Type())
 	{
 	case FUNCT_CONST:
-		return &chjs_Function;
+		return &chjs_FunctionConst;
 	case FUNCT_RAMP:
 		return &chjs_FunctionRamp;
 	case FUNCT_SINE:
@@ -88,30 +88,20 @@ JSClass* chjs_cast_funct(ChFunction* myfx)
 // ------- Properties list -------------------------------
 //
 static JSPropertySpec Function_props[] = {
-    {"C",       0,	JSPROP_ENUMERATE},
     {0}
 };
 
-GET_JS_PARSE_BEGIN(Function_get, ChFunction*)
-	GET_JS_PROP (0, chjs_from_double(cx,vp,this_data->Get_yconst()) )
+GET_JS_PARSE_BEGIN(Function_get, ChFunction*) 
 GET_JS_PARSE_END
 
 SET_JS_PARSE_BEGIN(Function_set, ChFunction*)
-	SET_JS_PROP (0,	&chjs_double, this_data->Set_yconst(chjs_to_double(cx,vp)) )
 SET_JS_PARSE_END
-
 
 
 ////////////////////////////////////////////////////////////////////
 //
 // METHODS
 //
-
-DEF_JS_BUILDER (Function_construct, ChFunction*)
-  this_data = new ChFunction();
-DEF_JS_BUILDEND
-
-ChJS_FINALIZER (Function_finalize, ChFunction*)
 
 
 DEF_JS_FUNCTION(jsGet_y, ChFunction*, 1)
@@ -232,7 +222,7 @@ static JSFunctionSpec Function_methods[] = {
 JSClass chjs_Function = {
     "ChFunction", JSCLASS_HAS_RESERVED_SLOTS(2),
     JS_PropertyStub,  JS_PropertyStub,  Function_get,	  Function_set,
-    JS_EnumerateStub, JS_ResolveStub,   JS_ConvertStub,   Function_finalize,
+    JS_EnumerateStub, JS_ResolveStub,   JS_ConvertStub,   JS_FinalizeStub,
 };
 
 
@@ -245,11 +235,88 @@ JSObject* ChJS_InitClass_Function(JSContext* cx, JSObject* glob, JSObject* paren
 	JSObject* ret = JS_InitClass(cx, glob,
 				parent,					// parent prototype (parent class)
 				&chjs_Function,			// this class
-				Function_construct, 0,	// constructor fx and parameters
+				NULL, 0,				// constructor fx and parameters
 				Function_props, Function_methods,
 				NULL, NULL);
 	return ret;
 }
+
+
+//==================================================================
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+//
+//   FUNCTION CONST class
+//
+
+////////////////////////////////////////////////////////////////////
+//
+// PROPERTIES
+//
+
+// ------- Properties list -------------------------------
+//
+static JSPropertySpec FunctionConst_props[] = {
+    {"C",       0,	JSPROP_ENUMERATE},
+    {0}
+};
+
+GET_JS_PARSE_BEGIN(FunctionConst_get, ChFunction_Const*)
+	GET_JS_PROP (0,  chjs_from_double(cx,vp,this_data->Get_yconst()) )
+GET_JS_PARSE_END
+
+SET_JS_PARSE_BEGIN(FunctionConst_set, ChFunction_Const*)
+	SET_JS_PROP (0,	&chjs_double, this_data->Set_yconst(chjs_to_double(cx,vp)) )
+SET_JS_PARSE_END
+
+
+
+////////////////////////////////////////////////////////////////////
+//
+// METHODS
+//
+
+DEF_JS_BUILDER (FunctionConst_construct, ChFunction_Const*)
+  this_data = new ChFunction_Const();
+DEF_JS_BUILDEND
+
+ChJS_FINALIZER (FunctionConst_finalize, ChFunction_Const*)
+
+// ------- Method list -------------------------------
+//
+static JSFunctionSpec FunctionConst_methods[] = {
+    {0}
+};
+
+
+////////////////////////////////////////////////////////////////////
+//
+// CLASS DATA
+//
+
+// GLOBAL CLASS DATA (external)
+JSClass chjs_FunctionConst = {
+    "ChFunctionConst", JSCLASS_HAS_RESERVED_SLOTS(2),
+    JS_PropertyStub,  JS_PropertyStub,  FunctionConst_get,	  FunctionConst_set,
+    JS_EnumerateStub, JS_ResolveStub,   JS_ConvertStub,		  FunctionConst_finalize,
+};
+
+
+////////////////////////////////////////////////////////////////////
+//
+// INITIALIZATION
+//
+JSObject* ChJS_InitClass_FunctionConst(JSContext* cx, JSObject* glob, JSObject* parent)
+{
+	JSObject* ret = JS_InitClass(cx, glob,
+				parent,							// parent prototype (parent class)
+				&chjs_FunctionConst,			// this class
+				FunctionConst_construct, 0,		// constructor fx and parameters
+				FunctionConst_props, FunctionConst_methods,
+				NULL, NULL);
+	return ret;
+}
+
 
 
 

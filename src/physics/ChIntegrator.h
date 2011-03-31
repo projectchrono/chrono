@@ -8,6 +8,9 @@
 //   Math functions for :
 //      - ORDINARY DIFFERENTIAL EQUATIONS
 //
+//     ***OBSOLETE*** to be improved/rewritten.
+//                    Currently not used by ChSystem.
+//
 //   HEADER file for CHRONO,
 //	 Multibody dynamics engine
 //

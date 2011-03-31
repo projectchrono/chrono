@@ -42,12 +42,12 @@ ChLinkLock::ChLinkLock ()
     Cq2_temp    = new ChMatrixDynamic<>(7, BODY_QDOF);
     Qc_temp     = new ChMatrixDynamic<>(7, 1);
 
-    motion_X =   new ChFunction (0);  // default: no motion
-    motion_Y =   new ChFunction (0);
-    motion_Z =   new ChFunction (0);
-    motion_ang  = new ChFunction (0);
-    motion_ang2 = new ChFunction (0);
-    motion_ang3 = new ChFunction (0);
+    motion_X =   new ChFunction_Const (0);  // default: no motion
+    motion_Y =   new ChFunction_Const (0);
+    motion_Z =   new ChFunction_Const (0);
+    motion_ang  = new ChFunction_Const (0);
+    motion_ang2 = new ChFunction_Const (0);
+    motion_ang3 = new ChFunction_Const (0);
     motion_axis = VECT_Z;
     angleset = ANGLESET_ANGLE_AXIS;
 
@@ -268,12 +268,12 @@ void ChLinkLock::ChangeLinkType (int new_link_type)
     if (motion_ang2) delete motion_ang2;
     if (motion_ang3) delete motion_ang3;
 
-    motion_X =   new ChFunction (0);  // default: no motion
-    motion_Y =   new ChFunction (0);
-    motion_Z =   new ChFunction (0);
-    motion_ang  = new ChFunction (0);
-    motion_ang2 = new ChFunction (0);
-    motion_ang3 = new ChFunction (0);
+    motion_X =   new ChFunction_Const (0);  // default: no motion
+    motion_Y =   new ChFunction_Const (0);
+    motion_Z =   new ChFunction_Const (0);
+    motion_ang  = new ChFunction_Const (0);
+    motion_ang2 = new ChFunction_Const (0);
+    motion_ang3 = new ChFunction_Const (0);
     motion_axis = VECT_Z;
     angleset = ANGLESET_ANGLE_AXIS;
 

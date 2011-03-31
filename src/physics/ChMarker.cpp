@@ -42,10 +42,10 @@ ChMarker::ChMarker()
 {
 	Body = NULL;
 
-	motion_X =   new ChFunction (0);  // default: no motion
-	motion_Y =   new ChFunction (0);
-	motion_Z =   new ChFunction (0);
-	motion_ang = new ChFunction (0);
+	motion_X =   new ChFunction_Const (0);  // default: no motion
+	motion_Y =   new ChFunction_Const (0);
+	motion_Z =   new ChFunction_Const (0);
+	motion_ang = new ChFunction_Const (0);
 	motion_axis = VECT_Z;
 
 	rest_coord=	CSYSNORM;
@@ -66,10 +66,10 @@ ChMarker::ChMarker (char myname[], ChBody* myBody, Coordsys myrel_pos, Coordsys 
 	SetName (myname);
 	Body = myBody;
 
-	motion_X =   new ChFunction (0);  // default: no motion
-	motion_Y =   new ChFunction (0);
-	motion_Z =   new ChFunction (0);
-	motion_ang = new ChFunction (0);
+	motion_X =   new ChFunction_Const (0);  // default: no motion
+	motion_Y =   new ChFunction_Const (0);
+	motion_Z =   new ChFunction_Const (0);
+	motion_ang = new ChFunction_Const (0);
 	motion_axis = VECT_Z;
 
 	rest_coord=	CSYSNORM;
