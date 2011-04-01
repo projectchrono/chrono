@@ -136,121 +136,6 @@ void LoadModel(ChIrrAppInterface* application, const char* filename)
 
 
 
-/*
-
-class callback_CascadeDOC_find_name : public callback_CascadeDOC
-{
-public:
-	char search_name[200];
-
-	bool res_found;
-	TopoDS_Shape res_shape;
-	TopLoc_Location res_loc;
-	int res_level;
-	TDF_Label res_label;
-	
-	callback_CascadeDOC_find_name(char* mname) : res_found(false), res_level(0)  
-	{
-		strcpy(search_name, mname);
-	}
-
-	virtual bool ForShape(TopoDS_Shape& mshape, TopLoc_Location& mloc, char* mname, int mlevel, TDF_Label& mlabel)
-	{
-		if (strcmp(mname, search_name)) 
-			return true; // proceed, not found
-		// ..else equal string: found
-		res_found = true;
-		res_shape = mshape;
-		res_loc = mloc;
-		res_level = mlevel;
-		res_label = mlabel;
-
-		return false;
-	}
-};
-
-
-bool recurse_CascadeDoc(TDF_Label label, Handle_XCAFDoc_ShapeTool& shapeTool, int level, callback_CascadeDOC& mcallback)
-{
-	TDF_LabelSequence child_labels;
-	Standard_Boolean is_assembly;
-	is_assembly = shapeTool->GetComponents(label, child_labels, 0);
-
-	char mstring[200]="no name";
-	Standard_PCHaracter mchastr = mstring;
-
-	// --access name
-	Handle_TDataStd_Name N;
-	if ( label.FindAttribute( TDataStd_Name::GetID(), N ) )
-	{
-		N->Get().ToUTF8CString(mchastr);
-	}
-		
-	if (!is_assembly)  
-	{
-		TDF_Label reflabel;
-		Standard_Boolean isref = shapeTool->GetReferredShape(label, reflabel);
-		if (isref) // ..maybe it references some shape: the name is stored there...
-		{
-			Handle_TDataStd_Name N;
-			if ( reflabel.FindAttribute( TDataStd_Name::GetID(), N ) )
-			{
-				N->Get().ToUTF8CString(mchastr);
-			}
-		}
-	}
-
-	GetLog() << "                              - " << child_labels.Length() << "\n";
-	if (shapeTool->IsAssembly(label)) 
-		GetLog() << "                          assembly \n";
-	if (shapeTool->IsComponent(label)) 
-		GetLog() << "                          component \n";
-	if (shapeTool->IsCompound(label))
-		GetLog() << "                          compound \n";
-	if (shapeTool->IsReference(label)) 
-		GetLog() << "                          reference \n";
-
-
-	// --access shape and position
-	TopoDS_Shape rShape;
-	rShape = shapeTool->GetShape( label);
-	if (!rShape.IsNull()) 
-	{
-		TopLoc_Location mloc =  shapeTool->GetLocation(label);
-		
-		if (!mcallback.ForShape(rShape, mloc, mstring, level, label))
-			return false;
-	}
-	
-	// Recurse all children !!!
-	if (is_assembly)
-	{
-		level++;
-		for ( Standard_Integer j = 1; j <= child_labels.Length(); j++ )
-		{
-			TDF_Label clabel = child_labels.Value( j );
-			if (!recurse_CascadeDoc(clabel, shapeTool, level, mcallback))
-				return false;
-		}
-	}
-
-	return true;
-}
-
-void ScanCascadeDoc(Handle_TDocStd_Document& aDoc, callback_CascadeDOC& mcallback)
-{
-	Handle(XCAFDoc_ShapeTool) shapeTool = XCAFDoc_DocumentTool::ShapeTool(aDoc->Main());
-	TDF_LabelSequence root_labels;
-	shapeTool->GetFreeShapes( root_labels );
-	for ( Standard_Integer i = 1; i <= root_labels.Length(); i++ )
-	{
-		TDF_Label label = root_labels.Value( i );
-		int level = 0;
-		recurse_CascadeDoc(label, shapeTool, level, mcallback);
-	}
-}
-
-*/
 
 // LOAD THE STEP 3D MODEL USING OPEN CASCADE
 //
@@ -274,35 +159,32 @@ void LoadStepModel(ChIrrAppInterface* application, const char* filename)
 		// ---Print hierarchy on screen
 		mydoc.Dump(GetLog());
 
-		// ---Find some special shape
+		// ---Find all shapes and get as a single compound
 		TopoDS_Shape mshape;
 		mydoc.GetRootShape(mshape);
 
-		// ---Print COG & inertia 
-		ChVector<> mcog,mxx,mxy; 
-		double mvol,mmass;
-		mydoc.GetVolumeProperties(mshape, 7750, mcog, mxx, mxy, mvol, mmass);
-		GetLog() << "Shape: mass=" << mmass << "  vol=" << mvol << " COG=" << mcog.x << " " <<  mcog.y << " " <<  mcog.z << "\n";
+		if (!mshape.IsNull())
+		{
+			// ---Perform Irrlicht triangulation
+
+			scene::SMesh* mmesh = new scene::SMesh();
+			video::SColor clr(255, 100,120,125);
+
+			irr::scene::ChIrrCascadeMeshTools::fillIrrlichtMeshFromCascade(mmesh, mshape, 0.5);
+								// ..also show in Irrlicht view
+			scene::SAnimatedMesh* Amesh = new scene::SAnimatedMesh();
+			Amesh->addMesh(mmesh);
+			mmesh->drop();
+			modelNode = application->GetSceneManager()->addAnimatedMeshSceneNode(Amesh, decompositionNode);
 
 
-		// ---Perform Irrlicht triangulation
-		scene::SMesh* mmesh = new scene::SMesh();
-		video::SColor clr(255, 100,120,125);
+			// ---Convert to OBJ Wavefront file
 
-		irr::scene::ChIrrCascadeMeshTools::fillIrrlichtMeshFromCascade(mmesh, mshape, 0.5);
-							// ..also show in Irrlicht view
-		scene::SAnimatedMesh* Amesh = new scene::SAnimatedMesh();
-		Amesh->addMesh(mmesh);
-		mmesh->drop();
-		modelNode = application->GetSceneManager()->addAnimatedMeshSceneNode(Amesh, decompositionNode);
-
-
-		// ---Convert to OBJ Wavefront file
-
-		ChStreamOutAsciiFile mobjfile("triangulated_step_model_root.obj");
-		//afinder.res_shape.Location(TopLoc_Location()); // to reset CAD reference as center of obj.
-		ChCascadeMeshTools::fillObjFileFromCascade(mobjfile, mshape, 0.5);
-		GetLog() << " .. done! \n";
+			ChStreamOutAsciiFile mobjfile("triangulated_step_model_root.obj");
+			//afinder.res_shape.Location(TopLoc_Location()); // to reset CAD reference as center of obj.
+			ChCascadeMeshTools::fillObjFileFromCascade(mobjfile, mshape, 0.5);
+			GetLog() << " .. done! \n";
+		}
 
 
 	}

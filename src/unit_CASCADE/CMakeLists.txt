@@ -34,6 +34,7 @@ IF(ENABLE_UNIT_CASCADE)
 		ChCascadeMeshTools.h
 		ChCascadeDoc.h
 		ChIrrCascadeMeshTools.h
+		ChIrrCascade.h
 		)
 	#SET_SOURCE_FILES_PROPERTIES(ChronoEngine_unit_CASCADE_HEADERS PROPERTIES  HEADER_FILE_ONLY)
 	SOURCE_GROUP(unit_CASCADE FILES 

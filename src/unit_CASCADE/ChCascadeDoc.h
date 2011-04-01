@@ -61,9 +61,23 @@ public:
 		/// if so, use 'num' to select the one that you need.
 	bool GetRootShape(TopoDS_Shape& mshape, const int num=1);
 
+		/// Get a sub-shape with a given name, returned in 'mshape'.
+		/// Since the document can contain assembles, subassemblies etc, the name
+		/// can use a 'directory type' syntax, using the / slash such as in
+		///   "assembly/subassebmly/subsubassembly/mypart"
+		/// It is possible to use # and ? wildcards as in Unix.
+		/// If there are multiple parts (or assemblies) with the same name, all are
+		/// returned in 'mshape'; if this is not wanted, one can use the # wildcard
+		/// to get the #n-th object, for example "MyAssembly/bolt#3", "Car/Wheel#2/hub", etc.
+		/// If the 'set_location_to_root' parameter is true, the location of the 
+		/// shape is changed so that it represents its position respect to the root, that is
+		/// the shape .Location() function will give the absolute position, otherwise if false
+		/// it will give its position relative to the assembly where it is a sub-shape.
+	bool GetNamedShape(TopoDS_Shape& mshape, char* name, bool set_location_to_root = true);
+
 		/// Get the volume properties (center of mass, inertia moments, volume)
 		/// of a given shape.
-	bool GetVolumeProperties(const TopoDS_Shape& mshape,	///< pass the shape here
+	bool static GetVolumeProperties(const TopoDS_Shape& mshape,	///< pass the shape here
 						const double density,				///< pass the density here 
 						ChVector<>& center_position,		///< get the COG position center, respect to shape pos.
 						ChVector<>& inertiaXX,				///< get the inertia diagonal terms
@@ -77,10 +91,16 @@ public:
 		  public:
 			virtual bool ForShape(TopoDS_Shape& mshape, TopLoc_Location& mloc, char* mname, int mlevel, TDF_Label& mlabel)=0;
 		 };
-		/// Execute a callback on all contained shapes
+		/// Execute a callback on all contained shapes, with user-defined callback inherited
+		/// from callback_CascadeDoc. Btw. If the callback_CascadeDoc::ForShape callback returns false, subshapes are not processed.
 	void ScanCascadeShapes(callback_CascadeDoc& mcallback);
 
+		/// Convert OpenCascade coordinates into Chrono coordinates
+	static void FromCascadeToChrono(const TopLoc_Location& from_coord, ChFrame<>& to_coord);
 	
+		/// Convert Chrono coordinates into OpenCascade coordinates
+	static void FromChronoToCascade(const ChFrame<>& from_coord, TopLoc_Location& to_coord);
+
 private:
 		// pointer to cascade OCAF doc handle; 
 	Handle_TDocStd_Document* doc;

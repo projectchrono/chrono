@@ -20,7 +20,7 @@
 ///////////////////////////////////////////////////
 
 #include "ChTimer.h"
-
+#include "ChMath.h"
 
 namespace chrono
 {

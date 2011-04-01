@@ -29,3 +29,21 @@ TARGET_LINK_LIBRARIES(demo_converter
  	)
 ADD_DEPENDENCIES (demo_converter ChronoEngine ChronoEngine_CASCADE)
  	
+
+
+ADD_EXECUTABLE(demo_stepfile   		    demo_stepfile.cpp)
+SOURCE_GROUP(demos\\cascade FILES  	    demo_stepfile.cpp)
+SET_TARGET_PROPERTIES(demo_stepfile PROPERTIES 
+	FOLDER demos
+	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
+	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+TARGET_LINK_LIBRARIES(demo_stepfile 
+	${CH_IRRLICHTLIB}
+	${CH_CASCADELIBS}
+ 	optimized 	${CH_CHRONOLIB} 
+ 	debug 		${CH_CHRONOLIB_DBG}
+ 	optimized 	${CH_CHRONOCASCADELIB} 
+ 	debug 		${CH_CHRONOCASCADELIB_DBG}
+ 	)
+ADD_DEPENDENCIES (demo_stepfile ChronoEngine ChronoEngine_CASCADE)
