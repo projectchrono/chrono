@@ -331,6 +331,45 @@ public:
 	}
 
 
+			/// Easy-to-use function which draws coordinate systems of 
+			/// ChBody objects bodies
+
+	static int drawAllCOGs(chrono::ChSystem& mphysicalSystem, 
+							video::IVideoDriver* driver,
+							double scale =0.01)
+	{ 
+			if (mphysicalSystem.GetNbodiesTotal()==0)
+				return 0;
+
+			driver->setTransform(video::ETS_WORLD, core::matrix4());
+			video::SMaterial mattransp;
+			mattransp.ZBuffer= true;
+			mattransp.Lighting=false;
+			driver->setMaterial(mattransp);
+
+			chrono::ChSystem::IteratorBodies myiter = mphysicalSystem.IterBeginBodies();
+			while (myiter != mphysicalSystem.IterEndBodies())
+			{
+				video::SColor mcol;
+				chrono::ChVector<> p0 = (*myiter)->GetPos();
+				chrono::ChVector<> px = p0 + (*myiter)->GetA()->Get_A_Xaxis();//*scale;
+				chrono::ChVector<> py = p0 + (*myiter)->GetA()->Get_A_Yaxis();//*scale;
+				chrono::ChVector<> pz = p0 + (*myiter)->GetA()->Get_A_Zaxis();//*scale;
+
+				mcol=video::SColor(70,255,0,0);  // X red
+				driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(px), mcol );
+				mcol=video::SColor(70,0,255,0);  // Y green
+				driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(py), mcol );
+				mcol=video::SColor(70,0,0,255);  // Z blue
+				driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(pz), mcol );
+				
+				++myiter;
+			}
+			return 0;
+	}
+
+
+
 
 
 	static void drawHUDviolation(video::IVideoDriver* driver, IrrlichtDevice* mdevice,

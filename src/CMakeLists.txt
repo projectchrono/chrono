@@ -331,7 +331,7 @@ ENDIF()
 
 IF (ENABLE_UNIT_MATLAB)
 	SET (CH_MATLABINC "${CH_MATLABSDK}/include")
-	SET (CH_MATLABLIB "${CH_MATLABSDK}/lib/win32/microsoft/libeng.lib" "${CH_MATLABSDK}/lib/win32/microsoft/libmx.lib" )
+	SET (CH_MATLABLIB "${CH_MATLABSDK}/lib/win32/microsoft/libeng.lib" "${CH_MATLABSDK}/lib/win32/microsoft/libmx.lib" "${CH_MATLABSDK}/lib/win32/microsoft/libmat.lib" )
 ENDIF()
 
 

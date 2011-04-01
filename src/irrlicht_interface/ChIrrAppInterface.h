@@ -283,6 +283,9 @@ public:
 			gad_plot_aabb = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(10,310, 200,310+20),
 								gad_tab1, 9914, L"Draw AABB");
 
+			gad_plot_cogs = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(110,310, 200,310+20),
+								gad_tab1, 9915, L"Draw COGs");
+
 			gad_plot_convergence = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(10,340, 200,340+20),
 								gad_tab1, 9902, L"Plot convergence");
 
@@ -411,6 +414,9 @@ public:
 			if (this->gad_plot_aabb->isChecked())
 				ChIrrTools::drawAllBoundingBoxes(*system, GetVideoDriver());
 
+			if (this->gad_plot_cogs->isChecked())
+				ChIrrTools::drawAllCOGs(*system, GetVideoDriver(), 0.02);
+
 			if (this->gad_plot_convergence->isChecked())
 				ChIrrTools::drawHUDviolation(GetVideoDriver(), GetDevice(), *system,  240,370,300,100, 100.0, 500.0);
 
@@ -490,6 +496,7 @@ private:
 	gui::IGUIComboBox*   gad_drawcontacts;
 	gui::IGUIComboBox*   gad_labelcontacts;
 	gui::IGUICheckBox*   gad_plot_aabb;
+	gui::IGUICheckBox*   gad_plot_cogs;
 	gui::IGUICheckBox*   gad_plot_convergence;
 
 	gui::IGUIScrollBar*  gad_speed_iternumber;
