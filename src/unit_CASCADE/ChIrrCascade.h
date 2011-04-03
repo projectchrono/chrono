@@ -34,7 +34,7 @@ namespace scene
 
 
 /// Easy-to-use function which creates a ChBodySceneNode 
-	/// corresponding to a OpenCascade mesh (assuming TopoDS_Shape location is relative to body csys)
+/// corresponding to a OpenCascade mesh (assuming TopoDS_Shape location is relative to body csys)
 /// Version (A), with full parameters:
 
 static
@@ -102,6 +102,9 @@ ISceneNode* addChBodySceneNode_Cascade_B(chrono::ChSystem* asystem,
 	TopLoc_Location mloc;
 	mloc = mshape.Location();
 
+	gp_XYZ mtr = mloc.Transformation().TranslationPart();
+	chrono::GetLog() << " Addins shape with abs pos at: "<< mtr.X() <<" "<< mtr.Y() << " "<<mtr.Z() <<" \n";
+
 	chrono::ChFrame<> mframe;
 	chrono::cascade::ChCascadeDoc::FromCascadeToChrono(mloc, mframe);
 
@@ -120,6 +123,7 @@ ISceneNode* addChBodySceneNode_Cascade_B(chrono::ChSystem* asystem,
 /// corresponding to a OpenCascade mesh, where the position and rotation
 /// of the reference is automatically set according to the COG of the OpenCascade shape:
 /// Version (C), with auto computation of reference position and rotation, and mass and inertia
+///***TO DO*** - requires a new ChBodyWithCog for cog in different place than csys
 
 static
 ISceneNode* addChBodySceneNode_Cascade_C(chrono::ChSystem* asystem,

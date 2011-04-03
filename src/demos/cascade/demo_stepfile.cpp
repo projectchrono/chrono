@@ -141,6 +141,8 @@ int main(int argc, char* argv[])
 		// load the STEP model using this command:
 	bool load_ok = mydoc.Load_STEP("mbody3.stp");
 
+		// print the contained shapes
+	mydoc.Dump(GetLog());
 
 	if (load_ok)
 	{
@@ -162,6 +164,7 @@ int main(int argc, char* argv[])
 			relshape.Location( TopLoc_Location() );
 			ChTriangleMesh temp_trianglemesh; 
 			ChCascadeMeshTools::fillTriangleMeshFromCascade(temp_trianglemesh, relshape);
+			GetLog() << "n.tri = "<< temp_trianglemesh.getNumTriangles() << "\n";
 			mrigidBody->GetBody()->GetCollisionModel()->ClearModel();
 			mrigidBody->GetBody()->GetCollisionModel()->AddTriangleMesh(temp_trianglemesh, false, false); 
 			mrigidBody->GetBody()->GetCollisionModel()->BuildModel();

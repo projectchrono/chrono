@@ -359,16 +359,21 @@ public:
 					if (mlevel == this->level_names.size()-1)
 					{
 						// Found!!!
-						res_found = true;
-						res_shape = mshape;
-						res_loc   = mloc;
-						res_level = mlevel;
-						res_label = mlabel;
-						
+
 						if (this->set_location_to_root)
 							mshape.Location(mloc);
 
-						// Add to the shape compound 
+						// For single istance: only 1st found shape is considered
+						if (!res_found)
+						{
+							res_found = true;
+							res_shape = mshape;
+							res_loc   = mloc;
+							res_level = mlevel;
+							res_label = mlabel;
+						}
+
+						// Add to the shape compound, for multiple results
 						aBuilder.Add(res_comp, mshape);
 					}
 					return true; // proceed!
@@ -384,7 +389,7 @@ public:
 };
 
 
-bool ChCascadeDoc::GetNamedShape(TopoDS_Shape& mshape, char* name, bool set_location_to_root)
+bool ChCascadeDoc::GetNamedShape(TopoDS_Shape& mshape, char* name, bool set_location_to_root, bool get_multiple)
 {
 	callback_CascadeDoc_getnamed aselector(name);
 
@@ -392,7 +397,10 @@ bool ChCascadeDoc::GetNamedShape(TopoDS_Shape& mshape, char* name, bool set_loca
 	
 	if (aselector.res_found)
 	{
-		mshape = aselector.res_comp;
+		if (get_multiple)
+			mshape = aselector.res_comp;
+		else
+			mshape = aselector.res_shape;
 		return true;
 	}
 	else
