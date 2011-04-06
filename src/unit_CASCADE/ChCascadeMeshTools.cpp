@@ -128,7 +128,7 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace (ChTriangleMesh& chmesh
 			p = mNodes(ic+1).Transformed(theLocation.Transformation());
 			V.SetX(p.X()); V.SetY(p.Y()); V.SetZ(p.Z());
 			ChVector<> cv3 (V.X(), V.Y(), V.Z());
-			chmesh.addTriangle(cv1*0.001, cv2*0.001, cv3*0.001);
+			chmesh.addTriangle(cv1, cv2, cv3);
 
 			itri++;
 		}
