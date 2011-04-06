@@ -144,6 +144,9 @@ int main(int argc, char* argv[])
 		// print the contained shapes
 	mydoc.Dump(GetLog());
 
+	ChCollisionModel::SetDefaultSuggestedEnvelope(0.002);
+	ChCollisionModel::SetDefaultSuggestedMargin(0.001);
+
 	if (load_ok)
 	{
 			// Retrieve some sub shapes from the loaded model, using
@@ -157,14 +160,14 @@ int main(int argc, char* argv[])
 			ChBodySceneNode* mrigidBody = (ChBodySceneNode*)addChBodySceneNode_Cascade_B(
 									&my_system, application.GetSceneManager(), 
 									mshape);
-			mrigidBody->GetBody()->SetBodyFixed(true);
+			mrigidBody->GetBody()->SetBodyFixed(false);
 
 				// Also add a collision shape based on the traingulation of the OpenCascade CAD model
 			TopoDS_Shape relshape = mshape;
 			relshape.Location( TopLoc_Location() );
 			ChTriangleMesh temp_trianglemesh; 
 			ChCascadeMeshTools::fillTriangleMeshFromCascade(temp_trianglemesh, relshape);
-			GetLog() << "n.tri = "<< temp_trianglemesh.getNumTriangles() << "\n";
+			//fillChTrimeshFromIrlichtMesh(&temp_trianglemesh, mrigidBody->GetChildMesh()->getMesh());
 			mrigidBody->GetBody()->GetCollisionModel()->ClearModel();
 			mrigidBody->GetBody()->GetCollisionModel()->AddTriangleMesh(temp_trianglemesh, false, false); 
 			mrigidBody->GetBody()->GetCollisionModel()->BuildModel();
@@ -181,11 +184,14 @@ int main(int argc, char* argv[])
 			ChBodySceneNode* mrigidBody = (ChBodySceneNode*)addChBodySceneNode_Cascade_B(
 									&my_system, application.GetSceneManager(), 
 									bshape);
-			mrigidBody->GetBody()->SetBodyFixed(true);
+			mrigidBody->GetBody()->SetBodyFixed(false);
 
 				// Also add a collision shape based on the traingulation of the OpenCascade CAD model
+			TopoDS_Shape relshape = bshape;
+			relshape.Location( TopLoc_Location() );
 			ChTriangleMesh temp_trianglemesh; 
-			ChCascadeMeshTools::fillTriangleMeshFromCascade(temp_trianglemesh, bshape);
+			ChCascadeMeshTools::fillTriangleMeshFromCascade(temp_trianglemesh, relshape);
+			//fillChTrimeshFromIrlichtMesh(&temp_trianglemesh, mrigidBody->GetChildMesh()->getMesh());
 			mrigidBody->GetBody()->GetCollisionModel()->ClearModel();
 			mrigidBody->GetBody()->GetCollisionModel()->AddTriangleMesh(temp_trianglemesh, false, false); 
 			mrigidBody->GetBody()->GetCollisionModel()->BuildModel();
@@ -196,7 +202,7 @@ int main(int argc, char* argv[])
 
 
 			// Create a large cube as a floor.
-/*
+
 		ChBodySceneNode* mfloor = (ChBodySceneNode*)addChBodySceneNode_easyBox(
 												&my_system, application.GetSceneManager(),
 												1000.0,
@@ -207,7 +213,7 @@ int main(int argc, char* argv[])
 		mfloor->GetBody()->SetCollide(true);
 		video::ITexture* cubeMap = application.GetVideoDriver()->getTexture("../data/blu.png");
 		mfloor->setMaterialTexture(0,	cubeMap);
-*/
+
 	}
 	else GetLog() << "Warning. Desired STEP file could not be opened/parsed \n";
 
