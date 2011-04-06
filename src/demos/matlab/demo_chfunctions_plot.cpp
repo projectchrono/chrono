@@ -32,8 +32,6 @@ using namespace chrono;
  
 int main(int argc, char* argv[])
 {
-	Engine* me = engOpen(NULL);
-return 1;
 
 	// The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
 	// global functions are needed.
@@ -81,7 +79,7 @@ return 1;
 		ChFunction_Sine f_sine;
 
 		f_sine.Set_amp(2);		// set amplitude;
-		f_sine.Set_freq(1.5);	// set frequency;
+		f_sine.Set_freq(0.9);	// set frequency;
 
 		 // Evaluate y=f(x) function along 100 x points:
 		ChMatrixDynamic<> x_array(100,1);
@@ -106,10 +104,11 @@ return 1;
 		 // Plot with Matlab 'plot' command
 		matlab_engine.Eval("figure;  plot(x_array,y_array,'k');");
 		matlab_engine.Eval("hold on; plot(x_array,ydx_array,'g');");
-		matlab_engine.Eval("grid on; plot(x_array,ydxdx_array,'g');");
+		matlab_engine.Eval("grid on; plot(x_array,ydxdx_array,'r');");
 		matlab_engine.Eval("legend ('y','dy/dx','ddy/dxdx');");
 
-
+		GetLog() << "Press a key to finish... \n";
+		getchar(); // pause until key..
 	}
 	catch (ChException mex)
 	{
