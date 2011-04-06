@@ -261,15 +261,3 @@ TARGET_LINK_LIBRARIES(demo_tracks
 ADD_DEPENDENCIES (demo_tracks ChronoEngine)
 
 
-ADD_EXECUTABLE(demo_pacejka   		demo_pacejka.cpp   pacejka_functions.cpp)
-SOURCE_GROUP(demos\\irrlicht FILES  demo_pacejka.cpp   pacejka_functions.cpp)
-SET_TARGET_PROPERTIES(demo_pacejka PROPERTIES 
-	FOLDER demos
-	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
-TARGET_LINK_LIBRARIES(demo_pacejka
-	${CH_IRRLICHTLIB} 
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG})
-ADD_DEPENDENCIES (demo_pacejka ChronoEngine)
