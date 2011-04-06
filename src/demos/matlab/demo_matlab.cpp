@@ -45,9 +45,6 @@ int main(int argc, char* argv[])
 		// As soon as created, it loads the Matlab engine (if troubles happen, it
 		// throws exception).
 
-//***TEST***
-Engine* me = engOpen(NULL);
-return 1;
 	
 		ChMatlabEngine matlab_engine;
 
