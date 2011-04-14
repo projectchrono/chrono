@@ -157,21 +157,22 @@ int main(int argc, char* argv[])
 		if (mydoc.GetNamedShape(mshape, "Assem2/Assem1#2/body1" ))
 		{
 				// Add the shape to the Irrlicht system, to get also visualization
-			ChBodySceneNode* mrigidBody = (ChBodySceneNode*)addChBodySceneNode_Cascade_B(
+			ChBodySceneNodeAuxRef* mrigidBody = (ChBodySceneNodeAuxRef*)addChBodySceneNode_Cascade_C(
 									&my_system, application.GetSceneManager(), 
 									mshape);
-			mrigidBody->GetBody()->SetBodyFixed(false);
 
-				// Also add a collision shape based on the traingulation of the OpenCascade CAD model
+				// Also add a collision shape based on the triangulation of the OpenCascade CAD model
 			TopoDS_Shape relshape = mshape;
 			relshape.Location( TopLoc_Location() );
 			ChTriangleMesh temp_trianglemesh; 
 			ChCascadeMeshTools::fillTriangleMeshFromCascade(temp_trianglemesh, relshape);
-			//fillChTrimeshFromIrlichtMesh(&temp_trianglemesh, mrigidBody->GetChildMesh()->getMesh());
 			mrigidBody->GetBody()->GetCollisionModel()->ClearModel();
 			mrigidBody->GetBody()->GetCollisionModel()->AddTriangleMesh(temp_trianglemesh, false, false); 
 			mrigidBody->GetBody()->GetCollisionModel()->BuildModel();
 			mrigidBody->GetBody()->SetCollide(true);
+	
+			//ChFrame<> mfr(ChVector<>(0,0,0.04));
+			//mrigidBody->GetBody()->SetFrame_COG_to_REF(mfr);
 
 		}
 		else GetLog() << "Warning. Desired object not found in document \n";
@@ -181,12 +182,11 @@ int main(int argc, char* argv[])
 		if (mydoc.GetNamedShape(bshape, "Assem2/body2#1" ))
 		{
 				// Add the shape to the Irrlicht system, to get also visualization
-			ChBodySceneNode* mrigidBody = (ChBodySceneNode*)addChBodySceneNode_Cascade_B(
+			ChBodySceneNode* mrigidBody = (ChBodySceneNode*)addChBodySceneNode_Cascade_C(
 									&my_system, application.GetSceneManager(), 
 									bshape);
-			mrigidBody->GetBody()->SetBodyFixed(false);
 
-				// Also add a collision shape based on the traingulation of the OpenCascade CAD model
+				// Also add a collision shape based on the triangulation of the OpenCascade CAD model
 			TopoDS_Shape relshape = bshape;
 			relshape.Location( TopLoc_Location() );
 			ChTriangleMesh temp_trianglemesh; 
