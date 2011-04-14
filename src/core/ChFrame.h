@@ -163,14 +163,14 @@ public:
 		}
 
 					/// Performs pre-multiplication of this frame by another
-					/// frame, for example: A%=T means  A'=T*A
+					/// frame, for example: A%=T means  A'=T*A ; or A'=A >> T
 	ChFrame<Real>& operator %= (const ChFrame<Real>& T)
 		{
 				ConcatenatePreTransformation(T);
 				return *this;
 		}
 					/// Performs post-multiplication of this frame by another
-					/// frame, for example: A*=T means  A'=A*T
+					/// frame, for example: A*=T means  A'=A*T ; or A'=T >> A
 	ChFrame<Real>& operator *= (const ChFrame<Real>& T)
 		{
 				ConcatenatePostTransformation(T);
@@ -268,7 +268,7 @@ public:
 
 					/// Apply a transformation (rotation and translation) represented by
 					/// another ChFrame T. This is equivalent to pre-multiply this frame
-					/// by the other frame T:   this'= T * this;
+					/// by the other frame T:   this'= T * this; or this' = this >> T
 	void ConcatenatePreTransformation(const ChFrame<Real>& T)
 						{
 							this->SetCoord(T.TrasformLocalToParent(coord.pos),
@@ -277,7 +277,7 @@ public:
 
 					/// Apply a transformation (rotation and translation) represented by
 					/// another ChFrame T in local coordinate. This is equivalent to
-					/// post-multiply this frame by the other frame T:   this'= this * T;
+					/// post-multiply this frame by the other frame T:   this'= this * T; or this'= T >> this
 	void ConcatenatePostTransformation(const ChFrame<Real>& T)
 						{
 							this->SetCoord( TrasformLocalToParent(T.coord.pos),
@@ -401,7 +401,7 @@ public:
 							coord.pos = - Amatrix.Matr_x_Vect(coord.pos);
 						}
 
-	ChFrame<Real> GetInverse()
+	ChFrame<Real> GetInverse() const
 						{
 							ChFrame<Real> tmp(*this);
 							tmp.Invert(); return tmp;
