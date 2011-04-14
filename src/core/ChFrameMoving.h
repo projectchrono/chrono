@@ -70,6 +70,10 @@ public:
 	explicit ChFrameMoving(const ChCoordsys<Real>& mc)
 		: ChFrame<Real>(mc) { coord_dt.rot = coord_dtdt.rot = QNULL; };
 
+						/// Construct from a frame
+	explicit ChFrameMoving(const ChFrame<Real>& mc)
+		: ChFrame<Real>(mc) { coord_dt.rot = coord_dtdt.rot = QNULL; };
+
 						/// Copy constructor, build from another frame
 	ChFrameMoving(const ChFrameMoving<Real>& other) :
 					ChFrame<Real>(other),
@@ -84,13 +88,22 @@ public:
 			//
 
 
-					/// Assignment operator: copy from another frame
+					/// Assignment operator: copy from another moving frame
 	ChFrameMoving<Real>& operator=(const ChFrameMoving<Real>& other)
 		{
 				if (&other == this) return *this;
 				ChFrame<Real>::operator=(other);
 				coord_dt = other.coord_dt;
 				coord_dtdt = other.coord_dtdt;
+				return *this;
+		}
+
+					/// Assignment operator: copy from another frame
+	ChFrameMoving<Real>& operator=(const ChFrame<Real>& other)
+		{
+				if (&other == this) return *this;
+				ChFrame<Real>::operator=(other);
+				coord_dt.rot = coord_dtdt.rot = QNULL;
 				return *this;
 		}
 
@@ -136,7 +149,7 @@ public:
 
 
 					/// Performs pre-multiplication of this frame by another
-					/// frame, for example: A%=T means  A'=T*A
+					/// frame, for example: A%=T means  A'=T*A ; or A'=A >> T
 	ChFrameMoving<Real>& operator %= (const ChFrameMoving<Real>& T)
 		{
 				ConcatenatePreTransformation(T);
@@ -144,7 +157,7 @@ public:
 		}
 
 					/// Performs post-multiplication of this frame by another
-					/// frame, for example: A*=T means  A'=A*T
+					/// frame, for example: A*=T means  A'=A*T ; or A'=T >> A
 	ChFrameMoving<Real>& operator *= (const ChFrameMoving<Real>& T)
 		{
 				ConcatenatePostTransformation(T);
@@ -339,7 +352,7 @@ public:
 
 					/// Apply a transformation (rotation and translation) represented by
 					/// another ChFrameMoving T. This is equivalent to pre-multiply this frame
-					/// by the other frame T:   this'= T * this;
+					/// by the other frame T:   this'= T * this;  or this' = this >> T
 	void ConcatenatePreTransformation(const ChFrameMoving<Real>& T)
 						{
 							ChFrameMoving<Real> res;
@@ -349,7 +362,7 @@ public:
 
 					/// Apply a transformation (rotation and translation) represented by
 					/// another ChFrameMoving T in local coordinate. This is equivalent to
-					/// post-multiply this frame by the other frame T:   this'= this * T;
+					/// post-multiply this frame by the other frame T:   this'= this * T; or this' = T >> this
 	void ConcatenatePostTransformation(const ChFrameMoving<Real>& T)
 						{
 							ChFrameMoving<Real> res;
