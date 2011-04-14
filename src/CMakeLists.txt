@@ -427,7 +427,8 @@ IF (BUILD_CH_SDK)
 		physics/ChObject.cpp 
 		physics/ChMarker.cpp 
 		physics/ChForce.cpp 
-		physics/ChBody.cpp 
+		physics/ChBody.cpp
+		physics/ChBodyAuxRef.cpp
 		physics/ChFem.cpp 
 		physics/ChFem-br1.cpp 
 		physics/ChFem-te1.cpp 
@@ -499,6 +500,7 @@ IF (BUILD_CH_SDK)
 	SET(ChronoEngine_physics_HEADERS
 		physics/ChApidll.h
 		physics/ChBody.h
+		physics/ChBodyAuxRef.h
 		physics/ChCollide.h
 		physics/ChConstraint.h
 		physics/ChContact.h
