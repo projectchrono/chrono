@@ -351,10 +351,25 @@ public:
 			while (myiter != mphysicalSystem.IterEndBodies())
 			{
 				video::SColor mcol;
-				chrono::ChVector<> p0 = (*myiter)->GetPos();
-				chrono::ChVector<> px = p0 + (*myiter)->GetA()->Get_A_Xaxis();//*scale;
-				chrono::ChVector<> py = p0 + (*myiter)->GetA()->Get_A_Yaxis();//*scale;
-				chrono::ChVector<> pz = p0 + (*myiter)->GetA()->Get_A_Zaxis();//*scale;
+				chrono::ChFrame<>* mframe_cog = &((*myiter)->GetFrame_COG_to_abs());
+				chrono::ChFrame<>* mframe_ref = &((*myiter)->GetFrame_REF_to_abs());
+				
+				chrono::ChVector<> p0 = mframe_cog->GetPos();
+				chrono::ChVector<> px = p0 + mframe_cog->GetA()->Get_A_Xaxis()*0.5;//*scale;
+				chrono::ChVector<> py = p0 + mframe_cog->GetA()->Get_A_Yaxis()*0.5;//*scale;
+				chrono::ChVector<> pz = p0 + mframe_cog->GetA()->Get_A_Zaxis()*0.5;//*scale;
+
+				mcol=video::SColor(70,125,0,0);  // X red
+				driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(px), mcol );
+				mcol=video::SColor(70,0,125,0);  // Y green
+				driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(py), mcol );
+				mcol=video::SColor(70,0,0,125);  // Z blue
+				driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(pz), mcol );
+
+				p0 = mframe_ref->GetPos();
+				px = p0 + mframe_ref->GetA()->Get_A_Xaxis();//*scale;
+				py = p0 + mframe_ref->GetA()->Get_A_Yaxis();//*scale;
+				pz = p0 + mframe_ref->GetA()->Get_A_Zaxis();//*scale;
 
 				mcol=video::SColor(70,255,0,0);  // X red
 				driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(px), mcol );

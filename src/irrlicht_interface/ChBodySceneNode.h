@@ -175,7 +175,7 @@ public:
 				core::matrix4 irrMat;
 
 				// Get the rigid body actual rotation, as a 3x3 matrix [A]
-				chrono::ChMatrix33<>* chMat = GetBody()->GetA();
+				chrono::ChMatrix33<>* chMat = GetBody()->GetFrame_REF_to_abs().GetA();
 				
 				// Fill the upper 3x3 submatrix with the [A] matrix
 				// transposed, since Irrlicht uses the row-major style as in D3D
@@ -191,9 +191,9 @@ public:
 				irrMat[9] = (irr::f32)chMat->GetElementN(5);
 				irrMat[10]= (irr::f32)chMat->GetElementN(8);
 
-				irrMat[12]= (irr::f32)GetBody()->GetPos().x;
-				irrMat[13]= (irr::f32)GetBody()->GetPos().y;
-				irrMat[14]= (irr::f32)GetBody()->GetPos().z;
+				irrMat[12]= (irr::f32)GetBody()->GetFrame_REF_to_abs().GetPos().x;
+				irrMat[13]= (irr::f32)GetBody()->GetFrame_REF_to_abs().GetPos().y;
+				irrMat[14]= (irr::f32)GetBody()->GetFrame_REF_to_abs().GetPos().z;
 
 				// Clear the last column to 0 and set low-right corner to 1 
 				// as in Denavitt-Hartemberg matrices, transposed.
