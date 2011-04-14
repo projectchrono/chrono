@@ -84,7 +84,7 @@ protected:
 						// colliding geometry .
 	ChCollisionModel* collision_model;
 
-private:
+protected:
 			//
 	  		// DATA
 			//
@@ -307,6 +307,18 @@ public:
 	Coordsys GetLastCollPos () { return last_coll_pos; }
 				/// Stores the current position in the last-collision-position buffer.
 	void SynchronizeLastCollPos() {last_coll_pos = this->coord;}
+
+				/// Get the rigid body coordinate system that represents
+				/// the GOG (Center of Gravity). The mass and inertia tensor
+				/// are defined respect to this coordinate system, that is also
+				/// assumed the default main coordinates of the body. 
+				/// By default, doing mybody.GetPos() etc. is like mybody.GetFrame_COG_abs().GetPos() etc.
+	virtual ChFrame<>& GetFrame_COG_to_abs() {return *this;}
+
+				/// Get the rigid body coordinate system that is used for
+				/// defining the collision shapes and the ChMarker objects.
+				/// For the base ChBody, this is always the same reference of the COG.
+	virtual ChFrame<>& GetFrame_REF_to_abs() {return *this;}
 
 				/// Get the entire AABB axis-aligned bounding box of the object,
 				/// as defined by the collision model (if any).

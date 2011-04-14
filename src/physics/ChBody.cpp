@@ -719,8 +719,7 @@ void ChBody::Update (double mytime)
 				// For the body:
 	UpdateTime (mytime);
 
-	ChBody::Update();
-
+	Update();
 }
 
 
