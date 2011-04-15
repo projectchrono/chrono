@@ -69,7 +69,7 @@ public:
 		/// If there are multiple parts (or assemblies) with the same name, only the first
 		/// instance is returned in 'mshape'; otherwise, one can use the # wildcard
 		/// to get the #n-th object, for example "MyAssembly/bolt#3", "Car/Wheel#2/hub", etc.
-		/// If the 'set_location_to_root' parameter is true, the location of the 
+		/// If the 'set_location_to_root' parameter is true (default), the location of the 
 		/// shape is changed so that it represents its position respect to the root, that is
 		/// the shape .Location() function will give the absolute position, otherwise if false
 		/// it will give its position relative to the assembly where it is a sub-shape.
@@ -78,7 +78,7 @@ public:
 	bool GetNamedShape(TopoDS_Shape& mshape, char* name, bool set_location_to_root = true, bool get_multiple=false);
 
 		/// Get the volume properties (center of mass, inertia moments, volume)
-		/// of a given shape.
+		/// of a given shape. 
 	bool static GetVolumeProperties(const TopoDS_Shape& mshape,	///< pass the shape here
 						const double density,				///< pass the density here 
 						ChVector<>& center_position,		///< get the COG position center, respect to shape pos.
