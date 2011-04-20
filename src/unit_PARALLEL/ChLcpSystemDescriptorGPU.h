@@ -16,32 +16,24 @@
 ///////////////////////////////////////////////////
 #include "ChCuda.h"
 #include <thrust/device_vector.h>
+#include "ChCCollisionGPU.h"
+#include "ChLcpIterativeSolverGPU.h"
 namespace chrono{
 	class ChApiGPU ChLcpSystemDescriptorGPU: public ChLcpSystemDescriptor{
 	public:
-		ChLcpSystemDescriptorGPU(int maxbodies, int maxcontacts,int maxbilaterals){
-			nContactsGPU=0;
-			maxContacts=maxcontacts;
-			maxBodies=maxbodies;
-			maxBilaterals=maxbilaterals;
-			//nBilateralsGPU=0;
-			//nBodiesGPU=0;
-			CUDA_SAFE_CALL(cudaMalloc((void**) &vContactsGPU,		maxContacts*CH_CONTACT_VSIZE*CH_CONTACT_HSIZE));
-			//cudaMalloc((void**) &vBilateralsGPU,	maxBilaterals*CH_BILATERAL_VSIZE*CH_BILATERAL_HSIZE);
-			//d_contact_bodyID=new thrust::device_vector<uint>;
+		ChLcpSystemDescriptorGPU(){
+			gpu_solver=new ChLcpIterativeSolverGPU();
+			gpu_collision=new chrono::collision::ChCCollisionGPU();
+
+			gpu_solver->device_contact_data=gpu_collision->contact_data_gpu;
 		};
 
-		~ChLcpSystemDescriptorGPU(){
-			CUDA_SAFE_CALL(cudaFree(vContactsGPU));
-			//cudaFree(vBilateralsGPU);
-		};
+		~ChLcpSystemDescriptorGPU(){};
 
-		float4 *vContactsGPU;
-		//float4 *vBilateralsGPU;
-		thrust::device_vector<uint> *d_contact_bodyID;
-		
-		uint nContactsGPU,nBilateralsGPU,nBodiesGPU;
-		uint maxContacts,maxBilaterals,maxBodies;
+		ChLcpIterativeSolverGPU						* gpu_solver;
+		chrono::collision::ChCCollisionGPU			* gpu_collision;
+
+		uint number_of_contacts,number_of_bilaterals,number_of_bodies;
 	};
 } // END_OF_NAMESPACE____
 

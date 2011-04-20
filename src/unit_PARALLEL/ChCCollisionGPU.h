@@ -16,98 +16,59 @@
 ///////////////////////////////////////////////////
 
 #include "ChCuda.h"
+struct __builtin_align__(16) object{
+	float4 A,B,C;
+	int2 family;
+};
 
-#define BIN_INTERSECT_THREADS 128
-#define D_SIZE 128
-
+struct AABB{
+	float4 min,max;
+	int2 family;
+};
 
 namespace chrono {
 	namespace collision {
-		struct __builtin_align__(16) bodyData{
-			float4 A,B,C;
-		};
+
 		class ChApiGPU ChCCollisionGPU{
 		public:
-			ChCCollisionGPU(){
-				mNSpheres=0;
-				mNBoxes=0;
-				mNumContacts=0;
-				mNBodies=0;
-				mLastBin=0;
+			ChCCollisionGPU();
+			~ChCCollisionGPU();
 
-			};
-			~ChCCollisionGPU(){
-				mDataSpheres.clear();
-				mDataBoxes.clear();
-				mDataTriangles.clear();
+			void Clear();
+			void GetBounds();
+			void TuneCD(int ss, int ee);
+			void Run();
+			void Broadphase();
+			void Narrowphase();
 
-				DataS.clear();
-				DataB.clear();
-				DataT.clear();
+			thrust::host_vector<object>		object_data_host;
 
-				IntersectedD.clear();
-				Bin_Start.clear();
-				AuxDataD.clear();
-				Bin_Number.clear();
-				Body_Number.clear();
+			uint number_of_objects, 
+				number_of_contacts, 
+				last_active_bin,
+				number_of_bin_intersections;
 
-			}
+			float	bin_size,
+				collision_envelope,
+				optimal_bin_size,
+				running_time,
+				max_dimension;
+			float3 
+				max_bounding_point,
+				min_bounding_point,
+				global_origin;
 
-			void clear(){
-				DataS.clear();
-				DataB.clear();
-				DataT.clear();
-
-				IntersectedD.clear();
-				Bin_Start.clear();
-				AuxDataD.clear();
-				Bin_Number.clear();
-				Body_Number.clear();
-			}
-			void InitCudaCollision();
-			void CudaCollision();
-			vector<float4> CopyContactstoHost();
-
-			thrust::host_vector<float4>		mDataSpheres;
-			thrust::host_vector<bodyData>	mDataBoxes;
-			thrust::host_vector<bodyData>	mDataTriangles;
-
-			uint
-				mNSpheres,
-				mNBoxes,
-				mNTriangles,
-				mNBodies,
-				mNumContacts,
-				mMaxContact;
-			float mBinSize,mEnvelope, mMaxRad;
-			float mOptimalBinSize;
-			float mRunningTime;
-			
-			bool mTune;
-			int mLastBin;
-
-			int3 mBinsPerSide;
-			float3 mGlobalOrigin;
-			float3 cMax,cMin;
-			float mMaxDim;
-			float cMax_x,cMax_y,cMax_z;
-			vector<float4> mAuxData;
-			dim3 nB,nT,nBlocks,nThreads;
-
-			float4* mContactsGPU;
-
+			bool doTuning;
+			cudaEvent_t start, stop;
+			thrust::device_vector<contactGPU>* contact_data_gpu;
 		private:
-
-			thrust::device_vector<float4>	DataS ;
-			thrust::device_vector<bodyData>	DataB;
-			thrust::device_vector<bodyData>	DataT;
-
-			thrust::device_vector<uint>		IntersectedD;
-			thrust::device_vector<uint>		Bin_Start;
-			thrust::device_vector<float4>	AuxDataD;
-			thrust::device_vector<uint>		Bin_Number;
-			thrust::device_vector<uint>		Body_Number;
-
+			thrust::device_vector<object>	object_data;
+			thrust::device_vector<int3>		contact_pair;
+			thrust::device_vector<uint>		generic_counter;
+			thrust::device_vector<uint>		bin_number;
+			thrust::device_vector<uint>		body_number;
+			thrust::device_vector<AABB>		aabb_data;
+			thrust::device_vector<uint>		bin_start_index;
 		};
 	}
 }

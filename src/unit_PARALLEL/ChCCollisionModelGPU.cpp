@@ -19,22 +19,16 @@ namespace chrono {
 	namespace collision {
 
 		ChCollisionModelGPU::ChCollisionModelGPU(){
-			this->mPos=make_float3(0,0,0);
 			nObjects = 0;
-			colFam = 0;
-			noCollWith = -1;
-			mType=0;
+			colFam = -1;
+			noCollWith = -2;
 		}
 
 		ChCollisionModelGPU::~ChCollisionModelGPU(){
 			//ClearModel(); not possible, would call GetPhysicsItem() that is pure virtual, enough to use instead..
 			mData.clear();
 		}
-
-
-
 		int ChCollisionModelGPU::ClearModel(){
-			//cout<<"CLEAR"<<endl;
 			if (GetPhysicsItem()->GetSystem()){
 				if (GetPhysicsItem()->GetCollide())
 				{
@@ -43,21 +37,14 @@ namespace chrono {
 			}
 
 			mData.clear();
-
-			//posX = 0.f;
-			//posY = 0.f;
-			//posZ = 0.f;
-			mPos=make_float3(0,0,0);
 			nObjects=0;
-			colFam = 0;
-			noCollWith = -1;
-			mType=0;
+			colFam = -1;
+			noCollWith = -2;
 			return 1;
 		} 
 
 
 		int ChCollisionModelGPU::BuildModel(){
-			//assert((ChBody*)GetPhysicsItem());
 			if (GetPhysicsItem()->GetSystem())
 				if (GetPhysicsItem()->GetCollide())
 					GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Add(this);
@@ -66,8 +53,7 @@ namespace chrono {
 		}
 
 		bool ChCollisionModelGPU::AddCompoundBody(int numSpheres, vector<float4> &data){
-			mType=1;
-
+			model_type=COMPOUNDSPHERE;
 			if(numSpheres<=0){
 				return false;
 			}
@@ -83,62 +69,63 @@ namespace chrono {
 		}
 
 		bool ChCollisionModelGPU::AddSphere(double radius,  ChVector<>* pos){
-			mType=0;
-			//cout<<"MAKE Sphere"<<endl;
-			//add a sphere body - this collision geometry has one collision sphere at the body coordinate origin
+			double mass=this->GetBody()->GetMass();
+			this->GetBody()->SetInertiaXX(ChVector<>(2/5.0*mass*radius*radius,2/5.0*mass*radius*radius,2/5.0*mass*radius*radius));
+			model_type=SPHERE;
 			nObjects = 1;
 			bData tData;
+			tData.A=make_float4(0,0,0,radius);
 			tData.B=make_float4(0,0,0,0);
 			tData.C=make_float4(0,0,0,0);
-			if(pos!=0){
-				tData.A=make_float4((*pos).x,(*pos).x,(*pos).x,radius);
-				mPos=make_float3((*pos).x,(*pos).y,(*pos).z);
-			}
-			else{
-				tData.A=make_float4(0,0,0,radius);
-				mPos=make_float3(0,0,0);
-			}
 			mData.push_back(tData);
 			return true;
 		}
 		bool ChCollisionModelGPU::AddEllipsoid(double rx,  double ry,  double rz, ChVector<>* pos, ChMatrix33<>* rot){
-			//NOT SUPPORTED
-			return false;
-		}
-		bool ChCollisionModelGPU::AddBox(double hx, double hy, double hz, ChVector<>* pos, ChMatrix33<>* rot){
-			//cout<<"MAKE Boxx"<<endl;
-			mType=2;
+			double mass=this->GetBody()->GetMass();
+			this->GetBody()->SetInertiaXX(ChVector<>(1/5.0*mass*(ry*ry+rz*rz),1/5.0*mass*(rx*rx+rz*rz),1/5.0*mass*(rx*rx+ry*ry)));
+			model_type=ELLIPSOID;
 			nObjects = 1;
 			bData tData;
-			ChQuaternion<double> quat=mbody->GetRot();
-			tData.A=make_float4(pos->x,pos->y,pos->z,-2);
-			tData.B=make_float4(hx,hz,hy,0);
-			tData.C=make_float4(quat.e0,quat.e1,quat.e2,quat.e3);
-
-			mPos=make_float3(pos->x,pos->y,pos->z);
+			tData.A=make_float4(0,0,0,0);
+			tData.B=make_float4(rx,ry,rz,0);
+			tData.C=make_float4(0,0,0,0);
 			mData.push_back(tData);
-
+			return true;
+		}
+		bool ChCollisionModelGPU::AddBox(double hx, double hy, double hz, ChVector<>* pos, ChMatrix33<>* rot){
+			double mass=this->GetBody()->GetMass();
+			this->GetBody()->SetInertiaXX(ChVector<>(1/12.0*mass*(hy*hy+hz*hz),1/12.0*mass*(hx*hx+hz*hz),1/12.0*mass*(hx*hx+hy*hy)));
+			model_type=BOX;
+			nObjects = 1;
+			bData tData;
+			tData.A=make_float4(0,0,0,0);
+			tData.B=make_float4(hx,hy,hz,0);
+			tData.C=make_float4(0,0,0,0);
+			mData.push_back(tData);
 			return true;
 		}
 		bool ChCollisionModelGPU::AddTriangle(ChVector<> A, ChVector<> B, ChVector<> C, ChVector<>* pos, ChMatrix33<>* rot){
-			//cout<<"MAKE Triangle"<<endl;
-			mType=3;
+			model_type=TRIANGLEMESH;
 			nObjects = 1;
 			bData tData;
-			//ChQuaternion<double> quat=mbody->GetRot();
-
 			tData.A=make_float4(A.x,A.y,A.z,-2);
 			tData.B=make_float4(B.x,B.y,B.z,0);
 			tData.C=make_float4(C.x,C.y,C.z,0);
-
 			mData.push_back(tData);
-
 			return true;
 		}
 		/// Add a cylinder to this model (default axis on Y direction), for collision purposes
 		bool ChCollisionModelGPU::AddCylinder (double rx, double rz, double hy, ChVector<>* pos, ChMatrix33<>* rot){
-			//NOT SUPPORTED
-			return false;
+			double mass=this->GetBody()->GetMass();
+			this->GetBody()->SetInertiaXX(ChVector<>(1/12.0*mass*(3*rx*rx+hy*hy),1/12.0*mass*(3*rx*rx+hy*hy),1/2.0*mass*(rx*rx)));
+			model_type=CYLINDER;
+			nObjects = 1;
+			bData tData;
+			tData.A=make_float4(0,0,0,0);
+			tData.B=make_float4(rx,rz,hy,0);
+			tData.C=make_float4(0,0,0,0);
+			mData.push_back(tData);
+			return true;
 		}
 
 		bool ChCollisionModelGPU::AddConvexHull (std::vector<ChVector<double> >& pointlist, ChVector<>* pos, ChMatrix33<>* rot)
@@ -150,12 +137,74 @@ namespace chrono {
 			//NOT SUPPORTED
 			return false;
 		}
-		/// Add a triangle mesh to this model
-		bool ChCollisionModelGPU::AddTriangleMesh (const  geometry::ChTriangleMesh& trimesh,	bool is_static, bool is_convex,  ChVector<>* pos, ChMatrix33<>* rot){
-			//NOT SUPPORTED
-			return false;
+		bool ChCollisionModelGPU::AddRectangle	(double rx, double ry){
+			model_type=RECT;
+			nObjects = 1;
+			bData tData;
+			tData.A=make_float4(0,0,0,0);
+			tData.B=make_float4(rx,ry,0,0);
+			tData.C=make_float4(0,0,0,0);
+			mData.push_back(tData);
+			return true;
+
+		}
+		bool ChCollisionModelGPU::AddDisc		(double rad){
+			model_type=DISC;
+			nObjects = 1;
+			bData tData;
+			tData.A=make_float4(0,0,0,0);
+			tData.B=make_float4(rad,0,0,0);
+			tData.C=make_float4(0,0,0,0);
+			mData.push_back(tData);
+			return true;
+		}
+		bool ChCollisionModelGPU::AddEllipse	(double rx, double ry){
+			model_type=ELLIPSE;
+			nObjects = 1;
+			bData tData;
+			tData.A=make_float4(0,0,0,0);
+			tData.B=make_float4(rx,ry,0,0);
+			tData.C=make_float4(0,0,0,0);
+			mData.push_back(tData);
+			return true;
+		}
+		bool ChCollisionModelGPU::AddCapsule	(double len, double rad){
+			model_type=CAPSULE;
+			nObjects = 1;
+			bData tData;
+			tData.A=make_float4(0,0,0,0);
+			tData.B=make_float4(rad,len,0,0);
+			tData.C=make_float4(0,0,0,0);
+			mData.push_back(tData);
+			return true;
+		}
+		bool ChCollisionModelGPU::AddCone		(double rad, double h){
+			double mass=this->GetBody()->GetMass();
+			this->GetBody()->SetInertiaXX(ChVector<>(3/5.0*mass*h*h+3/20.0*mass*rad*rad,3/5.0*mass*h*h+3/20.0*mass*rad*rad,3/10.0*mass*rad*rad));
+			model_type=CONE;
+			nObjects = 1;
+			bData tData;
+			tData.A=make_float4(0,0,0,0);
+			tData.B=make_float4(rad,h,0,0);
+			tData.C=make_float4(0,0,0,0);
+			mData.push_back(tData);
+			return true;
 		}
 
+		/// Add a triangle mesh to this model
+		bool ChCollisionModelGPU::AddTriangleMesh (const  geometry::ChTriangleMesh& trimesh,	bool is_static, bool is_convex,  ChVector<>* pos, ChMatrix33<>* rot){
+			model_type=TRIANGLEMESH;
+			nObjects = trimesh.getNumTriangles();
+			bData tData;
+			for(int i=0; i<nObjects; i++){
+				ChTriangle temptri=trimesh.getTriangle(i);
+				tData.A=make_float4(temptri.p1.x,temptri.p1.y,temptri.p1.z,-2);
+				tData.B=make_float4(temptri.p2.x,temptri.p2.y,temptri.p2.z,0);
+				tData.C=make_float4(temptri.p3.x,temptri.p3.y,temptri.p3.z,0);
+				mData.push_back(tData);
+			}
+			return true;
+		}
 		bool ChCollisionModelGPU::AddCopyOfAnotherModel (ChCollisionModel* another){
 			//NOT SUPPORTED
 			return false;
@@ -168,10 +217,8 @@ namespace chrono {
 			pos.z = mData[ID].A.z;
 			return pos;
 		}
-
 		void ChCollisionModelGPU::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const
 		{
-
 		}
 
 		float ChCollisionModelGPU::GetSphereR(int ID){
@@ -180,9 +227,6 @@ namespace chrono {
 			return mData[ID].A.w;
 		}
 
-		int ChCollisionModelGPU::GetType(){
-			return mType;
-		}
 		void  ChCollisionModelGPU::SetFamily(int mfamily){
 			colFam = mfamily;
 		}
@@ -212,7 +256,6 @@ namespace chrono {
 			ChBody* bpointer = GetBody();
 			assert(bpointer);
 			//assert(bpointer->GetSystem());
-			mPos=make_float3(bpointer->GetPos().x,bpointer->GetPos().y,bpointer->GetPos().z);
 		}
 
 		ChPhysicsItem* ChCollisionModelGPU::GetPhysicsItem() {

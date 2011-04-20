@@ -23,28 +23,27 @@
 namespace chrono
 {
 
-using namespace collision;
+	using namespace collision;
 
 
-class ChApiGPU ChBodyGPU : public ChBody {
+	class ChApiGPU ChBodyGPU : public ChBody {
 
-	CH_RTTI(ChBodyGPU,ChPhysicsItem);
+		CH_RTTI(ChBodyGPU,ChPhysicsItem);
 
+	public:
 
-public:
+		//
+		// CONSTRUCTORS
+		//
+		/// Build a rigid body.
+		ChBodyGPU ();
+		/// Destructor
+		~ChBodyGPU ();
+		virtual ChCollisionModel* InstanceCollisionModel();
 
-			//
-	  		// CONSTRUCTORS
-			//
-				/// Build a rigid body.
-	ChBodyGPU ();
-				/// Destructor
-	~ChBodyGPU ();
-	virtual ChCollisionModel* InstanceCollisionModel();
-	
-};
+	};
 
-typedef ChSharedPtr<ChBodyGPU> ChSharedBodyGPUPtr;
+	typedef ChSharedPtr<ChBodyGPU> ChSharedBodyGPUPtr;
 
 } // END_OF_NAMESPACE____
 

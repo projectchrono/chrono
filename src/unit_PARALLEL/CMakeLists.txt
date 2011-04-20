@@ -49,6 +49,8 @@ IF(ENABLE_UNIT_GPU)
 	    	ChCuda.h
 	    	ChBodyGPU.h
 	    	ChCCollisionGPU.h
+	    	ChCCollisionGPU.cuh
+			ChLcpIterativeSolverGPU.h
 			ChCCollisionModelGPU.h
 			ChCCollisionSystemGPU.h
 			ChContactContainerGPUsimple.h
@@ -59,8 +61,11 @@ IF(ENABLE_UNIT_GPU)
 			ChLcpSystemDescriptorGPU.h
 		)
 	SET(ChronoEngine_unit_GPU_CU 
-	    	ChLcpIterativeSolverGPUsimpleCU.cu 
+	    	ChLcpIterativeSolverGPU.cu
 			ChCCollisionGPU.cu
+			ChCCollisionGPUBroadphase.cu
+			ChCCollisionGPUNarrowphase.cu
+
 		)
 	#SET_SOURCE_FILES_PROPERTIES(ChronoEngine_unit_GPU_HEADERS PROPERTIES  HEADER_FILE_ONLY)
 	SOURCE_GROUP(unit_GPU FILES 
@@ -88,7 +93,7 @@ IF(ENABLE_UNIT_GPU)
 	endif()
 	
 
-	#SET(CH_NVCC_OPTIONS_REL	 "-use_fast_math")
+	#SET(CH_NVCC_OPTIONS_REL	 "--ptxas-options=-v -use_fast_math -gencode=arch=compute_13,code=\"sm_13,compute_13\" -maxrregcount=63")
 	#SET(CH_NVCC_OPTIONS_DBG  "")
 	
 	IF ("${CH_OS}" STREQUAL "WINDOWS")

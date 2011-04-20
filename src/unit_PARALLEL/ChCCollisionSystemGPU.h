@@ -34,7 +34,7 @@ namespace chrono {
 		class ChApiGPU ChCollisionSystemGPU : public ChCollisionSystem{
 		public:
 
-			ChCollisionSystemGPU(float mEnvelope=0.025);
+			ChCollisionSystemGPU(ChLcpSystemDescriptorGPU* mdescriptor, float mEnvelope=0.0);
 
 			virtual ~ChCollisionSystemGPU();
 
@@ -82,20 +82,19 @@ namespace chrono {
 			virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult);
 
 			//virtual void SetContactContainer(ChContactContainerGPU* mcontainer);
-			virtual void SetSystemDescriptor(ChLcpSystemDescriptorGPU* mdescriptor);
+			//virtual void SetSystemDescriptor(ChLcpSystemDescriptorGPU* mdescriptor);
 
-			ChCCollisionGPU mGPU;
+			ChCCollisionGPU *mGPU;
 		private:
 			/// Update data structures to pass into GPU for collision detection
 			void updateDataStructures();
 
-			int index,indexB, indexT;
+			ChCollisionModelGPU* body;
 			//ChCoordsys<> bodyCoord;
 			ChVector<> localPos,gPos;
-			vector<chrono::collision::ChCollisionModelGPU*> colModels;
+			vector<ChCollisionModelGPU*> colModels;
 			ChLcpSystemDescriptorGPU* mSystemDescriptor;
 		};
-
 	} // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____
 

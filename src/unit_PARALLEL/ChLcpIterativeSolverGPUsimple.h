@@ -19,6 +19,7 @@
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 #include "ChApiGPU.h"
+#include "ChLcpIterativeSolverGPU.h"
 namespace chrono{
 	///    An iterative LCP solver based on projective
 	///   fixed point method, with overrelaxation.
@@ -34,10 +35,12 @@ namespace chrono{
 
 		ChLcpIterativeSolverGPUsimple(
 			ChContactContainerGPUsimple* container = 0, ///< this solver can be used _only_ together with a ChContactContainerGPUsimple 
+			ChLcpSystemDescriptorGPU* descriptor=0,
 			int maxIteration=50,						///< max.number of iterations
+			double dt=.01,
 			double tolerance=1e-5,						///< tolerance for termination criterion
-			double omega=0.2							///< overrelaxation criterion
-			);
+			double omega=0.2,							///< overrelaxation criterion
+			bool cpu=false);							///< use CPU version of solver
 
 
 		virtual ~ChLcpIterativeSolverGPUsimple();
@@ -89,8 +92,6 @@ namespace chrono{
 		virtual bool Get_do_integration_step() {return this->mDoIntegrationStep;}
 
 		void SetSystemDescriptor(ChLcpSystemDescriptorGPU* mdescriptor);
-		thrust::host_vector<float4>   h_bodies;		//Host vector for bodyData
-
 	protected:
 		//
 		// DATA
@@ -102,17 +103,13 @@ namespace chrono{
 		double mMaxRecoverySpeed;
 		double mCFactor;
 		double mOmega;
-
+		bool use_cpu;
 		bool mDoIntegrationStep;	
 		unsigned int mStepCounter; // this to have normalization on quaternion only each N steps
 		unsigned int mMaxIterations;
-
-		
-		thrust::host_vector<float4>   h_bilaterals;	//Device vector for bodyData
-
 		ChContactContainerGPUsimple*  gpu_contact_container; // will be asked which was C factor,max.speed.clamping etc. so to perform contact preprocessing in solver (Dan' jacobian/residual gpu computation)
 		ChLcpSystemDescriptorGPU*	  mSystemDescriptor;	
-
+		ChLcpIterativeSolverGPU *		gpu_solver;
 
 	private:
 		/// We assume each thread processes an item, on the GPU.
@@ -141,27 +138,7 @@ namespace chrono{
 			unsigned int& pitch			///< here you will get the pitch for accessing n-th el. of m-th row (ex. my_y = buffer[n+ m*pitch].y)
 			);
 
-
 	};
-
-	
-void ChRunSolverTimestep(
-		CH_REALNUMBER max_recovery_speed,
-		CH_REALNUMBER mCfactor,
-		CH_REALNUMBER mstepSize,
-		CH_REALNUMBER tolerance,
-		uint bodies_data_pitch,
-		uint contacts_data_pitch,
-		uint bilaterals_data_pitch,
-		// uint reduction_data_pitch,
-		float mLcpOmega,
-		uint max_iterations,
-		uint n_bilaterals_GPU,
-		uint n_contacts_GPU,
-		uint n_bodies_GPU,
-		float4* d_buffer_contacts,
-		thrust::host_vector<float4> &d_bodies,
-		thrust::host_vector<float4> &d_bilaterals);
 
 } // END_OF_NAMESPACE____
 

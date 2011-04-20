@@ -69,6 +69,8 @@ namespace chrono
 		/// Tell the number of added contacts
 		virtual int GetNcontacts  () {return n_added;}
 
+		void SetNcontacts  (int contacts) {n_added=contacts;}
+		
 		/// Remove (delete) all contained contact data.
 		virtual void RemoveAllContacts();
 

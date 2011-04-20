@@ -77,6 +77,19 @@ namespace chrono
 			/// Add a cylinder to this model (default axis on Y direction), for collision purposes
 			virtual bool AddCylinder (double rx, double rz, double hy,  ChVector<>* pos=0, ChMatrix33<>* rot=0);
 
+			/// Add a 2d rectangle shape to this model, for collision purposes
+			virtual bool AddRectangle	(double rx, double ry);
+			/// Add a 2d disc to this model, for collision purposes
+			virtual bool AddDisc		(double rad);
+			/// Add a 2d ellipse to this model, for collision purposes
+			virtual bool AddEllipse		(double rx, double ry);
+			/// Add a capsule to this model, for collision purposes
+			virtual bool AddCapsule		(double len, double rad);
+			/// Add a cone to this model, for collision purposes
+			virtual bool AddCone		(double rad, double h);
+
+
+
 			virtual bool AddConvexHull (std::vector<ChVector<double> >& pointlist, ChVector<>* pos=0, ChMatrix33<>* rot=0);
 
 			/// Add a triangle mesh to this model, passing a triangle mesh (do not delete the triangle mesh
@@ -121,7 +134,7 @@ namespace chrono
 			int GetNObjects(){return nObjects;}
 
 			ChVector<> GetSpherePos(int ID);
-			int GetType();
+			
 			float GetSphereR(int ID);
 			int GetNoCollFamily();
 
@@ -133,9 +146,7 @@ namespace chrono
 			vector <bData> mData;
 		protected:
 			ChBody* mbody;
-			int mType;
 			//represent the CM of the body in global coords
-			float3 mPos;
 			unsigned int nObjects;
 			int colFam;
 			int noCollWith;

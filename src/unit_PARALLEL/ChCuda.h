@@ -12,6 +12,7 @@
 #include <cutil_math.h>
 #include <cutil_inline.h>
 #include <thrust/sort.h>
+#include <thrust/count.h>
 #include <thrust/scan.h>
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
@@ -19,7 +20,6 @@
 #include "ChApiGPU.h"
 
 using namespace std;
-
 typedef unsigned int uint;
 
 #define CH_REALNUMBER4 float4
@@ -30,10 +30,12 @@ typedef unsigned int uint;
 #define F3	make_float3
 #define F4	make_float4
 #define I3	make_int3
+#define I2	make_int2
 #define U3	make_uint3
 #define I3F make_int3f
 
 //defines to cast thrust vectors as raw pointers
+#define CASTC1(x) (char*)thrust::raw_pointer_cast(&x[0])
 #define CASTU1(x) (uint*)thrust::raw_pointer_cast(&x[0])
 #define CASTU2(x) (uint2*)thrust::raw_pointer_cast(&x[0])
 #define CASTU3(x) (uint3*)thrust::raw_pointer_cast(&x[0])
@@ -46,15 +48,43 @@ typedef unsigned int uint;
 #define CASTF3(x) (float3*)thrust::raw_pointer_cast(&x[0])
 #define CASTF4(x) (float4*)thrust::raw_pointer_cast(&x[0])
 
-#define BDCAST(x) (bodyData*)thrust::raw_pointer_cast(&x[0])
+#define OBJCAST(x)  (object*)thrust::raw_pointer_cast(&x[0])
+#define AABBCAST(x) (AABB*)thrust::raw_pointer_cast(&x[0])
+#define CONTCAST(x)	(contactGPU*)thrust::raw_pointer_cast(&x[0])
+#define UPDTCAST(x)	(updateGPU*)thrust::raw_pointer_cast(&x[0])
 
-struct __align__(16) int3f
-{
+#define THREADS							128
+#define MAXBLOCK						65535
+#define BLOCKS(x)						max((int)ceil(x/(float)THREADS),1)
+#define BLOCKS_T(x,y)					max((int)ceil(x/(float)y),1)
+#define BLOCKS2D(x)						dim3(min(MAXBLOCK,BLOCKS(x)),ceil(BLOCKS(x)/(float)MAXBLOCK),1)
+#define COPY_TO_CONST_MEM(x)			cudaMemcpyToSymbolAsync(x##_const,	&x,	sizeof(x),0,cudaMemcpyHostToDevice)
+#define START_TIMING(x,y,z) 			cudaEventCreate(&x); cudaEventCreate(&y); cudaEventRecord(x, 0); z=0;
+#define STOP_TIMING(x,y,z) 				cudaThreadSynchronize(); cudaEventRecord(y, 0); cudaEventSynchronize(y); cudaEventElapsedTime(&z,x , y); cudaEventDestroy(x);  cudaEventDestroy(y);
+#define BIND_TEX4(x)					cudaBindTexture(NULL, x##_tex,   CASTF4(x),   x.size()*sizeof(float4));
+#define UNBIND_TEX(x)					cudaUnbindTexture( x##_tex );
+
+#define Thrust_Inclusive_Scan_Sum(x,y)	thrust::inclusive_scan(x.begin(),x.end(), x.begin()); y=x.back();
+#define Thrust_Sort_By_Key(x,y)			thrust::sort_by_key(x.begin(),x.end(),y.begin());
+#define Thrust_Reduce_By_KeyA(x,y,z)x=  thrust::reduce_by_key(y.begin(),y.end(),thrust::constant_iterator<uint>(1),y.begin(),z.begin()).first-y.begin();
+#define Thrust_Reduce_By_KeyB(x,y,z,w)x=thrust::reduce_by_key(y.begin(),y.end(),thrust::constant_iterator<uint>(1),z.begin(),w.begin()).first-z.begin();
+#define Thrust_Inclusive_Scan(x)		thrust::inclusive_scan(x.begin(), x.end(), x.begin());
+#define Thrust_Fill(x,y)				thrust::fill(x.begin(),x.end(),y);
+#define Thrust_Sort(x)					thrust::sort(x.begin(),x.end());
+#define Thrust_Count(x,y)				thrust::count(x.begin(),x.end(),y)
+#define Thrust_Sequence(x)				thrust::sequence(x.begin(),x.end());
+#define DBG(x)							printf(x);CUT_CHECK_ERROR(x);
+
+struct __align__(16) int3f{
 	int x,y,z;
 	float w;
 };
-
-
+struct contactGPU{
+	float3 N,Pa,Pb,G,I,dG;
+};
+struct updateGPU{
+	float3 vel,omega;
+};
 static __inline__ __host__ __device__ int3f make_int3f(int x, int y, int z, float w)
 {
 	int3f t; 
@@ -72,16 +102,15 @@ inline __host__ __device__ float3 ceil(float3 v)
 {
 	return make_float3(ceil(v.x), ceil(v.y), ceil(v.z));
 }
-
-//custom version of max used to get the maximum of a single float3
-inline __host__ __device__ float max(float3 a)
+template <class T>
+inline __host__ __device__ float max3(T a)
 {
 	return max(a.x,max(a.y,a.z));
 }
-
-inline __host__ __device__ float maxf3(float3 a)
+template <class T>
+inline __host__ __device__ float min3(T a)
 {
-	return max(a.x,max(a.y,a.z));
+	return min(a.x,min(a.y,a.z));
 }
 
 float __host_int_as_float(int a)
@@ -103,32 +132,6 @@ float __host_int_as_float(int a)
 
 #define CH_REDUCTION_VSIZE 2
 #define CH_REDUCTION_HSIZE sizeof(CH_REALNUMBER4)
-
-
-#define CH_SH_MEM_SIZE 13 //note that this odd number will ensure no bank conflicts
-
-#ifndef CH_CUDAGPUEMULATION
-//***ALEX*** TO DO: FIND OPTIMAL VALUES FOR THESE DEFs, SEE OCCUPANCY & .cubin
-
-// optimized values for cuda 1.1 (to be improved!!)
-#define CH_PREPROCESSING_TPB 128   
-#define CH_LCPADDFORCES_TPB 128
-#define CH_LCPITERATION_TPB 128
-#define CH_LCPITERATIONBILATERALS_TPB 128
-#define CH_LCPINTEGRATE_TPB 128
-#define CH_REDUCTION_TPB 128
-#define CH_SPEEDUPDATE_TPB 128
-#else
-// for device emulation (using too may threads slow down things too much..)
-#define CH_PREPROCESSING_TPB 8
-#define CH_LCPADDFORCES_TPB 8
-#define CH_LCPITERATION_TPB 8
-#define CH_LCPITERATIONBILATERALS_TPB 8
-#define CH_LCPINTEGRATE_TPB 8
-#define CH_REDUCTION_TPB 8
-#define CH_SPEEDUPDATE_TPB 8
-#endif
-
 
 
 #endif
@@ -168,16 +171,13 @@ float __host_int_as_float(int a)
 //
 //  'bodies' buffer is made with an horizontal array of:  
 //		[ vx, vy, vz  , S  ]       0     S= state of body (active or not)
-//		[ wx, wy, wz  ,    ]       1
+//		[ wx, wy, wz  , mu ]       1
 //		[ xx, xy, xz  , -  ]       2
 //		[ q0, q1, q2 , q3  ]       3
 //		[iJ1,iJ2,iJ3  ,im  ]       4
 //		[ fx, fy, fz  , -  ]       5
 //		[ cx, cy, cz  , -  ]       6
-//
-//  'reduction' buffer is made with an horizontal array of:
-//		[ vx, vy, vz  , - ]       0
-//		[ wx, wy, wz  , n ]       1   n=repetition (0=no repetition, also 0=final accumulators)
+//		[ ax, ay, az  , -  ]       7
 //
 //  'variables' buffer is made with an horizontal array of: (optional to bodies for future development)
 //		[ vx, vy, vz  , R  ]       0     R= body index in reduction buffer
@@ -204,10 +204,11 @@ float __host_int_as_float(int a)
 //		[  -   -   -  ,  - ]	  8
 //		[ gx,  gy,  gz, mu ]      9
 
-
 //*NEW//*
 //  'contacts' buffer:
-//		[   Normal    ,  0 ]      0
-//		[     P1      , B1 ]	  1
-//		[     P2      , B2 ]	  2
-//		[ gx,  gy,  gz, mu ]      3
+//		[ d ,  B1,  B2]   3
+//		[   Normal    ]   0
+//		[     P1      ]	  1
+//		[     P2      ]	  2
+//		[ gx,  gy,  gz]   4
+
