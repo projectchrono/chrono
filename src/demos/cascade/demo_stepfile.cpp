@@ -32,61 +32,6 @@
 
 #include <irrlicht.h>
 
-/*
-#include <TopoDS_Shape.hxx>
-#include <TopoDS.hxx>
-#include <TopoDS_HShape.hxx>
-#include <handle_TopoDS_HShape.hxx>
-#include <handle_TopoDS_TShape.hxx>
-#include <STEPControl_Reader.hxx>
-#include <STEPControl_STEPModelType.hxx>
-#include <TopoDS_Edge.hxx>
-#include <TopoDS_Face.hxx>
-#include <TopoDS_Compound.hxx>
-#include <BRep_Builder.hxx>
-#include <BRepTools.hxx>
-#include <BRep_Tool.hxx>
-#include <BRepMesh.hxx>
-#include <BRepBuilderAPI_MakeEdge.hxx>
-#include <BRepBuilderAPI_MakeVertex.hxx>
-#include <TopExp_Explorer.hxx>
-#include <TopLoc_Location.hxx>
-#include <TopoDS_Iterator.hxx>
-#include <TopExp_Explorer.hxx>
-#include <Bnd_Box.hxx>
-#include <gp_Pnt.hxx>
-#include <Prs3d_ShapeTool.hxx>
-#include <BRepAdaptor_HSurface.hxx>
-#include <BRepAdaptor_Curve.hxx>
-#include <BRepBndLib.hxx>
-#include <BRepMesh_IncrementalMesh.hxx>
-#include <TColgp_HArray1OfVec.hxx> 
-#include <TColStd_HArray1OfInteger.hxx>
-#include <Poly_Connect.hxx>
-#include <Poly_Triangle.hxx>
-#include <Poly_Triangulation.hxx>
-#include <TColgp_Array1OfDir.hxx>
-#include <CSLib_DerivativeStatus.hxx>
-#include <CSLib_NormalStatus.hxx>
-#include <CSLib.hxx>
-#include <TColgp_Array1OfPnt2d.hxx>
-#include <TDocStd_Document.hxx>
-#include <STEPCAFControl_Reader.hxx>
-#include <XCAFDoc_ShapeTool.hxx>
-#include <XCAFDoc_DocumentTool.hxx>
-#include <TDataStd_Name.hxx>
-#include <Interface_Static.hxx>
-#include <TDF_Label.hxx>
-#include <TDF_ChildIterator.hxx>
-#include <TDF_LabelSequence.hxx>
-#include <TDF_ChildIterator.hxx>
-#include <TDF_Tool.hxx>
-#include <TDataStd_Shape.hxx>
-#include <TDataStd_Position.hxx>
-#include <TObj_TObject.hxx>
-#include <TObj_TReference.hxx>
-#include <TNaming_NamedShape.hxx>
-*/
 
 // Use the namespace of Chrono
 using namespace chrono;
