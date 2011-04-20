@@ -5,7 +5,7 @@
 #=============================================================================
 
 
-SET(ENABLE_UNIT_MPI      TRUE    CACHE BOOL   "Turn ON this to generate the Chrono::Engine MPI unit.")
+SET(ENABLE_UNIT_MPI      FALSE	CACHE BOOL   "Turn ON this to generate the Chrono::Engine MPI unit.")
 
 # To hide unneeded option stuff from GUI (require refresh by pressing 'configure', anyway)
 IF(ENABLE_UNIT_MPI)
