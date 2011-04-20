@@ -270,7 +270,7 @@ IF ("${CH_OS}" STREQUAL "LINUX")
 			SET (CH_IRRLICHTLIB "${CH_IRRLICHTDIR}/lib/Linux/libIrrlicht.a" -lXxf86vm -lglut)
 		ENDIF()
 		IF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
-			SET (CH_BUILDFLAGS "-DLINUX -D__linux__")
+			SET (CH_BUILDFLAGS "-DLINUX -D__linux__ -DWIN64")
 			SET (CH_LINKERFLAG_EXE "")
 			SET (CH_LINKERFLAG_SHARED "-lpthread")
 			SET (CH_LIBNAMEPREFIX "lib")
@@ -498,6 +498,7 @@ IF (BUILD_CH_SDK)
 		physics/ChFx.cpp 
 	)
 	SET(ChronoEngine_physics_HEADERS
+
 		physics/ChApidll.h
 		physics/ChBody.h
 		physics/ChBodyAuxRef.h
