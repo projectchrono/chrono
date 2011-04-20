@@ -3,8 +3,32 @@
   
   History of API changes, bug fixes, new features
 
+- New ChBodyAuxRef. This class is inherited from ChBody, but the
+  difference is that in ChBodyAuxRef one can define a COG (center of
+  mass) position that is not necessarily the main coordinate system
+  of the rigid body (in this way, markers and collision shapes can be
+  defined respect to some more intuitive coordinate system, and the COG
+  can be displaced without affecting markers, links and collision shapes)
 
-- New demo source/demos/basics/demo_chfunctions.cpp
+- New unit 'unit_CASCADE', in source/ dir. 
+  This new unit can be used to load CAD models in STEP format,
+  using the conversion features of the OpenCASCADE opensource library.
+  Note that you need to install the huge OpenCASCADE SDK in order to
+  be able to compile the 'unit_CASCADE' (if you do not want to 
+  compile it, simply disable it in the CMake interface).
+  
+- New demos source/demos/matlab/demo_chfunctions_plot.cpp
+            source/demos/basics/demo_chfunctions.cpp
+
+- New demo source/demos/basics/demo_stepfile.cpp showing how
+  to use the CASCADE unit to import a 3D model saved in STEP 
+  format from a 3D CAD (such as SolidEdge, Catia, SolidWorks, etc.)
+  
+- New demo source/demos/basics/demo_robot.cpp showing how
+  to use the CASCADE unit to import a complex 3D assembly saved in STEP 
+  format from a 3D CAD (such as SolidEdge, Catia, SolidWorks, etc.),
+  and how to compute the inverse kinematics of a robot by 'driving'
+  the end effector with a ChLinkLockLock constraint. 
 
 - All the classes that were in the file source/physics/ChFunction.h 
   are now placed in separate .h and .cpp files, in a new directory
@@ -18,13 +42,6 @@
   'y=constant' function; now it is only a base class, a pure interface,
   that does not implement Set_yconst() anymore. If you used the Set_yconst
   function, now you may need to do a dynamic_cast<ChFunction_Const>() before. 
-  
-- New unit 'unit_CASCADE', in source/ dir. 
-  This new unit can be used to load CAD models in STEP format,
-  using the conversion features of the OpenCASCADE opensource library.
-  Note that you need to install the huge OpenCASCADE SDK in order to
-  be able to compile the 'unit_CASCADE' (if you do not want to 
-  compile it, simply disable it in the CMake interface).
 
 - The new demo 'demo_converter' shows how to load a 3D model
   in STEP format, that you have saved using a CAD. It also allows to 
