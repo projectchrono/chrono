@@ -202,6 +202,8 @@ bool ChModelBullet::AddSphere(double radius,  ChVector<>* pos)
 	mshape->setMargin((btScalar)this->GetSuggestedFullMargin() );
 
 	_injectShape (pos, 0, mshape);
+
+	model_type=SPHERE;
 	return true;
 }
  
@@ -223,6 +225,8 @@ bool ChModelBullet::AddEllipsoid(double rx,  double ry,  double rz, ChVector<>* 
 	mshape->setMargin((btScalar)ChMin(mmargin, 0.9*ChMin(ChMin(arx,ary),arz)));
 
 	_injectShape (	pos, rot, mshape);
+
+	model_type=ELLIPSOID;
 	return true;
 }
  
@@ -241,6 +245,8 @@ bool ChModelBullet::AddBox(double hx, double hy, double hz, ChVector<>* pos, ChM
 	mshape->setMargin((btScalar)this->GetSuggestedFullMargin() );
 
 	_injectShape (pos,rot, mshape);
+
+	model_type=BOX;
 	return true;
 }
  
@@ -261,6 +267,8 @@ bool ChModelBullet::AddCylinder (double rx, double rz, double hy, ChVector<>* po
 	mshape->setMargin((btScalar)this->GetSuggestedFullMargin() );
 
 	_injectShape (pos,rot, mshape);
+
+	model_type=CYLINDER;
 	return true;
 }
 
@@ -280,6 +288,8 @@ bool ChModelBullet::AddBarrel (double Y_low, double Y_high, double R_vert, doubl
 	mshape->setMargin((btScalar)this->GetSuggestedFullMargin() );
 
 	_injectShape (pos,rot, mshape);
+
+	model_type=BARREL;
 	return true;
 }
 
@@ -314,6 +324,8 @@ bool ChModelBullet::AddConvexHull (std::vector< ChVector<double> >& pointlist, C
 	GetLog() << "AAABB max  " << (double)mmax.getX() << "   "  << (double)mmax.getY() << "   " << (double)mmax.getZ() << "\n" ;
 	*/
 	_injectShape (pos,rot, mshape);
+
+	model_type=CONVEXHULL;
 	return true;
 }
 
@@ -405,16 +417,16 @@ bool ChModelBullet::AddTriangleMesh (const  geometry::ChTriangleMesh& trimesh,	b
 			ChVectToBullet(&trimesh.getTriangle(i).p3), 
 			true); // try to remove duplicate vertices
 	}
-
+	
 	if (is_static) 
 	{ 
 		// Here a static btBvhTriangleMeshShape should suffice, but looks like that the btGImpactMeshShape works better..
-		 //btCollisionShape* pShape = (btBvhTriangleMeshShape*) new btBvhTriangleMeshShape_handlemesh(bulletMesh);
-	     //pShape->setMargin((btScalar) this->GetSafeMargin() );
-		 //((btBvhTriangleMeshShape*)pShape)->refitTree();
-		btCollisionShape* pShape = new btGImpactMeshShape_handlemesh(bulletMesh);
-		pShape->setMargin((btScalar) this->GetSafeMargin() );
-		((btGImpactMeshShape_handlemesh*)pShape)->updateBound();
+		 btCollisionShape* pShape = (btBvhTriangleMeshShape*) new btBvhTriangleMeshShape_handlemesh(bulletMesh);
+	     pShape->setMargin((btScalar) this->GetSafeMargin() );
+		// ((btBvhTriangleMeshShape*)pShape)->refitTree();
+		//btCollisionShape* pShape = new btGImpactMeshShape_handlemesh(bulletMesh);
+		//pShape->setMargin((btScalar) this->GetSafeMargin() );
+		//((btGImpactMeshShape_handlemesh*)pShape)->updateBound();
 		_injectShape (pos,rot, pShape);
 	}
 	else
@@ -458,6 +470,7 @@ bool ChModelBullet::AddTriangleMesh (const  geometry::ChTriangleMesh& trimesh,	b
 
 		}
 	}
+	model_type=TRIANGLEMESH;
 	return true;
 }
 
