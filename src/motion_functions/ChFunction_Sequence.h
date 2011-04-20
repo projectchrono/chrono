@@ -103,7 +103,7 @@ public:
 				/// Set c0=true if you want to force C0 continuity with previous function (an offset
 				/// will be implicitly added to the function, as y=f(x)+Offset). Same for C1 and C2 continuity,
 				/// using c1 and c2 flags.
-	int InsertFunct (ChFunction* myfx, double duration, double weight, bool c0, bool c1, bool c2, int position);
+	int InsertFunct (ChFunction* myfx, double duration, double weight=1, bool c0=false, bool c1=false, bool c2=false, int position=-1);
 
 				/// Remove and deletes function with defined "position", and returns TRUE. 
 				///	 - If position = 0, removes always head (beginning), 
