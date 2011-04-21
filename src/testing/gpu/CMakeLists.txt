@@ -6,7 +6,12 @@ INCLUDE_DIRECTORIES( ${CH_CUDA_INC}
 				    )
 
 #--------------------------------------------------------------
+find_package("OpenMP")
 
+if(OPENMP_FOUND)
+ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+ SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+endif(OPENMP_FOUND)
 
 # Add executables		 	
 ADD_EXECUTABLE(test_gpuCD__hammad	test_gpuCD.cpp)
