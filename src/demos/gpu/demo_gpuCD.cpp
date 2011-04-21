@@ -11,9 +11,9 @@ System::System(ChSystem * Sys, bool GPU){
 	mNumCurrentSpheres=0;
 	saveTimingData=0;
 	saveSimData=false;
-	mSphereRadius=2.5e-4*SCALE;
+	mSphereRadius=.2;
 	mSphereEnvelope=0;
-	mSphereMass = 1.632e-7*SCALE;
+	mSphereMass = 1;
 	mSphereRestitution=0;
 	mTimeStep=.00005;
 	mCurrentTime=0;
@@ -22,11 +22,11 @@ System::System(ChSystem * Sys, bool GPU){
 	mEndTime=5;
 	mCameraX=0, mCameraY=0, mCameraZ=0;
 	mBoundingBoxSize=40;
-	mNumSpheres=39000;
+	mNumSpheres=1000;
 	mOffsetX=0;
 	mOffsetY=6;
 	mOffsetZ=0;
-	mNumCurrentSpheres=0;
+	mNumCurrentObjects=0;
 	mFrameNumber=0;
 	mFileNumber=0;
 	mSaveEveryX=6;
@@ -61,7 +61,7 @@ double System::GetMFR(double height){
 }
 
 
-void System::MakeSphere(ChSharedBodyPtr &body, double radius, double mass,ChVector<> pos,double sfric,double kfric,double restitution,bool collide){
+void System::MakeSphere(ChSharedBodyGPUPtr &body, double radius, double mass,ChVector<> pos,double sfric,double kfric,double restitution,bool collide){
 	body.get_ptr()->SetMass(mass);
 	body.get_ptr()->SetPos(pos);
 	body.get_ptr()->SetInertiaXX(ChVector<>(2.0/5.0*mass*radius*radius,2.0/5.0*mass*radius*radius,2.0/5.0*mass*radius*radius));
@@ -92,7 +92,7 @@ void System::MakeBox(ChSharedBodyGPUPtr &body, ChVector<> dim, double mass,ChVec
 	(body.get_ptr()->GetCollisionModel())->SetFamily(family);
 	(body.get_ptr()->GetCollisionModel())->SetFamilyMaskNoCollisionWithFamily(nocolwith);
 }
-void System::MakeEllipsoid(ChSystem* mSystem,ChSharedBodyPtr &body, ChVector<> radius, double mass,ChVector<> pos, ChQuaternion<> rot,double sfric,double kfric,double restitution,bool collide){
+void System::MakeEllipsoid(ChSharedBodyGPUPtr &body, ChVector<> radius, double mass,ChVector<> pos, ChQuaternion<> rot,double sfric,double kfric,double restitution,bool collide){
 	body.get_ptr()->SetMass(mass);
 	body.get_ptr()->SetPos(pos);
 	body.get_ptr()->SetRot(rot);
@@ -106,33 +106,26 @@ void System::MakeEllipsoid(ChSystem* mSystem,ChSharedBodyPtr &body, ChVector<> r
 	body.get_ptr()->SetKfriction(kfric);
 	mSystem->AddBody(body);
 }
-void System::CreateSpheres(int x, int y, int z, double posX, double posY, double posZ, bool rnd){
-	if(load_file){
-		ifstream ifile ("OUTDATA.txt");
-		ChSharedBodyPtr mrigidBodya;
-		for (int zz=0; zz<39480; zz++){
-			//ChVector<> mParticlePos((xx),(yy)+4,(zz));
-			ChVector<> mParticlePos(0,0,0);
-			ifile>>mParticlePos.x>>mParticlePos.y>>mParticlePos.z;
-			mrigidBodya = ChSharedBodyPtr(new ChBodyGPU);
-			MakeSphere(mrigidBodya, mSphereRadius, mSphereMass, mParticlePos, mMu, mMu, mSphereRestitution, true);
-		}
-		ifile.close();
-	}
+void System::CreateObjects(int x, int y, int z, double posX, double posY, double posZ, bool rnd,int type){
 	
 	mNumCurrentSpheres+=x*y*z;
-	ChSharedBodyPtr mrigidBody;
+	ChSharedBodyGPUPtr mrigidBody;
 	for (int xx=0; xx<x; xx++){
 		for (int yy=0; yy<y; yy++){
 			for (int zz=0; zz<z; zz++){
 				ChVector<> mParticlePos((xx-(x-1)/2.0)+posX,(yy)+posY,(zz-(z-1)/2.0)+posZ);
+				ChQuaternion<> quat=ChQuaternion<>(1,0,0,0);;
 				if(rnd){
 					mParticlePos.x+=(rand()%1000)/4000.f;
 					mParticlePos.y+=(rand()%1000)/4000.f;
 					mParticlePos.z+=(rand()%1000)/4000.f;
+					quat.Q_from_NasaAngles(ChVector<>((rand()%4000)/1000.0f,(rand()%4000)/1000.f,(rand()%4000)/1000.f));
 				}
-				mrigidBody = ChSharedBodyPtr(new ChBodyGPU);
-				MakeSphere(mrigidBody, mSphereRadius, mSphereMass, mParticlePos*.0006*SCALE, mMu, mMu, mSphereRestitution, true);
+				mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
+				if(type==0){MakeSphere(mrigidBody, mSphereRadius, mSphereMass, mParticlePos, mMu, mMu, mSphereRestitution, true);}
+				if(type==1){MakeBox(mrigidBody, ChVector<>(mSphereRadius,mSphereRadius,mSphereRadius), mSphereMass, mParticlePos,quat, mMu, mMu, mSphereRestitution,mNumCurrentObjects,mNumCurrentObjects,true, false);}
+				if(type==2){MakeEllipsoid(mrigidBody, ChVector<>(mSphereRadius*2,mSphereRadius,mSphereRadius*2), mSphereMass, mParticlePos,quat, mMu, mMu, mSphereRestitution, true);}
+mNumCurrentObjects++;
 			}
 		}
 	}
@@ -194,7 +187,7 @@ void System::drawAll(){
 }
 
 void System::LoadTriangleMesh(string name, ChVector<> Pos, ChQuaternion<> Rot, float mass){
-	ChSharedBodyPtr mrigidBody;
+	ChSharedBodyGPUPtr mrigidBody;
 	ifstream ifile(name.c_str());
 	string temp,j;
 	vector<float3> pos, tri;
@@ -215,7 +208,7 @@ void System::LoadTriangleMesh(string name, ChVector<> Pos, ChQuaternion<> Rot, f
 		}
 	}
 
-	mrigidBody = ChSharedBodyPtr(new ChBodyGPU);
+	mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
 	for(int i=0; i<tri.size(); i++){
 		ChVector<> A(pos[tri[i].x-1].x,pos[tri[i].x-1].y,pos[tri[i].x-1].z);
 		ChVector<> B(pos[tri[i].y-1].x,pos[tri[i].y-1].y,pos[tri[i].y-1].z);
@@ -241,13 +234,16 @@ void System::LoadTriangleMesh(string name, ChVector<> Pos, ChQuaternion<> Rot, f
 	mSystem->AddBody(mrigidBody);
 	mrigidBody.get_ptr()->GetCollisionModel()->SetFamily(1);
 	mrigidBody.get_ptr()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
-
-
-
 }
 
 void System::DoTimeStep(){
-	if(mNumCurrentSpheres<mNumSpheres&&mFrameNumber%1==0&&!load_file){CreateSpheres(1+mFrameNumber, 1, 14, -48+mFrameNumber/2.0, -55+mFrameNumber, 0, true);}
+	if(mNumCurrentSpheres<mNumSpheres&&mFrameNumber%1==0&&!load_file){
+
+		CreateObjects(10, 1, 10, 1, 1+mFrameNumber*3, 0, true, 0);
+		CreateObjects(10, 1, 10, 1, 2+mFrameNumber*3, 0, true, 1);
+		CreateObjects(10, 1, 10, 1, 3+mFrameNumber*3, 0, true, 2);
+	
+	}
 	ChVector<> pos=movingWall->GetPos();
 
 	if(pos.x<(.0025)*SCALE&&movewall){
@@ -260,15 +256,6 @@ void System::DoTimeStep(){
 			abody->SetBodyFixed(true);
 			abody->SetPos(ChVector<>(0,-60,0));
 		}
-	}
-	if(savenow){
-		ofstream ofile("OUTDATA.txt");
-		for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
-			ChVector<> pos=mSystem->Get_bodylist()->at(i)->GetPos();
-			ofile<<pos.x<<"\t"<<pos.y<<"\t"<<pos.z<<endl;
-		}
-		ofile.close();
-		savenow=false;
 	}
 	mFrameNumber++;
 	mSystem->DoStepDynamics( mTimeStep );
@@ -285,12 +272,11 @@ void System::PrintStats(){
 	int E=mSystem->GetNbodies();
 	int F=mSystem->GetNcontacts();
 	double G=GetKE();
-	double H=GetMFR(-50);
+	//double H=GetMFR(-50);
 	char numstr[512];
-	printf("%7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %14.8f | %14.8f\n",A,B,C,D,E,F,G,H);
-	sprintf(numstr,"%7.4f\t%7.4f\t%7.4f\t%7.4f\t%7d\t%7d\t%14.8f\t%14.8f",A,B,C,D,E,F,G,H);
-
-	mTimingFile<<numstr<<endl;
+	printf("%7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %14.8f\n",A,B,C,D,E,F,G);
+	//sprintf(numstr,"%7.4f\t%7.4f\t%7.4f\t%7.4f\t%7d\t%7d\t%14.8f\t%14.8f",A,B,C,D,E,F,G,H);
+	//mTimingFile<<numstr<<endl;
 }
 void initScene(){
 	GLfloat light_position[] = { 1.0, 1.0, 1.0, 0.0 };			
@@ -304,7 +290,6 @@ void initScene(){
 	glEnable (GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glHint (GL_POINT_SMOOTH_HINT, GL_DONT_CARE);
-
 }
 
 
@@ -313,14 +298,14 @@ void renderSceneAll(){
 	if(OGL){GPUSystem->drawAll();}
 }
 int main(int argc, char* argv[]){
-
-
 	float mOmega=.5;
 	int mIteations=500;
-	float mTimeStep=.00005;
+	float mTimeStep=.001;
 	float mEnvelope=0.25e-4;
 	float mSphereMu=.15;
 	float mWallMu=.05;
+	int mDevice=0;
+	if(argc>1){
 
 	mIteations=atoi(argv[1]);
 	mTimeStep=atof(argv[2]);
@@ -328,13 +313,13 @@ int main(int argc, char* argv[]){
 	mEnvelope=atof(argv[4]);
 	mSphereMu=atof(argv[5]);
 	mWallMu=atof(argv[6]);
-	int mDevice=atoi(argv[7]);
-
+	mDevice=atoi(argv[7]);
+	}
 	cudaSetDevice(mDevice);
 
 	ChLcpSystemDescriptorGPU		mGPUDescriptor;
 	ChContactContainerGPUsimple		mGPUContactContainer;
-	ChCollisionSystemGPU			mGPUCollisionEngine(&mGPUDescriptor, mEnvelope*SCALE);
+	ChCollisionSystemGPU			mGPUCollisionEngine(&mGPUDescriptor, mEnvelope);
 	ChLcpIterativeSolverGPUsimple	mGPUsolverSpeed(&mGPUContactContainer,&mGPUDescriptor,  mIteations,mTimeStep, 1e-5, mOmega, false);
 
 	ChSystem SysG(1000, 50); 
@@ -343,38 +328,21 @@ int main(int argc, char* argv[]){
 	SysG.ChangeLcpSolverSpeed(&mGPUsolverSpeed);
 	SysG.ChangeCollisionSystem(&mGPUCollisionEngine);
 	SysG.SetIntegrationType(ChSystem::INT_ANITESCU);
-	SysG.Set_G_acc(ChVector<>(0,GRAV*SCALE,0));
+	SysG.Set_G_acc(ChVector<>(0,GRAV,0));
 	GPUSystem=new System(&SysG,1);
 	GPUSystem->mMu=mSphereMu;
 	GPUSystem->mTimeStep=mTimeStep;
 
-	float width=0.009525;
-	rightWall	=	ChSharedBodyGPUPtr(new ChBodyGPU);
-	leftWall	=	ChSharedBodyGPUPtr(new ChBodyGPU);
-	flatWall	=	ChSharedBodyGPUPtr(new ChBodyGPU);
 	movingWall	=	ChSharedBodyGPUPtr(new ChBodyGPU);
-	//ground		=	ChSharedBodyGPUPtr(new ChBodyGPU);
+
 	ChQuaternion<> base(1,0,0,0);
 	ChQuaternion<> quat;
-	double angle=PI/4.0;
+	double angle=0;//PI/4.0;
 	quat.Q_from_NasaAngles(ChVector<>(0,0,angle));
-	GPUSystem->MakeBox(rightWall,	ChVector<>(.04,.035,.00005)*SCALE,100000,ChVector<>(0.0,-.01,-width/2.0)*SCALE,base,mWallMu,mWallMu,0,1,1,true,true);
-	GPUSystem->MakeBox(leftWall,	ChVector<>(.04,.035,.00005)*SCALE,100000,ChVector<>(0.0,-.01,width/2.0)*SCALE,base,mWallMu,mWallMu,0,1,1,true,true);
-	GPUSystem->MakeBox(flatWall,	ChVector<>(.00005,.03,width)*SCALE,100000,ChVector<>(-.03,-.01,0)*SCALE,base,mWallMu,mWallMu,0,1,1,true,true);
-	GPUSystem->MakeBox(movingWall,	ChVector<>(.0425,.00005,width)*SCALE,100000,ChVector<>(0,-.01,0)*SCALE,quat,mWallMu,mWallMu,0,1,1,true,true);
-	rightWall->SetPos_dt(ChVector<>(0,0,0));
-	leftWall->SetPos_dt(ChVector<>(0,0,0));
-	flatWall->SetPos_dt(ChVector<>(0,0,0));
+	GPUSystem->MakeBox(movingWall,	ChVector<>(10,.01,10),100000,ChVector<>(0,-.01,0),quat,mWallMu,mWallMu,0,-20,-20,true,true);
 	movingWall->SetPos_dt(ChVector<>(0,0,0));
 
-	
-	if(load_file){GPUSystem->CreateSpheres(0, 0, 0, 0, 0, 0, true);}
-	
 	//GPUSystem->LoadTriangleMesh("capsule2.obj");
-		char numstr[256]; // enough to hold all numbers up to 64-bits
-	sprintf(numstr, "DEMO_%d_%f_%f_%f_%f_%f_%f.txt", mIteations,mTimeStep,mOmega,mEnvelope,mSphereMu,mWallMu);
-	GPUSystem->mTimingFile.open(numstr);
-	GPUSystem->mTimingFile<<"Time:\tTotal:\tCD:\tSolver:\tBodies:\tContacts:\tKE:"<<endl;
 
 #pragma omp parallel sections
 	{

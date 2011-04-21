@@ -7,9 +7,12 @@ INCLUDE_DIRECTORIES( ${CH_CUDA_INC}
 				    )
 
 #--------------------------------------------------------------
-# Add executables
-
-				    			
+find_package("OpenMP")
+if(OPENMP_FOUND)
+ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+ SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+endif(OPENMP_FOUND)
+# Add executables				    			
 ADD_EXECUTABLE(demo_gpubasic   		demo_gpubasic.cpp)
 SOURCE_GROUP(demos\\gpu FILES  		demo_gpubasic.cpp)
 SET_TARGET_PROPERTIES(demo_gpubasic PROPERTIES 
