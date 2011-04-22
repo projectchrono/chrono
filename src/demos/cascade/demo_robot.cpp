@@ -90,6 +90,8 @@ int main(int argc, char* argv[])
 	ChBodySceneNodeAuxRef* mrigidBody_forearm = 0;
 	ChBodySceneNodeAuxRef* mrigidBody_wrist = 0;
 	ChBodySceneNodeAuxRef* mrigidBody_hand = 0;
+	ChBodySceneNodeAuxRef* mrigidBody_cylinder = 0;
+	ChBodySceneNodeAuxRef* mrigidBody_rod = 0;
 
 
 		// load the STEP model using this command:
@@ -117,7 +119,7 @@ int main(int argc, char* argv[])
 			// syntax and * or ? wldcards, etc.
 
 		TopoDS_Shape shape_base;
-		if (mydoc.GetNamedShape(shape_base, "Assem4/Assem10" ))
+		if (mydoc.GetNamedShape(shape_base, "Assem10/Assem8" ))
 		{
 				// Add the shape to the Irrlicht system, to get also visualization.
 			mrigidBody_base = (ChBodySceneNodeAuxRef*)addChBodySceneNode_Cascade_C(
@@ -135,7 +137,7 @@ int main(int argc, char* argv[])
 
 
 		TopoDS_Shape shape_turret;
-		if (mydoc.GetNamedShape(shape_turret, "Assem4/Assem9" ))
+		if (mydoc.GetNamedShape(shape_turret, "Assem10/Assem4" ))
 		{
 				// Add the shape to the Irrlicht system, to get also visualization.
 			mrigidBody_turret = (ChBodySceneNodeAuxRef*)addChBodySceneNode_Cascade_C(
@@ -149,7 +151,7 @@ int main(int argc, char* argv[])
 
 
 		TopoDS_Shape shape_bicep;
-		if (mydoc.GetNamedShape(shape_bicep, "Assem4/Assem7" ))
+		if (mydoc.GetNamedShape(shape_bicep, "Assem10/Assem1" ))
 		{
 				// Add the shape to the Irrlicht system, to get also visualization.
 			mrigidBody_bicep = (ChBodySceneNodeAuxRef*)addChBodySceneNode_Cascade_C(
@@ -163,7 +165,7 @@ int main(int argc, char* argv[])
 
 
 		TopoDS_Shape shape_elbow;
-		if (mydoc.GetNamedShape(shape_elbow, "Assem4/Assem1" ))
+		if (mydoc.GetNamedShape(shape_elbow, "Assem10/Assem5" ))
 		{
 				// Add the shape to the Irrlicht system, to get also visualization.
 			mrigidBody_elbow = (ChBodySceneNodeAuxRef*)addChBodySceneNode_Cascade_C(
@@ -177,7 +179,7 @@ int main(int argc, char* argv[])
 
 		
 		TopoDS_Shape shape_forearm;
-		if (mydoc.GetNamedShape(shape_forearm, "Assem4/Assem8" ))
+		if (mydoc.GetNamedShape(shape_forearm, "Assem10/Assem7" ))
 		{
 				// Add the shape to the Irrlicht system, to get also visualization.
 			mrigidBody_forearm = (ChBodySceneNodeAuxRef*)addChBodySceneNode_Cascade_C(
@@ -191,7 +193,7 @@ int main(int argc, char* argv[])
 
 		
 		TopoDS_Shape shape_wrist;
-		if (mydoc.GetNamedShape(shape_wrist, "Assem4/Assem6" ))
+		if (mydoc.GetNamedShape(shape_wrist, "Assem10/Assem6" ))
 		{
 				// Add the shape to the Irrlicht system, to get also visualization.
 			mrigidBody_wrist = (ChBodySceneNodeAuxRef*)addChBodySceneNode_Cascade_C(
@@ -205,7 +207,7 @@ int main(int argc, char* argv[])
 
 
 		TopoDS_Shape shape_hand;
-		if (mydoc.GetNamedShape(shape_hand, "Assem4/Assem2" ))
+		if (mydoc.GetNamedShape(shape_hand, "Assem10/Assem9" ))
 		{
 				// Add the shape to the Irrlicht system, to get also visualization.
 			mrigidBody_hand = (ChBodySceneNodeAuxRef*)addChBodySceneNode_Cascade_C(
@@ -220,17 +222,38 @@ int main(int argc, char* argv[])
 		else GetLog() << "Warning. Desired object not found in document \n";
 
 
+		TopoDS_Shape shape_cylinder;
+		if (mydoc.GetNamedShape(shape_cylinder, "Assem10/Assem3" ))
+		{
+				// Add the shape to the Irrlicht system, to get also visualization.
+			mrigidBody_cylinder = (ChBodySceneNodeAuxRef*)addChBodySceneNode_Cascade_C(
+									&my_system, application.GetSceneManager(), 
+									shape_cylinder);
+
+				// Move the body as for global displacement/rotation
+			mrigidBody_cylinder->GetBody()->ConcatenatePreTransformation(root_frame);
+		}
+		else GetLog() << "Warning. Desired object not found in document \n";
+
+
+		TopoDS_Shape shape_rod;
+		if (mydoc.GetNamedShape(shape_rod, "Assem10/Assem2" ))
+		{
+				// Add the shape to the Irrlicht system, to get also visualization.
+			mrigidBody_rod = (ChBodySceneNodeAuxRef*)addChBodySceneNode_Cascade_C(
+									&my_system, application.GetSceneManager(), 
+									shape_rod);
+
+				// Move the body as for global displacement/rotation
+			mrigidBody_rod->GetBody()->ConcatenatePreTransformation(root_frame);
+		}
+		else GetLog() << "Warning. Desired object not found in document \n";
+
+
 	}
 	else GetLog() << "Warning. Desired STEP file could not be opened/parsed \n";
-/*
-	mrigidBody_base->GetBody()->Update();
-	mrigidBody_turret->GetBody()->Update();
-	mrigidBody_bicep->GetBody()->Update();
-	mrigidBody_elbow->GetBody()->Update();
-	mrigidBody_forearm->GetBody()->Update();
-	mrigidBody_wrist->GetBody()->Update();
-	mrigidBody_hand->GetBody()->Update();
-*/
+
+
 
 	if (!mrigidBody_base ||
 		!mrigidBody_turret ||
@@ -254,7 +277,7 @@ int main(int argc, char* argv[])
 
 
 	ChFrame<> frame_marker_base_turret;
-	if (mydoc.GetNamedShape(shape_marker, "Assem4/Assem10/marker#1" ))
+	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem8/marker#1" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_base_turret);
 	else GetLog() << "Warning. Desired marker not found in document \n";
 		// Transform the abs coordinates of the marker because everything was rotated/moved by 'root_frame' :
@@ -268,7 +291,7 @@ int main(int argc, char* argv[])
 
 
 	ChFrame<> frame_marker_turret_bicep;
-	if (mydoc.GetNamedShape(shape_marker, "Assem4/Assem9/marker#2" ))
+	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem4/marker#2" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_turret_bicep);
 	else GetLog() << "Warning. Desired marker not found in document \n";
 	frame_marker_turret_bicep %= root_frame;
@@ -281,7 +304,7 @@ int main(int argc, char* argv[])
 
 
 	ChFrame<> frame_marker_bicep_elbow;
-	if (mydoc.GetNamedShape(shape_marker, "Assem4/Assem7/marker#2" ))
+	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem1/marker#2" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_bicep_elbow);
 	else GetLog() << "Warning. Desired marker not found in document \n";
 	frame_marker_bicep_elbow %= root_frame;
@@ -294,7 +317,7 @@ int main(int argc, char* argv[])
 	
 
 	ChFrame<> frame_marker_elbow_forearm;
-	if (mydoc.GetNamedShape(shape_marker, "Assem4/Assem1/marker#2" ))
+	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem5/marker#2" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_elbow_forearm);
 	else GetLog() << "Warning. Desired marker not found in document \n";
 	frame_marker_elbow_forearm %= root_frame;
@@ -307,7 +330,7 @@ int main(int argc, char* argv[])
 
 
 	ChFrame<> frame_marker_forearm_wrist;
-	if (mydoc.GetNamedShape(shape_marker, "Assem4/Assem8/marker#2" ))
+	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem7/marker#2" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_forearm_wrist);
 	else GetLog() << "Warning. Desired marker not found in document \n";
 	frame_marker_forearm_wrist %= root_frame;
@@ -320,7 +343,7 @@ int main(int argc, char* argv[])
 
 
 	ChFrame<> frame_marker_wrist_hand;
-	if (mydoc.GetNamedShape(shape_marker, "Assem4/Assem6/marker#2" ))
+	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem6/marker#2" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_wrist_hand);
 	else GetLog() << "Warning. Desired marker not found in document \n";
 	frame_marker_wrist_hand %= root_frame;
@@ -331,6 +354,44 @@ int main(int argc, char* argv[])
 	my_link6->Initialize(mb1, mb2, frame_marker_wrist_hand.GetCoord() );
 	my_system.AddLink(my_link6);
 
+
+	ChFrame<> frame_marker_turret_cylinder;
+	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem4/marker#3" ))
+		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_turret_cylinder);
+	else GetLog() << "Warning. Desired marker not found in document \n";
+	frame_marker_turret_cylinder %= root_frame;
+
+	ChSharedPtr<ChLinkLockRevolute>  my_link7(new ChLinkLockRevolute);
+	mb1 = mrigidBody_turret->GetBody();
+	mb2 = mrigidBody_cylinder->GetBody();
+	my_link7->Initialize(mb1, mb2, frame_marker_turret_cylinder.GetCoord() );
+	my_system.AddLink(my_link7);
+
+
+	ChFrame<> frame_marker_cylinder_rod;
+	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem3/marker#2" ))
+		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_cylinder_rod);
+	else GetLog() << "Warning. Desired marker not found in document \n";
+	frame_marker_cylinder_rod %= root_frame;
+
+	ChSharedPtr<ChLinkLockCylindrical>  my_link8(new ChLinkLockCylindrical);
+	mb1 = mrigidBody_cylinder->GetBody();
+	mb2 = mrigidBody_rod->GetBody();
+	my_link8->Initialize(mb1, mb2, frame_marker_cylinder_rod.GetCoord() );
+	my_system.AddLink(my_link8);
+
+
+	ChFrame<> frame_marker_rod_bicep;
+	if (mydoc.GetNamedShape(shape_marker, "Assem10/Assem2/marker#2" ))
+		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_rod_bicep);
+	else GetLog() << "Warning. Desired marker not found in document \n";
+	frame_marker_rod_bicep %= root_frame;
+
+	ChSharedPtr<ChLinkLockCylindrical>  my_link9(new ChLinkLockCylindrical);
+	mb1 = mrigidBody_rod->GetBody();
+	mb2 = mrigidBody_bicep->GetBody();
+	my_link9->Initialize(mb1, mb2, frame_marker_rod_bicep.GetCoord() );
+	my_system.AddLink(my_link9);
 
 
 	// Add a couple of markers for the 'lock' constraint between the hand and the 
