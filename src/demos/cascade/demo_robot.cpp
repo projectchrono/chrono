@@ -127,7 +127,8 @@ int main(int argc, char* argv[])
 				// The base is fixed to the ground
 			mrigidBody_base->GetBody()->SetBodyFixed(true);
 
-				// Move the body as for global displacement/rotation
+				// Move the body as for global displacement/rotation by pre-transform its coords.
+				// Note, it could be written also as   mrigidBody_base->GetBody() %= root_frame; 
 			mrigidBody_base->GetBody()->ConcatenatePreTransformation(root_frame);
 		}
 		else GetLog() << "Warning. Desired object not found in document \n";
@@ -221,7 +222,7 @@ int main(int argc, char* argv[])
 
 	}
 	else GetLog() << "Warning. Desired STEP file could not be opened/parsed \n";
-
+/*
 	mrigidBody_base->GetBody()->Update();
 	mrigidBody_turret->GetBody()->Update();
 	mrigidBody_bicep->GetBody()->Update();
@@ -229,7 +230,19 @@ int main(int argc, char* argv[])
 	mrigidBody_forearm->GetBody()->Update();
 	mrigidBody_wrist->GetBody()->Update();
 	mrigidBody_hand->GetBody()->Update();
+*/
 
+	if (!mrigidBody_base ||
+		!mrigidBody_turret ||
+		!mrigidBody_bicep ||
+		!mrigidBody_elbow ||
+		!mrigidBody_forearm ||
+		!mrigidBody_wrist ||
+		!mrigidBody_hand )
+	{
+		DLL_DeleteGlobals();
+		return 0;
+	}
 
 	// Create joints between two parts. 
 	// To understand where is the axis of the joint, we can exploit the fact
@@ -244,85 +257,80 @@ int main(int argc, char* argv[])
 	if (mydoc.GetNamedShape(shape_marker, "Assem4/Assem10/marker#1" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_base_turret);
 	else GetLog() << "Warning. Desired marker not found in document \n";
+		// Transform the abs coordinates of the marker because everything was rotated/moved by 'root_frame' :
 	frame_marker_base_turret %= root_frame;
-	if (mrigidBody_base && mrigidBody_turret)
-	{
-		ChSharedPtr<ChLinkLockRevolute>  my_link(new ChLinkLockRevolute);
-		ChSharedBodyPtr mb1 = mrigidBody_base->GetBody();
-		ChSharedBodyPtr mb2 = mrigidBody_turret->GetBody();
-		my_link->Initialize(mb1, mb2, frame_marker_base_turret.GetCoord() );
-		my_system.AddLink(my_link);
-	}
+
+	ChSharedPtr<ChLinkLockRevolute>  my_link1(new ChLinkLockRevolute);
+	ChSharedBodyPtr mb1 = mrigidBody_base->GetBody();
+	ChSharedBodyPtr mb2 = mrigidBody_turret->GetBody();
+	my_link1->Initialize(mb1, mb2, frame_marker_base_turret.GetCoord() );
+	my_system.AddLink(my_link1);
+
 
 	ChFrame<> frame_marker_turret_bicep;
 	if (mydoc.GetNamedShape(shape_marker, "Assem4/Assem9/marker#2" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_turret_bicep);
 	else GetLog() << "Warning. Desired marker not found in document \n";
 	frame_marker_turret_bicep %= root_frame;
-	if (mrigidBody_turret && mrigidBody_bicep)
-	{
-		ChSharedPtr<ChLinkLockRevolute>  my_link(new ChLinkLockRevolute);
-		ChSharedBodyPtr mb1 = mrigidBody_turret->GetBody();
-		ChSharedBodyPtr mb2 = mrigidBody_bicep->GetBody();
-		my_link->Initialize(mb1, mb2, frame_marker_turret_bicep.GetCoord() );
-		my_system.AddLink(my_link);
-	}
+
+	ChSharedPtr<ChLinkLockRevolute>  my_link2(new ChLinkLockRevolute);
+	mb1 = mrigidBody_turret->GetBody();
+	mb2 = mrigidBody_bicep->GetBody();
+	my_link2->Initialize(mb1, mb2, frame_marker_turret_bicep.GetCoord() );
+	my_system.AddLink(my_link2);
+
 
 	ChFrame<> frame_marker_bicep_elbow;
 	if (mydoc.GetNamedShape(shape_marker, "Assem4/Assem7/marker#2" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_bicep_elbow);
 	else GetLog() << "Warning. Desired marker not found in document \n";
 	frame_marker_bicep_elbow %= root_frame;
-	if (mrigidBody_bicep && mrigidBody_elbow)
-	{
-		ChSharedPtr<ChLinkLockRevolute>  my_link(new ChLinkLockRevolute);
-		ChSharedBodyPtr mb1 = mrigidBody_bicep->GetBody();
-		ChSharedBodyPtr mb2 = mrigidBody_elbow->GetBody();
-		my_link->Initialize(mb1, mb2, frame_marker_bicep_elbow.GetCoord() );
-		my_system.AddLink(my_link);
-	}
+
+	ChSharedPtr<ChLinkLockRevolute>  my_link3(new ChLinkLockRevolute);
+	mb1 = mrigidBody_bicep->GetBody();
+	mb2 = mrigidBody_elbow->GetBody();
+	my_link3->Initialize(mb1, mb2, frame_marker_bicep_elbow.GetCoord() );
+	my_system.AddLink(my_link3);
+	
 
 	ChFrame<> frame_marker_elbow_forearm;
 	if (mydoc.GetNamedShape(shape_marker, "Assem4/Assem1/marker#2" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_elbow_forearm);
 	else GetLog() << "Warning. Desired marker not found in document \n";
 	frame_marker_elbow_forearm %= root_frame;
-	if (mrigidBody_elbow && mrigidBody_forearm)
-	{
-		ChSharedPtr<ChLinkLockRevolute>  my_link(new ChLinkLockRevolute);
-		ChSharedBodyPtr mb1 = mrigidBody_elbow->GetBody();
-		ChSharedBodyPtr mb2 = mrigidBody_forearm->GetBody();
-		my_link->Initialize(mb1, mb2, frame_marker_elbow_forearm.GetCoord() );
-		my_system.AddLink(my_link);
-	}
+	
+	ChSharedPtr<ChLinkLockRevolute>  my_link4(new ChLinkLockRevolute);
+	mb1 = mrigidBody_elbow->GetBody();
+	mb2 = mrigidBody_forearm->GetBody();
+	my_link4->Initialize(mb1, mb2, frame_marker_elbow_forearm.GetCoord() );
+	my_system.AddLink(my_link4);
+
 
 	ChFrame<> frame_marker_forearm_wrist;
 	if (mydoc.GetNamedShape(shape_marker, "Assem4/Assem8/marker#2" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_forearm_wrist);
 	else GetLog() << "Warning. Desired marker not found in document \n";
 	frame_marker_forearm_wrist %= root_frame;
-	if (mrigidBody_forearm && mrigidBody_wrist)
-	{
-		ChSharedPtr<ChLinkLockRevolute>  my_link(new ChLinkLockRevolute);
-		ChSharedBodyPtr mb1 = mrigidBody_forearm->GetBody();
-		ChSharedBodyPtr mb2 = mrigidBody_wrist->GetBody();
-		my_link->Initialize(mb1, mb2, frame_marker_forearm_wrist.GetCoord() );
-		my_system.AddLink(my_link);
-	}
+
+	ChSharedPtr<ChLinkLockRevolute>  my_link5(new ChLinkLockRevolute);
+	mb1 = mrigidBody_forearm->GetBody();
+	mb2 = mrigidBody_wrist->GetBody();
+	my_link5->Initialize(mb1, mb2, frame_marker_forearm_wrist.GetCoord() );
+	my_system.AddLink(my_link5);
+
 
 	ChFrame<> frame_marker_wrist_hand;
 	if (mydoc.GetNamedShape(shape_marker, "Assem4/Assem6/marker#2" ))
 		ChCascadeDoc::FromCascadeToChrono(shape_marker.Location(), frame_marker_wrist_hand);
 	else GetLog() << "Warning. Desired marker not found in document \n";
 	frame_marker_wrist_hand %= root_frame;
-	if (mrigidBody_wrist && mrigidBody_hand)
-	{
-		ChSharedPtr<ChLinkLockRevolute>  my_link(new ChLinkLockRevolute);
-		ChSharedBodyPtr mb1 = mrigidBody_wrist->GetBody();
-		ChSharedBodyPtr mb2 = mrigidBody_hand->GetBody();
-		my_link->Initialize(mb1, mb2, frame_marker_wrist_hand.GetCoord() );
-		my_system.AddLink(my_link);
-	}
+
+	ChSharedPtr<ChLinkLockRevolute>  my_link6(new ChLinkLockRevolute);
+	mb1 = mrigidBody_wrist->GetBody();
+	mb2 = mrigidBody_hand->GetBody();
+	my_link6->Initialize(mb1, mb2, frame_marker_wrist_hand.GetCoord() );
+	my_system.AddLink(my_link6);
+
 
 
 	// Add a couple of markers for the 'lock' constraint between the hand and the 
@@ -391,7 +399,8 @@ int main(int argc, char* argv[])
 
 
 
-		// Create a large cube as a floor.
+
+	// Create a large cube as a floor.
 
 	ChBodySceneNode* mfloor = (ChBodySceneNode*)addChBodySceneNode_easyBox(
 											&my_system, application.GetSceneManager(),
@@ -407,8 +416,13 @@ int main(int argc, char* argv[])
 
 	// Modify the settings of the solver.
 	// By default, the solver might not have sufficient precision to keep the 
-	// robot joints 'mounted'. So switch to a more precise solver; this is fast
-	// and precise but cannot simulate collisions precisely:
+	// robot joints 'mounted'. Expecially, the SOR, SSOR and other fixed point methods
+	// cannot simulate well this robot problem because the mass of the last body in the 
+	// kinematic chain, i.e. the hand, is very low when compared to other bodies, so 
+	// the convergence of the solver would be bad when 'pulling the hand' as in this 
+	// 'teaching mode' IK.
+	// So switch to a more precise solver; this LCP_ITERATIVE_PMINRES is fast
+	// and precise (although it is not fit for frictional collisions):
 
 	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES);
 
@@ -427,9 +441,12 @@ int main(int argc, char* argv[])
 		// .. draw solid 3D items (boxes, cylinders, shapes) belonging to Irrlicht scene, if any
 		application.DrawAll();
 
+		// .. perform timestep simulation
 		my_system.DoStepDynamics( m_realtime_timer.SuggestSimulationStep(0.01) );
 
-		ChIrrTools::drawChFunction(application.GetDevice(),motlaw_z,0, 10, -0.5, 0.7);  
+		// .. plot something on realtime view
+		ChIrrTools::drawChFunction(application.GetDevice(),motlaw_z, 0, 10, -0.9, 0.2);  
+
 
 		application.GetVideoDriver()->endScene(); 
 	}
