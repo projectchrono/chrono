@@ -1759,8 +1759,10 @@ void ChSparseMatrix::StreamOUTsparseMatlabFormat(ChStreamOutAscii& mstream)
 		for(int jj=0; jj<this->GetColumns(); jj++)
 		{
 			double elVal = this->GetElement(ii,jj);
-			if (elVal)
+			if (elVal || (ii+1==this->GetRows() && jj+1==this->GetColumns()))
+			{
 				mstream << ii+1 << " " << jj+1 << " " << elVal << "\n";
+			}
 		}
 	}
 }
