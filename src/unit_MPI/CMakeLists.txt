@@ -28,6 +28,8 @@ IF(ENABLE_UNIT_MPI)
 		ChMpi.cpp 
 		ChLcpSystemDescriptorMPI.cpp 
 		ChLcpIterativeSchwarzMPI.cpp 
+		ChLcpSolverDEMMPI.cpp
+		ChBodyDEMMPI.cpp
 		ChSystemMPI.cpp 
 		ChBodyMPI.cpp
 		ChDomainLatticePartitioning.cpp
@@ -38,6 +40,8 @@ IF(ENABLE_UNIT_MPI)
 		ChMpi.h
 		ChLcpSystemDescriptorMPI.h 
 		ChLcpIterativeSchwarzMPI.h 
+		ChLcpSolverDEMMPI.h
+		ChBodyDEMMPI.h
 		ChSystemMPI.h 
 		ChBodyMPI.h
 		ChDomainLatticePartitioning.h
