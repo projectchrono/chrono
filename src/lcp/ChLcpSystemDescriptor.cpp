@@ -194,6 +194,82 @@ int ChLcpSystemDescriptor::BuildBiVector(
 	return s_c;
 }
 
+void  ChLcpSystemDescriptor::BuildVectors (ChSparseMatrix* f,
+								ChSparseMatrix* b,	
+								bool only_bilaterals, 
+								bool skip_contacts_uv)
+{
+	std::vector<ChLcpConstraint*>& mconstraints = this->GetConstraintsList();
+	std::vector<ChLcpVariables*>&  mvariables	= this->GetVariablesList();
+
+	// --
+	// Count bilateral and other constraints..
+
+	int n_c=0;
+	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
+	{
+		if (mconstraints[ic]->IsActive())
+		  if (! ((mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) && only_bilaterals))
+			  if ( ! (( dynamic_cast<ChLcpConstraintTwoFrictionT*> (mconstraints[ic])) && skip_contacts_uv))
+			  {
+				n_c++;
+			  }
+	}
+
+	// --
+	// Count active variables, by scanning through all variable blocks..
+
+	int n_q=0;
+	for (unsigned int iv = 0; iv< mvariables.size(); iv++)
+	{
+		if (mvariables[iv]->IsActive())
+		{
+			mvariables[iv]->SetOffset(n_q);	// also store offsets in state and MC matrix
+			n_q += mvariables[iv]->Get_ndof();
+		}
+	} 
+
+	//if (n_q==0) return;
+
+
+	// --
+	// Reset and resize (if needed) auxiliary vectors
+
+	f->Reset(n_q, 1);
+	b->Reset(n_c, 1);		// fast! Reset() method does not realloc if size doesn't change
+
+	// .. fills f vector of forces
+	int s_q=0;
+	for (unsigned int iv = 0; iv< mvariables.size(); iv++)
+	{
+		if (mvariables[iv]->IsActive())
+		{
+			//mvariables[iv]->Get_fb().GetElement(i,0);/////////////////////
+			int nn = mvariables[iv]->Get_fb().GetRows();
+			for(int ii=0; ii<nn; ii++)
+			{
+				f->SetElement(s_q+ii,0,mvariables[iv]->Get_fb().GetElement(ii,0));
+			}
+			s_q += mvariables[iv]->Get_ndof();
+		}
+	}  
+	
+	// .. fills Cq jacobian
+	int s_c=0;
+	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
+	{
+		if (mconstraints[ic]->IsActive())
+		  if (! ((mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) && only_bilaterals))
+			  if ( ! (( dynamic_cast<ChLcpConstraintTwoFrictionT*> (mconstraints[ic])) && skip_contacts_uv))
+			  {
+					//mconstraints[ic]->Get_b_i(); ////////////
+					b->SetElement(s_c,0,mconstraints[ic]->Get_b_i());
+					s_c++;
+			  }
+	}
+
+}
+
 
 
 int ChLcpSystemDescriptor::FromVariablesToVector(	
