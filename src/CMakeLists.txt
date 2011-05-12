@@ -496,6 +496,10 @@ IF (BUILD_CH_SDK)
 		physics/ChContinuumMaterial.cpp 
 		physics/ChConveyor.cpp 
 		physics/ChFx.cpp 
+		physics/ChAssembly.cpp
+		physics/ChBodyDEM.cpp
+		physics/ChContactContainerDEM.cpp
+		physics/ChContactDEM.cpp
 	)
 	SET(ChronoEngine_physics_HEADERS
 
@@ -588,6 +592,10 @@ IF (BUILD_CH_SDK)
 		physics/ChSolvmin.h
 		physics/ChStack.h
 		physics/ChSystem.h
+		physics/ChAssembly.h
+		physics/ChBodyDEM.h
+		physics/ChContactContainerDEM.h
+		physics/ChContactDEM.h
 	)
 	SOURCE_GROUP(physics FILES  
 			${ChronoEngine_physics_SOURCES}
@@ -628,6 +636,7 @@ IF (BUILD_CH_SDK)
 		collision/ChCModelBulletNode.cpp 
 		collision/ChCCollisionSystemBullet.cpp 
 		collision/ChCConvexDecomposition.cpp 
+		collision/ChCModelBulletDEM.cpp 
 	)
 	SET(ChronoEngine_collision_HEADERS
 		collision/ChCCollisionInfo.h
@@ -640,6 +649,7 @@ IF (BUILD_CH_SDK)
 		collision/ChCModelBulletBody.h
 		collision/ChCModelBulletNode.h
 		collision/ChCModelBulletParticle.h 
+		collision/ChCModelBulletDEM.h 
 	)
 	SOURCE_GROUP(collision FILES  
 			${ChronoEngine_collision_SOURCES}
@@ -843,6 +853,7 @@ IF (BUILD_CH_SDK)
 		lcp/ChLcpVariablesBodySharedMass.cpp 
 		lcp/ChLcpVariablesBodyOwnMass.cpp 
 		lcp/ChLcpVariablesNode.cpp 
+		lcp/ChLcpSolverDEM.cpp
 	)
 	SET(ChronoEngine_lcp_HEADERS
 		lcp/ChLcpConstraint.h
@@ -878,6 +889,7 @@ IF (BUILD_CH_SDK)
 		lcp/ChLcpVariablesBodySharedMass.h
 		lcp/ChLcpVariablesGeneric.h
 		lcp/ChLcpVariablesNode.h
+		lcp/ChLcpSolverDEM.h
 	)
 	SOURCE_GROUP(lcp FILES  
 			${ChronoEngine_lcp_SOURCES}
