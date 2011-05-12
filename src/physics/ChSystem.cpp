@@ -31,6 +31,7 @@
 #include "lcp/ChLcpIterativeSORmultithread.h"
 #include "lcp/ChLcpIterativeJacobi.h"
 #include "lcp/ChLcpIterativeMINRES.h"
+#include "lcp/ChLcpSolverDEM.h"
 
 #include "core/ChTimer.h"
 #include "collision/ChCCollisionSystemBullet.h"
@@ -560,6 +561,10 @@ void ChSystem::SetLcpSolverType(eCh_lcpSolver mval)
 		LCP_solver_speed = new ChLcpIterativeMINRES();
 		LCP_solver_stab = new ChLcpIterativeMINRES();
 		break;
+	case LCP_DEM:
+		LCP_solver_speed = new ChLcpSolverDEM();
+		LCP_solver_stab = new ChLcpSolverDEM();
+		break;
 	default:
 		LCP_solver_speed = new ChLcpIterativeSymmSOR();
 		LCP_solver_stab  = new ChLcpIterativeSymmSOR();
@@ -571,6 +576,20 @@ void ChSystem::SetLcpSolverType(eCh_lcpSolver mval)
 ChLcpSolver* ChSystem::GetLcpSolverSpeed()
 {
 	// in case the solver is iterative, pre-configure it with max.iter.number
+	switch(lcp_solver_type)
+	{
+	case LCP_DEM:
+		break;
+	case LCP_SIMPLEX:
+		((ChLcpSimplexSolver*)LCP_solver_speed)->SetTruncationStep(GetSimplexLCPmaxSteps());
+		break;
+	default:
+		ChLcpIterativeSolver* iter_solver = (ChLcpIterativeSolver*)LCP_solver_speed;
+		iter_solver->SetMaxIterations(GetIterLCPmaxItersSpeed());
+		iter_solver->SetTolerance(this->tol_speeds); 
+		break;
+	}
+	/*
 	if (lcp_solver_type != LCP_SIMPLEX)
 	{
 		ChLcpIterativeSolver* iter_solver = (ChLcpIterativeSolver*)LCP_solver_speed;
@@ -582,6 +601,7 @@ ChLcpSolver* ChSystem::GetLcpSolverSpeed()
 		ChLcpSimplexSolver* simplex_solver = (ChLcpSimplexSolver*)LCP_solver_speed;
 		simplex_solver->SetTruncationStep(GetSimplexLCPmaxSteps());
 	}
+	*/
 	return LCP_solver_speed;
 }
 
