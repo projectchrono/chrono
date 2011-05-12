@@ -140,7 +140,14 @@ public:
 	virtual int BuildBiVector(
 								ChMatrix<>& Bvector  	///< matrix which will contain the entire vector of 'b'
 							);
-
+				/// The following function may be used to create the full f and b vectors
+				/// of the complementarity problem, by assembling all the terms. This
+				/// can be useful for debugging, data dumping, and similar purposes.
+				/// Optionally, tangential (u,v) components may be skipped, etc.
+	virtual void BuildVectors (ChSparseMatrix* f, ///< fill this vector, if not null
+								ChSparseMatrix* b,	///< fill this vector, if not null
+								bool only_bilaterals = false, 
+								bool skip_contacts_uv = false);
 				/// Using this function, one may get a vector with all the variables 'q'
 				/// ordered into a column vector. The column vector must be passed as a ChMatrix<>
 				/// object, which will be automatically reset and resized to the proper length if necessary
