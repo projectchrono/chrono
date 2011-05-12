@@ -297,7 +297,8 @@ public:
 						 LCP_SIMPLEX,
 						 LCP_ITERATIVE_JACOBI,
 						 LCP_ITERATIVE_SOR_MULTITHREAD, 
-						 LCP_ITERATIVE_PMINRES};
+						 LCP_ITERATIVE_PMINRES,
+						 LCP_DEM};
 
 				/// Choose the LCP solver type, to be used for the simultaneous
 				/// solution of the constraints in dynamical simulations (as well as 
