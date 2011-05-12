@@ -45,6 +45,9 @@ public:
 
 	// Custom functions
 
+				/// Remove a body from the system
+	virtual void InterDomainRemoveOtherPhysicsItem (int id);
+
 				/// For shared items that overlap the domain boundaries, this
 				/// function does some MPI communication to be sure that the 
 				/// speeds and positions of shared objects (hence in multiple copies,
@@ -69,6 +72,15 @@ public:
 				/// NOTE: it must be called by all domains, no exceptions, becuse it contains 
 				/// a MPI_File_write_ordered()
 	virtual void WriteOrderedDumpAABB(ChMPIfile& output);
+
+				/// For debugging: call this function to dump all state information to the 
+				/// specified MPI ordered file, for debugging/visualization/postprocessing etc. 
+				/// The ASCII output file will have these infos at each line:
+				///    rank, uniqueId, shared, xpos, ypos, zpos, xrot, yrot, zrot 
+				/// where shared can be 0=no shared, 1=shared:master, 2=shared:slave
+				/// NOTE: it must be called by all domains, no exceptions, becuse it contains 
+				/// a MPI_File_write_ordered()
+	virtual void WriteOrderedDumpState(ChMPIfile& output);
 
 				/// For debugging: call this function to dump interfce data etc. as ASCII
 				/// NOTE: it must be called by all domains, no exceptions, becuse it contains 

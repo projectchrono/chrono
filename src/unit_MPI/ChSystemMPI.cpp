@@ -13,6 +13,7 @@
 #include "ChMpi.h"
 #include "ChSystemMPI.h"
 #include "ChBodyMPI.h"
+#include "ChBodyDEMMPI.h"
 #include "physics/ChContactContainer.h"
 #include "ChLcpSystemDescriptorMPI.h"
 #include <algorithm>
@@ -159,7 +160,68 @@ void ChSystemMPI::LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor)
 ///////////////////////////////////////////////////////////////////////////////////
 
 
+void ChSystemMPI::InterDomainRemoveOtherPhysicsItem (int id)
+{
+	//remove any references in shared items
+	for (unsigned int ni = 0; ni < this->nodeMPI.interfaces.size(); ni++)
+	{
+		if (this->nodeMPI.interfaces[ni].id_MPI != -1) 
+		{
+			ChHashTable<int,ChInterfaceItem>::iterator hiterator = this->nodeMPI.interfaces[ni].shared_items.begin();
+			while (hiterator != this->nodeMPI.interfaces[ni].shared_items.end())
+			{
+				int current_key =  hiterator->first;
+				ChPhysicsItem* item = hiterator->second.item;
+				++hiterator;
 
+				ChVector<> bbmin, bbmax;
+				item->GetTotalAABB(bbmin, bbmax);
+				bool erase = false;
+				
+				if (current_key==id)
+					erase = true;
+
+				if (erase)
+				{
+					this->nodeMPI.interfaces[ni].shared_items.erase(current_key);
+				}
+				
+			}
+		}
+	}
+
+
+	//remove the body from the system if it exists
+	bool to_delete;
+	HIER_OTHERPHYSICS_INIT
+	while HIER_OTHERPHYSICS_NOSTOP
+	{	
+		to_delete = false;
+		ChPhysicsItem* item = PHpointer;
+
+		ChVector<> bbmin, bbmax, mcenter;
+		item->GetTotalAABB(bbmin, bbmax);
+		item->GetCenter(mcenter);
+
+		if (id == item->GetIdentifier())
+		{
+			// delete (at the end of while loop) the item
+			to_delete = true;
+		}
+
+		ChPhysicsItem* olditem = PHpointer;
+		HIER_OTHERPHYSICS_NEXT
+		
+		// Maybe that the item must be removed from the ChSystem
+		if (to_delete)
+		{
+			ChSharedPtr<ChPhysicsItem> shpointer(olditem);
+			olditem->AddRef(); // because wrapping normal (not new) ptr with shared pointer
+			this->Remove(shpointer);
+		}
+		
+	}
+}
 
 
 
@@ -668,6 +730,62 @@ void ChSystemMPI::WriteOrderedDumpAABB(ChMPIfile& output)
 	output.WriteOrdered((char*)mstring.c_str(), strlen(mstring.c_str()));
 }
 
+
+void ChSystemMPI::WriteOrderedDumpState(ChMPIfile& output)
+{
+	// save items contained in domain on file, if any, as xyz position and rotation
+	std::string mstring = "";
+	chrono::Vector pos;
+	chrono::Quaternion rot;
+	chrono::Vector angs;
+	std::list<ChPhysicsItem*>::iterator iterbod = this->Get_otherphysicslist()->begin();
+	while (iterbod != this->Get_otherphysicslist()->end())
+	{
+		ChVector<> mmin, mmax;
+		(*iterbod)->GetTotalAABB(mmin, mmax);
+		
+		int mshared=-100;
+		if (this->nodeMPI.IsAABBinside(mmin, mmax))	// for quick bailout
+		{
+			mshared = 0;
+		}
+		else
+		{
+			// Test if it was shared with some interface
+			for (int i=0; i<this->nodeMPI.interfaces.size(); i++)
+			{
+				if (nodeMPI.interfaces[i].shared_items.present( (*iterbod)->GetIdentifier() ) )
+				{
+					ChHashTable<int, ChInterfaceItem>::iterator mhashiter = nodeMPI.interfaces[i].shared_items.find( (*iterbod)->GetIdentifier() );
+					if ((*mhashiter).second.type == ChInterfaceItem::INTERF_MASTER)
+					{
+						mshared = 1;
+						break;
+					}
+					if ((*mhashiter).second.type == ChInterfaceItem::INTERF_SLAVE)
+					{
+						mshared = 2;
+						break;
+					}
+					mshared = 3; //  slaveslave case, should never happen. At least one interface should set as 1 or 2.
+				}
+			}
+		}
+
+		if (ChBodyDEMMPI* bod = dynamic_cast<ChBodyDEMMPI*>(*iterbod))
+		{
+			pos = bod->GetPos();
+			rot = bod->GetRot();
+			angs = rot.Q_to_NasaAngles();
+			char buffer[100];
+			sprintf(buffer, "%d, %d, %d, %g, %g, %g, %g, %g, %g,\n", this->nodeMPI.id_MPI, bod->GetIdentifier(), mshared, pos.x, pos.y, pos.z, angs.x, angs.y, angs.z);
+			mstring.append(buffer);
+		}
+		iterbod++;
+	}
+
+	output.WriteOrdered((char*)mstring.c_str(), strlen(mstring.c_str()));
+}
 
 
 
