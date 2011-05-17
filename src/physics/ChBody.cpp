@@ -641,7 +641,7 @@ void ChBody::UpdateForces (double mytime)
 	// 4 - accumulation of script forces
 	if (Vnotnull(&Scr_force))
 	{
-		Xforce += Force_acc;	
+		Xforce += Scr_force;	
 	}
 	if (Vnotnull(&Scr_torque))
 	{
