@@ -169,7 +169,11 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 		frameA = &(mmpaA->GetParticles()->GetParticle(mmpaA->GetParticleId()));
 		varA   = (ChLcpVariablesBody*) &(mmpaA->GetParticles()->GetParticle(mmpaA->GetParticleId())).Variables();
 		if (ChParticlesClones* mpclone = dynamic_cast<ChParticlesClones*>(mmpaA->GetParticles()))
+		{
 			frictionA = mpclone->GetSfriction();
+			rollfrictionA = mpclone->GetRollingFriction();
+			spinfrictionA = mpclone->GetSpinningFriction();
+		}
 	}
 
 	if (ChModelBulletBody* mmboB = dynamic_cast<ChModelBulletBody*>(mcontact.modelB))
@@ -186,7 +190,11 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 		frameB = &(mmpaB->GetParticles()->GetParticle(mmpaB->GetParticleId()));
 		varB   = (ChLcpVariablesBody*) &(mmpaB->GetParticles()->GetParticle(mmpaB->GetParticleId())).Variables();
 		if (ChParticlesClones* mpclone = dynamic_cast<ChParticlesClones*>(mmpaB->GetParticles()))
+		{
 			frictionB = mpclone->GetSfriction();
+			rollfrictionB = mpclone->GetRollingFriction();
+			spinfrictionB = mpclone->GetSpinningFriction();
+		}
 	}
 
 	if (!(frameA && frameB))

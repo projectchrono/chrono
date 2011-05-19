@@ -118,7 +118,7 @@ protected:
 	float k_friction;	// kinematic friction coefficient for surface contact
 	float s_friction;	// static friction for rest-contact (sticking)
 	float rolling_friction; // rolling friction 
-	float spinning_friction; // rolling friction 
+	float spinning_friction; // spinning friction 
 	 
 						// Auxiliary, stores position/rotation once a while
 						// when collision detection routines require to know
@@ -352,13 +352,17 @@ public:
 				/// Set both static friction and kinetic friction at once, with same value.
 	void   SetFriction(float mval) {SetSfriction(mval); SetKfriction(mval);}
 
-				/// The rolling friction coefficient. Usually a very low coefficient.
+				/// The rolling friction (rolling parameter, it has the dimension of a length). 
+				/// Rolling resistant torque is Tr <= (normal force) * (this parameter)
+				/// Usually a very low value.
 				/// Note! a non-zero value will make the simulation 2x slower! Also, the
 				/// GPU solver currently does not support rolling friction. Default: 0.
 	float  GetRollingFriction() {return rolling_friction;}
 	void   SetRollingFriction(float mval) {rolling_friction = mval;}
 
-				/// The spinning friction coefficient. Usually a very low coefficient.
+				/// The spinning friction (it has the dimension of a length). 
+				/// Spinning resistant torque is Ts <= (normal force) * (this parameter)
+				/// Usually a very low value. 
 				/// Note! a non-zero value will make the simulation 2x slower! Also, the
 				/// GPU solver currently does not support spinning friction. Default: 0.
 	float  GetSpinningFriction() {return spinning_friction;}

@@ -3,6 +3,9 @@
   
   History of API changes, bug fixes, new features
 
+- The ChParticlesClones class now supports rolling friction and 
+  spinning friction as in the ChBody class.
+
 - New ChBodyAuxRef. This class is inherited from ChBody, but the
   difference is that in ChBodyAuxRef one can define a COG (center of
   mass) position that is not necessarily the main coordinate system
