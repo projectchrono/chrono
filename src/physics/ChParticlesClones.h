@@ -107,6 +107,8 @@ private:
 	float impactCt;		// tangential impact restitution coefficient
 	float k_friction;	// kinematic friction coefficient for surface contact
 	float s_friction;	// static friction for rest-contact (sticking)
+	float rolling_friction;  // rolling friction 
+	float spinning_friction; // spinning friction 
 
 	float max_speed;	// limit on linear speed (useful for VR & videagames)
 	float max_wvel;		// limit on angular vel. (useful for VR & videagames)
@@ -263,6 +265,22 @@ public:
 
 				/// Set both static friction and kinetic friction at once, with same value
 	void  SetFriction(float mval) {SetSfriction(mval); SetKfriction(mval);}
+
+				/// The rolling friction (rolling parameter, it has the dimension of a length). 
+				/// Rolling resistant torque is Tr <= (normal force) * (this parameter)
+				/// Usually a very low value.
+				/// Note! a non-zero value will make the simulation 2x slower! Also, the
+				/// GPU solver currently does not support rolling friction. Default: 0.
+	float  GetRollingFriction() {return rolling_friction;}
+	void   SetRollingFriction(float mval) {rolling_friction = mval;}
+
+				/// The spinning friction (it has the dimension of a length). 
+				/// Spinning resistant torque is Ts <= (normal force) * (this parameter)
+				/// Usually a very low value. 
+				/// Note! a non-zero value will make the simulation 2x slower! Also, the
+				/// GPU solver currently does not support spinning friction. Default: 0.
+	float  GetSpinningFriction() {return spinning_friction;}
+	void   SetSpinningFriction(float mval) {spinning_friction = mval;}
 
 				/// Mass of each particle. Must be positive.
 	void   SetMass (double newmass) { if (newmass>0.) this->particle_mass.SetBodyMass(newmass);}

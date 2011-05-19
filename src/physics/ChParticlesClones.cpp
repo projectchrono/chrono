@@ -115,6 +115,8 @@ ChParticlesClones::ChParticlesClones ()
 	impactCt = 0.0f;
 	s_friction = 0.6f;
 	k_friction = 0.5f;
+	rolling_friction = 0;
+	spinning_friction = 0;
 
 	SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
 
@@ -159,6 +161,8 @@ void ChParticlesClones::Copy(ChParticlesClones* source)
 	impactCt = source->impactCt;
 	s_friction = source->s_friction;
 	k_friction = source->k_friction;
+	rolling_friction = source->rolling_friction;
+	spinning_friction = source->spinning_friction;
 
 	max_speed = source->max_speed;
 	max_wvel  = source->max_wvel;
@@ -524,7 +528,11 @@ void ChParticlesClones::StreamOUT(ChStreamOutBinary& mstream)
 
 		// stream out all member data
 
-	//***TO DO*** stream clones
+	//...
+	//dfoo=(double)rolling_friction;mstream << dfoo;
+	//dfoo=(double)spinning_friction;mstream << dfoo;
+
+	//***TO DO*** stream data & clones
 
 }
 
@@ -541,7 +549,12 @@ void ChParticlesClones::StreamIN(ChStreamInBinary& mstream)
 
 	particle_collision_model->ClearModel();
 	
-	//***TO DO*** unstream nodes
+	//...
+	//double dfoo;
+	//mstream >> dfoo;		rolling_friction= (float)dfoo;
+	//mstream >> dfoo;		spinning_friction= (float)dfoo;
+
+	//***TO DO*** unstream data & nodes
 
 }
 
