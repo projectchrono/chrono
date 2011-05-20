@@ -2,7 +2,7 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
-#include <GL/glut.h>
+
 #include <cutil_inline.h>
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
@@ -15,6 +15,7 @@
 #include "unit_GPU/ChLcpSystemDescriptorGPU.h"
 #include "unit_GPU/ChCCollisionModelGPU.h"
 #include "unit_GPU/ChBodyGPU.h"
+#include <GL/freeglut.h>
 #include "omp.h"
 #include <windows.h>
 using namespace chrono;
