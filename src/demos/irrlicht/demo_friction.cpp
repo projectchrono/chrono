@@ -21,6 +21,7 @@
 #include "irrlicht_interface/ChBodySceneNodeTools.h" 
 #include "irrlicht_interface/ChIrrAppInterface.h"
 #include "core/ChRealtimeStep.h"
+// #include "irrlicht_interface/ChParticlesSceneNode.h"
 
 #include <irrlicht.h>
 
@@ -91,7 +92,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 		mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easySphere(
 											&mphysicalSystem, msceneManager,
 											mmass, // mass
-											ChVector<>(-8, mradius-0.5, -5+bi*mradius*2.5), // pos
+											ChVector<>(-8, 1+mradius-0.5, -5+bi*mradius*2.5), // pos
 											mradius, // radius
 											20,  // hslices
 											15); // vslices
@@ -118,6 +119,22 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 		mrigidBody->setMaterialTexture(0,	sphereMapB);
 
 	}
+
+	
+	/*
+	// Create a cluster of particle clones too, for other test
+	ChParticlesSceneNode* mnodes = (ChParticlesSceneNode*)addChParticlesSceneNode_easySpheres(
+											&mphysicalSystem, msceneManager,
+											mmass, mradius, 12,6);
+	mnodes->GetParticles()->SetInertiaXX(ChVector<>(minert,minert,minert));
+	mnodes->GetParticles()->SetFriction(0.4);
+	mnodes->GetParticles()->SetRollingFriction( 0.1 );
+	mnodes->setMaterialTexture(0,	sphereMapB);
+	for (int bi = 0; bi < 17; bi++) 
+	{  
+		mnodes->GetParticles()->AddParticle(ChCoordsys<>(ChVector<>(ChRandom(), ChRandom(), ChRandom())));
+	}
+	*/
 
 
 	// Create the five walls of the rectangular container, using
@@ -207,9 +224,8 @@ int main(int argc, char* argv[])
     
 
 	// Modify some setting of the physical system for the simulation, if you want
-
 	mphysicalSystem.SetIterLCPmaxItersSpeed(26);
- 
+
 
  
 

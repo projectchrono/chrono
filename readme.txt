@@ -3,6 +3,13 @@
   
   History of API changes, bug fixes, new features
 
+
+Release 1.4.0
+x-x-xxxx
+
+- The rolling and spinning friction did not work properly with 
+  SOR-multithreaded solver: fixed.
+  
 - The ChParticlesClones class now supports rolling friction and 
   spinning friction as in the ChBody class.
 

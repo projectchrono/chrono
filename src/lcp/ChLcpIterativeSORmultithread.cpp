@@ -15,6 +15,8 @@
 #include "ChLcpIterativeSORmultithread.h"
 #include "parallel/ChThreadsSync.h"
 #include "ChLcpConstraintTwoFrictionT.h"
+#include "ChLcpConstraintTwoRollingN.h"
+#include "ChLcpConstraintTwoRollingT.h"
 #include <stdio.h>
 
 
@@ -363,11 +365,17 @@ double ChLcpIterativeSORmultithread::Solve(
 		unsigned int var_to = var_from + (mvariables.size()-var_from) / (numthreads-nth);
 		unsigned int constr_from = constr_slice;
 		unsigned int constr_to = constr_from + (mconstraints.size()-constr_from) / (numthreads-nth);
-		if(constr_to < mconstraints.size()) // do not slice the three contact multipliers
+		if(constr_to < mconstraints.size()) // do not slice the three contact multipliers (or six in case of rolling)
 		{
 			if (dynamic_cast<ChLcpConstraintTwoFrictionT*>(mconstraints[constr_to]))
 				constr_to++;
 			if (dynamic_cast<ChLcpConstraintTwoFrictionT*>(mconstraints[constr_to]))
+				constr_to++;
+			if (dynamic_cast<ChLcpConstraintTwoRollingN*>(mconstraints[constr_to]))
+				constr_to++;
+			if (dynamic_cast<ChLcpConstraintTwoRollingT*>(mconstraints[constr_to]))
+				constr_to++;
+			if (dynamic_cast<ChLcpConstraintTwoRollingT*>(mconstraints[constr_to]))
 				constr_to++;
 		}
 		mdataN[nth].solver = this;
