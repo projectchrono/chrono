@@ -153,6 +153,7 @@ public:
 	ChStreamOutAscii& operator <<(char		tch);
 	ChStreamOutAscii& operator <<(const int	nVal);
 	ChStreamOutAscii& operator <<(const double	dVal);
+	ChStreamOutAscii& operator <<(const float	dVal);
 	ChStreamOutAscii& operator <<(unsigned int unVal);
 	ChStreamOutAscii& operator <<(char*	 str);
 	ChStreamOutAscii& operator <<(const char*	str);
@@ -228,6 +229,7 @@ public:
 	virtual ChStreamInAscii& operator >>(char				&tch);
 	virtual ChStreamInAscii& operator >>(int				&nVal);
 	virtual ChStreamInAscii& operator >>(double				&dVal);
+	virtual ChStreamInAscii& operator >>(float				&dVal);
 	virtual ChStreamInAscii& operator >>(unsigned	int		&unVal);
 	virtual ChStreamInAscii& operator >>(char*				str);
 	virtual ChStreamInAscii& operator >>(std::string		&str);

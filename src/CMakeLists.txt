@@ -1025,6 +1025,25 @@ IF (BUILD_CH_SDK)
 	SOURCE_GROUP(collision\\gimpact FILES  ${ChronoEngine_collision_gimpact_SOURCES})
 	
 	
+	SET(ChronoEngine_irrlicht_SOURCES
+	)
+	SET(ChronoEngine_irrlicht_HEADERS
+		irrlicht_interface/ChBodySceneNode.h
+		irrlicht_interface/ChBodySceneNodeTools.h
+		irrlicht_interface/ChDisplayTools.h
+		irrlicht_interface/ChIrrAppInterface.h
+		irrlicht_interface/ChIrrCamera.h
+		irrlicht_interface/ChIrrMeshTools.h
+		irrlicht_interface/ChIrrWizard.h
+		irrlicht_interface/ChParticlesSceneNode.h
+		irrlicht_interface/ChPovTools.h
+	)
+	SOURCE_GROUP(irrlicht_interface FILES 
+			${ChronoEngine_irrlicht_SOURCES} 
+			${ChronoEngine_irrlicht_HEADERS}
+			)
+			
+			
 	# OK, now chain all the source groups for building the library,
 	# creating a very long list of source files:
 	
@@ -1053,6 +1072,7 @@ IF (BUILD_CH_SDK)
 		${ChronoEngine_collision_bullet_HEADERS}
 		${ChronoEngine_collision_gimpact_SOURCES}
 		${ChronoEngine_collision_gimpact_HEADERS}
+		${ChronoEngine_irrlicht_HEADERS}
 	)
 	
 	

@@ -117,6 +117,17 @@ ChStreamOutAscii& ChStreamOutAscii::operator <<(double dVal)
 	return *this;
 }
 
+ChStreamOutAscii& ChStreamOutAscii::operator <<(float dVal)
+{
+    char buffer[100];
+
+	sprintf(buffer, number_format, ((double)dVal));
+
+    Output(buffer,  strlen(buffer));
+
+	return *this;
+}
+
 
 void ChStreamOutAscii::Format(char* formatString, ...)
 {
@@ -275,6 +286,17 @@ ChStreamInAscii& ChStreamInAscii::operator >>(double	&dVal)
 	*this >> buffer;
 	RemoveTrailingCommas(buffer);
 	dVal = atof(buffer.c_str());
+	if (errno)
+		throw (ChException( "String " +buffer+ " is not a valid number format"));
+	return *this;
+}
+
+ChStreamInAscii& ChStreamInAscii::operator >>(float	&dVal)
+{
+	std::string buffer;
+	*this >> buffer;
+	RemoveTrailingCommas(buffer);
+	dVal = (float)(atof(buffer.c_str()));
 	if (errno)
 		throw (ChException( "String " +buffer+ " is not a valid number format"));
 	return *this;
