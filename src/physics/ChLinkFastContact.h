@@ -17,7 +17,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
+//***OBSOLETE***  not used anymore - see ChConcactContainer.h and ChContact.h
 
 #include "physics/ChLinkContact.h"
 #include "lcp/ChLcpConstraintTwoContactN.h"
