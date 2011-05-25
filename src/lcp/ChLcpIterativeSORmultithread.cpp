@@ -371,12 +371,15 @@ double ChLcpIterativeSORmultithread::Solve(
 				constr_to++;
 			if (dynamic_cast<ChLcpConstraintTwoFrictionT*>(mconstraints[constr_to]))
 				constr_to++;
-			if (dynamic_cast<ChLcpConstraintTwoRollingN*>(mconstraints[constr_to]))
-				constr_to++;
-			if (dynamic_cast<ChLcpConstraintTwoRollingT*>(mconstraints[constr_to]))
-				constr_to++;
-			if (dynamic_cast<ChLcpConstraintTwoRollingT*>(mconstraints[constr_to]))
-				constr_to++;
+			if (constr_to < mconstraints.size())
+			{
+				if (dynamic_cast<ChLcpConstraintTwoRollingN*>(mconstraints[constr_to]))
+					constr_to++;
+				if (dynamic_cast<ChLcpConstraintTwoRollingT*>(mconstraints[constr_to]))
+					constr_to++;
+				if (dynamic_cast<ChLcpConstraintTwoRollingT*>(mconstraints[constr_to]))
+					constr_to++;
+			}
 		}
 		mdataN[nth].solver = this;
 		mdataN[nth].mutex = &spinlock;

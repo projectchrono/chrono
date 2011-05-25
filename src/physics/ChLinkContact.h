@@ -17,7 +17,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
+//***OBSOLETE***  not used anymore - see ChConcactContainer.h and ChContact.h
 
 #include "physics/ChLink.h"
 #include "collision/ChCCollisionPair.h"
