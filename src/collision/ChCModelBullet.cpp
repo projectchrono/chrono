@@ -556,6 +556,8 @@ void  ChModelBullet::SetFamily(int mfamily)
 {
 	assert(mfamily<16);
 
+	this->family_group = (short int)0x1 << mfamily;
+
 	if (!bt_collision_object->getBroadphaseHandle()) return;
 
 	this->SyncPosition();
@@ -564,8 +566,6 @@ void  ChModelBullet::SetFamily(int mfamily)
 	ChCollisionSystem* mcosys =this->GetPhysicsItem()->GetSystem()->GetCollisionSystem();
 	//short int original_mask = bt_collision_object->getBroadphaseHandle()->m_collisionFilterMask;
 	mcosys->Remove(this);
-
-	this->family_group = (short int)0x1 << mfamily;
 
 	ChCollisionSystemBullet* mcs = (ChCollisionSystemBullet*) mcosys;
 	mcs->GetBulletCollisionWorld()->addCollisionObject(bt_collision_object, this->family_group , this->family_mask);
@@ -585,6 +585,9 @@ void  ChModelBullet::SetFamilyMaskNoCollisionWithFamily(int mfamily)
 {
 	assert(mfamily<16);
 
+	short int familyflag = (short int)0x1 << mfamily;
+	this->family_mask = this->family_mask & ~familyflag;
+
 	if (!bt_collision_object->getBroadphaseHandle()) return;
 
 	this->SyncPosition();
@@ -594,9 +597,6 @@ void  ChModelBullet::SetFamilyMaskNoCollisionWithFamily(int mfamily)
 	//short int original_family = bt_collision_object->getBroadphaseHandle()->m_collisionFilterGroup;
 	//short int original_mask   = bt_collision_object->getBroadphaseHandle()->m_collisionFilterMask;
 	mcosys->Remove(this);
-
-	short int familyflag = (short int)0x1 << mfamily;
-	this->family_mask = this->family_mask & ~familyflag;
 
 	ChCollisionSystemBullet* mcs = (ChCollisionSystemBullet*) mcosys;
 	mcs->GetBulletCollisionWorld()->addCollisionObject(bt_collision_object, this->family_group , this->family_mask);
@@ -606,6 +606,9 @@ void  ChModelBullet::SetFamilyMaskDoCollisionWithFamily(int mfamily)
 {
 	assert(mfamily<16);
 
+	short int familyflag = (short int)0x1 << mfamily;
+	this->family_mask = this->family_mask | familyflag;
+
 	if (!bt_collision_object->getBroadphaseHandle()) return;
 
 	this->SyncPosition();
@@ -615,9 +618,6 @@ void  ChModelBullet::SetFamilyMaskDoCollisionWithFamily(int mfamily)
 	//short int original_family = bt_collision_object->getBroadphaseHandle()->m_collisionFilterGroup;
 	//short int original_mask   = bt_collision_object->getBroadphaseHandle()->m_collisionFilterMask;
 	mcosys->Remove(this);
-
-	short int familyflag = (short int)0x1 << mfamily;
-	this->family_mask = this->family_mask | familyflag;
 
 	ChCollisionSystemBullet* mcs = (ChCollisionSystemBullet*) mcosys;
 	mcs->GetBulletCollisionWorld()->addCollisionObject(bt_collision_object, this->family_group , this->family_mask);
