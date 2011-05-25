@@ -7,6 +7,10 @@
 Release 1.4.0
 x-x-xxxx
 
+- The collision family features previously required that a body
+  was already added to a ChSystem, now collision families can be
+  set also before adding bodies to a system.
+  
 - The rolling and spinning friction did not work properly with 
   SOR-multithreaded solver: fixed.
   
