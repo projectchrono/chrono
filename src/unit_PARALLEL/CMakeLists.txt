@@ -92,55 +92,58 @@ IF(ENABLE_UNIT_GPU)
 	  message(FATAL_ERROR "CUDA not found! (you may switch off ENABLE_UNIT_GPU and build without this unit)")
 	endif()
 	
+	# Build kernels for desired compute capabilities
+	macro(set_compute_capability cc) 
+			list(APPEND CUDA_NVCC_FLAGS 
+					"-gencode=arch=compute_${cc},code=sm_${cc}") 
+			list(APPEND CUDA_NVCC_FLAGS 
+					"-gencode=arch=compute_${cc},code=compute_${cc}")
+	endmacro(set_compute_capability)
+	
+	# Detect what architecture we're on
+	# Hopefully this works...
+	# C equivalent: 8*sizeof(void*)
+	MATH (EXPR CH_ARCH 8*${CMAKE_SIZEOF_VOID_P})
 
 	#SET(CH_NVCC_OPTIONS_REL	 "--ptxas-options=-v -use_fast_math -gencode=arch=compute_13,code=\"sm_13,compute_13\" -maxrregcount=63")
 	#SET(CH_NVCC_OPTIONS_DBG  "")
+
+	# Paths we'll use to find some of the extra libraries
+	SET(CUDA_SDK_LIB_DIR 
+			${CUDA_SDK_ROOT_DIR}/common/lib
+			${CUDA_SDK_ROOT_DIR}/lib 
+			${CUDA_SDK_ROOT_DIR}/../shared/lib)
 	
-	IF ("${CH_OS}" STREQUAL "WINDOWS")
-		IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-			SET (CH_CUDA_LIBSDKUTIL	"${CUDA_SDK_ROOT_DIR}/common/lib/Win32/cutil32.lib")
-			SET (CH_CUDA_LIBSDKCPP	"${CUDA_SDK_ROOT_DIR}/common/lib/Win32/cudpp32.lib")
-			#SET (CUDA_NVCC_FLAGS_RELEASE  "-Xcompiler /EHsc,/W3,/O2,/MD,/DNDEBUG       ${CH_NVCC_OPTIONS_REL} -ext real -int real")
-			#SET (CUDA_NVCC_FLAGS_DEBUG 	  "-Xcompiler /EHsc,/W3,/Od,/Z7,/MDd,-D_DEBUG  ${CH_NVCC_OPTIONS_DBG}")
-		ENDIF()
-		IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-			SET (CH_CUDA_LIBSDKUTIL   "${CUDA_SDK_ROOT_DIR}/common/lib/x64/cutil64.lib")
-			SET (CH_CUDA_LIBSDKCPP	  "${CUDA_SDK_ROOT_DIR}/common/lib/x64/cudpp64.lib")
-			#SET (CUDA_NVCC_FLAGS_RELEASE  "-Xcompiler /EHsc,/W3,/O2,/MD,/DNDEBUG,/DWIN64       ${CH_NVCC_OPTIONS_REL}")
-			#SET (CUDA_NVCC_FLAGS_DEBUG	  "-Xcompiler /EHsc,/W3,/Od,-G0,-D_NEXUS_DEBUG -g,/Z7,/MDd,-D_DEBUG,/DWIN64  ${CH_NVCC_OPTIONS_DBG}")
-		ENDIF()
-		IF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
-			SET (CH_CUDA_LIBSDKUTIL	"${CUDA_SDK_ROOT_DIR}/common/lib/Win32/cutil32.lib")
-			SET (CH_CUDA_LIBSDKCPP	"${CUDA_SDK_ROOT_DIR}/common/lib/Win32/cudpp32.lib")
-			#SET (CUDA_NVCC_FLAGS_RELEASE  "-Xcompiler -O,-s        ${CH_NVCC_OPTIONS_REL}")
-			#SET (CUDA_NVCC_FLAGS_DEBUG 	  "-Xcompiler -g,-D_DEBUG  ${CH_NVCC_OPTIONS_DBG}")
-		ENDIF()
-		IF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
-			SET (CH_CUDA_LIBSDKUTIL	"${CUDA_SDK_ROOT_DIR}/common/lib/x64/cutil64.lib")
-			SET (CH_CUDA_LIBSDKCPP	"${CUDA_SDK_ROOT_DIR}/common/lib/x64/cudpp64.lib")
-			#SET (CUDA_NVCC_FLAGS_RELEASE  "-Xcompiler -O,-s,-m64       ${CH_NVCC_OPTIONS_REL}")
-			#SET (CUDA_NVCC_FLAGS_DEBUG 	  "-Xcompiler -g,-m64,-D_DEBUG ${CH_NVCC_OPTIONS_DBG}")
-		ENDIF()
-	ENDIF()
+	cuda_include_directories(${CUDA_SDK_ROOT_DIR}/common/inc)
+	cuda_include_directories(${CUDA_SDK_ROOT_DIR}/../shared/inc)
+
+	# Find path to cutil libs, from CUDA SDK
+	find_library(CH_CUDA_LIBSDKUTIL 
+			NAMES cutil cutil${arch} cutil_${CMAKE_SYSTEM_PROCESSOR} 
+			PATHS ${CUDA_SDK_LIB_DIR})
+	find_library(CH_CUDA_LIBSDKUTIL_DBG 
+			NAMES cutilD cutil${arch}D cutil_${CMAKE_SYSTEM_PROCESSOR}D 
+			PATHS ${CUDA_SDK_LIB_DIR})
+
+	# Find path to cudpp lib
+	# Does this exist anymore? Source seems a bit stale.
+	find_library(CH_CUDA_LIBSDKCPP 
+			NAMES cudpp cudpp${arch} cudpp_${CMAKE_SYSTEM_PROCESSOR} 
+			PATHS ${CUDA_SDK_LIB_DIR})
+
 	IF ("${CH_OS}" STREQUAL "LINUX")
-		IF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
-			SET (CH_CUDA_LIBSDKUTIL	"${CUDA_SDK_ROOT_DIR}/common/lib/libcutil.a")
-			SET (CH_CUDA_LIBSDKCPP	"${CUDA_SDK_ROOT_DIR}/common/lib/libcudpp.a")
-			#SET (CUDA_NVCC_FLAGS_RELEASE  "-Xcompiler -O,-s        ${CH_NVCC_OPTIONS_REL}")
-			#SET (CUDA_NVCC_FLAGS_DEBUG 	  "-Xcompiler -g,-D_DEBUG  ${CH_NVCC_OPTIONS_DBG}")
-		ENDIF()
-		IF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
-			SET (CH_CUDA_LIBSDKUTIL	"${CUDA_SDK_ROOT_DIR}/common/lib/libcutil.a")
-			SET (CH_CUDA_LIBSDKCPP	"${CUDA_SDK_ROOT_DIR}/common/lib/libcudpp.a")
-			#SET (CUDA_NVCC_FLAGS_RELEASE  "-Xcompiler -O,-s,-m64        ${CH_NVCC_OPTIONS_REL}")
-			#SET (CUDA_NVCC_FLAGS_DEBUG 	  "-Xcompiler -g,-m64,-D_DEBUG  ${CH_NVCC_OPTIONS_DBG}")
-		ENDIF()
 		MESSAGE( "WARNING!, GPU building under LINUX is not yet tested! Check libs path.")
 	ENDIF()
 	
 	
 	SET (CH_CUDA_INC     "${CUDA_TOOLKIT_ROOT_DIR}/include" )
 	SET (CH_CUDA_SDK_INC "${CUDA_SDK_ROOT_DIR}/common/inc"  )
+
+	# These need to get straightened out
+	# Anything using the SDK should only be used by nvcc, no need to include
+	# them for anything being sent to the system compiler
+	CUDA_INCLUDE_DIRECTORIES(${CH_CUDA_SDK_INC})
+	CUDA_INCLUDE_DIRECTORIES(${CUDA_SDK_ROOT_DIR}/../shared/inc)
 	
 	INCLUDE_DIRECTORIES( ${CH_CUDA_INC}
 						 ${CH_CUDA_SDK_INC} 
@@ -179,10 +182,14 @@ IF(ENABLE_UNIT_GPU)
 	                           LIBRARY_OUTPUT_NAME_DEBUG "ChronoEngine_GPUDBG"
 	                           ARCHIVE_OUTPUT_NAME_DEBUG "ChronoEngine_GPUDBG")
 	                          
-	TARGET_LINK_LIBRARIES(ChronoEngine_GPU
-		${CH_CUDA_LIBSDKUTIL}  
-		optimized 	${CH_CHRONOLIB}
-		debug 		${CH_CHRONOLIB_DBG}  )
+	IF (CH_CUDA_LIBSDKUTIL)
+		TARGET_LINK_LIBRARIES(ChronoEngine_GPU
+			${CH_CUDA_LIBSDKUTIL}  
+			optimized 	${CH_CHRONOLIB}
+			debug 		${CH_CHRONOLIB_DBG}  )
+	ELSE()
+			message(FATAL_ERROR "cutil not found. Please set CUDA_SDK_ROOT_DIR here or the NVSDKCOMPUTE_ROOT environment variable.")
+	ENDIF()
 	
 	ADD_DEPENDENCIES (ChronoEngine_GPU ChronoEngine)  # better, because not automatic
 		
