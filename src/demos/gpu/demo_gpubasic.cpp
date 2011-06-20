@@ -28,7 +28,7 @@
 #include "irrlicht_interface/ChBodySceneNodeTools.h" 
 #include "irrlicht_interface/ChIrrAppInterface.h"
 #include "core/ChRealtimeStep.h"
-
+#include "unit_GPU/ChCCollisionSystemGPU.h"
 #include "unit_GPU/ChLcpIterativeSolverGPUsimple.h"		// <--
 #include "unit_GPU/ChContactContainerGPUsimple.h"		// <--
 
@@ -88,7 +88,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 		mrigidBody->addShadowVolumeSceneNode(); 
 
 
-		mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyCylinder(
+		/*mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyCylinder(
 											&mphysicalSystem, msceneManager,
 											1.0,
 											ChVector<>(-5+ChRandom()*10, 4+bi*0.05, -5+ChRandom()*10),
@@ -100,7 +100,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 		mrigidBody->addShadowVolumeSceneNode();
 
 		video::ITexture* cylinderMap = driver->getTexture("../data/pinkwhite.png");
-		mrigidBody->setMaterialTexture(0,	cylinderMap);
+		mrigidBody->setMaterialTexture(0,	cylinderMap);*/
 
 	} 
 
@@ -179,14 +179,14 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 	mphysicalSystem.AddLink(my_motor);
 
 
-	// Add also an oddly shaped object, loading from a mesh saved in '.X' fileformat.
-	ChBodySceneNode* meshBody = (ChBodySceneNode*)addChBodySceneNode_easyGenericMesh(&mphysicalSystem, msceneManager,
-												1.0, ChVector<>(0,2,0),
-												QUNIT, 
-												"../data/rock.X" , 
-												false,	// not static 
-												true);	// true=convex; false=concave(do convex decomposition of concave mesh)
-	meshBody->addShadowVolumeSceneNode();
+	//// Add also an oddly shaped object, loading from a mesh saved in '.X' fileformat.
+	//ChBodySceneNode* meshBody = (ChBodySceneNode*)addChBodySceneNode_easyGenericMesh(&mphysicalSystem, msceneManager,
+	//											1.0, ChVector<>(0,2,0),
+	//											QUNIT, 
+	//											"../data/rock.X" , 
+	//											false,	// not static 
+	//											true);	// true=convex; false=concave(do convex decomposition of concave mesh)
+	//meshBody->addShadowVolumeSceneNode();
 
 } 
      
@@ -237,16 +237,20 @@ int main(int argc, char* argv[])
 	// also GPU collision detection that avoids bottlenecks in cd->solver data transfer.
 	ChLcpSystemDescriptorGPU		newdescriptor;
 	ChContactContainerGPUsimple		mGPUcontactcontainer;
+	ChCollisionSystemGPU			mGPUCollisionEngine(&newdescriptor, 0);
 	ChLcpIterativeSolverGPUsimple	mGPUsolverSpeed(&mGPUcontactcontainer,&newdescriptor, 50, 1e-5, 0.2);
-	ChLcpIterativeSolverGPUsimple	mGPUsolverPos(&mGPUcontactcontainer,&newdescriptor,  50, 1e-5, 0.2);
+	//ChLcpIterativeSolverGPUsimple	mGPUsolverPos(&mGPUcontactcontainer,&newdescriptor,  50, 1e-5, 0.2);
 
 	mphysicalSystem.ChangeContactContainer(&mGPUcontactcontainer);
 	mphysicalSystem.ChangeLcpSolverSpeed(&mGPUsolverSpeed);
-	mphysicalSystem.ChangeLcpSolverStab(&mGPUsolverPos);  // this is used only with Tasora timestepping, unneded for Anitescu
-	//mphysicalSystem.ChangeLcpSystemDescriptor(&newdescriptor);
+	//mphysicalSystem.ChangeLcpSolverStab(&mGPUsolverPos);  // this is used only with Tasora timestepping, unneded for Anitescu
+	mphysicalSystem.ChangeLcpSystemDescriptor(&newdescriptor);
 	mphysicalSystem.SetIterLCPmaxItersSpeed(20);
+	mphysicalSystem.ChangeCollisionSystem(&mGPUCollisionEngine);
+
+
 	mGPUsolverSpeed.SetDt(0.02);
-	mGPUsolverPos.SetDt(0.02);
+	//mGPUsolverPos.SetDt(0.02);
 	// 
 	// THE SOFT-REAL-TIME CYCLE
 	//

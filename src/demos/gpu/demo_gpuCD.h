@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
+
 #include <cutil_inline.h>
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
@@ -138,6 +139,13 @@ void drawSphere(ChBody *abody, bool gpu){
 		glScalef(h.x,h.y,h.z);
 	}
 	glutSolidSphere(1,10,10);
+	if(showSphere){glutSolidSphere(1,10,10);}
+	else{
+		glPointSize(10);
+		glBegin(GL_POINTS);
+		glVertex3f(0, 0, 0);	
+		glEnd();
+	}
 	glPopMatrix();
 }
 void drawBox(ChBody *abody, float x, bool gpu){
