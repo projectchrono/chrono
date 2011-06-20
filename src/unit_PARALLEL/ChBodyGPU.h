@@ -40,7 +40,7 @@ namespace chrono
 		/// Destructor
 		~ChBodyGPU ();
 		virtual ChCollisionModel* InstanceCollisionModel();
-
+		int id;
 	};
 
 	typedef ChSharedPtr<ChBodyGPU> ChSharedBodyGPUPtr;

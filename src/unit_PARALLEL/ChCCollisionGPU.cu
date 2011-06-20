@@ -78,10 +78,7 @@ void ChCCollisionGPU::Run(){
 	global_origin=fabs(min_bounding_point);						//Determine Global Origin
 	max_dimension=max3(global_origin+fabs(max_bounding_point));	//Determine Max point in space
 	
-	//if(doTuning){TuneCD(1,100);}								//Tune CD
-	bin_size=max_dimension/ceil(sqrtf(number_of_objects/8.0));
-	
-
+	bin_size=max_dimension/ceil(powf(number_of_objects*4,1/3.0));
 	Broadphase();												//Run Broadphase
 	int ncb=number_of_contacts;
 	Narrowphase();												//Run Narrowpahse

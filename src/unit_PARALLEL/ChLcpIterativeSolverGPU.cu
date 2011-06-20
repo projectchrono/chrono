@@ -135,34 +135,32 @@ __global__ void LCP_Iteration_Contacts( contactGPU* contacts, CH_REALNUMBER4* bo
 //
 __global__ void LCP_Iteration_Bilaterals( CH_REALNUMBER4* bilaterals, CH_REALNUMBER4* bodies, updateGPU* update,uint* offset) { 
 	unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+	if(i>=number_of_bilaterals_const){return;}
 	CH_REALNUMBER4 vA,vB; 
 	CH_REALNUMBER gamma_new=0, gamma_old; 
-	int B1_index=0, B1_active;
-	int B2_index=0, B2_active;
+	int B1_index=0,B2_index=0;
 
 	B1_index = bilaterals[i].w ; 
 	B2_index = bilaterals[i+ number_of_bilaterals_const].w ; 
-	B1_active = bodies[B1_index].w;
-	B2_active = bodies[B2_index].w;
+
 	// ---- perform   gamma_new = ([J1 J2] {v1 | v2}^ + b) 
-	if (!B1_active){				
-		vA = bilaterals[i];								// line 0
-		vB = bodies[B1_index];							// v1
-		gamma_new += dot3 ( vA , vB);
+	vA = bilaterals[i];								// line 0
+	vB = bodies[B1_index];							// v1
+	gamma_new += dot3 ( vA , vB);
 
-		vA = bilaterals[i+2*number_of_bilaterals_const];// line 2
-		vB = bodies[B1_index + number_of_bodies_const]; // w1
-		gamma_new += dot3 ( vA , vB);
-	}
-	if (!B2_active){				
-		vA = bilaterals[i+number_of_bilaterals_const];	// line 1
-		vB = bodies[B2_index];							// v2
-		gamma_new += dot3 ( vA , vB);
+	vA = bilaterals[i+2*number_of_bilaterals_const];// line 2
+	vB = bodies[B1_index + number_of_bodies_const]; // w1
+	gamma_new += dot3 ( vA , vB);
 
-		vA = bilaterals[i+3*number_of_bilaterals_const];// line 3
-		vB = bodies[B2_index + number_of_bodies_const];	// w2
-		gamma_new += dot3 ( vA , vB);
-	}
+	vA = bilaterals[i+number_of_bilaterals_const];	// line 1
+	vB = bodies[B2_index];							// v2
+	gamma_new += dot3 ( vA , vB);
+
+	vA = bilaterals[i+3*number_of_bilaterals_const];// line 3
+	vB = bodies[B2_index + number_of_bodies_const];	// w2
+	gamma_new += dot3 ( vA , vB);
+
+
 	vA = bilaterals[i + 4*number_of_bilaterals_const];	// line 4   (eta, b, gamma, 0)
 	gamma_new += vA.y;									// add known term     + b
 	gamma_old = vA.z;									// old gamma
@@ -180,22 +178,18 @@ __global__ void LCP_Iteration_Bilaterals( CH_REALNUMBER4* bilaterals, CH_REALNUM
 	gamma_new -= gamma_old; 
 	updateGPU temp;
 	/// ---- compute dv1 =  invInert.1 * J1^ * deltagamma  
-	if (B1_active==0){	
-		vB = bodies[B1_index + 4*number_of_bodies_const];					// iJ iJ iJ im
-		vA = bilaterals[i]*vB.w*gamma_new; 									// line 0: J1(x)
-		temp.vel=F3(vA);//  ---> store  v1 vel. in reduction buffer
-		vA = bilaterals[i+2*number_of_bilaterals_const]*vB*gamma_new;		// line 2:  J1(w)		  
-		temp.omega=F3(vA);// ---> store  w1 vel. in reduction buffer
-		update[offset[2*number_of_contacts_const+i]]=temp;
-	}
-	if (B2_active==0){	
-		vB = bodies[B2_index + 4*number_of_bodies_const];					// iJ iJ iJ im
-		vA = bilaterals[i+number_of_bilaterals_const]*vB.w*gamma_new; 		// line 1: J2(x)
-		temp.vel=F3(vA);//  ---> store  v2 vel. in reduction buffer	
-		vA = bilaterals[i+3*number_of_bilaterals_const]*vB*gamma_new;		// line 3:  J2(w)		  
-		temp.omega=F3(vA);// ---> store  w2 vel. in reduction buffer
-		update[offset[2*number_of_contacts_const+i+number_of_bilaterals_const]]=temp;
-	}
+	vB = bodies[B1_index + 4*number_of_bodies_const];					// iJ iJ iJ im
+	vA = bilaterals[i]*vB.w*gamma_new; 									// line 0: J1(x)
+	temp.vel=F3(vA);//  ---> store  v1 vel. in reduction buffer
+	vA = bilaterals[i+2*number_of_bilaterals_const]*vB*gamma_new;		// line 2:  J1(w)		  
+	temp.omega=F3(vA);// ---> store  w1 vel. in reduction buffer
+	update[offset[2*number_of_contacts_const+i]]=temp;
+	vB = bodies[B2_index + 4*number_of_bodies_const];					// iJ iJ iJ im
+	vA = bilaterals[i+number_of_bilaterals_const]*vB.w*gamma_new; 		// line 1: J2(x)
+	temp.vel=F3(vA);//  ---> store  v2 vel. in reduction buffer	
+	vA = bilaterals[i+3*number_of_bilaterals_const]*vB*gamma_new;		// line 3:  J2(w)		  
+	temp.omega=F3(vA);// ---> store  w2 vel. in reduction buffer
+	update[offset[2*number_of_contacts_const+i+number_of_bilaterals_const]]=temp;
 } 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Kernel for adding invmass*force*step_size_const to body speed vector.
@@ -341,6 +335,7 @@ void ChLcpIterativeSolverGPU::GPU_Version(){
 	COPY_TO_CONST_MEM(number_of_contacts);
 	COPY_TO_CONST_MEM(number_of_bilaterals);
 	COPY_TO_CONST_MEM(number_of_bodies);
+	device_bilateral_data	=host_bilateral_data;
 	ChKernelLCPcomputeOffsets<<< BLOCKS(number_of_constraints),THREADS>>>(
 		CONTCAST((*device_contact_data)),
 		CASTF4(device_bilateral_data),
@@ -354,24 +349,20 @@ void ChLcpIterativeSolverGPU::GPU_Version(){
 	Thrust_Inclusive_Scan(offset_counter);
 	COPY_TO_CONST_MEM(number_of_updates);
 	device_body_data		=host_body_data;
-	device_bilateral_data	=host_bilateral_data;
-	ChKernelLCPaddForces<<< BLOCKS(number_of_bodies), THREADS	>>>(CASTF4(device_body_data));	
 	
+	ChKernelLCPaddForces<<< BLOCKS(number_of_bodies), THREADS	>>>(CASTF4(device_body_data));	
+
 	for (uint iteration_number = 0; iteration_number < maximum_iterations; iteration_number++){
-		if(number_of_contacts){
-			LCP_Iteration_Contacts<<< BLOCKS(number_of_contacts), THREADS >>>(
-				CONTCAST((*device_contact_data)), 
-				CASTF4(device_body_data), 
-				UPDTCAST(iteration_update),
-				CASTU1(update_offset));
-		}
-		if(number_of_bilaterals){
-			LCP_Iteration_Bilaterals<<< BLOCKS(number_of_bilaterals), THREADS >>>(
-				CASTF4(device_bilateral_data), 
-				CASTF4(device_body_data), 
-				UPDTCAST(iteration_update),
-				CASTU1(update_offset));
-		}
+		LCP_Iteration_Contacts<<< BLOCKS(number_of_contacts), THREADS >>>(
+			CONTCAST((*device_contact_data)), 
+			CASTF4(device_body_data), 
+			UPDTCAST(iteration_update),
+			CASTU1(update_offset));
+		LCP_Iteration_Bilaterals<<< BLOCKS(number_of_bilaterals), THREADS >>>(
+			CASTF4(device_bilateral_data), 
+			CASTF4(device_body_data), 
+			UPDTCAST(iteration_update),
+			CASTU1(update_offset));
 		LCP_Reduce_Speeds<<< BLOCKS(number_of_updates), THREADS >>>(
 			CASTF4(device_body_data), 
 			UPDTCAST(iteration_update), 

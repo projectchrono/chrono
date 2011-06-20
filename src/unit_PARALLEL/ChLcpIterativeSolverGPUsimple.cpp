@@ -21,6 +21,7 @@
 #include <cuda_runtime_api.h>
 #include "ChLcpIterativeSolverGPUsimple.h"
 #include "ChLcpConstraintTwoGPUcontN.h"
+#include "ChBodyGPU.h"
 #include "ChCuda.h"
 #include "physics/ChBody.h"
 #include "physics/ChSystem.h"
@@ -56,7 +57,6 @@ namespace chrono
 		std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
 		std::vector<ChLcpVariables*>&  mvariables	= sysd.GetVariablesList();
 
-
 		// -1-  Count active variables and initialize GPU body buffer
 		uint number_of_bodies = mvariables.size();
 		mSystemDescriptor->number_of_bodies=number_of_bodies;
@@ -65,7 +65,8 @@ namespace chrono
 		
 		for (uint i = 0; i< number_of_bodies; i++){
 			ChLcpVariablesBody* mbodyvar = (ChLcpVariablesBody*) mvariables[i];
-			ChBody* mbody = (ChBody*)mbodyvar->GetUserData();
+			ChBodyGPU* mbody = (ChBodyGPU*)mbodyvar->GetUserData();
+			mbody->id=i;
 			float inv_mass=(1.0)/(mbodyvar->GetBodyMass());
 			gpu_solver->host_body_data[i+number_of_bodies*0] = F4(mbodyvar->Get_qb().GetElementN(0),mbodyvar->Get_qb().GetElementN(1),mbodyvar->Get_qb().GetElementN(2),1)*mbody->IsActive();
 			gpu_solver->host_body_data[i+number_of_bodies*1] = F4(mbodyvar->Get_qb().GetElementN(3),mbodyvar->Get_qb().GetElementN(4),mbodyvar->Get_qb().GetElementN(5),mbody->GetKfriction());
@@ -79,13 +80,19 @@ namespace chrono
 		// -2-  Count active constraints and initialize GPU bilateral buffer.
 
 		unsigned int number_of_bilaterals=0;
-		for (uint i = 0; i< mconstraints.size(); i++){if (mconstraints[i]->IsActive()){	number_of_bilaterals++;}}
+		for (uint i = 0; i< mconstraints.size(); i++){if (mconstraints[i]->IsActive()){number_of_bilaterals++;}}
 
 		gpu_solver->host_bilateral_data.resize(number_of_bilaterals * CH_BILATERAL_VSIZE);
 		uint counter=0;
 		for (uint ic = 0; ic< mconstraints.size(); ic++){
 			if (!mconstraints[ic]->IsActive()){	continue;}
 			ChLcpConstraintTwoBodies* mbilateral = (ChLcpConstraintTwoBodies*)(mconstraints[ic]);
+
+			ChBodyGPU* temp=(ChBodyGPU*)(((ChLcpVariablesBody*)(mbilateral->GetVariables_a()))->GetUserData());
+			
+			int idA=((ChBodyGPU*)((ChLcpVariablesBody*)(mbilateral->GetVariables_a()))->GetUserData())->id;
+			int idB=((ChBodyGPU*)((ChLcpVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->id;
+			
 			// Update auxiliary data in all constraints before starting, that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
 			mconstraints[ic]->Update_auxiliary();  //***NOTE*** not efficient here - can be on GPU, and [Eq_i] not needed
 			float4 A,B,C,D;
@@ -93,8 +100,8 @@ namespace chrono
 			B=F4(mbilateral->Get_Cq_b()->GetElementN(0),mbilateral->Get_Cq_b()->GetElementN(1),mbilateral->Get_Cq_b()->GetElementN(2),0);//J2x
 			C=F4(mbilateral->Get_Cq_a()->GetElementN(3),mbilateral->Get_Cq_a()->GetElementN(4),mbilateral->Get_Cq_a()->GetElementN(5),0);//J1w
 			D=F4(mbilateral->Get_Cq_b()->GetElementN(3),mbilateral->Get_Cq_b()->GetElementN(4),mbilateral->Get_Cq_b()->GetElementN(5),0);//J2w
-			A.w=(mbilateral->GetVariables_a()->IsActive()) ? mbilateral->GetVariables_a()->GetOffset() : -1;//pointer to body B1 info in body buffer
-			B.w=(mbilateral->GetVariables_b()->IsActive()) ? mbilateral->GetVariables_b()->GetOffset() : -1;//pointer to body B2 info in body buffer
+			A.w=idA;//pointer to body B1 info in body buffer
+			B.w=idB;//pointer to body B2 info in body buffer	
 
 			gpu_solver->host_bilateral_data[counter+number_of_bilaterals*0]   = A;		
 			gpu_solver->host_bilateral_data[counter+number_of_bilaterals*1]   = B;
@@ -103,7 +110,7 @@ namespace chrono
 			gpu_solver->host_bilateral_data[counter+number_of_bilaterals*4].x = (1.0/mbilateral->Get_g_i());	// eta = 1/g
 			gpu_solver->host_bilateral_data[counter+number_of_bilaterals*4].y = mbilateral->Get_b_i();		// b_i is residual b 
 			gpu_solver->host_bilateral_data[counter+number_of_bilaterals*4].z = 0;							//gammma, no warm starting
-			gpu_solver->host_bilateral_data[counter+number_of_bilaterals*4].w = (mbilateral->IsUnilateral()) ?	1. :  0;				
+			gpu_solver->host_bilateral_data[counter+number_of_bilaterals*4].w = (mbilateral->IsUnilateral()) ?	1 :  0;				
 			counter++;
 		}// end loop
 		mSystemDescriptor->number_of_bilaterals =number_of_bilaterals;
