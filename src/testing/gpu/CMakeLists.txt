@@ -22,8 +22,9 @@ SET_TARGET_PROPERTIES(test_gpuCD__hammad PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
 	
 TARGET_LINK_LIBRARIES(test_gpuCD__hammad 
-	${CUDA_SDK_ROOT_DIR}/common/lib/Win32/freeglut.lib
 	${CUDA_SDK_ROOT_DIR}/common/lib/x64/freeglut.lib
+	${CUDA_SDK_ROOT_DIR}/common/lib/Win32/freeglut.lib
+	${CUDA_SDK_ROOT_DIR}/common/lib/x64/cutil64.lib
 	${CUDA_TOOLKIT_ROOT_DIR}/lib/x64/cuda.lib
 	${CUDA_TOOLKIT_ROOT_DIR}/lib/x64/cudart.lib
  	optimized 	${CH_CHRONOLIB}     
@@ -43,8 +44,9 @@ SET_TARGET_PROPERTIES(test_validation_hammad PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
 	
 TARGET_LINK_LIBRARIES(test_validation_hammad 
-	${CUDA_SDK_ROOT_DIR}/common/lib/Win32/freeglut.lib
 	${CUDA_SDK_ROOT_DIR}/common/lib/x64/freeglut.lib
+	${CUDA_SDK_ROOT_DIR}/common/lib/Win32/freeglut.lib
+	${CUDA_SDK_ROOT_DIR}/common/lib/x64/cutil64.lib
 	${CUDA_TOOLKIT_ROOT_DIR}/lib/x64/cuda.lib
 	${CUDA_TOOLKIT_ROOT_DIR}/lib/x64/cudart.lib
  	optimized 	${CH_CHRONOLIB}     
