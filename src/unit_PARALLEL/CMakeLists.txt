@@ -119,10 +119,10 @@ IF(ENABLE_UNIT_GPU)
 
 	# Find path to cutil libs, from CUDA SDK
 	find_library(CH_CUDA_LIBSDKUTIL 
-			NAMES cutil cutil${arch} cutil_${CMAKE_SYSTEM_PROCESSOR} 
+			NAMES cutil cutil${CH_ARCH} cutil_${CMAKE_SYSTEM_PROCESSOR} 
 			PATHS ${CUDA_SDK_LIB_DIR})
 	find_library(CH_CUDA_LIBSDKUTIL_DBG 
-			NAMES cutilD cutil${arch}D cutil_${CMAKE_SYSTEM_PROCESSOR}D 
+			NAMES cutilD cutil${CH_ARCH}D cutil_${CMAKE_SYSTEM_PROCESSOR}D 
 			PATHS ${CUDA_SDK_LIB_DIR})
 
 	# Find path to cudpp lib
