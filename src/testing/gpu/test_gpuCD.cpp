@@ -221,7 +221,11 @@ void System::drawAll(){
 			}
 			abody++;
 		}
-		//Sleep(30);
+#if defined( _WINDOWS )
+		Sleep( 30 );
+#else
+		usleep( 30 * 1000 );
+#endif
 		glutSwapBuffers();
 	}
 
@@ -458,8 +462,8 @@ void changeSize(int w, int h) {
 }
 
 int main(int argc, char* argv[]){
-	
-	
+
+
 	float mOmega=.5;
 	int mIteations=500;
 	float mTimeStep=.00005;
@@ -605,7 +609,7 @@ int main(int argc, char* argv[]){
 	//GPUSystem->LoadTriangleMesh("capsule2.obj");
 
 	char numstr[256]; // enough to hold all numbers up to 64-bits
-sprintf(numstr, "R_%d_%f_%f_%f_%f_%f_%f.txt", mIteations,mTimeStep,mOmega,mEnvelope,mSphereMu,mWallMu,mSettleTime);
+	sprintf(numstr, "R_%d_%f_%f_%f_%f_%f_%f.txt", mIteations,mTimeStep,mOmega,mEnvelope,mSphereMu,mWallMu,mSettleTime);
 
 	GPUSystem->mTimingFile.open(numstr);
 	GPUSystem->mTimingFile<<"Time:\tTotal:\tCD:\tSolver:\tBodies:\tContacts:\tKE:"<<endl;

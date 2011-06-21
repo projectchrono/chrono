@@ -1,12 +1,5 @@
 #include "demo_gpuCD.h"
 
-float4	operator -(float4 &	a){a=-1*a;}
-float3	operator -(float3&	a){a=-1*a;}
-int3	operator -(int3	&	a){a=-1*a;}
-int2	operator -(int2	&	a){a=-1*a;}
-uint3	operator -(uint3	&	a){a=-1*a;}
-
-
 ChSharedBodyGPUPtr rightWall;
 ChSharedBodyGPUPtr leftWall;	
 ChSharedBodyGPUPtr frontWall;	
@@ -116,7 +109,7 @@ void System::MakeEllipsoid(ChSharedBodyGPUPtr &body, ChVector<> radius, double m
 	mSystem->AddBody(body);
 }
 void System::CreateObjects(int x, int y, int z, double posX, double posY, double posZ, bool rnd,int type){
-	
+
 	mNumCurrentSpheres+=x*y*z;
 	ChSharedBodyGPUPtr mrigidBody;
 	for (int xx=0; xx<x; xx++){
@@ -134,7 +127,7 @@ void System::CreateObjects(int x, int y, int z, double posX, double posY, double
 				if(type==0){MakeSphere(mrigidBody, mSphereRadius, mSphereMass, mParticlePos, mMu, mMu, mSphereRestitution, true);}
 				if(type==1){MakeBox(mrigidBody, ChVector<>(mSphereRadius,mSphereRadius,mSphereRadius), mSphereMass, mParticlePos,quat, mMu, mMu, mSphereRestitution,mNumCurrentObjects,mNumCurrentObjects,true, false);}
 				if(type==2){MakeEllipsoid(mrigidBody, ChVector<>(mSphereRadius,mSphereRadius,mSphereRadius), mSphereMass, mParticlePos,quat, mMu, mMu, mSphereRestitution, true);}
-mNumCurrentObjects++;
+				mNumCurrentObjects++;
 			}
 		}
 	}
@@ -172,7 +165,7 @@ void System::drawAll(){
 			look_at.x, look_at.y,  look_at.z,
 			camera_up.x, camera_up.y,  camera_up.z);
 
-for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
+		for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
 			ChBody* abody=mSystem->Get_bodylist()->at(i);
 			if(abody->GetCollisionModel()->GetShapeType()==SPHERE){
 				drawSphere((abody)->GetPos(),(abody)->GetPos_dt().Length(), mSphereRadius);
@@ -188,7 +181,12 @@ for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
 				drawTriMesh(TriMesh,(abody));
 			}
 		}
-		Sleep(30);
+
+#if defined( _WINDOWS )
+		Sleep( 30 );
+#else
+		usleep( 30 * 1000 );
+#endif
 		glutSwapBuffers();
 	}
 }
@@ -249,15 +247,15 @@ void System::DoTimeStep(){
 		//CreateObjects(10, 1, 10, 1, 1+mFrameNumber*3, 0, true, 0);
 		//CreateObjects(10, 1, 10, 1, 2+mFrameNumber*3, 0, true, 1);
 		CreateObjects(20, 1, 20, 1, 15, 0, true, 2);
-	
+
 	}
 	/*for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
-		ChBodyGPU *abody=(ChBodyGPU*)(mSystem->Get_bodylist()->at(i));
-		if(abody->GetPos().y<-60){
-			abody->SetCollide(false);
-			abody->SetBodyFixed(true);
-			abody->SetPos(ChVector<>(0,-60,0));
-		}
+	ChBodyGPU *abody=(ChBodyGPU*)(mSystem->Get_bodylist()->at(i));
+	if(abody->GetPos().y<-60){
+	abody->SetCollide(false);
+	abody->SetBodyFixed(true);
+	abody->SetPos(ChVector<>(0,-60,0));
+	}
 	}*/
 	if(mFrameNumber%30==0){
 		ofstream ofile;
@@ -352,10 +350,10 @@ int main(int argc, char* argv[]){
 	GPUSystem->mTimeStep=mTimeStep;
 
 	movingWall	=	ChSharedBodyGPUPtr(new ChBodyGPU);
-	 leftWall	=	ChSharedBodyGPUPtr(new ChBodyGPU);
-	 rightWall	=	ChSharedBodyGPUPtr(new ChBodyGPU);
-	 frontWall	=	ChSharedBodyGPUPtr(new ChBodyGPU);
-	 backWall	=	ChSharedBodyGPUPtr(new ChBodyGPU);
+	leftWall	=	ChSharedBodyGPUPtr(new ChBodyGPU);
+	rightWall	=	ChSharedBodyGPUPtr(new ChBodyGPU);
+	frontWall	=	ChSharedBodyGPUPtr(new ChBodyGPU);
+	backWall	=	ChSharedBodyGPUPtr(new ChBodyGPU);
 
 	ChQuaternion<> base(1,0,0,0);
 	ChQuaternion<> quat1,quat2,quat3,quat4;
@@ -364,7 +362,7 @@ int main(int argc, char* argv[]){
 	quat2.Q_from_NasaAngles(ChVector<>(0,0,-PI/4.0));
 	quat3.Q_from_NasaAngles(ChVector<>(0,-PI/4.0,0));
 	quat4.Q_from_NasaAngles(ChVector<>(0,PI/4.0,0));
-	
+
 	GPUSystem->MakeBox(leftWall,	ChVector<>(.1,8,10), 100000,ChVector<>(-8,4,0),quat1,mWallMu,mWallMu,0,-20,-20,true,true);
 	GPUSystem->MakeBox(rightWall,	ChVector<>(.1,8,10), 100000,ChVector<>(8,4,0), quat2,mWallMu,mWallMu,0,-20,-20,true,true);
 	GPUSystem->MakeBox(frontWall,	ChVector<>(10,8,.1), 100000,ChVector<>(0,4,-8),quat3,mWallMu,mWallMu,0,-20,-20,true,true);
