@@ -17,7 +17,7 @@ __constant__ uint		number_of_objects_const;
 #define kCollideEpsilon  1e-3f
 
 __device__ __host__ inline float4 operator ~(const float4& a){
-	return (1.0f/(dot(a,a)))*(F4(-F3(a),a.w));
+	return (1.0f/(dot(a,a)))*(F4(-1*F3(a),a.w));
 }
 __device__ __host__  inline float4 mult(const float4 &a, const float4 &b){
 	return F4(a.w*F3(b)+b.w*F3(a)+cross(F3(a),F3(b)),a.w*b.w-dot(F3(a),F3(b)));
