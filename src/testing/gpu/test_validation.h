@@ -17,7 +17,11 @@
 #include "unit_GPU/ChBodyGPU.h"
 #include <GL/freeglut.h>
 #include "omp.h"
+#if defined( _WINDOWS )
 #include <windows.h>
+#else
+#include <unistd.h>
+#endif
 using namespace chrono;
 using namespace std;
 #define SCALE 1

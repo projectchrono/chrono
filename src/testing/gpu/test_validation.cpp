@@ -116,7 +116,11 @@ void System::drawAll(){
 			}
 			abody++;
 		}
-		Sleep(30);
+#if defined( _WINDOWS )
+		Sleep( 30 );
+#else
+		usleep( 30 * 1000 );
+#endif
 		glutSwapBuffers();
 	}
 }
@@ -221,7 +225,7 @@ int main(int argc, char* argv[]){
 	float mSphereMu=.15;
 	float mWallMu=.05;
 	int mDevice=0;
-	
+
 	//mIteations=atoi(argv[1]);
 	//mTimeStep=atof(argv[2]);
 	//mOmega=atof(argv[3]);
@@ -274,7 +278,7 @@ int main(int argc, char* argv[]){
 	SHAREDPTR ball1	=	SHAREDPTR(new BODYTYPE);
 	GPUSystem->MakeSphere(ball1,1,1,ChVector<>(-5,1,0),.2,.2,0,1);
 	ball1->SetPos_dt(ChVector<>(2,0,0));
-	
+
 #pragma omp parallel sections
 	{
 
