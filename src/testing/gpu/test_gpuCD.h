@@ -112,7 +112,7 @@ float3 GetColour(double v,double vmin,double vmax){
 	return(c);
 }
 
-void drawSphere(ChVector<> &gPos, double velocity, double mSphereRadius){
+void drawSphere(ChVector<> gPos, double velocity, double & mSphereRadius){
 	float3 color=GetColour(velocity,0,.1*SCALE);
 	glColor4f (color.x, color.y,color.z,1.0f);
 	glPushMatrix();

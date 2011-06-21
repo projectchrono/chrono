@@ -11,7 +11,7 @@
   
 #include "physics/ChContactContainerDEM.h"
 #include "physics/ChSystem.h"
-#include "unit_mpi/ChSystemMPI.h"
+#include "unit_MPI/ChSystemMPI.h"
 #include "physics/ChIndexedNodes.h"
 #include "physics/ChBodyDEM.h"
 #include "collision/ChCModelBulletDEM.h"

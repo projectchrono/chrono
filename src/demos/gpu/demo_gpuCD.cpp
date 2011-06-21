@@ -1,4 +1,12 @@
 #include "demo_gpuCD.h"
+
+float4	operator -(float4 &	a){a=-1*a;}
+float3	operator -(float3&	a){a=-1*a;}
+int3	operator -(int3	&	a){a=-1*a;}
+int2	operator -(int2	&	a){a=-1*a;}
+uint3	operator -(uint3	&	a){a=-1*a;}
+
+
 ChSharedBodyGPUPtr rightWall;
 ChSharedBodyGPUPtr leftWall;	
 ChSharedBodyGPUPtr frontWall;	
