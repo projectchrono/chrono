@@ -1078,7 +1078,7 @@ IF (BUILD_CH_SDK)
 	
 	# The ChronoEngine library is added to the project,
 	# and some custom properties of this target are set.
-	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CH_LIBDIR})
+	#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CH_LIBDIR})
 	
 ADD_LIBRARY(ChronoEngine SHARED ${ChronoEngine_FILES})
 	
@@ -1137,7 +1137,7 @@ IF (ENABLE_UNIT_TESTS)
 	SET (BT_SHAREDLNAME_DBG "${CH_BINDIR}/${BT_LIBNAME}DBG${CH_LIBNAMEPOSTFIXSHARED}")
 	SET (BT_LIB_DBG  "${BT_LIBRARYNAME_DBG}")
 	
-	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CH_LIBDIR})
+	#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CH_LIBDIR})
 	ADD_LIBRARY(BulletLibrary SHARED 	
 		${ChronoEngine_collision_bullet_SOURCES}
 	)
