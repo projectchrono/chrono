@@ -111,7 +111,7 @@ public:
 	{
 	}
 
-	virtual bool IsInto(ChVector<>& point)= 0;
+	virtual bool IsInto(ChVector<> point)= 0;
 	virtual bool IsIntoInterface(int n_interface, ChVector<>& point) = 0;
 	virtual bool IsAABBinside (ChVector<>& aabbmin, ChVector<>& aabbmax)= 0;
 	virtual bool IsAABBoutside(ChVector<>& aabbmin, ChVector<>& aabbmax)= 0;
@@ -136,7 +136,7 @@ public:
 		max_box.Set(0,0,0);	
 	}
 
-	virtual bool IsInto(ChVector<>& point)
+	virtual bool IsInto(ChVector<> point)
 	{
 		if (point.x >= this->min_box.x &&
 			point.y >= this->min_box.y &&
