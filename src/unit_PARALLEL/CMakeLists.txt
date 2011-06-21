@@ -99,8 +99,8 @@ IF(ENABLE_UNIT_GPU)
 
 	# Paths we'll use to find some of the extra libraries
 	SET(CUDA_SDK_LIB_DIR 
-			${CUDA_SDK_ROOT_DIR}/common/lib
-			${CUDA_SDK_ROOT_DIR}/lib 
+			${CUDA_SDK_ROOT_DIR}/common/lib/x64
+			${CUDA_SDK_ROOT_DIR}/lib
 			${CUDA_SDK_ROOT_DIR}/../shared/lib)
 	
 	cuda_include_directories(${CUDA_SDK_ROOT_DIR}/common/inc)
@@ -151,9 +151,7 @@ IF(ENABLE_UNIT_GPU)
 				${ChronoEngine_unit_GPU_HEADERS}
 				${ChronoEngine_unit_GPU_CU})
 	
-	TARGET_LINK_LIBRARIES(ChronoEngine_GPU
-			optimized 	${CH_CUDA_LIBSDKUTIL}
-	)
+
 	
 	SET_TARGET_PROPERTIES(ChronoEngine_GPU PROPERTIES 
 	                          LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
@@ -170,7 +168,11 @@ IF(ENABLE_UNIT_GPU)
 	                          
 	# Let some variables be visible also from outside this directory, using the PARENT_SCOPE trick
 	
-	
+	TARGET_LINK_LIBRARIES(ChronoEngine_GPU
+						${CH_CUDA_LIBSDKUTIL}
+			optimized	${CH_CHRONOLIB}
+			debug		${CH_CHRONOLIB_DBG}
+	)
 
 	ADD_DEPENDENCIES (ChronoEngine_GPU ChronoEngine)  # better, because not automatic
 		
