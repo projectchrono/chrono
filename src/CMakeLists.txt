@@ -261,22 +261,22 @@ IF ("${CH_OS}" STREQUAL "LINUX")
 		IF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
 			SET (CH_BUILDFLAGS "-DLINUX -D__linux__")
 			SET (CH_LINKERFLAG_EXE "")
-			SET (CH_LINKERFLAG_SHARED "-lpthread")
+			SET (CH_LINKERFLAG_SHARED "-lpthread -z muldefs")
 			SET (CH_LIBNAMEPREFIX "lib")
 			SET (CH_LIBNAMEPOSTFIX ".so")
 			SET (CH_LIBNAMEPOSTFIXSHARED ".so")
-			SET (CH_LIBDIR  "${CH_CHRONODIR}/bin/Linux32_gcc")
+			SET (CH_LIBDIR  "${CH_CHRONODIR}/lib/Linux32_gcc")
 			SET (CH_BINDIR  "${CH_CHRONODIR}/bin/Linux32_gcc")
 			SET (CH_IRRLICHTLIB "${CH_IRRLICHTDIR}/lib/Linux/libIrrlicht.a" -lXxf86vm -lglut)
 		ENDIF()
 		IF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
 			SET (CH_BUILDFLAGS "-DLINUX -D__linux__ -DWIN64")
 			SET (CH_LINKERFLAG_EXE "")
-			SET (CH_LINKERFLAG_SHARED "-lpthread")
+			SET (CH_LINKERFLAG_SHARED "-lpthread -z muldefs")
 			SET (CH_LIBNAMEPREFIX "lib")
 			SET (CH_LIBNAMEPOSTFIX ".so")
 			SET (CH_LIBNAMEPOSTFIXSHARED ".so")
-			SET (CH_LIBDIR  "${CH_CHRONODIR}/bin/Linux64_gcc")
+			SET (CH_LIBDIR  "${CH_CHRONODIR}/lib/Linux64_gcc")
 			SET (CH_BINDIR  "${CH_CHRONODIR}/bin/Linux64_gcc")
 			SET (CH_IRRLICHTLIB "${CH_IRRLICHTDIR}/lib/Linux/libIrrlicht.a" -lXxf86vm -lglut)
 		ENDIF()
@@ -1078,21 +1078,22 @@ IF (BUILD_CH_SDK)
 	
 	# The ChronoEngine library is added to the project,
 	# and some custom properties of this target are set.
+	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CH_LIBDIR})
 	
-	ADD_LIBRARY(ChronoEngine SHARED ${ChronoEngine_FILES})
+ADD_LIBRARY(ChronoEngine SHARED ${ChronoEngine_FILES})
 	
 	SET_TARGET_PROPERTIES(ChronoEngine PROPERTIES 
 	                          LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
 	                          COMPILE_DEFINITIONS "CH_API_COMPILE"
-	                          ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CH_LIBDIR}"
-	                          ARCHIVE_OUTPUT_DIRECTORY_DEBUG   "${CH_LIBDIR}"
-	                          RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	                          RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}"
-		            		  LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	                          LIBRARY_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}"
-	                           RUNTIME_OUTPUT_NAME_DEBUG "ChronoEngineDBG"
-	                           LIBRARY_OUTPUT_NAME_DEBUG "ChronoEngineDBG"
-	                           ARCHIVE_OUTPUT_NAME_DEBUG "ChronoEngineDBG")
+	                          ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CH_LIBDIR}
+	                          ARCHIVE_OUTPUT_DIRECTORY_DEBUG   ${CH_LIBDIR}
+	                          RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CH_BINDIR}
+	                          RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${CH_BINDIR}
+		            	  LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CH_BINDIR}
+	                          LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${CH_BINDIR}
+	                          RUNTIME_OUTPUT_NAME_DEBUG "ChronoEngineDBG"
+	                          LIBRARY_OUTPUT_NAME_DEBUG "ChronoEngineDBG"
+	                          ARCHIVE_OUTPUT_NAME_DEBUG "ChronoEngineDBG")
 	
 
 	                          
@@ -1135,15 +1136,23 @@ IF (ENABLE_UNIT_TESTS)
 	SET (BT_LIBRARYNAME_DBG "${CH_LIBDIR}/${CH_LIBNAMEPREFIX}${BT_LIBNAME}DBG${CH_LIBNAMEPOSTFIX}")
 	SET (BT_SHAREDLNAME_DBG "${CH_BINDIR}/${BT_LIBNAME}DBG${CH_LIBNAMEPOSTFIXSHARED}")
 	SET (BT_LIB_DBG  "${BT_LIBRARYNAME_DBG}")
-
-	ADD_LIBRARY(BulletLibrary STATIC 	
+	
+	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CH_LIBDIR})
+	ADD_LIBRARY(BulletLibrary SHARED 	
 		${ChronoEngine_collision_bullet_SOURCES}
 	)
 
-	SET_TARGET_PROPERTIES(BulletLibrary PROPERTIES 
-		ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CH_LIBDIR}"
-		ARCHIVE_OUTPUT_DIRECTORY_DEBUG   "${CH_LIBDIR}"
-		ARCHIVE_OUTPUT_NAME_DEBUG "BulletLibraryDBG"
+	SET_TARGET_PROPERTIES(BulletLibrary PROPERTIES
+				LINK_FLAGS "${CH_LINKERFLAG_SHARED}"	
+				ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CH_LIBDIR}
+	            ARCHIVE_OUTPUT_DIRECTORY_DEBUG   ${CH_LIBDIR}
+	            RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CH_BINDIR}
+	            RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${CH_BINDIR}
+		        LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CH_BINDIR}
+	            LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${CH_BINDIR}
+				RUNTIME_OUTPUT_NAME_DEBUG "ChronoEngineDBG"
+	            LIBRARY_OUTPUT_NAME_DEBUG "ChronoEngineDBG"
+	            ARCHIVE_OUTPUT_NAME_DEBUG "ChronoEngineDBG"
 	)
 
 	ADD_SUBDIRECTORY(testing)

@@ -7,12 +7,22 @@ INCLUDE_DIRECTORIES( ${CH_CUDA_INC}
 
 #--------------------------------------------------------------
 find_package("OpenMP")
+find_package("GLUT")
 
 if(OPENMP_FOUND)
  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 endif(OPENMP_FOUND)
 
+
+Set(CH_DEMO_LIBRARIES 
+		${CUDA_SDK_ROOT_DIR}/common/lib/Win32/freeglut.lib 
+		${CUDA_SDK_ROOT_DIR}/common/lib/x64/freeglut.lib 
+		${CUDA_TOOLKIT_ROOT_DIR}/lib/x64/cuda.lib
+		${CUDA_TOOLKIT_ROOT_DIR}/lib/x64/cuda.lib
+		${CUDA_TOOLKIT_ROOT_DIR}/lib/x64/cudart.lib
+		)
+		
 # Add executables		 	
 ADD_EXECUTABLE(test_gpuCD__hammad	test_gpuCD.cpp)
 SOURCE_GROUP(testing\\gpu FILES test_gpuCD.cpp)
@@ -21,12 +31,8 @@ SET_TARGET_PROPERTIES(test_gpuCD__hammad PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
 	
-TARGET_LINK_LIBRARIES(test_gpuCD__hammad 
-	${CUDA_SDK_ROOT_DIR}/common/lib/x64/freeglut.lib
-	${CUDA_SDK_ROOT_DIR}/common/lib/Win32/freeglut.lib
-	${CUDA_SDK_ROOT_DIR}/common/lib/x64/cutil64.lib
-	${CUDA_TOOLKIT_ROOT_DIR}/lib/x64/cuda.lib
-	${CUDA_TOOLKIT_ROOT_DIR}/lib/x64/cudart.lib
+TARGET_LINK_LIBRARIES(test_gpuCD__hammad
+				${GLUT_LIBRARIES}
  	optimized 	${CH_CHRONOLIB}     
  	debug 		${CH_CHRONOLIB_DBG} 
  	optimized 	${CH_CHRONOGPULIB}
@@ -44,11 +50,7 @@ SET_TARGET_PROPERTIES(test_validation_hammad PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
 	
 TARGET_LINK_LIBRARIES(test_validation_hammad 
-	${CUDA_SDK_ROOT_DIR}/common/lib/x64/freeglut.lib
-	${CUDA_SDK_ROOT_DIR}/common/lib/Win32/freeglut.lib
-	${CUDA_SDK_ROOT_DIR}/common/lib/x64/cutil64.lib
-	${CUDA_TOOLKIT_ROOT_DIR}/lib/x64/cuda.lib
-	${CUDA_TOOLKIT_ROOT_DIR}/lib/x64/cudart.lib
+				${GLUT_LIBRARIES}
  	optimized 	${CH_CHRONOLIB}     
  	debug 		${CH_CHRONOLIB_DBG} 
  	optimized 	${CH_CHRONOGPULIB}
