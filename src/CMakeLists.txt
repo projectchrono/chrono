@@ -78,8 +78,6 @@ IF (NOT MSVC)
 ENDIF() 
 
 
-         
-
 #-----------------------------------------------------------------------------
 # OPTIONS AND USER SETTINGS
 # These cached variables will be shown in the GUI of CMake as 
@@ -92,12 +90,12 @@ ENDIF()
 
 SET(BUILD_CH_SDK   		 TRUE    CACHE BOOL   "Turn this ON to generate the Chrono::Engine main library.")
 SET(BUILD_DEMOS          TRUE    CACHE BOOL   "Turn this ON to generate Chrono::Engine demos")
-SET(ENABLE_UNIT_MATLAB   TRUE    CACHE BOOL   "Turn this ON to generate the Chrono::Engine demos with Matlab.")
-SET(ENABLE_UNIT_IRRLICHT TRUE    CACHE BOOL   "Turn this ON to generate the Chrono::Engine demos with Irrlicht 3D display")
-SET(ENABLE_UNIT_TESTS    FALSE    CACHE BOOL   "Turn this ON to generate Chrono::Engine unit tests")
 
-SET(CH_IRRLICHTDIR       ""    CACHE PATH   "Where is your Irrlicht SDK installed? You must set this path to compile demos with 3D display.")
-SET(CH_MATLABSDK         ""    CACHE PATH   "Where is your Matlab SDK installed? Ex. C:/Programs/MATLAB/R2006b/extern. You must set this path to compile demos with Matlab interface.")
+SET(ENABLE_UNIT_IRRLICHT TRUE    CACHE BOOL   "Turn this ON to generate the Chrono::Engine demos with Irrlicht 3D display")
+SET(ENABLE_UNIT_TESTS    FALSE   CACHE BOOL   "Turn this ON to generate Chrono::Engine unit tests")
+SET(ENABLE_UNIT_MPI    FALSE   CACHE BOOL   "Turn this ON to generate the Chrono::Engine MPI library")
+SET(CH_IRRLICHTDIR       ""    	CACHE PATH   "Where is your Irrlicht SDK installed? You must set this path to compile demos with 3D display.")
+SET(CH_MATLABSDK         ""    	CACHE PATH   "Where is your Matlab SDK installed? Ex. C:/Programs/MATLAB/R2006b/extern. You must set this path to compile demos with Matlab interface.")
 
 
 # Also, some variables that were used in previous makefile system (some
@@ -146,18 +144,12 @@ set_property(CACHE CH_OS PROPERTY STRINGS ${CH_OS_VALUES})
 
 
 #SET(ENABLE_WARNINGS						TRUE    CACHE BOOL   "Turn this ON to generate warnings")
-SET(ENABLE_MULTITHREADED_BUILD			TRUE    CACHE BOOL   "Turn this ON to compile using multiple threads")
+
 
 # To hide unneeded stuff from GUI (require refresh by pressing 'configure', anyway)
 
 
 
-
-IF(ENABLE_UNIT_MATLAB)
-	MARK_AS_ADVANCED(CLEAR CH_MATLABSDK)	
-ELSE()
-	MARK_AS_ADVANCED(FORCE CH_MATLABSDK)
-ENDIF()
 
 
 IF(BUILD_DEMOS)
@@ -193,8 +185,6 @@ ENDIF()
 #)
 
 
-
-
 #-----------------------------------------------------------------------------
 # Find the Chrono::Engine headers and related stuff contained
 # in its SDK, and setup related variables
@@ -203,15 +193,17 @@ get_filename_component(DETECTED_CH_PATH_SOURCE "${CMAKE_SOURCE_DIR}" ABSOLUTE)
 string(REPLACE "ChronoEngine/source" "ChronoEngine" DETECTED_CH_PATH_SOURCE_PARENT "${DETECTED_CH_PATH_SOURCE}")
 
 SET(CH_CHRONODIR         "${DETECTED_CH_PATH_SOURCE_PARENT}"    CACHE PATH   "Where is your ChronoEngine SDK installed? You must set this path!")
+SET(CH_CHRONOSRC 		 "${CH_CHRONODIR}/source" )
 
-SET(CH_CHRONOSRC "${CH_CHRONODIR}/source" )
-
-SET(CH_PARALLELBUILD "")
-IF (ENABLE_MULTITHREADED_BUILD)
-		SET(CH_PARALLELBUILD "-MP")
-ENDIF()
 
 IF ("${CH_OS}" STREQUAL "WINDOWS")
+		SET(ENABLE_MULTITHREADED_BUILD			TRUE    CACHE BOOL   "Turn this ON to compile using multiple threads")
+		IF (ENABLE_MULTITHREADED_BUILD)
+			SET(CH_PARALLELBUILD "-MP")
+		ELSE()
+			SET(CH_PARALLELBUILD "")
+		ENDIF()
+
 		IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
 			SET (CH_BUILDFLAGS "-DWIN32";${CH_PARALLELBUILD})
 			SET (CH_LINKERFLAG_EXE "")
@@ -280,7 +272,6 @@ IF ("${CH_OS}" STREQUAL "LINUX")
 			SET (CH_BINDIR  "${CH_CHRONODIR}/bin/Linux64_gcc")
 			SET (CH_IRRLICHTLIB "${CH_IRRLICHTDIR}/lib/Linux/libIrrlicht.a" -lXxf86vm -lglut)
 		ENDIF()
-		MESSAGE( "WARNING!, GPU building under LINUX is not yet tested! Check libs paths etc!")
 ENDIF()
 
 	
@@ -329,6 +320,20 @@ IF (ENABLE_UNIT_IRRLICHT)
 	SET (CH_IRRLICHTINC "${CH_IRRLICHTDIR}/include")
 ENDIF()
 
+
+IF ("${CH_OS}" STREQUAL "LINUX")
+	SET(ENABLE_UNIT_MATLAB   FALSE CACHE BOOL   "Turn this ON to generate the Chrono::Engine demos with Matlab.")
+	MESSAGE("NOTE! The Matlab-unit build system is not yet available on Linux.")
+ELSE()
+	SET(ENABLE_UNIT_MATLAB   TRUE    CACHE BOOL   "Turn this ON to generate the Chrono::Engine demos with Matlab.")
+ENDIF()
+
+IF(ENABLE_UNIT_MATLAB)
+	MARK_AS_ADVANCED(CLEAR CH_MATLABSDK)	
+ELSE()
+	MARK_AS_ADVANCED(FORCE CH_MATLABSDK)
+ENDIF()
+
 IF (ENABLE_UNIT_MATLAB)
 	SET (CH_MATLABINC "${CH_MATLABSDK}/include")
 	IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
@@ -341,15 +346,13 @@ IF (ENABLE_UNIT_MATLAB)
 						  "${CH_MATLABSDK}/lib/win64/microsoft/libmx.lib" 
 						  "${CH_MATLABSDK}/lib/win64/microsoft/libmat.lib" )
 	ENDIF()
-	IF ("${CH_OS}" STREQUAL "LINUX")
-		MESSAGE( FATAL_ERROR "NOTE! The Matlab-unit build system is not yet available on Linux."
-    )
-	ENDIF()
+	
 ENDIF()
 
 
-
-
+SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CH_LIBDIR} )
+SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CH_LIBDIR} )
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CH_BINDIR} )
 IF (BUILD_CH_SDK)
 
 	#-----------------------------------------------------------------------------
@@ -413,7 +416,19 @@ IF (BUILD_CH_SDK)
 			${ChronoEngine_core_SOURCES}
 			${ChronoEngine_core_HEADERS}
 			)
-	
+IF(ENABLE_UNIT_MPI)
+SET(DEM_MPI_FILES
+		physics/ChBodyDEM.cpp
+		physics/ChContactContainerDEM.cpp
+		physics/ChContactDEM.cpp
+)
+ELSE()
+SET(DEM_MPI_FILES "")
+
+ENDIF()	
+
+
+		
 	
 	SET(ChronoEngine_physics_SOURCES
 		physics/ChApidll.cpp 
@@ -497,9 +512,8 @@ IF (BUILD_CH_SDK)
 		physics/ChConveyor.cpp 
 		physics/ChFx.cpp 
 		physics/ChAssembly.cpp
-		physics/ChBodyDEM.cpp
-		physics/ChContactContainerDEM.cpp
-		physics/ChContactDEM.cpp
+		"${DEM_MPI_FILES}"
+
 	)
 	SET(ChronoEngine_physics_HEADERS
 
@@ -1080,6 +1094,7 @@ IF (BUILD_CH_SDK)
 	# and some custom properties of this target are set.
 	#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CH_LIBDIR})
 	
+
 ADD_LIBRARY(ChronoEngine SHARED ${ChronoEngine_FILES})
 	
 	SET_TARGET_PROPERTIES(ChronoEngine PROPERTIES 
@@ -1137,9 +1152,10 @@ IF (ENABLE_UNIT_TESTS)
 	SET (BT_SHAREDLNAME_DBG "${CH_BINDIR}/${BT_LIBNAME}DBG${CH_LIBNAMEPOSTFIXSHARED}")
 	SET (BT_LIB_DBG  "${BT_LIBRARYNAME_DBG}")
 
-	ADD_LIBRARY(BulletLibrary STATIC 	
+	ADD_LIBRARY(BulletLibrary SHARED 	
 		${ChronoEngine_collision_bullet_SOURCES}
 	)
+
 
 	SET_TARGET_PROPERTIES(BulletLibrary PROPERTIES
 				LINK_FLAGS "${CH_LINKERFLAG_SHARED}"	

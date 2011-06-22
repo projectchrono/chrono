@@ -112,7 +112,7 @@ float3 GetColour(double v,double vmin,double vmax){
 	return(c);
 }
 
-void drawSphere(ChVector<> &gPos, double velocity, double mSphereRadius){
+void drawSphere(ChVector<> gPos, double velocity, double & mSphereRadius){
 	float3 color=GetColour(velocity,0,10);
 	glColor4f (color.x, color.y,color.z,1.0f);
 	glPushMatrix();
@@ -212,7 +212,7 @@ float4 CreateFromAxisAngle(float3 axis, float degrees){
 }
 
 inline float4 operator ~(const float4& a){
-	return (1.0/(dot(a,a)))*(F4(-F3(a),a.w));
+	return (1.0/(dot(a,a)))*(F4(-1*F3(a),a.w));
 }
 inline float4 mult(const float4 &a, const float4 &b){
 	return F4(a.w*F3(b)+b.w*F3(a)+cross(F3(a),F3(b)),a.w*b.w-dot(F3(a),F3(b)));

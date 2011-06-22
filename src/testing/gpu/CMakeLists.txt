@@ -14,17 +14,13 @@ if(OPENMP_FOUND)
  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 endif(OPENMP_FOUND)
 
-find_library(CH_FREE_GLUT 
-			NAMES freeglut 
-			PATHS ${CUDA_SDK_ROOT_DIR}/common/lib/x64)
-			
-find_library(CH_CUDALIB
-			NAMES cuda 
-			PATHS ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64)
-
+SET(CH_CUDART_DIR
+			${CUDA_TOOLKIT_ROOT_DIR}/lib/x64
+			${CUDA_TOOLKIT_ROOT_DIR}/lib64)
+	
 find_library(CH_CUDART
-			NAMES cudart
-			PATHS ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64)
+			NAMES cudart libcudart
+			PATHS ${CH_CUDART_DIR})
 			
 # Add executables		 	
 ADD_EXECUTABLE(test_gpuCD__hammad	test_gpuCD.cpp)
@@ -35,16 +31,14 @@ SET_TARGET_PROPERTIES(test_gpuCD__hammad PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
 	
 TARGET_LINK_LIBRARIES(test_gpuCD__hammad
-				${CH_FREE_GLUT}
-				${CH_CUDART}
-				${CH_CUDALIB}
-				${GLUT_LIBRARIES}
+			${CH_CUDART}
+			${GLUT_LIBRARIES}
  	optimized 	${CH_CHRONOLIB}     
  	debug 		${CH_CHRONOLIB_DBG} 
  	optimized 	${CH_CHRONOGPULIB}
- 	debug	    ${CH_CHRONOGPULIB_DBG}	
+ 	debug	    	${CH_CHRONOGPULIB_DBG}	
  	optimized 	${BT_LIB}
- 	debug	    ${BT_LIB_DBG}
+ 	debug	    	${BT_LIB_DBG}
  	)
 ADD_DEPENDENCIES (test_gpuCD__hammad ChronoEngine ChronoEngine_GPU)
 	 	
@@ -56,10 +50,8 @@ SET_TARGET_PROPERTIES(test_validation_hammad PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
 	
 TARGET_LINK_LIBRARIES(test_validation_hammad 
-				${CH_FREE_GLUT}
-				${CH_CUDART}
-				${CH_CUDALIB}
-				${GLUT_LIBRARIES}
+			${CH_CUDART}
+			${GLUT_LIBRARIES}
  	optimized 	${CH_CHRONOLIB}     
  	debug 		${CH_CHRONOLIB_DBG} 
  	optimized 	${CH_CHRONOGPULIB}

@@ -386,9 +386,12 @@ int main(int argc, char* argv[]){
 
 	// .. an engine between mixer and truss	
 	ChSharedPtr<ChLinkEngine> my_motor(new ChLinkEngine);
-	my_motor->Initialize(ChSharedBodyPtr(movingWall), ChSharedBodyPtr(B), ChCoordsys<>(ChVector<>(0,0,0),Q_from_AngAxis(CH_C_PI_2, VECT_X)) );
+	ChSharedBodyPtr ptr1=ChSharedBodyPtr(movingWall);
+ChSharedBodyPtr ptr2=ChSharedBodyPtr(movingWall);
+
+	my_motor->Initialize(ptr1, ptr2, ChCoordsys<>(ChVector<>(0,0,0),Q_from_AngAxis(CH_C_PI_2, VECT_X)) );
 	my_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-	if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(my_motor->Get_spe_funct()))mfun->Set_yconst(CH_C_PI/2.0); // speed w=90°/s
+	if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(my_motor->Get_spe_funct()))mfun->Set_yconst(CH_C_PI/2.0); // speed w=90 deg/s
 	SysG.AddLink(my_motor);
 	GPUSystem->mTimingFile.open("ellipsH3.txt");
 
