@@ -5,12 +5,12 @@
 #=============================================================================
 
 
-SET(ENABLE_UNIT_GPU      TRUE    CACHE BOOL   "Turn ON this to generate the Chrono::Engine GPU unit.")
+SET(ENABLE_UNIT_GPU      FALSE    CACHE BOOL   "Turn ON this to generate the Chrono::Engine GPU unit.")
 
 # To hide unneeded option stuff from GUI, if any (require refresh by pressing 'configure', anyway)
 IF(ENABLE_UNIT_GPU)
-	MARK_AS_ADVANCED(CLEAR CUDA_BUILD_CUBIN)
-	MARK_AS_ADVANCED(CLEAR CUDA_BUILD_EMULATION)
+	MARK_AS_ADVANCED(FORCE CUDA_BUILD_CUBIN)
+	MARK_AS_ADVANCED(FORCE CUDA_BUILD_EMULATION)
 	MARK_AS_ADVANCED(CLEAR CUDA_SDK_ROOT_DIR)
 	MARK_AS_ADVANCED(CLEAR CUDA_TOOLKIT_ROOT_DIR)
 	MARK_AS_ADVANCED(CLEAR CUDA_VERBOSE_BUILD)	
@@ -110,9 +110,9 @@ IF(ENABLE_UNIT_GPU)
 	find_library(CH_CUDA_LIBSDKUTIL 
 			NAMES cutil cutil${CH_ARCH} cutil_${CMAKE_SYSTEM_PROCESSOR} 
 			PATHS ${CUDA_SDK_LIB_DIR})
-	find_library(CH_CUDA_LIBSDKUTIL_DBG 
-			NAMES cutilD cutil${CH_ARCH}D cutil_${CMAKE_SYSTEM_PROCESSOR}D 
-			PATHS ${CUDA_SDK_LIB_DIR})
+	#find_library(CH_CUDA_LIBSDKUTIL_DBG 
+	#		NAMES cutilD cutil${CH_ARCH}D cutil_${CMAKE_SYSTEM_PROCESSOR}D 
+	#		PATHS ${CUDA_SDK_LIB_DIR})
 	IF ("${CH_OS}" STREQUAL "LINUX")
 		MESSAGE( "WARNING!, GPU building under LINUX is not yet tested! Check libs path.")
 	ENDIF()
@@ -169,7 +169,7 @@ IF(ENABLE_UNIT_GPU)
 	# Let some variables be visible also from outside this directory, using the PARENT_SCOPE trick
 	
 	TARGET_LINK_LIBRARIES(ChronoEngine_GPU
-						${CH_CUDA_LIBSDKUTIL}
+					${CH_CUDA_LIBSDKUTIL}
 			optimized	${CH_CHRONOLIB}
 			debug		${CH_CHRONOLIB_DBG}
 	)
