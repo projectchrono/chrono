@@ -108,6 +108,7 @@ IF(ENABLE_UNIT_GPU)
 			${CUDA_SDK_ROOT_DIR}/common/lib/x64
 			${CUDA_SDK_ROOT_DIR}/common/lib/linux
 			${CUDA_SDK_ROOT_DIR}/lib
+			${CUDA_SDK_ROOT_DIR}/common/lib/linux
 			${CUDA_SDK_ROOT_DIR}/../shared/lib)
 
 	ELSE()
