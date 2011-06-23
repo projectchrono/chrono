@@ -25,7 +25,6 @@ ENDIF()
 
 IF(ENABLE_UNIT_GPU)
 
-	#-----------------------------------------------------------------------------	
 	#
 	# LIST THE FILES THAT MAKE THE GPU LIBRARY
 	# NOTE: to add a new source to this unit, just add its name
@@ -43,11 +42,11 @@ IF(ENABLE_UNIT_GPU)
 			ChLcpConstraintTwoGPUcontT.cpp
 		)
 	SET(ChronoEngine_unit_GPU_HEADERS 
-	    	ChApiGPU.h
-	    	ChCuda.h
-	    	ChBodyGPU.h
-	    	ChCCollisionGPU.h
-	    	ChCCollisionGPU.cuh
+	    		ChApiGPU.h
+	    		ChCuda.h
+	    		ChBodyGPU.h
+	    		ChCCollisionGPU.h
+	    		ChCCollisionGPU.cuh
 			ChLcpIterativeSolverGPU.h
 			ChCCollisionModelGPU.h
 			ChCCollisionSystemGPU.h
@@ -59,13 +58,12 @@ IF(ENABLE_UNIT_GPU)
 			ChLcpSystemDescriptorGPU.h
 		)
 	SET(ChronoEngine_unit_GPU_CU 
-	    	ChLcpIterativeSolverGPU.cu
+	    		ChLcpIterativeSolverGPU.cu
 			ChCCollisionGPU.cu
 			ChCCollisionGPUBroadphase.cu
 			ChCCollisionGPUNarrowphase.cu
-
 		)
-	#SET_SOURCE_FILES_PROPERTIES(ChronoEngine_unit_GPU_HEADERS PROPERTIES  HEADER_FILE_ONLY)
+
 	SOURCE_GROUP(unit_GPU FILES 
 				${ChronoEngine_unit_GPU_SOURCES} 
 				${ChronoEngine_unit_GPU_HEADERS}
@@ -86,22 +84,56 @@ IF(ENABLE_UNIT_GPU)
 		message(FATAL_ERROR "CUDA not found! (you may switch off ENABLE_UNIT_GPU and build without this unit)")
 	endif()
 	
-	# Build kernels for desired compute capabilities
-	macro(set_compute_capability cc) 
-			list(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_${cc},code=sm_${cc}") 
-			list(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_${cc},code=compute_${cc}")
-	endmacro(set_compute_capability)
-	
 	# Detect what architecture we're on
 	# Hopefully this works...
 	# C equivalent: 8*sizeof(void*)
 	MATH (EXPR CH_ARCH 8*${CMAKE_SIZEOF_VOID_P})
 
 	# Paths we'll use to find some of the extra libraries
+	# Ensure that correct path for architecture is selected
+	IF(CH_ARCH EQUAL 32)
+	SET(CUDA_TOOLKIT_LIB_DIR 
+			${CUDA_TOOLKIT_ROOT_DIR}/lib/Win32
+			${CUDA_TOOLKIT_ROOT_DIR}/lib)
 	SET(CUDA_SDK_LIB_DIR 
-			${CUDA_SDK_ROOT_DIR}/common/lib/x64
+			${CUDA_SDK_ROOT_DIR}/common/lib/Win32
+			${CUDA_SDK_ROOT_DIR}/common/lib/linux
 			${CUDA_SDK_ROOT_DIR}/lib
 			${CUDA_SDK_ROOT_DIR}/../shared/lib)
+	ELSEIF(CH_ARCH EQUAL 64)
+	SET(CUDA_TOOLKIT_LIB_DIR 
+			${CUDA_TOOLKIT_ROOT_DIR}/lib/x64
+			${CUDA_TOOLKIT_ROOT_DIR}/lib64)
+	SET(CUDA_SDK_LIB_DIR 
+			${CUDA_SDK_ROOT_DIR}/common/lib/x64
+			${CUDA_SDK_ROOT_DIR}/common/lib/linux
+			${CUDA_SDK_ROOT_DIR}/lib
+			${CUDA_SDK_ROOT_DIR}/../shared/lib)
+
+	ELSE()
+	ENDIF()
+
+
+	find_library(CH_CUDART
+			NAMES cudart libcudart
+			PATHS ${CUDA_TOOLKIT_LIB_DIR})
+	
+	#freeglut is not found properly on windows
+	IF ("${CH_OS}" STREQUAL "LINUX")
+		MESSAGE( "WARNING!, GPU building under LINUX is not yet tested! Check libs path.")
+		SET(FREEGLUT_LIB "")
+
+	ELSEIF()	
+	find_library(FREEGLUT_LIB
+			NAMES freeglut
+			PATHS ${CUDA_TOOLKIT_LIB_DIR} ${CUDA_SDK_LIB_DIR })
+	ENDIF()
+
+	# Build kernels for desired compute capabilities
+	macro(set_compute_capability cc) 
+			list(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_${cc},code=sm_${cc}") 
+			list(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_${cc},code=compute_${cc}")
+	endmacro(set_compute_capability)
 	
 	cuda_include_directories(${CUDA_SDK_ROOT_DIR}/common/inc)
 	cuda_include_directories(${CUDA_SDK_ROOT_DIR}/../shared/inc)
@@ -113,11 +145,7 @@ IF(ENABLE_UNIT_GPU)
 	#find_library(CH_CUDA_LIBSDKUTIL_DBG 
 	#		NAMES cutilD cutil${CH_ARCH}D cutil_${CMAKE_SYSTEM_PROCESSOR}D 
 	#		PATHS ${CUDA_SDK_LIB_DIR})
-	IF ("${CH_OS}" STREQUAL "LINUX")
-		MESSAGE( "WARNING!, GPU building under LINUX is not yet tested! Check libs path.")
-	ENDIF()
-	
-	
+
 	
 	SET (CH_CUDA_INC     "${CUDA_TOOLKIT_ROOT_DIR}/include" )
 	SET (CH_CUDA_SDK_INC "${CUDA_SDK_ROOT_DIR}/common/inc"  )
@@ -151,8 +179,6 @@ IF(ENABLE_UNIT_GPU)
 				${ChronoEngine_unit_GPU_HEADERS}
 				${ChronoEngine_unit_GPU_CU})
 	
-
-	
 	SET_TARGET_PROPERTIES(ChronoEngine_GPU PROPERTIES 
 	                          LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
 	                          COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_GPU"
@@ -176,8 +202,7 @@ IF(ENABLE_UNIT_GPU)
 
 	ADD_DEPENDENCIES (ChronoEngine_GPU ChronoEngine)  # better, because not automatic
 		
-	
-	
+
 	SET (CH_CUDA_INC      		"${CUDA_TOOLKIT_ROOT_DIR}/include" 	PARENT_SCOPE )
 	SET (CH_CUDA_SDK_INC  		"${CUDA_SDK_ROOT_DIR}/common/inc"  	PARENT_SCOPE )
 	SET (CH_CHRONOGPULIB  		"${CH_CHRONOGPULIB}" 				PARENT_SCOPE )
