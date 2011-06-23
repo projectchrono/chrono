@@ -104,13 +104,11 @@ IF(ENABLE_UNIT_GPU)
 	SET(CUDA_TOOLKIT_LIB_DIR 
 			${CUDA_TOOLKIT_ROOT_DIR}/lib/x64
 			${CUDA_TOOLKIT_ROOT_DIR}/lib64)
-	SET(CUDA_SDK_LIB_DIR 
+	SET(CUDA_SDK_LIB_DIR
 			${CUDA_SDK_ROOT_DIR}/common/lib/x64
 			${CUDA_SDK_ROOT_DIR}/common/lib/linux
 			${CUDA_SDK_ROOT_DIR}/lib
-			${CUDA_SDK_ROOT_DIR}/common/lib/linux
 			${CUDA_SDK_ROOT_DIR}/../shared/lib)
-
 	ELSE()
 	ENDIF()
 
@@ -120,14 +118,13 @@ IF(ENABLE_UNIT_GPU)
 			PATHS ${CUDA_TOOLKIT_LIB_DIR})
 	
 	#freeglut is not found properly on windows
-	IF ("${CH_OS}" STREQUAL "LINUX")
-		MESSAGE( "WARNING!, GPU building under LINUX is not yet tested! Check libs path.")
-		SET(FREEGLUT_LIB "")
-
-	ELSEIF()	
+	IF ("${CH_OS}" STREQUAL "WINDOWS")
 	find_library(FREEGLUT_LIB
 			NAMES freeglut
-			PATHS ${CUDA_TOOLKIT_LIB_DIR} ${CUDA_SDK_LIB_DIR })
+			PATHS ${CUDA_SDK_LIB_DIR})			
+	ELSEIF()	
+	MESSAGE( "WARNING!, GPU building under LINUX is not yet tested! Check libs path.")
+	SET(FREEGLUT_LIB "")
 	ENDIF()
 
 	# Build kernels for desired compute capabilities
