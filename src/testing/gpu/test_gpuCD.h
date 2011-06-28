@@ -1,8 +1,8 @@
 #include <string>
-
+#include <iomanip>
 #include <fstream>
 #include <sstream>
-
+#include <limits>
 #include <cutil_inline.h>
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
@@ -16,6 +16,8 @@
 #include "unit_GPU/ChBodyGPU.h"
 #include <GL/freeglut.h>
 #include "omp.h"
+
+
 #if defined( _WINDOWS )
 #include <windows.h>
 #else
@@ -23,19 +25,17 @@
 #endif
 using namespace chrono;
 using namespace std;
-#define SCALE 1000
+#define SCALE 1
 #define PI			3.14159265358979323846
 #define OGL 1
+#define GRAV -9.80665
 
 bool load_file=false;
 bool updateDraw=true;
-bool showSphere=false;
+bool showSphere=true;
 bool movewall=true;
 bool savenow=false;
-
-
-
-
+bool moveGround=false;
 class System{
 public:
 	System(ChSystem * Sys, bool GPU);
@@ -45,22 +45,20 @@ public:
 	void RunGLUTLoop();
 	double GetKE();
 	double GetMFR(double height);
-	void CreateSpheres(int x, int y, int z, double posX, double posY, double posZ, bool rand);
+	void CreateObjects(int x, int y, int z, double posX, double posY, double posZ, bool rand, int type);
 	void DoTimeStep();
 	void PrintStats();
-	void MakeSphere(ChSharedBodyPtr &body, double radius, double mass,ChVector<> pos,double sfric,double kfric,double restitution,bool collide);
-	void MakeBox(ChSharedBodyPtr &body, ChVector<> radius, double mass,ChVector<> pos,ChQuaternion<> rot,double sfric,double kfric,double restitution,bool collide);
-	void MakeEllipsoid(ChSharedBodyPtr &body, ChVector<> radius, double mass,ChVector<> pos,ChQuaternion<> rot,double sfric,double kfric,double restitution,bool collide);
-	void LoadTriangleMesh(string name);
+	void MakeSphere(ChSharedBodyGPUPtr &body, double radius, double mass,ChVector<> pos,double sfric,double kfric,double restitution,bool collide);
+	void MakeBox(ChSharedBodyGPUPtr &body, ChVector<> radius, double mass,ChVector<> pos,ChQuaternion<> rot,double sfric,double kfric,double restitution,int family,int nocolwith,bool collide, bool fixed);
+	void MakeEllipsoid(ChSharedBodyGPUPtr &body, ChVector<> radius, double mass,ChVector<> pos,ChQuaternion<> rot,double sfric,double kfric,double restitution,bool collide);
+	void LoadTriangleMesh(string name, ChVector<> pos, ChQuaternion<> rot, float mass);
 	void drawAll();
 	void renderScene(){	PrintStats();	DoTimeStep();}
 	ChSystem *mSystem;
 
-
-
 	double mKE,mMassFlowRate;
 	bool openGL, mGPUSys;
-	int mNumCurrentSpheres;
+	int mNumCurrentSpheres,mNumCurrentObjects;
 	bool saveTimingData;
 	bool saveSimData;
 
@@ -85,8 +83,6 @@ public:
 
 	ofstream mTimingFile;
 	FILE *mDataFile;
-
-	ChSharedBodyPtr mgroundBody;
 };
 
 
@@ -116,12 +112,17 @@ float3 GetColour(double v,double vmin,double vmax){
 	return(c);
 }
 
-void drawSphere(ChVector<> gPos, double velocity, double & mSphereRadius){
-	float3 color=GetColour(velocity,0,.1*SCALE);
-	glColor4f (color.x, color.y,color.z,1.0f);
+void drawSphere(ChBody *abody, bool gpu, int a){
+double angle;
+	ChVector<> axis;
+	float3 color=GetColour(abody->GetPos_dt().Length(),0,500);
+	glColor3f (color.x, color.y,color.z);
 	glPushMatrix();
-	glTranslatef (gPos.x, gPos.y, gPos.z);
-	if(showSphere){glutSolidSphere(mSphereRadius,10,10);}
+	glTranslatef(abody->GetPos().x, abody->GetPos().y, abody->GetPos().z);
+	abody->GetRot().Q_to_AngAxis(angle,axis);
+	glRotatef(angle*180.0/3.1415, axis.x, axis.y, axis.z);
+	float4 h=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[0].A;
+	if(showSphere){glutSolidSphere(h.w,10,10);}
 	else{
 		glPointSize(10);
 		glBegin(GL_POINTS);
@@ -134,7 +135,7 @@ void drawSphere(ChVector<> gPos, double velocity, double & mSphereRadius){
 
 void drawSphere(ChBody *abody, bool gpu){
 
-	float3 color=GetColour(abody->GetPos_dt().Length(),0,.001*SCALE);
+	float3 color=GetColour(abody->GetPos_dt().Length(),0,500);
 	glColor3f (color.x, color.y,color.z);
 	glPushMatrix();
 	double angle;
@@ -149,13 +150,18 @@ void drawSphere(ChBody *abody, bool gpu){
 		glScalef(h.x,h.y,h.z);
 	}
 	glutSolidSphere(1,10,10);
+	if(showSphere){glutSolidSphere(1,10,10);}
+	else{
+		glPointSize(10);
+		glBegin(GL_POINTS);
+		glVertex3f(0, 0, 0);	
+		glEnd();
+	}
 	glPopMatrix();
 }
 void drawBox(ChBody *abody, float x, bool gpu){
-	glEnable(GL_BLEND);
-	glDisable(GL_DEPTH_TEST);
-	float3 color=GetColour(abody->GetPos_dt().Length(),0,.001*SCALE);
-	glColor4f (color.x, color.y,color.z, .3);
+	float3 color=GetColour(abody->GetPos_dt().Length(),0,10);
+	glColor4f (color.x, color.y,color.z, 1);
 	glPushMatrix();
 	double angle;
 	ChVector<> axis;
@@ -171,8 +177,6 @@ void drawBox(ChBody *abody, float x, bool gpu){
 
 	glutSolidCube(1);
 	glPopMatrix();
-	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
 }
 
 void drawTriMesh(ChTriangleMesh &TriMesh,ChBody *abody){
@@ -191,4 +195,125 @@ void drawTriMesh(ChTriangleMesh &TriMesh,ChBody *abody){
 		glEnd();
 	}
 }
+
+float m_MaxPitchRate=5;
+float m_MaxHeadingRate=5;
+float3 camera_pos=make_float3(-.1,0,-.1);
+float3 look_at=make_float3(0,0,0);
+float3 camera_up=make_float3(0,1,0);
+float camera_heading=0, camera_pitch=0;
+float3 dir=make_float3(0,0,1);
+float2 mouse_pos=make_float2(0,0);
+float3 camera_pos_delta=make_float3(0,0,0);
+float4 CreateFromAxisAngle(float3 axis, float degrees){
+	float angle = float((degrees / 180.0f) * PI);
+	float result = (float)sinf( angle / 2.0f );
+	float4 camera_quat;
+	camera_quat.w = (float)cosf( angle / 2.0f );
+	camera_quat.x = float(axis.x * result);
+	camera_quat.y = float(axis.y * result);
+	camera_quat.z = float(axis.z * result);
+	return camera_quat;
+}
+
+inline float4 operator ~(const float4& a){
+	return (1.0/(dot(a,a)))*(F4(-1*F3(a),a.w));
+}
+inline float4 mult(const float4 &a, const float4 &b){
+	return F4(a.w*F3(b)+b.w*F3(a)+cross(F3(a),F3(b)),a.w*b.w-dot(F3(a),F3(b)));
+}
+inline float3 quatRotate(const float3 &v, const float4 &q){
+	return make_float3(mult(mult(q,make_float4(v,0)),~(q)));
+}
+
+
+
+void ChangePitch(GLfloat degrees)
+{
+	if(fabs(degrees) < fabs(m_MaxPitchRate)){
+		camera_pitch += degrees;
+	}else{
+		if(degrees < 0){
+			camera_pitch -= m_MaxPitchRate;
+		}else{
+			camera_pitch += m_MaxPitchRate;
+		}
+	}
+	if(camera_pitch > 360.0f){
+		camera_pitch -= 360.0f;
+	}else if(camera_pitch < -360.0f){
+		camera_pitch += 360.0f;
+	}
+}
+
+void ChangeHeading(GLfloat degrees){
+	if(fabs(degrees) < fabs(m_MaxHeadingRate)){
+		if(camera_pitch > 90 && camera_pitch < 270 || (camera_pitch < -90 && camera_pitch > -270)){
+			camera_heading -= degrees;
+		}
+		else{
+			camera_heading += degrees;
+		}
+	}
+	else{
+		if(degrees < 0){
+			if((camera_pitch > 90 && camera_pitch < 270) || (camera_pitch < -90 && camera_pitch > -270)){
+				camera_heading += m_MaxHeadingRate;
+			}else{
+				camera_heading -= m_MaxHeadingRate;
+			}
+		}else{
+			if(camera_pitch > 90 && camera_pitch < 270 || (camera_pitch < -90 && camera_pitch > -270)){
+				camera_heading -= m_MaxHeadingRate;
+			}else{
+				camera_heading += m_MaxHeadingRate;
+			}
+		}
+	}
+	if(camera_heading > 360.0f){
+		camera_heading -= 360.0f;
+	}else if(camera_heading < -360.0f){
+		camera_heading += 360.0f;
+	}
+}
+
+
+void processNormalKeys(unsigned char key, int x, int y) { 	
+	if (key=='w'){camera_pos_delta+=dir*1*SCALE;}
+	if (key=='s'){camera_pos_delta-=dir*1*SCALE;}
+	if (key=='d'){camera_pos_delta+=cross(dir,camera_up)*1*SCALE;}
+	if (key=='a'){camera_pos_delta-=cross(dir,camera_up)*1*SCALE;}
+	if (key=='q'){camera_pos_delta+=camera_up*1*SCALE;}
+	if (key=='e'){camera_pos_delta-=camera_up*1*SCALE;}
+	if (key=='u'){updateDraw=(updateDraw)? 0:1;}
+	if (key=='i'){showSphere=(showSphere)? 0:1;}
+	if (key=='z'){savenow=1;}
+	if (key=='x'){moveGround=1;}
+}
+void pressKey(int key, int x, int y) {} 
+void releaseKey(int key, int x, int y) {}
+
+void mouseMove(int x, int y) { 
+	float2 mouse_delta=mouse_pos-make_float2(x,y);
+	ChangeHeading(.2 * mouse_delta.x);
+	ChangePitch(.2 * mouse_delta.y);
+	mouse_pos=make_float2(x,y);
+}
+
+void mouseButton(int button, int state, int x, int y) {
+	mouse_pos=make_float2(x,y);
+}
+
+void changeSize(int w, int h) {
+	if(h == 0) {h = 1;}
+	float ratio = 1.0* w / h;
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glViewport(0, 0, w, h);
+	gluPerspective(45,ratio,.1,1000);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluLookAt(0.0,0.0,0.0,		0.0,0.0,-7,		0.0f,1.0f,0.0f);
+}
+
 

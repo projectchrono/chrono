@@ -13,24 +13,22 @@ if(OPENMP_FOUND)
 endif(OPENMP_FOUND)
 		
 # Add executables		 	
-#ADD_EXECUTABLE(test_gpuCD__hammad	test_gpuCD.cpp)
-#SOURCE_GROUP(testing\\gpu FILES test_gpuCD.cpp)
-#SET_TARGET_PROPERTIES(test_gpuCD__hammad PROPERTIES 
-#	FOLDER testing
-#	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-#	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+ADD_EXECUTABLE(test_gpuCD__hammad	test_gpuCD.cpp)
+SOURCE_GROUP(testing\\gpu FILES test_gpuCD.cpp)
+SET_TARGET_PROPERTIES(test_gpuCD__hammad PROPERTIES 
+	FOLDER testing
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
+	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
 
-#TARGET_LINK_LIBRARIES(test_gpuCD__hammad
-#			${CH_CUDART}
-#			${GLUT_LIBRARIES}
-#	optimized 	${CH_CHRONOLIB}     
-#	debug 		${CH_CHRONOLIB_DBG} 
-#	optimized 	${CH_CHRONOGPULIB}
-#	debug	    	${CH_CHRONOGPULIB_DBG}	
-#	optimized 	${BT_LIB}
-# 	debug	    	${BT_LIB_DBG}
-# 	)
-#ADD_DEPENDENCIES (test_gpuCD__hammad ChronoEngine ChronoEngine_GPU)
+TARGET_LINK_LIBRARIES(test_gpuCD__hammad
+			${CH_CUDART}
+			${GLUT_LIBRARIES}
+	optimized 	${CH_CHRONOLIB}     
+	debug 		${CH_CHRONOLIB_DBG} 
+	optimized 	${CH_CHRONOGPULIB}
+	debug	    	${CH_CHRONOGPULIB_DBG}
+ 	)
+ADD_DEPENDENCIES (test_gpuCD__hammad ChronoEngine ChronoEngine_GPU)
 	 	
 ADD_EXECUTABLE(test_validation_hammad	test_validation.cpp)
 SOURCE_GROUP(testing\\gpu FILES test_validation.cpp)
