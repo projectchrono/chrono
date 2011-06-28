@@ -55,9 +55,9 @@ __host__ __device__ void compute_mat(float3 &A, float3 &B, float3 &C,const float
 	C.y = 2 * t25 * t14 +     t26 * t15 + 2 * t27 * t18;
 	C.z = 2 * t25 * t19 + 2 * t26 * t20 +     t27 * t21;
 }
-// Kernel for a single iteration of the LCP over all contacts
-//   Version 2.0 - Tasora
-//	 Version 2.2- Hammad (optimized, cleaned etc)
+// 	Kernel for a single iteration of the LCP over all contacts
+//   	Version 2.0 - Tasora
+//	Version 2.2- Hammad (optimized, cleaned etc)
 __global__ void LCP_Iteration_Contacts( contactGPU* contacts, CH_REALNUMBER4* bodies, updateGPU* update, uint* offset) {
 	unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 	if(i>=number_of_contacts_const){return;}
@@ -65,19 +65,19 @@ __global__ void LCP_Iteration_Contacts( contactGPU* contacts, CH_REALNUMBER4* bo
 	float3 vB,vA, gamma, N, U, W, T3, T4, T5, T6, T7, T8, gamma_old, sbar;
 	float  reg, mu, eta=0;
 	vB= contacts[i].I;
-	reg=vB.x*c_factor_const;										//Scale contact distance
+	reg=vB.x*c_factor_const;							//Scale contact distance, cfactor is usually 1
 	int B1_i = int(vB.y);
 	int B2_i = int(vB.z);
 	B1=bodies[B1_i];
 	B2=bodies[B2_i];
-	N= contacts[i].N;												//assume: normalized, and if depth=0 norm=(1,0,0)
-	W = fabs(N);													//Gramm Schmidt; work with the global axis that is "most perpendicular" to the contact normal vector;effectively this means looking for the smallest component (in abs) and using the corresponding direction to carry out cross product.
-				U = F3(0.0,N.z, -N.y);								//it turns out that X axis is closest to being perpendicular to contact vector;
-	if(W.x>W.y){U = F3(-N.z,0.0, N.x);}								//it turns out that Y axis is closest to being perpendicular to contact vector;
-	if(W.y>W.z){U = F3(N.y,-N.x, 0.0);}								//it turns out that Z axis is closest to being perpendicular to contact vector;
-	U=normalize(U);													//normalize the local contact Y,Z axis
-	W=cross(N,U);													//carry out the last cross product to find out the contact local Z axis : multiply the contact normal by the local Y component										
-	reg=max(reg+(dot3(N,(B2-B1)))*10,negated_recovery_speed_const);						//Clamp Anitescu stabilization coefficient	
+	N= contacts[i].N;								//assume: normalized, and if depth=0 norm=(1,0,0)
+	W = fabs(N);									//Gramm Schmidt; work with the global axis that is "most perpendicular" to the contact normal vector;effectively this means looking for the smallest component (in abs) and using the corresponding direction to carry out cross product.
+	U = F3(0.0,N.z, -N.y);								//it turns out that X axis is closest to being perpendicular to contact vector;
+	if(W.x>W.y){U = F3(-N.z,0.0, N.x);}						//it turns out that Y axis is closest to being perpendicular to contact vector;
+	if(W.y>W.z){U = F3(N.y,-N.x, 0.0);}						//it turns out that Z axis is closest to being perpendicular to contact vector;
+	U=normalize(U);									//normalize the local contact Y,Z axis
+	W=cross(N,U);									//carry out the last cross product to find out the contact local Z axis : multiply the contact normal by the local Y component										
+	reg=max(reg/*+(dot3(N,(B2-B1)))*10*/,negated_recovery_speed_const);		//Clamp Anitescu stabilization coefficient	
 
 	sbar =contacts[i].Pa-F3(bodies[2*number_of_bodies_const+B1_i]);	//Contact Point on A - Position of A                                
 	E1 = bodies[3*number_of_bodies_const+B1_i];						//bring in the Euler parameters associated with body 1;
@@ -95,8 +95,8 @@ __global__ void LCP_Iteration_Contacts( contactGPU* contacts, CH_REALNUMBER4* bo
 	gamma.x = dot3(T3,W1)-dot3(N,B1)+dot3(T6,W2)+dot3(N,B2)+reg;	//+bi	
 	gamma.y = dot3(T4,W1)-dot3(U,B1)+dot3(T7,W2)+dot3(U,B2);
 	gamma.z = dot3(T5,W1)-dot3(W,B1)+dot3(T8,W2)+dot3(W,B2);
-	B1 = bodies[4*number_of_bodies_const+B1_i];						// bring in the inertia attributes; to be used to compute \eta
-	B2 = bodies[4*number_of_bodies_const+B2_i];						// bring in the inertia attributes; to be used to compute \eta
+	B1 = bodies[4*number_of_bodies_const+B1_i];					// bring in the inertia attributes; to be used to compute \eta
+	B2 = bodies[4*number_of_bodies_const+B2_i];					// bring in the inertia attributes; to be used to compute \eta
 	eta= dot3(T3*T3,B1)+dot3(T4*T4,B1)+dot3(T5*T5,B1);				// update expression of eta	
 	eta+= dot3(T6*T6,B2)+dot3(T7*T7,B2)+dot3(T8*T8,B2);
 	eta+=(dot(N,N)+dot(U,U)+dot(W,W))*(B1.w+B2.w);					// multiply by inverse of mass matrix of B1 and B2, add contribution from mass and matrix A_c.
@@ -118,14 +118,14 @@ __global__ void LCP_Iteration_Contacts( contactGPU* contacts, CH_REALNUMBER4* bo
 		}
 	}
 	contacts[i].G = gamma;											// store gamma_new
-	gamma -= gamma_old;												// compute delta_gamma = gamma_new - gamma_old   = delta_gamma.
+	gamma -= gamma_old;											// compute delta_gamma = gamma_new - gamma_old   = delta_gamma.
 	
 	vB=N*gamma.x+U*gamma.y+W*gamma.z;	
 	int offset1=offset[i];
 	int offset2=offset[i+number_of_contacts_const];
-	update[offset1].vel		= -vB*B1.w;										// compute and store dv1
+	update[offset1].vel	= -vB*B1.w;					// compute and store dv1
 	update[offset1].omega	= (T3*gamma.x+T4*gamma.y+T5*gamma.z)*F3(B1);	// compute dw1 =  Inert.1' * J1w^ * deltagamma  and store  dw1		
-	update[offset2].vel		= vB*B2.w;										// compute and store dv2  
+	update[offset2].vel	= vB*B2.w;					// compute and store dv2  
 	update[offset2].omega	= (T6*gamma.x+T7*gamma.y+T8*gamma.z)*F3(B2);	// compute dw2 =  Inert.2' * J2w^ * deltagamma  and store  dw2	
 }
 ///////////////////////////////////////////////////////////////////////////////////
