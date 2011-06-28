@@ -27,7 +27,7 @@ TARGET_LINK_LIBRARIES(demo_gpubasic
  	optimized 	${CH_CHRONOGPULIB}
  	debug	   	${CH_CHRONOGPULIB_DBG}	)
 ADD_DEPENDENCIES (demo_gpubasic ChronoEngine ChronoEngine_GPU)
- 	
+
 
 ADD_EXECUTABLE(demo_gpuCD__hammad	demo_gpuCD.cpp)
 SOURCE_GROUP(demos\\gpu FILES  		demo_gpuCD.cpp)
@@ -45,3 +45,7 @@ TARGET_LINK_LIBRARIES(demo_gpuCD__hammad
  	optimized 	${CH_CHRONOGPULIB}
  	debug	    ${CH_CHRONOGPULIB_DBG}	)
 ADD_DEPENDENCIES (demo_gpuCD__hammad ChronoEngine ChronoEngine_GPU)
+
+
+
+
