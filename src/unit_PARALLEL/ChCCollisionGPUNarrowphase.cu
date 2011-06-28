@@ -661,7 +661,7 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 		float separation = -dot(v4 , n);
 
 		// If the boundary is thin enough or the origin is outside the support plane for the newly discovered vertex, then we can terminate
-		if (/* delta <= kCollideEpsilon || separation >= 0. || */phase2 > 15 ){
+		if ( delta <= kCollideEpsilon || separation >= 0. || phase2 > 200 ){
 			returnNormal = n;
 			return hit;
 		}

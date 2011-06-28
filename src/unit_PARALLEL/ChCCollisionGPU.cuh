@@ -12,9 +12,9 @@ __constant__ uint		number_of_objects_const;
 #define PI_2   (PI / 2.0f)   
 #define PI_180  (PI / 180.0f)
 //1.f/16384.f;
-#define Vector_ZERO_EPSILON 0.00000000001
+#define Vector_ZERO_EPSILON 0.000001
 #define MIN_ZERO_EPSILON 1.1754943508222875E-38
-#define kCollideEpsilon  1e-8f
+#define kCollideEpsilon  1e-5f
 
 __device__ __host__ inline float4 operator ~(const float4& a){
 	return (1.0f/(dot(a,a)))*(F4(-1*F3(a),a.w));
