@@ -235,7 +235,7 @@ void System::LoadTriangleMesh(string name, ChVector<> Pos, ChQuaternion<> Rot, f
 
 void System::DoTimeStep(){
 	if(mNumCurrentSpheres<mNumSpheres&&mFrameNumber%20==0){
-		CreateObjects(4, 1, 4, 0, 0, 0, false, 2);
+		CreateObjects(4, 1, 4, 0, 0, 0, false, 0);
 		//CreateObjects(2, 10, 2,  0, 0, 0, false, 1);
 		//CreateObjects(2, 10, 2,  2, 0, 0, false, 2);
 
@@ -284,7 +284,7 @@ void System::PrintStats(){
 	char numstr[512];
 	printf("%7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d\n",A,B,C,D,E,F);
 	sprintf(numstr,"%7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d",A,B,C,D,E,F);
-	mTimingFile<<numstr<<endl;
+	if(mFrameNumber%20==0){mTimingFile<<numstr<<endl;}
 }
 void initScene(){
 	GLfloat light_position[] = { 1.0, 1.0, 1.0, 0.0 };			
@@ -307,7 +307,7 @@ void renderSceneAll(){
 }
 int main(int argc, char* argv[]){
 	float mOmega=.1;
-	int mIteations=600;
+	int mIteations=300;
 	float mTimeStep=.0005;
 	float mEnvelope=0;
 	float mSphereMu=.5;
