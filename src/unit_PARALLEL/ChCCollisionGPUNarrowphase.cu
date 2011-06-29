@@ -201,7 +201,7 @@ __device__ bool ContactCalculation(object &A, object &B, float3& pA, float3& pB,
 	float lam1, lam2;
 	float distance2 = 10000000;
 	float distance3;						//its name has two parts because it is used in two different locations.
-	int noOfPoints = 21;					//to double up the efficiency, use odd numbers. 
+	int noOfPoints = 5;					//to double up the efficiency, use odd numbers.
 	float count=0;	
 
 	float3 dP11;							//dP11 is not used after pointA, so after pointB dP11 is recycled for c2
@@ -691,7 +691,7 @@ __global__ void MPR_GPU_Store(
 	if(Index>=totalPossibleConts){return;}
 	if(Contact_Number[Index]!=0xFFFFFFFF){return;}
 	int3 pair=Pair[Index];
-	if(pair.z<3){return;}
+	//if(pair.z<4){return;}
 	object A=object_data[pair.x];
 	object B=object_data[pair.y];
 	float3 N,p1,p2;
@@ -707,19 +707,19 @@ void ChCCollisionGPU::Narrowphase(){       						//NarrowPhase Contact CD
 	generic_counter.resize(number_of_contacts);
 	Thrust_Fill(generic_counter,0xFFFFFFFF);
 	contact_data_gpu->resize(number_of_contacts);
-	Sphere_Sphere<<<BLOCKS(number_of_contacts),THREADS>>>(		//Compute Sphere-Sphere Contacts
-		OBJCAST(object_data),
-		CASTI3(contact_pair),									//Indices of bodies that make up AABB contact
-		CASTU1(generic_counter),								//Contact Index, store the thread index
-		CONTCAST((*contact_data_gpu)),							//Contact Data GPU
-		number_of_contacts);									//Number of potential contacts
+	//Sphere_Sphere<<<BLOCKS(number_of_contacts),THREADS>>>(		//Compute Sphere-Sphere Contacts
+	//	OBJCAST(object_data),
+	//	CASTI3(contact_pair),									//Indices of bodies that make up AABB contact
+	//	CASTU1(generic_counter),								//Contact Index, store the thread index
+	//	CONTCAST((*contact_data_gpu)),							//Contact Data GPU
+	//	number_of_contacts);									//Number of potential contacts
 
-	Sphere_Triangle<<<BLOCKS(number_of_contacts),THREADS>>>(	//Compute Sphere-Sphere Contacts
-		OBJCAST(object_data),                         			//Object Data
-		CASTI3(contact_pair),                     				//Indices of bodies that make up AABB contact
-		CASTU1(generic_counter),								//Contact Index, store the thread index
-		CONTCAST((*contact_data_gpu)),                          //Contact Data GPU
-		number_of_contacts);									//Number of potential contacts
+	//Sphere_Triangle<<<BLOCKS(number_of_contacts),THREADS>>>(	//Compute Sphere-Sphere Contacts
+	//	OBJCAST(object_data),                         			//Object Data
+	//	CASTI3(contact_pair),                     				//Indices of bodies that make up AABB contact
+	//	CASTU1(generic_counter),								//Contact Index, store the thread index
+	//	CONTCAST((*contact_data_gpu)),                          //Contact Data GPU
+	//	number_of_contacts);									//Number of potential contacts
 	//Ellipsoid_Ellipsoid<<<BLOCKS(number_of_contacts),THREADS>>>(		//Compute convex-covnex Contacts
 	//	OBJCAST(object_data),                         			//Object Data
 	//	CASTI3(contact_pair),                     				//Indices of bodies that make up AABB contact
