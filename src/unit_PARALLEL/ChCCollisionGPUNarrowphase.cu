@@ -391,7 +391,7 @@ __global__ void Ellipsoid_Ellipsoid(object * object_data,
 	float3 N,p1,p2;
 	float depth;
 	if(!ContactCalculation(A,B,p1,p2,N,depth)){return;}
-	AddContact(CData,Index,  getID(A),getID(B), p1, p2,N,depth);
+	AddContact(CData,Index,  getID(A),getID(B), p1, p2,N,-depth);
 	Contact_Number[Index]=Index;
 }
 
