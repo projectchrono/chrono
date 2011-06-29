@@ -345,7 +345,7 @@ int main(int argc, char* argv[]){
 	ChSharedBodyGPUPtr B	=	ChSharedBodyGPUPtr(new ChBodyGPU);
 	GPUSystem->MakeBox(B,	ChVector<>(40,1,40), 100000,ChVector<>(0,-30,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
 	
-	GPUSystem->mTimingFile.open("sphereDrop.txt");
+	GPUSystem->mTimingFile.open("Arman.txt");
 #pragma omp parallel sections
 	{
 
