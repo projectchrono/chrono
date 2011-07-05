@@ -27,7 +27,7 @@ using namespace chrono;
 using namespace std;
 #define SCALE 1
 #define PI			3.14159265358979323846
-#define OGL 1
+#define OGL 0
 #define GRAV -9.80665
 
 bool load_file=false;
@@ -505,7 +505,7 @@ void System::DoTimeStep(){
 	if(mNumCurrentSpheres<mNumSpheres&&mFrameNumber%50==0){
 		//CreateObjects(10, 1, 10, 1, 1+mFrameNumber*3, 0, true, 0);
 		//CreateObjects(10, 1, 10, 1, 2+mFrameNumber*3, 0, true, 1);
-		CreateObjects(35, 64, 35, 0, 20, 0, false, 0);
+		CreateObjects(70, 16, 70, 0, -10, 0, false, 0);
 	}
 	for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
 	ChBodyGPU *abody=(ChBodyGPU*)(mSystem->Get_bodylist()->at(i));
@@ -535,7 +535,7 @@ void System::DoTimeStep(){
 	 }
 	
 	
-	if(moveGround||mSystem->GetChTime()>1){
+	if(moveGround||mNumCurrentSpheres>mNumSpheres){
 	BTM->SetBodyFixed(false);
 	my_motor->SetDisabled(false);
 	}
@@ -622,14 +622,13 @@ int main(int argc, char* argv[]){
 	ChSharedBodyGPUPtr FXED	=	ChSharedBodyGPUPtr(new ChBodyGPU);
 	ChSharedBodyGPUPtr I	=	ChSharedBodyGPUPtr(new ChBodyGPU);
 	
-	GPUSystem->MakeBox(L,	ChVector<>(7,30,30), 100000,ChVector<>(-30,0,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
-	GPUSystem->MakeBox(R,	ChVector<>(7,30,30), 100000,ChVector<>(30,0,0), base,mWallMu,mWallMu,0,-20,-20,true,true);
-	GPUSystem->MakeBox(F,	ChVector<>(30,30,7), 100000,ChVector<>(0,0,-30),base,mWallMu,mWallMu,0,-20,-20,true,true);
-	GPUSystem->MakeBox(B,	ChVector<>(30,30,7), 100000,ChVector<>(0,0,30), base,mWallMu,mWallMu,0,-20,-20,true,true);
-	GPUSystem->MakeBox(BTM,	ChVector<>(50,4,50), 100000,ChVector<>(0,-30,0),base,mWallMu,mWallMu,0,-20,-20,true,false);
+	GPUSystem->MakeBox(L,	ChVector<>(3,30,60), 100000,ChVector<>(-60,0,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
+	GPUSystem->MakeBox(R,	ChVector<>(3,30,60), 100000,ChVector<>(60,0,0), base,mWallMu,mWallMu,0,-20,-20,true,true);
+	GPUSystem->MakeBox(F,	ChVector<>(60,30,3), 100000,ChVector<>(0,0,-60),base,mWallMu,mWallMu,0,-20,-20,true,true);
+	GPUSystem->MakeBox(B,	ChVector<>(60,30,3), 100000,ChVector<>(0,0,60), base,mWallMu,mWallMu,0,-20,-20,true,true);
+	GPUSystem->MakeBox(BTM,	ChVector<>(80,4,80), 100000,ChVector<>(0,-30,0),base,mWallMu,mWallMu,0,-20,-20,true,false);
 	
-	GPUSystem->MakeBox(FXED,ChVector<>(5,5,5), 100000,ChVector<>(0,-60,0 ), base,mWallMu,mWallMu,0,-20,-20,true,true);
-	GPUSystem->MakeSphere(I, 5, .03, ChVector<>(0,0,0), mSphereMu, mSphereMu, 0, true);
+	GPUSystem->MakeBox(FXED,ChVector<>(5,5,5), 100000,ChVector<>(0,-70,0 ), base,mWallMu,mWallMu,0,-20,-20,true,true);
 	
 	my_motor= ChSharedPtr<ChLinkLockLock> (new ChLinkLockLock);
 	ChSharedBodyPtr ptr1=ChSharedBodyPtr(BTM);
@@ -641,7 +640,7 @@ int main(int argc, char* argv[]){
 	SysG.AddLink(my_motor);
 	my_motor->SetDisabled(true);
 	BTM->SetBodyFixed(true);
-	GPUSystem->mTimingFile.open("ellipsH3.txt");
+	GPUSystem->mTimingFile.open("vibration.txt");
 
 #pragma omp parallel sections
 	{
