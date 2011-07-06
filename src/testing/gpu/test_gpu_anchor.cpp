@@ -27,7 +27,7 @@ using namespace chrono;
 using namespace std;
 #define SCALE 1
 #define PI			3.14159265358979323846
-#define OGL 0
+#define OGL 1
 #define GRAV -9.80665
 
 bool load_file=false;
@@ -171,7 +171,7 @@ void drawBox(ChBody *abody, float x, bool gpu){
 	float4 h=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[0].B;
 	glScalef(h.x*2,h.y*2,h.z*2);
 
-	glutSolidCube(1);
+	glutWireCube(1);
 	glPopMatrix();
 }
 
@@ -316,7 +316,7 @@ void changeSize(int w, int h) {
 
 
 
-ChSharedPtr<ChLinkLockLock> my_motor;
+ChSharedPtr<ChLinkLockAlign> my_motor;
 ChSharedBodyGPUPtr BTM;
 
 System::System(ChSystem * Sys, bool GPU){
@@ -327,13 +327,13 @@ System::System(ChSystem * Sys, bool GPU){
 	saveSimData=false;
 	mSphereRadius=.5;
 	mSphereEnvelope=0;
-	mSphereMass = .000136;
+	mSphereMass = .0002;
 	mSphereRestitution=0;
 	mTimeStep=.001;
 	mCurrentTime=0;
 	mMu=.15;
 	mTriangleScale=20;
-	mEndTime=10;
+	mEndTime=5;
 	mCameraX=0, mCameraY=0, mCameraZ=0;
 	mBoundingBoxSize=40;
 	mNumSpheres=78400;
@@ -503,9 +503,9 @@ void System::drawAll(){
 
 void System::DoTimeStep(){
 	if(mNumCurrentSpheres<mNumSpheres&&mFrameNumber%50==0){
-		//CreateObjects(10, 1, 10, 1, 1+mFrameNumber*3, 0, true, 0);
+		//CreateObjects(2, 1, 2, 0, 20, 0, false, 0);
 		//CreateObjects(10, 1, 10, 1, 2+mFrameNumber*3, 0, true, 1);
-		CreateObjects(70, 16, 70, 0, -10, 0, false, 0);
+		CreateObjects(35, 64, 35, 0, 20, 0, false, 0);
 	}
 	for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
 	ChBodyGPU *abody=(ChBodyGPU*)(mSystem->Get_bodylist()->at(i));
@@ -515,7 +515,7 @@ void System::DoTimeStep(){
 	abody->SetPos(ChVector<>(15,-40,15));
 	}
 	}
-	 if(mFrameNumber%120==0){
+	 if(mFrameNumber%60==0){
 		 ofstream ofile;
 		 stringstream ss;
 		 ss<<"data/data"<<mFileNumber<<".txt";
@@ -524,20 +524,22 @@ void System::DoTimeStep(){
 			 ChBody* abody = mSystem->Get_bodylist()->at(i);
 			 ChVector<> pos=abody->GetPos();
 			 ChVector<> rot=abody->GetRot().Q_to_NasaAngles();
+			 ChVector<> vel=abody->GetPos_dt();
+			 ChVector<> acc=abody->GetPos_dtdt();
+			 ChVector<> trq=abody->Get_gyro();
 			 if(isnan(rot.x)){rot.x=0;}
 			 if(isnan(rot.y)){rot.y=0;}
 			 if(isnan(rot.z)){rot.z=0;}
-
-			 ofile<<pos.x<<","<<pos.y<<","<<pos.z<<","<<rot.x<<","<<rot.y<<","<<rot.z<<","<<endl;
+			 ofile<<pos.x<<","<<pos.y<<","<<pos.z<<","<<rot.x<<","<<rot.y<<","<<rot.z<<","<<vel.x<<","<<vel.y<<","<<vel.z<<","<<acc.x<<","<<acc.y<<","<<acc.z<<","<<trq.x<<","<<trq.y<<","<<trq.z<<","<<endl;
 		 }
 		 ofile.close();
 		 mFileNumber++;
 	 }
 	
 	
-	if(moveGround||mNumCurrentSpheres>mNumSpheres){
+	if(moveGround||mSystem->GetChTime()>.3){
 	BTM->SetBodyFixed(false);
-	my_motor->SetDisabled(false);
+	BTM->SetCollide(true);
 	}
 	mFrameNumber++;
 	mSystem->DoStepDynamics( mTimeStep );
@@ -582,8 +584,8 @@ int main(int argc, char* argv[]){
 	int mIteations=200;
 	float mTimeStep=.00025;
 	float mEnvelope=0;
-	float mSphereMu=.5;
-	float mWallMu=.5;
+	float mSphereMu=.9;
+	float mWallMu=.9;
 	int mDevice=1;
 	/*if(argc>1){
 	mIteations=atoi(argv[1]);
@@ -622,25 +624,27 @@ int main(int argc, char* argv[]){
 	ChSharedBodyGPUPtr FXED	=	ChSharedBodyGPUPtr(new ChBodyGPU);
 	ChSharedBodyGPUPtr I	=	ChSharedBodyGPUPtr(new ChBodyGPU);
 	
-	GPUSystem->MakeBox(L,	ChVector<>(3,30,60), 100000,ChVector<>(-60,0,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
-	GPUSystem->MakeBox(R,	ChVector<>(3,30,60), 100000,ChVector<>(60,0,0), base,mWallMu,mWallMu,0,-20,-20,true,true);
-	GPUSystem->MakeBox(F,	ChVector<>(60,30,3), 100000,ChVector<>(0,0,-60),base,mWallMu,mWallMu,0,-20,-20,true,true);
-	GPUSystem->MakeBox(B,	ChVector<>(60,30,3), 100000,ChVector<>(0,0,60), base,mWallMu,mWallMu,0,-20,-20,true,true);
-	GPUSystem->MakeBox(BTM,	ChVector<>(80,4,80), 100000,ChVector<>(0,-30,0),base,mWallMu,mWallMu,0,-20,-20,true,false);
+	GPUSystem->MakeBox(L,	ChVector<>(7,30,30), 100000,ChVector<>(-30,0,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
+	GPUSystem->MakeBox(R,	ChVector<>(7,30,30), 100000,ChVector<>(30,0,0), base,mWallMu,mWallMu,0,-20,-20,true,true);
+	GPUSystem->MakeBox(F,	ChVector<>(30,30,7), 100000,ChVector<>(0,0,-30),base,mWallMu,mWallMu,0,-20,-20,true,true);
+	GPUSystem->MakeBox(B,	ChVector<>(30,30,7), 100000,ChVector<>(0,0,30), base,mWallMu,mWallMu,0,-20,-20,true,true);
+	GPUSystem->MakeBox(FXED,	ChVector<>(50,4,50), 100000,ChVector<>(0,-30,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
 	
-	GPUSystem->MakeBox(FXED,ChVector<>(5,5,5), 100000,ChVector<>(0,-70,0 ), base,mWallMu,mWallMu,0,-20,-20,true,true);
+	GPUSystem->MakeBox(BTM,ChVector<>(2,20,2), .5,ChVector<>(0,60,0 ), base,mWallMu,mWallMu,0,100000,100000,true,false);
+	//GPUSystem->MakeSphere(I, 5, .03, ChVector<>(0,0,0), mSphereMu, mSphereMu, 0, true);
 	
-	my_motor= ChSharedPtr<ChLinkLockLock> (new ChLinkLockLock);
-	ChSharedBodyPtr ptr1=ChSharedBodyPtr(BTM);
-	ChSharedBodyPtr ptr2=ChSharedBodyPtr(FXED);
+	my_motor= ChSharedPtr<ChLinkLockAlign> (new ChLinkLockAlign);
+	ChSharedBodyPtr ptr1=ChSharedBodyPtr(FXED);
+	ChSharedBodyPtr ptr2=ChSharedBodyPtr(BTM);
 	
 	my_motor->Initialize(ptr1,ptr2,ChCoordsys<>(ChVector<>(0,1,0)));
-	ChFunction_Sine *vibrationFunc=new ChFunction_Sine(0,15,8.372);
-	my_motor->SetMotion_Y(vibrationFunc);
+	//ChFunction_Sine *vibrationFunc=new ChFunction_Sine(0,50,1);
+	//my_motor->SetMotion_Y(vibrationFunc);
 	SysG.AddLink(my_motor);
-	my_motor->SetDisabled(true);
+	//my_motor->SetDisabled(true);
 	BTM->SetBodyFixed(true);
-	GPUSystem->mTimingFile.open("vibration.txt");
+	BTM->SetCollide(false);
+	GPUSystem->mTimingFile.open("anchor.txt");
 
 #pragma omp parallel sections
 	{
