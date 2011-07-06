@@ -27,7 +27,7 @@ using namespace chrono;
 using namespace std;
 #define SCALE 1
 #define PI			3.14159265358979323846
-#define OGL 0
+#define OGL 1
 #define GRAV -9.80665
 
 bool load_file=false;

@@ -257,23 +257,23 @@ void System::DoTimeStep(){
 	abody->SetPos(ChVector<>(0,-60,0));
 	}
 	}*/
-	if(mFrameNumber%30==0){
-		ofstream ofile;
-		stringstream ss;
-		ss<<"mm\\data"<<mFileNumber<<".txt";
-		ofile.open(ss.str().c_str());
-		for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
-			ChBody* abody = mSystem->Get_bodylist()->at(i);
-			ChVector<> pos=abody->GetPos();
-			ChVector<> rot=abody->GetRot().Q_to_NasaAngles();
-			if(rot.x!=rot.x){rot.x=0;}
-			if(rot.y!=rot.y){rot.y=0;}
-			if(rot.z!=rot.z){rot.z=0;}
-			ofile<<pos.x<<","<<pos.y<<","<<pos.z<<","<<rot.x<<","<<rot.y<<","<<rot.z<<","<<endl;
-		}
-		ofile.close();
-		mFileNumber++;
-	}
+	//if(mFrameNumber%30==0){
+		//	ofstream ofile;
+		//	stringstream ss;
+		//	ss<<"mm\\data"<<mFileNumber<<".txt";
+		//	ofile.open(ss.str().c_str());
+		//	for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
+		//		ChBody* abody = mSystem->Get_bodylist()->at(i);
+		//		ChVector<> pos=abody->GetPos();
+			//	ChVector<> rot=abody->GetRot().Q_to_NasaAngles();
+			//	if(rot.x!=rot.x){rot.x=0;}
+			//	if(rot.y!=rot.y){rot.y=0;}
+			//	if(rot.z!=rot.z){rot.z=0;}
+			//	ofile<<pos.x<<","<<pos.y<<","<<pos.z<<","<<rot.x<<","<<rot.y<<","<<rot.z<<","<<endl;
+			//}
+		//	ofile.close();
+		//	mFileNumber++;
+		//}
 	mFrameNumber++;
 	mSystem->DoStepDynamics( mTimeStep );
 	mCurrentTime+=mTimeStep;
@@ -315,7 +315,7 @@ void renderSceneAll(){
 	if(OGL){GPUSystem->drawAll();}
 }
 int main(int argc, char* argv[]){
-	float mOmega=.5;
+	float mOmega=.1;
 	int mIteations=500;
 	float mTimeStep=.001;
 	float mEnvelope=0;
@@ -393,7 +393,7 @@ ChSharedBodyPtr ptr2=ChSharedBodyPtr(movingWall);
 	my_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
 	if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(my_motor->Get_spe_funct()))mfun->Set_yconst(CH_C_PI/2.0); // speed w=90 deg/s
 	SysG.AddLink(my_motor);
-	GPUSystem->mTimingFile.open("ellipsH3.txt");
+	GPUSystem->mTimingFile.open("timing.txt");
 
 
 #pragma omp parallel sections
