@@ -27,7 +27,7 @@ using namespace chrono;
 using namespace std;
 #define SCALE 1
 #define PI			3.14159265358979323846
-#define OGL 1
+#define OGL 0
 #define GRAV -9.80665
 
 bool load_file=false;
@@ -505,7 +505,7 @@ void System::DoTimeStep(){
 	if(mNumCurrentSpheres<mNumSpheres&&mFrameNumber%50==0){
 		//CreateObjects(10, 1, 10, 1, 1+mFrameNumber*3, 0, true, 0);
 		//CreateObjects(10, 1, 10, 1, 2+mFrameNumber*3, 0, true, 1);
-		CreateObjects(70, 16, 70, 0, -10, 0, false, 0);
+		CreateObjects(70, 70, 70, 0, -10, 0, false, 0);
 	}
 	for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
 	ChBodyGPU *abody=(ChBodyGPU*)(mSystem->Get_bodylist()->at(i));
@@ -518,7 +518,7 @@ void System::DoTimeStep(){
 	 if(mFrameNumber%120==0){
 		 ofstream ofile;
 		 stringstream ss;
-		 ss<<"data/data"<<mFileNumber<<".txt";
+		 ss<<"data/vib"<<mFileNumber<<".txt";
 		ofile.open(ss.str().c_str());
 		 for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
 			 ChBody* abody = mSystem->Get_bodylist()->at(i);
@@ -527,18 +527,12 @@ void System::DoTimeStep(){
 			 if(isnan(rot.x)){rot.x=0;}
 			 if(isnan(rot.y)){rot.y=0;}
 			 if(isnan(rot.z)){rot.z=0;}
-
 			 ofile<<pos.x<<","<<pos.y<<","<<pos.z<<","<<rot.x<<","<<rot.y<<","<<rot.z<<","<<endl;
 		 }
 		 ofile.close();
 		 mFileNumber++;
 	 }
 	
-	
-	if(moveGround||mNumCurrentSpheres>mNumSpheres){
-	BTM->SetBodyFixed(false);
-	my_motor->SetDisabled(false);
-	}
 	mFrameNumber++;
 	mSystem->DoStepDynamics( mTimeStep );
 	mCurrentTime+=mTimeStep;
@@ -638,8 +632,6 @@ int main(int argc, char* argv[]){
 	ChFunction_Sine *vibrationFunc=new ChFunction_Sine(0,15,8.372);
 	my_motor->SetMotion_Y(vibrationFunc);
 	SysG.AddLink(my_motor);
-	my_motor->SetDisabled(true);
-	BTM->SetBodyFixed(true);
 	GPUSystem->mTimingFile.open("vibration.txt");
 
 #pragma omp parallel sections
