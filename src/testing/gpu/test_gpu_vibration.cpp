@@ -336,7 +336,7 @@ System::System(ChSystem * Sys, bool GPU){
 	mEndTime=10;
 	mCameraX=0, mCameraY=0, mCameraZ=0;
 	mBoundingBoxSize=40;
-	mNumSpheres=78400;
+	mNumSpheres=300000;
 	mOffsetX=0;
 	mOffsetY=6;
 	mOffsetZ=0;
@@ -505,7 +505,7 @@ void System::DoTimeStep(){
 	if(mNumCurrentSpheres<mNumSpheres&&mFrameNumber%50==0){
 		//CreateObjects(10, 1, 10, 1, 1+mFrameNumber*3, 0, true, 0);
 		//CreateObjects(10, 1, 10, 1, 2+mFrameNumber*3, 0, true, 1);
-		CreateObjects(70, 70, 70, 0, -10, 0, false, 0);
+		CreateObjects(70, 10, 70, 0, -10, 0, false, 0);
 	}
 	for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
 	ChBodyGPU *abody=(ChBodyGPU*)(mSystem->Get_bodylist()->at(i));
@@ -578,7 +578,7 @@ int main(int argc, char* argv[]){
 	float mEnvelope=0;
 	float mSphereMu=.5;
 	float mWallMu=.5;
-	int mDevice=1;
+	int mDevice=0;
 	/*if(argc>1){
 	mIteations=atoi(argv[1]);
 	mTimeStep=atof(argv[2]);
