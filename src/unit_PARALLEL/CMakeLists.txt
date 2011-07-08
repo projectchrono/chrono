@@ -133,8 +133,8 @@ IF(ENABLE_UNIT_GPU)
 			list(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_${cc},code=compute_${cc}")
 	endmacro(set_compute_capability)
 	
-	cuda_include_directories(${CUDA_SDK_ROOT_DIR}/common/inc)
-	cuda_include_directories(${CUDA_SDK_ROOT_DIR}/../shared/inc)
+	#cuda_include_directories(${CUDA_SDK_ROOT_DIR}/common/inc)
+	#cuda_include_directories(${CUDA_SDK_ROOT_DIR}/../shared/inc)
 
 	# Find path to cutil libs, from CUDA SDK
 	find_library(CH_CUDA_LIBSDKUTIL 
@@ -144,7 +144,7 @@ IF(ENABLE_UNIT_GPU)
 	#		NAMES cutilD cutil${CH_ARCH}D cutil_${CMAKE_SYSTEM_PROCESSOR}D 
 	#		PATHS ${CUDA_SDK_LIB_DIR})
 
-	
+	SET (CUDA_SDK_INCLUDE     "${CUDA_SDK_ROOT_DIR}/common/inc" )
 	SET (CH_CUDA_INC     "${CUDA_TOOLKIT_ROOT_DIR}/include" )
 	SET (CH_CUDA_SDK_INC "${CUDA_SDK_ROOT_DIR}/common/inc"  )
 
