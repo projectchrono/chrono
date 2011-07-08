@@ -2,51 +2,6 @@
 
 ChSharedPtr<ChLinkLockAlign> my_motor;
 ChSharedBodyGPUPtr BTM;
-void System::drawAll(){
-	if(updateDraw){
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glLoadIdentity();
-		float4 pitch_quat=CreateFromAxisAngle(cross(dir,camera_up), camera_pitch);
-		float4 heading_quat=CreateFromAxisAngle(camera_up, camera_heading);
-
-		dir=quatRotate(dir,normalize(mult(pitch_quat,heading_quat)));
-		camera_pos+=camera_pos_delta;
-		look_at=camera_pos+dir*1;
-
-		camera_heading*=.5;
-		camera_pitch*=.5;
-		camera_pos_delta*=.5;
-
-		gluLookAt(	
-		camera_pos.x, camera_pos.y, camera_pos.z,
-		look_at.x, look_at.y,  look_at.z,
-		camera_up.x, camera_up.y,  camera_up.z);
-
-		for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
-			ChBody* abody=mSystem->Get_bodylist()->at(i);
-			if(abody->GetCollisionModel()->GetShapeType()==SPHERE){
-				drawSphere(abody,0);
-			}
-			if(abody->GetCollisionModel()->GetShapeType()==BOX){
-				drawBox(abody);
-			}
-			if(abody->GetCollisionModel()->GetShapeType()==ELLIPSOID){
-				drawSphere(abody);
-			}
-			//if(abody->GetCollisionModel()->GetShapeType()==TRIANGLEMESH){
-			//	glColor3f (0,0,0);
-			//	drawTriMesh(TriMesh,(abody));
-			//}
-}
-#if defined( _WINDOWS )
-		Sleep( 30 );
-#else
-		usleep( 30 * 1000 );
-#endif
-		glutSwapBuffers();
-	}
-}
-
 void System::DoTimeStep(){
 	if(mNumCurrentObjects<mNumObjects&&mFrameNumber%50==0){
 		float x=35;	float posX=0;
@@ -88,7 +43,7 @@ void System::DoTimeStep(){
 	if(mFrameNumber%60==0){
 		ofstream ofile;
 		stringstream ss;
-		ss<<"data/data"<<mFileNumber<<".txt";
+		ss<<"data/anchor"<<mFileNumber<<".txt";
 		ofile.open(ss.str().c_str());
 		for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
 			ChBody* abody = mSystem->Get_bodylist()->at(i);
@@ -202,7 +157,7 @@ int main(int argc, char* argv[]){
 				glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);	
 				glutInitWindowPosition(0,0);								
 				glutInitWindowSize(1024	,512);
-				glutCreateWindow("MAIN");
+				glutCreateWindow("Anchor ");
 				glutDisplayFunc(renderSceneAll);
 				glutIdleFunc(renderSceneAll);
 				glutReshapeFunc(changeSize);
