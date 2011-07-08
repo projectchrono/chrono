@@ -77,7 +77,6 @@ public:
 System::System(ChSystem * Sys, int nobjects, string timingfile){
 	mSystem=Sys;
 	mCurrentTime=0;
-	mEndTime=5;
 	mCameraX=0, mCameraY=0, mCameraZ=0;
 	mNumObjects=nobjects;
 	mNumCurrentObjects=0;
