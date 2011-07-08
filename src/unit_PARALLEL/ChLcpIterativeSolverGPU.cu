@@ -77,8 +77,9 @@ __global__ void LCP_Iteration_Contacts( contactGPU* contacts, CH_REALNUMBER4* bo
 	if(W.y>W.z){U = F3(N.y,-N.x, 0.0);}						//it turns out that Z axis is closest to being perpendicular to contact vector;
 	U=normalize(U);									//normalize the local contact Y,Z axis
 	W=cross(N,U);									//carry out the last cross product to find out the contact local Z axis : multiply the contact normal by the local Y component										
-	reg=max(reg/*+(dot3(N,(B2-B1)))*10*/,negated_recovery_speed_const*20);		//Clamp Anitescu stabilization coefficient	
-
+	//if(i==0){printf("%f \n",reg);}
+	if((reg)>-1000){reg=(dot3(N,B2-B1));}
+	//reg=min(-sqrtf(dot3(B2-B1,B2-B1))*.9,reg);//max(reg/*+(dot3(N,(B2-B1)))*10*/,dot3(N,(B2-B1)));		//Clamp Anitescu stabilization coefficient	
 	sbar =contacts[i].Pa-F3(bodies[2*number_of_bodies_const+B1_i]);	//Contact Point on A - Position of A                                
 	E1 = bodies[3*number_of_bodies_const+B1_i];						//bring in the Euler parameters associated with body 1;
 	compute_mat(T3,T4,T5,E1,N,U,W,sbar);							//A_i,p'*A_A*(sbar~_i,A)
