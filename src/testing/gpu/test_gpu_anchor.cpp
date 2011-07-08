@@ -9,8 +9,8 @@ void System::DoTimeStep(){
 		float z=35;	float posZ=0;
 		
 		float radius	=.5;
-		float mass	=.0003456;
-		float mu	=1;
+		float mass	=793.3;
+		float mu	=.5;
 		float rest	=0;
 		int type 	=0;
 		ChSharedBodyGPUPtr mrigidBody;
@@ -41,7 +41,7 @@ void System::DoTimeStep(){
 			abody->SetPos(ChVector<>(15,-40,15));
 		}
 	}
-	if(mFrameNumber%60==0){
+	if(mFrameNumber%3==0){
 		ofstream ofile;
 		stringstream ss;
 		ss<<"data/anchor"<<mFileNumber<<".txt";
@@ -83,8 +83,8 @@ int main(int argc, char* argv[]){
 	int mIteations=200;
 	float mTimeStep=.005;
 	float mEnvelope=0;
-	float mMu=1;
-	float mWallMu=1;
+	float mMu=.5;
+	float mWallMu=.5;
 	int mDevice=0;
 	float mEndTime=20;
 	/*if(argc>1){
@@ -130,7 +130,7 @@ int main(int argc, char* argv[]){
 	GPUSystem->MakeBox(B,	ChVector<>(30,30,7), 100000,ChVector<>(0,0,30), base,mWallMu,mWallMu,0,-20,-20,true,true);
 	GPUSystem->MakeBox(FXED,	ChVector<>(50,4,50), 100000,ChVector<>(0,-30,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
 	
-	GPUSystem->MakeBox(BTM,ChVector<>(2,20,2), .1,ChVector<>(0,60,0 ), base,mWallMu,mWallMu,0,100000,100000,true,false);
+	GPUSystem->MakeBox(BTM,ChVector<>(2,20,2), 644282,ChVector<>(0,60,0 ), base,mWallMu,mWallMu,0,100000,100000,true,false);
 	//GPUSystem->MakeSphere(I, 5, .03, ChVector<>(0,0,0), mMu, mMu, 0, true);
 	
 	my_motor= ChSharedPtr<ChLinkLockAlign> (new ChLinkLockAlign);
