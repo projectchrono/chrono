@@ -185,10 +185,10 @@ void System::drawAll(){
 }
 
 void System::DoTimeStep(){
-	if(mNumCurrentSpheres<mNumSpheres&&mFrameNumber%300==0){
+	if(mNumCurrentSpheres<mNumSpheres&&mFrameNumber%600==0){
 		//CreateObjects(10, 1, 10, 1, 1+mFrameNumber*3, 0, true, 0);
 		//CreateObjects(10, 1, 10, 1, 2+mFrameNumber*3, 0, true, 1);
-		CreateObjects(10, 1, 10, 1, 15, 0, false, 2);
+		CreateObjects(10, 10, 10, 1, 15, 0, false, 2);
 
 	}
 	mFrameNumber++;
