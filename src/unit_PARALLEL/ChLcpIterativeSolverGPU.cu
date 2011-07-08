@@ -78,7 +78,8 @@ __global__ void LCP_Iteration_Contacts( contactGPU* contacts, CH_REALNUMBER4* bo
 	U=normalize(U);									//normalize the local contact Y,Z axis
 	W=cross(N,U);									//carry out the last cross product to find out the contact local Z axis : multiply the contact normal by the local Y component										
 	//if(i==0){printf("%f \n",reg);}
-	if((reg)>-1000){reg=(dot3(N,B2-B1));}
+	//if((reg)>-1000){reg=(dot3(N,B2-B1));}
+	reg=dot3(N,B2-B1)+reg;
 	//reg=min(-sqrtf(dot3(B2-B1,B2-B1))*.9,reg);//max(reg/*+(dot3(N,(B2-B1)))*10*/,dot3(N,(B2-B1)));		//Clamp Anitescu stabilization coefficient	
 	sbar =contacts[i].Pa-F3(bodies[2*number_of_bodies_const+B1_i]);	//Contact Point on A - Position of A                                
 	E1 = bodies[3*number_of_bodies_const+B1_i];						//bring in the Euler parameters associated with body 1;
