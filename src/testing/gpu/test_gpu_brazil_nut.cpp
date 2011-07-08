@@ -129,7 +129,7 @@ int main(int argc, char* argv[]){
 	GPUSystem->MakeBox(BTM,	ChVector<>(50,4,50), 100000,ChVector<>(0,-30,0),base,mWallMu,mWallMu,0,-20,-20,true,false);
 	
 	GPUSystem->MakeBox(FXED,ChVector<>(5,5,5), 100000,ChVector<>(0,-60,0 ), base,mWallMu,mWallMu,0,-20,-20,true,true);
-	GPUSystem->MakeSphere(I, 5, .03, ChVector<>(0,0,0), mSphereMu, mSphereMu, 0, true);
+	GPUSystem->MakeSphere(I, 5, .03, ChVector<>(0,0,0), mMu, mMu, 0, true);
 	
 	my_motor= ChSharedPtr<ChLinkLockLock> (new ChLinkLockLock);
 	ChSharedBodyPtr ptr1=ChSharedBodyPtr(BTM);
