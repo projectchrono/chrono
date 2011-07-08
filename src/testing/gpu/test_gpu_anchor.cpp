@@ -5,12 +5,12 @@ ChSharedBodyGPUPtr BTM;
 void System::DoTimeStep(){
 	if(mNumCurrentObjects<mNumObjects&&mFrameNumber%50==0){
 		float x=35;	float posX=0;
-		float y=1;	float posY=20;
+		float y=60;	float posY=20;
 		float z=35;	float posZ=0;
 		
 		float radius	=.5;
-		float mass	=.002;
-		float mu	=.9;
+		float mass	=.0003456;
+		float mu	=1;
 		float rest	=0;
 		int type 	=0;
 		ChSharedBodyGPUPtr mrigidBody;
@@ -21,9 +21,10 @@ void System::DoTimeStep(){
 		for (int yy=0; yy<y; yy++){
 		for (int zz=0; zz<z; zz++){
 			ChVector<> mParticlePos((xx-(x-1)/2.0)+posX,(yy)+posY,(zz-(z-1)/2.0)+posZ);
+			mParticlePos+ChVector<>(rand()%1000/1000.0-.5,rand()%1000/1000.0-.5,rand()%1000/1000.0-.5);
 			ChQuaternion<> quat=ChQuaternion<>(1,0,0,0);;
 			mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
-			if(type==0){MakeSphere(mrigidBody, radius, mass, mParticlePos, mu, mu, rest, true);}
+			if(type==0){MakeSphere(mrigidBody, radius, mass, mParticlePos*1.2, mu, mu, rest, true);}
 			if(type==1){MakeBox(mrigidBody, ChVector<>(radius,radius,radius), mass, mParticlePos,quat, mu, mu, rest,mobjNum,mobjNum,true, false);}
 			if(type==2){MakeEllipsoid(mrigidBody, ChVector<>(radius,radius,radius), mass, mParticlePos,quat, mu, mu, rest, true);}
 			mobjNum++;
@@ -62,7 +63,7 @@ void System::DoTimeStep(){
 	}
 	
 	
-	if(moveGround||mSystem->GetChTime()>.15){
+	if(mSystem->GetChTime()>5){
 		BTM->SetBodyFixed(false);
 		BTM->SetCollide(true);
 	}
@@ -80,11 +81,12 @@ void renderSceneAll(){
 int main(int argc, char* argv[]){
 	float mOmega=.1;
 	int mIteations=200;
-	float mTimeStep=.00025;
+	float mTimeStep=.005;
 	float mEnvelope=0;
 	float mMu=1;
 	float mWallMu=1;
 	int mDevice=0;
+	float mEndTime=20;
 	/*if(argc>1){
 	mIteations=atoi(argv[1]);
 	mTimeStep=atof(argv[2]);
@@ -107,11 +109,11 @@ int main(int argc, char* argv[]){
 	SysG.ChangeLcpSolverSpeed(&mGPUsolverSpeed);
 	SysG.ChangeCollisionSystem(&mGPUCollisionEngine);
 	SysG.SetIntegrationType(ChSystem::INT_ANITESCU);
-	SysG.Set_G_acc(ChVector<>(0,GRAV,0)*1000);
+	SysG.Set_G_acc(ChVector<>(0,GRAV,0));
 	GPUSystem=new System(&SysG,400,"anchor.txt");
 	GPUSystem->mMu=mMu;
 	GPUSystem->mTimeStep=mTimeStep;
-
+	GPUSystem->mEndTime=mEndTime;
 	ChQuaternion<> base(1,0,0,0);
 
 	ChSharedBodyGPUPtr L	=	ChSharedBodyGPUPtr(new ChBodyGPU);
@@ -128,7 +130,7 @@ int main(int argc, char* argv[]){
 	GPUSystem->MakeBox(B,	ChVector<>(30,30,7), 100000,ChVector<>(0,0,30), base,mWallMu,mWallMu,0,-20,-20,true,true);
 	GPUSystem->MakeBox(FXED,	ChVector<>(50,4,50), 100000,ChVector<>(0,-30,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
 	
-	GPUSystem->MakeBox(BTM,ChVector<>(2,20,2), .5,ChVector<>(0,60,0 ), base,mWallMu,mWallMu,0,100000,100000,true,false);
+	GPUSystem->MakeBox(BTM,ChVector<>(2,20,2), .1,ChVector<>(0,60,0 ), base,mWallMu,mWallMu,0,100000,100000,true,false);
 	//GPUSystem->MakeSphere(I, 5, .03, ChVector<>(0,0,0), mMu, mMu, 0, true);
 	
 	my_motor= ChSharedPtr<ChLinkLockAlign> (new ChLinkLockAlign);
