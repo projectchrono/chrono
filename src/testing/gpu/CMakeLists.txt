@@ -13,14 +13,14 @@ if(OPENMP_FOUND)
 endif(OPENMP_FOUND)
 		
 # Add executables		 	
-ADD_EXECUTABLE(test_gpuCD__hammad	test_gpuCD.cpp)
+ADD_EXECUTABLE(test_gpu_CD	test_gpu_CD.cpp)
 SOURCE_GROUP(testing\\gpu FILES test_gpuCD.cpp)
-SET_TARGET_PROPERTIES(test_gpuCD__hammad PROPERTIES 
+SET_TARGET_PROPERTIES(test_gpu_CD PROPERTIES 
 	FOLDER testing
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
 
-TARGET_LINK_LIBRARIES(test_gpuCD__hammad
+TARGET_LINK_LIBRARIES(test_gpu_CD
 			${CH_CUDART}
 			${GLUT_LIBRARIES}
 	optimized 	${CH_CHRONOLIB}     
@@ -28,16 +28,16 @@ TARGET_LINK_LIBRARIES(test_gpuCD__hammad
 	optimized 	${CH_CHRONOGPULIB}
 	debug	    	${CH_CHRONOGPULIB_DBG}
  	)
-ADD_DEPENDENCIES (test_gpuCD__hammad ChronoEngine ChronoEngine_GPU)
+ADD_DEPENDENCIES (test_gpu_CD ChronoEngine ChronoEngine_GPU)
 	 	
-ADD_EXECUTABLE(test_validation_hammad	test_validation.cpp)
+ADD_EXECUTABLE(test_validation	test_validation.cpp)
 SOURCE_GROUP(testing\\gpu FILES test_validation.cpp)
-SET_TARGET_PROPERTIES(test_validation_hammad PROPERTIES 
+SET_TARGET_PROPERTIES(test_validation PROPERTIES 
 	FOLDER testing
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
 	
-TARGET_LINK_LIBRARIES(test_validation_hammad 
+TARGET_LINK_LIBRARIES(test_validation
 			${CH_CUDART}
 			${GLUT_LIBRARIES}
 			${FREEGLUT_LIB}
@@ -46,7 +46,7 @@ TARGET_LINK_LIBRARIES(test_validation_hammad
  	optimized 	${CH_CHRONOGPULIB}
  	debug	    	${CH_CHRONOGPULIB_DBG}	
  	)
-ADD_DEPENDENCIES (test_validation_hammad ChronoEngine ChronoEngine_GPU)
+ADD_DEPENDENCIES (test_validation ChronoEngine ChronoEngine_GPU)
 
 ADD_EXECUTABLE(test_gpu_brazil_nut	test_gpu_brazil_nut.cpp)
 SOURCE_GROUP(testing\\gpu FILES  	test_gpu_brazil_nut.cpp)
