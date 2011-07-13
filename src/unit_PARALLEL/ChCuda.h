@@ -12,6 +12,7 @@
 #include <cutil_math.h>
 #include <cutil_inline.h>
 #include <thrust/sort.h>
+#include <thrust/copy.h>
 #include <thrust/count.h>
 #include <thrust/scan.h>
 #include <thrust/host_vector.h>

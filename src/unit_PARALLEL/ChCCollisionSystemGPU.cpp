@@ -17,7 +17,6 @@ namespace chrono {
 			mGPU=mSystemDescriptor->gpu_collision;
 			mGPU->collision_envelope=mEnvelope;
 			mGPU->number_of_objects=0;
-			mGPU->doTuning=true;
 		}
 		ChCollisionSystemGPU::~ChCollisionSystemGPU(){
 			for(int i=0; i<mGPU->number_of_objects; i++){delete colModels[i];}
@@ -26,8 +25,7 @@ namespace chrono {
 		}
 		void ChCollisionSystemGPU::Add(ChCollisionModel* model){
 			if(model->GetPhysicsItem()->GetCollide()==true){
-			ChCollisionModelGPU* modelGPU=(ChCollisionModelGPU*)model;
-			colModels.push_back(modelGPU);
+				colModels.push_back((ChCollisionModelGPU*)model);
 			}
 		}
 		void ChCollisionSystemGPU::Run(){
@@ -39,7 +37,6 @@ namespace chrono {
 			mGPU->object_data_host.clear();
 			for(int i=0; i<colModels.size(); i++){
 				body = colModels[i];
-				if(body->GetPhysicsItem()->GetCollide()==false){continue;}
 				int type=body->GetShapeType();
 				if(type==SPHERE){
 					object temp_obj;
@@ -51,8 +48,6 @@ namespace chrono {
 					temp_obj.C=F4(quat.e1,quat.e2,quat.e3,quat.e0);
 					temp_obj.family=I2(i,i);
 					mGPU->object_data_host.push_back(temp_obj);
-
-
 				}
 				else if(type==COMPOUNDSPHERE){
 					for(int j=0; j<body->GetNObjects(); j++){
@@ -96,7 +91,6 @@ namespace chrono {
 						ChVector<> pA=localPos+rotA->Matr_x_Vect(ChVector<>(body->mData[j].A.x,body->mData[j].A.y,body->mData[j].A.z));
 						ChVector<> pB=localPos+rotA->Matr_x_Vect(ChVector<>(body->mData[j].B.x,body->mData[j].B.y,body->mData[j].B.z));
 						ChVector<> pC=localPos+rotA->Matr_x_Vect(ChVector<>(body->mData[j].C.x,body->mData[j].C.y,body->mData[j].C.z));
-
 						object temp_obj;
 						float mu=body->GetBody()->GetKfriction();
 						temp_obj.A=F4(pA.x,pA.y,pA.z,i);

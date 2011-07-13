@@ -16,7 +16,8 @@ __constant__ CH_REALNUMBER negated_recovery_speed_const;
 __constant__ CH_REALNUMBER c_factor_const;				// usually 1/dt
 __constant__ CH_REALNUMBER step_size_const;
 ///////////////////////////////////////////////////////////////////////////////////
-__host__ __device__ void compute_mat(float3 &A, float3 &B, float3 &C,const float4 &TT,const float3 &n,const float3 &u,const float3 &w,const float3 &pos){
+
+__host__ __device__ void compute_mat(float3 &A, float3 &B, float3 &C, float4 TT,const float3 &n,const float3 &u,const float3 &w,const float3 &pos){
 	float t00 = pos.z * n.y - pos.y * n.z;
 	float t01 = TT.x * TT.x;
 	float t02 = TT.y * TT.y;
@@ -72,15 +73,15 @@ __global__ void LCP_Iteration_Contacts( contactGPU* contacts, CH_REALNUMBER4* bo
 	B2=bodies[B2_i];
 	N= contacts[i].N;								//assume: normalized, and if depth=0 norm=(1,0,0)
 	W = fabs(N);									//Gramm Schmidt; work with the global axis that is "most perpendicular" to the contact normal vector;effectively this means looking for the smallest component (in abs) and using the corresponding direction to carry out cross product.
-	U = F3(0.0,N.z, -N.y);								//it turns out that X axis is closest to being perpendicular to contact vector;
+		    U = F3(0.0,N.z, -N.y);								//it turns out that X axis is closest to being perpendicular to contact vector;
 	if(W.x>W.y){U = F3(-N.z,0.0, N.x);}						//it turns out that Y axis is closest to being perpendicular to contact vector;
 	if(W.y>W.z){U = F3(N.y,-N.x, 0.0);}						//it turns out that Z axis is closest to being perpendicular to contact vector;
 	U=normalize(U);									//normalize the local contact Y,Z axis
 	W=cross(N,U);									//carry out the last cross product to find out the contact local Z axis : multiply the contact normal by the local Y component										
-	//if(i==0){printf("%f \n",reg);}
-	//if((reg)>-1000){reg=(dot3(N,B2-B1));}
-	reg=dot3(N,B2-B1)+reg;
-	//reg=min(-sqrtf(dot3(B2-B1,B2-B1))*.9,reg);//max(reg/*+(dot3(N,(B2-B1)))*10*/,dot3(N,(B2-B1)));		//Clamp Anitescu stabilization coefficient	
+	if(i==0){printf("%f %f %f | %f %f %f | %f %f %f\n",N.x,N.y,N.z,U.x,U.y,U.z,W.x,W.y,W.z);}
+
+	reg=min(0.0,max(reg,-1.0));
+	
 	sbar =contacts[i].Pa-F3(bodies[2*number_of_bodies_const+B1_i]);	//Contact Point on A - Position of A                                
 	E1 = bodies[3*number_of_bodies_const+B1_i];						//bring in the Euler parameters associated with body 1;
 	compute_mat(T3,T4,T5,E1,N,U,W,sbar);							//A_i,p'*A_A*(sbar~_i,A)
@@ -89,39 +90,40 @@ __global__ void LCP_Iteration_Contacts( contactGPU* contacts, CH_REALNUMBER4* bo
 	E2 = bodies[3*number_of_bodies_const+B2_i];						//bring in the Euler parameters associated with body 2;
 	compute_mat(T6,T7,T8,E2,N,U,W,sbar);							//A_i,p'*A_B*(sbar~_i,B)
 	T6=-T6;	T7=-T7;	T8=-T8;
-
+	//if(i==0){printf("%f %f %f | %f %f %f | %f %f %f\n",T3.x,T3.y,T3.z,T4.x,T4.y,T4.z,T5.x,T5.y,T5.z);}
+	
 	W1 = bodies[B1_i+number_of_bodies_const];
 	W2 = bodies[B2_i+number_of_bodies_const];
 
 	mu=(W1.w+W2.w)*.5;
-	gamma.x = dot3(T3,W1)-dot3(N,B1)+dot3(T6,W2)+dot3(N,B2)+reg;	//+bi	
+	gamma.x = dot3(T3,W1)-dot3(N,B1)+dot3(T6,W2)+dot3(N,B2)+reg;			//+bi	
 	gamma.y = dot3(T4,W1)-dot3(U,B1)+dot3(T7,W2)+dot3(U,B2);
 	gamma.z = dot3(T5,W1)-dot3(W,B1)+dot3(T8,W2)+dot3(W,B2);
 	B1 = bodies[4*number_of_bodies_const+B1_i];					// bring in the inertia attributes; to be used to compute \eta
 	B2 = bodies[4*number_of_bodies_const+B2_i];					// bring in the inertia attributes; to be used to compute \eta
-	eta= dot3(T3*T3,B1)+dot3(T4*T4,B1)+dot3(T5*T5,B1);				// update expression of eta	
-	eta+= dot3(T6*T6,B2)+dot3(T7*T7,B2)+dot3(T8*T8,B2);
-	eta+=(dot(N,N)+dot(U,U)+dot(W,W))*(B1.w+B2.w);					// multiply by inverse of mass matrix of B1 and B2, add contribution from mass and matrix A_c.
-	eta=3.0f/eta;													// final value of eta
+	eta =  dot3(T3*T3,B1)+dot3(T4*T4,B1)+dot3(T5*T5,B1);				// update expression of eta	
+	eta+=  dot3(T6*T6,B2)+dot3(T7*T7,B2)+dot3(T8*T8,B2);
+	eta+= (dot(N,N)+dot(U,U)+dot(W,W))*(B1.w+B2.w);					// multiply by inverse of mass matrix of B1 and B2, add contribution from mass and matrix A_c.
+	eta=3.0f/eta;									// final value of eta
 
-	gamma= lcp_omega_const*gamma*eta;								// perform gamma *= omega*eta
+	gamma= lcp_omega_const*gamma*eta;						// perform gamma *= omega*eta
 	gamma_old =contacts[i].G;
-	gamma = gamma_old - gamma;										// perform gamma = gamma_old - gamma ;  in place.
+	gamma = gamma_old - gamma;							// perform gamma = gamma_old - gamma ;  in place.
 	/// ---- perform projection of 'a' onto friction cone  --------													  
 	reg = sqrtf(gamma.y*gamma.y+gamma.z*gamma.z);					// reg = f_tang
-	if (reg > (mu * gamma.x)){										// inside upper cone? keep untouched!
-		if ((mu * reg) < -gamma.x){									// inside lower cone? reset  normal,u,v to zero!
+	if (reg > (mu * gamma.x)){							// inside upper cone? keep untouched!
+		if ((mu * reg) < -gamma.x){						// inside lower cone? reset  normal,u,v to zero!
 			gamma = F3(0.f,0.f,0.f);
-		} else{														// remaining case: project orthogonally to generator segment of upper cone
+		} else{									// remaining case: project orthogonally to generator segment of upper cone
 			gamma.x =  ( reg * mu + gamma.x )/(mu*mu + 1.f) ;
-			reg = (gamma.x * mu)/ reg;								//  reg = tproj_div_t
+			reg = (gamma.x * mu)/ reg;					//  reg = tproj_div_t
 			gamma.y *= reg;
 			gamma.z *= reg;
 		}
 	}
-	contacts[i].G = gamma;											// store gamma_new
-	gamma -= gamma_old;											// compute delta_gamma = gamma_new - gamma_old   = delta_gamma.
-	
+	contacts[i].G = gamma;								// store gamma_new
+	gamma -= gamma_old;								// compute delta_gamma = gamma_new - gamma_old   = delta_gamma.
+	//if(i==0){printf("%f %f %f\n",gamma.x,gamma.y,gamma.z);}
 	vB=N*gamma.x+U*gamma.y+W*gamma.z;	
 	int offset1=offset[i];
 	int offset2=offset[i+number_of_contacts_const];
@@ -380,6 +382,6 @@ void ChLcpIterativeSolverGPU::RunTimeStep()
 	number_of_constraints=number_of_contacts+number_of_bilaterals;
 	force_factor=1.0;
 	if(use_cpu){CPU_Version();}else{GPU_Version();}
-	device_contact_data->clear();
+	
 }
 void ChLcpIterativeSolverGPU::Warm_Start(){}

@@ -40,6 +40,7 @@ namespace chrono {
 			void Run();
 			void Broadphase();
 			void Narrowphase();
+			void CopyCDToCPU();
 
 			thrust::host_vector<object>		object_data_host;
 
@@ -61,8 +62,9 @@ namespace chrono {
 			bool doTuning;
 			cudaEvent_t start, stop;
 			thrust::device_vector<contactGPU>* contact_data_gpu;
+			thrust::host_vector<contactGPU>    contact_data_host;
 		private:
-			thrust::device_vector<object>	object_data;
+			thrust::device_vector<object>		object_data;
 			thrust::device_vector<int3>		contact_pair;
 			thrust::device_vector<uint>		generic_counter;
 			thrust::device_vector<uint>		bin_number;

@@ -460,7 +460,7 @@ __global__ void Sphere_Triangle(object * object_data,int3 * Pair ,uint* Contact_
 
 
 __device__ __host__ inline float3 GetSupportPoint_Sphere	(const object& p,const  float3 &n){		
-	return (p.A.w) * n;
+	return (p.A.w) * normalize(n);
 }
 __device__ __host__ inline float3 GetSupportPoint_Triangle	(const object& p,const float3 &n){
 	float3 Pa=make_float3(p.A);
@@ -474,13 +474,10 @@ __device__ __host__ inline float3 GetSupportPoint_Triangle	(const object& p,cons
 }
 __device__ __host__ inline float3 GetSupportPoint_Box		(const object& p,const float3 &n){
 	float3 result;
-	result= make_float3(p.B);
-	if (n.x < 0.) result.x = -result.x;
-	if (n.y < 0.) result.y = -result.y;
-	if (n.z < 0.) result.z = -result.z;
-	//result.x=dot(n,F3(1,0,0))*(p.B.x);
-	//result.y=dot(n,F3(0,1,0))*(p.B.y);
-	//result.z=dot(n,F3(0,0,1))*(p.B.z);
+	result.x= n.x>=0? p.B.x:-p.B.x;
+	result.y= n.y>=0? p.B.y:-p.B.y;
+	result.z= n.z>=0? p.B.z:-p.B.z;
+	
 	return result;
 }
 __device__ __host__ inline float3 GetSupportPoint_Ellipsoid	(const object& p,const float3 &n){
@@ -662,7 +659,11 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 
 		// If the boundary is thin enough or the origin is outside the support plane for the newly discovered vertex, then we can terminate
 		if ( delta <= kCollideEpsilon || separation >= 0. || phase2 > 200 ){
-			returnNormal = n;
+			
+			returnNormal = normalize(n);
+				//if(abs(returnNormal.x)<Vector_ZERO_EPSILON){returnNormal.x=0;}
+				//if(abs(returnNormal.y)<Vector_ZERO_EPSILON){returnNormal.y=0;}
+				//if(abs(returnNormal.z)<Vector_ZERO_EPSILON){returnNormal.z=0;}
 			return hit;
 		}
 		if (dot(cross(v4 , v1) , v0) < 0.){			// Compute the tetrahedron dividing face (v4,v0,v1)
@@ -737,4 +738,17 @@ void ChCCollisionGPU::Narrowphase(){       						//NarrowPhase Contact CD
 	Thrust_Sort_By_Key(generic_counter,(*contact_data_gpu));
 	number_of_contacts=number_of_contacts-Thrust_Count(generic_counter,0xFFFFFFFF);
 	contact_data_gpu->resize(number_of_contacts);
+	CopyCDToCPU();
 }
+
+void ChCCollisionGPU::CopyCDToCPU(){ 
+//thrust::copy(contact_data_gpu->begin(),contact_data_gpu->end(),contact_data_host.begin());
+
+
+contact_data_host=*contact_data_gpu;
+
+
+
+
+}  
+
