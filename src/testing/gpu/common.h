@@ -29,11 +29,10 @@ using namespace std;
 #define SCALE 1
 #define PI	3.14159265358979323846
 #define GRAV 	-9.80665
-#define OGL 1
+float Scale=1;
 bool showSphere = true;
 bool updateDraw=true;
-bool savenow =false;
-bool moveGround=false;
+bool saveData =false;
 bool movewall=false;
 class System{
 public:
@@ -360,16 +359,16 @@ void ChangeHeading(GLfloat degrees){
 
 
 void processNormalKeys(unsigned char key, int x, int y) { 	
-	if (key=='w'){camera_pos_delta+=dir*1*SCALE;}
-	if (key=='s'){camera_pos_delta-=dir*1*SCALE;}
-	if (key=='d'){camera_pos_delta+=cross(dir,camera_up)*1*SCALE;}
-	if (key=='a'){camera_pos_delta-=cross(dir,camera_up)*1*SCALE;}
-	if (key=='q'){camera_pos_delta+=camera_up*1*SCALE;}
-	if (key=='e'){camera_pos_delta-=camera_up*1*SCALE;}
+	if (key=='w'){camera_pos_delta+=dir*1*Scale;}
+	if (key=='s'){camera_pos_delta-=dir*1*Scale;}
+	if (key=='d'){camera_pos_delta+=cross(dir,camera_up)*1*Scale;}
+	if (key=='a'){camera_pos_delta-=cross(dir,camera_up)*1*Scale;}
+	if (key=='q'){camera_pos_delta+=camera_up*1*Scale;}
+	if (key=='e'){camera_pos_delta-=camera_up*1*Scale;}
 	if (key=='u'){updateDraw=(updateDraw)? 0:1;}
 	if (key=='i'){showSphere=(showSphere)? 0:1;}
-	if (key=='z'){savenow=1;}
-	if (key=='x'){moveGround=1;}
+	//if (key=='z'){saveData=1;}
+	//if (key=='x'){moveGround=1;}
 }
 void pressKey(int key, int x, int y) {} 
 void releaseKey(int key, int x, int y) {}
@@ -451,6 +450,19 @@ void System::drawAll(){
 			//	glColor3f (0,0,0);
 			//	drawTriMesh(TriMesh,(abody));
 			//}
+			ChLcpSystemDescriptorGPU* mGPUDescriptor=(ChLcpSystemDescriptorGPU *)mSystem->GetLcpSystemDescriptor();
+			for(int i=0; i<mGPUDescriptor->gpu_collision->contact_data_host.size(); i++){
+								float3 N=mGPUDescriptor->gpu_collision->contact_data_host[i].N;
+								float3 Pa=mGPUDescriptor->gpu_collision->contact_data_host[i].Pa;
+								glBegin(GL_LINES);
+								glVertex3f(Pa.x, Pa.y, Pa.z);
+								float3 Pb=Pa+N*20;
+								glVertex3f(Pb.x, Pb.y, Pb.z);
+								glEnd();
+
+							}
+
+
 }
 #if defined( _WINDOWS )
 		Sleep( 30 );
