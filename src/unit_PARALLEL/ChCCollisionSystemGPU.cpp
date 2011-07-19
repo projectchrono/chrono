@@ -84,6 +84,18 @@ namespace chrono {
 					temp_obj.family=I2(body->GetFamily(),body->GetNoCollFamily());
 					mGPU->object_data_host.push_back(temp_obj);
 				}
+				else if(type==CYLINDER){
+					localPos=body->GetBody()->GetPos();
+					float4 B=body->mData[0].B;
+					object temp_obj;
+					ChQuaternion<> quat=body->GetBody()->GetRot();
+					quat.Normalize();
+					temp_obj.A=F4(localPos.x,localPos.y,localPos.z,i);
+					temp_obj.B=F4(B.x,B.y,B.z,4);
+					temp_obj.C=F4(quat.e1,quat.e2,quat.e3,quat.e0);
+					temp_obj.family=I2(body->GetFamily(),body->GetNoCollFamily());
+					mGPU->object_data_host.push_back(temp_obj);
+				}
 				else if(type==TRIANGLEMESH){
 					for(int j=0; j<body->GetNObjects(); j++){
 						localPos=body->GetBody()->GetPos();

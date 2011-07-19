@@ -81,6 +81,10 @@ __global__ void Compute_AABBs(object* object_data, AABB* AABBs){
 		ComputeAABBBox(temp_obj,temp.min, temp.max);
 		temp.max.w=3; 
 	}
+	else if(temp_obj.B.w==4){
+		ComputeAABBBox(temp_obj,temp.min, temp.max);
+		temp.max.w=4; 
+	}
 	else{return;}
 	temp.min=F4(F3(temp.min)-F3(collision_envelope_const)+global_origin_const,index);
 	temp.max=F4(F3(temp.max)+F3(collision_envelope_const)+global_origin_const,temp.max.w);

@@ -63,6 +63,9 @@ void ChCCollisionGPU::GetBounds(){
 		else if(obj.B.w==3){
 			ComputeAABBBox(obj,min,max);
 		}
+		else if(obj.B.w==4){
+			ComputeAABBBox(obj,min,max);
+		}
 		max_bounding_point.x=fmaxf(max_bounding_point.x,max.x);
 		max_bounding_point.y=fmaxf(max_bounding_point.y,max.y);
 		max_bounding_point.z=fmaxf(max_bounding_point.z,max.z);

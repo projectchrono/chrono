@@ -67,7 +67,7 @@ __global__ void Sphere_Sphere(object * object_data,int3 * Pair , uint* Contact_N
 }
 
 __device__ void CalcMatrices(float3 &center, float4 &q,const  float3 & r,float3 & M_1,float3 &M_2) {
-	float3 Q0, Q1, Q2, A0, A1, A2,r2;
+	float3 A0, A1, A2,r2;
 	r2.x = r.x*r.x;
 	r2.y = r.y*r.y;
 	r2.z = r.z*r.z;
@@ -460,7 +460,7 @@ __global__ void Sphere_Triangle(object * object_data,int3 * Pair ,uint* Contact_
 
 
 __device__ __host__ inline float3 GetSupportPoint_Sphere	(const object& p,const  float3 &n){		
-	return (p.A.w) * normalize(n);
+	return (p.A.w) * (n);
 }
 __device__ __host__ inline float3 GetSupportPoint_Triangle	(const object& p,const float3 &n){
 	float3 Pa=make_float3(p.A);
@@ -473,11 +473,10 @@ __device__ __host__ inline float3 GetSupportPoint_Triangle	(const object& p,cons
 	return point;
 }
 __device__ __host__ inline float3 GetSupportPoint_Box		(const object& p,const float3 &n){
-	float3 result;
-	result.x= n.x>=0? p.B.x:-p.B.x;
-	result.y= n.y>=0? p.B.y:-p.B.y;
-	result.z= n.z>=0? p.B.z:-p.B.z;
-	
+	float3 result=F3(0,0,0);
+	result.x= n.x>0? p.B.x:-p.B.x;
+	result.y= n.y>0? p.B.y:-p.B.y;
+	result.z= n.z>0? p.B.z:-p.B.z;
 	return result;
 }
 __device__ __host__ inline float3 GetSupportPoint_Ellipsoid	(const object& p,const float3 &n){
@@ -485,7 +484,22 @@ __device__ __host__ inline float3 GetSupportPoint_Ellipsoid	(const object& p,con
 	return F3(p.B)*F3(p.B)*n/length(n*F3(p.B));
 }
 __device__ __host__ inline float3 GetSupportPoint_Cylinder	(const object& p,const float3 &n){
-	return make_float3(0,0,0);
+	//return make_float3(0,0,0);
+	float3 result;
+	float d, s=sqrtf(n.x*n.x+n.z*n.z);
+	if(s!=0.0f){
+		d=p.B.x/s;
+		result.x=n.x*d;
+		result.y=n.y<0.0f? -p.B.y:p.B.y;
+		result.z=n.z*d;
+		return result;
+	}
+	else{
+		result.x=p.B.x;
+		result.y=n.y<0.0f? -p.B.y:p.B.y;
+		result.z=0.0f;
+		return result;
+	}
 }
 __device__ __host__ inline float3 GetSupportPoint_Plane		(const object& p,const float3 &n){
 	float3 result = make_float3(p.B);
@@ -503,8 +517,8 @@ __device__ __host__ inline float3 GetCenter_Triangle		(const object& p){
 	return make_float3((p.A.x+p.B.x+p.C.x)/3.0f,(p.A.y+p.B.y+p.C.y)/3.0f,(p.A.z+p.B.z+p.C.z)/3.0f);
 }
 __device__ __host__ inline float3 GetCenter_Box				(const object& p){return Zero_Vector;}
-__device__ __host__ inline float3 GetCenter_Ellipsoid		(const object& p){return Zero_Vector;}
-__device__ __host__ inline float3 GetCenter_Cylinder		(const object& p){return Zero_Vector;}
+__device__ __host__ inline float3 GetCenter_Ellipsoid			(const object& p){return Zero_Vector;}
+__device__ __host__ inline float3 GetCenter_Cylinder			(const object& p){return Zero_Vector;}
 __device__ __host__ inline float3 GetCenter_Plane			(const object& p){return Zero_Vector;}
 __device__ __host__ inline float3 GetCenter_Cone			(const object& p){return Zero_Vector;}
 __device__ __host__ bool IsZero3(const float3 &v){
@@ -512,6 +526,27 @@ __device__ __host__ bool IsZero3(const float3 &v){
 		v.y < Vector_ZERO_EPSILON && v.y > -Vector_ZERO_EPSILON &&
 		v.z < Vector_ZERO_EPSILON && v.z > -Vector_ZERO_EPSILON );
 }
+__device__ __host__ bool IsZero(const float &val){
+	return fabs(val) < 1E-10;
+}
+__device__ __host__ bool isEqual(const float& _a, const float& _b){
+
+	 float ab;
+
+	    ab = fabs(_a - _b);
+	    if (fabs(ab) < 1E-10)
+	        return 1;
+
+	    float a, b;
+	    a = fabs(_a);
+	    b = fabs(_b);
+	    if (b > a){
+	        return ab < 1E-10 * b;
+	    }else{
+	        return ab < 1E-10 * a;
+	    }
+}
+
 __device__ __host__ float3 GetCenter(const object& p){
 	if(p.B.w==1){return GetCenter_Triangle(p);}	//triangle
 	else{return make_float3(0,0,0)+ F3(p.A);}	//All other shapes assumed to be locally centered
@@ -523,7 +558,7 @@ __device__ __host__ float3 TransformSupportVert(const object& p,const float3& b)
 		return GetSupportPoint_Triangle(p,n);	
 	}
 	else if(p.B.w==0){//sphere
-		localSupport = GetSupportPoint_Sphere(p,quatRotate(n,(~p.C)));	
+		localSupport = GetSupportPoint_Sphere(p,quatRotate(n,(~p.C)));
 	}
 	else if(p.B.w==2){//box
 		localSupport = GetSupportPoint_Box(p,quatRotate(n,(~p.C)));
@@ -545,8 +580,86 @@ __device__ __host__ float3 TransformSupportVert(const object& p,const float3& b)
 
 
 
+__device__ __host__ float dist_line(float3 & P, float3 &x0, float3 &b, float3& witness){
+    float dist, t;
+    float3 d, a;
+
+    d=b-x0;	// direction of segment
+    a=x0-P; // precompute vector from P to x0
+    t  = -(1.f) * dot(a, d);
+    t /= dot(d,d);
+
+    if (t < 0.0f || IsZero(t)){
+        dist = dot(x0-P,x0-P);
+        witness= x0;
+    }else if (t > 1.0f || isEqual(t, 1.0f)){
+        dist = dot(b-P,b-P);
+        witness=b;
+    }else{
+            witness=d;
+            witness*= t;
+            witness+= x0;
+            dist = dot(witness-P, witness-P);
+    }
+
+    return dist;
+
+
+
+}
+__device__ __host__ float find_dist(float3 & P, float3 &x0, float3 &B, float3 &C, float3& witness){
+	    float3 d1, d2, a;
+	    float u, v, w, p, q, r;
+	    float s, t, dist, dist2;
+	    float3 witness2;
+
+	    d1= B- x0;
+	    d2= C- x0;
+	    a= x0- P;
+
+	    u = dot(a, a);
+	    v = dot(d1, d1);
+	    w = dot(d2, d2);
+	    p = dot(a, d1);
+	    q = dot(a, d2);
+	    r = dot(d1, d2);
+
+	    s = (q * r - w * p) / (w * v - r * r);
+	    t = (-s * r - q) / w;
+
+	    if ((IsZero(s) || s > 0.0f)
+	            && (isEqual(s, 1.0f) || s < 1.0f)
+	            && (IsZero(t) || t > 0.0f)
+	            && (isEqual(t, 1.0f) || t < 1.0f)
+	            && (isEqual(t + s, 1.0f) || t + s < 1.0f)){
+
+	            d1*= s;
+	            d2*= t;
+	            witness= x0;
+	            witness+= d1;
+	            witness+= d2;
+	            dist = dot(witness-P,witness- P);
+
+	    }else{
+	        dist = dist_line(P, x0, B, witness);
+
+	        dist2 = dist_line(P, x0, C, witness2);
+	        if (dist2 < dist){
+	            dist = dist2;
+	            (witness= witness2);
+	        }
+
+	        dist2 = dist_line(P, B, C, witness2);
+	        if (dist2 < dist){
+	            dist = dist2;
+	            (witness= witness2);
+	        }
+	    }
+	    return dist;
+}
+
 //Code for Convex-Convex Collision detection, adopted from xeno-collide
-__device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2, float3& returnNormal, float3& point1, float3& point2)
+__device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2, float3& returnNormal, float3& point1, float3& point2, float& depth)
 {
 	float3 v01, v02, v0, n,v11, v12, v1, v21, v22, v2;
 	// v0 = center of Minkowski sum
@@ -580,7 +693,7 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 	if (dot(v2 , n) <= 0){return false;}
 
 	// Determine whether origin is on + or - side of plane (v1,v0,v2)
-	n = cross((v1 - v0) , (v2 - v0));
+	n = normalize(cross((v1 - v0) , (v2 - v0)));
 	// If the origin is on the - side of the plane, reverse the direction of the plane
 	if (dot(n , v0) > 0){
 		Swap(v1, v2);
@@ -624,7 +737,7 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 		phase2++;
 		// Compute normal of the wedge face
 		n = cross((v2 - v1) , (v3 - v1));
-		n=n/sqrtf(dot(n,n));
+		n = normalize(n);
 		// Compute distance from origin to wedge face
 		// If the origin is inside the wedge, we have a hit
 		if (dot(n , v1) >= 0. && !hit){
@@ -647,6 +760,9 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 			float inv = 1.0f / sum;
 			point1 = (b0 * v01 + b1 * v11 + b2 * v21 + b3 * v31) * inv;
 			point2 = (b0 * v02 + b1 * v12 + b2 * v22 + b3 * v32) * inv;
+			point1+=point2;
+			point1*=.5;
+
 			hit = true;// HIT!!!
 		}
 		// Find the support point in the direction of the wedge face
@@ -658,12 +774,10 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 		float separation = -dot(v4 , n);
 
 		// If the boundary is thin enough or the origin is outside the support plane for the newly discovered vertex, then we can terminate
-		if ( delta <= kCollideEpsilon || separation >= 0. || phase2 > 200 ){
-			
+		if ( /*delta <= kCollideEpsilon || separation >= 0. ||*/ phase2 > 200 ){
+			float3 O=F3(0,0,0);
+			depth=find_dist(O,v1,v2,v3,n);
 			returnNormal = normalize(n);
-				//if(abs(returnNormal.x)<Vector_ZERO_EPSILON){returnNormal.x=0;}
-				//if(abs(returnNormal.y)<Vector_ZERO_EPSILON){returnNormal.y=0;}
-				//if(abs(returnNormal.z)<Vector_ZERO_EPSILON){returnNormal.z=0;}
 			return hit;
 		}
 		if (dot(cross(v4 , v1) , v0) < 0.){			// Compute the tetrahedron dividing face (v4,v0,v1)
@@ -696,10 +810,15 @@ __global__ void MPR_GPU_Store(
 	object A=object_data[pair.x];
 	object B=object_data[pair.y];
 	float3 N,p1,p2;
-	if(!CollideAndFindPoint(A,B,N,p1, p2)){return;};
+	float depth=0;
+	if(!CollideAndFindPoint(A,B,N,p1, p2, depth)){return;};
+	//if(Index==0){printf("%f %f %f | %f %f %f | %f %f %f| %f\n",N.x,N.y,N.z,p1.x,p1.y,p1.z,p2.x,p2.y,p2.z, depth);}
 	p1=(TransformSupportVert(A,-N)-p1)*N*N+p1;
 	p2=(TransformSupportVert(B,N)-p2)*N*N+p2;
-	float depth=sqrtf(dot((p2-p1),(p2-p1)));
+	//depth=sqrtf(dot((p2-p1),(p2-p1)));
+	//p2+=p1;
+	//p2*=.5;
+
 	AddContact(CData,Index,  getID(A),getID(B), p1, p2,-N,-depth);
 	Contact_Number[Index]=Index;
 }
