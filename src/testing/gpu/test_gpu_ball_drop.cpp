@@ -1,14 +1,22 @@
 #include "common.h"
+//specify parameters:
+float particle_R []={.0035, .012,.0005, .0017};
+float particle_Rho []={1560, 720, 5490, 5490};
+float particle_Theta []={23,  28,   24,   24};
+float impactor_R []={.095, .013, .015, .020, .025, .035, .040, .045, .050, .013, .019, .026, .0125, .019};
+float impactor_M []={.034, .083, .130, .287, .531,1.437,2.099,3.055,4.079, .064, .201, .518,  .009, .018};
+float container_R=   .3;
+float container_T=  .03;
 
 void System::DoTimeStep(){
-	if(mNumCurrentObjects<mNumObjects&&mFrameNumber%50==0){
-		float x=1;	float posX=0;
-		float y=1;	float posY=-10;
-		float z=1;	float posZ=0;
+	if(mNumCurrentObjects<mNumObjects&&mFrameNumber%500==0){
+		float x=50;	float posX=0;
+		float y=50;	float posY=0;
+		float z=50;	float posZ=0;
 		
-		float radius	=1;
-		float mass	=10;
-		float mu	=.5;
+		float radius	=particle_R[0];
+		float mass	=particle_Rho[0]*4.0/3.0*PI*radius*radius*radius;
+		float mu	=tan(particle_Theta[0]*PI/180.0);
 		float rest	=0;
 		int type 	=0;
 		ChSharedBodyGPUPtr mrigidBody;
@@ -19,13 +27,13 @@ void System::DoTimeStep(){
 		for (int yy=0; yy<y; yy++){
 		for (int zz=0; zz<z; zz++){
 			ChVector<> mParticlePos((xx-(x-1)/2.0)+posX,(yy)+posY,(zz-(z-1)/2.0)+posZ);
-			//mParticlePos+ChVector<>(rand()%1000/1000.0-.5,rand()%1000/1000.0-.5,rand()%1000/1000.0-.5);
+			mParticlePos+=ChVector<>(rand()%1000/1000.0-.5,rand()%1000/1000.0-.5,rand()%1000/1000.0-.5)*.5;
 			ChQuaternion<> quat=ChQuaternion<>(1,0,0,0);;
 			mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
-			if(type==0){MakeSphere(mrigidBody, radius, mass, mParticlePos*1.5, mu, mu, rest, true);}
+			if(type==0){MakeSphere(mrigidBody, radius, mass, mParticlePos*.01, mu, mu, rest, true);}
 			if(type==1){MakeBox(mrigidBody, ChVector<>(radius,radius,radius), mass, mParticlePos,quat, mu, mu, rest,mobjNum,mobjNum,true, false);}
 			if(type==2){MakeEllipsoid(mrigidBody, ChVector<>(radius,radius,radius), mass, mParticlePos,quat, mu, mu, rest, true);}
-			if(type==3){MakeCylinder(mrigidBody, ChVector<>(radius,radius*2,radius), mass, mParticlePos,quat, mu, mu, rest, true);}
+			if(type==3){MakeCylinder(mrigidBody, ChVector<>(radius,radius,radius), mass, mParticlePos,quat, mu, mu, rest, true);}
 			mobjNum++;
 			}
 		}
@@ -34,16 +42,16 @@ void System::DoTimeStep(){
 	}
 	for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
 		ChBodyGPU *abody=(ChBodyGPU*)(mSystem->Get_bodylist()->at(i));
-		if(abody->GetPos().y<-40){
+		if(abody->GetPos().y<-1){
 			abody->SetCollide(false);
 			abody->SetBodyFixed(true);
-			abody->SetPos(ChVector<>(15,-40,15));
+			abody->SetPos(ChVector<>(1,-1,1));
 		}
 	}
 	if(mFrameNumber%3==0&&saveData){
 		ofstream ofile;
 		stringstream ss;
-		ss<<"data/test"<<mFileNumber<<".txt";
+		ss<<"data/validation"<<mFileNumber<<".txt";
 		ofile.open(ss.str().c_str());
 		for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
 			ChBody* abody = mSystem->Get_bodylist()->at(i);
@@ -75,14 +83,14 @@ void renderSceneAll(){
 int main(int argc, char* argv[]){
 	float mOmega=.1;
 	int   mIteations=200;
-	float mTimeStep=.001;
+	float mTimeStep=.0001;
 	float mEnvelope=0;
 	float mMu=.5;
 	float mWallMu=.5;
 	int   mDevice=0;
 	float mEndTime=20;
 	bool OGL=0;
-	showContacts=1;
+	Scale=.05;
 	if(argc==3){OGL=atoi(argv[1]);	saveData=atoi(argv[2]);}
 
 	cudaSetDevice(mDevice);
@@ -99,19 +107,24 @@ int main(int argc, char* argv[]){
 	SysG.ChangeCollisionSystem(&mGPUCollisionEngine);
 	SysG.SetIntegrationType(ChSystem::INT_ANITESCU);
 	SysG.Set_G_acc(ChVector<>(0,GRAV,0));
-	GPUSystem=new System(&SysG,1,"test.txt");
+	GPUSystem=new System(&SysG,100000,"validation.txt");
 	GPUSystem->mMu=mMu;
 	GPUSystem->mTimeStep=mTimeStep;
 	GPUSystem->mEndTime=mEndTime;
 	ChQuaternion<> base(1,0,0,0);
 
-	ChSharedBodyGPUPtr P1	=	ChSharedBodyGPUPtr(new ChBodyGPU);
-	GPUSystem->MakeBox(P1,ChVector<>(10,5,20), 100000,ChVector<>(-20,-30,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
-	ChSharedBodyGPUPtr P2	=	ChSharedBodyGPUPtr(new ChBodyGPU);
-	GPUSystem->MakeBox(P2,ChVector<>(15,5,20), 100000,ChVector<>(0,-30,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
-	ChSharedBodyGPUPtr P3	=	ChSharedBodyGPUPtr(new ChBodyGPU);
-	GPUSystem->MakeBox(P3,ChVector<>(10,5,20), 100000,ChVector<>(20,-30,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
+	ChSharedBodyGPUPtr L	=	ChSharedBodyGPUPtr(new ChBodyGPU);
+	ChSharedBodyGPUPtr R	=	ChSharedBodyGPUPtr(new ChBodyGPU);
+	ChSharedBodyGPUPtr F	=	ChSharedBodyGPUPtr(new ChBodyGPU);
+	ChSharedBodyGPUPtr B	=	ChSharedBodyGPUPtr(new ChBodyGPU);
+	ChSharedBodyGPUPtr BTM	=	ChSharedBodyGPUPtr(new ChBodyGPU);
 	
+	GPUSystem->MakeBox(L,	ChVector<>(container_T,container_R,container_R), 100000,ChVector<>(-container_R,0,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
+	GPUSystem->MakeBox(R,	ChVector<>(container_T,container_R,container_R), 100000,ChVector<>(container_R,0,0), base,mWallMu,mWallMu,0,-20,-20,true,true);
+	GPUSystem->MakeBox(F,	ChVector<>(container_R,container_R,container_T), 100000,ChVector<>(0,0,-container_R),base,mWallMu,mWallMu,0,-20,-20,true,true);
+	GPUSystem->MakeBox(B,	ChVector<>(container_R,container_R,container_T), 100000,ChVector<>(0,0,container_R), base,mWallMu,mWallMu,0,-20,-20,true,true);
+	GPUSystem->MakeBox(BTM, ChVector<>(container_R,container_T,container_R), 100000,ChVector<>(0,-container_R,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
+
 #pragma omp parallel sections
 	{
 #pragma omp section
@@ -125,9 +138,9 @@ int main(int argc, char* argv[]){
 			if(OGL){
 				glutInit(&argc, argv);									
 				glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);	
-				glutInitWindowPosition(0,0);								
+				glutInitWindowPosition(0,0);					
 				glutInitWindowSize(1024	,512);
-				glutCreateWindow("test");
+				glutCreateWindow("Validation");
 				glutDisplayFunc(renderSceneAll);
 				glutIdleFunc(renderSceneAll);
 				glutReshapeFunc(changeSize);
@@ -136,7 +149,7 @@ int main(int argc, char* argv[]){
 				glutMouseFunc(mouseButton);
 				glutMotionFunc(mouseMove);
 				initScene();
-				glutMainLoop();	
+				glutMainLoop();
 			}
 		}
 	}
