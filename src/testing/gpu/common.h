@@ -33,7 +33,8 @@ float Scale=1;
 bool showSphere = true;
 bool updateDraw=true;
 bool saveData =false;
-bool movewall=false;
+bool showContacts=false;
+
 class System{
 public:
 	System(ChSystem * Sys, int nobjects, string timingfile);
@@ -48,6 +49,7 @@ public:
 	void MakeSphere(ChSharedBodyGPUPtr &body, double radius, double mass,ChVector<> pos,double sfric,double kfric,double restitution,bool collide);
 	void MakeBox(ChSharedBodyGPUPtr &body, ChVector<> radius, double mass,ChVector<> pos,ChQuaternion<> rot,double sfric,double kfric,double restitution,int family,int nocolwith,bool collide, bool fixed);
 	void MakeEllipsoid(ChSharedBodyGPUPtr &body, ChVector<> radius, double mass,ChVector<> pos,ChQuaternion<> rot,double sfric,double kfric,double restitution,bool collide);
+	void MakeCylinder(ChSharedBodyGPUPtr &body, ChVector<> radius, double mass,ChVector<> pos,ChQuaternion<> rot,double sfric,double kfric,double restitution,bool collide);
 	void LoadTriangleMesh(string name, ChVector<> pos, ChQuaternion<> rot, float mass);
 	void drawAll();
 	void renderScene(){	PrintStats();	DoTimeStep();}
@@ -165,7 +167,19 @@ void System::MakeEllipsoid(ChSharedBodyGPUPtr &body, ChVector<> radius, double m
 	body.get_ptr()->SetKfriction(kfric);
 	mSystem->AddBody(body);
 }
-
+void System::MakeCylinder(ChSharedBodyGPUPtr &body, ChVector<> radius, double mass,ChVector<> pos, ChQuaternion<> rot,double sfric,double kfric,double restitution,bool collide){
+	body.get_ptr()->SetMass(mass);
+	body.get_ptr()->SetPos(pos);
+	body.get_ptr()->SetRot(rot);
+	body.get_ptr()->GetCollisionModel()->ClearModel();
+	(ChCollisionModelGPU *)(body.get_ptr()->GetCollisionModel())->AddCylinder(radius.x,radius.y,radius.z);
+	body.get_ptr()->GetCollisionModel()->BuildModel();
+	body.get_ptr()->SetCollide(collide);
+	body.get_ptr()->SetImpactC(0);
+	body.get_ptr()->SetSfriction(sfric);
+	body.get_ptr()->SetKfriction(kfric);
+	mSystem->AddBody(body);
+}
 
 float3 GetColour(double v,double vmin,double vmax){
 	float3 c = {1.0,1.0,1.0}; // white
@@ -258,7 +272,29 @@ void drawBox(ChBody *abody){
 	glutWireCube(1);
 	glPopMatrix();
 }
+void drawCyl(ChBody *abody){
+GLUquadric *quad=gluNewQuadric();
 
+	float3 color=GetColour(abody->GetPos_dt().Length(),0,10);
+	glColor4f (color.x, color.y,color.z, 1);
+	glPushMatrix();
+	double angle;
+	ChVector<> axis;
+
+
+	glTranslatef(abody->GetPos().x, abody->GetPos().y, abody->GetPos().z);
+
+	abody->GetRot().Q_to_AngAxis(angle,axis);
+	glRotatef(angle*180.0/PI, axis.x, axis.y, axis.z);
+	glRotatef(90, 1, 0, 0);
+
+	float4 h=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[0].B;
+	//glScalef(h.x*2,h.y*2,h.z*2);
+	glBegin(GL_QUADS);
+	gluCylinder(quad,h.x,h.x,h.y,40,40);
+	glEnd();
+	glPopMatrix();
+}
 void drawTriMesh(ChTriangleMesh &TriMesh,ChBody *abody){
 	float3 color=GetColour(abody->GetPos_dt().Length(),0,50);
 	glColor3f (color.x, color.y,color.z);
@@ -359,15 +395,15 @@ void ChangeHeading(GLfloat degrees){
 
 
 void processNormalKeys(unsigned char key, int x, int y) { 	
-	if (key=='w'){camera_pos_delta+=dir*1*Scale;}
-	if (key=='s'){camera_pos_delta-=dir*1*Scale;}
-	if (key=='d'){camera_pos_delta+=cross(dir,camera_up)*1*Scale;}
-	if (key=='a'){camera_pos_delta-=cross(dir,camera_up)*1*Scale;}
-	if (key=='q'){camera_pos_delta+=camera_up*1*Scale;}
-	if (key=='e'){camera_pos_delta-=camera_up*1*Scale;}
+	if (key=='w'){camera_pos_delta+=dir*Scale;}
+	if (key=='s'){camera_pos_delta-=dir*Scale;}
+	if (key=='d'){camera_pos_delta+=cross(dir,camera_up)*Scale;}
+	if (key=='a'){camera_pos_delta-=cross(dir,camera_up)*Scale;}
+	if (key=='q'){camera_pos_delta+=camera_up*Scale;}
+	if (key=='e'){camera_pos_delta-=camera_up*Scale;}
 	if (key=='u'){updateDraw=(updateDraw)? 0:1;}
 	if (key=='i'){showSphere=(showSphere)? 0:1;}
-	//if (key=='z'){saveData=1;}
+	if (key=='z'){saveData=1;}
 	//if (key=='x'){moveGround=1;}
 }
 void pressKey(int key, int x, int y) {} 
@@ -408,9 +444,9 @@ void initScene(){
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glHint (GL_POINT_SMOOTH_HINT, GL_DONT_CARE);
 	glEnable(GL_DEPTH_TEST);
-	glFrontFace(GL_CCW);
-	glCullFace(GL_BACK);
-	glEnable(GL_CULL_FACE);
+	//glFrontFace(GL_CCW);
+	//glCullFace(GL_BACK);
+	//glEnable(GL_CULL_FACE);
 	glDepthFunc(GL_LEQUAL);
 	glClearDepth(1.0);
 	glPointSize(2);
@@ -446,30 +482,36 @@ void System::drawAll(){
 			if(abody->GetCollisionModel()->GetShapeType()==ELLIPSOID){
 				drawSphere(abody);
 			}
+			if(abody->GetCollisionModel()->GetShapeType()==CYLINDER){
+				drawCyl(abody);
+			}
+			
 			//if(abody->GetCollisionModel()->GetShapeType()==TRIANGLEMESH){
 			//	glColor3f (0,0,0);
 			//	drawTriMesh(TriMesh,(abody));
 			//}
-			ChLcpSystemDescriptorGPU* mGPUDescriptor=(ChLcpSystemDescriptorGPU *)mSystem->GetLcpSystemDescriptor();
-			for(int i=0; i<mGPUDescriptor->gpu_collision->contact_data_host.size(); i++){
+			}
+			if(showContacts){
+				ChLcpSystemDescriptorGPU* mGPUDescriptor=(ChLcpSystemDescriptorGPU *)mSystem->GetLcpSystemDescriptor();
+				for(int i=0; i<mGPUDescriptor->gpu_collision->contact_data_host.size(); i++){
 								float3 N=mGPUDescriptor->gpu_collision->contact_data_host[i].N;
 								float3 Pa=mGPUDescriptor->gpu_collision->contact_data_host[i].Pa;
+								float D=mGPUDescriptor->gpu_collision->contact_data_host[i].I.x;
 								glBegin(GL_LINES);
 								glVertex3f(Pa.x, Pa.y, Pa.z);
-								float3 Pb=Pa+N*20;
+								float3 Pb=Pa+N*-D*10;
 								glVertex3f(Pb.x, Pb.y, Pb.z);
 								glEnd();
 
 							}
-
-
-}
-#if defined( _WINDOWS )
-		Sleep( 30 );
+			}
+	#if defined( _WINDOWS )
+	Sleep( 30 );
 #else
-		usleep( 30 * 1000 );
+	usleep( 30 * 1000 );
 #endif
-		glutSwapBuffers();
-	}
+	glutSwapBuffers();
+}
+
 }
 
