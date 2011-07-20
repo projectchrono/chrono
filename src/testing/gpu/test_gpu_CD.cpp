@@ -1,12 +1,12 @@
 #include "common.h"
 
 void System::DoTimeStep(){
-	if(mNumCurrentObjects<mNumObjects&&mFrameNumber%50==0){
-		float x=1;	float posX=0;
+	if(mNumCurrentObjects<mNumObjects&&mFrameNumber%100==0){
+		float x=1;	float posX=1;
 		float y=1;	float posY=-10;
-		float z=1;	float posZ=0;
+		float z=1;	float posZ=1;
 		
-		float radius	=1;
+		float radius	=.5;
 		float mass	=10;
 		float mu	=.5;
 		float rest	=0;
@@ -25,57 +25,28 @@ void System::DoTimeStep(){
 			if(type==0){MakeSphere(mrigidBody, radius, mass, mParticlePos*1.5, mu, mu, rest, true);}
 			if(type==1){MakeBox(mrigidBody, ChVector<>(radius,radius,radius), mass, mParticlePos,quat, mu, mu, rest,mobjNum,mobjNum,true, false);}
 			if(type==2){MakeEllipsoid(mrigidBody, ChVector<>(radius,radius,radius), mass, mParticlePos,quat, mu, mu, rest, true);}
-			if(type==3){MakeCylinder(mrigidBody, ChVector<>(radius,radius*2,radius), mass, mParticlePos,quat, mu, mu, rest, true);}
+			if(type==3){MakeCylinder(mrigidBody, ChVector<>(radius,radius,radius), mass, mParticlePos,quat, mu, mu, rest, true);}
 			mobjNum++;
 			}
 		}
 	}
 
 	}
-	for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
-		ChBodyGPU *abody=(ChBodyGPU*)(mSystem->Get_bodylist()->at(i));
-		if(abody->GetPos().y<-40){
-			abody->SetCollide(false);
-			abody->SetBodyFixed(true);
-			abody->SetPos(ChVector<>(15,-40,15));
-		}
-	}
-	if(mFrameNumber%3==0&&saveData){
-		ofstream ofile;
-		stringstream ss;
-		ss<<"data/test"<<mFileNumber<<".txt";
-		ofile.open(ss.str().c_str());
-		for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
-			ChBody* abody = mSystem->Get_bodylist()->at(i);
-			ChVector<> pos=abody->GetPos();
-			ChVector<> rot=abody->GetRot().Q_to_NasaAngles();
-			ChVector<> vel=abody->GetPos_dt();
-			ChVector<> acc=abody->GetPos_dtdt();
-			ChVector<> trq=abody->Get_gyro();
-			if(isnan(rot.x)){rot.x=0;}
-			if(isnan(rot.y)){rot.y=0;}
-			if(isnan(rot.z)){rot.z=0;}
-			ofile<<pos.x<<","<<pos.y<<","<<pos.z<<","<<rot.x<<","<<rot.y<<","<<rot.z<<","<<endl;
-		}
-		ofile.close();
-		mFileNumber++;
-	}
+
+	DeactivationPlane(-40);
+
+	SaveByID(1,"test_ball.txt",true,true,true,false,false);
+	//SaveAllData("data/ball_drop",true, false, false, true, false);
 	
 	mFrameNumber++;
 	mSystem->DoStepDynamics( mTimeStep );
 	mCurrentTime+=mTimeStep;
-	if(mSystem->GetChTime()>=mEndTime){exit(0);}
-	if(mSystem->GetNbodies()==0){exit(0);}
 }
 
-System *GPUSystem;
-void renderSceneAll(){
-	GPUSystem->drawAll();
-}
 int main(int argc, char* argv[]){
 	float mOmega=.1;
 	int   mIteations=200;
-	float mTimeStep=.001;
+	float mTimeStep=.005;
 	float mEnvelope=0;
 	float mMu=.5;
 	float mWallMu=.5;
@@ -99,7 +70,7 @@ int main(int argc, char* argv[]){
 	SysG.ChangeCollisionSystem(&mGPUCollisionEngine);
 	SysG.SetIntegrationType(ChSystem::INT_ANITESCU);
 	SysG.Set_G_acc(ChVector<>(0,GRAV,0));
-	GPUSystem=new System(&SysG,1,"test.txt");
+	GPUSystem=new System(&SysG,4,"test.txt");
 	GPUSystem->mMu=mMu;
 	GPUSystem->mTimeStep=mTimeStep;
 	GPUSystem->mEndTime=mEndTime;
@@ -111,33 +82,21 @@ int main(int argc, char* argv[]){
 	GPUSystem->MakeBox(P2,ChVector<>(15,5,20), 100000,ChVector<>(0,-30,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
 	ChSharedBodyGPUPtr P3	=	ChSharedBodyGPUPtr(new ChBodyGPU);
 	GPUSystem->MakeBox(P3,ChVector<>(10,5,20), 100000,ChVector<>(20,-30,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
+	//ChSharedBodyGPUPtr P1	=	ChSharedBodyGPUPtr(new ChBodyGPU);
+	//GPUSystem->MakeCylinder(P1, ChVector<>(10,10,10), 10000, ChVector<>(0,-30,0),base, mWallMu, mWallMu, 0, true);
+	//P1.get_ptr()->SetBodyFixed(true);
 	
 #pragma omp parallel sections
 	{
 #pragma omp section
 		{
-			while(true){
+			while(GPUSystem->mSystem->GetChTime()<=GPUSystem->mEndTime){
 				GPUSystem->renderScene();
 			}
 		}
 #pragma omp section
 		{
-			if(OGL){
-				glutInit(&argc, argv);									
-				glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);	
-				glutInitWindowPosition(0,0);								
-				glutInitWindowSize(1024	,512);
-				glutCreateWindow("test");
-				glutDisplayFunc(renderSceneAll);
-				glutIdleFunc(renderSceneAll);
-				glutReshapeFunc(changeSize);
-				glutIgnoreKeyRepeat(0);
-				glutKeyboardFunc(processNormalKeys);
-				glutMouseFunc(mouseButton);
-				glutMotionFunc(mouseMove);
-				initScene();
-				glutMainLoop();	
-			}
+			if(OGL){initGLUT(string("test"),argc, argv);}
 		}
 	}
 	return 0;
