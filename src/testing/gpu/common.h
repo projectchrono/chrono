@@ -51,6 +51,9 @@ public:
 	void MakeEllipsoid(ChSharedBodyGPUPtr &body, ChVector<> radius, double mass,ChVector<> pos,ChQuaternion<> rot,double sfric,double kfric,double restitution,bool collide);
 	void MakeCylinder(ChSharedBodyGPUPtr &body, ChVector<> radius, double mass,ChVector<> pos,ChQuaternion<> rot,double sfric,double kfric,double restitution,bool collide);
 	void LoadTriangleMesh(string name, ChVector<> pos, ChQuaternion<> rot, float mass);
+	void DeactivationPlane(float y);
+	void SaveByID(int id, string fname, bool pos, bool vel, bool acc, bool rot, bool omega);
+	void SaveAllData(string prefix, bool p, bool v, bool a, bool r, bool o);
 	void drawAll();
 	void renderScene(){	PrintStats();	DoTimeStep();}
 	ChSystem *mSystem;
@@ -180,7 +183,65 @@ void System::MakeCylinder(ChSharedBodyGPUPtr &body, ChVector<> radius, double ma
 	body.get_ptr()->SetKfriction(kfric);
 	mSystem->AddBody(body);
 }
+void System::DeactivationPlane(float y){
+		for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
+		ChBodyGPU *abody=(ChBodyGPU*)(mSystem->Get_bodylist()->at(i));
+		if(abody->GetPos().y<y){
+		abody->SetCollide(false);
+		abody->SetBodyFixed(true);
+		}
+	}
+}
 
+void System::SaveByID(int id, string fname, bool p, bool v, bool a, bool r, bool o){
+ofstream ofile;
+ofile.open(fname.c_str(),ios_base::app);
+
+ChBody* abody = mSystem->Get_bodylist()->at(id);
+ChVector<> pos=abody->GetPos();
+ChVector<> rot=abody->GetRot().Q_to_NasaAngles();
+ChVector<> vel=abody->GetPos_dt();
+ChVector<> acc=abody->GetPos_dtdt();
+
+if(isnan(rot.x)){rot.x=0;}
+if(isnan(rot.y)){rot.y=0;}
+if(isnan(rot.z)){rot.z=0;}
+
+if(p){ofile<<pos.x<<","<<pos.y<<","<<pos.z<<",";}
+if(v){ofile<<vel.x<<","<<vel.y<<","<<vel.z<<",";}
+if(a){ofile<<acc.x<<","<<acc.y<<","<<acc.z<<",";}
+if(r){ofile<<rot.x<<","<<rot.y<<","<<rot.z<<",";}
+if(o){}
+ofile<<endl;
+
+ofile.close();
+}
+
+
+void System::SaveAllData(string prefix, bool p, bool v, bool a, bool r, bool o){
+		ofstream ofile;
+		stringstream ss;
+		ss<<prefix<<mFileNumber<<".txt";
+		ofile.open(ss.str().c_str());
+		for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
+			ChBody* abody = mSystem->Get_bodylist()->at(i);
+			ChVector<> pos=abody->GetPos();
+			ChVector<> rot=abody->GetRot().Q_to_NasaAngles();
+			ChVector<> vel=abody->GetPos_dt();
+			ChVector<> acc=abody->GetPos_dtdt();
+			ChVector<> trq=abody->Get_gyro();
+			if(isnan(rot.x)){rot.x=0;}
+			if(isnan(rot.y)){rot.y=0;}
+			if(isnan(rot.z)){rot.z=0;}
+			if(p){ofile<<pos.x<<","<<pos.y<<","<<pos.z<<",";}
+			if(v){ofile<<vel.x<<","<<vel.y<<","<<vel.z<<",";}
+			if(a){ofile<<acc.x<<","<<acc.y<<","<<acc.z<<",";}
+			if(r){ofile<<rot.x<<","<<rot.y<<","<<rot.z<<",";}
+			ofile<<endl;
+		}
+		ofile.close();
+		mFileNumber++;
+}
 float3 GetColour(double v,double vmin,double vmax){
 	float3 c = {1.0,1.0,1.0}; // white
 	double dv;
@@ -280,19 +341,18 @@ GLUquadric *quad=gluNewQuadric();
 	glPushMatrix();
 	double angle;
 	ChVector<> axis;
+	float4 h=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[0].B;
 
-
-	glTranslatef(abody->GetPos().x, abody->GetPos().y, abody->GetPos().z);
+	glTranslatef(abody->GetPos().x, abody->GetPos().y+h.y, abody->GetPos().z);
 
 	abody->GetRot().Q_to_AngAxis(angle,axis);
 	glRotatef(angle*180.0/PI, axis.x, axis.y, axis.z);
 	glRotatef(90, 1, 0, 0);
 
-	float4 h=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[0].B;
+	
 	//glScalef(h.x*2,h.y*2,h.z*2);
-	glBegin(GL_QUADS);
-	gluCylinder(quad,h.x,h.x,h.y,40,40);
-	glEnd();
+	gluCylinder(quad,h.x,h.x,h.y*2,40,40);
+	gluQuadricDrawStyle(quad,GLU_FILL);
 	glPopMatrix();
 }
 void drawTriMesh(ChTriangleMesh &TriMesh,ChBody *abody){
@@ -506,12 +566,46 @@ void System::drawAll(){
 							}
 			}
 	#if defined( _WINDOWS )
-	Sleep( 30 );
+	Sleep( 40 );
 #else
-	usleep( 30 * 1000 );
+	usleep( 40 * 1000 );
 #endif
 	glutSwapBuffers();
 }
 
 }
+System *GPUSystem;
+void renderSceneAll(){
+	GPUSystem->drawAll();
+}
+void initGLUT(string name, int argc, char* argv[]){
+				glutInit(&argc, argv);									
+				glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);	
+				glutInitWindowPosition(0,0);					
+				glutInitWindowSize(1024	,512);
+				glutCreateWindow(name.c_str());
+				glutDisplayFunc(renderSceneAll);
+				glutIdleFunc(renderSceneAll);
+				glutReshapeFunc(changeSize);
+				glutIgnoreKeyRepeat(0);
+				glutKeyboardFunc(processNormalKeys);
+				glutMouseFunc(mouseButton);
+				glutMotionFunc(mouseMove);
+				initScene();
+				glutMainLoop();
 
+
+}
+
+void simulationLoop(){
+			while(GPUSystem->mSystem->GetChTime()<=GPUSystem->mEndTime){
+				GPUSystem->renderScene();
+			}
+			cout<< "Simulation Complete"<<endl;
+			#if defined( _WINDOWS )
+	Sleep( 2000 );
+#else
+	usleep( 2000 * 1000 );
+#endif
+			exit(0);
+}

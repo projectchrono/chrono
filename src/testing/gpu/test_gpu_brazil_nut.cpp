@@ -33,33 +33,10 @@ void System::DoTimeStep(){
 	}
 
 	}
-	for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
-		ChBodyGPU *abody=(ChBodyGPU*)(mSystem->Get_bodylist()->at(i));
-		if(abody->GetPos().y<-1){
-			abody->SetCollide(false);
-			abody->SetBodyFixed(true);
-			abody->SetPos(ChVector<>(1,-1,1));
-		}
-	}
+	DeactivationPlane(-1);
+	
 	if(mFrameNumber%30==0&&saveData){
-		ofstream ofile;
-		stringstream ss;
-		ss<<"data/brazil"<<mFileNumber<<".txt";
-		ofile.open(ss.str().c_str());
-		for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
-			ChBody* abody = mSystem->Get_bodylist()->at(i);
-			ChVector<> pos=abody->GetPos();
-			ChVector<> rot=abody->GetRot().Q_to_NasaAngles();
-			//ChVector<> vel=abody->GetPos_dt();
-			//ChVector<> acc=abody->GetPos_dtdt();
-			//ChVector<> trq=abody->Get_gyro();
-			//if(isnan(rot.x)){rot.x=0;}
-			//if(isnan(rot.y)){rot.y=0;}
-			//if(isnan(rot.z)){rot.z=0;}
-			ofile<<pos.x<<","<<pos.y<<","<<pos.z<<endl;
-		}
-		ofile.close();
-		mFileNumber++;
+		SaveAllData("data/brazil_nut",true, false, false, true, false);
 	}
 	
 	
@@ -71,14 +48,8 @@ void System::DoTimeStep(){
 	mFrameNumber++;
 	mSystem->DoStepDynamics( mTimeStep );
 	mCurrentTime+=mTimeStep;
-	if(mSystem->GetChTime()>=mEndTime){exit(0);}
-	if(mSystem->GetNbodies()==0){exit(0);}
 }
 
-System *GPUSystem;
-void renderSceneAll(){
-	GPUSystem->drawAll();
-}
 int main(int argc, char* argv[]){
 Scale=.01;
 	float mOmega=.1;
@@ -143,36 +114,11 @@ Scale=.01;
 	{
 #pragma omp section
 		{
-			ofstream output_body ("output_brazil.txt");
-			while(true){
-				GPUSystem->renderScene();
-				ChVector<> pos=I->GetPos();
-				ChVector<> rot=I->GetRot().Q_to_NasaAngles();
-				ChVector<> vel=I->GetPos_dt();
-				ChVector<> acc=I->GetPos_dtdt();
-				ChVector<> trq=I->Get_gyro();
-				output_body<<pos.x<<","<<pos.y<<","<<pos.z<<","<<rot.x<<","<<rot.y<<","<<rot.z<<","<<vel.x<<","<<vel.y<<","<<vel.z<<","<<acc.x<<","<<acc.y<<","<<acc.z<<","<<trq.x<<","<<trq.y<<","<<trq.z<<","<<endl;	
-			}
-			output_body.close();
+			while(GPUSystem->mSystem->GetChTime()<=GPUSystem->mEndTime){GPUSystem->renderScene();}
 		}
 #pragma omp section
 		{
-			if(OGL){
-				glutInit(&argc, argv);									
-				glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);	
-				glutInitWindowPosition(0,0);								
-				glutInitWindowSize(1024	,512);
-				glutCreateWindow("brazil");
-				glutDisplayFunc(renderSceneAll);
-				glutIdleFunc(renderSceneAll);
-				glutReshapeFunc(changeSize);
-				glutIgnoreKeyRepeat(0);
-				glutKeyboardFunc(processNormalKeys);
-				glutMouseFunc(mouseButton);
-				glutMotionFunc(mouseMove);
-				initScene();
-				glutMainLoop();	
-			}
+			if(OGL){initGLUT(string("test"),argc, argv);}
 		}
 	}
 	return 0;

@@ -67,7 +67,8 @@ ENDIF(MSVC)
 
 #-----------------------------------------------------------------------------
 # For non-multi-configuration generators:
-
+SET(CMAKE_BUILD_TYPE "Release" CACHE STRING "For single-configuration generators (es. make) set the type of build: Debug or Release")
+SET_PROPERTY(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release" "Debug")
 IF (NOT MSVC)
  SET(CMAKE_BUILD_TYPE "Debug"	CACHE STRING "For single-configuration generators (es. make) set the type of build: Debug or Release")
  IF ("${CMAKE_BUILD_TYPE}" MATCHES "Debug")
