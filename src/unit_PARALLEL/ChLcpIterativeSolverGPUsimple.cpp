@@ -121,14 +121,14 @@ namespace chrono
 
 		gpu_solver->c_factor				=gpu_contact_container->Get_load_C_factor();
 		gpu_solver->tolerance				=mTolerance;
-		gpu_solver->negated_recovery_speed	=-maxrecspeed;
+		gpu_solver->negated_recovery_speed		=-maxrecspeed;
 		gpu_solver->step_size				=mDt;
-		gpu_solver->number_of_bilaterals	=number_of_bilaterals;
-		gpu_solver->number_of_bodies		=number_of_bodies;
-		gpu_solver->number_of_contacts		=mSystemDescriptor->gpu_collision->number_of_contacts;
+		gpu_solver->number_of_bilaterals		=number_of_bilaterals;
+		gpu_solver->number_of_bodies			=number_of_bodies;
+		gpu_solver->number_of_contacts			=mSystemDescriptor->gpu_collision->number_of_contacts;
 		gpu_solver->lcp_omega				=mOmega;
-		gpu_solver->maximum_iterations		=mMaxIterations;
-		gpu_solver->use_cpu					=use_cpu;
+		gpu_solver->maximum_iterations			=mMaxIterations;
+		gpu_solver->use_cpu				=use_cpu;
 		gpu_solver->RunTimeStep();
 
 		gpu_contact_container->SetNcontacts(mSystemDescriptor->gpu_collision->number_of_contacts);

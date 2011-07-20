@@ -24,7 +24,13 @@ ENDIF()
 
 
 IF(ENABLE_UNIT_GPU)
-
+	SET(CUDA_DEVICE_VERSION "20" CACHE STRING "CUDA Device Version")
+	SET_PROPERTY(CACHE CUDA_DEVICE_VERSION PROPERTY STRINGS "10" "11" "12" "13" "20")
+	
+	SET(CUDA_FAST_MATH TRUE CACHE BOOL "Use Fast Math Operations")
+	SET(CUDA_VERBOSE_PTX TRUE CACHE BOOL "Show Verbose Kernel Info During Compilation")
+	
+	SET(CUDA_CUSTOM_COMPILER "" CACHE STRING "Custom C++ Compiler for CUDA If Needed")
 	#
 	# LIST THE FILES THAT MAKE THE GPU LIBRARY
 	# NOTE: to add a new source to this unit, just add its name
@@ -112,7 +118,6 @@ IF(ENABLE_UNIT_GPU)
 	ELSE()
 	ENDIF()
 
-
 	find_library(CH_CUDART
 			NAMES cudart libcudart
 			PATHS ${CUDA_TOOLKIT_LIB_DIR})
@@ -127,15 +132,18 @@ IF(ENABLE_UNIT_GPU)
 	SET(FREEGLUT_LIB "")
 	ENDIF()
 
+	SET(CUDA_NVCC_FLAGS "" CACHE STRING "" FORCE)
 	# Build kernels for desired compute capabilities
-	macro(set_compute_capability cc) 
-			list(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_${cc},code=sm_${cc}") 
-			list(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_${cc},code=compute_${cc}")
-	endmacro(set_compute_capability)
 	
-	#cuda_include_directories(${CUDA_SDK_ROOT_DIR}/common/inc)
-	#cuda_include_directories(${CUDA_SDK_ROOT_DIR}/../shared/inc)
-
+	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-ccbin=${CUDA_CUSTOM_COMPILER}" CACHE  STRING "" FORCE ) 
+	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-gencode=arch=compute_${CUDA_DEVICE_VERSION},code=sm_${CUDA_DEVICE_VERSION}" CACHE  STRING "" FORCE ) 
+	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-gencode=arch=compute_${CUDA_DEVICE_VERSION},code=compute_${CUDA_DEVICE_VERSION}" CACHE STRING "" FORCE)
+	IF(CUDA_FAST_MATH)
+	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-use_fast_math" CACHE STRING "" FORCE)
+	ENDIF()
+	IF(CUDA_VERBOSE_PTX)
+	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "--ptxas-options=-v" CACHE STRING "" FORCE)
+	ENDIF()
 	# Find path to cutil libs, from CUDA SDK
 	find_library(CH_CUDA_LIBSDKUTIL 
 			NAMES cutil cutil${CH_ARCH} cutil_${CMAKE_SYSTEM_PROCESSOR} 
@@ -145,8 +153,8 @@ IF(ENABLE_UNIT_GPU)
 	#		PATHS ${CUDA_SDK_LIB_DIR})
 
 	SET (CUDA_SDK_INCLUDE     "${CUDA_SDK_ROOT_DIR}/common/inc" )
-	SET (CH_CUDA_INC     "${CUDA_TOOLKIT_ROOT_DIR}/include" )
-	SET (CH_CUDA_SDK_INC "${CUDA_SDK_ROOT_DIR}/common/inc"  )
+	SET (CH_CUDA_INC     	"${CUDA_TOOLKIT_ROOT_DIR}/include" )
+	SET (CH_CUDA_SDK_INC 	"${CUDA_SDK_ROOT_DIR}/common/inc"  )
 
 	# These need to get straightened out
 	# Anything using the SDK should only be used by nvcc, no need to include

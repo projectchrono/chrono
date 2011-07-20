@@ -75,7 +75,7 @@ namespace chrono
 			virtual bool AddTriangle(ChVector<> A, ChVector<> B, ChVector<> C, ChVector<>* pos=0, ChMatrix33<>* rot=0);
 
 			/// Add a cylinder to this model (default axis on Y direction), for collision purposes
-			virtual bool AddCylinder (double rx, double rz, double hy,  ChVector<>* pos=0, ChMatrix33<>* rot=0);
+			virtual bool AddCylinder (double rx, double ry, double rz,  ChVector<>* pos=0, ChMatrix33<>* rot=0);
 
 			/// Add a 2d rectangle shape to this model, for collision purposes
 			virtual bool AddRectangle	(double rx, double ry);

@@ -56,7 +56,7 @@ __device__ int Contact_Type(const int &A,const int &B){
 	if(A==0&&B==1){return 1;}	//sphere-triangle
 	if(A==1&&B==0){return 2;}	//triangle-sphere
 	if(A==3&&B==3){return 3;}	//ellipsoid-ellipsoid
-	return 4;
+	return 20;
 }
 
 __global__ void Compute_AABBs(object* object_data, AABB* AABBs){

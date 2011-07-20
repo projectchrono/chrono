@@ -483,23 +483,34 @@ __device__ __host__ inline float3 GetSupportPoint_Ellipsoid	(const object& p,con
 	//return normalize(n* F3(p.B))* F3(p.B);
 	return F3(p.B)*F3(p.B)*n/length(n*F3(p.B));
 }
+__device__ __host__ float sign(float x){if(x<0) {return -1;}else {return 1;}}
+
+ 
+
 __device__ __host__ inline float3 GetSupportPoint_Cylinder	(const object& p,const float3 &n){
 	//return make_float3(0,0,0);
+	float3 u=F3(0,1,0);
+	float3 w=n-(dot(u,n))*u;
+	
+	
+	
 	float3 result;
-	float d, s=sqrtf(n.x*n.x+n.z*n.z);
-	if(s!=0.0f){
-		d=p.B.x/s;
-		result.x=n.x*d;
-		result.y=n.y<0.0f? -p.B.y:p.B.y;
-		result.z=n.z*d;
-		return result;
-	}
-	else{
-		result.x=p.B.x;
-		result.y=n.y<0.0f? -p.B.y:p.B.y;
-		result.z=0.0f;
-		return result;
-	}
+	if(length(w)!=0){result=sign(dot(u,n))*p.B.y*u+p.B.x*normalize(w);}
+	else{result=sign(dot(u,n))*p.B.y*u;}
+	return result;
+	//float d, s=sqrtf(n.x*n.x+n.z*n.z);
+	//if(s!=0.0f){
+	//	d=p.B.x/s;
+	//	result.x=n.x*d;
+	//	result.y=sign(n.y)*p.B.y;
+	//	result.z=n.z*d;
+	//	return result;
+	//}else{
+	//	result.x=p.B.x;
+	//	result.y=sign(n.y)*p.B.y;
+	//	result.z=p.B.x;
+	//	return result;
+	//}
 }
 __device__ __host__ inline float3 GetSupportPoint_Plane		(const object& p,const float3 &n){
 	float3 result = make_float3(p.B);
@@ -510,9 +521,7 @@ __device__ __host__ inline float3 GetSupportPoint_Plane		(const object& p,const 
 __device__ __host__ inline float3 GetSupportPoint_Cone		(const object& p,const float3 &n){
 	return make_float3(0,0,0);
 }
-__device__ __host__ inline float3 GetCenter_Sphere			(const object& p){
-	return make_float3(0,0,0);
-}
+__device__ __host__ inline float3 GetCenter_Sphere			(const object& p){return Zero_Vector;}
 __device__ __host__ inline float3 GetCenter_Triangle		(const object& p){
 	return make_float3((p.A.x+p.B.x+p.C.x)/3.0f,(p.A.y+p.B.y+p.C.y)/3.0f,(p.A.z+p.B.z+p.C.z)/3.0f);
 }
@@ -812,14 +821,14 @@ __global__ void MPR_GPU_Store(
 	float3 N,p1,p2;
 	float depth=0;
 	if(!CollideAndFindPoint(A,B,N,p1, p2, depth)){return;};
-	//if(Index==0){printf("%f %f %f | %f %f %f | %f %f %f| %f\n",N.x,N.y,N.z,p1.x,p1.y,p1.z,p2.x,p2.y,p2.z, depth);}
-	p1=(TransformSupportVert(A,-N)-p1)*N*N+p1;
-	p2=(TransformSupportVert(B,N)-p2)*N*N+p2;
+	
+	//p1=(TransformSupportVert(A,-N)-p1)*N*N+p1;
+	//p2=(TransformSupportVert(B,N)-p2)*N*N+p2;
 	//depth=sqrtf(dot((p2-p1),(p2-p1)));
 	//p2+=p1;
 	//p2*=.5;
-
-	AddContact(CData,Index,  getID(A),getID(B), p1, p2,-N,-depth);
+	//if(Index==0){printf("%f %f %f | %f %f %f | %f %f %f| %f\n",N.x,N.y,N.z,p1.x,p1.y,p1.z,p2.x,p2.y,p2.z, depth);}
+	AddContact(CData,Index,  getID(A),getID(B), p1, p1,-N,-depth);
 	Contact_Number[Index]=Index;
 }
 
@@ -858,6 +867,7 @@ void ChCCollisionGPU::Narrowphase(){       						//NarrowPhase Contact CD
 	number_of_contacts=number_of_contacts-Thrust_Count(generic_counter,0xFFFFFFFF);
 	contact_data_gpu->resize(number_of_contacts);
 	CopyCDToCPU();
+	cudaThreadSynchronize();
 }
 
 void ChCCollisionGPU::CopyCDToCPU(){ 
