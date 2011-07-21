@@ -37,7 +37,7 @@ namespace chrono
 		double tolerance,		///< tolerance for termination criterion
 		double omega, bool cpu){			///< overrelaxation criterion
 
-			//mDt= dt;
+			mDt= dt;
 			mDoIntegrationStep=true;
 			mStepCounter = 0;
 			mMaxIterations=maxIteration;
@@ -47,6 +47,16 @@ namespace chrono
 			mOmega=omega;
 			use_cpu=cpu;
 			gpu_solver=mSystemDescriptor->gpu_solver;
+			gpu_solver->c_factor				=gpu_contact_container->Get_load_C_factor();
+			gpu_solver->tolerance				=mTolerance;
+			double maxrecspeed = gpu_contact_container->Get_load_max_recovery_speed();
+					if (gpu_contact_container->Get_load_do_clamp() == false) {maxrecspeed = 10e25;}
+			gpu_solver->negated_recovery_speed		=-maxrecspeed;
+			gpu_solver->step_size				=mDt;
+			gpu_solver->lcp_omega				=mOmega;
+			gpu_solver->maximum_iterations			=mMaxIterations;
+			gpu_solver->use_cpu				=use_cpu;
+			
 	};
 	ChLcpIterativeSolverGPUsimple::~ChLcpIterativeSolverGPUsimple() {/*CUT_EXIT(argc, argv);*/};
 
@@ -116,25 +126,16 @@ namespace chrono
 		mSystemDescriptor->number_of_bilaterals =number_of_bilaterals;
 		// -3-  EXECUTE KERNELS ===============
 
-		double maxrecspeed = gpu_contact_container->Get_load_max_recovery_speed();
-		if (gpu_contact_container->Get_load_do_clamp() == false) {maxrecspeed = 10e25;}
 
-		gpu_solver->c_factor				=gpu_contact_container->Get_load_C_factor();
-		gpu_solver->tolerance				=mTolerance;
-		gpu_solver->negated_recovery_speed		=-maxrecspeed;
-		gpu_solver->step_size				=mDt;
 		gpu_solver->number_of_bilaterals		=number_of_bilaterals;
 		gpu_solver->number_of_bodies			=number_of_bodies;
 		gpu_solver->number_of_contacts			=mSystemDescriptor->gpu_collision->number_of_contacts;
-		gpu_solver->lcp_omega				=mOmega;
-		gpu_solver->maximum_iterations			=mMaxIterations;
-		gpu_solver->use_cpu				=use_cpu;
 		gpu_solver->RunTimeStep();
 
 		gpu_contact_container->SetNcontacts(mSystemDescriptor->gpu_collision->number_of_contacts);
 
 		if (mDoIntegrationStep){
-			for (unsigned int iv = 0; iv< mvariables.size(); iv++){	
+			for (unsigned int iv = 0; iv< mvariables.size(); iv++){
 				mvariables[iv]->Get_qb().SetElementN(0, (double)gpu_solver->host_body_data[iv].x );
 				mvariables[iv]->Get_qb().SetElementN(1, (double)gpu_solver->host_body_data[iv].y );
 				mvariables[iv]->Get_qb().SetElementN(2, (double)gpu_solver->host_body_data[iv].z );
@@ -145,11 +146,16 @@ namespace chrono
 				ChLcpVariablesBody* mbodyvars = (ChLcpVariablesBody*) mvariables[iv];
 				ChBody* mbody = (ChBody*)mbodyvars->GetUserData();
 				if(mbody->IsActive()){
+
 					CH_REALNUMBER4 hp	= gpu_solver->host_body_data[iv+ 2*number_of_bodies];
 					CH_REALNUMBER4 hr	= gpu_solver->host_body_data[iv+ 3*number_of_bodies];
+
 					ChVector<> newpos	 ( hp.x, hp.y, hp.z );
 					ChQuaternion<> newrot( hr.x, hr.y, hr.z, hr.w );
 					mbody->SetCoord(ChCoordsys<>(newpos, newrot));
+
+					mbody->VariablesQbIncrementPosition(mDt);
+					mbody->VariablesQbSetSpeed(mDt);
 				}
 			}
 		}

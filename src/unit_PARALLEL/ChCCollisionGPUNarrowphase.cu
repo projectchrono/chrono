@@ -460,7 +460,7 @@ __global__ void Sphere_Triangle(object * object_data,int3 * Pair ,uint* Contact_
 
 
 __device__ __host__ inline float3 GetSupportPoint_Sphere	(const object& p,const  float3 &n){		
-	return (p.A.w) * (n);
+	return (p.A.w) * normalize(n);
 }
 __device__ __host__ inline float3 GetSupportPoint_Triangle	(const object& p,const float3 &n){
 	float3 Pa=make_float3(p.A);
@@ -681,6 +681,7 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 
 	// v1 = support in direction of origin
 	n = normalize(-v0);
+	//if(isnan(n.x)){printf("NAN1\n");}
 	v11 = TransformSupportVert(p1, -n);
 	v12 = TransformSupportVert(p2, n);
 	v1 = v12 - v11;
@@ -688,6 +689,7 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 
 	// v2 - support perpendicular to v1,v0
 	n = cross(v1 , v0);
+	//if(isnan(n.x)){printf("NAN2\n");}
 	if (IsZero3(n)){
 		n = v1 - v0;
 		n=normalize(n);
@@ -703,6 +705,7 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 
 	// Determine whether origin is on + or - side of plane (v1,v0,v2)
 	n = normalize(cross((v1 - v0) , (v2 - v0)));
+	//if(isnan(n.x)){printf("NAN3\n");}
 	// If the origin is on the - side of the plane, reverse the direction of the plane
 	if (dot(n , v0) > 0){
 		Swap(v1, v2);
@@ -710,6 +713,7 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 		Swap(v12, v22);
 		n = -n;
 	}
+	if(isnan(n.x)){printf("NAN4\n");}
 	// Phase One: Identify a portal
 	float3 v31, v32, v3;
 	while (1){
@@ -725,6 +729,7 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 			v21 = v31;
 			v22 = v32;
 			n = cross((v1 - v0) , (v3 - v0));
+			if(isnan(n.x)){printf("NAN4\n");}
 			continue;
 		}
 		// If origin is outside (v3,v0,v2), then eliminate v1 and loop
@@ -747,6 +752,7 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 		// Compute normal of the wedge face
 		n = cross((v2 - v1) , (v3 - v1));
 		n = normalize(n);
+
 		// Compute distance from origin to wedge face
 		// If the origin is inside the wedge, we have a hit
 		if (dot(n , v1) >= 0. && !hit){
@@ -769,8 +775,8 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 			float inv = 1.0f / sum;
 			point1 = (b0 * v01 + b1 * v11 + b2 * v21 + b3 * v31) * inv;
 			point2 = (b0 * v02 + b1 * v12 + b2 * v22 + b3 * v32) * inv;
-			point1+=point2;
-			point1*=.5;
+			//point1+=point2;
+			//point1*=.5;
 
 			hit = true;// HIT!!!
 		}
@@ -783,7 +789,7 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 		float separation = -dot(v4 , n);
 
 		// If the boundary is thin enough or the origin is outside the support plane for the newly discovered vertex, then we can terminate
-		if ( /*delta <= kCollideEpsilon || separation >= 0. ||*/ phase2 > 200 ){
+		if ( delta <= kCollideEpsilon || separation >= 0. || phase2 > 200 ){
 			float3 O=F3(0,0,0);
 			depth=find_dist(O,v1,v2,v3,n);
 			returnNormal = normalize(n);
@@ -824,11 +830,11 @@ __global__ void MPR_GPU_Store(
 	
 	//p1=(TransformSupportVert(A,-N)-p1)*N*N+p1;
 	//p2=(TransformSupportVert(B,N)-p2)*N*N+p2;
-	//depth=sqrtf(dot((p2-p1),(p2-p1)));
+	depth=sqrtf(dot((p2-p1),(p2-p1)));
 	//p2+=p1;
 	//p2*=.5;
 	//if(Index==0){printf("%f %f %f | %f %f %f | %f %f %f| %f\n",N.x,N.y,N.z,p1.x,p1.y,p1.z,p2.x,p2.y,p2.z, depth);}
-	AddContact(CData,Index,  getID(A),getID(B), p1, p1,-N,-depth);
+	AddContact(CData,Index,  getID(A),getID(B), p1, p2,-N,-depth);
 	Contact_Number[Index]=Index;
 }
 
@@ -866,8 +872,7 @@ void ChCCollisionGPU::Narrowphase(){       						//NarrowPhase Contact CD
 	Thrust_Sort_By_Key(generic_counter,(*contact_data_gpu));
 	number_of_contacts=number_of_contacts-Thrust_Count(generic_counter,0xFFFFFFFF);
 	contact_data_gpu->resize(number_of_contacts);
-	CopyCDToCPU();
-	cudaThreadSynchronize();
+	//CopyCDToCPU();
 }
 
 void ChCCollisionGPU::CopyCDToCPU(){ 

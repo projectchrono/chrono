@@ -81,7 +81,7 @@ __global__ void LCP_Iteration_Contacts( contactGPU* contacts, CH_REALNUMBER4* bo
 	//if(i==0){printf("%f %f %f | %f %f %f | %f %f %f\n",N.x,N.y,N.z,contacts[i].Pa.x,contacts[i].Pa.y,contacts[i].Pa.z,contacts[i].Pb.x,contacts[i].Pb.y,contacts[i].Pb.z);}
 	reg=reg+dot(N,(F3(B2-B1)));
 	
-	reg=min(0.0,max(reg,-1.));
+	//reg=min(0.0,max(reg,-1.));
 	
 	sbar =contacts[i].Pa-F3(bodies[2*number_of_bodies_const+B1_i]);	//Contact Point on A - Position of A                                
 	E1 = bodies[3*number_of_bodies_const+B1_i];						//bring in the Euler parameters associated with body 1;
@@ -340,6 +340,7 @@ void ChLcpIterativeSolverGPU::GPU_Version(){
 	COPY_TO_CONST_MEM(number_of_contacts);
 	COPY_TO_CONST_MEM(number_of_bilaterals);
 	COPY_TO_CONST_MEM(number_of_bodies);
+	if(number_of_contacts>0||number_of_bilaterals>0){
 	device_bilateral_data	=host_bilateral_data;
 	ChKernelLCPcomputeOffsets<<< BLOCKS(number_of_constraints),THREADS>>>(
 		CONTCAST((*device_contact_data)),
@@ -352,11 +353,11 @@ void ChLcpIterativeSolverGPU::GPU_Version(){
 	Thrust_Sort_By_Key(update_number,update_offset);
 	Thrust_Reduce_By_KeyB(number_of_updates,body_number,update_number,offset_counter);
 	Thrust_Inclusive_Scan(offset_counter);
+	}
 	COPY_TO_CONST_MEM(number_of_updates);
 	device_body_data		=host_body_data;
-	
 	ChKernelLCPaddForces<<< BLOCKS(number_of_bodies), THREADS	>>>(CASTF4(device_body_data));	
-
+	if(number_of_contacts>0||number_of_bilaterals>0){
 	for (uint iteration_number = 0; iteration_number < maximum_iterations; iteration_number++){
 		LCP_Iteration_Contacts<<< BLOCKS(number_of_contacts), THREADS >>>(
 			CONTCAST((*device_contact_data)), 
@@ -374,9 +375,9 @@ void ChLcpIterativeSolverGPU::GPU_Version(){
 			CASTU1(body_number),
 			CASTU1(offset_counter));
 	}
+	}
 	//LCP_Integrate_Timestep<<< BLOCKS(number_of_bodies),THREADS>>>(CASTF4(device_body_data), true);
 	host_body_data		=	device_body_data;
-	cudaThreadSynchronize();
 }
 
 void ChLcpIterativeSolverGPU::RunTimeStep()
