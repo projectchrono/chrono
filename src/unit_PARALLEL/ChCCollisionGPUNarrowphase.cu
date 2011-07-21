@@ -681,7 +681,6 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 
 	// v1 = support in direction of origin
 	n = normalize(-v0);
-	//if(isnan(n.x)){printf("NAN1\n");}
 	v11 = TransformSupportVert(p1, -n);
 	v12 = TransformSupportVert(p2, n);
 	v1 = v12 - v11;
@@ -689,7 +688,6 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 
 	// v2 - support perpendicular to v1,v0
 	n = cross(v1 , v0);
-	//if(isnan(n.x)){printf("NAN2\n");}
 	if (IsZero3(n)){
 		n = v1 - v0;
 		n=normalize(n);
@@ -705,7 +703,6 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 
 	// Determine whether origin is on + or - side of plane (v1,v0,v2)
 	n = normalize(cross((v1 - v0) , (v2 - v0)));
-	//if(isnan(n.x)){printf("NAN3\n");}
 	// If the origin is on the - side of the plane, reverse the direction of the plane
 	if (dot(n , v0) > 0){
 		Swap(v1, v2);
@@ -713,7 +710,6 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 		Swap(v12, v22);
 		n = -n;
 	}
-	if(isnan(n.x)){printf("NAN4\n");}
 	// Phase One: Identify a portal
 	float3 v31, v32, v3;
 	while (1){
@@ -729,7 +725,6 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 			v21 = v31;
 			v22 = v32;
 			n = cross((v1 - v0) , (v3 - v0));
-			if(isnan(n.x)){printf("NAN4\n");}
 			continue;
 		}
 		// If origin is outside (v3,v0,v2), then eliminate v1 and loop
