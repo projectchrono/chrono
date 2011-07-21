@@ -405,7 +405,7 @@ public:
 				/// Returns true if the GPU is used for the LCP problem (ex. because
 				/// the LCP_ITERATIVE_GPU solver is used)
 	bool GetUseGPU() {return use_GPU;}
-	bool SetUseGPU(bool gpu) {use_GPU=gpu;}
+	void SetUseGPU(bool gpu) {use_GPU=gpu;}
 
 
 
