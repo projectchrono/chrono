@@ -2030,12 +2030,12 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 	while HIER_BODY_NOSTOP
 	{
 		// EULERO INTEGRATION: pos+=v_new*dt  (do not do this, if GPU already computed it)
-		//if (cpu_eulero_step)
-		//{
+		if (!use_GPU)
+		{
 			Bpointer->VariablesQbIncrementPosition(this->GetStep());
 			// Set body speed, and approximates the acceleration by differentiation.
 			Bpointer->VariablesQbSetSpeed(this->GetStep());
-		//}
+		}
 		// Now also updates all markers & forces
 		Bpointer->Update(this->ChTime);
 		HIER_BODY_NEXT
@@ -2044,12 +2044,12 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 	while HIER_OTHERPHYSICS_NOSTOP
 	{
 		// EULERO INTEGRATION: pos+=v_new*dt  (do not do this, if GPU already computed it)
-		//if (cpu_eulero_step)
-		//{
+		if (!use_GPU)
+		{
 			PHpointer->VariablesQbIncrementPosition(this->GetStep());
 			// Set body speed, and approximates the acceleration by differentiation.
 			PHpointer->VariablesQbSetSpeed(this->GetStep());
-		//}
+		}
 		// Now also updates all markers & forces
 		PHpointer->Update(this->ChTime);
 		HIER_OTHERPHYSICS_NEXT
