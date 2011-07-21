@@ -70,7 +70,7 @@ Scale=.01;
 	ChCollisionSystemGPU			mGPUCollisionEngine(&mGPUDescriptor, mEnvelope);
 	ChLcpIterativeSolverGPUsimple	mGPUsolverSpeed(&mGPUContactContainer,&mGPUDescriptor,  mIteations,mTimeStep, 1e-5, mOmega, false);
 	
-	ChSystem SysG(1000, 50); 
+	ChSystemGPU SysG(1000, 50);
 	SysG.ChangeLcpSystemDescriptor(&mGPUDescriptor);
 	SysG.ChangeContactContainer(&mGPUContactContainer);
 	SysG.ChangeLcpSolverSpeed(&mGPUsolverSpeed);

@@ -14,6 +14,7 @@
 #include "unit_GPU/ChLcpSystemDescriptorGPU.h"
 #include "unit_GPU/ChCCollisionModelGPU.h"
 #include "unit_GPU/ChBodyGPU.h"
+#include "unit_GPU/ChSystemGPU.h"
 #include <GL/freeglut.h>
 #include "omp.h"
 
@@ -34,10 +35,10 @@ bool showSphere = true;
 bool updateDraw=true;
 bool saveData =false;
 bool showContacts=false;
-
+int detail=1;
 class System{
 public:
-	System(ChSystem * Sys, int nobjects, string timingfile);
+	System(ChSystemGPU * Sys, int nobjects, string timingfile);
 	~System(){};
 
 	void RenderFrame();
@@ -56,7 +57,7 @@ public:
 	void SaveAllData(string prefix, bool p, bool v, bool a, bool r, bool o);
 	void drawAll();
 	void renderScene(){	PrintStats();	DoTimeStep();}
-	ChSystem *mSystem;
+	ChSystemGPU *mSystem;
 
 	double mKE,mMassFlowRate;
 	int mNumCurrentSpheres,mNumCurrentObjects;
@@ -78,7 +79,7 @@ public:
 	ofstream mTimingFile;
 };
 
-System::System(ChSystem * Sys, int nobjects, string timingfile){
+System::System(ChSystemGPU * Sys, int nobjects, string timingfile){
 	mSystem=Sys;
 	mCurrentTime=0;
 	mCameraX=0, mCameraY=0, mCameraZ=0;
@@ -464,7 +465,8 @@ void processNormalKeys(unsigned char key, int x, int y) {
 	if (key=='u'){updateDraw=(updateDraw)? 0:1;}
 	if (key=='i'){showSphere=(showSphere)? 0:1;}
 	if (key=='z'){saveData=1;}
-	//if (key=='x'){moveGround=1;}
+	if (key=='['){detail=max(1,detail-1);}
+	if (key==']'){detail++;}
 }
 void pressKey(int key, int x, int y) {} 
 void releaseKey(int key, int x, int y) {}
@@ -533,7 +535,7 @@ void System::drawAll(){
 
 		for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
 			ChBody* abody=mSystem->Get_bodylist()->at(i);
-			if(abody->GetCollisionModel()->GetShapeType()==SPHERE){
+			if(abody->GetCollisionModel()->GetShapeType()==SPHERE&&i%detail==0){
 				drawSphere(abody,0);
 			}
 			if(abody->GetCollisionModel()->GetShapeType()==BOX){

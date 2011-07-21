@@ -18,9 +18,9 @@ float mEndTime=2;
 bool  OGL=0;
 
 void System::DoTimeStep(){
-	if(mNumCurrentObjects<mNumObjects&&mFrameNumber%500==0){
+	if(mNumCurrentObjects<mNumObjects&&mFrameNumber%50==0){
 		float x=50;	float posX=0;
-		float y=100;	float posY=0;
+		float y=100;	float posY=-25;
 		float z=50;	float posZ=0;
 		
 		float radius	=particle_R[0];
@@ -36,7 +36,7 @@ void System::DoTimeStep(){
 		for (int yy=0; yy<y; yy++){
 		for (int zz=0; zz<z; zz++){
 			ChVector<> mParticlePos((xx-(x-1)/2.0)+posX,(yy)+posY,(zz-(z-1)/2.0)+posZ);
-			mParticlePos+=ChVector<>(rand()%1000/1000.0-.5,rand()%1000/1000.0-.5,rand()%1000/1000.0-.5)*.5;
+			//mParticlePos+=ChVector<>(rand()%1000/1000.0-.5,rand()%1000/1000.0-.5,rand()%1000/1000.0-.5)*.5;
 			
 			mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
 			if(type==0){MakeSphere(mrigidBody, radius, mass, mParticlePos*.01, mu, mu, rest, true);}
@@ -51,15 +51,37 @@ void System::DoTimeStep(){
 	DeactivationPlane(-1);
 	//SaveByID(5,"dropped_ball.txt",true,true,true,false,false);
 	
+//	ChLcpSystemDescriptorGPU* mGPUDescriptor=(ChLcpSystemDescriptorGPU *)mSystem->GetLcpSystemDescriptor();
+//	if(mGPUDescriptor->gpu_collision->contact_data_host.size()>0)
+//		{
+//			ofstream ofile ("contacts.txt");
+//			for(int i=0; i<mGPUDescriptor->gpu_collision->contact_data_host.size(); i++){
+//											float3 N=mGPUDescriptor->gpu_collision->contact_data_host[i].N;
+//											float3 Pa=mGPUDescriptor->gpu_collision->contact_data_host[i].Pa;
+//											float3 Pb=mGPUDescriptor->gpu_collision->contact_data_host[i].Pb;
+//											float D=mGPUDescriptor->gpu_collision->contact_data_host[i].I.x;
+//											ofile<<N.x<<" "<<N.y<<" "<<N.z<<" "<<Pa.x<<" "<<Pa.y<<" "<<Pa.z<<" "<<Pb.x<<" "<<Pb.y<<" "<<Pb.z<<" "<<D<<endl;
+//
+//
+//											//glBegin(GL_LINES);
+//											//glVertex3f(Pa.x, Pa.y, Pa.z);
+//											//float3 Pb=Pa+N*-D*10;
+//											//glVertex3f(Pb.x, Pb.y, Pb.z);
+//											//glEnd();
+//
+//										}
+//			ofile.close();
+//			exit(0);
+//	}
 	if(saveData){SaveAllData("data/ball_drop",true, false, false, true, false);}
 	mFrameNumber++;
 	mSystem->DoStepDynamics( mTimeStep );
 	mCurrentTime+=mTimeStep;
-	if(mCurrentTime>=mEndTime){SaveAllData("data/ball_drop",true, false, false, true, false);}
+	if(mCurrentTime>=mEndTime||mFrameNumber%1000==0){SaveAllData("data/ball_drop",true, false, false, true, false);}
 }
 
 int main(int argc, char* argv[]){
-	Scale=.05;
+	Scale=.01;
 	if(argc==3){OGL=atoi(argv[1]);	saveData=atoi(argv[2]);}
 	
 	cudaSetDevice(mDevice);
@@ -69,14 +91,14 @@ int main(int argc, char* argv[]){
 	ChCollisionSystemGPU			mGPUCollisionEngine(&mGPUDescriptor, mEnvelope);
 	ChLcpIterativeSolverGPUsimple		mGPUsolverSpeed(&mGPUContactContainer,&mGPUDescriptor,  mIteations,mTimeStep, 1e-5, mOmega, false);
 	
-	ChSystem SysG(1000, 50); 
+	ChSystemGPU SysG(1000, 50);
 	SysG.ChangeLcpSystemDescriptor(&mGPUDescriptor);
 	SysG.ChangeContactContainer(&mGPUContactContainer);
 	SysG.ChangeLcpSolverSpeed(&mGPUsolverSpeed);
 	SysG.ChangeCollisionSystem(&mGPUCollisionEngine);
 	SysG.SetIntegrationType(ChSystem::INT_ANITESCU);
 	SysG.Set_G_acc(ChVector<>(0,GRAV,0));
-	GPUSystem=new System(&SysG,100000,"validation.txt");
+	GPUSystem=new System(&SysG,10,"validation.txt");
 	GPUSystem->mMu=mMu;
 	GPUSystem->mTimeStep=mTimeStep;
 	GPUSystem->mEndTime=mEndTime;

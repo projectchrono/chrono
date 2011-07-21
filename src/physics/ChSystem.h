@@ -405,6 +405,7 @@ public:
 				/// Returns true if the GPU is used for the LCP problem (ex. because
 				/// the LCP_ITERATIVE_GPU solver is used)
 	bool GetUseGPU() {return use_GPU;}
+	bool SetUseGPU(bool gpu) {use_GPU=gpu;}
 
 
 
@@ -842,7 +843,7 @@ public:
 	
 				/// As Integrate_Y(), but uses the differential inclusion approach as in Anitescu,
 				/// Use Anitescu stepper, with position stabilization in speed stage.
-	int Integrate_Y_impulse_Anitescu ();
+	virtual int Integrate_Y_impulse_Anitescu ();
 
 				/// As Integrate_Y(), but uses the differential inclusion approach as in Anitescu,
 				/// Use Tasora stepper, with separate stage for position stabilization.
@@ -1101,6 +1102,7 @@ protected:
 	char scriptFor3DStepFile[200];
 
 							// timers for profiling execution speed
+	protected:
 	double timer_step;
 	double timer_lcp;
 	double timer_collision_broad;
