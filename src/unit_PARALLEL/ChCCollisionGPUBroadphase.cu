@@ -52,10 +52,10 @@ __device__ float3 AABB_Contact_Pt(const AABB& A, const AABB& B){
 }
 
 __device__ int Contact_Type(const int &A,const int &B){
-	if(A==0&&B==0){return 0;}	//sphere-sphere
-	if(A==0&&B==1){return 1;}	//sphere-triangle
-	if(A==1&&B==0){return 2;}	//triangle-sphere
-	if(A==3&&B==3){return 3;}	//ellipsoid-ellipsoid
+	//if(A==0&&B==0){return 0;}	//sphere-sphere
+	//if(A==0&&B==1){return 1;}	//sphere-triangle
+	//if(A==1&&B==0){return 2;}	//triangle-sphere
+	//if(A==3&&B==3){return 3;}	//ellipsoid-ellipsoid
 	return 20;
 }
 
@@ -73,17 +73,9 @@ __global__ void Compute_AABBs(object* object_data, AABB* AABBs){
 		ComputeAABBTriangle	(temp_obj,temp.min, temp.max);
 		temp.max.w=1; 
 	}
-	else if(temp_obj.B.w==2){
+	else if(temp_obj.B.w==2||temp_obj.B.w==3||temp_obj.B.w==4){
 		ComputeAABBBox(temp_obj,temp.min, temp.max);
-		temp.max.w=2; 
-	}
-	else if(temp_obj.B.w==3){
-		ComputeAABBBox(temp_obj,temp.min, temp.max);
-		temp.max.w=3; 
-	}
-	else if(temp_obj.B.w==4){
-		ComputeAABBBox(temp_obj,temp.min, temp.max);
-		temp.max.w=4; 
+		temp.max.w=temp_obj.B.w;
 	}
 	else{return;}
 	temp.min=F4(F3(temp.min)-F3(collision_envelope_const)+global_origin_const,index);

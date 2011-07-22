@@ -149,6 +149,8 @@ namespace chrono
 
 					CH_REALNUMBER4 hp	= gpu_solver->host_body_data[iv+ 2*number_of_bodies];
 					CH_REALNUMBER4 hr	= gpu_solver->host_body_data[iv+ 3*number_of_bodies];
+				//	mbody->SetLimitSpeed(true);
+				//	mbody->SetMaxSpeed(.1);
 
 					ChVector<> newpos	 ( hp.x, hp.y, hp.z );
 					ChQuaternion<> newrot( hr.x, hr.y, hr.z, hr.w );

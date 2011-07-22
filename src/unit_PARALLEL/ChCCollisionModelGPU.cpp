@@ -117,7 +117,7 @@ namespace chrono {
 		/// Add a cylinder to this model (default axis on Y direction), for collision purposes
 		bool ChCollisionModelGPU::AddCylinder (double rx, double ry, double rz, ChVector<>* pos, ChMatrix33<>* rot){
 			double mass=this->GetBody()->GetMass();
-			this->GetBody()->SetInertiaXX(ChVector<>(1/12.0*mass*(3*rx*rx+ry*ry),1/12.0*mass*(3*rx*rx+ry*ry),1/2.0*mass*(rx*rx)));
+			this->GetBody()->SetInertiaXX(ChVector<>(1/12.0*mass*(3*rx*rx+ry*ry),1/2.0*mass*(rx*rx),1/12.0*mass*(3*rx*rx+ry*ry)));
 			model_type=CYLINDER;
 			nObjects = 1;
 			bData tData;

@@ -57,13 +57,7 @@ void ChCCollisionGPU::GetBounds(){
 		else if(obj.B.w==1){
 			ComputeAABBTriangle(obj,min,max);
 		}
-		else if(obj.B.w==2){
-			ComputeAABBBox(obj,min,max);
-		}
-		else if(obj.B.w==3){
-			ComputeAABBBox(obj,min,max);
-		}
-		else if(obj.B.w==4){
+		else if(obj.B.w==2||obj.B.w==3||obj.B.w==4){
 			ComputeAABBBox(obj,min,max);
 		}
 		max_bounding_point.x=fmaxf(max_bounding_point.x,max.x);
