@@ -42,7 +42,6 @@ namespace collision
 enum ShapeType
 {
 	SPHERE,
-	COMPOUNDSPHERE,		//Currently implemented on GPU only
 	ELLIPSOID, 
 	BOX, 
 	CYLINDER, 
@@ -53,7 +52,8 @@ enum ShapeType
 	DISC,				//Currently implemented on GPU only
 	ELLIPSE,			//Currently implemented on GPU only
 	CAPSULE,			//Currently implemented on GPU only
-	CONE				//Currently implemented on GPU only
+	CONE,				//Currently implemented on GPU only
+	COMPOUND			//Currently implemented on GPU only
 };
 
 

@@ -51,6 +51,7 @@ public:
 	void MakeBox(ChSharedBodyGPUPtr &body, ChVector<> radius, double mass,ChVector<> pos,ChQuaternion<> rot,double sfric,double kfric,double restitution,int family,int nocolwith,bool collide, bool fixed);
 	void MakeEllipsoid(ChSharedBodyGPUPtr &body, ChVector<> radius, double mass,ChVector<> pos,ChQuaternion<> rot,double sfric,double kfric,double restitution,bool collide);
 	void MakeCylinder(ChSharedBodyGPUPtr &body, ChVector<> radius, double mass,ChVector<> pos,ChQuaternion<> rot,double sfric,double kfric,double restitution,bool collide);
+	void MakeCompound(ChSharedBodyGPUPtr &body,ChVector<> p, ChQuaternion<> r,float mass, vector<float3> pos, vector<float3> dim, vector<float4> quats, vector<ShapeType> type, vector<float> masses,double sfric,double kfric,double restitution,bool collide);
 	void LoadTriangleMesh(ChSharedBodyGPUPtr &mrigidBody,string name, float scale, ChVector<> pos, ChQuaternion<> rot, float mass,double sfric,double kfric,double restitution, int family,int nocolwith);
 	void DeactivationPlane(float y);
 	void SaveByID(int id, string fname, bool pos, bool vel, bool acc, bool rot, bool omega);
@@ -232,6 +233,22 @@ void System::MakeCylinder(ChSharedBodyGPUPtr &body, ChVector<> radius, double ma
 	body.get_ptr()->SetKfriction(kfric);
 	mSystem->AddBody(body);
 }
+void System::MakeCompound(ChSharedBodyGPUPtr &body,ChVector<> p, ChQuaternion<> r,float mass, vector<float3> pos, vector<float3> dim, vector<float4> quats, vector<ShapeType> type, vector<float> masses,double sfric,double kfric,double restitution,bool collide){
+
+	body.get_ptr()->SetMass(mass);
+	body.get_ptr()->SetPos(p);
+	body.get_ptr()->SetRot(r);
+
+
+	body.get_ptr()->GetCollisionModel()->ClearModel();
+	((ChCollisionModelGPU *)(body.get_ptr()->GetCollisionModel()))->AddCompoundBody(pos,dim,quats,type,masses);
+	body.get_ptr()->GetCollisionModel()->BuildModel();
+	body.get_ptr()->SetCollide(collide);
+	body.get_ptr()->SetImpactC(0);
+	body.get_ptr()->SetSfriction(sfric);
+	body.get_ptr()->SetKfriction(kfric);
+	mSystem->AddBody(body);
+}
 void System::DeactivationPlane(float y){
 		for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
 		ChBodyGPU *abody=(ChBodyGPU*)(mSystem->Get_bodylist()->at(i));
@@ -316,96 +333,85 @@ float3 GetColour(double v,double vmin,double vmax){
 	}
 	return(c);
 }
-
-void drawSphere(ChBody *abody, int a){
-	float3 color=GetColour(abody->GetPos_dt().Length(),0,500);
-	glColor3f (color.x, color.y,color.z);
+void makeSphere(float3 pos, float rad, float angle, float3 axis, float3 scale){
 	glPushMatrix();
-	glTranslatef(abody->GetPos().x, abody->GetPos().y, abody->GetPos().z);
-	double angle;
-	ChVector<> axis;
-	abody->GetRot().Q_to_AngAxis(angle,axis);
+	glTranslatef(pos.x,pos.y,pos.z);
 	glRotatef(angle*180.0/3.1415, axis.x, axis.y, axis.z);
-	float4 h=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[0].A;
-	if(showSphere){glutSolidSphere(h.w,10,10);}
-	else{
-		glPointSize(10);
-		glBegin(GL_POINTS);
-		glVertex3f(0, 0, 0);	
-		glEnd();
+	glScalef(scale.x,scale.y,scale.z);
+	if(showSphere){
+		glutSolidSphere(rad,10,10);
 	}
+	else{
+			glPointSize(10);
+			glBegin(GL_POINTS);
+			glVertex3f(0, 0, 0);
+			glEnd();
+		}
+	glPopMatrix();
+}
+void makeBox(float3 pos, float rad, float angle, float3 axis, float3 scale){
+	glPushMatrix();
+	glTranslatef(pos.x,pos.y,pos.z);
+	//glRotatef(90, 1, 0, 0);
+	glRotatef(angle*180.0/3.1415, axis.x, axis.y, axis.z);
+	glScalef(scale.x*2,scale.y*2,scale.z*2);
+	glutWireCube(1);
+	glPopMatrix();
+}
+void makeCyl(float3 pos, float rad, float angle, float3 axis, float3 scale){
+
+	GLUquadric *quad=gluNewQuadric();
+	gluQuadricDrawStyle(quad,GLU_LINE);
+	glPushMatrix();
+	glTranslatef(pos.x,pos.y,pos.z);
+	glRotatef(90, 1, 0, 0);
+		glRotatef(angle*180.0/3.1415, axis.x, axis.y, axis.z);
+		//glScalef(scale.x*2,scale.y*2,scale.z*2);
+		gluCylinder(quad,scale.x,scale.z,scale.y,10,10);
 
 	glPopMatrix();
 }
 
 void drawSphere(ChBody *abody){
-
-	float3 color=GetColour(abody->GetPos_dt().Length(),0,500);
+	float3 color=GetColour(abody->GetPos_dt().Length(),0,1);
 	glColor3f (color.x, color.y,color.z);
-	glPushMatrix();
 	double angle;
 	ChVector<> axis;
-
-	glTranslatef(abody->GetPos().x, abody->GetPos().y, abody->GetPos().z);
-
 	abody->GetRot().Q_to_AngAxis(angle,axis);
-	glRotatef(angle*180.0/3.1415, axis.x, axis.y, axis.z);
 	float4 h=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[0].B;
-	glScalef(h.x,h.y,h.z);
-	glutSolidSphere(1,10,10);
-	if(showSphere){glutSolidSphere(1,10,10);}
-	else{
-		glPointSize(10);
-		glBegin(GL_POINTS);
-		glVertex3f(0, 0, 0);	
-		glEnd();
-	}
-	glPopMatrix();
+	makeSphere(F3(abody->GetPos().x,abody->GetPos().y,abody->GetPos().z),h.x,angle, F3(axis.x,axis.y,axis.z) , F3(1,1,1));
+}
+
+void drawEllipsoid(ChBody *abody){
+	float3 color=GetColour(abody->GetPos_dt().Length(),0,1);
+	glColor3f (color.x, color.y,color.z);
+	double angle;
+	ChVector<> axis;
+	abody->GetRot().Q_to_AngAxis(angle,axis);
+	float4 h=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[0].B;
+	makeSphere(F3(abody->GetPos().x,abody->GetPos().y,abody->GetPos().z),1,angle, F3(axis.x,axis.y,axis.z) , F3(h.x,h.y,h.z));
 }
 
 void drawBox(ChBody *abody){
-	float3 color=GetColour(abody->GetPos_dt().Length(),0,10);
+	float3 color=GetColour(abody->GetPos_dt().Length(),0,1);
 	glColor4f (color.x, color.y,color.z, 1);
-	glPushMatrix();
 	double angle;
 	ChVector<> axis;
-
-
-	glTranslatef(abody->GetPos().x, abody->GetPos().y, abody->GetPos().z);
-
 	abody->GetRot().Q_to_AngAxis(angle,axis);
-	glRotatef(angle*180.0/PI, axis.x, axis.y, axis.z);
-
 	float4 h=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[0].B;
-	glScalef(h.x*2,h.y*2,h.z*2);
-
-	glutWireCube(1);
-	glPopMatrix();
+	makeBox(F3(abody->GetPos().x,abody->GetPos().y,abody->GetPos().z),1,angle, F3(axis.x,axis.y,axis.z) , F3(h.x,h.y,h.z));
 }
 void drawCyl(ChBody *abody){
-GLUquadric *quad=gluNewQuadric();
-
-	float3 color=GetColour(abody->GetPos_dt().Length(),0,10);
+	float3 color=GetColour(abody->GetPos_dt().Length(),0,1);
 	glColor4f (color.x, color.y,color.z, 1);
-	glPushMatrix();
 	double angle;
 	ChVector<> axis;
 	float4 h=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[0].B;
-
-	glTranslatef(abody->GetPos().x, abody->GetPos().y+h.y, abody->GetPos().z);
-
 	abody->GetRot().Q_to_AngAxis(angle,axis);
-	glRotatef(angle*180.0/PI, axis.x, axis.y, axis.z);
-	glRotatef(90, 1, 0, 0);
-
-	
-	//glScalef(h.x*2,h.y*2,h.z*2);
-	gluCylinder(quad,h.x,h.x,h.y*2,40,40);
-	gluQuadricDrawStyle(quad,GLU_FILL);
-	glPopMatrix();
+	makeCyl(F3(abody->GetPos().x,abody->GetPos().y,abody->GetPos().z),1,angle, F3(axis.x,axis.y,axis.z) , F3(h.x,h.y,h.z));
 }
 void drawTriMesh(ChBody *abody){
-	float3 color=GetColour(abody->GetPos_dt().Length(),0,50);
+	float3 color=GetColour(abody->GetPos_dt().Length(),0,1);
 	glColor3f (color.x, color.y,color.z);
 	int numtriangles=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData.size();
 	for(int i=0; i<numtriangles; i++){
@@ -424,7 +430,29 @@ void drawTriMesh(ChBody *abody){
 	glEnd();
 	}
 }
+void drawCompound(ChBody *abody){
+float3 color=GetColour(abody->GetPos_dt().Length(),0,1);
+glColor3f (color.x, color.y,color.z);
+int numobjects=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData.size();
+for(int i=0; i<numobjects; i++){
+	float4 A=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[i].A;
+	float4 B=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[i].B;
+	float4 C=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[i].C;
+	ChVector<> pos = (abody)->GetCoord().TrasformLocalToParent(ChVector<>(A.x,A.y,A.z));
+	int type=B.w;
+	double angle;
+	ChVector<> axis;
+	ChQuaternion<> temp=abody->GetRot();//.Q_to_AngAxis(angle,axis);
+	temp+=ChQuaternion<>(C.x,C.y,C.z,C.w);
+	temp.Normalize();
+	temp.Q_to_AngAxis(angle,axis);
 
+	if(type==0){makeSphere(F3(pos.x,pos.y,pos.z),B.x,angle, F3(axis.x,axis.y,axis.z) , 	F3(1,1,1));}
+	if(type==2){makeBox(F3(pos.x,pos.y,pos.z),1,angle, F3(axis.x,axis.y,axis.z) , 		F3(B.x,B.y,B.z));}
+	if(type==3){makeSphere(F3(pos.x,pos.y,pos.z),1,angle, F3(axis.x,axis.y,axis.z) , 	F3(B.x,B.y,B.z));}
+	if(type==4){makeCyl(F3(pos.x,pos.y,pos.z),1,angle, F3(axis.x,axis.y,axis.z) , 		F3(B.x,B.y,B.z));}
+}
+}
 float m_MaxPitchRate=5;
 float m_MaxHeadingRate=5;
 float3 camera_pos=make_float3(-.1,0,-.1);
@@ -519,6 +547,7 @@ void processNormalKeys(unsigned char key, int x, int y) {
 	if (key=='z'){saveData=1;}
 	if (key=='['){detail=max(1,detail-1);}
 	if (key==']'){detail++;}
+	if (key=='c'){showContacts=(showContacts)? 0:1;}
 }
 void pressKey(int key, int x, int y) {} 
 void releaseKey(int key, int x, int y) {}
@@ -540,7 +569,7 @@ void changeSize(int w, int h) {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glViewport(0, 0, w, h);
-	gluPerspective(45,ratio,.1,1000);
+	gluPerspective(45,ratio,.01,1000);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(0.0,0.0,0.0,		0.0,0.0,-7,		0.0f,1.0f,0.0f);
@@ -588,13 +617,13 @@ void System::drawAll(){
 		for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
 			ChBody* abody=mSystem->Get_bodylist()->at(i);
 			if(abody->GetCollisionModel()->GetShapeType()==SPHERE&&i%detail==0){
-				drawSphere(abody,0);
+				drawSphere(abody);
 			}
 			if(abody->GetCollisionModel()->GetShapeType()==BOX){
 				drawBox(abody);
 			}
 			if(abody->GetCollisionModel()->GetShapeType()==ELLIPSOID){
-				drawSphere(abody);
+				drawEllipsoid(abody);
 			}
 			if(abody->GetCollisionModel()->GetShapeType()==CYLINDER){
 				drawCyl(abody);
@@ -603,6 +632,10 @@ void System::drawAll(){
 			if(abody->GetCollisionModel()->GetShapeType()==TRIANGLEMESH){
 				glColor3f (0,0,0);
 				drawTriMesh(abody);
+			}
+			if(abody->GetCollisionModel()->GetShapeType()==COMPOUND){
+							glColor3f (0,0,0);
+							drawCompound(abody);
 			}
 			}
 			if(showContacts){
@@ -614,6 +647,10 @@ void System::drawAll(){
 								glBegin(GL_LINES);
 								glVertex3f(Pa.x, Pa.y, Pa.z);
 								float3 Pb=Pa+N*-D*10;
+								glVertex3f(Pb.x, Pb.y, Pb.z);
+								glEnd();
+								glBegin(GL_POINTS);
+								glVertex3f(Pa.x, Pa.y, Pa.z);
 								glVertex3f(Pb.x, Pb.y, Pb.z);
 								glEnd();
 

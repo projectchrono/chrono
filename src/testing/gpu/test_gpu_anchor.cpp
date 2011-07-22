@@ -16,11 +16,11 @@ void System::DoTimeStep(){
 
 
 //	if(mNumCurrentObjects<mNumObjects&&mFrameNumber%50==0){
-//		float x=35;	float posX=0;
-//		float y=10;	float posY=-20;
-//		float z=35;	float posZ=0;
+//		float x=10;	float posX=0;
+//		float y=2;	float posY=0;
+//		float z=10;	float posZ=0;
 //
-//		float radius	=.5;
+//		float radius	=.005;
 //		float mass	=1;
 //		float mu	=.5;
 //		float rest	=0;
@@ -33,10 +33,10 @@ void System::DoTimeStep(){
 //		for (int yy=0; yy<y; yy++){
 //		for (int zz=0; zz<z; zz++){
 //			ChVector<> mParticlePos((xx-(x-1)/2.0)+posX,(yy)+posY,(zz-(z-1)/2.0)+posZ);
-//			mParticlePos+=ChVector<>(rand()%1000/1000.0-.5,rand()%1000/1000.0-.5,rand()%1000/1000.0-.5);
+//			//mParticlePos+=ChVector<>(rand()%1000/1000.0-.5,rand()%1000/1000.0-.5,rand()%1000/1000.0-.5);
 //			ChQuaternion<> quat=ChQuaternion<>(1,0,0,0);;
 //			mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
-//			if(type==0){MakeSphere(mrigidBody, radius, mass, mParticlePos*1.2, mu, mu, rest, true);}
+//			if(type==0){MakeSphere(mrigidBody, radius, mass, mParticlePos*.01, mu, mu, rest, true);}
 //			if(type==1){MakeBox(mrigidBody, ChVector<>(radius,radius,radius), mass, mParticlePos,quat, mu, mu, rest,mobjNum,mobjNum,true, false);}
 //			if(type==2){MakeEllipsoid(mrigidBody, ChVector<>(radius,radius,radius), mass, mParticlePos,quat, mu, mu, rest, true);}
 //			mobjNum++;
@@ -55,7 +55,7 @@ void System::DoTimeStep(){
 //	Anchor->Set_Scr_force(ChVector<>(0,20,0));
 //}
 
-	DeactivationPlane(-40);
+	DeactivationPlane(-1);
 	
 	if(mFrameNumber%3==0&&saveData){
 		SaveAllData("data/anchor",true, false, false, true, false);
@@ -73,7 +73,7 @@ void System::DoTimeStep(){
 
 int main(int argc, char* argv[]){
 	Scale=.01;
-	float mOmega=.1;
+	float mOmega=.3;
 	int   mIteations=200;
 	float mTimeStep=.0001;
 	float mEnvelope=0;
@@ -122,13 +122,57 @@ int main(int argc, char* argv[]){
 	anchor_rot.Q_from_AngAxis(angle,axis);
 
 	//GPUSystem->LoadTriangleMesh(Anchor,"Helical_Anchor2.obj",.5,ChVector<> (0,0,0),anchor_rot,1,.5,.5,0,-21,-21 );
-	GPUSystem->MakeEllipsoid(Anchor, ChVector<>(.05,.1,.05), .5, ChVector<> (0,0,0),base, .5, .5, 0, true);
+	//GPUSystem->MakeCylinder(Anchor, ChVector<>(.005,.31/2.0,.005), .05, ChVector<> (0,.5,0),base, .5, .5, 0, true);
+	vector<float3> pos;
+	vector<float3> dim;
+	vector<float4> quats;
+	vector<ShapeType> tpe;
+	vector<float> masses;
+
+	ifstream anchorFile("Helical_Anchor.txt");
+	string dat;
+	float3 p;
+	float4 r;
+	for(int i=0; i<102; i++){
+		//getline(anchorFile,dat);
+		anchorFile>>p.x>>p.y>>p.z>>r.x>>r.y>>r.z>>r.w;
+		p.y*=-1;
+		r=normalize(r);
+		//ChQuaternion<> qq;
+		//qq.Q_from_AngAxis(r.x*PI/180.0,ChVector<> (r.y,r.z,r.w));
+		if      (i==0){
+			dim.push_back(F3(.005,0,0));
+			tpe.push_back(SPHERE);
+			quats.push_back(r);
+			pos.push_back(F3(0,0,0));
+			masses.push_back(.05);
+		}
+		else if (i==1){
+			dim.push_back(F3(.005,.31,.005));
+			tpe.push_back(CYLINDER);
+			quats.push_back(F4(1,0,0,0));
+			pos.push_back(F3(0,.31,0));
+			masses.push_back(.5);
+		}
+		else{
+			dim.push_back(F3(.0245,.0006,.0025));
+			tpe.push_back(BOX);
+			ChQuaternion<> tq1 ,tq2, tempquat;
+			//tq1.Q_from_AngAxis(5.5*PI/180.,ChVector<>(0,0,1));
+			tq2.Q_from_AngAxis(i*360/100.0*PI/180.,ChVector<>(0,1,0));
+			tempquat=tq2;
+			quats.push_back(F4(tempquat.e0,tempquat.e1,tempquat.e2,tempquat.e3));
+			pos.push_back(p*.001);
+			masses.push_back(.01);
+		}
+	}
+	GPUSystem->MakeCompound(Anchor, ChVector<> (0,0,0),base,1,pos,dim,quats,tpe,masses, .5, .5, 0, true);
 	
 	float radius	=particle_R[0];
-			float mass	=particle_Rho[0]*4.0/3.0*PI*radius*radius*radius;
-			float mu	=tan(particle_Theta[0]*PI/180.0);
-			float rest	=0;
-			int   type 	=0;
+	float mass	=particle_Rho[0]*4.0/3.0*PI*radius*radius*radius;
+	float mu	=tan(particle_Theta[0]*PI/180.0);
+	float rest	=0;
+	int   type 	=0;
 
 
 	ifstream ifile("ball_drop_start.txt");
