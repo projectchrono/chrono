@@ -40,23 +40,29 @@ namespace chrono {
 				int type=body->GetShapeType();
 				if(type==SPHERE){
 					object temp_obj;
+					float4 B=body->mData[0].B;
 					localPos=body->GetBody()->GetPos();
 					ChQuaternion<> quat=body->GetBody()->GetRot();
 					quat.Normalize();
-					temp_obj.A=F4(localPos.x,localPos.y,localPos.z,body->GetSphereR(0));
-					temp_obj.B=F4(i,0,0,0);
+					temp_obj.A=F4(localPos.x,localPos.y,localPos.z,i);
+					temp_obj.B=F4(B.x,0,0,0);
 					temp_obj.C=F4(quat.e1,quat.e2,quat.e3,quat.e0);
 					temp_obj.family=I2(i,i);
 					mGPU->object_data_host.push_back(temp_obj);
 				}
-				else if(type==COMPOUNDSPHERE){
+				else if(type==COMPOUND){
 					for(int j=0; j<body->GetNObjects(); j++){
-						gPos = body->GetBody()->GetCoord().TrasformLocalToParent(body->GetSpherePos(0));
+						float4 A=body->mData[j].A;
+						float4 B=body->mData[j].B;
+						float4 C=body->mData[j].C;
+						ChQuaternion<> quat=body->GetBody()->GetRot();//+ChQuaternion<>(C.x,C.y,C.z,C.w);
+						quat.Normalize();
 						object temp_obj;
-						temp_obj.A=F4(gPos.x,gPos.y,gPos.z,body->GetSphereR(j));
-						temp_obj.B=F4(i,0,0,0);
-						temp_obj.C=F4(0,0,0,1);
-						temp_obj.family=I2(body->GetFamily(),body->GetNoCollFamily());
+						gPos = body->GetBody()->GetCoord().TrasformLocalToParent(ChVector<>(A.x,A.y,A.z));
+						temp_obj.A=F4(gPos.x,gPos.y,gPos.z,i);
+						temp_obj.B=F4(B.x,B.y,B.z,B.w);
+						temp_obj.C=F4(quat.e1,quat.e2,quat.e3,quat.e0);
+						temp_obj.family=I2(i,i);
 						mGPU->object_data_host.push_back(temp_obj);
 					}
 				}

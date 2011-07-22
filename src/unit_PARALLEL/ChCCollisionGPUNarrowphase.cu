@@ -368,11 +368,7 @@ __device__ bool ContactCalculation(object &A, object &B, float3& pA, float3& pB,
 }
 
 __device__ __host__ uint getID(const object &A){
-	if(A.B.w==0)	{return A.B.x;}
-	else if(A.B.w==1){return A.A.w;}
-	else if(A.B.w==2){return A.A.w;}
-	else if(A.B.w==3){return A.A.w;}
-	else return 100;
+	return A.A.w;
 }
 __global__ void Ellipsoid_Ellipsoid(object * object_data,
 									int3 * Pair ,
@@ -460,7 +456,7 @@ __global__ void Sphere_Triangle(object * object_data,int3 * Pair ,uint* Contact_
 
 
 __device__ __host__ inline float3 GetSupportPoint_Sphere	(const object& p,const  float3 &n){		
-	return (p.A.w) * normalize(n);
+	return (p.B.x) * normalize(n);
 }
 __device__ __host__ inline float3 GetSupportPoint_Triangle	(const object& p,const float3 &n){
 	float3 Pa=make_float3(p.A);
@@ -770,8 +766,8 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 			float inv = 1.0f / sum;
 			point1 = (b0 * v01 + b1 * v11 + b2 * v21 + b3 * v31) * inv;
 			point2 = (b0 * v02 + b1 * v12 + b2 * v22 + b3 * v32) * inv;
-			//point1+=point2;
-			//point1*=.5;
+			point1+=point2;
+			point1*=.5;
 
 			hit = true;// HIT!!!
 		}
@@ -821,11 +817,11 @@ __global__ void MPR_GPU_Store(
 	object B=object_data[pair.y];
 	float3 N,p1,p2;
 	float depth=0;
-	if(!CollideAndFindPoint(A,B,N,p1, p2, depth)){return;};
+	if(!CollideAndFindPoint(A,B,N,p1, p1, depth)){return;};
 	
 	//p1=(TransformSupportVert(A,-N)-p1)*N*N+p1;
 	//p2=(TransformSupportVert(B,N)-p2)*N*N+p2;
-	depth=sqrtf(dot((p2-p1),(p2-p1)));
+	//depth=sqrtf(dot((p2-p1),(p2-p1)));
 	//p2+=p1;
 	//p2*=.5;
 	//if(Index==0){printf("%f %f %f | %f %f %f | %f %f %f| %f\n",N.x,N.y,N.z,p1.x,p1.y,p1.z,p2.x,p2.y,p2.z, depth);}
@@ -867,7 +863,7 @@ void ChCCollisionGPU::Narrowphase(){       						//NarrowPhase Contact CD
 	Thrust_Sort_By_Key(generic_counter,(*contact_data_gpu));
 	number_of_contacts=number_of_contacts-Thrust_Count(generic_counter,0xFFFFFFFF);
 	contact_data_gpu->resize(number_of_contacts);
-	//CopyCDToCPU();
+	CopyCDToCPU();
 }
 
 void ChCCollisionGPU::CopyCDToCPU(){ 

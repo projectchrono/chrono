@@ -119,7 +119,7 @@ namespace chrono
 			/// The 'another' model must be of ChModelBullet subclass.
 			virtual bool AddCopyOfAnotherModel (ChCollisionModel* another);
 
-			virtual bool AddCompoundBody (int numSpheres, vector<float4> &data);/// Add a compound body to this model, for collision purposes
+			virtual bool AddCompoundBody (vector<float3> pos, vector<float3> dim, vector<float4> quats, vector<ShapeType> type, vector<float> masses);/// Add a compound body to this model, for collision purposes
 			virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const ;
 
 			virtual void SetFamily(int mfamily);

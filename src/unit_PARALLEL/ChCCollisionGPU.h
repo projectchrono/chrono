@@ -16,7 +16,7 @@
 ///////////////////////////////////////////////////
 
 #include "ChCuda.h"
-struct __builtin_align__(16) object{
+struct  object{
 	float4 A,B,C;
 	int2 family;
 };

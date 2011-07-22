@@ -65,13 +65,13 @@ __global__ void Compute_AABBs(object* object_data, AABB* AABBs){
 	object temp_obj=object_data[index];
 	AABB temp;
 
-	if(temp_obj.B.w==0){	
+	if(temp_obj.B.w==0){
 		ComputeAABBSphere (temp_obj, temp.min, temp.max);
-		temp.max.w=0; 
+		temp.max.w=0;
 	}
 	else if(temp_obj.B.w==1){
 		ComputeAABBTriangle	(temp_obj,temp.min, temp.max);
-		temp.max.w=1; 
+		temp.max.w=1;
 	}
 	else if(temp_obj.B.w==2||temp_obj.B.w==3||temp_obj.B.w==4){
 		ComputeAABBBox(temp_obj,temp.min, temp.max);
@@ -161,7 +161,7 @@ __global__ void AABB_AABB(
 			if(
 				Bin==Hash_Index(Hash(AABB_Contact_Pt(A,B)))||
 				Bin==Hash_Index(Hash(AABB_Contact_Pt(B,A)))){
-						int type=Contact_Type(A.max.w,B.max.w);
+						int type=20;//Contact_Type(A.max.w,B.max.w);
 						uint offset=(!Index) ? 0 : Num_ContactD[Index-1];
 						contact[offset+count]=I3(A.min.w,B.min.w,type);			//the two indicies of the objects that make up the contact
 

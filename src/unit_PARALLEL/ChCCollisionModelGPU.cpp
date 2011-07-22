@@ -35,7 +35,6 @@ namespace chrono {
 					GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Remove(this);
 				}
 			}
-
 			mData.clear();
 			nObjects=0;
 			colFam = -1;
@@ -52,19 +51,28 @@ namespace chrono {
 			return 1;
 		}
 
-		bool ChCollisionModelGPU::AddCompoundBody(int numSpheres, vector<float4> &data){
-			model_type=COMPOUNDSPHERE;
-			if(numSpheres<=0){
-				return false;
-			}
-			nObjects = numSpheres;
+		bool ChCollisionModelGPU::AddCompoundBody(vector<float3> pos, vector<float3> dim, vector<float4> quats, vector<ShapeType> type, vector<float> masses){
+			model_type=COMPOUND;
+			nObjects = pos.size();
 			bData tData;
-			for(int ii=0; ii<numSpheres; ii++){
-				tData.B=make_float4(0);
-				tData.C=make_float4(0);
-				tData.A=data[ii];
+			float3 mInertia=make_float3(0,0,0);
+			int mtype=0;
+
+			for(int i=0; i<nObjects; i++){
+				float mass=masses[i];
+				float rx=dim[i].x;
+				float ry=dim[i].y;
+				float rz=dim[i].z;
+				if(type[i]==SPHERE)			{mInertia+=make_float3(2/5.0*mass*rx*rx,2/5.0*mass*rx*rx,2/5.0*mass*rx*rx);										mtype=0;}
+				else if(type[i]==ELLIPSOID)	{mInertia+=make_float3(1/5.0*mass*(ry*ry+rz*rz),1/5.0*mass*(rx*rx+rz*rz),1/5.0*mass*(rx*rx+ry*ry));				mtype=3;}
+				else if(type[i]==BOX)		{mInertia+=make_float3(1/12.0*mass*(ry*ry+rz*rz),1/12.0*mass*(rx*rx+rz*rz),1/12.0*mass*(rx*rx+ry*ry));			mtype=2;}
+				else if(type[i]==CYLINDER)	{mInertia+=make_float3(1/12.0*mass*(3*rx*rx+ry*ry),1/2.0*mass*(rx*rx),1/12.0*mass*(3*rx*rx+ry*ry));				mtype=4;}
+				tData.A=make_float4(pos[i]);
+				tData.B=make_float4(dim[i],mtype);
+				tData.C=quats[i];
 				mData.push_back(tData);
 			}
+			this->GetBody()->SetInertiaXX(ChVector<>(mInertia.x,mInertia.y,mInertia.z));
 			return true;
 		}
 
@@ -74,8 +82,8 @@ namespace chrono {
 			model_type=SPHERE;
 			nObjects = 1;
 			bData tData;
-			tData.A=make_float4(0,0,0,radius);
-			tData.B=make_float4(0,0,0,0);
+			tData.A=make_float4(0,0,0,0);
+			tData.B=make_float4(radius,0,0,0);
 			tData.C=make_float4(0,0,0,0);
 			mData.push_back(tData);
 			return true;

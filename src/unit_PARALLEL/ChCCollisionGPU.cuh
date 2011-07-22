@@ -35,8 +35,8 @@ __device__ __host__ inline void Swap(float3& a, float3& b){
 
 __device__ __host__ void ComputeAABBSphere(const object &C, float4 &minp, float4 &maxp){
 	float4 S=C.A;
-	minp=F4(F3(S)-F3(S.w),0);
-	maxp=F4(F3(S)+F3(S.w),0);
+	minp=F4(F3(S)-F3(C.B.x),0);
+	maxp=F4(F3(S)+F3(C.B.x),0);
 }
 
 __device__ __host__ void ComputeAABBTriangle(const object &C,float4 &minp, float4 &maxp){
