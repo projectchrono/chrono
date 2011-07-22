@@ -51,7 +51,7 @@ public:
 	void MakeBox(ChSharedBodyGPUPtr &body, ChVector<> radius, double mass,ChVector<> pos,ChQuaternion<> rot,double sfric,double kfric,double restitution,int family,int nocolwith,bool collide, bool fixed);
 	void MakeEllipsoid(ChSharedBodyGPUPtr &body, ChVector<> radius, double mass,ChVector<> pos,ChQuaternion<> rot,double sfric,double kfric,double restitution,bool collide);
 	void MakeCylinder(ChSharedBodyGPUPtr &body, ChVector<> radius, double mass,ChVector<> pos,ChQuaternion<> rot,double sfric,double kfric,double restitution,bool collide);
-	void LoadTriangleMesh(string name, ChVector<> pos, ChQuaternion<> rot, float mass);
+	void LoadTriangleMesh(ChSharedBodyGPUPtr &mrigidBody,string name, float scale, ChVector<> pos, ChQuaternion<> rot, float mass,double sfric,double kfric,double restitution, int family,int nocolwith);
 	void DeactivationPlane(float y);
 	void SaveByID(int id, string fname, bool pos, bool vel, bool acc, bool rot, bool omega);
 	void SaveAllData(string prefix, bool p, bool v, bool a, bool r, bool o);
@@ -126,6 +126,54 @@ void System::PrintStats(){
 	printf("%7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d\n",A,B,C,D,E,F);
 	sprintf(numstr,"%7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d",A,B,C,D,E,F);
 	mTimingFile<<numstr<<endl;
+}
+void System::LoadTriangleMesh(ChSharedBodyGPUPtr &mrigidBody,string name, float scale, ChVector<> position, ChQuaternion<> rot, float mass,double sfric,double kfric,double restitution, int family,int nocolwith){
+    geometry::ChTriangleMesh TriMesh;
+	ifstream ifile(name.c_str());
+    string temp,j;
+    vector<float3> pos, tri;
+    float3 tempF;
+    while(ifile.fail()==false){
+        getline(ifile,temp);
+        if(temp.size()>2&&temp[0]!='#'&&temp[0]!='g'){
+            if(temp[0]=='v'){
+                stringstream ss(temp);
+                ss>>j>>tempF.x>>tempF.y>>tempF.z;
+                pos.push_back(tempF);
+            }
+            if(temp[0]=='f'){
+                stringstream ss(temp);
+                ss>>j>>tempF.x>>tempF.y>>tempF.z;
+                tri.push_back(tempF);
+            }
+        }
+    }
+
+    for(int i=0; i<tri.size(); i++){
+        ChVector<> A(pos[tri[i].x-1].x,pos[tri[i].x-1].y,pos[tri[i].x-1].z);
+        ChVector<> B(pos[tri[i].y-1].x,pos[tri[i].y-1].y,pos[tri[i].y-1].z);
+        ChVector<> C(pos[tri[i].z-1].x,pos[tri[i].z-1].y,pos[tri[i].z-1].z);
+        A*=scale;
+        B*=scale;
+        C*=scale;
+        TriMesh.addTriangle(A,B,C);
+    }
+
+    mrigidBody.get_ptr()->SetMass(mass);
+    mrigidBody.get_ptr()->SetPos(position);
+
+    mrigidBody.get_ptr()->GetCollisionModel()->ClearModel();
+    mrigidBody.get_ptr()->GetCollisionModel()->AddTriangleMesh(TriMesh,false,false);
+    mrigidBody.get_ptr()->GetCollisionModel()->BuildModel();
+    mrigidBody.get_ptr()->SetBodyFixed(false);
+    mrigidBody.get_ptr()->SetCollide(true);
+    mrigidBody.get_ptr()->SetImpactC(0.0);
+    mrigidBody.get_ptr()->SetSfriction(sfric);
+    mrigidBody.get_ptr()->SetKfriction(kfric);
+    mrigidBody.get_ptr()->SetRot(rot);
+    mSystem->AddBody(mrigidBody);
+    mrigidBody.get_ptr()->GetCollisionModel()->SetFamily(family);
+    mrigidBody.get_ptr()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(nocolwith);
 }
 
 void System::MakeSphere(ChSharedBodyGPUPtr &body, double radius, double mass,ChVector<> pos,double sfric,double kfric,double restitution,bool collide){
@@ -356,20 +404,24 @@ GLUquadric *quad=gluNewQuadric();
 	gluQuadricDrawStyle(quad,GLU_FILL);
 	glPopMatrix();
 }
-void drawTriMesh(ChTriangleMesh &TriMesh,ChBody *abody){
+void drawTriMesh(ChBody *abody){
 	float3 color=GetColour(abody->GetPos_dt().Length(),0,50);
 	glColor3f (color.x, color.y,color.z);
-	for(int i=0; i<TriMesh.getNumTriangles(); i++){
-		geometry::ChTriangle tri=TriMesh.getTriangle(i);
-		ChVector<> gA = (abody)->GetCoord().TrasformLocalToParent(tri.p1);
-		ChVector<> gB = (abody)->GetCoord().TrasformLocalToParent(tri.p2);
-		ChVector<> gC = (abody)->GetCoord().TrasformLocalToParent(tri.p3);
-		glColor4f (0, 0,0,.3);
-		glBegin(GL_LINE_LOOP);
-		glVertex3f(gA.x,gA.y,gA.z);	
-		glVertex3f(gB.x,gB.y,gB.z);	
-		glVertex3f(gC.x,gC.y,gC.z);	
-		glEnd();
+	int numtriangles=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData.size();
+	for(int i=0; i<numtriangles; i++){
+	float4 p1=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[i].A;
+	float4 p2=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[i].B;
+	float4 p3=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[i].C;
+
+	ChVector<> gA = (abody)->GetCoord().TrasformLocalToParent(ChVector<>(p1.x,p1.y,p1.z));
+	ChVector<> gB = (abody)->GetCoord().TrasformLocalToParent(ChVector<>(p2.x,p2.y,p2.z));
+	ChVector<> gC = (abody)->GetCoord().TrasformLocalToParent(ChVector<>(p3.x,p3.y,p3.z));
+	glColor4f (0, 0,0,.3);
+	glBegin(GL_LINE_LOOP);
+	glVertex3f(gA.x,gA.y,gA.z);
+	glVertex3f(gB.x,gB.y,gB.z);
+	glVertex3f(gC.x,gC.y,gC.z);
+	glEnd();
 	}
 }
 
@@ -548,10 +600,10 @@ void System::drawAll(){
 				drawCyl(abody);
 			}
 			
-			//if(abody->GetCollisionModel()->GetShapeType()==TRIANGLEMESH){
-			//	glColor3f (0,0,0);
-			//	drawTriMesh(TriMesh,(abody));
-			//}
+			if(abody->GetCollisionModel()->GetShapeType()==TRIANGLEMESH){
+				glColor3f (0,0,0);
+				drawTriMesh(abody);
+			}
 			}
 			if(showContacts){
 				ChLcpSystemDescriptorGPU* mGPUDescriptor=(ChLcpSystemDescriptorGPU *)mSystem->GetLcpSystemDescriptor();
