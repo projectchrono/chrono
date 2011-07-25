@@ -1,3 +1,5 @@
+s
+
 #--------------------------------------------------------------
 # Additional include paths
 
@@ -48,23 +50,6 @@ TARGET_LINK_LIBRARIES(test_gpu_ball_drop
  	)
 ADD_DEPENDENCIES (test_gpu_ball_drop ChronoEngine ChronoEngine_GPU)
 
-ADD_EXECUTABLE(test_gpu_brazil_nut	test_gpu_brazil_nut.cpp)
-SOURCE_GROUP(testing\\gpu FILES  	test_gpu_brazil_nut.cpp)
-SET_TARGET_PROPERTIES(test_gpu_brazil_nut PROPERTIES 
-	FOLDER demos
-	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
-TARGET_LINK_LIBRARIES(test_gpu_brazil_nut 
-			${CH_CUDART}
-			${GLUT_LIBRARIES}
-			${FREEGLUT_LIB}
- 	optimized 	${CH_CHRONOLIB}     
- 	debug 		${CH_CHRONOLIB_DBG} 
- 	optimized 	${CH_CHRONOGPULIB}
- 	debug	    ${CH_CHRONOGPULIB_DBG}	)
-ADD_DEPENDENCIES (test_gpu_brazil_nut ChronoEngine ChronoEngine_GPU)
-
 ADD_EXECUTABLE(test_gpu_vibration	test_gpu_vibration.cpp)
 SOURCE_GROUP(testing\\gpu FILES  	test_gpu_vibration.cpp)
 SET_TARGET_PROPERTIES(test_gpu_vibration PROPERTIES 
@@ -82,19 +67,3 @@ TARGET_LINK_LIBRARIES(test_gpu_vibration
  	debug	    ${CH_CHRONOGPULIB_DBG}	)
 ADD_DEPENDENCIES (test_gpu_vibration ChronoEngine ChronoEngine_GPU)
 
-ADD_EXECUTABLE(test_gpu_anchor	test_gpu_anchor.cpp)
-SOURCE_GROUP(testing\\gpu FILES  	test_gpu_anchor.cpp)
-SET_TARGET_PROPERTIES(test_gpu_anchor PROPERTIES 
-	FOLDER demos
-	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
-TARGET_LINK_LIBRARIES(test_gpu_anchor 
-			${CH_CUDART}
-			${GLUT_LIBRARIES}
-			${FREEGLUT_LIB}
- 	optimized 	${CH_CHRONOLIB}     
- 	debug 		${CH_CHRONOLIB_DBG} 
- 	optimized 	${CH_CHRONOGPULIB}
- 	debug	    ${CH_CHRONOGPULIB_DBG}	)
-ADD_DEPENDENCIES (test_gpu_anchor ChronoEngine ChronoEngine_GPU)
