@@ -16,40 +16,43 @@ float mWallMu=.5;
 int   mDevice=0;
 float mEndTime=2;
 bool  OGL=0;
-
+int   var=0;
+ChSharedBodyGPUPtr Ball;
 void System::DoTimeStep(){
-	if(mNumCurrentObjects<mNumObjects&&mFrameNumber%50==0){
-		float x=50;	float posX=0;
-		float y=100;	float posY=-25;
-		float z=50;	float posZ=0;
-		
-		float radius	=particle_R[0];
-		float mass	=particle_Rho[0]*4.0/3.0*PI*radius*radius*radius;
-		float mu	=tan(particle_Theta[0]*PI/180.0);
-		float rest	=0;
-		int   type 	=0;
-		ChSharedBodyGPUPtr mrigidBody;
-		mNumCurrentObjects+=x*y*z;
-		int mobjNum=0;
-		ChQuaternion<> quat=ChQuaternion<>(1,0,0,0);
-		for (int xx=0; xx<x; xx++){
-		for (int yy=0; yy<y; yy++){
-		for (int zz=0; zz<z; zz++){
-			ChVector<> mParticlePos((xx-(x-1)/2.0)+posX,(yy)+posY,(zz-(z-1)/2.0)+posZ);
-			//mParticlePos+=ChVector<>(rand()%1000/1000.0-.5,rand()%1000/1000.0-.5,rand()%1000/1000.0-.5)*.5;
+	//if(mNumCurrentObjects<mNumObjects&&mFrameNumber%50==0){
+	//	float x=50;	float posX=0;
+	//	float y=100;	float posY=-25;
+	//	float z=50;	float posZ=0;
+	//	
+	//	float radius	=particle_R[0];
+	//	float mass	=particle_Rho[0]*4.0/3.0*PI*radius*radius*radius;
+	//	float mu	=tan(particle_Theta[0]*PI/180.0);
+	//	float rest	=0;
+	//	int   type 	=0;
+	//	ChSharedBodyGPUPtr mrigidBody;
+	//	mNumCurrentObjects+=x*y*z;
+	//	int mobjNum=0;
+	//	ChQuaternion<> quat=ChQuaternion<>(1,0,0,0);
+	//	for (int xx=0; xx<x; xx++){
+	//	for (int yy=0; yy<y; yy++){
+	//	for (int zz=0; zz<z; zz++){
+	//		ChVector<> mParticlePos((xx-(x-1)/2.0)+posX,(yy)+posY,(zz-(z-1)/2.0)+posZ);
+	//		//mParticlePos+=ChVector<>(rand()%1000/1000.0-.5,rand()%1000/1000.0-.5,rand()%1000/1000.0-.5)*.5;
 			
-			mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
-			if(type==0){MakeSphere(mrigidBody, radius, mass, mParticlePos*.01, mu, mu, rest, true);}
-			if(type==1){MakeBox(mrigidBody, ChVector<>(radius,radius,radius), mass, mParticlePos,quat, mu, mu, rest,mobjNum,mobjNum,true, false);}
-			if(type==2){MakeEllipsoid(mrigidBody, ChVector<>(radius,radius,radius), mass, mParticlePos,quat, mu, mu, rest, true);}
-			if(type==3){MakeCylinder(mrigidBody, ChVector<>(radius,radius,radius), mass, mParticlePos,quat, mu, mu, rest, true);}
-			mobjNum++;
-			}
-		}
-	}
-	}
+	//		mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
+	//		if(type==0){MakeSphere(mrigidBody, radius, mass, mParticlePos*.01, mu, mu, rest, true);}
+	//		if(type==1){MakeBox(mrigidBody, ChVector<>(radius,radius,radius), mass, mParticlePos,quat, mu, mu, rest,mobjNum,mobjNum,true, false);}
+	//		if(type==2){MakeEllipsoid(mrigidBody, ChVector<>(radius,radius,radius), mass, mParticlePos,quat, mu, mu, rest, true);}
+	//		if(type==3){MakeCylinder(mrigidBody, ChVector<>(radius,radius,radius), mass, mParticlePos,quat, mu, mu, rest, true);}
+	//		mobjNum++;
+	//		}
+	//	}
+	//}
+	//}
 	DeactivationPlane(-1);
-	//SaveByID(5,"dropped_ball.txt",true,true,true,false,false);
+	stringstream ss;
+	ss<<"dropped_ball"<<var<<".txt";
+	SaveByID(5,ss.str(),true,true,true,false,false);
 	
 //	ChLcpSystemDescriptorGPU* mGPUDescriptor=(ChLcpSystemDescriptorGPU *)mSystem->GetLcpSystemDescriptor();
 //	if(mGPUDescriptor->gpu_collision->contact_data_host.size()>0)
@@ -82,7 +85,7 @@ void System::DoTimeStep(){
 
 int main(int argc, char* argv[]){
 	Scale=.01;
-	if(argc==3){OGL=atoi(argv[1]);	saveData=atoi(argv[2]);}
+	if(argc==4){OGL=atoi(argv[1]);	saveData=atoi(argv[2]); var=saveData=atoi(argv[3]);}
 	
 	cudaSetDevice(mDevice);
 	
@@ -109,12 +112,42 @@ int main(int argc, char* argv[]){
 	ChSharedBodyGPUPtr F	=	ChSharedBodyGPUPtr(new ChBodyGPU);
 	ChSharedBodyGPUPtr B	=	ChSharedBodyGPUPtr(new ChBodyGPU);
 	ChSharedBodyGPUPtr BTM	=	ChSharedBodyGPUPtr(new ChBodyGPU);
+	ChSharedBodyGPUPtr Ball	=	ChSharedBodyGPUPtr(new ChBodyGPU);
 	
 	GPUSystem->MakeBox(L,	ChVector<>(container_T,container_R,container_R), 100000,ChVector<>(-container_R,0,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
 	GPUSystem->MakeBox(R,	ChVector<>(container_T,container_R,container_R), 100000,ChVector<>(container_R,0,0), base,mWallMu,mWallMu,0,-20,-20,true,true);
 	GPUSystem->MakeBox(F,	ChVector<>(container_R,container_R,container_T), 100000,ChVector<>(0,0,-container_R),base,mWallMu,mWallMu,0,-20,-20,true,true);
 	GPUSystem->MakeBox(B,	ChVector<>(container_R,container_R,container_T), 100000,ChVector<>(0,0,container_R), base,mWallMu,mWallMu,0,-20,-20,true,true);
 	GPUSystem->MakeBox(BTM, ChVector<>(container_R,container_T,container_R), 100000,ChVector<>(0,-container_R,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
+	
+	
+	
+	
+	float radius	=particle_R[0];
+	float mass	=particle_Rho[0]*4.0/3.0*PI*radius*radius*radius;
+	float mu	=tan(particle_Theta[0]*PI/180.0);
+	float rest	=0;
+	int   type 	=0;
+	
+	GPUSystem->MakeSphere(Ball, impactor_R [var], impactor_M[var], ChVector<>(0,1,0), mu, mu, rest, true);
+	
+	ifstream ifile("ball_drop_start.txt");
+	string data;
+	for(int i=0; i<250000; i++){
+	getline(ifile,data);
+	if(i>=5){
+		for(int j=0; j<data.size(); j++){
+			if(data[j]==','){data[j]='\t';}
+		}
+		stringstream ss(data);
+		float x,y,z,rx,ry,rz;
+		ss>>x>>y>>z>>rx>>ry>>rz;
+		ChSharedBodyGPUPtr mrigidBody;
+		mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
+		GPUSystem->MakeSphere(mrigidBody, radius, 1560*4.0/3.0*PI*radius*radius*radius, ChVector<>(x,y,z), mu, mu, rest, true);
+	}
+	}
+
 
 #pragma omp parallel sections
 	{
