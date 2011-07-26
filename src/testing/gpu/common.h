@@ -32,6 +32,7 @@ using namespace std;
 #define GRAV 	-9.80665
 float Scale=1;
 bool showSphere = true;
+bool showSolid = false;
 bool updateDraw=true;
 bool saveData =false;
 bool showContacts=false;
@@ -336,7 +337,7 @@ float3 GetColour(double v,double vmin,double vmax){
 void makeSphere(float3 pos, float rad, float angle, float3 axis, float3 scale){
 	glPushMatrix();
 	glTranslatef(pos.x,pos.y,pos.z);
-	glRotatef(angle*180.0/3.1415, axis.x, axis.y, axis.z);
+	glRotatef(angle*180.0/PI, axis.x, axis.y, axis.z);
 	glScalef(scale.x,scale.y,scale.z);
 	if(showSphere){
 		glutSolidSphere(rad,10,10);
@@ -353,21 +354,22 @@ void makeBox(float3 pos, float rad, float angle, float3 axis, float3 scale){
 	glPushMatrix();
 	glTranslatef(pos.x,pos.y,pos.z);
 	//glRotatef(90, 1, 0, 0);
-	glRotatef(angle*180.0/3.1415, axis.x, axis.y, axis.z);
+	glRotatef(angle*180.0/PI, axis.x, axis.y, axis.z);
 	glScalef(scale.x*2,scale.y*2,scale.z*2);
-	glutWireCube(1);
+	if(!showSolid){glutWireCube(1);}else{glutSolidCube(1);}
 	glPopMatrix();
 }
 void makeCyl(float3 pos, float rad, float angle, float3 axis, float3 scale){
 
 	GLUquadric *quad=gluNewQuadric();
-	gluQuadricDrawStyle(quad,GLU_LINE);
+	
+	if(!showSolid){gluQuadricDrawStyle(quad,GLU_LINE);}else{gluQuadricDrawStyle(quad,GLU_FILL);}
 	glPushMatrix();
 	glTranslatef(pos.x,pos.y,pos.z);
 	glRotatef(90, 1, 0, 0);
-		glRotatef(angle*180.0/3.1415, axis.x, axis.y, axis.z);
+		glRotatef(angle*180.0/PI, axis.x, axis.y, axis.z);
 		//glScalef(scale.x*2,scale.y*2,scale.z*2);
-		gluCylinder(quad,scale.x,scale.z,scale.y,10,10);
+		gluCylinder(quad,scale.x,scale.z,scale.y*2,10,10);
 
 	glPopMatrix();
 }
@@ -408,7 +410,7 @@ void drawCyl(ChBody *abody){
 	ChVector<> axis;
 	float4 h=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[0].B;
 	abody->GetRot().Q_to_AngAxis(angle,axis);
-	makeCyl(F3(abody->GetPos().x,abody->GetPos().y,abody->GetPos().z),1,angle, F3(axis.x,axis.y,axis.z) , F3(h.x,h.y,h.z));
+	makeBox(F3(abody->GetPos().x,abody->GetPos().y,abody->GetPos().z),1,angle, F3(axis.x,axis.y,axis.z) , F3(h.x,h.y,h.z));
 }
 void drawTriMesh(ChBody *abody){
 	float3 color=GetColour(abody->GetPos_dt().Length(),0,1);
@@ -442,15 +444,15 @@ for(int i=0; i<numobjects; i++){
 	int type=B.w;
 	double angle;
 	ChVector<> axis;
-	ChQuaternion<> temp=abody->GetRot();//.Q_to_AngAxis(angle,axis);
-	temp+=ChQuaternion<>(C.x,C.y,C.z,C.w);
-	temp.Normalize();
-	temp.Q_to_AngAxis(angle,axis);
-
+	
+	ChQuaternion<> quat=abody->GetRot();
+	quat=quat%ChQuaternion<>(C.x,C.y,C.z,C.w);
+	quat.Normalize();
+	quat.Q_to_AngAxis(angle,axis);
 	if(type==0){makeSphere(F3(pos.x,pos.y,pos.z),B.x,angle, F3(axis.x,axis.y,axis.z) , 	F3(1,1,1));}
 	if(type==2){makeBox(F3(pos.x,pos.y,pos.z),1,angle, F3(axis.x,axis.y,axis.z) , 		F3(B.x,B.y,B.z));}
 	if(type==3){makeSphere(F3(pos.x,pos.y,pos.z),1,angle, F3(axis.x,axis.y,axis.z) , 	F3(B.x,B.y,B.z));}
-	if(type==4){makeCyl(F3(pos.x,pos.y,pos.z),1,angle, F3(axis.x,axis.y,axis.z) , 		F3(B.x,B.y,B.z));}
+	if(type==4){makeBox(F3(pos.x,pos.y,pos.z),1,angle, F3(axis.x,axis.y,axis.z) , 		F3(B.x,B.y,B.z));}
 }
 }
 float m_MaxPitchRate=5;
@@ -544,6 +546,7 @@ void processNormalKeys(unsigned char key, int x, int y) {
 	if (key=='e'){camera_pos_delta-=camera_up*Scale;}
 	if (key=='u'){updateDraw=(updateDraw)? 0:1;}
 	if (key=='i'){showSphere=(showSphere)? 0:1;}
+	if (key=='o'){showSolid=(showSolid)? 0:1;}
 	if (key=='z'){saveData=1;}
 	if (key=='['){detail=max(1,detail-1);}
 	if (key==']'){detail++;}
