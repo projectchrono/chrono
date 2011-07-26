@@ -825,7 +825,7 @@ __global__ void MPR_GPU_Store(
 	//p2+=p1;
 	//p2*=.5;
 	//if(Index==0){printf("%f %f %f | %f %f %f | %f %f %f| %f\n",N.x,N.y,N.z,p1.x,p1.y,p1.z,p2.x,p2.y,p2.z, depth);}
-	AddContact(CData,Index,  getID(A),getID(B), p1, p2,-N,-depth);
+	AddContact(CData,Index,  getID(A),getID(B), p1, p1,-N,-depth);
 	Contact_Number[Index]=Index;
 }
 

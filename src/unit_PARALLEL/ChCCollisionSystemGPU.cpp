@@ -61,6 +61,9 @@ namespace chrono {
 						gPos = body->GetBody()->GetCoord().TrasformLocalToParent(ChVector<>(A.x,A.y,A.z));
 						temp_obj.A=F4(gPos.x,gPos.y,gPos.z,i);
 						temp_obj.B=F4(B.x,B.y,B.z,B.w);
+						
+						quat=quat%ChQuaternion<>(C.x,C.y,C.z,C.w);
+						
 						temp_obj.C=F4(quat.e1,quat.e2,quat.e3,quat.e0);
 						temp_obj.family=I2(i,i);
 						mGPU->object_data_host.push_back(temp_obj);

@@ -55,7 +55,8 @@ namespace chrono {
 			model_type=COMPOUND;
 			nObjects = pos.size();
 			bData tData;
-			float3 mInertia=make_float3(0,0,0);
+			float3 mInertia=make_float3(1,1,1);
+			
 			int mtype=0;
 
 			for(int i=0; i<nObjects; i++){
@@ -63,10 +64,19 @@ namespace chrono {
 				float rx=dim[i].x;
 				float ry=dim[i].y;
 				float rz=dim[i].z;
-				if(type[i]==SPHERE)			{mInertia+=make_float3(2/5.0*mass*rx*rx,2/5.0*mass*rx*rx,2/5.0*mass*rx*rx);										mtype=0;}
-				else if(type[i]==ELLIPSOID)	{mInertia+=make_float3(1/5.0*mass*(ry*ry+rz*rz),1/5.0*mass*(rx*rx+rz*rz),1/5.0*mass*(rx*rx+ry*ry));				mtype=3;}
-				else if(type[i]==BOX)		{mInertia+=make_float3(1/12.0*mass*(ry*ry+rz*rz),1/12.0*mass*(rx*rx+rz*rz),1/12.0*mass*(rx*rx+ry*ry));			mtype=2;}
-				else if(type[i]==CYLINDER)	{mInertia+=make_float3(1/12.0*mass*(3*rx*rx+ry*ry),1/2.0*mass*(rx*rx),1/12.0*mass*(3*rx*rx+ry*ry));				mtype=4;}
+				//mInertia=make_float3(2/5.0*mass*rx*rx,2/5.0*mass*rx*rx,2/5.0*mass*rx*rx);
+				if(type[i]==SPHERE)			{
+				//mInertia+=make_float3(2/5.0*mass*rx*rx,2/5.0*mass*rx*rx,2/5.0*mass*rx*rx);										
+				mtype=0;}
+				else if(type[i]==ELLIPSOID)	{
+				//mInertia+=make_float3(1/5.0*mass*(ry*ry+rz*rz),1/5.0*mass*(rx*rx+rz*rz),1/5.0*mass*(rx*rx+ry*ry));				
+				mtype=3;}
+				else if(type[i]==BOX)		{
+				//mInertia+=make_float3(1/12.0*mass*(ry*ry+rz*rz),1/12.0*mass*(rx*rx+rz*rz),1/12.0*mass*(rx*rx+ry*ry));			
+				mtype=2;}
+				else if(type[i]==CYLINDER)	{
+				//mInertia+=make_float3(1/12.0*mass*(3*rx*rx+ry*ry),1/2.0*mass*(rx*rx),1/12.0*mass*(3*rx*rx+ry*ry));				
+				mtype=4;}
 				tData.A=make_float4(pos[i]);
 				tData.B=make_float4(dim[i],mtype);
 				tData.C=quats[i];
