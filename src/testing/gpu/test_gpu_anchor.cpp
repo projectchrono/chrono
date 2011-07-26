@@ -9,63 +9,69 @@ float impactor_M []={.034, .083, .130, .287, .531,1.437,2.099,3.055,4.079, .064,
 float container_R=   .3;
 float container_T=  .03;
 
+float mOmega=.2;
+int   mIteations=200;
+float mTimeStep=.0001;
+float mEnvelope=0;
+float mMu=.5;
+float mWallMu=.5;
+int   mDevice=0;
+float mEndTime=12;
+bool OGL=0;
 
 ChSharedPtr<ChLinkLockPointLine> my_motor;
 ChSharedBodyGPUPtr Anchor;
 void System::DoTimeStep(){
 
+/*
+	if(mNumCurrentObjects<mNumObjects&&mFrameNumber%50==0){
+		float x=4;	float posX=0;
+		float y=4;	float posY=0;
+		float z=4;	float posZ=0;
 
-//	if(mNumCurrentObjects<mNumObjects&&mFrameNumber%50==0){
-//		float x=10;	float posX=0;
-//		float y=2;	float posY=0;
-//		float z=10;	float posZ=0;
-//
-//		float radius	=.005;
-//		float mass	=1;
-//		float mu	=.5;
-//		float rest	=0;
-//		int type 	=0;
-//		ChSharedBodyGPUPtr mrigidBody;
-//		mNumCurrentObjects+=x*y*z;
-//		int mobjNum=0;
-//
-//		for (int xx=0; xx<x; xx++){
-//		for (int yy=0; yy<y; yy++){
-//		for (int zz=0; zz<z; zz++){
-//			ChVector<> mParticlePos((xx-(x-1)/2.0)+posX,(yy)+posY,(zz-(z-1)/2.0)+posZ);
-//			//mParticlePos+=ChVector<>(rand()%1000/1000.0-.5,rand()%1000/1000.0-.5,rand()%1000/1000.0-.5);
-//			ChQuaternion<> quat=ChQuaternion<>(1,0,0,0);;
-//			mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
-//			if(type==0){MakeSphere(mrigidBody, radius, mass, mParticlePos*.01, mu, mu, rest, true);}
-//			if(type==1){MakeBox(mrigidBody, ChVector<>(radius,radius,radius), mass, mParticlePos,quat, mu, mu, rest,mobjNum,mobjNum,true, false);}
-//			if(type==2){MakeEllipsoid(mrigidBody, ChVector<>(radius,radius,radius), mass, mParticlePos,quat, mu, mu, rest, true);}
-//			mobjNum++;
-//			}
-//		}
-//	}
-//
-//	}
+		float radius	=.005;
+		float mass	=1;
+		float mu	=.5;
+		float rest	=0;
+		int type 	=3;
+		ChSharedBodyGPUPtr mrigidBody;
+		mNumCurrentObjects+=x*y*z;
+		int mobjNum=0;
 
-//if(mCurrentTime<4){
-//	Anchor->Set_Scr_torque(ChVector<>(0,-10,0));
-//	Anchor->Set_Scr_force(ChVector<>(0,-10,0));
-//}
-//if(mCurrentTime>5&&mCurrentTime<7){
-//	Anchor->Set_Scr_torque(ChVector<>(0,0,0));
-//	Anchor->Set_Scr_force(ChVector<>(0,20,0));
-//}
+		for (int xx=0; xx<x; xx++){
+		for (int yy=0; yy<y; yy++){
+		for (int zz=0; zz<z; zz++){
+			ChVector<> mParticlePos((xx-(x-1)/2.0)+posX,(yy)+posY,(zz-(z-1)/2.0)+posZ);
+			//mParticlePos+=ChVector<>(rand()%1000/1000.0-.5,rand()%1000/1000.0-.5,rand()%1000/1000.0-.5);
+			ChQuaternion<> quat=ChQuaternion<>(1,0,0,0);;
+			mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
+			if(type==0){MakeSphere(mrigidBody, radius, mass, mParticlePos*.01, mu, mu, rest, true);}
+			if(type==1){MakeBox(mrigidBody, ChVector<>(radius,radius*2,radius), mass, mParticlePos*.03,quat, mu, mu, rest,mobjNum,mobjNum,true, false);}
+			if(type==2){MakeEllipsoid(mrigidBody, ChVector<>(radius,radius,radius), mass, mParticlePos,quat, mu, mu, rest, true);}
+			if(type==3){MakeCylinder(mrigidBody, ChVector<>(radius,radius*2,radius), mass, mParticlePos*.02,quat, mu, mu, rest, true);}
+			
+			mobjNum++;
+			}
+		}
+	}
 
-	DeactivationPlane(-1);
+	}
+*/
+if(mCurrentTime<4){
+	Anchor->Set_Scr_torque(ChVector<>(0,-10,0));
+	Anchor->Set_Scr_force(ChVector<>(0,-10,0));
+}
+if(mCurrentTime>6&&mCurrentTime<8){
+	Anchor->Set_Scr_torque(ChVector<>(0,0,0));
+	Anchor->Set_Scr_force(ChVector<>(0,20,0));
+}
+
+	DeactivationPlane(-.4);
 	
-	if(mFrameNumber%3==0&&saveData){
+	if(mFrameNumber%150==0&&saveData){
 		SaveAllData("data/anchor",true, false, false, true, false);
 	}
 	
-	
-	//if(mSystem->GetChTime()>5){
-	//	BTM->SetBodyFixed(false);
-	//	BTM->SetCollide(true);
-	//}
 	mFrameNumber++;
 	mSystem->DoStepDynamics( mTimeStep );
 	mCurrentTime+=mTimeStep;
@@ -73,17 +79,8 @@ void System::DoTimeStep(){
 
 int main(int argc, char* argv[]){
 	Scale=.01;
-	float mOmega=.3;
-	int   mIteations=200;
-	float mTimeStep=.0001;
-	float mEnvelope=0;
-	float mMu=.5;
-	float mWallMu=.5;
-	int   mDevice=0;
-	float mEndTime=20;
-	bool OGL=0;
+	
 	if(argc==3){OGL=atoi(argv[1]);	saveData=atoi(argv[2]);}
-
 	cudaSetDevice(mDevice);
 	
 	ChLcpSystemDescriptorGPU		mGPUDescriptor;
@@ -137,8 +134,8 @@ int main(int argc, char* argv[]){
 		//getline(anchorFile,dat);
 		//anchorFile>>p.x>>p.y>>p.z>>r.x>>r.y>>r.z>>r.w;
 		anchorFile>>p.x>>p.y>>p.z>>r.w>>r.x>>r.y>>r.z;
-		p.x*=-1;
-		p.z*=-1;
+		//p.x*=-1;
+		//p.z*=-1;
 		//r=normalize(r);
 		//ChQuaternion<> qq;
 		//qq.Q_from_AngAxis(r.x*PI/180.0,ChVector<> (r.y,r.z,r.w));
@@ -146,22 +143,24 @@ int main(int argc, char* argv[]){
 			dim.push_back(F3(.005,0,0));
 			tpe.push_back(SPHERE);
 			quats.push_back(r);
-			pos.push_back(p*.01);
-			masses.push_back(.05);
+			pos.push_back(F3(0,0,0));
+			masses.push_back(.1);
 		}
 		else if (i==1){
-			dim.push_back(F3(.005,.31,.005));
+			dim.push_back(F3(.005,.3*.5,.005));
 			tpe.push_back(CYLINDER);
-			quats.push_back(r);
-			pos.push_back(p*.01);
-			masses.push_back(.5);
+			quats.push_back(F4(1,0,0,0));
+			pos.push_back(F3(0,.3*.5,0));
+			masses.push_back(.1);
 		}
 		else{
-			dim.push_back(F3(.025,.001,.00235));
+			dim.push_back(F3(.004,.0005,.04));
 			tpe.push_back(BOX);
-			quats.push_back(r);
-			pos.push_back(p*.01);
-			masses.push_back(.01);
+			ChQuaternion<> quat;
+			quat.Q_from_AngAxis(i/69.0*2*PI,ChVector<>(0,1,0));
+			quats.push_back(F4(quat.e0,quat.e1,quat.e2,quat.e3));
+			pos.push_back(F3(sin(i/69.0*2*PI)*4.0*.01,i/69.0*4.0*.01+.005,cos(i/69.0*2*PI)*4.0*.01));
+			masses.push_back(1);
 		}
 	}
 	GPUSystem->MakeCompound(Anchor, ChVector<> (0,0,0),base,1,pos,dim,quats,tpe,masses, .5, .5, 0, true);
@@ -175,7 +174,7 @@ int main(int argc, char* argv[]){
 
 	ifstream ifile("ball_drop_start.txt");
 	string data;
-	for(int i=0; i<0; i++){
+	for(int i=0; i<250005; i++){
 	getline(ifile,data);
 	if(i>=5){
 	for(int j=0; j<data.size(); j++){
