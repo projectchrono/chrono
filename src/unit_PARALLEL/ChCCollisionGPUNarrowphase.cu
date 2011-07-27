@@ -30,7 +30,7 @@ __device__ bool pointInTriangle(const float3 &p1,const float3 &p2,const float3 &
 }
 
 __device__ float SegmentSqrDistance(const float3& from, const float3& to,const float3 &p, float3 &nearest) {
-	float3  diff = p - from; 
+	float3  diff = p - from;
 	float3	v = to - from;
 	float t = dot(v,diff);
 	if (t > 0) {
@@ -44,7 +44,7 @@ __device__ float SegmentSqrDistance(const float3& from, const float3& to,const f
 		}
 	}else{t = 0;}
 	nearest = from + t*v;
-	return dot(diff,diff);	
+	return dot(diff,diff);
 }
 
 __global__ void Sphere_Sphere(object * object_data,int3 * Pair , uint* Contact_Number,contactGPU* CData,uint totalPossibleConts){
@@ -408,7 +408,7 @@ __global__ void Sphere_Triangle(object * object_data,int3 * Pair ,uint* Contact_
 		}
 		object sphere=object_data[pair.x];
 		object triangle=object_data[pair.y];
-		float3 
+		float3
 			A=F3(triangle.A),
 			B=F3(triangle.B),
 			C=F3(triangle.C),
@@ -420,7 +420,7 @@ __global__ void Sphere_Triangle(object * object_data,int3 * Pair ,uint* Contact_
 		float distanceFromPlane = dot(S-A,N);
 
 		if (distanceFromPlane < 0.0f){
-			distanceFromPlane *= -1.0f;	
+			distanceFromPlane *= -1.0f;
 			N *= -1.0f;
 		}
 		if(distanceFromPlane > sphere.A.w){return;}
@@ -470,9 +470,9 @@ __device__ __host__ inline float3 GetSupportPoint_Triangle	(const object& p,cons
 }
 __device__ __host__ inline float3 GetSupportPoint_Box		(const object& p,const float3 &n){
 	float3 result=F3(0,0,0);
-	result.x= n.x>0? p.B.x:-p.B.x;
-	result.y= n.y>0? p.B.y:-p.B.y;
-	result.z= n.z>0? p.B.z:-p.B.z;
+	result.x= n.x>=0? p.B.x:-p.B.x;
+	result.y= n.y>=0? p.B.y:-p.B.y;
+	result.z= n.z>=0? p.B.z:-p.B.z;
 	return result;
 }
 __device__ __host__ inline float3 GetSupportPoint_Ellipsoid	(const object& p,const float3 &n){
@@ -766,8 +766,9 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 			float inv = 1.0f / sum;
 			point1 = (b0 * v01 + b1 * v11 + b2 * v21 + b3 * v31) * inv;
 			point2 = (b0 * v02 + b1 * v12 + b2 * v22 + b3 * v32) * inv;
-			point1+=point2;
-			point1*=.5;
+			depth=sqrtf(dot((point2-point1),(point2-point1)));
+			//point1+=point2;
+			//point1*=.5;
 
 			hit = true;// HIT!!!
 		}
@@ -780,9 +781,9 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 		float separation = -dot(v4 , n);
 
 		// If the boundary is thin enough or the origin is outside the support plane for the newly discovered vertex, then we can terminate
-		if ( delta <= kCollideEpsilon || separation >= 0. || phase2 > 200 ){
+		if ( delta <= kCollideEpsilon || separation >= 0. || phase2 > 20 ){
 			float3 O=F3(0,0,0);
-			depth=find_dist(O,v1,v2,v3,n);
+			//depth=find_dist(O,v1,v2,v3,n);
 			returnNormal = normalize(n);
 			return hit;
 		}
@@ -817,7 +818,7 @@ __global__ void MPR_GPU_Store(
 	object B=object_data[pair.y];
 	float3 N,p1,p2;
 	float depth=0;
-	if(!CollideAndFindPoint(A,B,N,p1, p1, depth)){return;};
+	if(!CollideAndFindPoint(A,B,N,p1, p2, depth)){return;};
 	
 	//p1=(TransformSupportVert(A,-N)-p1)*N*N+p1;
 	//p2=(TransformSupportVert(B,N)-p2)*N*N+p2;
@@ -825,7 +826,7 @@ __global__ void MPR_GPU_Store(
 	//p2+=p1;
 	//p2*=.5;
 	//if(Index==0){printf("%f %f %f | %f %f %f | %f %f %f| %f\n",N.x,N.y,N.z,p1.x,p1.y,p1.z,p2.x,p2.y,p2.z, depth);}
-	AddContact(CData,Index,  getID(A),getID(B), p1, p1,-N,-depth);
+	AddContact(CData,Index,  getID(A),getID(B), p1, p2,-N,-depth);
 	Contact_Number[Index]=Index;
 }
 
