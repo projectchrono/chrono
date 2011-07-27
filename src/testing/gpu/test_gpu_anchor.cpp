@@ -9,7 +9,7 @@ float impactor_M []={.034, .083, .130, .287, .531,1.437,2.099,3.055,4.079, .064,
 float container_R=   .3;
 float container_T=  .03;
 
-float mOmega=.2;
+float mOmega=.1;
 int   mIteations=200;
 float mTimeStep=.0001;
 float mEnvelope=0;
