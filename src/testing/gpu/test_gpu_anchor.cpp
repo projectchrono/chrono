@@ -23,7 +23,7 @@ ChSharedPtr<ChLinkLockPointLine> my_motor;
 ChSharedBodyGPUPtr Anchor;
 void System::DoTimeStep(){
 
-/*
+	/*
 	if(mNumCurrentObjects<mNumObjects&&mFrameNumber%50==0){
 		float x=4;	float posX=0;
 		float y=4;	float posY=0;
@@ -49,29 +49,29 @@ void System::DoTimeStep(){
 			if(type==1){MakeBox(mrigidBody, ChVector<>(radius,radius*2,radius), mass, mParticlePos*.03,quat, mu, mu, rest,mobjNum,mobjNum,true, false);}
 			if(type==2){MakeEllipsoid(mrigidBody, ChVector<>(radius,radius,radius), mass, mParticlePos,quat, mu, mu, rest, true);}
 			if(type==3){MakeCylinder(mrigidBody, ChVector<>(radius,radius*2,radius), mass, mParticlePos*.02,quat, mu, mu, rest, true);}
-			
+
 			mobjNum++;
 			}
 		}
 	}
 
 	}
-*/
-if(mCurrentTime<4){
-	Anchor->Set_Scr_torque(ChVector<>(0,-10,0));
-	Anchor->Set_Scr_force(ChVector<>(0,-10,0));
-}
-if(mCurrentTime>6&&mCurrentTime<8){
-	Anchor->Set_Scr_torque(ChVector<>(0,0,0));
-	Anchor->Set_Scr_force(ChVector<>(0,20,0));
-}
+	 */
+	if(mCurrentTime<4){
+		Anchor->Set_Scr_torque(ChVector<>(0,-10,0));
+		Anchor->Set_Scr_force(ChVector<>(0,-10,0));
+	}
+	if(mCurrentTime>6&&mCurrentTime<8){
+		Anchor->Set_Scr_torque(ChVector<>(0,0,0));
+		Anchor->Set_Scr_force(ChVector<>(0,20,0));
+	}
 
 	DeactivationPlane(-.4);
-	
+
 	if(mFrameNumber%150==0&&saveData){
 		SaveAllData("data/anchor",true, false, false, true, false);
 	}
-	
+
 	mFrameNumber++;
 	mSystem->DoStepDynamics( mTimeStep );
 	mCurrentTime+=mTimeStep;
@@ -79,15 +79,15 @@ if(mCurrentTime>6&&mCurrentTime<8){
 
 int main(int argc, char* argv[]){
 	Scale=.01;
-	
+
 	if(argc==3){OGL=atoi(argv[1]);	saveData=atoi(argv[2]);}
-	cudaSetDevice(mDevice);
-	
+	//cudaSetDevice(mDevice);
+
 	ChLcpSystemDescriptorGPU		mGPUDescriptor;
 	ChContactContainerGPUsimple		mGPUContactContainer;
 	ChCollisionSystemGPU			mGPUCollisionEngine(&mGPUDescriptor, mEnvelope);
 	ChLcpIterativeSolverGPUsimple	mGPUsolverSpeed(&mGPUContactContainer,&mGPUDescriptor,  mIteations,mTimeStep, 1e-5, mOmega, false);
-	
+
 	ChSystemGPU SysG(1000, 50);
 	SysG.ChangeLcpSystemDescriptor(&mGPUDescriptor);
 	SysG.ChangeContactContainer(&mGPUContactContainer);
@@ -112,7 +112,7 @@ int main(int argc, char* argv[]){
 	GPUSystem->MakeBox(F,	ChVector<>(container_R,container_R,container_T), 100000,ChVector<>(0,0,-container_R),base,mWallMu,mWallMu,0,-20,-20,true,true);
 	GPUSystem->MakeBox(B,	ChVector<>(container_R,container_R,container_T), 100000,ChVector<>(0,0,container_R), base,mWallMu,mWallMu,0,-20,-20,true,true);
 	GPUSystem->MakeBox(BTM, ChVector<>(container_R,container_T,container_R), 100000,ChVector<>(0,-container_R,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
-	
+
 	ChQuaternion<> anchor_rot;
 	float angle =-90*PI/180.0;
 	ChVector<double> axis(1,0.,0);
@@ -164,7 +164,7 @@ int main(int argc, char* argv[]){
 		}
 	}
 	GPUSystem->MakeCompound(Anchor, ChVector<> (0,0,0),base,1,pos,dim,quats,tpe,masses, .5, .5, 0, true);
-	
+
 	float radius	=particle_R[0];
 	float mass	=particle_Rho[0]*4.0/3.0*PI*radius*radius*radius;
 	float mu	=tan(particle_Theta[0]*PI/180.0);
@@ -174,27 +174,27 @@ int main(int argc, char* argv[]){
 
 	ifstream ifile("ball_drop_start.txt");
 	string data;
-	for(int i=0; i<250005; i++){
-	getline(ifile,data);
-	if(i>=5){
-	for(int j=0; j<data.size(); j++){
-		if(data[j]==','){data[j]='\t';}
-	}
-	stringstream ss(data);
-	float x,y,z,rx,ry,rz;
-	ss>>x>>y>>z>>rx>>ry>>rz;
-	ChSharedBodyGPUPtr mrigidBody;
-	mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
-	GPUSystem->MakeSphere(mrigidBody, radius, 1560*4.0/3.0*PI*radius*radius*radius, ChVector<>(x,y,z), mu, mu, rest, true);
-	}
+	for(int i=0; i<0; i++){
+		getline(ifile,data);
+		if(i>=5){
+			for(int j=0; j<data.size(); j++){
+				if(data[j]==','){data[j]='\t';}
+			}
+			stringstream ss(data);
+			float x,y,z,rx,ry,rz;
+			ss>>x>>y>>z>>rx>>ry>>rz;
+			ChSharedBodyGPUPtr mrigidBody;
+			mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
+			GPUSystem->MakeSphere(mrigidBody, radius, 1560*4.0/3.0*PI*radius*radius*radius, ChVector<>(x,y,z), mu, mu, rest, true);
+		}
 	}
 
 	//GPUSystem->MakeSphere(I, 5, .03, ChVector<>(0,0,0), mMu, mMu, 0, true);
-	
+
 	//my_motor= ChSharedPtr<ChLinkLockPointLine> (new ChLinkLockPointLine);
 	//ChSharedBodyPtr ptr1=ChSharedBodyPtr(Anchor);
 	//ChSharedBodyPtr ptr2=ChSharedBodyPtr(BTM);
-	
+
 	//my_motor->Initialize(ptr1,ptr2,ChCoordsys<>(ChVector<>(0,1,0)));
 	//ChFunction_Sine *vibrationFunc=new ChFunction_Sine(0,50,1);
 	//my_motor->SetMotion_Y(vibrationFunc);

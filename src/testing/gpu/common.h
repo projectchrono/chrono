@@ -130,52 +130,52 @@ void System::PrintStats(){
 	mTimingFile<<numstr<<endl;
 }
 void System::LoadTriangleMesh(ChSharedBodyGPUPtr &mrigidBody,string name, float scale, ChVector<> position, ChQuaternion<> rot, float mass,double sfric,double kfric,double restitution, int family,int nocolwith){
-    geometry::ChTriangleMesh TriMesh;
+	geometry::ChTriangleMesh TriMesh;
 	ifstream ifile(name.c_str());
-    string temp,j;
-    vector<float3> pos, tri;
-    float3 tempF;
-    while(ifile.fail()==false){
-        getline(ifile,temp);
-        if(temp.size()>2&&temp[0]!='#'&&temp[0]!='g'){
-            if(temp[0]=='v'){
-                stringstream ss(temp);
-                ss>>j>>tempF.x>>tempF.y>>tempF.z;
-                pos.push_back(tempF);
-            }
-            if(temp[0]=='f'){
-                stringstream ss(temp);
-                ss>>j>>tempF.x>>tempF.y>>tempF.z;
-                tri.push_back(tempF);
-            }
-        }
-    }
+	string temp,j;
+	vector<float3> pos, tri;
+	float3 tempF;
+	while(ifile.fail()==false){
+		getline(ifile,temp);
+		if(temp.size()>2&&temp[0]!='#'&&temp[0]!='g'){
+			if(temp[0]=='v'){
+				stringstream ss(temp);
+				ss>>j>>tempF.x>>tempF.y>>tempF.z;
+				pos.push_back(tempF);
+			}
+			if(temp[0]=='f'){
+				stringstream ss(temp);
+				ss>>j>>tempF.x>>tempF.y>>tempF.z;
+				tri.push_back(tempF);
+			}
+		}
+	}
 
-    for(int i=0; i<tri.size(); i++){
-        ChVector<> A(pos[tri[i].x-1].x,pos[tri[i].x-1].y,pos[tri[i].x-1].z);
-        ChVector<> B(pos[tri[i].y-1].x,pos[tri[i].y-1].y,pos[tri[i].y-1].z);
-        ChVector<> C(pos[tri[i].z-1].x,pos[tri[i].z-1].y,pos[tri[i].z-1].z);
-        A*=scale;
-        B*=scale;
-        C*=scale;
-        TriMesh.addTriangle(A,B,C);
-    }
+	for(int i=0; i<tri.size(); i++){
+		ChVector<> A(pos[tri[i].x-1].x,pos[tri[i].x-1].y,pos[tri[i].x-1].z);
+		ChVector<> B(pos[tri[i].y-1].x,pos[tri[i].y-1].y,pos[tri[i].y-1].z);
+		ChVector<> C(pos[tri[i].z-1].x,pos[tri[i].z-1].y,pos[tri[i].z-1].z);
+		A*=scale;
+		B*=scale;
+		C*=scale;
+		TriMesh.addTriangle(A,B,C);
+	}
 
-    mrigidBody.get_ptr()->SetMass(mass);
-    mrigidBody.get_ptr()->SetPos(position);
+	mrigidBody.get_ptr()->SetMass(mass);
+	mrigidBody.get_ptr()->SetPos(position);
 
-    mrigidBody.get_ptr()->GetCollisionModel()->ClearModel();
-    mrigidBody.get_ptr()->GetCollisionModel()->AddTriangleMesh(TriMesh,false,false);
-    mrigidBody.get_ptr()->GetCollisionModel()->BuildModel();
-    mrigidBody.get_ptr()->SetBodyFixed(false);
-    mrigidBody.get_ptr()->SetCollide(true);
-    mrigidBody.get_ptr()->SetImpactC(0.0);
-    mrigidBody.get_ptr()->SetSfriction(sfric);
-    mrigidBody.get_ptr()->SetKfriction(kfric);
-    mrigidBody.get_ptr()->SetRot(rot);
-    mSystem->AddBody(mrigidBody);
-    mrigidBody.get_ptr()->GetCollisionModel()->SetFamily(family);
-    mrigidBody.get_ptr()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(nocolwith);
+	mrigidBody.get_ptr()->GetCollisionModel()->ClearModel();
+	mrigidBody.get_ptr()->GetCollisionModel()->AddTriangleMesh(TriMesh,false,false);
+	mrigidBody.get_ptr()->GetCollisionModel()->BuildModel();
+	mrigidBody.get_ptr()->SetBodyFixed(false);
+	mrigidBody.get_ptr()->SetCollide(true);
+	mrigidBody.get_ptr()->SetImpactC(0.0);
+	mrigidBody.get_ptr()->SetSfriction(sfric);
+	mrigidBody.get_ptr()->SetKfriction(kfric);
+	mrigidBody.get_ptr()->SetRot(rot);
+	mSystem->AddBody(mrigidBody);
+	mrigidBody.get_ptr()->GetCollisionModel()->SetFamily(family);
+	mrigidBody.get_ptr()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(nocolwith);
 }
 
 void System::MakeSphere(ChSharedBodyGPUPtr &body, double radius, double mass,ChVector<> pos,double sfric,double kfric,double restitution,bool collide){
@@ -251,72 +251,72 @@ void System::MakeCompound(ChSharedBodyGPUPtr &body,ChVector<> p, ChQuaternion<> 
 	mSystem->AddBody(body);
 }
 void System::DeactivationPlane(float y){
-		for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
+	for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
 		ChBodyGPU *abody=(ChBodyGPU*)(mSystem->Get_bodylist()->at(i));
 		if(abody->GetPos().y<y){
-		abody->SetCollide(false);
-		abody->SetBodyFixed(true);
+			abody->SetCollide(false);
+			abody->SetBodyFixed(true);
 		}
 	}
 }
 
 void System::SaveByID(int id, string fname, bool p, bool v, bool a, bool r, bool o){
-ofstream ofile;
-ofile.open(fname.c_str(),ios_base::app);
+	ofstream ofile;
+	ofile.open(fname.c_str(),ios_base::app);
 
-ChBody* abody = mSystem->Get_bodylist()->at(id);
-ChVector<> pos=abody->GetPos();
-ChVector<> rot=abody->GetRot().Q_to_NasaAngles();
-ChVector<> vel=abody->GetPos_dt();
-ChVector<> acc=abody->GetPos_dtdt();
+	ChBody* abody = mSystem->Get_bodylist()->at(id);
+	ChVector<> pos=abody->GetPos();
+	ChVector<> rot=abody->GetRot().Q_to_NasaAngles();
+	ChVector<> vel=abody->GetPos_dt();
+	ChVector<> acc=abody->GetPos_dtdt();
 
-if(isnan(rot.x)){rot.x=0;}
-if(isnan(rot.y)){rot.y=0;}
-if(isnan(rot.z)){rot.z=0;}
+	if(isnan(rot.x)){rot.x=0;}
+	if(isnan(rot.y)){rot.y=0;}
+	if(isnan(rot.z)){rot.z=0;}
 
-if(p){ofile<<pos.x<<","<<pos.y<<","<<pos.z<<",";}
-if(v){ofile<<vel.x<<","<<vel.y<<","<<vel.z<<",";}
-if(a){ofile<<acc.x<<","<<acc.y<<","<<acc.z<<",";}
-if(r){ofile<<rot.x<<","<<rot.y<<","<<rot.z<<",";}
-if(o){}
-ofile<<endl;
+	if(p){ofile<<pos.x<<","<<pos.y<<","<<pos.z<<",";}
+	if(v){ofile<<vel.x<<","<<vel.y<<","<<vel.z<<",";}
+	if(a){ofile<<acc.x<<","<<acc.y<<","<<acc.z<<",";}
+	if(r){ofile<<rot.x<<","<<rot.y<<","<<rot.z<<",";}
+	if(o){}
+	ofile<<endl;
 
-ofile.close();
+	ofile.close();
 }
 
 
 void System::SaveAllData(string prefix, bool p, bool v, bool a, bool r, bool o){
-		ofstream ofile;
-		stringstream ss;
-		ss<<prefix<<mFileNumber<<".txt";
-		ofile.open(ss.str().c_str());
-		for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
-			ChBody* abody = mSystem->Get_bodylist()->at(i);
-			ChVector<> pos=abody->GetPos();
-			ChVector<> rot=abody->GetRot().Q_to_NasaAngles();
-			ChVector<> vel=abody->GetPos_dt();
-			ChVector<> acc=abody->GetPos_dtdt();
-			ChVector<> trq=abody->Get_gyro();
-			if(isnan(rot.x)){rot.x=0;}
-			if(isnan(rot.y)){rot.y=0;}
-			if(isnan(rot.z)){rot.z=0;}
-			if(p){ofile<<pos.x<<","<<pos.y<<","<<pos.z<<",";}
-			if(v){ofile<<vel.x<<","<<vel.y<<","<<vel.z<<",";}
-			if(a){ofile<<acc.x<<","<<acc.y<<","<<acc.z<<",";}
-			if(r){ofile<<rot.x<<","<<rot.y<<","<<rot.z<<",";}
-			ofile<<endl;
-		}
-		ofile.close();
-		mFileNumber++;
+	ofstream ofile;
+	stringstream ss;
+	ss<<prefix<<mFileNumber<<".txt";
+	ofile.open(ss.str().c_str());
+	for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
+		ChBody* abody = mSystem->Get_bodylist()->at(i);
+		ChVector<> pos=abody->GetPos();
+		ChVector<> rot=abody->GetRot().Q_to_NasaAngles();
+		ChVector<> vel=abody->GetPos_dt();
+		ChVector<> acc=abody->GetPos_dtdt();
+		ChVector<> trq=abody->Get_gyro();
+		if(isnan(rot.x)){rot.x=0;}
+		if(isnan(rot.y)){rot.y=0;}
+		if(isnan(rot.z)){rot.z=0;}
+		if(p){ofile<<pos.x<<","<<pos.y<<","<<pos.z<<",";}
+		if(v){ofile<<vel.x<<","<<vel.y<<","<<vel.z<<",";}
+		if(a){ofile<<acc.x<<","<<acc.y<<","<<acc.z<<",";}
+		if(r){ofile<<rot.x<<","<<rot.y<<","<<rot.z<<",";}
+		ofile<<endl;
+	}
+	ofile.close();
+	mFileNumber++;
 }
 float3 GetColour(double v,double vmin,double vmax){
 	float3 c = {1.0,1.0,1.0}; // white
 	double dv;
 
 	if (v < vmin)
-	v = vmin;
+		v = vmin;
 	if (v > vmax)
-	v = vmax;
+		v = vmax;
 	dv = vmax - vmin;
 
 	if (v < (vmin + 0.25 * dv)) {
@@ -340,14 +340,14 @@ void makeSphere(float3 pos, float rad, float angle, float3 axis, float3 scale){
 	glRotatef(angle*180.0/PI, axis.x, axis.y, axis.z);
 	glScalef(scale.x,scale.y,scale.z);
 	if(showSphere){
-		glutSolidSphere(rad,10,10);
+		if(!showSolid){glutWireSphere(rad,10,10);}else{glutSolidSphere(rad,10,10);}
 	}
 	else{
-			glPointSize(10);
-			glBegin(GL_POINTS);
-			glVertex3f(0, 0, 0);
-			glEnd();
-		}
+		glPointSize(10);
+		glBegin(GL_POINTS);
+		glVertex3f(0, 0, 0);
+		glEnd();
+	}
 	glPopMatrix();
 }
 void makeBox(float3 pos, float rad, float angle, float3 axis, float3 scale){
@@ -362,14 +362,14 @@ void makeBox(float3 pos, float rad, float angle, float3 axis, float3 scale){
 void makeCyl(float3 pos, float rad, float angle, float3 axis, float3 scale){
 
 	GLUquadric *quad=gluNewQuadric();
-	
+
 	if(!showSolid){gluQuadricDrawStyle(quad,GLU_LINE);}else{gluQuadricDrawStyle(quad,GLU_FILL);}
 	glPushMatrix();
 	glTranslatef(pos.x,pos.y,pos.z);
 	glRotatef(90, 1, 0, 0);
-		glRotatef(angle*180.0/PI, axis.x, axis.y, axis.z);
-		//glScalef(scale.x*2,scale.y*2,scale.z*2);
-		gluCylinder(quad,scale.x,scale.z,scale.y*2,10,10);
+	glRotatef(angle*180.0/PI, axis.x, axis.y, axis.z);
+	//glScalef(scale.x*2,scale.y*2,scale.z*2);
+	gluCylinder(quad,scale.x,scale.z,scale.y*2,10,10);
 
 	glPopMatrix();
 }
@@ -417,43 +417,43 @@ void drawTriMesh(ChBody *abody){
 	glColor3f (color.x, color.y,color.z);
 	int numtriangles=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData.size();
 	for(int i=0; i<numtriangles; i++){
-	float4 p1=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[i].A;
-	float4 p2=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[i].B;
-	float4 p3=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[i].C;
+		float4 p1=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[i].A;
+		float4 p2=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[i].B;
+		float4 p3=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[i].C;
 
-	ChVector<> gA = (abody)->GetCoord().TrasformLocalToParent(ChVector<>(p1.x,p1.y,p1.z));
-	ChVector<> gB = (abody)->GetCoord().TrasformLocalToParent(ChVector<>(p2.x,p2.y,p2.z));
-	ChVector<> gC = (abody)->GetCoord().TrasformLocalToParent(ChVector<>(p3.x,p3.y,p3.z));
-	glColor4f (0, 0,0,.3);
-	glBegin(GL_LINE_LOOP);
-	glVertex3f(gA.x,gA.y,gA.z);
-	glVertex3f(gB.x,gB.y,gB.z);
-	glVertex3f(gC.x,gC.y,gC.z);
-	glEnd();
+		ChVector<> gA = (abody)->GetCoord().TrasformLocalToParent(ChVector<>(p1.x,p1.y,p1.z));
+		ChVector<> gB = (abody)->GetCoord().TrasformLocalToParent(ChVector<>(p2.x,p2.y,p2.z));
+		ChVector<> gC = (abody)->GetCoord().TrasformLocalToParent(ChVector<>(p3.x,p3.y,p3.z));
+		glColor4f (0, 0,0,.3);
+		glBegin(GL_LINE_LOOP);
+		glVertex3f(gA.x,gA.y,gA.z);
+		glVertex3f(gB.x,gB.y,gB.z);
+		glVertex3f(gC.x,gC.y,gC.z);
+		glEnd();
 	}
 }
 void drawCompound(ChBody *abody){
-float3 color=GetColour(abody->GetPos_dt().Length(),0,1);
-glColor3f (color.x, color.y,color.z);
-int numobjects=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData.size();
-for(int i=0; i<numobjects; i++){
-	float4 A=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[i].A;
-	float4 B=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[i].B;
-	float4 C=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[i].C;
-	ChVector<> pos = (abody)->GetCoord().TrasformLocalToParent(ChVector<>(A.x,A.y,A.z));
-	int type=B.w;
-	double angle;
-	ChVector<> axis;
-	
-	ChQuaternion<> quat=abody->GetRot();
-	quat=quat%ChQuaternion<>(C.x,C.y,C.z,C.w);
-	quat.Normalize();
-	quat.Q_to_AngAxis(angle,axis);
-	if(type==0){makeSphere(F3(pos.x,pos.y,pos.z),B.x,angle, F3(axis.x,axis.y,axis.z) , 	F3(1,1,1));}
-	if(type==2){makeBox(F3(pos.x,pos.y,pos.z),1,angle, F3(axis.x,axis.y,axis.z) , 		F3(B.x,B.y,B.z));}
-	if(type==3){makeSphere(F3(pos.x,pos.y,pos.z),1,angle, F3(axis.x,axis.y,axis.z) , 	F3(B.x,B.y,B.z));}
-	if(type==4){makeBox(F3(pos.x,pos.y,pos.z),1,angle, F3(axis.x,axis.y,axis.z) , 		F3(B.x,B.y,B.z));}
-}
+	float3 color=GetColour(abody->GetPos_dt().Length(),0,1);
+	glColor3f (color.x, color.y,color.z);
+	int numobjects=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData.size();
+	for(int i=0; i<numobjects; i++){
+		float4 A=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[i].A;
+		float4 B=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[i].B;
+		float4 C=((ChCollisionModelGPU *)(abody->GetCollisionModel()))->mData[i].C;
+		ChVector<> pos = (abody)->GetCoord().TrasformLocalToParent(ChVector<>(A.x,A.y,A.z));
+		int type=B.w;
+		double angle;
+		ChVector<> axis;
+
+		ChQuaternion<> quat=abody->GetRot();
+		quat=quat%ChQuaternion<>(C.x,C.y,C.z,C.w);
+		quat.Normalize();
+		quat.Q_to_AngAxis(angle,axis);
+		if(type==0){makeSphere(F3(pos.x,pos.y,pos.z),B.x,angle, F3(axis.x,axis.y,axis.z) , 	F3(1,1,1));}
+		if(type==2){makeBox(F3(pos.x,pos.y,pos.z),1,angle, F3(axis.x,axis.y,axis.z) , 		F3(B.x,B.y,B.z));}
+		if(type==3){makeSphere(F3(pos.x,pos.y,pos.z),1,angle, F3(axis.x,axis.y,axis.z) , 	F3(B.x,B.y,B.z));}
+		if(type==4){makeBox(F3(pos.x,pos.y,pos.z),1,angle, F3(axis.x,axis.y,axis.z) , 		F3(B.x,B.y,B.z));}
+	}
 }
 float m_MaxPitchRate=5;
 float m_MaxHeadingRate=5;
@@ -613,9 +613,9 @@ void System::drawAll(){
 		camera_pos_delta*=.5;
 
 		gluLookAt(	
-		camera_pos.x, camera_pos.y, camera_pos.z,
-		look_at.x, look_at.y,  look_at.z,
-		camera_up.x, camera_up.y,  camera_up.z);
+				camera_pos.x, camera_pos.y, camera_pos.z,
+				look_at.x, look_at.y,  look_at.z,
+				camera_up.x, camera_up.y,  camera_up.z);
 
 		for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
 			ChBody* abody=mSystem->Get_bodylist()->at(i);
@@ -631,41 +631,41 @@ void System::drawAll(){
 			if(abody->GetCollisionModel()->GetShapeType()==CYLINDER){
 				drawCyl(abody);
 			}
-			
+
 			if(abody->GetCollisionModel()->GetShapeType()==TRIANGLEMESH){
 				glColor3f (0,0,0);
 				drawTriMesh(abody);
 			}
 			if(abody->GetCollisionModel()->GetShapeType()==COMPOUND){
-							glColor3f (0,0,0);
-							drawCompound(abody);
+				glColor3f (0,0,0);
+				drawCompound(abody);
 			}
-			}
-			if(showContacts){
-				ChLcpSystemDescriptorGPU* mGPUDescriptor=(ChLcpSystemDescriptorGPU *)mSystem->GetLcpSystemDescriptor();
-				for(int i=0; i<mGPUDescriptor->gpu_collision->contact_data_host.size(); i++){
-								float3 N=mGPUDescriptor->gpu_collision->contact_data_host[i].N;
-								float3 Pa=mGPUDescriptor->gpu_collision->contact_data_host[i].Pa;
-								float D=mGPUDescriptor->gpu_collision->contact_data_host[i].I.x;
-								glBegin(GL_LINES);
-								glVertex3f(Pa.x, Pa.y, Pa.z);
-								float3 Pb=Pa+N*-D*10;
-								glVertex3f(Pb.x, Pb.y, Pb.z);
-								glEnd();
-								glBegin(GL_POINTS);
-								glVertex3f(Pa.x, Pa.y, Pa.z);
-								glVertex3f(Pb.x, Pb.y, Pb.z);
-								glEnd();
+		}
+		if(showContacts){
+			ChLcpSystemDescriptorGPU* mGPUDescriptor=(ChLcpSystemDescriptorGPU *)mSystem->GetLcpSystemDescriptor();
+			for(int i=0; i<mGPUDescriptor->gpu_collision->contact_data_host.size(); i++){
+				float3 N=mGPUDescriptor->gpu_collision->contact_data_host[i].N;
+				float3 Pa=mGPUDescriptor->gpu_collision->contact_data_host[i].Pa;
+				float3 Pb=mGPUDescriptor->gpu_collision->contact_data_host[i].Pb;
+				float D=mGPUDescriptor->gpu_collision->contact_data_host[i].I.x;
+				glBegin(GL_LINES);
+				glVertex3f(Pa.x, Pa.y, Pa.z);
+				glVertex3f(Pb.x, Pb.y, Pb.z);
+				glEnd();
+				glBegin(GL_POINTS);
+				glVertex3f(Pa.x, Pa.y, Pa.z);
+				glVertex3f(Pb.x, Pb.y, Pb.z);
+				glEnd();
 
-							}
 			}
-	#if defined( _WINDOWS )
-	Sleep( 40 );
+		}
+#if defined( _WINDOWS )
+			Sleep( 40 );
 #else
 	usleep( 40 * 1000 );
 #endif
 	glutSwapBuffers();
-}
+	}
 
 }
 System *GPUSystem;
@@ -673,33 +673,33 @@ void renderSceneAll(){
 	GPUSystem->drawAll();
 }
 void initGLUT(string name, int argc, char* argv[]){
-				glutInit(&argc, argv);									
-				glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);	
-				glutInitWindowPosition(0,0);					
-				glutInitWindowSize(1024	,512);
-				glutCreateWindow(name.c_str());
-				glutDisplayFunc(renderSceneAll);
-				glutIdleFunc(renderSceneAll);
-				glutReshapeFunc(changeSize);
-				glutIgnoreKeyRepeat(0);
-				glutKeyboardFunc(processNormalKeys);
-				glutMouseFunc(mouseButton);
-				glutMotionFunc(mouseMove);
-				initScene();
-				glutMainLoop();
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
+	glutInitWindowPosition(0,0);
+	glutInitWindowSize(1024	,512);
+	glutCreateWindow(name.c_str());
+	glutDisplayFunc(renderSceneAll);
+	glutIdleFunc(renderSceneAll);
+	glutReshapeFunc(changeSize);
+	glutIgnoreKeyRepeat(0);
+	glutKeyboardFunc(processNormalKeys);
+	glutMouseFunc(mouseButton);
+	glutMotionFunc(mouseMove);
+	initScene();
+	glutMainLoop();
 
 
 }
 
 void simulationLoop(){
-			while(GPUSystem->mSystem->GetChTime()<=GPUSystem->mEndTime){
-				GPUSystem->renderScene();
-			}
-			cout<< "Simulation Complete"<<endl;
-			#if defined( _WINDOWS )
+	while(GPUSystem->mSystem->GetChTime()<=GPUSystem->mEndTime){
+		GPUSystem->renderScene();
+	}
+	cout<< "Simulation Complete"<<endl;
+#if defined( _WINDOWS )
 	Sleep( 2000 );
 #else
 	usleep( 2000 * 1000 );
 #endif
-			exit(0);
+	exit(0);
 }
