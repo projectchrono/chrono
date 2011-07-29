@@ -59,7 +59,7 @@ namespace chrono {
 				min_bounding_point,
 				global_origin;
 
-			bool doTuning;
+			bool doTuning,copyContacts;
 			cudaEvent_t start, stop;
 			thrust::device_vector<contactGPU>* contact_data_gpu;
 			thrust::host_vector<contactGPU>    contact_data_host;

@@ -12,11 +12,12 @@
 
 namespace chrono {
 	namespace collision {
-		ChCollisionSystemGPU::ChCollisionSystemGPU(ChLcpSystemDescriptorGPU* mdescriptor, float mEnvelope){
+		ChCollisionSystemGPU::ChCollisionSystemGPU(ChLcpSystemDescriptorGPU* mdescriptor, float mEnvelope, bool copyContacts){
 			mSystemDescriptor=mdescriptor;
 			mGPU=mSystemDescriptor->gpu_collision;
 			mGPU->collision_envelope=mEnvelope;
 			mGPU->number_of_objects=0;
+			mGPU->copyContacts=copyContacts;
 		}
 		ChCollisionSystemGPU::~ChCollisionSystemGPU(){
 			for(int i=0; i<mGPU->number_of_objects; i++){delete colModels[i];}

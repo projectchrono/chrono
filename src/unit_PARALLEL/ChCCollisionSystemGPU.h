@@ -34,7 +34,7 @@ namespace chrono {
 		class ChApiGPU ChCollisionSystemGPU : public ChCollisionSystem{
 		public:
 
-			ChCollisionSystemGPU(ChLcpSystemDescriptorGPU* mdescriptor, float mEnvelope=0.0);
+			ChCollisionSystemGPU(ChLcpSystemDescriptorGPU* mdescriptor, float mEnvelope=0.0, bool copyContacts=1);
 
 			virtual ~ChCollisionSystemGPU();
 

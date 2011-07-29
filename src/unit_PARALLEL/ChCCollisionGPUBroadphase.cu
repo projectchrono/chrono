@@ -52,10 +52,10 @@ __device__ float3 AABB_Contact_Pt(const AABB& A, const AABB& B){
 }
 
 __device__ int Contact_Type(const int &A,const int &B){
-	//if(A==0&&B==0){return 0;}	//sphere-sphere
-	//if(A==0&&B==1){return 1;}	//sphere-triangle
-	//if(A==1&&B==0){return 2;}	//triangle-sphere
-	//if(A==3&&B==3){return 3;}	//ellipsoid-ellipsoid
+	if(A==0&&B==0){return 0;}	//sphere-sphere
+	if(A==0&&B==1){return 1;}	//sphere-triangle
+	if(A==1&&B==0){return 2;}	//triangle-sphere
+	if(A==3&&B==3){return 3;}	//ellipsoid-ellipsoid
 	return 20;
 }
 
@@ -161,7 +161,7 @@ __global__ void AABB_AABB(
 			if(
 				Bin==Hash_Index(Hash(AABB_Contact_Pt(A,B)))||
 				Bin==Hash_Index(Hash(AABB_Contact_Pt(B,A)))){
-						int type=20;//Contact_Type(A.max.w,B.max.w);
+						int type=Contact_Type(A.max.w,B.max.w);
 						uint offset=(!Index) ? 0 : Num_ContactD[Index-1];
 						contact[offset+count]=I3(A.min.w,B.min.w,type);			//the two indicies of the objects that make up the contact
 
@@ -192,7 +192,7 @@ void ChCCollisionGPU::Broadphase(){								//Perform Broadphase CD
 		AABBCAST(aabb_data),									//AABB Data
 		CASTU1(generic_counter),								//Number of intersections per AABB
 		CASTU1(bin_number),										//Bin Number for intersections
-		CASTU1(body_number));									//Body Number for intersection	
+		CASTU1(body_number));									//Body Number for intersection
 	Thrust_Sort_By_Key(bin_number,body_number);					//Sort the intersection by bin number, bring the Body number along for the ride
 	Thrust_Reduce_By_KeyA(last_active_bin,bin_number,bin_start_index);//Determine how many objects are in each bin, store output in BinStart
 	Thrust_Inclusive_Scan(bin_start_index);						//Determine Bin Start offsets using inclusive scan
@@ -214,5 +214,5 @@ void ChCCollisionGPU::Broadphase(){								//Perform Broadphase CD
 		CASTU1(bin_start_index),								//The Starting index of each bin
 		CASTU1(generic_counter),								//Number of AABB intersections
 		CASTI3(contact_pair)                         			//Indices of bodies that make up AABB contact
-		);                                                      //Store Contact 
+		);                                                      //Store Contact
 }

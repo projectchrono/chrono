@@ -56,11 +56,11 @@ __global__ void Sphere_Sphere(object * object_data,int3 * Pair , uint* Contact_N
 		object B=object_data[pair.y];
 		float3 N=F3(B.A)-F3(A.A);
 		float centerDist =dot(N,N);
-		float rAB =B.A.w + A.A.w;
+		float rAB =B.B.x + A.B.x;
 		if (centerDist <= (rAB)*(rAB)){
 			float dist=sqrtf(centerDist);
 			N=N/dist;
-			AddContact(CData,Index,A.B.x,B.B.x,F3(A.A)+A.A.w*N,F3(B.A)-B.A.w*N,N,-dist);
+			AddContact(CData,Index,A.A.w,B.A.w,F3(A.A)+A.B.x*N,F3(B.A)-B.B.x*N,N,-dist);
 			Contact_Number[Index]=Index;
 		}
 	}
@@ -85,104 +85,104 @@ __device__ void CalcMatrices(float3 &center, float4 &q,const  float3 & r,float3 
 	A2.z = 2.0f * (q.x * q.x + q.w * q.w) - 1.0f;
 
 	M_1 =  F3(
-		r2.x * A0.x * A0.x + r2.y * A0.y * A0.y + r2.z * A0.z * A0.z,
-		r2.x * A0.x * A1.x + r2.y * A0.y * A1.y + r2.z * A0.z * A1.z,
-		r2.x * A0.x * A2.x + r2.y * A0.y * A2.y + r2.z * A0.z * A2.z);
+			r2.x * A0.x * A0.x + r2.y * A0.y * A0.y + r2.z * A0.z * A0.z,
+			r2.x * A0.x * A1.x + r2.y * A0.y * A1.y + r2.z * A0.z * A1.z,
+			r2.x * A0.x * A2.x + r2.y * A0.y * A2.y + r2.z * A0.z * A2.z);
 	M_2 =  F3(
-		r2.x * A1.x * A1.x + r2.y * A1.y * A1.y + r2.z * A1.z * A1.z,
-		r2.x * A1.x * A2.x + r2.y * A1.y * A2.y + r2.z * A1.z * A2.z,
-		r2.x * A2.x * A2.x + r2.y * A2.y * A2.y + r2.z * A2.z * A2.z);
+			r2.x * A1.x * A1.x + r2.y * A1.y * A1.y + r2.z * A1.z * A1.z,
+			r2.x * A1.x * A2.x + r2.y * A1.y * A2.y + r2.z * A1.z * A2.z,
+			r2.x * A2.x * A2.x + r2.y * A2.y * A2.y + r2.z * A2.z * A2.z);
 }
 __device__ inline float distanceFunc(
-									 float  al1, float  al2, 
-									 const float3 &centerA,const float3 &centerB, 
-									 const float3 &M11, const float3 &M12,
-									 const float3 &M21, const float3 &M22,
-									 float3& distVector, float3& c, float3& p1, float3& p2) {
+		float  al1, float  al2,
+		const float3 &centerA,const float3 &centerB,
+		const float3 &M11, const float3 &M12,
+		const float3 &M21, const float3 &M22,
+		float3& distVector, float3& c, float3& p1, float3& p2) {
 
-										 c.x =  cos(al1) * cos(al2);
-										 c.y =  sin(al1) * cos(al2);
-										 c.z =  sin(al2);
+	c.x =  cos(al1) * cos(al2);
+	c.y =  sin(al1) * cos(al2);
+	c.z =  sin(al2);
 
-										 float t1=  1.0f / sqrt((M11.x * c.x + M11.y * c.y + M11.z * c.z) * c.x + 
-											 (M11.y * c.x + M12.x * c.y + M12.y * c.z) * c.y + 
-											 (M11.z * c.x + M12.y * c.y + M12.z * c.z) * c.z ); 
-										 p1 = F3(M11.x * c.x + M11.y * c.y + M11.z * c.z, M11.y * c.x + M12.x * c.y + M12.y * c.z, M11.z * c.x + M12.y * c.y + M12.z * c.z) * t1 + centerA;
-										 float t2=- 1.0f / sqrt((M21.x * c.x + M21.y * c.y + M21.z * c.z) * c.x + 
-											 (M21.y * c.x + M22.x * c.y + M22.y * c.z) * c.y + 
-											 (M21.z * c.x + M22.y * c.y + M22.z * c.z) * c.z ); 
-										 p2 = F3(M21.x * c.x + M21.y * c.y + M21.z * c.z, M21.y * c.x + M22.x * c.y + M22.y * c.z, M21.z * c.x + M22.y * c.y + M22.z * c.z) * t2 + centerB;
+	float t1=  1.0f / sqrt((M11.x * c.x + M11.y * c.y + M11.z * c.z) * c.x +
+			(M11.y * c.x + M12.x * c.y + M12.y * c.z) * c.y +
+			(M11.z * c.x + M12.y * c.y + M12.z * c.z) * c.z );
+	p1 = F3(M11.x * c.x + M11.y * c.y + M11.z * c.z, M11.y * c.x + M12.x * c.y + M12.y * c.z, M11.z * c.x + M12.y * c.y + M12.z * c.z) * t1 + centerA;
+	float t2=- 1.0f / sqrt((M21.x * c.x + M21.y * c.y + M21.z * c.z) * c.x +
+			(M21.y * c.x + M22.x * c.y + M22.y * c.z) * c.y +
+			(M21.z * c.x + M22.y * c.y + M22.z * c.z) * c.z );
+	p2 = F3(M21.x * c.x + M21.y * c.y + M21.z * c.z, M21.y * c.x + M22.x * c.y + M22.y * c.z, M21.z * c.x + M22.y * c.y + M22.z * c.z) * t2 + centerB;
 
-										 distVector = p1 - p2;
-										 return dot(distVector, distVector);
+	distVector = p1 - p2;
+	return dot(distVector, distVector);
 }
 __device__ inline float distanceFunc(
-									 float  al1, float  al2, 
-									 const float3 &centerA,const float3 &centerB, 
-									 const float3 &M11, const float3 &M12,
-									 const float3 &M21, const float3 &M22,
-									 float3& distVector, float3& c, float& lam1, float& lam2) {
-										 float3 p1,p2;
-										 float cal2=__cosf(al2);
-										 c.x =  __cosf(al1) * cal2;
-										 c.y =  __sinf(al1) * cal2;
-										 c.z =  __sinf(al2);
-										 lam1 = .5f * sqrt(	(M11.x * c.x + M11.y * c.y + M11.z * c.z) * c.x + 
-											 (M11.y * c.x + M12.x * c.y + M12.y * c.z) * c.y + 
-											 (M11.z * c.x + M12.y * c.y + M12.z * c.z) * c.z ); 
-										 lam2 = .5f * sqrt(	(M21.x * c.x + M21.y * c.y + M21.z * c.z) * c.x + 
-											 (M21.y * c.x + M22.x * c.y + M22.y * c.z) * c.y + 
-											 (M21.z * c.x + M22.y * c.y + M22.z * c.z) * c.z );
+		float  al1, float  al2,
+		const float3 &centerA,const float3 &centerB,
+		const float3 &M11, const float3 &M12,
+		const float3 &M21, const float3 &M22,
+		float3& distVector, float3& c, float& lam1, float& lam2) {
+	float3 p1,p2;
+	float cal2=__cosf(al2);
+	c.x =  __cosf(al1) * cal2;
+	c.y =  __sinf(al1) * cal2;
+	c.z =  __sinf(al2);
+	lam1 = .5f * sqrt(	(M11.x * c.x + M11.y * c.y + M11.z * c.z) * c.x +
+			(M11.y * c.x + M12.x * c.y + M12.y * c.z) * c.y +
+			(M11.z * c.x + M12.y * c.y + M12.z * c.z) * c.z );
+	lam2 = .5f * sqrt(	(M21.x * c.x + M21.y * c.y + M21.z * c.z) * c.x +
+			(M21.y * c.x + M22.x * c.y + M22.y * c.z) * c.y +
+			(M21.z * c.x + M22.y * c.y + M22.z * c.z) * c.z );
 
-										 float t1= 0.5f / lam1;
-										 p1 = F3(M11.x * c.x + M11.y * c.y + M11.z * c.z, M11.y * c.x + M12.x * c.y + M12.y * c.z, M11.z * c.x + M12.y * c.y + M12.z * c.z) * t1 + centerA;
-										 float t2=-0.5f / lam2;
-										 p2 = F3(M21.x * c.x + M21.y * c.y + M21.z * c.z, M21.y * c.x + M22.x * c.y + M22.y * c.z, M21.z * c.x + M22.y * c.y + M22.z * c.z) * t2 + centerB;
+	float t1= 0.5f / lam1;
+	p1 = F3(M11.x * c.x + M11.y * c.y + M11.z * c.z, M11.y * c.x + M12.x * c.y + M12.y * c.z, M11.z * c.x + M12.y * c.y + M12.z * c.z) * t1 + centerA;
+	float t2=-0.5f / lam2;
+	p2 = F3(M21.x * c.x + M21.y * c.y + M21.z * c.z, M21.y * c.x + M22.x * c.y + M22.y * c.z, M21.z * c.x + M22.y * c.y + M22.z * c.z) * t2 + centerB;
 
-										 distVector = p1 - p2;
-										 return dot(distVector, distVector);
+	distVector = p1 - p2;
+	return dot(distVector, distVector);
 }
 __device__ inline float distanceFunc(
-									 float  al1, float  al2, 
-									 const float3 &centerA,const float3 &centerB, 
-									 const float3 &M11, const float3 &M12,
-									 const float3 &M21, const float3 &M22,
-									 float3& c) {
-										 float cal2=cos(al2);
-										 c.x =  cos(al1) * cal2;
-										 c.y =  sin(al1) * cal2;
-										 c.z =  sin(al2);
-										 float t1=  1.0f / sqrt((M11.x * c.x + M11.y * c.y + M11.z * c.z) * c.x + 
-											 (M11.y * c.x + M12.x * c.y + M12.y * c.z) * c.y + 
-											 (M11.z * c.x + M12.y * c.y + M12.z * c.z) * c.z ); 
-										 float3 p1 = F3(M11.x * c.x + M11.y * c.y + M11.z * c.z, M11.y * c.x + M12.x * c.y + M12.y * c.z, M11.z * c.x + M12.y * c.y + M12.z * c.z) * t1 + centerA;
-										 float t2=- 1.0f / sqrt((M21.x * c.x + M21.y * c.y + M21.z * c.z) * c.x + 
-											 (M21.y * c.x + M22.x * c.y + M22.y * c.z) * c.y + 
-											 (M21.z * c.x + M22.y * c.y + M22.z * c.z) * c.z );
-										 float3 p2 = F3(M21.x * c.x + M21.y * c.y + M21.z * c.z, M21.y * c.x + M22.x * c.y + M22.y * c.z, M21.z * c.x + M22.y * c.y + M22.z * c.z) * t2 + centerB;
-										 p1 -= p2;		// recycle p1 for the distance
-										 return dot(p1, p1);
+		float  al1, float  al2,
+		const float3 &centerA,const float3 &centerB,
+		const float3 &M11, const float3 &M12,
+		const float3 &M21, const float3 &M22,
+		float3& c) {
+	float cal2=cos(al2);
+	c.x =  cos(al1) * cal2;
+	c.y =  sin(al1) * cal2;
+	c.z =  sin(al2);
+	float t1=  1.0f / sqrt((M11.x * c.x + M11.y * c.y + M11.z * c.z) * c.x +
+			(M11.y * c.x + M12.x * c.y + M12.y * c.z) * c.y +
+			(M11.z * c.x + M12.y * c.y + M12.z * c.z) * c.z );
+	float3 p1 = F3(M11.x * c.x + M11.y * c.y + M11.z * c.z, M11.y * c.x + M12.x * c.y + M12.y * c.z, M11.z * c.x + M12.y * c.y + M12.z * c.z) * t1 + centerA;
+	float t2=- 1.0f / sqrt((M21.x * c.x + M21.y * c.y + M21.z * c.z) * c.x +
+			(M21.y * c.x + M22.x * c.y + M22.y * c.z) * c.y +
+			(M21.z * c.x + M22.y * c.y + M22.z * c.z) * c.z );
+	float3 p2 = F3(M21.x * c.x + M21.y * c.y + M21.z * c.z, M21.y * c.x + M22.x * c.y + M22.y * c.z, M21.z * c.x + M22.y * c.y + M22.z * c.z) * t2 + centerB;
+	p1 -= p2;		// recycle p1 for the distance
+	return dot(p1, p1);
 }
 __device__ inline float distanceFuncFast(
-	float  al1, float  al2, 
-	const float3 &centerA,const float3 &centerB, 
-	const float3 &M11, const float3 &M12,
-	const float3 &M21, const float3 &M22,
-	float3& c) {
-		float cal2=__cosf(al2);
-		c.x =  __cosf(al1) * cal2;
-		c.y =  __sinf(al1) * cal2;
-		c.z =  __sinf(al2);
-		float t1=  rsqrtf(	(M11.x * c.x + M11.y * c.y + M11.z * c.z) * c.x + 
+		float  al1, float  al2,
+		const float3 &centerA,const float3 &centerB,
+		const float3 &M11, const float3 &M12,
+		const float3 &M21, const float3 &M22,
+		float3& c) {
+	float cal2=__cosf(al2);
+	c.x =  __cosf(al1) * cal2;
+	c.y =  __sinf(al1) * cal2;
+	c.z =  __sinf(al2);
+	float t1=  rsqrtf(	(M11.x * c.x + M11.y * c.y + M11.z * c.z) * c.x +
 			(M11.y * c.x + M12.x * c.y + M12.y * c.z) * c.y + 
 			(M11.z * c.x + M12.y * c.y + M12.z * c.z) * c.z );
-		float3 p1 = F3(M11.x * c.x + M11.y * c.y + M11.z * c.z, M11.y * c.x + M12.x * c.y + M12.y * c.z, M11.z * c.x + M12.y * c.y + M12.z * c.z) * t1 + centerA;
-		float t2=- rsqrtf(	(M21.x * c.x + M21.y * c.y + M21.z * c.z) * c.x + 
+	float3 p1 = F3(M11.x * c.x + M11.y * c.y + M11.z * c.z, M11.y * c.x + M12.x * c.y + M12.y * c.z, M11.z * c.x + M12.y * c.y + M12.z * c.z) * t1 + centerA;
+	float t2=- rsqrtf(	(M21.x * c.x + M21.y * c.y + M21.z * c.z) * c.x +
 			(M21.y * c.x + M22.x * c.y + M22.y * c.z) * c.y + 
 			(M21.z * c.x + M22.y * c.y + M22.z * c.z) * c.z);
-		float3 p2 = F3(M21.x * c.x + M21.y * c.y + M21.z * c.z, M21.y * c.x + M22.x * c.y + M22.y * c.z, M21.z * c.x + M22.y * c.y + M22.z * c.z) * t2 + centerB;
-		p1 -= p2;		// recycle p1 for the distance
-		return dot(p1, p1);
+	float3 p2 = F3(M21.x * c.x + M21.y * c.y + M21.z * c.z, M21.y * c.x + M22.x * c.y + M22.y * c.z, M21.z * c.x + M22.y * c.y + M22.z * c.z) * t2 + centerB;
+	p1 -= p2;		// recycle p1 for the distance
+	return dot(p1, p1);
 }
 
 #define LARGE_NUMBER 10000000
@@ -371,10 +371,10 @@ __device__ __host__ uint getID(const object &A){
 	return A.A.w;
 }
 __global__ void Ellipsoid_Ellipsoid(object * object_data,
-									int3 * Pair ,
-									uint* Contact_Number,
-									contactGPU* CData,
-									uint totalPossibleConts)
+		int3 * Pair ,
+		uint* Contact_Number,
+		contactGPU* CData,
+		uint totalPossibleConts)
 {
 	uint Index = blockIdx.x* blockDim.x + threadIdx.x;
 	if(Index>=totalPossibleConts){return;}
@@ -409,11 +409,11 @@ __global__ void Sphere_Triangle(object * object_data,int3 * Pair ,uint* Contact_
 		object sphere=object_data[pair.x];
 		object triangle=object_data[pair.y];
 		float3
-			A=F3(triangle.A),
-			B=F3(triangle.B),
-			C=F3(triangle.C),
-			S=F3(sphere.A),
-			contactPoint;
+		A=F3(triangle.A),
+		B=F3(triangle.B),
+		C=F3(triangle.C),
+		S=F3(sphere.A),
+		contactPoint;
 
 		float3 N=cross((B-A),(C-A));
 		N/=sqrtf(dot(N,N));
@@ -456,7 +456,7 @@ __global__ void Sphere_Triangle(object * object_data,int3 * Pair ,uint* Contact_
 
 
 __device__ __host__ inline float3 GetSupportPoint_Sphere	(const object& p,const  float3 &n){		
-	return (p.B.x) * normalize(n);
+	return (p.B.x) * n;
 }
 __device__ __host__ inline float3 GetSupportPoint_Triangle	(const object& p,const float3 &n){
 	float3 Pa=make_float3(p.A);
@@ -481,15 +481,15 @@ __device__ __host__ inline float3 GetSupportPoint_Ellipsoid	(const object& p,con
 }
 __device__ __host__ float sign(float x){if(x<0) {return -1;}else {return 1;}}
 
- 
+
 
 __device__ __host__ inline float3 GetSupportPoint_Cylinder	(const object& p,const float3 &n){
 	//return make_float3(0,0,0);
 	float3 u=F3(0,1,0);
 	float3 w=n-(dot(u,n))*u;
-	
-	
-	
+
+
+
 	float3 result;
 	if(length(w)!=0){result=sign(dot(u,n))*p.B.y*u+p.B.x*normalize(w);}
 	else{result=sign(dot(u,n))*p.B.y*u;}
@@ -528,28 +528,28 @@ __device__ __host__ inline float3 GetCenter_Plane			(const object& p){return Zer
 __device__ __host__ inline float3 GetCenter_Cone			(const object& p){return Zero_Vector;}
 __device__ __host__ bool IsZero3(const float3 &v){
 	return (	v.x < Vector_ZERO_EPSILON && v.x > -Vector_ZERO_EPSILON &&
-		v.y < Vector_ZERO_EPSILON && v.y > -Vector_ZERO_EPSILON &&
-		v.z < Vector_ZERO_EPSILON && v.z > -Vector_ZERO_EPSILON );
+			v.y < Vector_ZERO_EPSILON && v.y > -Vector_ZERO_EPSILON &&
+			v.z < Vector_ZERO_EPSILON && v.z > -Vector_ZERO_EPSILON );
 }
 __device__ __host__ bool IsZero(const float &val){
 	return fabs(val) < 1E-10;
 }
 __device__ __host__ bool isEqual(const float& _a, const float& _b){
 
-	 float ab;
+	float ab;
 
-	    ab = fabs(_a - _b);
-	    if (fabs(ab) < 1E-10)
-	        return 1;
+	ab = fabs(_a - _b);
+	if (fabs(ab) < 1E-10)
+		return 1;
 
-	    float a, b;
-	    a = fabs(_a);
-	    b = fabs(_b);
-	    if (b > a){
-	        return ab < 1E-10 * b;
-	    }else{
-	        return ab < 1E-10 * a;
-	    }
+	float a, b;
+	a = fabs(_a);
+	b = fabs(_b);
+	if (b > a){
+		return ab < 1E-10 * b;
+	}else{
+		return ab < 1E-10 * a;
+	}
 }
 
 __device__ __host__ float3 GetCenter(const object& p){
@@ -586,81 +586,81 @@ __device__ __host__ float3 TransformSupportVert(const object& p,const float3& b)
 
 
 __device__ __host__ float dist_line(float3 & P, float3 &x0, float3 &b, float3& witness){
-    float dist, t;
-    float3 d, a;
+	float dist, t;
+	float3 d, a;
 
-    d=b-x0;	// direction of segment
-    a=x0-P; // precompute vector from P to x0
-    t  = -(1.f) * dot(a, d);
-    t /= dot(d,d);
+	d=b-x0;	// direction of segment
+	a=x0-P; // precompute vector from P to x0
+	t  = -(1.f) * dot(a, d);
+	t /= dot(d,d);
 
-    if (t < 0.0f || IsZero(t)){
-        dist = dot(x0-P,x0-P);
-        witness= x0;
-    }else if (t > 1.0f || isEqual(t, 1.0f)){
-        dist = dot(b-P,b-P);
-        witness=b;
-    }else{
-            witness=d;
-            witness*= t;
-            witness+= x0;
-            dist = dot(witness-P, witness-P);
-    }
+	if (t < 0.0f || IsZero(t)){
+		dist = dot(x0-P,x0-P);
+		witness= x0;
+	}else if (t > 1.0f || isEqual(t, 1.0f)){
+		dist = dot(b-P,b-P);
+		witness=b;
+	}else{
+		witness=d;
+		witness*= t;
+		witness+= x0;
+		dist = dot(witness-P, witness-P);
+	}
 
-    return dist;
+	return dist;
 
 
 
 }
 __device__ __host__ float find_dist(float3 & P, float3 &x0, float3 &B, float3 &C, float3& witness){
-	    float3 d1, d2, a;
-	    float u, v, w, p, q, r;
-	    float s, t, dist, dist2;
-	    float3 witness2;
+	float3 d1, d2, a;
+	float u, v, w, p, q, r;
+	float s, t, dist, dist2;
+	float3 witness2;
 
-	    d1= B- x0;
-	    d2= C- x0;
-	    a= x0- P;
+	d1= B- x0;
+	d2= C- x0;
+	a= x0- P;
 
-	    u = dot(a, a);
-	    v = dot(d1, d1);
-	    w = dot(d2, d2);
-	    p = dot(a, d1);
-	    q = dot(a, d2);
-	    r = dot(d1, d2);
+	u = dot(a, a);
+	v = dot(d1, d1);
+	w = dot(d2, d2);
+	p = dot(a, d1);
+	q = dot(a, d2);
+	r = dot(d1, d2);
 
-	    s = (q * r - w * p) / (w * v - r * r);
-	    t = (-s * r - q) / w;
+	s = (q * r - w * p) / (w * v - r * r);
+	t = (-s * r - q) / w;
 
-	    if ((IsZero(s) || s > 0.0f)
-	            && (isEqual(s, 1.0f) || s < 1.0f)
-	            && (IsZero(t) || t > 0.0f)
-	            && (isEqual(t, 1.0f) || t < 1.0f)
-	            && (isEqual(t + s, 1.0f) || t + s < 1.0f)){
+	if ((IsZero(s) || s > 0.0f)
+			&& (isEqual(s, 1.0f) || s < 1.0f)
+			&& (IsZero(t) || t > 0.0f)
+			&& (isEqual(t, 1.0f) || t < 1.0f)
+			&& (isEqual(t + s, 1.0f) || t + s < 1.0f)){
 
-	            d1*= s;
-	            d2*= t;
-	            witness= x0;
-	            witness+= d1;
-	            witness+= d2;
-	            dist = dot(witness-P,witness- P);
+		d1*= s;
+		d2*= t;
+		witness= x0;
+		witness+= d1;
+		witness+= d2;
+		dist = dot(witness-P,witness- P);
 
-	    }else{
-	        dist = dist_line(P, x0, B, witness);
+	}else{
+		dist = dist_line(P, x0, B, witness);
 
-	        dist2 = dist_line(P, x0, C, witness2);
-	        if (dist2 < dist){
-	            dist = dist2;
-	            (witness= witness2);
-	        }
+		dist2 = dist_line(P, x0, C, witness2);
+		if (dist2 < dist){
+			dist = dist2;
+			(witness= witness2);
+		}
 
-	        dist2 = dist_line(P, B, C, witness2);
-	        if (dist2 < dist){
-	            dist = dist2;
-	            (witness= witness2);
-	        }
-	    }
-	    return dist;
+		dist2 = dist_line(P, B, C, witness2);
+		if (dist2 < dist){
+			dist = dist2;
+			(witness= witness2);
+		}
+	}
+	return dist;
 }
 
 //Code for Convex-Convex Collision detection, adopted from xeno-collide
@@ -781,7 +781,7 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 		float separation = -dot(v4 , n);
 
 		// If the boundary is thin enough or the origin is outside the support plane for the newly discovered vertex, then we can terminate
-		if ( delta <= kCollideEpsilon || separation >= 0. || phase2 > 20 ){
+		if ( delta <= kCollideEpsilon || separation >= 0. || phase2 > 100 ){
 			float3 O=F3(0,0,0);
 			//depth=find_dist(O,v1,v2,v3,n);
 			returnNormal = normalize(n);
@@ -803,11 +803,11 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 	}
 }
 __global__ void MPR_GPU_Store(
-							  object * object_data,
-							  int3 * Pair ,
-							  uint* Contact_Number,
-							  contactGPU* CData,
-							  uint totalPossibleConts)
+		object * object_data,
+		int3 * Pair ,
+		uint* Contact_Number,
+		contactGPU* CData,
+		uint totalPossibleConts)
 {
 	uint Index = blockIdx.x* blockDim.x + threadIdx.x;
 	if(Index>=totalPossibleConts){return;}
@@ -819,7 +819,7 @@ __global__ void MPR_GPU_Store(
 	float3 N,p1,p2;
 	float depth=0;
 	if(!CollideAndFindPoint(A,B,N,p1, p2, depth)){return;};
-	
+
 	//p1=(TransformSupportVert(A,-N)-p1)*N*N+p1;
 	//p2=(TransformSupportVert(B,N)-p2)*N*N+p2;
 	//depth=sqrtf(dot((p2-p1),(p2-p1)));
@@ -855,23 +855,23 @@ void ChCCollisionGPU::Narrowphase(){       						//NarrowPhase Contact CD
 	//	number_of_contacts);									//Number of potential contacts
 
 	MPR_GPU_Store<<<BLOCKS(number_of_contacts),THREADS>>>(		//Compute convex-covnex Contacts
-		OBJCAST(object_data),                         			//Object Data
-		CASTI3(contact_pair),                     				//Indices of bodies that make up AABB contact
-		CASTU1(generic_counter),								//Contact Index, store the thread index
-		CONTCAST((*contact_data_gpu)),                          //Contact Data GPU
-		number_of_contacts);									//Number of potential contacts
+			OBJCAST(object_data),                         			//Object Data
+			CASTI3(contact_pair),                     				//Indices of bodies that make up AABB contact
+			CASTU1(generic_counter),								//Contact Index, store the thread index
+			CONTCAST((*contact_data_gpu)),                          //Contact Data GPU
+			number_of_contacts);									//Number of potential contacts
 
 	Thrust_Sort_By_Key(generic_counter,(*contact_data_gpu));
 	number_of_contacts=number_of_contacts-Thrust_Count(generic_counter,0xFFFFFFFF);
 	contact_data_gpu->resize(number_of_contacts);
-	CopyCDToCPU();
+	if(copyContacts){CopyCDToCPU();}
 }
 
 void ChCCollisionGPU::CopyCDToCPU(){ 
-//thrust::copy(contact_data_gpu->begin(),contact_data_gpu->end(),contact_data_host.begin());
+	//thrust::copy(contact_data_gpu->begin(),contact_data_gpu->end(),contact_data_host.begin());
 
 
-contact_data_host=*contact_data_gpu;
+	contact_data_host=*contact_data_gpu;
 
 
 

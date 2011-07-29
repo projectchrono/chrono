@@ -5,6 +5,7 @@ using namespace chrono::collision;
 ChCCollisionGPU::ChCCollisionGPU(){								//Constructor
 	number_of_objects=0;										//Initialize values
 	contact_data_gpu=new thrust::device_vector<contactGPU>;			//Create pointer for Contact Data
+	copyContacts=0;
 };
 ChCCollisionGPU::~ChCCollisionGPU(){							//Destructor
 	Clear();													//Clear all GPU data

@@ -73,16 +73,16 @@ __global__ void LCP_Iteration_Contacts( contactGPU* contacts, CH_REALNUMBER4* bo
 	B2=bodies[B2_i];
 	N= contacts[i].N;								//assume: normalized, and if depth=0 norm=(1,0,0)
 	W = fabs(N);									//Gramm Schmidt; work with the global axis that is "most perpendicular" to the contact normal vector;effectively this means looking for the smallest component (in abs) and using the corresponding direction to carry out cross product.
-		    U = F3(0.0,N.z, -N.y);								//it turns out that X axis is closest to being perpendicular to contact vector;
+	U = F3(0.0,N.z, -N.y);								//it turns out that X axis is closest to being perpendicular to contact vector;
 	if(W.x>W.y){U = F3(-N.z,0.0, N.x);}						//it turns out that Y axis is closest to being perpendicular to contact vector;
 	if(W.y>W.z){U = F3(N.y,-N.x, 0.0);}						//it turns out that Z axis is closest to being perpendicular to contact vector;
 	U=normalize(U);									//normalize the local contact Y,Z axis
 	W=cross(N,U);									//carry out the last cross product to find out the contact local Z axis : multiply the contact normal by the local Y component										
 	//if(i==0){printf("%f %f %f | %f %f %f | %f %f %f\n",N.x,N.y,N.z,contacts[i].Pa.x,contacts[i].Pa.y,contacts[i].Pa.z,contacts[i].Pb.x,contacts[i].Pb.y,contacts[i].Pb.z);}
-	reg=reg+dot(N,(F3(B2-B1)));
-	
+	reg=reg+dot(N,(F3(B2-B1)))*10;
+
 	//reg=min(0.0,max(reg,-1.));
-	
+
 	sbar =contacts[i].Pa-F3(bodies[2*number_of_bodies_const+B1_i]);	//Contact Point on A - Position of A                                
 	E1 = bodies[3*number_of_bodies_const+B1_i];						//bring in the Euler parameters associated with body 1;
 	compute_mat(T3,T4,T5,E1,N,U,W,sbar);							//A_i,p'*A_A*(sbar~_i,A)
@@ -92,7 +92,7 @@ __global__ void LCP_Iteration_Contacts( contactGPU* contacts, CH_REALNUMBER4* bo
 	compute_mat(T6,T7,T8,E2,N,U,W,sbar);							//A_i,p'*A_B*(sbar~_i,B)
 	T6=-T6;	T7=-T7;	T8=-T8;
 	//if(i==0){printf("%f %f %f | %f %f %f | %f %f %f\n",T3.x,T3.y,T3.z,T4.x,T4.y,T4.z,T5.x,T5.y,T5.z);}
-	
+
 	W1 = bodies[B1_i+number_of_bodies_const];
 	W2 = bodies[B2_i+number_of_bodies_const];
 
@@ -327,6 +327,11 @@ ChLcpIterativeSolverGPU::~ChLcpIterativeSolverGPU(){
 	device_bilateral_data.clear();
 }
 void ChLcpIterativeSolverGPU::GPU_Version(){
+	cudaEvent_t start, stop;
+	float time;
+
+	//START_TIMING(start,stop,time);
+
 	body_number		.resize((number_of_constraints)*2,0);	//the body numbers for each constraint
 	update_number	.resize((number_of_constraints)*2,0);	//
 	offset_counter	.resize((number_of_constraints)*2,0);
@@ -341,43 +346,47 @@ void ChLcpIterativeSolverGPU::GPU_Version(){
 	COPY_TO_CONST_MEM(number_of_bilaterals);
 	COPY_TO_CONST_MEM(number_of_bodies);
 	if(number_of_contacts>0||number_of_bilaterals>0){
-	device_bilateral_data	=host_bilateral_data;
-	ChKernelLCPcomputeOffsets<<< BLOCKS(number_of_constraints),THREADS>>>(
-		CONTCAST((*device_contact_data)),
-		CASTF4(device_bilateral_data),
-		CASTU1(body_number));
-	Thrust_Sequence(update_number);
-	Thrust_Sequence(update_offset);
-	Thrust_Fill(offset_counter,0);
-	Thrust_Sort_By_Key(body_number,  update_number);
-	Thrust_Sort_By_Key(update_number,update_offset);
-	Thrust_Reduce_By_KeyB(number_of_updates,body_number,update_number,offset_counter);
-	Thrust_Inclusive_Scan(offset_counter);
+		device_bilateral_data	=host_bilateral_data;
+		ChKernelLCPcomputeOffsets<<< BLOCKS(number_of_constraints),THREADS>>>(
+				CONTCAST((*device_contact_data)),
+				CASTF4(device_bilateral_data),
+				CASTU1(body_number));
+		Thrust_Sequence(update_number);
+		Thrust_Sequence(update_offset);
+		Thrust_Fill(offset_counter,0);
+		Thrust_Sort_By_Key(body_number,  update_number);
+		Thrust_Sort_By_Key(update_number,update_offset);
+		Thrust_Reduce_By_KeyB(number_of_updates,body_number,update_number,offset_counter);
+		Thrust_Inclusive_Scan(offset_counter);
 	}
 	COPY_TO_CONST_MEM(number_of_updates);
 	device_body_data		=host_body_data;
 	ChKernelLCPaddForces<<< BLOCKS(number_of_bodies), THREADS	>>>(CASTF4(device_body_data));	
 	if(number_of_contacts>0||number_of_bilaterals>0){
-	for (uint iteration_number = 0; iteration_number < maximum_iterations; iteration_number++){
-		LCP_Iteration_Contacts<<< BLOCKS(number_of_contacts), THREADS >>>(
-			CONTCAST((*device_contact_data)), 
-			CASTF4(device_body_data), 
-			UPDTCAST(iteration_update),
-			CASTU1(update_offset));
-		LCP_Iteration_Bilaterals<<< BLOCKS(number_of_bilaterals), THREADS >>>(
-			CASTF4(device_bilateral_data), 
-			CASTF4(device_body_data), 
-			UPDTCAST(iteration_update),
-			CASTU1(update_offset));
-		LCP_Reduce_Speeds<<< BLOCKS(number_of_updates), THREADS >>>(
-			CASTF4(device_body_data), 
-			UPDTCAST(iteration_update), 
-			CASTU1(body_number),
-			CASTU1(offset_counter));
-	}
+
+		for (uint iteration_number = 0; iteration_number < maximum_iterations; iteration_number++){
+			LCP_Iteration_Contacts<<< BLOCKS(number_of_contacts), THREADS >>>(
+					CONTCAST((*device_contact_data)),
+					CASTF4(device_body_data),
+					UPDTCAST(iteration_update),
+					CASTU1(update_offset));
+			LCP_Iteration_Bilaterals<<< BLOCKS(number_of_bilaterals), THREADS >>>(
+					CASTF4(device_bilateral_data),
+					CASTF4(device_body_data),
+					UPDTCAST(iteration_update),
+					CASTU1(update_offset));
+			LCP_Reduce_Speeds<<< BLOCKS(number_of_updates), THREADS >>>(
+					CASTF4(device_body_data),
+					UPDTCAST(iteration_update),
+					CASTU1(body_number),
+					CASTU1(offset_counter));
+		}
+
 	}
 	//LCP_Integrate_Timestep<<< BLOCKS(number_of_bodies),THREADS>>>(CASTF4(device_body_data), true);
 	host_body_data		=	device_body_data;
+	//STOP_TIMING(start,stop,time);
+	//printf("%f \n",time);
 }
 
 void ChLcpIterativeSolverGPU::RunTimeStep()
@@ -385,6 +394,6 @@ void ChLcpIterativeSolverGPU::RunTimeStep()
 	number_of_constraints=number_of_contacts+number_of_bilaterals;
 	force_factor=1.0;
 	if(use_cpu){CPU_Version();}else{GPU_Version();}
-	
+
 }
 void ChLcpIterativeSolverGPU::Warm_Start(){}
