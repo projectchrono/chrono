@@ -470,9 +470,9 @@ __device__ __host__ inline float3 GetSupportPoint_Triangle	(const object& p,cons
 }
 __device__ __host__ inline float3 GetSupportPoint_Box		(const object& p,const float3 &n){
 	float3 result=F3(0,0,0);
-	result.x= n.x>=0? p.B.x:-p.B.x;
-	result.y= n.y>=0? p.B.y:-p.B.y;
-	result.z= n.z>=0? p.B.z:-p.B.z;
+	result.x= n.x>0? p.B.x:-p.B.x;
+	result.y= n.y>0? p.B.y:-p.B.y;
+	result.z= n.z>0? p.B.z:-p.B.z;
 	return result;
 }
 __device__ __host__ inline float3 GetSupportPoint_Ellipsoid	(const object& p,const float3 &n){
@@ -487,26 +487,11 @@ __device__ __host__ inline float3 GetSupportPoint_Cylinder	(const object& p,cons
 	//return make_float3(0,0,0);
 	float3 u=F3(0,1,0);
 	float3 w=n-(dot(u,n))*u;
-
-
-
 	float3 result;
 	if(length(w)!=0){result=sign(dot(u,n))*p.B.y*u+p.B.x*normalize(w);}
 	else{result=sign(dot(u,n))*p.B.y*u;}
 	return result;
-	//float d, s=sqrtf(n.x*n.x+n.z*n.z);
-	//if(s!=0.0f){
-	//	d=p.B.x/s;
-	//	result.x=n.x*d;
-	//	result.y=sign(n.y)*p.B.y;
-	//	result.z=n.z*d;
-	//	return result;
-	//}else{
-	//	result.x=p.B.x;
-	//	result.y=sign(n.y)*p.B.y;
-	//	result.z=p.B.x;
-	//	return result;
-	//}
+
 }
 __device__ __host__ inline float3 GetSupportPoint_Plane		(const object& p,const float3 &n){
 	float3 result = make_float3(p.B);
