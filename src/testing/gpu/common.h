@@ -55,6 +55,8 @@ public:
 	void MakeCompound(ChSharedBodyGPUPtr &body,ChVector<> p, ChQuaternion<> r,float mass, vector<float3> pos, vector<float3> dim, vector<float4> quats, vector<ShapeType> type, vector<float> masses,double sfric,double kfric,double restitution,bool collide);
 	void LoadTriangleMesh(ChSharedBodyGPUPtr &mrigidBody,string name, float scale, ChVector<> pos, ChQuaternion<> rot, float mass,double sfric,double kfric,double restitution, int family,int nocolwith);
 	void DeactivationPlane(float y);
+	void BoundingPlane(float y);
+
 	void SaveByID(int id, string fname, bool pos, bool vel, bool acc, bool rot, bool omega);
 	void SaveAllData(string prefix, bool p, bool v, bool a, bool r, bool o);
 	void drawAll();
@@ -259,7 +261,15 @@ void System::DeactivationPlane(float y){
 		}
 	}
 }
-
+void System::BoundingPlane(float y){
+	for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
+		ChBodyGPU *abody=(ChBodyGPU*)(mSystem->Get_bodylist()->at(i));
+		if(abody->GetPos().y<y&&abody->GetBodyFixed()==false){
+			abody->SetPos(ChVector<>(abody->GetPos().x,y,abody->GetPos().z));
+			abody->SetPos_dt(ChVector<>(0,0,0));
+		}
+	}
+}
 void System::SaveByID(int id, string fname, bool p, bool v, bool a, bool r, bool o){
 	ofstream ofile;
 	ofile.open(fname.c_str(),ios_base::app);
