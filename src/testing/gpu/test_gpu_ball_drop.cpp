@@ -49,8 +49,9 @@ void System::DoTimeStep(){
 //		}
 //	}
 //	}
-	DeactivationPlane(-.4);
-	BoundingPlane(-container_R+container_T);
+	//DeactivationPlane(-.4);
+	//BoundingPlane(-container_R+container_T);
+	BoundingBox(container_R-container_T,container_R-container_T,container_R-container_T);
 	stringstream ss;
 	ss<<"dropped_ball"<<var<<".txt";
 	SaveByID(5,ss.str(),true,true,true,false,false);
@@ -116,20 +117,20 @@ int main(int argc, char* argv[]){
 	GPUSystem->mEndTime=mEndTime;
 
 	ChQuaternion<> base(1,0,0,0);
-	ChSharedBodyGPUPtr L	=	ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr R	=	ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr F	=	ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr B	=	ChSharedBodyGPUPtr(new ChBodyGPU);
+	//ChSharedBodyGPUPtr L	=	ChSharedBodyGPUPtr(new ChBodyGPU);
+	//ChSharedBodyGPUPtr R	=	ChSharedBodyGPUPtr(new ChBodyGPU);
+	//ChSharedBodyGPUPtr F	=	ChSharedBodyGPUPtr(new ChBodyGPU);
+	//ChSharedBodyGPUPtr B	=	ChSharedBodyGPUPtr(new ChBodyGPU);
 //	ChSharedBodyGPUPtr BTM1	=	ChSharedBodyGPUPtr(new ChBodyGPU);
 //	ChSharedBodyGPUPtr BTM2	=	ChSharedBodyGPUPtr(new ChBodyGPU);
 //	ChSharedBodyGPUPtr BTM3	=	ChSharedBodyGPUPtr(new ChBodyGPU);
 //	ChSharedBodyGPUPtr BTM4	=	ChSharedBodyGPUPtr(new ChBodyGPU);
 	ChSharedBodyGPUPtr Ball	=	ChSharedBodyGPUPtr(new ChBodyGPU);
 
-	GPUSystem->MakeBox(L,	ChVector<>(container_T,container_R,container_R), 100000,ChVector<>(-container_R,0,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
-	GPUSystem->MakeBox(R,	ChVector<>(container_T,container_R,container_R), 100000,ChVector<>(container_R,0,0), base,mWallMu,mWallMu,0,-20,-20,true,true);
-	GPUSystem->MakeBox(F,	ChVector<>(container_R,container_R,container_T), 100000,ChVector<>(0,0,-container_R),base,mWallMu,mWallMu,0,-20,-20,true,true);
-	GPUSystem->MakeBox(B,	ChVector<>(container_R,container_R,container_T), 100000,ChVector<>(0,0,container_R), base,mWallMu,mWallMu,0,-20,-20,true,true);
+	//GPUSystem->MakeBox(L,	ChVector<>(container_T,container_R,container_R), 100000,ChVector<>(-container_R,0,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
+	//GPUSystem->MakeBox(R,	ChVector<>(container_T,container_R,container_R), 100000,ChVector<>(container_R,0,0), base,mWallMu,mWallMu,0,-20,-20,true,true);
+	//GPUSystem->MakeBox(F,	ChVector<>(container_R,container_R,container_T), 100000,ChVector<>(0,0,-container_R),base,mWallMu,mWallMu,0,-20,-20,true,true);
+	//GPUSystem->MakeBox(B,	ChVector<>(container_R,container_R,container_T), 100000,ChVector<>(0,0,container_R), base,mWallMu,mWallMu,0,-20,-20,true,true);
 //	GPUSystem->MakeBox(BTM1, ChVector<>(container_R/3.0,container_T,container_R), 100000,ChVector<>(-container_R/4.0*3.0,-container_R,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
 //	GPUSystem->MakeBox(BTM2, ChVector<>(container_R/3.0,container_T,container_R), 100000,ChVector<>(-container_R/4.0*1.0,-container_R,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
 //	GPUSystem->MakeBox(BTM3, ChVector<>(container_R/3.0,container_T,container_R), 100000,ChVector<>(container_R/4.0*1.0,-container_R,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
@@ -145,9 +146,8 @@ int main(int argc, char* argv[]){
 
 	ifstream ifile("ball_drop_start.txt");
 	string data;
-	for(int i=0; i<250005; i++){
+	for(int i=0; i<250000; i++){
 		getline(ifile,data);
-		if(i>=5){
 			for(int j=0; j<data.size(); j++){
 				if(data[j]==','){data[j]='\t';}
 			}
@@ -157,7 +157,6 @@ int main(int argc, char* argv[]){
 			ChSharedBodyGPUPtr mrigidBody;
 			mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
 			GPUSystem->MakeSphere(mrigidBody, radius, mass, ChVector<>(x,y,z), mu, mu, rest, true);
-		}
 	}
 
 
