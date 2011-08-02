@@ -56,6 +56,7 @@ public:
 	void LoadTriangleMesh(ChSharedBodyGPUPtr &mrigidBody,string name, float scale, ChVector<> pos, ChQuaternion<> rot, float mass,double sfric,double kfric,double restitution, int family,int nocolwith);
 	void DeactivationPlane(float y);
 	void BoundingPlane(float y);
+	void BoundingBox(float x,float y, float z);
 
 	void SaveByID(int id, string fname, bool pos, bool vel, bool acc, bool rot, bool omega);
 	void SaveAllData(string prefix, bool p, bool v, bool a, bool r, bool o);
@@ -268,6 +269,21 @@ void System::BoundingPlane(float y){
 			abody->SetPos(ChVector<>(abody->GetPos().x,y,abody->GetPos().z));
 			abody->SetPos_dt(ChVector<>(0,0,0));
 		}
+	}
+}
+void System::BoundingBox(float x,float y, float z){
+	for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
+		ChBodyGPU *abody=(ChBodyGPU*)(mSystem->Get_bodylist()->at(i));
+
+		if(abody->GetBodyFixed()==true){continue;}
+		ChVector<> pos=abody->GetPos();
+
+		if(pos.x> x){		abody->SetPos(ChVector<>(x,pos.y,pos.z));		abody->SetPos_dt(ChVector<>(0,0,0));}
+		else if(pos.x<-x){	abody->SetPos(ChVector<>(-x,pos.y,pos.z));		abody->SetPos_dt(ChVector<>(0,0,0));}
+		if(pos.y> y){		abody->SetPos(ChVector<>(pos.x,y,pos.z));		abody->SetPos_dt(ChVector<>(0,0,0));}
+		else if(pos.y<-y){	abody->SetPos(ChVector<>(pos.x,-y,pos.z));		abody->SetPos_dt(ChVector<>(0,0,0));}
+		if(pos.z> z){		abody->SetPos(ChVector<>(pos.x,pos.y,z));		abody->SetPos_dt(ChVector<>(0,0,0));}
+		else if(pos.z<-z){	abody->SetPos(ChVector<>(pos.x,pos.y,-z));		abody->SetPos_dt(ChVector<>(0,0,0));}
 	}
 }
 void System::SaveByID(int id, string fname, bool p, bool v, bool a, bool r, bool o){

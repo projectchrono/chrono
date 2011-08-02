@@ -66,9 +66,10 @@ void System::DoTimeStep(){
 		Anchor->Set_Scr_force(ChVector<>(0,20,0));
 	}
 
-	DeactivationPlane(-.4);
-
-	if(mFrameNumber%150==0&&saveData){
+	//DeactivationPlane(-.4);
+	//BoundingPlane(-container_R+container_T);
+	BoundingBox(container_R-container_T,container_R-container_T,container_R-container_T);
+	if(mFrameNumber%166==0&&saveData){
 		SaveAllData("data/anchor",true, false, false, true, false);
 	}
 
@@ -101,17 +102,17 @@ int main(int argc, char* argv[]){
 	GPUSystem->mEndTime=mEndTime;
 	ChQuaternion<> base(1,0,0,0);
 	Anchor			=	ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr L	=	ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr R	=	ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr F	=	ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr B	=	ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr BTM	=	ChSharedBodyGPUPtr(new ChBodyGPU);
+	//ChSharedBodyGPUPtr L	=	ChSharedBodyGPUPtr(new ChBodyGPU);
+	//ChSharedBodyGPUPtr R	=	ChSharedBodyGPUPtr(new ChBodyGPU);
+	//ChSharedBodyGPUPtr F	=	ChSharedBodyGPUPtr(new ChBodyGPU);
+	//ChSharedBodyGPUPtr B	=	ChSharedBodyGPUPtr(new ChBodyGPU);
+	//ChSharedBodyGPUPtr BTM	=	ChSharedBodyGPUPtr(new ChBodyGPU);
 
-	GPUSystem->MakeBox(L,	ChVector<>(container_T,container_R,container_R), 100000,ChVector<>(-container_R,0,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
-	GPUSystem->MakeBox(R,	ChVector<>(container_T,container_R,container_R), 100000,ChVector<>(container_R,0,0), base,mWallMu,mWallMu,0,-20,-20,true,true);
-	GPUSystem->MakeBox(F,	ChVector<>(container_R,container_R,container_T), 100000,ChVector<>(0,0,-container_R),base,mWallMu,mWallMu,0,-20,-20,true,true);
-	GPUSystem->MakeBox(B,	ChVector<>(container_R,container_R,container_T), 100000,ChVector<>(0,0,container_R), base,mWallMu,mWallMu,0,-20,-20,true,true);
-	GPUSystem->MakeBox(BTM, ChVector<>(container_R,container_T,container_R), 100000,ChVector<>(0,-container_R,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
+	//GPUSystem->MakeBox(L,	ChVector<>(container_T,container_R,container_R), 100000,ChVector<>(-container_R,0,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
+	//GPUSystem->MakeBox(R,	ChVector<>(container_T,container_R,container_R), 100000,ChVector<>(container_R,0,0), base,mWallMu,mWallMu,0,-20,-20,true,true);
+	//GPUSystem->MakeBox(F,	ChVector<>(container_R,container_R,container_T), 100000,ChVector<>(0,0,-container_R),base,mWallMu,mWallMu,0,-20,-20,true,true);
+	//GPUSystem->MakeBox(B,	ChVector<>(container_R,container_R,container_T), 100000,ChVector<>(0,0,container_R), base,mWallMu,mWallMu,0,-20,-20,true,true);
+	//GPUSystem->MakeBox(BTM, ChVector<>(container_R,container_T,container_R), 100000,ChVector<>(0,-container_R,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
 
 	ChQuaternion<> anchor_rot;
 	float angle =-90*PI/180.0;
@@ -126,14 +127,14 @@ int main(int argc, char* argv[]){
 	vector<ShapeType> tpe;
 	vector<float> masses;
 
-	ifstream anchorFile("Helical_Anchor.txt");
-	string dat;
-	float3 p;
-	float4 r;
+	//ifstream anchorFile("Helical_Anchor.txt");
+	//string dat;
+	//float3 p;
+	//float4 r;
 	for(int i=0; i<69; i++){
 		//getline(anchorFile,dat);
 		//anchorFile>>p.x>>p.y>>p.z>>r.x>>r.y>>r.z>>r.w;
-		anchorFile>>p.x>>p.y>>p.z>>r.w>>r.x>>r.y>>r.z;
+		//anchorFile>>p.x>>p.y>>p.z>>r.w>>r.x>>r.y>>r.z;
 		//p.x*=-1;
 		//p.z*=-1;
 		//r=normalize(r);
@@ -142,7 +143,7 @@ int main(int argc, char* argv[]){
 		if      (i==0){
 			dim.push_back(F3(.005,0,0));
 			tpe.push_back(SPHERE);
-			quats.push_back(r);
+			quats.push_back(F4(1,0,0,0));
 			pos.push_back(F3(0,0,0));
 			masses.push_back(.1);
 		}
@@ -157,7 +158,10 @@ int main(int argc, char* argv[]){
 			dim.push_back(F3(.004,.0005,.04));
 			tpe.push_back(BOX);
 			ChQuaternion<> quat;
+			ChQuaternion<> quat2;
 			quat.Q_from_AngAxis(i/69.0*2*PI,ChVector<>(0,1,0));
+			quat2.Q_from_AngAxis(5*2*PI/360.0,ChVector<>(0,0,1));
+			quat=quat%quat2;
 			quats.push_back(F4(quat.e0,quat.e1,quat.e2,quat.e3));
 			pos.push_back(F3(sin(i/69.0*2*PI)*4.0*.01,i/69.0*4.0*.01+.005,cos(i/69.0*2*PI)*4.0*.01));
 			masses.push_back(1);
@@ -174,9 +178,9 @@ int main(int argc, char* argv[]){
 
 	ifstream ifile("ball_drop_start.txt");
 	string data;
-	for(int i=0; i<0; i++){
+	for(int i=0; i<250000; i++){
 		getline(ifile,data);
-		if(i>=5){
+		//if(i>=4){
 			for(int j=0; j<data.size(); j++){
 				if(data[j]==','){data[j]='\t';}
 			}
@@ -186,7 +190,7 @@ int main(int argc, char* argv[]){
 			ChSharedBodyGPUPtr mrigidBody;
 			mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
 			GPUSystem->MakeSphere(mrigidBody, radius, 1560*4.0/3.0*PI*radius*radius*radius, ChVector<>(x,y,z), mu, mu, rest, true);
-		}
+		//}
 	}
 
 	//GPUSystem->MakeSphere(I, 5, .03, ChVector<>(0,0,0), mMu, mMu, 0, true);
