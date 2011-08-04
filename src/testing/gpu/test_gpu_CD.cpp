@@ -37,6 +37,7 @@ void System::DoTimeStep(){
 	}
 
 	DeactivationPlane(-40);
+	//BoundingBox(container_R,container_R,container_R);
 
 	SaveByID(1,"test_ball.txt",true,true,true,false,false);
 	//SaveAllData("data/ball_drop",true, false, false, true, false);
@@ -48,7 +49,7 @@ void System::DoTimeStep(){
 
 int main(int argc, char* argv[]){
 	float mOmega=.1;
-	int   mIteations=100;
+	int   mIteations=1000;
 	float mTimeStep=.005;
 	float mEnvelope=0;
 	float mMu=.5;
