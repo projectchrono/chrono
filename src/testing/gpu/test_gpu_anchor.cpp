@@ -7,7 +7,7 @@ float impactor_R []={.095, .013, .015, .020, .025, .035, .040, .045, .050, .013,
 float impactor_M []={.034, .083, .130, .287, .531,1.437,2.099,3.055,4.079, .064, .201, .518,  .009, .018};
 
 float container_R=   .1;
-float container_T=  .0025;
+float container_T=  .001;
 
 float mOmega=.1;
 int   mIteations=500;
@@ -61,7 +61,7 @@ void System::DoTimeStep(){
 	if(mCurrentTime<4/*&&mCurrentTime>1*/){
 	//	Anchor->SetBodyFixed(false);
 	//	Anchor->SetCollide(true);
-		Anchor->Set_Scr_torque(ChVector<>(0,-30,0));
+		Anchor->Set_Scr_torque(ChVector<>(0,-10,0));
 		Anchor->Set_Scr_force(ChVector<>(0,0,0));
 	}
 	if(mCurrentTime>6&&mCurrentTime<8){
@@ -69,7 +69,7 @@ void System::DoTimeStep(){
 		Anchor->Set_Scr_force(ChVector<>(0,20,0));
 	}
 
-	DeactivationPlane(-.4);
+	DeactivationPlane(-.3, -.15, false);
 	//BoundingPlane(-container_R*3-container_T);
 	//BoundingBox(.1,.3,.1,.0035);
 	if(mFrameNumber%166==0){
@@ -183,7 +183,7 @@ int main(int argc, char* argv[]){
 	int   type 	=0;
 
 
-	ifstream ifile("anchor64.txt");
+	ifstream ifile("anchor6.txt");
 	string data;
 	for(int i=0; i<20004; i++){
 		getline(ifile,data);

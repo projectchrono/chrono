@@ -33,7 +33,7 @@ void System::DoTimeStep(){
 	}
 
 	}
-	DeactivationPlane(-40);
+	DeactivationPlane(-40,-40,true);
 	
 	
 	if(mFrameNumber%3==0&&saveData){

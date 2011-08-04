@@ -54,7 +54,7 @@ public:
 	void MakeCylinder(ChSharedBodyGPUPtr &body, ChVector<> radius, double mass,ChVector<> pos,ChQuaternion<> rot,double sfric,double kfric,double restitution,bool collide);
 	void MakeCompound(ChSharedBodyGPUPtr &body,ChVector<> p, ChQuaternion<> r,float mass, vector<float3> pos, vector<float3> dim, vector<float4> quats, vector<ShapeType> type, vector<float> masses,double sfric,double kfric,double restitution,bool collide);
 	void LoadTriangleMesh(ChSharedBodyGPUPtr &mrigidBody,string name, float scale, ChVector<> pos, ChQuaternion<> rot, float mass,double sfric,double kfric,double restitution, int family,int nocolwith);
-	void DeactivationPlane(float y);
+	void DeactivationPlane(float y, float h, bool disable);
 	void BoundingPlane(float y);
 	void BoundingBox(float x,float y, float z,float offset);
 
@@ -127,8 +127,9 @@ void System::PrintStats(){
 	double D=mSystem->GetTimerLcp();
 	int E=mSystem->GetNbodies();
 	int F=mSystem->GetNcontacts();
+	double KE=GetKE();
 	char numstr[512];
-	printf("%7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d\n",A,B,C,D,E,F);
+	printf("%7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7.4f\n",A,B,C,D,E,F,KE);
 	sprintf(numstr,"%7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d",A,B,C,D,E,F);
 	mTimingFile<<numstr<<endl;
 }
@@ -253,12 +254,13 @@ void System::MakeCompound(ChSharedBodyGPUPtr &body,ChVector<> p, ChQuaternion<> 
 	body.get_ptr()->SetKfriction(kfric);
 	mSystem->AddBody(body);
 }
-void System::DeactivationPlane(float y){
+void System::DeactivationPlane(float y, float h, bool disable){
 	for(int i=0; i<mSystem->Get_bodylist()->size(); i++){
 		ChBodyGPU *abody=(ChBodyGPU*)(mSystem->Get_bodylist()->at(i));
 		if(abody->GetPos().y<y){
-			abody->SetCollide(false);
-			abody->SetBodyFixed(true);
+			abody->SetCollide(!disable);
+			abody->SetBodyFixed(disable);
+			abody->SetPos(ChVector<>(abody->GetPos().x,h,abody->GetPos().z));
 		}
 	}
 }
@@ -674,6 +676,8 @@ void System::drawAll(){
 				float3 Pa=mGPUDescriptor->gpu_collision->contact_data_host[i].Pa;
 				float3 Pb=mGPUDescriptor->gpu_collision->contact_data_host[i].Pb;
 				float D=mGPUDescriptor->gpu_collision->contact_data_host[i].I.x;
+				float3 color=GetColour(D,0,.0001);
+				glColor3f (color.x, color.y,color.z);
 				glBegin(GL_LINES);
 				glVertex3f(Pa.x, Pa.y, Pa.z);
 				glVertex3f(Pb.x, Pb.y, Pb.z);
