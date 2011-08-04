@@ -51,7 +51,7 @@ void System::DoTimeStep(){
 //	}
 	//DeactivationPlane(-.4);
 	//BoundingPlane(-container_R+container_T);
-	BoundingBox(container_R-container_T,container_R-container_T,container_R-container_T);
+	BoundingBox(container_R-container_T,container_R-container_T,container_R-container_T,0);
 	stringstream ss;
 	ss<<"dropped_ball"<<var<<".txt";
 	SaveByID(5,ss.str(),true,true,true,false,false);
