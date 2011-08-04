@@ -47,7 +47,7 @@ ChLcpIterativeSolverGPUsimple::ChLcpIterativeSolverGPUsimple(
 	mOmega=omega;
 	use_cpu=cpu;
 	gpu_solver=mSystemDescriptor->gpu_solver;
-	gpu_solver->c_factor				=gpu_contact_container->Get_load_C_factor();
+	gpu_solver->c_factor				=1.0/mDt;//gpu_contact_container->Get_load_C_factor();
 	gpu_solver->tolerance				=mTolerance;
 	double maxrecspeed = gpu_contact_container->Get_load_max_recovery_speed();
 	if (gpu_contact_container->Get_load_do_clamp() == false) {maxrecspeed = 10e25;}

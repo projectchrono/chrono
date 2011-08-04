@@ -66,7 +66,7 @@ __global__ void LCP_Iteration_Contacts( contactGPU* contacts, CH_REALNUMBER4* bo
 	float3 vB,vA, gamma, N, U, W, T3, T4, T5, T6, T7, T8, gamma_old, sbar;
 	float  reg, mu, eta=0;
 	vB= contacts[i].I;
-	reg=vB.x*c_factor_const;							//Scale contact distance, cfactor is usually 1
+	reg=vB.x*1;//c_factor_const;							//Scale contact distance, cfactor is usually 1
 	int B1_i = int(vB.y);
 	int B2_i = int(vB.z);
 	B1=bodies[B1_i];
@@ -79,12 +79,13 @@ __global__ void LCP_Iteration_Contacts( contactGPU* contacts, CH_REALNUMBER4* bo
 	U=normalize(U);									//normalize the local contact Y,Z axis
 	W=cross(N,U);									//carry out the last cross product to find out the contact local Z axis : multiply the contact normal by the local Y component										
 	//if(i==0){printf("%f %f %f | %f %f %f | %f %f %f\n",N.x,N.y,N.z,contacts[i].Pa.x,contacts[i].Pa.y,contacts[i].Pa.z,contacts[i].Pb.x,contacts[i].Pb.y,contacts[i].Pb.z);}
-	//float normm=dot(N,(F3(B2-B1)));
+	float normm=dot(N,(F3(B2-B1)));
 	//reg=(reg>normm)? reg:normm;
 
-	reg+=dot(N,(F3(B2-B1)));
+	//reg+=(normm>0)? 0:normm;
 	//reg=min(0.0,max(reg,-1.));
-
+	reg=min(reg,negated_recovery_speed_const);
+	//if(reg>0){printf("REG: %f\n",reg);}
 	sbar =contacts[i].Pa-F3(bodies[2*number_of_bodies_const+B1_i]);	//Contact Point on A - Position of A                                
 	E1 = bodies[3*number_of_bodies_const+B1_i];						//bring in the Euler parameters associated with body 1;
 	compute_mat(T3,T4,T5,E1,N,U,W,sbar);							//A_i,p'*A_A*(sbar~_i,A)
