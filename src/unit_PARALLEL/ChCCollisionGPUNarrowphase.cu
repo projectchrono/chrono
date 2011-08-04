@@ -470,9 +470,9 @@ __device__ __host__ inline float3 GetSupportPoint_Triangle	(const object& p,cons
 }
 __device__ __host__ inline float3 GetSupportPoint_Box		(const object& p,const float3 &n){
 	float3 result=F3(0,0,0);
-	result.x= n.x>0? p.B.x:-p.B.x;
-	result.y= n.y>0? p.B.y:-p.B.y;
-	result.z= n.z>0? p.B.z:-p.B.z;
+	result.x= n.x>=0? p.B.x:-p.B.x;
+	result.y= n.y>=0? p.B.y:-p.B.y;
+	result.z= n.z>=0? p.B.z:-p.B.z;
 	return result;
 }
 __device__ __host__ inline float3 GetSupportPoint_Ellipsoid	(const object& p,const float3 &n){
@@ -751,7 +751,6 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 			float inv = 1.0f / sum;
 			point1 = (b0 * v01 + b1 * v11 + b2 * v21 + b3 * v31) * inv;
 			point2 = (b0 * v02 + b1 * v12 + b2 * v22 + b3 * v32) * inv;
-			depth=sqrtf(dot((point2-point1),(point2-point1)));
 			//point1+=point2;
 			//point1*=.5;
 
@@ -807,7 +806,7 @@ __global__ void MPR_GPU_Store(
 
 	//p1=(TransformSupportVert(A,-N)-p1)*N*N+p1;
 	//p2=(TransformSupportVert(B,N)-p2)*N*N+p2;
-	//depth=sqrtf(dot((p2-p1),(p2-p1)));
+	depth=sqrtf(dot((p2-p1),(p2-p1)));
 	//p2+=p1;
 	//p2*=.5;
 	//if(Index==0){printf("%f %f %f | %f %f %f | %f %f %f| %f\n",N.x,N.y,N.z,p1.x,p1.y,p1.z,p2.x,p2.y,p2.z, depth);}

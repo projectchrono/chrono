@@ -79,8 +79,10 @@ __global__ void LCP_Iteration_Contacts( contactGPU* contacts, CH_REALNUMBER4* bo
 	U=normalize(U);									//normalize the local contact Y,Z axis
 	W=cross(N,U);									//carry out the last cross product to find out the contact local Z axis : multiply the contact normal by the local Y component										
 	//if(i==0){printf("%f %f %f | %f %f %f | %f %f %f\n",N.x,N.y,N.z,contacts[i].Pa.x,contacts[i].Pa.y,contacts[i].Pa.z,contacts[i].Pb.x,contacts[i].Pb.y,contacts[i].Pb.z);}
-	reg=reg+dot(N,(F3(B2-B1)));
+	//float normm=dot(N,(F3(B2-B1)));
+	//reg=(reg>normm)? reg:normm;
 
+	reg+=dot(N,(F3(B2-B1)));
 	//reg=min(0.0,max(reg,-1.));
 
 	sbar =contacts[i].Pa-F3(bodies[2*number_of_bodies_const+B1_i]);	//Contact Point on A - Position of A                                
