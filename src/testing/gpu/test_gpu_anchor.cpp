@@ -11,7 +11,7 @@ float container_T=   .007;
 
 float mOmega=.1;
 int   mIteations=500;
-float mTimeStep=.0001;
+float mTimeStep=.0010;
 float mEnvelope=0;
 float mMu=.5;
 float mWallMu=.5;
@@ -20,7 +20,7 @@ float mEndTime=12;
 bool OGL=0;
 
 ChSharedPtr<ChLinkEngine> my_motor;
-ChSharedPtr<ChLinkLockAlign> link_align;
+ChSharedPtr<ChLinkLinActuator> link_align;
 ChSharedBodyGPUPtr Anchor;
 ChSharedBodyGPUPtr FREE;
 void System::DoTimeStep(){
@@ -57,7 +57,7 @@ void System::DoTimeStep(){
 		}
 		}*/
 
-	if(mCurrentTime<4){
+	if(mCurrentTime<1){
 
 		//Anchor->Set_Scr_torque(ChVector<>(0,-10,0));
 		//FREE->Set_Scr_force(ChVector<>(0,0,0));
@@ -66,11 +66,14 @@ void System::DoTimeStep(){
 		mfun->Set_yconst(PI);
 
 	}
-	if(mCurrentTime>6&&mCurrentTime<8){
+	if(mCurrentTime>1&&mCurrentTime<2){
 		ChFunction_Const* mfun=(ChFunction_Const* )my_motor->Get_spe_funct();
 		mfun->Set_yconst(0);
 		//Anchor->Set_Scr_torque(ChVector<>(0,0,0));
-		Anchor->Set_Scr_force(ChVector<>(0,20,0));
+		//Anchor->Set_Scr_force(ChVector<>(0,20,0));
+		//link_align->Set_lin_offset(.5);
+		ChFunction_Const* dist_fun= (ChFunction_Const* )link_align->Get_dist_funct();
+		dist_fun->Set_yconst(mFrameNumber/100.);
 	}
 
 	DeactivationPlane(-.35, -.15, false);
@@ -193,16 +196,21 @@ int main(int argc, char* argv[]){
 	//GPUSystem->MakeSphere(I, 5, .03, ChVector<>(0,0,0), mMu, mMu, 0, true);
 
 	my_motor= ChSharedPtr<ChLinkEngine> (new ChLinkEngine);
-	link_align= ChSharedPtr<ChLinkLockAlign> (new ChLinkLockAlign);
+	link_align= ChSharedPtr<ChLinkLinActuator> (new ChLinkLinActuator);
 
 	//ChSharedBodyPtr ptr1=ChSharedBodyPtr(FREE);
 	ChSharedBodyPtr ptr2=ChSharedBodyPtr(BTM);
 	ChSharedBodyPtr ptr3=ChSharedBodyPtr(Anchor);
 
+	ChFrame<> f0( ChVector<>(0, 0, 0) , Q_from_AngAxis(CH_C_PI/2.0, ChVector<>(1,0,0) )  );
+	ChFrame<> f1( VNULL ,  Q_from_AngAxis(0*(CH_C_2PI/3.0) , ChVector<>(0,1,0) )  );
 
-	my_motor->Initialize(ptr2,ptr3,ChCoordsys<>(ChVector<>(0,1,0)));
-	//link_align->Initialize(ptr1,ptr2,ChCoordsys<>(ChVector<>(0,0,0)));
+	my_motor->Initialize(ptr3,ptr2,(f0>>f1).GetCoord());
+	link_align->Initialize(ptr3,ptr2,(f0>>f1).GetCoord());
+	ChFunction_Const* dist_fun= (ChFunction_Const* )link_align->Get_dist_funct();
+	dist_fun->Set_yconst(0);
 
+	//my_motor->SetMotion_axis(ChVector<>(1,0,0));
 
 	my_motor->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_PRISM);
 	my_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
