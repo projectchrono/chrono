@@ -129,8 +129,8 @@ void System::PrintStats(){
 	int F=mSystem->GetNcontacts();
 	double KE=GetKE();
 	char numstr[512];
-	printf("%7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7.4f\n",A,B,C,D,E,F,KE);
-	sprintf(numstr,"%7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d",A,B,C,D,E,F);
+	        printf("%7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %f\n",A,B,C,D,E,F,KE);
+	sprintf(numstr,"%7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %f",A,B,C,D,E,F,KE);
 	mTimingFile<<numstr<<endl;
 }
 void System::LoadTriangleMesh(ChSharedBodyGPUPtr &mrigidBody,string name, float scale, ChVector<> position, ChQuaternion<> rot, float mass,double sfric,double kfric,double restitution, int family,int nocolwith){
