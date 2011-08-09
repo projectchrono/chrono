@@ -260,7 +260,7 @@ void System::DeactivationPlane(float y, float h, bool disable){
 		if(abody->GetPos().y<y){
 			abody->SetCollide(!disable);
 			abody->SetBodyFixed(disable);
-			abody->SetPos(ChVector<>(abody->GetPos().x,h,abody->GetPos().z));
+			abody->SetPos(ChVector<>(0,h,0));
 		}
 	}
 }
@@ -403,7 +403,7 @@ void makeCyl(float3 pos, float rad, float angle, float3 axis, float3 scale){
 }
 
 void drawSphere(ChBody *abody){
-	float3 color=GetColour(abody->GetPos_dt().Length(),0,1);
+	float3 color=GetColour(abody->GetPos_dt().Length(),0,.1);
 	glColor3f (color.x, color.y,color.z);
 	double angle;
 	ChVector<> axis;
