@@ -48,6 +48,7 @@ IF(ENABLE_UNIT_GPU)
 			ChLcpConstraintTwoGPUcontN.cpp
 			ChLcpConstraintTwoGPUcontT.cpp
 			ChSystemGPU.cpp
+			ChForceSystemGPU.cpp
 		)
 	SET(ChronoEngine_unit_GPU_HEADERS 
 	    		ChApiGPU.h
@@ -65,12 +66,15 @@ IF(ENABLE_UNIT_GPU)
 			ChLcpConstraintTwoGPUcontN.h
 			ChLcpConstraintTwoGPUcontT.h
 			ChLcpSystemDescriptorGPU.h
+			ChForceSystemGPU.h
+			ChForceSolverGPU.h
 		)
 	SET(ChronoEngine_unit_GPU_CU 
 	    		ChLcpIterativeSolverGPU.cu
 			ChCCollisionGPU.cu
 			ChCCollisionGPUBroadphase.cu
 			ChCCollisionGPUNarrowphase.cu
+			ChForceSolverGPU.cu
 		)
 
 	SOURCE_GROUP(unit_GPU FILES 

@@ -41,6 +41,7 @@ namespace chrono
 		~ChBodyGPU ();
 		virtual ChCollisionModel* InstanceCollisionModel();
 		int id;
+		vector<float2> interDist;
 	};
 
 	typedef ChSharedPtr<ChBodyGPU> ChSharedBodyGPUPtr;

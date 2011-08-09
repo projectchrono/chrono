@@ -29,6 +29,7 @@
 #include "core/ChTimer.h"
 #include "collision/ChCCollisionSystemBullet.h"
 #include "collision/ChCModelBulletBody.h"
+#include "ChForceSystemGPU.h"
 using namespace chrono;
 
 namespace chrono
@@ -39,6 +40,9 @@ class ChApiGPU ChSystemGPU : public ChSystem
 public:
 	ChSystemGPU (unsigned int max_objects = 16000, double scene_size = 500): ChSystem(max_objects,scene_size){}
 	virtual int Integrate_Y_impulse_Anitescu();
+private:
+	ChForceSystemGPU Force_System;
+
 };
 
 }

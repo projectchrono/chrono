@@ -82,9 +82,9 @@ __global__ void LCP_Iteration_Contacts( contactGPU* contacts, CH_REALNUMBER4* bo
 	float normm=dot(N,(F3(B2-B1)));
 	//reg=(reg>normm)? reg:normm;
 
-	//reg+=(normm>0)? 0:normm;
+	normm=(normm>0)? 0:normm;
 	//reg=min(0.0,max(reg,-1.));
-	reg=min(reg,negated_recovery_speed_const);
+	reg=min(reg+normm,negated_recovery_speed_const);
 	//if(reg>0){printf("REG: %f\n",reg);}
 	sbar =contacts[i].Pa-F3(bodies[2*number_of_bodies_const+B1_i]);	//Contact Point on A - Position of A                                
 	E1 = bodies[3*number_of_bodies_const+B1_i];						//bring in the Euler parameters associated with body 1;
@@ -108,9 +108,10 @@ __global__ void LCP_Iteration_Contacts( contactGPU* contacts, CH_REALNUMBER4* bo
 	eta =  dot3(T3*T3,B1)+dot3(T4*T4,B1)+dot3(T5*T5,B1);				// update expression of eta	
 	eta+=  dot3(T6*T6,B2)+dot3(T7*T7,B2)+dot3(T8*T8,B2);
 	eta+= (dot(N,N)+dot(U,U)+dot(W,W))*(B1.w+B2.w);					// multiply by inverse of mass matrix of B1 and B2, add contribution from mass and matrix A_c.
-	eta=3.0f/eta;									// final value of eta
+	eta=1.0f/eta;									// final value of eta
 
-	gamma= lcp_omega_const*gamma*eta;						// perform gamma *= omega*eta
+
+	gamma*= lcp_omega_const*eta;						// perform gamma *= omega*eta
 	gamma_old =contacts[i].G;
 	gamma = gamma_old - gamma;							// perform gamma = gamma_old - gamma ;  in place.
 	/// ---- perform projection of 'a' onto friction cone  --------													  

@@ -5,7 +5,6 @@
 #include <string.h>
 #include "ChCuda.h"
 #include <cutil_math.h>
-#include "ChLcpIterativeSolverGPU.h"
 
 #define HM_REAL float
 #define HM_REAL3 float3

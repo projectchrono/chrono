@@ -77,6 +77,7 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	// Solve the LCP problem.
 	// Solution variables are new speeds 'v_new'
 	//START_TIMING(start,stop,time);
+
 	GetLcpSolverSpeed()->Solve(*this->LCP_descriptor, true); // add [M]*v_old to the known vector
 	//STOP_TIMING(start,stop,time);
 	//printf("F: %f \n",time);
