@@ -9,14 +9,14 @@ float impactor_M []={.034, .083, .130, .287, .531,1.437,2.099,3.055,4.079, .064,
 float container_R=   .105;
 float container_T=   .007;
 
-float mOmega=.1;
-int   mIteations=500;
-float mTimeStep=.0010;
+float mOmega=1;
+int   mIteations=200;
+float mTimeStep=.0005;
 float mEnvelope=0;
 float mMu=.5;
 float mWallMu=.5;
 int   mDevice=0;
-float mEndTime=12;
+float mEndTime=6;
 bool OGL=0;
 
 ChSharedPtr<ChLinkEngine> my_motor;
@@ -57,29 +57,35 @@ void System::DoTimeStep(){
 		}
 		}*/
 
-	if(mCurrentTime<1){
+	if(mCurrentTime<2){
 
 		//Anchor->Set_Scr_torque(ChVector<>(0,-10,0));
 		//FREE->Set_Scr_force(ChVector<>(0,0,0));
 
 		ChFunction_Const* mfun=(ChFunction_Const* )my_motor->Get_spe_funct();
 		mfun->Set_yconst(PI);
+		//ChFunction_Const* dist_fun= (ChFunction_Const* )link_align->Get_dist_funct();
+		//dist_fun->Set_yconst(dist_fun->Get_yconst()+.00001);
 
 	}
-	if(mCurrentTime>1&&mCurrentTime<2){
+
+
+	if(mCurrentTime>2&&mCurrentTime<4){
 		ChFunction_Const* mfun=(ChFunction_Const* )my_motor->Get_spe_funct();
 		mfun->Set_yconst(0);
+		ChFunction_Const* dist_fun= (ChFunction_Const* )link_align->Get_dist_funct();
+		dist_fun->Set_yconst(dist_fun->Get_yconst()+.00005);
+		link_align->SetDisabled(false);
 		//Anchor->Set_Scr_torque(ChVector<>(0,0,0));
 		//Anchor->Set_Scr_force(ChVector<>(0,20,0));
 		//link_align->Set_lin_offset(.5);
-		ChFunction_Const* dist_fun= (ChFunction_Const* )link_align->Get_dist_funct();
-		dist_fun->Set_yconst(mFrameNumber/100.);
+
 	}
 
 	DeactivationPlane(-.35, -.15, false);
 	//BoundingPlane(-container_R*3-container_T);
 	//BoundingBox(.1,.3,.1,.0035);
-	if(mFrameNumber%166==0){
+	if(mFrameNumber%(int(1.0/mTimeStep/60.0))==0){
 		SaveAllData("data/anchor",true, false, false, true, false);
 	}
 
@@ -176,9 +182,9 @@ int main(int argc, char* argv[]){
 	int   type 	=0;
 
 
-	ifstream ifile("anchor6.txt");
+	ifstream ifile("anchor60.txt");
 	string data;
-	for(int i=0; i<0; i++){
+	for(int i=0; i<20005; i++){
 		getline(ifile,data);
 		if(i>=4){
 			for(int j=0; j<data.size(); j++){
@@ -206,20 +212,21 @@ int main(int argc, char* argv[]){
 	ChFrame<> f1( VNULL ,  Q_from_AngAxis(0*(CH_C_2PI/3.0) , ChVector<>(0,1,0) )  );
 
 	my_motor->Initialize(ptr3,ptr2,(f0>>f1).GetCoord());
-	link_align->Initialize(ptr3,ptr2,(f0>>f1).GetCoord());
-	ChFunction_Const* dist_fun= (ChFunction_Const* )link_align->Get_dist_funct();
-	dist_fun->Set_yconst(0);
+	//link_align->Initialize(ptr3,ptr2,(f0>>f1).GetCoord());
+	link_align->Set_lin_offset(.1);
+	link_align->Initialize(ptr3, ptr2, true,
+						ChCoordsys<>(ChVector<>(0,0.00,0) , QUNIT),
+						ChCoordsys<>(ChVector<>(0,-container_R+container_T*2,0)  , QUNIT) );
+	link_align->SetDisabled(true);
+	//ChFunction_Const* dist_fun= (ChFunction_Const* )link_align->Get_dist_funct();
+	//dist_fun->Set_yconst(0);
 
 	//my_motor->SetMotion_axis(ChVector<>(1,0,0));
 
 	my_motor->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_PRISM);
 	my_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-	ChFunction_Const* mfun= (ChFunction_Const* )my_motor->Get_spe_funct();
-	mfun->Set_yconst(PI);
-
-
 	SysG.AddLink(my_motor);
-	//SysG.AddLink(link_align);
+	SysG.AddLink(link_align);
 
 	//my_motor->SetDisabled(true);
 	//BTM->SetBodyFixed(true);
