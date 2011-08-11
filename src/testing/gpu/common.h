@@ -17,7 +17,7 @@
 #include "unit_GPU/ChSystemGPU.h"
 #include <GL/freeglut.h>
 #include "omp.h"
-
+#include "unit_GPU/ChCuda.h"
 #if defined( _WINDOWS )
 #include <windows.h>
 #else
@@ -297,6 +297,7 @@ void System::SaveByID(int id, string fname, bool p, bool v, bool a, bool r, bool
 	ChVector<> rot=abody->GetRot().Q_to_NasaAngles();
 	ChVector<> vel=abody->GetPos_dt();
 	ChVector<> acc=abody->GetPos_dtdt();
+	ChVector<> trq=abody->Get_gyro();
 
 	if(isnan(rot.x)){rot.x=0;}
 	if(isnan(rot.y)){rot.y=0;}
@@ -306,7 +307,7 @@ void System::SaveByID(int id, string fname, bool p, bool v, bool a, bool r, bool
 	if(v){ofile<<vel.x<<","<<vel.y<<","<<vel.z<<",";}
 	if(a){ofile<<acc.x<<","<<acc.y<<","<<acc.z<<",";}
 	if(r){ofile<<rot.x<<","<<rot.y<<","<<rot.z<<",";}
-	if(o){}
+	if(o){ofile<<trq.x<<","<<trq.y<<","<<trq.z<<",";}
 	ofile<<endl;
 
 	ofile.close();
@@ -332,6 +333,7 @@ void System::SaveAllData(string prefix, bool p, bool v, bool a, bool r, bool o){
 		if(v){ofile<<vel.x<<","<<vel.y<<","<<vel.z<<",";}
 		if(a){ofile<<acc.x<<","<<acc.y<<","<<acc.z<<",";}
 		if(r){ofile<<rot.x<<","<<rot.y<<","<<rot.z<<",";}
+		if(o){ofile<<trq.x<<","<<trq.y<<","<<trq.z<<",";}
 		ofile<<endl;
 	}
 	ofile.close();

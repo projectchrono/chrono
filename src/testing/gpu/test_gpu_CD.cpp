@@ -1,12 +1,12 @@
 #include "common.h"
-float container_R=   .7;
+float container_R=   6.0;
 float container_T=  .1;
 
 void System::DoTimeStep(){
 	if(mNumCurrentObjects<mNumObjects&&mFrameNumber%100==0){
-		float x=1;	float posX=0;
-		float y=20;	float posY=0;
-		float z=1;	float posZ=0;
+		float x=5;	float posX=0;
+		float y=5;	float posY=0;
+		float z=5;	float posZ=0;
 
 		float radius	=.5;
 		float mass	=10;
@@ -30,6 +30,7 @@ void System::DoTimeStep(){
 					if(type==2){MakeEllipsoid(mrigidBody, ChVector<>(radius,radius,radius), mass, mParticlePos,quat, mu, mu, rest, true);}
 					if(type==3){MakeCylinder(mrigidBody, ChVector<>(radius,radius,radius), mass, mParticlePos,quat, mu, mu, rest, true);}
 					mobjNum++;
+					mrigidBody->interDist.push_back(F2(1,0));
 				}
 			}
 		}
@@ -48,9 +49,9 @@ void System::DoTimeStep(){
 }
 
 int main(int argc, char* argv[]){
-	float mOmega=.1;
-	int   mIteations=200;
-	float mTimeStep=.001;
+	float mOmega=.5;
+	int   mIteations=100;
+	float mTimeStep=.005;
 	float mEnvelope=0;
 	float mMu=.5;
 	float mWallMu=.5;
@@ -87,11 +88,11 @@ int main(int argc, char* argv[]){
 	ChSharedBodyGPUPtr B	=	ChSharedBodyGPUPtr(new ChBodyGPU);
 	ChSharedBodyGPUPtr BTM	=	ChSharedBodyGPUPtr(new ChBodyGPU);
 
-	GPUSystem->MakeBox(L,	ChVector<>(container_T,container_R*15,container_R), 100000,ChVector<>(-container_R,0,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
-	GPUSystem->MakeBox(R,	ChVector<>(container_T,container_R*15,container_R), 100000,ChVector<>(container_R,0,0), base,mWallMu,mWallMu,0,-20,-20,true,true);
-	GPUSystem->MakeBox(F,	ChVector<>(container_R,container_R*15,container_T), 100000,ChVector<>(0,0,-container_R),base,mWallMu,mWallMu,0,-20,-20,true,true);
-	GPUSystem->MakeBox(B,	ChVector<>(container_R,container_R*15,container_T), 100000,ChVector<>(0,0,container_R), base,mWallMu,mWallMu,0,-20,-20,true,true);
-	GPUSystem->MakeBox(BTM, ChVector<>(container_R,container_T,container_R), 100000,ChVector<>(0,-container_R*15,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
+	GPUSystem->MakeBox(L,	ChVector<>(container_T,container_R,container_R), 100000,ChVector<>(-container_R,0,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
+	GPUSystem->MakeBox(R,	ChVector<>(container_T,container_R,container_R), 100000,ChVector<>(container_R,0,0), base,mWallMu,mWallMu,0,-20,-20,true,true);
+	GPUSystem->MakeBox(F,	ChVector<>(container_R,container_R,container_T), 100000,ChVector<>(0,0,-container_R),base,mWallMu,mWallMu,0,-20,-20,true,true);
+	GPUSystem->MakeBox(B,	ChVector<>(container_R,container_R,container_T), 100000,ChVector<>(0,0,container_R), base,mWallMu,mWallMu,0,-20,-20,true,true);
+	GPUSystem->MakeBox(BTM, ChVector<>(container_R,container_T,container_R), 100000,ChVector<>(0,-container_R,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
 
 #pragma omp parallel sections
 	{
