@@ -47,15 +47,15 @@ ChLcpIterativeSolverGPUsimple::ChLcpIterativeSolverGPUsimple(
 	mOmega=omega;
 	use_cpu=cpu;
 	gpu_solver=mSystemDescriptor->gpu_solver;
-	gpu_solver->c_factor				=1.0/mDt;//gpu_contact_container->Get_load_C_factor();
-	gpu_solver->tolerance				=mTolerance;
+	gpu_solver->c_factor					=1.0/mDt;//gpu_contact_container->Get_load_C_factor();
+	gpu_solver->tolerance					=mTolerance;
 	double maxrecspeed = gpu_contact_container->Get_load_max_recovery_speed();
 	if (gpu_contact_container->Get_load_do_clamp() == false) {maxrecspeed = 10e25;}
 	gpu_solver->negated_recovery_speed		=-maxrecspeed;
-	gpu_solver->step_size				=mDt;
-	gpu_solver->lcp_omega				=mOmega;
+	gpu_solver->step_size					=mDt;
+	gpu_solver->lcp_omega					=mOmega;
 	gpu_solver->maximum_iterations			=mMaxIterations;
-	gpu_solver->use_cpu				=use_cpu;
+	gpu_solver->use_cpu						=use_cpu;
 
 };
 ChLcpIterativeSolverGPUsimple::~ChLcpIterativeSolverGPUsimple() {/*CUT_EXIT(argc, argv);*/};
@@ -78,7 +78,7 @@ double ChLcpIterativeSolverGPUsimple::Solve(
 		ChBodyGPU* mbody = (ChBodyGPU*)mbodyvar->GetUserData();
 		mbody->id=i;
 		float inv_mass=(1.0)/(mbodyvar->GetBodyMass());
-		gpu_solver->host_body_data[i+number_of_bodies*0] = F4(mbodyvar->Get_qb().GetElementN(0),mbodyvar->Get_qb().GetElementN(1),mbodyvar->Get_qb().GetElementN(2),1)*mbody->IsActive();
+		gpu_solver->host_body_data[i+number_of_bodies*0] = F4(mbodyvar->Get_qb().GetElementN(0),mbodyvar->Get_qb().GetElementN(1),mbodyvar->Get_qb().GetElementN(2),mbody->IsActive());
 		gpu_solver->host_body_data[i+number_of_bodies*1] = F4(mbodyvar->Get_qb().GetElementN(3),mbodyvar->Get_qb().GetElementN(4),mbodyvar->Get_qb().GetElementN(5),mbody->GetKfriction());
 		gpu_solver->host_body_data[i+number_of_bodies*2] = F4(mbody->GetPos().x,mbody->GetPos().y,mbody->GetPos().z,0);
 		gpu_solver->host_body_data[i+number_of_bodies*3] = F4(mbody->GetRot().e0,mbody->GetRot().e1,mbody->GetRot().e2,mbody->GetRot().e3);

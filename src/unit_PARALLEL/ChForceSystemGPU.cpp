@@ -1,44 +1,71 @@
 #include "ChForceSystemGPU.h"
 
+using namespace chrono;
 
-namespace chrono{
+ChForceSystemGPU::ChForceSystemGPU() {
+}
 
-ChForceSystemGPU::ChForceSystemGPU(){}
+void ChForceSystemGPU::Init() {
+}
 
-
-
-void ChForceSystemGPU::Init(){}
-
-
-
-void ChForceSystemGPU::Solve(ChLcpSystemDescriptor& sysd){
-	std::vector<ChLcpVariables*>&  mvariables	= sysd.GetVariablesList();
+void ChForceSystemGPU::Solve(ChLcpSystemDescriptor& sysd) {
+	ChForceSolverGPU mGPUSolver;
+	std::vector<ChLcpVariables*>& mvariables = sysd.GetVariablesList();
 	uint number_of_bodies = mvariables.size();
+	ChLcpVariablesBody* mbodyvar;
+	ChBodyGPU* mbody;
+	cout << "START" << endl;
+	mGPUSolver.spheres.resize(0);
+	mGPUSolver.aux.resize(0);
+	mGPUSolver.props.resize(0);
 
-	mGPUSolver.maxP=F3(-FLT_MAX,-FLT_MAX,-FLT_MAX);
-	mGPUSolver.minP=F3(FLT_MAX,FLT_MAX,FLT_MAX);
-
-	for (uint i = 0; i< number_of_bodies; i++){
-		ChLcpVariablesBody* mbodyvar = (ChLcpVariablesBody*) mvariables[i];
-		ChBodyGPU* mbody = (ChBodyGPU*)mbodyvar->GetUserData();
-		if(mbody->interDist.size()>0){
-			for(uint j=0; j<mbody->interDist.size(); j++){
-				float4 temp=F4(mbody->GetPos().x,mbody->GetPos().y,mbody->GetPos().z,mbody->interDist[j].x);
-				int2 temp2=I2(i,mbody->interDist[j].y);
+	mGPUSolver.num_spheres = 0;
+	for (uint i = 0; i < number_of_bodies; i++) {
+		mbodyvar = (ChLcpVariablesBody*) mvariables[i];
+		mbody = (ChBodyGPU*) mbodyvar->GetUserData();
+		if (mbody->interDist.size() > 0) {
+			for (uint j = 0; j < mbody->interDist.size(); j++) {
+				float4 temp = F4(mbody->GetPos().x, mbody->GetPos().y,
+						mbody->GetPos().z, mbody->interDist[j].x);
+				int3 temp2 = I3(i, mGPUSolver.num_spheres,
+						mbody->interDist[j].y);
 				mGPUSolver.spheres.push_back(temp);
 				mGPUSolver.aux.push_back(temp2);
-				mGPUSolver.maxP.x=max(temp.x,mGPUSolver.maxP.x);
-				mGPUSolver.maxP.y=max(temp.y,mGPUSolver.maxP.y);
-				mGPUSolver.maxP.z=max(temp.z,mGPUSolver.maxP.z);
 
-				mGPUSolver.minP.x=min(temp.x,mGPUSolver.minP.x);
-				mGPUSolver.minP.y=min(temp.y,mGPUSolver.minP.y);
-				mGPUSolver.minP.z=min(temp.z,mGPUSolver.minP.z);
+				mGPUSolver.max_p.x = max(temp.x, mGPUSolver.max_p.x);
+				mGPUSolver.max_p.y = max(temp.y, mGPUSolver.max_p.y);
+				mGPUSolver.max_p.z = max(temp.z, mGPUSolver.max_p.z);
+
+				mGPUSolver.min_p.x = min(temp.x, mGPUSolver.min_p.x);
+				mGPUSolver.min_p.y = min(temp.y, mGPUSolver.min_p.y);
+				mGPUSolver.min_p.z = min(temp.z, mGPUSolver.min_p.z);
+
+				mGPUSolver.max_rad = max(temp.w, mGPUSolver.max_rad);
+				temp = F4(mbody->GetMass(), 0, 0, 0);
+				mGPUSolver.props.push_back(temp);
+				mGPUSolver.num_spheres++;
 			}
 		}
+
 	}
-	mGPUSolver.Init();
-	mGPUSolver.CD();
-	mGPUSolver.ComputeForces();
+	if (mGPUSolver.num_spheres != 0) {
+		//mGPUSolver.Init();
+		mGPUSolver.CD();
+		mGPUSolver.ComputeForces();
+		for (uint i = 0; i < mGPUSolver.num_contacts; i++) {
+			mbodyvar
+					= (ChLcpVariablesBody*) mvariables[mGPUSolver.aux[mGPUSolver.contacts[i].x].x];
+			mbody = (ChBodyGPU*) mbodyvar->GetUserData();
+			float3 force = mGPUSolver.forces[i];
+			//mbody->Accumulate_force(ChVector<>(force.x,force.y,force.z),ChVector<>(0,0,0),0);
+
+
+			mbodyvar
+					= (ChLcpVariablesBody*) mvariables[mGPUSolver.aux[mGPUSolver.contacts[i].y].x];
+			mbody = (ChBodyGPU*) mbodyvar->GetUserData();
+			//mbody->Accumulate_force(ChVector<>(-force.x,-force.y,-force.z),ChVector<>(0,0,0),0);
+		}
+	}
+	cout << "DONE" << endl;
 }
-}
+

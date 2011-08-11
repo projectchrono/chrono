@@ -36,9 +36,9 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	mtimer_step.start();
 
 	this->stepcount++;
-
+	ChForceSystemGPU Force_System;
 	// Compute contacts and create contact constraints
-
+	//Force_System.Solve(*this->LCP_descriptor);
 	ComputeCollisions();
 
 	Setup(); // Counts dofs, statistics, etc.

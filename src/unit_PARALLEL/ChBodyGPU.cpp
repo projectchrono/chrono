@@ -31,6 +31,7 @@ namespace chrono
 		delete collision_model;
 		collision_model=InstanceCollisionModel();
 		id=0;
+		interDist.clear();
 	}
 
 

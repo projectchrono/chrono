@@ -804,8 +804,8 @@ __global__ void MPR_GPU_Store(
 	float depth=0;
 	if(!CollideAndFindPoint(A,B,N,p1, p2, depth)){return;};
 
-	//p1=(TransformSupportVert(A,-N)-p1)*N*N+p1;
-	//p2=(TransformSupportVert(B,N)-p2)*N*N+p2;
+	p1=(TransformSupportVert(A,-N)-p1)*N*N+p1;
+	p2=(TransformSupportVert(B,N)-p2)*N*N+p2;
 	depth=sqrtf(dot((p2-p1),(p2-p1)));
 	//p2+=p1;
 	//p2*=.5;

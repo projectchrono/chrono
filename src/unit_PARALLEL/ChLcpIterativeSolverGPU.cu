@@ -84,7 +84,7 @@ __global__ void LCP_Iteration_Contacts( contactGPU* contacts, CH_REALNUMBER4* bo
 
 	normm=(normm>0)? 0:normm;
 	//reg=min(0.0,max(reg,-1.));
-	reg=min(reg+normm,negated_recovery_speed_const);
+	reg=reg+normm;//max((reg+normm),(negated_recovery_speed_const));
 	//if(reg>0){printf("REG: %f\n",reg);}
 	sbar =contacts[i].Pa-F3(bodies[2*number_of_bodies_const+B1_i]);	//Contact Point on A - Position of A                                
 	E1 = bodies[3*number_of_bodies_const+B1_i];						//bring in the Euler parameters associated with body 1;
@@ -238,18 +238,29 @@ __global__ void LCP_Reduce_Speeds(CH_REALNUMBER4* bodies , updateGPU* update, ui
 	if(i>=number_of_updates_const){return;}
 	int start=(i==0)? 0:counter[i-1], end=counter[i];
 	int id=d_body_num[end-1], j;
+
 	if(bodies[id].w){
-		float3 mUpdateV=F3(0);
-		float3 mUpdateO=F3(0);
+		float3 mUpdateV;//=F3(0);
+		float3 mUpdateO;//=F3(0);
 		updateGPU temp;
+		//if(end-start>=1){temp=update[0+start];		mUpdateV=temp.vel;		mUpdateO=temp.omega;}
+		//if(end-start>=2){temp=update[1+start];		mUpdateV+=temp.vel;		mUpdateO+=temp.omega;}
+		//if(end-start>=3){temp=update[2+start];		mUpdateV+=temp.vel;		mUpdateO+=temp.omega;}
+		//if(end-start>=4){temp=update[3+start];		mUpdateV+=temp.vel;		mUpdateO+=temp.omega;}
+		//if(end-start>=5){
 		for(j=0; j<end-start; j++){
 			temp=update[j+start];
 			mUpdateV+=temp.vel;
 			mUpdateO+=temp.omega;
 		}
+	//}
 		bodies[id]+=F4(mUpdateV);
 		bodies[id+number_of_bodies_const]+=F4(mUpdateO);
 	}
+
+
+
+
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Creates a quaternion as a function of a vector of rotation and an angle (the vector is assumed already 

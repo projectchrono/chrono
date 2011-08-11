@@ -30,6 +30,7 @@ typedef unsigned int uint;
 
 #define F3	make_float3
 #define F4	make_float4
+#define F2	make_float2
 #define I3	make_int3
 #define I2	make_int2
 #define U3	make_uint3

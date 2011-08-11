@@ -24,12 +24,7 @@ class ChApiGPU ChForceSystemGPU
 	ChForceSystemGPU();
 	void Init();
 	void Solve(ChLcpSystemDescriptor& sysd);
-
-	ChForceSolverGPU mGPUSolver;
-
 	private:
-
-
 	};
 }
 
