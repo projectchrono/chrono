@@ -129,7 +129,7 @@ void System::PrintStats(){
 	int F=mSystem->GetNcontacts();
 	double KE=GetKE();
 	char numstr[512];
-	        printf("%7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %f\n",A,B,C,D,E,F,KE);
+	        printf("%7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7.7f\n",A,B,C,D,E,F,KE);
 	sprintf(numstr,"%7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %f",A,B,C,D,E,F,KE);
 	mTimingFile<<numstr<<endl;
 }
@@ -487,7 +487,7 @@ void drawCompound(ChBody *abody){
 }
 float m_MaxPitchRate=5;
 float m_MaxHeadingRate=5;
-float3 camera_pos=make_float3(-.1,0,-.1);
+float3 camera_pos=make_float3(0,0,0);
 float3 look_at=make_float3(0,0,0);
 float3 camera_up=make_float3(0,1,0);
 float camera_heading=0, camera_pitch=0;
@@ -602,7 +602,7 @@ void changeSize(int w, int h) {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glViewport(0, 0, w, h);
-	gluPerspective(45,ratio,.01,1000);
+	gluPerspective(45,ratio,.00001,100);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(0.0,0.0,0.0,		0.0,0.0,-7,		0.0f,1.0f,0.0f);

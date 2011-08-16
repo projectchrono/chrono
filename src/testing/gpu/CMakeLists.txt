@@ -82,3 +82,20 @@ TARGET_LINK_LIBRARIES(test_gpu_anchor
  	optimized 	${CH_CHRONOGPULIB}
  	debug	    ${CH_CHRONOGPULIB_DBG}	)
 ADD_DEPENDENCIES (test_gpu_anchor ChronoEngine ChronoEngine_GPU)
+
+ADD_EXECUTABLE(test_gpu_cohesion	test_gpu_cohesion.cpp)
+SOURCE_GROUP(testing\\gpu FILES  	test_gpu_cohesion.cpp)
+SET_TARGET_PROPERTIES(test_gpu_cohesion PROPERTIES 
+	FOLDER demos
+	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
+	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+TARGET_LINK_LIBRARIES(test_gpu_cohesion 
+			${CH_CUDART}
+			${GLUT_LIBRARIES}
+			${FREEGLUT_LIB}
+ 	optimized 	${CH_CHRONOLIB}     
+ 	debug 		${CH_CHRONOLIB_DBG} 
+ 	optimized 	${CH_CHRONOGPULIB}
+ 	debug	    ${CH_CHRONOGPULIB_DBG}	)
+ADD_DEPENDENCIES (test_gpu_cohesion ChronoEngine ChronoEngine_GPU)
