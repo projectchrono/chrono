@@ -3,22 +3,20 @@
 float particle_R[] = { .0035, .012, .0005, .0017 };
 float particle_Rho[] = { 1560, 720, 5490, 5490 };
 float particle_Theta[] = { 23, 28, 24, 24 };
-float impactor_R[] = { .095, .013, .015, .020, .025, .035, .040, .045, .050,
-		.013, .019, .026, .0125, .019 };
-float impactor_M[] = { .034, .083, .130, .287, .531, 1.437, 2.099, 3.055,
-		4.079, .064, .201, .518, .009, .018 };
+float impactor_R[] = { .095, .013, .015, .020, .025, .035, .040, .045, .050, .013, .019, .026, .0125, .019 };
+float impactor_M[] = { .034, .083, .130, .287, .531, 1.437, 2.099, 3.055,	4.079, .064, .201, .518, .009, .018 };
 
 float container_R = .105;
 float container_T = .007;
 
 float mOmega = .3;
-int mIteations = 500;
-float mTimeStep = .00025;
+int mIteations = 600;
+float mTimeStep = .0001;
 float mEnvelope = 0;
 float mMu = .5;
 float mWallMu = .5;
 int mDevice = 0;
-float mEndTime = 7;
+float mEndTime = 6;
 bool OGL = 0;
 
 ChSharedPtr<ChLinkEngine> my_motor;
@@ -59,20 +57,20 @@ void System::DoTimeStep() {
 	 }
 	 }*/
 
-	if (mCurrentTime <= 2) {
+	if (mCurrentTime <= 3) {
 		ChFunction_Const* mfun = (ChFunction_Const*) my_motor->Get_spe_funct();
 		mfun->Set_yconst(PI);
 		//ChFunction_Const* dist_fun= (ChFunction_Const* )link_align->Get_dist_funct();
 		//dist_fun->Set_yconst(Anchor->GetPos().y);
-		Anchor->SetPos_dt(ChVector<> (0, -.1, 0));
+		//Anchor->SetPos_dt(ChVector<> (0, -.1, 0));
 
 	}
-	if (mCurrentTime > 2 && mCurrentTime <= 3) {
+	if (mCurrentTime > 3 && mCurrentTime <= 4) {
 		ChFunction_Const* mfun = (ChFunction_Const*) my_motor->Get_spe_funct();
 		mfun->Set_yconst(0);
 	}
 
-	if (mCurrentTime > 3 && mCurrentTime <= 6) {
+	if (mCurrentTime > 4 && mCurrentTime <= 6) {
 		Anchor->SetPos_dt(ChVector<> (0, .05, 0));
 	}
 	if (mCurrentTime > 6) {
@@ -99,6 +97,9 @@ int main(int argc, char* argv[]) {
 		saveData = atoi(argv[2]);
 	}
 	//cudaSetDevice(mDevice);
+int mDevice=0;
+cudaGetDevice 	(&mDevice);
+cout<<"Device NUM: "<<mDevice<<endl;
 
 	ChLcpSystemDescriptorGPU mGPUDescriptor;
 	ChContactContainerGPUsimple mGPUContactContainer;
@@ -183,7 +184,7 @@ int main(int argc, char* argv[]) {
 			pos.push_back(F3(0, .2 * .5, 0));
 			masses.push_back(.1);
 		} else {
-			dim.push_back(F3(.0025, .0005, .025));
+			dim.push_back(F3(.0025, .001, .025));
 			tpe.push_back(BOX);
 			ChQuaternion<> quat;
 			ChQuaternion<> quat2;
@@ -198,8 +199,7 @@ int main(int argc, char* argv[]) {
 			masses.push_back(1);
 		}
 	}
-	GPUSystem->MakeCompound(Anchor, ChVector<> (0, .05, 0), base, .25, pos, dim,
-			quats, tpe, masses, .5, .5, 0, true);
+	GPUSystem->MakeCompound(Anchor, ChVector<> (0, .05, 0), base, .25, pos, dim, quats, tpe, masses, .5, .5, 0, true);
 
 	float radius = particle_R[0];
 	float mass = particle_Rho[0] * 4.0 / 3.0 * PI * radius * radius * radius;
@@ -207,7 +207,7 @@ int main(int argc, char* argv[]) {
 	float rest = 0;
 	int type = 0;
 
-	ifstream ifile("anchor_settle_800.txt");
+	ifstream ifile("anchor114.txt");
 	string data;
 	for (int i = 0; i < 20008; i++) {
 		getline(ifile, data);
@@ -265,3 +265,4 @@ int main(int argc, char* argv[]) {
 	}
 	return 0;
 }
+
