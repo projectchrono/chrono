@@ -6,7 +6,7 @@ __device__ inline void AddContact(contactGPU* CData,uint offset,  int A,int B, f
 	CData[offset].N=n;
 	CData[offset].Pa=onA;
 	CData[offset].Pb=onB;
-	CData[offset].G=F3(0,0,0);
+	//CData[offset].G=F3(0,0,0);
 }
 
 __device__ bool pointInTriangle(const float3 &p1,const float3 &p2,const float3 &p3, const float3 &normal, const float3 &S ){
@@ -143,7 +143,7 @@ __device__ inline float distanceFunc(
 	return dot(distVector, distVector);
 }
 __device__ inline float distanceFunc(
-		float  al1, float  al2,
+		float  al1, float  		al2,
 		const float3 &centerA,const float3 &centerB,
 		const float3 &M11, const float3 &M12,
 		const float3 &M21, const float3 &M22,
@@ -360,7 +360,7 @@ __device__ bool ContactCalculation(object &A, object &B, float3& pA, float3& pB,
 	}
 	//*****************************************
 	// End of Iterative Loop
-	//*****************************************
+	//*******************************		**********
 	distance = distanceFunc(al1, al2, centerA, centerB, M11,M12,M21,M22, d, c, pA, pB);
 	if(dot(d, c) < 0){return false;}
 
@@ -743,7 +743,7 @@ __device__ __host__ bool CollideAndFindPoint(const object& p1, const object& p2,
 			if (sum <= 0.){
 				b0 = 0;
 				b1 = dot(cross(v2 , v3) , n);
-				b2 = dot(cross(v3 , v1) , n);
+				b2 = dot(cross(		v3 , v1) , n);
 				b3 = dot(cross(v1 , v2) , n);
 
 				sum = b1 + b2 + b3;

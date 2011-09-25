@@ -23,7 +23,6 @@ struct  object{
 
 struct AABB{
 	float4 min,max;
-	int2 family;
 };
 
 namespace chrono {
@@ -63,6 +62,7 @@ namespace chrono {
 			cudaEvent_t start, stop;
 			thrust::device_vector<contactGPU>* contact_data_gpu;
 			thrust::host_vector<contactGPU>    contact_data_host;
+			thrust::device_vector<float3>* device_warm_start;
 		private:
 			thrust::device_vector<object>		object_data;
 			thrust::device_vector<int3>		contact_pair;
@@ -70,6 +70,7 @@ namespace chrono {
 			thrust::device_vector<uint>		bin_number;
 			thrust::device_vector<uint>		body_number;
 			thrust::device_vector<AABB>		aabb_data;
+			thrust::device_vector<int2>		fam_data;
 			thrust::device_vector<uint>		bin_start_index;
 		};
 	}

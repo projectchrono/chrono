@@ -16,6 +16,7 @@
 namespace chrono{
 	class ChApiGPU ChLcpIterativeSolverGPU{
 	public:
+		//ChLcpIterativeSolverGPU();
 		~ChLcpIterativeSolverGPU();
 		void CPU_Version(){};
 		void Warm_Start();
@@ -42,6 +43,8 @@ namespace chrono{
 		thrust::host_vector<float4>		host_bilateral_data;
 
 		thrust::device_vector<contactGPU>*device_contact_data;
+		//thrust::device_vector<float3>* device_warm_start;
+
 
 	private:
 		thrust::device_vector<uint>		body_number;	
@@ -51,9 +54,11 @@ namespace chrono{
 		thrust::device_vector<float>	delta_gamma;
 		thrust::device_vector<updateGPU>iteration_update;
 
-		thrust::device_vector<float4>	device_body_data	;
-		thrust::device_vector<float3>	device_gamma	;	
+		thrust::device_vector<float4>	device_body_data;
+		thrust::device_vector<float3>	device_gamma;
+		thrust::device_vector<float>	device_deltagamma;
 		thrust::device_vector<float4>	device_bilateral_data;
+
 		thrust::host_vector<contactGPU> host_contact_data;
 
 	};   

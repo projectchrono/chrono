@@ -11,15 +11,18 @@ __device__ inline uint Hash_Index(const T &A){
 	return ((A.x * 73856093) ^ (A.y * 19349663) ^ (A.z * 83492791));
 }
 
-__device__ bool TestAABBAABB(const AABB &A, const AABB &B){
-	return 
-		(A.min.x<=B.max.x&&B.min.x<=A.max.x) && (A.min.y<=B.max.y&&B.min.y<=A.max.y) &&(A.min.z<=B.max.z&&B.min.z<=A.max.z);
+__device__ bool TestAABBAABB(const AABB &A, const AABB &B, uint Bin){
+	return (Bin==Hash_Index(Hash((F3(A.min+A.max)*.5+F3(B.min+B.max)*.5)*.5)))
+			&& (A.min.x<=B.max.x&&B.min.x<=A.max.x) && (A.min.y<=B.max.y&&B.min.y<=A.max.y) &&(A.min.z<=B.max.z&&B.min.z<=A.max.z);
 }
 __device__ bool PointInAABB(const AABB &A, const float3 &P){
 	if(P.x >A.min.x && P.x < A.max.x &&P.y > A.min.y && P.y < A.max.y &&P.z > A.min.z && P.z < A.max.z){return true;}return false;
 }
-__device__ float3 AABB_Contact_Pt(const AABB& A, const AABB& B){
+__device__ bool AABB_Contact_Pt(const AABB& A, const AABB& B, uint &Bin){
 	float3 Pa,Pb;
+
+	//return (F3(A.min+A.max)*.5+F3(B.min+B.max)*.5)*.5;
+
 
 	bool 
 		minX=(A.min.x<=B.min.x&&A.max.x>=B.max.x),
@@ -48,7 +51,8 @@ __device__ float3 AABB_Contact_Pt(const AABB& A, const AABB& B){
 		if(A.max.z>=B.min.z||A.max.z<=B.max.z)			{Pa.z=A.max.z;	Pb.z=B.min.z;}
 		else if(A.min.z<=B.max.z||A.min.z>=B.min.z)		{Pa.z=A.min.z;	Pb.z=B.max.z;}
 	}
-	return (Pa+Pb)*.5f;
+	return (Bin==Hash_Index(Hash((Pa+Pb)*.5f)))&& (A.min.x<=B.max.x&&B.min.x<=A.max.x) && (A.min.y<=B.max.y&&B.min.y<=A.max.y) &&(A.min.z<=B.max.z&&B.min.z<=A.max.z);
+
 }
 
 __device__ int Contact_Type(const int &A,const int &B){
@@ -59,7 +63,7 @@ __device__ int Contact_Type(const int &A,const int &B){
 	return 20;
 }
 
-__global__ void Compute_AABBs(object* object_data, AABB* AABBs){
+__global__ void Compute_AABBs(object* object_data, AABB* AABBs, int2* family){
 	uint index = blockIdx.x* blockDim.x + threadIdx.x;
 	if(index>=number_of_objects_const){return;}
 	object temp_obj=object_data[index];
@@ -80,7 +84,7 @@ __global__ void Compute_AABBs(object* object_data, AABB* AABBs){
 	else{return;}
 	temp.min=F4(F3(temp.min)-F3(collision_envelope_const)+global_origin_const,index);
 	temp.max=F4(F3(temp.max)+F3(collision_envelope_const)+global_origin_const,temp.max.w);
-	temp.family=temp_obj.family;
+	family[index]=temp_obj.family;
 	AABBs[index]=temp;
 }
 
@@ -90,27 +94,28 @@ __global__ void AABB_Bins_Count(AABB* AABBs,uint* Bins_Intersected){
 	uint count=0, i, j, k;
 	uint3 gmin = Hash(AABBs[index].min);
 	uint3 gmax = Hash(AABBs[index].max);
-	for(i=gmin.x; i<=gmax.x; i++){
-		for(j=gmin.y; j<=gmax.y; j++){
-			for(k=gmin.z; k<=gmax.z; k++){
-				count++;
-			}
-		}
-	}
-	Bins_Intersected[index]=count;
+	//for(i=gmin.x; i<=gmax.x; i++){
+	//	for(j=gmin.y; j<=gmax.y; j++){
+	//		for(k=gmin.z; k<=gmax.z; k++){
+	//			count++;
+	//		}
+	//	}
+	//}
+	Bins_Intersected[index]=(gmax.x-gmin.x+1)*(gmax.y-gmin.y+1)*(gmax.z-gmin.z+1);//count;
 }
 __global__ void AABB_Bins(AABB* AABBs,uint* Bins_Intersected,uint * Bin_Number, uint * Body_Number){
 	uint index = blockIdx.x* blockDim.x + threadIdx.x;
 	if(index>=number_of_objects_const){return;}
 	uint count=0, i, j, k;
-	uint3 gmin = Hash(AABBs[index].min);
-	uint3 gmax = Hash(AABBs[index].max);
+	AABB temp=AABBs[index];
+	uint3 gmin = Hash(temp.min);
+	uint3 gmax = Hash(temp.max);
+	uint mInd=(!index) ? count : Bins_Intersected[index-1];
 	for(i=gmin.x; i<=gmax.x; i++){
 		for(j=gmin.y; j<=gmax.y; j++){
 			for(k=gmin.z; k<=gmax.z; k++){
-					uint mInd=(!index) ? count : Bins_Intersected[index-1]+count;
-					Bin_Number[mInd]=Hash_Index(U3(i,j,k));
-					Body_Number[mInd]=index;
+					Bin_Number[mInd+count]=Hash_Index(U3(i,j,k));
+					Body_Number[mInd+count]=index;
 				count++;
 			}
 		}
@@ -118,6 +123,7 @@ __global__ void AABB_Bins(AABB* AABBs,uint* Bins_Intersected,uint * Bin_Number, 
 }
 __global__ void AABB_AABB_Count(
 						  AABB* AABBs,
+						  int2* family,
 						  uint * Bin_Number,
 						  uint * Body_Number ,
 						  uint * Bin_Start,
@@ -126,15 +132,13 @@ __global__ void AABB_AABB_Count(
 	uint Index = blockIdx.x* blockDim.x + threadIdx.x;
 	if(Index>=last_active_bin_const){return;}
 	uint	end=Bin_Start[Index], count=0, i=(!Index) ? 0 : Bin_Start[Index-1], Bin=Bin_Number[Index];
-	for(; i<end; i++){			
+	for(; i<end; i++){
+		AABB A=AABBs[Body_Number[i]];
+		int2 FA=family[Body_Number[i]];
 		for(int k=i+1; k<end; k++){
-			AABB A=AABBs[Body_Number[i]];
 			AABB B=AABBs[Body_Number[k]];
-			if(A.family.x==B.family.y||B.family.x==A.family.y)	{continue;}
-			if(TestAABBAABB(A,B)==false)						{continue;}
-			if(
-				Bin==Hash_Index(Hash(AABB_Contact_Pt(A,B)))||
-				Bin==Hash_Index(Hash(AABB_Contact_Pt(B,A)))){
+			int2 FB=family[Body_Number[k]];
+			if((FA.x==FB.y||FB.x==FA.y)==false&&AABB_Contact_Pt(A,B, Bin)==true){
 					count++;
 			}
 		}
@@ -143,6 +147,7 @@ __global__ void AABB_AABB_Count(
 }
 __global__ void AABB_AABB(
 						  AABB* AABBs,
+						  int2* family,
 						  uint * Bin_Number,
 						  uint * Body_Number ,
 						  uint * Bin_Start,
@@ -152,35 +157,39 @@ __global__ void AABB_AABB(
 	uint Index = blockIdx.x* blockDim.x + threadIdx.x;
 	if(Index>=last_active_bin_const){return;}
 	uint	end=Bin_Start[Index], count=0, i=(!Index) ? 0 : Bin_Start[Index-1], Bin=Bin_Number[Index];
-	for(; i<end; i++){			
+	uint offset=(!Index) ? 0 : Num_ContactD[Index-1];
+	for(; i<end; i++){
+		AABB A=AABBs[Body_Number[i]];
+		int2 FA=family[Body_Number[i]];
 		for(int k=i+1; k<end; k++){
-			AABB A=AABBs[Body_Number[i]];
 			AABB B=AABBs[Body_Number[k]];
-			if(A.family.x==B.family.y||B.family.x==A.family.y)	{continue;}
-			if(TestAABBAABB(A,B)==false)						{continue;}
-			if(
-				Bin==Hash_Index(Hash(AABB_Contact_Pt(A,B)))||
-				Bin==Hash_Index(Hash(AABB_Contact_Pt(B,A)))){
-						int type=Contact_Type(A.max.w,B.max.w);
-						uint offset=(!Index) ? 0 : Num_ContactD[Index-1];
-						contact[offset+count]=I3(A.min.w,B.min.w,type);			//the two indicies of the objects that make up the contact
-
+			int2 FB=family[Body_Number[k]];
+			if((FA.x==FB.y||FB.x==FA.y)==false && AABB_Contact_Pt(A,B, Bin)==true){
+					//int type=Contact_Type(A.max.w,B.max.w);
+					contact[offset+count]=I3(A.min.w,B.min.w,0);			//the two indicies of the objects that make up the contact
 					count++;
 			}
 		}
 	}
 }
 void ChCCollisionGPU::Broadphase(){								//Perform Broadphase CD
+	cudaFuncSetCacheConfig(AABB_Bins_Count, cudaFuncCachePreferL1);
+	cudaFuncSetCacheConfig(AABB_Bins, cudaFuncCachePreferL1);
+	cudaFuncSetCacheConfig(AABB_AABB_Count, cudaFuncCachePreferL1);
+	cudaFuncSetCacheConfig(AABB_AABB, cudaFuncCachePreferL1);
+
 	COPY_TO_CONST_MEM(collision_envelope);						//Contact Envelope
 	COPY_TO_CONST_MEM(global_origin);							//Origin for Physical Space
 	COPY_TO_CONST_MEM(number_of_objects);						//Total Number of objects
 	bin_size=1.0/bin_size;										//precompute inverse of bin size so that it can be multiplied
 	COPY_TO_CONST_MEM(bin_size);								//Size of each Bin
 	generic_counter.resize(number_of_objects);					//Create one counter for each object
-	aabb_data.resize(number_of_objects);						//Storage for AABB data						
+	aabb_data.resize(number_of_objects);						//Storage for AABB data
+	fam_data.resize(number_of_objects);
 	Compute_AABBs<<<BLOCKS(number_of_objects),THREADS>>>(		//Compute the AABB for each object
 		OBJCAST(object_data),									//object data
-		AABBCAST(aabb_data));									//AABB data
+		AABBCAST(aabb_data),
+		CASTI2(fam_data));									//AABB data
 	AABB_Bins_Count<<<BLOCKS(number_of_objects),THREADS>>>(			//Count the number of AABB bin intersections
 		AABBCAST(aabb_data),									//AABB Data
 		CASTU1(generic_counter));								//Number of intersections per AABB
@@ -189,7 +198,8 @@ void ChCCollisionGPU::Broadphase(){								//Perform Broadphase CD
 	body_number.resize(number_of_bin_intersections);			//Allocate memory for intersection body number
 	bin_start_index.resize(number_of_bin_intersections);		//The Starting index of each bin, assume that each intersection has a different bin
 	AABB_Bins<<<BLOCKS(number_of_objects),THREADS>>>(			//Count the number of AABB bin intersections
-		AABBCAST(aabb_data),									//AABB Data
+		AABBCAST(aabb_data),
+		//AABB Data
 		CASTU1(generic_counter),								//Number of intersections per AABB
 		CASTU1(bin_number),										//Bin Number for intersections
 		CASTU1(body_number));									//Body Number for intersection
@@ -199,7 +209,8 @@ void ChCCollisionGPU::Broadphase(){								//Perform Broadphase CD
 	COPY_TO_CONST_MEM(last_active_bin);							//Copy the Number of the last active bin to constant memory
 	generic_counter.resize(last_active_bin);					//Resize the counter, will be reused to count the number of AABB contacts
 	AABB_AABB_Count<<<BLOCKS(last_active_bin),THREADS>>>(				//Count the number of AABB-AABB contacts
-		AABBCAST(aabb_data),									//AABB Data
+		AABBCAST(aabb_data),
+		CASTI2(fam_data),//AABB Data
 		CASTU1(bin_number),										//Bin Number for intersections
 		CASTU1(body_number),									//Body Number for intersection
 		CASTU1(bin_start_index),								//The Starting index of each bin
@@ -209,6 +220,7 @@ void ChCCollisionGPU::Broadphase(){								//Perform Broadphase CD
 	contact_pair.resize(number_of_contacts);					//Allocate memory for contact pair
 	AABB_AABB<<<BLOCKS(last_active_bin),THREADS>>>(				//Count the number of AABB-AABB contacts
 		AABBCAST(aabb_data),									//AABB Data
+		CASTI2(fam_data),
 		CASTU1(bin_number),										//Bin Number for intersections
 		CASTU1(body_number),	                         		//Body Number for intersection
 		CASTU1(bin_start_index),								//The Starting index of each bin

@@ -82,7 +82,7 @@ struct __align__(16) int3f{
 	float w;
 };
 struct contactGPU{
-	float3 N,Pa,Pb,G,I,dG;
+	float3 N,Pa,Pb,I;
 };
 struct updateGPU{
 	float3 vel,omega;

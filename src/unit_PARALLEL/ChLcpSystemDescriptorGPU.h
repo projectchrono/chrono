@@ -26,6 +26,7 @@ namespace chrono{
 			gpu_collision=new chrono::collision::ChCCollisionGPU();
 
 			gpu_solver->device_contact_data=gpu_collision->contact_data_gpu;
+			//gpu_collision->device_warm_start=gpu_solver->device_warm_start;
 		};
 
 		~ChLcpSystemDescriptorGPU(){};
