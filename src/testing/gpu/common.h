@@ -30,6 +30,7 @@ using namespace std;
 #define SCALE 1
 #define PI	3.14159265358979323846
 #define GRAV 	-9.80665
+#define TORAD(x) x*PI/180.0
 float Scale=1;
 bool showSphere = true;
 bool showSolid = false;
@@ -37,6 +38,7 @@ bool updateDraw=true;
 bool saveData =false;
 bool showContacts=false;
 int detail=1;
+float totalTime=0;
 class System{
 public:
 	System(ChSystemGPU * Sys, int nobjects, string timingfile);
@@ -59,6 +61,7 @@ public:
 	void BoundingBox(float x,float y, float z,float offset);
 
 	void SaveByID(int id, string fname, bool pos, bool vel, bool acc, bool rot, bool omega);
+	void SaveByObject(ChBody *abody, string fname, bool pos, bool vel, bool acc, bool rot, bool omega);
 	void SaveAllData(string prefix, bool p, bool v, bool a, bool r, bool o);
 	void drawAll();
 	void renderScene(){	PrintStats();	DoTimeStep();}
@@ -127,10 +130,11 @@ void System::PrintStats(){
 	double D=mSystem->GetTimerLcp();
 	int E=mSystem->GetNbodies();
 	int F=mSystem->GetNcontacts();
+	totalTime+=B;
 	double KE=GetKE();
 	char numstr[512];
-	        printf("%7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7.7f\n",A,B,C,D,E,F,KE);
-	sprintf(numstr,"%7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %f",A,B,C,D,E,F,KE);
+	        printf("%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7.7f\n",A,B,C,D,totalTime,E,F,KE);
+	sprintf(numstr,"%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %f",A,B,C,D,totalTime,E,F,KE);
 	mTimingFile<<numstr<<endl;
 }
 void System::LoadTriangleMesh(ChSharedBodyGPUPtr &mrigidBody,string name, float scale, ChVector<> position, ChQuaternion<> rot, float mass,double sfric,double kfric,double restitution, int family,int nocolwith){
@@ -312,7 +316,28 @@ void System::SaveByID(int id, string fname, bool p, bool v, bool a, bool r, bool
 
 	ofile.close();
 }
+void System::SaveByObject(ChBody *abody, string fname, bool p, bool v, bool a, bool r, bool o){
+	ofstream ofile;
+	ofile.open(fname.c_str(),ios_base::app);
+	ChVector<> pos=abody->GetPos();
+	ChVector<> rot=abody->GetRot().Q_to_NasaAngles();
+	ChVector<> vel=abody->GetPos_dt();
+	ChVector<> acc=abody->GetPos_dtdt();
+	ChVector<> trq=abody->Get_gyro();
 
+	if(isnan(rot.x)){rot.x=0;}
+	if(isnan(rot.y)){rot.y=0;}
+	if(isnan(rot.z)){rot.z=0;}
+
+	if(p){ofile<<pos.x<<","<<pos.y<<","<<pos.z<<",";}
+	if(v){ofile<<vel.x<<","<<vel.y<<","<<vel.z<<",";}
+	if(a){ofile<<acc.x<<","<<acc.y<<","<<acc.z<<",";}
+	if(r){ofile<<rot.x<<","<<rot.y<<","<<rot.z<<",";}
+	if(o){ofile<<trq.x<<","<<trq.y<<","<<trq.z<<",";}
+	ofile<<endl;
+
+	ofile.close();
+}
 
 void System::SaveAllData(string prefix, bool p, bool v, bool a, bool r, bool o){
 	ofstream ofile;
