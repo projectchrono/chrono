@@ -50,7 +50,7 @@ void System::DoTimeStep(){
 
 int main(int argc, char* argv[]){
 	float mOmega=.5;
-	int   mIteations=100;
+	int   mIteations=500;
 	float mTimeStep=.005;
 	float mEnvelope=0;
 	float mMu=.5;
