@@ -16,62 +16,51 @@
 ///////////////////////////////////////////////////
 
 #include "ChCuda.h"
-struct  object{
-	float4 A,B,C;
-	int2 family;
-};
+#include "ChGPUDataManager.h"
 
-struct AABB{
-	float4 min,max;
+struct AABB {
+		float3 min, max;
 };
 
 namespace chrono {
 	namespace collision {
 
-		class ChApiGPU ChCCollisionGPU{
-		public:
-			ChCCollisionGPU();
-			~ChCCollisionGPU();
+		class ChApiGPU ChCCollisionGPU {
+			public:
+				ChCCollisionGPU();
+				~ChCCollisionGPU();
 
-			void Clear();
-			void GetBounds();
-			void TuneCD(int ss, int ee);
-			void Run();
-			void Broadphase();
-			void Narrowphase();
-			void CopyCDToCPU();
+				void Clear();
+				void SyncData();
+				void TuneCD(int ss, int ee);
+				void Run();
+				void Broadphase();
+				void Narrowphase();
+				void ComputeAABB();
+				void ComputeBounds();
+				void UpdateAABB();
+				void AddObject(const float3 &A, const float3 &B, const float3 &C, const float4 &R, const int2 &F, const int3 &T);
 
-			thrust::host_vector<object>		object_data_host;
+				uint number_of_models,number_of_contacts, number_of_contacts_possible, last_active_bin, number_of_bin_intersections;
 
-			uint number_of_objects, 
-				number_of_contacts, 
-				last_active_bin,
-				number_of_bin_intersections;
+				float collision_envelope, optimal_bin_size, running_time, max_dimension;
+				float3 max_bounding_point, min_bounding_point, global_origin, bin_size_vec;
+				bool do_compute_bounds;
+				cudaEvent_t start, stop;
 
-			float	bin_size,
-				collision_envelope,
-				optimal_bin_size,
-				running_time,
-				max_dimension;
-			float3 
-				max_bounding_point,
-				min_bounding_point,
-				global_origin;
+				ChGPUDataManager * data_container;
 
-			bool doTuning,copyContacts;
-			cudaEvent_t start, stop;
-			thrust::device_vector<contactGPU>* contact_data_gpu;
-			thrust::host_vector<contactGPU>    contact_data_host;
-			thrust::device_vector<float3>* device_warm_start;
-		private:
-			thrust::device_vector<object>		object_data;
-			thrust::device_vector<int3>		contact_pair;
-			thrust::device_vector<uint>		generic_counter;
-			thrust::device_vector<uint>		bin_number;
-			thrust::device_vector<uint>		body_number;
-			thrust::device_vector<AABB>		aabb_data;
-			thrust::device_vector<int2>		fam_data;
-			thrust::device_vector<uint>		bin_start_index;
+				float3 init_min;
+				float3 init_max;
+			private:
+				thrust::device_vector<int3> contact_pair;
+				thrust::device_vector<uint> generic_counter;
+				thrust::device_vector<uint> bin_number;
+				thrust::device_vector<uint> body_number;
+				thrust::device_vector<uint3> aabb_min_max_bin;
+				thrust::device_vector<uint3> aabb_min_max_bin_old;
+				thrust::device_vector<float3> aabb_data;
+				thrust::device_vector<uint> bin_start_index;
 		};
 	}
 }

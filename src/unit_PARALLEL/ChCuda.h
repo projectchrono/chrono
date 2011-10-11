@@ -23,6 +23,18 @@
 using namespace std;
 typedef unsigned int uint;
 
+#ifdef __CDT_PARSER__
+#define __host__
+#define __device__
+#define __global__
+#define __constant__
+#endif
+
+#define Zero_Vector make_float3(0,0,0)
+#define PI  3.1415926535897932384626433832795
+#define PI_2   (PI / 2.0f)
+#define PI_180  (PI / 180.0f)
+
 #define CH_REALNUMBER4 float4
 #define CH_REALNUMBER3 float3
 #define CH_REALNUMBER2 float2
@@ -63,7 +75,8 @@ typedef unsigned int uint;
 #define COPY_TO_CONST_MEM(x)			cudaMemcpyToSymbolAsync(x##_const,	&x,	sizeof(x),0,cudaMemcpyHostToDevice)
 #define START_TIMING(x,y,z) 			cudaEventCreate(&x); cudaEventCreate(&y); cudaEventRecord(x, 0); z=0;
 #define STOP_TIMING(x,y,z) 				cudaThreadSynchronize(); cudaEventRecord(y, 0); cudaEventSynchronize(y); cudaEventElapsedTime(&z,x , y); cudaEventDestroy(x);  cudaEventDestroy(y);
-#define BIND_TEX4(x)					cudaBindTexture(NULL, x##_tex,   CASTF4(x),   x.size()*sizeof(float4));
+#define BIND_TEXF4(x)					cudaBindTexture(NULL, x##_tex,   CASTF4(x),   x.size()*sizeof(float4));
+#define BIND_TEXU1(x)					cudaBindTexture(NULL, x##_tex,   CASTU1(x),   x.size()*sizeof(uint1));
 #define UNBIND_TEX(x)					cudaUnbindTexture( x##_tex );
 
 #define Thrust_Inclusive_Scan_Sum(x,y)	thrust::inclusive_scan(x.begin(),x.end(), x.begin()); y=x.back();
@@ -75,58 +88,79 @@ typedef unsigned int uint;
 #define Thrust_Sort(x)					thrust::sort(x.begin(),x.end());
 #define Thrust_Count(x,y)				thrust::count(x.begin(),x.end(),y)
 #define Thrust_Sequence(x)				thrust::sequence(x.begin(),x.end());
+#define Thrust_Equal(x,y)				thrust::equal(x.begin(),x.end(), y.begin())
 #define DBG(x)							printf(x);CUT_CHECK_ERROR(x);
 
-struct __align__(16) int3f{
+__device__ __host__ inline float4 inv(const float4& a) {
+	return F4(a.x, -a.y, -a.z, -a.w);
+}
+
+__device__ __host__ inline float4 operator ~(const float4& a) {
+	return F4(a.x, -a.y, -a.z, -a.w);
+}
+
+
+__device__ __host__ inline float4 mult(const float4 &a, const float4 &b) {
+	float4 quat;
+	quat.x = a.x * b.x - a.y * b.y - a.z * b.z - a.w * b.w;
+	quat.y = a.x * b.y + a.y * b.x - a.w * b.z + a.z * b.w;
+	quat.z = a.x * b.z + a.z * b.x + a.w * b.y - a.y * b.w;
+	quat.w = a.x * b.w + a.w * b.x - a.z * b.y + a.y * b.z;
+	return quat;
+}
+
+__device__ __host__ inline float3 quatRotate(const float3 &v, const float4 &q) {
+	float4 r=mult(mult(q,F4(0, v.x, v.y, v.z)),inv(q));
+	return F3(r.y,r.z,r.w);
+}
+
+struct __align__(16) int3f {
 	int x,y,z;
 	float w;
 };
-struct contactGPU{
-	float3 N,Pa,Pb,I;
+struct updateGPU {
+	float3 vel, omega;
 };
-struct updateGPU{
-	float3 vel,omega;
-};
-static __inline__ __host__ __device__ int3f make_int3f(int x, int y, int z, float w)
-{
-	int3f t; 
-	t.x = x; 
-	t.y = y; 
-	t.z = z; 
-	t.w = w; 
+
+static __inline__   __host__   __device__ int3f make_int3f(int x, int y, int z,
+		float w) {
+	int3f t;
+	t.x = x;
+	t.y = y;
+	t.z = z;
+	t.w = w;
 	return t;
 }
 
 #define CASTI3F(x) (int3f*)thrust::raw_pointer_cast(&x[0])
 
 //custom version of ceil used for float3's
-inline __host__ __device__ float3 ceil(float3 v)
-{
+inline __host__   __device__ float3 ceil(float3 v) {
 	return make_float3(ceil(v.x), ceil(v.y), ceil(v.z));
 }
-template <class T>
-inline __host__ __device__ float max3(T a)
-{
-	return max(a.x,max(a.y,a.z));
+template<class T>
+inline __host__ __device__ float max3(T a) {
+	return max(a.x, max(a.y, a.z));
 }
-template <class T>
-inline __host__ __device__ float min3(T a)
-{
-	return min(a.x,min(a.y,a.z));
+template<class T>
+inline __host__ __device__ float min3(T a) {
+	return min(a.x, min(a.y, a.z));
 }
 
-float __host_int_as_float(int a)
-{ 
-	union {int a; float b;} u; 
-	u.a = a; 
-	return u.b; 
+float __host_int_as_float(int a) {
+	union {
+		int a;
+		float b;
+	} u;
+	u.a = a;
+	return u.b;
 }
 //////////////////////////////////////////////////
 
 #define CH_CONTACT_VSIZE 4
 #define CH_CONTACT_HSIZE sizeof(CH_REALNUMBER4)
 
-#define CH_BODY_VSIZE 7
+#define CH_BODY_VSIZE 8
 #define CH_BODY_HSIZE sizeof(CH_REALNUMBER4)
 
 #define CH_BILATERAL_VSIZE 5
@@ -134,7 +168,6 @@ float __host_int_as_float(int a)
 
 #define CH_REDUCTION_VSIZE 2
 #define CH_REDUCTION_HSIZE sizeof(CH_REALNUMBER4)
-
 
 #endif
 

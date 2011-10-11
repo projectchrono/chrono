@@ -57,14 +57,15 @@ IF(ENABLE_UNIT_GPU)
 	    		ChCCollisionGPU.h
 	    		ChCCollisionGPU.cuh
 	    		ChSystemGPU.h
+			ChGPUDataManager.h
 			ChLcpIterativeSolverGPU.h
 			ChCCollisionModelGPU.h
 			ChCCollisionSystemGPU.h
 			ChContactContainerGPUsimple.h
-			ChContactGPUsimple.h
-			ChLcpIterativeSolverGPUsimple.h
 			ChLcpConstraintTwoGPUcontN.h
 			ChLcpConstraintTwoGPUcontT.h
+			ChContactGPUsimple.h
+			ChLcpIterativeSolverGPUsimple.h
 			ChLcpSystemDescriptorGPU.h
 			ChForceSystemGPU.h
 			ChForceSolverGPU.h
@@ -75,6 +76,7 @@ IF(ENABLE_UNIT_GPU)
 			ChCCollisionGPUBroadphase.cu
 			ChCCollisionGPUNarrowphase.cu
 			ChForceSolverGPU.cu
+			ChGPUDataManager.cu
 		)
 
 	SOURCE_GROUP(unit_GPU FILES 

@@ -119,7 +119,7 @@ namespace chrono
 			/// The 'another' model must be of ChModelBullet subclass.
 			virtual bool AddCopyOfAnotherModel (ChCollisionModel* another);
 
-			virtual bool AddCompoundBody (vector<float3> pos, vector<float3> dim, vector<float4> quats, vector<ShapeType> type, vector<float> masses);/// Add a compound body to this model, for collision purposes
+			virtual bool AddCompoundBody (vector<float3> pos, vector<float3> dim, vector<float4> quats, vector<ShapeType> type);/// Add a compound body to this model, for collision purposes
 			virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const ;
 
 			virtual void SetFamily(int mfamily);
@@ -132,16 +132,14 @@ namespace chrono
 			void SetBody(ChBody* mbo) {mbody = mbo;};
 
 			int GetNObjects(){return nObjects;}
-
-			ChVector<> GetSpherePos(int ID);
-			
-			float GetSphereR(int ID);
 			int GetNoCollFamily();
 
 			struct bData{
-				float4 A;
-				float4 B;
-				float4 C;
+				float3 A;
+				float3 B;
+				float3 C;
+				float4 R;
+				int type;
 			};
 			vector <bData> mData;
 		protected:

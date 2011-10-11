@@ -25,7 +25,7 @@ namespace chrono
 
 	using namespace collision;
 
-
+	class ChSystem;
 	class ChApiGPU ChBodyGPU : public ChBody {
 
 		CH_RTTI(ChBodyGPU,ChPhysicsItem);
@@ -40,7 +40,13 @@ namespace chrono
 		/// Destructor
 		~ChBodyGPU ();
 		virtual ChCollisionModel* InstanceCollisionModel();
+		void UpdateForces (double mytime);
+		ChVector<> GetXForce(){return Xforce;}
+		ChVector<> GetXTorque(){return Xtorque;}
+		ChVector<> GetGyro(){return gyro;}
+
 		int id;
+
 		vector<float2> interDist;
 	};
 

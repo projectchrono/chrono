@@ -18,23 +18,20 @@
 #include <thrust/device_vector.h>
 #include "ChCCollisionGPU.h"
 #include "ChLcpIterativeSolverGPU.h"
-namespace chrono{
-	class ChApiGPU ChLcpSystemDescriptorGPU: public ChLcpSystemDescriptor{
-	public:
-		ChLcpSystemDescriptorGPU(){
-			gpu_solver=new ChLcpIterativeSolverGPU();
-			gpu_collision=new chrono::collision::ChCCollisionGPU();
+namespace chrono {
+	class ChApiGPU ChLcpSystemDescriptorGPU: public ChLcpSystemDescriptor {
+		public:
+			ChLcpSystemDescriptorGPU() {
+				gpu_solver = new ChLcpIterativeSolverGPU();
+				gpu_collision = new chrono::collision::ChCCollisionGPU();
+			}
 
-			gpu_solver->device_contact_data=gpu_collision->contact_data_gpu;
-			//gpu_collision->device_warm_start=gpu_solver->device_warm_start;
-		};
+			~ChLcpSystemDescriptorGPU() {}
 
-		~ChLcpSystemDescriptorGPU(){};
+			ChLcpIterativeSolverGPU * gpu_solver;
+			chrono::collision::ChCCollisionGPU * gpu_collision;
 
-		ChLcpIterativeSolverGPU						* gpu_solver;
-		chrono::collision::ChCCollisionGPU			* gpu_collision;
-
-		uint number_of_contacts,number_of_bilaterals,number_of_bodies;
+			uint number_of_contacts, number_of_bilaterals, number_of_bodies;
 	};
 } // END_OF_NAMESPACE____
 

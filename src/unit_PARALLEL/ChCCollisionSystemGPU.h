@@ -23,7 +23,7 @@
 #include "ChContactContainerGPUsimple.h"
 #include "../collision/ChCCollisionSystem.h"
 #include "../physics/ChProximityContainerBase.h"
-
+#include "ChBodyGPU.h"
 namespace chrono {
 	namespace collision {
 		///
@@ -87,12 +87,7 @@ namespace chrono {
 			ChCCollisionGPU *mGPU;
 		private:
 			/// Update data structures to pass into GPU for collision detection
-			void updateDataStructures();
-
-			ChCollisionModelGPU* body;
-			//ChCoordsys<> bodyCoord;
-			ChVector<> localPos,gPos;
-			vector<ChCollisionModelGPU*> colModels;
+			unsigned int counter;
 			ChLcpSystemDescriptorGPU* mSystemDescriptor;
 		};
 	} // END_OF_NAMESPACE____
