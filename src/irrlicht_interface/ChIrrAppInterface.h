@@ -75,7 +75,7 @@ public:
 				case irr::KEY_SPACE: 
 					app->pause_step = !app->pause_step;
 					return true;
-				case irr::KEY_KEY_S: 
+				case irr::KEY_KEY_P: 
 					app->pause_step = true;
 					app->do_single_step = true;
 					return true;
