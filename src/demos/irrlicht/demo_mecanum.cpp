@@ -337,6 +337,9 @@ int main(int argc, char* argv[])
 	// THE SOFT-REAL-TIME CYCLE
 	//
 
+	application.SetStepManage(true);
+	application.SetTimestep(0.01);
+
 	while(application.GetDevice()->run()) 
 	{
 		application.GetVideoDriver()->beginScene(true, true, SColor(255,140,161,192));
@@ -344,8 +347,7 @@ int main(int argc, char* argv[])
 		application.DrawAll();
 
 		// ADVANCE THE SIMULATION FOR ONE TIMESTEP
-		mphysicalSystem.DoStepDynamics( 0.01);
-
+		application.DoStep();
 		
 
 		// change motor speeds depending on user setpoints from GUI

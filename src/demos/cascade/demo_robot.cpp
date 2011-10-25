@@ -492,7 +492,9 @@ int main(int argc, char* argv[])
 	// THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION
 	//
 
-	ChRealtimeStepTimer m_realtime_timer;
+	application.SetStepManage(true);
+	application.SetTimestep(0.01);
+	application.SetTryRealtime(true);
 	
 	while(application.GetDevice()->run())
 	{ 
@@ -503,7 +505,7 @@ int main(int argc, char* argv[])
 		application.DrawAll();
 
 		// .. perform timestep simulation
-		my_system.DoStepDynamics( m_realtime_timer.SuggestSimulationStep(0.01) );
+		application.DoStep();
 
 		// .. plot something on realtime view
 		ChIrrTools::drawChFunction(application.GetDevice(),motlaw_z, 0, 10, -0.9, 0.2);  

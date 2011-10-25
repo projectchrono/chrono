@@ -2,6 +2,7 @@
 //
 //   ChLcpSimplexSolver.cpp
 //
+//     ***OBSOLETE****
 //
 //    file for CHRONO HYPEROCTANT LCP solver
 //

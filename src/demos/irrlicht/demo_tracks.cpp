@@ -627,9 +627,9 @@ int main(int argc, char* argv[])
 	//
 
 
-	// This will help choosing an integration step which matches the
-	// real-time step of the simulation..
-	ChRealtimeStepTimer m_realtime_timer;
+	application.SetStepManage(true);
+	application.SetTimestep(0.03);
+	application.SetTryRealtime(true);
 
 	while(application.GetDevice()->run())
 	{ 
@@ -646,7 +646,7 @@ int main(int argc, char* argv[])
 
 		// HERE CHRONO INTEGRATION IS PERFORMED: 
 		
-		my_system.DoStepDynamics( 0.03 ) ; //m_realtime_timer.SuggestSimulationStep(0.01) );
+		application.DoStep();
 
 
 		application.GetVideoDriver()->endScene(); 

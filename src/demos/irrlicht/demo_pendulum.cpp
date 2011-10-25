@@ -207,15 +207,11 @@ int main(int argc, char* argv[])
 	IAnimatedMesh*	fanMesh = application.GetSceneManager()->getMesh("../data/fan2.obj");
 	IAnimatedMeshSceneNode* fanNode = application.GetSceneManager()->addAnimatedMeshSceneNode (fanMesh);
 	fanNode->setScale(irr::core::vector3df((irr::f32)fan_radius,(irr::f32)fan_radius,(irr::f32)fan_radius));
-  
+ 
 
-	// This will help choosing an integration step which matches the
-	// real-time step of the simulation..
-	ChRealtimeStepTimer m_realtime_timer;
-
-	
-	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES);
-
+	application.SetStepManage(true);
+	application.SetTimestep(0.01);
+	application.SetTryRealtime(true);
 
 	while(application.GetDevice()->run())
 	{
@@ -250,8 +246,8 @@ int main(int argc, char* argv[])
 
 		// HERE CHRONO INTEGRATION IS PERFORMED: THE 
 		// TIME OF THE SIMULATION ADVANCES FOR A SINGLE
-		// STEP: (2x as fast as real-time - looks better:)
-		my_system.DoStepDynamics( 2* m_realtime_timer.SuggestSimulationStep(0.01) );
+		// STEP:
+		application.DoStep();
 
 
 		application.GetVideoDriver()->endScene(); 

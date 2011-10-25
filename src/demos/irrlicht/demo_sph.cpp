@@ -222,6 +222,9 @@ int main(int argc, char* argv[])
 
 	static int printed_prox = 0;
 
+	application.SetStepManage(true);
+	application.SetTimestep(0.01);
+
 	while(application.GetDevice()->run()) 
 	{
 		application.GetVideoDriver()->beginScene(true, true, SColor(255,140,161,192));
@@ -273,7 +276,7 @@ int main(int argc, char* argv[])
 
 		
 
-		mphysicalSystem.DoStepDynamics( 0.001);
+		application.DoStep();
 		
 		application.GetVideoDriver()->endScene();  
 	}

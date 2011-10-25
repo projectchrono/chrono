@@ -282,6 +282,16 @@ int main(int argc, char* argv[])
 	mfence2->GetBody()->SetBodyFixed(true);
 	mfence2->GetBody()->SetFriction(0.1);
 
+/*
+ChBodySceneNode* convbase = (ChBodySceneNode*)addChBodySceneNode_easyBox(
+											&mphysicalSystem, application.GetSceneManager(),
+											1.0,
+											ChVector<>(0,0, 0),
+											ChQuaternion<>(1,0,0,0), 
+											ChVector<>(2,0.05,0.6) );
+	convbase->GetBody()->SetBodyFixed(true);
+	convbase->GetBody()->SetFriction(0.1);
+*/
 
 	// Create the conveyor belt (this is a pure Chrono::Engine object, 
 	// because an Irrlicht 'SceneNode' wrapper is not yet available, so it is invisible - no 3D preview)
@@ -303,23 +313,28 @@ int main(int argc, char* argv[])
 	// THE SOFT-REAL-TIME CYCLE
 	//
 	
+	application.SetStepManage(true);
+	application.SetTimestep(0.005);
+
 	while(application.GetDevice()->run()) 
 	{
 		application.GetVideoDriver()->beginScene(true, true, SColor(255,140,161,192));
 
 		application.DrawAll();
 
-		float dt = 0.005;
-		mphysicalSystem.DoStepDynamics(dt);
+		application.DoStep();
 
-		// Continuosly create debris that fall on the conveyor belt
-		create_debris(application, dt, STATIC_flow, parent);
+		if (!application.GetPaused())
+		{
+			// Continuosly create debris that fall on the conveyor belt
+			create_debris(application, application.GetTimestep(), STATIC_flow, parent);
 
-		// Limit the max number of debris particles on the scene, deleting the oldest ones, for performance
-		purge_debris (application, parent, 300);
+			// Limit the max number of debris particles on the scene, deleting the oldest ones, for performance
+			purge_debris (application, parent, 300);
 
-		// Maybe the user played with the slider and changed STATIC_speed...
-		mconveyor->SetConveyorSpeed(STATIC_speed);
+			// Maybe the user played with the slider and changed STATIC_speed...
+		 	mconveyor->SetConveyorSpeed(STATIC_speed);
+		}
 
 		application.GetVideoDriver()->endScene();  
 		

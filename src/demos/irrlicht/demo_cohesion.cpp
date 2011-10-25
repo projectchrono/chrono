@@ -50,6 +50,7 @@ using namespace gui;
 
 double GLOBAL_friction = 0.3;
 double GLOBAL_cohesion = 300;
+double GLOBAL_compliance = 0;
 
 
 
@@ -80,6 +81,14 @@ public:
 				scrollbar_cohesion->setPos(300);
 				text_cohesion = application->GetIGUIEnvironment()->addStaticText(
 								L"Cohesion [N]:", rect<s32>(650,125,750,140), false);
+
+				// ..add GUI slider to control the compliance
+				scrollbar_compliance = application->GetIGUIEnvironment()->addScrollBar(
+								true, rect<s32>(510, 165, 650, 180), 0, 103);
+				scrollbar_compliance->setMax(100); 
+				scrollbar_compliance->setPos(0);
+				text_compliance = application->GetIGUIEnvironment()->addStaticText(
+								L"Compliance [mm/N]:", rect<s32>(650,165,750,180), false);
 			}
 
 	bool OnEvent(const SEvent& event)
@@ -104,6 +113,11 @@ public:
 								s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
 								GLOBAL_cohesion = ((double)pos);
 							}
+							if (id == 103) // id of 'compliance' slider..
+							{
+								s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
+								GLOBAL_compliance = (((double)pos)/100.0)/10000;
+							}
 					break;
 					}
 					
@@ -119,6 +133,8 @@ private:
 	IGUIStaticText* text_friction;
 	IGUIScrollBar*  scrollbar_cohesion;
 	IGUIStaticText* text_cohesion;
+	IGUIScrollBar*  scrollbar_compliance;
+	IGUIStaticText* text_compliance;
 };
 
 
@@ -305,6 +321,10 @@ msolver->SetMaxFixedpointSteps(3);
 			// Set friction according to user setting:
 			material.static_friction = GLOBAL_friction;
 
+			// Set compliance (normal and tangential at once)
+			material.compliance  = GLOBAL_compliance;
+			material.complianceT = GLOBAL_compliance;
+
 			// Set cohesion according to user setting:
 			// Note that we must scale the cohesion force value by time step, because 
 			// the material 'cohesion' value has the dimension of an impulse.
@@ -333,6 +353,8 @@ msolver->SetMaxFixedpointSteps(3);
 	// 
 	// THE SOFT-REAL-TIME CYCLE
 	//
+	application.SetStepManage(true);
+	application.SetTimestep(0.01);
 
 	while(application.GetDevice()->run()) 
 	{
@@ -340,7 +362,7 @@ msolver->SetMaxFixedpointSteps(3);
 
 		application.DrawAll();
 
-		mphysicalSystem.DoStepDynamics( 0.02);
+		application.DoStep();
 		
 		application.GetVideoDriver()->endScene();  
 	}

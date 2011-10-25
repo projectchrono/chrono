@@ -31,7 +31,9 @@
 #include "lcp/ChLcpIterativeSORmultithread.h"
 #include "lcp/ChLcpIterativeJacobi.h"
 #include "lcp/ChLcpIterativeMINRES.h"
+#include "lcp/ChLcpIterativeBB.h"
 #include "lcp/ChLcpSolverDEM.h"
+
 
 #include "core/ChTimer.h"
 #include "collision/ChCCollisionSystemBullet.h"
@@ -560,6 +562,10 @@ void ChSystem::SetLcpSolverType(eCh_lcpSolver mval)
 	case LCP_ITERATIVE_PMINRES:
 		LCP_solver_speed = new ChLcpIterativeMINRES();
 		LCP_solver_stab = new ChLcpIterativeMINRES();
+		break;
+	case LCP_ITERATIVE_BARZILAIBORWEIN:
+		LCP_solver_speed = new ChLcpIterativeBB();
+		LCP_solver_stab = new ChLcpIterativeBB();
 		break;
 	case LCP_DEM:
 		LCP_solver_speed = new ChLcpSolverDEM();

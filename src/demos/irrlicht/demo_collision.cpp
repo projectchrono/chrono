@@ -30,6 +30,7 @@
 #include "irrlicht_interface/ChIrrAppInterface.h"
 #include "core/ChRealtimeStep.h"
 #include "lcp/ChLcpIterativeMINRES.h"
+ #include "irrlicht_interface/ChPovTools.h"
 
 #include <irrlicht.h>
  
@@ -207,7 +208,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 											ChVector<>(10,5.5,1) ); 
 	rotatingBody->GetBody()->SetMass(100);
 	rotatingBody->GetBody()->SetInertiaXX(ChVector<>(100,100,100));
-	rotatingBody->GetBody()->SetFriction(0.4);
+	rotatingBody->GetBody()->SetFriction(0.4f);
 	rotatingBody->addShadowVolumeSceneNode();
 
 	// .. an engine between mixer and truss	
@@ -302,6 +303,8 @@ int main(int argc, char* argv[])
  
 	//mphysicalSystem.SetUseSleeping(true);
 
+	application.SetStepManage(true);
+	application.SetTimestep(0.02);
 
 	// 
 	// THE SOFT-REAL-TIME CYCLE
@@ -313,7 +316,7 @@ int main(int argc, char* argv[])
 
 		application.DrawAll();
 		
-		mphysicalSystem.DoStepDynamics( 0.02);
+		application.DoStep();
 		
 
 		application.GetVideoDriver()->endScene();  

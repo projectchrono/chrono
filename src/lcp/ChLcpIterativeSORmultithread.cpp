@@ -172,7 +172,8 @@ void SolverThreadFunc(void* userPtr,void* lsMemory)
 					{
 
 						// compute residual  c_i = [Cq_i]*q + b_i
-						double mresidual = (*mconstraints)[ic]->Compute_Cq_q() + (*mconstraints)[ic]->Get_b_i();
+						double mresidual = (*mconstraints)[ic]->Compute_Cq_q() + (*mconstraints)[ic]->Get_b_i()
+								         - (*mconstraints)[ic]->Get_cfm_i() * (*mconstraints)[ic]->Get_l_i();
 
 						// true constraint violation may be different from 'mresidual' (ex:clamped if unilateral)
 						double candidate_violation = fabs((*mconstraints)[ic]->Violation(mresidual));

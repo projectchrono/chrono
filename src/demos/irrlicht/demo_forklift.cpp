@@ -498,7 +498,8 @@ int main(int argc, char* argv[])
 
 	// This will help choosing an integration step which matches the
 	// real-time step of the simulation..
-	ChRealtimeStepTimer m_realtime_timer;
+	application.SetStepManage(true);
+	application.SetTimestep(0.005);
 
 	while(application.GetDevice()->run())
 	{ 
@@ -509,8 +510,7 @@ int main(int argc, char* argv[])
 		application.DrawAll();
 
 		// Advance the simulation time step
-		//my_system.DoStepDynamics( m_realtime_timer.SuggestSimulationStep(0.005) );
-		my_system.DoStepDynamics( 0.005 );
+		application.DoStep();
 
 		// Irrlicht must finish drawing the frame
 		application.GetVideoDriver()->endScene();

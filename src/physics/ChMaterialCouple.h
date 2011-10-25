@@ -33,13 +33,18 @@ public:
 	float  spinning_friction;			
 	float  restitution;	
 	float  cohesion;
+	float  compliance;
+	float  complianceT;
 
 	ChMaterialCouple() :static_friction(0),
 						sliding_friction(0),
 						rolling_friction(0),
 						spinning_friction(0),
 						restitution(0),
-						cohesion(0) {};
+						cohesion(0),
+						compliance(0),
+						complianceT(0)
+						{};
 };
 
 

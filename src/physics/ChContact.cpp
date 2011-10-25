@@ -43,7 +43,9 @@ ChContact::ChContact (	collision::ChCollisionModel* mmodA,	///< model A
 						double mdistance,		  ///< pass the distance (negative for penetration)
 						float* mreaction_cache,	  ///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
 						float mfriction,		  ///< friction coeff.
-						float mcohesion			  ///< cohesion
+						float mcohesion,		  
+						float mcompliance,		  ///< compliance = 1/stiffness [mm/N]
+						float mcomplianceT		  ///< compliance = 1/stiffness [mm/N]
 				)
 { 
 	Nx.SetTangentialConstraintU(&Tu);
@@ -60,7 +62,9 @@ ChContact::ChContact (	collision::ChCollisionModel* mmodA,	///< model A
 			mdistance,		  ///< pass the distance (negative for penetration)
 			mreaction_cache,	  ///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
 			mfriction,			  ///< friction coeff.
-			mcohesion			  ///< cohesion
+			mcohesion,			  ///< cohesion
+			mcompliance,
+			mcomplianceT
 				);
 }
 
@@ -81,7 +85,9 @@ void ChContact::Reset(	collision::ChCollisionModel* mmodA,	///< model A
 						double mdistance,		  ///< pass the distance (negative for penetration)
 						float* mreaction_cache,	  ///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
 						float mfriction,			  ///< friction coeff.
-						float mcohesion				///< cohesion
+						float mcohesion,				///< cohesion
+						float mcompliance,			///< compliance = 1/stiffness [mm/N]
+						float mcomplianceT			///< tang.compliance = 1/stiffness [mm/N]
 				)
 {
 	assert (varA);
@@ -98,6 +104,8 @@ void ChContact::Reset(	collision::ChCollisionModel* mmodA,	///< model A
 
 	Nx.SetFrictionCoefficient(mfriction);
 	Nx.SetCohesion(mcohesion);
+	this->compliance = mcompliance;
+	this->complianceT = mcomplianceT;
 
 	ChVector<> VN = vN;
 	ChVector<double> Vx, Vy, Vz;
@@ -217,6 +225,15 @@ void ChContact::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool d
  
 	if (!bounced)
 	{
+
+		// Compliance:
+		//  timestep is inverse of factor
+		double inv_h = factor;
+		double inv_hh= inv_h*inv_h;
+		Nx.Set_cfm_i( -(inv_hh)*this->compliance );
+		Tu.Set_cfm_i( -(inv_hh)*this->complianceT );
+		Tv.Set_cfm_i( -(inv_hh)*this->complianceT );
+
 		// CASE: SETTLE (most often, and also default if two colliding items are not two ChBody)
 		if (do_clamp)
 			if (this->Nx.GetCohesion())

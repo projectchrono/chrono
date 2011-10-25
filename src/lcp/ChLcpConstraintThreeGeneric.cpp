@@ -203,7 +203,6 @@ void ChLcpConstraintThreeGeneric::Update_auxiliary()
 	}
 
 	//2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
-	g_i = cfm_i;
 	ChMatrixDynamic<float> res(1,1);
 	if (variables_a->IsActive())
 	if (variables_a->Get_ndof())

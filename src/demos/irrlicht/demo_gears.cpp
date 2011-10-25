@@ -260,8 +260,9 @@ int main(int argc, char* argv[])
 	// 
 	// THE SOFT-REAL-TIME CYCLE
 	//
-	
-	ChRealtimeStepTimer m_realtime_timer;
+	application.SetStepManage(true);
+	application.SetTimestep(0.01);
+	application.SetTryRealtime(true);
 
 	while(application.GetDevice()->run()) 
 	{
@@ -297,7 +298,7 @@ int main(int argc, char* argv[])
 
 		// ADVANCE THE SIMULATION FOR ONE STEP
 
-		mphysicalSystem.DoStepDynamics( m_realtime_timer.SuggestSimulationStep(0.01) );
+		application.DoStep();
 
 		application.GetVideoDriver()->endScene();  
 	}

@@ -213,6 +213,8 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 	mat.rolling_friction  =(rollfrictionA + rollfrictionB)*0.5f;
 	mat.spinning_friction =(spinfrictionA + spinfrictionB)*0.5f;
 	mat.cohesion = 0.f;
+	mat.compliance = 0.f;
+	mat.complianceT = 0.f;
 
 	// Launch the contact callback, if any, to set custom friction & material 
 	// properties, if implemented by the user:
@@ -239,7 +241,9 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 										  mcontact.distance, 
 										  mcontact.reaction_cache,
 										  mat.static_friction,
-										  mat.cohesion);
+										  mat.cohesion,
+										  mat.compliance,
+										  mat.complianceT);
 			lastcontact++;
 		}
 		else
@@ -255,7 +259,9 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 										  mcontact.distance, 
 										  mcontact.reaction_cache,
 										  mat.static_friction,
-										  mat.cohesion);
+										  mat.cohesion,
+										  mat.compliance,
+										  mat.complianceT);
 			contactlist.push_back(mc);
 			lastcontact = contactlist.end();
 		}
@@ -278,7 +284,9 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 										  mat.static_friction,
 										  mat.rolling_friction,
 										  mat.spinning_friction,
-										  mat.cohesion);
+										  mat.cohesion,
+										  mat.compliance,
+										  mat.complianceT);
 			lastcontact_roll++;
 		}
 		else
@@ -296,7 +304,9 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 										  mat.static_friction,
 										  mat.rolling_friction,
 										  mat.spinning_friction,
-										  mat.cohesion);
+										  mat.cohesion,
+										  mat.compliance,
+										  mat.complianceT);
 			contactlist_roll.push_back(mc);
 			lastcontact_roll = contactlist_roll.end();
 		}

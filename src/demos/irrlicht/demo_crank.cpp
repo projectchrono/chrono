@@ -172,14 +172,17 @@ int main(int argc, char* argv[])
 		// .. draw a small circle at crank origin
 		ChIrrTools::drawCircle(driver, 0.1, ChCoordsys<>(ChVector<>(0,0,0), QUNIT));
 
+		/* test: delete a link after 10 seconds
+		if (my_system.GetChTime() >10 && (!removed)) 
+		{
+				my_system.RemoveLink(my_link_AB); 
+				removed = true;
+		}
+		*/
+
 		// HERE CHRONO INTEGRATION IS PERFORMED: THE 
 		// TIME OF THE SIMULATION ADVANCES FOR A SINGLE
 		// STEP:
-	if (my_system.GetChTime() >10 && (!removed)) 
-	{
-			my_system.RemoveLink(my_link_AB); 
-			removed = true;
-	}
 
 		my_system.DoStepDynamics( m_realtime_timer.SuggestSimulationStep(0.02) );
 

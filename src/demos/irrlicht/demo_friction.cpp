@@ -233,17 +233,17 @@ int main(int argc, char* argv[])
 	// THE SOFT-REAL-TIME CYCLE
 	//
 
+	application.SetStepManage(true);
+	application.SetTimestep(0.01);
+
 	while(application.GetDevice()->run()) 
 	{
 		application.GetVideoDriver()->beginScene(true, true, SColor(255,140,161,192));
 
 		application.DrawAll();
 		
-		// ChIrrTools::drawAllContactLabels(mphysicalSystem, application.GetDevice());
-
-		mphysicalSystem.DoStepDynamics( 0.01);
-		
-
+		application.DoStep();
+				
 		application.GetVideoDriver()->endScene();  
 	}
 	

@@ -58,7 +58,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 	// which encapsulates ChBody items).  
 	
 	video::ITexture* cubeMap = driver->getTexture("../data/cubetexture.png");
-	
+
 	for (int ai = 0; ai < 1; ai++)  // N. of walls
 	{ 
 		for (int bi = 0; bi < 10; bi++)  // N. of vert. bricks
@@ -225,13 +225,16 @@ int main(int argc, char* argv[])
 	// THE SOFT-REAL-TIME CYCLE
 	//
  
+	application.SetStepManage(true);
+	application.SetTimestep(0.02);
+
 	while(application.GetDevice()->run())
 	{
 		application.GetVideoDriver()->beginScene(true, true, SColor(255,140,161,192));
 
 		application.DrawAll();
 
-		mphysicalSystem.DoStepDynamics( 0.01);
+		application.DoStep();
  
 		application.GetVideoDriver()->endScene();  
 	}

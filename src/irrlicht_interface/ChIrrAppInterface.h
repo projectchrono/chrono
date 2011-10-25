@@ -30,6 +30,7 @@
 #include "ChDisplayTools.h"
 #include "physics/ChLinkSpring.h"
 #include "collision/ChCModelBulletBody.h"
+#include "core/ChRealtimeStep.h"
 
 
 namespace irr
@@ -70,6 +71,13 @@ public:
 				{
 				case irr::KEY_KEY_I: 
 					app->SetShowInfos(!app->GetShowInfos());
+					return true;
+				case irr::KEY_SPACE: 
+					app->pause_step = !app->pause_step;
+					return true;
+				case irr::KEY_KEY_S: 
+					app->pause_step = true;
+					app->do_single_step = true;
 					return true;
 				}
 			}
@@ -183,7 +191,8 @@ public:
 								case 1: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_SYMMSOR); break;
 								case 2: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_JACOBI); break;
 								case 3: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD); break;
-								case 4: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_PMINRES); break;
+								case 4: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_BARZILAIBORWEIN); break;
+								case 5: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_PMINRES); break;
 							}
 							break;
 						}
@@ -208,6 +217,25 @@ public:
 							this->app->GetSystem()->SetUseSleeping( ((gui::IGUICheckBox*)event.GUIEvent.Caller)->isChecked() );
 							break;
 						}
+						if (id == 9916)
+						{	
+							this->app->SetTryRealtime( ((gui::IGUICheckBox*)event.GUIEvent.Caller)->isChecked() );
+							break;
+						}
+						if (id == 9917)
+						{	
+							this->app->pause_step =  ((gui::IGUICheckBox*)event.GUIEvent.Caller)->isChecked();
+							break;
+						}
+				case gui::EGET_EDITBOX_CHANGED:
+						if (id == 9918)
+						{	
+							double dt = 0.01;
+							//core::stringw(message).c_str()
+							dt = atof( core::stringc( ((gui::IGUIEditBox*)event.GUIEvent.Caller)->getText() ).c_str() );
+							this->app->SetTimestep(dt); 
+							break;
+						}
 
 				}
 			} 
@@ -230,6 +258,12 @@ public:
 						bool do_shadows = false,
 						video::E_DRIVER_TYPE mydriver = video::EDT_DIRECT3D9)
 		{
+			this->step_manage = true;
+			this->try_realtime = false;
+			this->pause_step = false;
+			this->timestep = 0.01;
+			this->do_single_step = false;
+
 			this->user_receiver=0;
 
 			this->selectedtruss= 0;
@@ -310,6 +344,7 @@ public:
 				gad_ccpsolver->addItem(L"Projected SSOR");
 				gad_ccpsolver->addItem(L"Projected Jacobi");
 				gad_ccpsolver->addItem(L"Multithreaded SOR");
+				gad_ccpsolver->addItem(L"Projected BB");
 				gad_ccpsolver->addItem(L"Projected MINRES");
 				gad_ccpsolver->addItem(L" ");
 			gad_ccpsolver->setSelected(5);
@@ -335,6 +370,14 @@ public:
 			gad_minbounce->setMax(100);
 			gad_minbounce_info = GetIGUIEnvironment()->addStaticText(L"", core::rect<s32>(155,280, 220,280+20), false, false, gad_tab2);
 
+			gad_timestep      = GetIGUIEnvironment()->addEditBox(L"",core::rect<s32>(140,320, 200,320+15), true,
+								gad_tab2, 9918);
+			gad_timestep_info = GetIGUIEnvironment()->addStaticText(L"Time step", core::rect<s32>(10,320, 130,320+15), false, false, gad_tab2);
+
+			gad_try_realtime  = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(10,340, 200,340+15),
+								gad_tab2, 9916, L"Realtime step");
+			gad_pause_step    = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(10,355, 200,355+15),
+								gad_tab2, 9917, L"Pause physics");
 
 			///
 
@@ -365,27 +408,78 @@ public:
 	gui::IGUIEnvironment*	GetIGUIEnvironment() {return device->getGUIEnvironment();}
 	chrono::ChSystem*		GetSystem()  {return system;};
  
-
+				/// Show the info panel in the 3D view
+	void SetShowInfos(bool val) {show_infos= val;}		
 	bool GetShowInfos() {return show_infos;}
-	void SetShowInfos(bool val) {show_infos= val;}
 
+				/// Set the time step for time integration. It will be used when you 
+				/// call myapplication->DoStep() in the loop, that will advance the simulation by 
+				/// one timestep. 
+	void SetTimestep(double val) {this->timestep = chrono::ChMax(10e-9, val);}
+	double GetTimestep() {return this->timestep;}
+
+				/// If you set as true, you can use  myapplication->DoStep() in the simulation loop
+				/// for advancing the simulation by one timestep. Set to false if you want to handle the 
+				/// time stepping by yourself, for example calling ChSystem::DoStepDynamics() in the loop.
+	void SetStepManage(bool val) {this->step_manage = val;}
+	bool GetStepManage() {return this->step_manage;}
+
+				/// If you set it as true, the function DoStep() will try to use a timestep that
+				/// is the same timestep used to refresh the interface and compute physics (it tries to keep	
+				/// a soft-realtime performance). Note: the realtime step is upper-limited by the timestep 
+				/// that you set by SetTimestep(), anyway! (this clamping will happen if there's too load on the CPU).
+	void SetTryRealtime(bool val) {this->try_realtime = val;}
+	bool GetTryRealtime() {return this->try_realtime;}
+
+	void SetPaused(bool val) {this->pause_step = val;}
+	bool GetPaused() {return this->pause_step;}
+
+		
+				/// Use this function to hook a custom event receiver to the application. See examples.
 	void SetUserEventReceiver(irr::IEventReceiver* mreceiver) {this->user_receiver = mreceiver;}
 
 
 			/// Call this important function inside a cycle like
-			///    while(ChirrAppInterface->GetDevice()->run()) {...}
+			///    while(application.GetDevice()->run()) {...}
+			/// in order to advance the physics by one timestep. The amount of the timestep
+			/// can be set via SetTimestep(). Optionally you can use SetTryRealtime(true) if your simulation
+			/// can run in realtime because the CPU is fast enough.
+			/// Instead, if you want to use ChSystem::DoStepDynamics() directly in your loop, just
+			/// do not use this and SetStepManage(false)
+	void DoStep()
+		{
+			if (!this->step_manage)
+				return;
+			if (this->pause_step)
+				if (this->do_single_step)
+					this->do_single_step = false;
+				else
+					return;
+
+			double dt;
+			if (this->try_realtime)
+				dt = this->m_realtime_timer.SuggestSimulationStep(this->timestep);
+			else 
+				dt = this->timestep;
+			
+			this->system->DoStepDynamics(dt);
+		}
+
+
+			/// Call this important function inside a cycle like
+			///    while(application.GetDevice()->run()) {...}
 			/// in order to get the redrawing of all 3D shapes and all the GUI elements
 	void DrawAll()
 		{
 			core::stringw str = "World time   =";
 					str += (int) (1000*system->GetChTime());
-					str +=  "   \n\nCPU step (total)      ="; 
+					str +=  " s  \n\nCPU step (total)      ="; 
 					str += (int) (1000*system->GetTimerStep());
-					str +=  "ms \n  CPU Collision time =";
+					str +=  " ms \n  CPU Collision time =";
 					str += (int) (1000*system->GetTimerCollisionBroad());
-					str +=  "ms \n  CPU LCP time         =";
+					str +=  " ms \n  CPU LCP time         =";
 					str += (int) (1000*system->GetTimerLcp());
-					str +=  "ms \n\nLCP vel.iters : "; 
+					str +=  " ms \n\nLCP vel.iters : "; 
 					str += system->GetIterLCPmaxItersSpeed();
 					str +=  "\nLCP pos.iters : ";
 					str += system->GetIterLCPmaxItersStab();
@@ -460,7 +554,8 @@ public:
 					case chrono::ChSystem::LCP_ITERATIVE_SYMMSOR: 	gad_ccpsolver->setSelected(1); break;
 					case chrono::ChSystem::LCP_ITERATIVE_JACOBI: 	gad_ccpsolver->setSelected(2); break;
 					case chrono::ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD: 	gad_ccpsolver->setSelected(3); break;
-					case chrono::ChSystem::LCP_ITERATIVE_PMINRES: 	gad_ccpsolver->setSelected(4); break;
+					case chrono::ChSystem::LCP_ITERATIVE_BARZILAIBORWEIN: 	gad_ccpsolver->setSelected(4); break;
+					case chrono::ChSystem::LCP_ITERATIVE_PMINRES: 	gad_ccpsolver->setSelected(5); break;
 					default: gad_ccpsolver->setSelected(5); break;
 				}
 				switch(this->GetSystem()->GetIntegrationType())
@@ -469,6 +564,19 @@ public:
 					case chrono::ChSystem::INT_TASORA: 		gad_stepper->setSelected(1); break;
 				}
 
+				this->gad_try_realtime->setChecked(this->GetTryRealtime());
+				this->gad_pause_step->setChecked(this->pause_step);
+
+				if (this->GetStepManage())
+					sprintf(message,"%g", this->timestep );
+				else
+					sprintf(message,"%g", this->GetSystem()->GetStep());
+				this->gad_timestep->setText(core::stringw(message).c_str());
+
+				// disable timestep-related gadgets if dt not handled by application object
+				this->gad_try_realtime->setEnabled(this->GetStepManage());
+				this->gad_pause_step->setEnabled(this->GetStepManage());
+				this->gad_timestep->setEnabled(this->GetStepManage());
 			}
  
 			//if(show_infos)
@@ -487,6 +595,13 @@ private:
 
 
 	bool show_infos;
+
+	bool step_manage;
+	bool pause_step;
+	bool try_realtime;
+	double timestep;
+	bool do_single_step;
+	chrono::ChRealtimeStepTimer m_realtime_timer;
 
 	gui::IGUITabControl* gad_tabbed;
 	gui::IGUITab*		 gad_tab1;
@@ -517,6 +632,10 @@ private:
 	gui::IGUICheckBox*   gad_usesleep;
 	gui::IGUIComboBox*   gad_ccpsolver;
 	gui::IGUIComboBox*   gad_stepper;
+	gui::IGUIEditBox*    gad_timestep;
+	gui::IGUIStaticText* gad_timestep_info;
+	gui::IGUICheckBox*   gad_try_realtime;
+	gui::IGUICheckBox*   gad_pause_step;
 
 	public:
 	chrono::ChSharedPtr<chrono::ChLinkSpring>* selectedspring;

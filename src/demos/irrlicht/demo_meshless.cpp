@@ -179,6 +179,8 @@ int main(int argc, char* argv[])
 	//
 
 	static int printed_prox = 0;
+	application.SetStepManage(true);
+	application.SetTimestep(0.002);
 
 	while(application.GetDevice()->run()) 
 	{
@@ -239,7 +241,7 @@ int main(int argc, char* argv[])
 
 		
 
-		mphysicalSystem.DoStepDynamics( 0.002);
+		application.DoStep();
 		
 		application.GetVideoDriver()->endScene();  
 	}

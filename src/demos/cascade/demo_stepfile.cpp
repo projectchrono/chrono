@@ -212,9 +212,11 @@ int main(int argc, char* argv[])
 	//
 	// THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION
 	//
-
-	ChRealtimeStepTimer m_realtime_timer;
 	
+	application.SetStepManage(true);
+	application.SetTimestep(0.01);
+	application.SetTryRealtime(true);
+
 	while(application.GetDevice()->run())
 	{ 
 		// Irrlicht must prepare frame to draw
@@ -223,7 +225,7 @@ int main(int argc, char* argv[])
 		// .. draw solid 3D items (boxes, cylinders, shapes) belonging to Irrlicht scene, if any
 		application.DrawAll();
 
-		my_system.DoStepDynamics( m_realtime_timer.SuggestSimulationStep(0.01) );
+		application.DoStep();
 
 		application.GetVideoDriver()->endScene(); 
 	}

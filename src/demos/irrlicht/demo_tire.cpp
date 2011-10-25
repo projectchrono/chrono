@@ -195,8 +195,12 @@ int main(int argc, char* argv[])
 
 	// This will help choosing an integration step which matches the
 	// real-time step of the simulation, if possible.
-	ChRealtimeStepTimer m_realtime_timer;
+
 	int nstep = 0;
+
+	application.SetStepManage(true);
+	application.SetTimestep(0.01);
+	application.SetTryRealtime(true);
 
 	while(application.GetDevice()->run()) 
 	{
@@ -204,7 +208,7 @@ int main(int argc, char* argv[])
 
 		application.DrawAll();
 
-		mphysicalSystem.DoStepDynamics( m_realtime_timer.SuggestSimulationStep(0.01) );
+		application.DoStep();
 		
 
 		application.GetVideoDriver()->endScene();  
