@@ -135,7 +135,7 @@ public:
 
 				/// Get the cohesion
 	float GetCohesion() {return cohesion; }
-				/// Set the friction coefficient
+				/// Set the cohesion
 	void SetCohesion(float mcoh) {cohesion = mcoh;}
 
 

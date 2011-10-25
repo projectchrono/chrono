@@ -3,9 +3,40 @@
   
   History of API changes, bug fixes, new features
 
+  
+Release 1.5.0
+xx-xx-xxxx
+
+- New functionality in ChIrrAppInterface class, to allow single-step
+  of realtime simulations, by pressing the 's' key, and to pause 
+  physics, by pressing the 'space' key. 
+  
+- To use the new pause/singlestepping of the ChIrrAppInterface class,
+  you should change the way you invoke the time integration in your
+  program screen redraw loop, that is change commands like 
+      mphysicalSystem.DoStepDynamics( 0.01);
+  into the new command
+  	  application.DoStep();
+  Note that before entering the 'while()' loop, you need to enable
+  the advanced step control by calling something like this:
+     application.SetStepManage(true);
+	 application.SetTimestep(0.02);
+    
+- New solver based on spectral gradient method (Barzilai-Borwein)
+  with nonmonotone Armijo steplength. It is called ChLcpIterativeBB.
+  It has a much better convergence than projected SOR and similars,
+  and the benefit of using it can be appreciated especially when
+  running large scenarios with many iterations.
+  
+- New contact property: cohesion.
+
+- New contact property: compliance.
+
+
+
 
 Release 1.4.0
-x-x-xxxx
+1-9-2011
 
 - The collision family features previously required that a body
   was already added to a ChSystem, now collision families can be
@@ -62,7 +93,7 @@ x-x-xxxx
   save its triangulated mesh in .obj format. It requires the OpenCASCADE 
   library - without that library, you cannot compile and/or run the demo.
   
-- New funcitons in ChCModelBullet: AddTriangleMeshConcave() and 
+- New functions in ChCModelBullet: AddTriangleMeshConcave() and 
   AddTriangleMeshConcaveDecomposed() , to allow more control on 
   the concave meshes for collision detection. The already-known 
   basic method AddTriangleMesh(), in case of dynamic concave mesh, 

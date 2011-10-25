@@ -204,8 +204,11 @@ public:
 
 				/// Performs the product of N, the Shur complement of the KKT matrix, by an 
 				/// l vector (if x not provided, use current lagrangian multipliers l_i), that is 
-				///    result = [N]*l = [Cq][M^(-1)][Cq']*l
-				/// The N matrix is not built explicitly, to exploit sparsity.
+				///    result = [N]*l = [ [Cq][M^(-1)][Cq'] - [E] ] * l
+				/// where [Cq] are the jacobians, [M] is the mass matrix, [E] is the matrix
+				/// of the optional cfm 'constraint force mixing' terms for compliant constraints.
+				/// The N matrix is not built explicitly, to exploit sparsity, it is described by the 
+				/// inserted constraints and inserted variables.
 				/// Optionally, you can pass an 'enabled' vector of bools, that must have the same
 				/// length of the l_i reactions vector; constraints with enabled=false are not handled.
 	virtual void ShurComplementProduct(	

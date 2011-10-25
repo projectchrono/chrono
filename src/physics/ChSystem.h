@@ -294,10 +294,11 @@ public:
 					enum eCh_lcpSolver{
 						 LCP_ITERATIVE_SOR = 0,
 						 LCP_ITERATIVE_SYMMSOR,
-						 LCP_SIMPLEX,
+						 LCP_SIMPLEX,			// OBSOLETE!
 						 LCP_ITERATIVE_JACOBI,
 						 LCP_ITERATIVE_SOR_MULTITHREAD, 
 						 LCP_ITERATIVE_PMINRES,
+						 LCP_ITERATIVE_BARZILAIBORWEIN,
 						 LCP_DEM};
 
 				/// Choose the LCP solver type, to be used for the simultaneous

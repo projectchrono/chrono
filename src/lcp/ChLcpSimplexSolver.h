@@ -5,6 +5,8 @@
 //
 //   ChLcpSimplexSolver.h
 //
+//     ***OBSOLETE****
+//
 //    A simplex (pivoting) method which solves LCP
 //   problems by activating/deactivating constraints
 //   and solving a linear problem each time (using a
@@ -31,7 +33,7 @@ namespace chrono
 class ChSparseMatrix;
 class ChUnilateralData;
 
-
+///     ***OBSOLETE****
 ///    A simplex (pivoting) method which solves LCP
 ///   problems by activating/deactivating constraints
 ///   and solving a linear problem each time (using a

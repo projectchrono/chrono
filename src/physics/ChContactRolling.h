@@ -63,7 +63,9 @@ public:
 						float  mfriction,				///< friction coeff.
 						float  rollfriction,			///< rolling friction
 						float  spinningfriction,		///< spinning friction
-						float  cohesion					///< cohesion
+						float  cohesion,				///< cohesion
+						float  compliance,				///< normal compliance = 1/stiffness [mm/N]
+						float  complianceT				///< tangential compliance = 1/stiffness [mm/N]
 				);
 
 	virtual ~ChContactRolling ();
@@ -88,7 +90,9 @@ public:
 						float  mfriction,				///< friction coeff.
 						float  rollfriction,			///< rolling friction
 						float  spinningfriction,		///< spinning friction
-						float  cohesion					///< cohesion
+						float  cohesion,				///< cohesion
+						float  compliance,				///< normal compliance = 1/stiffness [mm/N]
+						float  complianceT				///< tangential compliance = 1/stiffness [mm/N]
 				);
 
 	

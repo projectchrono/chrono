@@ -76,7 +76,7 @@ double ChLcpIterativeMINRES::Solve(
 	// Compute the b_shur vector in the Shur complement equation N*l = b_shur
 	// with 
 	//   N_shur  = D'* (M^-1) * D
-	//   b_shur  = - c + D'*(M\k) = b_i + D'*(M\k)
+	//   b_shur  = - c + D'*(M^-1)*k = b_i + D'*(M^-1)*k
 	// but flipping the sign of lambdas,  b_shur = - b_i - D'*(M^-1)*k
 	// Do this in three steps:
 	
@@ -102,10 +102,12 @@ double ChLcpIterativeMINRES::Solve(
 	mb.MatrDec(mb_i);
 
 
+
 	// Optimization: backup the  q  sparse data computed above, 
 	// because   (M^-1)*k   will be needed at the end when computing primals.
 	ChMatrixDynamic<> mq; 
 	sysd.FromVariablesToVector(mq, true);	
+
 
 
 	// Initialize lambdas

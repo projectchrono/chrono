@@ -393,7 +393,7 @@ void ChLcpSystemDescriptor::ShurComplementProduct(
 		if (enabled) assert(enabled->size() == n_c);
 	#endif
 
-	// Performs the sparse product    result = [N]*l = [Cq][M^(-1)][Cq']*l
+	// Performs the sparse product    result = [N]*l = [ [Cq][M^(-1)][Cq'] - [E] ] *l
 	// in different phases:
 
 	// 1 - set the qb vector (aka speeds, in each ChLcpVariable sparse data) as zero
@@ -402,9 +402,10 @@ void ChLcpSystemDescriptor::ShurComplementProduct(
 		if (vvariables[iv]->IsActive())
 			vvariables[iv]->Get_qb().FillElem(0);
 
-	// 2 - performs    qb=[M^(-1)][Cq']*l   by
+	// 2 - performs    qb=[M^(-1)][Cq']*l  by
 	//     iterating over all constraints (when implemented in parallel this
 	//     could be non-trivial because race conditions might occur -> reduction buffer etc.)
+	//     Also, begin to add the cfm term  -[E]*l to the result.
 
 	int s_c=0;
 	for (unsigned int ic = 0; ic < vconstraints.size(); ic++)
@@ -424,7 +425,12 @@ void ChLcpSystemDescriptor::ShurComplementProduct(
 				else
 					li = vconstraints[ic]->Get_l_i();
 
+				// Compute qb += [M^(-1)][Cq']*l_i
 				vconstraints[ic]->Increment_q(li);	// <----!!!  fpu intensive
+
+				// Add constraint force mixing term  result += -[E]*l_i
+				result(s_c,0) = - vconstraints[ic]->Get_cfm_i() * li;
+
 			}
 
 			++s_c;
@@ -445,7 +451,7 @@ void ChLcpSystemDescriptor::ShurComplementProduct(
 					process = false;
 			
 			if (process) 
-				result(s_c,0)= vconstraints[ic]->Compute_Cq_q();	// <----!!!  fpu intensive
+				result(s_c,0)+= vconstraints[ic]->Compute_Cq_q();	// <----!!!  fpu intensive
 			else
 				result(s_c,0)= 0; // not enabled constraints, just set to 0 result 
 			

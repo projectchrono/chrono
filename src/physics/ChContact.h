@@ -60,6 +60,9 @@ protected:
 
 	ChVector<> react_force;
 
+	float compliance;
+	float complianceT;
+
 public:
 				//
 	  			// CONSTRUCTORS
@@ -79,7 +82,9 @@ public:
 						double mdistance,				///< pass the distance (negative for penetration)
 						float* mreaction_cache,			///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
 						float  mfriction,				///< friction coeff.
-						float  mcohesion				///< cohesion
+						float  mcohesion,				///< cohesion
+						float  mcompliance,				///< normal compliance = 1/stiffness [mm/N]
+						float  mcomplianceT				///< tangential compliance = 1/stiffness [mm/N]
 				);
 
 	virtual ~ChContact ();
@@ -102,7 +107,9 @@ public:
 						double mdistance,				///< pass the distance (negative for penetration)
 						float* mreaction_cache,			///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
 						float mfriction,				///< friction coeff.
-						float mcohesion					///< cohesion
+						float mcohesion,				///< cohesion
+						float mcompliance,				///< normal compliance = 1/stiffness [mm/N]
+						float mcomplianceT				///< tangential compliance = 1/stiffness [mm/N]
 				);
 
 					/// Get the contact coordinate system, expressed in absolute frame.
