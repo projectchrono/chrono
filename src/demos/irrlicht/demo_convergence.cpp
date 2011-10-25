@@ -54,7 +54,8 @@ void create_items(ChIrrAppInterface& application)
 	// Create some spheres in a vertical stack
 
 	video::ITexture* sphereMap = application.GetVideoDriver()->getTexture("../data/bluwhite.png");
-	double sphrad = 0.3;
+
+	double sphrad = 0.2;
 	double dens= 1000;
 	double sphmass = dens * (4./3.) * CH_C_PI * pow(sphrad,3);
 	double sphinertia = (2./5.) * sphmass * pow(sphrad,2);
@@ -64,8 +65,8 @@ void create_items(ChIrrAppInterface& application)
 		mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easySphere(
 											application.GetSystem(), application.GetSceneManager(),
 											sphmass,
-											ChVector<>(0.5, sphrad+bi*2*sphrad, 0.7),
-											1.1);
+											ChVector<>(0.5, sphrad+bi*(2*sphrad), 0.7),
+											sphrad);
    
 		mrigidBody->GetBody()->SetInertiaXX(ChVector<>(sphinertia,sphinertia,sphinertia));
 		mrigidBody->GetBody()->SetFriction(0.2f); 
@@ -85,6 +86,9 @@ void create_items(ChIrrAppInterface& application)
 											ChVector<>(50,4,50) );
 	mrigidBody->GetBody()->SetBodyFixed(true);
 	mrigidBody->GetBody()->SetFriction(0.4f);
+
+	video::ITexture* cubeMap = application.GetVideoDriver()->getTexture("../data/concrete.jpg");
+	mrigidBody->setMaterialTexture(0,	cubeMap);
 
 } 
      
@@ -112,7 +116,7 @@ int main(int argc, char* argv[])
 	ChIrrWizard::add_typical_Logo(application.GetDevice());
 	ChIrrWizard::add_typical_Sky(application.GetDevice());
 	ChIrrWizard::add_typical_Lights(application.GetDevice());
-	ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0,14,-20));
+	ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0,1.5,-3));
 
  
 	// Create all the rigid bodies.
@@ -124,6 +128,7 @@ int main(int argc, char* argv[])
 	// Modify some setting of the physical system for the simulation, if you want
 
 	mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_BARZILAIBORWEIN);
+	//mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
 	mphysicalSystem.SetIterLCPmaxItersSpeed(60);
 	mphysicalSystem.SetIterLCPmaxItersStab(5);
 
@@ -131,7 +136,7 @@ int main(int argc, char* argv[])
 	//mphysicalSystem.SetUseSleeping(true);
 
 	application.SetStepManage(true);
-	application.SetTimestep(0.01);
+	application.SetTimestep(0.001);
 
 	// 
 	// THE SOFT-REAL-TIME CYCLE
