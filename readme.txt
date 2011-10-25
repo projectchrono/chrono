@@ -8,8 +8,8 @@ Release 1.5.0
 xx-xx-xxxx
 
 - New functionality in ChIrrAppInterface class, to allow single-step
-  of realtime simulations, by pressing the 's' key, and to pause 
-  physics, by pressing the 'space' key. 
+  of realtime simulations, by pressing the 'p' key, and to pause 
+  physics, by pressing the 'space' key. (Press also 'i' for infos).
   
 - To use the new pause/singlestepping of the ChIrrAppInterface class,
   you should change the way you invoke the time integration in your

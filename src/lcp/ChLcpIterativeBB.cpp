@@ -295,7 +295,7 @@ double ChLcpIterativeBB::Solve(
 		// Terminate the loop if violation in constraints has been succesfully limited.
 		
 		/*
-		if (maxdeltalambda < this->tolerance)  // ..also check monotonicity of f?
+		if (maxdeltalambda < this->tolerance)  // ..also check monotonicity of f? Risk of false positive in termination?
 		{
 			GetLog() <<"BB premature maxdeltalambda break at i=" << iter << "\n";
 			break;

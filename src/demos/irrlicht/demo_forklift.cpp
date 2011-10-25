@@ -488,7 +488,7 @@ int main(int argc, char* argv[])
 
 	my_system.SetIterLCPmaxItersSpeed(20); // the higher, the easier to keep the constraints 'mounted'.
 
-	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD);  
+	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);  
 
 
 	//
