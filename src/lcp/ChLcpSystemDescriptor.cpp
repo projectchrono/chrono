@@ -405,7 +405,7 @@ void ChLcpSystemDescriptor::ShurComplementProduct(
 	// 2 - performs    qb=[M^(-1)][Cq']*l  by
 	//     iterating over all constraints (when implemented in parallel this
 	//     could be non-trivial because race conditions might occur -> reduction buffer etc.)
-	//     Also, begin to add the cfm term  -[E]*l to the result.
+	//     Also, begin to add the cfm term ( -[E]*l ) to the result.
 
 	int s_c=0;
 	for (unsigned int ic = 0; ic < vconstraints.size(); ic++)
@@ -428,8 +428,8 @@ void ChLcpSystemDescriptor::ShurComplementProduct(
 				// Compute qb += [M^(-1)][Cq']*l_i
 				vconstraints[ic]->Increment_q(li);	// <----!!!  fpu intensive
 
-				// Add constraint force mixing term  result += -[E]*l_i
-				result(s_c,0) = - vconstraints[ic]->Get_cfm_i() * li;
+				// Add constraint force mixing term  result += cfm * l_i = -[E]*l_i
+				result(s_c,0) = + vconstraints[ic]->Get_cfm_i() * li;
 
 			}
 

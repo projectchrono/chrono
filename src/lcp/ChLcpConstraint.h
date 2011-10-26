@@ -81,8 +81,9 @@ protected:
 				/// The 'b_i' right term in [Cq_i]*q+b_i=0 , note: c_i= [Cq_i]*q + b_i 
 	double b_i;
 				/// The constraint force mixing, if needed (usually is zero) to add some
-				/// numerical 'elasticity' in the constraint, that is the equation becomes:
-				/// c_i= [Cq_i]*q + b_i + cfm*l_i =0;
+				/// numerical 'compliance' in the constraint, that is the equation becomes:
+				/// c_i= [Cq_i]*q + b_i + cfm*l_i =0;   
+				/// Example, it could be   cfm = [k * h^2](^-1)   where k is stiffness
 	double cfm_i;
 
 

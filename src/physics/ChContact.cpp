@@ -225,15 +225,6 @@ void ChContact::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool d
  
 	if (!bounced)
 	{
-
-		// Compliance:
-		//  timestep is inverse of factor
-		double inv_h = factor;
-		double inv_hh= inv_h*inv_h;
-		Nx.Set_cfm_i( -(inv_hh)*this->compliance );
-		Tu.Set_cfm_i( -(inv_hh)*this->complianceT );
-		Tv.Set_cfm_i( -(inv_hh)*this->complianceT );
-
 		// CASE: SETTLE (most often, and also default if two colliding items are not two ChBody)
 		if (do_clamp)
 			if (this->Nx.GetCohesion())
@@ -242,6 +233,20 @@ void ChContact::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool d
 				Nx.Set_b_i( Nx.Get_b_i() + ChMax (factor * this->norm_dist, -recovery_clamp)  );
 		else
 			Nx.Set_b_i( Nx.Get_b_i() + factor * this->norm_dist  );
+		
+		// COMPLIANCE:
+		if (this->compliance)
+		{
+			//  timestep is inverse of factor
+			double inv_h = factor;
+			double inv_hh= inv_h*inv_h;
+			Nx.Set_cfm_i( (inv_hh)*this->compliance  );
+			Tu.Set_cfm_i( (inv_hh)*this->complianceT );
+			Tv.Set_cfm_i( (inv_hh)*this->complianceT );
+
+			// no clamping of residual
+			Nx.Set_b_i( Nx.Get_b_i() + factor * this->norm_dist  );
+		}
 		
 	}
 
