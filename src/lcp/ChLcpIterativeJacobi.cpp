@@ -99,13 +99,14 @@ double ChLcpIterativeJacobi::Solve(
 			// skip computations if constraint not active.
 			if (mconstraints[ic]->IsActive())
 			{
-				// compute residual  c_i = [Cq_i]*q + b_i
-				double mresidual = mconstraints[ic]->Compute_Cq_q() + mconstraints[ic]->Get_b_i();
+				// compute residual  c_i = [Cq_i]*q + b_i + cfm_i*l_i
+				double mresidual = mconstraints[ic]->Compute_Cq_q() + mconstraints[ic]->Get_b_i()
+								 + mconstraints[ic]->Get_cfm_i() * mconstraints[ic]->Get_l_i();
 
 				// true constraint violation may be different from 'mresidual' (ex:clamped if unilateral)
 				double candidate_violation = fabs(mconstraints[ic]->Violation(mresidual));
 
-				// compute:  delta_lambda = -(omega/g_i) * ([Cq_i]*q + b_i )
+				// compute:  delta_lambda = -(omega/g_i) * ([Cq_i]*q + b_i + cfm_i*l_i )
 				double deltal = ( omega / mconstraints[ic]->Get_g_i() ) *
 								( -mresidual );
 

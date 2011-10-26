@@ -227,11 +227,10 @@ public:
 							this->app->pause_step =  ((gui::IGUICheckBox*)event.GUIEvent.Caller)->isChecked();
 							break;
 						}
-				case gui::EGET_EDITBOX_CHANGED:
+				case gui::EGET_EDITBOX_ENTER:
 						if (id == 9918)
 						{	
 							double dt = 0.01;
-							//core::stringw(message).c_str()
 							dt = atof( core::stringc( ((gui::IGUIEditBox*)event.GUIEvent.Caller)->getText() ).c_str() );
 							this->app->SetTimestep(dt); 
 							break;
@@ -276,7 +275,7 @@ public:
 			if (device == 0) 
 			{      
 				chrono::GetLog() << "Cannot use default video driver - fall back to OpenGL \n"; 
-				device = createDevice(video::EDT_OPENGL, core::dimension2d<u32>(800, 600));
+				device = createDevice(video::EDT_OPENGL, dimens,32,do_fullscreen,do_shadows);
 				if (!device) return;
 			}
 
@@ -415,7 +414,13 @@ public:
 				/// Set the time step for time integration. It will be used when you 
 				/// call myapplication->DoStep() in the loop, that will advance the simulation by 
 				/// one timestep. 
-	void SetTimestep(double val) {this->timestep = chrono::ChMax(10e-9, val);}
+	void SetTimestep(double val) 
+		{
+			this->timestep = chrono::ChMax(10e-9, val);
+			char message[50];
+			sprintf(message,"%g", this->timestep );
+			this->gad_timestep->setText(core::stringw(message).c_str());
+		}
 	double GetTimestep() {return this->timestep;}
 
 				/// If you set as true, you can use  myapplication->DoStep() in the simulation loop
@@ -567,11 +572,11 @@ public:
 				this->gad_try_realtime->setChecked(this->GetTryRealtime());
 				this->gad_pause_step->setChecked(this->pause_step);
 
-				if (this->GetStepManage())
-					sprintf(message,"%g", this->timestep );
-				else
-					sprintf(message,"%g", this->GetSystem()->GetStep());
-				this->gad_timestep->setText(core::stringw(message).c_str());
+				if (!this->GetStepManage())
+				{
+					sprintf(message,"%g", this->GetSystem()->GetStep() );
+					this->gad_timestep->setText(core::stringw(message).c_str());
+				}
 
 				// disable timestep-related gadgets if dt not handled by application object
 				this->gad_try_realtime->setEnabled(this->GetStepManage());

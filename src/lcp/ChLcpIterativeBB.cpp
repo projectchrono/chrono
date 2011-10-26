@@ -87,6 +87,7 @@ double ChLcpIterativeBB::Solve(
 	double mf_p;
 
 
+	// ***TO DO*** move the following thirty lines in a short function ChLcpSystemDescriptor::ShurBvectorCompute() ?
 
 	// Compute the b_shur vector in the Shur complement equation N*l = b_shur
 	// with 
@@ -118,12 +119,44 @@ double ChLcpIterativeBB::Solve(
 
 
 
+/*
+	GetLog() << "\n -----------------";
+	GetLog() << "\n vector c: \n";
+	for (int u = 0; u<mb_tmp.GetRows(); u++)
+		GetLog() << mb_tmp(u) << "\n";
 
-	// Optimization: backup the  q  sparse data computed above, 
-	// because   (M^-1)*k   will be needed at the end when computing primals.
+	GetLog() << "\n vector b (schur): \n";
+	for (int u = 0; u<mb.GetRows(); u++)
+		GetLog() << mb(u) << "\n";
+
+	GetLog() << "\n vector cfm: \n";
+	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
+		if (mconstraints[ic]->IsActive())
+			GetLog() << mconstraints[ic]->Get_cfm_i() <<"\n";
+*/
+
+		// Optimization: backup the  q  sparse data computed above, 
+		// because   (M^-1)*k   will be needed at the end when computing primals.
 	ChMatrixDynamic<> mq; 
 	sysd.FromVariablesToVector(mq, true);	
 
+/*
+	if (mb.GetRows()==3)
+	{
+		GetLog() << "\n matrix N : \n";
+		ChMatrixDynamic<> mN(3,1);
+		ChMatrixDynamic<> mE(3,1);
+		mE(0)= 1; mE(1)=0; mE(2)=0;
+		sysd.ShurComplementProduct(mN, &mE, 0);
+		GetLog() << "  " << mN(0) << "  " << mN(1) << "  " << mN(2) << "\n";
+		mE(0)= 0; mE(1)=1; mE(2)=0;
+		sysd.ShurComplementProduct(mN, &mE, 0);
+		GetLog() << "  " << mN(0) << "  " << mN(1) << "  " << mN(2) << "\n";
+		mE(0)= 0; mE(1)=0; mE(2)=1;
+		sysd.ShurComplementProduct(mN, &mE, 0);
+		GetLog() << "  " << mN(0) << "  " << mN(1) << "  " << mN(2) << "\n";
+	}
+*/
 
 	// Initialize lambdas
 	if (warm_start)
@@ -131,7 +164,7 @@ double ChLcpIterativeBB::Solve(
 	else
 		ml.FillElem(0);
 
-	// Initial projection of ml (to do)
+	// Initial projection of ml   ***TO DO***?
 	// ...
 
 	// Fallback solution
@@ -223,6 +256,7 @@ double ChLcpIterativeBB::Solve(
 
 			if (mf_p > max_compare)
 			{
+GetLog() << " Repeat Armijo \n";  // ***TO DO*** remove debug log
 				armijo_repeat = true;
 				double lambdanew = - lambda * lambda * dTg / (2*(mf_p - mf -lambda*dTg));
 				lambda = ChMax(sigma_min*lambda, ChMin(sigma_max*lambda,lambdanew));
@@ -239,7 +273,8 @@ double ChLcpIterativeBB::Solve(
 
 		// s = l_p - l;
 		ms.MatrSub(ml_p, ml);
-	
+		
+						// ***TO DO*** see if the following 3 lines can be simply removed..
 		// g_p = N*l_p - b;		not needed?					#### MATR.MULTIPLICATION!!!###
 		sysd.ShurComplementProduct(mg_p, &ml_p, 0);  // 1)  g_p = N*l_p ...        
 		mg_p.MatrDec(mb);					    	 // 2)  g_p = N*l_p - b_shur ...
@@ -265,6 +300,7 @@ double ChLcpIterativeBB::Solve(
 			alpha = ChMin (a_max, ChMax(a_min, alph));
 		}
 
+		// ***TO DO*** remove the following commented code
 		// Store sequence of norms of inequality residuals - WAS MATLAB
 		/*
 		testres = N*l-b;
@@ -277,16 +313,23 @@ double ChLcpIterativeBB::Solve(
 		res_story(j)= lastgoodres;
 		*/
 
+		// Fallback strategy for keeping the best found vector, because search is
+		// nonmonotone. 
+		// ***TO DO*** ***FALLBACK STRATEGY NOT GOOD???***
 		if (mf_p < lastgoodfval)
 		{
 			lastgoodfval = mf_p;
 			ml_candidate.CopyFromMatrix(ml);
 		}
+		// ***TO DO*** reactivate a fallback strategy.. now there's none 
+		ml_candidate.CopyFromMatrix(ml);
+		//GetLog() << "  iter=" << iter << "   mf_p=" << mf_p << "  lastgoodfval=" << lastgoodfval <<"\n";
+		
 
 		// METRICS - convergence, plots, etc
 
 		double maxdeltalambda = ms.NormInf();
-		double maxd			  = md.NormInf();  // *** should be max violation, but just for test...
+		double maxd			  = md.NormInf();  // ***TO DO***  should be max violation, but just for test...
 			
 		// For recording into correction/residuals/violation history, if debugging
 		if (this->record_violation_history)
@@ -294,8 +337,10 @@ double ChLcpIterativeBB::Solve(
 
 		// Terminate the loop if violation in constraints has been succesfully limited.
 		
+		// ***TO DO*** a reliable termination creterion.. 
+		// ..also check monotonicity of f? Risk of false positive in termination?
 		/*
-		if (maxdeltalambda < this->tolerance)  // ..also check monotonicity of f? Risk of false positive in termination?
+		if (maxdeltalambda < this->tolerance)  ù
 		{
 			GetLog() <<"BB premature maxdeltalambda break at i=" << iter << "\n";
 			break;
@@ -307,7 +352,7 @@ double ChLcpIterativeBB::Solve(
 	}
 
 	// Fallback to best found solution (might be useful because of nonmonotonicity)
-	ml.CopyFromMatrix(ml_candidate);  // ***TO DO*** ?
+	ml.CopyFromMatrix(ml_candidate);  
 
 
 	// Resulting DUAL variables:
@@ -329,6 +374,16 @@ double ChLcpIterativeBB::Solve(
 			mconstraints[ic]->Increment_q( mconstraints[ic]->Get_l_i() );
 	}
 	
+/*
+	GetLog() << "\n result vector v (y): \n";
+	sysd.FromVariablesToVector(mq);
+	GetLog() << mq(1) <<"\n";
+
+	GetLog() << "\n result vector l: \n";
+		for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
+			if (mconstraints[ic]->IsActive())
+				GetLog() << mconstraints[ic]->Get_l_i() <<"\n";
+*/
 
 	if (verbose) GetLog() <<"-----\n";
 

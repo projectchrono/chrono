@@ -129,7 +129,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 
 	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
 											&mphysicalSystem, msceneManager,
-											1.0,
+											100.0,
 											ChVector<>(0,-2,0),
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(550,4,550) );
@@ -139,7 +139,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 
 	// Create a ball that will collide with wall
 	double mradius = 3;
-	double density = 1;
+	double density = 0.1;
 	double mmass = (4./3.)*CH_C_PI*pow(mradius,3)*density; 
 	double minert = (2./5.)* mmass * pow(mradius,2);
 
@@ -151,10 +151,11 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 										20,  // hslices, for rendering
 										15); // vslices, for rendering
 
-	// set moment of inertia (more realisic than default 1,1,1).
+	// set moment of inertia (more realistic than default 1,1,1).
 	mrigidBody->GetBody()->SetInertiaXX(ChVector<>(minert,minert,minert));
 	mrigidBody->GetBody()->SetPos_dt(ChVector<>(0,0,16));
 	mrigidBody->GetBody()->SetFriction(0.4f); 
+
 
 	// Some aesthetics for 3d view..
 	mrigidBody->addShadowVolumeSceneNode();
