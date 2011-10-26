@@ -93,6 +93,7 @@ void ChLcpConstraintThreeBBShaft::Update_auxiliary()
 
 	//2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i 
 	ChMatrixNM<float,1,1> res;
+	g_i = 0;
 	if (variables_a->IsActive())
 	{
 		res.MatrMultiply(Cq_a, Eq_a);
