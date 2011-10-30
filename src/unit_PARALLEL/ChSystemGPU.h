@@ -73,17 +73,12 @@ namespace chrono {
 			virtual void LCPprepare_reset();
 			void ChangeCollisionSystem(ChCollisionSystem* newcollsystem);
 			void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
+			float ComputeKineticEnergy();
 			ChGPUDataManager *gpu_data_manager;
 		private:
 			unsigned int counter;
 			unsigned int max_obj;
 			bool copydata;
-
-			ChForceSystemGPU Force_System;
-			//bool do_update_GPU_body;
-			//bool do_update_GPU_CD;
-
-
 	};
 
 }

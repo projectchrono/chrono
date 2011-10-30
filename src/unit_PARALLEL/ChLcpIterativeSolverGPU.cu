@@ -25,7 +25,7 @@ __constant__ float step_size_const;
 // Creates a quaternion as a function of a vector of rotation and an angle (the vector is assumed already
 // normalized, and angle is in radians).
 
-inline __host__        __device__ float4 Quat_from_AngAxis(const float &angle, const float3 & v) {
+inline __host__          __device__ float4 Quat_from_AngAxis(const float &angle, const float3 & v) {
 	float sinhalf = sinf(angle * 0.5f);
 	float4 quat;
 	quat.x = cosf(angle * 0.5f);
@@ -39,7 +39,7 @@ inline __host__        __device__ float4 Quat_from_AngAxis(const float &angle, c
 /// following the classic Hamilton rule:  this=AxB
 /// This is the true, typical quaternion product. It is NOT commutative.
 
-inline __host__        __device__ float4 Quaternion_Product(const float4 &qa, const float4 &qb) {
+inline __host__          __device__ float4 Quaternion_Product(const float4 &qa, const float4 &qb) {
 	float4 quat;
 	quat.x = qa.x * qb.x - qa.y * qb.y - qa.z * qb.z - qa.w * qb.w;
 	quat.y = qa.x * qb.y + qa.y * qb.x - qa.w * qb.z + qa.z * qb.w;
@@ -248,10 +248,10 @@ __global__ void LCP_Iteration_Bilaterals(CH_REALNUMBER4* bilaterals, float3* aux
 }
 
 __device__ __host__ inline float4 computeRot_dt(float3 & omega, float4 &rot) {
-	return mult(F4(0,omega.x,omega.y,omega.z),rot)*.5;
+	return mult(F4(0, omega.x, omega.y, omega.z), rot) * .5;
 }
 __device__ __host__ float3 RelPoint_AbsSpeed(float3 & vel, float3 & omega, float4 & rot, float3 &point) {
-	float4 q = mult(computeRot_dt(omega,rot),mult(F4(0, point.x, point.y, point.z), inv(rot)));
+	float4 q = mult(computeRot_dt(omega, rot), mult(F4(0, point.x, point.y, point.z), inv(rot)));
 	return vel + ((F3(q.y, q.z, q.w)) * 2);
 }
 __global__ void DEM_Contacts(float3* norm, float3* ptA, float3* ptB, float* contactDepth, int2* ids, float3* aux, float3* inertia, float4* rot, float3* vel, float3* omega, float3* pos,
@@ -330,13 +330,12 @@ __global__ void ChKernelLCPaddForces(float3* aux, float3* inertia, float3* force
 			float3 mF, minvMasses = inertia[i];
 			// v += m_inv * h * f
 			mF = forces[i]; // vector with f (force)
-			mF *= force_factor_const;
+			mF *= step_size_const;
 			mF *= temp_aux.z;
 			vel[i] += mF;
-
 			// w += J_inv * h * c
 			mF = torques[i]; // vector with f (torque)
-			mF *= force_factor_const;
+			mF *= step_size_const;
 			mF.x *= minvMasses.x;
 			mF.y *= minvMasses.y;
 			mF.z *= minvMasses.z;
@@ -418,7 +417,7 @@ __global__ void LCP_Integrate_Timestep(float3* aux, float3* acc, float4* rot, fl
 	}
 
 }
-__global__ void LCP_ComputeGyro(float3* omega, float3* inertia, float3* gyro) {
+__global__ void LCP_ComputeGyro(float3* omega, float3* inertia, float3* gyro, float3* torque) {
 	unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i >= number_of_bodies_const) {
 		return;
@@ -426,7 +425,9 @@ __global__ void LCP_ComputeGyro(float3* omega, float3* inertia, float3* gyro) {
 	float3 body_inertia = inertia[i];
 	body_inertia = F3(1 / body_inertia.x, 1 / body_inertia.y, 1 / body_inertia.z);
 	float3 body_omega = omega[i];
-	gyro[i] = cross(body_omega, body_inertia * body_omega);
+	float3 gyr = cross(body_omega, body_inertia * body_omega);
+	gyro[i] = gyr;
+	torque[i] -= gyr;
 
 }
 
@@ -479,7 +480,6 @@ void ChLcpIterativeSolverGPU::RunTimeStep() {
 		bool res = false;
 		if (data_container->device_bids_data.size() == device_bids_data_old.size()) {
 			res = Thrust_Equal(data_container->device_bids_data,device_bids_data_old);
-			//if(res){printf("!!!");}
 		}
 
 		if (res == false) {
@@ -511,6 +511,13 @@ void ChLcpIterativeSolverGPU::RunTimeStep() {
 	}
 
 	COPY_TO_CONST_MEM(number_of_updates);
+	data_container->device_gyr_data.resize(number_of_bodies);
+	//
+	LCP_ComputeGyro<<< BLOCKS(number_of_bodies),THREADS>>>(
+			CASTF3(data_container->device_omg_data),
+			CASTF3(data_container->device_inr_data),
+			CASTF3(data_container->device_gyr_data),
+			CASTF3(data_container->device_trq_data));
 
 	ChKernelLCPaddForces<<< BLOCKS(number_of_bodies), THREADS >>>(
 			CASTF3(data_container->device_aux_data),
@@ -529,7 +536,7 @@ void ChLcpIterativeSolverGPU::RunTimeStep() {
 
 		for (uint iteration_number = 0; iteration_number < max_iter; iteration_number++) {
 			if (use_DEM == false) {
-LCP_Iteration_Contacts			<<< BLOCKS(number_of_contacts), THREADS >>>(
+				LCP_Iteration_Contacts			<<< BLOCKS(number_of_contacts), THREADS >>>(
 					CASTF3(data_container->device_norm_data),
 					CASTF3(data_container->device_cpta_data),
 					CASTF3(data_container->device_cptb_data),
@@ -590,14 +597,6 @@ LCP_Integrate_Timestep<<< BLOCKS(number_of_bodies),THREADS>>>(
 		CASTF3(data_container->device_pos_data),
 		CASTF3(data_container->device_lim_data));
 }
-
-//data_container->device_gyr_data.resize(number_of_bodies);
-//
-//LCP_ComputeGyro<<< BLOCKS(number_of_bodies),THREADS>>>(
-//		CASTF3(data_container->device_omg_data),
-//		CASTF3(data_container->device_inr_data),
-//		CASTF3(data_container->device_gyr_data));
-//}
 
 void ChLcpIterativeSolverGPU::Warm_Start() {
 }

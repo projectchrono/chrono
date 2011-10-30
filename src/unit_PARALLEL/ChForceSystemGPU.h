@@ -9,22 +9,23 @@
 #include <float.h>
 #include <algorithm>
 #include <cutil_math.h>
-#include "lcp/ChLcpSystemDescriptor.h"
 #include "ChForceSolverGPU.h"
+#include "ChGPUDataManager.h"
 #include <stdio.h>
 #include <cutil.h>
 #include "ChBodyGPU.h"
-#include "physics/ChBody.h"
 
-namespace chrono{
-class ChApiGPU ChForceSystemGPU
-	{
-	public:
+namespace chrono {
+	class ChApiGPU ChForceSystemGPU {
+		public:
 
-	ChForceSystemGPU();
-	void Init();
-	void Solve(ChLcpSystemDescriptor& sysd);
-	private:
+			ChForceSystemGPU();
+			void Init();
+			void Solve();
+
+			ChForceSolverGPU * solver;
+		private:
+			int param;
 	};
 }
 

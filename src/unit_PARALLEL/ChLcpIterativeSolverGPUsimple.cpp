@@ -1,4 +1,3 @@
-
 ///////////////////////////////////////////////////
 //
 //   ChLcpIterativeSolverGPUsimple.cpp
@@ -52,11 +51,12 @@ namespace chrono {
 		gpu_solver->use_DEM = DEM;
 		gpu_solver->force_factor = 1.0;
 		number_of_bodies = 0;
+		force_solver=new ChForceSolverGPU();
 
 	}
 
-	ChLcpIterativeSolverGPUsimple::~ChLcpIterativeSolverGPUsimple() {}
-
+	ChLcpIterativeSolverGPUsimple::~ChLcpIterativeSolverGPUsimple() {
+	}
 
 	double ChLcpIterativeSolverGPUsimple::Solve(ChLcpSystemDescriptor& sysd, ///< system description with constraints and variables
 			bool add_Mq_to_f) ///< if true, takes the initial 'q' and adds [M]*q to 'f' vector
@@ -116,6 +116,8 @@ namespace chrono {
 		// -3-  EXECUTE KERNELS ===============
 
 		gpu_solver->data_container = data_container;
+		force_solver->data_container=data_container;
+		force_solver->ComputeForces();
 		gpu_solver->number_of_bilaterals = number_of_bilaterals;
 		gpu_solver->RunTimeStep();
 		return 0;

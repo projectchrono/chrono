@@ -30,6 +30,8 @@ namespace chrono {
 		collision_model = InstanceCollisionModel();
 		id = 0;
 		interDist.clear();
+
+		//data_manager = 0;
 	}
 
 	ChBodyGPU::~ChBodyGPU() {
@@ -72,7 +74,14 @@ namespace chrono {
 		Xforce += this->GetSystem()->Get_G_acc() * this->GetMass();
 
 	}
-
+	void ChBodyGPU::SetBodyFixed(bool mev) {
+		variables.SetDisabled(mev);
+		if (mev == BFlagGet(BF_FIXED)) return;
+		BFlagSet(BF_FIXED, mev);
+		if (data_manager != 0) {
+			data_manager->host_aux_data[id].x = mev;
+		}
+	}
 } // END_OF_NAMESPACE____
 
 

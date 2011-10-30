@@ -20,6 +20,7 @@
 #include <thrust/host_vector.h>
 #include "ChApiGPU.h"
 #include "ChLcpIterativeSolverGPU.h"
+#include "ChForceSolverGPU.h"
 namespace chrono{
 	///    An iterative LCP solver based on projective
 	///   fixed point method, with overrelaxation.
@@ -83,6 +84,7 @@ namespace chrono{
 		void SetSystemDescriptor(ChLcpSystemDescriptorGPU* mdescriptor);
 
 		ChGPUDataManager		*		data_container;
+		ChForceSolverGPU 		* 		force_solver;
 int number_of_bodies;
 	protected:
 		//
