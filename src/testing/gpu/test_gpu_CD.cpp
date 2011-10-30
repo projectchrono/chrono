@@ -4,11 +4,11 @@ float container_T = 1;
 
 void System::DoTimeStep() {
 	if (mNumCurrentObjects < mNumObjects && mFrameNumber % 5000 == 0) {
-		float x = 10;
+		float x = 30;
 		float posX = 0;
-		float y = 10;
+		float y = 1000;
 		float posY = -14;
-		float z = 10;
+		float z = 30;
 		float posZ = 0;
 
 		float radius = .1;
@@ -32,7 +32,7 @@ void System::DoTimeStep() {
 					mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
 					if (type == 0) {
 						MakeSphere(mrigidBody, radius, mass, mParticlePos*.5, mu, mu, rest, true);
-						mrigidBody->SetPos_dt(ChVector<>(0,-5,0));
+						//mrigidBody->SetPos_dt(ChVector<>(0,-5,0));
 					}
 					if (type == 1) {
 						MakeBox(mrigidBody, ChVector<> (radius, radius, radius), mass, mParticlePos, quat, mu, mu, rest, mobjNum, mobjNum, true, false);
@@ -65,7 +65,7 @@ void System::DoTimeStep() {
 int main(int argc, char* argv[]) {
 	float mOmega = .5;
 	int mIteations = 500;
-	float mTimeStep = .00001;
+	float mTimeStep = .001;
 	float mEnvelope = 0;
 	float mMu = .5;
 	float mWallMu = .5;
@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
 	ChLcpSystemDescriptorGPU mGPUDescriptor;
 	ChContactContainerGPUsimple mGPUContactContainer;
 	ChCollisionSystemGPU mGPUCollisionEngine(&mGPUDescriptor, mEnvelope, true);
-	ChLcpIterativeSolverGPUsimple mGPUsolverSpeed(&mGPUContactContainer, &mGPUDescriptor, mIteations, mTimeStep, mOmega, .5, true);
+	ChLcpIterativeSolverGPUsimple mGPUsolverSpeed(&mGPUContactContainer, &mGPUDescriptor, mIteations, mTimeStep, mOmega, .5, false);
 
 	ChSystemGPU SysG(1100, 50);
 	SysG.ChangeLcpSystemDescriptor(&mGPUDescriptor);
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
 	GPUSystem->mTimeStep = mTimeStep;
 	GPUSystem->mEndTime = mEndTime;
 	ChQuaternion<> base(1, 0, 0, 0);
-	GPUSystem->mNumObjects=1000;
+	GPUSystem->mNumObjects=3000000;
 	ChSharedBodyGPUPtr L = ChSharedBodyGPUPtr(new ChBodyGPU);
 	ChSharedBodyGPUPtr R = ChSharedBodyGPUPtr(new ChBodyGPU);
 	ChSharedBodyGPUPtr F = ChSharedBodyGPUPtr(new ChBodyGPU);

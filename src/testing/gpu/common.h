@@ -110,7 +110,7 @@ double System::GetKE() {
 	mKE = 0;
 	unsigned int counter = 0;
 	for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
-		ChBody *abody = mSystem->Get_bodylist()->at(i);
+		ChBodyGPU *abody = (ChBodyGPU* ) (mSystem->Get_bodylist()->at(i));
 		double mass = abody->GetMass();
 		double vel2 = abody->GetPos_dt().Length2();
 		mKE += .5 * mass * vel2;
