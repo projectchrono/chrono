@@ -71,7 +71,8 @@ double ChLcpIterativeBB::Solve(
 	// Allocate auxiliary vectors;
 	
 	int nc = sysd.CountActiveConstraints();
-	if (verbose) GetLog() <<"nc = " << nc << "\n";
+	if (verbose) GetLog() <<"\n-----Barzilai-Borwein, solving nc=" << nc << "unknowns \n";
+
 	ChMatrixDynamic<> ml(nc,1);
 	ChMatrixDynamic<> ml_candidate(nc,1);
 	ChMatrixDynamic<> mg(nc,1);
@@ -118,7 +119,7 @@ double ChLcpIterativeBB::Solve(
 	mb.MatrDec(mb_tmp);
 
 
-
+//GetLog() << "--- \n";
 /*
 	GetLog() << "\n -----------------";
 	GetLog() << "\n vector c: \n";
@@ -256,10 +257,10 @@ double ChLcpIterativeBB::Solve(
 
 			if (mf_p > max_compare)
 			{
-GetLog() << " Repeat Armijo \n";  // ***TO DO*** remove debug log
 				armijo_repeat = true;
 				double lambdanew = - lambda * lambda * dTg / (2*(mf_p - mf -lambda*dTg));
 				lambda = ChMax(sigma_min*lambda, ChMin(sigma_max*lambda,lambdanew));
+				if (verbose)  GetLog() << " Repeat Armijo, new lambda=" << lambda << "\n";
 			}
 			else
 			{
@@ -276,8 +277,8 @@ GetLog() << " Repeat Armijo \n";  // ***TO DO*** remove debug log
 		
 						// ***TO DO*** see if the following 3 lines can be simply removed..
 		// g_p = N*l_p - b;		not needed?					#### MATR.MULTIPLICATION!!!###
-		sysd.ShurComplementProduct(mg_p, &ml_p, 0);  // 1)  g_p = N*l_p ...        
-		mg_p.MatrDec(mb);					    	 // 2)  g_p = N*l_p - b_shur ...
+	//	sysd.ShurComplementProduct(mg_p, &ml_p, 0);  // 1)  g_p = N*l_p ...        
+	//	mg_p.MatrDec(mb);					    	 // 2)  g_p = N*l_p - b_shur ...
 
 		// l = l_p;
 		ml.CopyFromMatrix(ml_p);
@@ -300,31 +301,17 @@ GetLog() << " Repeat Armijo \n";  // ***TO DO*** remove debug log
 			alpha = ChMin (a_max, ChMax(a_min, alph));
 		}
 
-		// ***TO DO*** remove the following commented code
-		// Store sequence of norms of inequality residuals - WAS MATLAB
-		/*
-		testres = N*l-b;
-		resid= norm( min(zeros(nconstr,1),testres) ,2);
-		if (resid < lastgoodres)
-			lastgoodres = resid;
-			l_candidate = l;
-			disp('upd');
-		end
-		res_story(j)= lastgoodres;
-		*/
-
 		// Fallback strategy for keeping the best found vector, because search is
 		// nonmonotone. 
-		// ***TO DO*** ***FALLBACK STRATEGY NOT GOOD???***
-		if (mf_p < lastgoodfval)
-		{
-			lastgoodfval = mf_p;
-			ml_candidate.CopyFromMatrix(ml);
-		}
+		// ***TO DO*** ***FALLBACK STRATEGY NOT USABLE???***
+		//if (mf_p < lastgoodfval)
+		//{
+		//	lastgoodfval = mf_p;
+		//	ml_candidate.CopyFromMatrix(ml);
+		//}
 		// ***TO DO*** reactivate a fallback strategy.. now there's none 
 		ml_candidate.CopyFromMatrix(ml);
-		//GetLog() << "  iter=" << iter << "   mf_p=" << mf_p << "  lastgoodfval=" << lastgoodfval <<"\n";
-		
+
 
 		// METRICS - convergence, plots, etc
 
@@ -334,6 +321,9 @@ GetLog() << " Repeat Armijo \n";  // ***TO DO*** remove debug log
 		// For recording into correction/residuals/violation history, if debugging
 		if (this->record_violation_history)
 			AtIterationEnd(maxd, maxdeltalambda, iter);
+
+		if (verbose) GetLog() << "  iter=" << iter << "   f=" << mf_p << "  |d|=" << maxd << "  |s|=" << maxdeltalambda  << "\n";
+
 
 		// Terminate the loop if violation in constraints has been succesfully limited.
 		
@@ -347,8 +337,6 @@ GetLog() << " Repeat Armijo \n";  // ***TO DO*** remove debug log
 		}
 		*/
 		
-		if (verbose) GetLog() <<"iter="<< iter << " dl=" << maxdeltalambda << " last_f = " <<  lastgoodfval << "\n";
-
 	}
 
 	// Fallback to best found solution (might be useful because of nonmonotonicity)

@@ -57,7 +57,7 @@ public:
 			: ChLcpIterativeSolver(mmax_iters,mwarm_start, mtolerance,0.2)
 			{
 				n_armijo = 10;
-				max_armijo_backtrace = 20;
+				max_armijo_backtrace = 15;
 			};
 				
 	virtual ~ChLcpIterativeBB() {};
