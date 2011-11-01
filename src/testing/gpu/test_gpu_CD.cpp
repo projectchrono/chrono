@@ -6,7 +6,7 @@ void System::DoTimeStep() {
 	if (mNumCurrentObjects < mNumObjects && mFrameNumber % 5000 == 0) {
 		float x = 30;
 		float posX = 0;
-		float y = 1000;
+		float y = 30;
 		float posY = -14;
 		float z = 30;
 		float posZ = 0;
@@ -51,10 +51,10 @@ void System::DoTimeStep() {
 
 	}
 
-	DeactivationPlane(-40, -40, true);
+	//DeactivationPlane(-40, -40, true);
 	//BoundingBox(container_R,container_R,container_R);
 
-	SaveByID(1, "test_ball.txt", true, true, true, false, false);
+	//SaveByID(1, "test_ball.txt", true, true, true, false, false);
 	//SaveAllData("data/ball_drop",true, false, false, true, false);
 
 	mFrameNumber++;
@@ -64,13 +64,13 @@ void System::DoTimeStep() {
 
 int main(int argc, char* argv[]) {
 	float mOmega = .5;
-	int mIteations = 500;
+	int mIteations = 1000;
 	float mTimeStep = .001;
 	float mEnvelope = 0;
 	float mMu = .5;
 	float mWallMu = .5;
 	int mDevice = 0;
-	float mEndTime = 20;
+	float mEndTime = 1;
 	bool OGL = 0;
 
 	showContacts = 0;
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
 	GPUSystem->mTimeStep = mTimeStep;
 	GPUSystem->mEndTime = mEndTime;
 	ChQuaternion<> base(1, 0, 0, 0);
-	GPUSystem->mNumObjects=3000000;
+	GPUSystem->mNumObjects=20000;
 	ChSharedBodyGPUPtr L = ChSharedBodyGPUPtr(new ChBodyGPU);
 	ChSharedBodyGPUPtr R = ChSharedBodyGPUPtr(new ChBodyGPU);
 	ChSharedBodyGPUPtr F = ChSharedBodyGPUPtr(new ChBodyGPU);
