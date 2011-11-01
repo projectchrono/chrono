@@ -70,8 +70,9 @@ class System {
 		void SaveAllData(string prefix, bool p, bool v, bool a, bool r, bool o);
 		void drawAll();
 		void renderScene() {
-			PrintStats();
+
 			DoTimeStep();
+			PrintStats();
 		}
 		ChSystemGPU *mSystem;
 
@@ -109,14 +110,16 @@ System::System(ChSystemGPU * Sys, int nobjects, string timingfile) {
 double System::GetKE() {
 	mKE = 0;
 	unsigned int counter = 0;
-	for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
-		ChBodyGPU *abody = (ChBodyGPU* ) (mSystem->Get_bodylist()->at(i));
-		double mass = abody->GetMass();
-		double vel2 = abody->GetPos_dt().Length2();
-		mKE += .5 * mass * vel2;
-		counter++;
-	}
-	return mKE / SCALE;
+	return mSystem->GetKineticEnergy()/ SCALE;
+
+//	for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
+//		ChBodyGPU *abody = (ChBodyGPU* ) (mSystem->Get_bodylist()->at(i));
+//		double mass = abody->GetMass();
+//		double vel2 = abody->GetPos_dt().Length2();
+//		mKE += .5 * mass * vel2;
+//		counter++;
+//	}
+//	return mKE / SCALE;
 }
 
 double System::GetMFR(double height) {
@@ -513,7 +516,7 @@ void makeCyl(float3 pos, float rad, float angle, float3 axis, float3 scale) {
 	glPopMatrix();
 }
 
-void drawSphere(ChBody *abody) {
+void drawSphere(ChBodyGPU *abody) {
 	float3 color = GetColour(abody->GetPos_dt().Length(), 0, .1);
 	glColor3f(color.x, color.y, color.z);
 	double angle;
@@ -523,7 +526,7 @@ void drawSphere(ChBody *abody) {
 	makeSphere(F3(abody->GetPos().x, abody->GetPos().y, abody->GetPos().z), h.x, angle, F3(axis.x, axis.y, axis.z), F3(1, 1, 1));
 }
 
-void drawEllipsoid(ChBody *abody) {
+void drawEllipsoid(ChBodyGPU *abody) {
 	float3 color = GetColour(abody->GetPos_dt().Length(), 0, 1);
 	glColor3f(color.x, color.y, color.z);
 	double angle;
@@ -533,7 +536,7 @@ void drawEllipsoid(ChBody *abody) {
 	makeSphere(F3(abody->GetPos().x, abody->GetPos().y, abody->GetPos().z), 1, angle, F3(axis.x, axis.y, axis.z), F3(h.x, h.y, h.z));
 }
 
-void drawBox(ChBody *abody) {
+void drawBox(ChBodyGPU *abody) {
 	float3 color = GetColour(abody->GetPos_dt().Length(), 0, 1);
 	glColor4f(color.x, color.y, color.z, 1);
 	double angle;
@@ -542,7 +545,7 @@ void drawBox(ChBody *abody) {
 	float3 h = ((ChCollisionModelGPU *) (abody->GetCollisionModel()))->mData[0].B;
 	makeBox(F3(abody->GetPos().x, abody->GetPos().y, abody->GetPos().z), 1, angle, F3(axis.x, axis.y, axis.z), F3(h.x, h.y, h.z));
 }
-void drawCyl(ChBody *abody) {
+void drawCyl(ChBodyGPU *abody) {
 	float3 color = GetColour(abody->GetPos_dt().Length(), 0, 1);
 	glColor4f(color.x, color.y, color.z, 1);
 	double angle;
@@ -551,7 +554,7 @@ void drawCyl(ChBody *abody) {
 	abody->GetRot().Q_to_AngAxis(angle, axis);
 	makeBox(F3(abody->GetPos().x, abody->GetPos().y, abody->GetPos().z), 1, angle, F3(axis.x, axis.y, axis.z), F3(h.x, h.y, h.z));
 }
-void drawTriMesh(ChBody *abody) {
+void drawTriMesh(ChBodyGPU *abody) {
 	float3 color = GetColour(abody->GetPos_dt().Length(), 0, 1);
 	glColor3f(color.x, color.y, color.z);
 	int numtriangles = ((ChCollisionModelGPU *) (abody->GetCollisionModel()))->mData.size();
@@ -571,7 +574,7 @@ void drawTriMesh(ChBody *abody) {
 		glEnd();
 	}
 }
-void drawCompound(ChBody *abody) {
+void drawCompound(ChBodyGPU *abody) {
 	float3 color = GetColour(abody->GetPos_dt().Length(), 0, 1);
 	glColor3f(color.x, color.y, color.z);
 	int numobjects = ((ChCollisionModelGPU *) (abody->GetCollisionModel()))->mData.size();
@@ -778,8 +781,29 @@ void System::drawAll() {
 
 		gluLookAt(camera_pos.x, camera_pos.y, camera_pos.z, look_at.x, look_at.y, look_at.z, camera_up.x, camera_up.y, camera_up.z);
 
+
+//		glColor3f(.3,.3,.3);
+//		glBegin(GL_QUADS);
+//		glVertex3f( 0,-0.001, 0);
+//		glVertex3f( 0,-0.001,10/10.0);
+//		glVertex3f(10/10.0,-0.001,10/10.0);
+//		glVertex3f(10/10.0,-0.001, 0);
+//		glEnd();
+//
+//		glBegin(GL_LINES);
+//		for(int i=0;i<=10;i++) {
+//		    if (i==0) { glColor3f(.6,.3,.3); } else { glColor3f(.25,.25,.25); };
+//		    glVertex3f(i/10.0,0,0);
+//		    glVertex3f(i/10.0,0,10/10.0);
+//		    if (i==0) { glColor3f(.3,.3,.6); } else { glColor3f(.25,.25,.25); };
+//		    glVertex3f(0,0,i/10.0);
+//		    glVertex3f(10/10.0,0,i/10.0);
+//		};
+//		glEnd();
+
+
 		for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
-			ChBody* abody = mSystem->Get_bodylist()->at(i);
+			ChBodyGPU* abody = (ChBodyGPU*) mSystem->Get_bodylist()->at(i);
 			if (abody->GetCollisionModel()->GetShapeType() == SPHERE && i % detail == 0) {
 				drawSphere(abody);
 			}
