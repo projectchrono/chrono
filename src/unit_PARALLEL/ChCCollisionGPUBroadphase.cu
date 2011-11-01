@@ -147,7 +147,7 @@ __global__ void AABB_AABB_Count(float3* AABBs, int2* family, uint * Bin_Number, 
 	}
 	Num_ContactD[Index] = count;
 }
-__global__ void AABB_AABB(float3* AABBs, int3* type, int2* family, uint * Bin_Number, uint * Body_Number, uint * Bin_Start, uint* Num_ContactD, int3* contact) {
+__global__ void AABB_AABB(float3* AABBs, int3* type, int2* family, uint * Bin_Number, uint * Body_Number, uint * Bin_Start, uint* Num_ContactD, long long* pair) {
 	uint Index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (Index >= last_active_bin_const) {
 		return;
@@ -168,7 +168,7 @@ __global__ void AABB_AABB(float3* AABBs, int3* type, int2* family, uint * Bin_Nu
 			int2 FB = family[Body_Number[k]];
 			if ((FA.x == FB.y || FB.x == FA.y) == false && AABB_Contact_Pt(A, B, Bin) == true) {
 				//int type=Contact_Type(A_aux.x, B_aux.x);
-				contact[offset + count] = I3(A_type.y, B_type.y, 0); //the two indicies of the objects that make up the contact
+				pair[offset + count] = ((long long)A_type.y<<32 | (long long)B_type.y);//the two indicies of the objects that make up the contact
 				count++;
 			}
 		}
@@ -212,7 +212,10 @@ void ChCCollisionGPU::Broadphase() {
 			CASTU1(generic_counter));
 
 	Thrust_Inclusive_Scan_Sum(generic_counter,number_of_contacts_possible);
+	old_contact_pair=contact_pair;
 	contact_pair.resize(number_of_contacts_possible);
+
+
 
 AABB_AABB<<<BLOCKS(last_active_bin),THREADS>>>(
 		CASTF3(aabb_data),
@@ -222,7 +225,7 @@ AABB_AABB<<<BLOCKS(last_active_bin),THREADS>>>(
 		CASTU1(body_number),
 		CASTU1(bin_start_index),
 		CASTU1(generic_counter),
-		CASTI3(contact_pair)
+		CASTLL(contact_pair)
 );
 
 }

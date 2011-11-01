@@ -73,7 +73,7 @@ namespace chrono {
 			virtual void LCPprepare_reset();
 			void ChangeCollisionSystem(ChCollisionSystem* newcollsystem);
 			void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
-			float ComputeKineticEnergy();
+			float GetKineticEnergy(){((ChLcpIterativeSolverGPUsimple*) (LCP_solver_speed))->Total_KineticEnergy();}
 			ChGPUDataManager *gpu_data_manager;
 		private:
 			unsigned int counter;

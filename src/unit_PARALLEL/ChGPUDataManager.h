@@ -20,6 +20,7 @@ class ChApiGPU ChGPUDataManager {
 		thrust::device_vector<float3> device_cptb_data;
 		thrust::device_vector<float> device_dpth_data;
 		thrust::device_vector<int2> device_bids_data;
+
 		uint number_of_contacts;
 
 		//collision data
@@ -67,6 +68,9 @@ class ChApiGPU ChGPUDataManager {
 		uint number_of_objects;
 
 		//bilateral data
+		thrust::device_vector<float3> device_gam_data;
+		//system metrics
+
 };
 
 #endif

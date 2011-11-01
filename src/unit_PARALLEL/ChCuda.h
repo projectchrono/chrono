@@ -18,6 +18,8 @@
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 #include <thrust/iterator/constant_iterator.h>
+#include <thrust/set_operations.h>
+#include <thrust/functional.h>
 #include "ChApiGPU.h"
 
 using namespace std;
@@ -43,6 +45,7 @@ typedef unsigned int uint;
 #define F3	make_float3
 #define F4	make_float4
 #define F2	make_float2
+#define I4  make_int4
 #define I3	make_int3
 #define I2	make_int2
 #define U3	make_uint3
@@ -54,6 +57,7 @@ typedef unsigned int uint;
 #define CASTU2(x) (uint2*)thrust::raw_pointer_cast(&x[0])
 #define CASTU3(x) (uint3*)thrust::raw_pointer_cast(&x[0])
 #define CASTI1(x) (int*)thrust::raw_pointer_cast(&x[0])
+#define CASTLL(x) (long long*)thrust::raw_pointer_cast(&x[0])
 #define CASTI2(x) (int2*)thrust::raw_pointer_cast(&x[0])
 #define CASTI3(x) (int3*)thrust::raw_pointer_cast(&x[0])
 #define CASTI4(x) (int4*)thrust::raw_pointer_cast(&x[0])
@@ -80,15 +84,18 @@ typedef unsigned int uint;
 #define UNBIND_TEX(x)					cudaUnbindTexture( x##_tex );
 
 #define Thrust_Inclusive_Scan_Sum(x,y)	thrust::inclusive_scan(x.begin(),x.end(), x.begin()); y=x.back();
-#define Thrust_Sort_By_Key(x,y)			thrust::sort_by_key(x.begin(),x.end(),y.begin());
-#define Thrust_Reduce_By_KeyA(x,y,z)x=  thrust::reduce_by_key(y.begin(),y.end(),thrust::constant_iterator<uint>(1),y.begin(),z.begin()).first-y.begin();
-#define Thrust_Reduce_By_KeyB(x,y,z,w)x=thrust::reduce_by_key(y.begin(),y.end(),thrust::constant_iterator<uint>(1),z.begin(),w.begin()).first-z.begin();
-#define Thrust_Inclusive_Scan(x)		thrust::inclusive_scan(x.begin(), x.end(), x.begin());
-#define Thrust_Fill(x,y)				thrust::fill(x.begin(),x.end(),y);
-#define Thrust_Sort(x)					thrust::sort(x.begin(),x.end());
+#define Thrust_Sort_By_Key(x,y)			thrust::sort_by_key(x.begin(),x.end(),y.begin())
+#define Thrust_Reduce_By_KeyA(x,y,z)x=  thrust::reduce_by_key(y.begin(),y.end(),thrust::constant_iterator<uint>(1),y.begin(),z.begin()).first-y.begin()
+#define Thrust_Reduce_By_KeyB(x,y,z,w)x=thrust::reduce_by_key(y.begin(),y.end(),thrust::constant_iterator<uint>(1),z.begin(),w.begin()).first-z.begin()
+#define Thrust_Inclusive_Scan(x)		thrust::inclusive_scan(x.begin(), x.end(), x.begin())
+#define Thrust_Fill(x,y)				thrust::fill(x.begin(),x.end(),y)
+#define Thrust_Sort(x)					thrust::sort(x.begin(),x.end())
 #define Thrust_Count(x,y)				thrust::count(x.begin(),x.end(),y)
-#define Thrust_Sequence(x)				thrust::sequence(x.begin(),x.end());
+#define Thrust_Sequence(x)				thrust::sequence(x.begin(),x.end())
 #define Thrust_Equal(x,y)				thrust::equal(x.begin(),x.end(), y.begin())
+#define Thrust_Max(x)					x[thrust::max_element(x.begin(),x.end())-x.begin()]
+#define Thrust_Min(x)					x[thrust::max_element(x.begin(),x.end())-x.begin()]
+#define Thrust_Total(x)					thrust::reduce(x.begin(),x.end())
 #define DBG(x)							printf(x);CUT_CHECK_ERROR(x);
 
 __device__ __host__ inline float4 inv(const float4& a) {

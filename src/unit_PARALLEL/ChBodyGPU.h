@@ -81,9 +81,9 @@ namespace chrono {
 			virtual void SetPos_dt(const ChVector<>& mvel) {
 				coord_dt.pos = mvel;
 				if (data_manager != 0) {
-					data_manager->host_vel_data[id].x = mvel.x;
-					data_manager->host_vel_data[id].y = mvel.y;
-					data_manager->host_vel_data[id].z = mvel.z;
+					float3(data_manager->device_vel_data[id]).x = mvel.x;
+					float3(data_manager->device_vel_data[id]).y = mvel.y;
+					float3(data_manager->device_vel_data[id]).z = mvel.z;
 				}
 			}
 

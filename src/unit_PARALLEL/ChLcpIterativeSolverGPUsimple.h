@@ -82,9 +82,11 @@ namespace chrono{
 		double GetC_factor() {return mCFactor;}
 
 		void SetSystemDescriptor(ChLcpSystemDescriptorGPU* mdescriptor);
+		float Total_KineticEnergy(){return gpu_solver->Total_KineticEnergy();}
 
 		ChGPUDataManager		*		data_container;
 		ChForceSolverGPU 		* 		force_solver;
+		ChLcpIterativeSolverGPU *		gpu_solver;
 int number_of_bodies;
 	protected:
 		//
@@ -101,7 +103,7 @@ int number_of_bodies;
 
 		ChContactContainerGPUsimple*  	gpu_contact_container; // will be asked which was C factor,max.speed.clamping etc. so to perform contact preprocessing in solver (Dan' jacobian/residual gpu computation)
 		ChLcpSystemDescriptorGPU*	  	mSystemDescriptor;
-		ChLcpIterativeSolverGPU *		gpu_solver;
+
 
 	private:
 	};

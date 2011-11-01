@@ -15,11 +15,15 @@ namespace chrono {
 		public:
 			//ChLcpIterativeSolverGPU();
 			~ChLcpIterativeSolverGPU();
-			void CPU_Version() {
-			}
-			;
-			void Warm_Start();
 			void RunTimeStep();
+
+			float Max_DeltaGamma();
+			float Min_DeltaGamma();
+			float Avg_DeltaGamma();
+
+			float Total_KineticEnergy();
+
+
 
 			float negated_recovery_speed, c_factor, step_size, tolerance, lcp_omega_bilateral, lcp_omega_contact, force_factor;
 			uint number_of_contacts, number_of_bilaterals, number_of_constraints, number_of_bodies, number_of_updates, iteration_number, maximum_iterations;
@@ -39,11 +43,14 @@ namespace chrono {
 			thrust::device_vector<float> delta_gamma;
 			thrust::device_vector<updateGPU> iteration_update;
 
-			thrust::device_vector<float3> device_gamma;
-			thrust::device_vector<float> device_deltagamma;
+
 			thrust::device_vector<float4> device_bilateral_data;
 
 			thrust::device_vector<int2> 		device_bids_data_old;
+
+			thrust::device_vector<float> device_ken_data;
+			thrust::device_vector<float> device_dgm_data;
+			thrust::device_vector<float> device_ctd_data;
 
 			//thrust::host_vector<contactGPU> host_contact_data;
 

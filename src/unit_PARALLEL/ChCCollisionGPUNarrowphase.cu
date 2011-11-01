@@ -799,7 +799,7 @@ __device__ __host__ bool CollideAndFindPoint(int typeA, float3 A_X, float3 A_Y, 
 		}
 	}
 }
-__global__ void MPR_GPU_Store(float3* pos, float4* rot, float3* obA, float3* obB, float3* obC, float4* obR, int3* typ, int3 * Pair, uint* Contact_Number, float3* norm, float3* ptA, float3* ptB,
+__global__ void MPR_GPU_Store(float3* pos, float4* rot, float3* obA, float3* obB, float3* obC, float4* obR, int3* typ, long long * Pair, uint* Contact_Number, float3* norm, float3* ptA, float3* ptB,
 		float* contactDepth, int2* ids,
 
 		uint totalPossibleConts) {
@@ -810,7 +810,8 @@ __global__ void MPR_GPU_Store(float3* pos, float4* rot, float3* obA, float3* obB
 	if (Contact_Number[Index] != 0xFFFFFFFF) {
 		return;
 	}
-	int3 pair = Pair[Index];
+	long long p = Pair[Index];
+	int2 pair = I2(int(p >> 32), int(p & 0xffffffff));
 	//if(pair.z<4){return;}
 
 	int3 A_T = typ[pair.x], B_T = typ[pair.y];
@@ -847,8 +848,8 @@ __global__ void MPR_GPU_Store(float3* pos, float4* rot, float3* obA, float3* obB
 		return;
 	};
 
-	p1 = (TransformSupportVert(A_T.x, A_X, A_Y, A_Z, A_R, -N)-p1)*N*N+p1;
-	p2 = (TransformSupportVert(B_T.x, B_X, B_Y, B_Z, B_R, N)-p2)*N*N+p2;
+	p1 = (TransformSupportVert(A_T.x, A_X, A_Y, A_Z, A_R, -N) - p1) * N * N + p1;
+	p2 = (TransformSupportVert(B_T.x, B_X, B_Y, B_Z, B_R, N) - p2) * N * N + p2;
 	depth = sqrtf(dot((p2 - p1), (p2 - p1)));
 	//p2+=p1;
 	//p2*=.5;
@@ -860,12 +861,19 @@ __global__ void MPR_GPU_Store(float3* pos, float4* rot, float3* obA, float3* obB
 	ids[Index] = I2(A_T.z, B_T.z);
 	//AddContact(CData,Index,  getID(A),getID(B), p1, p2,-N,-depth);
 	Contact_Number[Index] = 0;
+
+}
+__global__ void CopyGamma(int* from, int* to, float3* oldG, float3* newG, int contacts) {
+	uint i = blockIdx.x * blockDim.x + threadIdx.x;
+	if (i >= contacts) {
+		return;
+	}
+	newG[to[i]] = oldG[from[i]];
 }
 
 void ChCCollisionGPU::Narrowphase() { //NarrowPhase Contact CD
 	generic_counter.resize(number_of_contacts_possible);
 	Thrust_Fill(generic_counter,0xFFFFFFFF);
-	//data_container->contact_data_gpu.resize(number_of_contacts_possible);
 
 	data_container->device_norm_data.resize(number_of_contacts_possible);
 	data_container->device_cpta_data.resize(number_of_contacts_possible);
@@ -900,7 +908,7 @@ void ChCCollisionGPU::Narrowphase() { //NarrowPhase Contact CD
 			CASTF3(data_container->device_ObC_data),
 			CASTF4(data_container->device_ObR_data),
 			CASTI3(data_container->device_typ_data),
-			CASTI3(contact_pair), //Indices of bodies that make up AABB contact
+			CASTLL(contact_pair), //Indices of bodies that make up AABB contact
 			CASTU1(generic_counter), //Contact Index, store the thread index
 			CASTF3(data_container->device_norm_data),
 			CASTF3(data_container->device_cpta_data),
@@ -911,15 +919,55 @@ void ChCCollisionGPU::Narrowphase() { //NarrowPhase Contact CD
 
 
 	thrust::sort_by_key(generic_counter.begin(), generic_counter.end(), thrust::make_zip_iterator(thrust::make_tuple(data_container->device_norm_data.begin(),
-			data_container->device_cpta_data.begin(), data_container->device_cptb_data.begin(), data_container->device_dpth_data.begin(), data_container->device_bids_data.begin())));
+			data_container->device_cpta_data.begin(), data_container->device_cptb_data.begin(), data_container->device_dpth_data.begin(), data_container->device_bids_data.begin(),
+			contact_pair.begin())));
 
 	number_of_contacts = number_of_contacts_possible - Thrust_Count(generic_counter,0xFFFFFFFF);
+	thrust::device_vector<float3> old_gamma = data_container->device_gam_data;
+
 	data_container->number_of_contacts = number_of_contacts;
 	data_container->device_norm_data.resize(number_of_contacts);
 	data_container->device_cpta_data.resize(number_of_contacts);
 	data_container->device_cptb_data.resize(number_of_contacts);
 	data_container->device_dpth_data.resize(number_of_contacts);
 	data_container->device_bids_data.resize(number_of_contacts);
+	data_container->device_gam_data.resize(number_of_contacts);
+	contact_pair.resize(number_of_contacts);
+	thrust::sort_by_key(contact_pair.begin(), contact_pair.end(), thrust::make_zip_iterator(thrust::make_tuple(data_container->device_norm_data.begin(), data_container->device_cpta_data.begin(),
+			data_container->device_cptb_data.begin(), data_container->device_dpth_data.begin(), data_container->device_bids_data.begin())));
+	thrust::fill(data_container->device_gam_data.begin(), data_container->device_gam_data.end(), F3(0));
+	if (old_contact_pair.size() != 0) {
+
+		thrust::device_vector<long long> res1(contact_pair.size());
+		int numP = thrust::set_intersection(contact_pair.begin(), contact_pair.end(), old_contact_pair.begin(), old_contact_pair.end(), res1.begin()) - res1.begin();//list of persistent contacts
+
+
+		if (numP > 0) {
+			res1.resize(numP);
+			thrust::device_vector<int> temporaryA(numP);
+			thrust::device_vector<int> temporaryB(numP);
+			thrust::lower_bound(old_contact_pair.begin(), old_contact_pair.end(), res1.begin(), res1.end(), temporaryA.begin());//return index of common new contact
+			thrust::lower_bound(contact_pair.begin(), contact_pair.end(), res1.begin(), res1.end(), temporaryB.begin());//return index of common new contact
+CopyGamma		<<<BLOCKS(numP),THREADS>>>(
+				CASTI1(temporaryA),
+				CASTI1(temporaryB),
+				CASTF3(old_gamma),
+				CASTF3(data_container->device_gam_data),
+				numP);
+
+		//		for(int i=0; i<old_contact_pair.size(); i++){cout<<old_contact_pair[i]<<endl;}
+		//		cout<<"------------------------"<<endl;
+		//		for(int i=0; i<contact_pair.size(); i++){cout<<contact_pair[i]<<endl;}
+		//		cout<<"------------------------"<<endl;
+		//		for(int i=0; i<res1.size(); i++){cout<<res1[i]<<endl;}
+		//		cout<<"------------------------"<<endl;
+		//		for(int i=0; i<temporaryA.size(); i++){cout<<temporaryA[i]<<endl;}
+		//		cout<<"------------------------"<<endl;
+		//		for(int i=0; i<temporaryB.size(); i++){cout<<temporaryB[i]<<endl;}
+		//
+		//		exit(0);
+	}
+}
 
 }
 

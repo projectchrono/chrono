@@ -53,7 +53,8 @@ namespace chrono {
 				float3 init_min;
 				float3 init_max;
 			private:
-				thrust::device_vector<int3> contact_pair;
+				thrust::device_vector<long long> contact_pair;
+				thrust::device_vector<long long> old_contact_pair;
 				thrust::device_vector<uint> generic_counter;
 				thrust::device_vector<uint> bin_number;
 				thrust::device_vector<uint> body_number;
