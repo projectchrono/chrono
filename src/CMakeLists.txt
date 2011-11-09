@@ -14,23 +14,17 @@
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
-
 #-----------------------------------------------------------------------------
 # This to avoid in-source builds. 
 
 IF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
-  MESSAGE(
-     FATAL_ERROR 
-     "In-source build is not possible and not reccomended. Choose an empty directory for build output."
-    )
+  MESSAGE( FATAL_ERROR  "In-source build is not possible and not reccomended. Choose an empty directory for build output.")
 ENDIF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
-
 
 #-----------------------------------------------------------------------------
 # Hide uneeded default stuff from GUI. 
 
 MARK_AS_ADVANCED(CMAKE_INSTALL_PREFIX)
-
 
 #-----------------------------------------------------------------------------
 # Disable the warning when adding a subdir that has not CMakeLists.txt
@@ -45,7 +39,6 @@ if(COMMAND cmake_policy)
   cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
 
-
 #-----------------------------------------------------------------------------
 # Disable solution folders because not supported in VC Express
 
@@ -56,7 +49,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS Off)
 # Define project name (the 'solution' in MSVC)
 
 PROJECT(ChronoEngine)
-
 
 #-----------------------------------------------------------------------------
 # Force only two types of configurations, for multi-configuration generators
@@ -70,7 +62,6 @@ ENDIF(MSVC)
 SET(CMAKE_BUILD_TYPE "Release" CACHE STRING "For single-configuration generators (es. make) set the type of build: Debug or Release")
 SET_PROPERTY(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release" "Debug")
 IF (NOT MSVC)
- SET(CMAKE_BUILD_TYPE "Debug"	CACHE STRING "For single-configuration generators (es. make) set the type of build: Debug or Release")
  IF ("${CMAKE_BUILD_TYPE}" MATCHES "Debug")
  	SET(CH_BUILDMODE "DEBUG")
  ELSE()
@@ -142,16 +133,7 @@ set(CH_OS_VALUES "WINDOWS;LINUX")
 set_property(CACHE CH_OS PROPERTY STRINGS ${CH_OS_VALUES})
 
 
-
-
-#SET(ENABLE_WARNINGS						TRUE    CACHE BOOL   "Turn this ON to generate warnings")
-
-
 # To hide unneeded stuff from GUI (require refresh by pressing 'configure', anyway)
-
-
-
-
 
 IF(BUILD_DEMOS)
 	MARK_AS_ADVANCED(CLEAR ENABLE_UNIT_IRRLICHT)
@@ -263,9 +245,9 @@ IF ("${CH_OS}" STREQUAL "LINUX")
 			SET (CH_IRRLICHTLIB "${CH_IRRLICHTDIR}/lib/Linux/libIrrlicht.a" -lXxf86vm -lglut)
 		ENDIF()
 		IF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
-			SET (CH_BUILDFLAGS "-DLINUX -D__linux__ -DWIN64")
+			SET (CH_BUILDFLAGS "-DLINUX -D__linux__ -g")
 			SET (CH_LINKERFLAG_EXE "")
-			SET (CH_LINKERFLAG_SHARED "-lpthread -z muldefs -lglut -lGLU")
+			SET (CH_LINKERFLAG_SHARED "-lpthread -z muldefs -lglut -lGLU -pthread -Wl,--no-as-needed")
 			SET (CH_LIBNAMEPREFIX "lib")
 			SET (CH_LIBNAMEPOSTFIX ".so")
 			SET (CH_LIBNAMEPOSTFIXSHARED ".so")
@@ -284,18 +266,14 @@ SET (CH_CHRONOLIBRARYNAME_DBG "${CH_LIBDIR}/${CH_LIBNAMEPREFIX}${CH_LIBNAME}DBG$
 SET (CH_CHRONOSHAREDLNAME_DBG "${CH_BINDIR}/${CH_LIBNAME}DBG${CH_LIBNAMEPOSTFIXSHARED}")
 SET (CH_CHRONOLIB_DBG  "${CH_CHRONOLIBRARYNAME_DBG}")
 
-
-
-
 #-----------------------------------------------------------------------------
 # Some global  C++ definitions and includes that are used 
 # everywhere for all targets and all configurations.
 # 
-
 # Definitions that are used by ALL targets:
 
-SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   ${CH_BUILDFLAGS} -D_DEBUG")
-SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CH_BUILDFLAGS} -DNDEBUG -DNODEBUG")
+SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   ${CH_BUILDFLAGS} -D_DEBUG -fpermissive")
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CH_BUILDFLAGS} -DNDEBUG -DNODEBUG -fpermissive")
 
 ADD_DEFINITIONS( "-DBP_USE_FIXEDPOINT_INT_32" )   # for Bullet to use 32 bit math
 IF (MSVC)
@@ -311,8 +289,6 @@ SET(CH_INCLUDES ${CH_INCLUDES} "${CH_CHRONOSRC}/collision/bullet" )
 SET(CH_INCLUDES ${CH_INCLUDES} "${CH_CHRONOSRC}/collision/gimpact" )
 
 INCLUDE_DIRECTORIES( ${CH_INCLUDES} )
-
-
 
 #-----------------------------------------------------------------------------
 # Some other variables that will be used when building with Irrlicht or Matlab
@@ -1107,17 +1083,11 @@ ADD_LIBRARY(ChronoEngine SHARED ${ChronoEngine_FILES})
 	                          ARCHIVE_OUTPUT_DIRECTORY_DEBUG   ${CH_LIBDIR}
 	                          RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CH_BINDIR}
 	                          RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${CH_BINDIR}
-		            	  LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CH_BINDIR}
-	                          LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${CH_BINDIR}
-	                          RUNTIME_OUTPUT_NAME_DEBUG "ChronoEngineDBG"
-	                          LIBRARY_OUTPUT_NAME_DEBUG "ChronoEngineDBG"
-	                          ARCHIVE_OUTPUT_NAME_DEBUG "ChronoEngineDBG")
-	
+							  LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CH_BINDIR}
+	                          LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${CH_BINDIR})
 
-	                          
 ENDIF (BUILD_CH_SDK)
-
-	                          	                          
+                          	                          
 #
 # Propagates the CMake build to other directories
 #
@@ -1143,6 +1113,7 @@ ENDIF()
 #
 find_package("GLUT")
 find_package("OpenMP")
+find_package("OpenGL")
 
 IF (BUILD_DEMOS)
   ADD_SUBDIRECTORY(demos)
