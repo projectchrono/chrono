@@ -44,19 +44,6 @@ namespace chrono {
 			}
 			return 1;
 		}
-		bool ChCollisionModelGPU::AddCompoundBody(vector<float3> pos, vector<float3> dim, vector<float4> quats, vector<ShapeType> type) {
-			model_type = COMPOUND;
-			nObjects = pos.size();
-			bData tData;
-			for (int i = 0; i < nObjects; i++) {
-				tData.A = pos[i];
-				tData.B = dim[i];
-				tData.R = quats[i];
-				tData.type = type[i];
-				mData.push_back(tData);
-			}
-			return true;
-		}
 		bool ChCollisionModelGPU::AddSphere(double radius, ChVector<>* pos) {
 			double mass = this->GetBody()->GetMass();
 			this->GetBody()->SetInertiaXX(ChVector<> (2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius));
@@ -80,12 +67,13 @@ namespace chrono {
 			tData.A = make_float3(pos->x, pos->y, pos->z);
 			tData.B = make_float3(rx, ry, rz);
 			tData.C = make_float3(0, 0, 0);
-			tData.R = make_float4(1, 0, 0, 0);
+			tData.R = make_float4(rot->Get_A_quaternion().e0, rot->Get_A_quaternion().e1, rot->Get_A_quaternion().e2, rot->Get_A_quaternion().e3);
 			tData.type = ELLIPSOID;
 			mData.push_back(tData);
 			return true;
 		}
 		bool ChCollisionModelGPU::AddBox(double hx, double hy, double hz, ChVector<>* pos, ChMatrix33<>* rot) {
+
 			double mass = this->GetBody()->GetMass();
 			this->GetBody()->SetInertiaXX(ChVector<> (1 / 12.0 * mass * (hy * hy + hz * hz), 1 / 12.0 * mass * (hx * hx + hz * hz), 1 / 12.0 * mass * (hx * hx + hy * hy)));
 			model_type = BOX;
@@ -94,7 +82,7 @@ namespace chrono {
 			tData.A = make_float3(pos->x, pos->y, pos->z);
 			tData.B = make_float3(hx, hy, hz);
 			tData.C = make_float3(0, 0, 0);
-			tData.R = make_float4(1, 0, 0, 0);
+			tData.R = make_float4(rot->Get_A_quaternion().e0, rot->Get_A_quaternion().e1, rot->Get_A_quaternion().e2, rot->Get_A_quaternion().e3);
 			tData.type = BOX;
 			mData.push_back(tData);
 			return true;
@@ -121,7 +109,7 @@ namespace chrono {
 			tData.A = make_float3(pos->x, pos->y, pos->z);
 			tData.B = make_float3(rx, ry, rz);
 			tData.C = make_float3(0, 0, 0);
-			tData.R = make_float4(1, 0, 0, 0);
+			tData.R = make_float4(rot->Get_A_quaternion().e0, rot->Get_A_quaternion().e1, rot->Get_A_quaternion().e2, rot->Get_A_quaternion().e3);
 			tData.type = CYLINDER;
 			mData.push_back(tData);
 			return true;

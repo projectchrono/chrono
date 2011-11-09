@@ -12,15 +12,9 @@
 
 namespace chrono {
 	namespace collision {
-		ChCollisionSystemGPU::ChCollisionSystemGPU(ChLcpSystemDescriptorGPU* mdescriptor, float mEnvelope, bool copyContacts) {
+		ChCollisionSystemGPU::ChCollisionSystemGPU(ChLcpSystemDescriptorGPU* mdescriptor) {
 			mSystemDescriptor = mdescriptor;
 			mGPU = mSystemDescriptor->gpu_collision;
-			mGPU->collision_envelope = mEnvelope;
-			mGPU->number_of_models = 0;
-			counter = 0;
-		}
-		ChCollisionSystemGPU::~ChCollisionSystemGPU() {
-			mGPU->number_of_models = 0;
 		}
 		void ChCollisionSystemGPU::Add(ChCollisionModel* model) {
 			if (model->GetPhysicsItem()->GetCollide() == true) {
@@ -35,26 +29,17 @@ namespace chrono {
 					float4 obR = body->mData[j].R;
 					int3 type = I3(body->mData[j].type, mGPU->number_of_models, body_id);
 					mGPU->AddObject(obA, obB, obC, obR, fam, type);
-					mGPU->number_of_models++;
 				}
 			}
 			mGPU->data_container->number_of_models=mGPU->number_of_models;
 		}
+
+		void ChCollisionSystemGPU::Remove(ChCollisionModel* model) {}
+
 		void ChCollisionSystemGPU::Run() {
 			mGPU->Run();
 		}
-		void ChCollisionSystemGPU::Clear(void) {
-		}
-		void ChCollisionSystemGPU::Remove(ChCollisionModel* model) {
-		}
-		void ChCollisionSystemGPU::ReportContacts(ChContactContainerBase* mcontactcontainer) {
-		}
-		void ChCollisionSystemGPU::ReportProximities(ChProximityContainerBase* mproximitycontainer) {
-			mproximitycontainer->BeginAddProximities();
-			mproximitycontainer->EndAddProximities();
-		}
-		bool ChCollisionSystemGPU::RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) {
-			return false;
-		}
+
+
 	} // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____

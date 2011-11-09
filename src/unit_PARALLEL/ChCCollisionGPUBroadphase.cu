@@ -168,7 +168,7 @@ __global__ void AABB_AABB(float3* AABBs, int3* type, int2* family, uint * Bin_Nu
 			int2 FB = family[Body_Number[k]];
 			if ((FA.x == FB.y || FB.x == FA.y) == false && AABB_Contact_Pt(A, B, Bin) == true) {
 				//int type=Contact_Type(A_aux.x, B_aux.x);
-				pair[offset + count] = ((long long)A_type.y<<32 | (long long)B_type.y);//the two indicies of the objects that make up the contact
+				pair[offset + count] = ((long long) A_type.y << 32 | (long long) B_type.y);//the two indicies of the objects that make up the contact
 				count++;
 			}
 		}
@@ -212,10 +212,8 @@ void ChCCollisionGPU::Broadphase() {
 			CASTU1(generic_counter));
 
 	Thrust_Inclusive_Scan_Sum(generic_counter,number_of_contacts_possible);
-	old_contact_pair=contact_pair;
+
 	contact_pair.resize(number_of_contacts_possible);
-
-
 
 AABB_AABB<<<BLOCKS(last_active_bin),THREADS>>>(
 		CASTF3(aabb_data),

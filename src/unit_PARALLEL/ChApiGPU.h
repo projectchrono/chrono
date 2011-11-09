@@ -38,7 +38,7 @@
 #if defined(CH_API_COMPILE_UNIT_GPU)
 	#define ChApiGPU ChApiEXPORT
 #else
-	#define ChApiGPU ChApiINPORT	
+	#define ChApiGPU ChApiINPORT
 #endif
 
 

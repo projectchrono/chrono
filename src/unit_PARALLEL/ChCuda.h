@@ -15,6 +15,7 @@
 #include <thrust/copy.h>
 #include <thrust/count.h>
 #include <thrust/scan.h>
+#include <thrust/sequence.h>
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 #include <thrust/iterator/constant_iterator.h>
@@ -69,7 +70,9 @@ typedef unsigned int uint;
 #define OBJCAST(x)  (object*)thrust::raw_pointer_cast(&x[0])
 #define AABBCAST(x) (AABB*)thrust::raw_pointer_cast(&x[0])
 #define CONTCAST(x)	(contactGPU*)thrust::raw_pointer_cast(&x[0])
-#define UPDTCAST(x)	(updateGPU*)thrust::raw_pointer_cast(&x[0])
+
+#define CHVECCAST(v) ChVector<>(v.x,v.y,v.z)
+#define CHQUATCAST(q) ChQuaternion<>(q.x,q.y,q.z,q.w)
 
 #define THREADS							128
 #define MAXBLOCK						65535

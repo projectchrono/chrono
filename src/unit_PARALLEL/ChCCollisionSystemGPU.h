@@ -34,13 +34,13 @@ namespace chrono {
 		class ChApiGPU ChCollisionSystemGPU : public ChCollisionSystem{
 		public:
 
-			ChCollisionSystemGPU(ChLcpSystemDescriptorGPU* mdescriptor, float mEnvelope=0.0, bool copyContacts=1);
+			ChCollisionSystemGPU(ChLcpSystemDescriptorGPU* mdescriptor);
 
-			virtual ~ChCollisionSystemGPU();
+			virtual ~ChCollisionSystemGPU(){}
 
 			/// Clears all data instanced by this algorithm
 			/// if any (like persistent contact manifolds)
-			virtual void Clear(void);
+			virtual void Clear(void){}
 
 			/// Adds a collision model to the collision
 			/// engine (custom data may be allocated).
@@ -66,7 +66,7 @@ namespace chrono {
 			/// will call in sequence the functions BeginAddContact(), AddContact() (x n times), 
 			/// EndAddContact() of the contact container. But if a special container (say, GPU enabled)
 			/// is passed, a more rapid buffer copy might be performed)
-			virtual void ReportContacts(ChContactContainerBase* mcontactcontainer);
+			virtual void ReportContacts(ChContactContainerBase* mcontactcontainer){}
 
 			/// After the Run() has completed, you can call this function to
 			/// fill a 'proximity container' (container of narrow phase pairs), that is 
@@ -76,10 +76,10 @@ namespace chrono {
 			/// will call in sequence the functions BeginAddProximities(), AddProximity() (x n times), 
 			/// EndAddProximities() of the proximity container. But if a special container (say, GPU enabled)
 			/// is passed, a more rapid buffer copy might be performed)
-			virtual void ReportProximities(ChProximityContainerBase* mproximitycontainer);
+			virtual void ReportProximities(ChProximityContainerBase* mproximitycontainer){}
 
 			/// Perform a raycast (ray-hit test with the collision models).
-			virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult);
+			virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult){return false;}
 
 			//virtual void SetContactContainer(ChContactContainerGPU* mcontainer);
 			//virtual void SetSystemDescriptor(ChLcpSystemDescriptorGPU* mdescriptor);

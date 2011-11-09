@@ -863,12 +863,12 @@ __global__ void MPR_GPU_Store(float3* pos, float4* rot, float3* obA, float3* obB
 	Contact_Number[Index] = 0;
 
 }
-__global__ void CopyGamma(int* from, int* to, float3* oldG, float3* newG, int contacts) {
+__global__ void CopyGamma(int* to, float3* oldG, float3* newG, int contacts) {
 	uint i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i >= contacts) {
 		return;
 	}
-	newG[to[i]] = oldG[from[i]];
+	newG[to[i]] = oldG[i];
 }
 
 void ChCCollisionGPU::Narrowphase() { //NarrowPhase Contact CD
@@ -923,51 +923,52 @@ void ChCCollisionGPU::Narrowphase() { //NarrowPhase Contact CD
 			contact_pair.begin())));
 
 	number_of_contacts = number_of_contacts_possible - Thrust_Count(generic_counter,0xFFFFFFFF);
-	thrust::device_vector<float3> old_gamma = data_container->device_gam_data;
+
+	//thrust::device_vector<float3> old_gamma = data_container->device_gam_data;
 
 	data_container->number_of_contacts = number_of_contacts;
+
 	data_container->device_norm_data.resize(number_of_contacts);
 	data_container->device_cpta_data.resize(number_of_contacts);
 	data_container->device_cptb_data.resize(number_of_contacts);
 	data_container->device_dpth_data.resize(number_of_contacts);
 	data_container->device_bids_data.resize(number_of_contacts);
 	data_container->device_gam_data.resize(number_of_contacts);
-	contact_pair.resize(number_of_contacts);
-	thrust::sort_by_key(contact_pair.begin(), contact_pair.end(), thrust::make_zip_iterator(thrust::make_tuple(data_container->device_norm_data.begin(), data_container->device_cpta_data.begin(),
-			data_container->device_cptb_data.begin(), data_container->device_dpth_data.begin(), data_container->device_bids_data.begin())));
 	thrust::fill(data_container->device_gam_data.begin(), data_container->device_gam_data.end(), F3(0));
-	if (old_contact_pair.size() != 0) {
-
-		thrust::device_vector<long long> res1(contact_pair.size());
-		int numP = thrust::set_intersection(contact_pair.begin(), contact_pair.end(), old_contact_pair.begin(), old_contact_pair.end(), res1.begin()) - res1.begin();//list of persistent contacts
-
-
-		if (numP > 0) {
-			res1.resize(numP);
-			thrust::device_vector<int> temporaryA(numP);
-			thrust::device_vector<int> temporaryB(numP);
-			thrust::lower_bound(old_contact_pair.begin(), old_contact_pair.end(), res1.begin(), res1.end(), temporaryA.begin());//return index of common new contact
-			thrust::lower_bound(contact_pair.begin(), contact_pair.end(), res1.begin(), res1.end(), temporaryB.begin());//return index of common new contact
-CopyGamma		<<<BLOCKS(numP),THREADS>>>(
-				CASTI1(temporaryA),
-				CASTI1(temporaryB),
-				CASTF3(old_gamma),
-				CASTF3(data_container->device_gam_data),
-				numP);
-
-		//		for(int i=0; i<old_contact_pair.size(); i++){cout<<old_contact_pair[i]<<endl;}
-		//		cout<<"------------------------"<<endl;
-		//		for(int i=0; i<contact_pair.size(); i++){cout<<contact_pair[i]<<endl;}
-		//		cout<<"------------------------"<<endl;
-		//		for(int i=0; i<res1.size(); i++){cout<<res1[i]<<endl;}
-		//		cout<<"------------------------"<<endl;
-		//		for(int i=0; i<temporaryA.size(); i++){cout<<temporaryA[i]<<endl;}
-		//		cout<<"------------------------"<<endl;
-		//		for(int i=0; i<temporaryB.size(); i++){cout<<temporaryB[i]<<endl;}
-		//
-		//		exit(0);
-	}
-}
+//	contact_pair.resize(number_of_contacts);
+//
+//	thrust::sort_by_key(contact_pair.begin(), contact_pair.end(), thrust::make_zip_iterator(thrust::make_tuple(data_container->device_norm_data.begin(), data_container->device_cpta_data.begin(),
+//			data_container->device_cptb_data.begin(), data_container->device_dpth_data.begin(), data_container->device_bids_data.begin())));
+//	if (old_contact_pair.size() != 0) {
+//		thrust::device_vector<int> res(old_contact_pair.size());
+//
+//		thrust::binary_search(contact_pair.begin(), contact_pair.end(), old_contact_pair.begin(), old_contact_pair.end(), res.begin());//list of persistent contacts
+//		thrust::sort_by_key(res.begin(), res.end(), old_contact_pair.begin(),thrust::greater<int>() );//index of common contacts from old list
+//
+//		int numP = Thrust_Count(res,1);
+//		old_contact_pair.resize(numP);
+//		if (numP > 0) {cout<<numP<<"\t";
+//			thrust::device_vector<int> temporaryB(numP);
+//			thrust::lower_bound(contact_pair.begin(), contact_pair.end(), old_contact_pair.begin(), old_contact_pair.end(), temporaryB.begin());//return index of common new contact
+//CopyGamma		<<<BLOCKS(numP),THREADS>>>(
+//				CASTI1(temporaryB),
+//				CASTF3(old_gamma),
+//				CASTF3(data_container->device_gam_data),
+//				numP);
+//		//				for(int i=0; i<old_contact_pair.size(); i++){cout<<old_contact_pair[i]<<endl;}
+//		//				cout<<"------------------------"<<endl;
+//		//				for(int i=0; i<contact_pair.size(); i++){cout<<contact_pair[i]<<endl;}
+//		//				cout<<"------------------------"<<endl;
+//		//				for(int i=0; i<res1.size(); i++){cout<<res1[i]<<endl;}
+//		//				cout<<"------------------------"<<endl;
+//		//				for(int i=0; i<temporaryA.size(); i++){cout<<temporaryA[i]<<endl;}
+//		//				cout<<"------------------------"<<endl;
+//		//				for(int i=0; i<temporaryB.size(); i++){cout<<temporaryB[i]<<endl;}
+//		//
+//		//				exit(0);
+//	}
+//}
+//old_contact_pair = contact_pair;
 
 }
 

@@ -188,4 +188,5 @@ void ChCCollisionGPU::AddObject(const float3 &A, const float3 &B, const float3 &
 	data_container->host_ObR_data.push_back(R);
 	data_container->host_fam_data.push_back(F);
 	data_container->host_typ_data.push_back(T);
+	number_of_models++;
 }
