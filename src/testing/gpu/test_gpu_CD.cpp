@@ -1,21 +1,10 @@
 #include "common.h"
-float container_R = 10.0;
-float container_T = 1;
-
 void System::DoTimeStep() {
 	if (mNumCurrentObjects < mNumObjects && mFrameNumber % 5000 == 0) {
-		float x = 30;
-		float posX = 0;
-		float y = 30;
-		float posY = -14;
-		float z = 30;
-		float posZ = 0;
-
-		float radius = .1;
-		float mass = 4;
-		float mu = .5;
-		float rest = 0;
-		int type = 0;
+		float x = 0, y = 0, z = 0;
+		float posX = 0, posY = -14, posZ = 0;
+		float radius = .1, mass = 4, mu = .5, rest = 0;
+		ShapeType type = SPHERE;
 		ChSharedBodyGPUPtr mrigidBody;
 		mNumCurrentObjects += x * y * z;
 		int mobjNum = 0;
@@ -25,30 +14,31 @@ void System::DoTimeStep() {
 				for (int zz = 0; zz < z; zz++) {
 					ChVector<> mParticlePos((xx - (x - 1) / 2.0) + posX, (yy) + posY, (zz - (z - 1) / 2.0) + posZ);
 
-					mParticlePos+=ChVector<>(rand()%1000/10000.0-.05,rand()%1000/10000.0-.05,rand()%1000/10000.0-.05);
+					mParticlePos += ChVector<> (rand() % 1000 / 10000.0 - .05, rand() % 1000 / 10000.0 - .05, rand() % 1000 / 10000.0 - .05);
 					ChQuaternion<> quat = ChQuaternion<> (rand() % 1000 / 1000., rand() % 1000 / 1000., rand() % 1000 / 1000., rand() % 1000 / 1000.);
-					;
+					ChVector<> dim;
+					ChVector<> lpos(0, 0, 0);
 					quat.Normalize();
+
 					mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
-					if (type == 0) {
-						MakeSphere(mrigidBody, radius, mass, mParticlePos*.5, mu, mu, rest, true);
-						//mrigidBody->SetPos_dt(ChVector<>(0,-5,0));
+					InitObject(mrigidBody, mass, mParticlePos * .5, quat, mu, mu, rest, true, false, 0, 1);
+
+					switch (type) {
+					case SPHERE:
+						dim = ChVector<> (radius, 0, 0);
+					case ELLIPSOID:
+						dim = ChVector<> (radius * 1.3, radius, radius * 1.3);
+					case BOX:
+						dim = ChVector<> (radius, radius, radius);
+					case CYLINDER:
+						dim = ChVector<> (radius, radius, radius);
 					}
-					if (type == 1) {
-						MakeBox(mrigidBody, ChVector<> (radius, radius, radius), mass, mParticlePos, quat, mu, mu, rest, mobjNum, mobjNum, true, false);
-					}
-					if (type == 2) {
-						MakeEllipsoid(mrigidBody, ChVector<> (radius*1.3, radius, radius*1.3) * 1.2, mass, mParticlePos * 1.5, quat, mu, mu, rest, true);
-					}
-					if (type == 3) {
-						MakeCylinder(mrigidBody, ChVector<> (radius, radius, radius), mass, mParticlePos, quat, mu, mu, rest, true);
-					}
+					AddCollisionGeometry(mrigidBody, type, dim, lpos, quat);
+					FinalizeObject(mrigidBody);
 					mobjNum++;
-					mrigidBody->interDist.push_back(F2(1, 0));
 				}
 			}
 		}
-
 	}
 
 	//DeactivationPlane(-40, -40, true);
@@ -63,69 +53,70 @@ void System::DoTimeStep() {
 }
 
 int main(int argc, char* argv[]) {
-	float mOmega = .5;
-	int mIteations = 1000;
-	float mTimeStep = .001;
-	float mEnvelope = 0;
+
+	GPUSystem = new System(0);
+	GPUSystem->mTimeStep = .001;
+	GPUSystem->mEndTime = 10;
+	GPUSystem->mNumObjects = 0;
+	GPUSystem->mIterations = 1000;
+	GPUSystem->mTolerance = 1e-5;
+	GPUSystem->mOmegaContact = 1.0;
+	GPUSystem->mOmegaBilateral = .2;
 	float mMu = .5;
 	float mWallMu = .5;
-	int mDevice = 0;
-	float mEndTime = 1;
-	bool OGL = 0;
 
-	showContacts = 0;
 	if (argc == 3) {
-		OGL = atoi(argv[1]);
-		saveData = atoi(argv[2]);
+		GPUSystem->mUseOGL = atoi(argv[1]);
+		GPUSystem->mSaveData = atoi(argv[2]);
 	}
-
-	cudaSetDevice(mDevice);
-
-	ChLcpSystemDescriptorGPU mGPUDescriptor;
-	ChContactContainerGPUsimple mGPUContactContainer;
-	ChCollisionSystemGPU mGPUCollisionEngine(&mGPUDescriptor, mEnvelope, true);
-	ChLcpIterativeSolverGPUsimple mGPUsolverSpeed(&mGPUContactContainer, &mGPUDescriptor, mIteations, mTimeStep, mOmega, .5, false);
-
-	ChSystemGPU SysG(1100, 50);
-	SysG.ChangeLcpSystemDescriptor(&mGPUDescriptor);
-	SysG.ChangeContactContainer(&mGPUContactContainer);
-	SysG.ChangeLcpSolverSpeed(&mGPUsolverSpeed);
-	SysG.ChangeCollisionSystem(&mGPUCollisionEngine);
-	SysG.SetIntegrationType(ChSystem::INT_ANITESCU);
-	SysG.Set_G_acc(ChVector<> (0, GRAV, 0));
-	GPUSystem = new System(&SysG, 1, "test4.txt");
-	SysG.SetUseGPU(true);
-	GPUSystem->mMu = mMu;
-	GPUSystem->mTimeStep = mTimeStep;
-	GPUSystem->mEndTime = mEndTime;
-	ChQuaternion<> base(1, 0, 0, 0);
-	GPUSystem->mNumObjects=20000;
+	float container_R = 10.0, container_T = 1;
+	ChQuaternion<> quat(1, 0, 0, 0);
+	ChVector<> lpos(0, 0, 0);
 	ChSharedBodyGPUPtr L = ChSharedBodyGPUPtr(new ChBodyGPU);
 	ChSharedBodyGPUPtr R = ChSharedBodyGPUPtr(new ChBodyGPU);
 	ChSharedBodyGPUPtr F = ChSharedBodyGPUPtr(new ChBodyGPU);
 	ChSharedBodyGPUPtr B = ChSharedBodyGPUPtr(new ChBodyGPU);
 	ChSharedBodyGPUPtr BTM = ChSharedBodyGPUPtr(new ChBodyGPU);
+	ChSharedBodyGPUPtr FREE = ChSharedBodyGPUPtr(new ChBodyGPU);
 
-	GPUSystem->MakeBox(L, ChVector<> (container_T, container_R, container_R), 100000, ChVector<> (-container_R, 0, 0), base, mWallMu, mWallMu, 0, -20, -20, true, true);
-	GPUSystem->MakeBox(R, ChVector<> (container_T, container_R, container_R), 100000, ChVector<> (container_R, 0, 0), base, mWallMu, mWallMu, 0, -20, -20, true, true);
-	GPUSystem->MakeBox(F, ChVector<> (container_R, container_R, container_T), 100000, ChVector<> (0, 0, -container_R), base, mWallMu, mWallMu, 0, -20, -20, true, true);
-	GPUSystem->MakeBox(B, ChVector<> (container_R, container_R, container_T), 100000, ChVector<> (0, 0, container_R), base, mWallMu, mWallMu, 0, -20, -20, true, true);
-	GPUSystem->MakeBox(BTM, ChVector<> (container_R, container_T, container_R), 100000, ChVector<> (0, -container_R, 0), base, mWallMu, mWallMu, 0, -20, -20, true, true);
+	GPUSystem->InitObject(L, 100000, ChVector<> (-container_R, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
+	GPUSystem->InitObject(R, 100000, ChVector<> (container_R, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
+	GPUSystem->InitObject(F, 100000, ChVector<> (0, 0, -container_R), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
+	GPUSystem->InitObject(B, 100000, ChVector<> (0, 0, container_R), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
+	GPUSystem->InitObject(BTM, 100000, ChVector<> (0, -container_R, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
 
-#pragma omp parallel sections
-	{
-#pragma omp section
-		{
-			while (GPUSystem->mSystem->GetChTime() <= GPUSystem->mEndTime) {
-				GPUSystem->renderScene();
-			}
-		}
-#pragma omp section
-		{
-			if (OGL) {
-				initGLUT(string("test"), argc, argv);
-			}
-		}
-	}
+	GPUSystem->AddCollisionGeometry(L, BOX, ChVector<> (container_T, container_R, container_R), lpos, quat);
+	GPUSystem->AddCollisionGeometry(R, BOX, ChVector<> (container_T, container_R, container_R), lpos, quat);
+	GPUSystem->AddCollisionGeometry(F, BOX, ChVector<> (container_R, container_R, container_T), lpos, quat);
+	GPUSystem->AddCollisionGeometry(B, BOX, ChVector<> (container_R, container_R, container_T), lpos, quat);
+	GPUSystem->AddCollisionGeometry(BTM, BOX, ChVector<> (container_R, container_T, container_R), lpos, quat);
+
+	GPUSystem->FinalizeObject(L);
+	GPUSystem->FinalizeObject(R);
+	GPUSystem->FinalizeObject(F);
+	GPUSystem->FinalizeObject(B);
+	GPUSystem->FinalizeObject(BTM);
+
+	GPUSystem->InitObject(FREE, 1, ChVector<> (0, 0, 0), quat, mWallMu, mWallMu, 0, true, false, -10, -10);
+	GPUSystem->AddCollisionGeometry(FREE, BOX, ChVector<> (1, .1, 1), lpos, quat);
+	GPUSystem->FinalizeObject(FREE);
+
+	ChSharedPtr<ChLinkEngine> rotational_motor = ChSharedPtr<ChLinkEngine> (new ChLinkEngine);
+	ChSharedBodyPtr ptr1 = ChSharedBodyPtr(BTM);
+	ChSharedBodyPtr ptr2 = ChSharedBodyPtr(FREE);
+
+	ChFrame<> f1(ChVector<> (0, 0, 0), Q_from_AngAxis(0, ChVector<> (1, 0, 0)));
+	ChFrame<> f2(ChVector<> (0, 0, 0), Q_from_AngAxis(0, ChVector<> (1, 0, 0)));
+	rotational_motor->Initialize(ptr1, ptr2, ChCoordsys<> (ChVector<> (1.5, 1, -1), chrono::Q_from_AngAxis(CH_C_PI / 2.0, VECT_Y)));
+
+	rotational_motor->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_LOCK);
+	rotational_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
+
+	GPUSystem->mSystem->AddLink(rotational_motor);
+	ChFunction_Const* mfun = (ChFunction_Const*) rotational_motor->Get_tor_funct();
+	mfun->Set_yconst(CH_C_PI * 2.0);
+
+	GPUSystem->Setup();
+	SimulationLoop(argc, argv);
 	return 0;
 }

@@ -24,9 +24,9 @@ NvHashMap.h : A simple hash map and array template class to avoid introducing de
 // components in life support devices or systems without express written approval of
 // NVIDIA Corporation.
 //
-// Copyright © 2009 NVIDIA Corporation. All rights reserved.
-// Copyright © 2002-2008 AGEIA Technologies, Inc. All rights reserved.
-// Copyright © 2001-2006 NovodeX. All rights reserved.
+// Copyright ï¿½ 2009 NVIDIA Corporation. All rights reserved.
+// Copyright ï¿½ 2002-2008 AGEIA Technologies, Inc. All rights reserved.
+// Copyright ï¿½ 2001-2006 NovodeX. All rights reserved.
 
 #ifndef NV_HASH_MAP_H
 #define NV_HASH_MAP_H
