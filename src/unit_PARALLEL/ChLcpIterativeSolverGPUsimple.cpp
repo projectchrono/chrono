@@ -129,27 +129,14 @@ namespace chrono {
 				float3 new_acc = data_container->host_acc_data[i];
 				float3 new_omg = data_container->host_omg_data[i];
 
-				mvariables[i]->Get_qb().SetElementN(0, (double) new_vel.x);
-				mvariables[i]->Get_qb().SetElementN(1, (double) new_vel.y);
-				mvariables[i]->Get_qb().SetElementN(2, (double) new_vel.z);
-				mvariables[i]->Get_qb().SetElementN(3, (double) new_omg.x);
-				mvariables[i]->Get_qb().SetElementN(4, (double) new_omg.y);
-				mvariables[i]->Get_qb().SetElementN(5, (double) new_omg.z);
-
 				ChLcpVariablesBody* mbodyvars = (ChLcpVariablesBody*) mvariables[i];
 				ChBody* mbody = (ChBody*) mbodyvars->GetUserData();
-
 				if (mbody->IsActive()) {
-				mbody->SetCoord(ChCoordsys<> (CHVECCAST(new_pos), CHQUATCAST(new_rot)));
-				//mbody->SetPos(CHVECCAST(new_pos));
-				//mbody->SetRot(CHQUATCAST(new_rot));
-				//mbody->SetPos_dt(CHVECCAST(new_vel));
-				//mbody->SetPos_dtdt(CHVECCAST(new_acc));
-				//mbody->SetWvel_loc(CHVECCAST(new_omg));
-
-
-				mbody->VariablesQbIncrementPosition(mDt);
-				mbody->VariablesQbSetSpeed(mDt);
+				mbody->SetPos(CHVECCAST(new_pos));
+				mbody->SetRot(CHQUATCAST(new_rot));
+				mbody->SetPos_dt(CHVECCAST(new_vel));
+				mbody->SetPos_dtdt(CHVECCAST(new_acc));
+				mbody->SetWvel_loc(CHVECCAST(new_omg));
 			}
 		}
 

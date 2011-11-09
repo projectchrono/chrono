@@ -59,11 +59,11 @@ namespace chrono {
 		Update();
 
 		// reset known-term vectors
-		LCPprepare_reset();
-		LCPprepare_load(true, true, GetStep(), 1.0, 1.0 / GetStep(), max_penetration_recovery_speed, true);
+		//LCPprepare_reset();
+		//LCPprepare_load(true, true, GetStep(), 1.0, 1.0 / GetStep(), max_penetration_recovery_speed, true);
 
 		// if warm start is used, can exploit cached multipliers from last step...
-		LCPprepare_Li_from_speed_cache();
+		//LCPprepare_Li_from_speed_cache();
 
 		// make vectors of variables and constraints, used by the following LCP solver
 		LCPprepare_inject(*this->LCP_descriptor);
@@ -129,58 +129,36 @@ namespace chrono {
 		mbody->RemoveRef();
 	}
 
-	//void ChSystemGPU::Update() {
-	//	ChTimer<double> mtimer;
-	//	mtimer.start(); // Timer for profiling
-	//
-	//	for (int i = 0; i < bodylist.size(); i++) // Updates recursively all other aux.vars
-	//	{
-	//		//
-	//		//		//bodylist[i]->ClampSpeed(); //moved to gpu
-	//		//		//bodylist[i]->ComputeGyro();//moved to gpu
-	//		//bodylist[i]->UpdateMarkers(ChTime);
-	//		//bodylist[i]->UpdateForces(ChTime);
-	//		//bodylist[i]->VariablesFbReset();
-	//		//
-	//		//bodylist[i]->VariablesFbLoadForces(GetStep());
-	//		//bodylist[i]->VariablesQbLoadSpeed();
-	//		//
-	//		//		//ChLcpVariablesBodyOwnMass* mbodyvar = &(bodylist[i]->Variables());
-	//		//ChBodyGPU* mbody = (ChBodyGPU*) bodylist[i];
-	//		//
-	//		//mbody->UpdateForces(ChTime);
-	//		//float3 load_force = F3(mbody->GetXForce().x, mbody->GetXForce().y, mbody->GetXForce().z);
-	//		//float3 load_torque = F3(mbody->GetXTorque().x, mbody->GetXTorque().y, mbody->GetXTorque().z);
-	//		//gpu_data_manager->host_frc_data[i] = load_force; //forces
-	//		//gpu_data_manager->host_trq_data[i] = load_torque; //torques
-	//	}
-	//	std::list<ChLink*>::iterator it;
-	//
-	//	for (it = linklist.begin(); it != linklist.end(); it++) {
-	//		(*it)->Update(ChTime);
-	//	}
-	//
-	//	for (it = linklist.begin(); it != linklist.end(); it++) {
-	//		(*it)->ConstraintsBiReset();
-	//	}
-	//	for (it = linklist.begin(); it != linklist.end(); it++) {
-	//		(*it)->ConstraintsBiLoad_C(1 / GetStep(), max_penetration_recovery_speed, true);
-	//		(*it)->ConstraintsBiLoad_Ct(1);
-	//		(*it)->ConstraintsFbLoadForces(GetStep());
-	//		(*it)->ConstraintsLoadJacobians();
-	//	}
-	//
-	//	this->LCP_descriptor->BeginInsertion();
-	//
-	//	for (it = linklist.begin(); it != linklist.end(); it++) {
-	//		(*it)->InjectConstraints(*(this->LCP_descriptor));
-	//	}
-	//	this->LCP_descriptor->EndInsertion();
-	//	//this->contact_container->Update(); // Update all contacts, if any
-	//
-	//	mtimer.stop();
-	//	timer_update += mtimer();
-	//}
+	void ChSystemGPU::Update() {
+		ChTimer<double> mtimer;
+		mtimer.start(); // Timer for profiling
+
+		for (int i = 0; i < bodylist.size(); i++) // Updates recursively all other aux.vars
+		{
+			bodylist[i]->Update(ChTime);
+			bodylist[i]->VariablesFbReset();
+			bodylist[i]->VariablesFbLoadForces(GetStep());
+			bodylist[i]->VariablesQbLoadSpeed();
+		}
+		std::list<ChLink*>::iterator it;
+
+		for (it = linklist.begin(); it != linklist.end(); it++) {
+			(*it)->Update(ChTime);
+		}
+
+		for (it = linklist.begin(); it != linklist.end(); it++) {
+			(*it)->ConstraintsBiReset();
+		}
+		for (it = linklist.begin(); it != linklist.end(); it++) {
+			(*it)->ConstraintsBiLoad_C(1 / GetStep(), max_penetration_recovery_speed, true);
+			(*it)->ConstraintsBiLoad_Ct(1);
+			(*it)->ConstraintsFbLoadForces(GetStep());
+			(*it)->ConstraintsLoadJacobians();
+		}
+
+		mtimer.stop();
+		timer_update += mtimer();
+	}
 
 	//void ChSystemGPU::LCPprepare_load(bool load_jacobians, bool load_v, double F_factor, double Ct_factor, double C_factor, double recovery_clamp, bool do_clamp) {
 

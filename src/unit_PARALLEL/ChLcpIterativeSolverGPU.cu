@@ -23,7 +23,7 @@ __constant__ float step_size_const;
 // Creates a quaternion as a function of a vector of rotation and an angle (the vector is assumed already
 // normalized, and angle is in radians).
 
-inline __host__                      __device__ float4 Quat_from_AngAxis(const float &angle, const float3 & v) {
+inline __host__                        __device__ float4 Quat_from_AngAxis(const float &angle, const float3 & v) {
 	float sinhalf = sinf(angle * 0.5f);
 	float4 quat;
 	quat.x = cosf(angle * 0.5f);
@@ -37,7 +37,7 @@ inline __host__                      __device__ float4 Quat_from_AngAxis(const f
 /// following the classic Hamilton rule:  this=AxB
 /// This is the true, typical quaternion product. It is NOT commutative.
 
-inline __host__           __device__ float4 Quaternion_Product(const float4 &qa, const float4 &qb) {
+inline __host__             __device__ float4 Quaternion_Product(const float4 &qa, const float4 &qb) {
 	float4 quat;
 	quat.x = qa.x * qb.x - qa.y * qb.y - qa.z * qb.z - qa.w * qb.w;
 	quat.y = qa.x * qb.y + qa.y * qb.x - qa.w * qb.z + qa.z * qb.w;
@@ -94,7 +94,7 @@ __global__ void LCP_Iteration_Contacts(float3* norm, float3* ptA, float3* ptB, f
 	if (i >= number_of_contacts_const) {
 		return;
 	}
-	//if(dG[i]<1e-8){return;}
+	//if(dG[i]<1e-8){dG[i]=0;return;}
 	float4 E1, E2;
 	float3 vB, gamma, N, U, W, T3, T4, T5, T6, T7, T8, gamma_old, sbar, B1, B2, W1, W2, aux1, aux2;
 	float reg, mu, eta;
@@ -266,7 +266,7 @@ __global__ void Warm_Contacts(float3* norm, float3* ptA, float3* ptB, float* con
 	if (length(gamma[i]) != 0) {
 		return;
 	}
-	float mkn = 100000, mgn = 200, mgt = 200, mkt = 100000;
+	float mkn = 1000, mgn = 200, mgt = 200, mkt = 100;
 	//long long id=ids[i];
 	int2 temp_id = ids[i];
 	int B1_i = int(temp_id.x);
@@ -286,24 +286,24 @@ __global__ void Warm_Contacts(float3* norm, float3* ptA, float3* ptB, float* con
 	float3 posA = pos[B1_i];
 	float3 posB = pos[B2_i];
 	float3 f_n = mkn * -fabs(contactDepth[i]) * vN;
-	float3 local_pA = quatRotate(pA - posA, inv(rotA));
-	float3 local_pB = quatRotate(pB - posB, inv(rotB));
+	//float3 local_pA = quatRotate(pA - posA, inv(rotA));
+	//float3 local_pB = quatRotate(pB - posB, inv(rotB));
 
-	float3 v_BA = (RelPoint_AbsSpeed(B2, oB, rotB, local_pB)) - (RelPoint_AbsSpeed(B1, oA, rotA, local_pA));
-	float3 v_n = normalize(dot(v_BA, vN) * vN);
-	float m_eff = (1.0 / aux1.z) * (1.0 / aux2.z) / (1.0 / aux1.z + 1.0 / aux2.z);
-	f_n += mgn * m_eff * v_n;
+	//float3 v_BA = (B1-B2);//(RelPoint_AbsSpeed(B2, oB, rotB, local_pB)) - (RelPoint_AbsSpeed(B1, oA, rotA, local_pA));
+	//float3 v_n = normalize(dot(v_BA, vN) * vN);
+	//float m_eff = (1.0 / aux1.z) * (1.0 / aux2.z) / (1.0 / aux1.z + 1.0 / aux2.z);
+	//f_n += mgn * m_eff * v_n;
 
-	float mu = (aux1.y + aux2.y) * .5;
-	float3 v_t = v_BA - v_n;
+	//float mu = (aux1.y + aux2.y) * .5;
+	//float3 v_t = v_BA - v_n;
 
-	float3 f_t = (mgt * m_eff * v_t) + (mkt * (v_t * step_size_const));
+	//float3 f_t = (mgt * m_eff * v_t) + (mkt * (v_t * step_size_const));
 
-	if (length(f_t) > mu * length(f_n)) {
-		f_t *= mu * length(f_n) / length(f_t);
-	}
+	//if (length(f_t) > mu * length(f_n)) {
+	//	f_t *= mu * length(f_n) / length(f_t);
+	//}
 
-	float3 f_r = f_n + f_t;
+	float3 f_r = f_n ;//+ f_t;
 	f_r *= step_size_const;
 
 	gamma[i] = f_r;
@@ -455,7 +455,23 @@ __global__ void LCP_Integrate_Timestep(float3* aux, float3* acc, float4* rot, fl
 	// where qw^(dt) is the quaternion { cos(0.5|w|), wx/|w| sin(0.5|w|), wy/|w| sin(0.5|w|), wz/|w| sin(0.5|w|)}^dt
 	// that is argument of sine and cosines are multiplied by dt.
 	float3 omg = omega[i];
+	float3 limits = lim[i];
 	float wlen = sqrtf(dot3(omg, omg));
+	//if (limits.x == 1) {
+			float w = 2.0 * wlen;
+			if (w > limits.z) {
+				omg *= limits.z / w;
+			}
+
+			float v = length(velocity);
+			if (v > limits.y) {
+				velocity *= limits.y / v;
+			}
+			vel[i] = velocity;
+			omega[i] = omg;
+	//}
+
+
 
 	float4 Rw = (fabs(wlen) > 10e-10) ? Quat_from_AngAxis(step_size_const * wlen, omg / wlen) : F4(1., 0, 0, 0);// to avoid singularity for near zero angular speed
 
@@ -463,21 +479,6 @@ __global__ void LCP_Integrate_Timestep(float3* aux, float3* acc, float4* rot, fl
 	mq *= rsqrtf(dot(mq, mq));
 	rot[i] = mq;
 	acc[i] = (velocity - acc[i]) / step_size_const;
-	float3 limits = lim[i];
-
-	if (limits.x == 1) {
-		double w = 2.0 * wlen;
-		if (w > limits.z) {
-			omg *= limits.z / w;
-		}
-
-		double v = length(velocity);
-		if (v > limits.y) {
-			velocity *= limits.y / v;
-		}
-		vel[i] = velocity;
-		omega[i] = omg;
-	}
 }
 __global__ void LCP_ComputeGyro(float3* omega, float3* inertia, float3* gyro, float3* torque) {
 	unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -560,7 +561,7 @@ void ChLcpIterativeSolverGPU::RunTimeStep() {
 			CASTF3(data_container->device_vel_data),
 			CASTF3(data_container->device_omg_data));
 
-	if (number_of_contacts > 0 || number_of_bilaterals > 0) {
+	if (number_of_constraints > 0) {
 
 		device_bilateral_data = host_bilateral_data;
 
@@ -569,6 +570,7 @@ void ChLcpIterativeSolverGPU::RunTimeStep() {
 		update_offset.resize((number_of_constraints) * 2, 0);
 		body_number.resize((number_of_constraints) * 2, 0);
 		device_dgm_data.resize((number_of_constraints), (1));
+		Thrust_Fill(device_dgm_data,1);
 		vel_update.resize((number_of_constraints) * 2);
 		omg_update.resize((number_of_constraints) * 2);
 
@@ -587,7 +589,7 @@ void ChLcpIterativeSolverGPU::RunTimeStep() {
 		Thrust_Inclusive_Scan(offset_counter);
 
 		COPY_TO_CONST_MEM(number_of_updates);
-		WarmContact();
+		//WarmContact();
 		for (iteration_number = 0; iteration_number < maximum_iterations; iteration_number++) {
 			if (use_DEM == false) {
 
@@ -647,9 +649,7 @@ LCP_Iteration_Contacts			<<< BLOCKS(number_of_contacts), THREADS >>>(
 				CASTU1(body_number2),
 				CASTU1(offset_counter));
 		if (use_DEM == true) {break;}
-		float aDg=Avg_DeltaGamma();
-		//if(iteration_number%100==0) {cout<<aDg<<endl;}
-		if(aDg<tolerance) {break;}
+		if(Avg_DeltaGamma()<tolerance) {break;}
 	}
 }
 LCP_Integrate_Timestep<<< BLOCKS(number_of_bodies),THREADS>>>(

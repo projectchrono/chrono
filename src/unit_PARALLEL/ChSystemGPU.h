@@ -69,7 +69,7 @@ namespace chrono {
 				}
 			}
 			void RemoveBody(ChSharedPtr<ChBodyGPU> mbody);
-			//void Update();
+			void Update();
 			//virtual void LCPprepare_load(      bool load_jacobians, ///< load jacobians into ChConstraints
 			//							   bool load_v,			///< load v_old (current speeds) in q (to use LCP solver with option 'add_Mq_to_f')
 			//							   double F_factor, 	///< load F (forces) in fb: fb+=F*F_factor
