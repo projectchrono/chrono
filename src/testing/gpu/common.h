@@ -196,6 +196,8 @@ void System::InitObject(ChSharedPtr<ChBodyGPU> &body, double mass, ChVector<> po
 	body->GetCollisionModel()->ClearModel();
 	body->GetCollisionModel()->SetFamily(family);
 	body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(nocolwith);
+	body->SetLimitSpeed(true);
+
 }
 void System::AddCollisionGeometry(ChSharedPtr<ChBodyGPU> &body, ShapeType type, ChVector<> dim, ChVector<> lPos, ChQuaternion<> lRot) {
 ChMatrix33<> *rotation=new ChMatrix33<>(lRot);
