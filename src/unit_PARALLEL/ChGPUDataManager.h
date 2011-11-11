@@ -52,6 +52,7 @@ class ChApiGPU ChGPUDataManager {
 		thrust::host_vector<float3> host_lim_data;
 		thrust::host_vector<float3> host_dem_data;
 		thrust::host_vector<float3> host_gyr_data;
+		thrust::host_vector<float3> host_fap_data;
 
 		thrust::device_vector<float3> device_vel_data;
 		thrust::device_vector<float3> device_omg_data;
@@ -65,6 +66,7 @@ class ChApiGPU ChGPUDataManager {
 		thrust::device_vector<float3> device_dem_data;
 		thrust::device_vector<float3> device_lim_data;
 		thrust::device_vector<float3> device_gyr_data;
+		thrust::device_vector<float3> device_fap_data;
 		uint number_of_objects;
 
 		//bilateral data

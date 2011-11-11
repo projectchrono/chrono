@@ -33,7 +33,7 @@ namespace chrono {
 			;
 
 		public:
-			ChSystemGPU(unsigned int max_objects = 16000, double scene_size = 500);
+			ChSystemGPU(unsigned int max_objects = 1000);
 			virtual int Integrate_Y_impulse_Anitescu();
 			double ComputeCollisions();
 			void AddBody(ChSharedPtr<ChBodyGPU> newbody) {

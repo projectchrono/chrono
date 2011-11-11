@@ -52,9 +52,17 @@ namespace chrono {
 			ChVector<> GetGyro() {
 				return gyro;
 			}
+			void SetAppliedForce(ChVector<> mForce) {
+
+				mAppliedForce=mForce;
+
+			}
+			ChVector<> GetAppliedForce() {
+				return mAppliedForce;
+			}
 
 			int id;
-
+			ChVector<> mAppliedForce;
 			ChGPUDataManager *data_manager;
 
 	};

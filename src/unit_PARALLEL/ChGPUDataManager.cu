@@ -47,6 +47,7 @@ void ChGPUDataManager::DeviceToHost() {
 	host_pos_data = device_pos_data;
 	host_rot_data = device_rot_data;
 	host_acc_data = device_acc_data;
+	host_fap_data = device_fap_data;
 }
 
 void ChGPUDataManager::HostToDevice_CD() {

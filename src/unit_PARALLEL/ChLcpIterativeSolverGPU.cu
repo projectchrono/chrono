@@ -414,20 +414,22 @@ __device__ __host__ uint nearest_pow(uint num) {
 
 	return n;
 }
-__global__ void LCP_Reduce_Speeds(float3* aux, float3* vel, float3* omega, float3* updateV, float3* updateO, uint* d_body_num, uint* counter) {
+__global__ void LCP_Reduce_Speeds(float3* aux, float3* vel, float3* omega, float3* updateV, float3* updateO, uint* d_body_num, uint* counter, float3* fap) {
 	unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i >= number_of_updates_const) {
 		return;
 	}
 	int start = (i == 0) ? 0 : counter[i - 1], end = counter[i];
 	int id = d_body_num[end - 1], j;
-	if (aux[id].x == 1) {
+	float3 auxd=aux[id];
+	if (auxd.x == 1) {
 		float3 mUpdateV = F3(0);
 		float3 mUpdateO = F3(0);
 		for (j = 0; j < end - start; j++) {
 			mUpdateV += updateV[j + start];
 			mUpdateO += updateO[j + start];
 		}
+		fap[id]+=(mUpdateV/auxd.z)/step_size_const;
 		vel[id] += mUpdateV;
 		omega[id] += mUpdateO;
 	}
@@ -458,17 +460,17 @@ __global__ void LCP_Integrate_Timestep(float3* aux, float3* acc, float4* rot, fl
 	float3 limits = lim[i];
 	float wlen = sqrtf(dot3(omg, omg));
 	//if (limits.x == 1) {
-			float w = 2.0 * wlen;
-			if (w > limits.z) {
-				omg *= limits.z / w;
-			}
-
-			float v = length(velocity);
-			if (v > limits.y) {
-				velocity *= limits.y / v;
-			}
-			vel[i] = velocity;
-			omega[i] = omg;
+//			float w = 2.0 * wlen;
+//			if (w > limits.z) {
+//				omg *= limits.z / w;
+//			}
+//
+//			float v = length(velocity);
+//			if (v > limits.y) {
+//				velocity *= limits.y / v;
+//			}
+//			vel[i] = velocity;
+//			omega[i] = omg;
 	//}
 
 
@@ -570,7 +572,9 @@ void ChLcpIterativeSolverGPU::RunTimeStep() {
 		update_offset.resize((number_of_constraints) * 2, 0);
 		body_number.resize((number_of_constraints) * 2, 0);
 		device_dgm_data.resize((number_of_constraints), (1));
+		data_container->device_fap_data.resize(number_of_bodies);
 		Thrust_Fill(device_dgm_data,1);
+		Thrust_Fill(data_container->device_fap_data,F3(0));
 		vel_update.resize((number_of_constraints) * 2);
 		omg_update.resize((number_of_constraints) * 2);
 
@@ -647,7 +651,8 @@ LCP_Iteration_Contacts			<<< BLOCKS(number_of_contacts), THREADS >>>(
 				CASTF3(vel_update),
 				CASTF3(omg_update),
 				CASTU1(body_number2),
-				CASTU1(offset_counter));
+				CASTU1(offset_counter),
+				CASTF3(data_container->device_fap_data));
 		if (use_DEM == true) {break;}
 		if(Avg_DeltaGamma()<tolerance) {break;}
 	}

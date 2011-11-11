@@ -1,7 +1,6 @@
 #include "ChSystemGPU.h"
 #include <omp.h>
 
-
 #define Bpointer		    (*ibody)
 #define HIER_BODY_INIT      std::vector<ChBody*>::iterator ibody = bodylist.begin();
 #define HIER_BODY_NOSTOP    (ibody != bodylist.end())
@@ -27,25 +26,14 @@
 #define HIER_CONTROLS_NOSTOP    (itercontrol != controlslist.end())
 #define HIER_CONTROLS_NEXT	    itercontrol++;
 
-
 namespace chrono {
 
-	ChSystemGPU::ChSystemGPU(unsigned int max_objects, double scene_size) :
-		ChSystem(max_objects, scene_size) {
+	ChSystemGPU::ChSystemGPU(unsigned int max_objects) :
+		ChSystem(0, 0) {
 		gpu_data_manager = new ChGPUDataManager();
 		copydata = true;
 		counter = 0;
 		max_obj = max_objects;
-		gpu_data_manager->host_vel_data.reserve(max_objects);
-		gpu_data_manager->host_omg_data.reserve(max_objects);
-		gpu_data_manager->host_pos_data.reserve(max_objects);
-		gpu_data_manager->host_rot_data.reserve(max_objects);
-		gpu_data_manager->host_inr_data.reserve(max_objects);
-		gpu_data_manager->host_frc_data.reserve(max_objects);
-		gpu_data_manager->host_trq_data.reserve(max_objects);
-		gpu_data_manager->host_aux_data.reserve(max_objects);
-		gpu_data_manager->host_lim_data.reserve(max_objects);
-		bodylist.reserve(max_objects);
 	}
 
 	int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
@@ -67,11 +55,9 @@ namespace chrono {
 
 		// make vectors of variables and constraints, used by the following LCP solver
 		LCPprepare_inject(*this->LCP_descriptor);
-
+#pragma omp parallel for
 		for (int i = 0; i < bodylist.size(); i++) {
 			ChLcpVariablesBodyOwnMass* mbodyvar = &(bodylist[i]->Variables());
-			float inv_mass = (1.0) / (mbodyvar->GetBodyMass());
-			bodylist[i]->GetRot().Normalize();
 			gpu_data_manager->host_vel_data[i] = (F3(mbodyvar->Get_qb().GetElementN(0), mbodyvar->Get_qb().GetElementN(1), mbodyvar->Get_qb().GetElementN(2)));
 			gpu_data_manager->host_omg_data[i] = (F3(mbodyvar->Get_qb().GetElementN(3), mbodyvar->Get_qb().GetElementN(4), mbodyvar->Get_qb().GetElementN(5)));
 			gpu_data_manager->host_pos_data[i] = (F3(bodylist[i]->GetPos().x, bodylist[i]->GetPos().y, bodylist[i]->GetPos().z));
@@ -79,7 +65,7 @@ namespace chrono {
 			gpu_data_manager->host_inr_data[i] = (F3(mbodyvar->GetBodyInvInertia().GetElement(0, 0), mbodyvar->GetBodyInvInertia().GetElement(1, 1), mbodyvar->GetBodyInvInertia().GetElement(2, 2)));
 			gpu_data_manager->host_frc_data[i] = (F3(mbodyvar->Get_fb().ElementN(0), mbodyvar->Get_fb().ElementN(1), mbodyvar->Get_fb().ElementN(2))); //forces
 			gpu_data_manager->host_trq_data[i] = (F3(mbodyvar->Get_fb().ElementN(3), mbodyvar->Get_fb().ElementN(4), mbodyvar->Get_fb().ElementN(5))); //torques
-			gpu_data_manager->host_aux_data[i] = (F3(bodylist[i]->IsActive(), bodylist[i]->GetKfriction(), inv_mass));
+			gpu_data_manager->host_aux_data[i] = (F3(bodylist[i]->IsActive(), bodylist[i]->GetKfriction(), 1.0f / mbodyvar->GetBodyMass()));
 			gpu_data_manager->host_lim_data[i] = (F3(bodylist[i]->GetLimitSpeed(), bodylist[i]->GetMaxSpeed(), bodylist[i]->GetMaxWvel()));
 		}
 		gpu_data_manager->HostToDevice();
@@ -112,7 +98,7 @@ namespace chrono {
 		return mretC;
 	}
 
-//	void ChSystemGPU::AddBody(ChSharedPtr<ChBodyGPU> newbody)
+	//	void ChSystemGPU::AddBody(ChSharedPtr<ChBodyGPU> newbody)
 
 	void ChSystemGPU::RemoveBody(ChSharedPtr<ChBodyGPU> mbody) {
 		assert(std::find<std::vector<ChBody*>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr()) != bodylist.end());
@@ -132,7 +118,7 @@ namespace chrono {
 	void ChSystemGPU::Update() {
 		ChTimer<double> mtimer;
 		mtimer.start(); // Timer for profiling
-
+#pragma omp parallel for
 		for (int i = 0; i < bodylist.size(); i++) // Updates recursively all other aux.vars
 		{
 			bodylist[i]->Update(ChTime);

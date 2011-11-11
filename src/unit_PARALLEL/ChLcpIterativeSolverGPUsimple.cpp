@@ -69,6 +69,7 @@ namespace chrono {
 
 		gpu_solver->host_bilateral_data.resize(number_of_bilaterals * CH_BILATERAL_VSIZE);
 		uint counter = 0;
+#pragma omp parallel for
 		for (uint ic = 0; ic < mconstraints.size(); ic++) {
 			if (!mconstraints[ic]->IsActive()) {
 				continue;
@@ -121,6 +122,7 @@ namespace chrono {
 		gpu_solver->number_of_bilaterals = number_of_bilaterals;
 		gpu_solver->RunTimeStep();
 		data_container->DeviceToHost();
+#pragma omp parallel for
 		for (unsigned int i = 0; i < mvariables.size(); i++) {
 
 				float3 new_pos = data_container->host_pos_data[i];
@@ -128,15 +130,17 @@ namespace chrono {
 				float3 new_vel = data_container->host_vel_data[i];
 				float3 new_acc = data_container->host_acc_data[i];
 				float3 new_omg = data_container->host_omg_data[i];
+				float3 new_fap = data_container->host_fap_data[i];
 
 				ChLcpVariablesBody* mbodyvars = (ChLcpVariablesBody*) mvariables[i];
-				ChBody* mbody = (ChBody*) mbodyvars->GetUserData();
+				ChBodyGPU* mbody = (ChBodyGPU*) mbodyvars->GetUserData();
 				if (mbody->IsActive()) {
 				mbody->SetPos(CHVECCAST(new_pos));
 				mbody->SetRot(CHQUATCAST(new_rot));
 				mbody->SetPos_dt(CHVECCAST(new_vel));
 				mbody->SetPos_dtdt(CHVECCAST(new_acc));
 				mbody->SetWvel_loc(CHVECCAST(new_omg));
+				mbody->SetAppliedForce(CHVECCAST(new_fap));
 			}
 		}
 
