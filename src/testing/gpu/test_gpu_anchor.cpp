@@ -116,6 +116,7 @@ void System::DoTimeStep() {
 }
 
 int main(int argc, char* argv[]) {
+	omp_set_nested(1);
 	GPUSystem = new System(0);
 	GPUSystem->mTimeStep = .001;
 	GPUSystem->mEndTime = 60;

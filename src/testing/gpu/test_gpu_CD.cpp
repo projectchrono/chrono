@@ -22,7 +22,7 @@ void System::DoTimeStep() {
 
 					mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
 					InitObject(mrigidBody, mass, mParticlePos * .5, quat, mu, mu, rest, true, false, 0, 1);
-
+					mrigidBody->SetPos_dt(ChVector<> (0, -.2, 0));
 					switch (type) {
 					case SPHERE:
 						dim = ChVector<> (radius, 0, 0);

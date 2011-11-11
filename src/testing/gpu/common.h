@@ -66,7 +66,7 @@ System::System(int cudaDevice) {
 	mGPUCollisionEngine = new ChCollisionSystemGPU(mGPUDescriptor);
 	mGPUsolverSpeed = new ChLcpIterativeSolverGPUsimple(mGPUContactContainer, mGPUDescriptor);
 
-	mSystem = new ChSystemGPU(1100, 50);
+	mSystem = new ChSystemGPU();
 	mSystem->ChangeLcpSystemDescriptor(mGPUDescriptor);
 	mSystem->ChangeContactContainer(mGPUContactContainer);
 	mSystem->ChangeLcpSolverSpeed(mGPUsolverSpeed);
