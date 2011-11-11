@@ -50,6 +50,10 @@ set_property(GLOBAL PROPERTY USE_FOLDERS Off)
 
 PROJECT(ChronoEngine)
 
+find_package("GLUT")
+find_package("OpenMP")
+find_package("OpenGL")
+
 #-----------------------------------------------------------------------------
 # Force only two types of configurations, for multi-configuration generators
 
@@ -256,7 +260,10 @@ IF ("${CH_OS}" STREQUAL "LINUX")
 			SET (CH_IRRLICHTLIB "${CH_IRRLICHTDIR}/lib/Linux/libIrrlicht.a" -lXxf86vm -lglut)
 		ENDIF()
 ENDIF()
-
+if(OPENMP_FOUND)
+ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+ SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+ENDIF(OPENMP_FOUND)
 	
 SET (CH_LIBNAME "ChronoEngine")
 SET (CH_CHRONOLIBRARYNAME "${CH_LIBDIR}/${CH_LIBNAMEPREFIX}${CH_LIBNAME}${CH_LIBNAMEPOSTFIX}")
@@ -1111,9 +1118,7 @@ ENDIF()
 #
 #Demo Files
 #
-find_package("GLUT")
-find_package("OpenMP")
-find_package("OpenGL")
+
 
 IF (BUILD_DEMOS)
   ADD_SUBDIRECTORY(demos)
