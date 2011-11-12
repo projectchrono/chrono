@@ -19,7 +19,7 @@ string ballFile = "ball_data_1.txt";
 void System::DoTimeStep() {
 	if (mNumCurrentObjects < mNumObjects && mFrameNumber % 500 == 0) {
 		float x = 60, y = 20, z = 60;
-		float posX = 0, posY = -25, posZ = 0;
+		float posX = 0, posY = -30, posZ = 0;
 		float radius = particle_radius, mass = particle_rho * 4.0 / 3.0 * PI * radius * radius * radius, mu = tan(particle_friction_ang * PI / 180.0), rest = 0;
 		ShapeType type = SPHERE;
 		ChSharedBodyGPUPtr mrigidBody;
@@ -31,7 +31,7 @@ void System::DoTimeStep() {
 				for (int zz = 0; zz < z; zz++) {
 					ChVector<> mParticlePos((xx - (x - 1) / 2.0) + posX, (yy) + posY, (zz - (z - 1) / 2.0) + posZ);
 
-					mParticlePos += ChVector<> (rand() % 1000 / 10000.0 - .05, rand() % 1000 / 10000.0 - .05, rand() % 1000 / 10000.0 - .05);
+					mParticlePos += ChVector<> (rand() % 1000 / 1000.0 - .05, rand() % 1000 / 1000.0 - .05, rand() % 1000 / 1000.0 - .05);
 					ChQuaternion<> quat = ChQuaternion<> (rand() % 1000 / 1000., rand() % 1000 / 1000., rand() % 1000 / 1000., rand() % 1000 / 1000.);
 					ChVector<> dim;
 					ChVector<> lpos(0, 0, 0);
@@ -57,16 +57,15 @@ void System::DoTimeStep() {
 			}
 		}
 	}
-	SaveByObject(Ball.get_ptr(), ballFile);
+	//SaveByObject(Ball.get_ptr(), ballFile);
 	DeactivationPlane(-container_width - container_thickness * 2, 0, false);
-	//	if (mFrameNumber % (int(1.0 / mTimeStep / 60.0)) == 0) {
-	//		SaveAllData("data/ball");
-	//	}
+		if (mFrameNumber % (int(1.0 / mTimeStep / 5.0)) == 0) {
+			SaveAllData("data/ball");
+		}
 	if (mCurrentTime >= 4.0) {
 
-		Ball->SetBodyFixed(false);
-		Ball->SetPos(ChVector<> (0, 0, 0));
-		Ball->SetPos_dt(ChVector<> (0, -4.4, 0));
+		//Ball->SetBodyFixed(false);
+		//Ball->SetPos(ChVector<> (0, 0, 0));
 	}
 	mFrameNumber++;
 	mSystem->DoStepDynamics(mTimeStep);
@@ -75,9 +74,9 @@ void System::DoTimeStep() {
 
 int main(int argc, char* argv[]) {
 	omp_set_nested(1);
+	int gpu= atoi(argv[3]);
 
-
-	GPUSystem = new System(0);
+	GPUSystem = new System(gpu);
 	GPUSystem->mTimeStep = .001;
 	GPUSystem->mEndTime = 30;
 	GPUSystem->mNumObjects = particle_max;
@@ -130,13 +129,13 @@ int main(int argc, char* argv[]) {
 	GPUSystem->FinalizeObject(BTM);
 	GPUSystem->FinalizeObject(BTM1);
 	GPUSystem->FinalizeObject(BTM2);
-
-	Ball = ChSharedBodyGPUPtr(new ChBodyGPU);
-	GPUSystem->InitObject(Ball, .2291, ChVector<> (0, 1, 0), quat, .7, .7, 0, true, false, -10, -10);
-	GPUSystem->AddCollisionGeometry(Ball, SPHERE, ChVector<> (.0191, 0, 0), lpos, quat);
-	GPUSystem->FinalizeObject(Ball);
-
-	Ball->SetBodyFixed(true);
+	//GPUSystem->LoadSpheres("ball150.txt", 7, particle_rho * 4.0 / 3.0 * PI * particle_radius * particle_radius * particle_radius, particle_radius, tan(particle_friction_ang * PI / 180.0));
+//	Ball = ChSharedBodyGPUPtr(new ChBodyGPU);
+//	GPUSystem->InitObject(Ball, .2291, ChVector<> (0, 0, 0), quat, .7, .7, 0, true, false, -10, -10);
+//	GPUSystem->AddCollisionGeometry(Ball, SPHERE, ChVector<> (.0191, 0, 0), lpos, quat);
+//	GPUSystem->FinalizeObject(Ball);
+//	Ball->SetPos_dt(ChVector<> (0, -4.4, 0));
+//	Ball->SetBodyFixed(true);
 
 	SimulationLoop(argc, argv);
 

@@ -21,15 +21,16 @@ class System {
 		double GetMFR(double height);
 		void DoTimeStep();
 		void PrintStats();
-		void InitObject(ChSharedPtr<ChBodyGPU> &body, double mass, ChVector<> pos, ChQuaternion<> rot, double sfric, double kfric, double restitution, bool collide, bool fixed, int family, int nocolwith);
-		void AddCollisionGeometry(ChSharedPtr<ChBodyGPU> &body,  ShapeType type, ChVector<> dim,ChVector<> lPos,ChQuaternion<> lRot);
+		void InitObject(ChSharedPtr<ChBodyGPU> &body, double mass, ChVector<> pos, ChQuaternion<> rot, double sfric, double kfric, double restitution, bool collide, bool fixed, int family,
+				int nocolwith);
+		void AddCollisionGeometry(ChSharedPtr<ChBodyGPU> &body, ShapeType type, ChVector<> dim, ChVector<> lPos, ChQuaternion<> lRot);
 		void FinalizeObject(ChSharedPtr<ChBodyGPU> body);
 		void DeactivationPlane(float y, float h, bool disable);
 		void BoundingPlane(float y);
 		void BoundingBox(float x, float y, float z, float offset);
-
+		void LoadSpheres(string fname, int skip, float mass, float rad, float mu);
 		void SaveByID(int id, string fname);
-		void SaveByObject(ChBody *abody, string fname);
+		void SaveByObject(ChBodyGPU *abody, string fname);
 		void SaveAllData(string prefix);
 		void drawAll();
 		ChSystemGPU *mSystem;
@@ -42,7 +43,6 @@ class System {
 		int mNumCurrentSpheres, mNumCurrentObjects;
 
 		double mTimeStep, mTotalTime, mCurrentTime, mEndTime;
-
 
 		double mOffsetX, mOffsetY, mOffsetZ;
 		int mNumObjects;
@@ -99,7 +99,7 @@ void System::PrintStats() {
 	double D = mSystem->GetTimerLcp();
 	int E = mSystem->GetNbodies();
 	int F = mSystem->GetNcontacts();
-	int I=((ChLcpIterativeSolverGPUsimple*) (mSystem->GetLcpSolverSpeed()))->gpu_solver->iteration_number;
+	int I = ((ChLcpIterativeSolverGPUsimple*) (mSystem->GetLcpSolverSpeed()))->gpu_solver->iteration_number;
 	mTotalTime += mTimer();
 	double KE = GetKE();
 	char numstr[512];
@@ -110,16 +110,53 @@ void System::PrintStats() {
 		mTimingFile << numstr;
 	}
 }
+
+void System::LoadSpheres(string fname, int skip, float mass, float rad, float mu) {
+	ifstream ifile(fname.c_str());
+	if(ifile.fail()==true){cout<<"FAIL"<<endl;}
+	string temp;
+	int counter = 0;
+	ChSharedBodyGPUPtr mrigidBody;
+
+	ChQuaternion<> quat(1, 0, 0, 0);
+	ChVector<> lpos(0,0,0);
+	ChVector<> dim(rad,0,0);
+	while (ifile.fail() == false) {
+		getline(ifile, temp);
+		if (counter >= skip) {
+			for (int i = 0; i < temp.size(); i++) {
+				if (temp[i] == ',') {
+					temp[i] = ' ';
+				}
+			}
+			stringstream ss(temp);
+
+			ChVector<> pos, vel, acc;
+			ss >> pos.x >> pos.y >> pos.z;
+			ss >> vel.x >> vel.y >> vel.z;
+			ss >> acc.x >> acc.y >> acc.z;
+			mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
+			InitObject(mrigidBody, mass, pos, quat, mu, mu, 0, true, false, 0, 1);
+			AddCollisionGeometry(mrigidBody, SPHERE, dim, lpos, quat);
+			FinalizeObject(mrigidBody);
+			mNumCurrentObjects++;
+
+		}
+counter++;
+	}
+
+}
+
 void System::SaveByID(int id, string fname) {
 	ofstream ofile;
 	ofile.open(fname.c_str(), ios_base::app);
 
-	ChBody* abody = mSystem->Get_bodylist()->at(id);
+	ChBodyGPU * abody = (ChBodyGPU *) mSystem->Get_bodylist()->at(id);
 	ChVector<> pos = abody->GetPos();
 	ChVector<> rot = abody->GetRot().Q_to_NasaAngles();
 	ChVector<> vel = abody->GetPos_dt();
 	ChVector<> acc = abody->GetPos_dtdt();
-
+	ChVector<> fap = abody->GetAppliedForce();
 	if (isnan(rot.x)) {
 		rot.x = 0;
 	}
@@ -133,6 +170,7 @@ void System::SaveByID(int id, string fname) {
 	ofile << vel.x << "," << vel.y << "," << vel.z << ",";
 	ofile << acc.x << "," << acc.y << "," << acc.z << ",";
 	ofile << rot.x << "," << rot.y << "," << rot.z << ",";
+	ofile << fap.x << "," << fap.y << "," << fap.z << ",";
 	ofile << endl;
 
 	ofile.close();
@@ -150,13 +188,14 @@ void System::SaveAllData(string prefix) {
 	mFileNumber++;
 }
 
-void System::SaveByObject(ChBody *abody, string fname) {
+void System::SaveByObject(ChBodyGPU *abody, string fname) {
 	ofstream ofile;
 	ofile.open(fname.c_str(), ios_base::app);
 	ChVector<> pos = abody->GetPos();
 	ChVector<> rot = abody->GetRot().Q_to_NasaAngles();
 	ChVector<> vel = abody->GetPos_dt();
 	ChVector<> acc = abody->GetPos_dtdt();
+	ChVector<> fap = abody->GetAppliedForce();
 
 	if (isnan(rot.x)) {
 		rot.x = 0;
@@ -172,19 +211,21 @@ void System::SaveByObject(ChBody *abody, string fname) {
 	ofile << vel.x << "," << vel.y << "," << vel.z << ",";
 	ofile << acc.x << "," << acc.y << "," << acc.z << ",";
 	ofile << rot.x << "," << rot.y << "," << rot.z << ",";
+	ofile << fap.x << "," << fap.y << "," << fap.z << ",";
 	ofile << endl;
 
 	ofile.close();
 }
 double System::GetKE() {
-	return mSystem->GetKineticEnergy()/SCALE;
+	return mSystem->GetKineticEnergy() / SCALE;
 }
 
 double System::GetMFR(double height) {
 	return 0;
 }
 
-void System::InitObject(ChSharedPtr<ChBodyGPU> &body, double mass, ChVector<> pos, ChQuaternion<> rot, double sfric, double kfric, double restitution, bool collide, bool fixed, int family, int nocolwith) {
+void System::InitObject(ChSharedPtr<ChBodyGPU> &body, double mass, ChVector<> pos, ChQuaternion<> rot, double sfric, double kfric, double restitution, bool collide, bool fixed, int family,
+		int nocolwith) {
 	body->SetMass(mass);
 	body->SetPos(pos);
 	body->SetRot(rot);
@@ -200,7 +241,7 @@ void System::InitObject(ChSharedPtr<ChBodyGPU> &body, double mass, ChVector<> po
 
 }
 void System::AddCollisionGeometry(ChSharedPtr<ChBodyGPU> &body, ShapeType type, ChVector<> dim, ChVector<> lPos, ChQuaternion<> lRot) {
-ChMatrix33<> *rotation=new ChMatrix33<>(lRot);
+	ChMatrix33<> *rotation = new ChMatrix33<> (lRot);
 	ChCollisionModelGPU * model = (ChCollisionModelGPU*) body->GetCollisionModel();
 	if (type == SPHERE) {
 		model->AddSphere(dim.x, &lPos);
@@ -280,13 +321,25 @@ void System::drawAll() {
 		camera_heading *= .5;
 		camera_pitch *= .5;
 		camera_pos_delta *= .5;
-
+		newaverage = 0;
 		gluLookAt(camera_pos.x, camera_pos.y, camera_pos.z, look_at.x, look_at.y, look_at.z, camera_up.x, camera_up.y, camera_up.z);
-
+		//points.resize(mSystem->Get_bodylist()->size());
+		points.clear();
 		for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
 			ChBodyGPU* abody = (ChBodyGPU*) mSystem->Get_bodylist()->at(i);
 			drawObject(abody);
 		}
+		averageVal = newaverage / mSystem->Get_bodylist()->size();
+
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glEnableClientState(GL_COLOR_ARRAY);
+		glVertexPointer(3, GL_FLOAT, sizeof(Point), &points[0].x);
+		glColorPointer(3, GL_FLOAT, sizeof(Point), &points[0].r);
+		glPointSize(10.0);
+		glDrawArrays(GL_POINTS, 0, points.size());
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glDisableClientState(GL_COLOR_ARRAY);
+
 		if (showContacts) {
 			ChLcpSystemDescriptorGPU* mGPUDescriptor = (ChLcpSystemDescriptorGPU *) mSystem->GetLcpSystemDescriptor();
 			for (int i = 0; i < mGPUDescriptor->gpu_collision->data_container->device_norm_data.size(); i++) {
