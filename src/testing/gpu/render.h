@@ -28,6 +28,16 @@ using namespace std;
 #define PI	3.14159265358979323846
 #define TORAD(x) x*PI/180.0
 
+
+struct Point
+{
+    float x, y, z;
+    float r, g, b;
+};
+std::vector< Point > points;
+
+
+
 float m_MaxPitchRate = 5;
 		float m_MaxHeadingRate = 5;
 		float3 camera_pos = make_float3(0, 0, 0);
@@ -45,7 +55,8 @@ bool updateDraw = true;
 bool saveData = false;
 bool showContacts = false;
 int detail = 1;
-
+int drawType=1;
+float averageVal=1, newaverage=0;
 
 float4 CreateFromAxisAngle(float3 axis, float degrees) {
 	float angle = float((degrees / 180.0f) * PI);
@@ -141,6 +152,14 @@ void processNormalKeys(unsigned char key, int x, int y) {
 		break;
 	case 'c':
 		showContacts = (showContacts) ? 0 : 1;
+	case '1':
+		drawType=1;
+		break;
+	case '2':
+		drawType=2;
+		break;
+	case '3':
+		drawType=3;
 		break;
 	}
 }
@@ -222,17 +241,10 @@ void makeSphere(float3 pos, float rad, float angle, float3 axis, float3 scale) {
 
 	glRotatef(angle * 180.0 / PI, axis.x, axis.y, axis.z);
 	glScalef(scale.x, scale.y, scale.z);
-	if (showSphere) {
-		if (!showSolid) {
-			glutWireSphere(rad, 10, 10);
-		} else {
-			glutSolidSphere(rad, 10, 10);
-		}
+	if (!showSolid) {
+		glutWireSphere(rad, 10, 10);
 	} else {
-		glPointSize(10);
-		glBegin(GL_POINTS);
-		glVertex3f(0, 0, 0);
-		glEnd();
+		glutSolidSphere(rad, 10, 10);
 	}
 }
 void makeBox(float3 pos, float rad, float angle, float3 axis, float3 scale) {
@@ -265,7 +277,20 @@ void makeCyl(float3 pos, float rad, float angle, float3 axis, float3 scale) {
 }
 
 void drawObject(ChBodyGPU *abody) {
-	float3 color = GetColour(abody->GetPos_dt().Length(), 0, 1);
+
+	float3 color;
+	float value;
+	if (drawType == 1) {
+		value = abody->GetPos_dt().Length();
+	}
+	if (drawType == 2) {
+		value = abody->GetPos_dtdt().Length();
+	}
+	if (drawType == 3) {
+		value = abody->GetAppliedForce().Length() * 1e5;
+	}
+	color= GetColour(value, 0, averageVal);
+	newaverage+=value;
 	glColor4f(color.x, color.y, color.z, 1);
 	double angle;
 	ChVector<> axis;
@@ -291,7 +316,18 @@ void drawObject(ChBodyGPU *abody) {
 
 		switch (type) {
 		case SPHERE:
-			makeSphere(F3(pos.x, pos.y, pos.z), B.x, angle, F3(axis.x, axis.y, axis.z), F3(1, 1, 1));
+			if (showSphere) {
+				makeSphere(F3(pos.x, pos.y, pos.z), B.x, angle, F3(axis.x, axis.y, axis.z), F3(1, 1, 1));
+			} else {
+				Point pt;
+				pt.x = pos.x;
+				pt.y = pos.y;
+				pt.z = pos.z;
+				pt.r = color.x;
+				pt.g = color.y;
+				pt.b = color.z;
+				points.push_back(pt);
+			}
 			break;
 		case ELLIPSOID:
 			makeSphere(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
@@ -303,6 +339,7 @@ void drawObject(ChBodyGPU *abody) {
 			makeCyl(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
 			break;
 		}
+
 		glPopMatrix();
 	}
 
