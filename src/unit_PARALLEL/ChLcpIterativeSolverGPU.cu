@@ -562,7 +562,8 @@ void ChLcpIterativeSolverGPU::RunTimeStep() {
 			CASTF3(data_container->device_trq_data),
 			CASTF3(data_container->device_vel_data),
 			CASTF3(data_container->device_omg_data));
-
+	data_container->device_fap_data.resize(number_of_bodies);
+	Thrust_Fill(data_container->device_fap_data,F3(0));
 	if (number_of_constraints > 0) {
 
 		device_bilateral_data = host_bilateral_data;
@@ -572,9 +573,9 @@ void ChLcpIterativeSolverGPU::RunTimeStep() {
 		update_offset.resize((number_of_constraints) * 2, 0);
 		body_number.resize((number_of_constraints) * 2, 0);
 		device_dgm_data.resize((number_of_constraints), (1));
-		data_container->device_fap_data.resize(number_of_bodies);
+
 		Thrust_Fill(device_dgm_data,1);
-		Thrust_Fill(data_container->device_fap_data,F3(0));
+
 		vel_update.resize((number_of_constraints) * 2);
 		omg_update.resize((number_of_constraints) * 2);
 

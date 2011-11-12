@@ -121,28 +121,6 @@ namespace chrono {
 		//force_solver->ComputeForces();
 		gpu_solver->number_of_bilaterals = number_of_bilaterals;
 		gpu_solver->RunTimeStep();
-		data_container->DeviceToHost();
-#pragma omp parallel for
-		for (unsigned int i = 0; i < mvariables.size(); i++) {
-
-				float3 new_pos = data_container->host_pos_data[i];
-				float4 new_rot = data_container->host_rot_data[i];
-				float3 new_vel = data_container->host_vel_data[i];
-				float3 new_acc = data_container->host_acc_data[i];
-				float3 new_omg = data_container->host_omg_data[i];
-				float3 new_fap = data_container->host_fap_data[i];
-
-				ChLcpVariablesBody* mbodyvars = (ChLcpVariablesBody*) mvariables[i];
-				ChBodyGPU* mbody = (ChBodyGPU*) mbodyvars->GetUserData();
-				if (mbody->IsActive()) {
-				mbody->SetPos(CHVECCAST(new_pos));
-				mbody->SetRot(CHQUATCAST(new_rot));
-				mbody->SetPos_dt(CHVECCAST(new_vel));
-				mbody->SetPos_dtdt(CHVECCAST(new_acc));
-				mbody->SetWvel_loc(CHVECCAST(new_omg));
-				mbody->SetAppliedForce(CHVECCAST(new_fap));
-			}
-		}
 
 		return 0;
 	}

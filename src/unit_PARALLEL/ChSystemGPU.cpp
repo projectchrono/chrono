@@ -80,6 +80,28 @@ namespace chrono {
 		((ChContactContainerGPUsimple*) this->contact_container)->SetNcontacts(gpu_data_manager->number_of_contacts);
 		mtimer_lcp.stop();
 		// Device to host
+		gpu_data_manager->DeviceToHost();
+#pragma omp parallel for
+		for (int i = 0; i < bodylist.size(); i++) {
+
+			float3 new_pos = gpu_data_manager->host_pos_data[i];
+			float4 new_rot = gpu_data_manager->host_rot_data[i];
+			float3 new_vel = gpu_data_manager->host_vel_data[i];
+			float3 new_acc = gpu_data_manager->host_acc_data[i];
+			float3 new_omg = gpu_data_manager->host_omg_data[i];
+			float3 new_fap = gpu_data_manager->host_fap_data[i];
+
+			ChBodyGPU* mbody = (ChBodyGPU*) bodylist[i];
+			if (mbody->IsActive()) {
+				mbody->SetPos(CHVECCAST(new_pos));
+				mbody->SetRot(CHQUATCAST(new_rot));
+				mbody->SetPos_dt(CHVECCAST(new_vel));
+				mbody->SetPos_dtdt(CHVECCAST(new_acc));
+				mbody->SetWvel_loc(CHVECCAST(new_omg));
+				mbody->SetAppliedForce(CHVECCAST(new_fap));
+			}
+		}
+
 
 		LCPresult_Li_into_speed_cache();
 
