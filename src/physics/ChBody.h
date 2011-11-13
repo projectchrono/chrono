@@ -26,6 +26,7 @@
 #include "physics/ChPhysicsItem.h"
 #include "physics/ChForce.h"
 #include "physics/ChMarker.h"
+#include "physics/ChMaterialSurface.h"
 #include "lcp/ChLcpVariablesBodyOwnMass.h"
 #include "lcp/ChLcpConstraint.h"
 
@@ -111,15 +112,9 @@ protected:
 	ChVector<> Scr_force;	// script force accumulator; (in abs space, applied to COG)
 	ChVector<> Scr_torque;	// script torque accumulator;(in abs space)
 
-				// Data for surface contact and impact:
+						// data for surface contact and impact (can be shared):
+	ChSharedPtr<ChMaterialSurface> matsurface;
 
-	float impactC;		// impact restitution coefficient
-	float impactCt;		// tangential impact restitution coefficient
-	float k_friction;	// kinematic friction coefficient for surface contact
-	float s_friction;	// static friction for rest-contact (sticking)
-	float rolling_friction; // rolling friction 
-	float spinning_friction; // spinning friction 
-	 
 						// Auxiliary, stores position/rotation once a while
 						// when collision detection routines require to know
 						// the last time that coll.detect. was satisfied.
@@ -329,48 +324,44 @@ public:
 				/// Method to serialize only the state (position, speed)
 	virtual void StreamOUTstate(ChStreamOutBinary& mstream);	
 
-				/// The normal restitution coefficient, for collisions.
-				/// Should be in 0..1 range.
-	float  GetImpactC() {return impactC;}
-	void   SetImpactC(float mval) {impactC = mval;}
+				/// Access the material surface properties, referenced by this 
+				/// rigid body. The material surface contains properties such as friction, etc. 
+				/// The ChMaterialSurface can be a shared object! (by default, each body creates its
+				/// own as soon as instanced, but later the material object can be replaced).
+	ChSharedPtr<ChMaterialSurface>& GetMaterialSurface() {return this->matsurface;}
+				/// Set the material surface properties by passing a ChMaterialSurface object.
+				/// Thank to smart pointers, the one that was previously used is replaced and,
+				/// if needed, it is automatically dereferenced and deleted.
+				/// The ChMaterialSurface can be a shared object! (by default, each body creates its
+				/// own as soon as instanced, but later the material object can be replaced).
+	void SetMaterialSurface(ChSharedPtr<ChMaterialSurface>& mnewsurf) {this->matsurface = mnewsurf;}
 
-				/// The tangential restitution coefficient, for collisions (--not used--)
-	float  GetImpactCt() {return impactCt;}
-	void   SetImpactCt(float mval) {impactCt = mval;}
 
-				/// The kinetic friction coefficient. 
-				/// Usually in 0..1 range, rarely above. Default 0.6 
-				/// Note: currently the static friction will be used instead, anyway, because of an issue in the solver.
-	float  GetKfriction() {return k_friction;}
-	void   SetKfriction(float mval) {k_friction = mval;}
+				/// FOR BACKWARD COMPATIBILITY ONLY. Better use: GetMaterialSurface()->Get...  etc.etc.
+	float  GetImpactC() {return this->matsurface->GetRestitution();}
+	void   SetImpactC(float mval) {this->matsurface->SetRestitution(mval);}
+				/// FOR BACKWARD COMPATIBILITY ONLY. Better use: GetMaterialSurface()->Get...  etc.etc.
+	float  GetImpactCt() {return 0;}
+	void   SetImpactCt(float mval) {}
+				/// FOR BACKWARD COMPATIBILITY ONLY. Better use: GetMaterialSurface()->Get...  etc.etc.
+	float  GetKfriction() {return this->matsurface->GetKfriction();}
+	void   SetKfriction(float mval) {this->matsurface->SetKfriction(mval);}
+				/// FOR BACKWARD COMPATIBILITY ONLY. Better use: GetMaterialSurface()->Get...  etc.etc.
+	float  GetSfriction() {return this->matsurface->GetSfriction();}
+	void   SetSfriction(float mval) {this->matsurface->SetSfriction(mval);}
+				/// FOR BACKWARD COMPATIBILITY ONLY. Better use: GetMaterialSurface()->Get...  etc.etc.
+	void   SetFriction(float mval) {this->matsurface->SetFriction(mval);}
+				/// FOR BACKWARD COMPATIBILITY ONLY. Better use: GetMaterialSurface()->Get...  etc.etc.
+	float  GetRollingFriction() {return this->matsurface->GetRollingFriction();}
+	void   SetRollingFriction(float mval) {this->matsurface->SetRollingFriction(mval);}
+				/// FOR BACKWARD COMPATIBILITY ONLY. Better use: GetMaterialSurface()->Get...  etc.etc.
+	float  GetSpinningFriction() {return this->matsurface->GetSpinningFriction();}
+	void   SetSpinningFriction(float mval) {this->matsurface->SetSpinningFriction(mval);}
 
-				/// The static friction coefficient. 
-				/// Usually a bit higher than kinetic coeff. Default 0.6
-	float  GetSfriction() {return s_friction;}
-	void   SetSfriction(float mval) {s_friction = mval;}
-
-				/// Set both static friction and kinetic friction at once, with same value.
-	void   SetFriction(float mval) {SetSfriction(mval); SetKfriction(mval);}
-
-				/// The rolling friction (rolling parameter, it has the dimension of a length). 
-				/// Rolling resistant torque is Tr <= (normal force) * (this parameter)
-				/// Usually a very low value.
-				/// Note! a non-zero value will make the simulation 2x slower! Also, the
-				/// GPU solver currently does not support rolling friction. Default: 0.
-	float  GetRollingFriction() {return rolling_friction;}
-	void   SetRollingFriction(float mval) {rolling_friction = mval;}
-
-				/// The spinning friction (it has the dimension of a length). 
-				/// Spinning resistant torque is Ts <= (normal force) * (this parameter)
-				/// Usually a very low value. 
-				/// Note! a non-zero value will make the simulation 2x slower! Also, the
-				/// GPU solver currently does not support spinning friction. Default: 0.
-	float  GetSpinningFriction() {return spinning_friction;}
-	void   SetSpinningFriction(float mval) {spinning_friction = mval;}
 
 				/// The density of the rigid body, as [mass]/[unit volume]. Used just if
 				/// the inertia tensor and mass are automatically recomputed from the
-				/// geometry (in case the Realsoft3D plugin for example provides the surfaces.)
+				/// geometry (in case a CAD plugin for example provides the surfaces.)
 	float  GetDensity() {return density;}
 	void   SetDensity(float mdensity) {density = mdensity;}
 

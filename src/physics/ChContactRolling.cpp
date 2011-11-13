@@ -41,12 +41,7 @@ ChContactRolling::ChContactRolling (collision::ChCollisionModel* mmodA,	///< mod
 						const ChVector<>& vN, 		  ///< pass coll.normal, respect to A
 						double mdistance,		  ///< pass the distance (negative for penetration)
 						float* mreaction_cache,	  ///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
-						float mfriction,		  ///< friction coeff.
-						float  mrollfriction,			///< rolling friction
-						float  mspinningfriction,			///< spinning friction
-						float  cohesion,				///< cohesion
-						float  compliance,				///< normal compliance = 1/stiffness [mm/N]
-						float  complianceT				///< tangential compliance = 1/stiffness [mm/N]
+						ChMaterialCouple& mmaterial		///< pass the reference to the material with friction, stiffness, etc.
 				)
 { 
 	Rx.SetRollingConstraintU(&Ru);
@@ -63,12 +58,7 @@ ChContactRolling::ChContactRolling (collision::ChCollisionModel* mmodA,	///< mod
 			vN, 		  ///< pass coll.normal, respect to A
 			mdistance,		  ///< pass the distance (negative for penetration)
 			mreaction_cache,	  ///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
-			mfriction,			  ///< friction coeff.
-			mrollfriction,
-			mspinningfriction,
-			cohesion,
-			compliance,
-			complianceT
+			mmaterial		///< pass the reference to the material with friction, stiffness, etc.
 				);
 }
 
@@ -88,12 +78,7 @@ void ChContactRolling::Reset(	collision::ChCollisionModel* mmodA,	///< model A
 						const ChVector<>& vN, 		  ///< pass coll.normal, respect to A
 						double mdistance,		  ///< pass the distance (negative for penetration)
 						float* mreaction_cache,	  ///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
-						float mfriction,			  ///< friction coeff.
-						float  mrollfriction,			///< rolling friction
-						float  mspinningfriction,			///< spinning friction
-						float  cohesion,				///< cohesion
-						float  compliance,				///< normal compliance = 1/stiffness [mm/N]
-						float  complianceT				///< tangential compliance = 1/stiffness [mm/N]
+						ChMaterialCouple& mmaterial		///< pass the reference to the material with friction, stiffness, etc.
 				)
 {
 	// Base method call:
@@ -107,18 +92,15 @@ void ChContactRolling::Reset(	collision::ChCollisionModel* mmodA,	///< model A
 			vN, 		  ///< pass coll.normal, respect to A
 			mdistance,		  ///< pass the distance (negative for penetration)
 			mreaction_cache,	  ///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
-			mfriction,			  ///< friction coeff.
-			cohesion,
-			compliance,
-			complianceT
+			mmaterial		///< pass the reference to the material with friction, stiffness, etc.
 				);
 
 	Rx.SetVariables(const_cast<ChLcpVariablesBody*>(varA),const_cast<ChLcpVariablesBody*>(varB));
 	Ru.SetVariables(const_cast<ChLcpVariablesBody*>(varA),const_cast<ChLcpVariablesBody*>(varB));
 	Rv.SetVariables(const_cast<ChLcpVariablesBody*>(varA),const_cast<ChLcpVariablesBody*>(varB));
 
-	Rx.SetRollingFrictionCoefficient(mrollfriction);
-	Rx.SetSpinningFrictionCoefficient(mspinningfriction);
+	Rx.SetRollingFrictionCoefficient(mmaterial.rolling_friction);
+	Rx.SetSpinningFrictionCoefficient(mmaterial.spinning_friction);
 
 	ChMatrix33<> Jx1, Jx2, Jr1, Jr2;
 

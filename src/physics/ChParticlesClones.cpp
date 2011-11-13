@@ -111,12 +111,7 @@ ChParticlesClones::ChParticlesClones ()
 	this->particles.clear();
 	//this->ResizeNparticles(num_particles); // caused memory corruption.. why?
 
-	impactC  = 0.0f;
-	impactCt = 0.0f;
-	s_friction = 0.6f;
-	k_friction = 0.5f;
-	rolling_friction = 0;
-	spinning_friction = 0;
+	matsurface = ChSharedPtr<ChMaterialSurface>(new ChMaterialSurface);
 
 	SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
 
@@ -155,14 +150,9 @@ void ChParticlesClones::Copy(ChParticlesClones* source)
 
 	particle_collision_model->ClearModel();
 	
-	ResizeNparticles(source->GetNparticles());
+	this->matsurface = source->matsurface;  // also copy-duplicate the material? Let the user handle this..
 
-	impactC = source->impactC;
-	impactCt = source->impactCt;
-	s_friction = source->s_friction;
-	k_friction = source->k_friction;
-	rolling_friction = source->rolling_friction;
-	spinning_friction = source->spinning_friction;
+	ResizeNparticles(source->GetNparticles());
 
 	max_speed = source->max_speed;
 	max_wvel  = source->max_wvel;

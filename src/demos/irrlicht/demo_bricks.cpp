@@ -51,6 +51,11 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 
 	ChBodySceneNode* mrigidBody; 
 
+	ChSharedPtr<ChMaterialSurface> mmaterial(new ChMaterialSurface);
+	mmaterial->SetFriction(0.4f);
+	mmaterial->SetCompliance (0.005f);
+	mmaterial->SetComplianceT(0.005f);
+	mmaterial->SetDampingF(0.2);
 
 	// Create a bunch of ChronoENGINE rigid bodies (spheres and
 	// boxes) which will fall..
@@ -71,7 +76,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 													ChVector<>(-8+ui*4.0+2*(bi%2),  1.0+bi*2.0, ai*6),
 													ChQuaternion<>(1,0,0,0), 
 													ChVector<>(3.96,2,4) );
-				mrigidBody->GetBody()->SetFriction(0.4f);
+				mrigidBody->GetBody()->SetMaterialSurface(mmaterial);
 				mrigidBody->setMaterialTexture(0,	cubeMap);
 			}
 		}
@@ -89,7 +94,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 											ChVector<>(-5, 1.0+bi*2.0,  0),
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(2,2, 14) );
-		mrigidBody1->GetBody()->SetFriction(0.5);
+		mrigidBody1->GetBody()->SetMaterialSurface(mmaterial);
 		mrigidBody1->setMaterialTexture(0,	cubeMap);
 
 		ChBodySceneNode* mrigidBody2;
@@ -99,7 +104,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 											ChVector<>( 5, 1.0+bi*2.0,  0),
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(2,2, 14) );
-		mrigidBody2->GetBody()->SetFriction(0.5);
+		mrigidBody2->GetBody()->SetMaterialSurface(mmaterial);
 		mrigidBody2->setMaterialTexture(0,	cubeMap);
 
 		ChBodySceneNode* mrigidBody3;
@@ -109,7 +114,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 											ChVector<>(0, 3.0+bi*2.0,  5),
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(14,2, 2) );
-		mrigidBody3->GetBody()->SetFriction(0.5);
+		mrigidBody3->GetBody()->SetMaterialSurface(mmaterial);
 		mrigidBody3->setMaterialTexture(0,	cubeMap);
 
 		ChBodySceneNode* mrigidBody4;
@@ -119,7 +124,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 											ChVector<>(0, 3.0+bi*2.0,  -5),
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(14,2, 2) );
-		mrigidBody4->GetBody()->SetFriction(0.5);
+		mrigidBody4->GetBody()->SetMaterialSurface(mmaterial);
 		mrigidBody4->setMaterialTexture(0,	cubeMap);
 	}
 	*/
@@ -134,13 +139,14 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(550,4,550) );
 	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->GetBody()->SetFriction(0.4f);
+	mrigidBody->GetBody()->SetMaterialSurface(mmaterial);
 
 
 	// Create a ball that will collide with wall
 	double mradius = 3;
-	double density = 0.1;
+	double density = 1.01;
 	double mmass = (4./3.)*CH_C_PI*pow(mradius,3)*density; 
+	GetLog() << "Ball mass = " << mmass << "\n";
 	double minert = (2./5.)* mmass * pow(mradius,2);
 
 	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easySphere(
@@ -154,7 +160,9 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 	// set moment of inertia (more realistic than default 1,1,1).
 	mrigidBody->GetBody()->SetInertiaXX(ChVector<>(minert,minert,minert));
 	mrigidBody->GetBody()->SetPos_dt(ChVector<>(0,0,16));
-	mrigidBody->GetBody()->SetFriction(0.4f); 
+	mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.4f);
+	mrigidBody->GetBody()->GetMaterialSurface()->SetCompliance(0.0001);
+	mrigidBody->GetBody()->GetMaterialSurface()->SetComplianceT(0.0001);
 
 
 	// Some aesthetics for 3d view..
@@ -221,7 +229,7 @@ int main(int argc, char* argv[])
 	mphysicalSystem.SetIterLCPmaxItersSpeed(40);
 	mphysicalSystem.SetIterLCPmaxItersStab(20); // unuseful for Anitescu, only Tasora uses this
 	mphysicalSystem.SetIterLCPwarmStarting(true);
-
+	//mphysicalSystem.SetParallelThreadNumber(1);
 	//
 	// THE SOFT-REAL-TIME CYCLE
 	//

@@ -49,8 +49,9 @@ using namespace gui;
 // programming practice, but enough for quick tests)
 
 double GLOBAL_friction = 0.3;
-double GLOBAL_cohesion = 300;
+double GLOBAL_cohesion =   0;
 double GLOBAL_compliance = 0;
+double GLOBAL_dampingf = 0.1;
 
 
 
@@ -78,7 +79,7 @@ public:
 				scrollbar_cohesion = application->GetIGUIEnvironment()->addScrollBar(
 								true, rect<s32>(510, 125, 650, 140), 0, 102);
 				scrollbar_cohesion->setMax(500); 
-				scrollbar_cohesion->setPos(300);
+				scrollbar_cohesion->setPos(0);
 				text_cohesion = application->GetIGUIEnvironment()->addStaticText(
 								L"Cohesion [N]:", rect<s32>(650,125,750,140), false);
 
@@ -116,7 +117,7 @@ public:
 							if (id == 103) // id of 'compliance' slider..
 							{
 								s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
-								GLOBAL_compliance = (((double)pos)/100.0)/10000;
+								GLOBAL_compliance = (((double)pos)/100.0)/300.0;
 							}
 					break;
 					}
@@ -234,7 +235,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 											ChVector<>(0,-1.6,0),
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(10,5,1) ); 
-	rotatingBody->GetBody()->SetMass(100);
+	rotatingBody->GetBody()->SetMass(20);
 	rotatingBody->GetBody()->SetInertiaXX(ChVector<>(100,100,100));
 	rotatingBody->GetBody()->SetFriction(0.4);
 	rotatingBody->addShadowVolumeSceneNode();
@@ -324,6 +325,7 @@ msolver->SetMaxFixedpointSteps(3);
 			// Set compliance (normal and tangential at once)
 			material.compliance  = GLOBAL_compliance;
 			material.complianceT = GLOBAL_compliance;
+			material.dampingf	 = GLOBAL_dampingf;
 
 			// Set cohesion according to user setting:
 			// Note that we must scale the cohesion force value by time step, because 

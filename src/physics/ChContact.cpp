@@ -42,10 +42,7 @@ ChContact::ChContact (	collision::ChCollisionModel* mmodA,	///< model A
 						const ChVector<>& vN, 		  ///< pass coll.normal, respect to A
 						double mdistance,		  ///< pass the distance (negative for penetration)
 						float* mreaction_cache,	  ///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
-						float mfriction,		  ///< friction coeff.
-						float mcohesion,		  
-						float mcompliance,		  ///< compliance = 1/stiffness [mm/N]
-						float mcomplianceT		  ///< compliance = 1/stiffness [mm/N]
+						ChMaterialCouple& mmaterial		///< pass the reference to the material with friction, stiffness, etc.
 				)
 { 
 	Nx.SetTangentialConstraintU(&Tu);
@@ -61,10 +58,7 @@ ChContact::ChContact (	collision::ChCollisionModel* mmodA,	///< model A
 			vN, 		  ///< pass coll.normal, respect to A
 			mdistance,		  ///< pass the distance (negative for penetration)
 			mreaction_cache,	  ///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
-			mfriction,			  ///< friction coeff.
-			mcohesion,			  ///< cohesion
-			mcompliance,
-			mcomplianceT
+			mmaterial
 				);
 }
 
@@ -84,10 +78,7 @@ void ChContact::Reset(	collision::ChCollisionModel* mmodA,	///< model A
 						const ChVector<>& vN, 		  ///< pass coll.normal, respect to A
 						double mdistance,		  ///< pass the distance (negative for penetration)
 						float* mreaction_cache,	  ///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
-						float mfriction,			  ///< friction coeff.
-						float mcohesion,				///< cohesion
-						float mcompliance,			///< compliance = 1/stiffness [mm/N]
-						float mcomplianceT			///< tang.compliance = 1/stiffness [mm/N]
+						ChMaterialCouple& mmaterial		///< pass the reference to the material with friction, stiffness, etc.
 				)
 {
 	assert (varA);
@@ -102,10 +93,13 @@ void ChContact::Reset(	collision::ChCollisionModel* mmodA,	///< model A
 	Tu.SetVariables(const_cast<ChLcpVariablesBody*>(varA),const_cast<ChLcpVariablesBody*>(varB));
 	Tv.SetVariables(const_cast<ChLcpVariablesBody*>(varA),const_cast<ChLcpVariablesBody*>(varB));
 
-	Nx.SetFrictionCoefficient(mfriction);
-	Nx.SetCohesion(mcohesion);
-	this->compliance = mcompliance;
-	this->complianceT = mcomplianceT;
+	Nx.SetFrictionCoefficient(mmaterial.static_friction);
+	Nx.SetCohesion(mmaterial.cohesion);
+	//GetLog() <<"SetCohesion = " << Nx.GetCohesion() << "\n";
+	this->restitution = mmaterial.restitution;
+	this->dampingf = mmaterial.dampingf;
+	this->compliance = mmaterial.compliance;
+	this->complianceT = mmaterial.complianceT;
 
 	ChVector<> VN = vN;
 	ChVector<double> Vx, Vy, Vz;
@@ -200,12 +194,11 @@ void ChContact::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool d
 	{
 		ChBody* bb1 = bm1->GetBody();
 		ChBody* bb2 = bm2->GetBody();
-		double mrest_coeff =  (bb1->GetImpactC() + bb2->GetImpactC())*0.5; // = this->restitution;
-		if (mrest_coeff)
+		if (this->restitution)
 		{
 			//compute normal rebounce speed 
 			double Ct = 0;
-			
+	//GetLog()<< "Restitution " << (int)this << "\n";
 			Vector Pl1 = bb1->Point_World2Body(&this->p1);
 			Vector Pl2 = bb2->Point_World2Body(&this->p2);
 			Vector V1_w = bb1->PointSpeedLocalToParent(Pl1);
@@ -213,7 +206,7 @@ void ChContact::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool d
 			Vector Vrel_w = V2_w-V1_w;
 			Vector Vrel_cplane = this->contact_plane.MatrT_x_Vect(Vrel_w);
 		 
-			double neg_rebounce_speed = Vrel_cplane.x * mrest_coeff;
+			double neg_rebounce_speed = Vrel_cplane.x * this->restitution;
 			if (neg_rebounce_speed < -  bb1->GetSystem()->GetMinBounceSpeed() )
 			{
 				// CASE: BOUNCE
@@ -226,26 +219,35 @@ void ChContact::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool d
 	if (!bounced)
 	{
 		// CASE: SETTLE (most often, and also default if two colliding items are not two ChBody)
-		if (do_clamp)
-			if (this->Nx.GetCohesion())
-				Nx.Set_b_i( Nx.Get_b_i() + ChMin( 0.0, ChMax (factor * this->norm_dist, -recovery_clamp) ) );
-			else
-				Nx.Set_b_i( Nx.Get_b_i() + ChMax (factor * this->norm_dist, -recovery_clamp)  );
-		else
-			Nx.Set_b_i( Nx.Get_b_i() + factor * this->norm_dist  );
-		
-		// COMPLIANCE:
+
 		if (this->compliance)
 		{
-			//  timestep is inverse of factor
-			double inv_h = factor;
-			double inv_hh= inv_h*inv_h;
-			Nx.Set_cfm_i( (inv_hh)*this->compliance  );
-			Tu.Set_cfm_i( (inv_hh)*this->complianceT );
-			Tv.Set_cfm_i( (inv_hh)*this->complianceT );
+			//  inverse timestep is factor
+			double h = 1.0/factor;
+
+			double alpha=this->dampingf; // [R]=alpha*[K]
+			double inv_hpa = 1.0/(h+alpha); // 1/(h+a)
+			double inv_hhpa = 1.0/(h*(h+alpha)); // 1/(h*(h+a)) 
+
+			Nx.Set_cfm_i( (inv_hhpa)*this->compliance  ); // was (inv_hh)* ...   //***TEST DAMPING***//
+			Tu.Set_cfm_i( (inv_hhpa)*this->complianceT );
+			Tv.Set_cfm_i( (inv_hhpa)*this->complianceT );
+
+    //GetLog()<< "compliance " << (int)this << "  compl=" << this->compliance << "  damping=" << this->dampingf << "  h=" << h << "\n";
 
 			// no clamping of residual
-			Nx.Set_b_i( Nx.Get_b_i() + factor * this->norm_dist  );
+			Nx.Set_b_i( Nx.Get_b_i() + inv_hpa * this->norm_dist  ); // was (inv_h)* ...   //***TEST DAMPING***//
+		}
+		else
+		{
+	//GetLog()<< "rigid " << (int)this << "  recov_clamp=" << recovery_clamp << "\n";
+			if (do_clamp)
+				if (this->Nx.GetCohesion())
+					Nx.Set_b_i( Nx.Get_b_i() + ChMin( 0.0, ChMax (factor * this->norm_dist, -recovery_clamp) ) );
+				else
+					Nx.Set_b_i( Nx.Get_b_i() + ChMax (factor * this->norm_dist, -recovery_clamp)  );
+			else
+				Nx.Set_b_i( Nx.Get_b_i() + factor * this->norm_dist  );
 		}
 		
 	}

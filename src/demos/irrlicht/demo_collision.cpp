@@ -206,8 +206,8 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 											ChVector<>(0,-1.6,0),
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(10,5.5,1) ); 
-	rotatingBody->GetBody()->SetMass(100);
-	rotatingBody->GetBody()->SetInertiaXX(ChVector<>(100,100,100));
+	rotatingBody->GetBody()->SetMass(10);
+	rotatingBody->GetBody()->SetInertiaXX(ChVector<>(50,50,50));
 	rotatingBody->GetBody()->SetFriction(0.4f);
 	rotatingBody->addShadowVolumeSceneNode();
 

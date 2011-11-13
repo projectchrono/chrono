@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
 	ChSharedBodyPtr  my_body_C(new ChBody);	 
 	my_system.AddBody(my_body_C);
 	my_body_C->SetPos(ChVector<>(4,0,0));	// position of COG of rod
-		
+	
 
 	// 3- Create constraints: the mechanical joints between the 
 	//    rigid bodies.

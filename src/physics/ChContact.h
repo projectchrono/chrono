@@ -22,6 +22,8 @@
 #include "lcp/ChLcpConstraintTwoContactN.h"
 #include "lcp/ChLcpSystemDescriptor.h"
 #include "collision/ChCCollisionModel.h"
+#include "physics/ChMaterialCouple.h"
+
 
 namespace chrono
 {
@@ -62,6 +64,8 @@ protected:
 
 	float compliance;
 	float complianceT;
+	float restitution;
+	float dampingf;
 
 public:
 				//
@@ -81,10 +85,7 @@ public:
 						const ChVector<>& vN, 			///< pass coll.normal, respect to A, in absolute coordinates
 						double mdistance,				///< pass the distance (negative for penetration)
 						float* mreaction_cache,			///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
-						float  mfriction,				///< friction coeff.
-						float  mcohesion,				///< cohesion
-						float  mcompliance,				///< normal compliance = 1/stiffness [mm/N]
-						float  mcomplianceT				///< tangential compliance = 1/stiffness [mm/N]
+						ChMaterialCouple& mmaterial		///< pass the reference to the material with friction, stiffness, etc.
 				);
 
 	virtual ~ChContact ();
@@ -106,10 +107,7 @@ public:
 						const ChVector<>& vN, 			///< pass coll.normal, respect to A, in absolute coordinates
 						double mdistance,				///< pass the distance (negative for penetration)
 						float* mreaction_cache,			///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
-						float mfriction,				///< friction coeff.
-						float mcohesion,				///< cohesion
-						float mcompliance,				///< normal compliance = 1/stiffness [mm/N]
-						float mcomplianceT				///< tangential compliance = 1/stiffness [mm/N]
+						ChMaterialCouple& mmaterial		///< pass the reference to the material with friction, stiffness, etc.
 				);
 
 					/// Get the contact coordinate system, expressed in absolute frame.

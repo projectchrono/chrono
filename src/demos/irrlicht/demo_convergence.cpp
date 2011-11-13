@@ -25,7 +25,6 @@
 #include "irrlicht_interface/ChIrrAppInterface.h"
 #include "core/ChRealtimeStep.h"
 #include "lcp/ChLcpIterativeMINRES.h"
- #include "irrlicht_interface/ChPovTools.h"
 
 #include <irrlicht.h>
  
@@ -44,7 +43,13 @@ using namespace video;
 using namespace io; 
 using namespace gui; 
 
+// Static data used for this simple demo
+
 std::vector<ChBodySceneNode*> mspheres;
+
+double STATIC_COMPLIANCE = 0.1*   (10./1000.)/500; // as 1/K, in m/N. es: 10mm/500N
+
+
 
 
 void create_items(ChIrrAppInterface& application) 
@@ -55,37 +60,106 @@ void create_items(ChIrrAppInterface& application)
 
 	video::ITexture* sphereMap = application.GetVideoDriver()->getTexture("../data/bluwhite.png");
 
+	bool do_wall = false;
+	bool do_stack = true;
+	bool do_oddmass = true;
+	bool do_spheres = true;
+	bool do_heavyonside = true;
+	
+
 	double sphrad = 0.2;
 	double dens= 1000;
 	double sphmass = dens * (4./3.) * CH_C_PI * pow(sphrad,3);
-sphmass = 50;
 	double sphinertia = (2./5.) * sphmass * pow(sphrad,2);
 
-	for (int bi = 0; bi < 1; bi++)  // N. of vert. bricks
-	{ 
-		if (true)
-			mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easySphere(
-											application.GetSystem(), application.GetSceneManager(),
-											sphmass,
-											ChVector<>(0.5, sphrad+bi*(2*sphrad), 0.7),
-											sphrad);
-		else
-			mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-													application.GetSystem(), application.GetSceneManager(),
-													sphmass,
-													ChVector<>(0.5, sphrad+bi*(2*sphrad), 0.7),
-													ChQuaternion<>(1,0,0,0), 
-													ChVector<>(sphrad,sphrad,sphrad) );
-   
-		mrigidBody->GetBody()->SetInertiaXX(ChVector<>(sphinertia,sphinertia,sphinertia));
-		mrigidBody->GetBody()->SetFriction(0.0f); 
-		mrigidBody->GetBody()->SetImpactC(0.0f); 
-		mrigidBody->addShadowVolumeSceneNode();
+	if (do_stack)
+	{
+		int nbodies = 15;
 
+		double totmass= 0;
+		double level  = 0;
+		double sphrad_base = 0.2;
+		double oddfactor = 100;
+
+		for (int bi = 0; bi < nbodies; bi++)  // N. of vert. bricks
+		{ 
+			double sphrad = sphrad_base;
+			if (do_oddmass && bi==(nbodies-1))
+				sphrad = sphrad*pow(oddfactor, 1./3.);
+			double dens= 1000;
+			double sphmass = dens * (4./3.) * CH_C_PI * pow(sphrad,3);
+			double sphinertia = (2./5.) * sphmass * pow(sphrad,2);
+
+			if (do_spheres)
+				mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easySphere(
+												application.GetSystem(), application.GetSceneManager(),
+												sphmass,
+												ChVector<>(0.5, sphrad+level, 0.7),
+												sphrad);
+			else
+				mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
+														application.GetSystem(), application.GetSceneManager(),
+														sphmass,
+														ChVector<>(0.5, sphrad+level, 0.7),
+														ChQuaternion<>(1,0,0,0), 
+														ChVector<>(sphrad,sphrad,sphrad) );
+	   
+			mrigidBody->GetBody()->SetInertiaXX(ChVector<>(sphinertia,sphinertia,sphinertia));
+			mrigidBody->GetBody()->SetFriction(0.5f); 
+			mrigidBody->GetBody()->SetImpactC(0.0f); 
+			mrigidBody->addShadowVolumeSceneNode();
+
+			mrigidBody->setMaterialTexture(0,	sphereMap);
+
+			mspheres.push_back(mrigidBody);
+
+			level   +=sphrad*2;
+			totmass +=sphmass;
+		}
+
+		GetLog() << "Expected contact force at bottom F=" << (totmass *application.GetSystem()->Get_G_acc().y)  << "\n";
+	}
+
+	if (do_wall)
+		for (int ai = 0; ai < 1; ai++)  // N. of walls
+		{ 
+			for (int bi = 0; bi < 10; bi++)  // N. of vert. bricks
+			{ 
+				for (int ui = 0; ui < 15; ui++)  // N. of hor. bricks
+				{ 
+					mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
+														application.GetSystem(), application.GetSceneManager(),
+														0.8,
+														ChVector<>(-8+ui*4.0+2*(bi%2),  1.0+bi*2.0, -5+ ai*6),
+														ChQuaternion<>(1,0,0,0), 
+														ChVector<>(3.96,2,4) );
+					mrigidBody->GetBody()->SetFriction(0.4f);
+					mrigidBody->setMaterialTexture(0,	sphereMap);
+				}
+			}
+		}
+
+	if (do_heavyonside)
+	{
+		double sphrad = 0.2;
+		double dens= 1000;
+		double sphmass = dens * (4./3.) * CH_C_PI * pow(sphrad,3);
+		double sphinertia = (2./5.) * sphmass * pow(sphrad,2);
+
+		double hfactor = 100;
+		mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easySphere(
+												application.GetSystem(), application.GetSceneManager(),
+												sphmass*hfactor,
+												ChVector<>(0.5, sphrad+0.1, -1),
+												sphrad);
+		mrigidBody->GetBody()->SetInertiaXX(ChVector<>(sphinertia*hfactor,sphinertia*hfactor,sphinertia*hfactor));
+		mrigidBody->addShadowVolumeSceneNode();
 		mrigidBody->setMaterialTexture(0,	sphereMap);
 
-		mspheres.push_back(mrigidBody);
+		GetLog() << "Expected contact deformation at side sphere=" << 
+			(sphmass*hfactor *application.GetSystem()->Get_G_acc().y)*STATIC_COMPLIANCE  << "\n";
 	}
+
 
 	// Create the floor using a fixed rigid body of 'box' type:
 
@@ -96,7 +170,7 @@ sphmass = 50;
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(50,4,50) );
 	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->GetBody()->SetFriction(0.4f);
+	mrigidBody->GetBody()->SetFriction(0.6f);
 
 	video::ITexture* cubeMap = application.GetVideoDriver()->getTexture("../data/concrete.jpg");
 	mrigidBody->setMaterialTexture(0,	cubeMap);
@@ -114,7 +188,7 @@ void align_spheres(ChIrrAppInterface& application)
 	{
 		ChBodySceneNode* body = mspheres[i];
 		ChVector<> mpos = body->GetBody()->GetPos();
-		mpos.x = 1.5;
+		mpos.x = 0.5;
 		mpos.z = 0.7;
 		body->GetBody()->SetPos(mpos);
 	}
@@ -155,8 +229,9 @@ int main(int argc, char* argv[])
 								ChMaterialCouple&  material )			  		///< you can modify this!	
 		{
 			// Set compliance (normal and tangential at once)
-			material.compliance  = (10./1000.)/500; // as 1/K, in m/N. es: 10mm/500N
+			material.compliance  = STATIC_COMPLIANCE; 
 			material.complianceT = material.compliance ;
+			material.dampingf = 0.2;
 		};
 		ChSystem* msystem;
 	};
@@ -173,12 +248,12 @@ int main(int argc, char* argv[])
 	//mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
 	mphysicalSystem.SetIterLCPmaxItersSpeed(60);
 	mphysicalSystem.SetIterLCPmaxItersStab(5);
-
+	mphysicalSystem.SetParallelThreadNumber(1);
 
 	//mphysicalSystem.SetUseSleeping(true);
 
 	application.SetStepManage(true);
-	application.SetTimestep(0.001);
+	application.SetTimestep(0.01);
 	application.SetPaused(true);
 
 	// 
@@ -198,7 +273,6 @@ int main(int argc, char* argv[])
 		application.GetVideoDriver()->endScene();  
 	}
 	
- 
  
 	// Remember this at the end of the program, if you started
 	// with DLL_CreateGlobals();

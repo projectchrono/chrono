@@ -46,6 +46,7 @@ double ChLcpIterativeBB::Solve(
 	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
 		mconstraints[ic]->Update_auxiliary();
 
+	// ***TO DO*** not needed??? remove the g_i initialization?
 	// Average all g_i for the triplet of contact constraints n,u,v.
 	//  Can be used for the fixed point phase and/or by preconditioner.
 	int j_friction_comp = 0;
@@ -214,12 +215,8 @@ double ChLcpIterativeBB::Solve(
 		md.MatrScale(-alpha);						// 2) d = - alpha*g  ...
 		md.MatrInc(ml);								// 3) d = l - alpha*g  ...
 
-		sysd.FromVectorToConstraints(md);	// project 		
-		for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
-					if (mconstraints[ic]->IsActive())
-							mconstraints[ic]->Project();
-		sysd.FromConstraintsToVector(md,false);		// 4) d = P(l - alpha*g) ...
-		
+		sysd.ConstraintsProject(md);				// 4) d = P(l - alpha*g) ...
+
 		md.MatrDec(ml);								// 5) d = P(l - alpha*g) - l
 
 
@@ -275,10 +272,10 @@ double ChLcpIterativeBB::Solve(
 		// s = l_p - l;
 		ms.MatrSub(ml_p, ml);
 		
-						// ***TO DO*** see if the following 3 lines can be simply removed..
-		// g_p = N*l_p - b;		not needed?					#### MATR.MULTIPLICATION!!!###
-	//	sysd.ShurComplementProduct(mg_p, &ml_p, 0);  // 1)  g_p = N*l_p ...        
-	//	mg_p.MatrDec(mb);					    	 // 2)  g_p = N*l_p - b_shur ...
+						//  the following 3 lines can be simply removed..
+		//// g_p = N*l_p - b;		not needed					#### MATR.MULTIPLICATION!!!###
+		//	sysd.ShurComplementProduct(mg_p, &ml_p, 0);  // 1)  g_p = N*l_p ...        
+		//	mg_p.MatrDec(mb);					    	 // 2)  g_p = N*l_p - b_shur ...
 
 		// l = l_p;
 		ml.CopyFromMatrix(ml_p);
@@ -330,7 +327,7 @@ double ChLcpIterativeBB::Solve(
 		// ***TO DO*** a reliable termination creterion.. 
 		// ..also check monotonicity of f? Risk of false positive in termination?
 		/*
-		if (maxdeltalambda < this->tolerance)  ù
+		if (maxdeltalambda < this->tolerance)  
 		{
 			GetLog() <<"BB premature maxdeltalambda break at i=" << iter << "\n";
 			break;

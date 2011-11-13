@@ -60,12 +60,7 @@ public:
 						const ChVector<>& vN, 			///< pass coll.normal, respect to A
 						double mdistance,				///< pass the distance (negative for penetration)
 						float* mreaction_cache,			///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
-						float  mfriction,				///< friction coeff.
-						float  rollfriction,			///< rolling friction
-						float  spinningfriction,		///< spinning friction
-						float  cohesion,				///< cohesion
-						float  compliance,				///< normal compliance = 1/stiffness [mm/N]
-						float  complianceT				///< tangential compliance = 1/stiffness [mm/N]
+						ChMaterialCouple& mmaterial		///< pass the reference to the material with friction, stiffness, etc.
 				);
 
 	virtual ~ChContactRolling ();
@@ -87,12 +82,7 @@ public:
 						const ChVector<>& vN, 			///< pass coll.normal, respect to A
 						double mdistance,				///< pass the distance (negative for penetration)
 						float* mreaction_cache,			///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
-						float  mfriction,				///< friction coeff.
-						float  rollfriction,			///< rolling friction
-						float  spinningfriction,		///< spinning friction
-						float  cohesion,				///< cohesion
-						float  compliance,				///< normal compliance = 1/stiffness [mm/N]
-						float  complianceT				///< tangential compliance = 1/stiffness [mm/N]
+						ChMaterialCouple& mmaterial		///< pass the reference to the material with friction, stiffness, etc.
 				);
 
 	

@@ -220,31 +220,31 @@ public:
 					gui::IGUIFont* font = this->cdevice->getGUIEnvironment()->getBuiltInFont();
 					if (labeltype==CONTACT_DISTANCES_VAL)
 					{
-						sprintf(buffer,"% 5.3g", distance ); 
+						sprintf(buffer,"% 6.3g", distance ); 
 					}
 					if (labeltype==CONTACT_FORCES_N_VAL)
 					{
-						sprintf(buffer,"% 5.3g", react_forces.x); 
+						sprintf(buffer,"% 6.3g", react_forces.x); 
 					}
 					if (labeltype==CONTACT_FORCES_T_VAL)
 					{
-						sprintf(buffer,"% 5.3g", chrono::ChVector<>(0,react_forces.y,react_forces.z).Length() ); 
+						sprintf(buffer,"% 6.3g", chrono::ChVector<>(0,react_forces.y,react_forces.z).Length() ); 
 					}
 					if (labeltype==CONTACT_FORCES_VAL)
 					{
-						sprintf(buffer,"% 5.3g", chrono::ChVector<>(react_forces).Length() ); 
+						sprintf(buffer,"% 6.3g", chrono::ChVector<>(react_forces).Length() ); 
 					}
 					if (labeltype==CONTACT_TORQUES_VAL)
 					{
-						sprintf(buffer,"% 5.3g", chrono::ChVector<>(react_torques).Length() ); 
+						sprintf(buffer,"% 6.3g", chrono::ChVector<>(react_torques).Length() ); 
 					}
 					if (labeltype==CONTACT_TORQUES_S_VAL)
 					{
-						sprintf(buffer,"% 5.3g", react_torques.x); 
+						sprintf(buffer,"% 6.3g", react_torques.x); 
 					}
 					if (labeltype==CONTACT_TORQUES_R_VAL)
 					{
-						sprintf(buffer,"% 5.3g",  chrono::ChVector<>(0,react_torques.y,react_torques.z).Length() ); 
+						sprintf(buffer,"% 6.3g",  chrono::ChVector<>(0,react_torques.y,react_torques.z).Length() ); 
 					}
 					font->draw(core::stringw(buffer).c_str(), 
 						core::rect<s32>(spos.X-15,spos.Y, spos.X+15, spos.Y+10), this->ccol);

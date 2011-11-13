@@ -15,7 +15,7 @@
   
 #include "physics/ChApidll.h"
 
- 
+  #include "parallel/ChOpenMP.h"
 
 
 namespace chrono 

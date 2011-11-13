@@ -37,12 +37,18 @@ ChThreadsWIN32::ChThreadsWIN32(ChThreadConstructionInfo& threadConstructionInfo)
 ChThreadsWIN32::~ChThreadsWIN32()
 {
 	stopSPU();
+
+	// STOP thread fx
+	for (int i=0;i< m_activeSpuStatus.size() ;i++)
+		this->sendRequest(1, 0, i);
+
 	
 	for (int i=0;i< m_activeSpuStatus.size() ;i++)
 	{
+		WaitForSingleObject (m_activeSpuStatus[i].m_threadHandle, 1000);
 		CloseHandle (m_activeSpuStatus[i].m_threadHandle);
-		CloseHandle (m_activeSpuStatus[i].m_eventStartHandle);
 		CloseHandle (m_activeSpuStatus[i].m_eventCompletetHandle);
+		CloseHandle (m_activeSpuStatus[i].m_eventStartHandle);
 	}
 
 }

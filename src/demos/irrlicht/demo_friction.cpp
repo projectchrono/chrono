@@ -139,7 +139,8 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 
 	// Create the five walls of the rectangular container, using
 	// fixed rigid bodies of 'box' type:
-
+ 
+		// floor:
 	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
 											&mphysicalSystem, msceneManager,
 											1000.0,
@@ -147,6 +148,9 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(20,1,20) );
 	mrigidBody->GetBody()->SetBodyFixed(true);
+	mrigidBody->GetBody()->SetRollingFriction(1);	// the min. of the two coeff. of the two contact surfaces will be used
+	mrigidBody->GetBody()->SetSpinningFriction(1);  // the min. of the two coeff. of the two contact surfaces will be used
+
 
 	video::ITexture* cubeMap = driver->getTexture("../data/blu.png");
 	mrigidBody->setMaterialTexture(0,	cubeMap);

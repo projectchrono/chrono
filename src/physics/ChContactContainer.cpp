@@ -147,22 +147,17 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 	ChFrame<>* frameB =0;
 	bool inactiveA = false;
 	bool inactiveB = false;
-	float frictionA, frictionB;
-	float rollfrictionA =0;
-	float rollfrictionB=0;
-	float spinfrictionA=0;
-	float spinfrictionB=0;
 	ChLcpVariablesBody* varA = 0;
 	ChLcpVariablesBody* varB = 0;
+	ChSharedPtr<ChMaterialSurface> mmatA;
+	ChSharedPtr<ChMaterialSurface> mmatB;
 
 	if (ChModelBulletBody* mmboA = dynamic_cast<ChModelBulletBody*>(mcontact.modelA))
 	{
 		frameA = mmboA->GetBody();
 		varA    =&mmboA->GetBody()->Variables();
 		inactiveA = !mmboA->GetBody()->IsActive();
-		frictionA = mmboA->GetBody()->GetSfriction();
-		rollfrictionA = mmboA->GetBody()->GetRollingFriction();
-		spinfrictionA = mmboA->GetBody()->GetSpinningFriction();
+		mmatA = mmboA->GetBody()->GetMaterialSurface();
 	}
 	if (ChModelBulletParticle* mmpaA = dynamic_cast<ChModelBulletParticle*>(mcontact.modelA))
 	{
@@ -170,9 +165,7 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 		varA   = (ChLcpVariablesBody*) &(mmpaA->GetParticles()->GetParticle(mmpaA->GetParticleId())).Variables();
 		if (ChParticlesClones* mpclone = dynamic_cast<ChParticlesClones*>(mmpaA->GetParticles()))
 		{
-			frictionA = mpclone->GetSfriction();
-			rollfrictionA = mpclone->GetRollingFriction();
-			spinfrictionA = mpclone->GetSpinningFriction();
+			mmatA = mpclone->GetMaterialSurface();
 		}
 	}
 
@@ -181,9 +174,7 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 		frameB = mmboB->GetBody();
 		varB    =&mmboB->GetBody()->Variables();
 		inactiveB = !mmboB->GetBody()->IsActive();
-		frictionB = mmboB->GetBody()->GetSfriction();
-		rollfrictionB = mmboB->GetBody()->GetRollingFriction();
-		spinfrictionB = mmboB->GetBody()->GetSpinningFriction();
+		mmatB = mmboB->GetBody()->GetMaterialSurface();
 	}
 	if (ChModelBulletParticle* mmpaB = dynamic_cast<ChModelBulletParticle*>(mcontact.modelB))
 	{
@@ -191,9 +182,7 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 		varB   = (ChLcpVariablesBody*) &(mmpaB->GetParticles()->GetParticle(mmpaB->GetParticleId())).Variables();
 		if (ChParticlesClones* mpclone = dynamic_cast<ChParticlesClones*>(mmpaB->GetParticles()))
 		{
-			frictionB = mpclone->GetSfriction();
-			rollfrictionB = mpclone->GetRollingFriction();
-			spinfrictionB = mpclone->GetSpinningFriction();
+			mmatB = mpclone->GetMaterialSurface();
 		}
 	}
 
@@ -206,15 +195,19 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 	if ((inactiveA && inactiveB))
 		return;
 
-	// Compute default material-couple values
+	// Compute default material-couple values.
 
 	ChMaterialCouple mat;
-	mat.static_friction   =(frictionA     + frictionB)*0.5f;
-	mat.rolling_friction  =(rollfrictionA + rollfrictionB)*0.5f;
-	mat.spinning_friction =(spinfrictionA + spinfrictionB)*0.5f;
-	mat.cohesion = 0.f;
-	mat.compliance = 0.f;
-	mat.complianceT = 0.f;
+
+	mat.static_friction		= (float)ChMin( mmatA->static_friction,		mmatB->static_friction);
+	mat.rolling_friction	= (float)ChMin( mmatA->rolling_friction,	mmatB->rolling_friction);
+	mat.spinning_friction	= (float)ChMin( mmatA->spinning_friction,	mmatB->spinning_friction);
+	mat.restitution			= (float)ChMin( mmatA->restitution,			mmatB->restitution);
+	mat.cohesion			= (float)ChMin( mmatA->cohesion,			mmatB->cohesion);
+	mat.dampingf			= (float)ChMin( mmatA->dampingf,			mmatB->dampingf);
+	mat.compliance			= (float)ChMin( mmatA->compliance,			mmatB->compliance);
+	mat.complianceT			= (float)ChMin( mmatA->complianceT,			mmatB->complianceT);
+	
 
 	// Launch the contact callback, if any, to set custom friction & material 
 	// properties, if implemented by the user:
@@ -240,10 +233,7 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 										  mcontact.vN,
 										  mcontact.distance, 
 										  mcontact.reaction_cache,
-										  mat.static_friction,
-										  mat.cohesion,
-										  mat.compliance,
-										  mat.complianceT);
+										  mat);
 			lastcontact++;
 		}
 		else
@@ -258,10 +248,7 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 										  mcontact.vN,
 										  mcontact.distance, 
 										  mcontact.reaction_cache,
-										  mat.static_friction,
-										  mat.cohesion,
-										  mat.compliance,
-										  mat.complianceT);
+										  mat);
 			contactlist.push_back(mc);
 			lastcontact = contactlist.end();
 		}
@@ -281,12 +268,7 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 										  mcontact.vN,
 										  mcontact.distance, 
 										  mcontact.reaction_cache,
-										  mat.static_friction,
-										  mat.rolling_friction,
-										  mat.spinning_friction,
-										  mat.cohesion,
-										  mat.compliance,
-										  mat.complianceT);
+										  mat);
 			lastcontact_roll++;
 		}
 		else
@@ -301,12 +283,7 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 										  mcontact.vN,
 										  mcontact.distance, 
 										  mcontact.reaction_cache,
-										  mat.static_friction,
-										  mat.rolling_friction,
-										  mat.spinning_friction,
-										  mat.cohesion,
-										  mat.compliance,
-										  mat.complianceT);
+										  mat);
 			contactlist_roll.push_back(mc);
 			lastcontact_roll = contactlist_roll.end();
 		}

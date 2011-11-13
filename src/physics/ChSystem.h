@@ -299,6 +299,7 @@ public:
 						 LCP_ITERATIVE_SOR_MULTITHREAD, 
 						 LCP_ITERATIVE_PMINRES,
 						 LCP_ITERATIVE_BARZILAIBORWEIN,
+						 LCP_ITERATIVE_PCG,
 						 LCP_DEM};
 
 				/// Choose the LCP solver type, to be used for the simultaneous

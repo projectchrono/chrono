@@ -99,7 +99,6 @@ SET(CH_MATLABSDK         ""    	CACHE PATH   "Where is your Matlab SDK installed
 # the compiler, generator, platform, etc....
 
 
-
 SET (DETECTED_CH_COMPILER "")
 SET (DETECTED_CH_OS "")
 
@@ -560,6 +559,7 @@ ENDIF()
 		physics/ChLinkWheel.h
 		physics/ChMarker.h
 		physics/ChMaterialCouple.h
+		physics/ChMaterialSurface.h
 		physics/ChMatterMeshless.h
 		physics/ChMatterSPH.h
 		physics/ChMesh.h
@@ -810,6 +810,7 @@ ENDIF()
 		parallel/ChThreadsWIN32.cpp
 	)
 	SET(ChronoEngine_parallel_HEADERS
+		parallel/ChOpenMP.h
 		parallel/ChThreads.h
 		parallel/ChThreadsFunct.h
 		parallel/ChThreadsPOSIX.h
@@ -831,6 +832,7 @@ ENDIF()
 		lcp/ChLcpIterativeSymmSOR.cpp 
 		lcp/ChLcpIterativeMINRES.cpp 
 		lcp/ChLcpIterativeBB.cpp 
+		lcp/ChLcpIterativePCG.cpp 
 		lcp/ChLcpSimplexSolver.cpp 
 		lcp/ChLcpConstraint.cpp 
 		lcp/ChLcpConstraintTwo.cpp 
@@ -876,6 +878,7 @@ ENDIF()
 		lcp/ChLcpIterativeJacobi.h
 		lcp/ChLcpIterativeMINRES.h
 		lcp/ChLcpIterativeBB.h
+		lcp/ChLcpIterativePCG.h
 		lcp/ChLcpIterativeSolver.h
 		lcp/ChLcpIterativeSOR.h
 		lcp/ChLcpIterativeSORmultithread.h

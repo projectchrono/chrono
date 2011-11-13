@@ -21,6 +21,9 @@
 #include "lcp/ChLcpVariables.h"
 #include "lcp/ChLcpConstraint.h"
 #include <vector>
+#include "parallel/ChThreads.h"
+#include "parallel/ChThreadsSync.h"
+
 
 namespace chrono
 {
@@ -49,24 +52,19 @@ protected:
 			//
 		std::vector<ChLcpConstraint*> vconstraints;
 		std::vector<ChLcpVariables*>  vvariables;
+		
+		int num_threads;
+		ChThreads* solver_threads;
+		ChMutexSpinlock* locktable;
 
 public:
 
 			//
 			// CONSTRUCTORS
 			//
-	ChLcpSystemDescriptor()
-					{
-						vconstraints.clear();
-						vvariables.clear();
-					};
+	ChLcpSystemDescriptor();
 
-
-	virtual ~ChLcpSystemDescriptor()
-					{
-						vconstraints.clear();
-						vvariables.clear();
-					};
+	virtual ~ChLcpSystemDescriptor();
 
 	
 		/// Access the vector of constraints
@@ -96,6 +94,12 @@ public:
 
 
 			// UTILITY FUNCTIONS
+
+				/// Set the number of threads (some operations like ShurComplementProduct
+				/// are CPU intensive, so they can be run in parallel threads).
+	virtual void SetNumThreads(int nthreads);
+	virtual int  GetNumThreads() {return this->num_threads;}
+
 
 				/// The following function may be called after a LCP solver's 'Solve()'
 				/// operation has been performed. This gives an extimate of 'how
@@ -211,10 +215,22 @@ public:
 				/// inserted constraints and inserted variables.
 				/// Optionally, you can pass an 'enabled' vector of bools, that must have the same
 				/// length of the l_i reactions vector; constraints with enabled=false are not handled.
+				/// Note! the 'q' data in the ChVariables of the system descriptor is changed by this
+				/// operation, so it may happen that you need to backup them via FromVariablesToVector()
 	virtual void ShurComplementProduct(	
 								ChMatrix<>&	result,			///< matrix which contains the result of  N*l_i 
 								ChMatrix<>* lvector,		///< optional matrix with the vector to be multiplied (if null, use current constr. multipliers l_i)
 								std::vector<bool>* enabled  ///< optional: vector of enable flags, one per scalar constraint. true=enable, false=disable (skip)
+								);
+
+				/// Performs projecton of constraint multipliers onto allowed set (in case
+				/// of bilateral constraints it does not affect multipliers, but for frictional 
+				/// constraints, for example, it projects multipliers onto the friction cones)
+				/// Note! the 'l_i' data in the ChConstraints of the system descriptor are changed
+				/// by this operation (they get the value of 'multipliers' after the projection), so 
+				/// it may happen that you need to backup them via FromConstraintToVector().
+	virtual void ConstraintsProject(	
+								ChMatrix<>&	multipliers		///< matrix which contains the entire vector of 'l_i' multipliers to be projected
 								);
 
 };
