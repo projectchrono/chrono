@@ -32,6 +32,7 @@
 #include "lcp/ChLcpIterativeJacobi.h"
 #include "lcp/ChLcpIterativeMINRES.h"
 #include "lcp/ChLcpIterativeBB.h"
+#include "lcp/ChLcpIterativePCG.h"
 #include "lcp/ChLcpSolverDEM.h"
 
 
@@ -534,6 +535,8 @@ void ChSystem::SetLcpSolverType(eCh_lcpSolver mval)
 	if (contact_container) delete contact_container; contact_container=0;
 
 	LCP_descriptor = new ChLcpSystemDescriptor;
+	LCP_descriptor->SetNumThreads(parallel_thread_number);
+
 	contact_container = new ChContactContainer;
 	
 
@@ -566,6 +569,10 @@ void ChSystem::SetLcpSolverType(eCh_lcpSolver mval)
 	case LCP_ITERATIVE_BARZILAIBORWEIN:
 		LCP_solver_speed = new ChLcpIterativeBB();
 		LCP_solver_stab = new ChLcpIterativeBB();
+		break;
+	case LCP_ITERATIVE_PCG:
+		LCP_solver_speed = new ChLcpIterativePCG();
+		LCP_solver_stab = new ChLcpIterativePCG();
 		break;
 	case LCP_DEM:
 		LCP_solver_speed = new ChLcpSolverDEM();
@@ -698,6 +705,9 @@ void ChSystem::SetParallelThreadNumber(int mthreads)
 		mthreads =1;
 
 	parallel_thread_number = mthreads;
+	
+	LCP_descriptor->SetNumThreads(mthreads);
+
 	if (lcp_solver_type == LCP_ITERATIVE_SOR_MULTITHREAD)
 	{
 		((ChLcpIterativeSORmultithread*)LCP_solver_speed)->ChangeNumberOfThreads(mthreads);

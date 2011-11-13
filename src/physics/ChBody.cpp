@@ -74,12 +74,7 @@ ChBody::ChBody ()
 
 	collision_model=InstanceCollisionModel();
 
-	impactC  = 0.0f;
-	impactCt = 0.0f;
-	s_friction = 0.6f;
-	k_friction = 0.6f;
-	rolling_friction = 0;
-	spinning_friction = 0;
+	matsurface = ChSharedPtr<ChMaterialSurface>(new ChMaterialSurface);
 
 	density = 1000.0f;
 
@@ -125,19 +120,14 @@ void ChBody::Copy(ChBody* source)
 
 	gyro	= source->Get_gyro();
 
-	RemoveAllForces();
-	RemoveAllMarkers();
+	RemoveAllForces();  // also copy-duplicate the forces? Let the user handle this..
+	RemoveAllMarkers();  // also copy-duplicate the markers? Let the user handle this..
 
 	ChTime = source->ChTime;
 
-	collision_model->ClearModel();
+	collision_model->ClearModel(); // also copy-duplicate the collision model? Let the user handle this..
 
-	impactC = source->impactC;
-	impactCt = source->impactCt;
-	s_friction = source->s_friction;
-	k_friction = source->k_friction;
-	rolling_friction = source->rolling_friction;
-	spinning_friction = source->spinning_friction;
+	this->matsurface = source->matsurface;  // also copy-duplicate the material? Let the user handle this..
 
 	density = source->density;
 
@@ -831,7 +821,7 @@ void ChBody::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax)
 void ChBody::StreamOUT(ChStreamOutBinary& mstream)
 {
 			// class version number
-	mstream.VersionWrite(6);
+	mstream.VersionWrite(7);
 
 		// serialize parent class too
 	ChPhysicsItem::StreamOUT(mstream);
@@ -845,11 +835,7 @@ void ChBody::StreamOUT(ChStreamOutBinary& mstream)
 	mstream << variables.GetBodyMass();
 	vfoo = GetInertiaXX();	mstream << vfoo;
 	vfoo = GetInertiaXY();  mstream << vfoo;
-	mstream << dfoo; //bdamper;
-	dfoo=(double)impactC;	mstream << dfoo; // trick for backward compat. (formerly were double, not float)
-	dfoo=(double)impactCt;	mstream << dfoo;
-	dfoo=(double)k_friction;mstream << dfoo;
-	dfoo=(double)s_friction;mstream << dfoo;
+	
 	mstream << bflag;
 	dfoo=(double)density;	mstream << dfoo;
 
@@ -860,10 +846,9 @@ void ChBody::StreamOUT(ChStreamOutBinary& mstream)
 	mstream << sleep_minspeed;
 	mstream << sleep_minwvel;
 
-	dfoo=(double)rolling_friction;mstream << dfoo;
-	dfoo=(double)spinning_friction;mstream << dfoo;
-
 	this->collision_model->StreamOUT(mstream); // also 	mstream << (*this->collision_model);
+
+	this->matsurface->StreamOUT(mstream); 
 }
 
 void ChBody::StreamIN(ChStreamInBinary& mstream)
@@ -892,11 +877,14 @@ void ChBody::StreamIN(ChStreamInBinary& mstream)
 		ChVector<> vfoo;
 		mstream >> vfoo;		SetInertiaXX(vfoo);
 		mstream >> vfoo;		SetInertiaXY(vfoo);
-		mstream >> dfoo; //bdamper;
-		mstream >> dfoo;		impactC = (float)dfoo;
-		mstream >> dfoo;		impactCt = (float)dfoo;
-		mstream >> dfoo;		k_friction = (float)dfoo;
-		mstream >> dfoo;		s_friction =  (float)dfoo;
+		if (version <7)
+		{
+			mstream >> dfoo;		//bdamper;
+			mstream >> dfoo;		matsurface->SetRestitution((float)dfoo);
+			mstream >> dfoo;		//matsurface->SetRestitutionT((float)dfoo);
+			mstream >> dfoo;		matsurface->SetKfriction((float)dfoo);
+			mstream >> dfoo;		matsurface->SetSfriction((float)dfoo);
+		}
 		mstream >> bflag;
 		mstream >> dfoo;		density = (float)dfoo;
 		SetBodyFixed(mlock != 0);
@@ -913,10 +901,10 @@ void ChBody::StreamIN(ChStreamInBinary& mstream)
 		mstream >> vfoo;		SetInertiaXX(vfoo);
 		mstream >> vfoo;		SetInertiaXY(vfoo);
 		mstream >> dfoo; //bdamper;
-		mstream >> dfoo;		impactC = (float)dfoo;
-		mstream >> dfoo;		impactCt = (float)dfoo;
-		mstream >> dfoo;		k_friction = (float)dfoo;
-		mstream >> dfoo;		s_friction =  (float)dfoo;
+		mstream >> dfoo;		matsurface->SetRestitution((float)dfoo);
+		mstream >> dfoo;		//matsurface->SetRestitutionT((float)dfoo);
+		mstream >> dfoo;		matsurface->SetKfriction((float)dfoo);
+		mstream >> dfoo;		matsurface->SetSfriction((float)dfoo);
 		mstream >> bflag;
 		mstream >> dfoo;		density = (float)dfoo;
 		if(this->GetBodyFixed())
@@ -934,16 +922,20 @@ void ChBody::StreamIN(ChStreamInBinary& mstream)
 		mstream >> sleep_minspeed;
 		mstream >> sleep_minwvel;
 	}
-	if (version >=5)
+	if ((version >=5) && (version < 7))
 	{
 		double dfoo;
-		mstream >> dfoo;		rolling_friction= (float)dfoo;
-		mstream >> dfoo;		spinning_friction= (float)dfoo;
+		mstream >> dfoo;		matsurface->SetRollingFriction((float)dfoo);
+		mstream >> dfoo;		matsurface->SetSpinningFriction((float)dfoo);
 	}
 	if (version >=6)
 	{
 		this->collision_model->StreamIN(mstream); // also 	mstream >> (*collision_model);
 		this->collision_model->BuildModel(); // because previously removed from ChSystem, if any.
+	}
+	if (version >=7)
+	{
+		this->matsurface->StreamIN(mstream); 
 	}
 }
 

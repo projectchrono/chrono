@@ -33,6 +33,7 @@ public:
 	float  spinning_friction;			
 	float  restitution;	
 	float  cohesion;
+	float  dampingf;
 	float  compliance;
 	float  complianceT;
 
@@ -42,6 +43,7 @@ public:
 						spinning_friction(0),
 						restitution(0),
 						cohesion(0),
+						dampingf(0),
 						compliance(0),
 						complianceT(0)
 						{};

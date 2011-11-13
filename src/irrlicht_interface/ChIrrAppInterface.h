@@ -192,7 +192,8 @@ public:
 								case 2: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_JACOBI); break;
 								case 3: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD); break;
 								case 4: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_BARZILAIBORWEIN); break;
-								case 5: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_PMINRES); break;
+								case 5: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_PCG); break;
+								case 6: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_PMINRES); break;
 							}
 							break;
 						}
@@ -325,11 +326,11 @@ public:
 			// --
 
 			gad_speed_iternumber = GetIGUIEnvironment()->addScrollBar(true,      core::rect<s32>(10, 10, 150,10+20), gad_tab2, 9904);
-			gad_speed_iternumber->setMax(80);
+			gad_speed_iternumber->setMax(120);
 			gad_speed_iternumber_info = GetIGUIEnvironment()->addStaticText(L"", core::rect<s32>(155,10, 220,10+20), false, false, gad_tab2);
 
 			gad_pos_iternumber   = GetIGUIEnvironment()->addScrollBar(true,    core::rect<s32>(10, 40, 150,40+20), gad_tab2, 9905);
-			gad_pos_iternumber->setMax(80);
+			gad_pos_iternumber->setMax(120);
 			gad_pos_iternumber_info = GetIGUIEnvironment()->addStaticText(L"", core::rect<s32>(155,40, 220,40+20), false, false, gad_tab2);
 
 			gad_warmstart = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(10,70, 200,70+20),
@@ -344,6 +345,7 @@ public:
 				gad_ccpsolver->addItem(L"Projected Jacobi");
 				gad_ccpsolver->addItem(L"Multithreaded SOR");
 				gad_ccpsolver->addItem(L"Projected BB");
+				gad_ccpsolver->addItem(L"Projected PCG");
 				gad_ccpsolver->addItem(L"Projected MINRES");
 				gad_ccpsolver->addItem(L" ");
 			gad_ccpsolver->setSelected(5);
@@ -560,7 +562,8 @@ public:
 					case chrono::ChSystem::LCP_ITERATIVE_JACOBI: 	gad_ccpsolver->setSelected(2); break;
 					case chrono::ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD: 	gad_ccpsolver->setSelected(3); break;
 					case chrono::ChSystem::LCP_ITERATIVE_BARZILAIBORWEIN: 	gad_ccpsolver->setSelected(4); break;
-					case chrono::ChSystem::LCP_ITERATIVE_PMINRES: 	gad_ccpsolver->setSelected(5); break;
+					case chrono::ChSystem::LCP_ITERATIVE_PCG: 		gad_ccpsolver->setSelected(5); break;
+					case chrono::ChSystem::LCP_ITERATIVE_PMINRES: 	gad_ccpsolver->setSelected(6); break;
 					default: gad_ccpsolver->setSelected(5); break;
 				}
 				switch(this->GetSystem()->GetIntegrationType())

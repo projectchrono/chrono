@@ -7,6 +7,47 @@
 Release 1.5.0
 xx-xx-xxxx
 
+- Important API change! To modify friction, restitution and
+  other surface properties of ChBody, ChrParticleClones and 
+  similar stuff, now one must use mybody->GetMaterialSurface()->..
+  In fact now surface properties are contained in a ChMaterialSurface
+  object, that is referenced by each body. The reason is that 
+  in this way, many objects can share the same material (saving
+  some memory and making the coding cleaner). By default, each
+  body creates its own material when instanced, but later one
+  can assign a shared material to multiple bodies, for example:
+    ChSharedPtr<ChMaterialSurface> msurface(new ChMaterialSurface);
+    my_body_A->SetMaterialSurface(msurface);
+    my_body_B->SetMaterialSurface(msurface);
+    my_body_C->SetMaterialSurface(msurface);
+    msurface->SetSfriction(0.3);
+  Note that thank to shared pointers, material is automatically 
+  replaced in SetMaterialSurface and, if needed, also automatically deleted.
+  Moreover backward API compability is ensured.
+
+- New contact property: compliance. The compliance (inverse of stiffness)
+  can be set for normal and tangential directions, in the new ChMaterialSurface
+  object. It has the unit of m/N.
+  Compliance, in general, has also the positive effect of making the convergence
+  of the solver somehow faster. When compliance = 0, it turns into the original
+  method with infinitely rigid bodies. 
+  Note that non-zero compliance disables the stabilization limit that one sets with
+  SetMaxPenetrationRecoverySpeed(), so this means that with non-zero compliance
+  one might have 'popping' contacts if the timestep is too large.
+   
+- New contact property: damping. The damping is specified as a factor
+  'alpha' of the stiffness K in the contact. That is, damping R=alpha*K;
+  where for example it could be alpha=0.3 (it has the unit of time, [s])
+  Damping in general helps to have stable simulations and avoids numerical 
+  artifacts when simulating stacks of objects at rest.
+
+- Important API change! Previous version of Chrono::Engine used to 
+  compute the friction coefficient in a contact as the average of the 
+  two friction coefficients of the two surfaces. From this version, instead,
+  the default behavior has changed as THE MINIMUM of the two values.
+  This applies also to other surface parameters in ChMaterialSurface,
+  such as rolling friction, compliance, etc.
+  
 - New functionality in ChIrrAppInterface class, to allow single-step
   of realtime simulations, by pressing the 'p' key, and to pause 
   physics, by pressing the 'space' key. (Press also 'i' for infos).
@@ -30,7 +71,7 @@ xx-xx-xxxx
   
 - New contact property: cohesion.
 
-- New contact property: compliance.
+
 
 
 

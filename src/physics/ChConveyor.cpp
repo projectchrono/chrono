@@ -45,6 +45,8 @@ ChConveyor::ChConveyor (double xlength, double ythick, double zwidth)
 	
 	conveyor_plate = new ChBody;
 
+	conveyor_plate->SetMaterialSurface(this->GetMaterialSurface());
+
 	conveyor_plate->GetCollisionModel()->ClearModel();
 	conveyor_plate->GetCollisionModel()->AddBox(xlength*0.5, ythick*0.5, zwidth*0.5); 
 	conveyor_plate->GetCollisionModel()->BuildModel();
@@ -206,8 +208,6 @@ void ChConveyor::Update (double mytime)
 {
 				// inherit parent class function
 	ChBody::Update(mytime);
-
-	this->conveyor_plate->SetSystem(this->GetSystem());
 	
 	if (this->GetBodyFixed())
 	{
@@ -223,14 +223,15 @@ void ChConveyor::Update (double mytime)
 		this->conveyor_plate->SetInertiaXY(this->GetInertiaXY());
 	}
 
-	this->conveyor_plate->SetSfriction( this->GetSfriction());
-	this->conveyor_plate->SetKfriction( this->GetKfriction());
-	this->conveyor_plate->SetRollingFriction( this->GetRollingFriction());
-	this->conveyor_plate->SetSpinningFriction( this->GetSpinningFriction());
-	this->conveyor_plate->SetImpactC( this->GetImpactC());
+	this->conveyor_plate->SetSystem(this->GetSystem());
+
+	this->conveyor_plate->SetMaterialSurface(this->GetMaterialSurface());
 
 				// keep the plate always at the same position of the main reference
 	this->conveyor_plate->SetCoord(this->GetCoord());
+	this->conveyor_plate->SetCoord_dt(this->GetCoord_dt());
+				// keep the plate always at the same speed of the main reference, plus the conveyor speed on X local axis
+	this->conveyor_plate->SetPos_dt(this->GetPos_dt() + (ChVector<>(conveyor_speed,0,0) >> (*this) ) );
 
 	conveyor_plate->Update(mytime);
 
