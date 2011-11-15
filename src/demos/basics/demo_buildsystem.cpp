@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
 
 				// The physical system: it contains all physical objects.
 		ChSystem my_system;      
-  
+		 
 				// Create a bunch of rigid bodies..
 				// Note that we use shared pointers, so you don't 
 				// have to care about the deletion (never use delete.. for

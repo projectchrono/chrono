@@ -27,7 +27,7 @@
 #include "irrlicht_interface/ChIrrAppInterface.h"
 #include "core/ChRealtimeStep.h"
 #include "lcp/ChLcpIterativeMINRES.h" // test
-
+#include "physics/ChMaterialSurface.h"
 
 
  
@@ -229,7 +229,7 @@ int main(int argc, char* argv[])
 	mphysicalSystem.SetIterLCPmaxItersSpeed(40);
 	mphysicalSystem.SetIterLCPmaxItersStab(20); // unuseful for Anitescu, only Tasora uses this
 	mphysicalSystem.SetIterLCPwarmStarting(true);
-	//mphysicalSystem.SetParallelThreadNumber(1);
+	mphysicalSystem.SetParallelThreadNumber(4);
 	//
 	// THE SOFT-REAL-TIME CYCLE
 	//
