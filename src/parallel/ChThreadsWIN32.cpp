@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include "parallel/ChThreadsWIN32.h"
 #include <Windows.h>
+#include "core/ChLog.h"
 
 namespace chrono
 {
@@ -39,10 +40,10 @@ ChThreadsWIN32::~ChThreadsWIN32()
 	stopSPU();
 
 	// STOP thread fx
+	
 	for (int i=0;i< m_activeSpuStatus.size() ;i++)
 		this->sendRequest(1, 0, i);
 
-	
 	for (int i=0;i< m_activeSpuStatus.size() ;i++)
 	{
 		WaitForSingleObject (m_activeSpuStatus[i].m_threadHandle, 1000);
@@ -50,7 +51,6 @@ ChThreadsWIN32::~ChThreadsWIN32()
 		CloseHandle (m_activeSpuStatus[i].m_eventCompletetHandle);
 		CloseHandle (m_activeSpuStatus[i].m_eventStartHandle);
 	}
-
 }
 
 
@@ -156,7 +156,6 @@ void ChThreadsWIN32::makeThreads(ChThreadConstructionInfo& threadConstructionInf
 		spuStatus.m_eventCompletetHandle = CreateEvent(0,false,false,spuStatus.m_eventCompletetHandleName);
 
 		m_completeHandles[i] = spuStatus.m_eventCompletetHandle;
-
 		HANDLE handle = CreateThread(lpThreadAttributes,dwStackSize,lpStartAddress,lpParameter,	dwCreationFlags,lpThreadId);
 		SetThreadPriority(handle,THREAD_PRIORITY_HIGHEST);
 

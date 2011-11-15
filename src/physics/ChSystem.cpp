@@ -329,6 +329,8 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size)
 	min_bounce_speed = 0.15;
 	max_penetration_recovery_speed = 0.6;
 
+	parallel_thread_number = 2;
+
 	// default contact container
 	this->contact_container = new ChContactContainer();
 
@@ -344,7 +346,7 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size)
 	iterLCPmaxItersStab = 10;
 	simplexLCPmaxSteps = 100;
 	SetLcpSolverType(LCP_ITERATIVE_SYMMSOR);
-	parallel_thread_number = 2;
+	
 	use_GPU = false;
 	use_sleeping = false;
 

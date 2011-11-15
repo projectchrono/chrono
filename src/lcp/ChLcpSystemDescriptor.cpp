@@ -32,8 +32,9 @@ ChLcpSystemDescriptor::ChLcpSystemDescriptor()
 	this->num_threads = 0;
 	solver_threads = 0;
 	SetNumThreads(1);
-
+/*
 	locktable = new ChMutexSpinlock[100];
+*/
 };
 
 
@@ -46,11 +47,11 @@ ChLcpSystemDescriptor::~ChLcpSystemDescriptor()
 		delete (solver_threads); 
 	solver_threads =0;
 
-
+/*
 	if (locktable)
 		delete[] locktable;
 	locktable=0;
-
+*/
 };
 
 
@@ -760,7 +761,6 @@ void ChLcpSystemDescriptor::ShurComplementProduct(
 		GetLog() << "ERROR! product diff = " << TEST_diff.NormInf() << "\n";
 	#endif
 
- //delete alocktable;
 
 }
 
@@ -783,15 +783,17 @@ void ChLcpSystemDescriptor::ConstraintsProject(
 
 void ChLcpSystemDescriptor::SetNumThreads(int nthreads) 
 {
+
 	if (nthreads == this->num_threads)
 		return;
-	
+
 	this->num_threads = nthreads;
 
 	// Delete the threads container
 	if (this->solver_threads) 
 		delete (solver_threads); 
 	solver_threads =0;
+
 
 	// Create the threads container
 	ChThreadConstructionInfo create_args ( "solver", 
