@@ -510,8 +510,8 @@ void SystemdThreadFunc(void* userPtr,void* lsMemory)
 					
 					//((tdata->mutex)+it)->Unlock();  //***TO DO***
 
-						// Add constraint force mixing term  result += cfm * l_i = -[E]*l_i
-						(*result)(s_c,0) = + (*vconstraints)[ic]->Get_cfm_i() * li;
+						// Add constraint force mixing term  result = cfm * l_i = -[E]*l_i
+						(*result)(s_c,0) = (*vconstraints)[ic]->Get_cfm_i() * li;
 
 					}
 					++s_c;
@@ -612,8 +612,8 @@ void ChLcpSystemDescriptor::ShurComplementProduct(
 				// Compute qb += [M^(-1)][Cq']*l_i
 				vconstraints[ic]->Increment_q(li);	// <----!!!  fpu intensive
 
-				// Add constraint force mixing term  result += cfm * l_i = -[E]*l_i
-				result(s_c,0) = + vconstraints[ic]->Get_cfm_i() * li;
+				// Add constraint force mixing term  result = cfm * l_i = -[E]*l_i
+				result(s_c,0) =  vconstraints[ic]->Get_cfm_i() * li;
 
 			}
 

@@ -60,8 +60,6 @@
 #include <TDF_LabelSequence.hxx>
 #include <TDF_ChildIterator.hxx>
 #include <TDF_Tool.hxx>
-#include <TDataStd_Shape.hxx>
-#include <TDataStd_Position.hxx>
 #include <TObj_TObject.hxx>
 #include <TObj_TReference.hxx>
 #include <TNaming_NamedShape.hxx>

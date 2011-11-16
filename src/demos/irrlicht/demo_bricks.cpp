@@ -62,7 +62,9 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 	// Bodies are Irrlicht nodes of the special class ChBodySceneNode, 
 	// which encapsulates ChBody items).  
 	
-	video::ITexture* cubeMap = driver->getTexture("../data/cubetexture.png");
+	video::ITexture* cubeMap   = driver->getTexture("../data/cubetexture.png");
+	video::ITexture* sphereMap = driver->getTexture("../data/bluwhite.png");
+		
 
 	for (int ai = 0; ai < 1; ai++)  // N. of walls
 	{ 
@@ -163,11 +165,11 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 	mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.4f);
 	mrigidBody->GetBody()->GetMaterialSurface()->SetCompliance(0.0001);
 	mrigidBody->GetBody()->GetMaterialSurface()->SetComplianceT(0.0001);
-
+	mrigidBody->GetBody()->GetMaterialSurface()->SetDampingF(0.2);
 
 	// Some aesthetics for 3d view..
 	mrigidBody->addShadowVolumeSceneNode();
-	//mrigidBody->setMaterialTexture(0,	sphereMap);
+	mrigidBody->setMaterialTexture(0,	sphereMap);
 
 }
 

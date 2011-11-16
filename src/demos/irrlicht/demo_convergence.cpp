@@ -175,6 +175,29 @@ void create_items(ChIrrAppInterface& application)
 	video::ITexture* cubeMap = application.GetVideoDriver()->getTexture("../data/concrete.jpg");
 	mrigidBody->setMaterialTexture(0,	cubeMap);
 
+
+	// Create rotating stuff
+	ChBodySceneNode* rotatingBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
+											application.GetSystem(), application.GetSceneManager(),
+											1.0,
+											ChVector<>(0,12,0),
+											ChQuaternion<>(1,0,0,0), 
+											ChVector<>(10,2.5,1) ); 
+	rotatingBody->GetBody()->SetMass(100);
+	rotatingBody->GetBody()->SetInertiaXX(ChVector<>(500,500,500));
+	rotatingBody->GetBody()->SetFriction(0.4f);
+	rotatingBody->addShadowVolumeSceneNode();
+
+	// .. an engine between mixer and truss	
+	ChSharedPtr<ChLinkEngine> my_motor(new ChLinkEngine);
+	my_motor->Initialize(rotatingBody->GetBody(), mrigidBody->GetBody(), 
+				ChCoordsys<>(ChVector<>(0,15,0),
+							 Q_from_AngAxis(CH_C_PI_2, VECT_X)) );
+	my_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
+	if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(my_motor->Get_spe_funct()))
+		mfun->Set_yconst(CH_C_PI/2.0); // speed w=90°/s
+	application.GetSystem()->AddLink(my_motor);
+
 } 
      
   

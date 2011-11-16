@@ -71,8 +71,8 @@ xx-xx-xxxx
   
 - New contact property: cohesion.
 
-
-
+- The build system for the 'OpenCASCADE' unit was not compatible with
+  the most recent version 6.5.1 of OpenCascade. Updated and fixed.
 
 
 
