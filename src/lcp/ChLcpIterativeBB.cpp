@@ -32,10 +32,10 @@ double ChLcpIterativeBB::Solve(
 
 	// Tuning of the spectral gradient search
 	double a_min = 10e-10;
-	double a_max = 100000.0;
+	double a_max = 1000000.0;
 	double sigma_min = 0.1;
 	double sigma_max = 0.9;
-	double alpha = 0.1;
+	double alpha = 0.01;
 	double gamma = 1e-4;
 
 
@@ -106,7 +106,7 @@ double ChLcpIterativeBB::Solve(
 			else
 				mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb()); // q = [M]'*fb 
 
-	// ...and now do  b_shur = - D' * q  ..
+	// ...and now do  b_shur = - D'*q = - D'*(M^-1)*k ..
 	int s_i = 0;
 	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
 		if (mconstraints[ic]->IsActive())
