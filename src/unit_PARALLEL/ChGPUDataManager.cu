@@ -12,6 +12,18 @@ void ChGPUDataManager::Clear() {
 
 }
 
+void ChGPUDataManager::Remove(unsigned int i){
+	host_vel_data.erase(i);
+	host_omg_data.erase(i);
+	host_pos_data.erase(i);
+	host_rot_data.erase(i);
+	host_inr_data.erase(i);
+	host_frc_data.erase(i);
+	host_trq_data.erase(i);
+	host_vel_data.erase(i);
+	host_aux_data.erase(i);
+	host_lim_data.erase(i);
+}
 void ChGPUDataManager::HostToDevice() {
 	device_vel_data = host_vel_data;
 	device_omg_data = host_omg_data;

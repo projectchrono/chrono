@@ -118,13 +118,9 @@ __global__ void LCP_Iteration_Contacts(float3* norm, float3* ptA, float3* ptB, f
 	} //it turns out that Z axis is closest to being perpendicular to contact vector;
 	U = normalize(U); //normalize the local contact Y,Z axis
 	W = cross(N, U); //carry out the last cross product to find out the contact local Z axis : multiply the contact normal by the local Y component
-	float normm = dot(N, ((B2 - B1)));
-	//reg=(reg>normm)? reg:normm;
-
-	normm = (normm > 0) ? 0 : normm;
-	//reg=min(0.0,max(reg,-1.));
-	reg = min((reg + normm), (-step_size_const));
-	//if(reg>0){printf("REG: %f\n",reg);}
+	float normV = dot(N, ((B2 - B1)));
+	normV = (normV > 0) ? 0 : normV;
+	reg = min((reg/step_size_const + normV), (-step_size_const));
 	sbar = ptA[i] - pos[B1_i]; //Contact Point on A - Position of A
 	E1 = rot[B1_i]; //bring in the Euler parameters associated with body 1;
 	Compute_Mat(T3, T4, T5, E1, N, U, W, sbar); //A_i,p'*A_A*(sbar~_i,A)

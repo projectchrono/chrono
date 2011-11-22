@@ -34,8 +34,11 @@ namespace chrono {
 
 		public:
 			ChSystemGPU(unsigned int max_objects = 1000);
+			int DoStepDynamics (double m_step);
+			int Integrate_Y();
 			virtual int Integrate_Y_impulse_Anitescu();
 			double ComputeCollisions();
+			void SetBounds(float3 min, float3 max);
 			void AddBody(ChSharedPtr<ChBodyGPU> newbody) {
 
 				newbody->AddRef();
@@ -90,6 +93,10 @@ namespace chrono {
 			unsigned int counter;
 			unsigned int max_obj;
 			bool copydata;
+
+
+			float3 bounding_min, bounding_max;
+
 	};
 
 }
