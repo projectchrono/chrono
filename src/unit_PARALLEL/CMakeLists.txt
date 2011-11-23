@@ -47,7 +47,8 @@ IF(ENABLE_UNIT_GPU)
 			ChLcpConstraintTwoGPUcontN.cpp
 			ChLcpConstraintTwoGPUcontT.cpp
 			ChSystemGPU.cpp
-			ChForceSystemGPU.cpp
+			ChSystemMultiGPU.cpp
+#			ChForceSystemGPU.cpp
 		)
 	SET(ChronoEngine_unit_GPU_HEADERS 
 	    		ChApiGPU.h
@@ -56,6 +57,7 @@ IF(ENABLE_UNIT_GPU)
 	    		ChCCollisionGPU.h
 	    		ChCCollisionGPU.cuh
 	    		ChSystemGPU.h
+				ChSystemMultiGPU.h
 			ChGPUDataManager.h
 			ChLcpIterativeSolverGPU.h
 			ChCCollisionModelGPU.h
@@ -66,15 +68,15 @@ IF(ENABLE_UNIT_GPU)
 			ChContactGPUsimple.h
 			ChLcpIterativeSolverGPUsimple.h
 			ChLcpSystemDescriptorGPU.h
-			ChForceSystemGPU.h
-			ChForceSolverGPU.h
+#			ChForceSystemGPU.h
+#			ChForceSolverGPU.h
 		)
 	SET(ChronoEngine_unit_GPU_CU 
 	    		ChLcpIterativeSolverGPU.cu
 			ChCCollisionGPU.cu
 			ChCCollisionGPUBroadphase.cu
 			ChCCollisionGPUNarrowphase.cu
-			ChForceSolverGPU.cu
+#			ChForceSolverGPU.cu
 			ChGPUDataManager.cu
 		)
 

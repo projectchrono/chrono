@@ -29,8 +29,7 @@ namespace chrono {
 
 	class ChApiGPU ChSystemGPU: public ChSystem {
 
-		CH_RTTI(ChSystemGPU,ChObj)
-			;
+		CH_RTTI(ChSystemGPU,ChObj);
 
 		public:
 			ChSystemGPU(unsigned int max_objects = 1000);
@@ -38,7 +37,6 @@ namespace chrono {
 			int Integrate_Y();
 			virtual int Integrate_Y_impulse_Anitescu();
 			double ComputeCollisions();
-			void SetBounds(float3 min, float3 max);
 			void AddBody(ChSharedPtr<ChBodyGPU> newbody) {
 
 				newbody->AddRef();
@@ -73,30 +71,26 @@ namespace chrono {
 			}
 			void RemoveBody(ChSharedPtr<ChBodyGPU> mbody);
 			void Update();
-			//virtual void LCPprepare_load(      bool load_jacobians, ///< load jacobians into ChConstraints
-			//							   bool load_v,			///< load v_old (current speeds) in q (to use LCP solver with option 'add_Mq_to_f')
-			//							   double F_factor, 	///< load F (forces) in fb: fb+=F*F_factor
-			///							   double Ct_factor,	///< load Ct into bi:  bi+= Ct*Ct_factor
-			//							   double C_factor,		///< load C  into bi:  bi+= C*C_factor, otherwise..
-			//							   double recovery_clamp,///< if do_clamp=true,  bi+= min(C*C_factor, recovery_clamp);
-			//							   bool do_clamp		///< if true, limit the recovery of constraint drifting
-			//						);
-			//virtual void LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor);
-			//virtual void LCPprepare_reset();
+			void SetBounds(float3 min, float3 max){
+				bounding_min=min;
+				bounding_max=max;
+			}
 			void ChangeCollisionSystem(ChCollisionSystem* newcollsystem);
 			void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
 			float GetKineticEnergy() {
 				((ChLcpIterativeSolverGPUsimple*) (LCP_solver_speed))->Total_KineticEnergy();
 			}
+
+
+
+
 			ChGPUDataManager *gpu_data_manager;
 		private:
 			unsigned int counter;
 			unsigned int max_obj;
 			bool copydata;
 
-
 			float3 bounding_min, bounding_max;
-
 	};
 
 }

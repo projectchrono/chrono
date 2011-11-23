@@ -31,7 +31,6 @@ namespace chrono {
 				~ChCCollisionGPU();
 
 				void Clear();
-				void SyncData();
 				void TuneCD(int ss, int ee);
 				void Run();
 				void Broadphase();

@@ -33,7 +33,6 @@ namespace chrono {
 		gpu_solver = mSystemDescriptor->gpu_solver;
 
 		number_of_bodies = 0;
-		force_solver = new ChForceSolverGPU();
 
 		mTolerance = 1e-5;
 		mDt = .01;
@@ -117,8 +116,6 @@ namespace chrono {
 		gpu_solver->lcp_omega_contact = mOmegaContact;
 		gpu_solver->tolerance = mTolerance;
 		gpu_solver->data_container = data_container;
-		force_solver->data_container = data_container;
-		//force_solver->ComputeForces();
 		gpu_solver->number_of_bilaterals = number_of_bilaterals;
 		gpu_solver->RunTimeStep();
 

@@ -86,11 +86,6 @@ void ChCCollisionGPU::Clear() {
 void ChCCollisionGPU::TuneCD(int ss, int ee) {
 }
 
-void ChCCollisionGPU::SyncData() {
-	if (data_container->device_typ_data.size() != data_container->host_typ_data.size()) {
-		data_container->HostToDevice_CD();
-	}
-}
 
 void ChCCollisionGPU::ComputeAABB() {
 	aabb_data.resize(number_of_models * 2);
@@ -167,18 +162,11 @@ void ChCCollisionGPU::UpdateAABB() {
 }
 
 void ChCCollisionGPU::Run() {
-	//float time1, time2;
 	COPY_TO_CONST_MEM(number_of_models);
-	//START_TIMING(start,stop,time1);
-	SyncData();
 	ComputeAABB();
 	ComputeBounds();
 	UpdateAABB();
-	//STOP_TIMING(start,stop,time1);
-	//START_TIMING(start,stop,time2);
-	Narrowphase(); //Run Narrowpahse
-	//STOP_TIMING(start,stop,time2);
-	//printf("%f %f %f\n", time1, time2);
+	Narrowphase();
 }
 
 void ChCCollisionGPU::AddObject(const float3 &A, const float3 &B, const float3 &C, const float4 &R, const int2 &F, const int3 &T) {

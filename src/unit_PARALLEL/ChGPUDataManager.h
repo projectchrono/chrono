@@ -13,7 +13,7 @@ class ChApiGPU ChGPUDataManager {
 		void HostToDevice_state();
 		void DeviceToHost();
 		void HostToDevice_CD();
-
+		void Remove(unsigned int i);
 		//contacts
 		thrust::device_vector<float3> device_norm_data;
 		thrust::device_vector<float3> device_cpta_data;

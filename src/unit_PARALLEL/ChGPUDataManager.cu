@@ -63,12 +63,12 @@ void ChGPUDataManager::DeviceToHost() {
 }
 
 void ChGPUDataManager::HostToDevice_CD() {
-
-	device_ObA_data=host_ObA_data;
-	device_ObB_data=host_ObB_data;
-	device_ObC_data=host_ObC_data;
-	device_ObR_data=host_ObR_data;
-	device_fam_data=host_fam_data;
-	device_typ_data=host_typ_data;
-
+	if(device_typ_data.size() != host_typ_data.size()){
+		device_ObA_data=host_ObA_data;
+		device_ObB_data=host_ObB_data;
+		device_ObC_data=host_ObC_data;
+		device_ObR_data=host_ObR_data;
+		device_fam_data=host_fam_data;
+		device_typ_data=host_typ_data;
+	}
 }

@@ -28,8 +28,7 @@
 
 namespace chrono {
 
-	ChSystemGPU::ChSystemGPU(unsigned int max_objects) :
-ChSystem(0, 0) {
+	ChSystemGPU::ChSystemGPU(unsigned int max_objects) :ChSystem(0, 0) {
 	gpu_data_manager = new ChGPUDataManager();
 	copydata = true;
 	counter = 0;
@@ -69,7 +68,7 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 		gpu_data_manager->host_lim_data[i] = (F3(bodylist[i]->GetLimitSpeed(), bodylist[i]->GetMaxSpeed(), bodylist[i]->GetMaxWvel()));
 	}
 	gpu_data_manager->HostToDevice();
-
+	gpu_data_manager->HostToDevice_CD();
 	mtimer_cd.start();
 	((ChCollisionSystemGPU*) (collision_system))->Run();
 	this->ncontacts = gpu_data_manager->number_of_contacts;

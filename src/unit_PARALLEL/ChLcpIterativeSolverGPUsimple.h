@@ -91,7 +91,6 @@ namespace chrono {
 			}
 
 			ChGPUDataManager * data_container;
-			ChForceSolverGPU * force_solver;
 			ChLcpIterativeSolverGPU * gpu_solver;
 			int number_of_bodies;
 
