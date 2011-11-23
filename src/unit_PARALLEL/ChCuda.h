@@ -22,7 +22,6 @@
 #include <thrust/set_operations.h>
 #include <thrust/functional.h>
 #include "ChApiGPU.h"
-
 using namespace std;
 typedef unsigned int uint;
 

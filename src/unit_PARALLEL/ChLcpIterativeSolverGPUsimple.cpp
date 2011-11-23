@@ -69,7 +69,7 @@ namespace chrono {
 		gpu_solver->host_bilateral_data.resize(number_of_bilaterals * CH_BILATERAL_VSIZE);
 		uint counter = 0;
 #pragma omp parallel for
-		for (uint ic = 0; ic < mconstraints.size(); ic++) {
+		for (int ic = 0; ic < mconstraints.size(); ic++) {
 			if (!mconstraints[ic]->IsActive()) {
 				continue;
 			}

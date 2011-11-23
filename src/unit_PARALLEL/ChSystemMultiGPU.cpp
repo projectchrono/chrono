@@ -123,12 +123,12 @@ namespace chrono {
 		return 1;
 	}
 
-	double ChSystemGPU::ComputeCollisions() {
+	double ChSystemMultiGPU::ComputeCollisions() {
 		double mretC = 0.0;
 		return mretC;
 	}
 
-	void ChSystemGPU::RemoveBody(ChSharedPtr<ChBodyGPU> mbody) {
+	void ChSystemMultiGPU::RemoveBody(ChSharedPtr<ChBodyGPU> mbody) {
 		assert(std::find<std::vector<ChBody*>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr()) != bodylist.end());
 
 		// remove from collision system
@@ -143,7 +143,7 @@ namespace chrono {
 		mbody->RemoveRef();
 	}
 
-	void ChSystemGPU::Update() {
+	void ChSystemMultiGPU::Update() {
 		ChTimer<double> mtimer;
 		mtimer.start(); // Timer for profiling
 #pragma omp parallel for
@@ -169,7 +169,7 @@ namespace chrono {
 		timer_update += mtimer();
 	}
 
-	void ChSystemGPU::ChangeLcpSolverSpeed(ChLcpSolver* newsolver) {
+	void ChSystemMultiGPU::ChangeLcpSolverSpeed(ChLcpSolver* newsolver) {
 		assert(newsolver);
 		if (this->LCP_solver_speed) delete (this->LCP_solver_speed);
 		this->LCP_solver_speed = newsolver;
@@ -177,7 +177,7 @@ namespace chrono {
 		((ChLcpIterativeSolverGPUsimple*) (LCP_solver_speed))->data_container = gpu_data_manager;
 	}
 
-	void ChSystemGPU::ChangeCollisionSystem(ChCollisionSystem* newcollsystem) {
+	void ChSystemMultiGPU::ChangeCollisionSystem(ChCollisionSystem* newcollsystem) {
 		assert(this->GetNbodies() == 0);
 		assert(newcollsystem);
 		if (this->collision_system) delete (this->collision_system);
