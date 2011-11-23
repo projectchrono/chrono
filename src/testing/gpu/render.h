@@ -18,8 +18,10 @@
 using namespace chrono;
 #if defined( _WINDOWS )
 #include <windows.h>
+#define NAN(x) _isnan(x)
 #else
 #include <unistd.h>
+#define NAN(x) isnan(x)
 #endif
 
 using namespace std;

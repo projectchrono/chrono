@@ -157,13 +157,13 @@ void System::SaveByID(int id, string fname) {
 	ChVector<> vel = abody->GetPos_dt();
 	ChVector<> acc = abody->GetPos_dtdt();
 	ChVector<> fap = abody->GetAppliedForce();
-	if (isnan(rot.x)) {
+	if (NAN(rot.x)) {
 		rot.x = 0;
 	}
-	if (isnan(rot.y)) {
+	if (NAN(rot.y)) {
 		rot.y = 0;
 	}
-	if (isnan(rot.z)) {
+	if (NAN(rot.z)) {
 		rot.z = 0;
 	}
 	ofile << pos.x << "," << pos.y << "," << pos.z << ",";
@@ -197,13 +197,13 @@ void System::SaveByObject(ChBodyGPU *abody, string fname) {
 	ChVector<> acc = abody->GetPos_dtdt();
 	ChVector<> fap = abody->GetAppliedForce();
 
-	if (isnan(rot.x)) {
+	if (NAN(rot.x)) {
 		rot.x = 0;
 	}
-	if (isnan(rot.y)) {
+	if (NAN(rot.y)) {
 		rot.y = 0;
 	}
-	if (isnan(rot.z)) {
+	if (NAN(rot.z)) {
 		rot.z = 0;
 	}
 
