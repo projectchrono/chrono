@@ -1,4 +1,5 @@
 #include "common.h"
+#define NOMINMAX
 //-----------------------------------------------------------------------
 // Test 01: Angle: 00 Torque .05 Force 10 Force 30
 // Test 02: Angle: 30 Torque .05 Force 10 Force 30
