@@ -1,7 +1,7 @@
 #include "common.h"
 void System::DoTimeStep() {
 	if (mNumCurrentObjects < mNumObjects && mFrameNumber % 5000 == 0) {
-		float x = 0, y = 0, z = 0;
+		float x = 30, y = 30, z = 300;
 		float posX = 0, posY = -14, posZ = 0;
 		float radius = .1, mass = 4, mu = .5, rest = 0;
 		ShapeType type = SPHERE;
@@ -53,7 +53,6 @@ void System::DoTimeStep() {
 }
 
 int main(int argc, char* argv[]) {
-
 	GPUSystem = new System(0);
 	GPUSystem->mTimeStep = .001;
 	GPUSystem->mEndTime = 10;
@@ -68,6 +67,9 @@ int main(int argc, char* argv[]) {
 	if (argc == 3) {
 		GPUSystem->mUseOGL = atoi(argv[1]);
 		GPUSystem->mSaveData = atoi(argv[2]);
+	}else if(argc == 1) {
+		GPUSystem->mUseOGL=0;
+		GPUSystem->mSaveData=0;
 	}
 	float container_R = 10.0, container_T = 1;
 	ChQuaternion<> quat(1, 0, 0, 0);
@@ -97,7 +99,7 @@ int main(int argc, char* argv[]) {
 	GPUSystem->FinalizeObject(B);
 	GPUSystem->FinalizeObject(BTM);
 
-	GPUSystem->InitObject(FREE, 1, ChVector<> (0, 0, 0), quat, mWallMu, mWallMu, 0, true, false, -10, -10);
+	/*GPUSystem->InitObject(FREE, 1, ChVector<> (0, 0, 0), quat, mWallMu, mWallMu, 0, true, false, -10, -10);
 	GPUSystem->AddCollisionGeometry(FREE, BOX, ChVector<> (1, .1, 1), lpos, quat);
 	GPUSystem->FinalizeObject(FREE);
 
@@ -114,7 +116,7 @@ int main(int argc, char* argv[]) {
 
 	GPUSystem->mSystem->AddLink(rotational_motor);
 	ChFunction_Const* mfun = (ChFunction_Const*) rotational_motor->Get_tor_funct();
-	mfun->Set_yconst(CH_C_PI * 2.0);
+	mfun->Set_yconst(CH_C_PI * 2.0);*/
 
 	GPUSystem->Setup();
 	SimulationLoop(argc, argv);

@@ -7,8 +7,14 @@ INCLUDE_DIRECTORIES( 	${CH_CUDA_INC}
 
 #--------------------------------------------------------------
 
-
-		
+find_package("GLUT")
+find_package("OpenGL")
+	#freeglut is not found properly on windows
+	IF ("${CH_OS}" STREQUAL "WINDOWS")
+		SET(FREEGLUT_LIB_PATH       ""    	CACHE PATH "Where is freeglut located")		 	
+		FIND_LIBRARY( FREEGLUT_LIB NAMES glut glut32 freeglut PATHS ${FREEGLUT_LIB_PATH})
+	ENDIF()
+	MARK_AS_ADVANCED(FORCE FREEGLUT_LIB)
 # Add executables		 	
 ADD_EXECUTABLE(test_gpu_CD	test_gpu_CD.cpp)
 SOURCE_GROUP(testing\\gpu FILES test_gpuCD.cpp)
