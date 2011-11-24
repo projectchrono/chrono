@@ -1080,6 +1080,10 @@ ENDIF()
 # 	ADD_SUBDIRECTORY(unit_OPENGL)
 ENDIF()
 
+IF(EXISTS "${CH_CHRONOSRC}/unit_Render/")
+	ADD_SUBDIRECTORY(unit_Render)
+ENDIF()
+
 #
 #Demo Files
 #
