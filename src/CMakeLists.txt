@@ -49,10 +49,8 @@ set_property(GLOBAL PROPERTY USE_FOLDERS Off)
 # Define project name (the 'solution' in MSVC)
 
 PROJECT(ChronoEngine)
-
-find_package("GLUT")
 find_package("OpenMP")
-find_package("OpenGL")
+
 
 #-----------------------------------------------------------------------------
 # Force only two types of configurations, for multi-configuration generators
@@ -86,12 +84,10 @@ ENDIF()
 
 SET(BUILD_CH_SDK   		 TRUE    CACHE BOOL   "Turn this ON to generate the Chrono::Engine main library.")
 SET(BUILD_DEMOS          TRUE    CACHE BOOL   "Turn this ON to generate Chrono::Engine demos")
-
 SET(ENABLE_UNIT_IRRLICHT TRUE    CACHE BOOL   "Turn this ON to generate the Chrono::Engine demos with Irrlicht 3D display")
 SET(ENABLE_UNIT_TESTS    FALSE   CACHE BOOL   "Turn this ON to generate Chrono::Engine unit tests")
-SET(ENABLE_UNIT_MPI    FALSE   CACHE BOOL   "Turn this ON to generate the Chrono::Engine MPI library")
+SET(ENABLE_UNIT_MPI    	 FALSE   CACHE BOOL   "Turn this ON to generate the Chrono::Engine MPI library")
 SET(CH_IRRLICHTDIR       ""    	CACHE PATH   "Where is your Irrlicht SDK installed? You must set this path to compile demos with 3D display.")
-SET(CH_MATLABSDK         ""    	CACHE PATH   "Where is your Matlab SDK installed? Ex. C:/Programs/MATLAB/R2006b/extern. You must set this path to compile demos with Matlab interface.")
 
 
 # Also, some variables that were used in previous makefile system (some
@@ -137,19 +133,6 @@ set_property(CACHE CH_OS PROPERTY STRINGS ${CH_OS_VALUES})
 
 
 # To hide unneeded stuff from GUI (require refresh by pressing 'configure', anyway)
-
-IF(BUILD_DEMOS)
-	MARK_AS_ADVANCED(CLEAR ENABLE_UNIT_IRRLICHT)
-	IF(ENABLE_UNIT_IRRLICHT)
-		MARK_AS_ADVANCED(CLEAR CH_IRRLICHTDIR)	
-	ELSE()
-		MARK_AS_ADVANCED(FORCE CH_IRRLICHTDIR)
-	ENDIF()
-ELSE()
-	MARK_AS_ADVANCED(FORCE CH_IRRLICHTDIR ENABLE_UNIT_IRRLICHT)
-ENDIF()
-
-
 IF(BUILD_CH_SDK)
 ELSE()
 	SET(ENABLE_UNIT_MPI FALSE)
@@ -303,36 +286,6 @@ IF (ENABLE_UNIT_IRRLICHT)
 	SET (CH_IRRLICHTINC "${CH_IRRLICHTDIR}/include")
 ENDIF()
 
-
-IF ("${CH_OS}" STREQUAL "LINUX")
-	SET(ENABLE_UNIT_MATLAB   FALSE CACHE BOOL   "Turn this ON to generate the Chrono::Engine demos with Matlab.")
-	MESSAGE("NOTE! The Matlab-unit build system is not yet available on Linux.")
-ELSE()
-	SET(ENABLE_UNIT_MATLAB   TRUE    CACHE BOOL   "Turn this ON to generate the Chrono::Engine demos with Matlab.")
-ENDIF()
-
-IF(ENABLE_UNIT_MATLAB)
-	MARK_AS_ADVANCED(CLEAR CH_MATLABSDK)	
-ELSE()
-	MARK_AS_ADVANCED(FORCE CH_MATLABSDK)
-ENDIF()
-
-IF (ENABLE_UNIT_MATLAB)
-	SET (CH_MATLABINC "${CH_MATLABSDK}/include")
-	IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-		SET (CH_MATLABLIB "${CH_MATLABSDK}/lib/win32/microsoft/libeng.lib" 
-						  "${CH_MATLABSDK}/lib/win32/microsoft/libmx.lib" 
-						  "${CH_MATLABSDK}/lib/win32/microsoft/libmat.lib" )
-	ENDIF()
-	IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-		SET (CH_MATLABLIB "${CH_MATLABSDK}/lib/win64/microsoft/libeng.lib" 
-						  "${CH_MATLABSDK}/lib/win64/microsoft/libmx.lib" 
-						  "${CH_MATLABSDK}/lib/win64/microsoft/libmat.lib" )
-	ENDIF()
-	
-ENDIF()
-
-
 SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CH_LIBDIR} )
 SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CH_LIBDIR} )
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CH_BINDIR} )
@@ -410,8 +363,6 @@ SET(DEM_MPI_FILES "")
 ENDIF()	
 
 
-		
-	
 	SET(ChronoEngine_physics_SOURCES
 		physics/ChApidll.cpp 
 		physics/ChFilePS.cpp 
@@ -1093,9 +1044,9 @@ ADD_LIBRARY(ChronoEngine SHARED ${ChronoEngine_FILES})
 	                          ARCHIVE_OUTPUT_DIRECTORY_DEBUG   ${CH_LIBDIR}
 	                          RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CH_BINDIR}
 	                          RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${CH_BINDIR}
-				  LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CH_BINDIR}
+							  LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CH_BINDIR}
 	                          LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${CH_BINDIR}
-				  RUNTIME_OUTPUT_NAME_DEBUG "ChronoEngineDBG"
+							  RUNTIME_OUTPUT_NAME_DEBUG "ChronoEngineDBG"
 	                          LIBRARY_OUTPUT_NAME_DEBUG "ChronoEngineDBG"
 	                          ARCHIVE_OUTPUT_NAME_DEBUG "ChronoEngineDBG")
 
@@ -1104,6 +1055,10 @@ ENDIF (BUILD_CH_SDK)
 #
 # Propagates the CMake build to other directories
 #
+
+IF(EXISTS "${CH_CHRONOSRC}/unit_MATLAB/")
+	ADD_SUBDIRECTORY(unit_MATLAB)
+ENDIF()
 
 # IF(EXISTS "${CH_CHRONOSRC}/unit_MPI/")
 # 	ADD_SUBDIRECTORY(unit_MPI)
@@ -1121,15 +1076,18 @@ IF(EXISTS "${CH_CHRONOSRC}/unit_CASCADE/")
 	ADD_SUBDIRECTORY(unit_CASCADE)
 ENDIF()
 
+# IF(EXISTS "${CH_CHRONOSRC}/unit_OPENGL/")
+# 	ADD_SUBDIRECTORY(unit_OPENGL)
+ENDIF()
+
 #
 #Demo Files
 #
+IF(EXISTS "${CH_CHRONOSRC}/demos/")
+	ADD_SUBDIRECTORY(demos)
+ENDIF()
 
-
-IF (BUILD_DEMOS)
-  ADD_SUBDIRECTORY(demos)
-ENDIF(BUILD_DEMOS)
-
-IF (ENABLE_UNIT_TESTS)
+IF(EXISTS "${CH_CHRONOSRC}/testing/")
 	ADD_SUBDIRECTORY(testing)
-ENDIF(ENABLE_UNIT_TESTS)
+ENDIF()
+
