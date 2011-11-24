@@ -49,11 +49,12 @@ namespace chrono {
 		Setup();
 		Update();
 		LCPprepare_inject(*this->LCP_descriptor);// make vectors of variables and constraints, used by the following LCP solver
-//		omp_set_num_threads(nGPUs);
-//#pragma omp parallel for
-//		for (int i=0; i<nGPUs;i++){
-//			int threadID = omp_get_thread_num();
-//			cudaSetDevice(gpus[i]);
+		omp_set_num_threads(nGPUs);
+#pragma omp parallel for
+		for (int i=0; i<nGPUs;i++){
+			int threadID = omp_get_thread_num();
+			cudaSetDevice(gpus[i]);
+
 //			CopyData(i);		//Split data into 4 pieces and copy to GPUs	.cu
 //			UpdateAABB(i);		//Update AABB of each geometry bassed on the location of the body
 //			DetermineBounds(i); //Determine max/min bounds of each subset of objects
@@ -85,7 +86,7 @@ namespace chrono {
 //			DoIntegration(i);			//update the positions of all objects
 //
 //			CopytoHost(i);				//copy all data back to host
-//		}
+		}
 
 		gpu_data_manager->HostToDevice();
 		gpu_data_manager->HostToDevice_CD();
