@@ -14,15 +14,11 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
-
 #include "lcp/ChLcpConstraintTwo.h"
 #include "lcp/ChLcpVariables.h"
 #include "ChApiGPU.h"
 namespace chrono
 {
-
-
 	/// Base class for friction constraints (see specialized children classes
 	/// for more details - this is mostly an interface)
 
@@ -36,7 +32,6 @@ namespace chrono
 
 	protected:
 
-
 	public:
 
 		//
@@ -45,7 +40,7 @@ namespace chrono
 		/// Default constructor
 		ChLcpConstraintTwoGPUcontT()
 		{
-			mode = CONSTRAINT_FRIC; 
+			mode = CONSTRAINT_FRIC;
 		};
 
 		/// Construct and immediately set references to variables,
@@ -56,11 +51,11 @@ namespace chrono
 			ChLcpVariables* mvariables_b)
 		{
 			SetVariables(mvariables_a, mvariables_b);
-			mode = CONSTRAINT_FRIC; 
+			mode = CONSTRAINT_FRIC;
 		};
 
 		/// Copy constructor
-		ChLcpConstraintTwoGPUcontT(const ChLcpConstraintTwoGPUcontT& other) 
+		ChLcpConstraintTwoGPUcontT(const ChLcpConstraintTwoGPUcontT& other)
 			: ChLcpConstraintTwo(other)
 		{
 		}
@@ -81,7 +76,6 @@ namespace chrono
 			return *this;
 		}
 
-
 		//
 		// FUNCTIONS
 		//
@@ -91,14 +85,14 @@ namespace chrono
 		virtual bool IsLinear() {return false;}
 
 		/// The constraint is satisfied?
-		virtual double Violation(double mc_i); 
+		virtual double Violation(double mc_i);
 
 		/// The projection should be done directly on the GPU custom kernel code,
 		/// so this won't be ever called.
 		virtual void Project() {assert (false);};
 
-		/// Computations with the following data are done directly on the GPU 
-		/// custom kernel code, so this won't be ever called. 
+		/// Computations with the following data are done directly on the GPU
+		/// custom kernel code, so this won't be ever called.
 		virtual ChMatrix<float>* Get_Cq_a() {assert (false); return 0;}
 		virtual ChMatrix<float>* Get_Cq_b() {assert (false); return 0;}
 		virtual ChMatrix<float>* Get_Eq_a() {assert (false); return 0;}
@@ -128,13 +122,6 @@ namespace chrono
 		/// binary archive (ex: a file).
 		virtual void StreamOUT(ChStreamOutBinary& mstream);
 	};
-
-
-
-
 } // END_OF_NAMESPACE____
-
-
-
 
 #endif  // END of ChLcpConstraintTwoGPUcontT.h

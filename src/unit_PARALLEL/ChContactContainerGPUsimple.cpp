@@ -1,4 +1,3 @@
-
 ///////////////////////////////////////////////////
 //
 //   ChContactContainerGPUsimple.cpp
@@ -8,7 +7,6 @@
 //             www.deltaknowledge.com
 // ------------------------------------------------
 ///////////////////////////////////////////////////
-
 
 #include "ChContactContainerGPUsimple.h"
 #include "physics/ChSystem.h"
@@ -20,7 +18,6 @@
 
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
 
-
 namespace chrono
 {
 	using namespace collision;
@@ -30,9 +27,8 @@ namespace chrono
 	// dynamic creation and persistence
 	ChClassRegister<ChContactContainerGPUsimple> a_registration_ChContactContainerGPUsimple;
 
-
 	ChContactContainerGPUsimple::ChContactContainerGPUsimple ()
-	{ 
+	{
 		contactlist.clear();
 		n_added = 0;
 
@@ -40,7 +36,6 @@ namespace chrono
 		this->load_max_recovery_speed = 0;
 		this->load_do_clamp = true;
 	}
-
 
 	ChContactContainerGPUsimple::~ChContactContainerGPUsimple ()
 	{
@@ -59,15 +54,11 @@ namespace chrono
 		n_added = 0;
 	}
 
-
-
 	void ChContactContainerGPUsimple::Update (double mytime)
 	{
 		// Inherit time changes of parent class, basically doing nothing :)
 		ChContactContainerBase::Update(mytime);
-
 	}
-
 
 	void ChContactContainerGPUsimple::RemoveAllContacts()
 	{
@@ -86,7 +77,6 @@ namespace chrono
 		n_added = 0;
 	}
 
-
 	void ChContactContainerGPUsimple::BeginAddContact()
 	{
 		lastcontact = contactlist.begin();
@@ -102,7 +92,6 @@ namespace chrono
 			lastcontact = contactlist.erase(lastcontact);
 		}
 	}
-
 
 	void ChContactContainerGPUsimple::AddContact(const collision::ChCollisionInfo& mcontact)
 	{
@@ -121,7 +110,7 @@ namespace chrono
 			frameA = mmboA->GetBody();
 			varA    =&mmboA->GetBody()->Variables();
 			fixedA  = mmboA->GetBody()->GetBodyFixed();
-			frictionA = mmboA->GetBody()->GetSfriction();		
+			frictionA = mmboA->GetBody()->GetSfriction();
 		}
 		if (ChModelBulletParticle* mmpaA = dynamic_cast<ChModelBulletParticle*>(mcontact.modelA))
 		{
@@ -160,8 +149,7 @@ namespace chrono
 		ChMaterialCouple mat;
 		mat.static_friction = (frictionA + frictionB)*0.5f;
 
-
-		// Launch the contact callback, if any, to set custom friction & material 
+		// Launch the contact callback, if any, to set custom friction & material
 		// properties, if implemented by the user:
 
 		if (this->add_contact_callback)
@@ -178,10 +166,10 @@ namespace chrono
 				mcontact.modelB,
 				varA, varB,
 				frameA, frameB,
-				mcontact.vpA, 
-				mcontact.vpB, 
+				mcontact.vpA,
+				mcontact.vpB,
 				mcontact.vN,
-				mcontact.distance, 
+				mcontact.distance,
 				mcontact.reaction_cache,
 				mat.static_friction);
 			lastcontact++;
@@ -193,10 +181,10 @@ namespace chrono
 				mcontact.modelB,
 				varA, varB,
 				frameA, frameB,
-				mcontact.vpA, 
-				mcontact.vpB, 
+				mcontact.vpA,
+				mcontact.vpB,
 				mcontact.vN,
-				mcontact.distance, 
+				mcontact.distance,
 				mcontact.reaction_cache,
 				mat.static_friction);
 			contactlist.push_back(mc);
@@ -205,8 +193,6 @@ namespace chrono
 
 		n_added++;
 	}
-
-
 
 	void ChContactContainerGPUsimple::ReportAllContacts(ChReportContactCallback* mcallback)
 	{
@@ -227,20 +213,18 @@ namespace chrono
 				(*itercontact)->GetFriction(),
 				(*itercontact)->GetContactForce(),
 				VNULL, // no react torques
-				(*itercontact)->GetModelA(), 
-				(*itercontact)->GetModelB()  
+				(*itercontact)->GetModelA(),
+				(*itercontact)->GetModelB()
 				);
 
-			if (!proceed) 
+			if (!proceed)
 				break;
 
 			++itercontact;
 		}
 	}
 
-
 	////////// LCP INTERFACES ////
-
 
 	void ChContactContainerGPUsimple::InjectConstraints(ChLcpSystemDescriptor& mdescriptor)
 	{
@@ -276,12 +260,10 @@ namespace chrono
 		this->load_do_clamp = mdo_clamp;
 	}
 
-
 	void ChContactContainerGPUsimple::ConstraintsLoadJacobians()
 	{
 		// already loaded when ChContactGPUsimple objects are created
 	}
-
 
 	void ChContactContainerGPUsimple::ConstraintsFetch_react(double factor)
 	{
@@ -294,9 +276,7 @@ namespace chrono
 		}
 	}
 
-
 	// Following functions are for exploiting the contact persistence
-
 
 	void  ChContactContainerGPUsimple::ConstraintsLiLoadSuggestedSpeedSolution()
 	{
@@ -345,10 +325,4 @@ namespace chrono
 			++itercontact;
 		}
 	}
-
-
-
-
 } // END_OF_NAMESPACE____
-
-

@@ -18,7 +18,9 @@ __constant__ float force_factor_const; // usually, the step size
 __constant__ float negated_recovery_speed_const;
 __constant__ float c_factor_const; // usually 1/dt
 __constant__ float step_size_const;
-
+__constant__ float compliance_const;
+__constant__ float complianceT_const;
+__constant__ float alpha_const;			// [R]=alpha*[K]
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Creates a quaternion as a function of a vector of rotation and an angle (the vector is assumed already
 // normalized, and angle is in radians).
@@ -46,7 +48,7 @@ inline __host__             __device__ float4 Quaternion_Product(const float4 &q
 	return quat;
 }
 
-__host__ __device__ void inline Compute_Mat(float3 &A, float3 &B, float3 &C, float4 TT, const float3 &n, const float3 &u, const float3 &w, const float3 &pos) {
+__host__ __device__ void inline Compute_Jacobian(float3 &A, float3 &B, float3 &C, float4 TT, const float3 &n, const float3 &u, const float3 &w, const float3 &pos) {
 	float t00 = pos.z * n.y - pos.y * n.z;
 	float t01 = TT.x * TT.x;
 	float t02 = TT.y * TT.y;
@@ -96,15 +98,15 @@ __global__ void LCP_Iteration_Contacts(float3* norm, float3* ptA, float3* ptB, f
 	}
 	//if(dG[i]<1e-8){dG[i]=0;return;}
 	float4 E1, E2;
-	float3 vB, gamma, N, U, W, T3, T4, T5, T6, T7, T8, gamma_old, sbar, B1, B2, W1, W2, aux1, aux2;
-	float reg, mu, eta;
+	float3 vB, gamma, N, U, W, T3, T4, T5, T6, T7, T8, gamma_old, sbar, V1, V2, I1, I2, W1, W2, aux1, aux2;
+	float mu, eta, depth, bi, f_tang, tproj_div_t;
 	//long long id=ids[i];
 	int2 temp_id = ids[i];
-	reg = -fabs(contactDepth[i]);//c_factor_const;							//Scale contact distance, cfactor is usually 1
+	depth = -fabs(contactDepth[i]);//c_factor_const;							//Scale contact distance, cfactor is usually 1
 	int B1_i = temp_id.x;
 	int B2_i = temp_id.y;
-	B1 = vel[B1_i];
-	B2 = vel[B2_i];
+	V1 = vel[B1_i];
+	V2 = vel[B2_i];
 	aux1 = aux[B1_i];
 	aux2 = aux[B2_i];
 	N = norm[i]; //assume: normalized, and if depth=0 norm=(1,0,0)
@@ -118,52 +120,63 @@ __global__ void LCP_Iteration_Contacts(float3* norm, float3* ptA, float3* ptB, f
 	} //it turns out that Z axis is closest to being perpendicular to contact vector;
 	U = normalize(U); //normalize the local contact Y,Z axis
 	W = cross(N, U); //carry out the last cross product to find out the contact local Z axis : multiply the contact normal by the local Y component
-	float normV = dot(N, ((B2 - B1)));
+	float normV = dot(N, ((V2 - V1)));
 	normV = (normV > 0) ? 0 : normV;
-	reg = min((reg/step_size_const + normV), (-step_size_const));
+	if(compliance_const){
+		float h = step_size_const;
+		float inv_hpa = 1.0/(h+alpha_const); // 1/(h+a)
+		float inv_hhpa = 1.0/(h*(h+alpha_const)); // 1/(h*(h+a))
+		bi=inv_hpa * depth;
+	}
+	else{
+		bi = min((depth/step_size_const + normV), (-step_size_const));
+	}
 	sbar = ptA[i] - pos[B1_i]; //Contact Point on A - Position of A
 	E1 = rot[B1_i]; //bring in the Euler parameters associated with body 1;
-	Compute_Mat(T3, T4, T5, E1, N, U, W, sbar); //A_i,p'*A_A*(sbar~_i,A)
+	Compute_Jacobian(T3, T4, T5, E1, N, U, W, sbar); //A_i,p'*A_A*(sbar~_i,A)
 
 	sbar = ptB[i] - pos[B2_i]; //Contact Point on B - Position of B
 	E2 = rot[B2_i]; //bring in the Euler parameters associated with body 2;
-	Compute_Mat(T6, T7, T8, E2, N, U, W, sbar); //A_i,p'*A_B*(sbar~_i,B)
+	Compute_Jacobian(T6, T7, T8, E2, N, U, W, sbar); //A_i,p'*A_B*(sbar~_i,B)
 	T6 = -T6;
 	T7 = -T7;
 	T8 = -T8;
-	//if(i==0){printf("%f %f %f | %f %f %f | %f %f %f\n",T3.x,T3.y,T3.z,T4.x,T4.y,T4.z,T5.x,T5.y,T5.z);}
 
 	W1 = omega[B1_i];
 	W2 = omega[B2_i];
 
 	mu = (aux1.y + aux2.y) * .5;
-	gamma.x = dot3(T3, W1) - dot3(N, B1) + dot3(T6, W2) + dot3(N, B2) + reg; //+bi
-	gamma.y = dot3(T4, W1) - dot3(U, B1) + dot3(T7, W2) + dot3(U, B2);
-	gamma.z = dot3(T5, W1) - dot3(W, B1) + dot3(T8, W2) + dot3(W, B2);
-	B1 = inertia[B1_i]; // bring in the inertia attributes; to be used to compute \eta
-	B2 = inertia[B2_i]; // bring in the inertia attributes; to be used to compute \eta
-	eta = dot3(T3 * T3, B1) + dot3(T4 * T4, B1) + dot3(T5 * T5, B1); // update expression of eta
-	eta += dot3(T6 * T6, B2) + dot3(T7 * T7, B2) + dot3(T8 * T8, B2);
+	float cfm, cfmT;
+	//c_i = [Cq_i]*q + b_i + cfm_i*l_i
+
+	gamma_old = G[i];
+	gamma.x = dot3(T3, W1) - dot3(N, V1) + dot3(T6, W2) + dot3(N, V2) + bi+cfm*gamma_old.x; //+bi
+	gamma.y = dot3(T4, W1) - dot3(U, V1) + dot3(T7, W2) + dot3(U, V2)+cfmT*gamma_old.y;
+	gamma.z = dot3(T5, W1) - dot3(W, V1) + dot3(T8, W2) + dot3(W, V2)+cfmT*gamma_old.z;
+	I1 = inertia[B1_i]; // bring in the inertia attributes; to be used to compute \eta
+	I2 = inertia[B2_i]; // bring in the inertia attributes; to be used to compute \eta
+	eta =  dot3(T3 * T3, I1) + dot3(T4 * T4, I1) + dot3(T5 * T5, I1); // update expression of eta
+	eta += dot3(T6 * T6, I2) + dot3(T7 * T7, I2) + dot3(T8 * T8, I2);
 	eta += (dot(N, N) + dot(U, U) + dot(W, W)) * (aux1.z + aux2.z); // multiply by inverse of mass matrix of B1 and B2, add contribution from mass and matrix A_c.
-	eta = 1.0 / eta; // final value of eta
+	eta = 3.0 / eta; // final value of eta
 
 	gamma *= lcp_omega_contact_const * eta; // perform gamma *= omega*eta
-	gamma_old = G[i];
+
 	gamma = gamma_old - gamma; // perform gamma = gamma_old - gamma ;  in place.
 	/// ---- perform projection of 'a8' onto friction cone  --------
-	reg = sqrtf(gamma.y * gamma.y + gamma.z * gamma.z); // reg = f_tang
+	f_tang = sqrtf(gamma.y * gamma.y + gamma.z * gamma.z);
 
-
-	if (reg > (mu * gamma.x)) { // inside upper cone? keep untouched!
-		if ((mu * reg) < -gamma.x) { // inside lower cone? reset  normal,u,v to zero!
+	if (f_tang > (mu * gamma.x)) { // inside upper cone? keep untouched!
+		if ((mu * f_tang) < -gamma.x) { // inside lower cone? reset  normal,u,v to zero!
 			gamma = F3(0.f, 0.f, 0.f);
 		} else { // remaining case: project orthogonally to generator segment of upper cone
-			gamma.x = (reg * mu + gamma.x) / (mu * mu + 1.f);
-			reg = (gamma.x * mu) / reg; //  reg = tproj_div_t
-			gamma.y *= reg;
-			gamma.z *= reg;
+			gamma.x = (f_tang * mu + gamma.x) / (mu * mu + 1.f);
+			tproj_div_t = (gamma.x * mu) / f_tang; //  reg = tproj_div_t
+			gamma.y *= tproj_div_t;
+			gamma.z *= tproj_div_t;
 		}
 	}
+
 	G[i] = gamma; // store gamma_new
 	gamma -= gamma_old; // compute delta_gamma = gamma_new - gamma_old   = delta_gamma.
 	dG[i] = length(gamma);
@@ -173,11 +186,11 @@ __global__ void LCP_Iteration_Contacts(float3* norm, float3* ptA, float3* ptB, f
 	int offset2 = offset[i + number_of_contacts_const];
 	if (aux1.x == 1) {
 		updateV[offset1] = -vB * aux1.z; // compute and store dv1
-		updateO[offset1] = (T3 * gamma.x + T4 * gamma.y + T5 * gamma.z) * B1; // compute dw1 =  Inert.1' * J1w^ * deltagamma  and store  dw1
+		updateO[offset1] = (T3 * gamma.x + T4 * gamma.y + T5 * gamma.z) * I1; // compute dw1 =  Inert.1' * J1w^ * deltagamma  and store  dw1
 	}
 	if (aux2.x == 1) {
 		updateV[offset2] = vB * aux2.z; // compute and store dv2
-		updateO[offset2] = (T6 * gamma.x + T7 * gamma.y + T8 * gamma.z) * B2; // compute dw2 =  Inert.2' * J2w^ * deltagamma  and store  dw2
+		updateO[offset2] = (T6 * gamma.x + T7 * gamma.y + T8 * gamma.z) * I2; // compute dw2 =  Inert.2' * J2w^ * deltagamma  and store  dw2
 	}
 }
 ///////////////////////////////////////////////////////////////////////////////////
@@ -199,7 +212,7 @@ __global__ void LCP_Iteration_Bilaterals(CH_REALNUMBER4* bilaterals, float3* aux
 	B2_index = bilaterals[i + number_of_bilaterals_const].w;
 	float3 aux1 = aux[B1_index];
 	float3 aux2 = aux[B2_index];
-	// ---- perform   gamma_new = ([J1 J2] {v1 | v2}^ + b) 
+	// ---- perform   gamma_new = ([J1 J2] {v1 | v2}^ + b)
 	vA = bilaterals[i]; // line 0
 	vB = vel[B1_index]; // v1
 	gamma_new += dot3(vA, vB);
@@ -303,7 +316,6 @@ __global__ void Warm_Contacts(float3* norm, float3* ptA, float3* ptB, float* con
 	f_r *= step_size_const;
 
 	gamma[i] = f_r;
-
 }
 __global__ void DEM_Contacts(float3* norm, float3* ptA, float3* ptB, float* contactDepth, int2* ids, float3* aux, float3* inertia, float4* rot, float3* vel, float3* omega, float3* pos,
 		float3* updateV, float3* updateO, uint* offset) {
@@ -373,7 +385,7 @@ __global__ void DEM_Contacts(float3* norm, float3* ptA, float3* ptB, float* cont
 // This kernel must be applied to the stream of the body buffer.
 
 __global__ void ChKernelLCPaddForces(float3* aux, float3* inertia, float3* forces, float3* torques, float3* vel, float3* omega) {
-	// Compute the i values used to access data inside the large 
+	// Compute the i values used to access data inside the large
 	// array using pointer arithmetic.
 	unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i < number_of_bodies_const) {
@@ -469,8 +481,6 @@ __global__ void LCP_Integrate_Timestep(float3* aux, float3* acc, float4* rot, fl
 //			omega[i] = omg;
 	//}
 
-
-
 	float4 Rw = (fabs(wlen) > 10e-10) ? Quat_from_AngAxis(step_size_const * wlen, omg / wlen) : F4(1., 0, 0, 0);// to avoid singularity for near zero angular speed
 
 	float4 mq = Quaternion_Product(rot[i], Rw);
@@ -489,7 +499,6 @@ __global__ void LCP_ComputeGyro(float3* omega, float3* inertia, float3* gyro, fl
 	float3 gyr = cross(body_omega, body_inertia * body_omega);
 	gyro[i] = gyr;
 	torque[i] -= gyr;
-
 }
 
 __global__ void ChKernelOffsets(int2* ids, CH_REALNUMBER4* bilaterals, uint* Body) {
@@ -512,7 +521,6 @@ ChLcpIterativeSolverGPU::~ChLcpIterativeSolverGPU() {
 	device_bilateral_data.clear();
 }
 void ChLcpIterativeSolverGPU::WarmContact() {
-
 	if (use_DEM == false) {
 Warm_Contacts	<<< BLOCKS(number_of_contacts), THREADS >>>(
 			CASTF3(data_container->device_norm_data),
@@ -544,6 +552,9 @@ void ChLcpIterativeSolverGPU::RunTimeStep() {
 	COPY_TO_CONST_MEM(number_of_contacts);
 	COPY_TO_CONST_MEM(number_of_bilaterals);
 	COPY_TO_CONST_MEM(number_of_bodies);
+	COPY_TO_CONST_MEM(compliance);
+	COPY_TO_CONST_MEM(complianceT);
+	COPY_TO_CONST_MEM(alpha);
 
 	LCP_ComputeGyro<<< BLOCKS(number_of_bodies),THREADS>>>(
 			CASTF3(data_container->device_omg_data),
@@ -561,7 +572,6 @@ void ChLcpIterativeSolverGPU::RunTimeStep() {
 	data_container->device_fap_data.resize(number_of_bodies);
 	Thrust_Fill(data_container->device_fap_data,F3(0));
 	if (number_of_constraints > 0) {
-
 		device_bilateral_data = host_bilateral_data;
 
 		update_number.resize((number_of_constraints) * 2, 0);
@@ -593,7 +603,6 @@ void ChLcpIterativeSolverGPU::RunTimeStep() {
 		//WarmContact();
 		for (iteration_number = 0; iteration_number < maximum_iterations; iteration_number++) {
 			if (use_DEM == false) {
-
 LCP_Iteration_Contacts			<<< BLOCKS(number_of_contacts), THREADS >>>(
 					CASTF3(data_container->device_norm_data),
 					CASTF3(data_container->device_cpta_data),
@@ -679,7 +688,6 @@ __global__ void Compute_KE(float3* vel, float3* aux, float* ke) {
 	}
 	float3 velocity = vel[i];
 	ke[i] = .5 / aux[i].z * dot(velocity, velocity);
-
 }
 float ChLcpIterativeSolverGPU::Total_KineticEnergy() {
 	device_ken_data.resize(number_of_bodies);

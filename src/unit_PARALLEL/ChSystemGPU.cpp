@@ -27,7 +27,6 @@
 #define HIER_CONTROLS_NEXT	    itercontrol++;
 
 namespace chrono {
-
 	ChSystemGPU::ChSystemGPU(unsigned int max_objects) :ChSystem(0, 0) {
 	gpu_data_manager = new ChGPUDataManager();
 	copydata = true;
@@ -82,7 +81,6 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	gpu_data_manager->DeviceToHost();
 #pragma omp parallel for
 	for (int i = 0; i < bodylist.size(); i++) {
-
 		float3 new_pos = gpu_data_manager->host_pos_data[i];
 		float4 new_rot = gpu_data_manager->host_rot_data[i];
 		float3 new_vel = gpu_data_manager->host_vel_data[i];

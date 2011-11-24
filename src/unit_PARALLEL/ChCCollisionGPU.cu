@@ -42,24 +42,19 @@ __global__ void Compute_AABBs(float3* pos, float4* rot, float3* obA, float3* obB
 
 	if (type.x == 0) {
 		ComputeAABBSphere(B.x, A + position, temp_min, temp_max);
-
 	} else if (type.x == 5) {
 		A = quatRotate(A + position, rotation);
 		B = quatRotate(B + position, rotation);
 		C = quatRotate(C + position, rotation);
 
 		ComputeAABBTriangle(A, B, C, temp_min, temp_max);
-
 	} else if (type.x == 1 || type.x == 2 || type.x == 3) {
-
 		ComputeAABBBox(B, A + position, rotation, temp_min, temp_max);
-
 	} else {
 		return;
 	}
 	aabb[index] = temp_min;
 	aabb[index + number_of_models_const] = temp_max;
-
 }
 
 __global__ void Offset_AABBs(float3* points) {
@@ -79,13 +74,6 @@ ChCCollisionGPU::ChCCollisionGPU() { //Constructor
 	do_compute_bounds = true;
 }
 ;
-ChCCollisionGPU::~ChCCollisionGPU() {
-}
-void ChCCollisionGPU::Clear() {
-}
-void ChCCollisionGPU::TuneCD(int ss, int ee) {
-}
-
 
 void ChCCollisionGPU::ComputeAABB() {
 	aabb_data.resize(number_of_models * 2);
@@ -98,20 +86,9 @@ Compute_AABBs<<<BLOCKS(number_of_models),THREADS>>>(
 		CASTF4(data_container->device_ObR_data),
 		CASTI3(data_container->device_typ_data),
 		CASTF3(aabb_data));
-
 }
 void ChCCollisionGPU::ComputeBounds() {
 	if (do_compute_bounds) {
-
-		//		if (object_data_host[0].B.w == 0) {
-		//			ComputeAABBSphere(object_data_host[0], init_min, init_max);
-		//		} else if (object_data_host[0].B.w == 1) {
-		//			ComputeAABBTriangle(object_data_host[0], init_min, init_max);
-		//		} else if (object_data_host[0].B.w == 2 || object_data_host[0].B.w == 3
-		//				|| object_data_host[0].B.w == 4) {
-		//			ComputeAABBBox(object_data_host[0], init_min, init_max);
-		//		}
-
 		bbox init = bbox(aabb_data[0], aabb_data[0]);
 		bbox_transformation unary_op;
 		bbox_reduction binary_op;
@@ -136,13 +113,11 @@ __global__ void FindGrid(float3* AABBs, uint3* aabb_minmax) {
 	uint3 gmax = Hash(AABBs[index + number_of_models_const] * 10.0);
 	aabb_minmax[index] = gmin;
 	aabb_minmax[index + number_of_models_const] = gmax;
-
 }
 __device__ __host__ bool operator ==(const uint3 &a, const uint3 &b) {
 	return ((a.x == b.x) && (a.y == b.y) && (a.z == b.z));
 }
 void ChCCollisionGPU::UpdateAABB() {
-
 	COPY_TO_CONST_MEM(collision_envelope); //Contact Envelope
 	COPY_TO_CONST_MEM(global_origin); //Origin for Physical Space
 	COPY_TO_CONST_MEM(bin_size_vec);

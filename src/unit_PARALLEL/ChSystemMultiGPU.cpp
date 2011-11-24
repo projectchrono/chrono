@@ -1,21 +1,16 @@
 #include "ChSystemMultiGPU.h"
 
 namespace chrono {
-
 	ChSystemMultiGPU::ChSystemMultiGPU(unsigned int max_objects) :ChSystem(0, 0) {
 		gpu_data_manager = new ChGPUDataManager();
 		counter = 0;
 		max_obj = max_objects;
 		InitGPU();
-
 	}
 
 	void ChSystemMultiGPU::InitGPU(){
-
 		cudaGetDeviceCount(&nGPUs);
 		cudaDeviceProp prop[64];
-
-
 
 		for (int i=0; i< nGPUs; i++) {
 			cudaGetDeviceProperties(&prop[i],i);
@@ -54,26 +49,46 @@ namespace chrono {
 		Setup();
 		Update();
 		LCPprepare_inject(*this->LCP_descriptor);// make vectors of variables and constraints, used by the following LCP solver
-		
-		//Generate AABB's - Host
-		//Perform BB CD	  - Host
-		//Thrust partition- 
+//		omp_set_num_threads(nGPUs);
+//#pragma omp parallel for
+//		for (int i=0; i<nGPUs;i++){
+//			int threadID = omp_get_thread_num();
+//			cudaSetDevice(gpus[i]);
+//			CopyData(i);		//Split data into 4 pieces and copy to GPUs	.cu
+//			UpdateAABB(i);		//Update AABB of each geometry bassed on the location of the body
+//			DetermineBounds(i); //Determine max/min bounds of each subset of objects
+//#pragma omp barrier
+//#pragma omp master
+//			{
+//				//combine all max/min boudns to the total max/min bound
+//				//split this AABB into 4 smaller ones
+//			}
+//#pragma omp barrier
+//
+//			DetermineSubdomain(i);//for each object determine what subdomain it is in (sorta like CD) and the home domain (center of mass)
+//#pragma omp barrier
+//#pragma omp master
+//			{
+//				SortObjects();//Based on the subdomain number sort the objects
+//				//determine number of objects in each subdomain
+//			}
+//#pragma omp barrier
+//
+//			CopyToSubdomain(i);			//copy data to the associated subdomain using thrust copy
+//			DoCollisionDetection(i);	//find all contacts for the subdomain
+//			PreProcessSolver(i);		//perform setup for solver (forces etc)
+//			For(int iter=0; iter<iter_max; iter++){
+//				DoSolverStep(i);		//Do a step
+//			#pragma omp barrier
+//				ShareVelocityUpdate(i);	//Share all data for ghost objects (an object with a different home subdomain that the current one)
+//			}
+//			DoIntegration(i);			//update the positions of all objects
+//
+//			CopytoHost(i);				//copy all data back to host
+//		}
 
-
-
-		//detmine GPU number of each object
-		//run scan on array
-		//determine number of objects on each gpu
-		//allocate memory
-		//copy memory to device
-		
-		
-		
-		
-		
 		gpu_data_manager->HostToDevice();
 		gpu_data_manager->HostToDevice_CD();
-
 
 		mtimer_cd.start();
 		((ChCollisionSystemGPU*) (collision_system))->Run();
@@ -85,14 +100,10 @@ namespace chrono {
 		((ChContactContainerGPUsimple*) this->contact_container)->SetNcontacts(gpu_data_manager->number_of_contacts);
 		mtimer_lcp.stop();
 
-
-
-
 		// Device to host
 		gpu_data_manager->DeviceToHost();
 #pragma omp parallel for
 		for (int i = 0; i < bodylist.size(); i++) {
-
 			float3 new_pos = gpu_data_manager->host_pos_data[i];
 			float4 new_rot = gpu_data_manager->host_rot_data[i];
 			float3 new_vel = gpu_data_manager->host_vel_data[i];

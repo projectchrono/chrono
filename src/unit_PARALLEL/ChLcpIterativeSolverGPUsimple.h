@@ -5,7 +5,7 @@
 //   ChLcpIterativeSolverGPUsimple.h
 //
 //
-//    file for CHRONO HYPEROCTANT LCP solver 
+//    file for CHRONO HYPEROCTANT LCP solver
 //
 // ------------------------------------------------
 // 	 Copyright:Alessandro Tasora / DeltaKnowledge
@@ -24,7 +24,7 @@
 namespace chrono {
 	///    An iterative LCP solver based on projective
 	///   fixed point method, with overrelaxation.
-	///   This solver runs on GPU boards from NVIDIA, version G80 
+	///   This solver runs on GPU boards from NVIDIA, version G80
 	///   or more recent. The GPU programming relies on CUDA library.
 
 	class ChApiGPU ChLcpIterativeSolverGPUsimple: public ChLcpIterativeSolver {
@@ -47,7 +47,6 @@ namespace chrono {
 
 			virtual double Solve(ChLcpSystemDescriptor& sysd, ///< system description with constraints and variables
 					bool add_Mq_to_f = false); ///< if true, takes the initial 'q' and adds [M]*q to 'f' vector
-
 
 			/// This solver can be used _only_ with a ChContactContainerGPUsimple !!
 			/// Set it when you create.
@@ -113,8 +112,6 @@ namespace chrono {
 
 		private:
 	};
-
 } // END_OF_NAMESPACE____
 
-
-#endif 
+#endif

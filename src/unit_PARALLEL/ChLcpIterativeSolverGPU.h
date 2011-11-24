@@ -13,7 +13,12 @@
 namespace chrono {
 	class ChApiGPU ChLcpIterativeSolverGPU {
 		public:
-			//ChLcpIterativeSolverGPU();
+			ChLcpIterativeSolverGPU(){
+				compliance=.001;
+				complianceT=.005;
+				alpha=.2;
+				use_DEM=false;
+			}
 			~ChLcpIterativeSolverGPU();
 			void RunTimeStep();
 			void WarmContact();
@@ -23,7 +28,7 @@ namespace chrono {
 
 			float Total_KineticEnergy();
 
-			float negated_recovery_speed, c_factor, step_size, tolerance, lcp_omega_bilateral, lcp_omega_contact, force_factor;
+			float negated_recovery_speed, c_factor, step_size, tolerance, lcp_omega_bilateral, lcp_omega_contact, force_factor, compliance,complianceT, alpha;
 			uint number_of_contacts, number_of_bilaterals, number_of_constraints, number_of_bodies, number_of_updates, iteration_number, maximum_iterations;
 			bool use_DEM;
 			cudaEvent_t start, stop;
@@ -46,9 +51,6 @@ namespace chrono {
 			thrust::device_vector<float> device_ctd_data;
 
 			//thrust::host_vector<contactGPU> host_contact_data;
-
 	};
-
 }
 #endif
-

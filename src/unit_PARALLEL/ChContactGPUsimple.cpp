@@ -1,5 +1,3 @@
-
-
 ///////////////////////////////////////////////////
 //
 //   ChContactGPUsimple.cpp
@@ -9,25 +7,20 @@
 //             www.deltaknowledge.com
 // ------------------------------------------------
 ///////////////////////////////////////////////////
- 
-  
+
 #include "ChContactGPUsimple.h"
 #include "physics/ChSystem.h"
 #include "lcp/ChLcpConstraintTwoContactN.h"
 
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
 
-
 namespace chrono
 {
-
-
 using namespace collision;
 using namespace geometry;
 
-
 ChContactGPUsimple::ChContactGPUsimple ()
-{ 
+{
 	Nx.SetTangentialConstraintU(&Tu);
 	Nx.SetTangentialConstraintV(&Tv);
 }
@@ -45,7 +38,7 @@ ChContactGPUsimple::ChContactGPUsimple (	collision::ChCollisionModel* mmodA,	///
 						float* mreaction_cache,	  ///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
 						float mfriction			  ///< friction coeff.
 				)
-{ 
+{
 	Nx.SetTangentialConstraintU(&Tu);
 	Nx.SetTangentialConstraintV(&Tv);
 
@@ -65,7 +58,6 @@ ChContactGPUsimple::ChContactGPUsimple (	collision::ChCollisionModel* mmodA,	///
 
 ChContactGPUsimple::~ChContactGPUsimple ()
 {
-
 }
 
 void ChContactGPUsimple::Reset(	collision::ChCollisionModel* mmodA,	///< model A
@@ -107,10 +99,7 @@ void ChContactGPUsimple::Reset(	collision::ChCollisionModel* mmodA,	///< model A
 	// No need to compute jacobians, because Dan's postprocessing kernel will take care of making them in GPU.
 
 	react_force = VNULL;
-
 }
-
-
 
 ChCoordsys<> ChContactGPUsimple::GetContactCoords()
 {
@@ -126,15 +115,11 @@ ChCoordsys<> ChContactGPUsimple::GetContactCoords()
 	return mcsys;
 }
 
-
- 
-
-
 void ChContactGPUsimple::InjectConstraints(ChLcpSystemDescriptor& mdescriptor)
 {
 	mdescriptor.InsertConstraint(&Nx);
 	mdescriptor.InsertConstraint(&Tu);
-	mdescriptor.InsertConstraint(&Tv); 
+	mdescriptor.InsertConstraint(&Tv);
 }
 
 void ChContactGPUsimple::ConstraintsBiReset()
@@ -143,7 +128,7 @@ void ChContactGPUsimple::ConstraintsBiReset()
 	Tu.Set_b_i(0.);
 	Tv.Set_b_i(0.);
 }
- 
+
 void ChContactGPUsimple::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp)
 {
 	// DO NOTHING: will be done on the GPU with Dan's preprocessing
@@ -152,23 +137,22 @@ void ChContactGPUsimple::ConstraintsBiLoad_C(double factor, double recovery_clam
 void ChContactGPUsimple::ConstraintsFetch_react(double factor)
 {
 	// From constraints to react vector:
-	react_force.x = Nx.Get_l_i() * factor;  
+	react_force.x = Nx.Get_l_i() * factor;
 	react_force.y = Tu.Get_l_i() * factor;
 	react_force.z = Tv.Get_l_i() * factor;
 }
 
-
 void  ChContactGPUsimple::ConstraintsLiLoadSuggestedSpeedSolution()
 {
 	// Fetch the last computed impulsive reactions from the persistent contact manifold (could
-	// be used for warm starting the CCP speed solver): 
+	// be used for warm starting the CCP speed solver):
 	if (Nx.GetContactCache())
 	{
 		Nx.Set_l_i((Nx.GetContactCache())[0]);
-		Tu.Set_l_i((Nx.GetContactCache())[1]);  
+		Tu.Set_l_i((Nx.GetContactCache())[1]);
 		Tv.Set_l_i((Nx.GetContactCache())[2]);
 	}
-	//GetLog() << "++++      " << (int)this << "  fetching N=" << (double)mn <<"\n"; 
+	//GetLog() << "++++      " << (int)this << "  fetching N=" << (double)mn <<"\n";
 }
 
 void  ChContactGPUsimple::ConstraintsLiLoadSuggestedPositionSolution()
@@ -178,7 +162,7 @@ void  ChContactGPUsimple::ConstraintsLiLoadSuggestedPositionSolution()
 	if (Nx.GetContactCache())
 	{
 		Nx.Set_l_i((Nx.GetContactCache())[3]);
-		Tu.Set_l_i((Nx.GetContactCache())[4]);  
+		Tu.Set_l_i((Nx.GetContactCache())[4]);
 		Tv.Set_l_i((Nx.GetContactCache())[5]);
 	}
 }
@@ -207,12 +191,4 @@ void  ChContactGPUsimple::ConstraintsLiFetchSuggestedPositionSolution()
 		(Nx.GetContactCache())[5] = (float)Tv.Get_l_i();
 	}
 }
-
-
-
-
 } // END_OF_NAMESPACE____
-
- 
-
-

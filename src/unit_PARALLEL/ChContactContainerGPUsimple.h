@@ -22,20 +22,16 @@
 #include "ChApiGPU.h"
 namespace chrono
 {
-
-
-
-	/// Class representing a container of many contacts, 
+	/// Class representing a container of many contacts,
 	/// implemented as a typical linked list of ChContactGPUsimple
 	/// objects.
-	/// This contact container must be used for the preliminar CUDA solver 
+	/// This contact container must be used for the preliminar CUDA solver
 	/// that was developed by Ale & Dan, but in future will be
 	/// replaced by ChContactContainerGPU, and advanced container
 	/// that does not use linked lists of cpu objects but rather
 	/// keeps all contact data as GPU buffers on the GPU device.
 
 	class ChApiGPU ChContactContainerGPUsimple : public ChContactContainerBase {
-
 		CH_RTTI(ChContactContainerGPUsimple,ChContactContainerBase);
 
 	protected:
@@ -43,7 +39,7 @@ namespace chrono
 		// DATA
 		//
 
-		std::list<ChContactGPUsimple*>   contactlist; 
+		std::list<ChContactGPUsimple*>   contactlist;
 
 		int n_added;
 
@@ -62,7 +58,6 @@ namespace chrono
 
 		virtual ~ChContactContainerGPUsimple ();
 
-
 		//
 		// FUNCTIONS
 		//
@@ -70,7 +65,7 @@ namespace chrono
 		virtual int GetNcontacts  () {return n_added;}
 
 		void SetNcontacts  (int contacts) {n_added=contacts;}
-		
+
 		/// Remove (delete) all contained contact data.
 		virtual void RemoveAllContacts();
 
@@ -96,22 +91,20 @@ namespace chrono
 		/// report all contacts).
 		virtual void ReportAllContacts(ChReportContactCallback* mcallback);
 
-
 		/// Access the C factor, as buffered last time ConstraintsBiLoad_C() executed.
-		/// This is used only by the GPU solver because contact jacobian/residual computation is 
+		/// This is used only by the GPU solver because contact jacobian/residual computation is
 		/// delegated to Dan's preprocessor in GPU solver.
 		double Get_load_C_factor() {return load_C;}
 		double Get_load_max_recovery_speed() {return load_max_recovery_speed;}
 		bool   Get_load_do_clamp() {return load_do_clamp;}
 
-
 		/// Tell the number of scalar bilateral constraints (actually, friction
 		/// constraints aren't exactly as unilaterals, but count them too)
 		virtual int GetDOC_d  () {return n_added * 3;}
 
-		/// In detail, it computes jacobians, violations, etc. and stores 
+		/// In detail, it computes jacobians, violations, etc. and stores
 		/// results in inner structures of contacts.
-		virtual void Update (double mtime);			
+		virtual void Update (double mtime);
 
 		//
 		// LCP INTERFACE
@@ -127,17 +120,10 @@ namespace chrono
 		virtual void ConstraintsLiFetchSuggestedSpeedSolution();
 		virtual void ConstraintsLiFetchSuggestedPositionSolution();
 		virtual void ConstraintsFetch_react(double factor=1.);
-
-
 	};
 
-
-
-
 	//////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////
-
-
 } // END_OF_NAMESPACE____
 
 #endif

@@ -5,7 +5,7 @@
 //   ChLcpSystemDescriptorGPU.h
 //
 //   Contains GPU Memory shared between the Collision Detection and LCP Solver Algorithms
-//   
+//
 //
 //   HEADER file for CHRONO HYPEROCTANT LCP solver
 //
@@ -35,4 +35,4 @@ namespace chrono {
 	};
 } // END_OF_NAMESPACE____
 
-#endif  
+#endif

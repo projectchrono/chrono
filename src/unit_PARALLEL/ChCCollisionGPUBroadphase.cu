@@ -17,7 +17,6 @@ __device__ bool AABB_Contact_Pt(const AABB& A, const AABB& B, uint &Bin) {
 
 	//return (F3(A.min+A.max)*.5+F3(B.min+B.max)*.5)*.5;
 
-
 	bool minX = (A.min.x <= B.min.x && A.max.x >= B.max.x), minY = (A.min.y <= B.min.y && A.max.y >= B.max.y), minZ = (A.min.z <= B.min.z && A.max.z >= B.max.z);
 
 	if (minX && minY && minZ) {
@@ -76,7 +75,6 @@ __device__ bool AABB_Contact_Pt(const AABB& A, const AABB& B, uint &Bin) {
 		}
 	}
 	return (Bin == Hash_Index(Hash((Pa + Pb) * .5f))) && (A.min.x <= B.max.x && B.min.x <= A.max.x) && (A.min.y <= B.max.y && B.min.y <= A.max.y) && (A.min.z <= B.max.z && B.min.z <= A.max.z);
-
 }
 
 __device__ int Contact_Type(const int &A, const int &B) {
@@ -225,5 +223,4 @@ AABB_AABB<<<BLOCKS(last_active_bin),THREADS>>>(
 		CASTU1(generic_counter),
 		CASTLL(contact_pair)
 );
-
 }

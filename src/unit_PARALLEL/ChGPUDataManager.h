@@ -72,7 +72,6 @@ class ChApiGPU ChGPUDataManager {
 		//bilateral data
 		thrust::device_vector<float3> device_gam_data;
 		//system metrics
-
 };
 
 #endif

@@ -14,8 +14,6 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
-
 #include "ChLcpConstraintTwoGPUcontT.h"
 
 #include "core/ChMemory.h" // must be after system's include (memory leak debugger).
@@ -23,12 +21,10 @@
 
 namespace chrono
 {
-
-
 	///  This class is inherited by the ChLcpConstraintTwo(),
 	/// It is used to represent the normal reaction between two objects
 	/// ONLY when also two ChLcpConstraintTwoGPUcontT objects are
-	/// used to represent friction. 
+	/// used to represent friction.
 	/// It can be used only with the ChLcpIterativeCudaSolver or similar,
 	/// which use the GPU hardware.
 
@@ -61,7 +57,7 @@ namespace chrono
 		// CONSTRUCTORS
 		//
 		/// Default constructor
-		ChLcpConstraintTwoGPUcontN() 
+		ChLcpConstraintTwoGPUcontN()
 		{
 			mode = CONSTRAINT_FRIC;
 			friction = 0.0;
@@ -71,7 +67,7 @@ namespace chrono
 
 		/// Construct and immediately set references to variables,
 		/// also setting the U and V tangential friction constraints
-		ChLcpConstraintTwoGPUcontN(ChLcpVariables* mvariables_a, 
+		ChLcpConstraintTwoGPUcontN(ChLcpVariables* mvariables_a,
 			ChLcpVariables* mvariables_b,
 			ChLcpConstraintTwoGPUcontT* aU = 0,
 			ChLcpConstraintTwoGPUcontT* aV = 0
@@ -87,7 +83,7 @@ namespace chrono
 		};
 
 		/// Copy constructor
-		ChLcpConstraintTwoGPUcontN(const ChLcpConstraintTwoGPUcontN& other) 
+		ChLcpConstraintTwoGPUcontN(const ChLcpConstraintTwoGPUcontN& other)
 			: ChLcpConstraintTwo(other)
 		{
 			friction=other.friction;
@@ -117,8 +113,6 @@ namespace chrono
 			return *this;
 		}
 
-
-
 		//
 		// FUNCTIONS
 		//
@@ -130,7 +124,6 @@ namespace chrono
 			variables_a = mvariables_a;
 			variables_b = mvariables_b;
 		}
-
 
 		ChVector<> GetP1() {return p1;}
 		void SetP1( ChVector<>& mp) {p1 = mp;}
@@ -144,15 +137,13 @@ namespace chrono
 		float* GetContactCache() {return contact_cache;}
 		void SetContactCache(float* mcache) {contact_cache = mcache;}
 
-
 		/// Get the friction coefficient
 		double GetFrictionCoefficient() {return friction; }
 		/// Set the friction coefficient
 		void SetFrictionCoefficient(double mcoeff) {friction = mcoeff;}
 
-
 		/// Get pointer to U tangential component
-		ChLcpConstraintTwoGPUcontT* GetTangentialConstraintU() {return constraint_U;}			
+		ChLcpConstraintTwoGPUcontT* GetTangentialConstraintU() {return constraint_U;}
 		/// Get pointer to V tangential component
 		ChLcpConstraintTwoGPUcontT* GetTangentialConstraintV() {return constraint_V;}
 
@@ -161,13 +152,12 @@ namespace chrono
 		/// Set pointer to V tangential component
 		void SetTangentialConstraintV(ChLcpConstraintTwoGPUcontT* mconstr) {constraint_V = mconstr;}
 
-
 		/// The projection should be done directly on the GPU custom kernel code,
 		/// so this won't be ever called.
 		virtual void Project() {assert (false);};
 
-		/// Computations with the following data are done directly on the GPU 
-		/// custom kernel code, so this won't be ever called. 
+		/// Computations with the following data are done directly on the GPU
+		/// custom kernel code, so this won't be ever called.
 		virtual ChMatrix<float>* Get_Cq_a() {assert (false); return 0;}
 		virtual ChMatrix<float>* Get_Cq_b() {assert (false); return 0;}
 		virtual ChMatrix<float>* Get_Eq_a() {assert (false); return 0;}
@@ -189,15 +179,8 @@ namespace chrono
 		/// binary archive (ex: a file).
 		virtual void StreamOUT(ChStreamOutBinary& mstream);
 	};
-
-
-
-
 } // END_OF_NAMESPACE____
-
-
 
 #include "core/ChMemorynomgr.h" // back to default new/delete/malloc/calloc etc. Avoid conflicts with system libs.
 
-
-#endif  
+#endif

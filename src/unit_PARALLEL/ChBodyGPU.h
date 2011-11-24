@@ -5,9 +5,9 @@
 //
 //   ChBodyGPU.h
 //
-//   Derived Class for GPU rigid bodies, 
-//   
-//   
+//   Derived Class for GPU rigid bodies,
+//
+//
 //
 //   HEADER file for CHRONO,
 //	 Multibody dynamics engine
@@ -22,54 +22,50 @@
 #include "ChCCollisionModelGPU.h"
 #include "ChGPUDataManager.h"
 namespace chrono {
-
 	using namespace collision;
 
 	//class ChSystem;
 	class ChApiGPU ChBodyGPU: public ChBody {
-
 		CH_RTTI(ChBodyGPU,ChPhysicsItem);
 
-		public:
+	public:
 
-			//
-			// CONSTRUCTORS
-			//
-			/// Build a rigid body.
-			ChBodyGPU();
-			/// Destructor
-			~ChBodyGPU();
-			virtual ChCollisionModel* InstanceCollisionModel();
-			//void UpdateForces(double mytime);
+		//
+		// CONSTRUCTORS
+		//
+		/// Build a rigid body.
+		ChBodyGPU();
+		/// Destructor
+		~ChBodyGPU();
+		/// Instantiate the collision model
+		virtual ChCollisionModel* InstanceCollisionModel();
 
-
-			ChVector<> GetXForce() {
-				return Xforce;
-			}
-			ChVector<> GetXTorque() {
-				return Xtorque;
-			}
-			ChVector<> GetGyro() {
-				return gyro;
-			}
-			void SetAppliedForce(ChVector<> mForce) {
-
-				mAppliedForce=mForce;
-
-			}
-			ChVector<> GetAppliedForce() {
-				return mAppliedForce;
-			}
-
-			int id;
-			ChVector<> mAppliedForce;
-			ChGPUDataManager *data_manager;
-
+		/// Returns the total applied force
+		ChVector<> GetXForce() {
+			return Xforce;
+		}
+		/// Returns the total applied torque
+		ChVector<> GetXTorque() {
+			return Xtorque;
+		}
+		/// Returns the gyroscopic torque
+		ChVector<> GetGyro() {
+			return gyro;
+		}
+		/// Set the applied force computed from contacts and the bilateral constraints acting on the body
+		void SetAppliedForce(ChVector<> mForce) {
+			mAppliedForce=mForce;
+		}
+		/// Get the applied force computed from contacts and the bilateral constraints acting on the body
+		ChVector<> GetAppliedForce() {
+			return mAppliedForce;
+		}
+		int id;
+	private:
+		ChVector<> mAppliedForce;
 	};
 
 	typedef ChSharedPtr<ChBodyGPU> ChSharedBodyGPUPtr;
-
 } // END_OF_NAMESPACE____
-
 
 #endif

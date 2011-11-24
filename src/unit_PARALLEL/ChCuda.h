@@ -40,7 +40,7 @@ typedef unsigned int uint;
 #define CH_REALNUMBER4 float4
 #define CH_REALNUMBER3 float3
 #define CH_REALNUMBER2 float2
-#define CH_REALNUMBER  float 
+#define CH_REALNUMBER  float
 
 #define F3	make_float3
 #define F4	make_float4
@@ -107,7 +107,6 @@ __device__ __host__ inline float4 inv(const float4& a) {
 __device__ __host__ inline float4 operator ~(const float4& a) {
 	return F4(a.x, -a.y, -a.z, -a.w);
 }
-
 
 __device__ __host__ inline float4 mult(const float4 &a, const float4 &b) {
 	float4 quat;
@@ -180,7 +179,7 @@ float __host_int_as_float(int a) {
 
 #endif
 
-// Kernels for solving the CCP complementarity problem in GPU. 
+// Kernels for solving the CCP complementarity problem in GPU.
 //
 //  These kernels expects to find the data arranged as blocks of
 //  float4 data (columns of N 'four4' structures) in horizontal
@@ -191,8 +190,8 @@ float __host_int_as_float(int a) {
 //   B1 and B2 are indexes pointing to bodies in body buffer. For inactive body, B1=-1 or B2=-1
 //   R1 and R2 are indexes pointing to reduction buffer cell. Senseless for inactive bodies.
 //   n1 and n2 tell the repetition index of the body (0,1,2,..) in reduction buffer.
-// 
-//   
+//
+//
 //  'contacts' buffer is made with an horizontal array of://*OLD, there is no more preprocess stage, merged with iteration//*
 //		[             , bx ]      0
 //		[ matr.J12(x) , -  ]      1
@@ -204,7 +203,7 @@ float __host_int_as_float(int a) {
 //		[ matr.J2(w)  , -  ]	  7
 //		[_____________, et ]	  8
 //		[ gx,  gy,  gz, mu ]      9
-//   
+//
 //  'bilaterals' buffer is made with an horizontal array of:
 //		[ matr.J1(x)  , B1 ]      0
 //		[ matr.J2(x)  , B2 ]      1
@@ -213,7 +212,7 @@ float __host_int_as_float(int a) {
 //      [ eta, b, g   ,  u ]      4      u=1 if unilateral, 0 if bilateral
 //      [ R1 , R2, n1 , n2 ]      5      index to fill the reduction buffer, and n repetition
 //
-//  'bodies' buffer is made with an horizontal array of:  
+//  'bodies' buffer is made with an horizontal array of:
 //		[ vx, vy, vz  , S  ]       0     S= state of body (active or not)
 //		[ wx, wy, wz  , mu ]       1
 //		[ xx, xy, xz  , -  ]       2
@@ -232,7 +231,7 @@ float __host_int_as_float(int a) {
 //		[ fx, fy, fz  , -  ]       5
 //		[ cx, cy, cz  , -  ]       6
 //
-//  Note that the contacts are uploaded to the GPU in a compressed format, 
+//  Note that the contacts are uploaded to the GPU in a compressed format,
 //  that is later transformed in the above 'contact' buffer thank to the ChKernelContactsPreprocess
 //  kernel. Such kernel prepares the 'contacts' buffer in-place, starting from the state below:
 //
@@ -255,4 +254,3 @@ float __host_int_as_float(int a) {
 //		[     P1      ]	  1
 //		[     P2      ]	  2
 //		[ gx,  gy,  gz]   4
-

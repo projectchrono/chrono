@@ -28,7 +28,6 @@ namespace chrono {
 	using namespace chrono;
 
 	class ChApiGPU ChSystemGPU: public ChSystem {
-
 		CH_RTTI(ChSystemGPU,ChObj);
 
 		public:
@@ -38,14 +37,12 @@ namespace chrono {
 			virtual int Integrate_Y_impulse_Anitescu();
 			double ComputeCollisions();
 			void AddBody(ChSharedPtr<ChBodyGPU> newbody) {
-
 				newbody->AddRef();
 				newbody->SetSystem(this);
 				bodylist.push_back((newbody).get_ptr());
 
 				ChBodyGPU* gpubody = ((ChBodyGPU*) newbody.get_ptr());
 				gpubody->id = counter;
-				gpubody->data_manager = gpu_data_manager;
 				if (newbody->GetCollide()) newbody->AddCollisionModelsToSystem();
 
 				ChLcpVariablesBodyOwnMass* mbodyvar = &(newbody->Variables());
@@ -81,9 +78,6 @@ namespace chrono {
 				return ((ChLcpIterativeSolverGPUsimple*) (LCP_solver_speed))->Total_KineticEnergy();
 			}
 
-
-
-
 			ChGPUDataManager *gpu_data_manager;
 		private:
 			unsigned int counter;
@@ -92,7 +86,6 @@ namespace chrono {
 
 			float3 bounding_min, bounding_max;
 	};
-
 }
 
 #endif

@@ -3,7 +3,7 @@
 //   ChLcpIterativeSolverGPUsimple.cpp
 //
 //
-//    file for CHRONO HYPEROCTANT LCP solver 
+//    file for CHRONO HYPEROCTANT LCP solver
 //
 // ------------------------------------------------
 // 	 Copyright:Alessandro Tasora / DeltaKnowledge
@@ -39,7 +39,6 @@ namespace chrono {
 		mMaxIterations = 100;
 		mOmegaContact = .2;
 		mOmegaBilateral = .2;
-
 	}
 
 	ChLcpIterativeSolverGPUsimple::~ChLcpIterativeSolverGPUsimple() {
@@ -53,7 +52,6 @@ namespace chrono {
 
 		// -1-  Count active variables and initialize GPU body buffer
 		//uint number_of_bodies = mvariables.size();
-
 
 		mSystemDescriptor->number_of_bodies = number_of_bodies;
 
@@ -121,5 +119,4 @@ namespace chrono {
 
 		return 0;
 	}
-
 } // END_OF_NAMESPACE____

@@ -6,14 +6,11 @@ ChGPUDataManager::ChGPUDataManager() {
 	number_of_objects=0;
 }
 ChGPUDataManager::~ChGPUDataManager() {
-
 }
 void ChGPUDataManager::Clear() {
-
 }
 
 void ChGPUDataManager::Remove(unsigned int i){
-
 }
 void ChGPUDataManager::HostToDevice() {
 	device_vel_data = host_vel_data;
@@ -33,7 +30,6 @@ void ChGPUDataManager::HostToDevice_min() {
 	device_trq_data = host_trq_data;
 	device_acc_data = device_vel_data;
 	device_aux_data = host_aux_data;
-
 }
 
 void ChGPUDataManager::HostToDevice_forces() {

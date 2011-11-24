@@ -1,7 +1,7 @@
 #ifndef CHC_COLLISIONSYSTEMGPUA_H
 #define CHC_COLLISIONSYSTEMGPUA_H
 //////////////////////////////////////////////////
-//  
+//
 //   ChCCollisionSystemGPU.h
 //
 //   Header for class for collision engine based on
@@ -29,7 +29,7 @@ namespace chrono {
 		///
 		/// Class for collision engine based on the spatial subdivision method.
 		/// Contains both the broadphase and the narrow phase methods.
-		/// 
+		///
 
 		class ChApiGPU ChCollisionSystemGPU : public ChCollisionSystem{
 		public:
@@ -59,21 +59,21 @@ namespace chrono {
 			virtual void Run();
 
 			/// After the Run() has completed, you can call this function to
-			/// fill a 'contact container', that is an object inherited from class 
+			/// fill a 'contact container', that is an object inherited from class
 			/// ChContactContainerBase. For instance ChSystem, after each Run()
 			/// collision detection, calls this method multiple times for all contact containers in the system,
-			/// The basic behavior of the implementation is the following: collision system 
-			/// will call in sequence the functions BeginAddContact(), AddContact() (x n times), 
+			/// The basic behavior of the implementation is the following: collision system
+			/// will call in sequence the functions BeginAddContact(), AddContact() (x n times),
 			/// EndAddContact() of the contact container. But if a special container (say, GPU enabled)
 			/// is passed, a more rapid buffer copy might be performed)
 			virtual void ReportContacts(ChContactContainerBase* mcontactcontainer){}
 
 			/// After the Run() has completed, you can call this function to
-			/// fill a 'proximity container' (container of narrow phase pairs), that is 
+			/// fill a 'proximity container' (container of narrow phase pairs), that is
 			/// an object inherited from class ChProximityContainerBase. For instance ChSystem, after each Run()
 			/// collision detection, calls this method multiple times for all proximity containers in the system,
-			/// The basic behavior of the implementation is  the following: collision system 
-			/// will call in sequence the functions BeginAddProximities(), AddProximity() (x n times), 
+			/// The basic behavior of the implementation is  the following: collision system
+			/// will call in sequence the functions BeginAddProximities(), AddProximity() (x n times),
 			/// EndAddProximities() of the proximity container. But if a special container (say, GPU enabled)
 			/// is passed, a more rapid buffer copy might be performed)
 			virtual void ReportProximities(ChProximityContainerBase* mproximitycontainer){}
@@ -94,4 +94,3 @@ namespace chrono {
 } // END_OF_NAMESPACE____
 
 #endif
-

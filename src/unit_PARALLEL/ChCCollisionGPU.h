@@ -1,7 +1,7 @@
 #ifndef CHC_COLLISIONGPU_H
 #define CHC_COLLISIONGPU_H
 //////////////////////////////////////////////////
-//  
+//
 //   ChCCollisionGPU.h
 //
 //   GPU Collision Detection Algorithm
@@ -24,23 +24,29 @@ struct AABB {
 
 namespace chrono {
 	namespace collision {
-
 		class ChApiGPU ChCCollisionGPU {
 			public:
 				ChCCollisionGPU();
-				~ChCCollisionGPU();
+				~ChCCollisionGPU(){}
 
-				void Clear();
-				void TuneCD(int ss, int ee);
+				/// Run Collision Detection
 				void Run();
+				/// Do Proadphase Step
 				void Broadphase();
+				/// Do Narrowphase Step
 				void Narrowphase();
+				/// Compute Axis Aligned Bounding Boxes for all collision geometries
 				void ComputeAABB();
+				/// Compute the bounds of the space
 				void ComputeBounds();
+				/// Update the location of the AABB
 				void UpdateAABB();
+				/// Add a collision object
 				void AddObject(const float3 &A, const float3 &B, const float3 &C, const float4 &R, const int2 &F, const int3 &T);
 
-				uint number_of_models,number_of_contacts, number_of_contacts_possible, last_active_bin, number_of_bin_intersections;
+				uint number_of_models,	///number of collision models
+					number_of_contacts,	///number of contacts found
+					number_of_contacts_possible; ///number of possible contacts from broadphase
 
 				float collision_envelope, optimal_bin_size, running_time, max_dimension;
 				float3 max_bounding_point, min_bounding_point, global_origin, bin_size_vec;
@@ -61,6 +67,7 @@ namespace chrono {
 				thrust::device_vector<uint3> aabb_min_max_bin_old;
 				thrust::device_vector<float3> aabb_data;
 				thrust::device_vector<uint> bin_start_index;
+				uint last_active_bin, number_of_bin_intersections;
 		};
 	}
 }

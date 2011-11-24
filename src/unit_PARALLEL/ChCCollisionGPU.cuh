@@ -8,7 +8,6 @@ __constant__ uint last_active_bin_const;
 __constant__ float collision_envelope_const;
 __constant__ uint number_of_models_const;
 
-
 //1.f/16384.f;
 #define Vector_ZERO_EPSILON 0.0000001
 #define MIN_ZERO_EPSILON 1.1754943508222875E-38

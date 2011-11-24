@@ -1,22 +1,21 @@
 //////////////////////////////////////////////////
-//  
+//
 //   ChCModelGPU.cpp
 //
 // ------------------------------------------------
 // 	 Copyright:Alessandro Tasora / DeltaKnowledge
-//             www.deltaknowledge.com 
+//             www.deltaknowledge.com
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#ifndef CH_NOCUDA 
+#ifndef CH_NOCUDA
 
-#include "ChCCollisionModelGPU.h" 
+#include "ChCCollisionModelGPU.h"
 #include "physics/ChBody.h"
 #include "physics/ChSystem.h"
 
 namespace chrono {
 	namespace collision {
-
 		ChCollisionModelGPU::ChCollisionModelGPU() {
 			nObjects = 0;
 			colFam = -1;
@@ -27,7 +26,6 @@ namespace chrono {
 			mData.clear();
 		}
 		int ChCollisionModelGPU::ClearModel() {
-
 			if (GetPhysicsItem()->GetSystem() && GetPhysicsItem()->GetCollide()) {
 				GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Remove(this);
 			}
@@ -73,7 +71,6 @@ namespace chrono {
 			return true;
 		}
 		bool ChCollisionModelGPU::AddBox(double hx, double hy, double hz, ChVector<>* pos, ChMatrix33<>* rot) {
-
 			double mass = this->GetBody()->GetMass();
 			this->GetBody()->SetInertiaXX(ChVector<> (1 / 12.0 * mass * (hy * hy + hz * hz), 1 / 12.0 * mass * (hx * hx + hz * hz), 1 / 12.0 * mass * (hx * hx + hy * hy)));
 			model_type = BOX;
@@ -195,7 +192,6 @@ namespace chrono {
 			return (ChPhysicsItem*) GetBody();
 		}
 		;
-
 	} // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____
 

@@ -1,10 +1,9 @@
-
 ///////////////////////////////////////////////////
 //
 //   ChLcpConstraintTwoContactN.cpp
 //
 //
-//    file for CHRONO HYPEROCTANT LCP solver 
+//    file for CHRONO HYPEROCTANT LCP solver
 //
 // ------------------------------------------------
 // 	 Copyright:Alessandro Tasora / DeltaKnowledge
@@ -12,19 +11,13 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
-#include "ChLcpConstraintTwoGPUcontN.h" 
-
+#include "ChLcpConstraintTwoGPUcontN.h"
 
 namespace chrono
 {
-
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
 ChClassRegister<ChLcpConstraintTwoGPUcontN> a_registration_ChLcpConstraintTwoGPUcontN;
-
-  
-
 
 void ChLcpConstraintTwoGPUcontN::StreamOUT(ChStreamOutBinary& mstream)
 {
@@ -36,7 +29,6 @@ void ChLcpConstraintTwoGPUcontN::StreamOUT(ChStreamOutBinary& mstream)
 
 		// stream out all member data..
 	mstream << friction;
-
 }
 
 void ChLcpConstraintTwoGPUcontN::StreamIN(ChStreamInBinary& mstream)
@@ -50,8 +42,4 @@ void ChLcpConstraintTwoGPUcontN::StreamIN(ChStreamInBinary& mstream)
 		// stream in all member data..
 	mstream >> friction;
 }
-
-
-
-
 } // END_OF_NAMESPACE____

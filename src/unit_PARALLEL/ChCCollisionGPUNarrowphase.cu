@@ -449,7 +449,6 @@ __device__ __host__ inline float3 GetSupportPoint_Sphere(const float3 &B, const 
 	return (B.x) * n;
 }
 __device__ __host__ inline float3 GetSupportPoint_Triangle(const float3 &A, const float3 &B, const float3 &C, const float3 &n) {
-
 	float dist = dot(A, n);
 	float3 point = A;
 	if (dot(B, n) > dist) {
@@ -491,7 +490,6 @@ __device__ __host__ inline float3 GetSupportPoint_Cylinder(const float3 &B, cons
 		result = sign(dot(u, n)) * B.y * u;
 	}
 	return result;
-
 }
 __device__ __host__ inline float3 GetSupportPoint_Plane(const float3 &B, const float3 &n) {
 	float3 result = B;
@@ -530,7 +528,6 @@ __device__ __host__ bool IsZero(const float &val) {
 	return fabs(val) < 1E-10;
 }
 __device__ __host__ bool isEqual(const float& _a, const float& _b) {
-
 	float ab;
 
 	ab = fabs(_a - _b);
@@ -598,7 +595,6 @@ __device__ __host__ float dist_line(float3 & P, float3 &x0, float3 &b, float3& w
 	}
 
 	return dist;
-
 }
 __device__ __host__ float find_dist(float3 & P, float3 &x0, float3 &B, float3 &C, float3& witness) {
 	float3 d1, d2, a;
@@ -621,14 +617,12 @@ __device__ __host__ float find_dist(float3 & P, float3 &x0, float3 &B, float3 &C
 	t = (-s * r - q) / w;
 
 	if ((IsZero(s) || s > 0.0f) && (isEqual(s, 1.0f) || s < 1.0f) && (IsZero(t) || t > 0.0f) && (isEqual(t, 1.0f) || t < 1.0f) && (isEqual(t + s, 1.0f) || t + s < 1.0f)) {
-
 		d1 *= s;
 		d2 *= t;
 		witness = x0;
 		witness += d1;
 		witness += d2;
 		dist = dot(witness - P, witness - P);
-
 	} else {
 		dist = dist_line(P, x0, B, witness);
 
@@ -861,7 +855,6 @@ __global__ void MPR_GPU_Store(float3* pos, float4* rot, float3* obA, float3* obB
 	ids[Index] = I2(A_T.z, B_T.z);
 	//AddContact(CData,Index,  getID(A),getID(B), p1, p2,-N,-depth);
 	Contact_Number[Index] = 0;
-
 }
 __global__ void CopyGamma(int* to, float3* oldG, float3* newG, int contacts) {
 	uint i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -917,7 +910,6 @@ void ChCCollisionGPU::Narrowphase() { //NarrowPhase Contact CD
 			CASTI2(data_container->device_bids_data),
 			number_of_contacts_possible); //Number of potential contacts
 
-
 	thrust::sort_by_key(generic_counter.begin(), generic_counter.end(), thrust::make_zip_iterator(thrust::make_tuple(data_container->device_norm_data.begin(),
 			data_container->device_cpta_data.begin(), data_container->device_cptb_data.begin(), data_container->device_dpth_data.begin(), data_container->device_bids_data.begin(),
 			contact_pair.begin())));
@@ -969,6 +961,4 @@ void ChCCollisionGPU::Narrowphase() { //NarrowPhase Contact CD
 //	}
 //}
 //old_contact_pair = contact_pair;
-
 }
-
