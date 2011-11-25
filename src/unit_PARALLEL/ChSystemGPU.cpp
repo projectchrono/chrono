@@ -2,7 +2,7 @@
 #include <omp.h>
 
 namespace chrono {
-	ChSystemGPU::ChSystemGPU(unsigned int max_objects) :ChSystem(0, 0) {
+	ChSystemGPU::ChSystemGPU(unsigned int max_objects) :ChSystem(1000, 10000, false) {
 		gpu_data_manager = new ChGPUDataManager();
 		copydata = true;
 		counter = 0;

@@ -65,12 +65,12 @@ IF(ENABLE_UNIT_GPU)
 #			ChForceSystemGPU.cpp
 		)
 	SET(ChronoEngine_unit_GPU_HEADERS 
-	    		ChApiGPU.h
-	    		ChCuda.h
-	    		ChBodyGPU.h
-	    		ChCCollisionGPU.h
-	    		ChCCollisionGPU.cuh
-	    		ChSystemGPU.h
+	    	ChApiGPU.h
+	    	ChCuda.h
+	    	ChBodyGPU.h
+	    	ChCCollisionGPU.h
+	    	ChCCollisionGPU.cuh
+	    	ChSystemGPU.h
 			ChSystemMultiGPU.h
 			ChGPUDataManager.h
 			ChLcpIterativeGPU.h
@@ -110,12 +110,15 @@ IF(ENABLE_UNIT_GPU)
 	else()
 		message(FATAL_ERROR "CUDA not found! (you may switch off ENABLE_UNIT_GPU and build without this unit)")
 	endif()
-	
+
+	SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -DWIN32_LEAN_AND_MEAN")
+	SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DWIN32_LEAN_AND_MEAN")
+
 	# Detect what architecture we're on
 	# Hopefully this works...
 	# C equivalent: 8*sizeof(void*)
 	SET (CH_ARCH ${CMAKE_SIZEOF_VOID_P})
-
+	
 	# Paths we'll use to find some of the extra libraries
 	# Ensure that correct path for architecture is selected
 	IF(CH_ARCH EQUAL 4)
@@ -211,7 +214,10 @@ IF(ENABLE_UNIT_GPU)
 	                          RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CH_BINDIR}
 	                          RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${CH_BINDIR}
 	                          LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CH_BINDIR}
-	                          LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${CH_BINDIR})
+	                          LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${CH_BINDIR}
+							  RUNTIME_OUTPUT_NAME_DEBUG "ChronoEngine_GPUDBG"
+	                          LIBRARY_OUTPUT_NAME_DEBUG "ChronoEngine_GPUDBG"
+	                          ARCHIVE_OUTPUT_NAME_DEBUG "ChronoEngine_GPUDBG")
 	                          
 	# Let some variables be visible also from outside this directory, using the PARENT_SCOPE trick
 	
