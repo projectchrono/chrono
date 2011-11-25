@@ -26,9 +26,6 @@ namespace chrono {
 		this->stepcount++;
 		Setup();
 		Update();
-		// make vectors of variables and constraints, used by the following LCP solver
-		//LCPprepare_inject(*this->LCP_descriptor);
-
 #pragma omp parallel for
 		for (int i = 0; i < bodylist.size(); i++) {
 			ChLcpVariablesBodyOwnMass* mbodyvar = &(bodylist[i]->Variables());
@@ -116,7 +113,7 @@ namespace chrono {
 			}
 		}
 
-		LCPresult_Li_into_speed_cache();
+		//LCPresult_Li_into_speed_cache();
 
 		// updates the reactions of the constraint
 		LCPresult_Li_into_reactions(1.0 / this->GetStep()); // R = l/dt  , approximately

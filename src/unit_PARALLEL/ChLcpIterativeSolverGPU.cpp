@@ -43,10 +43,8 @@ namespace chrono {
 	double ChLcpIterativeSolverGPUsimple::Solve(ChLcpSystemDescriptor& sysd, ///< system description with constraints and variables
 		bool add_Mq_to_f) ///< if true, takes the initial 'q' and adds [M]*q to 'f' vector
 	{
-		// -1-  Count active variables and initialize GPU body buffer
-		// -2-  Count active constraints and initialize GPU bilateral buffer.
 		// -3-  EXECUTE KERNELS ===============
-		gpu_solver->c_factor = 1.0 / mDt;//gpu_contact_container->Get_load_C_factor();
+		gpu_solver->c_factor = 1.0 / mDt;
 		gpu_solver->tolerance = mTolerance;
 		double maxrecspeed = gpu_contact_container->Get_load_max_recovery_speed();
 		if (gpu_contact_container->Get_load_do_clamp() == false) {
