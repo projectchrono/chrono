@@ -32,9 +32,9 @@
 // link the library to your code, and the symbols will be imported.
 
 #if defined(CH_API_COMPILE_UNIT_RENDER)
-	#define ChApi ChApiEXPORT
+	#define ChApiRender ChApiEXPORT
 #else
-	#define ChApi ChApiINPORT
+	#define ChApiRender ChApiINPORT
 #endif
 
 #endif  // END of header

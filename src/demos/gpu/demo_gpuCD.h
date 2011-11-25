@@ -4,11 +4,11 @@
 #include <sstream>
 
 #include <cutil_inline.h>
-#include "physics/ChApidll.h" 
+#include "physics/ChApidll.h"
 #include "physics/ChSystem.h"
 #include "physics/ChContactContainer.h"
 #include "lcp/ChLcpIterativeSOR.h"
-#include "unit_GPU/ChLcpIterativeSolverGPUsimple.h"
+#include "unit_GPU/ChLcpIterativeSolverGPU.h"
 #include "unit_GPU/ChContactContainerGPUsimple.h"
 #include "unit_GPU/ChCCollisionSystemGPU.h"
 #include "unit_GPU/ChLcpSystemDescriptorGPU.h"
@@ -16,7 +16,6 @@
 #include "unit_GPU/ChBodyGPU.h"
 #include <GL/freeglut.h>
 #include "omp.h"
-
 
 #if defined( _WINDOWS )
 #include <windows.h>
@@ -85,7 +84,6 @@ public:
 	FILE *mDataFile;
 };
 
-
 float3 GetColour(double v,double vmin,double vmax){
 	float3 c = {1.0,1.0,1.0}; // white
 	double dv;
@@ -121,7 +119,7 @@ void drawSphere(ChVector<> gPos, double velocity, double & mSphereRadius){
 	else{
 		glPointSize(10);
 		glBegin(GL_POINTS);
-		glVertex3f(0, 0, 0);	
+		glVertex3f(0, 0, 0);
 		glEnd();
 	}
 
@@ -129,7 +127,6 @@ void drawSphere(ChVector<> gPos, double velocity, double & mSphereRadius){
 }
 
 void drawSphere(ChBody *abody, bool gpu){
-
 	float3 color=GetColour(abody->GetPos_dt().Length(),0,10);
 	glColor3f (color.x, color.y,color.z);
 	glPushMatrix();
@@ -149,7 +146,7 @@ void drawSphere(ChBody *abody, bool gpu){
 	else{
 		glPointSize(10);
 		glBegin(GL_POINTS);
-		glVertex3f(0, 0, 0);	
+		glVertex3f(0, 0, 0);
 		glEnd();
 	}
 	glPopMatrix();
@@ -160,7 +157,6 @@ void drawBox(ChBody *abody, float x, bool gpu){
 	glPushMatrix();
 	double angle;
 	ChVector<> axis;
-
 
 	glTranslatef(abody->GetPos().x, abody->GetPos().y, abody->GetPos().z);
 
@@ -184,9 +180,9 @@ void drawTriMesh(ChTriangleMesh &TriMesh,ChBody *abody){
 		ChVector<> gC = (abody)->GetCoord().TrasformLocalToParent(tri.p3);
 		glColor4f (0, 0,0,.3);
 		glBegin(GL_LINE_LOOP);
-		glVertex3f(gA.x,gA.y,gA.z);	
-		glVertex3f(gB.x,gB.y,gB.z);	
-		glVertex3f(gC.x,gC.y,gC.z);	
+		glVertex3f(gA.x,gA.y,gA.z);
+		glVertex3f(gB.x,gB.y,gB.z);
+		glVertex3f(gC.x,gC.y,gC.z);
 		glEnd();
 	}
 }
@@ -220,8 +216,6 @@ inline float4 mult(const float4 &a, const float4 &b){
 inline float3 quatRotate(const float3 &v, const float4 &q){
 	return make_float3(mult(mult(q,make_float4(v,0)),~(q)));
 }
-
-
 
 void ChangePitch(GLfloat degrees)
 {
@@ -272,8 +266,7 @@ void ChangeHeading(GLfloat degrees){
 	}
 }
 
-
-void processNormalKeys(unsigned char key, int x, int y) { 	
+void processNormalKeys(unsigned char key, int x, int y) {
 	if (key=='w'){camera_pos_delta+=dir*.5*SCALE;}
 	if (key=='s'){camera_pos_delta-=dir*.5*SCALE;}
 	if (key=='d'){camera_pos_delta+=cross(dir,camera_up)*.5*SCALE;}
@@ -284,13 +277,11 @@ void processNormalKeys(unsigned char key, int x, int y) {
 	if (key=='i'){showSphere=(showSphere)? 0:1;}
 	if (key=='z'){savenow=1;}
 	if (key=='x'){movewall=1;}
-
-
 }
-void pressKey(int key, int x, int y) {} 
+void pressKey(int key, int x, int y) {}
 void releaseKey(int key, int x, int y) {}
 
-void mouseMove(int x, int y) { 
+void mouseMove(int x, int y) {
 	float2 mouse_delta=mouse_pos-make_float2(x,y);
 	ChangeHeading(.2 * mouse_delta.x);
 	ChangePitch(.2 * mouse_delta.y);
@@ -312,5 +303,3 @@ void changeSize(int w, int h) {
 	glLoadIdentity();
 	gluLookAt(0.0,0.0,0.0,		0.0,0.0,-7,		0.0f,1.0f,0.0f);
 }
-
-
