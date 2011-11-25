@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
 	GPUSystem = new System(0);
 	GPUSystem->mTimeStep = .001;
 	GPUSystem->mEndTime = 10;
-	GPUSystem->mNumObjects = 0;
+	GPUSystem->mNumObjects = 3000;
 	GPUSystem->mIterations = 1000;
 	GPUSystem->mTolerance = 1e-5;
 	GPUSystem->mOmegaContact = 1.0;
