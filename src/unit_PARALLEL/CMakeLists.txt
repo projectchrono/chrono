@@ -71,7 +71,7 @@ IF(ENABLE_UNIT_GPU)
 	    		ChCCollisionGPU.h
 	    		ChCCollisionGPU.cuh
 	    		ChSystemGPU.h
-				ChSystemMultiGPU.h
+			ChSystemMultiGPU.h
 			ChGPUDataManager.h
 			ChLcpIterativeGPU.h
 			ChCCollisionModelGPU.h
