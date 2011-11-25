@@ -140,11 +140,9 @@ void System::LoadSpheres(string fname, int skip, float mass, float rad, float mu
 			AddCollisionGeometry(mrigidBody, SPHERE, dim, lpos, quat);
 			FinalizeObject(mrigidBody);
 			mNumCurrentObjects++;
-
 		}
 counter++;
 	}
-
 }
 
 void System::SaveByID(int id, string fname) {
@@ -238,7 +236,6 @@ void System::InitObject(ChSharedPtr<ChBodyGPU> &body, double mass, ChVector<> po
 	body->GetCollisionModel()->SetFamily(family);
 	body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(nocolwith);
 	body->SetLimitSpeed(true);
-
 }
 void System::AddCollisionGeometry(ChSharedPtr<ChBodyGPU> &body, ShapeType type, ChVector<> dim, ChVector<> lPos, ChQuaternion<> lRot) {
 	ChMatrix33<> *rotation = new ChMatrix33<> (lRot);
@@ -255,12 +252,10 @@ void System::AddCollisionGeometry(ChSharedPtr<ChBodyGPU> &body, ShapeType type, 
 	if (type == CYLINDER) {
 		model->AddCylinder(dim.x, dim.y, dim.z, &lPos, rotation);
 	}
-
 }
 void System::FinalizeObject(ChSharedPtr<ChBodyGPU> newbody) {
 	newbody->GetCollisionModel()->BuildModel();
 	mSystem->AddBody(newbody);
-
 }
 void System::DeactivationPlane(float y, float h, bool disable) {
 	for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
@@ -306,7 +301,6 @@ void System::BoundingBox(float x, float y, float z, float offset) {
 }
 
 void System::drawAll() {
-
 	if (updateDraw && (mSystem->GetChTime() > this->mTimeStep * 2)) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glLoadIdentity();
@@ -341,12 +335,11 @@ void System::drawAll() {
 		glDisableClientState(GL_COLOR_ARRAY);
 
 		if (showContacts) {
-			ChLcpSystemDescriptorGPU* mGPUDescriptor = (ChLcpSystemDescriptorGPU *) mSystem->GetLcpSystemDescriptor();
-			for (int i = 0; i < mGPUDescriptor->gpu_collision->data_container->device_norm_data.size(); i++) {
-				float3 N = mGPUDescriptor->gpu_collision->data_container->device_norm_data[i];
-				float3 Pa = mGPUDescriptor->gpu_collision->data_container->device_cpta_data[i];
-				float3 Pb = mGPUDescriptor->gpu_collision->data_container->device_cptb_data[i];
-				float D = mGPUDescriptor->gpu_collision->data_container->device_dpth_data[i];
+			for (int i = 0; i < mSystem->gpu_data_manager->device_norm_data.size(); i++) {
+				float3 N = mSystem->gpu_data_manager->device_norm_data[i];
+				float3 Pa = mSystem->gpu_data_manager->device_cpta_data[i];
+				float3 Pb = mSystem->gpu_data_manager->device_cptb_data[i];
+				float D = mSystem->gpu_data_manager->device_dpth_data[i];
 				float3 color = GetColour(D, 0, .0001);
 				glColor3f(color.x, color.y, color.z);
 				glBegin(GL_LINES);
@@ -357,7 +350,6 @@ void System::drawAll() {
 				glVertex3f(Pa.x, Pa.y, Pa.z);
 				glVertex3f(Pb.x, Pb.y, Pb.z);
 				glEnd();
-
 			}
 		}
 #if defined( _WINDOWS )
@@ -367,7 +359,6 @@ void System::drawAll() {
 #endif
 		glutSwapBuffers();
 	}
-
 }
 System *GPUSystem;
 
@@ -375,7 +366,6 @@ void renderSceneAll() {
 	GPUSystem->drawAll();
 }
 void initGLUT(string name, int argc, char* argv[]) {
-
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(0, 0);
@@ -390,22 +380,18 @@ void initGLUT(string name, int argc, char* argv[]) {
 	glutMotionFunc(mouseMove);
 	initScene();
 	glutMainLoop();
-
 }
 
 void SimulationLoop(int argc, char* argv[]) {
-
 #pragma omp parallel sections
 	{
 #pragma omp section
 		{
-
 			while (GPUSystem->mSystem->GetChTime() <= GPUSystem->mEndTime) {
 				GPUSystem->mTimer.start();
 				GPUSystem->DoTimeStep();
 				GPUSystem->mTimer.stop();
 				GPUSystem->PrintStats();
-
 			}
 			cout << "Simulation Complete" << endl;
 		}
@@ -417,4 +403,3 @@ void SimulationLoop(int argc, char* argv[]) {
 		}
 	}
 }
-

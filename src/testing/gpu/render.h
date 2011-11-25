@@ -7,7 +7,7 @@
 #include <GL/freeglut.h>
 #include "omp.h"
 #include "unit_GPU/ChSystemGPU.h"
-#include "unit_GPU/ChLcpIterativeSolverGPUsimple.h"
+#include "unit_GPU/ChLcpIterativeSolverGPU.h"
 #include "unit_GPU/ChContactContainerGPUsimple.h"
 #include "unit_GPU/ChCCollisionSystemGPU.h"
 #include "unit_GPU/ChLcpSystemDescriptorGPU.h"
@@ -26,10 +26,8 @@ using namespace chrono;
 
 using namespace std;
 
-
 #define PI	3.14159265358979323846
 #define TORAD(x) x*PI/180.0
-
 
 struct Point
 {
@@ -37,8 +35,6 @@ struct Point
     float r, g, b;
 };
 std::vector< Point > points;
-
-
 
 float m_MaxPitchRate = 5;
 		float m_MaxHeadingRate = 5;
@@ -240,7 +236,6 @@ float3 GetColour(double v, double vmin, double vmax) {
 	return (c);
 }
 void makeSphere(float3 pos, float rad, float angle, float3 axis, float3 scale) {
-
 	glRotatef(angle * 180.0 / PI, axis.x, axis.y, axis.z);
 	glScalef(scale.x, scale.y, scale.z);
 	if (!showSolid) {
@@ -250,7 +245,6 @@ void makeSphere(float3 pos, float rad, float angle, float3 axis, float3 scale) {
 	}
 }
 void makeBox(float3 pos, float rad, float angle, float3 axis, float3 scale) {
-
 	glRotatef(angle * 180.0 / PI, axis.x, axis.y, axis.z);
 	glScalef(scale.x * 2, scale.y * 2, scale.z * 2);
 	if (!showSolid) {
@@ -258,10 +252,8 @@ void makeBox(float3 pos, float rad, float angle, float3 axis, float3 scale) {
 	} else {
 		glutSolidCube(1);
 	}
-
 }
 void makeCyl(float3 pos, float rad, float angle, float3 axis, float3 scale) {
-
 	GLUquadric *quad = gluNewQuadric();
 
 	if (!showSolid) {
@@ -270,16 +262,13 @@ void makeCyl(float3 pos, float rad, float angle, float3 axis, float3 scale) {
 		gluQuadricDrawStyle(quad, GLU_FILL);
 	}
 
-
 	glRotatef(angle * 180.0 / PI, axis.x, axis.y, axis.z);
 	glRotatef(-90, 1, 0, 0);
 	//glScalef(scale.x*2,scale.y*2,scale.z*2);
 	gluCylinder(quad, scale.x, scale.z, scale.y * 2, 10, 10);
-
 }
 
 void drawObject(ChBodyGPU *abody) {
-
 	float3 color;
 	float value;
 	if (drawType == 1) {
@@ -344,7 +333,6 @@ void drawObject(ChBodyGPU *abody) {
 
 		glPopMatrix();
 	}
-
 }
 
 void drawTriMesh(ChBodyGPU *abody) {
