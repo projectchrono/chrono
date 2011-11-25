@@ -121,7 +121,9 @@ public:
 				/// 'max_objects' and 'scene_size' can be used to initialize the broadphase
 				/// collision algorithm in an optimal way. Scene size should be approximately 
 				/// the radius of the expected area where colliding objects will move.
-	ChSystem(unsigned int max_objects = 16000, double scene_size = 500);
+				/// If init_sys is false it does not initialize the collision system or solver
+				/// assumes that the user will do so.
+	ChSystem(unsigned int max_objects = 16000, double scene_size = 500, bool init_sys=true);
 
 				/// Destructor
 	virtual ~ChSystem();

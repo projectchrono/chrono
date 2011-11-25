@@ -271,7 +271,7 @@ private:
 ChClassRegister<ChSystem> a_registration_ChSystem;
 
 
-ChSystem::ChSystem(unsigned int max_objects, double scene_size)
+ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
 {
 	linklist.clear(); 
 	bodylist.clear();
@@ -331,11 +331,16 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size)
 
 	parallel_thread_number = 2;
 
+	this->contact_container=0;
 	// default contact container
-	this->contact_container = new ChContactContainer();
-
+	if(init_sys){
+		this->contact_container = new ChContactContainer();
+	}
+	collision_system=0;
 	// default GPU collision engine
-	collision_system = new ChCollisionSystemBullet(max_objects, scene_size);
+	if(init_sys){
+		collision_system = new ChCollisionSystemBullet(max_objects, scene_size);
+	}
 	
 
 	LCP_descriptor = 0;
@@ -345,7 +350,9 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size)
 	iterLCPmaxIters = 30;
 	iterLCPmaxItersStab = 10;
 	simplexLCPmaxSteps = 100;
-	SetLcpSolverType(LCP_ITERATIVE_SYMMSOR);
+	if(init_sys){
+		SetLcpSolverType(LCP_ITERATIVE_SYMMSOR);
+	}
 	
 	use_GPU = false;
 	use_sleeping = false;
