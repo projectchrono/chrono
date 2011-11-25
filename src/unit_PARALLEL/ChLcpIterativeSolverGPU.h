@@ -1,56 +1,116 @@
-#ifndef CHC_LCPITERATIVESOLVERGPU_H
-#define CHC_LCPITERATIVESOLVERGPU_H
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include "ChCuda.h"
-#include <cutil_math.h>
-#include "ChGPUDataManager.h"
-#define HM_REAL float
-#define HM_REAL3 float3
-#define HM_REAL4 float4
+#ifndef CHLCPITERATIVESOLVERGPUSIMPLE_H
+#define CHLCPITERATIVESOLVERGPUSIMPLE_H
+///////////////////////////////////////////////////
+//
+//   ChLcpIterativeSolverGPU.h
+//
+//
+//    file for CHRONO HYPEROCTANT LCP solver
+//
+// ------------------------------------------------
+// 	 Copyright:Alessandro Tasora / DeltaKnowledge
+//             www.deltaknowledge.com
+// ------------------------------------------------
+///////////////////////////////////////////////////
 
+#include "lcp/ChLcpIterativeSolver.h"
+#include "ChContactContainerGPUsimple.h"
+#include "ChLcpSystemDescriptorGPU.h"
+#include <thrust/device_vector.h>
+#include <thrust/host_vector.h>
+#include "ChApiGPU.h"
+#include "ChLcpIterativeGPU.h"
+#include "ChForceSolverGPU.h"
 namespace chrono {
-	class ChApiGPU ChLcpIterativeSolverGPU {
+	///    An iterative LCP solver based on projective
+	///   fixed point method, with overrelaxation.
+	///   This solver runs on GPU boards from NVIDIA, version G80
+	///   or more recent. The GPU programming relies on CUDA library.
+
+	class ChApiGPU ChLcpIterativeSolverGPUsimple: public ChLcpIterativeSolver {
 		public:
-			ChLcpIterativeSolverGPU(){
-				compliance=.001;
-				complianceT=.005;
-				alpha=.2;
-				use_DEM=false;
+			//
+			// CONSTRUCTORS
+			//
+
+			ChLcpIterativeSolverGPUsimple(ChContactContainerGPUsimple* container = 0, ///< this solver can be used _only_ together with a ChContactContainerGPUsimple
+					ChLcpSystemDescriptorGPU* descriptor = 0);
+
+			virtual ~ChLcpIterativeSolverGPUsimple();
+
+			//
+			// FUNCTIONS
+			//
+
+			/// Performs the solution of the LCP.
+			/// \return  the maximum constraint violation after termination.
+
+			virtual double Solve(ChLcpSystemDescriptor& sysd, ///< system description with constraints and variables
+					bool add_Mq_to_f = false); ///< if true, takes the initial 'q' and adds [M]*q to 'f' vector
+
+			/// This solver can be used _only_ with a ChContactContainerGPUsimple !!
+			/// Set it when you create.
+			void SetGPUcontactContainer(ChContactContainerGPUsimple* mcont) {
+				this->gpu_contact_container = mcont;
 			}
-			~ChLcpIterativeSolverGPU();
-			void RunTimeStep();
-			void WarmContact();
-			float Max_DeltaGamma();
-			float Min_DeltaGamma();
-			float Avg_DeltaGamma();
 
-			float Total_KineticEnergy();
+			/// Set the integration dt step. Remember to update this value before calling Solve() , because
+			/// the postprocessing will take care of time step integration, which depends on the dt.
+			/// ***OBSOLETE**** do not use this
+			void SetDt(double dt) {
+				if (dt > 0) mDt = dt;
+			}
+			double GetDt() {
+				return mDt;
+			}
 
-			float negated_recovery_speed, c_factor, step_size, tolerance, lcp_omega_bilateral, lcp_omega_contact, force_factor, compliance,complianceT, alpha;
-			uint number_of_contacts, number_of_bilaterals, number_of_constraints, number_of_bodies, number_of_updates, iteration_number, maximum_iterations;
-			bool use_DEM;
-			cudaEvent_t start, stop;
+			/// Set the maximum recovery speed for stabilization. Remember to update this value
+			/// before calling Solve() , because the preprocessing will take care of building contact
+			/// residuals with stabilization factors, which depends on this recovery speed value.
+			void SetMaxRecoverySpeed(double mrs) {
+				if (mrs > 0) mMaxRecoverySpeed = mrs;
+			}
+			double GetMaxRecoverySpeed() {
+				return mMaxRecoverySpeed;
+			}
+
+			/// Set the multiplier for the contact residuals. Remember to update this value
+			/// before calling Solve() , because the preprocessing will take care of building contact
+			/// residuals with stabilization factors, which depends on this recovery speed value.
+			void SetC_factor(double mf) {
+				if (mf > 0) mCFactor = mf;
+			}
+			double GetC_factor() {
+				return mCFactor;
+			}
+
+			void SetSystemDescriptor(ChLcpSystemDescriptorGPU* mdescriptor);
+			float Total_KineticEnergy() {
+				return gpu_solver->Total_KineticEnergy();
+			}
 
 			ChGPUDataManager * data_container;
+			ChLcpIterativeGPU * gpu_solver;
+			int number_of_bodies;
 
-			thrust::host_vector<float4> host_bilateral_data;
+			double mDt; //Timestep
+			double mTolerance; //Tolerance for Solver
+			double mMaxRecoverySpeed;
+			double mCFactor;
+			double mOmegaBilateral;
+			double mOmegaContact;
+			unsigned int mMaxIterations;
+
+		protected:
+			//
+			// DATA
+			//
+
+			// for the preprocesing of contacts
+			ChContactContainerGPUsimple* gpu_contact_container; // will be asked which was C factor,max.speed.clamping etc. so to perform contact preprocessing in solver (Dan' jacobian/residual gpu computation)
+
 		private:
-
-			thrust::device_vector<uint> body_number;
-			thrust::device_vector<uint> update_number;
-			thrust::device_vector<uint> offset_counter;
-			thrust::device_vector<uint> update_offset;
-			thrust::device_vector<float> delta_gamma;
-			thrust::device_vector<float3> vel_update;
-			thrust::device_vector<float3> omg_update;
-			thrust::device_vector<float4> device_bilateral_data;
-			thrust::device_vector<float> device_ken_data;
-			thrust::device_vector<float> device_dgm_data;
-			thrust::device_vector<float> device_ctd_data;
-
-			//thrust::host_vector<contactGPU> host_contact_data;
 	};
-}
+} // END_OF_NAMESPACE____
+
 #endif

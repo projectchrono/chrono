@@ -70,6 +70,10 @@ class ChApiGPU ChGPUDataManager {
 		uint number_of_objects;
 
 		//bilateral data
+		thrust::device_vector<float4> host_bilateral_data;
+		thrust::device_vector<float4> device_bilateral_data;
+		uint number_of_bilaterals;
+
 		thrust::device_vector<float3> device_gam_data;
 		//system metrics
 };

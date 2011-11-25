@@ -23,6 +23,7 @@ void ChGPUDataManager::HostToDevice() {
 	device_acc_data = host_vel_data;
 	device_aux_data = host_aux_data;
 	device_lim_data = host_lim_data;
+	device_bilateral_data=host_bilateral_data;
 }
 
 void ChGPUDataManager::HostToDevice_min() {
@@ -47,6 +48,7 @@ void ChGPUDataManager::DeviceToHost() {
 	host_rot_data = device_rot_data;
 	host_acc_data = device_acc_data;
 	host_fap_data = device_fap_data;
+	host_bilateral_data=device_bilateral_data;
 }
 
 void ChGPUDataManager::HostToDevice_CD() {

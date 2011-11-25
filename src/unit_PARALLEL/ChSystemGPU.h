@@ -16,7 +16,7 @@
 #include "physics/ChContactContainer.h"
 #include "physics/ChProximityContainerBase.h"
 
-#include "ChLcpIterativeSolverGPUsimple.h"
+#include "ChLcpIterativeSolverGPU.h"
 #include "ChLcpSystemDescriptorGPU.h"
 
 #include "core/ChTimer.h"

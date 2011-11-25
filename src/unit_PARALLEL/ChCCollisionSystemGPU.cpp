@@ -13,8 +13,7 @@
 namespace chrono {
 	namespace collision {
 		ChCollisionSystemGPU::ChCollisionSystemGPU(ChLcpSystemDescriptorGPU* mdescriptor) {
-			mSystemDescriptor = mdescriptor;
-			mGPU = mSystemDescriptor->gpu_collision;
+			mGPU = new ChCCollisionGPU();
 		}
 		void ChCollisionSystemGPU::Add(ChCollisionModel* model) {
 			if (model->GetPhysicsItem()->GetCollide() == true) {

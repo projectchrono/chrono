@@ -1,4 +1,4 @@
-#include "ChLcpIterativeSolverGPU.h"
+#include "ChLcpIterativeGPU.h"
 
 using namespace chrono;
 
@@ -513,14 +513,13 @@ __global__ void ChKernelOffsets(int2* ids, CH_REALNUMBER4* bilaterals, uint* Bod
 		Body[2 * number_of_contacts_const + i + number_of_bilaterals_const] = bilaterals[i + number_of_bilaterals_const].w;
 	}
 }
-ChLcpIterativeSolverGPU::~ChLcpIterativeSolverGPU() {
+ChLcpIterativeGPU::~ChLcpIterativeGPU() {
 	body_number.clear();
 	update_number.clear();
 	offset_counter.clear();
 	update_offset.clear();
-	device_bilateral_data.clear();
 }
-void ChLcpIterativeSolverGPU::WarmContact() {
+void ChLcpIterativeGPU::WarmContact() {
 	if (use_DEM == false) {
 Warm_Contacts	<<< BLOCKS(number_of_contacts), THREADS >>>(
 			CASTF3(data_container->device_norm_data),
@@ -537,8 +536,9 @@ Warm_Contacts	<<< BLOCKS(number_of_contacts), THREADS >>>(
 			CASTF3(data_container->device_gam_data));
 }
 }
-void ChLcpIterativeSolverGPU::RunTimeStep() {
+void ChLcpIterativeGPU::RunTimeStep() {
 	number_of_bodies = data_container->number_of_objects;
+	number_of_bilaterals=data_container->number_of_bilaterals;
 	number_of_contacts = data_container->number_of_contacts;
 	number_of_constraints = number_of_contacts + number_of_bilaterals;
 
@@ -572,8 +572,6 @@ void ChLcpIterativeSolverGPU::RunTimeStep() {
 	data_container->device_fap_data.resize(number_of_bodies);
 	Thrust_Fill(data_container->device_fap_data,F3(0));
 	if (number_of_constraints > 0) {
-		device_bilateral_data = host_bilateral_data;
-
 		update_number.resize((number_of_constraints) * 2, 0);
 		offset_counter.resize((number_of_constraints) * 2, 0);
 		update_offset.resize((number_of_constraints) * 2, 0);
@@ -587,7 +585,7 @@ void ChLcpIterativeSolverGPU::RunTimeStep() {
 
 		ChKernelOffsets<<< BLOCKS(number_of_constraints),THREADS>>>(
 				CASTI2(data_container->device_bids_data),
-				CASTF4(device_bilateral_data),
+				CASTF4(data_container->device_bilateral_data),
 				CASTU1(body_number));
 
 		Thrust_Sequence(update_number);
@@ -638,7 +636,7 @@ LCP_Iteration_Contacts			<<< BLOCKS(number_of_contacts), THREADS >>>(
 					CASTU1(update_offset));
 		}
 		LCP_Iteration_Bilaterals<<< BLOCKS(number_of_bilaterals), THREADS >>>(
-				CASTF4(device_bilateral_data),
+				CASTF4(data_container->device_bilateral_data),
 				CASTF3(data_container->device_aux_data),
 				CASTF3(data_container->device_inr_data),
 				CASTF4(data_container->device_rot_data),
@@ -672,13 +670,13 @@ LCP_Integrate_Timestep<<< BLOCKS(number_of_bodies),THREADS>>>(
 		CASTF3(data_container->device_pos_data),
 		CASTF3(data_container->device_lim_data));
 }
-float ChLcpIterativeSolverGPU::Max_DeltaGamma() {
+float ChLcpIterativeGPU::Max_DeltaGamma() {
 	return Thrust_Max(device_dgm_data);
 }
-float ChLcpIterativeSolverGPU::Min_DeltaGamma() {
+float ChLcpIterativeGPU::Min_DeltaGamma() {
 	return Thrust_Min(device_dgm_data);
 }
-float ChLcpIterativeSolverGPU::Avg_DeltaGamma() {
+float ChLcpIterativeGPU::Avg_DeltaGamma() {
 	return (Thrust_Total(device_dgm_data)) / float(number_of_constraints);
 }
 __global__ void Compute_KE(float3* vel, float3* aux, float* ke) {
@@ -689,7 +687,7 @@ __global__ void Compute_KE(float3* vel, float3* aux, float* ke) {
 	float3 velocity = vel[i];
 	ke[i] = .5 / aux[i].z * dot(velocity, velocity);
 }
-float ChLcpIterativeSolverGPU::Total_KineticEnergy() {
+float ChLcpIterativeGPU::Total_KineticEnergy() {
 	device_ken_data.resize(number_of_bodies);
 	Compute_KE<<< BLOCKS(number_of_bodies),THREADS>>>(
 			CASTF3(data_container->device_vel_data),

@@ -88,7 +88,6 @@ namespace chrono {
 		private:
 			/// Update data structures to pass into GPU for collision detection
 			unsigned int counter;
-			ChLcpSystemDescriptorGPU* mSystemDescriptor;
 		};
 	} // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____
