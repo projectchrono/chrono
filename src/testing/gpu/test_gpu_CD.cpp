@@ -1,7 +1,7 @@
 #include "common.h"
 void System::DoTimeStep() {
 	if (mNumCurrentObjects < mNumObjects && mFrameNumber % 5000 == 0) {
-		float x = 30, y = 30, z = 300;
+		float x = 30, y = 30, z = 30;
 		float posX = 0, posY = -14, posZ = 0;
 		float radius = .1, mass = 4, mu = .5, rest = 0;
 		ShapeType type = SPHERE;
