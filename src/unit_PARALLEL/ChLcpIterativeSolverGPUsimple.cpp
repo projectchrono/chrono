@@ -18,7 +18,6 @@
 #include <cutil.h>
 #include <cuda_runtime_api.h>
 #include "ChLcpIterativeSolverGPUsimple.h"
-#include "ChLcpConstraintTwoGPUcontN.h"
 #include "ChBodyGPU.h"
 #include "ChCuda.h"
 #include "physics/ChBody.h"

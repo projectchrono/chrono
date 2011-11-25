@@ -59,10 +59,7 @@ IF(ENABLE_UNIT_GPU)
 			ChCCollisionModelGPU.cpp
 			ChCCollisionSystemGPU.cpp
 			ChContactContainerGPUsimple.cpp
-			ChContactGPUsimple.cpp
 			ChLcpIterativeSolverGPUsimple.cpp
-			ChLcpConstraintTwoGPUcontN.cpp
-			ChLcpConstraintTwoGPUcontT.cpp
 			ChSystemGPU.cpp
 			ChSystemMultiGPU.cpp
 #			ChForceSystemGPU.cpp
@@ -80,9 +77,6 @@ IF(ENABLE_UNIT_GPU)
 			ChCCollisionModelGPU.h
 			ChCCollisionSystemGPU.h
 			ChContactContainerGPUsimple.h
-			ChLcpConstraintTwoGPUcontN.h
-			ChLcpConstraintTwoGPUcontT.h
-			ChContactGPUsimple.h
 			ChLcpIterativeSolverGPUsimple.h
 			ChLcpSystemDescriptorGPU.h
 #			ChForceSystemGPU.h

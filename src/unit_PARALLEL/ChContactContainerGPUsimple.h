@@ -17,7 +17,6 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 #include "physics/ChContactContainerBase.h"
-#include "ChContactGPUsimple.h"
 #include <list>
 #include "ChApiGPU.h"
 namespace chrono
@@ -39,11 +38,7 @@ namespace chrono
 		// DATA
 		//
 
-		std::list<ChContactGPUsimple*>   contactlist;
-
 		int n_added;
-
-		std::list<ChContactGPUsimple*>::iterator lastcontact;
 
 		double load_C; // <- buffered when doing ConstraintsBiLoad_C(), so that the GPU solver can get them because C computation is delegated to Dan's solver preprocessor.
 		double load_max_recovery_speed; // "   "
