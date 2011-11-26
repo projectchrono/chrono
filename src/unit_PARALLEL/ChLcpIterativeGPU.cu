@@ -146,7 +146,7 @@ __global__ void LCP_Iteration_Contacts(float3* norm, float3* ptA, float3* ptB, f
 	W2 = omega[B2_i];
 
 	mu = (aux1.y + aux2.y) * .5;
-	float cfm, cfmT;
+	float cfm=compliance_const, cfmT=complianceT_const;
 	//c_i = [Cq_i]*q + b_i + cfm_i*l_i
 
 	gamma_old = G[i];
