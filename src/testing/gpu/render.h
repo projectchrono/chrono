@@ -38,7 +38,7 @@ std::vector< Point > points;
 
 float m_MaxPitchRate = 5;
 		float m_MaxHeadingRate = 5;
-		float3 camera_pos = make_float3(0, 0, 0);
+		float3 camera_pos = make_float3(0, 0, -20);
 		float3 look_at = make_float3(0, 0, 0);
 		float3 camera_up = make_float3(0, 1, 0);
 		float camera_heading = 0, camera_pitch = 0;
