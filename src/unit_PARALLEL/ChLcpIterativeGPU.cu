@@ -129,7 +129,7 @@ __global__ void LCP_Iteration_Contacts(float3* norm, float3* ptA, float3* ptB, f
 		float inv_hhpa = 1.0/(h*(h+alpha_const)); // 1/(h*(h+a))
 		bi=inv_hpa * depth;
 		cfm=inv_hhpa*compliance_const;
-		cfmT=inv_hhpa*compliance_constT;
+		cfmT=inv_hhpa*complianceT_const;
 	}
 	else{
 		bi = min((depth/step_size_const + normV), (-step_size_const));
