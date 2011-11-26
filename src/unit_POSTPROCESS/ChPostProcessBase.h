@@ -1,27 +1,27 @@
-#ifndef CHRENDERBASE_H
-#define CHRENDERBASE_H
+#ifndef CHPOSTPROCESSBASE_H
+#define CHPOSTPROCESSBASE_H
 #include <fstream>
 #include <string>
 #include <sstream>
 #include "physics/ChSystem.h"
+#include "ChApiPostProcess.h"
 using namespace std;
 
 namespace chrono{
 	namespace render{
 		using namespace chrono;
-		class ChApiRender ChRenderBase{
+		class ChApiPostProcess ChRenderBase{
 		public:
-			ChRenderBase(ChSystem* sys){
-				system=sys;
+			ChPostProcessBase(ChSystem* system){
+				mSystem=system;
 			}
-			~ChRenderBase(){}
+			~ChPostProcessBase(){}
 
-			virtual void Export(const string &filename);
+			virtual void ExportData(const string &filename);
+			virtual void ExportScript(const string &filename);
 
 		protected:
-			ofsteam output_file;
-			string file_name;
-			ChSystem * system;
+			ChSystem * mSystem;
 		};
 	}
 }
