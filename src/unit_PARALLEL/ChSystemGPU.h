@@ -1,6 +1,19 @@
 #ifndef CH_SYSTEMGPU_H
 #define CH_SYSTEMGPU_H
-
+//////////////////////////////////////////////////
+//
+//   ChSystemGPU.h
+//
+//   GPU Simulation System
+//
+//   HEADER file for CHRONO,
+//	 Multibody dynamics engine
+//
+// ------------------------------------------------
+// 	 Copyright:Alessandro Tasora / DeltaKnowledge
+//             www.deltaknowledge.com
+// ------------------------------------------------
+///////////////////////////////////////////////////
 #include "ChCuda.h"
 #include <stdlib.h>
 #include <iostream>

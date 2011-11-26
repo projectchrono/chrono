@@ -1,5 +1,21 @@
 #ifndef CHC_LCPITERATIVESOLVERGPU_H
 #define CHC_LCPITERATIVESOLVERGPU_H
+
+//////////////////////////////////////////////////
+//
+//   ChIterativeGPU.h
+//
+//   GPU LCP Solver
+//
+//   HEADER file for CHRONO,
+//	 Multibody dynamics engine
+//
+// ------------------------------------------------
+// 	 Copyright:Alessandro Tasora / DeltaKnowledge
+//             www.deltaknowledge.com
+// ------------------------------------------------
+///////////////////////////////////////////////////
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
