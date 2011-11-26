@@ -122,11 +122,14 @@ __global__ void LCP_Iteration_Contacts(float3* norm, float3* ptA, float3* ptB, f
 	W = cross(N, U); //carry out the last cross product to find out the contact local Z axis : multiply the contact normal by the local Y component
 	float normV = dot(N, ((V2 - V1)));
 	normV = (normV > 0) ? 0 : normV;
+	float cfm=0, cfmT=0;
 	if(compliance_const){
 		float h = step_size_const;
 		float inv_hpa = 1.0/(h+alpha_const); // 1/(h+a)
 		float inv_hhpa = 1.0/(h*(h+alpha_const)); // 1/(h*(h+a))
 		bi=inv_hpa * depth;
+		cfm=inv_hhpa*compliance_const;
+		cfmT=inv_hhpa*compliance_constT;
 	}
 	else{
 		bi = min((depth/step_size_const + normV), (-step_size_const));
@@ -146,7 +149,7 @@ __global__ void LCP_Iteration_Contacts(float3* norm, float3* ptA, float3* ptB, f
 	W2 = omega[B2_i];
 
 	mu = (aux1.y + aux2.y) * .5;
-	float cfm=compliance_const, cfmT=complianceT_const;
+	
 	//c_i = [Cq_i]*q + b_i + cfm_i*l_i
 
 	gamma_old = G[i];
