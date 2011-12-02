@@ -1,7 +1,7 @@
 #include "common.h"
 void System::DoTimeStep() {
 	if (mNumCurrentObjects < mNumObjects && mFrameNumber % 5000 == 0) {
-		float x = 30, y = 30, z = 30;
+		float x = 40, y = 10, z = 40;
 		float posX = 0, posY = -14, posZ = 0;
 		float radius = .2, mass = 4, mu = .5, rest = 0;
 		ShapeType type = SPHERE;
@@ -14,15 +14,15 @@ void System::DoTimeStep() {
 				for (int zz = 0; zz < z; zz++) {
 					ChVector<> mParticlePos((xx - (x - 1) / 2.0) + posX, (yy) + posY, (zz - (z - 1) / 2.0) + posZ);
 
-					mParticlePos += ChVector<> (rand() % 1000 / 10000.0 - .05, rand() % 1000 / 10000.0 - .05, rand() % 1000 / 10000.0 - .05);
-					ChQuaternion<> quat = ChQuaternion<> (rand() % 1000 / 1000., rand() % 1000 / 1000., rand() % 1000 / 1000., rand() % 1000 / 1000.);
+					//mParticlePos += ChVector<> (rand() % 1000 / 10000.0 - .05, rand() % 1000 / 10000.0 - .05, rand() % 1000 / 10000.0 - .05);
+					ChQuaternion<> quat = ChQuaternion<>(1,0,0,0);// (rand() % 1000 / 1000., rand() % 1000 / 1000., rand() % 1000 / 1000., rand() % 1000 / 1000.);
 					ChVector<> dim;
 					ChVector<> lpos(0, 0, 0);
 					quat.Normalize();
 
 					mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
-					InitObject(mrigidBody, mass, mParticlePos * .5, quat, mu, mu, rest, true, false, 0, 1);
-					mrigidBody->SetPos_dt(ChVector<> (0, -.2, 0));
+					InitObject(mrigidBody, mass, mParticlePos * .41, quat, mu, mu, rest, true, false, 0, 1);
+					mrigidBody->SetPos_dt(ChVector<> (0, -2, 0));
 					switch (type) {
 					case SPHERE:
 						dim = ChVector<> (radius, 0, 0);
@@ -53,14 +53,16 @@ void System::DoTimeStep() {
 }
 
 int main(int argc, char* argv[]) {
+	omp_set_nested(1);
 	GPUSystem = new System(0);
 	GPUSystem->mTimeStep = .001;
 	GPUSystem->mEndTime = 10;
 	GPUSystem->mNumObjects = 3000;
 	GPUSystem->mIterations = 1000;
-	GPUSystem->mTolerance = 1e-5;
-	GPUSystem->mOmegaContact = 1.0;
+	GPUSystem->mTolerance = 1e-4;
+	GPUSystem->mOmegaContact = .5;
 	GPUSystem->mOmegaBilateral = .2;
+	GPUSystem->SetTimingFile("test_gpu_cd_output.txt");
 	float mMu = .5;
 	float mWallMu = .5;
 
@@ -98,25 +100,6 @@ int main(int argc, char* argv[]) {
 	GPUSystem->FinalizeObject(F);
 	GPUSystem->FinalizeObject(B);
 	GPUSystem->FinalizeObject(BTM);
-
-	/*GPUSystem->InitObject(FREE, 1, ChVector<> (0, 0, 0), quat, mWallMu, mWallMu, 0, true, false, -10, -10);
-	GPUSystem->AddCollisionGeometry(FREE, BOX, ChVector<> (1, .1, 1), lpos, quat);
-	GPUSystem->FinalizeObject(FREE);
-
-	ChSharedPtr<ChLinkEngine> rotational_motor = ChSharedPtr<ChLinkEngine> (new ChLinkEngine);
-	ChSharedBodyPtr ptr1 = ChSharedBodyPtr(BTM);
-	ChSharedBodyPtr ptr2 = ChSharedBodyPtr(FREE);
-
-	ChFrame<> f1(ChVector<> (0, 0, 0), Q_from_AngAxis(0, ChVector<> (1, 0, 0)));
-	ChFrame<> f2(ChVector<> (0, 0, 0), Q_from_AngAxis(0, ChVector<> (1, 0, 0)));
-	rotational_motor->Initialize(ptr1, ptr2, ChCoordsys<> (ChVector<> (1.5, 1, -1), chrono::Q_from_AngAxis(CH_C_PI / 2.0, VECT_Y)));
-
-	rotational_motor->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_LOCK);
-	rotational_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-
-	GPUSystem->mSystem->AddLink(rotational_motor);
-	ChFunction_Const* mfun = (ChFunction_Const*) rotational_motor->Get_tor_funct();
-	mfun->Set_yconst(CH_C_PI * 2.0);*/
 
 	GPUSystem->Setup();
 	SimulationLoop(argc, argv);
