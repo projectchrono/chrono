@@ -22,11 +22,11 @@
 #include "ChCuda.h"
 #include "physics/ChBody.h"
 #include "physics/ChSystem.h"
-#include "ChGPUDataManager.h"
+#include "ChDataManager.h"
 
 // Forward declarations
 namespace chrono {
-	ChLcpIterativeSolverGPUsimple::ChLcpIterativeSolverGPUsimple(ChContactContainerGPUsimple* container, ChLcpSystemDescriptorGPU* descriptor) {
+	ChLcpIterativeSolverGPUsimple::ChLcpIterativeSolverGPUsimple(ChContactContainerGPUsimple* container) {
 		gpu_contact_container = container;
 		gpu_solver = new ChLcpIterativeGPU();
 		number_of_bodies = 0;
@@ -58,7 +58,7 @@ namespace chrono {
 		gpu_solver->lcp_omega_contact = mOmegaContact;
 		gpu_solver->tolerance = mTolerance;
 		gpu_solver->data_container = data_container;
-		gpu_solver->RunTimeStep();
+		gpu_solver->RunTimeStep(0);
 
 		return 0;
 	}

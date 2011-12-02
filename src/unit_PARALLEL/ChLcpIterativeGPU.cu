@@ -470,7 +470,7 @@ __global__ void LCP_Integrate_Timestep(float3* aux, float3* acc, float4* rot, fl
 	float3 omg = omega[i];
 	float3 limits = lim[i];
 	float wlen = sqrtf(dot3(omg, omg));
-	//if (limits.x == 1) {
+//if (limits.x == 1) {
 //			float w = 2.0 * wlen;
 //			if (w > limits.z) {
 //				omg *= limits.z / w;
@@ -482,7 +482,7 @@ __global__ void LCP_Integrate_Timestep(float3* aux, float3* acc, float4* rot, fl
 //			}
 //			vel[i] = velocity;
 //			omega[i] = omg;
-	//}
+//}
 
 	float4 Rw = (fabs(wlen) > 10e-10) ? Quat_from_AngAxis(step_size_const * wlen, omg / wlen) : F4(1., 0, 0, 0);// to avoid singularity for near zero angular speed
 
@@ -522,30 +522,29 @@ ChLcpIterativeGPU::~ChLcpIterativeGPU() {
 	offset_counter.clear();
 	update_offset.clear();
 }
-void ChLcpIterativeGPU::WarmContact() {
+void ChLcpIterativeGPU::WarmContact(const int & i) {
 	if (use_DEM == false) {
 Warm_Contacts	<<< BLOCKS(number_of_contacts), THREADS >>>(
-			CASTF3(data_container->device_norm_data),
-			CASTF3(data_container->device_cpta_data),
-			CASTF3(data_container->device_cptb_data),
-			CASTF1(data_container->device_dpth_data),
-			CASTI2(data_container->device_bids_data),
-			CASTF3(data_container->device_aux_data),
-			CASTF3(data_container->device_inr_data),
-			CASTF4(data_container->device_rot_data),
-			CASTF3(data_container->device_vel_data),
-			CASTF3(data_container->device_omg_data),
-			CASTF3(data_container->device_pos_data),
-			CASTF3(data_container->device_gam_data));
+			CASTF3(data_container->gpu_data[i].device_norm_data),
+			CASTF3(data_container->gpu_data[i].device_cpta_data),
+			CASTF3(data_container->gpu_data[i].device_cptb_data),
+			CASTF1(data_container->gpu_data[i].device_dpth_data),
+			CASTI2(data_container->gpu_data[i].device_bids_data),
+			CASTF3(data_container->gpu_data[i].device_aux_data),
+			CASTF3(data_container->gpu_data[i].device_inr_data),
+			CASTF4(data_container->gpu_data[i].device_rot_data),
+			CASTF3(data_container->gpu_data[i].device_vel_data),
+			CASTF3(data_container->gpu_data[i].device_omg_data),
+			CASTF3(data_container->gpu_data[i].device_pos_data),
+			CASTF3(data_container->gpu_data[i].device_gam_data));
 }
 }
-void ChLcpIterativeGPU::RunTimeStep() {
+void ChLcpIterativeGPU::RunTimeStep(const int & i) {
 	number_of_bodies = data_container->number_of_objects;
 	number_of_bilaterals=data_container->number_of_bilaterals;
 	number_of_contacts = data_container->number_of_contacts;
 	number_of_constraints = number_of_contacts + number_of_bilaterals;
-
-	data_container->device_gyr_data.resize(number_of_bodies);
+	data_container->gpu_data[i].device_gyr_data.resize(number_of_bodies);
 
 	COPY_TO_CONST_MEM(c_factor);
 	COPY_TO_CONST_MEM(negated_recovery_speed);
@@ -560,20 +559,20 @@ void ChLcpIterativeGPU::RunTimeStep() {
 	COPY_TO_CONST_MEM(alpha);
 
 	LCP_ComputeGyro<<< BLOCKS(number_of_bodies),THREADS>>>(
-			CASTF3(data_container->device_omg_data),
-			CASTF3(data_container->device_inr_data),
-			CASTF3(data_container->device_gyr_data),
-			CASTF3(data_container->device_trq_data));
+			CASTF3(data_container->gpu_data[i].device_omg_data),
+			CASTF3(data_container->gpu_data[i].device_inr_data),
+			CASTF3(data_container->gpu_data[i].device_gyr_data),
+			CASTF3(data_container->gpu_data[i].device_trq_data));
 
 	ChKernelLCPaddForces<<< BLOCKS(number_of_bodies), THREADS >>>(
-			CASTF3(data_container->device_aux_data),
-			CASTF3(data_container->device_inr_data),
-			CASTF3(data_container->device_frc_data),
-			CASTF3(data_container->device_trq_data),
-			CASTF3(data_container->device_vel_data),
-			CASTF3(data_container->device_omg_data));
-	data_container->device_fap_data.resize(number_of_bodies);
-	Thrust_Fill(data_container->device_fap_data,F3(0));
+			CASTF3(data_container->gpu_data[i].device_aux_data),
+			CASTF3(data_container->gpu_data[i].device_inr_data),
+			CASTF3(data_container->gpu_data[i].device_frc_data),
+			CASTF3(data_container->gpu_data[i].device_trq_data),
+			CASTF3(data_container->gpu_data[i].device_vel_data),
+			CASTF3(data_container->gpu_data[i].device_omg_data));
+	data_container->gpu_data[i].device_fap_data.resize(number_of_bodies);
+	Thrust_Fill(data_container->gpu_data[i].device_fap_data,F3(0));
 	if (number_of_constraints > 0) {
 		update_number.resize((number_of_constraints) * 2, 0);
 		offset_counter.resize((number_of_constraints) * 2, 0);
@@ -587,8 +586,8 @@ void ChLcpIterativeGPU::RunTimeStep() {
 		omg_update.resize((number_of_constraints) * 2);
 
 		ChKernelOffsets<<< BLOCKS(number_of_constraints),THREADS>>>(
-				CASTI2(data_container->device_bids_data),
-				CASTF4(data_container->device_bilateral_data),
+				CASTI2(data_container->gpu_data[i].device_bids_data),
+				CASTF4(data_container->gpu_data[i].device_bilateral_data),
 				CASTU1(body_number));
 
 		Thrust_Sequence(update_number);
@@ -601,77 +600,77 @@ void ChLcpIterativeGPU::RunTimeStep() {
 		Thrust_Inclusive_Scan(offset_counter);
 
 		COPY_TO_CONST_MEM(number_of_updates);
-		//WarmContact();
+		//WarmContact(i);
 		for (iteration_number = 0; iteration_number < maximum_iterations; iteration_number++) {
 			if (use_DEM == false) {
 LCP_Iteration_Contacts			<<< BLOCKS(number_of_contacts), THREADS >>>(
-					CASTF3(data_container->device_norm_data),
-					CASTF3(data_container->device_cpta_data),
-					CASTF3(data_container->device_cptb_data),
-					CASTF1(data_container->device_dpth_data),
-					CASTI2(data_container->device_bids_data),
-					CASTF3(data_container->device_gam_data),
+					CASTF3(data_container->gpu_data[i].device_norm_data),
+					CASTF3(data_container->gpu_data[i].device_cpta_data),
+					CASTF3(data_container->gpu_data[i].device_cptb_data),
+					CASTF1(data_container->gpu_data[i].device_dpth_data),
+					CASTI2(data_container->gpu_data[i].device_bids_data),
+					CASTF3(data_container->gpu_data[i].device_gam_data),
 					CASTF1(device_dgm_data),
-					CASTF3(data_container->device_aux_data),
-					CASTF3(data_container->device_inr_data),
-					CASTF4(data_container->device_rot_data),
-					CASTF3(data_container->device_vel_data),
-					CASTF3(data_container->device_omg_data),
-					CASTF3(data_container->device_pos_data),
+					CASTF3(data_container->gpu_data[i].device_aux_data),
+					CASTF3(data_container->gpu_data[i].device_inr_data),
+					CASTF4(data_container->gpu_data[i].device_rot_data),
+					CASTF3(data_container->gpu_data[i].device_vel_data),
+					CASTF3(data_container->gpu_data[i].device_omg_data),
+					CASTF3(data_container->gpu_data[i].device_pos_data),
 					CASTF3(vel_update),
 					CASTF3(omg_update),
 					CASTU1(update_offset));
 		} else {
 			DEM_Contacts<<< BLOCKS(number_of_contacts), THREADS >>>(
-					CASTF3(data_container->device_norm_data),
-					CASTF3(data_container->device_cpta_data),
-					CASTF3(data_container->device_cptb_data),
-					CASTF1(data_container->device_dpth_data),
-					CASTI2(data_container->device_bids_data),
-					CASTF3(data_container->device_aux_data),
-					CASTF3(data_container->device_inr_data),
-					CASTF4(data_container->device_rot_data),
-					CASTF3(data_container->device_vel_data),
-					CASTF3(data_container->device_omg_data),
-					CASTF3(data_container->device_pos_data),
+					CASTF3(data_container->gpu_data[i].device_norm_data),
+					CASTF3(data_container->gpu_data[i].device_cpta_data),
+					CASTF3(data_container->gpu_data[i].device_cptb_data),
+					CASTF1(data_container->gpu_data[i].device_dpth_data),
+					CASTI2(data_container->gpu_data[i].device_bids_data),
+					CASTF3(data_container->gpu_data[i].device_aux_data),
+					CASTF3(data_container->gpu_data[i].device_inr_data),
+					CASTF4(data_container->gpu_data[i].device_rot_data),
+					CASTF3(data_container->gpu_data[i].device_vel_data),
+					CASTF3(data_container->gpu_data[i].device_omg_data),
+					CASTF3(data_container->gpu_data[i].device_pos_data),
 					CASTF3(vel_update),
 					CASTF3(omg_update),
 					CASTU1(update_offset));
 		}
 		LCP_Iteration_Bilaterals<<< BLOCKS(number_of_bilaterals), THREADS >>>(
-				CASTF4(data_container->device_bilateral_data),
-				CASTF3(data_container->device_aux_data),
-				CASTF3(data_container->device_inr_data),
-				CASTF4(data_container->device_rot_data),
-				CASTF3(data_container->device_vel_data),
-				CASTF3(data_container->device_omg_data),
-				CASTF3(data_container->device_pos_data),
+				CASTF4(data_container->gpu_data[i].device_bilateral_data),
+				CASTF3(data_container->gpu_data[i].device_aux_data),
+				CASTF3(data_container->gpu_data[i].device_inr_data),
+				CASTF4(data_container->gpu_data[i].device_rot_data),
+				CASTF3(data_container->gpu_data[i].device_vel_data),
+				CASTF3(data_container->gpu_data[i].device_omg_data),
+				CASTF3(data_container->gpu_data[i].device_pos_data),
 				CASTF3(vel_update),
 				CASTF3(omg_update),
 				CASTU1(update_offset),
 				CASTF1(device_dgm_data));
 
 		LCP_Reduce_Speeds<<< BLOCKS(number_of_updates), THREADS >>>(
-				CASTF3(data_container->device_aux_data),
-				CASTF3(data_container->device_vel_data),
-				CASTF3(data_container->device_omg_data),
+				CASTF3(data_container->gpu_data[i].device_aux_data),
+				CASTF3(data_container->gpu_data[i].device_vel_data),
+				CASTF3(data_container->gpu_data[i].device_omg_data),
 				CASTF3(vel_update),
 				CASTF3(omg_update),
 				CASTU1(body_number2),
 				CASTU1(offset_counter),
-				CASTF3(data_container->device_fap_data));
+				CASTF3(data_container->gpu_data[i].device_fap_data));
 		if (use_DEM == true) {break;}
 		if(Avg_DeltaGamma()<tolerance) {break;}
 	}
 }
 LCP_Integrate_Timestep<<< BLOCKS(number_of_bodies),THREADS>>>(
-		CASTF3(data_container->device_aux_data),
-		CASTF3(data_container->device_acc_data),
-		CASTF4(data_container->device_rot_data),
-		CASTF3(data_container->device_vel_data),
-		CASTF3(data_container->device_omg_data),
-		CASTF3(data_container->device_pos_data),
-		CASTF3(data_container->device_lim_data));
+		CASTF3(data_container->gpu_data[i].device_aux_data),
+		CASTF3(data_container->gpu_data[i].device_acc_data),
+		CASTF4(data_container->gpu_data[i].device_rot_data),
+		CASTF3(data_container->gpu_data[i].device_vel_data),
+		CASTF3(data_container->gpu_data[i].device_omg_data),
+		CASTF3(data_container->gpu_data[i].device_pos_data),
+		CASTF3(data_container->gpu_data[i].device_lim_data));
 }
 float ChLcpIterativeGPU::Max_DeltaGamma() {
 	return Thrust_Max(device_dgm_data);
@@ -693,8 +692,13 @@ __global__ void Compute_KE(float3* vel, float3* aux, float* ke) {
 float ChLcpIterativeGPU::Total_KineticEnergy() {
 	device_ken_data.resize(number_of_bodies);
 	Compute_KE<<< BLOCKS(number_of_bodies),THREADS>>>(
-			CASTF3(data_container->device_vel_data),
-			CASTF3(data_container->device_aux_data),
+			CASTF3(data_container->gpu_data[0].device_vel_data),
+			CASTF3(data_container->gpu_data[0].device_aux_data),
 			CASTF1(device_ken_data));
 	return (Thrust_Total(device_ken_data));
 }
+
+
+
+
+

@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <cutil_math.h>
 #include "ChForceSolverGPU.h"
-#include "ChGPUDataManager.h"
+#include "ChDataManager.h"
 #include <stdio.h>
 #include <cutil.h>
 #include "ChBodyGPU.h"

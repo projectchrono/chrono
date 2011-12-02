@@ -33,8 +33,7 @@ namespace chrono {
 			// CONSTRUCTORS
 			//
 
-			ChLcpIterativeSolverGPUsimple(ChContactContainerGPUsimple* container = 0, ///< this solver can be used _only_ together with a ChContactContainerGPUsimple
-					ChLcpSystemDescriptorGPU* descriptor = 0);
+			ChLcpIterativeSolverGPUsimple(ChContactContainerGPUsimple* container = 0); ///< this solver can be used _only_ together with a ChContactContainerGPUsimple
 
 			virtual ~ChLcpIterativeSolverGPUsimple();
 

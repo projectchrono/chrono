@@ -2,7 +2,7 @@
 #define CH_FORCESOLVERGPU_H
 
 #include "ChCuda.h"
-#include "ChGPUDataManager.h"
+#include "ChDataManager.h"
 namespace chrono {
 	class ChApiGPU ChForceSolverGPU {
 		public:

@@ -172,7 +172,7 @@ __global__ void AABB_AABB(float3* AABBs, int3* type, int2* family, uint * Bin_Nu
 		}
 	}
 }
-void ChCCollisionGPU::Broadphase() {
+void ChCCollisionGPU::Broadphase(const int &i) {
 	cudaFuncSetCacheConfig(AABB_Bins, cudaFuncCachePreferL1);
 	cudaFuncSetCacheConfig(AABB_AABB_Count, cudaFuncCachePreferL1);
 	cudaFuncSetCacheConfig(AABB_AABB, cudaFuncCachePreferL1);
@@ -182,14 +182,14 @@ void ChCCollisionGPU::Broadphase() {
 	generic_counter.resize(number_of_models);
 
 	AABB_Bins_Count<<<BLOCKS(number_of_models),THREADS>>>(
-			CASTF3(aabb_data),
+			CASTF3(data_container->gpu_data[i].device_aabb_data),
 			CASTU1(generic_counter));
 	Thrust_Inclusive_Scan_Sum(generic_counter,number_of_bin_intersections);
 	bin_number .resize(number_of_bin_intersections);
 	body_number.resize(number_of_bin_intersections);
 	bin_start_index.resize(number_of_bin_intersections);
 	AABB_Bins<<<BLOCKS(number_of_models),THREADS>>>(
-			CASTF3(aabb_data),
+			CASTF3(data_container->gpu_data[i].device_aabb_data),
 			CASTU1(generic_counter),
 			CASTU1(bin_number),
 			CASTU1(body_number));
@@ -202,8 +202,8 @@ void ChCCollisionGPU::Broadphase() {
 	generic_counter.resize(last_active_bin);
 
 	AABB_AABB_Count<<<BLOCKS(last_active_bin),THREADS>>>(
-			CASTF3(aabb_data),
-			CASTI2(data_container->device_fam_data),
+			CASTF3(data_container->gpu_data[i].device_aabb_data),
+			CASTI2(data_container->gpu_data[i].device_fam_data),
 			CASTU1(bin_number),
 			CASTU1(body_number),
 			CASTU1(bin_start_index),
@@ -214,9 +214,9 @@ void ChCCollisionGPU::Broadphase() {
 	contact_pair.resize(number_of_contacts_possible);
 
 AABB_AABB<<<BLOCKS(last_active_bin),THREADS>>>(
-		CASTF3(aabb_data),
-		CASTI3(data_container->device_typ_data),
-		CASTI2(data_container->device_fam_data),
+		CASTF3(data_container->gpu_data[i].device_aabb_data),
+		CASTI3(data_container->gpu_data[i].device_typ_data),
+		CASTI2(data_container->gpu_data[i].device_fam_data),
 		CASTU1(bin_number),
 		CASTU1(body_number),
 		CASTU1(bin_start_index),

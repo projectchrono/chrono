@@ -72,23 +72,25 @@ IF(ENABLE_UNIT_GPU)
 	    	ChCCollisionGPU.cuh
 	    	ChSystemGPU.h
 			ChSystemMultiGPU.h
-			ChGPUDataManager.h
+			ChDataManager.h
 			ChLcpIterativeGPU.h
 			ChCCollisionModelGPU.h
 			ChCCollisionSystemGPU.h
 			ChContactContainerGPUsimple.h
 			ChLcpIterativeSolverGPU.h
 			ChLcpSystemDescriptorGPU.h
+			ChSubdomainGPU.h
 #			ChForceSystemGPU.h
 #			ChForceSolverGPU.h
 		)
 	SET(ChronoEngine_unit_GPU_CU 
-	    		ChLcpIterativeGPU.cu
+	    	ChLcpIterativeGPU.cu
 			ChCCollisionGPU.cu
 			ChCCollisionGPUBroadphase.cu
 			ChCCollisionGPUNarrowphase.cu
+			ChSubdomainGPU.cu
 #			ChForceSolverGPU.cu
-			ChGPUDataManager.cu
+			ChDataManager.cu
 		)
 
 	SOURCE_GROUP(unit_GPU FILES 

@@ -864,15 +864,15 @@ __global__ void CopyGamma(int* to, float3* oldG, float3* newG, int contacts) {
 	newG[to[i]] = oldG[i];
 }
 
-void ChCCollisionGPU::Narrowphase() { //NarrowPhase Contact CD
+void ChCCollisionGPU::Narrowphase(const int &i) { //NarrowPhase Contact CD
 	generic_counter.resize(number_of_contacts_possible);
 	Thrust_Fill(generic_counter,0xFFFFFFFF);
 
-	data_container->device_norm_data.resize(number_of_contacts_possible);
-	data_container->device_cpta_data.resize(number_of_contacts_possible);
-	data_container->device_cptb_data.resize(number_of_contacts_possible);
-	data_container->device_dpth_data.resize(number_of_contacts_possible);
-	data_container->device_bids_data.resize(number_of_contacts_possible);
+	data_container->gpu_data[i].device_norm_data.resize(number_of_contacts_possible);
+	data_container->gpu_data[i].device_cpta_data.resize(number_of_contacts_possible);
+	data_container->gpu_data[i].device_cptb_data.resize(number_of_contacts_possible);
+	data_container->gpu_data[i].device_dpth_data.resize(number_of_contacts_possible);
+	data_container->gpu_data[i].device_bids_data.resize(number_of_contacts_possible);
 
 	//Sphere_Sphere<<<BLOCKS(number_of_contacts),THREADS>>>(	//Compute Sphere-Sphere Contacts
 	//	OBJCAST(object_data),
@@ -894,24 +894,24 @@ void ChCCollisionGPU::Narrowphase() { //NarrowPhase Contact CD
 	//	number_of_contacts);									//Number of potential contacts
 
 	MPR_GPU_Store<<<BLOCKS(number_of_contacts_possible),THREADS>>>( //Compute convex-covnex Contacts
-			CASTF3(data_container->device_pos_data),
-			CASTF4(data_container->device_rot_data),
-			CASTF3(data_container->device_ObA_data),
-			CASTF3(data_container->device_ObB_data),
-			CASTF3(data_container->device_ObC_data),
-			CASTF4(data_container->device_ObR_data),
-			CASTI3(data_container->device_typ_data),
+			CASTF3(data_container->gpu_data[i].device_pos_data),
+			CASTF4(data_container->gpu_data[i].device_rot_data),
+			CASTF3(data_container->gpu_data[i].device_ObA_data),
+			CASTF3(data_container->gpu_data[i].device_ObB_data),
+			CASTF3(data_container->gpu_data[i].device_ObC_data),
+			CASTF4(data_container->gpu_data[i].device_ObR_data),
+			CASTI3(data_container->gpu_data[i].device_typ_data),
 			CASTLL(contact_pair), //Indices of bodies that make up AABB contact
 			CASTU1(generic_counter), //Contact Index, store the thread index
-			CASTF3(data_container->device_norm_data),
-			CASTF3(data_container->device_cpta_data),
-			CASTF3(data_container->device_cptb_data),
-			CASTF1(data_container->device_dpth_data),
-			CASTI2(data_container->device_bids_data),
+			CASTF3(data_container->gpu_data[i].device_norm_data),
+			CASTF3(data_container->gpu_data[i].device_cpta_data),
+			CASTF3(data_container->gpu_data[i].device_cptb_data),
+			CASTF1(data_container->gpu_data[i].device_dpth_data),
+			CASTI2(data_container->gpu_data[i].device_bids_data),
 			number_of_contacts_possible); //Number of potential contacts
 
-	thrust::sort_by_key(generic_counter.begin(), generic_counter.end(), thrust::make_zip_iterator(thrust::make_tuple(data_container->device_norm_data.begin(),
-			data_container->device_cpta_data.begin(), data_container->device_cptb_data.begin(), data_container->device_dpth_data.begin(), data_container->device_bids_data.begin(),
+	thrust::sort_by_key(generic_counter.begin(), generic_counter.end(), thrust::make_zip_iterator(thrust::make_tuple(data_container->gpu_data[i].device_norm_data.begin(),
+			data_container->gpu_data[i].device_cpta_data.begin(), data_container->gpu_data[i].device_cptb_data.begin(), data_container->gpu_data[i].device_dpth_data.begin(), data_container->gpu_data[i].device_bids_data.begin(),
 			contact_pair.begin())));
 
 	number_of_contacts = number_of_contacts_possible - Thrust_Count(generic_counter,0xFFFFFFFF);
@@ -920,13 +920,13 @@ void ChCCollisionGPU::Narrowphase() { //NarrowPhase Contact CD
 
 	data_container->number_of_contacts = number_of_contacts;
 
-	data_container->device_norm_data.resize(number_of_contacts);
-	data_container->device_cpta_data.resize(number_of_contacts);
-	data_container->device_cptb_data.resize(number_of_contacts);
-	data_container->device_dpth_data.resize(number_of_contacts);
-	data_container->device_bids_data.resize(number_of_contacts);
-	data_container->device_gam_data.resize(number_of_contacts);
-	thrust::fill(data_container->device_gam_data.begin(), data_container->device_gam_data.end(), F3(0));
+	data_container->gpu_data[i].device_norm_data.resize(number_of_contacts);
+	data_container->gpu_data[i].device_cpta_data.resize(number_of_contacts);
+	data_container->gpu_data[i].device_cptb_data.resize(number_of_contacts);
+	data_container->gpu_data[i].device_dpth_data.resize(number_of_contacts);
+	data_container->gpu_data[i].device_bids_data.resize(number_of_contacts);
+	data_container->gpu_data[i].device_gam_data.resize(number_of_contacts);
+	thrust::fill(data_container->gpu_data[i].device_gam_data.begin(), data_container->gpu_data[i].device_gam_data.end(), F3(0));
 //	contact_pair.resize(number_of_contacts);
 //
 //	thrust::sort_by_key(contact_pair.begin(), contact_pair.end(), thrust::make_zip_iterator(thrust::make_tuple(data_container->device_norm_data.begin(), data_container->device_cpta_data.begin(),

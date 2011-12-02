@@ -21,7 +21,7 @@
 #include <string.h>
 #include "ChCuda.h"
 #include <cutil_math.h>
-#include "ChGPUDataManager.h"
+#include "ChDataManager.h"
 #define HM_REAL float
 #define HM_REAL3 float3
 #define HM_REAL4 float4
@@ -30,14 +30,14 @@ namespace chrono {
 	class ChApiGPU ChLcpIterativeGPU {
 		public:
 			ChLcpIterativeGPU(){
-				compliance=.001;
-				complianceT=.005;
+				compliance=1e-8;
+				complianceT=4e-8;
 				alpha=.2;
 				use_DEM=false;
 			}
 			~ChLcpIterativeGPU();
-			void RunTimeStep();
-			void WarmContact();
+			void RunTimeStep(const int & i);
+			void WarmContact(const int & i);
 			float Max_DeltaGamma();
 			float Min_DeltaGamma();
 			float Avg_DeltaGamma();

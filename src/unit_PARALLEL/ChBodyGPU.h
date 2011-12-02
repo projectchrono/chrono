@@ -20,7 +20,6 @@
 #include "physics/ChBody.h"
 #include "ChApiGPU.h"
 #include "ChCCollisionModelGPU.h"
-#include "ChGPUDataManager.h"
 namespace chrono {
 	using namespace collision;
 

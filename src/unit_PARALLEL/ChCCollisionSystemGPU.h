@@ -34,7 +34,7 @@ namespace chrono {
 		class ChApiGPU ChCollisionSystemGPU : public ChCollisionSystem{
 		public:
 
-			ChCollisionSystemGPU(ChLcpSystemDescriptorGPU* mdescriptor);
+			ChCollisionSystemGPU();
 
 			virtual ~ChCollisionSystemGPU(){}
 
@@ -81,9 +81,16 @@ namespace chrono {
 			/// Perform a raycast (ray-hit test with the collision models).
 			virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult){return false;}
 
-			//virtual void SetContactContainer(ChContactContainerGPU* mcontainer);
-			//virtual void SetSystemDescriptor(ChLcpSystemDescriptorGPU* mdescriptor);
-
+			/// compute Axis Aligned Bounding Boxes
+			virtual void ComputeAABB(const int &i);
+			/// compute bounding box that contains objects
+			virtual void ComputeBounds(const int &i);
+			/// update AABBs based on global min
+			virtual void ComputeUpdateAABB(const int &i);
+			/// compute potential contacts
+			virtual void ComputeBroadPhase(const int &i);
+			///compute actual contacts
+			virtual void ComputeNarrowPhase(const int &i);
 			ChCCollisionGPU *mGPU;
 		private:
 			/// Update data structures to pass into GPU for collision detection

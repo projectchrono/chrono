@@ -75,33 +75,27 @@ ChCCollisionGPU::ChCCollisionGPU() { //Constructor
 }
 ;
 
-void ChCCollisionGPU::ComputeAABB() {
-	aabb_data.resize(number_of_models * 2);
+void ChCCollisionGPU::ComputeAABB(const int &i) {
+	COPY_TO_CONST_MEM(number_of_models);
+	data_container->gpu_data[i].device_aabb_data.resize(number_of_models * 2);
 Compute_AABBs<<<BLOCKS(number_of_models),THREADS>>>(
-		CASTF3(data_container->device_pos_data),
-		CASTF4(data_container->device_rot_data),
-		CASTF3(data_container->device_ObA_data),
-		CASTF3(data_container->device_ObB_data),
-		CASTF3(data_container->device_ObC_data),
-		CASTF4(data_container->device_ObR_data),
-		CASTI3(data_container->device_typ_data),
-		CASTF3(aabb_data));
+		CASTF3(data_container->gpu_data[i].device_pos_data),
+		CASTF4(data_container->gpu_data[i].device_rot_data),
+		CASTF3(data_container->gpu_data[i].device_ObA_data),
+		CASTF3(data_container->gpu_data[i].device_ObB_data),
+		CASTF3(data_container->gpu_data[i].device_ObC_data),
+		CASTF4(data_container->gpu_data[i].device_ObR_data),
+		CASTI3(data_container->gpu_data[i].device_typ_data),
+		CASTF3(data_container->gpu_data[i].device_aabb_data));
 }
-void ChCCollisionGPU::ComputeBounds() {
-	if (do_compute_bounds) {
-		bbox init = bbox(aabb_data[0], aabb_data[0]);
-		bbox_transformation unary_op;
-		bbox_reduction binary_op;
-		bbox result = thrust::transform_reduce(aabb_data.begin(), aabb_data.end(), unary_op, init, binary_op);
-		min_bounding_point = result.first;
-		max_bounding_point = result.second;
-
-		global_origin = fabs(min_bounding_point); //Determine Global Origin
-		max_dimension = max3(global_origin + fabs(max_bounding_point)); //Determine Max point in space
-		bin_size_vec = (global_origin + fabs(max_bounding_point)) / (powf(number_of_models * 2, 1 / 3.0));
-		bin_size_vec = 1.0 / bin_size_vec;
-		do_compute_bounds = false;
-	}
+void ChCCollisionGPU::ComputeBounds(const int &i) {
+	COPY_TO_CONST_MEM(number_of_models);
+	bbox init = bbox(data_container->gpu_data[i].device_aabb_data[0], data_container->gpu_data[i].device_aabb_data[0]);
+	bbox_transformation unary_op;
+	bbox_reduction binary_op;
+	bbox result = thrust::transform_reduce(data_container->gpu_data[i].device_aabb_data.begin(), data_container->gpu_data[i].device_aabb_data.end(), unary_op, init, binary_op);
+	data_container->gpu_data[i].min_bounding_point = result.first;
+	data_container->gpu_data[i].max_bounding_point = result.second;
 }
 
 __global__ void FindGrid(float3* AABBs, uint3* aabb_minmax) {
@@ -117,39 +111,31 @@ __global__ void FindGrid(float3* AABBs, uint3* aabb_minmax) {
 __device__ __host__ bool operator ==(const uint3 &a, const uint3 &b) {
 	return ((a.x == b.x) && (a.y == b.y) && (a.z == b.z));
 }
-void ChCCollisionGPU::UpdateAABB() {
+void ChCCollisionGPU::UpdateAABB(const int &i) {
+	global_origin = fabs(data_container->min_bounding_point); //Determine Global Origin
+	max_dimension = max3(global_origin + fabs(data_container->max_bounding_point)); //Determine Max point in space
+	bin_size_vec = (global_origin + fabs(data_container->max_bounding_point)) / (powf(number_of_models * 2, 1 / 3.0));
+	bin_size_vec = 1.0 / bin_size_vec;
+
+	COPY_TO_CONST_MEM(number_of_models);
 	COPY_TO_CONST_MEM(collision_envelope); //Contact Envelope
 	COPY_TO_CONST_MEM(global_origin); //Origin for Physical Space
 	COPY_TO_CONST_MEM(bin_size_vec);
-	Offset_AABBs<<<BLOCKS(number_of_models),THREADS>>>(CASTF3(aabb_data));
+	Offset_AABBs<<<BLOCKS(number_of_models),THREADS>>>(CASTF3(data_container->gpu_data[i].device_aabb_data));
 
 	aabb_min_max_bin.resize(number_of_models * 2);
-	FindGrid<<<BLOCKS(number_of_models),THREADS>>>(CASTF3(aabb_data), CASTU3(aabb_min_max_bin));
-
-	if (aabb_min_max_bin.size() == aabb_min_max_bin_old.size()) {
-		if (Thrust_Equal(aabb_min_max_bin,aabb_min_max_bin_old)) {
-			return;
-		}
-	}
-	do_compute_bounds = true;
-	aabb_min_max_bin_old = aabb_min_max_bin;
-	Broadphase();
+	FindGrid<<<BLOCKS(number_of_models),THREADS>>>(CASTF3(data_container->gpu_data[i].device_aabb_data), CASTU3(aabb_min_max_bin));
 }
 
 void ChCCollisionGPU::Run() {
-	COPY_TO_CONST_MEM(number_of_models);
-	ComputeAABB();
-	ComputeBounds();
-	UpdateAABB();
-	Narrowphase();
+
+	ComputeAABB(0);
+	ComputeBounds(0);
+	UpdateAABB(0);
+	Broadphase(0);
+	Narrowphase(0);
+
 }
 
 void ChCCollisionGPU::AddObject(const float3 &A, const float3 &B, const float3 &C, const float4 &R, const int2 &F, const int3 &T) {
-	data_container->host_ObA_data.push_back(A);
-	data_container->host_ObB_data.push_back(B);
-	data_container->host_ObC_data.push_back(C);
-	data_container->host_ObR_data.push_back(R);
-	data_container->host_fam_data.push_back(F);
-	data_container->host_typ_data.push_back(T);
-	number_of_models++;
 }
