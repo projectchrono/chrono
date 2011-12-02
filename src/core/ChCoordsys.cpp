@@ -19,7 +19,6 @@
 
 #include "core/ChCoordsys.h"
 
-
 namespace chrono
 {
 

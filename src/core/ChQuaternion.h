@@ -65,6 +65,9 @@ public:
 			/// Copy constructor 
 	ChQuaternion(const ChQuaternion<Real>& other) : e0(other.e0),e1(other.e1),e2(other.e2),e3(other.e3)  {};
 
+			/// Copy constructor between vectors float<->double etc
+	template <class RealB>
+	ChQuaternion(const ChQuaternion<RealB>& other)	: e0(other.e0),e1(other.e1),e2(other.e2),e3(other.e3)  {};
 						
 			//
 			// OPERATORS OVERLOADING
@@ -114,7 +117,7 @@ public:
 					/// Operator for quaternion product: A%B means the typical quaternion product AxB
 					/// Note: pay attention to operator low precedence (see C++ precedence rules!)
 	ChQuaternion<Real> operator%(const ChQuaternion<Real>& other) const { ChQuaternion<Real> mr; mr.Cross(*this, other); return mr;}
-	ChQuaternion<Real>& operator%=(const ChQuaternion<Real>& other) const { this.Cross(*this, other); return *this;}
+	ChQuaternion<Real>& operator%=(const ChQuaternion<Real>& other) { this->Cross(*this, other); return *this;}
 
 					/// Operator for dot product: A^B means the scalar dot-product A*B
 					/// Note: pay attention to operator low precedence (see C++ precedence rules!)
@@ -194,9 +197,9 @@ public:
 							this->e3= qa.e0 * qb.e3 + qa.e3 * qb.e0 - qa.e2 * qb.e1 + qa.e1 * qb.e2;
 						}
 
-					/// The quaternion becomes the dot product of the two quaternion A and B: 
-					/// this=A*B. This kind of product is not used a lot, anyway...
-	double  Dot   ( const ChQuaternion<Real> A, const ChQuaternion<Real> B) 
+					/// The result is dot product of the two quaternion A and B: 
+					/// result=A*B. This kind of product is not used a lot, anyway...
+	double  Dot   ( const ChQuaternion<Real> A, const ChQuaternion<Real> B) const
 						{  
 							return (A.e0 * B.e0)+(A.e1 * B.e1)+(A.e2 * B.e2)+(A.e3 * B.e3);
 						};
@@ -239,6 +242,14 @@ public:
 								this->Scale(1.0/mlenght); 
 							}
 							return true;
+						}
+					/// Return a normalized copy of this quaternion, with euclidean length =1.
+					/// Not to be confused with Normalize(), that normalizes in place.
+	ChQuaternion<Real> GetNormalized() const
+						{
+							ChQuaternion<Real> mret(*this);
+							mret.Normalize();
+							return mret;
 						}
 
 					/// The quaternion is set as the conjugate of A quaternion
@@ -645,8 +656,8 @@ ChApi Quaternion AngleDTDT_to_QuatDTDT (int angset, Vector* mangles, Quaternion*
 //
 
 
-static const Quaternion QNULL (0.,0.,0.,0.);
-static const Quaternion QUNIT (1.,0.,0.,0.);
+static const ChQuaternion<double> QNULL (0.,0.,0.,0.);
+static const ChQuaternion<double> QUNIT (1.,0.,0.,0.);
 
 
 

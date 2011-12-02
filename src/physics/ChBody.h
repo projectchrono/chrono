@@ -299,7 +299,7 @@ public:
 
 				/// Gets the last position when the collision detection was
 				/// performed last time (i.e. last time SynchronizeLastCollPos() was used)
-	Coordsys GetLastCollPos () { return last_coll_pos; }
+	ChCoordsys<> GetLastCollPos () { return last_coll_pos; }
 				/// Stores the current position in the last-collision-position buffer.
 	void SynchronizeLastCollPos() {last_coll_pos = this->coord;}
 
@@ -418,12 +418,12 @@ public:
 			// Point/vector transf.(NOTE! you may also use operators of ChMovingFrame)
 			//
 
-	Vector Point_World2Body (Vector* mpoint);
-	Vector Point_Body2World (Vector* mpoint);
-	Vector Dir_World2Body (Vector* mpoint);
-	Vector Dir_Body2World (Vector* mpoint);
-	Vector RelPoint_AbsSpeed(Vector* mrelpoint);
-	Vector RelPoint_AbsAcc(Vector* mrelpoint);
+	ChVector<> Point_World2Body (ChVector<>* mpoint);
+	ChVector<> Point_Body2World (ChVector<>* mpoint);
+	ChVector<> Dir_World2Body (ChVector<>* mpoint);
+	ChVector<> Dir_Body2World (ChVector<>* mpoint);
+	ChVector<> RelPoint_AbsSpeed(ChVector<>* mrelpoint);
+	ChVector<> RelPoint_AbsAcc(ChVector<>* mrelpoint);
 
 				/// Mass of the rigid body. Must be positive.
 				/// Try not to mix bodies with too high/too low values of mass, for numerical stability.
@@ -433,15 +433,15 @@ public:
 				/// Set the inertia tensor of the body
 	void SetInertia (ChMatrix33<>* newXInertia);
 				/// Set the diagonal part of the inertia tensor.
-	void SetInertiaXX (Vector iner);
+	void SetInertiaXX (ChVector<> iner);
 				/// Get the diagonal part of the inertia tensor.
-	Vector GetInertiaXX();
+	ChVector<> GetInertiaXX();
 				/// Set the extradiagonal part of the inertia tensor
 				/// (xy, yz, zx values, the rest is symmetric)
-	void SetInertiaXY (Vector iner);
+	void SetInertiaXY (ChVector<> iner);
 				/// Get the extradiagonal part of the inertia tensor
 				/// (xy, yz, zx values, the rest is symmetric)
-	Vector GetInertiaXY();
+	ChVector<> GetInertiaXY();
 
 
 				/// Trick. Set the maximum linear speed (beyond this limit it will
@@ -491,13 +491,13 @@ public:
 				/// Transform and adds a cartesian force to a generic 7x1 vector of body lagrangian forces mQf .
 				/// The carthesian force must be passed as vector and application point, and vcan be either in local
 				/// (local = TRUE) or absolute reference (local = FALSE)
-	void Add_as_lagrangian_force(Vector force, Vector appl_point, int local, ChMatrixNM<double,7,1>* mQf);
-	void Add_as_lagrangian_torque(Vector torque, int local, ChMatrixNM<double,7,1>* mQf);
+	void Add_as_lagrangian_force(ChVector<> force, ChVector<> appl_point, int local, ChMatrixNM<double,7,1>* mQf);
+	void Add_as_lagrangian_torque(ChVector<> torque, int local, ChMatrixNM<double,7,1>* mQf);
 
 				/// Given a lagrangian force (in a 7x1 matrix), computes the fore and torque as vectors.
-	void From_lagrangian_to_forcetorque(ChMatrixNM<double,7,1>* mQf, Vector* mforce, Vector* mtorque);
+	void From_lagrangian_to_forcetorque(ChMatrixNM<double,7,1>* mQf, ChVector<>* mforce, ChVector<>* mtorque);
 				/// Given force and torque as vectors, computes the lagrangian force (in a 7x1 matrix)
-	void From_forcetorque_to_lagrangian(Vector* mforce, Vector* mtorque, ChMatrixNM<double,7,1>* mQf);
+	void From_forcetorque_to_lagrangian(ChVector<>* mforce, ChVector<>* mtorque, ChMatrixNM<double,7,1>* mQf);
 
 
 			//
@@ -507,11 +507,11 @@ public:
 				/// Trasform generic cartesian force into absolute force+torque applied to body COG.
 				/// If local=1, force & application point are intended as expressed in local
 				/// coordinates, if =0, in absolute.
-	void To_abs_forcetorque  (Vector force, Vector appl_point, int local, Vector& resultforce, Vector& resulttorque);
+	void To_abs_forcetorque  (ChVector<> force, ChVector<> appl_point, int local, ChVector<>& resultforce, ChVector<>& resulttorque);
 
 				/// Trasform generic cartesian torque into absolute torque applied to body COG.
 				/// If local=1, torque is intended as expressed in local coordinates, if =0, in absolute.
-	void To_abs_torque (Vector torque, int local, Vector& resulttorque);
+	void To_abs_torque (ChVector<> torque, int local, ChVector<>& resulttorque);
 
 				/// As before, but puts the result into the "accumulators", as increment.
 				/// Forces and torques currently in accumulators will affect the body.
@@ -519,31 +519,31 @@ public:
 				/// integration step. Useful to apply forces to bodies without needing to
 				/// add ChForce() objects. If local=true, force,appl.point or torque are considered
 				/// expressed in body coordinates, otherwise are considered in absolute coordinates.
-	void Accumulate_force  (Vector force, Vector appl_point, int local);
-	void Accumulate_torque (Vector torque, int local);
-	Vector Get_accumulated_force  () {return Force_acc;};
-	Vector Get_accumulated_torque () {return Torque_acc;};
+	void Accumulate_force  (ChVector<> force, ChVector<> appl_point, int local);
+	void Accumulate_torque (ChVector<> torque, int local);
+	ChVector<> Get_accumulated_force  () {return Force_acc;};
+	ChVector<> Get_accumulated_torque () {return Torque_acc;};
 	void Empty_forces_accumulators () {Force_acc = VNULL; Torque_acc = VNULL;};
 
 				/// To get & set the 'script' force buffers(only accessed by external scripts, so
 				/// It's up to the script to remember to set& reset them -link class just add them to
 				/// all other forces. Script forces&torques are considered applied to COG, in abs csys.
-	Vector* Get_Scr_force() {return &Scr_force;};
-	Vector* Get_Scr_torque() {return &Scr_torque;};
-	void Set_Scr_force(Vector mf) {Scr_force = mf;};
-	void Set_Scr_torque(Vector mf) {Scr_torque = mf;};
-	void Accumulate_script_force (Vector force, Vector appl_point, int local);
-	void Accumulate_script_torque (Vector torque, int local);
+	ChVector<>* Get_Scr_force() {return &Scr_force;};
+	ChVector<>* Get_Scr_torque() {return &Scr_torque;};
+	void Set_Scr_force(ChVector<> mf) {Scr_force = mf;};
+	void Set_Scr_torque(ChVector<> mf) {Scr_torque = mf;};
+	void Accumulate_script_force (ChVector<> force, ChVector<> appl_point, int local);
+	void Accumulate_script_torque (ChVector<> torque, int local);
 
 				/// Return the gyroscopic torque.
-	Vector  Get_gyro() {return gyro;}
+	ChVector<>  Get_gyro() {return gyro;}
 
 				/// Get the total force applied to the rigid body (applied at center of mass.
 				/// expressed in absolute coordinates).
-	Vector Get_Xforce () {return Xforce;}
+	ChVector<> Get_Xforce () {return Xforce;}
 				/// Get the total torque applied to the rigid body (expressed in body coordinates).
 				/// This does not include the gyroscopic torque.
-	Vector Get_Xtorque() {return Xtorque;}
+	ChVector<> Get_Xtorque() {return Xtorque;}
 
 				/// Get the address of the inertia tensor, as a 3x3 matrix,
 				/// expressed in local coordinate system.
@@ -570,12 +570,12 @@ public:
 				/// Update local time of rigid body, and time-dependant data
 	void UpdateTime (double mytime);
 				/// Update all auxiliary data of the rigid body, at given time
-	void UpdateState (Coordsys mypos, Coordsys mypos_dt);
+	void UpdateState (ChCoordsys<> mypos, ChCoordsys<> mypos_dt);
 				/// Update all auxiliary data of the rigid body, at given time and state
-	void UpdateStateTime (Coordsys mypos, Coordsys mypos_dt, double mytime);
+	void UpdateStateTime (ChCoordsys<> mypos, ChCoordsys<> mypos_dt, double mytime);
 				/// Update all auxiliary data of the rigid body and of
 				/// its children (markers, forces..), at given time and state
-	void Update (Coordsys mypos, Coordsys mypos_dt, double mytime);
+	void Update (ChCoordsys<> mypos, ChCoordsys<> mypos_dt, double mytime);
 
 
 				/// Update all auxiliary data of the rigid body and of
