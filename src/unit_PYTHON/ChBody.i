@@ -5,11 +5,14 @@
 
 %}
  
-%import "ChPhysicsItem.i"
-%import "ChMaterialSurface.i"
 
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApi 
+
+
+%import "ChPhysicsItem.i"
+%import "ChMaterialSurface.i"
+%import "ChCollisionModel.i"
 
 
 /* Parse the header file to generate wrappers */
@@ -59,9 +62,9 @@ public:
 	void VariablesQbSetSpeed(double step=0.);
 	void VariablesQbIncrementPosition(double step);
 	virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
-	virtual ChCollisionModel* InstanceCollisionModel();
+	virtual chrono::collision::ChCollisionModel* InstanceCollisionModel();
 	void SetNoSpeedNoAcceleration();
-	ChCollisionModel* GetCollisionModel() {return collision_model;}
+	chrono::collision::ChCollisionModel* GetCollisionModel() {return collision_model;}
 
 	virtual void SyncCollisionModels();
 	virtual void AddCollisionModelsToSystem();

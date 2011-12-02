@@ -22,6 +22,17 @@
 %feature("autodoc", "1");
 
 
+// Turn on the exception handling to intercept C++ exceptions
+%include "exception.i"
+
+%exception {
+  try {
+    $action
+  } catch (const std::exception& e) {
+    SWIG_exception(SWIG_RuntimeError, e.what());
+  }
+}
+
 // Include other .i configuration files for SWIG. 
 // These are divided in many .i files, each per a
 // different c++ class, when possible.
@@ -54,15 +65,18 @@
 %include "ChObject.i"
 %include "ChPhysicsItem.i"
 %include "ChMaterialSurface.i"
+%include "ChMaterialCouple.i"
 %include "ChBody.i"
 %include "ChBodyAuxRef.i"
 %include "ChMarker.i"
 %include "ChForce.i"
 %include "ChSystem.i"
 %include "ChContactContainerBase.i"
+%include "ChProximityContainerBase.i"
 
 // collision/   classes
-%include "ChCollisionModel.i"
+%include "ChCollisionInfo.i"
+//%include "ChCollisionModel.i"
 
 
 

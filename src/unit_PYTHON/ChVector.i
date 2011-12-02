@@ -23,9 +23,9 @@ public:
 	ChVector(const ChVector<Real>& other);
 	template <class RealB>
 	ChVector(const ChVector<RealB>& other);
-	ChVector<Real>& operator=(const ChVector<Real>& other);
+	// ChVector<Real>& operator=(const ChVector<Real>& other);
 	template <class RealB>
-	ChVector<Real>& operator=(const ChVector<RealB>& other);
+	// ChVector<Real>& operator=(const ChVector<RealB>& other);
 	ChVector<Real> operator-();
 	inline Real& operator()(const int el);
 	inline const Real& operator()(const int el) const;

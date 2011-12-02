@@ -5,62 +5,238 @@
 
 using namespace chrono;
 
+// NESTED CLASSES - trick - step 1
+//
+// Trick for having a SWIG-specific global class that represent
+// a nested class (nested are not supported in SWIG so this is a workaround)
+// The workaround is done in various 1,2,3,.. steps. 
+//
+// STEP 1: do aliases for the c++ compiler when compiling the .cxx wrapper 
+typedef chrono::ChSystem::IteratorBodies IteratorBodies;
+typedef chrono::ChSystem::IteratorLinks  IteratorLinks;
+typedef chrono::ChSystem::IteratorOtherPhysicsItems IteratorOtherPhysicsItems;
+typedef chrono::ChSystem::ChCustomCollisionPointCallback ChCustomCollisionPointCallback;
+
+// for these two other nested classes it is enough to inherit stubs (not virtual) as outside classes
+class ChCustomCollisionPointCallbackPy : public chrono::ChSystem::ChCustomCollisionPointCallback
+{
+	public:	
+		ChCustomCollisionPointCallbackPy() {};
+		virtual void ContactCallback(
+							const collision::ChCollisionInfo& mcontactinfo,				
+							ChMaterialCouple&  material 			  		
+							) {};
+};
+class ChCustomComputeCollisionCallbackPy  : public chrono::ChSystem::ChCustomComputeCollisionCallback
+{
+	public: 
+		ChCustomComputeCollisionCallbackPy() {};
+		virtual void PerformCustomCollision(ChSystem* msys) {};
+};
+
 %}
 
-/* Parse the header file to generate wrappers */
-%include "../physics/ChSystem.h" 
 
-// Undefine ChApi otherwise SWIG gives a syntax error
-#define ChApi 
-
-
-// Nested classes workaround:
+// NESTED CLASSES - trick - step 2
+//
+// STEP 2: Now the nested classes  MyOutClass::MyNestedClass are declared  
+// as ::MyNestedClass (as non-nested), for SWIG interpreter _only_:
 
 class IteratorBodies
 	{
     public:
-      IteratorBodies(std::vector<ChBody*>::iterator p) : node_(p) {}
-      IteratorBodies& operator=(const IteratorBodies& other);
       bool operator==(const IteratorBodies& other);
       bool operator!=(const IteratorBodies& other);
-      IteratorBodies& operator++();
-      ChSharedPtr<ChBody> operator*();
-	   private:
-	    std::vector<ChBody*>::iterator node_;
     };
 class IteratorLinks
 	{
     public:
-      IteratorLinks(std::list<ChLink*>::iterator p) : node_(p) {}
-      IteratorLinks& operator=(const IteratorLinks& other);
       bool operator==(const IteratorLinks& other);
       bool operator!=(const IteratorLinks& other);
-      IteratorLinks& operator++();
-      ChSharedPtr<ChLink> operator*();
-	  IteratorLinks(){};
-	   private:
-	    std::list<ChLink*>::iterator node_;
     };
 class IteratorOtherPhysicsItems
 	{
     public:
-      IteratorOtherPhysicsItems(std::list<ChPhysicsItem*>::iterator p) : node_(p) {}
-      IteratorOtherPhysicsItems& operator=(const IteratorOtherPhysicsItems& other);
       bool operator==(const IteratorOtherPhysicsItems& other);
       bool operator!=(const IteratorOtherPhysicsItems& other);
-      IteratorOtherPhysicsItems& operator++();
-      ChSharedPtr<ChPhysicsItem> operator*();
-	  IteratorOtherPhysicsItems(){};
-	   private:
-	    std::list<ChPhysicsItem*>::iterator node_;
     };
+class ChCustomCollisionPointCallbackPy
+	{
+	public:	
+	  virtual void ContactCallback(
+							const collision::ChCollisionInfo& mcontactinfo, 
+							ChMaterialCouple&  material 			  		
+													);
+	};
+class ChCustomComputeCollisionCallbackPy
+{
+	public: 
+		ChCustomComputeCollisionCallbackPy() {};
+		virtual void PerformCustomCollision(ChSystem* msys) {};
+};
 
-%{
-// Trick for having a SWIG-specific global class that represent
-// a nested class (nested are not supported in SWIG so this is a workaround)
-typedef chrono::ChSystem::IteratorBodies IteratorBodies;
-typedef chrono::ChSystem::IteratorLinks  IteratorLinks;
-typedef chrono::ChSystem::IteratorOtherPhysicsItems IteratorOtherPhysicsItems;
+// NESTED CLASSES - trick - step 3
+//
+// STEP 3: if needed, extend some functions of the 'un-nested' classes, here
+// is the way to do it:
+
+%extend IteratorBodies{
+	  IteratorBodies Next()
+	  {
+			IteratorBodies mynext(*$self);
+			mynext++;
+			return mynext;
+	  }
+	  chrono::ChSharedPtr<ChBody> Ref()   // note the chrono:: namespace
+	  {
+			return $self->operator*();
+	  }
+};
+%extend IteratorLinks{
+	  IteratorLinks Next()
+	  {
+			IteratorLinks mynext(*$self);
+			mynext++;
+			return mynext;
+	  }
+	  chrono::ChSharedPtr<ChLink> Ref()   // note the chrono:: namespace
+	  {
+			return $self->operator*();
+	  }
+};
+%extend IteratorOtherPhysicsItems{
+	  IteratorOtherPhysicsItems Next()
+	  {
+			IteratorOtherPhysicsItems mynext(*$self);
+			mynext++;
+			return mynext;
+	  }
+	  chrono::ChSharedPtr<ChPhysicsItem> Ref()   // note the chrono:: namespace
+	  {
+			return $self->operator*();
+	  }
+};
+
+// NESTED CLASSES - trick - step 4
+//
+// STEP 4: if needed, extend some functions of the class that hosted the nested classes,
+// because for example they returned a refrence to nested chrono::ChSystem::IteratorBody and
+// this will confuse the python runtime, so do override these functions so that they return 
+// a ::IteratorBody type (see step 2), that will be interpreted ok in the python runtime.
+
+%extend chrono::ChSystem
+{
+	::IteratorBodies IterBeginBodies()   // note the :: at the beginning, otherwise SWIG (unsuccesfully) tries to use the nested one
+	  {
+			return $self->IterBeginBodies();
+	  }
+	::IteratorBodies IterEndBodies()   // note the :: at the beginning, otherwise SWIG (unsuccesfully) tries to use the nested one
+	  {
+			return $self->IterEndBodies();
+	  }
+	::IteratorLinks IterBeginLinks()   // note the :: at the beginning, otherwise SWIG (unsuccesfully) tries to use the nested one
+	  {
+			return $self->IterBeginLinks();
+	  }
+	::IteratorLinks IterEndLinks()   // note the :: at the beginning, otherwise SWIG (unsuccesfully) tries to use the nested one
+	  {
+			return $self->IterEndLinks();
+	  }
+	::IteratorOtherPhysicsItems IterBeginOtherPhysicsItems()   // note the :: at the beginning, otherwise SWIG (unsuccesfully) tries to use the nested one
+	  {
+			return $self->IterBeginOtherPhysicsItems();
+	  }
+	::IteratorOtherPhysicsItems IterEndOtherPhysicsItems()   // note the :: at the beginning, otherwise SWIG (unsuccesfully) tries to use the nested one
+	  {
+			return $self->IterEndOtherPhysicsItems();
+	  }
+	void SetCustomCollisionPointCallback(::ChCustomCollisionPointCallbackPy* mcallb)  // note the :: at the beginning
+	  {
+		  $self->SetCustomCollisionPointCallback(mcallb);
+	  }
+	void SetCustomComputeCollisionCallback(::ChCustomComputeCollisionCallbackPy* mcallb)  // note the :: at the beginning
+	  {
+		  $self->SetCustomComputeCollisionCallback(mcallb);
+	  }
+};
+
+
+// NESTED CLASSES - trick - step 5
+//
+// STEP 5: note that if you override some functions by %extend, now you must deactivate the 
+// original ones in the .h file, by using %ignore. NOTE that this must happen AFTER the %extend,
+// and BEFORE the %include !!!
+%ignore chrono::ChSystem::IterBeginBodies();
+%ignore chrono::ChSystem::IterEndBodies();
+%ignore chrono::ChSystem::IterBeginLinks();
+%ignore chrono::ChSystem::IterEndLinks();
+%ignore chrono::ChSystem::IterBeginOtherPhysicsItems();
+%ignore chrono::ChSystem::IterEndOtherPhysicsItems();
+%ignore chrono::ChSystem::SetCustomCollisionPointCallback();
+%ignore chrono::ChSystem::SetCustomComputeCollisionCallback();
+
+// Cross-inheritance between Python and c++ for callbacks that must be inherited.
+// Put this 'director' feature _before_ class wrapping declaration.
+%feature("director") ChCustomCollisionPointCallbackPy;
+%feature("director") ChCustomComputeCollisionCallbackPy;
+
+// Undefine ChApi otherwise SWIG gives a syntax error
+#define ChApi 
+
+/* Parse the header file to generate wrappers */
+%include "../physics/ChSystem.h" 
+
+
+
+//
+// ADD PYTHON CODE
+//
+// To make iteration much easier, as
+//  for abody in chrono.IterBodies(my_system):
+//     print '  body pos=', abody.GetPos()
+
+%pythoncode %{
+
+class IterBodies():
+    def __init__(self,asystem):
+        self.iterbodies = asystem.IterBeginBodies()
+        self.asystem = asystem
+    def __iter__(self):
+        return self
+    def next(self):
+        if self.iterbodies == self.asystem.IterEndBodies():
+            raise StopIteration
+        else:
+            presentiter = self.iterbodies
+            self.iterbodies = self.iterbodies.Next()
+            return presentiter.Ref()
+
+class IterLinks():
+    def __init__(self,asystem):
+        self.iterli = asystem.IterBeginLinks()
+        self.asystem = asystem
+    def __iter__(self):
+        return self
+    def next(self):
+        if self.iterli == self.asystem.IterEndLinks():
+            raise StopIteration
+        else:
+            presentiter = self.iterli
+            self.iterli = self.iterli.Next()
+            return presentiter.Ref()
+
+class IterOtherPhysicsItems():
+    def __init__(self,asystem):
+        self.iterph = asystem.IterBeginOtherPhysicsItems()
+        self.asystem = asystem
+    def __iter__(self):
+        return self
+    def next(self):
+        if self.iterph == self.asystem.IterEndOtherPhysicsItems():
+            raise StopIteration
+        else:
+            presentiter = self.iterph
+            self.iterph = self.iterph.Next()
+            return presentiter.Ref()
 
 %}
-
