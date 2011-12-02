@@ -43,13 +43,13 @@ void ChCollisionModel::SetDefaultSuggestedMargin(double mmargin)
 }
 
 // static
-double GetDefaultSuggestedEnvelope()
+double ChCollisionModel::GetDefaultSuggestedEnvelope()
 {
 	return default_model_envelope;
 }
 
 // static
-double GetDefaultSuggestedMargin()
+double ChCollisionModel::GetDefaultSuggestedMargin()
 {
 	return default_safe_margin;
 }

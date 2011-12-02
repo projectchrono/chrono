@@ -129,7 +129,7 @@ public:
 					/// Operator for cross product: A%B means the vector cross-product AxB
 					/// Note: pay attention to operator low precedence (see C++ precedence rules!)
 	ChVector<Real> operator%(const ChVector<Real>& other) const { ChVector<Real> mr; mr.Cross(*this, other); return mr;}
-	ChVector<Real>& operator%=(const ChVector<Real>& other) const { this.Cross(*this, other); return *this;}
+	ChVector<Real>& operator%=(const ChVector<Real>& other) { this->Cross(*this, other); return *this;}
 
 					/// Operator for dot product: A^B means the scalar dot-product A*B
 					/// Note: pay attention to operator low precedence (see C++ precedence rules!)
@@ -196,14 +196,14 @@ public:
 						}
 
 					/// Gives the dot product of the two vectors A and B:
-	double  Dot   ( const ChVector<Real> A, const ChVector<Real> B)
+	double  Dot   ( const ChVector<Real> A, const ChVector<Real> B) const
 						{
 							return (A.x * B.x)+(A.y * B.y)+(A.z * B.z);
 						};
 
 					/// Gives the dot product with another vector:
 					/// result=this*B
-	double  Dot   ( const ChVector<Real> B)
+	double  Dot   ( const ChVector<Real> B) const
 						{
 							return (x * B.x)+(y * B.y)+(z * B.z);
 						};
@@ -248,6 +248,15 @@ public:
 							}
 							return true;
 						}
+					/// Return a normalized copy of this vector, with euclidean length =1.
+					/// Not to be confused with Normalize(), that normalizes in place.
+	ChVector<Real> GetNormalized() const
+						{
+							ChVector<Real> mret(*this);
+							mret.Normalize();
+							return mret;
+						}
+
 
 					/// Impose a new length to the vector, keeping the direction
 					/// unchanged.

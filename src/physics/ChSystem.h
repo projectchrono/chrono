@@ -52,7 +52,6 @@
 namespace chrono
 {
 
-using namespace chrono::collision;
 
 
 // forward references & shortcuts..
@@ -486,6 +485,7 @@ public:
       bool operator!=(const IteratorBodies& other);
       IteratorBodies& operator++();
       ChSharedPtr<ChBody> operator*();
+	  IteratorBodies(){};
 	   private:
 	    std::vector<ChBody*>::iterator node_;
     };
@@ -504,6 +504,7 @@ public:
       bool operator!=(const IteratorLinks& other);
       IteratorLinks& operator++();
       ChSharedPtr<ChLink> operator*();
+	  IteratorLinks(){};
 	   private:
 	    std::list<ChLink*>::iterator node_;
     };
@@ -522,6 +523,7 @@ public:
       bool operator!=(const IteratorOtherPhysicsItems& other);
       IteratorOtherPhysicsItems& operator++();
       ChSharedPtr<ChPhysicsItem> operator*();
+	  IteratorOtherPhysicsItems(){};
 	   private:
 	    std::list<ChPhysicsItem*>::iterator node_;
     };

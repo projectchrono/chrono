@@ -56,9 +56,9 @@ protected:
 	eChLogLevel current_level;
 	eChLogLevel default_level;
 
-public:
 			/// Creates the ChLog, and sets the level at MESSAGE
 	ChLog();
+public:
 
 			/// Forces output of message buffers, if any.
 			/// Also, should restore the default eChLogLevel

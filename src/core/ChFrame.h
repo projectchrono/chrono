@@ -110,7 +110,7 @@ public:
 		}
 					/// The '>>' operator transforms a vector, so transformations
 					/// can be represented with this syntax:
-					///  new_v = old_v >> frame;
+					///  new_v = old_v >> tr_frame;
 					/// For a sequence of transformations, i.e. a chain of coordinate
 					/// systems, you can also write this (like you would do with
 					/// a sequence of Denavitt-Hartemberg matrix multiplications,
