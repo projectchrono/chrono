@@ -26,9 +26,9 @@ public:
 	ChQuaternion(const Real ne0, const Real ne1, const Real ne2,const Real ne3);
 	ChQuaternion(const Real ns, const chrono::ChVector<Real> nv);
 	ChQuaternion(const ChQuaternion<Real>& other);
-	ChQuaternion<Real>& operator=(const ChQuaternion<Real>& other);
+	// ChQuaternion<Real>& operator=(const ChQuaternion<Real>& other);
 	ChQuaternion<Real>  operator-() const;
-	ChQuaternion<Real>  operator!() const;
+	// ChQuaternion<Real>  operator!() const;
 	ChQuaternion<Real>  operator+(const ChQuaternion<Real>& other);
 	ChQuaternion<Real>& operator+=(const ChQuaternion<Real>& other);
 	ChQuaternion<Real>  operator-(const ChQuaternion<Real>& other) const;

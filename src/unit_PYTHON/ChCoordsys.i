@@ -22,7 +22,7 @@ public:
 	ChCoordsys();
 	ChCoordsys(const chrono::ChVector<Real> mv, const chrono::ChQuaternion<Real> mq = QUNIT);
 	ChCoordsys(const chrono::ChCoordsys<Real>& other);
-	ChCoordsys<Real>& operator=(const chrono::ChCoordsys<Real>& other);
+	// ChCoordsys<Real>& operator=(const chrono::ChCoordsys<Real>& other);
 	bool operator<=(const ChCoordsys<Real>&other) const;
 	bool operator>=(const ChCoordsys<Real>&other) const;
 	bool operator==(const ChCoordsys<Real>& other) const;
