@@ -1,5 +1,3 @@
-/* %module ChronoEngine_PYTHON_mod  */
-
 %{
 
 /* Includes the header in the wrapper code */
@@ -43,8 +41,12 @@ public:
 	void StreamOUT(chrono::ChStreamOutBinary& mstream);
 	void StreamIN(chrono::ChStreamInBinary& mstream);
 };
-};
+}; // end namespace
 
 
 %template(ChCoordsysD) chrono::ChCoordsys<double>; 
 %template(ChCoordsysF) chrono::ChCoordsys<float>; 
+
+
+%constant chrono::ChCoordsys<double> CSYSNULL = chrono::ChCoordsys<double>(chrono::VNULL,chrono::QNULL);
+%constant chrono::ChCoordsys<double> CSYSNORM = chrono::ChCoordsys<double>(chrono::VNULL,chrono::QUNIT);

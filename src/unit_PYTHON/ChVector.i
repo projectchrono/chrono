@@ -1,5 +1,3 @@
-/* %module ChronoEngine_PYTHON_mod  */
-
 %{
 
 /* Includes the header in the wrapper code */
@@ -22,13 +20,13 @@ public:
 	Real z;
 	ChVector(): x(0), y(0), z(0);
 	ChVector(const Real nx, const Real ny, const Real nz);
-	ChVector(const ChVector<Real>& other)	:x(other.x), y(other.y), z(other.z);
+	ChVector(const ChVector<Real>& other);
 	template <class RealB>
-	ChVector(const ChVector<RealB>& other)	:x((Real)other.x), y((Real)other.y), z((Real)other.z);
-	ChVector<Real>& operator=(const ChVector<Real>& other)	{if (&other == this) return *this;  x = other.x; y = other.y; z = other.z; return *this; }
+	ChVector(const ChVector<RealB>& other);
+	ChVector<Real>& operator=(const ChVector<Real>& other);
 	template <class RealB>
-	ChVector<Real>& operator=(const ChVector<RealB>& other)	{ x = (Real)other.x; y = (Real)other.y; z = (Real)other.z; return *this; }
-	ChVector<Real> operator-() const { return ChVector<Real>(-x, -y, -z);   }
+	ChVector<Real>& operator=(const ChVector<RealB>& other);
+	ChVector<Real> operator-();
 	inline Real& operator()(const int el);
 	inline const Real& operator()(const int el) const;
 	ChVector<Real> operator+(const ChVector<Real>& other) const;
@@ -43,6 +41,9 @@ public:
 	ChVector<Real>& operator/=(const ChVector<Real>& other);
 	ChVector<Real> operator/(const Real v) const;
 	ChVector<Real>& operator/=(const Real v);
+	ChVector<Real> operator%(const ChVector<Real>& other);
+	ChVector<Real>& operator%=(const ChVector<Real>& other);
+	//double operator^(const ChVector<Real>& other);
 	bool operator<=(const ChVector<Real>&other) const;
 	bool operator>=(const ChVector<Real>&other) const;
 	bool operator<(const ChVector<Real>&other) const;
@@ -66,6 +67,7 @@ public:
 	double	Length2	 ();
 	double	LengthInf ();
 	bool    Normalize ();
+	ChVector<Real> GetNormalized();
 	void    SetLength (Real v);
 	void StreamOUT(chrono::ChStreamOutAscii& mstream);
 	void StreamOUT(chrono::ChStreamOutBinary& mstream);
@@ -76,3 +78,25 @@ public:
 
 %template(ChVectorD) chrono::ChVector<double>; 
 %template(ChVectorF) chrono::ChVector<float>; 
+
+%constant chrono::ChVector<double> VNULL = chrono::ChVector<double>(0,0,0);
+%constant chrono::ChVector<double> VECT_X= chrono::ChVector<double>(1,0,0);
+%constant chrono::ChVector<double> VECT_Y= chrono::ChVector<double>(0,1,0);
+%constant chrono::ChVector<double> VECT_Z= chrono::ChVector<double>(0,0,1);
+
+
+%extend chrono::ChVector<double>{
+		public:
+					// Add function to support python 'print(...)'
+			char *__str__() 
+					{
+						static char temp[256];
+						sprintf(temp,"[ %g, %g, %g ]", $self->x,$self->y,$self->z);
+						return &temp[0];
+					}
+					// operator  ^  as ^ in c++ 
+			double __xor__(const ChVector<double>& other) const 
+					{ 
+						return $self->operator^(other);
+					}
+		};
