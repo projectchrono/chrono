@@ -1,5 +1,3 @@
-/* %module ChronoEngine_PYTHON_mod  */
-
 %{
 
 /* Includes the header in the wrapper code */
@@ -43,8 +41,8 @@ public:
 	ChQuaternion<Real>& operator/=(const ChQuaternion<Real>& other);
 	ChQuaternion<Real>  operator/(const Real v) const;
 	ChQuaternion<Real>& operator/=(const Real v);
-	// ChQuaternion<Real> operator%(const ChQuaternion<Real>& other) const;
-	// ChQuaternion<Real>& operator%=(const ChQuaternion<Real>& other) const;
+	ChQuaternion<Real> operator%(const ChQuaternion<Real>& other) const;
+	ChQuaternion<Real>& operator%=(const ChQuaternion<Real>& other);
 	// double operator^(const ChQuaternion<Real>& other) const;
 	bool operator<=(const ChQuaternion<Real>&other) const;
 	bool operator>=(const ChQuaternion<Real>&other) const;
@@ -70,6 +68,7 @@ public:
 	double	Length2	 ();
 	double	LengthInf ();
 	bool    Normalize ();
+	ChQuaternion<Real> GetNormalized();
 	void	Conjugate (const ChQuaternion<Real>& A);
 	void	Conjugate ();
 	ChQuaternion<Real> 	GetConjugate () const;
@@ -157,11 +156,33 @@ Quaternion Angle_to_Quat (int angset, chrono::Vector* mangles);
 Quaternion AngleDT_to_QuatDT (int angset, chrono::Vector* mangles, Quaternion* q);
 Quaternion AngleDTDT_to_QuatDTDT (int angset, chrono::Vector* mangles, Quaternion* q);
 
-//static const Quaternion QNULL (0.,0.,0.,0.);
-//static const Quaternion QUNIT (1.,0.,0.,0.);
-
 };
 
 
 %template(ChQuaternionD) chrono::ChQuaternion<double>; 
 %template(ChQuaternionF) chrono::ChQuaternion<float>; 
+
+%constant chrono::ChQuaternion<double> QNULL = chrono::ChQuaternion<double>(0.,0.,0.,0.);
+%constant chrono::ChQuaternion<double> QUNIT = chrono::ChQuaternion<double>(1.,0.,0.,0.);
+
+
+%extend chrono::ChQuaternion<double>{
+		public:
+					// Add function to support python 'print(...)'
+			char *__str__() 
+					{
+						static char temp[256];
+						sprintf(temp,"[ %g, %g, %g, %g ]", $self->e0,$self->e1,$self->e2,$self->e3);
+						return &temp[0];
+					}
+					// operator  ~  as ! in c++ 
+			ChQuaternion<double> __invert__() const  
+					{
+						return $self->operator!();
+					}
+					// operator  ^  as ^ in c++ 
+			double __xor__(const ChQuaternion<double>& other) const 
+					{ 
+						return $self->operator^(other);
+					}
+		};
