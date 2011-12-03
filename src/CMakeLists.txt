@@ -1032,7 +1032,7 @@ ENDIF()
 	
 	# The ChronoEngine library is added to the project,
 	# and some custom properties of this target are set.
-	#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CH_LIBDIR})
+	 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CH_LIBDIR})
 	
 
 ADD_LIBRARY(ChronoEngine SHARED ${ChronoEngine_FILES})
@@ -1044,8 +1044,8 @@ ADD_LIBRARY(ChronoEngine SHARED ${ChronoEngine_FILES})
 	                          ARCHIVE_OUTPUT_DIRECTORY_DEBUG   ${CH_LIBDIR}
 	                          RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CH_BINDIR}
 	                          RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${CH_BINDIR}
-							  LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CH_BINDIR}
-	                          LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${CH_BINDIR}
+							  LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CH_LIBDIR}
+	                          LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${CH_LIBDIR}
 							  RUNTIME_OUTPUT_NAME_DEBUG "ChronoEngineDBG"
 	                          LIBRARY_OUTPUT_NAME_DEBUG "ChronoEngineDBG"
 	                          ARCHIVE_OUTPUT_NAME_DEBUG "ChronoEngineDBG")
