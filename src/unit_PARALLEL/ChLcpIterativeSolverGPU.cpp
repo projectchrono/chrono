@@ -26,7 +26,9 @@
 
 // Forward declarations
 namespace chrono {
-	ChLcpIterativeSolverGPUsimple::ChLcpIterativeSolverGPUsimple(ChContactContainerGPUsimple* container) {
+	ChLcpIterativeSolverGPUsimple::ChLcpIterativeSolverGPUsimple(
+			ChContactContainerGPUsimple* container)
+	{
 		gpu_contact_container = container;
 		gpu_solver = new ChLcpIterativeGPU();
 		number_of_bodies = 0;
@@ -37,29 +39,81 @@ namespace chrono {
 		mOmegaBilateral = .2;
 	}
 
-	ChLcpIterativeSolverGPUsimple::~ChLcpIterativeSolverGPUsimple() {
+	ChLcpIterativeSolverGPUsimple::~ChLcpIterativeSolverGPUsimple()
+	{
 	}
 
-	double ChLcpIterativeSolverGPUsimple::Solve(ChLcpSystemDescriptor& sysd, ///< system description with constraints and variables
-		bool add_Mq_to_f) ///< if true, takes the initial 'q' and adds [M]*q to 'f' vector
+	void ChLcpIterativeSolverGPUsimple::SolveSys(
+			uint &number_of_objects,
+			uint &number_of_bilaterals,
+			uint &number_of_contacts,
+			device_vector<float3> &device_norm_data,
+			device_vector<float3> &device_cpta_data,
+			device_vector<float3> &device_cptb_data,
+			device_vector<float> &device_dpth_data,
+			device_vector<int2> & device_bids_data,
+			device_vector<float4> & device_bilateral_data,
+			device_vector<float3> &device_pos_data,
+			device_vector<float4> &device_rot_data,
+			device_vector<float3> & device_vel_data,
+			device_vector<float3> & device_omg_data,
+			device_vector<float3> &device_acc_data,
+			device_vector<float3> & device_inr_data,
+			device_vector<float3> & device_gyr_data,
+			device_vector<float3> & device_frc_data,
+			device_vector<float3> & device_trq_data,
+			device_vector<float3> & device_fap_data,
+			device_vector<float3> &device_gam_data,
+			device_vector<float3> & device_aux_data,
+			device_vector<float3> &device_ObA_data,
+			device_vector<float3> &device_ObB_data,
+			device_vector<float3> &device_ObC_data,
+			device_vector<float4> &device_ObR_data,
+			device_vector<int3> &device_typ_data,
+			device_vector<float3> &device_lim_data)
 	{
-		// -3-  EXECUTE KERNELS ===============
-		gpu_solver->c_factor = 1.0 / mDt;
-		gpu_solver->tolerance = mTolerance;
 		double maxrecspeed = gpu_contact_container->Get_load_max_recovery_speed();
 		if (gpu_contact_container->Get_load_do_clamp() == false) {
 			maxrecspeed = 10e25;
 		}
-		gpu_solver->negated_recovery_speed = -maxrecspeed;
-		gpu_solver->step_size = mDt;
-		gpu_solver->maximum_iterations = mMaxIterations;
-		gpu_solver->force_factor = 1.0;
-		gpu_solver->lcp_omega_bilateral = mOmegaBilateral;
-		gpu_solver->lcp_omega_contact = mOmegaContact;
-		gpu_solver->tolerance = mTolerance;
-		gpu_solver->data_container = data_container;
-		gpu_solver->RunTimeStep(0);
 
-		return 0;
+		//gpu_solver->data_container = data_container;
+		gpu_solver->RunTimeStep(
+				number_of_objects,
+				number_of_bilaterals,
+				number_of_contacts,
+				-maxrecspeed,
+				mDt,
+				mMaxIterations,
+				iteration_number,
+				1.0,
+				mOmegaBilateral,
+				mOmegaContact,
+				mTolerance,
+				device_norm_data,
+				device_cpta_data,
+				device_cptb_data,
+				device_dpth_data,
+				device_bids_data,
+				device_bilateral_data,
+				device_pos_data,
+				device_rot_data,
+				device_vel_data,
+				device_omg_data,
+				device_acc_data,
+				device_inr_data,
+				device_gyr_data,
+				device_frc_data,
+				device_trq_data,
+				device_fap_data,
+				device_gam_data,
+				device_aux_data,
+				device_ObA_data,
+				device_ObB_data,
+				device_ObC_data,
+				device_ObR_data,
+				device_typ_data,
+				device_lim_data);
+
 	}
 } // END_OF_NAMESPACE____

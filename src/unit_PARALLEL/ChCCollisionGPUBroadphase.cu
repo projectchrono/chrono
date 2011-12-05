@@ -1,10 +1,11 @@
 #include "ChCCollisionGPU.h"
 
 #include "ChCCollisionGPU.cuh"
+__constant__ uint last_active_bin_const;
 
 __device__ bool TestAABBAABB(const AABB &A, const AABB &B, uint Bin) {
-	return (Bin == Hash_Index(Hash(((A.min + A.max) * .5 + (B.min + B.max) * .5) * .5))) && (A.min.x <= B.max.x && B.min.x <= A.max.x) && (A.min.y <= B.max.y && B.min.y <= A.max.y) && (A.min.z
-			<= B.max.z && B.min.z <= A.max.z);
+	return (Bin == Hash_Index(Hash(((A.min + A.max) * .5 + (B.min + B.max) * .5) * .5))) && (A.min.x <= B.max.x && B.min.x <= A.max.x) && (A.min.y
+			<= B.max.y && B.min.y <= A.max.y) && (A.min.z <= B.max.z && B.min.z <= A.max.z);
 }
 __device__ bool PointInAABB(const AABB &A, const float3 &P) {
 	if (P.x > A.min.x && P.x < A.max.x && P.y > A.min.y && P.y < A.max.y && P.z > A.min.z && P.z < A.max.z) {
@@ -17,7 +18,8 @@ __device__ bool AABB_Contact_Pt(const AABB& A, const AABB& B, uint &Bin) {
 
 	//return (F3(A.min+A.max)*.5+F3(B.min+B.max)*.5)*.5;
 
-	bool minX = (A.min.x <= B.min.x && A.max.x >= B.max.x), minY = (A.min.y <= B.min.y && A.max.y >= B.max.y), minZ = (A.min.z <= B.min.z && A.max.z >= B.max.z);
+	bool minX = (A.min.x <= B.min.x && A.max.x >= B.max.x), minY = (A.min.y <= B.min.y && A.max.y >= B.max.y), minZ = (A.min.z <= B.min.z && A.max.z
+			>= B.max.z);
 
 	if (minX && minY && minZ) {
 		Pa = (B.min);
@@ -74,7 +76,8 @@ __device__ bool AABB_Contact_Pt(const AABB& A, const AABB& B, uint &Bin) {
 			Pb.z = B.max.z;
 		}
 	}
-	return (Bin == Hash_Index(Hash((Pa + Pb) * .5f))) && (A.min.x <= B.max.x && B.min.x <= A.max.x) && (A.min.y <= B.max.y && B.min.y <= A.max.y) && (A.min.z <= B.max.z && B.min.z <= A.max.z);
+	return (Bin == Hash_Index(Hash((Pa + Pb) * .5f))) && (A.min.x <= B.max.x && B.min.x <= A.max.x) && (A.min.y <= B.max.y && B.min.y <= A.max.y)
+			&& (A.min.z <= B.max.z && B.min.z <= A.max.z);
 }
 
 __device__ int Contact_Type(const int &A, const int &B) {
@@ -145,7 +148,15 @@ __global__ void AABB_AABB_Count(float3* AABBs, int2* family, uint * Bin_Number, 
 	}
 	Num_ContactD[Index] = count;
 }
-__global__ void AABB_AABB(float3* AABBs, int3* type, int2* family, uint * Bin_Number, uint * Body_Number, uint * Bin_Start, uint* Num_ContactD, long long* pair) {
+__global__ void AABB_AABB(
+							float3* AABBs,
+							int3* type,
+							int2* family,
+							uint * Bin_Number,
+							uint * Body_Number,
+							uint * Bin_Start,
+							uint* Num_ContactD,
+							long long* pair) {
 	uint Index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (Index >= last_active_bin_const) {
 		return;
@@ -172,7 +183,21 @@ __global__ void AABB_AABB(float3* AABBs, int3* type, int2* family, uint * Bin_Nu
 		}
 	}
 }
-void ChCCollisionGPU::Broadphase(const int &i) {
+void ChCCollisionGPU::Broadphase(
+									device_vector<float3> &device_aabb_data,
+									device_vector<int2> &device_fam_data,
+									device_vector<int3> &device_typ_data,
+									device_vector<long long> &contact_pair,
+									uint &number_of_models,
+									float3 &bin_size_vec,
+									uint &number_of_contacts_possible) {
+
+	uint last_active_bin, number_of_bin_intersections;
+	thrust::device_vector<uint> bin_number;
+	thrust::device_vector<uint> body_number;
+	thrust::device_vector<uint> bin_start_index;
+	thrust::device_vector<uint> generic_counter;
+
 	cudaFuncSetCacheConfig(AABB_Bins, cudaFuncCachePreferL1);
 	cudaFuncSetCacheConfig(AABB_AABB_Count, cudaFuncCachePreferL1);
 	cudaFuncSetCacheConfig(AABB_AABB, cudaFuncCachePreferL1);
@@ -181,15 +206,15 @@ void ChCCollisionGPU::Broadphase(const int &i) {
 	COPY_TO_CONST_MEM(bin_size_vec);
 	generic_counter.resize(number_of_models);
 
-	AABB_Bins_Count<<<BLOCKS(number_of_models),THREADS>>>(
-			CASTF3(data_container->gpu_data[i].device_aabb_data),
+	AABB_Bins_Count CUDA_KERNEL_DIM(BLOCKS(number_of_models),THREADS)(
+			CASTF3(device_aabb_data),
 			CASTU1(generic_counter));
 	Thrust_Inclusive_Scan_Sum(generic_counter,number_of_bin_intersections);
 	bin_number .resize(number_of_bin_intersections);
 	body_number.resize(number_of_bin_intersections);
 	bin_start_index.resize(number_of_bin_intersections);
-	AABB_Bins<<<BLOCKS(number_of_models),THREADS>>>(
-			CASTF3(data_container->gpu_data[i].device_aabb_data),
+	AABB_Bins CUDA_KERNEL_DIM(BLOCKS(number_of_models),THREADS)(
+			CASTF3(device_aabb_data),
 			CASTU1(generic_counter),
 			CASTU1(bin_number),
 			CASTU1(body_number));
@@ -201,9 +226,9 @@ void ChCCollisionGPU::Broadphase(const int &i) {
 	COPY_TO_CONST_MEM(last_active_bin);
 	generic_counter.resize(last_active_bin);
 
-	AABB_AABB_Count<<<BLOCKS(last_active_bin),THREADS>>>(
-			CASTF3(data_container->gpu_data[i].device_aabb_data),
-			CASTI2(data_container->gpu_data[i].device_fam_data),
+	AABB_AABB_Count CUDA_KERNEL_DIM(BLOCKS(last_active_bin),THREADS)(
+			CASTF3(device_aabb_data),
+			CASTI2(device_fam_data),
 			CASTU1(bin_number),
 			CASTU1(body_number),
 			CASTU1(bin_start_index),
@@ -213,14 +238,14 @@ void ChCCollisionGPU::Broadphase(const int &i) {
 
 	contact_pair.resize(number_of_contacts_possible);
 
-AABB_AABB<<<BLOCKS(last_active_bin),THREADS>>>(
-		CASTF3(data_container->gpu_data[i].device_aabb_data),
-		CASTI3(data_container->gpu_data[i].device_typ_data),
-		CASTI2(data_container->gpu_data[i].device_fam_data),
-		CASTU1(bin_number),
-		CASTU1(body_number),
-		CASTU1(bin_start_index),
-		CASTU1(generic_counter),
-		CASTLL(contact_pair)
-);
+	AABB_AABB CUDA_KERNEL_DIM(BLOCKS(last_active_bin),THREADS)(
+			CASTF3(device_aabb_data),
+			CASTI3(device_typ_data),
+			CASTI2(device_fam_data),
+			CASTU1(bin_number),
+			CASTU1(body_number),
+			CASTU1(bin_start_index),
+			CASTU1(generic_counter),
+			CASTLL(contact_pair)
+	);
 }

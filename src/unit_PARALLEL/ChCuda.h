@@ -23,13 +23,17 @@
 #include <thrust/functional.h>
 #include "ChApiGPU.h"
 using namespace std;
+using namespace thrust;
 typedef unsigned int uint;
-
 #ifdef __CDT_PARSER__
 #define __host__
 #define __device__
 #define __global__
 #define __constant__
+#define __shared__
+#define CUDA_KERNEL_DIM(...) ()
+#else
+#define CUDA_KERNEL_DIM(...)  <<< __VA_ARGS__ >>>
 #endif
 
 #define Zero_Vector make_float3(0,0,0)
@@ -100,15 +104,18 @@ typedef unsigned int uint;
 #define Thrust_Total(x)					thrust::reduce(x.begin(),x.end())
 #define DBG(x)							printf(x);CUT_CHECK_ERROR(x);
 
-__device__ __host__ inline float4 inv(const float4& a) {
+__device__ __host__ inline float4 inv(const float4& a)
+{
 	return F4(a.x, -a.y, -a.z, -a.w);
 }
 
-__device__ __host__ inline float4 operator ~(const float4& a) {
+__device__ __host__ inline float4 operator ~(const float4& a)
+{
 	return F4(a.x, -a.y, -a.z, -a.w);
 }
 
-__device__ __host__ inline float4 mult(const float4 &a, const float4 &b) {
+__device__ __host__ inline float4 mult(const float4 &a, const float4 &b)
+{
 	float4 quat;
 	quat.x = a.x * b.x - a.y * b.y - a.z * b.z - a.w * b.w;
 	quat.y = a.x * b.y + a.y * b.x - a.w * b.z + a.z * b.w;
@@ -117,21 +124,22 @@ __device__ __host__ inline float4 mult(const float4 &a, const float4 &b) {
 	return quat;
 }
 
-__device__ __host__ inline float3 quatRotate(const float3 &v, const float4 &q) {
-	float4 r=mult(mult(q,F4(0, v.x, v.y, v.z)),inv(q));
-	return F3(r.y,r.z,r.w);
+__device__ __host__ inline float3 quatRotate(const float3 &v, const float4 &q)
+{
+	float4 r = mult(mult(q, F4(0, v.x, v.y, v.z)), inv(q));
+	return F3(r.y, r.z, r.w);
 }
 
 struct __align__(16) int3f {
-	int x,y,z;
-	float w;
+		int x, y, z;
+		float w;
 };
 struct updateGPU {
-	float3 vel, omega;
+		float3 vel, omega;
 };
 
-static __inline__   __host__   __device__ int3f make_int3f(int x, int y, int z,
-		float w) {
+static __host__   __device__   __inline__ int3f make_int3f(int x, int y, int z, float w)
+{
 	int3f t;
 	t.x = x;
 	t.y = y;
@@ -143,22 +151,26 @@ static __inline__   __host__   __device__ int3f make_int3f(int x, int y, int z,
 #define CASTI3F(x) (int3f*)thrust::raw_pointer_cast(&x[0])
 
 //custom version of ceil used for float3's
-inline __host__   __device__ float3 ceil(float3 v) {
+__host__ __device__ inline float3 ceil(float3 v)
+{
 	return make_float3(ceil(v.x), ceil(v.y), ceil(v.z));
 }
 template<class T>
-inline __host__ __device__ float max3(T a) {
+inline __host__ __device__ float max3(T a)
+{
 	return max(a.x, max(a.y, a.z));
 }
 template<class T>
-inline __host__ __device__ float min3(T a) {
+inline __host__ __device__ float min3(T a)
+{
 	return min(a.x, min(a.y, a.z));
 }
 
-float __host_int_as_float(int a) {
+float __host_int_as_float(int a)
+{
 	union {
-		int a;
-		float b;
+			int a;
+			float b;
 	} u;
 	u.a = a;
 	return u.b;

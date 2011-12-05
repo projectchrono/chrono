@@ -36,45 +36,50 @@
 #include "ChForceSystemGPU.h"
 #include "ChDataManager.h"
 #include "ChCCollisionSystemGPU.h"
+#include "ChSubdomainGPU.h"
 
 namespace chrono {
-	using namespace chrono;
+using namespace chrono;
 
-	class ChApiGPU ChSystemMultiGPU: public ChSystem {
-		CH_RTTI(ChSystemMultiGPU,ChObj)
-			;
+class ChApiGPU ChSystemMultiGPU: public ChSystem {
+	CH_RTTI(ChSystemMultiGPU,ChObj)
+		;
 
-		public:
-			ChSystemMultiGPU(unsigned int max_objects = 1000);
-			virtual int Integrate_Y_impulse_Anitescu();
-			double ComputeCollisions();
-			double SolveSystem();
-			double SplitData();
-			void AddBody(ChSharedPtr<ChBodyGPU> newbody);
-			void RemoveBody(ChSharedPtr<ChBodyGPU> mbody);
+	public:
+		ChSystemMultiGPU(unsigned int max_objects = 1000);
+		virtual int Integrate_Y_impulse_Anitescu();
+		double ComputeCollisions();
+		double SolveSystem();
+		double SplitData();
+		void AddBody(ChSharedPtr<ChBodyGPU> newbody);
+		void RemoveBody(ChSharedPtr<ChBodyGPU> mbody);
 
-			void Update();
-			void SetBounds(float3 min, float3 max) {
-				bounding_min = min;
-				bounding_max = max;
-			}
-			void ChangeCollisionSystem(ChCollisionSystem* newcollsystem);
-			void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
+		void Update();
+		void SetBounds(float3 min, float3 max) {
+			bounding_min = min;
+			bounding_max = max;
+		}
+		void ChangeCollisionSystem(ChCollisionSystem* newcollsystem);
+		void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
 
-			void Compute_AABBs();
+		void Compute_AABBs();
 
-			float GetKineticEnergy() {
-				return ((ChLcpIterativeSolverGPUsimple*) (LCP_solver_speed))->Total_KineticEnergy();
-			}
+		float GetKineticEnergy() {
+			return ((ChLcpIterativeSolverGPUsimple*) (LCP_solver_speed))->Total_KineticEnergy();
+		}
 
-			ChGPUDataManager *gpu_data_manager;
-		private:
-			ChTimer<double> mtimer_lcp, mtimer_step, mtimer_cd;
-			unsigned int counter;
-			unsigned int max_obj;
-			unsigned int num_gpu;
-			float3 bounding_min, bounding_max;
-	};
+		ChGPUDataManager *gpu_data_manager;
+		vector<ChSubdomainGPU> gpu_subdomains;
+		float3 subdomain_dim;
+	private:
+		ChTimer<double> mtimer_lcp, mtimer_step, mtimer_cd;
+		unsigned int counter;
+		unsigned int max_obj;
+		unsigned int num_gpu;
+		unsigned int num_subdiv;
+		uint3 slices;
+		float3 bounding_min, bounding_max;
+};
 }
 
 #endif

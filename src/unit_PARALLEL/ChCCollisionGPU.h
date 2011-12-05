@@ -23,50 +23,72 @@ struct AABB {
 };
 
 namespace chrono {
-	namespace collision {
-		class ChApiGPU ChCCollisionGPU {
-			public:
-				ChCCollisionGPU();
-				~ChCCollisionGPU(){}
+namespace collision {
 
-				/// Run Collision Detection
-				void Run();
-				/// Do Proadphase Step
-				void Broadphase(const int &i);
-				/// Do Narrowphase Step
-				void Narrowphase(const int &i);
-				/// Compute Axis Aligned Bounding Boxes for all collision geometries
-				void ComputeAABB(const int &i);
-				/// Compute the bounds of the space
-				void ComputeBounds(const int &i);
-				/// Update the location of the AABB
-				void UpdateAABB(const int &i);
-				/// Add a collision object
-				void AddObject(const float3 &A, const float3 &B, const float3 &C, const float4 &R, const int2 &F, const int3 &T);
+class ChApiGPU ChCCollisionGPU {
+	public:
+		ChCCollisionGPU();
+		~ChCCollisionGPU() {
+		}
+		/// Do Proadphase Step
+		static void Broadphase(
+				device_vector<float3> &device_aabb_data,
+				device_vector<int2> &device_fam_data,
+				device_vector<int3> &device_typ_data,
+				device_vector<long long> &contact_pair,
+				uint &number_of_models,
+				float3 &bin_size_vec,
+				uint &number_of_contacts_possible);
+		/// Do Narrowphase Step
+		static void Narrowphase(
+				device_vector<float3> &device_norm_data,
+				device_vector<float3> &device_cpta_data,
+				device_vector<float3> &device_cptb_data,
+				device_vector<float> &device_dpth_data,
+				device_vector<int2> &device_bids_data,
+				device_vector<float3> &device_gam_data,
+				device_vector<float3> &device_pos_data,
+				device_vector<float4> &device_rot_data,
+				device_vector<float3> &device_ObA_data,
+				device_vector<float3> &device_ObB_data,
+				device_vector<float3> &device_ObC_data,
+				device_vector<float4> &device_ObR_data,
+				device_vector<int3> &device_typ_data,
+				device_vector<long long> &contact_pair,
+				uint & number_of_contacts_possible,
+				uint & number_of_contacts);
+		/// Compute Axis Aligned Bounding Boxes for all collision geometries
+		static void ComputeAABBHOST(ChGPUDataManager * data_container);
+		static void ComputeAABB(
+				uint &number_of_models,
+				device_vector<float3> & device_pos_data,
+				device_vector<float4> & device_rot_data,
+				device_vector<float3> & device_ObA_data,
+				device_vector<float3> & device_ObB_data,
+				device_vector<float3> & device_ObC_data,
+				device_vector<float4> & device_ObR_data,
+				device_vector<int3> & device_typ_data,
+				device_vector<float3> & device_aabb_data);
+		/// Compute the bounds of the space
+		static void ComputeBoundsHOST(ChGPUDataManager * data_container);
+		static void ComputeBounds(
+				uint & number_of_models,
+				device_vector<float3> & device_aabb_data,
+				float3& min_bounding_point,
+				float3 &max_bounding_point);
+		/// Update the location of the AABB
+		static void UpdateAABBHOST(ChGPUDataManager * data_container);
+		static void UpdateAABB(
+				device_vector<float3> &device_aabb_data,
+				float3 & min_bounding_point,
+				float3 & max_bounding_point,
+				float3 & bin_size_vec,
+				float & max_dimension,
+				float & collision_envelope,
+				uint & number_of_models);
 
-				uint number_of_models,	///number of collision models
-					number_of_contacts,	///number of contacts found
-					number_of_contacts_possible; ///number of possible contacts from broadphase
 
-				float collision_envelope, optimal_bin_size, running_time, max_dimension;
-				float3 global_origin, bin_size_vec;
-				bool do_compute_bounds;
-				cudaEvent_t start, stop;
-
-				ChGPUDataManager * data_container;
-
-				float3 init_min;
-				float3 init_max;
-			private:
-				thrust::device_vector<long long> contact_pair;
-				//thrust::device_vector<long long> old_contact_pair;
-				thrust::device_vector<uint> generic_counter;
-				thrust::device_vector<uint> bin_number;
-				thrust::device_vector<uint> body_number;
-				thrust::device_vector<uint3> aabb_min_max_bin;
-				thrust::device_vector<uint> bin_start_index;
-				uint last_active_bin, number_of_bin_intersections;
-		};
-	}
+};
+}
 }
 #endif
