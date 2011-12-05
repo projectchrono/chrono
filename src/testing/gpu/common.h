@@ -6,7 +6,7 @@ class System {
 		~System() {
 		}
 		void Setup() {
-			mGPUCollisionEngine->mGPU->collision_envelope = mEnvelope;
+			//mGPUCollisionEngine->mGPU->collision_envelope = mEnvelope;
 			mGPUsolverSpeed->mDt = mTimeStep;
 			mGPUsolverSpeed->mMaxIterations = mIterations;
 			mGPUsolverSpeed->mOmegaContact = mOmegaContact;
@@ -21,14 +21,34 @@ class System {
 		double GetMFR(double height);
 		void DoTimeStep();
 		void PrintStats();
-		void InitObject(ChSharedPtr<ChBodyGPU> &body, double mass, ChVector<> pos, ChQuaternion<> rot, double sfric, double kfric, double restitution, bool collide, bool fixed, int family,
+		void InitObject(
+				ChSharedPtr<ChBodyGPU> &body,
+				double mass,
+				ChVector<> pos,
+				ChQuaternion<> rot,
+				double sfric,
+				double kfric,
+				double restitution,
+				bool collide,
+				bool fixed,
+				int family,
 				int nocolwith);
-		void AddCollisionGeometry(ChSharedPtr<ChBodyGPU> &body, ShapeType type, ChVector<> dim, ChVector<> lPos, ChQuaternion<> lRot);
+		void AddCollisionGeometry(
+				ChSharedPtr<ChBodyGPU> &body,
+				ShapeType type,
+				ChVector<> dim,
+				ChVector<> lPos,
+				ChQuaternion<> lRot);
 		void FinalizeObject(ChSharedPtr<ChBodyGPU> body);
 		void DeactivationPlane(float y, float h, bool disable);
 		void BoundingPlane(float y);
 		void BoundingBox(float x, float y, float z, float offset);
-		void LoadSpheres(string fname, int skip, float mass, float rad, float mu);
+		void LoadSpheres(
+				string fname,
+				int skip,
+				float mass,
+				float rad,
+				float mu);
 		void SaveByID(int id, string fname);
 		void SaveByObject(ChBodyGPU *abody, string fname);
 		void SaveAllData(string prefix);
@@ -71,10 +91,13 @@ System::System(int cudaDevice) {
 	//mSystem->ChangeContactContainer(mGPUContactContainer);
 	//mSystem->ChangeLcpSolverSpeed(mGPUsolverSpeed);
 	//mSystem->ChangeCollisionSystem(mGPUCollisionEngine);
-	mGPUDescriptor = (ChLcpSystemDescriptorGPU*) mSystem->GetLcpSystemDescriptor();
-	mGPUsolverSpeed = (ChLcpIterativeSolverGPUsimple*) mSystem->GetLcpSolverSpeed();
+	mGPUDescriptor
+			= (ChLcpSystemDescriptorGPU*) mSystem->GetLcpSystemDescriptor();
+	mGPUsolverSpeed
+			= (ChLcpIterativeSolverGPUsimple*) mSystem->GetLcpSolverSpeed();
 	mGPUCollisionEngine = (ChCollisionSystemGPU*) mSystem->GetCollisionSystem();
-	mGPUContactContainer = (ChContactContainerGPUsimple*) mSystem->GetContactContainer();
+	mGPUContactContainer
+			= (ChContactContainerGPUsimple*) mSystem->GetContactContainer();
 
 	mSystem->SetIntegrationType(ChSystem::INT_ANITESCU);
 	mSystem->Set_G_acc(ChVector<> (0, -9.80665, 0));
@@ -104,19 +127,47 @@ void System::PrintStats() {
 	double D = mSystem->GetTimerLcp();
 	int E = mSystem->GetNbodies();
 	int F = mSystem->GetNcontacts();
-	int I = ((ChLcpIterativeSolverGPUsimple*) (mSystem->GetLcpSolverSpeed()))->gpu_solver->iteration_number;
+	int
+			I =
+					((ChLcpIterativeSolverGPUsimple*) (mSystem->GetLcpSolverSpeed()))->iteration_number;
 	mTotalTime += mTimer();
 	double KE = GetKE();
 	char numstr[512];
-	printf("%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7.7f | %d\n", A, B, C, D, mTotalTime, E, F, KE, I);
-	sprintf(numstr, "%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %f | %d\n", A, B, C, D, mTotalTime, E, F, KE, I);
+	printf(
+			"%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7.7f | %d\n",
+			A,
+			B,
+			C,
+			D,
+			mTotalTime,
+			E,
+			F,
+			KE,
+			I);
+	sprintf(
+			numstr,
+			"%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %f | %d\n",
+			A,
+			B,
+			C,
+			D,
+			mTotalTime,
+			E,
+			F,
+			KE,
+			I);
 
 	if (mTimingFile.fail() == false) {
 		mTimingFile << numstr;
 	}
 }
 
-void System::LoadSpheres(string fname, int skip, float mass, float rad, float mu) {
+void System::LoadSpheres(
+		string fname,
+		int skip,
+		float mass,
+		float rad,
+		float mu) {
 	ifstream ifile(fname.c_str());
 	if (ifile.fail() == true) {
 		cout << "FAIL" << endl;
@@ -143,7 +194,18 @@ void System::LoadSpheres(string fname, int skip, float mass, float rad, float mu
 			ss >> vel.x >> vel.y >> vel.z;
 			ss >> acc.x >> acc.y >> acc.z;
 			mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
-			InitObject(mrigidBody, mass, pos, quat, mu, mu, 0, true, false, 0, 1);
+			InitObject(
+					mrigidBody,
+					mass,
+					pos,
+					quat,
+					mu,
+					mu,
+					0,
+					true,
+					false,
+					0,
+					1);
 			AddCollisionGeometry(mrigidBody, SPHERE, dim, lpos, quat);
 			FinalizeObject(mrigidBody);
 			mNumCurrentObjects++;
@@ -229,7 +291,17 @@ double System::GetMFR(double height) {
 	return 0;
 }
 
-void System::InitObject(ChSharedPtr<ChBodyGPU> &body, double mass, ChVector<> pos, ChQuaternion<> rot, double sfric, double kfric, double restitution, bool collide, bool fixed, int family,
+void System::InitObject(
+		ChSharedPtr<ChBodyGPU> &body,
+		double mass,
+		ChVector<> pos,
+		ChQuaternion<> rot,
+		double sfric,
+		double kfric,
+		double restitution,
+		bool collide,
+		bool fixed,
+		int family,
 		int nocolwith) {
 	body->SetMass(mass);
 	body->SetPos(pos);
@@ -244,9 +316,15 @@ void System::InitObject(ChSharedPtr<ChBodyGPU> &body, double mass, ChVector<> po
 	body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(nocolwith);
 	body->SetLimitSpeed(false);
 }
-void System::AddCollisionGeometry(ChSharedPtr<ChBodyGPU> &body, ShapeType type, ChVector<> dim, ChVector<> lPos, ChQuaternion<> lRot) {
+void System::AddCollisionGeometry(
+		ChSharedPtr<ChBodyGPU> &body,
+		ShapeType type,
+		ChVector<> dim,
+		ChVector<> lPos,
+		ChQuaternion<> lRot) {
 	ChMatrix33<> *rotation = new ChMatrix33<> (lRot);
-	ChCollisionModelGPU * model = (ChCollisionModelGPU*) body->GetCollisionModel();
+	ChCollisionModelGPU * model =
+			(ChCollisionModelGPU*) body->GetCollisionModel();
 	if (type == SPHERE) {
 		model->AddSphere(dim.x, &lPos);
 	}
@@ -312,7 +390,9 @@ void System::drawAll() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glLoadIdentity();
 
-		float4 pitch_quat = CreateFromAxisAngle(cross(dir, camera_up), camera_pitch);
+		float4 pitch_quat = CreateFromAxisAngle(
+				cross(dir, camera_up),
+				camera_pitch);
 		float4 heading_quat = CreateFromAxisAngle(camera_up, camera_heading);
 
 		dir = quatRotate(dir, normalize(mult(pitch_quat, heading_quat)));
@@ -323,7 +403,16 @@ void System::drawAll() {
 		camera_pitch *= .5;
 		camera_pos_delta *= .5;
 		newaverage = 0;
-		gluLookAt(camera_pos.x, camera_pos.y, camera_pos.z, look_at.x, look_at.y, look_at.z, camera_up.x, camera_up.y, camera_up.z);
+		gluLookAt(
+				camera_pos.x,
+				camera_pos.y,
+				camera_pos.z,
+				look_at.x,
+				look_at.y,
+				look_at.z,
+				camera_up.x,
+				camera_up.y,
+				camera_up.z);
 		//points.resize(mSystem->Get_bodylist()->size());
 		points.clear();
 		for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
@@ -342,7 +431,8 @@ void System::drawAll() {
 		glDisableClientState(GL_COLOR_ARRAY);
 
 		if (showContacts) {
-			for (int i = 0; i < mSystem->gpu_data_manager->host_norm_data.size(); i++) {
+			for (int i = 0; i
+					< mSystem->gpu_data_manager->host_norm_data.size(); i++) {
 				float3 N = mSystem->gpu_data_manager->host_norm_data[i];
 				float3 Pa = mSystem->gpu_data_manager->host_cpta_data[i];
 				float3 Pb = mSystem->gpu_data_manager->host_cptb_data[i];
