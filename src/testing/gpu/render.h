@@ -52,7 +52,7 @@ bool showSolid = false;
 bool updateDraw = true;
 bool saveData = false;
 bool showContacts = false;
-int detail = 1;
+int detail_level = 1;
 int drawType=1;
 float averageVal=1, newaverage=0;
 
@@ -143,10 +143,10 @@ void processNormalKeys(unsigned char key, int x, int y) {
 		showSolid = (showSolid) ? 0 : 1;
 		break;
 	case '[':
-		detail = max(1, detail - 1);
+		detail_level = max(1, detail_level - 1);
 		break;
 	case ']':
-		detail++;
+		detail_level++;
 		break;
 	case 'c':
 		showContacts = (showContacts) ? 0 : 1;
