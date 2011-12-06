@@ -8,7 +8,7 @@
 //
 //   Classes for revolute joints with clearance.
 //
-//   HEADER file for CHRONO,
+//   HEADER file for CHRONO, 
 //	 Multibody dynamics engine
 //
 // ------------------------------------------------
@@ -30,7 +30,7 @@ namespace chrono
 ///
 /// A class for the custom fast simulation of revolute
 /// joints with clearance.
-///
+/// ***OBSOLETE***
 
 class ChApi ChLinkClearance : public ChLinkLock {
 

@@ -27,6 +27,9 @@ IF(ENABLE_UNIT_PYTHON)
 	SET(CH_PYTHONDIR_PYD "${CH_PYTHONDIR}/DLLs")
 	SET(CH_PYTHONDIR_PY  "${CH_PYTHONDIR}/Lib")
 	
+	# the generated .cxx wrapper can be so huge that the /bigobj flag is required in VC++
+	SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   /bigobj")
+	SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /bigobj")
 	
 	
 	#-----------------------------------------------------------------------------
@@ -40,15 +43,13 @@ IF(ENABLE_UNIT_PYTHON)
 		ChModuleCore.i
 		)
 	SET(ChronoEngine_unit_SWIG_PYTHON_WRAPPERS
-		ChModuleCore.i
 		ChException.i
 		ChCoordsys.i
 		ChVector.i
 		ChQuaternion.i
 		ChHashFunction.i
 		)
-	SET(ChronoEngine_unit_SWIG_PYTHON_SOURCES
-		)
+
 		
 	SET(ChronoEngine_unit_PYTHON_SOURCES
 		ChPython.cpp
@@ -64,8 +65,13 @@ IF(ENABLE_UNIT_PYTHON)
 	
 	SET(CMAKE_SWIG_FLAGS "-c++")
 	SET(CMAKE_SWIG_OUTDIR "${CH_PYTHONDIR_PY}")
+	 
 	SET_SOURCE_FILES_PROPERTIES(${ChronoEngine_unit_SWIG_PYTHON_CONFIG} PROPERTIES CPLUSPLUS ON)
 	SET_SOURCE_FILES_PROPERTIES(${ChronoEngine_unit_SWIG_PYTHON_CONFIG} PROPERTIES COMPILE_FLAGS "-DWIN32")
+	
+	SET_SOURCE_FILES_PROPERTIES(${ChronoEngine_unit_SWIG_PYTHON_WRAPPERS} PROPERTIES HEADER_FILE_ONLY TRUE)
+	SOURCE_GROUP(wrappers FILES  ${ChronoEngine_unit_SWIG_PYTHON_WRAPPERS})
+	
 	SWIG_ADD_MODULE(ChronoEngine_PYTHON_core python ${ChronoEngine_unit_SWIG_PYTHON_CONFIG}) 
 	SWIG_LINK_LIBRARIES(ChronoEngine_PYTHON_core 
 						${PYTHON_LIBRARY}
@@ -85,7 +91,7 @@ IF(ENABLE_UNIT_PYTHON)
 					LIBRARY_OUTPUT_NAME_DEBUG "_ChronoEngine_PYTHON_core_DBG"
 					ARCHIVE_OUTPUT_NAME_DEBUG "_ChronoEngine_PYTHON_core_DBG")
 						
-	SOURCE_GROUP(Wrappers FILES  ${ChronoEngine_unit_SWIG_PYTHON_WRAPPERS})
+	
 	
 	ADD_CUSTOM_COMMAND(
 				TARGET ${SWIG_MODULE_ChronoEngine_PYTHON_core_REAL_NAME}

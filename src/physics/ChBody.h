@@ -46,7 +46,6 @@ class ChSystem;
 
 typedef ChSharedPtr<ChForce>  ChSharedForcePtr;
 typedef ChSharedPtr<ChMarker> ChSharedMarkerPtr;
-typedef ChSharedPtr<ChMarker> ChSharedMarkerPtr;
 
 
 /////////////////////////////////////

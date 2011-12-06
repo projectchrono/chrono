@@ -160,7 +160,7 @@ Quaternion AngleDTDT_to_QuatDTDT (int angset, chrono::Vector* mangles, Quaternio
 
 
 %template(ChQuaternionD) chrono::ChQuaternion<double>; 
-%template(ChQuaternionF) chrono::ChQuaternion<float>; 
+//%template(ChQuaternionF) chrono::ChQuaternion<float>; 
 
 %constant chrono::ChQuaternion<double> QNULL = chrono::ChQuaternion<double>(0.,0.,0.,0.);
 %constant chrono::ChQuaternion<double> QUNIT = chrono::ChQuaternion<double>(1.,0.,0.,0.);

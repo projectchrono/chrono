@@ -282,6 +282,7 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
 	
 	nbodies=0;
 	nlinks=0;
+	nphysicsitems=0;
 	ndof=0;
 	ndoc=0;
 	ndoc_w=0;
@@ -434,6 +435,7 @@ void ChSystem::Copy(ChSystem* source)
 	adaption = source->GetAdaption();
 	nbodies = source->GetNbodies();
 	nlinks = source->GetNlinks();
+	nphysicsitems = source->GetNphysicsItems();
 	ncoords = source->GetNcoords();
 	ncoords_w = source->GetNcoords_w();
 	ndoc = source->GetNdoc();
@@ -501,6 +503,7 @@ void ChSystem::Clear()
 
 	nbodies=0;
 	nlinks=0;
+	nphysicsitems=0;
 	ndof=0;
 	ndoc=0;
 	ndoc_w=0;
@@ -1015,7 +1018,7 @@ void ChSystem::RemoveOtherPhysicsItem (ChSharedPtr<ChPhysicsItem> mitem)
 
 void ChSystem::Add (ChSharedPtr<ChPhysicsItem> newitem)
 {
-	if (typeid(newitem.get_ptr())==typeid(ChBody))
+	if (typeid(*newitem.get_ptr())==typeid(ChBody))
 	{
 		AddBody((ChSharedPtr<ChBody>)newitem);
 	}else
@@ -1028,7 +1031,7 @@ void ChSystem::Add (ChSharedPtr<ChPhysicsItem> newitem)
 
 void ChSystem::Remove (ChSharedPtr<ChPhysicsItem> newitem)
 {
-	if (typeid(newitem.get_ptr())==typeid(ChBody))
+	if (typeid(*newitem.get_ptr())==typeid(ChBody))
 	{
 		RemoveBody((ChSharedPtr<ChBody>)newitem);
 	}else
@@ -1377,6 +1380,7 @@ int ChSystem::Setup()
 	ndoc_w_C = 0;
 	ndoc_w_D = 0;
 	nlinks = 0;
+	nphysicsitems = 0;
 
 							
 	HIER_BODY_INIT					
@@ -1409,7 +1413,7 @@ int ChSystem::Setup()
 	HIER_OTHERPHYSICS_INIT
 	while HIER_OTHERPHYSICS_NOSTOP
 	{
-		//notherphysics ++;
+		nphysicsitems ++;	
 
 		ncoords_w += PHpointer->GetDOF();
 		ndoc_w	  += PHpointer->GetDOC();
