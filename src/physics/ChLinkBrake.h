@@ -34,7 +34,7 @@ namespace chrono
 /// including the sticking effect.
 /// It could be used to represent also linear brakes.
 /// This constraint can behave also as a clutch.
-///
+///  ***OBSOLETE*** better add ChLinkEngine in ENG_MODE_TO_POWERTRAIN_SHAFT mode, and add a ChShaftsClutch between shafts
 
 class ChApi ChLinkBrake : public ChLinkLock {
 

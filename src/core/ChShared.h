@@ -64,11 +64,12 @@ public:
 
 	ChShared()	
 			: m_ref_counter(1) 
-			{};
+			{
+			}
 
 
 	virtual ~ChShared() 
-			{ 
+			{	
 			}
 
 			//

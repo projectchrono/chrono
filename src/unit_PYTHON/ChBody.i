@@ -13,6 +13,8 @@
 %import "ChPhysicsItem.i"
 %import "ChMaterialSurface.i"
 %import "ChCollisionModel.i"
+//%import "ChMarker.i"
+//%import "ChForce.i"
 
 
 /* Parse the header file to generate wrappers */
@@ -91,11 +93,11 @@ public:
 	void SetMaterialSurface(chrono::ChSharedPtr<ChMaterialSurface>& mnewsurf) {this->matsurface = mnewsurf;}
 
 				
-	void AddMarker (ChSharedMarkerPtr amarker);
-	void AddForce (ChSharedForcePtr aforce);
+	void AddMarker (chrono::ChSharedPtr<ChMarker> amarker);
+	void AddForce (chrono::ChSharedPtr<ChForce> aforce);
 
-	void RemoveMarker (ChSharedMarkerPtr amarker);
-	void RemoveForce  (ChSharedForcePtr aforce);
+	void RemoveMarker (chrono::ChSharedPtr<ChMarker> amarker);
+	void RemoveForce  (chrono::ChSharedPtr<ChForce> aforce);
 
 	void RemoveAllForces();
 	void RemoveAllMarkers();
@@ -186,7 +188,8 @@ public:
 }; // End namespace
 
 
-// Define also the object for the shared pointer
-%include "../core/ChSmartpointers.h"
-%template(ChSharedBody) chrono::ChSharedPtr<ChBody>;
+// Define also the shared pointer chrono::ChShared<ChBody> 
+// (renamed as 'ChBodyShared' in python)
+
+%DefChSharedPtr(ChBodyShared, ChBody)
 

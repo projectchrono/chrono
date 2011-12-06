@@ -45,7 +45,7 @@ public:
 
 
 %template(ChCoordsysD) chrono::ChCoordsys<double>; 
-%template(ChCoordsysF) chrono::ChCoordsys<float>; 
+//%template(ChCoordsysF) chrono::ChCoordsys<float>; 
 
 
 %constant chrono::ChCoordsys<double> CSYSNULL = chrono::ChCoordsys<double>(chrono::VNULL,chrono::QNULL);

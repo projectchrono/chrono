@@ -51,12 +51,6 @@ private:
 	double motor_set_rot;
 	double motor_set_rot_dt;
 
-	enum eCh_shaftsmotor_mode {
-		MOT_MODE_ROTATION = 0,
-		MOT_MODE_SPEED,
-		MOT_MODE_TORQUE
-		} motor_mode;
-
 	double torque_react1;					
 	double torque_react2;
 
@@ -117,6 +111,12 @@ public:
 						   ChSharedShaftPtr& mshaft2  ///< second shaft to join 
 						   );
 
+
+	enum eCh_shaftsmotor_mode {
+		MOT_MODE_ROTATION = 0,
+		MOT_MODE_SPEED,
+		MOT_MODE_TORQUE
+		} motor_mode;
 
 				/// Se the motor mode. The options are that you impose
 				/// the relative torque between the two shafts, 

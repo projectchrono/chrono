@@ -16,7 +16,9 @@
 
 
 
-// Define also the object for the shared pointer
-%include "../core/ChSmartpointers.h"
-%template(ChSharedForce) chrono::ChSharedPtr<ChForce>;
+// Define also the shared pointer chrono::ChShared<ChForce> 
+// (renamed as 'ChForceShared' in python)
+
+%DefChSharedPtr(ChForceShared, ChForce)
+
 

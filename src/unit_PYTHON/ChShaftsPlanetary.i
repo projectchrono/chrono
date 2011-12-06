@@ -1,20 +1,26 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "physics/ChMaterialSurface.h"
-
-using namespace chrono;
+#include "physics/ChShaftsPlanetary.h"
 
 %}
+ 
+// Tell SWIG about parent class in Python
+%import "ChPhysicsItem.i"
 
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApi 
 
+
 /* Parse the header file to generate wrappers */
-%include "../physics/ChMaterialSurface.h"    
+%include "../physics/ChShaftsPlanetary.h"  
+
 
 
 // Define also the shared pointer chrono::ChShared<ChXxxx> 
 // (renamed as 'ChXxxxShared' in python)
 
-%DefChSharedPtr(ChMaterialSurfaceShared, ChMaterialSurface)
+%DefChSharedPtr(ChShaftsPlanetaryShared, ChShaftsPlanetary)
+
+
+

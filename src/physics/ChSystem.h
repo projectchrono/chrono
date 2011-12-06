@@ -592,6 +592,8 @@ public:
 
 				/// Gets the number of links .
 	int GetNlinks() {return nlinks;}
+				/// Gets the number of other physics items (not ChLinks or ChBodies).
+	int GetNphysicsItems() {return nphysicsitems;}
 				/// Gets the number of coordinates (considering 7 coords for rigid bodies because of the 4 dof of quaternions)
 	int GetNcoords() {return ncoords;}
 				/// Gets the number of degrees of freedom of the system.
@@ -1070,6 +1072,7 @@ protected:
 
 	int nbodies;		// number of bodies (currently active)
 	int nlinks;			// number of links
+	int nphysicsitems;	// number of other physics items
 	int ncoords;		// number of scalar coordinates (including 4th dimension of quaternions) for all active bodies
 	int ndoc;			// number of scalar costraints (including constr. on quaternions)
 	int nsysvars;		// number of variables (coords+lagrangian mult.), i.e. = ncoords+ndoc  for all active bodies

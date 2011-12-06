@@ -15,8 +15,8 @@
 %include "../physics/ChMarker.h"  
 
 
+// Define also the shared pointer chrono::ChShared<ChForce> 
+// (renamed as 'ChForceShared' in python)
 
-// Define also the object for the shared pointer
-%include "../core/ChSmartpointers.h"
-%template(ChSharedMarker) chrono::ChSharedPtr<ChMarker>;
+%DefChSharedPtr(ChMarkerShared, ChMarker)
 

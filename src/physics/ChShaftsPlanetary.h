@@ -137,8 +137,6 @@ public:
 				/// Get the third shaft
 	ChShaft* GetShaft3() {return shaft3;}
 
-				/// Set no speed and no accelerations (but does not change the position)
-	void SetNoSpeedNoAcceleration();
 
 				/// Set the transmission ratios r1 r2 r3 as in  
 				///     r1*w1 + r2*w2 + r3*w3 = 0

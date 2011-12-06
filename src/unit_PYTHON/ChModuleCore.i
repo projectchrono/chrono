@@ -33,6 +33,25 @@
   }
 }
 
+// The complete support of smart shared pointers
+
+%include "chrono_shared_ptr.i" 
+
+
+
+//
+// TYPEMAPS
+//
+%{
+
+#include "physics/ChBody.h"
+
+using namespace chrono;
+
+
+%}
+
+
 // Include other .i configuration files for SWIG. 
 // These are divided in many .i files, each per a
 // different c++ class, when possible.
@@ -73,10 +92,93 @@
 %include "ChSystem.i"
 %include "ChContactContainerBase.i"
 %include "ChProximityContainerBase.i"
+%include "ChLink.i"
+%include "ChLinkMarkers.i"
+%include "ChLinkMasked.i"
+%include "ChLinkLock.i"
+%include "ChLinkEngine.i"
+/*
+%include "ChLinkGear.i"
+%include "ChLinkDistance.i"
+%include "ChLinkLinActuator.i"
+%include "ChLinkPulley.i"
+%include "ChLinkScrew.i"
+%include "ChLinkSpring.i"
+%include "ChShaft.i"
+%include "ChShaftsCouple.i"
+%include "ChShaftsBody.i"
+%include "ChShaftsClutch.i"
+%include "ChShaftsMotor.i"
+%include "ChShaftsTorsionSpring.i"
+%include "ChShaftsPlanetary.i"
+*/
 
 // collision/   classes
 %include "ChCollisionInfo.i"
 //%include "ChCollisionModel.i"
+
+
+
+//
+// (up-)CASTING OF SHARED POINTERS           (custom inheritance)
+//
+// Note: SWIG takes care automatically of how to cast from  
+// FooDerived* to FooBase* given its swig_cast_info inner structures,
+// but this casting does not happen for ChSharedPtr<FooDerived> to
+// ChSharedPtr<FooBase> because shared ptrs are different classes (not inherited
+// one from the other, just templated versions of a ChSharedPtr<> ).
+// A workaround for this problem is using the (undocumented)
+// function  %types   , that can work here because each templated version
+// of the CSharedPtr has exactly the same data structure, so they can be just
+// cast. 
+
+
+%DefChSharedPtrCast(chrono::ChBody, chrono::ChPhysicsItem)
+%DefChSharedPtrCast(chrono::ChMarker, chrono::ChPhysicsItem)
+%DefChSharedPtrCast(chrono::ChForce, chrono::ChPhysicsItem)
+%DefChSharedPtrCast(chrono::ChLink, chrono::ChPhysicsItem)
+%DefChSharedPtrCast(chrono::ChLinkMarkers, chrono::ChLink)
+%DefChSharedPtrCast(chrono::ChLinkMasked, chrono::ChLinkMarkers)
+%DefChSharedPtrCast(chrono::ChLinkLock, chrono::ChLinkMasked)
+%DefChSharedPtrCast(chrono::ChLinkLockRevolute, chrono::ChLinkLock)
+%DefChSharedPtrCast(chrono::ChLinkLockLock, chrono::ChLinkLock)
+%DefChSharedPtrCast(chrono::ChLinkLockRevolute, chrono::ChLinkLock)
+%DefChSharedPtrCast(chrono::ChLinkLockSpherical, chrono::ChLinkLock)
+%DefChSharedPtrCast(chrono::ChLinkLockCylindrical, chrono::ChLinkLock)
+%DefChSharedPtrCast(chrono::ChLinkLockPrismatic, chrono::ChLinkLock)
+%DefChSharedPtrCast(chrono::ChLinkLockPointPlane, chrono::ChLinkLock)
+%DefChSharedPtrCast(chrono::ChLinkLockPointLine, chrono::ChLinkLock)
+%DefChSharedPtrCast(chrono::ChLinkLockPointPlane, chrono::ChLinkLock)
+%DefChSharedPtrCast(chrono::ChLinkLockOldham, chrono::ChLinkLock)
+%DefChSharedPtrCast(chrono::ChLinkLockFree, chrono::ChLinkLock)
+%DefChSharedPtrCast(chrono::ChLinkLockHook, chrono::ChLinkLock)
+%DefChSharedPtrCast(chrono::ChLinkLockAlign, chrono::ChLinkLock)
+%DefChSharedPtrCast(chrono::ChLinkLockHook, chrono::ChLinkLock)
+%DefChSharedPtrCast(chrono::ChLinkLockParallel, chrono::ChLinkLock)
+%DefChSharedPtrCast(chrono::ChLinkLockPerpend, chrono::ChLinkLock)
+/*
+%DefChSharedPtrCast(chrono::ChLinkEngine, chrono::ChLinkLock)
+%DefChSharedPtrCast(chrono::ChLinkGear, chrono::ChLinkLock)
+%DefChSharedPtrCast(chrono::ChLinkDistance, chrono::ChLinkLock)
+%DefChSharedPtrCast(chrono::ChLinkLinActuator, chrono::ChLinkLock)
+%DefChSharedPtrCast(chrono::ChLinkPulley, chrono::ChLinkLock)
+%DefChSharedPtrCast(chrono::ChLinkScrew, chrono::ChLinkLock)
+%DefChSharedPtrCast(chrono::ChLinkSpring, chrono::ChLinkMarkers)
+%DefChSharedPtrCast(chrono::ChShaft, chrono::ChPhysicsItem)
+%DefChSharedPtrCast(chrono::ChShaftsBody, chrono::ChPhysicsItem)
+%DefChSharedPtrCast(chrono::ChShaftsCouple, chrono::ChPhysicsItem)
+%DefChSharedPtrCast(chrono::ChShaftsClutch, chrono::ChShaftsCouple)
+%DefChSharedPtrCast(chrono::ChShaftsMotor, chrono::ChShaftsCouple)
+%DefChSharedPtrCast(chrono::ChShaftsTorsionSpring, chrono::ChShaftsCouple)
+%DefChSharedPtrCast(chrono::ChShaftsPlanetary, chrono::ChPhysicsItem)
+*/
+
+
+
+
+
+
+
 
 
 
@@ -139,3 +241,4 @@ private:
 
 %}
 */
+
