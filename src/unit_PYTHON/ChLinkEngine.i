@@ -7,6 +7,8 @@
  
 // Tell SWIG about parent class in Python
 %import "ChLinkLock.i"
+// Forward ref (parent class does not need %import if all .i are included in proper order
+%import "ChShaft.i"
 
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApi 

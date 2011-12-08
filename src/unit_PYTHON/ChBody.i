@@ -10,11 +10,11 @@
 #define ChApi 
 
 
-%import "ChPhysicsItem.i"
+//%import "ChPhysicsItem.i"
 %import "ChMaterialSurface.i"
 %import "ChCollisionModel.i"
-//%import "ChMarker.i"
-//%import "ChForce.i"
+//%import "ChMarker.i" // already tricked by adding chrono:: in front of all ChMarker...
+//%import "ChForce.i"  // "  "  "
 
 
 /* Parse the header file to generate wrappers */
@@ -102,8 +102,8 @@ public:
 	void RemoveAllForces();
 	void RemoveAllMarkers();
 
-	ChMarker* SearchMarker (char* m_name);
-	ChForce*  SearchForce (char* m_name);
+	chrono::ChMarker* SearchMarker (char* m_name);
+	chrono::ChForce*  SearchForce (char* m_name);
 
 	std::vector<ChMarker*>* GetMarkerList() {return &marklist;} 
 	std::vector<ChForce*>* GetForceList() {return &forcelist;}

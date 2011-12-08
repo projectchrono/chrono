@@ -18,3 +18,14 @@ using namespace chrono;
 
 
 %rename(__rshift__) chrono::ChFrame<double>::operator>>;
+
+%extend chrono::ChVector<double>{
+		public:
+					// Workaround because the vector >> frame mixed operator (using 'friend')
+					// in ChFrame.h is not supported by SWIG
+			chrono::ChVector<double> operator>> (const chrono::ChFrame<double>& mframe) const
+			{
+					return mframe.TrasformLocalToParent(*$self);
+			}
+			
+		};

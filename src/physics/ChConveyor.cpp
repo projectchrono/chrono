@@ -26,7 +26,6 @@ namespace chrono
 using namespace collision;
 using namespace geometry;
 
-
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
 ChClassRegister<ChConveyor> a_registration_ChConveyor;
