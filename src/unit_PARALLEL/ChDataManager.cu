@@ -25,6 +25,13 @@ void ChGPUDataManager::HostToDevice() {
 	gpu_data.device_aux_data = host_aux_data;
 	gpu_data.device_lim_data = host_lim_data;
 	gpu_data.device_bilateral_data = host_bilateral_data;
+
+	gpu_data.min_bounding_point = min_bounding_point;
+	gpu_data.max_bounding_point = min_bounding_point;
+	gpu_data.number_of_models = number_of_models;
+	gpu_data.number_of_objects = number_of_objects;
+	gpu_data.number_of_bilaterals = number_of_bilaterals;
+
 }
 
 void ChGPUDataManager::DeviceToHost() {
@@ -41,4 +48,5 @@ void ChGPUDataManager::DeviceToHost() {
 	host_cptb_data = gpu_data.device_cptb_data;
 	host_dpth_data = gpu_data.device_dpth_data;
 	host_bids_data = gpu_data.device_bids_data;
+	number_of_contacts=gpu_data.number_of_contacts;
 }

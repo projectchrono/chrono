@@ -31,7 +31,6 @@ int ChSystemMultiGPU::Integrate_Y_impulse_Anitescu() {
 
 	SplitData();
 	ComputeCollisions();
-
 	SolveSystem();
 
 	// Device to host
@@ -61,9 +60,12 @@ int ChSystemMultiGPU::Integrate_Y_impulse_Anitescu() {
 
 double ChSystemMultiGPU::ComputeCollisions() {
 	mtimer_cd.start();
-	((ChCollisionSystemGPU*) (collision_system))->ComputeAABBHOST(gpu_data_manager);
-	((ChCollisionSystemGPU*) (collision_system))->ComputeBoundsHOST(gpu_data_manager);
-	((ChCollisionSystemGPU*) (collision_system))->ComputeUpdateAABBHOST(gpu_data_manager);
+	float3 bin_size_vec;
+	float max_dimension;
+	float collision_envelope = 0;
+	ChCCollisionGPU::ComputeAABB_HOST(gpu_data_manager);
+	ChCCollisionGPU::ComputeBounds_HOST(gpu_data_manager);
+	ChCCollisionGPU::UpdateAABB_HOST(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager);
 
 	//determine the size of each subdomain
 	float3 global_min = F3(0, 0, 0);

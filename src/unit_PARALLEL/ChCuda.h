@@ -6,6 +6,7 @@
 //   ChCuda.h
 //
 ///////////////////////////////////////////////////
+
 #include <time.h>
 #include <iostream>
 #include <cutil.h>
@@ -22,6 +23,7 @@
 #include <thrust/set_operations.h>
 #include <thrust/functional.h>
 #include "ChApiGPU.h"
+#include <omp.h>
 using namespace std;
 using namespace thrust;
 typedef unsigned int uint;
@@ -35,6 +37,7 @@ typedef unsigned int uint;
 #else
 #define CUDA_KERNEL_DIM(...)  <<< __VA_ARGS__ >>>
 #endif
+
 
 #define Zero_Vector make_float3(0,0,0)
 #define PI  3.1415926535897932384626433832795

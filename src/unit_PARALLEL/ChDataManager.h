@@ -56,12 +56,21 @@ struct gpu_container {
 
 		thrust::device_vector<float4> device_bilateral_data;
 		thrust::device_vector<float3> device_gam_data;
+		thrust::device_vector<float> device_dgm_data;
+
+		thrust::device_vector<float3> vel_update;
+		thrust::device_vector<float3> omg_update;
+		thrust::device_vector<uint> update_offset;
+		thrust::device_vector<uint> body_number;
+		thrust::device_vector<uint> offset_counter;
 
 		float3 min_bounding_point, max_bounding_point;
 		uint number_of_contacts;
+		uint number_of_contacts_possible;
 		uint number_of_models;
 		uint number_of_objects;
 		uint number_of_bilaterals;
+		uint number_of_updates;
 };
 
 class ChApiGPU ChGPUDataManager {
@@ -74,9 +83,12 @@ class ChApiGPU ChGPUDataManager {
 		gpu_container gpu_data;
 
 		uint number_of_contacts;
+		uint number_of_contacts_possible;
 		uint number_of_models;
 		uint number_of_objects;
 		uint number_of_bilaterals;
+		uint number_of_updates;
+		float3 min_bounding_point, max_bounding_point;
 
 		//contact data
 		thrust::host_vector<float3> host_norm_data;
@@ -84,7 +96,9 @@ class ChApiGPU ChGPUDataManager {
 		thrust::host_vector<float3> host_cptb_data;
 		thrust::host_vector<float> host_dpth_data;
 		thrust::host_vector<int2> host_bids_data;
-
+		thrust::host_vector<long long> contact_pair;
+		thrust::host_vector<float3> host_gam_data;
+		thrust::host_vector<float> host_dgm_data;
 		//collision data
 		thrust::host_vector<float3> host_ObA_data;
 		thrust::host_vector<float3> host_ObB_data;
@@ -113,7 +127,6 @@ class ChApiGPU ChGPUDataManager {
 		//bilateral data
 		thrust::host_vector<float4> host_bilateral_data;
 
-		float3 min_bounding_point, max_bounding_point;
 };
 }
 

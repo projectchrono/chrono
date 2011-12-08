@@ -25,11 +25,16 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	this->stepcount++;
 	Setup();
 	Update();
-	gpu_data_manager->HostToDevice();
+	if (use_cpu == false) {
+		gpu_data_manager->HostToDevice();
+	}else{
+		gpu_data_manager->host_acc_data=gpu_data_manager->host_vel_data;
+	}
 	ComputeCollisions();
 	SolveSystem();
-	gpu_data_manager->DeviceToHost();
-
+	if (use_cpu == false) {
+		gpu_data_manager->DeviceToHost();
+	}
 #pragma omp parallel for
 	for (int i = 0; i < bodylist.size(); i++) {
 		ChBodyGPU* mbody = (ChBodyGPU*) bodylist[i];
@@ -59,56 +64,19 @@ double ChSystemGPU::ComputeCollisions() {
 	float3 bin_size_vec;
 	float max_dimension;
 	float collision_envelope = 0;
-	uint number_of_contacts_possible;
-	ChCollisionSystemGPU* collision_system_gpu = ((ChCollisionSystemGPU*) (collision_system));
-	collision_system_gpu->ComputeAABB(
-										gpu_data_manager->number_of_models,
-										gpu_data_manager->gpu_data.device_pos_data,
-										gpu_data_manager->gpu_data.device_rot_data,
-										gpu_data_manager->gpu_data.device_ObA_data,
-										gpu_data_manager->gpu_data.device_ObB_data,
-										gpu_data_manager->gpu_data.device_ObC_data,
-										gpu_data_manager->gpu_data.device_ObR_data,
-										gpu_data_manager->gpu_data.device_typ_data,
-										gpu_data_manager->gpu_data.device_aabb_data);
-	collision_system_gpu->ComputeBounds(
-										gpu_data_manager->number_of_models,
-										gpu_data_manager->gpu_data.device_aabb_data,
-										gpu_data_manager->min_bounding_point,
-										gpu_data_manager->max_bounding_point);
-	collision_system_gpu->ComputeUpdateAABB(
-											gpu_data_manager->gpu_data.device_aabb_data,
-											gpu_data_manager->min_bounding_point,
-											gpu_data_manager->max_bounding_point,
-											bin_size_vec,
-											max_dimension,
-											collision_envelope,
-											gpu_data_manager->number_of_models);
-	collision_system_gpu->ComputeBroadPhase(
-											gpu_data_manager->gpu_data.device_aabb_data,
-											gpu_data_manager->gpu_data.device_fam_data,
-											gpu_data_manager->gpu_data.device_typ_data,
-											gpu_data_manager->gpu_data.contact_pair,
-											gpu_data_manager->number_of_models,
-											bin_size_vec,
-											number_of_contacts_possible);
-	collision_system_gpu->ComputeNarrowPhase(
-												gpu_data_manager->gpu_data.device_norm_data,
-												gpu_data_manager->gpu_data.device_cpta_data,
-												gpu_data_manager->gpu_data.device_cptb_data,
-												gpu_data_manager->gpu_data.device_dpth_data,
-												gpu_data_manager->gpu_data.device_bids_data,
-												gpu_data_manager->gpu_data.device_gam_data,
-												gpu_data_manager->gpu_data.device_pos_data,
-												gpu_data_manager->gpu_data.device_rot_data,
-												gpu_data_manager->gpu_data.device_ObA_data,
-												gpu_data_manager->gpu_data.device_ObB_data,
-												gpu_data_manager->gpu_data.device_ObC_data,
-												gpu_data_manager->gpu_data.device_ObR_data,
-												gpu_data_manager->gpu_data.device_typ_data,
-												gpu_data_manager->gpu_data.contact_pair,
-												number_of_contacts_possible,
-												gpu_data_manager->number_of_contacts);
+	if (use_cpu == false) {
+		ChCCollisionGPU::ComputeAABB(gpu_data_manager->gpu_data);
+		ChCCollisionGPU::ComputeBounds(gpu_data_manager->gpu_data);
+		ChCCollisionGPU::UpdateAABB(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager->gpu_data);
+		ChCCollisionGPU::Broadphase(bin_size_vec, gpu_data_manager->gpu_data);
+		ChCCollisionGPU::Narrowphase(gpu_data_manager->gpu_data);
+	} else {
+		ChCCollisionGPU::ComputeAABB_HOST(gpu_data_manager);
+		ChCCollisionGPU::ComputeBounds_HOST(gpu_data_manager);
+		ChCCollisionGPU::UpdateAABB_HOST(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager);
+		ChCCollisionGPU::Broadphase_HOST(bin_size_vec, gpu_data_manager);
+		ChCCollisionGPU::Narrowphase_HOST(gpu_data_manager);
+	}
 	this->ncontacts = gpu_data_manager->number_of_contacts;
 	mtimer_cd.stop();
 	return 0;
@@ -116,34 +84,11 @@ double ChSystemGPU::ComputeCollisions() {
 
 double ChSystemGPU::SolveSystem() {
 	mtimer_lcp.start();
-	((ChLcpIterativeSolverGPUsimple*) (LCP_solver_speed))->SolveSys(
-																	gpu_data_manager->number_of_objects,
-																	gpu_data_manager->number_of_bilaterals,
-																	gpu_data_manager->number_of_contacts,
-																	gpu_data_manager->gpu_data.device_norm_data,
-																	gpu_data_manager->gpu_data.device_cpta_data,
-																	gpu_data_manager->gpu_data.device_cptb_data,
-																	gpu_data_manager->gpu_data.device_dpth_data,
-																	gpu_data_manager->gpu_data.device_bids_data,
-																	gpu_data_manager->gpu_data.device_bilateral_data,
-																	gpu_data_manager->gpu_data.device_pos_data,
-																	gpu_data_manager->gpu_data.device_rot_data,
-																	gpu_data_manager->gpu_data.device_vel_data,
-																	gpu_data_manager->gpu_data.device_omg_data,
-																	gpu_data_manager->gpu_data.device_acc_data,
-																	gpu_data_manager->gpu_data.device_inr_data,
-																	gpu_data_manager->gpu_data.device_gyr_data,
-																	gpu_data_manager->gpu_data.device_frc_data,
-																	gpu_data_manager->gpu_data.device_trq_data,
-																	gpu_data_manager->gpu_data.device_fap_data,
-																	gpu_data_manager->gpu_data.device_gam_data,
-																	gpu_data_manager->gpu_data.device_aux_data,
-																	gpu_data_manager->gpu_data.device_ObA_data,
-																	gpu_data_manager->gpu_data.device_ObB_data,
-																	gpu_data_manager->gpu_data.device_ObC_data,
-																	gpu_data_manager->gpu_data.device_ObR_data,
-																	gpu_data_manager->gpu_data.device_typ_data,
-																	gpu_data_manager->gpu_data.device_lim_data);
+	if (use_cpu == false) {
+		((ChLcpIterativeSolverGPUsimple*) (LCP_solver_speed))->SolveSys(gpu_data_manager->gpu_data);
+	} else {
+		((ChLcpIterativeSolverGPUsimple*) (LCP_solver_speed))->SolveSys_HOST(gpu_data_manager);
+	}
 	((ChContactContainerGPUsimple*) this->contact_container)->SetNcontacts(gpu_data_manager->number_of_contacts);
 	mtimer_lcp.stop();
 	return 0;

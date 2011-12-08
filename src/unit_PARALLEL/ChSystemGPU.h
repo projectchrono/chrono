@@ -38,43 +38,44 @@
 #include "ChCCollisionSystemGPU.h"
 
 namespace chrono {
-	using namespace chrono;
+using namespace chrono;
 
-	class ChApiGPU ChSystemGPU: public ChSystem {
-		CH_RTTI(ChSystemGPU,ChObj)
-			;
+class ChApiGPU ChSystemGPU: public ChSystem {
+	CH_RTTI(ChSystemGPU,ChObj)
+		;
 
-		public:
-			ChSystemGPU(unsigned int max_objects = 1000);
-			virtual int Integrate_Y_impulse_Anitescu();
-			double ComputeCollisions();
-			double SolveSystem();
-			double SplitData();
-			void AddBody(ChSharedPtr<ChBodyGPU> newbody);
-			void RemoveBody(ChSharedPtr<ChBodyGPU> mbody);
+	public:
+		ChSystemGPU(unsigned int max_objects = 1000);
+		virtual int Integrate_Y_impulse_Anitescu();
+		double ComputeCollisions();
+		double SolveSystem();
+		double SplitData();
+		void AddBody(ChSharedPtr<ChBodyGPU> newbody);
+		void RemoveBody(ChSharedPtr<ChBodyGPU> mbody);
 
-			void Update();
-			void SetBounds(float3 min, float3 max) {
-				bounding_min = min;
-				bounding_max = max;
+		void Update();
+		void ChangeCollisionSystem(ChCollisionSystem* newcollsystem);
+		void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
+
+		float GetKineticEnergy() {
+			if (use_cpu == false) {
+				return ((ChLcpIterativeSolverGPUsimple*) (LCP_solver_speed))->Total_KineticEnergy(gpu_data_manager->gpu_data);
+			} else {
+				return ((ChLcpIterativeSolverGPUsimple*) (LCP_solver_speed))->Total_KineticEnergy_HOST(gpu_data_manager);
 			}
-			void ChangeCollisionSystem(ChCollisionSystem* newcollsystem);
-			void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
-
-			void Compute_AABBs();
-
-			float GetKineticEnergy() {
-				return ((ChLcpIterativeSolverGPUsimple*) (LCP_solver_speed))->Total_KineticEnergy();
-			}
-
-			ChGPUDataManager *gpu_data_manager;
-		private:
-			ChTimer<double> mtimer_lcp, mtimer_step, mtimer_cd;
-			unsigned int counter;
-			unsigned int max_obj;
-			unsigned int num_gpu;
-			float3 bounding_min, bounding_max;
-	};
+		}
+		void SetUseCPU(bool usecpu) {
+			use_cpu = usecpu;
+		}
+		ChGPUDataManager *gpu_data_manager;
+	private:
+		ChTimer<double> mtimer_lcp, mtimer_step, mtimer_cd;
+		unsigned int counter;
+		unsigned int max_obj;
+		unsigned int num_gpu;
+		float3 bounding_min, bounding_max;
+		bool use_cpu;
+};
 }
 
 #endif

@@ -65,7 +65,8 @@ class ChApiGPU ChSystemMultiGPU: public ChSystem {
 		void Compute_AABBs();
 
 		float GetKineticEnergy() {
-			return ((ChLcpIterativeSolverGPUsimple*) (LCP_solver_speed))->Total_KineticEnergy();
+			//return ((ChLcpIterativeSolverGPUsimple*) (LCP_solver_speed))->Total_KineticEnergy();
+			return 0;
 		}
 
 		ChGPUDataManager *gpu_data_manager;

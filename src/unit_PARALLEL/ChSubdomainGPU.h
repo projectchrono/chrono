@@ -23,6 +23,7 @@ class ChApiGPU ChSubdomainGPU {
 		uint number_of_models;
 		uint number_of_objects;
 		uint number_of_bilaterals;
+		uint number_of_updates;
 
 		thrust::host_vector<float3> host_norm_data;
 		thrust::host_vector<float3> host_cpta_data;

@@ -47,34 +47,41 @@ class ChApiGPU ChLcpIterativeSolverGPUsimple: public ChLcpIterativeSolver {
 		virtual double Solve(ChLcpSystemDescriptor& sysd, ///< system description with constraints and variables
 								bool add_Mq_to_f = false) {
 		} ///< if true, takes the initial 'q' and adds [M]*q to 'f' vector
-		void SolveSys(
-						uint &number_of_objects,
-						uint &number_of_bilaterals,
-						uint &number_of_contacts,
-						device_vector<float3> &device_norm_data,
-						device_vector<float3> &device_cpta_data,
-						device_vector<float3> &device_cptb_data,
-						device_vector<float> &device_dpth_data,
-						device_vector<int2> & device_bids_data,
-						device_vector<float4> & device_bilateral_data,
-						device_vector<float3> &device_pos_data,
-						device_vector<float4> &device_rot_data,
-						device_vector<float3> & device_vel_data,
-						device_vector<float3> & device_omg_data,
-						device_vector<float3> &device_acc_data,
-						device_vector<float3> & device_inr_data,
-						device_vector<float3> & device_gyr_data,
-						device_vector<float3> & device_frc_data,
-						device_vector<float3> & device_trq_data,
-						device_vector<float3> & device_fap_data,
-						device_vector<float3> &device_gam_data,
-						device_vector<float3> & device_aux_data,
-						device_vector<float3> &device_ObA_data,
-						device_vector<float3> &device_ObB_data,
-						device_vector<float3> &device_ObC_data,
-						device_vector<float4> &device_ObR_data,
-						device_vector<int3> &device_typ_data,
-						device_vector<float3> &device_lim_data);
+		//
+		//		void ApplyForces();
+		//		void Preprocess();
+		//		void Iterate();
+		//		void Reduce();
+		//		void Integrate();
+
+		void SolveSys(gpu_container & gpu_data);
+		void SolveSys_HOST(ChGPUDataManager * data_container);
+
+		void Preprocess(gpu_container & gpu_data) {
+			gpu_solver->Preprocess(mDt,gpu_data);
+		}
+		void Iterate(gpu_container & gpu_data) {
+			gpu_solver->Iterate(mDt, mOmegaBilateral, mOmegaContact, gpu_data);
+		}
+		void Reduce(gpu_container & gpu_data) {
+			gpu_solver->Reduce(gpu_data);
+		}
+		void Integrate(gpu_container & gpu_data) {
+			gpu_solver->Integrate(mDt, gpu_data);
+		}
+
+		void Preprocess_HOST(ChGPUDataManager * data_container) {
+			gpu_solver->Preprocess_HOST(mDt,data_container);
+		}
+		void Iterate_HOST(ChGPUDataManager * data_container) {
+			gpu_solver->Iterate_HOST(mDt, mOmegaBilateral, mOmegaContact, data_container);
+		}
+		void Reduce_HOST(ChGPUDataManager * data_container) {
+			gpu_solver->Reduce_HOST(data_container);
+		}
+		void Integrate_HOST(ChGPUDataManager * data_container) {
+			gpu_solver->Integrate_HOST(mDt, data_container);
+		}
 
 		/// This solver can be used _only_ with a ChContactContainerGPUsimple !!
 		/// Set it when you create.
@@ -113,9 +120,13 @@ class ChApiGPU ChLcpIterativeSolverGPUsimple: public ChLcpIterativeSolver {
 		}
 
 		void SetSystemDescriptor(ChLcpSystemDescriptorGPU* mdescriptor);
-		float Total_KineticEnergy() {
-			return 0;//gpu_solver->Total_KineticEnergy();
+		float Total_KineticEnergy(gpu_container & gpu_data) {
+			return gpu_solver->Total_KineticEnergy( gpu_data);
 		}
+		float Total_KineticEnergy_HOST(ChGPUDataManager * data_container) {
+			return gpu_solver->Total_KineticEnergy_HOST( data_container);
+		}
+
 
 		ChGPUDataManager * data_container;
 		ChLcpIterativeGPU * gpu_solver;

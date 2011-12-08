@@ -92,80 +92,13 @@ void ChSubdomainGPU::Run(ChLcpIterativeSolverGPUsimple* LCP_solver_speed) {
 	float3 bin_size_vec;
 	float max_dimension;
 	float collision_envelope = 0;
-	uint number_of_contacts_possible;
-	ChCCollisionGPU collision_gpu;
 	number_of_bilaterals = 0;
 
-	collision_gpu.ComputeAABB(
-								number_of_models,
-								gpu_data.device_pos_data,
-								gpu_data.device_rot_data,
-								gpu_data.device_ObA_data,
-								gpu_data.device_ObB_data,
-								gpu_data.device_ObC_data,
-								gpu_data.device_ObR_data,
-								gpu_data.device_typ_data,
-								gpu_data.device_aabb_data);
-	collision_gpu.ComputeBounds(number_of_models, gpu_data.device_aabb_data, min_bounding_point, max_bounding_point);
-	collision_gpu.UpdateAABB(
-								gpu_data.device_aabb_data,
-								min_bounding_point,
-								max_bounding_point,
-								bin_size_vec,
-								max_dimension,
-								collision_envelope,
-								number_of_models);
-	collision_gpu.Broadphase(
-								gpu_data.device_aabb_data,
-								gpu_data.device_fam_data,
-								gpu_data.device_typ_data,
-								gpu_data.contact_pair,
-								number_of_models,
-								bin_size_vec,
-								number_of_contacts_possible);
-	collision_gpu.Narrowphase(
-								gpu_data.device_norm_data,
-								gpu_data.device_cpta_data,
-								gpu_data.device_cptb_data,
-								gpu_data.device_dpth_data,
-								gpu_data.device_bids_data,
-								gpu_data.device_gam_data,
-								gpu_data.device_pos_data,
-								gpu_data.device_rot_data,
-								gpu_data.device_ObA_data,
-								gpu_data.device_ObB_data,
-								gpu_data.device_ObC_data,
-								gpu_data.device_ObR_data,
-								gpu_data.device_typ_data,
-								gpu_data.contact_pair,
-								number_of_contacts_possible,
-								number_of_contacts);
-	LCP_solver_speed->SolveSys(
-								number_of_objects,
-								number_of_bilaterals,
-								number_of_contacts,
-								gpu_data.device_norm_data,
-								gpu_data.device_cpta_data,
-								gpu_data.device_cptb_data,
-								gpu_data.device_dpth_data,
-								gpu_data.device_bids_data,
-								gpu_data.device_bilateral_data,
-								gpu_data.device_pos_data,
-								gpu_data.device_rot_data,
-								gpu_data.device_vel_data,
-								gpu_data.device_omg_data,
-								gpu_data.device_acc_data,
-								gpu_data.device_inr_data,
-								gpu_data.device_gyr_data,
-								gpu_data.device_frc_data,
-								gpu_data.device_trq_data,
-								gpu_data.device_fap_data,
-								gpu_data.device_gam_data,
-								gpu_data.device_aux_data,
-								gpu_data.device_ObA_data,
-								gpu_data.device_ObB_data,
-								gpu_data.device_ObC_data,
-								gpu_data.device_ObR_data,
-								gpu_data.device_typ_data,
-								gpu_data.device_lim_data);
+	ChCCollisionGPU::ComputeAABB(gpu_data_manager->gpu_data);
+	ChCCollisionGPU::ComputeBounds(gpu_data_manager->gpu_data);
+	ChCCollisionGPU::UpdateAABB(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager->gpu_data);
+	ChCCollisionGPU::Broadphase(bin_size_vec, gpu_data_manager->gpu_data);
+	ChCCollisionGPU::Narrowphase(gpu_data_manager->gpu_data);
+
+	LCP_solver_speed->SolveSys(gpu_data);
 }

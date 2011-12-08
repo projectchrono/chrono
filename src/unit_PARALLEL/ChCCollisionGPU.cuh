@@ -13,6 +13,10 @@ __constant__ uint number_of_models_const;
 #define MIN_ZERO_EPSILON 1.1754943508222875E-38
 #define kCollideEpsilon  1e-5f
 
+__device__ __host__ bool operator ==(const uint3 &a, const uint3 &b) {
+	return ((a.x == b.x) && (a.y == b.y) && (a.z == b.z));
+}
+
 __device__ __host__ inline void Swap(float3& a, float3& b) {
 	float3 tmp = a;
 	a = b;
