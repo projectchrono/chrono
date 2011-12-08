@@ -59,12 +59,29 @@ using namespace chrono;
 %include "std_string.i"
 %include "typemaps.i"
 
+// IMPORTANT!!!
+// 1) 
+//    When including with %include all the .i files, make sure that 
+// the .i of a derived class is included AFTER the .i of
+// a base class, otherwise SWIG is not able to build the type
+// infos. 
+//
+// 2)
+//    Then, this said, if one member function in Foo_B.i returns
+// an object of Foo_A.i (or uses it as a parameter) and yet you must %include
+// A before B, ex.because of rule 1), a 'forward reference' to A must be done in
+// B by using the %import keyword that tells Swig that somewhere there's
+// a type B. Otherwise a name mangling is built anyway, but the runtime is not ok.
+
 //  core/  classes
 %include "ChException.i"
 %include "ChHashFunction.i"
-%include "ChCoordsys.i" 
-%include "ChQuaternion.i" 
 %include "ChVector.i" 
+#define Vector ChVector<double>
+%include "ChQuaternion.i"
+#define Quaternion ChQuaternion<double>
+%include "ChCoordsys.i" 
+#define Coordsys ChCoordsys<double>
 %include "ChFrame.i" 
 %include "ChFrameMoving.i"
 %include "ChLinearAlgebra.i"
@@ -87,6 +104,7 @@ using namespace chrono;
 %include "ChMaterialCouple.i"
 %include "ChBody.i"
 %include "ChBodyAuxRef.i"
+%include "ChConveyor.i"
 %include "ChMarker.i"
 %include "ChForce.i"
 %include "ChSystem.i"
@@ -134,6 +152,7 @@ using namespace chrono;
 
 
 %DefChSharedPtrCast(chrono::ChBody, chrono::ChPhysicsItem)
+%DefChSharedPtrCast(chrono::ChConveyor, chrono::ChBody)
 %DefChSharedPtrCast(chrono::ChMarker, chrono::ChPhysicsItem)
 %DefChSharedPtrCast(chrono::ChForce, chrono::ChPhysicsItem)
 %DefChSharedPtrCast(chrono::ChLink, chrono::ChPhysicsItem)

@@ -42,6 +42,11 @@ print 'quat. conjugate  =', my_qconjugate
 print 'quat. dot product=', my_qconjugate ^ my_quat
 print 'quat. product=',     my_qconjugate % my_quat
 
+# Test frames -
+#  create a frame representing a translation and a rotation
+#  of 20 degrees on X axis
+# my_frame = chrono.ChFrameD(my_vect2, chrono.Q_from_AngAxis(20*chrono.CH_C_DEG_TO_RAD, chrono.VECT_X))
+# my_vect5 = my_vect1 >> my_frame
 
 # Print the class hierarchy of a chrono class
 import inspect

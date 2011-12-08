@@ -28,7 +28,7 @@
 namespace chrono
 {
 
-using namespace collision;
+
 
 
 ///
