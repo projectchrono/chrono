@@ -7,6 +7,17 @@
 Release 1.5.0
 xx-xx-xxxx
 
+- New unit_PYTHON. This unit, once compiled, allows users to
+  use Chrono::Engine from Python because a library is deployed
+  among the 'modules' of Python.
+  This is a major new feature. Users could develop programs
+  based on Chrono::Engine without using C++ at all.
+  Most functions and classes that are used in C++ are now
+  accessible via Python, and the sytax is almost the same (some
+  classes are not yet wrapped, but for the most important ones
+  there is a one-to-one mapping - also operator overloading
+  is supported).
+
 - Important API change! To modify friction, restitution and
   other surface properties of ChBody, ChrParticleClones and 
   similar stuff, now one must use mybody->GetMaterialSurface()->..
