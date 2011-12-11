@@ -3,7 +3,7 @@ uint numY=1;
 void System::DoTimeStep() {
 	if (mNumCurrentObjects < mNumObjects && mFrameNumber % 5000 == 0) {
 		float x = 40, y = numY, z = 40;
-		float posX = 0, posY = -14, posZ = 0;
+		float posX = 0, posY = -20, posZ = 0;
 		float radius = .2, mass = 4, mu = .5, rest = 0;
 		ShapeType type = SPHERE;
 		ChSharedBodyGPUPtr mrigidBody;
@@ -58,25 +58,24 @@ int main(int argc, char* argv[]) {
 	GPUSystem = new System(0);
 	GPUSystem->mTimeStep = .001;
 	GPUSystem->mEndTime = 10;
-	GPUSystem->mNumObjects = 3000;
+	GPUSystem->mNumObjects = 300000;
 	GPUSystem->mIterations = 1000;
-	GPUSystem->mTolerance = 1e-6;
+	GPUSystem->mTolerance = 1e-5;
 	GPUSystem->mOmegaContact = .5;
 	GPUSystem->mOmegaBilateral = .2;
-	GPUSystem->SetTimingFile("test_gpu_cd_output.txt");
+	//GPUSystem->SetTimingFile("test_gpu_cd_output.txt");
 	GPUSystem->mSystem->SetUseCPU(false);
 	float mMu = .5;
 	float mWallMu = .5;
 
-	if (argc == 3) {
+	if (argc == 4) {
 		numY = atoi(argv[1]);
-		GPUSystem->mUseOGL=1;
 		GPUSystem->mSystem->SetUseCPU(atoi(argv[2]));
-	}else if(argc == 1) {
-		GPUSystem->mUseOGL=1;
+		GPUSystem->mUseOGL=atoi(argv[3]);
 		GPUSystem->mSaveData=0;
-		numY=2;
-		GPUSystem->mSystem->SetUseCPU(false);
+	}else {
+		cout<<"ARGS: number of particle layers in y direction | use CPU 1=true 0= false | display in OPENGL 1= true 0= false"<<endl;
+		exit(1);
 	}
 	float container_R = 10.0, container_T = 1;
 	ChQuaternion<> quat(1, 0, 0, 0);
