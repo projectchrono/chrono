@@ -97,6 +97,8 @@ using namespace chrono;
 // motion_functions/   classes
 %include "ChFunction_Base.i"
 
+%include "ChCollisionModel.i"
+
 //  physics/  classes
 %include "ChObject.i"
 %include "ChPhysicsItem.i"
@@ -105,6 +107,8 @@ using namespace chrono;
 %include "ChBody.i"
 %include "ChBodyAuxRef.i"
 %include "ChConveyor.i"
+%include "ChIndexedParticles.i"
+%include "ChParticlesClones.i"
 %include "ChMarker.i"
 %include "ChForce.i"
 %include "ChSystem.i"
@@ -115,7 +119,7 @@ using namespace chrono;
 %include "ChLinkMasked.i"
 %include "ChLinkLock.i"
 %include "ChLinkEngine.i"
-/*
+
 %include "ChLinkGear.i"
 %include "ChLinkDistance.i"
 %include "ChLinkLinActuator.i"
@@ -129,11 +133,13 @@ using namespace chrono;
 %include "ChShaftsMotor.i"
 %include "ChShaftsTorsionSpring.i"
 %include "ChShaftsPlanetary.i"
-*/
+
 
 // collision/   classes
+
 %include "ChCollisionInfo.i"
-//%include "ChCollisionModel.i"
+
+
 
 
 
@@ -153,6 +159,8 @@ using namespace chrono;
 
 %DefChSharedPtrCast(chrono::ChBody, chrono::ChPhysicsItem)
 %DefChSharedPtrCast(chrono::ChConveyor, chrono::ChBody)
+%DefChSharedPtrCast(chrono::ChIndexedParticles, chrono::ChPhysicsItem)
+%DefChSharedPtrCast(chrono::ChParticlesClones, chrono::ChIndexedParticles)
 %DefChSharedPtrCast(chrono::ChMarker, chrono::ChPhysicsItem)
 %DefChSharedPtrCast(chrono::ChForce, chrono::ChPhysicsItem)
 %DefChSharedPtrCast(chrono::ChLink, chrono::ChPhysicsItem)
@@ -175,8 +183,8 @@ using namespace chrono;
 %DefChSharedPtrCast(chrono::ChLinkLockHook, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkLockParallel, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkLockPerpend, chrono::ChLinkLock)
-/*
 %DefChSharedPtrCast(chrono::ChLinkEngine, chrono::ChLinkLock)
+
 %DefChSharedPtrCast(chrono::ChLinkGear, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkDistance, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkLinActuator, chrono::ChLinkLock)
@@ -190,14 +198,6 @@ using namespace chrono;
 %DefChSharedPtrCast(chrono::ChShaftsMotor, chrono::ChShaftsCouple)
 %DefChSharedPtrCast(chrono::ChShaftsTorsionSpring, chrono::ChShaftsCouple)
 %DefChSharedPtrCast(chrono::ChShaftsPlanetary, chrono::ChPhysicsItem)
-*/
-
-
-
-
-
-
-
 
 
 
@@ -260,4 +260,5 @@ private:
 
 %}
 */
+
 
