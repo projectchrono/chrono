@@ -1,6 +1,9 @@
 #include "ChCCollisionGPU.h"
 #include "ChCCollisionGPU.cuh"
 __constant__ float3 global_origin_const;
+__constant__ uint number_of_models_const;
+__constant__ float3 bin_size_vec_const;
+__constant__ float collision_envelope_const;
 using namespace chrono::collision;
 
 typedef thrust::pair<float3, float3> bbox;
@@ -67,16 +70,16 @@ __global__ void Offset_AABBs(float3* aabb) {
 	aabb[index] = temp_min - F3(collision_envelope_const) + global_origin_const;
 	aabb[index + number_of_models_const] = temp_max + F3(collision_envelope_const) + global_origin_const;
 }
-__global__ void FindGrid(float3* AABBs, uint3* aabb_minmax) {
-	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	if (index >= number_of_models_const) {
-		return;
-	}
-	uint3 gmin = Hash(AABBs[index] * 10.0);
-	uint3 gmax = Hash(AABBs[index + number_of_models_const] * 10.0);
-	aabb_minmax[index] = gmin;
-	aabb_minmax[index + number_of_models_const] = gmax;
-}
+//__global__ void FindGrid(float3* AABBs, uint3* aabb_minmax) {
+//	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+//	if (index >= number_of_models_const) {
+//		return;
+//	}
+//	uint3 gmin = Hash(AABBs[index] * 10.0);
+//	uint3 gmax = Hash(AABBs[index + number_of_models_const] * 10.0);
+//	aabb_minmax[index] = gmin;
+//	aabb_minmax[index + number_of_models_const] = gmax;
+//}
 
 void ChCCollisionGPU::ComputeAABB_HOST(ChGPUDataManager * data_container) {
 	uint number_of_models = data_container->number_of_models;
@@ -140,7 +143,7 @@ void ChCCollisionGPU::UpdateAABB_HOST(float3 & bin_size_vec, float & max_dimensi
 void ChCCollisionGPU::ComputeAABB(gpu_container & gpu_data) {
 	uint number_of_models = gpu_data.number_of_models;
 	COPY_TO_CONST_MEM(number_of_models);
-	gpu_data.device_aabb_data.resize(gpu_data.number_of_models * 2);
+	gpu_data.device_aabb_data.resize(number_of_models * 2);
 	Compute_AABBs CUDA_KERNEL_DIM(BLOCKS(number_of_models),THREADS)(
 			CASTF3(gpu_data.device_pos_data),
 			CASTF4(gpu_data.device_rot_data),

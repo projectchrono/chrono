@@ -6,6 +6,7 @@
 //   ChCuda.h
 //
 ///////////////////////////////////////////////////
+#define THRUST_DEVICE_BACKEND THRUST_DEVICE_BACKEND_CUDA
 
 #include <time.h>
 #include <iostream>

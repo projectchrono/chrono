@@ -83,7 +83,7 @@ void ChSubdomainGPU::Copy(int i) {
 	gpu_data.device_aux_data = host_aux_data;
 	gpu_data.device_lim_data = host_lim_data;
 
-	//gpu_data_manager->gpu_data[i].device_bilateral_data = gpu_data_manager->host_bilateral_data;
+	gpu_data.device_bilateral_data = gpu_data_manager->host_bilateral_data;
 
 }
 
@@ -92,13 +92,15 @@ void ChSubdomainGPU::Run(ChLcpIterativeSolverGPUsimple* LCP_solver_speed) {
 	float3 bin_size_vec;
 	float max_dimension;
 	float collision_envelope = 0;
-	number_of_bilaterals = 0;
+	gpu_data_manager->gpu_data.number_of_bilaterals = 0;
 
 	ChCCollisionGPU::ComputeAABB(gpu_data_manager->gpu_data);
 	ChCCollisionGPU::ComputeBounds(gpu_data_manager->gpu_data);
 	ChCCollisionGPU::UpdateAABB(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager->gpu_data);
-	ChCCollisionGPU::Broadphase(bin_size_vec, gpu_data_manager->gpu_data);
+	ChCCollisionGPU::Broadphase(bin_size_vec, gpu_data_manager->gpu_data,gpu_data_manager);
 	ChCCollisionGPU::Narrowphase(gpu_data_manager->gpu_data);
 
-	LCP_solver_speed->SolveSys(gpu_data);
+	//LCP_solver_speed->SolveSys(gpu_data);
+
+
 }

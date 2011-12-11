@@ -9,7 +9,7 @@ ChSystemGPU::ChSystemGPU(unsigned int max_objects) :
 	gpu_data_manager = new ChGPUDataManager();
 	counter = 0;
 	max_obj = max_objects;
-
+	use_cpu = 0;
 	LCP_descriptor = new ChLcpSystemDescriptorGPU();
 	contact_container = new ChContactContainerGPUsimple();
 	collision_system = new ChCollisionSystemGPU();
@@ -20,21 +20,21 @@ ChSystemGPU::ChSystemGPU(unsigned int max_objects) :
 }
 
 int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
-
 	mtimer_step.start();
 	this->stepcount++;
 	Setup();
 	Update();
 	if (use_cpu == false) {
 		gpu_data_manager->HostToDevice();
-	}else{
-		gpu_data_manager->host_acc_data=gpu_data_manager->host_vel_data;
+	} else {
+		gpu_data_manager->host_acc_data = gpu_data_manager->host_vel_data;
 	}
 	ComputeCollisions();
 	SolveSystem();
 	if (use_cpu == false) {
 		gpu_data_manager->DeviceToHost();
 	}
+
 #pragma omp parallel for
 	for (int i = 0; i < bodylist.size(); i++) {
 		ChBodyGPU* mbody = (ChBodyGPU*) bodylist[i];
@@ -60,15 +60,21 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 
 double ChSystemGPU::ComputeCollisions() {
 	mtimer_cd.start();
-
+	//if(gpu_data_manager->number_of_contacts>0){exit(0);}
 	float3 bin_size_vec;
 	float max_dimension;
 	float collision_envelope = 0;
 	if (use_cpu == false) {
+		//ChCCollisionGPU::ComputeAABB_HOST(gpu_data_manager);
+		//ChCCollisionGPU::ComputeBounds_HOST(gpu_data_manager);
+		//ChCCollisionGPU::UpdateAABB_HOST(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager);
+		//ChCCollisionGPU::Broadphase_HOST(bin_size_vec, gpu_data_manager);
 		ChCCollisionGPU::ComputeAABB(gpu_data_manager->gpu_data);
 		ChCCollisionGPU::ComputeBounds(gpu_data_manager->gpu_data);
 		ChCCollisionGPU::UpdateAABB(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager->gpu_data);
-		ChCCollisionGPU::Broadphase(bin_size_vec, gpu_data_manager->gpu_data);
+		//gpu_data_manager->HostToDevice();
+		ChCCollisionGPU::Broadphase(bin_size_vec, gpu_data_manager->gpu_data,gpu_data_manager);
+
 		ChCCollisionGPU::Narrowphase(gpu_data_manager->gpu_data);
 	} else {
 		ChCCollisionGPU::ComputeAABB_HOST(gpu_data_manager);
@@ -77,6 +83,7 @@ double ChSystemGPU::ComputeCollisions() {
 		ChCCollisionGPU::Broadphase_HOST(bin_size_vec, gpu_data_manager);
 		ChCCollisionGPU::Narrowphase_HOST(gpu_data_manager);
 	}
+
 	this->ncontacts = gpu_data_manager->number_of_contacts;
 	mtimer_cd.stop();
 	return 0;
@@ -127,9 +134,9 @@ void ChSystemGPU::AddBody(ChSharedPtr<ChBodyGPU> newbody) {
 
 	counter++;
 	gpu_data_manager->number_of_objects = counter;
-	if (counter % 1000 == 0) {
-		cout << "Added: " << counter << " objects" << endl;
-	}
+	//if (counter % 1000 == 0) {
+	///	cout << "Added: " << counter << " objects" << endl;
+	//}
 }
 
 void ChSystemGPU::RemoveBody(ChSharedPtr<ChBodyGPU> mbody) {

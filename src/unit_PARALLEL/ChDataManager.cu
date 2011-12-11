@@ -4,6 +4,8 @@ ChGPUDataManager::ChGPUDataManager(unsigned int numDiv) {
 	number_of_contacts = 0;
 	number_of_models = 0;
 	number_of_objects = 0;
+	number_of_bilaterals=0;
+
 }
 void ChGPUDataManager::HostToDevice() {
 
@@ -13,6 +15,8 @@ void ChGPUDataManager::HostToDevice() {
 	gpu_data.device_ObR_data = host_ObR_data;
 	gpu_data.device_fam_data = host_fam_data;
 	gpu_data.device_typ_data = host_typ_data;
+	gpu_data.device_aabb_data = host_aabb_data;
+	gpu_data.device_pair_data=host_pair_data;
 
 	gpu_data.device_vel_data = host_vel_data;
 	gpu_data.device_omg_data = host_omg_data;
@@ -26,11 +30,12 @@ void ChGPUDataManager::HostToDevice() {
 	gpu_data.device_lim_data = host_lim_data;
 	gpu_data.device_bilateral_data = host_bilateral_data;
 
-	gpu_data.min_bounding_point = min_bounding_point;
-	gpu_data.max_bounding_point = min_bounding_point;
+	//gpu_data.min_bounding_point = min_bounding_point;
+	//gpu_data.max_bounding_point = min_bounding_point;
 	gpu_data.number_of_models = number_of_models;
 	gpu_data.number_of_objects = number_of_objects;
 	gpu_data.number_of_bilaterals = number_of_bilaterals;
+	gpu_data.number_of_contacts_possible=number_of_contacts_possible;
 
 }
 

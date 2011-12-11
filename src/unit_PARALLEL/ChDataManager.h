@@ -38,7 +38,7 @@ struct gpu_container {
 		thrust::device_vector<int3> device_typ_data;
 		thrust::device_vector<float3> device_aabb_data;
 		thrust::device_vector<uint3> device_bin_data;
-		thrust::device_vector<long long> contact_pair;
+		thrust::device_vector<long long> device_pair_data;
 
 		thrust::device_vector<float3> device_vel_data;
 		thrust::device_vector<float3> device_omg_data;
@@ -96,7 +96,7 @@ class ChApiGPU ChGPUDataManager {
 		thrust::host_vector<float3> host_cptb_data;
 		thrust::host_vector<float> host_dpth_data;
 		thrust::host_vector<int2> host_bids_data;
-		thrust::host_vector<long long> contact_pair;
+		thrust::host_vector<long long> host_pair_data;
 		thrust::host_vector<float3> host_gam_data;
 		thrust::host_vector<float> host_dgm_data;
 		//collision data

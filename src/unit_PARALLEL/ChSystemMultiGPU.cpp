@@ -83,16 +83,27 @@ double ChSystemMultiGPU::ComputeCollisions() {
 		}
 	}
 
-#pragma omp parallel for
-	for (int i = 0; i < gpu_subdomains.size(); i++) {
-		gpu_subdomains[i].Collide(gpu_data_manager);
-		gpu_subdomains[i].Copy();
-		gpu_subdomains[i].Run(((ChLcpIterativeSolverGPUsimple*) (LCP_solver_speed)));
-	}
-
-	this->ncontacts = gpu_data_manager->number_of_contacts;
-	mtimer_cd.stop();
-	return 0;
+//#pragma omp parallel for
+//	for (int i = 0; i < gpu_subdomains.size(); i++) {
+//		gpu_subdomains[i].Collide(gpu_data_manager);
+//		gpu_subdomains[i].Copy();
+//		gpu_subdomains[i].CD();
+//		gpu_subdomains[i].Preprocess();
+//	}
+//
+//
+//	uint number_of_constraints = gpu_subdomains[i].number_of_contacts;
+//	for (int iteration_number = 0; iteration_number < 1000; iteration_number++) {
+//#pragma omp parallel for
+//		gpu_subdomains[i].Iterate();
+//	}
+//	//reduction code here
+//	gpu_subdomains[i].Integrate();
+//}
+//
+//this->ncontacts = gpu_data_manager->number_of_contacts;
+mtimer_cd.stop();
+return 0;
 }
 
 double ChSystemMultiGPU::SolveSystem() {

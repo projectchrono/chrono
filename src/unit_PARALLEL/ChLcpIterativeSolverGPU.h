@@ -58,7 +58,7 @@ class ChApiGPU ChLcpIterativeSolverGPUsimple: public ChLcpIterativeSolver {
 		void SolveSys_HOST(ChGPUDataManager * data_container);
 
 		void Preprocess(gpu_container & gpu_data) {
-			gpu_solver->Preprocess(mDt,gpu_data);
+			gpu_solver->Preprocess(mDt, gpu_data);
 		}
 		void Iterate(gpu_container & gpu_data) {
 			gpu_solver->Iterate(mDt, mOmegaBilateral, mOmegaContact, gpu_data);
@@ -71,7 +71,7 @@ class ChApiGPU ChLcpIterativeSolverGPUsimple: public ChLcpIterativeSolver {
 		}
 
 		void Preprocess_HOST(ChGPUDataManager * data_container) {
-			gpu_solver->Preprocess_HOST(mDt,data_container);
+			gpu_solver->Preprocess_HOST(mDt, data_container);
 		}
 		void Iterate_HOST(ChGPUDataManager * data_container) {
 			gpu_solver->Iterate_HOST(mDt, mOmegaBilateral, mOmegaContact, data_container);
@@ -121,12 +121,11 @@ class ChApiGPU ChLcpIterativeSolverGPUsimple: public ChLcpIterativeSolver {
 
 		void SetSystemDescriptor(ChLcpSystemDescriptorGPU* mdescriptor);
 		float Total_KineticEnergy(gpu_container & gpu_data) {
-			return gpu_solver->Total_KineticEnergy( gpu_data);
+			return gpu_solver->Total_KineticEnergy(gpu_data);
 		}
 		float Total_KineticEnergy_HOST(ChGPUDataManager * data_container) {
-			return gpu_solver->Total_KineticEnergy_HOST( data_container);
+			return gpu_solver->Total_KineticEnergy_HOST(data_container);
 		}
-
 
 		ChGPUDataManager * data_container;
 		ChLcpIterativeGPU * gpu_solver;

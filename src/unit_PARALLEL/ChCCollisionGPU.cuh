@@ -1,12 +1,7 @@
 #ifndef CHC_COLLISIONGPU_CUH
 #define CHC_COLLISIONGPU_CUH
 using namespace chrono::collision;
-//__constant__ float		bin_size_const;
 
-__constant__ float3 bin_size_vec_const;
-
-__constant__ float collision_envelope_const;
-__constant__ uint number_of_models_const;
 
 //1.f/16384.f;
 #define Vector_ZERO_EPSILON 0.0000001
@@ -67,13 +62,6 @@ __device__ __host__ void ComputeAABBBox(const float3 &dim,const float3 &positon,
 }
 
 #define EPS FLT_EPSILON
-template <class T>
-__device__ __host__ inline uint3 Hash(const T &A) {
-	return U3(A.x*bin_size_vec_const.x,A.y*bin_size_vec_const.y,A.z*bin_size_vec_const.z);
-}
-template <class T>
-__device__ __host__ inline uint Hash_Index(const T &A) {
-	return ((A.x * 73856093) ^ (A.y * 19349663) ^ (A.z * 83492791));
-}
+
 
 #endif

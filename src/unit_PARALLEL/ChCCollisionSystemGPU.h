@@ -50,7 +50,8 @@ class ChApiGPU ChCollisionSystemGPU: public ChCollisionSystem {
 
 		/// Removes a collision model from the collision
 		/// engine (custom data may be deallocated).
-		virtual void Remove(ChCollisionModel* model);
+		virtual void Remove(ChCollisionModel* model) {
+		}
 
 		/// Removes all collision models from the collision
 		/// engine (custom data may be deallocated).
@@ -58,7 +59,8 @@ class ChApiGPU ChCollisionSystemGPU: public ChCollisionSystem {
 
 		/// Run the algorithm and finds all the contacts.
 		/// (Contacts will be managed by the Bullet persistent contact cache).
-		virtual void Run();
+		virtual void Run() {
+		}
 
 		/// After the Run() has completed, you can call this function to
 		/// fill a 'contact container', that is an object inherited from class

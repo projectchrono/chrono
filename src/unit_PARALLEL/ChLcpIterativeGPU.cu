@@ -582,13 +582,6 @@ __global__ void ChKernelOffsets(int2* ids, CH_REALNUMBER4* bilaterals, uint* Bod
 }
 
 void ChLcpIterativeGPU::WarmContact(const int & i) {
-	//	if (use_DEM == false) {
-	//		Warm_Contacts CUDA_KERNEL_DIM(BLOCKS(number_of_contacts), THREADS)(CASTF3(data_container->gpu_data[i].device_norm_data), CASTF3(data_container->gpu_data[i].device_cpta_data),
-	//				CASTF3(data_container->gpu_data[i].device_cptb_data), CASTF1(data_container->gpu_data[i].device_dpth_data), CASTI2(data_container->gpu_data[i].device_bids_data),
-	//				CASTF3(data_container->gpu_data[i].device_aux_data), CASTF3(data_container->gpu_data[i].device_inr_data), CASTF4(data_container->gpu_data[i].device_rot_data),
-	//				CASTF3(data_container->gpu_data[i].device_vel_data), CASTF3(data_container->gpu_data[i].device_omg_data), CASTF3(data_container->gpu_data[i].device_pos_data),
-	//				CASTF3(data_container->gpu_data[i].device_gam_data));
-	//	}
 }
 void ChLcpIterativeGPU::Preprocess_HOST(float step_size, ChGPUDataManager * data_container) {
 	uint number_of_contacts = data_container->number_of_contacts;
