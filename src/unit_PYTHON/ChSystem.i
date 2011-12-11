@@ -15,26 +15,40 @@ using namespace chrono;
 typedef chrono::ChSystem::IteratorBodies IteratorBodies;
 typedef chrono::ChSystem::IteratorLinks  IteratorLinks;
 typedef chrono::ChSystem::IteratorOtherPhysicsItems IteratorOtherPhysicsItems;
-typedef chrono::ChSystem::ChCustomCollisionPointCallback ChCustomCollisionPointCallback;
+//typedef chrono::ChSystem::ChCustomCollisionPointCallback ChCustomCollisionPointCallback;
+//typedef chrono::ChSystem::ChCustomComputeCollisionCallback ChCustomComputeCollisionCallback;
 
 // for these two other nested classes it is enough to inherit stubs (not virtual) as outside classes
-class ChCustomCollisionPointCallbackPy : public chrono::ChSystem::ChCustomCollisionPointCallback
+class ChCustomCollisionPointCallbackP : public chrono::ChSystem::ChCustomCollisionPointCallback
 {
 	public:	
-		ChCustomCollisionPointCallbackPy() {};
+		ChCustomCollisionPointCallbackP() {};
 		virtual void ContactCallback(
-							const collision::ChCollisionInfo& mcontactinfo,				
-							ChMaterialCouple&  material 			  		
-							) {};
+							const chrono::collision::ChCollisionInfo& mcontactinfo,				
+							chrono::ChMaterialCouple&  material 			  		
+							) { GetLog() << "You must implement ContactCallback() ! \n"; };
 };
-class ChCustomComputeCollisionCallbackPy  : public chrono::ChSystem::ChCustomComputeCollisionCallback
+class ChCustomComputeCollisionCallbackP  : public chrono::ChSystem::ChCustomComputeCollisionCallback
 {
 	public: 
-		ChCustomComputeCollisionCallbackPy() {};
-		virtual void PerformCustomCollision(ChSystem* msys) {};
+		ChCustomComputeCollisionCallbackP() {};
+		virtual void PerformCustomCollision(chrono::ChSystem* msys) { GetLog() << "You must implement PerformCustomCollision() ! \n"; };
 };
 
+
 %}
+
+
+
+// Forward ref
+%import "ChCollisionModel.i"
+%import "ChCollisionInfo.i"
+
+
+// Cross-inheritance between Python and c++ for callbacks that must be inherited.
+// Put this 'director' feature _before_ class wrapping declaration.
+%feature("director") ChCustomCollisionPointCallbackP;
+%feature("director") ChCustomComputeCollisionCallbackP;
 
 
 // NESTED CLASSES - trick - step 2
@@ -60,19 +74,18 @@ class IteratorOtherPhysicsItems
       bool operator==(const IteratorOtherPhysicsItems& other);
       bool operator!=(const IteratorOtherPhysicsItems& other);
     };
-class ChCustomCollisionPointCallbackPy
+class ChCustomCollisionPointCallbackP
 	{
 	public:	
 	  virtual void ContactCallback(
-							const collision::ChCollisionInfo& mcontactinfo, 
-							ChMaterialCouple&  material 			  		
+							const chrono::collision::ChCollisionInfo& mcontactinfo, 
+							chrono::ChMaterialCouple&  material 			  		
 													);
 	};
-class ChCustomComputeCollisionCallbackPy
+class ChCustomComputeCollisionCallbackP
 {
 	public: 
-		ChCustomComputeCollisionCallbackPy() {};
-		virtual void PerformCustomCollision(ChSystem* msys) {};
+		virtual void PerformCustomCollision(chrono::ChSystem* msys) {};
 };
 
 // NESTED CLASSES - trick - step 3
@@ -150,11 +163,11 @@ class ChCustomComputeCollisionCallbackPy
 	  {
 			return $self->IterEndOtherPhysicsItems();
 	  }
-	void SetCustomCollisionPointCallback(::ChCustomCollisionPointCallbackPy* mcallb)  // note the :: at the beginning
+	void SetCustomCollisionPointCallback(::ChCustomCollisionPointCallbackP* mcallb)  // note the :: at the beginning
 	  {
 		  $self->SetCustomCollisionPointCallback(mcallb);
 	  }
-	void SetCustomComputeCollisionCallback(::ChCustomComputeCollisionCallbackPy* mcallb)  // note the :: at the beginning
+	void SetCustomComputeCollisionCallback(::ChCustomComputeCollisionCallbackP* mcallb)  // note the :: at the beginning
 	  {
 		  $self->SetCustomComputeCollisionCallback(mcallb);
 	  }
@@ -175,10 +188,7 @@ class ChCustomComputeCollisionCallbackPy
 %ignore chrono::ChSystem::SetCustomCollisionPointCallback();
 %ignore chrono::ChSystem::SetCustomComputeCollisionCallback();
 
-// Cross-inheritance between Python and c++ for callbacks that must be inherited.
-// Put this 'director' feature _before_ class wrapping declaration.
-%feature("director") ChCustomCollisionPointCallbackPy;
-%feature("director") ChCustomComputeCollisionCallbackPy;
+
 
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApi 
