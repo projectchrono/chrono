@@ -38,33 +38,49 @@ my_shbodyB.AddMarker(my_shmarker)
 my_system.Add(my_shbodyA)
 my_system.Add(my_shbodyB)
 
-my_shlink = chrono.ChLinkEngineShared()
-my_system.Add(my_shlink)
+#my_shlink = chrono.ChLinkEngineShared()
+#my_system.Add(my_shlink)
 
 
 # Define surface material(s)
 my_shmaterial = chrono.ChMaterialSurfaceShared()
 my_shmaterial.SetFriction(0.3)
-my_shmaterial.SetCompliance(1e-6)
+my_shmaterial.SetCompliance(0)
 my_shbodyA.SetMaterialSurface(my_shmaterial)
 my_shbodyB.SetMaterialSurface(my_shmaterial)
 
 
-#Contact callback (TO FIX)
-class MyContactCallback(chrono.ChAddContactCallback):
-    def __init__(self):
-         chrono.ChAddContactCallback.__init__(self)
-    def ContactCallback(self,collinfo,matcouple):
-         print 'contact default friction=' , matcouple.static_friction
+# Add Contact callback (TO FIX!!)
+##class MyContactCallback(chrono.ChCustomCollisionPointCallbackP):
+##    def __init__(self):
+##         chrono.ChCustomCollisionPointCallbackP.__init__(self)
+##    def ContactCallback(self,collinfo,matcouple):
+##         print ' add contact: ' , collinfo.distance, matcouple.static_friction
+##
+##my_call = MyContactCallback()
+##my_system.SetCustomCollisionPointCallback(my_call)
 
-my_call = MyContactCallback()
-my_system.GetContactContainer().SetAddContactCallback(my_call)
+# Report Contact callback
+class MyReportContactCallback(chrono.ChReportContactCallback):
+    def __init__(self):
+         chrono.ChReportContactCallback.__init__(self)
+    def ReportContactCallback(self,vA,vB,cA,dist,frict,force,torque,modA,modB):
+         print '  contact: point A=' , vA,  '  dist=',dist
+         return 1        # return 0 to stop reporting contacts
+
+my_rep = MyReportContactCallback()
+
 
 
 # Simulation loop
+my_system.SetChTime(0)
 while (my_system.GetChTime() < 1.2) :
+
     my_system.DoStepDynamics(0.01)
+
     print 'time=', my_system.GetChTime(), ' bodyB y=', my_shbodyB.GetPos().y
+
+    my_system.GetContactContainer().ReportAllContacts(my_rep)
 
 
 # Iterate over added bodies - how to use iterators
@@ -75,6 +91,7 @@ while (iterbodies !=  my_system.IterEndBodies()):
     iterbodies = iterbodies.Next()
 
 # Easier (but a bit slower) iteration in the style of Python:
+print 'This is the list of bodies in the system:'
 for abody in chrono.IterBodies(my_system):
     print '  body pos=', abody.GetPos()
 
@@ -89,4 +106,4 @@ my_shbodyA %= my_displacement
 # ..also as:
 #  my_shbody.ConcatenatePreTransformation(my_displacement)
 
-print '  body pos=', my_shbodyA.GetPos()
+print 'Moved body pos=', my_shbodyA.GetPos()
