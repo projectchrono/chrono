@@ -781,7 +781,8 @@ ENDIF()
 		lcp/ChLcpIterativeSORmultithread.cpp 
 		lcp/ChLcpIterativeJacobi.cpp 
 		lcp/ChLcpIterativeSymmSOR.cpp 
-		lcp/ChLcpIterativeMINRES.cpp 
+		lcp/ChLcpIterativeMINRES.cpp
+		lcp/ChLcpIterativePMINRES.cpp 
 		lcp/ChLcpIterativeBB.cpp 
 		lcp/ChLcpIterativePCG.cpp 
 		lcp/ChLcpSimplexSolver.cpp 
@@ -828,6 +829,7 @@ ENDIF()
 		lcp/ChLcpDirectSolver.h
 		lcp/ChLcpIterativeJacobi.h
 		lcp/ChLcpIterativeMINRES.h
+		lcp/ChLcpIterativePMINRES.h
 		lcp/ChLcpIterativeBB.h
 		lcp/ChLcpIterativePCG.h
 		lcp/ChLcpIterativeSolver.h

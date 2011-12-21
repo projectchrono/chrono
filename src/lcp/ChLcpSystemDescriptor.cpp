@@ -120,16 +120,20 @@ int ChLcpSystemDescriptor::CountActiveConstraints()
 }
 
 
-void  ChLcpSystemDescriptor::BuildMatrices (ChSparseMatrix* Cq,
-								ChSparseMatrix* M,	
+void ChLcpSystemDescriptor::ConvertToMatrixForm (
+								  ChSparseMatrix* Cq, 
+								  ChSparseMatrix* M, 
+								  ChSparseMatrix* E,  
+								  ChMatrix<>* Fvector,
+								  ChMatrix<>* Bvector,
+								  ChMatrix<>* Frict,  
 								bool only_bilaterals, 
 								bool skip_contacts_uv)
 {
 	std::vector<ChLcpConstraint*>& mconstraints = this->GetConstraintsList();
 	std::vector<ChLcpVariables*>&  mvariables	= this->GetVariablesList();
 
-	// --
-	// Count bilateral and other constraints..
+	// Count bilateral and other constraints.. (if wanted, bilaterals only)
 
 	int n_c=0;
 	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
@@ -141,7 +145,6 @@ void  ChLcpSystemDescriptor::BuildMatrices (ChSparseMatrix* Cq,
 				n_c++;
 			  }
 	}
-
 
 	// Count active variables, by scanning through all variable blocks,
 	// and set offsets
@@ -156,28 +159,38 @@ void  ChLcpSystemDescriptor::BuildMatrices (ChSparseMatrix* Cq,
 		}
 	}
 
-
-	//if (n_q==0) return;
-
-
-	// --
 	// Reset and resize (if needed) auxiliary vectors
 
-	Cq->Reset(n_c, n_q);
-	M->Reset(n_q , n_q);		// fast! Reset() method does not realloc if size doesn't change
+	if (Cq) 
+		Cq->Reset(n_c, n_q);
+	if (M)
+		M->Reset (n_q, n_q);
+	if (E)
+		E->Reset (n_c, n_c);
+	if (Fvector)
+		Fvector->Reset (n_q, 1);
+	if (Bvector)
+		Bvector->Reset (n_c, 1);
+	if (Frict)
+		Frict->Reset (n_c, 1);
 
-	// .. fills M submasses
+	// Fills M submasses and 'f' vector,
+	// by looping on variables
 	int s_q=0;
 	for (unsigned int iv = 0; iv< mvariables.size(); iv++)
 	{
 		if (mvariables[iv]->IsActive())
 		{
-			mvariables[iv]->Build_M(*M, s_q, s_q);				// .. fills  M 
+			if (M)
+				mvariables[iv]->Build_M(*M, s_q, s_q);				// .. fills  M 
+			if (Fvector)
+				Fvector->PasteMatrix(&vvariables[iv]->Get_fb(), s_q, 0);// .. fills  'f' 
 			s_q += mvariables[iv]->Get_ndof();
 		}
 	}  
 	
-	// .. fills Cq jacobian
+	// Fills Cq jacobian, E 'compliance' matrix , the 'b' vector and friction coeff.vector, 
+	// by looping on constraints
 	int s_c=0;
 	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
 	{
@@ -185,13 +198,40 @@ void  ChLcpSystemDescriptor::BuildMatrices (ChSparseMatrix* Cq,
 		  if (! ((mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) && only_bilaterals))
 			  if ( ! (( dynamic_cast<ChLcpConstraintTwoFrictionT*> (mconstraints[ic])) && skip_contacts_uv))
 			  {
-					mconstraints[ic]->Build_Cq (*Cq, s_c);// .. fills Cq 
+					if (Cq)
+						mconstraints[ic]->Build_Cq (*Cq, s_c);// .. fills Cq
+					if (E)
+						E->SetElement(s_c,s_c, - mconstraints[ic]->Get_cfm_i() ); // .. fills E ( = - cfm )
+					if (Bvector)
+						(*Bvector)(s_c) = mconstraints[ic]->Get_b_i(); // .. fills 'b'   
+					if (Frict) // .. fills vector of friction coefficients
+					{
+						(*Frict)(s_c) = -2; // mark with -2 flag for bilaterals (default)
+						if (ChLcpConstraintTwoContactN* mcon = dynamic_cast<ChLcpConstraintTwoContactN*> (mconstraints[ic])) 
+							(*Frict)(s_c) = mcon->GetFrictionCoefficient(); // friction coeff only in row of normal component 
+						if (ChLcpConstraintTwoFrictionT* mcon = dynamic_cast<ChLcpConstraintTwoFrictionT*> (mconstraints[ic])) 
+							(*Frict)(s_c) = -1; // mark with -1 flag for rows of tangential components
+					}
 					s_c++;
 			  }
 	}
 
 }
 
+void  ChLcpSystemDescriptor::BuildMatrices (ChSparseMatrix* Cq,
+								ChSparseMatrix* M,	
+								bool only_bilaterals, 
+								bool skip_contacts_uv)
+{
+	this->ConvertToMatrixForm(Cq,M,0,0,0,0,only_bilaterals,skip_contacts_uv);
+}
+void  ChLcpSystemDescriptor::BuildVectors (ChSparseMatrix* f,
+								ChSparseMatrix* b,	
+								bool only_bilaterals, 
+								bool skip_contacts_uv)
+{
+	this->ConvertToMatrixForm(0,0,0,f,b,0,only_bilaterals,skip_contacts_uv);
+}
 
 int ChLcpSystemDescriptor::BuildFbVector(
 								ChMatrix<>& Fvector	///< matrix which will contain the entire vector of 'f'
@@ -200,7 +240,7 @@ int ChLcpSystemDescriptor::BuildFbVector(
 	int n_q=CountActiveVariables();
 	Fvector.Reset(n_q,1);		// fast! Reset() method does not realloc if size doesn't change
 
-	// .. fills F
+	// Fills the 'f' vector
 	int s_q=0;
 	for (unsigned int iv = 0; iv< vvariables.size(); iv++)
 	{
@@ -220,7 +260,7 @@ int ChLcpSystemDescriptor::BuildBiVector(
 	int n_c=CountActiveConstraints();
 	Bvector.Resize(n_c, 1);
 	
-	// Fill the vector
+	// Fill the 'b' vector
 	int s_c=0;
 	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
 	{
@@ -232,82 +272,6 @@ int ChLcpSystemDescriptor::BuildBiVector(
 	}
 
 	return s_c;
-}
-
-void  ChLcpSystemDescriptor::BuildVectors (ChSparseMatrix* f,
-								ChSparseMatrix* b,	
-								bool only_bilaterals, 
-								bool skip_contacts_uv)
-{
-	std::vector<ChLcpConstraint*>& mconstraints = this->GetConstraintsList();
-	std::vector<ChLcpVariables*>&  mvariables	= this->GetVariablesList();
-
-	// --
-	// Count bilateral and other constraints..
-
-	int n_c=0;
-	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
-	{
-		if (mconstraints[ic]->IsActive())
-		  if (! ((mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) && only_bilaterals))
-			  if ( ! (( dynamic_cast<ChLcpConstraintTwoFrictionT*> (mconstraints[ic])) && skip_contacts_uv))
-			  {
-				n_c++;
-			  }
-	}
-
-	// --
-	// Count active variables, by scanning through all variable blocks..
-
-	int n_q=0;
-	for (unsigned int iv = 0; iv< mvariables.size(); iv++)
-	{
-		if (mvariables[iv]->IsActive())
-		{
-			mvariables[iv]->SetOffset(n_q);	// also store offsets in state and MC matrix
-			n_q += mvariables[iv]->Get_ndof();
-		}
-	} 
-
-	//if (n_q==0) return;
-
-
-	// --
-	// Reset and resize (if needed) auxiliary vectors
-
-	f->Reset(n_q, 1);
-	b->Reset(n_c, 1);		// fast! Reset() method does not realloc if size doesn't change
-
-	// .. fills f vector of forces
-	int s_q=0;
-	for (unsigned int iv = 0; iv< mvariables.size(); iv++)
-	{
-		if (mvariables[iv]->IsActive())
-		{
-			//mvariables[iv]->Get_fb().GetElement(i,0);/////////////////////
-			int nn = mvariables[iv]->Get_fb().GetRows();
-			for(int ii=0; ii<nn; ii++)
-			{
-				f->SetElement(s_q+ii,0,mvariables[iv]->Get_fb().GetElement(ii,0));
-			}
-			s_q += mvariables[iv]->Get_ndof();
-		}
-	}  
-	
-	// .. fills Cq jacobian
-	int s_c=0;
-	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
-	{
-		if (mconstraints[ic]->IsActive())
-		  if (! ((mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) && only_bilaterals))
-			  if ( ! (( dynamic_cast<ChLcpConstraintTwoFrictionT*> (mconstraints[ic])) && skip_contacts_uv))
-			  {
-					//mconstraints[ic]->Get_b_i(); ////////////
-					b->SetElement(s_c,0,mconstraints[ic]->Get_b_i());
-					s_c++;
-			  }
-	}
-
 }
 
 
@@ -556,8 +520,8 @@ void SystemdThreadFunc(void* userPtr,void* lsMemory)
 
 
 
-//#define CH_SERIAL_SHUR
-#define CH_PARALLEL_SHUR
+#define CH_SERIAL_SHUR
+//#define CH_PARALLEL_SHUR
 //#define CH_PARALLEL_TEST
 
 

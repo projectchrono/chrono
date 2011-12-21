@@ -43,11 +43,66 @@ using namespace chrono;
 							if ($self->GetRows() >6) sprintf(temp,"%s ...\n", temp);
 							return &temp[0];
 						}
-			
+					// these functions are also argument-templated, so we need to specify the types
 			%template(CopyFromMatrix) CopyFromMatrix<double>;
 			%template(CopyFromMatrixT) CopyFromMatrixT<double>;
+			%template(MatrAdd) MatrAdd<double,double>;
+			%template(MatrSub) MatrSub<double,double>;
+			%template(MatrInc) MatrInc<double>;
+			%template(MatrDec) MatrDec<double>;
+			%template(MatrMultiply) MatrMultiply<double,double>;
+			%template(MatrTMultiply) MatrTMultiply<double,double>;
+			%template(MatrMultiplyT) MatrMultiplyT<double,double>;
+			//%template(MatrDot) MatrDot<double,double>; // static fn, does not work here..
+			%template(Matr34_x_Quat) Matr34_x_Quat<double>;
+			%template(Matr34T_x_Vect) Matr34T_x_Vect<double>;
+			%template(Matr44_x_Quat) Matr44_x_Quat<double>;
+			%template(PasteMatrix) PasteMatrix<double>;
+			%template(PasteSumMatrix) PasteSumMatrix<double>;
+			%template(PasteTranspMatrix) PasteTranspMatrix<double>;
+			%template(PasteSumTranspMatrix) PasteSumTranspMatrix<double>;
+			%template(PasteClippedMatrix) PasteClippedMatrix<double>;
+			%template(PasteSumClippedMatrix) PasteSumClippedMatrix<double>;
+			%template(PasteVector) PasteVector<double>;
+			%template(PasteSumVector) PasteSumVector<double>;
+			%template(PasteSubVector) PasteSubVector<double>;
+			%template(PasteQuaternion) PasteQuaternion<double>;
+			%template(PasteSumQuaternion) PasteSumQuaternion<double>;
+			%template(PasteCoordsys) PasteCoordsys<double>;
+			%template(Set_Xq_matrix) Set_Xq_matrix<double>;
 		};
 
+%extend chrono::ChMatrixDynamic<double>{
+		public:
+					// these functions are also argument-templated, so we need to specify the types
+					// ***SWIG template mechanism does not work here for operator() ***
+			//%template(operator+) operator+<double>;
+			//%template(operator-) operator-<double>;
+			//%template(operator*) operator*<double>;
+			ChMatrixDynamic<double> operator+(const ChMatrix<double>& matbis) 
+						{ return $self->operator+(matbis);};
+			ChMatrixDynamic<double> operator-(const ChMatrix<double>& matbis) 
+						{ return $self->operator-(matbis);};
+			ChMatrixDynamic<double> operator*(const ChMatrix<double>& matbis) 
+						{ return $self->operator*(matbis);};
+
+		};
+
+%extend chrono::ChMatrix33<double>{
+		public:
+					// these functions are also argument-templated, so we need to specify the types
+					// ***SWIG template mechanism does not work here for operator() ***
+			//%template(operator+) operator+<double>;
+			//%template(operator-) operator-<double>;
+			//%template(operator*) operator*<double>;
+			ChMatrix33<double> operator+(const ChMatrix<double>& matbis) 
+						{ return $self->operator+(matbis);};
+			ChMatrix33<double> operator-(const ChMatrix<double>& matbis) 
+						{ return $self->operator-(matbis);};
+			ChMatrix33<double> operator*(const ChMatrix<double>& matbis) 
+						{ return $self->operator*(matbis);};
+
+		};
 
 //
 // ADD PYTHON CODE

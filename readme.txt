@@ -7,6 +7,19 @@
 Release 1.5.0
 xx-xx-xxxx
 
+- File logging of system matrices and vectors. This feature
+  has been added to allow off-line testing, debugging and 
+  development about the solver: the mass matrix, the jacobians
+  and other terms that define the DVI are saved on disk in an
+  Ascii format that can be loaded in Matlab for testing.
+  Use ChLcpSystemDescriptor::ConvertToMatrixForm().
+  This overrides obsolete BuildMatrices() and BuildVectors().
+
+- When pressing the 'Print Screen' key in the Irrlicht demos,
+  the DVI system matrices are saved on disk in the same directory
+  of the executable, as many 'dump_xxxyyyy.dat' files, for Matlab.
+  This basically calls ChIrrAppInterface::DumpMatrices().
+
 - New unit_PYTHON. This unit, once compiled, allows users to
   use Chrono::Engine from Python because a library is deployed
   among the 'modules' of Python.

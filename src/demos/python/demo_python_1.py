@@ -42,11 +42,23 @@ print 'quat. conjugate  =', my_qconjugate
 print 'quat. dot product=', my_qconjugate ^ my_quat
 print 'quat. product=',     my_qconjugate % my_quat
 
+# Test matrices
+ma = chrono.ChMatrixDynamicD(4,4)
+ma.FillDiag(-2)
+mb = chrono.ChMatrixDynamicD(4,4)
+mb.FillElem(10)
+mc = (ma-mb)*0.1;   # operator overloading of +,-,* is supported
+print mc;
+mr = chrono.ChMatrix33D()
+mr.FillDiag(20)
+print  mr*my_vect1;
+
+
 # Test frames -
 #  create a frame representing a translation and a rotation
 #  of 20 degrees on X axis
-# my_frame = chrono.ChFrameD(my_vect2, chrono.Q_from_AngAxis(20*chrono.CH_C_DEG_TO_RAD, chrono.VECT_X))
-# my_vect5 = my_vect1 >> my_frame
+my_frame = chrono.ChFrameD(my_vect2, chrono.Q_from_AngAxis(20*chrono.CH_C_DEG_TO_RAD, chrono.ChVectorD(1,0,0)))
+my_vect5 = my_vect1 >> my_frame
 
 # Print the class hierarchy of a chrono class
 import inspect

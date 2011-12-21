@@ -22,7 +22,7 @@
 #include "lcp/ChLcpConstraintTwoGeneric.h"
 #include "lcp/ChLcpSystemDescriptor.h"
 #include "lcp/ChLcpIterativeSOR.h"
-#include "lcp/ChLcpIterativeMINRES.h"
+#include "lcp/ChLcpIterativePMINRES.h"
 #include "lcp/ChLcpSimplexSolver.h"
 #include "core/ChLinearAlgebra.h"
 
@@ -269,15 +269,38 @@ void test_2()
 	mdescriptor.EndInsertion();		// ----- system description is finished
 
 
+			try
+			{
+				chrono::ChSparseMatrix mdM;
+				chrono::ChSparseMatrix mdCq;
+				chrono::ChSparseMatrix mdE;
+				chrono::ChMatrixDynamic<double> mdf;
+				chrono::ChMatrixDynamic<double> mdb;
+				chrono::ChMatrixDynamic<double> mdfric;
+				mdescriptor.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
+				chrono::ChStreamOutAsciiFile file_M("dump_M.dat");
+				mdM.StreamOUTsparseMatlabFormat(file_M);
+				chrono::ChStreamOutAsciiFile file_Cq("dump_Cq.dat");
+				mdCq.StreamOUTsparseMatlabFormat(file_Cq);
+				chrono::ChStreamOutAsciiFile file_E("dump_E.dat");
+				mdE.StreamOUTsparseMatlabFormat(file_E);
+				chrono::ChStreamOutAsciiFile file_f("dump_f.dat");
+				mdf.StreamOUTdenseMatlabFormat(file_f);
+				chrono::ChStreamOutAsciiFile file_b("dump_b.dat");
+				mdb.StreamOUTdenseMatlabFormat(file_b);
+				chrono::ChStreamOutAsciiFile file_fric("dump_fric.dat");
+				mdfric.StreamOUTdenseMatlabFormat(file_fric);
+			} 
+			catch(chrono::ChException myexc)
+			{
+				chrono::GetLog() << myexc.what();
+			}
+
 	// Create a solver of Krylov type
-	ChLcpIterativeMINRES msolver_krylov(50,			// max iterations
+	ChLcpIterativePMINRES msolver_krylov(20,		// max iterations
 										false,		// warm start
 										0.00001);	// tolerance  
 
-	msolver_krylov.SetOmega(0.2);
-	msolver_krylov.SetMaxIterations(80);
-	msolver_krylov.SetFeasTolerance(0.1);
-	msolver_krylov.SetMaxFixedpointSteps(15);
 
 	// .. pass the constraint and the variables to the solver 
 	//    to solve - that's all.

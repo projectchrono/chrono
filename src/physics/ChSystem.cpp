@@ -30,7 +30,8 @@
 #include "lcp/ChLcpIterativeSymmSOR.h"
 #include "lcp/ChLcpIterativeSORmultithread.h"
 #include "lcp/ChLcpIterativeJacobi.h"
-#include "lcp/ChLcpIterativeMINRES.h"
+//#include "lcp/ChLcpIterativeMINRES.h"
+#include "lcp/ChLcpIterativePMINRES.h"
 #include "lcp/ChLcpIterativeBB.h"
 #include "lcp/ChLcpIterativePCG.h"
 #include "lcp/ChLcpSolverDEM.h"
@@ -306,7 +307,7 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
 	step_min = 0.002;
 	step_max = 0.04;
 	tol = 0.0002;
-	tol_speeds = 0.002;
+	tol_speeds = 1e-6;
 	normtype = NORM_INF;
 	maxiter = 6;
 	order = 1;
@@ -574,9 +575,9 @@ void ChSystem::SetLcpSolverType(eCh_lcpSolver mval)
 		LCP_solver_speed = new ChLcpIterativeSORmultithread("speedLCP",parallel_thread_number);
 		LCP_solver_stab = new ChLcpIterativeSORmultithread("posLCP",parallel_thread_number);
 		break;
-	case LCP_ITERATIVE_PMINRES:
-		LCP_solver_speed = new ChLcpIterativeMINRES();
-		LCP_solver_stab = new ChLcpIterativeMINRES();
+	case LCP_ITERATIVE_PMINRES: 
+		LCP_solver_speed = new ChLcpIterativePMINRES();
+		LCP_solver_stab = new ChLcpIterativePMINRES();
 		break;
 	case LCP_ITERATIVE_BARZILAIBORWEIN:
 		LCP_solver_speed = new ChLcpIterativeBB();

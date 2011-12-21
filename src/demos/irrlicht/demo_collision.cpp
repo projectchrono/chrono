@@ -90,7 +90,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 											ChVector<>(1.5,1.5,1.5) );
 
 		mrigidBody->GetBody()->SetInertiaXX(ChVector<>(1.2,1.2,1.2));
-		mrigidBody->GetBody()->SetFriction(0.4f);
+		mrigidBody->GetBody()->SetFriction(0.2f);
 		mrigidBody->addShadowVolumeSceneNode(); 
 
 
@@ -102,7 +102,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 											ChVector<>(1.5,0.5,1.5) );
 
 		mrigidBody->GetBody()->SetInertiaXX(ChVector<>(1.2,1.2,1.2));
-		mrigidBody->GetBody()->SetFriction(0.4f);
+		mrigidBody->GetBody()->SetFriction(0.2f);
 		mrigidBody->addShadowVolumeSceneNode();
 
 		video::ITexture* cylinderMap = driver->getTexture("../data/pinkwhite.png");
@@ -208,7 +208,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 											ChVector<>(10,5.5,1) ); 
 	rotatingBody->GetBody()->SetMass(10);
 	rotatingBody->GetBody()->SetInertiaXX(ChVector<>(50,50,50));
-	rotatingBody->GetBody()->SetFriction(0.4f);
+	rotatingBody->GetBody()->SetFriction(0.2f);
 	rotatingBody->addShadowVolumeSceneNode();
 
 	// .. an engine between mixer and truss	

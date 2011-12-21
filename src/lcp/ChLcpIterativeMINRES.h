@@ -27,7 +27,7 @@ namespace chrono
 
 /// An iterative LCP solver based on modified 
 /// Krylov iteration of MINRES type alternated with
-/// gradient projection.
+/// gradient projection (active set)
 /// The problem is described by an LCP of type
 ///
 ///    | M -Cq'|*|q|- | f|= |0| ,   c>=0, l>=0, l*c=0;

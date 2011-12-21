@@ -7,8 +7,17 @@ using namespace chrono;
 
 %}
  
+// Forward ref
+//%import "ChMatrix.i"   //***THIS CONFUSES SWIG!
+//class chrono::ChMatrix33<Real>; //***THIS DOES NOT WORK!
+//namespace chrono {  //***THESE DO NOT WORK!
+	//class ChMatrix33<double>;
+	//%template(ChMatrix33D) chrono::ChMatrix33<double>; 
+	//template <class Real> class ChMatrix33<Real>;
+//}
+
 /* Parse the header file to generate wrappers */
- %include "../core/ChFrame.h"    
+%include "../core/ChFrame.h"    
 
 
 
