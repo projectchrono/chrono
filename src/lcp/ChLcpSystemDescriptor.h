@@ -121,17 +121,7 @@ public:
 	virtual int CountActiveConstraints();
 
 
-				/// The following function may be used to create the full Jacobian and the full
-				/// mass matrix of the complementarity problem in matrix form, by assembling all 
-				/// the jacobians of all the constraints/contacts and all the mass matrices. This
-				/// can be useful for debugging, data dumping, and similar purposes.
-				/// Optionally, tangential (u,v) contact jacobians may be skipped, etc.
-				/// The sparse matrices are automatically resized if needed.
-	virtual void BuildMatrices (ChSparseMatrix* Cq, ///< fill this system jacobian matrix, if not null
-								ChSparseMatrix* M,	///< fill this system mass matrix, if not null
-								bool only_bilaterals = false, 
-								bool skip_contacts_uv = false);
-	
+
 				/// Get a vector with all the 'fb' known terms ('forces'etc.) associated to all variables,
 				/// ordered into a column vector. The column vector must be passed as a ChMatrix<>
 				/// object, which will be automatically reset and resized to the proper length if necessary.
@@ -144,14 +134,7 @@ public:
 	virtual int BuildBiVector(
 								ChMatrix<>& Bvector  	///< matrix which will contain the entire vector of 'b'
 							);
-				/// The following function may be used to create the full f and b vectors
-				/// of the complementarity problem, by assembling all the terms. This
-				/// can be useful for debugging, data dumping, and similar purposes.
-				/// Optionally, tangential (u,v) components may be skipped, etc.
-	virtual void BuildVectors (ChSparseMatrix* f, ///< fill this vector, if not null
-								ChSparseMatrix* b,	///< fill this vector, if not null
-								bool only_bilaterals = false, 
-								bool skip_contacts_uv = false);
+
 				/// Using this function, one may get a vector with all the variables 'q'
 				/// ordered into a column vector. The column vector must be passed as a ChMatrix<>
 				/// object, which will be automatically reset and resized to the proper length if necessary
@@ -187,7 +170,6 @@ public:
 	virtual int FromConstraintsToVector(
 								ChMatrix<>& mvector,		///< matrix which will contain the entire vector of 'l_i'
 								bool resize_vector=true		///< if true the vector size will be checked & resized if necessary
-								//std::vector<bool>* enabled  ///< optional: vector of enable flags, one per scalar constraint. true=enable, false=disable (skip)
 								);
 
 				/// Using this function, one may go in the opposite direction of the FromConstraintsToVector()
@@ -202,7 +184,6 @@ public:
 				/// \return  the number of scalar constraint multipliers (i.e. the rows of the column vector).
 	virtual int FromVectorToConstraints(
 								ChMatrix<>& mvector			///< matrix which contains the entire vector of 'l_i'
-								//std::vector<bool>* enabled  ///< optional: vector of enable flags, one per scalar constraint. true=enable, false=disable (skip)
 								);
 
 
@@ -220,7 +201,7 @@ public:
 	virtual void ShurComplementProduct(	
 								ChMatrix<>&	result,			///< matrix which contains the result of  N*l_i 
 								ChMatrix<>* lvector,		///< optional matrix with the vector to be multiplied (if null, use current constr. multipliers l_i)
-								std::vector<bool>* enabled  ///< optional: vector of enable flags, one per scalar constraint. true=enable, false=disable (skip)
+								std::vector<bool>* enabled=0 ///< optional: vector of enable flags, one per scalar constraint. true=enable, false=disable (skip)
 								);
 
 				/// Performs projecton of constraint multipliers onto allowed set (in case
@@ -233,6 +214,47 @@ public:
 								ChMatrix<>&	multipliers		///< matrix which contains the entire vector of 'l_i' multipliers to be projected
 								);
 
+
+				/// The following function may be used to create the Jacobian and the 
+				/// mass matrix of the variational problem in matrix form, by assembling all 
+				/// the jacobians of all the constraints/contacts, all the mass matrices, all vectors,
+				/// as they are _currently_ stored in the sparse data of all ChConstraint and ChVariables 
+				/// contained in this ChLcpSystemDescriptor. 
+				/// The matrices define the DVI variational inequality:
+				///
+				///  | M -Cq'|*|q|- | f|= |0| , l \in friction cone, C \in normal to friction cone 
+				///  | Cq  E | |l|  |-b|  |C|    (case no friction: LCP C>=0, l>=0, l*c=0;)   
+				///                              (case only bilaterals: linear system, c=0)
+				///
+				/// Note 1: most often you'll call ConvertToMatrixForm() right after a dynamic simulation timestep,
+				///         because the system matrices are properly initialized,
+				/// Note 2: when using Anitescu default stepper, the 'f' vector contains forces*timestep = F*dt
+				/// Note 3: when using Anitescu default stepper, q represents the 'delta speed',
+				/// Note 4: when using Anitescu default stepper, b represents the dt/phi stabilization term. 
+				///  This can be useful for debugging, data dumping, and similar purposes (most solvers avoid 
+				/// using these matrices, for performance), for example you will load these matrices in Matlab.
+				/// Optionally, tangential (u,v) contact jacobians may be skipped, or only bilaterals can be considered
+				/// The matrices and vectors are automatically resized if needed.
+	virtual void ConvertToMatrixForm 
+								 (ChSparseMatrix* Cq, ///< fill this system jacobian matrix, if not null
+								  ChSparseMatrix* M,  ///< fill this system mass matrix, if not null
+								  ChSparseMatrix* E,  ///< fill this system 'compliance' matrix , if not null
+								  ChMatrix<>* Fvector,///< fill this vector as the known term 'f', if not null
+								  ChMatrix<>* Bvector,///< fill this vector as the known term 'b', if not null
+								  ChMatrix<>* Frict,  ///< fill as a vector with friction coefficients (=-1 for tangent comp.; =-2 for bilaterals), if not null
+								bool only_bilaterals = false, 
+								bool skip_contacts_uv = false);
+
+				/// OBSOLETE. Kept only for bacward compability. Use rather: ConvertToMatrixForm
+	virtual void BuildMatrices (ChSparseMatrix* Cq,
+								ChSparseMatrix* M,
+								bool only_bilaterals = false, 
+								bool skip_contacts_uv = false);
+				/// OBSOLETE. Kept only for bacward compability. Use rather: ConvertToMatrixForm, or BuildFbVector or BuildBiVector
+	virtual void BuildVectors (ChSparseMatrix* f, 
+								ChSparseMatrix* b,	
+								bool only_bilaterals = false, 
+								bool skip_contacts_uv = false);
 };
 
 

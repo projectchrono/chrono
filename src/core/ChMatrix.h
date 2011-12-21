@@ -367,6 +367,7 @@ public:
 	void StreamOUTdenseMatlabFormat(ChStreamOutAscii& mstream)
 						{
 							for(int ii=0; ii<this->GetRows(); ii++)
+							{
 								for(int jj=0; jj<this->GetColumns(); jj++)
 								{
 									mstream << this->GetElement(ii,jj);
@@ -374,6 +375,7 @@ public:
 										mstream << " ";
 								}
 								mstream << "\n";
+							}
 						}
 
 					/// Method to allow serializing transient data into a persistent

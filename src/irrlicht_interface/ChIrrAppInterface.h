@@ -79,6 +79,10 @@ public:
 					app->pause_step = true;
 					app->do_single_step = true;
 					return true;
+				case irr::KEY_SNAPSHOT:
+					chrono::GetLog() << "Saving system vector and matrices to dump_xxyy.dat files.\n";
+					app->DumpMatrices();
+					return true;
 				}
 			}
 
@@ -589,6 +593,60 @@ public:
  
 			//if(show_infos)
 			GetIGUIEnvironment()->drawAll();
+		}
+
+			/// Dump the last used system matrices and vectors in the current directory,
+			/// as 'dump_xxxx.dat' files that can be loaded with Matlab for debugging,
+			/// benchmarking etc. It saves M mass matrix, Cq jacobians, E compliance
+			/// as Matlab sparse matrix format, and known vectors fb, bi as column Matlab matrices.
+	void DumpMatrices()
+		{
+			// For safety
+			this->GetSystem()->Setup();
+			this->GetSystem()->Update();
+
+			// Save the current speeds, maybe these are needed.
+			try
+			{
+				chrono::ChMatrixDynamic<double> mvold;
+				this->GetSystem()->GetLcpSystemDescriptor()->FromVariablesToVector(mvold);
+				chrono::ChStreamOutAsciiFile file_vold("dump_v_old.dat");
+				mvold.StreamOUTdenseMatlabFormat(file_vold);
+			}
+			catch(chrono::ChException myexc)
+			{	chrono::GetLog() << myexc.what(); }
+
+			// This DoStep() is necessary because we want to get the matrices as they
+			// are set-up for the time stepping LCP/CCP problem.
+			// (If we avoid this, the previous 'mvold' vector won't be in-sync.)
+			this->DoStep(); 
+
+			// Now save the matrices - as they were setup by the previous time stepping scheme.
+			try
+			{
+				chrono::ChSparseMatrix mdM;
+				chrono::ChSparseMatrix mdCq;
+				chrono::ChSparseMatrix mdE;
+				chrono::ChMatrixDynamic<double> mdf;
+				chrono::ChMatrixDynamic<double> mdb;
+				chrono::ChMatrixDynamic<double> mdfric;
+				this->GetSystem()->GetLcpSystemDescriptor()->ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
+				chrono::ChStreamOutAsciiFile file_M("dump_M.dat");
+				mdM.StreamOUTsparseMatlabFormat(file_M);
+				chrono::ChStreamOutAsciiFile file_Cq("dump_Cq.dat");
+				mdCq.StreamOUTsparseMatlabFormat(file_Cq);
+				chrono::ChStreamOutAsciiFile file_E("dump_E.dat");
+				mdE.StreamOUTsparseMatlabFormat(file_E);
+				chrono::ChStreamOutAsciiFile file_f("dump_f.dat");
+				mdf.StreamOUTdenseMatlabFormat(file_f);
+				chrono::ChStreamOutAsciiFile file_b("dump_b.dat");
+				mdb.StreamOUTdenseMatlabFormat(file_b);
+				chrono::ChStreamOutAsciiFile file_fric("dump_fric.dat");
+				mdfric.StreamOUTdenseMatlabFormat(file_fric);
+			} 
+			catch(chrono::ChException myexc)
+			{	chrono::GetLog() << myexc.what(); }
+
 		}
 
 

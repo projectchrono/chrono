@@ -26,6 +26,33 @@ double ChLcpIterativeBB::Solve(
 	std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
 	std::vector<ChLcpVariables*>&  mvariables	= sysd.GetVariablesList();
 
+//***TEST***
+	chrono::ChSparseMatrix mdM;
+	chrono::ChSparseMatrix mdCq;
+	chrono::ChSparseMatrix mdE;
+	chrono::ChMatrixDynamic<double> mdf;
+	chrono::ChMatrixDynamic<double> mdb;
+	chrono::ChMatrixDynamic<double> mdfric;
+	sysd.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
+	chrono::ChStreamOutAsciiFile file_M("solver_M.dat");
+	mdM.StreamOUTsparseMatlabFormat(file_M);
+	chrono::ChStreamOutAsciiFile file_Cq("solver_Cq.dat");
+	mdCq.StreamOUTsparseMatlabFormat(file_Cq);
+	chrono::ChStreamOutAsciiFile file_E("solver_E.dat");
+	mdE.StreamOUTsparseMatlabFormat(file_E);
+	chrono::ChStreamOutAsciiFile file_f("solver_f.dat");
+	mdf.StreamOUTdenseMatlabFormat(file_f);
+	chrono::ChStreamOutAsciiFile file_b("solver_b.dat");
+	mdb.StreamOUTdenseMatlabFormat(file_b);
+	chrono::ChStreamOutAsciiFile file_fric("solver_fric.dat");
+	mdfric.StreamOUTdenseMatlabFormat(file_fric);
+	//
+	chrono::ChStreamOutAsciiFile file_q0("solver_debug_q0.dat");
+	chrono::ChMatrixDynamic<double> minspeeds;
+	sysd.FromVariablesToVector(minspeeds);
+	minspeeds.StreamOUTdenseMatlabFormat(file_q0);
+
+
 	double maxviolation = 0.;
 	int i_friction_comp = 0;
 	int iter_tot = 0;
@@ -119,6 +146,10 @@ double ChLcpIterativeBB::Solve(
 	sysd.BuildBiVector(mb_tmp);	// b_i   =   -c   = phi/h 
 	mb.MatrDec(mb_tmp);
 
+
+//***TEST***
+	chrono::ChStreamOutAsciiFile file_bshur("solver_debug_bshur.dat");
+	mb.StreamOUTdenseMatlabFormat(file_bshur);
 
 //GetLog() << "--- \n";
 /*
@@ -369,6 +400,17 @@ double ChLcpIterativeBB::Solve(
 			if (mconstraints[ic]->IsActive())
 				GetLog() << mconstraints[ic]->Get_l_i() <<"\n";
 */
+
+	//***TEST***
+	chrono::ChMatrixDynamic<double> mdq;
+	chrono::ChMatrixDynamic<double> mdl;
+	sysd.FromVariablesToVector(mdq);
+	sysd.FromConstraintsToVector(mdl);
+	chrono::ChStreamOutAsciiFile file_q("solver_solved_q.dat");
+	mdf.StreamOUTdenseMatlabFormat(file_q);
+	chrono::ChStreamOutAsciiFile file_l("solver_solved_l.dat");
+	mdl.StreamOUTdenseMatlabFormat(file_l);
+
 
 	if (verbose) GetLog() <<"-----\n";
 
