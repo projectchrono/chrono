@@ -19,8 +19,8 @@
 
 
 #include "core/ChApiCE.h"
-#include "collision/convexdecomposition/hacdHACD.h"
-#include "collision/convexdecomp/NvConvexDecomposition.h"
+#include "collision/convexdecomposition/HACD/hacdHACD.h"
+#include "collision/convexdecomposition/JR/NvConvexDecomposition.h"
 #include "geometry/ChCTriangleMesh.h"
 
 
