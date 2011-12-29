@@ -439,17 +439,19 @@ bool ChModelBullet::AddTriangleMesh (const  geometry::ChTriangleMesh& trimesh,	b
 		} 
 		else
 		{
-			
+			// Note: currently there's no 'perfect' convex decomposition method, 
+			// so here the code is a bit experimental...
+
 			/*
-		      // use this (using GImpact) :
+		      // ----- use this? (using GImpact collision method without decomposition) :
 			  this->AddTriangleMeshConcave(trimesh,pos,rot);
 			*/
 	    
-			
-			   // ..or use this (using a defalt convex decomposition) : 
-			ChConvexDecomposition mydecomposition;
-			mydecomposition.AddTriangleMesh(trimesh);
-			mydecomposition.ComputeConvexDecomposition(0, // skin width
+			   
+			  // ----- ..or use this? (using the JR convex decomposition) : 
+			ChConvexDecompositionJR mydecompositionJR;
+			mydecompositionJR.AddTriangleMesh(trimesh);
+			mydecompositionJR.SetParameters              (0, // skin width
 														9, 64, // depht, max vertices in hull
 														5, // concavity percent
 														5, // merge treshold percent
@@ -457,15 +459,26 @@ bool ChModelBullet::AddTriangleMesh (const  geometry::ChTriangleMesh& trimesh,	b
 														true, // use initial island generation 
 														false // use island generation (unsupported-disabled)
 														);
-			//mydecomposition.WriteConvexHullsAsWavefrontObj(ChStreamOutAsciiFile("test_hulls.obj")); // debug
-			this->AddTriangleMeshConcaveDecomposed(mydecomposition, pos, rot);
+			mydecompositionJR.ComputeConvexDecomposition();
+			this->AddTriangleMeshConcaveDecomposed(mydecompositionJR, pos, rot);
 
 			/*
-		       // or this (using the default GI convex decomposition) :
-			btCollisionShape* pShape = (btGImpactConvexDecompositionShape_handlemesh*) new btGImpactConvexDecompositionShape_handlemesh(bulletMesh);
-			 pShape->setMargin( (btScalar) this->GetEnvelope() ); 
-			((btGImpactMeshShape_handlemesh*)pShape)->updateBound();
-			_injectShape (pos,rot, pShape);
+			 // ----- ..or use this? (using the HACD convex decomposition) : 
+			ChConvexDecompositionHACD mydecompositionHACD;
+			mydecompositionHACD.AddTriangleMesh(trimesh);
+			mydecompositionHACD.SetParameters          (2, // clusters
+														0, // no decimation
+														0.0, // small cluster threshold
+														false, // add faces points
+														false, // add extra dist points
+														100.0, // max concavity
+														30, // cc connect dist
+														0.0, // volume weight beta
+														0.0, // compacity alpha
+														50 // vertices per cc
+														);
+			mydecompositionHACD.ComputeConvexDecomposition();
+			this->AddTriangleMeshConcaveDecomposed(mydecompositionHACD, pos, rot);
 			*/
 
 		}
@@ -517,13 +530,16 @@ bool ChModelBullet::AddTriangleMeshConcaveDecomposed(
 	{
 		std::vector< ChVector<double> > ptlist;
 
-		CONVEX_DECOMPOSITION::ConvexHullResult result;
-		if (!mydecomposition.GetDecompositionObject()->getConvexHullResult(j, result)) return false;
-		for (unsigned int i=0; i<result.mVcount; i++)
-		{
-			ChVector<double> pt ( (double)result.mVertices[3*i+0], (double)result.mVertices[3*i+1], (double)result.mVertices[3*i+2] );
-			ptlist.push_back(pt);
-		}
+		ChTriangleMesh chmesh_hull;
+		mydecomposition.GetConvexHullResult(j, chmesh_hull);
+
+		//CONVEX_DECOMPOSITION::ConvexHullResult result;
+		//if (!mydecomposition.GetDecompositionObject()->getConvexHullResult(j, result)) return false;
+		//for (unsigned int i=0; i<result.mVcount; i++)
+		//{
+		//	ChVector<double> pt ( (double)result.mVertices[3*i+0], (double)result.mVertices[3*i+1], (double)result.mVertices[3*i+2] );
+		//	ptlist.push_back(pt);
+		//}
 
 		if (ptlist.size())
 			this->AddConvexHull(ptlist,pos,rot);

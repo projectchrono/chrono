@@ -102,7 +102,7 @@ public:
 		/// representations as compounds of convex shapes of boxes/spheres/etc.. type. 
   virtual bool AddTriangleMesh (const  geometry::ChTriangleMesh& trimesh,	///< the triangle mesh
 								bool is_static,			///< true only if model doesn't move (es.a terrain). May improve performance
-								bool is_convex,			///< true if mesh is used as a convex hull(only for simple mesh). May improve robustness
+								bool is_convex,			///< true if mesh is used as a convex hull(only for simple mesh), otherwise if false, handle as concave
 								ChVector<>* pos=0, ChMatrix33<>* rot=0 ///< displacement respect to COG (optional)
 								);  
 
