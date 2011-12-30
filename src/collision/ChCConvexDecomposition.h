@@ -20,6 +20,7 @@
 
 #include "core/ChApiCE.h"
 #include "collision/convexdecomposition/HACD/hacdHACD.h"
+#include "collision/convexdecomposition/HACDv2/HACD.h"
 #include "collision/convexdecomposition/JR/NvConvexDecomposition.h"
 #include "geometry/ChCTriangleMesh.h"
 
@@ -311,6 +312,96 @@ private:
 };
 
 
+
+
+
+///
+/// Class for wrapping the HACD convex decomposition code
+/// revisited by John Ratcliff 
+///
+
+
+class ChApi ChConvexDecompositionHACDv2 : public ChConvexDecomposition
+{
+public:
+
+	//
+	// FUNCTIONS
+	//
+
+		/// Basic constructor
+	ChConvexDecompositionHACDv2();
+
+		/// Destructor
+	virtual ~ChConvexDecompositionHACDv2();
+
+		/// Reset the input mesh data
+	virtual void Reset(void);
+
+		/// Add a triangle, by passing three points for vertexes. 
+		/// Note: the vertexes must be properly ordered (oriented triangle, normal pointing outside)
+	virtual bool AddTriangle(const ChVector<>& v1,const ChVector<>& v2,const ChVector<>& v3);
+
+		/// Add a triangle mesh soup, by passing an entire ChTriangleMesh object.
+		/// Note 1: the triangle mesh does not need connectivity information (a basic 'triangle soup' is enough)
+		/// Note 2: all vertexes must be properly ordered (oriented triangles, normals pointing outside).
+		/// Note 3: the triangles must define closed volumes (holes, gaps in edges, etc. may trouble the decomposition)
+	virtual bool AddTriangleMesh(const ChTriangleMesh& tm);
+
+
+		/// Set the parameters for this convex decomposition algorithm. 
+		/// Use this function before calling ComputeConvexDecomposition().
+	void SetParameters(
+				unsigned int	mMaxHullCount = 256,
+				unsigned int	mMaxMergeHullCount = 256,
+				unsigned int	mMaxHullVertices = 64,
+				float			mConcavity = 0.2f,
+				float			mSmallClusterThreshold = 0.0f,
+				float			mFuseTolerance = 1e-9		///< in input mesh, repeated vertices within this tolerance are fused
+										 );
+
+		/// Perform the convex decomposition. 
+		/// This operation is time consuming, and it may take a while to complete.
+		/// Quality of the results can depend a lot on the parameters. Also, meshes
+		/// with triangles that are not well oriented (normals always pointing outside)
+		/// or with gaps/holes, may give wrong results.
+	virtual int ComputeConvexDecomposition();
+
+
+		/// Get the number of computed hulls after the convex decomposition
+	virtual unsigned int GetHullCount();
+
+
+		/// Get the n-th computed convex hull, by filling a ChTriangleMesh object
+		/// that is passed as a parameter.
+	virtual bool GetConvexHullResult(unsigned int hullIndex, ChTriangleMesh& convextrimesh);
+
+		/// Get the n-th computed convex hull, by filling a vector of points of the vertexes of the n-th hull
+		/// that is passed as a parameter.
+	virtual bool GetConvexHullResult(unsigned int hullIndex, std::vector< ChVector<double> >& convexhull);
+
+
+	//
+	// SERIALIZATION
+	//
+
+		/// Save the computed convex hulls as a Wavefront file using the
+		/// '.obj' fileformat, with each hull as a separate group. 
+		/// May throw exceptions if file locked etc.
+	virtual void WriteConvexHullsAsWavefrontObj(ChStreamOutAscii& mstream);
+
+
+	//
+	// DATA
+	//
+
+private:
+	HACD::HACD_API::Desc descriptor;
+	HACD::HACD_API* gHACD;
+	std::vector< ChVector<double> > points;
+	std::vector< ChVector<int> > triangles;
+	double fuse_tol;
+};
 
 
 
