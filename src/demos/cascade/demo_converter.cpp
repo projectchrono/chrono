@@ -101,7 +101,19 @@ scene::IAnimatedMesh*	modelMesh;
 scene::IAnimatedMeshSceneNode* modelNode; 
 scene::ISceneNode* decompositionNode; 
 
-ChConvexDecomposition mydecomposition;
+ChConvexDecompositionJR		mydecompositionJR;
+ChConvexDecompositionHACDv2 mydecompositionHACDv2;
+
+ChConvexDecomposition* used_decomposition;
+
+int algo_type = 0;
+
+int hacd_maxhullcount;
+int hacd_maxhullmerge;
+int hacd_maxhullvertexes;
+double hacd_concavity;
+double hacd_smallclusterthreshold;
+double hacd_fusetolerance;
 
 int decompdepth;
 int maxhullvert;
@@ -212,28 +224,49 @@ void DecomposeModel(ChIrrAppInterface* application)
 	// Perform the convex decomposition
 	// using the desired parameters.
 
-	mydecomposition.Reset();
-	mydecomposition.AddTriangleMesh(chmesh);
-	
-	mydecomposition.ComputeConvexDecomposition(
-					0,	 // skin width 
-					decompdepth, // decomp.depth 
-					maxhullvert, // max hull vertexes
-					concavity,   // concavity threshold percent 
-					merge,		 // merge threshold percent
-					volumep,     // volume split percent
-					true, // initial islands
-					false);
-	
+	if (algo_type == 0)
+	{
+		mydecompositionJR.Reset();
+		mydecompositionJR.AddTriangleMesh(chmesh);
+		mydecompositionJR.SetParameters(
+						0,	 // skin width 
+						decompdepth, // decomp.depth 
+						maxhullvert, // max hull vertexes
+						concavity,   // concavity threshold percent 
+						merge,		 // merge threshold percent
+						volumep,     // volume split percent
+						useinitialislands, // initial islands
+						false);
+		mydecompositionJR.ComputeConvexDecomposition();
+		used_decomposition = &mydecompositionJR;
+	}
+
+	if (algo_type ==1)
+	{
+		mydecompositionHACDv2.Reset();
+		mydecompositionHACDv2.AddTriangleMesh(chmesh);
+		
+		mydecompositionHACDv2.SetParameters(
+						hacd_maxhullcount,
+						hacd_maxhullmerge,
+						hacd_maxhullvertexes,
+						hacd_concavity,
+						hacd_smallclusterthreshold,
+						hacd_fusetolerance
+						);			
+		mydecompositionHACDv2.ComputeConvexDecomposition();
+		used_decomposition = &mydecompositionHACDv2;
+	}
+
 	// Visualize the resulting convex decomposition by creating many
 	// colored meshes, each per convex hull.
-	for (unsigned int j = 0; j< mydecomposition.GetHullCount(); j++)
+	for (unsigned int j = 0; j< used_decomposition->GetHullCount(); j++)
 	{
 		scene::SMesh* mmesh = new scene::SMesh();	
 
 		// Get the j-th convex hull as a ChTriangleMesh.
 		ChTriangleMesh chmesh_hull;
-		mydecomposition.GetConvexHullResult(j, chmesh_hull);
+		used_decomposition->GetConvexHullResult(j, chmesh_hull);
 
 		video::SColor clr(255, 20+(int)(140.*ChRandom()), 20+(int)(140.*ChRandom()),  20+(int)(140.*ChRandom()));
 
@@ -269,7 +302,7 @@ void SaveHullsWavefront(ChIrrAppInterface* application, const char* filename)
 	try
 	{
 		ChStreamOutAsciiFile decomposed_objfile(filename);
-		mydecomposition.WriteConvexHullsAsWavefrontObj(decomposed_objfile);
+		mydecompositionJR.WriteConvexHullsAsWavefrontObj(decomposed_objfile);
 	}
 	catch (ChException myex)
 	{
@@ -285,7 +318,7 @@ void SaveHullsChulls(ChIrrAppInterface* application, const char* filename)
 	try
 	{
 		ChStreamOutAsciiFile decomposed_objfile(filename);
-		mydecomposition.WriteConvexHullsAsChullsFile(decomposed_objfile);
+		mydecompositionJR.WriteConvexHullsAsChullsFile(decomposed_objfile);
 	}
 	catch (ChException myex)
 	{
@@ -328,6 +361,11 @@ public:
 				submenu->addItem(L"View model", 93);
 				submenu->addItem(L"View decomposition", 94);
 
+				gad_algo_type = app->GetIGUIEnvironment()->addComboBox(core::rect<s32>(510, 35, 650, 50), 0, 201);
+					gad_algo_type->addItem(L"JR algorithm");
+					gad_algo_type->addItem(L"HACDv2 algorithm");
+				gad_algo_type->setSelected(algo_type);
+
 				// ..add a GUI
 				edit_decompdepth = app->GetIGUIEnvironment()->addEditBox(irr::core::stringw((int)decompdepth).c_str(),  
 					core::rect<s32>(510, 60, 650, 75), true, 0, 101);
@@ -361,13 +399,75 @@ public:
 				// ..add a GUI  
 				checkbox_islands = app->GetIGUIEnvironment()->addCheckBox(
 					useinitialislands, core::rect<s32>(620, 185, 650, 200), 0, 110);
-				gui::IGUIStaticText* text_islands = app->GetIGUIEnvironment()->addStaticText(
+				text_islands = app->GetIGUIEnvironment()->addStaticText(
 					L"Use initial mesh islands", core::rect<s32>(650,185,850,200), false);
+
+				// ..add a GUI
+				edit_hacd_maxhullcount = app->GetIGUIEnvironment()->addEditBox(irr::core::stringw((int)hacd_maxhullcount).c_str(),  
+					core::rect<s32>(510, 60, 650, 75), true, 0, 121);
+				text_hacd_maxhullcount = app->GetIGUIEnvironment()->addStaticText(
+					L"Max. hull count ", core::rect<s32>(650,60,750,75), false);
+
+				// ..add a GUI
+				edit_hacd_maxhullmerge = app->GetIGUIEnvironment()->addEditBox(irr::core::stringw((int)hacd_maxhullmerge).c_str(),  
+					core::rect<s32>(510, 85, 650, 100), true, 0, 122);
+				text_hacd_maxhullmerge = app->GetIGUIEnvironment()->addStaticText(
+					L"Max. hull merge ", core::rect<s32>(650,85,750,100), false);
+
+				// ..add a GUI
+				edit_hacd_maxhullvertexes = app->GetIGUIEnvironment()->addEditBox(irr::core::stringw((int)hacd_maxhullvertexes).c_str(),  
+					core::rect<s32>(510, 110, 650, 125), true, 0, 123);
+				text_hacd_maxhullvertexes = app->GetIGUIEnvironment()->addStaticText(
+					L"Max. vertexes per hull", core::rect<s32>(650,110,750,125), false);
+
+				// ..add a GUI
+				edit_hacd_concavity = app->GetIGUIEnvironment()->addEditBox(irr::core::stringw(hacd_concavity).c_str(),  
+					core::rect<s32>(510, 135, 650, 150), true, 0, 124);
+				text_hacd_concavity = app->GetIGUIEnvironment()->addStaticText(
+					L"Max. concavity (0..1)", core::rect<s32>(650,135,750,150), false);
+
+				// ..add a GUI
+				edit_hacd_smallclusterthreshold = app->GetIGUIEnvironment()->addEditBox(irr::core::stringw(hacd_smallclusterthreshold).c_str(),  
+					core::rect<s32>(510, 160, 650, 175), true, 0, 125);
+				text_hacd_smallclusterthreshold = app->GetIGUIEnvironment()->addStaticText(
+					L"Small cluster threshold", core::rect<s32>(650,160,750,175), false);
+
+				// ..add a GUI
+				edit_hacd_fusetolerance = app->GetIGUIEnvironment()->addEditBox(irr::core::stringw(hacd_fusetolerance).c_str(),  
+					core::rect<s32>(510, 185, 650, 200), true, 0, 126);
+				text_hacd_fusetolerance = app->GetIGUIEnvironment()->addStaticText(
+					L"Vertex fuse tolerance", core::rect<s32>(650,185,750,200), false);
+
 
 				// .. add buttons..
 				button_decompose =  app->GetIGUIEnvironment()->addButton(core::rect<s32>(510, 210, 650, 225), 0, 106,
 									L"Decompose", L"Perform convex decomposition");
 
+
+				edit_decompdepth->setVisible(algo_type == 0);
+				text_decompdepth->setVisible(algo_type == 0);
+				edit_maxhullvert->setVisible(algo_type == 0);
+				text_maxhullvert->setVisible(algo_type == 0);
+				edit_concavity->setVisible(algo_type == 0);
+				text_concavity->setVisible(algo_type == 0);
+				edit_merge->setVisible(algo_type == 0);
+				text_merge->setVisible(algo_type == 0);
+				edit_volume->setVisible(algo_type == 0);
+				text_volume->setVisible(algo_type == 0);
+				checkbox_islands->setVisible(algo_type == 0);
+				text_islands->setVisible(algo_type == 0);
+				text_hacd_maxhullcount->setVisible(algo_type == 1);
+				edit_hacd_maxhullcount->setVisible(algo_type == 1);
+				text_hacd_maxhullmerge->setVisible(algo_type == 1);
+				edit_hacd_maxhullmerge->setVisible(algo_type == 1);
+				text_hacd_maxhullvertexes->setVisible(algo_type == 1);
+				edit_hacd_maxhullvertexes->setVisible(algo_type == 1);
+				text_hacd_concavity->setVisible(algo_type == 1);
+				edit_hacd_concavity->setVisible(algo_type == 1);
+				text_hacd_smallclusterthreshold->setVisible(algo_type == 1);
+				edit_hacd_smallclusterthreshold->setVisible(algo_type == 1);
+				text_hacd_fusetolerance->setVisible(algo_type == 1);
+				edit_hacd_fusetolerance->setVisible(algo_type == 1);
 
 			}
 
@@ -482,9 +582,71 @@ public:
 								volumep =  (float)atof( irr::core::stringc(medit->getText()).c_str() ) ;
 								medit->setText(irr::core::stringw(volumep).c_str());
 								break;
+							case 121: 
+								hacd_maxhullcount =  atof( irr::core::stringc(medit->getText()).c_str() ) ;
+								medit->setText(irr::core::stringw(hacd_maxhullcount).c_str());
+								break;
+							case 122: 
+								hacd_maxhullmerge =  atof( irr::core::stringc(medit->getText()).c_str() ) ;
+								medit->setText(irr::core::stringw(hacd_maxhullmerge).c_str());
+								break;
+							case 123: 
+								hacd_maxhullvertexes =  atof( irr::core::stringc(medit->getText()).c_str() ) ;
+								medit->setText(irr::core::stringw(hacd_maxhullvertexes).c_str());
+								break;
+							case 124: 
+								hacd_concavity =  atof( irr::core::stringc(medit->getText()).c_str() ) ;
+								medit->setText(irr::core::stringw(hacd_concavity).c_str());
+								break;
+							case 125: 
+								hacd_smallclusterthreshold =  atof( irr::core::stringc(medit->getText()).c_str() ) ;
+								medit->setText(irr::core::stringw(hacd_smallclusterthreshold).c_str());
+								break;
+							case 126: 
+								hacd_fusetolerance =  atof( irr::core::stringc(medit->getText()).c_str() ) ;
+								medit->setText(irr::core::stringw(hacd_fusetolerance).c_str());
+								break;
 							}
 						}
 						break;
+
+					case gui::EGET_COMBO_BOX_CHANGED:
+						if (id == 201)
+						{		
+							int sel = ( (gui::IGUIComboBox*)event.GUIEvent.Caller)->getSelected();
+							switch(sel)
+							{
+								case 0: algo_type = 0;
+									break;
+								case 1: algo_type = 1; 
+									break;
+							}
+							edit_decompdepth->setVisible(algo_type == 0);
+							text_decompdepth->setVisible(algo_type == 0);
+							edit_maxhullvert->setVisible(algo_type == 0);
+							text_maxhullvert->setVisible(algo_type == 0);
+							edit_concavity->setVisible(algo_type == 0);
+							text_concavity->setVisible(algo_type == 0);
+							edit_merge->setVisible(algo_type == 0);
+							text_merge->setVisible(algo_type == 0);
+							edit_volume->setVisible(algo_type == 0);
+							text_volume->setVisible(algo_type == 0);
+							checkbox_islands->setVisible(algo_type == 0);
+							text_islands->setVisible(algo_type == 0);
+							text_hacd_maxhullcount->setVisible(algo_type == 1);
+							edit_hacd_maxhullcount->setVisible(algo_type == 1);
+							text_hacd_maxhullmerge->setVisible(algo_type == 1);
+							edit_hacd_maxhullmerge->setVisible(algo_type == 1);
+							text_hacd_maxhullvertexes->setVisible(algo_type == 1);
+							edit_hacd_maxhullvertexes->setVisible(algo_type == 1);
+							text_hacd_concavity->setVisible(algo_type == 1);
+							edit_hacd_concavity->setVisible(algo_type == 1);
+							text_hacd_smallclusterthreshold->setVisible(algo_type == 1);
+							edit_hacd_smallclusterthreshold->setVisible(algo_type == 1);
+							text_hacd_fusetolerance->setVisible(algo_type == 1);
+							edit_hacd_fusetolerance->setVisible(algo_type == 1);
+							break;
+						}
 
 					case gui::EGET_BUTTON_CLICKED:
 						{
@@ -529,7 +691,21 @@ private:
 	gui::IGUIStaticText* text_volume;
 	gui::IGUIEditBox*    edit_volume;
 	gui::IGUICheckBox*	 checkbox_islands;
-	gui::IGUIButton*     button_decompose; 
+	gui::IGUIStaticText* text_islands;
+	gui::IGUIButton*     button_decompose;
+	gui::IGUIStaticText* text_hacd_maxhullcount;
+	gui::IGUIEditBox*    edit_hacd_maxhullcount;
+	gui::IGUIStaticText* text_hacd_maxhullmerge;
+	gui::IGUIEditBox*    edit_hacd_maxhullmerge;
+	gui::IGUIStaticText* text_hacd_maxhullvertexes;
+	gui::IGUIEditBox*    edit_hacd_maxhullvertexes;
+	gui::IGUIStaticText* text_hacd_concavity;
+	gui::IGUIEditBox*    edit_hacd_concavity;
+	gui::IGUIStaticText* text_hacd_smallclusterthreshold;
+	gui::IGUIEditBox*    edit_hacd_smallclusterthreshold;
+	gui::IGUIStaticText* text_hacd_fusetolerance;
+	gui::IGUIEditBox*    edit_hacd_fusetolerance;
+	gui::IGUIComboBox*   gad_algo_type;
 };
 
 
@@ -565,6 +741,13 @@ int main(int argc, char* argv[])
 	modelNode = 0;
 	decompositionNode =0;
 
+	hacd_maxhullcount=512;
+	hacd_maxhullmerge=256;
+	hacd_maxhullvertexes=64;
+	hacd_concavity=0.2;
+	hacd_smallclusterthreshold=0.0;
+	hacd_fusetolerance =1e-9;
+
 	decompdepth = 8;
 	maxhullvert = 640;
 	concavity = 0.1f;
@@ -572,6 +755,7 @@ int main(int argc, char* argv[])
 	volumep = 0.1f;
 	useinitialislands = true;
 
+	used_decomposition = &mydecompositionHACDv2;
 
 	//
 	// USER INTERFACE

@@ -276,6 +276,7 @@ ENDIF(MSVC)
 SET(CH_INCLUDES "${CH_CHRONOSRC}")
 SET(CH_INCLUDES ${CH_INCLUDES} "${CH_CHRONOSRC}/collision/bullet" )
 SET(CH_INCLUDES ${CH_INCLUDES} "${CH_CHRONOSRC}/collision/gimpact" )
+SET(CH_INCLUDES ${CH_INCLUDES} "${CH_CHRONOSRC}/collision/convexdecomposition/HACD" )
 
 INCLUDE_DIRECTORIES( ${CH_INCLUDES} )
 
@@ -641,35 +642,6 @@ ENDIF()
 			)
 	
 	
-	SET(ChronoEngine_collision_convexdecomp_SOURCES
-		collision/convexdecomp/NvConcavityVolume.cpp 
-		collision/convexdecomp/NvConvexDecomposition.cpp 
-		collision/convexdecomp/NvFloatMath.cpp 
-		collision/convexdecomp/NvMeshIslandGeneration.cpp 
-		collision/convexdecomp/NvRayCast.cpp 
-		collision/convexdecomp/NvRemoveTjunctions.cpp 
-		collision/convexdecomp/NvSplitMesh.cpp 
-		collision/convexdecomp/NvStanHull.cpp
-	)
-	SET(ChronoEngine_collision_convexdecomp_HEADERS
-		collision/convexdecomp/NvConcavityVolume.h
-		collision/convexdecomp/NvConvexDecomposition.h
-		collision/convexdecomp/NvFloatMath.h
-		collision/convexdecomp/NvHashMap.h
-		collision/convexdecomp/NvMeshIslandGeneration.h
-		collision/convexdecomp/NvRayCast.h
-		collision/convexdecomp/NvRemoveTjunctions.h
-		collision/convexdecomp/NvSimpleTypes.h
-		collision/convexdecomp/NvSplitMesh.h
-		collision/convexdecomp/NvStanHull.h
-		collision/convexdecomp/NvUserMemAlloc.h
-	)
-	SOURCE_GROUP(collision\\convexdecomp FILES  
-			${ChronoEngine_collision_convexdecomp_SOURCES}
-			${ChronoEngine_collision_convexdecomp_HEADERS}
-			)
-	
-	
 	SET(ChronoEngine_pneumatica_SOURCES
 		pneumatica/assepneumatico.cpp 
 		pneumatica/pistone.cpp 
@@ -978,9 +950,70 @@ ENDIF()
 		collision/gimpact/ConvexDecomposition/splitplane.cpp 
 		collision/gimpact/ConvexDecomposition/vlookup.cpp 
 	)
-	SOURCE_GROUP(collision\\gimpact FILES  ${ChronoEngine_collision_gimpact_SOURCES})
+	SOURCE_GROUP(collision\\gimpact FILES  ${ChronoEngine_collision_gimpact_SOURCES})	
 	
-	
+	SET(ChronoEngine_collision_convexdecompJR_SOURCES
+		collision/convexdecomposition/JR/NvConcavityVolume.cpp 
+		collision/convexdecomposition/JR/NvConvexDecomposition.cpp 
+		collision/convexdecomposition/JR/NvFloatMath.cpp 
+		collision/convexdecomposition/JR/NvMeshIslandGeneration.cpp 
+		collision/convexdecomposition/JR/NvRayCast.cpp 
+		collision/convexdecomposition/JR/NvRemoveTjunctions.cpp 
+		collision/convexdecomposition/JR/NvSplitMesh.cpp 
+		collision/convexdecomposition/JR/NvStanHull.cpp
+	)
+	SET(ChronoEngine_collision_convexdecompJR_HEADERS
+		collision/convexdecomposition/JR/NvConcavityVolume.h
+		collision/convexdecomposition/JR/NvConvexDecomposition.h
+		collision/convexdecomposition/JR/NvFloatMath.h
+		collision/convexdecomposition/JR/NvHashMap.h
+		collision/convexdecomposition/JR/NvMeshIslandGeneration.h
+		collision/convexdecomposition/JR/NvRayCast.h
+		collision/convexdecomposition/JR/NvRemoveTjunctions.h
+		collision/convexdecomposition/JR/NvSimpleTypes.h
+		collision/convexdecomposition/JR/NvSplitMesh.h
+		collision/convexdecomposition/JR/NvStanHull.h
+		collision/convexdecomposition/JR/NvUserMemAlloc.h
+	)
+	SOURCE_GROUP(collision\\convexdecomp\\JR FILES  
+			${ChronoEngine_collision_convexdecompJR_SOURCES}
+			${ChronoEngine_collision_convexdecompJR_HEADERS}
+			)
+			
+			
+	SET(ChronoEngine_collision_convexdecompHACD_SOURCES
+		collision/convexdecomposition/HACD/hacdRaycastMesh.cpp
+		collision/convexdecomposition/HACD/hacdMicroAllocator.cpp
+		collision/convexdecomposition/HACD/hacdGraph.cpp
+		collision/convexdecomposition/HACD/hacdMeshDecimator.cpp
+		collision/convexdecomposition/HACD/hacdHACD.cpp
+		collision/convexdecomposition/HACD/hacdManifoldMesh.cpp
+		collision/convexdecomposition/HACD/hacdICHull.cpp
+	)
+	SOURCE_GROUP(collision\\convexdecomp\\HACD FILES  ${ChronoEngine_collision_convexdecompHACD_SOURCES})
+			
+			
+	SET(ChronoEngine_collision_convexdecompHACDv2_SOURCES
+		collision/convexdecomposition/HACDv2/AutoGeometry.cpp
+		collision/convexdecomposition/HACDv2/HACD.cpp
+		collision/convexdecomposition/HACDv2/ConvexHull.cpp
+		collision/convexdecomposition/HACDv2/WuQuantizer.cpp
+		collision/convexdecomposition/HACDv2/dgTypes.cpp
+		collision/convexdecomposition/HACDv2/dgConvexHull3d.cpp
+		collision/convexdecomposition/HACDv2/dgTree.cpp
+		collision/convexdecomposition/HACDv2/dgGoogol.cpp
+		collision/convexdecomposition/HACDv2/dgSphere.cpp
+		collision/convexdecomposition/HACDv2/dgSmallDeterminant.cpp
+		collision/convexdecomposition/HACDv2/dgQuaternion.cpp
+		collision/convexdecomposition/HACDv2/dgMatrix.cpp
+		collision/convexdecomposition/HACDv2/dgPolyhedra.cpp
+		collision/convexdecomposition/HACDv2/dgMeshEffect.cpp
+		collision/convexdecomposition/HACDv2/MergeHulls.cpp
+		collision/convexdecomposition/HACDv2/wavefront.cpp
+	)
+	SOURCE_GROUP(collision\\convexdecomp\\HACDv2 FILES  ${ChronoEngine_collision_convexdecompHACDv2_SOURCES})
+				
+
 	SET(ChronoEngine_irrlicht_SOURCES
 	)
 	SET(ChronoEngine_irrlicht_HEADERS
@@ -1016,8 +1049,10 @@ ENDIF()
 		${ChronoEngine_geometry_HEADERS}
 		${ChronoEngine_collision_edgetempest_SOURCES}
 		${ChronoEngine_collision_edgetempest_HEADERS}
-		${ChronoEngine_collision_convexdecomp_SOURCES}
-		${ChronoEngine_collision_convexdecomp_HEADERS}
+		${ChronoEngine_collision_convexdecompJR_SOURCES}
+		${ChronoEngine_collision_convexdecompJR_HEADERS}
+		${ChronoEngine_collision_convexdecompHACD_SOURCES}
+		${ChronoEngine_collision_convexdecompHACDv2_SOURCES}
 		${ChronoEngine_pneumatica_SOURCES}
 		${ChronoEngine_pneumatica_HEADERS}
 		${ChronoEngine_motion_functions_SOURCES}
