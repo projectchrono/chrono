@@ -465,6 +465,12 @@ public:
 							for (int nel=0; nel<rows*columns; ++nel)
 								ElementN(nel)*= factor;
 						}
+					/// Scales a matrix, dividing all elements by a constant value: [this]/=f
+	void MatrDivScale	(Real factor)
+						{
+							for (int nel=0; nel<rows*columns; ++nel)
+								ElementN(nel)/= factor;
+						}
 					
 					/// Multiplies two matrices, and stores the result in "this" matrix
 					/// [this]=[A]*[B].  
