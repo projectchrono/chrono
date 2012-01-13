@@ -111,7 +111,7 @@ __device__ __host__ int AABB_C(float3 & min, float3 & max) {
 	uint3 gmax = Hash(max);
 	return (gmax.x - gmin.x + 1) * (gmax.y - gmin.y + 1) * (gmax.z - gmin.z + 1);
 }
-__device__ __host__ int AABB_F(float3 & min, float3 & max, int index, uint * bin_number, uint * body_number, uint* Bins_Intersected) {
+__device__ __host__ void AABB_F(float3 & min, float3 & max, int index, uint * bin_number, uint * body_number, uint* Bins_Intersected) {
 	int count = 0, i, j, k;
 	uint3 gmin = Hash(min);
 	uint3 gmax = Hash(max);

@@ -46,6 +46,7 @@ class ChApiGPU ChLcpIterativeSolverGPUsimple: public ChLcpIterativeSolver {
 
 		virtual double Solve(ChLcpSystemDescriptor& sysd, ///< system description with constraints and variables
 								bool add_Mq_to_f = false) {
+									return 0;
 		} ///< if true, takes the initial 'q' and adds [M]*q to 'f' vector
 		//
 		//		void ApplyForces();
