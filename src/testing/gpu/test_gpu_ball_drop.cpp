@@ -73,7 +73,7 @@ void System::DoTimeStep() {
 }
 
 int main(int argc, char* argv[]) {
-	omp_set_nested(1);
+	//omp_set_nested(1);
 	int gpu= atoi(argv[3]);
 
 	GPUSystem = new System(gpu);
