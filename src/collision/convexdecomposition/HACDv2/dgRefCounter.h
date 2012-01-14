@@ -21,9 +21,9 @@
 
 #ifndef __DGREF_COUNTER__
 #define __DGREF_COUNTER__
-
+#if defined( _WINDOWS )
 #include <crtdbg.h>
-
+#endif
 class dgRefCounter
 {
 	public:

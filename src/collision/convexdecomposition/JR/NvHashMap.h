@@ -1474,6 +1474,7 @@ namespace CONVEX_DECOMPOSITION
 			{
 				if(initialTableSize)
 					reserveInternal(initialTableSize);
+				EOL= 0xffffffff;
 			}
 
 			~HashBase()
@@ -1485,7 +1486,7 @@ namespace CONVEX_DECOMPOSITION
 				}
 			}
 
-			static const int EOL = 0xffffffff;
+			int EOL;	//FIXME changed from static const int EOL=0xffffffff; to non static. Allows compilation on linux
 
 			NX_INLINE Entry *create(const Key &k, bool &exists)
 			{

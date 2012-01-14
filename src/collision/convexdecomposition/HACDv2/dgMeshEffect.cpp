@@ -3948,7 +3948,11 @@ maxCount = 1;
 
 		if (callback)
 		{
+#if defined( _WINDOWS )
 			sprintf_s(msg, "%3.2f %% \t \t \r", (i / (float)faceCount) * 100.0f);
+#else
+			sprintf(msg, "%3.2f %% \t \t \r", (i / (float)faceCount) * 100.0f);
+#endif
 			callback->ReportProgress(msg, progress);
 		}
 
