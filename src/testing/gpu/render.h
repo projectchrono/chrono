@@ -7,6 +7,7 @@
 #include <GL/freeglut.h>
 #include "omp.h"
 #include "unit_GPU/ChSystemGPU.h"
+#include "unit_GPU/ChSystemMultiGPU.h"
 #include "unit_GPU/ChLcpIterativeSolverGPU.h"
 #include "unit_GPU/ChContactContainerGPUsimple.h"
 #include "unit_GPU/ChCCollisionSystemGPU.h"
@@ -303,10 +304,11 @@ void drawObject(ChBodyGPU *abody) {
 		quat.Q_to_AngAxis(angle, axis);
 
 		glPushMatrix();
-		glTranslatef(pos.x, pos.y, pos.z);
+
 
 		switch (type) {
 		case SPHERE:
+			glTranslatef(pos.x, pos.y, pos.z);
 			if (showSphere) {
 				makeSphere(F3(pos.x, pos.y, pos.z), B.x, angle, F3(axis.x, axis.y, axis.z), F3(1, 1, 1));
 			} else {
@@ -321,12 +323,15 @@ void drawObject(ChBodyGPU *abody) {
 			}
 			break;
 		case ELLIPSOID:
+			glTranslatef(pos.x, pos.y, pos.z);
 			makeSphere(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
 			break;
 		case BOX:
+			glTranslatef(pos.x, pos.y, pos.z);
 			makeBox(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
 			break;
 		case CYLINDER:
+			glTranslatef(pos.x, pos.y-B.y, pos.z);
 			makeCyl(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
 			break;
 		}
