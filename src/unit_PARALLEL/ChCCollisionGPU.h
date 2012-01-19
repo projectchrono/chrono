@@ -32,7 +32,7 @@ class ChApiGPU ChCCollisionGPU {
 		~ChCCollisionGPU() {
 		}
 		/// Do Proadphase Step
-		static void Broadphase(float3 &bin_size_vec, gpu_container & gpu_data,ChGPUDataManager * data_container);
+		static void Broadphase(float3 &bin_size_vec, gpu_container & gpu_data);
 		/// Do Narrowphase Step
 		static void Narrowphase(gpu_container & gpu_data);
 		/// Compute Axis Aligned Bounding Boxes for all collision geometries

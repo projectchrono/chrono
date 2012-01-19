@@ -1,5 +1,5 @@
-#ifndef CH_SYSTEMGPU_H
-#define CH_SYSTEMGPU_H
+#ifndef CH_SYSTEMMULTIGPU_H
+#define CH_SYSTEMMULTIGPU_H
 //////////////////////////////////////////////////
 //
 //   ChSystemMultiGPU.h

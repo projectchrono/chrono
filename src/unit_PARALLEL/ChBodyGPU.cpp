@@ -22,7 +22,8 @@ namespace chrono {
 
 	/// CLASS FOR SOLID BODIES
 
-	ChBodyGPU::ChBodyGPU() : ChBody() {
+	ChBodyGPU::ChBodyGPU() :
+		ChBody() {
 		delete collision_model;
 		collision_model = InstanceCollisionModel();
 		id = 0;

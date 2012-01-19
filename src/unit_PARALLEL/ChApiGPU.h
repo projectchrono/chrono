@@ -17,8 +17,6 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-//#pragma warning(disable: 4251)
-
 #include "core/ChPlatform.h"
 
 // Chrono::Engine unit GPU, version
@@ -34,9 +32,9 @@
 // link the library to your code, and the symbols will be imported.
 
 #if defined(CH_API_COMPILE_UNIT_GPU)
-	#define ChApiGPU ChApiEXPORT
+#define ChApiGPU ChApiEXPORT
 #else
-	#define ChApiGPU ChApiINPORT
+#define ChApiGPU ChApiINPORT
 #endif
 
 #endif  // END of header

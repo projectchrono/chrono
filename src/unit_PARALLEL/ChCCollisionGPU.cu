@@ -6,26 +6,6 @@ __constant__ float3 bin_size_vec_const;
 __constant__ float collision_envelope_const;
 using namespace chrono::collision;
 
-typedef thrust::pair<float3, float3> bbox;
-
-// reduce a pair of bounding boxes (a,b) to a bounding box containing a and b
-struct bbox_reduction: public thrust::binary_function<bbox, bbox, bbox> {
-		__host__ __device__
-		bbox operator()(bbox a, bbox b) {
-			float3 ll = F3(fminf(a.first.x, b.first.x), fminf(a.first.y, b.first.y), fminf(a.first.z, b.first.z));// lower left corner
-			float3 ur = F3(fmaxf(a.second.x, b.second.x), fmaxf(a.second.y, b.second.y), fmaxf(a.second.z, b.second.z));// upper right corner
-			return bbox(ll, ur);
-		}
-};
-
-// convert a point to a bbox containing that point, (point) -> (point, point)
-struct bbox_transformation: public thrust::unary_function<float3, bbox> {
-		__host__ __device__
-		bbox operator()(float3 point) {
-			return bbox(point, point);
-		}
-};
-
 __global__ void Compute_AABBs(float3* pos, float4* rot, float3* obA, float3* obB, float3* obC, float4* obR, int3* typ, float3* aabb) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (index >= number_of_models_const) {
@@ -123,7 +103,6 @@ void ChCCollisionGPU::ComputeBounds_HOST(ChGPUDataManager * data_container) {
 	bbox result = thrust::transform_reduce(data_container->host_aabb_data.begin(), data_container->host_aabb_data.end(), unary_op, init, binary_op);
 	data_container->min_bounding_point = result.first;
 	data_container->max_bounding_point = result.second;
-
 }
 void ChCCollisionGPU::UpdateAABB_HOST(float3 & bin_size_vec, float & max_dimension, float & collision_envelope, ChGPUDataManager * data_container) {
 	uint number_of_models = data_container->number_of_models;
@@ -153,6 +132,7 @@ void ChCCollisionGPU::ComputeAABB(gpu_container & gpu_data) {
 			CASTF4(gpu_data.device_ObR_data),
 			CASTI3(gpu_data.device_typ_data),
 			CASTF3(gpu_data.device_aabb_data));
+	//DBG("ComputeAABB");
 }
 void ChCCollisionGPU::ComputeBounds(gpu_container & gpu_data) {
 	uint number_of_models = gpu_data.number_of_models;
@@ -163,6 +143,7 @@ void ChCCollisionGPU::ComputeBounds(gpu_container & gpu_data) {
 	bbox result = thrust::transform_reduce(gpu_data.device_aabb_data.begin(), gpu_data.device_aabb_data.end(), unary_op, init, binary_op);
 	gpu_data.min_bounding_point = result.first;
 	gpu_data.max_bounding_point = result.second;
+	//DBG("ComputeBounds");
 }
 
 void ChCCollisionGPU::UpdateAABB(float3 & bin_size_vec, float & max_dimension, float & collision_envelope, gpu_container & gpu_data) {

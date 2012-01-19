@@ -4,18 +4,18 @@ using namespace chrono;
 
 void ChSubdomainGPU::Collide(ChGPUDataManager *data_manager) {
 	gpu_data_manager = data_manager;
-	mod_list.resize(gpu_data_manager->number_of_models, 0);
-	bod_list.resize(gpu_data_manager->number_of_objects, 0);
+	mod_list.resize(gpu_data_manager->number_of_models, false);
+	bod_list.resize(gpu_data_manager->number_of_objects, false);
 	for (int i = 0; i < gpu_data_manager->number_of_models; i++) {
 		float3 minP = gpu_data_manager->host_aabb_data[i];
 		float3 maxP = gpu_data_manager->host_aabb_data[i + gpu_data_manager->number_of_models];
 
-		if ((minP.x <= max_bounding_point.x && min_bounding_point.x <= maxP.x) && (minP.y <= max_bounding_point.y && min_bounding_point.y <= maxP.y)
-				&& (minP.z <= max_bounding_point.z && min_bounding_point.z <= maxP.z)) {
+		if (	(minP.x <= max_bounding_point.x && min_bounding_point.x <= maxP.x) &&
+				(minP.y <= max_bounding_point.y && min_bounding_point.y <= maxP.y) &&
+				(minP.z <= max_bounding_point.z && min_bounding_point.z <= maxP.z)) {
 			mod_list[i] = true;
 			bod_list[gpu_data_manager->host_typ_data[i].z] = true;
 		}
-
 	}
 	number_of_models = Thrust_Total(mod_list);
 	number_of_objects = Thrust_Total(bod_list);
@@ -27,7 +27,6 @@ struct pred {
 		}
 };
 void ChSubdomainGPU::Copy(int i) {
-	subdiv_id = i;
 
 	host_ObA_data.resize(number_of_models);
 	host_ObB_data.resize(number_of_models);
@@ -83,7 +82,9 @@ void ChSubdomainGPU::Copy(int i) {
 	gpu_data.device_aux_data = host_aux_data;
 	gpu_data.device_lim_data = host_lim_data;
 
-	gpu_data.device_bilateral_data = gpu_data_manager->host_bilateral_data;
+	gpu_data.min_bounding_point=min_bounding_point;
+	gpu_data.max_bounding_point=max_bounding_point;
+	gpu_data.number_of_models=number_of_models;
 
 }
 
@@ -92,15 +93,31 @@ void ChSubdomainGPU::Run(ChLcpIterativeSolverGPUsimple* LCP_solver_speed) {
 	float3 bin_size_vec;
 	float max_dimension;
 	float collision_envelope = 0;
-	gpu_data_manager->gpu_data.number_of_bilaterals = 0;
+	gpu_data.number_of_bilaterals = 0;
 
-	ChCCollisionGPU::ComputeAABB(gpu_data_manager->gpu_data);
-	ChCCollisionGPU::ComputeBounds(gpu_data_manager->gpu_data);
-	ChCCollisionGPU::UpdateAABB(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager->gpu_data);
-	ChCCollisionGPU::Broadphase(bin_size_vec, gpu_data_manager->gpu_data,gpu_data_manager);
-	ChCCollisionGPU::Narrowphase(gpu_data_manager->gpu_data);
+	ChCCollisionGPU::ComputeAABB(gpu_data);
+	ChCCollisionGPU::ComputeBounds(gpu_data);
+	ChCCollisionGPU::UpdateAABB(bin_size_vec, max_dimension, collision_envelope, gpu_data);
+	ChCCollisionGPU::Broadphase(bin_size_vec, gpu_data);
+	ChCCollisionGPU::Narrowphase(gpu_data);
 
-	//LCP_solver_speed->SolveSys(gpu_data);
+	LCP_solver_speed->gpu_solver->Preprocess(LCP_solver_speed->mDt, gpu_data_manager->gpu_data);
+	bool use_DEM = false;
+	uint number_of_constraints = gpu_data.number_of_contacts + gpu_data.number_of_bilaterals;
+	if (number_of_constraints != 0) {
+		for (int iteration_number = 0; iteration_number < LCP_solver_speed->mMaxIterations; iteration_number++) {
 
+			LCP_solver_speed->gpu_solver->Iterate(LCP_solver_speed->mDt, LCP_solver_speed->mOmegaBilateral, LCP_solver_speed->mOmegaContact, gpu_data);
+			LCP_solver_speed->gpu_solver->Reduce(gpu_data);
+			if (use_DEM == true) {
+				break;
+			}
 
+			if (LCP_solver_speed->gpu_solver->Avg_DeltaGamma(number_of_constraints, gpu_data.device_dgm_data) < LCP_solver_speed->mTolerance) {
+				break;
+			}
+		}
+	}
+	vel_update=gpu_data.vel_update;
+	omg_update=gpu_data.omg_update;
 }

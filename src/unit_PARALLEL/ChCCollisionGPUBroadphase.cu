@@ -263,7 +263,7 @@ void ChCCollisionGPU::Broadphase_HOST(float3 &bin_size_vec, ChGPUDataManager * d
 __device__ __host__ bool operator ==(const float3 &a, const float3 &b) {
 	return ((a.x == b.x) && (a.y == b.y) && (a.z == b.z));
 }
-void ChCCollisionGPU::Broadphase(float3 &bin_size_vec, gpu_container & gpu_data, ChGPUDataManager * data_container) {
+void ChCCollisionGPU::Broadphase(float3 &bin_size_vec, gpu_container & gpu_data) {
 	uint number_of_models = gpu_data.number_of_models;
 	uint last_active_bin = 0, number_of_bin_intersections = 0;
 	uint number_of_contacts_possible = 0;

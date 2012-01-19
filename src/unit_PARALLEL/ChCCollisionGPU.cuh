@@ -2,11 +2,11 @@
 #define CHC_COLLISIONGPU_CUH
 using namespace chrono::collision;
 
-
 //1.f/16384.f;
 #define Vector_ZERO_EPSILON 0.0000001
 #define MIN_ZERO_EPSILON 1.1754943508222875E-38
 #define kCollideEpsilon  1e-5f
+#define EPS FLT_EPSILON
 
 __device__ __host__ bool operator ==(const uint3 &a, const uint3 &b) {
 	return ((a.x == b.x) && (a.y == b.y) && (a.z == b.z));
@@ -61,7 +61,24 @@ __device__ __host__ void ComputeAABBBox(const float3 &dim,const float3 &positon,
 	maxp+=positon;
 }
 
-#define EPS FLT_EPSILON
+typedef thrust::pair<float3, float3> bbox;
 
+// reduce a pair of bounding boxes (a,b) to a bounding box containing a and b
+struct bbox_reduction: public thrust::binary_function<bbox, bbox, bbox> {
+		__host__ __device__
+		bbox operator()(bbox a, bbox b) {
+			float3 ll = F3(fminf(a.first.x, b.first.x), fminf(a.first.y, b.first.y), fminf(a.first.z, b.first.z));// lower left corner
+			float3 ur = F3(fmaxf(a.second.x, b.second.x), fmaxf(a.second.y, b.second.y), fmaxf(a.second.z, b.second.z));// upper right corner
+			return bbox(ll, ur);
+		}
+};
+
+// convert a point to a bbox containing that point, (point) -> (point, point)
+struct bbox_transformation: public thrust::unary_function<float3, bbox> {
+		__host__ __device__
+		bbox operator()(float3 point) {
+			return bbox(point, point);
+		}
+};
 
 #endif
