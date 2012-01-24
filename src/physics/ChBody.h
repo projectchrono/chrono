@@ -122,6 +122,10 @@ protected:
 
 	float density;		// used when doing the 'recompute mass' operation.
 
+	float conductivity; // electric conductivity of material
+
+	ChVector<> cdim;	// characteristic dimension of the body
+
 						// used to store mass matrix and coordinates, as
 						// an interface to the LCP solver.
 	ChLcpVariablesBodyOwnMass	variables;
@@ -363,6 +367,13 @@ public:
 				/// geometry (in case a CAD plugin for example provides the surfaces.)
 	float  GetDensity() {return density;}
 	void   SetDensity(float mdensity) {density = mdensity;}
+
+				// Electric conductivity of material
+	float  GetConductivity() {return conductivity;}
+	void   SetConductivity(float mconductivity) {conductivity = mconductivity;}
+				// Caracteristic dimensions of the body 
+	ChVector<> GetCdim() {return cdim;}
+	void   SetCdim(ChVector<> mcdim) {cdim = mcdim;}
 
 
 			//
