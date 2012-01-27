@@ -23,12 +23,15 @@ double ChLcpIterativePMINRES::Solve(
 					bool add_Mq_to_f 
 					)
 {
-	bool do_project_p = false;
+	bool do_preconditioning = false;
 	bool verbose = false;
+this->grad_diffstep = 0.000000001;
+
+/*
 //***TEST***
 bool do_dump = false;
 int iters_to_dump=5;
-this->grad_diffstep = 0.01;
+
 chrono::ChStreamOutAsciiFile* file_alphabeta= 0;
 if (do_dump) //***TEST***
 {
@@ -57,23 +60,12 @@ mdb.StreamOUTdenseMatlabFormat(file_b);
 chrono::ChStreamOutAsciiFile file_fric("test_fric.dat"); file_fric.SetNumFormat("%.9g");
 mdfric.StreamOUTdenseMatlabFormat(file_fric);
 }
-
+*/
 	std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
 	std::vector<ChLcpVariables*>&  mvariables	= sysd.GetVariablesList();
 
-	double maxviolation = 0.;
 
-	
-	
-
-
-	// Update auxiliary data in all constraints before starting,
-	// that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
-	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
-		mconstraints[ic]->Update_auxiliary();
-
-
-	// Allocate auxiliary vectors;
+		// Allocate auxiliary vectors;
 	
 	int nc = sysd.CountActiveConstraints();
 	if (verbose) GetLog() <<"\n-----Projected MINRES, solving nc=" << nc << "unknowns \n";
@@ -82,11 +74,53 @@ mdfric.StreamOUTdenseMatlabFormat(file_fric);
 	ChMatrixDynamic<> mb(nc,1);
 	ChMatrixDynamic<> mp(nc,1);
 	ChMatrixDynamic<> mr(nc,1);
-	ChMatrixDynamic<> mr_old(nc,1);
+	ChMatrixDynamic<> mz(nc,1);
+	ChMatrixDynamic<> mz_old(nc,1);
 	ChMatrixDynamic<> mNp(nc,1);
-	ChMatrixDynamic<> mNr(nc,1);
-	ChMatrixDynamic<> mNr_old(nc,1);
+	ChMatrixDynamic<> mMNp(nc,1);
+	ChMatrixDynamic<> mNMr(nc,1);
+	ChMatrixDynamic<> mNMr_old(nc,1);
 	ChMatrixDynamic<> mtmp(nc,1);
+	ChMatrixDynamic<> mD (nc,1);
+
+
+	double maxviolation = 0.;
+
+
+	// Update auxiliary data in all constraints before starting,
+	// that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
+	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
+		mconstraints[ic]->Update_auxiliary();
+
+	// Average all g_i for the triplet of contact constraints n,u,v.
+	//  Can be used as diagonal preconditioner.
+	int j_friction_comp = 0;
+	double gi_values[3];
+	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
+	{
+		if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) 
+		{
+			gi_values[j_friction_comp] = mconstraints[ic]->Get_g_i();
+			j_friction_comp++;
+			if (j_friction_comp==3)
+			{
+				double average_g_i = (gi_values[0]+gi_values[1]+gi_values[2])/3.0;
+				mconstraints[ic-2]->Set_g_i(average_g_i);
+				mconstraints[ic-1]->Set_g_i(average_g_i);
+				mconstraints[ic-0]->Set_g_i(average_g_i);
+				j_friction_comp=0;
+			}
+		}	
+	}
+			
+	// The vector with the diagonal of the N matrix
+	int d_i = 0;
+	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
+		if (mconstraints[ic]->IsActive())
+		{
+			mD(d_i, 0) = mconstraints[ic]->Get_g_i();
+			++d_i;
+		}
 
 
 	// ***TO DO*** move the following thirty lines in a short function ChLcpSystemDescriptor::ShurBvectorCompute() ?
@@ -120,19 +154,15 @@ mdfric.StreamOUTdenseMatlabFormat(file_fric);
 	mb.MatrDec(mtmp);  
 
 
-
-if (do_dump) //***TEST***
-{
-chrono::ChStreamOutAsciiFile file_shur("test__b_shur.dat"); file_shur.SetNumFormat("%.9g");
-mb.StreamOUTdenseMatlabFormat(file_shur);
-}
-
 		// Optimization: backup the  q  sparse data computed above, 
 		// because   (M^-1)*k   will be needed at the end when computing primals.
 	ChMatrixDynamic<> mq; 
 	sysd.FromVariablesToVector(mq, true);	
 
 
+	double rel_tol = 1e-6;
+	double abs_tol = 1e-6;
+	double rel_tol_b = mb.NormInf() * rel_tol;
 
 
 	// Initialize lambdas
@@ -149,7 +179,6 @@ mb.StreamOUTdenseMatlabFormat(file_shur);
 	mr.MatrNeg();								// 2)  r =-N*l
 	mr.MatrInc(mb);								// 3)  r =-N*l+b
 
-			//*** should project initial mp and mr ?
 	// r = (project_orthogonal(l+diff*r, fric) - l)/diff;
 	mr.MatrScale(this->grad_diffstep);
 	mr.MatrInc(ml);
@@ -157,24 +186,19 @@ mb.StreamOUTdenseMatlabFormat(file_shur);
 	mr.MatrDec(ml);
 	mr.MatrDivScale(this->grad_diffstep);		// p = (P(l+diff*p)-l)/diff
 
-	// p = r;
-	mp = mr;   
+	// p = Mi * r;
+	mp = mr;  
+	if (do_preconditioning)
+		mp.MatrDivScale(mD);
+	
+	// z = Mi * r;
+	mz = mp;
 
-	// Nr = N*r
-	sysd.ShurComplementProduct(mNr, &mr);		// Nr = N*r    #### MATR.MULTIPLICATION!!!###
+	// NMr = N*M*r = N*z
+	sysd.ShurComplementProduct(mNMr, &mz);		// NMr = N*z    #### MATR.MULTIPLICATION!!!###
 
-	// Np = N*p  i.e.  Np = Nr  because starting with p=r
-	mNp = mNr;
-
-if (do_dump) //***TEST***
-{
-chrono::ChStreamOutAsciiFile file_mr("test__r_0.dat"); file_mr.SetNumFormat("%.9g");
-mr.StreamOUTdenseMatlabFormat(file_mr);
-chrono::ChStreamOutAsciiFile file_mp("test__p_0.dat"); file_mp.SetNumFormat("%.9g");
-mp.StreamOUTdenseMatlabFormat(file_mp);
-chrono::ChStreamOutAsciiFile file_mNr("test__Nr_0.dat"); file_mNr.SetNumFormat("%.9g");
-mNr.StreamOUTdenseMatlabFormat(file_mNr);
-}
+	// Np = N*p  
+	sysd.ShurComplementProduct(mNp, &mp);		// Np = N*p    #### MATR.MULTIPLICATION!!!###
 
 
 	//
@@ -185,174 +209,115 @@ mNr.StreamOUTdenseMatlabFormat(file_mNr);
 
 	for (int iter = 0; iter < max_iterations; iter++)
 	{
+		// MNp = Mi*Np; % = Mi*N*p                  %% -- Precond
+		mMNp = mNp;
+		if (do_preconditioning)
+			mMNp.MatrDivScale(mD);
 
-		// alpha = r'*(Nr)/((Np)'*(Np));  // alpha =  u'*p / p'*N*p 
-		double rNr =  mr.MatrDot(&mr,&mNr);			// 1)  rNr = r'*N*r
-		double NpNp = mNp.MatrDot(&mNp,&mNp);		// 2)  NpNp = ((Np)'*(Np))
-		 if (fabs(NpNp)<10e-12) 
+		// alpha = (z'*(NMr))/((MNp)'*(Np));
+		double zNMr =  mz.MatrDot(&mz,&mNMr);		// 1)  zMNr = z'* NMr
+		double MNpNp = mMNp.MatrDot(&mMNp,&mNp);	// 2)  MNpNp = ((MNp)'*(Np))
+		/*
+		 if (fabs(MNpNp)<10e-12) 
 		 {
-			if (verbose) GetLog() << "Rayleygh quotient alpha breakdown: " << rNr << " / " << NpNp << "  iter=" << iter << "\n";
-			NpNp=10e-12;
+			if (verbose) GetLog() << "Rayleygh quotient alpha breakdown: " << zNMr << " / " << MNpNp << "  iter=" << iter << "\n";
+			MNpNp=10e-12;
 		 }
-		double alpha = rNr/NpNp;					// 3)  alpha = r'*(Nr)/((Np)'*(Np))
+		 */
+		double alpha = zNMr/MNpNp;					// 3)  alpha = (z'*(NMr))/((MNp)'*(Np));
 
 		// l = l + alpha * p;
 		mtmp = mp;
 		mtmp.MatrScale(alpha);
 		ml.MatrInc(mtmp);
 
-if (do_dump && (iter<iters_to_dump)) //***TEST***
-{
-char mybuff[100];
-sprintf(mybuff,"test__l_%d.dat", (iter+1));
-chrono::ChStreamOutAsciiFile file_ml(mybuff); file_ml.SetNumFormat("%.9g");
-ml.StreamOUTdenseMatlabFormat(file_ml);
-}
+		double maxdeltalambda = mtmp.NormTwo(); //***better NormInf() for speed reasons?
 
-		double maxdeltalambda = mtmp.NormInf();
-
+		/*
 		if (maxdeltalambda < this->GetTolerance() ) 
 		{
 			if (verbose) GetLog() << "Converged! iter=" << iter <<  "\n";
 		 	//break;
 		}
+		*/
 
 		// l = Proj(l)
 		sysd.ConstraintsProject(ml);				// l = P(l) 
 
-if (do_dump && (iter<iters_to_dump)) //***TEST***
-{
-char mybuff[100];
-sprintf(mybuff,"test__l_proj_%d.dat", (iter+1));
-chrono::ChStreamOutAsciiFile file_ml(mybuff); file_ml.SetNumFormat("%.9g");
-ml.StreamOUTdenseMatlabFormat(file_ml);
-}
-
-		// r_old = r;
-		mr_old = mr;
 
 		// r = b - N*l;
 		sysd.ShurComplementProduct(mr, &ml);		// 1)  r = N*l ...        #### MATR.MULTIPLICATION!!!###
 		mr.MatrNeg();								// 2)  r =-N*l
 		mr.MatrInc(mb);								// 3)  r =-N*l+b
-
-if (do_dump && (iter<iters_to_dump)) //***TEST***
-{
-char mybuff[100];
-sprintf(mybuff,"test__r_%d.dat", (iter+1));
-chrono::ChStreamOutAsciiFile file_mr(mybuff); file_mr.SetNumFormat("%.9g");
-mr.StreamOUTdenseMatlabFormat(file_mr);
-sprintf(mybuff,"test__p_%d.dat", (iter+1));
-chrono::ChStreamOutAsciiFile file_mp(mybuff); file_mp.SetNumFormat("%.9g");
-mp.StreamOUTdenseMatlabFormat(file_mp);
-}
 		
 		// r = (project_orthogonal(l+diff*r, fric) - l)/diff; 
 		mr.MatrScale(this->grad_diffstep);
 		mr.MatrInc(ml);
-if (do_dump) //***TEST***
-{
-char mybuff[100];
-sprintf(mybuff,"test__rA_%d.dat", (iter+1));
-chrono::ChStreamOutAsciiFile file_mr(mybuff); file_mr.SetNumFormat("%.9g");
-mr.StreamOUTdenseMatlabFormat(file_mr);
-}
 		sysd.ConstraintsProject(mr);				// r = P(l+diff*r) ...
-if (do_dump) //***TEST***
-{
-char mybuff[100];
-sprintf(mybuff,"test__rB_%d.dat", (iter+1));
-chrono::ChStreamOutAsciiFile file_mr(mybuff); file_mr.SetNumFormat("%.9g");
-mr.StreamOUTdenseMatlabFormat(file_mr);
-}
 		mr.MatrDec(ml);
-if (do_dump) //***TEST***
-{
-char mybuff[100];
-sprintf(mybuff,"test__rC_%d.dat", (iter+1));
-chrono::ChStreamOutAsciiFile file_mr(mybuff); file_mr.SetNumFormat("%.9g");
-mr.StreamOUTdenseMatlabFormat(file_mr);
-}
 		mr.MatrDivScale(this->grad_diffstep);		// r = (P(l+diff*r)-l)/diff 
-
-		if (do_project_p)
+		
+		// Terminate iteration when the projected r is small, if (norm(r,2) <= max(rel_tol_b,abs_tol))
+		double r_proj_resid = mr.NormTwo();
+		if (r_proj_resid < ChMax(rel_tol_b, abs_tol) )
 		{
-			// p = (project_orthogonal(l+diff*p, fric) - l)/diff;
-			mp.MatrScale(this->grad_diffstep);
-			mp.MatrInc(ml);
-			sysd.ConstraintsProject(mp);				// p = P(l+diff*p) ...
-			mp.MatrDec(ml);
-			mp.MatrDivScale(this->grad_diffstep);		// p = (P(l+diff*p)-l)/diff 
+			//if (verbose) 
+				GetLog() << "P(r)-converged! iter=" << iter <<  " |P(r)|=" << r_proj_resid << "\n";
+			break;
 		}
 
-if (do_dump && (iter<iters_to_dump)) //***TEST***
-{
-char mybuff[100];
-sprintf(mybuff,"test__r_proj_%d.dat", (iter+1));
-chrono::ChStreamOutAsciiFile file_mr(mybuff); file_mr.SetNumFormat("%.9g");
-mr.StreamOUTdenseMatlabFormat(file_mr);
-sprintf(mybuff,"test__p_proj_%d.dat", (iter+1));
-chrono::ChStreamOutAsciiFile file_mp(mybuff); file_mp.SetNumFormat("%.9g");
-mp.StreamOUTdenseMatlabFormat(file_mp);
-}
+		// z_old = z;
+		mz_old = mz;
+    
+		// z = Mi*r;                                 %% -- Precond
+		mz = mr;
+		if (do_preconditioning)
+			mz.MatrDivScale(mD);
 
-		// Nr_old = Nr;
-		mNr_old = mNr;
+		// NMr_old = NMr;
+		mNMr_old = mNMr;
+   
+		// NMr = N*z;                             
+		sysd.ShurComplementProduct(mNMr, &mz);		// NMr = N*z;    #### MATR.MULTIPLICATION!!!###
 
-		// Nr = N*r; 
-		sysd.ShurComplementProduct(mNr, &mr);		// Nr = N*r    #### MATR.MULTIPLICATION!!!###
-
-		// beta = r'*(Nr-Nr_old)/(r_old'*(Nr_old));
-		mtmp.MatrSub(mNr,mNr_old);
-		double numerator = mr.MatrDot(&mr,&mtmp);
-		double denominator = mr_old.MatrDot(&mr_old, &mNr_old);
+		// beta = z'*(NMr-NMr_old)/(z_old'*(NMr_old));
+		mtmp.MatrSub(mNMr,mNMr_old);
+		double numerator = mz.MatrDot(&mz,&mtmp);
+		double denominator = mz_old.MatrDot(&mz_old, &mNMr_old);
+		/*
 		if (fabs(denominator)<10e-12)
 		 {
 			if (verbose) GetLog() << "Rayleygh quotient beta breakdown: " << numerator << " / " << denominator <<  "  iter=" << iter << "\n";
 			denominator=10e-12;
 		 }
+		 */
 		double beta = numerator / denominator;
 		
 		beta = ChMax(0.0, beta);
 
-if (do_dump)// && (iter<iters_to_dump)) //***TEST***
-{
-	GetLog() << " iter=" << (iter+1) << "   alpha= " << alpha << "   beta= " << beta << "\n";
-	*file_alphabeta << alpha << "  " << beta << "\n";
-}
-
-		// p = r + beta * p;
+		// p = z + beta * p;   
 		mtmp = mp;
 		mtmp.MatrScale(beta);
-		mp = mr;
+		mp = mz;
 		mp.MatrInc(mtmp);
 
-		if (do_project_p)
-		{
-			// Np = N*p;
-			sysd.ShurComplementProduct(mNp, &mp);		// Np = N*p    #### MATR.MULTIPLICATION!!!###
-		}
-		else
-		{
-			// Np = Nr + beta*Np;     // Optimization!! avoid matr x vect!!! (if no 'p' projection has been done)
-			mNp.MatrScale(beta);
-			mNp.MatrInc(mNr);
-		}
+
+		// Np = NMr + beta*Np;   // Optimization!! avoid matr x vect!!! (if no 'p' projection has been done)
+		mNp.MatrScale(beta);
+		mNp.MatrInc(mNMr);
+
 
 
 
 		// ---------------------------------------------
 		// METRICS - convergence, plots, etc
 
-		//double maxd			  = mu.NormInf();  // ***TO DO***  should be max violation, but just for test...
-		double maxd=0; // ***TO DO***
-
 		// For recording into correction/residuals/violation history, if debugging
 		if (this->record_violation_history)
-			AtIterationEnd(maxd, maxdeltalambda, iter);
+			AtIterationEnd(r_proj_resid, maxdeltalambda, iter);
 			
 	}
-	
+
 
 	// Resulting DUAL variables:
 	// store ml temporary vector into ChLcpConstraint 'l_i' multipliers
@@ -372,11 +337,6 @@ if (do_dump)// && (iter<iters_to_dump)) //***TEST***
 		if (mconstraints[ic]->IsActive())
 			mconstraints[ic]->Increment_q( mconstraints[ic]->Get_l_i() );
 	}
-	
-if (do_dump)
-{
-	delete file_alphabeta;
-}
 
 	if (verbose) GetLog() <<"-----\n";
 

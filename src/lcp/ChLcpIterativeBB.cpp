@@ -26,54 +26,54 @@ double ChLcpIterativeBB::Solve(
 	std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
 	std::vector<ChLcpVariables*>&  mvariables	= sysd.GetVariablesList();
 
-//***TEST***
-	chrono::ChSparseMatrix mdM;
-	chrono::ChSparseMatrix mdCq;
-	chrono::ChSparseMatrix mdE;
-	chrono::ChMatrixDynamic<double> mdf;
-	chrono::ChMatrixDynamic<double> mdb;
-	chrono::ChMatrixDynamic<double> mdfric;
-	sysd.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
-	chrono::ChStreamOutAsciiFile file_M("solver_M.dat");
-	mdM.StreamOUTsparseMatlabFormat(file_M);
-	chrono::ChStreamOutAsciiFile file_Cq("solver_Cq.dat");
-	mdCq.StreamOUTsparseMatlabFormat(file_Cq);
-	chrono::ChStreamOutAsciiFile file_E("solver_E.dat");
-	mdE.StreamOUTsparseMatlabFormat(file_E);
-	chrono::ChStreamOutAsciiFile file_f("solver_f.dat");
-	mdf.StreamOUTdenseMatlabFormat(file_f);
-	chrono::ChStreamOutAsciiFile file_b("solver_b.dat");
-	mdb.StreamOUTdenseMatlabFormat(file_b);
-	chrono::ChStreamOutAsciiFile file_fric("solver_fric.dat");
-	mdfric.StreamOUTdenseMatlabFormat(file_fric);
-	//
-	chrono::ChStreamOutAsciiFile file_q0("solver_debug_q0.dat");
-	chrono::ChMatrixDynamic<double> minspeeds;
-	sysd.FromVariablesToVector(minspeeds);
-	minspeeds.StreamOUTdenseMatlabFormat(file_q0);
-
-
-	double maxviolation = 0.;
-	int i_friction_comp = 0;
-	int iter_tot = 0;
 
 	// Tuning of the spectral gradient search
-	double a_min = 10e-10;
-	double a_max = 1000000.0;
+	double a_min = 1e-13;
+	double a_max = 1e13;
 	double sigma_min = 0.1;
 	double sigma_max = 0.9;
-	double alpha = 0.01;
+	double alpha = 0.0001;
 	double gamma = 1e-4;
+	double gdiff= 0.000001;
+	bool do_preconditioning = true;
 
+	bool do_BB1e2= true;
+	bool do_BB1	 = false;
+	bool do_BB2	 = false;
+	double neg_BB1_fallback = 0.11;
+	double neg_BB2_fallback = 0.12;
 
 	bool verbose = false;
 
+
+	int i_friction_comp = 0;
+	int iter_tot = 0;
+
+	// Allocate auxiliary vectors;
+	
+	int nc = sysd.CountActiveConstraints();
+	if (verbose) GetLog() <<"\n-----Barzilai-Borwein, solving nc=" << nc << "unknowns \n";
+
+	ChMatrixDynamic<> ml(nc,1);
+	ChMatrixDynamic<> ml_candidate(nc,1);
+	ChMatrixDynamic<> mg(nc,1);
+	ChMatrixDynamic<> mg_p(nc,1);
+	ChMatrixDynamic<> ml_p(nc,1);
+	ChMatrixDynamic<> md(nc,1);
+	ChMatrixDynamic<> mb(nc,1);
+	ChMatrixDynamic<> mb_tmp(nc,1);
+	ChMatrixDynamic<> ms(nc,1);
+	ChMatrixDynamic<> my(nc,1);
+	ChMatrixDynamic<> mD (nc,1);
+	ChMatrixDynamic<> mDg (nc,1);
+
+
+	
 	// Update auxiliary data in all constraints before starting,
 	// that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
 	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
 		mconstraints[ic]->Update_auxiliary();
 
-	// ***TO DO*** not needed??? remove the g_i initialization?
 	// Average all g_i for the triplet of contact constraints n,u,v.
 	//  Can be used for the fixed point phase and/or by preconditioner.
 	int j_friction_comp = 0;
@@ -94,26 +94,14 @@ double ChLcpIterativeBB::Solve(
 			}
 		}	
 	}
-
-
-	// Allocate auxiliary vectors;
-	
-	int nc = sysd.CountActiveConstraints();
-	if (verbose) GetLog() <<"\n-----Barzilai-Borwein, solving nc=" << nc << "unknowns \n";
-
-	ChMatrixDynamic<> ml(nc,1);
-	ChMatrixDynamic<> ml_candidate(nc,1);
-	ChMatrixDynamic<> mg(nc,1);
-	ChMatrixDynamic<> mg_p(nc,1);
-	ChMatrixDynamic<> ml_p(nc,1);
-	ChMatrixDynamic<> md(nc,1);
-	ChMatrixDynamic<> mb(nc,1);
-	ChMatrixDynamic<> mb_tmp(nc,1);
-	ChMatrixDynamic<> ms(nc,1);
-	ChMatrixDynamic<> my(nc,1);
-
-	double mf;
-	double mf_p;
+	// The vector with the diagonal of the N matrix
+	int d_i = 0;
+	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
+		if (mconstraints[ic]->IsActive())
+		{
+			mD(d_i, 0) = mconstraints[ic]->Get_g_i();
+			++d_i;
+		}
 
 
 	// ***TO DO*** move the following thirty lines in a short function ChLcpSystemDescriptor::ShurBvectorCompute() ?
@@ -146,50 +134,11 @@ double ChLcpIterativeBB::Solve(
 	sysd.BuildBiVector(mb_tmp);	// b_i   =   -c   = phi/h 
 	mb.MatrDec(mb_tmp);
 
-
-//***TEST***
-	chrono::ChStreamOutAsciiFile file_bshur("solver_debug_bshur.dat");
-	mb.StreamOUTdenseMatlabFormat(file_bshur);
-
-//GetLog() << "--- \n";
-/*
-	GetLog() << "\n -----------------";
-	GetLog() << "\n vector c: \n";
-	for (int u = 0; u<mb_tmp.GetRows(); u++)
-		GetLog() << mb_tmp(u) << "\n";
-
-	GetLog() << "\n vector b (schur): \n";
-	for (int u = 0; u<mb.GetRows(); u++)
-		GetLog() << mb(u) << "\n";
-
-	GetLog() << "\n vector cfm: \n";
-	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
-		if (mconstraints[ic]->IsActive())
-			GetLog() << mconstraints[ic]->Get_cfm_i() <<"\n";
-*/
-
 		// Optimization: backup the  q  sparse data computed above, 
 		// because   (M^-1)*k   will be needed at the end when computing primals.
 	ChMatrixDynamic<> mq; 
 	sysd.FromVariablesToVector(mq, true);	
 
-/*
-	if (mb.GetRows()==3)
-	{
-		GetLog() << "\n matrix N : \n";
-		ChMatrixDynamic<> mN(3,1);
-		ChMatrixDynamic<> mE(3,1);
-		mE(0)= 1; mE(1)=0; mE(2)=0;
-		sysd.ShurComplementProduct(mN, &mE, 0);
-		GetLog() << "  " << mN(0) << "  " << mN(1) << "  " << mN(2) << "\n";
-		mE(0)= 0; mE(1)=1; mE(2)=0;
-		sysd.ShurComplementProduct(mN, &mE, 0);
-		GetLog() << "  " << mN(0) << "  " << mN(1) << "  " << mN(2) << "\n";
-		mE(0)= 0; mE(1)=0; mE(2)=1;
-		sysd.ShurComplementProduct(mN, &mE, 0);
-		GetLog() << "  " << mN(0) << "  " << mN(1) << "  " << mN(2) << "\n";
-	}
-*/
 
 	// Initialize lambdas
 	if (warm_start)
@@ -197,69 +146,68 @@ double ChLcpIterativeBB::Solve(
 	else
 		ml.FillElem(0);
 
+
 	// Initial projection of ml   ***TO DO***?
-	// ...
+	sysd.ConstraintsProject(ml);
+
 
 	// Fallback solution
 	double lastgoodres  = 10e30;
 	double lastgoodfval = 10e30;
 	ml_candidate = ml;
 
-	// g = gradient of l'*N*l-l'*b 
+	// g = gradient of 0.5*l'*N*l-l'*b 
 	// g = N*l-b 
 	sysd.ShurComplementProduct(mg, &ml, 0);		// 1)  g = N*l ...        #### MATR.MULTIPLICATION!!!###
 	mg.MatrDec(mb);								// 2)  g = N*l - b_shur ...
 
 	mg_p = mg;
 
-	// f = l'*N*l - l'*b  = l'*g
-	mf  = ml.MatrDot(&ml,&mg);
-
-	// d  = [P(l - g) - l] 
-	md.MatrSub(ml, mg);							// 1) d = (l - g)  ...
-
-	sysd.FromVectorToConstraints(md);	// project 		
-	for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
-				if (mconstraints[ic]->IsActive())
-						mconstraints[ic]->Project();
-	sysd.FromConstraintsToVector(md,false);		// 2) d = P(l - g) ...
-	
-	md.MatrDec(ml);								// 3) d = P(l - g) - l 
-
 
 	//
 	// THE LOOP
 	//
 
+	double mf_p =0;
+	double mf =1e29;
 	std::vector<double> f_hist;
 
 	for (int iter = 0; iter < max_iterations; iter++)
 	{
-		// g = N*l - b    = g_p
-		mg = mg_p;
+		// Dg = Di*g;
+		mDg = mg;
+		if (do_preconditioning)
+			mDg.MatrDivScale(mD);
+		
+		// d  = [P(l - alpha*Dg) - l]
+		md.CopyFromMatrix(mDg);						// 1) d = Dg  ...
+		md.MatrScale(-alpha);						// 2) d = - alpha*Dg  ...
+		md.MatrInc(ml);								// 3) d = l - alpha*Dg  ...
+		sysd.ConstraintsProject(md);				// 4) d = P(l - alpha*Dg) ...
+		md.MatrDec(ml);								// 5) d = P(l - alpha*Dg) - l
 
-		// f = l'*N*l - l'*b  = l'*g
-		mf = ml.MatrDot(&ml,&mg);
-
-		// d  = [P(l - alpha*g) - l]
-		md.CopyFromMatrix(mg);						// 1) d = g  ...
-		md.MatrScale(-alpha);						// 2) d = - alpha*g  ...
-		md.MatrInc(ml);								// 3) d = l - alpha*g  ...
-
-		sysd.ConstraintsProject(md);				// 4) d = P(l - alpha*g) ...
-
-		md.MatrDec(ml);								// 5) d = P(l - alpha*g) - l
-
-
-		// dTg = d'*g
+		// dTg = d'*g;
 		double dTg = md.MatrDot(&md,&mg);
+
+		// BB dir backward!? fallback to nonpreconditioned dir
+		if (dTg > 1e-8)
+		{	
+			// d  = [P(l - alpha*g) - l]
+			md.CopyFromMatrix(mg);						// 1) d = g  ...
+			md.MatrScale(-alpha);						// 2) d = - alpha*g  ...
+			md.MatrInc(ml);								// 3) d = l - alpha*g  ...
+			sysd.ConstraintsProject(md);				// 4) d = P(l - alpha*g) ...
+			md.MatrDec(ml);								// 5) d = P(l - alpha*g) - l
+			// dTg = d'*g;
+			dTg = md.MatrDot(&md,&mg);
+		}
 
 		double lambda = 1;
 
-		f_hist.push_back(mf);
+		
 		
 		int  n_backtracks = 0;
-		bool armijo_repeat = 1;
+		bool armijo_repeat = true;
 
 		while (armijo_repeat)
 		{
@@ -268,15 +216,22 @@ double ChLcpIterativeBB::Solve(
 			ml_p.MatrScale(lambda);
 			ml_p.MatrInc(ml);
 
-			// g_p = N*l_p - b;								#### MATR.MULTIPLICATION!!!###
-			sysd.ShurComplementProduct(mg_p, &ml_p, 0);// 1)  g_p = N*l_p ...        
-			mg_p.MatrDec(mb);						   // 2)  g_p = N*l_p - b_shur ...
+			// Nl_p = N*l_p;                        #### MATR.MULTIPLICATION!!!###
+			sysd.ShurComplementProduct(mb_tmp, &ml_p, 0);// 1)  mb_tmp = N*l_p  = Nl_p 
 
-			// f_p = l_p'*g_p;
-			mf_p = ml_p.MatrDot(&ml_p,&mg_p);
+			// g_p = N*l_p - b  = Nl_p - b		
+			mg_p.MatrSub(mb_tmp, mb);					 // 2)  g_p = N*l_p - b
 
-			double max_compare = 0;
-			for (int h = 0; h <= ChMin(iter,this->n_armijo); h++)
+			// f_p = 0.5*l_p'*N*l_p - l_p'*b  = l_p'*(0.5*Nl_p - b);
+			mb_tmp.MatrScale(0.5);
+			mb_tmp.MatrDec(mb);
+			mf_p = ml_p.MatrDot(&ml_p,&mb_tmp);
+			
+			f_hist.push_back(mf_p);
+
+
+			double max_compare = 10e29;
+			for (int h = 1; h <= ChMin(iter,this->n_armijo); h++)
 			{
 				double compare = f_hist[iter-h] + gamma*lambda*dTg;
 				if (compare > max_compare)
@@ -286,6 +241,8 @@ double ChLcpIterativeBB::Solve(
 			if (mf_p > max_compare)
 			{
 				armijo_repeat = true;
+				if (iter>0)
+					mf = f_hist[iter-1];
 				double lambdanew = - lambda * lambda * dTg / (2*(mf_p - mf -lambda*dTg));
 				lambda = ChMax(sigma_min*lambda, ChMin(sigma_max*lambda,lambdanew));
 				if (verbose)  GetLog() << " Repeat Armijo, new lambda=" << lambda << "\n";
@@ -303,48 +260,77 @@ double ChLcpIterativeBB::Solve(
 		// s = l_p - l;
 		ms.MatrSub(ml_p, ml);
 		
-						//  the following 3 lines can be simply removed..
-		//// g_p = N*l_p - b;		not needed					#### MATR.MULTIPLICATION!!!###
-		//	sysd.ShurComplementProduct(mg_p, &ml_p, 0);  // 1)  g_p = N*l_p ...        
-		//	mg_p.MatrDec(mb);					    	 // 2)  g_p = N*l_p - b_shur ...
+		// y = g_p - g;
+		my.MatrSub(mg_p, mg);
 
 		// l = l_p;
 		ml.CopyFromMatrix(ml_p);
 
-		// y = -(g_p - g);
-		my.MatrSub(mg, mg_p);
+		// g = g_p;
+		mg.CopyFromMatrix(mg_p);
 
-		// bk = (s' * y);
-		double bk = ms.MatrDot(&ms,&my);
-
-		// Stepsize with Barzilai-Borwein
-		if (bk >= 0)
+		
+		if (((do_BB1e2) && (iter%2 ==0)) || do_BB1)
 		{
-			alpha = a_max;
-		}
-		else
-		{
-			double ak = ms.NormTwo(); 
-			double alph = -(ak * ak) / bk; 
-			alpha = ChMin (a_max, ChMax(a_min, alph));
+			double ss = ms.MatrDot(&ms,&ms);
+			mb_tmp = my;
+			if (do_preconditioning)
+				mb_tmp.MatrDivScale(mD);
+			double sDy = ms.MatrDot(&ms, &mb_tmp);
+			if (sDy <= 0)
+			{
+				alpha = neg_BB1_fallback;
+			}
+			else
+			{
+				double alph = ss / sDy;  // (s,s)/(s,Di*y)   BB1
+				alpha = ChMin (a_max, ChMax(a_min, alph));
+			}
 		}
 
-		// Fallback strategy for keeping the best found vector, because search is
-		// nonmonotone. 
-		// ***TO DO*** ***FALLBACK STRATEGY NOT USABLE???***
-		//if (mf_p < lastgoodfval)
-		//{
-		//	lastgoodfval = mf_p;
-		//	ml_candidate.CopyFromMatrix(ml);
-		//}
-		// ***TO DO*** reactivate a fallback strategy.. now there's none 
-		ml_candidate.CopyFromMatrix(ml);
+		if (((do_BB1e2) && (iter%2 !=0)) || do_BB2)
+		{
+			double sy = ms.MatrDot(&ms,&my);
+			mb_tmp = my;
+			if (do_preconditioning)
+				mb_tmp.MatrDivScale(mD);
+			double yDy = my.MatrDot(&my, &mb_tmp);
+			if (sy <= 0)
+			{
+				alpha = neg_BB2_fallback;
+			}
+			else
+			{
+				double alph = sy / yDy;  // (s,y)/(y,Di*y)   BB2
+				alpha = ChMin (a_max, ChMax(a_min, alph));
+			}
+		}
+
+        // Project the gradient (for rollback strategy)
+		// g_proj = (l-project_orthogonal(l - gdiff*g, fric))/gdiff;
+		mb_tmp = mg;
+		mb_tmp.MatrScale(-gdiff);
+		mb_tmp.MatrInc(ml);
+		sysd.ConstraintsProject(mb_tmp);
+		mb_tmp.MatrDec(ml);
+		mb_tmp.MatrDivScale(-gdiff);
+
+		double g_proj_norm = mb_tmp.NormTwo(); // NormInf() is faster..
+
+		// Rollback solution: the last best candidate ('l' with lowest projected gradient)
+		// in fact the method is not monotone and it is quite 'noisy', if we do not
+		// do this, a prematurely truncated iteration might give a crazy result.
+        if(g_proj_norm < lastgoodres)
+		{
+            lastgoodres  = g_proj_norm;
+            ml_candidate = ml;
+		}  
 
 
 		// METRICS - convergence, plots, etc
 
 		double maxdeltalambda = ms.NormInf();
-		double maxd			  = md.NormInf();  // ***TO DO***  should be max violation, but just for test...
+		double maxd			  = lastgoodres;  
 			
 		// For recording into correction/residuals/violation history, if debugging
 		if (this->record_violation_history)
@@ -354,13 +340,11 @@ double ChLcpIterativeBB::Solve(
 
 
 		// Terminate the loop if violation in constraints has been succesfully limited.
-		
 		// ***TO DO*** a reliable termination creterion.. 
-		// ..also check monotonicity of f? Risk of false positive in termination?
 		/*
-		if (maxdeltalambda < this->tolerance)  
+		if (maxd < this->tolerance)  
 		{
-			GetLog() <<"BB premature maxdeltalambda break at i=" << iter << "\n";
+			GetLog() <<"BB premature proj.gradient break at i=" << iter << "\n";
 			break;
 		}
 		*/
@@ -390,31 +374,10 @@ double ChLcpIterativeBB::Solve(
 			mconstraints[ic]->Increment_q( mconstraints[ic]->Get_l_i() );
 	}
 	
-/*
-	GetLog() << "\n result vector v (y): \n";
-	sysd.FromVariablesToVector(mq);
-	GetLog() << mq(1) <<"\n";
-
-	GetLog() << "\n result vector l: \n";
-		for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
-			if (mconstraints[ic]->IsActive())
-				GetLog() << mconstraints[ic]->Get_l_i() <<"\n";
-*/
-
-	//***TEST***
-	chrono::ChMatrixDynamic<double> mdq;
-	chrono::ChMatrixDynamic<double> mdl;
-	sysd.FromVariablesToVector(mdq);
-	sysd.FromConstraintsToVector(mdl);
-	chrono::ChStreamOutAsciiFile file_q("solver_solved_q.dat");
-	mdf.StreamOUTdenseMatlabFormat(file_q);
-	chrono::ChStreamOutAsciiFile file_l("solver_solved_l.dat");
-	mdl.StreamOUTdenseMatlabFormat(file_l);
-
 
 	if (verbose) GetLog() <<"-----\n";
 
-	return maxviolation;
+	return lastgoodres;
 
 }
 

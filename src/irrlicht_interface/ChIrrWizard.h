@@ -76,12 +76,13 @@ public:
 								video::SColorf col2  = video::SColorf(0.7f,0.8f,0.8f,1.0f))
 	{
 			// create lights
-			device->getSceneManager()->addLightSceneNode(
+			irr::scene::ILightSceneNode* mlight1 = device->getSceneManager()->addLightSceneNode(
 				0,pos1, 
 				col1, (f32)rad1);
-			device->getSceneManager()->addLightSceneNode(
+			irr::scene::ILightSceneNode* mlight2 = device->getSceneManager()->addLightSceneNode(
 				0,pos2,  
 				col2, (f32)rad2);
+			mlight2->enableCastShadow(false);
 	}
 
 			/// A very basic and simple function which is just a 
