@@ -71,12 +71,14 @@ ChBody::ChBody ()
 	Torque_acc = VNULL;
 	Scr_force = VNULL;
 	Scr_torque = VNULL;
+	cdim = VNULL;
 
 	collision_model=InstanceCollisionModel();
 
 	matsurface = ChSharedPtr<ChMaterialSurface>(new ChMaterialSurface);
 
 	density = 1000.0f;
+	conductivity = 0.2f;
 
 	last_coll_pos = CSYSNORM;
 
@@ -130,9 +132,11 @@ void ChBody::Copy(ChBody* source)
 	this->matsurface = source->matsurface;  // also copy-duplicate the material? Let the user handle this..
 
 	density = source->density;
+	conductivity = source->conductivity;
 
 	Scr_force = source->Scr_force;
 	Scr_torque = source->Scr_torque;
+	cdim = source->cdim;
 
 	last_coll_pos = source->last_coll_pos;
 
@@ -441,7 +445,14 @@ void ChBody::Accumulate_script_force  (Vector force, Vector appl_point, int loca
 	Scr_force = Vadd (Scr_force, mabsforce);
 	Scr_torque = Vadd (Scr_torque, mabstorque);
 }
+/*
+void ChBody::SetCdim (Vector mcdim)
+{
+	ChVector<> cdim;
 
+	cdim = mcdim;
+}
+*/
 void ChBody::Accumulate_script_torque (Vector torque, int local)
 {
 	ChVector<> mabstorque;
@@ -838,6 +849,7 @@ void ChBody::StreamOUT(ChStreamOutBinary& mstream)
 	
 	mstream << bflag;
 	dfoo=(double)density;	mstream << dfoo;
+	dfoo=(double)conductivity;	mstream << dfoo;
 
 	mstream << max_speed;
 	mstream << max_wvel;
@@ -887,6 +899,7 @@ void ChBody::StreamIN(ChStreamInBinary& mstream)
 		}
 		mstream >> bflag;
 		mstream >> dfoo;		density = (float)dfoo;
+		mstream >> dfoo;		conductivity = (float)dfoo;
 		SetBodyFixed(mlock != 0);
 	}
 	if (version >=2)
@@ -907,6 +920,7 @@ void ChBody::StreamIN(ChStreamInBinary& mstream)
 		mstream >> dfoo;		matsurface->SetSfriction((float)dfoo);
 		mstream >> bflag;
 		mstream >> dfoo;		density = (float)dfoo;
+		mstream >> dfoo;		conductivity = (float)dfoo;
 		if(this->GetBodyFixed())
 			SetBodyFixed(true);
 		else SetBodyFixed(false);
