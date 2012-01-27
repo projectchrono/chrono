@@ -101,7 +101,7 @@ public:
 				double wheeldiameter = 0.280*2;	
 				int nwrap = 6;
 				int ntiles = 7;
-				double rlwidth = 1.5;
+				double rlwidth = 1.20;
 				double passo = (ntiles+1)*shoelength;
 
 				ChVector<> cyl_displA(0,  0.075+0.02,0);
@@ -110,15 +110,15 @@ public:
 
 				// --- The tank body --- 
 
-				 truss = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-														&my_system, msceneManager,
+				IAnimatedMesh*	bulldozer_bodyMesh = msceneManager->getMesh("../data/bulldozerB10.obj");
+				truss = (ChBodySceneNode*)addChBodySceneNode(
+														&my_system, msceneManager, bulldozer_bodyMesh,
 														350.0,
 														ChVector<>(mx + passo/2, my + radiustrack , rlwidth/2),
-														QUNIT, 
-														ChVector<>(ntiles*shoelength, radiustrack*0.9, rlwidth*0.7) );
+														QUNIT);
 				truss->GetBody()->SetInertiaXX(ChVector<>(13.8, 13.5, 10));
 				truss->GetBody()->SetBodyFixed(false);
-				truss->addShadowVolumeSceneNode();
+			    truss->addShadowVolumeSceneNode();
 
 				// --- Right Front suspension --- 
 
@@ -425,6 +425,7 @@ public:
 												&my_system, msceneManager, 
 												template_collision_shape, 
 												position,rotation); 
+			rigidBodyShoe->addShadowVolumeSceneNode();
  
 			// Add a mesh for visualization purposes
 			msceneManager->addAnimatedMeshSceneNode(irmesh_shoe_view, rigidBodyShoe,-1, vector3dfCH(mesh_displacement));
@@ -472,19 +473,19 @@ public:
 
 				// ..add a GUI slider to control throttle left via mouse
 				scrollbar_throttleL = application->GetIGUIEnvironment()->addScrollBar(
-								true, rect<s32>(310, 60, 450, 75), 0, 101);
+								true, rect<s32>(510, 20, 650, 35), 0, 101);
 				scrollbar_throttleL->setMax(100); 
 				scrollbar_throttleL->setPos(50);
 				text_throttleL = application->GetIGUIEnvironment()->addStaticText(
-							L"Left throttle ", rect<s32>(450,60,550,75), false);
+							L"Left throttle ", rect<s32>(650,20,750,35), false);
 
 				// ..add a GUI slider to control gas throttle right via mouse
 				scrollbar_throttleR = application->GetIGUIEnvironment()->addScrollBar(
-								true, rect<s32>(310, 85, 450, 100), 0, 102);
+								true, rect<s32>(510, 45, 650, 60), 0, 102);
 				scrollbar_throttleR->setMax(100); 
 				scrollbar_throttleR->setPos(50);
 				text_throttleR = application->GetIGUIEnvironment()->addStaticText(
-							L"Right throttle", rect<s32>(450,85,550,100), false);
+							L"Right throttle", rect<s32>(650,45,750,60), false);
 			}
 
 	bool OnEvent(const SEvent& event)
@@ -562,7 +563,7 @@ int main(int argc, char* argv[])
 	ChIrrWizard::add_typical_Logo(application.GetDevice());
 	ChIrrWizard::add_typical_Sky(application.GetDevice());
 	ChIrrWizard::add_typical_Lights(application.GetDevice());
-	ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0,0,-6));
+	ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0,0,-6), core::vector3df(-2,2,0));
 
 
  
@@ -585,14 +586,17 @@ int main(int argc, char* argv[])
 	my_ground->setMaterialTexture(0,groundMap);
 
 	// ..some obstacles on the ground:
-	for (int i=0; i<9; i++)
+	for (int i=0; i<50; i++)
 	{
 		ChBodySceneNode* my_obstacle = (ChBodySceneNode*)addChBodySceneNode_easyBox(
 											&my_system, application.GetSceneManager(),
 											3.0,
-											ChVector<>(-4+4*ChRandom(),2, 4*ChRandom()),
-											QUNIT, 
-											ChVector<>(0.6,0.08,0.4) );
+											ChVector<>(-6+6*ChRandom(),2+1*ChRandom(), 6*ChRandom()),
+											Q_from_AngAxis(ChRandom()*CH_C_PI, VECT_Y), 
+											ChVector<>(0.6*(1-0.4*ChRandom()),
+											           0.08,
+													   0.3*(1-0.4*ChRandom()) ) );
+		my_obstacle->addShadowVolumeSceneNode();
 	}
 
 
@@ -642,7 +646,7 @@ int main(int argc, char* argv[])
 		// .. draw also a grid (rotated so that it's horizontal)
 		ChIrrTools::drawGrid(application.GetVideoDriver(), 2, 2, 30,30, 
 			ChCoordsys<>(ChVector<>(0,0.01,0), Q_from_AngX(CH_C_PI_2) ),
-			video::SColor(255, 80,130,130), true);
+			video::SColor(255, 60,60,60), true);
 
 		// HERE CHRONO INTEGRATION IS PERFORMED: 
 		

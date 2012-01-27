@@ -175,7 +175,7 @@ void create_items(ChIrrAppInterface& application)
 	video::ITexture* cubeMap = application.GetVideoDriver()->getTexture("../data/concrete.jpg");
 	mrigidBody->setMaterialTexture(0,	cubeMap);
 
-
+/*
 	// Create rotating stuff
 	ChBodySceneNode* rotatingBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
 											application.GetSystem(), application.GetSceneManager(),
@@ -197,6 +197,7 @@ void create_items(ChIrrAppInterface& application)
 	if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(my_motor->Get_spe_funct()))
 		mfun->Set_yconst(CH_C_PI/2.0); // speed w=90°/s
 	application.GetSystem()->AddLink(my_motor);
+*/
 
 } 
      

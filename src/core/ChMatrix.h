@@ -465,13 +465,31 @@ public:
 							for (int nel=0; nel<rows*columns; ++nel)
 								ElementN(nel)*= factor;
 						}
+					/// Scales a matrix, multiplying all element by all oter elements of 
+					/// matra (it is not the classical matrix multiplication!)
+	template <class RealB>
+	void MatrScale	( const ChMatrix<RealB>& matra)
+						{
+							assert (matra.GetColumns()==columns && matra.GetRows()==rows);
+							for (int nel=0; nel<rows*columns; ++nel)
+								ElementN(nel)*= (Real)matra.ElementN(nel);
+						}
 					/// Scales a matrix, dividing all elements by a constant value: [this]/=f
 	void MatrDivScale	(Real factor)
 						{
 							for (int nel=0; nel<rows*columns; ++nel)
 								ElementN(nel)/= factor;
 						}
-					
+					/// Scales a matrix, dividing all element by all oter elements of 
+					/// matra (it is not the classical matrix multiplication!)
+	template <class RealB>
+	void MatrDivScale	( const ChMatrix<RealB>& matra)
+						{
+							assert (matra.GetColumns()==columns && matra.GetRows()==rows);
+							for (int nel=0; nel<rows*columns; ++nel)
+								ElementN(nel)/= (Real)matra.ElementN(nel);
+						}
+
 					/// Multiplies two matrices, and stores the result in "this" matrix
 					/// [this]=[A]*[B].  
 	template <class RealB,class RealC>

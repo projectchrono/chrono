@@ -460,6 +460,7 @@ bool ChModelBullet::AddTriangleMesh (const  geometry::ChTriangleMesh& trimesh,	b
 														false // use island generation (unsupported-disabled)
 														);
 			mydecompositionJR.ComputeConvexDecomposition();
+			GetLog() << " found n.hulls=" << mydecompositionJR.GetHullCount() << "\n";
 			this->AddTriangleMeshConcaveDecomposed(mydecompositionJR, pos, rot);
 
 			/*
@@ -529,17 +530,7 @@ bool ChModelBullet::AddTriangleMeshConcaveDecomposed(
 	for (unsigned int j = 0; j< mydecomposition.GetHullCount(); j++)
 	{
 		std::vector< ChVector<double> > ptlist;
-
-		ChTriangleMesh chmesh_hull;
-		mydecomposition.GetConvexHullResult(j, chmesh_hull);
-
-		//CONVEX_DECOMPOSITION::ConvexHullResult result;
-		//if (!mydecomposition.GetDecompositionObject()->getConvexHullResult(j, result)) return false;
-		//for (unsigned int i=0; i<result.mVcount; i++)
-		//{
-		//	ChVector<double> pt ( (double)result.mVertices[3*i+0], (double)result.mVertices[3*i+1], (double)result.mVertices[3*i+2] );
-		//	ptlist.push_back(pt);
-		//}
+		mydecomposition.GetConvexHullResult(j, ptlist);
 
 		if (ptlist.size())
 			this->AddConvexHull(ptlist,pos,rot);

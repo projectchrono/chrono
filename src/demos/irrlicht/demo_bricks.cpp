@@ -62,7 +62,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 	// Bodies are Irrlicht nodes of the special class ChBodySceneNode, 
 	// which encapsulates ChBody items).  
 	
-	video::ITexture* cubeMap   = driver->getTexture("../data/cubetexture.png");
+	video::ITexture* cubeMap   = driver->getTexture("../data/cubetexture_borders.png");
 	video::ITexture* sphereMap = driver->getTexture("../data/bluwhite.png");
 		
 
@@ -75,11 +75,12 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 				mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
 													&mphysicalSystem, msceneManager,
 													0.8,
-													ChVector<>(-8+ui*4.0+2*(bi%2),  1.0+bi*2.0, ai*6),
+													ChVector<>(-8+ui*4.0+2*(bi%2),  1.0+bi*2.0, ai*9),
 													ChQuaternion<>(1,0,0,0), 
 													ChVector<>(3.96,2,4) );
 				mrigidBody->GetBody()->SetMaterialSurface(mmaterial);
 				mrigidBody->setMaterialTexture(0,	cubeMap);
+				mrigidBody->addShadowVolumeSceneNode();
 			}
 		}
 	}
@@ -136,7 +137,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 
 	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
 											&mphysicalSystem, msceneManager,
-											100.0,
+											200.0,
 											ChVector<>(0,-2,0),
 											ChQuaternion<>(1,0,0,0), 
 											ChVector<>(550,4,550) );
@@ -145,7 +146,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 
 
 	// Create a ball that will collide with wall
-	double mradius = 3;
+	double mradius = 4;
 	double density = 1.01;
 	double mmass = (4./3.)*CH_C_PI*pow(mradius,3)*density; 
 	GetLog() << "Ball mass = " << mmass << "\n";
@@ -190,16 +191,14 @@ int main(int argc, char* argv[])
 
 	// Create the Irrlicht visualization (open the Irrlicht device, 
 	// bind a simple user interface, etc. etc.)
-	ChIrrAppInterface application(&mphysicalSystem, L"Bricks test",core::dimension2d<u32>(800,600),false); 
+	ChIrrAppInterface application(&mphysicalSystem, L"Bricks test",core::dimension2d<u32>(800,600),false, true); 
 
  
 	// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
 	ChIrrWizard::add_typical_Logo  (application.GetDevice());
 	ChIrrWizard::add_typical_Sky   (application.GetDevice());
-	ChIrrWizard::add_typical_Lights(application.GetDevice(), core::vector3df(30.f, 200.f,  90.f), core::vector3df(30.f, 80.f, -60.f), 590,  400);
+	ChIrrWizard::add_typical_Lights(application.GetDevice(), core::vector3df(70.f, 120.f, -90.f), core::vector3df(30.f, 80.f, 60.f), 590,  400);
 	ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(-15,14,-30), core::vector3df(0,5,0)); 
-
-
 
 	// 
 	// HERE YOU CREATE THE MECHANICAL SYSTEM OF CHRONO... 
@@ -211,27 +210,17 @@ int main(int argc, char* argv[])
   
   
 	// Prepare the physical system for the simulation 
- 
-	mphysicalSystem.SetIntegrationType(ChSystem::INT_ANITESCU); 
 
 	mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD);
 
 	mphysicalSystem.SetUseSleeping(false);
-	
-	/*
-	mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES);
-	ChLcpIterativeMINRES* msolver = (ChLcpIterativeMINRES*) mphysicalSystem.GetLcpSolverSpeed();
-	msolver->SetMaxIterations(40);
-	msolver->SetFeasTolerance(0.1);
-	msolver->SetOmega(0.05);
-	msolver->SetMaxFixedpointSteps(3);
-	*/
 
 	mphysicalSystem.SetMaxPenetrationRecoverySpeed(1.6); // used by Anitescu stepper only
 	mphysicalSystem.SetIterLCPmaxItersSpeed(40);
 	mphysicalSystem.SetIterLCPmaxItersStab(20); // unuseful for Anitescu, only Tasora uses this
 	mphysicalSystem.SetIterLCPwarmStarting(true);
 	mphysicalSystem.SetParallelThreadNumber(4);
+
 	//
 	// THE SOFT-REAL-TIME CYCLE
 	//
@@ -242,6 +231,9 @@ int main(int argc, char* argv[])
 	while(application.GetDevice()->run())
 	{
 		application.GetVideoDriver()->beginScene(true, true, SColor(255,140,161,192));
+
+		ChIrrTools::drawGrid(application.GetVideoDriver(), 5,5, 20,20, 
+			ChCoordsys<>(ChVector<>(0,0.2,0),Q_from_AngAxis(CH_C_PI/2,VECT_X)), video::SColor(50,90,90,100),true);
 
 		application.DrawAll();
 
