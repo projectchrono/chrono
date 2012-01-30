@@ -118,7 +118,7 @@ public:
 														QUNIT);
 				truss->GetBody()->SetInertiaXX(ChVector<>(13.8, 13.5, 10));
 				truss->GetBody()->SetBodyFixed(false);
-			    truss->addShadowVolumeSceneNode();
+			    //truss->addShadowVolumeSceneNode();
 
 				// --- Right Front suspension --- 
 
