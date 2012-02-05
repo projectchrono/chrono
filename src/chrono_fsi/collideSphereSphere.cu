@@ -190,12 +190,10 @@ __global__ void UpdateKernelRigidTranstalation (
 	float3 derivV_SPH = rigid_SPH_mass * F3(totalForce4) / dummyVelMas.w;		//in fact, totalForce4 is originially sum of dV/dt of sph particles and should be multiplied by m to produce force. gravity is applied in the force kernel
 
 	float3 deltaPos = F3(dummyVelMas) * dTD;
-			deltaPos.y = 0;
 	dummyPosRad += F4(deltaPos, 0);
 	posRadRigidD[rigidSphereA] = dummyPosRad;
 
 	float3 deltaVel = derivV_SPH * dTD;
-			deltaVel.y = 0;
 	dummyVelMas += F4(deltaVel, 0);
 	velMassRigidD[rigidSphereA] = dummyVelMas;
 }
@@ -255,7 +253,6 @@ __global__ void UpdateRigidBodyAngularVelocity_kernel (
 	j1 = jInvD1[rigidSphereA];
 	j2 = jInvD2[rigidSphereA];
 	float3 omegaDot3 = torquingTerm.x * j1 + torquingTerm.y * F3(j1.y, j2.x, j2.y) + torquingTerm.z * F3(j1.z, j2.y, j2.z);
-		omegaDot3.x = 0; omegaDot3.z = 0;
 
 	omega3 += omegaDot3 * dTD;
 	omegaLRF_D[rigidSphereA] = omega3;
