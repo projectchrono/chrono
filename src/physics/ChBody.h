@@ -442,15 +442,19 @@ public:
 
 				/// Set the inertia tensor of the body
 	void SetInertia (ChMatrix33<>* newXInertia);
-				/// Set the diagonal part of the inertia tensor.
+				/// Set the diagonal part of the inertia tensor (Ixx, Iyy, Izz values)
 	void SetInertiaXX (ChVector<> iner);
-				/// Get the diagonal part of the inertia tensor.
+				/// Get the diagonal part of the inertia tensor (Ixx, Iyy, Izz values)
 	ChVector<> GetInertiaXX();
 				/// Set the extradiagonal part of the inertia tensor
-				/// (xy, yz, zx values, the rest is symmetric)
+				/// (Ixy, Iyz, Izx values, the rest is symmetric)
+				/// Warning about sign: in some books they write the inertia tensor as 
+				/// I=[Ixx, -Ixy, -Ixz; etc.] but here is I=[Ixx, Ixy, Ixz; etc.]
 	void SetInertiaXY (ChVector<> iner);
 				/// Get the extradiagonal part of the inertia tensor
-				/// (xy, yz, zx values, the rest is symmetric)
+				/// (Ixy, Iyz, Izx values, the rest is symmetric)
+				/// Warning about sign: in some books they write the inertia tensor as 
+				/// I=[Ixx, -Ixy, -Ixz; etc.] but here is I=[Ixx, Ixy, Ixz; etc.]
 	ChVector<> GetInertiaXY();
 
 

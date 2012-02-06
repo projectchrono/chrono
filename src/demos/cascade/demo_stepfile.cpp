@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
 
 			mrigidBody1->GetBody()->SetBodyFixed(true);
 
-				// Move the body as for global displacement/rotation
+				// Move the body as for global displacement/rotation (also mrigidBody1->GetBody() %= root_frame; )
 			mrigidBody1->GetBody()->ConcatenatePreTransformation(root_frame);
 
 				// Also add a collision shape based on the triangulation of the OpenCascade CAD model
@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
 									&my_system, application.GetSceneManager(), 
 									bshape);
 
-				// Move the body as for global displacement/rotation
+				// Move the body as for global displacement/rotation  (also mrigidBody1->GetBody() %= root_frame; )
 			mrigidBody2->GetBody()->ConcatenatePreTransformation(root_frame);
 
 				// Also add a collision shape based on the triangulation of the OpenCascade CAD model

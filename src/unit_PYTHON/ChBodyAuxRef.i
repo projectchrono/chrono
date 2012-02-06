@@ -13,3 +13,7 @@ using namespace chrono;
 /* Parse the header file to generate wrappers */
 %include "../physics/ChBodyAuxRef.h"    
 
+// Define also the shared pointer chrono::ChShared<ChBody> 
+// (renamed as 'ChBodyShared' in python)
+
+%DefChSharedPtr(ChBodyAuxRefShared, ChBodyAuxRef)
