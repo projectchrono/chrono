@@ -18,10 +18,8 @@ namespace chrono {
 	ChClassRegister<ChBodyGPU> a_registration_ChBodyGPU;
 
 	//////////////////////////////////////
+	/// CLASS FOR SOLID GPU BODIES
 	//////////////////////////////////////
-
-	/// CLASS FOR SOLID BODIES
-
 	ChBodyGPU::ChBodyGPU() :
 		ChBody() {
 		delete collision_model;
@@ -29,8 +27,7 @@ namespace chrono {
 		id = 0;
 	}
 
-	ChBodyGPU::~ChBodyGPU() {
-	}
+	ChBodyGPU::~ChBodyGPU() {}
 
 	ChCollisionModel* ChBodyGPU::InstanceCollisionModel() {
 		ChCollisionModel* collision_model_t = (ChCollisionModelGPU*) new ChCollisionModelGPU();
@@ -39,4 +36,3 @@ namespace chrono {
 	}
 } // END_OF_NAMESPACE____
 
-/////////////////////

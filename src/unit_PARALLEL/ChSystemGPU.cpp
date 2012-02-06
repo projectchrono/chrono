@@ -63,13 +63,13 @@ namespace chrono {
 		float3 bin_size_vec;
 		float max_dimension;
 		float collision_envelope = 0;
-
-		ChCCollisionGPU::ComputeAABB(gpu_data_manager->gpu_data);
-		ChCCollisionGPU::ComputeBounds(gpu_data_manager->gpu_data);
-		ChCCollisionGPU::UpdateAABB(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager->gpu_data);
-		ChCCollisionGPU::Broadphase(bin_size_vec, gpu_data_manager->gpu_data);
-		ChCCollisionGPU::Narrowphase(gpu_data_manager->gpu_data);
-
+		if (gpu_data_manager->gpu_data.number_of_models > 0) {
+			ChCCollisionGPU::ComputeAABB(gpu_data_manager->gpu_data);
+			ChCCollisionGPU::ComputeBounds(gpu_data_manager->gpu_data);
+			ChCCollisionGPU::UpdateAABB(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager->gpu_data);
+			ChCCollisionGPU::Broadphase(bin_size_vec, gpu_data_manager->gpu_data);
+			ChCCollisionGPU::Narrowphase(gpu_data_manager->gpu_data);
+		}
 		this->ncontacts = gpu_data_manager->number_of_contacts;
 		mtimer_cd.stop();
 		return 0;
@@ -155,44 +155,31 @@ namespace chrono {
 		std::list<ChLink*>::iterator it;
 		unsigned int number_of_bilaterals = 0;
 		uint counter = 0;
+		this->LCP_descriptor->BeginInsertion();
 		for (it = linklist.begin(); it != linklist.end(); it++) {
 			(*it)->Update(ChTime);
-			if ((*it)->IsActive()) {
+			(*it)->ConstraintsBiReset();
+			(*it)->ConstraintsBiLoad_C(1.0 / GetStep(), max_penetration_recovery_speed, true);
+			(*it)->ConstraintsBiLoad_Ct(1);
+			(*it)->ConstraintsFbLoadForces(GetStep());
+			(*it)->ConstraintsLoadJacobians();
+			(*it)->InjectConstraints(*this->LCP_descriptor);
+		}
+		this->LCP_descriptor->EndInsertion();
+		std::vector<ChLcpConstraint*>& mconstraints = (*this->LCP_descriptor).GetConstraintsList();
+		for (uint ic = 0; ic < mconstraints.size(); ic++) {
+			if (mconstraints[ic]->IsActive() == true) {
 				number_of_bilaterals++;
 			}
 		}
 		gpu_data_manager->number_of_bilaterals = number_of_bilaterals;
 		gpu_data_manager->host_bilateral_data.resize(number_of_bilaterals * CH_BILATERAL_VSIZE);
 
-		for (it = linklist.begin(); it != linklist.end(); it++) {
-			(*it)->ConstraintsBiReset();
-		}
-
-		for (it = linklist.begin(); it != linklist.end(); it++) {
-			(*it)->ConstraintsBiLoad_C(1.0 / GetStep(), max_penetration_recovery_speed, true);
-			(*it)->ConstraintsBiLoad_Ct(1);
-			(*it)->ConstraintsFbLoadForces(GetStep());
-			(*it)->ConstraintsLoadJacobians();
-		}
-
-		this->LCP_descriptor->BeginInsertion();
-
-		for (it = linklist.begin(); it != linklist.end(); it++) {
-			(*it)->InjectConstraints(*this->LCP_descriptor);
-		}
-
-		this->LCP_descriptor->EndInsertion();
-
-		std::vector<ChLcpConstraint*>& mconstraints = (*this->LCP_descriptor).GetConstraintsList();
-
-
 		for (uint ic = 0; ic < mconstraints.size(); ic++) {
-			if (!mconstraints[ic]->IsActive()) {
+			if (mconstraints[ic]->IsActive() == false) {
 				continue;
 			}
 			ChLcpConstraintTwoBodies* mbilateral = (ChLcpConstraintTwoBodies*) (mconstraints[ic]);
-
-			ChBodyGPU* temp = (ChBodyGPU*) (((ChLcpVariablesBody*) (mbilateral->GetVariables_a()))->GetUserData());
 
 			int idA = ((ChBodyGPU*) ((ChLcpVariablesBody*) (mbilateral->GetVariables_a()))->GetUserData())->id;
 			int idB = ((ChBodyGPU*) ((ChLcpVariablesBody*) (mbilateral->GetVariables_b()))->GetUserData())->id;
@@ -216,36 +203,7 @@ namespace chrono {
 			gpu_data_manager->host_bilateral_data[counter + number_of_bilaterals * 4].z = 0; //gammma, no warm starting
 			gpu_data_manager->host_bilateral_data[counter + number_of_bilaterals * 4].w = (mbilateral->IsUnilateral()) ? 1 : 0;
 			counter++;
-		}// end loop
-
-
-		//		for (it = linklist.begin(); it != linklist.end(); it++) {
-		//			if ((*it)->IsActive() == false) {
-		//				continue;
-		//			}
-		//			ChLcpConstraintTwoBodies* mbilateral = (ChLcpConstraintTwoBodies*) ((*it));
-		//			// Update auxiliary data in all constraints before starting, that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
-		//
-		//			((ChLcpConstraint*) (*it))->Update_auxiliary();
-		//
-		//			//mbilateral->Update_auxiliary();//***NOTE*** not efficient here - can be on GPU, and [Eq_i] not needed
-		//
-		//			int idA = ((ChBodyGPU*) ((ChLcpVariablesBody*) (mbilateral->GetVariables_a()))->GetUserData())->id;
-		//			int idB = ((ChBodyGPU*) ((ChLcpVariablesBody*) (mbilateral->GetVariables_b()))->GetUserData())->id;
-		//
-		//			float4 A, B, C, D;
-		//			A = F4(mbilateral->Get_Cq_a()->GetElementN(0), mbilateral->Get_Cq_a()->GetElementN(1), mbilateral->Get_Cq_a()->GetElementN(2), idA);//J1x
-		//			B = F4(mbilateral->Get_Cq_b()->GetElementN(0), mbilateral->Get_Cq_b()->GetElementN(1), mbilateral->Get_Cq_b()->GetElementN(2), idB);//J2x
-		//			C = F4(mbilateral->Get_Cq_a()->GetElementN(3), mbilateral->Get_Cq_a()->GetElementN(4), mbilateral->Get_Cq_a()->GetElementN(5), 0);//J1w
-		//			D = F4(mbilateral->Get_Cq_b()->GetElementN(3), mbilateral->Get_Cq_b()->GetElementN(4), mbilateral->Get_Cq_b()->GetElementN(5), 0);//J2w
-		//			bool isUni = (mbilateral->IsUnilateral()) ? 1 : 0;
-		//			gpu_data_manager->host_bilateral_data[counter + number_of_bilaterals * 0] = A;
-		//			gpu_data_manager->host_bilateral_data[counter + number_of_bilaterals * 1] = B;
-		//			gpu_data_manager->host_bilateral_data[counter + number_of_bilaterals * 2] = C;
-		//			gpu_data_manager->host_bilateral_data[counter + number_of_bilaterals * 3] = D;
-		//			gpu_data_manager->host_bilateral_data[counter + number_of_bilaterals * 4] = F4((1.0 / mbilateral->Get_g_i()), mbilateral->Get_b_i(), 0, isUni);
-		//			counter++;
-		//		}
+		}
 		mtimer.stop();
 		timer_update += mtimer();
 	}

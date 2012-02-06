@@ -7,7 +7,6 @@
 //
 ///////////////////////////////////////////////////
 #define THRUST_DEVICE_BACKEND THRUST_DEVICE_BACKEND_CUDA
-
 #include <time.h>
 #include <iostream>
 #include <cutil.h>
@@ -38,7 +37,6 @@ typedef unsigned int uint;
 #else
 #define CUDA_KERNEL_DIM(...)  <<< __VA_ARGS__ >>>
 #endif
-
 
 #define Zero_Vector make_float3(0,0,0)
 #define PI  3.1415926535897932384626433832795
@@ -108,31 +106,94 @@ typedef unsigned int uint;
 #define Thrust_Total(x)					thrust::reduce(x.begin(),x.end())
 #define DBG(x)							printf(x);CUT_CHECK_ERROR(x);
 
-__device__ __host__ inline float4 inv(const float4& a)
-{
-	return F4(a.x, -a.y, -a.z, -a.w);
+#define	_SPHERE 0
+#define	_ELLIPSOID 1
+#define	_BOX 2
+#define	_CYLINDER 3
+#define	_CONVEXHULL 4
+#define	_TRIANGLEMESH 5
+#define	_BARREL 6
+#define	_RECT 7				//Currently implemented on GPU only
+#define	_DISC 8				//Currently implemented on GPU only
+#define	_ELLIPSE 9			//Currently implemented on GPU only
+#define	_CAPSULE 10			//Currently implemented on GPU only
+#define	_CONE 11				//Currently implemented on GPU only
+
+#define Vector_ZERO_EPSILON 0.0000001
+#define MIN_ZERO_EPSILON 1.1754943508222875E-38
+#define EPS FLT_EPSILON
+
+__device__ __host__ bool operator ==(const uint3 &a, const uint3 &b) {
+	return ((a.x == b.x) && (a.y == b.y) && (a.z == b.z));
 }
 
-__device__ __host__ inline float4 operator ~(const float4& a)
-{
-	return F4(a.x, -a.y, -a.z, -a.w);
+__device__ __host__ inline void Swap(float3& a, float3& b) {
+	float3 tmp = a;
+	a = b;
+	b = tmp;
 }
 
-__device__ __host__ inline float4 mult(const float4 &a, const float4 &b)
-{
-	float4 quat;
-	quat.x = a.x * b.x - a.y * b.y - a.z * b.z - a.w * b.w;
-	quat.y = a.x * b.y + a.y * b.x - a.w * b.z + a.z * b.w;
-	quat.z = a.x * b.z + a.z * b.x + a.w * b.y - a.y * b.w;
-	quat.w = a.x * b.w + a.w * b.x - a.z * b.y + a.y * b.z;
+__device__ __host__ inline float4 inv(const float4& a) {
+	return (1.0f / (dot(a, a))) * F4(a.x, -a.y, -a.z, -a.w);
+}
+
+//__device__ __host__ inline float4 operator ~(const float4& a)
+//{
+//	return 1.0/(dot(a,a))*F4(a.x, -a.y, -a.z, -a.w);
+//}
+
+inline __host__  __device__ float4 make_float4(float w, float3 a) {
+	return make_float4(w, a.x, a.y, a.z);
+}
+
+__device__ __host__ inline float4 mult(const float4 &a, const float4 &b) {
+	float w0 = a.x;
+	float w1 = b.x;
+	float3 v0 = F3(a.y, a.z, a.w);
+	float3 v1 = F3(b.y, b.z, b.w);
+	float4 quat = F4(w0 * w1 - dot(v0, v1), w0 * v1 + w1 * v0 + cross(v0, v1));
+
+	//quat.x = a.x * b.x - a.y * b.y - a.z * b.z - a.w * b.w;
+	//quat.y = a.x * b.y + a.y * b.x - a.w * b.z + a.z * b.w;
+	//quat.z = a.x * b.z + a.z * b.x + a.w * b.y - a.y * b.w;
+	//quat.w = a.x * b.w + a.w * b.x - a.z * b.y + a.y * b.z;
 	return quat;
 }
 
-__device__ __host__ inline float3 quatRotate(const float3 &v, const float4 &q)
-{
+__device__ __host__ bool IsZero3(const float3 &v) {
+	return (v.x < Vector_ZERO_EPSILON && v.x > -Vector_ZERO_EPSILON && v.y < Vector_ZERO_EPSILON && v.y > -Vector_ZERO_EPSILON && v.z < Vector_ZERO_EPSILON && v.z > -Vector_ZERO_EPSILON);
+}
+__device__ __host__ bool IsZero(const float &val) {
+	return fabs(val) < 1E-10;
+}
+__device__ __host__ bool isEqual(const float& _a, const float& _b) {
+	float ab;
+
+	ab = fabs(_a - _b);
+	if (fabs(ab) < 1E-10) return 1;
+
+	float a, b;
+	a = fabs(_a);
+	b = fabs(_b);
+	if (b > a) {
+		return ab < 1E-10 * b;
+	} else {
+		return ab < 1E-10 * a;
+	}
+}
+
+__device__ __host__ inline float3 quatRotate(const float3 &v, const float4 &q) {
 	float4 r = mult(mult(q, F4(0, v.x, v.y, v.z)), inv(q));
 	return F3(r.y, r.z, r.w);
 }
+//rotate q1 by q2
+//__device__ __host__ inline float4 quatAdd(const float4 &q1, const float4 &q2)
+//{
+//
+//	float3 v = F3(q1.y,q1.z,q1.w);
+//	v=quatRotate(v,q2);
+//	return F4(q1.x,v.x, v.y, v.z);
+//}
 
 struct __align__(16) int3f {
 		int x, y, z;
@@ -142,8 +203,7 @@ struct updateGPU {
 		float3 vel, omega;
 };
 
-static __host__   __device__   __inline__ int3f make_int3f(int x, int y, int z, float w)
-{
+static __host__  __device__    __inline__ int3f make_int3f(int x, int y, int z, float w) {
 	int3f t;
 	t.x = x;
 	t.y = y;
@@ -155,23 +215,19 @@ static __host__   __device__   __inline__ int3f make_int3f(int x, int y, int z, 
 #define CASTI3F(x) (int3f*)thrust::raw_pointer_cast(&x[0])
 
 //custom version of ceil used for float3's
-__host__ __device__ inline float3 ceil(float3 v)
-{
+__host__ __device__ inline float3 ceil(float3 v) {
 	return make_float3(ceil(v.x), ceil(v.y), ceil(v.z));
 }
 template<class T>
-inline __host__ __device__ float max3(T a)
-{
+inline __host__ __device__ float max3(T a) {
 	return max(a.x, max(a.y, a.z));
 }
 template<class T>
-inline __host__ __device__ float min3(T a)
-{
+inline __host__ __device__ float min3(T a) {
 	return min(a.x, min(a.y, a.z));
 }
 
-float __host_int_as_float(int a)
-{
+float __host_int_as_float(int a) {
 	union {
 			int a;
 			float b;

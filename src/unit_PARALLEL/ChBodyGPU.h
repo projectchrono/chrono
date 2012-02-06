@@ -4,10 +4,7 @@
 //////////////////////////////////////////////////
 //
 //   ChBodyGPU.h
-//
 //   Derived Class for GPU rigid bodies,
-//
-//
 //
 //   HEADER file for CHRONO,
 //	 Multibody dynamics engine
@@ -17,6 +14,7 @@
 //             www.deltaknowledge.com
 // ------------------------------------------------
 ///////////////////////////////////////////////////
+
 #include "physics/ChBody.h"
 #include "ChApiGPU.h"
 #include "ChCCollisionModelGPU.h"
@@ -30,9 +28,8 @@ namespace chrono {
 
 		public:
 
-			//
 			// CONSTRUCTORS
-			//
+
 			/// Build a rigid body.
 			ChBodyGPU();
 			/// Destructor
@@ -61,16 +58,20 @@ namespace chrono {
 				return mAppliedForce;
 			}
 			/// Set the identifier for the GPU body
-			void SetId(int identifier){
-				id=identifier;
+			void SetId(int identifier) {
+				id = identifier;
 			}
 			/// Get the identifier for the GPU body
-			int GetId(){
+			int GetId() {
 				return id;
+				cout<<"HERE"<<endl;
 			}
-			int id;
-		private:
+
 			ChVector<> mAppliedForce;
+			int id;
+
+		private:
+
 
 	};
 

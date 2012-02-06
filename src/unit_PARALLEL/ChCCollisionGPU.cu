@@ -18,7 +18,7 @@ __global__ void Compute_AABBs(float3* pos, float4* rot, float3* obA, float3* obB
 	float3 C = obC[index];
 
 	float3 position = pos[type.z];
-	float4 rotation = normalize(rot[type.z] + obR[index]);
+	float4 rotation = (mult(rot[type.z],obR[index]));
 
 	float3 temp_min;
 	float3 temp_max;

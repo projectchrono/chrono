@@ -95,7 +95,7 @@ namespace chrono {
 		for (int i = 0; i < gpu_subdomains.size(); i++) {
 			cudaSetDevice(gpu_subdomains[i].gpu_id);
 			gpu_subdomains[i].Copy();
-			gpu_subdomains[i].Run(LCP_solver_speed);
+			//gpu_subdomains[i].Run(LCP_solver_speed);
 			gpu_subdomains[i].update_counter=0;
 		}
 		gpu_data_manager->host_acc_data=gpu_data_manager->host_vel_data;

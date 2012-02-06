@@ -116,34 +116,46 @@ namespace chrono
 			/// The 'another' model must be of ChModelBullet subclass.
 			virtual bool AddCopyOfAnotherModel (ChCollisionModel* another);
 
+			///returns the axis aligned bounding box for this collision model
 			virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const ;
-
+			/// Set the collision family for this object
 			virtual void SetFamily(int mfamily);
+			/// Get the collision family for this object
 			virtual int  GetFamily();
+
+			/// Set the collision family mask for families to not collide with
 			virtual void SetFamilyMaskNoCollisionWithFamily(int mfamily);
+			/// Set the collision family mask for families to collide with
 			virtual void SetFamilyMaskDoCollisionWithFamily(int mfamily);
+			/// Check if the model collides with a family
 			virtual bool GetFamilyMaskDoesCollisionWithFamily(int mfamily);
-
+			/// Return a pointer to the body
 			ChBody* GetBody() const {return mbody;};
+			/// Set the pointer to the body
 			void SetBody(ChBody* mbo) {mbody = mbo;};
-
+			/// Get the number of objects in this model
 			int GetNObjects(){return nObjects;}
+			///Get family to not collide with
 			int GetNoCollFamily();
 
 			struct bData{
-				float3 A;
-				float3 B;
-				float3 C;
-				float4 R;
-				ShapeType type;
-			};
+										float3 A;
+										float3 B;
+										float3 C;
+										float4 R;
+										ShapeType type;
+									};
+
 			vector <bData> mData;
+
 		protected:
+
+
+
+
 			ChBody* mbody;
-			//represent the CM of the body in global coords
 			unsigned int nObjects;
-			int colFam;
-			int noCollWith;
+			int colFam, noCollWith;
 		};
 	} // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____
