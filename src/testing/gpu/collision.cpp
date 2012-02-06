@@ -1,10 +1,11 @@
 #include "common.h"
 uint numY = 1;
 void System::DoTimeStep() {
-	if (mNumCurrentObjects < mNumObjects && mFrameNumber % 5000 == 0) {
-		float x = 40, y = numY, z = 40;
-		float posX = 0, posY = -20, posZ = 0;
-		float radius = .1, mass = 4, mu = .5, rest = 0;
+	if (mNumCurrentObjects < mNumObjects && mFrameNumber % 100 == 0) {
+		float x = 10, y = numY, z = 10;
+		float posX = 0, posY = 0, posZ = 0;
+		srand(1);
+		float mass = 4, mu = .5, rest = 0;
 		ShapeType type = SPHERE;
 		ChSharedBodyGPUPtr mrigidBody;
 		mNumCurrentObjects += x * y * z;
@@ -13,6 +14,7 @@ void System::DoTimeStep() {
 		for (int xx = 0; xx < x; xx++) {
 			for (int yy = 0; yy < y; yy++) {
 				for (int zz = 0; zz < z; zz++) {
+					float radius = (rand()%1000)/2000.0+.05;
 					ChVector<> mParticlePos((xx - (x - 1) / 2.0) + posX, (yy) + posY, (zz - (z - 1) / 2.0) + posZ);
 
 					mParticlePos += ChVector<> (rand() % 1000 / 10000.0 - .05, rand() % 1000 / 10000.0 - .05, rand() % 1000 / 10000.0 - .05);
@@ -22,8 +24,8 @@ void System::DoTimeStep() {
 					quat.Normalize();
 
 					mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
-					InitObject(mrigidBody, mass, mParticlePos * .41, quat, mu, mu, rest, true, false, 0, 1);
-					mrigidBody->SetPos_dt(ChVector<> (0, -2, 0));
+					InitObject(mrigidBody, mass, mParticlePos*1.1, quat, mu, mu, rest, true, false, 0, 1);
+					mrigidBody->SetPos_dt(ChVector<> (0, -4, 0));
 					switch (type) {
 						case SPHERE:
 							dim = ChVector<> (radius, 0, 0);
@@ -41,13 +43,6 @@ void System::DoTimeStep() {
 			}
 		}
 	}
-
-	//DeactivationPlane(-40, -40, true);
-	//BoundingBox(container_R,container_R,container_R);
-
-	//SaveByID(1, "test_ball.txt", true, true, true, false, false);
-	//SaveAllData("data/ball_drop",true, false, false, true, false);
-
 	mFrameNumber++;
 	mSystem->DoStepDynamics(mTimeStep);
 	mCurrentTime += mTimeStep;
@@ -56,21 +51,18 @@ void System::DoTimeStep() {
 int main(int argc, char* argv[]) {
 	omp_set_nested(1);
 	GPUSystem = new System(1);
-	GPUSystem->mTimeStep = .001;
+	GPUSystem->mTimeStep = .005;
 	GPUSystem->mEndTime = 10;
-	GPUSystem->mNumObjects = 300000;
+	GPUSystem->mNumObjects = 1000;
 	GPUSystem->mIterations = 1000;
-	GPUSystem->mTolerance = 1e-5;
+	GPUSystem->mTolerance = 1e-4;
 	GPUSystem->mOmegaContact = .5;
 	GPUSystem->mOmegaBilateral = .2;
-	//GPUSystem->SetTimingFile("test_gpu_cd_output.txt");
-	//GPUSystem->mSystem->SetUseCPU(false);
 	float mMu = .5;
 	float mWallMu = .5;
 
 	if (argc == 4) {
 		numY = atoi(argv[1]);
-		//GPUSystem->mSystem->SetUseCPU(atoi(argv[2]));
 		GPUSystem->mUseOGL = atoi(argv[3]);
 		GPUSystem->mSaveData = 0;
 	} else {
