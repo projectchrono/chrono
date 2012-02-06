@@ -50,15 +50,13 @@ class dgVector;
 class dgBigVector;
 
 #define dgApi __cdecl 	
-
 #ifdef _DEBUG
-#if 1
+#ifdef _WINDOWS
 #define dgCheckFloat(x) (_finite(x) && !_isnan(x))
 #else
 #define dgCheckFloat(x) (isfinite(x) && !isnan(x))
 #endif
 #endif
-
 
 HACD_INLINE hacd::HaI32 exp_2 (hacd::HaI32 x)
 {
