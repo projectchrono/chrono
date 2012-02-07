@@ -159,6 +159,7 @@ using namespace chrono;
 
 %DefChSharedPtrCast(chrono::ChBody, chrono::ChPhysicsItem)
 %DefChSharedPtrCast(chrono::ChConveyor, chrono::ChBody)
+%DefChSharedPtrCast(chrono::ChBodyAuxRef, chrono::ChBody)
 %DefChSharedPtrCast(chrono::ChIndexedParticles, chrono::ChPhysicsItem)
 %DefChSharedPtrCast(chrono::ChParticlesClones, chrono::ChIndexedParticles)
 %DefChSharedPtrCast(chrono::ChMarker, chrono::ChPhysicsItem)

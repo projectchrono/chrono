@@ -110,3 +110,16 @@ my_shbodyA %= my_displacement
 #  my_shbody.ConcatenatePreTransformation(my_displacement)
 
 print 'Moved body pos=', my_shbodyA.GetPos()
+
+
+
+body_1= chrono.ChBodyAuxRefShared()
+body_1.SetName('Parte1-1')
+body_1.SetPos(chrono.ChVectorD(-0.0445347481124079,0.0676266363930238,-0.0230808979433518))
+body_1.SetRot(chrono.ChQuaternionD(1,0,0,0))
+body_1.SetMass(346.17080777653)
+body_1.SetInertiaXX(chrono.ChVectorD(48583.2418823358,526927.118351673,490689.966726565))
+body_1.SetInertiaXY(chrono.ChVectorD(1.70380722975012e-11,1.40840344485366e-11,-2.31869065456271e-12))
+body_1.SetFrame_COG_to_REF(chrono.ChFrameD(chrono.ChVectorD(68.9923703887577,-60.1266363930238,70.1327223302498),chrono.ChQuaternionD(1,0,0,0)))
+
+

@@ -50,3 +50,13 @@ public:
 
 %constant chrono::ChCoordsys<double> CSYSNULL = chrono::ChCoordsys<double>(chrono::VNULL,chrono::QNULL);
 %constant chrono::ChCoordsys<double> CSYSNORM = chrono::ChCoordsys<double>(chrono::VNULL,chrono::QUNIT);
+
+
+// This because constants do not work well, so implement them in script-side
+
+%pythoncode %{
+
+	CSYSNULL  = ChCoordsysD(VNULL,QNULL)
+	CSYSNORM  = ChCoordsysD(VNULL,QUNIT)
+
+%}
