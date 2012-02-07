@@ -79,10 +79,11 @@ public:
 %template(ChVectorD) chrono::ChVector<double>; 
 %template(ChVectorF) chrono::ChVector<float>; 
 
-%constant chrono::ChVector<double> VNULL = chrono::ChVector<double>(0,0,0);
-%constant chrono::ChVector<double> VECT_X= chrono::ChVector<double>(1,0,0);
-%constant chrono::ChVector<double> VECT_Y= chrono::ChVector<double>(0,1,0);
-%constant chrono::ChVector<double> VECT_Z= chrono::ChVector<double>(0,0,1);
+// Constants seem not to work...
+// %constant chrono::ChVector<double> VNULL = chrono::ChVector<double>(0,0,0);
+// %constant chrono::ChVector<double> VECT_X= chrono::ChVector<double>(1,0,0);
+// %constant chrono::ChVector<double> VECT_Y= chrono::ChVector<double>(0,1,0);
+// %constant chrono::ChVector<double> VECT_Z= chrono::ChVector<double>(0,0,1);
 
 
 %extend chrono::ChVector<double>{
@@ -100,3 +101,15 @@ public:
 						return $self->operator^(other);
 					}
 		};
+
+
+// This because constants do not work well, so implement them in script-side
+
+%pythoncode %{
+
+	VNULL  = ChVectorD(0,0,0)
+	VECT_X = ChVectorD(1,0,0)
+	VECT_Y = ChVectorD(0,1,0)
+	VECT_Z = ChVectorD(0,0,1)
+
+%}

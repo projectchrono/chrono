@@ -162,8 +162,9 @@ Quaternion AngleDTDT_to_QuatDTDT (int angset, chrono::Vector* mangles, Quaternio
 %template(ChQuaternionD) chrono::ChQuaternion<double>; 
 //%template(ChQuaternionF) chrono::ChQuaternion<float>; 
 
-%constant chrono::ChQuaternion<double> QNULL = chrono::ChQuaternion<double>(0.,0.,0.,0.);
-%constant chrono::ChQuaternion<double> QUNIT = chrono::ChQuaternion<double>(1.,0.,0.,0.);
+// Constants seem not to work...
+//%constant chrono::ChQuaternion<double> QNULL = chrono::ChQuaternion<double>(0.,0.,0.,0.);
+//%constant chrono::ChQuaternion<double> QUNIT = chrono::ChQuaternion<double>(1.,0.,0.,0.);
 
 
 %extend chrono::ChQuaternion<double>{
@@ -186,3 +187,13 @@ Quaternion AngleDTDT_to_QuatDTDT (int angset, chrono::Vector* mangles, Quaternio
 						return $self->operator^(other);
 					}
 		};
+
+
+// This because constants do not work well, so implement them in script-side
+
+%pythoncode %{
+
+	QNULL  = ChQuaternionD(0,0,0,0)
+	QUNIT  = ChQuaternionD(1,0,0,0)
+
+%}
