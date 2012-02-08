@@ -35,6 +35,8 @@ void ChPhysicsItem::Copy(ChPhysicsItem* source)
 
 	// copy other class data
 	system=0; // do not copy - must be initialized with insertion in system.
+
+	this->assets = source->assets;  // copy the list of shared pointers to assets
 }
 
 

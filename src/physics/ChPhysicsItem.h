@@ -23,6 +23,7 @@
 
 
 #include "physics/ChObject.h"
+#include "assets/ChAsset.h"
 #include "lcp/ChLcpSystemDescriptor.h"
 #include "collision/ChCCollisionModel.h"
 
@@ -51,6 +52,8 @@ protected:
 
 	ChSystem *system;	  // parent system
 
+	std::vector< ChSharedPtr<ChAsset> > assets;
+
 public:
 				//
 	  			// CONSTRUCTORS
@@ -72,9 +75,16 @@ public:
 				/// Set the pointer to the parent ChSystem()
 	void SetSystem (ChSystem* m_system) {system= m_system;}
 
+				/// Access to the list of optional assets.
+	std::vector< ChSharedPtr<ChAsset> >& GetAssets () { return this->assets;}
+	ChSharedPtr<ChAsset> GetAssetN (unsigned int num) { if (num<assets.size()) return assets[num]; else {ChSharedPtr<ChAsset> none; return none;};}
 
-			//
-			// COLLISIONS - override these in child classes if needed
+		// --- INTERFACES --- 
+		// inherited classes might/should implement 
+		// some of the following functions.
+
+
+			// Collisions - override these in child classes if needed
 			// 
 
 				/// Tell if the object is subject to collision.
@@ -114,7 +124,9 @@ public:
 				/// Must be implemented by child classes. 
 	virtual void StreamOUTstate(ChStreamOutBinary& mstream) {};				
 
-			// Updating
+
+			// UPDATING  - child classes may implement these functions
+			//
 
 				/// This is an important function, which is called by the 
 				/// owner ChSystem at least once per integration step.
@@ -137,8 +149,6 @@ public:
 	void SetNoSpeedNoAcceleration() {};
 
 
-
-			//
 			// STATISTICS  - override these in child classes if needed
 			// 
 
@@ -152,7 +162,6 @@ public:
 	virtual int GetDOC_d  () {return 0;}
 
 
-			//
 			// LCP SYSTEM FUNCTIONS   
 			//
 			// These are the functions that are used to manage ChLcpConstraint and/or ChLcpVariable 
