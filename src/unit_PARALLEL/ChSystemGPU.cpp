@@ -34,6 +34,10 @@ namespace chrono {
 		SolveSystem();
 
 		gpu_data_manager->DeviceToHost();
+		std::list<ChLink*>::iterator it;
+		for (it = linklist.begin(); it != linklist.end(); it++) {
+			(*it)->ConstraintsFetch_react(1.0 / GetStep());
+		}
 
 #pragma omp parallel for
 		for (int i = 0; i < bodylist.size(); i++) {
@@ -79,6 +83,10 @@ namespace chrono {
 		mtimer_lcp.start();
 
 		((ChLcpIterativeSolverGPUsimple*) (LCP_solver_speed))->SolveSys(gpu_data_manager->gpu_data);
+
+
+		//gpu_data_manager->host_acc_data=gpu_data_manager->host_vel_data;
+		//((ChLcpIterativeSolverGPUsimple*) (LCP_solver_speed))->SolveSys_HOST(gpu_data_manager);
 
 		((ChContactContainerGPUsimple*) this->contact_container)->SetNcontacts(gpu_data_manager->number_of_contacts);
 		mtimer_lcp.stop();
@@ -139,7 +147,7 @@ namespace chrono {
 			bodylist[i]->VariablesFbLoadForces(GetStep());
 			bodylist[i]->VariablesQbLoadSpeed();
 
-			ChLcpVariablesBodyOwnMass* mbodyvar = &(bodylist[i]->Variables());
+			ChLcpVariablesBody* mbodyvar = &(bodylist[i]->Variables());
 			ChMatrix33<> inertia = mbodyvar->GetBodyInvInertia();
 			gpu_data_manager->host_vel_data[i] = (F3(bodylist[i]->GetPos_dt().x, bodylist[i]->GetPos_dt().y, bodylist[i]->GetPos_dt().z));
 			gpu_data_manager->host_omg_data[i] = (F3(bodylist[i]->GetWvel_loc().x, bodylist[i]->GetWvel_loc().y, bodylist[i]->GetWvel_loc().z));
@@ -166,6 +174,7 @@ namespace chrono {
 			(*it)->InjectConstraints(*this->LCP_descriptor);
 		}
 		this->LCP_descriptor->EndInsertion();
+
 		std::vector<ChLcpConstraint*>& mconstraints = (*this->LCP_descriptor).GetConstraintsList();
 		for (uint ic = 0; ic < mconstraints.size(); ic++) {
 			if (mconstraints[ic]->IsActive() == true) {
@@ -204,6 +213,8 @@ namespace chrono {
 			gpu_data_manager->host_bilateral_data[counter + number_of_bilaterals * 4].w = (mbilateral->IsUnilateral()) ? 1 : 0;
 			counter++;
 		}
+
+
 		mtimer.stop();
 		timer_update += mtimer();
 	}

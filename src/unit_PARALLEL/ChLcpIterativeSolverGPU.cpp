@@ -30,15 +30,16 @@ ChLcpIterativeSolverGPUsimple::ChLcpIterativeSolverGPUsimple(ChContactContainerG
 	gpu_contact_container = container;
 	gpu_solver = new ChLcpIterativeGPU();
 	number_of_bodies = 0;
-	mTolerance = 1e-5;
-	mDt = .01;
-	mMaxIterations = 100;
-	mOmegaContact = .2;
-	mOmegaBilateral = .2;
+	mTolerance = 0;
+	mDt = 0;
+	mMaxIterations = 0;
+	mOmegaContact = 0;
+	mOmegaBilateral = 0;
 }
 
 ChLcpIterativeSolverGPUsimple::~ChLcpIterativeSolverGPUsimple() {
 }
+
 
 void ChLcpIterativeSolverGPUsimple::SolveSys(gpu_container & gpu_data) {
 	gpu_solver->RunTimeStep(mMaxIterations, iteration_number, mDt, mOmegaBilateral, mOmegaContact, mTolerance, gpu_data);
