@@ -103,8 +103,12 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 %include "../motion_functions/ChFunction_Sigma.h"
 %include "../motion_functions/ChFunction_Sine.h"
 
+// The following is clean but may cause code bloat...
 
-// Enforce the downcast the output, by promoting to proper subclass
+// %downcast_output (chrono::ChFunction, chrono::ChFunction_Sine, chrono::ChFunction_Const)
+
+
+//... so use the following custom trick
 
 %typemap(out) chrono::ChFunction* {
 	$result=DowncastChFunction($1);

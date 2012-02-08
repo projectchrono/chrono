@@ -1,5 +1,21 @@
 #ifndef CHPOSTPROCESSBASE_H
 #define CHPOSTPROCESSBASE_H
+
+//////////////////////////////////////////////////
+//
+//   ChPostProcessBase.h
+//
+//
+//   HEADER file for CHRONO,
+//	 Multibody dynamics engine
+//
+// ------------------------------------------------
+// 	 Copyright:Alessandro Tasora / DeltaKnowledge
+//             www.deltaknowledge.com
+// ------------------------------------------------
+///////////////////////////////////////////////////
+
+
 #include <fstream>
 #include <string>
 #include <sstream>
@@ -9,7 +25,9 @@ using namespace std;
 
 namespace chrono{
 	namespace render{
-		using namespace chrono;
+
+		/// Base class for post processing implementations
+
 		class ChApiPostProcess ChRenderBase{
 		public:
 			ChPostProcessBase(ChSystem* system){
@@ -23,6 +41,8 @@ namespace chrono{
 		protected:
 			ChSystem * mSystem;
 		};
+
+
 	}
 }
 

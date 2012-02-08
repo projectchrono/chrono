@@ -33,15 +33,18 @@
   }
 }
 
-// The complete support of smart shared pointers
 
+// For optional downcasting of polimorphic objects:
+%include "chrono_downcast.i" 
+
+// The complete support of smart shared pointers
 %include "chrono_shared_ptr.i" 
 
 
 
-//
-// TYPEMAPS
-//
+
+// Include C++ headers this way...
+
 %{
 
 #include "physics/ChBody.h"
@@ -58,6 +61,8 @@ using namespace chrono;
 
 %include "std_string.i"
 %include "typemaps.i"
+
+
 
 // IMPORTANT!!!
 // 1) 
@@ -99,7 +104,14 @@ using namespace chrono;
 
 %include "ChCollisionModel.i"
 
-//  physics/  classes
+// assets
+%include "ChAsset.i"
+%include "ChVisualization.i"
+%include "ChObjShapeFile.i"
+  // enable downcasting from ChAsset to children
+%downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualization, chrono::ChObjShapeFile)
+
+// physics/  classes
 %include "ChObject.i"
 %include "ChPhysicsItem.i"
 %include "ChMaterialSurface.i"
@@ -119,7 +131,7 @@ using namespace chrono;
 %include "ChLinkMasked.i"
 %include "ChLinkLock.i"
 %include "ChLinkEngine.i"
-
+/*
 %include "ChLinkGear.i"
 %include "ChLinkDistance.i"
 %include "ChLinkLinActuator.i"
@@ -133,7 +145,7 @@ using namespace chrono;
 %include "ChShaftsMotor.i"
 %include "ChShaftsTorsionSpring.i"
 %include "ChShaftsPlanetary.i"
-
+*/
 
 // collision/   classes
 
@@ -164,6 +176,8 @@ using namespace chrono;
 %DefChSharedPtrCast(chrono::ChParticlesClones, chrono::ChIndexedParticles)
 %DefChSharedPtrCast(chrono::ChMarker, chrono::ChPhysicsItem)
 %DefChSharedPtrCast(chrono::ChForce, chrono::ChPhysicsItem)
+%DefChSharedPtrCast(chrono::ChVisualization, chrono::ChAsset)
+%DefChSharedPtrCast(chrono::ChObjShapeFile, chrono::ChVisualization)
 %DefChSharedPtrCast(chrono::ChLink, chrono::ChPhysicsItem)
 %DefChSharedPtrCast(chrono::ChLinkMarkers, chrono::ChLink)
 %DefChSharedPtrCast(chrono::ChLinkMasked, chrono::ChLinkMarkers)
@@ -185,7 +199,7 @@ using namespace chrono;
 %DefChSharedPtrCast(chrono::ChLinkLockParallel, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkLockPerpend, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkEngine, chrono::ChLinkLock)
-
+/*
 %DefChSharedPtrCast(chrono::ChLinkGear, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkDistance, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkLinActuator, chrono::ChLinkLock)
@@ -199,8 +213,7 @@ using namespace chrono;
 %DefChSharedPtrCast(chrono::ChShaftsMotor, chrono::ChShaftsCouple)
 %DefChSharedPtrCast(chrono::ChShaftsTorsionSpring, chrono::ChShaftsCouple)
 %DefChSharedPtrCast(chrono::ChShaftsPlanetary, chrono::ChPhysicsItem)
-
-
+*/
 
 
 //

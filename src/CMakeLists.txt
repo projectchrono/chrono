@@ -576,7 +576,21 @@ ENDIF()
 			${ChronoEngine_geometry_SOURCES}
 			${ChronoEngine_geometry_HEADERS}
 			)
-	
+
+	SET(ChronoEngine_assets_SOURCES
+		assets/ChAsset.cpp 
+		assets/ChVisualization.cpp
+		assets/ChObjShapeFile.cpp 
+	)
+	SET(ChronoEngine_assets_HEADERS
+		assets/ChAsset.h
+		assets/ChVisualization.h
+		assets/ChObjShapeFile.h
+	)
+	SOURCE_GROUP(assets FILES  
+			${ChronoEngine_assets_SOURCES}
+			${ChronoEngine_assets_HEADERS}
+			)	
 	
 	SET(ChronoEngine_collision_SOURCES
 		collision/ChCCollisionModel.cpp 
@@ -1047,6 +1061,8 @@ ENDIF()
 		${ChronoEngine_collision_HEADERS}
 		${ChronoEngine_geometry_SOURCES}
 		${ChronoEngine_geometry_HEADERS}
+		${ChronoEngine_assets_SOURCES}
+		${ChronoEngine_assets_HEADERS}
 		${ChronoEngine_collision_edgetempest_SOURCES}
 		${ChronoEngine_collision_edgetempest_HEADERS}
 		${ChronoEngine_collision_convexdecompJR_SOURCES}
