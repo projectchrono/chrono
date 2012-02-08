@@ -269,7 +269,26 @@ double ChLcpIterativeBB::Solve(
 		// g = g_p;
 		mg.CopyFromMatrix(mg_p);
 
-		
+		if (((do_BB1e2) && (iter%2 ==0)) || do_BB1)
+		{
+			mb_tmp = ms;
+			if (do_preconditioning)
+				mb_tmp.MatrScale(mD);
+			double sDs = ms.MatrDot(&ms,&mb_tmp);
+			double sy  = ms.MatrDot(&ms, &my);
+			if (sy <= 0)
+			{
+				alpha = neg_BB1_fallback;
+			}
+			else
+			{
+				double alph = sDs / sy;  // (s,Ds)/(s,y)   BB1
+				alpha = ChMin (a_max, ChMax(a_min, alph));
+			}
+		}
+
+		/*
+		// this is a modified rayleight quotient - looks like it works anyway...
 		if (((do_BB1e2) && (iter%2 ==0)) || do_BB1)
 		{
 			double ss = ms.MatrDot(&ms,&ms);
@@ -283,10 +302,11 @@ double ChLcpIterativeBB::Solve(
 			}
 			else
 			{
-				double alph = ss / sDy;  // (s,s)/(s,Di*y)   BB1
+				double alph = ss / sDy;  // (s,s)/(s,Di*y)   BB1 (modified version)
 				alpha = ChMin (a_max, ChMax(a_min, alph));
 			}
 		}
+		*/
 
 		if (((do_BB1e2) && (iter%2 !=0)) || do_BB2)
 		{

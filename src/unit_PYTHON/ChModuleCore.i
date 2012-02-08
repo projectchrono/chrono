@@ -108,7 +108,7 @@ using namespace chrono;
 %include "ChAsset.i"
 %include "ChVisualization.i"
 %include "ChObjShapeFile.i"
-  // enable downcasting from ChAsset to children
+  // enable downcasting from ChAsset to children (shared pointers versions)
 %downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualization, chrono::ChObjShapeFile)
 
 // physics/  classes

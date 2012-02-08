@@ -3,9 +3,20 @@
   
   History of API changes, bug fixes, new features
 
-  
+
+
 Release 1.5.0
 xx-xx-xxxx
+
+- The old ChTriangleMesh class has been renamed to ChTriangleMeshSoup.
+  This because the ChTriangleMesh has become and abstract interface
+  class for different types of triangle meshes. It is inherited
+  by ChTriangleMeshSoup and the new ChTriangleMeshConnected, that
+  allows shared vertices and information about normals and UV.
+
+  
+Release 1.5.0
+8-2-2012
 
 - File logging of system matrices and vectors. This feature
   has been added to allow off-line testing, debugging and 
