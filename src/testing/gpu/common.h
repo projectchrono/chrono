@@ -115,7 +115,7 @@ void System::PrintStats() {
 	int E = mSystem->GetNbodies();
 	int F = mSystem->GetNcontacts();
 	int I = ((ChLcpIterativeSolverGPUsimple*) (mSystem->GetLcpSolverSpeed()))->iteration_number;
-	mTotalTime += mTimer();
+	mTotalTime +=0;// mTimer();
 	double KE = GetKE();
 	char numstr[512];
 	printf("%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7.7f | %d\n", A, B, C, D, mTotalTime, E, F, KE, I);
@@ -418,9 +418,9 @@ void SimulationLoop(int argc, char* argv[]) {
 				GPUSystem->mTimer.start();
 				GPUSystem->DoTimeStep();
 				GPUSystem->mTimer.stop();
-				GPUSystem->PrintStats();
+				//GPUSystem->PrintStats();
 		}
-		cout << "Simulation Complete" << endl;
+		//cout << "Simulation Complete" << endl;
 	}
 #pragma omp section
 	{

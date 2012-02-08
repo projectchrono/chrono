@@ -21,6 +21,8 @@ IF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
   MESSAGE( FATAL_ERROR  "In-source build is not possible and not reccomended. Choose an empty directory for build output.")
 ENDIF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 
+ENABLE_TESTING()
+
 #-----------------------------------------------------------------------------
 # Hide uneeded default stuff from GUI. 
 

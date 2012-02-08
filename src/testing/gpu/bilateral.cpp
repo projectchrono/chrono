@@ -3,18 +3,20 @@ void System::DoTimeStep() {
 	mFrameNumber++;
 	mSystem->DoStepDynamics(mTimeStep);
 	mCurrentTime += mTimeStep;
+
+	cout<<2*PI*sqrtf(10.0/9.80665);
 }
 
 int main(int argc, char* argv[]) {
 	omp_set_nested(1);
 	GPUSystem = new System(1);
-	GPUSystem->mTimeStep = .01;
+	GPUSystem->mTimeStep = .001;
 	GPUSystem->mEndTime = 30;
-	GPUSystem->mNumObjects = 100;
+	GPUSystem->mNumObjects = 1;
 	GPUSystem->mIterations = 1000;
-	GPUSystem->mTolerance = 1e-6;
+	GPUSystem->mTolerance = 1e-8;
 	GPUSystem->mOmegaContact = .5;
-	GPUSystem->mOmegaBilateral = .5;
+	GPUSystem->mOmegaBilateral = .1;
 	GPUSystem->mUseOGL = 1;
 	GPUSystem->mSaveData = 0;
 
@@ -24,10 +26,10 @@ int main(int argc, char* argv[]) {
 	ChSharedBodyGPUPtr FREE = ChSharedBodyGPUPtr(new ChBodyGPU);
 
 	GPUSystem->InitObject(FXED, 1.0, ChVector<> (0, 0, 0), quat, 0, 0, 0, false, true, -20, -20);
-	GPUSystem->InitObject(FREE, 1.0, ChVector<> (-1, -1, 0), quat, 0, 0, 0, false, false, -20, -20);
+	GPUSystem->InitObject(FREE, 1.0, ChVector<> (-10, 0, 0), quat, 0, 0, 0, false, false, -20, -20);
 
-	GPUSystem->AddCollisionGeometry(FXED, BOX, ChVector<> (.1, .1, .1), lpos, quat);
-	GPUSystem->AddCollisionGeometry(FREE, BOX, ChVector<> (.1, .1, .1), lpos, quat);
+	GPUSystem->AddCollisionGeometry(FXED, BOX, ChVector<> (1, 1, 1), lpos, quat);
+	GPUSystem->AddCollisionGeometry(FREE, BOX, ChVector<> (1, 1, 1), lpos, quat);
 
 	GPUSystem->FinalizeObject(FXED);
 	GPUSystem->FinalizeObject(FREE);
