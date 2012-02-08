@@ -241,7 +241,7 @@ public:
 				
 				// Load a triangle mesh for collision
 				IAnimatedMesh* irmesh_shoe_collision = msceneManager->getMesh("../data/shoe_collision.obj");
-				ChTriangleMesh temp_trianglemesh; 
+				ChTriangleMeshSoup temp_trianglemesh; 
 				fillChTrimeshFromIrlichtMesh(&temp_trianglemesh, irmesh_shoe_collision->getMesh(0));
 
 

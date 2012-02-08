@@ -1,13 +1,31 @@
-#ifndef __PPCGEKKO__
+//////////////////////////////////////////////////
+//
+//   ChCTriangleMeshConnected.cpp
+//
+// ------------------------------------------------
+// 	 Copyright:Alessandro Tasora / DeltaKnowledge
+//             www.deltaknowledge.com
+// ------------------------------------------------
+///////////////////////////////////////////////////
+
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-#include <ctype.h>
-#include <vector>
 
-#include "wavefront.h"
+
+#include "ChCTriangleMeshConnected.h"
+
+ 
+
+namespace chrono
+{
+namespace geometry
+{
+	
+
+
+// NOTE!!!
+// THE FOLLOWING CODE IS MODIFIED BY A.TASORA TO MATCH SOME
+// FEATURES OF THE C::E CLASS
 
 /*!
 **
@@ -536,9 +554,16 @@ private:
 
   void GetVertex(GeometryVertex &v,const char *face) const;
 
+public: //***ALEX***
   FloatVector     mVerts;
   FloatVector     mTexels;
   FloatVector     mNormals;
+
+  //***ALEX***
+  IntVector mIndexesVerts;
+  IntVector mIndexesNormals;
+  IntVector mIndexesTexels;
+
 
   bool            mTextured;
 
@@ -558,6 +583,11 @@ int OBJ::LoadMesh(const char *fname,GeometryInterface *iface, bool textured)
   mVerts.clear();
   mTexels.clear();
   mNormals.clear();
+
+    //***ALEX***
+  mIndexesVerts.clear();
+  mIndexesNormals.clear();
+  mIndexesTexels.clear();
 
   mCallback = iface;
 
@@ -672,6 +702,35 @@ int OBJ::ParseLine(int /*lineno*/,int argc,const char **argv)  // return TRUE to
       }
       else if ( strcasecmp(argv[0],"f") == 0 && argc >= 4 )
       {
+		  // ***ALEX*** do not use the BuildMesh stuff
+		int vcount = argc-1;
+		for (int i=1; i<argc; i++)
+		{
+			// the index of i-th vertex
+			int index = atoi( argv[i] )-1;
+			this->mIndexesVerts.push_back(index);
+
+			const char *texel = strstr( argv[i],"/");
+			if ( texel )
+			{
+				// the index of i-th texel
+				int tindex = atoi( texel+1) - 1;
+				this->mIndexesTexels.push_back(tindex);
+
+				const char *normal = strstr(texel+1,"/");
+				if ( normal )
+				{
+				  // the index of i-th normal
+				  int nindex = atoi( normal+1 ) - 1;
+				  this->mIndexesNormals.push_back(nindex);
+				}
+			}
+
+			if (i>3) 
+				break; // should do a fan here..
+        }
+
+		 /* ***ALEX***
         GeometryVertex v[32];
 
         int vcount = argc-1;
@@ -691,6 +750,7 @@ int OBJ::ParseLine(int /*lineno*/,int argc,const char **argv)  // return TRUE to
             mCallback->NodeTriangle(&v[0],&v[i],&v[i+1], mTextured);
           }
         }
+		*/
 
       }
     }
@@ -764,7 +824,55 @@ private:
 
 };
 
+
 using namespace WAVEFRONT;
+
+
+void ChTriangleMeshConnected::LoadWavefrontMesh(std::string filename, bool load_normals, bool load_uv)
+{
+	this->m_vertices.clear();
+	this->m_normals.clear();
+	this->m_UV.clear();
+	this->m_face_v_indices.clear();
+	this->m_face_n_indices.clear();
+	this->m_face_u_indices.clear();
+	
+	GeometryInterface emptybm; // BuildMesh bm;
+
+	OBJ obj;
+
+	obj.LoadMesh(filename.c_str(), &emptybm, true);
+
+	for (unsigned int iv= 0; iv< obj.mVerts.size(); iv += 3)
+	{
+		this->m_vertices.push_back(ChVector<double> (obj.mVerts[iv], obj.mVerts[iv+1], obj.mVerts[iv+2]));
+	}
+	for (unsigned int in= 0; in< obj.mNormals.size(); in += 3)
+	{
+		this->m_normals.push_back(ChVector<double> (obj.mNormals[in], obj.mNormals[in+1], obj.mNormals[in+2]));
+	}
+	for (unsigned int it= 0; it< obj.mTexels.size(); it += 3)
+	{
+		this->m_UV.push_back(ChVector<double> (obj.mTexels[it], obj.mTexels[it+1], obj.mTexels[it+2]));
+	}
+	for (unsigned int iiv= 0; iiv< obj.mIndexesVerts.size(); iiv += 3)
+	{
+		this->m_face_v_indices.push_back(ChVector<int> (obj.mIndexesVerts[iiv], obj.mIndexesVerts[iiv+1], obj.mIndexesVerts[iiv+2]));
+	}
+	for (unsigned int iin= 0; iin< obj.mIndexesNormals.size(); iin += 3)
+	{
+		this->m_face_n_indices.push_back(ChVector<int> (obj.mIndexesNormals[iin], obj.mIndexesNormals[iin+1], obj.mIndexesNormals[iin+2]));
+	}
+	for (int iit= 0; iit< obj.mIndexesTexels.size(); iit += 3)
+	{
+		this->m_face_u_indices.push_back(ChVector<int> (obj.mIndexesTexels[iit], obj.mIndexesTexels[iit+1], obj.mIndexesTexels[iit+2]));
+	}
+}
+
+
+/*
+using namespace WAVEFRONT;
+
 
 WavefrontObj::WavefrontObj(void)
 {
@@ -850,4 +958,10 @@ bool WavefrontObj::saveObj(const char *fname,int vcount,const float *vertices,in
   return ret;
 }
 
-#endif
+*/
+
+
+
+
+} // END_OF_NAMESPACE____
+} // END_OF_NAMESPACE____

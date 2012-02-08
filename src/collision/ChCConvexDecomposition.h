@@ -22,7 +22,7 @@
 #include "collision/convexdecomposition/HACD/hacdHACD.h"
 #include "collision/convexdecomposition/HACDv2/HACD.h"
 #include "collision/convexdecomposition/JR/NvConvexDecomposition.h"
-#include "geometry/ChCTriangleMesh.h"
+#include "geometry/ChCTriangleMeshSoup.h"
 
 
 using namespace chrono::geometry;

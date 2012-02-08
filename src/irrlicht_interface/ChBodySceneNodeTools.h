@@ -24,7 +24,7 @@
 #include "ChIrrMeshTools.h"
 #include "geometry/ChCSphere.h"
 #include "geometry/ChCBox.h"
-#include "geometry/ChCTriangleMesh.h"
+#include "geometry/ChCTriangleMeshSoup.h"
 
 namespace irr
 {
@@ -303,7 +303,7 @@ ISceneNode* addChBodySceneNode_easyGenericMesh(chrono::ChSystem* asystem,
 	assert(genericMesh);
 
 
-	ChTriangleMesh temp_trianglemesh; // temp., only in function scope, since AddTriangleMesh doesn't reference by striding interface -just copy 
+	ChTriangleMeshSoup temp_trianglemesh; // temp., only in function scope, since AddTriangleMesh doesn't reference by striding interface -just copy 
 	fillChTrimeshFromIrlichtMesh(&temp_trianglemesh, genericMesh->getMesh(0));
 
 	// create a ChronoENGINE rigid body

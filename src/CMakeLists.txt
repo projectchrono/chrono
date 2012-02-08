@@ -563,6 +563,7 @@ ENDIF()
 		geometry/ChCLineCam.cpp 
 		geometry/ChCLinePoly.cpp 
 		geometry/ChCTriangle.cpp 
+		geometry/ChCTriangleMeshConnected.cpp 
 	)
 	SET(ChronoEngine_geometry_HEADERS
 		geometry/ChCBox.h
@@ -573,6 +574,8 @@ ENDIF()
 		geometry/ChCSphere.h
 		geometry/ChCTriangle.h
 		geometry/ChCTriangleMesh.h
+		geometry/ChCTriangleMeshSoup.h
+		geometry/ChCTriangleMeshConnected.h
 	)
 	SOURCE_GROUP(geometry FILES  
 			${ChronoEngine_geometry_SOURCES}
