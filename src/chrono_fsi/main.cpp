@@ -162,8 +162,8 @@ int2 CreateFluidParticles(	thrust::host_vector<float4> & mPosRad,
 					penDist = IsInsideStraightChannel_XZ(posRad); if (penDist < -toleranceZone) flag= false;
 					if (flag) {
 							for (int rigidSpheres = 0; rigidSpheres < spheresPosRad.size(); rigidSpheres ++) {
-								if ( IsInsideSphere(posRad, spheresPosRad[rigidSpheres], initSpace0 ) ) { flag = false;}
-//								if ( IsInsideCylinder_XZ(posRad, spheresPosRad[rigidSpheres], initSpace0 ) ) { flag = false;}
+//								if ( IsInsideSphere(posRad, spheresPosRad[rigidSpheres], initSpace0 ) ) { flag = false;}
+								if ( IsInsideCylinder_XZ(posRad, spheresPosRad[rigidSpheres], initSpace0 ) ) { flag = false;}
 						}
 					}
 					if (flag) {	
@@ -350,16 +350,16 @@ int main() {
 		for (int period = 0; period < nPeriod; period++) {		
 			spheresPosRad.push_back(F4(x * sizeScale + period * sPeriod, y * sizeScale, z * sizeScale, rRigidBody));
 			//********** intitialization of rigid bodies: Spheres
-			float mass = 4.0 / 3 * PI * pow(rRigidBody, 3) * rhoRigid;			//for sphere
-			float3 j1, j2;
-			j1 = F3(.4 * mass * pow(rRigidBody, 2), 0, 0);
-			j2 = F3(.4 * mass * pow(rRigidBody, 2), 0, .4 * mass * pow(rRigidBody, 2));
-			//****************************************************
-//			//********** intitialization of rigid bodies: Cylinders
-//			float mass = PI * pow(rRigidBody, 2) * (cMax.y - cMin.y) * rhoRigid;	//for cylinder
+//			float mass = 4.0 / 3 * PI * pow(rRigidBody, 3) * rhoRigid;			//for sphere
 //			float3 j1, j2;
-//			j1 = F3(1.0 / 12.0  * mass * (3 * pow(rRigidBody, 2) + pow(cMax.y - cMin.y, 2)), 0, 0);
-//			j2 = F3(.5 * mass * pow(rRigidBody, 2), 0, 1.0 / 12.0  * mass * (3 * pow(rRigidBody, 2) + pow(cMax.y - cMin.y, 2)));
+//			j1 = F3(.4 * mass * pow(rRigidBody, 2), 0, 0);
+//			j2 = F3(.4 * mass * pow(rRigidBody, 2), 0, .4 * mass * pow(rRigidBody, 2));
+			//****************************************************
+			//********** intitialization of rigid bodies: Cylinders
+			float mass = PI * pow(rRigidBody, 2) * (cMax.y - cMin.y) * rhoRigid;	//for cylinder
+			float3 j1, j2;
+			j1 = F3(1.0 / 12.0  * mass * (3 * pow(rRigidBody, 2) + pow(cMax.y - cMin.y, 2)), 0, 0);
+			j2 = F3(.5 * mass * pow(rRigidBody, 2), 0, 1.0 / 12.0  * mass * (3 * pow(rRigidBody, 2) + pow(cMax.y - cMin.y, 2)));
 //			//****************************************************
 			spheresVelMas.push_back( F4(0, 0, 0, mass) );
 			rigidBodyOmega.push_back( F3(0, 0, 0) );
@@ -433,15 +433,7 @@ int main() {
 		//rigid body: type = 1, 2, 3, ...
 		printf("num_RigidBodyParticles: \n");
 		for (int rigidSpheres = 0; rigidSpheres < spheresPosRad.size(); rigidSpheres ++) {
-			int num_RigidBodyParticles = CreateSphereParticles(mPosRad, mVelMas, mRhoPresMu,
-													 spheresPosRad[rigidSpheres],
-													 spheresVelMas[rigidSpheres],
-													 rigidBodyOmega[rigidSpheres],
-													 r,
-													 rho0, pres, mu,
-													 cMin, cMax,
-													 rigidSpheres + 1);		//as type
-//			int num_RigidBodyParticles = CreateCylinderParticles_XZ(mPosRad, mVelMas, mRhoPresMu,
+//			int num_RigidBodyParticles = CreateSphereParticles(mPosRad, mVelMas, mRhoPresMu,
 //													 spheresPosRad[rigidSpheres],
 //													 spheresVelMas[rigidSpheres],
 //													 rigidBodyOmega[rigidSpheres],
@@ -449,6 +441,14 @@ int main() {
 //													 rho0, pres, mu,
 //													 cMin, cMax,
 //													 rigidSpheres + 1);		//as type
+			int num_RigidBodyParticles = CreateCylinderParticles_XZ(mPosRad, mVelMas, mRhoPresMu,
+													 spheresPosRad[rigidSpheres],
+													 spheresVelMas[rigidSpheres],
+													 rigidBodyOmega[rigidSpheres],
+													 r,
+													 rho0, pres, mu,
+													 cMin, cMax,
+													 rigidSpheres + 1);		//as type
 			referenceArray.push_back(I3(numAllParticles, numAllParticles + num_RigidBodyParticles, rigidSpheres + 1));
 			numAllParticles += num_RigidBodyParticles;
 			printf(" %d \n", num_RigidBodyParticles);
