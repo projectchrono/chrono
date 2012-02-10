@@ -863,7 +863,7 @@ void ChTriangleMeshConnected::LoadWavefrontMesh(std::string filename, bool load_
 	{
 		this->m_face_n_indices.push_back(ChVector<int> (obj.mIndexesNormals[iin], obj.mIndexesNormals[iin+1], obj.mIndexesNormals[iin+2]));
 	}
-	for (int iit= 0; iit< obj.mIndexesTexels.size(); iit += 3)
+	for (unsigned int iit= 0; iit< obj.mIndexesTexels.size(); iit += 3)
 	{
 		this->m_face_u_indices.push_back(ChVector<int> (obj.mIndexesTexels[iit], obj.mIndexesTexels[iit+1], obj.mIndexesTexels[iit+2]));
 	}

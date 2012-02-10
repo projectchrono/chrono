@@ -125,5 +125,28 @@ body_1.SetFrame_COG_to_REF(chrono.ChFrameD(chrono.ChVectorD(68.9923703887577,-60
 myasset = chrono.ChObjShapeFileShared()
 myasset.SetFilename("shapes/test.obj")
 body_1.GetAssets().push_back(myasset)
-vect_assets = body_1.GetAssets()
-vect_assets[0]
+#vect_assets = body_1.GetAssets()
+#vect_assets[0]
+
+
+# Load the Chrono::Engine postprocessing unit!!!
+import ChronoEngine_PYTHON_postprocess as postprocess
+
+
+body_1= chrono.ChBodyAuxRefShared()
+body_1.SetName('ParteTest')
+my_system.Add(body_1)
+
+myasset = chrono.ChObjShapeFileShared()
+myasset.SetFilename("body_1.obj")
+body_1.GetAssets().push_back(myasset)
+
+# Create an exporter to POVray
+pov_exporter = postprocess.ChPovRay(my_system)
+pov_exporter.SetTemplateFile("_template_POV.pov")
+pov_exporter.RemoveAll();
+pov_exporter.Add(body_1);
+pov_exporter.ExportScript("test_pov.pov")
+
+
+

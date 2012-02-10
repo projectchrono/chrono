@@ -16,7 +16,7 @@
 
 #include "core/ChStream.h"
 #include "core/ChException.h"
-
+#include "core/ChLog.h"
 
 
 namespace chrono
@@ -703,6 +703,8 @@ ChStreamFile::ChStreamFile(const char* filename, std::ios::openmode mmode)
 			/// Destruction means that the file stream is also closed.
 ChStreamFile::~ChStreamFile()
 {
+	GetLog() << " Closing file\n";
+	file.flush();
 	file.close();
 };
 

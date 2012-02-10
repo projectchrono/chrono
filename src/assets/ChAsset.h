@@ -31,7 +31,7 @@ namespace chrono
 /// this class. A single asset might be shared.
 
 
-	class ChApi ChAsset : public ChShared {
+class ChApi ChAsset : public ChShared {
 
 protected:
 				//

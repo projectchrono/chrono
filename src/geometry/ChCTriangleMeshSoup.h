@@ -37,7 +37,7 @@ namespace geometry
 /// A basic triangle mesh: just a list of triangles (no edge connectivity info).
 ///
 
-class ChTriangleMeshSoup : public ChTriangleMesh
+class ChApi ChTriangleMeshSoup : public ChTriangleMesh
 {
 					// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChTriangleMeshSoup,ChTriangleMesh);
