@@ -37,7 +37,7 @@ namespace geometry
 /// A triangle mesh with connectivity info: vertices can be 
 /// shared between faces.
 
-class ChTriangleMeshConnected : public ChTriangleMesh
+class ChApi ChTriangleMeshConnected : public ChTriangleMesh
 {
 					// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChTriangleMeshConnected,ChTriangleMesh);

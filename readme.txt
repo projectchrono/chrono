@@ -8,6 +8,10 @@
 Release 1.5.0
 xx-xx-xxxx
 
+- New unit_POSTPROCESS supported also in Python. 
+  In python, after you imported chrono engine, yu can also type: 
+   import ChronoEngine_PYTHON_postprocess as postprocess
+
 - The old ChTriangleMesh class has been renamed to ChTriangleMeshSoup.
   This because the ChTriangleMesh has become and abstract interface
   class for different types of triangle meshes. It is inherited
