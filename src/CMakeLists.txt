@@ -586,11 +586,13 @@ ENDIF()
 		assets/ChAsset.cpp 
 		assets/ChVisualization.cpp
 		assets/ChObjShapeFile.cpp 
+		assets/ChSphereShape.cpp 
 	)
 	SET(ChronoEngine_assets_HEADERS
 		assets/ChAsset.h
 		assets/ChVisualization.h
 		assets/ChObjShapeFile.h
+		assets/ChSphereShape.h 
 	)
 	SOURCE_GROUP(assets FILES  
 			${ChronoEngine_assets_SOURCES}
