@@ -13,6 +13,7 @@
 #include "ChPovRay.h"
 #include "geometry/ChCTriangleMeshConnected.h"
 #include "assets/ChObjShapeFile.h"
+#include "assets/ChSphereShape.h"
  
 
 using namespace chrono;
@@ -24,6 +25,9 @@ ChPovRay::ChPovRay(ChSystem* system) : ChPostProcessBase(system)
 {
 	this->pic_filename		= "pic";
 	this->template_filename = "../data/_template_POV.pov";
+	this->out_script_filename = "render_frames.pov";
+	this->out_data_filename = "state";
+	this->framenumber = 0;
 }
 
 void ChPovRay::AddAll()
@@ -78,6 +82,8 @@ std::string replaceAll(
 
 void ChPovRay::ExportScript(const std::string &filename)
 {
+	this->out_script_filename = filename;
+	
 	// Generate the .INI script
 	std::string ini_filename = filename + ".ini";
 
@@ -90,7 +96,7 @@ void ChPovRay::ExportScript(const std::string &filename)
 	ini_file << "Antialias_Depth=2 \n";
 	ini_file << "Height=600 \n";
 	ini_file << "Width =800 \n";
-	ini_file << "Input_File_Name=" << ini_filename << "\n";
+	ini_file << "Input_File_Name=" << out_script_filename << "\n";
 	ini_file << "Output_File_Name=" << pic_filename << "\n";
 	ini_file << "Initial_Frame=0000 \n";
 	ini_file << "Final_Frame=0999 \n";
@@ -124,12 +130,31 @@ void ChPovRay::ExportScript(const std::string &filename)
 		mfile << buffer_template;
 	}
 	
+	// Write POV code to open the n.th datafile
+
+	mfile << "#declare data_file = concat(\"" << this->out_data_filename << "\", str(frame_number,-5,0), \".dat\") \n"; 
+    mfile << "#warning concat(\"---- LOADING PEBBLES FILE : \", data_file, \"\\n\") \n";  
+    mfile << "#fopen MyPosFile data_file read \n";
+
+
 	// Write geometry of objects in POV file
 	// This will scan all the ChPhysicsItem added objects, and if
 	// they have some reference to renderizable assets, write geoemtries in the POV script.
 
 	for (unsigned int i = 0; i< this->mdata.size(); i++)
 	{
+		// Get the coordinate frame of the i-th object, if any.
+		ChCoordsys<> assetcsys = CSYSNORM;
+		if (mdata[i].IsType<ChBody>() )
+		{
+			ChSharedPtr<ChBody> mybody(mdata[i]);
+			ChFrame<> bodyframe = mybody->GetFrame_REF_to_abs();
+			assetcsys = bodyframe.GetCoord();
+		}
+
+		mfile <<"\n\n// Item:" << mdata[i]->GetName() << "\n\n";
+
+
 		// Scan assets in object i
 		for (unsigned int k = 0; k < mdata[i]->GetAssets().size(); k++)
 		{
@@ -143,28 +168,13 @@ void ChPovRay::ExportScript(const std::string &filename)
 				ChTriangleMeshConnected mytrimesh;
 
 				try {
+					// Load from the .obj file and convert.
 					mytrimesh.LoadWavefrontMesh( myobjshapeasset->GetFilename() );
-					GetLog() << "  converted mesh : " << myobjshapeasset->GetFilename() << "\n ";
 
-					mfile <<"\n\n// Item:" << mdata[i]->GetName() << "\n";
+					// POV will read pos & rotation of mesh from a row of the .dat file
+					mfile << "#read (MyPosFile, apx, apy, apz, aq0, aq1, aq2, aq3) \n\n";
 
-		// Temporary: this will rely on  #read (MyPosFile, apx, apy, apz, aq0, aq1, aq2, aq3)
-					ChCoordsys<> assetcsys = CSYSNORM;
-					if (mdata[i].IsType<ChBody>() )
-					{
-						ChSharedPtr<ChBody> mybody(mdata[i]);
-						ChFrame<> bodyframe = mybody->GetFrame_REF_to_abs();
-						assetcsys = bodyframe.GetCoord();
-					}	 
-					mfile << "#declare apx=" << assetcsys.pos.x << ";\n";
-					mfile << "#declare apy=" << assetcsys.pos.y << ";\n";
-					mfile << "#declare apz=" << assetcsys.pos.z << ";\n";
-					mfile << "#declare aq0=" << assetcsys.rot.e0 << ";\n";
-					mfile << "#declare aq1=" << assetcsys.rot.e1 << ";\n";
-					mfile << "#declare aq2=" << assetcsys.rot.e2 << ";\n";
-					mfile << "#declare aq3=" << assetcsys.rot.e3 << ";\n\n";
-		// ...end temporary trick
-
+					// Create mesh
 					mfile << "mesh2  {\n";
 
 					mfile << " vertex_vectors {\n";
@@ -196,21 +206,96 @@ void ChPovRay::ExportScript(const std::string &filename)
 					sprintf(error,"Asset n.%d of object %d : can't read .obj file %s", k,i,myobjshapeasset->GetFilename().c_str() );
 					throw (ChException(error));
 				}
-
 			}
 
-			// 2) asset k of object i is a bla bla.. ?
+			// 2) asset k of object i is a sphere ?
+			if (mdata[i]->GetAssets()[k].IsType<ChSphereShape>() )
+			{
+				ChSharedPtr<ChSphereShape> myobjshapeasset(mdata[i]->GetAssets()[k]);
+
+				// POV will read pos & rotation of sphere from a row of the .dat file
+				mfile << "#read (MyPosFile, apx, apy, apz, aq0, aq1, aq2, aq3) \n\n";
+
+				// POV will make the sphere
+				mfile << "sphere  {\n";
+
+				mfile << " <" << myobjshapeasset->GetSphereGeometry().center.x;
+				mfile << ","  << myobjshapeasset->GetSphereGeometry().center.y;
+				mfile << ","  << myobjshapeasset->GetSphereGeometry().center.z << ">\n";
+				mfile << " "  << myobjshapeasset->GetSphereGeometry().rad << "\n";
+
+				mfile <<" pigment {color rgb <" << myobjshapeasset->GetColor().R << "," << myobjshapeasset->GetColor().G << "," << myobjshapeasset->GetColor().B << "> }\n";
+				mfile <<" quatRotation(<aq0, aq1, aq2, aq3>) \n";
+                mfile <<" translate  <apx, apy, apz> \n";
+				mfile <<"}\n";
+			}
 
 
-		}
-	}
+
+		} // end loop on assets of i-th object 
+	} // end loop on objects
 
 
 }
 
 void ChPovRay::ExportData(const std::string &filename)
 {
-	//***TO DO***
+	// Generate the .dat file:
+
+	try {
+		ChStreamOutAsciiFile mfile(filename.c_str());
+
+
+		// Save time-dependent data for the geometry of objects in POV file
+		// NOTE!!! The following loop MUST reflect the same sequence of loadings
+		// that are done in the .pov script, as defined in the ExportScript() 
+
+		for (unsigned int i = 0; i< this->mdata.size(); i++)
+		{
+			// Get the coordinate frame of the i-th object, if any.
+			ChCoordsys<> assetcsys = CSYSNORM;
+			if (mdata[i].IsType<ChBody>() )
+			{
+				ChSharedPtr<ChBody> mybody(mdata[i]);
+				ChFrame<> bodyframe = mybody->GetFrame_REF_to_abs();
+				assetcsys = bodyframe.GetCoord();
+			}
+
+			// Scan assets in object i
+			for (unsigned int k = 0; k < mdata[i]->GetAssets().size(); k++)
+			{
+
+				// Do dynamic casting of the shared pointer to see which type
+				// of asset is contined...
+
+				// 1) asset k of object i references an .obj wavefront mesh?
+				if (mdata[i]->GetAssets()[k].IsType<ChObjShapeFile>() )
+				{
+					// Save pos & rotation of mesh in a row of the .dat file
+					mfile << assetcsys.pos.x << "," << assetcsys.pos.y << "," << assetcsys.pos.z << ",";
+					mfile << assetcsys.rot.e0 << "," << assetcsys.rot.e1 << "," << assetcsys.rot.e2 << "," << assetcsys.rot.e3 << "\n";
+				}
+
+				// 2) asset k of object i is a sphere ?
+				if (mdata[i]->GetAssets()[k].IsType<ChSphereShape>() )
+				{
+					// Save pos & rotation of mesh in a row of the .dat file
+					mfile << assetcsys.pos.x << "," << assetcsys.pos.y << "," << assetcsys.pos.z << ",";
+					mfile << assetcsys.rot.e0 << "," << assetcsys.rot.e1 << "," << assetcsys.rot.e2 << "," << assetcsys.rot.e3 << "\n";
+				}
+
+			} // end loop on assets
+		} // end loop on objects
+
+	}catch (ChException)
+	{
+		char error[400];
+		sprintf(error,"Can't save data into file %s", filename.c_str() );
+		throw (ChException(error));
+	}
+
+	// Increment the number of the frame.
+	this->framenumber ++;
 }
 
 

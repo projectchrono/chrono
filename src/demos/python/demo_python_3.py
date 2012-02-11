@@ -1,0 +1,94 @@
+#-------------------------------------------------------------------------------
+# Name:        demo_python_3
+#
+# This file shows how to use POV ray for postprocessing, thanks to the
+# utility functions in the unit_POSTPROCESS of Chrono::Engine.
+#
+# Note. Since this file requires a template file ( "_template_POV.pov" in the
+# bin/data/ directory) whose position is set with a relative path, please
+# make sure that the current directory of Python is the one where this demo
+# resides, otherwise if you launch it from another directory it does not
+# find the POV template.
+#
+#-------------------------------------------------------------------------------
+#!/usr/bin/env python
+
+def main():
+    pass
+
+if __name__ == '__main__':
+    main()
+
+
+# Load the Chrono::Engine unit and the postprocessing unit!!!
+import ChronoEngine_PYTHON_core as chrono
+import ChronoEngine_PYTHON_postprocess as postprocess
+
+# We will create two directories for saving some files, we need this:
+import os
+
+
+# Create a physical system,
+my_system = chrono.ChSystem()
+
+# Create a body
+body_1= chrono.ChBodyAuxRefShared()
+body_1.SetName('ParteTest')
+my_system.Add(body_1)
+
+# Attach a visualization asset to the body (a Wavefront .obj mesh)
+myasset = chrono.ChObjShapeFileShared()
+myasset.SetFilename("body_1.obj")
+myasset.SetColor(chrono.ChColor(1,1,0.8))
+body_1.GetAssets().push_back(myasset)
+
+
+#
+# Create an exporter to POVray !!!
+#
+
+pov_exporter = postprocess.ChPovRay(my_system)
+
+ # Sets some file names for in-out processes.
+pov_exporter.SetTemplateFile        ("../../../data/_template_POV.pov")
+pov_exporter.SetOutputScriptFile    ("rendering_frames.pov")
+pov_exporter.SetOutputDataFilebase  ("my_state")
+pov_exporter.SetPictureFilebase     ("picture")
+ # Even better: save the .dat files and the .bmp files
+ # in two subdirectories, to avoid cluttering the current
+ # directory...
+if not os.path.exists("output"):
+    os.mkdir("output")
+if not os.path.exists("anim"):
+    os.mkdir("anim")
+pov_exporter.SetOutputDataFilebase("output/my_state")
+pov_exporter.SetPictureFilebase("anim/picture")
+
+ # Optional: tell selectively which physical items you want to render
+pov_exporter.RemoveAll()
+pov_exporter.Add(body_1)
+
+ # 1) Create the two .pov and .ini files for POV-Ray (this must be done
+ #    only once at the beginning of the simulation).
+pov_exporter.ExportScript()
+
+ # Perform a short simulation
+while (my_system.GetChTime() < 0.2) :
+
+    my_system.DoStepDynamics(0.01)
+
+    print 'time=', my_system.GetChTime()
+
+    # 2) Create the .dat file that will be load by the .pov script in
+    #    POV-Ray (this should be done at each simulation timestep)
+    pov_exporter.ExportData()
+
+
+
+# That's all! If all worked ok, this python script should
+# have created a  "rendering_frames.pov.ini"  file that you can
+# load in POV-Ray, then when you press 'RUN' you will see that
+# POV-Ray will start rendering a short animation, saving the frames
+# in the directory 'anim'.
+
+
