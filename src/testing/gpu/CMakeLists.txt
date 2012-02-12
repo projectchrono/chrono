@@ -58,6 +58,49 @@ TARGET_LINK_LIBRARIES(test_collision
  	)
 ADD_DEPENDENCIES (test_collision ChronoEngine ChronoEngine_GPU)
 
+# Add executables		 	
+ADD_EXECUTABLE(test_box_contact	box_contact.cpp)
+SOURCE_GROUP(testing\\gpu FILES box_contact.cpp)
+SET_TARGET_PROPERTIES(test_box_contact PROPERTIES 
+	FOLDER testing
+	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
+	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+
+TARGET_LINK_LIBRARIES(test_box_contact
+			${CH_CUDART}
+			${GLUT_LIBRARIES}
+			${FREEGLUT_LIB}
+			${OPENGL_glu_LIBRARY}
+	optimized 	${CH_CHRONOLIB}     
+	debug 		${CH_CHRONOLIB_DBG} 
+	optimized 	${CH_CHRONOGPULIB}
+	debug	    ${CH_CHRONOGPULIB_DBG}
+ 	)
+ADD_DEPENDENCIES (test_box_contact ChronoEngine ChronoEngine_GPU)
+
+
+# Add executables		 	
+ADD_EXECUTABLE(test_box	box.cpp)
+SOURCE_GROUP(testing\\gpu FILES box.cpp)
+SET_TARGET_PROPERTIES(test_box PROPERTIES 
+	FOLDER testing
+	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
+	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+
+TARGET_LINK_LIBRARIES(test_box
+			${CH_CUDART}
+			${GLUT_LIBRARIES}
+			${FREEGLUT_LIB}
+			${OPENGL_glu_LIBRARY}
+	optimized 	${CH_CHRONOLIB}     
+	debug 		${CH_CHRONOLIB_DBG} 
+	optimized 	${CH_CHRONOGPULIB}
+	debug	    ${CH_CHRONOGPULIB_DBG}
+ 	)
+ADD_DEPENDENCIES (test_box ChronoEngine ChronoEngine_GPU)
+
 # Add executables 	
 ADD_EXECUTABLE(test_bilateral	bilateral.cpp)
 SOURCE_GROUP(testing\\gpu FILES bilateral.cpp)

@@ -21,18 +21,8 @@ class System {
 		double GetMFR(double height);
 		void DoTimeStep();
 		void PrintStats();
-		void InitObject(
-						ChSharedPtr<ChBodyGPU> &body,
-						double mass,
-						ChVector<> pos,
-						ChQuaternion<> rot,
-						double sfric,
-						double kfric,
-						double restitution,
-						bool collide,
-						bool fixed,
-						int family,
-						int nocolwith);
+		void InitObject(ChSharedPtr<ChBodyGPU> &body, double mass, ChVector<> pos, ChQuaternion<> rot, double sfric, double kfric, double restitution, bool collide, bool fixed, int family,
+		        int nocolwith);
 		void AddCollisionGeometry(ChSharedPtr<ChBodyGPU> &body, ShapeType type, ChVector<> dim, ChVector<> lPos, ChQuaternion<> lRot);
 		void FinalizeObject(ChSharedPtr<ChBodyGPU> body);
 		void DeactivationPlane(float y, float h, bool disable);
@@ -115,14 +105,14 @@ void System::PrintStats() {
 	int E = mSystem->GetNbodies();
 	int F = mSystem->GetNcontacts();
 	int I = ((ChLcpIterativeSolverGPUsimple*) (mSystem->GetLcpSolverSpeed()))->iteration_number;
-	mTotalTime +=0;// mTimer();
+	mTotalTime += 0;// mTimer();
 	double KE = GetKE();
 	char numstr[512];
 	printf("%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7.7f | %d\n", A, B, C, D, mTotalTime, E, F, KE, I);
 	sprintf(numstr, "%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %f | %d\n", A, B, C, D, mTotalTime, E, F, KE, I);
 
 	if (mTimingFile.fail() == false) {
-	mTimingFile << numstr;
+		mTimingFile << numstr;
 	}
 }
 
@@ -239,18 +229,8 @@ double System::GetMFR(double height) {
 	return 0;
 }
 
-void System::InitObject(
-						ChSharedPtr<ChBodyGPU> &body,
-						double mass,
-						ChVector<> pos,
-						ChQuaternion<> rot,
-						double sfric,
-						double kfric,
-						double restitution,
-						bool collide,
-						bool fixed,
-						int family,
-						int nocolwith) {
+void System::InitObject(ChSharedPtr<ChBodyGPU> &body, double mass, ChVector<> pos, ChQuaternion<> rot, double sfric, double kfric, double restitution, bool collide, bool fixed, int family,
+        int nocolwith) {
 	body->SetMass(mass);
 	body->SetPos(pos);
 	body->SetRot(rot);
@@ -262,7 +242,7 @@ void System::InitObject(
 	body->GetCollisionModel()->ClearModel();
 	body->GetCollisionModel()->SetFamily(family);
 	body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(nocolwith);
-	body->SetLimitSpeed(false);
+	body->SetLimitSpeed(true);
 }
 void System::AddCollisionGeometry(ChSharedPtr<ChBodyGPU> &body, ShapeType type, ChVector<> dim, ChVector<> lPos, ChQuaternion<> lRot) {
 	ChMatrix33<> *rotation = new ChMatrix33<> (lRot);
@@ -328,8 +308,11 @@ void System::BoundingBox(float x, float y, float z, float offset) {
 }
 
 void System::drawAll() {
-	if (updateDraw && (mSystem->GetChTime() > this->mTimeStep * 2)) {
+	if (updateDraw /*&& (mSystem->GetChTime() > this->mTimeStep * 2)*/) {
+		glDepthMask (true);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc( GL_LEQUAL);
 		glLoadIdentity();
 
 		float4 pitch_quat = CreateFromAxisAngle(cross(dir, camera_up), camera_pitch);
@@ -352,8 +335,8 @@ void System::drawAll() {
 		}
 		averageVal = newaverage / mSystem->Get_bodylist()->size();
 
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_COLOR_ARRAY);
+		glEnableClientState( GL_VERTEX_ARRAY);
+		glEnableClientState( GL_COLOR_ARRAY);
 		glVertexPointer(3, GL_FLOAT, sizeof(Point), &points[0].x);
 		glColorPointer(3, GL_FLOAT, sizeof(Point), &points[0].r);
 		glPointSize(10.0);
@@ -369,11 +352,11 @@ void System::drawAll() {
 				float D = mSystem->gpu_data_manager->host_dpth_data[i];
 				float3 color = GetColour(D, 0, .0001);
 				glColor3f(color.x, color.y, color.z);
-				glBegin(GL_LINES);
+				glBegin( GL_LINES);
 				glVertex3f(Pa.x, Pa.y, Pa.z);
 				glVertex3f(Pb.x, Pb.y, Pb.z);
 				glEnd();
-				glBegin(GL_POINTS);
+				glBegin( GL_POINTS);
 				glVertex3f(Pa.x, Pa.y, Pa.z);
 				glVertex3f(Pb.x, Pb.y, Pb.z);
 				glEnd();
@@ -414,19 +397,28 @@ void SimulationLoop(int argc, char* argv[]) {
 	{
 #pragma omp section
 		{
+
 			while (GPUSystem->mSystem->GetChTime() <= GPUSystem->mEndTime) {
-				GPUSystem->mTimer.start();
-				GPUSystem->DoTimeStep();
-				GPUSystem->mTimer.stop();
-				//GPUSystem->PrintStats();
+				if (!stepMode) {
+					GPUSystem->mTimer.start();
+					GPUSystem->DoTimeStep();
+					GPUSystem->mTimer.stop();
+					//GPUSystem->PrintStats();
+				} else if (stepNext) {
+
+					GPUSystem->mTimer.start();
+					GPUSystem->DoTimeStep();
+					GPUSystem->mTimer.stop();
+					stepNext = 0;
+				}
+			}
+			//cout << "Simulation Complete" << endl;
 		}
-		//cout << "Simulation Complete" << endl;
-	}
 #pragma omp section
-	{
-		if (GPUSystem->mUseOGL) {
-			initGLUT(string("test"), argc, argv);
+		{
+			if (GPUSystem->mUseOGL) {
+				initGLUT(string("test"), argc, argv);
+			}
 		}
 	}
-}
 }
