@@ -107,7 +107,7 @@ void ChSubdomainGPU::Run(ChLcpIterativeSolverGPUsimple* LCP_solver_speed) {
 	if (number_of_constraints != 0) {
 		for (int iteration_number = 0; iteration_number < LCP_solver_speed->mMaxIterations; iteration_number++) {
 
-			LCP_solver_speed->gpu_solver->Iterate(LCP_solver_speed->mDt, LCP_solver_speed->mOmegaBilateral, LCP_solver_speed->mOmegaContact, gpu_data);
+			LCP_solver_speed->gpu_solver->Iterate(1e-6, 1e-6, .2, LCP_solver_speed->mDt, LCP_solver_speed->mOmegaBilateral, LCP_solver_speed->mOmegaContact, gpu_data);
 			LCP_solver_speed->gpu_solver->Reduce(gpu_data);
 			if (use_DEM == true) {
 				break;

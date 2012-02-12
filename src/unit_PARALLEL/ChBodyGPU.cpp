@@ -27,7 +27,8 @@ namespace chrono {
 		id = 0;
 	}
 
-	ChBodyGPU::~ChBodyGPU() {}
+	ChBodyGPU::~ChBodyGPU() {
+	}
 
 	ChCollisionModel* ChBodyGPU::InstanceCollisionModel() {
 		ChCollisionModel* collision_model_t = (ChCollisionModelGPU*) new ChCollisionModelGPU();

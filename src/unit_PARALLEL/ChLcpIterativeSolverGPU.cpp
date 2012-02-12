@@ -26,23 +26,22 @@
 
 // Forward declarations
 namespace chrono {
-ChLcpIterativeSolverGPUsimple::ChLcpIterativeSolverGPUsimple(ChContactContainerGPUsimple* container) {
-	gpu_contact_container = container;
-	gpu_solver = new ChLcpIterativeGPU();
-	number_of_bodies = 0;
-	mTolerance = 0;
-	mDt = 0;
-	mMaxIterations = 0;
-	mOmegaContact = 0;
-	mOmegaBilateral = 0;
-}
+	ChLcpIterativeSolverGPUsimple::ChLcpIterativeSolverGPUsimple(ChContactContainerGPUsimple* container) {
+		gpu_contact_container = container;
+		gpu_solver = new ChLcpIterativeGPU();
+		number_of_bodies = 0;
+		mTolerance = 0;
+		mDt = 0;
+		mMaxIterations = 0;
+		mOmegaContact = 0;
+		mOmegaBilateral = 0;
+	}
 
-ChLcpIterativeSolverGPUsimple::~ChLcpIterativeSolverGPUsimple() {
-}
+	ChLcpIterativeSolverGPUsimple::~ChLcpIterativeSolverGPUsimple() {
+	}
 
-
-void ChLcpIterativeSolverGPUsimple::SolveSys(gpu_container & gpu_data) {
-	gpu_solver->RunTimeStep(mMaxIterations, iteration_number, mDt, mOmegaBilateral, mOmegaContact, mTolerance, gpu_data);
+	void ChLcpIterativeSolverGPUsimple::SolveSys(float compliance,float complianceT,float alpha,gpu_container & gpu_data) {
+gpu_solver	->RunTimeStep(mMaxIterations, iteration_number, mDt, mOmegaBilateral, mOmegaContact, mTolerance, compliance, complianceT, alpha,gpu_data);
 }
 void ChLcpIterativeSolverGPUsimple::SolveSys_HOST(ChGPUDataManager * data_container) {
 	gpu_solver->RunTimeStep_HOST(mMaxIterations, iteration_number, mDt, mOmegaBilateral, mOmegaContact, mTolerance, data_container);

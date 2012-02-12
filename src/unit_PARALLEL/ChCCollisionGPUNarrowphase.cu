@@ -44,9 +44,9 @@ __device__ __host__ inline float3 GetSupportPoint_Triangle(const float3 &A, cons
 }
 __device__ __host__ inline float3 GetSupportPoint_Box(const float3 &B, const float3 &n) {
 	float3 result = F3(0, 0, 0);
-	result.x = n.x >= 0 ? B.x : -B.x;
-	result.y = n.y >= 0 ? B.y : -B.y;
-	result.z = n.z >= 0 ? B.z : -B.z;
+	result.x = n.x <= 0 ? -B.x : B.x;
+	result.y = n.y <= 0 ? -B.y : B.y;
+	result.z = n.z <= 0 ? -B.z : B.z;
 	return result;
 }
 __device__ __host__ inline float3 GetSupportPoint_Ellipsoid(const float3 &B, const float3 &n) {
@@ -202,8 +202,8 @@ __device__ __host__ float find_dist(float3 & P, float3 &x0, float3 &B, float3 &C
 }
 
 //Code for Convex-Convex Collision detection, adopted from xeno-collide
-__device__ __host__ bool CollideAndFindPoint(int typeA, float3 A_X, float3 A_Y, float3 A_Z, float4 A_R, int typeB, float3 B_X, float3 B_Y, float3 B_Z, float4 B_R, float3& returnNormal,
-        float3& point1, float3& point2, float& depth) {
+__device__ __host__ bool CollideAndFindPoint(int typeA, float3 A_X, float3 A_Y, float3 A_Z, float4 A_R, int typeB, float3 B_X, float3 B_Y, float3 B_Z, float4 B_R, float3& returnNormal, float3 &point,
+        float& depth) {
 	float3 v01, v02, v0, n, v11, v12, v1, v21, v22, v2;
 	// v0 = center of Minkowski sum
 	v01 = GetCenter(typeA, A_X, A_Y, A_Z);
@@ -228,8 +228,10 @@ __device__ __host__ bool CollideAndFindPoint(int typeA, float3 A_X, float3 A_Y, 
 		n = v1 - v0;
 		n = normalize(n);
 		returnNormal = n;
-		point1 = v11;
-		point2 = v12;
+		//point1 = v11;
+		//point2 = v12;
+		point = (v11 + v12) * .5;
+		depth = dot((v12 - v11), n);
 		return true;
 	}
 	v21 = TransformSupportVert(typeA, A_X, A_Y, A_Z, A_R, -n);
@@ -291,28 +293,6 @@ __device__ __host__ bool CollideAndFindPoint(int typeA, float3 A_X, float3 A_Y, 
 		// Compute distance from origin to wedge face
 		// If the origin is inside the wedge, we have a hit
 		if (dot(n, v1) >= 0. && !hit) {
-			// Compute the barycentric coordinates of the origin
-			float b0 = dot(cross(v1, v2), v3);
-			float b1 = dot(cross(v3, v2), v0);
-			float b2 = dot(cross(v0, v1), v3);
-			float b3 = dot(cross(v2, v1), v0);
-
-			float sum = b0 + b1 + b2 + b3;
-
-			if (sum <= 0.) {
-				b0 = 0;
-				b1 = dot(cross(v2, v3), n);
-				b2 = dot(cross(v3, v1), n);
-				b3 = dot(cross(v1, v2), n);
-
-				sum = b1 + b2 + b3;
-			}
-			float inv = 1.0f / sum;
-			point1 = (b0 * v01 + b1 * v11 + b2 * v21 + b3 * v31) * inv;
-			point2 = (b0 * v02 + b1 * v12 + b2 * v22 + b3 * v32) * inv;
-			//point1+=point2;
-			//point1*=.5;
-
 			hit = true;// HIT!!!
 		}
 		// Find the support point in the direction of the wedge face
@@ -321,13 +301,34 @@ __device__ __host__ bool CollideAndFindPoint(int typeA, float3 A_X, float3 A_Y, 
 		float3 v4 = v42 - v41;
 
 		float delta = dot((v4 - v3), n);
-		float separation = -dot(v4, n);
+		depth = -dot(v4, n);
 
 		// If the boundary is thin enough or the origin is outside the support plane for the newly discovered vertex, then we can terminate
-		if (delta <= kCollideEpsilon || separation >= 0. || phase2 > 100) {
-			//float3 O = F3(0, 0, 0);
-			//depth=find_dist(O,v1,v2,v3,n);
-			returnNormal = normalize(n);
+		if (delta <= kCollideEpsilon || depth >= 0. || phase2 > 100) {
+			if (hit) {
+				// Compute the barycentric coordinates of the origin
+				float b0 = dot(cross(v1, v2), v3);
+				float b1 = dot(cross(v3, v2), v0);
+				float b2 = dot(cross(v0, v1), v3);
+				float b3 = dot(cross(v2, v1), v0);
+
+				float sum = b0 + b1 + b2 + b3;
+
+				if (sum <= 0.) {
+					b0 = 0;
+					b1 = dot(cross(v2, v3), n);
+					b2 = dot(cross(v3, v1), n);
+					b3 = dot(cross(v1, v2), n);
+
+					sum = b1 + b2 + b3;
+				}
+				float inv = 1.0f / sum;
+				point = (b0 * v01 + b1 * v11 + b2 * v21 + b3 * v31) + (b0 * v02 + b1 * v12 + b2 * v22 + b3 * v32);
+				point *= inv * .5;
+
+				returnNormal = normalize(n);
+
+			}
 			return hit;
 		}
 		if (dot(cross(v4, v1), v0) < 0.) { // Compute the tetrahedron dividing face (v4,v0,v1)
@@ -396,16 +397,14 @@ __global__ void MPR_GPU_Store(float3* pos, float4* rot, float3* obA, float3* obB
 		B_Z = quatRotate(B_Z + posB, B_R);
 	}
 
-	float3 N, p1, p2;
+	float3 N, p1, p2, p0;
 	float depth = 0;
-	if (!CollideAndFindPoint(A_T.x, A_X, A_Y, A_Z, A_R, B_T.x, B_X, B_Y, B_Z, B_R, N, p1, p2, depth)) {
+	if (!CollideAndFindPoint(A_T.x, A_X, A_Y, A_Z, A_R, B_T.x, B_X, B_Y, B_Z, B_R, N, p0, depth)) {
 		return;
 	};
 
-	//p1 = (TransformSupportVert(A_T.x, A_X, A_Y, A_Z, A_R, -N) - p1) * N * N + p1;
-	//p2 = (TransformSupportVert(B_T.x, B_X, B_Y, B_Z, B_R, N) - p2) * N * N + p2;
-
-	depth = sqrtf(dot((p2 - p1), (p2 - p1)));
+	p1 = dot((TransformSupportVert(A_T.x, A_X, A_Y, A_Z, A_R, -N) - p0), N) * N + p0;
+	p2 = dot((TransformSupportVert(B_T.x, B_X, B_Y, B_Z, B_R, N) - p0), N) * N + p0;
 	norm[index] = -N;
 	ptA[index] = p1;
 	ptB[index] = p2;

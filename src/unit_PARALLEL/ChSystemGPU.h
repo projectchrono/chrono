@@ -33,7 +33,6 @@
 #include "ChLcpSystemDescriptorGPU.h"
 
 #include "core/ChTimer.h"
-#include "ChForceSystemGPU.h"
 #include "ChDataManager.h"
 #include "ChCCollisionSystemGPU.h"
 

@@ -20,7 +20,6 @@
 #include <thrust/host_vector.h>
 #include "ChApiGPU.h"
 #include "ChLcpIterativeGPU.h"
-#include "ChForceSolverGPU.h"
 namespace chrono {
 ///    An iterative LCP solver based on projective
 ///   fixed point method, with overrelaxation.
@@ -55,14 +54,14 @@ class ChApiGPU ChLcpIterativeSolverGPUsimple: public ChLcpIterativeSolver {
 		//		void Reduce();
 		//		void Integrate();
 
-		void SolveSys(gpu_container & gpu_data);
+		void SolveSys(float compliance,float complianceT,float alpha,gpu_container & gpu_data);
 		void SolveSys_HOST(ChGPUDataManager * data_container);
 
 		void Preprocess(gpu_container & gpu_data) {
 			gpu_solver->Preprocess(mDt, gpu_data);
 		}
-		void Iterate(gpu_container & gpu_data) {
-			gpu_solver->Iterate(mDt, mOmegaBilateral, mOmegaContact, gpu_data);
+		void Iterate(float compliance,float complianceT,float alpha,gpu_container & gpu_data) {
+			gpu_solver->Iterate( compliance, complianceT, alpha,mDt, mOmegaBilateral, mOmegaContact, gpu_data);
 		}
 		void Reduce(gpu_container & gpu_data) {
 			gpu_solver->Reduce(gpu_data);

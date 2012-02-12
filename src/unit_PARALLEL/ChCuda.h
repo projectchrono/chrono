@@ -119,7 +119,7 @@ typedef unsigned int uint;
 #define	_CAPSULE 10			//Currently implemented on GPU only
 #define	_CONE 11				//Currently implemented on GPU only
 
-#define Vector_ZERO_EPSILON 0.0000001
+#define Vector_ZERO_EPSILON 1e-8
 #define MIN_ZERO_EPSILON 1.1754943508222875E-38
 #define EPS FLT_EPSILON
 

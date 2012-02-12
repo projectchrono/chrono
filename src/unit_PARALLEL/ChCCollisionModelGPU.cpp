@@ -51,7 +51,7 @@ namespace chrono {
 			tData.A = make_float3(pos->x, pos->y, pos->z);
 			tData.B = make_float3(radius, 0, 0);
 			tData.C = make_float3(0, 0, 0);
-			tData.R = make_float4(1,0,0,0);
+			tData.R = make_float4(1, 0, 0, 0);
 			tData.type = SPHERE;
 			mData.push_back(tData);
 			return true;
@@ -70,27 +70,29 @@ namespace chrono {
 			mData.push_back(tData);
 			return true;
 		}
-		bool ChCollisionModelGPU::AddBox(double hx, double hy, double hz, ChVector<>* pos, ChMatrix33<>* rot) {
+		bool ChCollisionModelGPU::AddBox(double rx, double ry, double rz, ChVector<>* pos, ChMatrix33<>* rot) {
 			double mass = this->GetBody()->GetMass();
-			this->GetBody()->SetInertiaXX(ChVector<> (1 / 12.0 * mass * (hy * hy + hz * hz), 1 / 12.0 * mass * (hx * hx + hz * hz), 1 / 12.0 * mass * (hx * hx + hy * hy)));
+			float3 inertia = make_float3(1 / 12.0 * mass * (ry * ry + rz * rz), 1 / 12.0 * mass * (rx * rx + rz * rz), 1 / 12.0 * mass * (rx * rx + ry * ry));
+			this->GetBody()->SetInertiaXX(ChVector<> (inertia.x, inertia.y, inertia.z));
 			model_type = BOX;
 			nObjects++;
 			bData tData;
 			tData.A = make_float3(pos->x, pos->y, pos->z);
-			tData.B = make_float3(hx, hy, hz);
+			tData.B = make_float3(rx, ry, rz);
 			tData.C = make_float3(0, 0, 0);
 			tData.R = make_float4(rot->Get_A_quaternion().e0, rot->Get_A_quaternion().e1, rot->Get_A_quaternion().e2, rot->Get_A_quaternion().e3);
 			tData.type = BOX;
 			mData.push_back(tData);
 			return true;
 		}
-		bool ChCollisionModelGPU::AddTriangle(ChVector<> A, ChVector<> B, ChVector<> C, ChVector<>* pos, ChMatrix33<>* rot) {			double mass = this->GetBody()->GetMass();
-				model_type = TRIANGLEMESH;
+		bool ChCollisionModelGPU::AddTriangle(ChVector<> A, ChVector<> B, ChVector<> C, ChVector<>* pos, ChMatrix33<>* rot) {
+			double mass = this->GetBody()->GetMass();
+			model_type = TRIANGLEMESH;
 			nObjects++;
 			bData tData;
-			tData.A = make_float3(A.x+pos->x, A.y+pos->y, A.z+pos->z);
-			tData.B = make_float3(B.x+pos->x, B.y+pos->y, B.z+pos->z);
-			tData.C = make_float3(C.x+pos->x, C.y+pos->y, C.z+pos->z);
+			tData.A = make_float3(A.x + pos->x, A.y + pos->y, A.z + pos->z);
+			tData.B = make_float3(B.x + pos->x, B.y + pos->y, B.z + pos->z);
+			tData.C = make_float3(C.x + pos->x, C.y + pos->y, C.z + pos->z);
 			tData.R = make_float4(rot->Get_A_quaternion().e0, rot->Get_A_quaternion().e1, rot->Get_A_quaternion().e2, rot->Get_A_quaternion().e3);
 			tData.type = TRIANGLEMESH;
 			mData.push_back(tData);
@@ -142,9 +144,9 @@ namespace chrono {
 			bData tData;
 			for (int i = 0; i < trimesh.getNumTriangles(); i++) {
 				ChTriangle temptri = trimesh.getTriangle(i);
-				tData.A = make_float3(temptri.p1.x+pos->x, temptri.p1.y+pos->y, temptri.p1.z+pos->z);
-				tData.B = make_float3(temptri.p2.x+pos->x, temptri.p2.y+pos->y, temptri.p2.z+pos->z);
-				tData.C = make_float3(temptri.p3.x+pos->x, temptri.p3.y+pos->y, temptri.p3.z+pos->z);
+				tData.A = make_float3(temptri.p1.x + pos->x, temptri.p1.y + pos->y, temptri.p1.z + pos->z);
+				tData.B = make_float3(temptri.p2.x + pos->x, temptri.p2.y + pos->y, temptri.p2.z + pos->z);
+				tData.C = make_float3(temptri.p3.x + pos->x, temptri.p3.y + pos->y, temptri.p3.z + pos->z);
 				tData.R = make_float4(rot->Get_A_quaternion().e0, rot->Get_A_quaternion().e1, rot->Get_A_quaternion().e2, rot->Get_A_quaternion().e3);
 				tData.type = TRIANGLEMESH;
 				mData.push_back(tData);

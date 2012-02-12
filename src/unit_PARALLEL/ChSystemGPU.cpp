@@ -82,8 +82,7 @@ namespace chrono {
 	double ChSystemGPU::SolveSystem() {
 		mtimer_lcp.start();
 
-		((ChLcpIterativeSolverGPUsimple*) (LCP_solver_speed))->SolveSys(gpu_data_manager->gpu_data);
-
+		((ChLcpIterativeSolverGPUsimple*) (LCP_solver_speed))->SolveSys(0, 0, 0, gpu_data_manager->gpu_data);
 
 		//gpu_data_manager->host_acc_data=gpu_data_manager->host_vel_data;
 		//((ChLcpIterativeSolverGPUsimple*) (LCP_solver_speed))->SolveSys_HOST(gpu_data_manager);
@@ -114,7 +113,7 @@ namespace chrono {
 		gpu_data_manager->host_frc_data.push_back(F3(mbodyvar->Get_fb().ElementN(0), mbodyvar->Get_fb().ElementN(1), mbodyvar->Get_fb().ElementN(2))); //forces
 		gpu_data_manager->host_trq_data.push_back(F3(mbodyvar->Get_fb().ElementN(3), mbodyvar->Get_fb().ElementN(4), mbodyvar->Get_fb().ElementN(5))); //torques
 		gpu_data_manager->host_aux_data.push_back(F3(newbody->IsActive(), newbody->GetKfriction(), inv_mass));
-		gpu_data_manager->host_lim_data.push_back(F3(newbody->GetLimitSpeed(), newbody->GetMaxSpeed(), newbody->GetMaxWvel()));
+		gpu_data_manager->host_lim_data.push_back(F3(newbody->GetLimitSpeed(), (1.0 / GetStep()) * .1, newbody->GetMaxWvel()));
 		counter++;
 		gpu_data_manager->number_of_objects = counter;
 	}
@@ -157,7 +156,7 @@ namespace chrono {
 			gpu_data_manager->host_frc_data[i] = (F3(mbodyvar->Get_fb().ElementN(0), mbodyvar->Get_fb().ElementN(1), mbodyvar->Get_fb().ElementN(2))); //forces
 			gpu_data_manager->host_trq_data[i] = (F3(mbodyvar->Get_fb().ElementN(3), mbodyvar->Get_fb().ElementN(4), mbodyvar->Get_fb().ElementN(5))); //torques
 			gpu_data_manager->host_aux_data[i] = (F3(bodylist[i]->IsActive(), bodylist[i]->GetKfriction(), 1.0f / mbodyvar->GetBodyMass()));
-			gpu_data_manager->host_lim_data[i] = (F3(bodylist[i]->GetLimitSpeed(), bodylist[i]->GetMaxSpeed(), bodylist[i]->GetMaxWvel()));
+			gpu_data_manager->host_lim_data[i] = (F3(bodylist[i]->GetLimitSpeed(), (1.0 / GetStep()) * .01, (1.0 / GetStep()) * .01));
 		}
 
 		std::list<ChLink*>::iterator it;
@@ -213,7 +212,6 @@ namespace chrono {
 			gpu_data_manager->host_bilateral_data[counter + number_of_bilaterals * 4].w = (mbilateral->IsUnilateral()) ? 1 : 0;
 			counter++;
 		}
-
 
 		mtimer.stop();
 		timer_update += mtimer();

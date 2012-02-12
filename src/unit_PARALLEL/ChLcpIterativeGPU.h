@@ -33,19 +33,14 @@ namespace chrono {
 			}
 			~ChLcpIterativeGPU() {
 			}
-			static void RunTimeStep(uint & maximum_iterations, uint & iteration_number, float step_size, float lcp_omega_bilateral, float lcp_omega_contact, float tolerance, gpu_container & gpu_data);
+			static void RunTimeStep(uint & maximum_iterations, uint & iteration_number, float step_size, float lcp_omega_bilateral, float lcp_omega_contact, float tolerance, float compliance,
+			        float complianceT, float alpha, gpu_container & gpu_data);
 
-			static void RunTimeStep_HOST(
-					uint & maximum_iterations,
-					uint & iteration_number,
-					float step_size,
-					float lcp_omega_bilateral,
-					float lcp_omega_contact,
-					float tolerance,
-					ChGPUDataManager * data_container);
+			static void RunTimeStep_HOST(uint & maximum_iterations, uint & iteration_number, float step_size, float lcp_omega_bilateral, float lcp_omega_contact, float tolerance,
+			        ChGPUDataManager * data_container);
 
 			static void Preprocess(float step_size, gpu_container & gpu_data);
-			static void Iterate(float step_size, float lcp_omega_bilateral, float lcp_omega_contact, gpu_container & gpu_data);
+			static void Iterate(float compliance, float complianceT, float alpha, float step_size, float lcp_omega_bilateral, float lcp_omega_contact, gpu_container & gpu_data);
 			static void Reduce(gpu_container & gpu_data);
 			static void Integrate(float step_size, gpu_container & gpu_data);
 

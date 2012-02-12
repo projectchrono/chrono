@@ -62,7 +62,7 @@ IF(ENABLE_UNIT_GPU)
 			ChLcpIterativeSolverGPU.cpp
 			ChSystemGPU.cpp
 			ChSystemMultiGPU.cpp
-#			ChForceSystemGPU.cpp
+
 		)
 	SET(ChronoEngine_unit_GPU_HEADERS 
 	    	ChApiGPU.h
@@ -80,8 +80,7 @@ IF(ENABLE_UNIT_GPU)
 			ChLcpIterativeSolverGPU.h
 			ChLcpSystemDescriptorGPU.h
 			ChSubdomainGPU.h
-#			ChForceSystemGPU.h
-#			ChForceSolverGPU.h
+
 		)
 	SET(ChronoEngine_unit_GPU_CU 
 	    	ChLcpIterativeGPU.cu
@@ -89,7 +88,6 @@ IF(ENABLE_UNIT_GPU)
 			ChCCollisionGPUBroadphase.cu
 			ChCCollisionGPUNarrowphase.cu
 			ChSubdomainGPU.cu
-#			ChForceSolverGPU.cu
 			ChDataManager.cu
 		)
 
