@@ -2,12 +2,12 @@
 #define TOLERANCE .05
 ChSharedBodyGPUPtr FREE;
 
-double compute_period(double L, double g, double theta){
+double compute_period(double L, double g, double theta) {
 
-	if(theta==PI/2.0){
-	return 7.416298708*sqrt(L/9.80665);
-	}else{
-		return 2*PI*sqrt(L/g)+2*PI*sqrt(L/g)*1.0/16.0*pow(theta,2)+2*PI*sqrt(L/g)*11.0/3072.0*pow(theta,4);
+	if (theta == PI / 2.0) {
+		return 7.416298708 * sqrt(L / 9.80665);
+	} else {
+		return 2 * PI * sqrt(L / g) + 2 * PI * sqrt(L / g) * 1.0 / 16.0 * pow(theta, 2) + 2 * PI * sqrt(L / g) * 11.0 / 3072.0 * pow(theta, 4);
 	}
 
 }
@@ -16,9 +16,6 @@ void System::DoTimeStep() {
 	mFrameNumber++;
 	mSystem->DoStepDynamics(mTimeStep);
 	mCurrentTime += mTimeStep;
-
-
-
 	//GPUSystem->PrintStats();
 }
 
@@ -26,7 +23,7 @@ int main(int argc, char* argv[]) {
 	omp_set_nested(1);
 	GPUSystem = new System(1);
 	GPUSystem->mTimeStep = .005;
-	GPUSystem->mEndTime = compute_period(1,9.80665,PI/2.0);
+	GPUSystem->mEndTime = compute_period(1, 9.80665, PI / 2.0);
 	GPUSystem->mNumObjects = 1;
 	GPUSystem->mIterations = 100;
 	GPUSystem->mTolerance = 1e-8;
@@ -59,9 +56,12 @@ int main(int argc, char* argv[]) {
 	GPUSystem->Setup();
 	SimulationLoop(argc, argv);
 
-	float correct=0;
-		float current=FREE->GetPos_dt().Length();
-		if(fabs(correct-current)>TOLERANCE){cout<<"FAIL at T="<<GPUSystem->mSystem->GetChTime()<<" correct: "<<  correct<<" current: "<<current<<" "<<fabs(correct-current)<<endl; exit(1);};
-	cout<<"PASS"<<endl;
+	float correct = 0;
+	float current = FREE->GetPos_dt().Length();
+	if (fabs(correct - current) > TOLERANCE) {
+		cout << "FAIL at T=" << GPUSystem->mSystem->GetChTime() << " correct: " << correct << " current: " << current << " " << fabs(correct - current) << endl;
+		exit(1);
+	};
+	cout << "PASS" << endl;
 	return 0;
 }
