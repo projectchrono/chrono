@@ -748,7 +748,7 @@ private:
 class ChApi ChStreamOutBinaryFile : public ChStreamFile , public ChStreamOutBinary
 {
 public:
-	ChStreamOutBinaryFile(const char* filename);
+	ChStreamOutBinaryFile(const char* filename, std::ios::openmode mmode = std::ios::trunc); // trunc or app
 	virtual ~ChStreamOutBinaryFile();
 
 private:
@@ -762,7 +762,7 @@ private:
 class ChApi ChStreamOutAsciiFile : public ChStreamFile , public ChStreamOutAscii
 {
 public:
-	ChStreamOutAsciiFile(const char* filename);
+	ChStreamOutAsciiFile(const char* filename, std::ios::openmode mmode = std::ios::trunc); // trunc or app);
 	virtual ~ChStreamOutAsciiFile();
 
 private:

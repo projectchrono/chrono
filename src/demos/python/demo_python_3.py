@@ -33,7 +33,6 @@ my_system = chrono.ChSystem()
 
 # Create a body
 body_1= chrono.ChBodyAuxRefShared()
-body_1.SetName('ParteTest')
 my_system.Add(body_1)
 
 # Attach a visualization asset to the body (a Wavefront .obj mesh)
@@ -42,6 +41,11 @@ myasset.SetFilename("body_1.obj")
 myasset.SetColor(chrono.ChColor(1,1,0.8))
 body_1.GetAssets().push_back(myasset)
 
+# Assets can be shared, to save memory...
+body_2= chrono.ChBodyAuxRefShared()
+body_2.SetPos(chrono.ChVectorD(0.1,0,0))
+my_system.Add(body_2)
+body_2.GetAssets().push_back(myasset)
 
 #
 # Create an exporter to POVray !!!
@@ -67,6 +71,7 @@ pov_exporter.SetPictureFilebase("anim/picture")
  # Optional: tell selectively which physical items you want to render
 pov_exporter.RemoveAll()
 pov_exporter.Add(body_1)
+pov_exporter.Add(body_2)
 
  # 1) Create the two .pov and .ini files for POV-Ray (this must be done
  #    only once at the beginning of the simulation).
@@ -77,10 +82,10 @@ while (my_system.GetChTime() < 0.2) :
 
     my_system.DoStepDynamics(0.01)
 
-    print 'time=', my_system.GetChTime()
+    print ('time=', my_system.GetChTime() )
 
-    # 2) Create the .dat file that will be load by the .pov script in
-    #    POV-Ray (this should be done at each simulation timestep)
+    # 2) Create the incremental nnnn.dat and nnnn.pov files that will be load
+    #    by the pov .ini script in POV-Ray (do this at each simulation timestep)
     pov_exporter.ExportData()
 
 

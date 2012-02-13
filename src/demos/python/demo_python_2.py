@@ -58,7 +58,7 @@ my_shbodyB.SetMaterialSurface(my_shmaterial)
 ##    def __init__(self):
 ##         chrono.ChCustomCollisionPointCallbackP.__init__(self)
 ##    def ContactCallback(self,collinfo,matcouple):
-##         print ' add contact: ' , collinfo.distance, matcouple.static_friction
+##         print (' add contact: ' , collinfo.distance, matcouple.static_friction)
 ##
 ##my_call = MyContactCallback()
 ##my_system.SetCustomCollisionPointCallback(my_call)
@@ -68,7 +68,7 @@ class MyReportContactCallback(chrono.ChReportContactCallback):
     def __init__(self):
          chrono.ChReportContactCallback.__init__(self)
     def ReportContactCallback(self,vA,vB,cA,dist,frict,force,torque,modA,modB):
-         print '  contact: point A=' , vA,  '  dist=',dist
+         print ('  contact: point A=' , vA,  '  dist=',dist)
          return 1        # return 0 to stop reporting contacts
 
 my_rep = MyReportContactCallback()
@@ -81,26 +81,26 @@ while (my_system.GetChTime() < 1.2) :
 
     my_system.DoStepDynamics(0.01)
 
-    print 'time=', my_system.GetChTime(), ' bodyB y=', my_shbodyB.GetPos().y
+    print ('time=', my_system.GetChTime(), ' bodyB y=', my_shbodyB.GetPos().y)
 
     my_system.GetContactContainer().ReportAllContacts(my_rep)
 
 
 # Iterate over added bodies - how to use iterators
-print 'This is the list of bodies in the system:'
+print ('This is the list of bodies in the system:')
 iterbodies = my_system.IterBeginBodies()
 while (iterbodies !=  my_system.IterEndBodies()):
-    print '  body pos=', iterbodies.Ref().GetPos()
+    print ('  body pos=', iterbodies.Ref().GetPos() )
     iterbodies = iterbodies.Next()
 
 # Easier (but a bit slower) iteration in the style of Python:
-print 'This is the list of bodies in the system:'
+print ('This is the list of bodies in the system:')
 for abody in chrono.IterBodies(my_system):
-    print '  body pos=', abody.GetPos()
+    print ('  body pos=', abody.GetPos() )
 
 # Also iterate on links, Python style:
 for alink in chrono.IterLinks(my_system):
-    print '  link: ', alink
+    print ('  link: ', alink )
 
 
 # Move a body, using a ChFrame
@@ -109,7 +109,7 @@ my_shbodyA %= my_displacement
 # ..also as:
 #  my_shbody.ConcatenatePreTransformation(my_displacement)
 
-print 'Moved body pos=', my_shbodyA.GetPos()
+print ('Moved body pos=', my_shbodyA.GetPos() )
 
 
 # Use a body with an auxiliary reference (REF) that does not correspond

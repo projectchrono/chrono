@@ -113,19 +113,11 @@ finish {
             }
         */
 }
-   
-#declare ContactFinish =
-finish {
-	ambient 0.3 diffuse 0.5
-	specular 0.0 roughness 0
-	brilliance 0   
-} 
-#declare ContactFinishB =
-finish {
-	ambient 0.07 diffuse 1
-	specular 0.8 roughness 0.02
-	brilliance 2  
-}
+       
+       
+#macro tx_def()
+  pigment{color rgb <1,1,1>} 
+#end
   
 
 //     
