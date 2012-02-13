@@ -14,7 +14,7 @@
 #include "geometry/ChCTriangleMeshConnected.h"
 #include "assets/ChObjShapeFile.h"
 #include "assets/ChSphereShape.h"
- 
+
 
 using namespace chrono;
 using namespace postprocess;
@@ -84,6 +84,19 @@ void ChPovRay::ExportScript(const std::string &filename)
 {
 	this->out_script_filename = filename;
 	
+	pov_assets.clear();
+
+	// Generate the _assets.pov script (initial state, it will be populated later by
+	// appending assets as they enter the exporter, only once if shared, using ExportAssets() )
+
+	std::string assets_filename = filename + "_assets.pov";
+	{
+		ChStreamOutAsciiFile assets_file(assets_filename.c_str());
+		assets_file << "// File containing meshes and objects for rendering POV scenes.\n";
+		assets_file << "// This file is automatically included by " << filename.c_str() << ".pov , \n";
+		assets_file << "// and you should not modify it.\n\n";
+	}
+
 	// Generate the .INI script
 	std::string ini_filename = filename + ".ini";
 
@@ -125,21 +138,37 @@ void ChPovRay::ExportScript(const std::string &filename)
 		}
 
 		// Do template replacement of [xxxyyyzzz] keywords, if any
-		replaceAll(buffer_template, "[xxxyyyzzz]", "blable" );
+		replaceAll(buffer_template, "[xxxyyyzzz]", "blabla" );
 		
 		mfile << buffer_template;
 	}
 	
-	// Write POV code to open the n.th datafile
+	// Write POV code to open the asset file
 
-	mfile << "#declare data_file = concat(\"" << this->out_data_filename << "\", str(frame_number,-5,0), \".dat\") \n"; 
-    mfile << "#warning concat(\"---- LOADING PEBBLES FILE : \", data_file, \"\\n\") \n";  
-    mfile << "#fopen MyPosFile data_file read \n";
+	mfile << "#include \"" << assets_filename << "\"\n";
+
+	// Write POV code to open the n.th scene file
+
+	mfile << "#declare scene_file = concat(\"" << this->out_data_filename << "\", str(frame_number,-5,0), \".pov\") \n"; 
+	mfile << "#include scene_file \n";
 
 
-	// Write geometry of objects in POV file
+	// Write the assets
+	this->ExportAssets();
+
+}
+
+
+
+void ChPovRay::ExportAssets()
+{
+	// open asset file in append mode.
+	std::string assets_filename = this->out_script_filename + "_assets.pov";
+	ChStreamOutAsciiFile assets_file(assets_filename.c_str(), std::ios::app);
+
 	// This will scan all the ChPhysicsItem added objects, and if
-	// they have some reference to renderizable assets, write geoemtries in the POV script.
+	// they have some reference to renderizable assets, write geoemtries in 
+	// the POV assets script.
 
 	for (unsigned int i = 0; i< this->mdata.size(); i++)
 	{
@@ -152,103 +181,125 @@ void ChPovRay::ExportScript(const std::string &filename)
 			assetcsys = bodyframe.GetCoord();
 		}
 
-		mfile <<"\n\n// Item:" << mdata[i]->GetName() << "\n\n";
-
-
 		// Scan assets in object i
 		for (unsigned int k = 0; k < mdata[i]->GetAssets().size(); k++)
 		{
-			// Do dynamic casting of the shared pointer to see which type
-			// of asset is contined...
+			ChSharedPtr<ChAsset> k_asset = mdata[i]->GetAssets()[k];
 
-			// 1) asset k of object i references an .obj wavefront mesh?
-			if (mdata[i]->GetAssets()[k].IsType<ChObjShapeFile>() )
+			ChHashTable<unsigned int, ChSharedPtr<ChAsset> >::iterator mcached = pov_assets.find( (unsigned int)k_asset.get_ptr() );
+			if (mcached == pov_assets.end())
 			{
-				ChSharedPtr<ChObjShapeFile> myobjshapeasset(mdata[i]->GetAssets()[k]);
-				ChTriangleMeshConnected mytrimesh;
+				// Ok, add the asset in POV file, it was not already saved. 
+				// Otherwise it was a shared asset.
+				pov_assets.insert((unsigned int)k_asset.get_ptr(), k_asset);
 
-				try {
-					// Load from the .obj file and convert.
-					mytrimesh.LoadWavefrontMesh( myobjshapeasset->GetFilename() );
+				// Do dynamic casting of the shared pointer to see which type
+				// of asset is contined...
 
-					// POV will read pos & rotation of mesh from a row of the .dat file
-					mfile << "#read (MyPosFile, apx, apy, apz, aq0, aq1, aq2, aq3) \n\n";
-
-					// Create mesh
-					mfile << "mesh2  {\n";
-
-					mfile << " vertex_vectors {\n";
-					mfile << mytrimesh.m_vertices.size() << ",\n";
-					for (unsigned int iv = 0; iv < mytrimesh.m_vertices.size(); iv++)
-						mfile << "  <" << mytrimesh.m_vertices[iv].x << "," <<  mytrimesh.m_vertices[iv].y << "," <<  mytrimesh.m_vertices[iv].z << ">,\n";
-					mfile <<" }\n";
-
-					mfile << " normal_vectors {\n";
-					mfile << mytrimesh.m_normals.size() << ",\n";
-					for (unsigned int iv = 0; iv < mytrimesh.m_normals.size(); iv++)
-						mfile << "  <" << mytrimesh.m_normals[iv].x << "," <<  mytrimesh.m_normals[iv].y << "," <<  mytrimesh.m_normals[iv].z << ">,\n";
-					mfile <<" }\n";
-
-					mfile << " face_indices {\n";
-					mfile << mytrimesh.m_face_v_indices.size() << ",\n";
-					for (unsigned int it = 0; it < mytrimesh.m_face_v_indices.size(); it++)
-						mfile << "  <" << mytrimesh.m_face_v_indices[it].x << "," <<  mytrimesh.m_face_v_indices[it].y << "," <<  mytrimesh.m_face_v_indices[it].z << ">,\n";
-					mfile <<" }\n";
-
-					mfile <<" pigment {color rgb <" << myobjshapeasset->GetColor().R << "," << myobjshapeasset->GetColor().G << "," << myobjshapeasset->GetColor().B << "> }\n";
-					mfile <<" quatRotation(<aq0, aq1, aq2, aq3>) \n";
-                    mfile <<" translate  <apx, apy, apz> \n";
-					mfile <<"}\n";
-				} 
-				catch (ChException)
+				// 1) asset k of object i references an .obj wavefront mesh?
+				if (k_asset.IsType<ChObjShapeFile>() )
 				{
-					char error[400];
-					sprintf(error,"Asset n.%d of object %d : can't read .obj file %s", k,i,myobjshapeasset->GetFilename().c_str() );
-					throw (ChException(error));
+					ChSharedPtr<ChObjShapeFile> myobjshapeasset(k_asset);
+					ChTriangleMeshConnected mytrimesh;
+
+					try {
+						// Load from the .obj file and convert.
+						mytrimesh.LoadWavefrontMesh( myobjshapeasset->GetFilename() );
+
+						// POV macro to build the asset - begin
+						assets_file << "#macro sh_"<< (int) k_asset.get_ptr() << "(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
+
+						// Create mesh
+						assets_file << "mesh2  {\n";
+
+						assets_file << " vertex_vectors {\n";
+						assets_file << mytrimesh.m_vertices.size() << ",\n";
+						for (unsigned int iv = 0; iv < mytrimesh.m_vertices.size(); iv++)
+							assets_file << "  <" << mytrimesh.m_vertices[iv].x << "," <<  mytrimesh.m_vertices[iv].y << "," <<  mytrimesh.m_vertices[iv].z << ">,\n";
+						assets_file <<" }\n";
+
+						assets_file << " normal_vectors {\n";
+						assets_file << mytrimesh.m_normals.size() << ",\n";
+						for (unsigned int iv = 0; iv < mytrimesh.m_normals.size(); iv++)
+							assets_file << "  <" << mytrimesh.m_normals[iv].x << "," <<  mytrimesh.m_normals[iv].y << "," <<  mytrimesh.m_normals[iv].z << ">,\n";
+						assets_file <<" }\n";
+
+						assets_file << " face_indices {\n";
+						assets_file << mytrimesh.m_face_v_indices.size() << ",\n";
+						for (unsigned int it = 0; it < mytrimesh.m_face_v_indices.size(); it++)
+							assets_file << "  <" << mytrimesh.m_face_v_indices[it].x << "," <<  mytrimesh.m_face_v_indices[it].y << "," <<  mytrimesh.m_face_v_indices[it].z << ">,\n";
+						assets_file <<" }\n";
+
+						assets_file <<" pigment {color rgb <" << myobjshapeasset->GetColor().R << "," << myobjshapeasset->GetColor().G << "," << myobjshapeasset->GetColor().B << "> }\n";
+						assets_file <<" quatRotation(<aq0, aq1, aq2, aq3>) \n";
+						assets_file <<" translate  <apx, apy, apz> \n";
+						//assets_file <<" texture{ atexture }\n";
+						assets_file <<"}\n";
+
+						// POV macro - end
+						assets_file << "#end \n";
+					} 
+					catch (ChException)
+					{
+						char error[400];
+						sprintf(error,"Asset n.%d of object %d : can't read .obj file %s", k,i,myobjshapeasset->GetFilename().c_str() );
+						throw (ChException(error));
+					}
 				}
-			}
 
-			// 2) asset k of object i is a sphere ?
-			if (mdata[i]->GetAssets()[k].IsType<ChSphereShape>() )
-			{
-				ChSharedPtr<ChSphereShape> myobjshapeasset(mdata[i]->GetAssets()[k]);
+				// 2) asset k of object i is a sphere ?
+				if (k_asset.IsType<ChSphereShape>() )
+				{
+					ChSharedPtr<ChSphereShape> myobjshapeasset(k_asset);
 
-				// POV will read pos & rotation of sphere from a row of the .dat file
-				mfile << "#read (MyPosFile, apx, apy, apz, aq0, aq1, aq2, aq3) \n\n";
+					// POV macro to build the asset - begin
+					assets_file << "#macro sh_"<< (int) k_asset.get_ptr() << "(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
 
-				// POV will make the sphere
-				mfile << "sphere  {\n";
+					// POV will make the sphere
+					assets_file << "sphere  {\n";
 
-				mfile << " <" << myobjshapeasset->GetSphereGeometry().center.x;
-				mfile << ","  << myobjshapeasset->GetSphereGeometry().center.y;
-				mfile << ","  << myobjshapeasset->GetSphereGeometry().center.z << ">\n";
-				mfile << " "  << myobjshapeasset->GetSphereGeometry().rad << "\n";
+					assets_file << " <" << myobjshapeasset->GetSphereGeometry().center.x;
+					assets_file << ","  << myobjshapeasset->GetSphereGeometry().center.y;
+					assets_file << ","  << myobjshapeasset->GetSphereGeometry().center.z << ">\n";
+					assets_file << " "  << myobjshapeasset->GetSphereGeometry().rad << "\n";
 
-				mfile <<" pigment {color rgb <" << myobjshapeasset->GetColor().R << "," << myobjshapeasset->GetColor().G << "," << myobjshapeasset->GetColor().B << "> }\n";
-				mfile <<" quatRotation(<aq0, aq1, aq2, aq3>) \n";
-                mfile <<" translate  <apx, apy, apz> \n";
-				mfile <<"}\n";
-			}
+					assets_file <<" pigment {color rgb <" << myobjshapeasset->GetColor().R << "," << myobjshapeasset->GetColor().G << "," << myobjshapeasset->GetColor().B << "> }\n";
+					assets_file <<" quatRotation(<aq0, aq1, aq2, aq3>) \n";
+					assets_file <<" translate  <apx, apy, apz> \n";
+					assets_file <<"}\n";
 
+					// POV macro - end 
+					assets_file << "#end \n";
+				}
 
+			} // end if asset not yet saved
 
 		} // end loop on assets of i-th object 
 	} // end loop on objects
 
 
+
 }
+
+
 
 void ChPovRay::ExportData(const std::string &filename)
 {
-	// Generate the .dat file:
+	// Generate the nnnn.dat and nnnn.pov files:
 
-	try {
-		ChStreamOutAsciiFile mfile(filename.c_str());
+	try 
+	{
+		char pathdat[200];
+		sprintf(pathdat,"%s.dat", filename.c_str());
+		ChStreamOutAsciiFile mfiledat(pathdat);
+
+		char pathpov[200];
+		sprintf(pathpov,"%s.pov", filename.c_str());
+		ChStreamOutAsciiFile mfilepov(pathpov);
 
 
-		// Save time-dependent data for the geometry of objects in POV file
-		// NOTE!!! The following loop MUST reflect the same sequence of loadings
-		// that are done in the .pov script, as defined in the ExportScript() 
+		// Save time-dependent data for the geometry of objects in ...nnnn.POV 
+		// and in ...nnnn.DAT file
 
 		for (unsigned int i = 0; i< this->mdata.size(); i++)
 		{
@@ -264,24 +315,30 @@ void ChPovRay::ExportData(const std::string &filename)
 			// Scan assets in object i
 			for (unsigned int k = 0; k < mdata[i]->GetAssets().size(); k++)
 			{
+				ChSharedPtr<ChAsset> k_asset = mdata[i]->GetAssets()[k];
 
 				// Do dynamic casting of the shared pointer to see which type
 				// of asset is contined...
 
 				// 1) asset k of object i references an .obj wavefront mesh?
-				if (mdata[i]->GetAssets()[k].IsType<ChObjShapeFile>() )
+				if (k_asset.IsType<ChObjShapeFile>() )
 				{
-					// Save pos & rotation of mesh in a row of the .dat file
-					mfile << assetcsys.pos.x << "," << assetcsys.pos.y << "," << assetcsys.pos.z << ",";
-					mfile << assetcsys.rot.e0 << "," << assetcsys.rot.e1 << "," << assetcsys.rot.e2 << "," << assetcsys.rot.e3 << "\n";
+					mfilepov << "sh_"<< (int) k_asset.get_ptr() << "("; // apx, apy, apz, aq0, aq1, aq2, aq3, atexture)\n";
+
+					mfilepov << assetcsys.pos.x << "," << assetcsys.pos.y << "," << assetcsys.pos.z << ",";
+					mfilepov << assetcsys.rot.e0 << "," << assetcsys.rot.e1 << "," << assetcsys.rot.e2 << "," << assetcsys.rot.e3 << ")\n";
 				}
 
 				// 2) asset k of object i is a sphere ?
-				if (mdata[i]->GetAssets()[k].IsType<ChSphereShape>() )
+				if (k_asset.IsType<ChSphereShape>() )
 				{
-					// Save pos & rotation of mesh in a row of the .dat file
-					mfile << assetcsys.pos.x << "," << assetcsys.pos.y << "," << assetcsys.pos.z << ",";
-					mfile << assetcsys.rot.e0 << "," << assetcsys.rot.e1 << "," << assetcsys.rot.e2 << "," << assetcsys.rot.e3 << "\n";
+					// POV will read pos & rotation of mesh from a row of the .dat file
+					//	mfile << "#read (MyPosFile, apx, apy, apz, aq0, aq1, aq2, aq3) \n\n";
+
+					mfilepov << "sh_"<< (int) k_asset.get_ptr() << "("; // apx, apy, apz, aq0, aq1, aq2, aq3, atexture)\n";
+
+					mfilepov << assetcsys.pos.x << "," << assetcsys.pos.y << "," << assetcsys.pos.z << ",";
+					mfilepov << assetcsys.rot.e0 << "," << assetcsys.rot.e1 << "," << assetcsys.rot.e2 << "," << assetcsys.rot.e3 << ")\n";
 				}
 
 			} // end loop on assets
@@ -290,7 +347,7 @@ void ChPovRay::ExportData(const std::string &filename)
 	}catch (ChException)
 	{
 		char error[400];
-		sprintf(error,"Can't save data into file %s", filename.c_str() );
+		sprintf(error,"Can't save data into file %s.pov (or .dat)", filename.c_str() );
 		throw (ChException(error));
 	}
 

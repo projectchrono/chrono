@@ -18,6 +18,13 @@ xx-xx-xxxx
   by ChTriangleMeshSoup and the new ChTriangleMeshConnected, that
   allows shared vertices and information about normals and UV.
 
+- By default, when two materials with different compliances become
+  in contact, the resulting unique compliance of the contact is 
+  the SUM of the two compliances as a default behavior (whereas
+  for other material parameters such as friction, the result is the 
+  minimum of the two values). This follows the theory of two 
+  springs in series.
+
   
 Release 1.5.0
 8-2-2012
@@ -85,7 +92,8 @@ Release 1.5.0
   two friction coefficients of the two surfaces. From this version, instead,
   the default behavior has changed as THE MINIMUM of the two values.
   This applies also to other surface parameters in ChMaterialSurface,
-  such as rolling friction, compliance, etc.
+  such as rolling friction, etc., excluding compliances (tangential,normal,etc)
+  because they are summed, as happens for two springs in series.
   
 - New functionality in ChIrrAppInterface class, to allow single-step
   of realtime simulations, by pressing the 'p' key, and to pause 

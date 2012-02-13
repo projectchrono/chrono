@@ -205,8 +205,8 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 	mat.restitution			= (float)ChMin( mmatA->restitution,			mmatB->restitution);
 	mat.cohesion			= (float)ChMin( mmatA->cohesion,			mmatB->cohesion);
 	mat.dampingf			= (float)ChMin( mmatA->dampingf,			mmatB->dampingf);
-	mat.compliance			= (float)ChMin( mmatA->compliance,			mmatB->compliance);
-	mat.complianceT			= (float)ChMin( mmatA->complianceT,			mmatB->complianceT);
+	mat.compliance			= (float)(mmatA->compliance+mmatB->compliance);// (float)ChMin( mmatA->compliance,			mmatB->compliance);
+	mat.complianceT			= (float)(mmatA->complianceT+mmatB->complianceT); // (float)ChMin( mmatA->complianceT,			mmatB->complianceT);
 	
 
 	// Launch the contact callback, if any, to set custom friction & material 

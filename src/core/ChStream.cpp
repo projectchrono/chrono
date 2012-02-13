@@ -703,7 +703,6 @@ ChStreamFile::ChStreamFile(const char* filename, std::ios::openmode mmode)
 			/// Destruction means that the file stream is also closed.
 ChStreamFile::~ChStreamFile()
 {
-	GetLog() << " Closing file\n";
 	file.flush();
 	file.close();
 };
@@ -820,10 +819,10 @@ ChStreamInBinary::ChStreamInBinary() {};
 ChStreamInBinary::~ChStreamInBinary() {};
 
 
-ChStreamOutBinaryFile::ChStreamOutBinaryFile(const char* filename) : ChStreamFile(filename, std::ios::out| std::ios::trunc| std::ios::binary) {};
+ChStreamOutBinaryFile::ChStreamOutBinaryFile(const char* filename, std::ios::openmode mmode) : ChStreamFile(filename,  mmode | std::ios::out| std::ios::binary) {};
 ChStreamOutBinaryFile::~ChStreamOutBinaryFile() {};
 
-ChStreamOutAsciiFile::ChStreamOutAsciiFile(const char* filename) : ChStreamFile(filename,  std::ios::out| std::ios::trunc) {};
+ChStreamOutAsciiFile::ChStreamOutAsciiFile(const char* filename, std::ios::openmode mmode) : ChStreamFile(filename,  mmode | std::ios::out ) {};
 ChStreamOutAsciiFile::~ChStreamOutAsciiFile() {};
 
 ChStreamInBinaryFile::ChStreamInBinaryFile(const char* filename) : ChStreamFile(filename, std::ios::in | std::ios::binary) {};

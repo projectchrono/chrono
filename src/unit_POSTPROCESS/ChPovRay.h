@@ -21,6 +21,8 @@
 #include <sstream>
 #include "physics/ChSystem.h"
 #include "ChPostProcessBase.h"
+#include "core/ChHashTable.h"
+#include "core/ChHashFunction.h"
 
 namespace chrono{
  namespace postprocess{
@@ -82,7 +84,7 @@ public:
 		/// the .ini script will call the .pov script that will load these data files.
 		/// It should NOT contain the .bmp suffix because ExportData()
 		/// will append the frame number (es. state0001.dat, state0002.dat, ...).
-		/// It can contain a directory (es. "output/state"), but the
+		/// It can contain a directory (es. "output_folder/state"), but the
 		/// directory must already exist.
 		/// If not set, it defaults to "state".
 	virtual void SetOutputDataFilebase(const std::string &filename) 
@@ -121,7 +123,7 @@ public:
 	virtual void ExportData()
 				{
 					char fullpath[200];
-					sprintf(fullpath,"%s%05d.dat", this->out_data_filename.c_str(), this->framenumber);
+					sprintf(fullpath,"%s%05d", this->out_data_filename.c_str(), this->framenumber);
 					this->ExportData(std::string(fullpath));
 				}
 		/// As ExportScript(), but overrides the automatically computed filename.
@@ -129,7 +131,11 @@ public:
 
 protected:			
 
+	virtual void ExportAssets();
+
 	std::vector< ChSharedPtr<ChPhysicsItem> > mdata;
+	ChHashTable<unsigned int, ChSharedPtr<ChAsset> > pov_assets;
+
 
 	std::string template_filename;
 	std::string pic_filename;
