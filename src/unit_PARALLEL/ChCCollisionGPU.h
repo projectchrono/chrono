@@ -45,8 +45,8 @@ namespace chrono {
 				static void ComputeAABB_HOST(ChGPUDataManager * data_container);
 				static void ComputeBounds_HOST(ChGPUDataManager * data_container);
 				static void UpdateAABB_HOST(float3 & bin_size_vec, float & max_dimension, float & collision_envelope, ChGPUDataManager * data_container);
-				static void Broadphase_HOST(float3 &bin_size_vec, ChGPUDataManager * data_container);
-				static void Narrowphase_HOST(ChGPUDataManager * data_container);
+				//static void Broadphase_HOST(float3 &bin_size_vec, ChGPUDataManager * data_container);
+				//static void Narrowphase_HOST(ChGPUDataManager * data_container);
 
 		};
 	}

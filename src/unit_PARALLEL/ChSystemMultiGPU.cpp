@@ -108,7 +108,7 @@ namespace chrono {
 				};
 			}
 		}
-		ChLcpIterativeGPU::Integrate_HOST(((ChLcpIterativeSolverGPUsimple*) (LCP_solver_speed))->mDt,gpu_data_manager);
+		ChLcpIterativeGPU::Integrate_HOST(this->GetStep(),gpu_data_manager);
 
 		mtimer_cd.stop();
 		return 0;

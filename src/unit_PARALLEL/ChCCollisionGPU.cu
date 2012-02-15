@@ -50,16 +50,7 @@ __global__ void Offset_AABBs(float3* aabb) {
 	aabb[index] = temp_min - F3(collision_envelope_const) + global_origin_const;
 	aabb[index + number_of_models_const] = temp_max + F3(collision_envelope_const) + global_origin_const;
 }
-//__global__ void FindGrid(float3* AABBs, uint3* aabb_minmax) {
-//	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-//	if (index >= number_of_models_const) {
-//		return;
-//	}
-//	uint3 gmin = Hash(AABBs[index] * 10.0);
-//	uint3 gmax = Hash(AABBs[index + number_of_models_const] * 10.0);
-//	aabb_minmax[index] = gmin;
-//	aabb_minmax[index + number_of_models_const] = gmax;
-//}
+
 
 void ChCCollisionGPU::ComputeAABB_HOST(ChGPUDataManager * data_container) {
 	uint number_of_models = data_container->number_of_models;

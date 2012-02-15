@@ -1,6 +1,6 @@
 #include "ChCCollisionGPU.h"
 #include "ChDataManager.h"
-#include "ChLcpIterativeSolverGPU.h"
+#include "ChLcpSolverGPU.h"
 
 namespace chrono {
 	using namespace chrono::collision;
@@ -11,7 +11,7 @@ namespace chrono {
 
 			void Collide(ChGPUDataManager *data_manager); /// given array of AABBs determine which ones are in this BB
 			void Copy(int i = 0); ///based on the models that are in contact
-			void Run(ChLcpIterativeSolverGPUsimple* LCP_solver_speed);
+			void Run(ChLcpSolverGPU* LCP_solver_speed);
 
 			float3 min_bounding_point, max_bounding_point;
 			thrust::host_vector<int> bod_list, mod_list;

@@ -1,7 +1,7 @@
 #include "ChCCollisionGPU.h"
 #include "ChCCollisionGPU.cuh"
 #include <thrust/remove.h>
-
+#include <thrust/random.h>
 //__global__ void Sphere_Sphere(object * object_data, int3 * Pair,
 //		uint* Contact_Number, contactGPU* CData, uint totalPossibleConts) {
 //	uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -176,7 +176,8 @@ __device__ __host__ float find_dist(float3 & P, float3 &x0, float3 &B, float3 &C
 	s = (q * r - w * p) / (w * v - r * r);
 	t = (-s * r - q) / w;
 
-	if ((IsZero(s) || s > 0.0f) && (isEqual(s, 1.0f) || s < 1.0f) && (IsZero(t) || t > 0.0f) && (isEqual(t, 1.0f) || t < 1.0f) && (isEqual(t + s, 1.0f) || t + s < 1.0f)) {
+	if ((IsZero(s) || s > 0.0f) && (isEqual(s, 1.0f) || s < 1.0f) && (IsZero(t) || t > 0.0f) && (isEqual(t, 1.0f) || t < 1.0f) && (isEqual(t + s,
+	        1.0f) || t + s < 1.0f)) {
 		d1 *= s;
 		d2 *= t;
 		witness = x0;
@@ -202,7 +203,19 @@ __device__ __host__ float find_dist(float3 & P, float3 &x0, float3 &B, float3 &C
 }
 
 //Code for Convex-Convex Collision detection, adopted from xeno-collide
-__device__ __host__ bool CollideAndFindPoint(int typeA, float3 A_X, float3 A_Y, float3 A_Z, float4 A_R, int typeB, float3 B_X, float3 B_Y, float3 B_Z, float4 B_R, float3& returnNormal, float3 &point,
+__device__ __host__ bool CollideAndFindPoint(
+        int typeA,
+        float3 A_X,
+        float3 A_Y,
+        float3 A_Z,
+        float4 A_R,
+        int typeB,
+        float3 B_X,
+        float3 B_Y,
+        float3 B_Z,
+        float4 B_R,
+        float3& returnNormal,
+        float3 &point,
         float& depth) {
 	float3 v01, v02, v0, n, v11, v12, v1, v21, v22, v2;
 	// v0 = center of Minkowski sum
@@ -354,17 +367,50 @@ __device__ __host__ bool CollideAndFindPoint(int typeA, float3 A_X, float3 A_Y, 
 		}
 	}
 }
-__global__ void MPR_GPU_Store(float3* pos, float4* rot, float3* obA, float3* obB, float3* obC, float4* obR, int3* typ, long long * Pair, uint* Contact_Number, float3* norm, float3* ptA, float3* ptB,
-        float* contactDepth, int2* ids,
 
+__host__ __device__ inline float4 Quat_from_AngAxis(const float &angle, const float3 & v) {
+	float sinhalf = sinf(angle * 0.5f);
+	float4 quat;
+	quat.x = cosf(angle * 0.5f);
+	quat.y = v.x * sinhalf;
+	quat.z = v.y * sinhalf;
+	quat.w = v.z * sinhalf;
+	return quat;
+}
+__host__ __device__
+unsigned int hash(unsigned int a) {
+	a = (a + 0x7ed55d16) + (a << 12);
+	a = (a ^ 0xc761c23c) ^ (a >> 19);
+	a = (a + 0x165667b1) + (a << 5);
+	a = (a + 0xd3a2646c) ^ (a << 9);
+	a = (a + 0xfd7046c5) + (a << 3);
+	a = (a ^ 0xb55a4f09) ^ (a >> 16);
+	return a;
+}
+__global__ void MPR_GPU_Store(
+        float3* pos,
+        float4* rot,
+        float3* obA,
+        float3* obB,
+        float3* obC,
+        float4* obR,
+        int3* typ,
+        long long * Pair,
+        uint* Contact_Number,
+        float3* norm,
+        float3* ptA,
+        float3* ptB,
+        float* contactDepth,
+        int2* ids,
+        float3* aux,
         uint totalPossibleConts) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (index >= totalPossibleConts) {
 		return;
 	}
-	if (Contact_Number[index] != 0xFFFFFFFF) {
-		return;
-	}
+	//if (Contact_Number[index] != 0xFFFFFFFF) {
+	//	return;
+	//}
 	long long p = Pair[index];
 	int2 pair = I2(int(p >> 32), int(p & 0xffffffff));
 	//if(pair.z<4){return;}
@@ -396,21 +442,49 @@ __global__ void MPR_GPU_Store(float3* pos, float4* rot, float3* obA, float3* obB
 		B_Y = quatRotate(B_Y + posB, B_R);
 		B_Z = quatRotate(B_Z + posB, B_R);
 	}
+	//unsigned int seed = hash(threadIdx.x) ;
+	//thrust::default_random_engine rng(seed);
+	//thrust::uniform_real_distribution<float> u01(-3.1415 * 2.0, 3.1415 * 2.0);
+	int num=0;
 
-	float3 N, p1, p2, p0;
-	float depth = 0;
-	if (!CollideAndFindPoint(A_T.x, A_X, A_Y, A_Z, A_R, B_T.x, B_X, B_Y, B_Z, B_R, N, p0, depth)) {
-		return;
-	};
+	//if (A_T.x == _SPHERE || B_T.x == _SPHERE) {
+	//	num = 2;
+	//}
+	float4 A_R_T = A_R, B_R_T = B_R;
+//	float3 vect;
+//	for (num; num < 3; num++) {
+//		if (num == 0) {
+//			vect = F3(1, 0, 0);
+//		}
+//		if (num == 1) {
+//			vect = F3(0, 1, 0);
+//		}
+//		if (num == 2) {
+//			vect = F3(0, 0, 1);
+//		}
+//		float4 rand1 = Quat_from_AngAxis(u01(rng) * .0001, vect);
+//		float4 rand2 = Quat_from_AngAxis(u01(rng) * .0001, vect);
+//		if (aux[A_T.z].x == 1) {
+//			A_R_T = mult(A_R, rand1);
+//		} else if (aux[B_T.z].x == 1) {
+//			B_R_T = mult(B_R, rand2);
+//		}
 
-	p1 = dot((TransformSupportVert(A_T.x, A_X, A_Y, A_Z, A_R, -N) - p0), N) * N + p0;
-	p2 = dot((TransformSupportVert(B_T.x, B_X, B_Y, B_Z, B_R, N) - p0), N) * N + p0;
-	norm[index] = -N;
-	ptA[index] = p1;
-	ptB[index] = p2;
-	contactDepth[index] = -depth;
-	ids[index] = I2(A_T.z, B_T.z);
-	Contact_Number[index] = 0;
+		float3 N, p1, p2, p0;
+		float depth = 0;
+		if (!CollideAndFindPoint(A_T.x, A_X, A_Y, A_Z, A_R_T, B_T.x, B_X, B_Y, B_Z, B_R_T, N, p0, depth)) {
+			return;
+		};
+
+		p1 = dot((TransformSupportVert(A_T.x, A_X, A_Y, A_Z, A_R, -N) - p0), N) * N + p0;
+		p2 = dot((TransformSupportVert(B_T.x, B_X, B_Y, B_Z, B_R, N) - p0), N) * N + p0;
+		norm[index + num * totalPossibleConts] = -N;
+		ptA[index + num * totalPossibleConts] = p1;
+		ptB[index + num * totalPossibleConts] = p2;
+		contactDepth[index + num * totalPossibleConts] = -depth;
+		ids[index + num * totalPossibleConts] = I2(A_T.z, B_T.z);
+		Contact_Number[index + num * totalPossibleConts] = 0;
+	//}
 }
 __global__ void CopyGamma(int* to, float3* oldG, float3* newG, int contacts) {
 	uint i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -419,9 +493,7 @@ __global__ void CopyGamma(int* to, float3* oldG, float3* newG, int contacts) {
 	}
 	newG[to[i]] = oldG[i];
 }
-void ChCCollisionGPU::Narrowphase_HOST(ChGPUDataManager * data_container) {
 
-}
 void ChCCollisionGPU::Narrowphase(gpu_container & gpu_data) {
 	thrust::device_vector<uint> generic_counter(gpu_data.number_of_contacts_possible, 0xFFFFFFFF);
 	uint number_of_contacts_possible = gpu_data.number_of_contacts_possible;
@@ -430,7 +502,13 @@ void ChCCollisionGPU::Narrowphase(gpu_container & gpu_data) {
 	gpu_data.device_cptb_data.resize(gpu_data.number_of_contacts_possible);
 	gpu_data.device_dpth_data.resize(gpu_data.number_of_contacts_possible);
 	gpu_data.device_bids_data.resize(gpu_data.number_of_contacts_possible);
+	thrust::host_vector<int> qrot1h(gpu_data.number_of_contacts_possible);
+	thrust::host_vector<int> qrot2h(gpu_data.number_of_contacts_possible);
+	thrust::generate(qrot1h.begin(), qrot1h.end(), rand);
+	thrust::generate(qrot2h.begin(), qrot2h.end(), rand);
 
+	thrust::host_vector<int> qrot1 = qrot1h;
+	thrust::host_vector<int> qrot2 = qrot2h;
 	//cout << "  POSSIBLE  " << number_of_contacts_possible << "  ";
 	MPR_GPU_Store CUDA_KERNEL_DIM(BLOCKS(number_of_contacts_possible),THREADS) (
 			CASTF3(gpu_data.device_pos_data),
@@ -447,6 +525,7 @@ void ChCCollisionGPU::Narrowphase(gpu_container & gpu_data) {
 			CASTF3(gpu_data.device_cptb_data),
 			CASTF1(gpu_data.device_dpth_data),
 			CASTI2(gpu_data.device_bids_data),
+			CASTF3(gpu_data.device_aux_data),
 			number_of_contacts_possible);
 
 	thrust::sort_by_key(generic_counter.begin(), generic_counter.end(), thrust::make_zip_iterator(

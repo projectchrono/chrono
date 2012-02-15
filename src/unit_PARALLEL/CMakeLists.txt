@@ -59,9 +59,9 @@ IF(ENABLE_UNIT_GPU)
 			ChCCollisionModelGPU.cpp
 			ChCCollisionSystemGPU.cpp
 			ChContactContainerGPUsimple.cpp
-			ChLcpIterativeSolverGPU.cpp
+	#		ChLcpIterativeSolverGPU.cpp
 			ChSystemGPU.cpp
-			ChSystemMultiGPU.cpp
+	#		ChSystemMultiGPU.cpp
 
 		)
 	SET(ChronoEngine_unit_GPU_HEADERS 
@@ -71,24 +71,26 @@ IF(ENABLE_UNIT_GPU)
 	    	ChCCollisionGPU.h
 	    	ChCCollisionGPU.cuh
 	    	ChSystemGPU.h
-			ChSystemMultiGPU.h
+	#		ChSystemMultiGPU.h
 			ChDataManager.h
-			ChLcpIterativeGPU.h
+			ChLcpSolverGPU.h
 			ChCCollisionModelGPU.h
 			ChCCollisionSystemGPU.h
 			ChContactContainerGPUsimple.h
-			ChLcpIterativeSolverGPU.h
+	#		ChLcpIterativeSolverGPU.h
 			ChLcpSystemDescriptorGPU.h
-			ChSubdomainGPU.h
+	#		ChSubdomainGPU.h
+			CHSPHSolver.h
 
 		)
 	SET(ChronoEngine_unit_GPU_CU 
-	    	ChLcpIterativeGPU.cu
+	    	ChLcpSolverGPU.cu
 			ChCCollisionGPU.cu
 			ChCCollisionGPUBroadphase.cu
 			ChCCollisionGPUNarrowphase.cu
-			ChSubdomainGPU.cu
+	#		ChSubdomainGPU.cu
 			ChDataManager.cu
+			CHSPHSolver.cu
 		)
 
 	SOURCE_GROUP(unit_GPU FILES 

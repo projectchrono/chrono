@@ -9,14 +9,13 @@ template<class T>
 __device__ __host__ inline uint3 Hash(const T &A) {
 	return U3(A.x * bin_size_vec_const.x, A.y * bin_size_vec_const.y, A.z * bin_size_vec_const.z);
 }
-
 template<class T>
 __device__ __host__ inline uint Hash_Index(const T &A) {
 	return ((A.x * 73856093) ^ (A.y * 19349663) ^ (A.z * 83492791));
 }
 __device__ bool TestAABBAABB(const AABB &A, const AABB &B, uint Bin) {
-	return (Bin == Hash_Index(Hash(((A.min + A.max) * .5 + (B.min + B.max) * .5) * .5))) && (A.min.x <= B.max.x && B.min.x <= A.max.x) && (A.min.y
-			<= B.max.y && B.min.y <= A.max.y) && (A.min.z <= B.max.z && B.min.z <= A.max.z);
+	return (Bin == Hash_Index(Hash(((A.min + A.max) * .5 + (B.min + B.max) * .5) * .5))) && (A.min.x <= B.max.x && B.min.x <= A.max.x) && (A.min.y <= B.max.y && B.min.y <= A.max.y) && (A.min.z
+	        <= B.max.z && B.min.z <= A.max.z);
 }
 __device__ bool PointInAABB(const AABB &A, const float3 &P) {
 	if (P.x > A.min.x && P.x < A.max.x && P.y > A.min.y && P.y < A.max.y && P.z > A.min.z && P.z < A.max.z) {
@@ -29,8 +28,7 @@ __device__ __host__ bool AABB_Contact_Pt(const AABB& A, const AABB& B, uint &Bin
 
 	//return (F3(A.min+A.max)*.5+F3(B.min+B.max)*.5)*.5;
 
-	bool minX = (A.min.x <= B.min.x && A.max.x >= B.max.x), minY = (A.min.y <= B.min.y && A.max.y >= B.max.y), minZ = (A.min.z <= B.min.z && A.max.z
-			>= B.max.z);
+	bool minX = (A.min.x <= B.min.x && A.max.x >= B.max.x), minY = (A.min.y <= B.min.y && A.max.y >= B.max.y), minZ = (A.min.z <= B.min.z && A.max.z >= B.max.z);
 
 	if (minX && minY && minZ) {
 		Pa = (B.min);
@@ -87,8 +85,7 @@ __device__ __host__ bool AABB_Contact_Pt(const AABB& A, const AABB& B, uint &Bin
 			Pb.z = B.max.z;
 		}
 	}
-	return (Bin == Hash_Index(Hash((Pa + Pb) * .5f))) && (A.min.x <= B.max.x && B.min.x <= A.max.x) && (A.min.y <= B.max.y && B.min.y <= A.max.y)
-			&& (A.min.z <= B.max.z && B.min.z <= A.max.z);
+	return (Bin == Hash_Index(Hash((Pa + Pb) * .5f))) && (A.min.x <= B.max.x && B.min.x <= A.max.x) && (A.min.y <= B.max.y && B.min.y <= A.max.y) && (A.min.z <= B.max.z && B.min.z <= A.max.z);
 }
 
 __device__ int Contact_Type(const int &A, const int &B) {
@@ -106,15 +103,23 @@ __device__ int Contact_Type(const int &A, const int &B) {
 	} //ellipsoid-ellipsoid
 	return 20;
 }
-__device__ __host__ int AABB_C(float3 & min, float3 & max) {
-	uint3 gmin = Hash(min);
-	uint3 gmax = Hash(max);
-	return (gmax.x - gmin.x + 1) * (gmax.y - gmin.y + 1) * (gmax.z - gmin.z + 1);
+__global__ void AABB_Bins_Count(float3* device_aabb_data, uint* Bins_Intersected) {
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	if (index >= number_of_models_const) {
+		return;
+	}
+	uint3 gmin = Hash(device_aabb_data[index]);
+	uint3 gmax = Hash(device_aabb_data[index + number_of_models_const]);
+	Bins_Intersected[index] = (gmax.x - gmin.x + 1) * (gmax.y - gmin.y + 1) * (gmax.z - gmin.z + 1);
 }
-__device__ __host__ void AABB_F(float3 & min, float3 & max, int index, uint * bin_number, uint * body_number, uint* Bins_Intersected) {
+__global__ void AABB_Bins(float3* device_aabb_data, uint* Bins_Intersected, uint * bin_number, uint * body_number) {
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	if (index >= number_of_models_const) {
+		return;
+	}
 	int count = 0, i, j, k;
-	uint3 gmin = Hash(min);
-	uint3 gmax = Hash(max);
+	uint3 gmin = Hash(device_aabb_data[index]);
+	uint3 gmax = Hash(device_aabb_data[index + number_of_models_const]);
 	uint mInd = (index == 0) ? 0 : Bins_Intersected[index - 1];
 
 	for (i = gmin.x; i <= gmax.x; i++) {
@@ -126,29 +131,9 @@ __device__ __host__ void AABB_F(float3 & min, float3 & max, int index, uint * bi
 			}
 		}
 	}
-}
 
-__global__ void AABB_Bins_Count(float3* device_aabb_data, uint* Bins_Intersected) {
-	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	if (index >= number_of_models_const) {
-		return;
-	}
-	Bins_Intersected[index] = AABB_C(device_aabb_data[index], device_aabb_data[index + number_of_models_const]);
 }
-__global__ void AABB_Bins(float3* device_aabb_data, uint* Bins_Intersected, uint * bin_number, uint * body_number) {
-	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	if (index >= number_of_models_const) {
-		return;
-	}
-	AABB_F(device_aabb_data[index], device_aabb_data[index + number_of_models_const], index, bin_number, body_number, Bins_Intersected);
-}
-__global__ void AABB_AABB_Count(
-								float3* device_aabb_data,
-								int2* device_fam_data,
-								uint * bin_number,
-								uint * body_number,
-								uint * bin_start_index,
-								uint* Num_ContactD) {
+__global__ void AABB_AABB_Count(float3* device_aabb_data, int2* device_fam_data, uint * bin_number, uint * body_number, uint * bin_start_index, uint* Num_ContactD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (index >= last_active_bin_const) {
 		return;
@@ -171,15 +156,7 @@ __global__ void AABB_AABB_Count(
 	}
 	Num_ContactD[index] = count;
 }
-__global__ void AABB_AABB(
-							float3* device_aabb_data,
-							int3* device_typ_data,
-							int2* device_fam_data,
-							uint * bin_number,
-							uint * body_number,
-							uint * bin_start_index,
-							uint* Num_ContactD,
-							long long* pair) {
+__global__ void AABB_AABB(float3* device_aabb_data, int3* device_typ_data, int2* device_fam_data, uint * bin_number, uint * body_number, uint * bin_start_index, uint* Num_ContactD, long long* pair) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (index >= last_active_bin_const) {
 		return;
@@ -207,59 +184,6 @@ __global__ void AABB_AABB(
 	}
 }
 
-void ChCCollisionGPU::Broadphase_HOST(float3 &bin_size_vec, ChGPUDataManager * data_container) {
-	uint number_of_models = data_container->number_of_models;
-	uint last_active_bin = 0, number_of_bin_intersections = 0;
-	thrust::host_vector<uint> bin_number;
-	thrust::host_vector<uint> body_number;
-	thrust::host_vector<uint> bin_start_index;
-	thrust::host_vector<uint> generic_counter;
-	bin_size_vec_const = bin_size_vec;
-	for (int index = 0; index < number_of_models; index++) {
-		uint count = 0, i, j, k;
-		uint3 gmin = Hash(data_container->host_aabb_data[index]);
-		uint3 gmax = Hash(data_container->host_aabb_data[index + number_of_models]);
-		for (i = gmin.x; i <= gmax.x; i++) {
-			for (j = gmin.y; j <= gmax.y; j++) {
-				for (k = gmin.z; k <= gmax.z; k++) {
-					bin_number.push_back(Hash_Index(U3(i, j, k)));
-					body_number.push_back(index);
-					number_of_bin_intersections++;
-				}
-			}
-		}
-	}
-	bin_start_index.resize(number_of_bin_intersections);
-
-	Thrust_Sort_By_Key(bin_number,body_number);
-	Thrust_Reduce_By_KeyA(last_active_bin,bin_number,bin_start_index);
-	Thrust_Inclusive_Scan(bin_start_index);
-	data_container->number_of_contacts_possible = 0;
-	data_container->host_pair_data.clear();
-	for (int index = 0; index < last_active_bin; index++) {
-		uint end = bin_start_index[index], i = (!index) ? 0 : bin_start_index[index - 1], Bin = bin_number[index];
-
-		AABB A, B;
-		int3 A_type, B_type;
-		for (; i < end; i++) {
-			A.min = data_container->host_aabb_data[body_number[i]];
-			A.max = data_container->host_aabb_data[body_number[i] + number_of_models];
-			A_type = data_container->host_typ_data[body_number[i]];
-			int2 FA = data_container->host_fam_data[body_number[i]];
-			for (int k = i + 1; k < end; k++) {
-				B.min = data_container->host_aabb_data[body_number[k]];
-				B.max = data_container->host_aabb_data[body_number[k] + number_of_models];
-				B_type = data_container->host_typ_data[body_number[k]];
-				int2 FB = data_container->host_fam_data[body_number[k]];
-				if ((FA.x == FB.y || FB.x == FA.y) == false && AABB_Contact_Pt(A, B, Bin) == true) {
-
-				data_container->host_pair_data.push_back(((long long) A_type.y << 32 | (long long) B_type.y));
-				data_container->number_of_contacts_possible++;
-				}
-			}
-		}
-	}
-}
 __device__ __host__ bool operator ==(const float3 &a, const float3 &b) {
 	return ((a.x == b.x) && (a.y == b.y) && (a.z == b.z));
 }
@@ -329,6 +253,5 @@ void ChCCollisionGPU::Broadphase(float3 &bin_size_vec, gpu_container & gpu_data)
 			CASTLL(gpu_data.device_pair_data)
 	);
 	gpu_data.number_of_contacts_possible=number_of_contacts_possible;
-
 
 }

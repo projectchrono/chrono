@@ -186,14 +186,24 @@ __device__ __host__ inline float3 quatRotate(const float3 &v, const float4 &q) {
 	float4 r = mult(mult(q, F4(0, v.x, v.y, v.z)), inv(q));
 	return F3(r.y, r.z, r.w);
 }
-//rotate q1 by q2
-//__device__ __host__ inline float4 quatAdd(const float4 &q1, const float4 &q2)
-//{
-//
-//	float3 v = F3(q1.y,q1.z,q1.w);
-//	v=quatRotate(v,q2);
-//	return F4(q1.x,v.x, v.y, v.z);
-//}
+
+__device__ __host__ uint nearest_pow(uint num) {
+	uint n = num > 0 ? num - 1 : 0;
+
+	n |= n >> 1;
+	n |= n >> 2;
+	n |= n >> 4;
+	n |= n >> 8;
+	n |= n >> 16;
+	n++;
+
+	return n;
+}
+
+//Round a / b to nearest higher integer value
+uint iDivUp(uint a, uint b){
+    return (a % b != 0) ? (a / b + 1) : (a / b);
+}
 
 struct __align__(16) int3f {
 		int x, y, z;

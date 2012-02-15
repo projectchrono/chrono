@@ -29,7 +29,7 @@
 #include "physics/ChContactContainer.h"
 #include "physics/ChProximityContainerBase.h"
 
-#include "ChLcpIterativeSolverGPU.h"
+#include "ChLcpSolverGPU.h"
 #include "ChLcpSystemDescriptorGPU.h"
 
 #include "core/ChTimer.h"

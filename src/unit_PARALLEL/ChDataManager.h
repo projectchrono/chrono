@@ -71,6 +71,14 @@ struct gpu_container {
 		uint number_of_objects;
 		uint number_of_bilaterals;
 		uint number_of_updates;
+
+		uint number_of_sph;
+		thrust::device_vector<float4> posRadD;
+		thrust::device_vector<float4> velMasD;
+		thrust::device_vector<float3> vel_XSPH;
+		thrust::device_vector<float4> rhoPresMuD;
+		thrust::device_vector<float4> derivVelRhoD;
+
 };
 
 class ChApiGPU ChGPUDataManager {
@@ -126,6 +134,13 @@ class ChApiGPU ChGPUDataManager {
 
 		//bilateral data
 		thrust::host_vector<float4> host_bilateral_data;
+
+		uint number_of_sph;
+		thrust::host_vector<float4> host_posRadD_data;
+		thrust::host_vector<float4> host_velMasD_data;
+		thrust::host_vector<float3> host_vel_XSPH_data;
+		thrust::host_vector<float4> host_rhoPresMuD_data;
+		thrust::host_vector<float4> host_derivVelRhoD_data;
 
 };
 }
