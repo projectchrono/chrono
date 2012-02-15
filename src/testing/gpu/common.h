@@ -9,14 +9,10 @@ class System {
 			//mGPUCollisionEngine->mGPU->collision_envelope = mEnvelope;
 
 			mSystem->SetStep(mTimeStep);
-
-
-#ifdef CHRONOGPU
 			mGPUsolverSpeed->SetMaxIterations(mIterations);
 			mGPUsolverSpeed->SetOmega(mOmegaContact);
 			//mGPUsolverSpeed->mOmegaBilateral = mOmegaBilateral;
 			mGPUsolverSpeed->SetTolerance(mTolerance);
-#endif
 		}
 		void SetTimingFile(string fname) {
 			mTimingFile.open(fname.c_str());
@@ -369,7 +365,7 @@ void System::drawAll() {
 		glDrawArrays(GL_POINTS, 0, points.size());
 		glDisableClientState(GL_VERTEX_ARRAY);
 		glDisableClientState(GL_COLOR_ARRAY);
-#ifdef CHRONOGPU
+#ifdef _CHRONOGPU
 		if (showContacts) {
 			for (int i = 0; i < mSystem->gpu_data_manager->host_norm_data.size(); i++) {
 				float3 N = mSystem->gpu_data_manager->host_norm_data[i];

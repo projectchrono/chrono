@@ -22,10 +22,10 @@
 #include "core/ChRealtimeStep.h"
 #include "lcp/ChLcpIterativeSOR.h"
 #include "collision/ChCModelBullet.h"
+#include "collision/ChCCollisionSystemBullet.h"
+#define _CHRONOGPU
 
-#define CHRONOGPU 1
-
-#ifdef CHRONOGPU
+#if defined (_CHRONOGPU)
 #define CHBODYSHAREDPTR ChSharedBodyGPUPtr
 #define CHBODY ChBodyGPU
 #define CHCOLLISIONSYS ChCollisionSystemGPU
@@ -36,10 +36,10 @@
 #define CHSYS ChSystemGPU
 #endif
 
-#ifndef CHRONOGPU
+#ifndef _CHRONOGPU
 #define CHBODYSHAREDPTR ChSharedBodyPtr
 #define CHBODY ChBody
-#define CHCOLLISIONSYS ChCollisionSystem
+#define CHCOLLISIONSYS ChCollisionSystemBullet
 #define CHLCPDESC ChLcpSystemDescriptor
 #define CHCONTACTCONT ChContactContainer
 #define CHSOLVER ChLcpIterativeSOR
