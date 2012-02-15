@@ -17,7 +17,7 @@
 #include "ChCuda.h"
 #include <thrust/device_vector.h>
 #include "ChCCollisionGPU.h"
-#include "ChLcpIterativeGPU.h"
+#include "ChLcpSolverGPU.h"
 namespace chrono {
 	class ChApiGPU ChLcpSystemDescriptorGPU: public ChLcpSystemDescriptor {
 		public:
