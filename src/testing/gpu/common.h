@@ -7,11 +7,16 @@ class System {
 		}
 		void Setup() {
 			//mGPUCollisionEngine->mGPU->collision_envelope = mEnvelope;
-			mGPUsolverSpeed->mDt = mTimeStep;
-			mGPUsolverSpeed->mMaxIterations = mIterations;
-			mGPUsolverSpeed->mOmegaContact = mOmegaContact;
-			mGPUsolverSpeed->mOmegaBilateral = mOmegaBilateral;
-			mGPUsolverSpeed->mTolerance = mTolerance;
+
+			mSystem->SetStep(mTimeStep);
+
+
+#ifdef CHRONOGPU
+			mGPUsolverSpeed->SetMaxIterations(mIterations);
+			mGPUsolverSpeed->SetOmega(mOmegaContact);
+			//mGPUsolverSpeed->mOmegaBilateral = mOmegaBilateral;
+			mGPUsolverSpeed->SetTolerance(mTolerance);
+#endif
 		}
 		void SetTimingFile(string fname) {
 			mTimingFile.open(fname.c_str());
@@ -21,24 +26,34 @@ class System {
 		double GetMFR(double height);
 		void DoTimeStep();
 		void PrintStats();
-		void InitObject(ChSharedPtr<ChBodyGPU> &body, double mass, ChVector<> pos, ChQuaternion<> rot, double sfric, double kfric, double restitution, bool collide, bool fixed, int family,
+		void InitObject(
+		        ChSharedPtr<ChBODY> &body,
+		        double mass,
+		        ChVector<> pos,
+		        ChQuaternion<> rot,
+		        double sfric,
+		        double kfric,
+		        double restitution,
+		        bool collide,
+		        bool fixed,
+		        int family,
 		        int nocolwith);
-		void AddCollisionGeometry(ChSharedPtr<ChBodyGPU> &body, ShapeType type, ChVector<> dim, ChVector<> lPos, ChQuaternion<> lRot);
-		void FinalizeObject(ChSharedPtr<ChBodyGPU> body);
+		void AddCollisionGeometry(ChSharedPtr<ChBODY> &body, ShapeType type, ChVector<> dim, ChVector<> lPos, ChQuaternion<> lRot);
+		void FinalizeObject(ChSharedPtr<ChBODY> body);
 		void DeactivationPlane(float y, float h, bool disable);
 		void BoundingPlane(float y);
 		void BoundingBox(float x, float y, float z, float offset);
 		void LoadSpheres(string fname, int skip, float mass, float rad, float mu);
 		void SaveByID(int id, string fname);
-		void SaveByObject(ChBodyGPU *abody, string fname);
+		void SaveByObject(ChBODY *abody, string fname);
 		void SaveAllData(string prefix);
 		void drawAll();
-		ChSystemGPU *mSystem;
+		CHSYS *mSystem;
 
-		ChLcpSystemDescriptorGPU *mGPUDescriptor;
-		ChContactContainerGPUsimple *mGPUContactContainer;
-		ChCollisionSystemGPU *mGPUCollisionEngine;
-		ChLcpIterativeSolverGPUsimple *mGPUsolverSpeed;
+		ChLCPDESC *mGPUDescriptor;
+		ChCONTACTCONT *mGPUContactContainer;
+		ChCOLLISIONSYS *mGPUCollisionEngine;
+		ChSOLVER *mGPUsolverSpeed;
 
 		int mNumCurrentSpheres, mNumCurrentObjects;
 
@@ -66,15 +81,15 @@ System::System(int cudaDevice) {
 	//mGPUCollisionEngine = new ChCollisionSystemGPU();
 	//mGPUsolverSpeed = new ChLcpIterativeSolverGPUsimple(mGPUContactContainer);
 
-	mSystem = new ChSystemGPU();
+	mSystem = new CHSYS();
 	//mSystem->ChangeLcpSystemDescriptor(mGPUDescriptor);
 	//mSystem->ChangeContactContainer(mGPUContactContainer);
 	//mSystem->ChangeLcpSolverSpeed(mGPUsolverSpeed);
 	//mSystem->ChangeCollisionSystem(mGPUCollisionEngine);
-	mGPUDescriptor = (ChLcpSystemDescriptorGPU*) mSystem->GetLcpSystemDescriptor();
-	mGPUsolverSpeed = (ChLcpIterativeSolverGPUsimple*) mSystem->GetLcpSolverSpeed();
-	mGPUCollisionEngine = (ChCollisionSystemGPU*) mSystem->GetCollisionSystem();
-	mGPUContactContainer = (ChContactContainerGPUsimple*) mSystem->GetContactContainer();
+	mGPUDescriptor = (ChLCPDESC*) mSystem->GetLcpSystemDescriptor();
+	mGPUsolverSpeed = (ChSOLVER*) mSystem->GetLcpSolverSpeed();
+	mGPUCollisionEngine = (ChCOLLISIONSYS*) mSystem->GetCollisionSystem();
+	mGPUContactContainer = (ChCONTACTCONT*) mSystem->GetContactContainer();
 
 	mSystem->SetIntegrationType(ChSystem::INT_ANITESCU);
 	mSystem->Set_G_acc(ChVector<> (0, -9.80665, 0));
@@ -104,7 +119,7 @@ void System::PrintStats() {
 	double D = mSystem->GetTimerLcp();
 	int E = mSystem->GetNbodies();
 	int F = mSystem->GetNcontacts();
-	int I = ((ChLcpIterativeSolverGPUsimple*) (mSystem->GetLcpSolverSpeed()))->iteration_number;
+	int I = 0;//((ChLcpIterativeSolverGPUsimple*) (mSystem->GetLcpSolverSpeed()))->iteration_number;
 	mTotalTime += 0;// mTimer();
 	double KE = GetKE();
 	char numstr[512];
@@ -123,7 +138,7 @@ void System::LoadSpheres(string fname, int skip, float mass, float rad, float mu
 	}
 	string temp;
 	int counter = 0;
-	ChSharedBodyGPUPtr mrigidBody;
+	ChBODYSHAREDPTR mrigidBody;
 
 	ChQuaternion<> quat(1, 0, 0, 0);
 	ChVector<> lpos(0, 0, 0);
@@ -142,7 +157,7 @@ void System::LoadSpheres(string fname, int skip, float mass, float rad, float mu
 			ss >> pos.x >> pos.y >> pos.z;
 			ss >> vel.x >> vel.y >> vel.z;
 			ss >> acc.x >> acc.y >> acc.z;
-			mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
+			mrigidBody = ChBODYSHAREDPTR(new ChBODY);
 			InitObject(mrigidBody, mass, pos, quat, mu, mu, 0, true, false, 0, 1);
 			AddCollisionGeometry(mrigidBody, SPHERE, dim, lpos, quat);
 			FinalizeObject(mrigidBody);
@@ -156,12 +171,13 @@ void System::SaveByID(int id, string fname) {
 	ofstream ofile;
 	ofile.open(fname.c_str(), ios_base::app);
 
-	ChBodyGPU * abody = (ChBodyGPU *) mSystem->Get_bodylist()->at(id);
+	ChBODY * abody = (ChBODY *) mSystem->Get_bodylist()->at(id);
 	ChVector<> pos = abody->GetPos();
 	ChVector<> rot = abody->GetRot().Q_to_NasaAngles();
+	ChQuaternion<> quat = abody->GetRot();
 	ChVector<> vel = abody->GetPos_dt();
 	ChVector<> acc = abody->GetPos_dtdt();
-	ChVector<> fap = abody->GetAppliedForce();
+	//ChVector<> fap = abody->GetAppliedForce();
 	if (NAN(rot.x)) {
 		rot.x = 0;
 	}
@@ -172,10 +188,10 @@ void System::SaveByID(int id, string fname) {
 		rot.z = 0;
 	}
 	ofile << pos.x << "," << pos.y << "," << pos.z << ",";
-	ofile << vel.x << "," << vel.y << "," << vel.z << ",";
-	ofile << acc.x << "," << acc.y << "," << acc.z << ",";
-	ofile << rot.x << "," << rot.y << "," << rot.z << ",";
-	ofile << fap.x << "," << fap.y << "," << fap.z << ",";
+	//ofile << vel.x << "," << vel.y << "," << vel.z << ",";
+	//ofile << acc.x << "," << acc.y << "," << acc.z << ",";
+	ofile << quat.e0 << "," << quat.e1 << "," << quat.e2 << "," << quat.e3 << ",";
+	//ofile << fap.x << "," << fap.y << "," << fap.z << ",";
 	ofile << endl;
 
 	ofile.close();
@@ -193,14 +209,14 @@ void System::SaveAllData(string prefix) {
 	mFileNumber++;
 }
 
-void System::SaveByObject(ChBodyGPU *abody, string fname) {
+void System::SaveByObject(ChBODY *abody, string fname) {
 	ofstream ofile;
 	ofile.open(fname.c_str(), ios_base::app);
 	ChVector<> pos = abody->GetPos();
 	ChVector<> rot = abody->GetRot().Q_to_NasaAngles();
 	ChVector<> vel = abody->GetPos_dt();
 	ChVector<> acc = abody->GetPos_dtdt();
-	ChVector<> fap = abody->GetAppliedForce();
+	//ChVector<> fap = abody->GetAppliedForce();
 
 	if (NAN(rot.x)) {
 		rot.x = 0;
@@ -213,23 +229,33 @@ void System::SaveByObject(ChBodyGPU *abody, string fname) {
 	}
 
 	ofile << pos.x << "," << pos.y << "," << pos.z << ",";
-	ofile << vel.x << "," << vel.y << "," << vel.z << ",";
-	ofile << acc.x << "," << acc.y << "," << acc.z << ",";
+	//ofile << vel.x << "," << vel.y << "," << vel.z << ",";
+	//ofile << acc.x << "," << acc.y << "," << acc.z << ",";
 	ofile << rot.x << "," << rot.y << "," << rot.z << ",";
-	ofile << fap.x << "," << fap.y << "," << fap.z << ",";
+	//ofile << fap.x << "," << fap.y << "," << fap.z << ",";
 	ofile << endl;
 
 	ofile.close();
 }
 double System::GetKE() {
-	return mSystem->GetKineticEnergy() / SCALE;
+	return 0;//mSystem->GetKineticEnergy() / SCALE;
 }
 
 double System::GetMFR(double height) {
 	return 0;
 }
 
-void System::InitObject(ChSharedPtr<ChBodyGPU> &body, double mass, ChVector<> pos, ChQuaternion<> rot, double sfric, double kfric, double restitution, bool collide, bool fixed, int family,
+void System::InitObject(
+        ChSharedPtr<ChBODY> &body,
+        double mass,
+        ChVector<> pos,
+        ChQuaternion<> rot,
+        double sfric,
+        double kfric,
+        double restitution,
+        bool collide,
+        bool fixed,
+        int family,
         int nocolwith) {
 	body->SetMass(mass);
 	body->SetPos(pos);
@@ -244,9 +270,9 @@ void System::InitObject(ChSharedPtr<ChBodyGPU> &body, double mass, ChVector<> po
 	body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(nocolwith);
 	body->SetLimitSpeed(true);
 }
-void System::AddCollisionGeometry(ChSharedPtr<ChBodyGPU> &body, ShapeType type, ChVector<> dim, ChVector<> lPos, ChQuaternion<> lRot) {
+void System::AddCollisionGeometry(ChSharedPtr<ChBODY> &body, ShapeType type, ChVector<> dim, ChVector<> lPos, ChQuaternion<> lRot) {
 	ChMatrix33<> *rotation = new ChMatrix33<> (lRot);
-	ChCollisionModelGPU * model = (ChCollisionModelGPU*) body->GetCollisionModel();
+	ChMODEL * model = (ChMODEL*) body->GetCollisionModel();
 	if (type == SPHERE) {
 		model->AddSphere(dim.x, &lPos);
 	}
@@ -260,13 +286,13 @@ void System::AddCollisionGeometry(ChSharedPtr<ChBodyGPU> &body, ShapeType type, 
 		model->AddCylinder(dim.x, dim.y, dim.z, &lPos, rotation);
 	}
 }
-void System::FinalizeObject(ChSharedPtr<ChBodyGPU> newbody) {
+void System::FinalizeObject(ChSharedPtr<ChBODY> newbody) {
 	newbody->GetCollisionModel()->BuildModel();
 	mSystem->AddBody(newbody);
 }
 void System::DeactivationPlane(float y, float h, bool disable) {
 	for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
-		ChBodyGPU *abody = (ChBodyGPU*) (mSystem->Get_bodylist()->at(i));
+		ChBODY *abody = (ChBODY*) (mSystem->Get_bodylist()->at(i));
 		if (abody->GetPos().y < y) {
 			abody->SetCollide(!disable);
 			abody->SetBodyFixed(disable);
@@ -276,7 +302,7 @@ void System::DeactivationPlane(float y, float h, bool disable) {
 }
 void System::BoundingPlane(float y) {
 	for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
-		ChBodyGPU *abody = (ChBodyGPU*) (mSystem->Get_bodylist()->at(i));
+		ChBODY *abody = (ChBODY*) (mSystem->Get_bodylist()->at(i));
 		if (abody->GetPos().y < y && abody->GetBodyFixed() == false) {
 			abody->SetPos(ChVector<> (abody->GetPos().x, y, abody->GetPos().z));
 			abody->SetPos_dt(ChVector<> (0, 0, 0));
@@ -285,7 +311,7 @@ void System::BoundingPlane(float y) {
 }
 void System::BoundingBox(float x, float y, float z, float offset) {
 	for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
-		ChBodyGPU *abody = (ChBodyGPU*) (mSystem->Get_bodylist()->at(i));
+		ChBODY *abody = (ChBODY*) (mSystem->Get_bodylist()->at(i));
 
 		if (abody->GetBodyFixed() == true) {
 			continue;
@@ -309,9 +335,9 @@ void System::BoundingBox(float x, float y, float z, float offset) {
 
 void System::drawAll() {
 	if (updateDraw /*&& (mSystem->GetChTime() > this->mTimeStep * 2)*/) {
-		glDepthMask (true);
+		glDepthMask(true);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glEnable(GL_DEPTH_TEST);
+		glEnable( GL_DEPTH_TEST);
 		glDepthFunc( GL_LEQUAL);
 		glLoadIdentity();
 
@@ -330,7 +356,7 @@ void System::drawAll() {
 		//points.resize(mSystem->Get_bodylist()->size());
 		points.clear();
 		for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
-			ChBodyGPU* abody = (ChBodyGPU*) mSystem->Get_bodylist()->at(i);
+			ChBODY* abody = (ChBODY*) mSystem->Get_bodylist()->at(i);
 			drawObject(abody);
 		}
 		averageVal = newaverage / mSystem->Get_bodylist()->size();
@@ -343,7 +369,7 @@ void System::drawAll() {
 		glDrawArrays(GL_POINTS, 0, points.size());
 		glDisableClientState(GL_VERTEX_ARRAY);
 		glDisableClientState(GL_COLOR_ARRAY);
-
+#ifdef CHRONOGPU
 		if (showContacts) {
 			for (int i = 0; i < mSystem->gpu_data_manager->host_norm_data.size(); i++) {
 				float3 N = mSystem->gpu_data_manager->host_norm_data[i];
@@ -362,6 +388,7 @@ void System::drawAll() {
 				glEnd();
 			}
 		}
+#endif
 #if defined( _WINDOWS )
 		Sleep( 40 );
 #else

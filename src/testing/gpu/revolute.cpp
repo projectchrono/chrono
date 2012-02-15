@@ -1,6 +1,6 @@
 #include "common.h"
 #define TOLERANCE .05
-ChSharedBodyGPUPtr FREE;
+ChBODYSHAREDPTR FREE;
 
 double compute_period(double L, double g, double theta) {
 
@@ -34,8 +34,8 @@ int main(int argc, char* argv[]) {
 
 	ChQuaternion<> quat(1, 0, 0, 0);
 	ChVector<> lpos(0, 0, 0);
-	ChSharedBodyGPUPtr FXED = ChSharedBodyGPUPtr(new ChBodyGPU);
-	FREE = ChSharedBodyGPUPtr(new ChBodyGPU);
+	ChBODYSHAREDPTR FXED = ChBODYSHAREDPTR(new ChBODY);
+	FREE = ChBODYSHAREDPTR(new ChBODY);
 
 	GPUSystem->InitObject(FXED, 1.0, ChVector<> (0, 0, 0), quat, 0, 0, 0, false, true, -20, -20);
 	GPUSystem->InitObject(FREE, 1.0, ChVector<> (-1, 0, 0), quat, 0, 0, 0, false, false, -20, -20);
