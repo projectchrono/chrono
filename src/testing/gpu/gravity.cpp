@@ -1,6 +1,6 @@
 #include "common.h"
 #define TOLERANCE  1e-4
-ChSharedBodyGPUPtr FREE;
+CHBODYSHAREDPTR FREE;
 
 void System::DoTimeStep() {
 	mFrameNumber++;
@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
 
 	ChQuaternion<> quat(1, 0, 0, 0);
 	ChVector<> lpos(0, 0, 0);
-	FREE = ChSharedBodyGPUPtr(new ChBodyGPU);
+	FREE = CHBODYSHAREDPTR(new CHBODY);
 
 	GPUSystem->InitObject(FREE, 1.0, ChVector<> (0, 0, 0), quat, 0, 0, 0, false, false, -20, -20);
 	GPUSystem->AddCollisionGeometry(FREE, SPHERE, ChVector<> (1, 1, 1), lpos, quat);

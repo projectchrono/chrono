@@ -3,28 +3,28 @@ uint numY = 1;
 void System::DoTimeStep() {
 	if (mNumCurrentObjects < mNumObjects && mFrameNumber % 100 == 0) {
 		float x = 1, y = numY, z = 1;
-		float posX = 0, posY = -8.5, posZ = 0;
+		float posX = 0, posY = -8, posZ = 0;
 		srand(1);
-		float mass = .25, mu = .5, rest = 0;
+		float mass = 1, mu = .5, rest = 0;
 		ShapeType type = SPHERE;
-		ChSharedBodyGPUPtr mrigidBody;
+		CHBODYSHAREDPTR mrigidBody;
 		mNumCurrentObjects += x * y * z;
 		int mobjNum = 0;
 		for (int xx = 0; xx < x; xx++) {
 			for (int yy = 0; yy < y; yy++) {
 				for (int zz = 0; zz < z; zz++) {
-					type=2;//rand()%2;e
+					type = 2;//rand()%2;e
 					float radius = .5;//(rand()%1000)/3000.0+.05;
 					ChVector<> mParticlePos((xx - (x - 1) / 2.0) + posX, (yy) + posY, (zz - (z - 1) / 2.0) + posZ);
 
 					//mParticlePos += ChVector<> (rand() % 1000 / 10000.0 - .05, rand() % 1000 / 10000.0 - .05, rand() % 1000 / 10000.0 - .05);
-					ChQuaternion<> quat = ChQuaternion<>(1,0,0,0);// (rand() % 1000 / 1000., rand() % 1000 / 1000., rand() % 1000 / 1000., rand() % 1000 / 1000.);
+					ChQuaternion<> quat = ChQuaternion<> (1, 0, 0, 0);// (rand() % 1000 / 1000., rand() % 1000 / 1000., rand() % 1000 / 1000., rand() % 1000 / 1000.);
 					ChVector<> dim;
 					ChVector<> lpos(0, 0, 0);
 					quat.Normalize();
 
-					mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
-					InitObject(mrigidBody, mass, mParticlePos*1.0001, quat, mu, mu, rest, true, false, 0, 1);
+					mrigidBody = CHBODYSHAREDPTR(new CHBODY);
+					InitObject(mrigidBody, mass, mParticlePos * 1.01, quat, mu, mu, rest, true, false, 0, 1);
 					mrigidBody->SetPos_dt(ChVector<> (0, 0, 0));
 					switch (type) {
 						case SPHERE:
@@ -51,35 +51,37 @@ void System::DoTimeStep() {
 
 int main(int argc, char* argv[]) {
 	omp_set_nested(1);
+	stepMode = true;
 	GPUSystem = new System(1);
 	GPUSystem->mTimeStep = .001;
-	GPUSystem->mEndTime = 10;
+	GPUSystem->mEndTime = 35;
 	GPUSystem->mNumObjects = 1;
-	GPUSystem->mIterations = 500;
-	GPUSystem->mTolerance = 1e-6;
+	GPUSystem->mIterations = 1000;
+	GPUSystem->mTolerance = 5e-4;
 	GPUSystem->mOmegaContact = .3;
 	GPUSystem->mOmegaBilateral = .2;
+	GPUSystem->mUseOGL = 1;
+
 	float mMu = .5;
 	float mWallMu = .5;
 
-	if (argc == 3) {
+	if (argc == 2) {
 		numY = atoi(argv[1]);
-		GPUSystem->mUseOGL = atoi(argv[2]);
 	} else {
-		cout << "ARGS: number of particle layers in y direction | display in OPENGL 1= true 0= false" << endl;
+		cout << "ARGS: number of particle layers in y direction" << endl;
 		exit(1);
 	}
 	float container_R = 10.0, container_T = 1;
 	ChQuaternion<> quat(1, 0, 0, 0);
 	ChVector<> lpos(0, 0, 0);
-	ChSharedBodyGPUPtr L = ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr R = ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr F = ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr B = ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr BTM = ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr FREE = ChSharedBodyGPUPtr(new ChBodyGPU);
+	CHBODYSHAREDPTR L = CHBODYSHAREDPTR(new CHBODY);
+	CHBODYSHAREDPTR R = CHBODYSHAREDPTR(new CHBODY);
+	CHBODYSHAREDPTR F = CHBODYSHAREDPTR(new CHBODY);
+	CHBODYSHAREDPTR B = CHBODYSHAREDPTR(new CHBODY);
+	CHBODYSHAREDPTR BTM = CHBODYSHAREDPTR(new CHBODY);
+	CHBODYSHAREDPTR FREE = CHBODYSHAREDPTR(new CHBODY);
 	ChQuaternion<> quat2(1, 0, 0, 0);
-		quat2.Q_from_AngAxis(PI/6.0, ChVector<>(1,0,0));
+	quat2.Q_from_AngAxis(PI / 6.0, ChVector<> (1, 0, 0));
 	//GPUSystem->InitObject(L, 100000, ChVector<> (-container_R, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
 	//GPUSystem->InitObject(R, 100000, ChVector<> (container_R, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
 	//GPUSystem->InitObject(F, 100000, ChVector<> (0, 0, -container_R), quat, mWallMu, mWallMu, 0, true, true, -20, -20);

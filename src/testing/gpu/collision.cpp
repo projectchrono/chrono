@@ -7,7 +7,7 @@ void System::DoTimeStep() {
 		srand(1);
 		float mass = 1, mu = .5, rest = 0;
 		ShapeType type = SPHERE;
-		ChSharedBodyGPUPtr mrigidBody;
+		CHBODYSHAREDPTR mrigidBody;
 		mNumCurrentObjects += x * y * z;
 		int mobjNum = 0;
 		for (int xx = 0; xx < x; xx++) {
@@ -23,7 +23,7 @@ void System::DoTimeStep() {
 					ChVector<> lpos(0, 0, 0);
 					quat.Normalize();
 
-					mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
+					mrigidBody = CHBODYSHAREDPTR(new CHBODY);
 					InitObject(mrigidBody, mass, mParticlePos * 1.5, quat, mu, mu, rest, true, false, 0, 1);
 					mrigidBody->SetPos_dt(ChVector<> (0, -4, 0));
 					switch (type) {
@@ -78,12 +78,12 @@ int main(int argc, char* argv[]) {
 	ChQuaternion<> quat2(1, 0, 0, 0);
 	quat2.Q_from_AngAxis(PI / 10.0, ChVector<> (1, 0, 0));
 	ChVector<> lpos(0, 0, 0);
-	ChSharedBodyGPUPtr L = ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr R = ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr F = ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr B = ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr BTM = ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr FREE = ChSharedBodyGPUPtr(new ChBodyGPU);
+	CHBODYSHAREDPTR L = CHBODYSHAREDPTR(new CHBODY);
+	CHBODYSHAREDPTR R = CHBODYSHAREDPTR(new CHBODY);
+	CHBODYSHAREDPTR F = CHBODYSHAREDPTR(new CHBODY);
+	CHBODYSHAREDPTR B = CHBODYSHAREDPTR(new CHBODY);
+	CHBODYSHAREDPTR BTM = CHBODYSHAREDPTR(new CHBODY);
+	CHBODYSHAREDPTR FREE = CHBODYSHAREDPTR(new CHBODY);
 
 	GPUSystem->InitObject(L, 100000, ChVector<> (-container_R, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
 	GPUSystem->InitObject(R, 100000, ChVector<> (container_R, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);

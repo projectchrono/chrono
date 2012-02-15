@@ -8,13 +8,45 @@
 #include "omp.h"
 #include "unit_GPU/ChSystemGPU.h"
 #include "unit_GPU/ChSystemMultiGPU.h"
-#include "unit_GPU/ChLcpIterativeSolverGPU.h"
+#include "unit_GPU/ChLcpSolverGPU.h"
 #include "unit_GPU/ChContactContainerGPUsimple.h"
 #include "unit_GPU/ChCCollisionSystemGPU.h"
 #include "unit_GPU/ChLcpSystemDescriptorGPU.h"
 #include "unit_GPU/ChCCollisionModelGPU.h"
 #include "unit_GPU/ChBodyGPU.h"
 #include "unit_GPU/ChCuda.h"
+
+#include "physics/ChApidll.h"
+#include "physics/ChSystem.h"
+#include "lcp/ChLcpIterativeMINRES.h"
+#include "core/ChRealtimeStep.h"
+#include "lcp/ChLcpIterativeSOR.h"
+#include "collision/ChCModelBullet.h"
+
+#define CHRONOGPU 1
+
+#ifdef CHRONOGPU
+#define CHBODYSHAREDPTR ChSharedBodyGPUPtr
+#define CHBODY ChBodyGPU
+#define CHCOLLISIONSYS ChCollisionSystemGPU
+#define CHLCPDESC ChLcpSystemDescriptorGPU
+#define CHCONTACTCONT ChContactContainerGPUsimple
+#define CHSOLVER ChLcpSolverGPU
+#define CHMODEL ChCollisionModelGPU
+#define CHSYS ChSystemGPU
+#endif
+
+#ifndef CHRONOGPU
+#define CHBODYSHAREDPTR ChSharedBodyPtr
+#define CHBODY ChBody
+#define CHCOLLISIONSYS ChCollisionSystem
+#define CHLCPDESC ChLcpSystemDescriptor
+#define CHCONTACTCONT ChContactContainer
+#define CHSOLVER ChLcpIterativeSOR
+#define CHMODEL ChModelBullet
+#define CHSYS ChSystem
+#endif
+
 
 using namespace chrono;
 #if defined( _WINDOWS )
@@ -194,7 +226,7 @@ void changeSize(int w, int h) {
 	glMatrixMode( GL_PROJECTION);
 	glLoadIdentity();
 	glViewport(0, 0, w, h);
-	gluPerspective(45, ratio, .001, 100);
+	gluPerspective(45, ratio, .001, 1000);
 	glMatrixMode( GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(0.0, 0.0, 0.0, 0.0, 0.0, -7, 0.0f, 1.0f, 0.0f);
@@ -279,7 +311,7 @@ void makeCyl(float3 pos, float rad, float angle, float3 axis, float3 scale) {
 	gluCylinder(quad, scale.x, scale.z, scale.y * 2, 10, 10);
 }
 
-void drawObject(ChBodyGPU *abody) {
+void drawObject(CHBODY *abody) {
 	float3 color;
 	float value;
 	if (drawType == 1) {
@@ -289,7 +321,7 @@ void drawObject(ChBodyGPU *abody) {
 		value = abody->GetPos_dtdt().Length();
 	}
 	if (drawType == 3) {
-		value = abody->GetAppliedForce().Length() * 1e5;
+		value = 0;//abody->GetAppliedForce().Length() * 1e5;
 	}
 	color = GetColour(value, 0, averageVal);
 	newaverage += value;
@@ -297,30 +329,32 @@ void drawObject(ChBodyGPU *abody) {
 	double angle;
 	ChVector<> axis;
 
-	int numobjects = ((ChCollisionModelGPU *) (abody->GetCollisionModel()))->mData.size();
 
-	for (int i = 0; i < numobjects; i++) {
-		float3 A = ((ChCollisionModelGPU *) (abody->GetCollisionModel()))->mData[i].A;
-		float3 B = ((ChCollisionModelGPU *) (abody->GetCollisionModel()))->mData[i].B;
-		float3 C = ((ChCollisionModelGPU *) (abody->GetCollisionModel()))->mData[i].C;
-		float4 R = ((ChCollisionModelGPU *) (abody->GetCollisionModel()))->mData[i].R;
-		ShapeType type = ((ChCollisionModelGPU *) (abody->GetCollisionModel()))->mData[i].type;
+
+	//int numobjects = ((CHMODEL *) (abody->GetCollisionModel()))->mData.size();
+
+	//for (int i = 0; i < numobjects; i++) {
+		//float3 A = ((CHMODEL *) (abody->GetCollisionModel()))->mData[i].A;
+		//float3 B = ((CHMODEL *) (abody->GetCollisionModel()))->mData[i].B;
+		//float3 C = ((CHMODEL *) (abody->GetCollisionModel()))->mData[i].C;
+		//float4 R = ((CHMODEL *) (abody->GetCollisionModel()))->mData[i].R;
+		//ShapeType type = ((CHMODEL *) (abody->GetCollisionModel()))->mData[i].type;
 		ChCoordsys<> csys((abody)->GetPos(), (abody)->GetRot());
-		ChVector<> pos = csys.TrasformLocalToParent(ChVector<> (A.x, A.y, A.z));
+		ChVector<> pos = (abody)->GetPos();//csys.TrasformLocalToParent(ChVector<> (A.x, A.y, A.z));
 
 		ChQuaternion<> quat = abody->GetRot();
-		quat = quat % ChQuaternion<> (R.x, R.y, R.z, R.w);
+		//quat = quat % ChQuaternion<> (R.x, R.y, R.z, R.w);
 		quat.Normalize();
 		quat.Q_to_AngAxis(angle, axis);
 
 		glPushMatrix();
 
-		switch (type) {
-			case SPHERE:
+		//switch (type) {
+			//case SPHERE:
 				glTranslatef(pos.x, pos.y, pos.z);
-				if (showSphere) {
-					makeSphere(F3(pos.x, pos.y, pos.z), B.x, angle, F3(axis.x, axis.y, axis.z), F3(1, 1, 1));
-				} else {
+				//if (showSphere) {
+				//	makeSphere(F3(pos.x, pos.y, pos.z), B.x, angle, F3(axis.x, axis.y, axis.z), F3(1, 1, 1));
+				//} else {
 					Point pt;
 					pt.x = pos.x;
 					pt.y = pos.y;
@@ -329,55 +363,55 @@ void drawObject(ChBodyGPU *abody) {
 					pt.g = color.y;
 					pt.b = color.z;
 					points.push_back(pt);
-				}
-				break;
-			case ELLIPSOID:
-				glTranslatef(pos.x, pos.y, pos.z);
-				if (showSphere) {
-					makeSphere(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
-				} else {
-					Point pt;
-					pt.x = pos.x;
-					pt.y = pos.y;
-					pt.z = pos.z;
-					pt.r = color.x;
-					pt.g = color.y;
-					pt.b = color.z;
-					points.push_back(pt);
-				}
-
-				break;
-			case BOX:
-				glTranslatef(pos.x, pos.y, pos.z);
-				makeBox(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
-				break;
-			case CYLINDER:
-				glTranslatef(pos.x, pos.y - B.y, pos.z);
-				makeCyl(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
-				break;
-		}
+				//}
+			//	break;
+//			case ELLIPSOID:
+//				glTranslatef(pos.x, pos.y, pos.z);
+//				if (showSphere) {
+//					makeSphere(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
+//				} else {
+//					Point pt;
+//					pt.x = pos.x;
+//					pt.y = pos.y;
+//					pt.z = pos.z;
+//					pt.r = color.x;
+//					pt.g = color.y;
+//					pt.b = color.z;
+//					points.push_back(pt);
+//				}
+//
+//				break;
+//			case BOX:
+//				glTranslatef(pos.x, pos.y, pos.z);
+//				makeBox(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
+//				break;
+//			case CYLINDER:
+//				glTranslatef(pos.x, pos.y - B.y, pos.z);
+//				makeCyl(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
+//				break;
+		//}
 
 		glPopMatrix();
-	}
+	//}
 }
 
-void drawTriMesh(ChBodyGPU *abody) {
-	float3 color = GetColour(abody->GetPos_dt().Length(), 0, 1);
-	glColor3f(color.x, color.y, color.z);
-	int numtriangles = ((ChCollisionModelGPU *) (abody->GetCollisionModel()))->mData.size();
-	for (int i = 0; i < numtriangles; i++) {
-		float3 p1 = ((ChCollisionModelGPU *) (abody->GetCollisionModel()))->mData[i].A;
-		float3 p2 = ((ChCollisionModelGPU *) (abody->GetCollisionModel()))->mData[i].B;
-		float3 p3 = ((ChCollisionModelGPU *) (abody->GetCollisionModel()))->mData[i].C;
-
-		ChVector<> gA = (abody)->GetCoord().TrasformLocalToParent(ChVector<> (p1.x, p1.y, p1.z));
-		ChVector<> gB = (abody)->GetCoord().TrasformLocalToParent(ChVector<> (p2.x, p2.y, p2.z));
-		ChVector<> gC = (abody)->GetCoord().TrasformLocalToParent(ChVector<> (p3.x, p3.y, p3.z));
-		glColor4f(0, 0, 0, .3);
-		glBegin( GL_LINE_LOOP);
-		glVertex3f(gA.x, gA.y, gA.z);
-		glVertex3f(gB.x, gB.y, gB.z);
-		glVertex3f(gC.x, gC.y, gC.z);
-		glEnd();
-	}
+void drawTriMesh(CHBODY *abody) {
+//	float3 color = GetColour(abody->GetPos_dt().Length(), 0, 1);
+//	glColor3f(color.x, color.y, color.z);
+//	int numtriangles = ((CHMODEL *) (abody->GetCollisionModel()))->mData.size();
+//	for (int i = 0; i < numtriangles; i++) {
+//		float3 p1 = ((CHMODEL *) (abody->GetCollisionModel()))->mData[i].A;
+//		float3 p2 = ((CHMODEL *) (abody->GetCollisionModel()))->mData[i].B;
+//		float3 p3 = ((CHMODEL *) (abody->GetCollisionModel()))->mData[i].C;
+//
+//		ChVector<> gA = (abody)->GetCoord().TrasformLocalToParent(ChVector<> (p1.x, p1.y, p1.z));
+//		ChVector<> gB = (abody)->GetCoord().TrasformLocalToParent(ChVector<> (p2.x, p2.y, p2.z));
+//		ChVector<> gC = (abody)->GetCoord().TrasformLocalToParent(ChVector<> (p3.x, p3.y, p3.z));
+//		glColor4f(0, 0, 0, .3);
+//		glBegin( GL_LINE_LOOP);
+//		glVertex3f(gA.x, gA.y, gA.z);
+//		glVertex3f(gB.x, gB.y, gB.z);
+//		glVertex3f(gC.x, gC.y, gC.z);
+//		glEnd();
+//	}
 }
