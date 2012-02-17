@@ -38,14 +38,14 @@ namespace chrono {
 #pragma omp parallel for
 		for (int i = 0; i < bodylist.size(); i++) {
 			ChBodyGPU* mbody = (ChBodyGPU*) bodylist[i];
-			if (mbody->IsActive()) {
+			//if (mbody->IsActive()) {
 				mbody->SetPos(CHVECCAST(gpu_data_manager->host_pos_data[i]));
 				mbody->SetRot(CHQUATCAST(gpu_data_manager->host_rot_data[i]));
 				mbody->SetPos_dt(CHVECCAST(gpu_data_manager->host_vel_data[i]));
 				mbody->SetPos_dtdt(CHVECCAST(gpu_data_manager->host_acc_data[i]));
 				mbody->SetWvel_loc(CHVECCAST(gpu_data_manager->host_omg_data[i]));
 				mbody->SetAppliedForce(CHVECCAST(gpu_data_manager->host_fap_data[i]));
-			}
+			//}
 		}
 
 		// updates the reactions of the constraint
@@ -77,7 +77,7 @@ namespace chrono {
 
 	double ChSystemGPU::SolveSystem() {
 		mtimer_lcp.start();
-
+		((ChLcpSolverGPU*) (LCP_solver_speed))->SetCompliance(0,0,0);
 		((ChLcpSolverGPU*) (LCP_solver_speed))->RunTimeStep(GetStep(), gpu_data_manager->gpu_data);
 
 		//gpu_data_manager->host_acc_data=gpu_data_manager->host_vel_data;
@@ -122,9 +122,6 @@ namespace chrono {
 		gpu_data_manager->host_trq_data.push_back(F3(0)); //torques
 		gpu_data_manager->host_aux_data.push_back(F3(0));
 		gpu_data_manager->host_lim_data.push_back(F3(0));
-
-
-
 
 		counter++;
 		gpu_data_manager->number_of_objects = counter;

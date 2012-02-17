@@ -52,11 +52,11 @@ namespace chrono {
 			void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
 
 			float GetKineticEnergy() {
-				if (use_cpu == false) {
-					//return ((ChLcpIterativeSolverGPUsimple*) (LCP_solver_speed))->Total_KineticEnergy(gpu_data_manager->gpu_data);
-				} else {
-					//return ((ChLcpIterativeSolverGPUsimple*) (LCP_solver_speed))->Total_KineticEnergy_HOST(gpu_data_manager);
-				}
+				//if (use_cpu == false) {
+					return ((ChLcpSolverGPU*) (LCP_solver_speed))->Total_KineticEnergy(gpu_data_manager->gpu_data);
+				//} else {
+					//return ((ChLcpSolverGPU*) (LCP_solver_speed))->Total_KineticEnergy_HOST(gpu_data_manager);
+				//}
 			}
 			void SetUseCPU(bool usecpu) {
 				use_cpu = usecpu;

@@ -52,6 +52,11 @@ namespace chrono {
 			uint GetIterations() {
 				return iteration_number;
 			}
+			void SetCompliance(float c, float cT, float a){
+				compliance=c;
+				complianceT=cT;
+				alpha=a;
+			}
 
 		private:
 			unsigned int iteration_number;
