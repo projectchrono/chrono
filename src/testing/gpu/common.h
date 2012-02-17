@@ -13,6 +13,18 @@ class System {
 			mGPUsolverSpeed->SetOmega(mOmegaContact);
 			//mGPUsolverSpeed->mOmegaBilateral = mOmegaBilateral;
 			mGPUsolverSpeed->SetTolerance(mTolerance);
+
+#ifndef _CHRONOGPU
+
+	mSystem->SetIterLCPmaxItersSpeed(mIterations);
+	mSystem->SetIterLCPmaxItersStab(mIterations);
+	//mSystem->SetIterLCPwarmStarting(true);
+	mSystem->SetParallelThreadNumber(8);
+	//mSystem->SetUseSleeping(true);
+
+
+#endif
+
 		}
 		void SetTimingFile(string fname) {
 			mTimingFile.open(fname.c_str());
@@ -72,20 +84,28 @@ class System {
 };
 
 System::System(int cudaDevice) {
-	//mGPUDescriptor = new ChLcpSystemDescriptorGPU();
-	//mGPUContactContainer = new ChContactContainerGPUsimple();
-	//mGPUCollisionEngine = new ChCollisionSystemGPU();
-	//mGPUsolverSpeed = new ChLcpIterativeSolverGPUsimple(mGPUContactContainer);
-
 	mSystem = new CHSYS();
-	//mSystem->ChangeLcpSystemDescriptor(mGPUDescriptor);
-	//mSystem->ChangeContactContainer(mGPUContactContainer);
-	//mSystem->ChangeLcpSolverSpeed(mGPUsolverSpeed);
-	//mSystem->ChangeCollisionSystem(mGPUCollisionEngine);
+
+#ifndef _CHRONOGPU
+	mGPUDescriptor = new ChLCPDESC();
+	mGPUContactContainer = new ChCONTACTCONT();
+	mGPUCollisionEngine = new ChCOLLISIONSYS();
+	mGPUsolverSpeed = new ChSOLVER(mGPUContactContainer);
+
+	mSystem->SetLcpSolverType(ChSystem::LCP_ITERATIVE_JACOBI);
+
+	mSystem->ChangeLcpSystemDescriptor(mGPUDescriptor);
+	mSystem->ChangeContactContainer(mGPUContactContainer);
+	mSystem->ChangeLcpSolverSpeed(mGPUsolverSpeed);
+	mSystem->ChangeCollisionSystem(mGPUCollisionEngine);
+
+#endif
+
 	mGPUDescriptor = (ChLCPDESC*) mSystem->GetLcpSystemDescriptor();
 	mGPUsolverSpeed = (ChSOLVER*) mSystem->GetLcpSolverSpeed();
-	mGPUCollisionEngine = (ChCOLLISIONSYS*) mSystem->GetCollisionSystem();
-	mGPUContactContainer = (ChCONTACTCONT*) mSystem->GetContactContainer();
+
+	//mGPUCollisionEngine = (ChCOLLISIONSYS*) mSystem->GetCollisionSystem();
+	//mGPUContactContainer = (ChCONTACTCONT*) mSystem->GetContactContainer();
 
 	mSystem->SetIntegrationType(ChSystem::INT_ANITESCU);
 	mSystem->Set_G_acc(ChVector<> (0, -9.80665, 0));
@@ -115,7 +135,11 @@ void System::PrintStats() {
 	double D = mSystem->GetTimerLcp();
 	int E = mSystem->GetNbodies();
 	int F = mSystem->GetNcontacts();
-	int I = 0;//((ChLcpIterativeSolverGPUsimple*) (mSystem->GetLcpSolverSpeed()))->iteration_number;
+#ifdef _CHRONOGPU
+	int I = ((ChLcpSolverGPU*) (mSystem->GetLcpSolverSpeed()))->GetIterations();
+#else
+	int I=0;
+#endif
 	mTotalTime += 0;// mTimer();
 	double KE = GetKE();
 	char numstr[512];
@@ -234,7 +258,23 @@ void System::SaveByObject(ChBODY *abody, string fname) {
 	ofile.close();
 }
 double System::GetKE() {
-	return 0;//mSystem->GetKineticEnergy() / SCALE;
+#ifdef _CHRONOGPU
+	float ke= mSystem->GetKineticEnergy() / SCALE;
+	srand(ke);
+	return ke;
+#else
+	float ke=0;
+	for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
+		ChBODY *abody = (ChBODY*) (mSystem->Get_bodylist()->at(i));
+				ke+=.5*abody->GetMass()*abody->GetPos_dt().Length2();
+
+	}
+
+
+	return ke;
+#endif
+
+
 }
 
 double System::GetMFR(double height) {
@@ -262,9 +302,10 @@ void System::InitObject(
 	body->SetSfriction(sfric);
 	body->SetKfriction(kfric);
 	body->GetCollisionModel()->ClearModel();
-	body->GetCollisionModel()->SetFamily(family);
-	body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(nocolwith);
+	//body->GetCollisionModel()->SetFamily(family);
+	//body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(nocolwith);
 	body->SetLimitSpeed(true);
+	//body->SetUseSleeping(true);
 }
 void System::AddCollisionGeometry(ChSharedPtr<ChBODY> &body, ShapeType type, ChVector<> dim, ChVector<> lPos, ChQuaternion<> lRot) {
 	ChMatrix33<> *rotation = new ChMatrix33<> (lRot);

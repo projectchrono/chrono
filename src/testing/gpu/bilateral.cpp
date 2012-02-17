@@ -4,7 +4,7 @@ void System::DoTimeStep() {
 	mSystem->DoStepDynamics(mTimeStep);
 	mCurrentTime += mTimeStep;
 
-	cout<<2*PI*sqrtf(10.0/9.80665);
+	//cout<<2*PI*sqrtf(10.0/9.80665);
 }
 
 int main(int argc, char* argv[]) {

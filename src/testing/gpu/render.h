@@ -47,7 +47,6 @@
 #define CHSYS ChSystem
 #endif
 
-
 using namespace chrono;
 #if defined( _WINDOWS )
 #include <windows.h>
@@ -329,89 +328,118 @@ void drawObject(ChBODY *abody) {
 	double angle;
 	ChVector<> axis;
 
+	ChVector<> pos = (abody)->GetPos();
+	ChQuaternion<> quat = abody->GetRot();
+	quat.Normalize();
+	quat.Q_to_AngAxis(angle, axis);
 
+	ShapeType type = ((ChMODEL *) (abody->GetCollisionModel()))->GetShapeType();
+
+	glPushMatrix();
+#ifndef _CHRONOGPU
+	ChMODEL* model = ((ChMODEL *) (abody->GetCollisionModel()));
+	glTranslatef(pos.x, pos.y, pos.z);
+	switch (type) {
+		case SPHERE:
+
+			if (showSphere) {
+				float Rad = ((btSphereShape*) model->GetBulletModel()->getCollisionShape())->getRadius();
+				makeSphere(F3(pos.x, pos.y, pos.z), Rad, angle, F3(axis.x, axis.y, axis.z), F3(1, 1, 1));
+			} else {
+				Point pt;
+				pt.x = pos.x;
+				pt.y = pos.y;
+				pt.z = pos.z;
+				pt.r = color.x;
+				pt.g = color.y;
+				pt.b = color.z;
+				points.push_back(pt);
+			}
+
+			break;
+		//case ELLIPSOID:
+
+		//	break;
+		case BOX:
+
+			btVector3 half = ((btBoxShape*) model->GetBulletModel()->getCollisionShape())->getHalfExtentsWithMargin();
+
+			makeBox(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(float(half.x()), float(half.y()), float(half.z())));
+			break;
+		//case CYLINDER:
+
+		//	break;
+	}
+#else
+	int i=0;
+	float3 A = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].A;
+	float3 B = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].B;
+	float3 C = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].C;
+	float4 R = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].R;
+	glTranslatef(pos.x, pos.y, pos.z);
+	switch (type) {
+		case SPHERE:
+
+		if (showSphere) {
+			makeSphere(F3(pos.x, pos.y, pos.z), B.x, angle, F3(axis.x, axis.y, axis.z), F3(1, 1, 1));
+		} else {
+			Point pt;
+			pt.x = pos.x;
+			pt.y = pos.y;
+			pt.z = pos.z;
+			pt.r = color.x;
+			pt.g = color.y;
+			pt.b = color.z;
+			points.push_back(pt);
+		}
+
+		break;
+		case ELLIPSOID:
+		makeSphere(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
+		break;
+		case BOX:
+		makeBox(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
+		break;
+		case CYLINDER:
+		makeCyl(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
+		break;
+	}
+
+#endif
 
 	//int numobjects = ((ChMODEL *) (abody->GetCollisionModel()))->mData.size();
 
 	//for (int i = 0; i < numobjects; i++) {
-		//float3 A = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].A;
-		//float3 B = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].B;
-		//float3 C = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].C;
-		//float4 R = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].R;
-		//ShapeType type = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].type;
-		ChCoordsys<> csys((abody)->GetPos(), (abody)->GetRot());
-		ChVector<> pos = (abody)->GetPos();//csys.TrasformLocalToParent(ChVector<> (A.x, A.y, A.z));
 
-		ChQuaternion<> quat = abody->GetRot();
-		//quat = quat % ChQuaternion<> (R.x, R.y, R.z, R.w);
-		quat.Normalize();
-		quat.Q_to_AngAxis(angle, axis);
+	//)->mData[i].type;
+	ChCoordsys<> csys((abody)->GetPos(), (abody)->GetRot());
+	//csys.TrasformLocalToParent(ChVector<> (A.x, A.y, A.z));
 
-		glPushMatrix();
 
-		//switch (type) {
-			//case SPHERE:
-				glTranslatef(pos.x, pos.y, pos.z);
-				//if (showSphere) {
-				//	makeSphere(F3(pos.x, pos.y, pos.z), B.x, angle, F3(axis.x, axis.y, axis.z), F3(1, 1, 1));
-				//} else {
-					Point pt;
-					pt.x = pos.x;
-					pt.y = pos.y;
-					pt.z = pos.z;
-					pt.r = color.x;
-					pt.g = color.y;
-					pt.b = color.z;
-					points.push_back(pt);
-				//}
-			//	break;
-//			case ELLIPSOID:
-//				glTranslatef(pos.x, pos.y, pos.z);
-//				if (showSphere) {
-//					makeSphere(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
-//				} else {
-//					Point pt;
-//					pt.x = pos.x;
-//					pt.y = pos.y;
-//					pt.z = pos.z;
-//					pt.r = color.x;
-//					pt.g = color.y;
-//					pt.b = color.z;
-//					points.push_back(pt);
-//				}
-//
-//				break;
-//			case BOX:
-//				glTranslatef(pos.x, pos.y, pos.z);
-//				makeBox(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
-//				break;
-//			case CYLINDER:
-//				glTranslatef(pos.x, pos.y - B.y, pos.z);
-//				makeCyl(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
-//				break;
-		//}
+	//quat = quat % ChQuaternion<> (R.x, R.y, R.z, R.w);
 
-		glPopMatrix();
+
+	glPopMatrix();
 	//}
 }
 
 void drawTriMesh(ChBODY *abody) {
-//	float3 color = GetColour(abody->GetPos_dt().Length(), 0, 1);
-//	glColor3f(color.x, color.y, color.z);
-//	int numtriangles = ((ChMODEL *) (abody->GetCollisionModel()))->mData.size();
-//	for (int i = 0; i < numtriangles; i++) {
-//		float3 p1 = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].A;
-//		float3 p2 = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].B;
-//		float3 p3 = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].C;
-//
-//		ChVector<> gA = (abody)->GetCoord().TrasformLocalToParent(ChVector<> (p1.x, p1.y, p1.z));
-//		ChVector<> gB = (abody)->GetCoord().TrasformLocalToParent(ChVector<> (p2.x, p2.y, p2.z));
-//		ChVector<> gC = (abody)->GetCoord().TrasformLocalToParent(ChVector<> (p3.x, p3.y, p3.z));
-//		glColor4f(0, 0, 0, .3);
-//		glBegin( GL_LINE_LOOP);
-//		glVertex3f(gA.x, gA.y, gA.z);
-//		glVertex3f(gB.x, gB.y, gB.z);
-//		glVertex3f(gC.x, gC.y, gC.z);
-//		glEnd();
-//	}
+	//	float3 color = GetColour(abody->GetPos_dt().Length(), 0, 1);
+	//	glColor3f(color.x, color.y, color.z);
+	//	int numtriangles = ((ChMODEL *) (abody->GetCollisionModel()))->mData.size();
+	//	for (int i = 0; i < numtriangles; i++) {
+	//		float3 p1 = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].A;
+	//		float3 p2 = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].B;
+	//		float3 p3 = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].C;
+	//
+	//		ChVector<> gA = (abody)->GetCoord().TrasformLocalToParent(ChVector<> (p1.x, p1.y, p1.z));
+	//		ChVector<> gB = (abody)->GetCoord().TrasformLocalToParent(ChVector<> (p2.x, p2.y, p2.z));
+	//		ChVector<> gC = (abody)->GetCoord().TrasformLocalToParent(ChVector<> (p3.x, p3.y, p3.z));
+	//		glColor4f(0, 0, 0, .3);
+	//		glBegin( GL_LINE_LOOP);
+	//		glVertex3f(gA.x, gA.y, gA.z);
+	//		glVertex3f(gB.x, gB.y, gB.z);
+	//		glVertex3f(gC.x, gC.y, gC.z);
+	//		glEnd();
+	//	}
 }

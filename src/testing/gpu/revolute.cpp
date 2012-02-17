@@ -17,15 +17,16 @@ void System::DoTimeStep() {
 	mSystem->DoStepDynamics(mTimeStep);
 	mCurrentTime += mTimeStep;
 	//GPUSystem->PrintStats();
+	cout<<FREE->GetPos_dt().Length()<<endl;
 }
 
 int main(int argc, char* argv[]) {
 	omp_set_nested(1);
 	GPUSystem = new System(1);
-	GPUSystem->mTimeStep = .005;
-	GPUSystem->mEndTime = compute_period(1, 9.80665, PI / 2.0);
+	GPUSystem->mTimeStep = .001;
+	GPUSystem->mEndTime = compute_period(4, 9.80665, PI / 2.0);
 	GPUSystem->mNumObjects = 1;
-	GPUSystem->mIterations = 100;
+	GPUSystem->mIterations = 1000;
 	GPUSystem->mTolerance = 1e-8;
 	GPUSystem->mOmegaContact = .5;
 	GPUSystem->mOmegaBilateral = .1;
@@ -38,7 +39,7 @@ int main(int argc, char* argv[]) {
 	FREE = ChBODYSHAREDPTR(new ChBODY);
 
 	GPUSystem->InitObject(FXED, 1.0, ChVector<> (0, 0, 0), quat, 0, 0, 0, false, true, -20, -20);
-	GPUSystem->InitObject(FREE, 1.0, ChVector<> (-1, 0, 0), quat, 0, 0, 0, false, false, -20, -20);
+	GPUSystem->InitObject(FREE, 1.0, ChVector<> (-4, 0, 0), quat, 0, 0, 0, false, false, -20, -20);
 
 	GPUSystem->AddCollisionGeometry(FXED, SPHERE, ChVector<> (.1, .1, .1), lpos, quat);
 	GPUSystem->AddCollisionGeometry(FREE, SPHERE, ChVector<> (.1, .1, .1), lpos, quat);
