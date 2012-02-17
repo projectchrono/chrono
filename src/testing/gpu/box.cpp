@@ -5,7 +5,7 @@ void System::DoTimeStep() {
 		float x = 1, y = numY, z = 1;
 		float posX = 0, posY = -8, posZ = 0;
 		srand(1);
-		float mass = 1, mu = .5, rest = 0;
+		float mass = .01, mu = .5, rest = 0;
 		ShapeType type = SPHERE;
 		CHBODYSHAREDPTR mrigidBody;
 		mNumCurrentObjects += x * y * z;
@@ -57,8 +57,8 @@ int main(int argc, char* argv[]) {
 	GPUSystem->mEndTime = 35;
 	GPUSystem->mNumObjects = 1;
 	GPUSystem->mIterations = 1000;
-	GPUSystem->mTolerance = 5e-4;
-	GPUSystem->mOmegaContact = .3;
+	GPUSystem->mTolerance = 1e-5;
+	GPUSystem->mOmegaContact = 1;
 	GPUSystem->mOmegaBilateral = .2;
 	GPUSystem->mUseOGL = 1;
 
@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
 	//GPUSystem->InitObject(R, 100000, ChVector<> (container_R, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
 	//GPUSystem->InitObject(F, 100000, ChVector<> (0, 0, -container_R), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
 	//GPUSystem->InitObject(B, 100000, ChVector<> (0, 0, container_R), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
-	GPUSystem->InitObject(BTM, 100000, ChVector<> (0, -container_R, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
+	GPUSystem->InitObject(BTM, 1, ChVector<> (0, -container_R, 0), quat, mWallMu, mWallMu, 0, true, true, -1000, -20000);
 
 	//GPUSystem->AddCollisionGeometry(L, BOX, ChVector<> (container_T, container_R, container_R), lpos, quat);
 	//GPUSystem->AddCollisionGeometry(R, BOX, ChVector<> (container_T, container_R, container_R), lpos, quat);
