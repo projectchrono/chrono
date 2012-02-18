@@ -48,7 +48,7 @@ background { rgb<1,1,1> }
    
 // from side right,   
 camera {               
-       right x*image_width/image_height  
+       right -x*image_width/image_height  
        location <1, 1.8, -1>
        direction 2*z 
        look_at <0, 0, 0>  

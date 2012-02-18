@@ -89,7 +89,7 @@ void ChPovRay::ExportScript(const std::string &filename)
 	// Generate the _assets.pov script (initial state, it will be populated later by
 	// appending assets as they enter the exporter, only once if shared, using ExportAssets() )
 
-	std::string assets_filename = filename + "_assets.pov";
+	std::string assets_filename = filename + ".assets";
 	{
 		ChStreamOutAsciiFile assets_file(assets_filename.c_str());
 		assets_file << "// File containing meshes and objects for rendering POV scenes.\n";
@@ -145,7 +145,7 @@ void ChPovRay::ExportScript(const std::string &filename)
 	
 	// Write POV code to open the asset file
 
-	mfile << "#include \"" << assets_filename << "\"\n";
+	mfile << "#include \"" << assets_filename << "\"\n\n";
 
 	// Write POV code to open the n.th scene file
 
@@ -153,7 +153,7 @@ void ChPovRay::ExportScript(const std::string &filename)
 	mfile << "#include scene_file \n";
 
 
-	// Write the assets
+	// Populate the assets
 	this->ExportAssets();
 
 }
@@ -163,7 +163,7 @@ void ChPovRay::ExportScript(const std::string &filename)
 void ChPovRay::ExportAssets()
 {
 	// open asset file in append mode.
-	std::string assets_filename = this->out_script_filename + "_assets.pov";
+	std::string assets_filename = this->out_script_filename + ".assets";
 	ChStreamOutAsciiFile assets_file(assets_filename.c_str(), std::ios::app);
 
 	// This will scan all the ChPhysicsItem added objects, and if
@@ -230,7 +230,11 @@ void ChPovRay::ExportAssets()
 							assets_file << "  <" << mytrimesh.m_face_v_indices[it].x << "," <<  mytrimesh.m_face_v_indices[it].y << "," <<  mytrimesh.m_face_v_indices[it].z << ">,\n";
 						assets_file <<" }\n";
 
-						assets_file <<" pigment {color rgb <" << myobjshapeasset->GetColor().R << "," << myobjshapeasset->GetColor().G << "," << myobjshapeasset->GetColor().B << "> }\n";
+						assets_file <<" pigment {color rgbt <" << 
+							myobjshapeasset->GetColor().R << "," << 
+							myobjshapeasset->GetColor().G << "," << 
+							myobjshapeasset->GetColor().B << "," << 
+							myobjshapeasset->GetFading() << "> }\n";
 						assets_file <<" quatRotation(<aq0, aq1, aq2, aq3>) \n";
 						assets_file <<" translate  <apx, apy, apz> \n";
 						//assets_file <<" texture{ atexture }\n";
@@ -285,6 +289,14 @@ void ChPovRay::ExportAssets()
 
 void ChPovRay::ExportData(const std::string &filename)
 {
+	// Populate the assets (because maybe that during the 
+	// animation someone created an object with asset, after
+	// the initial call to ExportScript() - but already present
+	// assets won't be appended)
+
+	this->ExportAssets();
+
+
 	// Generate the nnnn.dat and nnnn.pov files:
 
 	try 
