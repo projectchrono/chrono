@@ -623,6 +623,11 @@ void ChLcpSolverGPU::Preprocess(gpu_container & gpu_data) {
 	COPY_TO_CONST_MEM(number_of_bilaterals);
 	COPY_TO_CONST_MEM(number_of_objects);
 	COPY_TO_CONST_MEM(step_size);
+
+	cudaFuncSetCacheConfig(LCP_ComputeGyro, cudaFuncCachePreferL1);
+	cudaFuncSetCacheConfig(ChKernelLCPaddForces, cudaFuncCachePreferL1);
+	cudaFuncSetCacheConfig(ChKernelOffsets, cudaFuncCachePreferL1);
+
 	LCP_ComputeGyro CUDA_KERNEL_DIM(BLOCKS(number_of_objects), THREADS)(CASTF3(gpu_data.device_omg_data), CASTF3(gpu_data.device_inr_data), CASTF3(gpu_data.device_gyr_data), CASTF3(gpu_data.device_trq_data));
 
 	ChKernelLCPaddForces CUDA_KERNEL_DIM(BLOCKS(number_of_objects), THREADS)(
@@ -672,6 +677,9 @@ void ChLcpSolverGPU::Iterate(gpu_container & gpu_data) {
 	uint number_of_contacts = gpu_data.number_of_contacts;
 	uint number_of_bilaterals = gpu_data.number_of_bilaterals;
 	uint number_of_objects = gpu_data.number_of_objects;
+
+	cudaFuncSetCacheConfig(LCP_Iteration_Contacts, cudaFuncCachePreferL1);
+	cudaFuncSetCacheConfig(LCP_Iteration_Bilaterals, cudaFuncCachePreferL1);
 
 	COPY_TO_CONST_MEM(lcp_omega_bilateral);
 	COPY_TO_CONST_MEM(lcp_omega_contact);
@@ -743,7 +751,7 @@ void ChLcpSolverGPU::Reduce(gpu_container & gpu_data) {
 	COPY_TO_CONST_MEM(number_of_contacts);
 	COPY_TO_CONST_MEM(number_of_bilaterals);
 	COPY_TO_CONST_MEM(number_of_objects);
-
+	cudaFuncSetCacheConfig(LCP_Reduce_Speeds, cudaFuncCachePreferL1);
 	LCP_Reduce_Speeds CUDA_KERNEL_DIM(BLOCKS( number_of_updates), THREADS)(
 			CASTF3(gpu_data.device_aux_data),
 			CASTF3(gpu_data.device_vel_data),
@@ -769,6 +777,7 @@ void ChLcpSolverGPU::Integrate(gpu_container & gpu_data) {
 	COPY_TO_CONST_MEM(number_of_bilaterals);
 	COPY_TO_CONST_MEM(number_of_objects);
 
+	cudaFuncSetCacheConfig(LCP_Integrate_Timestep, cudaFuncCachePreferL1);
 	LCP_Integrate_Timestep CUDA_KERNEL_DIM( BLOCKS(number_of_objects), THREADS)(
 			CASTF3(gpu_data.device_aux_data),
 			CASTF3(gpu_data.device_acc_data),
