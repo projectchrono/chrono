@@ -21,6 +21,7 @@
 #include "lcp/ChLcpIterativeMINRES.h"
 #include "core/ChRealtimeStep.h"
 #include "lcp/ChLcpIterativeSOR.h"
+#include "lcp/ChLcpIterativeJacobi.h"
 #include "collision/ChCModelBullet.h"
 #include "collision/ChCCollisionSystemBullet.h"
 #define _CHRONOGPU
@@ -42,7 +43,7 @@
 #define CHCOLLISIONSYS ChCollisionSystemBullet
 #define CHLCPDESC ChLcpSystemDescriptor
 #define CHCONTACTCONT ChContactContainer
-#define CHSOLVER ChLcpIterativeSOR
+#define CHSOLVER ChLcpIterativeJacobi
 #define CHMODEL ChModelBullet
 #define CHSYS ChSystem
 #endif
