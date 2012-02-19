@@ -16,6 +16,29 @@ find_package("OpenGL")
 	ENDIF()
 	MARK_AS_ADVANCED(FORCE FREEGLUT_LIB)
 
+
+# Add executables		 	
+ADD_EXECUTABLE(test_solver	solver.cpp)
+SOURCE_GROUP(testing\\gpu FILES solver.cpp)
+SET_TARGET_PROPERTIES(test_solver PROPERTIES 
+	FOLDER testing
+	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
+	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+
+TARGET_LINK_LIBRARIES(test_solver
+			${CH_CUDART}
+			${GLUT_LIBRARIES}
+			${FREEGLUT_LIB}
+			${OPENGL_glu_LIBRARY}
+	optimized 	${CH_CHRONOLIB}     
+	debug 		${CH_CHRONOLIB_DBG} 
+	optimized 	${CH_CHRONOGPULIB}
+	debug	    ${CH_CHRONOGPULIB_DBG}
+ 	)
+ADD_DEPENDENCIES (test_solver ChronoEngine ChronoEngine_GPU)
+
+
 # Add executables		 	
 ADD_EXECUTABLE(test_gravity	gravity.cpp)
 SOURCE_GROUP(testing\\gpu FILES gravity.cpp)

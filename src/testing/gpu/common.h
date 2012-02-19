@@ -16,11 +16,11 @@ class System {
 
 #ifndef _CHRONOGPU
 
-	mSystem->SetIterLCPmaxItersSpeed(mIterations);
-	mSystem->SetIterLCPmaxItersStab(mIterations);
-	//mSystem->SetIterLCPwarmStarting(true);
-	mSystem->SetParallelThreadNumber(8);
-	//mSystem->SetUseSleeping(true);
+			mSystem->SetIterLCPmaxItersSpeed(mIterations);
+			mSystem->SetIterLCPmaxItersStab(mIterations);
+			//mSystem->SetIterLCPwarmStarting(true);
+			mSystem->SetParallelThreadNumber(8);
+			//mSystem->SetUseSleeping(true);
 
 
 #endif
@@ -138,7 +138,7 @@ void System::PrintStats() {
 #ifdef _CHRONOGPU
 	int I = ((ChLcpSolverGPU*) (mSystem->GetLcpSolverSpeed()))->GetIterations();
 #else
-	int I=0;
+	int I = 0;
 #endif
 	mTotalTime += 0;// mTimer();
 	double KE = GetKE();
@@ -190,7 +190,6 @@ void System::LoadSpheres(string fname, int skip, float mass, float rad, float mu
 void System::SaveByID(int id, string fname) {
 	ofstream ofile;
 	ofile.open(fname.c_str(), ios_base::app);
-
 	CHBODY * abody = (CHBODY *) mSystem->Get_bodylist()->at(id);
 	ChVector<> pos = abody->GetPos();
 	ChVector<> rot = abody->GetRot().Q_to_NasaAngles();
@@ -263,17 +262,15 @@ double System::GetKE() {
 	srand(ke);
 	return ke;
 #else
-	float ke=0;
+	float ke = 0;
 	for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
 		CHBODY *abody = (CHBODY*) (mSystem->Get_bodylist()->at(i));
-				ke+=.5*abody->GetMass()*abody->GetPos_dt().Length2();
+		ke += .5 * abody->GetMass() * abody->GetPos_dt().Length2();
 
 	}
 
-
 	return ke;
 #endif
-
 
 }
 
