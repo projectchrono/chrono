@@ -94,6 +94,63 @@ __host__ __device__ void inline Compute_Jacobian(
 	C.y = 2 * t25 * t14 + t26 * t15 + 2 * t27 * t18;
 	C.z = 2 * t25 * t19 + 2 * t26 * t20 + t27 * t21;
 }
+__host__ __device__ void inline Compute_Jacobian_2(
+        float3 &T3,
+        float3 &T4,
+        float3 &T5,
+        float4 Eb,
+        const float3 &N,
+        const float3 &U,
+        const float3 &W,
+        const float3 &pb) {
+
+	float t1 = Eb.y * Eb.z;
+	float t2 = Eb.x * Eb.w;
+	float t3 = 2 * t1 - 2 * t2;
+	float t4 = Eb.y * Eb.w;
+	float t5 = Eb.x * Eb.z;
+	float t6 = 2 * t4 + 2 * t5;
+	float t7 = Eb.z * Eb.w;
+	float t8 = Eb.x * Eb.y;
+	float t9 = 2 * t7 - 2 * t8;
+	float t10 = pow(Eb.x, 2);
+	float t11 = pow(Eb.y, 2);
+	float t12 = pow(Eb.w, 2);
+	float t13 = pow(Eb.z, 2);
+	float t14 = t10 - t11 - t13 + t12;
+	float t15 = t6 * pb.x + t9 * pb.y + t14 * pb.z;
+	float t16 = t10 - t11 + t13 - t12;
+	t7 = 2 * t7 + 2 * t8;
+	t8 = -t3 * pb.x - t16 * pb.y - t7 * pb.z;
+	float t17 = t3 * t15 + t6 * t8;
+	float t18 = t16 * t15 + t9 * t8;
+	float t19 = t7 * t15 + t14 * t8;
+	t10 = t10 + t11 - t13 - t12;
+	t11 = -t15;
+	t1 = 2 * t1 + 2 * t2;
+	t2 = 2 * t4 - 2 * t5;
+	t4 = t10 * pb.x + t1 * pb.y + t2 * pb.z;
+	t5 = t10 * t11 + t6 * t4;
+	t6 = t1 * t11 + t9 * t4;
+	t9 = t2 * t11 + t14 * t4;
+	t8 = -t8;
+	t4 = -t4;
+	t3 = t10 * t8 + t3 * t4;
+	t1 = t1 * t8 + t16 * t4;
+	t2 = t2 * t8 + t7 * t4;
+	T3.x = N.x * t17 + N.y * t18 + N.z * t19;
+	T3.y = N.x * t5 + N.y * t6 + N.z * t9;
+	T3.z = N.x * t3 + N.y * t1 + N.z * t2;
+	T4.x = U.x * t17 + U.y * t18 + U.z * t19;
+	T4.y = U.x * t5 + U.y * t6 + U.z * t9;
+	T4.z = U.x * t3 + U.y * t1 + U.z * t2;
+	T5.x = W.x * t17 + W.y * t18 + W.z * t19;
+	T5.y = W.x * t5 + W.y * t6 + W.z * t9;
+	T5.z = W.x * t3 + W.y * t1 + W.z * t2;
+}
+
+
+
 // 	Kernel for a single iteration of the LCP over all contacts
 //   	Version 2.0 - Tasora
 //	Version 2.2- Hammad (optimized, cleaned etc)
@@ -133,6 +190,9 @@ __global__ void LCP_Iteration_Contacts(
 	aux1 = aux[B1_i];
 	aux2 = aux[B2_i];
 	N = norm[i]; //assume: normalized, and if depth=0 norm=(1,0,0)
+
+
+
 	W = fabs(N); //Gramm Schmidt; work with the global axis that is "most perpendicular" to the contact normal vector;effectively this means looking for the smallest component (in abs) and using the corresponding direction to carry out cross product.
 	U = F3(0.0, N.z, -N.y); //it turns out that X axis is closest to being perpendicular to contact vector;
 	if (W.x > W.y) {
@@ -143,6 +203,39 @@ __global__ void LCP_Iteration_Contacts(
 	} //it turns out that Z axis is closest to being perpendicular to contact vector;
 	U = normalize(U); //normalize the local contact Y,Z axis
 	W = cross(N, U); //carry out the last cross product to find out the contact local Z axis : multiply the contact normal by the local Y component
+
+	//printf("N: [%f %f %f]  [%f %f %f] [%f %f %f]%f \n", N.x, N.y, N.z,U.x, U.y, U.z,W.x, W.y, W.z, depth);
+
+
+	sbar = ptA[i] - pos[B1_i]; //Contact Point on A - Position of A
+	E1 = rot[B1_i]; //bring in the Euler parameters associated with body 1;
+	Compute_Jacobian_2(T3, T4, T5, E1, N, U, W, sbar); //A_i,p'*A_A*(sbar~_i,A)
+
+
+	sbar = ptB[i] - pos[B2_i]; //Contact Point on B - Position of B
+	E2 = rot[B2_i]; //bring in the Euler parameters associated with body 2;
+	Compute_Jacobian_2(T6, T7, T8, E2, N, U, W, sbar); //A_i,p'*A_B*(sbar~_i,B)
+
+	//printf("Pa: [%f %f %f]\n", ptA[i].x, ptA[i].y, ptA[i].z);
+	//printf("Pb: [%f %f %f]\n", ptB[i].x, ptB[i].y, ptB[i].z);
+
+	//printf("A: [%f, %f, %f]",T3.x,T3.y,T3.z);
+	//printf(" [%f, %f, %f]",T4.x,T4.y,T4.z);
+	//printf(" [%f, %f, %f] \n",T5.x,T5.y,T5.z);
+
+	T6 = -T6;
+	T7 = -T7;
+	T8 = -T8;
+
+	//printf("B: [%f, %f, %f]",T6.x,T6.y,T6.z);
+	//printf(" [%f, %f, %f]",T7.x,T7.y,T7.z);
+	//printf(" [%f, %f, %f] \n",T8.x,T8.y,T8.z);
+
+	W1 = omega[B1_i];
+	W2 = omega[B2_i];
+
+	mu = (aux1.y + aux2.y) * .5;
+
 	float normV = dot(N, ((V2 - V1)));
 	normV = (normV > 0) ? 0 : normV;
 	float cfm = 0, cfmT = 0;
@@ -154,25 +247,11 @@ __global__ void LCP_Iteration_Contacts(
 		cfm = inv_hhpa * compliance_const;
 		cfmT = inv_hhpa * complianceT_const;
 	} else {
-		bi = min((depth / (step_size_const)), (normV));
+		bi = max((depth / (step_size_const)),-.6);
 	}
-	if(bi<-.1){bi=-.1;}
-
-	sbar = ptA[i] - pos[B1_i]; //Contact Point on A - Position of A
-	E1 = rot[B1_i]; //bring in the Euler parameters associated with body 1;
-	Compute_Jacobian(T3, T4, T5, E1, N, U, W, sbar); //A_i,p'*A_A*(sbar~_i,A)
-
-	sbar = ptB[i] - pos[B2_i]; //Contact Point on B - Position of B
-	E2 = rot[B2_i]; //bring in the Euler parameters associated with body 2;
-	Compute_Jacobian(T6, T7, T8, E2, N, U, W, sbar); //A_i,p'*A_B*(sbar~_i,B)
-	T6 = -T6;
-	T7 = -T7;
-	T8 = -T8;
-
-	W1 = omega[B1_i];
-	W2 = omega[B2_i];
-
-	mu = (aux1.y + aux2.y) * .5;
+	//if (bi < -.1) {
+	//	bi = -.1;
+	//}
 
 	//c_i = [Cq_i]*q + b_i + cfm_i*l_i
 	gamma_old = G[i];
@@ -186,7 +265,7 @@ __global__ void LCP_Iteration_Contacts(
 	eta += (dot(N, N) + dot(U, U) + dot(W, W)) * (aux1.z + aux2.z); // multiply by inverse of mass matrix of B1 and B2, add contribution from mass and matrix A_c.
 	eta = lcp_omega_contact_const / eta; // final value of eta
 
-	gamma *= eta; // perform gamma *= omega*eta
+	gamma = eta*gamma; // perform gamma *= omega*eta
 	//if (isnan(gamma.x) || isnan(gamma.y) || isnan(gamma.z)) {printf("%f {%f, %f, %f} \n",bi, gamma.x, gamma.y, gamma.z); return;}
 
 	gamma = gamma_old - gamma; // perform gamma = gamma_old - gamma ;  in place.
@@ -207,7 +286,8 @@ __global__ void LCP_Iteration_Contacts(
 
 	G[i] = gamma; // store gamma_new
 	gamma -= gamma_old; // compute delta_gamma = gamma_new - gamma_old   = delta_gamma.
-	dG[i] =  length(gamma);
+	//printf("[%f, %f, %f] \n",gamma.x, gamma.y,gamma.z );
+	dG[i] = length(gamma);
 	vB = N * gamma.x + U * gamma.y + W * gamma.z;
 	int offset1 = offset[i];
 	int offset2 = offset[i + number_of_contacts_const];
@@ -220,7 +300,6 @@ __global__ void LCP_Iteration_Contacts(
 		updateO[offset2] = (T6 * gamma.x + T7 * gamma.y + T8 * gamma.z) * In2; // compute dw2 =  Inert.2' * J2w^ * deltagamma  and store  dw2
 	}
 
-
 	/*
 
 
@@ -229,7 +308,7 @@ __global__ void LCP_Iteration_Contacts(
 
 
 
-	*/
+	 */
 
 }
 ///////////////////////////////////////////////////////////////////////////////////
@@ -476,20 +555,20 @@ __global__ void LCP_Integrate_Timestep(float3* aux, float3* acc, float4* rot, fl
 	float3 limits = lim[i];
 	float wlen = length(omg);
 
-	//	if (limits.x == 1) {
-	//		float w = 2.0 * wlen;
-	//		if (w > limits.z) {
-	//			omg *= limits.z / w;
-	//			wlen = sqrtf(dot3(omg, omg));
-	//		}
-	//
-	//		float v = length(velocity);
-	//		if (v > limits.y) {
-	//			velocity *= limits.y / v;
-	//		}
-	//		vel[i] = velocity;
-	//		omega[i] = omg;
-	//	}
+		if (limits.x == 1) {
+			float w = 2.0 * wlen;
+			if (w > limits.z) {
+				omg *= limits.z / w;
+				wlen = sqrtf(dot3(omg, omg));
+			}
+
+			float v = length(velocity);
+			if (v > limits.y) {
+				velocity *= limits.y / v;
+			}
+			vel[i] = velocity;
+			omega[i] = omg;
+		}
 	pos[i] = pos[i] + velocity * step_size_const; // Do 1st order integration of linear speeds
 
 	float4 Rw = (fabs(wlen) > 10e-10) ? Quat_from_AngAxis(step_size_const * wlen, omg / wlen) : F4(1., 0, 0, 0);// to avoid singularity for near zero angular speed
@@ -525,11 +604,6 @@ __global__ void ChKernelOffsets(int2* ids, CH_REALNUMBER4* bilaterals, uint* Bod
 }
 
 void ChLcpSolverGPU::WarmContact(const int & i) {
-
-
-
-
-
 
 }
 
@@ -817,7 +891,7 @@ void ChLcpSolverGPU::RunTimeStep(float step, gpu_container & gpu_data) {
 			//	break;
 			//}
 			if (iteration_number > 4 && iteration_number % 50 == 0) {
-				if (Max_DeltaGamma(gpu_data.device_dgm_data) < tolerance) {
+				if (Avg_DeltaGamma(number_of_constraints,gpu_data.device_dgm_data) < tolerance) {
 					break;
 				}
 			}

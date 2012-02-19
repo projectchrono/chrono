@@ -444,26 +444,31 @@ __global__ void MPR_GPU_Store(
 	}
 	//unsigned int seed = hash(threadIdx.x) ;
 	//thrust::default_random_engine rng(seed);
-	//thrust::uniform_real_distribution<float> u01(-3.1415 * 2.0, 3.1415 * 2.0);
+	//thrust::uniform_real_distribution<float> u01(-.01, .01);
 	int num=0;
 
 	//if (A_T.x == _SPHERE || B_T.x == _SPHERE) {
 	//	num = 2;
 	//}
 	float4 A_R_T = A_R, B_R_T = B_R;
-//	float3 vect;
-//	for (num; num < 3; num++) {
-//		if (num == 0) {
-//			vect = F3(1, 0, 0);
-//		}
-//		if (num == 1) {
-//			vect = F3(0, 1, 0);
-//		}
-//		if (num == 2) {
-//			vect = F3(0, 0, 1);
-//		}
-//		float4 rand1 = Quat_from_AngAxis(u01(rng) * .0001, vect);
-//		float4 rand2 = Quat_from_AngAxis(u01(rng) * .0001, vect);
+	//float3 vect1,vect2;
+
+//	uint counter=0;
+//	float3 p1_old, p2_old;
+//	while(counter<100) {
+//		counter++;
+		//if (num == 0) {
+//			vect1 = normalize(F3(u01(rng), u01(rng), u01(rng)));
+//			vect2 = normalize(F3(u01(rng), u01(rng), u01(rng)));
+		//}
+		//if (num == 1) {
+		//	vect = F3(0, 1, 0);
+		//}
+		//if (num == 2) {
+		//	vect = F3(0, 0, 1);
+		//}
+//		float4 rand1 = Quat_from_AngAxis(u01(rng), vect1);
+//		float4 rand2 = Quat_from_AngAxis(u01(rng), vect2);
 //		if (aux[A_T.z].x == 1) {
 //			A_R_T = mult(A_R, rand1);
 //		} else if (aux[B_T.z].x == 1) {
@@ -478,13 +483,30 @@ __global__ void MPR_GPU_Store(
 
 		p1 = dot((TransformSupportVert(A_T.x, A_X, A_Y, A_Z, A_R, -N) - p0), N) * N + p0;
 		p2 = dot((TransformSupportVert(B_T.x, B_X, B_Y, B_Z, B_R, N) - p0), N) * N + p0;
+
+//		if(num>1){
+//
+//			if(isEqual(p1.x,p1_old.x)&&isEqual(p1.y,p1_old.y)&&isEqual(p1.z,p1_old.z)){
+//				continue;
+//			}
+//			if(isEqual(p2.x,p2_old.x)&&isEqual(p2.y,p2_old.y)&&isEqual(p2.z,p2_old.z)){
+//				continue;
+//			}
+//
+//		}
+
 		norm[index + num * totalPossibleConts] = -N;
 		ptA[index + num * totalPossibleConts] = p1;
 		ptB[index + num * totalPossibleConts] = p2;
 		contactDepth[index + num * totalPossibleConts] = -depth;
 		ids[index + num * totalPossibleConts] = I2(A_T.z, B_T.z);
 		Contact_Number[index + num * totalPossibleConts] = 0;
-	//}
+//		p1_old=p1;
+//		p2_old=p2;
+//		num++;
+//
+//		if(num>3){return;}
+//	}
 }
 __global__ void CopyGamma(int* to, float3* oldG, float3* newG, int contacts) {
 	uint i = blockIdx.x * blockDim.x + threadIdx.x;

@@ -166,7 +166,7 @@ namespace chrono {
 			gpu_data_manager->host_frc_data[i] = (F3(mbodyvar->Get_fb().ElementN(0), mbodyvar->Get_fb().ElementN(1), mbodyvar->Get_fb().ElementN(2))); //forces
 			gpu_data_manager->host_trq_data[i] = (F3(mbodyvar->Get_fb().ElementN(3), mbodyvar->Get_fb().ElementN(4), mbodyvar->Get_fb().ElementN(5))); //torques
 			gpu_data_manager->host_aux_data[i] = (F3(bodylist[i]->IsActive(), bodylist[i]->GetKfriction(), 1.0f / mbodyvar->GetBodyMass()));
-			gpu_data_manager->host_lim_data[i] = (F3(bodylist[i]->GetLimitSpeed(), 10000, (1.0 / GetStep()) * .1));
+			gpu_data_manager->host_lim_data[i] = (F3(bodylist[i]->GetLimitSpeed(), 100, 100));
 		}
 
 		std::list<ChLink*>::iterator it;
