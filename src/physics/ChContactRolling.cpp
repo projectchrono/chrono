@@ -122,6 +122,9 @@ void ChContactRolling::Reset(	collision::ChCollisionModel* mmodA,	///< model A
 	Ru.Get_Cq_b()->PasteClippedMatrix(&Jr2, 1,0, 1,3, 0,3);
 	Rv.Get_Cq_b()->PasteClippedMatrix(&Jr2, 2,0, 1,3, 0,3);
 
+	this->complianceRoll = mmaterial.complianceRoll;
+	this->complianceSpin = mmaterial.complianceSpin;
+
 	react_torque = VNULL;
 
 }
@@ -157,6 +160,18 @@ void ChContactRolling::ConstraintsBiLoad_C(double factor, double recovery_clamp,
 	// base behaviour too
 	ChContact::ConstraintsBiLoad_C(factor,recovery_clamp,do_clamp);
 	
+	// If rolling and spinning compliance, set the cfm terms
+
+	double h = 1.0/factor;  // timestep is inverse of factor
+			
+	double alpha=this->dampingf; // [R]=alpha*[K]
+	double inv_hpa = 1.0/(h+alpha); // 1/(h+a)
+	double inv_hhpa = 1.0/(h*(h+alpha)); // 1/(h*(h+a)) 
+
+	this->Ru.Set_cfm_i( (inv_hhpa)*this->complianceRoll  );
+	this->Rv.Set_cfm_i( (inv_hhpa)*this->complianceRoll  );
+	this->Rx.Set_cfm_i( (inv_hhpa)*this->complianceSpin  );
+
 	// Assume no residual ever, do not load in C
 }
 
