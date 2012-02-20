@@ -36,6 +36,8 @@ public:
 	float  dampingf;
 	float  compliance;
 	float  complianceT;
+	float  complianceRoll;
+	float  complianceSpin;
 
 	ChMaterialCouple() :static_friction(0),
 						sliding_friction(0),
@@ -45,7 +47,9 @@ public:
 						cohesion(0),
 						dampingf(0),
 						compliance(0),
-						complianceT(0)
+						complianceT(0),
+						complianceRoll(0),
+						complianceSpin(0)
 						{};
 };
 

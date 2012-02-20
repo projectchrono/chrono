@@ -1,11 +1,11 @@
-#ifndef CHOBJSPHERESHAPE_H
-#define CHOBJSPHERESHAPE_H
+#ifndef CHOBJSBOXSHAPE_H
+#define CHOBJSBOXSHAPE_H
 
 ///////////////////////////////////////////////////
 //
-//   ChSphereShape.h
+//   ChBoxShape.h
 //
-//   Class for defining a sphere as an asset shape 
+//   Class for defining a box as an asset shape 
 //   that can be visualized in some way.
 //
 //   HEADER file for CHRONO,
@@ -19,38 +19,38 @@
 
 
 #include "assets/ChVisualization.h"
-#include "geometry/ChCSphere.h"
+#include "geometry/ChCBox.h"
 
 
 namespace chrono
 {
 
-/// Class for referencing a sphere shape that can be 
-/// visualized in some way.
+/// Class for a box shape that can be visualized
+/// in some way.
 
-class ChApi ChSphereShape : public ChVisualization {
+class ChApi ChBoxShape : public ChVisualization {
 
 protected:
 				//
 	  			// DATA
 				//
-	geometry::ChSphere gsphere;	
+	geometry::ChBox gbox;	
 
 public:
 				//
 	  			// CONSTRUCTORS
 				//
 
-	ChSphereShape () {};
+	ChBoxShape () {};
 
-	virtual ~ChSphereShape () {};
+	virtual ~ChBoxShape () {};
 
 				//
 	  			// FUNCTIONS
 				//
 
 			// Access the sphere geometry
-	geometry::ChSphere& GetSphereGeometry() {return gsphere;}
+	geometry::ChBox& GetBoxGeometry() {return gbox;}
 
 };
 

@@ -14,6 +14,7 @@
 #include "geometry/ChCTriangleMeshConnected.h"
 #include "assets/ChObjShapeFile.h"
 #include "assets/ChSphereShape.h"
+#include "assets/ChBoxShape.h"
 
 
 using namespace chrono;
@@ -267,10 +268,57 @@ void ChPovRay::ExportAssets()
 					assets_file << ","  << myobjshapeasset->GetSphereGeometry().center.z << ">\n";
 					assets_file << " "  << myobjshapeasset->GetSphereGeometry().rad << "\n";
 
-					assets_file <<" pigment {color rgb <" << myobjshapeasset->GetColor().R << "," << myobjshapeasset->GetColor().G << "," << myobjshapeasset->GetColor().B << "> }\n";
+					assets_file <<" pigment {color rgbt <" << 
+							myobjshapeasset->GetColor().R << "," << 
+							myobjshapeasset->GetColor().G << "," << 
+							myobjshapeasset->GetColor().B << "," << 
+							myobjshapeasset->GetFading() << "> }\n";
 					assets_file <<" quatRotation(<aq0, aq1, aq2, aq3>) \n";
 					assets_file <<" translate  <apx, apy, apz> \n";
 					assets_file <<"}\n";
+
+					// POV macro - end 
+					assets_file << "#end \n";
+				}
+
+				// 2) asset k of object i is a box ?
+				if (k_asset.IsType<ChBoxShape>() )
+				{
+					ChSharedPtr<ChBoxShape> myobjshapeasset(k_asset);
+
+					// POV macro to build the asset - begin
+					assets_file << "#macro sh_"<< (int) k_asset.get_ptr() << "(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
+
+					// POV will make the sphere
+					assets_file << "union  {\n";
+					assets_file << "box  {\n";
+
+					assets_file << " <" << -myobjshapeasset->GetBoxGeometry().Size.x;
+					assets_file << ","  << -myobjshapeasset->GetBoxGeometry().Size.y;
+					assets_file << ","  << -myobjshapeasset->GetBoxGeometry().Size.z << ">\n";
+					assets_file << " <" <<  myobjshapeasset->GetBoxGeometry().Size.x;
+					assets_file << ","  <<  myobjshapeasset->GetBoxGeometry().Size.y;
+					assets_file << ","  <<  myobjshapeasset->GetBoxGeometry().Size.z << ">\n";
+
+					ChQuaternion<> boxrot = myobjshapeasset->GetBoxGeometry().Rot.Get_A_quaternion();
+					assets_file <<" quatRotation(<" << boxrot.e0;
+					assets_file <<"," << boxrot.e1;
+					assets_file <<"," << boxrot.e2;
+					assets_file <<"," << boxrot.e3 << ">) \n";
+					assets_file <<" translate  <" << myobjshapeasset->GetBoxGeometry().Pos.x;
+					assets_file <<"," << myobjshapeasset->GetBoxGeometry().Pos.y;
+					assets_file <<"," << myobjshapeasset->GetBoxGeometry().Pos.z << "> \n";
+
+					assets_file <<"}\n"; // end box
+
+					assets_file <<" pigment {color rgbt <" << 
+							myobjshapeasset->GetColor().R << "," << 
+							myobjshapeasset->GetColor().G << "," << 
+							myobjshapeasset->GetColor().B << "," << 
+							myobjshapeasset->GetFading() << "> }\n";
+					assets_file <<" quatRotation(<aq0, aq1, aq2, aq3>) \n";
+					assets_file <<" translate  <apx, apy, apz> \n";
+					assets_file <<"}\n"; // end union
 
 					// POV macro - end 
 					assets_file << "#end \n";

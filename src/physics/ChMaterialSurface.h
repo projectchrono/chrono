@@ -42,6 +42,8 @@ public:
 	float  dampingf;
 	float  compliance;
 	float  complianceT;
+	float  complianceRoll;
+	float  complianceSpin;
 
 
 			//
@@ -56,7 +58,9 @@ public:
 						cohesion(0),
 						dampingf(0),
 						compliance(0),
-						complianceT(0)
+						complianceT(0),
+						complianceRoll(0),
+						complianceSpin(0)
 					{
 					};
 
@@ -76,6 +80,8 @@ public:
 						dampingf=other.dampingf;
 						compliance=other.compliance;
 						complianceT=other.complianceT;
+						complianceRoll=other.complianceRoll;
+						complianceSpin=other.complianceSpin;
 					}
 
 			//
@@ -146,6 +152,20 @@ public:
 	float  GetComplianceT() {return complianceT;}
 	void   SetComplianceT(float mval) {complianceT = mval;}
 
+				/// Rolling compliance of the contact, if using a nonzero rolling friction.
+				/// (If there is no rolling friction, this has no effect.)
+				/// Measuring unit: rad/Nm
+				/// Default =0.
+	float  GetComplianceRolling() {return complianceRoll;}
+	void   SetComplianceRolling(float mval) {complianceRoll = mval;}
+				
+				/// Spinning compliance of the contact, if using a nonzero rolling friction.
+				/// (If there is no spinning friction, this has no effect.)
+				/// Measuring unit: rad/Nm
+				/// Default =0.
+	float  GetComplianceSpinning() {return complianceSpin;}
+	void   SetComplianceSpinning(float mval) {complianceSpin = mval;}
+
 
 			//
 			// STREAMING
@@ -177,6 +197,8 @@ public:
 							mstream <<   dampingf;
 							mstream <<   compliance;
 							mstream <<   complianceT;
+							mstream <<   complianceRoll;
+							mstream <<   complianceSpin;
 						}
 
 					/// Operator to allow deserializing a persistent binary archive (ex: a file)
@@ -199,6 +221,8 @@ public:
 							mstream >>   dampingf;
 							mstream >>   compliance;
 							mstream >>   complianceT;
+							mstream >>   complianceRoll;
+							mstream >>   complianceSpin;
 						}
 
 };

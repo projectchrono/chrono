@@ -42,6 +42,9 @@ protected:
 
 	ChVector<> react_torque;
 
+	float complianceRoll;
+	float complianceSpin;
+
 public:
 				//
 	  			// CONSTRUCTORS

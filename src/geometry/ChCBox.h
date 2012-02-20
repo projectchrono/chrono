@@ -115,9 +115,14 @@ public:
 		// CUSTOM FUNCTIONS
 		//
 	
-					// Access data
+		/// Access the rotation of the box
 	ChMatrix33<>* GetRotm() {return &Rot;};
+
+		/// Access the position of the barycenter of the box
 	Vector& GetPos() {return Pos;};
+
+		/// Access the size of the box: a vector with the 
+		/// three hemi-lengths (lenghts divided by two!)
 	Vector& GetSize(){return Size;};
 	
 					// Get the 8 corner points, translated and rotated
