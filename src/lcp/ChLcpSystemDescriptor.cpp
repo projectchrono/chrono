@@ -31,7 +31,7 @@ ChLcpSystemDescriptor::ChLcpSystemDescriptor()
 
 	this->num_threads = 0;
 	solver_threads = 0;
-	SetNumThreads(1);
+	SetNumThreads(this->num_threads);
 /*
 	locktable = new ChMutexSpinlock[100];
 */
@@ -758,6 +758,8 @@ void ChLcpSystemDescriptor::SetNumThreads(int nthreads)
 		delete (solver_threads); 
 	solver_threads =0;
 
+	if (this->num_threads==0)
+		return;
 
 	// Create the threads container
 	ChThreadConstructionInfo create_args ( "solver", 
