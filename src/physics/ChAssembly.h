@@ -19,7 +19,6 @@
 
 #include <math.h>
 
-#include "core/ChFrameMoving.h"
 #include "core/ChShared.h"
 #include "physics/ChPhysicsItem.h"
 #include "physics/ChForce.h"
@@ -49,7 +48,7 @@ class ChSystem;
 /// be associated to the bodies, for collision detection.
 ///
 
-class ChApi ChAssembly : public ChPhysicsItem , public ChFrameMoving<double> {
+class ChApi ChAssembly : public ChPhysicsItem {
 
 						// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChAssembly,ChPhysicsItem);
@@ -115,6 +114,10 @@ public:
 			//
 	  		// FUNCTIONS
 			//
+
+				/// Set the pointer to the parent ChSystem()
+	void SetSystem (ChSystem* m_system);
+
 
 				/// Removes all bodies/marker/forces/links/contacts,
 				/// also resets timers and events.
@@ -301,6 +304,17 @@ public:
 	void RemoveAllBodies();
 				/// Remove all links from this system.
 	void RemoveAllLinks();
+
+				/// Gets the list of children bodies -low level function-.
+				/// NOTE! use this list only to enumerate etc., but NOT to
+				/// remove or add items (use the appropriate Remove.. and Add..
+				/// functions instead!)
+	std::vector<ChBody*>* Get_bodylist() {return &bodylist;}
+				/// Gets the list of children links -low level function-.
+				/// NOTE! use this list only to enumerate etc., but NOT to
+				/// remove or add items (use the appropriate Remove.. and Add..
+				/// functions instead!)
+	std::list<ChLink*>* Get_linklist() {return &linklist;}
 
 
 			//

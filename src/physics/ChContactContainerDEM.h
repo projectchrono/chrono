@@ -62,6 +62,13 @@ public:
 				//
 	  			// FUNCTIONS
 				//
+
+					/// Gets the list of contacts -low level function-.
+					/// NOTE! use this list only to enumerate etc., but NOT to
+					/// remove or add items (use the appropriate Remove.. and Add..
+					/// functions instead!)
+	std::list<ChContactDEM*>* Get_contactlist() {return &contactlist;}
+
 					/// Tell the number of added contacts
 	virtual int GetNcontacts  () {return n_added;};
 
@@ -96,6 +103,7 @@ public:
 					/// results in inner structures of contacts.
 	virtual void Update (double mtime);			
 
+	virtual void ConstraintsFbLoadForces(double factor);
 };
 
 

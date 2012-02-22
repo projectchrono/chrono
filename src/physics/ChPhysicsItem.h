@@ -73,7 +73,7 @@ public:
 	ChSystem* GetSystem () { return system;}
 
 				/// Set the pointer to the parent ChSystem()
-	void SetSystem (ChSystem* m_system) {system= m_system;}
+	virtual void SetSystem (ChSystem* m_system) {system= m_system;}
 
 				/// Access to the list of optional assets.
 	std::vector< ChSharedPtr<ChAsset> >& GetAssets () { return this->assets;}
