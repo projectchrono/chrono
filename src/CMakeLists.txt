@@ -355,16 +355,6 @@ IF (BUILD_CH_SDK)
 			${ChronoEngine_core_SOURCES}
 			${ChronoEngine_core_HEADERS}
 			)
-IF(ENABLE_UNIT_MPI)
-SET(DEM_MPI_FILES
-		
-		physics/ChContactContainerDEM.cpp
-		physics/ChContactDEM.cpp
-)
-ELSE()
-SET(DEM_MPI_FILES "")
-ENDIF()	
-
 
 	SET(ChronoEngine_physics_SOURCES
 		physics/ChApidll.cpp 
@@ -449,7 +439,8 @@ ENDIF()
 		physics/ChFx.cpp 
 		physics/ChAssembly.cpp
 		physics/ChBodyDEM.cpp
-		"${DEM_MPI_FILES}"
+		physics/ChContactContainerDEM.cpp
+		physics/ChContactDEM.cpp
 
 	)
 	SET(ChronoEngine_physics_HEADERS
