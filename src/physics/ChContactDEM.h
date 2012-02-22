@@ -71,7 +71,9 @@ public:
 						double mdistance,				///< pass the distance (negative for penetration)
 						float* mreaction_cache,			///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
 						double  mkn,				///< spring coeff.
-						double  mgn				///< damping coeff.
+						double  mgn,				///< damping coeff.
+						double  mkt,				///< tangential spring coeff.
+						double mfriction			///< friction coeff.
 				);
 
 	virtual ~ChContactDEM ();
@@ -94,7 +96,9 @@ public:
 						double mdistance,				///< pass the distance (negative for penetration)
 						float* mreaction_cache,			///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
 						double  mkn,				///< spring coeff.
-						double  mgn				///< damping coeff.
+						double  mgn,				///< damping coeff.
+						double  mkt,				///< tangential spring coeff.
+						double mfriction			///< friction coeff.
 );
 
 
@@ -138,6 +142,8 @@ public:
 	virtual collision::ChCollisionModel* GetModelA() {return this->modA;};
 					/// Get the collision model B, with point P2
 	virtual collision::ChCollisionModel* GetModelB() {return this->modB;};
+
+	virtual void ConstraintsFbLoadForces(double factor);
 
 };
 

@@ -82,14 +82,28 @@ void ChAssembly::Copy(ChAssembly* source)
 		// copy the parent class data...
 	ChPhysicsItem::Copy(source);
 
-		// copy the parent class data...
-	ChFrameMoving<double>::operator=(*source);
-
 	do_collide = source->do_collide;
 	do_limit_speed = source->do_limit_speed;
 
 	max_speed = source->max_speed;
 	max_wvel  = source->max_wvel;
+}
+
+void ChAssembly::SetSystem(ChSystem* m_system)
+{
+	this->system=m_system;
+	HIER_BODY_INIT
+	while (HIER_BODY_NOSTOP)
+	{
+		Bpointer->SetSystem(m_system);
+		HIER_BODY_NEXT
+	}
+	HIER_LINK_INIT
+	while (HIER_LINK_NOSTOP)
+	{
+		Lpointer->SetSystem(m_system);
+		HIER_LINK_NEXT
+	}
 }
 
 void ChAssembly::Clear()
@@ -104,9 +118,8 @@ void ChAssembly::RemoveAllBodies()
 	HIER_BODY_INIT
 	while (HIER_BODY_NOSTOP)
 	{
-		// remove from collision system
-		if (Bpointer->GetCollide())
-			Bpointer->RemoveCollisionModelsFromSystem(); 
+		// make sure to remove bodies from collision system before calling this.
+
 		// nullify backward link to system
 		Bpointer->SetSystem(0);	
 		// this may delete the body, if none else's still referencing it..
@@ -174,222 +187,195 @@ int ChAssembly::GetDOC_d()
 //// 
 void ChAssembly::InjectVariables(ChLcpSystemDescriptor& mdescriptor)
 {	
-	for (unsigned int j = 0; j < bodylist.size(); j++)
+	HIER_BODY_INIT
+	while HIER_BODY_NOSTOP
 	{
-		this->bodylist[j]->InjectVariables(mdescriptor);
+		Bpointer->InjectVariables(mdescriptor);
+		HIER_BODY_NEXT
 	}
 }
 
 
 void ChAssembly::VariablesFbReset()
 {
-	for (unsigned int j = 0; j < bodylist.size(); j++)
+	HIER_BODY_INIT
+	while HIER_BODY_NOSTOP
 	{
-		this->bodylist[j]->Variables().Get_fb().FillElem(0.0);
+		Bpointer->VariablesFbReset();
+		HIER_BODY_NEXT
 	}
 }
 
 void ChAssembly::VariablesFbLoadForces(double factor)
 {
-	for (unsigned int j = 0; j < bodylist.size(); j++)
+	HIER_BODY_INIT
+	while HIER_BODY_NOSTOP
 	{
-		// add applied forces and torques (and also the gyroscopic torque and gravity!) to 'fb' vector
-		this->bodylist[j]->Variables().Get_fb().PasteSumVector((this->bodylist[j]->Get_Xforce()) * factor ,0,0);
-		this->bodylist[j]->Variables().Get_fb().PasteSumVector((this->bodylist[j]->Get_Xtorque()-this->bodylist[j]->Get_gyro())  * factor ,3,0);
+		Bpointer->VariablesFbLoadForces(factor);
+		HIER_BODY_NEXT
 	}
 }
 
 
 void ChAssembly::VariablesQbLoadSpeed()
 {
-	for (unsigned int j = 0; j < bodylist.size(); j++)
+	HIER_BODY_INIT
+	while HIER_BODY_NOSTOP
 	{
-		// set current speed in 'qb', it can be used by the LCP solver when working in incremental mode
-		this->bodylist[j]->Variables().Get_qb().PasteVector(this->bodylist[j]->GetCoord_dt().pos,0,0);
-		this->bodylist[j]->Variables().Get_qb().PasteVector(this->bodylist[j]->GetWvel_loc()    ,3,0);
+		Bpointer->VariablesQbLoadSpeed();
+		HIER_BODY_NEXT
 	}
 }
 
 
 void ChAssembly::VariablesQbSetSpeed(double step)
 {
-	for (unsigned int j = 0; j < bodylist.size(); j++)
+	HIER_BODY_INIT
+	while HIER_BODY_NOSTOP
 	{
-		ChCoordsys<> old_coord_dt = this->bodylist[j]->GetCoord_dt();
-
-		// from 'qb' vector, sets body speed, and updates auxiliary data
-		this->bodylist[j]->SetPos_dt(   this->bodylist[j]->Variables().Get_qb().ClipVector(0,0) );
-		this->bodylist[j]->SetWvel_loc( this->bodylist[j]->Variables().Get_qb().ClipVector(3,0) );
-
-		// apply limits (if in speed clamping mode) to speeds.
-		//ClampSpeed(); NO - do only per-particle, here.. (but.. really needed here?)
-
-		// Compute accel. by BDF (approximate by differentiation);
-		if (step)
-		{
-			this->bodylist[j]->SetPos_dtdt( (this->bodylist[j]->GetCoord_dt().pos - old_coord_dt.pos)  / step);
-			this->bodylist[j]->SetRot_dtdt( (this->bodylist[j]->GetCoord_dt().rot - old_coord_dt.rot)  / step);
-		}
+		Bpointer->VariablesQbSetSpeed(step);
+		HIER_BODY_NEXT
 	}
 }
 
 void ChAssembly::VariablesQbIncrementPosition(double dt_step)
 {
-	//if (!this->IsActive()) 
-	//	return;
-
-	for (unsigned int j = 0; j < bodylist.size(); j++)
+	HIER_BODY_INIT
+	while HIER_BODY_NOSTOP
 	{
-		// Updates position with incremental action of speed contained in the
-		// 'qb' vector:  pos' = pos + dt * speed   , like in an Eulero step.
-
-		ChVector<> newspeed = this->bodylist[j]->Variables().Get_qb().ClipVector(0,0);
-		ChVector<> newwel   = this->bodylist[j]->Variables().Get_qb().ClipVector(3,0);
-
-		// ADVANCE POSITION: pos' = pos + dt * vel
-		this->bodylist[j]->SetPos( this->bodylist[j]->GetPos() + newspeed * dt_step);
-
-		// ADVANCE ROTATION: rot' = [dt*wwel]%rot  (use quaternion for delta rotation)
-		ChQuaternion<> mdeltarot;
-		ChQuaternion<> moldrot = this->bodylist[j]->GetRot();
-		ChVector<> newwel_abs = (*(this->bodylist[j]->GetA())) * newwel;
-		double mangle = newwel_abs.Length() * dt_step;
-		newwel_abs.Normalize();
-		mdeltarot.Q_from_AngAxis(mangle, newwel_abs);
-		ChQuaternion<> mnewrot = mdeltarot % moldrot;
-		this->bodylist[j]->SetRot( mnewrot );
+		Bpointer->VariablesQbIncrementPosition(dt_step);
+		HIER_BODY_NEXT
 	}
 }
 
 void ChAssembly::InjectConstraints(ChLcpSystemDescriptor& mdescriptor)
 {
-	std::list<ChLink*>::iterator iterlink = linklist.begin();
-	while (iterlink != linklist.end())
+	HIER_LINK_INIT
+	while HIER_LINK_NOSTOP
 	{
-		(*iterlink)->InjectConstraints(mdescriptor);
-		iterlink++;
+		Lpointer->InjectConstraints(mdescriptor);
+		HIER_LINK_NEXT
 	}
 }
 
 void ChAssembly::ConstraintsBiReset()
 {
-	std::list<ChLink*>::iterator iterlink = linklist.begin();
-	while (iterlink != linklist.end())
+	HIER_LINK_INIT
+	while HIER_LINK_NOSTOP
 	{
-		(*iterlink)->ConstraintsBiReset();
-		iterlink++;
+		Lpointer->ConstraintsBiReset();
+		HIER_LINK_NEXT
 	}
 }
 
 void ChAssembly::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) 
 {
-	std::list<ChLink*>::iterator iterlink = linklist.begin();
-	while (iterlink != linklist.end())
+	HIER_LINK_INIT
+	while HIER_LINK_NOSTOP
 	{
-		(*iterlink)->ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
-		iterlink++;
+		Lpointer->ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
+		HIER_LINK_NEXT
 	}
 }
 
 void ChAssembly::ConstraintsBiLoad_Ct(double factor)
 {
-	std::list<ChLink*>::iterator iterlink = linklist.begin();
-	while (iterlink != linklist.end())
+	HIER_LINK_INIT
+	while HIER_LINK_NOSTOP
 	{
-		(*iterlink)->ConstraintsBiLoad_Ct(factor);
-		iterlink++;
+		Lpointer->ConstraintsBiLoad_Ct(factor);
+		HIER_LINK_NEXT
 	}
 }
 
 void ChAssembly::ConstraintsBiLoad_Qc(double factor)
 {
-	std::list<ChLink*>::iterator iterlink = linklist.begin();
-	while (iterlink != linklist.end())
+	HIER_LINK_INIT
+	while HIER_LINK_NOSTOP
 	{
-		(*iterlink)->ConstraintsBiLoad_Qc(factor);
-		iterlink++;
+		Lpointer->ConstraintsBiLoad_Qc(factor);
+		HIER_LINK_NEXT
 	}
 }
 
 void ChAssembly::ConstraintsFbLoadForces(double factor)
 {
-	std::list<ChLink*>::iterator iterlink = linklist.begin();
-	while (iterlink != linklist.end())
+	HIER_LINK_INIT
+	while HIER_LINK_NOSTOP
 	{
-		(*iterlink)->ConstraintsFbLoadForces(factor);
-		iterlink++;
+		Lpointer->ConstraintsFbLoadForces(factor);
+		HIER_LINK_NEXT
 	}
 }
 
 void ChAssembly::ConstraintsLoadJacobians()
 {
-	std::list<ChLink*>::iterator iterlink = linklist.begin();
-	while (iterlink != linklist.end())
+	HIER_LINK_INIT
+	while HIER_LINK_NOSTOP
 	{
-		(*iterlink)->ConstraintsLoadJacobians();
-		iterlink++;
+		Lpointer->ConstraintsLoadJacobians();
+		HIER_LINK_NEXT
 	}
 }
 
 void ChAssembly::ConstraintsLiLoadSuggestedSpeedSolution()
 {
-	std::list<ChLink*>::iterator iterlink = linklist.begin();
-	while (iterlink != linklist.end())
+	HIER_LINK_INIT
+	while HIER_LINK_NOSTOP
 	{
-		(*iterlink)->ConstraintsLiLoadSuggestedSpeedSolution();
-		iterlink++;
+		Lpointer->ConstraintsLiLoadSuggestedSpeedSolution();
+		HIER_LINK_NEXT
 	}
 }
 
 void ChAssembly::ConstraintsLiLoadSuggestedPositionSolution()
 {
-	std::list<ChLink*>::iterator iterlink = linklist.begin();
-	while (iterlink != linklist.end())
+	HIER_LINK_INIT
+	while HIER_LINK_NOSTOP
 	{
-		(*iterlink)->ConstraintsLiLoadSuggestedPositionSolution();
-		iterlink++;
+		Lpointer->ConstraintsLiLoadSuggestedPositionSolution();
+		HIER_LINK_NEXT
 	}
 }
 
 void ChAssembly::ConstraintsLiFetchSuggestedSpeedSolution()
 {
-	std::list<ChLink*>::iterator iterlink = linklist.begin();
-	while (iterlink != linklist.end())
+	HIER_LINK_INIT
+	while HIER_LINK_NOSTOP
 	{
-		(*iterlink)->ConstraintsLiFetchSuggestedSpeedSolution();
-		iterlink++;
+		Lpointer->ConstraintsLiFetchSuggestedSpeedSolution();
+		HIER_LINK_NEXT
 	}
 }
 
 void ChAssembly::ConstraintsLiFetchSuggestedPositionSolution()
 {
-	std::list<ChLink*>::iterator iterlink = linklist.begin();
-	while (iterlink != linklist.end())
+	HIER_LINK_INIT
+	while HIER_LINK_NOSTOP
 	{
-		(*iterlink)->ConstraintsLiFetchSuggestedPositionSolution();
-		iterlink++;
+		Lpointer->ConstraintsLiFetchSuggestedPositionSolution();
+		HIER_LINK_NEXT
 	}
 }
 
 void ChAssembly::ConstraintsFetch_react(double factor)
 {
-	std::list<ChLink*>::iterator iterlink = linklist.begin();
-	while (iterlink != linklist.end())
+	HIER_LINK_INIT
+	while HIER_LINK_NOSTOP
 	{
-		(*iterlink)->ConstraintsFetch_react(factor);
-		iterlink++;
+		Lpointer->ConstraintsFetch_react(factor);
+		HIER_LINK_NEXT
 	}
 }
 
 
 void ChAssembly::SetNoSpeedNoAcceleration()
 {
-	for (unsigned int j = 0; j < bodylist.size(); j++)
+	HIER_BODY_INIT
+	while HIER_BODY_NOSTOP
 	{
-		this->bodylist[j]->SetPos_dt(VNULL);
-		this->bodylist[j]->SetWvel_loc(VNULL);
-		this->bodylist[j]->SetPos_dtdt(VNULL);
-		this->bodylist[j]->SetRot_dtdt(QNULL);
+		Bpointer->SetNoSpeedNoAcceleration();
+		HIER_BODY_NEXT
 	}
 }
 
@@ -397,18 +383,11 @@ void ChAssembly::SetNoSpeedNoAcceleration()
 ////
 void ChAssembly::ClampSpeed()
 {
-	if (this->GetLimitSpeed())
+	HIER_BODY_INIT
+	while HIER_BODY_NOSTOP
 	{
-		for (unsigned int j = 0; j < bodylist.size(); j++)
-		{
-			double w = 2.0*this->bodylist[j]->GetRot_dt().Length();
-			if (w > max_wvel)
-				this->bodylist[j]->SetRot_dt(this->bodylist[j]->GetRot_dt() * max_wvel/w);
-		
-			double v = this->bodylist[j]->GetPos_dt().Length();
-			if (v > max_speed)
-				this->bodylist[j]->SetPos_dt(this->bodylist[j]->GetPos_dt() * max_speed/v);
-		}
+		Bpointer->ClampSpeed();
+		HIER_BODY_NEXT
 	}
 }
 
@@ -431,15 +410,17 @@ void ChAssembly::Update (double mytime)
 	ChTime = mytime;
 	ClampSpeed();			// Apply limits (if in speed clamping mode) to speeds.
 
-	for (unsigned int j = 0; j < bodylist.size(); j++)
+	HIER_BODY_INIT
+	while HIER_BODY_NOSTOP
 	{
-		this->bodylist[j]->Update(ChTime);
+		Bpointer->Update(mytime);
+		HIER_BODY_NEXT
 	}
-	std::list<ChLink*>::iterator iterlink = linklist.begin();
-	while (iterlink != linklist.end())
+	HIER_LINK_INIT
+	while HIER_LINK_NOSTOP
 	{
-		(*iterlink)->Update(ChTime);
-		iterlink++;
+		Lpointer->Update(mytime);
+		HIER_LINK_NEXT
 	}
 }
 
@@ -453,8 +434,8 @@ void ChAssembly::AddBody (ChSharedPtr<ChBody> newbody)
 	bodylist.push_back((newbody).get_ptr());
 
 	// add to collision system too
-	if (newbody->GetCollide())
-		newbody->AddCollisionModelsToSystem(); 
+	//if (newbody->GetCollide())
+	//	newbody->AddCollisionModelsToSystem();
 }
 
 void ChAssembly::AddLink (ChLink* newlink)
@@ -525,10 +506,7 @@ void ChAssembly::SetCollide (bool mcoll)
 		this->do_collide=true;
 		if (GetSystem())
 		{
-			for (unsigned int j = 0; j < bodylist.size(); j++)
-			{
-				GetSystem()->GetCollisionSystem()->Add(this->bodylist[j]->GetCollisionModel());
-			}
+			AddCollisionModelsToSystem();
 		}
 	}
 	else 
@@ -536,19 +514,18 @@ void ChAssembly::SetCollide (bool mcoll)
 		this->do_collide = false;
 		if (GetSystem())
 		{
-			for (unsigned int j = 0; j < bodylist.size(); j++)
-			{
-				GetSystem()->GetCollisionSystem()->Remove(this->bodylist[j]->GetCollisionModel());
-			}
+			RemoveCollisionModelsFromSystem();
 		}
 	}
 }
 
 void ChAssembly::SyncCollisionModels()
 {
-	for (unsigned int j = 0; j < bodylist.size(); j++)
+	HIER_BODY_INIT
+	while HIER_BODY_NOSTOP
 	{
-		this->bodylist[j]->GetCollisionModel()->SyncPosition();
+		Bpointer->GetCollisionModel()->SyncPosition();
+		HIER_BODY_NEXT
 	}
 }
 
@@ -556,18 +533,24 @@ void ChAssembly::AddCollisionModelsToSystem()
 {
 	assert(this->GetSystem());
 	SyncCollisionModels();
-	for (unsigned int j = 0; j < bodylist.size(); j++)
+	HIER_BODY_INIT
+	while HIER_BODY_NOSTOP
 	{
-		this->GetSystem()->GetCollisionSystem()->Add(this->bodylist[j]->GetCollisionModel());
+		if (Bpointer->GetCollide())
+			this->GetSystem()->GetCollisionSystem()->Add(Bpointer->GetCollisionModel());
+		HIER_BODY_NEXT
 	}
 }
 
 void ChAssembly::RemoveCollisionModelsFromSystem() 
 {
 	assert(this->GetSystem());
-	for (unsigned int j = 0; j < bodylist.size(); j++)
+	HIER_BODY_INIT
+	while HIER_BODY_NOSTOP
 	{
-		this->GetSystem()->GetCollisionSystem()->Remove(this->bodylist[j]->GetCollisionModel());
+		if (Bpointer->GetCollide())
+			this->GetSystem()->GetCollisionSystem()->Remove(Bpointer->GetCollisionModel());
+		HIER_BODY_NEXT
 	}
 }
 
@@ -575,34 +558,43 @@ void ChAssembly::RemoveCollisionModelsFromSystem()
 
 void ChAssembly::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax)
 {
-	ChVector<> mmin(0.0, 0.0, 0.0);
-	ChVector<> mmax(0.0, 0.0, 0.0);
+	//default infinite bb
+	ChVector<> min(-1e200, -1e200, -1e200);
+	ChVector<> max( 1e200,  1e200,  1e200);
 
+	bool set = false;
 	ChVector<> tmpMin;
 	ChVector<> tmpMax;
 
-	for (unsigned int j = 0; j < bodylist.size(); j++)
+	HIER_BODY_INIT
+	while HIER_BODY_NOSTOP
 	{
-		if (this->bodylist[j]->GetCollisionModel())
+		if (Bpointer->GetCollisionModel())
 		{
-			this->bodylist[j]->GetCollisionModel()->GetAABB(tmpMin, tmpMax);
-			if (tmpMin.x<mmin.x)
-				tmpMin.x=mmin.x;
-			if (tmpMin.y<mmin.y)
-				tmpMin.y=mmin.y;
-			if (tmpMin.z<mmin.z)
-				tmpMin.z=mmin.z;
-			if (tmpMax.x>mmax.x)
-				tmpMax.x=mmax.x;
-			if (tmpMax.y>mmax.y)
-				tmpMax.y=mmax.y;
-			if (tmpMax.z>mmax.z)
-				tmpMax.z=mmax.z;
+			Bpointer->GetCollisionModel()->GetAABB(tmpMin, tmpMax);
+			if (!set)
+			{
+				min=tmpMin;
+				max=tmpMax;
+				set=true;
+			}
+			if (tmpMin.x<min.x)
+				min.x=tmpMin.x;
+			if (tmpMin.y<min.y)
+				min.y=tmpMin.y;
+			if (tmpMin.z<min.z)
+				min.z=tmpMin.z;
+			if (tmpMax.x>max.x)
+				max.x=tmpMax.x;
+			if (tmpMax.y>max.y)
+				max.y=tmpMax.y;
+			if (tmpMax.z>max.z)
+				max.z=tmpMax.z;
 		}
-
+		HIER_BODY_NEXT
 	}
-	bbmin.Set(mmin.x, mmin.y, mmin.z);
-	bbmax.Set(mmax.x, mmax.y, mmax.z);
+	bbmin.Set(min.x, min.y, min.z);
+	bbmax.Set(max.x, max.y, max.z);
 }
 
 void ChAssembly::Reference_LM_byID()
@@ -668,15 +660,40 @@ void ChAssembly::StreamOUT(ChStreamOutBinary& mstream)
 		// serialize parent class too
 	ChPhysicsItem::StreamOUT(mstream);
 
-		// serialize parent class too
-	ChFrameMoving<double>::StreamOUT(mstream);
-
 		// stream out all member data
 	mstream << do_collide;
 	mstream << do_limit_speed;
 	
 	mstream << max_speed;
 	mstream << max_wvel;
+
+	// 2a) write how many bodies
+	mstream << (int)bodylist.size();
+
+	// 2b) write  bodies
+	HIER_BODY_INIT
+	while HIER_BODY_NOSTOP
+	{
+			// write the body
+		//Bpointer->StreamOUT(mstream);
+		mstream.AbstractWriteAll(Bpointer);
+		//mstream.AbstractWrite(Bpointer);
+		HIER_BODY_NEXT
+	}
+
+	// 3a) write how many links
+	mstream << (int)linklist.size();
+
+	// 3b) write links links
+	HIER_LINK_INIT
+	while HIER_LINK_NOSTOP
+	{
+			// Writethe link, using a special downcasting function Link_BinSave which saves also the
+			// inheritance info, depending on link class inheritance from base Link*
+		mstream.AbstractWrite(Lpointer);
+
+		HIER_LINK_NEXT
+	}
 }
 
 void ChAssembly::StreamIN(ChStreamInBinary& mstream)
@@ -687,14 +704,51 @@ void ChAssembly::StreamIN(ChStreamInBinary& mstream)
 		// deserialize parent class too
 	ChPhysicsItem::StreamIN(mstream);
 
-		// deserialize parent class too
-	ChFrameMoving<double>::StreamIN(mstream);
-
 	mstream >> do_collide;
 	mstream >> do_limit_speed;
 	
 	mstream >> max_speed;
 	mstream >> max_wvel;
+
+	// 2a) read how many bodies
+	int mnbodies = 0;
+	mstream >> mnbodies;
+
+	// 2b) read  bodies
+	ChBody* newbody= NULL;
+	for (int i= 0; i<mnbodies; i++)
+	{
+		//mstream.AbstractReadCreate(&newbody);
+		mstream.AbstractReadAllCreate(&newbody);
+		ChSharedBodyPtr shitem(newbody);
+		this->AddBody(shitem);
+		/*
+		ChSharedBodyPtr newbody(new ChBody);
+		this->AddBody(newbody);
+
+		newbody->StreamIN(mstream);
+		*/
+	}
+
+	// 3a) read how many links
+	int mnlinks = 0;
+	mstream >> mnlinks;
+
+	// 3b) read  links
+	ChLink* newlink= NULL;
+	for (int j= 0; j<mnlinks; j++)
+	{
+			// read the link, using a special downcasting function Link_BinRead_Create which creates the
+			// proper inherited object, depending on its class inheritance from base Link*
+
+		mstream.AbstractReadCreate(&newlink);
+
+		ChSharedLinkPtr shlink(newlink);
+		this->AddLink(shlink);
+	}
+
+	// 3c) Rebuild link pointers to markers
+	this->Reference_LM_byID();
 }
 
 
@@ -705,7 +759,13 @@ void ChAssembly::StreamOUTstate(ChStreamOutBinary& mstream)
 	// Do not serialize parent classes and do not
 	// implement versioning, because this must be efficient 
 	// and will be used just for domain decomposition.
-	StreamOUTall(mstream);
+	HIER_BODY_INIT
+	while HIER_BODY_NOSTOP
+	{
+			// write the body + child markers + forces
+		Bpointer->StreamOUTstate(mstream);
+		HIER_BODY_NEXT
+	}
 }
 
 void ChAssembly::StreamINstate(ChStreamInBinary& mstream)
@@ -713,11 +773,17 @@ void ChAssembly::StreamINstate(ChStreamInBinary& mstream)
 	// Do not serialize parent classes and do not
 	// implement versioning, because this must be efficient 
 	// and will be used just for domain decomposition.
-	StreamINall(mstream);
+	HIER_BODY_INIT
+	while HIER_BODY_NOSTOP
+	{
+			// write the body + child markers + forces
+		Bpointer->StreamINstate(mstream);
+		HIER_BODY_NEXT
+	}
 }
 
 
-#define CH_CHUNK_END 1234
+#define CH_CHUNK_END_ASSEM 18881
 
 int ChAssembly::StreamINall  (ChStreamInBinary& m_file)
 {
@@ -732,7 +798,14 @@ int ChAssembly::StreamINall  (ChStreamInBinary& m_file)
 	this->Clear();
 
 	// 1) read system class data...
-	m_file >> *this;
+		// deserialize parent class too
+	ChPhysicsItem::StreamIN(m_file);
+
+	m_file >> do_collide;
+	m_file >> do_limit_speed;
+
+	m_file >> max_speed;
+	m_file >> max_wvel;
 
 	// 2a) read how many bodies
 	int mnbodies = 0;
@@ -768,6 +841,10 @@ int ChAssembly::StreamINall  (ChStreamInBinary& m_file)
 	// 3c) Rebuild link pointers to markers
 	this->Reference_LM_byID();
 
+	m_file >> mchunk;
+
+	if (mchunk != CH_CHUNK_END_ASSEM) return 0;
+
 	return 1;
 }
 
@@ -778,7 +855,15 @@ int ChAssembly::StreamOUTall  (ChStreamOutBinary& m_file)
 	m_file.VersionWrite(1);
 
 	// 1) write system class data...
-	m_file << *this;
+		// serialize parent class too
+	ChPhysicsItem::StreamOUT(m_file);
+
+		// stream out all member data
+	m_file << do_collide;
+	m_file << do_limit_speed;
+
+	m_file << max_speed;
+	m_file << max_wvel;
 
 	// 2a) write how many bodies
 	m_file << (int)bodylist.size();
@@ -806,7 +891,7 @@ int ChAssembly::StreamOUTall  (ChStreamOutBinary& m_file)
 		HIER_LINK_NEXT
 	}
 
-	m_file << (int)CH_CHUNK_END;
+	m_file << (int)CH_CHUNK_END_ASSEM;
 
 	return 1;
 }

@@ -688,7 +688,7 @@ void ChBody::Update (Coordsys mypos, Coordsys mypos_dt, double mytime)
 	 mypos.rot.Normalize();
 	UpdateState (mypos, mypos_dt);
 
-	ChBody::Update();
+	Update();
 
 }
 
@@ -847,9 +847,9 @@ void ChBody::StreamOUT(ChStreamOutBinary& mstream)
 	vfoo = GetInertiaXX();	mstream << vfoo;
 	vfoo = GetInertiaXY();  mstream << vfoo;
 	
+	mstream << dfoo;
 	mstream << bflag;
 	dfoo=(double)density;	mstream << dfoo;
-	dfoo=(double)conductivity;	mstream << dfoo;
 
 	mstream << max_speed;
 	mstream << max_wvel;
@@ -861,6 +861,7 @@ void ChBody::StreamOUT(ChStreamOutBinary& mstream)
 	this->collision_model->StreamOUT(mstream); // also 	mstream << (*this->collision_model);
 
 	this->matsurface->StreamOUT(mstream); 
+	dfoo=(double)conductivity;	mstream << dfoo;
 }
 
 void ChBody::StreamIN(ChStreamInBinary& mstream)
@@ -889,9 +890,9 @@ void ChBody::StreamIN(ChStreamInBinary& mstream)
 		ChVector<> vfoo;
 		mstream >> vfoo;		SetInertiaXX(vfoo);
 		mstream >> vfoo;		SetInertiaXY(vfoo);
+		mstream >> dfoo; //bdamper;
 		if (version <7)
 		{
-			mstream >> dfoo;		//bdamper;
 			mstream >> dfoo;		matsurface->SetRestitution((float)dfoo);
 			mstream >> dfoo;		//matsurface->SetRestitutionT((float)dfoo);
 			mstream >> dfoo;		matsurface->SetKfriction((float)dfoo);
@@ -899,7 +900,6 @@ void ChBody::StreamIN(ChStreamInBinary& mstream)
 		}
 		mstream >> bflag;
 		mstream >> dfoo;		density = (float)dfoo;
-		mstream >> dfoo;		conductivity = (float)dfoo;
 		SetBodyFixed(mlock != 0);
 	}
 	if (version >=2)
@@ -914,13 +914,15 @@ void ChBody::StreamIN(ChStreamInBinary& mstream)
 		mstream >> vfoo;		SetInertiaXX(vfoo);
 		mstream >> vfoo;		SetInertiaXY(vfoo);
 		mstream >> dfoo; //bdamper;
-		mstream >> dfoo;		matsurface->SetRestitution((float)dfoo);
-		mstream >> dfoo;		//matsurface->SetRestitutionT((float)dfoo);
-		mstream >> dfoo;		matsurface->SetKfriction((float)dfoo);
-		mstream >> dfoo;		matsurface->SetSfriction((float)dfoo);
+		if (version <7)
+		{
+			mstream >> dfoo;		matsurface->SetRestitution((float)dfoo);
+			mstream >> dfoo;		//matsurface->SetRestitutionT((float)dfoo);
+			mstream >> dfoo;		matsurface->SetKfriction((float)dfoo);
+			mstream >> dfoo;		matsurface->SetSfriction((float)dfoo);
+		}
 		mstream >> bflag;
 		mstream >> dfoo;		density = (float)dfoo;
-		mstream >> dfoo;		conductivity = (float)dfoo;
 		if(this->GetBodyFixed())
 			SetBodyFixed(true);
 		else SetBodyFixed(false);
@@ -949,7 +951,9 @@ void ChBody::StreamIN(ChStreamInBinary& mstream)
 	}
 	if (version >=7)
 	{
-		this->matsurface->StreamIN(mstream); 
+		double dfoo;
+		this->matsurface->StreamIN(mstream);
+		mstream >> dfoo;		conductivity = (float)dfoo;
 	}
 }
 

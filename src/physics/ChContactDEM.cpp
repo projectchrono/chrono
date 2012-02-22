@@ -43,7 +43,9 @@ ChContactDEM::ChContactDEM (		collision::ChCollisionModel* mmodA,	///< model A
 						double mdistance,				///< pass the distance (negative for penetration)
 						float* mreaction_cache,			///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
 						double  mkn,				///< spring coeff.
-						double  mgn				///< damping coeff.
+						double  mgn,				///< damping coeff.
+						double  mkt,				///< tangential spring coeff.
+						double mfriction			///< friction coeff.
 				)
 { 
 	Reset(	mmodA, mmodB,
@@ -57,7 +59,9 @@ ChContactDEM::ChContactDEM (		collision::ChCollisionModel* mmodA,	///< model A
 			mdistance,		  ///< pass the distance (negative for penetration)
 			mreaction_cache,	  ///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
 			mkn,
-			mgn
+			mgn,
+			mkt,
+			mfriction
 				);
 }
 
@@ -78,7 +82,9 @@ void ChContactDEM::Reset(	collision::ChCollisionModel* mmodA,	///< model A
 							double mdistance,				///< pass the distance (negative for penetration)
 							float* mreaction_cache,			///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
 							double  mkn,				///< spring coeff.
-							double  mgn				///< damping coeff.
+							double  mgn,				///< damping coeff.
+							double  mkt,				///< tangential spring coeff.
+							double mfriction			///< friction coeff.
 				)
 {
 	assert (varA);
@@ -112,23 +118,64 @@ void ChContactDEM::Reset(	collision::ChCollisionModel* mmodA,	///< model A
 		ChBodyDEM* bodyB = modelB->GetBody();
 
 		//spring force
-		react_force+=mkn*mdistance*vN;
+		react_force-=mkn*pow(fabs(mdistance), 1.5)*vN;
 
-		//damping force - How to compute v_n?
+		//damping force
 		ChVector<> local_pA = bodyA->Point_World2Body(&p1);
 		ChVector<> local_pB = bodyB->Point_World2Body(&p2);
-
-		//ChVector<> v_BA = (bodyB->GetPos_dt())-(bodyA->GetPos_dt());
 		ChVector<> v_BA = (bodyB->RelPoint_AbsSpeed(&local_pB))-(bodyA->RelPoint_AbsSpeed(&local_pA));
 		ChVector<> v_n = (v_BA.Dot(vN))*vN;
-		double mmm = (bodyA->GetMass())+(bodyB->GetMass());
-		react_force+=mgn*(mmm/4)*v_n;
+		react_force+=mgn*pow(fabs(mdistance), 0.5)*v_n;
+
+		//Friction force
+		ChVector<> v_t = v_BA-v_n;
+
+		double dT = bodyA->GetSystem()->GetStep();
+		double slip = v_t.Length()*dT;
+		if (v_t.Length()>1e-4)
+		{
+			v_t.Normalize();
+		}
+		else
+		{
+			v_t.SetNull();
+		}
+
+		double tmppp= (mkt*slip)<(mfriction*react_force.Length()) ? (mkt*slip) : (mfriction*react_force.Length());
+		//double tmppp = mfriction*react_force.Length();
+		react_force+=tmppp*v_t;
 
 		//bodyA->AccumulateForce(react_force);
 		//bodyB->AccumulateForce(-react_force);
 	}
 }
 
+
+void ChContactDEM::ConstraintsFbLoadForces(double factor)
+{
+	ChModelBulletDEM* modelA = (ChModelBulletDEM*)modA;
+	ChBodyDEM* bodyA = modelA->GetBody();
+	ChModelBulletDEM* modelB = (ChModelBulletDEM*)modB;
+	ChBodyDEM* bodyB = modelB->GetBody();
+
+	ChVector<> pt1_loc = bodyA->Point_World2Body(&p1);
+	ChVector<> pt2_loc = bodyB->Point_World2Body(&p2);
+	ChVector<> force1_loc = bodyA->Dir_World2Body(&react_force);
+	ChVector<> force2_loc = bodyB->Dir_World2Body(&react_force);
+	ChVector<> torque1_loc = Vcross(pt1_loc, force1_loc);
+	ChVector<> torque2_loc = Vcross(pt2_loc, -force2_loc);
+
+	//bodyA->To_abs_forcetorque (react_force, p1, 0, mabsforceA, mabstorqueA);
+	//bodyB->To_abs_forcetorque (-react_force, p2, 0, mabsforceB, mabstorqueB);
+
+	bodyA->Variables().Get_fb().PasteSumVector( react_force*factor ,0,0);
+	//bodyA->Variables().Get_fb().PasteSumVector( (bodyA->Dir_World2Body(&mabstorqueA))*factor,3,0);
+	bodyA->Variables().Get_fb().PasteSumVector( torque1_loc*factor,3,0);
+
+	bodyB->Variables().Get_fb().PasteSumVector( -react_force*factor ,0,0);
+	//bodyB->Variables().Get_fb().PasteSumVector( (bodyB->Dir_World2Body(&mabstorqueB))*factor,3,0);
+	bodyB->Variables().Get_fb().PasteSumVector( torque2_loc*factor,3,0);
+}
 
 
 ChCoordsys<> ChContactDEM::GetContactCoords()
