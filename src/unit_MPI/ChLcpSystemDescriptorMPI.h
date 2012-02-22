@@ -112,6 +112,14 @@ public:
 
 	virtual void AddReceivedMPI ();
 
+
+		/// Testing, for now.
+	virtual void SendForcesMPI ();
+
+	virtual void ReceiveForcesMPI ();
+
+	virtual void AddReceivedForcesMPI ();
+
 };
 
 
@@ -179,6 +187,9 @@ public:
 		/// will send shared values to their matching domains, then 
 		/// data from matching domains is received and set to variables.
 	virtual void PerformCommunication();
+
+		/// Testing, for now.
+	virtual void PerformForcesCommunication();
 
 };
 

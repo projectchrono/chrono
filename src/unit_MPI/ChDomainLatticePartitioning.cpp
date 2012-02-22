@@ -9,7 +9,6 @@
 ///////////////////////////////////////////////////
 
 
-#include "mpi.h"
 #include "ChMpi.h"
 #include "ChDomainLatticePartitioning.h"
 

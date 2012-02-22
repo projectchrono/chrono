@@ -9,12 +9,14 @@
 ///////////////////////////////////////////////////
 
 
-#include "mpi.h"
 #include "ChMpi.h"
 #include "ChSystemMPI.h"
 #include "ChBodyMPI.h"
 #include "ChBodyDEMMPI.h"
+#include "ChAssemblyMPI.h"
 #include "physics/ChContactContainer.h"
+#include "unit_MPI/ChContactContainerDEMMPI.h"
+#include "collision/ChCCollisionSystemBullet.h"
 #include "ChLcpSystemDescriptorMPI.h"
 #include <algorithm>
 #include <typeinfo>
@@ -48,11 +50,17 @@ namespace chrono
 {
 
 
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChSystemMPI> a_registration_ChSystemMPI;
 
 
 
-ChSystemMPI::ChSystemMPI()
+ChSystemMPI::ChSystemMPI(unsigned int max_objects, double scene_size)
 {
+	ChSystem::ChSystem(max_objects, scene_size, false);
+	collision_system = new ChCollisionSystemBullet(max_objects, scene_size);
+	parallel_thread_number=0;
 	//GetLog() << "creating system";
 }
 
@@ -687,8 +695,8 @@ void ChSystemMPI::WriteOrderedDumpAABB(ChMPIfile& output)
 {
 	// save items contained in domain on file, if any, as simple xyz position
 	std::string mstring = "";
-	ChSystem::IteratorOtherPhysicsItems miterator = IterBeginOtherPhysicsItems();
-	while (miterator != IterEndOtherPhysicsItems())
+	std::list<ChPhysicsItem*>::iterator miterator = this->Get_otherphysicslist()->begin();
+	while (miterator != this->Get_otherphysicslist()->end())
 	{
 		ChVector<> mmin, mmax;
 		(*miterator)->GetTotalAABB(mmin, mmax);
@@ -724,6 +732,19 @@ void ChSystemMPI::WriteOrderedDumpAABB(ChMPIfile& output)
 		char buffer[100];
 		sprintf(buffer, "%d, %d, %d, %g, %g, %g, %g, %g, %g ,\n", this->nodeMPI.id_MPI, (*miterator)->GetIdentifier(), mshared, mmin.x, mmin.y, mmin.z, mmax.x, mmax.y, mmax.z);
 		mstring.append(buffer);
+
+		if (ChAssemblyMPI* assem = dynamic_cast<ChAssemblyMPI*>(*miterator))
+		{
+			std::vector<ChBody*>::iterator assem_bod = assem->Get_bodylist()->begin();
+			while ( assem_bod != assem->Get_bodylist()->end() )
+			{
+				ChBody* cbod = (ChBody*)*assem_bod;
+				cbod->GetTotalAABB(mmin, mmax);
+				sprintf(buffer, "%d, %d, %d, %g, %g, %g, %g, %g, %g ,\n", this->nodeMPI.id_MPI, cbod->GetIdentifier(), mshared, mmin.x, mmin.y, mmin.z, mmax.x, mmax.y, mmax.z);
+				mstring.append(buffer);
+				assem_bod++;
+			}
+		}
 		++miterator;
 	}
 
@@ -781,7 +802,49 @@ void ChSystemMPI::WriteOrderedDumpState(ChMPIfile& output)
 			sprintf(buffer, "%d, %d, %d, %g, %g, %g, %g, %g, %g,\n", this->nodeMPI.id_MPI, bod->GetIdentifier(), mshared, pos.x, pos.y, pos.z, angs.x, angs.y, angs.z);
 			mstring.append(buffer);
 		}
+		else if (ChAssemblyMPI* assem = dynamic_cast<ChAssemblyMPI*>(*iterbod))
+		{
+			std::vector<ChBody*>::iterator assem_bod = assem->Get_bodylist()->begin();
+			while ( assem_bod != assem->Get_bodylist()->end() )
+			{
+				ChBody* cbod = (ChBody*)*assem_bod;
+				pos = cbod->GetPos();
+				rot = cbod->GetRot();
+				angs = rot.Q_to_NasaAngles();
+				char buffer[100];
+				sprintf(buffer, "%d, %d, %d, %g, %g, %g, %g, %g, %g,\n", this->nodeMPI.id_MPI, cbod->GetIdentifier(), mshared, pos.x, pos.y, pos.z, angs.x, angs.y, angs.z);
+				mstring.append(buffer);
+				assem_bod++;
+			}
+		}
 		iterbod++;
+	}
+
+	output.WriteOrdered((char*)mstring.c_str(), strlen(mstring.c_str()));
+}
+
+
+
+void ChSystemMPI::WriteOrderedDumpContacts(ChMPIfile& output)
+{
+	// save contacts in domain on file, if any
+	std::string mstring = "";
+	chrono::Vector pos;
+	chrono::Quaternion rot;
+	chrono::Vector angs;
+
+	if (ChContactContainerDEMMPI* c_con = dynamic_cast<ChContactContainerDEMMPI*>(this->GetContactContainer()))
+	{
+		std::list<ChContactDEM*>::iterator itercon = c_con->Get_contactlist()->begin();
+		while (itercon != c_con->Get_contactlist()->end() )
+		{
+			ChContactDEM* cnct = (ChContactDEM*)*itercon;
+			char buffer[100];
+			sprintf(buffer, "%d, %d, %d, %g, %g, %g, %g, %g, %g,\n", this->nodeMPI.id_MPI, cnct->GetModelA()->GetPhysicsItem()->GetIdentifier(), cnct->GetModelB()->GetPhysicsItem()->GetIdentifier(), cnct->GetContactForce().x, cnct->GetContactForce().y, cnct->GetContactForce().z, cnct->GetContactP1().x, cnct->GetContactP1().y, cnct->GetContactP1().z);
+			mstring.append(buffer);
+			itercon++;
+		}
+
 	}
 
 	output.WriteOrdered((char*)mstring.c_str(), strlen(mstring.c_str()));

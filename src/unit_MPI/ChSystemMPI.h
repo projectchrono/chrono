@@ -30,7 +30,10 @@ class ChApiMPI ChSystemMPI : public ChSystem
 {
 public:
 
-	ChSystemMPI();
+	// Chrono simulation of RTTI, needed for serialization
+	CH_RTTI(ChSystemMPI,ChSystem);
+
+	ChSystemMPI(unsigned int max_objects = 16000, double scene_size = 500);
 	virtual ~ChSystemMPI();
 
 	// Override base class functions
@@ -81,6 +84,9 @@ public:
 				/// NOTE: it must be called by all domains, no exceptions, becuse it contains 
 				/// a MPI_File_write_ordered()
 	virtual void WriteOrderedDumpState(ChMPIfile& output);
+
+				/// For debugging: dump contact info
+	void WriteOrderedDumpContacts(ChMPIfile& output);
 
 				/// For debugging: call this function to dump interfce data etc. as ASCII
 				/// NOTE: it must be called by all domains, no exceptions, becuse it contains 

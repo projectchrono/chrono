@@ -33,6 +33,8 @@ IF(ENABLE_UNIT_MPI)
 		ChSystemMPI.cpp 
 		ChBodyMPI.cpp
 		ChDomainLatticePartitioning.cpp
+		ChAssemblyMPI.cpp
+		ChContactContainerDEMMPI.cpp
 		)
 	SET(ChronoEngine_unit_MPI_HEADERS
 		ChApiMPI.h 
@@ -45,6 +47,8 @@ IF(ENABLE_UNIT_MPI)
 		ChSystemMPI.h 
 		ChBodyMPI.h
 		ChDomainLatticePartitioning.h
+		ChAssemblyMPI.h
+		ChContactContainerDEMMPI.h
 		)
 	#SET_SOURCE_FILES_PROPERTIES(ChronoEngine_unit_MPI_HEADERS PROPERTIES  HEADER_FILE_ONLY)
 	SOURCE_GROUP(unit_MPI FILES 
@@ -64,7 +68,7 @@ IF(ENABLE_UNIT_MPI)
 	ENDIF()
 	
 	SET (CH_MPIINC "${MPI_INCLUDE_PATH}" CACHE STRING "Set the directory of MPI headers")
-	SET (CH_MPILIB "${MPI_LIBRARY}" CACHE STRING "Set the MPI library mpi.lib")
+	SET (CH_MPILIB "${MPI_LIBRARIES}" CACHE STRING "Set the MPI library mpi.lib") #for now, force to use C lib
 	
 	IF ("${CH_OS}" STREQUAL "WINDOWS")
 		SET (CH_JAVASCRIPTFLAGS "${CH_JAVASCRIPTFLAGS} -DXP_WIN")
@@ -100,8 +104,8 @@ IF(ENABLE_UNIT_MPI)
 	                          ARCHIVE_OUTPUT_DIRECTORY_DEBUG   "${CH_LIBDIR}"
 	                          RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
 	                          RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}"
-	                          LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	                          LIBRARY_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}"
+	                          LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CH_LIBDIR}"
+	                          LIBRARY_OUTPUT_DIRECTORY_DEBUG   "${CH_LIBDIR}"
 	                           RUNTIME_OUTPUT_NAME_DEBUG "ChronoEngine_MPIDBG"
 	                           LIBRARY_OUTPUT_NAME_DEBUG "ChronoEngine_MPIDBG"
 	                           ARCHIVE_OUTPUT_NAME_DEBUG "ChronoEngine_MPIDBG")

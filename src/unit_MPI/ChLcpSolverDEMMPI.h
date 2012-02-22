@@ -18,7 +18,7 @@
 
 
 #include "unit_MPI/ChApiMPI.h"
-#include "lcp/ChLcpDirectSolver.h"
+#include "lcp/ChLcpIterativeSolver.h"
 
 
 namespace chrono
@@ -29,7 +29,7 @@ namespace chrono
 /// when multiple processes are using ChLcpSystemDescriptorMPI
 /// that can communicate via MPI.
 
-class ChApiMPI ChLcpSolverDEMMPI : public ChLcpDirectSolver
+class ChApiMPI ChLcpSolverDEMMPI : public ChLcpIterativeSolver
 {
 protected:
 			//
@@ -42,7 +42,13 @@ public:
 			// CONSTRUCTORS
 			//
 
-	ChLcpSolverDEMMPI() : ChLcpDirectSolver() 
+	ChLcpSolverDEMMPI(
+							int mmax_iters=50,      ///< max.number of iterations
+							bool mwarm_start=false,	///< uses warm start?
+							double mtolerance=0.0,  ///< tolerance for termination criterion
+							double momega=1.0       ///< overrelaxation criterion
+							)
+			: ChLcpIterativeSolver(mmax_iters,mwarm_start, mtolerance,momega)
 			{};
 				
 	virtual ~ChLcpSolverDEMMPI() {};

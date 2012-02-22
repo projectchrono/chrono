@@ -10,6 +10,7 @@
 
      
 #include "ChBodyDEMMPI.h"
+#include "unit_MPI/ChSystemMPI.h"
 #include "ChLcpSystemDescriptorMPI.h"
 
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
@@ -91,7 +92,90 @@ void ChBodyDEMMPI::InjectVariables(ChLcpSystemDescriptor& mdescriptor)
 
 }
 
+void ChBodyDEMMPI::Update (double mytime)
+{
+	UpdateTime(mytime);
+	Update();
+}
 
+void ChBodyDEMMPI::Update ()
+{
+	//TrySleeping();			// See if the body can fall asleep; if so, put it to sleeping
+	ClampSpeed();			// Apply limits (if in speed clamping mode) to speeds.
+	ComputeGyro ();			// Set the gyroscopic momentum.
+
+		// Also update the children "markers" and
+		// "forces" depending on the body current state.
+	UpdateMarkers(ChTime);
+
+	bool inc_f=false;
+	if (ChSystemMPI* syss = dynamic_cast<ChSystemMPI*>(this->GetSystem()))
+	{
+		ChVector<> center;
+		this->GetCenter(center);
+		if( (*syss).nodeMPI.IsInto( center ) )
+		{
+			inc_f=true;
+		}
+	}
+	UpdateForces(ChTime, inc_f);
+}
+
+void ChBodyDEMMPI::UpdateForces (double mytime, bool incr)
+{
+	// COMPUTE LAGRANGIAN FORCES APPLIED TO BODY
+
+	Xforce = VNULL;
+	Xtorque = VNULL;
+
+	if (ChSystemMPI* syss = dynamic_cast<ChSystemMPI*>(this->GetSystem()))
+	{
+		if( incr )
+		{
+			// 1 - force caused by stabilizing damper ***OFF***
+
+			// 2a- force caused by accumulation of forces in body's accumulator Force_acc
+			if (Vnotnull(&Force_acc))
+			{
+				Xforce = Force_acc;
+			}
+
+			// 2b- force caused by accumulation of torques in body's accumulator Force_acc
+			if (Vnotnull(&Torque_acc))
+			{
+				Xtorque = Dir_World2Body(&Torque_acc);
+			}
+
+			// 3 - accumulation of other applied forces
+			std::vector<ChForce*>::iterator iforce = forcelist.begin();
+			while (iforce != forcelist.end())
+			{
+				  // update positions, f=f(t,q)
+				(*iforce)->Update (mytime);
+
+				ChVector<> mforce;
+				ChVector<> mtorque;
+				(*iforce)->GetBodyForceTorque(&mforce,&mtorque);
+				Xforce  += mforce;
+				Xtorque += mtorque;
+
+				iforce++;
+			}
+
+			// 4 - accumulation of script forces
+			if (Vnotnull(&Scr_force))
+			{
+				Xforce += Scr_force;
+			}
+			if (Vnotnull(&Scr_torque))
+			{
+				Xtorque += Dir_World2Body(&Scr_torque);
+			}
+
+			Xforce += GetSystem()->Get_G_acc() * this->GetMass();
+		}
+	}
+}
 
 
 //////// FILE I/O

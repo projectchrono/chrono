@@ -1,11 +1,12 @@
-#ifndef CHBODYDEMMPI_H
-#define CHBODYDEMMPI_H
+#ifndef CHASSEMBLYMPI_H
+#define CHASSEMBLYMPI_H
 
 //////////////////////////////////////////////////
 //
-//   ChBodyDEMMPI.h
+//   ChAssemblyMPI.h
 //
-//   Class for rigid bodies to be used in MPI
+//   Class for an assembly of constrained bodies
+//   to be considered together.
 //
 //   HEADER file for CHRONO,
 //	 Multibody dynamics engine
@@ -17,21 +18,21 @@
 ///////////////////////////////////////////////////
 
 #include "ChMpi.h"
-#include "physics/ChBodyDEM.h"
+#include "physics/ChAssembly.h"
 #include "ChDomainNodeMPI.h"
 
 
 namespace chrono
 {
 
-/// Class for rigid bodies that can be used in MPI.
+/// Class for an assembly of rigid bodies and constraints that can be used in MPI.
 /// These are able to cross boundaries of domain decomposition.
 
-class ChApiMPI ChBodyDEMMPI : public ChBodyDEM 
+class ChApiMPI ChAssemblyMPI : public ChAssembly 
 {
 public:
 						// Chrono simulation of RTTI, needed for serialization
-	CH_RTTI(ChBodyDEMMPI,ChBodyDEM);
+	CH_RTTI(ChAssemblyMPI,ChAssembly);
 
 
 
@@ -39,30 +40,11 @@ public:
 	  		// CONSTRUCTORS
 			//
 
-				/// Build a rigid body.
-	ChBodyDEMMPI ();
+				/// Build an assembly.
+	ChAssemblyMPI ();
 				/// Destructor
-	~ChBodyDEMMPI ();
+	~ChAssemblyMPI ();
 
-
-				/// Tell to a system descriptor that there are variables of type
-				/// ChLcpVariables in this object (for further passing it to a LCP solver).
-				/// When the ChLcpSystemDescriptor is a ChSystemDescriptorMPIlattice3D special
-				/// type, it also sets the 'shared variables' information into it.
-	virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
-
-				/// Update all auxiliary data of the rigid body and of
-				/// its children (markers, forces..), at given time
-	virtual void Update (double mytime);
-
-				/// Update all auxiliary data of the rigid body and of
-				/// its children (markers, forces..)
-	virtual void Update ();
-
-				/// Update all children forces of the rigid body, at current body state.
-				/// If incr=true, add the body forces (gravity, forces, accumulators, scripts)
-				/// If incr=false, reset the forces to 0.
-	void UpdateForces (double mytime, bool incr);
 
 				/// Gets the 27 bits about which boundary is overlapping with, and returns it.
 	int GetOverlapFlags() {return last_shared;};
@@ -70,6 +52,12 @@ public:
 
 				/// Sets the 27 bits about which boundary is overlapping with, and returns it.
 	int ComputeOverlapFlags(ChDomainNodeMPIlattice3D& mnode);
+
+				/// Update all auxiliary data of the assembly at given time
+	virtual void Update (double mytime);
+
+				/// Update all auxiliary data of the assembly
+	virtual void Update ();
 
 
 			//
@@ -97,7 +85,7 @@ private:
 
 
 
-typedef ChSharedPtr<ChBodyDEMMPI> ChSharedBodyDEMMPIPtr;
+typedef ChSharedPtr<ChAssemblyMPI> ChSharedAssemblyMPIPtr;
 
 
 
@@ -105,3 +93,4 @@ typedef ChSharedPtr<ChBodyDEMMPI> ChSharedBodyDEMMPIPtr;
 
 
 #endif
+
