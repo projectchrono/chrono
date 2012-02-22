@@ -411,6 +411,38 @@ public:
 					return pObj;
 				}
 
+					/// Stores an object, given the pointer, into the archive.
+					/// This function can be used to serialize objects from
+					/// nontrivial class trees, where at load time one may wonder
+					/// which was the class type of the saved object.
+					/// Note: the object must be load with ChStreamInBinary::AbstractReadCreate()
+					/// Also, the AbstractWrite()-AbstractReadCreate() mechanism avoids
+					/// storing/creating multiple times the shared objects.
+					/// Supports only objects with Chrono RTTI and serializer member StreamOUT().
+		template <class t>
+		t* AbstractWriteAll(t* pObj)
+					{
+						int pos=PutPointer(pObj);
+
+						if (pos==-1)
+						{
+							pObj->GetRTTI()->GetName();
+							//New Object, we have to full serialize it
+							std::string str = pObj->GetRTTI()->GetName();
+							*this << str;		// serialize class type
+							pObj->StreamOUTall(*this); // serialize data
+						}
+						else
+						{
+							//Object already in list. Only store position
+							std::string str="NULL";
+							*this << str;	// serialize 'this was already saved' info
+							*this << pos;	// serialize position in pointers vector
+						}
+
+						return pObj;
+					}
+
 				/// Some objects may write class version at the beginning
 				/// of the streamed data, using this function.
 	void VersionWrite(int mver);
@@ -520,6 +552,53 @@ public:
 
 					return *mObj;
 				}
+
+					/// Extract an object from the archive, and assignes the pointer to it.
+					/// This function can be used to load objects whose class is not
+					/// known in advance (anyway, assuming the class had been registered
+					/// with Chrono class factory registration). It _creates_ the object
+					/// of the proper downcasted class, and deserializes it.
+					/// Note: the object must be saved with ChStreamOutBinary::AbstractWrite()
+					/// Also, the AbstractWrite()-AbstractReadCreate() mechanism avoids
+					/// storing/creating multiple times the shared objects.
+					/// Supports only objects with Chrono RTTI and serializer member StreamIN().
+		template<class t>
+		t*   AbstractReadAllCreate(t** mObj)
+					{
+						std::string cls_name;
+						*mObj = NULL;
+
+						// 1) Read name of class (chrono RTTI type id)
+						*this >> cls_name;
+
+						if (cls_name!="NULL")
+						{
+							// 2) Dynamically create using class factory
+							create( cls_name, mObj );
+
+							if ( (*mObj)!=NULL)
+							{
+								objects_pointers.push_back(*mObj);
+								// 3) Deserialize
+								(*mObj)->StreamINall(*this);
+								//*this >> **mObj;
+							}
+							else
+							{
+								throw (ChException("Stream cannot create object"));
+							}
+						}
+						else
+						{
+							int pos=0;
+							// 2b) Was a shared object: just get the pointer to already-retrieved
+							*this >> pos;
+
+							*mObj=static_cast<t*>(objects_pointers[pos]);
+						}
+
+						return *mObj;
+					}
 
 
 				/// Some objects may write class version at the beginning
