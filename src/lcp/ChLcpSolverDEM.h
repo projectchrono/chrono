@@ -18,7 +18,7 @@
 
 
 
-#include "ChLcpDirectSolver.h"
+#include "ChLcpIterativeSolver.h"
 
 
 namespace chrono
@@ -40,7 +40,7 @@ namespace chrono
 ///    Note that this solver supports also the case of
 ///   boxed constraints on 'l', such as lmin<l<lmax
 
-class ChApi ChLcpSolverDEM : public ChLcpDirectSolver
+class ChApi ChLcpSolverDEM : public ChLcpIterativeSolver
 {
 protected:
 			//
@@ -53,8 +53,14 @@ public:
 			// CONSTRUCTORS
 			//
 
-	ChLcpSolverDEM() : ChLcpDirectSolver()
-			{};
+	ChLcpSolverDEM(
+					int mmax_iters=50,      ///< max.number of iterations
+					bool mwarm_start=false,	///< uses warm start?
+					double mtolerance=0.0,  ///< tolerance for termination criterion
+					double momega=1.0       ///< overrelaxation criterion
+					)
+		: ChLcpIterativeSolver(mmax_iters,mwarm_start, mtolerance,momega)
+		{};
 				
 	virtual ~ChLcpSolverDEM() {};
 
