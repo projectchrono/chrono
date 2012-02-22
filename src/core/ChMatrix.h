@@ -1050,7 +1050,7 @@ public:
 									/// Reallocate memory for a new size.
 	virtual inline void Resize(int nrows, int ncols)
 						{
-							assert (nrows > 0 && ncols > 0);
+							assert (nrows >= 0 && ncols >= 0);
 							if ((nrows != this->rows) || (ncols != this->columns))
 							{
 								this->rows= nrows;
