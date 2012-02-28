@@ -79,6 +79,8 @@ float2 mouse_pos = make_float2(0, 0);
 float3 camera_pos_delta = make_float3(0, 0, 0);
 float SCALE = 1;
 
+bool DataCopied=false;
+int OutputFPS=60;
 bool showSphere = false;
 bool showSolid = false;
 bool updateDraw = true;

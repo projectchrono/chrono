@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
 	GPUSystem->FinalizeObject(FIXED);
 
 	GPUSystem->Setup();
-	SimulationLoop(argc, argv);
+	//SimulationLoop(argc, argv);
 	cout<<"PASS"<<endl;
 	return 0;
 }

@@ -78,6 +78,7 @@ class System {
 
 		bool mUseOGL;
 		bool mSaveData;
+
 		ChTimer<double> mTimer;
 
 		ofstream mTimingFile;
@@ -248,6 +249,7 @@ void System::SaveAllData(string prefix) {
 	}
 ofile.close();
 	mFileNumber++;
+
 }
 
 void System::SaveByObject(CHBODY *abody, string fname) {
@@ -280,7 +282,7 @@ void System::SaveByObject(CHBODY *abody, string fname) {
 }
 double System::GetKE() {
 #ifdef _CHRONOGPU
-	float ke= mSystem->GetKineticEnergy() / SCALE;
+	float ke = mSystem->GetKineticEnergy() / SCALE;
 	srand(ke);
 	return ke;
 #else
@@ -480,22 +482,19 @@ void SimulationLoop(int argc, char* argv[]) {
 	{
 #pragma omp section
 		{
-
 			while (GPUSystem->mSystem->GetChTime() <= GPUSystem->mEndTime) {
 				if (!stepMode) {
 					GPUSystem->mTimer.start();
 					GPUSystem->DoTimeStep();
 					GPUSystem->mTimer.stop();
-					//GPUSystem->PrintStats();
 				} else if (stepNext) {
-
 					GPUSystem->mTimer.start();
 					GPUSystem->DoTimeStep();
 					GPUSystem->mTimer.stop();
 					stepNext = 0;
 				}
+
 			}
-			//cout << "Simulation Complete" << endl;
 		}
 #pragma omp section
 		{
