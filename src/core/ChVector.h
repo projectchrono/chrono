@@ -45,6 +45,14 @@ namespace chrono
 /// as well as "Vector foo;" (less typing effort for the second..)
 ///
 
+//
+// CONSTANTS
+//
+// Added this here as code was not compiling (under linux at least)- Hammad
+#define VNULL  ChVector<double> (0.,0.,0.)
+#define VECT_X ChVector<double> (1.,0.,0.)
+#define VECT_Y ChVector<double> (0.,1.,0.)
+#define VECT_Z ChVector<double> (0.,0.,1.)
 
 template <class Real = double>
 class ChVector
@@ -364,11 +372,11 @@ ChVector<Real> operator*(const double v, const ChVector<Real> V)
 //
 // CONSTANTS
 //
-
-static const ChVector<double> VNULL(0.,0.,0.);
-static const ChVector<double> VECT_X(1.,0.,0.);
-static const ChVector<double> VECT_Y(0.,1.,0.);
-static const ChVector<double> VECT_Z(0.,0.,1.);
+// Commented this and added #defines above as code was not compiling (under linux at least)- Hammad
+//static const ChVector<double> VNULL(0.,0.,0.);
+//static const ChVector<double> VECT_X(1.,0.,0.);
+//static const ChVector<double> VECT_Y(0.,1.,0.);
+//static const ChVector<double> VECT_Z(0.,0.,1.);
 
 
 //
