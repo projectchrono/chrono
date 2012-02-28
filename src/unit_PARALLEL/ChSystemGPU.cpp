@@ -34,8 +34,9 @@ namespace chrono {
 		for (it = linklist.begin(); it != linklist.end(); it++) {
 			(*it)->ConstraintsFetch_react(1.0 / GetStep());
 		}
-
-#pragma omp parallel for
+//#pragma omp parallel 
+{
+//#pragma omp parallel for
 		for (int i = 0; i < bodylist.size(); i++) {
 			ChBodyGPU* mbody = (ChBodyGPU*) bodylist[i];
 			//if (mbody->IsActive()) {
@@ -47,7 +48,7 @@ namespace chrono {
 				mbody->SetAppliedForce(CHVECCAST(gpu_data_manager->host_fap_data[i]));
 			//}
 		}
-
+}
 		// updates the reactions of the constraint
 		LCPresult_Li_into_reactions(1.0 / this->GetStep()); // R = l/dt  , approximately
 		timer_lcp = mtimer_lcp();
@@ -145,7 +146,7 @@ namespace chrono {
 	void ChSystemGPU::Update() {
 		ChTimer<double> mtimer;
 		mtimer.start(); // Timer for profiling
-#pragma omp parallel for
+//#pragma omp parallel for
 		for (int i = 0; i < bodylist.size(); i++) // Updates recursively all other aux.vars
 		{
 			bodylist[i]->UpdateTime(ChTime);
