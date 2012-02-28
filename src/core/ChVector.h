@@ -267,7 +267,45 @@ public:
 						}
 
 
+					/// Use the Gram-Schmidt orthonormalization to find the three
+					/// orthogonal vectors of a coordinate system whose X axis is this vector.
+					/// mVsingular (optional) sets the normal to the plane on which Dz must lie.
+	void	DirToDxDyDz( ChVector<Real>* Vx,  
+						 ChVector<Real>* Vy, 
+						 ChVector<Real>* Vz,
+						 ChVector<Real>* mVsingular =0) const
+						{
+							ChVector<Real> mdefVsingular = VECT_Y;
+							ChVector<Real> mVnull = VNULL;
+							double mzlen;
 
+							if (this->Equals(mVnull))
+								*Vx = VECT_X;
+							else
+								*Vx = this->GetNormalized();
+							
+							if (!mVsingular)
+								mVsingular = &mdefVsingular;
+
+							*Vz = Vcross(*Vx, *mVsingular);
+							mzlen = Vlenght(*Vz);
+
+							if (mzlen < 0.0001) // was near singularity? change singularity reference vector!
+							{
+								if (fabs(mVsingular->z) < 0.9)	
+									*mVsingular = VECT_Z;
+								if (fabs(mVsingular->y) < 0.9)
+									*mVsingular = VECT_Y;
+								if (fabs(mVsingular->x) < 0.9)
+									*mVsingular = VECT_X;
+								*Vz = Vcross(*Vx, *mVsingular);
+								mzlen = Vlenght(*Vz);		// now should be nonzero length..
+							}
+							// normalize Vz
+							*Vz = Vmul(*Vz, 1.0/mzlen);
+							// compute Vy
+							*Vy = Vcross(*Vz,*Vx);
+						}
 
 
 			//

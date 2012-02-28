@@ -15,7 +15,7 @@
 #include "assets/ChObjShapeFile.h"
 #include "assets/ChSphereShape.h"
 #include "assets/ChBoxShape.h"
-
+#include "physics/ChParticlesClones.h"
 
 using namespace chrono;
 using namespace postprocess;
@@ -173,14 +173,6 @@ void ChPovRay::ExportAssets()
 
 	for (unsigned int i = 0; i< this->mdata.size(); i++)
 	{
-		// Get the coordinate frame of the i-th object, if any.
-		ChCoordsys<> assetcsys = CSYSNORM;
-		if (mdata[i].IsType<ChBody>() )
-		{
-			ChSharedPtr<ChBody> mybody(mdata[i]);
-			ChFrame<> bodyframe = mybody->GetFrame_REF_to_abs();
-			assetcsys = bodyframe.GetCoord();
-		}
 
 		// Scan assets in object i
 		for (unsigned int k = 0; k < mdata[i]->GetAssets().size(); k++)
@@ -195,7 +187,8 @@ void ChPovRay::ExportAssets()
 				pov_assets.insert((unsigned int)k_asset.get_ptr(), k_asset);
 
 				// Do dynamic casting of the shared pointer to see which type
-				// of asset is contined...
+				// of asset is contained...
+
 
 				// 1) asset k of object i references an .obj wavefront mesh?
 				if (k_asset.IsType<ChObjShapeFile>() )
@@ -252,6 +245,7 @@ void ChPovRay::ExportAssets()
 					}
 				}
 
+
 				// 2) asset k of object i is a sphere ?
 				if (k_asset.IsType<ChSphereShape>() )
 				{
@@ -281,7 +275,8 @@ void ChPovRay::ExportAssets()
 					assets_file << "#end \n";
 				}
 
-				// 2) asset k of object i is a box ?
+
+				// 3) asset k of object i is a box ?
 				if (k_asset.IsType<ChBoxShape>() )
 				{
 					ChSharedPtr<ChBoxShape> myobjshapeasset(k_asset);
@@ -335,6 +330,11 @@ void ChPovRay::ExportAssets()
 
 
 
+
+
+
+
+
 void ChPovRay::ExportData(const std::string &filename)
 {
 	// Populate the assets (because maybe that during the 
@@ -362,46 +362,67 @@ void ChPovRay::ExportData(const std::string &filename)
 		// and in ...nnnn.DAT file
 
 		for (unsigned int i = 0; i< this->mdata.size(); i++)
-		{
-			// Get the coordinate frame of the i-th object, if any.
-			ChCoordsys<> assetcsys = CSYSNORM;
+		{			
 			if (mdata[i].IsType<ChBody>() )
 			{
 				ChSharedPtr<ChBody> mybody(mdata[i]);
+
+				// Get the current coordinate frame of the i-th object
+				ChCoordsys<> assetcsys = CSYSNORM;
 				ChFrame<> bodyframe = mybody->GetFrame_REF_to_abs();
 				assetcsys = bodyframe.GetCoord();
+
+				// Scan assets in object and write the macro to set their position
+				for (unsigned int k = 0; k < mdata[i]->GetAssets().size(); k++)
+				{
+					ChSharedPtr<ChAsset> k_asset = mdata[i]->GetAssets()[k];
+
+					// 1) asset k of object i references an .obj wavefront mesh?
+					if ( k_asset.IsType<ChObjShapeFile>() ||
+						 k_asset.IsType<ChSphereShape>() || 
+						 k_asset.IsType<ChBoxShape>() )
+					{
+						mfilepov << "sh_"<< (unsigned int) k_asset.get_ptr() << "("; // apx, apy, apz, aq0, aq1, aq2, aq3, atexture)\n";
+
+						mfilepov << assetcsys.pos.x << "," << assetcsys.pos.y << "," << assetcsys.pos.z << ",";
+						mfilepov << assetcsys.rot.e0 << "," << assetcsys.rot.e1 << "," << assetcsys.rot.e2 << "," << assetcsys.rot.e3 << ")\n";
+					}
+
+				} // end loop on assets
+
 			}
 
-			// Scan assets in object i
-			for (unsigned int k = 0; k < mdata[i]->GetAssets().size(); k++)
+
+			if (mdata[i].IsType<ChParticlesClones>() )
 			{
-				ChSharedPtr<ChAsset> k_asset = mdata[i]->GetAssets()[k];
+				ChSharedPtr<ChParticlesClones> myclones(mdata[i]);
 
-				// Do dynamic casting of the shared pointer to see which type
-				// of asset is contined...
-
-				// 1) asset k of object i references an .obj wavefront mesh?
-				if (k_asset.IsType<ChObjShapeFile>() )
+				// Loop on all particle clones
+				for (unsigned int m = 0; m < myclones->GetNparticles() ; ++m)
 				{
-					mfilepov << "sh_"<< (int) k_asset.get_ptr() << "("; // apx, apy, apz, aq0, aq1, aq2, aq3, atexture)\n";
+					// Get the current coordinate frame of the i-th particle
+					ChCoordsys<> assetcsys = CSYSNORM;
+					assetcsys = myclones->GetParticle(m).GetCoord();
 
-					mfilepov << assetcsys.pos.x << "," << assetcsys.pos.y << "," << assetcsys.pos.z << ",";
-					mfilepov << assetcsys.rot.e0 << "," << assetcsys.rot.e1 << "," << assetcsys.rot.e2 << "," << assetcsys.rot.e3 << ")\n";
-				}
+					// Scan assets in object and write the macro to set their position
+					for (unsigned int k = 0; k < mdata[i]->GetAssets().size(); k++)
+					{
+						ChSharedPtr<ChAsset> k_asset = mdata[i]->GetAssets()[k];
 
-				// 2) asset k of object i is a sphere ?
-				if (k_asset.IsType<ChSphereShape>() )
-				{
-					// POV will read pos & rotation of mesh from a row of the .dat file
-					//	mfile << "#read (MyPosFile, apx, apy, apz, aq0, aq1, aq2, aq3) \n\n";
+						// 1) asset k of object i references an .obj wavefront mesh?
+						if ( k_asset.IsType<ChObjShapeFile>() ||
+							 k_asset.IsType<ChSphereShape>() )
+						{
+							mfilepov << "sh_"<< (int) k_asset.get_ptr() << "("; // apx, apy, apz, aq0, aq1, aq2, aq3, atexture)\n";
 
-					mfilepov << "sh_"<< (int) k_asset.get_ptr() << "("; // apx, apy, apz, aq0, aq1, aq2, aq3, atexture)\n";
+							mfilepov << assetcsys.pos.x << "," << assetcsys.pos.y << "," << assetcsys.pos.z << ",";
+							mfilepov << assetcsys.rot.e0 << "," << assetcsys.rot.e1 << "," << assetcsys.rot.e2 << "," << assetcsys.rot.e3 << ")\n";
+						}
 
-					mfilepov << assetcsys.pos.x << "," << assetcsys.pos.y << "," << assetcsys.pos.z << ",";
-					mfilepov << assetcsys.rot.e0 << "," << assetcsys.rot.e1 << "," << assetcsys.rot.e2 << "," << assetcsys.rot.e3 << ")\n";
-				}
-
-			} // end loop on assets
+					} // end loop on assets
+				} // end loop on particles
+			}
+			
 		} // end loop on objects
 
 	}catch (ChException)

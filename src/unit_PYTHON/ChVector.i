@@ -69,6 +69,10 @@ public:
 	bool    Normalize ();
 	ChVector<Real> GetNormalized();
 	void    SetLength (Real v);
+	void	DirToDxDyDz(ChVector<Real>* Vx,  
+						 ChVector<Real>* Vy, 
+						 ChVector<Real>* Vz,
+						 ChVector<Real>* mVsingular =0) const;
 	void StreamOUT(chrono::ChStreamOutAscii& mstream);
 	void StreamOUT(chrono::ChStreamOutBinary& mstream);
 	void StreamIN(chrono::ChStreamInBinary& mstream);
