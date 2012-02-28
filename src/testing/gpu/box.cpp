@@ -13,7 +13,7 @@ void System::DoTimeStep() {
 		for (int xx = 0; xx < x; xx++) {
 			for (int yy = 0; yy < y; yy++) {
 				for (int zz = 0; zz < z; zz++) {
-					type = SPHERE;//rand()%2;e
+					type = BOX;//rand()%2;e
 					float radius = .5;//(rand()%1000)/3000.0+.05;
 					ChVector<> mParticlePos((xx - (x - 1) / 2.0) + posX, (yy) + posY, (zz - (z - 1) / 2.0) + posZ);
 
@@ -53,12 +53,12 @@ int main(int argc, char* argv[]) {
 	omp_set_nested(1);
 	stepMode = true;
 	GPUSystem = new System(1);
-	GPUSystem->mTimeStep = .0001;
+	GPUSystem->mTimeStep = .001;
 	GPUSystem->mEndTime = 35;
 	GPUSystem->mNumObjects = 1;
 	GPUSystem->mIterations = 100;
 	GPUSystem->mTolerance = 1e-5;
-	GPUSystem->mOmegaContact = .2;
+	GPUSystem->mOmegaContact = .8;
 	GPUSystem->mOmegaBilateral = .2;
 	GPUSystem->mUseOGL = 1;
 
