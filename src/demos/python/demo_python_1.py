@@ -16,7 +16,8 @@ print ("First tutorial about Chrono::Engine in Python");
 # Load the Chrono::Engine unit!!!
 import ChronoEngine_PYTHON_core as chrono
 
-
+my_link = chrono.ChLinkLockLock()
+my_link.Initialize(bo1, bo2, false, csyspos1, csyspos2)
 
 # Test logging
 chrono.GetLog().Bar()

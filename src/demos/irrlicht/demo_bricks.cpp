@@ -53,8 +53,8 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 
 	ChSharedPtr<ChMaterialSurface> mmaterial(new ChMaterialSurface);
 	mmaterial->SetFriction(0.4f);
-	mmaterial->SetCompliance (0.005f);
-	mmaterial->SetComplianceT(0.005f);
+	mmaterial->SetCompliance (0.00005f);
+	mmaterial->SetComplianceT(0.00005f);
 	mmaterial->SetDampingF(0.2);
 
 	// Create a bunch of ChronoENGINE rigid bodies (spheres and
@@ -164,8 +164,8 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 	mrigidBody->GetBody()->SetInertiaXX(ChVector<>(minert,minert,minert));
 	mrigidBody->GetBody()->SetPos_dt(ChVector<>(0,0,16));
 	mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.4f);
-	mrigidBody->GetBody()->GetMaterialSurface()->SetCompliance(0.0001);
-	mrigidBody->GetBody()->GetMaterialSurface()->SetComplianceT(0.0001);
+	mrigidBody->GetBody()->GetMaterialSurface()->SetCompliance(0.0);
+	mrigidBody->GetBody()->GetMaterialSurface()->SetComplianceT(0.0);
 	mrigidBody->GetBody()->GetMaterialSurface()->SetDampingF(0.2);
 
 	// Some aesthetics for 3d view..

@@ -213,6 +213,9 @@ class IterBodies():
         self.asystem = asystem
     def __iter__(self):
         return self
+    def __next__(self):
+        """2.6-3.x version"""
+        return self.next()
     def next(self):
         if self.iterbodies == self.asystem.IterEndBodies():
             raise StopIteration
@@ -227,6 +230,9 @@ class IterLinks():
         self.asystem = asystem
     def __iter__(self):
         return self
+    def __next__(self):
+        """2.6-3.x version"""
+        return self.next()
     def next(self):
         if self.iterli == self.asystem.IterEndLinks():
             raise StopIteration
@@ -241,6 +247,9 @@ class IterOtherPhysicsItems():
         self.asystem = asystem
     def __iter__(self):
         return self
+    def __next__(self):
+        """2.6-3.x version"""
+        return self.next()
     def next(self):
         if self.iterph == self.asystem.IterEndOtherPhysicsItems():
             raise StopIteration

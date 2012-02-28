@@ -79,7 +79,7 @@ protected:
 				//
 	bool	visible;
 	ChColor color;	
-	double	fading;
+	float	fading;
 
 public:
 				//

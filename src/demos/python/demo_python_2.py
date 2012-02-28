@@ -13,6 +13,7 @@ if __name__ == '__main__':
 # Load the Chrono::Engine unit!!!
 import ChronoEngine_PYTHON_core as chrono
 
+
 # Create a physical system,
 my_system = chrono.ChSystem()
 
@@ -97,7 +98,7 @@ while (iterbodies !=  my_system.IterEndBodies()):
 print ('This is the list of bodies in the system:')
 for abody in chrono.IterBodies(my_system):
     print ('  body pos=', abody.GetPos() )
-
+chrono.IterBodies
 # Also iterate on links, Python style:
 for alink in chrono.IterLinks(my_system):
     print ('  link: ', alink )
