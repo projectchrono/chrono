@@ -221,10 +221,32 @@ void System::SaveAllData(string prefix) {
 	stringstream ss;
 	ss << prefix << mFileNumber << ".txt";
 	ofile.open(ss.str().c_str());
-	ofile.close();
+	
 	for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
-		SaveByID(i, ss.str().c_str());
+		ChBODY * abody = (ChBODY *) mSystem->Get_bodylist()->at(i);
+	ChVector<> pos = abody->GetPos();
+	ChVector<> rot = abody->GetRot().Q_to_NasaAngles();
+	ChQuaternion<> quat = abody->GetRot();
+	ChVector<> vel = abody->GetPos_dt();
+	ChVector<> acc = abody->GetPos_dtdt();
+	//ChVector<> fap = abody->GetAppliedForce();
+	if (NAN(rot.x)) {
+		rot.x = 0;
 	}
+	if (NAN(rot.y)) {
+		rot.y = 0;
+	}
+	if (NAN(rot.z)) {
+		rot.z = 0;
+	}
+	ofile << pos.x << "," << pos.y << "," << pos.z << ",";
+	//ofile << vel.x << "," << vel.y << "," << vel.z << ",";
+	//ofile << acc.x << "," << acc.y << "," << acc.z << ",";
+	ofile << quat.e0 << "," << quat.e1 << "," << quat.e2 << "," << quat.e3 << ",";
+	//ofile << fap.x << "," << fap.y << "," << fap.z << ",";
+	ofile << endl;
+	}
+ofile.close();
 	mFileNumber++;
 }
 
