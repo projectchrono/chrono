@@ -5,7 +5,7 @@ ChGPUDataManager::ChGPUDataManager(unsigned int numDiv) {
 	number_of_models = 0;
 	number_of_objects = 0;
 	number_of_bilaterals=0;
-
+	copyContacts=false;
 }
 void ChGPUDataManager::HostToDevice() {
 
@@ -46,12 +46,13 @@ void ChGPUDataManager::DeviceToHost() {
 	host_rot_data = gpu_data.device_rot_data;
 	host_acc_data = gpu_data.device_acc_data;
 	host_fap_data = gpu_data.device_fap_data;
-	host_bilateral_data = gpu_data.device_bilateral_data;
-
+	//host_bilateral_data = gpu_data.device_bilateral_data;
+if(copyContacts){
 	host_norm_data = gpu_data.device_norm_data;
 	host_cpta_data = gpu_data.device_cpta_data;
 	host_cptb_data = gpu_data.device_cptb_data;
 	host_dpth_data = gpu_data.device_dpth_data;
 	host_bids_data = gpu_data.device_bids_data;
+	}
 	number_of_contacts=gpu_data.number_of_contacts;
 }

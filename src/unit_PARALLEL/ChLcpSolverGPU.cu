@@ -10,6 +10,7 @@ inline __host__ __device__ float dot3(const T & a, const U & b) {
 
 __constant__ float lcp_omega_bilateral_const;
 __constant__ float lcp_omega_contact_const;
+__constant__ float lcp_contact_factor_const;
 __constant__ unsigned int number_of_objects_const;
 __constant__ unsigned int number_of_contacts_const;
 __constant__ unsigned int number_of_bilaterals_const;
@@ -247,7 +248,7 @@ __global__ void LCP_Iteration_Contacts(
 		cfm = inv_hhpa * compliance_const;
 		cfmT = inv_hhpa * complianceT_const;
 	} else {
-		bi = max((depth / (step_size_const)),-.6);
+		bi = max((depth / (step_size_const)),-lcp_contact_factor_const);
 	}
 	//if (bi < -.1) {
 	//	bi = -.1;
@@ -683,6 +684,7 @@ void ChLcpSolverGPU::Iterate(gpu_container & gpu_data) {
 
 	COPY_TO_CONST_MEM(lcp_omega_bilateral);
 	COPY_TO_CONST_MEM(lcp_omega_contact);
+	COPY_TO_CONST_MEM(lcp_contact_factor);
 	COPY_TO_CONST_MEM(step_size);
 	COPY_TO_CONST_MEM(number_of_contacts);
 	COPY_TO_CONST_MEM(number_of_bilaterals);
@@ -899,8 +901,8 @@ void ChLcpSolverGPU::RunTimeStep(float step, gpu_container & gpu_data) {
 			//if (use_DEM == true) {
 			//	break;
 			//}
-			if (iteration_number > 4 && iteration_number % 50 == 0) {
-				if (Avg_DeltaGamma(number_of_constraints,gpu_data.device_dgm_data) < tolerance) {
+			if (iteration_number > 50 && iteration_number % 50 == 0) {
+				if (Max_DeltaGamma(gpu_data.device_dgm_data) < tolerance) {
 					break;
 				}
 			}

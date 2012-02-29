@@ -86,6 +86,11 @@ class ChApiGPU ChGPUDataManager {
 		ChGPUDataManager(unsigned int ngpu = 1);
 		void HostToDevice();
 		void DeviceToHost();
+		void CopyContacts(bool c){
+			copyContacts=c;
+
+
+		}
 		/// Depending on the number of GPUs this function will split the
 
 		gpu_container gpu_data;
@@ -141,6 +146,8 @@ class ChApiGPU ChGPUDataManager {
 		thrust::host_vector<float3> host_vel_XSPH_data;
 		thrust::host_vector<float4> host_rhoPresMuD_data;
 		thrust::host_vector<float4> host_derivVelRhoD_data;
+
+		bool copyContacts;
 
 };
 }
