@@ -126,7 +126,7 @@ System::System(int cudaDevice) {
 	mCudaDevice = 0;
 	mUseOGL = 0;
 	mCudaDevice = cudaDevice;
-	cudaSetDevice(mCudaDevice);
+	//cudaSetDevice(mCudaDevice);
 }
 
 void System::PrintStats() {
@@ -144,8 +144,8 @@ void System::PrintStats() {
 	mTotalTime += 0;// mTimer();
 	double KE = GetKE();
 	char numstr[512];
-	printf("%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7.7f | %d\n", A, B, C, D, mTotalTime, E, F, KE, I);
-	sprintf(numstr, "%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %f | %d\n", A, B, C, D, mTotalTime, E, F, KE, I);
+	printf("%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7.7f | %d\n", A, B, C, D, B-C-D, E, F, KE, I);
+	sprintf(numstr, "%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %f | %d\n", A, B, C, D, B-C-D, E, F, KE, I);
 
 	if (mTimingFile.fail() == false) {
 		mTimingFile << numstr;
@@ -299,7 +299,18 @@ double System::GetKE() {
 }
 
 double System::GetMFR(double height) {
-	return 0;
+	float mass=0;
+	for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
+			CHBODY *abody = (CHBODY*) (mSystem->Get_bodylist()->at(i));
+
+			if (abody->GetPos().y < height) {
+				mass+=abody->GetMass();
+				abody->SetCollide(false);
+				abody->SetBodyFixed(true);
+				abody->SetPos_dt(ChVector<> (0, 0, 0));
+			}
+		}
+	return mass;
 }
 
 void System::InitObject(
@@ -323,8 +334,8 @@ void System::InitObject(
 	body->SetSfriction(sfric);
 	body->SetKfriction(kfric);
 	body->GetCollisionModel()->ClearModel();
-	//body->GetCollisionModel()->SetFamily(family);
-	//body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(nocolwith);
+	body->GetCollisionModel()->SetFamily(family);
+	body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(nocolwith);
 	body->SetLimitSpeed(true);
 	//body->SetUseSleeping(true);
 }
@@ -429,6 +440,7 @@ void System::drawAll() {
 		glDisableClientState(GL_COLOR_ARRAY);
 #ifdef _CHRONOGPU
 		if (showContacts) {
+			mSystem->gpu_data_manager->CopyContacts(true);
 			for (int i = 0; i < mSystem->gpu_data_manager->host_norm_data.size(); i++) {
 				float3 N = mSystem->gpu_data_manager->host_norm_data[i];
 				float3 Pa = mSystem->gpu_data_manager->host_cpta_data[i];
@@ -445,6 +457,8 @@ void System::drawAll() {
 				glVertex3f(Pb.x, Pb.y, Pb.z);
 				glEnd();
 			}
+		}else{
+			mSystem->gpu_data_manager->CopyContacts(false);
 		}
 #endif
 #if defined( _WINDOWS )
