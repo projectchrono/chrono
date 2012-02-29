@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <limits>
+#include <time.h>
 #include <cutil_inline.h>
 #include <GL/freeglut.h>
 #include "omp.h"
