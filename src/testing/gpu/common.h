@@ -14,7 +14,7 @@ class System {
 			//mGPUsolverSpeed->mOmegaBilateral = mOmegaBilateral;
 			mGPUsolverSpeed->SetTolerance(mTolerance);
 
-#ifndef _CHRONOGPU
+//#ifndef _CHRONOGPU
 
 			mSystem->SetIterLCPmaxItersSpeed(mIterations);
 			mSystem->SetIterLCPmaxItersStab(mIterations);
@@ -23,7 +23,7 @@ class System {
 			//mSystem->SetUseSleeping(true);
 
 
-#endif
+//#endif
 
 		}
 		void SetTimingFile(string fname) {
