@@ -20,6 +20,7 @@ void cudaCollisions(
 					thrust::host_vector<float3> jH2,
 					thrust::host_vector<float3> jInvH1,
 					thrust::host_vector<float3> jInvH2,
-					float binSize0);
+					float binSize0,
+					float channelRadius);
 
 #endif
