@@ -319,8 +319,6 @@ __global__ void UpdateRigidBodyAngularVelocity_kernel(
 	j1 = jInvD1[rigidSphereA];
 	j2 = jInvD2[rigidSphereA];
 	float3 omegaDot3 = torquingTerm.x * j1 + torquingTerm.y * F3(j1.y, j2.x, j2.y) + torquingTerm.z * F3(j1.z, j2.y, j2.z);
-			omegaDot3.x = 0;
-			omegaDot3.z = 0;
 
 	omega3 += omegaDot3 * dTD;
 	omegaLRF_D[rigidSphereA] = omega3;
@@ -687,12 +685,11 @@ void PrintToFile(
 			float4 pR_rigid = posRadRigidD[0];
 			float4 pR_rigidCumul = posRadRigidCumulativeD[0];
 			//***for 2D flow
-			fprintf(fileRigidParticleCenterVsTime, "%f, %0.10f\n", tStep * delT, pR_rigid.z);
-			fprintf(fileRigidParticleCenterVsDistance, "%f, %0.10f\n", pR_rigidCumul.x, pR_rigid.z);
+			//fprintf(fileRigidParticleCenterVsTime, "%f, %0.10f\n", tStep * delT, pR_rigid.z);
 			//***for tube
-//			float2 dist2 = F2(.5 * (cMax.y + cMin.y) - pR_rigid.y, .5 * (cMax.z + cMin.z) - pR_rigid.z);
-//			fprintf(fileRigidParticleCenterVsTime, "%f, %0.10f\n", tStep * delT, length(dist2) / channelRadius);
-//			fprintf(fileRigidParticleCenterVsDistance, "%f, %0.10f\n", pR_rigidCumul.x, length(dist2) / channelRadius);
+			float2 dist2 = F2(.5 * (cMax.y + cMin.y) - pR_rigid.y, .5 * (cMax.z + cMin.z) - pR_rigid.z);
+			fprintf(fileRigidParticleCenterVsTime, "%f, %0.10f\n", tStep * delT, length(dist2) / channelRadius);
+			fprintf(fileRigidParticleCenterVsDistance, "%f, %0.10f\n", pR_rigidCumul.x, length(dist2) / channelRadius);
 		}
 		fflush(fileRigidParticleCenterVsTime);
 		fclose(fileRigidParticleCenterVsTime);
@@ -1309,11 +1306,11 @@ void cudaCollisions(
 		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, delT);
 		UpdateRigidBody(posRadD, velMasD, posRadRigidD, posRadRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, derivVelRhoD, rigidIdentifierD,
 				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, delT);
-//			/* post_process for Segre-Silberberg */
-//			if(tStep >= 0) {
-//				float2 channelCenter = .5 * F2(cMax.y + cMin.y, cMax.z + cMin.z);
-//				FindPassesFromTheEnd(posRadRigidD, distributionD, numRigidBodies, channelCenter, channelRadius, numberOfSections);
-//			}
+			/* post_process for Segre-Silberberg */
+			if(tStep >= 0) {
+				float2 channelCenter = .5 * F2(cMax.y + cMin.y, cMax.z + cMin.z);
+				FindPassesFromTheEnd(posRadRigidD, distributionD, numRigidBodies, channelCenter, channelRadius, numberOfSections);
+			}
 		ApplyBoundary(posRadD, rhoPresMuD, mNSpheres, posRadRigidD, velMassRigidD, numRigidBodies);
 
 		posRadD2.clear();
@@ -1337,7 +1334,7 @@ void cudaCollisions(
 		//edit PrintToFile since yu deleted cyliderRotOmegaJD
 		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRadRigidD, posRadRigidCumulativeD, velMassRigidD, omegaLRF_D, cMax, cMin, paramsH,
 				delT, tStep, channelRadius);
-//		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
+		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
 
 		float time2;
 		cudaEventRecord(stop2, 0);
