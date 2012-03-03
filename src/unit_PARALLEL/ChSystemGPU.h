@@ -69,6 +69,9 @@ namespace chrono {
 			unsigned int num_gpu;
 			float3 bounding_min, bounding_max;
 			bool use_cpu;
+			float3 bins_per_axis;
+			unsigned int mtuning;
+			int search ;
 	};
 }
 

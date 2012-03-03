@@ -40,7 +40,7 @@ namespace chrono {
 				/// Compute the bounds of the space
 				static void ComputeBounds(gpu_container & gpu_data);
 				/// Update the location of the AABB
-				static void UpdateAABB(float3 & bin_size_vec, float & max_dimension, float & collision_envelope, gpu_container & gpu_data);
+				static void UpdateAABB(float3 & bin_size_vec, float & max_dimension, float & collision_envelope, gpu_container & gpu_data,float3 bins_per_axis);
 
 				static void ComputeAABB_HOST(ChGPUDataManager * data_container);
 				static void ComputeBounds_HOST(ChGPUDataManager * data_container);

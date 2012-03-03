@@ -13,7 +13,9 @@ ChSystemGPU::ChSystemGPU(unsigned int max_objects) :
 	collision_system = new ChCollisionSystemGPU();
 	LCP_solver_speed = new ChLcpSolverGPU();
 	((ChCollisionSystemGPU*) (collision_system))->data_container = gpu_data_manager;
-
+	mtuning = 0;
+	bins_per_axis = F3(10, 10, 10);
+	search = 1;
 }
 
 int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
@@ -59,16 +61,74 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	return 1;
 }
 
+float tuneCD(float3 & bin_size_vec, float & max_dimension, float & collision_envelope, gpu_container & gpu_data, float3 bins_per_axis) {
+	ChTimer<double> mtimer_tuning;
+	float accumulated_time = 0;
+	for (int j = 0; j < 5; j++) {
+		mtimer_tuning.start();
+		ChCCollisionGPU::UpdateAABB(bin_size_vec, max_dimension, collision_envelope, gpu_data, bins_per_axis);
+		ChCCollisionGPU::Broadphase(bin_size_vec, gpu_data);
+		mtimer_tuning.stop();
+		accumulated_time += mtimer_tuning();
+	}
+	return accumulated_time / 5.0; //time of current
+
+}
+
 double ChSystemGPU::ComputeCollisions() {
 	mtimer_cd.start();
 	float3 bin_size_vec;
 	float max_dimension;
 	float collision_envelope = 0;
+
+	float old_time = 10000, new_time = 0, time1 = 0, time2 = 0, time3 = 0;
+	int tests = 0;
+	float3 tune_dir = F3(1, 1, 1);
 	if (gpu_data_manager->gpu_data.number_of_models > 0) {
 		ChCCollisionGPU::ComputeAABB(gpu_data_manager->gpu_data);
 		ChCCollisionGPU::ComputeBounds(gpu_data_manager->gpu_data);
-		ChCCollisionGPU::UpdateAABB(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager->gpu_data);
-		ChCCollisionGPU::Broadphase(bin_size_vec, gpu_data_manager->gpu_data);
+
+		if (mtuning % 50 == 0) {
+
+			{
+				if (search > 3) {
+					search = 1;
+				}
+				if (search == 1) {
+					tune_dir = F3(5, 0, 0);
+				}
+				if (search == 2) {
+					tune_dir = F3(0, 5, 0);
+				}
+				if (search == 3) {
+					tune_dir = F3(0, 0, 5);
+				}
+
+				//bins_per_axis = F3(i, i, i);
+				tests++;
+				time1 = tuneCD(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager->gpu_data,
+						F3(bins_per_axis.x - tune_dir.x, bins_per_axis.y - tune_dir.y, bins_per_axis.z - tune_dir.z));
+				time2 = tuneCD(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager->gpu_data, bins_per_axis);
+				time3 = tuneCD(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager->gpu_data,
+						F3(bins_per_axis.x + tune_dir.x, bins_per_axis.y + tune_dir.y, bins_per_axis.z + tune_dir.z));
+
+				if (time1 < time2) {
+					bins_per_axis = F3(bins_per_axis.x - tune_dir.x, bins_per_axis.y - tune_dir.y, bins_per_axis.z - tune_dir.z);
+				} else if (time3 < time2) {
+					bins_per_axis = F3(bins_per_axis.x + tune_dir.x, bins_per_axis.y + tune_dir.y, bins_per_axis.z + tune_dir.z);
+				} else {
+				}
+				search++;
+			}
+
+			cout << "TUNING " << search-1 <<" "<< bins_per_axis.x << " " << bins_per_axis.y << " " << bins_per_axis.z << endl;
+
+		} else {
+			ChCCollisionGPU::UpdateAABB(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager->gpu_data, bins_per_axis);
+			ChCCollisionGPU::Broadphase(bin_size_vec, gpu_data_manager->gpu_data);
+		}
+		mtuning++;
+
 		ChCCollisionGPU::Narrowphase(gpu_data_manager->gpu_data);
 	}
 	this->ncontacts = gpu_data_manager->number_of_contacts;
@@ -139,7 +199,7 @@ void ChSystemGPU::RemoveBody(ChSharedPtr<ChBodyGPU> mbody) {
 		mbody->RemoveCollisionModelsFromSystem();
 
 	// warning! linear time search, to erase pointer from container.
-	bodylist.erase(std::find < std::vector<ChBody*>::iterator > (bodylist.begin(), bodylist.end(), mbody.get_ptr()));
+	bodylist.erase(std::find<std::vector<ChBody*>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr()));
 
 	// nullify backward link to system
 	mbody->SetSystem(0);
