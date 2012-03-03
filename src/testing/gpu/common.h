@@ -49,7 +49,7 @@ public:
 
 	int mNumCurrentSpheres, mNumCurrentObjects;
 
-	double mTimeStep, mTotalTime, mCurrentTime, mEndTime;
+	float mTimeStep, mTotalTime, mCurrentTime, mEndTime;
 
 	double mOffsetX, mOffsetY, mOffsetZ;
 	int mNumObjects;
@@ -125,11 +125,12 @@ void System::PrintStats() {
 #else
 	int I = 0;
 #endif
-	mTotalTime += 0; // mTimer();
+	mTimer.stop();
+	mTotalTime += mTimer();
 	double KE = GetKE();
 	char numstr[512];
-	printf("%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7.7f | %d\n", A, B, C, D, B - C - D, E, F, KE, I);
-	sprintf(numstr, "%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %f | %d\n", A, B, C, D, B - C - D, E, F, KE, I);
+	printf("%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7.7f | %d\n", A, B, C, D, B - C - D, E, F, mTotalTime, I);
+	sprintf(numstr, "%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %f | %d\n", A, B, C, D, B - C - D, E, F, mTotalTime, I);
 
 	if (mTimingFile.fail() == false) {
 		mTimingFile << numstr;
@@ -470,18 +471,19 @@ void SimulationLoop(int argc, char* argv[]) {
 //	{
 //#pragma omp section
 //		{
-	while (GPUSystem->mSystem->GetChTime() <= GPUSystem->mEndTime) {
+	while (1) {
 		if (!stepMode) {
 			GPUSystem->mTimer.start();
 			GPUSystem->DoTimeStep();
-			GPUSystem->mTimer.stop();
+
 		} else if (stepNext) {
 			GPUSystem->mTimer.start();
 			GPUSystem->DoTimeStep();
-			GPUSystem->mTimer.stop();
 			stepNext = 0;
 		}
-
+		if (GPUSystem->mSystem->GetChTime() > GPUSystem->mEndTime) {
+			return;
+		}
 	}
 	//	}
 //#pragma omp section
