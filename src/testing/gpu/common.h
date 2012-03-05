@@ -110,7 +110,9 @@ System::System(int cudaDevice) {
 	mCudaDevice = 0;
 	mUseOGL = 0;
 	mCudaDevice = cudaDevice;
-	//cudaSetDevice(mCudaDevice);
+	if (mCudaDevice >= 0) {
+		cudaSetDevice(mCudaDevice);
+	}
 }
 
 void System::PrintStats() {
@@ -118,6 +120,7 @@ void System::PrintStats() {
 	double B = mSystem->GetTimerStep();
 	double C = mSystem->GetTimerCollisionBroad();
 	double D = mSystem->GetTimerLcp();
+	double U = mSystem->GetTimerUpdate();
 	int E = mSystem->GetNbodies();
 	int F = mSystem->GetNcontacts();
 #ifdef _CHRONOGPU
@@ -127,10 +130,10 @@ void System::PrintStats() {
 #endif
 	mTimer.stop();
 	mTotalTime += mTimer();
-	double KE = GetKE();
+	//double KE = GetKE();
 	char numstr[512];
-	printf("%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7.7f | %d\n", A, B, C, D, B - C - D, E, F, mTotalTime, I);
-	sprintf(numstr, "%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %f | %d\n", A, B, C, D, B - C - D, E, F, mTotalTime, I);
+	printf("%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7.7f | %d\n", A, B, C, D, B - C - D,U, E, F, mTotalTime, I);
+	sprintf(numstr, "%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %f | %d\n", A, B, C, D, B - C - D,U, E, F, mTotalTime, I);
 
 	if (mTimingFile.fail() == false) {
 		mTimingFile << numstr;
@@ -204,9 +207,10 @@ void System::SaveByID(int id, string fname) {
 
 void System::SaveAllData(string prefix) {
 	ofstream ofile;
-	stringstream ss;
+	stringstream ss, sss;
 	ss << prefix << mFileNumber << ".txt";
-	ofile.open(ss.str().c_str());
+	sss << prefix << "temp.txt";
+	ofile.open(sss.str().c_str());
 
 	for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
 		ChBODY * abody = (ChBODY *) mSystem->Get_bodylist()->at(i);
@@ -233,6 +237,7 @@ void System::SaveAllData(string prefix) {
 		ofile << endl;
 	}
 	ofile.close();
+	rename(sss.str().c_str(), ss.str().c_str());
 	mFileNumber++;
 
 }
@@ -467,10 +472,10 @@ void initGLUT(string name, int argc, char* argv[]) {
 }
 
 void SimulationLoop(int argc, char* argv[]) {
-//#pragma omp parallel sections
-//	{
-//#pragma omp section
-//		{
+#pragma omp parallel sections
+	{
+#pragma omp section
+		{
 	while (1) {
 		if (!stepMode) {
 			GPUSystem->mTimer.start();
@@ -482,15 +487,15 @@ void SimulationLoop(int argc, char* argv[]) {
 			stepNext = 0;
 		}
 		if (GPUSystem->mSystem->GetChTime() > GPUSystem->mEndTime) {
-			return;
+			exit(0);
 		}
 	}
-	//	}
-//#pragma omp section
-//		{
-//			if (GPUSystem->mUseOGL) {
-//				initGLUT(string("test"), argc, argv);
-//			}
-//		}
-//	}
+	}
+#pragma omp section
+		{
+			if (GPUSystem->mUseOGL) {
+				initGLUT(string("test"), argc, argv);
+			}
+		}
+	}
 }
