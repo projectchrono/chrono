@@ -46,7 +46,7 @@ namespace chrono {
 			double SplitData();
 			void AddBody(ChSharedPtr<ChBodyGPU> newbody);
 			void RemoveBody(ChSharedPtr<ChBodyGPU> mbody);
-
+			int Setup();
 			void Update();
 			void ChangeCollisionSystem(ChCollisionSystem* newcollsystem);
 			void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
@@ -63,7 +63,7 @@ namespace chrono {
 			}
 			ChGPUDataManager *gpu_data_manager;
 		private:
-			ChTimer<double> mtimer_lcp, mtimer_step, mtimer_cd;
+			ChTimer<double> mtimer_lcp, mtimer_step, mtimer_cd_broad, mtimer_cd_narrow;
 			unsigned int counter;
 			unsigned int max_obj;
 			unsigned int num_gpu;

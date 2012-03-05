@@ -7,54 +7,58 @@ ChSystemGPU::ChSystemGPU(unsigned int max_objects) :
 		ChSystem(1000, 10000, false) {
 	counter = 0;
 	max_obj = max_objects;
+	mtuning = -1;
+	bins_per_axis = F3(30, 30, 30);
+	search = 1;
+
 	gpu_data_manager = new ChGPUDataManager();
 	LCP_descriptor = new ChLcpSystemDescriptorGPU();
 	contact_container = new ChContactContainerGPUsimple();
 	collision_system = new ChCollisionSystemGPU();
 	LCP_solver_speed = new ChLcpSolverGPU();
 	((ChCollisionSystemGPU*) (collision_system))->data_container = gpu_data_manager;
-	mtuning = 0;
-	bins_per_axis = F3(10, 10, 10);
-	search = 1;
+
 }
+int ChSystemGPU::Setup() {
+	nbodies = 0;
+	nbodies_sleep = 0;
+	nbodies_fixed = 0;
+	ncoords = 0;
+	ncoords_w = 0;
+	ndoc = 0;
+	ndoc_w = 0;
+	ndoc_w_C = 0;
+	ndoc_w_D = 0;
+	nlinks = 0;
+	nphysicsitems = 0;
 
+	std::list<ChLink*>::iterator it;
+	for (it = linklist.begin(); it != linklist.end(); it++) {
+		nlinks++;
+		ndoc_w += (*it)->GetDOC();
+		ndoc_w_C += (*it)->GetDOC_c();
+		ndoc_w_D += (*it)->GetDOC_d();
+	}
+	ndoc_w_D += contact_container->GetDOC_d();
+
+	return 0;
+}
 int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
-	use_cpu = 0;
-
+	timer_update = 0;
 	mtimer_step.start();
 	this->stepcount++;
 	Setup();
 	Update();
-
 	gpu_data_manager->HostToDevice();
-
 	ComputeCollisions();
 	SolveSystem();
-
 	gpu_data_manager->DeviceToHost();
+	// updates the reactions of the constraint
 	std::list<ChLink*>::iterator it;
 	for (it = linklist.begin(); it != linklist.end(); it++) {
-		(*it)->ConstraintsFetch_react(1.0 / GetStep());
+		(*it)->ConstraintsFetch_react(1.0 / GetStep()); // R = l/dt  , approximately
 	}
-//#pragma omp parallel
-//	{
-//#pragma omp parallel for
-//		for (int i = 0; i < bodylist.size(); i++) {
-//			ChBodyGPU* mbody = (ChBodyGPU*) bodylist[i];
-//			//if (mbody->IsActive()) {
-//			mbody->SetPos(CHVECCAST(gpu_data_manager->host_pos_data[i]));
-//			mbody->SetRot(CHQUATCAST(gpu_data_manager->host_rot_data[i]));
-//			mbody->SetPos_dt(CHVECCAST(gpu_data_manager->host_vel_data[i]));
-//			mbody->SetPos_dtdt(CHVECCAST(gpu_data_manager->host_acc_data[i]));
-//			mbody->SetWvel_loc(CHVECCAST(gpu_data_manager->host_omg_data[i]));
-//			mbody->SetAppliedForce(CHVECCAST(gpu_data_manager->host_fap_data[i]));
-//			//}
-//		}
-//	}
-	// updates the reactions of the constraint
-	//LCPresult_Li_into_reactions(1.0 / this->GetStep()); // R = l/dt  , approximately
-	timer_lcp = mtimer_lcp();
-	timer_collision_broad = mtimer_cd();
+
 	ChTime += GetStep();
 	mtimer_step.stop();
 	timer_step = mtimer_step(); // Time elapsed for step..
@@ -76,59 +80,111 @@ float tuneCD(float3 & bin_size_vec, float & max_dimension, float & collision_env
 }
 
 double ChSystemGPU::ComputeCollisions() {
-	mtimer_cd.start();
-	float3 bin_size_vec;
-	float max_dimension;
-	float collision_envelope = 0;
+	//ChTimer<double> timer_t;
+	//timer_t.start();
+#pragma omp parallel
+	{
+#pragma omp single nowait
+		{
 
-	float old_time = 10000, new_time = 0, time1 = 0, time2 = 0, time3 = 0;
-	float3 tune_dir = F3(1, 1, 1);
-	if (gpu_data_manager->gpu_data.number_of_models > 0) {
-		ChCCollisionGPU::ComputeAABB(gpu_data_manager->gpu_data);
-		ChCCollisionGPU::ComputeBounds(gpu_data_manager->gpu_data);
+			ChTimer<double> mtimer;
+			mtimer.start();
 
-		if (mtuning % 50 == 0) {
-
-			for(int search=1; search<=3; search++){
-				if (search == 1) {
-					tune_dir = F3(5, 0, 0);
-				}
-				if (search == 2) {
-					tune_dir = F3(0, 5, 0);
-				}
-				if (search == 3) {
-					tune_dir = F3(0, 0, 5);
-				}
-				//bins_per_axis = F3(i, i, i);
-				time1 = tuneCD(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager->gpu_data,
-						F3(bins_per_axis.x - tune_dir.x, bins_per_axis.y - tune_dir.y, bins_per_axis.z - tune_dir.z));
-				time2 = tuneCD(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager->gpu_data, bins_per_axis);
-				time3 = tuneCD(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager->gpu_data,
-						F3(bins_per_axis.x + tune_dir.x, bins_per_axis.y + tune_dir.y, bins_per_axis.z + tune_dir.z));
-
-				if (time1 < time2) {
-					bins_per_axis = F3(bins_per_axis.x - tune_dir.x, bins_per_axis.y - tune_dir.y, bins_per_axis.z - tune_dir.z);
-				} else if (time3 < time2) {
-					bins_per_axis = F3(bins_per_axis.x + tune_dir.x, bins_per_axis.y + tune_dir.y, bins_per_axis.z + tune_dir.z);
+#pragma omp parallel for
+			for (int i = 0; i < bodylist.size(); i++) { // Updates recursively all other aux.vars
+				if (!bodylist[i]->GetBodyFixed()) {
+					if (!bodylist[i]->GetSleeping()) {
+						nbodies++; // Count bodies and indicize them.
+					} else {
+						nbodies_sleep++;
+					}
 				} else {
+					nbodies_fixed++;
 				}
-				bins_per_axis.x=fabs(bins_per_axis.x);
-				bins_per_axis.y=fabs(bins_per_axis.y);
-				bins_per_axis.z=fabs(bins_per_axis.z);
+
+				((ChBodyGPU *) (bodylist[i]))->UpdateTime(ChTime);
+				((ChBodyGPU *) (bodylist[i]))->UpdateMarkers(ChTime);
+				((ChBodyGPU *) (bodylist[i]))->UpdateForces(ChTime);
+				//bodylist[i]->VariablesFbReset();
+				((ChBodyGPU *) (bodylist[i]))->VariablesFbLoadForces(GetStep());
+				//bodylist[i]->VariablesQbLoadSpeed();
 			}
 
-			cout << "TUNING "  << " " << bins_per_axis.x << " " << bins_per_axis.y << " " << bins_per_axis.z << endl;
+			mtimer.stop();
+			ncoords_w += nbodies * 6;
+			ncoords += nbodies * 7; // with quaternion coords
+			ndoc += nbodies; // There is a quaternion constr. for each active body.
 
-		} else {
-			ChCCollisionGPU::UpdateAABB(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager->gpu_data, bins_per_axis);
-			ChCCollisionGPU::Broadphase(bin_size_vec, gpu_data_manager->gpu_data);
+			ndoc = ndoc_w + nbodies; // sets number of constraints including quaternion constraints.
+			nsysvars = ncoords + ndoc; // sets number of total variables (=coordinates + lagrangian multipliers)
+			nsysvars_w = ncoords_w + ndoc_w; // sets number of total variables (with 6 dof per body)
+
+			ndof = ncoords - ndoc; // sets number of left degrees of freedom (approximate - does not consider constr. redundancy, etc)
+			gpu_data_manager->HostToDeviceForces();
+			timer_update += mtimer();
 		}
-		mtuning++;
 
-		ChCCollisionGPU::Narrowphase(gpu_data_manager->gpu_data);
+#pragma omp single nowait
+		{
+			float3 bin_size_vec;
+			float max_dimension;
+			float collision_envelope = 0;
+			mtimer_cd_broad.start();
+			float old_time = 10000, new_time = 0, time1 = 0, time2 = 0, time3 = 0;
+			float3 tune_dir = F3(1, 1, 1);
+			if (gpu_data_manager->gpu_data.number_of_models > 0) {
+				ChCCollisionGPU::ComputeAABB(gpu_data_manager->gpu_data);
+				ChCCollisionGPU::ComputeBounds(gpu_data_manager->gpu_data);
+
+				if (mtuning % 50 == 0) {
+					cout << "TUNING " << endl;
+					for (int search = 1; search <= 3; search++) {
+						if (search == 1) {
+							tune_dir = F3(5, 0, 0);
+						}
+						if (search == 2) {
+							tune_dir = F3(0, 5, 0);
+						}
+						if (search == 3) {
+							tune_dir = F3(0, 0, 5);
+						}
+						//bins_per_axis = F3(i, i, i);
+						time1 = tuneCD(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager->gpu_data, F3(bins_per_axis.x - tune_dir.x, bins_per_axis.y - tune_dir.y, bins_per_axis.z - tune_dir.z));
+						time2 = tuneCD(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager->gpu_data, bins_per_axis);
+						time3 = tuneCD(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager->gpu_data, F3(bins_per_axis.x + tune_dir.x, bins_per_axis.y + tune_dir.y, bins_per_axis.z + tune_dir.z));
+
+						if (time1 < time2) {
+							bins_per_axis = F3(bins_per_axis.x - tune_dir.x, bins_per_axis.y - tune_dir.y, bins_per_axis.z - tune_dir.z);
+						} else if (time3 < time2) {
+							bins_per_axis = F3(bins_per_axis.x + tune_dir.x, bins_per_axis.y + tune_dir.y, bins_per_axis.z + tune_dir.z);
+						} else {
+						}
+						bins_per_axis.x = fabs(bins_per_axis.x);
+						bins_per_axis.y = fabs(bins_per_axis.y);
+						bins_per_axis.z = fabs(bins_per_axis.z);
+					}
+
+					cout << bins_per_axis.x << " " << bins_per_axis.y << " " << bins_per_axis.z << endl;
+
+				} else {
+					ChCCollisionGPU::UpdateAABB(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager->gpu_data, bins_per_axis);
+					ChCCollisionGPU::Broadphase(bin_size_vec, gpu_data_manager->gpu_data);
+				}
+				mtimer_cd_broad.stop();
+				mtuning++;
+				mtimer_cd_narrow.start();
+				ChCCollisionGPU::Narrowphase(gpu_data_manager->gpu_data);
+				mtimer_cd_narrow.stop();
+			}
+			this->ncontacts = gpu_data_manager->number_of_contacts;
+
+			timer_collision_broad = mtimer_cd_broad();
+			timer_collision_narrow = mtimer_cd_narrow();
+		}
+
 	}
-	this->ncontacts = gpu_data_manager->number_of_contacts;
-	mtimer_cd.stop();
+	//timer_t.stop();
+	//cout<<timer_t()<<endl;
 	return 0;
 }
 
@@ -137,12 +193,9 @@ double ChSystemGPU::SolveSystem() {
 	((ChLcpSolverGPU*) (LCP_solver_speed))->SetCompliance(0, 0, 0);
 	((ChLcpSolverGPU*) (LCP_solver_speed))->SetContactFactor(.6);
 	((ChLcpSolverGPU*) (LCP_solver_speed))->RunTimeStep(GetStep(), gpu_data_manager->gpu_data);
-
-	//gpu_data_manager->host_acc_data=gpu_data_manager->host_vel_data;
-	//((ChLcpIterativeSolverGPUsimple*) (LCP_solver_speed))->SolveSys_HOST(gpu_data_manager);
-
 	((ChContactContainerGPUsimple*) this->contact_container)->SetNcontacts(gpu_data_manager->number_of_contacts);
 	mtimer_lcp.stop();
+	timer_lcp = mtimer_lcp();
 	return 0;
 }
 void ChSystemGPU::AddBody(ChSharedPtr<ChBodyGPU> newbody) {
@@ -182,6 +235,10 @@ void ChSystemGPU::AddBody(ChSharedPtr<ChBodyGPU> newbody) {
 //	gpu_data_manager->host_lim_data.push_back(F3(0));
 
 	counter++;
+	if (counter % 1000 == 0) {
+		cout << ".";
+	}
+
 	gpu_data_manager->number_of_objects = counter;
 }
 
@@ -193,7 +250,7 @@ void ChSystemGPU::RemoveBody(ChSharedPtr<ChBodyGPU> mbody) {
 		mbody->RemoveCollisionModelsFromSystem();
 
 	// warning! linear time search, to erase pointer from container.
-	bodylist.erase(std::find<std::vector<ChBody*>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr()));
+	bodylist.erase(std::find < std::vector<ChBody*>::iterator > (bodylist.begin(), bodylist.end(), mbody.get_ptr()));
 
 	// nullify backward link to system
 	mbody->SetSystem(0);
@@ -204,40 +261,6 @@ void ChSystemGPU::RemoveBody(ChSharedPtr<ChBodyGPU> mbody) {
 void ChSystemGPU::Update() {
 	ChTimer<double> mtimer;
 	mtimer.start(); // Timer for profiling
-
-#pragma omp parallel
-	{
-
-//#pragma omp parallel for
-		for (int i = 0; i < bodylist.size(); i++) // Updates recursively all other aux.vars
-				{
-#pragma omp task
-			{
-				((ChBodyGPU *) (bodylist[i]))->UpdateTime(ChTime);
-				((ChBodyGPU *) (bodylist[i]))->UpdateMarkers(ChTime);
-				((ChBodyGPU *) (bodylist[i]))->UpdateForces(ChTime);
-				//bodylist[i]->VariablesFbReset();
-				((ChBodyGPU *) (bodylist[i]))->VariablesFbLoadForces(GetStep());
-				//bodylist[i]->VariablesQbLoadSpeed();
-
-				//ChLcpVariablesBody* mbodyvar = &(bodylist[i]->Variables());
-				//gpu_data_manager->host_frc_data[i] = (F3(mbodyvar->Get_fb().ElementN(0), mbodyvar->Get_fb().ElementN(1), mbodyvar->Get_fb().ElementN(2))); //forces
-				//gpu_data_manager->host_trq_data[i] = (F3(mbodyvar->Get_fb().ElementN(3), mbodyvar->Get_fb().ElementN(4), mbodyvar->Get_fb().ElementN(5))); //torques
-			}
-//#pragma omp task
-//			{
-//				//ChLcpVariablesBody* mbodyvar = &(bodylist[i]->Variables());
-//				//ChMatrix33<> inertia = mbodyvar->GetBodyInvInertia();
-//				//gpu_data_manager->host_inr_data[i] = (F3(inertia.GetElement(0, 0), inertia.GetElement(1, 1), inertia.GetElement(2, 2)));
-//				//gpu_data_manager->host_vel_data[i] = (F3(bodylist[i]->GetPos_dt().x, bodylist[i]->GetPos_dt().y, bodylist[i]->GetPos_dt().z));
-//				//gpu_data_manager->host_omg_data[i] = (F3(bodylist[i]->GetWvel_loc().x, bodylist[i]->GetWvel_loc().y, bodylist[i]->GetWvel_loc().z));
-//				//gpu_data_manager->host_pos_data[i] = (F3(bodylist[i]->GetPos().x, bodylist[i]->GetPos().y, bodylist[i]->GetPos().z));
-//				//gpu_data_manager->host_rot_data[i] = (F4(bodylist[i]->GetRot().e0, bodylist[i]->GetRot().e1, bodylist[i]->GetRot().e2, bodylist[i]->GetRot().e3));
-//				//gpu_data_manager->host_aux_data[i] = (F3(bodylist[i]->IsActive(), bodylist[i]->GetKfriction(), 1.0f / mbodyvar->GetBodyMass()));
-//				//gpu_data_manager->host_lim_data[i] = (F3(bodylist[i]->GetLimitSpeed(), 100, 100));
-//			}
-		}
-	}
 
 	std::list<ChLink*>::iterator it;
 	unsigned int number_of_bilaterals = 0;

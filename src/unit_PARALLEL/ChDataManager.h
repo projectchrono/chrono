@@ -79,12 +79,15 @@ struct gpu_container {
 		thrust::device_vector<float4> rhoPresMuD;
 		thrust::device_vector<float4> derivVelRhoD;
 
+		thrust::device_vector<uint> OLD_bin_number;
+		thrust::device_vector<long long> OLD_device_pair_data;
 };
 
 class ChApiGPU ChGPUDataManager {
 	public:
 		ChGPUDataManager(unsigned int ngpu = 1);
 		void HostToDevice();
+		void HostToDeviceForces();
 		void DeviceToHost();
 		void CopyContacts(bool c){
 			copyContacts=c;

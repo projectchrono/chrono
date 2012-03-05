@@ -48,15 +48,7 @@ __host__ __device__ inline float4 Quaternion_Product(const float4 &qa, const flo
 	return quat;
 }
 
-__host__ __device__ void inline Compute_Jacobian(
-        float3 &A,
-        float3 &B,
-        float3 &C,
-        float4 TT,
-        const float3 &n,
-        const float3 &u,
-        const float3 &w,
-        const float3 &pos) {
+__host__ __device__ void inline Compute_Jacobian(float3 &A, float3 &B, float3 &C, float4 TT, const float3 &n, const float3 &u, const float3 &w, const float3 &pos) {
 	float t00 = pos.z * n.y - pos.y * n.z;
 	float t01 = TT.x * TT.x;
 	float t02 = TT.y * TT.y;
@@ -95,15 +87,7 @@ __host__ __device__ void inline Compute_Jacobian(
 	C.y = 2 * t25 * t14 + t26 * t15 + 2 * t27 * t18;
 	C.z = 2 * t25 * t19 + 2 * t26 * t20 + t27 * t21;
 }
-__host__ __device__ void inline Compute_Jacobian_2(
-        float3 &T3,
-        float3 &T4,
-        float3 &T5,
-        float4 Eb,
-        const float3 &N,
-        const float3 &U,
-        const float3 &W,
-        const float3 &pb) {
+__host__ __device__ void inline Compute_Jacobian_2(float3 &T3, float3 &T4, float3 &T5, float4 Eb, const float3 &N, const float3 &U, const float3 &W, const float3 &pb) {
 
 	float t1 = Eb.y * Eb.z;
 	float t2 = Eb.x * Eb.w;
@@ -150,28 +134,10 @@ __host__ __device__ void inline Compute_Jacobian_2(
 	T5.z = W.x * t3 + W.y * t1 + W.z * t2;
 }
 
-
-
 // 	Kernel for a single iteration of the LCP over all contacts
 //   	Version 2.0 - Tasora
 //	Version 2.2- Hammad (optimized, cleaned etc)
-__global__ void LCP_Iteration_Contacts(
-        float3* norm,
-        float3* ptA,
-        float3* ptB,
-        float* contactDepth,
-        int2* ids,
-        float3* G,
-        float* dG,
-        float3* aux,
-        float3* inertia,
-        float4* rot,
-        float3* vel,
-        float3* omega,
-        float3* pos,
-        float3* updateV,
-        float3* updateO,
-        uint* offset) {
+__global__ void LCP_Iteration_Contacts(float3* norm, float3* ptA, float3* ptB, float* contactDepth, int2* ids, float3* G, float* dG, float3* aux, float3* inertia, float4* rot, float3* vel, float3* omega, float3* pos, float3* updateV, float3* updateO, uint* offset) {
 	unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i >= number_of_contacts_const) {
 		return;
@@ -192,8 +158,6 @@ __global__ void LCP_Iteration_Contacts(
 	aux2 = aux[B2_i];
 	N = norm[i]; //assume: normalized, and if depth=0 norm=(1,0,0)
 
-
-
 	W = fabs(N); //Gramm Schmidt; work with the global axis that is "most perpendicular" to the contact normal vector;effectively this means looking for the smallest component (in abs) and using the corresponding direction to carry out cross product.
 	U = F3(0.0, N.z, -N.y); //it turns out that X axis is closest to being perpendicular to contact vector;
 	if (W.x > W.y) {
@@ -207,11 +171,9 @@ __global__ void LCP_Iteration_Contacts(
 
 	//printf("N: [%f %f %f]  [%f %f %f] [%f %f %f]%f \n", N.x, N.y, N.z,U.x, U.y, U.z,W.x, W.y, W.z, depth);
 
-
 	sbar = ptA[i] - pos[B1_i]; //Contact Point on A - Position of A
 	E1 = rot[B1_i]; //bring in the Euler parameters associated with body 1;
 	Compute_Jacobian_2(T3, T4, T5, E1, N, U, W, sbar); //A_i,p'*A_A*(sbar~_i,A)
-
 
 	sbar = ptB[i] - pos[B2_i]; //Contact Point on B - Position of B
 	E2 = rot[B2_i]; //bring in the Euler parameters associated with body 2;
@@ -248,7 +210,7 @@ __global__ void LCP_Iteration_Contacts(
 		cfm = inv_hhpa * compliance_const;
 		cfmT = inv_hhpa * complianceT_const;
 	} else {
-		bi = max((depth / (step_size_const)),-lcp_contact_factor_const);
+		bi = max((depth / (step_size_const)), -lcp_contact_factor_const);
 	}
 	//if (bi < -.1) {
 	//	bi = -.1;
@@ -266,7 +228,7 @@ __global__ void LCP_Iteration_Contacts(
 	eta += (dot(N, N) + dot(U, U) + dot(W, W)) * (aux1.z + aux2.z); // multiply by inverse of mass matrix of B1 and B2, add contribution from mass and matrix A_c.
 	eta = lcp_omega_contact_const / eta; // final value of eta
 
-	gamma = eta*gamma; // perform gamma *= omega*eta
+	gamma = eta * gamma; // perform gamma *= omega*eta
 	//if (isnan(gamma.x) || isnan(gamma.y) || isnan(gamma.z)) {printf("%f {%f, %f, %f} \n",bi, gamma.x, gamma.y, gamma.z); return;}
 
 	gamma = gamma_old - gamma; // perform gamma = gamma_old - gamma ;  in place.
@@ -317,18 +279,7 @@ __global__ void LCP_Iteration_Contacts(
 // (a bit similar to the ChKernelLCPiteration above, but without projection etc.)
 // Version 2.0 - Tasora
 //
-__global__ void LCP_Iteration_Bilaterals(
-        CH_REALNUMBER4* bilaterals,
-        float3* aux,
-        float3* inertia,
-        float4* rot,
-        float3* vel,
-        float3* omega,
-        float3* pos,
-        float3* updateV,
-        float3* updateO,
-        uint* offset,
-        float * dG) {
+__global__ void LCP_Iteration_Bilaterals(CH_REALNUMBER4* bilaterals, float3* aux, float3* inertia, float4* rot, float3* vel, float3* omega, float3* pos, float3* updateV, float3* updateO, uint* offset, float * dG) {
 	unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i >= number_of_bilaterals_const) {
 		return;
@@ -346,7 +297,7 @@ __global__ void LCP_Iteration_Bilaterals(
 	vB = vel[B1_index]; // v1
 	gamma_new += dot3(vA, vB);
 
-	vA = bilaterals[i + 2 * number_of_bilaterals_const];// line 2
+	vA = bilaterals[i + 2 * number_of_bilaterals_const]; // line 2
 	vB = omega[B1_index]; // w1
 	gamma_new += dot3(vA, vB);
 
@@ -354,7 +305,7 @@ __global__ void LCP_Iteration_Bilaterals(
 	vB = vel[B2_index]; // v2
 	gamma_new += dot3(vA, vB);
 
-	vA = bilaterals[i + 3 * number_of_bilaterals_const];// line 3
+	vA = bilaterals[i + 3 * number_of_bilaterals_const]; // line 3
 	vB = omega[B2_index]; // w2
 	gamma_new += dot3(vA, vB);
 
@@ -381,12 +332,12 @@ __global__ void LCP_Iteration_Bilaterals(
 	vA = (bilaterals[i]) * aux1.z * gamma_new; // line 0: J1(x)
 	int offset1 = offset[2 * number_of_contacts_const + i];
 	int offset2 = offset[2 * number_of_contacts_const + i + number_of_bilaterals_const];
-	updateV[offset1] = F3(vA);//  ---> store  v1 vel. in reduction buffer
-	updateO[offset1] = F3(bilaterals[i + 2 * number_of_bilaterals_const]) * vB * gamma_new;// line 2:  J1(w)// ---> store  w1 vel. in reduction buffer
+	updateV[offset1] = F3(vA); //  ---> store  v1 vel. in reduction buffer
+	updateO[offset1] = F3(bilaterals[i + 2 * number_of_bilaterals_const]) * vB * gamma_new; // line 2:  J1(w)// ---> store  w1 vel. in reduction buffer
 	vB = inertia[B2_index]; // iJ iJ iJ im
 	vA = (bilaterals[i + number_of_bilaterals_const]) * aux2.z * gamma_new; // line 1: J2(x)
-	updateV[offset2] = F3(vA);//  ---> store  v2 vel. in reduction buffer
-	updateO[offset2] = F3(bilaterals[i + 3 * number_of_bilaterals_const]) * vB * gamma_new;// line 3:  J2(w)// ---> store  w2 vel. in reduction buffer
+	updateV[offset2] = F3(vA); //  ---> store  v2 vel. in reduction buffer
+	updateO[offset2] = F3(bilaterals[i + 3 * number_of_bilaterals_const]) * vB * gamma_new; // line 3:  J2(w)// ---> store  w2 vel. in reduction buffer
 }
 
 __device__ __host__ inline float4 computeRot_dt(float3 & omega, float4 &rot) {
@@ -397,21 +348,7 @@ __device__ __host__ float3 RelPoint_AbsSpeed(float3 & vel, float3 & omega, float
 	return vel + ((F3(q.y, q.z, q.w)) * 2);
 }
 
-__global__ void DEM_Contacts(
-        float3* norm,
-        float3* ptA,
-        float3* ptB,
-        float* contactDepth,
-        int2* ids,
-        float3* aux,
-        float3* inertia,
-        float4* rot,
-        float3* vel,
-        float3* omega,
-        float3* pos,
-        float3* updateV,
-        float3* updateO,
-        uint* offset) {
+__global__ void DEM_Contacts(float3* norm, float3* ptA, float3* ptB, float* contactDepth, int2* ids, float3* aux, float3* inertia, float4* rot, float3* vel, float3* omega, float3* pos, float3* updateV, float3* updateO, uint* offset) {
 	unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i >= number_of_contacts_const) {
 		return;
@@ -504,15 +441,7 @@ __global__ void ChKernelLCPaddForces(float3* aux, float3* inertia, float3* force
 // Updates the speeds in the body buffer with values accumulated in the
 // reduction buffer:   V_new = V_old + delta_speeds
 
-__global__ void LCP_Reduce_Speeds(
-        float3* aux,
-        float3* vel,
-        float3* omega,
-        float3* updateV,
-        float3* updateO,
-        uint* d_body_num,
-        uint* counter,
-        float3* fap) {
+__global__ void LCP_Reduce_Speeds(float3* aux, float3* vel, float3* omega, float3* updateV, float3* updateO, uint* d_body_num, uint* counter, float3* fap) {
 	unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i >= number_of_updates_const) {
 		return;
@@ -556,23 +485,23 @@ __global__ void LCP_Integrate_Timestep(float3* aux, float3* acc, float4* rot, fl
 	float3 limits = lim[i];
 	float wlen = length(omg);
 
-		if (limits.x == 1) {
-			float w = 2.0 * wlen;
-			if (w > limits.z) {
-				omg *= limits.z / w;
-				wlen = sqrtf(dot3(omg, omg));
-			}
-
-			float v = length(velocity);
-			if (v > limits.y) {
-				velocity *= limits.y / v;
-			}
-			vel[i] = velocity;
-			omega[i] = omg;
+	if (limits.x == 1) {
+		float w = 2.0 * wlen;
+		if (w > limits.z) {
+			omg *= limits.z / w;
+			wlen = sqrtf(dot3(omg, omg));
 		}
+
+		float v = length(velocity);
+		if (v > limits.y) {
+			velocity *= limits.y / v;
+		}
+		vel[i] = velocity;
+		omega[i] = omg;
+	}
 	pos[i] = pos[i] + velocity * step_size_const; // Do 1st order integration of linear speeds
 
-	float4 Rw = (fabs(wlen) > 10e-10) ? Quat_from_AngAxis(step_size_const * wlen, omg / wlen) : F4(1., 0, 0, 0);// to avoid singularity for near zero angular speed
+	float4 Rw = (fabs(wlen) > 10e-10) ? Quat_from_AngAxis(step_size_const * wlen, omg / wlen) : F4(1., 0, 0, 0); // to avoid singularity for near zero angular speed
 
 	float4 mq = mult(rot[i], Rw);
 	mq *= rsqrtf(dot(mq, mq));
@@ -610,15 +539,66 @@ void ChLcpSolverGPU::WarmContact(const int & i) {
 
 void ChLcpSolverGPU::Preprocess(gpu_container & gpu_data) {
 	gpu_data.number_of_updates = 0;
-	uint number_of_contacts = gpu_data.number_of_contacts;
-
-	uint number_of_bilaterals = gpu_data.number_of_bilaterals;
-	uint number_of_objects = gpu_data.number_of_objects;
-	uint number_of_constraints = gpu_data.number_of_contacts + gpu_data.number_of_bilaterals;
 	gpu_data.device_gyr_data.resize(number_of_objects);
-
 	thrust::device_vector<uint> body_num;
 	thrust::device_vector<uint> update_number;
+	LCP_ComputeGyro CUDA_KERNEL_DIM(BLOCKS(number_of_objects), THREADS)(CASTF3(gpu_data.device_omg_data), CASTF3(gpu_data.device_inr_data), CASTF3(gpu_data.device_gyr_data), CASTF3(gpu_data.device_trq_data));
+	ChKernelLCPaddForces CUDA_KERNEL_DIM(BLOCKS(number_of_objects), THREADS)(CASTF3(gpu_data.device_aux_data), CASTF3(gpu_data.device_inr_data), CASTF3(gpu_data.device_frc_data), CASTF3(gpu_data.device_trq_data), CASTF3(gpu_data.device_vel_data), CASTF3(gpu_data.device_omg_data));
+	gpu_data.device_fap_data.resize(number_of_objects);
+	Thrust_Fill(gpu_data.device_fap_data, F3(0));
+
+	if (number_of_constraints > 0) {
+
+		update_number.resize((number_of_constraints) * 2, 0);
+		gpu_data.offset_counter.resize((number_of_constraints) * 2, 0);
+		gpu_data.update_offset.resize((number_of_constraints) * 2, 0);
+		body_num.resize((number_of_constraints) * 2, 0);
+		gpu_data.device_dgm_data.resize((number_of_constraints));
+
+		Thrust_Fill(gpu_data.device_dgm_data, 1);
+		gpu_data.vel_update.resize((number_of_constraints) * 2);
+		gpu_data.omg_update.resize((number_of_constraints) * 2);
+
+		ChKernelOffsets CUDA_KERNEL_DIM(BLOCKS(number_of_constraints), THREADS)(CASTI2(gpu_data.device_bids_data), CASTF4(gpu_data.device_bilateral_data), CASTU1(body_num));
+
+		Thrust_Sequence(update_number);
+		Thrust_Sequence(gpu_data.update_offset);
+		Thrust_Fill(gpu_data.offset_counter, 0);
+		Thrust_Sort_By_Key(body_num, update_number);
+		Thrust_Sort_By_Key(update_number, gpu_data.update_offset);
+		gpu_data.body_number = body_num;
+		Thrust_Reduce_By_KeyB(gpu_data.number_of_updates, body_num, update_number, gpu_data.offset_counter);
+		Thrust_Inclusive_Scan(gpu_data.offset_counter);
+
+	}
+}
+
+void ChLcpSolverGPU::Iterate(gpu_container & gpu_data) {
+	LCP_Iteration_Contacts CUDA_KERNEL_DIM(BLOCKS(number_of_contacts), THREADS)(CASTF3(gpu_data.device_norm_data), CASTF3(gpu_data.device_cpta_data), CASTF3(gpu_data.device_cptb_data), CASTF1(gpu_data.device_dpth_data), CASTI2(gpu_data.device_bids_data), CASTF3(gpu_data.device_gam_data),
+			CASTF1(gpu_data.device_dgm_data), CASTF3(gpu_data.device_aux_data), CASTF3(gpu_data.device_inr_data), CASTF4(gpu_data.device_rot_data), CASTF3(gpu_data.device_vel_data), CASTF3(gpu_data.device_omg_data), CASTF3(gpu_data.device_pos_data), CASTF3(gpu_data.vel_update),
+			CASTF3(gpu_data.omg_update), CASTU1(gpu_data.update_offset));
+
+	LCP_Iteration_Bilaterals CUDA_KERNEL_DIM(BLOCKS(number_of_bilaterals), THREADS)(CASTF4(gpu_data.device_bilateral_data), CASTF3(gpu_data.device_aux_data), CASTF3(gpu_data.device_inr_data), CASTF4(gpu_data.device_rot_data), CASTF3(gpu_data.device_vel_data), CASTF3(gpu_data.device_omg_data),
+			CASTF3(gpu_data.device_pos_data), CASTF3(gpu_data.vel_update), CASTF3(gpu_data.omg_update), CASTU1(gpu_data.update_offset), CASTF1(gpu_data.device_dgm_data));
+
+}
+void ChLcpSolverGPU::Reduce(gpu_container & gpu_data) {
+	LCP_Reduce_Speeds CUDA_KERNEL_DIM(BLOCKS( number_of_updates), THREADS)(CASTF3(gpu_data.device_aux_data), CASTF3(gpu_data.device_vel_data), CASTF3(gpu_data.device_omg_data), CASTF3(gpu_data.vel_update), CASTF3(gpu_data.omg_update), CASTU1(gpu_data.body_number), CASTU1(gpu_data.offset_counter),
+			CASTF3(gpu_data.device_fap_data));
+
+}
+void ChLcpSolverGPU::Integrate(gpu_container & gpu_data) {
+	LCP_Integrate_Timestep CUDA_KERNEL_DIM( BLOCKS(number_of_objects), THREADS)(CASTF3(gpu_data.device_aux_data), CASTF3(gpu_data.device_acc_data), CASTF4(gpu_data.device_rot_data), CASTF3(gpu_data.device_vel_data), CASTF3(gpu_data.device_omg_data), CASTF3(gpu_data.device_pos_data),
+			CASTF3(gpu_data.device_lim_data));
+}
+void ChLcpSolverGPU::RunTimeStep(float step, gpu_container & gpu_data) {
+
+	lcp_omega_contact = omega;
+	step_size = step;
+	number_of_constraints = gpu_data.number_of_contacts + gpu_data.number_of_bilaterals;
+	number_of_contacts = gpu_data.number_of_contacts;
+	number_of_bilaterals = gpu_data.number_of_bilaterals;
+	number_of_objects = gpu_data.number_of_objects;
 
 	COPY_TO_CONST_MEM(number_of_contacts);
 	COPY_TO_CONST_MEM(number_of_bilaterals);
@@ -629,278 +609,25 @@ void ChLcpSolverGPU::Preprocess(gpu_container & gpu_data) {
 	cudaFuncSetCacheConfig(ChKernelLCPaddForces, cudaFuncCachePreferL1);
 	cudaFuncSetCacheConfig(ChKernelOffsets, cudaFuncCachePreferL1);
 
-	LCP_ComputeGyro CUDA_KERNEL_DIM(BLOCKS(number_of_objects), THREADS)(CASTF3(gpu_data.device_omg_data), CASTF3(gpu_data.device_inr_data), CASTF3(gpu_data.device_gyr_data), CASTF3(gpu_data.device_trq_data));
+	Preprocess(gpu_data);
+	number_of_updates = gpu_data.number_of_updates;
 
-	ChKernelLCPaddForces CUDA_KERNEL_DIM(BLOCKS(number_of_objects), THREADS)(
-			CASTF3(gpu_data.device_aux_data),
-			CASTF3(gpu_data.device_inr_data),
-			CASTF3(gpu_data.device_frc_data),
-			CASTF3(gpu_data.device_trq_data),
-			CASTF3(gpu_data.device_vel_data),
-			CASTF3(gpu_data.device_omg_data));
-	gpu_data.device_fap_data.resize(number_of_objects);
-	Thrust_Fill(gpu_data.device_fap_data,F3(0));
-
-	if (number_of_constraints > 0) {
-
-		update_number.resize((number_of_constraints)* 2, 0);
-		gpu_data.offset_counter.resize((number_of_constraints)* 2, 0);
-		gpu_data.update_offset.resize((number_of_constraints)* 2, 0);
-		body_num.resize((number_of_constraints) * 2,0);
-		gpu_data.device_dgm_data.resize((number_of_constraints));
-
-		Thrust_Fill(gpu_data.device_dgm_data,1);
-		gpu_data.vel_update.resize((number_of_constraints) * 2);
-		gpu_data.omg_update.resize((number_of_constraints) * 2);
-
-		ChKernelOffsets CUDA_KERNEL_DIM(BLOCKS(number_of_constraints), THREADS) (
-				CASTI2(gpu_data.device_bids_data),
-				CASTF4(gpu_data.device_bilateral_data),
-				CASTU1(body_num));
-
-		Thrust_Sequence(update_number);
-		Thrust_Sequence(gpu_data.update_offset);
-		Thrust_Fill(gpu_data.offset_counter,0);
-		Thrust_Sort_By_Key(body_num, update_number);
-		Thrust_Sort_By_Key(update_number,gpu_data.update_offset);
-		gpu_data.body_number = body_num;
-		Thrust_Reduce_By_KeyB(gpu_data.number_of_updates,body_num,update_number,gpu_data.offset_counter);
-		Thrust_Inclusive_Scan(gpu_data.offset_counter);
-
-	}
-}
-
-void ChLcpSolverGPU::Iterate(gpu_container & gpu_data) {
-	uint number_of_updates = gpu_data.number_of_updates;
-	COPY_TO_CONST_MEM(number_of_updates);
-	uint number_of_constraints = gpu_data.number_of_contacts + gpu_data.number_of_bilaterals;
-	bool use_DEM = false;
-	uint number_of_contacts = gpu_data.number_of_contacts;
-	uint number_of_bilaterals = gpu_data.number_of_bilaterals;
-	uint number_of_objects = gpu_data.number_of_objects;
-
-	cudaFuncSetCacheConfig(LCP_Iteration_Contacts, cudaFuncCachePreferL1);
-	cudaFuncSetCacheConfig(LCP_Iteration_Bilaterals, cudaFuncCachePreferL1);
-
-	COPY_TO_CONST_MEM(lcp_omega_bilateral);
-	COPY_TO_CONST_MEM(lcp_omega_contact);
-	COPY_TO_CONST_MEM(lcp_contact_factor);
-	COPY_TO_CONST_MEM(step_size);
-	COPY_TO_CONST_MEM(number_of_contacts);
-	COPY_TO_CONST_MEM(number_of_bilaterals);
-	COPY_TO_CONST_MEM(number_of_objects);
 	COPY_TO_CONST_MEM(compliance);
 	COPY_TO_CONST_MEM(complianceT);
 	COPY_TO_CONST_MEM(alpha);
-
-	if (use_DEM == false) {
-		LCP_Iteration_Contacts CUDA_KERNEL_DIM(BLOCKS(number_of_contacts), THREADS)(
-				CASTF3(gpu_data.device_norm_data),
-				CASTF3(gpu_data.device_cpta_data),
-				CASTF3(gpu_data.device_cptb_data),
-				CASTF1(gpu_data.device_dpth_data),
-				CASTI2(gpu_data.device_bids_data),
-				CASTF3(gpu_data.device_gam_data),
-				CASTF1(gpu_data.device_dgm_data),
-				CASTF3(gpu_data.device_aux_data),
-				CASTF3(gpu_data.device_inr_data),
-				CASTF4(gpu_data.device_rot_data),
-				CASTF3(gpu_data.device_vel_data),
-				CASTF3(gpu_data.device_omg_data),
-				CASTF3(gpu_data.device_pos_data),
-				CASTF3(gpu_data.vel_update),
-				CASTF3(gpu_data.omg_update),
-				CASTU1(gpu_data.update_offset));
-	} else {
-		DEM_Contacts CUDA_KERNEL_DIM(BLOCKS(number_of_contacts), THREADS)(
-				CASTF3(gpu_data.device_norm_data),
-				CASTF3(gpu_data.device_cpta_data),
-				CASTF3(gpu_data.device_cptb_data),
-				CASTF1(gpu_data.device_dpth_data),
-				CASTI2(gpu_data.device_bids_data),
-				CASTF3(gpu_data.device_aux_data),
-				CASTF3(gpu_data.device_inr_data),
-				CASTF4(gpu_data.device_rot_data),
-				CASTF3(gpu_data.device_vel_data),
-				CASTF3(gpu_data.device_omg_data),
-				CASTF3(gpu_data.device_pos_data),
-				CASTF3(gpu_data.vel_update),
-				CASTF3(gpu_data.omg_update),
-				CASTU1(gpu_data.update_offset));
-
-	}
-	LCP_Iteration_Bilaterals CUDA_KERNEL_DIM(BLOCKS(number_of_bilaterals), THREADS)(
-			CASTF4(gpu_data.device_bilateral_data),
-			CASTF3(gpu_data.device_aux_data),
-			CASTF3(gpu_data.device_inr_data),
-			CASTF4(gpu_data.device_rot_data),
-			CASTF3(gpu_data.device_vel_data),
-			CASTF3(gpu_data.device_omg_data),
-			CASTF3(gpu_data.device_pos_data),
-			CASTF3(gpu_data.vel_update),
-			CASTF3(gpu_data.omg_update),
-			CASTU1(gpu_data.update_offset),
-			CASTF1(gpu_data.device_dgm_data));
-
-}
-void ChLcpSolverGPU::Reduce(gpu_container & gpu_data) {
-
-	uint number_of_constraints = gpu_data.number_of_contacts + gpu_data.number_of_bilaterals;
-	uint number_of_contacts = gpu_data.number_of_contacts;
-	uint number_of_bilaterals = gpu_data.number_of_bilaterals;
-	uint number_of_objects = gpu_data.number_of_objects;
-	uint number_of_updates = gpu_data.number_of_updates;
-	COPY_TO_CONST_MEM(number_of_contacts);
-	COPY_TO_CONST_MEM(number_of_bilaterals);
-	COPY_TO_CONST_MEM(number_of_objects);
+	COPY_TO_CONST_MEM(lcp_omega_bilateral);
+	COPY_TO_CONST_MEM(lcp_omega_contact);
+	COPY_TO_CONST_MEM(lcp_contact_factor);
+	COPY_TO_CONST_MEM(number_of_updates);
+	cudaFuncSetCacheConfig(LCP_Iteration_Contacts, cudaFuncCachePreferL1);
+	cudaFuncSetCacheConfig(LCP_Iteration_Bilaterals, cudaFuncCachePreferL1);
 	cudaFuncSetCacheConfig(LCP_Reduce_Speeds, cudaFuncCachePreferL1);
-	LCP_Reduce_Speeds CUDA_KERNEL_DIM(BLOCKS( number_of_updates), THREADS)(
-			CASTF3(gpu_data.device_aux_data),
-			CASTF3(gpu_data.device_vel_data),
-			CASTF3(gpu_data.device_omg_data),
-			CASTF3(gpu_data.vel_update),
-			CASTF3(gpu_data.omg_update),
-			CASTU1(gpu_data.body_number),
-			CASTU1(gpu_data.offset_counter),
-			CASTF3(gpu_data.device_fap_data));
-
-}
-void ChLcpSolverGPU::Integrate(gpu_container & gpu_data) {
-
-	uint number_of_constraints = gpu_data.number_of_contacts + gpu_data.number_of_bilaterals;
-
-	bool use_DEM = false;
-	uint number_of_contacts = gpu_data.number_of_contacts;
-	uint number_of_bilaterals = gpu_data.number_of_bilaterals;
-	uint number_of_objects = gpu_data.number_of_objects;
-	uint number_of_updates = gpu_data.number_of_updates;
-	COPY_TO_CONST_MEM(step_size);
-	COPY_TO_CONST_MEM(number_of_contacts);
-	COPY_TO_CONST_MEM(number_of_bilaterals);
-	COPY_TO_CONST_MEM(number_of_objects);
-
 	cudaFuncSetCacheConfig(LCP_Integrate_Timestep, cudaFuncCachePreferL1);
-	LCP_Integrate_Timestep CUDA_KERNEL_DIM( BLOCKS(number_of_objects), THREADS)(
-			CASTF3(gpu_data.device_aux_data),
-			CASTF3(gpu_data.device_acc_data),
-			CASTF4(gpu_data.device_rot_data),
-			CASTF3(gpu_data.device_vel_data),
-			CASTF3(gpu_data.device_omg_data),
-			CASTF3(gpu_data.device_pos_data),
-			CASTF3(gpu_data.device_lim_data));
 
-}
-
-__device__ inline float4 DifVelocityRho(
-        const float4 & posRadA,
-        const float4 & posRadB,
-        const float4 & velMasA,
-        const float3 & vel_XSPH_A,
-        const float4 & velMasB,
-        const float3 & vel_XSPH_B,
-        const float4 & rhoPresMuA,
-        const float4 & rhoPresMuB) {
-	//float3 dist3 = Distance(posRadA, posRadB);
-	//float d = length(dist3);
-	//float3 gradW = GradW(dist3, posRadA.w);
-	//float vAB_Dot_rAB = dot(F3(velMasA - velMasB), dist3);
-	//float epsilonMutualDistance = .01f;
-
-	//*** Artificial viscosity type 2
-	//float rAB_Dot_GradW = dot(dist3, gradW);
-	//float3 derivV = -velMasB.w * (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) * gradW + velMasB.w * 8.0f * mu0 * rAB_Dot_GradW / pow(rhoPresMuA.x
-	//        + rhoPresMuB.x, 2) / (d * d + epsilonMutualDistance * posRadA.w * posRadA.w) * F3(velMasA - velMasB);
-	//return F4(derivV, rhoPresMuA.x * velMasB.w / rhoPresMuB.x * dot(vel_XSPH_A - vel_XSPH_B, gradW));
-}
-
-__host__ __device__ void Force_Sph_SPH() {
-	//	derivVelRho = DifVelocityRho(posRadA, posRadB, velMasA, vel_XSPH_A, velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB);
-	//	derivV += F3(derivVelRho);
-	//	derivRho += derivVelRho.w;
-
-}
-
-__host__ __device__ void Force_Sph_RB() {
-
-	//	derivVelRho = DifVelocityRho(posRadA, posRadB, velMasA, vel_XSPH_A, velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB);
-	//	derivV += F3(derivVelRho);
-	//	derivRho += derivVelRho.w;
-	//
-	//	derivVelRho = DifVelocityRho(posRadA, posRadB, velMasA, vel_XSPH_A, velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB);
-	//	derivV += F3(derivVelRho);
-	//	derivRho += derivVelRho.w;
-
-}
-
-void ForceSPH(
-        thrust::device_vector<float4> & posRadD,
-        thrust::device_vector<float4> & velMasD,
-        thrust::device_vector<float3> & vel_XSPH_D,
-        thrust::device_vector<float4> & rhoPresMuD,
-        thrust::device_vector<uint> & bodyIndexD,
-        thrust::device_vector<float4> & derivVelRhoD) {
-
-	//Collide All
-	//for each sph contact compute force
-	//for each sph-rigid contact compute force
-
-}
-void UpdateFluid(
-        thrust::device_vector<float4> & posRadD,
-        thrust::device_vector<float4> & velMasD,
-        thrust::device_vector<float3> & vel_XSPH_D,
-        thrust::device_vector<float4> & rhoPresMuD,
-        thrust::device_vector<float4> & derivVelRhoD,
-        const thrust::host_vector<int3> & referenceArray,
-        float dT) {
-	//	int2 updatePortion = I2(referenceArray[0]);
-	//	//int2 updatePortion = I2(referenceArray[0].x, referenceArray[0].y);
-	//	cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(dT));
-	//	cudaMemcpyToSymbolAsync(updatePortionD, &updatePortion, sizeof(updatePortion));
-	//
-	//	uint nBlock_UpdateFluid, nThreads;
-	//	computeGridSize(updatePortion.y - updatePortion.x, 128, nBlock_UpdateFluid, nThreads);
-	//	UpdateKernelFluid<<<nBlock_UpdateFluid, nThreads>>>(F4CAST(posRadD), F4CAST(velMasD), F3CAST(vel_XSPH_D), F4CAST(rhoPresMuD), F4CAST(derivVelRhoD));
-	//	cudaThreadSynchronize();
-	//	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelFluid");
-}
-void ChLcpSolverGPU::RunTimeStep(float step, gpu_container & gpu_data) {
-	/*
-	 posRadD pos and radius
-	 velMasD velocity mass
-	 vel_XSPH_D stabilization velocity
-	 rhoPresMuD density pressure visc type
-	 derivVelRhoD dv/dt drho/dt
-	 referenceArray start-end pair for each group of spheres making up RB
-	 mNSpheres total spheres
-	 */
-
-	//thrust::device_vector<float4> posRadD2 = posRadD;
-	//thrust::device_vector<float4> velMasD2 = velMasD;
-	//thrust::device_vector<float4> rhoPresMuD2 = rhoPresMuD;
-	//thrust::device_vector<float4> posRadRigidD2 = posRadRigidD;
-	///thrust::device_vector<float4> velMassRigidD2 = velMassRigidD;
-	//thrust::device_vector<float3> omegaLRF_D2 = omegaLRF_D;
-	//thrust::device_vector<float3> vel_XSPH_D(mNSpheres);
-
-	//ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, mNSpheres, SIDE);
-	//UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT);
-	//ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, mNSpheres, SIDE);
-	//UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, delT);
-
-	//reduce forces of rigid bodies
-	lcp_omega_contact = omega;
-	step_size = step;
-	Preprocess(gpu_data);
-	bool use_DEM = false;
-	uint number_of_constraints = gpu_data.number_of_contacts + gpu_data.number_of_bilaterals;
 	if (number_of_constraints != 0) {
 		for (iteration_number = 0; iteration_number < max_iterations; iteration_number++) {
 			Iterate(gpu_data);
 			Reduce(gpu_data);
-			//if (use_DEM == true) {
-			//	break;
-			//}
 			if (iteration_number > 50 && iteration_number % 50 == 0) {
 				if (Max_DeltaGamma(gpu_data.device_dgm_data) < tolerance) {
 					break;
