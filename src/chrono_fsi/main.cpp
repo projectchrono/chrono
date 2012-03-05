@@ -427,7 +427,7 @@ int main() {
 	//** Initialization
 	float r = HSML;	//.02;
 	float rRigidBody;
-	float3 cMin = make_float3(0, -0.5, -1.5) * sizeScale;
+	float3 cMin = make_float3(0, -0.2, -1.2) * sizeScale;
 	float3 cMax = make_float3( nPeriod * 4.6 + 7, 1.5,  4.0) * sizeScale;  //for serpentine
 	//float3 cMax = make_float3( nPeriod * 4.6 + 0, 1.0,  4.0) * sizeScale;  //for straight channel
 	//float3 cMax = make_float3( nPeriod * 4.6 + 0, .4,  4.0) * sizeScale;  //for straight channel, cylinders
@@ -447,8 +447,8 @@ int main() {
 	//printf("side0 %d %d %d \n", side0.x, side0.y, side0.z);
 
 	//float delT = .02 * sizeScale;
-	float delT = .02 * sizeScale;
-	//float delT = .00001;
+	float delT = .001 * sizeScale;
+
 	bool readFromFile = false;  //true;		//true: initializes from file. False: initializes inside the code
 
 	float pres = BASEPRES;  //0;//100000;
