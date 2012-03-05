@@ -55,24 +55,25 @@ void System::DoTimeStep() {
 
 int main(int argc, char* argv[]) {
 	omp_set_nested(1);
-	GPUSystem = new System(1);
+	GPUSystem = new System(-1);
 	GPUSystem->mTimeStep = .001;
 	GPUSystem->mEndTime = 10;
 	GPUSystem->mNumObjects = 1;
-	GPUSystem->mIterations = 500;
+	GPUSystem->mIterations = 100;
 	GPUSystem->mTolerance = 1e-3;
 	GPUSystem->mOmegaContact = .5;
 	GPUSystem->mOmegaBilateral = .2;
 	float mMu = .5;
 	float mWallMu = .5;
-
-	if (argc == 3) {
-		numY = atoi(argv[1]);
-		GPUSystem->mUseOGL = atoi(argv[2]);
-	} else {
-		cout << "ARGS: number of particle layers in y direction | display in OPENGL 1= true 0= false" << endl;
-		exit(1);
-	}
+	numY = 100;
+	GPUSystem->mUseOGL =1;
+//	if (argc == 3) {
+//
+//		GPUSystem->mUseOGL = atoi(argv[2]);
+//	} else {
+//		cout << "ARGS: number of particle layers in y direction | display in OPENGL 1= true 0= false" << endl;
+//		exit(1);
+//	}
 	float container_R = 10.0, container_T = 1;
 	ChQuaternion<> quat(1, 0, 0, 0);
 	ChQuaternion<> quat2(1, 0, 0, 0);
