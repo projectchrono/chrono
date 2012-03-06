@@ -1,5 +1,18 @@
 #ifndef SDKCOLLISIONSYSTEM_CUH
 #define SDKCOLLISIONSYSTEM_CUH
+
+#ifdef __CDT_PARSER__
+#define __host__
+#define __device__
+#define __global__
+#define __constant__
+#define __shared__
+#define CUDA_KERNEL_DIM(...) ()
+#else
+#define CUDA_KERNEL_DIM(...)  <<< __VA_ARGS__ >>>
+#endif
+
+
 typedef unsigned int uint;
 
 //#if USE_TEX
@@ -14,7 +27,7 @@ typedef unsigned int uint;
 
 #define HSML 0.08f*sizeScale
 #define BASEPRES 0
-#define nPeriod 7
+#define nPeriod 1
 #define Gravity make_float3(0, 0, 0)
 //#define bodyForce4 make_float4(.005, 0, 0, 0)
 #define bodyForce4 make_float4(.4, 0, 0, 0)
@@ -147,7 +160,7 @@ __device__ inline float Eos(float rho, float type) {
 	float B = 100 * rho0 * v_Max * v_Max / gama; //200;//314e6; //c^2 * rho0 / gama where c = 1484 m/s for water
 	if (type < +.1f) {
 		return B * (pow(rho / rho0, gama) - 1); //1 * (B * (pow(rho / rho0, gama) - 1) + BASEPRES);
-	}
+	} else return BASEPRES;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //distance between two particles, considering the periodic boundary condition

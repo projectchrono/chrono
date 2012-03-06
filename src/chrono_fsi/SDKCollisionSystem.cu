@@ -507,8 +507,7 @@ float2 collideCellDensityReInit_F2(
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // calculate grid hash value for each particle
-__global__
-void calcHashD(uint* gridParticleHash, // output
+__global__ void calcHashD(uint* gridParticleHash, // output
 		uint* gridParticleIndex, // output
 		float4* posRad, // input: positions
 		uint numParticles) {

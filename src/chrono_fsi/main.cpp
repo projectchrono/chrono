@@ -359,6 +359,7 @@ int CreateSphereParticles(
 
 					mPosRad.push_back(posRadRigid_sphParticle);
 					float3 vel = F3(sphereVelMas) + cross(rigidBodyOmega, F3(posRadRigid_sphParticle - spherePosRad)); //assuming LRF is the same as GRF at time zero (rigibodyOmega is in LRF, the second term of the cross is in GRF)
+					//printf("veloc %f %f %f\n", vel.x, vel.y, vel.z);
 					mVelMas.push_back(F4(vel, pow(spacing, 3) * rho));
 					float representedArea = spacing * spacing;
 					mRhoPresMu.push_back(F4(rho, pres, mu, type));					// for rigid body particle, rho represents the represented area
@@ -446,8 +447,8 @@ int main() {
 	printf("a2  cMax.x, y, z %f %f %f,  binSize %f\n", cMax.x, cMax.y, cMax.z, binSize0);
 	//printf("side0 %d %d %d \n", side0.x, side0.y, side0.z);
 
-	//float delT = .02 * sizeScale;
-	float delT = .001 * sizeScale;
+	float delT = .02 * sizeScale;
+//	float delT = .001 * sizeScale;
 
 	bool readFromFile = false;  //true;		//true: initializes from file. False: initializes inside the code
 
@@ -476,7 +477,7 @@ int main() {
 	////***** here: define rigid bodies
 	string fileNameRigids("spheresPos.dat");
 	fstream ifileSpheres(fileNameRigids.c_str(), ios::in);
-	rRigidBody = .05;//.06;//.125 * sizeScale; // .25 * sizeScale; //.06 * sizeScale;//.08 * sizeScale;//.179 * sizeScale;
+	rRigidBody = .08 * sizeScale;//.06 * sizeScale;//.125 * sizeScale; // .25 * sizeScale; //.06 * sizeScale;//.08 * sizeScale;//.179 * sizeScale;
 	rhoRigid = 1000; //1050; //originally .079 //.179 for cylinder
 	float x, y, z;
 	char ch;
@@ -489,8 +490,8 @@ int main() {
 			//********** intitialization of rigid bodies: Spheres
 			float mass = 4.0 / 3 * PI * pow(rRigidBody, 3) * rhoRigid;			//for sphere
 			float3 j1, j2;
-			j1 = F3(.4 * mass * pow(rRigidBody, 2), 0, 0);
-			j2 = F3(.4 * mass * pow(rRigidBody, 2), 0, .4 * mass * pow(rRigidBody, 2));
+			j1 =F3(.4 * mass * pow(rRigidBody, 2), 0.0f, 0.0f);
+			j2 = F3(.4 * mass * pow(rRigidBody, 2), 0.0f , .4 * mass * pow(rRigidBody, 2));
 			//****************************************************
 //			//********** intitialization of rigid bodies: Cylinders
 //			float mass = PI * pow(rRigidBody, 2) * (cMax.y - cMin.y) * rhoRigid;	//for cylinder
@@ -498,15 +499,28 @@ int main() {
 //			j1 = F3(1.0 / 12.0  * mass * (3 * pow(rRigidBody, 2) + pow(cMax.y - cMin.y, 2)), 0, 0);
 //			j2 = F3(.5 * mass * pow(rRigidBody, 2), 0, 1.0 / 12.0  * mass * (3 * pow(rRigidBody, 2) + pow(cMax.y - cMin.y, 2)));
 //			//****************************************************
-			spheresVelMas.push_back(F4(0, 0, 0, mass));
+			spheresVelMas.push_back(F4(0, 0, 0, float(mass)));
 			rigidBodyOmega.push_back(F3(0, 0, 0));
 			rigidBody_J1.push_back(j1);
 			rigidBody_J2.push_back(j2);
-			float detJ = 2 * j1.z * j1.y * j2.y - j1.z * j1.z * j2.x - j1.y * j1.y * j2.z + j1.x * j2.x * j2.z - j1.x * j2.y * j2.y;
-			float3 invJ1 = F3(j2.x * j2.z - j2.y * j2.y, -j1.y * j2.z + j1.z * j2.y, j1.y * j2.y - j1.z * j2.x);
-			float3 invJ2 = F3(-j1.z * j1.z + j1.x * j2.z, -j1.x * j2.y + j1.z * j1.y, -j1.y * j1.y + j1.x * j2.x);
-			rigidBody_InvJ1.push_back(invJ1 / detJ);
-			rigidBody_InvJ2.push_back(invJ2 / detJ);
+			//normalize J to deal with machine precision
+			float3 maxJ3 = fmaxf(j1, j2);
+			float maxComp = max(maxJ3.x, maxJ3.y);
+			maxComp = max(maxComp, maxJ3.z);
+			//********************************************
+			float3 nJ1 = j1 / maxComp;	//nJ1 is normalJ1
+			float3 nJ2 = j2 / maxComp;	//nJ2 is normalJ2
+
+			float detJ = 2 * nJ1.z * nJ1.y * nJ2.y - nJ1.z * nJ1.z * nJ2.x - nJ1.y * nJ1.y * nJ2.z + nJ1.x * nJ2.x * nJ2.z - nJ1.x * nJ2.y * nJ2.y;
+			float3 invJ1 = F3(nJ2.x * nJ2.z - nJ2.y * nJ2.y, -nJ1.y * nJ2.z + nJ1.z * nJ2.y, nJ1.y * nJ2.y - nJ1.z * nJ2.x);
+			float3 invJ2 = F3(-nJ1.z * nJ1.z + nJ1.x * nJ2.z, -nJ1.x * nJ2.y + nJ1.z * nJ1.y, -nJ1.y * nJ1.y + nJ1.x * nJ2.x);
+
+			//printf("invJ %f %f %f %f %f %f\n", aa.x, aa.y, aa.z, bb.x, bb.y, bb.z);
+			//printf("invJ %f %f %f %f %f %f\n", 1e12 * j1.x, 1e12 *  j1.y, 1e12 *  j1.z,  1e12 * j2.x,  1e12 * j2.y, 1e12 *  j2.z);
+			//printf("detJ %e\n", detJ * maxComp);
+			// j = maxComp * nJ, therefore, jInv = maxComp * nJ_Inv
+			rigidBody_InvJ1.push_back(invJ1 / detJ * maxComp);
+			rigidBody_InvJ2.push_back(invJ2 / detJ * maxComp);
 		}
 		ifileSpheres >> x >> ch >> y >> ch >> z;
 	}

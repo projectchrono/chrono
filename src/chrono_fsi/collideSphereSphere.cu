@@ -306,6 +306,7 @@ __global__ void UpdateRigidBodyAngularVelocity_kernel(
 	float3 omega3 = omegaLRF_D[rigidSphereA];
 	float3 j1 = jD1[rigidSphereA];
 	float3 j2 = jD2[rigidSphereA];
+	//printf("j j %f %f %f %f %f %f\n", j1.x, j1.y, j1.z, j2.x, j2.y, j2.z);
 	float3 torquingTerm;
 	torquingTerm.x = (-omega3.z * j1.y + omega3.y * j1.z) * omega3.x + (-omega3.z * j2.x + omega3.y * j2.y) * omega3.y
 			+ (-omega3.z * j2.y + omega3.y * j2.z) * omega3.z;
@@ -318,6 +319,7 @@ __global__ void UpdateRigidBodyAngularVelocity_kernel(
 	//*** from this point j1 and j2 will represent the j_Inverse
 	j1 = jInvD1[rigidSphereA];
 	j2 = jInvD2[rigidSphereA];
+	//printf("j j %f %f %f %f %f %f\n", j1.x, j1.y, j1.z, j2.x, j2.y, j2.z);
 	float3 omegaDot3 = torquingTerm.x * j1 + torquingTerm.y * F3(j1.y, j2.x, j2.y) + torquingTerm.z * F3(j1.z, j2.y, j2.z);
 
 	omega3 += omegaDot3 * dTD;
@@ -490,39 +492,33 @@ void PrintToFile(
 		float delT,
 		int tStep,
 		float channelRadius) {
-	FILE *fileNameFluid;
+////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//	FILE *fileNameFluid;
+//	int stepSaveFluid = 1000000;
+//	///if (tStep%100 == 0 &&  tStep > 20400) {
+//	////if (tStep > 12506) {
+//	if (tStep % stepSaveFluid == 0) {
+//		if (tStep / stepSaveFluid == 0) {
+//			fileNameFluid = fopen("dataFluid.txt", "w");
+//			fprintf(fileNameFluid,
+//					"variables = \"x\", \"y\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\", \"type\"\n");
+//		} else {
+//			fileNameFluid = fopen("dataFluid.txt", "a");
+//		}
+//
+//		fprintf(fileNameFluid, "zone\n");
+//		for (int i = referenceArray[0].x; i < referenceArray[1].y; i++) {
+//			float3 pos = F3(posRadD[i]);
+//			float3 vel = F3(velMasD[i]);
+//			float4 rP = rhoPresMuD[i];
+//			float velMag = length(vel);
+//			fprintf(fileNameFluid, "%f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n", pos.x, pos.y, pos.z, vel.x, vel.y, vel.z, velMag, rP.x, rP.y, rP.w);
+//		}
+//		fflush(fileNameFluid);
+//		fclose(fileNameFluid);
+//	}
+//-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	FILE *fileNameRigids;
-	FILE *fileNameSlice;
-	FILE *fileNameCartesianTotal;
-	FILE *fileNameCartesianMidplane;
-	FILE *fileVelocityProfPoiseuille;
-	FILE *fileRigidParticleCenterVsTime;
-	FILE *fileRigidParticleCenterVsDistance;
-
-	int stepSaveFluid = 1000000;
-	///if (tStep%100 == 0 &&  tStep > 20400) {
-	////if (tStep > 12506) {
-	if (tStep % stepSaveFluid == 0) {
-		if (tStep / stepSaveFluid == 0) {
-			fileNameFluid = fopen("dataFluid.txt", "w");
-			fprintf(fileNameFluid,
-					"variables = \"x\", \"y\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\", \"type\"\n");
-		} else {
-			fileNameFluid = fopen("dataFluid.txt", "a");
-		}
-
-		fprintf(fileNameFluid, "zone\n");
-		for (int i = referenceArray[0].x; i < referenceArray[1].y; i++) {
-			float3 pos = F3(posRadD[i]);
-			float3 vel = F3(velMasD[i]);
-			float4 rP = rhoPresMuD[i];
-			float velMag = length(vel);
-			fprintf(fileNameFluid, "%f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n", pos.x, pos.y, pos.z, vel.x, vel.y, vel.z, velMag, rP.x, rP.y, rP.w);
-		}
-		fflush(fileNameFluid);
-		fclose(fileNameFluid);
-	}
-
 	int stepSaveRigid = 5000;
 	///if (tStep % 20 == 0 && tStep > 56000) {
 	//if (tStep > 12506) {
@@ -542,6 +538,7 @@ void PrintToFile(
 			for (int i = startRigidParticle; i < referenceArray[2 + numRigidBodies - 1].y; i++) {
 				float3 pos = F3(posRadD[i]);
 				float3 vel = F3(velMasD[i]);
+				//printf("velocccc %f %f %f\n", vel.x, vel.y, vel.z);
 				float4 rP = rhoPresMuD[i];
 				float velMag = length(vel);
 				int rigidID = rigidIdentifierD[i - startRigidParticle];
@@ -554,10 +551,11 @@ void PrintToFile(
 		fflush(fileNameRigids);
 		fclose(fileNameRigids);
 	}
-
+////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	FILE *fileNameSlice;
 	int stepSaveFluidSlice = 20000; //1;//20000;
 	//if (tStep%100 == 0 &&  tStep > 20400) {
-	//if (tStep > 49100) {	
+	//if (tStep > 49100) {
 	if (tStep % stepSaveFluidSlice == 0) {
 		//if (tStep / stepSaveFluidSlice == 49101) {
 		if (tStep / stepSaveFluidSlice == 0) {
@@ -583,113 +581,136 @@ void PrintToFile(
 		fflush(fileNameSlice);
 		fclose(fileNameSlice);
 	}
-	//----------------------------------------
-	thrust::host_vector<float4> rho_Pres_CartH(1);
-	thrust::host_vector<float4> vel_VelMag_CartH(1);
-	float resolution = 2 * HSML;
-	int3 cartesianGridDims;
-	int tStepCartesianTotal = 1000000;
-	int tStepCartesianSlice = 100000;
-	int tStepPoiseuilleProf = 1000; //tStepCartesianSlice;
-
-	int stepCalcCartesian = min(tStepCartesianTotal, tStepCartesianSlice);
-	stepCalcCartesian = min(stepCalcCartesian, tStepPoiseuilleProf);
-
-	if (tStep % stepCalcCartesian == 0) {
-		MapSPH_ToGrid(resolution, cartesianGridDims, rho_Pres_CartH, vel_VelMag_CartH, posRadD, velMasD, rhoPresMuD,
-				referenceArray[referenceArray.size() - 1].y, paramsH);
-	}
-	if (tStep % tStepCartesianTotal == 0) {
-		if (tStep / tStepCartesianTotal == 0) {
-			fileNameCartesianTotal = fopen("dataCartesianTotal.txt", "w");
-			fprintf(fileNameCartesianTotal,
-					"variables = \"x\", \"y\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\"\n");
-		} else {
-			fileNameCartesianTotal = fopen("dataCartesianTotal.txt", "a");
-		}
-		fprintf(fileNameCartesianTotal, "zone I = %d, J = %d, K = %d\n", cartesianGridDims.x, cartesianGridDims.y, cartesianGridDims.z);
-		for (int k = 0; k < cartesianGridDims.z; k++) {
-			for (int j = 0; j < cartesianGridDims.y; j++) {
-				for (int i = 0; i < cartesianGridDims.x; i++) {
-					int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
-					float3 gridNodeLoc = resolution * F3(i, j, k) + paramsH.worldOrigin;
-					fprintf(fileNameCartesianTotal, "%f, %f, %f, %f, %f, %f, %f, %f, %f\n", gridNodeLoc.x, gridNodeLoc.y, gridNodeLoc.z,
-							vel_VelMag_CartH[index].x, vel_VelMag_CartH[index].y, vel_VelMag_CartH[index].z, vel_VelMag_CartH[index].w,
-							rho_Pres_CartH[index].x, rho_Pres_CartH[index].y);
-				}
-			}
-		}
-		fflush(fileNameCartesianTotal);
-		fclose(fileNameCartesianTotal);
-	}
-//--------------
-	if (tStep % tStepCartesianSlice == 0) {
-		if (tStep / tStepCartesianSlice == 0) {
-			fileNameCartesianMidplane = fopen("dataCartesianMidplane.txt", "w");
-			fprintf(fileNameCartesianMidplane, "variables = \"x\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\"\n");
-		} else {
-			fileNameCartesianMidplane = fopen("dataCartesianMidplane.txt", "a");
-		}
-		fprintf(fileNameCartesianMidplane, "zone I = %d, J = %d\n", cartesianGridDims.x, cartesianGridDims.z);
-		int j = cartesianGridDims.y / 2;
-		for (int k = 0; k < cartesianGridDims.z; k++) {
-			for (int i = 0; i < cartesianGridDims.x; i++) {
-				int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
-				float3 gridNodeLoc = resolution * F3(i, j, k) + paramsH.worldOrigin;
-				fprintf(fileNameCartesianMidplane, "%f, %f, %f, %f, %f, %f, %f, %f\n", gridNodeLoc.x, gridNodeLoc.z, vel_VelMag_CartH[index].x,
-						vel_VelMag_CartH[index].y, vel_VelMag_CartH[index].z, vel_VelMag_CartH[index].w, rho_Pres_CartH[index].x,
-						rho_Pres_CartH[index].y);
-			}
-		}
-		fflush(fileNameCartesianMidplane);
-		fclose(fileNameCartesianMidplane);
-	}
-//--------------
-	if (tStep % tStepPoiseuilleProf == 0) {
-		if (tStep / tStepPoiseuilleProf == 0) {
-			fileVelocityProfPoiseuille = fopen("dataVelProfile.txt", "w");
-			fprintf(fileVelocityProfPoiseuille, "variables = \"Z(m)\", \"Vx(m/s)\"\n");
-
-		} else {
-			fileVelocityProfPoiseuille = fopen("dataVelProfile.txt", "a");
-		}
-		fprintf(fileVelocityProfPoiseuille, "zone T=\"t = %f s\"\n", delT * tStep);
-		int j = cartesianGridDims.y / 2;
-		int i = cartesianGridDims.x / 2;
-		for (int k = 0; k < cartesianGridDims.z; k++) {
-			int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
-			float3 gridNodeLoc = resolution * F3(i, j, k) + paramsH.worldOrigin;
-			if (gridNodeLoc.z > 1 * sizeScale && gridNodeLoc.z < 2 * sizeScale) {
-				fprintf(fileVelocityProfPoiseuille, "%f, %f\n", gridNodeLoc.z, vel_VelMag_CartH[index].x);
-			}
-		}
-		fflush(fileVelocityProfPoiseuille);
-		fclose(fileVelocityProfPoiseuille);
-	}
-//--------------
+////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//	FILE *fileNameCartesianTotal;
+//	thrust::host_vector<float4> rho_Pres_CartH(1);
+//	thrust::host_vector<float4> vel_VelMag_CartH(1);
+//	float resolution = 2 * HSML;
+//	int3 cartesianGridDims;
+//	int tStepCartesianTotal = 1000000;
+//	int tStepCartesianSlice = 100000;
+//	int tStepPoiseuilleProf = 1000; //tStepCartesianSlice;
+//
+//	int stepCalcCartesian = min(tStepCartesianTotal, tStepCartesianSlice);
+//	stepCalcCartesian = min(stepCalcCartesian, tStepPoiseuilleProf);
+//
+//	if (tStep % stepCalcCartesian == 0) {
+//		MapSPH_ToGrid(resolution, cartesianGridDims, rho_Pres_CartH, vel_VelMag_CartH, posRadD, velMasD, rhoPresMuD,
+//				referenceArray[referenceArray.size() - 1].y, paramsH);
+//	}
+//	if (tStep % tStepCartesianTotal == 0) {
+//		if (tStep / tStepCartesianTotal == 0) {
+//			fileNameCartesianTotal = fopen("dataCartesianTotal.txt", "w");
+//			fprintf(fileNameCartesianTotal,
+//					"variables = \"x\", \"y\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\"\n");
+//		} else {
+//			fileNameCartesianTotal = fopen("dataCartesianTotal.txt", "a");
+//		}
+//		fprintf(fileNameCartesianTotal, "zone I = %d, J = %d, K = %d\n", cartesianGridDims.x, cartesianGridDims.y, cartesianGridDims.z);
+//		for (int k = 0; k < cartesianGridDims.z; k++) {
+//			for (int j = 0; j < cartesianGridDims.y; j++) {
+//				for (int i = 0; i < cartesianGridDims.x; i++) {
+//					int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
+//					float3 gridNodeLoc = resolution * F3(i, j, k) + paramsH.worldOrigin;
+//					fprintf(fileNameCartesianTotal, "%f, %f, %f, %f, %f, %f, %f, %f, %f\n", gridNodeLoc.x, gridNodeLoc.y, gridNodeLoc.z,
+//							vel_VelMag_CartH[index].x, vel_VelMag_CartH[index].y, vel_VelMag_CartH[index].z, vel_VelMag_CartH[index].w,
+//							rho_Pres_CartH[index].x, rho_Pres_CartH[index].y);
+//				}
+//			}
+//		}
+//		fflush(fileNameCartesianTotal);
+//		fclose(fileNameCartesianTotal);
+//	}
+////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//	FILE *fileNameCartesianMidplane;
+//	if (tStep % tStepCartesianSlice == 0) {
+//		if (tStep / tStepCartesianSlice == 0) {
+//			fileNameCartesianMidplane = fopen("dataCartesianMidplane.txt", "w");
+//			fprintf(fileNameCartesianMidplane, "variables = \"x\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\"\n");
+//		} else {
+//			fileNameCartesianMidplane = fopen("dataCartesianMidplane.txt", "a");
+//		}
+//		fprintf(fileNameCartesianMidplane, "zone I = %d, J = %d\n", cartesianGridDims.x, cartesianGridDims.z);
+//		int j = cartesianGridDims.y / 2;
+//		for (int k = 0; k < cartesianGridDims.z; k++) {
+//			for (int i = 0; i < cartesianGridDims.x; i++) {
+//				int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
+//				float3 gridNodeLoc = resolution * F3(i, j, k) + paramsH.worldOrigin;
+//				fprintf(fileNameCartesianMidplane, "%f, %f, %f, %f, %f, %f, %f, %f\n", gridNodeLoc.x, gridNodeLoc.z, vel_VelMag_CartH[index].x,
+//						vel_VelMag_CartH[index].y, vel_VelMag_CartH[index].z, vel_VelMag_CartH[index].w, rho_Pres_CartH[index].x,
+//						rho_Pres_CartH[index].y);
+//			}
+//		}
+//		fflush(fileNameCartesianMidplane);
+//		fclose(fileNameCartesianMidplane);
+//	}
+//	rho_Pres_CartH.clear();
+////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//	FILE *fileVelocityProfPoiseuille;
+//	if (tStep % tStepPoiseuilleProf == 0) {
+//		if (tStep / tStepPoiseuilleProf == 0) {
+//			fileVelocityProfPoiseuille = fopen("dataVelProfile.txt", "w");
+//			fprintf(fileVelocityProfPoiseuille, "variables = \"Z(m)\", \"Vx(m/s)\"\n");
+//
+//		} else {
+//			fileVelocityProfPoiseuille = fopen("dataVelProfile.txt", "a");
+//		}
+//		fprintf(fileVelocityProfPoiseuille, "zone T=\"t = %f s\"\n", delT * tStep);
+//		int j = cartesianGridDims.y / 2;
+//		int i = cartesianGridDims.x / 2;
+//		for (int k = 0; k < cartesianGridDims.z; k++) {
+//			int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
+//			float3 gridNodeLoc = resolution * F3(i, j, k) + paramsH.worldOrigin;
+//			if (gridNodeLoc.z > 1 * sizeScale && gridNodeLoc.z < 2 * sizeScale) {
+//				fprintf(fileVelocityProfPoiseuille, "%f, %f\n", gridNodeLoc.z, vel_VelMag_CartH[index].x);
+//			}
+//		}
+//		fflush(fileVelocityProfPoiseuille);
+//		fclose(fileVelocityProfPoiseuille);
+//	}
+//	vel_VelMag_CartH.clear();
+//-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	FILE *fileRigidParticleCenterVsTime;
+	FILE *fileRigidParticleCenterVsDistance;
+	int numRigidBodies = int(posRadRigidD.size() / float(nPeriod) + .5);
 	int tStepRigidCenterPos = 1000;
 	if (tStep % tStepRigidCenterPos == 0) {
 		if (tStep / tStepRigidCenterPos == 0) {
 			fileRigidParticleCenterVsTime = fopen("dataRigidCenterVsTime.txt", "w");
-			fprintf(fileRigidParticleCenterVsTime, "variables = \"t(s)\", \"Z(m)\"\n");
-			fprintf(fileRigidParticleCenterVsTime, "zone\n");
+			fprintf(fileRigidParticleCenterVsTime, "variables = \"t(s)\"");
+			for (int j = 0; j < numRigidBodies; j++) {
+				fprintf(fileRigidParticleCenterVsTime, ", \"t%d(s)\", \"Z%d(m)\"", j, j);
+			}
+			fprintf(fileRigidParticleCenterVsTime, "\nzone\n");
 
 			fileRigidParticleCenterVsDistance = fopen("dataRigidCenterVsDistance.txt", "w");
-			fprintf(fileRigidParticleCenterVsDistance, "variables = \"X(m)\", \"Z(m)\"\n");
-			fprintf(fileRigidParticleCenterVsDistance, "zone\n");
+			fprintf(fileRigidParticleCenterVsDistance, "variables = \"X(m)\"");
+			for (int j = 0; j < numRigidBodies; j++) {
+				fprintf(fileRigidParticleCenterVsDistance, ", \"X%d(m)\", \"Z%d(m)\"", j, j);
+			}
+			fprintf(fileRigidParticleCenterVsDistance, "\nzone\n");
 		} else {
 			fileRigidParticleCenterVsTime = fopen("dataRigidCenterVsTime.txt", "a");
 			fileRigidParticleCenterVsDistance = fopen("dataRigidCenterVsDistance.txt", "a");
 		}
 		if (referenceArray.size() > 2) {
-			float4 pR_rigid = posRadRigidD[0];
-			float4 pR_rigidCumul = posRadRigidCumulativeD[0];
-			//***for 2D flow
-			//fprintf(fileRigidParticleCenterVsTime, "%f, %0.10f\n", tStep * delT, pR_rigid.z);
-			//***for tube
-			float2 dist2 = F2(.5 * (cMax.y + cMin.y) - pR_rigid.y, .5 * (cMax.z + cMin.z) - pR_rigid.z);
-			fprintf(fileRigidParticleCenterVsTime, "%f, %0.10f\n", tStep * delT, length(dist2) / channelRadius);
-			fprintf(fileRigidParticleCenterVsDistance, "%f, %0.10f\n", pR_rigidCumul.x, length(dist2) / channelRadius);
+			fprintf(fileRigidParticleCenterVsTime, "%f", 0); //dummy
+			fprintf(fileRigidParticleCenterVsDistance, "%f", 0); //dummy
+			for (int j = 0; j < numRigidBodies; j++) {
+				float4 pR_rigid = posRadRigidD[j];
+				//printf("position %f %f %f %f\n", pR_rigid.x, pR_rigid.y, pR_rigid.z, pR_rigid.w);
+				float4 pR_rigidCumul = posRadRigidCumulativeD[j];
+				//***for 2D flow
+				//fprintf(fileRigidParticleCenterVsTime, "%f, %0.10f\n", tStep * delT, pR_rigid.z);
+				fprintf(fileRigidParticleCenterVsTime, ", %f, %0.10f", tStep * delT, pR_rigid.z);
+				fprintf(fileRigidParticleCenterVsDistance, ", %f, %0.10f", pR_rigidCumul.x,  pR_rigid.z);
+//				//***for tube
+//				float2 dist2 = F2(.5 * (cMax.y + cMin.y) - pR_rigid.y, .5 * (cMax.z + cMin.z) - pR_rigid.z);
+//				fprintf(fileRigidParticleCenterVsTime, "%f, %0.10f", tStep * delT, length(dist2) / channelRadius);
+//				fprintf(fileRigidParticleCenterVsDistance, "%f, %0.10f", pR_rigidCumul.x, length(dist2) / channelRadius);
+			}
+			fprintf(fileRigidParticleCenterVsTime, "\n");
+			fprintf(fileRigidParticleCenterVsDistance, "\n");
 		}
 		fflush(fileRigidParticleCenterVsTime);
 		fclose(fileRigidParticleCenterVsTime);
@@ -721,8 +742,6 @@ void PrintToFile(
 	//	}
 	//	fclose(outFileMultipleZones);
 	//}
-	rho_Pres_CartH.clear();
-	vel_VelMag_CartH.clear();
 }
 //*******************************************************************************************************************************
 void PrintToFileDistribution(
@@ -962,9 +981,9 @@ void ApplyBoundary(
 	ApplyPeriodicBoundaryXKernel<<<nBlock_NumSpheres, nThreads_SphParticles>>>(F4CAST(posRadD), F4CAST(rhoPresMuD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: ApplyPeriodicBoundaryXKernel");
-	ApplyPeriodicBoundaryYKernel<<<nBlock_NumSpheres, nThreads_SphParticles>>>(F4CAST(posRadD), F4CAST(rhoPresMuD));
-	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: ApplyPeriodicBoundaryXKernel");
+//	ApplyPeriodicBoundaryYKernel<<<nBlock_NumSpheres, nThreads_SphParticles>>>(F4CAST(posRadD), F4CAST(rhoPresMuD));
+//	cudaThreadSynchronize();
+//	CUT_CHECK_ERROR("Kernel execution failed: ApplyPeriodicBoundaryXKernel");
 //////////////
 	uint nBlock_NumRigids, nThreads_RigidBodies;
 	computeGridSize(numRigidBodies, 128, nBlock_NumRigids, nThreads_RigidBodies);
@@ -973,9 +992,9 @@ void ApplyBoundary(
 	ApplyPeriodicBoundaryXKernel_RigidBodies<<<nBlock_NumRigids, nThreads_RigidBodies>>>(F4CAST(posRadRigidD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
-	ApplyPeriodicBoundaryYKernel_RigidBodies<<<nBlock_NumRigids, nThreads_RigidBodies>>>(F4CAST(posRadRigidD));
-	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
+//	ApplyPeriodicBoundaryYKernel_RigidBodies<<<nBlock_NumRigids, nThreads_RigidBodies>>>(F4CAST(posRadRigidD));
+//	cudaThreadSynchronize();
+//	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void FindPassesFromTheEnd(
@@ -1049,9 +1068,6 @@ void UpdateRigidBody(
 	const int numRigidBodies = posRadRigidD.size();
 	float4 typicalRigidSPH = velMasD[referenceArray[2].x];
 	float rigid_SPH_mass = typicalRigidSPH.w;
-	//printf("rigid_SPH_mass %f\n", 1000000*rigid_SPH_mass);
-	float4 typicalRigidVelMas = velMassRigidD[0];
-	//printf("sph mass and total mass: %f %f\n", rigid_SPH_mass, typicalRigidVelMas.w);
 	cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(dT));
 
 	int numRigid_SphParticles = rigidIdentifierD.size();
@@ -1065,8 +1081,7 @@ void UpdateRigidBody(
 	thrust::fill(totalForces4.begin(), totalForces4.end(), F4(0));
 	thrust::device_vector<int> dummyIdentify(numRigidBodies);
 	thrust::equal_to<int> binary_pred;
-	//printf("&&&&  %d %d %d %d\n", rigidIdentifierD.size(), derivVelRhoD.end() - derivVelRhoD.begin() - startRigidParticle, derivVelRhoD.size() - startRigidParticle, startRigidParticle);
-	//printf("numRigidBodies %d\n", numRigidBodies);
+
 	(void) thrust::reduce_by_key(rigidIdentifierD.begin(), rigidIdentifierD.end(), derivVelRhoD.begin() + startRigidParticle, dummyIdentify.begin(),
 			totalForces4.begin(), binary_pred, thrust::plus<float4>());
 
@@ -1074,7 +1089,7 @@ void UpdateRigidBody(
 	uint nBlocks_numRigid_SphParticles;
 	uint nThreads_SphParticles;
 	computeGridSize(numRigid_SphParticles, 256, nBlocks_numRigid_SphParticles, nThreads_SphParticles);
-	//printf("numRigid_SphParticles %d %d %d\n", numRigid_SphParticles, nBlocks_numRigid_SphParticles, nThreads_SphParticles);
+
 	CalcTorqueShare<<<nBlocks_numRigid_SphParticles, nThreads_SphParticles>>>(F3CAST(torqueParticlesD), F4CAST(derivVelRhoD), F4CAST(posRadD), I1CAST(rigidIdentifierD), F4CAST(posRadRigidD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueShare");
@@ -1119,10 +1134,9 @@ void UpdateRigidBody(
 	UpdateRigidBodyAngularVelocity_kernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(F3CAST(LF_totalTorque3), F3CAST(jD1), F3CAST(jD2), F3CAST(jInvD1), F3CAST(jInvD2), F3CAST(omegaLRF_D), rigid_SPH_mass);
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
-	LF_totalTorque3.clear();
 
+	LF_totalTorque3.clear();
 	//################################################### update rigid body things
-	//int numRigid_SphParticles = referenceArray[numRigidBodies + 2 - 1].y - referenceArray[2].x;
 	UpdateRigidParticlesPosition<<<nBlocks_numRigid_SphParticles, nThreads_SphParticles>>>(F4CAST(posRadD), F4CAST(velMasD), F3CAST(rigidSPH_MeshPos_LRF_D), I1CAST(rigidIdentifierD), F4CAST(posRadRigidD), F4CAST(velMassRigidD), F3CAST(omegaLRF_D), F3CAST(AD1), F3CAST(AD2), F3CAST(AD3));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
@@ -1274,6 +1288,8 @@ void cudaCollisions(
 
 	//for (int tStep = 0; tStep < 0; tStep ++) {
 	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
+		//edit PrintToFile since yu deleted cyliderRotOmegaJD
+
 //		if (tStep > 10000) delT = .2;
 		cudaEvent_t start2, stop2;
 		cudaEventCreate(&start2);
@@ -1334,7 +1350,7 @@ void cudaCollisions(
 		//edit PrintToFile since yu deleted cyliderRotOmegaJD
 		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRadRigidD, posRadRigidCumulativeD, velMassRigidD, omegaLRF_D, cMax, cMin, paramsH,
 				delT, tStep, channelRadius);
-		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
+//		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
 
 		float time2;
 		cudaEventRecord(stop2, 0);
@@ -1342,7 +1358,7 @@ void cudaCollisions(
 		cudaEventElapsedTime(&time2, start2, stop2);
 		cudaEventDestroy(start2);
 		cudaEventDestroy(stop2);
-		if (tStep % 100 == 0) {
+		if (tStep % 200 == 0) {
 			printf("step: %d, step Time: %f\n ", tStep, time2);
 			//printf("a \n");
 		}
