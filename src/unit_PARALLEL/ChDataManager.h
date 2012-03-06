@@ -81,6 +81,11 @@ struct gpu_container {
 
 		thrust::device_vector<uint> OLD_bin_number;
 		thrust::device_vector<long long> OLD_device_pair_data;
+		thrust::device_vector<uint> generic_counter;
+		thrust::device_vector<uint> bin_number_B;
+		thrust::device_vector<uint> body_number_B;
+		thrust::device_vector<uint> bin_start_index_B;
+
 };
 
 class ChApiGPU ChGPUDataManager {

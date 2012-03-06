@@ -7,7 +7,26 @@ ChGPUDataManager::ChGPUDataManager(unsigned int numDiv) {
 	number_of_bilaterals = 0;
 	number_of_contacts_possible=0;
 	copyContacts = false;
+
+	gpu_data.generic_counter.reserve(10e6);
+	gpu_data.device_pair_data.reserve(2e6);
+	gpu_data.bin_number_B.reserve(10e6);
+	gpu_data.body_number_B.reserve(10e6);
+	gpu_data.bin_start_index_B.reserve(10e6);
+
+
+	gpu_data.device_norm_data.reserve(2e6);
+	gpu_data.device_cpta_data.reserve(2e6);
+	gpu_data.device_cptb_data.reserve(2e6);
+	gpu_data.device_dpth_data.reserve(2e6);
+	gpu_data.device_bids_data.reserve(2e6);
+	gpu_data.device_gam_data.reserve(2e6);
+
 }
+
+
+
+
 void ChGPUDataManager::HostToDevice() {
 
 	gpu_data.device_ObA_data = host_ObA_data;

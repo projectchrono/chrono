@@ -65,17 +65,21 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	return 1;
 }
 
-float tuneCD(float3 & bin_size_vec, float & max_dimension, float & collision_envelope, gpu_container & gpu_data, float3 bins_per_axis) {
+float tuneCD(gpu_container & gpu_data, float3 bins_per_axis) {
+
+	float3 global_origin = fabs(gpu_data.min_bounding_point); //Determine Global Origin
+	float3 bin_size_vec = (global_origin + fabs(gpu_data.max_bounding_point)) / bins_per_axis; //(powf(number_of_models * 2, 1 / 3.0));
+	bin_size_vec = 1.0 / bin_size_vec;
+
 	ChTimer<double> mtimer_tuning;
 	float accumulated_time = 0;
-	for (int j = 0; j < 1; j++) {
+	for (int j = 0; j < 5; j++) {
 		mtimer_tuning.start();
-		ChCCollisionGPU::UpdateAABB(bin_size_vec, max_dimension, collision_envelope, gpu_data, bins_per_axis);
-		ChCCollisionGPU::Broadphase(bin_size_vec, gpu_data);
+		ChCCollisionGPU::Broadphase(bin_size_vec, gpu_data, true);
 		mtimer_tuning.stop();
 		accumulated_time += mtimer_tuning();
 	}
-	return accumulated_time / 1.0; //time of current
+	return accumulated_time / 5.0; //time of current
 
 }
 
@@ -126,55 +130,73 @@ double ChSystemGPU::ComputeCollisions() {
 
 #pragma omp single nowait
 		{
-			float3 bin_size_vec;
-			float max_dimension;
 			float collision_envelope = 0;
-			mtimer_cd_broad.start();
+
 			float old_time = 10000, new_time = 0, time1 = 0, time2 = 0, time3 = 0;
 			float3 tune_dir = F3(1, 1, 1);
 			if (gpu_data_manager->gpu_data.number_of_models > 0) {
 				ChCCollisionGPU::ComputeAABB(gpu_data_manager->gpu_data);
 				ChCCollisionGPU::ComputeBounds(gpu_data_manager->gpu_data);
+				float3 global_origin = fabs(gpu_data_manager->gpu_data.min_bounding_point); //Determine Global Origin
+				float max_dimension = 0; //max3(global_origin + fabs(gpu_data_manager->gpu_data.max_bounding_point)); //Determine Max point in space
 
-				if (mtuning % 50 == 0) {
-					cout << "TUNING " << endl;
-					for (int search = 1; search <= 3; search++) {
-						if (search == 1) {
-							tune_dir = F3(5, 0, 0);
-						}
-						if (search == 2) {
-							tune_dir = F3(0, 5, 0);
-						}
-						if (search == 3) {
-							tune_dir = F3(0, 0, 5);
-						}
-						//bins_per_axis = F3(i, i, i);
-						time1 = tuneCD(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager->gpu_data, F3(bins_per_axis.x - tune_dir.x, bins_per_axis.y - tune_dir.y, bins_per_axis.z - tune_dir.z));
-						time2 = tuneCD(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager->gpu_data, bins_per_axis);
-						time3 = tuneCD(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager->gpu_data, F3(bins_per_axis.x + tune_dir.x, bins_per_axis.y + tune_dir.y, bins_per_axis.z + tune_dir.z));
+				ChCCollisionGPU::UpdateAABB(collision_envelope, gpu_data_manager->gpu_data, global_origin);
 
-						if (time1 < time2) {
-							bins_per_axis = F3(bins_per_axis.x - tune_dir.x, bins_per_axis.y - tune_dir.y, bins_per_axis.z - tune_dir.z);
-						} else if (time3 < time2) {
-							bins_per_axis = F3(bins_per_axis.x + tune_dir.x, bins_per_axis.y + tune_dir.y, bins_per_axis.z + tune_dir.z);
-						} else {
+#pragma omp task
+				{
+					if (mtuning % 50 == 0) {
+						for (int search = 1; search <= 3; search++) {
+							if (search == 1) {
+								tune_dir = F3(5, 0, 0);
+							}
+							if (search == 2) {
+								tune_dir = F3(0, 5, 0);
+							}
+							if (search == 3) {
+								tune_dir = F3(0, 0, 5);
+							}
+							//bins_per_axis = F3(i, i, i);
+							time1 = tuneCD(gpu_data_manager->gpu_data, F3(bins_per_axis.x - tune_dir.x, bins_per_axis.y - tune_dir.y, bins_per_axis.z - tune_dir.z));
+							time2 = tuneCD(gpu_data_manager->gpu_data, bins_per_axis);
+							time3 = tuneCD(gpu_data_manager->gpu_data, F3(bins_per_axis.x + tune_dir.x, bins_per_axis.y + tune_dir.y, bins_per_axis.z + tune_dir.z));
+
+							if (time1 < time2) {
+								bins_per_axis = F3(bins_per_axis.x - tune_dir.x, bins_per_axis.y - tune_dir.y, bins_per_axis.z - tune_dir.z);
+							} else if (time3 < time2) {
+								bins_per_axis = F3(bins_per_axis.x + tune_dir.x, bins_per_axis.y + tune_dir.y, bins_per_axis.z + tune_dir.z);
+							} else {
+							}
+							bins_per_axis.x = fabs(bins_per_axis.x);
+							bins_per_axis.y = fabs(bins_per_axis.y);
+							bins_per_axis.z = fabs(bins_per_axis.z);
+							if (bins_per_axis.x == 0) {
+								bins_per_axis.x = 5;
+							}
+							if (bins_per_axis.y == 0) {
+								bins_per_axis.y = 5;
+							}
+							if (bins_per_axis.z == 0) {
+								bins_per_axis.z = 5;
+							}
 						}
-						bins_per_axis.x = fabs(bins_per_axis.x);
-						bins_per_axis.y = fabs(bins_per_axis.y);
-						bins_per_axis.z = fabs(bins_per_axis.z);
+
+						cout << "TUNING " << bins_per_axis.x << " " << bins_per_axis.y << " " << bins_per_axis.z << endl;
+
 					}
-
-					cout << bins_per_axis.x << " " << bins_per_axis.y << " " << bins_per_axis.z << endl;
-
-				} else {
-					ChCCollisionGPU::UpdateAABB(bin_size_vec, max_dimension, collision_envelope, gpu_data_manager->gpu_data, bins_per_axis);
-					ChCCollisionGPU::Broadphase(bin_size_vec, gpu_data_manager->gpu_data);
 				}
-				mtimer_cd_broad.stop();
-				mtuning++;
-				mtimer_cd_narrow.start();
-				ChCCollisionGPU::Narrowphase(gpu_data_manager->gpu_data);
-				mtimer_cd_narrow.stop();
+
+#pragma omp task
+				{
+					float3 bin_size_vec = (global_origin + fabs(gpu_data_manager->gpu_data.max_bounding_point)) / bins_per_axis; //(powf(number_of_models * 2, 1 / 3.0));
+					bin_size_vec = 1.0 / bin_size_vec;
+					mtimer_cd_broad.start();
+					ChCCollisionGPU::Broadphase(bin_size_vec, gpu_data_manager->gpu_data, false);
+					mtimer_cd_broad.stop();
+					mtuning++;
+					mtimer_cd_narrow.start();
+					ChCCollisionGPU::Narrowphase(gpu_data_manager->gpu_data);
+					mtimer_cd_narrow.stop();
+				}
 			}
 			this->ncontacts = gpu_data_manager->number_of_contacts;
 
@@ -183,8 +205,8 @@ double ChSystemGPU::ComputeCollisions() {
 		}
 
 	}
-	//timer_t.stop();
-	//cout<<timer_t()<<endl;
+//timer_t.stop();
+//cout<<timer_t()<<endl;
 	return 0;
 }
 
@@ -235,10 +257,6 @@ void ChSystemGPU::AddBody(ChSharedPtr<ChBodyGPU> newbody) {
 //	gpu_data_manager->host_lim_data.push_back(F3(0));
 
 	counter++;
-	if (counter % 1000 == 0) {
-		cout << ".";
-	}
-
 	gpu_data_manager->number_of_objects = counter;
 }
 

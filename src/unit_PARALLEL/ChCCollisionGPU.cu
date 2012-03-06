@@ -137,17 +137,12 @@ void ChCCollisionGPU::ComputeBounds(gpu_container & gpu_data) {
 	//DBG("ComputeBounds");
 }
 
-void ChCCollisionGPU::UpdateAABB(float3 & bin_size_vec, float & max_dimension, float & collision_envelope, gpu_container & gpu_data,float3 bins_per_axis) {
+void ChCCollisionGPU::UpdateAABB(float & collision_envelope, gpu_container & gpu_data,float3 global_origin) {
 	uint number_of_models = gpu_data.number_of_models;
-	float3 global_origin = fabs(gpu_data.min_bounding_point); //Determine Global Origin
-	max_dimension = max3(global_origin + fabs(gpu_data.max_bounding_point)); //Determine Max point in space
-	bin_size_vec = (global_origin + fabs(gpu_data.max_bounding_point))/bins_per_axis;//(powf(number_of_models * 2, 1 / 3.0));
-	bin_size_vec = 1.0 / bin_size_vec;
 
 	COPY_TO_CONST_MEM(number_of_models);
 	COPY_TO_CONST_MEM(collision_envelope); //Contact Envelope
 	COPY_TO_CONST_MEM(global_origin); //Origin for Physical Space
-	COPY_TO_CONST_MEM(bin_size_vec);
 	Offset_AABBs CUDA_KERNEL_DIM(BLOCKS(number_of_models),THREADS)(CASTF3(gpu_data.device_aabb_data));
 
 	//	data_container->gpu_data[i].device_bin_data.resize(number_of_models * 2);
