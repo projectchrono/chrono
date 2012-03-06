@@ -81,7 +81,7 @@ IF(ENABLE_UNIT_GPU)
 			ChContactContainerGPUsimple.h
 			ChLcpSystemDescriptorGPU.h
 	#		ChSubdomainGPU.h
-			CHSPHSolver.h
+	#		CHSPHSolver.h
 
 		)
 	SET(ChronoEngine_unit_GPU_CU 
@@ -91,7 +91,7 @@ IF(ENABLE_UNIT_GPU)
 			ChCCollisionGPUNarrowphase.cu
 	#		ChSubdomainGPU.cu
 			ChDataManager.cu
-			CHSPHSolver.cu
+	#		CHSPHSolver.cu
 		)
 
 	SOURCE_GROUP(unit_GPU FILES 

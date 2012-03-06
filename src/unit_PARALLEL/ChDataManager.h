@@ -1,5 +1,5 @@
-#ifndef CH_SYSTEMGPUKERNEL_H
-#define CH_SYSTEMGPUKERNEL_H
+#ifndef CH_DATAMANAGERL_H
+#define CH_DATAMANAGERL_H
 
 //////////////////////////////////////////////////
 //

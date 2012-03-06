@@ -7,6 +7,7 @@
 //
 ///////////////////////////////////////////////////
 #define THRUST_DEVICE_BACKEND THRUST_DEVICE_BACKEND_CUDA
+//#define THRUST_DEBUG
 #include <time.h>
 #include <iostream>
 #include <cutil.h>

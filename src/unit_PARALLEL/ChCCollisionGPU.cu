@@ -18,7 +18,7 @@ __global__ void Compute_AABBs(float3* pos, float4* rot, float3* obA, float3* obB
 	float3 C = obC[index];
 
 	float3 position = pos[type.z];
-	float4 rotation = (mult(rot[type.z],obR[index]));
+	float4 rotation = (mult(rot[type.z], obR[index]));
 
 	float3 temp_min;
 	float3 temp_max;
@@ -50,7 +50,6 @@ __global__ void Offset_AABBs(float3* aabb) {
 	aabb[index] = temp_min - F3(collision_envelope_const) + global_origin_const;
 	aabb[index + number_of_models_const] = temp_max + F3(collision_envelope_const) + global_origin_const;
 }
-
 
 void ChCCollisionGPU::ComputeAABB_HOST(ChGPUDataManager * data_container) {
 	uint number_of_models = data_container->number_of_models;
@@ -114,15 +113,8 @@ void ChCCollisionGPU::ComputeAABB(gpu_container & gpu_data) {
 	uint number_of_models = gpu_data.number_of_models;
 	COPY_TO_CONST_MEM(number_of_models);
 	gpu_data.device_aabb_data.resize(number_of_models * 2);
-	Compute_AABBs CUDA_KERNEL_DIM(BLOCKS(number_of_models),THREADS)(
-			CASTF3(gpu_data.device_pos_data),
-			CASTF4(gpu_data.device_rot_data),
-			CASTF3(gpu_data.device_ObA_data),
-			CASTF3(gpu_data.device_ObB_data),
-			CASTF3(gpu_data.device_ObC_data),
-			CASTF4(gpu_data.device_ObR_data),
-			CASTI3(gpu_data.device_typ_data),
-			CASTF3(gpu_data.device_aabb_data));
+	Compute_AABBs CUDA_KERNEL_DIM(BLOCKS(number_of_models),THREADS)(CASTF3(gpu_data.device_pos_data), CASTF4(gpu_data.device_rot_data), CASTF3(gpu_data.device_ObA_data),
+			CASTF3(gpu_data.device_ObB_data), CASTF3(gpu_data.device_ObC_data), CASTF4(gpu_data.device_ObR_data), CASTI3(gpu_data.device_typ_data), CASTF3(gpu_data.device_aabb_data));
 	//DBG("ComputeAABB");
 }
 void ChCCollisionGPU::ComputeBounds(gpu_container & gpu_data) {
@@ -137,12 +129,11 @@ void ChCCollisionGPU::ComputeBounds(gpu_container & gpu_data) {
 	//DBG("ComputeBounds");
 }
 
-void ChCCollisionGPU::UpdateAABB(float & collision_envelope, gpu_container & gpu_data,float3 global_origin) {
+void ChCCollisionGPU::UpdateAABB(float & collision_envelope, gpu_container & gpu_data,float3 &global_origin) {
 	uint number_of_models = gpu_data.number_of_models;
-
 	COPY_TO_CONST_MEM(number_of_models);
-	COPY_TO_CONST_MEM(collision_envelope); //Contact Envelope
-	COPY_TO_CONST_MEM(global_origin); //Origin for Physical Space
+	COPY_TO_CONST_MEM(collision_envelope);
+	COPY_TO_CONST_MEM(global_origin);
 	Offset_AABBs CUDA_KERNEL_DIM(BLOCKS(number_of_models),THREADS)(CASTF3(gpu_data.device_aabb_data));
 
 	//	data_container->gpu_data[i].device_bin_data.resize(number_of_models * 2);

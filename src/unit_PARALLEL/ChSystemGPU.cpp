@@ -32,6 +32,26 @@ int ChSystemGPU::Setup() {
 	nlinks = 0;
 	nphysicsitems = 0;
 
+	for (int i = 0; i < bodylist.size(); i++) { // Updates recursively all other aux.vars
+		if (!bodylist[i]->GetBodyFixed()) {
+			if (!bodylist[i]->GetSleeping()) {
+				nbodies++; // Count bodies and indicize them.
+			} else {
+				nbodies_sleep++;
+			}
+		} else {
+			nbodies_fixed++;
+		}
+	}
+	ncoords_w += nbodies * 6;
+	ncoords += nbodies * 7; // with quaternion coords
+	ndoc += nbodies; // There is a quaternion constr. for each active body.
+
+	ndoc = ndoc_w + nbodies; // sets number of constraints including quaternion constraints.
+	nsysvars = ncoords + ndoc; // sets number of total variables (=coordinates + lagrangian multipliers)
+	nsysvars_w = ncoords_w + ndoc_w; // sets number of total variables (with 6 dof per body)
+
+	ndof = ncoords - ndoc; // sets number of left degrees of freedom (approximate - does not consider constr. redundancy, etc)
 	std::list<ChLink*>::iterator it;
 	for (it = linklist.begin(); it != linklist.end(); it++) {
 		nlinks++;
@@ -73,13 +93,13 @@ float tuneCD(gpu_container & gpu_data, float3 bins_per_axis) {
 
 	ChTimer<double> mtimer_tuning;
 	float accumulated_time = 0;
-	for (int j = 0; j < 5; j++) {
+	for (int j = 0; j < 2; j++) {
 		mtimer_tuning.start();
-		ChCCollisionGPU::Broadphase(bin_size_vec, gpu_data, true);
+		ChCCollisionGPU::Broadphase(bin_size_vec, gpu_data);
 		mtimer_tuning.stop();
 		accumulated_time += mtimer_tuning();
 	}
-	return accumulated_time / 5.0; //time of current
+	return accumulated_time / 2.0; //time of current
 
 }
 
@@ -96,15 +116,6 @@ double ChSystemGPU::ComputeCollisions() {
 
 #pragma omp parallel for
 			for (int i = 0; i < bodylist.size(); i++) { // Updates recursively all other aux.vars
-				if (!bodylist[i]->GetBodyFixed()) {
-					if (!bodylist[i]->GetSleeping()) {
-						nbodies++; // Count bodies and indicize them.
-					} else {
-						nbodies_sleep++;
-					}
-				} else {
-					nbodies_fixed++;
-				}
 
 				((ChBodyGPU *) (bodylist[i]))->UpdateTime(ChTime);
 				((ChBodyGPU *) (bodylist[i]))->UpdateMarkers(ChTime);
@@ -115,15 +126,7 @@ double ChSystemGPU::ComputeCollisions() {
 			}
 
 			mtimer.stop();
-			ncoords_w += nbodies * 6;
-			ncoords += nbodies * 7; // with quaternion coords
-			ndoc += nbodies; // There is a quaternion constr. for each active body.
 
-			ndoc = ndoc_w + nbodies; // sets number of constraints including quaternion constraints.
-			nsysvars = ncoords + ndoc; // sets number of total variables (=coordinates + lagrangian multipliers)
-			nsysvars_w = ncoords_w + ndoc_w; // sets number of total variables (with 6 dof per body)
-
-			ndof = ncoords - ndoc; // sets number of left degrees of freedom (approximate - does not consider constr. redundancy, etc)
 			gpu_data_manager->HostToDeviceForces();
 			timer_update += mtimer();
 		}
@@ -131,79 +134,73 @@ double ChSystemGPU::ComputeCollisions() {
 #pragma omp single nowait
 		{
 			float collision_envelope = 0;
-
+			float3 bin_size_vec;
 			float old_time = 10000, new_time = 0, time1 = 0, time2 = 0, time3 = 0;
 			float3 tune_dir = F3(1, 1, 1);
 			if (gpu_data_manager->gpu_data.number_of_models > 0) {
 				ChCCollisionGPU::ComputeAABB(gpu_data_manager->gpu_data);
 				ChCCollisionGPU::ComputeBounds(gpu_data_manager->gpu_data);
 				float3 global_origin = fabs(gpu_data_manager->gpu_data.min_bounding_point); //Determine Global Origin
-				float max_dimension = 0; //max3(global_origin + fabs(gpu_data_manager->gpu_data.max_bounding_point)); //Determine Max point in space
+				//float max_dimension = 0; //max3(global_origin + fabs(gpu_data_manager->gpu_data.max_bounding_point)); //Determine Max point in space
 
 				ChCCollisionGPU::UpdateAABB(collision_envelope, gpu_data_manager->gpu_data, global_origin);
 
-#pragma omp task
-				{
-					if (mtuning % 50 == 0) {
-						for (int search = 1; search <= 3; search++) {
-							if (search == 1) {
-								tune_dir = F3(5, 0, 0);
-							}
-							if (search == 2) {
-								tune_dir = F3(0, 5, 0);
-							}
-							if (search == 3) {
-								tune_dir = F3(0, 0, 5);
-							}
-							//bins_per_axis = F3(i, i, i);
-							time1 = tuneCD(gpu_data_manager->gpu_data, F3(bins_per_axis.x - tune_dir.x, bins_per_axis.y - tune_dir.y, bins_per_axis.z - tune_dir.z));
-							time2 = tuneCD(gpu_data_manager->gpu_data, bins_per_axis);
-							time3 = tuneCD(gpu_data_manager->gpu_data, F3(bins_per_axis.x + tune_dir.x, bins_per_axis.y + tune_dir.y, bins_per_axis.z + tune_dir.z));
-
-							if (time1 < time2) {
-								bins_per_axis = F3(bins_per_axis.x - tune_dir.x, bins_per_axis.y - tune_dir.y, bins_per_axis.z - tune_dir.z);
-							} else if (time3 < time2) {
-								bins_per_axis = F3(bins_per_axis.x + tune_dir.x, bins_per_axis.y + tune_dir.y, bins_per_axis.z + tune_dir.z);
-							} else {
-							}
-							bins_per_axis.x = fabs(bins_per_axis.x);
-							bins_per_axis.y = fabs(bins_per_axis.y);
-							bins_per_axis.z = fabs(bins_per_axis.z);
-							if (bins_per_axis.x == 0) {
-								bins_per_axis.x = 5;
-							}
-							if (bins_per_axis.y == 0) {
-								bins_per_axis.y = 5;
-							}
-							if (bins_per_axis.z == 0) {
-								bins_per_axis.z = 5;
-							}
+				if (mtuning % 100 == 0) {
+					for (int search = 1; search <= 3; search++) {
+						if (search == 1) {
+							tune_dir = F3(10, 0, 0);
 						}
+						if (search == 2) {
+							tune_dir = F3(0, 10, 0);
+						}
+						if (search == 3) {
+							tune_dir = F3(0, 0, 10);
+						}
+						//bins_per_axis = F3(i, i, i);
+						time1 = tuneCD(gpu_data_manager->gpu_data, F3(bins_per_axis.x - tune_dir.x, bins_per_axis.y - tune_dir.y, bins_per_axis.z - tune_dir.z));
+						time2 = tuneCD(gpu_data_manager->gpu_data, bins_per_axis);
+						time3 = tuneCD(gpu_data_manager->gpu_data, F3(bins_per_axis.x + tune_dir.x, bins_per_axis.y + tune_dir.y, bins_per_axis.z + tune_dir.z));
 
-						cout << "TUNING " << bins_per_axis.x << " " << bins_per_axis.y << " " << bins_per_axis.z << endl;
-
+						if (time1 < time2) {
+							bins_per_axis = F3(bins_per_axis.x - tune_dir.x, bins_per_axis.y - tune_dir.y, bins_per_axis.z - tune_dir.z);
+						} else if (time3 < time2) {
+							bins_per_axis = F3(bins_per_axis.x + tune_dir.x, bins_per_axis.y + tune_dir.y, bins_per_axis.z + tune_dir.z);
+						} else {
+						}
+						bins_per_axis.x = fabs(bins_per_axis.x);
+						bins_per_axis.y = fabs(bins_per_axis.y);
+						bins_per_axis.z = fabs(bins_per_axis.z);
+						if (bins_per_axis.x == 0) {
+							bins_per_axis.x = 5;
+						}
+						if (bins_per_axis.y == 0) {
+							bins_per_axis.y = 5;
+						}
+						if (bins_per_axis.z == 0) {
+							bins_per_axis.z = 5;
+						}
 					}
-				}
 
-#pragma omp task
-				{
-					float3 bin_size_vec = (global_origin + fabs(gpu_data_manager->gpu_data.max_bounding_point)) / bins_per_axis; //(powf(number_of_models * 2, 1 / 3.0));
+					//cout << "TUNING " << bins_per_axis.x << " " << bins_per_axis.y << " " << bins_per_axis.z << endl;
+
+				} else {
+					bin_size_vec = fabs(global_origin + fabs(gpu_data_manager->gpu_data.max_bounding_point)) / bins_per_axis; //(powf(number_of_models * 2, 1 / 3.0));
 					bin_size_vec = 1.0 / bin_size_vec;
 					mtimer_cd_broad.start();
-					ChCCollisionGPU::Broadphase(bin_size_vec, gpu_data_manager->gpu_data, false);
+					ChCCollisionGPU::Broadphase(bin_size_vec, gpu_data_manager->gpu_data);
 					mtimer_cd_broad.stop();
-					mtuning++;
-					mtimer_cd_narrow.start();
-					ChCCollisionGPU::Narrowphase(gpu_data_manager->gpu_data);
-					mtimer_cd_narrow.stop();
+
 				}
+				mtuning++;
+				mtimer_cd_narrow.start();
+				ChCCollisionGPU::Narrowphase(gpu_data_manager->gpu_data);
+				mtimer_cd_narrow.stop();
+				this->ncontacts = gpu_data_manager->number_of_contacts;
 			}
-			this->ncontacts = gpu_data_manager->number_of_contacts;
 
 			timer_collision_broad = mtimer_cd_broad();
 			timer_collision_narrow = mtimer_cd_narrow();
 		}
-
 	}
 //timer_t.stop();
 //cout<<timer_t()<<endl;
@@ -263,16 +260,16 @@ void ChSystemGPU::AddBody(ChSharedPtr<ChBodyGPU> newbody) {
 void ChSystemGPU::RemoveBody(ChSharedPtr<ChBodyGPU> mbody) {
 	assert( std::find<std::vector<ChBody*>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr()) != bodylist.end());
 
-	// remove from collision system
+// remove from collision system
 	if (mbody->GetCollide())
 		mbody->RemoveCollisionModelsFromSystem();
 
-	// warning! linear time search, to erase pointer from container.
-	bodylist.erase(std::find < std::vector<ChBody*>::iterator > (bodylist.begin(), bodylist.end(), mbody.get_ptr()));
+// warning! linear time search, to erase pointer from container.
+	bodylist.erase(std::find<std::vector<ChBody*>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr()));
 
-	// nullify backward link to system
+// nullify backward link to system
 	mbody->SetSystem(0);
-	// this may delete the body, if none else's still referencing it..
+// this may delete the body, if none else's still referencing it..
 	mbody->RemoveRef();
 }
 
@@ -344,7 +341,7 @@ void ChSystemGPU::ChangeLcpSolverSpeed(ChLcpSolver* newsolver) {
 		delete (this->LCP_solver_speed);
 	this->LCP_solver_speed = newsolver;
 
-	//((ChLcpSolverGPU*) (LCP_solver_speed))->data_container = gpu_data_manager;
+//((ChLcpSolverGPU*) (LCP_solver_speed))->data_container = gpu_data_manager;
 }
 
 void ChSystemGPU::ChangeCollisionSystem(ChCollisionSystem* newcollsystem) {

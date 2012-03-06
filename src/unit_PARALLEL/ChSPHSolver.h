@@ -26,8 +26,8 @@ namespace chrono {
 
 	class ChApiGPU CHSPHSystem {
 		public:
-			CHSPHSystem();
-			void Simulate(gpu_container & gpu_data);
+			CHSPHSystem(){}
+			//void Simulate(gpu_container & gpu_data);
 	};
 }
 

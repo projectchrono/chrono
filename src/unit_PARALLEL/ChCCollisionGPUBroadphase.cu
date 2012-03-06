@@ -14,7 +14,8 @@ __device__ __host__ inline uint Hash_Index(const T &A) {
 	return ((A.x * 73856093) ^ (A.y * 19349663) ^ (A.z * 83492791));
 }
 __device__ bool TestAABBAABB(const AABB &A, const AABB &B, uint Bin) {
-	return (Bin == Hash_Index(Hash(((A.min + A.max) * .5 + (B.min + B.max) * .5) * .5))) && (A.min.x <= B.max.x && B.min.x <= A.max.x) && (A.min.y <= B.max.y && B.min.y <= A.max.y) && (A.min.z <= B.max.z && B.min.z <= A.max.z);
+	return (Bin == Hash_Index(Hash(((A.min + A.max) * .5 + (B.min + B.max) * .5) * .5))) && (A.min.x <= B.max.x && B.min.x <= A.max.x) && (A.min.y <= B.max.y && B.min.y <= A.max.y)
+			&& (A.min.z <= B.max.z && B.min.z <= A.max.z);
 }
 __device__ bool PointInAABB(const AABB &A, const float3 &P) {
 	if (P.x > A.min.x && P.x < A.max.x && P.y > A.min.y && P.y < A.max.y && P.z > A.min.z && P.z < A.max.z) {
@@ -186,12 +187,12 @@ __global__ void AABB_AABB(float3* device_aabb_data, int3* device_typ_data, int2*
 __device__ __host__ bool operator ==(const float3 &a, const float3 &b) {
 	return ((a.x == b.x) && (a.y == b.y) && (a.z == b.z));
 }
-void ChCCollisionGPU::Broadphase(float3 &bin_size_vec, gpu_container & gpu_data, bool tune) {
+void ChCCollisionGPU::Broadphase(float3 &bin_size_vec, gpu_container & gpu_data) {
 	uint number_of_models = gpu_data.number_of_models;
 	uint last_active_bin = 0, number_of_bin_intersections = 0;
 	uint number_of_contacts_possible = 0;
 
-	gpu_data.generic_counter.resize(number_of_models, 0);
+	gpu_data.generic_counter.resize(number_of_models);
 
 	cudaFuncSetCacheConfig(AABB_Bins_Count, cudaFuncCachePreferL1);
 	cudaFuncSetCacheConfig(AABB_Bins, cudaFuncCachePreferL1);
@@ -217,13 +218,13 @@ void ChCCollisionGPU::Broadphase(float3 &bin_size_vec, gpu_container & gpu_data,
 	gpu_data.generic_counter.resize(last_active_bin);
 
 	COPY_TO_CONST_MEM(last_active_bin);
-	AABB_AABB_Count CUDA_KERNEL_DIM(BLOCKS(last_active_bin),THREADS)(CASTF3(gpu_data.device_aabb_data), CASTI2(gpu_data.device_fam_data), CASTU1(gpu_data.bin_number_B), CASTU1(gpu_data.body_number_B), CASTU1(gpu_data.bin_start_index_B), CASTU1(gpu_data.generic_counter));
-	if (tune == false) {
-		Thrust_Inclusive_Scan_Sum(gpu_data.generic_counter, number_of_contacts_possible);
-		gpu_data.device_pair_data.resize(number_of_contacts_possible);
-		AABB_AABB CUDA_KERNEL_DIM(BLOCKS(last_active_bin),THREADS)(CASTF3(gpu_data.device_aabb_data), CASTI3(gpu_data.device_typ_data), CASTI2(gpu_data.device_fam_data), CASTU1(gpu_data.bin_number_B), CASTU1(gpu_data.body_number_B), CASTU1(gpu_data.bin_start_index_B),
-				CASTU1(gpu_data.generic_counter), CASTLL(gpu_data.device_pair_data));
-		gpu_data.number_of_contacts_possible = number_of_contacts_possible;
-	}
+	AABB_AABB_Count CUDA_KERNEL_DIM(BLOCKS(last_active_bin),THREADS)(CASTF3(gpu_data.device_aabb_data), CASTI2(gpu_data.device_fam_data), CASTU1(gpu_data.bin_number_B), CASTU1(gpu_data.body_number_B),
+			CASTU1(gpu_data.bin_start_index_B), CASTU1(gpu_data.generic_counter));
+
+	Thrust_Inclusive_Scan_Sum(gpu_data.generic_counter, number_of_contacts_possible);
+	gpu_data.device_pair_data.resize(number_of_contacts_possible);
+	AABB_AABB CUDA_KERNEL_DIM(BLOCKS(last_active_bin),THREADS)(CASTF3(gpu_data.device_aabb_data), CASTI3(gpu_data.device_typ_data), CASTI2(gpu_data.device_fam_data), CASTU1(gpu_data.bin_number_B),
+			CASTU1(gpu_data.body_number_B), CASTU1(gpu_data.bin_start_index_B), CASTU1(gpu_data.generic_counter), CASTLL(gpu_data.device_pair_data));
+	gpu_data.number_of_contacts_possible = number_of_contacts_possible;
 
 }
