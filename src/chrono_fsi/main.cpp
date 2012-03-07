@@ -482,11 +482,12 @@ int main() {
 	float x, y, z;
 	char ch;
 	float channelRadius;
-	ifileSpheres >> x >> ch >> y >> ch >> z;
+	ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> rRigidBody;
+	printf("rRigid %f\n", rRigidBody);
 	while (!ifileSpheres.eof()) {
 		//float r = rRigidBody * (.75 + .75 * float(rand())/RAND_MAX);
 		for (int period = 0; period < nPeriod; period++) {
-			spheresPosRad.push_back(F4(x * sizeScale + period * sPeriod, y * sizeScale, z * sizeScale, rRigidBody));
+			spheresPosRad.push_back(F4(x * sizeScale + period * sPeriod, y * sizeScale, z * sizeScale, rRigidBody * sizeScale));
 			//********** intitialization of rigid bodies: Spheres
 			float mass = 4.0 / 3 * PI * pow(rRigidBody, 3) * rhoRigid;			//for sphere
 			float3 j1, j2;
@@ -522,7 +523,7 @@ int main() {
 			rigidBody_InvJ1.push_back(invJ1 / detJ * maxComp);
 			rigidBody_InvJ2.push_back(invJ2 / detJ * maxComp);
 		}
-		ifileSpheres >> x >> ch >> y >> ch >> z;
+		ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> rRigidBody;
 	}
 //	printf("*********************************** J/Me6 %f \n",  .5  * pow(rRigidBody, 2) * 1e6);
 	ifileSpheres.close();
