@@ -282,8 +282,8 @@ int2 CreateFluidParticles(
 								+ make_float3(.5 * initSpace0)/* + make_float3(sphR) + initSpace * .05 * (float(rand()) / RAND_MAX)*/, sphR);
 				float penDist = 0;
 				bool flag = true;
-				penDist = IsInsideSerpentine(posRad); if (penDist < -toleranceZone) flag= false;
-				///penDist = IsInsideStraightChannel(posRad); if (penDist < -toleranceZone) flag= false;
+				///penDist = IsInsideSerpentine(posRad); if (penDist < -toleranceZone) flag= false;
+				penDist = IsInsideStraightChannel(posRad); if (penDist < -toleranceZone) flag= false;
 				///penDist = IsInsideStraightChannel_XZ(posRad); if (penDist < -toleranceZone) flag= false;
 				///penDist = IsInsideTube(posRad, cMax, cMin, channelRadius);
 				if (penDist < -toleranceZone) flag = false;
@@ -429,7 +429,7 @@ int main() {
 	float r = HSML;	//.02;
 	float rRigidBody;
 	float3 cMin = make_float3(0, -0.2, -1.2) * sizeScale;
-	float3 cMax = make_float3( nPeriod * 4.6 + 7, 1.5,  4.0) * sizeScale;  //for serpentine
+	float3 cMax = make_float3( nPeriod * 3.6, 1.5,  4.0) * sizeScale;  //for serpentine
 	//float3 cMax = make_float3( nPeriod * 4.6 + 0, 1.0,  4.0) * sizeScale;  //for straight channel
 	//float3 cMax = make_float3( nPeriod * 4.6 + 0, .4,  4.0) * sizeScale;  //for straight channel, cylinders
 
@@ -482,12 +482,14 @@ int main() {
 	float x, y, z;
 	char ch;
 	float channelRadius;
-	ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> rRigidBody;
+	float dumRRigidBody;
+	ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> dumRRigidBody;
 	printf("rRigid %f\n", rRigidBody);
 	while (!ifileSpheres.eof()) {
+		rRigidBody = dumRRigidBody * sizeScale;
 		//float r = rRigidBody * (.75 + .75 * float(rand())/RAND_MAX);
 		for (int period = 0; period < nPeriod; period++) {
-			spheresPosRad.push_back(F4(x * sizeScale + period * sPeriod, y * sizeScale, z * sizeScale, rRigidBody * sizeScale));
+			spheresPosRad.push_back(F4(x * sizeScale + period * sPeriod, y * sizeScale, z * sizeScale, rRigidBody));
 			//********** intitialization of rigid bodies: Spheres
 			float mass = 4.0 / 3 * PI * pow(rRigidBody, 3) * rhoRigid;			//for sphere
 			float3 j1, j2;
@@ -523,7 +525,7 @@ int main() {
 			rigidBody_InvJ1.push_back(invJ1 / detJ * maxComp);
 			rigidBody_InvJ2.push_back(invJ2 / detJ * maxComp);
 		}
-		ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> rRigidBody;
+		ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> dumRRigidBody;
 	}
 //	printf("*********************************** J/Me6 %f \n",  .5  * pow(rRigidBody, 2) * 1e6);
 	ifileSpheres.close();
