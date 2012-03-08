@@ -36,7 +36,29 @@ ChLink* ChLinkMate::new_Duplicate ()
 }
 
 
-// ...
+
+void ChLinkMate::StreamOUT(ChStreamOutBinary& mstream)
+{
+			// class version number
+	mstream.VersionWrite(1);
+		// serialize parent class too
+	ChLink::StreamOUT(mstream);
+
+		// stream out all member data
+}
+
+
+void ChLinkMate::StreamIN(ChStreamInBinary& mstream)
+{
+		// class version number
+	int version = mstream.VersionRead();
+
+		// deserialize parent class too
+	ChLink::StreamIN(mstream);
+
+		// stream in all member data
+}
+
 
 
 
@@ -635,6 +657,186 @@ void ChLinkMatePlane::Update (double mtime)
 	this->C->Element(0,0) -= this->separation; // for this mate, C = {Cx, Cry, Crz}
 
 }
+
+
+
+
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChLinkMateCoaxial> a_registration_ChLinkMateCoaxial;
+
+
+void ChLinkMateCoaxial::Copy(ChLinkMateCoaxial* source)
+{
+    // first copy the parent class data...
+    //
+    ChLinkMateGeneric::Copy(source);
+	
+	this->flipped = source->flipped;
+}
+
+ChLink* ChLinkMateCoaxial::new_Duplicate ()
+{
+    ChLinkMateCoaxial * m_l = new ChLinkMateCoaxial;  // inherited classes should write here: m_l = new MyInheritedLink;
+    m_l->Copy(this);
+    return (m_l);
+}
+
+
+
+void ChLinkMateCoaxial::SetFlipped(bool doflip)
+{
+	if (doflip != this->flipped)
+	{
+		// swaps direction of X axis by flippping 180° the frame A (slave)
+
+		ChFrame<> frameRotator(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
+		this->frameA.ConcatenatePostTransformation(frameRotator);
+
+		this->flipped = doflip;
+	}
+}
+
+
+int ChLinkMateCoaxial::Initialize(ChSharedBodyPtr& mbody1,	///< first body to link
+						   ChSharedBodyPtr& mbody2, ///< second body to link
+						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
+						   ChVector<> mpt1,			
+						   ChVector<> mpt2,  		
+						   ChVector<> mnorm1,		
+						   ChVector<> mnorm2  		
+						   )
+{
+	// set the two frames so that they have the X axis aligned when the
+	// two normals are opposed (default behavior, otherwise is considered 'flipped')
+
+	ChVector<> mnorm1_reversed;
+	if (!this->flipped)
+		mnorm1_reversed = mnorm1;
+	else
+		mnorm1_reversed = -mnorm1;
+
+	return ChLinkMateGeneric::Initialize(mbody1, mbody2, 
+								pos_are_relative, 
+								mpt1, mpt2, 
+								mnorm1_reversed, mnorm2);
+}
+
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChLinkMateCoincident> a_registration_ChLinkMateCoincident;
+
+
+void ChLinkMateCoincident::Copy(ChLinkMateCoincident* source)
+{
+    // first copy the parent class data...
+    //
+    ChLinkMateGeneric::Copy(source);
+	
+}
+
+ChLink* ChLinkMateCoincident::new_Duplicate ()
+{
+    ChLinkMateCoincident * m_l = new ChLinkMateCoincident;  // inherited classes should write here: m_l = new MyInheritedLink;
+    m_l->Copy(this);
+    return (m_l);
+}
+
+
+int ChLinkMateCoincident::Initialize(ChSharedBodyPtr& mbody1,	///< first body to link
+						   ChSharedBodyPtr& mbody2, ///< second body to link
+						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
+						   ChVector<> mpt1,			
+						   ChVector<> mpt2 		
+						   )
+{
+	return ChLinkMateGeneric::Initialize(mbody1, mbody2, 
+								pos_are_relative, 
+								mpt1, mpt2, 
+								VECT_X, VECT_X);
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChLinkMateParallel> a_registration_ChLinkMateParallel;
+
+
+void ChLinkMateParallel::Copy(ChLinkMateParallel* source)
+{
+    // first copy the parent class data...
+    //
+    ChLinkMateGeneric::Copy(source);
+}
+
+ChLink* ChLinkMateParallel::new_Duplicate ()
+{
+    ChLinkMateParallel * m_l = new ChLinkMateParallel;  // inherited classes should write here: m_l = new MyInheritedLink;
+    m_l->Copy(this);
+    return (m_l);
+}
+
+
+void ChLinkMateParallel::SetFlipped(bool doflip)
+{
+	if (doflip != this->flipped)
+	{
+		// swaps direction of X axis by flippping 180° the frame A (slave)
+
+		ChFrame<> frameRotator(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
+		this->frameA.ConcatenatePostTransformation(frameRotator);
+
+		this->flipped = doflip;
+	}
+}
+
+int ChLinkMateParallel::Initialize(ChSharedBodyPtr& mbody1,	///< first body to link
+						   ChSharedBodyPtr& mbody2, ///< second body to link
+						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
+						   ChVector<> mpt1,			
+						   ChVector<> mpt2,  		
+						   ChVector<> mnorm1,		
+						   ChVector<> mnorm2  		
+						   )
+{
+	// set the two frames so that they have the X axis aligned when the
+	// two axes are aligned (default behavior, otherwise is considered 'flipped')
+
+	ChVector<> mnorm1_reversed;
+	if (!this->flipped)
+		mnorm1_reversed = mnorm1;
+	else
+		mnorm1_reversed = -mnorm1;
+
+	return ChLinkMateGeneric::Initialize(mbody1, mbody2, 
+								pos_are_relative, 
+								mpt1, mpt2, 
+								mnorm1_reversed, mnorm2);
+}
+
+
+
+
 
 
 } // END_OF_NAMESPACE____
