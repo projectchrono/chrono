@@ -155,13 +155,13 @@ public:
 
 	void SetBodyFixed(bool mev) {
 		if (gpu_data_manager) {
-			gpu_data_manager->host_aux_data[id].x = mev;
-		} else {
-			variables.SetDisabled(mev);
-			if (mev == BFlagGet(BF_FIXED))
-				return;
-			BFlagSet(BF_FIXED, mev);
-		}
+			gpu_data_manager->host_aux_data[id].x = !mev;
+		} //else {
+		variables.SetDisabled(mev);
+		if (mev == BFlagGet(BF_FIXED))
+			return;
+		BFlagSet(BF_FIXED, mev);
+		//}
 
 		//RecomputeCollisionModel(); // because one may use different model types for static or dynamic coll.shapes
 	}

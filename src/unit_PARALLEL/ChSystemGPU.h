@@ -46,11 +46,13 @@ namespace chrono {
 			double SplitData();
 			void AddBody(ChSharedPtr<ChBodyGPU> newbody);
 			void RemoveBody(ChSharedPtr<ChBodyGPU> mbody);
+			void RemoveBody(int i);
 			int Setup();
 			void Update();
 			void ChangeCollisionSystem(ChCollisionSystem* newcollsystem);
 			void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
-
+			void Set_CudaDevice(int dev){cuda_device=dev;}
+			int GetNcontacts();
 			float GetKineticEnergy() {
 				//if (use_cpu == false) {
 					return ((ChLcpSolverGPU*) (LCP_solver_speed))->Total_KineticEnergy(gpu_data_manager->gpu_data);
@@ -58,12 +60,13 @@ namespace chrono {
 					//return ((ChLcpSolverGPU*) (LCP_solver_speed))->Total_KineticEnergy_HOST(gpu_data_manager);
 				//}
 			}
+			double GetTimerCollision() {return timer_collision;}
 			void SetUseCPU(bool usecpu) {
 				use_cpu = usecpu;
 			}
 			ChGPUDataManager *gpu_data_manager;
 		private:
-			ChTimer<double> mtimer_lcp, mtimer_step, mtimer_cd_broad, mtimer_cd_narrow;
+			ChTimer<double> mtimer_lcp, mtimer_step, mtimer_cd_broad, mtimer_cd_narrow, mtimer_cd;
 			unsigned int counter;
 			unsigned int max_obj;
 			unsigned int num_gpu;
@@ -72,6 +75,8 @@ namespace chrono {
 			float3 bins_per_axis;
 			unsigned int mtuning;
 			int search ;
+			int cuda_device;
+			double timer_collision;
 	};
 }
 

@@ -115,7 +115,19 @@ void ChCCollisionGPU::ComputeAABB(gpu_container & gpu_data) {
 	gpu_data.device_aabb_data.resize(number_of_models * 2);
 	Compute_AABBs CUDA_KERNEL_DIM(BLOCKS(number_of_models),THREADS)(CASTF3(gpu_data.device_pos_data), CASTF4(gpu_data.device_rot_data), CASTF3(gpu_data.device_ObA_data),
 			CASTF3(gpu_data.device_ObB_data), CASTF3(gpu_data.device_ObC_data), CASTF4(gpu_data.device_ObR_data), CASTI3(gpu_data.device_typ_data), CASTF3(gpu_data.device_aabb_data));
-	//DBG("ComputeAABB");
+
+	bbox init = bbox(gpu_data.device_aabb_data[0], gpu_data.device_aabb_data[0]);
+	bbox_transformation unary_op;
+	bbox_reduction binary_op;
+	bbox result = thrust::transform_reduce(gpu_data.device_aabb_data.begin(), gpu_data.device_aabb_data.end(), unary_op, init, binary_op);
+	gpu_data.min_bounding_point = result.first;
+	gpu_data.max_bounding_point = result.second;
+
+	float3 global_origin=fabs(gpu_data.min_bounding_point);
+	float collision_envelope=0;
+	COPY_TO_CONST_MEM(collision_envelope);
+	COPY_TO_CONST_MEM(global_origin);
+	Offset_AABBs CUDA_KERNEL_DIM(BLOCKS(number_of_models),THREADS)(CASTF3(gpu_data.device_aabb_data));
 }
 void ChCCollisionGPU::ComputeBounds(gpu_container & gpu_data) {
 	uint number_of_models = gpu_data.number_of_models;
@@ -129,7 +141,7 @@ void ChCCollisionGPU::ComputeBounds(gpu_container & gpu_data) {
 	//DBG("ComputeBounds");
 }
 
-void ChCCollisionGPU::UpdateAABB(float & collision_envelope, gpu_container & gpu_data,float3 &global_origin) {
+void ChCCollisionGPU::UpdateAABB(float & collision_envelope, gpu_container & gpu_data, float3 global_origin) {
 	uint number_of_models = gpu_data.number_of_models;
 	COPY_TO_CONST_MEM(number_of_models);
 	COPY_TO_CONST_MEM(collision_envelope);

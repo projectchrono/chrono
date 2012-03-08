@@ -50,8 +50,7 @@ class ChApiGPU ChCollisionSystemGPU: public ChCollisionSystem {
 
 		/// Removes a collision model from the collision
 		/// engine (custom data may be deallocated).
-		virtual void Remove(ChCollisionModel* model) {
-		}
+		virtual void Remove(ChCollisionModel* model);
 
 		/// Removes all collision models from the collision
 		/// engine (custom data may be deallocated).

@@ -5,15 +5,14 @@ ChGPUDataManager::ChGPUDataManager(unsigned int numDiv) {
 	number_of_models = 0;
 	number_of_objects = 0;
 	number_of_bilaterals = 0;
-	number_of_contacts_possible=0;
+	number_of_contacts_possible = 0;
 	copyContacts = false;
-
-	/*gpu_data.generic_counter.reserve(5e6);
+	/*cudaSetDevice(1);
+	gpu_data.generic_counter.reserve(1e6);
 	gpu_data.device_pair_data.reserve(1e6);
-	gpu_data.bin_number_B.reserve(5e6);
-	gpu_data.body_number_B.reserve(5e6);
-	gpu_data.bin_start_index_B.reserve(5e6);
-
+	gpu_data.bin_number_B.reserve(1e6);
+	gpu_data.body_number_B.reserve(1e6);
+	gpu_data.bin_start_index_B.reserve(1e6);
 
 	gpu_data.device_norm_data.reserve(1e6);
 	gpu_data.device_cpta_data.reserve(1e6);
@@ -23,25 +22,20 @@ ChGPUDataManager::ChGPUDataManager(unsigned int numDiv) {
 	gpu_data.device_gam_data.reserve(1e6);*/
 
 }
-
-
-
-
+ChGPUDataManager::~ChGPUDataManager() {
+}
 void ChGPUDataManager::HostToDevice() {
 
-	gpu_data.device_ObA_data = host_ObA_data;
-
-	//cudaMemcpyAsync(CASTF3(gpu_data.device_ObA_data),CASTF3(host_ObA_data),sizeof(float3)*host_ObA_data.size(),cudaMemcpyHostToDevice);
-
-//	if (host_ObB_data.size() != gpu_data.device_ObB_data.size()) {
+	if (host_ObB_data.size() != gpu_data.device_ObB_data.size()) {
+		gpu_data.device_ObA_data = host_ObA_data;
 		gpu_data.device_ObB_data = host_ObB_data;
 		gpu_data.device_ObC_data = host_ObC_data;
 		gpu_data.device_ObR_data = host_ObR_data;
 		gpu_data.device_fam_data = host_fam_data;
 		gpu_data.device_typ_data = host_typ_data;
-		gpu_data.device_aabb_data = host_aabb_data;
-		gpu_data.device_pair_data = host_pair_data;
-//	}
+		//gpu_data.device_aabb_data = host_aabb_data;
+		//gpu_data.device_pair_data = host_pair_data;
+	}
 	gpu_data.device_vel_data = host_vel_data;
 	gpu_data.device_omg_data = host_omg_data;
 	gpu_data.device_pos_data = host_pos_data;
@@ -85,4 +79,14 @@ void ChGPUDataManager::HostToDeviceForces() {
 	gpu_data.device_trq_data = host_trq_data;
 
 }
+void ChGPUDataManager::HostToDeviceCD() {
 
+	gpu_data.device_ObA_data = host_ObA_data;
+	gpu_data.device_ObB_data = host_ObB_data;
+	gpu_data.device_ObC_data = host_ObC_data;
+	gpu_data.device_ObR_data = host_ObR_data;
+	gpu_data.device_fam_data = host_fam_data;
+	gpu_data.device_typ_data = host_typ_data;
+	gpu_data.number_of_models = number_of_models;
+
+}
