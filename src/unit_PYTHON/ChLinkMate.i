@@ -23,6 +23,8 @@
 
 %DefChSharedPtr(ChLinkMateGenericShared, ChLinkMateGeneric)
 %DefChSharedPtr(ChLinkMatePlaneShared, ChLinkMatePlane)
-
+%DefChSharedPtr(ChLinkMateCoaxialShared, ChLinkMateCoaxial)
+%DefChSharedPtr(ChLinkMateCoincidentShared, ChLinkMateCoincident)
+%DefChSharedPtr(ChLinkMateParallelShared, ChLinkMateParallel)
 
 
