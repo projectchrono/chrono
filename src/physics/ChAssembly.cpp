@@ -559,8 +559,8 @@ void ChAssembly::RemoveCollisionModelsFromSystem()
 void ChAssembly::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax)
 {
 	//default infinite bb
-	ChVector<> min(-1e200, -1e200, -1e200);
-	ChVector<> max( 1e200,  1e200,  1e200);
+	ChVector<> mmin(-1e200, -1e200, -1e200);
+	ChVector<> mmax( 1e200,  1e200,  1e200);
 
 	bool set = false;
 	ChVector<> tmpMin;
@@ -574,27 +574,27 @@ void ChAssembly::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax)
 			Bpointer->GetCollisionModel()->GetAABB(tmpMin, tmpMax);
 			if (!set)
 			{
-				min=tmpMin;
-				max=tmpMax;
+				mmin=tmpMin;
+				mmax=tmpMax;
 				set=true;
 			}
-			if (tmpMin.x<min.x)
-				min.x=tmpMin.x;
-			if (tmpMin.y<min.y)
-				min.y=tmpMin.y;
-			if (tmpMin.z<min.z)
-				min.z=tmpMin.z;
-			if (tmpMax.x>max.x)
-				max.x=tmpMax.x;
-			if (tmpMax.y>max.y)
-				max.y=tmpMax.y;
-			if (tmpMax.z>max.z)
-				max.z=tmpMax.z;
+			if (tmpMin.x<mmin.x)
+				mmin.x=tmpMin.x;
+			if (tmpMin.y<mmin.y)
+				mmin.y=tmpMin.y;
+			if (tmpMin.z<mmin.z)
+				mmin.z=tmpMin.z;
+			if (tmpMax.x>mmax.x)
+				mmax.x=tmpMax.x;
+			if (tmpMax.y>mmax.y)
+				mmax.y=tmpMax.y;
+			if (tmpMax.z>mmax.z)
+				mmax.z=tmpMax.z;
 		}
 		HIER_BODY_NEXT
 	}
-	bbmin.Set(min.x, min.y, min.z);
-	bbmax.Set(max.x, max.y, max.z);
+	bbmin.Set(mmin.x, mmin.y, mmin.z);
+	bbmax.Set(mmax.x, mmax.y, mmax.z);
 }
 
 void ChAssembly::Reference_LM_byID()

@@ -8,6 +8,13 @@
 Release 1.5.0
 xx-xx-xxxx
 
+- New ChLinkMate class, with ChLinkMateGeneric, ChLinkMatePlan, etc,
+  These can represent higher pair joints often used in mechanics, but
+  they are less sophisticated (and faster) than the ChLinkLock classes,
+  for example they do not need the addition of ChLinkMarker objects
+  into the ChBody. They can represent the typical 'mating' constraints
+  in assemblies of typical 3D CADs. 
+
 - New unit_POSTPROCESS supported also in Python. 
   In python, after you imported chrono engine, yu can also type: 
    import ChronoEngine_PYTHON_postprocess as postprocess

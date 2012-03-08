@@ -393,9 +393,9 @@ IF (BUILD_CH_SDK)
 		physics/ChLinkScrew.cpp 
 		physics/ChLinkSpring.cpp 
 		physics/ChLinkWheel.cpp 
-		physics/ChLinkClearance.cpp 
 		physics/ChLinkPointSpline.cpp 
 		physics/ChLinkTrajectory.cpp 
+		physics/ChLinkMate.cpp 
 		physics/ChHistory.cpp 
 		physics/ChSystem.cpp 
 		physics/ChGlobal.cpp 
@@ -480,7 +480,6 @@ IF (BUILD_CH_SDK)
 		physics/ChLimit.h
 		physics/ChLink.h
 		physics/ChLinkBrake.h
-		physics/ChLinkClearance.h
 		physics/ChLinkContact.h
 		physics/ChLinkDistance.h
 		physics/ChLinkEngine.h
@@ -502,6 +501,7 @@ IF (BUILD_CH_SDK)
 		physics/ChLinkSpring.h
 		physics/ChLinkTrajectory.h
 		physics/ChLinkWheel.h
+		physics/ChLinkMate.h
 		physics/ChMarker.h
 		physics/ChMaterialCouple.h
 		physics/ChMaterialSurface.h
