@@ -2,8 +2,8 @@
 uint numY = 1;
 void System::DoTimeStep() {
 	if (mNumCurrentObjects < mNumObjects && mFrameNumber % 100 == 0) {
-		float x = 10, y = numY, z = 10;
-		float posX = 0, posY = 0, posZ = 0;
+		float x = 40, y = 40, z = 40;
+		float posX = 0, posY = -5, posZ = 0;
 		srand(1);
 		float mass = 1, mu = .5, rest = 0;
 		ShapeType type = SPHERE;
@@ -13,19 +13,19 @@ void System::DoTimeStep() {
 		for (int xx = 0; xx < x; xx++) {
 			for (int yy = 0; yy < y; yy++) {
 				for (int zz = 0; zz < z; zz++) {
-					type = rand() % 3;
-					float radius = .5;//(rand()%1000)/3000.0+.05;
+					type = SPHERE;//rand() % 3;
+					float radius = .1;//(rand()%1000)/3000.0+.05;
 					ChVector<> mParticlePos((xx - (x - 1) / 2.0) + posX, (yy) + posY, (zz - (z - 1) / 2.0) + posZ);
 
-					mParticlePos += ChVector<> (rand() % 1000 / 10000.0 - .05, rand() % 1000 / 10000.0 - .05, rand() % 1000 / 10000.0 - .05);
+					///mParticlePos += ChVector<> (rand() % 1000 / 10000.0 - .05, rand() % 1000 / 10000.0 - .05, rand() % 1000 / 10000.0 - .05);
 					ChQuaternion<> quat = ChQuaternion<> (rand() % 1000 / 1000., rand() % 1000 / 1000., rand() % 1000 / 1000., rand() % 1000 / 1000.);
 					ChVector<> dim;
 					ChVector<> lpos(0, 0, 0);
 					quat.Normalize();
 
 					mrigidBody = CHBODYSHAREDPTR(new CHBODY);
-					InitObject(mrigidBody, mass, mParticlePos * 1.5, quat, mu, mu, rest, true, false, 0, 1);
-					mrigidBody->SetPos_dt(ChVector<> (0, -4, 0));
+					InitObject(mrigidBody, mass, mParticlePos * .21, quat, mu, mu, rest, true, false, 0, 1);
+
 					switch (type) {
 						case SPHERE:
 							dim = ChVector<> (radius, 0, 0);
@@ -42,6 +42,8 @@ void System::DoTimeStep() {
 					}
 					AddCollisionGeometry(mrigidBody, type, dim, lpos, quat);
 					FinalizeObject(mrigidBody);
+//cout<<mobjNum<<endl;
+					mrigidBody->SetPos_dt(ChVector<> (0, -4, 0));
 					mobjNum++;
 				}
 			}
@@ -55,7 +57,8 @@ void System::DoTimeStep() {
 
 int main(int argc, char* argv[]) {
 	omp_set_nested(1);
-	GPUSystem = new System(-1);
+	omp_set_dynamic(true);
+	GPUSystem = new System(1);
 	GPUSystem->mTimeStep = .001;
 	GPUSystem->mEndTime = 10;
 	GPUSystem->mNumObjects = 1;
@@ -90,7 +93,7 @@ int main(int argc, char* argv[]) {
 	GPUSystem->InitObject(R, 100000, ChVector<> (container_R, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
 	GPUSystem->InitObject(F, 100000, ChVector<> (0, 0, -container_R), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
 	GPUSystem->InitObject(B, 100000, ChVector<> (0, 0, container_R), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
-	GPUSystem->InitObject(BTM, 100000, ChVector<> (0, -container_R * .8, 0), quat2, mWallMu, mWallMu, 0, true, true, -20, -20);
+	GPUSystem->InitObject(BTM, 100000, ChVector<> (0, -container_R * .8, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
 
 	GPUSystem->AddCollisionGeometry(L, BOX, ChVector<> (container_T, container_R, container_R), lpos, quat);
 	GPUSystem->AddCollisionGeometry(R, BOX, ChVector<> (container_T, container_R, container_R), lpos, quat);

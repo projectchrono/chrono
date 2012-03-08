@@ -94,7 +94,7 @@ System::System(int cudaDevice) {
 
 	mSystem->SetIntegrationType(ChSystem::INT_ANITESCU);
 	mSystem->Set_G_acc(ChVector<>(0, -9.80665, 0));
-
+	mSystem->Set_CudaDevice(cudaDevice);
 	mCurrentTime = 0;
 	//mCameraX = 0, mCameraY = 0, mCameraZ = 0;
 
@@ -111,18 +111,30 @@ System::System(int cudaDevice) {
 	mUseOGL = 0;
 	mCudaDevice = cudaDevice;
 	if (mCudaDevice >= 0) {
-		cudaSetDevice(mCudaDevice);
+		//cudaSetDevice(1);
 	}
 }
 
 void System::PrintStats() {
-	double A = mSystem->GetChTime();
-	double B = mSystem->GetTimerStep();
-	double C = mSystem->GetTimerCollisionBroad();
-	double D = mSystem->GetTimerLcp();
-	double U = mSystem->GetTimerUpdate();
-	int E = mSystem->GetNbodies();
-	int F = mSystem->GetNcontacts();
+	double TIME = mSystem->GetChTime();
+	double STEP = mSystem->GetTimerStep();
+	double BROD = mSystem->GetTimerCollisionBroad();
+	double NARR = mSystem->GetTimerCollisionNarrow();
+	double LCP = mSystem->GetTimerLcp();
+	double UPDT = mSystem->GetTimerUpdate();
+	int BODS = mSystem->GetNbodies();
+	int CNTC = mSystem->GetNcontacts();
+
+	float AABB_Bins_Count = mSystem->gpu_data_manager->gpu_data.time_AABB_Bins_Count;
+	float AABB_Bins = mSystem->gpu_data_manager->gpu_data.time_AABB_Bins;
+	float AABB_AABB_Count = mSystem->gpu_data_manager->gpu_data.time_AABB_AABB_Count;
+	float AABB_AABB = mSystem->gpu_data_manager->gpu_data.time_AABB_AABB;
+	float Broad_other = mSystem->gpu_data_manager->gpu_data.time_Broad_other;
+
+	uint INTER = mSystem->gpu_data_manager->gpu_data.number_of_bin_intersections;
+	uint LAB = mSystem->gpu_data_manager->gpu_data.last_active_bin;
+	uint CONTP = mSystem->gpu_data_manager->gpu_data.number_of_contacts_possible;
+
 #ifdef _CHRONOGPU
 	int I = ((ChLcpSolverGPU*) (mSystem->GetLcpSolverSpeed()))->GetIterations();
 #else
@@ -132,8 +144,11 @@ void System::PrintStats() {
 	mTotalTime += mTimer();
 	//double KE = GetKE();
 	char numstr[512];
-	printf("%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7.7f | %d\n", A, B, C, D, B - C - D,U, E, F, mTotalTime, I);
-	sprintf(numstr, "%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %f | %d\n", A, B, C, D, B - C - D,U, E, F, mTotalTime, I);
+
+	printf("%7.4f|%7.4f|%7.4f|%7.4f|%7.4f|%7.4f|%7d|%7d|%7.4f|%d|%7.4f|%7.4f|%7.4f|%7.4f|%7.4f|%d|%d|%d\n", TIME, STEP, BROD, NARR, LCP, UPDT, BODS, CNTC, mTotalTime, I, AABB_Bins_Count, AABB_Bins,
+			AABB_AABB_Count, AABB_AABB, Broad_other, INTER, LAB, CONTP);
+
+	sprintf(numstr, "%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %f | %d\n", TIME, STEP, BROD, NARR, LCP, UPDT, BODS, CNTC, mTotalTime, I);
 
 	if (mTimingFile.fail() == false) {
 		mTimingFile << numstr;
@@ -210,31 +225,31 @@ void System::SaveAllData(string prefix) {
 	stringstream ss, sss;
 	ss << prefix << mFileNumber << ".txt";
 	sss << prefix << "temp.txt";
-	ofile.open(sss.str().c_str());
+	ofile.open(sss.str().c_str(), ios::binary);
 
 	for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
 		CHBODY * abody = (CHBODY *) mSystem->Get_bodylist()->at(i);
-		ChVector<> pos = abody->GetPos();
-		ChVector<> rot = abody->GetRot().Q_to_NasaAngles();
-		ChQuaternion<> quat = abody->GetRot();
-		ChVector<> vel = abody->GetPos_dt();
-		ChVector<> acc = abody->GetPos_dtdt();
-		//ChVector<> fap = abody->GetAppliedForce();
-		if (NAN(rot.x)) {
-			rot.x = 0;
+		if (abody->IsActive() == true) {
+			ChVector<> pos = abody->GetPos();
+			ChVector<> rot = abody->GetRot().Q_to_NasaAngles();
+			ChQuaternion<> quat = abody->GetRot();
+			ChVector<> vel = abody->GetPos_dt();
+			ChVector<> acc = abody->GetPos_dtdt();
+			//ChVector<> fap = abody->GetAppliedForce();
+			float3 p = F3(pos.x, pos.y, pos.z);
+			float3 v = F3(vel.x, vel.y, vel.z);
+			float4 e = F4(quat.e0, quat.e1, quat.e2, quat.e3);
+
+			ofile.write(reinterpret_cast<char*>(&p), sizeof(p));
+			ofile.write(reinterpret_cast<char*>(&v), sizeof(v));
+			ofile.write(reinterpret_cast<char*>(&e), sizeof(e));
 		}
-		if (NAN(rot.y)) {
-			rot.y = 0;
-		}
-		if (NAN(rot.z)) {
-			rot.z = 0;
-		}
-		ofile << pos.x << "," << pos.y << "," << pos.z << ",";
-		ofile << vel.x << "," << vel.y << "," << vel.z << ",";
+		//ofile << pos.x << "," << pos.y << "," << pos.z << ",";
+		//ofile << vel.x << "," << vel.y << "," << vel.z << ",";
 		//ofile << acc.x << "," << acc.y << "," << acc.z << ",";
-		ofile << quat.e0 << "," << quat.e1 << "," << quat.e2 << "," << quat.e3 << ",";
+		//ofile << quat.e0 << "," << quat.e1 << "," << quat.e2 << "," << quat.e3 << ",";
 		//ofile << fap.x << "," << fap.y << "," << fap.z << ",";
-		ofile << endl;
+		//ofile << endl;
 	}
 	ofile.close();
 	rename(sss.str().c_str(), ss.str().c_str());
@@ -414,7 +429,7 @@ void System::drawAll() {
 		glEnableClientState(GL_COLOR_ARRAY);
 		glVertexPointer(3, GL_FLOAT, sizeof(Point), &points[0].x);
 		glColorPointer(3, GL_FLOAT, sizeof(Point), &points[0].r);
-		glPointSize(10.0);
+		glPointSize(5.0);
 		glDrawArrays(GL_POINTS, 0, points.size());
 		glDisableClientState(GL_VERTEX_ARRAY);
 		glDisableClientState(GL_COLOR_ARRAY);
@@ -476,21 +491,21 @@ void SimulationLoop(int argc, char* argv[]) {
 	{
 #pragma omp section
 		{
-	while (1) {
-		if (!stepMode) {
-			GPUSystem->mTimer.start();
-			GPUSystem->DoTimeStep();
+			while (1) {
+				if (!stepMode) {
+					GPUSystem->mTimer.start();
+					GPUSystem->DoTimeStep();
 
-		} else if (stepNext) {
-			GPUSystem->mTimer.start();
-			GPUSystem->DoTimeStep();
-			stepNext = 0;
+				} else if (stepNext) {
+					GPUSystem->mTimer.start();
+					GPUSystem->DoTimeStep();
+					stepNext = 0;
+				}
+				if (GPUSystem->mSystem->GetChTime() > GPUSystem->mEndTime) {
+					exit(0);
+				}
+			}
 		}
-		if (GPUSystem->mSystem->GetChTime() > GPUSystem->mEndTime) {
-			exit(0);
-		}
-	}
-	}
 #pragma omp section
 		{
 			if (GPUSystem->mUseOGL) {
