@@ -131,6 +131,7 @@ using namespace chrono;
 %include "ChLinkMasked.i"
 %include "ChLinkLock.i"
 %include "ChLinkEngine.i"
+%include "ChLinkMate.i"
 /*
 %include "ChLinkGear.i"
 %include "ChLinkDistance.i"
