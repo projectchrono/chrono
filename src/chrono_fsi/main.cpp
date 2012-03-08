@@ -282,8 +282,8 @@ int2 CreateFluidParticles(
 								+ make_float3(.5 * initSpace0)/* + make_float3(sphR) + initSpace * .05 * (float(rand()) / RAND_MAX)*/, sphR);
 				float penDist = 0;
 				bool flag = true;
-				///penDist = IsInsideSerpentine(posRad); if (penDist < -toleranceZone) flag= false;
-				penDist = IsInsideStraightChannel(posRad); if (penDist < -toleranceZone) flag= false;
+				penDist = IsInsideSerpentine(posRad); if (penDist < -toleranceZone) flag= false;
+				///penDist = IsInsideStraightChannel(posRad); if (penDist < -toleranceZone) flag= false;
 				///penDist = IsInsideStraightChannel_XZ(posRad); if (penDist < -toleranceZone) flag= false;
 				///penDist = IsInsideTube(posRad, cMax, cMin, channelRadius);
 				if (penDist < -toleranceZone) flag = false;
@@ -429,8 +429,8 @@ int main() {
 	float r = HSML;	//.02;
 	float rRigidBody;
 	float3 cMin = make_float3(0, -0.2, -1.2) * sizeScale;
-	float3 cMax = make_float3( nPeriod * 3.6, 1.5,  4.0) * sizeScale;  //for serpentine
-	//float3 cMax = make_float3( nPeriod * 4.6 + 0, 1.0,  4.0) * sizeScale;  //for straight channel
+	float3 cMax = make_float3( nPeriod * 4.6 + 7, 1.5,  4.0) * sizeScale;  //for serpentine
+	//float3 cMax = make_float3( nPeriod * 3.6 + 0, 1.5,  4.0) * sizeScale;  //for  straight channel
 	//float3 cMax = make_float3( nPeriod * 4.6 + 0, .4,  4.0) * sizeScale;  //for straight channel, cylinders
 
 //	float3 cMax = make_float3(nPeriod * 1.0 + 0, .5,  3.5) * sizeScale;  //for straight channel, sphere
