@@ -2,8 +2,8 @@
 uint numY = 1;
 void System::DoTimeStep() {
 	if (mNumCurrentObjects < mNumObjects && mFrameNumber % 100 == 0) {
-		float x = 40, y = 40, z = 40;
-		float posX = 0, posY = -5, posZ = 0;
+		float x = 10, y = 10, z = 10;
+		float posX = 0, posY = 0, posZ = 0;
 		srand(1);
 		float mass = 1, mu = .5, rest = 0;
 		ShapeType type = SPHERE;
@@ -24,7 +24,7 @@ void System::DoTimeStep() {
 					quat.Normalize();
 
 					mrigidBody = CHBODYSHAREDPTR(new CHBODY);
-					InitObject(mrigidBody, mass, mParticlePos * .21, quat, mu, mu, rest, true, false, 0, 1);
+					InitObject(mrigidBody, mass, mParticlePos * .2, quat, mu, mu, rest, true, false, 0, 1);
 
 					switch (type) {
 						case SPHERE:
@@ -89,24 +89,26 @@ int main(int argc, char* argv[]) {
 	CHBODYSHAREDPTR BTM = CHBODYSHAREDPTR(new CHBODY);
 	CHBODYSHAREDPTR FREE = CHBODYSHAREDPTR(new CHBODY);
 
-	GPUSystem->InitObject(L, 100000, ChVector<> (-container_R, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
-	GPUSystem->InitObject(R, 100000, ChVector<> (container_R, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
-	GPUSystem->InitObject(F, 100000, ChVector<> (0, 0, -container_R), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
-	GPUSystem->InitObject(B, 100000, ChVector<> (0, 0, container_R), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
-	GPUSystem->InitObject(BTM, 100000, ChVector<> (0, -container_R * .8, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
+	GPUSystem->InitObject(L, 1, ChVector<>(-20, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
+	GPUSystem->InitObject(R, 1, ChVector<>(20, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
+	GPUSystem->InitObject(F, 1, ChVector<>(0, 0, -20), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
+	GPUSystem->InitObject(B, 1, ChVector<>(0, 0, 20), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
+	GPUSystem->InitObject(BTM, 1, ChVector<>(0, -20, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
+	GPUSystem->InitObject(FREE, 1, ChVector<>(0, 20, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
 
-	GPUSystem->AddCollisionGeometry(L, BOX, ChVector<> (container_T, container_R, container_R), lpos, quat);
-	GPUSystem->AddCollisionGeometry(R, BOX, ChVector<> (container_T, container_R, container_R), lpos, quat);
-	GPUSystem->AddCollisionGeometry(F, BOX, ChVector<> (container_R, container_R, container_T), lpos, quat);
-	GPUSystem->AddCollisionGeometry(B, BOX, ChVector<> (container_R, container_R, container_T), lpos, quat);
-	GPUSystem->AddCollisionGeometry(BTM, BOX, ChVector<> (container_R, container_T, container_R), lpos, quat);
+	GPUSystem->AddCollisionGeometry(L, BOX, ChVector<>(1, 20, 20), lpos, quat);
+	GPUSystem->AddCollisionGeometry(R, BOX, ChVector<>(1, 20, 20), lpos, quat);
+	GPUSystem->AddCollisionGeometry(F, BOX, ChVector<>(20, 20, 1), lpos, quat);
+	GPUSystem->AddCollisionGeometry(B, BOX, ChVector<>(20, 20, 1), lpos, quat);
+	GPUSystem->AddCollisionGeometry(BTM, BOX, ChVector<>(20, 1, 20), lpos, quat);
+	GPUSystem->AddCollisionGeometry(FREE, BOX, ChVector<>(20, 1, 20), lpos, quat);
 
 	GPUSystem->FinalizeObject(L);
 	GPUSystem->FinalizeObject(R);
 	GPUSystem->FinalizeObject(F);
 	GPUSystem->FinalizeObject(B);
 	GPUSystem->FinalizeObject(BTM);
-
+	GPUSystem->FinalizeObject(FREE);
 	GPUSystem->Setup();
 	SimulationLoop(argc, argv);
 	return 0;

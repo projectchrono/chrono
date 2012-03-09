@@ -145,8 +145,7 @@ void System::PrintStats() {
 	//double KE = GetKE();
 	char numstr[512];
 
-	printf("%7.4f|%7.4f|%7.4f|%7.4f|%7.4f|%7.4f|%7d|%7d|%7.4f|%d|%7.4f|%7.4f|%7.4f|%7.4f|%7.4f|%d|%d|%d\n", TIME, STEP, BROD, NARR, LCP, UPDT, BODS, CNTC, mTotalTime, I, AABB_Bins_Count, AABB_Bins,
-			AABB_AABB_Count, AABB_AABB, Broad_other, INTER, LAB, CONTP);
+	printf("%7.4f|%7.4f|%7.4f|%7.4f|%7.4f|%7.4f|%7d|%7d|%7.4f|%d\n", TIME, STEP, BROD, NARR, LCP, UPDT, BODS, CNTC, mTotalTime, I);
 
 	sprintf(numstr, "%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %f | %d\n", TIME, STEP, BROD, NARR, LCP, UPDT, BODS, CNTC, mTotalTime, I);
 
@@ -487,10 +486,10 @@ void initGLUT(string name, int argc, char* argv[]) {
 }
 
 void SimulationLoop(int argc, char* argv[]) {
-#pragma omp parallel sections
-	{
-#pragma omp section
-		{
+//#pragma omp parallel sections
+//	{
+//#pragma omp section
+//		{
 			while (1) {
 				if (!stepMode) {
 					GPUSystem->mTimer.start();
@@ -505,12 +504,12 @@ void SimulationLoop(int argc, char* argv[]) {
 					exit(0);
 				}
 			}
-		}
-#pragma omp section
-		{
-			if (GPUSystem->mUseOGL) {
-				initGLUT(string("test"), argc, argv);
-			}
-		}
-	}
+//		}
+//#pragma omp section
+//		{
+//			if (GPUSystem->mUseOGL) {
+//				initGLUT(string("test"), argc, argv);
+//			}
+//		}
+//	}
 }
