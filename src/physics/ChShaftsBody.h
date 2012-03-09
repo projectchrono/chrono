@@ -118,8 +118,8 @@ public:
 				/// Use this function after object creation, to initialize it, given  
 				/// the 1D shaft and 3D body to join. 
 				/// Each item must belong to the same ChSystem. 
-	virtual int Initialize(ChSharedShaftPtr& mshaft, ///< shaft to join 
-						   ChSharedBodyPtr&  mbody,  ///< body to join 
+	virtual int Initialize(ChSharedPtr<ChShaft>& mshaft, ///< shaft to join 
+						   ChSharedPtr<ChBody>&  mbody,  ///< body to join 
 						   ChVector<>& mdir			 ///< the direction of the shaft on 3D body (applied on COG: pure torque)
 						   );
 

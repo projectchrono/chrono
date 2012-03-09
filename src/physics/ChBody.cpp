@@ -495,7 +495,7 @@ bool ChBody::TrySleeping()
 }
 
 
-void ChBody::AddMarker (ChSharedMarkerPtr amarker)
+void ChBody::AddMarker (ChSharedPtr<ChMarker> amarker)
 {
 	// don't allow double insertion of same object
 	assert(std::find<std::vector<ChMarker*>::iterator>(marklist.begin(), marklist.end(), amarker.get_ptr())==marklist.end());
@@ -506,7 +506,7 @@ void ChBody::AddMarker (ChSharedMarkerPtr amarker)
 	
 }
 
-void ChBody::AddForce (ChSharedForcePtr aforce)
+void ChBody::AddForce (ChSharedPtr<ChForce> aforce)
 {
 	// don't allow double insertion of same object
 	assert(std::find<std::vector<ChForce*>::iterator>(forcelist.begin(), forcelist.end(), aforce.get_ptr())==forcelist.end());
@@ -517,7 +517,7 @@ void ChBody::AddForce (ChSharedForcePtr aforce)
 }
    
 
-void ChBody::RemoveForce (ChSharedForcePtr mforce)
+void ChBody::RemoveForce (ChSharedPtr<ChForce> mforce)
 {
 	// trying to remove objects not previously added?
 	assert(std::find<std::vector<ChForce*>::iterator>(forcelist.begin(), forcelist.end(), mforce.get_ptr() )!=forcelist.end());
@@ -529,7 +529,7 @@ void ChBody::RemoveForce (ChSharedForcePtr mforce)
 	mforce->RemoveRef();
 }
 
-void ChBody::RemoveMarker (ChSharedMarkerPtr mmarker)
+void ChBody::RemoveMarker (ChSharedPtr<ChMarker> mmarker)
 {
 	// trying to remove objects not previously added?
 	assert(std::find<std::vector<ChMarker*>::iterator>(marklist.begin(), marklist.end(), mmarker.get_ptr() )!=marklist.end());
@@ -1007,7 +1007,7 @@ int ChBody::StreamINall  (ChStreamInBinary& m_file)
 	// 2) read child markers
 	while (mchunk == CHCLASS_MARKER)
 	{
-		ChSharedMarkerPtr newmarker(new ChMarker);
+		ChSharedPtr<ChMarker> newmarker(new ChMarker);
 		this->AddMarker(newmarker);
 
 		m_file >> *newmarker;
@@ -1020,7 +1020,7 @@ int ChBody::StreamINall  (ChStreamInBinary& m_file)
 	// 3) read child links
 	while (mchunk == CHCLASS_FORCE)
 	{
-		ChSharedForcePtr newforce(new ChForce);
+		ChSharedPtr<ChForce> newforce(new ChForce);
 		this->AddForce(newforce);
 
 		m_file >> *newforce;

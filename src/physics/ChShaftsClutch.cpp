@@ -68,7 +68,7 @@ void ChShaftsClutch::Copy(ChShaftsClutch* source)
 }
 
 
-int ChShaftsClutch::Initialize(ChSharedShaftPtr& mshaft1, ChSharedShaftPtr& mshaft2)
+int ChShaftsClutch::Initialize(ChSharedPtr<ChShaft>& mshaft1, ChSharedShaftPtr& mshaft2)
 {
 	// parent class initialization
 	if (!ChShaftsCouple::Initialize(mshaft1, mshaft2)) return false;

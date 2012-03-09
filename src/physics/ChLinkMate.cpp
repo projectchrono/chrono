@@ -305,8 +305,8 @@ void ChLinkMateGeneric::Update (double mytime)
 
 
 
-int ChLinkMateGeneric::Initialize(ChSharedBodyPtr& mbody1,	///< first body to link
-						   ChSharedBodyPtr& mbody2, ///< second body to link
+int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
+						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChFrame<> mpos1,			///< mate frame (slave), for 1st body (rel. or abs., see flag above)
 						   ChFrame<> mpos2  		///< mate frame (master), for 2nd body (rel. or abs., see flag above) 
@@ -457,8 +457,8 @@ void ChLinkMateGeneric::ConstraintsFetch_react(double factor)
 }
 
 
-int ChLinkMateGeneric::Initialize(ChSharedBodyPtr& mbody1,	///< first body to link
-						   ChSharedBodyPtr& mbody2, ///< second body to link
+int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
+						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			
 						   ChVector<> mpt2,  		
@@ -621,8 +621,8 @@ void ChLinkMatePlane::SetFlipped(bool doflip)
 }
 
 
-int ChLinkMatePlane::Initialize(ChSharedBodyPtr& mbody1,	///< first body to link
-						   ChSharedBodyPtr& mbody2, ///< second body to link
+int ChLinkMatePlane::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
+						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			///< point on slave plane, for 1st body (rel. or abs., see flag above)
 						   ChVector<> mpt2,  		///< point on master plane, for 2nd body (rel. or abs., see flag above)
@@ -702,8 +702,8 @@ void ChLinkMateCoaxial::SetFlipped(bool doflip)
 }
 
 
-int ChLinkMateCoaxial::Initialize(ChSharedBodyPtr& mbody1,	///< first body to link
-						   ChSharedBodyPtr& mbody2, ///< second body to link
+int ChLinkMateCoaxial::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
+						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			
 						   ChVector<> mpt2,  		
@@ -757,8 +757,8 @@ ChLink* ChLinkMateCoincident::new_Duplicate ()
 }
 
 
-int ChLinkMateCoincident::Initialize(ChSharedBodyPtr& mbody1,	///< first body to link
-						   ChSharedBodyPtr& mbody2, ///< second body to link
+int ChLinkMateCoincident::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
+						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			
 						   ChVector<> mpt2 		
@@ -810,8 +810,8 @@ void ChLinkMateParallel::SetFlipped(bool doflip)
 	}
 }
 
-int ChLinkMateParallel::Initialize(ChSharedBodyPtr& mbody1,	///< first body to link
-						   ChSharedBodyPtr& mbody2, ///< second body to link
+int ChLinkMateParallel::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
+						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			
 						   ChVector<> mpt2,  		

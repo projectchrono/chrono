@@ -387,14 +387,14 @@ public:
 			// NOTE! After adding/removing items to the system, you should call Update() !
 
 				/// Attach a marker to this body. 
-	void AddMarker (ChSharedMarkerPtr amarker);
+	void AddMarker (ChSharedPtr<ChMarker> amarker);
 				/// Attach a force to this body. 
-	void AddForce (ChSharedForcePtr aforce);
+	void AddForce (ChSharedPtr<ChForce> aforce);
 
 				/// Remove a specific marker from this body. Warning: linear time search.
-	void RemoveMarker (ChSharedMarkerPtr amarker);
+	void RemoveMarker (ChSharedPtr<ChMarker> amarker);
 				/// Remove a specific force from this body. Warning: linear time search.
-	void RemoveForce  (ChSharedForcePtr aforce);
+	void RemoveForce  (ChSharedPtr<ChForce> aforce);
 
 				/// Remove all markers at once. Faster than doing multiple RemoveForce()
 				/// Don't care about deletion: it is automatic, only when needed.
@@ -641,7 +641,7 @@ const int BODY_QDOF = 7; ///< degrees of freedom with quaternion rotation state
 const int BODY_ROT = 3;  ///< rotational dof in Newton dynamics
 
 
-typedef ChSharedPtr<ChBody> ChSharedBodyPtr;
+typedef ChSharedPtr<ChBody> ChSharedBodyPtr; 
 
 
 

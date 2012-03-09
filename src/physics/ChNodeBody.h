@@ -116,7 +116,7 @@ public:
 				/// Note, mnodes and mbody must belong to the same ChSystem. 
 	virtual int Initialize(ChSharedPtr<ChIndexedNodes>& mnodes, ///< nodes container
 						   unsigned int mnode_index, ///< index of the node to join
-						   ChSharedBodyPtr&  mbody,  ///< body to join 
+						   ChSharedPtr<ChBody>&  mbody,  ///< body to join 
 						   ChVector<>* mattach=0		 ///< optional: if not null, sets the attachment position in absolute coordinates 
 						   );
 
