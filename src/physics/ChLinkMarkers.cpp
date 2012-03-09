@@ -140,7 +140,7 @@ int ChLinkMarkers::ReferenceMarkers(ChMarker* mark1, ChMarker* mark2)
 }
 
 
-int ChLinkMarkers::Initialize(ChSharedMarkerPtr& mmark1, ChSharedMarkerPtr& mmark2)
+int ChLinkMarkers::Initialize(ChSharedPtr<ChMarker>& mmark1, ChSharedPtr<ChMarker>& mmark2)
 {
 	ChMarker* mm1 = mmark1.get_ptr();
 	ChMarker* mm2 = mmark2.get_ptr();
@@ -154,20 +154,20 @@ int ChLinkMarkers::Initialize(ChSharedMarkerPtr& mmark1, ChSharedMarkerPtr& mmar
 	return true;
 }
 	
-int ChLinkMarkers::Initialize(ChSharedBodyPtr& mbody1, ChSharedBodyPtr& mbody2,  ChCoordsys<> mpos)
+int ChLinkMarkers::Initialize(ChSharedPtr<ChBody>& mbody1, ChSharedPtr<ChBody>& mbody2,  ChCoordsys<> mpos)
 {
 	return Initialize(mbody1,mbody2,false,mpos,mpos);
 	
 }
 
-int ChLinkMarkers::Initialize(ChSharedBodyPtr& mbody1, ChSharedBodyPtr& mbody2, bool pos_are_relative, ChCoordsys<> mpos1, ChCoordsys<> mpos2)
+int ChLinkMarkers::Initialize(ChSharedPtr<ChBody>& mbody1, ChSharedPtr<ChBody>& mbody2, bool pos_are_relative, ChCoordsys<> mpos1, ChCoordsys<> mpos2)
 {
 	assert(mbody1.get_ptr() != mbody2.get_ptr());
 	assert(mbody1->GetSystem() == mbody2->GetSystem());
 	
 	// create markers to add to the two bodies
-	ChSharedMarkerPtr mmark1(new ChMarker);
-	ChSharedMarkerPtr mmark2(new ChMarker);
+	ChSharedPtr<ChMarker> mmark1(new ChMarker);
+	ChSharedPtr<ChMarker> mmark2(new ChMarker);
 	mbody1->AddMarker(mmark1);
 	mbody2->AddMarker(mmark2);
 	

@@ -66,7 +66,7 @@ void ChShaftsBody::Copy(ChShaftsBody* source)
 }
 
 
-int ChShaftsBody::Initialize(ChSharedShaftPtr& mshaft, ChSharedBodyPtr& mbody, ChVector<>& mdir)
+int ChShaftsBody::Initialize(ChSharedPtr<ChShaft>& mshaft, ChSharedPtr<ChBody>& mbody, ChVector<>& mdir)
 {
 	ChShaft* mm1 = mshaft.get_ptr();
 	ChBody* mm2 = mbody.get_ptr();

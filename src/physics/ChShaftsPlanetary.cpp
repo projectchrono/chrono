@@ -75,7 +75,7 @@ void ChShaftsPlanetary::Copy(ChShaftsPlanetary* source)
 }
 
 
-int ChShaftsPlanetary::Initialize(ChSharedShaftPtr& mshaft1, ChSharedShaftPtr& mshaft2, ChSharedShaftPtr& mshaft3)
+int ChShaftsPlanetary::Initialize(ChSharedPtr<ChShaft>& mshaft1, ChSharedPtr<ChShaft>& mshaft2, ChSharedPtr<ChShaft>& mshaft3)
 {
 	ChShaft* mm1 = mshaft1.get_ptr();
 	ChShaft* mm2 = mshaft2.get_ptr();

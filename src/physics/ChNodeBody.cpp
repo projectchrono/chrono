@@ -68,7 +68,7 @@ void ChNodeBody::Copy(ChNodeBody* source)
 
 int ChNodeBody::Initialize(ChSharedPtr<ChIndexedNodes>& mnodes, ///< nodes container
 						   unsigned int mnode_index, ///< index of the node to join
-						   ChSharedBodyPtr&  mbody,   ///< body to join 
+						   ChSharedPtr<ChBody>&  mbody,   ///< body to join 
 						   ChVector<>* mattach 	
 						   )
 {

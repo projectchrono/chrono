@@ -2953,7 +2953,7 @@ int ChSystem::StreamINall  (ChStreamInBinary& m_file)
 	// 2b) read  bodies
 	for (int i= 0; i<mnbodies; i++)
 	{
-		ChSharedBodyPtr newbody(new ChBody);
+		ChSharedPtr<ChBody> newbody(new ChBody);
 		this->AddBody(newbody);
 
 		if (!newbody->StreamINall(m_file)) 
@@ -2973,7 +2973,7 @@ int ChSystem::StreamINall  (ChStreamInBinary& m_file)
 		m_file.AbstractReadCreate(&newlink);
 		if (!newlink) throw ChException("Cannot read link data");
 
-		ChSharedLinkPtr shlink(newlink);
+		ChSharedPtr<ChLink> shlink(newlink);
 		this->AddLink(shlink);
 	}
 

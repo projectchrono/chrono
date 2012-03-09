@@ -55,8 +55,8 @@ ChConveyor::ChConveyor (double xlength, double ythick, double zwidth)
 	internal_link  = new ChLinkLockLock;
 	internal_link->SetMotion_X(new ChFunction_Ramp);
 
-	ChSharedMarkerPtr mmark1(new ChMarker);
-	ChSharedMarkerPtr mmark2(new ChMarker);
+	ChSharedPtr<ChMarker> mmark1(new ChMarker);
+	ChSharedPtr<ChMarker> mmark2(new ChMarker);
 	this->AddMarker(mmark1);
 	this->conveyor_plate->AddMarker(mmark2);
 

@@ -107,8 +107,8 @@ public:
 				/// Use this function after gear creation, to initialize it, given  
 				/// two shafts to join. 
 				/// Each shaft must belong to the same ChSystem. 
-	virtual int Initialize(ChSharedShaftPtr& mshaft1, ///< first  shaft to join
-						   ChSharedShaftPtr& mshaft2  ///< second shaft to join 
+	virtual int Initialize(ChSharedPtr<ChShaft>& mshaft1, ///< first  shaft to join
+						   ChSharedPtr<ChShaft>& mshaft2  ///< second shaft to join 
 						   );
 
 

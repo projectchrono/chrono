@@ -43,7 +43,7 @@ class ChBodySceneNode : public scene::ISceneNode
 	IAnimatedMeshSceneNode* child_mesh;
 
 	// Chrono Engine specific data
-	chrono::ChSharedBodyPtr* bodyp;
+	chrono::ChSharedPtr<chrono::ChBody>* bodyp;
 	bool ChronoControlled;
 
 public:
@@ -82,7 +82,7 @@ public:
 		// Creating dynamically the shared pointer from heap is not
 		// nice to see, but it must be managed dynamically in this wrapper node..
 
-		bodyp = new chrono::ChSharedBodyPtr(new chrono::ChBody);
+		bodyp = new chrono::ChSharedPtr<chrono::ChBody>(new chrono::ChBody);
 		
 		// set an unique identifier
 		body_identifier++;
@@ -224,7 +224,7 @@ public:
 
 		/// Returns reference to the shared pointer which references the
 		/// rigid body wrapped by this scene node.
-	chrono::ChSharedBodyPtr& GetBody() {return *bodyp;}
+	chrono::ChSharedPtr<chrono::ChBody>& GetBody() {return *bodyp;}
 
 		/// Returns true if the node is moved by Chrono::Engine
 		/// simulaiton system.

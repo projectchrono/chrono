@@ -75,8 +75,8 @@ public:
 				/// Each shaft must belong to the same ChSystem. 
 				/// Children classes might overload this (here, basically it only sets the two
 				/// pointers)
-	virtual int Initialize(ChSharedShaftPtr& mshaft1, ///< first  shaft to join
-						   ChSharedShaftPtr& mshaft2  ///< second shaft to join
+	virtual int Initialize(ChSharedPtr<ChShaft>& mshaft1, ///< first  shaft to join
+						   ChSharedPtr<ChShaft>& mshaft2  ///< second shaft to join
 						   )
 					{
 						ChShaft* mm1 = mshaft1.get_ptr();
