@@ -105,18 +105,16 @@ __device__ int Contact_Type(const int &A, const int &B) {
 	return 20;
 }
 __global__ void AABB_Bins_Count(float3* device_aabb_data, uint* Bins_Intersected) {
-	uint index = threadIdx.x + blockDim.x * threadIdx.y + (blockIdx.x * blockDim.x * blockDim.y) + (blockIdx.y * blockDim.x * blockDim.y); //blockIdx.x * blockDim.x + threadIdx.x;
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;//threadIdx.x + blockDim.x * threadIdx.y + (blockIdx.x * blockDim.x * blockDim.y) + (blockIdx.y * blockDim.x * blockDim.y);
 	if (index >= number_of_models_const) {
 		return;
 	}
 	uint3 gmin = Hash(device_aabb_data[index]);
 	uint3 gmax = Hash(device_aabb_data[index + number_of_models_const]);
 	Bins_Intersected[index] = (gmax.x - gmin.x + 1) * (gmax.y - gmin.y + 1) * (gmax.z - gmin.z + 1);
-
-
 }
 __global__ void AABB_Bins(float3* device_aabb_data, uint* Bins_Intersected, uint * bin_number, uint * body_number) {
-	uint index = threadIdx.x + blockDim.x * threadIdx.y + (blockIdx.x * blockDim.x * blockDim.y) + (blockIdx.y * blockDim.x * blockDim.y); //blockIdx.x * blockDim.x + threadIdx.x;
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;//threadIdx.x + blockDim.x * threadIdx.y + (blockIdx.x * blockDim.x * blockDim.y) + (blockIdx.y * blockDim.x * blockDim.y);
 	if (index >= number_of_models_const) {
 		return;
 	}
@@ -138,7 +136,7 @@ __global__ void AABB_Bins(float3* device_aabb_data, uint* Bins_Intersected, uint
 
 }
 __global__ void AABB_AABB_Count(float3* device_aabb_data, int2* device_fam_data, uint * bin_number, uint * body_number, uint * bin_start_index, uint* Num_ContactD) {
-	uint index = threadIdx.x + blockDim.x * threadIdx.y + (blockIdx.x * blockDim.x * blockDim.y) + (blockIdx.y * blockDim.x * blockDim.y); //blockIdx.x * blockDim.x + threadIdx.x;
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;//threadIdx.x + blockDim.x * threadIdx.y + (blockIdx.x * blockDim.x * blockDim.y) + (blockIdx.y * blockDim.x * blockDim.y);
 	if (index >= last_active_bin_const) {
 		return;
 	}
@@ -164,14 +162,13 @@ __global__ void AABB_AABB_Count(float3* device_aabb_data, int2* device_fam_data,
 	Num_ContactD[index] = count;
 }
 __global__ void AABB_AABB(float3* device_aabb_data, int3* device_typ_data, int2* device_fam_data, uint * bin_number, uint * body_number, uint * bin_start_index, uint* Num_ContactD, long long* pair) {
-	uint index = threadIdx.x + blockDim.x * threadIdx.y + (blockIdx.x * blockDim.x * blockDim.y) + (blockIdx.y * blockDim.x * blockDim.y); //blockIdx.x * blockDim.x + threadIdx.x;
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;//threadIdx.x + blockDim.x * threadIdx.y + (blockIdx.x * blockDim.x * blockDim.y) + (blockIdx.y * blockDim.x * blockDim.y);
 	if (index >= last_active_bin_const) {
 		return;
 	}
 	uint end = bin_start_index[index], count = 0, i = (!index) ? 0 : bin_start_index[index - 1], Bin = bin_number[index];
 	uint offset = (!index) ? 0 : Num_ContactD[index - 1];
 	if (end - i == 1) {
-
 		return;
 	}
 
@@ -201,50 +198,60 @@ __device__ __host__ bool operator ==(const float3 &a, const float3 &b) {
 }
 
 void ChCCollisionGPU::Broadphase(gpu_container & gpu_data, bool tune) {
-	START_TIMING(gpu_data.start_b, gpu_data.stop_b, gpu_data.time_Broad_other);
+	//START_TIMING(gpu_data.start_b, gpu_data.stop_b, gpu_data.time_Broad_other);
 	float3 bin_size_vec = gpu_data.bins_per_axis / gpu_data.bin_size_vec;
 	int number_of_models = gpu_data.number_of_models;
 	uint last_active_bin = 0, number_of_bin_intersections = 0, number_of_contacts_possible = 0;
 
-	thrust::device_vector<uint> generic_counter(number_of_models, 0);
+	gpu_data.generic_counter.resize(number_of_models);
 
 	COPY_TO_CONST_MEM(bin_size_vec);
 	COPY_TO_CONST_MEM(number_of_models);
-	START_TIMING(gpu_data.start_a, gpu_data.stop_a, gpu_data.time_AABB_Bins_Count);
+	//START_TIMING(gpu_data.start_a, gpu_data.stop_a, gpu_data.time_AABB_Bins_Count);
 
-	AABB_Bins_Count CUDA_KERNEL_DIM(BLOCKS2D(number_of_models),THREADS)(CASTF3(gpu_data.device_aabb_data), CASTU1(generic_counter));
-	STOP_TIMING(gpu_data.start_a, gpu_data.stop_a, gpu_data.time_AABB_Bins_Count);
-	Thrust_Inclusive_Scan_Sum(generic_counter, number_of_bin_intersections);
+	AABB_Bins_Count CUDA_KERNEL_DIM(BLOCKS(number_of_models),THREADS)(CASTF3(gpu_data.device_aabb_data), CASTU1(gpu_data.generic_counter));
+	//STOP_TIMING(gpu_data.start_a, gpu_data.stop_a, gpu_data.time_AABB_Bins_Count);
+	Thrust_Inclusive_Scan_Sum(gpu_data.generic_counter, number_of_bin_intersections);
 
-	thrust::device_vector<uint> bin_number_B(number_of_bin_intersections);
-	thrust::device_vector<uint> body_number_B(number_of_bin_intersections);
-	thrust::device_vector<uint> bin_start_index_B(number_of_bin_intersections);
-	START_TIMING(gpu_data.start_a, gpu_data.stop_a, gpu_data.time_AABB_Bins);
-	AABB_Bins CUDA_KERNEL_DIM(BLOCKS2D(number_of_models),THREADS)(CASTF3(gpu_data.device_aabb_data), CASTU1(generic_counter), CASTU1(bin_number_B), CASTU1(body_number_B));
-	STOP_TIMING(gpu_data.start_a, gpu_data.stop_a, gpu_data.time_AABB_Bins);
-	Thrust_Sort_By_Key(bin_number_B, body_number_B);
-	Thrust_Reduce_By_KeyA(last_active_bin, bin_number_B, bin_start_index_B);
-	uint val = bin_start_index_B[thrust::max_element(bin_start_index_B.begin(), bin_start_index_B.begin() + last_active_bin) - bin_start_index_B.begin()];
-	bin_start_index_B.resize(last_active_bin);
-	cout << val << " ";
-	Thrust_Inclusive_Scan(bin_start_index_B);
+	gpu_data.bin_number_B.resize(number_of_bin_intersections);
+	gpu_data.body_number_B.resize(number_of_bin_intersections);
+	gpu_data.bin_start_index_B.resize(number_of_bin_intersections);
+	//START_TIMING(gpu_data.start_a, gpu_data.stop_a, gpu_data.time_AABB_Bins);
+	AABB_Bins CUDA_KERNEL_DIM(BLOCKS(number_of_models),THREADS)(CASTF3(gpu_data.device_aabb_data), CASTU1(gpu_data.generic_counter), CASTU1(gpu_data.bin_number_B), CASTU1(gpu_data.body_number_B));
+	//STOP_TIMING(gpu_data.start_a, gpu_data.stop_a, gpu_data.time_AABB_Bins);
 
-	generic_counter.resize(last_active_bin);
+	thrust::host_vector<uint> tempA = gpu_data.bin_number_B;
+	thrust::host_vector<uint> tempB = gpu_data.bin_start_index_B;
+	thrust::host_vector<uint> tempC = gpu_data.body_number_B;
+
+	Thrust_Sort_By_Key(tempA, tempC);
+	Thrust_Reduce_By_KeyA(last_active_bin, tempA, tempB);
+
+	gpu_data.bin_number_B = tempA;
+	gpu_data.bin_start_index_B = tempB;
+	gpu_data.body_number_B = tempC;
+
+	uint val = gpu_data.bin_start_index_B[thrust::max_element(gpu_data.bin_start_index_B.begin(), gpu_data.bin_start_index_B.begin() + last_active_bin) - gpu_data.bin_start_index_B.begin()];
+	gpu_data.bin_start_index_B.resize(last_active_bin);
+
+	Thrust_Inclusive_Scan(gpu_data.bin_start_index_B);
+
+	gpu_data.generic_counter.resize(last_active_bin);
 
 	COPY_TO_CONST_MEM(last_active_bin);
-	START_TIMING(gpu_data.start_a, gpu_data.stop_a, gpu_data.time_AABB_AABB_Count);
-	AABB_AABB_Count CUDA_KERNEL_DIM(BLOCKS2D(last_active_bin),THREADS)(CASTF3(gpu_data.device_aabb_data), CASTI2(gpu_data.device_fam_data), CASTU1(bin_number_B), CASTU1(body_number_B),
-			CASTU1(bin_start_index_B), CASTU1(generic_counter));
-	STOP_TIMING(gpu_data.start_a, gpu_data.stop_a, gpu_data.time_AABB_AABB_Count);
-	Thrust_Inclusive_Scan_Sum(generic_counter, number_of_contacts_possible);
+	//START_TIMING(gpu_data.start_a, gpu_data.stop_a, gpu_data.time_AABB_AABB_Count);
+	AABB_AABB_Count CUDA_KERNEL_DIM(BLOCKS(last_active_bin),THREADS)(CASTF3(gpu_data.device_aabb_data), CASTI2(gpu_data.device_fam_data), CASTU1(gpu_data.bin_number_B),
+			CASTU1(gpu_data.body_number_B), CASTU1(gpu_data.bin_start_index_B), CASTU1(gpu_data.generic_counter));
+	//STOP_TIMING(gpu_data.start_a, gpu_data.stop_a, gpu_data.time_AABB_AABB_Count);
+	Thrust_Inclusive_Scan_Sum(gpu_data.generic_counter, number_of_contacts_possible);
 	gpu_data.device_pair_data.resize(number_of_contacts_possible);
-	START_TIMING(gpu_data.start_a, gpu_data.stop_a, gpu_data.time_AABB_AABB);
-	AABB_AABB CUDA_KERNEL_DIM(BLOCKS2D(last_active_bin),THREADS)(CASTF3(gpu_data.device_aabb_data), CASTI3(gpu_data.device_typ_data), CASTI2(gpu_data.device_fam_data), CASTU1(bin_number_B),
-			CASTU1(body_number_B), CASTU1(bin_start_index_B), CASTU1(generic_counter), CASTLL(gpu_data.device_pair_data));
-	STOP_TIMING(gpu_data.start_a, gpu_data.stop_a, gpu_data.time_AABB_AABB);
+	//START_TIMING(gpu_data.start_a, gpu_data.stop_a, gpu_data.time_AABB_AABB);
+	AABB_AABB CUDA_KERNEL_DIM(BLOCKS(last_active_bin),THREADS)(CASTF3(gpu_data.device_aabb_data), CASTI3(gpu_data.device_typ_data), CASTI2(gpu_data.device_fam_data), CASTU1(gpu_data.bin_number_B),
+			CASTU1(gpu_data.body_number_B), CASTU1(gpu_data.bin_start_index_B), CASTU1(gpu_data.generic_counter), CASTLL(gpu_data.device_pair_data));
+	//STOP_TIMING(gpu_data.start_a, gpu_data.stop_a, gpu_data.time_AABB_AABB);
 	gpu_data.number_of_contacts_possible = number_of_contacts_possible;
 
-	STOP_TIMING(gpu_data.start_b, gpu_data.stop_b, gpu_data.time_Broad_other);
+	//STOP_TIMING(gpu_data.start_b, gpu_data.stop_b, gpu_data.time_Broad_other);
 	gpu_data.time_Broad_other = gpu_data.time_Broad_other - gpu_data.time_AABB_Bins_Count - gpu_data.time_AABB_Bins - gpu_data.time_AABB_AABB_Count - gpu_data.time_AABB_AABB;
 
 	gpu_data.number_of_bin_intersections = number_of_bin_intersections;
@@ -252,11 +259,15 @@ void ChCCollisionGPU::Broadphase(gpu_container & gpu_data, bool tune) {
 	gpu_data.last_active_bin = last_active_bin;
 
 	if (val > 100) {
-		gpu_data.bins_per_axis = gpu_data.bins_per_axis * 1.2;
+		gpu_data.bins_per_axis = gpu_data.bins_per_axis * 1.1;
+	} else if (val < 50&&val>20) {
+		gpu_data.bins_per_axis = gpu_data.bins_per_axis * .9;
+
 	}
-	if (bin_start_index_B[last_active_bin - 1] > gpu_data.maxvaltest) {
-		gpu_data.maxvaltest = bin_start_index_B[last_active_bin - 1];
-	}
-	cout << gpu_data.maxvaltest << " " << gpu_data.bins_per_axis.x << " " << gpu_data.bins_per_axis.y << " " << gpu_data.bins_per_axis.z << " " << bin_size_vec.x << " " << bin_size_vec.y << " "
-			<< bin_size_vec.z;
+
+//	if (gpu_data.bin_start_index_B[last_active_bin - 1] > gpu_data.maxvaltest) {
+//		gpu_data.maxvaltest = gpu_data.bin_start_index_B[last_active_bin - 1];
+//	}
+//	cout << val << " " << gpu_data.maxvaltest << " " << gpu_data.bins_per_axis.x << " " << gpu_data.bins_per_axis.y << " " << gpu_data.bins_per_axis.z << " " << bin_size_vec.x << " " << bin_size_vec.y
+//			<< " " << bin_size_vec.z;
 }

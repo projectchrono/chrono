@@ -80,7 +80,7 @@ typedef unsigned int uint;
 #define CHVECCAST(v) ChVector<>(v.x,v.y,v.z)
 #define CHQUATCAST(q) ChQuaternion<>(q.x,q.y,q.z,q.w)
 
-#define THREADS							128
+#define THREADS							256
 #define MAXBLOCK						65535
 #define BLOCKS(x)						max((int)ceil(x/(float)THREADS),1)
 #define BLOCKS_T(x,y)					max((int)ceil(x/(float)y),1)

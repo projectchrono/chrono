@@ -18,7 +18,7 @@ ChSystemGPU::ChSystemGPU(unsigned int max_objects) :
 	LCP_solver_speed = new ChLcpSolverGPU();
 	((ChCollisionSystemGPU*) (collision_system))->data_container = gpu_data_manager;
 
-	gpu_data_manager->gpu_data.bins_per_axis = F3(20, 30, 20);
+	gpu_data_manager->gpu_data.bins_per_axis = F3(50, 50, 50);
 	gpu_data_manager->gpu_data.maxvaltest = 0;
 
 }
