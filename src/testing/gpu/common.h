@@ -142,10 +142,10 @@ void System::PrintStats() {
 #endif
 	mTimer.stop();
 	mTotalTime += mTimer();
-	//double KE = GetKE();
+	double KE = GetKE();
 	char numstr[512];
 
-	printf("%7.4f|%7.4f|%7.4f|%7.4f|%7.4f|%7.4f|%7d|%7d|%7.4f|%d\n", TIME, STEP, BROD, NARR, LCP, UPDT, BODS, CNTC, mTotalTime, I);
+	printf("%7.4f|%7.4f|%7.4f|%7.4f|%7.4f|%7.4f|%7d|%7d|%7.4f|%d|%7.4f\n", TIME, STEP, BROD, NARR, LCP, UPDT, BODS, CNTC, mTotalTime, I, KE);
 
 	sprintf(numstr, "%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %f | %d\n", TIME, STEP, BROD, NARR, LCP, UPDT, BODS, CNTC, mTotalTime, I);
 
