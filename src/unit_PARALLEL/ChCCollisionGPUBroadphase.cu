@@ -220,6 +220,10 @@ void ChCCollisionGPU::Broadphase(gpu_container & gpu_data, bool tune) {
 	AABB_Bins CUDA_KERNEL_DIM(BLOCKS(number_of_models),THREADS)(CASTF3(gpu_data.device_aabb_data), CASTU1(gpu_data.generic_counter), CASTU1(gpu_data.bin_number_B), CASTU1(gpu_data.body_number_B));
 	//STOP_TIMING(gpu_data.start_a, gpu_data.stop_a, gpu_data.time_AABB_Bins);
 
+	//Thrust_Sort_By_Key(gpu_data.bin_number_B, gpu_data.body_number_B);
+	//Thrust_Reduce_By_KeyA(last_active_bin, gpu_data.bin_number_B, gpu_data.bin_start_index_B);
+
+
 	thrust::host_vector<uint> tempA = gpu_data.bin_number_B;
 	thrust::host_vector<uint> tempB = gpu_data.bin_start_index_B;
 	thrust::host_vector<uint> tempC = gpu_data.body_number_B;
@@ -230,6 +234,8 @@ void ChCCollisionGPU::Broadphase(gpu_container & gpu_data, bool tune) {
 	gpu_data.bin_number_B = tempA;
 	gpu_data.bin_start_index_B = tempB;
 	gpu_data.body_number_B = tempC;
+
+
 
 	uint val = gpu_data.bin_start_index_B[thrust::max_element(gpu_data.bin_start_index_B.begin(), gpu_data.bin_start_index_B.begin() + last_active_bin) - gpu_data.bin_start_index_B.begin()];
 	gpu_data.bin_start_index_B.resize(last_active_bin);
