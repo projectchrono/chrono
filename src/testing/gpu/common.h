@@ -224,7 +224,7 @@ void System::SaveAllData(string prefix) {
 	stringstream ss, sss;
 	ss << prefix << mFileNumber << ".txt";
 	sss << prefix << "temp.txt";
-	ofile.open(sss.str().c_str(), ios::binary);
+	ofile.open(sss.str().c_str());
 
 	for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
 		CHBODY * abody = (CHBODY *) mSystem->Get_bodylist()->at(i);
@@ -235,15 +235,19 @@ void System::SaveAllData(string prefix) {
 			ChVector<> vel = abody->GetPos_dt();
 			ChVector<> acc = abody->GetPos_dtdt();
 			//ChVector<> fap = abody->GetAppliedForce();
-			float3 p = F3(pos.x, pos.y, pos.z);
-			float3 v = F3(vel.x, vel.y, vel.z);
-			float4 e = F4(quat.e0, quat.e1, quat.e2, quat.e3);
+			//float3 p = F3(pos.x, pos.y, pos.z);
+			//float3 v = F3(vel.x, vel.y, vel.z);
+			//float4 e = F4(quat.e0, quat.e1, quat.e2, quat.e3);
 
-			ofile.write(reinterpret_cast<char*>(&p), sizeof(p));
-			ofile.write(reinterpret_cast<char*>(&v), sizeof(v));
-			ofile.write(reinterpret_cast<char*>(&e), sizeof(e));
+			//ofile.write(reinterpret_cast<char*>(&p), sizeof(p));
+			//ofile.write(reinterpret_cast<char*>(&v), sizeof(v));
+			//ofile.write(reinterpret_cast<char*>(&e), sizeof(e));
+			ofile << pos.x << "," << pos.y << "," << pos.z << ",";
+			ofile << vel.x << "," << vel.y << "," << vel.z << ",";
+			ofile << quat.e0 << "," << quat.e1 << "," << quat.e2 << "," << quat.e3 << ",";
+			ofile << endl;
 		}
-		//ofile << pos.x << "," << pos.y << "," << pos.z << ",";
+		//
 		//ofile << vel.x << "," << vel.y << "," << vel.z << ",";
 		//ofile << acc.x << "," << acc.y << "," << acc.z << ",";
 		//ofile << quat.e0 << "," << quat.e1 << "," << quat.e2 << "," << quat.e3 << ",";
@@ -490,20 +494,20 @@ void SimulationLoop(int argc, char* argv[]) {
 //	{
 //#pragma omp section
 //		{
-			while (1) {
-				if (!stepMode) {
-					GPUSystem->mTimer.start();
-					GPUSystem->DoTimeStep();
+	while (1) {
+		if (!stepMode) {
+			GPUSystem->mTimer.start();
+			GPUSystem->DoTimeStep();
 
-				} else if (stepNext) {
-					GPUSystem->mTimer.start();
-					GPUSystem->DoTimeStep();
-					stepNext = 0;
-				}
-				if (GPUSystem->mSystem->GetChTime() > GPUSystem->mEndTime) {
-					exit(0);
-				}
-			}
+		} else if (stepNext) {
+			GPUSystem->mTimer.start();
+			GPUSystem->DoTimeStep();
+			stepNext = 0;
+		}
+		if (GPUSystem->mSystem->GetChTime() > GPUSystem->mEndTime) {
+			exit(0);
+		}
+	}
 //		}
 //#pragma omp section
 //		{
