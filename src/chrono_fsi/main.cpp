@@ -45,8 +45,17 @@ float Min(float a, float b) {
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 bool IsInsideSphere(float4 sphParPos, float4 spherePosRad, float clearance) {
-	float3 dist3 = make_float3(sphParPos - spherePosRad);
+	float3 dist3 = F3(sphParPos - spherePosRad);
 	if (length(dist3) < spherePosRad.w + clearance) {
+		return true;
+	} else {
+		return false;
+	}
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+bool IsInsideEllipsoid(float4 sphParPos, float3 rigidPos, float3 radii, float clearance) {
+	float3 dist3 = F3(sphParPos) - rigidPos;
+	if (length(dist3) < radii.x + clearance) {
 		return true;
 	} else {
 		return false;

@@ -1276,8 +1276,8 @@ void cudaCollisions(
 		}
 
 		//edit PrintToFile since yu deleted cyliderRotOmegaJD
-//		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRigidD, posRigidCumulativeD, velMassRigidD, omegaLRF_D, cMax, cMin, paramsH,
-//				delT, tStep, channelRadius);
+		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRigidD, posRigidCumulativeD, velMassRigidD, omegaLRF_D, cMax, cMin, paramsH,
+				delT, tStep, channelRadius);
 //		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
 
 		float time2;
@@ -1290,6 +1290,7 @@ void cudaCollisions(
 			printf("step: %d, step Time: %f\n ", tStep, time2);
 			//printf("a \n");
 		}
+		fflush(stdout);
 
 		//_CrtDumpMemoryLeaks(); //for memory leak detection (msdn suggestion for VS) apparently does not work in conjunction with cuda
 
