@@ -1348,8 +1348,8 @@ void cudaCollisions(
 		}
 
 		//edit PrintToFile since yu deleted cyliderRotOmegaJD
-		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRadRigidD, posRadRigidCumulativeD, velMassRigidD, omegaLRF_D, cMax, cMin, paramsH,
-				delT, tStep, channelRadius);
+//		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRadRigidD, posRadRigidCumulativeD, velMassRigidD, omegaLRF_D, cMax, cMin, paramsH,
+//				delT, tStep, channelRadius);
 //		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
 
 		float time2;
