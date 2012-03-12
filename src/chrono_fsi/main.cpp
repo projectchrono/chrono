@@ -521,6 +521,7 @@ int main() {
 	thrust::host_vector<float4> mRhoPresMu;
 
 	thrust::host_vector<float4> spheresPosRad;
+	thrust::host_vector<float3> rigidPos;
 	thrust::host_vector<float4> spheresVelMas;
 	thrust::host_vector<float3> rigidBodyOmega;
 	thrust::host_vector<float3> rigidBody_J1;
@@ -544,6 +545,7 @@ int main() {
 		//float r = rRigidBody * (.75 + .75 * float(rand())/RAND_MAX);
 		for (int period = 0; period < nPeriod; period++) {
 			spheresPosRad.push_back(F4(x * sizeScale + period * sPeriod, y * sizeScale, z * sizeScale, rRigidBody));
+			rigidPos.push_back(F3(x * sizeScale + period * sPeriod, y * sizeScale, z * sizeScale));
 			//********** intitialization of rigid bodies: Spheres
 			float mass = 4.0 / 3 * PI * pow(rRigidBody, 3) * rhoRigid;			//for sphere
 			float3 j1, j2;
@@ -663,7 +665,7 @@ int main() {
 	printf("numAllParticles %d\n", numAllParticles);
 
 	if (numAllParticles != 0) {
-		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray, numAllParticles, cMax, cMin, delT, spheresPosRad, spheresVelMas,
+		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray, numAllParticles, cMax, cMin, delT, rigidPos, spheresVelMas,
 				rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, binSize0, channelRadius);
 	}
 	mPosRad.clear();
@@ -672,6 +674,7 @@ int main() {
 	bodyIndex.clear();
 	referenceArray.clear();
 	spheresPosRad.clear();
+	rigidPos.clear();
 	spheresVelMas.clear();
 	rigidBodyOmega.clear();
 	rigidBody_J1.clear();

@@ -123,27 +123,46 @@ __global__ void ApplyPeriodicBoundaryYKernel(float4 * posRadD, float4 * rhoPresM
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //applies periodic BC along x, for ridid bodies
-__global__ void ApplyPeriodicBoundaryXKernel_RigidBodies(float4 * posRadRigidD) {
+__global__ void ApplyPeriodicBoundaryXKernel_RigidBodies(float3 * posRigidD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (index >= numRigidBodiesD) {
 		return;
 	}
-	float4 posRadRigid = posRadRigidD[index];
-	if (posRadRigid.x > cMaxD.x) {
-		posRadRigid.x -= (cMaxD.x - cMinD.x);
-		posRadRigidD[index] = posRadRigid;
+	float3 posRigid = posRigidD[index];
+	if (posRigid.x > cMaxD.x) {
+		posRigid.x -= (cMaxD.x - cMinD.x);
+		posRigidD[index] = posRigid;
 		return;
 	}
-	if (posRadRigid.x < cMinD.x) {
-		posRadRigid.x += (cMaxD.x - cMinD.x);
-		posRadRigidD[index] = posRadRigid;
+	if (posRigid.x < cMinD.x) {
+		posRigid.x += (cMaxD.x - cMinD.x);
+		posRigidD[index] = posRigid;
+		return;
+	}
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+//applies periodic BC along x, for ridid bodies
+__global__ void ApplyPeriodicBoundaryYKernel_RigidBodies(float3 * posRigidD) {
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	if (index >= numRigidBodiesD) {
+		return;
+	}
+	float3 posRigid = posRigidD[index];
+	if (posRigid.y > cMaxD.y) {
+		posRigid.y -= (cMaxD.y - cMinD.y);
+		posRigidD[index] = posRigid;
+		return;
+	}
+	if (posRigid.y < cMinD.y) {
+		posRigid.y += (cMaxD.y - cMinD.y);
+		posRigidD[index] = posRigid;
 		return;
 	}
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //related to post processing of Segre-Silberberg. Distribution thing!
 __global__ void PassesFromTheEnd_Kernel(
-		float4 * posRadRigidD,
+		float3 * posRigidD,
 		uint * radialPositions,
 		uint * radialPosCounter,
 		float2 pipeCenter,
@@ -152,9 +171,9 @@ __global__ void PassesFromTheEnd_Kernel(
 	if (index >= numRigidBodiesD) {
 		return;
 	}
-	float4 posRadRigid = posRadRigidD[index];
-	if ( (posRadRigid.x > cMaxD.x) || (posRadRigid.x < cMinD.x) ) {													//assuming the fluid flows in the positive x direction
-		float r = length(F2(posRadRigid.y, posRadRigid.z) - pipeCenter);
+	float3 posRigid = posRigidD[index];
+	if ( (posRigid.x > cMaxD.x) || (posRigid.x < cMinD.x) ) {													//assuming the fluid flows in the positive x direction
+		float r = length(F2(posRigid.y, posRigid.z) - pipeCenter);
 		uint radPosition = int(r / dR);
 		radialPositions[index] = radPosition;
 		radialPosCounter[index] = 1;
@@ -181,32 +200,13 @@ __global__ void AddToCumulutaiveNumberOfPasses(
 	}
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-//applies periodic BC along x, for ridid bodies
-__global__ void ApplyPeriodicBoundaryYKernel_RigidBodies(float4 * posRadRigidD) {
-	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	if (index >= numRigidBodiesD) {
-		return;
-	}
-	float4 posRadRigid = posRadRigidD[index];
-	if (posRadRigid.y > cMaxD.y) {
-		posRadRigid.y -= (cMaxD.y - cMinD.y);
-		posRadRigidD[index] = posRadRigid;
-		return;
-	}
-	if (posRadRigid.y < cMinD.y) {
-		posRadRigid.y += (cMaxD.y - cMinD.y);
-		posRadRigidD[index] = posRadRigid;
-		return;
-	}
-}
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void CalcTorqueShare(float3* torqueParticlesD, float4* derivVelRhoD, float4* posRadD, int* rigidIdentifierD, float4* posRadRigidD) {
+__global__ void CalcTorqueShare(float3* torqueParticlesD, float4* derivVelRhoD, float4* posRadD, int* rigidIdentifierD, float3* posRigidD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	uint rigidParticleIndex = index + startRigidParticleD; // updatePortionD = [start, end] index of the update portion
 	if (index >= numRigid_SphParticlesD) {
 		return;
 	}
-	float3 dist3 = Distance(posRadD[rigidParticleIndex], posRadRigidD[rigidIdentifierD[index]]);
+	float3 dist3 = Distance(posRadD[rigidParticleIndex], posRigidD[rigidIdentifierD[index]]);
 	torqueParticlesD[index] = cross(dist3, F3(derivVelRhoD[rigidParticleIndex]));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -214,7 +214,7 @@ __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(
 		float3* rigidSPH_MeshPos_LRF_D,
 		float4* posRadD,
 		int* rigidIdentifierD,
-		float4* posRadRigidD,
+		float3* posRigidD,
 		int startRigidParticleH,
 		int numRigid_SphParticlesH) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -222,7 +222,7 @@ __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(
 	if (index >= numRigid_SphParticlesH) {
 		return;
 	}
-	float3 dist3 = F3(posRadD[rigidParticleIndex] - posRadRigidD[rigidIdentifierD[index]]);
+	float3 dist3 = F3(posRadD[rigidParticleIndex]) - posRigidD[rigidIdentifierD[index]];
 	rigidSPH_MeshPos_LRF_D[index] = dist3;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -239,22 +239,22 @@ __global__ void MapTorqueToLRFKernel(float3 * AD1, float3 * AD2, float3 * AD3, f
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //updates the rigid body particles
-__global__ void UpdateKernelRigidTranstalation(float4 * totalForces4, float4 * posRadRigidD, float4 * posRadRigidCumulativeD, float4 * velMassRigidD, float rigid_SPH_mass) {
+__global__ void UpdateKernelRigidTranstalation(float4 * totalForces4, float3 * posRigidD, float3 * posRigidCumulativeD, float4 * velMassRigidD, float rigid_SPH_mass) {
 	uint rigidSphereA = blockIdx.x * blockDim.x + threadIdx.x;
 	if (rigidSphereA > numRigidBodiesD) {
 		return;
 	}
 
-	float4 dummyPosRad = posRadRigidD[rigidSphereA];
+	float3 dummyPos = posRigidD[rigidSphereA];
 	float4 dummyVelMas = velMassRigidD[rigidSphereA];
 
 	float4 totalForce4 = totalForces4[rigidSphereA];
 	float3 derivV_SPH = rigid_SPH_mass * F3(totalForce4) / dummyVelMas.w; //in fact, totalForce4 is originially sum of dV/dt of sph particles and should be multiplied by m to produce force. gravity is applied in the force kernel
 
 	float3 deltaPos = F3(dummyVelMas) * dTD;
-	dummyPosRad += F4(deltaPos, 0);
-	posRadRigidD[rigidSphereA] = dummyPosRad;
-	posRadRigidCumulativeD[rigidSphereA] += F4(deltaPos);
+	dummyPos += deltaPos;
+	posRigidD[rigidSphereA] = dummyPos;
+	posRigidCumulativeD[rigidSphereA] += deltaPos;
 
 	float3 deltaVel = derivV_SPH * dTD;
 	dummyVelMas += F4(deltaVel, 0);
@@ -332,7 +332,7 @@ __global__ void UpdateRigidParticlesPosition(
 		float4 * velMasD,
 		const float3 * rigidSPH_MeshPos_LRF_D,
 		const int * rigidIdentifierD,
-		float4 * posRadRigidD,
+		float3 * posRigidD,
 		float4 * velMassRigidD,
 		float3 * omegaLRF_D,
 		float3 * AD1,
@@ -355,8 +355,8 @@ __global__ void UpdateRigidParticlesPosition(
 
 	//position
 	float4 pR = posRadD[rigidParticleIndex];
-	float4 pR_Rigid = posRadRigidD[rigidBodyIndex];
-	posRadD[rigidParticleIndex] = F4(F3(pR_Rigid) + F3(dot(a1, rigidSPH_MeshPos_LRF), dot(a2, rigidSPH_MeshPos_LRF), dot(a3, rigidSPH_MeshPos_LRF)),
+	float3 p_Rigid = posRigidD[rigidBodyIndex];
+	posRadD[rigidParticleIndex] = F4(p_Rigid + F3(dot(a1, rigidSPH_MeshPos_LRF), dot(a2, rigidSPH_MeshPos_LRF), dot(a3, rigidSPH_MeshPos_LRF)),
 			pR.w);
 
 	//velociy
@@ -365,42 +365,6 @@ __global__ void UpdateRigidParticlesPosition(
 	float3 omega3 = omegaLRF_D[rigidBodyIndex];
 	float3 omegaCrossS = cross(omega3, rigidSPH_MeshPos_LRF);
 	velMasD[rigidParticleIndex] = F4(F3(vM_Rigid) + F3(dot(a1, omegaCrossS), dot(a2, omegaCrossS), dot(a3, omegaCrossS)), vM.w);
-}
-//--------------------------------------------------------------------------------------------------------------------------------
-//updates the rigid body particles
-__global__ void UpdateRigidParticlesPosition_XZ_Motion(
-		float4 * posRadD,
-		float4 * velMasD,
-		float3 * deltaPositionD,
-		float3 * deltaXZTetaOmegaD,
-		int * rigidIdentifierD,
-		float4 * posRadRigidD,
-		float4 * velMassRigidD,
-		float4 * cylinderRotOmegaJD) {
-	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	uint rigidParticleIndex = index + startRigidParticleD; // updatePortionD = [start, end] index of the update portion
-	if (index >= numRigid_SphParticlesD) {
-		return;
-	}
-	int rigidBodyIndex = rigidIdentifierD[index];
-	float4 posRadRigid = posRadRigidD[rigidBodyIndex];
-
-	float4 posRad = posRadD[rigidParticleIndex];
-	float3 deltaPosRigid = deltaPositionD[rigidBodyIndex];
-	//float3 r3_0 = F3(posRad) - (F3(posRadRigid) - deltaPosRigid);
-	float3 r3 = Distance(F3(posRad), F3(posRadRigid) - deltaPosRigid); //old rigid body position is (posRadRigid - deltaPosRigid)
-	r3.y = 0; //for the XZ motion
-
-	float3 deltaXZTetaOmega = deltaXZTetaOmegaD[rigidBodyIndex];
-	float3 deltaPos = deltaPosRigid + cross(F3(0, deltaXZTetaOmega.x, 0), r3);
-
-	posRadD[rigidParticleIndex] += F4(deltaPos, 0);
-	float3 velRigid = F3(velMassRigidD[rigidBodyIndex]);
-	float3 rotOmegaJRigid = F3(cylinderRotOmegaJD[rigidBodyIndex]);
-	float3 velParticle = velRigid + cross(F3(0, rotOmegaJRigid.y, 0), r3);
-	float mass = velMasD[rigidParticleIndex].w;
-	velMasD[rigidParticleIndex] = F4(velParticle, mass);
-	//r3.y = 0; if (length(r3) > .201 * sizeScale) printf("**** length r3 %f, r3 %f %f %f, r3_0 %f %f %f\n", length(r3), r3.x, r3.y, r3.z, r3_0.x, r3_0.y, r3_0.z);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void MapSPH_ToGrid(
@@ -482,8 +446,8 @@ void PrintToFile(
 		thrust::device_vector<float4> & rhoPresMuD,
 		const thrust::host_vector<int3> & referenceArray,
 		const thrust::device_vector<int> & rigidIdentifierD,
-		thrust::device_vector<float4> & posRadRigidD,
-		thrust::device_vector<float4> & posRadRigidCumulativeD,
+		thrust::device_vector<float3> & posRigidD,
+		thrust::device_vector<float3> & posRigidCumulativeD,
 		thrust::device_vector<float4> & velMassRigidD,
 		thrust::device_vector<float3> & omegaLRF_D,
 		float3 cMax,
@@ -533,7 +497,7 @@ void PrintToFile(
 		}
 		fprintf(fileNameRigids, "zone\n");
 		if (referenceArray.size() > 2) {
-			const int numRigidBodies = posRadRigidD.size();
+			const int numRigidBodies = posRigidD.size();
 			int startRigidParticle = (I2(referenceArray[2])).x;
 			for (int i = startRigidParticle; i < referenceArray[2 + numRigidBodies - 1].y; i++) {
 				float3 pos = F3(posRadD[i]);
@@ -542,10 +506,11 @@ void PrintToFile(
 				float4 rP = rhoPresMuD[i];
 				float velMag = length(vel);
 				int rigidID = rigidIdentifierD[i - startRigidParticle];
-				float4 rigPosRad = posRadRigidD[rigidID];
+				float3 posRigid = posRigidD[rigidID];
 				float3 omega = omegaLRF_D[rigidID];
+				float fakeRad = 9;
 				fprintf(fileNameRigids, "%f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n", pos.x, pos.y, pos.z, vel.x, vel.y, vel.z, velMag,
-						omega.x, omega.y, omega.z, rP.x, rP.y, rigPosRad.w, rP.w);
+						omega.x, omega.y, omega.z, rP.x, rP.y, fakeRad, rP.w);
 			}
 		}
 		fflush(fileNameRigids);
@@ -672,7 +637,7 @@ void PrintToFile(
 //-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	FILE *fileRigidParticleCenterVsTime;
 	FILE *fileRigidParticleCenterVsDistance;
-	int numRigidBodies = int(posRadRigidD.size() / float(nPeriod) + .5);
+	int numRigidBodies = int(posRigidD.size() / float(nPeriod) + .5);
 	int tStepRigidCenterPos = 1000;
 	if (tStep % tStepRigidCenterPos == 0) {
 		if (tStep / tStepRigidCenterPos == 0) {
@@ -697,17 +662,17 @@ void PrintToFile(
 			fprintf(fileRigidParticleCenterVsTime, "%f", 0); //dummy
 			fprintf(fileRigidParticleCenterVsDistance, "%f", 0); //dummy
 			for (int j = 0; j < numRigidBodies; j++) {
-				float4 pR_rigid = posRadRigidD[j];
-				//printf("position %f %f %f %f\n", pR_rigid.x, pR_rigid.y, pR_rigid.z, pR_rigid.w);
-				float4 pR_rigidCumul = posRadRigidCumulativeD[j];
+				float3 p_rigid = posRigidD[j];
+				//printf("position %f %f %f %f\n", p_rigid.x, p_rigid.y, p_rigid.z,0);
+				float3 p_rigidCumul = posRigidCumulativeD[j];
 				//***for 2D flow
-				//fprintf(fileRigidParticleCenterVsTime, "%f, %0.10f\n", tStep * delT, pR_rigid.z);
-				fprintf(fileRigidParticleCenterVsTime, ", %f, %0.10f", tStep * delT, pR_rigid.z);
-				fprintf(fileRigidParticleCenterVsDistance, ", %f, %0.10f", pR_rigidCumul.x,  pR_rigid.z);
+				//fprintf(fileRigidParticleCenterVsTime, "%f, %0.10f\n", tStep * delT, p_rigid.z);
+				fprintf(fileRigidParticleCenterVsTime, ", %f, %0.10f", tStep * delT, p_rigid.z);
+				fprintf(fileRigidParticleCenterVsDistance, ", %f, %0.10f", p_rigidCumul.x,  p_rigid.z);
 //				//***for tube
-//				float2 dist2 = F2(.5 * (cMax.y + cMin.y) - pR_rigid.y, .5 * (cMax.z + cMin.z) - pR_rigid.z);
+//				float2 dist2 = F2(.5 * (cMax.y + cMin.y) - p_rigid.y, .5 * (cMax.z + cMin.z) - p_rigid.z);
 //				fprintf(fileRigidParticleCenterVsTime, "%f, %0.10f", tStep * delT, length(dist2) / channelRadius);
-//				fprintf(fileRigidParticleCenterVsDistance, "%f, %0.10f", pR_rigidCumul.x, length(dist2) / channelRadius);
+//				fprintf(fileRigidParticleCenterVsDistance, "%f, %0.10f", p_rigidCumul.x, length(dist2) / channelRadius);
 			}
 			fprintf(fileRigidParticleCenterVsTime, "\n");
 			fprintf(fileRigidParticleCenterVsDistance, "\n");
@@ -932,48 +897,11 @@ void UpdateBoundary(
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelFluid");
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-//rigid body boundary condtion. A basic implementation. 
-float4 ApplyBoundaryRigid(float4 & posRadRigidH, float4 & velMassRigidH, float3 cMax, float3 cMin, float rRigidBody) {
-	float4 delta4 = F4(0);
-	if (posRadRigidH.x < cMin.x + rRigidBody) {
-		posRadRigidH.x = cMin.x + rRigidBody;
-		velMassRigidH.x *= -.2;
-		delta4.x = cMin.x + rRigidBody - posRadRigidH.x;
-	}
-	if (posRadRigidH.y < cMin.y + rRigidBody) {
-		posRadRigidH.y = cMin.y + rRigidBody;
-		velMassRigidH.y *= -.2;
-		delta4.y = cMin.y + rRigidBody - posRadRigidH.y;
-	}
-	if (posRadRigidH.z < cMin.z + rRigidBody) {
-		posRadRigidH.z = cMin.z + rRigidBody;
-		velMassRigidH.z *= -.2;
-		delta4.z = cMin.z + rRigidBody - posRadRigidH.z;
-	}
-
-	if (posRadRigidH.x > cMax.x - rRigidBody) {
-		posRadRigidH.x = cMax.x - rRigidBody;
-		velMassRigidH.x *= -.2;
-		delta4.x = cMax.x - rRigidBody - posRadRigidH.x;
-	}
-	if (posRadRigidH.y > cMax.y - rRigidBody) {
-		posRadRigidH.y = cMax.y - rRigidBody;
-		velMassRigidH.y *= -.2;
-		delta4.y = cMax.y - rRigidBody - posRadRigidH.y;
-	}
-	if (posRadRigidH.z > cMax.z - rRigidBody) {
-		posRadRigidH.z = cMax.z - rRigidBody;
-		velMassRigidH.z *= -.2;
-		delta4.z = cMax.z - rRigidBody - posRadRigidH.z;
-	}
-	return delta4;
-}
-//--------------------------------------------------------------------------------------------------------------------------------
 void ApplyBoundary(
 		thrust::device_vector<float4> & posRadD,
 		thrust::device_vector<float4> & rhoPresMuD,
 		int mNSpheres,
-		thrust::device_vector<float4> & posRadRigidD,
+		thrust::device_vector<float3> & posRigidD,
 		thrust::device_vector<float4> & velMassRigidD,
 		int numRigidBodies) {
 	uint nBlock_NumSpheres, nThreads_SphParticles;
@@ -989,22 +917,22 @@ void ApplyBoundary(
 	computeGridSize(numRigidBodies, 128, nBlock_NumRigids, nThreads_RigidBodies);
 
 	cudaMemcpyToSymbolAsync(numRigidBodiesD, &numRigidBodies, sizeof(numRigidBodies)); //can be defined outside of the kernel, and only once
-	ApplyPeriodicBoundaryXKernel_RigidBodies<<<nBlock_NumRigids, nThreads_RigidBodies>>>(F4CAST(posRadRigidD));
+	ApplyPeriodicBoundaryXKernel_RigidBodies<<<nBlock_NumRigids, nThreads_RigidBodies>>>(F3CAST(posRigidD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
-//	ApplyPeriodicBoundaryYKernel_RigidBodies<<<nBlock_NumRigids, nThreads_RigidBodies>>>(F4CAST(posRadRigidD));
+//	ApplyPeriodicBoundaryYKernel_RigidBodies<<<nBlock_NumRigids, nThreads_RigidBodies>>>(F3CAST(posRigidD));
 //	cudaThreadSynchronize();
 //	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void FindPassesFromTheEnd(
-		thrust::device_vector<float4> & posRadRigidD,
+		thrust::device_vector<float3> & posRigidD,
 		thrust::device_vector<int> & distributionD,
 		int numRigidBodies,
 		float2 pipeCenter,
 		float pipeRadius,
 		int numberOfSections) {
-//	float4 posRadRigid = posRadRigidD[0];
+//	float3 posRigid = posRigidD[0];
 //	printf("xRigid %f\n", posRadRigid.x);
 	float dR = pipeRadius / numberOfSections;
 	thrust::device_vector<uint> radialPositions(numRigidBodies);
@@ -1015,7 +943,7 @@ void FindPassesFromTheEnd(
 	uint nBlock_NumRigids, nThreads_RigidBodies;
 	computeGridSize(numRigidBodies, 128, nBlock_NumRigids, nThreads_RigidBodies);
 	cudaMemcpyToSymbolAsync(numRigidBodiesD, &numRigidBodies, sizeof(numRigidBodies)); //can be defined outside of the kernel, and only once
-	PassesFromTheEnd_Kernel<<<nBlock_NumRigids, nThreads_RigidBodies>>>(F4CAST(posRadRigidD), U1CAST(radialPositions), U1CAST(radialPosCounter), pipeCenter, dR);
+	PassesFromTheEnd_Kernel<<<nBlock_NumRigids, nThreads_RigidBodies>>>(F3CAST(posRigidD), U1CAST(radialPositions), U1CAST(radialPosCounter), pipeCenter, dR);
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: PassesFromTheEnd_Kernel");
 
@@ -1044,8 +972,8 @@ void FindPassesFromTheEnd(
 void UpdateRigidBody(
 		thrust::device_vector<float4> & posRadD,
 		thrust::device_vector<float4> & velMasD,
-		thrust::device_vector<float4> & posRadRigidD,
-		thrust::device_vector<float4> & posRadRigidCumulativeD,
+		thrust::device_vector<float3> & posRigidD,
+		thrust::device_vector<float3> & posRigidCumulativeD,
 		thrust::device_vector<float4> & velMassRigidD,
 		thrust::device_vector<float4> & qD,
 		thrust::device_vector<float3> & AD1,
@@ -1065,7 +993,7 @@ void UpdateRigidBody(
 	if (referenceArray.size() < 3) {
 		return;
 	}
-	const int numRigidBodies = posRadRigidD.size();
+	const int numRigidBodies = posRigidD.size();
 	float4 typicalRigidSPH = velMasD[referenceArray[2].x];
 	float rigid_SPH_mass = typicalRigidSPH.w;
 	cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(dT));
@@ -1090,7 +1018,7 @@ void UpdateRigidBody(
 	uint nThreads_SphParticles;
 	computeGridSize(numRigid_SphParticles, 256, nBlocks_numRigid_SphParticles, nThreads_SphParticles);
 
-	CalcTorqueShare<<<nBlocks_numRigid_SphParticles, nThreads_SphParticles>>>(F3CAST(torqueParticlesD), F4CAST(derivVelRhoD), F4CAST(posRadD), I1CAST(rigidIdentifierD), F4CAST(posRadRigidD));
+	CalcTorqueShare<<<nBlocks_numRigid_SphParticles, nThreads_SphParticles>>>(F3CAST(torqueParticlesD), F4CAST(derivVelRhoD), F4CAST(posRadD), I1CAST(rigidIdentifierD), F3CAST(posRigidD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueShare");
 	(void) thrust::reduce_by_key(rigidIdentifierD.begin(), rigidIdentifierD.end(), torqueParticlesD.begin(), dummyIdentify.begin(),
@@ -1119,7 +1047,7 @@ void UpdateRigidBody(
 	CUT_CHECK_ERROR("Kernel execution failed: MapTorqueToLRFKernel");
 	totalTorque3.clear();
 
-	UpdateKernelRigidTranstalation<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(F4CAST(totalForces4), F4CAST(posRadRigidD), F4CAST(posRadRigidCumulativeD), F4CAST(velMassRigidD), rigid_SPH_mass);
+	UpdateKernelRigidTranstalation<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(F4CAST(totalForces4), F3CAST(posRigidD), F3CAST(posRigidCumulativeD), F4CAST(velMassRigidD), rigid_SPH_mass);
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
 
@@ -1137,7 +1065,7 @@ void UpdateRigidBody(
 
 	LF_totalTorque3.clear();
 	//################################################### update rigid body things
-	UpdateRigidParticlesPosition<<<nBlocks_numRigid_SphParticles, nThreads_SphParticles>>>(F4CAST(posRadD), F4CAST(velMasD), F3CAST(rigidSPH_MeshPos_LRF_D), I1CAST(rigidIdentifierD), F4CAST(posRadRigidD), F4CAST(velMassRigidD), F3CAST(omegaLRF_D), F3CAST(AD1), F3CAST(AD2), F3CAST(AD3));
+	UpdateRigidParticlesPosition<<<nBlocks_numRigid_SphParticles, nThreads_SphParticles>>>(F4CAST(posRadD), F4CAST(velMasD), F3CAST(rigidSPH_MeshPos_LRF_D), I1CAST(rigidIdentifierD), F3CAST(posRigidD), F4CAST(velMassRigidD), F3CAST(omegaLRF_D), F3CAST(AD1), F3CAST(AD2), F3CAST(AD3));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
 }
@@ -1154,7 +1082,7 @@ void cudaCollisions(
 		float3 cMax,
 		float3 cMin,
 		float delT,
-		thrust::host_vector<float4> & posRadRigidH,
+		thrust::host_vector<float3> & posRigidH,
 		thrust::host_vector<float4> & velMassRigidH,
 		thrust::host_vector<float3> omegaLRF_H,
 		thrust::host_vector<float3> jH1,
@@ -1177,7 +1105,7 @@ void cudaCollisions(
 	cudaMemcpyToSymbolAsync(mNumSpheresD, &mNSpheres, sizeof(mNSpheres));
 
 	//?$ edit this
-	int numRigidBodies = posRadRigidH.size();
+	int numRigidBodies = posRigidH.size();
 	thrust::device_vector<float4> posRadD(mNSpheres);
 	thrust::copy(mPosRad.begin(), mPosRad.end(), posRadD.begin());
 	thrust::device_vector<float4> velMasD(mNSpheres);
@@ -1186,10 +1114,10 @@ void cudaCollisions(
 	thrust::copy(mRhoPresMu.begin(), mRhoPresMu.end(), rhoPresMuD.begin());
 
 
-	thrust::device_vector<float4> posRadRigidD(numRigidBodies);
-	thrust::copy(posRadRigidH.begin(), posRadRigidH.end(), posRadRigidD.begin());
-	thrust::device_vector<float4> posRadRigidCumulativeD(numRigidBodies);
-	thrust::copy(posRadRigidH.begin(), posRadRigidH.end(), posRadRigidCumulativeD.begin());
+	thrust::device_vector<float3> posRigidD(numRigidBodies);
+	thrust::copy(posRigidH.begin(), posRigidH.end(), posRigidD.begin());
+	thrust::device_vector<float3> posRigidCumulativeD(numRigidBodies);
+	thrust::copy(posRigidH.begin(), posRigidH.end(), posRigidCumulativeD.begin());
 	thrust::device_vector<float4> velMassRigidD(numRigidBodies);
 	thrust::copy(velMassRigidH.begin(), velMassRigidH.end(), velMassRigidD.begin());
 	thrust::device_vector<float3> omegaLRF_D(numRigidBodies);
@@ -1229,7 +1157,7 @@ void cudaCollisions(
 	uint nBlocks_numRigid_SphParticles;
 	uint nThreads_SphParticles;
 	computeGridSize(numRigid_SphParticles, 256, nBlocks_numRigid_SphParticles, nThreads_SphParticles);
-	Populate_RigidSPH_MeshPos_LRF_kernel<<<nBlocks_numRigid_SphParticles, nThreads_SphParticles>>>(F3CAST(rigidSPH_MeshPos_LRF_D), F4CAST(posRadD), I1CAST(rigidIdentifierD), F4CAST(posRadRigidD), startRigidParticle, numRigid_SphParticles);
+	Populate_RigidSPH_MeshPos_LRF_kernel<<<nBlocks_numRigid_SphParticles, nThreads_SphParticles>>>(F3CAST(rigidSPH_MeshPos_LRF_D), F4CAST(posRadD), I1CAST(rigidIdentifierD), F3CAST(posRigidD), startRigidParticle, numRigid_SphParticles);
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueShare");
 	//******************************************************************************
@@ -1243,8 +1171,8 @@ void cudaCollisions(
 	thrust::fill(AD3.begin(), AD3.end(), F3(0, 0, 1));
 
 	//int i =  rigidIdentifierD[429];
-	//printf("rigid body coord %d %f %f\n", i, posRadRigidH[i].x, posRadRigidH[i].z);
-	//printf("length %f\n", length(F2(posRadRigidH[i].x - .003474, posRadRigidH[i].z - .000673)));
+	//printf("rigid body coord %d %f %f\n", i, posRigidH[i].x, posRigidH[i].z);
+	//printf("length %f\n", length(F2(posRigidH[i].x - .003474, posRigidH[i].z - .000673)));
 
 	//****************************** bin size adjustement and contact detection stuff *****************************
 	//float mBinSize0 = (mNSpheres == 0) ? mBinSize0 : 2 * HSML;
@@ -1300,8 +1228,8 @@ void cudaCollisions(
 		thrust::device_vector<float4> posRadD2 = posRadD;
 		thrust::device_vector<float4> velMasD2 = velMasD;
 		thrust::device_vector<float4> rhoPresMuD2 = rhoPresMuD;
-		thrust::device_vector<float4> posRadRigidD2 = posRadRigidD;
-		thrust::device_vector<float4> posRadRigidCumulativeD2 = posRadRigidCumulativeD;
+		thrust::device_vector<float3> posRigidD2 = posRigidD;
+		thrust::device_vector<float3> posRadRigidCumulativeD2 = posRigidCumulativeD;
 		thrust::device_vector<float4> velMassRigidD2 = velMassRigidD;
 		thrust::device_vector<float3> omegaLRF_D2 = omegaLRF_D;
 		thrust::device_vector<float3> vel_XSPH_D(mNSpheres);
@@ -1313,26 +1241,26 @@ void cudaCollisions(
 		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, mNSpheres, SIDE); //?$ right now, it does not consider gravity or other stuff on rigid bodies. they should be applied at rigid body solver
 		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT); //assumes ...D2 is a copy of ...D
 		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT);		//assumes ...D2 is a copy of ...D
-		UpdateRigidBody(posRadD2, velMasD2, posRadRigidD2, posRadRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2, derivVelRhoD, rigidIdentifierD,
+		UpdateRigidBody(posRadD2, velMasD2, posRigidD2, posRadRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2, derivVelRhoD, rigidIdentifierD,
 				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, 0.5 * delT);
-		ApplyBoundary(posRadD2, rhoPresMuD2, mNSpheres, posRadRigidD2, velMassRigidD2, numRigidBodies);
+		ApplyBoundary(posRadD2, rhoPresMuD2, mNSpheres, posRigidD2, velMassRigidD2, numRigidBodies);
 
 		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, mNSpheres, SIDE);
 		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, delT);
 		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, delT);
-		UpdateRigidBody(posRadD, velMasD, posRadRigidD, posRadRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, derivVelRhoD, rigidIdentifierD,
+		UpdateRigidBody(posRadD, velMasD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, derivVelRhoD, rigidIdentifierD,
 				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, delT);
 			/* post_process for Segre-Silberberg */
 			if(tStep >= 0) {
 				float2 channelCenter = .5 * F2(cMax.y + cMin.y, cMax.z + cMin.z);
-				FindPassesFromTheEnd(posRadRigidD, distributionD, numRigidBodies, channelCenter, channelRadius, numberOfSections);
+				FindPassesFromTheEnd(posRigidD, distributionD, numRigidBodies, channelCenter, channelRadius, numberOfSections);
 			}
-		ApplyBoundary(posRadD, rhoPresMuD, mNSpheres, posRadRigidD, velMassRigidD, numRigidBodies);
+		ApplyBoundary(posRadD, rhoPresMuD, mNSpheres, posRigidD, velMassRigidD, numRigidBodies);
 
 		posRadD2.clear();
 		velMasD2.clear();
 		rhoPresMuD2.clear();
-		posRadRigidD2.clear();
+		posRigidD2.clear();
 		posRadRigidCumulativeD2.clear();
 		velMassRigidD2.clear();
 		vel_XSPH_D.clear();
@@ -1348,7 +1276,7 @@ void cudaCollisions(
 		}
 
 		//edit PrintToFile since yu deleted cyliderRotOmegaJD
-//		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRadRigidD, posRadRigidCumulativeD, velMassRigidD, omegaLRF_D, cMax, cMin, paramsH,
+//		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRigidD, posRigidCumulativeD, velMassRigidD, omegaLRF_D, cMax, cMin, paramsH,
 //				delT, tStep, channelRadius);
 //		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
 
@@ -1371,8 +1299,8 @@ void cudaCollisions(
 	posRadD.clear();
 	velMasD.clear();
 	rhoPresMuD.clear();
-	posRadRigidD.clear();
-	posRadRigidCumulativeD.clear();
+	posRigidD.clear();
+	posRigidCumulativeD.clear();
 	velMassRigidD.clear();
 	omegaLRF_D.clear();
 	bodyIndexD.clear();

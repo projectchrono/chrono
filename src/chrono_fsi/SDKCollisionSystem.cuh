@@ -164,8 +164,8 @@ __device__ inline float Eos(float rho, float type) {
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //distance between two particles, considering the periodic boundary condition
-__device__ inline float3 Distance(float4 posRadA, float4 posRadB) {
-	float3 dist3 = F3(posRadA - posRadB);
+__device__ inline float3 Distance(float3 a, float3 b) {
+	float3 dist3 = a - b;
 	dist3.x -= ((dist3.x > 0.5f * paramsD.boxDims.x) ? paramsD.boxDims.x : 0);
 	dist3.x += ((dist3.x < -0.5f * paramsD.boxDims.x) ? paramsD.boxDims.x : 0);
 
@@ -178,17 +178,13 @@ __device__ inline float3 Distance(float4 posRadA, float4 posRadB) {
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //distance between two particles, considering the periodic boundary condition
-__device__ inline float3 Distance(float3 a, float3 b) {
-	float3 dist3 = a - b;
-	dist3.x -= ((dist3.x > 0.5f * paramsD.boxDims.x) ? paramsD.boxDims.x : 0);
-	dist3.x += ((dist3.x < -0.5f * paramsD.boxDims.x) ? paramsD.boxDims.x : 0);
-
-	dist3.y -= ((dist3.y > 0.5f * paramsD.boxDims.y) ? paramsD.boxDims.y : 0);
-	dist3.y += ((dist3.y < -0.5f * paramsD.boxDims.y) ? paramsD.boxDims.y : 0);
-
-	dist3.z -= ((dist3.z > 0.5f * paramsD.boxDims.z) ? paramsD.boxDims.z : 0);
-	dist3.z += ((dist3.z < -0.5f * paramsD.boxDims.z) ? paramsD.boxDims.z : 0);
-	return dist3;
+__device__ inline float3 Distance(float4 posRadA, float4 posRadB) {
+	return Distance(F3(posRadA), F3(posRadB));
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+//distance between two particles, considering the periodic boundary condition
+__device__ inline float3 Distance(float4 posRadA, float3 posRadB) {
+	return Distance(F3(posRadA), posRadB);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void allocateArray(void **devPtr, size_t size);
