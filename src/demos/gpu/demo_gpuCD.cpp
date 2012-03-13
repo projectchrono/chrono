@@ -238,7 +238,7 @@ int main(int argc, char* argv[]){
 	float mSphereMu=.15;
 	float mWallMu=.05;
 	int mDevice=0;
-	cudaSetDevice(mDevice);
+	//cudaSetDevice(mDevice);
 
 	ChLcpSystemDescriptorGPU		mGPUDescriptor;
 	ChContactContainerGPUsimple		mGPUContactContainer;
