@@ -18,7 +18,7 @@
 ///////////////////////////////////////////////////
 
 
-
+#include "unit_MPI/ChApiMPI.h"
 #include "physics/ChContactContainerDEM.h"
 
 
@@ -32,7 +32,7 @@ namespace chrono
 /// objects (contacts between 3DOF nodes and 6DOF bodies)
 ///
 
-class ChApi ChContactContainerDEMMPI : public ChContactContainerDEM {
+class ChApiMPI ChContactContainerDEMMPI : public ChContactContainerDEM {
 
 	CH_RTTI(ChContactContainerDEMMPI,ChContactContainerDEM);
 
