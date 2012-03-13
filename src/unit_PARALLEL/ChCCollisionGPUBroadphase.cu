@@ -274,6 +274,5 @@ void ChCCollisionGPU::Broadphase(gpu_container & gpu_data, bool tune) {
 //	if (gpu_data.bin_start_index_B[last_active_bin - 1] > gpu_data.maxvaltest) {
 //		gpu_data.maxvaltest = gpu_data.bin_start_index_B[last_active_bin - 1];
 //	}
-//	cout << val << " " << gpu_data.maxvaltest << " " << gpu_data.bins_per_axis.x << " " << gpu_data.bins_per_axis.y << " " << gpu_data.bins_per_axis.z << " " << bin_size_vec.x << " " << bin_size_vec.y
-//			<< " " << bin_size_vec.z;
+	cout << val << " " << gpu_data.bins_per_axis.x<<" ";
 }

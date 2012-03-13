@@ -5,7 +5,6 @@ namespace chrono {
 
 ChSystemGPU::ChSystemGPU(unsigned int max_objects) :
 		ChSystem(1000, 10000, false) {
-	cudaSetDevice(1);
 	counter = 0;
 	max_obj = max_objects;
 	mtuning = -1;
@@ -18,7 +17,7 @@ ChSystemGPU::ChSystemGPU(unsigned int max_objects) :
 	LCP_solver_speed = new ChLcpSolverGPU();
 	((ChCollisionSystemGPU*) (collision_system))->data_container = gpu_data_manager;
 
-	gpu_data_manager->gpu_data.bins_per_axis = F3(50, 50, 50);
+	gpu_data_manager->gpu_data.bins_per_axis = F3(20, 20, 20);
 	gpu_data_manager->gpu_data.maxvaltest = 0;
 
 }
@@ -73,7 +72,6 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 #pragma omp master
 	{
 		mtimer_step.start();
-		cudaSetDevice(1);
 		Setup();
 		Update();
 		gpu_data_manager->HostToDevice();
@@ -85,7 +83,6 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 #pragma omp master
 		{
 			mtimer_cd.start();
-			cudaSetDevice(1);
 
 			if (gpu_data_manager->number_of_models > 0) {
 				mtimer_cd_broad.start();
@@ -113,11 +110,10 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 //------------------------------------------------------------------------------------------------------------------------
 #pragma omp master
 	{
-		cudaSetDevice(1);
 		mtimer_lcp.start();
 		gpu_data_manager->HostToDeviceForces();
 		((ChLcpSolverGPU*) (LCP_solver_speed))->SetCompliance(0, 0, 0);
-		((ChLcpSolverGPU*) (LCP_solver_speed))->SetContactFactor(.2);
+		((ChLcpSolverGPU*) (LCP_solver_speed))->SetContactFactor(.005);
 		((ChLcpSolverGPU*) (LCP_solver_speed))->RunTimeStep(GetStep(), gpu_data_manager->gpu_data);
 
 		// updates the reactions of the constraint
@@ -131,7 +127,6 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 //------------------------------------------------------------------------------------------------------------------------
 
 		gpu_data_manager->DeviceToHost();
-
 		ChTime += GetStep();
 		mtimer_step.stop();
 		timer_collision = mtimer_cd();
