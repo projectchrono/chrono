@@ -237,10 +237,10 @@ void ChLinkMateGeneric::Update (double mytime)
 		Jx2.CopyFromMatrixT(abs_plane);
 		Jx2.MatrNeg();
 
-		Jw1.MatrTMultiply(abs_plane, *( const_cast<ChFrame<>*>(&frameA)->GetA()) );
+		Jw1.MatrTMultiply(abs_plane, *this->Body1->GetA() );
 		Jr1.MatrMultiply(Jw1, Ps1);
 
-		Jw2.MatrTMultiply(abs_plane, *( const_cast<ChFrame<>*>(&frameB)->GetA()) );
+		Jw2.MatrTMultiply(abs_plane, *this->Body2->GetA() );
 		Jr2.MatrMultiply(Jw2, Ps2);
 
 		Jr1.MatrNeg();
@@ -297,7 +297,7 @@ void ChLinkMateGeneric::Update (double mytime)
 			nc++;
 		}
 
-		
+		GetLog()<< "C="<< *this->C << "\n";
 
 	}
 
@@ -329,7 +329,7 @@ int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body t
 	else
 	{
 		// from abs to body-rel
-		static_cast<ChFrame<>*>(this->Body2)->TrasformParentToLocal(mpos1, this->frameA);
+		static_cast<ChFrame<>*>(this->Body1)->TrasformParentToLocal(mpos1, this->frameA);
 		static_cast<ChFrame<>*>(this->Body2)->TrasformParentToLocal(mpos2, this->frameB);
 	}
 	return true;
@@ -489,7 +489,7 @@ int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body t
 		mfr1.SetRot(mrot);
 		mfr1.SetPos(mpt1);
 
-		mN = - mnorm2;
+		mN = mnorm2;
 		mN.DirToDxDyDz(&mx, &my, &mz);
 		mrot.Set_A_axis(mx,my,mz);
 		mfr2.SetRot(mrot);
@@ -504,7 +504,7 @@ int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body t
 		mfr1.SetRot(mrot);
 		mfr1.SetPos(this->Body1->Point_World2Body(&mpt1));
 
-		mN = - this->Body2->Dir_World2Body(&mnorm2);
+		mN = this->Body2->Dir_World2Body(&mnorm2);
 		mN.DirToDxDyDz(&mx, &my, &mz);
 		mrot.Set_A_axis(mx,my,mz);
 		mfr2.SetRot(mrot);
@@ -514,6 +514,8 @@ int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body t
 	this->frameA = mfr1;
 	this->frameB = mfr2;
 
+	GetLog() << "Abs frames: Fa=" << (this->frameA >> *this->Body1) << "\n\n";
+	GetLog() << "Abs frames: Fb=" << (this->frameB >> *this->Body2) << "\n\n";
 	return true;
 }
 
@@ -738,10 +740,10 @@ int ChLinkMateCoaxial::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body t
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChLinkMateCoincident> a_registration_ChLinkMateCoincident;
+ChClassRegister<ChLinkMateSpherical> a_registration_ChLinkMateSpherical;
 
 
-void ChLinkMateCoincident::Copy(ChLinkMateCoincident* source)
+void ChLinkMateSpherical::Copy(ChLinkMateSpherical* source)
 {
     // first copy the parent class data...
     //
@@ -749,15 +751,15 @@ void ChLinkMateCoincident::Copy(ChLinkMateCoincident* source)
 	
 }
 
-ChLink* ChLinkMateCoincident::new_Duplicate ()
+ChLink* ChLinkMateSpherical::new_Duplicate ()
 {
-    ChLinkMateCoincident * m_l = new ChLinkMateCoincident;  // inherited classes should write here: m_l = new MyInheritedLink;
+    ChLinkMateSpherical * m_l = new ChLinkMateSpherical;  // inherited classes should write here: m_l = new MyInheritedLink;
     m_l->Copy(this);
     return (m_l);
 }
 
 
-int ChLinkMateCoincident::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
+int ChLinkMateSpherical::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
 						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			
@@ -771,6 +773,59 @@ int ChLinkMateCoincident::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first bod
 }
 
 
+
+
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChLinkMateXdistance> a_registration_ChLinkMateXdistance;
+
+
+void ChLinkMateXdistance::Copy(ChLinkMateXdistance* source)
+{
+    // first copy the parent class data...
+    //
+    ChLinkMateGeneric::Copy(source);
+
+	// ...then copy class data
+	this->distance = source->distance;
+}
+
+ChLink* ChLinkMateXdistance::new_Duplicate ()
+{
+    ChLinkMateXdistance * m_l = new ChLinkMateXdistance;  // inherited classes should write here: m_l = new MyInheritedLink;
+    m_l->Copy(this);
+    return (m_l);
+}
+
+
+int ChLinkMateXdistance::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
+						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
+						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
+						   ChVector<> mpt1,			
+						   ChVector<> mpt2,
+						   ChVector<> mdir2
+						   )
+{
+	return ChLinkMateGeneric::Initialize(mbody1, mbody2, 
+								pos_are_relative, 
+								mpt1, mpt2, 
+								mdir2, mdir2);
+}
+
+
+void ChLinkMateXdistance::Update (double mtime)
+{
+	// Parent class inherit
+	ChLinkMateGeneric::Update(mtime);
+
+	// .. then add the effect of imposed distance on C residual vector
+	this->C->Element(0,0) -= this->distance; // for this mate, C = {Cx}
+
+}
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -834,6 +889,125 @@ int ChLinkMateParallel::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body 
 								mnorm1_reversed, mnorm2);
 }
 
+
+
+
+
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+
+
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+ChClassRegister<ChLinkMateOrthogonal> a_registration_ChLinkMateOrthogonal;
+
+
+void ChLinkMateOrthogonal::Copy(ChLinkMateOrthogonal* source)
+{
+    // first copy the parent class data...
+    ChLinkMateGeneric::Copy(source);
+
+	// ..then class data
+	this->reldir1 = source->reldir1;
+	this->reldir2 = source->reldir2;
+}
+
+ChLink* ChLinkMateOrthogonal::new_Duplicate ()
+{
+    ChLinkMateOrthogonal * m_l = new ChLinkMateOrthogonal;  // inherited classes should write here: m_l = new MyInheritedLink;
+    m_l->Copy(this);
+    return (m_l);
+}
+
+
+int ChLinkMateOrthogonal::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
+						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
+						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
+						   ChVector<> mpt1,			
+						   ChVector<> mpt2,  		
+						   ChVector<> mnorm1,		
+						   ChVector<> mnorm2  		
+						   )
+{
+	// set the two frames so that they have the X axis aligned 
+
+	ChVector<> mabsnorm1, mabsnorm2;
+	if (pos_are_relative)
+	{
+		this->reldir1 = mnorm1;
+		this->reldir2 = mnorm2;
+	}
+	else
+	{
+		this->reldir1 = mbody1->Dir_World2Body(&mnorm1);
+		this->reldir2 = mbody2->Dir_World2Body(&mnorm2);
+	}
+
+	// Force the alignment of frames so that the X axis is cross product of two dirs, etc.
+	// by calling the custom update function of ChLinkMateOrthogonal.
+	this->Update(this->ChTime);
+
+	// Perform initialization (set pointers to variables, etc.)
+	return ChLinkMateGeneric::Initialize(mbody1, mbody2, 
+								true, // recycle already-updated frames 
+								this->frameA, this->frameB);
+}
+
+
+/// Override _all_ time, jacobian etc. updating.
+void ChLinkMateOrthogonal::Update (double mtime)
+{
+	// Prepare the alignment of the two frames so that the X axis is orthogonal 
+	// to the two directions
+
+	ChVector<> mabsD1, mabsD2;
+
+	mabsD1 = this->Body1->Dir_Body2World(&this->reldir1);
+	mabsD2 = this->Body2->Dir_Body2World(&this->reldir2);
+
+	ChVector<> mX = Vcross(mabsD1,mabsD1);
+	double xlen = mX.Length();
+
+	// Ops.. parallel directions? -> fallback to singularity handling
+	if (fabs(xlen) < 1e-20)
+	{
+		ChVector<> ortho_gen;
+		if (fabs(mabsD1.z) < 0.9)	
+			ortho_gen = VECT_Z;
+		if (fabs(mabsD1.y) < 0.9)
+			ortho_gen = VECT_Y;
+		if (fabs(mabsD1.x) < 0.9)
+			ortho_gen = VECT_X;
+		mX = Vcross(mabsD1, ortho_gen);
+		xlen = Vlenght(mX);
+	}
+	mX.Scale(1.0/xlen);
+
+	ChVector<> mY1, mZ1;
+	mZ1 = mabsD1;
+	mY1 = Vcross(mZ1, mX);
+	
+	ChMatrix33<> mA1; 
+	mA1.Set_A_axis(mX,mY1,mZ1);
+
+	ChVector<> mY2, mZ2;
+	mY2 = mabsD2;
+	mZ1 = Vcross(mX, mY2);
+
+	ChMatrix33<> mA2; 
+	mA2.Set_A_axis(mX,mY2,mZ2);
+
+	ChFrame<> absframe1(VNULL,mA1);	// position not needed for orth. constr. computation
+	ChFrame<> absframe2(VNULL,mA2);	// position not needed for orth. constr. computation
+
+	// from abs to body-rel
+	static_cast<ChFrame<>*>(this->Body1)->TrasformParentToLocal(absframe1, this->frameA);
+	static_cast<ChFrame<>*>(this->Body2)->TrasformParentToLocal(absframe2, this->frameB);
+
+
+	// Parent class inherit
+	ChLinkMateGeneric::Update(mtime);
+}
 
 
 

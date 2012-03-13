@@ -29,6 +29,11 @@ ChPovRay::ChPovRay(ChSystem* system) : ChPostProcessBase(system)
 	this->out_script_filename = "render_frames.pov";
 	this->out_data_filename = "state";
 	this->framenumber = 0;
+	this->camera_location = ChVector<>(0,1.5,-2);
+	this->camera_aim = ChVector<>(0,0,0);
+	this->camera_angle =30;
+	this->camera_orthographic = false;
+	this->background = ChColor(1,1,1);
 }
 
 void ChPovRay::AddAll()
@@ -79,7 +84,13 @@ std::string replaceAll(
   return result;
 }
 
-
+void ChPovRay::SetCamera(ChVector<> location, ChVector<> aim, double angle, bool ortho)
+{
+	this->camera_location = location;
+	this->camera_aim = aim;
+	this->camera_angle = angle;
+	this->camera_orthographic = ortho;
+}
 
 void ChPovRay::ExportScript(const std::string &filename)
 {
@@ -144,6 +155,16 @@ void ChPovRay::ExportScript(const std::string &filename)
 		mfile << buffer_template;
 	}
 	
+	mfile <<	"camera { \n" <<             
+				" right -x*image_width/image_height \n" <<
+				" location <" << camera_location.x <<","<<camera_location.y <<","<<camera_location.z <<"> \n" <<
+				" direction 2*z \n" << 
+				" look_at <" << camera_aim.x <<","<<camera_aim.y <<","<<camera_aim.z <<"> \n" << 
+				" angle " << camera_angle << " \n";
+	if (camera_orthographic) 
+		mfile <<" orthographic \n";
+	mfile <<	"}\n\n\n"; 
+
 	// Write POV code to open the asset file
 
 	mfile << "#include \"" << assets_filename << "\"\n\n";

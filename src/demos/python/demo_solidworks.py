@@ -52,6 +52,9 @@ if not os.path.exists("anim"):
 pov_exporter.SetOutputDataFilebase("output/my_state")
 pov_exporter.SetPictureFilebase("anim/picture")
 
+ # Sets the viewpoint, aimed point, lens angle
+pov_exporter.SetCamera(chrono.ChVectorD(0.2,0.3,0.5), chrono.ChVectorD(0,0,0), 35);
+
  # Tell which physical items you want to render
 #pov_exporter.AddAll();
 for my_item in exported_items:
@@ -61,10 +64,13 @@ for my_item in exported_items:
  #    only once at the beginning of the simulation).
 pov_exporter.ExportScript()
 
- # Perform a short simulation
-while (my_system.GetChTime() < 0.2) :
+my_system.SetIterLCPmaxItersSpeed(150)
+my_system.Set_G_acc(chrono.ChVectorD(0,0,0))
 
-    my_system.DoStepDynamics(0.01)
+ # Perform a short simulation
+while (my_system.GetChTime() < 0.8) :
+
+    my_system.DoStepDynamics(0.005)
 
     print ('time=', my_system.GetChTime() )
 

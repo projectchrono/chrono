@@ -368,7 +368,7 @@ public:
 						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			///< point on slave axis, for 1st body (rel. or abs., see flag above)
-						   ChVector<> mpt2,  		///< point on master axis, for 2nd body (rel. or abs., see flag above)
+						   ChVector<> mpt2, 		///< point on master axis, for 2nd body (rel. or abs., see flag above)
 						   ChVector<> mdir1,		///< direction of slave axis, for 1st body (rel. or abs., see flag above)
 						   ChVector<> mdir2  		///< direction of master axis, for 2nd body (rel. or abs., see flag above)
 						   );
@@ -386,16 +386,16 @@ public:
 
 
 // Unique link identifier, for detecting type faster than with rtti. (Obsolete)
-#define LNK_MATECOINCIDENT	45
+#define LNK_MATESPHERICAL	45
 
 ///
-/// Mate constraint of coincident type. This correspond to the
+/// Mate constraint of spherical type. This correspond to the
 /// typical point-on-point or spherical joint mating used in 3D CAD assemblies.
 ///
 
-class ChApi ChLinkMateCoincident : public ChLinkMateGeneric {
+class ChApi ChLinkMateSpherical : public ChLinkMateGeneric {
 
-	CH_RTTI(ChLinkMateCoincident,ChLinkMateGeneric);
+	CH_RTTI(ChLinkMateSpherical,ChLinkMateGeneric);
 
 protected:
 
@@ -405,16 +405,16 @@ public:
 	  			// CONSTRUCTORS
 				//
 
-	ChLinkMateCoincident () : ChLinkMateGeneric(true, true, true, false, false, false) {} ;
-	virtual ~ChLinkMateCoincident () {};
-	virtual void Copy(ChLinkMateCoincident* source);
+	ChLinkMateSpherical () : ChLinkMateGeneric(true, true, true, false, false, false) {} ;
+	virtual ~ChLinkMateSpherical () {};
+	virtual void Copy(ChLinkMateSpherical* source);
 	virtual ChLink* new_Duplicate ();	// always return base link class pointer
 
 				//
 	  			// FUNCTIONS
 				//
 
-	virtual int GetType	() {return LNK_MATECOINCIDENT;}
+	virtual int GetType	() {return LNK_MATESPHERICAL;}
 
 
 					/// Specialized initialization for coincident mate, given the two bodies to be connected,
@@ -430,6 +430,67 @@ public:
 };
 
 
+
+
+
+//////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
+
+
+
+
+
+// Unique link identifier, for detecting type faster than with rtti. (Obsolete)
+#define LNK_MATEXDISTANCE	48
+
+///
+/// Mate constraining distance of origin of frame B respect to X axis of
+/// frame A.
+///
+
+class ChApi ChLinkMateXdistance : public ChLinkMateGeneric {
+
+	CH_RTTI(ChLinkMateXdistance,ChLinkMateGeneric);
+
+protected:
+
+	double distance;
+
+public:
+				//
+	  			// CONSTRUCTORS
+				//
+
+	ChLinkMateXdistance () : ChLinkMateGeneric(true, false, false, false, false, false) { distance =0;} ;
+	virtual ~ChLinkMateXdistance () {};
+	virtual void Copy(ChLinkMateXdistance* source);
+	virtual ChLink* new_Duplicate ();	// always return base link class pointer
+
+				//
+	  			// FUNCTIONS
+				//
+
+	virtual int GetType	() {return LNK_MATEXDISTANCE;}
+
+					/// Set the distance on X of frame 2
+	void SetDistance(double msep) {distance = msep;}
+					/// Get the requested distance on X of frame 2
+	double GetDistance() {return distance;}
+
+					/// Specialized initialization for X distance mate, given the two bodies to be connected,
+					/// and two points (each expressed in body or abs. coordinates). 
+					/// Use ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
+	virtual int Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
+						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
+						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
+						   ChVector<> mpt1,			///< point, slave, for 1st body (rel. or abs., see flag above)
+						   ChVector<> mpt2,  		///< point, master, for 2nd body (rel. or abs., see flag above)
+						   ChVector<> mdir2  		///< direction of master axis, for 2nd body (rel. or abs., see flag above)
+						   );
+
+						/// Override _all_ time, jacobian etc. updating, inheriting parent but also adding the effect of separation
+	virtual void Update (double mtime);
+};
 
 
 
@@ -493,6 +554,65 @@ public:
 
 };
 
+
+
+//////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
+
+
+
+
+
+// Unique link identifier, for detecting type faster than with rtti. (Obsolete)
+#define LNK_MATEORTHOGONAL	47
+
+///
+/// Mate constraint of orthogonal type. This correspond to the
+/// typical axis-is-orthogonal-to-axis (or edge to edge, etc.) mating 
+/// used in 3D CAD assemblies. The the two X axes of the two frames
+/// are aligned to the cross product of the two directions.
+///
+
+class ChApi ChLinkMateOrthogonal : public ChLinkMateGeneric {
+
+	CH_RTTI(ChLinkMateOrthogonal,ChLinkMateGeneric);
+
+protected:
+	ChVector<> reldir1;
+	ChVector<> reldir2;
+public:
+				//
+	  			// CONSTRUCTORS
+				//
+
+	ChLinkMateOrthogonal () : ChLinkMateGeneric(false, false, false, true, false, false) {reldir1=VECT_X; reldir2=VECT_Y;} ;
+	virtual ~ChLinkMateOrthogonal () {};
+	virtual void Copy(ChLinkMateOrthogonal* source);
+	virtual ChLink* new_Duplicate ();	// always return base link class pointer
+
+				//
+	  			// FUNCTIONS
+				//
+
+	virtual int GetType	() {return LNK_MATEORTHOGONAL;}
+
+
+					/// Specialized initialization for orthogonal mate, given the two bodies to be connected,
+					/// two points and two directions (each expressed in body or abs. coordinates). 
+					/// Use ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
+	virtual int Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
+						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
+						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
+						   ChVector<> mpt1,			///< point on slave axis, for 1st body (rel. or abs., see flag above)
+						   ChVector<> mpt2,  		///< point on master axis, for 2nd body (rel. or abs., see flag above)
+						   ChVector<> mdir1,		///< direction of slave axis, for 1st body (rel. or abs., see flag above)
+						   ChVector<> mdir2  		///< direction of master axis, for 2nd body (rel. or abs., see flag above
+						   );
+
+					/// Override _all_ time, jacobian etc. updating, inheriting parent but also adding the effect of separation
+	virtual void Update (double mtime);
+
+};
 
 
 
