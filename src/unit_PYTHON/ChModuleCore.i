@@ -64,17 +64,6 @@ using namespace chrono;
 
 
 
-//TRICK... typedefs are not handled correctly? in some C::E
-// files there are things like "typedef ChSharedPtr<ChBody> ChSharedBodyPtr"
-// but when those headers are included by other headers, the Swig %include
-// does not see them and fails..
-//#define CHSharedBodyPtr ChSharedPtr<ChBody>
-//#define CHSharedForcePtr ChSharedPtr<ChForce>
-//#define CHSharedMarkerPtr ChSharedPtr<ChMarker>
-//#define CHSharedBodyDEMPtr ChSharedPtr<ChBodyDEM>
-//#define CHSharedLinkPtr ChSharedPtr<ChLink>
-// update: trick not needed.. all C::E headers converted to ChSharedPtr<ChXxxx> to avoid the trouble
-
 // IMPORTANT!!!
 // 1) 
 //    When including with %include all the .i files, make sure that 
@@ -211,6 +200,14 @@ using namespace chrono;
 %DefChSharedPtrCast(chrono::ChLinkLockParallel, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkLockPerpend, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkEngine, chrono::ChLinkLock)
+%DefChSharedPtrCast(chrono::ChLinkMate, chrono::ChLink)
+%DefChSharedPtrCast(chrono::ChLinkMateGeneric, chrono::ChLinkMate)
+%DefChSharedPtrCast(chrono::ChLinkMatePlane, chrono::ChLinkMateGeneric)
+%DefChSharedPtrCast(chrono::ChLinkMateCoaxial, chrono::ChLinkMateGeneric)
+%DefChSharedPtrCast(chrono::ChLinkMateSpherical, chrono::ChLinkMateGeneric)
+%DefChSharedPtrCast(chrono::ChLinkMateXdistance, chrono::ChLinkMateXdistance)
+%DefChSharedPtrCast(chrono::ChLinkMateParallel, chrono::ChLinkMateGeneric)
+%DefChSharedPtrCast(chrono::ChLinkMateOrthogonal, chrono::ChLinkMateGeneric)
 /*
 %DefChSharedPtrCast(chrono::ChLinkGear, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkDistance, chrono::ChLinkLock)

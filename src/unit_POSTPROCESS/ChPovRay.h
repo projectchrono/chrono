@@ -23,6 +23,7 @@
 #include "ChPostProcessBase.h"
 #include "core/ChHashTable.h"
 #include "core/ChHashFunction.h"
+#include "assets/ChVisualization.h"
 
 namespace chrono{
  namespace postprocess{
@@ -92,6 +93,10 @@ public:
 					out_data_filename = filename;
 				}
 
+
+		/// Set the camera position and aim point - will write this in the output .pov file.
+	virtual void SetCamera(ChVector<> location, ChVector<> aim, double angle, bool ortho = false);
+
 		/// When ExportData() is called, it saves .dat files in incremental
 		/// way, starting from zero: data0000.dat, data0001.dat etc., but you can
 		/// override the formatted number by calling SetFramenumber(), before.
@@ -144,6 +149,13 @@ protected:
 	std::string out_data_filename;
 
 	unsigned int framenumber;
+
+	ChVector<> camera_location;
+	ChVector<> camera_aim;
+	double	   camera_angle;
+	bool	   camera_orthographic;
+
+	ChColor	   background;
 };
 
 

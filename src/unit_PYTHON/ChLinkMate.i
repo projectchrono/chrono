@@ -22,10 +22,13 @@
 // Define also the shared pointer chrono::ChShared<ChXxxx> 
 // (renamed as 'ChXxxxShared' in python)
 
+%DefChSharedPtr(ChLinkMateShared, ChLinkMate)
 %DefChSharedPtr(ChLinkMateGenericShared, ChLinkMateGeneric)
 %DefChSharedPtr(ChLinkMatePlaneShared, ChLinkMatePlane)
 %DefChSharedPtr(ChLinkMateCoaxialShared, ChLinkMateCoaxial)
-%DefChSharedPtr(ChLinkMateCoincidentShared, ChLinkMateCoincident)
+%DefChSharedPtr(ChLinkMateSphericalShared, ChLinkMateSpherical)
+%DefChSharedPtr(ChLinkMateXdistanceShared, ChLinkMateXdistance)
 %DefChSharedPtr(ChLinkMateParallelShared, ChLinkMateParallel)
+%DefChSharedPtr(ChLinkMateOrthogonalShared, ChLinkMateOrthogonal)
 
 
