@@ -310,19 +310,19 @@ double System::GetMFR(double height) {
 	float mass = 0;
 	for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
 		ChBODY *abody = (ChBODY*) (mSystem->Get_bodylist()->at(i));
-
-		if (abody->GetPos().y < height) {
-			mass += abody->GetMass();
-			abody->SetCollide(false);
-			abody->SetBodyFixed(true);
-			abody->SetPos_dt(ChVector<>(0, 0, 0));
+		if (abody->IsActive() == true) {
+			if (abody->GetPos().y < height) {
+				mass += abody->GetMass();
+				//abody->SetCollide(false);
+				//abody->SetBodyFixed(true);
+				//abody->SetPos_dt(ChVector<>(0, 0, 0));
+			}
 		}
 	}
 	return mass;
 }
 
-void System::InitObject(ChSharedPtr<ChBODY> &body, double mass, ChVector<> pos, ChQuaternion<> rot, double sfric, double kfric, double restitution, bool collide, bool fixed, int family,
-		int nocolwith) {
+void System::InitObject(ChSharedPtr<ChBODY> &body, double mass, ChVector<> pos, ChQuaternion<> rot, double sfric, double kfric, double restitution, bool collide, bool fixed, int family, int nocolwith) {
 	body->SetMass(mass);
 	body->SetPos(pos);
 	body->SetRot(rot);
@@ -490,26 +490,26 @@ void initGLUT(string name, int argc, char* argv[]) {
 }
 
 void SimulationLoop(int argc, char* argv[]) {
-//#pragma omp parallel sections
+//#pragma omp parallel
 //	{
-//#pragma omp section
+//#pragma omp master
 //		{
-	while (1) {
-		if (!stepMode) {
-			GPUSystem->mTimer.start();
-			GPUSystem->DoTimeStep();
+			while (1) {
+				if (!stepMode) {
+					GPUSystem->mTimer.start();
+					GPUSystem->DoTimeStep();
 
-		} else if (stepNext) {
-			GPUSystem->mTimer.start();
-			GPUSystem->DoTimeStep();
-			stepNext = 0;
-		}
-		if (GPUSystem->mSystem->GetChTime() > GPUSystem->mEndTime) {
-			exit(0);
-		}
-	}
+				} else if (stepNext) {
+					GPUSystem->mTimer.start();
+					GPUSystem->DoTimeStep();
+					stepNext = 0;
+				}
+				if (GPUSystem->mSystem->GetChTime() > GPUSystem->mEndTime) {
+					exit(0);
+				}
+			}
 //		}
-//#pragma omp section
+//#pragma omp task
 //		{
 //			if (GPUSystem->mUseOGL) {
 //				initGLUT(string("test"), argc, argv);
