@@ -483,7 +483,7 @@ void PrintToFile(
 //	}
 //-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	FILE *fileNameRigids;
-	int stepSaveRigid = 5000;
+	int stepSaveRigid = 1000;
 	///if (tStep % 20 == 0 && tStep > 56000) {
 	//if (tStep > 12506) {
 	if (tStep % stepSaveRigid == 0) {

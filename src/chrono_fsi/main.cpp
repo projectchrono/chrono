@@ -346,9 +346,9 @@ int2 CreateFluidParticles(
 								+ make_float3(.5 * initSpace0)/* + make_float3(sphR) + initSpace * .05 * (float(rand()) / RAND_MAX)*/, sphR);
 				float penDist = 0;
 				bool flag = true;
-				///penDist = IsInsideCurveOfSerpentine(posRad); if (penDist < -toleranceZone) flag= false;
+				penDist = IsInsideCurveOfSerpentine(posRad); if (penDist < -toleranceZone) flag= false;
 				///penDist = IsInsideSerpentine(posRad); if (penDist < -toleranceZone) flag= false;
-				penDist = IsInsideStraightChannel(posRad); if (penDist < -toleranceZone) flag= false;
+				///penDist = IsInsideStraightChannel(posRad); if (penDist < -toleranceZone) flag= false;
 				///penDist = IsInsideStraightChannel_XZ(posRad); if (penDist < -toleranceZone) flag= false;
 				///penDist = IsInsideTube(posRad, cMax, cMin, channelRadius);
 				if (penDist < -toleranceZone) flag = false;
@@ -508,7 +508,7 @@ int main() {
 	float r = HSML;	//.02;
 	float rRigidBody;
 	float3 cMin = make_float3(0, -0.2, -1.2) * sizeScale;
-	float3 cMax = make_float3( nPeriod * 2.0 + 0, 1.5,  4.0) * sizeScale;  //for only CurvedSerpentine (w/out straight part)
+	float3 cMax = make_float3( nPeriod * 4.6 + 0, 1.5,  4.0) * sizeScale;  //for only CurvedSerpentine (w/out straight part)
 	//float3 cMax = make_float3( nPeriod * 4.6 + 7, 1.5,  4.0) * sizeScale;  //for serpentine
 	//float3 cMax = make_float3( nPeriod * 3.6 + 0, 1.5,  4.0) * sizeScale;  //for  straight channel
 	//float3 cMax = make_float3( nPeriod * 4.6 + 0, .4,  4.0) * sizeScale;  //for straight channel, cylinders
@@ -572,8 +572,8 @@ int main() {
 		//float r = rRigidBody * (.75 + .75 * float(rand())/RAND_MAX);
 		for (int period = 0; period < nPeriod; period++) {
 			rigidPos.push_back(F3(x * sizeScale + period * sPeriod, y * sizeScale, z * sizeScale));
-			//float r1 = .8 * rRigidBody, r2 = 1.2 * rRigidBody, r3 = 1.6 * rRigidBody;
-			float r1 = rRigidBody, r2 = rRigidBody, r3 = rRigidBody;
+			float r1 = .8 * rRigidBody, r2 = 1.2 * rRigidBody, r3 = 1.6 * rRigidBody;
+			//float r1 = rRigidBody, r2 = rRigidBody, r3 = rRigidBody;
 			ellipsoidRadii.push_back(F3(r1, r2, r3));
 			//********** intitialization of rigid bodies: Spheres
 			float mass = 4.0 / 3 * PI * r1 * r2 * r3 * rhoRigid;			//for sphere
