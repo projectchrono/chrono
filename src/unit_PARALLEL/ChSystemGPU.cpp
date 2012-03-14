@@ -113,7 +113,6 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 		mtimer_lcp.start();
 		gpu_data_manager->HostToDeviceForces();
 		((ChLcpSolverGPU*) (LCP_solver_speed))->SetCompliance(0, 0, 0);
-		((ChLcpSolverGPU*) (LCP_solver_speed))->SetContactFactor(.005);
 		((ChLcpSolverGPU*) (LCP_solver_speed))->RunTimeStep(GetStep(), gpu_data_manager->gpu_data);
 
 		// updates the reactions of the constraint

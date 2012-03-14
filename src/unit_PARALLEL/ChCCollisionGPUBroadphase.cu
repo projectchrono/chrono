@@ -27,7 +27,14 @@ __device__ __host__ bool AABB_Contact_Pt(const AABB& A, const AABB& B, uint &Bin
 	float3 Pa, Pb;
 
 	//return (F3(A.min+A.max)*.5+F3(B.min+B.max)*.5)*.5;
-
+	float3 centerA=(A.min+A.max)*.5;
+	float3 centerB=(B.min+B.max)*.5;
+	float radiusA=length(A.max-A.min)*.5;
+	float radiusB=length(B.max-B.min)*.5;
+	float3 N=normalize(centerB-centerA);
+	Pa=centerA+N*radiusA;
+	Pb=centerB+-N*radiusB;
+	/*
 	bool minX = (A.min.x <= B.min.x && A.max.x >= B.max.x), minY = (A.min.y <= B.min.y && A.max.y >= B.max.y), minZ = (A.min.z <= B.min.z && A.max.z >= B.max.z);
 
 	if (minX && minY && minZ) {
@@ -84,7 +91,8 @@ __device__ __host__ bool AABB_Contact_Pt(const AABB& A, const AABB& B, uint &Bin
 			Pa.z = A.min.z;
 			Pb.z = B.max.z;
 		}
-	}
+	}*/
+
 	bool inContact = (A.min.x <= B.max.x && B.min.x <= A.max.x) && (A.min.y <= B.max.y && B.min.y <= A.max.y) && (A.min.z <= B.max.z && B.min.z <= A.max.z);
 	return (Bin == Hash_Index(Hash((Pa + Pb) * .5f)) && inContact);
 }

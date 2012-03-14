@@ -47,47 +47,7 @@ __host__ __device__ inline float4 Quaternion_Product(const float4 &qa, const flo
 	quat.w = qa.x * qb.w + qa.w * qb.x - qa.z * qb.y + qa.y * qb.z;
 	return quat;
 }
-
-__host__ __device__ void inline Compute_Jacobian(float3 &A, float3 &B, float3 &C, float4 TT, const float3 &n, const float3 &u, const float3 &w, const float3 &pos) {
-	float t00 = pos.z * n.y - pos.y * n.z;
-	float t01 = TT.x * TT.x;
-	float t02 = TT.y * TT.y;
-	float t03 = TT.z * TT.z;
-	float t04 = TT.w * TT.w;
-	float t05 = t01 + t02 - t03 - t04;
-	float t06 = -pos.z * n.x + pos.x * n.z;
-	float t07 = TT.y * TT.z;
-	float t08 = TT.x * TT.w;
-	float t09 = t07 + t08;
-	float t10 = pos.y * n.x - pos.x * n.y;
-	float t11 = TT.y * TT.w;
-	float t12 = TT.x * TT.z;
-	float t13 = t11 - t12;
-	float t14 = t07 - t08;
-	float t15 = t01 - t02 + t03 - t04;
-	float t16 = TT.z * TT.w;
-	float t17 = TT.x * TT.y;
-	float t18 = t16 + t17;
-	float t19 = t11 + t12;
-	float t20 = t16 - t17;
-	float t21 = t01 - t02 - t03 + t04;
-	float t22 = pos.z * u.y - pos.y * u.z;
-	float t23 = -pos.z * u.x + pos.x * u.z;
-	float t24 = pos.y * u.x - pos.x * u.y;
-	float t25 = pos.z * w.y - pos.y * w.z;
-	float t26 = -pos.z * w.x + pos.x * w.z;
-	float t27 = pos.y * w.x - pos.x * w.y;
-	A.x = t00 * t05 + 2 * t06 * t09 + 2 * t10 * t13;
-	A.y = 2 * t00 * t14 + t06 * t15 + 2 * t10 * t18;
-	A.z = 2 * t00 * t19 + 2 * t06 * t20 + t10 * t21;
-	B.x = t22 * t05 + 2 * t23 * t09 + 2 * t24 * t13;
-	B.y = 2 * t22 * t14 + t23 * t15 + 2 * t24 * t18;
-	B.z = 2 * t22 * t19 + 2 * t23 * t20 + t24 * t21;
-	C.x = t25 * t05 + 2 * t26 * t09 + 2 * t27 * t13;
-	C.y = 2 * t25 * t14 + t26 * t15 + 2 * t27 * t18;
-	C.z = 2 * t25 * t19 + 2 * t26 * t20 + t27 * t21;
-}
-__host__ __device__ void inline Compute_Jacobian_2(float3 &T3, float3 &T4, float3 &T5, float4 Eb, const float3 &N, const float3 &U, const float3 &W, const float3 &pb) {
+__host__ __device__ void inline Compute_Jacobian(float3 &T3, float3 &T4, float3 &T5, float4 Eb, const float3 &N, const float3 &U, const float3 &W, const float3 &pb) {
 
 	float t1 = Eb.y * Eb.z;
 	float t2 = Eb.x * Eb.w;
@@ -173,26 +133,15 @@ __global__ void LCP_Iteration_Contacts(float3* norm, float3* ptA, float3* ptB, f
 
 	sbar = ptA[i] - pos[B1_i]; //Contact Point on A - Position of A
 	E1 = rot[B1_i]; //bring in the Euler parameters associated with body 1;
-	Compute_Jacobian_2(T3, T4, T5, E1, N, U, W, sbar); //A_i,p'*A_A*(sbar~_i,A)
+	Compute_Jacobian(T3, T4, T5, E1, N, U, W, sbar); //A_i,p'*A_A*(sbar~_i,A)
 
 	sbar = ptB[i] - pos[B2_i]; //Contact Point on B - Position of B
 	E2 = rot[B2_i]; //bring in the Euler parameters associated with body 2;
-	Compute_Jacobian_2(T6, T7, T8, E2, N, U, W, sbar); //A_i,p'*A_B*(sbar~_i,B)
-
-	//printf("Pa: [%f %f %f]\n", ptA[i].x, ptA[i].y, ptA[i].z);
-	//printf("Pb: [%f %f %f]\n", ptB[i].x, ptB[i].y, ptB[i].z);
-
-	//printf("A: [%f, %f, %f]",T3.x,T3.y,T3.z);
-	//printf(" [%f, %f, %f]",T4.x,T4.y,T4.z);
-	//printf(" [%f, %f, %f] \n",T5.x,T5.y,T5.z);
+	Compute_Jacobian(T6, T7, T8, E2, N, U, W, sbar); //A_i,p'*A_B*(sbar~_i,B)
 
 	T6 = -T6;
 	T7 = -T7;
 	T8 = -T8;
-
-	//printf("B: [%f, %f, %f]",T6.x,T6.y,T6.z);
-	//printf(" [%f, %f, %f]",T7.x,T7.y,T7.z);
-	//printf(" [%f, %f, %f] \n",T8.x,T8.y,T8.z);
 
 	W1 = omega[B1_i];
 	W2 = omega[B2_i];
@@ -212,9 +161,6 @@ __global__ void LCP_Iteration_Contacts(float3* norm, float3* ptA, float3* ptB, f
 	} else {
 		bi = max((depth / (step_size_const)), -lcp_contact_factor_const);
 	}
-	//if (bi < -.1) {
-	//	bi = -.1;
-	//}
 
 	//c_i = [Cq_i]*q + b_i + cfm_i*l_i
 	gamma_old = G[i];
@@ -229,8 +175,6 @@ __global__ void LCP_Iteration_Contacts(float3* norm, float3* ptA, float3* ptB, f
 	eta = lcp_omega_contact_const / eta; // final value of eta
 
 	gamma = eta * gamma; // perform gamma *= omega*eta
-	//if (isnan(gamma.x) || isnan(gamma.y) || isnan(gamma.z)) {printf("%f {%f, %f, %f} \n",bi, gamma.x, gamma.y, gamma.z); return;}
-
 	gamma = gamma_old - gamma; // perform gamma = gamma_old - gamma ;  in place.
 	/// ---- perform projection of 'a8' onto friction cone  --------
 	f_tang = sqrtf(gamma.y * gamma.y + gamma.z * gamma.z);
@@ -249,30 +193,18 @@ __global__ void LCP_Iteration_Contacts(float3* norm, float3* ptA, float3* ptB, f
 
 	G[i] = gamma; // store gamma_new
 	gamma -= gamma_old; // compute delta_gamma = gamma_new - gamma_old   = delta_gamma.
-	//printf("[%f, %f, %f] \n",gamma.x, gamma.y,gamma.z );
 	dG[i] = length(gamma);
 	vB = N * gamma.x + U * gamma.y + W * gamma.z;
 	int offset1 = offset[i];
 	int offset2 = offset[i + number_of_contacts_const];
-	if (aux1.x == 1) {
-		updateV[offset1] = -vB * aux1.z; // compute and store dv1
-		updateO[offset1] = (T3 * gamma.x + T4 * gamma.y + T5 * gamma.z) * In1; // compute dw1 =  Inert.1' * J1w^ * deltagamma  and store  dw1
-	}
-	if (aux2.x == 1) {
-		updateV[offset2] = vB * aux2.z; // compute and store dv2
-		updateO[offset2] = (T6 * gamma.x + T7 * gamma.y + T8 * gamma.z) * In2; // compute dw2 =  Inert.2' * J2w^ * deltagamma  and store  dw2
-	}
-
-	/*
-
-
-
-
-
-
-
-	 */
-
+	//if (aux1.x == 1) {
+	updateV[offset1] = -vB * aux1.z; // compute and store dv1
+	updateO[offset1] = (T3 * gamma.x + T4 * gamma.y + T5 * gamma.z) * In1; // compute dw1 =  Inert.1' * J1w^ * deltagamma  and store  dw1
+	//}
+	//if (aux2.x == 1) {
+	updateV[offset2] = vB * aux2.z; // compute and store dv2
+	updateO[offset2] = (T6 * gamma.x + T7 * gamma.y + T8 * gamma.z) * In2; // compute dw2 =  Inert.2' * J2w^ * deltagamma  and store  dw2
+	//}
 }
 ///////////////////////////////////////////////////////////////////////////////////
 // Kernel for a single iteration of the LCP over all scalar bilateral contacts
@@ -449,17 +381,19 @@ __global__ void LCP_Reduce_Speeds(float3* aux, float3* vel, float3* omega, float
 	int start = (i == 0) ? 0 : counter[i - 1], end = counter[i];
 	int id = d_body_num[end - 1], j;
 	float3 auxd = aux[id];
-	if (auxd.x == 1) {
-		float3 mUpdateV = F3(0);
-		float3 mUpdateO = F3(0);
-		for (j = 0; j < end - start; j++) {
-			mUpdateV += updateV[j + start];
-			mUpdateO += updateO[j + start];
-		}
-		fap[id] += (mUpdateV / auxd.z) / step_size_const;
-		vel[id] += mUpdateV;
-		omega[id] += mUpdateO;
+	if (auxd.x == 0) {
+		return;
 	}
+	float3 mUpdateV = F3(0);
+	float3 mUpdateO = F3(0);
+	for (j = 0; j < end - start; j++) {
+		mUpdateV += updateV[j + start];
+		mUpdateO += updateO[j + start];
+	}
+	//fap[id] += (mUpdateV / auxd.z) / step_size_const;
+	vel[id] += mUpdateV;
+	omega[id] += mUpdateO;
+
 }
 //  Kernel for performing the time step integration (with 1st o;rder Eulero)
 //  on the body data stream.
