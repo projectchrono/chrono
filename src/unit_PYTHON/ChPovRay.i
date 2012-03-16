@@ -5,6 +5,8 @@
 %}
  
 %import "ChVector.i"
+%import "ChVisualization.i"
+
 
 /* Parse the header file to generate wrappers */
 %include "../unit_POSTPROCESS/ChPovRay.h"    

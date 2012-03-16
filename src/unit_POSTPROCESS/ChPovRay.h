@@ -93,9 +93,45 @@ public:
 					out_data_filename = filename;
 				}
 
+		/// Set the picture width and height - will write this in the output .ini file.
+	virtual void SetPictureSize(unsigned int width, unsigned int height) {picture_width = width; picture_height= height;};
 
-		/// Set the camera position and aim point - will write this in the output .pov file.
+		/// Set antialiasing - will write this in the output .ini file.
+	virtual void SetAntialiasing(bool active, unsigned int depth, double treshold) {antialias = active; antialias_depth = depth; antialias_treshold = treshold;};
+
+		/// Set the default camera position and aim point - will write this in the output .pov file.
 	virtual void SetCamera(ChVector<> location, ChVector<> aim, double angle, bool ortho = false);
+
+		/// Set the default light position and color - will write this in the output .pov file.
+	virtual void SetLight(ChVector<> location, ChColor color, bool cast_shadow);
+
+			/// Set the background color - will write this in the output .pov file.
+	virtual void SetBackground(ChColor color) {background = color;}
+
+			/// Set the ambiant light - will write this in the output .pov file.
+	virtual void SetAmbientLight(ChColor color) {ambient_light = color;}
+
+		/// Turn on/off the display of the COG (center of mass) of rigid bodies. 
+		/// If setting true, you can also set the size of the symbol, in meters.
+	virtual void SetShowCOGs(bool show, double msize=0.04);
+
+		/// Turn on/off the display of the reference coordsystems of rigid bodies. 
+		/// If setting true, you can also set the size of the symbol, in meters.
+	virtual void SetShowFrames(bool show, double msize=0.06);
+
+		/// Set a string (a text block) of custom POV commands that you can optionally
+		/// append to the POV script file, for example adding other POV lights, materials, etc.
+		/// What you put in this string will be put at the end of the generated POV script, just
+		/// before loading the data.
+	virtual void SetCustomPOVcommandsScript(const std::string& mtext) {this->custom_script = mtext;}
+	virtual const std::string& GetCustomPOVcommandsScript() {return this->custom_script;}
+
+		/// Set a string (a text block) of custom POV commands that you can optionally
+		/// append to the POV script files that are load at each timestep,
+		/// es. state0001.pov, state0002.pov, for example adding other POV lights, materials, etc.
+	virtual void SetCustomPOVcommandsData(const std::string& mtext) {this->custom_data = mtext;}
+	virtual const std::string& GetCustomPOVcommandsData() {return this->custom_data;}
+
 
 		/// When ExportData() is called, it saves .dat files in incremental
 		/// way, starting from zero: data0000.dat, data0001.dat etc., but you can
@@ -155,7 +191,27 @@ protected:
 	double	   camera_angle;
 	bool	   camera_orthographic;
 
-	ChColor	   background;
+	ChVector<> def_light_location;
+	ChColor    def_light_color;
+	bool	   def_light_cast_shadows;
+
+	bool		COGs_show;
+	double		COGs_size;
+	bool		frames_show;
+	double		frames_size;
+
+	ChColor	    background;
+	ChColor		ambient_light;
+
+	bool		antialias;
+	int			antialias_depth;
+	double		antialias_treshold;
+
+	unsigned int picture_width;
+	unsigned int picture_height;
+
+	std::string custom_script;
+	std::string custom_data;
 };
 
 

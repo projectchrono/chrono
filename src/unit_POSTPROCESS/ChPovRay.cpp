@@ -33,7 +33,20 @@ ChPovRay::ChPovRay(ChSystem* system) : ChPostProcessBase(system)
 	this->camera_aim = ChVector<>(0,0,0);
 	this->camera_angle =30;
 	this->camera_orthographic = false;
+	this->def_light_location = ChVector<>(2,3,-1);
+	this->def_light_color = ChColor(1,1,1);
+	this->def_light_cast_shadows = true;
 	this->background = ChColor(1,1,1);
+	this->antialias = false;
+	this->antialias_depth = 2;
+	this->antialias_treshold = 0.1;
+	this->picture_height = 600;
+	this->picture_width = 800;
+	this->ambient_light = ChColor(2,2,2);
+	this->COGs_show = false;
+	this->COGs_size = 0.04;
+	this->frames_show = false;
+	this->frames_size = 0.05;
 }
 
 void ChPovRay::AddAll()
@@ -84,6 +97,7 @@ std::string replaceAll(
   return result;
 }
 
+
 void ChPovRay::SetCamera(ChVector<> location, ChVector<> aim, double angle, bool ortho)
 {
 	this->camera_location = location;
@@ -91,6 +105,27 @@ void ChPovRay::SetCamera(ChVector<> location, ChVector<> aim, double angle, bool
 	this->camera_angle = angle;
 	this->camera_orthographic = ortho;
 }
+
+void ChPovRay::SetLight(ChVector<> location, ChColor color, bool cast_shadow)
+{
+	this->def_light_location = location;
+	this->def_light_color = color;
+	this->def_light_cast_shadows = cast_shadow;
+}
+
+void ChPovRay::SetShowCOGs(bool show, double msize)
+{
+	this->COGs_show = show;
+	if (show) 
+		this->COGs_size = msize;
+}
+void ChPovRay::SetShowFrames(bool show, double msize)
+{
+	this->frames_show = show;
+	if (show) 
+		this->frames_size = msize;
+}
+
 
 void ChPovRay::ExportScript(const std::string &filename)
 {
@@ -116,11 +151,14 @@ void ChPovRay::ExportScript(const std::string &filename)
 
 	ini_file << "; Script for rendering an animation with POV-Ray. \n";
 	ini_file << "; Generated autumatically by Chrono::Engine. \n\n";
-	ini_file << "Antialias=Off \n";
-	ini_file << "Antialias_Threshold=0.1 \n";
-	ini_file << "Antialias_Depth=2 \n";
-	ini_file << "Height=600 \n";
-	ini_file << "Width =800 \n";
+	if (this->antialias)
+		ini_file << "Antialias=On \n";
+	else
+		ini_file << "Antialias=Off \n";
+	ini_file << "Antialias_Threshold=" << this->antialias_treshold << " \n";
+	ini_file << "Antialias_Depth=" << this->antialias_depth << " \n";
+	ini_file << "Height=" << this->picture_height << " \n";
+	ini_file << "Width =" << this->picture_width << " \n";
 	ini_file << "Input_File_Name=" << out_script_filename << "\n";
 	ini_file << "Output_File_Name=" << pic_filename << "\n";
 	ini_file << "Initial_Frame=0000 \n";
@@ -155,6 +193,17 @@ void ChPovRay::ExportScript(const std::string &filename)
 		mfile << buffer_template;
 	}
 	
+	// Write default global settings and background
+
+	mfile <<	"global_settings { \n" << 
+				" ambient_light rgb<" << ambient_light.R <<","<< ambient_light.G <<","<< ambient_light.B <<"> \n"; 
+	mfile <<	"}\n\n\n";
+	mfile <<	"background { \n" << 
+				" rgb <" << background.R <<","<< background.G <<","<< background.B <<"> \n"; 
+	mfile <<	"}\n\n\n";
+
+	// Write default camera
+
 	mfile <<	"camera { \n" <<             
 				" right -x*image_width/image_height \n" <<
 				" location <" << camera_location.x <<","<<camera_location.y <<","<<camera_location.z <<"> \n" <<
@@ -164,6 +213,24 @@ void ChPovRay::ExportScript(const std::string &filename)
 	if (camera_orthographic) 
 		mfile <<" orthographic \n";
 	mfile <<	"}\n\n\n"; 
+
+	// Write default light
+
+	mfile <<	"light_source { \n" << 
+				" <" << def_light_location.x <<","<< def_light_location.y <<","<< def_light_location.z <<"> \n" <<
+				" color rgb<" << def_light_color.R <<","<< def_light_color.G <<","<<def_light_color.B <<"> \n"; 
+	if (!def_light_cast_shadows) 
+		mfile <<" shadowless \n";
+	mfile <<	"}\n\n\n"; 
+
+	// Write POV custom code
+
+	if ( this->custom_script.size() >0)
+	{
+		mfile << "// Custom user-added script: \n\n";
+		mfile << this->custom_script;
+		mfile << "\n\n";
+	}
 
 	// Write POV code to open the asset file
 
@@ -379,6 +446,14 @@ void ChPovRay::ExportData(const std::string &filename)
 		ChStreamOutAsciiFile mfilepov(pathpov);
 
 
+		// Write custom data commands, if provided by the user
+		if ( this->custom_data.size() >0)
+		{
+			mfilepov << "// Custom user-added script: \n\n";
+			mfilepov << this->custom_data;
+			mfilepov << "\n\n";
+		}
+
 		// Save time-dependent data for the geometry of objects in ...nnnn.POV 
 		// and in ...nnnn.DAT file
 
@@ -411,6 +486,24 @@ void ChPovRay::ExportData(const std::string &filename)
 
 				} // end loop on assets
 
+				// Show body COG?
+				if (this->COGs_show)
+				{
+					ChCoordsys<> cogcsys = mybody->GetFrame_COG_to_abs().GetCoord();
+					mfilepov << "sh_csysCOG(";
+					mfilepov << cogcsys.pos.x << "," << cogcsys.pos.y << "," << cogcsys.pos.z << ",";
+					mfilepov << cogcsys.rot.e0 << "," << cogcsys.rot.e1 << "," << cogcsys.rot.e2 << "," << cogcsys.rot.e3  << ",";
+					mfilepov << this->COGs_size << ")\n";
+				}
+				// Show body frame ref?
+				if (this->frames_show)
+				{
+					mfilepov << "sh_csysFRM(";
+					mfilepov << assetcsys.pos.x << "," << assetcsys.pos.y << "," << assetcsys.pos.z << ",";
+					mfilepov << assetcsys.rot.e0 << "," << assetcsys.rot.e1 << "," << assetcsys.rot.e2 << "," << assetcsys.rot.e3  << ",";
+					mfilepov << this->frames_size << ")\n";
+				}
+				
 			}
 
 
