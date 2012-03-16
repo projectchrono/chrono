@@ -248,6 +248,20 @@ void ChLinkMateGeneric::Update (double mytime)
 
 		int nc = 0;
 
+		ChQuaternion<> relMrot = aframe.GetRot();
+//TEST: disable stabilization on rotations
+//aframe.SetPos(VNULL);
+//aframe.SetRot(QUNIT);
+relMrot =
+        Qcross (
+          Qconjugate(this->frameB.GetRot()),
+        Qcross (
+			Qconjugate(this->Body2->GetCoord().rot),
+        Qcross (
+          (this->Body1->GetCoord().rot),
+          (this->frameA.GetRot())
+          )));
+
 		if (c_x) 
 		{
 			this->C->ElementN(nc) = aframe.GetPos().x;
@@ -277,27 +291,27 @@ void ChLinkMateGeneric::Update (double mytime)
 		}
 		if (c_rx) 
 		{
-			this->C->ElementN(nc) = aframe.GetRot().e1;
+			this->C->ElementN(nc) = 0.5*relMrot.e1;
 			this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jw1, 0,0, 1,3, 0,3);
 			this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jw2, 0,0, 1,3, 0,3);
 			nc++;
 		}
 		if (c_ry) 
 		{
-			this->C->ElementN(nc) = aframe.GetRot().e2;
+			this->C->ElementN(nc) = 0.5*relMrot.e2;
 			this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jw1, 1,0, 1,3, 0,3);
 			this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jw2, 1,0, 1,3, 0,3);
 			nc++;
 		}
 		if (c_rz) 
 		{
-			this->C->ElementN(nc) = aframe.GetRot().e3;
+			this->C->ElementN(nc) = 0.5*relMrot.e3;
 			this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jw1, 2,0, 1,3, 0,3);
 			this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jw2, 2,0, 1,3, 0,3);
 			nc++;
 		}
 
-		GetLog()<< "C="<< *this->C << "\n";
+		// GetLog()<< "C="<< *this->C << "\n";
 
 	}
 
@@ -367,6 +381,8 @@ void ChLinkMateGeneric::ConstraintsBiLoad_C(double factor, double recovery_clamp
 {
 	if (!this->IsActive())
 		return;
+//***TEST*** do not consider stabiliz.
+//this->C->FillElem(0);
 
 	int cnt=0;
 	for (int i=0; i< mask->nconstr; i++)
@@ -514,8 +530,6 @@ int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body t
 	this->frameA = mfr1;
 	this->frameB = mfr2;
 
-	GetLog() << "Abs frames: Fa=" << (this->frameA >> *this->Body1) << "\n\n";
-	GetLog() << "Abs frames: Fb=" << (this->frameB >> *this->Body2) << "\n\n";
 	return true;
 }
 
@@ -943,6 +957,10 @@ int ChLinkMateOrthogonal::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first bod
 		this->reldir2 = mbody2->Dir_World2Body(&mnorm2);
 	}
 
+	// do this asap otherwise the following Update() won't work..
+	this->Body1 = mbody1.get_ptr();
+	this->Body2 = mbody2.get_ptr();
+
 	// Force the alignment of frames so that the X axis is cross product of two dirs, etc.
 	// by calling the custom update function of ChLinkMateOrthogonal.
 	this->Update(this->ChTime);
@@ -962,48 +980,50 @@ void ChLinkMateOrthogonal::Update (double mtime)
 
 	ChVector<> mabsD1, mabsD2;
 
-	mabsD1 = this->Body1->Dir_Body2World(&this->reldir1);
-	mabsD2 = this->Body2->Dir_Body2World(&this->reldir2);
-
-	ChVector<> mX = Vcross(mabsD1,mabsD1);
-	double xlen = mX.Length();
-
-	// Ops.. parallel directions? -> fallback to singularity handling
-	if (fabs(xlen) < 1e-20)
+	if (this->Body1 && this->Body2)
 	{
-		ChVector<> ortho_gen;
-		if (fabs(mabsD1.z) < 0.9)	
-			ortho_gen = VECT_Z;
-		if (fabs(mabsD1.y) < 0.9)
-			ortho_gen = VECT_Y;
-		if (fabs(mabsD1.x) < 0.9)
-			ortho_gen = VECT_X;
-		mX = Vcross(mabsD1, ortho_gen);
-		xlen = Vlenght(mX);
+		mabsD1 = this->Body1->Dir_Body2World(&this->reldir1);
+		mabsD2 = this->Body2->Dir_Body2World(&this->reldir2);
+
+		ChVector<> mX = Vcross(mabsD1,mabsD1);
+		double xlen = mX.Length();
+
+		// Ops.. parallel directions? -> fallback to singularity handling
+		if (fabs(xlen) < 1e-20)
+		{
+			ChVector<> ortho_gen;
+			if (fabs(mabsD1.z) < 0.9)	
+				ortho_gen = VECT_Z;
+			if (fabs(mabsD1.y) < 0.9)
+				ortho_gen = VECT_Y;
+			if (fabs(mabsD1.x) < 0.9)
+				ortho_gen = VECT_X;
+			mX = Vcross(mabsD1, ortho_gen);
+			xlen = Vlenght(mX);
+		}
+		mX.Scale(1.0/xlen);
+
+		ChVector<> mY1, mZ1;
+		mZ1 = mabsD1;
+		mY1 = Vcross(mZ1, mX);
+		
+		ChMatrix33<> mA1; 
+		mA1.Set_A_axis(mX,mY1,mZ1);
+
+		ChVector<> mY2, mZ2;
+		mY2 = mabsD2;
+		mZ1 = Vcross(mX, mY2);
+
+		ChMatrix33<> mA2; 
+		mA2.Set_A_axis(mX,mY2,mZ2);
+
+		ChFrame<> absframe1(VNULL,mA1);	// position not needed for orth. constr. computation
+		ChFrame<> absframe2(VNULL,mA2);	// position not needed for orth. constr. computation
+
+		// from abs to body-rel
+		static_cast<ChFrame<>*>(this->Body1)->TrasformParentToLocal(absframe1, this->frameA);
+		static_cast<ChFrame<>*>(this->Body2)->TrasformParentToLocal(absframe2, this->frameB);
 	}
-	mX.Scale(1.0/xlen);
-
-	ChVector<> mY1, mZ1;
-	mZ1 = mabsD1;
-	mY1 = Vcross(mZ1, mX);
-	
-	ChMatrix33<> mA1; 
-	mA1.Set_A_axis(mX,mY1,mZ1);
-
-	ChVector<> mY2, mZ2;
-	mY2 = mabsD2;
-	mZ1 = Vcross(mX, mY2);
-
-	ChMatrix33<> mA2; 
-	mA2.Set_A_axis(mX,mY2,mZ2);
-
-	ChFrame<> absframe1(VNULL,mA1);	// position not needed for orth. constr. computation
-	ChFrame<> absframe2(VNULL,mA2);	// position not needed for orth. constr. computation
-
-	// from abs to body-rel
-	static_cast<ChFrame<>*>(this->Body1)->TrasformParentToLocal(absframe1, this->frameA);
-	static_cast<ChFrame<>*>(this->Body2)->TrasformParentToLocal(absframe2, this->frameB);
-
 
 	// Parent class inherit
 	ChLinkMateGeneric::Update(mtime);

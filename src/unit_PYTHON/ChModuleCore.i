@@ -205,7 +205,7 @@ using namespace chrono;
 %DefChSharedPtrCast(chrono::ChLinkMatePlane, chrono::ChLinkMateGeneric)
 %DefChSharedPtrCast(chrono::ChLinkMateCoaxial, chrono::ChLinkMateGeneric)
 %DefChSharedPtrCast(chrono::ChLinkMateSpherical, chrono::ChLinkMateGeneric)
-%DefChSharedPtrCast(chrono::ChLinkMateXdistance, chrono::ChLinkMateXdistance)
+%DefChSharedPtrCast(chrono::ChLinkMateXdistance, chrono::ChLinkMateGeneric)
 %DefChSharedPtrCast(chrono::ChLinkMateParallel, chrono::ChLinkMateGeneric)
 %DefChSharedPtrCast(chrono::ChLinkMateOrthogonal, chrono::ChLinkMateGeneric)
 /*

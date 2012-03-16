@@ -115,50 +115,10 @@ using namespace chrono;
 /*
 %inline %{
 
-	// Create a custom ChLog class for logging directly in the Python shell,
-	// because the default ChLog was redirecting to std::cout that is not 
-	// necessarily the console display of python.
-namespace chrono
-{
-class ChLogPython : public ChLog 
-{
-public:
-	ChLogPython() {}
-	virtual ~ChLogPython() {};
-			/// Redirect output stream to file wrapper.
-	virtual void	Output(const char* data, int n) 
-		{ 
-				char buffer[1000];
-				if (n>999) 
-					n=999;
-				strncpy(buffer, data, n);
-				buffer[n]=0;
-				PySys_WriteStdout(buffer);
-		}
-private:
-};
-};
-
-%}
-
-*/
-
-
-
-//
-// INITIALIZATION CODE THAT IS EXECUTED AT THE STARTING OF TEH PYTHON UNIT
-//
-
-/*
-%init %{
-
-		// Create a custom logger to be used all times the GetLog() 
-		// funciton is used in C::E to print something. 
-	static chrono::ChLogPython static_cout_logger;
-	SetLog(static_cout_logger);
 
 %}
 */
+
 
 //
 // ADD PYTHON CODE

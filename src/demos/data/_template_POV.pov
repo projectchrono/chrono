@@ -10,7 +10,13 @@
 
 #include "debug.inc"
 #include "colors.inc" 
-        
+#include "textures.inc"           
+           
+// 
+// Function to generate a rotation matrix from a C::E quaternion data   
+// 
+
+
 #macro quatRotation(q)
     #local aa = q.x*q.x;
     #local ab = q.x*q.y;
@@ -37,6 +43,13 @@
 #declare aq2=0;
 #declare aq3=0;  
 
+
+
+// 
+// Defaults   
+// 
+
+
 		
 global_settings { 
         ambient_light rgb<4,4,4> 
@@ -45,47 +58,11 @@ global_settings {
 
 background { rgb<1,1,1> }
     
-   
-// from side right,   
-camera {               
-       right -x*image_width/image_height  
-       location <1, 1.8, -1>
-       direction 2*z 
-       look_at <0, 0, 0>  
-       angle 36.6
-}    
- 
-/*
-// from front  
-camera { 
-        orthographic 
-        location <0, 0.3, -6>  
-        look_at <0, 0.3, -2>  
-        angle 14
-} 
 
-// from side  
-camera { 
-        orthographic 
-        location <8, 0.3, 0>  
-        look_at <0, 0.3,  -0.3>  
-        angle 14
-} 
-  */
-  
-/*
-// from top        
-camera { 
-        orthographic 
-        location <0, 6, 0>  
-        look_at <0, 0, 0> 
-        angle 10
-}
-*/
     
         
 //     
-// --- Materials, textures, etc.
+// --- Default materials, textures, etc.
 // 
 
     
@@ -126,8 +103,6 @@ finish {
 
     
 
-light_source { <3,6,-4>,  color rgb<1.2,1.2,1.2>} 
-
   /* 
 // An area light (creates soft shadows)
 // WARNING: This special light can significantly slow down rendering times!
@@ -145,25 +120,75 @@ light_source {
 }
  */   
     
+          
+         
+//
+// Macros for showing useful geometries
+//
 
-//     
-// --- The background checkered grid 0.5 m
-// 
-
-  /*
-union {
- plane{y,0} 
- plane{-x,2.0} 
- //pigment{rgb<1,1,1>}
+// Macro for showing the COG as a dot 
+          
+#macro sh_COG(apx, apy, apz, arad)
+sphere { 
+ <apx,apy,apz>, arad        
+ pigment {color rgbt <1,1,0,0> }
  no_shadow
- //finish { ambient 0.8 }
- pigment{checker rgb<1,1,1>, rgb<0.75,0.75,0.85>} 
- scale <0.5, 0.5, 0.5>   
-}       
-       
-    */    
+}
+#end   
+     
+// Macro for showing a coordsystem for a COG (with a sphere in center)
+     
+#macro sh_csysCOG(apx, apy, apz, aq0, aq1, aq2, aq3, asize)
+union {
+ sphere { 
+  <0,0,0>, asize/8        
+  pigment {color rgbt <1,1,0,0> }
+ }
+ cylinder { 
+  <0,0,0>, <asize,0,0>, asize/16        
+  pigment {color rgbt <1,0,0,0> }
+ }
+ cylinder { 
+  <0,0,0>, <0,asize,0>, asize/16        
+  pigment {color rgbt <0,1,0,0> }
+ }
+ cylinder { 
+  <0,0,0>, <0,0,asize>, asize/16        
+  pigment {color rgbt <0,0,1,0> }
+ }
+ quatRotation(<aq0, aq1, aq2, aq3>) 
+ translate  <apx, apy, apz>
+ no_shadow 
+}
+#end 
 
-      
+// Macro for showing a coordsystem for a frame (with a cube in center)
+     
+#macro sh_csysFRM(apx, apy, apz, aq0, aq1, aq2, aq3, asize)
+union {
+ box { 
+  <-asize/8,-asize/8,-asize/8>,<asize/8,asize/8,asize/8>         
+  pigment {color rgbt <0.5,0.5,0.6,0> }
+ }
+ cylinder { 
+  <0,0,0>, <asize,0,0>, asize/12        
+  pigment {color rgbt <1,0,0,0> }
+ }
+ cylinder { 
+  <0,0,0>, <0,asize,0>, asize/12        
+  pigment {color rgbt <0,1,0,0> }
+ }
+ cylinder { 
+  <0,0,0>, <0,0,asize>, asize/12        
+  pigment {color rgbt <0,0,1,0> }
+ }
+ quatRotation(<aq0, aq1, aq2, aq3>) 
+ translate  <apx, apy, apz>
+ no_shadow 
+}
+#end
+
+
 // -----------------------------------------------------------------------------
 // OBJECTS TO BE RENDERED ARE AUTOMATICALLY INSERTED AFTER THIS LINE
 // THANKS TO THE POSTPROCESSING UNIT OF CHRONO::ENGINE. YOU SHOULD NOT NEED TO
