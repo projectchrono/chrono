@@ -25,7 +25,7 @@ typedef unsigned int uint;
 //#define sizeScale .001
 #define sizeScale .001
 
-#define HSML 0.04f*sizeScale
+#define HSML 0.08f*sizeScale
 #define BASEPRES 0
 #define nPeriod 1
 #define Gravity make_float3(0, 0, 0)

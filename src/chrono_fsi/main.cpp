@@ -420,19 +420,24 @@ int CreateEllipsoidParticles(
 		minR = (minR < r3.z) ? minR : r3.z;
 		if ( minR > 0) {
 			float deltaTeta0 = spacing / r3.z;
-			float deltaTeta = deltaTeta0;
-			for (float teta = .1 * deltaTeta0; teta < PI - .1 * deltaTeta0; teta += deltaTeta) {
+			float teta = 0.1 * deltaTeta0;
+			while (teta < PI - .1 * deltaTeta0) {
 				float deltaPhi0 = spacing / (r3.z * sin(teta));
-				float deltaPhi = deltaPhi0;
-				for (float phi = 0; phi < 2 * PI + deltaPhi0; phi += deltaPhi) {
+				float phi = 0.1 * deltaPhi0;
+				float currentR = 1 / length(F3(sin(teta) * cos(phi), sin(teta) * sin(phi), cos(teta)) / r3);
+				float nextR = 1 / length(F3(sin(teta + spacing / currentR) * cos(phi), sin(teta + spacing / currentR) * sin(phi), cos(teta + spacing / currentR)) / r3);
+				float deltaTeta = spacing / max(currentR, nextR);
+				while (phi < 2 * PI + deltaPhi0) {
 					float3 mult3 = F3(sin(teta) * cos(phi), sin(teta) * sin(phi), cos(teta)) / r3;
 					float r = 1 / length(mult3);
-					deltaTeta = spacing / r;
-					deltaPhi = spacing / (r * sin(teta));
 					float4 posRadRigid_sphParticle = F4(r * sin(teta) * cos(phi), r * sin(teta) * sin(phi), r * cos(teta), sphR)
 							+ F4(rigidPos, 0);
-
 					mPosRad.push_back(posRadRigid_sphParticle);
+					float deltaPhiDum = spacing / (r * sin(teta));
+					float rNewDum = 1 / length(F3(sin(teta) * cos(phi + deltaPhiDum), sin(teta) * sin(phi + deltaPhiDum), cos(teta)) / r3);
+					float maxR = max(rNewDum, r);
+					phi += spacing / (maxR * sin(teta));
+
 					float3 vel = F3(sphereVelMas) + cross(rigidBodyOmega, F3(posRadRigid_sphParticle) - rigidPos); //assuming LRF is the same as GRF at time zero (rigibodyOmega is in LRF, the second term of the cross is in GRF)
 					//printf("veloc %f %f %f\n", vel.x, vel.y, vel.z);
 					mVelMas.push_back(F4(vel, pow(spacing, 3) * rho));
@@ -445,8 +450,8 @@ int CreateEllipsoidParticles(
 
 
 					//////reCalc deltaTeta and deltaPhi
-					deltaPhi = spacing / (r * sin(teta));
 				}
+				teta += deltaTeta;
 			}
 		}
 	}
@@ -506,7 +511,6 @@ int main() {
 	//********************************************************************************************************
 	//** Initialization
 	float r = HSML;	//.02;
-	float rRigidBody;
 	float3 cMin = make_float3(0, -0.2, -1.2) * sizeScale;
 	float3 cMax = make_float3( nPeriod * 4.6 + 0, 1.5,  4.0) * sizeScale;  //for only CurvedSerpentine (w/out straight part)
 	//float3 cMax = make_float3( nPeriod * 4.6 + 7, 1.5,  4.0) * sizeScale;  //for serpentine
@@ -559,21 +563,22 @@ int main() {
 	////***** here: define rigid bodies
 	string fileNameRigids("spheresPos.dat");
 	fstream ifileSpheres(fileNameRigids.c_str(), ios::in);
-	rRigidBody = .08 * sizeScale;//.06 * sizeScale;//.125 * sizeScale; // .25 * sizeScale; //.06 * sizeScale;//.08 * sizeScale;//.179 * sizeScale;
+	//rRigidBody = .08 * sizeScale;//.06 * sizeScale;//.125 * sizeScale; // .25 * sizeScale; //.06 * sizeScale;//.08 * sizeScale;//.179 * sizeScale;
 	rhoRigid = 1000; //1050; //originally .079 //.179 for cylinder
 	float x, y, z;
 	char ch;
 	float channelRadius;
-	float dumRRigidBody;
-	ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> dumRRigidBody;
-	printf("rRigid %f\n", rRigidBody);
+	float dumRRigidBody1, dumRRigidBody2, dumRRigidBody3;
+	ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> dumRRigidBody1 >> ch >> dumRRigidBody2 >> ch >> dumRRigidBody3;
 	while (!ifileSpheres.eof()) {
-		rRigidBody = dumRRigidBody * sizeScale;
 		//float r = rRigidBody * (.75 + .75 * float(rand())/RAND_MAX);
 		for (int period = 0; period < nPeriod; period++) {
 			rigidPos.push_back(F3(x * sizeScale + period * sPeriod, y * sizeScale, z * sizeScale));
-			float r1 = .8 * rRigidBody, r2 = 1.2 * rRigidBody, r3 = 1.6 * rRigidBody;
+			//float r1 = .8 * rRigidBody, r2 = 1.2 * rRigidBody, r3 = 3 * rRigidBody;
 			//float r1 = rRigidBody, r2 = rRigidBody, r3 = rRigidBody;
+			float r1 = dumRRigidBody1 * sizeScale;
+			float r2 = dumRRigidBody2 * sizeScale;
+			float r3 = dumRRigidBody3 * sizeScale;
 			ellipsoidRadii.push_back(F3(r1, r2, r3));
 			//********** intitialization of rigid bodies: Spheres
 			float mass = 4.0 / 3 * PI * r1 * r2 * r3 * rhoRigid;			//for sphere
@@ -610,7 +615,7 @@ int main() {
 			rigidBody_InvJ1.push_back(invJ1 / detJ / maxComp);
 			rigidBody_InvJ2.push_back(invJ2 / detJ / maxComp);
 		}
-		ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> dumRRigidBody;
+		ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> dumRRigidBody1 >> ch >> dumRRigidBody2 >> ch >> dumRRigidBody3;
 	}
 //	printf("*********************************** J/Me6 %f \n",  .5  * pow(rRigidBody, 2) * 1e6);
 	ifileSpheres.close();

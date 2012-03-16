@@ -516,197 +516,197 @@ void PrintToFile(
 		fflush(fileNameRigids);
 		fclose(fileNameRigids);
 	}
-////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	FILE *fileNameSlice;
-	int stepSaveFluidSlice = 20000; //1;//20000;
-	//if (tStep%100 == 0 &&  tStep > 20400) {
-	//if (tStep > 49100) {
-	if (tStep % stepSaveFluidSlice == 0) {
-		//if (tStep / stepSaveFluidSlice == 49101) {
-		if (tStep / stepSaveFluidSlice == 0) {
-			fileNameSlice = fopen("dataTotalSlice.txt", "w");
-			fprintf(fileNameSlice,
-					"variables = \"x\", \"y\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\", \"type\"\n");
-		} else {
-			fileNameSlice = fopen("dataTotalSlice.txt", "a");
-		}
-		fprintf(fileNameSlice, "zone\n");
-		for (int i = referenceArray[0].x; i < referenceArray[referenceArray.size() - 1].y; i++) {
-			float4 posRad = posRadD[i];
-			float3 pos = F3(posRad);
-			float rad = posRad.w;
-			float3 vel = F3(velMasD[i]);
-			float4 rP = rhoPresMuD[i];
-			float velMag = length(vel);
-			if ((pos.y < cMin.y + 0.5 * (cMax.y - cMin.y) + 3 * rad) && (pos.y > cMin.y + 0.5 * (cMax.y - cMin.y) - 3 * rad)) {
-				fprintf(fileNameSlice, "%f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n", pos.x, pos.y, pos.z, vel.x, vel.y, vel.z, velMag, rP.x, rP.y,
-						rP.w);
-			}
-		}
-		fflush(fileNameSlice);
-		fclose(fileNameSlice);
-	}
-////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//	FILE *fileNameCartesianTotal;
-//	thrust::host_vector<float4> rho_Pres_CartH(1);
-//	thrust::host_vector<float4> vel_VelMag_CartH(1);
-//	float resolution = 2 * HSML;
-//	int3 cartesianGridDims;
-//	int tStepCartesianTotal = 1000000;
-//	int tStepCartesianSlice = 100000;
-//	int tStepPoiseuilleProf = 1000; //tStepCartesianSlice;
-//
-//	int stepCalcCartesian = min(tStepCartesianTotal, tStepCartesianSlice);
-//	stepCalcCartesian = min(stepCalcCartesian, tStepPoiseuilleProf);
-//
-//	if (tStep % stepCalcCartesian == 0) {
-//		MapSPH_ToGrid(resolution, cartesianGridDims, rho_Pres_CartH, vel_VelMag_CartH, posRadD, velMasD, rhoPresMuD,
-//				referenceArray[referenceArray.size() - 1].y, paramsH);
-//	}
-//	if (tStep % tStepCartesianTotal == 0) {
-//		if (tStep / tStepCartesianTotal == 0) {
-//			fileNameCartesianTotal = fopen("dataCartesianTotal.txt", "w");
-//			fprintf(fileNameCartesianTotal,
-//					"variables = \"x\", \"y\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\"\n");
+//////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//	FILE *fileNameSlice;
+//	int stepSaveFluidSlice = 20000; //1;//20000;
+//	//if (tStep%100 == 0 &&  tStep > 20400) {
+//	//if (tStep > 49100) {
+//	if (tStep % stepSaveFluidSlice == 0) {
+//		//if (tStep / stepSaveFluidSlice == 49101) {
+//		if (tStep / stepSaveFluidSlice == 0) {
+//			fileNameSlice = fopen("dataTotalSlice.txt", "w");
+//			fprintf(fileNameSlice,
+//					"variables = \"x\", \"y\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\", \"type\"\n");
 //		} else {
-//			fileNameCartesianTotal = fopen("dataCartesianTotal.txt", "a");
+//			fileNameSlice = fopen("dataTotalSlice.txt", "a");
 //		}
-//		fprintf(fileNameCartesianTotal, "zone I = %d, J = %d, K = %d\n", cartesianGridDims.x, cartesianGridDims.y, cartesianGridDims.z);
-//		for (int k = 0; k < cartesianGridDims.z; k++) {
-//			for (int j = 0; j < cartesianGridDims.y; j++) {
-//				for (int i = 0; i < cartesianGridDims.x; i++) {
-//					int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
-//					float3 gridNodeLoc = resolution * F3(i, j, k) + paramsH.worldOrigin;
-//					fprintf(fileNameCartesianTotal, "%f, %f, %f, %f, %f, %f, %f, %f, %f\n", gridNodeLoc.x, gridNodeLoc.y, gridNodeLoc.z,
-//							vel_VelMag_CartH[index].x, vel_VelMag_CartH[index].y, vel_VelMag_CartH[index].z, vel_VelMag_CartH[index].w,
-//							rho_Pres_CartH[index].x, rho_Pres_CartH[index].y);
-//				}
+//		fprintf(fileNameSlice, "zone\n");
+//		for (int i = referenceArray[0].x; i < referenceArray[referenceArray.size() - 1].y; i++) {
+//			float4 posRad = posRadD[i];
+//			float3 pos = F3(posRad);
+//			float rad = posRad.w;
+//			float3 vel = F3(velMasD[i]);
+//			float4 rP = rhoPresMuD[i];
+//			float velMag = length(vel);
+//			if ((pos.y < cMin.y + 0.5 * (cMax.y - cMin.y) + 3 * rad) && (pos.y > cMin.y + 0.5 * (cMax.y - cMin.y) - 3 * rad)) {
+//				fprintf(fileNameSlice, "%f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n", pos.x, pos.y, pos.z, vel.x, vel.y, vel.z, velMag, rP.x, rP.y,
+//						rP.w);
 //			}
 //		}
-//		fflush(fileNameCartesianTotal);
-//		fclose(fileNameCartesianTotal);
+//		fflush(fileNameSlice);
+//		fclose(fileNameSlice);
 //	}
+//////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+////	FILE *fileNameCartesianTotal;
+////	thrust::host_vector<float4> rho_Pres_CartH(1);
+////	thrust::host_vector<float4> vel_VelMag_CartH(1);
+////	float resolution = 2 * HSML;
+////	int3 cartesianGridDims;
+////	int tStepCartesianTotal = 1000000;
+////	int tStepCartesianSlice = 100000;
+////	int tStepPoiseuilleProf = 1000; //tStepCartesianSlice;
+////
+////	int stepCalcCartesian = min(tStepCartesianTotal, tStepCartesianSlice);
+////	stepCalcCartesian = min(stepCalcCartesian, tStepPoiseuilleProf);
+////
+////	if (tStep % stepCalcCartesian == 0) {
+////		MapSPH_ToGrid(resolution, cartesianGridDims, rho_Pres_CartH, vel_VelMag_CartH, posRadD, velMasD, rhoPresMuD,
+////				referenceArray[referenceArray.size() - 1].y, paramsH);
+////	}
+////	if (tStep % tStepCartesianTotal == 0) {
+////		if (tStep / tStepCartesianTotal == 0) {
+////			fileNameCartesianTotal = fopen("dataCartesianTotal.txt", "w");
+////			fprintf(fileNameCartesianTotal,
+////					"variables = \"x\", \"y\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\"\n");
+////		} else {
+////			fileNameCartesianTotal = fopen("dataCartesianTotal.txt", "a");
+////		}
+////		fprintf(fileNameCartesianTotal, "zone I = %d, J = %d, K = %d\n", cartesianGridDims.x, cartesianGridDims.y, cartesianGridDims.z);
+////		for (int k = 0; k < cartesianGridDims.z; k++) {
+////			for (int j = 0; j < cartesianGridDims.y; j++) {
+////				for (int i = 0; i < cartesianGridDims.x; i++) {
+////					int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
+////					float3 gridNodeLoc = resolution * F3(i, j, k) + paramsH.worldOrigin;
+////					fprintf(fileNameCartesianTotal, "%f, %f, %f, %f, %f, %f, %f, %f, %f\n", gridNodeLoc.x, gridNodeLoc.y, gridNodeLoc.z,
+////							vel_VelMag_CartH[index].x, vel_VelMag_CartH[index].y, vel_VelMag_CartH[index].z, vel_VelMag_CartH[index].w,
+////							rho_Pres_CartH[index].x, rho_Pres_CartH[index].y);
+////				}
+////			}
+////		}
+////		fflush(fileNameCartesianTotal);
+////		fclose(fileNameCartesianTotal);
+////	}
+//////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+////	FILE *fileNameCartesianMidplane;
+////	if (tStep % tStepCartesianSlice == 0) {
+////		if (tStep / tStepCartesianSlice == 0) {
+////			fileNameCartesianMidplane = fopen("dataCartesianMidplane.txt", "w");
+////			fprintf(fileNameCartesianMidplane, "variables = \"x\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\"\n");
+////		} else {
+////			fileNameCartesianMidplane = fopen("dataCartesianMidplane.txt", "a");
+////		}
+////		fprintf(fileNameCartesianMidplane, "zone I = %d, J = %d\n", cartesianGridDims.x, cartesianGridDims.z);
+////		int j = cartesianGridDims.y / 2;
+////		for (int k = 0; k < cartesianGridDims.z; k++) {
+////			for (int i = 0; i < cartesianGridDims.x; i++) {
+////				int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
+////				float3 gridNodeLoc = resolution * F3(i, j, k) + paramsH.worldOrigin;
+////				fprintf(fileNameCartesianMidplane, "%f, %f, %f, %f, %f, %f, %f, %f\n", gridNodeLoc.x, gridNodeLoc.z, vel_VelMag_CartH[index].x,
+////						vel_VelMag_CartH[index].y, vel_VelMag_CartH[index].z, vel_VelMag_CartH[index].w, rho_Pres_CartH[index].x,
+////						rho_Pres_CartH[index].y);
+////			}
+////		}
+////		fflush(fileNameCartesianMidplane);
+////		fclose(fileNameCartesianMidplane);
+////	}
+////	rho_Pres_CartH.clear();
+//////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+////	FILE *fileVelocityProfPoiseuille;
+////	if (tStep % tStepPoiseuilleProf == 0) {
+////		if (tStep / tStepPoiseuilleProf == 0) {
+////			fileVelocityProfPoiseuille = fopen("dataVelProfile.txt", "w");
+////			fprintf(fileVelocityProfPoiseuille, "variables = \"Z(m)\", \"Vx(m/s)\"\n");
+////
+////		} else {
+////			fileVelocityProfPoiseuille = fopen("dataVelProfile.txt", "a");
+////		}
+////		fprintf(fileVelocityProfPoiseuille, "zone T=\"t = %f s\"\n", delT * tStep);
+////		int j = cartesianGridDims.y / 2;
+////		int i = cartesianGridDims.x / 2;
+////		for (int k = 0; k < cartesianGridDims.z; k++) {
+////			int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
+////			float3 gridNodeLoc = resolution * F3(i, j, k) + paramsH.worldOrigin;
+////			if (gridNodeLoc.z > 1 * sizeScale && gridNodeLoc.z < 2 * sizeScale) {
+////				fprintf(fileVelocityProfPoiseuille, "%f, %f\n", gridNodeLoc.z, vel_VelMag_CartH[index].x);
+////			}
+////		}
+////		fflush(fileVelocityProfPoiseuille);
+////		fclose(fileVelocityProfPoiseuille);
+////	}
+////	vel_VelMag_CartH.clear();
 ////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//	FILE *fileNameCartesianMidplane;
-//	if (tStep % tStepCartesianSlice == 0) {
-//		if (tStep / tStepCartesianSlice == 0) {
-//			fileNameCartesianMidplane = fopen("dataCartesianMidplane.txt", "w");
-//			fprintf(fileNameCartesianMidplane, "variables = \"x\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\"\n");
-//		} else {
-//			fileNameCartesianMidplane = fopen("dataCartesianMidplane.txt", "a");
-//		}
-//		fprintf(fileNameCartesianMidplane, "zone I = %d, J = %d\n", cartesianGridDims.x, cartesianGridDims.z);
-//		int j = cartesianGridDims.y / 2;
-//		for (int k = 0; k < cartesianGridDims.z; k++) {
-//			for (int i = 0; i < cartesianGridDims.x; i++) {
-//				int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
-//				float3 gridNodeLoc = resolution * F3(i, j, k) + paramsH.worldOrigin;
-//				fprintf(fileNameCartesianMidplane, "%f, %f, %f, %f, %f, %f, %f, %f\n", gridNodeLoc.x, gridNodeLoc.z, vel_VelMag_CartH[index].x,
-//						vel_VelMag_CartH[index].y, vel_VelMag_CartH[index].z, vel_VelMag_CartH[index].w, rho_Pres_CartH[index].x,
-//						rho_Pres_CartH[index].y);
+//	FILE *fileRigidParticleCenterVsTime;
+//	FILE *fileRigidParticleCenterVsDistance;
+//	int numRigidBodies = int(posRigidD.size() / float(nPeriod) + .5);
+//	int tStepRigidCenterPos = 1000;
+//	if (tStep % tStepRigidCenterPos == 0) {
+//		if (tStep / tStepRigidCenterPos == 0) {
+//			fileRigidParticleCenterVsTime = fopen("dataRigidCenterVsTime.txt", "w");
+//			fprintf(fileRigidParticleCenterVsTime, "variables = \"t(s)\"");
+//			for (int j = 0; j < numRigidBodies; j++) {
+//				fprintf(fileRigidParticleCenterVsTime, ", \"t%d(s)\", \"Z%d(m)\"", j, j);
 //			}
-//		}
-//		fflush(fileNameCartesianMidplane);
-//		fclose(fileNameCartesianMidplane);
-//	}
-//	rho_Pres_CartH.clear();
-////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//	FILE *fileVelocityProfPoiseuille;
-//	if (tStep % tStepPoiseuilleProf == 0) {
-//		if (tStep / tStepPoiseuilleProf == 0) {
-//			fileVelocityProfPoiseuille = fopen("dataVelProfile.txt", "w");
-//			fprintf(fileVelocityProfPoiseuille, "variables = \"Z(m)\", \"Vx(m/s)\"\n");
+//			fprintf(fileRigidParticleCenterVsTime, "\nzone\n");
 //
-//		} else {
-//			fileVelocityProfPoiseuille = fopen("dataVelProfile.txt", "a");
-//		}
-//		fprintf(fileVelocityProfPoiseuille, "zone T=\"t = %f s\"\n", delT * tStep);
-//		int j = cartesianGridDims.y / 2;
-//		int i = cartesianGridDims.x / 2;
-//		for (int k = 0; k < cartesianGridDims.z; k++) {
-//			int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
-//			float3 gridNodeLoc = resolution * F3(i, j, k) + paramsH.worldOrigin;
-//			if (gridNodeLoc.z > 1 * sizeScale && gridNodeLoc.z < 2 * sizeScale) {
-//				fprintf(fileVelocityProfPoiseuille, "%f, %f\n", gridNodeLoc.z, vel_VelMag_CartH[index].x);
+//			fileRigidParticleCenterVsDistance = fopen("dataRigidCenterVsDistance.txt", "w");
+//			fprintf(fileRigidParticleCenterVsDistance, "variables = \"X(m)\"");
+//			for (int j = 0; j < numRigidBodies; j++) {
+//				fprintf(fileRigidParticleCenterVsDistance, ", \"X%d(m)\", \"Z%d(m)\"", j, j);
 //			}
+//			fprintf(fileRigidParticleCenterVsDistance, "\nzone\n");
+//		} else {
+//			fileRigidParticleCenterVsTime = fopen("dataRigidCenterVsTime.txt", "a");
+//			fileRigidParticleCenterVsDistance = fopen("dataRigidCenterVsDistance.txt", "a");
 //		}
-//		fflush(fileVelocityProfPoiseuille);
-//		fclose(fileVelocityProfPoiseuille);
+//		if (referenceArray.size() > 2) {
+//			fprintf(fileRigidParticleCenterVsTime, "%f", 0); //dummy
+//			fprintf(fileRigidParticleCenterVsDistance, "%f", 0); //dummy
+//			for (int j = 0; j < numRigidBodies; j++) {
+//				float3 p_rigid = posRigidD[j];
+//				//printf("position %f %f %f %f\n", p_rigid.x, p_rigid.y, p_rigid.z,0);
+//				float3 p_rigidCumul = posRigidCumulativeD[j];
+//				//***for 2D flow
+//				//fprintf(fileRigidParticleCenterVsTime, "%f, %0.10f\n", tStep * delT, p_rigid.z);
+//				fprintf(fileRigidParticleCenterVsTime, ", %f, %0.10f", tStep * delT, p_rigid.z);
+//				fprintf(fileRigidParticleCenterVsDistance, ", %f, %0.10f", p_rigidCumul.x,  p_rigid.z);
+////				//***for tube
+////				float2 dist2 = F2(.5 * (cMax.y + cMin.y) - p_rigid.y, .5 * (cMax.z + cMin.z) - p_rigid.z);
+////				fprintf(fileRigidParticleCenterVsTime, "%f, %0.10f", tStep * delT, length(dist2) / channelRadius);
+////				fprintf(fileRigidParticleCenterVsDistance, "%f, %0.10f", p_rigidCumul.x, length(dist2) / channelRadius);
+//			}
+//			fprintf(fileRigidParticleCenterVsTime, "\n");
+//			fprintf(fileRigidParticleCenterVsDistance, "\n");
+//		}
+//		fflush(fileRigidParticleCenterVsTime);
+//		fclose(fileRigidParticleCenterVsTime);
+//
+//		fflush(fileRigidParticleCenterVsDistance);
+//		fclose(fileRigidParticleCenterVsDistance);
 //	}
-//	vel_VelMag_CartH.clear();
-//-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	FILE *fileRigidParticleCenterVsTime;
-	FILE *fileRigidParticleCenterVsDistance;
-	int numRigidBodies = int(posRigidD.size() / float(nPeriod) + .5);
-	int tStepRigidCenterPos = 1000;
-	if (tStep % tStepRigidCenterPos == 0) {
-		if (tStep / tStepRigidCenterPos == 0) {
-			fileRigidParticleCenterVsTime = fopen("dataRigidCenterVsTime.txt", "w");
-			fprintf(fileRigidParticleCenterVsTime, "variables = \"t(s)\"");
-			for (int j = 0; j < numRigidBodies; j++) {
-				fprintf(fileRigidParticleCenterVsTime, ", \"t%d(s)\", \"Z%d(m)\"", j, j);
-			}
-			fprintf(fileRigidParticleCenterVsTime, "\nzone\n");
-
-			fileRigidParticleCenterVsDistance = fopen("dataRigidCenterVsDistance.txt", "w");
-			fprintf(fileRigidParticleCenterVsDistance, "variables = \"X(m)\"");
-			for (int j = 0; j < numRigidBodies; j++) {
-				fprintf(fileRigidParticleCenterVsDistance, ", \"X%d(m)\", \"Z%d(m)\"", j, j);
-			}
-			fprintf(fileRigidParticleCenterVsDistance, "\nzone\n");
-		} else {
-			fileRigidParticleCenterVsTime = fopen("dataRigidCenterVsTime.txt", "a");
-			fileRigidParticleCenterVsDistance = fopen("dataRigidCenterVsDistance.txt", "a");
-		}
-		if (referenceArray.size() > 2) {
-			fprintf(fileRigidParticleCenterVsTime, "%f", 0); //dummy
-			fprintf(fileRigidParticleCenterVsDistance, "%f", 0); //dummy
-			for (int j = 0; j < numRigidBodies; j++) {
-				float3 p_rigid = posRigidD[j];
-				//printf("position %f %f %f %f\n", p_rigid.x, p_rigid.y, p_rigid.z,0);
-				float3 p_rigidCumul = posRigidCumulativeD[j];
-				//***for 2D flow
-				//fprintf(fileRigidParticleCenterVsTime, "%f, %0.10f\n", tStep * delT, p_rigid.z);
-				fprintf(fileRigidParticleCenterVsTime, ", %f, %0.10f", tStep * delT, p_rigid.z);
-				fprintf(fileRigidParticleCenterVsDistance, ", %f, %0.10f", p_rigidCumul.x,  p_rigid.z);
-//				//***for tube
-//				float2 dist2 = F2(.5 * (cMax.y + cMin.y) - p_rigid.y, .5 * (cMax.z + cMin.z) - p_rigid.z);
-//				fprintf(fileRigidParticleCenterVsTime, "%f, %0.10f", tStep * delT, length(dist2) / channelRadius);
-//				fprintf(fileRigidParticleCenterVsDistance, "%f, %0.10f", p_rigidCumul.x, length(dist2) / channelRadius);
-			}
-			fprintf(fileRigidParticleCenterVsTime, "\n");
-			fprintf(fileRigidParticleCenterVsDistance, "\n");
-		}
-		fflush(fileRigidParticleCenterVsTime);
-		fclose(fileRigidParticleCenterVsTime);
-
-		fflush(fileRigidParticleCenterVsDistance);
-		fclose(fileRigidParticleCenterVsDistance);
-	}
-
-	//if (tStep%10000 == 0) {
-	//	char dumStr[5];
-	//	int dumNumChar = sprintf(dumStr, "%d", int(tStep / 10000) + 1);
-	//	char* fileNameMultipleZones;
-	//	strcpy(fileNameMultipleZones, "slicesMultipleZones/dataTotalSlice");
-	//	strcat(fileNameMultipleZones, dumStr);
-	//	strcat(fileNameMultipleZones, ".dat");
-
-	//	outFileMultipleZones = fopen(fileNameMultipleZones, "w");
-	//	fprintf(outFileMultipleZones, "variables = \'x\', \'y\', \'z\', \'vX\', \'vY\', \'vZ\', \'velocity_magnitude\', \'rho\', \'pressure\'\nzone\n");
-	//	for (int i = referenceArray[0].x; i < referenceArray[referenceArray.size() - 1].y; i++) {
-	//		float4 posRad = posRadD[i];
-	//		float3 pos = F3(posRad);
-	//		float rad = posRad.w;
-	//		float3 vel = F3(velMasD[i]);
-	//		float3 rP = F3(rhoPresMuD[i]);
-	//		float velMag = length(vel);
-	//		if ( (pos.y < cMin.y + 0.5 * (cMax.y - cMin.y) + 4 * rad) && (pos.y > cMin.y + 0.5 * (cMax.y - cMin.y) - 4 * rad) ) {
-	//			fprintf(outFileMultipleZones, "%f, %f, %f, %f, %f, %f, %f, %f, %f\n", pos.x, pos.y, pos.z, vel.x, vel.y, vel.z, velMag, rP.x, rP.y);
-	//		}
-	//	}
-	//	fclose(outFileMultipleZones);
-	//}
+//
+//	//if (tStep%10000 == 0) {
+//	//	char dumStr[5];
+//	//	int dumNumChar = sprintf(dumStr, "%d", int(tStep / 10000) + 1);
+//	//	char* fileNameMultipleZones;
+//	//	strcpy(fileNameMultipleZones, "slicesMultipleZones/dataTotalSlice");
+//	//	strcat(fileNameMultipleZones, dumStr);
+//	//	strcat(fileNameMultipleZones, ".dat");
+//
+//	//	outFileMultipleZones = fopen(fileNameMultipleZones, "w");
+//	//	fprintf(outFileMultipleZones, "variables = \'x\', \'y\', \'z\', \'vX\', \'vY\', \'vZ\', \'velocity_magnitude\', \'rho\', \'pressure\'\nzone\n");
+//	//	for (int i = referenceArray[0].x; i < referenceArray[referenceArray.size() - 1].y; i++) {
+//	//		float4 posRad = posRadD[i];
+//	//		float3 pos = F3(posRad);
+//	//		float rad = posRad.w;
+//	//		float3 vel = F3(velMasD[i]);
+//	//		float3 rP = F3(rhoPresMuD[i]);
+//	//		float velMag = length(vel);
+//	//		if ( (pos.y < cMin.y + 0.5 * (cMax.y - cMin.y) + 4 * rad) && (pos.y > cMin.y + 0.5 * (cMax.y - cMin.y) - 4 * rad) ) {
+//	//			fprintf(outFileMultipleZones, "%f, %f, %f, %f, %f, %f, %f, %f, %f\n", pos.x, pos.y, pos.z, vel.x, vel.y, vel.z, velMag, rP.x, rP.y);
+//	//		}
+//	//	}
+//	//	fclose(outFileMultipleZones);
+//	//}
 }
 //*******************************************************************************************************************************
 void PrintToFileDistribution(
