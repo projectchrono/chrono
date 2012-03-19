@@ -514,7 +514,7 @@ int main() {
 	float3 cMin = make_float3(0, -0.2, -1.2) * sizeScale;
 	float3 cMax = make_float3( nPeriod * 4.6 + 0, 1.5,  4.0) * sizeScale;  //for only CurvedSerpentine (w/out straight part)
 	//float3 cMax = make_float3( nPeriod * 4.6 + 7, 1.5,  4.0) * sizeScale;  //for serpentine
-	//float3 cMax = make_float3( nPeriod * 3.6 + 0, 1.5,  4.0) * sizeScale;  //for  straight channel
+	//float3 cMax = make_float3( nPeriod * 2.0 + 0, 1.5,  4.0) * sizeScale;  //for  straight channel
 	//float3 cMax = make_float3( nPeriod * 4.6 + 0, .4,  4.0) * sizeScale;  //for straight channel, cylinders
 
 //	float3 cMax = make_float3(nPeriod * 1.0 + 0, .5,  3.5) * sizeScale;  //for straight channel, sphere
@@ -570,6 +570,7 @@ int main() {
 	float channelRadius;
 	float dumRRigidBody1, dumRRigidBody2, dumRRigidBody3;
 	ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> dumRRigidBody1 >> ch >> dumRRigidBody2 >> ch >> dumRRigidBody3;
+	int counterRigid = 0;
 	while (!ifileSpheres.eof()) {
 		//float r = rRigidBody * (.75 + .75 * float(rand())/RAND_MAX);
 		for (int period = 0; period < nPeriod; period++) {
@@ -592,7 +593,8 @@ int main() {
 //			j1 = F3(1.0 / 12.0  * mass * (3 * pow(rRigidBody, 2) + pow(cMax.y - cMin.y, 2)), 0, 0);
 //			j2 = F3(.5 * mass * pow(rRigidBody, 2), 0, 1.0 / 12.0  * mass * (3 * pow(rRigidBody, 2) + pow(cMax.y - cMin.y, 2)));
 //			//****************************************************
-			spheresVelMas.push_back(F4(0, 0, 0, float(mass)));
+			//spheresVelMas.push_back(F4(0, 0, 0, float(mass)));
+			spheresVelMas.push_back(F4(0.01 * pow(-1, counterRigid), 0, 0, float(mass)));
 			rigidBodyOmega.push_back(F3(0, 0, 0));
 			rigidBody_J1.push_back(j1);
 			rigidBody_J2.push_back(j2);
@@ -616,6 +618,7 @@ int main() {
 			rigidBody_InvJ2.push_back(invJ2 / detJ / maxComp);
 		}
 		ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> dumRRigidBody1 >> ch >> dumRRigidBody2 >> ch >> dumRRigidBody3;
+		counterRigid ++;
 	}
 //	printf("*********************************** J/Me6 %f \n",  .5  * pow(rRigidBody, 2) * 1e6);
 	ifileSpheres.close();

@@ -219,7 +219,7 @@ __device__ inline float4 DifVelocityRho_FSI2(
 //--------------------------------------------------------------------------------------------------------------------------------
 __device__ inline float3 DifVelocity_SSI_DEM(const float4 & posRadA, const float4 & posRadB, const float4 & velMasA, const float4 & velMasB) {
 //printf("** DifVelocity_SSI_DEM\n");
-	float kS = 1000; //1000.0; //392400.0;	//spring
+	float kS = 50; //1000.0; //392400.0;	//spring
 	float kD = 200.0; //420.0;				//damper
 	float3 dist3 = Distance(posRadA, posRadB);
 
@@ -360,6 +360,7 @@ float4 collideCell(
 						derivVelRho = DifVelocityRho(posRadA, posRadB, velMasA, vel_XSPH_A, velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB);
 						derivV += F3(derivVelRho);
 						derivRho += derivVelRho.w;
+
 
 						//derivVelRho = DifVelocityRho_FSI(posRadA, posRadB, velMasA, velMasB);
 						//derivV += F3(derivVelRho);

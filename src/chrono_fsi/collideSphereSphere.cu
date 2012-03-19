@@ -483,7 +483,7 @@ void PrintToFile(
 //	}
 //-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	FILE *fileNameRigids;
-	int stepSaveRigid = 1000;
+	int stepSaveRigid = 100;
 	///if (tStep % 20 == 0 && tStep > 56000) {
 	//if (tStep > 12506) {
 	if (tStep % stepSaveRigid == 0) {
@@ -517,35 +517,35 @@ void PrintToFile(
 		fclose(fileNameRigids);
 	}
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//	FILE *fileNameSlice;
-//	int stepSaveFluidSlice = 20000; //1;//20000;
-//	//if (tStep%100 == 0 &&  tStep > 20400) {
-//	//if (tStep > 49100) {
-//	if (tStep % stepSaveFluidSlice == 0) {
-//		//if (tStep / stepSaveFluidSlice == 49101) {
-//		if (tStep / stepSaveFluidSlice == 0) {
-//			fileNameSlice = fopen("dataTotalSlice.txt", "w");
-//			fprintf(fileNameSlice,
-//					"variables = \"x\", \"y\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\", \"type\"\n");
-//		} else {
-//			fileNameSlice = fopen("dataTotalSlice.txt", "a");
-//		}
-//		fprintf(fileNameSlice, "zone\n");
-//		for (int i = referenceArray[0].x; i < referenceArray[referenceArray.size() - 1].y; i++) {
-//			float4 posRad = posRadD[i];
-//			float3 pos = F3(posRad);
-//			float rad = posRad.w;
-//			float3 vel = F3(velMasD[i]);
-//			float4 rP = rhoPresMuD[i];
-//			float velMag = length(vel);
-//			if ((pos.y < cMin.y + 0.5 * (cMax.y - cMin.y) + 3 * rad) && (pos.y > cMin.y + 0.5 * (cMax.y - cMin.y) - 3 * rad)) {
-//				fprintf(fileNameSlice, "%f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n", pos.x, pos.y, pos.z, vel.x, vel.y, vel.z, velMag, rP.x, rP.y,
-//						rP.w);
-//			}
-//		}
-//		fflush(fileNameSlice);
-//		fclose(fileNameSlice);
-//	}
+	FILE *fileNameSlice;
+	int stepSaveFluidSlice = 20000; //1;//20000;
+	//if (tStep%100 == 0 &&  tStep > 20400) {
+	//if (tStep > 49100) {
+	if (tStep % stepSaveFluidSlice == 0) {
+		//if (tStep / stepSaveFluidSlice == 49101) {
+		if (tStep / stepSaveFluidSlice == 0) {
+			fileNameSlice = fopen("dataTotalSlice.txt", "w");
+			fprintf(fileNameSlice,
+					"variables = \"x\", \"y\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\", \"type\"\n");
+		} else {
+			fileNameSlice = fopen("dataTotalSlice.txt", "a");
+		}
+		fprintf(fileNameSlice, "zone\n");
+		for (int i = referenceArray[0].x; i < referenceArray[referenceArray.size() - 1].y; i++) {
+			float4 posRad = posRadD[i];
+			float3 pos = F3(posRad);
+			float rad = posRad.w;
+			float3 vel = F3(velMasD[i]);
+			float4 rP = rhoPresMuD[i];
+			float velMag = length(vel);
+			if ((pos.y < cMin.y + 0.5 * (cMax.y - cMin.y) + 3 * rad) && (pos.y > cMin.y + 0.5 * (cMax.y - cMin.y) - 3 * rad)) {
+				fprintf(fileNameSlice, "%f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n", pos.x, pos.y, pos.z, vel.x, vel.y, vel.z, velMag, rP.x, rP.y,
+						rP.w);
+			}
+		}
+		fflush(fileNameSlice);
+		fclose(fileNameSlice);
+	}
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ////	FILE *fileNameCartesianTotal;
 ////	thrust::host_vector<float4> rho_Pres_CartH(1);
@@ -635,54 +635,54 @@ void PrintToFile(
 ////	}
 ////	vel_VelMag_CartH.clear();
 ////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//	FILE *fileRigidParticleCenterVsTime;
-//	FILE *fileRigidParticleCenterVsDistance;
-//	int numRigidBodies = int(posRigidD.size() / float(nPeriod) + .5);
-//	int tStepRigidCenterPos = 1000;
-//	if (tStep % tStepRigidCenterPos == 0) {
-//		if (tStep / tStepRigidCenterPos == 0) {
-//			fileRigidParticleCenterVsTime = fopen("dataRigidCenterVsTime.txt", "w");
-//			fprintf(fileRigidParticleCenterVsTime, "variables = \"t(s)\"");
-//			for (int j = 0; j < numRigidBodies; j++) {
-//				fprintf(fileRigidParticleCenterVsTime, ", \"t%d(s)\", \"Z%d(m)\"", j, j);
-//			}
-//			fprintf(fileRigidParticleCenterVsTime, "\nzone\n");
-//
-//			fileRigidParticleCenterVsDistance = fopen("dataRigidCenterVsDistance.txt", "w");
-//			fprintf(fileRigidParticleCenterVsDistance, "variables = \"X(m)\"");
-//			for (int j = 0; j < numRigidBodies; j++) {
-//				fprintf(fileRigidParticleCenterVsDistance, ", \"X%d(m)\", \"Z%d(m)\"", j, j);
-//			}
-//			fprintf(fileRigidParticleCenterVsDistance, "\nzone\n");
-//		} else {
-//			fileRigidParticleCenterVsTime = fopen("dataRigidCenterVsTime.txt", "a");
-//			fileRigidParticleCenterVsDistance = fopen("dataRigidCenterVsDistance.txt", "a");
-//		}
-//		if (referenceArray.size() > 2) {
-//			fprintf(fileRigidParticleCenterVsTime, "%f", 0); //dummy
-//			fprintf(fileRigidParticleCenterVsDistance, "%f", 0); //dummy
-//			for (int j = 0; j < numRigidBodies; j++) {
-//				float3 p_rigid = posRigidD[j];
-//				//printf("position %f %f %f %f\n", p_rigid.x, p_rigid.y, p_rigid.z,0);
-//				float3 p_rigidCumul = posRigidCumulativeD[j];
-//				//***for 2D flow
-//				//fprintf(fileRigidParticleCenterVsTime, "%f, %0.10f\n", tStep * delT, p_rigid.z);
-//				fprintf(fileRigidParticleCenterVsTime, ", %f, %0.10f", tStep * delT, p_rigid.z);
-//				fprintf(fileRigidParticleCenterVsDistance, ", %f, %0.10f", p_rigidCumul.x,  p_rigid.z);
-////				//***for tube
-////				float2 dist2 = F2(.5 * (cMax.y + cMin.y) - p_rigid.y, .5 * (cMax.z + cMin.z) - p_rigid.z);
-////				fprintf(fileRigidParticleCenterVsTime, "%f, %0.10f", tStep * delT, length(dist2) / channelRadius);
-////				fprintf(fileRigidParticleCenterVsDistance, "%f, %0.10f", p_rigidCumul.x, length(dist2) / channelRadius);
-//			}
-//			fprintf(fileRigidParticleCenterVsTime, "\n");
-//			fprintf(fileRigidParticleCenterVsDistance, "\n");
-//		}
-//		fflush(fileRigidParticleCenterVsTime);
-//		fclose(fileRigidParticleCenterVsTime);
-//
-//		fflush(fileRigidParticleCenterVsDistance);
-//		fclose(fileRigidParticleCenterVsDistance);
-//	}
+	FILE *fileRigidParticleCenterVsTime;
+	FILE *fileRigidParticleCenterVsDistance;
+	int numRigidBodies = int(posRigidD.size() / float(nPeriod) + .5);
+	int tStepRigidCenterPos = 1000;
+	if (tStep % tStepRigidCenterPos == 0) {
+		if (tStep / tStepRigidCenterPos == 0) {
+			fileRigidParticleCenterVsTime = fopen("dataRigidCenterVsTime.txt", "w");
+			fprintf(fileRigidParticleCenterVsTime, "variables = \"t(s)\"");
+			for (int j = 0; j < numRigidBodies; j++) {
+				fprintf(fileRigidParticleCenterVsTime, ", \"t%d(s)\", \"Z%d(m)\"", j, j);
+			}
+			fprintf(fileRigidParticleCenterVsTime, "\nzone\n");
+
+			fileRigidParticleCenterVsDistance = fopen("dataRigidCenterVsDistance.txt", "w");
+			fprintf(fileRigidParticleCenterVsDistance, "variables = \"X(m)\"");
+			for (int j = 0; j < numRigidBodies; j++) {
+				fprintf(fileRigidParticleCenterVsDistance, ", \"X%d(m)\", \"Z%d(m)\"", j, j);
+			}
+			fprintf(fileRigidParticleCenterVsDistance, "\nzone\n");
+		} else {
+			fileRigidParticleCenterVsTime = fopen("dataRigidCenterVsTime.txt", "a");
+			fileRigidParticleCenterVsDistance = fopen("dataRigidCenterVsDistance.txt", "a");
+		}
+		if (referenceArray.size() > 2) {
+			fprintf(fileRigidParticleCenterVsTime, "%f", 0); //dummy
+			fprintf(fileRigidParticleCenterVsDistance, "%f", 0); //dummy
+			for (int j = 0; j < numRigidBodies; j++) {
+				float3 p_rigid = posRigidD[j];
+				//printf("position %f %f %f %f\n", p_rigid.x, p_rigid.y, p_rigid.z,0);
+				float3 p_rigidCumul = posRigidCumulativeD[j];
+				//***for 2D flow
+				//fprintf(fileRigidParticleCenterVsTime, "%f, %0.10f\n", tStep * delT, p_rigid.z);
+				fprintf(fileRigidParticleCenterVsTime, ", %f, %0.10f", tStep * delT, p_rigid.z);
+				fprintf(fileRigidParticleCenterVsDistance, ", %f, %0.10f", p_rigidCumul.x,  p_rigid.z);
+//				//***for tube
+//				float2 dist2 = F2(.5 * (cMax.y + cMin.y) - p_rigid.y, .5 * (cMax.z + cMin.z) - p_rigid.z);
+//				fprintf(fileRigidParticleCenterVsTime, "%f, %0.10f", tStep * delT, length(dist2) / channelRadius);
+//				fprintf(fileRigidParticleCenterVsDistance, "%f, %0.10f", p_rigidCumul.x, length(dist2) / channelRadius);
+			}
+			fprintf(fileRigidParticleCenterVsTime, "\n");
+			fprintf(fileRigidParticleCenterVsDistance, "\n");
+		}
+		fflush(fileRigidParticleCenterVsTime);
+		fclose(fileRigidParticleCenterVsTime);
+
+		fflush(fileRigidParticleCenterVsDistance);
+		fclose(fileRigidParticleCenterVsDistance);
+	}
 //
 //	//if (tStep%10000 == 0) {
 //	//	char dumStr[5];
@@ -1286,7 +1286,7 @@ void cudaCollisions(
 		cudaEventElapsedTime(&time2, start2, stop2);
 		cudaEventDestroy(start2);
 		cudaEventDestroy(stop2);
-		if (tStep % 200 == 0) {
+		if (tStep % 50 == 0) {
 			printf("step: %d, step Time: %f\n ", tStep, time2);
 			//printf("a \n");
 		}
