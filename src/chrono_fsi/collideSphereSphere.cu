@@ -458,7 +458,8 @@ void PrintToFile(
 		float channelRadius) {
 ////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //	FILE *fileNameFluid;
-//	int stepSaveFluid = 1000000;
+//	//int stepSaveFluid = 1000000;
+//	int stepSaveFluid = 20000;
 //	///if (tStep%100 == 0 &&  tStep > 20400) {
 //	////if (tStep > 12506) {
 //	if (tStep % stepSaveFluid == 0) {
@@ -547,45 +548,45 @@ void PrintToFile(
 		fclose(fileNameSlice);
 	}
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-////	FILE *fileNameCartesianTotal;
-////	thrust::host_vector<float4> rho_Pres_CartH(1);
-////	thrust::host_vector<float4> vel_VelMag_CartH(1);
-////	float resolution = 2 * HSML;
-////	int3 cartesianGridDims;
-////	int tStepCartesianTotal = 1000000;
-////	int tStepCartesianSlice = 100000;
-////	int tStepPoiseuilleProf = 1000; //tStepCartesianSlice;
-////
-////	int stepCalcCartesian = min(tStepCartesianTotal, tStepCartesianSlice);
-////	stepCalcCartesian = min(stepCalcCartesian, tStepPoiseuilleProf);
-////
-////	if (tStep % stepCalcCartesian == 0) {
-////		MapSPH_ToGrid(resolution, cartesianGridDims, rho_Pres_CartH, vel_VelMag_CartH, posRadD, velMasD, rhoPresMuD,
-////				referenceArray[referenceArray.size() - 1].y, paramsH);
-////	}
-////	if (tStep % tStepCartesianTotal == 0) {
-////		if (tStep / tStepCartesianTotal == 0) {
-////			fileNameCartesianTotal = fopen("dataCartesianTotal.txt", "w");
-////			fprintf(fileNameCartesianTotal,
-////					"variables = \"x\", \"y\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\"\n");
-////		} else {
-////			fileNameCartesianTotal = fopen("dataCartesianTotal.txt", "a");
-////		}
-////		fprintf(fileNameCartesianTotal, "zone I = %d, J = %d, K = %d\n", cartesianGridDims.x, cartesianGridDims.y, cartesianGridDims.z);
-////		for (int k = 0; k < cartesianGridDims.z; k++) {
-////			for (int j = 0; j < cartesianGridDims.y; j++) {
-////				for (int i = 0; i < cartesianGridDims.x; i++) {
-////					int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
-////					float3 gridNodeLoc = resolution * F3(i, j, k) + paramsH.worldOrigin;
-////					fprintf(fileNameCartesianTotal, "%f, %f, %f, %f, %f, %f, %f, %f, %f\n", gridNodeLoc.x, gridNodeLoc.y, gridNodeLoc.z,
-////							vel_VelMag_CartH[index].x, vel_VelMag_CartH[index].y, vel_VelMag_CartH[index].z, vel_VelMag_CartH[index].w,
-////							rho_Pres_CartH[index].x, rho_Pres_CartH[index].y);
-////				}
-////			}
-////		}
-////		fflush(fileNameCartesianTotal);
-////		fclose(fileNameCartesianTotal);
-////	}
+//	FILE *fileNameCartesianTotal;
+//	thrust::host_vector<float4> rho_Pres_CartH(1);
+//	thrust::host_vector<float4> vel_VelMag_CartH(1);
+//	float resolution = 2 * HSML;
+//	int3 cartesianGridDims;
+//	int tStepCartesianTotal = 1000000;
+//	int tStepCartesianSlice = 100000;
+//	int tStepPoiseuilleProf = 1000; //tStepCartesianSlice;
+//
+//	int stepCalcCartesian = min(tStepCartesianTotal, tStepCartesianSlice);
+//	stepCalcCartesian = min(stepCalcCartesian, tStepPoiseuilleProf);
+//
+//	if (tStep % stepCalcCartesian == 0) {
+//		MapSPH_ToGrid(resolution, cartesianGridDims, rho_Pres_CartH, vel_VelMag_CartH, posRadD, velMasD, rhoPresMuD,
+//				referenceArray[referenceArray.size() - 1].y, paramsH);
+//	}
+//	if (tStep % tStepCartesianTotal == 0) {
+//		if (tStep / tStepCartesianTotal == 0) {
+//			fileNameCartesianTotal = fopen("dataCartesianTotal.txt", "w");
+//			fprintf(fileNameCartesianTotal,
+//					"variables = \"x\", \"y\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\"\n");
+//		} else {
+//			fileNameCartesianTotal = fopen("dataCartesianTotal.txt", "a");
+//		}
+//		fprintf(fileNameCartesianTotal, "zone I = %d, J = %d, K = %d\n", cartesianGridDims.x, cartesianGridDims.y, cartesianGridDims.z);
+//		for (int k = 0; k < cartesianGridDims.z; k++) {
+//			for (int j = 0; j < cartesianGridDims.y; j++) {
+//				for (int i = 0; i < cartesianGridDims.x; i++) {
+//					int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
+//					float3 gridNodeLoc = resolution * F3(i, j, k) + paramsH.worldOrigin;
+//					fprintf(fileNameCartesianTotal, "%f, %f, %f, %f, %f, %f, %f, %f, %f\n", gridNodeLoc.x, gridNodeLoc.y, gridNodeLoc.z,
+//							vel_VelMag_CartH[index].x, vel_VelMag_CartH[index].y, vel_VelMag_CartH[index].z, vel_VelMag_CartH[index].w,
+//							rho_Pres_CartH[index].x, rho_Pres_CartH[index].y);
+//				}
+//			}
+//		}
+//		fflush(fileNameCartesianTotal);
+//		fclose(fileNameCartesianTotal);
+//	}
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ////	FILE *fileNameCartesianMidplane;
 ////	if (tStep % tStepCartesianSlice == 0) {
@@ -644,14 +645,14 @@ void PrintToFile(
 			fileRigidParticleCenterVsTime = fopen("dataRigidCenterVsTime.txt", "w");
 			fprintf(fileRigidParticleCenterVsTime, "variables = \"t(s)\"");
 			for (int j = 0; j < numRigidBodies; j++) {
-				fprintf(fileRigidParticleCenterVsTime, ", \"t%d(s)\", \"Z%d(m)\"", j, j);
+				fprintf(fileRigidParticleCenterVsTime, ", \"t%d(s)\", \"Y%d(m)\", \"Z%d(m)\"", j, j);
 			}
 			fprintf(fileRigidParticleCenterVsTime, "\nzone\n");
 
 			fileRigidParticleCenterVsDistance = fopen("dataRigidCenterVsDistance.txt", "w");
 			fprintf(fileRigidParticleCenterVsDistance, "variables = \"X(m)\"");
 			for (int j = 0; j < numRigidBodies; j++) {
-				fprintf(fileRigidParticleCenterVsDistance, ", \"X%d(m)\", \"Z%d(m)\"", j, j);
+				fprintf(fileRigidParticleCenterVsDistance, ", \"X%d(m)\", \"Y%d(m)\", \"Z%d(m)\"", j, j);
 			}
 			fprintf(fileRigidParticleCenterVsDistance, "\nzone\n");
 		} else {
@@ -667,8 +668,8 @@ void PrintToFile(
 				float3 p_rigidCumul = posRigidCumulativeD[j];
 				//***for 2D flow
 				//fprintf(fileRigidParticleCenterVsTime, "%f, %0.10f\n", tStep * delT, p_rigid.z);
-				fprintf(fileRigidParticleCenterVsTime, ", %f, %0.10f", tStep * delT, p_rigid.z);
-				fprintf(fileRigidParticleCenterVsDistance, ", %f, %0.10f", p_rigidCumul.x,  p_rigid.z);
+				fprintf(fileRigidParticleCenterVsTime, ", %f, %0.10f, %0.10f", tStep * delT, p_rigid.y, p_rigid.z);
+				fprintf(fileRigidParticleCenterVsDistance, ", %f, %0.10f, %0.10f", p_rigidCumul.x, p_rigid.y,  p_rigid.z);
 //				//***for tube
 //				float2 dist2 = F2(.5 * (cMax.y + cMin.y) - p_rigid.y, .5 * (cMax.z + cMin.z) - p_rigid.z);
 //				fprintf(fileRigidParticleCenterVsTime, "%f, %0.10f", tStep * delT, length(dist2) / channelRadius);
@@ -788,8 +789,9 @@ void ForceSPH(
 			U1CAST(m_dGridParticleIndex), TCAST(posRadD), F4CAST(velMasD), F4CAST(rhoPresMuD), mNSpheres, m_numGridCells);
 
 	//process collisions
+	float4 totalFluidBodyForce4 = bodyForce4 + F4(Gravity);
 	thrust::fill(derivVelRhoD.begin(), derivVelRhoD.end(), F4(0)); //initialize derivVelRhoD with zero. necessary
-	thrust::fill(derivVelRhoD.begin() + referenceArray[0].x, derivVelRhoD.begin() + referenceArray[0].y, bodyForce4); //add body force to fluid particles.
+	thrust::fill(derivVelRhoD.begin() + referenceArray[0].x, derivVelRhoD.begin() + referenceArray[0].y, totalFluidBodyForce4); //add body force to fluid particles.
 
 	RecalcVelocity_XSPH(F3CAST(vel_XSPH_D), m_dSortedPosRad, m_dSortedVelMas, m_dSortedRhoPreMu, U1CAST(m_dGridParticleIndex), m_dCellStart,
 			m_dCellEnd, mNSpheres, m_numGridCells);

@@ -652,7 +652,7 @@ void collideD(float4* derivVelRhoD, // output: new velocity
 	uint originalIndex = gridParticleIndex[index];
 	float3 vel_XSPH_A = FETCH(vel_XSPH_D, originalIndex);
 
-	float4 derivVelRho = F4(paramsD.gravity);
+	float4 derivVelRho = F4(0);
 
 	// get address in grid
 	int3 gridPos = calcGridPos(F3(posRadA));
