@@ -31,40 +31,40 @@ namespace chrono
 
 
 static ChThesItem parser_thesaurus[] = {
-    {"sqrt",		0, CHCLASS_FLOAT,	CHCLASS_FLOAT, 0, 0},				// 0
-	{"add",			0, CHCLASS_FLOAT,	CHCLASS_FLOAT, CHCLASS_FLOAT, 0},
-	{"move_dw",		0, NULL,			0, 0, 0},
-	{"multiply",	0, CHCLASS_FLOAT,	CHCLASS_FLOAT, CHCLASS_FLOAT, 0},
-	{"divide",		0, CHCLASS_FLOAT,	CHCLASS_FLOAT, CHCLASS_FLOAT, 0},
-	{"subtract",	0, CHCLASS_FLOAT,	CHCLASS_FLOAT, CHCLASS_FLOAT, 0},
-	{"pow",			0, CHCLASS_FLOAT,	CHCLASS_FLOAT, CHCLASS_FLOAT, 0},
-	{"isequal",		0, CHCLASS_FLOAT,	CHCLASS_FLOAT, CHCLASS_FLOAT, 0},
-	{"ismajor",		0, CHCLASS_FLOAT,	CHCLASS_FLOAT, CHCLASS_FLOAT, 0},
-	{"isminor",		0, CHCLASS_FLOAT,	CHCLASS_FLOAT, CHCLASS_FLOAT, 0},
-	{"sin",			0, CHCLASS_FLOAT,	CHCLASS_FLOAT, 0, 0},				// 10
-	{"cos",			0, CHCLASS_FLOAT,	CHCLASS_FLOAT, 0, 0},
-	{"asin",		0, CHCLASS_FLOAT,	CHCLASS_FLOAT, 0, 0},
-	{"acos",		0, CHCLASS_FLOAT,	CHCLASS_FLOAT, 0, 0},
-	{"tan",			0, CHCLASS_FLOAT,	CHCLASS_FLOAT, 0, 0},
-	{"atan",		0, CHCLASS_FLOAT,	CHCLASS_FLOAT, 0, 0},
-	{"log",			0, CHCLASS_FLOAT,	CHCLASS_FLOAT, 0, 0},
-	{"exp",			0, CHCLASS_FLOAT,	CHCLASS_FLOAT, 0, 0},
-	{"fv0",			1, CHCLASS_FLOAT,	0, 0, 0},
-	{"fv1",			1, CHCLASS_FLOAT,	0, 0, 0},
-	{"fv2",			1, CHCLASS_FLOAT,	0, 0, 0},							// 20
-	{"fv3",			1, CHCLASS_FLOAT,	0, 0, 0},
-	{"fv4",			1, CHCLASS_FLOAT,	0, 0, 0},
-	{"fv5",			1, CHCLASS_FLOAT,	0, 0, 0},
-	{"store",		0, NULL,			CHCLASS_POINTER, CHCLASS_POINTER, 0},
-	{"not",			0, CHCLASS_FLOAT,	CHCLASS_FLOAT,   0, 0},
-	{"notequal",	0, CHCLASS_FLOAT,	CHCLASS_FLOAT, CHCLASS_FLOAT, 0},
-	{"ifgoto",		0, NULL,			CHCLASS_FLOAT, CHCLASS_POINTER, CHCLASS_POINTER},
-	{"notifgoto",	0, NULL,			CHCLASS_FLOAT, CHCLASS_POINTER, CHCLASS_POINTER},
-	{"goto",		0, NULL,			CHCLASS_POINTER, CHCLASS_POINTER, 0},
-	{"fv6",			1, CHCLASS_FLOAT,	0, 0, 0},							// 30
-	{"fv7",			1, CHCLASS_FLOAT,	0, 0, 0},
-	{"fv8",			1, CHCLASS_FLOAT,	0, 0, 0},
-	{"fv9",			1, CHCLASS_FLOAT,	0, 0, 0},
+    {(char*)"sqrt",		0, CHCLASS_FLOAT,	CHCLASS_FLOAT, 0, 0},				// 0
+	{(char*)"add",			0, CHCLASS_FLOAT,	CHCLASS_FLOAT, CHCLASS_FLOAT, 0},
+	{(char*)"move_dw",		0, 0,			0, 0, 0},
+	{(char*)"multiply",	0, CHCLASS_FLOAT,	CHCLASS_FLOAT, CHCLASS_FLOAT, 0},
+	{(char*)"divide",		0, CHCLASS_FLOAT,	CHCLASS_FLOAT, CHCLASS_FLOAT, 0},
+	{(char*)"subtract",	0, CHCLASS_FLOAT,	CHCLASS_FLOAT, CHCLASS_FLOAT, 0},
+	{(char*)"pow",			0, CHCLASS_FLOAT,	CHCLASS_FLOAT, CHCLASS_FLOAT, 0},
+	{(char*)"isequal",		0, CHCLASS_FLOAT,	CHCLASS_FLOAT, CHCLASS_FLOAT, 0},
+	{(char*)"ismajor",		0, CHCLASS_FLOAT,	CHCLASS_FLOAT, CHCLASS_FLOAT, 0},
+	{(char*)"isminor",		0, CHCLASS_FLOAT,	CHCLASS_FLOAT, CHCLASS_FLOAT, 0},
+	{(char*)"sin",			0, CHCLASS_FLOAT,	CHCLASS_FLOAT, 0, 0},				// 10
+	{(char*)"cos",			0, CHCLASS_FLOAT,	CHCLASS_FLOAT, 0, 0},
+	{(char*)"asin",		0, CHCLASS_FLOAT,	CHCLASS_FLOAT, 0, 0},
+	{(char*)"acos",		0, CHCLASS_FLOAT,	CHCLASS_FLOAT, 0, 0},
+	{(char*)"tan",			0, CHCLASS_FLOAT,	CHCLASS_FLOAT, 0, 0},
+	{(char*)"atan",		0, CHCLASS_FLOAT,	CHCLASS_FLOAT, 0, 0},
+	{(char*)"log",			0, CHCLASS_FLOAT,	CHCLASS_FLOAT, 0, 0},
+	{(char*)"exp",			0, CHCLASS_FLOAT,	CHCLASS_FLOAT, 0, 0},
+	{(char*)"fv0",			1, CHCLASS_FLOAT,	0, 0, 0},
+	{(char*)"fv1",			1, CHCLASS_FLOAT,	0, 0, 0},
+	{(char*)"fv2",			1, CHCLASS_FLOAT,	0, 0, 0},							// 20
+	{(char*)"fv3",			1, CHCLASS_FLOAT,	0, 0, 0},
+	{(char*)"fv4",			1, CHCLASS_FLOAT,	0, 0, 0},
+	{(char*)"fv5",			1, CHCLASS_FLOAT,	0, 0, 0},
+	{(char*)"store",		0, 0,			CHCLASS_POINTER, CHCLASS_POINTER, 0},
+	{(char*)"not",			0, CHCLASS_FLOAT,	CHCLASS_FLOAT,   0, 0},
+	{(char*)"notequal",	0, CHCLASS_FLOAT,	CHCLASS_FLOAT, CHCLASS_FLOAT, 0},
+	{(char*)"ifgoto",		0, 0,			CHCLASS_FLOAT, CHCLASS_POINTER, CHCLASS_POINTER},
+	{(char*)"notifgoto",	0, 0,			CHCLASS_FLOAT, CHCLASS_POINTER, CHCLASS_POINTER},
+	{(char*)"goto",		0, 0,			CHCLASS_POINTER, CHCLASS_POINTER, 0},
+	{(char*)"fv6",			1, CHCLASS_FLOAT,	0, 0, 0},							// 30
+	{(char*)"fv7",			1, CHCLASS_FLOAT,	0, 0, 0},
+	{(char*)"fv8",			1, CHCLASS_FLOAT,	0, 0, 0},
+	{(char*)"fv9",			1, CHCLASS_FLOAT,	0, 0, 0},
     {NULL,}
 };
 
@@ -400,9 +400,9 @@ int ChParser::REC_Compile (char* string, char* endstring)
 		{
 			int skipped = match_parenthesis (strpoint, endstring);
 
-			if (skipped == NULL)
+			if (skipped == 0)
 			{
-				MakeErrorMsg("No matching parenthesis: ", strpoint); // ** ERROR
+				MakeErrorMsg((char*)"No matching parenthesis: ", strpoint); // ** ERROR
 				return FALSE;
 			}
 			if ((strpoint + skipped)==(endstring-1)) // the syntax was "fx(yyyy)"
@@ -424,19 +424,19 @@ int ChParser::REC_Compile (char* string, char* endstring)
 		}
 
 		// handle "while" cycle.
-		if (token_match(strpoint, strpoint+5, "while"))
+		if (token_match(strpoint, strpoint+5, (char*)"while"))
 		{
 			char* wistrpoint = strpoint+5;
 			while (*wistrpoint == *" ") wistrpoint++; // skip spaces
 			if (*wistrpoint != *"(")
 			{
-				MakeErrorMsg("After 'while' there must be a (..) condition: ", wistrpoint); // ** ERROR
+				MakeErrorMsg((char*)"After 'while' there must be a (..) condition: ", wistrpoint); // ** ERROR
 				return FALSE;
 			}
 			int skipped = match_parenthesis (wistrpoint, endstring);
-			if (skipped == NULL)
+			if (skipped == 0)
 			{
-				MakeErrorMsg("No matching ')' brace: ", wistrpoint); // ** ERROR
+				MakeErrorMsg((char*)"No matching ')' brace: ", wistrpoint); // ** ERROR
 				return FALSE;
 			}
 			char* wisA_from = wistrpoint+1;
@@ -445,13 +445,13 @@ int ChParser::REC_Compile (char* string, char* endstring)
 			while (*wistrpoint == *" ") wistrpoint++; // skip spaces
 			if (*wistrpoint != *"{")
 			{
-				MakeErrorMsg("After 'while()' there must be an opening '{' brace: ", wistrpoint); // ** ERROR
+				MakeErrorMsg((char*)"After 'while()' there must be an opening '{' brace: ", wistrpoint); // ** ERROR
 				return FALSE;
 			}
 			int skipcycle = match_brace (wistrpoint, endstring);
-			if (skipcycle == NULL)
+			if (skipcycle == 0)
 			{
-				MakeErrorMsg("No matching '}' brace: ", wistrpoint); // ** ERROR
+				MakeErrorMsg((char*)"No matching '}' brace: ", wistrpoint); // ** ERROR
 				return FALSE;
 			}
 			if (precedence>=38)
@@ -484,21 +484,21 @@ int ChParser::REC_Compile (char* string, char* endstring)
 			sB_from = strpoint+1 ; sB_to = endstring;
 		}
 
-		if ((token_match(strpoint, strpoint+2, "=="))&&(precedence>15))
+		if ((token_match(strpoint, strpoint+2, (char*)"=="))&&(precedence>15))
 		{
 			opcode = PARID_ISEQUAL;
 			precedence = 15;
 			sA_from = string; sA_to = strpoint;
 			sB_from = strpoint+2 ; sB_to = endstring;
 		}
-		if ((token_match(strpoint, strpoint+2, "->"))&&(precedence>15))
+		if ((token_match(strpoint, strpoint+2, (char*)"->"))&&(precedence>15))
 		{
 			opcode = PARID_POINTER;
 			precedence = 50;
 			//sA_from = string; sA_to = strpoint;
 			//sB_from = strpoint+2 ; sB_to = endstring;
 		}
-		if ((token_match(strpoint, strpoint+2, "!="))&&(precedence>15))
+		if ((token_match(strpoint, strpoint+2, (char*)"!="))&&(precedence>15))
 		{
 			opcode = PARID_NOTEQUAL;
 			precedence = 15;
@@ -573,7 +573,7 @@ int ChParser::REC_Compile (char* string, char* endstring)
 	ChTag* mynewtag = NULL;
 	ChVar* mydatatagEndInstr = NULL;
 	ChVar* mydatatagEndData = NULL;
-	int oldins, olddata = NULL;
+	int oldins, olddata = 0;
 
 	switch (opcode)
 	{
@@ -651,7 +651,7 @@ int ChParser::REC_Compile (char* string, char* endstring)
 			if (((this->stacks->prog_stack->Get_used() - oldins) != 1 ) ||
 				(this->stacks->data_stack->Get_used() != olddata )  )
 				{
-					MakeErrorMsg("syntax error at the left side of '=' sign: ", string);
+					MakeErrorMsg((char*)"syntax error at the left side of '=' sign: ", string);
 					return FALSE; }// ** ERROR
 
 			mynewtag = new ChTag;
@@ -741,7 +741,7 @@ int ChParser::REC_Compile (char* string, char* endstring)
 		return TRUE;
 	}
 
-	MakeErrorMsg("syntax error: ", string); // ** ERROR compilation not possible
+	MakeErrorMsg((char*)"syntax error: ", string); // ** ERROR compilation not possible
 
 	return FALSE;
 }
@@ -750,7 +750,7 @@ int ChParser::REC_Compile (char* string, char* endstring)
 int ChParser::Compile (char* string)
 {
 
-	MakeErrorMsg("","");
+	MakeErrorMsg((char*)"",(char*)"");
 
 	ClearStacks();
 
@@ -762,7 +762,7 @@ int ChParser::Compile (char* string)
 
 int ChParser::Execute()
 {
-	MakeErrorMsg("","");
+	MakeErrorMsg((char*)"",(char*)"");
 
 	// Initialize instruction pointer at the beginning of progr.stack
 	instrp = stacks->prog_stack->GetList()->GetHead();
@@ -789,16 +789,16 @@ int ChParser::Execute()
 		{
 			char buff[50];
 			sprintf(buff, "ID: %d, CLASS: %d", instrp->data->tagID, instrp->data->classID);
-			MakeErrorMsg("Tag not supported: ", buff); // ** ERROR
+			MakeErrorMsg((char*)"Tag not supported: ", buff); // ** ERROR
 			return FALSE;
 		}
 
 		//if ((instrp == NULL)||(datap==NULL))  return TRUE; // a 'goto' has moved to end of program
 
 		// delete the used parameters from work_stack
-		if (instrp->data->par1_type != NULL) stacks->work_stack->Pop();
-		if (instrp->data->par2_type != NULL) stacks->work_stack->Pop();
-		if (instrp->data->par3_type != NULL) stacks->work_stack->Pop();
+		if (instrp->data->par1_type != 0) stacks->work_stack->Pop();
+		if (instrp->data->par2_type != 0) stacks->work_stack->Pop();
+		if (instrp->data->par3_type != 0) stacks->work_stack->Pop();
 
 		// push the return variable (if not void) on the return work_stack
 		if (retvar->classtype != CHCLASS_NONE)
@@ -826,12 +826,12 @@ int ChParser::Execute(double& result)
 	if (!Execute()) return FALSE;
 	if (stacks->work_stack->GetTop() == NULL)
 	{
-		MakeErrorMsg ("Function does not return value","");
+		MakeErrorMsg ((char*)"Function does not return value",(char*)"");
 		return FALSE;
 	}
 	if (stacks->work_stack->GetTop()->classtype != CHCLASS_FLOAT)
 	{
-		MakeErrorMsg ("Function return type is not a float point number","");
+		MakeErrorMsg ((char*)"Function return type is not a float point number",(char*)"");
 		return FALSE;
 	}
 	else result = stacks->work_stack->GetTop()->mdouble;

@@ -52,15 +52,13 @@
 using namespace chrono;
 #if defined( _WINDOWS )
 #include <windows.h>
-#define NAN(x) _isnan(x)
+#define ISNAN(x) _isnan(x)
 #else
 #include <unistd.h>
-#define NAN(x) isnan(x)
+#define ISNAN(x) isnan(x)
 #endif
 
 using namespace std;
-
-#define PI	3.14159265358979323846
 #define TORAD(x) x*PI/180.0
 
 struct Point {

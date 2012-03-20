@@ -129,9 +129,8 @@ double ChFunction::Compute_int(double xmin, double xmax, double sampling_step, i
 
 int ChFunction::MakeOptVariableTree(ChList<chjs_propdata>* mtree)
 {
-	char** mvars;
+	const char** mvars= this->GetOptVariables();
 	int i=0;
-	mvars= this->GetOptVariables();
 	while (*(mvars+i)!=0)
 	{
 		chjs_propdata* mdata = new chjs_propdata;
@@ -313,7 +312,7 @@ int ChFunction::FileAsciiPairsSave(ChStreamOutAscii& m_file, double mxmin, doubl
 	if (msamples>=100000) throw (ChException("Warning! Too many points should be saved"));
 	if (mxmax<=mxmin) throw (ChException("Warning! Cannot save ChFunction if Xmax < Xmin"));
 
-	m_file.SetNumFormat("%0.8f");
+	m_file.SetNumFormat((char* )"%0.8f");
 	
 	double period = (mxmax-mxmin)/((double)msamples-1);
 	

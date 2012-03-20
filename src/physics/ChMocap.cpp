@@ -258,7 +258,7 @@ int ChMocap::Parse_AOA(char* mfile)
 */
 	
 	// open the file
-	streamMocap  = new ChFile( mfile, "r", ChFile::CHFILE_NORMAL );
+	streamMocap  = new ChFile( mfile, (char*)"r", ChFile::CHFILE_NORMAL );
 	if ( streamMocap->GetHandler() == NULL ) {delete streamMocap; return 1;}
 
 	// parse the header
@@ -352,15 +352,15 @@ int ChMocap::Write_AOA(char* mfile)
 	ChFile* streamMocap;
 	Vector mvect;
 
-	streamMocap  = new ChFile( mfile, "w", ChFile::CHFILE_NORMAL );
+	streamMocap  = new ChFile( mfile, (char*)"w", ChFile::CHFILE_NORMAL );
 	if ( streamMocap->GetHandler() == NULL ) {delete streamMocap; return 1;}
 
 	// write header
-	streamMocap->Write("frames = ");
+	streamMocap->Write((char*)"frames = ");
 	streamMocap->Write(samples);
-	streamMocap->Write(" markers = ");
+	streamMocap->Write((char*)" markers = ");
 	streamMocap->Write(markers);
-	streamMocap->Write(" Hz = ");
+	streamMocap->Write((char*)" Hz = ");
 	streamMocap->Write(Hertz);
 	streamMocap->CR();
 
@@ -393,7 +393,7 @@ int ChMocap::Parse_Elite(char* mfile)
 	Vector mvect;
 
 	// open the file
-	streamMocap  = new ChFile( mfile, "r", ChFile::CHFILE_NORMAL );
+	streamMocap  = new ChFile( mfile, (char*)"r", ChFile::CHFILE_NORMAL );
 	if ( streamMocap->GetHandler() == NULL ) {delete streamMocap; return 1;}
 
 	// parse the header
@@ -416,7 +416,7 @@ int ChMocap::Parse_Elite(char* mfile)
 
 		// reopen file
 	delete streamMocap;
-	streamMocap  = new ChFile( mfile, "r", ChFile::CHFILE_NORMAL );
+	streamMocap  = new ChFile( mfile, (char*)"r", ChFile::CHFILE_NORMAL );
 
 	// compute number of samples, if undersample
 	double mfnumpoints;
@@ -490,7 +490,7 @@ int ChMocap::Write_Elite(char* mfile)
 	ChFile* streamMocap;
 	Vector mvect;
 
-	streamMocap  = new ChFile( mfile, "w", ChFile::CHFILE_NORMAL );
+	streamMocap  = new ChFile( mfile, (char*)"w", ChFile::CHFILE_NORMAL );
 	if ( streamMocap->GetHandler() == NULL ) {delete streamMocap; return 1;}
 
 	for (int nsamp = 0; nsamp< samples; nsamp++)

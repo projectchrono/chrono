@@ -58,14 +58,14 @@ const ChFile_ps_color PS_COLOR_BLACK(0,0,0);
 #define PS_STRLEN_LABEL 100
 
 static char *ch_font_labels[] = {
-    "/Times-Roman",
-    "/Times-Italic",
-	"/Times-Bold",
-	"/Times-BoldItalic",
-	"/Helvetica",
-    "/Helvetica-Oblique",
-	"/Helvetica-Bold",
-	"/Helvetica-BoldOblique",
+		(char*)"/Times-Roman",
+		(char*)"/Times-Italic",
+		(char*)"/Times-Bold",
+		(char*)"/Times-BoldItalic",
+		(char*)"/Helvetica",
+		(char*)"/Helvetica-Oblique",
+		(char*)"/Helvetica-Bold",
+		(char*)"/Helvetica-BoldOblique",
     0
 };
 

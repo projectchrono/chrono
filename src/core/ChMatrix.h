@@ -250,7 +250,7 @@ public:
 	inline int GetColumns () const	{ return columns; }
 
 					/// Reallocate memory for a new size. VIRTUAL! Must be implemented by child classes!
-	virtual inline void Resize(int nrows, int ncols)=0;
+	virtual inline void Resize(int nrows, int ncols){};
 
 					/// Swaps the columns a and b
 	void SwapColumns (int a, int b)

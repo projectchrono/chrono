@@ -40,7 +40,7 @@ namespace chrono
 #define CHF_FILE_HEADER_ID  1234.56
 
 
-#define OPT_VARIABLES_START virtual char** GetOptVariables() {static char* mOptVars[]={
+#define OPT_VARIABLES_START virtual const char** GetOptVariables() {static const char* mOptVars[]={
 #define OPT_VARIABLES_END   0};return mOptVars;}
 
 

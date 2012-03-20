@@ -657,7 +657,7 @@ ChStreamInBinary& ChStreamInBinary::operator >>(std::string		&str)
 	// Read string length , plus null-termination char
 	str = "";
 	char buf[2];
-	buf[1]=NULL;
+	buf[1]='\0';
 	int mlength;
 	*this >> mlength ;
 	str.reserve(mlength);

@@ -762,7 +762,7 @@ void ChLcpSystemDescriptor::SetNumThreads(int nthreads)
 		return;
 
 	// Create the threads container
-	ChThreadConstructionInfo create_args ( "solver", 
+	ChThreadConstructionInfo create_args ( (char*)"solver",
 						SystemdThreadFunc, 
 						SystemdMemoryFunc, 
 						this->num_threads);
