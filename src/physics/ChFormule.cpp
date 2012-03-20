@@ -352,7 +352,7 @@ int token_atom_lenght (char* string, char* string_end)
 int goto_next_atom (char*& string, char*& endstring)
 {
 
-	if (token_match(string, string+2, "->"))
+	if (token_match(string, string+2, (char*)"->"))
 	{
 		string = string +2;
 		if (string > endstring) string = endstring;

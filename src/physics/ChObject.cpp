@@ -30,8 +30,8 @@ namespace chrono
 // which can be parsed
 
 static ChThesItem chobj_thesaurus[] = {
-    {"identifier",		1, CHCLASS_INTEGER,	 0, 0, 0},
-	{"name",			1, CHCLASS_STRINGP,	 0, 0, 0},
+    {(char*)"identifier",		1, CHCLASS_INTEGER,	 0, 0, 0},
+	{(char*)"name",			1, CHCLASS_STRINGP,	 0, 0, 0},
     {NULL,}
 };
 

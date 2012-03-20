@@ -200,13 +200,13 @@ void System::SaveByID(int id, string fname) {
 	ChVector<> vel = abody->GetPos_dt();
 	ChVector<> acc = abody->GetPos_dtdt();
 	//ChVector<> fap = abody->GetAppliedForce();
-	if (NAN(rot.x)) {
+	if (ISNAN(rot.x)) {
 		rot.x = 0;
 	}
-	if (NAN(rot.y)) {
+	if (ISNAN(rot.y)) {
 		rot.y = 0;
 	}
-	if (NAN(rot.z)) {
+	if (ISNAN(rot.z)) {
 		rot.z = 0;
 	}
 	ofile << pos.x << "," << pos.y << "," << pos.z << ",";
@@ -269,13 +269,13 @@ void System::SaveByObject(CHBODY *abody, string fname) {
 	ChVector<> acc = abody->GetPos_dtdt();
 	//ChVector<> fap = abody->GetAppliedForce();
 
-	if (NAN(rot.x)) {
+	if (ISNAN(rot.x)) {
 		rot.x = 0;
 	}
-	if (NAN(rot.y)) {
+	if (ISNAN(rot.y)) {
 		rot.y = 0;
 	}
-	if (NAN(rot.z)) {
+	if (ISNAN(rot.z)) {
 		rot.z = 0;
 	}
 

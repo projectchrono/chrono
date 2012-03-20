@@ -38,7 +38,7 @@ void ChFile_ps_axis_setting::InitializeDefaults()
 	ticks = true;
 	ticks_step = 0.1;
 	ticks_width = 0.04;
-	SetLabel(" ");
+	SetLabel((char*)" ");
 	label_color.SetGray(.0);
 	label_fontsize = 0.32;
 	label_fontname = 0;
@@ -82,15 +82,15 @@ void ChFile_ps_graph_setting::InitializeDefaults()
 	Xaxis.InitializeDefaults();
 	Yaxis.InitializeDefaults();
 
-	Xaxis.SetLabel("t");
-	Yaxis.SetLabel("Y");
+	Xaxis.SetLabel((char*)"t");
+	Yaxis.SetLabel((char*)"Y");
 
 	gridx = true;
 	gridy = true;
 	grid_color.Set(0.5, 0.6, 0.9);
 	grid_width = 0.02;
 
-	SetTitle("title");
+	SetTitle((char*)"title");
 	title_color.SetGray(.0);
 	title_fontsize = 0.4;
 	title_fontname = 0;
@@ -113,7 +113,7 @@ ChFile_ps::ChFile_ps(char m_name[],
 					 double h,
 					 char* m_prolog_file)  : ChStreamOutAsciiFile(m_name)
 {
-	this->SetNumFormat("%g");
+	this->SetNumFormat((char*)"%g");
 
 	strcpy (prolog_file, m_prolog_file);
 
@@ -165,7 +165,7 @@ ChFile_ps::ChFile_ps(char m_name[],
 
 	SetWidth(0.01);
 	SetGray(0);
-	SetFont("/Times-Roman",1);
+	SetFont((char*)"/Times-Roman",1);
 }
 
 
@@ -410,7 +410,7 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting)
 	// X AXIS ticks, grid numbers
 	//
 
-	SetFont("/Helvetica",msetting->Xaxis.numbers_fontsize);
+	SetFont((char*)"/Helvetica",msetting->Xaxis.numbers_fontsize);
 
 	double stpx = ceil(lole_g.x / msetting->Xaxis.ticks_step) * msetting->Xaxis.ticks_step;
 	for (double w = stpx; w < upri_g.x; w += msetting->Xaxis.ticks_step)
@@ -451,7 +451,7 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting)
 	// Y AXIS grid, numbers, ticks
 	//
 
-	SetFont("/Helvetica",msetting->Yaxis.numbers_fontsize);
+	SetFont((char*)"/Helvetica",msetting->Yaxis.numbers_fontsize);
 
 	double stpy = ceil(lole_g.y / msetting->Yaxis.ticks_step) * msetting->Yaxis.ticks_step;
 	for (double h = stpy; h < upri_g.y; h += msetting->Yaxis.ticks_step)
@@ -622,7 +622,7 @@ void ChFile_ps::DrawGraphLabel(double dx, double dy, double fontsize, char* labe
 
 	GrSave();
 	ClipToGraph();
-	SetFont("/Times-Italic", fontsize);
+	SetFont((char*)"/Times-Italic", fontsize);
 
 	if (background)
 	{

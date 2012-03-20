@@ -265,9 +265,9 @@ int ChFile::Write (Vector m_vector)
 {
 	if (CanWrite())
 	{
-		Write (m_vector.x); Write ("  ");
-		Write (m_vector.y); Write ("  ");
-		Write (m_vector.z); Write ("  ");
+		Write (m_vector.x); Write ((char*)"  ");
+		Write (m_vector.y); Write ((char*)"  ");
+		Write (m_vector.z); Write ((char*)"  ");
 		return 1;
 	}
 	else return 0;
@@ -277,10 +277,10 @@ int ChFile::Write (Quaternion m_quaternion)
 {
 	if (CanWrite()) 
 	{
-		Write (m_quaternion.e0); Write ("  ");
-		Write (m_quaternion.e1); Write ("  ");
-		Write (m_quaternion.e2); Write ("  ");
-		Write (m_quaternion.e3); Write ("  ");
+		Write (m_quaternion.e0); Write ((char*)"  ");
+		Write (m_quaternion.e1); Write ((char*)"  ");
+		Write (m_quaternion.e2); Write ((char*)"  ");
+		Write (m_quaternion.e3); Write ((char*)"  ");
 		return 1;
 	}
 	else return 0;
@@ -290,8 +290,8 @@ int ChFile::Write (Coordsys m_coordsys)
 {
 	if (CanWrite()) 
 	{
-		Write (m_coordsys.pos); Write ("  ");
-		Write (m_coordsys.rot); Write ("  ");
+		Write (m_coordsys.pos); Write ((char*)"  ");
+		Write (m_coordsys.rot); Write ((char*)"  ");
 		return 1;
 	}
 	else return 0;
@@ -321,7 +321,7 @@ int ChFile::Write (ChMatrix<>* m_matrix, int transpose)
 			{
 				if (!transpose) val= m_matrix->GetElement(mr,mc);
 				if (transpose)  val= m_matrix->GetElement(mc,mr);
-				Write (val); Write ("  ");
+				Write (val); Write ((char*)"  ");
 			}
 			CR();
 		}
@@ -349,7 +349,7 @@ int ChFile::Write (ChSparseMatrix* m_matrix)
 			for (int mc = 0; mc < c; mc++)
 			{
 				val= m_matrix->GetElement(mr,mc);
-				Write (val); Write ("  ");
+				Write (val); Write ((char*)"  ");
 			}
 			CR();
 		}
@@ -365,7 +365,7 @@ void ChFile::Comment (char m_string[])
 		if (CHGLOBALS().WriteComments)
 		{
 			TAB(); TAB(); TAB();
-			Write ("#");
+			Write ((char*)"#");
 			Write (m_string);
 		}
 		CR();
@@ -377,8 +377,8 @@ void ChFile::WriteStepInfo (double time, double step)
 	if (CanWrite())
 	{
 		CR();
-		Write(" current time: "); Write(time); 
-		Write("    time step: "); Write(step); 
+		Write((char*)" current time: "); Write(time);
+		Write((char*)"    time step: "); Write(step);
 		CR();
 	}
 }
@@ -398,7 +398,7 @@ int ChFile::Write (ChVar m_var)
 		case CHCLASS_STRINGP: 
 			Write ((char*)m_var.varp); break;
 		default:
-			Write ("Ch_var of class type: "); Write (m_var.classtype);
+			Write ((char*)"Ch_var of class type: "); Write (m_var.classtype);
 		}
 		return 1;
 	}

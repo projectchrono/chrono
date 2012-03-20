@@ -61,8 +61,8 @@ ChLinkWheel::ChLinkWheel ()
     type = LNK_WHEEL;       // initializes type
 
     wheel_rotation = new ChFunction_Const (0);
-    wcollision = NULL;
-    speed_handled = NULL;
+    wcollision = 0;
+    speed_handled = 0;
     radius = 0.1;
     thickness = 0.0;
     friction = 0.7;

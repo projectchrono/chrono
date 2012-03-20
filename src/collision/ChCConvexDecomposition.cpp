@@ -88,7 +88,7 @@ bool ChConvexDecomposition::AddTriangleMesh(const ChTriangleMesh& tm)
 
 bool ChConvexDecomposition::WriteConvexHullsAsChullsFile(ChStreamOutAscii& mstream)
 		{
-			mstream.SetNumFormat("%0.9f");
+			mstream.SetNumFormat((char*)"%0.9f");
 			mstream <<"# Convex hulls obtained with Chrono::Engine \n# convex decomposition (.chulls format: only vertexes)\n";
 
 			for (unsigned int ih = 0; ih < this->GetHullCount(); ih++)

@@ -80,7 +80,7 @@ public:
 	  			// CONSTRUCTORS  
 				//
 					/// Create a file object but does nothing. Lather you may use Reset() to do something..
-	ChFile() {handler=NULL; Reset("","",CHFILE_OPENLATER);};
+	ChFile() {handler=NULL; Reset((char*)"",(char*)"",CHFILE_OPENLATER);};
 
 					/// Create the file object, given filename on disk, mode (r,w,rb,wb, etc) and 
 					/// chrono file mode (CHFILE_NORMAL, CHFILE_NOWRITE, etc.)

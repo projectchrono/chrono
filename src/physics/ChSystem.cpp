@@ -572,8 +572,8 @@ void ChSystem::SetLcpSolverType(eCh_lcpSolver mval)
 		LCP_solver_stab  = new ChLcpIterativeJacobi();
 		break;
 	case LCP_ITERATIVE_SOR_MULTITHREAD:
-		LCP_solver_speed = new ChLcpIterativeSORmultithread("speedLCP",parallel_thread_number);
-		LCP_solver_stab = new ChLcpIterativeSORmultithread("posLCP",parallel_thread_number);
+		LCP_solver_speed = new ChLcpIterativeSORmultithread((char*)"speedLCP",parallel_thread_number);
+		LCP_solver_stab = new ChLcpIterativeSORmultithread((char*)"posLCP",parallel_thread_number);
 		break;
 	case LCP_ITERATIVE_PMINRES: 
 		LCP_solver_speed = new ChLcpIterativePMINRES();
