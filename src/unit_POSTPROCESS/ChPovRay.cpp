@@ -16,6 +16,7 @@
 #include "assets/ChSphereShape.h"
 #include "assets/ChBoxShape.h"
 #include "physics/ChParticlesClones.h"
+#include "physics/ChLinkMate.h"
 
 using namespace chrono;
 using namespace postprocess;
@@ -47,6 +48,8 @@ ChPovRay::ChPovRay(ChSystem* system) : ChPostProcessBase(system)
 	this->COGs_size = 0.04;
 	this->frames_show = false;
 	this->frames_size = 0.05;
+	this->links_show = false;
+	this->links_size = 0.04;
 }
 
 void ChPovRay::AddAll()
@@ -124,6 +127,12 @@ void ChPovRay::SetShowFrames(bool show, double msize)
 	this->frames_show = show;
 	if (show) 
 		this->frames_size = msize;
+}
+void ChPovRay::SetShowLinks(bool show, double msize)
+{
+	this->links_show = show;
+	if (show) 
+		this->links_size = msize;
 }
 
 
@@ -536,7 +545,27 @@ void ChPovRay::ExportData(const std::string &filename)
 					} // end loop on assets
 				} // end loop on particles
 			}
+
+
+			if (mdata[i].IsType<ChLinkMateGeneric>() )
+			{
+				ChSharedPtr<ChLinkMateGeneric> mylinkmate(mdata[i]);
+				if (mylinkmate->GetBody1() && mylinkmate->GetBody2() && this->links_show)
+				{
+					ChFrame<> frAabs = mylinkmate->GetFrameA() >> *mylinkmate->GetBody1();
+					ChFrame<> frBabs = mylinkmate->GetFrameB() >> *mylinkmate->GetBody2();
+					mfilepov << "sh_csysFRM("; 
+					mfilepov << frAabs.GetPos().x << "," << frAabs.GetPos().y << "," << frAabs.GetPos().z << ",";
+					mfilepov << frAabs.GetRot().e0 << "," << frAabs.GetRot().e1 << "," << frAabs.GetRot().e2 << "," << frAabs.GetRot().e3 << ",";
+					mfilepov << this->links_size*0.98 << ")\n";
+					mfilepov << "sh_csysFRM("; 
+					mfilepov << frBabs.GetPos().x << "," << frBabs.GetPos().y << "," << frBabs.GetPos().z << ",";
+					mfilepov << frBabs.GetRot().e0 << "," << frBabs.GetRot().e1 << "," << frBabs.GetRot().e2 << "," << frBabs.GetRot().e3 << ",";
+					mfilepov << this->links_size << ")\n";
+				}
+			}
 			
+
 		} // end loop on objects
 
 	}catch (ChException)

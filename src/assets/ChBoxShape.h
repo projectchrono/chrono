@@ -42,6 +42,7 @@ public:
 				//
 
 	ChBoxShape () {};
+	ChBoxShape (geometry::ChBox& mbox) : gbox(mbox) {};
 
 	virtual ~ChBoxShape () {};
 
