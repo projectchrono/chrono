@@ -101,7 +101,19 @@ using namespace chrono;
 						{ return $self->operator-(matbis);};
 			ChMatrix33<double> operator*(const ChMatrix<double>& matbis) 
 						{ return $self->operator*(matbis);};
-
+			
+			//%template(ChMatrix33) ChMatrix33<double>;
+			%template(Matr_x_Vect) Matr_x_Vect<double>;
+			%template(MatrT_x_Vect) MatrT_x_Vect<double>;
+			%template(FastInvert) FastInvert<double>;
+			%template(Set_A_quaternion) Set_A_quaternion<double>;
+			%template(Set_X_matrix) Set_X_matrix<double>;
+			%template(Set_A_axis) Set_A_axis<double>;
+			%template(Set_A_Eulero) Set_A_Eulero<double>;
+			%template(Set_A_Cardano) Set_A_Cardano<double>;
+			%template(Set_A_Hpb) Set_A_Hpb<double>;
+			%template(Set_A_Rxyz) Set_A_Rxyz<double>;
+			%template(Set_A_Rodriguez) Set_A_Rodriguez<double>;
 		};
 
 //

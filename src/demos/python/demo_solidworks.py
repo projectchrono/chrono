@@ -75,6 +75,7 @@ pov_exporter.SetAmbientLight(chrono.ChColor(2,2,2))
  # Turn on the rendering of xyz axes for the centers of gravity or reference frames:
 #pov_exporter.SetShowCOGs  (1, 0.05)
 #pov_exporter.SetShowFrames(1, 0.02)
+pov_exporter.SetShowLinks(1, 0.03)
 
  # Add additional POV objects/lights/materials in the following way, entering
  # an optional text using the POV scene description laguage. This will be
@@ -83,7 +84,7 @@ pov_exporter.SetAmbientLight(chrono.ChColor(2,2,2))
 pov_exporter.SetCustomPOVcommandsScript(
 '''
 light_source{ <1,3,1.5> color rgb<1.1,1.1,1.1> }
-
+/*
 union {
  plane{y,-0.05}
  no_shadow
@@ -98,6 +99,7 @@ union {
    }
  scale <0.1, 0.1, 0.1>
 }
+*/
 ''')
 
  # Tell which physical items you want to render
@@ -110,13 +112,13 @@ for my_item in exported_items:
  #    only once at the beginning of the simulation).
 pov_exporter.ExportScript()
 
-my_system.SetLcpSolverType(chrono.ChSystem.LCP_ITERATIVE_PMINRES)
+#my_system.SetLcpSolverType(chrono.ChSystem.LCP_ITERATIVE_PMINRES)
 my_system.SetIterLCPmaxItersSpeed(50)
 my_system.SetMaxPenetrationRecoverySpeed(100)
 my_system.Set_G_acc(chrono.ChVectorD(0,-9.8,-9.80))
 
  # Perform a short simulation
-while (my_system.GetChTime() < 0.8) :
+while (my_system.GetChTime() < 0.7) :
 
     my_system.DoStepDynamics(0.005)
 

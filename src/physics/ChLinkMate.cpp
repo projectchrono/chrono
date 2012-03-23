@@ -248,20 +248,6 @@ void ChLinkMateGeneric::Update (double mytime)
 
 		int nc = 0;
 
-		ChQuaternion<> relMrot = aframe.GetRot();
-//TEST: disable stabilization on rotations
-//aframe.SetPos(VNULL);
-//aframe.SetRot(QUNIT);
-relMrot =
-        Qcross (
-          Qconjugate(this->frameB.GetRot()),
-        Qcross (
-			Qconjugate(this->Body2->GetCoord().rot),
-        Qcross (
-          (this->Body1->GetCoord().rot),
-          (this->frameA.GetRot())
-          )));
-
 		if (c_x) 
 		{
 			this->C->ElementN(nc) = aframe.GetPos().x;
@@ -291,21 +277,21 @@ relMrot =
 		}
 		if (c_rx) 
 		{
-			this->C->ElementN(nc) = 0.5*relMrot.e1;
+			this->C->ElementN(nc) = 0.5*aframe.GetRot().e1; // 0.5*   ??????
 			this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jw1, 0,0, 1,3, 0,3);
 			this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jw2, 0,0, 1,3, 0,3);
 			nc++;
 		}
 		if (c_ry) 
 		{
-			this->C->ElementN(nc) = 0.5*relMrot.e2;
+			this->C->ElementN(nc) = 0.5*aframe.GetRot().e2; // 0.5*   ??????
 			this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jw1, 1,0, 1,3, 0,3);
 			this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jw2, 1,0, 1,3, 0,3);
 			nc++;
 		}
 		if (c_rz) 
 		{
-			this->C->ElementN(nc) = 0.5*relMrot.e3;
+			this->C->ElementN(nc) = 0.5*aframe.GetRot().e3; // 0.5*   ??????
 			this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jw1, 2,0, 1,3, 0,3);
 			this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jw2, 2,0, 1,3, 0,3);
 			nc++;
@@ -381,8 +367,6 @@ void ChLinkMateGeneric::ConstraintsBiLoad_C(double factor, double recovery_clamp
 {
 	if (!this->IsActive())
 		return;
-//***TEST*** do not consider stabiliz.
-//this->C->FillElem(0);
 
 	int cnt=0;
 	for (int i=0; i< mask->nconstr; i++)
@@ -515,13 +499,13 @@ int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body t
 	{
 		// from abs to body-rel
 		mN = this->Body1->Dir_World2Body(&mnorm1);
-		mN.DirToDxDyDz(&mx, &my, &mz);
+		mN.DirToDxDyDz(&mx, &my, &mz, &VECT_Z);
 		mrot.Set_A_axis(mx,my,mz);
 		mfr1.SetRot(mrot);
 		mfr1.SetPos(this->Body1->Point_World2Body(&mpt1));
 
 		mN = this->Body2->Dir_World2Body(&mnorm2);
-		mN.DirToDxDyDz(&mx, &my, &mz);
+		mN.DirToDxDyDz(&mx, &my, &mz, &VECT_Z);
 		mrot.Set_A_axis(mx,my,mz);
 		mfr2.SetRot(mrot);
 		mfr2.SetPos(this->Body2->Point_World2Body(&mpt2));
@@ -985,7 +969,7 @@ void ChLinkMateOrthogonal::Update (double mtime)
 		mabsD1 = this->Body1->Dir_Body2World(&this->reldir1);
 		mabsD2 = this->Body2->Dir_Body2World(&this->reldir2);
 
-		ChVector<> mX = Vcross(mabsD1,mabsD1);
+		ChVector<> mX = Vcross(mabsD2,mabsD1);
 		double xlen = mX.Length();
 
 		// Ops.. parallel directions? -> fallback to singularity handling
@@ -1012,7 +996,7 @@ void ChLinkMateOrthogonal::Update (double mtime)
 
 		ChVector<> mY2, mZ2;
 		mY2 = mabsD2;
-		mZ1 = Vcross(mX, mY2);
+		mZ2 = Vcross(mX, mY2);
 
 		ChMatrix33<> mA2; 
 		mA2.Set_A_axis(mX,mY2,mZ2);

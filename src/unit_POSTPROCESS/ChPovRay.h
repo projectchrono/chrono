@@ -117,7 +117,11 @@ public:
 
 		/// Turn on/off the display of the reference coordsystems of rigid bodies. 
 		/// If setting true, you can also set the size of the symbol, in meters.
-	virtual void SetShowFrames(bool show, double msize=0.06);
+	virtual void SetShowFrames(bool show, double msize=0.05);
+
+		/// Turn on/off the display of the reference coordsystems for ChLinkMate constraints. 
+		/// If setting true, you can also set the size of the symbol, in meters.
+	virtual void SetShowLinks(bool show, double msize=0.04);
 
 		/// Set a string (a text block) of custom POV commands that you can optionally
 		/// append to the POV script file, for example adding other POV lights, materials, etc.
@@ -199,6 +203,8 @@ protected:
 	double		COGs_size;
 	bool		frames_show;
 	double		frames_size;
+	bool		links_show;
+	double		links_size;
 
 	ChColor	    background;
 	ChColor		ambient_light;

@@ -62,6 +62,10 @@ using namespace chrono;
 %include "std_string.i"
 %include "typemaps.i"
 
+// This is to enable references to double,int,etc. types in function parameters
+%pointer_class(int,int_ptr);
+%pointer_class(double,double_ptr);
+%pointer_class(float,float_ptr);
 
 
 // IMPORTANT!!!
@@ -102,14 +106,19 @@ using namespace chrono;
 // motion_functions/   classes
 %include "ChFunction_Base.i"
 
+// geometry/   classes
+%include "ChGeometry.i"
+
 %include "ChCollisionModel.i"
 
 // assets
 %include "ChAsset.i"
 %include "ChVisualization.i"
 %include "ChObjShapeFile.i"
+%include "ChBoxShape.i"
+%include "ChSphereShape.i"
   // enable downcasting from ChAsset to children (shared pointers versions)
-%downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualization, chrono::ChObjShapeFile)
+%downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualization, chrono::ChObjShapeFile, chrono::ChBoxShape, chrono::ChSphereShape)
 
 // physics/  classes
 %include "ChObject.i"
@@ -178,6 +187,8 @@ using namespace chrono;
 %DefChSharedPtrCast(chrono::ChMarker, chrono::ChPhysicsItem)
 %DefChSharedPtrCast(chrono::ChForce, chrono::ChPhysicsItem)
 %DefChSharedPtrCast(chrono::ChVisualization, chrono::ChAsset)
+%DefChSharedPtrCast(chrono::ChSphereShape, chrono::ChVisualization)
+%DefChSharedPtrCast(chrono::ChBoxShape, chrono::ChVisualization)
 %DefChSharedPtrCast(chrono::ChObjShapeFile, chrono::ChVisualization)
 %DefChSharedPtrCast(chrono::ChLink, chrono::ChPhysicsItem)
 %DefChSharedPtrCast(chrono::ChLinkMarkers, chrono::ChLink)

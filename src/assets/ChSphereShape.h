@@ -42,6 +42,7 @@ public:
 				//
 
 	ChSphereShape () {};
+	ChSphereShape (geometry::ChSphere& msphere) : gsphere(msphere) {};
 
 	virtual ~ChSphereShape () {};
 
