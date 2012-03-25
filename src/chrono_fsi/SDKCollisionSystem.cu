@@ -219,7 +219,7 @@ __device__ inline float4 DifVelocityRho_FSI2(
 //--------------------------------------------------------------------------------------------------------------------------------
 __device__ inline float3 DifVelocity_SSI_DEM(const float4 & posRadA, const float4 & posRadB, const float4 & velMasA, const float4 & velMasB) {
 //printf("** DifVelocity_SSI_DEM\n");
-	float kS = 50; //1000.0; //392400.0;	//spring
+	float kS = 30; //50; //1000.0; //392400.0;	//spring. 50 worked almost fine. I am using 30 to be sure!
 	float kD = 200.0; //420.0;				//damper
 	float3 dist3 = Distance(posRadA, posRadB);
 
