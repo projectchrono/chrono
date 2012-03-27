@@ -562,7 +562,7 @@ void ChLcpSolverGPU::RunTimeStep(float step, gpu_container & gpu_data) {
 		for (iteration_number = 0; iteration_number < max_iterations; iteration_number++) {
 			Iterate(gpu_data);
 			Reduce(gpu_data);
-			if (iteration_number > 50 && iteration_number % 50 == 0) {
+			if (iteration_number > 5 && iteration_number % 5 == 0) {
 				if (Max_DeltaGamma(gpu_data.device_dgm_data) < tolerance) {
 					break;
 				}

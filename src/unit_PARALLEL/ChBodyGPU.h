@@ -67,7 +67,6 @@ public:
 	/// Get the identifier for the GPU body
 	int GetId() {
 		return id;
-		cout << "HERE" << endl;
 	}
 
 	virtual void SetPos(const ChVector<>& mpos) {
