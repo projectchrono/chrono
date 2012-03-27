@@ -329,9 +329,9 @@ __global__ void UpdateRigidBodyAngularVelocity_kernel(
 	j2 = jInvD2[rigidSphereA];
 	//printf("j j %f %f %f %f %f %f\n", j1.x, j1.y, j1.z, j2.x, j2.y, j2.z);
 	float3 omegaDot3 = torquingTerm.x * j1 + torquingTerm.y * F3(j1.y, j2.x, j2.y) + torquingTerm.z * F3(j1.z, j2.y, j2.z);
-	//	*** for 2D motion
-		omegaDot3.x = 0;
-		omegaDot3.z = 0;
+//	//	*** for 2D motion
+//		omegaDot3.x = 0;
+//		omegaDot3.z = 0;
 
 	omega3 += omegaDot3 * dTD;
 	omegaLRF_D[rigidSphereA] = omega3;
@@ -957,9 +957,9 @@ void ApplyBoundary(
 	ApplyPeriodicBoundaryXKernel<<<nBlock_NumSpheres, nThreads_SphParticles>>>(F4CAST(posRadD), F4CAST(rhoPresMuD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: ApplyPeriodicBoundaryXKernel");
-	ApplyPeriodicBoundaryYKernel<<<nBlock_NumSpheres, nThreads_SphParticles>>>(F4CAST(posRadD), F4CAST(rhoPresMuD));
-	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: ApplyPeriodicBoundaryXKernel");
+//	ApplyPeriodicBoundaryYKernel<<<nBlock_NumSpheres, nThreads_SphParticles>>>(F4CAST(posRadD), F4CAST(rhoPresMuD));
+//	cudaThreadSynchronize();
+//	CUT_CHECK_ERROR("Kernel execution failed: ApplyPeriodicBoundaryXKernel");
 //////////////
 	uint nBlock_NumRigids, nThreads_RigidBodies;
 	computeGridSize(numRigidBodies, 128, nBlock_NumRigids, nThreads_RigidBodies);
@@ -968,9 +968,9 @@ void ApplyBoundary(
 	ApplyPeriodicBoundaryXKernel_RigidBodies<<<nBlock_NumRigids, nThreads_RigidBodies>>>(F3CAST(posRigidD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
-	ApplyPeriodicBoundaryYKernel_RigidBodies<<<nBlock_NumRigids, nThreads_RigidBodies>>>(F3CAST(posRigidD));
-	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
+//	ApplyPeriodicBoundaryYKernel_RigidBodies<<<nBlock_NumRigids, nThreads_RigidBodies>>>(F3CAST(posRigidD));
+//	cudaThreadSynchronize();
+//	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void FindPassesFromTheEnd(
