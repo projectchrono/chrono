@@ -5,29 +5,8 @@ public:
 	System(int cudaDevice);
 	~System() {
 	}
-	void Setup() {
-		//mGPUCollisionEngine->mGPU->collision_envelope = mEnvelope;
-
-		mSystem->SetStep(mTimeStep);
-		mGPUsolverSpeed->SetMaxIterations(mIterations);
-		mGPUsolverSpeed->SetOmega(mOmegaContact);
-		//mGPUsolverSpeed->mOmegaBilateral = mOmegaBilateral;
-		mGPUsolverSpeed->SetTolerance(mTolerance);
-
-//#ifndef _CHRONOGPU
-
-		mSystem->SetIterLCPmaxItersSpeed(mIterations);
-		mSystem->SetIterLCPmaxItersStab(mIterations);
-		//mSystem->SetIterLCPwarmStarting(true);
-		mSystem->SetParallelThreadNumber(8);
-		//mSystem->SetUseSleeping(true);
-
-//#endif
-
-	}
-	void SetTimingFile(string fname) {
-		mTimingFile.open(fname.c_str());
-	}
+	void Setup();
+	void SetTimingFile(string fname);
 
 	double GetKE();
 	double GetMFR(double height);
@@ -57,9 +36,7 @@ public:
 	int mFileNumber;
 	int mCudaDevice;
 	int mIterations;
-
 	float mOmegaContact, mOmegaBilateral, mEnvelope, mTolerance;
-
 	bool mUseOGL;
 	bool mSaveData;
 
@@ -77,7 +54,7 @@ System::System(int cudaDevice) {
 	mGPUCollisionEngine = new ChCOLLISIONSYS();
 	mGPUsolverSpeed = new ChSOLVER(mGPUContactContainer);
 
-	mSystem->SetLcpSolverType(ChSystem::LCP_ITERATIVE_JACOBI);
+	mSystem->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
 
 	mSystem->ChangeLcpSystemDescriptor(mGPUDescriptor);
 	mSystem->ChangeContactContainer(mGPUContactContainer);
@@ -94,7 +71,7 @@ System::System(int cudaDevice) {
 
 	mSystem->SetIntegrationType(ChSystem::INT_ANITESCU);
 	mSystem->Set_G_acc(ChVector<>(0, -9.80665, 0));
-	mSystem->Set_CudaDevice(cudaDevice);
+	//mSystem->Set_CudaDevice(cudaDevice);
 	mCurrentTime = 0;
 	//mCameraX = 0, mCameraY = 0, mCameraZ = 0;
 
@@ -111,8 +88,28 @@ System::System(int cudaDevice) {
 	mUseOGL = 0;
 	mCudaDevice = cudaDevice;
 	if (mCudaDevice >= 0) {
-		//cudaSetDevice(1);
+		cudaSetDevice(mCudaDevice);
 	}
+}
+
+void System::Setup() {
+	mSystem->SetStep(mTimeStep);
+	mGPUsolverSpeed->SetMaxIterations(mIterations);
+	mGPUsolverSpeed->SetOmega(mOmegaContact);
+	//mGPUsolverSpeed->mOmegaBilateral = mOmegaBilateral;
+	mGPUsolverSpeed->SetTolerance(mTolerance);
+
+//#ifndef _CHRONOGPU
+	mSystem->SetIterLCPmaxItersSpeed(mIterations);
+	mSystem->SetIterLCPmaxItersStab(mIterations);
+	//mSystem->SetIterLCPwarmStarting(true);
+	mSystem->SetParallelThreadNumber(8);
+	//mSystem->SetUseSleeping(true);
+//#endif
+
+}
+void System::SetTimingFile(string fname) {
+	mTimingFile.open(fname.c_str());
 }
 
 void System::PrintStats() {
@@ -125,15 +122,15 @@ void System::PrintStats() {
 	int BODS = mSystem->GetNbodies();
 	int CNTC = mSystem->GetNcontacts();
 
-	float AABB_Bins_Count = mSystem->gpu_data_manager->gpu_data.time_AABB_Bins_Count;
-	float AABB_Bins = mSystem->gpu_data_manager->gpu_data.time_AABB_Bins;
-	float AABB_AABB_Count = mSystem->gpu_data_manager->gpu_data.time_AABB_AABB_Count;
-	float AABB_AABB = mSystem->gpu_data_manager->gpu_data.time_AABB_AABB;
-	float Broad_other = mSystem->gpu_data_manager->gpu_data.time_Broad_other;
+	//float AABB_Bins_Count = mSystem->gpu_data_manager->gpu_data.time_AABB_Bins_Count;
+	//float AABB_Bins = mSystem->gpu_data_manager->gpu_data.time_AABB_Bins;
+	//float AABB_AABB_Count = mSystem->gpu_data_manager->gpu_data.time_AABB_AABB_Count;
+	//float AABB_AABB = mSystem->gpu_data_manager->gpu_data.time_AABB_AABB;
+	//float Broad_other = mSystem->gpu_data_manager->gpu_data.time_Broad_other;
 
-	uint INTER = mSystem->gpu_data_manager->gpu_data.number_of_bin_intersections;
-	uint LAB = mSystem->gpu_data_manager->gpu_data.last_active_bin;
-	uint CONTP = mSystem->gpu_data_manager->gpu_data.number_of_contacts_possible;
+	//uint INTER = mSystem->gpu_data_manager->gpu_data.number_of_bin_intersections;
+	//uint LAB = mSystem->gpu_data_manager->gpu_data.last_active_bin;
+	//uint CONTP = mSystem->gpu_data_manager->gpu_data.number_of_contacts_possible;
 
 #ifdef _CHRONOGPU
 	int I = ((ChLcpSolverGPU*) (mSystem->GetLcpSolverSpeed()))->GetIterations();
@@ -145,9 +142,9 @@ void System::PrintStats() {
 	double KE = GetKE();
 	char numstr[512];
 
-	printf("%7.4f|%7.4f|%7.4f|%7.4f|%7.4f|%7.4f|%7d|%7d|%7.4f|%d|%7.4f\n", TIME, STEP, BROD, NARR, LCP, UPDT, BODS, CNTC, mTotalTime, I, KE);
+	printf("%7.4f|%7.4f|%7.4f|%7.4f|%7.4f|%7.4f|%7d|%7d|%7.4f|%d|%7.8f\n", TIME, STEP, BROD, NARR, LCP, UPDT, BODS, CNTC, mTotalTime, I, KE);
 
-	sprintf(numstr, "%7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %f | %d\n", TIME, STEP, BROD, NARR, LCP, UPDT, BODS, CNTC, mTotalTime, I);
+	sprintf(numstr, "%7.4f|%7.4f|%7.4f|%7.4f|%7.4f|%7.4f|%7d|%7d|%7.4f|%d|%7.8f\n", TIME, STEP, BROD, NARR, LCP, UPDT, BODS, CNTC, mTotalTime, I, KE);
 
 	if (mTimingFile.fail() == false) {
 		mTimingFile << numstr;
@@ -225,7 +222,8 @@ void System::SaveAllData(string prefix) {
 	ss << prefix << mFileNumber << ".txt";
 	sss << prefix << "temp.txt";
 	ofile.open(sss.str().c_str());
-
+	string output_text = "";
+	stringstream line;
 	for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
 		ChBODY * abody = (ChBODY *) mSystem->Get_bodylist()->at(i);
 		if (abody->IsActive() == true) {
@@ -242,11 +240,14 @@ void System::SaveAllData(string prefix) {
 			//ofile.write(reinterpret_cast<char*>(&p), sizeof(p));
 			//ofile.write(reinterpret_cast<char*>(&v), sizeof(v));
 			//ofile.write(reinterpret_cast<char*>(&e), sizeof(e));
-			ofile << pos.x << "," << pos.y << "," << pos.z << ",";
-			ofile << vel.x << "," << vel.y << "," << vel.z << ",";
-			ofile << quat.e0 << "," << quat.e1 << "," << quat.e2 << "," << quat.e3 << ",";
-			ofile << endl;
+
+			line << pos.x << "," << pos.y << "," << pos.z << ",";
+			line << vel.x << "," << vel.y << "," << vel.z << ",";
+			line << quat.e0 << "," << quat.e1 << "," << quat.e2 << "," << quat.e3 << ",";
+			line << endl;
+
 		}
+
 		//
 		//ofile << vel.x << "," << vel.y << "," << vel.z << ",";
 		//ofile << acc.x << "," << acc.y << "," << acc.z << ",";
@@ -254,6 +255,7 @@ void System::SaveAllData(string prefix) {
 		//ofile << fap.x << "," << fap.y << "," << fap.z << ",";
 		//ofile << endl;
 	}
+	ofile << line.str();
 	ofile.close();
 	rename(sss.str().c_str(), ss.str().c_str());
 	mFileNumber++;
@@ -264,25 +266,26 @@ void System::SaveByObject(ChBODY *abody, string fname) {
 	ofstream ofile;
 	ofile.open(fname.c_str(), ios_base::app);
 	ChVector<> pos = abody->GetPos();
-	ChVector<> rot = abody->GetRot().Q_to_NasaAngles();
+	//ChVector<> rot = abody->GetRot().Q_to_NasaAngles();
+	//ChQuaternion<> quat = abody->GetRot();
 	ChVector<> vel = abody->GetPos_dt();
 	ChVector<> acc = abody->GetPos_dtdt();
 	//ChVector<> fap = abody->GetAppliedForce();
 
-	if (ISNAN(rot.x)) {
-		rot.x = 0;
-	}
-	if (ISNAN(rot.y)) {
-		rot.y = 0;
-	}
-	if (ISNAN(rot.z)) {
-		rot.z = 0;
-	}
+//	if (ISNAN(rot.x)) {
+//		rot.x = 0;
+//	}
+//	if (ISNAN(rot.y)) {
+//		rot.y = 0;
+//	}
+//	if (ISNAN(rot.z)) {
+//		rot.z = 0;
+//	}
 
 	ofile << pos.x << "," << pos.y << "," << pos.z << ",";
-	//ofile << vel.x << "," << vel.y << "," << vel.z << ",";
-	//ofile << acc.x << "," << acc.y << "," << acc.z << ",";
-	ofile << rot.x << "," << rot.y << "," << rot.z << ",";
+	ofile << vel.x << "," << vel.y << "," << vel.z << ",";
+	ofile << acc.x << "," << acc.y << "," << acc.z << ",";
+	//ofile << rot.x << "," << rot.y << "," << rot.z << ",";
 	//ofile << fap.x << "," << fap.y << "," << fap.z << ",";
 	ofile << endl;
 
@@ -322,7 +325,8 @@ double System::GetMFR(double height) {
 	return mass;
 }
 
-void System::InitObject(ChSharedPtr<ChBODY> &body, double mass, ChVector<> pos, ChQuaternion<> rot, double sfric, double kfric, double restitution, bool collide, bool fixed, int family, int nocolwith) {
+void System::InitObject(ChSharedPtr<ChBODY> &body, double mass, ChVector<> pos, ChQuaternion<> rot, double sfric, double kfric, double restitution, bool collide, bool fixed, int family,
+		int nocolwith) {
 	body->SetMass(mass);
 	body->SetPos(pos);
 	body->SetRot(rot);
@@ -401,7 +405,7 @@ void System::BoundingBox(float x, float y, float z, float offset) {
 }
 
 void System::drawAll() {
-	if (updateDraw /*&& (mSystem->GetChTime() > this->mTimeStep * 2)*/) {
+	if (updateDraw && (mSystem->GetChTime() > 0)) {
 		glDepthMask(true);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
@@ -424,7 +428,9 @@ void System::drawAll() {
 		points.clear();
 		for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
 			ChBODY* abody = (ChBODY*) mSystem->Get_bodylist()->at(i);
-			drawObject(abody);
+			if(i%detail_level==0){
+				drawObject(abody);
+}
 		}
 		averageVal = newaverage / mSystem->Get_bodylist()->size();
 
@@ -509,7 +515,7 @@ void SimulationLoop(int argc, char* argv[]) {
 				}
 			}
 //		}
-//#pragma omp task
+//#pragma omp single nowait
 //		{
 //			if (GPUSystem->mUseOGL) {
 //				initGLUT(string("test"), argc, argv);

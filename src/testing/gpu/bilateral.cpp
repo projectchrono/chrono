@@ -8,12 +8,12 @@ void System::DoTimeStep() {
 }
 
 int main(int argc, char* argv[]) {
-	omp_set_nested(1);
+	omp_set_num_threads(2);
 	GPUSystem = new System(1);
 	GPUSystem->mTimeStep = .001;
 	GPUSystem->mEndTime = 30;
 	GPUSystem->mNumObjects = 1;
-	GPUSystem->mIterations = 1000;
+	GPUSystem->mIterations = 100;
 	GPUSystem->mTolerance = 1e-8;
 	GPUSystem->mOmegaContact = .5;
 	GPUSystem->mOmegaBilateral = .1;

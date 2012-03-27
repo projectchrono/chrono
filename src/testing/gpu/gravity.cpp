@@ -8,14 +8,17 @@ void System::DoTimeStep() {
 	mCurrentTime += mTimeStep;
 
 	float correct = 9.80665 * mCurrentTime;
-	float current=FREE->GetPos_dt().Length();
+	float current = FREE->GetPos_dt().Length();
 	//cout<< mSystem->GetChTime()<<endl;
-	if(fabs(correct-current)>TOLERANCE){cout<<"FAIL at T="<<mSystem->GetChTime()<<" correct: "<<  correct<<" current: "<<current<<" "<<fabs(correct-current)<<endl; exit(1);}
+	if (fabs(correct - current) > TOLERANCE) {
+		cout << "FAIL at T=" << mSystem->GetChTime() << " correct: " << correct << " current: " << current << " " << fabs(correct - current) << endl;
+		exit(1);
+	}
 
 }
 
 int main(int argc, char* argv[]) {
-	omp_set_nested(1);
+	omp_set_num_threads(2);
 	GPUSystem = new System(1);
 	GPUSystem->mTimeStep = .001;
 	GPUSystem->mEndTime = 1;
@@ -31,12 +34,12 @@ int main(int argc, char* argv[]) {
 	ChVector<> lpos(0, 0, 0);
 	FREE = ChBODYSHAREDPTR(new ChBODY);
 
-	GPUSystem->InitObject(FREE, 1.0, ChVector<> (0, 0, 0), quat, 0, 0, 0, false, false, -20, -20);
-	GPUSystem->AddCollisionGeometry(FREE, SPHERE, ChVector<> (1, 1, 1), lpos, quat);
+	GPUSystem->InitObject(FREE, 1.0, ChVector<>(0, 0, 0), quat, 0, 0, 0, false, false, -20, -20);
+	GPUSystem->AddCollisionGeometry(FREE, SPHERE, ChVector<>(1, 1, 1), lpos, quat);
 	GPUSystem->FinalizeObject(FREE);
 
 	GPUSystem->Setup();
 	SimulationLoop(argc, argv);
-	cout<<"PASS"<<endl;
+	cout << "PASS" << endl;
 	return 0;
 }
