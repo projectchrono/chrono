@@ -62,8 +62,8 @@ using namespace std;
 #define TORAD(x) x*PI/180.0
 
 struct Point {
-		float x, y, z;
-		float r, g, b;
+	float x, y, z;
+	float r, g, b;
 };
 std::vector<Point> points;
 
@@ -78,8 +78,8 @@ float2 mouse_pos = make_float2(0, 0);
 float3 camera_pos_delta = make_float3(0, 0, 0);
 float SCALE = 1;
 
-bool DataCopied=false;
-int OutputFPS=60;
+bool DataCopied = false;
+int OutputFPS = 60;
 bool showSphere = false;
 bool showSolid = false;
 bool updateDraw = true;
@@ -150,56 +150,59 @@ void ChangeHeading(GLfloat degrees) {
 
 void processNormalKeys(unsigned char key, int x, int y) {
 	switch (key) {
-		case 'w':
-			camera_pos_delta += dir * SCALE;
-			break;
-		case 's':
-			camera_pos_delta -= dir * SCALE;
-			break;
-		case 'd':
-			camera_pos_delta += cross(dir, camera_up) * SCALE;
-			break;
-		case 'a':
-			camera_pos_delta -= cross(dir, camera_up) * SCALE;
-			break;
-		case 'q':
-			camera_pos_delta += camera_up * SCALE;
-			break;
-		case 'e':
-			camera_pos_delta -= camera_up * SCALE;
-			break;
-		case 'u':
-			updateDraw = (updateDraw) ? 0 : 1;
-			break;
-		case 'i':
-			showSphere = (showSphere) ? 0 : 1;
-			break;
-		case 'o':
-			showSolid = (showSolid) ? 0 : 1;
-			break;
-		case '[':
-			detail_level = max(1, detail_level - 1);
-			break;
-		case ']':
-			detail_level++;
-			break;
-		case 'c':
-			showContacts = (showContacts) ? 0 : 1;
-		case '1':
-			drawType = 1;
-			break;
-		case '2':
-			drawType = 2;
-			break;
-		case '3':
-			drawType = 3;
-			break;
-		case 'x':
-			stepMode = (stepMode) ? 0 : 1;
-			break;
-		case 'z':
-			stepNext = 1;
-			break;
+	case 'w':
+		camera_pos_delta += dir * SCALE;
+		break;
+	case 's':
+		camera_pos_delta -= dir * SCALE;
+		break;
+	case 'd':
+		camera_pos_delta += cross(dir, camera_up) * SCALE;
+		break;
+	case 'a':
+		camera_pos_delta -= cross(dir, camera_up) * SCALE;
+		break;
+	case 'q':
+		camera_pos_delta += camera_up * SCALE;
+		break;
+	case 'e':
+		camera_pos_delta -= camera_up * SCALE;
+		break;
+	case 'u':
+		updateDraw = (updateDraw) ? 0 : 1;
+		break;
+	case 'i':
+		showSphere = (showSphere) ? 0 : 1;
+		break;
+	case 'o':
+		showSolid = (showSolid) ? 0 : 1;
+		break;
+	case '[':
+		detail_level = max(1, detail_level - 1);
+		break;
+	case ']':
+		detail_level++;
+		break;
+	case 'c':
+		showContacts = (showContacts) ? 0 : 1;
+	case '1':
+		drawType = 1;
+		break;
+	case '2':
+		drawType = 2;
+		break;
+	case '3':
+		drawType = 3;
+		break;
+	case 'x':
+		stepMode = (stepMode) ? 0 : 1;
+		break;
+	case 'z':
+		stepNext = 1;
+		break;
+	case 'b':
+		saveData = 1;
+		break;
 	}
 }
 
@@ -224,21 +227,21 @@ void changeSize(int w, int h) {
 		h = 1;
 	}
 	float ratio = 1.0 * w / h;
-	glMatrixMode( GL_PROJECTION);
+	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glViewport(0, 0, w, h);
 	gluPerspective(45, ratio, .001, 1000);
-	glMatrixMode( GL_MODELVIEW);
+	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(0.0, 0.0, 0.0, 0.0, 0.0, -7, 0.0f, 1.0f, 0.0f);
 }
 void initScene() {
 	GLfloat light_position[] = { 1.0, 1.0, 1.0, 0.0 };
 	glClearColor(1.0, 1.0, 1.0, 0.0);
-	glShadeModel( GL_SMOOTH);
-	glEnable( GL_COLOR_MATERIAL);
+	glShadeModel(GL_SMOOTH);
+	glEnable(GL_COLOR_MATERIAL);
 
-	glEnable( GL_POINT_SMOOTH);
+	glEnable(GL_POINT_SMOOTH);
 	//glEnable( GL_BLEND);
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glHint(GL_POINT_SMOOTH_HINT, GL_DONT_CARE);
@@ -252,16 +255,18 @@ void initScene() {
 	glPointSize(2);
 
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-	glEnable( GL_LIGHTING);
-	glEnable( GL_LIGHT0);
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
 }
 
 float3 GetColour(double v, double vmin, double vmax) {
 	float3 c = { 1.0, 1.0, 1.0 }; // white
 	double dv;
 
-	if (v < vmin) v = vmin;
-	if (v > vmax) v = vmax;
+	if (v < vmin)
+		v = vmin;
+	if (v > vmax)
+		v = vmax;
 	dv = vmax - vmin;
 
 	if (v < (vmin + 0.25 * dv)) {
@@ -322,7 +327,7 @@ void drawObject(CHBODY *abody) {
 		value = abody->GetPos_dtdt().Length();
 	}
 	if (drawType == 3) {
-		value = 0;//abody->GetAppliedForce().Length() * 1e5;
+		value = 0; //abody->GetAppliedForce().Length() * 1e5;
 	}
 	color = GetColour(value, 0, averageVal);
 	newaverage += value;
@@ -339,38 +344,52 @@ void drawObject(CHBODY *abody) {
 
 	glPushMatrix();
 #ifndef _CHRONOGPU
+	btVector3 half;
 	CHMODEL* model = ((CHMODEL *) (abody->GetCollisionModel()));
 	glTranslatef(pos.x, pos.y, pos.z);
 	switch (type) {
-		case SPHERE:
+	case SPHERE:
 
-			if (showSphere) {
-				float Rad = ((btSphereShape*) model->GetBulletModel()->getCollisionShape())->getRadius();
-				makeSphere(F3(pos.x, pos.y, pos.z), Rad, angle, F3(axis.x, axis.y, axis.z), F3(1, 1, 1));
-			} else {
-				Point pt;
-				pt.x = pos.x;
-				pt.y = pos.y;
-				pt.z = pos.z;
-				pt.r = color.x;
-				pt.g = color.y;
-				pt.b = color.z;
-				points.push_back(pt);
-			}
+		if (showSphere) {
+			float Rad = ((btSphereShape*) model->GetBulletModel()->getCollisionShape())->getRadius();
+			makeSphere(F3(pos.x, pos.y, pos.z), Rad, angle, F3(axis.x, axis.y, axis.z), F3(1, 1, 1));
+		} else {
+			Point pt;
+			pt.x = pos.x;
+			pt.y = pos.y;
+			pt.z = pos.z;
+			pt.r = color.x;
+			pt.g = color.y;
+			pt.b = color.z;
+			points.push_back(pt);
+		}
 
-			break;
+		break;
 		//case ELLIPSOID:
 
 		//	break;
-		case BOX:
+	case BOX:
 
-			btVector3 half = ((btBoxShape*) model->GetBulletModel()->getCollisionShape())->getHalfExtentsWithMargin();
+		half = ((btBoxShape*) model->GetBulletModel()->getCollisionShape())->getHalfExtentsWithMargin();
 
-			makeBox(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(float(half.x()), float(half.y()), float(half.z())));
-			break;
-		//case CYLINDER:
+		makeBox(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(float(half.x()), float(half.y()), float(half.z())));
+		break;
+	case CYLINDER:
+		half = ((btCylinderShape*) model->GetBulletModel()->getCollisionShape())->getHalfExtentsWithMargin();
+		makeCyl(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(float(half.x()), float(half.y()), float(half.z())));
+		break;
 
-		//	break;
+	default:
+
+		Point pt;
+		pt.x = pos.x;
+		pt.y = pos.y;
+		pt.z = pos.z;
+		pt.r = color.x;
+		pt.g = color.y;
+		pt.b = color.z;
+		points.push_back(pt);
+		break;
 	}
 #else
 	int i=0;
@@ -417,9 +436,7 @@ void drawObject(CHBODY *abody) {
 	ChCoordsys<> csys((abody)->GetPos(), (abody)->GetRot());
 	//csys.TrasformLocalToParent(ChVector<> (A.x, A.y, A.z));
 
-
 	//quat = quat % ChQuaternion<> (R.x, R.y, R.z, R.w);
-
 
 	glPopMatrix();
 	//}
