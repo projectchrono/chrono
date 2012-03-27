@@ -285,8 +285,8 @@ float IsInsideTube(float4 posRad, float3 cMax, float3 cMin, float channelRadius)
 //printf("ch R %f\n", channelRadius);
 	//if (posRad.z > 3.0 * sizeScale) {penDist1 = 3.0 * sizeScale - posRad.z;}
 
-	if (r > channelRadius * sizeScale) {
-		penDist1 = channelRadius * sizeScale - r;
+	if (r > channelRadius) {
+		penDist1 = channelRadius - r;
 	}
 	if (penDist1 < 0) return penDist1;
 	//printf("hey \n");
@@ -311,7 +311,7 @@ int2 CreateFluidParticles(
 		float & channelRadius) {
 	float2 rad2 = .5 * F2(cMax.y - cMin.y, cMax.z - cMin.z);
 	channelRadius = (rad2.x < rad2.y) ? rad2.x : rad2.y;
-	channelRadius = .5 * sizeScale; //tube
+	channelRadius = 1.0 * sizeScale; //tube
 	int num_FluidParticles = 0;
 	int num_BoundaryParticles = 0;
 	srand(964);
@@ -348,10 +348,10 @@ int2 CreateFluidParticles(
 								+ make_float3(.5 * initSpace0)/* + make_float3(sphR) + initSpace * .05 * (float(rand()) / RAND_MAX)*/, sphR);
 				float penDist = 0;
 				bool flag = true;
-				///penDist = IsInsideCurveOfSerpentine(posRad); if (penDist < -toleranceZone) flag= false;
-				///penDist = IsInsideSerpentine(posRad); if (penDist < -toleranceZone) flag= false;
-				penDist = IsInsideStraightChannel(posRad); if (penDist < -toleranceZone) flag= false;
-				///penDist = IsInsideStraightChannel_XZ(posRad); if (penDist < -toleranceZone) flag= false;
+				///penDist = IsInsideCurveOfSerpentine(posRad);
+				///penDist = IsInsideSerpentine(posRad);
+				penDist = IsInsideStraightChannel(posRad);
+				///penDist = IsInsideStraightChannel_XZ(posRad);
 				///penDist = IsInsideTube(posRad, cMax, cMin, channelRadius);
 				if (penDist < -toleranceZone) flag = false;
 				if (flag) {
@@ -512,11 +512,14 @@ int main() {
 	//********************************************************************************************************
 	//** Initialization
 	float r = HSML;	//.02;
-	float3 cMin = make_float3(0, -0.2, -1.2) * sizeScale;
+
+	float3 cMin = make_float3(0, -0.2, -1.2) * sizeScale; 							//for channel and serpentine
+	//float3 cMin = make_float3(0, -0.2, -0.2) * sizeScale;							//for tube
+
 	//float3 cMax = make_float3( nPeriod * 4.6 + 0, 1.5,  4.0) * sizeScale;  //for only CurvedSerpentine (w/out straight part)
 	//float3 cMax = make_float3( nPeriod * 4.6 + 7, 1.5,  4.0) * sizeScale;  //for serpentine
 	float3 cMax = make_float3( nPeriod * 2.0 + 0, 1.5,  4.0) * sizeScale;  //for  straight channel
-	//float3 cMax = make_float3( nPeriod * 4.6 + 0, .4,  4.0) * sizeScale;  //for straight channel, cylinders
+	//float3 cMax = make_float3( nPeriod * 2.0 + 0, 2.2,  2.2) * sizeScale;  //for  tube
 
 //	float3 cMax = make_float3(nPeriod * 1.0 + 0, .5,  3.5) * sizeScale;  //for straight channel, sphere
 //	float3 cMin = make_float3(0, -0.1, 0.5) * sizeScale;

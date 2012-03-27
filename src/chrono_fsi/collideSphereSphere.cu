@@ -684,8 +684,8 @@ void PrintToFile(
 
 //				//***radial distance (tube)
 //				float2 dist2 = F2(.5 * (cMax.y + cMin.y) - p_rigid.y, .5 * (cMax.z + cMin.z) - p_rigid.z);
-//				fprintf(fileRigidParticleCenterVsTime, "%f, %0.10f", tStep * delT, length(dist2) / channelRadius);
-//				fprintf(fileRigidParticleCenterVsDistance, "%f, %0.10f", p_rigidCumul.x, length(dist2) / channelRadius);
+//				fprintf(fileRigidParticleCenterVsTime, ", %f, %0.10f", tStep * delT, length(dist2) / channelRadius);
+//				fprintf(fileRigidParticleCenterVsDistance, ", %f, %0.10f", p_rigidCumul.x, length(dist2) / channelRadius);
 			}
 			fprintf(fileRigidParticleCenterVsTime, "\n");
 			fprintf(fileRigidParticleCenterVsDistance, "\n");
