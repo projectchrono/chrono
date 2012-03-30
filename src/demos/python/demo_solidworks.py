@@ -75,7 +75,7 @@ pov_exporter.SetAmbientLight(chrono.ChColor(2,2,2))
  # Turn on the rendering of xyz axes for the centers of gravity or reference frames:
 #pov_exporter.SetShowCOGs  (1, 0.05)
 #pov_exporter.SetShowFrames(1, 0.02)
-pov_exporter.SetShowLinks(1, 0.03)
+#pov_exporter.SetShowLinks(1, 0.03)
 
  # Add additional POV objects/lights/materials in the following way, entering
  # an optional text using the POV scene description laguage. This will be

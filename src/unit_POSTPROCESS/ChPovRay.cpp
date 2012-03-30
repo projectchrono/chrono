@@ -17,6 +17,7 @@
 #include "assets/ChBoxShape.h"
 #include "physics/ChParticlesClones.h"
 #include "physics/ChLinkMate.h"
+#include "physics/ChContactContainer.h"
 
 using namespace chrono;
 using namespace postprocess;
@@ -50,6 +51,14 @@ ChPovRay::ChPovRay(ChSystem* system) : ChPostProcessBase(system)
 	this->frames_size = 0.05;
 	this->links_show = false;
 	this->links_size = 0.04;
+	this->contacts_show = false;
+	this->contacts_maxsize = 0.1;
+	this->contacts_scale = 0.01;
+	this->contacts_scale_mode =  SYMBOL_VECTOR_SCALELENGTH;
+	this->contacts_width  = 0.001;
+	this->contacts_colormap_startscale = 0;
+	this->contacts_colormap_endscale = 10;
+	this->contacts_do_colormap = true;
 }
 
 void ChPovRay::AddAll()
@@ -60,6 +69,19 @@ void ChPovRay::AddAll()
 		this->mdata.push_back((*myiter));
 		++myiter;
 	}
+	ChSystem::IteratorOtherPhysicsItems myiterp = mSystem->IterBeginOtherPhysicsItems();
+	while (myiterp != mSystem->IterEndOtherPhysicsItems())
+	{	
+		this->mdata.push_back((*myiterp));
+		++myiterp;
+	}
+	ChSystem::IteratorLinks myiterl = mSystem->IterBeginLinks();
+	while (myiterl != mSystem->IterEndLinks())
+	{	
+		this->mdata.push_back((*myiterl));
+		++myiterl;
+	}
+
 }
 
 void ChPovRay::Add(ChSharedPtr<ChPhysicsItem> mitem)
@@ -133,6 +155,20 @@ void ChPovRay::SetShowLinks(bool show, double msize)
 	this->links_show = show;
 	if (show) 
 		this->links_size = msize;
+}
+void ChPovRay::SetShowContacts(bool show, eChContactSymbol mode, double scale, double width, double max_size, bool do_colormap, double colormap_start, double colormap_end)
+{
+	this->contacts_show = show;
+	if (show)
+	{
+		this->contacts_scale_mode = mode;
+		this->contacts_scale = scale;
+		this->contacts_width = width;
+		this->contacts_maxsize = max_size;
+		this->contacts_do_colormap = do_colormap;
+		this->contacts_colormap_startscale = colormap_start;
+		this->contacts_colormap_endscale = colormap_end;
+	}
 }
 
 
@@ -243,13 +279,72 @@ void ChPovRay::ExportScript(const std::string &filename)
 
 	// Write POV code to open the asset file
 
+	mfile << "// Include shape assets (triangle meshes): \n\n";
 	mfile << "#include \"" << assets_filename << "\"\n\n";
 
 	// Write POV code to open the n.th scene file
 
+	mfile << "// Include POV code to for the n.th scene file: \n\n";
 	mfile << "#declare scene_file = concat(\"" << this->out_data_filename << "\", str(frame_number,-5,0), \".pov\") \n"; 
-	mfile << "#include scene_file \n";
+	mfile << "#include scene_file \n\n";
 
+	// Write POV code to load and display contacts
+
+	if (this->contacts_show)
+	{
+		mfile << "// Load contacts and create objects to show them: \n\n";
+
+		mfile << "#declare contacts_scale=" << this->contacts_scale <<";\n" ;
+		mfile << "#declare contacts_width=" << this->contacts_width <<";\n" ; 
+		mfile << "#declare contacts_maxsize=" << this->contacts_maxsize <<";\n" ;
+		mfile << "#declare contacts_do_colormap=" << ((int)this->contacts_do_colormap) <<";\n" ;
+		mfile << "#declare contacts_colormap_startscale=" << this->contacts_colormap_startscale <<";\n" ; 
+		mfile << "#declare contacts_colormap_endscale=" << this->contacts_colormap_endscale <<";\n" ;
+		mfile << "#declare contacts_defaultcolor= rgb<0.0,0.9,0.2>; \n" ;
+		if (this->contacts_scale_mode== SYMBOL_VECTOR_SCALELENGTH)
+		{
+			mfile << "#declare contacts_scale_mode=1;\n" ;
+			mfile << "#declare draw_contacts_asspheres =0;\n" ;
+			mfile << "#declare draw_contacts_ascylinders =1;\n" ;
+		}
+		if (this->contacts_scale_mode== SYMBOL_VECTOR_SCALERADIUS)
+		{
+			mfile << "#declare contacts_scale_mode=2;\n" ;
+			mfile << "#declare draw_contacts_asspheres =0;\n" ;
+			mfile << "#declare draw_contacts_ascylinders =1;\n" ;
+		}
+		if (this->contacts_scale_mode== SYMBOL_VECTOR_NOSCALE)
+		{
+			mfile << "#declare contacts_scale_mode=0;\n" ;
+			mfile << "#declare draw_contacts_asspheres =0;\n" ;
+			mfile << "#declare draw_contacts_ascylinders =1;\n" ;
+		}
+		if (this->contacts_scale_mode== SYMBOL_SPHERE_SCALERADIUS)
+		{
+			mfile << "#declare contacts_scale_mode=1;\n" ;
+			mfile << "#declare draw_contacts_asspheres =1;\n" ;
+			mfile << "#declare draw_contacts_ascylinders =0;\n" ;
+		}
+		if (this->contacts_scale_mode== SYMBOL_VECTOR_NOSCALE)
+		{
+			mfile << "#declare contacts_scale_mode=0;\n" ;
+			mfile << "#declare draw_contacts_asspheres =1;\n" ;
+			mfile << "#declare draw_contacts_ascylinders =0;\n" ;
+		}
+		mfile << "\n" ;
+
+		mfile << "#declare contacts_file = concat(\"" << this->out_data_filename << "\", str(frame_number,-5,0), \".contacts\") \n";
+		mfile << "#fopen MyContactsFile contacts_file read \n";
+
+		mfile << " \n\
+			union{\n\
+				#read (MyContactsFile, apx, apy, apz, anx, any, anz,  afx, afy, afz ) \n\
+				#while (defined(MyContactsFile)) \n\
+					#read (MyContactsFile, apx, apy, apz, anx, any, anz,  afx, afy, afz ) \n\
+					make_contact(apx, apy, apz, anx, any, anz,  afx, afy, afz) \n\
+				#end  \n\
+			} \n";
+	}
 
 	// Populate the assets
 	this->ExportAssets();
@@ -534,7 +629,8 @@ void ChPovRay::ExportData(const std::string &filename)
 
 						// 1) asset k of object i references an .obj wavefront mesh?
 						if ( k_asset.IsType<ChObjShapeFile>() ||
-							 k_asset.IsType<ChSphereShape>() )
+							 k_asset.IsType<ChSphereShape>() || 
+							 k_asset.IsType<ChBoxShape>() )
 						{
 							mfilepov << "sh_"<< (int) k_asset.get_ptr() << "("; // apx, apy, apz, aq0, aq1, aq2, aq3, atexture)\n";
 
@@ -568,7 +664,56 @@ void ChPovRay::ExportData(const std::string &filename)
 
 		} // end loop on objects
 
-	}catch (ChException)
+		if (this->contacts_show)
+		{
+			char pathcontacts[200];
+			sprintf(pathcontacts,"%s.contacts", filename.c_str());
+			ChStreamOutAsciiFile data_contacts(pathcontacts);
+
+			class _reporter_class : public chrono::ChReportContactCallback 
+			{
+			public:
+				virtual bool ReportContactCallback (
+								const ChVector<>& pA,				
+								const ChVector<>& pB,				
+								const ChMatrix33<>& plane_coord,	
+								const double& distance,				
+								const float& mfriction,			  	
+								const ChVector<>& react_forces,		
+								const ChVector<>& react_torques,	
+								collision::ChCollisionModel* modA,	
+								collision::ChCollisionModel* modB) 
+				{
+					if (fabs(react_forces.x)>1e-8 || fabs(react_forces.y)>1e-8 || fabs(react_forces.z)>1e-8)
+					{	
+						ChMatrix33<> localmatr(plane_coord);
+						ChVector<> n1 = localmatr.Get_A_Xaxis();
+						ChVector<> absreac= localmatr * react_forces;
+						(*mfile) << pA.x << ", ";
+						(*mfile) << pA.y << ", ";
+						(*mfile) << pA.z << ", ";
+						(*mfile) << n1.x << ", ";
+						(*mfile) << n1.y << ", ";
+						(*mfile) << n1.z << ", ";
+						(*mfile) << absreac.x << ", ";
+						(*mfile) << absreac.y << ", ";
+						(*mfile) << absreac.z << ", \n";
+					}
+					return true; // to continue scanning contacts
+				}
+				// Data 
+				ChStreamOutAsciiFile* mfile;
+			};
+
+			_reporter_class my_contact_reporter;
+			my_contact_reporter.mfile = &data_contacts;
+
+			// scan all contacts 
+			this->mSystem->GetContactContainer()->ReportAllContacts(&my_contact_reporter);
+		}
+
+	}
+	catch (ChException)
 	{
 		char error[400];
 		sprintf(error,"Can't save data into file %s.pov (or .dat)", filename.c_str() );

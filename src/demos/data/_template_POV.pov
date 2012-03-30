@@ -64,68 +64,45 @@ background { rgb<1,1,1> }
 //     
 // --- Default materials, textures, etc.
 // 
-
     
+        
+        
+// A macro to create grids
 
-#declare PebbleFinish =
-finish {
-	ambient 0.07 diffuse 1
-	roughness 0.02
-	brilliance 2   
-}
-  
-#declare HopperFinish =
-finish {
-	ambient 0.1 diffuse 1
-	specular 0.8 roughness 0.02
-	brilliance 2 
-	/* 
-             reflection {
-              0.3                      // minimal reflection value (for variable reflection)
-              1.0                        // reflection amount (maximum for variable reflection)
-              fresnel on               // realistic variable reflection
-              falloff 1.0              // falloff exponent for variable reflection
-              exponent 1.0             // influence surface reflection characteristic
-              metallic 1.0             // tint reflection in surface color
+
+#macro Raster(RScale, RLine, lcolor)
+pigment{
+   gradient x scale RScale
+   color_map{
+     [0.000   color lcolor]
+     [0+RLine color lcolor]
+     [0+RLine color rgbt<1,1,1,1>]
+     [1-RLine color rgbt<1,1,1,1>]
+     [1-RLine color lcolor]
+     [1.000   color lcolor]
             }
-        */
-}
-       
-       
-#macro tx_def()
-  pigment{color rgb <1,1,1>} 
+       } 
 #end
-  
 
-//     
-// --- Light sources
-// 
+#macro Grid(Scale,
+            Line_thickness,
+            Line_color,
+            Plane_color)
+plane{<0,1,0>, 0
+      texture{ pigment{color Plane_color } } 
+      texture{ Raster(Scale,  Line_thickness*0.5, Line_color) } 
+      texture{ Raster(Scale,  Line_thickness*0.5, Line_color) rotate<0,90,0> }
+      no_shadow 
+     } 
+#end
+     
+// Use as:
+// Grid(0.05,0.04, rgb<0.5,0.5,0.5>, rgbt<1,1,1,1>)
 
-    
 
-  /* 
-// An area light (creates soft shadows)
-// WARNING: This special light can significantly slow down rendering times!
-light_source {
-  0*x                 // light's position (translated below)
-  color rgb 1.5       // light's color
-  area_light
-  <0.6, 0, 0> <0, 0.6, 0> // lights spread out across this distance (x * z)
-  4, 4                // total number of lights in grid (4x*4z = 16 lights)
-  adaptive 0          // 0,1,2,3...
-  jitter              // adds random softening of light
-  circular            // make the shape of the light circular
-  orient              // orient light
-  translate <2, 6, -4>   // <x y z> position of light
-}
- */   
-    
-          
-         
-//
-// Macros for showing useful geometries
-//
 
+ 
+      
 // Macro for showing the COG as a dot 
           
 #macro sh_COG(apx, apy, apz, arad)
@@ -135,7 +112,9 @@ sphere {
  no_shadow
 }
 #end   
-     
+    
+         
+         
 // Macro for showing a coordsystem for a COG (with a sphere in center)
      
 #macro sh_csysCOG(apx, apy, apz, aq0, aq1, aq2, aq3, asize)
@@ -161,7 +140,9 @@ union {
  no_shadow 
 }
 #end 
-
+                         
+                         
+       
 // Macro for showing a coordsystem for a frame (with a cube in center)
      
 #macro sh_csysFRM(apx, apy, apz, aq0, aq1, aq2, aq3, asize)
@@ -187,8 +168,131 @@ union {
  no_shadow 
 }
 #end
+       
+       
+       
+// Macros for showing contact points / contact forces  
 
+#declare ContactFinishA =
+finish {
+	ambient 0.07 diffuse 1
+	specular 0.8 roughness 0.02
+	brilliance 2  
+}
+#declare ContactFinishB =
+finish {
+	ambient 1 diffuse 0
+	specular 0.0 roughness 0.0
+	brilliance 0  
+}
 
+#declare apx=0;
+#declare apy=0;
+#declare apz=0;     
+#declare anx=0;
+#declare any=0;
+#declare anz=0;  
+#declare afx=0;
+#declare afy=0;
+#declare afz=0;
+#declare draw_contacts_info =0; // if =1 draw only normal force component
+   
+#macro make_contact(apx, apy, apz, anx, any, anz,  afx, afy, afz)  
+        #local vdir = vnormalize(<afx,afy,afz>);
+        #local astrengthval = vlength(<afx,afy,afz>); 
+        #if(draw_contacts_info=1)  
+             #local fnormalcomp= vdot(<afx, afy, afz>,<anx, any, anz>);
+             #local vdir = <anx, any, anz>;
+             #local astrengthval = fnormalcomp;
+        #end
+        #local asize = astrengthval * contacts_scale;
+        
+        #local acolormap = (1/(contacts_colormap_endscale-contacts_colormap_startscale))*(astrengthval-contacts_colormap_startscale);
+        #local acolormapclamp =  max(min( acolormap, 1 ),-1);
+        #local acolor= contacts_defaultcolor;
+        #if(contacts_do_colormap)
+                #if(acolormapclamp>0.5) 
+                        #local acolor=rgb<(acolormapclamp-0.5)*2, 1-(acolormapclamp-0.5)*2 ,0>; 
+                #else
+                        #local acolor=rgb<0, acolormapclamp*2 , 1-acolormapclamp*2>;
+                #end
+        #end     
+        #if (asize > contacts_maxsize) 
+             #local asize = contacts_maxsize;
+             #local acolor=rgb<1,1,0.5>; 
+        #end
+
+        #if (draw_contacts_asspheres=1)  
+                #if(contacts_scale_mode=1)
+                       #local arad = asize;
+                #else
+                       #local arad = contacts_width;
+                #end
+                sphere { 
+                        <apx,apy,apz>, arad 
+                        pigment{acolor}
+                        finish {ContactFinishB}
+                        no_shadow
+                } 
+        #end
+        #if (draw_contacts_ascylinders=1)
+                #if(contacts_scale_mode=1)
+                       #local arad = contacts_width;
+                       #local alen = asize;
+                #else   
+                  #if(contacts_scale_mode=2)
+                       #local arad = asize; 
+                       #local alen = contacts_maxsize;  
+                  #else 
+                       #local arad = contacts_width; 
+                       #local alen = contacts_maxsize;
+                  #end
+                #end
+                cylinder {
+                        <apx,apy,apz> -vdir*alen, // <apx-alen*anx, apy-alen*any, apz-alen*anz>,
+                        <apx,apy,apz> +vdir*alen, 
+                        arad
+                        pigment{acolor} 
+                        finish {ContactFinishB}
+                        no_shadow
+                }
+        #end
+#end
+     
+        
+        
+/*       
+#macro tx_def()
+  pigment{color rgb <1,1,1>} 
+#end
+*/
+  
+
+//     
+// --- Light sources
+// 
+
+    
+
+  /* 
+// An area light (creates soft shadows)
+// WARNING: This special light can significantly slow down rendering times!
+light_source {
+  0*x                 // light's position (translated below)
+  color rgb 1.5       // light's color
+  area_light
+  <0.6, 0, 0> <0, 0.6, 0> // lights spread out across this distance (x * z)
+  4, 4                // total number of lights in grid (4x*4z = 16 lights)
+  adaptive 0          // 0,1,2,3...
+  jitter              // adds random softening of light
+  circular            // make the shape of the light circular
+  orient              // orient light
+  translate <2, 6, -4>   // <x y z> position of light
+}
+ */        
+        
+        
+        
 // -----------------------------------------------------------------------------
 // OBJECTS TO BE RENDERED ARE AUTOMATICALLY INSERTED AFTER THIS LINE
 // THANKS TO THE POSTPROCESSING UNIT OF CHRONO::ENGINE. YOU SHOULD NOT NEED TO

@@ -39,6 +39,15 @@ public:
 	ChPovRay(ChSystem* system);
 	virtual ~ChPovRay(){}
 
+
+	enum eChContactSymbol {					// used for displaying contacts
+		SYMBOL_VECTOR_SCALELENGTH = 0,
+		SYMBOL_VECTOR_SCALERADIUS,
+		SYMBOL_VECTOR_NOSCALE,
+		SYMBOL_SPHERE_SCALERADIUS,
+		SYMBOL_SPHERE_NOSCALE
+		};
+
 		/// Add all ChPhysicsItem objects in the system to 
 		/// the list of objects to render (if they have some
 		/// associated ChAsset object). Call this at the
@@ -123,6 +132,12 @@ public:
 		/// If setting true, you can also set the size of the symbol, in meters.
 	virtual void SetShowLinks(bool show, double msize=0.04);
 
+		/// Turn on/off the display of contacts, using spheres or arrows (see eChContactSymbol modes).
+		/// The size of the arrow or of the sphere dependson force strength multiplied by 'scale'.
+		/// Use 'max_size' to limit size of arrows if too long, or spheres if too large (they will be signaled by white color)
+		/// Use 'width' for the radius of the arrow. If in 'SYMBOL_VECTOR_SCALERADIUS' mode, the length of the vector is always max_size.
+	virtual void SetShowContacts(bool show, eChContactSymbol mode, double scale, double width, double max_size, bool do_colormap, double colormap_start, double colormap_end);
+
 		/// Set a string (a text block) of custom POV commands that you can optionally
 		/// append to the POV script file, for example adding other POV lights, materials, etc.
 		/// What you put in this string will be put at the end of the generated POV script, just
@@ -205,7 +220,14 @@ protected:
 	double		frames_size;
 	bool		links_show;
 	double		links_size;
-
+	bool		contacts_show;
+	double		contacts_maxsize;
+	double		contacts_scale;
+	eChContactSymbol contacts_scale_mode;
+	double		contacts_width;
+	double		contacts_colormap_startscale;
+	double		contacts_colormap_endscale;
+	bool		contacts_do_colormap;
 	ChColor	    background;
 	ChColor		ambient_light;
 
