@@ -517,6 +517,11 @@ __global__ void calcHashD(uint* gridParticleHash, // output
 
 	volatile float4 p = posRad[index];
 
+		float3 boxCorner = paramsD.worldOrigin;
+		if (p.x < boxCorner.x || p.y < boxCorner.y || p.z < boxCorner.z) {printf("Out of Min Boundary\n"); return;}
+		boxCorner = paramsD.worldOrigin + paramsD.boxDims;
+		if (p.x > boxCorner.x || p.y > boxCorner.y || p.z > boxCorner.z) {printf("Out of max Boundary\n"); return;}
+
 	// get address in grid
 	int3 gridPos = calcGridPos(F3(p.x, p.y, p.z));
 	uint hash = calcGridHash(gridPos);

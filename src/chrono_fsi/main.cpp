@@ -39,9 +39,154 @@ using namespace std;
 
 const float sPeriod = 4.6 * sizeScale;		//serpentine period
 const float toleranceZone = 3 * HSML;
+float3 straightChannelMin;
+float3 straightChannelMax;
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 float Min(float a, float b) {
 	return (a < b) ? a : b;
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+void CreateMassMomentEllipsoid(
+		float & mass,
+		float3 & j1,
+		float3 & j2,
+		float r1, float r2, float r3,
+		const float rhoRigid) {
+	mass = 4.0 / 3 * PI * r1 * r2 * r3 * rhoRigid;			//for sphere
+	j1 = .2 * mass * F3(r2 * r2 + r3 * r3, 0.0f, 0.0f);
+	j2 = .2 * mass * F3(r1 * r1 + r3 * r3, 0.0f, r1 * r1 + r2 * r2);
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+void CreateMassMomentCylinder(
+		float & mass,
+		float3 & j1,
+		float3 & j2,
+		float r1,
+		const float3 cMin,
+		const float3 cMax,
+		const float rhoRigid) {
+		mass = PI * pow(r1, 2) * (cMax.y - cMin.y) * rhoRigid;	//for cylinder
+		j1 = F3(1.0 / 12.0  * mass * (3 * pow(r1, 2) + pow(cMax.y - cMin.y, 2)), 0, 0);
+		j2 = F3(.5 * mass * pow(r1, 2), 0, 1.0 / 12.0  * mass * (3 * pow(r1, 2) + pow(cMax.y - cMin.y, 2)));
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+void CalcInvJ(const float3 j1, const float3 j2, float3 & invJ1, float3 & invJ2) {
+	//normalize J to deal with machine precision
+	float3 maxJ3 = fmaxf(j1, j2);
+	float maxComp = max(maxJ3.x, maxJ3.y);
+	maxComp = max(maxComp, maxJ3.z);
+	//********************************************
+	float3 nJ1 = j1 / maxComp;	//nJ1 is normalJ1
+	float3 nJ2 = j2 / maxComp;	//nJ2 is normalJ2
+
+	float detJ = 2 * nJ1.z * nJ1.y * nJ2.y - nJ1.z * nJ1.z * nJ2.x - nJ1.y * nJ1.y * nJ2.z + nJ1.x * nJ2.x * nJ2.z - nJ1.x * nJ2.y * nJ2.y;
+	invJ1 = F3(nJ2.x * nJ2.z - nJ2.y * nJ2.y, -nJ1.y * nJ2.z + nJ1.z * nJ2.y, nJ1.y * nJ2.y - nJ1.z * nJ2.x);
+	invJ2 = F3(-nJ1.z * nJ1.z + nJ1.x * nJ2.z, -nJ1.x * nJ2.y + nJ1.z * nJ1.y, -nJ1.y * nJ1.y + nJ1.x * nJ2.x);
+
+	//printf("invJ %f %f %f %f %f %f\n", aa.x, aa.y, aa.z, bb.x, bb.y, bb.z);
+	//printf("invJ %f %f %f %f %f %f\n", 1e12 * j1.x, 1e12 *  j1.y, 1e12 *  j1.z,  1e12 * j2.x,  1e12 * j2.y, 1e12 *  j2.z);
+	//printf("detJ %e\n", detJ * maxComp);
+	// j = maxComp * nJ, therefore, jInv = maxComp * nJ_Inv
+	invJ1 = invJ1 / detJ / maxComp;
+	invJ2 = invJ2 / detJ / maxComp;
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+void CreateRigidBodiesFromFile(
+		thrust::host_vector<float3> & rigidPos,
+		thrust::host_vector<float4> & spheresVelMas,
+		thrust::host_vector<float3> & rigidBodyOmega,
+		thrust::host_vector<float3> & rigidBody_J1,
+		thrust::host_vector<float3> & rigidBody_J2,
+		thrust::host_vector<float3> & rigidBody_InvJ1,
+		thrust::host_vector<float3> & rigidBody_InvJ2,
+		thrust::host_vector<float3> & ellipsoidRadii,
+		const float3 cMin,
+		const float3 cMax,
+		const string fileNameRigids,
+		const float rhoRigid,
+		float & channelRadius) {
+
+	fstream ifileSpheres(fileNameRigids.c_str(), ios::in);
+	//rRigidBody = .08 * sizeScale;//.06 * sizeScale;//.125 * sizeScale; // .25 * sizeScale; //.06 * sizeScale;//.08 * sizeScale;//.179 * sizeScale;
+
+	float x, y, z;
+	char ch;
+
+	float dumRRigidBody1, dumRRigidBody2, dumRRigidBody3;
+	ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> dumRRigidBody1 >> ch >> dumRRigidBody2 >> ch >> dumRRigidBody3;
+	int counterRigid = 0;
+	while (!ifileSpheres.eof()) {
+		//float r = rRigidBody * (.75 + .75 * float(rand())/RAND_MAX);
+		for (int period = 0; period < nPeriod; period++) {
+			rigidPos.push_back(F3(x * sizeScale + period * sPeriod, y * sizeScale, z * sizeScale));
+			//float r1 = .8 * rRigidBody, r2 = 1.2 * rRigidBody, r3 = 3 * rRigidBody;
+			//float r1 = rRigidBody, r2 = rRigidBody, r3 = rRigidBody;
+			float r1 = dumRRigidBody1 * sizeScale;
+			float r2 = dumRRigidBody2 * sizeScale;
+			float r3 = dumRRigidBody3 * sizeScale;
+			ellipsoidRadii.push_back(F3(r1, r2, r3));
+			float mass;
+			float3 j1, j2;
+
+			CreateMassMomentEllipsoid(mass, j1, j2, r1, r2, r3, rhoRigid);						//create Ellipsoid
+			//CreateMassMomentCylinder(mass, j1, j2, r1, cMin, cMax, rhoRigid);			//create Cylinder
+
+			spheresVelMas.push_back(F4(0, 0, 0, float(mass)));
+			rigidBodyOmega.push_back(F3(0, 0, 0));
+			rigidBody_J1.push_back(j1);
+			rigidBody_J2.push_back(j2);
+
+			float3 invJ1, invJ2;
+			CalcInvJ(j1, j2, invJ1, invJ2);
+			rigidBody_InvJ1.push_back(invJ1);
+			rigidBody_InvJ2.push_back(invJ2);
+		}
+		ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> dumRRigidBody1 >> ch >> dumRRigidBody2 >> ch >> dumRRigidBody3;
+		counterRigid ++;
+	}
+	ifileSpheres.close();
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+void CreateRigidBodiesPattern(
+		thrust::host_vector<float3> & rigidPos,
+		thrust::host_vector<float4> & spheresVelMas,
+		thrust::host_vector<float3> & rigidBodyOmega,
+		thrust::host_vector<float3> & rigidBody_J1,
+		thrust::host_vector<float3> & rigidBody_J2,
+		thrust::host_vector<float3> & rigidBody_InvJ1,
+		thrust::host_vector<float3> & rigidBody_InvJ2,
+		thrust::host_vector<float3> & ellipsoidRadii,
+		const float3 referenceR,
+		const float rhoRigid,
+		float & channelRadius) {
+
+	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
+	//printf("cMin %f %f %f, cMax %f %f %f\n", straightChannelMin.x, straightChannelMin.y, straightChannelMin.z, straightChannelMax.x, straightChannelMax.y, straightChannelMax.z);
+	float3 spaceRigids = 2 * (referenceR + 2 * F3(HSML));
+	float3 n3Rigids = (straightChannelMax - straightChannelMin) / spaceRigids;
+	for (int i = 1; i < n3Rigids.x - 1; i++) {
+		for  (int j = 1; j < n3Rigids.y - 1; j++) {
+			 for (int k = 1; k < n3Rigids.z - 1; k++) {
+				 float3 pos = straightChannelMin + F3(i, j, k) * spaceRigids;
+				 //printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
+				 rigidPos.push_back(pos);
+				 ellipsoidRadii.push_back(referenceR);
+				 float mass;
+				 float3 j1, j2;
+				 CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x, referenceR.y, referenceR.z, rhoRigid);						//create Ellipsoid
+
+				spheresVelMas.push_back(F4(0, 0, 0, float(mass)));
+				rigidBodyOmega.push_back(F3(0, 0, 0));
+				rigidBody_J1.push_back(j1);
+				rigidBody_J2.push_back(j2);
+
+				float3 invJ1, invJ2;
+				CalcInvJ(j1, j2, invJ1, invJ2);
+				rigidBody_InvJ1.push_back(invJ1);
+				rigidBody_InvJ2.push_back(invJ2);
+			 }
+		}
+	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 bool IsInsideSphere(float4 sphParPos, float4 spherePosRad, float clearance) {
@@ -235,18 +380,18 @@ float IsInsideStraightChannel(float4 posRad) {
 	//const float toleranceZone = 2 * sphR;
 	float largePenet = -5 * sphR;		//like a large number. Should be negative (assume large initial penetration)
 
-	if (posRad.z > 3.0 * sizeScale) {
-		penDist1 = 3.0 * sizeScale - posRad.z;
+	if (posRad.z > straightChannelMax.z) {
+		penDist1 = straightChannelMax.z - posRad.z;
 	}
-	if (posRad.z < 1.0 * sizeScale) {
-		penDist1 = posRad.z - 1.0 * sizeScale;
+	if (posRad.z < straightChannelMin.z) {
+		penDist1 = posRad.z - straightChannelMin.z;
 	}
 
-	if (posRad.y < 0) {
-		penDist2 = posRad.y;
+	if (posRad.y < straightChannelMin.y) {
+		penDist2 = posRad.y - straightChannelMin.y;
 	}
-	if (posRad.y > 1.0 * sizeScale) {
-		penDist2 = 1.0 * sizeScale - posRad.y;
+	if (posRad.y > straightChannelMax.y) {
+		penDist2 = straightChannelMax.y - posRad.y;
 	}
 	if (penDist1 < 0 && penDist2 < 0) {
 		return Min(penDist1, penDist2);
@@ -316,7 +461,7 @@ int2 CreateFluidParticles(
 	int num_BoundaryParticles = 0;
 	srand(964);
 	//float initSpace0 = 0.9 * sphR; //1.1 * sphR;//1.1 * sphR;//pow(4.0 / 3 * PI, 1.0 / 3) * sphR;
-	float initSpace0 = 0.9 * sphR;
+	float initSpace0 = 1.0 * sphR;
 	int nFX = ceil((cMax.x - cMin.x) / (initSpace0));
 	float initSpaceX = (cMax.x - cMin.x) / nFX;
 	//printf("orig nFx and nFx %f %f\n", (cMax.x - cMin.x) / initSpace, ceil ((cMax.x - cMin.x) / (initSpace)));
@@ -412,7 +557,7 @@ int CreateEllipsoidParticles(
 		int type) {
 	int num_rigidBodyParticles = 0;
 	//float spacing = .9 * sphR;
-	float spacing = 0.9 * sphR;
+	float spacing = 1.0 * sphR;
 	for (int k = 0; k < 3; k++) {
 		float3 r3 = ellipsoidRadii - F3(k * spacing);
 		//printf("r, rigidR, k*spacing %f %f %f\n", r * 1000000, spherePosRad.w * 1000000, k * spacing * 1000000);
@@ -526,6 +671,8 @@ int main() {
 //	float3 cMax = make_float3(nPeriod * 1.0 + 0, 1.5, 1.5) * sizeScale;  //for tube channel, sphere
 //	float3 cMin = make_float3(0, -0.5, -0.5) * sizeScale;
 
+	straightChannelMin = F3(cMin.x, 0.0 * sizeScale, 1.0 * sizeScale);
+	straightChannelMax = F3(cMax.x, 1.0 * sizeScale, 3.0 * sizeScale);
 	//printf("a1  cMax.x, y, z %f %f %f,  binSize %f\n", cMax.x, cMax.y, cMax.z, 2 * HSML);
 	int3 side0 = I3(floor((cMax.x - cMin.x) / (2 * HSML)), floor((cMax.y - cMin.y) / (2 * HSML)), floor((cMax.z - cMin.z) / (2 * HSML)));
 	float3 binSize3 = make_float3((cMax.x - cMin.x) / side0.x, (cMax.y - cMin.y) / side0.y, (cMax.z - cMin.z) / side0.z);
@@ -566,66 +713,12 @@ int main() {
 
 	////***** here: define rigid bodies
 	string fileNameRigids("spheresPos.dat");
-	fstream ifileSpheres(fileNameRigids.c_str(), ios::in);
-	//rRigidBody = .08 * sizeScale;//.06 * sizeScale;//.125 * sizeScale; // .25 * sizeScale; //.06 * sizeScale;//.08 * sizeScale;//.179 * sizeScale;
 	rhoRigid = 1000; //1050; //originally .079 //.179 for cylinder
-	float x, y, z;
-	char ch;
 	float channelRadius;
-	float dumRRigidBody1, dumRRigidBody2, dumRRigidBody3;
-	ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> dumRRigidBody1 >> ch >> dumRRigidBody2 >> ch >> dumRRigidBody3;
-	int counterRigid = 0;
-	while (!ifileSpheres.eof()) {
-		//float r = rRigidBody * (.75 + .75 * float(rand())/RAND_MAX);
-		for (int period = 0; period < nPeriod; period++) {
-			rigidPos.push_back(F3(x * sizeScale + period * sPeriod, y * sizeScale, z * sizeScale));
-			//float r1 = .8 * rRigidBody, r2 = 1.2 * rRigidBody, r3 = 3 * rRigidBody;
-			//float r1 = rRigidBody, r2 = rRigidBody, r3 = rRigidBody;
-			float r1 = dumRRigidBody1 * sizeScale;
-			float r2 = dumRRigidBody2 * sizeScale;
-			float r3 = dumRRigidBody3 * sizeScale;
-			ellipsoidRadii.push_back(F3(r1, r2, r3));
-			//********** intitialization of rigid bodies: Spheres
-			float mass = 4.0 / 3 * PI * r1 * r2 * r3 * rhoRigid;			//for sphere
-			float3 j1, j2;
-			j1 = .2 * mass * F3(r2 * r2 + r3 * r3, 0.0f, 0.0f);
-			j2 = .2 * mass * F3(r1 * r1 + r3 * r3, 0.0f, r1 * r1 + r2 * r2);
-			//****************************************************
-//			//********** intitialization of rigid bodies: Cylinders
-//			float mass = PI * pow(r1, 2) * (cMax.y - cMin.y) * rhoRigid;	//for cylinder
-//			float3 j1, j2;
-//			j1 = F3(1.0 / 12.0  * mass * (3 * pow(r1, 2) + pow(cMax.y - cMin.y, 2)), 0, 0);
-//			j2 = F3(.5 * mass * pow(r1, 2), 0, 1.0 / 12.0  * mass * (3 * pow(r1, 2) + pow(cMax.y - cMin.y, 2)));
-//			//****************************************************
-			//spheresVelMas.push_back(F4(0, 0, 0, float(mass)));
-			spheresVelMas.push_back(F4(0.01 * pow(-1, counterRigid), 0, 0, float(mass)));
-			rigidBodyOmega.push_back(F3(0, 0, 0));
-			rigidBody_J1.push_back(j1);
-			rigidBody_J2.push_back(j2);
-			//normalize J to deal with machine precision
-			float3 maxJ3 = fmaxf(j1, j2);
-			float maxComp = max(maxJ3.x, maxJ3.y);
-			maxComp = max(maxComp, maxJ3.z);
-			//********************************************
-			float3 nJ1 = j1 / maxComp;	//nJ1 is normalJ1
-			float3 nJ2 = j2 / maxComp;	//nJ2 is normalJ2
+	//CreateRigidBodiesFromFile(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, cMin, cMax, fileNameRigids, rhoRigid, channelRadius);
+	float3 r3Ellipsoid = F3(.03 * sizeScale);
+	CreateRigidBodiesPattern(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, channelRadius);
 
-			float detJ = 2 * nJ1.z * nJ1.y * nJ2.y - nJ1.z * nJ1.z * nJ2.x - nJ1.y * nJ1.y * nJ2.z + nJ1.x * nJ2.x * nJ2.z - nJ1.x * nJ2.y * nJ2.y;
-			float3 invJ1 = F3(nJ2.x * nJ2.z - nJ2.y * nJ2.y, -nJ1.y * nJ2.z + nJ1.z * nJ2.y, nJ1.y * nJ2.y - nJ1.z * nJ2.x);
-			float3 invJ2 = F3(-nJ1.z * nJ1.z + nJ1.x * nJ2.z, -nJ1.x * nJ2.y + nJ1.z * nJ1.y, -nJ1.y * nJ1.y + nJ1.x * nJ2.x);
-
-			//printf("invJ %f %f %f %f %f %f\n", aa.x, aa.y, aa.z, bb.x, bb.y, bb.z);
-			//printf("invJ %f %f %f %f %f %f\n", 1e12 * j1.x, 1e12 *  j1.y, 1e12 *  j1.z,  1e12 * j2.x,  1e12 * j2.y, 1e12 *  j2.z);
-			//printf("detJ %e\n", detJ * maxComp);
-			// j = maxComp * nJ, therefore, jInv = maxComp * nJ_Inv
-			rigidBody_InvJ1.push_back(invJ1 / detJ / maxComp);
-			rigidBody_InvJ2.push_back(invJ2 / detJ / maxComp);
-		}
-		ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> dumRRigidBody1 >> ch >> dumRRigidBody2 >> ch >> dumRRigidBody3;
-		counterRigid ++;
-	}
-//	printf("*********************************** J/Me6 %f \n",  .5  * pow(rRigidBody, 2) * 1e6);
-	ifileSpheres.close();
 	printf("size rigids %d\n", rigidPos.size());
 	//---------------------------------------------------------------------
 	// initialize fluid particles
@@ -693,7 +786,7 @@ int main() {
 //													 rigidSpheres + 1);		//as type
 			referenceArray.push_back(I3(numAllParticles, numAllParticles + num_RigidBodyParticles, rigidSpheres + 1));
 			numAllParticles += num_RigidBodyParticles;
-			printf(" %d \n", num_RigidBodyParticles);
+			//printf(" %d \n", num_RigidBodyParticles);
 		}
 		printf("\n");
 	}

@@ -496,7 +496,7 @@ void PrintToFile(
 ////	}
 ////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	FILE *fileNameRigidsSPH;
-	int stepSaveRigid = 1000;
+	int stepSaveRigid = 2000;
 	///if (tStep % 20 == 0 && tStep > 56000) {
 	//if (tStep > 12506) {
 	if (tStep % stepSaveRigid == 0) {
@@ -702,7 +702,7 @@ void PrintToFile(
 		FILE *fileNameBoundaries;
 
 		system("mkdir -p povFiles");		//linux. In windows, it is System instead of system (to invoke a command in the command line)
-		int tStepsPovFiles = 10000;
+		int tStepsPovFiles = 1000;
 		if (tStep % tStepsPovFiles == 0) {
 			char fileCounter[5];
 			int dumNumChar = sprintf(fileCounter, "%d", int(tStep / tStepsPovFiles) );
@@ -1233,18 +1233,18 @@ void cudaCollisions(
 
 	//****************************** bin size adjustement and contact detection stuff *****************************
 	//float mBinSize0 = (mNSpheres == 0) ? mBinSize0 : 2 * HSML;
-	//float3 cMinOffset = cMin - 3 * F3(0, mBinSize0, mBinSize0);		//periodic bc in x direction
-	//float3 cMaxOffset = cMax + 3 * F3(0, mBinSize0, mBinSize0);
-	////float3 cMinOffset = cMin - 3 * F3(mBinSize0, mBinSize0, mBinSize0);		//periodic bc in x direction
-	////float3 cMaxOffset = cMax + 3 * F3(mBinSize0, mBinSize0, mBinSize0);
+	//float3 cMinOffsetCollisionPurpose = cMin - 3 * F3(0, mBinSize0, mBinSize0);		//periodic bc in x direction
+	//float3 cMaxOffsetCollisionPurpose = cMax + 3 * F3(0, mBinSize0, mBinSize0);
+	////float3 cMinOffsetCollisionPurpose = cMin - 3 * F3(mBinSize0, mBinSize0, mBinSize0);		//periodic bc in x direction
+	////float3 cMaxOffsetCollisionPurpose = cMax + 3 * F3(mBinSize0, mBinSize0, mBinSize0);
 
-	/////printf("side.x %f\n", abs(cMaxOffset.x - cMinOffset.x) / mBinSize);
-	//int3 SIDE = I3(  floor( (cMaxOffset.x - cMinOffset.x) / mBinSize0 ), floor( (cMaxOffset.y - cMinOffset.y) / mBinSize0 ), floor( (cMaxOffset.z - cMinOffset.z) / mBinSize0)  );
-	//float mBinSize = (cMaxOffset.x - cMinOffset.x) / SIDE.x;  //this one works when periodic BC is only on x. if it was on y as well (or on z), you would have problem.
-	float3 cMinOffset = cMin - 3 * F3(0, 0, binSize0); //periodic bc in x direction
-	float3 cMaxOffset = cMax + 3 * F3(0, 0, binSize0);
-	int3 SIDE = I3(int((cMaxOffset.x - cMinOffset.x) / binSize0 + .1), int((cMaxOffset.y - cMinOffset.y) / binSize0 + .1),
-			floor((cMaxOffset.z - cMinOffset.z) / binSize0 + .1));
+	/////printf("side.x %f\n", abs(cMaxOffsetCollisionPurpose.x - cMinOffsetCollisionPurpose.x) / mBinSize);
+	//int3 SIDE = I3(  floor( (cMaxOffsetCollisionPurpose.x - cMinOffsetCollisionPurpose.x) / mBinSize0 ), floor( (cMaxOffsetCollisionPurpose.y - cMinOffsetCollisionPurpose.y) / mBinSize0 ), floor( (cMaxOffsetCollisionPurpose.z - cMinOffsetCollisionPurpose.z) / mBinSize0)  );
+	//float mBinSize = (cMaxOffsetCollisionPurpose.x - cMinOffsetCollisionPurpose.x) / SIDE.x;  //this one works when periodic BC is only on x. if it was on y as well (or on z), you would have problem.
+	float3 cMinOffsetCollisionPurpose = cMin - 3 * F3(0, 0, binSize0); //periodic bc in x direction
+	float3 cMaxOffsetCollisionPurpose = cMax + 3 * F3(0, 0, binSize0);
+	int3 SIDE = I3(int((cMaxOffsetCollisionPurpose.x - cMinOffsetCollisionPurpose.x) / binSize0 + .1), int((cMaxOffsetCollisionPurpose.y - cMinOffsetCollisionPurpose.y) / binSize0 + .1),
+			floor((cMaxOffsetCollisionPurpose.z - cMinOffsetCollisionPurpose.z) / binSize0 + .1));
 	float mBinSize = binSize0; //Best solution in that case may be to change cMax or cMin such that periodic sides be a multiple of binSize
 
 	printf("SIDE: %d, %d, %d\n", SIDE.x, SIDE.y, SIDE.z);
@@ -1254,9 +1254,9 @@ void cudaCollisions(
 	paramsH.particleRadius = HSML;
 	paramsH.gridSize = SIDE;
 	//paramsH.numCells = SIDE.x * SIDE.y * SIDE.z;
-	paramsH.worldOrigin = cMinOffset;
+	paramsH.worldOrigin = cMinOffsetCollisionPurpose;
 	paramsH.cellSize = F3(mBinSize, mBinSize, mBinSize);
-	paramsH.boxDims = cMaxOffset - cMinOffset;
+	paramsH.boxDims = cMaxOffsetCollisionPurpose - cMinOffsetCollisionPurpose;
 	printf("boxDims: %f, %f, %f\n", paramsH.boxDims.x, paramsH.boxDims.y, paramsH.boxDims.z);
 
 	setParameters(&paramsH);
@@ -1329,7 +1329,7 @@ void cudaCollisions(
 
 		//density re-initialization
 		if (tStep % 10 == 0) {
-			DensityReinitialization(posRadD, velMasD, rhoPresMuD, mNSpheres, SIDE); //does not work for analytical boundaries (non-meshed) and free surfaces
+			///DensityReinitialization(posRadD, velMasD, rhoPresMuD, mNSpheres, SIDE); //does not work for analytical boundaries (non-meshed) and free surfaces
 		}
 
 		//edit PrintToFile since yu deleted cyliderRotOmegaJD
