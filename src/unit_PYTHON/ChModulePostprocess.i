@@ -66,6 +66,7 @@ using namespace chrono;
 // different c++ class, when possible.
 
 %include "std_string.i"
+%include "std_vector.i"
 %include "typemaps.i"
 
 
