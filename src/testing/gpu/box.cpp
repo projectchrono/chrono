@@ -13,7 +13,7 @@ void System::DoTimeStep() {
 		for (int xx = 0; xx < x; xx++) {
 			for (int yy = 0; yy < y; yy++) {
 				for (int zz = 0; zz < z; zz++) {
-					type = BOX;//rand()%2;e
+					type = CYLINDER;//rand()%2;e
 					float radius = .5;//(rand()%1000)/3000.0+.05;
 					ChVector<> mParticlePos((xx - (x - 1) / 2.0) + posX, (yy) + posY, (zz - (z - 1) / 2.0) + posZ);
 
@@ -34,7 +34,7 @@ void System::DoTimeStep() {
 						case BOX:
 							dim = ChVector<> (radius, radius, radius);
 						case CYLINDER:
-							dim = ChVector<> (radius, radius, radius);
+							dim = ChVector<> (radius, radius*2, radius);
 					}
 					AddCollisionGeometry(mrigidBody, type, dim, lpos, quat);
 					FinalizeObject(mrigidBody);
@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
 	GPUSystem->mNumObjects = 1;
 	GPUSystem->mIterations = 100;
 	GPUSystem->mTolerance = 1e-5;
-	GPUSystem->mOmegaContact = .8;
+	GPUSystem->mOmegaContact = .9;
 	GPUSystem->mOmegaBilateral = .2;
 	GPUSystem->mUseOGL = 1;
 
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
 	//GPUSystem->FinalizeObject(F);
 	//GPUSystem->FinalizeObject(B);
 	GPUSystem->FinalizeObject(BTM);
-
+	((ChLcpSolverGPU*) (GPUSystem->mSystem->GetLcpSolverSpeed()))->SetContactFactor(.6);
 	GPUSystem->Setup();
 	SimulationLoop(argc, argv);
 	return 0;

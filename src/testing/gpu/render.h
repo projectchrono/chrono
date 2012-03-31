@@ -285,6 +285,7 @@ float3 GetColour(double v, double vmin, double vmax) {
 	return (c);
 }
 void makeSphere(float3 pos, float rad, float angle, float3 axis, float3 scale) {
+
 	glRotatef(angle * 180.0 / PI, axis.x, axis.y, axis.z);
 	glScalef(scale.x, scale.y, scale.z);
 	if (!showSolid) {
@@ -342,13 +343,12 @@ void drawObject(CHBODY *abody) {
 
 	ShapeType type = ((CHMODEL *) (abody->GetCollisionModel()))->GetShapeType();
 
-	glPushMatrix();
 #ifndef _CHRONOGPU
 	btVector3 half;
 	CHMODEL* model = ((CHMODEL *) (abody->GetCollisionModel()));
 	glTranslatef(pos.x, pos.y, pos.z);
 	switch (type) {
-	case SPHERE:
+		case SPHERE:
 
 		if (showSphere) {
 			float Rad = ((btSphereShape*) model->GetBulletModel()->getCollisionShape())->getRadius();
@@ -368,18 +368,18 @@ void drawObject(CHBODY *abody) {
 		//case ELLIPSOID:
 
 		//	break;
-	case BOX:
+		case BOX:
 
 		half = ((btBoxShape*) model->GetBulletModel()->getCollisionShape())->getHalfExtentsWithMargin();
 
 		makeBox(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(float(half.x()), float(half.y()), float(half.z())));
 		break;
-	case CYLINDER:
+		case CYLINDER:
 		half = ((btCylinderShape*) model->GetBulletModel()->getCollisionShape())->getHalfExtentsWithMargin();
 		makeCyl(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(float(half.x()), float(half.y()), float(half.z())));
 		break;
 
-	default:
+		default:
 
 		Point pt;
 		pt.x = pos.x;
@@ -392,38 +392,63 @@ void drawObject(CHBODY *abody) {
 		break;
 	}
 #else
-	int i=0;
-	float3 A = ((CHMODEL *) (abody->GetCollisionModel()))->mData[i].A;
-	float3 B = ((CHMODEL *) (abody->GetCollisionModel()))->mData[i].B;
-	float3 C = ((CHMODEL *) (abody->GetCollisionModel()))->mData[i].C;
-	float4 R = ((CHMODEL *) (abody->GetCollisionModel()))->mData[i].R;
-	glTranslatef(pos.x, pos.y, pos.z);
-	switch (type) {
+
+	for (int i = 0; i < ((CHMODEL *) (abody->GetCollisionModel()))->mData.size(); i++) {
+		glPushMatrix();
+		ChVector<> pos = (abody)->GetPos();
+		ChQuaternion<> quat = abody->GetRot();
+		glTranslatef(pos.x, pos.y, pos.z);
+		quat.Normalize();
+		quat.Q_to_AngAxis(angle, axis);
+		glRotatef(angle * 180.0 / PI, axis.x, axis.y, axis.z);
+
+		ShapeType type = ((CHMODEL *) (abody->GetCollisionModel()))->mData[i].type;
+		float3 A = ((CHMODEL *) (abody->GetCollisionModel()))->mData[i].A;
+		float3 B = ((CHMODEL *) (abody->GetCollisionModel()))->mData[i].B;
+		float3 C = ((CHMODEL *) (abody->GetCollisionModel()))->mData[i].C;
+		float4 R = ((CHMODEL *) (abody->GetCollisionModel()))->mData[i].R;
+		ChCoordsys<> csys((abody)->GetPos(), (abody)->GetRot());
+
+		//if (type == CYLINDER) {
+			//	pos = csys.TrasformLocalToParent(ChVector<>(A.x, A.y - B.y, A.z));
+			//glTranslatef(A.x, A.y - B.y, A.z);
+		//} else {
+			//	pos = csys.TrasformLocalToParent(ChVector<>(A.x, A.y, A.z));
+			glTranslatef(A.x, A.y, A.z);
+		//}
+		quat = ChQuaternion<>(R.x, R.y, R.z, R.w);
+		quat.Normalize();
+		quat.Q_to_AngAxis(angle, axis);
+
+		switch (type) {
 		case SPHERE:
 
-		if (showSphere) {
-			makeSphere(F3(pos.x, pos.y, pos.z), B.x, angle, F3(axis.x, axis.y, axis.z), F3(1, 1, 1));
-		} else {
-			Point pt;
-			pt.x = pos.x;
-			pt.y = pos.y;
-			pt.z = pos.z;
-			pt.r = color.x;
-			pt.g = color.y;
-			pt.b = color.z;
-			points.push_back(pt);
-		}
+			if (showSphere) {
+				makeSphere(F3(pos.x, pos.y, pos.z), B.x, angle, F3(axis.x, axis.y, axis.z), F3(1, 1, 1));
+			} else {
+				Point pt;
+				pt.x = pos.x;
+				pt.y = pos.y;
+				pt.z = pos.z;
+				pt.r = color.x;
+				pt.g = color.y;
+				pt.b = color.z;
+				points.push_back(pt);
+			}
 
-		break;
+			break;
 		case ELLIPSOID:
-		makeSphere(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
-		break;
+			makeSphere(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
+			break;
 		case BOX:
-		makeBox(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
-		break;
+			makeBox(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
+			break;
 		case CYLINDER:
-		makeCyl(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
-		break;
+			//makeBox(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
+			makeSphere(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
+			break;
+		}
+		glPopMatrix();
 	}
 
 #endif
@@ -433,7 +458,7 @@ void drawObject(CHBODY *abody) {
 	//for (int i = 0; i < numobjects; i++) {
 
 	//)->mData[i].type;
-	ChCoordsys<> csys((abody)->GetPos(), (abody)->GetRot());
+	//ChCoordsys<> csys((abody)->GetPos(), (abody)->GetRot());
 	//csys.TrasformLocalToParent(ChVector<> (A.x, A.y, A.z));
 
 	//quat = quat % ChQuaternion<> (R.x, R.y, R.z, R.w);
