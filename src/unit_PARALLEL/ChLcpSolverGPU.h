@@ -32,7 +32,7 @@ class ChApiGPU ChLcpSolverGPU: public ChLcpIterativeSolver {
 public:
 	ChLcpSolverGPU() {
 		lcp_contact_factor=.6;
-		lcp_omega_bilateral=.2;
+		lcp_omega_bilateral=.1;
 	}
 	~ChLcpSolverGPU() {
 	}

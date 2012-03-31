@@ -24,6 +24,7 @@ __global__ void Compute_AABBs(float3* pos, float4* rot, float3* obA, float3* obB
 	float3 temp_max;
 
 	if (type.x == 0) {
+		A=quatRotate(A,rot[type.z]);
 		ComputeAABBSphere(B.x, A + position, temp_min, temp_max);
 	} else if (type.x == 5) {
 		A = quatRotate(A + position, rotation);
@@ -32,7 +33,8 @@ __global__ void Compute_AABBs(float3* pos, float4* rot, float3* obA, float3* obB
 
 		ComputeAABBTriangle(A, B, C, temp_min, temp_max);
 	} else if (type.x == 1 || type.x == 2 || type.x == 3) {
-		ComputeAABBBox(B, A + position, rotation, temp_min, temp_max);
+		A=quatRotate(A,rot[type.z]);
+		ComputeAABBBox(B, A + position, rot[type.z], temp_min, temp_max);
 	} else {
 		return;
 	}

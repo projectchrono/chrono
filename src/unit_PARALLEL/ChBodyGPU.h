@@ -69,7 +69,7 @@ public:
 		return id;
 	}
 
-	virtual void SetPos(const ChVector<>& mpos) {
+	/*virtual void SetPos(const ChVector<>& mpos) {
 		coord.pos = mpos;
 		if (gpu_data_manager) {
 			gpu_data_manager->host_pos_data[id] = F3(mpos.x, mpos.y, mpos.z);
@@ -177,7 +177,7 @@ public:
 			this->variables.Get_fb().PasteSumVector(Xforce * factor, 0, 0);
 			this->variables.Get_fb().PasteSumVector((Xtorque - gyro) * factor, 3, 0);
 		}
-	}
+	}*/
 
 	ChVector<> mAppliedForce;
 	ChGPUDataManager *gpu_data_manager;

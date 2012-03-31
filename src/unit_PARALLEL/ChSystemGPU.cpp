@@ -99,27 +99,8 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 
 		}
 
-#pragma omp parallel for
-		for (int i = 0; i < bodylist.size(); i++) { // Updates recursively all other aux.vars
-			bodylist[i]->UpdateTime(ChTime);
-			bodylist[i]->UpdateMarkers(ChTime);
-			bodylist[i]->UpdateForces(ChTime);
-			bodylist[i]->VariablesFbReset();
-			bodylist[i]->VariablesFbLoadForces(GetStep());
-			bodylist[i]->VariablesQbLoadSpeed();
+//#pragma omp parallel for
 
-			//		ChLcpVariablesBody* mbodyvar = &(bodylist[i]->Variables());
-			//		ChMatrix33<> inertia = mbodyvar->GetBodyInvInertia();
-			//		gpu_data_manager->host_vel_data[i] = (F3(bodylist[i]->GetPos_dt().x, bodylist[i]->GetPos_dt().y, bodylist[i]->GetPos_dt().z));
-			//		gpu_data_manager->host_omg_data[i] = (F3(bodylist[i]->GetWvel_loc().x, bodylist[i]->GetWvel_loc().y, bodylist[i]->GetWvel_loc().z));
-			//		gpu_data_manager->host_pos_data[i] = (F3(bodylist[i]->GetPos().x, bodylist[i]->GetPos().y, bodylist[i]->GetPos().z));
-			//		gpu_data_manager->host_rot_data[i] = (F4(bodylist[i]->GetRot().e0, bodylist[i]->GetRot().e1, bodylist[i]->GetRot().e2, bodylist[i]->GetRot().e3));
-			//		gpu_data_manager->host_inr_data[i] = (F3(inertia.GetElement(0, 0), inertia.GetElement(1, 1), inertia.GetElement(2, 2)));
-			//		gpu_data_manager->host_frc_data[i] = (F3(mbodyvar->Get_fb().ElementN(0), mbodyvar->Get_fb().ElementN(1), mbodyvar->Get_fb().ElementN(2))); //forces
-			//		gpu_data_manager->host_trq_data[i] = (F3(mbodyvar->Get_fb().ElementN(3), mbodyvar->Get_fb().ElementN(4), mbodyvar->Get_fb().ElementN(5))); //torques
-			//		gpu_data_manager->host_aux_data[i] = (F3(bodylist[i]->IsActive(), bodylist[i]->GetKfriction(), 1.0f / mbodyvar->GetBodyMass()));
-			//		gpu_data_manager->host_lim_data[i] = (F3(bodylist[i]->GetLimitSpeed(), 100, 100));
-		}
 	}
 
 //------------------------------------------------------------------------------------------------------------------------
@@ -136,17 +117,17 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 
 		gpu_data_manager->DeviceToHost();
 
-		//for (int i = 0; i < bodylist.size(); i++) {
-		//ChBodyGPU* mbody = (ChBodyGPU*) bodylist[i];
-		//if (mbody->IsActive()) {
-		//mbody->SetPos(CHVECCAST(gpu_data_manager->host_pos_data[i]));
-		//mbody->SetRot(CHQUATCAST(gpu_data_manager->host_rot_data[i]));
-		//mbody->SetPos_dt(CHVECCAST(gpu_data_manager->host_vel_data[i]));
-		//mbody->SetPos_dtdt(CHVECCAST(gpu_data_manager->host_acc_data[i]));
-		//mbody->SetWvel_loc(CHVECCAST(gpu_data_manager->host_omg_data[i]));
-		//mbody->SetAppliedForce(CHVECCAST(gpu_data_manager->host_fap_data[i]));
-		//}
-		//}
+		for (int i = 0; i < bodylist.size(); i++) {
+			ChBodyGPU* mbody = (ChBodyGPU*) bodylist[i];
+			if (mbody->IsActive()) {
+				mbody->SetPos(CHVECCAST(gpu_data_manager->host_pos_data[i]));
+				mbody->SetRot(CHQUATCAST(gpu_data_manager->host_rot_data[i]));
+				mbody->SetPos_dt(CHVECCAST(gpu_data_manager->host_vel_data[i]));
+				mbody->SetPos_dtdt(CHVECCAST(gpu_data_manager->host_acc_data[i]));
+				mbody->SetWvel_loc(CHVECCAST(gpu_data_manager->host_omg_data[i]));
+				//mbody->SetAppliedForce(CHVECCAST(gpu_data_manager->host_fap_data[i]));
+			}
+		}
 		// updates the reactions of the constraint
 		LCPresult_Li_into_reactions(1.0 / this->GetStep()); // R = l/dt  , approximately
 		ChTime += GetStep();
@@ -184,7 +165,7 @@ void ChSystemGPU::AddBody(ChSharedPtr<ChBodyGPU> newbody) {
 	newbody->GetRot().Normalize();
 	ChMatrix33<> inertia = mbodyvar->GetBodyInvInertia();
 	gpu_data_manager->host_vel_data.push_back(F3(mbodyvar->Get_qb().GetElementN(0), mbodyvar->Get_qb().GetElementN(1), mbodyvar->Get_qb().GetElementN(2)));
-	gpu_data_manager->host_acc_data.push_back(F3(0,0,0));
+	gpu_data_manager->host_acc_data.push_back(F3(0, 0, 0));
 	gpu_data_manager->host_omg_data.push_back(F3(mbodyvar->Get_qb().GetElementN(3), mbodyvar->Get_qb().GetElementN(4), mbodyvar->Get_qb().GetElementN(5)));
 	gpu_data_manager->host_pos_data.push_back(F3(newbody->GetPos().x, newbody->GetPos().y, newbody->GetPos().z));
 	gpu_data_manager->host_rot_data.push_back(F4(newbody->GetRot().e0, newbody->GetRot().e1, newbody->GetRot().e2, newbody->GetRot().e3));
@@ -232,6 +213,27 @@ void ChSystemGPU::RemoveBody(int body) {
 void ChSystemGPU::Update() {
 	//ChTimer<double> mtimer;
 	//mtimer.start(); // Timer for profiling
+
+	for (int i = 0; i < bodylist.size(); i++) { // Updates recursively all other aux.vars
+		bodylist[i]->UpdateTime(ChTime);
+		bodylist[i]->UpdateMarkers(ChTime);
+		bodylist[i]->UpdateForces(ChTime);
+		bodylist[i]->VariablesFbReset();
+		bodylist[i]->VariablesFbLoadForces(GetStep());
+		bodylist[i]->VariablesQbLoadSpeed();
+
+		ChLcpVariablesBody* mbodyvar = &(bodylist[i]->Variables());
+		ChMatrix33<> inertia = mbodyvar->GetBodyInvInertia();
+		gpu_data_manager->host_vel_data[i] = (F3(bodylist[i]->GetPos_dt().x, bodylist[i]->GetPos_dt().y, bodylist[i]->GetPos_dt().z));
+		gpu_data_manager->host_omg_data[i] = (F3(bodylist[i]->GetWvel_loc().x, bodylist[i]->GetWvel_loc().y, bodylist[i]->GetWvel_loc().z));
+		gpu_data_manager->host_pos_data[i] = (F3(bodylist[i]->GetPos().x, bodylist[i]->GetPos().y, bodylist[i]->GetPos().z));
+		gpu_data_manager->host_rot_data[i] = (F4(bodylist[i]->GetRot().e0, bodylist[i]->GetRot().e1, bodylist[i]->GetRot().e2, bodylist[i]->GetRot().e3));
+		gpu_data_manager->host_inr_data[i] = (F3(inertia.GetElement(0, 0), inertia.GetElement(1, 1), inertia.GetElement(2, 2)));
+		gpu_data_manager->host_frc_data[i] = (F3(mbodyvar->Get_fb().ElementN(0), mbodyvar->Get_fb().ElementN(1), mbodyvar->Get_fb().ElementN(2))); //forces
+		gpu_data_manager->host_trq_data[i] = (F3(mbodyvar->Get_fb().ElementN(3), mbodyvar->Get_fb().ElementN(4), mbodyvar->Get_fb().ElementN(5))); //torques
+		gpu_data_manager->host_aux_data[i] = (F3(bodylist[i]->IsActive(), bodylist[i]->GetKfriction(), 1.0f / mbodyvar->GetBodyMass()));
+		gpu_data_manager->host_lim_data[i] = (F3(bodylist[i]->GetLimitSpeed(), 25, 25));
+	}
 
 	std::list<ChLink*>::iterator it;
 	unsigned int number_of_bilaterals = 0;

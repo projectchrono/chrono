@@ -400,7 +400,7 @@ __global__ void MPR_GPU_Store(float3* pos, float4* rot, float3* obA, float3* obB
 	float4 B_R = mult(rotB, obR[B_T.y]);
 
 	if (A_T.x == _SPHERE || A_T.x == _ELLIPSOID || A_T.x == _BOX || A_T.x == _CYLINDER) {
-		A_X = A_X + posA;
+		A_X = quatRotate(A_X,rotA) + posA;
 	} else if (A_T.x == _TRIANGLEMESH) {
 		A_X = quatRotate(A_X + posA, A_R);
 		A_Y = quatRotate(A_Y + posA, A_R);
@@ -408,7 +408,7 @@ __global__ void MPR_GPU_Store(float3* pos, float4* rot, float3* obA, float3* obB
 	}
 
 	if (B_T.x == _SPHERE || B_T.x == _ELLIPSOID || B_T.x == _BOX || B_T.x == _CYLINDER) {
-		B_X = B_X + posB;
+		B_X = quatRotate(B_X,rotB) + posB;
 	} else if (B_T.x == _TRIANGLEMESH) {
 		B_X = quatRotate(B_X + posB, B_R);
 		B_Y = quatRotate(B_Y + posB, B_R);
