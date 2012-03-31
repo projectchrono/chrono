@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
 	GPUSystem->mTolerance = 0;
 	GPUSystem->mOmegaContact = .5;
 	GPUSystem->mOmegaBilateral = .9;
-	GPUSystem->mUseOGL = 0;
+	GPUSystem->mUseOGL = 1;
 	GPUSystem->mSaveData = 0;
 
 	ChQuaternion<> quat(1, 0, 0, 0);

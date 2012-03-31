@@ -346,14 +346,11 @@ void System::AddCollisionGeometry(ChSharedPtr<ChBODY> &body, ShapeType type, ChV
 	ChMODEL * model = (ChMODEL*) body->GetCollisionModel();
 	if (type == SPHERE) {
 		model->AddSphere(dim.x, &lPos);
-	}
-	if (type == ELLIPSOID) {
+	} else if (type == ELLIPSOID) {
 		model->AddEllipsoid(dim.x, dim.y, dim.z, &lPos, rotation);
-	}
-	if (type == BOX) {
+	} else if (type == BOX) {
 		model->AddBox(dim.x, dim.y, dim.z, &lPos, rotation);
-	}
-	if (type == CYLINDER) {
+	} else if (type == CYLINDER) {
 		model->AddCylinder(dim.x, dim.y, dim.z, &lPos, rotation);
 	}
 }
@@ -428,9 +425,9 @@ void System::drawAll() {
 		points.clear();
 		for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
 			ChBODY* abody = (ChBODY*) mSystem->Get_bodylist()->at(i);
-			if(i%detail_level==0){
+			if (i % detail_level == 0) {
 				drawObject(abody);
-}
+			}
 		}
 		averageVal = newaverage / mSystem->Get_bodylist()->size();
 
@@ -496,10 +493,10 @@ void initGLUT(string name, int argc, char* argv[]) {
 }
 
 void SimulationLoop(int argc, char* argv[]) {
-//#pragma omp parallel
-//	{
-//#pragma omp master
-//		{
+#pragma omp parallel
+	{
+#pragma omp master
+		{
 			while (1) {
 				if (!stepMode) {
 					GPUSystem->mTimer.start();
@@ -514,12 +511,12 @@ void SimulationLoop(int argc, char* argv[]) {
 					exit(0);
 				}
 			}
-//		}
-//#pragma omp single nowait
-//		{
-//			if (GPUSystem->mUseOGL) {
-//				initGLUT(string("test"), argc, argv);
-//			}
-//		}
-//	}
+		}
+#pragma omp single nowait
+		{
+			if (GPUSystem->mUseOGL) {
+				initGLUT(string("test"), argc, argv);
+			}
+		}
+	}
 }

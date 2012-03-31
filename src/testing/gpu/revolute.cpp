@@ -21,8 +21,8 @@ void System::DoTimeStep() {
 }
 
 int main(int argc, char* argv[]) {
-	omp_set_nested(1);
-	GPUSystem = new System(1);
+	//omp_set_nested(1);
+	GPUSystem = new System(0);
 	GPUSystem->mTimeStep = .001;
 	GPUSystem->mEndTime = compute_period(4, 9.80665, PI / 2.0);
 	GPUSystem->mNumObjects = 1;
@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
 	GPUSystem->mTolerance = 1e-8;
 	GPUSystem->mOmegaContact = .5;
 	GPUSystem->mOmegaBilateral = .1;
-	GPUSystem->mUseOGL = 0;
+	GPUSystem->mUseOGL  =1;
 	GPUSystem->mSaveData = 0;
 
 	ChQuaternion<> quat(1, 0, 0, 0);
