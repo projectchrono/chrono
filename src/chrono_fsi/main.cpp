@@ -37,7 +37,17 @@
 using namespace std;
 //typedef unsigned int uint;
 
-const float sPeriod = 4.6 * sizeScale;		//serpentine period
+const float2 r1_2 = F2(1.351, 1.750) * sizeScale;
+const float2 r2_2 = F2(1.341, 1.754) * sizeScale;
+const float2 r3_2 = F2(2.413, 3.532) * sizeScale;
+const float2 r4_2 = F2(0.279, 0.413) * sizeScale;
+
+const float2 r5_2 = F2(1.675, 1.235) * sizeScale; //r5_2 = F2(1.727, 1.235);  	//the smaller one
+const float2 r6_2 = F2(2.747, 4.272) * sizeScale;												//the larger one
+const float x_FirstChannel = 8 * sizeScale;
+const float x_SecondChannel = 2 * sizeScale;
+
+const float sPeriod = 5.384 * sizeScale;		//serpentine period
 const float toleranceZone = 3 * HSML;
 float3 straightChannelMin;
 float3 straightChannelMax;
@@ -220,14 +230,148 @@ bool IsInsideCylinder_XZ(float4 sphParPos, float3 rigidPos, float3 radii, float 
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-float IsOutBoundaryCircle(float2 coord, float2 cent2, float r) {
-		float cDist = length(coord - cent2);
-		return cDist - r;
+float IsInEllipse(float2 pos, float2 radii) {
+//	printf(" pos %f %f  r2 %f %f\n", pos.x, pos.y, radii.x, radii.y);
+//	float2 kk  = pos / radii;
+//	printf("kk.x kk.y   %f %f \n", kk.x, kk.y);
+//	printf("lengthkk %f and the other length %f \n", length(kk), length(pos / radii));
+	return length( pos / radii );
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+float IsOutBoundaryEllipsoid(float2 coord, float2 cent2, float2 r2) {
+	float2 relDist2 = coord - cent2;
+//	printf("**** relDist %f %f  r2 %f %f\n", relDist2.x, relDist2.y, r2.x, r2.y);
+	float criteria = IsInEllipse(relDist2, r2);
+	if (criteria < 1) {
+//		printf("yeap my friend\n");
+		float x = relDist2.x / criteria;
+		return -1 * length(relDist2 - F2(x, relDist2.y / relDist2.x * x));
+	} else {
+//		printf("creiteria %f\n", criteria);
+		return 1; //a positive number implying it is outside
+	}
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-float IsInBoundaryCircle(float2 coord, float2 cent2, float r) {
-		float cDist = length(coord - cent2);
-		return r - cDist;
+float IsInBoundaryEllipsoid(float2 coord, float2 cent2, float2 r2) {
+	float2 relDist2 = coord - cent2;
+//	printf("**** relDist %f %f  r2 %f %f\n", relDist2.x, relDist2.y, r2.x, r2.y);
+	float criteria = IsInEllipse(relDist2, r2);
+	if (criteria > 1) {
+//		printf("neap my friend\n");
+		float x = relDist2.x / criteria;
+		return -1 * length(relDist2 - F2(x, relDist2.y / relDist2.x * x));
+	} else {
+//		printf("creiteria %f\n", criteria);
+		return 1; //a positive number implying it is outside
+	}
+}
+////&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+//float IsInsideCurveOfSerpentine(float4 posRad) {
+//	const float sphR = posRad.w;
+//	float x, y;
+//	float distFromWall = 0;//2 * sphR;//0;//2 * sphR;
+//	float penDist = 0;
+//	float largePenet = -5*sphR;//like a large number. Should be negative (assume large initial penetration)
+//	float penDist2 = 0;
+//	bool isOut = false;
+//
+//	if (posRad.y < -toleranceZone || posRad.y > 1.0 * sizeScale + toleranceZone) {
+//		return largePenet;
+//	}
+//	else if (posRad.y < 0) {
+//		penDist2 = posRad.y;
+//		isOut = true;
+//	}
+//	else if ( posRad.y > 1.0 * sizeScale) {
+//		penDist2 = (1.0 * sizeScale - posRad.y);
+//		isOut = true;
+//	}
+//	//serpentine
+//	float r1 = 1.3 * sizeScale, r2 = 1.0 * sizeScale, r3=2.0 * sizeScale, r4 = 0.3 * sizeScale;
+//	x = fmod(posRad.x, sPeriod); //posRad.x - int(posRad.x / sPeriod) * sPeriod; //fmod
+//	y = posRad.z;
+//	if (x >= 0 && x < 1.3 * sizeScale) {
+//		if (y < -3 * toleranceZone) return largePenet;
+//		if (y < 0) return (x - 1.3 * sizeScale);
+//		penDist = IsOutBoundaryCircle(F2(x, y), F2(0, 0), r1); if (penDist < 0) return penDist;
+//		penDist = IsInBoundaryCircle(F2(x, y), F2(0, 1.0 * sizeScale), r3); if (penDist < 0) return penDist;
+//	} else if (x >= 1.3 * sizeScale && x < 2.0 * sizeScale) {
+//		if (y > 1.0 * sizeScale) { penDist = IsInBoundaryCircle(F2(x, y), F2(0, 1.0 * sizeScale), r3); if (penDist < 0) return penDist; }
+//		else if (y < 0) { penDist = IsInBoundaryCircle(F2(x, y), F2(2.3 * sizeScale, 0), r2); if (penDist < 0) return penDist; }
+//	} else if (x >= 2.0 * sizeScale && x < 2.6 * sizeScale) {
+//		if (y < .55 * sizeScale) {
+//			penDist = IsInBoundaryCircle(F2(x, y), F2(2.3 * sizeScale, 0), r2); if (penDist < 0) return penDist;
+//			penDist = IsOutBoundaryCircle(F2(x, y), F2(2.3 * sizeScale, .55 * sizeScale), r4); if (penDist < 0) return penDist; }
+//		else if (y < 2 * sizeScale) { penDist = IsOutBoundaryCircle(F2(x, y), F2(2.3 * sizeScale, y), r4); if (penDist < 0) return penDist; }
+//		else return largePenet;
+//	} else if (x >= 2.6 * sizeScale && x < 3.3 * sizeScale) {
+//		if (y > 1.0 * sizeScale) { penDist = IsInBoundaryCircle(F2(x, y), F2(4.6 * sizeScale, 1.0 * sizeScale), r3); if (penDist < 0) return penDist; }
+//		else if (y < 0) { penDist = IsInBoundaryCircle(F2(x, y), F2(2.3 * sizeScale, 0), r2); if (penDist < 0) return penDist; }
+//	} else if (x >= 3.3 * sizeScale && x < 4.6 * sizeScale) {
+//		if (y < -3 * toleranceZone) return largePenet;
+//		if (y < 0) return 3.3 * sizeScale - x;
+//		penDist = IsOutBoundaryCircle(F2(x, y), F2(4.6 * sizeScale, 0), r1); if (penDist < 0) return penDist;
+//		penDist = IsInBoundaryCircle(F2(x, y), F2(4.6 * sizeScale, 1.0 * sizeScale), r3); if (penDist < 0) return penDist;
+//	}
+//	if (!isOut)
+//		return -largePenet;
+//	return penDist2;
+//}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+float IsInsideCurveOfSerpentineBeta(float4 posRad) {
+	const float sphR = posRad.w;
+	float x, y;
+	float distFromWall = 0; //2 * sphR;//0;//2 * sphR;
+	float penDist = 0;
+	float largePenet = -5*sphR;//like a large number. Should be negative (assume large initial penetration)
+	float penDist2 = 0;
+	bool isOut = false;
+
+	if (posRad.y < -toleranceZone || posRad.y > 1.0 * sizeScale + toleranceZone) {
+		return largePenet;
+	}
+	else if (posRad.y < 0) {
+		penDist2 = posRad.y;
+		isOut = true;
+	}
+	else if ( posRad.y > 1.0 * sizeScale) {
+		penDist2 = (1.0 * sizeScale - posRad.y);
+		isOut = true;
+	}
+	//serpentine
+	//float r1 = 1.3 * sizeScale, r2 = 1.0 * sizeScale, r3=2.0 * sizeScale, r4 = 0.3 * sizeScale;
+
+	x = fmod(posRad.x, sPeriod); //posRad.x - int(posRad.x / sPeriod) * sPeriod; //fmod
+	y = posRad.z;
+	if (y > 0) {
+		if (x >= 0 && x < r2_2.x) {
+			penDist = IsOutBoundaryEllipsoid(F2(x, y), F2(0, 0), r2_2); if (penDist < 0) return penDist;
+		}
+		if (x >=0 && x< r3_2.x + toleranceZone) {
+			penDist = IsInBoundaryEllipsoid(F2(x, y), F2(0, 0), r3_2); if (penDist < 0) return penDist;
+		}
+		if (x >= r3_2.x + toleranceZone && x < r3_2.x + 2 * r4_2.x - toleranceZone) {
+			return largePenet;
+		}
+		if (x > r3_2.x + 2 * r4_2.x - toleranceZone && x < 2 * r3_2.x + 2 * r4_2.x) {
+			penDist = IsInBoundaryEllipsoid(F2(x, y), F2(2 * r3_2.x + 2 * r4_2.x, 0), r3_2); if (penDist < 0) return penDist;
+		}
+		if (x > r2_2.x + 2 * r1_2.x && x < 2 * r3_2.x + 2 * r4_2.x) {
+			penDist = IsOutBoundaryEllipsoid(F2(x, y), F2(2 * r3_2.x + 2 * r4_2.x, 0), r2_2); if (penDist < 0) return penDist;
+		}
+	} else {
+		if (x > r3_2.x && x < r3_2.x + 2 * r4_2.x) {
+			penDist = IsOutBoundaryEllipsoid(F2(x, y), F2(r3_2.x + r4_2.x, 0), r4_2); if (penDist < 0) return penDist;
+		}
+		if (x > r2_2.x - toleranceZone && x < r2_2.x + 2 * r1_2.x + toleranceZone) {
+			penDist = IsInBoundaryEllipsoid(F2(x, y), F2(r2_2.x + r1_2.x, 0), r1_2); if (penDist < 0) return penDist;
+		} else {
+			return largePenet;
+		}
+	}
+	if (!isOut)
+		return -largePenet;
+	return penDist2;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 float IsInsideSerpentine(float4 posRad) {
@@ -251,122 +395,76 @@ float IsInsideSerpentine(float4 posRad) {
 		isOut = true;
 	}
 	//serpentine
-	if (posRad.x < nPeriod * sPeriod - toleranceZone) {
-		float r1 = 1.3 * sizeScale, r2 = 1.0 * sizeScale, r3=2.0 * sizeScale, r4 = 0.3 * sizeScale;
-		x = fmod(posRad.x, sPeriod); //posRad.x - int(posRad.x / sPeriod) * sPeriod; //fmod
+	if (posRad.x < nPeriod * sPeriod) {
+		return IsInsideCurveOfSerpentineBeta(posRad);
+	}
+	else {
+		//straight channel
+		x = posRad.x - nPeriod * sPeriod;
 		y = posRad.z;
-		if (x >= 0 && x < 1.3 * sizeScale) {
-			if (y < -3 * toleranceZone) return largePenet;
-			if (y < 0) return (x - 1.3 * sizeScale);
-			penDist = IsOutBoundaryCircle(F2(x, y), F2(0, 0), r1); if (penDist < 0) return penDist;
-			penDist = IsInBoundaryCircle(F2(x, y), F2(0, 1.0 * sizeScale), r3); if (penDist < 0) return penDist;
-		} else if (x >= 1.3 * sizeScale && x < 2.0 * sizeScale) {
-			if (y > 1.0 * sizeScale) { penDist = IsInBoundaryCircle(F2(x, y), F2(0, 1.0 * sizeScale), r3); if (penDist < 0) return penDist; }
-			else if (y < 0) { penDist = IsInBoundaryCircle(F2(x, y), F2(2.3 * sizeScale, 0), r2); if (penDist < 0) return penDist; }
-		} else if (x >= 2.0 * sizeScale && x < 2.6 * sizeScale) {
-			if (y < .55 * sizeScale) {
-				penDist = IsInBoundaryCircle(F2(x, y), F2(2.3 * sizeScale, 0), r2); if (penDist < 0) return penDist;
-				penDist = IsOutBoundaryCircle(F2(x, y), F2(2.3 * sizeScale, .55 * sizeScale), r4); if (penDist < 0) return penDist; }
-			else if (y < 2 * sizeScale) { penDist = IsOutBoundaryCircle(F2(x, y), F2(2.3 * sizeScale, y), r4); if (penDist < 0) return penDist; }
-			else return largePenet;
-		} else if (x >= 2.6 * sizeScale && x < 3.3 * sizeScale) {
-			if (y > 1.0 * sizeScale) { penDist = IsInBoundaryCircle(F2(x, y), F2(4.6 * sizeScale, 1.0 * sizeScale), r3); if (penDist < 0) return penDist; }
-			else if (y < 0) { penDist = IsInBoundaryCircle(F2(x, y), F2(2.3 * sizeScale, 0), r2); if (penDist < 0) return penDist; }
-		} else if (x >= 3.3 * sizeScale && x < 4.6 * sizeScale) {
-			if (y < -3 * toleranceZone) return largePenet;
-			if (y < 0) return 3.3 * sizeScale - x;
-			penDist = IsOutBoundaryCircle(F2(x, y), F2(4.6 * sizeScale, 0), r1); if (penDist < 0) return penDist;
-			penDist = IsInBoundaryCircle(F2(x, y), F2(4.6 * sizeScale, 1.0 * sizeScale), r3); if (penDist < 0) return penDist;
+
+		if (y < 0) {
+			if (x < r2_2.x - toleranceZone) {
+				return largePenet;
+			}
+			if (x >= r2_2.x -  toleranceZone && x < r2_2.x + 2 * r1_2.x + toleranceZone) {
+				penDist = IsInBoundaryEllipsoid(F2(x, y), F2(r2_2.x + r1_2.x, 0), r1_2); if (penDist < 0) return penDist;
+			}
+			if (x >= r3_2.x && x < r3_2.x + 2 * r4_2.x) {
+				penDist = IsOutBoundaryEllipsoid(F2(x, y), F2(r3_2.x + r4_2.x, 0), r4_2); if (penDist < 0) return penDist;
+			}
+			if (x >= r2_2.x + 2 * r1_2.x + toleranceZone) {
+				return largePenet;
+			}
+		} else {
+			if (x >= 0 && x < r2_2.x) {
+				penDist = IsOutBoundaryEllipsoid(F2(x, y), F2(0, 0), r2_2); if (penDist < 0) return penDist;
+			}
+			if (x >=0 && x< r3_2.x + toleranceZone) {
+				penDist = IsInBoundaryEllipsoid(F2(x, y), F2(0, 0), r3_2); if (penDist < 0) return penDist;
+			}
+			if (x >= r3_2.x + toleranceZone && x < r3_2.x + 2 * r4_2.x - toleranceZone) {
+				return largePenet;
+			}
+			if (x >= r3_2.x + 2 * r4_2.x - toleranceZone && x <  r3_2.x + 2 * r4_2.x + r6_2.x) {
+				penDist = IsInBoundaryEllipsoid(F2(x, y), F2( r3_2.x + 2 * r4_2.x + r6_2.x, 0), r6_2); if (penDist < 0) return penDist;
+			}
+			if (x >= r2_2.x + 2 * r1_2.x && x < r2_2.x + 2 * r1_2.x + r5_2.x) {
+				penDist = IsOutBoundaryEllipsoid(F2(x, y), F2( r2_2.x + 2 * r1_2.x + r5_2.x, 0), r5_2); if (penDist < 0) return penDist;
+			}
+			//****** horizontal walls
+			x = x - (r3_2.x + 2 * r4_2.x + r6_2.x);
+			if (x > 0) {
+				float2 y2_slimHor = F2(2.314, 3.314)  * sizeScale;
+				float2 y2_endHor = F2(r2_2.y, r3_2.y);
+				if (x < x_FirstChannel) {
+					penDist = y - r5_2.y; if (penDist < 0) return penDist;  //note that y is negative, fabs(y) = -y
+					penDist = -y + r6_2.y; if (penDist < 0) return penDist;
+				}
+				if (x >= x_FirstChannel &&  x < x_FirstChannel + x_SecondChannel) {
+					penDist = y - y2_slimHor.x;  if (penDist < 0 && penDist >= -toleranceZone) return penDist;
+					penDist = -y + y2_slimHor.y; if (penDist < 0 && penDist >= -toleranceZone) return penDist;
+				}
+				if (x >= x_FirstChannel + x_SecondChannel){
+					penDist = y - y2_endHor.x;  if (penDist < 0) return penDist;
+					penDist = -y + y2_endHor.y; if (penDist < 0) return penDist;
+				}
+				//****** vertical walls
+				penDist = x_FirstChannel - x; if (penDist < 0 && penDist > largePenet) {
+					//printf("hello \n");
+					if ( (y < y2_slimHor.x && y > r5_2.y - toleranceZone)
+							|| (y > y2_slimHor.y && y < r6_2.y + toleranceZone) ) {
+						return penDist;
+					}
+				}
+				penDist = x - (x_FirstChannel + x_SecondChannel); if (penDist < 0 && penDist > largePenet) {
+					if ( (y < y2_slimHor.x && y > y2_endHor.x - toleranceZone)
+							|| (y > y2_slimHor.y && y < y2_endHor.y +toleranceZone) ) {
+						return penDist;
+					}
+				}
+			}
 		}
-		if (!isOut)
-			return -largePenet;
-		return penDist2;
-	}
-
-	//straight channel
-	x = posRad.x - nPeriod * sPeriod;
-	y = posRad.z;
-
-	if (x < 0) {
-		if (y < .55 * sizeScale - toleranceZone || y > 3.55 * sizeScale + toleranceZone) return largePenet;
-		if ((y < 1.3 * sizeScale) || (y > 3 * sizeScale))
-			return x;
-	}
-	//horizontal walls
-	if (x > 0) {
-		if (x < 5 * sizeScale) {
-			penDist = y - (.55 * sizeScale); if (penDist < 0) return penDist;
-			penDist = (3.55 * sizeScale) - y; if (penDist < 0) return penDist;
-		} else if (x > 5 * sizeScale + toleranceZone && x < 6.5 * sizeScale - toleranceZone) {
-			penDist = y - (1.55 * sizeScale); if (penDist < 0) return penDist;
-			penDist = (2.55 * sizeScale) - y; if (penDist < 0) return penDist;
-		} else if (x >= 6.5 * sizeScale) {
-			penDist = y - (1.302 * sizeScale); if (penDist < 0) return penDist;
-			penDist = (3 * sizeScale) - y; if (penDist < 0) return penDist;
-		}
-	}
-
-	//vertical walls
-	if (y < 1.302 * sizeScale || y > 3 * sizeScale) {penDist = x; if (penDist < 0) return penDist;}
-	if (x > 5 * sizeScale && x < 5 * sizeScale + toleranceZone) {
-		if (y < .55 * sizeScale - toleranceZone || y > 3.55 * sizeScale + toleranceZone) return largePenet;
-		if (y < 1.55 * sizeScale || y > 2.55 * sizeScale) {penDist = (5 * sizeScale) - x; if (penDist < 0) return penDist; }
-	}
-	if (x > 6.5 * sizeScale - toleranceZone && x < 6.5 * sizeScale) {
-		if (y < 1.3 * sizeScale - toleranceZone || y > 3 * sizeScale + toleranceZone) return largePenet;
-		if (y < 1.55 * sizeScale || y > 2.55 * sizeScale) {penDist = x - (6.5 * sizeScale); if (penDist < 0) return penDist; }
-	}
-	if (!isOut)
-		return -largePenet;
-	return penDist2;
-}
-//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-float IsInsideCurveOfSerpentine(float4 posRad) {
-	const float sphR = posRad.w;
-	float x, y;
-	float distFromWall = 0;//2 * sphR;//0;//2 * sphR;
-	float penDist = 0;
-	float largePenet = -5*sphR;//like a large number. Should be negative (assume large initial penetration)
-	float penDist2 = 0;
-	bool isOut = false;
-
-	if (posRad.y < -toleranceZone || posRad.y > 1.0 * sizeScale + toleranceZone) {
-		return largePenet;
-	}
-	else if (posRad.y < 0) {
-		penDist2 = posRad.y;
-		isOut = true;
-	}
-	else if ( posRad.y > 1.0 * sizeScale) {
-		penDist2 = (1.0 * sizeScale - posRad.y);
-		isOut = true;
-	}
-	//serpentine
-	float r1 = 1.3 * sizeScale, r2 = 1.0 * sizeScale, r3=2.0 * sizeScale, r4 = 0.3 * sizeScale;
-	x = fmod(posRad.x, sPeriod); //posRad.x - int(posRad.x / sPeriod) * sPeriod; //fmod
-	y = posRad.z;
-	if (x >= 0 && x < 1.3 * sizeScale) {
-		if (y < -3 * toleranceZone) return largePenet;
-		if (y < 0) return (x - 1.3 * sizeScale);
-		penDist = IsOutBoundaryCircle(F2(x, y), F2(0, 0), r1); if (penDist < 0) return penDist;
-		penDist = IsInBoundaryCircle(F2(x, y), F2(0, 1.0 * sizeScale), r3); if (penDist < 0) return penDist;
-	} else if (x >= 1.3 * sizeScale && x < 2.0 * sizeScale) {
-		if (y > 1.0 * sizeScale) { penDist = IsInBoundaryCircle(F2(x, y), F2(0, 1.0 * sizeScale), r3); if (penDist < 0) return penDist; }
-		else if (y < 0) { penDist = IsInBoundaryCircle(F2(x, y), F2(2.3 * sizeScale, 0), r2); if (penDist < 0) return penDist; }
-	} else if (x >= 2.0 * sizeScale && x < 2.6 * sizeScale) {
-		if (y < .55 * sizeScale) {
-			penDist = IsInBoundaryCircle(F2(x, y), F2(2.3 * sizeScale, 0), r2); if (penDist < 0) return penDist;
-			penDist = IsOutBoundaryCircle(F2(x, y), F2(2.3 * sizeScale, .55 * sizeScale), r4); if (penDist < 0) return penDist; }
-		else if (y < 2 * sizeScale) { penDist = IsOutBoundaryCircle(F2(x, y), F2(2.3 * sizeScale, y), r4); if (penDist < 0) return penDist; }
-		else return largePenet;
-	} else if (x >= 2.6 * sizeScale && x < 3.3 * sizeScale) {
-		if (y > 1.0 * sizeScale) { penDist = IsInBoundaryCircle(F2(x, y), F2(4.6 * sizeScale, 1.0 * sizeScale), r3); if (penDist < 0) return penDist; }
-		else if (y < 0) { penDist = IsInBoundaryCircle(F2(x, y), F2(2.3 * sizeScale, 0), r2); if (penDist < 0) return penDist; }
-	} else if (x >= 3.3 * sizeScale && x < 4.6 * sizeScale) {
-		if (y < -3 * toleranceZone) return largePenet;
-		if (y < 0) return 3.3 * sizeScale - x;
-		penDist = IsOutBoundaryCircle(F2(x, y), F2(4.6 * sizeScale, 0), r1); if (penDist < 0) return penDist;
-		penDist = IsInBoundaryCircle(F2(x, y), F2(4.6 * sizeScale, 1.0 * sizeScale), r3); if (penDist < 0) return penDist;
 	}
 	if (!isOut)
 		return -largePenet;
@@ -493,9 +591,9 @@ int2 CreateFluidParticles(
 								+ make_float3(.5 * initSpace0)/* + make_float3(sphR) + initSpace * .05 * (float(rand()) / RAND_MAX)*/, sphR);
 				float penDist = 0;
 				bool flag = true;
-				///penDist = IsInsideCurveOfSerpentine(posRad);
-				///penDist = IsInsideSerpentine(posRad);
-				penDist = IsInsideStraightChannel(posRad);
+				///penDist = IsInsideCurveOfSerpentineBeta(posRad);
+				penDist = IsInsideSerpentine(posRad);
+				///penDist = IsInsideStraightChannel(posRad);
 				///penDist = IsInsideStraightChannel_XZ(posRad);
 				///penDist = IsInsideTube(posRad, cMax, cMin, channelRadius);
 				if (penDist < -toleranceZone) flag = false;
@@ -658,12 +756,16 @@ int main() {
 	//** Initialization
 	float r = HSML;	//.02;
 
-	float3 cMin = make_float3(0, -0.2, -1.2) * sizeScale; 							//for channel and serpentine
+	//float3 cMin = make_float3(0, -0.2, -1.2) * sizeScale; 							//for channel and serpentine
+	float3 cMin = make_float3(0, -0.2, -2) * sizeScale; 							//for channel and serpentine
 	//float3 cMin = make_float3(0, -0.2, -0.2) * sizeScale;							//for tube
 
 	//float3 cMax = make_float3( nPeriod * 4.6 + 0, 1.5,  4.0) * sizeScale;  //for only CurvedSerpentine (w/out straight part)
-	//float3 cMax = make_float3( nPeriod * 4.6 + 7, 1.5,  4.0) * sizeScale;  //for serpentine
-	float3 cMax = make_float3( nPeriod * 2.0 + 0, 1.5,  4.0) * sizeScale;  //for  straight channel
+		///float3 cMax = make_float3( nPeriod * sPeriod + 8 * sizeScale, 1.5 * sizeScale,  4.0 * sizeScale);  //for serpentine
+		float3 cMax = make_float3( nPeriod * sPeriod + r3_2.x + 2 * r4_2.x + r6_2.x + x_FirstChannel + 2 * x_SecondChannel, 1.5 * sizeScale,  r6_2.y + 2 * toleranceZone);  //for serpentine
+	///float3 cMax = make_float3( nPeriod * sPeriod, 1.5 * sizeScale,  4.0 * sizeScale);  //for serpentine
+
+	//float3 cMax = make_float3( nPeriod * 2.0 + 0, 1.5,  4.0) * sizeScale;  //for  straight channel
 	//float3 cMax = make_float3( nPeriod * 2.0 + 0, 2.2,  2.2) * sizeScale;  //for  tube
 
 //	float3 cMax = make_float3(nPeriod * 1.0 + 0, .5,  3.5) * sizeScale;  //for straight channel, sphere
@@ -715,9 +817,9 @@ int main() {
 	string fileNameRigids("spheresPos.dat");
 	rhoRigid = 1000; //1050; //originally .079 //.179 for cylinder
 	float channelRadius;
-	//CreateRigidBodiesFromFile(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, cMin, cMax, fileNameRigids, rhoRigid, channelRadius);
 	float3 r3Ellipsoid = F3(.03 * sizeScale);
-	CreateRigidBodiesPattern(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, channelRadius);
+	//CreateRigidBodiesPattern(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, channelRadius);
+	CreateRigidBodiesFromFile(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, cMin, cMax, fileNameRigids, rhoRigid, channelRadius);
 
 	printf("size rigids %d\n", rigidPos.size());
 	//---------------------------------------------------------------------
