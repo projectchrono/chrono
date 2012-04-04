@@ -441,27 +441,22 @@ float IsInsideSerpentine(float4 posRad) {
 					penDist = y - r5_2.y; if (penDist < 0) return penDist;  //note that y is negative, fabs(y) = -y
 					penDist = -y + r6_2.y; if (penDist < 0) return penDist;
 				}
-				if (x >= x_FirstChannel &&  x < x_FirstChannel + x_SecondChannel) {
-					penDist = y - y2_slimHor.x;  if (penDist < 0 && penDist >= -toleranceZone) return penDist;
-					penDist = -y + y2_slimHor.y; if (penDist < 0 && penDist >= -toleranceZone) return penDist;
+				if (x >= x_FirstChannel + toleranceZone &&  x < x_FirstChannel + x_SecondChannel - toleranceZone) {
+					penDist = y - y2_slimHor.x;  if (penDist < 0) return penDist;
+					penDist = -y + y2_slimHor.y; if (penDist < 0) return penDist;
 				}
 				if (x >= x_FirstChannel + x_SecondChannel){
 					penDist = y - y2_endHor.x;  if (penDist < 0) return penDist;
 					penDist = -y + y2_endHor.y; if (penDist < 0) return penDist;
 				}
 				//****** vertical walls
-				penDist = x_FirstChannel - x; if (penDist < 0 && penDist > largePenet) {
-					//printf("hello \n");
-					if ( (y < y2_slimHor.x && y > r5_2.y - toleranceZone)
-							|| (y > y2_slimHor.y && y < r6_2.y + toleranceZone) ) {
-						return penDist;
-					}
+				if (x >= x_FirstChannel && x < x_FirstChannel + toleranceZone) {
+					if (y > r6_2.y + toleranceZone || y < r5_2.y - toleranceZone) {return largePenet;}
+					if (y < y2_slimHor.x || y > y2_slimHor.y) {return x_FirstChannel - x;}
 				}
-				penDist = x - (x_FirstChannel + x_SecondChannel); if (penDist < 0 && penDist > largePenet) {
-					if ( (y < y2_slimHor.x && y > y2_endHor.x - toleranceZone)
-							|| (y > y2_slimHor.y && y < y2_endHor.y +toleranceZone) ) {
-						return penDist;
-					}
+				if (x >= x_FirstChannel + x_SecondChannel - toleranceZone && x < x_FirstChannel + x_SecondChannel) {
+					if (y > y2_endHor.y + toleranceZone || y < y2_endHor.x - toleranceZone) {return largePenet;}
+					if (y < y2_slimHor.x || y > y2_slimHor.y) {return x - (x_FirstChannel + x_SecondChannel);}
 				}
 			}
 		}

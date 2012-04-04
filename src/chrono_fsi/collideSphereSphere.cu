@@ -469,31 +469,31 @@ void PrintToFile(
 		int tStep,
 		float channelRadius) {
 ////////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//	FILE *fileNameFluid;
-//	//int stepSaveFluid = 1000000;
-//	int stepSaveFluid = 20000;
-//	///if (tStep%100 == 0 &&  tStep > 20400) {
-//	////if (tStep > 12506) {
-//	if (tStep % stepSaveFluid == 0) {
-//		if (tStep / stepSaveFluid == 0) {
-//			fileNameFluid = fopen("dataFluid.txt", "w");
-//			fprintf(fileNameFluid,
-//					"variables = \"x\", \"y\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\", \"type\"\n");
-//		} else {
-//			fileNameFluid = fopen("dataFluid.txt", "a");
-//		}
-//
-//		fprintf(fileNameFluid, "zone\n");
-//		for (int i = referenceArray[0].x; i < referenceArray[1].y; i++) {
-//			float3 pos = F3(posRadD[i]);
-//			float3 vel = F3(velMasD[i]);
-//			float4 rP = rhoPresMuD[i];
-//			float velMag = length(vel);
-//			fprintf(fileNameFluid, "%f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n", pos.x, pos.y, pos.z, vel.x, vel.y, vel.z, velMag, rP.x, rP.y, rP.w);
-//		}
-//		fflush(fileNameFluid);
-//		fclose(fileNameFluid);
-//	}
+	FILE *fileNameFluid;
+	//int stepSaveFluid = 1000000;
+	int stepSaveFluid = 20000;
+	///if (tStep%100 == 0 &&  tStep > 20400) {
+	////if (tStep > 12506) {
+	if (tStep % stepSaveFluid == 0) {
+		if (tStep / stepSaveFluid == 0) {
+			fileNameFluid = fopen("dataFluid.txt", "w");
+			fprintf(fileNameFluid,
+					"variables = \"x\", \"y\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\", \"type\"\n");
+		} else {
+			fileNameFluid = fopen("dataFluid.txt", "a");
+		}
+
+		fprintf(fileNameFluid, "zone\n");
+		for (int i = referenceArray[0].x; i < referenceArray[1].y; i++) {
+			float3 pos = F3(posRadD[i]);
+			float3 vel = F3(velMasD[i]);
+			float4 rP = rhoPresMuD[i];
+			float velMag = length(vel);
+			fprintf(fileNameFluid, "%f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n", pos.x, pos.y, pos.z, vel.x, vel.y, vel.z, velMag, rP.x, rP.y, rP.w);
+		}
+		fflush(fileNameFluid);
+		fclose(fileNameFluid);
+	}
 ////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	FILE *fileNameRigidsSPH;
 	int stepSaveRigid = 2000;
