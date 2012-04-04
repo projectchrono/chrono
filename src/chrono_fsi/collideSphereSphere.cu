@@ -471,7 +471,7 @@ void PrintToFile(
 ////////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	FILE *fileNameFluid;
 	//int stepSaveFluid = 1000000;
-	int stepSaveFluid = 20000;
+	int stepSaveFluid = 200000;
 	///if (tStep%100 == 0 &&  tStep > 20400) {
 	////if (tStep > 12506) {
 	if (tStep % stepSaveFluid == 0) {
