@@ -27,10 +27,10 @@ typedef unsigned int uint;
 
 #define HSML 0.06f*sizeScale
 #define BASEPRES 0
-#define nPeriod 3
+#define nPeriod 7
 #define Gravity make_float3(0, 0, 0)
 //#define bodyForce4 make_float4(.005, 0, 0, 0)
-#define bodyForce4 make_float4(.05, 0, 0, 0)
+#define bodyForce4 make_float4(.5, 0, 0, 0)
 //#define bodyForce4 make_float4(.1, 0, 0, 0)
 //#define bodyForce4 make_float4(.0004, 0, 0, 0) //segre. size Scale 1
 #define rho0 1000
