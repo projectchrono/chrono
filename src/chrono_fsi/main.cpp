@@ -776,7 +776,8 @@ int main() {
 	float binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
 	binSize0 = (binSize0 > binSize3.z) ? binSize0 : binSize3.z;
 	cMax = cMin + binSize0 * make_float3(side0);
-	printf("a2  cMax.x, y, z %f %f %f,  binSize %f\n", cMax.x, cMax.y, cMax.z, binSize0);
+	printf("cMin.x, y, z %f %f %f cMax.x, y, z %f %f %f,  binSize %f\n", cMin.x, cMin.y, cMin.z, cMax.x, cMax.y, cMax.z, binSize0);
+	printf("HSML %f\n", HSML);
 	//printf("side0 %d %d %d \n", side0.x, side0.y, side0.z);
 
 	float delT = .02 * sizeScale;

@@ -469,31 +469,31 @@ void PrintToFile(
 		int tStep,
 		float channelRadius) {
 ////////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	FILE *fileNameFluid;
-	//int stepSaveFluid = 1000000;
-	int stepSaveFluid = 200000;
-	///if (tStep%100 == 0 &&  tStep > 20400) {
-	////if (tStep > 12506) {
-	if (tStep % stepSaveFluid == 0) {
-		if (tStep / stepSaveFluid == 0) {
-			fileNameFluid = fopen("dataFluid.txt", "w");
-			fprintf(fileNameFluid,
-					"variables = \"x\", \"y\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\", \"type\"\n");
-		} else {
-			fileNameFluid = fopen("dataFluid.txt", "a");
-		}
-
-		fprintf(fileNameFluid, "zone\n");
-		for (int i = referenceArray[0].x; i < referenceArray[1].y; i++) {
-			float3 pos = F3(posRadD[i]);
-			float3 vel = F3(velMasD[i]);
-			float4 rP = rhoPresMuD[i];
-			float velMag = length(vel);
-			fprintf(fileNameFluid, "%f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n", pos.x, pos.y, pos.z, vel.x, vel.y, vel.z, velMag, rP.x, rP.y, rP.w);
-		}
-		fflush(fileNameFluid);
-		fclose(fileNameFluid);
-	}
+//	FILE *fileNameFluid;
+//	//int stepSaveFluid = 1000000;
+//	int stepSaveFluid = 200000;
+//	///if (tStep%100 == 0 &&  tStep > 20400) {
+//	////if (tStep > 12506) {
+//	if (tStep % stepSaveFluid == 0) {
+//		if (tStep / stepSaveFluid == 0) {
+//			fileNameFluid = fopen("dataFluid.txt", "w");
+//			fprintf(fileNameFluid,
+//					"variables = \"x\", \"y\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\", \"type\"\n");
+//		} else {
+//			fileNameFluid = fopen("dataFluid.txt", "a");
+//		}
+//
+//		fprintf(fileNameFluid, "zone\n");
+//		for (int i = referenceArray[0].x; i < referenceArray[1].y; i++) {
+//			float3 pos = F3(posRadD[i]);
+//			float3 vel = F3(velMasD[i]);
+//			float4 rP = rhoPresMuD[i];
+//			float velMag = length(vel);
+//			fprintf(fileNameFluid, "%f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n", pos.x, pos.y, pos.z, vel.x, vel.y, vel.z, velMag, rP.x, rP.y, rP.w);
+//		}
+//		fflush(fileNameFluid);
+//		fclose(fileNameFluid);
+//	}
 ////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	FILE *fileNameRigidsSPH;
 	int stepSaveRigid = 2000;
@@ -697,63 +697,63 @@ void PrintToFile(
 		fclose(fileRigidParticleCenterVsDistance);
 	}
 ////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		FILE *fileNameRigidBodies;
-		FILE *fileNameFluidParticles;
-		FILE *fileNameBoundaries;
-
-		system("mkdir -p povFiles");		//linux. In windows, it is System instead of system (to invoke a command in the command line)
-		int tStepsPovFiles = 1000;
-		if (tStep % tStepsPovFiles == 0) {
-			char fileCounter[5];
-			int dumNumChar = sprintf(fileCounter, "%d", int(tStep / tStepsPovFiles) );
-
-			char nameRigid[255];
-			sprintf(nameRigid, "povFiles/rigid");
-			strcat(nameRigid, fileCounter);
-			strcat(nameRigid, ".dat");
-			char nameFluid[255];
-			sprintf(nameFluid, "povFiles/fluid");
-			strcat(nameFluid, fileCounter);
-			strcat(nameFluid, ".dat");
-			char nameBoundary[255];
-			sprintf(nameBoundary, "povFiles/boundary");
-			strcat(nameBoundary, fileCounter);
-			strcat(nameBoundary, ".dat");
-
-			fileNameRigidBodies = fopen(nameRigid, "w");
-			if (referenceArray.size() > 2) {
-				const int numRigidBodies = posRigidD.size();
-				for (int j = 0; j < numRigidBodies; j++) {
-					float3 p_rigid = posRigidD[j];
-					float4 q_rigid = qD1[j];
-					fprintf(fileNameRigidBodies, "%f, %0.10f, %0.10f, %0.10f, %0.10f, %0.10f, %0.10f, %0.10f\n", tStep * delT, p_rigid.x, p_rigid.y, p_rigid.z, q_rigid.x, q_rigid.y, q_rigid.z, q_rigid.w);
-				}
-			}
-			fflush(fileNameRigidBodies);
-			fclose(fileNameRigidBodies);
-
-			fileNameFluidParticles = fopen(nameFluid, "w");
-			for (int i = referenceArray[0].x; i < referenceArray[0].y; i++) {
-				float3 pos = F3(posRadD[i]);
-				float3 vel = F3(velMasD[i]);
-				float4 rP = rhoPresMuD[i];
-				float velMag = length(vel);
-				fprintf(fileNameFluidParticles, "%f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n", pos.x, pos.y, pos.z, vel.x, vel.y, vel.z, velMag, rP.x, rP.y, rP.w);
-			}
-			fflush(fileNameFluidParticles);
-			fclose(fileNameFluidParticles);
-
-			fileNameBoundaries = fopen(nameBoundary, "w");
-			for (int i = referenceArray[1].x; i < referenceArray[1].y; i++) {
-				float3 pos = F3(posRadD[i]);
-				float3 vel = F3(velMasD[i]);
-				float4 rP = rhoPresMuD[i];
-				float velMag = length(vel);
-				fprintf(fileNameBoundaries, "%f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n", pos.x, pos.y, pos.z, vel.x, vel.y, vel.z, velMag, rP.x, rP.y, rP.w);
-			}
-			fflush(fileNameBoundaries);
-			fclose(fileNameBoundaries);
-		}
+//		FILE *fileNameRigidBodies;
+//		FILE *fileNameFluidParticles;
+//		FILE *fileNameBoundaries;
+//
+//		system("mkdir -p povFiles");		//linux. In windows, it is System instead of system (to invoke a command in the command line)
+//		int tStepsPovFiles = 1000;
+//		if (tStep % tStepsPovFiles == 0) {
+//			char fileCounter[5];
+//			int dumNumChar = sprintf(fileCounter, "%d", int(tStep / tStepsPovFiles) );
+//
+//			char nameRigid[255];
+//			sprintf(nameRigid, "povFiles/rigid");
+//			strcat(nameRigid, fileCounter);
+//			strcat(nameRigid, ".dat");
+//			char nameFluid[255];
+//			sprintf(nameFluid, "povFiles/fluid");
+//			strcat(nameFluid, fileCounter);
+//			strcat(nameFluid, ".dat");
+//			char nameBoundary[255];
+//			sprintf(nameBoundary, "povFiles/boundary");
+//			strcat(nameBoundary, fileCounter);
+//			strcat(nameBoundary, ".dat");
+//
+//			fileNameRigidBodies = fopen(nameRigid, "w");
+//			if (referenceArray.size() > 2) {
+//				const int numRigidBodies = posRigidD.size();
+//				for (int j = 0; j < numRigidBodies; j++) {
+//					float3 p_rigid = posRigidD[j];
+//					float4 q_rigid = qD1[j];
+//					fprintf(fileNameRigidBodies, "%f, %0.10f, %0.10f, %0.10f, %0.10f, %0.10f, %0.10f, %0.10f\n", tStep * delT, p_rigid.x, p_rigid.y, p_rigid.z, q_rigid.x, q_rigid.y, q_rigid.z, q_rigid.w);
+//				}
+//			}
+//			fflush(fileNameRigidBodies);
+//			fclose(fileNameRigidBodies);
+//
+//			fileNameFluidParticles = fopen(nameFluid, "w");
+//			for (int i = referenceArray[0].x; i < referenceArray[0].y; i++) {
+//				float3 pos = F3(posRadD[i]);
+//				float3 vel = F3(velMasD[i]);
+//				float4 rP = rhoPresMuD[i];
+//				float velMag = length(vel);
+//				fprintf(fileNameFluidParticles, "%f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n", pos.x, pos.y, pos.z, vel.x, vel.y, vel.z, velMag, rP.x, rP.y, rP.w);
+//			}
+//			fflush(fileNameFluidParticles);
+//			fclose(fileNameFluidParticles);
+//
+//			fileNameBoundaries = fopen(nameBoundary, "w");
+//			for (int i = referenceArray[1].x; i < referenceArray[1].y; i++) {
+//				float3 pos = F3(posRadD[i]);
+//				float3 vel = F3(velMasD[i]);
+//				float4 rP = rhoPresMuD[i];
+//				float velMag = length(vel);
+//				fprintf(fileNameBoundaries, "%f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n", pos.x, pos.y, pos.z, vel.x, vel.y, vel.z, velMag, rP.x, rP.y, rP.w);
+//			}
+//			fflush(fileNameBoundaries);
+//			fclose(fileNameBoundaries);
+//		}
 }
 //*******************************************************************************************************************************
 void PrintToFileDistribution(
@@ -1329,7 +1329,7 @@ void cudaCollisions(
 
 		//density re-initialization
 		if (tStep % 10 == 0) {
-			///DensityReinitialization(posRadD, velMasD, rhoPresMuD, mNSpheres, SIDE); //does not work for analytical boundaries (non-meshed) and free surfaces
+			DensityReinitialization(posRadD, velMasD, rhoPresMuD, mNSpheres, SIDE); //does not work for analytical boundaries (non-meshed) and free surfaces
 		}
 
 		//edit PrintToFile since yu deleted cyliderRotOmegaJD
