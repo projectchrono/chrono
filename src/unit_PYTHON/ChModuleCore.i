@@ -142,13 +142,13 @@ using namespace chrono;
 %include "ChLinkLock.i"
 %include "ChLinkEngine.i"
 %include "ChLinkMate.i"
-/*
-%include "ChLinkGear.i"
 %include "ChLinkDistance.i"
 %include "ChLinkLinActuator.i"
 %include "ChLinkPulley.i"
 %include "ChLinkScrew.i"
 %include "ChLinkSpring.i"
+%include "ChLinkGear.i"
+/*
 %include "ChShaft.i"
 %include "ChShaftsCouple.i"
 %include "ChShaftsBody.i"
@@ -220,13 +220,13 @@ using namespace chrono;
 %DefChSharedPtrCast(chrono::ChLinkMateXdistance, chrono::ChLinkMateGeneric)
 %DefChSharedPtrCast(chrono::ChLinkMateParallel, chrono::ChLinkMateGeneric)
 %DefChSharedPtrCast(chrono::ChLinkMateOrthogonal, chrono::ChLinkMateGeneric)
-/*
 %DefChSharedPtrCast(chrono::ChLinkGear, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkDistance, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkLinActuator, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkPulley, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkScrew, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkSpring, chrono::ChLinkMarkers)
+/*
 %DefChSharedPtrCast(chrono::ChShaft, chrono::ChPhysicsItem)
 %DefChSharedPtrCast(chrono::ChShaftsBody, chrono::ChPhysicsItem)
 %DefChSharedPtrCast(chrono::ChShaftsCouple, chrono::ChPhysicsItem)
