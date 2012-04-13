@@ -5,87 +5,12 @@
 -------------------------------------------------------
 
 
-   NEWS    NEWS    NEWS   NEWS   NEWS   NEWS   NEWS 
-   
-   IMPORTANT! 
-   
-   The Chrono::Engine API is under a major revision:
-   we updated it to support the CMAKE build system.
-   Therefore,  the previous document  was somewhat
-   outdated - the new CMAKE-based system does not require
-   any 'makefile' stuff.
+
    To understand how to install and compile, follow the
-   new guidelines at the link 
+   guidelines at the link 
       
-   http://dynamics.eng.unipr.it/mediawiki/index.php/Main_Page
+   http://www.chronoengine.info/mediawiki/index.php/Installation
    
-   The instructions are updated from time to time.
-   
-
-   
--------------------------------------------------------
-
-
-
-=== Additional info to BUILD ON A LINUX PLATFORM 
-
-
-The build process in a Linux platform is similar to the
-process in Windows. Here are the additional steps that you might need.
-
-
---1
-Install the GNU gcc c++ compiler, if you already haven't installed
-it, for example by typing in the Ubuntu shell:
-
-	sudo apt-get install build-essential
-
---2 
-Download and the latest Irrlicht library (ex. Irrlicht-1.7.1.zip).
-It is not mandatory, but it will be used by many demos.
-
- --2b
-Compile Irrlicht, by going in the source/ directory of Irrlicht
-and by typing 'make'. After some minutes it will create the file
-'libIrlicht.a' into Irrlicht source/ directory. 
-
- --2c
-Some Irrlicht distributions have a bug: instead of copying 
-'libIrlicht.a' into Irrlicht/lib/Linux/ directory, they rename
-it and move in lib/ as 'Linux'. If so, re-create Irrlicht/lib/Linux/ 
-by hand, and move 'libIrlicht.a' into that directory.
-
---3
-Install the following packets (you can find them on the web) if
-not already installed on your system:
-. X11    / Debian (Ubuntu) : load packets "libxxf86vm1" and "libxxf86vm-dev"
-. OpenGl / Debien (Ubuntu): load packets "freeglut3" and "freeglut3-dev"
-
---4 
-Follow the instructions for building the SDK using CMake, as in Windows
-(see at http://dynamics.eng.unipr.it/mediawiki/index.php/Main_Page)
-
-
-
---NOTE
-
-
--OPTIONALLY: compile the JAVASCRIPT unit for JS scripting:
-   If you want to recompile the unit for JAVASCRIPT support you must: 
-  . install SpiderMonkey javascript engine. So, download packets 
-     libmozjs0d [???]
-     libmozjs-dev [???]
-    or equivalent
-  . download and unzip latest SpiderMonkey SDK, 
-  . cd into js/src/  directory,
-  . build the javascript SDK with "make -f Makefile.ref BUILD_OPT=1"
-  . copy js/src/Linux_All_OPT.OBJ/jsautocfg.h into js/src/
-  . copy js/src/Linux_All_OPT.OBJ/libjs.a  into ChronoEngine/lib/Linux32_gcc
-  
-
-
-
 
 -------------------------------------------------------
-
 
