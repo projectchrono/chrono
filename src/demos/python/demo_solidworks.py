@@ -118,7 +118,7 @@ pov_exporter.ExportScript()
 
 #my_system.SetLcpSolverType(chrono.ChSystem.LCP_ITERATIVE_PMINRES)
 my_system.SetIterLCPmaxItersSpeed(50)
-my_system.SetMaxPenetrationRecoverySpeed(1.00)
+my_system.SetMaxPenetrationRecoverySpeed(10.00)
 my_system.Set_G_acc(chrono.ChVectorD(0,-9.8,-9.80))
 
  # Perform a short simulation

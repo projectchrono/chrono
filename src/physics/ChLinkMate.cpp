@@ -277,27 +277,34 @@ void ChLinkMateGeneric::Update (double mytime)
 		}
 		if (c_rx) 
 		{
-			this->C->ElementN(nc) = 0.5*aframe.GetRot().e1; // 0.5*   ??????
+			this->C->ElementN(nc) = 0; //0.5*aframe.GetRot().e1; // 0.5*   ??????
 			this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jw1, 0,0, 1,3, 0,3);
 			this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jw2, 0,0, 1,3, 0,3);
 			nc++;
 		}
 		if (c_ry) 
 		{
-			this->C->ElementN(nc) = 0.5*aframe.GetRot().e2; // 0.5*   ??????
+			this->C->ElementN(nc) = 0; //0.5*aframe.GetRot().e2; // 0.5*   ??????
 			this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jw1, 1,0, 1,3, 0,3);
 			this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jw2, 1,0, 1,3, 0,3);
 			nc++;
 		}
 		if (c_rz) 
 		{
-			this->C->ElementN(nc) = 0.5*aframe.GetRot().e3; // 0.5*   ??????
+			this->C->ElementN(nc) = 0; //0.5*aframe.GetRot().e3; // 0.5*   ??????
 			this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jw1, 2,0, 1,3, 0,3);
 			this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jw2, 2,0, 1,3, 0,3);
 			nc++;
 		}
 
-		// GetLog()<< "C="<< *this->C << "\n";
+		if (this->c_x)
+			GetLog()<< "err.x ="<< aframe.GetPos().x << "\n";
+		if (this->c_y)
+			GetLog()<< "err.y ="<< aframe.GetPos().y << "\n";
+		if (this->c_z)
+			GetLog()<< "err.z ="<< aframe.GetPos().z << "\n";
+		if (this->c_x || this->c_y || this->c_z)
+				GetLog()<< *this->C << "\n";
 
 	}
 
@@ -367,6 +374,9 @@ void ChLinkMateGeneric::ConstraintsBiLoad_C(double factor, double recovery_clamp
 {
 	if (!this->IsActive())
 		return;
+
+	if (this->c_x || this->c_y || this->c_z)
+		GetLog()<< "load:" << *this->C << "\n";
 
 	int cnt=0;
 	for (int i=0; i< mask->nconstr; i++)
@@ -520,7 +530,7 @@ int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body t
 
 
 // 
-// Following functions are for exploiting the contact persistence
+// Following functions are for exploiting persistence
 //
 
 void  ChLinkMateGeneric::ConstraintsLiLoadSuggestedSpeedSolution()
