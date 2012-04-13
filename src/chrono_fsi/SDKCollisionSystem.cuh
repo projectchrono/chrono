@@ -25,12 +25,12 @@ typedef unsigned int uint;
 //#define sizeScale .001
 #define sizeScale .001
 
-#define HSML 0.04f*sizeScale
+#define HSML 0.02f*sizeScale
 #define BASEPRES 0
-#define nPeriod 7
+#define nPeriod 1
 #define Gravity make_float3(0, 0, 0)
 //#define bodyForce4 make_float4(.005, 0, 0, 0)
-#define bodyForce4 make_float4(.5, 0, 0, 0)
+#define bodyForce4 make_float4(.05, 0, 0, 0)
 //#define bodyForce4 make_float4(.1, 0, 0, 0)
 //#define bodyForce4 make_float4(.0004, 0, 0, 0) //segre. size Scale 1
 #define rho0 1000
@@ -46,8 +46,8 @@ typedef unsigned int uint;
 #define F2	make_float2
 #define I2	make_int2
 #define I3	make_int3
-#define PI 3.14159265f
-
+#define PI 3.1415926535897932384626433832795028841971693993751058f
+#define INVPI 0.3183098861837906715377675267450287240689192914809128f
 struct SimParams {
 		float3 gravity;
 		float globalDamping;
@@ -70,6 +70,7 @@ __constant__ SimParams paramsD;
 __constant__ int3 cartesianGridDimsD;
 __constant__ float resolutionD;
 
+
 //--------------------------------------------------------------------------------------------------------------------------------
 //3D SPH kernel function, W3_SplineA
 __device__ inline float W3_Spline(float d, float h) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
@@ -82,36 +83,36 @@ __device__ inline float W3_Spline(float d, float h) { // d is positive. h is the
 	}
 	return 0;
 }
-//--------------------------------------------------------------------------------------------------------------------------------
-//2D SPH kernel function, W2_SplineA
-__device__ inline float W2_Spline(float d, float h) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
-	float q = fabs(d) / h;
-	if (q < 1) {
-		return (5 / (14 * PI * h * h) * (pow(2 - q, 3) - 4 * pow(1 - q, 3)));
-	}
-	if (q < 2) {
-		return (5 / (14 * PI * h * h) * pow(2 - q, 3));
-	}
-	return 0;
-}
-//--------------------------------------------------------------------------------------------------------------------------------
-//3D SPH kernel function, W3_QuadraticA
-__device__ inline float W3_Quadratic(float d, float h) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
-	float q = fabs(d) / h;
-	if (q < 2) {
-		return (1.25f / (PI * h * h * h) * .75f * (pow(.5f * q, 2) - q + 1));
-	}
-	return 0;
-}
-//--------------------------------------------------------------------------------------------------------------------------------
-//2D SPH kernel function, W2_QuadraticA
-__device__ inline float W2_Quadratic(float d, float h) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
-	float q = fabs(d) / h;
-	if (q < 2) {
-		return (2.0f / (PI * h * h) * .75f * (pow(.5f * q, 2) - q + 1));
-	}
-	return 0;
-}
+////--------------------------------------------------------------------------------------------------------------------------------
+////2D SPH kernel function, W2_SplineA
+//__device__ inline float W2_Spline(float d, float h) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
+//	float q = fabs(d) / h;
+//	if (q < 1) {
+//		return (5 / (14 * PI * h * h) * (pow(2 - q, 3) - 4 * pow(1 - q, 3)));
+//	}
+//	if (q < 2) {
+//		return (5 / (14 * PI * h * h) * pow(2 - q, 3));
+//	}
+//	return 0;
+//}
+////--------------------------------------------------------------------------------------------------------------------------------
+////3D SPH kernel function, W3_QuadraticA
+//__device__ inline float W3_Quadratic(float d, float h) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
+//	float q = fabs(d) / h;
+//	if (q < 2) {
+//		return (1.25f / (PI * h * h * h) * .75f * (pow(.5f * q, 2) - q + 1));
+//	}
+//	return 0;
+//}
+////--------------------------------------------------------------------------------------------------------------------------------
+////2D SPH kernel function, W2_QuadraticA
+//__device__ inline float W2_Quadratic(float d, float h) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
+//	float q = fabs(d) / h;
+//	if (q < 2) {
+//		return (2.0f / (PI * h * h) * .75f * (pow(.5f * q, 2) - q + 1));
+//	}
+//	return 0;
+//}
 //--------------------------------------------------------------------------------------------------------------------------------
 //Gradient of the kernel function
 // d: magnitude of the distance of the two particles
@@ -119,27 +120,27 @@ __device__ inline float W2_Quadratic(float d, float h) { // d is positive. h is 
 __device__ inline float3 GradW_Spline(float3 d, float h) { // d is positive. r is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
 	float q = length(d) / h;
 	if (q < 1) {
-		return .75f / (PI * powf(h, 5)) * (3 * q - 4) * d;
+		return .75f * (INVPI) *powf(h, -5)* (3 * q - 4) * d;
 	}
 	if (q < 2) {
-		return .75f / (PI * powf(h, 5)) * (-q + 4.0f - 4.0f / q) * d;
+		return .75f * (INVPI) *powf(h, -5)* (-q + 4.0f - 4.0f / q) * d;
 	}
 	return F3(0);
 }
-//--------------------------------------------------------------------------------------------------------------------------------
-//Gradient of the kernel function
-// d: magnitude of the distance of the two particles
-// dW * dist3 gives the gradiant of W3_Quadratic, where dist3 is the distance vector of the two particles, (dist3)a = pos_a - pos_b
-__device__ inline float3 GradW_Quadratic(float3 d, float h) { // d is positive. r is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
-	float q = length(d) / h;
-	if (q < 2) {
-		return 1.25f / (PI * powf(h, 5)) * .75f * (.5f - 1.0f / q) * d;
-	}
-	return F3(0);
-}
+////--------------------------------------------------------------------------------------------------------------------------------
+////Gradient of the kernel function
+//// d: magnitude of the distance of the two particles
+//// dW * dist3 gives the gradiant of W3_Quadratic, where dist3 is the distance vector of the two particles, (dist3)a = pos_a - pos_b
+//__device__ inline float3 GradW_Quadratic(float3 d, float h) { // d is positive. r is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
+//	float q = length(d) / h;
+//	if (q < 2) {
+//		return 1.25f / (PI * powf(h, 5)) * .75f * (.5f - 1.0f / q) * d;
+//	}
+//	return F3(0);
+//}
 //--------------------------------------------------------------------------------------------------------------------------------
 #define W3 W3_Spline
-#define W2 W2_Spline
+//#define W2 W2_Spline
 #define GradW GradW_Spline
 //--------------------------------------------------------------------------------------------------------------------------------
 //Eos is also defined in SDKCollisionSystem.cu
