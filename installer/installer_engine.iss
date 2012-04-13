@@ -10,7 +10,7 @@
 #define MyAppName "ChronoEngine"
 #define MyAppVersion "v1.3.0"
 #define MyAppPublisher "Alessandro Tasora"
-#define MyAppURL "http://dynamics.eng.unipr.it"
+#define MyAppURL "http://www.chronoengine.info"
 ;#define MyChronoEngineSDK "C:\tasora\code\dynamics\code\ChronoEngine"
 #define MyChronoEngineSDK "C:\tasora\code\nightly_repo\code\ChronoEngine"
 

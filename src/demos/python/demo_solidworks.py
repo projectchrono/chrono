@@ -76,6 +76,12 @@ pov_exporter.SetAmbientLight(chrono.ChColor(2,2,2))
 #pov_exporter.SetShowCOGs  (1, 0.05)
 #pov_exporter.SetShowFrames(1, 0.02)
 #pov_exporter.SetShowLinks(1, 0.03)
+pov_exporter.SetShowContacts(1,
+                            postprocess.ChPovRay.SYMBOL_VECTOR_SCALELENGTH,
+                            0.2,    # scale
+                            0.0007, # width
+                            0.1,    # max size
+                            1,0,0.5 ) # colormap on, blue at 0, red at 0.5
 
  # Add additional POV objects/lights/materials in the following way, entering
  # an optional text using the POV scene description laguage. This will be
@@ -103,9 +109,7 @@ union {
 ''')
 
  # Tell which physical items you want to render
-#pov_exporter.AddAll()
-for my_item in exported_items:
-    pov_exporter.Add(my_item)
+pov_exporter.AddAll()
 
 
  # 1) Create the two .pov and .ini files for POV-Ray (this must be done
@@ -114,7 +118,7 @@ pov_exporter.ExportScript()
 
 #my_system.SetLcpSolverType(chrono.ChSystem.LCP_ITERATIVE_PMINRES)
 my_system.SetIterLCPmaxItersSpeed(50)
-my_system.SetMaxPenetrationRecoverySpeed(100)
+my_system.SetMaxPenetrationRecoverySpeed(1.00)
 my_system.Set_G_acc(chrono.ChVectorD(0,-9.8,-9.80))
 
  # Perform a short simulation
