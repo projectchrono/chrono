@@ -8,6 +8,9 @@
 Release 1.5.0
 xx-xx-xxxx
 
+- New installer for deploying the Python version of Chrono::Engine
+  on user systems without efforts.
+
 - New ChLinkMate class, with ChLinkMateGeneric, ChLinkMatePlan, etc,
   These can represent higher pair joints often used in mechanics, but
   they are less sophisticated (and faster) than the ChLinkLock classes,
