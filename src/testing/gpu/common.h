@@ -22,6 +22,7 @@ public:
 	void SaveByID(int id, string fname);
 	void SaveByObject(ChBODY *abody, string fname);
 	void SaveAllData(string prefix);
+	void SaveAllData_type(string prefix);
 	void drawAll();CHSYS *mSystem;
 
 	ChLCPDESC *mGPUDescriptor;ChCONTACTCONT *mGPUContactContainer;ChCOLLISIONSYS *mGPUCollisionEngine;ChSOLVER *mGPUsolverSpeed;
@@ -79,7 +80,7 @@ System::System(int cudaDevice) {
 	mFrameNumber = 0;
 	mFileNumber = 0;
 	mTotalTime = 0;
-	mOmegaBilateral = .2;
+	mOmegaBilateral = .1;
 	mOmegaContact = .2;
 	mEnvelope = 0;
 	mTolerance = 1e-3;
@@ -96,6 +97,7 @@ void System::Setup() {
 	mSystem->SetStep(mTimeStep);
 	mGPUsolverSpeed->SetMaxIterations(mIterations);
 	mGPUsolverSpeed->SetOmega(mOmegaContact);
+	mGPUsolverSpeed->SetOmegaBilateral(mOmegaBilateral);
 	//mGPUsolverSpeed->mOmegaBilateral = mOmegaBilateral;
 	mGPUsolverSpeed->SetTolerance(mTolerance);
 
@@ -233,27 +235,12 @@ void System::SaveAllData(string prefix) {
 			ChVector<> vel = abody->GetPos_dt();
 			ChVector<> acc = abody->GetPos_dtdt();
 			//ChVector<> fap = abody->GetAppliedForce();
-			//float3 p = F3(pos.x, pos.y, pos.z);
-			//float3 v = F3(vel.x, vel.y, vel.z);
-			//float4 e = F4(quat.e0, quat.e1, quat.e2, quat.e3);
-
-			//ofile.write(reinterpret_cast<char*>(&p), sizeof(p));
-			//ofile.write(reinterpret_cast<char*>(&v), sizeof(v));
-			//ofile.write(reinterpret_cast<char*>(&e), sizeof(e));
-
 			line << pos.x << "," << pos.y << "," << pos.z << ",";
 			line << vel.x << "," << vel.y << "," << vel.z << ",";
 			line << quat.e0 << "," << quat.e1 << "," << quat.e2 << "," << quat.e3 << ",";
 			line << endl;
 
 		}
-
-		//
-		//ofile << vel.x << "," << vel.y << "," << vel.z << ",";
-		//ofile << acc.x << "," << acc.y << "," << acc.z << ",";
-		//ofile << quat.e0 << "," << quat.e1 << "," << quat.e2 << "," << quat.e3 << ",";
-		//ofile << fap.x << "," << fap.y << "," << fap.z << ",";
-		//ofile << endl;
 	}
 	ofile << line.str();
 	ofile.close();
@@ -261,31 +248,69 @@ void System::SaveAllData(string prefix) {
 	mFileNumber++;
 
 }
+void System::SaveAllData_type(string prefix) {
+	ofstream ofile;
+	stringstream ss, sss;
+	ss << prefix << mFileNumber << ".txt";
+	sss << prefix << "temp.txt";
+	ofile.open(sss.str().c_str());
+	string output_text = "";
+	stringstream line;
+	for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
+		ChBODY * abody = (ChBODY *) mSystem->Get_bodylist()->at(i);
+		if (abody->IsActive() == true) {
+			int i = 0;
+			//for (int i = 0; i < ((ChMODEL *) (abody->GetCollisionModel()))->mData.size(); i++)
+			{
+				ChVector<> pos = abody->GetPos();
+				ChVector<> rot = abody->GetRot().Q_to_NasaAngles();
+				ChQuaternion<> quat = abody->GetRot();
+				ChVector<> vel = abody->GetPos_dt();
+				ChVector<> acc = abody->GetPos_dtdt();
+				//ChVector<> fap = abody->GetAppliedForce();
+				ShapeType type = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].type;
+				float3 A = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].A;
+				float3 B = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].B;
+				float4 R = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].R;
+				line << type << "," << A.x << "," << A.y << "," << A.z << "," << B.x << "," << B.y << "," << B.z << "," << R.w << "," << R.x << "," << R.y << "," << R.z << ",";
+				line << pos.x << "," << pos.y << "," << pos.z << ",";
+				line << vel.x << "," << vel.y << "," << vel.z << ",";
+				line << quat.e0 << "," << quat.e1 << "," << quat.e2 << "," << quat.e3 << ",";
+				line << endl;
+			}
 
+		}
+	}
+	ofile << line.str();
+	ofile.close();
+	rename(sss.str().c_str(), ss.str().c_str());
+	mFileNumber++;
+
+}
 void System::SaveByObject(ChBODY *abody, string fname) {
 	ofstream ofile;
 	ofile.open(fname.c_str(), ios_base::app);
 	ChVector<> pos = abody->GetPos();
-	//ChVector<> rot = abody->GetRot().Q_to_NasaAngles();
+	ChVector<> rot = abody->GetRot().Q_to_NasaAngles();
 	//ChQuaternion<> quat = abody->GetRot();
 	ChVector<> vel = abody->GetPos_dt();
 	ChVector<> acc = abody->GetPos_dtdt();
 	//ChVector<> fap = abody->GetAppliedForce();
 
-//	if (ISNAN(rot.x)) {
-//		rot.x = 0;
-//	}
-//	if (ISNAN(rot.y)) {
-//		rot.y = 0;
-//	}
-//	if (ISNAN(rot.z)) {
-//		rot.z = 0;
-//	}
+	if (ISNAN(rot.x)) {
+		rot.x = 0;
+	}
+	if (ISNAN(rot.y)) {
+		rot.y = 0;
+	}
+	if (ISNAN(rot.z)) {
+		rot.z = 0;
+	}
 
 	ofile << pos.x << "," << pos.y << "," << pos.z << ",";
 	ofile << vel.x << "," << vel.y << "," << vel.z << ",";
 	ofile << acc.x << "," << acc.y << "," << acc.z << ",";
-	//ofile << rot.x << "," << rot.y << "," << rot.z << ",";
+	ofile << rot.x << "," << rot.y << "," << rot.z << ",";
 	//ofile << fap.x << "," << fap.y << "," << fap.z << ",";
 	ofile << endl;
 
@@ -439,16 +464,43 @@ void System::drawAll() {
 		glDrawArrays(GL_POINTS, 0, points.size());
 		glDisableClientState(GL_VERTEX_ARRAY);
 		glDisableClientState(GL_COLOR_ARRAY);
+		if (showbb) {
+			int size_obj = mSystem->gpu_data_manager->host_aabb_data.size() / 2;
+			for (int i = 0; i < size_obj; i++) {
+
+				float3 Pa = mSystem->gpu_data_manager->host_aabb_data[i] + mSystem->gpu_data_manager->gpu_data.min_bounding_point;
+				float3 Pb = mSystem->gpu_data_manager->host_aabb_data[i + size_obj] + mSystem->gpu_data_manager->gpu_data.min_bounding_point;
+				//float3 color = GetColour(D, 0, .0001);
+				glColor3f(0, 0, 0);
+
+				float3 center = (Pa + Pb) * .5;
+
+				float R = fabs(Pa.x - center.x);
+				glLineWidth(2.f);
+				glPushMatrix();
+				glTranslatef(center.x, center.y, center.z);
+				glScalef(fabs(Pa.x - Pb.x), fabs(Pa.y - Pb.y), fabs(Pa.z - Pb.z));
+				glutWireCube(1);
+				glPopMatrix();
+
+				glBegin(GL_POINTS);
+				glVertex3f(Pa.x, Pa.y, Pa.z);
+				glVertex3f(Pb.x, Pb.y, Pb.z);
+				glEnd();
+			}
+		}
+
 #ifdef _CHRONOGPU
 		if (showContacts) {
 			mSystem->gpu_data_manager->CopyContacts(true);
+
 			for (int i = 0; i < mSystem->gpu_data_manager->host_norm_data.size(); i++) {
 				float3 N = mSystem->gpu_data_manager->host_norm_data[i];
 				float3 Pa = mSystem->gpu_data_manager->host_cpta_data[i];
 				float3 Pb = mSystem->gpu_data_manager->host_cptb_data[i];
 				float D = mSystem->gpu_data_manager->host_dpth_data[i];
-				float3 color = GetColour(D, 0, .0001);
-				glColor3f(color.x, color.y, color.z);
+				//float3 color = GetColour(D, 0, .0001);
+				glColor3f(0, 0, 0);
 				glBegin(GL_LINES);
 				glVertex3f(Pa.x, Pa.y, Pa.z);
 				glVertex3f(Pb.x, Pb.y, Pb.z);
@@ -458,6 +510,7 @@ void System::drawAll() {
 				glVertex3f(Pb.x, Pb.y, Pb.z);
 				glEnd();
 			}
+
 		} else {
 			mSystem->gpu_data_manager->CopyContacts(false);
 		}

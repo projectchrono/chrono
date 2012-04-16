@@ -5,6 +5,7 @@ void System::DoTimeStep() {
 	mSystem->DoStepDynamics(mTimeStep);
 	mCurrentTime += mTimeStep;
 	//GPUSystem->PrintStats();
+	cout<<endl;
 
 //	for (int i = 0; i < mSystem->gpu_data_manager->host_norm_data.size(); i++) {
 //		float3 N = mSystem->gpu_data_manager->host_norm_data[i];
@@ -25,7 +26,7 @@ int main(int argc, char* argv[]) {
 	GPUSystem->mEndTime = 10;
 	GPUSystem->mNumObjects = 1;
 	GPUSystem->mIterations = 2000;
-	GPUSystem->mTolerance = 1e-5;
+	GPUSystem->mTolerance = 1e-3;
 	GPUSystem->mOmegaContact = .1;
 	GPUSystem->mOmegaBilateral = .2;
 	stepMode = true;
@@ -33,7 +34,8 @@ int main(int argc, char* argv[]) {
 	GPUSystem->mUseOGL = 1;
 	SCALE = .1;
 
-	ChQuaternion<> quat(1, 0, 0, 0);
+	ChQuaternion<> quat(1, .1, 0, 0);
+	quat.Normalize();
 	ChVector<> lpos(0, 0, 0);
 
 	ChBODYSHAREDPTR BTM = ChBODYSHAREDPTR(new ChBODY);
@@ -47,7 +49,9 @@ int main(int argc, char* argv[]) {
 
 	mrigidBody = ChBODYSHAREDPTR(new ChBODY);
 	GPUSystem->InitObject(mrigidBody, mass, ChVector<> (x, y, z), quat, mu, mu, rest, true, false, 0, 1);
-	GPUSystem->AddCollisionGeometry(mrigidBody, BOX, ChVector<> (1, .2, .2), lpos, quat);
+	GPUSystem->AddCollisionGeometry(mrigidBody, BOX, ChVector<> (1, .2, .2), ChVector<>(1, 1, 0), quat);
+	GPUSystem->AddCollisionGeometry(mrigidBody, ELLIPSOID, ChVector<> (1, .2, .2), ChVector<>(0, 0, 0), quat);
+	GPUSystem->AddCollisionGeometry(mrigidBody, BOX, ChVector<> (1, .2, .2), ChVector<>(0, -1, 1), quat);
 	GPUSystem->FinalizeObject(mrigidBody);
 
 	GPUSystem->Setup();

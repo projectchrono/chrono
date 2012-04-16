@@ -85,6 +85,7 @@ bool showSolid = false;
 bool updateDraw = true;
 bool saveData = false;
 bool showContacts = false;
+bool showbb = false;
 int detail_level = 1;
 int drawType = 1;
 bool stepMode = false;
@@ -185,6 +186,10 @@ void processNormalKeys(unsigned char key, int x, int y) {
 		break;
 	case 'c':
 		showContacts = (showContacts) ? 0 : 1;
+		break;
+	case 'b':
+		showbb = (showbb) ? 0 : 1;
+		break;
 	case '1':
 		drawType = 1;
 		break;
@@ -200,7 +205,7 @@ void processNormalKeys(unsigned char key, int x, int y) {
 	case 'z':
 		stepNext = 1;
 		break;
-	case 'b':
+	case 'n':
 		saveData = 1;
 		break;
 	}
@@ -409,32 +414,24 @@ void drawObject(ChBODY *abody) {
 		float4 R = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].R;
 		ChCoordsys<> csys((abody)->GetPos(), (abody)->GetRot());
 
-		//if (type == CYLINDER) {
-			//	pos = csys.TrasformLocalToParent(ChVector<>(A.x, A.y - B.y, A.z));
-			//glTranslatef(A.x, A.y - B.y, A.z);
-		//} else {
+		if (type == CYLINDER) {
+				//pos = csys.TrasformLocalToParent(ChVector<>(A.x, A.y - B.y, A.z));
+			glTranslatef(A.x, A.y , A.z);
+		} else {
 			//	pos = csys.TrasformLocalToParent(ChVector<>(A.x, A.y, A.z));
 			glTranslatef(A.x, A.y, A.z);
-		//}
+		}
 		quat = ChQuaternion<>(R.x, R.y, R.z, R.w);
 		quat.Normalize();
 		quat.Q_to_AngAxis(angle, axis);
-
+if (showSphere) {
 		switch (type) {
 		case SPHERE:
 
-			if (showSphere) {
+			
 				makeSphere(F3(pos.x, pos.y, pos.z), B.x, angle, F3(axis.x, axis.y, axis.z), F3(1, 1, 1));
-			} else {
-				Point pt;
-				pt.x = pos.x;
-				pt.y = pos.y;
-				pt.z = pos.z;
-				pt.r = color.x;
-				pt.g = color.y;
-				pt.b = color.z;
-				points.push_back(pt);
-			}
+			
+			
 
 			break;
 		case ELLIPSOID:
@@ -445,9 +442,19 @@ void drawObject(ChBODY *abody) {
 			break;
 		case CYLINDER:
 			//makeBox(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
-			makeSphere(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
+			makeCyl(F3(pos.x, pos.y, pos.z), 1, angle, F3(axis.x, axis.y, axis.z), F3(B.x, B.y, B.z));
 			break;
 		}
+} else {
+				Point pt;
+				pt.x = pos.x;
+				pt.y = pos.y;
+				pt.z = pos.z;
+				pt.r = color.x;
+				pt.g = color.y;
+				pt.b = color.z;
+				points.push_back(pt);
+}
 		glPopMatrix();
 	}
 
