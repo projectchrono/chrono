@@ -20,7 +20,7 @@ __device__ __host__ void ComputeAABBTriangle(const float3 &A, const float3 &B, c
 	maxp.z = max(A.z, max(B.z, C.z));
 }
 
-__device__ __host__ void ComputeAABBBox(const float3 &dim, const float3 &positon, const float4 &rotation, float3 &minp, float3 &maxp) {
+__device__ __host__ void ComputeAABBBox(const float3 &dim, const float3 &lpositon, const float3 &positon, const float4 &lrotation, const float4 &rotation, float3 &minp, float3 &maxp) {
 	float3 p1 = F3(-dim.x, -dim.y, -dim.z);
 	float3 p2 = F3(-dim.x, -dim.y, dim.z);
 	float3 p3 = F3(-dim.x, dim.y, -dim.z);
@@ -29,6 +29,15 @@ __device__ __host__ void ComputeAABBBox(const float3 &dim, const float3 &positon
 	float3 p6 = F3(dim.x, -dim.y, dim.z);
 	float3 p7 = F3(-dim.x, dim.y, dim.z);
 	float3 p8 = F3(dim.x, dim.y, dim.z);
+	float4 q=lrotation;
+	p1 = quatRotate(p1, q);
+	p2 = quatRotate(p2, q);
+	p3 = quatRotate(p3, q);
+	p4 = quatRotate(p4, q);
+	p5 = quatRotate(p5, q);
+	p6 = quatRotate(p6, q);
+	p7 = quatRotate(p7, q);
+	p8 = quatRotate(p8, q);
 
 	p1 = quatRotate(p1, rotation);
 	p2 = quatRotate(p2, rotation);
@@ -45,8 +54,10 @@ __device__ __host__ void ComputeAABBBox(const float3 &dim, const float3 &positon
 	maxp.x = fmaxf(p1.x, fmaxf(p2.x, fmaxf(p3.x, fmaxf(p4.x, fmaxf(p5.x, fmaxf(p6.x, fmaxf(p7.x, p8.x)))))));
 	maxp.y = fmaxf(p1.y, fmaxf(p2.y, fmaxf(p3.y, fmaxf(p4.y, fmaxf(p5.y, fmaxf(p6.y, fmaxf(p7.y, p8.y)))))));
 	maxp.z = fmaxf(p1.z, fmaxf(p2.z, fmaxf(p3.z, fmaxf(p4.z, fmaxf(p5.z, fmaxf(p6.z, fmaxf(p7.z, p8.z)))))));
-	minp += positon;
-	maxp += positon;
+
+	minp += quatRotate(lpositon,rotation)+positon;
+	maxp += quatRotate(lpositon,rotation)+positon;
+
 }
 
 typedef thrust::pair<float3, float3> bbox;

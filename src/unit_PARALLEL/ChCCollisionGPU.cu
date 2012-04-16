@@ -33,8 +33,11 @@ __global__ void Compute_AABBs(float3* pos, float4* rot, float3* obA, float3* obB
 
 		ComputeAABBTriangle(A, B, C, temp_min, temp_max);
 	} else if (type.x == 1 || type.x == 2 || type.x == 3) {
-		A=quatRotate(A,rot[type.z]);
-		ComputeAABBBox(B, A + position, rot[type.z], temp_min, temp_max);
+		//A=quatRotate(A,rot[type.z]);
+		ComputeAABBBox(B, A , position, obR[index],rot[type.z] , temp_min, temp_max);
+
+
+
 	} else {
 		return;
 	}
@@ -54,38 +57,38 @@ __global__ void Offset_AABBs(float3* aabb) {
 }
 
 void ChCCollisionGPU::ComputeAABB_HOST(ChGPUDataManager * data_container) {
-	uint number_of_models = data_container->number_of_models;
-	data_container->host_aabb_data.resize(number_of_models * 2);
-
-	for (int index = 0; index < number_of_models; index++) {
-		int3 type = data_container->host_typ_data[index];
-
-		float3 A = data_container->host_ObA_data[index];
-		float3 B = data_container->host_ObB_data[index];
-		float3 C = data_container->host_ObC_data[index];
-
-		float3 position = data_container->host_pos_data[type.z];
-		float4 rotation = normalize(data_container->host_rot_data[type.z] + data_container->host_ObR_data[index]);
-
-		float3 temp_min;
-		float3 temp_max;
-
-		if (type.x == 0) {
-			ComputeAABBSphere(B.x, A + position, temp_min, temp_max);
-		} else if (type.x == 5) {
-			A = quatRotate(A + position, rotation);
-			B = quatRotate(B + position, rotation);
-			C = quatRotate(C + position, rotation);
-
-			ComputeAABBTriangle(A, B, C, temp_min, temp_max);
-		} else if (type.x == 1 || type.x == 2 || type.x == 3) {
-			ComputeAABBBox(B, A + position, rotation, temp_min, temp_max);
-		} else {
-			return;
-		}
-		data_container->host_aabb_data[index] = temp_min;
-		data_container->host_aabb_data[index + number_of_models] = temp_max;
-	}
+//	uint number_of_models = data_container->number_of_models;
+//	data_container->host_aabb_data.resize(number_of_models * 2);
+//
+//	for (int index = 0; index < number_of_models; index++) {
+//		int3 type = data_container->host_typ_data[index];
+//
+//		float3 A = data_container->host_ObA_data[index];
+//		float3 B = data_container->host_ObB_data[index];
+//		float3 C = data_container->host_ObC_data[index];
+//
+//		float3 position = data_container->host_pos_data[type.z];
+//		float4 rotation = normalize(data_container->host_rot_data[type.z] + data_container->host_ObR_data[index]);
+//
+//		float3 temp_min;
+//		float3 temp_max;
+//
+//		if (type.x == 0) {
+//			ComputeAABBSphere(B.x, A + position, temp_min, temp_max);
+//		} else if (type.x == 5) {
+//			A = quatRotate(A + position, rotation);
+//			B = quatRotate(B + position, rotation);
+//			C = quatRotate(C + position, rotation);
+//
+//			ComputeAABBTriangle(A, B, C, temp_min, temp_max);
+//		} else if (type.x == 1 || type.x == 2 || type.x == 3) {
+//			ComputeAABBBox(B, A + position, rotation, temp_min, temp_max);
+//		} else {
+//			return;
+//		}
+//		data_container->host_aabb_data[index] = temp_min;
+//		data_container->host_aabb_data[index + number_of_models] = temp_max;
+//	}
 }
 void ChCCollisionGPU::ComputeBounds_HOST(ChGPUDataManager * data_container) {
 	uint number_of_models = data_container->number_of_models;

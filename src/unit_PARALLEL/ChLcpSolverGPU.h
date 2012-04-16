@@ -65,7 +65,8 @@ public:
 		lcp_contact_factor = f;
 
 	}
-
+	void   SetOmegaBilateral(double mval) {if (mval>0.) lcp_omega_bilateral= mval;}
+	double GetOmegaSetOmegaBilateral() {return lcp_omega_bilateral;}
 private:
 	unsigned int iteration_number;
 	float step_size;

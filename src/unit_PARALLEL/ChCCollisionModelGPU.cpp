@@ -20,6 +20,7 @@ namespace chrono {
 			nObjects = 0;
 			colFam = -1;
 			noCollWith = -2;
+			inertia=make_float3(0);
 		}
 
 		ChCollisionModelGPU::~ChCollisionModelGPU() {
@@ -37,6 +38,7 @@ namespace chrono {
 		}
 
 		int ChCollisionModelGPU::BuildModel() {
+			this->GetBody()->SetInertiaXX(ChVector<> (inertia.x, inertia.y, inertia.z));
 			if (GetPhysicsItem()->GetSystem() && GetPhysicsItem()->GetCollide()) {
 				GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Add(this);
 			}
@@ -44,7 +46,7 @@ namespace chrono {
 		}
 		bool ChCollisionModelGPU::AddSphere(double radius, ChVector<>* pos) {
 			double mass = this->GetBody()->GetMass();
-			this->GetBody()->SetInertiaXX(ChVector<> (2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius));
+			inertia += pos->Length2()*mass+make_float3(2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius);
 			model_type = SPHERE;
 			nObjects++;
 			bData tData;
@@ -58,7 +60,7 @@ namespace chrono {
 		}
 		bool ChCollisionModelGPU::AddEllipsoid(double rx, double ry, double rz, ChVector<>* pos, ChMatrix33<>* rot) {
 			double mass = this->GetBody()->GetMass();
-			this->GetBody()->SetInertiaXX(ChVector<> (1 / 5.0 * mass * (ry * ry + rz * rz), 1 / 5.0 * mass * (rx * rx + rz * rz), 1 / 5.0 * mass * (rx * rx + ry * ry)));
+			inertia += pos->Length2()*mass+make_float3(1 / 5.0 * mass * (ry * ry + rz * rz), 1 / 5.0 * mass * (rx * rx + rz * rz), 1 / 5.0 * mass * (rx * rx + ry * ry));
 			model_type = ELLIPSOID;
 			nObjects++;
 			bData tData;
@@ -72,8 +74,8 @@ namespace chrono {
 		}
 		bool ChCollisionModelGPU::AddBox(double rx, double ry, double rz, ChVector<>* pos, ChMatrix33<>* rot) {
 			double mass = this->GetBody()->GetMass();
-			float3 inertia = make_float3(1 / 12.0 * mass * (ry * ry + rz * rz), 1 / 12.0 * mass * (rx * rx + rz * rz), 1 / 12.0 * mass * (rx * rx + ry * ry));
-			this->GetBody()->SetInertiaXX(ChVector<> (inertia.x, inertia.y, inertia.z));
+			inertia += pos->Length2()*mass+make_float3(1 / 12.0 * mass * (ry * ry + rz * rz), 1 / 12.0 * mass * (rx * rx + rz * rz), 1 / 12.0 * mass * (rx * rx + ry * ry));
+
 			model_type = BOX;
 			nObjects++;
 			bData tData;
@@ -101,7 +103,7 @@ namespace chrono {
 
 		bool ChCollisionModelGPU::AddCylinder(double rx, double ry, double rz, ChVector<>* pos, ChMatrix33<>* rot) {
 			double mass = this->GetBody()->GetMass();
-			this->GetBody()->SetInertiaXX(ChVector<> (1 / 12.0 * mass * (3 * rx * rx + ry * ry), 1 / 2.0 * mass * (rx * rx), 1 / 12.0 * mass * (3 * rx * rx + ry * ry)));
+			inertia += pos->Length2()*mass+make_float3(1 / 12.0 * mass * (3 * rx * rx + ry * ry), 1 / 2.0 * mass * (rx * rx), 1 / 12.0 * mass * (3 * rx * rx + ry * ry));
 			model_type = CYLINDER;
 			nObjects++;
 			bData tData;

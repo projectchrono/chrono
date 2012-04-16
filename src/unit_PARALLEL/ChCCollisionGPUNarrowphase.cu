@@ -203,7 +203,8 @@ __device__ __host__ float find_dist(float3 & P, float3 &x0, float3 &B, float3 &C
 }
 
 //Code for Convex-Convex Collision detection, adopted from xeno-collide
-__device__ __host__ bool CollideAndFindPoint(int typeA, float3 A_X, float3 A_Y, float3 A_Z, float4 A_R, int typeB, float3 B_X, float3 B_Y, float3 B_Z, float4 B_R, float3& returnNormal, float3 &point, float& depth) {
+__device__ __host__ bool CollideAndFindPoint(int typeA, float3 A_X, float3 A_Y, float3 A_Z, float4 A_R, int typeB, float3 B_X, float3 B_Y, float3 B_Z, float4 B_R, float3& returnNormal, float3 &point,
+		float& depth) {
 	float3 v01, v02, v0, n, v11, v12, v1, v21, v22, v2;
 	// v0 = center of Minkowski sum
 	v01 = GetCenter(typeA, A_X, A_Y, A_Z);
@@ -375,7 +376,8 @@ unsigned int hash(unsigned int a) {
 	a = (a ^ 0xb55a4f09) ^ (a >> 16);
 	return a;
 }
-__global__ void MPR_GPU_Store(float3* pos, float4* rot, float3* obA, float3* obB, float3* obC, float4* obR, int3* typ, long long * Pair, uint* Contact_Number, float3* norm, float3* ptA, float3* ptB, float* contactDepth, int2* ids, float3* aux, uint totalPossibleConts) {
+__global__ void MPR_GPU_Store(float3* pos, float4* rot, float3* obA, float3* obB, float3* obC, float4* obR, int3* typ, long long * Pair, uint* Contact_Number, float3* norm, float3* ptA, float3* ptB,
+		float* contactDepth, int2* ids, float3* aux, uint totalPossibleConts) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (index >= totalPossibleConts) {
 		return;
@@ -400,7 +402,7 @@ __global__ void MPR_GPU_Store(float3* pos, float4* rot, float3* obA, float3* obB
 	float4 B_R = mult(rotB, obR[B_T.y]);
 
 	if (A_T.x == _SPHERE || A_T.x == _ELLIPSOID || A_T.x == _BOX || A_T.x == _CYLINDER) {
-		A_X = quatRotate(A_X,rotA) + posA;
+		A_X = quatRotate(A_X, rotA) + posA;
 	} else if (A_T.x == _TRIANGLEMESH) {
 		A_X = quatRotate(A_X + posA, A_R);
 		A_Y = quatRotate(A_Y + posA, A_R);
@@ -408,7 +410,7 @@ __global__ void MPR_GPU_Store(float3* pos, float4* rot, float3* obA, float3* obB
 	}
 
 	if (B_T.x == _SPHERE || B_T.x == _ELLIPSOID || B_T.x == _BOX || B_T.x == _CYLINDER) {
-		B_X = quatRotate(B_X,rotB) + posB;
+		B_X = quatRotate(B_X, rotB) + posB;
 	} else if (B_T.x == _TRIANGLEMESH) {
 		B_X = quatRotate(B_X + posB, B_R);
 		B_Y = quatRotate(B_Y + posB, B_R);
@@ -490,7 +492,7 @@ __global__ void CopyGamma(int* to, float3* oldG, float3* newG, int contacts) {
 
 void ChCCollisionGPU::Narrowphase(gpu_container & gpu_data) {
 	gpu_data.generic_counter.resize(gpu_data.number_of_contacts_possible);
-	thrust::fill(gpu_data.generic_counter.begin(), gpu_data.generic_counter.end(), 0xFFFFFFFF);
+	thrust::fill(gpu_data.generic_counter.begin(), gpu_data.generic_counter.end(), 1);
 	uint number_of_contacts_possible = gpu_data.number_of_contacts_possible;
 	gpu_data.device_norm_data.resize(gpu_data.number_of_contacts_possible);
 	gpu_data.device_cpta_data.resize(gpu_data.number_of_contacts_possible);
@@ -499,22 +501,38 @@ void ChCCollisionGPU::Narrowphase(gpu_container & gpu_data) {
 	gpu_data.device_bids_data.resize(gpu_data.number_of_contacts_possible);
 
 	//cout << "  POSSIBLE  " << number_of_contacts_possible << "  ";
-	MPR_GPU_Store CUDA_KERNEL_DIM(BLOCKS(number_of_contacts_possible),THREADS)(CASTF3(gpu_data.device_pos_data), CASTF4(gpu_data.device_rot_data), CASTF3(gpu_data.device_ObA_data), CASTF3(gpu_data.device_ObB_data), CASTF3(gpu_data.device_ObC_data), CASTF4(gpu_data.device_ObR_data),
-			CASTI3(gpu_data.device_typ_data), CASTLL(gpu_data.device_pair_data), CASTU1(gpu_data.generic_counter), CASTF3(gpu_data.device_norm_data), CASTF3(gpu_data.device_cpta_data), CASTF3(gpu_data.device_cptb_data), CASTF1(gpu_data.device_dpth_data), CASTI2(gpu_data.device_bids_data),
-			CASTF3(gpu_data.device_aux_data), number_of_contacts_possible);
+	MPR_GPU_Store CUDA_KERNEL_DIM(BLOCKS(number_of_contacts_possible),THREADS)(CASTF3(gpu_data.device_pos_data), CASTF4(gpu_data.device_rot_data), CASTF3(gpu_data.device_ObA_data),
+			CASTF3(gpu_data.device_ObB_data), CASTF3(gpu_data.device_ObC_data), CASTF4(gpu_data.device_ObR_data), CASTI3(gpu_data.device_typ_data), CASTLL(gpu_data.device_pair_data),
+			CASTU1(gpu_data.generic_counter), CASTF3(gpu_data.device_norm_data), CASTF3(gpu_data.device_cpta_data), CASTF3(gpu_data.device_cptb_data), CASTF1(gpu_data.device_dpth_data),
+			CASTI2(gpu_data.device_bids_data), CASTF3(gpu_data.device_aux_data), number_of_contacts_possible);
 
-	thrust::sort_by_key(gpu_data.generic_counter.begin(), gpu_data.generic_counter.end(),
-			thrust::make_zip_iterator(thrust::make_tuple(gpu_data.device_norm_data.begin(), gpu_data.device_cpta_data.begin(), gpu_data.device_cptb_data.begin(), gpu_data.device_dpth_data.begin(), gpu_data.device_bids_data.begin(), gpu_data.device_pair_data.begin())));
+	gpu_data.number_of_contacts = number_of_contacts_possible - Thrust_Count(gpu_data.generic_counter,1);
 
-	gpu_data.number_of_contacts = number_of_contacts_possible - Thrust_Count(gpu_data.generic_counter,0xFFFFFFFF);
+	thrust::remove_if(gpu_data.device_norm_data.begin(),gpu_data.device_norm_data.end(),gpu_data.generic_counter.begin(),thrust::identity<int>());
+	thrust::remove_if(gpu_data.device_cpta_data.begin(),gpu_data.device_cpta_data.end(),gpu_data.generic_counter.begin(),thrust::identity<int>());
+	thrust::remove_if(gpu_data.device_cptb_data.begin(),gpu_data.device_cptb_data.end(),gpu_data.generic_counter.begin(),thrust::identity<int>());
+	thrust::remove_if(gpu_data.device_dpth_data.begin(),gpu_data.device_dpth_data.end(),gpu_data.generic_counter.begin(),thrust::identity<int>());
+	thrust::remove_if(gpu_data.device_bids_data.begin(),gpu_data.device_bids_data.end(),gpu_data.generic_counter.begin(),thrust::identity<int>());
+	thrust::remove_if(gpu_data.device_pair_data.begin(),gpu_data.device_pair_data.end(),gpu_data.generic_counter.begin(),thrust::identity<int>());
 
-	//thrust::device_vector<float3> old_gamma = data_container->device_gam_data;
-
-	gpu_data.device_norm_data.resize(gpu_data.number_of_contacts);
-	gpu_data.device_cpta_data.resize(gpu_data.number_of_contacts);
-	gpu_data.device_cptb_data.resize(gpu_data.number_of_contacts);
-	gpu_data.device_dpth_data.resize(gpu_data.number_of_contacts);
-	gpu_data.device_bids_data.resize(gpu_data.number_of_contacts);
+//	thrust::sort_by_key(
+//			gpu_data.generic_counter.begin(),
+//			gpu_data.generic_counter.end(),
+//
+//	thrust::make_zip_iterator(
+//					thrust::make_tuple(gpu_data.device_norm_data.begin(), gpu_data.device_cpta_data.begin(), gpu_data.device_cptb_data.begin(), gpu_data.device_dpth_data.begin(),
+//							gpu_data.device_bids_data.begin(), gpu_data.device_pair_data.begin()))
+//	);
+//
+//
+//
+//	//thrust::device_vector<float3> old_gamma = data_container->device_gam_data;
+//
+//	gpu_data.device_norm_data.resize(gpu_data.number_of_contacts);
+//	gpu_data.device_cpta_data.resize(gpu_data.number_of_contacts);
+//	gpu_data.device_cptb_data.resize(gpu_data.number_of_contacts);
+//	gpu_data.device_dpth_data.resize(gpu_data.number_of_contacts);
+//	gpu_data.device_bids_data.resize(gpu_data.number_of_contacts);
 	gpu_data.device_gam_data.resize(gpu_data.number_of_contacts);
 	Thrust_Fill(gpu_data.device_gam_data, F3(0));
 	//	contact_pair.resize(number_of_contacts);

@@ -97,7 +97,8 @@ __host__ __device__ void inline Compute_Jacobian(float3 &T3, float3 &T4, float3 
 // 	Kernel for a single iteration of the LCP over all contacts
 //   	Version 2.0 - Tasora
 //	Version 2.2- Hammad (optimized, cleaned etc)
-__global__ void LCP_Iteration_Contacts(float3* norm, float3* ptA, float3* ptB, float* contactDepth, int2* ids, float3* G, float* dG, float3* aux, float3* inertia, float4* rot, float3* vel, float3* omega, float3* pos, float3* updateV, float3* updateO, uint* offset) {
+__global__ void LCP_Iteration_Contacts(float3* norm, float3* ptA, float3* ptB, float* contactDepth, int2* ids, float3* G, float* dG, float3* aux, float3* inertia, float4* rot, float3* vel,
+		float3* omega, float3* pos, float3* updateV, float3* updateO, uint* offset) {
 	unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i >= number_of_contacts_const) {
 		return;
@@ -211,7 +212,8 @@ __global__ void LCP_Iteration_Contacts(float3* norm, float3* ptA, float3* ptB, f
 // (a bit similar to the ChKernelLCPiteration above, but without projection etc.)
 // Version 2.0 - Tasora
 //
-__global__ void LCP_Iteration_Bilaterals(CH_REALNUMBER4* bilaterals, float3* aux, float3* inertia, float4* rot, float3* vel, float3* omega, float3* pos, float3* updateV, float3* updateO, uint* offset, float * dG) {
+__global__ void LCP_Iteration_Bilaterals(CH_REALNUMBER4* bilaterals, float3* aux, float3* inertia, float4* rot, float3* vel, float3* omega, float3* pos, float3* updateV, float3* updateO, uint* offset,
+		float * dG) {
 	unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i >= number_of_bilaterals_const) {
 		return;
@@ -225,22 +227,24 @@ __global__ void LCP_Iteration_Bilaterals(CH_REALNUMBER4* bilaterals, float3* aux
 	float3 aux1 = aux[B1_index];
 	float3 aux2 = aux[B2_index];
 	// ---- perform   gamma_new = ([J1 J2] {v1 | v2}^ + b)
-	vA = bilaterals[i]; // line 0
-	vB = vel[B1_index]; // v1
-	gamma_new += dot3(vA, vB);
+	{
+		vA = bilaterals[i]; // line 0
+		vB = vel[B1_index]; // v1
+		gamma_new += dot3(vA, vB);
 
-	vA = bilaterals[i + 2 * number_of_bilaterals_const]; // line 2
-	vB = omega[B1_index]; // w1
-	gamma_new += dot3(vA, vB);
+		vA = bilaterals[i + 2 * number_of_bilaterals_const]; // line 2
+		vB = omega[B1_index]; // w1
+		gamma_new += dot3(vA, vB);
+	}
+	{
+		vA = bilaterals[i + number_of_bilaterals_const]; // line 1
+		vB = vel[B2_index]; // v2
+		gamma_new += dot3(vA, vB);
 
-	vA = bilaterals[i + number_of_bilaterals_const]; // line 1
-	vB = vel[B2_index]; // v2
-	gamma_new += dot3(vA, vB);
-
-	vA = bilaterals[i + 3 * number_of_bilaterals_const]; // line 3
-	vB = omega[B2_index]; // w2
-	gamma_new += dot3(vA, vB);
-
+		vA = bilaterals[i + 3 * number_of_bilaterals_const]; // line 3
+		vB = omega[B2_index]; // w2
+		gamma_new += dot3(vA, vB);
+	}
 	vA = bilaterals[i + 4 * number_of_bilaterals_const]; // line 4   (eta, b, gamma, 0)
 	gamma_new += vA.y; // add known term     + b
 	gamma_old = vA.z; // old gamma
@@ -280,7 +284,8 @@ __device__ __host__ float3 RelPoint_AbsSpeed(float3 & vel, float3 & omega, float
 	return vel + ((F3(q.y, q.z, q.w)) * 2);
 }
 
-__global__ void DEM_Contacts(float3* norm, float3* ptA, float3* ptB, float* contactDepth, int2* ids, float3* aux, float3* inertia, float4* rot, float3* vel, float3* omega, float3* pos, float3* updateV, float3* updateO, uint* offset) {
+__global__ void DEM_Contacts(float3* norm, float3* ptA, float3* ptB, float* contactDepth, int2* ids, float3* aux, float3* inertia, float4* rot, float3* vel, float3* omega, float3* pos,
+		float3* updateV, float3* updateO, uint* offset) {
 	unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i >= number_of_contacts_const) {
 		return;
@@ -476,8 +481,10 @@ void ChLcpSolverGPU::Preprocess(gpu_container & gpu_data) {
 	gpu_data.device_gyr_data.resize(number_of_objects);
 	thrust::device_vector<uint> body_num;
 	thrust::device_vector<uint> update_number;
-	LCP_ComputeGyro CUDA_KERNEL_DIM(BLOCKS(number_of_objects), THREADS)(CASTF3(gpu_data.device_omg_data), CASTF3(gpu_data.device_inr_data), CASTF3(gpu_data.device_gyr_data), CASTF3(gpu_data.device_trq_data));
-	ChKernelLCPaddForces CUDA_KERNEL_DIM(BLOCKS(number_of_objects), THREADS)(CASTF3(gpu_data.device_aux_data), CASTF3(gpu_data.device_inr_data), CASTF3(gpu_data.device_frc_data), CASTF3(gpu_data.device_trq_data), CASTF3(gpu_data.device_vel_data), CASTF3(gpu_data.device_omg_data));
+	LCP_ComputeGyro CUDA_KERNEL_DIM(BLOCKS(number_of_objects), THREADS)(CASTF3(gpu_data.device_omg_data), CASTF3(gpu_data.device_inr_data), CASTF3(gpu_data.device_gyr_data),
+			CASTF3(gpu_data.device_trq_data));
+	ChKernelLCPaddForces CUDA_KERNEL_DIM(BLOCKS(number_of_objects), THREADS)(CASTF3(gpu_data.device_aux_data), CASTF3(gpu_data.device_inr_data), CASTF3(gpu_data.device_frc_data),
+			CASTF3(gpu_data.device_trq_data), CASTF3(gpu_data.device_vel_data), CASTF3(gpu_data.device_omg_data));
 	gpu_data.device_fap_data.resize(number_of_objects);
 	Thrust_Fill(gpu_data.device_fap_data, F3(0));
 
@@ -508,22 +515,24 @@ void ChLcpSolverGPU::Preprocess(gpu_container & gpu_data) {
 }
 
 void ChLcpSolverGPU::Iterate(gpu_container & gpu_data) {
-	LCP_Iteration_Contacts CUDA_KERNEL_DIM(BLOCKS(number_of_contacts), THREADS)(CASTF3(gpu_data.device_norm_data), CASTF3(gpu_data.device_cpta_data), CASTF3(gpu_data.device_cptb_data), CASTF1(gpu_data.device_dpth_data), CASTI2(gpu_data.device_bids_data), CASTF3(gpu_data.device_gam_data),
-			CASTF1(gpu_data.device_dgm_data), CASTF3(gpu_data.device_aux_data), CASTF3(gpu_data.device_inr_data), CASTF4(gpu_data.device_rot_data), CASTF3(gpu_data.device_vel_data), CASTF3(gpu_data.device_omg_data), CASTF3(gpu_data.device_pos_data), CASTF3(gpu_data.vel_update),
-			CASTF3(gpu_data.omg_update), CASTU1(gpu_data.update_offset));
+	LCP_Iteration_Contacts CUDA_KERNEL_DIM(BLOCKS(number_of_contacts), THREADS)(CASTF3(gpu_data.device_norm_data), CASTF3(gpu_data.device_cpta_data), CASTF3(gpu_data.device_cptb_data),
+			CASTF1(gpu_data.device_dpth_data), CASTI2(gpu_data.device_bids_data), CASTF3(gpu_data.device_gam_data), CASTF1(gpu_data.device_dgm_data), CASTF3(gpu_data.device_aux_data),
+			CASTF3(gpu_data.device_inr_data), CASTF4(gpu_data.device_rot_data), CASTF3(gpu_data.device_vel_data), CASTF3(gpu_data.device_omg_data), CASTF3(gpu_data.device_pos_data),
+			CASTF3(gpu_data.vel_update), CASTF3(gpu_data.omg_update), CASTU1(gpu_data.update_offset));
 
-	LCP_Iteration_Bilaterals CUDA_KERNEL_DIM(BLOCKS(number_of_bilaterals), THREADS)(CASTF4(gpu_data.device_bilateral_data), CASTF3(gpu_data.device_aux_data), CASTF3(gpu_data.device_inr_data), CASTF4(gpu_data.device_rot_data), CASTF3(gpu_data.device_vel_data), CASTF3(gpu_data.device_omg_data),
-			CASTF3(gpu_data.device_pos_data), CASTF3(gpu_data.vel_update), CASTF3(gpu_data.omg_update), CASTU1(gpu_data.update_offset), CASTF1(gpu_data.device_dgm_data));
+	LCP_Iteration_Bilaterals CUDA_KERNEL_DIM(BLOCKS(number_of_bilaterals), THREADS)(CASTF4(gpu_data.device_bilateral_data), CASTF3(gpu_data.device_aux_data), CASTF3(gpu_data.device_inr_data),
+			CASTF4(gpu_data.device_rot_data), CASTF3(gpu_data.device_vel_data), CASTF3(gpu_data.device_omg_data), CASTF3(gpu_data.device_pos_data), CASTF3(gpu_data.vel_update),
+			CASTF3(gpu_data.omg_update), CASTU1(gpu_data.update_offset), CASTF1(gpu_data.device_dgm_data));
 
 }
 void ChLcpSolverGPU::Reduce(gpu_container & gpu_data) {
-	LCP_Reduce_Speeds CUDA_KERNEL_DIM(BLOCKS( number_of_updates), THREADS)(CASTF3(gpu_data.device_aux_data), CASTF3(gpu_data.device_vel_data), CASTF3(gpu_data.device_omg_data), CASTF3(gpu_data.vel_update), CASTF3(gpu_data.omg_update), CASTU1(gpu_data.body_number), CASTU1(gpu_data.offset_counter),
-			CASTF3(gpu_data.device_fap_data));
+	LCP_Reduce_Speeds CUDA_KERNEL_DIM(BLOCKS( number_of_updates), THREADS)(CASTF3(gpu_data.device_aux_data), CASTF3(gpu_data.device_vel_data), CASTF3(gpu_data.device_omg_data),
+			CASTF3(gpu_data.vel_update), CASTF3(gpu_data.omg_update), CASTU1(gpu_data.body_number), CASTU1(gpu_data.offset_counter), CASTF3(gpu_data.device_fap_data));
 
 }
 void ChLcpSolverGPU::Integrate(gpu_container & gpu_data) {
-	LCP_Integrate_Timestep CUDA_KERNEL_DIM( BLOCKS(number_of_objects), THREADS)(CASTF3(gpu_data.device_aux_data), CASTF3(gpu_data.device_acc_data), CASTF4(gpu_data.device_rot_data), CASTF3(gpu_data.device_vel_data), CASTF3(gpu_data.device_omg_data), CASTF3(gpu_data.device_pos_data),
-			CASTF3(gpu_data.device_lim_data));
+	LCP_Integrate_Timestep CUDA_KERNEL_DIM( BLOCKS(number_of_objects), THREADS)(CASTF3(gpu_data.device_aux_data), CASTF3(gpu_data.device_acc_data), CASTF4(gpu_data.device_rot_data),
+			CASTF3(gpu_data.device_vel_data), CASTF3(gpu_data.device_omg_data), CASTF3(gpu_data.device_pos_data), CASTF3(gpu_data.device_lim_data));
 }
 void ChLcpSolverGPU::RunTimeStep(float step, gpu_container & gpu_data) {
 
@@ -562,9 +571,11 @@ void ChLcpSolverGPU::RunTimeStep(float step, gpu_container & gpu_data) {
 		for (iteration_number = 0; iteration_number < max_iterations; iteration_number++) {
 			Iterate(gpu_data);
 			Reduce(gpu_data);
-			if (iteration_number > 5 && iteration_number % 5 == 0) {
-				if (Max_DeltaGamma(gpu_data.device_dgm_data) < tolerance) {
-					break;
+			if (tolerance != 0) {
+				if (iteration_number > 5 && iteration_number % 5 == 0) {
+					if (Max_DeltaGamma(gpu_data.device_dgm_data) < tolerance) {
+						break;
+					}
 				}
 			}
 		}

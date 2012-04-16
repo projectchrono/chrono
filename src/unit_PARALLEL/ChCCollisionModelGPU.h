@@ -152,7 +152,7 @@ namespace chrono
 
 
 
-
+			float3 inertia;
 			ChBody* mbody;
 			unsigned int nObjects;
 			int colFam, noCollWith;
