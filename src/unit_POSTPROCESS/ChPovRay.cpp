@@ -648,8 +648,8 @@ void ChPovRay::ExportData(const std::string &filename)
 				ChSharedPtr<ChLinkMateGeneric> mylinkmate(mdata[i]);
 				if (mylinkmate->GetBody1() && mylinkmate->GetBody2() && this->links_show)
 				{
-					ChFrame<> frAabs = mylinkmate->GetFrameA() >> *mylinkmate->GetBody1();
-					ChFrame<> frBabs = mylinkmate->GetFrameB() >> *mylinkmate->GetBody2();
+					ChFrame<> frAabs = mylinkmate->GetFrame1() >> *mylinkmate->GetBody1();
+					ChFrame<> frBabs = mylinkmate->GetFrame2() >> *mylinkmate->GetBody2();
 					mfilepov << "sh_csysFRM("; 
 					mfilepov << frAabs.GetPos().x << "," << frAabs.GetPos().y << "," << frAabs.GetPos().z << ",";
 					mfilepov << frAabs.GetRot().e0 << "," << frAabs.GetRot().e1 << "," << frAabs.GetRot().e2 << "," << frAabs.GetRot().e3 << ",";
