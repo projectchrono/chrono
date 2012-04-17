@@ -105,8 +105,8 @@ protected:
 	  			// DATA
 				//
 
-	ChFrame<> frameA;
-	ChFrame<> frameB;
+	ChFrame<> frame1;
+	ChFrame<> frame2;
 
 	bool c_x;
 	bool c_y;
@@ -146,15 +146,15 @@ public:
 					/// body). This represents the 'main' reference of the link: reaction forces 
 					/// are expressed in this coordinate system.
 					/// (It is the coordinate system of the contact plane relative to Body2)
-	virtual ChCoordsys<> GetLinkRelativeCoords() {return frameB.GetCoord();};
+	virtual ChCoordsys<> GetLinkRelativeCoords() {return frame2.GetCoord();};
 
 					/// Access the coordinate system considered attached to body1.
 					/// Its position is expressed in the coordinate system of body1.
-	ChFrame<>& GetFrameA() {return frameA;};
+	ChFrame<>& GetFrame1() {return frame1;};
 
 					/// Access the coordinate system considered attached to body1.
 					/// Its position is expressed in the coordinate system of body1.
-	ChFrame<>& GetFrameB() {return frameB;};
+	ChFrame<>& GetFrame2() {return frame2;};
 
 	bool IsConstrainedX() {return c_x;}
 	bool IsConstrainedY() {return c_y;}

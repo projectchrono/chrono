@@ -18,6 +18,7 @@ if __name__ == '__main__':
 
 
 import os
+import math
 import ChronoEngine_PYTHON_core as chrono
 import ChronoEngine_PYTHON_postprocess as postprocess
 
@@ -116,21 +117,25 @@ pov_exporter.AddAll()
  #    only once at the beginning of the simulation).
 pov_exporter.ExportScript()
 
-#my_system.SetLcpSolverType(chrono.ChSystem.LCP_ITERATIVE_PMINRES)
-my_system.SetIterLCPmaxItersSpeed(50)
+#my_system.SetLcpSolverType(chrono.ChSystem.LCP_ITERATIVE_BARZILAIBORWEIN)
+my_system.SetIterLCPmaxItersSpeed(100)
 my_system.SetMaxPenetrationRecoverySpeed(10.00)
 my_system.Set_G_acc(chrono.ChVectorD(0,-9.8,-9.80))
 
  # Perform a short simulation
-while (my_system.GetChTime() < 0.7) :
+nstep =0
+while (my_system.GetChTime() < 1.7) :
 
     my_system.DoStepDynamics(0.005)
 
+    #if math.fmod(nstep,10) ==0 :
     print ('time=', my_system.GetChTime() )
 
-    # 2) Create the incremental nnnn.dat and nnnn.pov files that will be load
-    #    by the pov .ini script in POV-Ray (do this at each simulation timestep)
+        # 2) Create the incremental nnnn.dat and nnnn.pov files that will be load
+        #    by the pov .ini script in POV-Ray (do this at each simulation timestep)
     pov_exporter.ExportData()
+
+    nstep = nstep +1
 
 
 

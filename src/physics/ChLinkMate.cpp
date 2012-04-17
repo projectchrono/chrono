@@ -219,32 +219,53 @@ void ChLinkMateGeneric::Update (double mytime)
 	{
 		this->mask->SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
 	
-		ChFrame<> aframe = this->frameA >> (*this->Body1);  
+		ChFrame<> aframe = this->frame1 >> (*this->Body1);
+		ChVector<> p1_abs = aframe.GetPos();
+		ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
+		ChVector<> p2_abs = aframe2.GetPos();
 		ChFrame<> bframe;  
 		static_cast<ChFrame<>*>(this->Body2)->TrasformParentToLocal(aframe, bframe);
-		this->frameB.TrasformParentToLocal(bframe, aframe);
+		this->frame2.TrasformParentToLocal(bframe, aframe);
 		// Now 'aframe' contains the position/rotation of frame 1 respect to frame 2, in frame 2 coords.
 
 		ChMatrix33<> Jx1, Jx2, Jr1, Jr2, Jw1, Jw2;
-		ChMatrix33<> Ps1, Ps2;
-		Ps1.Set_X_matrix(this->frameA.GetPos());
-		Ps2.Set_X_matrix(this->frameB.GetPos());
-		
+		ChMatrix33<> mtempM, mtempQ;
+
 		ChMatrix33<> abs_plane;
-		abs_plane.MatrMultiply(*this->Body2->GetA(), *this->frameB.GetA());
+		abs_plane.MatrMultiply(*this->Body2->GetA(), *this->frame2.GetA());
 
 		Jx1.CopyFromMatrixT(abs_plane);
 		Jx2.CopyFromMatrixT(abs_plane);
 		Jx2.MatrNeg();
 
 		Jw1.MatrTMultiply(abs_plane, *this->Body1->GetA() );
-		Jr1.MatrMultiply(Jw1, Ps1);
-
 		Jw2.MatrTMultiply(abs_plane, *this->Body2->GetA() );
-		Jr2.MatrMultiply(Jw2, Ps2);
 
+		mtempM.Set_X_matrix(this->frame1.GetPos());
+		Jr1.MatrMultiply(Jw1, mtempM);
 		Jr1.MatrNeg();
+
+		mtempM.Set_X_matrix(this->frame2.GetPos());
+		Jr2.MatrMultiply(Jw2, mtempM);
+
+		ChVector<> p2p1_base2 = (*this->Body2->GetA()).MatrT_x_Vect( Vsub(p1_abs,p2_abs) );
+		mtempM.Set_X_matrix(p2p1_base2);
+		mtempQ.MatrTMultiply(*this->frame2.GetA() ,mtempM);
+		Jr2.MatrInc(mtempQ); 
+
 		Jw2.MatrNeg();
+
+		// Premultiply by Jw1 and Jw2 by  0.5*[Fp(q_resid)]' to get residual as imaginary part of a quaternion.
+		// For small misalignment this effect is almost insignificant cause [Fp(q_resid)]=[I],
+		// but otherwise it is needed (if you want to use the stabilization term - if not, you can live without). 
+		mtempM.Set_X_matrix((aframe.GetRot().GetVector())*0.5);
+		mtempM(0,0) = aframe.GetRot().e0;
+		mtempM(1,1) = aframe.GetRot().e0;
+		mtempM(2,2) = aframe.GetRot().e0;
+		mtempQ.MatrTMultiply(mtempM, Jw1);
+		Jw1 = mtempQ;
+		mtempQ.MatrTMultiply(mtempM, Jw2);
+		Jw2 = mtempQ;
 
 		int nc = 0;
 
@@ -277,26 +298,32 @@ void ChLinkMateGeneric::Update (double mytime)
 		}
 		if (c_rx) 
 		{
-			this->C->ElementN(nc) = 0; //0.5*aframe.GetRot().e1; // 0.5*   ??????
+			this->C->ElementN(nc) = aframe.GetRot().e1; 
+			this->mask->Constr_N(nc).Get_Cq_a()->FillElem(0);
+			this->mask->Constr_N(nc).Get_Cq_b()->FillElem(0);
 			this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jw1, 0,0, 1,3, 0,3);
 			this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jw2, 0,0, 1,3, 0,3);
 			nc++;
 		}
 		if (c_ry) 
 		{
-			this->C->ElementN(nc) = 0; //0.5*aframe.GetRot().e2; // 0.5*   ??????
+			this->C->ElementN(nc) = aframe.GetRot().e2; 
+			this->mask->Constr_N(nc).Get_Cq_a()->FillElem(0);
+			this->mask->Constr_N(nc).Get_Cq_b()->FillElem(0);
 			this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jw1, 1,0, 1,3, 0,3);
 			this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jw2, 1,0, 1,3, 0,3);
 			nc++;
 		}
 		if (c_rz) 
 		{
-			this->C->ElementN(nc) = 0; //0.5*aframe.GetRot().e3; // 0.5*   ??????
+			this->C->ElementN(nc) = aframe.GetRot().e3; 
+			this->mask->Constr_N(nc).Get_Cq_a()->FillElem(0);
+			this->mask->Constr_N(nc).Get_Cq_b()->FillElem(0);
 			this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jw1, 2,0, 1,3, 0,3);
 			this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jw2, 2,0, 1,3, 0,3);
 			nc++;
 		}
-
+/*
 		if (this->c_x)
 			GetLog()<< "err.x ="<< aframe.GetPos().x << "\n";
 		if (this->c_y)
@@ -305,7 +332,7 @@ void ChLinkMateGeneric::Update (double mytime)
 			GetLog()<< "err.z ="<< aframe.GetPos().z << "\n";
 		if (this->c_x || this->c_y || this->c_z)
 				GetLog()<< *this->C << "\n";
-
+*/
 	}
 
 }
@@ -330,14 +357,14 @@ int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body t
 	
 	if (pos_are_relative)
 	{
-		this->frameA = mpos1;
-		this->frameB = mpos2;
+		this->frame1 = mpos1;
+		this->frame2 = mpos2;
 	}
 	else
 	{
 		// from abs to body-rel
-		static_cast<ChFrame<>*>(this->Body1)->TrasformParentToLocal(mpos1, this->frameA);
-		static_cast<ChFrame<>*>(this->Body2)->TrasformParentToLocal(mpos2, this->frameB);
+		static_cast<ChFrame<>*>(this->Body1)->TrasformParentToLocal(mpos1, this->frame1);
+		static_cast<ChFrame<>*>(this->Body2)->TrasformParentToLocal(mpos2, this->frame2);
 	}
 	return true;
 }
@@ -375,8 +402,15 @@ void ChLinkMateGeneric::ConstraintsBiLoad_C(double factor, double recovery_clamp
 	if (!this->IsActive())
 		return;
 
-	if (this->c_x || this->c_y || this->c_z)
-		GetLog()<< "load:" << *this->C << "\n";
+//***TEST***
+	GetLog()<< "cload: " ;
+	if (this->c_x) GetLog()<< " x";
+	if (this->c_y) GetLog()<< " y";
+	if (this->c_z) GetLog()<< " z";
+	if (this->c_rx) GetLog()<< " Rx";
+	if (this->c_ry) GetLog()<< " Ry";
+	if (this->c_rz) GetLog()<< " Rz";
+	GetLog()<< *this->C << "\n";
 
 	int cnt=0;
 	for (int i=0; i< mask->nconstr; i++)
@@ -521,8 +555,8 @@ int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body t
 		mfr2.SetPos(this->Body2->Point_World2Body(&mpt2));
 	}
 
-	this->frameA = mfr1;
-	this->frameB = mfr2;
+	this->frame1 = mfr1;
+	this->frame2 = mfr2;
 
 	return true;
 }
@@ -624,7 +658,7 @@ void ChLinkMatePlane::SetFlipped(bool doflip)
 		// swaps direction of X axis by flippping 180° the frame A (slave)
 
 		ChFrame<> frameRotator(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
-		this->frameA.ConcatenatePostTransformation(frameRotator);
+		this->frame1.ConcatenatePostTransformation(frameRotator);
 
 		this->flipped = doflip;
 	}
@@ -705,7 +739,7 @@ void ChLinkMateCoaxial::SetFlipped(bool doflip)
 		// swaps direction of X axis by flippping 180° the frame A (slave)
 
 		ChFrame<> frameRotator(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
-		this->frameA.ConcatenatePostTransformation(frameRotator);
+		this->frame1.ConcatenatePostTransformation(frameRotator);
 
 		this->flipped = doflip;
 	}
@@ -867,7 +901,7 @@ void ChLinkMateParallel::SetFlipped(bool doflip)
 		// swaps direction of X axis by flippping 180° the frame A (slave)
 
 		ChFrame<> frameRotator(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
-		this->frameA.ConcatenatePostTransformation(frameRotator);
+		this->frame1.ConcatenatePostTransformation(frameRotator);
 
 		this->flipped = doflip;
 	}
@@ -962,7 +996,7 @@ int ChLinkMateOrthogonal::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first bod
 	// Perform initialization (set pointers to variables, etc.)
 	return ChLinkMateGeneric::Initialize(mbody1, mbody2, 
 								true, // recycle already-updated frames 
-								this->frameA, this->frameB);
+								this->frame1, this->frame2);
 }
 
 
@@ -1015,8 +1049,8 @@ void ChLinkMateOrthogonal::Update (double mtime)
 		ChFrame<> absframe2(VNULL,mA2);	// position not needed for orth. constr. computation
 
 		// from abs to body-rel
-		static_cast<ChFrame<>*>(this->Body1)->TrasformParentToLocal(absframe1, this->frameA);
-		static_cast<ChFrame<>*>(this->Body2)->TrasformParentToLocal(absframe2, this->frameB);
+		static_cast<ChFrame<>*>(this->Body1)->TrasformParentToLocal(absframe1, this->frame1);
+		static_cast<ChFrame<>*>(this->Body2)->TrasformParentToLocal(absframe2, this->frame2);
 	}
 
 	// Parent class inherit
