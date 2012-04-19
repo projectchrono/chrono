@@ -23,6 +23,7 @@ public:
 	void SaveByObject(CHBODY *abody, string fname);
 	void SaveAllData(string prefix);
 	void SaveAllData_type(string prefix);
+	void SaveAllData_min(string prefix);
 	void drawAll();CHSYS *mSystem;
 
 	CHLCPDESC *mGPUDescriptor;CHCONTACTCONT *mGPUContactContainer;CHCOLLISIONSYS *mGPUCollisionEngine;CHSOLVER *mGPUsolverSpeed;
@@ -275,6 +276,44 @@ void System::SaveAllData_type(string prefix) {
 				line << type << "," << A.x << "," << A.y << "," << A.z << "," << B.x << "," << B.y << "," << B.z << "," << R.w << "," << R.x << "," << R.y << "," << R.z << ",";
 				line << pos.x << "," << pos.y << "," << pos.z << ",";
 				line << vel.x << "," << vel.y << "," << vel.z << ",";
+				line << quat.e0 << "," << quat.e1 << "," << quat.e2 << "," << quat.e3 << ",";
+				line << endl;
+			}
+
+		}
+	}
+	ofile << line.str();
+	ofile.close();
+	rename(sss.str().c_str(), ss.str().c_str());
+	mFileNumber++;
+
+}
+void System::SaveAllData_min(string prefix) {
+	ofstream ofile;
+	stringstream ss, sss;
+	ss << prefix << mFileNumber << ".txt";
+	sss << prefix << "temp.txt";
+	ofile.open(sss.str().c_str());
+	string output_text = "";
+	stringstream line;
+	for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
+		CHBODY * abody = (CHBODY *) mSystem->Get_bodylist()->at(i);
+		if (abody->IsActive() == true) {
+			int i = 0;
+			//for (int i = 0; i < ((CHMODEL *) (abody->GetCollisionModel()))->mData.size(); i++)
+			{
+				ChVector<> pos = abody->GetPos();
+				ChVector<> rot = abody->GetRot().Q_to_NasaAngles();
+				ChQuaternion<> quat = abody->GetRot();
+				ChVector<> vel = abody->GetPos_dt();
+				//ChVector<> acc = abody->GetPos_dtdt();
+				//ChVector<> fap = abody->GetAppliedForce();
+				ShapeType type = ((CHMODEL *) (abody->GetCollisionModel()))->mData[i].type;
+				float3 A = ((CHMODEL *) (abody->GetCollisionModel()))->mData[i].A;
+				float3 B = ((CHMODEL *) (abody->GetCollisionModel()))->mData[i].B;
+				float4 R = ((CHMODEL *) (abody->GetCollisionModel()))->mData[i].R;
+				line << B.x << ",";
+				line << pos.x << "," << pos.y << "," << pos.z << ","<< vel.x << "," << vel.y << "," << vel.z << ",";
 				line << quat.e0 << "," << quat.e1 << "," << quat.e2 << "," << quat.e3 << ",";
 				line << endl;
 			}
@@ -546,10 +585,10 @@ void initGLUT(string name, int argc, char* argv[]) {
 }
 
 void SimulationLoop(int argc, char* argv[]) {
-#pragma omp parallel
-	{
-#pragma omp master
-		{
+//#pragma omp parallel
+//	{
+//#pragma omp master
+//		{
 			while (1) {
 				if (!stepMode) {
 					GPUSystem->mTimer.start();
@@ -564,12 +603,12 @@ void SimulationLoop(int argc, char* argv[]) {
 					exit(0);
 				}
 			}
-		}
-#pragma omp single nowait
-		{
+//		}
+//#pragma omp single nowait
+//		{
 			if (GPUSystem->mUseOGL) {
 				initGLUT(string("test"), argc, argv);
 			}
-		}
-	}
+//		}
+//	}
 }
