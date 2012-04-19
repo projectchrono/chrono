@@ -72,6 +72,7 @@ typedef unsigned int uint;
 #define CASTF2(x) (float2*)thrust::raw_pointer_cast(&x[0])
 #define CASTF3(x) (float3*)thrust::raw_pointer_cast(&x[0])
 #define CASTF4(x) (float4*)thrust::raw_pointer_cast(&x[0])
+#define CASTB1(x) (bool*)thrust::raw_pointer_cast(&x[0])
 
 #define OBJCAST(x)  (object*)thrust::raw_pointer_cast(&x[0])
 #define AABBCAST(x) (AABB*)thrust::raw_pointer_cast(&x[0])
@@ -80,7 +81,7 @@ typedef unsigned int uint;
 #define CHVECCAST(v) ChVector<>(v.x,v.y,v.z)
 #define CHQUATCAST(q) ChQuaternion<>(q.x,q.y,q.z,q.w)
 
-#define THREADS							256
+#define THREADS							64
 #define MAXBLOCK						65535
 #define BLOCKS(x)						max((int)ceil(x/(float)THREADS),1)
 #define BLOCKS_T(x,y)					max((int)ceil(x/(float)y),1)

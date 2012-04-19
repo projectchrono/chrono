@@ -109,9 +109,9 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	float4 * rot_pointer = gpu_data_manager->host_rot_data.data();
 	float3 * acc_pointer = gpu_data_manager->host_acc_data.data();
 
-#pragma omp parallel
+//#pragma omp parallel
 	{
-#pragma omp parallel for
+//#pragma omp parallel for
 		for (int i = 0; i < bodylist.size(); i++) {
 			ChBodyGPU* mbody = (ChBodyGPU*) bodylist[i];
 			if (mbody->IsActive()) {
@@ -225,31 +225,6 @@ void ChSystemGPU::Update() {
 	float3 * aux_pointer = gpu_data_manager->host_aux_data.data();
 	float3 * lim_pointer = gpu_data_manager->host_lim_data.data();
 
-#pragma omp parallel
-	{
-#pragma omp parallel for
-		for (int i = 0; i < bodylist.size(); i++) { // Updates recursively all other aux.vars
-			bodylist[i]->UpdateTime(ChTime);
-			bodylist[i]->UpdateMarkers(ChTime);
-			bodylist[i]->UpdateForces(ChTime);
-			bodylist[i]->VariablesFbReset();
-			bodylist[i]->VariablesFbLoadForces(GetStep());
-			bodylist[i]->VariablesQbLoadSpeed();
-
-			ChLcpVariablesBody* mbodyvar = &(bodylist[i]->Variables());
-			ChMatrix33<> inertia = mbodyvar->GetBodyInvInertia();
-
-			vel_pointer[i] = (F3(bodylist[i]->GetPos_dt().x, bodylist[i]->GetPos_dt().y, bodylist[i]->GetPos_dt().z));
-			omg_pointer[i] = (F3(bodylist[i]->GetWvel_loc().x, bodylist[i]->GetWvel_loc().y, bodylist[i]->GetWvel_loc().z));
-			pos_pointer[i] = (F3(bodylist[i]->GetPos().x, bodylist[i]->GetPos().y, bodylist[i]->GetPos().z));
-			rot_pointer[i] = (F4(bodylist[i]->GetRot().e0, bodylist[i]->GetRot().e1, bodylist[i]->GetRot().e2, bodylist[i]->GetRot().e3));
-			inr_pointer[i] = (F3(inertia.GetElement(0, 0), inertia.GetElement(1, 1), inertia.GetElement(2, 2)));
-			frc_pointer[i] = (F3(mbodyvar->Get_fb().ElementN(0), mbodyvar->Get_fb().ElementN(1), mbodyvar->Get_fb().ElementN(2))); //forces
-			trq_pointer[i] = (F3(mbodyvar->Get_fb().ElementN(3), mbodyvar->Get_fb().ElementN(4), mbodyvar->Get_fb().ElementN(5))); //torques
-			aux_pointer[i] = (F3(bodylist[i]->IsActive(), bodylist[i]->GetKfriction(), 1.0f / mbodyvar->GetBodyMass()));
-			lim_pointer[i] = (F3(bodylist[i]->GetLimitSpeed(), 25, 25));
-		}
-	}
 	std::list<ChLink*>::iterator it;
 	unsigned int number_of_bilaterals = 0;
 	uint counter = 0;
@@ -303,6 +278,33 @@ void ChSystemGPU::Update() {
 		gpu_data_manager->host_bilateral_data[counter + number_of_bilaterals * 4].w = (mbilateral->IsUnilateral()) ? 1 : 0;
 		counter++;
 	}
+
+//#pragma omp parallel
+	{
+//#pragma omp parallel for
+		for (int i = 0; i < bodylist.size(); i++) { // Updates recursively all other aux.vars
+			bodylist[i]->UpdateTime(ChTime);
+			bodylist[i]->UpdateMarkers(ChTime);
+			bodylist[i]->UpdateForces(ChTime);
+			bodylist[i]->VariablesFbReset();
+			bodylist[i]->VariablesFbLoadForces(GetStep());
+			bodylist[i]->VariablesQbLoadSpeed();
+
+			ChLcpVariablesBody* mbodyvar = &(bodylist[i]->Variables());
+			ChMatrix33<> inertia = mbodyvar->GetBodyInvInertia();
+
+			vel_pointer[i] = (F3(bodylist[i]->GetPos_dt().x, bodylist[i]->GetPos_dt().y, bodylist[i]->GetPos_dt().z));
+			omg_pointer[i] = (F3(bodylist[i]->GetWvel_loc().x, bodylist[i]->GetWvel_loc().y, bodylist[i]->GetWvel_loc().z));
+			pos_pointer[i] = (F3(bodylist[i]->GetPos().x, bodylist[i]->GetPos().y, bodylist[i]->GetPos().z));
+			rot_pointer[i] = (F4(bodylist[i]->GetRot().e0, bodylist[i]->GetRot().e1, bodylist[i]->GetRot().e2, bodylist[i]->GetRot().e3));
+			inr_pointer[i] = (F3(inertia.GetElement(0, 0), inertia.GetElement(1, 1), inertia.GetElement(2, 2)));
+			frc_pointer[i] = (F3(mbodyvar->Get_fb().ElementN(0), mbodyvar->Get_fb().ElementN(1), mbodyvar->Get_fb().ElementN(2))); //forces
+			trq_pointer[i] = (F3(mbodyvar->Get_fb().ElementN(3), mbodyvar->Get_fb().ElementN(4), mbodyvar->Get_fb().ElementN(5))); //torques
+			aux_pointer[i] = (F3(bodylist[i]->IsActive(), bodylist[i]->GetKfriction(), 1.0f / mbodyvar->GetBodyMass()));
+			lim_pointer[i] = (F3(bodylist[i]->GetLimitSpeed(), 25, 25));
+		}
+	}
+
 }
 
 void ChSystemGPU::ChangeLcpSolverSpeed(ChLcpSolver* newsolver) {

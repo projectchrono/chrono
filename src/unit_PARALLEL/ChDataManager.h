@@ -58,8 +58,8 @@ struct gpu_container {
 	thrust::device_vector<float3> device_gam_data;
 	thrust::device_vector<float> device_dgm_data;
 
-	thrust::device_vector<float3> vel_update;
-	thrust::device_vector<float3> omg_update;
+	thrust::device_vector<float4> vel_update;
+	thrust::device_vector<float4> omg_update;
 	thrust::device_vector<uint> update_offset;
 	thrust::device_vector<uint> body_number;
 	thrust::device_vector<uint> offset_counter;
