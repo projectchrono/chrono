@@ -30,7 +30,7 @@ typedef unsigned int uint;
 #define nPeriod 1
 #define Gravity make_float3(0, 0, 0)
 //#define bodyForce4 make_float4(.005, 0, 0, 0)
-#define bodyForce4 make_float4(.05, 0, 0, 0)
+#define bodyForce4 make_float4(.15, 0, 0, 0)
 //#define bodyForce4 make_float4(.1, 0, 0, 0)
 //#define bodyForce4 make_float4(.0004, 0, 0, 0) //segre. size Scale 1
 #define rho0 1000

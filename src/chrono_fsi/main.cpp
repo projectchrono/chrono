@@ -760,7 +760,7 @@ int main() {
 		///float3 cMax = make_float3( nPeriod * sPeriod + r3_2.x + 2 * r4_2.x + r6_2.x + x_FirstChannel + 2 * x_SecondChannel, 1.5 * sizeScale,  r6_2.y + 2 * toleranceZone);  //for serpentine
 	///float3 cMax = make_float3( nPeriod * sPeriod, 1.5 * sizeScale,  4.0 * sizeScale);  //for serpentine
 
-	float3 cMax = make_float3( nPeriod * 1.0 + 0, 1.5,  4.0) * sizeScale;  //for  straight channel
+	float3 cMax = make_float3( nPeriod * 3.0 + 0, 1.5,  4.0) * sizeScale;  //for  straight channel
 	//float3 cMax = make_float3( nPeriod * 2.0 + 0, 2.2,  2.2) * sizeScale;  //for  tube
 
 //	float3 cMax = make_float3(nPeriod * 1.0 + 0, .5,  3.5) * sizeScale;  //for straight channel, sphere
@@ -814,7 +814,7 @@ int main() {
 	string fileNameRigids("spheresPos.dat");
 	rhoRigid = 1000; //1050; //originally .079 //.179 for cylinder
 	float channelRadius;
-	float3 r3Ellipsoid = F3(.03 * sizeScale);
+	float3 r3Ellipsoid = F3(.05, .03, .02) * sizeScale;//F3(.03 * sizeScale);
 	CreateRigidBodiesPattern(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, channelRadius);
 	//CreateRigidBodiesFromFile(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, cMin, cMax, fileNameRigids, rhoRigid, channelRadius);
 
