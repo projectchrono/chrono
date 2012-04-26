@@ -491,7 +491,7 @@ __global__ void CopyGamma(int* to, float3* oldG, float3* newG, int contacts) {
 }
 
 void ChCCollisionGPU::Narrowphase(gpu_container & gpu_data) {
-	gpu_data.generic_counter.resize(gpu_data.number_of_contacts_possible);
+	DBG("");gpu_data.generic_counter.resize(gpu_data.number_of_contacts_possible);
 	thrust::fill(gpu_data.generic_counter.begin(), gpu_data.generic_counter.end(), 1);
 	uint number_of_contacts_possible = gpu_data.number_of_contacts_possible;
 	gpu_data.device_norm_data.resize(gpu_data.number_of_contacts_possible);
@@ -514,7 +514,7 @@ void ChCCollisionGPU::Narrowphase(gpu_container & gpu_data) {
 	thrust::remove_if(gpu_data.device_dpth_data.begin(),gpu_data.device_dpth_data.end(),gpu_data.generic_counter.begin(),thrust::identity<int>());
 	thrust::remove_if(gpu_data.device_bids_data.begin(),gpu_data.device_bids_data.end(),gpu_data.generic_counter.begin(),thrust::identity<int>());
 	thrust::remove_if(gpu_data.device_pair_data.begin(),gpu_data.device_pair_data.end(),gpu_data.generic_counter.begin(),thrust::identity<int>());
-
+DBG("");
 //	thrust::sort_by_key(
 //			gpu_data.generic_counter.begin(),
 //			gpu_data.generic_counter.end(),

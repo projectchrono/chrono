@@ -130,7 +130,7 @@ __global__ void LCP_Iteration_Contacts(
 
 	float3 W = fabs(N); //Gramm Schmidt; work with the global axis that is "most perpendicular" to the contact normal vector;effectively this means looking for the smallest component (in abs) and using the corresponding direction to carry out cross product.
 	float3 U = F3(0, N.z, -N.y); //it turns out that X axis is closest to being perpendicular to contact vector;
-	{
+
 		if (W.x > W.y) {
 			U = F3(-N.z, 0, N.x);
 		} //it turns out that Y axis is closest to being perpendicular to contact vector;
@@ -139,18 +139,15 @@ __global__ void LCP_Iteration_Contacts(
 		} //it turns out that Z axis is closest to being perpendicular to contact vector;
 		U = normalize(U); //normalize the local contact Y,Z axis
 		W = cross(N, U); //carry out the last cross product to find out the contact local Z axis : multiply the contact normal by the local Y component
-	}
 
-	{
 		float3 sbar = ptA[i] - pos[B1_i]; //Contact Point on A - Position of A
 		float4 E1 = rot[B1_i]; //bring in the Euler parameters associated with body 1;
 		Compute_Jacobian(T3, T4, T5, E1, N, U, W, sbar); //A_i,p'*A_A*(sbar~_i,A)
-	}
-	{
-		float3 sbar = ptB[i] - pos[B2_i]; //Contact Point on B - Position of B
+
+		 sbar = ptB[i] - pos[B2_i]; //Contact Point on B - Position of B
 		float4 E2 = rot[B2_i]; //bring in the Euler parameters associated with body 2;
 		Compute_Jacobian(T6, T7, T8, E2, N, U, W, sbar); //A_i,p'*A_B*(sbar~_i,B)
-	}
+
 
 	T6 = -T6;
 	T7 = -T7;
@@ -286,7 +283,7 @@ __global__ void LCP_Iteration_Bilaterals(
 	bilaterals[i + 4 * number_of_bilaterals_const] = vA;
 	/// ---- compute delta in multipliers: gamma_new = gamma_new - gamma_old   = delta_gamma    , in place.
 	gamma_new -= gamma_old;
-	//dG[number_of_contacts_const + i] = (gamma_new);
+	dG[number_of_contacts_const + i] = (gamma_new);
 	/// ---- compute dv1 =  invInert.18 * J1^ * deltagamma
 	vB = inertia[B1_index]; // iJ iJ iJ im
 	vA = (bilaterals[i]) * aux1.z * gamma_new; // line 0: J1(x)
@@ -576,7 +573,7 @@ void ChLcpSolverGPU::Integrate(gpu_container & gpu_data) {
 			CASTF3(gpu_data.device_lim_data));
 }
 void ChLcpSolverGPU::RunTimeStep(float step, gpu_container & gpu_data) {
-
+	DBG("");
 	lcp_omega_contact = omega;
 	step_size = step;
 	number_of_constraints = gpu_data.number_of_contacts + gpu_data.number_of_bilaterals;
@@ -603,11 +600,11 @@ void ChLcpSolverGPU::RunTimeStep(float step, gpu_container & gpu_data) {
 	COPY_TO_CONST_MEM(lcp_omega_contact);
 	COPY_TO_CONST_MEM(lcp_contact_factor);
 	COPY_TO_CONST_MEM(number_of_updates);
-	//cudaFuncSetCacheConfig(LCP_Iteration_Contacts, cudaFuncCachePreferL1);
-	//cudaFuncSetCacheConfig(LCP_Iteration_Bilaterals, cudaFuncCachePreferL1);
-	//cudaFuncSetCacheConfig(LCP_Reduce_Speeds, cudaFuncCachePreferL1);
-	//cudaFuncSetCacheConfig(LCP_Integrate_Timestep, cudaFuncCachePreferL1);
-
+	cudaFuncSetCacheConfig(LCP_Iteration_Contacts, cudaFuncCachePreferL1);
+	cudaFuncSetCacheConfig(LCP_Iteration_Bilaterals, cudaFuncCachePreferL1);
+	cudaFuncSetCacheConfig(LCP_Reduce_Speeds, cudaFuncCachePreferL1);
+	cudaFuncSetCacheConfig(LCP_Integrate_Timestep, cudaFuncCachePreferL1);
+	float old_gam = 1;
 	if (number_of_constraints != 0) {
 		for (iteration_number = 0; iteration_number < max_iterations; iteration_number++) {
 			LCP_Iteration_Contacts CUDA_KERNEL_DIM(BLOCKS(number_of_contacts), THREADS)(
@@ -652,16 +649,19 @@ void ChLcpSolverGPU::RunTimeStep(float step, gpu_container & gpu_data) {
 					CASTF3(gpu_data.device_fap_data));
 
 			if (tolerance != 0) {
-				if (iteration_number > 5 && iteration_number % 5 == 0) {
-					if (Max_DeltaGamma(gpu_data.device_dgm_data) < tolerance) {
+				if (iteration_number > 20 && iteration_number % 20 == 0) {
+					float gam = Max_DeltaGamma(gpu_data.device_dgm_data);
+					if (fabsf(old_gam - gam) < tolerance) {
 						break;
 					}
+					old_gam = gam;
 				}
 			}
 		}
 	}
 
 	Integrate(gpu_data);
+	DBG("");
 }
 float ChLcpSolverGPU::Max_DeltaGamma(device_vector<float> &device_dgm_data) {
 	return Thrust_Max(device_dgm_data);

@@ -21,42 +21,62 @@ __device__ __host__ void ComputeAABBTriangle(const float3 &A, const float3 &B, c
 }
 
 __device__ __host__ void ComputeAABBBox(const float3 &dim, const float3 &lpositon, const float3 &positon, const float4 &lrotation, const float4 &rotation, float3 &minp, float3 &maxp) {
-	float3 p1 = F3(-dim.x, -dim.y, -dim.z);
-	float3 p2 = F3(-dim.x, -dim.y, dim.z);
-	float3 p3 = F3(-dim.x, dim.y, -dim.z);
-	float3 p4 = F3(dim.x, -dim.y, -dim.z);
-	float3 p5 = F3(dim.x, dim.y, -dim.z);
-	float3 p6 = F3(dim.x, -dim.y, dim.z);
-	float3 p7 = F3(-dim.x, dim.y, dim.z);
-	float3 p8 = F3(dim.x, dim.y, dim.z);
-	float4 q=lrotation;
-	p1 = quatRotate(p1, q);
-	p2 = quatRotate(p2, q);
-	p3 = quatRotate(p3, q);
-	p4 = quatRotate(p4, q);
-	p5 = quatRotate(p5, q);
-	p6 = quatRotate(p6, q);
-	p7 = quatRotate(p7, q);
-	p8 = quatRotate(p8, q);
 
-	p1 = quatRotate(p1, rotation);
-	p2 = quatRotate(p2, rotation);
-	p3 = quatRotate(p3, rotation);
-	p4 = quatRotate(p4, rotation);
-	p5 = quatRotate(p5, rotation);
-	p6 = quatRotate(p6, rotation);
-	p7 = quatRotate(p7, rotation);
-	p8 = quatRotate(p8, rotation);
+	float3 pos = quatRotate(lpositon, rotation) + positon; //new position
 
-	minp.x = fminf(p1.x, fminf(p2.x, fminf(p3.x, fminf(p4.x, fminf(p5.x, fminf(p6.x, fminf(p7.x, p8.x)))))));
-	minp.y = fminf(p1.y, fminf(p2.y, fminf(p3.y, fminf(p4.y, fminf(p5.y, fminf(p6.y, fminf(p7.y, p8.y)))))));
-	minp.z = fminf(p1.z, fminf(p2.z, fminf(p3.z, fminf(p4.z, fminf(p5.z, fminf(p6.z, fminf(p7.z, p8.z)))))));
-	maxp.x = fmaxf(p1.x, fmaxf(p2.x, fmaxf(p3.x, fmaxf(p4.x, fmaxf(p5.x, fmaxf(p6.x, fmaxf(p7.x, p8.x)))))));
-	maxp.y = fmaxf(p1.y, fmaxf(p2.y, fmaxf(p3.y, fmaxf(p4.y, fmaxf(p5.y, fmaxf(p6.y, fmaxf(p7.y, p8.y)))))));
-	maxp.z = fmaxf(p1.z, fmaxf(p2.z, fmaxf(p3.z, fmaxf(p4.z, fmaxf(p5.z, fmaxf(p6.z, fmaxf(p7.z, p8.z)))))));
+	float4 q1 = mult(rotation, lrotation); //full rotation
 
-	minp += quatRotate(lpositon,rotation)+positon;
-	maxp += quatRotate(lpositon,rotation)+positon;
+	float4 q=F4(q1.y,q1.z,q1.w,q1.x);
+
+	float t[3] = { pos.x, pos.y, pos.z };
+
+	float mina[3] = { -dim.x, -dim.y, -dim.z };
+	float maxa[3] = { dim.x, dim.y, dim.z };
+
+	float minb[3] = { 0, 0, 0 };
+	float maxb[3] = { 0, 0, 0 };
+
+	float m[3][3];
+
+	float qx2=q.x*q.x;
+	float qy2=q.y*q.y;
+	float qz2=q.z*q.z;
+
+
+	m[0][0]=1 - 2*qy2 - 2*qz2;
+	m[1][0]=2*q.x*q.y + 2*q.z*q.w;
+	m[2][0]=2*q.x*q.z - 2*q.y*q.w;
+
+
+	m[0][1]=2*q.x*q.y - 2*q.z*q.w;
+	m[1][1]=1 - 2*qx2 - 2*qz2;
+	m[2][1]=2*q.y*q.z + 2*q.x*q.w 	;
+
+
+	m[0][2]=2*q.x*q.z + 2*q.y*q.w;
+	m[1][2]=2*q.y*q.z - 2*q.x*q.w;
+	m[2][2]=1 - 2*qx2 - 2*qy2;
+
+	// For all three axes
+	for (int i = 0; i < 3; i++) {
+		// Start by adding in translation
+		minb[i] = maxb[i] = t[i];
+		// Form extent by summing smaller and larger terms respectively
+		for (int j = 0; j < 3; j++) {
+			float e = m[i][j] * mina[j];
+			float f = m[i][j] * maxa[j];
+			if (e < f) {
+				minb[i] += e;
+				maxb[i] += f;
+			} else {
+				minb[i] += f;
+				maxb[i] += e;
+			}
+		}
+	}
+
+	minp = F3(minb[0],minb[1],minb[2]);
+	maxp = F3(maxb[0],maxb[1],maxb[2]);
 
 }
 
@@ -64,20 +84,20 @@ typedef thrust::pair<float3, float3> bbox;
 
 // reduce a pair of bounding boxes (a,b) to a bounding box containing a and b
 struct bbox_reduction: public thrust::binary_function<bbox, bbox, bbox> {
-		__host__  __device__
-		bbox operator()(bbox a, bbox b) {
-			float3 ll = F3(fminf(a.first.x, b.first.x), fminf(a.first.y, b.first.y), fminf(a.first.z, b.first.z));// lower left corner
-			float3 ur = F3(fmaxf(a.second.x, b.second.x), fmaxf(a.second.y, b.second.y), fmaxf(a.second.z, b.second.z));// upper right corner
-			return bbox(ll, ur);
-		}
+	__host__      __device__
+	bbox operator()(bbox a, bbox b) {
+		float3 ll = F3(fminf(a.first.x, b.first.x), fminf(a.first.y, b.first.y), fminf(a.first.z, b.first.z)); // lower left corner
+		float3 ur = F3(fmaxf(a.second.x, b.second.x), fmaxf(a.second.y, b.second.y), fmaxf(a.second.z, b.second.z)); // upper right corner
+		return bbox(ll, ur);
+	}
 };
 
 // convert a point to a bbox containing that point, (point) -> (point, point)
 struct bbox_transformation: public thrust::unary_function<float3, bbox> {
-		__host__  __device__
-		bbox operator()(float3 point) {
-			return bbox(point, point);
-		}
+	__host__      __device__
+	bbox operator()(float3 point) {
+		return bbox(point, point);
+	}
 };
 
 #endif

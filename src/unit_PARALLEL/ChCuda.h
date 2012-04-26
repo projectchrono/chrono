@@ -23,6 +23,7 @@
 #include <thrust/iterator/constant_iterator.h>
 #include <thrust/set_operations.h>
 #include <thrust/functional.h>
+#include <thrust/unique.h>
 #include "ChApiGPU.h"
 #include <omp.h>
 using namespace std;

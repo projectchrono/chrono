@@ -17,7 +17,7 @@ ChSystemGPU::ChSystemGPU(unsigned int max_objects) :
 	LCP_solver_speed = new ChLcpSolverGPU();
 	((ChCollisionSystemGPU*) (collision_system))->data_container = gpu_data_manager;
 
-	gpu_data_manager->gpu_data.bins_per_axis = F3(20, 20, 20);
+	gpu_data_manager->gpu_data.bins_per_axis = F3(50, 50, 50);
 	gpu_data_manager->gpu_data.maxvaltest = 0;
 
 }
@@ -71,10 +71,13 @@ int ChSystemGPU::GetNcontacts() {
 int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 
 	mtimer_step.start();
+	mtimer_updt.start();
 	Setup();
 	Update();
 	gpu_data_manager->HostToDevice();
 	gpu_data_manager->HostToDeviceForces();
+	mtimer_updt.stop();
+	timer_update = mtimer_updt();
 //------------------------------------------------------------------------------------------------------------------------
 
 	mtimer_cd.start();
@@ -109,18 +112,19 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	float4 * rot_pointer = gpu_data_manager->host_rot_data.data();
 	float3 * acc_pointer = gpu_data_manager->host_acc_data.data();
 
+	mtimer_updt.start();
 //#pragma omp parallel
 	{
 //#pragma omp parallel for
 		for (int i = 0; i < bodylist.size(); i++) {
 			ChBodyGPU* mbody = (ChBodyGPU*) bodylist[i];
 			if (mbody->IsActive()) {
-				mbody->SetPos(CHVECCAST(pos_pointer[i]));
-				mbody->SetRot(CHQUATCAST(rot_pointer[i]));
-				mbody->SetPos_dt(CHVECCAST(vel_pointer[i]));
-				mbody->SetPos_dtdt(CHVECCAST(acc_pointer[i]));
-				mbody->SetWvel_loc(CHVECCAST(omg_pointer[i]));
-				//mbody->SetAppliedForce(CHVECCAST(gpu_data_manager->host_fap_data[i]));
+			mbody->SetPos(CHVECCAST(pos_pointer[i]));
+			mbody->SetRot(CHQUATCAST(rot_pointer[i]));
+			mbody->SetPos_dt(CHVECCAST(vel_pointer[i]));
+			mbody->SetPos_dtdt(CHVECCAST(acc_pointer[i]));
+			mbody->SetWvel_loc(CHVECCAST(omg_pointer[i]));
+			//mbody->SetAppliedForce(CHVECCAST(gpu_data_manager->host_fap_data[i]));
 			}
 		}
 	}
@@ -134,7 +138,8 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	for (it = linklist.begin(); it != linklist.end(); it++) {
 		(*it)->ConstraintsFetch_react(1.0 / this->GetStep());
 	}
-
+	mtimer_updt.stop();
+	timer_update += mtimer_updt();
 	ChTime += GetStep();
 	mtimer_step.stop();
 	timer_collision = mtimer_cd();
