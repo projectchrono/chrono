@@ -101,6 +101,7 @@ void System::Setup() {
 	mGPUsolverSpeed->SetOmegaBilateral(mOmegaBilateral);
 	//mGPUsolverSpeed->mOmegaBilateral = mOmegaBilateral;
 	mGPUsolverSpeed->SetTolerance(mTolerance);
+	mSystem->gpu_data_manager->CopyContacts(true);
 
 //#ifndef _CHRONOGPU
 	mSystem->SetIterLCPmaxItersSpeed(mIterations);
@@ -313,7 +314,7 @@ void System::SaveAllData_min(string prefix) {
 				float3 B = ((CHMODEL *) (abody->GetCollisionModel()))->mData[i].B;
 				float4 R = ((CHMODEL *) (abody->GetCollisionModel()))->mData[i].R;
 				line << B.x << ",";
-				line << pos.x << "," << pos.y << "," << pos.z << ","<< vel.x << "," << vel.y << "," << vel.z << ",";
+				line << pos.x << "," << pos.y << "," << pos.z << "," << vel.x << "," << vel.y << "," << vel.z << ",";
 				line << quat.e0 << "," << quat.e1 << "," << quat.e2 << "," << quat.e3 << ",";
 				line << endl;
 			}
@@ -389,7 +390,17 @@ double System::GetMFR(double height) {
 	return mass;
 }
 
-void System::InitObject(ChSharedPtr<CHBODY> &body, double mass, ChVector<> pos, ChQuaternion<> rot, double sfric, double kfric, double restitution, bool collide, bool fixed, int family,
+void System::InitObject(
+		ChSharedPtr<CHBODY> &body,
+		double mass,
+		ChVector<> pos,
+		ChQuaternion<> rot,
+		double sfric,
+		double kfric,
+		double restitution,
+		bool collide,
+		bool fixed,
+		int family,
 		int nocolwith) {
 	body->SetMass(mass);
 	body->SetPos(pos);
@@ -531,7 +542,7 @@ void System::drawAll() {
 
 #ifdef _CHRONOGPU
 		if (showContacts) {
-			mSystem->gpu_data_manager->CopyContacts(true);
+			//mSystem->gpu_data_manager->CopyContacts(true);
 
 			for (int i = 0; i < mSystem->gpu_data_manager->host_norm_data.size(); i++) {
 				float3 N = mSystem->gpu_data_manager->host_norm_data[i];
@@ -550,9 +561,9 @@ void System::drawAll() {
 				glEnd();
 			}
 
-		} else {
-			mSystem->gpu_data_manager->CopyContacts(false);
-		}
+		} //else {
+		  //	mSystem->gpu_data_manager->CopyContacts(false);
+		  //}
 #endif
 #if defined( _WINDOWS )
 		Sleep( 40 );
@@ -561,6 +572,7 @@ void System::drawAll() {
 #endif
 		glutSwapBuffers();
 	}
+
 }
 System *GPUSystem;
 
@@ -585,10 +597,10 @@ void initGLUT(string name, int argc, char* argv[]) {
 }
 
 void SimulationLoop(int argc, char* argv[]) {
-//#pragma omp parallel
-//	{
-//#pragma omp master
-//		{
+#pragma omp parallel
+	{
+#pragma omp master
+		{
 			while (1) {
 				if (!stepMode) {
 					GPUSystem->mTimer.start();
@@ -603,12 +615,12 @@ void SimulationLoop(int argc, char* argv[]) {
 					exit(0);
 				}
 			}
-//		}
-//#pragma omp single nowait
-//		{
+		}
+#pragma omp single nowait
+		{
 			if (GPUSystem->mUseOGL) {
 				initGLUT(string("test"), argc, argv);
 			}
-//		}
-//	}
+		}
+	}
 }

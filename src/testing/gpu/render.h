@@ -296,7 +296,7 @@ void makeSphere(float3 pos, float rad, float angle, float3 axis, float3 scale) {
 	if (!showSolid) {
 		glutWireSphere(rad, 10, 10);
 	} else {
-		glutSolidSphere(rad, 10, 10);
+		glutSolidSphere(rad, 20, 20);
 	}
 }
 void makeBox(float3 pos, float rad, float angle, float3 axis, float3 scale) {
@@ -320,7 +320,7 @@ void makeCyl(float3 pos, float rad, float angle, float3 axis, float3 scale) {
 	glRotatef(angle * 180.0 / PI, axis.x, axis.y, axis.z);
 	glRotatef(-90, 1, 0, 0);
 	//glScalef(scale.x*2,scale.y*2,scale.z*2);
-	gluCylinder(quad, scale.x, scale.z, scale.y * 2, 10, 10);
+	gluCylinder(quad, scale.x, scale.z, scale.y * 2, 20, 20);
 }
 
 void drawObject(CHBODY *abody) {
