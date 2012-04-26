@@ -23,7 +23,7 @@ __device__ bool PointInAABB(const AABB &A, const float3 &P) {
 	return false;
 }
 __device__ __host__ bool AABB_Contact_Pt(const AABB& A, const AABB& B, uint &Bin) {
-	float3 Pa, Pb;
+//	float3 Pa, Pb;
 
 	//return (F3(A.min+A.max)*.5+F3(B.min+B.max)*.5)*.5;
 //	float3 centerA=(A.min+A.max)*.5;
@@ -161,7 +161,8 @@ __global__ void AABB_AABB_Count(float3* device_aabb_data, int2* device_fam_data,
 			B.min = device_aabb_data[body_number[k]];
 			B.max = device_aabb_data[body_number[k] + number_of_models_const];
 			int2 FB = device_fam_data[body_number[k]];
-			if ((FA.x == FB.y || FB.x == FA.y) == false && AABB_Contact_Pt(A, B, Bin) == true) {
+			bool inContact = (A.min.x <= B.max.x && B.min.x <= A.max.x) && (A.min.y <= B.max.y && B.min.y <= A.max.y) && (A.min.z <= B.max.z && B.min.z <= A.max.z);
+			if ((FA.x == FB.y || FB.x == FA.y) == false && inContact == true) {
 				count++;
 			}
 		}
@@ -191,7 +192,8 @@ __global__ void AABB_AABB(float3* device_aabb_data, int3* device_typ_data, int2*
 			B.max = device_aabb_data[body_number[k] + number_of_models_const];
 			B_type = device_typ_data[body_number[k]];
 			int2 FB = device_fam_data[body_number[k]];
-			if ((FA.x == FB.y || FB.x == FA.y) == false && AABB_Contact_Pt(A, B, Bin) == true) {
+			bool inContact = (A.min.x <= B.max.x && B.min.x <= A.max.x) && (A.min.y <= B.max.y && B.min.y <= A.max.y) && (A.min.z <= B.max.z && B.min.z <= A.max.z);
+			if ((FA.x == FB.y || FB.x == FA.y) == false && inContact == true) {
 				//int type=Contact_Type(A_aux.x, B_aux.x);
 				pair[offset + count] = ((long long) A_type.y << 32 | (long long) B_type.y); //the two indicies of the objects that make up the contact
 				count++;
