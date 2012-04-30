@@ -176,7 +176,7 @@ void CreateRigidBodiesPattern(
 	float3 n3Rigids = (straightChannelMax - straightChannelMin) / spaceRigids;
 	for (int i = 1; i < n3Rigids.x - 1; i++) {
 		for  (int j = 1; j < n3Rigids.y - 1; j++) {
-			 for (int k = 1; k < n3Rigids.z - 1; k++) {
+			 for (int k = 1; k < 0.4 * n3Rigids.z - 1; k++) {
 				 float3 pos = straightChannelMin + F3(i, j, k) * spaceRigids;
 				 //printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
 				 rigidPos.push_back(pos);
@@ -600,24 +600,26 @@ int2 CreateFluidParticles(
 				}
 				if (flag) {
 					if (penDist > 0) {
-						num_FluidParticles++;
-						mPosRad.push_back(posRad);
-						mVelMas.push_back(F4(0, 0, 0, (initSpaceX * initSpaceY * initSpaceZ) * rho));
-						mRhoPresMu.push_back(F4(rho, pres, mu, -1)); //rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
-																	//just note that the type, i.e. mRhoPresMu.w is float.
-																	//viscosity of the water is .0018
+						if (k < 0.7 * nFZ) {
+							num_FluidParticles++;
+							mPosRad.push_back(posRad);
+							mVelMas.push_back(F4(0, 0, 0, (initSpaceX * initSpaceY * initSpaceZ) * rho));
+							mRhoPresMu.push_back(F4(rho, pres, mu, -1)); //rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
+																		//just note that the type, i.e. mRhoPresMu.w is float.
+																		//viscosity of the water is .0018
 
-																	//if (posRad.x < .98 * cMax.x && posRad.x > .96 * cMax.x && posRad.y > .48 * sizeScale &&  posRad.y < .52 * sizeScale
-																	//	&& posRad.z > 1.7 * sizeScale &&  posRad.y < 1.75 * sizeScale) {
-																	//	if (num_FluidParticles < 1) {
-																	//		num_FluidParticles ++;
-																	//		mPosRad.push_back(posRad);
-																	//		mVelMas.push_back( F4(0, 0, 0, pow(initSpace, 3) * rho) );
-																	//		mRhoPresMu.push_back(F4(rho, pres, mu, -1));		//rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
-																	//															//just note that the type, i.e. mRhoPresMu.w is float.
-																	//															//viscosity of the water is .0018
-																	//	}
-																	//}
+																		//if (posRad.x < .98 * cMax.x && posRad.x > .96 * cMax.x && posRad.y > .48 * sizeScale &&  posRad.y < .52 * sizeScale
+																		//	&& posRad.z > 1.7 * sizeScale &&  posRad.y < 1.75 * sizeScale) {
+																		//	if (num_FluidParticles < 1) {
+																		//		num_FluidParticles ++;
+																		//		mPosRad.push_back(posRad);
+																		//		mVelMas.push_back( F4(0, 0, 0, pow(initSpace, 3) * rho) );
+																		//		mRhoPresMu.push_back(F4(rho, pres, mu, -1));		//rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
+																		//															//just note that the type, i.e. mRhoPresMu.w is float.
+																		//															//viscosity of the water is .0018
+																		//	}
+																		//}
+						}
 					} else {
 						num_BoundaryParticles++;
 						mPosRadBoundary.push_back(posRad);

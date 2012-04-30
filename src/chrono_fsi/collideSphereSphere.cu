@@ -485,29 +485,29 @@ void PrintToFile(
 	thrust::host_vector<float4> velMassRigidH = velMassRigidD;
 	thrust::host_vector<float4> qH1 = qD1;
 	thrust::host_vector<float3> omegaLRF_H = omegaLRF_D;
-////////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++com
-//	ofstream fileNameFluid;
-//	int stepSaveFluid = 200000;
-//	if (tStep % stepSaveFluid == 0) {
-//		if (tStep / stepSaveFluid == 0) {
-//			fileNameFluid.open("dataFluid.txt");
-//			fileNameFluid<<"variables = \"x\", \"y\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\", \"type\"\n";
-//		} else {
-//			fileNameFluid.open("dataFluid.txt", ios::app);
-//		}
-//
-//		fileNameFluid<<"zone\n";
-//		stringstream ssFluid;
-//		for (int i = referenceArray[0].x; i < referenceArray[1].y; i++) {
-//			float3 pos = F3(posRadH[i]);
-//			float3 vel = F3(velMasH[i]);
-//			float4 rP = rhoPresMuH[i];
-//			float velMag = length(vel);
-//			ssFluid<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w << endl;
-//		}
-//		fileNameFluid<<ssFluid.str();
-//		fileNameFluid.close();
-//	}
+//////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++com
+	ofstream fileNameFluid;
+	int stepSaveFluid = 10000;
+	if (tStep % stepSaveFluid == 0) {
+		if (tStep / stepSaveFluid == 0) {
+			fileNameFluid.open("dataFluid.txt");
+			fileNameFluid<<"variables = \"x\", \"y\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\", \"type\"\n";
+		} else {
+			fileNameFluid.open("dataFluid.txt", ios::app);
+		}
+
+		fileNameFluid<<"zone\n";
+		stringstream ssFluid;
+		for (int i = referenceArray[0].x; i < referenceArray[1].y; i++) {
+			float3 pos = F3(posRadH[i]);
+			float3 vel = F3(velMasH[i]);
+			float4 rP = rhoPresMuH[i];
+			float velMag = length(vel);
+			ssFluid<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w << endl;
+		}
+		fileNameFluid<<ssFluid.str();
+		fileNameFluid.close();
+	}
 ////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	ofstream fileNameRigidsSPH;
 	int stepSaveRigid = 2000;
@@ -554,7 +554,7 @@ void PrintToFile(
 	}
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	ofstream fileNameSlice;
-	int stepSaveFluidSlice = 20000; //1;//20000;
+	int stepSaveFluidSlice = 10000; //1;//20000;
 	//if (tStep%100 == 0 &&  tStep > 20400) {
 	//if (tStep > 49100) {
 	if (tStep % stepSaveFluidSlice == 0) {
