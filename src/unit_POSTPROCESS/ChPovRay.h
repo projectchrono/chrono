@@ -192,6 +192,7 @@ public:
 protected:			
 
 	virtual void ExportAssets();
+	void _recurseExportObjAssets( std::vector< ChSharedPtr<ChAsset> >& assetlist, ChFrame<> parentframe, ChStreamOutAsciiFile& mfilepov);
 
 	std::vector< ChSharedPtr<ChPhysicsItem> > mdata;
 	ChHashTable<unsigned int, ChSharedPtr<ChAsset> > pov_assets;

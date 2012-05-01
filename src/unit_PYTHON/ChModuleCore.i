@@ -118,8 +118,10 @@ using namespace chrono;
 %include "ChObjShapeFile.i"
 %include "ChBoxShape.i"
 %include "ChSphereShape.i"
-  // enable downcasting from ChAsset to children (shared pointers versions)
-%downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualization, chrono::ChObjShapeFile, chrono::ChBoxShape, chrono::ChSphereShape)
+%include "ChTexture.i"
+%include "ChAssetLevel.i"
+  // enable _automatic_ downcasting from ChAsset to derived classes (shared pointers versions)
+%downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualization, chrono::ChObjShapeFile, chrono::ChBoxShape, chrono::ChSphereShape, chrono::ChTexture, chrono::ChAssetLevel)
 
 // physics/  classes
 %include "ChObject.i"
@@ -167,7 +169,7 @@ using namespace chrono;
 
 
 //
-// (up-)CASTING OF SHARED POINTERS           (custom inheritance)
+// UPCASTING OF SHARED POINTERS           (custom inheritance)
 //
 // Note: SWIG takes care automatically of how to cast from  
 // FooDerived* to FooBase* given its swig_cast_info inner structures,
@@ -191,11 +193,12 @@ using namespace chrono;
 %DefChSharedPtrCast(chrono::ChSphereShape, chrono::ChVisualization)
 %DefChSharedPtrCast(chrono::ChBoxShape, chrono::ChVisualization)
 %DefChSharedPtrCast(chrono::ChObjShapeFile, chrono::ChVisualization)
+%DefChSharedPtrCast(chrono::ChTexture, chrono::ChAsset)
+%DefChSharedPtrCast(chrono::ChAssetLevel, chrono::ChAsset)
 %DefChSharedPtrCast(chrono::ChLink, chrono::ChPhysicsItem)
 %DefChSharedPtrCast(chrono::ChLinkMarkers, chrono::ChLink)
 %DefChSharedPtrCast(chrono::ChLinkMasked, chrono::ChLinkMarkers)
 %DefChSharedPtrCast(chrono::ChLinkLock, chrono::ChLinkMasked)
-%DefChSharedPtrCast(chrono::ChLinkLockRevolute, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkLockLock, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkLockRevolute, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkLockSpherical, chrono::ChLinkLock)
@@ -203,10 +206,8 @@ using namespace chrono;
 %DefChSharedPtrCast(chrono::ChLinkLockPrismatic, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkLockPointPlane, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkLockPointLine, chrono::ChLinkLock)
-%DefChSharedPtrCast(chrono::ChLinkLockPointPlane, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkLockOldham, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkLockFree, chrono::ChLinkLock)
-%DefChSharedPtrCast(chrono::ChLinkLockHook, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkLockAlign, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkLockHook, chrono::ChLinkLock)
 %DefChSharedPtrCast(chrono::ChLinkLockParallel, chrono::ChLinkLock)
@@ -235,6 +236,70 @@ using namespace chrono;
 %DefChSharedPtrCast(chrono::ChShaftsTorsionSpring, chrono::ChShaftsCouple)
 %DefChSharedPtrCast(chrono::ChShaftsPlanetary, chrono::ChPhysicsItem)
 */
+
+
+//
+// DOWNCASTING OF POINTERS
+// 
+// This is not automatic in Python + SWIG, except if one uses the 
+// %downcast_output_sharedptr(...) macro, as above, but this causes
+// a lot of code bloat. So in the following we create a set of Python-side
+// functions to perform casting by hand, thank to the macro 
+// %DefChSharedPtrDynamicDowncast(base,derived). Do not specify the chrono:: namespace.
+// In python, use as:
+//  myvis = chrono.CastToChVisualizationShared(myasset)
+//  print ('Could be cast to visualization object?', !myvis.IsNull())
+
+%DefChSharedPtrDynamicDowncast(ChAsset,ChVisualization)
+%DefChSharedPtrDynamicDowncast(ChAsset,ChObjShapeFile)
+%DefChSharedPtrDynamicDowncast(ChAsset,ChBoxShape)
+%DefChSharedPtrDynamicDowncast(ChAsset,ChSphereShape)
+%DefChSharedPtrDynamicDowncast(ChAsset,ChTexture)
+%DefChSharedPtrDynamicDowncast(ChAsset,ChAssetLevel)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChBody)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChConveyor)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChBodyAuxRef)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChIndexedParticles)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChParticlesClones)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChMarker)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChForce)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChVisualization)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChSphereShape)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChBoxShape)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChObjShapeFile)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLink)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMarkers)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMasked)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLock)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockLock)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockRevolute)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockSpherical)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockCylindrical)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockPrismatic)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockPointPlane)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockPointLine)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockOldham)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockFree)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockAlign)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockHook)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockParallel)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockPerpend)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkEngine)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMate)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMateGeneric)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMatePlane)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMateCoaxial)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMateSpherical)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMateXdistance)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMateParallel)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMateOrthogonal)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkGear)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkDistance)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLinActuator)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkPulley)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkScrew)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkSpring)
+// .. to complete
 
 
 //

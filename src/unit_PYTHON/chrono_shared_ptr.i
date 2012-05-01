@@ -37,17 +37,34 @@ setattr(__ChTYPE__Shared, "__init__", __ChTYPE__Shared_custominit)
 
 
 // ### MACRO FOR SETTING UP INHERITANCE of ChSharedPtr ###
+//     This enables the UPCASTING (from derived to base)
+//     that will happen automatically in Python
 
 %define %DefChSharedPtrCast(__ChTYPE__, __ChTYPE_BASE__)
 
 %types(chrono::ChSharedPtr<__ChTYPE__> = chrono::ChSharedPtr<__ChTYPE_BASE__>);
 
+%enddef
 
+
+//     This enables the manual DOWNCASTING (from base to derived) 
+//     by calling a python function as for example:  myvis = CastToChVisualizationShared(myasset)
+
+%define %DefChSharedPtrDynamicDowncast(__ChTYPE_BASE__, __ChTYPE__)
+%inline %{
+  chrono::ChSharedPtr<__ChTYPE__> CastTo ## __ChTYPE__ ## Shared (chrono::ChSharedPtr<__ChTYPE_BASE__> in_obj) 
+  {
+	if (in_obj.IsType<__ChTYPE__>())
+		return chrono::ChSharedPtr<__ChTYPE__>(in_obj);
+	else
+		return chrono::ChSharedPtr<__ChTYPE__>(0);
+  }
+%}
 %enddef
 
 
 //
-// Utility macro for downcasting function outputs with ChSharedPtr pointers. 
+// Utility macro for enabling AUTOMATIC downcasting function outputs with ChSharedPtr pointers. 
 //
 // Parameters: base class, inherited, inherited, ... (only the classes wrapped by the chared ptr)
 // Example:

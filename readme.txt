@@ -8,6 +8,11 @@
 Release 1.5.0
 xx-xx-xxxx
 
+- New asset system. Look in source/assets/ directory. Assets can be
+  assigned to ChPhysicsItems. This is extensively used in the new
+  postprocessing system. The use can also inherit his special assets
+  from the base class ChAsset.
+
 - New installer for deploying the Python version of Chrono::Engine
   on user systems without efforts.
 

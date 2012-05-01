@@ -17,11 +17,13 @@ IF(ENABLE_UNIT_POSTPROCESS)
 	
 	SET(ChronoEngine_UNIT_POSTPROCESS_SOURCES 
 		ChPovRay.cpp
+		ChPovRayAssetCustom.cpp
 		ChLuxRender.cpp
 		)
 	SET(ChronoEngine_UNIT_POSTPROCESS_HEADERS
 		ChApiPostProcess.h 
 		ChPovRay.h
+		ChPovRayAssetCustom.h
 		ChLuxRender.h
 		ChPostProcessBase.h
 		)
