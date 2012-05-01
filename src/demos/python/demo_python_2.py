@@ -42,8 +42,6 @@ my_shbodyB.AddMarker(my_shmarker)
 my_system.Add(my_shbodyA)
 my_system.Add(my_shbodyB)
 
-#my_shlink = chrono.ChLinkEngineShared()
-#my_system.Add(my_shlink)
 
 
 # Define surface material(s)

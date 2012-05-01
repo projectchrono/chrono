@@ -47,7 +47,7 @@ body_particles.SetInertiaXX(chrono.ChVectorD(inertia,inertia,inertia));
 body_particles.GetCollisionModel().ClearModel()
 body_particles.GetCollisionModel().AddSphere(0.005)
 body_particles.GetCollisionModel().BuildModel()
-body_particles.SetCollide(1)
+body_particles.SetCollide(True)
 
 # add particles
 for ix in range(0,5):
@@ -71,13 +71,13 @@ my_system.Add(body_particles)
 body_floor = chrono.ChBodyShared()
 body_floor.SetBodyFixed(1)
 
-# Collision shape (shared by all particle clones)
+# Collision shape
 body_floor.GetCollisionModel().ClearModel()
 body_floor.GetCollisionModel().AddBox(0.1, 0.02, 0.1) # hemi sizes
 body_floor.GetCollisionModel().BuildModel()
-body_floor.SetCollide(1)
+body_floor.SetCollide(True)
 
-# Visualization shape (shared by all particle clones)
+# Visualization shape
 body_floor_shape = chrono.ChBoxShapeShared()
 body_floor_shape.GetBoxGeometry().Size = chrono.ChVectorD(0.1, 0.02, 0.1)
 body_floor_shape.SetColor(chrono.ChColor(0.5,0.5,0.5))
@@ -98,13 +98,13 @@ for ix in range(0,2):
         inertia = 2/5*(pow(0.01,2))*0.02;
         body_brick.SetInertiaXX(chrono.ChVectorD(inertia,inertia,inertia));
 
-        # Collision shape (shared by all particle clones)
+        # Collision shape
         body_brick.GetCollisionModel().ClearModel()
         body_brick.GetCollisionModel().AddBox(0.01, 0.01, 0.01) # hemi sizes
         body_brick.GetCollisionModel().BuildModel()
-        body_brick.SetCollide(1)
+        body_brick.SetCollide(True)
 
-        # Visualization shape (shared by all particle clones)
+        # Visualization shape
         body_brick_shape = chrono.ChBoxShapeShared()
         body_brick_shape.GetBoxGeometry().Size = chrono.ChVectorD(0.01, 0.01, 0.01)
         body_brick.GetAssets().push_back(body_brick_shape)

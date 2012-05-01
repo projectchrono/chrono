@@ -305,7 +305,8 @@ public:
 			/// and can be cast with copy constructor, for example 
 			///   if (ptrA.IsType<classB>() ) { ChSharedPtr<classB> ptrB (ptrA); }
 	template <class T_other>
-	bool IsType() {return (bool)dynamic_cast<T_other*>(ptr); }
+	bool IsType() { if (dynamic_cast<T_other*>(ptr)) return true; else return false; }
+		//return (bool)dynamic_cast<T_other*>(ptr); }
 
 private:
 

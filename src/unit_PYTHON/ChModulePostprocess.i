@@ -50,8 +50,10 @@
 #include "unit_POSTPROCESS/ChPostProcessBase.h"
 #include "unit_POSTPROCESS/ChLuxRender.h"
 #include "unit_POSTPROCESS/ChPovRay.h"
+#include "unit_POSTPROCESS/ChPovRayAssetCustom.h"
 
 using namespace chrono;
+using namespace postprocess;
 
 
 %}
@@ -88,11 +90,12 @@ using namespace chrono;
 //  core/  classes
 %include "ChPostProcessBase.i"
 %include "ChPovRay.i"
+%include "ChPovRayAssetCustom.i"
 
 
 
 //
-// (up-)CASTING OF SHARED POINTERS           (custom inheritance)
+// UPCASTING OF SHARED POINTERS           (custom inheritance)
 //
 // Note: SWIG takes care automatically of how to cast from  
 // FooDerived* to FooBase* given its swig_cast_info inner structures,
