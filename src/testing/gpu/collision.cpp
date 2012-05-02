@@ -17,7 +17,7 @@ void System::DoTimeStep() {
 					float radius = .1;//(rand()%1000)/3000.0+.05;
 					ChVector<> mParticlePos((xx - (x - 1) / 2.0) + posX, (yy) + posY, (zz - (z - 1) / 2.0) + posZ);
 
-					///mParticlePos += ChVector<> (rand() % 1000 / 10000.0 - .05, rand() % 1000 / 10000.0 - .05, rand() % 1000 / 10000.0 - .05);
+					mParticlePos += ChVector<> (rand() % 1000 / 10000.0 - .05, rand() % 1000 / 10000.0 - .05, rand() % 1000 / 10000.0 - .05);
 					ChQuaternion<> quat = ChQuaternion<> (rand() % 1000 / 1000., rand() % 1000 / 1000., rand() % 1000 / 1000., rand() % 1000 / 1000.);
 					ChVector<> dim;
 					ChVector<> lpos(0, 0, 0);
@@ -49,6 +49,11 @@ void System::DoTimeStep() {
 			}
 		}
 	}
+	mSystem->SetStep(mTimeStep);
+	mGPUsolverSpeed->SetMaxIterations(mIterations);
+	mGPUsolverSpeed->SetOmega(mOmegaContact);
+	//mGPUsolverSpeed->mOmegaBilateral = mOmegaBilateral;
+	mGPUsolverSpeed->SetTolerance(mTolerance);
 	mFrameNumber++;
 	mSystem->DoStepDynamics(mTimeStep);
 	mCurrentTime += mTimeStep;
@@ -58,7 +63,7 @@ void System::DoTimeStep() {
 int main(int argc, char* argv[]) {
 	omp_set_nested(1);
 	omp_set_dynamic(true);
-	GPUSystem = new System(1);
+	GPUSystem = new System(0);
 	GPUSystem->mTimeStep = .001;
 	GPUSystem->mEndTime = 10;
 	GPUSystem->mNumObjects = 1;
@@ -109,6 +114,7 @@ int main(int argc, char* argv[]) {
 	GPUSystem->FinalizeObject(B);
 	GPUSystem->FinalizeObject(BTM);
 	GPUSystem->FinalizeObject(FREE);
+	((ChLcpSolverGPU*) (GPUSystem->mSystem->GetLcpSolverSpeed()))->SetContactFactor(.3);
 	GPUSystem->Setup();
 	SimulationLoop(argc, argv);
 	return 0;
