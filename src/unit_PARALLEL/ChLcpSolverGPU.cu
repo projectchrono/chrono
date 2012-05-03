@@ -429,7 +429,7 @@ __global__ void LCP_Reduce_Speeds(float3* aux, float3* vel, float3* omega, float
 		mUpdateV += updateV[j + start];
 		mUpdateO += updateO[j + start];
 	}
-	//fap[id] += (mUpdateV / auxd.z) / step_size_const;
+	fap[id] += F3(mUpdateV / auxd.z) / step_size_const;
 	vel[id] += F3(mUpdateV);
 	omega[id] += F3(mUpdateO);
 

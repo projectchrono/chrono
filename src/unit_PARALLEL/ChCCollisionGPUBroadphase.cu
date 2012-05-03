@@ -25,7 +25,7 @@ __device__ bool PointInAABB(const AABB &A, const float3 &P) {
 __device__ __host__ bool AABB_Contact_Pt(const AABB& A, const AABB& B, uint &Bin) {
 //	float3 Pa, Pb;
 
-	//return (F3(A.min+A.max)*.5+F3(B.min+B.max)*.5)*.5;
+//return (F3(A.min+A.max)*.5+F3(B.min+B.max)*.5)*.5;
 //	float3 centerA=(A.min+A.max)*.5;
 //	float3 centerB=(B.min+B.max)*.5;
 //	float radiusA=length(A.max-A.min)*.5;
@@ -142,7 +142,22 @@ __global__ void AABB_Bins(float3* device_aabb_data, uint* Bins_Intersected, uint
 	}
 
 }
-__global__ void AABB_AABB_Count(float3* device_aabb_data, int2* device_fam_data, uint * bin_number, uint * body_number, uint * bin_start_index, uint* Num_ContactD) {
+__device__ bool SphereSphere(const AABB & A, const AABB & B) {
+
+	float radA = (A.max.x - A.min.x) * .5;
+	float radB = (B.max.x - B.min.x) * .5;
+	float3 centerA = (A.max + A.min) * .5;
+	float3 centerB = (B.max + B.min) * .5;
+	float3 N = centerB - centerA;
+	float centerDist = dot(N, N);
+	float rAB = radA + radB;
+	if (centerDist <= (rAB) * (rAB)) {
+		return true;
+	}
+	return false;
+
+}
+__global__ void AABB_AABB_Count(float3* device_aabb_data, int2* device_fam_data, uint * bin_number, uint * body_number, uint * bin_start_index, uint* Num_ContactD, int3* device_typ_data) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x; //threadIdx.x + blockDim.x * threadIdx.y + (blockIdx.x * blockDim.x * blockDim.y) + (blockIdx.y * blockDim.x * blockDim.y);
 	if (index >= last_active_bin_const) {
 		return;
@@ -153,15 +168,21 @@ __global__ void AABB_AABB_Count(float3* device_aabb_data, int2* device_fam_data,
 		Num_ContactD[index] = 0;
 		return;
 	}
+	int3 A_type, B_type;
 	for (; i < end; i++) {
 		A.min = device_aabb_data[body_number[i]];
 		A.max = device_aabb_data[body_number[i] + number_of_models_const];
+		A_type = device_typ_data[body_number[i]];
 		int2 FA = device_fam_data[body_number[i]];
 		for (int k = i + 1; k < end; k++) {
 			B.min = device_aabb_data[body_number[k]];
 			B.max = device_aabb_data[body_number[k] + number_of_models_const];
+			B_type = device_typ_data[body_number[k]];
 			int2 FB = device_fam_data[body_number[k]];
 			bool inContact = (A.min.x <= B.max.x && B.min.x <= A.max.x) && (A.min.y <= B.max.y && B.min.y <= A.max.y) && (A.min.z <= B.max.z && B.min.z <= A.max.z);
+			//if (A_type.x == 0 && B_type.x == 0 && inContact) {
+			//	inContact = SphereSphere(A, B);
+			//}
 			if ((FA.x == FB.y || FB.x == FA.y) == false && inContact == true) {
 				count++;
 			}
@@ -169,6 +190,7 @@ __global__ void AABB_AABB_Count(float3* device_aabb_data, int2* device_fam_data,
 	}
 	Num_ContactD[index] = count;
 }
+
 __global__ void AABB_AABB(float3* device_aabb_data, int3* device_typ_data, int2* device_fam_data, uint * bin_number, uint * body_number, uint * bin_start_index, uint* Num_ContactD, long long* pair) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x; //threadIdx.x + blockDim.x * threadIdx.y + (blockIdx.x * blockDim.x * blockDim.y) + (blockIdx.y * blockDim.x * blockDim.y);
 	if (index >= last_active_bin_const) {
@@ -193,7 +215,11 @@ __global__ void AABB_AABB(float3* device_aabb_data, int3* device_typ_data, int2*
 			B_type = device_typ_data[body_number[k]];
 			int2 FB = device_fam_data[body_number[k]];
 			bool inContact = (A.min.x <= B.max.x && B.min.x <= A.max.x) && (A.min.y <= B.max.y && B.min.y <= A.max.y) && (A.min.z <= B.max.z && B.min.z <= A.max.z);
+			//if (A_type.x == 0 && B_type.x == 0 && inContact) {
+			//	inContact = SphereSphere(A, B);
+			//}
 			if ((FA.x == FB.y || FB.x == FA.y) == false && inContact == true) {
+
 				//int type=Contact_Type(A_aux.x, B_aux.x);
 				pair[offset + count] = ((long long) A_type.y << 32 | (long long) B_type.y); //the two indicies of the objects that make up the contact
 				count++;
@@ -207,7 +233,8 @@ __device__ __host__ bool operator ==(const float3 &a, const float3 &b) {
 }
 
 void ChCCollisionGPU::Broadphase(gpu_container & gpu_data, bool tune) {
-	DBG("");//START_TIMING(gpu_data.start_b, gpu_data.stop_b, gpu_data.time_Broad_other);
+	DBG("");
+	//START_TIMING(gpu_data.start_b, gpu_data.stop_b, gpu_data.time_Broad_other);
 	float3 bin_size_vec = gpu_data.bins_per_axis / gpu_data.bin_size_vec;
 	int number_of_models = gpu_data.number_of_models;
 	uint last_active_bin = 0, number_of_bin_intersections = 0, number_of_contacts_possible = 0;
@@ -258,7 +285,8 @@ void ChCCollisionGPU::Broadphase(gpu_container & gpu_data, bool tune) {
 			CASTU1(gpu_data.bin_number_B),
 			CASTU1(gpu_data.body_number_B),
 			CASTU1(gpu_data.bin_start_index_B),
-			CASTU1(gpu_data.generic_counter));
+			CASTU1(gpu_data.generic_counter),
+			CASTI3(gpu_data.device_typ_data));
 	//STOP_TIMING(gpu_data.start_a, gpu_data.stop_a, gpu_data.time_AABB_AABB_Count);
 	Thrust_Inclusive_Scan_Sum(gpu_data.generic_counter, number_of_contacts_possible);
 
@@ -277,7 +305,6 @@ void ChCCollisionGPU::Broadphase(gpu_container & gpu_data, bool tune) {
 			CASTLL(gpu_data.device_pair_data));
 	//STOP_TIMING(gpu_data.start_a, gpu_data.stop_a, gpu_data.time_AABB_AABB);
 	cout << number_of_contacts_possible << " ";
-
 
 	thrust::sort(gpu_data.device_pair_data.begin(), gpu_data.device_pair_data.end());
 	number_of_contacts_possible = thrust::unique(gpu_data.device_pair_data.begin(), gpu_data.device_pair_data.end()) - gpu_data.device_pair_data.begin();
@@ -301,5 +328,6 @@ void ChCCollisionGPU::Broadphase(gpu_container & gpu_data, bool tune) {
 //	if (gpu_data.bin_start_index_B[last_active_bin - 1] > gpu_data.maxvaltest) {
 //		gpu_data.maxvaltest = gpu_data.bin_start_index_B[last_active_bin - 1];
 //	}
-	cout << val << " " << gpu_data.bins_per_axis.x << " ";DBG("");
+	cout << val << " " << gpu_data.bins_per_axis.x << " ";
+	DBG("");
 }

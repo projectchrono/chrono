@@ -72,6 +72,7 @@ void ChGPUDataManager::DeviceToHost() {
 		host_bids_data = gpu_data.device_bids_data;
 	}
 	number_of_contacts = gpu_data.number_of_contacts;
+	host_bilateral_data = gpu_data.device_bilateral_data;
 }
 void ChGPUDataManager::HostToDeviceForces() {
 

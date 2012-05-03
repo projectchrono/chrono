@@ -54,7 +54,7 @@ public:
 	}
 	/// Set the applied force computed from contacts and the bilateral constraints acting on the body
 	void SetAppliedForce(ChVector<> mForce) {
-		mAppliedForce = mForce;
+		mAppliedForce =mForce;
 	}
 	/// Get the applied force computed from contacts and the bilateral constraints acting on the body
 	ChVector<> GetAppliedForce() {
