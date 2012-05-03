@@ -332,7 +332,7 @@ void System::SaveByObject(CHBODY *abody, string fname) {
 	ofile.open(fname.c_str(), ios_base::app);
 	ChVector<> pos = abody->GetPos();
 	ChVector<> rot = abody->GetRot().Q_to_NasaAngles();
-	//ChQuaternion<> quat = abody->GetRot();
+	ChQuaternion<> quat = abody->GetRot();
 	ChVector<> vel = abody->GetPos_dt();
 	ChVector<> acc = abody->GetPos_dtdt();
 	//ChVector<> fap = abody->GetAppliedForce();
@@ -351,6 +351,7 @@ void System::SaveByObject(CHBODY *abody, string fname) {
 	ofile << vel.x << "," << vel.y << "," << vel.z << ",";
 	ofile << acc.x << "," << acc.y << "," << acc.z << ",";
 	ofile << rot.x << "," << rot.y << "," << rot.z << ",";
+	ofile << quat.e0 << "," << quat.e1 << "," << quat.e2 << ","<< quat.e3 << ",";
 	//ofile << fap.x << "," << fap.y << "," << fap.z << ",";
 	ofile << endl;
 
@@ -413,7 +414,7 @@ void System::InitObject(
 	body->GetCollisionModel()->ClearModel();
 	body->GetCollisionModel()->SetFamily(family);
 	body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(nocolwith);
-	body->SetLimitSpeed(true);
+	//body->SetLimitSpeed(true);
 	//body->SetUseSleeping(true);
 }
 void System::AddCollisionGeometry(ChSharedPtr<CHBODY> &body, ShapeType type, ChVector<> dim, ChVector<> lPos, ChQuaternion<> lRot) {
