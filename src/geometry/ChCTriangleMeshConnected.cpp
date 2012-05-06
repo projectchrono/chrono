@@ -685,7 +685,7 @@ int OBJ::ParseLine(int /*lineno*/,int argc,const char **argv)  // return TRUE to
       }
       else if ( strcasecmp(argv[0],"vt") == 0 && (argc == 3 || argc == 4))
       {
-        // ignore 4rd component if present
+        // ignore 3rd component if present
         float tx = (float) atof( argv[1] );
         float ty = (float) atof( argv[2] );
         mTexels.push_back(tx);
@@ -851,9 +851,9 @@ void ChTriangleMeshConnected::LoadWavefrontMesh(std::string filename, bool load_
 	{
 		this->m_normals.push_back(ChVector<double> (obj.mNormals[in], obj.mNormals[in+1], obj.mNormals[in+2]));
 	}
-	for (unsigned int it= 0; it< obj.mTexels.size(); it += 3)
+	for (unsigned int it= 0; it< obj.mTexels.size(); it += 2) // +2 because only u,v each texel
 	{
-		this->m_UV.push_back(ChVector<double> (obj.mTexels[it], obj.mTexels[it+1], obj.mTexels[it+2]));
+		this->m_UV.push_back(ChVector<double> (obj.mTexels[it], obj.mTexels[it+1], 0));
 	}
 	for (unsigned int iiv= 0; iiv< obj.mIndexesVerts.size(); iiv += 3)
 	{

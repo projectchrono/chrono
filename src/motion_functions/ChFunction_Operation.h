@@ -28,11 +28,6 @@ namespace chrono
 #define FUNCT_OPERATION 12
 
 
-/// OPERATION BETWEEN FUNCTIONS
-/// (math operation between A and  B operands  
-///   - fa = first operand function
-///   - fb = second operand function
-
 enum {
 	ChOP_ADD = 0,
 	ChOP_SUB,
@@ -45,6 +40,11 @@ enum {
 	ChOP_FABS,
 	ChOP_FUNCT,
 };
+
+/// OPERATION BETWEEN FUNCTIONS
+/// (math operation between A and  B operands  
+///   - fa = first operand function
+///   - fb = second operand function
 
 class ChApi ChFunction_Operation : public ChFunction
 {
