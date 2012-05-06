@@ -30,7 +30,7 @@ print ("Loading C::E scene...");
 #  and add it to the ChSystem
 #
 
-from test3 import exported_items
+from test4 import exported_items
 
 print ("...done!");
 
@@ -91,22 +91,6 @@ pov_exporter.SetShowContacts(1,
 pov_exporter.SetCustomPOVcommandsScript(
 '''
 light_source{ <1,3,1.5> color rgb<1.1,1.1,1.1> }
-/*
-union {
- plane{y,-0.05}
- no_shadow
- pigment {
-      Tiles_Ptrn()
-      color_map{
-         [0.00 color rgbt <1,1,1,0>]
-         [0.05 color rgbt <1,1,1,0>]
-         [0.05 color rgbt <0.6,0.6,0.6,0>]
-      }
-      rotate x*90
-   }
- scale <0.1, 0.1, 0.1>
-}
-*/
 ''')
 
  # Tell which physical items you want to render
