@@ -52,7 +52,9 @@ namespace chrono {
 			void ChangeCollisionSystem(ChCollisionSystem* newcollsystem);
 			void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
 			void Set_CudaDevice(int dev){cuda_device=dev;}
-			int GetNcontacts();
+			int GetNcontacts() {
+				return gpu_data_manager->number_of_contacts;
+			}
 			float GetKineticEnergy() {
 				//if (use_cpu == false) {
 					return ((ChLcpSolverGPU*) (LCP_solver_speed))->Total_KineticEnergy(gpu_data_manager->gpu_data);
@@ -61,22 +63,15 @@ namespace chrono {
 				//}
 			}
 			double GetTimerCollision() {return timer_collision;}
-			void SetUseCPU(bool usecpu) {
-				use_cpu = usecpu;
-			}
 			ChGPUDataManager *gpu_data_manager;
 		private:
 			ChTimer<double> mtimer_lcp, mtimer_step, mtimer_cd_broad, mtimer_cd_narrow, mtimer_cd, mtimer_updt;
 			unsigned int counter;
-			unsigned int max_obj;
-			unsigned int num_gpu;
 			float3 bounding_min, bounding_max;
-			bool use_cpu;
 			float3 bins_per_axis;
-			unsigned int mtuning;
-			int search ;
 			int cuda_device;
 			double timer_collision;
+			std::list<ChLink*>::iterator it;
 	};
 }
 

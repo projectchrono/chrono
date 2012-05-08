@@ -233,7 +233,7 @@ __device__ __host__ bool operator ==(const float3 &a, const float3 &b) {
 }
 
 void ChCCollisionGPU::Broadphase(gpu_container & gpu_data, bool tune) {
-	DBG("");
+	DBG("A");
 	//START_TIMING(gpu_data.start_b, gpu_data.stop_b, gpu_data.time_Broad_other);
 	float3 bin_size_vec = gpu_data.bins_per_axis / gpu_data.bin_size_vec;
 	int number_of_models = gpu_data.number_of_models;
@@ -318,9 +318,9 @@ void ChCCollisionGPU::Broadphase(gpu_container & gpu_data, bool tune) {
 	gpu_data.number_of_bin_intersections = number_of_bin_intersections;
 	gpu_data.number_of_contacts_possible = number_of_contacts_possible;
 	gpu_data.last_active_bin = last_active_bin;
-	if (val > 200) {
+	if (val > 100) {
 		gpu_data.bins_per_axis = gpu_data.bins_per_axis * 1.1;
-	} else if (val < 100 && val > 50) {
+	} else if (val < 50 && val > 20) {
 		gpu_data.bins_per_axis = gpu_data.bins_per_axis * .9;
 
 	}
@@ -329,5 +329,5 @@ void ChCCollisionGPU::Broadphase(gpu_container & gpu_data, bool tune) {
 //		gpu_data.maxvaltest = gpu_data.bin_start_index_B[last_active_bin - 1];
 //	}
 	cout << val << " " << gpu_data.bins_per_axis.x << " ";
-	DBG("");
+	DBG("B");
 }

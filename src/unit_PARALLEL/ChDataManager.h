@@ -91,7 +91,7 @@ struct gpu_container {
 	uint last_active_bin , number_of_bin_intersections  ;
 	float3 bin_size_vec;
 	float3 bins_per_axis;
-	uint maxvaltest;
+	//uint maxvaltest;
 
 };
 

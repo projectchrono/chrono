@@ -491,7 +491,7 @@ __global__ void CopyGamma(int* to, float3* oldG, float3* newG, int contacts) {
 }
 
 void ChCCollisionGPU::Narrowphase(gpu_container & gpu_data) {
-	DBG("");gpu_data.generic_counter.resize(gpu_data.number_of_contacts_possible);
+	DBG("C ");gpu_data.generic_counter.resize(gpu_data.number_of_contacts_possible);
 	thrust::fill(gpu_data.generic_counter.begin(), gpu_data.generic_counter.end(), 1);
 	uint number_of_contacts_possible = gpu_data.number_of_contacts_possible;
 	gpu_data.device_norm_data.resize(gpu_data.number_of_contacts_possible);
@@ -499,7 +499,7 @@ void ChCCollisionGPU::Narrowphase(gpu_container & gpu_data) {
 	gpu_data.device_cptb_data.resize(gpu_data.number_of_contacts_possible);
 	gpu_data.device_dpth_data.resize(gpu_data.number_of_contacts_possible);
 	gpu_data.device_bids_data.resize(gpu_data.number_of_contacts_possible);
-
+DBG(" X ")
 	//cout << "  POSSIBLE  " << number_of_contacts_possible << "  ";
 	MPR_GPU_Store CUDA_KERNEL_DIM(BLOCKS(number_of_contacts_possible),THREADS)(CASTF3(gpu_data.device_pos_data), CASTF4(gpu_data.device_rot_data), CASTF3(gpu_data.device_ObA_data),
 			CASTF3(gpu_data.device_ObB_data), CASTF3(gpu_data.device_ObC_data), CASTF4(gpu_data.device_ObR_data), CASTI3(gpu_data.device_typ_data), CASTLL(gpu_data.device_pair_data),
@@ -507,32 +507,33 @@ void ChCCollisionGPU::Narrowphase(gpu_container & gpu_data) {
 			CASTI2(gpu_data.device_bids_data), CASTF3(gpu_data.device_aux_data), number_of_contacts_possible);
 
 	gpu_data.number_of_contacts = number_of_contacts_possible - Thrust_Count(gpu_data.generic_counter,1);
+	DBG(" Y ")
+	//thrust::remove_if(gpu_data.device_norm_data.begin(),gpu_data.device_norm_data.end(),gpu_data.generic_counter.begin(),thrust::identity<int>());
+	//thrust::remove_if(gpu_data.device_cpta_data.begin(),gpu_data.device_cpta_data.end(),gpu_data.generic_counter.begin(),thrust::identity<int>());
+	//thrust::remove_if(gpu_data.device_cptb_data.begin(),gpu_data.device_cptb_data.end(),gpu_data.generic_counter.begin(),thrust::identity<int>());
+	//thrust::remove_if(gpu_data.device_dpth_data.begin(),gpu_data.device_dpth_data.end(),gpu_data.generic_counter.begin(),thrust::identity<int>());
+	//thrust::remove_if(gpu_data.device_bids_data.begin(),gpu_data.device_bids_data.end(),gpu_data.generic_counter.begin(),thrust::identity<int>());
+	//thrust::remove_if(gpu_data.device_pair_data.begin(),gpu_data.device_pair_data.end(),gpu_data.generic_counter.begin(),thrust::identity<int>());
 
-	thrust::remove_if(gpu_data.device_norm_data.begin(),gpu_data.device_norm_data.end(),gpu_data.generic_counter.begin(),thrust::identity<int>());
-	thrust::remove_if(gpu_data.device_cpta_data.begin(),gpu_data.device_cpta_data.end(),gpu_data.generic_counter.begin(),thrust::identity<int>());
-	thrust::remove_if(gpu_data.device_cptb_data.begin(),gpu_data.device_cptb_data.end(),gpu_data.generic_counter.begin(),thrust::identity<int>());
-	thrust::remove_if(gpu_data.device_dpth_data.begin(),gpu_data.device_dpth_data.end(),gpu_data.generic_counter.begin(),thrust::identity<int>());
-	thrust::remove_if(gpu_data.device_bids_data.begin(),gpu_data.device_bids_data.end(),gpu_data.generic_counter.begin(),thrust::identity<int>());
-	thrust::remove_if(gpu_data.device_pair_data.begin(),gpu_data.device_pair_data.end(),gpu_data.generic_counter.begin(),thrust::identity<int>());
-DBG("");
-//	thrust::sort_by_key(
-//			gpu_data.generic_counter.begin(),
-//			gpu_data.generic_counter.end(),
-//
-//	thrust::make_zip_iterator(
-//					thrust::make_tuple(gpu_data.device_norm_data.begin(), gpu_data.device_cpta_data.begin(), gpu_data.device_cptb_data.begin(), gpu_data.device_dpth_data.begin(),
-//							gpu_data.device_bids_data.begin(), gpu_data.device_pair_data.begin()))
-//	);
+	thrust::sort_by_key(
+			gpu_data.generic_counter.begin(),
+			gpu_data.generic_counter.end(),
+
+	thrust::make_zip_iterator(
+					thrust::make_tuple(gpu_data.device_norm_data.begin(), gpu_data.device_cpta_data.begin(), gpu_data.device_cptb_data.begin(), gpu_data.device_dpth_data.begin(),
+							gpu_data.device_bids_data.begin(), gpu_data.device_pair_data.begin()))
+	);
+	DBG(" D");
 //
 //
 //
 //	//thrust::device_vector<float3> old_gamma = data_container->device_gam_data;
 //
-//	gpu_data.device_norm_data.resize(gpu_data.number_of_contacts);
-//	gpu_data.device_cpta_data.resize(gpu_data.number_of_contacts);
-//	gpu_data.device_cptb_data.resize(gpu_data.number_of_contacts);
-//	gpu_data.device_dpth_data.resize(gpu_data.number_of_contacts);
-//	gpu_data.device_bids_data.resize(gpu_data.number_of_contacts);
+	gpu_data.device_norm_data.resize(gpu_data.number_of_contacts);
+	gpu_data.device_cpta_data.resize(gpu_data.number_of_contacts);
+	gpu_data.device_cptb_data.resize(gpu_data.number_of_contacts);
+	gpu_data.device_dpth_data.resize(gpu_data.number_of_contacts);
+	gpu_data.device_bids_data.resize(gpu_data.number_of_contacts);
 	gpu_data.device_gam_data.resize(gpu_data.number_of_contacts);
 	Thrust_Fill(gpu_data.device_gam_data, F3(0));
 	//	contact_pair.resize(number_of_contacts);
