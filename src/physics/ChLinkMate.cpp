@@ -403,6 +403,7 @@ void ChLinkMateGeneric::ConstraintsBiLoad_C(double factor, double recovery_clamp
 		return;
 
 //***TEST***
+/*
 	GetLog()<< "cload: " ;
 	if (this->c_x) GetLog()<< " x";
 	if (this->c_y) GetLog()<< " y";
@@ -411,7 +412,7 @@ void ChLinkMateGeneric::ConstraintsBiLoad_C(double factor, double recovery_clamp
 	if (this->c_ry) GetLog()<< " Ry";
 	if (this->c_rz) GetLog()<< " Rz";
 	GetLog()<< *this->C << "\n";
-
+*/
 	int cnt=0;
 	for (int i=0; i< mask->nconstr; i++)
 	{

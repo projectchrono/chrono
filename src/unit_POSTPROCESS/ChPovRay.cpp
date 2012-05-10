@@ -354,7 +354,222 @@ void ChPovRay::ExportScript(const std::string &filename)
 
 }
 
+void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetlist, ChStreamOutAsciiFile& assets_file)
+{
+	// Scan assets 
+	for (unsigned int k = 0; k < assetlist.size(); k++)
+	{
+		ChSharedPtr<ChAsset> k_asset = assetlist[k];
 
+		ChHashTable<unsigned int, ChSharedPtr<ChAsset> >::iterator mcached = pov_assets.find( (unsigned int)k_asset.get_ptr() );
+		if (mcached == pov_assets.end())
+		{
+			// Ok, add the asset in POV file, it was not already saved. 
+			// Otherwise it was a shared asset.
+			pov_assets.insert((unsigned int)k_asset.get_ptr(), k_asset);
+
+			// Do dynamic casting of the shared pointer to see which type
+			// of asset is contained...
+
+
+			// *) asset k of object i references an .obj wavefront mesh?
+			if (k_asset.IsType<ChObjShapeFile>() )
+			{
+				ChSharedPtr<ChObjShapeFile> myobjshapeasset(k_asset);
+				ChTriangleMeshConnected mytrimesh;
+
+				try {
+					// Load from the .obj file and convert.
+					mytrimesh.LoadWavefrontMesh( myobjshapeasset->GetFilename(), true, true );
+
+					// POV macro to build the asset - begin
+					assets_file << "#macro sh_"<< (int) k_asset.get_ptr() << "()\n"; //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
+
+					// Create mesh
+					assets_file << "mesh2  {\n";
+
+					assets_file << " vertex_vectors {\n";
+					assets_file << mytrimesh.m_vertices.size() << ",\n";
+					for (unsigned int iv = 0; iv < mytrimesh.m_vertices.size(); iv++)
+						assets_file << "  <" << mytrimesh.m_vertices[iv].x << "," <<  mytrimesh.m_vertices[iv].y << "," <<  mytrimesh.m_vertices[iv].z << ">,\n";
+					assets_file <<" }\n";
+
+					assets_file << " normal_vectors {\n";
+					assets_file << mytrimesh.m_normals.size() << ",\n";
+					for (unsigned int iv = 0; iv < mytrimesh.m_normals.size(); iv++)
+						assets_file << "  <" << mytrimesh.m_normals[iv].x << "," <<  mytrimesh.m_normals[iv].y << "," <<  mytrimesh.m_normals[iv].z << ">,\n";
+					assets_file <<" }\n";
+
+					assets_file << " uv_vectors {\n";
+					assets_file << mytrimesh.m_UV.size() << ",\n";
+					for (unsigned int iv = 0; iv < mytrimesh.m_UV.size(); iv++)
+						assets_file << "  <" << mytrimesh.m_UV[iv].x << "," <<  mytrimesh.m_UV[iv].y << ">,\n";
+					assets_file <<" }\n";
+
+					assets_file << " face_indices {\n";
+					assets_file << mytrimesh.m_face_v_indices.size() << ",\n";
+					for (unsigned int it = 0; it < mytrimesh.m_face_v_indices.size(); it++)
+						assets_file << "  <" << mytrimesh.m_face_v_indices[it].x << "," <<  mytrimesh.m_face_v_indices[it].y << "," <<  mytrimesh.m_face_v_indices[it].z << ">,\n";
+					assets_file <<" }\n";
+
+					//if (mytrimesh.m_normals.size() != mytrimesh.m_vertices.size())
+					if (mytrimesh.m_face_n_indices != mytrimesh.m_face_v_indices)
+					{
+						assets_file << " normal_indices {\n";
+						assets_file << mytrimesh.m_face_n_indices.size() << ",\n";
+						for (unsigned int it = 0; it < mytrimesh.m_face_n_indices.size(); it++)
+							assets_file << "  <" << mytrimesh.m_face_n_indices[it].x << "," <<  mytrimesh.m_face_n_indices[it].y << "," <<  mytrimesh.m_face_n_indices[it].z << ">,\n";
+						assets_file <<" }\n";
+					}
+					if (mytrimesh.m_face_u_indices != mytrimesh.m_face_v_indices)
+					{
+						assets_file << " uv_indices {\n";
+						assets_file << mytrimesh.m_face_u_indices.size() << ",\n";
+						for (unsigned int it = 0; it < mytrimesh.m_face_u_indices.size(); it++)
+							assets_file << "  <" << mytrimesh.m_face_u_indices[it].x << "," <<  mytrimesh.m_face_u_indices[it].y << "," <<  mytrimesh.m_face_u_indices[it].z << ">,\n";
+						assets_file <<" }\n";
+					}
+
+					assets_file <<" pigment {color rgbt <" << 
+						myobjshapeasset->GetColor().R << "," << 
+						myobjshapeasset->GetColor().G << "," << 
+						myobjshapeasset->GetColor().B << "," << 
+						myobjshapeasset->GetFading() << "> }\n";
+					assets_file <<"}\n";
+
+					// POV macro - end
+					assets_file << "#end \n";
+				} 
+				catch (ChException)
+				{
+					char error[400];
+					sprintf(error,"Asset n.%d: can't read .obj file %s", k,myobjshapeasset->GetFilename().c_str() );
+					throw (ChException(error));
+				}
+			}
+
+
+			// *) asset k of object i is a sphere ?
+			if (k_asset.IsType<ChSphereShape>() )
+			{
+				ChSharedPtr<ChSphereShape> myobjshapeasset(k_asset);
+
+				// POV macro to build the asset - begin
+				assets_file << "#macro sh_"<< (int) k_asset.get_ptr() << "()\n"; //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
+
+				// POV will make the sphere
+				assets_file << "sphere  {\n";
+
+				assets_file << " <" << myobjshapeasset->GetSphereGeometry().center.x;
+				assets_file << ","  << myobjshapeasset->GetSphereGeometry().center.y;
+				assets_file << ","  << myobjshapeasset->GetSphereGeometry().center.z << ">\n";
+				assets_file << " "  << myobjshapeasset->GetSphereGeometry().rad << "\n";
+
+				assets_file <<" pigment {color rgbt <" << 
+						myobjshapeasset->GetColor().R << "," << 
+						myobjshapeasset->GetColor().G << "," << 
+						myobjshapeasset->GetColor().B << "," << 
+						myobjshapeasset->GetFading() << "> }\n";
+				assets_file <<"}\n";
+
+				// POV macro - end 
+				assets_file << "#end \n";
+			}
+
+
+			// *) asset k of object i is a box ?
+			if (k_asset.IsType<ChBoxShape>() )
+			{
+				ChSharedPtr<ChBoxShape> myobjshapeasset(k_asset);
+
+				// POV macro to build the asset - begin
+				assets_file << "#macro sh_"<< (int) k_asset.get_ptr() << "()\n"; //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
+
+				// POV will make the box
+				assets_file << "union  {\n";
+				assets_file << "box  {\n";
+
+				assets_file << " <" << -myobjshapeasset->GetBoxGeometry().Size.x;
+				assets_file << ","  << -myobjshapeasset->GetBoxGeometry().Size.y;
+				assets_file << ","  << -myobjshapeasset->GetBoxGeometry().Size.z << ">\n";
+				assets_file << " <" <<  myobjshapeasset->GetBoxGeometry().Size.x;
+				assets_file << ","  <<  myobjshapeasset->GetBoxGeometry().Size.y;
+				assets_file << ","  <<  myobjshapeasset->GetBoxGeometry().Size.z << ">\n";
+
+				ChQuaternion<> boxrot = myobjshapeasset->GetBoxGeometry().Rot.Get_A_quaternion();
+				assets_file <<" quatRotation(<" << boxrot.e0;
+				assets_file <<"," << boxrot.e1;
+				assets_file <<"," << boxrot.e2;
+				assets_file <<"," << boxrot.e3 << ">) \n";
+				assets_file <<" translate  <" << myobjshapeasset->GetBoxGeometry().Pos.x;
+				assets_file <<"," << myobjshapeasset->GetBoxGeometry().Pos.y;
+				assets_file <<"," << myobjshapeasset->GetBoxGeometry().Pos.z << "> \n";
+
+				assets_file <<"}\n"; // end box
+
+				assets_file <<" pigment {color rgbt <" << 
+						myobjshapeasset->GetColor().R << "," << 
+						myobjshapeasset->GetColor().G << "," << 
+						myobjshapeasset->GetColor().B << "," << 
+						myobjshapeasset->GetFading() << "> }\n";
+				assets_file <<"}\n"; // end union
+
+				// POV macro - end 
+				assets_file << "#end \n";
+			}
+
+			// *) asset k of object i is a custom POV ray command ?
+			if (k_asset.IsType<ChPovRayAssetCustom>() )
+			{
+				ChSharedPtr<ChPovRayAssetCustom> myobjcommandasset(k_asset);
+
+				// POV macro to build the asset - begin
+				assets_file << "#macro cm_"<< (int) k_asset.get_ptr() << "()\n";
+
+				// add POV custom commands
+				assets_file << myobjcommandasset->GetCommands().c_str() << "\n";
+
+				// POV macro - end 
+				assets_file << "#end \n";
+			}
+
+			// *) asset k of object i is a texture ?
+			if (k_asset.IsType<ChTexture>() )
+			{
+				ChSharedPtr<ChTexture> myobjtextureasset(k_asset);
+
+				// POV macro to build the asset - begin
+				assets_file << "#macro cm_"<< (int) k_asset.get_ptr() << "()\n";
+
+				// add POV  texture
+				assets_file << "texture { uv_mapping pigment { image_map {";
+				if (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length()-5,1)==".")
+					assets_file << (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length()-4,3)).c_str() << " ";
+				if (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length()-4,1)==".")
+					assets_file << (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length()-3,3)).c_str() << " ";
+				assets_file << "\"" << myobjtextureasset->GetTextureFilename().c_str() << "\"";
+				assets_file << " }}}\n";
+
+				// POV macro - end 
+				assets_file << "#end \n";
+			}
+
+			// *) asset k of object i is a level with sub assets? ?
+			if ( k_asset.IsType<ChAssetLevel>() )
+			{
+				ChSharedPtr<ChAssetLevel> mylevel(k_asset);
+				// recurse level...
+				//ChFrame<> composedframe = mylevel->GetFrame() >> parentframe;
+
+				std::vector< ChSharedPtr<ChAsset> >& subassetlist = mylevel->GetAssets();
+				_recurseExportAssets(subassetlist, assets_file);
+			}
+
+		} 
+
+	} // end loop on assets of i-th object 
+
+}
 
 void ChPovRay::ExportAssets()
 {
@@ -369,218 +584,16 @@ void ChPovRay::ExportAssets()
 	for (unsigned int i = 0; i< this->mdata.size(); i++)
 	{
 
-		// Scan assets in object i
-		for (unsigned int k = 0; k < mdata[i]->GetAssets().size(); k++)
-		{
-			ChSharedPtr<ChAsset> k_asset = mdata[i]->GetAssets()[k];
+		_recurseExportAssets(mdata[i]->GetAssets(), assets_file); 
 
-			ChHashTable<unsigned int, ChSharedPtr<ChAsset> >::iterator mcached = pov_assets.find( (unsigned int)k_asset.get_ptr() );
-			if (mcached == pov_assets.end())
-			{
-				// Ok, add the asset in POV file, it was not already saved. 
-				// Otherwise it was a shared asset.
-				pov_assets.insert((unsigned int)k_asset.get_ptr(), k_asset);
-
-				// Do dynamic casting of the shared pointer to see which type
-				// of asset is contained...
-
-
-				// *) asset k of object i references an .obj wavefront mesh?
-				if (k_asset.IsType<ChObjShapeFile>() )
-				{
-					ChSharedPtr<ChObjShapeFile> myobjshapeasset(k_asset);
-					ChTriangleMeshConnected mytrimesh;
-
-					try {
-						// Load from the .obj file and convert.
-						mytrimesh.LoadWavefrontMesh( myobjshapeasset->GetFilename(), true, true );
-
-						// POV macro to build the asset - begin
-						assets_file << "#macro sh_"<< (int) k_asset.get_ptr() << "()\n"; //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
-
-						// Create mesh
-						assets_file << "mesh2  {\n";
-
-						assets_file << " vertex_vectors {\n";
-						assets_file << mytrimesh.m_vertices.size() << ",\n";
-						for (unsigned int iv = 0; iv < mytrimesh.m_vertices.size(); iv++)
-							assets_file << "  <" << mytrimesh.m_vertices[iv].x << "," <<  mytrimesh.m_vertices[iv].y << "," <<  mytrimesh.m_vertices[iv].z << ">,\n";
-						assets_file <<" }\n";
-
-						assets_file << " normal_vectors {\n";
-						assets_file << mytrimesh.m_normals.size() << ",\n";
-						for (unsigned int iv = 0; iv < mytrimesh.m_normals.size(); iv++)
-							assets_file << "  <" << mytrimesh.m_normals[iv].x << "," <<  mytrimesh.m_normals[iv].y << "," <<  mytrimesh.m_normals[iv].z << ">,\n";
-						assets_file <<" }\n";
-
-						assets_file << " uv_vectors {\n";
-						assets_file << mytrimesh.m_UV.size() << ",\n";
-						for (unsigned int iv = 0; iv < mytrimesh.m_UV.size(); iv++)
-							assets_file << "  <" << mytrimesh.m_UV[iv].x << "," <<  mytrimesh.m_UV[iv].y << ">,\n";
-						assets_file <<" }\n";
-
-						assets_file << " face_indices {\n";
-						assets_file << mytrimesh.m_face_v_indices.size() << ",\n";
-						for (unsigned int it = 0; it < mytrimesh.m_face_v_indices.size(); it++)
-							assets_file << "  <" << mytrimesh.m_face_v_indices[it].x << "," <<  mytrimesh.m_face_v_indices[it].y << "," <<  mytrimesh.m_face_v_indices[it].z << ">,\n";
-						assets_file <<" }\n";
-
-						//if (mytrimesh.m_normals.size() != mytrimesh.m_vertices.size())
-						if (mytrimesh.m_face_n_indices != mytrimesh.m_face_v_indices)
-						{
-							assets_file << " normal_indices {\n";
-							assets_file << mytrimesh.m_face_n_indices.size() << ",\n";
-							for (unsigned int it = 0; it < mytrimesh.m_face_n_indices.size(); it++)
-								assets_file << "  <" << mytrimesh.m_face_n_indices[it].x << "," <<  mytrimesh.m_face_n_indices[it].y << "," <<  mytrimesh.m_face_n_indices[it].z << ">,\n";
-							assets_file <<" }\n";
-						}
-						if (mytrimesh.m_face_u_indices != mytrimesh.m_face_v_indices)
-						{
-							assets_file << " uv_indices {\n";
-							assets_file << mytrimesh.m_face_u_indices.size() << ",\n";
-							for (unsigned int it = 0; it < mytrimesh.m_face_u_indices.size(); it++)
-								assets_file << "  <" << mytrimesh.m_face_u_indices[it].x << "," <<  mytrimesh.m_face_u_indices[it].y << "," <<  mytrimesh.m_face_u_indices[it].z << ">,\n";
-							assets_file <<" }\n";
-						}
-
-						assets_file <<" pigment {color rgbt <" << 
-							myobjshapeasset->GetColor().R << "," << 
-							myobjshapeasset->GetColor().G << "," << 
-							myobjshapeasset->GetColor().B << "," << 
-							myobjshapeasset->GetFading() << "> }\n";
-						assets_file <<"}\n";
-
-						// POV macro - end
-						assets_file << "#end \n";
-					} 
-					catch (ChException)
-					{
-						char error[400];
-						sprintf(error,"Asset n.%d of object %d : can't read .obj file %s", k,i,myobjshapeasset->GetFilename().c_str() );
-						throw (ChException(error));
-					}
-				}
-
-
-				// *) asset k of object i is a sphere ?
-				if (k_asset.IsType<ChSphereShape>() )
-				{
-					ChSharedPtr<ChSphereShape> myobjshapeasset(k_asset);
-
-					// POV macro to build the asset - begin
-					assets_file << "#macro sh_"<< (int) k_asset.get_ptr() << "()\n"; //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
-
-					// POV will make the sphere
-					assets_file << "sphere  {\n";
-
-					assets_file << " <" << myobjshapeasset->GetSphereGeometry().center.x;
-					assets_file << ","  << myobjshapeasset->GetSphereGeometry().center.y;
-					assets_file << ","  << myobjshapeasset->GetSphereGeometry().center.z << ">\n";
-					assets_file << " "  << myobjshapeasset->GetSphereGeometry().rad << "\n";
-
-					assets_file <<" pigment {color rgbt <" << 
-							myobjshapeasset->GetColor().R << "," << 
-							myobjshapeasset->GetColor().G << "," << 
-							myobjshapeasset->GetColor().B << "," << 
-							myobjshapeasset->GetFading() << "> }\n";
-					assets_file <<"}\n";
-
-					// POV macro - end 
-					assets_file << "#end \n";
-				}
-
-
-				// *) asset k of object i is a box ?
-				if (k_asset.IsType<ChBoxShape>() )
-				{
-					ChSharedPtr<ChBoxShape> myobjshapeasset(k_asset);
-
-					// POV macro to build the asset - begin
-					assets_file << "#macro sh_"<< (int) k_asset.get_ptr() << "()\n"; //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
-
-					// POV will make the box
-					assets_file << "union  {\n";
-					assets_file << "box  {\n";
-
-					assets_file << " <" << -myobjshapeasset->GetBoxGeometry().Size.x;
-					assets_file << ","  << -myobjshapeasset->GetBoxGeometry().Size.y;
-					assets_file << ","  << -myobjshapeasset->GetBoxGeometry().Size.z << ">\n";
-					assets_file << " <" <<  myobjshapeasset->GetBoxGeometry().Size.x;
-					assets_file << ","  <<  myobjshapeasset->GetBoxGeometry().Size.y;
-					assets_file << ","  <<  myobjshapeasset->GetBoxGeometry().Size.z << ">\n";
-
-					ChQuaternion<> boxrot = myobjshapeasset->GetBoxGeometry().Rot.Get_A_quaternion();
-					assets_file <<" quatRotation(<" << boxrot.e0;
-					assets_file <<"," << boxrot.e1;
-					assets_file <<"," << boxrot.e2;
-					assets_file <<"," << boxrot.e3 << ">) \n";
-					assets_file <<" translate  <" << myobjshapeasset->GetBoxGeometry().Pos.x;
-					assets_file <<"," << myobjshapeasset->GetBoxGeometry().Pos.y;
-					assets_file <<"," << myobjshapeasset->GetBoxGeometry().Pos.z << "> \n";
-
-					assets_file <<"}\n"; // end box
-
-					assets_file <<" pigment {color rgbt <" << 
-							myobjshapeasset->GetColor().R << "," << 
-							myobjshapeasset->GetColor().G << "," << 
-							myobjshapeasset->GetColor().B << "," << 
-							myobjshapeasset->GetFading() << "> }\n";
-					assets_file <<"}\n"; // end union
-
-					// POV macro - end 
-					assets_file << "#end \n";
-				}
-
-				// *) asset k of object i is a custom POV ray command ?
-				if (k_asset.IsType<ChPovRayAssetCustom>() )
-				{
-					ChSharedPtr<ChPovRayAssetCustom> myobjcommandasset(k_asset);
-
-					// POV macro to build the asset - begin
-					assets_file << "#macro cm_"<< (int) k_asset.get_ptr() << "()\n";
-
-					// add POV custom commands
-					assets_file << myobjcommandasset->GetCommands().c_str() << "\n";
-
-					// POV macro - end 
-					assets_file << "#end \n";
-				}
-
-				// *) asset k of object i is a texture ?
-				if (k_asset.IsType<ChTexture>() )
-				{
-					ChSharedPtr<ChTexture> myobjtextureasset(k_asset);
-
-					// POV macro to build the asset - begin
-					assets_file << "#macro cm_"<< (int) k_asset.get_ptr() << "()\n";
-
-					// add POV  texture
-					assets_file << "texture { uv_mapping pigment { image_map {";
-					if (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length()-5,1)==".")
-						assets_file << (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length()-4,3)).c_str() << " ";
-					if (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length()-4,1)==".")
-						assets_file << (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length()-3,3)).c_str() << " ";
-					assets_file << "\"" << myobjtextureasset->GetTextureFilename().c_str() << "\"";
-					assets_file << " }}}\n";
-
-					// POV macro - end 
-					assets_file << "#end \n";
-				}
-
-
-			} // end if asset not yet saved
-
-		} // end loop on assets of i-th object 
 	} // end loop on objects
-
-
 
 }
 
 
 
 
-void ChPovRay::_recurseExportObjAssets( std::vector< ChSharedPtr<ChAsset> >& assetlist, ChFrame<> parentframe, ChStreamOutAsciiFile& mfilepov)
+void ChPovRay::_recurseExportObjData( std::vector< ChSharedPtr<ChAsset> >& assetlist, ChFrame<> parentframe, ChStreamOutAsciiFile& mfilepov)
 {
 	mfilepov << "union{\n";  // begin union
 
@@ -610,7 +623,10 @@ void ChPovRay::_recurseExportObjAssets( std::vector< ChSharedPtr<ChAsset> >& ass
 			ChSharedPtr<ChAssetLevel> mylevel(k_asset);
 			// recurse level...
 			ChFrame<> composedframe = mylevel->GetFrame() >> parentframe;
-			_recurseExportObjAssets(assetlist, composedframe, mfilepov);
+			ChFrame<> subassetframe = mylevel->GetFrame();
+
+			std::vector< ChSharedPtr<ChAsset> >& subassetlist = mylevel->GetAssets();
+			_recurseExportObjData(subassetlist, subassetframe, mfilepov);
 		}
 
 	} // end loop on assets
@@ -673,35 +689,8 @@ void ChPovRay::ExportData(const std::string &filename)
 				ChFrame<> bodyframe = mybody->GetFrame_REF_to_abs();
 				assetcsys = bodyframe.GetCoord();
 
-				/*
-				mfilepov << "union{\n";  // begin union
 
-				// Scan assets in object and write the macro to set their position
-				for (unsigned int k = 0; k < mdata[i]->GetAssets().size(); k++)
-				{
-					ChSharedPtr<ChAsset> k_asset = mdata[i]->GetAssets()[k];
-
-					// 1) asset k of object i references an .obj wavefront mesh?
-					if ( k_asset.IsType<ChObjShapeFile>() ||
-						 k_asset.IsType<ChSphereShape>() || 
-						 k_asset.IsType<ChBoxShape>() )
-					{
-						mfilepov << "sh_"<< (unsigned int) k_asset.get_ptr() << "("; // apx, apy, apz, aq0, aq1, aq2, aq3, atexture)\n";
-
-						mfilepov << assetcsys.pos.x << "," << assetcsys.pos.y << "," << assetcsys.pos.z << ",";
-						mfilepov << assetcsys.rot.e0 << "," << assetcsys.rot.e1 << "," << assetcsys.rot.e2 << "," << assetcsys.rot.e3 << ")\n";
-					}
-					if ( k_asset.IsType<ChPovRayAssetCustom>() || 
-						 k_asset.IsType<ChTexture>() )
-					{
-						mfilepov << "cm_"<< (unsigned int) k_asset.get_ptr() << "\n";
-					}
-
-				} // end loop on assets
-				
-				mfilepov << "}\n"; // end union
-				*/
-				_recurseExportObjAssets (mdata[i]->GetAssets(), bodyframe, mfilepov); 
+				_recurseExportObjData(mdata[i]->GetAssets(), bodyframe, mfilepov); 
 
 				// Show body COG?
 				if (this->COGs_show)
@@ -735,32 +724,8 @@ void ChPovRay::ExportData(const std::string &filename)
 					ChCoordsys<> assetcsys = CSYSNORM;
 					assetcsys = myclones->GetParticle(m).GetCoord();
 
-					/*
-					// Scan assets in object and write the macro to set their position
-					for (unsigned int k = 0; k < mdata[i]->GetAssets().size(); k++)
-					{
-						ChSharedPtr<ChAsset> k_asset = mdata[i]->GetAssets()[k];
-
-						// 1) asset k of object i references an .obj wavefront mesh?
-						if ( k_asset.IsType<ChObjShapeFile>() ||
-							 k_asset.IsType<ChSphereShape>() || 
-							 k_asset.IsType<ChBoxShape>() )
-						{
-							mfilepov << "sh_"<< (int) k_asset.get_ptr() << "("; // apx, apy, apz, aq0, aq1, aq2, aq3, atexture)\n";
-
-							mfilepov << assetcsys.pos.x << "," << assetcsys.pos.y << "," << assetcsys.pos.z << ",";
-							mfilepov << assetcsys.rot.e0 << "," << assetcsys.rot.e1 << "," << assetcsys.rot.e2 << "," << assetcsys.rot.e3 << ")\n";
-						}
-						if ( k_asset.IsType<ChPovRayAssetCustom>() || 
-							 k_asset.IsType<ChTexture>() )
-						{
-							mfilepov << "cm_"<< (unsigned int) k_asset.get_ptr() << "\n";
-						}
-
-					} // end loop on assets
-					*/
 					ChFrame<> particleframe(assetcsys);
-					_recurseExportObjAssets (mdata[i]->GetAssets(), particleframe, mfilepov);
+					_recurseExportObjData (mdata[i]->GetAssets(), particleframe, mfilepov);
 
 
 				} // end loop on particles
