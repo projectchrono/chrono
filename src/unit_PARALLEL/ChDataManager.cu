@@ -7,6 +7,7 @@ ChGPUDataManager::ChGPUDataManager(unsigned int numDiv) {
 	number_of_bilaterals = 0;
 	number_of_contacts_possible = 0;
 	copyContacts = false;
+	stepSize=0;
 	/*cudaSetDevice(1);
 	gpu_data.generic_counter.reserve(1e6);
 	gpu_data.device_pair_data.reserve(1e6);

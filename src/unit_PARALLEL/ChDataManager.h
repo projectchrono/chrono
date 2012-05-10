@@ -164,6 +164,7 @@ public:
 	thrust::host_vector<float4> host_derivVelRhoD_data;
 
 	bool copyContacts;
+	double stepSize;
 
 };
 }

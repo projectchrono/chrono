@@ -107,9 +107,9 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	float3 * acc_pointer = gpu_data_manager->host_acc_data.data();
 	float3 * fap_pointer = gpu_data_manager->host_fap_data.data();
 
-//#pragma omp parallel
+#pragma omp parallel
 	{
-//#pragma omp for
+#pragma omp for
 		for (int i = 0; i < bodylist.size(); i++) {
 			ChBodyGPU* mbody = (ChBodyGPU*) bodylist[i];
 			if (mbody->IsActive()) {
@@ -289,9 +289,9 @@ void ChSystemGPU::Update() {
 		cntr++;
 	}
 
-//#pragma omp parallel
+#pragma omp parallel
 	{
-//#pragma omp for
+#pragma omp for
 		for (int i = 0; i < bodylist.size(); i++) { // Updates recursively all other aux.vars
 
 				bodylist[i]->UpdateTime(ChTime);
