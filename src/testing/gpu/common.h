@@ -22,7 +22,7 @@ public:
 	void SaveByID(int id, string fname);
 	void SaveByObject(ChBODY *abody, string fname);
 	void SaveAllData(string prefix);
-	void SaveAllData_type(string prefix);
+	void SaveAllData_type(string prefix, bool active = false, bool compound = false);
 	void SaveAllData_min(string prefix);
 	void drawAll();CHSYS *mSystem;
 
@@ -56,7 +56,7 @@ System::System(int cudaDevice) {
 	mGPUCollisionEngine = new ChCOLLISIONSYS();
 	mGPUsolverSpeed = new ChSOLVER(mGPUContactContainer);
 
-	mSystem->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+	mSystem->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD);
 
 	mSystem->ChangeLcpSystemDescriptor(mGPUDescriptor);
 	mSystem->ChangeContactContainer(mGPUContactContainer);
@@ -98,10 +98,10 @@ void System::Setup() {
 	mSystem->SetStep(mTimeStep);
 	mGPUsolverSpeed->SetMaxIterations(mIterations);
 	mGPUsolverSpeed->SetOmega(mOmegaContact);
-	mGPUsolverSpeed->SetOmegaBilateral(mOmegaBilateral);
+	//mGPUsolverSpeed->SetOmegaBilateral(mOmegaBilateral);
 	//mGPUsolverSpeed->mOmegaBilateral = mOmegaBilateral;
 	mGPUsolverSpeed->SetTolerance(mTolerance);
-	mSystem->gpu_data_manager->CopyContacts(true);
+	//mSystem->gpu_data_manager->CopyContacts(true);
 
 //#ifndef _CHRONOGPU
 	mSystem->SetIterLCPmaxItersSpeed(mIterations);
@@ -228,6 +228,7 @@ void System::SaveAllData(string prefix) {
 	ofile.open(sss.str().c_str());
 	string output_text = "";
 	stringstream line;
+	int counter = 0;
 	for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
 		ChBODY * abody = (ChBODY *) mSystem->Get_bodylist()->at(i);
 		if (abody->IsActive() == true) {
@@ -237,11 +238,11 @@ void System::SaveAllData(string prefix) {
 			ChVector<> vel = abody->GetPos_dt();
 			ChVector<> acc = abody->GetPos_dtdt();
 			//ChVector<> fap = abody->GetAppliedForce();
-			line << pos.x << "," << pos.y << "," << pos.z << ",";
+			line << counter << "," << pos.x << "," << pos.y << "," << pos.z << ",";
 			line << vel.x << "," << vel.y << "," << vel.z << ",";
 			line << quat.e0 << "," << quat.e1 << "," << quat.e2 << "," << quat.e3 << ",";
 			line << endl;
-
+			counter++;
 		}
 	}
 	ofile << line.str();
@@ -250,7 +251,7 @@ void System::SaveAllData(string prefix) {
 	mFileNumber++;
 
 }
-void System::SaveAllData_type(string prefix) {
+void System::SaveAllData_type(string prefix, bool active = false, bool compound = false) {
 	ofstream ofile;
 	stringstream ss, sss;
 	ss << prefix << mFileNumber << ".txt";
@@ -260,10 +261,13 @@ void System::SaveAllData_type(string prefix) {
 	stringstream line;
 	for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
 		ChBODY * abody = (ChBODY *) mSystem->Get_bodylist()->at(i);
-		if (abody->IsActive() == true) {
+		if (abody->IsActive() == true || active == true) {
 			int i = 0;
-			//for (int i = 0; i < ((ChMODEL *) (abody->GetCollisionModel()))->mData.size(); i++)
-			{
+			int max_num = ((ChMODEL *) (abody->GetCollisionModel()))->mData.size();
+			if (compound == false) {
+				max_num = 1;
+			}
+			for (int i = 0; i < max_num; i++) {
 				ChVector<> pos = abody->GetPos();
 				ChVector<> rot = abody->GetRot().Q_to_NasaAngles();
 				ChQuaternion<> quat = abody->GetRot();
@@ -309,14 +313,14 @@ void System::SaveAllData_min(string prefix) {
 				ChVector<> vel = abody->GetPos_dt();
 				//ChVector<> acc = abody->GetPos_dtdt();
 				//ChVector<> fap = abody->GetAppliedForce();
-				ShapeType type = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].type;
-				float3 A = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].A;
-				float3 B = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].B;
-				float4 R = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].R;
-				line << B.x << ",";
-				line << pos.x << "," << pos.y << "," << pos.z << "," << vel.x << "," << vel.y << "," << vel.z << ",";
-				line << quat.e0 << "," << quat.e1 << "," << quat.e2 << "," << quat.e3 << ",";
-				line << endl;
+				//ShapeType type = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].type;
+				//float3 A = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].A;
+				//	float3 B = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].B;
+				//	float4 R = ((ChMODEL *) (abody->GetCollisionModel()))->mData[i].R;
+				//	line << B.x << ",";
+				//	line << pos.x << "," << pos.y << "," << pos.z << "," << vel.x << "," << vel.y << "," << vel.z << ",";
+				//	line << quat.e0 << "," << quat.e1 << "," << quat.e2 << "," << quat.e3 << ",";
+				//	line << endl;
 			}
 
 		}
@@ -351,7 +355,7 @@ void System::SaveByObject(ChBODY *abody, string fname) {
 	ofile << vel.x << "," << vel.y << "," << vel.z << ",";
 	ofile << acc.x << "," << acc.y << "," << acc.z << ",";
 	ofile << rot.x << "," << rot.y << "," << rot.z << ",";
-	ofile << quat.e0 << "," << quat.e1 << "," << quat.e2 << ","<< quat.e3 << ",";
+	ofile << quat.e0 << "," << quat.e1 << "," << quat.e2 << "," << quat.e3 << ",";
 	//ofile << fap.x << "," << fap.y << "," << fap.z << ",";
 	ofile << endl;
 
@@ -515,6 +519,7 @@ void System::drawAll() {
 		glDrawArrays(GL_POINTS, 0, points.size());
 		glDisableClientState(GL_VERTEX_ARRAY);
 		glDisableClientState(GL_COLOR_ARRAY);
+#ifdef _CHRONOGPU
 		if (showbb) {
 			int size_obj = mSystem->gpu_data_manager->host_aabb_data.size() / 2;
 			for (int i = 0; i < size_obj; i++) {
@@ -540,7 +545,7 @@ void System::drawAll() {
 				glEnd();
 			}
 		}
-
+#endif
 #ifdef _CHRONOGPU
 		if (showContacts) {
 			//mSystem->gpu_data_manager->CopyContacts(true);
