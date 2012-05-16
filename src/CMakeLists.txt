@@ -551,7 +551,8 @@ IF (BUILD_CH_SDK)
 	SET(ChronoEngine_geometry_SOURCES
 		geometry/ChCGeometry.cpp 
 		geometry/ChCSphere.cpp 
-		geometry/ChCBox.cpp 
+		geometry/ChCBox.cpp
+		geometry/ChCCylinder.cpp 
 		geometry/ChCLine.cpp 
 		geometry/ChCLineCam.cpp 
 		geometry/ChCLinePoly.cpp 
@@ -581,7 +582,9 @@ IF (BUILD_CH_SDK)
 		assets/ChObjShapeFile.cpp 
 		assets/ChSphereShape.cpp
 		assets/ChBoxShape.cpp
+		assets/ChCylinderShape.cpp
 		assets/ChTexture.cpp
+		assets/ChCamera.cpp
 		assets/ChAssetLevel.cpp
 	)
 	SET(ChronoEngine_assets_HEADERS
@@ -590,7 +593,9 @@ IF (BUILD_CH_SDK)
 		assets/ChObjShapeFile.h
 		assets/ChSphereShape.h
 		assets/ChBoxShape.h
+		assets/ChCylinderShape.h
 		assets/ChTexture.h
+		assets/ChCamera.h
 		assets/ChAssetLevel.h
 	)
 	SOURCE_GROUP(assets FILES  

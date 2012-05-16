@@ -17,6 +17,7 @@
 #include "assets/ChBoxShape.h"
 #include "assets/ChTexture.h"
 #include "assets/ChAssetLevel.h"
+#include "assets/ChCamera.h"
 #include "ChPovRayAssetCustom.h"
 #include "physics/ChParticlesClones.h"
 #include "physics/ChLinkMate.h"
@@ -36,8 +37,10 @@ ChPovRay::ChPovRay(ChSystem* system) : ChPostProcessBase(system)
 	this->framenumber = 0;
 	this->camera_location = ChVector<>(0,1.5,-2);
 	this->camera_aim = ChVector<>(0,0,0);
+	this->camera_up = ChVector<>(0,1,0);
 	this->camera_angle =30;
 	this->camera_orthographic = false;
+	this->camera_found_in_assets = false;
 	this->def_light_location = ChVector<>(2,3,-1);
 	this->def_light_color = ChColor(1,1,1);
 	this->def_light_cast_shadows = true;
@@ -618,6 +621,19 @@ void ChPovRay::_recurseExportObjData( std::vector< ChSharedPtr<ChAsset> >& asset
 			mfilepov << "cm_"<< (unsigned int) k_asset.get_ptr() << "()\n";
 		}
 
+		if ( k_asset.IsType<ChCamera>() )
+		{
+			this->camera_found_in_assets = true;
+			ChSharedPtr<ChCamera> mycamera(k_asset);
+			
+			this->camera_found_in_assets = true;
+			this->camera_location = mycamera->GetPosition() >> parentframe;
+			this->camera_aim = mycamera->GetAimPoint() >> parentframe;
+			this->camera_up = mycamera->GetUpVector() >> parentframe;
+			this->camera_angle = mycamera->GetAngle();
+			this->camera_orthographic = mycamera->GetIsometric();
+		}
+
 		if ( k_asset.IsType<ChAssetLevel>() )
 		{
 			ChSharedPtr<ChAssetLevel> mylevel(k_asset);
@@ -666,6 +682,7 @@ void ChPovRay::ExportData(const std::string &filename)
 		sprintf(pathpov,"%s.pov", filename.c_str());
 		ChStreamOutAsciiFile mfilepov(pathpov);
 
+		this->camera_found_in_assets = false;
 
 		// Write custom data commands, if provided by the user
 		if ( this->custom_data.size() >0)
@@ -689,7 +706,7 @@ void ChPovRay::ExportData(const std::string &filename)
 				ChFrame<> bodyframe = mybody->GetFrame_REF_to_abs();
 				assetcsys = bodyframe.GetCoord();
 
-
+				// Dump the POV macro that generates the contained asset(s) tree!!!
 				_recurseExportObjData(mdata[i]->GetAssets(), bodyframe, mfilepov); 
 
 				// Show body COG?
@@ -724,6 +741,7 @@ void ChPovRay::ExportData(const std::string &filename)
 					ChCoordsys<> assetcsys = CSYSNORM;
 					assetcsys = myclones->GetParticle(m).GetCoord();
 
+					// Dump the POV macro that generates the contained asset(s) tree!!!
 					ChFrame<> particleframe(assetcsys);
 					_recurseExportObjData (mdata[i]->GetAssets(), particleframe, mfilepov);
 
@@ -742,7 +760,7 @@ void ChPovRay::ExportData(const std::string &filename)
 					mfilepov << "sh_csysFRM("; 
 					mfilepov << frAabs.GetPos().x << "," << frAabs.GetPos().y << "," << frAabs.GetPos().z << ",";
 					mfilepov << frAabs.GetRot().e0 << "," << frAabs.GetRot().e1 << "," << frAabs.GetRot().e2 << "," << frAabs.GetRot().e3 << ",";
-					mfilepov << this->links_size*0.98 << ")\n";
+					mfilepov << this->links_size*0.7 << ")\n"; // smaller, as 'slave' csys.
 					mfilepov << "sh_csysFRM("; 
 					mfilepov << frBabs.GetPos().x << "," << frBabs.GetPos().y << "," << frBabs.GetPos().z << ",";
 					mfilepov << frBabs.GetRot().e0 << "," << frBabs.GetRot().e1 << "," << frBabs.GetRot().e2 << "," << frBabs.GetRot().e3 << ",";
@@ -799,6 +817,21 @@ void ChPovRay::ExportData(const std::string &filename)
 
 			// scan all contacts 
 			this->mSystem->GetContactContainer()->ReportAllContacts(&my_contact_reporter);
+		}
+
+		// If a camera have been found in assets, create it and override the default one
+		if (this->camera_found_in_assets)
+		{
+			mfilepov <<	"camera { \n";   
+			if (camera_orthographic) 
+					mfilepov <<" orthographic \n";
+			mfilepov <<	" right -x*image_width/image_height \n" <<
+						" location <" << camera_location.x <<","<<camera_location.y <<","<< camera_location.z <<"> \n" <<
+						// " direction 2*z \n" << 
+						" look_at <" << camera_aim.x <<","<<camera_aim.y <<","<<camera_aim.z <<"> \n" << 
+						" sky <" << camera_up.x <<","<<camera_up.y <<","<<camera_up.z <<"> \n" << 
+						" angle " << camera_angle << " \n";
+			mfilepov <<	"}\n\n\n"; 
 		}
 
 	}

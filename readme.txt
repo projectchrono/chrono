@@ -5,8 +5,33 @@
 
 
 
-Release 1.5.0
+Release 1.6.0
 xx-xx-xxxx
+
+- New asset of 'ChCamera' type, for defining a videocamera point
+  ov view, zoom etc. This asset can be interpreted by postprocessing
+  system (ex the exporter for POVray). Cameras can be added to moving
+  objects.
+
+- Plug-in for SolidWorks. A custom SolidWorks add-in can be installed,
+  so that in the SolidWorks CAD interface one can see some buttons to
+  save the mechanism as a .py script.
+
+- New installer for deploying the precompiled SolidWorks add-in.
+
+- The SolidWorks add-in now exports also the UV coordinates of the
+  mesh vertex points in the .obj shape files. This makes the .obj 
+  UV texturing easier (ex. by using BLender etc.).
+
+- New ChPovRayAssetCustom in POSTPROCESS_unit. Allows adding custom
+  POVray chuncks of code to the output .pov files (ex. materials, 
+  finishing, pigments, etc.)
+
+
+
+
+Release 1.5.0
+12-05-2012
 
 - New asset system. Look in source/assets/ directory. Assets can be
   assigned to ChPhysicsItems. This is extensively used in the new
@@ -39,6 +64,9 @@ xx-xx-xxxx
   for other material parameters such as friction, the result is the 
   minimum of the two values). This follows the theory of two 
   springs in series.
+
+- New installer for deploying the PyChrono::Engine stand-alone
+  precompiled module for Python
 
   
 Release 1.5.0
