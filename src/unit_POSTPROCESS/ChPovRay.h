@@ -211,8 +211,10 @@ protected:
 
 	ChVector<> camera_location;
 	ChVector<> camera_aim;
+	ChVector<> camera_up;
 	double	   camera_angle;
 	bool	   camera_orthographic;
+	bool	   camera_found_in_assets;
 
 	ChVector<> def_light_location;
 	ChColor    def_light_color;

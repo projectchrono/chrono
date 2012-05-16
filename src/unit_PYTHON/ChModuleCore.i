@@ -118,10 +118,12 @@ using namespace chrono;
 %include "ChObjShapeFile.i"
 %include "ChBoxShape.i"
 %include "ChSphereShape.i"
+%include "ChCylinderShape.i"
 %include "ChTexture.i"
+%include "ChCamera.i"
 %include "ChAssetLevel.i"
   // enable _automatic_ downcasting from ChAsset to derived classes (shared pointers versions)
-%downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualization, chrono::ChObjShapeFile, chrono::ChBoxShape, chrono::ChSphereShape, chrono::ChTexture, chrono::ChAssetLevel)
+%downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualization, chrono::ChObjShapeFile, chrono::ChBoxShape, chrono::ChSphereShape, chrono::ChCylinderShape, chrono::ChTexture, chrono::ChAssetLevel, chrono::ChCamera)
 
 // physics/  classes
 %include "ChObject.i"
@@ -191,9 +193,11 @@ using namespace chrono;
 %DefChSharedPtrCast(chrono::ChForce, chrono::ChPhysicsItem)
 %DefChSharedPtrCast(chrono::ChVisualization, chrono::ChAsset)
 %DefChSharedPtrCast(chrono::ChSphereShape, chrono::ChVisualization)
+%DefChSharedPtrCast(chrono::ChCylinderShape, chrono::ChVisualization)
 %DefChSharedPtrCast(chrono::ChBoxShape, chrono::ChVisualization)
 %DefChSharedPtrCast(chrono::ChObjShapeFile, chrono::ChVisualization)
 %DefChSharedPtrCast(chrono::ChTexture, chrono::ChAsset)
+%DefChSharedPtrCast(chrono::ChCamera, chrono::ChAsset)
 %DefChSharedPtrCast(chrono::ChAssetLevel, chrono::ChAsset)
 %DefChSharedPtrCast(chrono::ChLink, chrono::ChPhysicsItem)
 %DefChSharedPtrCast(chrono::ChLinkMarkers, chrono::ChLink)
