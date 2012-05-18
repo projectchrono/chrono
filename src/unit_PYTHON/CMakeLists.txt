@@ -5,7 +5,7 @@
 #=============================================================================
 
 
-SET(ENABLE_UNIT_PYTHON     FALSE    CACHE BOOL   "Turn ON this to generate the Chrono::Engine PYTHON unit.")
+SET(ENABLE_UNIT_PYTHON     FALSE    CACHE BOOL   "Turn ON this to generate the Chrono::Engine PYTHON unit(s).")
 SET(CH_PYTHONDIR           ""       CACHE PATH   "Where is your Python installed? Ex: 'C:/Python27'. This path should contain the Lib, libs, etc. directories.")
 
 
@@ -19,10 +19,92 @@ ENDIF()
 
 IF(ENABLE_UNIT_PYTHON)
 
+
+	FIND_PACKAGE(PythonLibs REQUIRED)
+	
+	SET (CH_PYTHONINC "${PYTHON_INCLUDE_PATH}")
+	SET (CH_PYTHONLIB "${PYTHON_LIBRARIES}")
+	
+	
+	#-----------------------------------------------------------------------------
+	#
+	# LIST THE FILES THAT MAKE THE PYTHON PARSER LIBRARY to be used via C++
+	#
+	#
+	
+	SET(ChronoEngine_UNIT_PYPARSER_SOURCES 
+		ChPython.cpp 
+		)
+	SET(ChronoEngine_UNIT_PYPARSER_HEADERS
+		ChApiPyParser.h 
+		ChPython.h
+		)
+	#SET_SOURCE_FILES_PROPERTIES(ChronoEngine_UNIT_PYPARSER_HEADERS PROPERTIES  HEADER_FILE_ONLY)
+	SOURCE_GROUP(unit_PYPARSER FILES 
+				${ChronoEngine_UNIT_PYPARSER_SOURCES} 
+				${ChronoEngine_UNIT_PYPARSER_HEADERS})
+				
+					
+	# In most cases, you do not need to edit the lines below
+
+	
+	SET (CH_CHRONOPYPARSERLIBRARYNAME "${CH_LIBDIR}/${CH_LIBNAMEPREFIX}${CH_LIBNAME}_PYPARSER${CH_LIBNAMEPOSTFIX}")
+	SET (CH_CHRONOPYPARSERSHAREDLNAME "${CH_BINDIR}/${CH_LIBNAME}_PYPARSER${CH_LIBNAMEPOSTFIXSHARED}")
+	SET (CH_CHRONOPYPARSERLIB  "${CH_CHRONOPYPARSERLIBRARYNAME}")
+	SET (CH_CHRONOPYPARSERLIBRARYNAME_DBG "${CH_LIBDIR}/${CH_LIBNAMEPREFIX}${CH_LIBNAME}_PYPARSERDBG${CH_LIBNAMEPOSTFIX}")
+	SET (CH_CHRONOPYPARSERSHAREDLNAME_DBG "${CH_BINDIR}/${CH_LIBNAME}_PYPARSERDBG${CH_LIBNAMEPOSTFIXSHARED}")
+	SET (CH_CHRONOPYPARSERLIB_DBG  "${CH_CHRONOPYPARSERLIBRARYNAME_DBG}")
+	
+
+	INCLUDE_DIRECTORIES( ${CH_PYTHONINC} )
+	
+	
+	# The PYPARSER library is added to the project,
+	# and some custom properties of this target are set.
+	
+	ADD_LIBRARY(ChronoEngine_PYPARSER SHARED 
+				${ChronoEngine_UNIT_PYPARSER_SOURCES}
+				${ChronoEngine_UNIT_PYPARSER_HEADERS})
+	
+	SET_TARGET_PROPERTIES(ChronoEngine_PYPARSER PROPERTIES 
+	                          LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
+	                          COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_PYPARSER"
+	                          ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CH_LIBDIR}"
+	                          ARCHIVE_OUTPUT_DIRECTORY_DEBUG   "${CH_LIBDIR}"
+	                          RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
+	                          RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}"
+	                          LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
+	                          LIBRARY_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}"
+	                          RUNTIME_OUTPUT_NAME_DEBUG "ChronoEngine_PYPARSERDBG"
+	                          LIBRARY_OUTPUT_NAME_DEBUG "ChronoEngine_PYPARSERDBG"
+	                          ARCHIVE_OUTPUT_NAME_DEBUG "ChronoEngine_PYPARSERDBG")
+	                          
+	TARGET_LINK_LIBRARIES(ChronoEngine_PYPARSER 
+		${CH_PYTHONLIB}
+		optimized 	${CH_CHRONOLIB}
+		debug 		${CH_CHRONOLIB_DBG}  )
+		
+	ADD_DEPENDENCIES (ChronoEngine_PYPARSER ChronoEngine)  # better, because not automatic
+		
+		
+	# Let some variables be visible also from outside this directory, using the PARENT_SCOPE trick
+	
+	SET (CH_PYTHONINC      		"${CH_PYTHONINC}" 			 PARENT_SCOPE )
+	SET (CH_CHRONOPYPARSERLIB  		"${CH_CHRONOPYPARSERLIB}" 	 PARENT_SCOPE )
+	SET (CH_CHRONOPYPARSERLIB_DBG  	"${CH_CHRONOPYPARSERLIB_DBG}" PARENT_SCOPE )
+	SET (CH_CHRONOPYPARSERSHAREDLNAME  "${CH_CHRONOPYPARSERSHAREDLNAME}" PARENT_SCOPE )
+	SET (CH_CHRONOPYPARSERSHAREDLNAME_DBG  "${CH_CHRONOPYPARSERSHAREDLNAME_DBG}" PARENT_SCOPE )
+
+
+	#----------------------------------------------------------------------------
+	# 
+	# From this point, define the projects for building the Python modules.
+	
+
+
+
 	FIND_PACKAGE(SWIG REQUIRED)
 	INCLUDE(${SWIG_USE_FILE})
-	
-	FIND_PACKAGE(PythonLibs REQUIRED)
 	
 	SET(CH_PYTHONDIR_PYD "${CH_PYTHONDIR}/DLLs")
 	SET(CH_PYTHONDIR_PY  "${CH_PYTHONDIR}/Lib")
@@ -33,8 +115,11 @@ IF(ENABLE_UNIT_PYTHON)
 	
 	#-----------------------------------------------------------------------------
 	# 
-	# MODULE for the ChronoEngine_POSTPROCESS wrapper, including most of the C::E
+	# MODULE for the ChronoEngine_PYTHON_core wrapper, including most of the C::E
 	#
+	# This will build a .pyd python module to be imported via Python language,
+	# not a .dll to be used with c++!!
+	#	
 	# NOTE: to add a new source to this unit, just add its name
 	# here and re-run the CMake.
 	#
@@ -117,7 +202,10 @@ IF(ENABLE_UNIT_PYTHON)
 		
 		#-----------------------------------------------------------------------------
 		#
-		# MODULE for the ChronoEngine_POSTPROCESS python wrapper
+		# MODULE for the ChronoEngine_PYTHON_postprocess python wrapper.
+		#
+		# This will build a .pyd python module to be imported via Python language,
+		# not a .dll to be used with c++!!
 		#
 		# NOTE: to add a new source to this unit, just add its name
 		# here and re-run the CMake.
@@ -135,7 +223,7 @@ IF(ENABLE_UNIT_PYTHON)
 		SET_SOURCE_FILES_PROPERTIES(${ChronoEngine_unit_SWIG_PYTHON_CONFIG_postprocess} PROPERTIES CPLUSPLUS ON)
 		SET_SOURCE_FILES_PROPERTIES(${ChronoEngine_unit_SWIG_PYTHON_CONFIG_postprocess} PROPERTIES COMPILE_FLAGS "-DWIN32")
 		
-		SET_SOURCE_FILES_PROPERTIES(${ChronoEngine_unit_SWIG_PYTHON_WRAPPERS_postprocess} PROPERTIES HEADER_FILE_ONLY TRUE)
+		# SET_SOURCE_FILES_PROPERTIES(${ChronoEngine_unit_SWIG_PYTHON_WRAPPERS_postprocess} PROPERTIES HEADER_FILE_ONLY TRUE)
 		
 		SWIG_ADD_MODULE(ChronoEngine_PYTHON_postprocess python ${ChronoEngine_unit_SWIG_PYTHON_CONFIG_postprocess}) 
 		SWIG_LINK_LIBRARIES(ChronoEngine_PYTHON_postprocess 
@@ -176,5 +264,5 @@ IF(ENABLE_UNIT_PYTHON)
 								
 	ENDIF(ENABLE_UNIT_POSTPROCESS)						
 								
-		
+	
 ENDIF(ENABLE_UNIT_PYTHON)

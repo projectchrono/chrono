@@ -254,16 +254,25 @@ void ChPovRay::ExportScript(const std::string &filename)
 	mfile <<	"}\n\n\n";
 
 	// Write default camera
-
+   
 	mfile <<	"camera { \n";   
-	if (camera_orthographic) 
-			mfile <<" orthographic \n";
-	mfile <<	" right -x*image_width/image_height \n" <<
-				" location <" << camera_location.x <<","<<camera_location.y <<","<<camera_location.z <<"> \n" <<
-				// " direction 2*z \n" << 
-				" look_at <" << camera_aim.x <<","<<camera_aim.y <<","<<camera_aim.z <<"> \n" << 
-				" angle " << camera_angle << " \n";
-	mfile <<	"}\n\n\n"; 
+			if (camera_orthographic) 
+			{
+					mfile << " orthographic \n";
+					mfile <<	" right x * " << (camera_location - camera_aim).Length() << " * tan ((( " << camera_angle << " *0.5)/180)*3.14) \n";
+					mfile <<	" up y * image_height/image_width * " << (camera_location - camera_aim).Length() << " * tan (((" << camera_angle << "*0.5)/180)*3.14) \n";
+					ChVector<> mdir = (camera_aim - camera_location)*0.00001;
+					mfile <<	" direction <" << mdir.x << "," << mdir.y << "," << mdir.z << "> \n";
+			}
+			else
+			{
+					mfile <<	" right -x*image_width/image_height \n";
+					mfile <<	" angle " << camera_angle << " \n";
+			}
+					mfile << " location <" << camera_location.x <<","<<camera_location.y <<","<< camera_location.z <<"> \n" <<
+						" look_at <" << camera_aim.x <<","<<camera_aim.y <<","<<camera_aim.z <<"> \n" << 
+						" sky <" << camera_up.x <<","<<camera_up.y <<","<<camera_up.z <<"> \n";
+			mfile <<	"}\n\n\n"; 
 
 	// Write default light
 
@@ -625,13 +634,12 @@ void ChPovRay::_recurseExportObjData( std::vector< ChSharedPtr<ChAsset> >& asset
 		{
 			this->camera_found_in_assets = true;
 			ChSharedPtr<ChCamera> mycamera(k_asset);
-			
-			this->camera_found_in_assets = true;
+		
 			this->camera_location = mycamera->GetPosition() >> parentframe;
 			this->camera_aim = mycamera->GetAimPoint() >> parentframe;
 			this->camera_up = mycamera->GetUpVector() >> parentframe;
 			this->camera_angle = mycamera->GetAngle();
-			this->camera_orthographic = mycamera->GetIsometric();
+			this->camera_orthographic = mycamera->GetOrthographic();
 		}
 
 		if ( k_asset.IsType<ChAssetLevel>() )
@@ -824,13 +832,21 @@ void ChPovRay::ExportData(const std::string &filename)
 		{
 			mfilepov <<	"camera { \n";   
 			if (camera_orthographic) 
-					mfilepov <<" orthographic \n";
-			mfilepov <<	" right -x*image_width/image_height \n" <<
-						" location <" << camera_location.x <<","<<camera_location.y <<","<< camera_location.z <<"> \n" <<
-						// " direction 2*z \n" << 
+			{
+					mfilepov << " orthographic \n";
+					mfilepov <<	" right x * " << (camera_location - camera_aim).Length() << " * tan ((( " << camera_angle << " *0.5)/180)*3.14) \n";
+					mfilepov <<	" up y * image_height/image_width * " << (camera_location - camera_aim).Length() << " * tan (((" << camera_angle << "*0.5)/180)*3.14) \n";
+					ChVector<> mdir = (camera_aim - camera_location)*0.00001;
+					mfilepov <<	" direction <" << mdir.x << "," << mdir.y << "," << mdir.z << "> \n";
+			}
+			else
+			{
+					mfilepov <<	" right -x*image_width/image_height \n";
+					mfilepov <<	" angle " << camera_angle << " \n";
+			}
+					mfilepov << " location <" << camera_location.x <<","<<camera_location.y <<","<< camera_location.z <<"> \n" <<
 						" look_at <" << camera_aim.x <<","<<camera_aim.y <<","<<camera_aim.z <<"> \n" << 
-						" sky <" << camera_up.x <<","<<camera_up.y <<","<<camera_up.z <<"> \n" << 
-						" angle " << camera_angle << " \n";
+						" sky <" << camera_up.x <<","<<camera_up.y <<","<<camera_up.z <<"> \n";
 			mfilepov <<	"}\n\n\n"; 
 		}
 
