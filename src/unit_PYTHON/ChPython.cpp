@@ -54,7 +54,7 @@ void ChPythonEngine::Run(const char* program)
 	msgErrBuffer = smessageError.rdbuf();
 	std::cerr.rdbuf(msgErrBuffer);
 	 
-	if (!PyRun_SimpleString(formula))
+	if (!PyRun_SimpleString(program))
 	{
 		PyErr_Print();
 		throw ChException(smessageError.str());
