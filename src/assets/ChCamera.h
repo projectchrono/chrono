@@ -104,10 +104,10 @@ public:
 
 			/// Set to 'true' if you want to disable perspective and get a 'flat' view.
 			/// This must be supported by the visualization system. By default is 'false'.
-	void SetIsometric(bool mb)  {this->isometric = mb;}
+	void SetOrthographic(bool mb)  {this->isometric = mb;}
 			/// If 'true' it means that perspective projection is disabled and you get a 'flat' view.
 			/// This must be supported by the visualization system. By default is 'false'.
-	double GetIsometric() {return this->isometric;}
+	bool GetOrthographic() {return this->isometric;}
 };
 
 

@@ -10,7 +10,7 @@ IF(ENABLE_UNIT_POSTPROCESS)
 
 	#-----------------------------------------------------------------------------
 	#
-	# LIST THE FILES THAT MAKE THE GPU LIBRARY
+	# LIST THE FILES THAT MAKE THE POSTPROCESSING LIBRARY
 	# NOTE: to add a new source to this unit, just add its name
 	# here and re-run the CMake.
 	#
@@ -50,7 +50,7 @@ IF(ENABLE_UNIT_POSTPROCESS)
 	INCLUDE_DIRECTORIES( ${CH_POSTPROCESSINC} )
 	
 	
-	# The MPI library is added to the project,
+	# The POSTPROCESS library is added to the project,
 	# and some custom properties of this target are set.
 	
 	ADD_LIBRARY(ChronoEngine_POSTPROCESS SHARED 
