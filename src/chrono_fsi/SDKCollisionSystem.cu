@@ -172,11 +172,11 @@ float3 deltaVShare(
 		for (uint j = startIndex; j < endIndex; j++) {
 			if (j != index) { // check not colliding with self
 				float4 posRadB = FETCH(sortedPosRad, j);
-				float4 velMasB = FETCH(sortedVelMas, j);
-				float4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
 				float3 dist3 = Distance(posRadA, posRadB);
 				float d = length(dist3);
 				if (d > RESOLUTION_LENGTH * HSML) continue;
+				float4 velMasB = FETCH(sortedVelMas, j);
+				float4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
 				if (rhoPresMuA.w <0) { //# A_fluid				** -1:			i.e. negative, i.e. fluid particle
 					if (rhoPresMuB.w < 0) { //## A_fluid : B_fluid, accoring to colagrossi (2003), the other phase (i.e. rigid) should not be considered)
 						deltaV += velMasB.w * F3(velMasB - velMasA) * W3(d, posRadA.w) / (.5 * (rhoPresMuA.x + rhoPresMuB.x));
@@ -219,13 +219,13 @@ float4 collideCell(
 		for (uint j = startIndex; j < endIndex; j++) {
 			if (j != index) { // check not colliding with self
 				float4 posRadB = FETCH(sortedPosRad, j);
-				float4 velMasB = FETCH(sortedVelMas, j);
-				float4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
-				float3 vel_XSPH_B = FETCH(vel_XSPH_D, gridParticleIndex[j]);
+				float rSPH = posRadA.w;
 				float3 dist3 = Distance(posRadA, posRadB);
 				float d = length(dist3);
 				if (d > RESOLUTION_LENGTH * HSML) continue;
-				float rSPH = posRadA.w;
+				float4 velMasB = FETCH(sortedVelMas, j);
+				float4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
+				float3 vel_XSPH_B = FETCH(vel_XSPH_D, gridParticleIndex[j]);
 
 				if (rhoPresMuA.w < 0) { //# A_fluid				** -1:			i.e. negative, i.e. fluid particle
 					if (rhoPresMuB.w < 0) { //## A_fluid : B_fluid
