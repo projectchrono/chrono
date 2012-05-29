@@ -1311,7 +1311,7 @@ void cudaCollisions(
 	FILE *outFileMultipleZones;
 
 	int povRayCounter = 0;
-	int stepEnd = 1.5e6; //200000;//10000;//50000;//100000;
+	int stepEnd = 1.5e2; //200000;//10000;//50000;//100000;
 
 	//for (int tStep = 0; tStep < 0; tStep ++) {
 	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
