@@ -70,7 +70,7 @@ __constant__ SimParams paramsD;
 __constant__ int3 cartesianGridDimsD;
 __constant__ float resolutionD;
 
-#define RESOLUTION_LENGTH 2
+#define RESOLUTION_LENGTH_MULT 2
 //--------------------------------------------------------------------------------------------------------------------------------
 //3D SPH kernel function, W3_SplineA
 __device__ inline float W3_Spline(float d, float h) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles

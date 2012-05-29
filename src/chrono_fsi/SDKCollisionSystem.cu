@@ -174,7 +174,7 @@ float3 deltaVShare(
 				float4 posRadB = FETCH(sortedPosRad, j);
 				float3 dist3 = Distance(posRadA, posRadB);
 				float d = length(dist3);
-				if (d > RESOLUTION_LENGTH * HSML) continue;
+				if (d > RESOLUTION_LENGTH_MULT * HSML) continue;
 				float4 velMasB = FETCH(sortedVelMas, j);
 				float4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
 				if (rhoPresMuA.w <0) { //# A_fluid				** -1:			i.e. negative, i.e. fluid particle
@@ -222,7 +222,7 @@ float4 collideCell(
 				float rSPH = posRadA.w;
 				float3 dist3 = Distance(posRadA, posRadB);
 				float d = length(dist3);
-				if (d > RESOLUTION_LENGTH * HSML) continue;
+				if (d > RESOLUTION_LENGTH_MULT * HSML) continue;
 				float4 velMasB = FETCH(sortedVelMas, j);
 				float4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
 				float3 vel_XSPH_B = FETCH(vel_XSPH_D, gridParticleIndex[j]);
