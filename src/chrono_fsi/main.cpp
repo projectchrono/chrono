@@ -554,7 +554,9 @@ int2 CreateFluidParticles(
 	int num_BoundaryParticles = 0;
 	srand(964);
 	//float initSpace0 = 0.9 * sphR; //1.1 * sphR;//1.1 * sphR;//pow(4.0 / 3 * PI, 1.0 / 3) * sphR;
-	float initSpace0 = 0.9 * sphR;
+	float multInitSpace = 1.0;//0.9;
+	float initSpace0 = multInitSpace * sphR;
+	printf("initSpaceFluid = %f * sphR\n", multInitSpace);
 	int nFX = ceil((cMax.x - cMin.x) / (initSpace0));
 	float initSpaceX = (cMax.x - cMin.x) / nFX;
 	//printf("orig nFx and nFx %f %f\n", (cMax.x - cMin.x) / initSpace, ceil ((cMax.x - cMin.x) / (initSpace)));
@@ -652,7 +654,9 @@ int CreateEllipsoidParticles(
 		int type) {
 	int num_rigidBodyParticles = 0;
 	//float spacing = .9 * sphR;
-	float spacing = 0.9 * sphR;
+	float multInitSpace = 1.0;//0.9;
+	float spacing = multInitSpace * sphR;
+	printf("initSpaceEllipsoid = %f * sphR\n", multInitSpace);
 	for (int k = 0; k < 3; k++) {
 		float3 r3 = ellipsoidRadii - F3(k * spacing);
 		//printf("r, rigidR, k*spacing %f %f %f\n", r * 1000000, spherePosRad.w * 1000000, k * spacing * 1000000);
@@ -716,7 +720,9 @@ int CreateCylinderParticles_XZ(
 		float3 cMax,
 		int type) {
 	int num_rigidBodyParticles = 0;
-	float spacing = .9 * sphR;
+	float multInitSpace = 1.0;//0.9;
+	float spacing = multInitSpace * sphR;
+	printf("initSpaceCylinder = %f * sphR\n", multInitSpace);
 	for (int k = 0; k < 3; k++) {
 		float r = ellipsoidRadii.x - k * spacing;
 		if (r > 0) {
@@ -762,7 +768,7 @@ int main() {
 		///float3 cMax = make_float3( nPeriod * sPeriod + r3_2.x + 2 * r4_2.x + r6_2.x + x_FirstChannel + 2 * x_SecondChannel, 1.5 * sizeScale,  r6_2.y + 2 * toleranceZone);  //for serpentine
 	///float3 cMax = make_float3( nPeriod * sPeriod, 1.5 * sizeScale,  4.0 * sizeScale);  //for serpentine
 
-	float3 cMax = make_float3( nPeriod * 3.0 + 0, 1.5,  4.0) * sizeScale;  //for  straight channel
+	float3 cMax = make_float3( nPeriod * 2.0 + 0, 1.5,  4.0) * sizeScale;  //for  straight channel
 	//float3 cMax = make_float3( nPeriod * 2.0 + 0, 2.2,  2.2) * sizeScale;  //for  tube
 
 //	float3 cMax = make_float3(nPeriod * 1.0 + 0, .5,  3.5) * sizeScale;  //for straight channel, sphere
