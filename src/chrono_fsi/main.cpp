@@ -199,6 +199,49 @@ void CreateRigidBodiesPattern(
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+void CreateRigidBodiesPatternPipe(
+		thrust::host_vector<float3> & rigidPos,
+		thrust::host_vector<float4> & spheresVelMas,
+		thrust::host_vector<float3> & rigidBodyOmega,
+		thrust::host_vector<float3> & rigidBody_J1,
+		thrust::host_vector<float3> & rigidBody_J2,
+		thrust::host_vector<float3> & rigidBody_InvJ1,
+		thrust::host_vector<float3> & rigidBody_InvJ2,
+		thrust::host_vector<float3> & ellipsoidRadii,
+		const float3 referenceR,
+		const float rhoRigid,
+		float & channelRadius) {
+
+	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
+	//printf("cMin %f %f %f, cMax %f %f %f\n", straightChannelMin.x, straightChannelMin.y, straightChannelMin.z, straightChannelMax.x, straightChannelMax.y, straightChannelMax.z);
+	float3 spaceRigids = 2 * (referenceR + 4 * F3(HSML));
+	float3 n3Rigids = (straightChannelMax - straightChannelMin) / spaceRigids;
+	for (int i = 1; i < n3Rigids.x - 1; i++) {
+		for  (float r = spaceRigids.x; r < channelRadius - spaceRigids.x; r += spaceRigids.x) {
+			float dTeta = spaceRigids.x / r;
+			 for (float teta = 0; teta < 2 * PI - dTeta; teta += dTeta) {
+				 float3 pos = straightChannelMin + F3(0, channelRadius, channelRadius) + F3(i * spaceRigids.x, float(r  * cos(teta)), float(r *  sin(teta)) );
+				 //printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
+				 rigidPos.push_back(pos);
+				 ellipsoidRadii.push_back(referenceR);
+				 float mass;
+				 float3 j1, j2;
+				 CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x, referenceR.y, referenceR.z, rhoRigid);						//create Ellipsoid
+
+				spheresVelMas.push_back(F4(0, 0, 0, float(mass)));
+				rigidBodyOmega.push_back(F3(0, 0, 0));
+				rigidBody_J1.push_back(j1);
+				rigidBody_J2.push_back(j2);
+
+				float3 invJ1, invJ2;
+				CalcInvJ(j1, j2, invJ1, invJ2);
+				rigidBody_InvJ1.push_back(invJ1);
+				rigidBody_InvJ2.push_back(invJ2);
+			 }
+		}
+	}
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 bool IsInsideSphere(float4 sphParPos, float4 spherePosRad, float clearance) {
 	float3 dist3 = F3(sphParPos - spherePosRad);
 	if (length(dist3) < spherePosRad.w + clearance) {
@@ -823,8 +866,15 @@ int main() {
 	rhoRigid = 1000; //1050; //originally .079 //.179 for cylinder
 	float channelRadius;
 	float3 r3Ellipsoid = F3(.03 * sizeScale);//F3(.05, .03, .02) * sizeScale;//F3(.03 * sizeScale);
+	//**
 	CreateRigidBodiesPattern(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, channelRadius);
+	//**
 	//CreateRigidBodiesFromFile(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, cMin, cMax, fileNameRigids, rhoRigid, channelRadius);
+	//**
+//	channelRadius = 1.0 * sizeScale;
+//	CreateRigidBodiesPatternPipe(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, channelRadius);
+	//**
+
 
 	printf("size rigids %d\n", rigidPos.size());
 	//---------------------------------------------------------------------

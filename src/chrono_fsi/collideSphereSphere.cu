@@ -487,7 +487,7 @@ void PrintToFile(
 	thrust::host_vector<float3> omegaLRF_H = omegaLRF_D;
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++com
 	ofstream fileNameFluid;
-	int stepSaveFluid = 10000;
+	int stepSaveFluid = 100000;
 	if (tStep % stepSaveFluid == 0) {
 		if (tStep / stepSaveFluid == 0) {
 			fileNameFluid.open("dataFluid.txt");
@@ -724,6 +724,29 @@ void PrintToFile(
 		fileRigidParticleCenterVsDistance << ssParticleCenterVsDistance.str();
 		fileRigidParticleCenterVsDistance.close();
 	}
+//////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		ofstream fileRigidParticlesDataForTecplot;
+		int tStepRigidParticlesDataForTecplot = 1000;
+		if (tStep % tStepRigidParticlesDataForTecplot == 0) {
+			if (tStep / tStepRigidParticlesDataForTecplot == 0) {
+				fileRigidParticlesDataForTecplot.open("dataRigidParticlesDataForTecplot.txt");
+				fileRigidParticlesDataForTecplot<<"PipeRadius, PipeLength\n";
+				fileRigidParticlesDataForTecplot<<	channelRadius <<", "<< cMax.x - cMin.x<<endl;
+				fileRigidParticlesDataForTecplot<<"variables = \"t(s)\", \"x\", \"y\", \"z\", \"r\", \"vX\", \"vY\", \"vZ\", \"velMagnitude\"\n";
+			} else {
+				fileRigidParticlesDataForTecplot.open("dataRigidParticlesDataForTecplot.txt", ios::app);
+			}
+			fileRigidParticlesDataForTecplot<<"zone\n";
+			stringstream ssRigidParticlesDataForTecplot;
+			for (int j = 0; j < posRigidH.size(); j++) {
+				float3 p_rigid = posRigidH[j];
+				float3 v_rigid = F3(velMassRigidH[j]);
+				float2 dist2 = F2(.5 * (cMax.y + cMin.y) - p_rigid.y, .5 * (cMax.z + cMin.z) - p_rigid.z);
+				ssRigidParticlesDataForTecplot<<tStep * delT<<", "<<p_rigid.x<<", "<<p_rigid.y<<", "<<p_rigid.z<<", "<<length(dist2) / channelRadius<<", "<<v_rigid.x<<", "<<v_rigid.y<<", "<<v_rigid.z<<", "<<length(v_rigid)<<endl;
+			}
+			fileRigidParticlesDataForTecplot << ssRigidParticlesDataForTecplot.str();
+			fileRigidParticlesDataForTecplot.close();
+		}
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++com
 //		ofstream fileNameRigidBodies;
 //		ofstream fileNameFluidParticles;
