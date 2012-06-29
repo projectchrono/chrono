@@ -21,6 +21,7 @@
 #include "physics/ChSystem.h"
 #include "physics/ChGlobal.h"
 #include "physics/ChCollide.h"
+#include "physics/ChBodyAuxRef.h"
 #include "physics/ChContactContainer.h"
 #include "physics/ChProximityContainerBase.h"
 
@@ -1142,43 +1143,89 @@ void ChSystem::RemoveAllControls()
 
  
 
-ChBody* ChSystem::SearchBody (char* m_name)
+ChSharedPtr<ChBody> ChSystem::SearchBody (char* m_name)
 {
-	return ChContainerSearchFromName<ChBody, std::vector<ChBody*>::iterator>
+	ChBody* mbody = ChContainerSearchFromName<ChBody, std::vector<ChBody*>::iterator>
 				(m_name, 
 				bodylist.begin(), 
 				bodylist.end());
+	if (mbody)
+	{
+		mbody->AddRef(); // in that container pointers were not stored as ChSharedPtr, so this is needed..
+		return (ChSharedPtr<ChBody>(mbody));  // ..here I am not getting a new() data, but a reference to something created elsewhere
+	}
+	return (ChSharedPtr<ChBody>()); // not found? return a void shared ptr.
 }
 
-ChLink* ChSystem::SearchLink (char* m_name)
+ChSharedPtr<ChLink> ChSystem::SearchLink (char* m_name)
 {
-	return ChContainerSearchFromName<ChLink, std::list<ChLink*>::iterator>
+	ChLink* mlink = ChContainerSearchFromName<ChLink, std::list<ChLink*>::iterator>
 				(m_name, 
 				linklist.begin(), 
 				linklist.end());
+	if (mlink)
+	{
+		mlink->AddRef(); // in that container pointers were not stored as ChSharedPtr, so this is needed..
+		return (ChSharedPtr<ChLink>(mlink));  // ..here I am not getting a new() data, but a reference to something created elsewhere
+	}
+	return (ChSharedPtr<ChLink>()); // not found? return a void shared ptr.
+}
+
+ChSharedPtr<ChPhysicsItem> ChSystem::SearchOtherPhysicsItem (char* m_name)
+{
+	ChPhysicsItem* mitem = ChContainerSearchFromName<ChPhysicsItem, std::list<ChPhysicsItem*>::iterator>
+				(m_name, 
+				otherphysicslist.begin(), 
+				otherphysicslist.end());
+	if (mitem)
+	{
+		mitem->AddRef(); // in that container pointers were not stored as ChSharedPtr, so this is needed..
+		return (ChSharedPtr<ChPhysicsItem>(mitem));  // ..here I am not getting a new() data, but a reference to something created elsewhere
+	}
+	return (ChSharedPtr<ChPhysicsItem>()); // not found? return a void shared ptr.
+}
+
+ChSharedPtr<ChPhysicsItem> ChSystem::Search (char* m_name)
+{
+	ChSharedPtr<ChBody> mbo = SearchBody(m_name);
+	if (!mbo.IsNull())
+		return mbo;
+	ChSharedPtr<ChLink> mli = SearchLink(m_name);
+	if (!mli.IsNull())
+		return mli;
+	ChSharedPtr<ChPhysicsItem> mph = SearchOtherPhysicsItem(m_name);
+	if (!mph.IsNull())
+		return mph;
+	return (ChSharedPtr<ChPhysicsItem>()); // not found? return a void shared ptr.
 }
 
 
-ChMarker* ChSystem::SearchMarker (char* m_name)
+ChSharedPtr<ChMarker> ChSystem::SearchMarker (char* m_name)
 {
-	ChMarker* res = NULL;
-
 	HIER_BODY_INIT
 	while HIER_BODY_NOSTOP
 	{
-		res = ChContainerSearchFromName<ChMarker, std::vector<ChMarker*>::iterator>
-				(m_name, 
-				Bpointer->GetMarkerList()->begin(), 
-				Bpointer->GetMarkerList()->end());
-		if (res != NULL) return res;
-
+		ChSharedPtr<ChMarker> mmark = Bpointer->SearchMarker(m_name);
+		if (!mmark.IsNull())
+			return mmark;
 		HIER_BODY_NEXT
 	}
+	HIER_OTHERPHYSICS_INIT
+	while HIER_OTHERPHYSICS_NOSTOP
+	{
+		if (ChBodyAuxRef* mbodyauxref = dynamic_cast<ChBodyAuxRef*>(PHpointer))
+		{
+			ChSharedPtr<ChMarker> mmark = mbodyauxref->SearchMarker(m_name);
+			if (!mmark.IsNull())
+				return mmark;
+		}
+		HIER_OTHERPHYSICS_NEXT
+	}
 
-	return 0;
+	return (ChSharedPtr<ChMarker>()); // not found? return a void shared ptr.
 }
 
-ChMarker* ChSystem::SearchMarker (int markID)
+ChSharedPtr<ChMarker> ChSystem::SearchMarker (int markID)
 {
 	ChMarker* candidate = NULL;
 	ChMarker* res = NULL;
@@ -1190,12 +1237,33 @@ ChMarker* ChSystem::SearchMarker (int markID)
 				(markID, 
 				Bpointer->GetMarkerList()->begin(), 
 				Bpointer->GetMarkerList()->end());
-		if (res != NULL) return res;
+		if (res != NULL) 
+		{
+			res->AddRef(); // in that container pointers were not stored as ChSharedPtr, so this is needed..
+			return (ChSharedPtr<ChMarker>(res));  // ..here I am not getting a new() data, but a reference to something created elsewhere		
+		}
 
 		HIER_BODY_NEXT
 	}
+	HIER_OTHERPHYSICS_INIT
+	while HIER_OTHERPHYSICS_NOSTOP
+	{
+		if (ChBodyAuxRef* mbodyauxref = dynamic_cast<ChBodyAuxRef*>(PHpointer))
+		{
+			res = ChContainerSearchFromID<ChMarker, std::vector<ChMarker*>::iterator>
+				(markID, 
+				mbodyauxref->GetMarkerList()->begin(), 
+				mbodyauxref->GetMarkerList()->end());
+			if (res != NULL) 
+			{
+				res->AddRef(); // in that container pointers were not stored as ChSharedPtr, so this is needed..
+				return (ChSharedPtr<ChMarker>(res));  // ..here I am not getting a new() data, but a reference to something created elsewhere		
+			}
+		}
+		HIER_OTHERPHYSICS_NEXT
+	}
 
-	return 0;
+	return (ChSharedPtr<ChMarker>()); // not found? return a void shared ptr.
 }
 
 
@@ -1214,8 +1282,10 @@ void ChSystem::Reference_LM_byID()
 	{
 		if (ChLinkMarkers* malink = ChDynamicCast(ChLinkMarkers,Lpointer))
 		{
-			m1 = SearchMarker(malink->GetMarkID1());
-			m2 = SearchMarker(malink->GetMarkID2());
+			ChSharedPtr<ChMarker> shm1 = SearchMarker(malink->GetMarkID1());
+			ChSharedPtr<ChMarker> shm2 = SearchMarker(malink->GetMarkID2());
+			ChMarker* mm1 = shm1.get_ptr();
+			ChMarker* mm2 = shm1.get_ptr();
 			malink->SetMarker1(m1);
 			malink->SetMarker2(m2);
 			if (m1 && m2)

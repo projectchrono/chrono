@@ -86,9 +86,11 @@ class MySquareFunct (chrono.ChFunction):
     def Get_y(self,x):
          return x*x
 
+
 my_funct2 = MySquareFunct()
-print ('function f(2) =', my_funct2.Get_y(2) )
-print ('function df/dx=', my_funct2.Get_y_dx(2) )
+print ('function f(2) =', my_funct2.Get_y(3) )
+print ('function df/dx=', my_funct2.Get_y_dx(3) )
+
 
 
 
