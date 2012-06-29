@@ -404,9 +404,11 @@ public:
 	void RemoveAllMarkers();
 
 				/// Finds a marker from its ChObject name
-	ChMarker* SearchMarker (char* m_name);
+	//ChMarker* SearchMarker (char* m_name); // Old 
+	ChSharedPtr<ChMarker> SearchMarker (char* m_name);
 				/// Finds a force from its ChObject name
-	ChForce*  SearchForce (char* m_name);
+	//ChForce*  SearchForce (char* m_name); // Old
+	ChSharedPtr<ChForce>  SearchForce (char* m_name);
 
 				/// Gets the list of children markers.
 				/// NOTE! use this list only to enumerate etc., but NOT to

@@ -102,8 +102,8 @@ public:
 	void RemoveAllForces();
 	void RemoveAllMarkers();
 
-	chrono::ChMarker* SearchMarker (char* m_name);
-	chrono::ChForce*  SearchForce (char* m_name);
+	chrono::ChSharedPtr<ChMarker> SearchMarker (char* m_name);
+	chrono::ChSharedPtr<ChForce> SearchForce(char* m_name);
 
 	std::vector<ChMarker*>* GetMarkerList() {return &marklist;} 
 	std::vector<ChForce*>* GetForceList() {return &forcelist;}

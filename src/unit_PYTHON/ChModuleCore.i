@@ -243,14 +243,15 @@ using namespace chrono;
 
 
 //
-// DOWNCASTING OF POINTERS
+// DOWNCASTING OF SHARED POINTERS
 // 
 // This is not automatic in Python + SWIG, except if one uses the 
 // %downcast_output_sharedptr(...) macro, as above, but this causes
 // a lot of code bloat. So in the following we create a set of Python-side
 // functions to perform casting by hand, thank to the macro 
-// %DefChSharedPtrDynamicDowncast(base,derived). Do not specify the chrono:: namespace.
-// In python, use as:
+// %DefChSharedPtrDynamicDowncast(base,derived). 
+// Do not specify the "chrono::" namespace before base or derived!
+// Later, in python, you can do the following:
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 

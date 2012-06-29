@@ -567,7 +567,7 @@ void ChBody::RemoveAllMarkers()
 	marklist.clear();
 };
 
-
+/* old
 ChMarker* ChBody::SearchMarker (char* m_name)
 {
 	return ChContainerSearchFromName<ChMarker, std::vector<ChMarker*>::iterator>
@@ -575,7 +575,6 @@ ChMarker* ChBody::SearchMarker (char* m_name)
 				marklist.begin(), 
 				marklist.end());
 }
-
 ChForce* ChBody::SearchForce (char* m_name)
 {
 	return ChContainerSearchFromName<ChForce, std::vector<ChForce*>::iterator>
@@ -583,7 +582,33 @@ ChForce* ChBody::SearchForce (char* m_name)
 				forcelist.begin(), 
 				forcelist.end());
 }
-
+*/
+ChSharedPtr<ChMarker> ChBody::SearchMarker (char* m_name)
+{
+	ChMarker* mmark= ChContainerSearchFromName<ChMarker, std::vector<ChMarker*>::iterator>
+				(m_name, 
+				marklist.begin(), 
+				marklist.end());
+	if (mmark)
+	{
+		mmark->AddRef(); // in that container pointers were not stored as ChSharedPtr, so this is needed..
+		return (ChSharedPtr<ChMarker>(mmark));  // ..here I am not getting a new() data, but a reference to something created elsewhere
+	}
+	return (ChSharedPtr<ChMarker>()); // not found? return a void shared ptr.
+}
+ChSharedPtr<ChForce> ChBody::SearchForce (char* m_name)
+{
+	ChForce* mforce = ChContainerSearchFromName<ChForce, std::vector<ChForce*>::iterator>
+				(m_name, 
+				forcelist.begin(), 
+				forcelist.end());
+	if (mforce)
+	{
+		mforce->AddRef(); // in that container pointers were not stored as ChSharedPtr, so this is needed..
+		return (ChSharedPtr<ChForce>(mforce));  // ..here I am not getting a new() data, but a reference to something created elsewhere
+	}
+	return (ChSharedPtr<ChForce>()); // not found? return a void shared ptr.
+}
 
 
 					//These are the members used to UPDATE
