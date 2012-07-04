@@ -36,6 +36,32 @@ setattr(__ChTYPE__Shared, "__init__", __ChTYPE__Shared_custominit)
 %enddef
 
 
+
+// A MORE RECENT VERSION:  
+
+%define %DefChSharedPtr3(__ChNAMESPACE__, __ChTYPE__)
+
+// Tell SWIG to add a chrono::ChSharedPtr class 
+%template(__ChTYPE__ ## Shared) chrono::ChSharedPtr< __ChNAMESPACE__ ## __ChTYPE__>;
+
+// Trick to avoid confusion about memory ownership: redefine the
+// original chrono::ChSharedPtr constructor (that SWIG made according
+// to the cpp equivalent) and allow only one type of construction with 
+// no arguments, that also instances one object.
+
+%pythoncode %{
+def __ChTYPE__ ## Shared_custominit(self):
+	newsharedobj = __ChTYPE__()
+	newsharedobj.thisown =0
+	__ChTYPE__ ## Shared.__cppinit__(self, newsharedobj)
+
+setattr(__ChTYPE__ ## Shared, "__cppinit__", __ChTYPE__ ## Shared.__init__)
+setattr(__ChTYPE__ ## Shared, "__init__", __ChTYPE__ ## Shared_custominit)
+
+%}
+
+%enddef
+
 // ### MACRO FOR SETTING UP INHERITANCE of ChSharedPtr ###
 //     This enables the UPCASTING (from derived to base)
 //     that will happen automatically in Python

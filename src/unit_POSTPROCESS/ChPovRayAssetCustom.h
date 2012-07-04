@@ -35,7 +35,7 @@ protected:
 	  			// DATA
 				//
 	std::string custom_command;
-
+	float foo;
 public:
 				//
 	  			// CONSTRUCTORS
@@ -50,16 +50,18 @@ public:
 				//
 
 		// Get custom command. This information could be used by visualization postprocessing. 
-	const std::string& GetCommands() const {return custom_command;}
+	std::string GetCommands() const {return custom_command;}
 
 		// Set the custom command for POVray.
 		// If you attach this ChPovRayAssetCustom asset to a ChBody, the postprocessing
 		// will create a object{...} or union{...} block, it will place the geometries defined
 		// by other assets of the body, then it will put the command block of this asset, as it is.
 		// For example you can specify pigment{...} or texture{...} stuff here.
-	void SetCommands(const std::string& mcomm) {custom_command = mcomm;}
+	//void SetCommands (const std::string& mcomm) {custom_command = mcomm;}
+	void SetCommands (char mcomm[]);
 
-
+	double GetFoo() {return foo;}
+	void SetFoo(double mfoo) {foo = mfoo;}
 };
 
 
