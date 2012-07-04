@@ -71,6 +71,11 @@ using namespace postprocess;
 %include "std_vector.i"
 %include "typemaps.i"
 
+// This is to enable references to double,int,etc. types in function parameters
+%pointer_class(int,int_ptr);
+%pointer_class(double,double_ptr);
+%pointer_class(float,float_ptr);
+
 
 
 // IMPORTANT!!!
@@ -90,6 +95,8 @@ using namespace postprocess;
 //  core/  classes
 %include "ChPostProcessBase.i"
 %include "ChPovRay.i"
+
+%import  "ChAsset.i"
 %include "ChPovRayAssetCustom.i"
 
 
@@ -109,7 +116,7 @@ using namespace postprocess;
 // So, use the %DefChSharedPtrCast(derived,base) macro to enable the upcasting.
 
 //%DefChSharedPtrCast(chrono::ChVisualization, chrono::ChAsset)
-
+%DefChSharedPtrCast(chrono::postprocess::ChPovRayAssetCustom, chrono::ChAsset)
 
 //
 // DOWNCASTING OF SHARED POINTERS
@@ -126,7 +133,7 @@ using namespace postprocess;
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
 //%DefChSharedPtrDynamicDowncast(ChAsset,ChVisualization)
-
+%DefChSharedPtrDynamicDowncast(ChAsset,ChPovRayAssetCustom)
 
 
 //

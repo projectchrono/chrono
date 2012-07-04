@@ -65,7 +65,11 @@ background { rgb<1,1,1> }
 // --- Default materials, textures, etc.
 // 
     
-        
+  
+#default {
+  pigment {rgb <1,1,1>}
+}
+      
         
 // A macro to create grids
 

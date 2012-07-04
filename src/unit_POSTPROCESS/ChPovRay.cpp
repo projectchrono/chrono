@@ -442,11 +442,14 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 						assets_file <<" }\n";
 					}
 
+					/*
 					assets_file <<" pigment {color rgbt <" << 
 						myobjshapeasset->GetColor().R << "," << 
 						myobjshapeasset->GetColor().G << "," << 
 						myobjshapeasset->GetColor().B << "," << 
 						myobjshapeasset->GetFading() << "> }\n";
+					*/
+
 					assets_file <<"}\n";
 
 					// POV macro - end
@@ -477,11 +480,14 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 				assets_file << ","  << myobjshapeasset->GetSphereGeometry().center.z << ">\n";
 				assets_file << " "  << myobjshapeasset->GetSphereGeometry().rad << "\n";
 
+				/*
 				assets_file <<" pigment {color rgbt <" << 
 						myobjshapeasset->GetColor().R << "," << 
 						myobjshapeasset->GetColor().G << "," << 
 						myobjshapeasset->GetColor().B << "," << 
 						myobjshapeasset->GetFading() << "> }\n";
+				*/
+
 				assets_file <<"}\n";
 
 				// POV macro - end 
@@ -519,13 +525,16 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 
 				assets_file <<"}\n"; // end box
 
+				/*
 				assets_file <<" pigment {color rgbt <" << 
 						myobjshapeasset->GetColor().R << "," << 
 						myobjshapeasset->GetColor().G << "," << 
 						myobjshapeasset->GetColor().B << "," << 
 						myobjshapeasset->GetFading() << "> }\n";
-				assets_file <<"}\n"; // end union
+				*/
 
+				assets_file <<"}\n"; // end union
+				
 				// POV macro - end 
 				assets_file << "#end \n";
 			}
