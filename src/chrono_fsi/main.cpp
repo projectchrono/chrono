@@ -581,6 +581,7 @@ int2 CreateFluidParticles(
 		thrust::host_vector<float4> & mPosRadBoundary,
 		thrust::host_vector<float4> & mVelMasBoundary,
 		thrust::host_vector<float4> & mRhoPresMuBoundary,
+		float & sphParticleMass,
 		const thrust::host_vector<float3> & rigidPos,
 		const thrust::host_vector<float3> & ellipsoidRadii,
 		float sphR,
@@ -609,6 +610,7 @@ int2 CreateFluidParticles(
 	float initSpaceZ = (cMax.z - cMin.z) / nFZ;
 	//printf("&&&&& %f   %f %f %f \n", 1.1 * sphR, initSpaceX, initSpaceY, initSpaceZ);
 	printf("nFX Y Z %d %d %d, max distY %f, initSpaceY %f\n", nFX, nFY, nFZ, (nFY - 1) * initSpaceY, initSpaceY);
+	sphParticleMass = (initSpaceX * initSpaceY * initSpaceZ) * rho;
 	//printf("sphParticleMass * 1e12 %f\n", (initSpaceX * initSpaceY * initSpaceZ) * rho*1e12);
 
 	//printf("** nFX, nFX, nFX %d %d %d\n", nFX, nFY, nFZ);
@@ -648,7 +650,7 @@ int2 CreateFluidParticles(
 						if (k < nFZ) {
 							num_FluidParticles++;
 							mPosRad.push_back(posRad);
-							mVelMas.push_back(F4(0, 0, 0, (initSpaceX * initSpaceY * initSpaceZ) * rho));
+							mVelMas.push_back(F4(0, 0, 0, sphParticleMass));
 							mRhoPresMu.push_back(F4(rho, pres, mu, -1)); //rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
 																		//just note that the type, i.e. mRhoPresMu.w is float.
 																		//viscosity of the water is .0018
@@ -668,7 +670,7 @@ int2 CreateFluidParticles(
 					} else {
 						num_BoundaryParticles++;
 						mPosRadBoundary.push_back(posRad);
-						mVelMasBoundary.push_back(F4(0, 0, 0, (initSpaceX * initSpaceY * initSpaceZ) * rho));
+						mVelMasBoundary.push_back(F4(0, 0, 0, sphParticleMass));
 						mRhoPresMuBoundary.push_back(F4(rho, pres, mu, 0));	//rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
 						//just note that the type, i.e. mRhoPresMu.w is float.
 						//viscosity of the water is .0018
@@ -689,6 +691,7 @@ int CreateEllipsoidParticles(
 		float4 sphereVelMas,
 		float3 rigidBodyOmega,
 		float sphR,
+		float sphParticleMass,
 		float rho,
 		float pres,
 		float mu,
@@ -699,7 +702,7 @@ int CreateEllipsoidParticles(
 	//float spacing = .9 * sphR;
 	float multInitSpace = 1.0;//0.9;
 	float spacing = multInitSpace * sphR;
-	printf("initSpaceEllipsoid = %f * sphR\n", multInitSpace);
+	//printf("initSpaceEllipsoid = %f * sphR\n", multInitSpace);
 	for (int k = 0; k < 3; k++) {
 		float3 r3 = ellipsoidRadii - F3(k * spacing);
 		//printf("r, rigidR, k*spacing %f %f %f\n", r * 1000000, spherePosRad.w * 1000000, k * spacing * 1000000);
@@ -728,7 +731,7 @@ int CreateEllipsoidParticles(
 
 					float3 vel = F3(sphereVelMas) + cross(rigidBodyOmega, F3(posRadRigid_sphParticle) - rigidPos); //assuming LRF is the same as GRF at time zero (rigibodyOmega is in LRF, the second term of the cross is in GRF)
 					//printf("veloc %f %f %f\n", vel.x, vel.y, vel.z);
-					mVelMas.push_back(F4(vel, pow(spacing, 3) * rho));
+					mVelMas.push_back(F4(vel, sphParticleMass));
 					float representedArea = spacing * spacing;
 					mRhoPresMu.push_back(F4(rho, pres, mu, type));					// for rigid body particle, rho represents the represented area
 					//																						// for the rigid particles, the fluid properties are those of the contacting fluid particles
@@ -756,6 +759,7 @@ int CreateCylinderParticles_XZ(
 		float4 sphereVelMas,
 		float3 rigidBodyOmega,
 		float sphR,
+		float sphParticleMass,
 		float rho,
 		float pres,
 		float mu,
@@ -778,7 +782,7 @@ int CreateCylinderParticles_XZ(
 
 					mPosRad.push_back(posRadRigid_sphParticle);
 					float3 vel = F3(sphereVelMas) + cross(rigidBodyOmega, F3(posRadRigid_sphParticle) - rigidPos); //assuming LRF is the same as GRF at time zero (rigibodyOmega is in LRF, the second term of the cross is in GRF)
-					mVelMas.push_back(F4(vel, pow(spacing, 3) * rho));
+					mVelMas.push_back(F4(vel, sphParticleMass));
 					float representedArea = spacing * spacing;
 					mRhoPresMu.push_back(F4(rho, pres, mu, type));					// for rigid body particle, rho represents the represented area
 					//																						// for the rigid particles, the fluid properties are those of the contacting fluid particles 
@@ -860,6 +864,7 @@ int main() {
 	thrust::host_vector<float3> rigidBody_J2;
 	thrust::host_vector<float3> rigidBody_InvJ1;
 	thrust::host_vector<float3> rigidBody_InvJ2;
+	float sphParticleMass;
 
 	////***** here: define rigid bodies
 	string fileNameRigids("spheresPos.dat");
@@ -905,7 +910,7 @@ int main() {
 		thrust::host_vector<float4> mVelMasBoundary;
 		thrust::host_vector<float4> mRhoPresMuBoundary;
 
-		int2 num_fluidOrBoundaryParticles = CreateFluidParticles(mPosRad, mVelMas, mRhoPresMu, mPosRadBoundary, mVelMasBoundary, mRhoPresMuBoundary,
+		int2 num_fluidOrBoundaryParticles = CreateFluidParticles(mPosRad, mVelMas, mRhoPresMu, mPosRadBoundary, mVelMasBoundary, mRhoPresMuBoundary, sphParticleMass,
 				rigidPos, ellipsoidRadii, r, cMax, cMin, rho0, pres, mu, channelRadius);
 		referenceArray.push_back(I3(0, num_fluidOrBoundaryParticles.x, -1));
 		numAllParticles += num_fluidOrBoundaryParticles.x;
@@ -932,12 +937,13 @@ int main() {
 		printf("num_RigidBodyParticles: \n");
 		for (int rigidSpheres = 0; rigidSpheres < rigidPos.size(); rigidSpheres++) {
 			int num_RigidBodyParticles = CreateEllipsoidParticles(mPosRad, mVelMas, mRhoPresMu, rigidPos[rigidSpheres], ellipsoidRadii[rigidSpheres], spheresVelMas[rigidSpheres],
-					rigidBodyOmega[rigidSpheres], r, rho0, pres, mu, cMin, cMax, rigidSpheres + 1);		//as type
+					rigidBodyOmega[rigidSpheres], r, sphParticleMass, rho0, pres, mu, cMin, cMax, rigidSpheres + 1);		//as type
 //			int num_RigidBodyParticles = CreateCylinderParticles_XZ(mPosRad, mVelMas, mRhoPresMu,
 //													rigidPos[rigidSpheres], ellipsoidRadii[rigidSpheres],
 //													 spheresVelMas[rigidSpheres],
 //													 rigidBodyOmega[rigidSpheres],
 //													 r,
+//													sphParticleMass,
 //													 rho0, pres, mu,
 //													 cMin, cMax,
 //													 rigidSpheres + 1);		//as type
