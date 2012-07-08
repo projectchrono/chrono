@@ -799,7 +799,14 @@ int CreateCylinderParticles_XZ(
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 int main() {
-	printf("chaghal\n");
+	//****************************************************************************************
+	time_t rawtime;
+	struct tm * timeinfo;
+
+	time ( &rawtime );
+	timeinfo = localtime ( &rawtime );
+	printf ( "Job was submittet at date/time is: %s\n", asctime (timeinfo) );
+	//****************************************************************************************
 	//(void) cudaSetDevice(0);
 	int numAllParticles = 0;
 	//********************************************************************************************************
@@ -815,7 +822,7 @@ int main() {
 		///float3 cMax = make_float3( nPeriod * sPeriod + r3_2.x + 2 * r4_2.x + r6_2.x + x_FirstChannel + 2 * x_SecondChannel, 1.5 * sizeScale,  r6_2.y + 2 * toleranceZone);  //for serpentine
 	///float3 cMax = make_float3( nPeriod * sPeriod, 1.5 * sizeScale,  4.0 * sizeScale);  //for serpentine
 
-	float3 cMax = make_float3( nPeriod * 2.0 + 0, 1.5,  4.0) * sizeScale;  //for  straight channel
+	float3 cMax = make_float3( nPeriod * 1.0 + 0, 1.5,  4.0) * sizeScale;  //for  straight channel
 	//float3 cMax = make_float3( nPeriod * 2.0 + 0, 2.2,  2.2) * sizeScale;  //for  tube
 
 //	float3 cMax = make_float3(nPeriod * 1.0 + 0, .5,  3.5) * sizeScale;  //for straight channel, sphere
