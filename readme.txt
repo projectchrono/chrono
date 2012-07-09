@@ -13,6 +13,11 @@ xx-xx-xxxx
   system (ex the exporter for POVray). Cameras can be added to moving
   objects.
 
+- New asset of 'ChAssetLevel' type, that contains sub-assets and
+  that can define a coordinate transformation respect to the parent
+  asset. This allows the definition of hierarchies of assets with
+  shapes, group of shapes, etc.
+
 - Plug-in for SolidWorks. A custom SolidWorks add-in can be installed,
   so that in the SolidWorks CAD interface one can see some buttons to
   save the mechanism as a .py script.
@@ -23,10 +28,17 @@ xx-xx-xxxx
   mesh vertex points in the .obj shape files. This makes the .obj 
   UV texturing easier (ex. by using BLender etc.).
 
-- New ChPovRayAssetCustom in POSTPROCESS_unit. Allows adding custom
+- New ChPovRayAssetCustom in unit_POSTPROCESS. Allows adding custom
   POVray chuncks of code to the output .pov files (ex. materials, 
   finishing, pigments, etc.)
 
+- Improved Python units: support for dynamic casting via CastToXXYY
+  helper functions, larger number of wrapped and supported classes, etc.
+
+- New unit: unit_PYPARSER. It can be used by C++ programs to execute
+  Python statements, scripts, etc. Most important, it can be used
+  to populate a ChSystem with parts and constraints from a .py file 
+  exported from the SolidWorks Add-In. 
 
 
 
