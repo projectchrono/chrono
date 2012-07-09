@@ -401,25 +401,25 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 					assets_file << "mesh2  {\n";
 
 					assets_file << " vertex_vectors {\n";
-					assets_file << mytrimesh.m_vertices.size() << ",\n";
+					assets_file << (int)mytrimesh.m_vertices.size() << ",\n";
 					for (unsigned int iv = 0; iv < mytrimesh.m_vertices.size(); iv++)
 						assets_file << "  <" << mytrimesh.m_vertices[iv].x << "," <<  mytrimesh.m_vertices[iv].y << "," <<  mytrimesh.m_vertices[iv].z << ">,\n";
 					assets_file <<" }\n";
 
 					assets_file << " normal_vectors {\n";
-					assets_file << mytrimesh.m_normals.size() << ",\n";
+					assets_file << (int)mytrimesh.m_normals.size() << ",\n";
 					for (unsigned int iv = 0; iv < mytrimesh.m_normals.size(); iv++)
 						assets_file << "  <" << mytrimesh.m_normals[iv].x << "," <<  mytrimesh.m_normals[iv].y << "," <<  mytrimesh.m_normals[iv].z << ">,\n";
 					assets_file <<" }\n";
 
 					assets_file << " uv_vectors {\n";
-					assets_file << mytrimesh.m_UV.size() << ",\n";
+					assets_file << (int)mytrimesh.m_UV.size() << ",\n";
 					for (unsigned int iv = 0; iv < mytrimesh.m_UV.size(); iv++)
 						assets_file << "  <" << mytrimesh.m_UV[iv].x << "," <<  mytrimesh.m_UV[iv].y << ">,\n";
 					assets_file <<" }\n";
 
 					assets_file << " face_indices {\n";
-					assets_file << mytrimesh.m_face_v_indices.size() << ",\n";
+					assets_file << (int)mytrimesh.m_face_v_indices.size() << ",\n";
 					for (unsigned int it = 0; it < mytrimesh.m_face_v_indices.size(); it++)
 						assets_file << "  <" << mytrimesh.m_face_v_indices[it].x << "," <<  mytrimesh.m_face_v_indices[it].y << "," <<  mytrimesh.m_face_v_indices[it].z << ">,\n";
 					assets_file <<" }\n";
@@ -428,7 +428,7 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 					if (mytrimesh.m_face_n_indices != mytrimesh.m_face_v_indices)
 					{
 						assets_file << " normal_indices {\n";
-						assets_file << mytrimesh.m_face_n_indices.size() << ",\n";
+						assets_file << (int)mytrimesh.m_face_n_indices.size() << ",\n";
 						for (unsigned int it = 0; it < mytrimesh.m_face_n_indices.size(); it++)
 							assets_file << "  <" << mytrimesh.m_face_n_indices[it].x << "," <<  mytrimesh.m_face_n_indices[it].y << "," <<  mytrimesh.m_face_n_indices[it].z << ">,\n";
 						assets_file <<" }\n";
@@ -436,7 +436,7 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 					if (mytrimesh.m_face_u_indices != mytrimesh.m_face_v_indices)
 					{
 						assets_file << " uv_indices {\n";
-						assets_file << mytrimesh.m_face_u_indices.size() << ",\n";
+						assets_file << (int)mytrimesh.m_face_u_indices.size() << ",\n";
 						for (unsigned int it = 0; it < mytrimesh.m_face_u_indices.size(); it++)
 							assets_file << "  <" << mytrimesh.m_face_u_indices[it].x << "," <<  mytrimesh.m_face_u_indices[it].y << "," <<  mytrimesh.m_face_u_indices[it].z << ">,\n";
 						assets_file <<" }\n";
