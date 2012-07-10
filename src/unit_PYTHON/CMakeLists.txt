@@ -6,22 +6,15 @@
 
 
 SET(ENABLE_UNIT_PYTHON     FALSE    CACHE BOOL   "Turn ON this to generate the Chrono::Engine PYTHON unit(s).")
-SET(CH_PYTHONDIR           ""       CACHE PATH   "Where is your Python installed? Ex: 'C:/Python27'. This path should contain the Lib, libs, etc. directories.")
-
-
-# To hide unneeded option stuff from GUI (require refresh by pressing 'configure', anyway)
-IF(ENABLE_UNIT_PYTHON)
-	MARK_AS_ADVANCED(CLEAR CH_PYTHONDIR)	
-ELSE()
-	MARK_AS_ADVANCED(FORCE CH_PYTHONDIR)
-ENDIF()
 
 
 IF(ENABLE_UNIT_PYTHON)
 
 
 	FIND_PACKAGE(PythonLibs REQUIRED)
+	FIND_PACKAGE(PythonInterp REQUIRED)
 	
+	SET (CH_PYTHONDIR "$PYTHON_EXECUTABLE"})
 	SET (CH_PYTHONINC "${PYTHON_INCLUDE_PATH}")
 	SET (CH_PYTHONLIB "${PYTHON_LIBRARIES}")
 	
