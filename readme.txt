@@ -40,6 +40,10 @@ xx-xx-xxxx
   to populate a ChSystem with parts and constraints from a .py file 
   exported from the SolidWorks Add-In. 
 
+- Updated to Irrlicht 1.7.3
+
+- CMake v. 2.8.8 is required now (the old 2.8.6 had some problem in
+  finding Python libraries from Python v.3)
 
 
 Release 1.5.0
