@@ -188,7 +188,7 @@ IF(ENABLE_UNIT_PYTHON)
 							FOLDER "ChronoEngine_PYTHON")
 		
 	
-		
+	ADD_DEPENDENCIES (${SWIG_MODULE_ChronoEngine_PYTHON_core_REAL_NAME} ChronoEngine)	
 		
 		
 		
@@ -254,7 +254,10 @@ IF(ENABLE_UNIT_PYTHON)
 		#SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 		SET_TARGET_PROPERTIES(${SWIG_MODULE_ChronoEngine_PYTHON_postprocess_REAL_NAME} PROPERTIES
 								FOLDER "ChronoEngine_PYTHON")
-								
+
+
+		ADD_DEPENDENCIES (${SWIG_MODULE_ChronoEngine_PYTHON_postprocess_REAL_NAME} ChronoEngine)  
+		ADD_DEPENDENCIES (${SWIG_MODULE_ChronoEngine_PYTHON_postprocess_REAL_NAME} ChronoEngine_POSTPROCESS)  						
 								
 	ENDIF(ENABLE_UNIT_POSTPROCESS)						
 								
