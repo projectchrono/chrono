@@ -16,10 +16,10 @@
 	/>
 	<UserMacro
 		Name="IrrlichtDir"
-		Value="C:\engine_demo\irrlicht-1.7.1"
+		Value="C:\engine_demos\irrlicht-1.7.3"
 	/>
 	<UserMacro
 		Name="IrrklangDir"
-		Value="C:\engine_demo\irrKlang-1.1.2"
+		Value="C:\engine_demos\irrKlang-1.4.0"
 	/>
 </VisualStudioPropertySheet>

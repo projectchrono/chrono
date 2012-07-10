@@ -16,6 +16,6 @@
 	/>
 	<UserMacro
 		Name="IrrlichtDir"
-		Value="C:\engine_demo\irrlicht-1.7.1"
+		Value="C:\engine_demos\irrlicht-1.7.3"
 	/>
 </VisualStudioPropertySheet>
