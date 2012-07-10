@@ -1274,9 +1274,6 @@ ChSharedPtr<ChMarker> ChSystem::SearchMarker (int markID)
 
 void ChSystem::Reference_LM_byID()
 {
-	ChMarker* m1;
-	ChMarker* m2;
-
 	HIER_LINK_INIT
 	while HIER_LINK_NOSTOP
 	{
@@ -1286,9 +1283,9 @@ void ChSystem::Reference_LM_byID()
 			ChSharedPtr<ChMarker> shm2 = SearchMarker(malink->GetMarkID2());
 			ChMarker* mm1 = shm1.get_ptr();
 			ChMarker* mm2 = shm1.get_ptr();
-			malink->SetMarker1(m1);
-			malink->SetMarker2(m2);
-			if (m1 && m2)
+			malink->SetMarker1(mm1);
+			malink->SetMarker2(mm2);
+			if (mm1 && mm2)
 			{
 				Lpointer->SetValid(true);
 				HIER_LINK_NEXT
