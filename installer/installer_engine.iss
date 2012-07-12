@@ -38,6 +38,7 @@ OutputBaseFilename=ChronoEngine_{#MyAppVersion}
 [Files]
 Source: {#MyChronoEngineSDK}\*; Excludes: "*.c,*.cpp,*.cu,doxygen,\bin,\scripts,\source\collision\gimpact,\source\collision\edgetempest,\source\HOWTO_COMPILE_API.txt,*.pdb,_obsolete,\installer,*.o,*.obj,*.ncb,*.bat,source\*.def,*\.svn"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs
 Source: {#MyChronoEngineSDK}\bin\*; Excludes: "*.pdb,demo_benchmark.exe,*\.svn,*.ilk,*.idb,\data\mpi"; DestDir: "{app}\bin"; Flags: recursesubdirs createallsubdirs
+Source: {#MyChronoEngineSDK}\source\demos\*; Excludes: "*.pdb,demo_benchmark.exe,*\.svn,*.ilk,*.idb"; DestDir: "{app}\source\demos"; Flags: recursesubdirs createallsubdirs
 
 
 Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\*; DestDir: {code:myGetPathVisual9}VCWizards\ChronoEngineWizard; Check: myFoundVisual9; Flags: recursesubdirs createallsubdirs
