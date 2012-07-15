@@ -731,8 +731,8 @@ void PrintToFile(
 			if (tStep / tStepRigidParticlesDataForTecplot == 0) {
 				fileRigidParticlesDataForTecplot.open("dataRigidParticlesDataForTecplot.txt");
 				fileRigidParticlesDataForTecplot<<"PipeRadius, PipeLength\n";
-				fileRigidParticlesDataForTecplot<<	channelRadius <<", "<< cMax.x - cMin.x<<endl;
-				fileRigidParticlesDataForTecplot<<"variables = \"t(s)\", \"x\", \"y\", \"z\", \"r\", \"vX\", \"vY\", \"vZ\", \"velMagnitude\"\n";
+				fileRigidParticlesDataForTecplot<<	channelRadius <<", "<< cMax.x - cMin.x<<", "<< posRigidH.size()<<endl;
+				fileRigidParticlesDataForTecplot<<"variables = \"t(s)\", \"x\", \"y\", \"z\", \"r\", \"CumulX\", \"vX\", \"vY\", \"vZ\", \"velMagnitude\"\n";
 			} else {
 				fileRigidParticlesDataForTecplot.open("dataRigidParticlesDataForTecplot.txt", ios::app);
 			}
@@ -740,9 +740,10 @@ void PrintToFile(
 			stringstream ssRigidParticlesDataForTecplot;
 			for (int j = 0; j < posRigidH.size(); j++) {
 				float3 p_rigid = posRigidH[j];
+				float3 p_rigidCumul = posRigidCumulativeH[j];
 				float3 v_rigid = F3(velMassRigidH[j]);
 				float2 dist2 = F2(.5 * (cMax.y + cMin.y) - p_rigid.y, .5 * (cMax.z + cMin.z) - p_rigid.z);
-				ssRigidParticlesDataForTecplot<<tStep * delT<<", "<<p_rigid.x<<", "<<p_rigid.y<<", "<<p_rigid.z<<", "<<length(dist2) / channelRadius<<", "<<v_rigid.x<<", "<<v_rigid.y<<", "<<v_rigid.z<<", "<<length(v_rigid)<<endl;
+				ssRigidParticlesDataForTecplot<<tStep * delT<<", "<<p_rigid.x<<", "<<p_rigid.y<<", "<<p_rigid.z<<", "<<length(dist2) / channelRadius<<", "<<p_rigidCumul.x<<", "<<v_rigid.x<<", "<<v_rigid.y<<", "<<v_rigid.z<<", "<<length(v_rigid)<<endl;
 			}
 			fileRigidParticlesDataForTecplot << ssRigidParticlesDataForTecplot.str();
 			fileRigidParticlesDataForTecplot.close();
@@ -1397,11 +1398,16 @@ void cudaCollisions(
 			DensityReinitialization(posRadD, velMasD, rhoPresMuD, mNSpheres, SIDE); //does not work for analytical boundaries (non-meshed) and free surfaces
 		}
 
+		//************************************************
 		//edit PrintToFile since yu deleted cyliderRotOmegaJD
 		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, omegaLRF_D, cMax, cMin, paramsH,
 				delT, tStep, channelRadius);
 //		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
+		//************
 
+
+		PrintToFileSectionDistrubution(posRigidCumulativeD,
+		//*************************************************
 		float time2;
 		cudaEventRecord(stop2, 0);
 		cudaEventSynchronize(stop2);
