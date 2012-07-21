@@ -705,14 +705,14 @@ void PrintToFile(
 				float3 p_rigid = posRigidH[j];
 				//printf("position %f %f %f %f\n", p_rigid.x, p_rigid.y, p_rigid.z,0);
 				float3 p_rigidCumul = posRigidCumulativeH[j];
-				//***cartesian distance (channel, duct)
-				ssParticleCenterVsTime<<", " << tStep * delT<<", "<< p_rigid.y<<", "<< p_rigid.z;
-				ssParticleCenterVsDistance<<", "<<p_rigidCumul.x<<", "<<p_rigid.y<<", "<< p_rigid.z;
+//				//***cartesian distance (channel, duct)
+//				ssParticleCenterVsTime<<", " << tStep * delT<<", "<< p_rigid.y<<", "<< p_rigid.z;
+//				ssParticleCenterVsDistance<<", "<<p_rigidCumul.x<<", "<<p_rigid.y<<", "<< p_rigid.z;
 
 //				//***radial distance (tube)
-//				float2 dist2 = F2(.5 * (cMax.y + cMin.y) - p_rigid.y, .5 * (cMax.z + cMin.z) - p_rigid.z);
-//				fprintf(fileRigidParticleCenterVsTime, ", %f, %0.10f", tStep * delT, length(dist2) / channelRadius);
-//				fprintf(fileRigidParticleCenterVsDistance, ", %f, %0.10f", p_rigidCumul.x, length(dist2) / channelRadius);
+				float2 dist2 = F2(.5 * (cMax.y + cMin.y) - p_rigid.y, .5 * (cMax.z + cMin.z) - p_rigid.z);
+				ssParticleCenterVsTime<<", " << tStep * delT<<", "<< length(dist2) / channelRadius<<", "<<length(dist2) / channelRadius;
+				ssParticleCenterVsDistance<<", "<<p_rigidCumul.x<<", "<<length(dist2) / channelRadius<<", "<<length(dist2) / channelRadius;
 			}
 			ssParticleCenterVsTime<<endl;
 			ssParticleCenterVsDistance<<endl;
@@ -1404,10 +1404,6 @@ void cudaCollisions(
 				delT, tStep, channelRadius);
 //		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
 		//************
-
-
-		PrintToFileSectionDistrubution(posRigidCumulativeD,
-		//*************************************************
 		float time2;
 		cudaEventRecord(stop2, 0);
 		cudaEventSynchronize(stop2);

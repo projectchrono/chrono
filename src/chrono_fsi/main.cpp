@@ -591,8 +591,8 @@ int2 CreateFluidParticles(
 		float pres,
 		float mu,
 		float & channelRadius) {
-	float2 rad2 = .5 * F2(cMax.y - cMin.y, cMax.z - cMin.z);
-	channelRadius = (rad2.x < rad2.y) ? rad2.x : rad2.y;
+	//float2 rad2 = .5 * F2(cMax.y - cMin.y, cMax.z - cMin.z);
+	//channelRadius = (rad2.x < rad2.y) ? rad2.x : rad2.y;
 	channelRadius = 1.0 * sizeScale; //tube
 	int num_FluidParticles = 0;
 	int num_BoundaryParticles = 0;
@@ -635,9 +635,9 @@ int2 CreateFluidParticles(
 				bool flag = true;
 				///penDist = IsInsideCurveOfSerpentineBeta(posRad);
 				///penDist = IsInsideSerpentine(posRad);
-				penDist = IsInsideStraightChannel(posRad);
+				///penDist = IsInsideStraightChannel(posRad);
 				///penDist = IsInsideStraightChannel_XZ(posRad);
-				///penDist = IsInsideTube(posRad, cMax, cMin, channelRadius);
+				penDist = IsInsideTube(posRad, cMax, cMin, channelRadius);
 				if (penDist < -toleranceZone) flag = false;
 				if (flag) {
 					for (int rigidSpheres = 0; rigidSpheres < rigidPos.size(); rigidSpheres++) {
@@ -814,21 +814,21 @@ int main() {
 	float r = HSML;	//.02;
 
 	//float3 cMin = make_float3(0, -0.2, -1.2) * sizeScale; 							//for channel and serpentine
-	float3 cMin = make_float3(0, -0.2, -2) * sizeScale; 							//for channel and serpentine
-	//float3 cMin = make_float3(0, -0.2, -0.2) * sizeScale;							//for tube
+	//float3 cMin = make_float3(0, -0.2, -2) * sizeScale; 							//for channel and serpentine
+	float3 cMin = make_float3(0, -0.2, -0.2) * sizeScale;							//for tube
 
 	//float3 cMax = make_float3( nPeriod * 4.6 + 0, 1.5,  4.0) * sizeScale;  //for only CurvedSerpentine (w/out straight part)
 		///float3 cMax = make_float3( nPeriod * sPeriod + 8 * sizeScale, 1.5 * sizeScale,  4.0 * sizeScale);  //for old serpentine
 		///float3 cMax = make_float3( nPeriod * sPeriod + r3_2.x + 2 * r4_2.x + r6_2.x + x_FirstChannel + 2 * x_SecondChannel, 1.5 * sizeScale,  r6_2.y + 2 * toleranceZone);  //for serpentine
 	///float3 cMax = make_float3( nPeriod * sPeriod, 1.5 * sizeScale,  4.0 * sizeScale);  //for serpentine
 
-	float3 cMax = make_float3( nPeriod * 1.0 + 0, 1.5,  4.0) * sizeScale;  //for  straight channel
-	//float3 cMax = make_float3( nPeriod * 2.0 + 0, 2.2,  2.2) * sizeScale;  //for  tube
+	//float3 cMax = make_float3( nPeriod * 1.0 + 0, 1.5,  4.0) * sizeScale;  //for  straight channel
+	float3 cMax = make_float3( nPeriod * 2.0 + 0, 2.2,  2.2) * sizeScale;  //for  tube
 
-//	float3 cMax = make_float3(nPeriod * 1.0 + 0, .5,  3.5) * sizeScale;  //for straight channel, sphere
-//	float3 cMin = make_float3(0, -0.1, 0.5) * sizeScale;
-//	float3 cMax = make_float3(nPeriod * 1.0 + 0, 1.5, 1.5) * sizeScale;  //for tube channel, sphere
-//	float3 cMin = make_float3(0, -0.5, -0.5) * sizeScale;
+				//	float3 cMax = make_float3(nPeriod * 1.0 + 0, .5,  3.5) * sizeScale;  //for straight channel, sphere
+				//	float3 cMin = make_float3(0, -0.1, 0.5) * sizeScale;
+				//	float3 cMax = make_float3(nPeriod * 1.0 + 0, 1.5, 1.5) * sizeScale;  //for tube channel, sphere
+				//	float3 cMin = make_float3(0, -0.5, -0.5) * sizeScale;
 
 	//printf("a1  cMax.x, y, z %f %f %f,  binSize %f\n", cMax.x, cMax.y, cMax.z, 2 * HSML);
 	int3 side0 = I3(floor((cMax.x - cMin.x) / (2 * HSML)), floor((cMax.y - cMin.y) / (2 * HSML)), floor((cMax.z - cMin.z) / (2 * HSML)));
@@ -843,7 +843,7 @@ int main() {
 	//printf("side0 %d %d %d \n", side0.x, side0.y, side0.z);
 
 	//float delT = .02 * sizeScale;
-	float delT = .005 * sizeScale;
+	float delT = .01 * sizeScale;
 //	float delT = .001 * sizeScale;
 
 	bool readFromFile = false;  //true;		//true: initializes from file. False: initializes inside the code
@@ -879,9 +879,9 @@ int main() {
 	float channelRadius;
 	float3 r3Ellipsoid = F3(.03 * sizeScale);//F3(.05, .03, .02) * sizeScale;//F3(.03 * sizeScale);
 	//**
-	CreateRigidBodiesPattern(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, channelRadius);
+//	CreateRigidBodiesPattern(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, channelRadius);
 	//**
-	//CreateRigidBodiesFromFile(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, cMin, cMax, fileNameRigids, rhoRigid, channelRadius);
+	CreateRigidBodiesFromFile(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, cMin, cMax, fileNameRigids, rhoRigid, channelRadius);
 	//**
 //	channelRadius = 1.0 * sizeScale;
 //	CreateRigidBodiesPatternPipe(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, channelRadius);
