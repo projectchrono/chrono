@@ -28,7 +28,7 @@ typedef unsigned int uint;
 #define HSML 0.04f*sizeScale
 #define BASEPRES 0
 #define nPeriod 1
-#define Gravity make_float3(0, 0, -.2)
+#define Gravity make_float3(0, 0, 0)
 //#define bodyForce4 make_float4(.005, 0, 0, 0)
 #define bodyForce4 make_float4(.7, 0, 0, 0)
 //#define bodyForce4 make_float4(.1, 0, 0, 0)
