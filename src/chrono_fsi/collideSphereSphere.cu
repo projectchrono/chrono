@@ -487,7 +487,7 @@ void PrintToFile(
 	thrust::host_vector<float3> omegaLRF_H = omegaLRF_D;
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++com
 	ofstream fileNameFluid;
-	int stepSaveFluid = 100000;
+	int stepSaveFluid = 200000;
 	if (tStep % stepSaveFluid == 0) {
 		if (tStep / stepSaveFluid == 0) {
 			fileNameFluid.open("dataFluid.txt");
@@ -510,7 +510,7 @@ void PrintToFile(
 	}
 ////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	ofstream fileNameRigidsSPH;
-	int stepSaveRigid = 2000;
+	int stepSaveRigid = 5000;
 	///if (tStep % 20 == 0 && tStep > 56000) {
 	//if (tStep > 12506) {
 	if (tStep % stepSaveRigid == 0) {
@@ -554,7 +554,7 @@ void PrintToFile(
 	}
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	ofstream fileNameSlice;
-	int stepSaveFluidSlice = 10000; //1;//20000;
+	int stepSaveFluidSlice = 20000; //1;//20000;
 	//if (tStep%100 == 0 &&  tStep > 20400) {
 	//if (tStep > 49100) {
 	if (tStep % stepSaveFluidSlice == 0) {

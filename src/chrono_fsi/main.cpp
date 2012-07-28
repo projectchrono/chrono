@@ -593,12 +593,12 @@ int2 CreateFluidParticles(
 		float & channelRadius) {
 	//float2 rad2 = .5 * F2(cMax.y - cMin.y, cMax.z - cMin.z);
 	//channelRadius = (rad2.x < rad2.y) ? rad2.x : rad2.y;
-	channelRadius = 1.0 * sizeScale; //tube
+	channelRadius = 5.6 * sizeScale; //1.0 * sizeScale; //tube
 	int num_FluidParticles = 0;
 	int num_BoundaryParticles = 0;
 	srand(964);
 	//float initSpace0 = 0.9 * sphR; //1.1 * sphR;//1.1 * sphR;//pow(4.0 / 3 * PI, 1.0 / 3) * sphR;
-	float multInitSpace = 1.0;//0.9;
+	float multInitSpace = 1.0;//0.9;//0.9;
 	float initSpace0 = multInitSpace * sphR;
 	printf("initSpaceFluid = %f * sphR\n", multInitSpace);
 	int nFX = ceil((cMax.x - cMin.x) / (initSpace0));
@@ -700,7 +700,7 @@ int CreateEllipsoidParticles(
 		int type) {
 	int num_rigidBodyParticles = 0;
 	//float spacing = .9 * sphR;
-	float multInitSpace = 1.0;//0.9;
+	float multInitSpace = 1.0;//0.9;//1.0;//0.9;
 	float spacing = multInitSpace * sphR;
 	//printf("initSpaceEllipsoid = %f * sphR\n", multInitSpace);
 	for (int k = 0; k < 3; k++) {
@@ -815,7 +815,7 @@ int main() {
 
 	//float3 cMin = make_float3(0, -0.2, -1.2) * sizeScale; 							//for channel and serpentine
 	//float3 cMin = make_float3(0, -0.2, -2) * sizeScale; 							//for channel and serpentine
-	float3 cMin = make_float3(0, -0.2, -0.2) * sizeScale;							//for tube
+	float3 cMin = make_float3(0, -2, -2) * sizeScale;							//for tube
 
 	//float3 cMax = make_float3( nPeriod * 4.6 + 0, 1.5,  4.0) * sizeScale;  //for only CurvedSerpentine (w/out straight part)
 		///float3 cMax = make_float3( nPeriod * sPeriod + 8 * sizeScale, 1.5 * sizeScale,  4.0 * sizeScale);  //for old serpentine
@@ -823,7 +823,7 @@ int main() {
 	///float3 cMax = make_float3( nPeriod * sPeriod, 1.5 * sizeScale,  4.0 * sizeScale);  //for serpentine
 
 	//float3 cMax = make_float3( nPeriod * 1.0 + 0, 1.5,  4.0) * sizeScale;  //for  straight channel
-	float3 cMax = make_float3( nPeriod * 2.0 + 0, 2.2,  2.2) * sizeScale;  //for  tube
+	float3 cMax = make_float3( nPeriod * 10.0 + 0, 11.2 + 2,  11.2 + 2) * sizeScale;  //for  tube
 
 				//	float3 cMax = make_float3(nPeriod * 1.0 + 0, .5,  3.5) * sizeScale;  //for straight channel, sphere
 				//	float3 cMin = make_float3(0, -0.1, 0.5) * sizeScale;
@@ -843,7 +843,7 @@ int main() {
 	//printf("side0 %d %d %d \n", side0.x, side0.y, side0.z);
 
 	//float delT = .02 * sizeScale;
-	float delT = .01 * sizeScale;
+	float delT = .005 * sizeScale;
 //	float delT = .001 * sizeScale;
 
 	bool readFromFile = false;  //true;		//true: initializes from file. False: initializes inside the code
@@ -875,7 +875,7 @@ int main() {
 
 	////***** here: define rigid bodies
 	string fileNameRigids("spheresPos.dat");
-	rhoRigid = 1000; //1050; //originally .079 //.179 for cylinder
+	rhoRigid = 1180;//1000; //1050; //originally .079 //.179 for cylinder
 	float channelRadius;
 	float3 r3Ellipsoid = F3(.03 * sizeScale);//F3(.05, .03, .02) * sizeScale;//F3(.03 * sizeScale);
 	//**
