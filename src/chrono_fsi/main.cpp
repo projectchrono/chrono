@@ -16,6 +16,8 @@
 #include <fstream>
 #include <string>
 #include <limits.h>
+#include <vector>
+#include <cstdlib> //for RAND_MAX
 
 //for memory leak detection, apparently does not work in conjunction with cuda
 //#define _CRTDBG_MAP_ALLOC
@@ -46,6 +48,8 @@ const float2 r5_2 = F2(1.675, 1.235) * sizeScale; //r5_2 = F2(1.727, 1.235);  	/
 const float2 r6_2 = F2(2.747, 4.272) * sizeScale;												//the larger one
 const float x_FirstChannel = 8 * sizeScale;
 const float x_SecondChannel = 2 * sizeScale;
+
+const float channelRadius = 5.6 * sizeScale; //1.0 * sizeScale; //tube
 
 const float sPeriod = 5.384 * sizeScale;		//serpentine period
 const float toleranceZone = 3 * HSML;
@@ -101,6 +105,55 @@ void CalcInvJ(const float3 j1, const float3 j2, float3 & invJ1, float3 & invJ2) 
 	invJ2 = invJ2 / detJ / maxComp;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+void CreateRigidBodiesRandom(
+		thrust::host_vector<float3> & rigidPos,
+		thrust::host_vector<float4> & spheresVelMas,
+		thrust::host_vector<float3> & rigidBodyOmega,
+		thrust::host_vector<float3> & rigidBody_J1,
+		thrust::host_vector<float3> & rigidBody_J2,
+		thrust::host_vector<float3> & rigidBody_InvJ1,
+		thrust::host_vector<float3> & rigidBody_InvJ2,
+		thrust::host_vector<float3> & ellipsoidRadii,
+		const float3 referenceR,
+		const float rhoRigid,
+		int numSpheres) {
+
+	srand ( time(NULL) );
+	float num;
+	vector<float> randLinVec(0);
+	fstream inRandomFile("../randomLinear", ios::in);
+	inRandomFile >> num;
+	while (!inRandomFile.eof()) {
+		randLinVec.push_back(num);
+		inRandomFile >> num;
+	}
+	float xSpace = (straightChannelMax.x - straightChannelMin.x) / numSpheres;
+	for (int i = 0; i < numSpheres; i++) {
+		int index = (int)(randLinVec.size() - 1) * float (rand()) / RAND_MAX;
+		float r = (4.5 * sizeScale) * randLinVec[index];
+		printf("sizeRandomLinear %d\n", randLinVec.size() );	//4.5 comes from channelRadius
+		float teta = 2 * PI * float (rand()) / RAND_MAX;
+		float3 pos = straightChannelMin + F3(0, channelRadius, channelRadius) + F3( (i + 0.5) * xSpace, float(r  * cos(teta)), float(r *  sin(teta)) );
+		rigidPos.push_back(pos);
+
+		 ellipsoidRadii.push_back(referenceR);
+		 float mass;
+		 float3 j1, j2;
+		 CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x, referenceR.y, referenceR.z, rhoRigid);						//create Ellipsoid
+
+		spheresVelMas.push_back(F4(0, 0, 0, float(mass)));
+		rigidBodyOmega.push_back(F3(0, 0, 0));
+		rigidBody_J1.push_back(j1);
+		rigidBody_J2.push_back(j2);
+
+		float3 invJ1, invJ2;
+		CalcInvJ(j1, j2, invJ1, invJ2);
+		rigidBody_InvJ1.push_back(invJ1);
+		rigidBody_InvJ2.push_back(invJ2);
+	}
+	randLinVec.clear();
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CreateRigidBodiesFromFile(
 		thrust::host_vector<float3> & rigidPos,
 		thrust::host_vector<float4> & spheresVelMas,
@@ -113,8 +166,7 @@ void CreateRigidBodiesFromFile(
 		const float3 cMin,
 		const float3 cMax,
 		const string fileNameRigids,
-		const float rhoRigid,
-		float & channelRadius) {
+		const float rhoRigid) {
 
 	fstream ifileSpheres(fileNameRigids.c_str(), ios::in);
 	//rRigidBody = .08 * sizeScale;//.06 * sizeScale;//.125 * sizeScale; // .25 * sizeScale; //.06 * sizeScale;//.08 * sizeScale;//.179 * sizeScale;
@@ -167,8 +219,7 @@ void CreateRigidBodiesPattern(
 		thrust::host_vector<float3> & rigidBody_InvJ2,
 		thrust::host_vector<float3> & ellipsoidRadii,
 		const float3 referenceR,
-		const float rhoRigid,
-		float & channelRadius) {
+		const float rhoRigid) {
 
 	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
 	//printf("cMin %f %f %f, cMax %f %f %f\n", straightChannelMin.x, straightChannelMin.y, straightChannelMin.z, straightChannelMax.x, straightChannelMax.y, straightChannelMax.z);
@@ -209,8 +260,7 @@ void CreateRigidBodiesPatternPipe(
 		thrust::host_vector<float3> & rigidBody_InvJ2,
 		thrust::host_vector<float3> & ellipsoidRadii,
 		const float3 referenceR,
-		const float rhoRigid,
-		float & channelRadius) {
+		const float rhoRigid) {
 
 	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
 	//printf("cMin %f %f %f, cMax %f %f %f\n", straightChannelMin.x, straightChannelMin.y, straightChannelMin.z, straightChannelMax.x, straightChannelMax.y, straightChannelMax.z);
@@ -556,7 +606,7 @@ float IsInsideStraightChannel_XZ(float4 posRad) {
 	return -largePenet;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-float IsInsideTube(float4 posRad, float3 cMax, float3 cMin, float channelRadius) {
+float IsInsideTube(float4 posRad, float3 cMax, float3 cMin) {
 	const float sphR = posRad.w;
 	float penDist1 = 0;
 	//const float toleranceZone = 2 * sphR;
@@ -589,11 +639,9 @@ int2 CreateFluidParticles(
 		float3 cMin,
 		float rho,
 		float pres,
-		float mu,
-		float & channelRadius) {
+		float mu) {
 	//float2 rad2 = .5 * F2(cMax.y - cMin.y, cMax.z - cMin.z);
 	//channelRadius = (rad2.x < rad2.y) ? rad2.x : rad2.y;
-	channelRadius = 5.6 * sizeScale; //1.0 * sizeScale; //tube
 	int num_FluidParticles = 0;
 	int num_BoundaryParticles = 0;
 	srand(964);
@@ -637,7 +685,7 @@ int2 CreateFluidParticles(
 				///penDist = IsInsideSerpentine(posRad);
 				///penDist = IsInsideStraightChannel(posRad);
 				///penDist = IsInsideStraightChannel_XZ(posRad);
-				penDist = IsInsideTube(posRad, cMax, cMin, channelRadius);
+				penDist = IsInsideTube(posRad, cMax, cMin);
 				if (penDist < -toleranceZone) flag = false;
 				if (flag) {
 					for (int rigidSpheres = 0; rigidSpheres < rigidPos.size(); rigidSpheres++) {
@@ -823,7 +871,7 @@ int main() {
 	///float3 cMax = make_float3( nPeriod * sPeriod, 1.5 * sizeScale,  4.0 * sizeScale);  //for serpentine
 
 	//float3 cMax = make_float3( nPeriod * 1.0 + 0, 1.5,  4.0) * sizeScale;  //for  straight channel
-	float3 cMax = make_float3( nPeriod * 10.0 + 0, 11.2 + 2,  11.2 + 2) * sizeScale;  //for  tube
+	float3 cMax = make_float3( nPeriod * 20.0 + 0, 11.2 + 2,  11.2 + 2) * sizeScale;  //for  tube
 
 				//	float3 cMax = make_float3(nPeriod * 1.0 + 0, .5,  3.5) * sizeScale;  //for straight channel, sphere
 				//	float3 cMin = make_float3(0, -0.1, 0.5) * sizeScale;
@@ -876,17 +924,16 @@ int main() {
 	////***** here: define rigid bodies
 	string fileNameRigids("spheresPos.dat");
 	rhoRigid = 1180;//1000; //1050; //originally .079 //.179 for cylinder
-	float channelRadius;
-	float3 r3Ellipsoid = F3(.03 * sizeScale);//F3(.05, .03, .02) * sizeScale;//F3(.03 * sizeScale);
+	float3 r3Ellipsoid = F3(.8 * sizeScale);//float3 r3Ellipsoid = F3(.03 * sizeScale);//F3(.05, .03, .02) * sizeScale;//F3(.03 * sizeScale);
 	//**
-//	CreateRigidBodiesPattern(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, channelRadius);
+//	CreateRigidBodiesPattern(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
 	//**
-	CreateRigidBodiesFromFile(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, cMin, cMax, fileNameRigids, rhoRigid, channelRadius);
+//	CreateRigidBodiesFromFile(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, cMin, cMax, fileNameRigids, rhoRigid);
 	//**
-//	channelRadius = 1.0 * sizeScale;
-//	CreateRigidBodiesPatternPipe(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, channelRadius);
+//	//channelRadius = 1.0 * sizeScale;
+//	CreateRigidBodiesPatternPipe(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
 	//**
-
+	CreateRigidBodiesRandom(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, 2);
 
 	printf("size rigids %d\n", rigidPos.size());
 	//---------------------------------------------------------------------
@@ -918,7 +965,7 @@ int main() {
 		thrust::host_vector<float4> mRhoPresMuBoundary;
 
 		int2 num_fluidOrBoundaryParticles = CreateFluidParticles(mPosRad, mVelMas, mRhoPresMu, mPosRadBoundary, mVelMasBoundary, mRhoPresMuBoundary, sphParticleMass,
-				rigidPos, ellipsoidRadii, r, cMax, cMin, rho0, pres, mu, channelRadius);
+				rigidPos, ellipsoidRadii, r, cMax, cMin, rho0, pres, mu);
 		referenceArray.push_back(I3(0, num_fluidOrBoundaryParticles.x, -1));
 		numAllParticles += num_fluidOrBoundaryParticles.x;
 		printf("num_FluidParticles: %d\n", num_fluidOrBoundaryParticles.x);
