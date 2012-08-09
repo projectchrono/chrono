@@ -560,12 +560,13 @@ IF (BUILD_CH_SDK)
 		geometry/ChCTriangleMeshConnected.cpp 
 	)
 	SET(ChronoEngine_geometry_HEADERS
-		geometry/ChCBox.h
 		geometry/ChCGeometry.h
+		geometry/ChCSphere.h
+		geometry/ChCBox.h
+		geometry/ChCCylinder.h
 		geometry/ChCLine.h
 		geometry/ChCLineCam.h
 		geometry/ChCLinePoly.h
-		geometry/ChCSphere.h
 		geometry/ChCTriangle.h
 		geometry/ChCTriangleMesh.h
 		geometry/ChCTriangleMeshSoup.h

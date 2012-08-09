@@ -22,14 +22,14 @@
 // no arguments, that also instances one object.
 
 %pythoncode %{
-def __ChTYPE__Shared_custominit(self):
-	newsharedobj = __ChTYPE__()
-	newsharedobj.thisown =0
-	#print 'Debug: init __ChTYPE__Shared '
+def __ChTYPE__Shared ## _custominit(self,*args):
+	newsharedobj = __ChTYPE__(*args)
+	newsharedobj.thisown = 0
+	#print 'Debug: init __ChTYPE__ ## Shared '
 	__ChTYPE__Shared.__cppinit__(self, newsharedobj)
 
 setattr(__ChTYPE__Shared, "__cppinit__", __ChTYPE__Shared.__init__)
-setattr(__ChTYPE__Shared, "__init__", __ChTYPE__Shared_custominit)
+setattr(__ChTYPE__Shared, "__init__", __ChTYPE__Shared ## _custominit)
 
 %}
 
@@ -50,9 +50,9 @@ setattr(__ChTYPE__Shared, "__init__", __ChTYPE__Shared_custominit)
 // no arguments, that also instances one object.
 
 %pythoncode %{
-def __ChTYPE__ ## Shared_custominit(self):
-	newsharedobj = __ChTYPE__()
-	newsharedobj.thisown =0
+def __ChTYPE__ ## Shared_custominit(self,*args):
+	newsharedobj = __ChTYPE__(*args)
+	newsharedobj.thisown = 0
 	__ChTYPE__ ## Shared.__cppinit__(self, newsharedobj)
 
 setattr(__ChTYPE__ ## Shared, "__cppinit__", __ChTYPE__ ## Shared.__init__)

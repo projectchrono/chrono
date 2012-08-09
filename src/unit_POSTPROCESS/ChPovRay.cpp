@@ -14,6 +14,7 @@
 #include "geometry/ChCTriangleMeshConnected.h"
 #include "assets/ChObjShapeFile.h"
 #include "assets/ChSphereShape.h"
+#include "assets/ChCylinderShape.h"
 #include "assets/ChBoxShape.h"
 #include "assets/ChTexture.h"
 #include "assets/ChAssetLevel.h"
@@ -463,7 +464,6 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 				}
 			}
 
-
 			// *) asset k of object i is a sphere ?
 			if (k_asset.IsType<ChSphereShape>() )
 			{
@@ -480,20 +480,36 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 				assets_file << ","  << myobjshapeasset->GetSphereGeometry().center.z << ">\n";
 				assets_file << " "  << myobjshapeasset->GetSphereGeometry().rad << "\n";
 
-				/*
-				assets_file <<" pigment {color rgbt <" << 
-						myobjshapeasset->GetColor().R << "," << 
-						myobjshapeasset->GetColor().G << "," << 
-						myobjshapeasset->GetColor().B << "," << 
-						myobjshapeasset->GetFading() << "> }\n";
-				*/
-
 				assets_file <<"}\n";
 
 				// POV macro - end 
 				assets_file << "#end \n";
 			}
 
+			// *) asset k of object i is a cylinder ?
+			if (k_asset.IsType<ChCylinderShape>() )
+			{
+				ChSharedPtr<ChCylinderShape> myobjshapeasset(k_asset);
+
+				// POV macro to build the asset - begin
+				assets_file << "#macro sh_"<< (int) k_asset.get_ptr() << "()\n"; //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
+
+				// POV will make the sphere
+				assets_file << "cylinder  {\n";
+
+				assets_file << " <" << myobjshapeasset->GetCylinderGeometry().p1.x;
+				assets_file << ","  << myobjshapeasset->GetCylinderGeometry().p1.y;
+				assets_file << ","  << myobjshapeasset->GetCylinderGeometry().p1.z << ">,\n";
+				assets_file << " <" << myobjshapeasset->GetCylinderGeometry().p2.x;
+				assets_file << ","  << myobjshapeasset->GetCylinderGeometry().p2.y;
+				assets_file << ","  << myobjshapeasset->GetCylinderGeometry().p2.z << ">,\n";
+				assets_file << " "  << myobjshapeasset->GetCylinderGeometry().rad << "\n";
+
+				assets_file <<"}\n";
+
+				// POV macro - end 
+				assets_file << "#end \n";
+			}
 
 			// *) asset k of object i is a box ?
 			if (k_asset.IsType<ChBoxShape>() )
@@ -524,14 +540,6 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 				assets_file <<"," << myobjshapeasset->GetBoxGeometry().Pos.z << "> \n";
 
 				assets_file <<"}\n"; // end box
-
-				/*
-				assets_file <<" pigment {color rgbt <" << 
-						myobjshapeasset->GetColor().R << "," << 
-						myobjshapeasset->GetColor().G << "," << 
-						myobjshapeasset->GetColor().B << "," << 
-						myobjshapeasset->GetFading() << "> }\n";
-				*/
 
 				assets_file <<"}\n"; // end union
 				
@@ -565,7 +573,7 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 				// add POV  texture
 				assets_file << "texture { uv_mapping pigment { image_map {";
 				if (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length()-5,1)==".")
-					assets_file << (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length()-4,3)).c_str() << " ";
+					assets_file << (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length()-4,4)).c_str() << " ";
 				if (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length()-4,1)==".")
 					assets_file << (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length()-3,3)).c_str() << " ";
 				assets_file << "\"" << myobjtextureasset->GetTextureFilename().c_str() << "\"";
@@ -579,9 +587,8 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 			if ( k_asset.IsType<ChAssetLevel>() )
 			{
 				ChSharedPtr<ChAssetLevel> mylevel(k_asset);
-				// recurse level...
-				//ChFrame<> composedframe = mylevel->GetFrame() >> parentframe;
 
+				// recurse level...
 				std::vector< ChSharedPtr<ChAsset> >& subassetlist = mylevel->GetAssets();
 				_recurseExportAssets(subassetlist, assets_file);
 			}
@@ -629,9 +636,6 @@ void ChPovRay::_recurseExportObjData( std::vector< ChSharedPtr<ChAsset> >& asset
 			 k_asset.IsType<ChBoxShape>() )
 		{
 			mfilepov << "sh_"<< (unsigned int) k_asset.get_ptr() << "()\n"; // "("; 
-
-			//mfilepov << assetcsys.pos.x << "," << assetcsys.pos.y << "," << assetcsys.pos.z << ",";
-			//mfilepov << assetcsys.rot.e0 << "," << assetcsys.rot.e1 << "," << assetcsys.rot.e2 << "," << assetcsys.rot.e3 << ")\n";
 		}
 		if ( k_asset.IsType<ChPovRayAssetCustom>() || 
 			 k_asset.IsType<ChTexture>() )
@@ -665,13 +669,16 @@ void ChPovRay::_recurseExportObjData( std::vector< ChSharedPtr<ChAsset> >& asset
 	} // end loop on assets
 	
 	// write the rotation and position
-	mfilepov <<" quatRotation(<" << parentframe.GetRot().e0;
-	mfilepov <<"," << parentframe.GetRot().e1;
-	mfilepov <<"," << parentframe.GetRot().e2;
-	mfilepov <<"," << parentframe.GetRot().e3 << ">) \n";
-	mfilepov <<" translate  <" << parentframe.GetPos().x;
-	mfilepov <<"," << parentframe.GetPos().y;
-	mfilepov <<"," << parentframe.GetPos().z << "> \n";
+	if (!(parentframe.GetCoord() == CSYSNORM))
+	{
+		mfilepov <<" quatRotation(<" << parentframe.GetRot().e0;
+		mfilepov <<"," << parentframe.GetRot().e1;
+		mfilepov <<"," << parentframe.GetRot().e2;
+		mfilepov <<"," << parentframe.GetRot().e3 << ">) \n";
+		mfilepov <<" translate  <" << parentframe.GetPos().x;
+		mfilepov <<"," << parentframe.GetPos().y;
+		mfilepov <<"," << parentframe.GetPos().z << "> \n";
+	}
 
 	mfilepov << "}\n"; // end union
 }
@@ -709,11 +716,19 @@ void ChPovRay::ExportData(const std::string &filename)
 			mfilepov << "\n\n";
 		}
 
+		// Tell POV to open the .dat file, that could be used by 
+		// ChParticleClones for efficiency (xyz raw data with center of particles will 
+		// be saved in dat and load using a #while POV loop, helping to reduce size of .pov file)
+		mfilepov << "#declare dat_file = \"" << pathdat << "\"\n";
+		mfilepov << "#fopen MyDatFile dat_file read \n\n";
+
+
 		// Save time-dependent data for the geometry of objects in ...nnnn.POV 
 		// and in ...nnnn.DAT file
 
 		for (unsigned int i = 0; i< this->mdata.size(); i++)
-		{			
+		{	
+			// #) saving a body ?
 			if (mdata[i].IsType<ChBody>() )
 			{
 				ChSharedPtr<ChBody> mybody(mdata[i]);
@@ -746,7 +761,47 @@ void ChPovRay::ExportData(const std::string &filename)
 				
 			}
 
+			// #) saving a cluster of particles ?  (NEW method that uses a POV '#while' loop and a .dat file)
+			if (mdata[i].IsType<ChParticlesClones>() )
+			{
+				ChSharedPtr<ChParticlesClones> myclones(mdata[i]);
 
+				mfilepov << " \n";
+				//mfilepov << "union{\n";
+				mfilepov << "#declare Index = 0; \n";
+				mfilepov << "#while(Index < "<< myclones->GetNparticles() << ") \n";
+				mfilepov << "  #read (MyDatFile, apx, apy, apz, aq0, aq1, aq2, aq3) \n";
+				mfilepov << "  union{\n";
+				ChFrame<> nullframe(CSYSNORM);
+				_recurseExportObjData (mdata[i]->GetAssets(), nullframe, mfilepov);
+				mfilepov << "  quatRotation(<aq0,aq1,aq2,aq3>)\n";
+				mfilepov << "  translate(<apx,apy,apz>)\n";
+				mfilepov << "  }\n";
+				mfilepov << "  #declare Index = Index + 1; \n";
+				mfilepov << "#end \n";
+				//mfilepov << "} \n";
+
+				// Loop on all particle clones
+				for (unsigned int m = 0; m < myclones->GetNparticles() ; ++m)
+				{
+					// Get the current coordinate frame of the i-th particle
+					ChCoordsys<> assetcsys = CSYSNORM;
+					assetcsys = myclones->GetParticle(m).GetCoord();
+
+					mfiledat << assetcsys.pos.x << ", ";
+					mfiledat << assetcsys.pos.y << ", ";
+					mfiledat << assetcsys.pos.z << ", ";
+					mfiledat << assetcsys.rot.e0 << ", ";
+					mfiledat << assetcsys.rot.e1 << ", ";
+					mfiledat << assetcsys.rot.e2 << ", ";
+					mfiledat << assetcsys.rot.e3 << ", \n";
+				} // end loop on particles
+			}
+
+			/*
+			// OBSOLETE method of saving particle clones: just save
+			// in mfilepov the shared asset(s) for N times, for all N particles. The .pov file 
+			// can eat a lot of space on disk...
 			if (mdata[i].IsType<ChParticlesClones>() )
 			{
 				ChSharedPtr<ChParticlesClones> myclones(mdata[i]);
@@ -765,8 +820,9 @@ void ChPovRay::ExportData(const std::string &filename)
 
 				} // end loop on particles
 			}
+			*/
 
-
+			// #) saving a cluster of particles ?
 			if (mdata[i].IsType<ChLinkMateGeneric>() )
 			{
 				ChSharedPtr<ChLinkMateGeneric> mylinkmate(mdata[i]);
@@ -788,6 +844,7 @@ void ChPovRay::ExportData(const std::string &filename)
 
 		} // end loop on objects
 
+		// #) saving contacts ?
 		if (this->contacts_show)
 		{
 			char pathcontacts[200];
@@ -859,6 +916,8 @@ void ChPovRay::ExportData(const std::string &filename)
 			mfilepov <<	"}\n\n\n"; 
 		}
 
+		// At the end of the .pov file, remember to close the .dat 
+		mfilepov << "\n\n#fclose MyDatFile \n";
 	}
 	catch (ChException)
 	{

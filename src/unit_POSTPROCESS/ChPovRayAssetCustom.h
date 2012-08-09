@@ -60,8 +60,6 @@ public:
 	//void SetCommands (const std::string& mcomm) {custom_command = mcomm;}
 	void SetCommands (char mcomm[]);
 
-	double GetFoo() {return foo;}
-	void SetFoo(double mfoo) {foo = mfoo;}
 };
 
 

@@ -4,9 +4,23 @@
   History of API changes, bug fixes, new features
 
 
+Release 1.7.0
+xx-xx-xxxx
+
+- Improved ChPovRay postprocessor: when saving ChParticleClones
+  items, instead than repeating the dump of assets in the my_stateNNN.pov
+  file (which might lead to very large files when using >1'000 particles)
+  it just dumps a #while loop in the pov file, that in turn will load
+  only the xyz and rotation coordinates from raw data saved in a 
+  compact .dat file, in rendertime. This helps saving disk space.
+
+- ChPovRay had a problem with texture suffixes longer than 3 
+  chars, ex foo.jpeg. Bug fixed.
+
+ 
 
 Release 1.6.0
-xx-xx-xxxx
+19-07-2012
 
 - New asset of 'ChCamera' type, for defining a videocamera point
   ov view, zoom etc. This asset can be interpreted by postprocessing
