@@ -17,7 +17,13 @@ xx-xx-xxxx
 - ChPovRay had a problem with texture suffixes longer than 3 
   chars, ex foo.jpeg. Bug fixed.
 
- 
+- In Python, the constructors of shared pointers to objects (objects
+  that are handled via shared pointers, that end with ..Shared)
+  now can optionally accept also the parameters of the pointed
+  class, for example if ChConveyor can be built with three arguments:
+   body_belt = chrono.ChConveyorShared(conv_length,conv_thick,conv_width)
+  whereas previously you could do only
+   body_belt = chrono.ChConveyorShared() 
 
 Release 1.6.0
 19-07-2012
