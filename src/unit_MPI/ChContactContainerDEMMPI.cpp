@@ -45,6 +45,7 @@ ChContactContainerDEMMPI::ChContactContainerDEMMPI ()
 
 ChContactContainerDEMMPI::~ChContactContainerDEMMPI ()
 {
+	/*
 	std::list<ChContactDEM*>::iterator itercontact = contactlist.begin();
 	while(itercontact != contactlist.end())
 	{
@@ -54,6 +55,8 @@ ChContactContainerDEMMPI::~ChContactContainerDEMMPI ()
 		//contactlist.erase(itercontact); //no! do later with clear(), all together
 	}
 	contactlist.clear();
+	*/
+	//already done in ChContactContainerDEM class destructor
 }
 
 
