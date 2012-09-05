@@ -129,8 +129,9 @@ void CreateRigidBodiesRandom(
 	}
 	float xSpace = (straightChannelMax.x - straightChannelMin.x) / numSpheres;
 	for (int i = 0; i < numSpheres; i++) {
-		int index = (int)(randLinVec.size() - 1) * float (rand()) / RAND_MAX;
-		float r = (4.5 * sizeScale) * randLinVec[index];
+//		int index = (int)(randLinVec.size() - 1) * float (rand()) / RAND_MAX;
+//		float r = (4.5 * sizeScale) * randLinVec[index];
+		float r = (4.5 * sizeScale) * float (rand()) / RAND_MAX;
 		printf("sizeRandomLinear %d\n", randLinVec.size() );	//4.5 comes from channelRadius
 		float teta = 2 * PI * float (rand()) / RAND_MAX;
 		float3 pos = straightChannelMin + F3(0, channelRadius, channelRadius) + F3( (i + 0.5) * xSpace, float(r  * cos(teta)), float(r *  sin(teta)) );
@@ -924,7 +925,9 @@ int main() {
 	////***** here: define rigid bodies
 	string fileNameRigids("spheresPos.dat");
 	rhoRigid = 1180;//1000; //1050; //originally .079 //.179 for cylinder
-	float3 r3Ellipsoid = F3(.8 * sizeScale);//float3 r3Ellipsoid = F3(.03 * sizeScale);//F3(.05, .03, .02) * sizeScale;//F3(.03 * sizeScale);
+
+	//float rr = .4 * (float(rand()) / RAND_MAX + 1);
+	float3 r3Ellipsoid = F3(0.4 * sizeScale); //F3(0.8 * sizeScale); //float3 r3Ellipsoid = F3(.03 * sizeScale); //F3(.05, .03, .02) * sizeScale; //F3(.03 * sizeScale);
 	//**
 //	CreateRigidBodiesPattern(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
 	//**
@@ -933,7 +936,7 @@ int main() {
 //	//channelRadius = 1.0 * sizeScale;
 //	CreateRigidBodiesPatternPipe(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
 	//**
-	CreateRigidBodiesRandom(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, 2);
+	CreateRigidBodiesRandom(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, 4); //changed 2 to 4
 
 	printf("size rigids %d\n", rigidPos.size());
 	//---------------------------------------------------------------------
