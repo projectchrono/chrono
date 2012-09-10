@@ -41,7 +41,7 @@ typedef unsigned int uint;
 #define mu0 0.05f
 //#define mu0 1.0f
 //#define v_Max .1f
-#define v_Max 2.0f
+#define v_Max 0.5f
 //#define v_Max .014f //estimated maximum velocity of fluid
 //#define v_Max .0005f //estimated maximum velocity of fluid
 #define EPS_XSPH .5f

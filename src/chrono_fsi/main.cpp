@@ -107,6 +107,7 @@ void CalcInvJ(const float3 j1, const float3 j2, float3 & invJ1, float3 & invJ2) 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CreateRigidBodiesRandom(
 		thrust::host_vector<float3> & rigidPos,
+		thrust::host_vector<float4> & mQuatRot,
 		thrust::host_vector<float4> & spheresVelMas,
 		thrust::host_vector<float3> & rigidBodyOmega,
 		thrust::host_vector<float3> & rigidBody_J1,
@@ -137,6 +138,10 @@ void CreateRigidBodiesRandom(
 		float3 pos = straightChannelMin + F3(0, channelRadius, channelRadius) + F3( (i + 0.5) * xSpace, float(r  * cos(teta)), float(r *  sin(teta)) );
 		rigidPos.push_back(pos);
 
+		float4 dumQuat = F4(1 - 2.0 * float (rand()) / RAND_MAX, 1 - 2.0 * float (rand()) / RAND_MAX, 1 - 2.0 * float (rand()) / RAND_MAX, 1 - 2.0 * float (rand()) / RAND_MAX); //generate random quaternion
+		dumQuat *= 1.0 / length(dumQuat);
+		mQuatRot.push_back(dumQuat);
+
 		 ellipsoidRadii.push_back(referenceR);
 		 float mass;
 		 float3 j1, j2;
@@ -157,6 +162,7 @@ void CreateRigidBodiesRandom(
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CreateRigidBodiesFromFile(
 		thrust::host_vector<float3> & rigidPos,
+		thrust::host_vector<float4> & mQuatRot,
 		thrust::host_vector<float4> & spheresVelMas,
 		thrust::host_vector<float3> & rigidBodyOmega,
 		thrust::host_vector<float3> & rigidBody_J1,
@@ -182,6 +188,7 @@ void CreateRigidBodiesFromFile(
 		//float r = rRigidBody * (.75 + .75 * float(rand())/RAND_MAX);
 		for (int period = 0; period < nPeriod; period++) {
 			rigidPos.push_back(F3(x * sizeScale + period * sPeriod, y * sizeScale, z * sizeScale));
+			 mQuatRot.push_back(F4(1, 0, 0, 0));
 			//float r1 = .8 * rRigidBody, r2 = 1.2 * rRigidBody, r3 = 3 * rRigidBody;
 			//float r1 = rRigidBody, r2 = rRigidBody, r3 = rRigidBody;
 			float r1 = dumRRigidBody1 * sizeScale;
@@ -212,6 +219,7 @@ void CreateRigidBodiesFromFile(
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CreateRigidBodiesPattern(
 		thrust::host_vector<float3> & rigidPos,
+		thrust::host_vector<float4> & mQuatRot,
 		thrust::host_vector<float4> & spheresVelMas,
 		thrust::host_vector<float3> & rigidBodyOmega,
 		thrust::host_vector<float3> & rigidBody_J1,
@@ -232,6 +240,7 @@ void CreateRigidBodiesPattern(
 				 float3 pos = straightChannelMin + F3(i, j, k) * spaceRigids;
 				 //printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
 				 rigidPos.push_back(pos);
+				 mQuatRot.push_back(F4(1, 0, 0, 0));
 				 ellipsoidRadii.push_back(referenceR);
 				 float mass;
 				 float3 j1, j2;
@@ -253,6 +262,7 @@ void CreateRigidBodiesPattern(
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CreateRigidBodiesPatternPipe(
 		thrust::host_vector<float3> & rigidPos,
+		thrust::host_vector<float4> & mQuatRot,
 		thrust::host_vector<float4> & spheresVelMas,
 		thrust::host_vector<float3> & rigidBodyOmega,
 		thrust::host_vector<float3> & rigidBody_J1,
@@ -274,6 +284,7 @@ void CreateRigidBodiesPatternPipe(
 				 float3 pos = straightChannelMin + F3(0, channelRadius, channelRadius) + F3(i * spaceRigids.x, float(r  * cos(teta)), float(r *  sin(teta)) );
 				 //printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
 				 rigidPos.push_back(pos);
+				 mQuatRot.push_back(F4(1, 0, 0, 0));
 				 ellipsoidRadii.push_back(referenceR);
 				 float mass;
 				 float3 j1, j2;
@@ -892,7 +903,7 @@ int main() {
 	//printf("side0 %d %d %d \n", side0.x, side0.y, side0.z);
 
 	//float delT = .02 * sizeScale;
-	float delT = .005 * sizeScale;
+	float delT = .02 * sizeScale;
 //	float delT = .001 * sizeScale;
 
 	bool readFromFile = false;  //true;		//true: initializes from file. False: initializes inside the code
@@ -913,6 +924,7 @@ int main() {
 
 	//thrust::host_vector<float4> spheresPosRad;
 	thrust::host_vector<float3> rigidPos;
+	thrust::host_vector<float4> mQuatRot;
 	thrust::host_vector<float3> ellipsoidRadii;
 	thrust::host_vector<float4> spheresVelMas;
 	thrust::host_vector<float3> rigidBodyOmega;
@@ -929,14 +941,14 @@ int main() {
 	//float rr = .4 * (float(rand()) / RAND_MAX + 1);
 	float3 r3Ellipsoid = F3(0.4 * sizeScale); //F3(0.8 * sizeScale); //float3 r3Ellipsoid = F3(.03 * sizeScale); //F3(.05, .03, .02) * sizeScale; //F3(.03 * sizeScale);
 	//**
-//	CreateRigidBodiesPattern(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
+//	CreateRigidBodiesPattern(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
 	//**
-//	CreateRigidBodiesFromFile(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, cMin, cMax, fileNameRigids, rhoRigid);
+//	CreateRigidBodiesFromFile(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, cMin, cMax, fileNameRigids, rhoRigid);
 	//**
 //	//channelRadius = 1.0 * sizeScale;
-//	CreateRigidBodiesPatternPipe(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
+//	CreateRigidBodiesPatternPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
 	//**
-	CreateRigidBodiesRandom(rigidPos, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, 4); //changed 2 to 4
+	CreateRigidBodiesRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, 4); //changed 2 to 4
 
 	printf("size rigids %d\n", rigidPos.size());
 	//---------------------------------------------------------------------
@@ -1019,7 +1031,7 @@ int main() {
 	printf("numAllParticles %d\n", numAllParticles);
 
 	if (numAllParticles != 0) {
-		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray, numAllParticles, cMax, cMin, delT, rigidPos, spheresVelMas,
+		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray, numAllParticles, cMax, cMin, delT, rigidPos, mQuatRot, spheresVelMas,
 				rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, binSize0, channelRadius);
 	}
 	mPosRad.clear();
@@ -1028,6 +1040,7 @@ int main() {
 	bodyIndex.clear();
 	referenceArray.clear();
 	rigidPos.clear();
+	mQuatRot.clear();
 	ellipsoidRadii.clear();
 	spheresVelMas.clear();
 	rigidBodyOmega.clear();

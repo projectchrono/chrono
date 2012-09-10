@@ -14,6 +14,7 @@ void cudaCollisions(
 		float3 cMin,
 		float delT,
 		thrust::host_vector<float3> & posRigidH,
+		thrust::host_vector<float4> & mQuatRot,
 		thrust::host_vector<float4> & velMassRigidH,
 		thrust::host_vector<float3> omegaLRF_H,
 		thrust::host_vector<float3> jH1,

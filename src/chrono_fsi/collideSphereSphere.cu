@@ -284,12 +284,13 @@ __global__ void UpdateRigidBodyQuaternion_kernel(float4 * qD, float3 * omegaLRF_
 	float4 qDot = omega.x * F4(-(q.y), q.x, q.w, -(q.z)) + omega.y * F4(-(q.z), -(q.w), q.x, q.y) + omega.z * F4(-(q.w), q.z, -(q.y), q.x);
 
 	q += .5 * dTD * qDot;
-	q *= (1 / length(q));
+	q *= (1.0f / length(q));
 	qD[rigidSphereA] = q;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //updates the rigid body Rotation
 // A is rotation matrix, A = [AD1; AD2; AD3], first comp of q is rotation, last 3 components are axis of rot
+// in wikipedia, last quat comp is the angle, in my version, first one is the angle.
 __global__ void RotationMatirixFromQuaternion_kernel(float3 * AD1, float3 * AD2, float3 * AD3, float4 * qD) {
 	uint rigidSphereA = blockIdx.x * blockDim.x + threadIdx.x;
 	if (rigidSphereA > numRigidBodiesD) {
@@ -379,6 +380,10 @@ __global__ void UpdateRigidParticlesPosition(
 	float3 omega3 = omegaLRF_D[rigidBodyIndex];
 	float3 omegaCrossS = cross(omega3, rigidSPH_MeshPos_LRF);
 	velMasD[rigidParticleIndex] = F4(F3(vM_Rigid) + F3(dot(a1, omegaCrossS), dot(a2, omegaCrossS), dot(a3, omegaCrossS)), vM.w);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+float AngleF3F3(float3 a, float3 b) {
+	return acos(dot(a, b));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void MapSPH_ToGrid(
@@ -732,7 +737,7 @@ void PrintToFile(
 				fileRigidParticlesDataForTecplot.open("dataRigidParticlesDataForTecplot.txt");
 				fileRigidParticlesDataForTecplot<<"PipeRadius, PipeLength\n";
 				fileRigidParticlesDataForTecplot<<	channelRadius <<", "<< cMax.x - cMin.x<<", "<< posRigidH.size()<<endl;
-				fileRigidParticlesDataForTecplot<<"variables = \"t(s)\", \"x\", \"y\", \"z\", \"r\", \"CumulX\", \"vX\", \"vY\", \"vZ\", \"velMagnitude\"\n";
+				fileRigidParticlesDataForTecplot<<"variables = \"t(s)\", \"x\", \"y\", \"z\", \"r\", \"CumulX\", \"vX\", \"vY\", \"vZ\", \"velMagnitude\", \"angleWithPipeAxis\"\n";
 			} else {
 				fileRigidParticlesDataForTecplot.open("dataRigidParticlesDataForTecplot.txt", ios::app);
 			}
@@ -740,10 +745,12 @@ void PrintToFile(
 			stringstream ssRigidParticlesDataForTecplot;
 			for (int j = 0; j < posRigidH.size(); j++) {
 				float3 p_rigid = posRigidH[j];
+				float4 q_rigid = qH1[j];
 				float3 p_rigidCumul = posRigidCumulativeH[j];
 				float3 v_rigid = F3(velMassRigidH[j]);
 				float2 dist2 = F2(.5 * (cMax.y + cMin.y) - p_rigid.y, .5 * (cMax.z + cMin.z) - p_rigid.z);
-				ssRigidParticlesDataForTecplot<<tStep * delT<<", "<<p_rigid.x<<", "<<p_rigid.y<<", "<<p_rigid.z<<", "<<length(dist2) / channelRadius<<", "<<p_rigidCumul.x<<", "<<v_rigid.x<<", "<<v_rigid.y<<", "<<v_rigid.z<<", "<<length(v_rigid)<<endl;
+				float angleWithPipeAxis = AngleF3F3(F3(q_rigid.y, q_rigid.z, q_rigid.w), F3(1, 0, 0));
+				ssRigidParticlesDataForTecplot<<tStep * delT<<", "<<p_rigid.x<<", "<<p_rigid.y<<", "<<p_rigid.z<<", "<<length(dist2) / channelRadius<<", "<<p_rigidCumul.x<<", "<<v_rigid.x<<", "<<v_rigid.y<<", "<<v_rigid.z<<", "<<length(v_rigid)<<", "<<angleWithPipeAxis<<endl;
 			}
 			fileRigidParticlesDataForTecplot << ssRigidParticlesDataForTecplot.str();
 			fileRigidParticlesDataForTecplot.close();
@@ -1204,6 +1211,7 @@ void cudaCollisions(
 		float3 cMin,
 		float delT,
 		thrust::host_vector<float3> & posRigidH,
+		thrust::host_vector<float4> & mQuatRot,
 		thrust::host_vector<float4> & velMassRigidH,
 		thrust::host_vector<float3> omegaLRF_H,
 		thrust::host_vector<float3> jH1,
@@ -1284,14 +1292,16 @@ void cudaCollisions(
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueShare");	printf("after first kernel\n");
 	//******************************************************************************
-	thrust::device_vector<float4> qD1(numRigidBodies);
+	thrust::device_vector<float4> qD1 = mQuatRot;
 	thrust::device_vector<float3> AD1(numRigidBodies);
 	thrust::device_vector<float3> AD2(numRigidBodies);
 	thrust::device_vector<float3> AD3(numRigidBodies);
-	thrust::fill(qD1.begin(), qD1.end(), F4(1, 0, 0, 0));
-	thrust::fill(AD1.begin(), AD1.end(), F3(1, 0, 0));
-	thrust::fill(AD2.begin(), AD2.end(), F3(0, 1, 0));
-	thrust::fill(AD3.begin(), AD3.end(), F3(0, 0, 1));
+	uint nBlock_UpdateRigid;
+	uint nThreads_rigidParticles;
+	computeGridSize(numRigidBodies, 128, nBlock_UpdateRigid, nThreads_rigidParticles);
+	RotationMatirixFromQuaternion_kernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(F3CAST(AD1), F3CAST(AD2), F3CAST(AD3), F4CAST(qD1));
+	cudaThreadSynchronize();
+	CUT_CHECK_ERROR("Kernel execution failed: UpdateRotation");
 
 	//int i =  rigidIdentifierD[429];
 	//printf("rigid body coord %d %f %f\n", i, posRigidH[i].x, posRigidH[i].z);
@@ -1335,7 +1345,7 @@ void cudaCollisions(
 	FILE *outFileMultipleZones;
 
 	int povRayCounter = 0;
-	int stepEnd = 2.5e6; //200000;//10000;//50000;//100000;
+	int stepEnd = 0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
 
 	//for (int tStep = 0; tStep < 0; tStep ++) {
 	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
