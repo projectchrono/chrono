@@ -474,6 +474,9 @@ void PrintToFile(
 		thrust::device_vector<float3> & posRigidCumulativeD,
 		thrust::device_vector<float4> & velMassRigidD,
 		thrust::device_vector<float4> & qD1,
+		thrust::device_vector<float3> & AD1,
+		thrust::device_vector<float3> & AD2,
+		thrust::device_vector<float3> & AD3,
 		thrust::device_vector<float3> & omegaLRF_D,
 		float3 cMax,
 		float3 cMin,
@@ -737,7 +740,7 @@ void PrintToFile(
 				fileRigidParticlesDataForTecplot.open("dataRigidParticlesDataForTecplot.txt");
 				fileRigidParticlesDataForTecplot<<"PipeRadius, PipeLength\n";
 				fileRigidParticlesDataForTecplot<<	channelRadius <<", "<< cMax.x - cMin.x<<", "<< posRigidH.size()<<endl;
-				fileRigidParticlesDataForTecplot<<"variables = \"t(s)\", \"x\", \"y\", \"z\", \"r\", \"CumulX\", \"vX\", \"vY\", \"vZ\", \"velMagnitude\", \"angleWithPipeAxis\"\n";
+				fileRigidParticlesDataForTecplot<<"variables = \"t(s)\", \"x\", \"y\", \"z\", \"r\", \"CumulX\", \"vX\", \"vY\", \"vZ\", \"velMagnitude\", \"angleAxisXWithPipeAxis\", \"angleAxisYWithPipeAxis\", \"angleAxisZWithPipeAxis\"\n";
 			} else {
 				fileRigidParticlesDataForTecplot.open("dataRigidParticlesDataForTecplot.txt", ios::app);
 			}
@@ -745,12 +748,24 @@ void PrintToFile(
 			stringstream ssRigidParticlesDataForTecplot;
 			for (int j = 0; j < posRigidH.size(); j++) {
 				float3 p_rigid = posRigidH[j];
+
+				//rotate the principal axis
+				float3 aD1 = AD1[j];
+				float3 aD2 = AD2[j];
+				float3 aD3 = AD3[j];
+				float3 axisX = F3(aD1.x, aD2.x, aD3.x);
+				float3 axisY = F3(aD1.y, aD2.y, aD3.y);
+				float3 axisZ = F3(aD1.z, aD2.z, aD3.z);
+
 				float4 q_rigid = qH1[j];
 				float3 p_rigidCumul = posRigidCumulativeH[j];
 				float3 v_rigid = F3(velMassRigidH[j]);
 				float2 dist2 = F2(.5 * (cMax.y + cMin.y) - p_rigid.y, .5 * (cMax.z + cMin.z) - p_rigid.z);
-				float angleWithPipeAxis = AngleF3F3(F3(q_rigid.y, q_rigid.z, q_rigid.w), F3(1, 0, 0));
-				ssRigidParticlesDataForTecplot<<tStep * delT<<", "<<p_rigid.x<<", "<<p_rigid.y<<", "<<p_rigid.z<<", "<<length(dist2) / channelRadius<<", "<<p_rigidCumul.x<<", "<<v_rigid.x<<", "<<v_rigid.y<<", "<<v_rigid.z<<", "<<length(v_rigid)<<", "<<angleWithPipeAxis<<endl;
+				float angleAxisXWithPipeAxis = AngleF3F3(axisX, F3(1, 0, 0));
+				float angleAxisYWithPipeAxis = AngleF3F3(axisY, F3(1, 0, 0));
+				float angleAxisZWithPipeAxis = AngleF3F3(axisZ, F3(1, 0, 0));
+
+				ssRigidParticlesDataForTecplot<<tStep * delT<<", "<<p_rigid.x<<", "<<p_rigid.y<<", "<<p_rigid.z<<", "<<length(dist2) / channelRadius<<", "<<p_rigidCumul.x<<", "<<v_rigid.x<<", "<<v_rigid.y<<", "<<v_rigid.z<<", "<<length(v_rigid)<<", "<<angleAxisXWithPipeAxis<<", "<<angleAxisYWithPipeAxis<<", "<<angleAxisZWithPipeAxis<<endl;
 			}
 			fileRigidParticlesDataForTecplot << ssRigidParticlesDataForTecplot.str();
 			fileRigidParticlesDataForTecplot.close();
@@ -1410,7 +1425,7 @@ void cudaCollisions(
 
 		//************************************************
 		//edit PrintToFile since yu deleted cyliderRotOmegaJD
-		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, omegaLRF_D, cMax, cMin, paramsH,
+		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, cMax, cMin, paramsH,
 				delT, tStep, channelRadius);
 //		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
 		//************
