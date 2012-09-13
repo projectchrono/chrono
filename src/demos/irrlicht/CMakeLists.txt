@@ -14,12 +14,10 @@ SOURCE_GROUP(demos\\irrlicht FILES  demo_collision.cpp)
 SET_TARGET_PROPERTIES(demo_collision PROPERTIES 
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+	)
 TARGET_LINK_LIBRARIES(demo_collision
 	${CH_IRRLICHTLIB}
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG})
+ 	ChronoEngine)
 ADD_DEPENDENCIES (demo_collision ChronoEngine)
 
 
@@ -28,12 +26,10 @@ SOURCE_GROUP(demos\\irrlicht FILES  demo_benchmark.cpp)
 SET_TARGET_PROPERTIES(demo_benchmark PROPERTIES 
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+	)
 TARGET_LINK_LIBRARIES(demo_benchmark
 	${CH_IRRLICHTLIB}
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG})
+ 	ChronoEngine)
 ADD_DEPENDENCIES (demo_benchmark ChronoEngine)
 
  	
@@ -42,12 +38,10 @@ SOURCE_GROUP(demos\\irrlicht FILES  demo_bricks.cpp)
 SET_TARGET_PROPERTIES(demo_bricks PROPERTIES 
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+	)
 TARGET_LINK_LIBRARIES(demo_bricks
 	${CH_IRRLICHTLIB} 
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG})
+ 	ChronoEngine)
 ADD_DEPENDENCIES (demo_bricks ChronoEngine)
 
  	
@@ -56,12 +50,10 @@ SOURCE_GROUP(demos\\irrlicht FILES  demo_cohesion.cpp)
 SET_TARGET_PROPERTIES(demo_cohesion PROPERTIES 
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+	)
 TARGET_LINK_LIBRARIES(demo_cohesion
 	${CH_IRRLICHTLIB} 
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG})
+ 	ChronoEngine)
 ADD_DEPENDENCIES (demo_cohesion ChronoEngine)
 
 
@@ -70,12 +62,10 @@ SOURCE_GROUP(demos\\irrlicht FILES  demo_conveyor.cpp)
 SET_TARGET_PROPERTIES(demo_conveyor PROPERTIES 
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+	)
 TARGET_LINK_LIBRARIES(demo_conveyor
 	${CH_IRRLICHTLIB} 
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG})
+ 	ChronoEngine)
 ADD_DEPENDENCIES (demo_conveyor ChronoEngine)
 
 
@@ -84,12 +74,10 @@ SOURCE_GROUP(demos\\irrlicht FILES  demo_crank.cpp)
 SET_TARGET_PROPERTIES(demo_crank PROPERTIES 
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+	)
 TARGET_LINK_LIBRARIES(demo_crank
 	${CH_IRRLICHTLIB} 
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG})
+ 	ChronoEngine)
 ADD_DEPENDENCIES (demo_crank ChronoEngine)
 
  	
@@ -98,12 +86,10 @@ SOURCE_GROUP(demos\\irrlicht FILES  demo_decomposition.cpp)
 SET_TARGET_PROPERTIES(demo_decomposition PROPERTIES 
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+	)
 TARGET_LINK_LIBRARIES(demo_decomposition
 	${CH_IRRLICHTLIB} 
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG})
+ 	ChronoEngine)
 ADD_DEPENDENCIES (demo_decomposition ChronoEngine)
 
  	
@@ -112,12 +98,10 @@ SOURCE_GROUP(demos\\irrlicht FILES  demo_forklift.cpp)
 SET_TARGET_PROPERTIES(demo_forklift PROPERTIES 
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+	)
 TARGET_LINK_LIBRARIES(demo_forklift
 	${CH_IRRLICHTLIB} 
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG})
+ 	ChronoEngine)
 ADD_DEPENDENCIES (demo_forklift ChronoEngine)
 
  	
@@ -126,12 +110,10 @@ SOURCE_GROUP(demos\\irrlicht FILES  demo_fourbar.cpp)
 SET_TARGET_PROPERTIES(demo_fourbar PROPERTIES 
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+	)
 TARGET_LINK_LIBRARIES(demo_fourbar
 	${CH_IRRLICHTLIB} 
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG})
+ 	ChronoEngine)
 ADD_DEPENDENCIES (demo_fourbar ChronoEngine)
 
  	
@@ -140,12 +122,10 @@ SOURCE_GROUP(demos\\irrlicht FILES  demo_friction.cpp)
 SET_TARGET_PROPERTIES(demo_friction PROPERTIES 
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+	)
 TARGET_LINK_LIBRARIES(demo_friction
 	${CH_IRRLICHTLIB} 
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG})
+ 	ChronoEngine)
 ADD_DEPENDENCIES (demo_friction ChronoEngine)
 
  	
@@ -154,12 +134,10 @@ SOURCE_GROUP(demos\\irrlicht FILES  demo_gears.cpp)
 SET_TARGET_PROPERTIES(demo_gears PROPERTIES 
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+	)
 TARGET_LINK_LIBRARIES(demo_gears
 	${CH_IRRLICHTLIB} 
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG})
+ 	ChronoEngine)
 ADD_DEPENDENCIES (demo_gears ChronoEngine)
 
  	
@@ -168,12 +146,10 @@ SOURCE_GROUP(demos\\irrlicht FILES  demo_mecanum.cpp)
 SET_TARGET_PROPERTIES(demo_mecanum PROPERTIES 
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+	)
 TARGET_LINK_LIBRARIES(demo_mecanum
 	${CH_IRRLICHTLIB} 
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG})
+ 	ChronoEngine)
 ADD_DEPENDENCIES (demo_mecanum ChronoEngine)
 
  	
@@ -182,12 +158,10 @@ SOURCE_GROUP(demos\\irrlicht FILES  demo_meshless.cpp)
 SET_TARGET_PROPERTIES(demo_meshless PROPERTIES 
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+	)
 TARGET_LINK_LIBRARIES(demo_meshless
 	${CH_IRRLICHTLIB} 
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG})
+ 	ChronoEngine)
 ADD_DEPENDENCIES (demo_meshless ChronoEngine)
 
  	
@@ -196,12 +170,10 @@ SOURCE_GROUP(demos\\irrlicht FILES  demo_pendulum.cpp)
 SET_TARGET_PROPERTIES(demo_pendulum PROPERTIES 
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+	)
 TARGET_LINK_LIBRARIES(demo_pendulum
 	${CH_IRRLICHTLIB} 
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG})
+ 	ChronoEngine)
 ADD_DEPENDENCIES (demo_pendulum ChronoEngine)
 
  	
@@ -210,12 +182,10 @@ SOURCE_GROUP(demos\\irrlicht FILES  demo_sph.cpp)
 SET_TARGET_PROPERTIES(demo_sph PROPERTIES 
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+	)
 TARGET_LINK_LIBRARIES(demo_sph
 	${CH_IRRLICHTLIB} 
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG})
+ 	ChronoEngine)
 ADD_DEPENDENCIES (demo_sph ChronoEngine)
 
  	
@@ -224,12 +194,10 @@ SOURCE_GROUP(demos\\irrlicht FILES  demo_suspension.cpp)
 SET_TARGET_PROPERTIES(demo_suspension PROPERTIES 
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+	)
 TARGET_LINK_LIBRARIES(demo_suspension
 	${CH_IRRLICHTLIB} 
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG})
+ 	ChronoEngine)
 ADD_DEPENDENCIES (demo_suspension ChronoEngine)
 
 
@@ -238,12 +206,10 @@ SOURCE_GROUP(demos\\irrlicht FILES  demo_tire.cpp)
 SET_TARGET_PROPERTIES(demo_tire PROPERTIES 
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+	)
 TARGET_LINK_LIBRARIES(demo_tire
 	${CH_IRRLICHTLIB} 
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG})
+ 	ChronoEngine)
 ADD_DEPENDENCIES (demo_tire ChronoEngine)
 
  	
@@ -252,12 +218,10 @@ SOURCE_GROUP(demos\\irrlicht FILES  demo_tracks.cpp)
 SET_TARGET_PROPERTIES(demo_tracks PROPERTIES 
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+	)
 TARGET_LINK_LIBRARIES(demo_tracks
 	${CH_IRRLICHTLIB} 
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG})
+ 	ChronoEngine)
 ADD_DEPENDENCIES (demo_tracks ChronoEngine)
 
 
@@ -266,10 +230,8 @@ SOURCE_GROUP(demos\\irrlicht FILES  demo_convergence.cpp)
 SET_TARGET_PROPERTIES(demo_convergence PROPERTIES 
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+	)
 TARGET_LINK_LIBRARIES(demo_convergence
 	${CH_IRRLICHTLIB} 
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG})
+ 	ChronoEngine)
 ADD_DEPENDENCIES (demo_convergence ChronoEngine)

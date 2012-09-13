@@ -46,32 +46,12 @@ endif(COMMAND cmake_policy)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS Off)
 
-
 #-----------------------------------------------------------------------------
 # Define project name (the 'solution' in MSVC)
 
 PROJECT(ChronoEngine)
-find_package("OpenMP")
 
 
-#-----------------------------------------------------------------------------
-# Force only two types of configurations, for multi-configuration generators
-
-IF (MSVC)
-  SET(CMAKE_CONFIGURATION_TYPES  "Debug" "Release"  CACHE INTERNAL  "Allowed configuration types" FORCE)
-ENDIF(MSVC)
-
-#-----------------------------------------------------------------------------
-# For non-multi-configuration generators:
-SET(CMAKE_BUILD_TYPE "Release" CACHE STRING "For single-configuration generators (es. make) set the type of build: Debug or Release")
-SET_PROPERTY(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release" "Debug")
-IF (NOT MSVC)
- IF ("${CMAKE_BUILD_TYPE}" MATCHES "Debug")
- 	SET(CH_BUILDMODE "DEBUG")
- ELSE()
- 	SET(CH_BUILDMODE "RELEASE")
- ENDIF()
-ENDIF() 
 
 
 #-----------------------------------------------------------------------------
@@ -84,28 +64,28 @@ ENDIF()
 # to compile the MPI unit you must have the MPICH libraries and headers 
 # installed on your system).
 
-SET(BUILD_CH_SDK   		 TRUE    CACHE BOOL   "Turn this ON to generate the Chrono::Engine main library.")
+SET(BUILD_CH_SDK   	 TRUE    CACHE BOOL   "Turn this ON to generate the Chrono::Engine main library.")
 SET(BUILD_DEMOS          TRUE    CACHE BOOL   "Turn this ON to generate Chrono::Engine demos")
 SET(ENABLE_UNIT_IRRLICHT TRUE    CACHE BOOL   "Turn this ON to generate the Chrono::Engine demos with Irrlicht 3D display")
 SET(ENABLE_UNIT_TESTS    FALSE   CACHE BOOL   "Turn this ON to generate Chrono::Engine unit tests")
 SET(ENABLE_UNIT_MPI    	 FALSE   CACHE BOOL   "Turn this ON to generate the Chrono::Engine MPI library")
 SET(CH_IRRLICHTDIR       ""    	CACHE PATH   "Where is your Irrlicht SDK installed? You must set this path to compile demos with 3D display.")
 
-
 # Also, some variables that were used in previous makefile system (some
 # of them could be set automatically because CMake should recognize automatically 
 # the compiler, generator, platform, etc....
 
+# Set a default build type if none was specified
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(STATUS "Setting build type to 'Debug' as none was specified.")
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+  # Set the possible values of build type for cmake-gui
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
+    "MinSizeRel" "RelWithDebInfo")
+endif()
+
 
 SET (DETECTED_CH_COMPILER "")
-SET (DETECTED_CH_OS "")
-
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
- 	set(DETECTED_CH_OS "LINUX")
-ENDIF()
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	set(DETECTED_CH_OS "WINDOWS")
-ENDIF()
 
 IF (MINGW OR CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
  IF (CMAKE_SIZEOF_VOID_P MATCHES 4)
@@ -115,6 +95,9 @@ IF (MINGW OR CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
  ENDIF()
 ENDIF()
 IF (MSVC)
+ # Force only two types of configurations, for multi-configuration generators
+ SET(CMAKE_CONFIGURATION_TYPES  "Debug" "Release"  CACHE INTERNAL  "Allowed configuration types" FORCE)
+
  IF (CMAKE_CL_64)
 	set (DETECTED_CH_COMPILER "COMPILER_MSVC_X64")
  ELSE()
@@ -122,27 +105,27 @@ IF (MSVC)
  ENDIF()
 ENDIF()
 
-message(STATUS "Detected CH_COMPILER='${DETECTED_CH_COMPILER}'")
-message(STATUS "Detected CH_OS='${DETECTED_CH_OS}'")
 
-set(CH_COMPILER "${DETECTED_CH_COMPILER}" CACHE STRING "Set Compiler Type, Re-Run configure after changing")
-set(CH_COMPILER_VALUES "COMPILER_MSVC;COMPILER_GCC;COMPILER_MSVC_X64;COMPILER_GCC_X64")
-set_property(CACHE CH_COMPILER PROPERTY STRINGS ${CH_COMPILER_VALUES})
 
-set(CH_OS "${DETECTED_CH_OS}" CACHE STRING "Set OS, Re-Run configure after changing")
-set(CH_OS_VALUES "WINDOWS;LINUX")
-set_property(CACHE CH_OS PROPERTY STRINGS ${CH_OS_VALUES})
+#message(STATUS "Detected CH_COMPILER='${DETECTED_CH_COMPILER}'")
+#message(STATUS "Detected CH_OS='${DETECTED_CH_OS}'")
 
+#set(CH_COMPILER "${DETECTED_CH_COMPILER}" CACHE STRING "Set Compiler Type, Re-Run configure after changing")
+#set(CH_COMPILER_VALUES "COMPILER_MSVC;COMPILER_GCC;COMPILER_MSVC_X64;COMPILER_GCC_X64")
+#set_property(CACHE CH_COMPILER PROPERTY STRINGS ${CH_COMPILER_VALUES})
+
+#set(CH_OS "${DETECTED_CH_OS}" CACHE STRING "Set OS, Re-Run configure after changing")
+#set(CH_OS_VALUES "WINDOWS;LINUX")
+#set_property(CACHE CH_OS PROPERTY STRINGS ${CH_OS_VALUES})
 
 # To hide unneeded stuff from GUI (require refresh by pressing 'configure', anyway)
+
 IF(BUILD_CH_SDK)
 ELSE()
 	SET(ENABLE_UNIT_MPI FALSE)
 	SET(ENABLE_UNIT_JS  FALSE)
 	SET(ENABLE_UNIT_GPU FALSE)
 ENDIF()
-
-
 
 #-----------------------------------------------------------------------------
 # Generate configuration.h file
@@ -163,11 +146,27 @@ ENDIF()
 get_filename_component(DETECTED_CH_PATH_SOURCE "${CMAKE_SOURCE_DIR}" ABSOLUTE)
 string(REPLACE "ChronoEngine/source" "ChronoEngine" DETECTED_CH_PATH_SOURCE_PARENT "${DETECTED_CH_PATH_SOURCE}")
 
-SET(CH_CHRONODIR         "${DETECTED_CH_PATH_SOURCE_PARENT}"    CACHE PATH   "Where is your ChronoEngine SDK installed? You must set this path!")
-SET(CH_CHRONOSRC 		 "${CH_CHRONODIR}/source" )
+SET(CH_CHRONODIR        "${DETECTED_CH_PATH_SOURCE_PARENT}"    CACHE PATH   "Where is your ChronoEngine SDK installed? You must set this path!")
+SET(CH_CHRONOSRC 	"${CH_CHRONODIR}/source" )
 
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
-IF ("${CH_OS}" STREQUAL "WINDOWS")
+find_package("OpenMP")
+find_package("GLUT")
+find_package("OpenGL")
+
+if(OPENMP_FOUND)
+ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+ SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+ENDIF(OPENMP_FOUND)
+
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+#freeglut is not found properly on windows
+SET(FREEGLUT_LIB_PATH       ""   CACHE PATH "Where is freeglut located")		 
+FIND_LIBRARY( FREEGLUT_LIB NAMES glut glut32 freeglut PATHS ${FREEGLUT_LIB_PATH})
+MARK_AS_ADVANCED(FORCE FREEGLUT_LIB)
+
 		SET(ENABLE_MULTITHREADED_BUILD			TRUE    CACHE BOOL   "Turn this ON to compile using multiple threads")
 		IF (ENABLE_MULTITHREADED_BUILD)
 			SET(CH_PARALLELBUILD "-MP")
@@ -178,7 +177,7 @@ IF ("${CH_OS}" STREQUAL "WINDOWS")
 		IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
 			SET (CH_BUILDFLAGS "-DWIN32; -DNOMINMAX";${CH_PARALLELBUILD})
 			SET (CH_LINKERFLAG_EXE "")
-			SET	(CH_LINKERFLAG_SHARED "/FORCE:MULTIPLE")
+			SET (CH_LINKERFLAG_SHARED "/FORCE:MULTIPLE")
 			SET (CH_LIBNAMEPREFIX "")
 			SET (CH_LIBNAMEPOSTFIX ".lib")
 			SET (CH_LIBNAMEPOSTFIXSHARED ".dll")
@@ -189,7 +188,7 @@ IF ("${CH_OS}" STREQUAL "WINDOWS")
 		IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
 			SET (CH_BUILDFLAGS "-DWIN64; -DNOMINMAX";${CH_PARALLELBUILD})
 			SET (CH_LINKERFLAG_EXE "")
-			SET	(CH_LINKERFLAG_SHARED "/FORCE:MULTIPLE")
+			SET (CH_LINKERFLAG_SHARED "/FORCE:MULTIPLE")
 			SET (CH_LIBNAMEPREFIX "")
 			SET (CH_LIBNAMEPOSTFIX ".lib")
 			SET (CH_LIBNAMEPOSTFIXSHARED ".dll")
@@ -200,7 +199,7 @@ IF ("${CH_OS}" STREQUAL "WINDOWS")
 		IF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
 			SET (CH_BUILDFLAGS "-DWIN32 -D_MINGW -D_WINDOWS")
 			SET (CH_LINKERFLAG_EXE "-Wl,--enable-runtime-pseudo-reloc")
-			SET	(CH_LINKERFLAG_SHARED "-Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
+			SET (CH_LINKERFLAG_SHARED "-Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
 			SET (CH_LIBNAMEPREFIX "lib")
 			SET (CH_LIBNAMEPOSTFIX ".dll.a")
 			SET (CH_LIBNAMEPOSTFIXSHARED ".dll")
@@ -211,7 +210,7 @@ IF ("${CH_OS}" STREQUAL "WINDOWS")
 		IF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
 			SET (CH_BUILDFLAGS "-DWIN64 -D_MINGW -D_WINDOWS -m64")
 			SET (CH_LINKERFLAG_EXE "-Wl,--enable-runtime-pseudo-reloc")
-			SET	(CH_LINKERFLAG_SHARED "-Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
+			SET (CH_LINKERFLAG_SHARED "-Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
 			SET (CH_LIBNAMEPREFIX "lib")
 			SET (CH_LIBNAMEPOSTFIX ".dll.a")
 			SET (CH_LIBNAMEPOSTFIXSHARED ".dll")
@@ -220,42 +219,16 @@ IF ("${CH_OS}" STREQUAL "WINDOWS")
 			SET (CH_IRRLICHTLIB "${CH_IRRLICHTDIR}/bin/Win64-gcc/Irrlicht.dll")
 		ENDIF()
 ENDIF()
-IF ("${CH_OS}" STREQUAL "LINUX")
-		IF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
-			SET (CH_BUILDFLAGS "-DLINUX -D__linux__ -fpermissive")
-			SET (CH_LINKERFLAG_EXE "")
-			SET (CH_LINKERFLAG_SHARED "-lpthread -z muldefs -lglut -lGLU")
-			SET (CH_LIBNAMEPREFIX "lib")
-			SET (CH_LIBNAMEPOSTFIX ".so")
-			SET (CH_LIBNAMEPOSTFIXSHARED ".so")
-			SET (CH_LIBDIR  "${CH_CHRONODIR}/lib/Linux32_gcc")
-			SET (CH_BINDIR  "${CH_CHRONODIR}/bin/Linux32_gcc")
-			SET (CH_IRRLICHTLIB "${CH_IRRLICHTDIR}/lib/Linux/libIrrlicht.a" -lXxf86vm -lglut)
-		ENDIF()
-		IF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
-			SET (CH_BUILDFLAGS "-DLINUX -D__linux__ -fpermissive")
-			SET (CH_LINKERFLAG_EXE "")
-			SET (CH_LINKERFLAG_SHARED "-lpthread -z muldefs -lglut -lGLU -pthread -Wl,--no-as-needed")
-			SET (CH_LIBNAMEPREFIX "lib")
-			SET (CH_LIBNAMEPOSTFIX ".so")
-			SET (CH_LIBNAMEPOSTFIXSHARED ".so")
-			SET (CH_LIBDIR  "${CH_CHRONODIR}/lib/Linux64_gcc")
-			SET (CH_BINDIR  "${CH_CHRONODIR}/bin/Linux64_gcc")
-			SET (CH_IRRLICHTLIB "${CH_IRRLICHTDIR}/lib/Linux/libIrrlicht.a" -lXxf86vm -lglut)
-		ENDIF()
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+		SET (CH_BUILDFLAGS "-DLINUX -D__linux__ -fpermissive")
+		SET (CH_LINKERFLAG_SHARED "-lpthread -z muldefs  -pthread -Wl,--no-as-needed")		
+		SET (CH_IRRLICHTLIB "${CH_IRRLICHTDIR}/lib/Linux/libIrrlicht.a" -lXxf86vm -lglut)
 ENDIF()
-if(OPENMP_FOUND)
- SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
- SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-ENDIF(OPENMP_FOUND)
-	
-SET (CH_LIBNAME "ChronoEngine")
-SET (CH_CHRONOLIBRARYNAME "${CH_LIBDIR}/${CH_LIBNAMEPREFIX}${CH_LIBNAME}${CH_LIBNAMEPOSTFIX}")
-SET (CH_CHRONOSHAREDLNAME "${CH_BINDIR}/${CH_LIBNAME}${CH_LIBNAMEPOSTFIXSHARED}")
-SET (CH_CHRONOLIB  "${CH_CHRONOLIBRARYNAME}")
-SET (CH_CHRONOLIBRARYNAME_DBG "${CH_LIBDIR}/${CH_LIBNAMEPREFIX}${CH_LIBNAME}DBG${CH_LIBNAMEPOSTFIX}")
-SET (CH_CHRONOSHAREDLNAME_DBG "${CH_BINDIR}/${CH_LIBNAME}DBG${CH_LIBNAMEPOSTFIXSHARED}")
-SET (CH_CHRONOLIB_DBG  "${CH_CHRONOLIBRARYNAME_DBG}")
+
+
+
+
+
 
 #-----------------------------------------------------------------------------
 # Some global  C++ definitions and includes that are used 
@@ -289,9 +262,6 @@ IF (ENABLE_UNIT_IRRLICHT)
 	SET (CH_IRRLICHTINC "${CH_IRRLICHTDIR}/include")
 ENDIF()
 
-SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CH_LIBDIR} )
-SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CH_LIBDIR} )
-SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CH_BINDIR} )
 IF (BUILD_CH_SDK)
 
 	#-----------------------------------------------------------------------------
@@ -666,8 +636,7 @@ IF (BUILD_CH_SDK)
 			${ChronoEngine_collision_edgetempest_SOURCES}
 			${ChronoEngine_collision_edgetempest_HEADERS}
 			)
-	
-	
+
 	SET(ChronoEngine_pneumatica_SOURCES
 		pneumatica/assepneumatico.cpp 
 		pneumatica/pistone.cpp 
@@ -1102,18 +1071,17 @@ IF (BUILD_CH_SDK)
 
 ADD_LIBRARY(ChronoEngine SHARED ${ChronoEngine_FILES})
 	
-	SET_TARGET_PROPERTIES(ChronoEngine PROPERTIES 
-	                          LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
-	                          COMPILE_DEFINITIONS "CH_API_COMPILE"
-	                          ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CH_LIBDIR}
-	                          ARCHIVE_OUTPUT_DIRECTORY_DEBUG   ${CH_LIBDIR}
-	                          RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CH_BINDIR}
-	                          RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${CH_BINDIR}
-							  LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CH_LIBDIR}
-	                          LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${CH_LIBDIR}
-							  RUNTIME_OUTPUT_NAME_DEBUG "ChronoEngineDBG"
-	                          LIBRARY_OUTPUT_NAME_DEBUG "ChronoEngineDBG"
-	                          ARCHIVE_OUTPUT_NAME_DEBUG "ChronoEngineDBG")
+SET_TARGET_PROPERTIES(ChronoEngine PROPERTIES 
+						LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
+						COMPILE_DEFINITIONS "CH_API_COMPILE")
+
+
+ADD_CUSTOM_COMMAND(
+    TARGET ChronoEngine
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CH_CHRONODIR}/bin/data/ ${PROJECT_BINARY_DIR}/data
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BINARY_DIR}/data/.svn
+)
 
 ENDIF (BUILD_CH_SDK)
                           	                          
@@ -1155,7 +1123,7 @@ ENDIF()
 
 
 #
-#Demo Files
+# Demo Files
 #
 IF(EXISTS "${CH_CHRONOSRC}/demos/")
 	ADD_SUBDIRECTORY(demos)
@@ -1165,3 +1133,54 @@ IF(EXISTS "${CH_CHRONOSRC}/testing/")
 	ADD_SUBDIRECTORY(testing)
 ENDIF()
 
+
+
+#set (VERSION_MAJOR 1)
+#set (VERSION_MINOR 0)
+
+
+SET(CPACK_CMAKE_GENERATOR "Unix Makefiles")
+SET(CPACK_GENERATOR "STGZ")
+#SET(CPACK_INSTALL_CMAKE_PROJECTS "${PROJECT_BINARY_DIR};ChronoEngine;ALL;/")
+#SET(CPACK_NSIS_DISPLAY_NAME "ChronoEngine")
+#SET(CPACK_OUTPUT_CONFIG_FILE "${PROJECT_BINARY_DIR}/CPackConfig.cmake")
+#SET(CPACK_PACKAGE_DESCRIPTION_FILE "/home/andy/vtk/CMake/Copyright.txt")
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ChronoEngine is a multibody-dynamics package")
+#SET(CPACK_PACKAGE_EXECUTABLES "ccmake;CMake")
+SET(CPACK_PACKAGE_FILE_NAME "ChronoEngine-Linux-x64")
+SET(CPACK_PACKAGE_INSTALL_DIRECTORY "ChronoEngine")
+SET(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "ChronoEngine")
+SET(CPACK_PACKAGE_NAME "ChronoEngine")
+SET(CPACK_PACKAGE_VENDOR "UWSBEL")
+SET(CPACK_PACKAGE_VERSION "1.0.0")
+SET(CPACK_PACKAGE_VERSION_MAJOR "1")
+SET(CPACK_PACKAGE_VERSION_MINOR "0")
+SET(CPACK_PACKAGE_VERSION_PATCH "0")
+SET(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_BINARY_DIR}/../license.txt")
+SET(CPACK_RESOURCE_FILE_README "${CH_CHRONODIR}/readme.txt")
+#SET(CPACK_RESOURCE_FILE_WELCOME "/home/andy/vtk/CMake/Templates/CPack.GenericWelcome.txt")
+SET(CPACK_SOURCE_GENERATOR "TGZ")
+#SET(CPACK_SOURCE_OUTPUT_CONFIG_FILE "${PROJECT_BINARY_DIR}/CPackSourceConfig.cmake")
+SET(CPACK_SOURCE_PACKAGE_FILE_NAME "ChronoEngine-2.5.0")
+SET(CPACK_SOURCE_STRIP_FILES "")
+#SET(CPACK_STRIP_FILES "bin/ccmake;bin/cmake;bin/cpack;bin/ctest")
+SET(CPACK_SYSTEM_NAME "Linux-x64")
+SET(CPACK_TOPLEVEL_TAG "Linux-x64")
+
+INSTALL(TARGETS ChronoEngine DESTINATION lib)
+INSTALL(FILES ${ChronoEngine_core_HEADERS} DESTINATION include/core)
+INSTALL(FILES ${ChronoEngine_physics_HEADERS} DESTINATION include/physics)
+INSTALL(FILES ${ChronoEngine_lcp_HEADERS} DESTINATION include/lcp)
+INSTALL(FILES ${ChronoEngine_collision_HEADERS} DESTINATION include/collision)
+INSTALL(FILES ${ChronoEngine_geometry_HEADERS} DESTINATION include/geometry)
+INSTALL(FILES ${ChronoEngine_assets_HEADERS} DESTINATION include/assets)
+INSTALL(FILES ${ChronoEngine_collision_edgetempest_HEADERS} DESTINATION include/collision/edgetempest)
+INSTALL(FILES ${ChronoEngine_collision_convexdecompJR_HEADERS} DESTINATION include/collision/convexdecompJR)
+INSTALL(FILES ${ChronoEngine_pneumatica_HEADERS} DESTINATION include/pneumatica)
+INSTALL(FILES ${ChronoEngine_motion_functions_HEADERS} DESTINATION include/motion_functions)
+INSTALL(FILES ${ChronoEngine_parallel_HEADERS} DESTINATION include/parallel)
+INSTALL(FILES ${ChronoEngine_collision_bullet_HEADERS} DESTINATION include/collision/bullet)
+INSTALL(FILES ${ChronoEngine_collision_gimpact_HEADERS} DESTINATION include/collision/gimpact)
+INSTALL(FILES ${ChronoEngine_irrlicht_HEADERS} DESTINATION include/irrlicht)
+
+INCLUDE(CPack)

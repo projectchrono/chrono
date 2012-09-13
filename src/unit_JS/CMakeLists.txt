@@ -5,7 +5,7 @@
 #=============================================================================
 
 
-SET(ENABLE_UNIT_JS       TRUE    CACHE BOOL   "Turn ON this to generate the Chrono::Engine Javascript unit.")
+SET(ENABLE_UNIT_JS       FALSE    CACHE BOOL   "Turn ON this to generate the Chrono::Engine Javascript unit.")
 SET(CH_JAVASRC           ""      CACHE PATH   "Where is your SpiderMonkey Javascript SDK installed? You must set this path to compile the JS unit.")
 
 

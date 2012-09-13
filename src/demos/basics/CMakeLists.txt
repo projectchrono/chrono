@@ -7,11 +7,8 @@ SOURCE_GROUP(demos\\basics FILES  	demo_buildsystem.cpp)
 SET_TARGET_PROPERTIES(demo_buildsystem PROPERTIES 
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}" 
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
-TARGET_LINK_LIBRARIES(demo_buildsystem 
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG})
+	)
+TARGET_LINK_LIBRARIES(demo_buildsystem ChronoEngine)
 ADD_DEPENDENCIES (demo_buildsystem ChronoEngine)
 
 
@@ -20,11 +17,8 @@ SOURCE_GROUP(demos\\basics FILES  	demo_powertrain.cpp)
 SET_TARGET_PROPERTIES(demo_powertrain PROPERTIES 	
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
-TARGET_LINK_LIBRARIES(demo_powertrain 
-	optimized 	${CH_CHRONOLIB} 
-	debug 		${CH_CHRONOLIB_DBG})
+	)
+TARGET_LINK_LIBRARIES(demo_powertrain ChronoEngine)
 ADD_DEPENDENCIES (demo_powertrain ChronoEngine)
 
 
@@ -33,9 +27,6 @@ SOURCE_GROUP(demos\\basics FILES  	    demo_chfunctions.cpp)
 SET_TARGET_PROPERTIES(demo_chfunctions PROPERTIES 	
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
-TARGET_LINK_LIBRARIES(demo_chfunctions 
-	optimized 	${CH_CHRONOLIB} 
-	debug 		${CH_CHRONOLIB_DBG})
+	)
+TARGET_LINK_LIBRARIES(demo_chfunctions ChronoEngine)
 ADD_DEPENDENCIES (demo_chfunctions ChronoEngine)

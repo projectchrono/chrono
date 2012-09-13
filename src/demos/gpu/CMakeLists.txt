@@ -18,12 +18,10 @@ SOURCE_GROUP(demos\\gpu FILES  		demo_gpubasic.cpp)
 SET_TARGET_PROPERTIES(demo_gpubasic PROPERTIES 
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+	)
 TARGET_LINK_LIBRARIES(demo_gpubasic 
 			${CH_IRRLICHTLIB}
- 	optimized 	${CH_CHRONOLIB}     
- 	debug 		${CH_CHRONOLIB_DBG} 
+ 	ChronoEngine 
  	optimized 	${CH_CHRONOGPULIB}
  	debug	   	${CH_CHRONOGPULIB_DBG}	)
 ADD_DEPENDENCIES (demo_gpubasic ChronoEngine ChronoEngine_GPU)
@@ -34,14 +32,12 @@ SOURCE_GROUP(demos\\gpu FILES  		demo_gpuCD.cpp)
 SET_TARGET_PROPERTIES(demo_gpuCD__hammad PROPERTIES 
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}")
+	)
 TARGET_LINK_LIBRARIES(demo_gpuCD__hammad 
 			${CH_CUDART}
 			${GLUT_LIBRARIES}
 			${FREEGLUT_LIB}
- 	optimized 	${CH_CHRONOLIB}     
- 	debug 		${CH_CHRONOLIB_DBG} 
+ 	ChronoEngine 
  	optimized 	${CH_CHRONOGPULIB}
  	debug	    ${CH_CHRONOGPULIB_DBG}	)
 ADD_DEPENDENCIES (demo_gpuCD__hammad ChronoEngine ChronoEngine_GPU)
