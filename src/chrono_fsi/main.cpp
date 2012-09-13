@@ -56,6 +56,32 @@ const float toleranceZone = 3 * HSML;
 float3 straightChannelMin;
 float3 straightChannelMax;
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+struct Rotation {
+		float a00, a01, a02, a10, a11, a12, a20, a21, a22;
+};
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+void CalcQuat2RotationMatrix (Rotation & rotMat, const float4 & q) {
+	rotMat.a00 = 2.0 * (0.5f - q.z * q.z - q.w * q.w);
+	rotMat.a01 = 2.0 * (q.y * q.z - q.x * q.w);
+	rotMat.a02 = 2.0 * (q.y * q.w + q.x * q.z);
+
+	rotMat.a10 = 2 * (q.y * q.z + q.x * q.w);
+	rotMat.a11 = 2 * (0.5f - q.y * q.y - q.w * q.w);
+	rotMat.a12 = 2 * (q.z * q.w - q.x * q.y);
+
+	rotMat.a20 = 2 *  (q.y * q.w - q.x * q.z);
+	rotMat.a21 = 2 * (q.z * q.w + q.x * q.y);
+	rotMat.a22 = 2 * (0.5f - q.y * q.y - q.z * q.z);
+};
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+void ConvertQuatArray2RotArray (thrust::host_vector<Rotation> & rotArray, const thrust::host_vector<float4> & quat) {
+	for (int i = 0; i < quat.size(); i++) {
+		Rotation rot;
+		CalcQuat2RotationMatrix(rot, quat[i]);
+		rotArray[i] = rot;
+	}
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 float Min(float a, float b) {
 	return (a < b) ? a : b;
 }
@@ -313,9 +339,9 @@ bool IsInsideSphere(float4 sphParPos, float4 spherePosRad, float clearance) {
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-//the ellipsoids do not have any rotation
-bool IsInsideEllipsoid(float4 sphParPos, float3 rigidPos, float3 radii, float clearance) {
-	float3 dist3 = F3(sphParPos) - rigidPos;
+bool IsInsideEllipsoid(float4 sphParPos, float3 rigidPos, Rotation rot, float3 radii, float clearance) {
+	float3 sphParPosLocal = sphParPos.x * F3(rot.a00, rot.a01, rot.a02) + sphParPos.y * F3(rot.a10, rot.a11, rot.a12) + sphParPos.z * F3(rot.a20, rot.a21, rot.a22);
+	float3 dist3 = sphParPosLocal - rigidPos;
 	float3 mappedDist = dist3 / (radii + F3(clearance));
 	if (length(mappedDist) < 1) {
 		return true;
@@ -645,6 +671,7 @@ int2 CreateFluidParticles(
 		thrust::host_vector<float4> & mRhoPresMuBoundary,
 		float & sphParticleMass,
 		const thrust::host_vector<float3> & rigidPos,
+		const thrust::host_vector<Rotation> rigidRotMatrix,
 		const thrust::host_vector<float3> & ellipsoidRadii,
 		float sphR,
 		float3 cMax,
@@ -701,7 +728,7 @@ int2 CreateFluidParticles(
 				if (penDist < -toleranceZone) flag = false;
 				if (flag) {
 					for (int rigidSpheres = 0; rigidSpheres < rigidPos.size(); rigidSpheres++) {
-						if (IsInsideEllipsoid(posRad, rigidPos[rigidSpheres], ellipsoidRadii[rigidSpheres], initSpace0)) { flag = false; }
+						if (IsInsideEllipsoid(posRad, rigidPos[rigidSpheres], rigidRotMatrix[rigidSpheres], ellipsoidRadii[rigidSpheres], initSpace0)) { flag = false; }
 //						if ( IsInsideCylinder_XZ(posRad, rigidPos[rigidSpheres], ellipsoidRadii[rigidSpheres], initSpace0 ) ) { flag = false;}
 					}
 				}
@@ -747,6 +774,7 @@ int CreateEllipsoidParticles(
 		thrust::host_vector<float4> & mVelMas,
 		thrust::host_vector<float4> & mRhoPresMu,
 		float3 rigidPos,
+		Rotation rigidRotMatrix,
 		float3 ellipsoidRadii,
 		float4 sphereVelMas,
 		float3 rigidBodyOmega,
@@ -781,8 +809,13 @@ int CreateEllipsoidParticles(
 				while (phi < 2 * PI + deltaPhi0) {
 					float3 mult3 = F3(sin(teta) * cos(phi), sin(teta) * sin(phi), cos(teta)) / r3;
 					float r = 1 / length(mult3);
-					float4 posRadRigid_sphParticle = F4(r * sin(teta) * cos(phi), r * sin(teta) * sin(phi), r * cos(teta), sphR)
-							+ F4(rigidPos, 0);
+					float3 posRadRigid_sphParticleLocal = F3(r * sin(teta) * cos(phi), r * sin(teta) * sin(phi), r * cos(teta));
+					float3 posRadRigid_sphParticleLocalRotate = posRadRigid_sphParticleLocal.x * F3(rigidRotMatrix.a00, rigidRotMatrix.a10, rigidRotMatrix.a20) +
+							posRadRigid_sphParticleLocal.y * F3(rigidRotMatrix.a01, rigidRotMatrix.a11, rigidRotMatrix.a21) +
+							posRadRigid_sphParticleLocal.z * F3(rigidRotMatrix.a02, rigidRotMatrix.a12, rigidRotMatrix.a22);
+
+					float4 posRadRigid_sphParticle = F4(posRadRigid_sphParticleLocalRotate, sphR) + F4(rigidPos, 0);
+
 					mPosRad.push_back(posRadRigid_sphParticle);
 					float deltaPhiDum = spacing / (r * sin(teta));
 					float rNewDum = 1 / length(F3(sin(teta) * cos(phi + deltaPhiDum), sin(teta) * sin(phi + deltaPhiDum), cos(teta)) / r3);
@@ -939,7 +972,7 @@ int main() {
 	rhoRigid = 1180;//1000; //1050; //originally .079 //.179 for cylinder
 
 	//float rr = .4 * (float(rand()) / RAND_MAX + 1);
-	float3 r3Ellipsoid = F3(0.4 * sizeScale); //F3(0.8 * sizeScale); //float3 r3Ellipsoid = F3(.03 * sizeScale); //F3(.05, .03, .02) * sizeScale; //F3(.03 * sizeScale);
+	float3 r3Ellipsoid = F3(0.4, 0.4, 0.4) * sizeScale;//F3(0.4 * sizeScale); //F3(0.8 * sizeScale); //float3 r3Ellipsoid = F3(.03 * sizeScale); //F3(.05, .03, .02) * sizeScale; //F3(.03 * sizeScale);
 	//**
 //	CreateRigidBodiesPattern(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
 	//**
@@ -949,6 +982,9 @@ int main() {
 //	CreateRigidBodiesPatternPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
 	//**
 	CreateRigidBodiesRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, 4); //changed 2 to 4
+
+	thrust::host_vector<Rotation> rigidRotMatrix(mQuatRot.size());
+	ConvertQuatArray2RotArray(rigidRotMatrix, mQuatRot);
 
 	printf("size rigids %d\n", rigidPos.size());
 	//---------------------------------------------------------------------
@@ -980,7 +1016,7 @@ int main() {
 		thrust::host_vector<float4> mRhoPresMuBoundary;
 
 		int2 num_fluidOrBoundaryParticles = CreateFluidParticles(mPosRad, mVelMas, mRhoPresMu, mPosRadBoundary, mVelMasBoundary, mRhoPresMuBoundary, sphParticleMass,
-				rigidPos, ellipsoidRadii, r, cMax, cMin, rho0, pres, mu);
+				rigidPos, rigidRotMatrix, ellipsoidRadii, r, cMax, cMin, rho0, pres, mu);
 		referenceArray.push_back(I3(0, num_fluidOrBoundaryParticles.x, -1));
 		numAllParticles += num_fluidOrBoundaryParticles.x;
 		printf("num_FluidParticles: %d\n", num_fluidOrBoundaryParticles.x);
@@ -1005,7 +1041,7 @@ int main() {
 		//rigid body: type = 1, 2, 3, ...
 		printf("num_RigidBodyParticles: \n");
 		for (int rigidSpheres = 0; rigidSpheres < rigidPos.size(); rigidSpheres++) {
-			int num_RigidBodyParticles = CreateEllipsoidParticles(mPosRad, mVelMas, mRhoPresMu, rigidPos[rigidSpheres], ellipsoidRadii[rigidSpheres], spheresVelMas[rigidSpheres],
+			int num_RigidBodyParticles = CreateEllipsoidParticles(mPosRad, mVelMas, mRhoPresMu, rigidPos[rigidSpheres], rigidRotMatrix[rigidSpheres], ellipsoidRadii[rigidSpheres], spheresVelMas[rigidSpheres],
 					rigidBodyOmega[rigidSpheres], r, sphParticleMass, rho0, pres, mu, cMin, cMax, rigidSpheres + 1);		//as type
 //			int num_RigidBodyParticles = CreateCylinderParticles_XZ(mPosRad, mVelMas, mRhoPresMu,
 //													rigidPos[rigidSpheres], ellipsoidRadii[rigidSpheres],
@@ -1041,6 +1077,7 @@ int main() {
 	referenceArray.clear();
 	rigidPos.clear();
 	mQuatRot.clear();
+	rigidRotMatrix.clear();
 	ellipsoidRadii.clear();
 	spheresVelMas.clear();
 	rigidBodyOmega.clear();
