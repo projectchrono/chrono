@@ -51,8 +51,13 @@ set_property(GLOBAL PROPERTY USE_FOLDERS Off)
 
 PROJECT(ChronoEngine)
 
+set (ChronoEngine_VERSION_MAJOR 1)
+set (ChronoEngine_VERSION_MINOR 0)
 
-
+#SET(CPACK_PACKAGE_VERSION "1.0.0")
+#SET(CPACK_PACKAGE_VERSION_MAJOR "1")
+#SET(CPACK_PACKAGE_VERSION_MINOR "0")
+#SET(CPACK_PACKAGE_VERSION_PATCH "0")
 
 #-----------------------------------------------------------------------------
 # OPTIONS AND USER SETTINGS
@@ -108,9 +113,9 @@ ENDIF()
 
 
 #message(STATUS "Detected CH_COMPILER='${DETECTED_CH_COMPILER}'")
-#message(STATUS "Detected CH_OS='${DETECTED_CH_OS}'")
+#message(STATUS "Detected CH_OS='${CMAKE_SYSTEM_NAME}'")
 
-#set(CH_COMPILER "${DETECTED_CH_COMPILER}" CACHE STRING "Set Compiler Type, Re-Run configure after changing")
+set(CH_COMPILER "${DETECTED_CH_COMPILER}" CACHE STRING "Set Compiler Type, Re-Run configure after changing")
 #set(CH_COMPILER_VALUES "COMPILER_MSVC;COMPILER_GCC;COMPILER_MSVC_X64;COMPILER_GCC_X64")
 #set_property(CACHE CH_COMPILER PROPERTY STRINGS ${CH_COMPILER_VALUES})
 
@@ -151,22 +156,21 @@ SET(CH_CHRONOSRC 	"${CH_CHRONODIR}/source" )
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
-
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY EXECUTABLE_OUTPUT_PATH)
 find_package("OpenMP")
-find_package("GLUT")
 find_package("OpenGL")
+find_package("GLUT")
 
 if(OPENMP_FOUND)
  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 ENDIF(OPENMP_FOUND)
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-#freeglut is not found properly on windows
-SET(FREEGLUT_LIB_PATH       ""   CACHE PATH "Where is freeglut located")		 
-FIND_LIBRARY( FREEGLUT_LIB NAMES glut glut32 freeglut PATHS ${FREEGLUT_LIB_PATH})
-MARK_AS_ADVANCED(FORCE FREEGLUT_LIB)
+#MARK_AS_ADVANCED(FORCE FREEGLUT_LIB)
+#SET(CPACK_SYSTEM_NAME "Win-x64")
 
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	#SET(FREEGLUT_BASE_PATH       ""   CACHE PATH "Where is freeglut located?")
 		SET(ENABLE_MULTITHREADED_BUILD			TRUE    CACHE BOOL   "Turn this ON to compile using multiple threads")
 		IF (ENABLE_MULTITHREADED_BUILD)
 			SET(CH_PARALLELBUILD "-MP")
@@ -176,56 +180,32 @@ MARK_AS_ADVANCED(FORCE FREEGLUT_LIB)
 
 		IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
 			SET (CH_BUILDFLAGS "-DWIN32; -DNOMINMAX";${CH_PARALLELBUILD})
-			SET (CH_LINKERFLAG_EXE "")
 			SET (CH_LINKERFLAG_SHARED "/FORCE:MULTIPLE")
-			SET (CH_LIBNAMEPREFIX "")
-			SET (CH_LIBNAMEPOSTFIX ".lib")
-			SET (CH_LIBNAMEPOSTFIXSHARED ".dll")
-			SET (CH_LIBDIR  "${CH_CHRONODIR}/lib/Win32_VisualStudio")
-			SET (CH_BINDIR  "${CH_CHRONODIR}/bin/Win32_VisualStudio")
-			SET (CH_IRRLICHTLIB "${CH_IRRLICHTDIR}/lib/Win32-VisualStudio/Irrlicht.lib")
+		       SET(CPACK_SYSTEM_NAME "Win-x86")
 		ENDIF()
 		IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
 			SET (CH_BUILDFLAGS "-DWIN64; -DNOMINMAX";${CH_PARALLELBUILD})
-			SET (CH_LINKERFLAG_EXE "")
 			SET (CH_LINKERFLAG_SHARED "/FORCE:MULTIPLE")
-			SET (CH_LIBNAMEPREFIX "")
-			SET (CH_LIBNAMEPOSTFIX ".lib")
-			SET (CH_LIBNAMEPOSTFIXSHARED ".dll")
-			SET (CH_LIBDIR  "${CH_CHRONODIR}/lib/Win64_VisualStudio")
-			SET (CH_BINDIR  "${CH_CHRONODIR}/bin/Win64_VisualStudio")
-			SET (CH_IRRLICHTLIB "${CH_IRRLICHTDIR}/lib/Win64-VisualStudio/Irrlicht.lib")
+			SET(CPACK_SYSTEM_NAME "Win-x64")
 		ENDIF()
 		IF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
 			SET (CH_BUILDFLAGS "-DWIN32 -D_MINGW -D_WINDOWS")
 			SET (CH_LINKERFLAG_EXE "-Wl,--enable-runtime-pseudo-reloc")
 			SET (CH_LINKERFLAG_SHARED "-Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
-			SET (CH_LIBNAMEPREFIX "lib")
-			SET (CH_LIBNAMEPOSTFIX ".dll.a")
-			SET (CH_LIBNAMEPOSTFIXSHARED ".dll")
-			SET (CH_LIBDIR  "${CH_CHRONODIR}/lib/Win32_gcc")
-			SET (CH_BINDIR  "${CH_CHRONODIR}/bin/Win32_gcc")
-			SET (CH_IRRLICHTLIB "${CH_IRRLICHTDIR}/bin/Win32-gcc/Irrlicht.dll")
+			SET(CPACK_SYSTEM_NAME "Win-x86")
 		ENDIF()
 		IF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
 			SET (CH_BUILDFLAGS "-DWIN64 -D_MINGW -D_WINDOWS -m64")
 			SET (CH_LINKERFLAG_EXE "-Wl,--enable-runtime-pseudo-reloc")
 			SET (CH_LINKERFLAG_SHARED "-Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
-			SET (CH_LIBNAMEPREFIX "lib")
-			SET (CH_LIBNAMEPOSTFIX ".dll.a")
-			SET (CH_LIBNAMEPOSTFIXSHARED ".dll")
-			SET (CH_LIBDIR  "${CH_CHRONODIR}/lib/Win64_gcc")
-			SET (CH_BINDIR  "${CH_CHRONODIR}/bin/Win64_gcc")
-			SET (CH_IRRLICHTLIB "${CH_IRRLICHTDIR}/bin/Win64-gcc/Irrlicht.dll")
+		       SET(CPACK_SYSTEM_NAME "Win-x64")
 		ENDIF()
 ENDIF()
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-		SET (CH_BUILDFLAGS "-DLINUX -D__linux__ -fpermissive")
-		SET (CH_LINKERFLAG_SHARED "-lpthread -z muldefs  -pthread -Wl,--no-as-needed")		
-		SET (CH_IRRLICHTLIB "${CH_IRRLICHTDIR}/lib/Linux/libIrrlicht.a" -lXxf86vm -lglut)
+	SET (CH_BUILDFLAGS "-DLINUX -D__linux__ -fpermissive")
+	SET (CH_LINKERFLAG_SHARED "-lpthread -z muldefs  -pthread -Wl,--no-as-needed")		
+       SET(CPACK_SYSTEM_NAME "Linux-x64")
 ENDIF()
-
-
 
 
 
@@ -260,7 +240,31 @@ INCLUDE_DIRECTORIES( ${CH_INCLUDES} )
 
 IF (ENABLE_UNIT_IRRLICHT)
 	SET (CH_IRRLICHTINC "${CH_IRRLICHTDIR}/include")
+
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+		IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
+		FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHTDIR}/lib/Win32-visualstudio")
+		ENDIF()
+		IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
+		FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHTDIR}/lib/Win64-visualStudio")
+		ENDIF()
+		IF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
+		FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHTDIR}/lib/Win32-gcc")
+		ENDIF()
+		IF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
+		FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "${CH_IRRLICHTDIR}/lib/Win64-gcc")
+		ENDIF()
 ENDIF()
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS ${CH_IRRLICHTDIR}/lib/Linux)
+SET (CH_IRRLICHTLIB "${CH_IRRLICHTLIB}" -lXxf86vm -lglut)
+ENDIF()
+	ENDIF()
+
+
+#FIND_LIBRARY( FREEGLUT_LIB NAMES freeglut PATHS ${FREEGLUT_BASE_PATH}/lib/)
+
+
 
 IF (BUILD_CH_SDK)
 
@@ -1085,6 +1089,58 @@ ADD_CUSTOM_COMMAND(
 
 ENDIF (BUILD_CH_SDK)
                           	                          
+
+
+
+
+
+
+#SET(CPACK_CMAKE_GENERATOR "Unix Makefiles")
+SET(CPACK_GENERATOR "ZIP")
+#SET(CPACK_INSTALL_CMAKE_PROJECTS "${PROJECT_BINARY_DIR};ChronoEngine;ALL;/")
+#SET(CPACK_NSIS_DISPLAY_NAME "ChronoEngine")
+#SET(CPACK_PACKAGE_DESCRIPTION_FILE "/home/andy/vtk/CMake/Copyright.txt")
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ChronoEngine is a multibody-dynamics package")
+#SET(CPACK_PACKAGE_EXECUTABLES "ccmake;CMake")
+SET(CPACK_PACKAGE_FILE_NAME "ChronoEngine-${CPACK_SYSTEM_NAME}")
+SET(CPACK_PACKAGE_INSTALL_DIRECTORY "ChronoEngine")
+SET(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "ChronoEngine")
+SET(CPACK_PACKAGE_NAME "ChronoEngine")
+SET(CPACK_PACKAGE_VENDOR "UWSBEL")
+SET(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_BINARY_DIR}/../license.txt")
+SET(CPACK_RESOURCE_FILE_README "${CH_CHRONODIR}/readme.txt")
+#SET(CPACK_RESOURCE_FILE_WELCOME "/home/andy/vtk/CMake/Templates/CPack.GenericWelcome.txt")
+SET(CPACK_SOURCE_GENERATOR "TGZ")
+#SET(CPACK_SOURCE_PACKAGE_FILE_NAME "ChronoEngine")
+SET(CPACK_SOURCE_STRIP_FILES "")
+#SET(CPACK_STRIP_FILES "bin/ccmake;bin/cmake;bin/cpack;bin/ctest")
+#SET(CPACK_TOPLEVEL_TAG "Linux-x64")
+
+
+
+INSTALL(TARGETS ChronoEngine
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
+
+
+INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/bin/* DESTINATION bin)
+INSTALL(FILES ${ChronoEngine_core_HEADERS} DESTINATION include/core)
+INSTALL(FILES ${ChronoEngine_physics_HEADERS} DESTINATION include/physics)
+INSTALL(FILES ${ChronoEngine_lcp_HEADERS} DESTINATION include/lcp)
+INSTALL(FILES ${ChronoEngine_collision_HEADERS} DESTINATION include/collision)
+INSTALL(FILES ${ChronoEngine_geometry_HEADERS} DESTINATION include/geometry)
+INSTALL(FILES ${ChronoEngine_assets_HEADERS} DESTINATION include/assets)
+INSTALL(FILES ${ChronoEngine_collision_edgetempest_HEADERS} DESTINATION include/collision/edgetempest)
+INSTALL(FILES ${ChronoEngine_collision_convexdecompJR_HEADERS} DESTINATION include/collision/convexdecompJR)
+INSTALL(FILES ${ChronoEngine_pneumatica_HEADERS} DESTINATION include/pneumatica)
+INSTALL(FILES ${ChronoEngine_motion_functions_HEADERS} DESTINATION include/motion_functions)
+INSTALL(FILES ${ChronoEngine_parallel_HEADERS} DESTINATION include/parallel)
+INSTALL(FILES ${ChronoEngine_collision_bullet_HEADERS} DESTINATION include/collision/bullet)
+INSTALL(FILES ${ChronoEngine_collision_gimpact_HEADERS} DESTINATION include/collision/gimpact)
+INSTALL(FILES ${ChronoEngine_irrlicht_HEADERS} DESTINATION include/irrlicht)
+
 #
 # Propagates the CMake build to other directories
 #
@@ -1132,55 +1188,5 @@ ENDIF()
 IF(EXISTS "${CH_CHRONOSRC}/testing/")
 	ADD_SUBDIRECTORY(testing)
 ENDIF()
-
-
-
-#set (VERSION_MAJOR 1)
-#set (VERSION_MINOR 0)
-
-
-SET(CPACK_CMAKE_GENERATOR "Unix Makefiles")
-SET(CPACK_GENERATOR "STGZ")
-#SET(CPACK_INSTALL_CMAKE_PROJECTS "${PROJECT_BINARY_DIR};ChronoEngine;ALL;/")
-#SET(CPACK_NSIS_DISPLAY_NAME "ChronoEngine")
-#SET(CPACK_OUTPUT_CONFIG_FILE "${PROJECT_BINARY_DIR}/CPackConfig.cmake")
-#SET(CPACK_PACKAGE_DESCRIPTION_FILE "/home/andy/vtk/CMake/Copyright.txt")
-SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ChronoEngine is a multibody-dynamics package")
-#SET(CPACK_PACKAGE_EXECUTABLES "ccmake;CMake")
-SET(CPACK_PACKAGE_FILE_NAME "ChronoEngine-Linux-x64")
-SET(CPACK_PACKAGE_INSTALL_DIRECTORY "ChronoEngine")
-SET(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "ChronoEngine")
-SET(CPACK_PACKAGE_NAME "ChronoEngine")
-SET(CPACK_PACKAGE_VENDOR "UWSBEL")
-SET(CPACK_PACKAGE_VERSION "1.0.0")
-SET(CPACK_PACKAGE_VERSION_MAJOR "1")
-SET(CPACK_PACKAGE_VERSION_MINOR "0")
-SET(CPACK_PACKAGE_VERSION_PATCH "0")
-SET(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_BINARY_DIR}/../license.txt")
-SET(CPACK_RESOURCE_FILE_README "${CH_CHRONODIR}/readme.txt")
-#SET(CPACK_RESOURCE_FILE_WELCOME "/home/andy/vtk/CMake/Templates/CPack.GenericWelcome.txt")
-SET(CPACK_SOURCE_GENERATOR "TGZ")
-#SET(CPACK_SOURCE_OUTPUT_CONFIG_FILE "${PROJECT_BINARY_DIR}/CPackSourceConfig.cmake")
-SET(CPACK_SOURCE_PACKAGE_FILE_NAME "ChronoEngine-2.5.0")
-SET(CPACK_SOURCE_STRIP_FILES "")
-#SET(CPACK_STRIP_FILES "bin/ccmake;bin/cmake;bin/cpack;bin/ctest")
-SET(CPACK_SYSTEM_NAME "Linux-x64")
-SET(CPACK_TOPLEVEL_TAG "Linux-x64")
-
-INSTALL(TARGETS ChronoEngine DESTINATION lib)
-INSTALL(FILES ${ChronoEngine_core_HEADERS} DESTINATION include/core)
-INSTALL(FILES ${ChronoEngine_physics_HEADERS} DESTINATION include/physics)
-INSTALL(FILES ${ChronoEngine_lcp_HEADERS} DESTINATION include/lcp)
-INSTALL(FILES ${ChronoEngine_collision_HEADERS} DESTINATION include/collision)
-INSTALL(FILES ${ChronoEngine_geometry_HEADERS} DESTINATION include/geometry)
-INSTALL(FILES ${ChronoEngine_assets_HEADERS} DESTINATION include/assets)
-INSTALL(FILES ${ChronoEngine_collision_edgetempest_HEADERS} DESTINATION include/collision/edgetempest)
-INSTALL(FILES ${ChronoEngine_collision_convexdecompJR_HEADERS} DESTINATION include/collision/convexdecompJR)
-INSTALL(FILES ${ChronoEngine_pneumatica_HEADERS} DESTINATION include/pneumatica)
-INSTALL(FILES ${ChronoEngine_motion_functions_HEADERS} DESTINATION include/motion_functions)
-INSTALL(FILES ${ChronoEngine_parallel_HEADERS} DESTINATION include/parallel)
-INSTALL(FILES ${ChronoEngine_collision_bullet_HEADERS} DESTINATION include/collision/bullet)
-INSTALL(FILES ${ChronoEngine_collision_gimpact_HEADERS} DESTINATION include/collision/gimpact)
-INSTALL(FILES ${ChronoEngine_irrlicht_HEADERS} DESTINATION include/irrlicht)
 
 INCLUDE(CPack)
