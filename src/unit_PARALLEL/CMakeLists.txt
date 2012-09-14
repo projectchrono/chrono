@@ -211,23 +211,13 @@ IF(ENABLE_UNIT_GPU)
 	
 	SET_TARGET_PROPERTIES(ChronoEngine_GPU PROPERTIES 
 	                          LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
-	                          COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_GPU"
-	                          ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CH_LIBDIR}
-	                          ARCHIVE_OUTPUT_DIRECTORY_DEBUG   ${CH_LIBDIR}
-	                          RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CH_BINDIR}
-	                          RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${CH_BINDIR}
-	                          LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CH_LIBDIR}
-	                          LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${CH_LIBDIR}
-							  RUNTIME_OUTPUT_NAME_DEBUG "ChronoEngine_GPUDBG"
-	                          LIBRARY_OUTPUT_NAME_DEBUG "ChronoEngine_GPUDBG"
-	                          ARCHIVE_OUTPUT_NAME_DEBUG "ChronoEngine_GPUDBG")
+	                          COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_GPU")
 	                          
 	# Let some variables be visible also from outside this directory, using the PARENT_SCOPE trick
 	
 	TARGET_LINK_LIBRARIES(ChronoEngine_GPU
 		${CH_CUDA_LIBSDKUTIL}
-		optimized	${CH_CHRONOLIB}
-		debug		${CH_CHRONOLIB_DBG}
+		ChronoEngine
 	)
 
 	ADD_DEPENDENCIES (ChronoEngine_GPU ChronoEngine)  # better, because not automatic
