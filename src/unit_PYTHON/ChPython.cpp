@@ -41,7 +41,7 @@ ChPythonEngine::~ChPythonEngine()
 	Py_Finalize();
 }
 
-void ChPythonEngine::Run(const char* program)
+void ChPythonEngine::Run(const char* program) throw(ChException)
 {
 	/*
 	// Redirect stdout to one std::string buffer.
@@ -92,7 +92,7 @@ bool ChPythonEngine::GetFloat(const char* variable, double& return_val)
 	}
 	if (PyLong_Check(result)) 
 	{
-		return_val = (double)PyLong_AS_LONG(result); // cast py int to c++ double - it's ok anyway
+		return_val = (double)PyLong_AsLong(result); // cast py int to c++ double - it's ok anyway
 		return true;
 	}
 
@@ -122,7 +122,7 @@ bool ChPythonEngine::GetInteger(const char* variable, int& return_val)
 
 	if (PyLong_Check(result)) 
 	{
-		return_val = PyLong_AS_LONG(result); 
+		return_val = PyLong_AsLong(result); 
 		return true;
 	}
 
@@ -152,7 +152,7 @@ bool ChPythonEngine::GetBool(const char* variable, bool& return_val)
 
 	if (PyBool_Check(result)) 
 	{
-		return_val = (PyLong_AS_LONG(result)==0)? false : true; 
+		return_val = (PyLong_AsLong(result)==0)? false : true; 
 		return true;
 	}
 
@@ -223,7 +223,7 @@ typedef struct {
 */
 
 
-void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSystem& msystem) 
+void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSystem& msystem) throw(ChException)
 {
 	std::ostringstream sstream;
 	sstream << "from " << std::string(solidworks_py_file) << " import exported_items\n";

@@ -59,20 +59,11 @@ IF(ENABLE_UNIT_POSTPROCESS)
 	
 	SET_TARGET_PROPERTIES(ChronoEngine_POSTPROCESS PROPERTIES 
 	                          LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
-	                          COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_POSTPROCESS"
-	                          ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CH_LIBDIR}"
-	                          ARCHIVE_OUTPUT_DIRECTORY_DEBUG   "${CH_LIBDIR}"
-	                          RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	                          RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}"
-	                          LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	                          LIBRARY_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}"
-	                           RUNTIME_OUTPUT_NAME_DEBUG "ChronoEngine_POSTPROCESSDBG"
-	                           LIBRARY_OUTPUT_NAME_DEBUG "ChronoEngine_POSTPROCESSDBG"
-	                           ARCHIVE_OUTPUT_NAME_DEBUG "ChronoEngine_POSTPROCESSDBG")
+	                          COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_POSTPROCESS")
 	                          
 	TARGET_LINK_LIBRARIES(ChronoEngine_POSTPROCESS 
-		optimized 	${CH_CHRONOLIB}
-		debug 		${CH_CHRONOLIB_DBG}  )
+		ChronoEngine
+)
 		
 	ADD_DEPENDENCIES (ChronoEngine_POSTPROCESS ChronoEngine)  # better, because not automatic
 		

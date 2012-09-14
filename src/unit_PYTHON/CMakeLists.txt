@@ -62,21 +62,11 @@ IF(ENABLE_UNIT_PYTHON)
 	
 	SET_TARGET_PROPERTIES(ChronoEngine_PYPARSER PROPERTIES 
 	                          LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
-	                          COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_PYPARSER"
-	                          ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CH_LIBDIR}"
-	                          ARCHIVE_OUTPUT_DIRECTORY_DEBUG   "${CH_LIBDIR}"
-	                          RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	                          RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}"
-	                          LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	                          LIBRARY_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}"
-	                          RUNTIME_OUTPUT_NAME_DEBUG "ChronoEngine_PYPARSERDBG"
-	                          LIBRARY_OUTPUT_NAME_DEBUG "ChronoEngine_PYPARSERDBG"
-	                          ARCHIVE_OUTPUT_NAME_DEBUG "ChronoEngine_PYPARSERDBG")
+	                          COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_PYPARSER")
 	                          
 	TARGET_LINK_LIBRARIES(ChronoEngine_PYPARSER 
 		${CH_PYTHONLIB}
-		optimized 	${CH_CHRONOLIB}
-		debug 		${CH_CHRONOLIB_DBG}  )
+		ChronoEngine)
 		
 	ADD_DEPENDENCIES (ChronoEngine_PYPARSER ChronoEngine)  # better, because not automatic
 		
@@ -104,9 +94,10 @@ IF(ENABLE_UNIT_PYTHON)
 	SET(CH_PYTHONDIR_PY  "${CH_PYTHONDIR}/Lib")
 	
 	# the generated .cxx wrapper can be so huge that the /bigobj flag is required in VC++
+	IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   /bigobj")
 	SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /bigobj")
-	
+	ENDIF()
 	#-----------------------------------------------------------------------------
 	# 
 	# MODULE for the ChronoEngine_PYTHON_core wrapper, including most of the C::E
@@ -154,21 +145,11 @@ IF(ENABLE_UNIT_PYTHON)
 	SWIG_ADD_MODULE(ChronoEngine_PYTHON_core python ${ChronoEngine_unit_SWIG_PYTHON_CONFIG}) 
 	SWIG_LINK_LIBRARIES(ChronoEngine_PYTHON_core 
 						${PYTHON_LIBRARY}
-						optimized 	${CH_CHRONOLIB}
-						debug 		${CH_CHRONOLIB_DBG}
+						ChronoEngine
 						)
 	SET_TARGET_PROPERTIES(${SWIG_MODULE_ChronoEngine_PYTHON_core_REAL_NAME} PROPERTIES 
 					PROJECT_LABEL "ChronoEngine_PYTHON_core"
-					LIBRARY_OUTPUT_DIRECTORY "."
-					ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CH_LIBDIR}"
-	                ARCHIVE_OUTPUT_DIRECTORY_DEBUG   "${CH_LIBDIR}"
-					RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_PYTHONDIR_PYD}"
-					RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_PYTHONDIR_PYD}"
-					LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CH_PYTHONDIR_PYD}"
-					LIBRARY_OUTPUT_DIRECTORY_DEBUG   "${CH_PYTHONDIR_PYD}"
-					RUNTIME_OUTPUT_NAME_DEBUG "_ChronoEngine_PYTHON_core_DBG"
-					LIBRARY_OUTPUT_NAME_DEBUG "_ChronoEngine_PYTHON_core_DBG"
-					ARCHIVE_OUTPUT_NAME_DEBUG "_ChronoEngine_PYTHON_core_DBG")
+					LIBRARY_OUTPUT_DIRECTORY ".")
 						
 	
 	
@@ -222,23 +203,12 @@ IF(ENABLE_UNIT_PYTHON)
 		SWIG_ADD_MODULE(ChronoEngine_PYTHON_postprocess python ${ChronoEngine_unit_SWIG_PYTHON_CONFIG_postprocess}) 
 		SWIG_LINK_LIBRARIES(ChronoEngine_PYTHON_postprocess 
 							${PYTHON_LIBRARY}
-							optimized 	${CH_CHRONOLIB}
-							debug 		${CH_CHRONOLIB_DBG}
-							optimized 	${CH_CHRONOPOSTPROCESSLIB} 
- 							debug 		${CH_CHRONOPOSTPROCESSLIB_DBG}
+							ChronoEngine
+							${CH_CHRONOPOSTPROCESSLIB} 
 							)
 		SET_TARGET_PROPERTIES(${SWIG_MODULE_ChronoEngine_PYTHON_postprocess_REAL_NAME} PROPERTIES 
 						PROJECT_LABEL "ChronoEngine_PYTHON_postprocess"
-						LIBRARY_OUTPUT_DIRECTORY "."
-						ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CH_LIBDIR}"
-						ARCHIVE_OUTPUT_DIRECTORY_DEBUG   "${CH_LIBDIR}"
-						RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_PYTHONDIR_PYD}"
-						RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_PYTHONDIR_PYD}"
-						LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CH_PYTHONDIR_PYD}"
-						LIBRARY_OUTPUT_DIRECTORY_DEBUG   "${CH_PYTHONDIR_PYD}"
-						RUNTIME_OUTPUT_NAME_DEBUG "_ChronoEngine_PYTHON_postprocess_DBG"
-						LIBRARY_OUTPUT_NAME_DEBUG "_ChronoEngine_PYTHON_postprocess_DBG"
-						ARCHIVE_OUTPUT_NAME_DEBUG "_ChronoEngine_PYTHON_postprocess_DBG")
+						LIBRARY_OUTPUT_DIRECTORY ".")
 								
 		ADD_CUSTOM_COMMAND(
 					TARGET ${SWIG_MODULE_ChronoEngine_PYTHON_postprocess_REAL_NAME}
