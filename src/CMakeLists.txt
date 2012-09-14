@@ -1080,12 +1080,12 @@ SET_TARGET_PROPERTIES(ChronoEngine PROPERTIES
 						COMPILE_DEFINITIONS "CH_API_COMPILE")
 
 
-ADD_CUSTOM_COMMAND(
-    TARGET ChronoEngine
-    POST_BUILD
-#     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CH_CHRONODIR}/bin/data/ ${PROJECT_BINARY_DIR}/data
-    COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BINARY_DIR}/data/.svn
-)
+#ADD_CUSTOM_COMMAND(
+#    TARGET ChronoEngine
+#    POST_BUILD
+# #    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CH_CHRONODIR}/bin/data/ ${PROJECT_BINARY_DIR}/data
+#    COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_BINARY_DIR}/data/.svn
+#)
 
 ENDIF (BUILD_CH_SDK)
 
@@ -1117,6 +1117,8 @@ INSTALL(TARGETS ChronoEngine
   ARCHIVE DESTINATION lib
 )
 
+
+# INSTALL(DIRECTORY ${CH_CHRONODIR}/bin/data/ DESTINATION data)
 INSTALL(FILES ${ChronoEngine_core_HEADERS} DESTINATION include/core)
 INSTALL(FILES ${ChronoEngine_physics_HEADERS} DESTINATION include/physics)
 INSTALL(FILES ${ChronoEngine_lcp_HEADERS} DESTINATION include/lcp)
