@@ -45,3 +45,5 @@ ADD_DEPENDENCIES (demo_gpuCD__hammad ChronoEngine ChronoEngine_GPU)
 
 
 
+install(TARGETS demo_gpubasic DESTINATION bin)
+install(TARGETS demo_gpuCD__hammad DESTINATION bin)

@@ -30,3 +30,8 @@ SET_TARGET_PROPERTIES(demo_chfunctions PROPERTIES
 	)
 TARGET_LINK_LIBRARIES(demo_chfunctions ChronoEngine)
 ADD_DEPENDENCIES (demo_chfunctions ChronoEngine)
+
+
+install(TARGETS demo_buildsystem DESTINATION bin)
+install(TARGETS demo_powertrain DESTINATION bin)
+install(TARGETS demo_chfunctions DESTINATION bin)

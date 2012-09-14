@@ -31,3 +31,7 @@ TARGET_LINK_LIBRARIES(demo_chfunctions_plot
 	${CH_MATLABLIB}
  	ChronoEngine)
 ADD_DEPENDENCIES (demo_chfunctions_plot ChronoEngine)
+
+
+install(TARGETS demo_matlab DESTINATION bin)
+install(TARGETS demo_chfunctions_plot DESTINATION bin)

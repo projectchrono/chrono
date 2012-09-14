@@ -22,3 +22,4 @@ TARGET_LINK_LIBRARIES(demo_pyparser
  	)
 ADD_DEPENDENCIES (demo_pyparser ChronoEngine ChronoEngine_PYPARSER)
  	
+install(TARGETS demo_pyparser DESTINATION bin)

@@ -63,3 +63,8 @@ TARGET_LINK_LIBRARIES(demo_DEM_MPI
  	debug 		${CH_CHRONOMPILIB_DBG}
  	)
 ADD_DEPENDENCIES (demo_DEM_MPI ChronoEngine ChronoEngine_MPI)
+
+install(TARGETS demo_domains DESTINATION bin)
+install(TARGETS demo_lcp_schwarz DESTINATION bin)
+install(TARGETS demo_mpibasic DESTINATION bin)
+install(TARGETS demo_DEM_MPI DESTINATION bin)

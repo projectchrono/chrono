@@ -235,3 +235,28 @@ TARGET_LINK_LIBRARIES(demo_convergence
 	${CH_IRRLICHTLIB} 
  	ChronoEngine)
 ADD_DEPENDENCIES (demo_convergence ChronoEngine)
+
+install(TARGETS demo_collision DESTINATION bin)
+install(TARGETS demo_benchmark DESTINATION bin)
+install(TARGETS demo_bricks DESTINATION bin)
+install(TARGETS demo_cohesion DESTINATION bin)
+install(TARGETS demo_conveyor DESTINATION bin)
+install(TARGETS demo_crank DESTINATION bin)
+install(TARGETS demo_decomposition DESTINATION bin)
+install(TARGETS demo_forklift DESTINATION bin)
+install(TARGETS demo_fourbar DESTINATION bin)
+install(TARGETS demo_friction DESTINATION bin)
+install(TARGETS demo_gears DESTINATION bin)
+install(TARGETS demo_mecanum DESTINATION bin)
+install(TARGETS demo_meshless DESTINATION bin)
+install(TARGETS demo_pendulum DESTINATION bin)
+install(TARGETS demo_sph DESTINATION bin)
+install(TARGETS demo_suspension DESTINATION bin)
+install(TARGETS demo_tire DESTINATION bin)
+install(TARGETS demo_tracks DESTINATION bin)
+install(TARGETS demo_convergence DESTINATION bin)
+
+
+
+
+

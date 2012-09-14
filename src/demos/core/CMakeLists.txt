@@ -40,3 +40,9 @@ SET_TARGET_PROPERTIES(demo_stream PROPERTIES
 	)
 TARGET_LINK_LIBRARIES(demo_stream ChronoEngine)
 ADD_DEPENDENCIES (demo_stream ChronoEngine)
+
+
+install(TARGETS demo_coords DESTINATION bin)
+install(TARGETS demo_math DESTINATION bin)
+install(TARGETS demo_sharedptr DESTINATION bin)
+install(TARGETS demo_stream DESTINATION bin)
