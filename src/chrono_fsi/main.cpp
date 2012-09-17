@@ -340,8 +340,8 @@ bool IsInsideSphere(float4 sphParPos, float4 spherePosRad, float clearance) {
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 bool IsInsideEllipsoid(float4 sphParPos, float3 rigidPos, Rotation rot, float3 radii, float clearance) {
-	float3 sphParPosLocal = sphParPos.x * F3(rot.a00, rot.a01, rot.a02) + sphParPos.y * F3(rot.a10, rot.a11, rot.a12) + sphParPos.z * F3(rot.a20, rot.a21, rot.a22);
-	float3 dist3 = sphParPosLocal - rigidPos;
+	float3 dist3GF = F3(sphParPos) - rigidPos;
+	float3 dist3 = dist3GF.x * F3(rot.a00, rot.a01, rot.a02) + dist3GF.y * F3(rot.a10, rot.a11, rot.a12) + dist3GF.z * F3(rot.a20, rot.a21, rot.a22);
 	float3 mappedDist = dist3 / (radii + F3(clearance));
 	if (length(mappedDist) < 1) {
 		return true;
