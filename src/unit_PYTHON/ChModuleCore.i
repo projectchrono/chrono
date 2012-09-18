@@ -46,7 +46,7 @@
 // Include C++ headers this way...
 
 %{
-
+#include <stddef.h>
 #include "physics/ChBody.h"
 
 using namespace chrono;

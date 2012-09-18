@@ -6,12 +6,12 @@
 
 SET(CH_MATLABSDK         ""    	CACHE PATH   "Where is your Matlab SDK installed? Ex. C:/Programs/MATLAB/R2006b/extern. You must set this path to compile demos with Matlab interface.")
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-	SET(ENABLE_UNIT_MATLAB   FALSE CACHE BOOL   "Turn this ON to generate the Chrono::Engine demos with Matlab.")
-	MESSAGE("NOTE! The Matlab-unit build system is not yet available on Linux.")
-ELSE()
-	SET(ENABLE_UNIT_MATLAB   TRUE    CACHE BOOL   "Turn this ON to generate the Chrono::Engine demos with Matlab.")
-	ENDIF()
+#IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+#	SET(ENABLE_UNIT_MATLAB   FALSE CACHE BOOL   "Turn this ON to generate the Chrono::Engine demos with Matlab.")
+#	MESSAGE("NOTE! The Matlab-unit build system is not yet available on Linux.")
+#ELSE()
+#	SET(ENABLE_UNIT_MATLAB   TRUE    CACHE BOOL   "Turn this ON to generate the Chrono::Engine demos with Matlab.")
+#	ENDIF()
 
 
 # To hide unneeded option stuff from GUI (require refresh by pressing 'configure', anyway)
