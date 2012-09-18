@@ -73,7 +73,7 @@ void ChContactContainerDEMMPI::ConstraintsFbLoadForces(double factor)
 		cntct = (ChContactDEM*)(*itercontact);
 		if (ChSystemMPI* syss = dynamic_cast<ChSystemMPI*>(this->GetSystem()))
 		{
-			if( ~(*syss).nodeMPI.IsInto( (cntct->GetContactP1() + cntct->GetContactP2())/2.0 ) )
+			if( ~(*syss).nodeMPI->IsInto( (cntct->GetContactP1() + cntct->GetContactP2())/2.0 ) )
 			{
 				apply_force=false;
 			}

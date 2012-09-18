@@ -214,13 +214,18 @@ public:
 			// CONSTRUCTORS
 			//
 
-	ChSystemDescriptorMPIlattice3D(ChDomainNodeMPIlattice3D* mnode)
+	ChSystemDescriptorMPIlattice3D(ChDomainNodeMPI* mnode)
 					{
-						lattice_node = mnode;
+						// make sure the domain node is lattice type, like the descriptor
+						ChDomainNodeMPIlattice3D *lnode = dynamic_cast<ChDomainNodeMPIlattice3D*>(mnode);
+						if (lnode==0){
+							GetLog() << "ERROR: domain node not of lattice type\n";
+						}
+						lattice_node = lnode;
 						this->shared_interfaces.resize(27);
 
 						for (int i = 0; i < 27; i++)
-							this->shared_interfaces[i].SetMPIfriend (mnode->interfaces[i].id_MPI);
+							this->shared_interfaces[i].SetMPIfriend (lnode->interfaces[i].id_MPI);
 					};
 
 };
@@ -245,15 +250,20 @@ public:
 			// CONSTRUCTORS
 			//
 
-	ChSystemDescriptorMPIgrid3D(ChDomainNodeMPIgrid3D* mnode)
+	ChSystemDescriptorMPIgrid3D(ChDomainNodeMPI* mnode)
 					{
-						grid_node = mnode;
-						int num_interfaces = mnode->interfaces.size();
+						// make sure the domain node is grid type, like the descriptor
+						ChDomainNodeMPIgrid3D *gnode = dynamic_cast<ChDomainNodeMPIgrid3D*>(mnode);
+						if (gnode==0){
+							GetLog() << "ERROR: domain node not of grid type\n";
+						}
+						grid_node = gnode;
+						int num_interfaces = gnode->interfaces.size();
 
 						this->shared_interfaces.resize(num_interfaces);
 
 						for (int i = 0; i < num_interfaces; i++)
-							this->shared_interfaces[i].SetMPIfriend (mnode->interfaces[i].id_MPI);
+							this->shared_interfaces[i].SetMPIfriend (gnode->interfaces[i].id_MPI);
 					};
 
 };

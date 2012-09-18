@@ -113,7 +113,7 @@ void ChBodyDEMMPI::Update ()
 	{
 		ChVector<> center;
 		this->GetCenter(center);
-		if( (*syss).nodeMPI.IsInto( center ) )
+		if( (*syss).nodeMPI->IsInto( center ) )
 		{
 			inc_f=true;
 		}

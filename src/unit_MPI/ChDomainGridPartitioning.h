@@ -137,7 +137,7 @@ public:
 		/// but less flexible.
 		/// If the node is at the world min/max neighbour, it extends infinitely in that direction.
 		/// Return false if out of index ranges.
-	bool SetupNode(ChDomainNodeMPIgrid3D& mnode, int nrank) const;
+	bool SetupNode(ChDomainNodeMPI *mnode, int nrank) const;
 
 		// 
 		// Utils

@@ -61,7 +61,7 @@ public:
 		/// type, given indexes nx ny nz in the lattice. If the node is at the
 		/// world min/max neighbour, it extends infinitely in that direction.
 		/// Return false if out of index ranges.
-	bool SetupNode(ChDomainNodeMPIlattice3D& mnode, int nx, int ny, int nz) const;
+	bool SetupNode(ChDomainNodeMPI *mnode, int nx, int ny, int nz) const;
 
 		/// Setup the MPI interfaces and AABB for a MPI node oc ChDomainNodeMPIlattice3D 
 		/// type, given MPI rank index. We assume that all rank indexes will be used
@@ -70,7 +70,7 @@ public:
 		/// but less flexible.
 		/// If the node is at the world min/max neighbour, it extends infinitely in that direction.
 		/// Return false if out of index ranges.
-	bool SetupNode(ChDomainNodeMPIlattice3D& mnode, int nrank) const;
+	bool SetupNode(ChDomainNodeMPI *mnode, int nrank) const;
 
 		// 
 		// Utils

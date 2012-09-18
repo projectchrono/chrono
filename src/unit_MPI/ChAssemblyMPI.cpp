@@ -127,7 +127,7 @@ void ChAssemblyMPI::Update (double mytime)
 			(*ibody)->UpdateMarkers(mytime);
 			if (ChBodyDEMMPI* bodd = dynamic_cast<ChBodyDEMMPI*>(*ibody))
 			{
-				(*bodd).UpdateForces(mytime, (*syss).nodeMPI.IsInto(center));
+				(*bodd).UpdateForces(mytime, (*syss).nodeMPI->IsInto(center));
 			}
 			ibody++;
 		}

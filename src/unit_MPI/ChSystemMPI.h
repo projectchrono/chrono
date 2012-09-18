@@ -98,8 +98,8 @@ public:
 		// DATA
 		//
 
-	// This can be ChDomainNodeMPIlattice3D or ChDomainNodeMPIgrid3D for now.
-	ChDomainNodeMPIgrid3D nodeMPI;
+	// Pointer to the domain node. The constructor creates this, should be of type ChDomainNodeMPIlattice3D or ChDomainNodeMPIgrid3D
+	ChDomainNodeMPI* nodeMPI;
 
 private:
 
