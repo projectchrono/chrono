@@ -226,6 +226,38 @@ public:
 };
 
 
+/// System descriptor for domain decomposition of
+/// complementarity problems, where the decomposition
+/// corresponds to a 3D grid, this is more general than a lattice
+
+class ChApiMPI ChSystemDescriptorMPIgrid3D : public ChLcpSystemDescriptorMPI
+{
+
+public:
+			//
+			// DATA
+			//
+		ChDomainNodeMPIgrid3D* grid_node;
+
+public:
+
+			//
+			// CONSTRUCTORS
+			//
+
+	ChSystemDescriptorMPIgrid3D(ChDomainNodeMPIgrid3D* mnode)
+					{
+						grid_node = mnode;
+						int num_interfaces = mnode->interfaces.size();
+
+						this->shared_interfaces.resize(num_interfaces);
+
+						for (int i = 0; i < num_interfaces; i++)
+							this->shared_interfaces[i].SetMPIfriend (mnode->interfaces[i].id_MPI);
+					};
+
+};
+
 
 
 } // END_OF_NAMESPACE____

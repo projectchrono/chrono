@@ -33,6 +33,7 @@ IF(ENABLE_UNIT_MPI)
 		ChSystemMPI.cpp 
 		ChBodyMPI.cpp
 		ChDomainLatticePartitioning.cpp
+		ChDomainGridPartitioning.cpp
 		ChAssemblyMPI.cpp
 		ChContactContainerDEMMPI.cpp
 		)
@@ -47,6 +48,7 @@ IF(ENABLE_UNIT_MPI)
 		ChSystemMPI.h 
 		ChBodyMPI.h
 		ChDomainLatticePartitioning.h
+		ChDomainGridPartitioning.h
 		ChAssemblyMPI.h
 		ChContactContainerDEMMPI.h
 		)

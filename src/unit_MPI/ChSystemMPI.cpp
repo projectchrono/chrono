@@ -70,7 +70,7 @@ ChSystemMPI::~ChSystemMPI()
 
 void ChSystemMPI::CustomEndOfStep()
 {
-	InterDomainSyncronizeStates();
+	InterDomainSynchronizeStates();
 	InterDomainSetup();
 }
 
@@ -234,7 +234,7 @@ void ChSystemMPI::InterDomainRemoveOtherPhysicsItem (int id)
 
 
 
-void ChSystemMPI::InterDomainSyncronizeStates()
+void ChSystemMPI::InterDomainSynchronizeStates()
 {
 	HIER_BODY_INIT
 	while HIER_BODY_NOSTOP

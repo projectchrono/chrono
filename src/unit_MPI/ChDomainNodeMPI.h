@@ -53,6 +53,11 @@ class ChApiMPI ChDomainNodeInterfaceMPI
 {
 public:
 	int id_MPI;
+
+	// subdomain boundary information:
+	ChVector<> min_box;
+	ChVector<> max_box;
+
 	std::vector<char>* mstreamo;
 	ChStreamOutBinaryVector* mchstreamo;
 	std::vector<char>* mstreami;
@@ -247,6 +252,104 @@ public:
 		if ( (0x1 << n_interface) & overlapflags )
 			return true;
 		return false;
+	}
+
+
+};
+
+/// Class for a node in a MPI multi-domain environment
+/// splitted as a 3D grid, this is more general than a lattice
+
+class ChApiMPI ChDomainNodeMPIgrid3D : public ChDomainNodeMPI
+{
+public:
+	ChVector<> min_box;
+	ChVector<> max_box;
+
+	ChDomainNodeMPIgrid3D ()
+	{
+		id_MPI = 0;
+		interfaces.resize(0);
+		min_box.Set(0,0,0);
+		max_box.Set(0,0,0);
+	}
+
+	void SetupNode(int id, int totalNodes)
+	{
+		id_MPI=id;
+		interfaces.resize(totalNodes);
+	}
+
+	virtual bool IsInto(ChVector<> point)
+	{
+		if (point.x >= this->min_box.x &&
+			point.y >= this->min_box.y &&
+			point.z >= this->min_box.z &&
+			point.x <  this->max_box.x &&
+			point.y <  this->max_box.y &&
+			point.z <  this->max_box.z )
+			return true;
+		else
+			return false;
+	}
+
+	virtual bool IsAABBinside(ChVector<>& aabbmin, ChVector<>& aabbmax)
+	{
+		if (aabbmin.x >= this->min_box.x &&
+			aabbmin.y >= this->min_box.y &&
+			aabbmin.z >= this->min_box.z &&
+			aabbmax.x <  this->max_box.x &&
+			aabbmax.y <  this->max_box.y &&
+			aabbmax.z <  this->max_box.z )
+			return true;
+		else
+			return false;
+	}
+
+	virtual bool IsAABBoutside(ChVector<>& aabbmin, ChVector<>& aabbmax)
+	{
+		if (aabbmax.x <  this->min_box.x ||
+			aabbmax.y <  this->min_box.y ||
+			aabbmax.z <  this->min_box.z ||
+			aabbmin.x >= this->max_box.x ||
+			aabbmin.y >= this->max_box.y ||
+			aabbmin.z >= this->max_box.z )
+			return true;
+		else
+			return false;
+	}
+
+	virtual bool IsAABBoverlappingInterface(int n_interface, ChVector<>& aabbmin, ChVector<>& aabbmax)
+	{
+		assert (n_interface < interfaces.size() );
+
+		// the aabb is in the interface if it is partially in each of the domain boxes which make up the interface
+		// we already know it is in this domain node box, so we only have to make sure it is partially in the other
+
+		if (aabbmin.x >= interfaces[n_interface].max_box.x ||
+			aabbmin.y >= interfaces[n_interface].max_box.y ||
+			aabbmin.z >= interfaces[n_interface].max_box.z ||
+			aabbmax.x <  interfaces[n_interface].min_box.x ||
+			aabbmax.y <  interfaces[n_interface].min_box.y ||
+			aabbmax.z <  interfaces[n_interface].min_box.z )
+			return false;
+		else
+			return true;
+	}
+
+	virtual bool IsIntoInterface(int n_interface, ChVector<>& point)
+	{
+		assert (n_interface < interfaces.size() );
+
+		if (point.x >= interfaces[n_interface].min_box.x &&
+			point.y >= interfaces[n_interface].min_box.y &&
+			point.z >= interfaces[n_interface].min_box.z &&
+			point.x <  interfaces[n_interface].max_box.x &&
+			point.y <  interfaces[n_interface].max_box.y &&
+			point.z <  interfaces[n_interface].max_box.z )
+			return true;
+		else
+			return false;
 	}
 
 

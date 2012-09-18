@@ -40,8 +40,7 @@ public:
 
 	virtual void LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor);
 
-				/// Executes custom processing at the end of step: performs 
-				///	  InterDomainSyncronizeStates()
+				/// Executes custom processing at the end of step: performs
 				///   InterDomainSyncronizeStates()
 				///   InterDomainSetup()   
 	virtual void CustomEndOfStep();
@@ -57,7 +56,7 @@ public:
 				/// in neighbouring domains) really have the same values. In fact
 				/// different integration schemes/numerical issues in domains could
 				/// lead to small differences between the n copies of the same shared item.
-	virtual void InterDomainSyncronizeStates();
+	virtual void InterDomainSynchronizeStates();
 
 				/// Performs the MPI inter-domain exchange of objects that spill out
 				/// of the domains, by streaming to binary buffers, sending them via MPI 
@@ -72,7 +71,7 @@ public:
 				/// The ASCII output file will have these infos at each line:
 				///    rank, uniqueId, shared, xmin, ymin, zmin, xmax, ymax, zmax 
 				/// where shared can be 0=no shared, 1=shared:master, 2=shared:slave
-				/// NOTE: it must be called by all domains, no exceptions, becuse it contains 
+				/// NOTE: it must be called by all domains, no exceptions, because it contains
 				/// a MPI_File_write_ordered()
 	virtual void WriteOrderedDumpAABB(ChMPIfile& output);
 
@@ -81,15 +80,15 @@ public:
 				/// The ASCII output file will have these infos at each line:
 				///    rank, uniqueId, shared, xpos, ypos, zpos, xrot, yrot, zrot 
 				/// where shared can be 0=no shared, 1=shared:master, 2=shared:slave
-				/// NOTE: it must be called by all domains, no exceptions, becuse it contains 
+				/// NOTE: it must be called by all domains, no exceptions, because it contains
 				/// a MPI_File_write_ordered()
 	virtual void WriteOrderedDumpState(ChMPIfile& output);
 
 				/// For debugging: dump contact info
-	void WriteOrderedDumpContacts(ChMPIfile& output);
+	virtual void WriteOrderedDumpContacts(ChMPIfile& output);
 
-				/// For debugging: call this function to dump interfce data etc. as ASCII
-				/// NOTE: it must be called by all domains, no exceptions, becuse it contains 
+				/// For debugging: call this function to dump interface data etc. as ASCII
+				/// NOTE: it must be called by all domains, no exceptions, because it contains
 				/// a MPI_File_write_ordered()
 	virtual void WriteOrderedDumpDebugging(ChMPIfile& output);
 
@@ -99,7 +98,8 @@ public:
 		// DATA
 		//
 
-	ChDomainNodeMPIlattice3D nodeMPI;
+	// This can be ChDomainNodeMPIlattice3D or ChDomainNodeMPIgrid3D for now.
+	ChDomainNodeMPIgrid3D nodeMPI;
 
 private:
 
@@ -110,4 +110,4 @@ private:
 } // END_OF_NAMESPACE____
 
 
-#endif  // END of ChSystemMPI.h 
+#endif  // END of ChSystemMPI.h
