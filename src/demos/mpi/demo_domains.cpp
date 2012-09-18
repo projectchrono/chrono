@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
 
 	// Prepare the system with a special 'system descriptor' 
 	// that is necessary when doing simulations with MPI.
-	ChSystemDescriptorMPIlattice3D mydescriptor(&mysystem.nodeMPI);
+	ChSystemDescriptorMPIlattice3D mydescriptor(mysystem.nodeMPI);
 	mysystem.ChangeLcpSystemDescriptor(&mydescriptor);
 
 	// Use the Schwarz solver
@@ -106,12 +106,12 @@ int main(int argc, char* argv[])
 	if (save_domain_boxes_on_file)
 	{
 		//CHMPIfile::FileDelete("output\\domains.dat"); // delete prev.file, if any. Otherwise might partially overwrite
-		domainfile = new CHMPIfile("output\\domains.dat", CHMPIfile::CHMPI_MODE_WRONLY | CHMPIfile::CHMPI_MODE_CREATE);
+		domainfile = new CHMPIfile("output/domains.dat", CHMPIfile::CHMPI_MODE_WRONLY | CHMPIfile::CHMPI_MODE_CREATE);
 		char buffer[100];
 		sprintf(buffer, "%d, %g, %g, %g, %g, %g, %g ,\n", 
-						mysystem.nodeMPI.id_MPI, 
-						mysystem.nodeMPI.min_box.x,	mysystem.nodeMPI.min_box.y,	mysystem.nodeMPI.min_box.z,
-						mysystem.nodeMPI.max_box.x,	mysystem.nodeMPI.max_box.y,	mysystem.nodeMPI.max_box.z);
+						mysystem.nodeMPI->id_MPI,
+						((ChDomainNodeMPIlattice3D*)mysystem.nodeMPI)->min_box.x,	((ChDomainNodeMPIlattice3D*)mysystem.nodeMPI)->min_box.y,	((ChDomainNodeMPIlattice3D*)mysystem.nodeMPI)->min_box.z,
+						((ChDomainNodeMPIlattice3D*)mysystem.nodeMPI)->max_box.x,	((ChDomainNodeMPIlattice3D*)mysystem.nodeMPI)->max_box.y,	((ChDomainNodeMPIlattice3D*)mysystem.nodeMPI)->max_box.z);
 		domainfile->WriteOrdered((char*)buffer, strlen(buffer));
 		delete domainfile;
 	}
@@ -127,7 +127,7 @@ int main(int argc, char* argv[])
 		// IMPORTANT: before adding a body, use the IsInto() check to see if the center
 		// of the body is inside the domain of this process, and add only if so. 
 		// No problem if the object AABB overlaps neighbouring domains. 
-		if (mysystem.nodeMPI.IsInto(center))
+		if (mysystem.nodeMPI->IsInto(center))
 		{
 			// Create a body of the type that can cross boundaries and support 
 			// MPI domain decomposition.
@@ -157,11 +157,11 @@ if (npart==5) GetLog() << "+++ADDED ID=5 ++++\n";
 	// Add a flat box as a ground
 
 	ChVector<> groundcenter(0.01,-1.2, 0.01);
-	if (mysystem.nodeMPI.IsInto(groundcenter))
+	if (mysystem.nodeMPI->IsInto(groundcenter))
 	{
 
 		ChSharedPtr<ChBodyMPI> mybody(new ChBodyMPI);
-		mybody->SetIdentifier(10000 + mysystem.nodeMPI.id_MPI );
+		mybody->SetIdentifier(10000 + mysystem.nodeMPI->id_MPI );
 
 		mybody->SetBodyFixed(true);
 		mybody->SetCollide(true);
@@ -220,7 +220,7 @@ if (npart==5) GetLog() << "+++ADDED ID=5 ++++\n";
 		 	char filename[100];
 
 GetLog() <<"\nID="<< myid << " frame=" << padnumber << "\n";
-			sprintf(filename, "output\\pos%s.dat", padnumber+1);
+			sprintf(filename, "output/pos%s.dat", padnumber+1);
 
 			//CHMPIfile::FileDelete(filename); // Delete prev.,if any. Otherwise might partially overwrite
 			CHMPIfile* posfile = new CHMPIfile(filename, CHMPIfile::CHMPI_MODE_WRONLY | CHMPIfile::CHMPI_MODE_CREATE);
@@ -228,7 +228,7 @@ GetLog() <<"\nID="<< myid << " frame=" << padnumber << "\n";
 			delete posfile;
 
 			
-			sprintf(filename, "output\\debug%s.dat", padnumber+1);
+			sprintf(filename, "output/debug%s.dat", padnumber+1);
 			//CHMPIfile::FileDelete(filename); // Delete prev.,if any. Otherwise might partially overwrite
 			CHMPIfile* debugfile = new CHMPIfile(filename, CHMPIfile::CHMPI_MODE_WRONLY | CHMPIfile::CHMPI_MODE_CREATE);
 			mysystem.WriteOrderedDumpDebugging(*debugfile);

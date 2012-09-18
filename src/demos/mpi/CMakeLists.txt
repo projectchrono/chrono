@@ -15,10 +15,7 @@ SET_TARGET_PROPERTIES(demo_domains PROPERTIES
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_domains 
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG}
- 	optimized 	${CH_CHRONOMPILIB} 
- 	debug 		${CH_CHRONOMPILIB_DBG}
+ 	ChronoEngine ChronoEngine_MPI
  	)
 ADD_DEPENDENCIES (demo_domains ChronoEngine ChronoEngine_MPI)
  	
@@ -29,10 +26,7 @@ SET_TARGET_PROPERTIES(demo_lcp_schwarz PROPERTIES
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_lcp_schwarz 
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG}
- 	optimized 	${CH_CHRONOMPILIB} 
- 	debug 		${CH_CHRONOMPILIB_DBG}
+ 	ChronoEngine ChronoEngine_MPI
  	)
 ADD_DEPENDENCIES (demo_lcp_schwarz ChronoEngine ChronoEngine_MPI)
  	
@@ -43,10 +37,7 @@ SET_TARGET_PROPERTIES(demo_mpibasic PROPERTIES
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_mpibasic 
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG}
- 	optimized 	${CH_CHRONOMPILIB} 
- 	debug 		${CH_CHRONOMPILIB_DBG}
+ 	ChronoEngine ChronoEngine_MPI
  	)
 ADD_DEPENDENCIES (demo_mpibasic ChronoEngine ChronoEngine_MPI)
 
@@ -57,10 +48,7 @@ SET_TARGET_PROPERTIES(demo_DEM_MPI PROPERTIES
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_DEM_MPI 
- 	optimized 	${CH_CHRONOLIB} 
- 	debug 		${CH_CHRONOLIB_DBG}
- 	optimized 	${CH_CHRONOMPILIB} 
- 	debug 		${CH_CHRONOMPILIB_DBG}
+ 	ChronoEngine ChronoEngine_MPI
  	)
 ADD_DEPENDENCIES (demo_DEM_MPI ChronoEngine ChronoEngine_MPI)
 

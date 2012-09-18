@@ -26,6 +26,7 @@
 #include "unit_MPI/ChBodyDEMMPI.h"
 #include "unit_MPI/ChLcpSystemDescriptorMPI.h"
 #include "unit_MPI/ChDomainLatticePartitioning.h"
+#include "unit_MPI/ChDomainGridPartitioning.h"
 #include "unit_MPI/ChLcpSolverDEMMPI.h"
 
 // Use the namespace of Chrono
@@ -43,7 +44,7 @@ void create_falling_items(ChSystemMPI& mySys, double prad, int n_bodies,double b
 	double boxxx=box_dim-2*prad;
 	for (int ii=0; ii<n_bodies; ii++){
 		ChVector<> particle_pos(ChRandom()*boxxx-boxxx/2,ChRandom()*boxxx/2+boxxx/2+prad, ChRandom()*boxxx-boxxx/2);
-		if (mySys.nodeMPI.IsInto(particle_pos))
+		if (mySys.nodeMPI->IsInto(particle_pos))
 		{
 			ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 			mybody->SetIdentifier(10+ii);
@@ -62,7 +63,7 @@ void create_falling_items(ChSystemMPI& mySys, double prad, int n_bodies,double b
 
 	/*
 	ChVector<> pp1(0.5*box_dim/2,box_dim/2,0.5*box_dim/2);
-	if (mySys.nodeMPI.IsInto(pp1))
+	if (mySys.nodeMPI->IsInto(pp1))
 	{
 		mybody = ChSharedPtr<ChBodyDEMMPI>(new ChBodyDEMMPI);
 		mybody->SetIdentifier(11);
@@ -77,7 +78,7 @@ void create_falling_items(ChSystemMPI& mySys, double prad, int n_bodies,double b
 	}
 
 	ChVector<> pp2(-0.5*box_dim/2,box_dim/2,0.5*box_dim/2);
-	if (mySys.nodeMPI.IsInto(pp2))
+	if (mySys.nodeMPI->IsInto(pp2))
 	{
 		mybody = ChSharedPtr<ChBodyDEMMPI>(new ChBodyDEMMPI);
 		mybody->SetIdentifier(22);
@@ -92,7 +93,7 @@ void create_falling_items(ChSystemMPI& mySys, double prad, int n_bodies,double b
 	}
 
 	ChVector<> pp3(0.5*box_dim/2,box_dim/2,-0.5*box_dim/2);
-	if (mySys.nodeMPI.IsInto(pp3))
+	if (mySys.nodeMPI->IsInto(pp3))
 	{
 		mybody = ChSharedPtr<ChBodyDEMMPI>(new ChBodyDEMMPI);
 		mybody->SetIdentifier(33);
@@ -107,7 +108,7 @@ void create_falling_items(ChSystemMPI& mySys, double prad, int n_bodies,double b
 	}
 
 	ChVector<> pp4(-0.5*box_dim/2,box_dim/2,-0.5*box_dim/2);
-	if (mySys.nodeMPI.IsInto(pp4))
+	if (mySys.nodeMPI->IsInto(pp4))
 	{
 		mybody = ChSharedPtr<ChBodyDEMMPI>(new ChBodyDEMMPI);
 		mybody->SetIdentifier(44);
@@ -138,7 +139,7 @@ void add_other_falling_item(ChSystemMPI& mySys, double prad, double box_dim, dou
 
 	double boxxx=box_dim-2*prad;
 	ChVector<> particle_pos(0.8*boxxx/2,box_dim/2+2*prad, 0.6*boxxx/2);
-	if (mySys.nodeMPI.IsInto(particle_pos))
+	if (mySys.nodeMPI->IsInto(particle_pos))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(id_offset+n_curr_bodies+1);
@@ -159,7 +160,7 @@ void add_other_falling_item(ChSystemMPI& mySys, double prad, double box_dim, dou
 		mybody->Update(); // really necessary?
 	}
 	ChVector<> particle_pos2(0.8*boxxx/2,box_dim/2+2*prad, 0.2*boxxx/2);
-	if (mySys.nodeMPI.IsInto(particle_pos2))
+	if (mySys.nodeMPI->IsInto(particle_pos2))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(id_offset+n_curr_bodies+2);
@@ -180,7 +181,7 @@ void add_other_falling_item(ChSystemMPI& mySys, double prad, double box_dim, dou
 		mybody->Update(); // really necessary?
 	}
 	ChVector<> particle_pos3(0.8*boxxx/2,box_dim/2+2*prad, -0.2*boxxx/2);
-	if (mySys.nodeMPI.IsInto(particle_pos3))
+	if (mySys.nodeMPI->IsInto(particle_pos3))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(id_offset+n_curr_bodies+3);
@@ -201,7 +202,7 @@ void add_other_falling_item(ChSystemMPI& mySys, double prad, double box_dim, dou
 		mybody->Update(); // really necessary?
 	}
 	ChVector<> particle_pos4(0.8*boxxx/2,box_dim/2+2*prad, -0.6*boxxx/2);
-	if (mySys.nodeMPI.IsInto(particle_pos4))
+	if (mySys.nodeMPI->IsInto(particle_pos4))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(id_offset+n_curr_bodies+4);
@@ -235,7 +236,7 @@ void add_falling_item(ChSystemMPI& mySys, double prad, double box_dim, double pm
 
 	double boxxx=box_dim-2*prad;
 	ChVector<> particle_pos(0.8*boxxx/2,box_dim/2+2*prad, 0.6*boxxx/2);
-	if (mySys.nodeMPI.IsInto(particle_pos))
+	if (mySys.nodeMPI->IsInto(particle_pos))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(id_offset+n_curr_spheres+1);
@@ -251,7 +252,7 @@ void add_falling_item(ChSystemMPI& mySys, double prad, double box_dim, double pm
 		mybody->Update(); // really necessary?
 	}
 	ChVector<> particle_pos2(0.8*boxxx/2,box_dim/2+2*prad, 0.2*boxxx/2);
-	if (mySys.nodeMPI.IsInto(particle_pos2))
+	if (mySys.nodeMPI->IsInto(particle_pos2))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(id_offset+n_curr_spheres+2);
@@ -267,7 +268,7 @@ void add_falling_item(ChSystemMPI& mySys, double prad, double box_dim, double pm
 		mybody->Update(); // really necessary?
 	}
 	ChVector<> particle_pos3(0.8*boxxx/2,box_dim/2+2*prad, -0.2*boxxx/2);
-	if (mySys.nodeMPI.IsInto(particle_pos3))
+	if (mySys.nodeMPI->IsInto(particle_pos3))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(id_offset+n_curr_spheres+3);
@@ -283,7 +284,7 @@ void add_falling_item(ChSystemMPI& mySys, double prad, double box_dim, double pm
 		mybody->Update(); // really necessary?
 	}
 	ChVector<> particle_pos4(0.8*boxxx/2,box_dim/2+2*prad, -0.6*boxxx/2);
-	if (mySys.nodeMPI.IsInto(particle_pos4))
+	if (mySys.nodeMPI->IsInto(particle_pos4))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(id_offset+n_curr_spheres+4);
@@ -318,7 +319,7 @@ void add_batch(ChSystemMPI& mySys, double prad, double box_dim, double pmass, in
 	for(int ii=0; ii<n_batch/4; ii++)
 	{
 		ChVector<> particle_pos(boxxx/2-2*prad,box_dim/2+2*prad, first+ii*spacing+0.0001);
-		if (mySys.nodeMPI.IsInto(particle_pos))
+		if (mySys.nodeMPI->IsInto(particle_pos))
 		{
 			ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 			mybody->SetIdentifier(id_offset+n_curr_spheres+cid);
@@ -339,7 +340,7 @@ void add_batch(ChSystemMPI& mySys, double prad, double box_dim, double pmass, in
 	for(int ii=0; ii<n_batch/4; ii++)
 	{
 		ChVector<> particle_pos(boxxx/2-6*prad,box_dim/2+2*prad, first+ii*spacing+0.0001);
-		if (mySys.nodeMPI.IsInto(particle_pos))
+		if (mySys.nodeMPI->IsInto(particle_pos))
 		{
 			ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 			mybody->SetIdentifier(id_offset+n_curr_spheres+cid);
@@ -361,7 +362,7 @@ void add_batch(ChSystemMPI& mySys, double prad, double box_dim, double pmass, in
 	for(int ii=0; ii<n_batch/4; ii++)
 	{
 		ChVector<> particle_pos(first+ii*spacing+0.0001,box_dim/2+2*prad,boxxx/2-2*prad);
-		if (mySys.nodeMPI.IsInto(particle_pos))
+		if (mySys.nodeMPI->IsInto(particle_pos))
 		{
 			ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 			mybody->SetIdentifier(id_offset+n_curr_spheres+cid);
@@ -382,7 +383,7 @@ void add_batch(ChSystemMPI& mySys, double prad, double box_dim, double pmass, in
 	for(int ii=0; ii<n_batch/4; ii++)
 	{
 		ChVector<> particle_pos(first+ii*spacing+0.0001,box_dim/2+2*prad,boxxx/2-6*prad);
-		if (mySys.nodeMPI.IsInto(particle_pos))
+		if (mySys.nodeMPI->IsInto(particle_pos))
 		{
 			ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 			mybody->SetIdentifier(id_offset+n_curr_spheres+cid);
@@ -404,7 +405,7 @@ void add_batch(ChSystemMPI& mySys, double prad, double box_dim, double pmass, in
 void create_boundary_boxes(ChSystemMPI& mySys, double box_dim, int n_bodies){	
 	double th=0.1;
 	ChVector<> box_base(0.0,-th/2,0.0);
-	if (mySys.nodeMPI.IsInto(box_base))
+	if (mySys.nodeMPI->IsInto(box_base))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(n_bodies+101);
@@ -419,7 +420,7 @@ void create_boundary_boxes(ChSystemMPI& mySys, double box_dim, int n_bodies){
 		mybody->Update(); 
 	}
 	ChVector<> box_left(-box_dim/2-th/2,box_dim/2,0.0);
-	if (mySys.nodeMPI.IsInto(box_left))
+	if (mySys.nodeMPI->IsInto(box_left))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(n_bodies+102);
@@ -434,7 +435,7 @@ void create_boundary_boxes(ChSystemMPI& mySys, double box_dim, int n_bodies){
 		mybody->Update(); 
 	}
 	ChVector<> box_right(box_dim/2+th/2,box_dim/2,0.0);
-	if (mySys.nodeMPI.IsInto(box_right))
+	if (mySys.nodeMPI->IsInto(box_right))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(n_bodies+103);
@@ -449,7 +450,7 @@ void create_boundary_boxes(ChSystemMPI& mySys, double box_dim, int n_bodies){
 		mybody->Update(); 
 	}
 	ChVector<> box_back(0.0,box_dim/2,-box_dim/2-th/2);
-	if (mySys.nodeMPI.IsInto(box_back))
+	if (mySys.nodeMPI->IsInto(box_back))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(n_bodies+104);
@@ -464,7 +465,7 @@ void create_boundary_boxes(ChSystemMPI& mySys, double box_dim, int n_bodies){
 		mybody->Update(); 
 	}
 	ChVector<> box_front(0.0,box_dim/2,box_dim/2+th/2);
-	if (mySys.nodeMPI.IsInto(box_front))
+	if (mySys.nodeMPI->IsInto(box_front))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(n_bodies+105);
@@ -484,8 +485,10 @@ void create_boxes_slope(ChSystemMPI& mySys, double box_dim){
 	double th=0.1;
 	double lb=sqrt(pow(box_dim/2,2)+pow(box_dim,2));
 	ChVector<> box_base(0.0+0.0001,(lb/2)*sin(atan(0.5)),0.0+0.0001);
-	if (mySys.nodeMPI.IsInto(box_base))
+	GetLog() << mySys.nodeMPI->id_MPI<< " check body 50000\n";
+	if (mySys.nodeMPI->IsInto(box_base))
 	{
+		GetLog() << mySys.nodeMPI->id_MPI<< " adding body 50000\n";
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(50000);
 		mybody->SetBodyFixed(true);
@@ -501,8 +504,10 @@ void create_boxes_slope(ChSystemMPI& mySys, double box_dim){
 		mybody->GetCollisionModel()->SyncPosition(); 
 		mybody->Update(); 
 	}
-	if (mySys.nodeMPI.IsInto(box_base))
+	GetLog() << mySys.nodeMPI->id_MPI<< " check body 50005\n";
+	if (mySys.nodeMPI->IsInto(box_base))
 	{
+		GetLog() << mySys.nodeMPI->id_MPI<< " adding body 50005\n";
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(50005);
 		mybody->SetBodyFixed(true);
@@ -518,10 +523,11 @@ void create_boxes_slope(ChSystemMPI& mySys, double box_dim){
 		mybody->GetCollisionModel()->SyncPosition(); 
 		mybody->Update(); 
 	}
-
+	GetLog() << mySys.nodeMPI->id_MPI<< " check body 50001\n";
 	ChVector<> box_left(-box_dim/2,box_dim/4,0.0+0.0001);
-	if (mySys.nodeMPI.IsInto(box_left))
+	if (mySys.nodeMPI->IsInto(box_left))
 	{
+		GetLog() << mySys.nodeMPI->id_MPI<< " adding body 50001\n";
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(50001);
 		mybody->SetBodyFixed(true);
@@ -534,9 +540,11 @@ void create_boxes_slope(ChSystemMPI& mySys, double box_dim){
 		mybody->GetCollisionModel()->SyncPosition(); 
 		mybody->Update(); 
 	}
+	GetLog() << mySys.nodeMPI->id_MPI<< " check body 50002\n";
 	ChVector<> box_right(box_dim/2,box_dim/4,0.0+0.0001);
-	if (mySys.nodeMPI.IsInto(box_right))
+	if (mySys.nodeMPI->IsInto(box_right))
 	{
+		GetLog() << mySys.nodeMPI->id_MPI<< " adding body 50002\n";
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(50002);
 		mybody->SetBodyFixed(true);
@@ -549,9 +557,11 @@ void create_boxes_slope(ChSystemMPI& mySys, double box_dim){
 		mybody->GetCollisionModel()->SyncPosition(); 
 		mybody->Update(); 
 	}
+	GetLog() << mySys.nodeMPI->id_MPI<< " check body 50003\n";
 	ChVector<> box_back(0.0+0.0001,box_dim/4,-box_dim/2);
-	if (mySys.nodeMPI.IsInto(box_back))
+	if (mySys.nodeMPI->IsInto(box_back))
 	{
+		GetLog() << mySys.nodeMPI->id_MPI<< " adding body 50003\n";
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(50003);
 		mybody->SetBodyFixed(true);
@@ -564,9 +574,11 @@ void create_boxes_slope(ChSystemMPI& mySys, double box_dim){
 		mybody->GetCollisionModel()->SyncPosition(); 
 		mybody->Update(); 
 	}
+	GetLog() << mySys.nodeMPI->id_MPI<< " check body 50004\n";
 	ChVector<> box_front(0.0+0.0001,box_dim/4,box_dim/2);
-	if (mySys.nodeMPI.IsInto(box_front))
+	if (mySys.nodeMPI->IsInto(box_front))
 	{
+		GetLog() << mySys.nodeMPI->id_MPI<< " adding body 50004\n";
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(50004);
 		mybody->SetBodyFixed(true);
@@ -585,7 +597,7 @@ void create_fancy_boundary(ChSystemMPI& mySys, double a, double b, double c, dou
 	double th=0.1;
 
 	ChVector<> box1(-a, d/2, 0.0);
-	if (mySys.nodeMPI.IsInto(box1))
+	if (mySys.nodeMPI->IsInto(box1))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(50001);
@@ -600,7 +612,7 @@ void create_fancy_boundary(ChSystemMPI& mySys, double a, double b, double c, dou
 		mybody->Update(); 
 	}
 	ChVector<> box2(c, d/2, 0.0);
-	if (mySys.nodeMPI.IsInto(box2))
+	if (mySys.nodeMPI->IsInto(box2))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(50002);
@@ -615,7 +627,7 @@ void create_fancy_boundary(ChSystemMPI& mySys, double a, double b, double c, dou
 		mybody->Update(); 
 	}
 	ChVector<> box3((c-a)/2, 0.0, 0.0);
-	if (mySys.nodeMPI.IsInto(box3))
+	if (mySys.nodeMPI->IsInto(box3))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(50003);
@@ -630,7 +642,7 @@ void create_fancy_boundary(ChSystemMPI& mySys, double a, double b, double c, dou
 		mybody->Update(); 
 	}
 	ChVector<> box4((c-b)/2, f, 0.0);
-	if (mySys.nodeMPI.IsInto(box4))
+	if (mySys.nodeMPI->IsInto(box4))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(50004);
@@ -646,7 +658,7 @@ void create_fancy_boundary(ChSystemMPI& mySys, double a, double b, double c, dou
 	}
 	double tmp5=sqrt(pow(d-e,2)+pow(a-b,2));
 	ChVector<> box5(-b-(tmp5/2)*cos(atan((d-e)/(a-b))),e+(tmp5/2)*sin(atan((d-e)/(a-b))),0.0);
-	if (mySys.nodeMPI.IsInto(box5))
+	if (mySys.nodeMPI->IsInto(box5))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(50005);
@@ -664,7 +676,7 @@ void create_fancy_boundary(ChSystemMPI& mySys, double a, double b, double c, dou
 		mybody->Update(); 
 	}
 	ChVector<> box6(-b, (e+f)/2, 0.0);
-	if (mySys.nodeMPI.IsInto(box6))
+	if (mySys.nodeMPI->IsInto(box6))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(50006);
@@ -679,7 +691,7 @@ void create_fancy_boundary(ChSystemMPI& mySys, double a, double b, double c, dou
 		mybody->Update(); 
 	}
 	ChVector<> box7((c-a)/2, d/2, -width/2);
-	if (mySys.nodeMPI.IsInto(box7))
+	if (mySys.nodeMPI->IsInto(box7))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(50007);
@@ -694,7 +706,7 @@ void create_fancy_boundary(ChSystemMPI& mySys, double a, double b, double c, dou
 		mybody->Update(); 
 	}
 	ChVector<> box8((c-a)/2, d/2, width/2);
-	if (mySys.nodeMPI.IsInto(box8))
+	if (mySys.nodeMPI->IsInto(box8))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(50008);
@@ -714,7 +726,7 @@ void create_funnel_boundary(ChSystemMPI& mySys, double a, double b, double c, do
 	double th=0.1;
 
 	ChVector<> box1(-(b/2)-a, h+c+(d/2), 0.0);
-	if (mySys.nodeMPI.IsInto(box1))
+	if (mySys.nodeMPI->IsInto(box1))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(50001);
@@ -729,7 +741,7 @@ void create_funnel_boundary(ChSystemMPI& mySys, double a, double b, double c, do
 		mybody->Update(); 
 	}
 	ChVector<> box2((b/2)+a, h+c+(d/2), 0.0);
-	if (mySys.nodeMPI.IsInto(box2))
+	if (mySys.nodeMPI->IsInto(box2))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(50002);
@@ -745,7 +757,7 @@ void create_funnel_boundary(ChSystemMPI& mySys, double a, double b, double c, do
 	}
 	double tmp3=sqrt(pow(a,2)+pow(c,2));
 	ChVector<> box3(-(b/2)-tmp3*cos(atan(c/a)), h+tmp3*sin(atan(c/a)), 0.0);
-	if (mySys.nodeMPI.IsInto(box3))
+	if (mySys.nodeMPI->IsInto(box3))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(50003);
@@ -763,7 +775,7 @@ void create_funnel_boundary(ChSystemMPI& mySys, double a, double b, double c, do
 		mybody->Update(); 
 	}
 	ChVector<> box4((b/2)+tmp3*cos(atan(c/a)), h+tmp3*sin(atan(c/a)), 0.0);
-	if (mySys.nodeMPI.IsInto(box4))
+	if (mySys.nodeMPI->IsInto(box4))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(50004);
@@ -781,7 +793,7 @@ void create_funnel_boundary(ChSystemMPI& mySys, double a, double b, double c, do
 		mybody->Update(); 
 	}
 	ChVector<> box5(0.0, h, 0.0);
-	if (mySys.nodeMPI.IsInto(box5))
+	if (mySys.nodeMPI->IsInto(box5))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(50005);
@@ -796,7 +808,7 @@ void create_funnel_boundary(ChSystemMPI& mySys, double a, double b, double c, do
 		mybody->Update(); 
 	}
 	ChVector<> box6(-f/2, g/2, 0.0);
-	if (mySys.nodeMPI.IsInto(box6))
+	if (mySys.nodeMPI->IsInto(box6))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(50006);
@@ -811,7 +823,7 @@ void create_funnel_boundary(ChSystemMPI& mySys, double a, double b, double c, do
 		mybody->Update(); 
 	}
 	ChVector<> box7(f/2, g/2, 0.0);
-	if (mySys.nodeMPI.IsInto(box7))
+	if (mySys.nodeMPI->IsInto(box7))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(50007);
@@ -826,7 +838,7 @@ void create_funnel_boundary(ChSystemMPI& mySys, double a, double b, double c, do
 		mybody->Update(); 
 	}
 	ChVector<> box8(0.0, 0.0, 0.0);
-	if (mySys.nodeMPI.IsInto(box8))
+	if (mySys.nodeMPI->IsInto(box8))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(50008);
@@ -841,7 +853,7 @@ void create_funnel_boundary(ChSystemMPI& mySys, double a, double b, double c, do
 		mybody->Update(); 
 	}
 	ChVector<> box9(0.0, (h+c+d)/2, -width/2);
-	if (mySys.nodeMPI.IsInto(box9))
+	if (mySys.nodeMPI->IsInto(box9))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(50009);
@@ -856,7 +868,7 @@ void create_funnel_boundary(ChSystemMPI& mySys, double a, double b, double c, do
 		mybody->Update(); 
 	}
 	ChVector<> box10(0.0, (h+c+d)/2, width/2);
-	if (mySys.nodeMPI.IsInto(box10))
+	if (mySys.nodeMPI->IsInto(box10))
 	{
 		ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 		mybody->SetIdentifier(50010);
@@ -888,7 +900,7 @@ void add_fancy_items(ChSystemMPI& mySys, double prad, double pmass, double width
 	for(int jj=0; jj<n_batch; jj++)
 	{
 		ChVector<> particle_pos(-g+(ChRandom()*2*prad-prad), h, first+jj*spacing);
-		if (mySys.nodeMPI.IsInto(particle_pos))
+		if (mySys.nodeMPI->IsInto(particle_pos))
 		{
 			ChSharedPtr<ChBodyDEMMPI> mybody(new ChBodyDEMMPI);
 			mybody->SetIdentifier(id_offset+n_curr_spheres+jj);
@@ -913,7 +925,7 @@ int main(int argc, char* argv[])
 	int num_particles = 160;
 	int curr_particles = 0;
 	int num_batch = 16;
-	double box = 2.5;
+	double box = 4.0;
 
 	double aa=4.0;
 	double bb=1.0;
@@ -926,7 +938,7 @@ int main(int argc, char* argv[])
 	double width=10.0;
 
 	double time_step = 0.00001;
-	double end_time=5.0;
+	double end_time=4.0;
 	int outMult=3000;
 	int addMult=30000;
 	int frame_number=0;
@@ -964,16 +976,24 @@ int main(int argc, char* argv[])
 	// subdivision is supported. 
 	// A 'partitioner' tool will help to setup this.
 
+	/*
+	// This is the old way
 	ChDomainLatticePartitioning mypartitioner(2,1,1,			// nx ny nz domains
 										ChVector<>(-100,-10,-100),	// min world
 										ChVector<>( 100, 50, 100) );	// max world
+	*/
 
+	// This is the new way
+	std::vector<double> x_s(4,1.0);
+	std::vector<double> y_s(1,60.0);
+	std::vector<double> z_s(1,200.0);
+	ChDomainGridPartitioning mypartitioner(x_s,y_s,z_s,ChVector<>(-2,-10,-100));
 	mypartitioner.SetupNode(mysystem.nodeMPI, myid); // btw: please take care that must be numprocs=nx*ny*nz
 
 	mysystem.SetLcpSolverType(ChSystem::LCP_DEM);
 	// Prepare the system with a special 'system descriptor' 
 	// that is necessary when doing simulations with MPI.
-	ChSystemDescriptorMPIlattice3D mydescriptor(&mysystem.nodeMPI);
+	ChSystemDescriptorMPIgrid3D mydescriptor(mysystem.nodeMPI); //NEW
 	mysystem.ChangeLcpSystemDescriptor(&mydescriptor);
 
 	// Use the DEMz solver
@@ -988,13 +1008,13 @@ int main(int argc, char* argv[])
 	{
 		//CHMPIfile::FileDelete("output\\domains.dat"); // delete prev.file, if any. Otherwise might partially overwrite
 		//domainfile = new CHMPIfile("E:\\cygwin\\home\\heyn\\SVN_italy\\code\\code\\ChronoEngine\\bin\\data\\mpi\\output_DEM3_pills\\domains.dat", CHMPIfile::CHMPI_MODE_WRONLY | CHMPIfile::CHMPI_MODE_CREATE);
-		domainfile = new CHMPIfile("domains.dat", CHMPIfile::CHMPI_MODE_WRONLY | CHMPIfile::CHMPI_MODE_CREATE);
+		domainfile = new CHMPIfile("output_DEM_MPI/domains.dat", CHMPIfile::CHMPI_MODE_WRONLY | CHMPIfile::CHMPI_MODE_CREATE);
 		GetLog() << "2\n";
 		char buffer[100];
 		sprintf(buffer, "%d, %g, %g, %g, %g, %g, %g ,\n", 
-						mysystem.nodeMPI.id_MPI, 
-						mysystem.nodeMPI.min_box.x,	mysystem.nodeMPI.min_box.y,	mysystem.nodeMPI.min_box.z,
-						mysystem.nodeMPI.max_box.x,	mysystem.nodeMPI.max_box.y,	mysystem.nodeMPI.max_box.z);
+						mysystem.nodeMPI->id_MPI,
+						((ChDomainNodeMPIgrid3D*)mysystem.nodeMPI)->min_box.x,	((ChDomainNodeMPIgrid3D*)mysystem.nodeMPI)->min_box.y,	((ChDomainNodeMPIgrid3D*)mysystem.nodeMPI)->min_box.z,
+						((ChDomainNodeMPIgrid3D*)mysystem.nodeMPI)->max_box.x,	((ChDomainNodeMPIgrid3D*)mysystem.nodeMPI)->max_box.y,	((ChDomainNodeMPIgrid3D*)mysystem.nodeMPI)->max_box.z);
 		domainfile->WriteOrdered((char*)buffer, strlen(buffer));
 		delete domainfile;
 	}
