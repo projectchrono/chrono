@@ -114,8 +114,7 @@ IF(ENABLE_UNIT_MPI)
 	                          
 	TARGET_LINK_LIBRARIES(ChronoEngine_MPI
 		${CH_MPILIB} 
-		optimized 	${CH_CHRONOLIB}
-		debug 		${CH_CHRONOLIB_DBG}  )
+		ChronoEngine  )
 		
 	ADD_DEPENDENCIES (ChronoEngine_MPI ChronoEngine)  # better, because not automatic
 		
