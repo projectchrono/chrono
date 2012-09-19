@@ -158,7 +158,12 @@ void CreateRigidBodiesRandom(
 	for (int i = 0; i < numSpheres; i++) {
 //		int index = (int)(randLinVec.size() - 1) * float (rand()) / RAND_MAX;
 //		float r = (4.5 * sizeScale) * randLinVec[index];
-		float r = (4.5 * sizeScale) * float (rand()) / RAND_MAX;
+
+		float maxR = max(referenceR.x, referenceR.y);
+		maxR = max(maxR, referenceR.z);
+
+		float r = (channelRadius - maxR - 2 * HSML) * float (rand()) / RAND_MAX;
+
 		printf("sizeRandomLinear %d\n", randLinVec.size() );	//4.5 comes from channelRadius
 		float teta = 2 * PI * float (rand()) / RAND_MAX;
 		float3 pos = straightChannelMin + F3(0, channelRadius, channelRadius) + F3( (i + 0.5) * xSpace, float(r  * cos(teta)), float(r *  sin(teta)) );
