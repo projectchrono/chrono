@@ -56,7 +56,7 @@ ChClassRegister<ChSystemMPI> a_registration_ChSystemMPI;
 
 
 
-ChSystemMPI::ChSystemMPI(unsigned int max_objects, double scene_size)
+ChSystemMPI::ChSystemMPI(unsigned int max_objects, double scene_size, bool init_sys)
 {
 	ChSystem::ChSystem(max_objects, scene_size, false);
 	collision_system = new ChCollisionSystemBullet(max_objects, scene_size);

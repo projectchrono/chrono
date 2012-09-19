@@ -33,7 +33,7 @@ public:
 	// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChSystemMPI,ChSystem);
 
-	ChSystemMPI(unsigned int max_objects = 16000, double scene_size = 500);
+	ChSystemMPI(unsigned int max_objects = 16000, double scene_size = 500, bool init_sys = false);
 	virtual ~ChSystemMPI();
 
 	// Override base class functions
