@@ -47,15 +47,17 @@ IF(ENABLE_UNIT_CASCADE)
 	# In most cases, you do not need to edit the lines below.
 	
     IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-        SET (CH_CASCADELIBDIR "${CH_CASCADEDIR}/ros/win32/vc8/lib/")
-        FILE(GLOB CH_CASCADE_LIBS ${CH_CASCADELIBDIR} "*.lib")
-    SET (CH_CASCADEINC "${CH_CASCADEDIR}/ros/inc")
-
+        IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
+                SET (CH_CASCADELIBDIR "${CH_CASCADEDIR}/ros/win32/vc10/lib/")
+        ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
+                SET (CH_CASCADELIBDIR "${CH_CASCADEDIR}/ros/win64/vc10/lib/")
+        ENDIF()
+        FILE(GLOB CH_CASCADELIBS "${CH_CASCADELIBDIR}/*.lib")
+        SET (CH_CASCADEINC "${CH_CASCADEDIR}/ros/inc")
     ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         SET (CH_CASCADEINC "${CH_CASCADEDIR}/include/oce")
         FILE(GLOB CH_CASCADELIBS "${CH_CASCADEDIR}/lib/*.so" "${CH_CASCADEDIR}/Linux/lib/*.so")
     ENDIF()
-	
     INCLUDE_DIRECTORIES( "${CH_CASCADEINC}" )
 	
     # The CASCADE library is added to the project,
