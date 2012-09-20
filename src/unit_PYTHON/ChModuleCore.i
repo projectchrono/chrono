@@ -46,6 +46,7 @@
 // Include C++ headers this way...
 
 %{
+#include <cstddef>
 #include <stddef.h>
 #include "physics/ChBody.h"
 
