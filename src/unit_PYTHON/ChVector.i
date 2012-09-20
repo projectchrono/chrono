@@ -1,5 +1,6 @@
 %{
-
+#include <cstddef>
+#include <stddef.h>
 /* Includes the header in the wrapper code */
 #include "core/ChVector.h"
 

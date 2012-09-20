@@ -2,12 +2,18 @@
 # Additional include paths and stuff
 
 INCLUDE_DIRECTORIES( "${CH_CASCADEINC}" 
-					 "${CH_IRRLICHTINC}"
-					 )
-	
-ADD_DEFINITIONS( "/DWNT" )
-	
+		      "${CH_IRRLICHTINC}")
 
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")	
+ADD_DEFINITIONS( "/DWNT" )
+ENDIF()	
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+ADD_DEFINITIONS(-DHAVE_IOSTREAM)
+ADD_DEFINITIONS(-DHAVE_LIMITS_H)
+ENDIF()
+
+
+IF (ENABLE_UNIT_IRRLICHT)
 #--------------------------------------------------------------
 # Add executables
 
@@ -22,8 +28,7 @@ TARGET_LINK_LIBRARIES(demo_converter
 	${CH_IRRLICHTLIB}
 	${CH_CASCADELIBS}
         ChronoEngine
- 	optimized 	${CH_CHRONOCASCADELIB} 
- 	debug 		${CH_CHRONOCASCADELIB_DBG}
+ 	ChronoEngine_CASCADE
  	)
 ADD_DEPENDENCIES (demo_converter ChronoEngine ChronoEngine_CASCADE)
  	
@@ -39,8 +44,8 @@ TARGET_LINK_LIBRARIES(demo_stepfile
 	${CH_IRRLICHTLIB}
 	${CH_CASCADELIBS}
  	ChronoEngine
- 	optimized 	${CH_CHRONOCASCADELIB} 
- 	debug 		${CH_CHRONOCASCADELIB_DBG}
+ 	ChronoEngine_CASCADE
+
  	)
 ADD_DEPENDENCIES (demo_stepfile ChronoEngine ChronoEngine_CASCADE)
 
@@ -56,7 +61,9 @@ TARGET_LINK_LIBRARIES(demo_robot
 	${CH_IRRLICHTLIB}
 	${CH_CASCADELIBS}
  	ChronoEngine
- 	optimized 	${CH_CHRONOCASCADELIB} 
- 	debug 		${CH_CHRONOCASCADELIB_DBG}
+ 	ChronoEngine_CASCADE 
+
  	)
 ADD_DEPENDENCIES (demo_robot ChronoEngine ChronoEngine_CASCADE)
+
+ENDIF()

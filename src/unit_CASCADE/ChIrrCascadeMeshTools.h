@@ -28,7 +28,7 @@
 #include <TopoDS_Shape.hxx>
 #include <TopoDS.hxx>
 #include <TopoDS_HShape.hxx>
-#include <handle_TopoDS_TShape.hxx>
+#include <Handle_TopoDS_TShape.hxx>
 #include <TopoDS_Edge.hxx>
 #include <TopoDS_Face.hxx>
 #include <TopoDS_Compound.hxx>

@@ -251,8 +251,8 @@ ISceneNode* addChBodySceneNode_Cascade_A(chrono::ChSystem* asystem,
 										   const chrono::ChVector<>& position = chrono::ChVector<>(0,0,0),	
 										   const chrono::ChQuaternion<>& rotation = chrono::ChQuaternion<>(1,0,0,0),
 										   double mmass = 1.0, 
-										   chrono::ChVector<>& XXinertia = chrono::ChVector<>(1,1,1),
-										   chrono::ChVector<>& XYinertia = chrono::ChVector<>(0,0,0),
+										   const chrono::ChVector<>& XXinertia = chrono::ChVector<>(1,1,1),
+										   const chrono::ChVector<>& XYinertia = chrono::ChVector<>(0,0,0),
 										   ISceneNode* aparent=0, 
 										   s32 mid=-1
 										   )
@@ -300,8 +300,8 @@ ISceneNode* addChBodySceneNode_Cascade_B(chrono::ChSystem* asystem,
 										   ISceneManager* amanager,
 										   TopoDS_Shape& mshape_abs, 		///< shape, in absolute coords 
 										   double mmass = 1.0, 
-										   chrono::ChVector<>& XXinertia = chrono::ChVector<>(1,1,1),
-										   chrono::ChVector<>& XYinertia = chrono::ChVector<>(0,0,0),
+										   const chrono::ChVector<>& XXinertia = chrono::ChVector<>(1,1,1),
+										   const chrono::ChVector<>& XYinertia = chrono::ChVector<>(0,0,0),
 										   ISceneNode* aparent=0, 
 										   s32 mid=-1
 										   )

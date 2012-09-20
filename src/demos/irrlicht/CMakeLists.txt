@@ -1,8 +1,7 @@
 #--------------------------------------------------------------
 # Additional include paths
 
-INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC} 
-				    )
+INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC} )
 
 
 #--------------------------------------------------------------

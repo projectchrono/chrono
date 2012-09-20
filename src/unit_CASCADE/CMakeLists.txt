@@ -46,130 +46,44 @@ IF(ENABLE_UNIT_CASCADE)
 	#-----------------------------------------------------------------------------	
 	# In most cases, you do not need to edit the lines below.
 	
+    IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+        SET (CH_CASCADELIBDIR "${CH_CASCADEDIR}/ros/win32/vc8/lib/")
+        FILE(GLOB CH_CASCADE_LIBS ${CH_CASCADELIBDIR} "*.lib")
+    SET (CH_CASCADEINC "${CH_CASCADEDIR}/ros/inc")
 
-
-	SET (CH_CASCADELIBDIR "${CH_CASCADEDIR}/ros/win32/vc8/lib/")
-	SET (CH_CASCADEINC "${CH_CASCADEDIR}/ros/inc")
-	SET (CH_CASCADELIBS 
- 			${CH_CASCADELIBDIR}FWOSPlugin.lib
- 			${CH_CASCADELIBDIR}PTKernel.lib
- 			${CH_CASCADELIBDIR}TKAdvTools.lib
- 			${CH_CASCADELIBDIR}TKBin.lib
- 			${CH_CASCADELIBDIR}TKBinL.lib
- 			${CH_CASCADELIBDIR}TKBinTObj.lib
- 			${CH_CASCADELIBDIR}TKBinXCAF.lib
- 			${CH_CASCADELIBDIR}TKBO.lib
- 			${CH_CASCADELIBDIR}TKBool.lib
- 			${CH_CASCADELIBDIR}TKBRep.lib
- 			${CH_CASCADELIBDIR}TKCAF.lib
- 			${CH_CASCADELIBDIR}TKCDF.lib
- 			${CH_CASCADELIBDIR}TKDCAF.lib
- 			${CH_CASCADELIBDIR}TKDraw.lib
- 			${CH_CASCADELIBDIR}TKernel.lib
- 			${CH_CASCADELIBDIR}TKFeat.lib
- 			${CH_CASCADELIBDIR}TKFillet.lib
- 			${CH_CASCADELIBDIR}TKG2d.lib
- 			${CH_CASCADELIBDIR}TKG3d.lib
- 			${CH_CASCADELIBDIR}TKGeomAlgo.lib
- 			${CH_CASCADELIBDIR}TKGeomBase.lib
- 			${CH_CASCADELIBDIR}TKHLR.lib
- 			${CH_CASCADELIBDIR}TKIGES.lib
- 			${CH_CASCADELIBDIR}TKLCAF.lib
- 			${CH_CASCADELIBDIR}TKMath.lib
- 			${CH_CASCADELIBDIR}TKMesh.lib
- 			${CH_CASCADELIBDIR}TKMeshVS.lib
- 			${CH_CASCADELIBDIR}TKNIS.lib
- 			${CH_CASCADELIBDIR}TKOffset.lib
- 			${CH_CASCADELIBDIR}TKOpenGl.lib
- 			${CH_CASCADELIBDIR}TKPCAF.lib
- 			${CH_CASCADELIBDIR}TKPLCAF.lib
- 			${CH_CASCADELIBDIR}TKPrim.lib
- 			${CH_CASCADELIBDIR}TKPShape.lib
- 			${CH_CASCADELIBDIR}TKService.lib
- 			${CH_CASCADELIBDIR}TKShapeSchema.lib
- 			${CH_CASCADELIBDIR}TKShHealing.lib
- 			${CH_CASCADELIBDIR}TKStdLSchema.lib
- 			${CH_CASCADELIBDIR}TKStdSchema.lib
- 			${CH_CASCADELIBDIR}TKSTEP.lib
- 			${CH_CASCADELIBDIR}TKSTEP209.lib
- 			${CH_CASCADELIBDIR}TKSTEPAttr.lib
- 			${CH_CASCADELIBDIR}TKSTEPBase.lib
- 			${CH_CASCADELIBDIR}TKSTL.lib
- 			${CH_CASCADELIBDIR}TKTObj.lib
- 			${CH_CASCADELIBDIR}TKTObjDRAW.lib
- 			${CH_CASCADELIBDIR}TKTopAlgo.lib
- 			${CH_CASCADELIBDIR}TKTopTest.lib
- 			${CH_CASCADELIBDIR}TKV2d.lib
- 			${CH_CASCADELIBDIR}TKV3d.lib
- 			${CH_CASCADELIBDIR}TKViewerTest.lib
- 			${CH_CASCADELIBDIR}TKVoxel.lib
- 			${CH_CASCADELIBDIR}TKVRML.lib
- 			${CH_CASCADELIBDIR}TKXCAF.lib
- 			${CH_CASCADELIBDIR}TKXCAFSchema.lib
- 			${CH_CASCADELIBDIR}TKXDEDRAW.lib
- 			${CH_CASCADELIBDIR}TKXDEIGES.lib
- 			${CH_CASCADELIBDIR}TKXDESTEP.lib
- 			${CH_CASCADELIBDIR}TKXMesh.lib
- 			${CH_CASCADELIBDIR}TKXml.lib
- 			${CH_CASCADELIBDIR}TKXmlL.lib
- 			${CH_CASCADELIBDIR}TKXmlTObj.lib
- 			${CH_CASCADELIBDIR}TKXmlXCAF.lib
- 			${CH_CASCADELIBDIR}TKXSBase.lib
- 			${CH_CASCADELIBDIR}TKXSDRAW.lib
- 	)
+    ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+        SET (CH_CASCADEINC "${CH_CASCADEDIR}/include/oce")
+        FILE(GLOB CH_CASCADELIBS "${CH_CASCADEDIR}/lib/*.so" "${CH_CASCADEDIR}/Linux/lib/*.so")
+    ENDIF()
 	
-	IF ("${CH_OS}" STREQUAL "LINUX")
-		MESSAGE( "WARNING!, OpenCASCADE unit building under LINUX is not yet tested! Check libs paths etc!")
-	ENDIF()
+    INCLUDE_DIRECTORIES( "${CH_CASCADEINC}" )
 	
+    # The CASCADE library is added to the project,
+    # and some custom properties of this target are set.
 	
-	SET (CH_CHRONOCASCADELIBRARYNAME "${CH_LIBDIR}/${CH_LIBNAMEPREFIX}${CH_LIBNAME}_CASCADE${CH_LIBNAMEPOSTFIX}")
-	SET (CH_CHRONOCASCADESHAREDLNAME "${CH_BINDIR}/${CH_LIBNAME}_CASCADE${CH_LIBNAMEPOSTFIXSHARED}")
-	SET (CH_CHRONOCASCADELIB  "${CH_CHRONOCASCADELIBRARYNAME}")
-	SET (CH_CHRONOCASCADELIBRARYNAME_DBG "${CH_LIBDIR}/${CH_LIBNAMEPREFIX}${CH_LIBNAME}_CASCADEDBG${CH_LIBNAMEPOSTFIX}")
-	SET (CH_CHRONOCASCADESHAREDLNAME_DBG "${CH_BINDIR}/${CH_LIBNAME}_CASCADEDBG${CH_LIBNAMEPOSTFIXSHARED}")
-	SET (CH_CHRONOCASCADELIB_DBG  "${CH_CHRONOCASCADELIBRARYNAME_DBG}")
-	
-	
-	INCLUDE_DIRECTORIES( "${CH_CASCADEINC}" )
-	
-	ADD_DEFINITIONS( "/DWNT" )
-	
-	
-	# The CASCADE library is added to the project,
-	# and some custom properties of this target are set.
-	
-	ADD_LIBRARY(ChronoEngine_CASCADE SHARED 
+    ADD_LIBRARY(ChronoEngine_CASCADE SHARED 
 				${ChronoEngine_unit_CASCADE_SOURCES}
 				${ChronoEngine_unit_CASCADE_HEADERS})
 	
-	SET_TARGET_PROPERTIES(ChronoEngine_CASCADE PROPERTIES 
+    SET_TARGET_PROPERTIES(ChronoEngine_CASCADE PROPERTIES 
 	                          LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
-	                          COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_CASCADE"
-	                          ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CH_LIBDIR}"
-	                          ARCHIVE_OUTPUT_DIRECTORY_DEBUG   "${CH_LIBDIR}"
-	                          RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	                          RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}"
-	                          LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	                          LIBRARY_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}"
-	                           RUNTIME_OUTPUT_NAME_DEBUG "ChronoEngine_CASCADEDBG"
-	                           LIBRARY_OUTPUT_NAME_DEBUG "ChronoEngine_CASCADEDBG"
-	                           ARCHIVE_OUTPUT_NAME_DEBUG "ChronoEngine_CASCADEDBG")
-	                          
-	TARGET_LINK_LIBRARIES(ChronoEngine_CASCADE
-		${CH_CASCADELIBS} 
-		optimized 	${CH_CHRONOLIB}
-		debug 		${CH_CHRONOLIB_DBG}  )
+	                          COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_CASCADE")
+	               
+    IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+        ADD_DEFINITIONS( "/DWNT" )
+    ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+        ADD_DEFINITIONS(-DHAVE_IOSTREAM)
+        ADD_DEFINITIONS(-DHAVE_LIMITS_H)
+    ENDIF()
+
+    TARGET_LINK_LIBRARIES(ChronoEngine_CASCADE
+            ${CH_CASCADELIBS} 
+            ChronoEngine)
+    ADD_DEPENDENCIES (ChronoEngine_CASCADE ChronoEngine)  # better, because not automatic
 		
-	ADD_DEPENDENCIES (ChronoEngine_CASCADE ChronoEngine)  # better, because not automatic
-		
-		
-	# Let some variables be visible also from outside this directory, using the PARENT_SCOPE trick
+    # Let some variables be visible also from outside this directory, using the PARENT_SCOPE trick
 	
-	SET (CH_CASCADEINC      		"${CH_CASCADEINC}" 			 PARENT_SCOPE )
-	SET (CH_CASCADELIBS      		"${CH_CASCADELIBS}" 		 PARENT_SCOPE )
-	SET (CH_CHRONOCASCADELIB  		"${CH_CHRONOCASCADELIB}" 	 PARENT_SCOPE )
-	SET (CH_CHRONOCASCADELIB_DBG  	"${CH_CHRONOCASCADELIB_DBG}" PARENT_SCOPE )
-		
+	SET (CH_CASCADEINC    "${CH_CASCADEINC}"    PARENT_SCOPE )
+	SET (CH_CASCADELIBS    "${CH_CASCADELIBS}"    PARENT_SCOPE )
 		
 ENDIF(ENABLE_UNIT_CASCADE)

@@ -31,10 +31,8 @@ TARGET_LINK_LIBRARIES(test_solver
 			${GLUT_LIBRARIES}
 			${FREEGLUT_LIB}
 			${OPENGL_glu_LIBRARY}
-	optimized 	${CH_CHRONOLIB}     
-	debug 		${CH_CHRONOLIB_DBG} 
-	optimized 	${CH_CHRONOGPULIB}
-	debug	    ${CH_CHRONOGPULIB_DBG}
+	ChronoEngine
+ChronoEngine_GPU
  	)
 ADD_DEPENDENCIES (test_solver ChronoEngine ChronoEngine_GPU)
 
@@ -53,10 +51,8 @@ TARGET_LINK_LIBRARIES(test_gravity
 			${GLUT_LIBRARIES}
 			${FREEGLUT_LIB}
 			${OPENGL_glu_LIBRARY}
-	optimized 	${CH_CHRONOLIB}     
-	debug 		${CH_CHRONOLIB_DBG} 
-	optimized 	${CH_CHRONOGPULIB}
-	debug	    ${CH_CHRONOGPULIB_DBG}
+	ChronoEngine
+ChronoEngine_GPU
  	)
 ADD_DEPENDENCIES (test_gravity ChronoEngine ChronoEngine_GPU)
 
@@ -74,10 +70,8 @@ TARGET_LINK_LIBRARIES(test_collision
 			${GLUT_LIBRARIES}
 			${FREEGLUT_LIB}
 			${OPENGL_glu_LIBRARY}
-	optimized 	${CH_CHRONOLIB}     
-	debug 		${CH_CHRONOLIB_DBG} 
-	optimized 	${CH_CHRONOGPULIB}
-	debug	    ${CH_CHRONOGPULIB_DBG}
+	ChronoEngine
+ChronoEngine_GPU
  	)
 ADD_DEPENDENCIES (test_collision ChronoEngine ChronoEngine_GPU)
 
@@ -95,10 +89,8 @@ TARGET_LINK_LIBRARIES(test_box_contact
 			${GLUT_LIBRARIES}
 			${FREEGLUT_LIB}
 			${OPENGL_glu_LIBRARY}
-	optimized 	${CH_CHRONOLIB}     
-	debug 		${CH_CHRONOLIB_DBG} 
-	optimized 	${CH_CHRONOGPULIB}
-	debug	    ${CH_CHRONOGPULIB_DBG}
+	ChronoEngine
+ChronoEngine_GPU
  	)
 ADD_DEPENDENCIES (test_box_contact ChronoEngine ChronoEngine_GPU)
 
@@ -117,10 +109,8 @@ TARGET_LINK_LIBRARIES(test_box
 			${GLUT_LIBRARIES}
 			${FREEGLUT_LIB}
 			${OPENGL_glu_LIBRARY}
-	optimized 	${CH_CHRONOLIB}     
-	debug 		${CH_CHRONOLIB_DBG} 
-	optimized 	${CH_CHRONOGPULIB}
-	debug	    ${CH_CHRONOGPULIB_DBG}
+	ChronoEngine
+ChronoEngine_GPU
  	)
 ADD_DEPENDENCIES (test_box ChronoEngine ChronoEngine_GPU)
 
@@ -137,10 +127,8 @@ TARGET_LINK_LIBRARIES(test_bilateral
 			${GLUT_LIBRARIES}
 			${FREEGLUT_LIB}
 			${OPENGL_glu_LIBRARY}
- 	optimized 	${CH_CHRONOLIB}     
- 	debug 		${CH_CHRONOLIB_DBG} 
- 	optimized 	${CH_CHRONOGPULIB}
- 	debug	    	${CH_CHRONOGPULIB_DBG}	
+ 	ChronoEngine
+	ChronoEngine_GPU
  	)
 ADD_DEPENDENCIES (test_bilateral ChronoEngine ChronoEngine_GPU)
 
@@ -156,10 +144,8 @@ TARGET_LINK_LIBRARIES(test_revolute
 			${GLUT_LIBRARIES}
 			${FREEGLUT_LIB}
 			${OPENGL_glu_LIBRARY}
- 	optimized 	${CH_CHRONOLIB}     
- 	debug 		${CH_CHRONOLIB_DBG} 
- 	optimized 	${CH_CHRONOGPULIB}
- 	debug	    	${CH_CHRONOGPULIB_DBG}	
+ChronoEngine   
+ChronoEngine_GPU
  	)
 ADD_DEPENDENCIES (test_revolute ChronoEngine ChronoEngine_GPU)
 

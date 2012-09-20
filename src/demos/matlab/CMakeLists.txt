@@ -1,9 +1,7 @@
 #--------------------------------------------------------------
 # Additional include paths
 
-INCLUDE_DIRECTORIES( ${CH_MATLABINC} 
-				    )
-
+INCLUDE_DIRECTORIES( ${CH_MATLABINC} )
 				    
 #--------------------------------------------------------------
 # Add executables

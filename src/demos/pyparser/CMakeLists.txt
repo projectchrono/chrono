@@ -16,7 +16,7 @@ SET_TARGET_PROPERTIES(demo_pyparser PROPERTIES
 	)
 TARGET_LINK_LIBRARIES(demo_pyparser
  	ChronoEngine
-	${CH_CHRONOPYPARSERLIB} 
+	ChronoEngine_PYPARSER
 
  	)
 ADD_DEPENDENCIES (demo_pyparser ChronoEngine ChronoEngine_PYPARSER)
