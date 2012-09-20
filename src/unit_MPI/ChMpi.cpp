@@ -146,6 +146,10 @@ bool ChMPI::Test(ChMPIrequest* mreq, ChMPIstatus* mstatus)
 	return (flag!=0);
 }
 
+void ChMPI::Barrier()
+{
+	MPI_Barrier(MPI_COMM_WORLD);
+}
 
 int ChMPI::SendMatrix(int destID, 
 					  ChMatrix<double>& source_matr, 

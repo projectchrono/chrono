@@ -56,9 +56,8 @@ ChClassRegister<ChSystemMPI> a_registration_ChSystemMPI;
 
 
 
-ChSystemMPI::ChSystemMPI(unsigned int max_objects, double scene_size, bool init_sys)
+ChSystemMPI::ChSystemMPI(unsigned int max_objects, double scene_size, bool init_sys):ChSystem(max_objects, scene_size, false)
 {
-	ChSystem::ChSystem(max_objects, scene_size, false);
 	collision_system = new ChCollisionSystemBullet(max_objects, scene_size);
 	parallel_thread_number=0;
 	nodeMPI = new ChDomainNodeMPIlattice3D();

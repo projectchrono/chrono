@@ -98,6 +98,9 @@ public:
 	/// Test if a request is complete (for nonblocking send or receive).
 	static bool Test(ChMPIrequest* mreq, ChMPIstatus* mstatus);
 
+	/// Force synchronization
+	static void Barrier();
+
 	/// Modes for send/receive
 	enum eCh_mpiCommMode{
 						 MPI_STANDARD = 0,
