@@ -44,7 +44,6 @@ ChClassRegister<ChBodyDEM> a_registration_ChBodyDEM;
 
 ChBodyDEM::ChBodyDEM ()
 {
-	ChBody::ChBody();
 	collision_model=ChBodyDEM::InstanceCollisionModel();
 
 	//kn=392400.0;
