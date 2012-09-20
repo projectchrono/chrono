@@ -17,9 +17,7 @@
 ///////////////////////////////////////////////////
 
 #include "ChCuda.h"
-#include <vector>
 
-using namespace std;
 
 namespace chrono {
 struct gpu_container {

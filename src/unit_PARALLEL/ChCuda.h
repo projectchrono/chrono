@@ -26,6 +26,7 @@
 #include <thrust/unique.h>
 #include "ChApiGPU.h"
 #include <omp.h>
+#include <vector>
 using namespace std;
 using namespace thrust;
 typedef unsigned int uint;
