@@ -1,5 +1,6 @@
 #ifndef SDKCOLLISIONSYSTEM_CUH
 #define SDKCOLLISIONSYSTEM_CUH
+#include <cstdio>
 
 #ifdef __CDT_PARSER__
 #define __host__
@@ -11,6 +12,10 @@
 #else
 #define CUDA_KERNEL_DIM(...)  <<< __VA_ARGS__ >>>
 #endif
+
+
+#define cutilSafeCall(x)  x
+#define CUT_CHECK_ERROR(x) x
 
 
 typedef unsigned int uint;

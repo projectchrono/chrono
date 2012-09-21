@@ -24,7 +24,7 @@
 //#include <stdlib.h>
 //#include <crtdbg.h>//just for min
 
-#include <cutil_inline.h>
+//#include <cutil_inline.h>
 #include <cutil_math.h>
 #include <thrust/host_vector.h>
 #include <thrust/scan.h>

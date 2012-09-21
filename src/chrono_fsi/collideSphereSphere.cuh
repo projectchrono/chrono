@@ -1,7 +1,7 @@
 #ifndef COLLIDESPHERESPHERE_CUH
 #define COLLIDESPHERESPHERE_CUH
 
-#include <cutil_inline.h>
+//#include <cutil_inline.h>
 
 void cudaCollisions(
 		thrust::host_vector<float4> & mPosRad,

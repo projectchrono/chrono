@@ -1067,7 +1067,7 @@ void FindPassesFromTheEnd(
 		float pipeRadius,
 		int numberOfSections) {
 //	float3 posRigid = posRigidD[0];
-//	printf("xRigid %f\n", posRadRigid.x);
+//	printf("xRigid %f\n", posRadRigid.x);cutil_math deprecate
 	float dR = pipeRadius / numberOfSections;
 	thrust::device_vector<uint> radialPositions(numRigidBodies);
 	thrust::device_vector<uint> radialPosCounter(numRigidBodies);
@@ -1248,40 +1248,40 @@ void cudaCollisions(
 	cudaMemcpyToSymbolAsync(cMaxD, &cMax, sizeof(cMax));
 	cudaMemcpyToSymbolAsync(mNumSpheresD, &mNSpheres, sizeof(mNSpheres));
 	printf("a2 yoho\n");
-	//?$ edit this
+
 	int numRigidBodies = posRigidH.size();
-	thrust::device_vector<float4> posRadD(mNSpheres);
-	thrust::copy(mPosRad.begin(), mPosRad.end(), posRadD.begin());
-	thrust::device_vector<float4> velMasD(mNSpheres);
-	thrust::copy(mVelMas.begin(), mVelMas.end(), velMasD.begin());
-	thrust::device_vector<float4> rhoPresMuD(mNSpheres);
-	thrust::copy(mRhoPresMu.begin(), mRhoPresMu.end(), rhoPresMuD.begin());
+	thrust::device_vector<float4> posRadD=mPosRad;
+	//thrust::copy(mPosRad.begin(), mPosRad.end(), posRadD.begin());
+	thrust::device_vector<float4> velMasD=mVelMas;
+	//thrust::copy(mVelMas.begin(), mVelMas.end(), velMasD.begin());
+	thrust::device_vector<float4> rhoPresMuD=mRhoPresMu;
+	//thrust::copy(mRhoPresMu.begin(), mRhoPresMu.end(), rhoPresMuD.begin());
 	printf("a3 yoho\n");
 
-	thrust::device_vector<float3> posRigidD(numRigidBodies);
-	thrust::copy(posRigidH.begin(), posRigidH.end(), posRigidD.begin());
-	thrust::device_vector<float3> posRigidCumulativeD(numRigidBodies);
-	thrust::copy(posRigidH.begin(), posRigidH.end(), posRigidCumulativeD.begin());
-	thrust::device_vector<float4> velMassRigidD(numRigidBodies);
-	thrust::copy(velMassRigidH.begin(), velMassRigidH.end(), velMassRigidD.begin());
-	thrust::device_vector<float3> omegaLRF_D(numRigidBodies);
-	thrust::copy(omegaLRF_H.begin(), omegaLRF_H.end(), omegaLRF_D.begin());
+	thrust::device_vector<float3> posRigidD=posRigidH;
+	//thrust::copy(posRigidH.begin(), posRigidH.end(), posRigidD.begin());
+	thrust::device_vector<float3> posRigidCumulativeD=posRigidH;
+	//thrust::copy(posRigidH.begin(), posRigidH.end(), posRigidCumulativeD.begin());
+	thrust::device_vector<float4> velMassRigidD=velMassRigidH;
+	//thrust::copy(velMassRigidH.begin(), velMassRigidH.end(), velMassRigidD.begin());
+	thrust::device_vector<float3> omegaLRF_D=omegaLRF_H;
+	//thrust::copy(omegaLRF_H.begin(), omegaLRF_H.end(), omegaLRF_D.begin());
 	printf("a4 yoho\n");
-	thrust::device_vector<float3> jD1(numRigidBodies);
-	thrust::device_vector<float3> jD2(numRigidBodies);
-	thrust::device_vector<float3> jInvD1(numRigidBodies);
-	thrust::device_vector<float3> jInvD2(numRigidBodies);
-	thrust::copy(jH1.begin(), jH1.end(), jD1.begin());
-	thrust::copy(jH2.begin(), jH2.end(), jD2.begin());
-	thrust::copy(jInvH1.begin(), jInvH1.end(), jInvD1.begin());
-	thrust::copy(jInvH2.begin(), jInvH2.end(), jInvD2.begin());
+	thrust::device_vector<float3> jD1=jH1;
+	thrust::device_vector<float3> jD2=jH2;
+	thrust::device_vector<float3> jInvD1=jInvH1;
+	thrust::device_vector<float3> jInvD2=jInvH2;
+	//thrust::copy(jH1.begin(), jH1.end(), jD1.begin());
+	//thrust::copy(jH2.begin(), jH2.end(), jD2.begin());
+	//thrust::copy(jInvH1.begin(), jInvH1.end(), jInvD1.begin());
+	//thrust::copy(jInvH2.begin(), jInvH2.end(), jInvD2.begin());
 	printf("a5 yoho\n");
-	thrust::device_vector<uint> bodyIndexD(mNSpheres);
-	thrust::copy(bodyIndex.begin(), bodyIndex.end(), bodyIndexD.begin());
+	thrust::device_vector<uint> bodyIndexD=bodyIndex;
+	//thrust::copy(bodyIndex.begin(), bodyIndex.end(), bodyIndexD.begin());
 	thrust::device_vector<float4> derivVelRhoD(mNSpheres);
 
 	int startRigidParticle = (I2(referenceArray[1])).y;
-	thrust::device_vector<int> rigidIdentifierD(0);
+	thrust::device_vector<int> rigidIdentifierD;
 	//printf("referenceArray.size() %d\n", referenceArray.size());
 	printf("a6 yoho\n");
 	if (referenceArray.size() > 2) {
@@ -1360,7 +1360,7 @@ void cudaCollisions(
 	FILE *outFileMultipleZones;
 
 	int povRayCounter = 0;
-	int stepEnd = 0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
+	int stepEnd = 2000;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
 
 	//for (int tStep = 0; tStep < 0; tStep ++) {
 	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {

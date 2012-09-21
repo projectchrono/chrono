@@ -33,13 +33,13 @@ find_library(LIBSHRUTIL NAMES
 find_library(LIBSHRUTIL_DBG NAMES 
 	shrUtils${arch}D shrutil_${CMAKE_SYSTEM_PROCESSOR}D PATHS ${CUDA_SDK_LIB_DIR})
 
-# Find path to cutil libs, from CUDA SDK
-find_library(LIBCUTIL NAMES 
-	cutil${arch} cutil_${CMAKE_SYSTEM_PROCESSOR} PATHS ${CUDA_SDK_LIB_DIR})
-find_library(LIBCUTIL_DBG NAMES 
-	cutil${arch}D cutil_${CMAKE_SYSTEM_PROCESSOR}D PATHS ${CUDA_SDK_LIB_DIR})
-find_library(LIBCUDPP NAMES 
-	cudpp${arch} cudpp_${CMAKE_SYSTEM_PROCESSOR} PATHS ${CUDA_SDK_LIB_DIR} ${CUDA_SDK_LIB_DIR}/lib/linux/lib)
+## Find path to cutil libs, from CUDA SDK
+#find_library(LIBCUTIL NAMES 
+#	cutil${arch} cutil_${CMAKE_SYSTEM_PROCESSOR} PATHS ${CUDA_SDK_LIB_DIR})
+#find_library(LIBCUTIL_DBG NAMES 
+#	cutil${arch}D cutil_${CMAKE_SYSTEM_PROCESSOR}D PATHS ${CUDA_SDK_LIB_DIR})
+#find_library(LIBCUDPP NAMES 
+#	cudpp${arch} cudpp_${CMAKE_SYSTEM_PROCESSOR} PATHS ${CUDA_SDK_LIB_DIR} ${CUDA_SDK_LIB_DIR}/lib/linux/lib)
 
 
 # Build kernels for desired compute capabilities
@@ -56,8 +56,9 @@ set_compute_capability("20")
 # now for the fun stuff
 # You should only have to edit these lines.
 # This executable needs cutil, so only compile and link it if it was found
-IF (LIBCUTIL)
-	cuda_add_executable(cudaSPHProjEXE main.cpp collideSphereSphere.cu SDKCollisionSystem.cu)
+cuda_add_executable(cudaSPHProjEXE main.cpp collideSphereSphere.cu SDKCollisionSystem.cu)
+#IF (LIBCUTIL)
+#	cuda_add_executable(cudaSPHProjEXE main.cpp collideSphereSphere.cu SDKCollisionSystem.cu)
 
-	target_link_libraries(cudaSPHProjEXE ${LIBCUTIL})
-ENDIF ()
+#	target_link_libraries(cudaSPHProjEXE ${LIBCUTIL})
+#ENDIF ()
