@@ -1281,7 +1281,7 @@ void cudaCollisions(
 	thrust::device_vector<float4> derivVelRhoD(mNSpheres);
 
 	int startRigidParticle = (I2(referenceArray[1])).y;
-	thrust::device_vector<int> rigidIdentifierD;
+	thrust::device_vector<int> rigidIdentifierD(0);
 	//printf("referenceArray.size() %d\n", referenceArray.size());
 	printf("a6 yoho\n");
 	if (referenceArray.size() > 2) {
@@ -1360,7 +1360,7 @@ void cudaCollisions(
 	FILE *outFileMultipleZones;
 
 	int povRayCounter = 0;
-	int stepEnd = 2000;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
+	int stepEnd = 100;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
 
 	//for (int tStep = 0; tStep < 0; tStep ++) {
 	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
@@ -1425,8 +1425,8 @@ void cudaCollisions(
 
 		//************************************************
 		//edit PrintToFile since yu deleted cyliderRotOmegaJD
-		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, cMax, cMin, paramsH,
-				delT, tStep, channelRadius);
+//		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, cMax, cMin, paramsH,
+//				delT, tStep, channelRadius);
 //		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
 		//************
 		float time2;
