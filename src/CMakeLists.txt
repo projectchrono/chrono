@@ -1091,7 +1091,10 @@ INSTALL(TARGETS ChronoEngine
     ARCHIVE DESTINATION lib
 )
 
-
+file( COPY ${CMAKE_SOURCE_DIR}/demos/data/ 
+    DESTINATION ${CMAKE_BINARY_DIR}/data/
+    PATTERN .svn EXCLUDE
+    )
 INSTALL(DIRECTORY ${CMAKE_SOURCE_DIR}/demos/data/ DESTINATION data PATTERN .svn EXCLUDE)
 INSTALL(FILES ${ChronoEngine_core_HEADERS} DESTINATION include/core)
 INSTALL(FILES ${ChronoEngine_physics_HEADERS} DESTINATION include/physics)
