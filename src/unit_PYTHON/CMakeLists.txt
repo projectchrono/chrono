@@ -70,7 +70,11 @@ IF(ENABLE_UNIT_PYTHON)
 		
 	ADD_DEPENDENCIES (ChronoEngine_PYPARSER ChronoEngine)  # better, because not automatic
 		
-		
+	INSTALL(TARGETS ChronoEngine_PYPARSER
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+)	
 	# Let some variables be visible also from outside this directory, using the PARENT_SCOPE trick
 	
 	SET (CH_PYTHONINC      		"${CH_PYTHONINC}" 			 PARENT_SCOPE )
@@ -242,6 +246,6 @@ IF(ENABLE_UNIT_PYTHON)
 		ADD_DEPENDENCIES (${SWIG_MODULE_ChronoEngine_PYTHON_postprocess_REAL_NAME} ChronoEngine_POSTPROCESS)  						
 								
 	ENDIF(ENABLE_UNIT_POSTPROCESS)						
-								
+	INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/python/ DESTINATION python)							
 	
 ENDIF(ENABLE_UNIT_PYTHON)
