@@ -199,7 +199,7 @@ float4 collideCell(
 		float4 rhoPresMuA,
 		float4* sortedPosRad,
 		float4* sortedVelMas,
-		float3* vel_XSPH_D,
+		float3* vel_XSPH_Sorted_D,
 		float4* sortedRhoPreMu,
 		uint* cellStart,
 		uint* cellEnd,
@@ -225,7 +225,7 @@ float4 collideCell(
 				if (d > RESOLUTION_LENGTH_MULT * HSML) continue;
 				float4 velMasB = FETCH(sortedVelMas, j);
 				float4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
-				float3 vel_XSPH_B = FETCH(vel_XSPH_D, gridParticleIndex[j]);
+				float3 vel_XSPH_B = FETCH(vel_XSPH_Sorted_D, j);
 
 				if (rhoPresMuA.w < 0) { //# A_fluid				** -1:			i.e. negative, i.e. fluid particle
 					if (rhoPresMuB.w < 0) { //## A_fluid : B_fluid
@@ -472,7 +472,7 @@ void reorderDataAndFindCellStartD(
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__
-void newVel_XSPH_D(float3* vel_XSPH_D, // output: new velocity
+void newVel_XSPH_D(float3* vel_XSPH_Sorted_D, // output: new velocity
 		float4* sortedPosRad, // input: sorted positions
 		float4* sortedVelMas, // input: sorted velocities
 		float4* sortedRhoPreMu,
@@ -509,14 +509,14 @@ void newVel_XSPH_D(float3* vel_XSPH_D, // output: new velocity
 
 	// write new velocity back to original unsorted location
 	uint originalIndex = gridParticleIndex[index];
-	vel_XSPH_D[originalIndex] = F3(velMasA) + EPS_XSPH * deltaV;
+	vel_XSPH_Sorted_D[index] = F3(velMasA) + EPS_XSPH * deltaV;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__
 void collideD(float4* derivVelRhoD, // output: new velocity
 		float4* sortedPosRad, // input: sorted positions
 		float4* sortedVelMas, // input: sorted velocities
-		float3* vel_XSPH_D,
+		float3* vel_XSPH_Sorted_D,
 		float4* sortedRhoPreMu,
 		uint* gridParticleIndex, // input: sorted particle indices
 		uint* cellStart,
@@ -531,7 +531,7 @@ void collideD(float4* derivVelRhoD, // output: new velocity
 	float4 rhoPreMuA = FETCH(sortedRhoPreMu, index);
 
 	uint originalIndex = gridParticleIndex[index];
-	float3 vel_XSPH_A = FETCH(vel_XSPH_D, originalIndex);
+	float3 vel_XSPH_A = FETCH(vel_XSPH_Sorted_D, index);
 
 	float4 derivVelRho = F4(0);
 
@@ -542,7 +542,7 @@ void collideD(float4* derivVelRhoD, // output: new velocity
 	for (int x = -1; x <= 1; x++) {
 		for (int y = -1; y <= 1; y++) {
 			for (int z = -1; z <= 1; z++) {
-				derivVelRho += collideCell(gridPos + I3(x, y, z), index, posRadA, velMasA, vel_XSPH_A, rhoPreMuA, sortedPosRad, sortedVelMas, vel_XSPH_D,
+				derivVelRho += collideCell(gridPos + I3(x, y, z), index, posRadA, velMasA, vel_XSPH_A, rhoPreMuA, sortedPosRad, sortedVelMas, vel_XSPH_Sorted_D,
 								sortedRhoPreMu, cellStart, cellEnd, gridParticleIndex);
 			}
 		}
@@ -739,7 +739,7 @@ void reorderDataAndFindCellStart(
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void RecalcVelocity_XSPH(
-		float3* vel_XSPH_D,
+		float3* vel_XSPH_Sorted_D,
 		float4* sortedPosRad,
 		float4* sortedVelMas,
 		float4* sortedRhoPreMu,
@@ -760,7 +760,7 @@ void RecalcVelocity_XSPH(
 	computeGridSize(numParticles, 64, numBlocks, numThreads);
 
 	// execute the kernel
-	newVel_XSPH_D<<< numBlocks, numThreads >>>(vel_XSPH_D,
+	newVel_XSPH_D<<< numBlocks, numThreads >>>(vel_XSPH_Sorted_D,
 			sortedPosRad,
 			sortedVelMas,
 			sortedRhoPreMu,
@@ -784,7 +784,7 @@ void collide(
 		float4* derivVelRhoD,
 		float4* sortedPosRad,
 		float4* sortedVelMas,
-		float3* vel_XSPH_D,
+		float3* vel_XSPH_Sorted_D,
 		float4* sortedRhoPreMu,
 		uint* gridParticleIndex,
 		uint* cellStart,
@@ -806,7 +806,7 @@ void collide(
 	collideD<<< numBlocks, numThreads >>>(derivVelRhoD,
 			sortedPosRad,
 			sortedVelMas,
-			vel_XSPH_D,
+			vel_XSPH_Sorted_D,
 			sortedRhoPreMu,
 			gridParticleIndex,
 			cellStart,

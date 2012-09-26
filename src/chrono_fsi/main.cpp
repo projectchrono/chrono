@@ -53,8 +53,8 @@ const float channelRadius = 5.6 * sizeScale; //1.0 * sizeScale; //tube
 
 const float sPeriod = 5.384 * sizeScale;		//serpentine period
 const float toleranceZone = 3 * HSML;
-float3 straightChannelMin;
-float3 straightChannelMax;
+float3 straightChannelBoundaryMin;
+float3 straightChannelBoundaryMax;
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 struct Rotation {
 		float a00, a01, a02, a10, a11, a12, a20, a21, a22;
@@ -143,6 +143,8 @@ void CreateRigidBodiesRandom(
 		thrust::host_vector<float3> & ellipsoidRadii,
 		const float3 referenceR,
 		const float rhoRigid,
+		float3 cMin,
+		float3 cMax,
 		int numSpheres) {
 
 	srand ( time(NULL) );
@@ -154,7 +156,7 @@ void CreateRigidBodiesRandom(
 		randLinVec.push_back(num);
 		inRandomFile >> num;
 	}
-	float xSpace = (straightChannelMax.x - straightChannelMin.x) / numSpheres;
+	float xSpace = (cMax.x - cMin.x) / numSpheres;
 	for (int i = 0; i < numSpheres; i++) {
 //		int index = (int)(randLinVec.size() - 1) * float (rand()) / RAND_MAX;
 //		float r = (4.5 * sizeScale) * randLinVec[index];
@@ -166,7 +168,7 @@ void CreateRigidBodiesRandom(
 
 		printf("sizeRandomLinear %d\n", randLinVec.size() );	//4.5 comes from channelRadius
 		float teta = 2 * PI * float (rand()) / RAND_MAX;
-		float3 pos = straightChannelMin + F3(0, channelRadius, channelRadius) + F3( (i + 0.5) * xSpace, float(r  * cos(teta)), float(r *  sin(teta)) );
+		float3 pos = F3(cMin.x, .5 * (cMin.y + cMax.y), 0.5 * (cMin.z + cMax.z)) + F3( (i + 0.5) * xSpace, float(r  * cos(teta)), float(r *  sin(teta)) );
 		rigidPos.push_back(pos);
 
 		float4 dumQuat = F4(1 - 2.0 * float (rand()) / RAND_MAX, 1 - 2.0 * float (rand()) / RAND_MAX, 1 - 2.0 * float (rand()) / RAND_MAX, 1 - 2.0 * float (rand()) / RAND_MAX); //generate random quaternion
@@ -262,13 +264,13 @@ void CreateRigidBodiesPattern(
 		const float rhoRigid) {
 
 	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
-	//printf("cMin %f %f %f, cMax %f %f %f\n", straightChannelMin.x, straightChannelMin.y, straightChannelMin.z, straightChannelMax.x, straightChannelMax.y, straightChannelMax.z);
+	//printf("cMin %f %f %f, cMax %f %f %f\n", straightChannelBoundaryMin.x, straightChannelBoundaryMin.y, straightChannelBoundaryMin.z, straightChannelBoundaryMax.x, straightChannelBoundaryMax.y, straightChannelBoundaryMax.z);
 	float3 spaceRigids = 2 * (referenceR + 2 * F3(HSML));
-	float3 n3Rigids = (straightChannelMax - straightChannelMin) / spaceRigids;
+	float3 n3Rigids = (straightChannelBoundaryMax - straightChannelBoundaryMin) / spaceRigids;
 	for (int i = 1; i < n3Rigids.x - 1; i++) {
 		for  (int j = 1; j < n3Rigids.y - 1; j++) {
 			 for (int k = 1; k < n3Rigids.z - 1; k++) {
-				 float3 pos = straightChannelMin + F3(i, j, k) * spaceRigids;
+				 float3 pos = straightChannelBoundaryMin + F3(i, j, k) * spaceRigids;
 				 //printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
 				 rigidPos.push_back(pos);
 				 mQuatRot.push_back(F4(1, 0, 0, 0));
@@ -302,17 +304,20 @@ void CreateRigidBodiesPatternPipe(
 		thrust::host_vector<float3> & rigidBody_InvJ2,
 		thrust::host_vector<float3> & ellipsoidRadii,
 		const float3 referenceR,
-		const float rhoRigid) {
+		const float rhoRigid,
+		float3 cMin,
+		float3 cMax) {
 
 	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
-	//printf("cMin %f %f %f, cMax %f %f %f\n", straightChannelMin.x, straightChannelMin.y, straightChannelMin.z, straightChannelMax.x, straightChannelMax.y, straightChannelMax.z);
+	//printf("cMin %f %f %f, cMax %f %f %f\n", straightChannelBoundaryMin.x, straightChannelBoundaryMin.y, straightChannelBoundaryMin.z, straightChannelBoundaryMax.x, straightChannelBoundaryMax.y, straightChannelBoundaryMax.z);
 	float3 spaceRigids = 2 * (referenceR + 4 * F3(HSML));
-	float3 n3Rigids = (straightChannelMax - straightChannelMin) / spaceRigids;
+	float3 n3Rigids = (cMax - cMin) / spaceRigids;
 	for (int i = 1; i < n3Rigids.x - 1; i++) {
 		for  (float r = spaceRigids.x; r < channelRadius - spaceRigids.x; r += spaceRigids.x) {
 			float dTeta = spaceRigids.x / r;
 			 for (float teta = 0; teta < 2 * PI - dTeta; teta += dTeta) {
-				 float3 pos = straightChannelMin + F3(0, channelRadius, channelRadius) + F3(i * spaceRigids.x, float(r  * cos(teta)), float(r *  sin(teta)) );
+				 float3 pos = F3(cMin.x, .5 * (cMin.y + cMax.y), 0.5 * (cMin.z + cMax.z)) +  F3(i * spaceRigids.x, float(r  * cos(teta)), float(r *  sin(teta)) );
+
 				 //printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
 				 rigidPos.push_back(pos);
 				 mQuatRot.push_back(F4(1, 0, 0, 0));
@@ -609,18 +614,18 @@ float IsInsideStraightChannel(float4 posRad) {
 	//const float toleranceZone = 2 * sphR;
 	float largePenet = -5 * sphR;		//like a large number. Should be negative (assume large initial penetration)
 
-	if (posRad.z > straightChannelMax.z) {
-		penDist1 = straightChannelMax.z - posRad.z;
+	if (posRad.z > straightChannelBoundaryMax.z) {
+		penDist1 = straightChannelBoundaryMax.z - posRad.z;
 	}
-	if (posRad.z < straightChannelMin.z) {
-		penDist1 = posRad.z - straightChannelMin.z;
+	if (posRad.z < straightChannelBoundaryMin.z) {
+		penDist1 = posRad.z - straightChannelBoundaryMin.z;
 	}
 
-	if (posRad.y < straightChannelMin.y) {
-		penDist2 = posRad.y - straightChannelMin.y;
+	if (posRad.y < straightChannelBoundaryMin.y) {
+		penDist2 = posRad.y - straightChannelBoundaryMin.y;
 	}
-	if (posRad.y > straightChannelMax.y) {
-		penDist2 = straightChannelMax.y - posRad.y;
+	if (posRad.y > straightChannelBoundaryMax.y) {
+		penDist2 = straightChannelBoundaryMax.y - posRad.y;
 	}
 	if (penDist1 < 0 && penDist2 < 0) {
 		return Min(penDist1, penDist2);
@@ -730,6 +735,7 @@ int2 CreateFluidParticles(
 				///penDist = IsInsideStraightChannel(posRad);
 				///penDist = IsInsideStraightChannel_XZ(posRad);
 				penDist = IsInsideTube(posRad, cMax, cMin);
+
 				if (penDist < -toleranceZone) flag = false;
 				if (flag) {
 					for (int rigidSpheres = 0; rigidSpheres < rigidPos.size(); rigidSpheres++) {
@@ -934,14 +940,14 @@ int main() {
 	float binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
 	binSize0 = (binSize0 > binSize3.z) ? binSize0 : binSize3.z;
 	cMax = cMin + binSize0 * make_float3(side0);
-	straightChannelMin = F3(cMin.x, 0.0 * sizeScale, 1.0 * sizeScale);
-	straightChannelMax = F3(cMax.x, 1.0 * sizeScale, 3.0 * sizeScale);
+	straightChannelBoundaryMin = F3(cMin.x, 0.0 * sizeScale, 1.0 * sizeScale);
+	straightChannelBoundaryMax = F3(cMax.x, 1.0 * sizeScale, 3.0 * sizeScale);
 	printf("cMin.x, y, z %f %f %f cMax.x, y, z %f %f %f,  binSize %f\n", cMin.x, cMin.y, cMin.z, cMax.x, cMax.y, cMax.z, binSize0);
 	printf("HSML %f\n", HSML);
 	//printf("side0 %d %d %d \n", side0.x, side0.y, side0.z);
 
 	//float delT = .02 * sizeScale;
-	float delT = .02 * sizeScale;
+	float delT = .03 * sizeScale;
 //	float delT = .001 * sizeScale;
 
 	bool readFromFile = false;  //true;		//true: initializes from file. False: initializes inside the code
@@ -984,9 +990,9 @@ int main() {
 //	CreateRigidBodiesFromFile(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, cMin, cMax, fileNameRigids, rhoRigid);
 	//**
 //	//channelRadius = 1.0 * sizeScale;
-//	CreateRigidBodiesPatternPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
+//	CreateRigidBodiesPatternPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax);
 	//**
-	CreateRigidBodiesRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, 4); //changed 2 to 4
+	CreateRigidBodiesRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax, 4); //changed 2 to 4
 
 	thrust::host_vector<Rotation> rigidRotMatrix(mQuatRot.size());
 	ConvertQuatArray2RotArray(rigidRotMatrix, mQuatRot);

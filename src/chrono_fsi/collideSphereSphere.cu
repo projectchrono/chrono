@@ -64,6 +64,13 @@ __global__ void UpdateKernelFluid(float4 * posRadD, float4 * velMasD, float3 * v
 	rhoPresMuD[index] = rhoPresMu; //rhoPresMuD updated
 }
 //--------------------------------------------------------------------------------------------------------------------------------
+//copies the sortedVelXSPH to velXSPH according to indexing
+__global__ void Copy_SortedVelXSPH_To_VelXSPH(float3 * vel_XSPH_D, float3 * vel_XSPH_Sorted_D, uint * m_dGridParticleIndex, int numParticles) {
+	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
+	if (index >= numParticles) return;
+	vel_XSPH_D[m_dGridParticleIndex[index]] = vel_XSPH_Sorted_D[index];
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 //updates the fluid particles' properties, i.e. velocity, density, pressure, position
 __global__ void UpdateKernelBoundary(float4 * posRadD, float4 * velMasD, float4 * rhoPresMuD, float4 * derivVelRhoD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -904,13 +911,13 @@ void ForceSPH(
 	thrust::device_vector<float4> m_dSortedPosRad(mNSpheres);
 	thrust::device_vector<float4> m_dSortedVelMas(mNSpheres);
 	thrust::device_vector<float4> m_dSortedRhoPreMu(mNSpheres);
+	thrust::device_vector<float3> vel_XSPH_Sorted_D(mNSpheres);
 
 	thrust::device_vector<uint> m_dGridParticleHash(mNSpheres);
 	thrust::device_vector<uint> m_dGridParticleIndex(mNSpheres);
 
 	thrust::device_vector<uint> m_dCellStart(m_numGridCells);
 	thrust::device_vector<uint> m_dCellEnd(m_numGridCells);
-
 	// calculate grid hash
 	calcHash(U1CAST(m_dGridParticleHash), U1CAST(m_dGridParticleIndex), F4CAST(posRadD), mNSpheres);
 
@@ -925,15 +932,24 @@ void ForceSPH(
 	thrust::fill(derivVelRhoD.begin(), derivVelRhoD.end(), F4(0)); //initialize derivVelRhoD with zero. necessary
 	thrust::fill(derivVelRhoD.begin() + referenceArray[0].x, derivVelRhoD.begin() + referenceArray[0].y, totalFluidBodyForce4); //add body force to fluid particles.
 
-	RecalcVelocity_XSPH(F3CAST(vel_XSPH_D), F4CAST(m_dSortedPosRad), F4CAST(m_dSortedVelMas), F4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridParticleIndex), U1CAST(m_dCellStart),
+	RecalcVelocity_XSPH(F3CAST(vel_XSPH_Sorted_D), F4CAST(m_dSortedPosRad), F4CAST(m_dSortedVelMas), F4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridParticleIndex), U1CAST(m_dCellStart),
 			U1CAST(m_dCellEnd), mNSpheres, m_numGridCells);
 
-	collide(F4CAST(derivVelRhoD), F4CAST(m_dSortedPosRad), F4CAST(m_dSortedVelMas), F3CAST(vel_XSPH_D), F4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridParticleIndex), U1CAST(m_dCellStart),
+	collide(F4CAST(derivVelRhoD), F4CAST(m_dSortedPosRad), F4CAST(m_dSortedVelMas), F3CAST(vel_XSPH_Sorted_D), F4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridParticleIndex), U1CAST(m_dCellStart),
 			U1CAST(m_dCellEnd), mNSpheres, m_numGridCells);
+
+
+	uint nBlock_NumSpheres, nThreads_SphParticles;
+	computeGridSize(mNSpheres, 256, nBlock_NumSpheres, nThreads_SphParticles);
+	Copy_SortedVelXSPH_To_VelXSPH<<<nBlock_NumSpheres, nThreads_SphParticles>>>(F3CAST(vel_XSPH_D), F3CAST(vel_XSPH_Sorted_D), U1CAST(m_dGridParticleIndex), mNSpheres);
+	cudaThreadSynchronize();
+	CUT_CHECK_ERROR("Kernel execution failed: Copy_SortedVelXSPH_To_VelXSPH");
+
 	////
 	m_dSortedPosRad.clear();
 	m_dSortedVelMas.clear();
 	m_dSortedRhoPreMu.clear();
+	vel_XSPH_Sorted_D.clear();
 
 	m_dGridParticleHash.clear();
 	m_dGridParticleIndex.clear();
@@ -1366,7 +1382,8 @@ void cudaCollisions(
 	FILE *outFileMultipleZones;
 
 	int povRayCounter = 0;
-	int stepEnd = 100;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
+	int stepEnd = 0.7e6 * (.02 * sizeScale) / delT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
+	printf("stepEnd %d\n", stepEnd);
 
 	//for (int tStep = 0; tStep < 0; tStep ++) {
 	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
@@ -1431,8 +1448,8 @@ void cudaCollisions(
 
 		//************************************************
 		//edit PrintToFile since yu deleted cyliderRotOmegaJD
-//		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, cMax, cMin, paramsH,
-//				delT, tStep, channelRadius);
+		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, cMax, cMin, paramsH,
+				delT, tStep, channelRadius);
 //		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
 		//************
 		float time2;
