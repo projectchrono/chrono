@@ -4,7 +4,7 @@
 //#include <cutil_inline.h>
 
 void cudaCollisions(
-		thrust::host_vector<float4> & mPosRad,
+		thrust::host_vector<float3> & mPosRad,
 		thrust::host_vector<float4> & mVelMas,
 		thrust::host_vector<float4> & mRhoPresMu,
 		const thrust::host_vector<uint> & bodyIndex,

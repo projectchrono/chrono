@@ -207,17 +207,17 @@ void setParameters(SimParams *hostParams);
 
 void computeGridSize(uint n, uint blockSize, uint &numBlocks, uint &numThreads);
 
-void calcHash(uint* gridParticleHash, uint* gridParticleIndex, float4 * pos, int numParticles);
+void calcHash(uint* gridParticleHash, uint* gridParticleIndex, float3 * pos, int numParticles);
 
 void reorderDataAndFindCellStart(
 		uint* cellStart,
 		uint* cellEnd,
-		float4* sortedPosRad,
+		float3* sortedPosRad,
 		float4* sortedVelMas,
 		float4* sortedRhoPreMu,
 		uint* gridParticleHash,
 		uint* gridParticleIndex,
-		float4* oldPosRad,
+		float3* oldPosRad,
 		float4* oldVelMas,
 		float4* oldRhoPreMu,
 		uint numParticles,
@@ -225,7 +225,7 @@ void reorderDataAndFindCellStart(
 
 void RecalcVelocity_XSPH(
 		float3* vel_XSPH_D,
-		float4* sortedPosRad,
+		float3* sortedPosRad,
 		float4* sortedVelMas,
 		float4* sortedRhoPreMu,
 		uint* gridParticleIndex,
@@ -236,7 +236,7 @@ void RecalcVelocity_XSPH(
 
 void collide(
 		float4* derivVelRhoD,
-		float4* sortedPosRad,
+		float3* sortedPosRad,
 		float4* sortedVelMas,
 		float3* vel_XSPH_D,
 		float4* sortedRhoPreMu,
@@ -247,10 +247,10 @@ void collide(
 		uint numCells);
 
 void ReCalcDensity(
-		float4* posRadD,
+		float3* posRadD,
 		float4* velMasD,
 		float4* rhoPresMuD,
-		float4* m_dSortedPosRad,
+		float3* m_dSortedPosRad,
 		float4* m_dSortedVelMas,
 		float4* m_dSortedRhoPreMu,
 		uint* m_dGridParticleIndex,
@@ -262,7 +262,7 @@ void ReCalcDensity(
 void CalcCartesianData(
 		float4* rho_Pres_CartD,
 		float4* vel_VelMag_CartD,
-		float4* sortedPosRad,
+		float3* sortedPosRad,
 		float4* sortedVelMas,
 		float4* sortedRhoPreMu,
 		uint* gridParticleIndex,

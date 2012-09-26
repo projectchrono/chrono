@@ -164,17 +164,17 @@ void CreateRigidBodiesRandom(
 		float maxR = max(referenceR.x, referenceR.y);
 		maxR = max(maxR, referenceR.z);
 
-		//float r = (channelRadius - maxR - 2 * HSML) * float (rand()) / RAND_MAX;
-						float r = (channelRadius - maxR - 2 * HSML) * (.2);
+		float r = (channelRadius - maxR - 2 * HSML) * float (rand()) / RAND_MAX;
+//						float r = (channelRadius - maxR - 2 * HSML) * (.2);
 
 		printf("sizeRandomLinear %d\n", randLinVec.size() );	//4.5 comes from channelRadius
-		//float teta = 2 * PI * float (rand()) / RAND_MAX;
-						float teta = 2 * PI * float (.2);
+		float teta = 2 * PI * float (rand()) / RAND_MAX;
+//						float teta = 2 * PI * float (.2);
 		float3 pos = F3(cMin.x, .5 * (cMin.y + cMax.y), 0.5 * (cMin.z + cMax.z)) + F3( (i + 0.5) * xSpace, float(r  * cos(teta)), float(r *  sin(teta)) );
 		rigidPos.push_back(pos);
 
-		//float4 dumQuat = F4(1 - 2.0 * float (rand()) / RAND_MAX, 1 - 2.0 * float (rand()) / RAND_MAX, 1 - 2.0 * float (rand()) / RAND_MAX, 1 - 2.0 * float (rand()) / RAND_MAX); //generate random quaternion
-						float4 dumQuat = F4(1,0,0,0);
+		float4 dumQuat = F4(1 - 2.0 * float (rand()) / RAND_MAX, 1 - 2.0 * float (rand()) / RAND_MAX, 1 - 2.0 * float (rand()) / RAND_MAX, 1 - 2.0 * float (rand()) / RAND_MAX); //generate random quaternion
+//						float4 dumQuat = F4(1,0,0,0);
 
 		dumQuat *= 1.0 / length(dumQuat);
 		mQuatRot.push_back(dumQuat);
@@ -344,8 +344,8 @@ void CreateRigidBodiesPatternPipe(
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-bool IsInsideSphere(float4 sphParPos, float4 spherePosRad, float clearance) {
-	float3 dist3 = F3(sphParPos - spherePosRad);
+bool IsInsideSphere(float3 sphParPos, float4 spherePosRad, float clearance) {
+	float3 dist3 = sphParPos - F3(spherePosRad);
 	if (length(dist3) < spherePosRad.w + clearance) {
 		return true;
 	} else {
@@ -353,8 +353,8 @@ bool IsInsideSphere(float4 sphParPos, float4 spherePosRad, float clearance) {
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-bool IsInsideEllipsoid(float4 sphParPos, float3 rigidPos, Rotation rot, float3 radii, float clearance) {
-	float3 dist3GF = F3(sphParPos) - rigidPos;
+bool IsInsideEllipsoid(float3 sphParPos, float3 rigidPos, Rotation rot, float3 radii, float clearance) {
+	float3 dist3GF = sphParPos - rigidPos;
 	float3 dist3 = dist3GF.x * F3(rot.a00, rot.a01, rot.a02) + dist3GF.y * F3(rot.a10, rot.a11, rot.a12) + dist3GF.z * F3(rot.a20, rot.a21, rot.a22);
 	float3 mappedDist = dist3 / (radii + F3(clearance));
 	if (length(mappedDist) < 1) {
@@ -364,10 +364,10 @@ bool IsInsideEllipsoid(float4 sphParPos, float3 rigidPos, Rotation rot, float3 r
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-bool IsInsideCylinder_XZ(float4 sphParPos, float3 rigidPos, float3 radii, float clearance) {
-	float3 dist3 = F3(sphParPos) - rigidPos;
+bool IsInsideCylinder_XZ(float3 sphParPos, float3 rigidPos, float3 radii, float clearance) {
+	float3 dist3 = sphParPos - rigidPos;
 	dist3.y = 0;
-	//if (length(dist3) < spherePosRad.w + 2 * sphParPos.w) {
+	//if (length(dist3) < spherePosRad.w + 2 * (HSML)) {
 	if (length(dist3) < radii.x + clearance) {
 		return true;
 	} else {
@@ -411,8 +411,8 @@ float IsInBoundaryEllipsoid(float2 coord, float2 cent2, float2 r2) {
 	}
 }
 ////&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-//float IsInsideCurveOfSerpentine(float4 posRad) {
-//	const float sphR = posRad.w;
+//float IsInsideCurveOfSerpentine(float3 posRad) {
+//	const float sphR = HSML;
 //	float x, y;
 //	float distFromWall = 0;//2 * sphR;//0;//2 * sphR;
 //	float penDist = 0;
@@ -463,8 +463,8 @@ float IsInBoundaryEllipsoid(float2 coord, float2 cent2, float2 r2) {
 //	return penDist2;
 //}
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-float IsInsideCurveOfSerpentineBeta(float4 posRad) {
-	const float sphR = posRad.w;
+float IsInsideCurveOfSerpentineBeta(float3 posRad) {
+	const float sphR = HSML;
 	float x, y;
 	float distFromWall = 0; //2 * sphR;//0;//2 * sphR;
 	float penDist = 0;
@@ -519,8 +519,8 @@ float IsInsideCurveOfSerpentineBeta(float4 posRad) {
 	return penDist2;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-float IsInsideSerpentine(float4 posRad) {
-	const float sphR = posRad.w;
+float IsInsideSerpentine(float3 posRad) {
+	const float sphR = HSML;
 	float x, y;
 	float distFromWall = 0;//2 * sphR;//0;//2 * sphR;
 	float penDist = 0;
@@ -611,8 +611,8 @@ float IsInsideSerpentine(float4 posRad) {
 	return penDist2;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-float IsInsideStraightChannel(float4 posRad) {
-	const float sphR = posRad.w;
+float IsInsideStraightChannel(float3 posRad) {
+	const float sphR = HSML;
 	float penDist1 = 0;
 	float penDist2 = 0;
 	//const float toleranceZone = 2 * sphR;
@@ -639,8 +639,8 @@ float IsInsideStraightChannel(float4 posRad) {
 	return -largePenet;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-float IsInsideStraightChannel_XZ(float4 posRad) {
-	const float sphR = posRad.w;
+float IsInsideStraightChannel_XZ(float3 posRad) {
+	const float sphR = HSML;
 	float penDist1 = 0;
 	//const float toleranceZone = 2 * sphR;
 	float largePenet = -5 * sphR;		//like a large number. Should be negative (assume large initial penetration)
@@ -658,8 +658,8 @@ float IsInsideStraightChannel_XZ(float4 posRad) {
 	return -largePenet;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-float IsInsideTube(float4 posRad, float3 cMax, float3 cMin) {
-	const float sphR = posRad.w;
+float IsInsideTube(float3 posRad, float3 cMax, float3 cMin) {
+	const float sphR = HSML;
 	float penDist1 = 0;
 	//const float toleranceZone = 2 * sphR;
 	float largePenet = -5 * sphR; //like a large number. Should be negative (assume large initial penetration)
@@ -677,10 +677,10 @@ float IsInsideTube(float4 posRad, float3 cMax, float3 cMin) {
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 int2 CreateFluidParticles(
-		thrust::host_vector<float4> & mPosRad,
+		thrust::host_vector<float3> & mPosRad,
 		thrust::host_vector<float4> & mVelMas,
 		thrust::host_vector<float4> & mRhoPresMu,
-		thrust::host_vector<float4> & mPosRadBoundary,
+		thrust::host_vector<float3> & mPosRadBoundary,
 		thrust::host_vector<float4> & mVelMasBoundary,
 		thrust::host_vector<float4> & mRhoPresMuBoundary,
 		float & sphParticleMass,
@@ -727,11 +727,10 @@ int2 CreateFluidParticles(
 	for (int i = 0; i < nFX; i++) {
 		for (int j = 0; j < nFY; j++) {
 			for (int k = 0; k < nFZ; k++) {
-				float4 posRad;
+				float3 posRad;
 //					printf("initSpace X, Y, Z %f %f %f \n", initSpaceX, initSpaceY, initSpaceZ);
-				posRad = F4(
-						cMin + make_float3(i * initSpaceX, j * initSpaceY, k * initSpaceZ)
-								+ make_float3(.5 * initSpace0)/* + make_float3(sphR) + initSpace * .05 * (float(rand()) / RAND_MAX)*/, sphR);
+				posRad = cMin + make_float3(i * initSpaceX, j * initSpaceY, k * initSpaceZ)
+								+ make_float3(.5 * initSpace0)/* + make_float3(sphR) + initSpace * .05 * (float(rand()) / RAND_MAX)*/;
 				float penDist = 0;
 				bool flag = true;
 				///penDist = IsInsideCurveOfSerpentineBeta(posRad);
@@ -785,7 +784,7 @@ int2 CreateFluidParticles(
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 int CreateEllipsoidParticles(
-		thrust::host_vector<float4> & mPosRad,
+		thrust::host_vector<float3> & mPosRad,
 		thrust::host_vector<float4> & mVelMas,
 		thrust::host_vector<float4> & mRhoPresMu,
 		float3 rigidPos,
@@ -829,7 +828,7 @@ int CreateEllipsoidParticles(
 							posRadRigid_sphParticleLocal.y * F3(rigidRotMatrix.a01, rigidRotMatrix.a11, rigidRotMatrix.a21) +
 							posRadRigid_sphParticleLocal.z * F3(rigidRotMatrix.a02, rigidRotMatrix.a12, rigidRotMatrix.a22);
 
-					float4 posRadRigid_sphParticle = F4(posRadRigid_sphParticleLocalRotate, sphR) + F4(rigidPos, 0);
+					float3 posRadRigid_sphParticle = posRadRigid_sphParticleLocalRotate + rigidPos;
 
 					mPosRad.push_back(posRadRigid_sphParticle);
 					float deltaPhiDum = spacing / (r * sin(teta));
@@ -837,7 +836,7 @@ int CreateEllipsoidParticles(
 					float maxR = max(rNewDum, r);
 					phi += spacing / (maxR * sin(teta));
 
-					float3 vel = F3(sphereVelMas) + cross(rigidBodyOmega, F3(posRadRigid_sphParticle) - rigidPos); //assuming LRF is the same as GRF at time zero (rigibodyOmega is in LRF, the second term of the cross is in GRF)
+					float3 vel = F3(sphereVelMas) + cross(rigidBodyOmega, posRadRigid_sphParticle - rigidPos); //assuming LRF is the same as GRF at time zero (rigibodyOmega is in LRF, the second term of the cross is in GRF)
 					//printf("veloc %f %f %f\n", vel.x, vel.y, vel.z);
 					mVelMas.push_back(F4(vel, sphParticleMass));
 					float representedArea = spacing * spacing;
@@ -859,7 +858,7 @@ int CreateEllipsoidParticles(
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 int CreateCylinderParticles_XZ(
-		thrust::host_vector<float4> & mPosRad,
+		thrust::host_vector<float3> & mPosRad,
 		thrust::host_vector<float4> & mVelMas,
 		thrust::host_vector<float4> & mRhoPresMu,
 		float3 rigidPos,
@@ -886,10 +885,10 @@ int CreateCylinderParticles_XZ(
 				//printf("gher %f, %f\n", deltaTeta / 2 / PI, deltaTeta);
 				for (float y = cMin.y; y < cMax.y - .1 * spacing; y += spacing) {
 					//printf("aha\n");
-					float4 posRadRigid_sphParticle = F4(r * cos(teta), y, r * sin(teta), sphR) + F4(rigidPos.x, 0, rigidPos.z, 0);
+					float3 posRadRigid_sphParticle = F3(r * cos(teta), y, r * sin(teta)) + F3(rigidPos.x, 0, rigidPos.z);
 
 					mPosRad.push_back(posRadRigid_sphParticle);
-					float3 vel = F3(sphereVelMas) + cross(rigidBodyOmega, F3(posRadRigid_sphParticle) - rigidPos); //assuming LRF is the same as GRF at time zero (rigibodyOmega is in LRF, the second term of the cross is in GRF)
+					float3 vel = F3(sphereVelMas) + cross(rigidBodyOmega, posRadRigid_sphParticle - rigidPos); //assuming LRF is the same as GRF at time zero (rigibodyOmega is in LRF, the second term of the cross is in GRF)
 					mVelMas.push_back(F4(vel, sphParticleMass));
 					float representedArea = spacing * spacing;
 					mRhoPresMu.push_back(F4(rho, pres, mu, type));					// for rigid body particle, rho represents the represented area
@@ -966,7 +965,7 @@ int main() {
 
 	//--------------------buffer initialization ---------------------------
 	thrust::host_vector<int3> referenceArray;
-	thrust::host_vector<float4> mPosRad;			//do not set the size here since you are using push back later
+	thrust::host_vector<float3> mPosRad;			//do not set the size here since you are using push back later
 	thrust::host_vector<float4> mVelMas;
 	thrust::host_vector<float4> mRhoPresMu;
 
@@ -1010,10 +1009,10 @@ int main() {
 		inp >> num_FluidParticles;
 		for (int i = 0; i < num_FluidParticles; i++) {
 			char dummyCh;
-			float4 posRad = make_float4(0);
+			float3 posRad = F3(0);
 			float4 velMas = make_float4(0);
 			float4 rhoPresMu = make_float4(0);
-			inp >> posRad.x >> dummyCh >> posRad.y >> dummyCh >> posRad.z >> dummyCh >> posRad.w >> dummyCh >> velMas.x >> dummyCh >> velMas.y
+			inp >> posRad.x >> dummyCh >> posRad.y >> dummyCh >> posRad.z >> dummyCh >> velMas.x >> dummyCh >> velMas.y
 					>> dummyCh >> velMas.z >> dummyCh >> velMas.w >> dummyCh >> rhoPresMu.x >> dummyCh >> rhoPresMu.y >> dummyCh >> rhoPresMu.z
 					>> dummyCh >> rhoPresMu.w;
 
@@ -1026,7 +1025,7 @@ int main() {
 		//num_FluidParticles *= 2;
 		referenceArray.push_back(I3(0, num_FluidParticles, -1));
 	} else {
-		thrust::host_vector<float4> mPosRadBoundary;			//do not set the size here since you are using push back later
+		thrust::host_vector<float3> mPosRadBoundary;			//do not set the size here since you are using push back later
 		thrust::host_vector<float4> mVelMasBoundary;
 		thrust::host_vector<float4> mRhoPresMuBoundary;
 

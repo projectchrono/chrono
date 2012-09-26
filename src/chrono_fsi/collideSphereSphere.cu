@@ -40,7 +40,7 @@ __constant__ int numRigid_SphParticlesD;
 int maxblock = 65535;
 //--------------------------------------------------------------------------------------------------------------------------------
 //updates the fluid particles' properties, i.e. velocity, density, pressure, position
-__global__ void UpdateKernelFluid(float4 * posRadD, float4 * velMasD, float3 * vel_XSPH_D, float4 * rhoPresMuD, float4 * derivVelRhoD) {
+__global__ void UpdateKernelFluid(float3 * posRadD, float4 * velMasD, float3 * vel_XSPH_D, float4 * rhoPresMuD, float4 * derivVelRhoD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	index += updatePortionD.x; // updatePortionD = [start, end] index of the update portion
 	if (index >= updatePortionD.y) {
@@ -49,9 +49,9 @@ __global__ void UpdateKernelFluid(float4 * posRadD, float4 * velMasD, float3 * v
 
 	float4 velMas = velMasD[index];
 	float3 vel_XSPH = vel_XSPH_D[index];
-	float4 posRad = posRadD[index];
-	float3 updatedPositon = F3(posRad) + vel_XSPH * dTD;
-	posRadD[index] = F4(updatedPositon, posRad.w); //posRadD updated
+	float3 posRad = posRadD[index];
+	float3 updatedPositon = posRad + vel_XSPH * dTD;
+	posRadD[index] = updatedPositon; //posRadD updated
 
 	float4 derivVelRho = derivVelRhoD[index];
 	float4 rhoPresMu = rhoPresMuD[index];
@@ -72,7 +72,7 @@ __global__ void Copy_SortedVelXSPH_To_VelXSPH(float3 * vel_XSPH_D, float3 * vel_
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //updates the fluid particles' properties, i.e. velocity, density, pressure, position
-__global__ void UpdateKernelBoundary(float4 * posRadD, float4 * velMasD, float4 * rhoPresMuD, float4 * derivVelRhoD) {
+__global__ void UpdateKernelBoundary(float3 * posRadD, float4 * velMasD, float4 * rhoPresMuD, float4 * derivVelRhoD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	index += updatePortionD.x; // updatePortionD = [start, end] index of the update portion
 	if (index >= updatePortionD.y) {
@@ -88,7 +88,7 @@ __global__ void UpdateKernelBoundary(float4 * posRadD, float4 * velMasD, float4 
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //applies periodic BC along x
-__global__ void ApplyPeriodicBoundaryXKernel(float4 * posRadD, float4 * rhoPresMuD) {
+__global__ void ApplyPeriodicBoundaryXKernel(float3 * posRadD, float4 * rhoPresMuD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (index >= mNumSpheresD) {
 		return;
@@ -97,7 +97,7 @@ __global__ void ApplyPeriodicBoundaryXKernel(float4 * posRadD, float4 * rhoPresM
 	if (fabs(rhoPresMu.w) < .1) {
 		return;
 	} //no need to do anything if it is a boundary particle
-	float4 posRad = posRadD[index];
+	float3 posRad = posRadD[index];
 	if (posRad.x > cMaxD.x) {
 		posRad.x -= (cMaxD.x - cMinD.x);
 		posRadD[index] = posRad;
@@ -111,7 +111,7 @@ __global__ void ApplyPeriodicBoundaryXKernel(float4 * posRadD, float4 * rhoPresM
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //applies periodic BC along y
-__global__ void ApplyPeriodicBoundaryYKernel(float4 * posRadD, float4 * rhoPresMuD) {
+__global__ void ApplyPeriodicBoundaryYKernel(float3 * posRadD, float4 * rhoPresMuD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (index >= mNumSpheresD) {
 		return;
@@ -120,7 +120,7 @@ __global__ void ApplyPeriodicBoundaryYKernel(float4 * posRadD, float4 * rhoPresM
 	if (fabs(rhoPresMu.w) < .1) {
 		return;
 	} //no need to do anything if it is a boundary particle
-	float4 posRad = posRadD[index];
+	float3 posRad = posRadD[index];
 	if (posRad.y > cMaxD.y) {
 		posRad.y -= (cMaxD.y - cMinD.y);
 		posRadD[index] = posRad;
@@ -220,7 +220,7 @@ __global__ void SumSurfaceInteractionForces(float3 * totalBodyForces3, float4 * 
 	totalBodyForces3[rigidSphereA] = rigid_SPH_massD / dummyVelMas.w * F3(totalSurfaceInteraction4[rigidSphereA]);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void CalcTorqueShare(float3* torqueParticlesD, float4* derivVelRhoD, float4* posRadD, int* rigidIdentifierD, float3* posRigidD) {
+__global__ void CalcTorqueShare(float3* torqueParticlesD, float4* derivVelRhoD, float3* posRadD, int* rigidIdentifierD, float3* posRigidD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	uint rigidParticleIndex = index + startRigidParticleD; // updatePortionD = [start, end] index of the update portion
 	if (index >= numRigid_SphParticlesD) {
@@ -232,7 +232,7 @@ __global__ void CalcTorqueShare(float3* torqueParticlesD, float4* derivVelRhoD, 
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(
 		float3* rigidSPH_MeshPos_LRF_D,
-		float4* posRadD,
+		float3* posRadD,
 		int* rigidIdentifierD,
 		float3* posRigidD,
 		int startRigidParticleH,
@@ -242,7 +242,7 @@ __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(
 	if (index >= numRigid_SphParticlesH) {
 		return;
 	}
-	float3 dist3 = F3(posRadD[rigidParticleIndex]) - posRigidD[rigidIdentifierD[index]];
+	float3 dist3 = posRadD[rigidParticleIndex] - posRigidD[rigidIdentifierD[index]];
 	rigidSPH_MeshPos_LRF_D[index] = dist3;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -350,7 +350,7 @@ __global__ void UpdateRigidBodyAngularVelocity_kernel(
 //--------------------------------------------------------------------------------------------------------------------------------
 //updates the rigid body particles
 __global__ void UpdateRigidParticlesPosition(
-		float4 * posRadD,
+		float3 * posRadD,
 		float4 * velMasD,
 		const float3 * rigidSPH_MeshPos_LRF_D,
 		const int * rigidIdentifierD,
@@ -376,10 +376,8 @@ __global__ void UpdateRigidParticlesPosition(
 	float3 rigidSPH_MeshPos_LRF = rigidSPH_MeshPos_LRF_D[index];
 
 	//position
-	float4 pR = posRadD[rigidParticleIndex];
 	float3 p_Rigid = posRigidD[rigidBodyIndex];
-	posRadD[rigidParticleIndex] = F4(p_Rigid + F3(dot(a1, rigidSPH_MeshPos_LRF), dot(a2, rigidSPH_MeshPos_LRF), dot(a3, rigidSPH_MeshPos_LRF)),
-			pR.w);
+	posRadD[rigidParticleIndex] = p_Rigid + F3(dot(a1, rigidSPH_MeshPos_LRF), dot(a2, rigidSPH_MeshPos_LRF), dot(a3, rigidSPH_MeshPos_LRF));
 
 	//velociy
 	float4 vM = velMasD[rigidParticleIndex];
@@ -398,12 +396,12 @@ void MapSPH_ToGrid(
 		int3 & cartesianGridDims,
 		thrust::host_vector<float4> & rho_Pres_CartH,
 		thrust::host_vector<float4> & vel_VelMag_CartH,
-		thrust::device_vector<float4> & posRadD,
+		thrust::device_vector<float3> & posRadD,
 		thrust::device_vector<float4> & velMasD,
 		thrust::device_vector<float4> & rhoPresMuD,
 		int mNSpheres,
 		SimParams paramsH) {
-//	float4* m_dSortedPosRad;
+//	float3* m_dSortedPosRad;
 //	float4* m_dSortedVelMas;
 //	float4* m_dSortedRhoPreMu;
 //	uint* m_dCellStart; // index of start of each cell in sorted list
@@ -414,7 +412,7 @@ void MapSPH_ToGrid(
 	//TODO here
 
 	// calculate grid hash
-	thrust::device_vector<float4> m_dSortedPosRad(mNSpheres);
+	thrust::device_vector<float3> m_dSortedPosRad(mNSpheres);
 	thrust::device_vector<float4> m_dSortedVelMas(mNSpheres);
 	thrust::device_vector<float4> m_dSortedRhoPreMu(mNSpheres);
 
@@ -425,12 +423,12 @@ void MapSPH_ToGrid(
 	thrust::device_vector<uint> m_dCellEnd(m_numGridCells);
 
 	// calculate grid hash
-	calcHash(U1CAST(m_dGridParticleHash), U1CAST(m_dGridParticleIndex), F4CAST(posRadD), mNSpheres);
+	calcHash(U1CAST(m_dGridParticleHash), U1CAST(m_dGridParticleIndex), F3CAST(posRadD), mNSpheres);
 
 	thrust::sort_by_key(m_dGridParticleHash.begin(), m_dGridParticleHash.end(), m_dGridParticleIndex.begin());
 
 	// reorder particle arrays into sorted order and find start and end of each cell
-	reorderDataAndFindCellStart(U1CAST(m_dCellStart), U1CAST(m_dCellEnd), F4CAST(m_dSortedPosRad), F4CAST(m_dSortedVelMas), F4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridParticleHash),
+	reorderDataAndFindCellStart(U1CAST(m_dCellStart), U1CAST(m_dCellEnd), F3CAST(m_dSortedPosRad), F4CAST(m_dSortedVelMas), F4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridParticleHash),
 			U1CAST(m_dGridParticleIndex), TCAST(posRadD), F4CAST(velMasD), F4CAST(rhoPresMuD), mNSpheres, m_numGridCells);
 
 	//float resolution = 8 * paramsH.particleRadius;
@@ -441,7 +439,7 @@ void MapSPH_ToGrid(
 	thrust::device_vector<float4> rho_Pres_CartD(cartesianGridSize);
 	thrust::device_vector<float4> vel_VelMag_CartD(cartesianGridSize);
 
-	CalcCartesianData(F4CAST(rho_Pres_CartD), F4CAST(vel_VelMag_CartD), F4CAST(m_dSortedPosRad), F4CAST(m_dSortedVelMas), F4CAST(m_dSortedRhoPreMu),
+	CalcCartesianData(F4CAST(rho_Pres_CartD), F4CAST(vel_VelMag_CartD), F3CAST(m_dSortedPosRad), F4CAST(m_dSortedVelMas), F4CAST(m_dSortedRhoPreMu),
 			U1CAST(m_dGridParticleIndex), U1CAST(m_dCellStart), U1CAST(m_dCellEnd), cartesianGridSize, cartesianGridDims, resolution);
 
 //	freeArray(m_dSortedPosRad);
@@ -472,7 +470,7 @@ void MapSPH_ToGrid(
 //calculates the interaction force between 1- fluid-fluid, 2- fluid-solid, 3- solid-fluid particles
 //calculates forces from other SPH or solid particles, as wall as boundaries
 void PrintToFile(
-		thrust::device_vector<float4> & posRadD,
+		thrust::device_vector<float3> & posRadD,
 		thrust::device_vector<float4> & velMasD,
 		thrust::device_vector<float4> & rhoPresMuD,
 		const thrust::host_vector<int3> & referenceArray,
@@ -491,7 +489,7 @@ void PrintToFile(
 		float delT,
 		int tStep,
 		float channelRadius) {
-	thrust::host_vector<float4> posRadH = posRadD;
+	thrust::host_vector<float3> posRadH = posRadD;
 	thrust::host_vector<float4> velMasH = velMasD;
 	thrust::host_vector<float4> rhoPresMuH = rhoPresMuD;
 	thrust::host_vector<int> rigidIdentifierH = rigidIdentifierD;
@@ -514,7 +512,7 @@ void PrintToFile(
 		fileNameFluid<<"zone\n";
 		stringstream ssFluid;
 		for (int i = referenceArray[0].x; i < referenceArray[1].y; i++) {
-			float3 pos = F3(posRadH[i]);
+			float3 pos = posRadH[i];
 			float3 vel = F3(velMasH[i]);
 			float4 rP = rhoPresMuH[i];
 			float velMag = length(vel);
@@ -547,7 +545,7 @@ void PrintToFile(
 			int startRigidParticle = (I2(referenceArray[2])).x;
 
 			for (int i = startRigidParticle; i < referenceArray[2 + numRigidBodies - 1].y; i++) {
-				float3 pos = F3(posRadH[i]);
+				float3 pos = posRadH[i];
 				float3 vel = F3(velMasH[i]);
 				//printf("velocccc %f %f %f\n", vel.x, vel.y, vel.z);
 				float4 rP = rhoPresMuH[i];
@@ -583,9 +581,9 @@ void PrintToFile(
 		fileNameSlice<<"zone\n";
 		stringstream ssSlice;
 		for (int i = referenceArray[0].x; i < referenceArray[referenceArray.size() - 1].y; i++) {
-			float4 posRad = posRadH[i];
-			float3 pos = F3(posRad);
-			float rad = posRad.w;
+			float3 posRad = posRadH[i];
+			float3 pos = posRad;
+			float rad = HSML;
 			float3 vel = F3(velMasH[i]);
 			float4 rP = rhoPresMuH[i];
 			float velMag = length(vel);
@@ -817,7 +815,7 @@ void PrintToFile(
 //			fileNameFluidParticles.open(nameFluid);
 //			stringstream ssFluidParticles;
 //			for (int i = referenceArray[0].x; i < referenceArray[0].y; i++) {
-//				float3 pos = F3(posRadH[i]);
+//				float3 pos = posRadH[i];
 //				float3 vel = F3(velMasH[i]);
 //				float4 rP = rhoPresMuH[i];
 //				float velMag = length(vel);
@@ -829,7 +827,7 @@ void PrintToFile(
 //			fileNameBoundaries.open(nameBoundary);
 //			stringstream ssBoundary;
 //			for (int i = referenceArray[1].x; i < referenceArray[1].y; i++) {
-//				float3 pos = F3(posRadH[i]);
+//				float3 pos = posRadH[i];
 //				float3 vel = F3(velMasH[i]);
 //				float4 rP = rhoPresMuH[i];
 //				float velMag = length(vel);
@@ -887,7 +885,7 @@ void PrintToFileDistribution(
 //calculates the interaction force between 1- fluid-fluid, 2- fluid-solid, 3- solid-fluid particles
 //calculates forces from other SPH or solid particles, as wall as boundaries
 void ForceSPH(
-		thrust::device_vector<float4> & posRadD,
+		thrust::device_vector<float3> & posRadD,
 		thrust::device_vector<float4> & velMasD,
 		thrust::device_vector<float3> & vel_XSPH_D,
 		thrust::device_vector<float4> & rhoPresMuD,
@@ -898,7 +896,7 @@ void ForceSPH(
 		int3 SIDE) {
 	// Part1: contact detection #########################################################################################################################
 	// grid data for sorting method
-//	float4* m_dSortedPosRad;
+//	float3* m_dSortedPosRad;
 //	float4* m_dSortedVelMas;
 //	float4* m_dSortedRhoPreMu;
 //	uint* m_dCellStart; // index of start of each cell in sorted list
@@ -908,7 +906,7 @@ void ForceSPH(
 	//TODO here
 
 	// calculate grid hash
-	thrust::device_vector<float4> m_dSortedPosRad(mNSpheres);
+	thrust::device_vector<float3> m_dSortedPosRad(mNSpheres);
 	thrust::device_vector<float4> m_dSortedVelMas(mNSpheres);
 	thrust::device_vector<float4> m_dSortedRhoPreMu(mNSpheres);
 	thrust::device_vector<float3> vel_XSPH_Sorted_D(mNSpheres);
@@ -919,12 +917,12 @@ void ForceSPH(
 	thrust::device_vector<uint> m_dCellStart(m_numGridCells);
 	thrust::device_vector<uint> m_dCellEnd(m_numGridCells);
 	// calculate grid hash
-	calcHash(U1CAST(m_dGridParticleHash), U1CAST(m_dGridParticleIndex), F4CAST(posRadD), mNSpheres);
+	calcHash(U1CAST(m_dGridParticleHash), U1CAST(m_dGridParticleIndex), F3CAST(posRadD), mNSpheres);
 
 	thrust::sort_by_key(m_dGridParticleHash.begin(), m_dGridParticleHash.end(), m_dGridParticleIndex.begin());
 
 	// reorder particle arrays into sorted order and find start and end of each cell
-	reorderDataAndFindCellStart(U1CAST(m_dCellStart), U1CAST(m_dCellEnd), F4CAST(m_dSortedPosRad), F4CAST(m_dSortedVelMas), F4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridParticleHash),
+	reorderDataAndFindCellStart(U1CAST(m_dCellStart), U1CAST(m_dCellEnd), F3CAST(m_dSortedPosRad), F4CAST(m_dSortedVelMas), F4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridParticleHash),
 			U1CAST(m_dGridParticleIndex), TCAST(posRadD), F4CAST(velMasD), F4CAST(rhoPresMuD), mNSpheres, m_numGridCells);
 
 	//process collisions
@@ -932,10 +930,10 @@ void ForceSPH(
 	thrust::fill(derivVelRhoD.begin(), derivVelRhoD.end(), F4(0)); //initialize derivVelRhoD with zero. necessary
 	thrust::fill(derivVelRhoD.begin() + referenceArray[0].x, derivVelRhoD.begin() + referenceArray[0].y, totalFluidBodyForce4); //add body force to fluid particles.
 
-	RecalcVelocity_XSPH(F3CAST(vel_XSPH_Sorted_D), F4CAST(m_dSortedPosRad), F4CAST(m_dSortedVelMas), F4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridParticleIndex), U1CAST(m_dCellStart),
+	RecalcVelocity_XSPH(F3CAST(vel_XSPH_Sorted_D), F3CAST(m_dSortedPosRad), F4CAST(m_dSortedVelMas), F4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridParticleIndex), U1CAST(m_dCellStart),
 			U1CAST(m_dCellEnd), mNSpheres, m_numGridCells);
 
-	collide(F4CAST(derivVelRhoD), F4CAST(m_dSortedPosRad), F4CAST(m_dSortedVelMas), F3CAST(vel_XSPH_Sorted_D), F4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridParticleIndex), U1CAST(m_dCellStart),
+	collide(F4CAST(derivVelRhoD), F3CAST(m_dSortedPosRad), F4CAST(m_dSortedVelMas), F3CAST(vel_XSPH_Sorted_D), F4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridParticleIndex), U1CAST(m_dCellStart),
 			U1CAST(m_dCellEnd), mNSpheres, m_numGridCells);
 
 
@@ -959,12 +957,12 @@ void ForceSPH(
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void DensityReinitialization(
-		thrust::device_vector<float4> & posRadD,
+		thrust::device_vector<float3> & posRadD,
 		thrust::device_vector<float4> & velMasD,
 		thrust::device_vector<float4> & rhoPresMuD,
 		int mNSpheres,
 		int3 SIDE) {
-//	float4* m_dSortedPosRad;
+//	float3* m_dSortedPosRad;
 //	float4* m_dSortedVelMas;
 //	float4* m_dSortedRhoPreMu;
 //	uint* m_dCellStart; // index of start of each cell in sorted list
@@ -974,7 +972,7 @@ void DensityReinitialization(
 	//TODO here
 
 	// calculate grid hash
-	thrust::device_vector<float4> m_dSortedPosRad(mNSpheres);
+	thrust::device_vector<float3> m_dSortedPosRad(mNSpheres);
 	thrust::device_vector<float4> m_dSortedVelMas(mNSpheres);
 	thrust::device_vector<float4> m_dSortedRhoPreMu(mNSpheres);
 
@@ -985,15 +983,15 @@ void DensityReinitialization(
 	thrust::device_vector<uint> m_dCellEnd(m_numGridCells);
 
 	// calculate grid hash
-	calcHash(U1CAST(m_dGridParticleHash), U1CAST(m_dGridParticleIndex), F4CAST(posRadD), mNSpheres);
+	calcHash(U1CAST(m_dGridParticleHash), U1CAST(m_dGridParticleIndex), F3CAST(posRadD), mNSpheres);
 
 	thrust::sort_by_key(m_dGridParticleHash.begin(), m_dGridParticleHash.end(), m_dGridParticleIndex.begin());
 
 	// reorder particle arrays into sorted order and find start and end of each cell
-	reorderDataAndFindCellStart(U1CAST(m_dCellStart), U1CAST(m_dCellEnd), F4CAST(m_dSortedPosRad), F4CAST(m_dSortedVelMas), F4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridParticleHash),
+	reorderDataAndFindCellStart(U1CAST(m_dCellStart), U1CAST(m_dCellEnd), F3CAST(m_dSortedPosRad), F4CAST(m_dSortedVelMas), F4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridParticleHash),
 			U1CAST(m_dGridParticleIndex), TCAST(posRadD), F4CAST(velMasD), F4CAST(rhoPresMuD), mNSpheres, m_numGridCells);
 
-	ReCalcDensity(F4CAST(posRadD), F4CAST(velMasD), F4CAST(rhoPresMuD), F4CAST(m_dSortedPosRad), F4CAST(m_dSortedVelMas), F4CAST(m_dSortedRhoPreMu),
+	ReCalcDensity(F3CAST(posRadD), F4CAST(velMasD), F4CAST(rhoPresMuD), F3CAST(m_dSortedPosRad), F4CAST(m_dSortedVelMas), F4CAST(m_dSortedRhoPreMu),
 			U1CAST(m_dGridParticleIndex), U1CAST(m_dCellStart), U1CAST(m_dCellEnd), mNSpheres, m_numGridCells);
 
 	m_dSortedPosRad.clear();
@@ -1009,7 +1007,7 @@ void DensityReinitialization(
 //--------------------------------------------------------------------------------------------------------------------------------
 //updates the fluid particles by calling UpdateKernelFluid 
 void UpdateFluid(
-		thrust::device_vector<float4> & posRadD,
+		thrust::device_vector<float3> & posRadD,
 		thrust::device_vector<float4> & velMasD,
 		thrust::device_vector<float3> & vel_XSPH_D,
 		thrust::device_vector<float4> & rhoPresMuD,
@@ -1023,14 +1021,14 @@ void UpdateFluid(
 
 	uint nBlock_UpdateFluid, nThreads;
 	computeGridSize(updatePortion.y - updatePortion.x, 128, nBlock_UpdateFluid, nThreads);
-	UpdateKernelFluid<<<nBlock_UpdateFluid, nThreads>>>(F4CAST(posRadD), F4CAST(velMasD), F3CAST(vel_XSPH_D), F4CAST(rhoPresMuD), F4CAST(derivVelRhoD));
+	UpdateKernelFluid<<<nBlock_UpdateFluid, nThreads>>>(F3CAST(posRadD), F4CAST(velMasD), F3CAST(vel_XSPH_D), F4CAST(rhoPresMuD), F4CAST(derivVelRhoD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelFluid");
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //updates the fluid particles by calling UpdateKernelFluid 
 void UpdateBoundary(
-		thrust::device_vector<float4> & posRadD,
+		thrust::device_vector<float3> & posRadD,
 		thrust::device_vector<float4> & velMasD,
 		thrust::device_vector<float4> & rhoPresMuD,
 		thrust::device_vector<float4> & derivVelRhoD,
@@ -1042,13 +1040,13 @@ void UpdateBoundary(
 
 	uint nBlock_UpdateFluid, nThreads;
 	computeGridSize(updatePortion.y - updatePortion.x, 128, nBlock_UpdateFluid, nThreads);
-	UpdateKernelBoundary<<<nBlock_UpdateFluid, nThreads>>>(F4CAST(posRadD), F4CAST(velMasD), F4CAST(rhoPresMuD), F4CAST(derivVelRhoD));
+	UpdateKernelBoundary<<<nBlock_UpdateFluid, nThreads>>>(F3CAST(posRadD), F4CAST(velMasD), F4CAST(rhoPresMuD), F4CAST(derivVelRhoD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelFluid");
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ApplyBoundary(
-		thrust::device_vector<float4> & posRadD,
+		thrust::device_vector<float3> & posRadD,
 		thrust::device_vector<float4> & rhoPresMuD,
 		int mNSpheres,
 		thrust::device_vector<float3> & posRigidD,
@@ -1056,10 +1054,10 @@ void ApplyBoundary(
 		int numRigidBodies) {
 	uint nBlock_NumSpheres, nThreads_SphParticles;
 	computeGridSize(mNSpheres, 256, nBlock_NumSpheres, nThreads_SphParticles);
-	ApplyPeriodicBoundaryXKernel<<<nBlock_NumSpheres, nThreads_SphParticles>>>(F4CAST(posRadD), F4CAST(rhoPresMuD));
+	ApplyPeriodicBoundaryXKernel<<<nBlock_NumSpheres, nThreads_SphParticles>>>(F3CAST(posRadD), F4CAST(rhoPresMuD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: ApplyPeriodicBoundaryXKernel");
-//	ApplyPeriodicBoundaryYKernel<<<nBlock_NumSpheres, nThreads_SphParticles>>>(F4CAST(posRadD), F4CAST(rhoPresMuD));
+//	ApplyPeriodicBoundaryYKernel<<<nBlock_NumSpheres, nThreads_SphParticles>>>(F3CAST(posRadD), F4CAST(rhoPresMuD));
 //	cudaThreadSynchronize();
 //	CUT_CHECK_ERROR("Kernel execution failed: ApplyPeriodicBoundaryXKernel");
 //////////////
@@ -1120,7 +1118,7 @@ void FindPassesFromTheEnd(
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void UpdateRigidBody(
-		thrust::device_vector<float4> & posRadD,
+		thrust::device_vector<float3> & posRadD,
 		thrust::device_vector<float4> & velMasD,
 		thrust::device_vector<float3> & posRigidD,
 		thrust::device_vector<float3> & posRigidCumulativeD,
@@ -1171,7 +1169,7 @@ void UpdateRigidBody(
 
 
 	thrust::device_vector<float3> torqueParticlesD(numRigid_SphParticles);
-	CalcTorqueShare<<<nBlocks_numRigid_SphParticles, nThreads_SphParticles>>>(F3CAST(torqueParticlesD), F4CAST(derivVelRhoD), F4CAST(posRadD), I1CAST(rigidIdentifierD), F3CAST(posRigidD));
+	CalcTorqueShare<<<nBlocks_numRigid_SphParticles, nThreads_SphParticles>>>(F3CAST(torqueParticlesD), F4CAST(derivVelRhoD), F3CAST(posRadD), I1CAST(rigidIdentifierD), F3CAST(posRigidD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueShare");
 	(void) thrust::reduce_by_key(rigidIdentifierD.begin(), rigidIdentifierD.end(), torqueParticlesD.begin(), dummyIdentify.begin(),
@@ -1218,7 +1216,7 @@ void UpdateRigidBody(
 
 	LF_totalTorque3.clear();
 	//################################################### update rigid body things
-	UpdateRigidParticlesPosition<<<nBlocks_numRigid_SphParticles, nThreads_SphParticles>>>(F4CAST(posRadD), F4CAST(velMasD), F3CAST(rigidSPH_MeshPos_LRF_D), I1CAST(rigidIdentifierD), F3CAST(posRigidD), F4CAST(velMassRigidD), F3CAST(omegaLRF_D), F3CAST(AD1), F3CAST(AD2), F3CAST(AD3));
+	UpdateRigidParticlesPosition<<<nBlocks_numRigid_SphParticles, nThreads_SphParticles>>>(F3CAST(posRadD), F4CAST(velMasD), F3CAST(rigidSPH_MeshPos_LRF_D), I1CAST(rigidIdentifierD), F3CAST(posRigidD), F4CAST(velMassRigidD), F3CAST(omegaLRF_D), F3CAST(AD1), F3CAST(AD2), F3CAST(AD3));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
 }
@@ -1226,7 +1224,7 @@ void UpdateRigidBody(
 //##############################################################################################################################################
 // the main function, which updates the particles and implements BC
 void cudaCollisions(
-		thrust::host_vector<float4> & mPosRad,
+		thrust::host_vector<float3> & mPosRad,
 		thrust::host_vector<float4> & mVelMas,
 		thrust::host_vector<float4> & mRhoPresMu,
 		const thrust::host_vector<uint> & bodyIndex,
@@ -1260,7 +1258,7 @@ void cudaCollisions(
 	printf("a2 yoho\n");
 
 	int numRigidBodies = posRigidH.size();
-	thrust::device_vector<float4> posRadD=mPosRad;
+	thrust::device_vector<float3> posRadD=mPosRad;
 	//thrust::copy(mPosRad.begin(), mPosRad.end(), posRadD.begin());
 	thrust::device_vector<float4> velMasD=mVelMas;
 	//thrust::copy(mVelMas.begin(), mVelMas.end(), velMasD.begin());
@@ -1325,7 +1323,7 @@ void cudaCollisions(
 	uint nThreads_SphParticles;
 	computeGridSize(numRigid_SphParticles, 256, nBlocks_numRigid_SphParticles, nThreads_SphParticles);
 	printf("before first kernel\n");
-	Populate_RigidSPH_MeshPos_LRF_kernel<<<nBlocks_numRigid_SphParticles, nThreads_SphParticles>>>(F3CAST(rigidSPH_MeshPos_LRF_D), F4CAST(posRadD), I1CAST(rigidIdentifierD), F3CAST(posRigidD), startRigidParticle, numRigid_SphParticles);
+	Populate_RigidSPH_MeshPos_LRF_kernel<<<nBlocks_numRigid_SphParticles, nThreads_SphParticles>>>(F3CAST(rigidSPH_MeshPos_LRF_D), F3CAST(posRadD), I1CAST(rigidIdentifierD), F3CAST(posRigidD), startRigidParticle, numRigid_SphParticles);
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueShare");	printf("after first kernel\n");
 	//******************************************************************************
@@ -1382,7 +1380,7 @@ void cudaCollisions(
 	FILE *outFileMultipleZones;
 
 	int povRayCounter = 0;
-	int stepEnd = 5;//0.7e6 * (.02 * sizeScale) / delT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
+	int stepEnd = 0.7e6 * (.02 * sizeScale) / delT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
 	printf("stepEnd %d\n", stepEnd);
 
 	//for (int tStep = 0; tStep < 0; tStep ++) {
@@ -1396,7 +1394,7 @@ void cudaCollisions(
 		cudaEventRecord(start2, 0);
 
 		//computations
-		thrust::device_vector<float4> posRadD2 = posRadD;
+		thrust::device_vector<float3> posRadD2 = posRadD;
 		thrust::device_vector<float4> velMasD2 = velMasD;
 		thrust::device_vector<float4> rhoPresMuD2 = rhoPresMuD;
 		thrust::device_vector<float3> posRigidD2 = posRigidD;
@@ -1448,8 +1446,8 @@ void cudaCollisions(
 
 		//************************************************
 		//edit PrintToFile since yu deleted cyliderRotOmegaJD
-//		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, cMax, cMin, paramsH,
-//				delT, tStep, channelRadius);
+		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, cMax, cMin, paramsH,
+				delT, tStep, channelRadius);
 
 //		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
 		//************
