@@ -40,7 +40,7 @@ __device__ inline float4 DifVelocityRho(
 		const float4 & rhoPresMuB) {
 	//
 	//if (d > posRadA.w + posRadB.w) { return F4(0); } //else {printf("here is contact\n posRadA posRadB dist\n (%f, %f, %f, %f) (%f, %f, %f, %f) %f\n\n",posRadA.x, posRadA.y, posRadA.z, posRadA.w, posRadB.x, posRadB.y, posRadB.z, posRadB.w, d);}		//?! added in the SDK version
-	float3 gradW = GradW(dist3, rSPH);
+	float3 gradW = GradW(dist3);
 	float vAB_Dot_rAB = dot(F3(velMasA - velMasB), dist3);
 	float epsilonMutualDistance = .01f;
 
@@ -89,7 +89,7 @@ __device__ inline float4 DifVelocityRho2(
 		const float4 & rhoPresMuB) {
 	//
 	//if (d > posRadA.w + posRadB.w) { return F4(0); } //else {printf("here is contact\n posRadA posRadB dist\n (%f, %f, %f, %f) (%f, %f, %f, %f) %f\n\n",posRadA.x, posRadA.y, posRadA.z, posRadA.w, posRadB.x, posRadB.y, posRadB.z, posRadB.w, d);}		//?! added in the SDK version
-	float3 gradW = GradW(dist3, rSPH);
+	float3 gradW = GradW(dist3);
 	float vAB_Dot_rAB = dot(F3(velMasA - velMasB), dist3);
 	float epsilonMutualDistance = .01f;
 
@@ -179,7 +179,7 @@ float3 deltaVShare(
 				float4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
 				if (rhoPresMuA.w <0) { //# A_fluid				** -1:			i.e. negative, i.e. fluid particle
 					if (rhoPresMuB.w < 0) { //## A_fluid : B_fluid, accoring to colagrossi (2003), the other phase (i.e. rigid) should not be considered)
-						deltaV += velMasB.w * F3(velMasB - velMasA) * W3(d, posRadA.w) / (.5 * (rhoPresMuA.x + rhoPresMuB.x));
+						deltaV += velMasB.w * F3(velMasB - velMasA) * W3(d) / (.5 * (rhoPresMuA.x + rhoPresMuB.x));
 					}
 				}
 			}
@@ -332,7 +332,7 @@ float collideCellDensityReInit_F1(
 				float4 rhoPreMuB = FETCH(sortedRhoPreMu, j);
 				float3 dist3 = Distance(posRadA, posRadB);
 				float d = length(dist3);
-				densityShare += velMasB.w * W3(d, posRadA.w); //optimize it ?$
+				densityShare += velMasB.w * W3(d); //optimize it ?$
 				//if (fabs(W3(d, posRadA.w)) < .00000001) {printf("good evening, distance %f %f %f, radius %f\n", dist3.x, dist3.y, dist3.z, posRadB.w);
 				//printf("posRadA %f %f %f, posRadB, %f %f %f\n", posRadA.x, posRadA.y, posRadA.z, posRadB.x, posRadB.y, posRadB.z);
 				//}
@@ -369,7 +369,7 @@ void calcOnCartesianShare(
 			float4 rhoPreMuB = FETCH(sortedRhoPreMu, j);
 			float3 dist3 = Distance(gridNodePos4, posRadB);
 			float d = length(dist3);
-			float mult = velMasB.w / rhoPreMuB.x * W3(d, posRadB.w);
+			float mult = velMasB.w / rhoPreMuB.x * W3(d);
 			v_share += mult * F3(velMasB); //optimize it ?$
 			rp_share += mult * F4(rhoPreMuB.x, rhoPreMuB.y, 0, 0);
 		}
@@ -533,7 +533,7 @@ void collideD(float4* derivVelRhoD, // output: new velocity
 	uint originalIndex = gridParticleIndex[index];
 	float3 vel_XSPH_A = FETCH(vel_XSPH_Sorted_D, index);
 
-	float4 derivVelRho = F4(0);
+	float4 derivVelRho =derivVelRhoD[originalIndex];
 
 	// get address in grid
 	int3 gridPos = calcGridPos(F3(posRadA));
@@ -549,7 +549,7 @@ void collideD(float4* derivVelRhoD, // output: new velocity
 	}
 
 	// write new velocity back to original unsorted location
-	derivVelRhoD[originalIndex] += derivVelRho;
+	derivVelRhoD[originalIndex] = derivVelRho;
 
 	//syncthreads();
 }
@@ -594,7 +594,7 @@ void ReCalcDensityD_F1(
 	// write new velocity back to original unsorted location
 	uint originalIndex = gridParticleIndex[index];
 
-	float newDensity = densityShare + velMasA.w * W3(0, posRadA.w); //?$ include the particle in its summation as well
+	float newDensity = densityShare + velMasA.w * W3(0); //?$ include the particle in its summation as well
 	if (rhoPreMuA.w < 0) {
 		rhoPreMuA.x = newDensity;
 	}

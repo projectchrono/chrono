@@ -83,7 +83,8 @@ __constant__ float resolutionD;
 #define RESOLUTION_LENGTH_MULT 2
 //--------------------------------------------------------------------------------------------------------------------------------
 //3D SPH kernel function, W3_SplineA
-__device__ inline float W3_Spline(float d, float h) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
+__device__ inline float W3_Spline(float d) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
+	float h = HSML;
 	float q = fabs(d) / h;
 	if (q < 1) {
 		return (0.25f / (PI * h * h * h) * (pow(2 - q, 3) - 4 * pow(1 - q, 3)));
@@ -95,7 +96,8 @@ __device__ inline float W3_Spline(float d, float h) { // d is positive. h is the
 }
 ////--------------------------------------------------------------------------------------------------------------------------------
 ////2D SPH kernel function, W2_SplineA
-//__device__ inline float W2_Spline(float d, float h) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
+//__device__ inline float W2_Spline(float d) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
+//	float h = HSML;
 //	float q = fabs(d) / h;
 //	if (q < 1) {
 //		return (5 / (14 * PI * h * h) * (pow(2 - q, 3) - 4 * pow(1 - q, 3)));
@@ -127,7 +129,8 @@ __device__ inline float W3_Spline(float d, float h) { // d is positive. h is the
 //Gradient of the kernel function
 // d: magnitude of the distance of the two particles
 // dW * dist3 gives the gradiant of W3_Quadratic, where dist3 is the distance vector of the two particles, (dist3)a = pos_a - pos_b
-__device__ inline float3 GradW_Spline(float3 d, float h) { // d is positive. r is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
+__device__ inline float3 GradW_Spline(float3 d) { // d is positive. r is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
+	float h = HSML;
 	float q = length(d) / h;
 	if (q < 1) {
 		return .75f * (INVPI) *powf(h, -5)* (3 * q - 4) * d;

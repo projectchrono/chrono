@@ -164,14 +164,18 @@ void CreateRigidBodiesRandom(
 		float maxR = max(referenceR.x, referenceR.y);
 		maxR = max(maxR, referenceR.z);
 
-		float r = (channelRadius - maxR - 2 * HSML) * float (rand()) / RAND_MAX;
+		//float r = (channelRadius - maxR - 2 * HSML) * float (rand()) / RAND_MAX;
+						float r = (channelRadius - maxR - 2 * HSML) * (.2);
 
 		printf("sizeRandomLinear %d\n", randLinVec.size() );	//4.5 comes from channelRadius
-		float teta = 2 * PI * float (rand()) / RAND_MAX;
+		//float teta = 2 * PI * float (rand()) / RAND_MAX;
+						float teta = 2 * PI * float (.2);
 		float3 pos = F3(cMin.x, .5 * (cMin.y + cMax.y), 0.5 * (cMin.z + cMax.z)) + F3( (i + 0.5) * xSpace, float(r  * cos(teta)), float(r *  sin(teta)) );
 		rigidPos.push_back(pos);
 
-		float4 dumQuat = F4(1 - 2.0 * float (rand()) / RAND_MAX, 1 - 2.0 * float (rand()) / RAND_MAX, 1 - 2.0 * float (rand()) / RAND_MAX, 1 - 2.0 * float (rand()) / RAND_MAX); //generate random quaternion
+		//float4 dumQuat = F4(1 - 2.0 * float (rand()) / RAND_MAX, 1 - 2.0 * float (rand()) / RAND_MAX, 1 - 2.0 * float (rand()) / RAND_MAX, 1 - 2.0 * float (rand()) / RAND_MAX); //generate random quaternion
+						float4 dumQuat = F4(1,0,0,0);
+
 		dumQuat *= 1.0 / length(dumQuat);
 		mQuatRot.push_back(dumQuat);
 
