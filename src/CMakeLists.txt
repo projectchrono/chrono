@@ -22,6 +22,12 @@ IF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 ENDIF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 
 ENABLE_TESTING()
+SET (VALGRIND_COMMAND "/usr/bin/valgrind")
+SET (VALGRIND_COMMAND_OPTIONS "-v --tool=memcheck --leak-check=full --track-fds=yes --num-callers=50 --show-reachable=yes --track-origins=yes --malloc-fill=0xff --free-fill=0xfe")
+SET (MEMORYChECK_COMMAND "/usr/bin/valgrind")
+SET (CTEST_MEMORYChECK_COMMAND "/usr/bin/valgrind")
+SET (CTEST_MEMORYChECK_COMMAND_OPTIONS "-v --tool=memcheck --leak-check=full --track-fds=yes --num-callers=50 --show-reachable=yes --track-origins=yes --malloc-fill=0xff --free-fill=0xfe")
+
 
 #-----------------------------------------------------------------------------
 # Hide uneeded default stuff from GUI. 
@@ -1127,7 +1133,7 @@ ADD_SUBDIRECTORY(unit_PYTHON)
 # Demo Files
 #
 # ADD_SUBDIRECTORY(demos)
-ADD_SUBDIRECTORY(testing)
+ADD_SUBDIRECTORY(unit_TESTING)
 
 
 INCLUDE(CPack)

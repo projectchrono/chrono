@@ -1,7 +1,5 @@
 IF (ENABLE_UNIT_TESTS)
 	IF (ENABLE_UNIT_GPU)
-		ADD_SUBDIRECTORY(gpu)
-		ADD_TEST(test_gravity_gpu ${PROJECT_BINARY_DIR}/test_gravity)
-		ADD_TEST(test_revolute_gpu ${PROJECT_BINARY_DIR}/test_revolute)
+		ADD_SUBDIRECTORY(unit_GPU)
 	ENDIF()
 ENDIF()
