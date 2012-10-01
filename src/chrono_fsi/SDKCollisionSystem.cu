@@ -40,9 +40,11 @@ __device__ inline float4 DifVelocityRho(
 		const float4 & rhoPresMuB,
 		float multViscosity) {
 
-	float3 gradW = GradW(dist3);
-	float vAB_Dot_rAB = dot(F3(velMasA - velMasB), dist3);
+
 	float epsilonMutualDistance = .01f;
+	float3 gradW = GradW(dist3);
+
+	//float vAB_Dot_rAB = dot(F3(velMasA - velMasB), dist3);
 
 //	//*** Artificial viscosity type 1.1
 //	float alpha = .001;
@@ -63,7 +65,7 @@ __device__ inline float4 DifVelocityRho(
 	//*** Artificial viscosity type 2
 	float rAB_Dot_GradW = dot(dist3, gradW);
 	float invrhoPresMuBx=1.0f/ rhoPresMuB.x;
-	float3 derivV = -velMasB.w * (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y *(invrhoPresMuBx * invrhoPresMuBx)) * gradW
+	float3 derivV = -velMasB.w * (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y * (invrhoPresMuBx * invrhoPresMuBx)) * gradW
 			+ velMasB.w * (8.0f * multViscosity) * mu0 * rAB_Dot_GradW * pow(rhoPresMuA.x + rhoPresMuB.x, -2) / (d * d + epsilonMutualDistance * rSPH * rSPH)
 					* F3(velMasA - velMasB);
 	return F4(derivV, rhoPresMuA.x * velMasB.w * invrhoPresMuBx * dot(vel_XSPH_A - vel_XSPH_B, gradW));
@@ -83,13 +85,12 @@ __device__ inline float3 DifVelocity_SSI_DEM(
 				const float4 & velMasA,
 				const float4 & velMasB) {
 //printf("** DifVelocity_SSI_DEM\n");
-	float kS = 6;//3; //50; //1000.0; //392400.0;	//spring. 50 worked almost fine. I am using 30 to be sure!
-	float kD = 40;//20.0; //420.0;				//damper
 	float l = 2 * rSPH - d;
-
 	if (l < 0) {
 		return F3(0);
 	}
+	float kS = 6;//3; //50; //1000.0; //392400.0;	//spring. 50 worked almost fine. I am using 30 to be sure!
+	float kD = 40;//20.0; //420.0;				//damping coef.
 	float3 n = dist3 / d; //unit vector B to A
 	float m_eff = (velMasA.w * velMasB.w) / (velMasA.w + velMasB.w);
 	float3 force = (/*pow(sizeScale, 3) * */kS * l - kD * m_eff * dot(F3(velMasA - velMasB), n)) * n; //relative velocity at contact is simply assumed as the relative vel of the centers. If you are updating the rotation, this should be modified.
@@ -125,13 +126,11 @@ float3 deltaVShare(
 				float3 dist3 = Distance(posRadA, posRadB);
 				float d = length(dist3);
 				if (d > RESOLUTION_LENGTH_MULT * HSML) continue;
-				float4 velMasB = FETCH(sortedVelMas, j);
 				float4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
-				if (rhoPresMuA.w <0) { //# A_fluid				** -1:			i.e. negative, i.e. fluid particle
-					if (rhoPresMuB.w < 0) { //## A_fluid : B_fluid, accoring to colagrossi (2003), the other phase (i.e. rigid) should not be considered)
-						deltaV += velMasB.w * F3(velMasB - velMasA) * W3(d) / (.5 * (rhoPresMuA.x + rhoPresMuB.x));
-					}
-				}
+				if (!( rhoPresMuA.w <0 && rhoPresMuB.w < 0 )) continue;//# A and B must be fluid, accoring to colagrossi (2003), the other phase (i.e. rigid) should not be considered)
+				float multRho = 2.0f / (rhoPresMuA.x + rhoPresMuB.x);
+				float4 velMasB = FETCH(sortedVelMas, j);
+				deltaV += velMasB.w * F3(velMasB - velMasA) * W3(d) * multRho;
 			}
 		}
 	}
@@ -164,41 +163,17 @@ float4 collideCell(
 	if (startIndex != 0xffffffff) { // cell is not empty
 		// iterate over particles in this cell
 		uint endIndex = FETCH(cellEnd, gridHash);
-		float4 derivVelRho = F4(0.0f);
 
 		for (uint j = startIndex; j < endIndex; j++) {
 			if (j != index) { // check not colliding with self
 				float3 posRadB = FETCH(sortedPosRad, j);
-				float rSPH = HSML;
 				float3 dist3 = Distance(posRadA, posRadB);
+				float rSPH = HSML;
 				float d = length(dist3);
 				if (d > RESOLUTION_LENGTH_MULT * HSML) continue;
 				float4 velMasB = FETCH(sortedVelMas, j);
 				float4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
-				float3 vel_XSPH_B = FETCH(vel_XSPH_Sorted_D, j);
 
-//				bool cond1 = (rhoPresMuA.w < 0);
-//				bool cond2 = (rhoPresMuA.w ==0);
-//				bool cond3 = (rhoPresMuB.w < 0);
-//				bool cond4 = (rhoPresMuB.w ==0);
-//				//**********
-//				derivVelRho = cond1 * (!cond4) * DifVelocityRho(dist3, d, rSPH, velMasA, vel_XSPH_A, velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB);
-//				derivVelRho = cond1 * cond4 * DifVelocityRho2(dist3, d, rSPH, velMasA, vel_XSPH_A, velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB);
-//
-//				derivVelRho = cond2 * cond3 * DifVelocityRho2(dist3, d, rSPH, velMasA, vel_XSPH_A, velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB);
-//
-//				derivVelRho = (!cond1 && !cond2) * cond3 * DifVelocityRho(dist3, d, rSPH, velMasA, vel_XSPH_A, velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB);
-//				//**********
-//				derivV += cond1 * F3(derivVelRho);
-//				derivRho += cond1 * derivVelRho.w;
-//
-//				derivRho += cond2 * cond3 * derivVelRho.w;
-//
-//				derivV += (!cond1 && !cond2 && cond3) * F3(derivVelRho);
-//				derivRho += (!cond1 && !cond2 && cond3) * derivVelRho.w;
-//
-//				derivV += (!cond1 && !cond2 && !cond3) * DifVelocity_SSI_DEM(dist3, d, rSPH, velMasA, velMasB);;
-//				//**********
 				if (rhoPresMuA.w < 0  ||  rhoPresMuB.w < 0) {
 					if (rhoPresMuA.w == 0) continue;
 					float multViscosit = 1.0f;
@@ -208,6 +183,8 @@ float4 collideCell(
 					else { //**One of them is fluid, the other one is fluid/solid (boundary was considered previously)
 						multViscosit = 1.0f;
 					}
+					float4 derivVelRho = F4(0.0f);
+					float3 vel_XSPH_B = FETCH(vel_XSPH_Sorted_D, j);
 					derivVelRho = DifVelocityRho(dist3, d, rSPH, velMasA, vel_XSPH_A, velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB, multViscosit);
 					derivV += F3(derivVelRho);
 					derivRho += derivVelRho.w;

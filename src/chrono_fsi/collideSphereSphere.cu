@@ -46,19 +46,18 @@ __global__ void UpdateKernelFluid(float3 * posRadD, float4 * velMasD, float3 * v
 	if (index >= updatePortionD.y) {
 		return;
 	}
-
-	float4 velMas = velMasD[index];
 	float3 vel_XSPH = vel_XSPH_D[index];
 	float3 posRad = posRadD[index];
 	float3 updatedPositon = posRad + vel_XSPH * dTD;
 	posRadD[index] = updatedPositon; //posRadD updated
 
 	float4 derivVelRho = derivVelRhoD[index];
-	float4 rhoPresMu = rhoPresMuD[index];
-	float rho2 = rhoPresMu.x + derivVelRho.w * dTD; //rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
+	float4 velMas = velMasD[index];
 	float3 updatedVelocity = F3(velMas + derivVelRho * dTD);
 	velMasD[index] = F4(updatedVelocity, /*rho2 / rhoPresMu.x * */velMas.w); //velMasD updated
 
+	float4 rhoPresMu = rhoPresMuD[index];
+	float rho2 = rhoPresMu.x + derivVelRho.w * dTD; //rho update. (i.e. rhoPresMu.x), still not wriiten to global matrix
 	rhoPresMu.y = Eos(rho2, rhoPresMu.w);
 	rhoPresMu.x = rho2;
 	rhoPresMuD[index] = rhoPresMu; //rhoPresMuD updated
@@ -1380,7 +1379,7 @@ void cudaCollisions(
 	FILE *outFileMultipleZones;
 
 	int povRayCounter = 0;
-	int stepEnd = 5;//5;//0.7e6 * (.02 * sizeScale) / delT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
+	int stepEnd = 5; //5;//0.7e6 * (.02 * sizeScale) / delT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
 	printf("stepEnd %d\n", stepEnd);
 
 	//for (int tStep = 0; tStep < 0; tStep ++) {

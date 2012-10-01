@@ -132,13 +132,16 @@ __device__ inline float W3_Spline(float d) { // d is positive. h is the sph part
 __device__ inline float3 GradW_Spline(float3 d) { // d is positive. r is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
 	float h = HSML;
 	float q = length(d) / h;
-	if (q < 1) {
-		return .75f * (INVPI) *powf(h, -5)* (3 * q - 4) * d;
-	}
-	if (q < 2) {
-		return .75f * (INVPI) *powf(h, -5)* (-q + 4.0f - 4.0f / q) * d;
-	}
-	return F3(0);
+	bool less1 = (q < 1);
+	bool less2 = (q < 2);
+	return (less1 * (3 * q - 4) + less2 * (!less1) * (-q + 4.0f - 4.0f / q)) * .75f * (INVPI) *powf(h, -5) * d;
+//	if (q < 1) {
+//		return .75f * (INVPI) *powf(h, -5)* (3 * q - 4) * d;
+//	}
+//	if (q < 2) {
+//		return .75f * (INVPI) *powf(h, -5)* (-q + 4.0f - 4.0f / q) * d;
+//	}
+//	return F3(0);
 }
 ////--------------------------------------------------------------------------------------------------------------------------------
 ////Gradient of the kernel function
