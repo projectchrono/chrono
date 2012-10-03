@@ -1379,7 +1379,7 @@ void cudaCollisions(
 	FILE *outFileMultipleZones;
 
 	int povRayCounter = 0;
-	int stepEnd = 5; //5;//0.7e6 * (.02 * sizeScale) / delT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
+	int stepEnd = 0.7e6 * (.02 * sizeScale) / delT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
 	printf("stepEnd %d\n", stepEnd);
 
 	//for (int tStep = 0; tStep < 0; tStep ++) {
@@ -1445,8 +1445,8 @@ void cudaCollisions(
 
 		//************************************************
 		//edit PrintToFile since yu deleted cyliderRotOmegaJD
-//		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, cMax, cMin, paramsH,
-//				delT, tStep, channelRadius);
+		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, cMax, cMin, paramsH,
+				delT, tStep, channelRadius);
 
 //		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
 		//************
