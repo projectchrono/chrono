@@ -1,121 +1,46 @@
 #include "common.h"
-uint numY = 1;
-void System::DoTimeStep() {
-	if (mNumCurrentObjects < mNumObjects && mFrameNumber % 100 == 0) {
-		float x = 10, y = 10, z = 10;
-		float posX = 0, posY = 0, posZ = 0;
-		srand(1);
-		float mass = 1, mu = .5, rest = 0;
-		ShapeType type = SPHERE;
-		ChBODYSHAREDPTR mrigidBody;
-		mNumCurrentObjects += x * y * z;
-		int mobjNum = 0;
-		for (int xx = 0; xx < x; xx++) {
-			for (int yy = 0; yy < y; yy++) {
-				for (int zz = 0; zz < z; zz++) {
-					type = SPHERE;//rand() % 3;
-					float radius = .1;//(rand()%1000)/3000.0+.05;
-					ChVector<> mParticlePos((xx - (x - 1) / 2.0) + posX, (yy) + posY, (zz - (z - 1) / 2.0) + posZ);
+#define TOLERANCE  1e-2
+ChBODYSHAREDPTR FREE;
 
-					mParticlePos += ChVector<> (rand() % 1000 / 10000.0 - .05, rand() % 1000 / 10000.0 - .05, rand() % 1000 / 10000.0 - .05);
-					ChQuaternion<> quat = ChQuaternion<> (rand() % 1000 / 1000., rand() % 1000 / 1000., rand() % 1000 / 1000., rand() % 1000 / 1000.);
-					ChVector<> dim;
-					ChVector<> lpos(0, 0, 0);
-					quat.Normalize();
+int frame_number=0;
+float step_size=.001;
+float current_time=0;
 
-					mrigidBody = ChBODYSHAREDPTR(new ChBODY);
-					InitObject(mrigidBody, mass, mParticlePos * .2, quat, mu, mu, rest, true, false, 0, 1);
+void DoTimeStep() {
+	frame_number++;
+	mSystem->DoStepDynamics(step_size);
+	current_time += step_size;
 
-					switch (type) {
-						case SPHERE:
-							dim = ChVector<> (radius, 0, 0);
-							break;
-						case ELLIPSOID:
-							dim = ChVector<> (radius * 1.3, radius, radius * 1.3);
-							break;
-						case BOX:
-							dim = ChVector<> (radius, radius, radius);
-							break;
-						case CYLINDER:
-							dim = ChVector<> (radius, radius, radius);
-							break;
-					}
-					AddCollisionGeometry(mrigidBody, type, dim, lpos, quat);
-					FinalizeObject(mrigidBody);
-//cout<<mobjNum<<endl;
-					mrigidBody->SetPos_dt(ChVector<> (0, -4, 0));
-					mobjNum++;
-				}
-			}
-		}
+	float correct = 9.80665 * current_time;
+	float current = FREE->GetPos_dt().Length();
+	//cout<< mSystem->GetChTime()<<endl;
+	if (fabs(correct - current) > TOLERANCE) {
+		cout << "FAIL at T=" << mSystem->GetChTime() << " correct: " << correct << " current: " << current << " " << fabs(correct - current) << endl;
+		exit(1);
 	}
-	mSystem->SetStep(mTimeStep);
-	mGPUsolverSpeed->SetMaxIterations(mIterations);
-	mGPUsolverSpeed->SetOmega(mOmegaContact);
-	//mGPUsolverSpeed->mOmegaBilateral = mOmegaBilateral;
-	mGPUsolverSpeed->SetTolerance(mTolerance);
-	mFrameNumber++;
-	mSystem->DoStepDynamics(mTimeStep);
-	mCurrentTime += mTimeStep;
-	GPUSystem->PrintStats();
+
 }
 
 int main(int argc, char* argv[]) {
-	omp_set_nested(1);
-	omp_set_dynamic(true);
-	GPUSystem = new System(0);
-	GPUSystem->mTimeStep = .001;
-	GPUSystem->mEndTime = 10;
-	GPUSystem->mNumObjects = 1;
-	GPUSystem->mIterations = 100;
-	GPUSystem->mTolerance = 1e-3;
-	GPUSystem->mOmegaContact = .5;
-	GPUSystem->mOmegaBilateral = .2;
-	float mMu = .5;
-	float mWallMu = .5;
-	numY = 100;
-	GPUSystem->mUseOGL =1;
-//	if (argc == 3) {
-//
-//		GPUSystem->mUseOGL = atoi(argv[2]);
-//	} else {
-//		cout << "ARGS: number of particle layers in y direction | display in OPENGL 1= true 0= false" << endl;
-//		exit(1);
-//	}
-	float container_R = 10.0, container_T = 1;
+	mSystem = new CHSYS();
+	mGPUDescriptor = (ChLCPDESC*) mSystem->GetLcpSystemDescriptor();
+	mGPUsolverSpeed = (ChSOLVER*) mSystem->GetLcpSolverSpeed();
+	mSystem->SetIntegrationType(ChSystem::INT_ANITESCU);
+	mSystem->Set_G_acc(ChVector<>(0, -9.80665, 0));
+	mSystem->SetStep(step_size);
+	mGPUsolverSpeed->SetMaxIterations(1000);
+	mGPUsolverSpeed->SetOmega(.4);
+	mGPUsolverSpeed->SetTolerance(1e-8);
 	ChQuaternion<> quat(1, 0, 0, 0);
-	ChQuaternion<> quat2(1, 0, 0, 0);
-	quat2.Q_from_AngAxis(PI / 10.0, ChVector<> (1, 0, 0));
 	ChVector<> lpos(0, 0, 0);
-	ChBODYSHAREDPTR L = ChBODYSHAREDPTR(new ChBODY);
-	ChBODYSHAREDPTR R = ChBODYSHAREDPTR(new ChBODY);
-	ChBODYSHAREDPTR F = ChBODYSHAREDPTR(new ChBODY);
-	ChBODYSHAREDPTR B = ChBODYSHAREDPTR(new ChBODY);
-	ChBODYSHAREDPTR BTM = ChBODYSHAREDPTR(new ChBODY);
-	ChBODYSHAREDPTR FREE = ChBODYSHAREDPTR(new ChBODY);
+	FREE = ChBODYSHAREDPTR(new ChBODY);
 
-	GPUSystem->InitObject(L, 1, ChVector<>(-20, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
-	GPUSystem->InitObject(R, 1, ChVector<>(20, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
-	GPUSystem->InitObject(F, 1, ChVector<>(0, 0, -20), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
-	GPUSystem->InitObject(B, 1, ChVector<>(0, 0, 20), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
-	GPUSystem->InitObject(BTM, 1, ChVector<>(0, -20, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
-	GPUSystem->InitObject(FREE, 1, ChVector<>(0, 20, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
-
-	GPUSystem->AddCollisionGeometry(L, BOX, ChVector<>(1, 20, 20), lpos, quat);
-	GPUSystem->AddCollisionGeometry(R, BOX, ChVector<>(1, 20, 20), lpos, quat);
-	GPUSystem->AddCollisionGeometry(F, BOX, ChVector<>(20, 20, 1), lpos, quat);
-	GPUSystem->AddCollisionGeometry(B, BOX, ChVector<>(20, 20, 1), lpos, quat);
-	GPUSystem->AddCollisionGeometry(BTM, BOX, ChVector<>(20, 1, 20), lpos, quat);
-	GPUSystem->AddCollisionGeometry(FREE, BOX, ChVector<>(20, 1, 20), lpos, quat);
-
-	GPUSystem->FinalizeObject(L);
-	GPUSystem->FinalizeObject(R);
-	GPUSystem->FinalizeObject(F);
-	GPUSystem->FinalizeObject(B);
-	GPUSystem->FinalizeObject(BTM);
-	GPUSystem->FinalizeObject(FREE);
-	((ChLcpSolverGPU*) (GPUSystem->mSystem->GetLcpSolverSpeed()))->SetContactFactor(.3);
-	GPUSystem->Setup();
-	SimulationLoop(argc, argv);
+	InitObject(FREE, 1.0, ChVector<>(0, 0, 0), quat, 0, 0, 0, false, false, -20, -20);
+	AddCollisionGeometry(FREE, SPHERE, ChVector<>(1, 1, 1), lpos, quat);
+	FinalizeObject(FREE);
+	while (current_time<5) {
+		DoTimeStep();
+	}
+	cout << "PASS" << endl;
 	return 0;
 }

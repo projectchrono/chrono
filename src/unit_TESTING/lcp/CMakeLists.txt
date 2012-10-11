@@ -1,0 +1,5 @@
+ADD_EXECUTABLE(test_solvers	test_solvers.cpp)
+SET_TARGET_PROPERTIES(test_solvers PROPERTIES LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+TARGET_LINK_LIBRARIES(test_solvers ChronoEngine)
+ADD_DEPENDENCIES (test_solvers ChronoEngine)
+ADD_TEST(test_solvers ${PROJECT_BINARY_DIR}/bin/test_solvers)
