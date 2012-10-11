@@ -1,6 +1,13 @@
 #include "common.h"
-#define TOLERANCE .05
-CHBODYSHAREDPTR FREE;
+#define TOLERANCE  1e-1
+CHBODYSHAREDPTR GROUND, PENDULUM;
+
+
+int frame_number=0;
+float step_size=.001;
+float current_time=0;
+string temp;
+ifstream ifile ("../data/testing/revolute.txt");
 
 double compute_period(double L, double g, double theta) {
 
@@ -12,57 +19,101 @@ double compute_period(double L, double g, double theta) {
 
 }
 
-void System::DoTimeStep() {
-	mFrameNumber++;
-	mSystem->DoStepDynamics(mTimeStep);
-	mCurrentTime += mTimeStep;
-	//GPUSystem->PrintStats();
-	cout<<FREE->GetPos_dt().Length()<<endl;
+void DoTimeStep() {
+if(frame_number%50==0){
+if(ifile.fail()==false){
+getline(ifile,temp);
+
+stringstream ss;
+ss<<temp;
+float time, px, py, p, vx, vy, v, ax, ay, a, fx, fy, f;
+ss>>time>>px>>py>>p>>vx>>vy>>v>>ax>>ay>>a>>fx>>fy>>f;
+float dx=PENDULUM->GetPos().x-px;
+float dy=PENDULUM->GetPos().y-py;
+float ddx=PENDULUM->GetPos_dt().x-vx;
+float ddy=PENDULUM->GetPos_dt().y-vy;
+
+if(!((dx<TOLERANCE)&&(dy<TOLERANCE)&&(ddx<TOLERANCE)&&(ddy<TOLERANCE))){
+printf("%f %f [%f,%f] [%f,%f]\n",time,current_time,dx,dy,ddx,ddy);
+
+exit(1);}
+
+}else{
+exit(1);
+}
+}
+
+	frame_number++;
+	mSystem->DoStepDynamics(step_size);
+	current_time += step_size;
+	//cout<< mSystem->GetChTime()<<endl;
+
+
+
+
+	
+	/*float correct = 9.80665 * current_time;
+	float current = FREE->GetPos_dt().Length();
+	
+	if (fabs(correct - current) > TOLERANCE) {
+		cout << "FAIL at T=" << mSystem->GetChTime() << " correct: " << correct << " current: " << current << " " << fabs(correct - current) << endl;
+		exit(1);
+	}*/
+
 }
 
 int main(int argc, char* argv[]) {
-	//omp_set_nested(1);
-	GPUSystem = new System(0);
-	GPUSystem->mTimeStep = .001;
-	GPUSystem->mEndTime = compute_period(4, 9.80665, PI / 2.0);
-	GPUSystem->mNumObjects = 1;
-	GPUSystem->mIterations = 1000;
-	GPUSystem->mTolerance = 1e-8;
-	GPUSystem->mOmegaContact = .5;
-	GPUSystem->mOmegaBilateral = .1;
-	GPUSystem->mUseOGL  =1;
-	GPUSystem->mSaveData = 0;
 
+getline(ifile,temp);
+	mSystem = new CHSYS();
+	mGPUDescriptor = (CHLCPDESC*) mSystem->GetLcpSystemDescriptor();
+	mGPUsolverSpeed = (CHSOLVER*) mSystem->GetLcpSolverSpeed();
+	mSystem->SetIntegrationType(ChSystem::INT_ANITESCU);
+	mSystem->Set_G_acc(ChVector<>(0, -9.8, 0));
+
+	mGPUDescriptor = new CHLCPDESC();
+	mGPUContactContainer = new CHCONTACTCONT();
+	mGPUCollisionEngine = new CHCOLLISIONSYS();
+/*	mGPUsolverSpeed = new CHSOLVER(mGPUContactContainer);
+
+	mSystem->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+	mSystem->ChangeLcpSystemDescriptor(mGPUDescriptor);
+	mSystem->ChangeContactContainer(mGPUContactContainer);
+	mSystem->ChangeLcpSolverSpeed(mGPUsolverSpeed);
+	mSystem->ChangeCollisionSystem(mGPUCollisionEngine);
+*/
+
+	mSystem->SetStep(step_size);
+	mGPUsolverSpeed->SetMaxIterations(1000);
+	//mGPUsolverSpeed->SetOmega(.4);
+	mGPUsolverSpeed->SetTolerance(1e-8);
 	ChQuaternion<> quat(1, 0, 0, 0);
 	ChVector<> lpos(0, 0, 0);
-	CHBODYSHAREDPTR FXED = CHBODYSHAREDPTR(new CHBODY);
-	FREE = CHBODYSHAREDPTR(new CHBODY);
 
-	GPUSystem->InitObject(FXED, 1.0, ChVector<> (0, 0, 0), quat, 0, 0, 0, false, true, -20, -20);
-	GPUSystem->InitObject(FREE, 1.0, ChVector<> (-4, 0, 0), quat, 0, 0, 0, false, false, -20, -20);
+	GROUND = CHBODYSHAREDPTR(new CHBODY);
+	PENDULUM = CHBODYSHAREDPTR(new CHBODY);
 
-	GPUSystem->AddCollisionGeometry(FXED, SPHERE, ChVector<> (.1, .1, .1), lpos, quat);
-	GPUSystem->AddCollisionGeometry(FREE, SPHERE, ChVector<> (.1, .1, .1), lpos, quat);
+	ChSharedBodyPtr ptr1 = ChSharedBodyPtr(GROUND);
+	ChSharedBodyPtr ptr2 = ChSharedBodyPtr(PENDULUM);
 
-	GPUSystem->FinalizeObject(FXED);
-	GPUSystem->FinalizeObject(FREE);
+	InitObject(GROUND, 1.0, ChVector<>(0, 0, 0), quat, 0, 0, 0, false, true, -20, -20);
+	InitObject(PENDULUM, 1.0, ChVector<>(2, 0, 0), quat, 0, 0, 0, false, false, -20, -20);
 
-	ChSharedBodyPtr ptr1 = ChSharedBodyPtr(FXED);
-	ChSharedBodyPtr ptr2 = ChSharedBodyPtr(FREE);
+	AddCollisionGeometry(GROUND, SPHERE, ChVector<>(1, 1, 1), lpos, quat);
+	AddCollisionGeometry(PENDULUM, SPHERE, ChVector<>(1, 1, 1), lpos, quat);
 
-	ChSharedPtr<ChLinkLockRevolute> my_link_12(new ChLinkLockRevolute);
-	my_link_12->Initialize(ptr1, ptr2, ChCoordsys<> (ChVector<> (0, 0, 0)));
-	GPUSystem->mSystem->AddLink(my_link_12);
+	FinalizeObject(GROUND);
+	FinalizeObject(PENDULUM);
 
-	GPUSystem->Setup();
-	SimulationLoop(argc, argv);
 
-	float correct = 0;
-	float current = FREE->GetPos_dt().Length();
-	if (fabs(correct - current) > TOLERANCE) {
-		cout << "FAIL at T=" << GPUSystem->mSystem->GetChTime() << " correct: " << correct << " current: " << current << " " << fabs(correct - current) << endl;
-		exit(1);
-	};
+	ChSharedPtr<ChLinkLockRevolute>  revoluteJoint(new ChLinkLockRevolute);
+	revoluteJoint->Initialize(ptr1, ptr2, ChCoordsys<>(ChVector<>(0,0,0)));
+	mSystem->AddLink(revoluteJoint);
+
+
+	while (current_time<5) {
+		DoTimeStep();
+	}
 	cout << "PASS" << endl;
 	return 0;
 }
