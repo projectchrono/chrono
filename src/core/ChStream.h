@@ -30,10 +30,14 @@
 #include <ios>
 #include "ChException.h"
 #include "core/ChApiCE.h"
-
+//#include "core/ChClassRegister.h"	///this didn't help the "create not found problem..."
 namespace chrono
 {
-
+///Ugly hack added by hammad to get code to compile on osx.
+///Compiler had trouble finding the create function,
+///adding #incldue to ChClassRegister made other things break in ChLog so I couldn't do that....
+template<class T>
+void create( std::string cls_name, T** ppObj);
 
 ///
 /// This is a base class for input/output (streaming)
@@ -528,7 +532,7 @@ public:
 					if (cls_name!="NULL")
 					{
 						// 2) Dynamically create using class factory
-						create( cls_name, mObj );
+						chrono::create( cls_name, mObj );
 
 						if ( (*mObj)!=NULL)
 						{

@@ -55,8 +55,10 @@ Vector ChImpact::Get_V12_abs()
 {
 	Vector mvAabs;
 	Vector mvBabs;
-	mvAabs = this->bodyA->RelPoint_AbsSpeed(&(bodyA->Point_World2Body(&this->Pabs)));
-	mvBabs = this->bodyB->RelPoint_AbsSpeed(&(bodyB->Point_World2Body(&this->Pabs)));
+	Vector temp1=(bodyA->Point_World2Body(&this->Pabs));
+	Vector temp2=(bodyB->Point_World2Body(&this->Pabs));
+	mvAabs = this->bodyA->RelPoint_AbsSpeed(&temp1);
+	mvBabs = this->bodyB->RelPoint_AbsSpeed(&temp2);
 	return Vsub(mvAabs, mvBabs);
 }
 

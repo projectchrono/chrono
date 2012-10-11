@@ -464,10 +464,11 @@ void ChLinkLock::UpdateRelMarkerCoords()
     Vector vtemp2;
     Quaternion qtemp1;
     ChMatrixNM<double,3,4> relGw;
+    Quaternion temp1=marker1->GetCoord_dt().rot;
+    Quaternion temp2=marker2->GetCoord_dt().rot;
 
-
-    if ((Qnotnull(&marker2->GetCoord_dt().rot))||
-        (Qnotnull(&marker1->GetCoord_dt().rot)) )
+    if ((Qnotnull(&temp2))||
+        (Qnotnull(&temp1)) )
     {
       q_AD =                    //  q'qqq + qqqq'
        Qadd (
@@ -514,16 +515,16 @@ void ChLinkLock::UpdateRelMarkerCoords()
 
                             // q_8 = q''qqq + 2q'q'qq + 2q'qq'q + 2q'qqq'
                             //     + 2qq'q'q + 2qq'qq' + 2qqq'q' + qqqq''
-
-    if (Qnotnull(&marker2->GetCoord_dtdt().rot))
+    temp2=marker2->GetCoord_dtdt().rot;
+    if (Qnotnull(&temp2))
     q_8=Qcross(Qconjugate(marker2->GetCoord_dtdt().rot),
         Qcross(Qconjugate(Body2->GetCoord().rot),
         Qcross(Body1->GetCoord().rot,
         marker1->GetCoord().rot)));        // q_dtdt'm2 * q'o2 * q,o1 * q,m1
     else
     q_8 = QNULL;
-
-    if (Qnotnull(&marker1->GetCoord_dtdt().rot))
+    temp1=marker1->GetCoord_dtdt().rot;
+    if (Qnotnull(&temp1))
     {
      qtemp1=Qcross(Qconjugate(marker2->GetCoord().rot),
         Qcross(Qconjugate(Body2->GetCoord().rot),
@@ -531,8 +532,8 @@ void ChLinkLock::UpdateRelMarkerCoords()
         marker1->GetCoord_dtdt().rot)));   // q'm2 * q'o2 * q,o1 * q_dtdt,m1
      q_8= Qadd (q_8, qtemp1);
     }
-
-    if (Qnotnull(&marker2->GetCoord_dt().rot))
+    temp2=marker2->GetCoord_dt().rot;
+    if (Qnotnull(&temp2))
     {
      qtemp1=Qcross(Qconjugate(marker2->GetCoord_dt().rot),
         Qcross(Qconjugate(Body2->GetCoord_dt().rot),
@@ -541,8 +542,8 @@ void ChLinkLock::UpdateRelMarkerCoords()
      qtemp1= Qscale (qtemp1, 2);                // 2( q_dt'm2 * q_dt'o2 * q,o1 * q,m1)
      q_8= Qadd (q_8, qtemp1);
     }
-
-    if (Qnotnull(&marker2->GetCoord_dt().rot))
+    temp2=marker2->GetCoord_dt().rot;
+    if (Qnotnull(&temp2))
     {
      qtemp1=Qcross(Qconjugate(marker2->GetCoord_dt().rot),
         Qcross(Qconjugate(Body2->GetCoord().rot),
@@ -551,9 +552,10 @@ void ChLinkLock::UpdateRelMarkerCoords()
      qtemp1= Qscale (qtemp1, 2);                // 2( q_dt'm2 * q'o2 * q_dt,o1 * q,m1)
      q_8= Qadd (q_8, qtemp1);
     }
-
-    if ((Qnotnull(&marker2->GetCoord_dt().rot))&&
-        (Qnotnull(&marker1->GetCoord_dt().rot)))
+    temp1=marker1->GetCoord_dt().rot;
+    temp2=marker2->GetCoord_dt().rot;
+    if ((Qnotnull(&temp2))&&
+        (Qnotnull(&temp1)))
     {
      qtemp1=Qcross(Qconjugate(marker2->GetCoord_dt().rot),
         Qcross(Qconjugate(Body2->GetCoord().rot),
@@ -569,8 +571,8 @@ void ChLinkLock::UpdateRelMarkerCoords()
         marker1->GetCoord().rot)));
     qtemp1= Qscale (qtemp1, 2);             // 2( q'm2 * q_dt'o2 * q_dt,o1 * q,m1)
     q_8= Qadd (q_8, qtemp1);
-
-    if (Qnotnull(&marker1->GetCoord_dt().rot))
+    temp1=marker1->GetCoord_dt().rot;
+    if (Qnotnull(&temp1))
     {
     qtemp1=Qcross(Qconjugate(marker2->GetCoord().rot),
         Qcross(Qconjugate(Body2->GetCoord_dt().rot),
@@ -579,8 +581,8 @@ void ChLinkLock::UpdateRelMarkerCoords()
     qtemp1= Qscale (qtemp1, 2);             // 2( q'm2 * q_dt'o2 * q,o1 * q_dt,m1)
     q_8= Qadd (q_8, qtemp1);
     }
-
-    if (Qnotnull(&marker1->GetCoord_dt().rot))
+    temp1=marker1->GetCoord_dt().rot;
+    if (Qnotnull(&temp1))
     {
     qtemp1=Qcross(Qconjugate(marker2->GetCoord().rot),
         Qcross(Qconjugate(Body2->GetCoord().rot),
@@ -1284,7 +1286,7 @@ void ChLinkLock::ConstraintsBiReset()
 		limit_Rz->constr_upper.Set_b_i(0.);
 	}
 }
-  
+
 void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp)
 {
 	// parent
@@ -1430,7 +1432,7 @@ void ChLinkLock::ConstraintsLoadJacobians()
 		limit_Y->constr_upper.Get_Cq_b()->CopyFromMatrix(*limit_Y->constr_lower.Get_Cq_b());
 		limit_Y->constr_upper.Get_Cq_a()->MatrNeg();
 		limit_Y->constr_upper.Get_Cq_b()->MatrNeg();
-	} 
+	}
 	if (limit_Z) if (limit_Z->Get_active())
 	{
 		limit_Z->constr_lower.SetVariables(&Body1->Variables(),&Body2->Variables());
@@ -1487,35 +1489,35 @@ void ChLinkLock::ConstraintsFetch_react(double factor)
 	ChLinkMaskLF* mmask = (ChLinkMaskLF*) this->mask;
 	int n_costraint = 0;
 
-	if (mmask->Constr_X().IsActive()) { 
+	if (mmask->Constr_X().IsActive()) {
         react_force.x = - react->GetElement(n_costraint, 0);
         n_costraint++ ; }
-    if (mmask->Constr_Y().IsActive()) { 
+    if (mmask->Constr_Y().IsActive()) {
         react_force.y = - react->GetElement(n_costraint, 0);
         n_costraint++ ; }
-    if (mmask->Constr_Z().IsActive()) { 
+    if (mmask->Constr_Z().IsActive()) {
         react_force.z = - react->GetElement(n_costraint, 0);
         n_costraint++ ; }
-    if (mmask->Constr_E1().IsActive()) { 
+    if (mmask->Constr_E1().IsActive()) {
         react_torque.x = - 0.5* (react->GetElement(n_costraint, 0));
         n_costraint++ ; }
-    if (mmask->Constr_E2().IsActive()) { 
+    if (mmask->Constr_E2().IsActive()) {
         react_torque.y = - 0.5* (react->GetElement(n_costraint, 0));
         n_costraint++ ; }
-    if (mmask->Constr_E3().IsActive()) { 
+    if (mmask->Constr_E3().IsActive()) {
         react_torque.z = - 0.5* (react->GetElement(n_costraint, 0));
         n_costraint++ ; }
-    if (mmask->Constr_P().IsActive()) { 
+    if (mmask->Constr_P().IsActive()) {
         react_torque.z = - 0.5* (react->GetElement(n_costraint, 0));
         n_costraint++ ; }
-    if (mmask->Constr_D().IsActive()) { 
+    if (mmask->Constr_D().IsActive()) {
         react_force  = Vadd (react_force,
             Vmul (Vnorm(relM.pos),- (react->GetElement(n_costraint, 0))));
         n_costraint++ ; }
 
     // ***TO DO***?: TRASFORMATION FROM delta COORDS TO LINK COORDS, if non-default delta
-    // if delta rotation? 
- 
+    // if delta rotation?
+
 	// add also the contribute from link limits to the 'intuitive' react_force and 'react_torque'.
 	if (limit_X) if (limit_X->Get_active()) {
 		react_force.x -= factor*limit_X->constr_lower.Get_l_i();

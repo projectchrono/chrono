@@ -159,7 +159,8 @@ int ChGeometryCollider::ComputeSphereSphereCollisions(
 	{
  		 if (dist < (mgeo1.rad + mgeo2.rad))
 		 {
-			mcollider.AddCollisionPair(&ChCollisionPair(&mgeo1, &mgeo2));
+ 			ChCollisionPair temp=ChCollisionPair(&mgeo1, &mgeo2);
+			mcollider.AddCollisionPair(&temp);
 			return 1;
 		 }
 	}
@@ -167,12 +168,12 @@ int ChGeometryCollider::ComputeSphereSphereCollisions(
 	{
 		if (dist < CH_COLL_ENVELOPE+(mgeo1.rad + mgeo2.rad))
 		{
-			mcollider.AddCollisionPair(&ChCollisionPair(
+			ChCollisionPair temp=ChCollisionPair(
 					&mgeo1, &mgeo2,						// geometries
 					Vadd(*c1, Vmul(dir,  mgeo1.rad)),	// p1
 					Vadd(*c2, Vmul(dir, -mgeo2.rad)),	// p2
-					dir)								// normal
-					);
+					dir);								// normal
+			mcollider.AddCollisionPair(&temp);
 			return 1;
 		}
 		
@@ -1051,7 +1052,8 @@ int ChGeometryCollider::ComputeBoxBoxCollisions(
 
 		if (CHOBB::OBB_Overlap(relRot, relPos, mgeo1.Size, mgeo2.Size))
 		{
-			mcollider.AddCollisionPair(&ChCollisionPair(&mgeo1, &mgeo2));
+			ChCollisionPair temp=ChCollisionPair(&mgeo1, &mgeo2);
+			mcollider.AddCollisionPair(&temp);
 			return 1;
 		}
 	}
@@ -1073,13 +1075,14 @@ int ChGeometryCollider::ComputeBoxBoxCollisions(
 
 		for (int i=0; i < ncontacts; i++)
 		{
-			if (ArrDist[i]<CH_COLL_ENVELOPE)
-				mcollider.AddCollisionPair(&ChCollisionPair(
-					&mgeo1, &mgeo2,						// geometries
-					Vadd(ArrP[i], Vmul(mnormal, -ArrDist[i])),
-					ArrP[i],
-					mnormal)							// normal
-					);
+			if (ArrDist[i]<CH_COLL_ENVELOPE){
+				ChCollisionPair temp=ChCollisionPair(
+						&mgeo1, &mgeo2,	// geometries
+						Vadd(ArrP[i], Vmul(mnormal, -ArrDist[i])),
+						ArrP[i],
+						mnormal);	// normal
+				mcollider.AddCollisionPair(&temp);
+			}
 		}
 	}
 	return 0;
@@ -1126,7 +1129,9 @@ int ChGeometryCollider::ComputeSphereBoxCollisions(
 			((sqrt(pow(fabs(relC.x)-mgeo2.Size.x,2)+pow(fabs(relC.y)-mgeo2.Size.y,2)+pow(fabs(relC.z)-mgeo2.Size.z,2)) <= mgeo1.rad) )
 		  )
 		{
-			mcollider.AddCollisionPair(&ChCollisionPair(&mgeo1, &mgeo2));
+			ChCollisionPair temp=ChCollisionPair(&mgeo1, &mgeo2);
+
+			mcollider.AddCollisionPair(&temp);
 			return 1;
 		}
 	}

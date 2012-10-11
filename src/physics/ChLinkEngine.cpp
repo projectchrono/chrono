@@ -601,7 +601,8 @@ void ChLinkEngine::ConstraintsLoadJacobians()
 	if (this->eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT )
 	{
 		// compute jacobians
-		ChVector<> abs_rot_axis = this->marker2->Dir_Ref2World(&ChVector<>(VECT_Z));
+		ChVector<> tempz=ChVector<>(VECT_Z);
+		ChVector<> abs_rot_axis = this->marker2->Dir_Ref2World(&tempz);
 		ChVector<> jacw = this->Body2->Dir_World2Body(&abs_rot_axis);
 
 		this->innerconstraint1.Get_Cq_a()->ElementN(0)=0;

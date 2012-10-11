@@ -13,7 +13,7 @@
 ///////////////////////////////////////////////////
 
 
-#if defined(__linux__)
+#if (defined(__linux__)||defined(__APPLE__))
 
 
 #define DWORD unsigned int

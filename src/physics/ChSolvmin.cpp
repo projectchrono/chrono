@@ -13,8 +13,10 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stdio.h>
-#include <malloc.h>
 
+#if !defined(__APPLE__)
+#include <malloc.h>
+#endif
 #include "core/ChLog.h"
 #include "physics/ChSolvmin.h"
 

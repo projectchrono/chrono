@@ -161,7 +161,7 @@ public:
 
 	//ChFile_ps(char m_name[]) : ChStreamOutAsciiFile(m_name);	
 					/// Constructor, with optional position and size of bounding box
-	ChFile_ps ( char*  m_name, double x = 1, double y = 1, double w = 20, double h = 29, char*  m_prolog_file = "prolog.ps");
+	ChFile_ps ( char*  m_name, double x = 1, double y = 1, double w = 20, double h = 29, char*  m_prolog_file = (char *)"prolog.ps");
 
 					/// Destructor. Write trailer to PS file and close it.
 	~ChFile_ps();
