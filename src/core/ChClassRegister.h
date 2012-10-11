@@ -58,6 +58,7 @@ namespace chrono
 
 
 
+
 /// ChClassRegisterCommon is a base abstract class which allows
 /// a common management of all template classes ChClassRegister<t>.
 

@@ -93,7 +93,8 @@ int ChNodeBody::Initialize(ChSharedPtr<ChIndexedNodes>& mnodes, ///< nodes conta
 	}
 	else
 	{
-		this->attach_position = body->Point_World2Body(&nodes->GetNode(node_index).GetPos());
+		Vector temp=nodes->GetNode(node_index).GetPos();
+		this->attach_position = body->Point_World2Body(&temp);
 	}
 	return true;
 }

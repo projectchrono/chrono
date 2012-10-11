@@ -166,7 +166,7 @@ hacd::HaI32 dgBinarySearch (T const* array, hacd::HaI32 elements, hacd::HaI32 en
 }
 
 
-
+#include <string.h> ///This fixes the memset error - Hammad
 
 template <class T> 
 void dgRadixSort (T* const array, T* const tmpArray, hacd::HaI32 elements, hacd::HaI32 radixPass, 

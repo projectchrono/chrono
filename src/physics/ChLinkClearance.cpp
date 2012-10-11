@@ -99,7 +99,8 @@ double  ChLinkClearance::Get_axis_phase()
 	if (!this->GetMarker2()) return 0;
 	double mangle;
 	Vector maxis;
-	Q_to_AngAxis(&this->GetMarker2()->GetCoord().rot, &mangle, &maxis);
+	Quaternion temp=this->GetMarker2()->GetCoord().rot;
+	Q_to_AngAxis(&temp, &mangle, &maxis);
 	if (maxis.z < 0.0)
     {
 		maxis = Vmul (maxis, -1.0);
@@ -158,8 +159,9 @@ void ChLinkClearance::UpdateForces (double mytime)
 
 	if (((ChLinkMaskLF*)(this->GetMask()))->Constr_X().IsActive() )
     {
-        Vector pb1 = Body1->Point_World2Body(&Get_contact_P_abs());
-        Vector pb2 = Body2->Point_World2Body(&Get_contact_P_abs());
+		Vector temp=Get_contact_P_abs();
+        Vector pb1 = Body1->Point_World2Body(&temp);
+        Vector pb2 = Body2->Point_World2Body(&temp);
         Vector m_V1_abs = Body1->RelPoint_AbsSpeed(&pb1 );
         Vector m_V2_abs = Body2->RelPoint_AbsSpeed(&pb2 );
 		this->contact_V_abs = Vsub(m_V1_abs, m_V2_abs);

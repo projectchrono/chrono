@@ -81,10 +81,10 @@ public:
 	virtual void GetBoundingBox(double& xmin, double& xmax, 
 					    double& ymin, double& ymax, 
 						double& zmin, double& zmax, 
-						ChMatrix33<>* Rot = NULL) { }; //***TO DO***
+						ChMatrix33<>* Rot = NULL) { }; //TODO
 	
-	virtual Vector Baricenter();//***TO DO***
-	virtual void CovarianceMatrix(ChMatrix33<>& C);//***TO DO***
+	virtual Vector Baricenter();//TODO
+	virtual void CovarianceMatrix(ChMatrix33<>& C);//TODO
     */
 				/// This is a surface
 	virtual int GetManifoldDimension() {return 2;}
@@ -95,9 +95,9 @@ public:
 		// STREAMING
 		//
 
-	//void StreamOUT(ChStreamOutBinary& mstream);//***TO DO***
+	//void StreamOUT(ChStreamOutBinary& mstream);//TODO
 
-	//void StreamIN(ChStreamInBinary& mstream); //***TO DO***
+	//void StreamIN(ChStreamInBinary& mstream); //TODO
 
 };
 

@@ -411,10 +411,13 @@ bool ChModelBullet::AddTriangleMesh (const  geometry::ChTriangleMesh& trimesh,	b
 	for (int i=0; i<trimesh.getNumTriangles(); i++)
 	{
 		//bulletMesh->m_weldingThreshold = ...
+		Vector temp1=trimesh.getTriangle(i).p1;
+		Vector temp2=trimesh.getTriangle(i).p2;
+		Vector temp3=trimesh.getTriangle(i).p3;
 		bulletMesh->addTriangle(
-			ChVectToBullet(&trimesh.getTriangle(i).p1), 
-			ChVectToBullet(&trimesh.getTriangle(i).p2), 
-			ChVectToBullet(&trimesh.getTriangle(i).p3), 
+			ChVectToBullet(&temp1),
+			ChVectToBullet(&temp2),
+			ChVectToBullet(&temp3),
 			true); // try to remove duplicate vertices
 	}
 	
@@ -501,10 +504,13 @@ bool ChModelBullet::AddTriangleMeshConcave(const  geometry::ChTriangleMesh& trim
 	for (int i=0; i<trimesh.getNumTriangles(); i++)
 	{
 		//bulletMesh->m_weldingThreshold = ...
+		Vector temp1=trimesh.getTriangle(i).p1;
+		Vector temp2=trimesh.getTriangle(i).p2;
+		Vector temp3=trimesh.getTriangle(i).p3;
 		bulletMesh->addTriangle(
-			ChVectToBullet(&trimesh.getTriangle(i).p1), 
-			ChVectToBullet(&trimesh.getTriangle(i).p2), 
-			ChVectToBullet(&trimesh.getTriangle(i).p3), 
+			ChVectToBullet(&temp1),
+			ChVectToBullet(&temp2),
+			ChVectToBullet(&temp3),
 			true); // try to remove duplicate vertices
 	}
 

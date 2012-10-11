@@ -108,7 +108,8 @@ ChLink* ChLinkDistance::new_Duplicate ()
 ChCoordsys<> ChLinkDistance::GetLinkRelativeCoords()
 {
 	ChVector<> D2local;
-	ChVector<> D2rel = Body2->Dir_World2Body(&(Vnorm(Body1->Point_Body2World(&pos1)-Body2->Point_Body2World(&pos2))));
+	ChVector<> D2temp=(Vnorm(Body1->Point_Body2World(&pos1)-Body2->Point_Body2World(&pos2)));
+	ChVector<> D2rel = Body2->Dir_World2Body(&D2temp);
 	ChVector<> Vx, Vy, Vz;
 	ChVector<> Vsingul(VECT_Y);
 	ChMatrix33<> rel_matrix;
