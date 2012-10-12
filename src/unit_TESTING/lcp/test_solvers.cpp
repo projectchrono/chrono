@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
 	ChLcpSystemDescriptor *mdescriptor = new ChLcpSystemDescriptor();
 	ChContactContainer *mcontactcontainer = new ChContactContainer();
 	ChCollisionSystemBullet *mcollisionengine = new ChCollisionSystemBullet();
-	ChLcpIterativeJacobi *msolver = new ChLcpIterativeJacobi(mcontactcontainer);
+	ChLcpIterativeJacobi *msolver = new ChLcpIterativeJacobi();
 
 	mSys->ChangeLcpSystemDescriptor(mdescriptor);
 	mSys->ChangeContactContainer(mcontactcontainer);
@@ -140,14 +140,7 @@ int main(int argc, char* argv[]) {
 	FinalizeObject(BTM, mSys);
 	mSys->DoStepDynamics(.01);
 
-	mSys->DoStepDynamics(.01);
-	mSys->DoStepDynamics(.01);
 
-	mSys->DoStepDynamics(.01);
-	mSys->DoStepDynamics(.01);
-	mSys->DoStepDynamics(.01);
-	mSys->DoStepDynamics(.01);
-	mSys->DoStepDynamics(.01);
 	//msolver->Solve(*mdescriptor,true);
 
 	dump_matricies(*mdescriptor);
