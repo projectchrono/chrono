@@ -18,14 +18,16 @@ IF(ENABLE_UNIT_POSTPROCESS)
 	SET(ChronoEngine_UNIT_POSTPROCESS_SOURCES 
 		ChPovRay.cpp
 		ChPovRayAssetCustom.cpp
-		ChLuxRender.cpp
+		ChMitsubaRender.cpp
+	       tinyxml2.cpp
 		)
 	SET(ChronoEngine_UNIT_POSTPROCESS_HEADERS
 		ChApiPostProcess.h 
 		ChPovRay.h
 		ChPovRayAssetCustom.h
-		ChLuxRender.h
+		ChMitsubaRender.h
 		ChPostProcessBase.h
+	       tinyxml2.h
 		)
 	#SET_SOURCE_FILES_PROPERTIES(ChronoEngine_UNIT_POSTPROCESS_HEADERS PROPERTIES  HEADER_FILE_ONLY)
 	SOURCE_GROUP(unit_POSTPROCESS FILES 
