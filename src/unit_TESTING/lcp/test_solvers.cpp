@@ -17,10 +17,12 @@
 #include "collision/ChCModelBullet.h"
 #include "collision/ChCCollisionSystemBullet.h"
 #include "physics/ChContactContainer.h"
+#include "unit_OPENGL/ChOpenGL.h"
 // Remember to use the namespace 'chrono' because all classes 
 // of Chrono::Engine belong to this namespace and its children...
 
 using namespace chrono;
+
 #define CHBODYSHAREDPTR ChSharedBodyPtr
 #define CHBODY ChBody
 #define CHCOLLISIONSYS ChCollisionSystemBullet
@@ -30,42 +32,9 @@ using namespace chrono;
 #define CHMODEL ChModelBullet
 #define CHSYS ChSystem
 
-void InitObject(ChSharedPtr<ChBODY> &body, double mass, ChVector<> pos, ChQuaternion<> rot, double sfric, double kfric, double restitution, bool collide, bool fixed, int family, int nocolwith) {
-	body->SetMass(mass);
-	body->SetPos(pos);
-	body->SetRot(rot);
-	body->SetCollide(collide);
-	body->SetBodyFixed(fixed);
-	body->SetImpactC(restitution);
-	body->SetSfriction(sfric);
-	body->SetKfriction(kfric);
-	body->GetCollisionModel()->ClearModel();
-	body->GetCollisionModel()->SetFamily(family);
-	body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(nocolwith);
-	//body->SetLimitSpeed(true);
-	//body->SetUseSleeping(true);
-}
 
-void AddCollisionGeometry(ChSharedPtr<ChBODY> &body, ShapeType type, ChVector<> dim, ChVector<> lPos, ChQuaternion<> lRot) {
-	ChMatrix33<> *rotation = new ChMatrix33<>(lRot);
-	ChMODEL * model = (ChMODEL*) body->GetCollisionModel();
-	if (type == SPHERE) {
-		model->AddSphere(dim.x, &lPos);
-	} else if (type == ELLIPSOID) {
-		model->AddEllipsoid(dim.x, dim.y, dim.z, &lPos, rotation);
-	} else if (type == BOX) {
-		model->AddBox(dim.x, dim.y, dim.z, &lPos, rotation);
-	} else if (type == CYLINDER) {
-		model->AddCylinder(dim.x, dim.y, dim.z, &lPos, rotation);
-	}
-}
-void FinalizeObject(ChSharedPtr<ChBODY> newbody, CHSYS * mSystem) {
-	newbody->GetCollisionModel()->BuildModel();
-	mSystem->AddBody(newbody);
-}
 
 void dump_matricies(ChLcpSystemDescriptor& mdescriptor) {
-
 	chrono::ChSparseMatrix mdM;
 	chrono::ChSparseMatrix mdCq;
 	chrono::ChSparseMatrix mdE;
@@ -104,17 +73,20 @@ int main(int argc, char* argv[]) {
 	mSys->Set_G_acc(ChVector<>(0, -9.80665, 0));
 
 	ChVector<> lpos(0, 0, 0);
-		ChQuaternion<> quat(1, 0, 0, 0);
+	ChQuaternion<> quat(1, 0, 0, 0);
 	ChSharedBodyPtr sphere;
 	for (int i = 0; i < 1000; i++) {
 		sphere = ChSharedBodyPtr(new ChBody);
-		InitObject(sphere, 1.0, ChVector<>((rand() % 10000 / 1000.0 - 5) * 2, (rand() % 10000 / 1000.0 - 5) * 2, (rand() % 10000 / 1000.0 - 5) * 2), quat, 0, 0, 0, true, false, -1, i);
-		AddCollisionGeometry(sphere, SPHERE, ChVector<>(.06, .06, .06), lpos, quat);
+		InitObject(sphere, 1.0, ChVector<>((rand() % 10000 / 1000.0 - 5), (rand() % 10000 / 1000.0 - 5), (rand() % 10000 / 1000.0 - 5)), quat, 1, 1, 0, true, false, 32, 17 + i);
+		AddCollisionGeometry(sphere, SPHERE, ChVector<>(.3, .3, .3), lpos, quat);
 		FinalizeObject(sphere, mSys);
+		/*		ChSharedPtr<ChSphereShape> sphere_shape = ChSharedPtr<ChAsset>(new ChSphereShape);
+		 sphere_shape->SetColor(ChColor(1, 0, 0));
+		 sphere_shape->GetSphereGeometry().rad = .06;
+		 sphere->GetAssets().push_back(sphere_shape);*/
 	}
 
-
-	float mWallMu = 1, container_width = -7.0, container_thickness = .1, container_height = -7.0, wscale = 1;
+	float mWallMu = 1, container_width = 7.0, container_thickness = .1, container_height = 7.0, wscale = 1;
 	ChSharedBodyPtr L = ChSharedBodyPtr(new ChBody);
 	ChSharedBodyPtr R = ChSharedBodyPtr(new ChBody);
 	ChSharedBodyPtr F = ChSharedBodyPtr(new ChBody);
@@ -139,11 +111,15 @@ int main(int argc, char* argv[]) {
 	FinalizeObject(B, mSys);
 	FinalizeObject(BTM, mSys);
 	mSys->DoStepDynamics(.01);
-
+	ChOpenGLManager * window_manager = new ChOpenGLManager();
+	ChOpenGL openGLView(window_manager, mSys, 800, 600, 0, 0, "LOL");
+	openGLView.StartSpinning(window_manager);
+	//window_manager->EnableIdleFunction();
+	window_manager->CallGlutMainLoop();
 
 	//msolver->Solve(*mdescriptor,true);
 
-	dump_matricies(*mdescriptor);
+	//dump_matricies(*mdescriptor);
 
 	//ChLcpIterativePMINRES msolver_krylov(20, false, 0.00001);
 	//msolver_krylov.Solve(mdescriptor);

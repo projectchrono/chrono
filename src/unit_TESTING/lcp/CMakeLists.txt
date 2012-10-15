@@ -1,5 +1,6 @@
 ADD_EXECUTABLE(test_solvers	test_solvers.cpp)
+INCLUDE_DIRECTORIES( ${CH_OPENGLINC} ${FREEGLUT_INC_PATH} )
 SET_TARGET_PROPERTIES(test_solvers PROPERTIES LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(test_solvers ChronoEngine)
-ADD_DEPENDENCIES (test_solvers ChronoEngine)
+TARGET_LINK_LIBRARIES(test_solvers ${FREEGLUT_LIB} ${OPENGL_LIBRARIES} ChronoEngine ChronoEngine_OPENGL)
+ADD_DEPENDENCIES (test_solvers ChronoEngine ChronoEngine_OPENGL)
 ADD_TEST(test_solvers ${PROJECT_BINARY_DIR}/bin/test_solvers)
