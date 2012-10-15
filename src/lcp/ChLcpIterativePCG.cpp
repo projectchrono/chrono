@@ -26,6 +26,7 @@ double ChLcpIterativePCG::Solve(
 	std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
 	std::vector<ChLcpVariables*>&  mvariables	= sysd.GetVariablesList();
 
+	tot_iterations = 0;
 	double maxviolation = 0.;
 
 	
@@ -178,7 +179,8 @@ double ChLcpIterativePCG::Solve(
 		// For recording into correction/residuals/violation history, if debugging
 		if (this->record_violation_history)
 			AtIterationEnd(maxd, maxdeltalambda, iter);
-			
+
+		tot_iterations++;
 	}
 	
 

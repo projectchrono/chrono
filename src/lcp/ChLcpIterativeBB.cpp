@@ -47,8 +47,7 @@ double ChLcpIterativeBB::Solve(
 
 
 	int i_friction_comp = 0;
-	int iter_tot = 0;
-
+	tot_iterations = 0;
 	// Allocate auxiliary vectors;
 	
 	int nc = sysd.CountActiveConstraints();
@@ -358,6 +357,7 @@ double ChLcpIterativeBB::Solve(
 
 		if (verbose) GetLog() << "  iter=" << iter << "   f=" << mf_p << "  |d|=" << maxd << "  |s|=" << maxdeltalambda  << "\n";
 
+		tot_iterations++;
 
 		// Terminate the loop if violation in constraints has been succesfully limited.
 		// ***TO DO*** a reliable termination creterion.. 

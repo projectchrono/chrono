@@ -191,11 +191,11 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         SET(CPACK_SYSTEM_NAME "Win-x64")
     ENDIF()
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    SET (CH_BUILDFLAGS "-DLINUX -D__linux__ -fpermissive ")
+    SET (CH_BUILDFLAGS "-DLINUX -D__linux__ -fpermissive")
     SET (CH_LINKERFLAG_SHARED "-lpthread -z muldefs  -pthread -Wl,--no-as-needed")		
     SET (CPACK_SYSTEM_NAME "Linux-x64")
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    SET (CH_BUILDFLAGS "-DAPPLE -D__APPLE__ -Waddress-of-temporary")
+    SET (CH_BUILDFLAGS "-DAPPLE -D__APPLE__")
     SET (CH_LINKERFLAG_SHARED "-lpthread ")		
     SET (CPACK_SYSTEM_NAME "OSX-x64")
 ENDIF()
@@ -558,7 +558,7 @@ IF (BUILD_CH_SDK)
 		assets/ChAssetLevel.h
 		assets/ChColor.h
 		assets/ChMaterial.h
-		assets/ChGenericRender.h
+		#assets/ChGenericRender.h
 	)
 	SOURCE_GROUP(assets FILES  
 			${ChronoEngine_assets_SOURCES}

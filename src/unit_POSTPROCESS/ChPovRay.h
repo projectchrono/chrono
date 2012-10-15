@@ -28,7 +28,7 @@
 namespace chrono{
  namespace postprocess{
 
-		
+
 /// Class for post processing implementation that generates
 /// scripts for POVray. The script can be used in POVray to
 /// render photo-realistic animations. 
@@ -198,7 +198,7 @@ protected:
 	
 
 	std::vector< ChSharedPtr<ChPhysicsItem> > mdata;
-	ChHashTable<unsigned int, ChSharedPtr<ChAsset> > pov_assets;
+	ChHashTable<size_t, ChSharedPtr<ChAsset> > pov_assets;
 
 
 	std::string template_filename;

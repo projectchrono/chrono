@@ -26,9 +26,10 @@ double ChLcpIterativeMINRES::Solve(
 	std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
 	std::vector<ChLcpVariables*>&  mvariables	= sysd.GetVariablesList();
 
+	tot_iterations=0;
 	double maxviolation = 0.;
 	int i_friction_comp = 0;
-	int iter_tot = 0;
+	//int iter_tot = 0;	// replaced with tot_iterations - Hammad
 
 	bool verbose = false;
 
@@ -246,14 +247,14 @@ double ChLcpIterativeMINRES::Solve(
 
 			// For recording into violation history 
 			if (this->record_violation_history)
-				AtIterationEnd(0.0, norm_dlam, iter_tot); //(norm_viol, norm_dlam, iter_tot); ***DEBUG*** use 0.0 to show phase
+				AtIterationEnd(0.0, norm_dlam, tot_iterations); //(norm_viol, norm_dlam, tot_iterations); ***DEBUG*** use 0.0 to show phase
 
-			++iter_tot;
-			if (iter_tot > this->max_iterations)
+			++tot_iterations;
+			if (tot_iterations > this->max_iterations)
 				break;
 		}
 
-		if (iter_tot > this->max_iterations)
+		if (tot_iterations > this->max_iterations)
 			break;
 
 		if (verbose)  GetLog() <<"\n";
@@ -305,14 +306,14 @@ double ChLcpIterativeMINRES::Solve(
 
 			// For recording into violation history 
 			if (this->record_violation_history)
-				AtIterationEnd(1.0, norm_dlam, iter_tot); //(norm_viol, norm_dlam, iter_tot); ***DEBUG*** use 1.0 to show phase
+				AtIterationEnd(1.0, norm_dlam, tot_iterations); //(norm_viol, norm_dlam, tot_iterations); ***DEBUG*** use 1.0 to show phase
 
-			++iter_tot;
-			if (iter_tot > this->max_iterations)
+			++tot_iterations;
+			if (tot_iterations > this->max_iterations)
 				break;
 		}
 
-		if (iter_tot > this->max_iterations)		
+		if (tot_iterations > this->max_iterations)
 			break;
 
 		if (verbose) GetLog() <<"\n";

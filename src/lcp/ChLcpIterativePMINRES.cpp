@@ -83,7 +83,7 @@ mdfric.StreamOUTdenseMatlabFormat(file_fric);
 	ChMatrixDynamic<> mtmp(nc,1);
 	ChMatrixDynamic<> mD (nc,1);
 
-
+	tot_iterations = 0;
 	double maxviolation = 0.;
 
 
@@ -257,6 +257,8 @@ mdfric.StreamOUTdenseMatlabFormat(file_fric);
 		mr.MatrDec(ml);
 		mr.MatrDivScale(this->grad_diffstep);		// r = (P(l+diff*r)-l)/diff 
 		
+
+		tot_iterations++;
 		// Terminate iteration when the projected r is small, if (norm(r,2) <= max(rel_tol_b,abs_tol))
 		double r_proj_resid = mr.NormTwo();
 		if (r_proj_resid < ChMax(rel_tol_b, abs_tol) )

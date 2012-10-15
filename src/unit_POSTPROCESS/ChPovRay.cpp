@@ -374,12 +374,12 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 	{
 		ChSharedPtr<ChAsset> k_asset = assetlist[k];
 
-		ChHashTable<unsigned int, ChSharedPtr<ChAsset> >::iterator mcached = pov_assets.find( (unsigned int)k_asset.get_ptr() );
+		ChHashTable<size_t, ChSharedPtr<ChAsset> >::iterator mcached = pov_assets.find( (size_t)k_asset.get_ptr() );
 		if (mcached == pov_assets.end())
 		{
 			// Ok, add the asset in POV file, it was not already saved. 
 			// Otherwise it was a shared asset.
-			pov_assets.insert((unsigned int)k_asset.get_ptr(), k_asset);
+			pov_assets.insert((size_t)k_asset.get_ptr(), k_asset);
 
 			// Do dynamic casting of the shared pointer to see which type
 			// of asset is contained...
@@ -396,7 +396,7 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 					mytrimesh.LoadWavefrontMesh( myobjshapeasset->GetFilename(), true, true );
 
 					// POV macro to build the asset - begin
-					assets_file << "#macro sh_"<< (int) k_asset.get_ptr() << "()\n"; //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
+					assets_file << "#macro sh_"<< (size_t) k_asset.get_ptr() << "()\n"; //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
 
 					// Create mesh
 					assets_file << "mesh2  {\n";
@@ -470,7 +470,7 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 				ChSharedPtr<ChSphereShape> myobjshapeasset(k_asset);
 
 				// POV macro to build the asset - begin
-				assets_file << "#macro sh_"<< (int) k_asset.get_ptr() << "()\n"; //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
+				assets_file << "#macro sh_"<< (size_t) k_asset.get_ptr() << "()\n"; //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
 
 				// POV will make the sphere
 				assets_file << "sphere  {\n";
@@ -492,7 +492,7 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 				ChSharedPtr<ChCylinderShape> myobjshapeasset(k_asset);
 
 				// POV macro to build the asset - begin
-				assets_file << "#macro sh_"<< (int) k_asset.get_ptr() << "()\n"; //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
+				assets_file << "#macro sh_"<< (size_t) k_asset.get_ptr() << "()\n"; //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
 
 				// POV will make the sphere
 				assets_file << "cylinder  {\n";
@@ -517,7 +517,7 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 				ChSharedPtr<ChBoxShape> myobjshapeasset(k_asset);
 
 				// POV macro to build the asset - begin
-				assets_file << "#macro sh_"<< (int) k_asset.get_ptr() << "()\n"; //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
+				assets_file << "#macro sh_"<< (size_t) k_asset.get_ptr() << "()\n"; //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
 
 				// POV will make the box
 				assets_file << "union  {\n";
@@ -553,7 +553,7 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 				ChSharedPtr<ChPovRayAssetCustom> myobjcommandasset(k_asset);
 
 				// POV macro to build the asset - begin
-				assets_file << "#macro cm_"<< (int) k_asset.get_ptr() << "()\n";
+				assets_file << "#macro cm_"<< (size_t) k_asset.get_ptr() << "()\n";
 
 				// add POV custom commands
 				assets_file << myobjcommandasset->GetCommands().c_str() << "\n";
@@ -568,7 +568,7 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 				ChSharedPtr<ChTexture> myobjtextureasset(k_asset);
 
 				// POV macro to build the asset - begin
-				assets_file << "#macro cm_"<< (int) k_asset.get_ptr() << "()\n";
+				assets_file << "#macro cm_"<< (size_t) k_asset.get_ptr() << "()\n";
 
 				// add POV  texture
 				assets_file << "texture { uv_mapping pigment { image_map {";
@@ -635,12 +635,12 @@ void ChPovRay::_recurseExportObjData( std::vector< ChSharedPtr<ChAsset> >& asset
 			 k_asset.IsType<ChSphereShape>() || 
 			 k_asset.IsType<ChBoxShape>() )
 		{
-			mfilepov << "sh_"<< (unsigned int) k_asset.get_ptr() << "()\n"; // "("; 
+			mfilepov << "sh_"<< (size_t) k_asset.get_ptr() << "()\n"; // "(";
 		}
 		if ( k_asset.IsType<ChPovRayAssetCustom>() || 
 			 k_asset.IsType<ChTexture>() )
 		{
-			mfilepov << "cm_"<< (unsigned int) k_asset.get_ptr() << "()\n";
+			mfilepov << "cm_"<< (size_t) k_asset.get_ptr() << "()\n";
 		}
 
 		if ( k_asset.IsType<ChCamera>() )
