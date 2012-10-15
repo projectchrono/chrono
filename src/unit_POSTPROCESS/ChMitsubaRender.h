@@ -25,7 +25,7 @@
 #include "ChPostProcessBase.h"
 #include "assets/ChSphereShape.h"
 #include "assets/ChBoxShape.h"
-#include "assets/ChGenericRender.h"
+//#include "assets/ChGenericRender.h"
 using namespace std;
 using namespace tinyxml2;
 

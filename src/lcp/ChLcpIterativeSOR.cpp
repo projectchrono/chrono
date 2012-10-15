@@ -26,6 +26,7 @@ double ChLcpIterativeSOR::Solve(
 	std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
 	std::vector<ChLcpVariables*>&  mvariables	= sysd.GetVariablesList();
 
+	tot_iterations = 0;
 	double maxviolation = 0.;
 	double maxdeltalambda = 0.;
 	int i_friction_comp = 0;
@@ -198,6 +199,7 @@ double ChLcpIterativeSOR::Solve(
 		if (this->record_violation_history)
 			AtIterationEnd(maxviolation, maxdeltalambda, iter);
 
+			tot_iterations++;
 			// Terminate the loop if violation in constraints has been succesfully limited.
 			if (maxviolation < tolerance)
 				break;

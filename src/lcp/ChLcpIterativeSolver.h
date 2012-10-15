@@ -48,6 +48,7 @@ protected:
 			//
 
 	int		max_iterations;
+	int		tot_iterations;		///The total number of iterations performed by the solver
 	bool	warm_start;
 	double	tolerance;	
 	double  omega;
@@ -70,6 +71,7 @@ public:
 				double mshlambda=1.0		///< sharpness, if any 
 				)
 			: max_iterations(mmax_iters), 
+			  tot_iterations(0),
 			  warm_start(mwarm_start), 
 			  tolerance(mtolerance),
 			  record_violation_history(false),
@@ -93,6 +95,7 @@ public:
 				/// Default limit: 50 iterations.
 	virtual void   SetMaxIterations(int mval) {max_iterations=mval;}
 	virtual double GetMaxIterations() {return max_iterations;}
+	virtual double GetTotalIterations() {return tot_iterations;}
 
 				/// Set the overrelaxation factor, if used; it can be 
 				/// used by SOR-like methods.  

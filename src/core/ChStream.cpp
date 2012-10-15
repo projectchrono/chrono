@@ -74,6 +74,16 @@ ChStreamOutAscii& ChStreamOutAscii::operator <<(unsigned int unVal)
 
 	return *this;
 }
+ChStreamOutAscii& ChStreamOutAscii::operator <<(unsigned long unVal)
+{
+	char buffer[100];
+
+	sprintf(buffer, "%lu", unVal);
+
+    Output(buffer, strlen(buffer));
+
+	return *this;
+}
 /*
 ChStreamOutAscii& ChStreamOutAscii::operator <<(long lVal)
 {

@@ -97,9 +97,9 @@ void ChMitsubaRender::AddObject(ChSharedPtr<ChAsset> & asset, ChBody * abody) {
 		xml->LinkEndChild(xml_transform);
 
 	}
-	if (asset.IsType<ChGenericRender>()) {
+	//if (asset.IsType<ChGenericRender>()) {
 
-		ChGenericRender * obj_shape = ((ChGenericRender *) (asset.get_ptr()));
+		//ChGenericRender * obj_shape = ((ChGenericRender *) (asset.get_ptr()));
 
 		//xml->SetAttribute("type", "serialized");
 
@@ -120,7 +120,7 @@ void ChMitsubaRender::AddObject(ChSharedPtr<ChAsset> & asset, ChBody * abody) {
 		//xml_pos->SetAttribute("value", box_shape->GetSphereGeometry().rad);
 		//xml->LinkEndChild(xml_pos);
 
-	}
+	//}
 	root_data->LinkEndChild(xml);
 }
 

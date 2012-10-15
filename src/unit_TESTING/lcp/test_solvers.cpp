@@ -4,6 +4,7 @@
 #include "lcp/ChLcpSystemDescriptor.h"
 #include "lcp/ChLcpIterativeSOR.h"
 #include "lcp/ChLcpIterativePMINRES.h"
+#include "lcp/ChLcpIterativeBB.h"
 #include "lcp/ChLcpSimplexSolver.h"
 #include "core/ChLinearAlgebra.h"
 #include "physics/ChSystem.h"
@@ -31,8 +32,6 @@ using namespace chrono;
 #define CHSOLVER ChLcpIterativeJacobi
 #define CHMODEL ChModelBullet
 #define CHSYS ChSystem
-
-
 
 void dump_matricies(ChLcpSystemDescriptor& mdescriptor) {
 	chrono::ChSparseMatrix mdM;
@@ -62,7 +61,11 @@ int main(int argc, char* argv[]) {
 	ChLcpSystemDescriptor *mdescriptor = new ChLcpSystemDescriptor();
 	ChContactContainer *mcontactcontainer = new ChContactContainer();
 	ChCollisionSystemBullet *mcollisionengine = new ChCollisionSystemBullet();
-	ChLcpIterativeJacobi *msolver = new ChLcpIterativeJacobi();
+	//ChLcpIterativeJacobi *msolver = new ChLcpIterativeJacobi();
+	//ChLcpIterativeSOR *msolver = new ChLcpIterativeSOR();
+	//ChLcpIterativeMINRES *msolver = new ChLcpIterativeMINRES();
+	//ChLcpIterativePMINRES *msolver = new ChLcpIterativePMINRES();
+	ChLcpIterativeBB *msolver = new ChLcpIterativeBB();
 
 	mSys->ChangeLcpSystemDescriptor(mdescriptor);
 	mSys->ChangeContactContainer(mcontactcontainer);
@@ -70,20 +73,16 @@ int main(int argc, char* argv[]) {
 	mSys->ChangeCollisionSystem(mcollisionengine);
 
 	mSys->SetIntegrationType(ChSystem::INT_ANITESCU);
-	mSys->Set_G_acc(ChVector<>(0, -9.80665, 0));
+	mSys->Set_G_acc(Vector(0, -9.80665, 0));
 
-	ChVector<> lpos(0, 0, 0);
+	Vector lpos(0, 0, 0);
 	ChQuaternion<> quat(1, 0, 0, 0);
 	ChSharedBodyPtr sphere;
 	for (int i = 0; i < 1000; i++) {
 		sphere = ChSharedBodyPtr(new ChBody);
-		InitObject(sphere, 1.0, ChVector<>((rand() % 10000 / 1000.0 - 5), (rand() % 10000 / 1000.0 - 5), (rand() % 10000 / 1000.0 - 5)), quat, 1, 1, 0, true, false, 32, 17 + i);
-		AddCollisionGeometry(sphere, SPHERE, ChVector<>(.3, .3, .3), lpos, quat);
+		InitObject(sphere, 1.0, Vector((rand() % 10000 / 1000.0 - 5), (rand() % 10000 / 1000.0 - 5), (rand() % 10000 / 1000.0 - 5)), quat, 1, 1, 0, true, false, 32, 17 + i);
+		AddCollisionGeometry(sphere, SPHERE, Vector(.3, .3, .3), lpos, quat);
 		FinalizeObject(sphere, mSys);
-		/*		ChSharedPtr<ChSphereShape> sphere_shape = ChSharedPtr<ChAsset>(new ChSphereShape);
-		 sphere_shape->SetColor(ChColor(1, 0, 0));
-		 sphere_shape->GetSphereGeometry().rad = .06;
-		 sphere->GetAssets().push_back(sphere_shape);*/
 	}
 
 	float mWallMu = 1, container_width = 7.0, container_thickness = .1, container_height = 7.0, wscale = 1;
@@ -93,34 +92,32 @@ int main(int argc, char* argv[]) {
 	ChSharedBodyPtr B = ChSharedBodyPtr(new ChBody);
 	ChSharedBodyPtr BTM = ChSharedBodyPtr(new ChBody);
 
-	InitObject(L, 100000, ChVector<>(-container_width + container_thickness, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
-	InitObject(R, 100000, ChVector<>(container_width - container_thickness, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
-	InitObject(F, 100000, ChVector<>(0, 0, -container_width + container_thickness), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
-	InitObject(B, 100000, ChVector<>(0, 0, container_width - container_thickness), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
-	InitObject(BTM, 100000, ChVector<>(0, -container_height + container_thickness, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
+	InitObject(L, 100000, Vector(-container_width + container_thickness, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
+	InitObject(R, 100000, Vector(container_width - container_thickness, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
+	InitObject(F, 100000, Vector(0, 0, -container_width + container_thickness), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
+	InitObject(B, 100000, Vector(0, 0, container_width - container_thickness), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
+	InitObject(BTM, 100000, Vector(0, -container_height + container_thickness, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
 
-	AddCollisionGeometry(L, BOX, ChVector<>(container_thickness, container_height, container_width), lpos, quat);
-	AddCollisionGeometry(R, BOX, ChVector<>(container_thickness, container_height, container_width), lpos, quat);
-	AddCollisionGeometry(F, BOX, ChVector<>(container_width * wscale, container_height, container_thickness), lpos, quat);
-	AddCollisionGeometry(B, BOX, ChVector<>(container_width * wscale, container_height, container_thickness), lpos, quat);
-	AddCollisionGeometry(BTM, BOX, ChVector<>(container_width * wscale, container_thickness * .25, container_width), lpos, quat);
+	AddCollisionGeometry(L, BOX, Vector(container_thickness, container_height, container_width), lpos, quat);
+	AddCollisionGeometry(R, BOX, Vector(container_thickness, container_height, container_width), lpos, quat);
+	AddCollisionGeometry(F, BOX, Vector(container_width * wscale, container_height, container_thickness), lpos, quat);
+	AddCollisionGeometry(B, BOX, Vector(container_width * wscale, container_height, container_thickness), lpos, quat);
+	AddCollisionGeometry(BTM, BOX, Vector(container_width * wscale, container_thickness * .25, container_width), lpos, quat);
 
 	FinalizeObject(L, mSys);
 	FinalizeObject(R, mSys);
 	FinalizeObject(F, mSys);
 	FinalizeObject(B, mSys);
 	FinalizeObject(BTM, mSys);
-	mSys->DoStepDynamics(.01);
+
+	mSys->SetStep(0.01);
 	ChOpenGLManager * window_manager = new ChOpenGLManager();
-	ChOpenGL openGLView(window_manager, mSys, 800, 600, 0, 0, "LOL");
+	ChOpenGL openGLView(window_manager, mSys, 800, 600, 0, 0, "Test_Solvers");
 	openGLView.StartSpinning(window_manager);
-	//window_manager->EnableIdleFunction();
 	window_manager->CallGlutMainLoop();
 
 	//msolver->Solve(*mdescriptor,true);
-
 	//dump_matricies(*mdescriptor);
-
 	//ChLcpIterativePMINRES msolver_krylov(20, false, 0.00001);
 	//msolver_krylov.Solve(mdescriptor);
 
