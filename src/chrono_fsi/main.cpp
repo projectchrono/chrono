@@ -156,25 +156,27 @@ void CreateRigidBodiesRandom(
 		randLinVec.push_back(num);
 		inRandomFile >> num;
 	}
-	float xSpace = (cMax.x - cMin.x) / numSpheres;
+	float maxR = max(referenceR.x, referenceR.y);
+	maxR = max(maxR, referenceR.z);
+
+	float xSpace = (cMax.x - cMin.x) / (numSpheres + 1);
 	for (int i = 0; i < numSpheres; i++) {
 //		int index = (int)(randLinVec.size() - 1) * float (rand()) / RAND_MAX;
 //		float r = (4.5 * sizeScale) * randLinVec[index];
 
-		float maxR = max(referenceR.x, referenceR.y);
-		maxR = max(maxR, referenceR.z);
 
-//		float r = (channelRadius - maxR - 2 * HSML) * float (rand()) / RAND_MAX;
-						float r = (channelRadius - maxR - 2 * HSML) * (.2);
+
+		float r = (channelRadius - maxR - 2 * HSML) * float (rand()) / RAND_MAX;
+//						float r = (channelRadius - maxR - 2 * HSML) * (.2);
 
 		printf("sizeRandomLinear %d\n", randLinVec.size() );	//4.5 comes from channelRadius
-//		float teta = 2 * PI * float (rand()) / RAND_MAX;
-						float teta = 2 * PI * float (.2);
-		float3 pos = F3(cMin.x, .5 * (cMin.y + cMax.y), 0.5 * (cMin.z + cMax.z)) + F3( (i + 0.5) * xSpace, float(r  * cos(teta)), float(r *  sin(teta)) );
+		float teta = 2 * PI * float (rand()) / RAND_MAX;
+//						float teta = 2 * PI * float (.2);
+		float3 pos = F3(cMin.x, .5 * (cMin.y + cMax.y), 0.5 * (cMin.z + cMax.z)) + F3( (i + 1.0) * xSpace, float(r  * cos(teta)), float(r *  sin(teta)) );
 		rigidPos.push_back(pos);
 
-//		float4 dumQuat = F4(1 - 2.0 * float (rand()) / RAND_MAX, 1 - 2.0 * float (rand()) / RAND_MAX, 1 - 2.0 * float (rand()) / RAND_MAX, 1 - 2.0 * float (rand()) / RAND_MAX); //generate random quaternion
-						float4 dumQuat = F4(1,0,0,0);
+		float4 dumQuat = F4(1 - 2.0 * float (rand()) / RAND_MAX, 1 - 2.0 * float (rand()) / RAND_MAX, 1 - 2.0 * float (rand()) / RAND_MAX, 1 - 2.0 * float (rand()) / RAND_MAX); //generate random quaternion
+//						float4 dumQuat = F4(1,0,0,0);
 
 		dumQuat *= 1.0 / length(dumQuat);
 		mQuatRot.push_back(dumQuat);
@@ -320,6 +322,90 @@ void CreateRigidBodiesPatternPipe(
 		for  (float r = spaceRigids.x; r < channelRadius - spaceRigids.x; r += spaceRigids.x) {
 			float dTeta = spaceRigids.x / r;
 			 for (float teta = 0; teta < 2 * PI - dTeta; teta += dTeta) {
+				 float3 pos = F3(cMin.x, .5 * (cMin.y + cMax.y), 0.5 * (cMin.z + cMax.z)) +  F3(i * spaceRigids.x, float(r  * cos(teta)), float(r *  sin(teta)) );
+
+				 //printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
+				 rigidPos.push_back(pos);
+				 mQuatRot.push_back(F4(1, 0, 0, 0));
+				 ellipsoidRadii.push_back(referenceR);
+				 float mass;
+				 float3 j1, j2;
+				 CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x, referenceR.y, referenceR.z, rhoRigid);						//create Ellipsoid
+
+				spheresVelMas.push_back(F4(0, 0, 0, float(mass)));
+				rigidBodyOmega.push_back(F3(0, 0, 0));
+				rigidBody_J1.push_back(j1);
+				rigidBody_J2.push_back(j2);
+
+				float3 invJ1, invJ2;
+				CalcInvJ(j1, j2, invJ1, invJ2);
+				rigidBody_InvJ1.push_back(invJ1);
+				rigidBody_InvJ2.push_back(invJ2);
+			 }
+		}
+	}
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+void CreateRigidBodiesPatternPipe_KindaRandom(
+		thrust::host_vector<float3> & rigidPos,
+		thrust::host_vector<float4> & mQuatRot,
+		thrust::host_vector<float4> & spheresVelMas,
+		thrust::host_vector<float3> & rigidBodyOmega,
+		thrust::host_vector<float3> & rigidBody_J1,
+		thrust::host_vector<float3> & rigidBody_J2,
+		thrust::host_vector<float3> & rigidBody_InvJ1,
+		thrust::host_vector<float3> & rigidBody_InvJ2,
+		thrust::host_vector<float3> & ellipsoidRadii,
+		const float3 referenceR,
+		const float rhoRigid,
+		float3 cMin,
+		float3 cMax,
+		int numParticles) {
+
+	srand ( time(NULL) );
+	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
+	//printf("cMin %f %f %f, cMax %f %f %f\n", straightChannelBoundaryMin.x, straightChannelBoundaryMin.y, straightChannelBoundaryMin.z, straightChannelBoundaryMax.x, straightChannelBoundaryMax.y, straightChannelBoundaryMax.z);
+	float3 spaceRigids = 2 * (referenceR + 2 * F3(HSML));
+	float3 n3Rigids = (cMax - cMin) / spaceRigids;
+	int totalNumberPossibleParticles = 0;
+	for (int i = 1; i < n3Rigids.x ; i++) {
+		for  (float r = spaceRigids.x; r < channelRadius - spaceRigids.x; r += spaceRigids.x) {
+			float dTeta = spaceRigids.x / r;
+			 for (float teta = 0; teta < 2 * PI - dTeta; teta += dTeta) {
+				 totalNumberPossibleParticles ++;
+			 }
+		}
+	}
+	int skipCount = totalNumberPossibleParticles / numParticles;
+
+	printf("totalNumberPossibleParticles %d  skipCount %d\n", totalNumberPossibleParticles, skipCount);
+	int particleCounter = 0;
+	int loopCounter = -1;
+
+	for (int i = 1; i < n3Rigids.x ; i++) {
+		for  (float r = spaceRigids.x; r < channelRadius - spaceRigids.x; r += spaceRigids.x) {
+			float dTeta = spaceRigids.x / r;
+			 for (float teta = 0; teta < 2 * PI - dTeta; teta += dTeta) {
+				 loopCounter ++;
+				 int randomSeed = int(skipCount * float(rand() - 1) / RAND_MAX);
+				 bool goRandom = true;
+				 if (loopCounter < 0.8 * totalNumberPossibleParticles) {
+					 goRandom = true;
+				 } else {
+					 goRandom = false;
+				 }
+				 bool meetSeed;
+				 if (goRandom) {
+					// printf("loopCounter %d skipCount %d randomSeed %d\n", loopCounter, skipCount, randomSeed);
+					 meetSeed = (loopCounter % skipCount == randomSeed);
+				 } else {
+					 meetSeed = true;
+				 }
+//				 printf("meetSeed: %s\n",(meetSeed)?"true":"false");
+				 if (!meetSeed) continue;
+//				 printf("ha\n");
+				 if (particleCounter >= numParticles) continue;
+				 particleCounter ++;
 				 float3 pos = F3(cMin.x, .5 * (cMin.y + cMax.y), 0.5 * (cMin.z + cMax.z)) +  F3(i * spaceRigids.x, float(r  * cos(teta)), float(r *  sin(teta)) );
 
 				 //printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
@@ -995,7 +1081,10 @@ int main() {
 //	//channelRadius = 1.0 * sizeScale;
 //	CreateRigidBodiesPatternPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax);
 	//**
-	CreateRigidBodiesRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax, 4); //changed 2 to 4
+//	CreateRigidBodiesRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax, 4); //changed 2 to 4
+	CreateRigidBodiesPatternPipe_KindaRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax, 64);
+	printf("numRigids %d\n", rigidPos.size());
+	printf("rigid Radii %f %f %f\n", r3Ellipsoid.x, r3Ellipsoid.y, r3Ellipsoid.z);
 
 	thrust::host_vector<Rotation> rigidRotMatrix(mQuatRot.size());
 	ConvertQuatArray2RotArray(rigidRotMatrix, mQuatRot);

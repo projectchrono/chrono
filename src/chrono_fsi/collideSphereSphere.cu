@@ -1379,9 +1379,10 @@ void cudaCollisions(
 	FILE *outFileMultipleZones;
 
 	int povRayCounter = 0;
-	int stepEnd = 5;//0.7e6 * (.02 * sizeScale) / delT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
+	int stepEnd =0.7e6 * (.02 * sizeScale) / delT ; //1.4e6 * (.02 * sizeScale) / delT ;//0.7e6 * (.02 * sizeScale) / delT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
 	printf("stepEnd %d\n", stepEnd);
 
+	float delTOrig = delT;
 	//for (int tStep = 0; tStep < 0; tStep ++) {
 	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
 		//edit PrintToFile since yu deleted cyliderRotOmegaJD
@@ -1392,6 +1393,7 @@ void cudaCollisions(
 		cudaEventCreate(&stop2);
 		cudaEventRecord(start2, 0);
 
+		if (tStep < 1000) delT = 0.25 * delTOrig; else delT = delTOrig;
 		//computations
 		thrust::device_vector<float3> posRadD2 = posRadD;
 		thrust::device_vector<float4> velMasD2 = velMasD;
@@ -1445,8 +1447,8 @@ void cudaCollisions(
 
 		//************************************************
 		//edit PrintToFile since yu deleted cyliderRotOmegaJD
-//		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, cMax, cMin, paramsH,
-//				delT, tStep, channelRadius);
+		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, cMax, cMin, paramsH,
+				delT, tStep, channelRadius);
 
 //		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
 		//************
