@@ -369,7 +369,8 @@ void CreateRigidBodiesPatternPipe_KindaRandom(
 	float3 n3Rigids = (cMax - cMin) / spaceRigids;
 	int totalNumberPossibleParticles = 0;
 	for (int i = 1; i < n3Rigids.x ; i++) {
-		for  (float r = spaceRigids.x; r < channelRadius - spaceRigids.x; r += spaceRigids.x) {
+		for  (float r = 0.5 * spaceRigids.x; r < channelRadius - 0.5 * spaceRigids.x; r += spaceRigids.x) {
+			if (i == 1) printf("r %f\n", r);
 			float dTeta = spaceRigids.x / r;
 			 for (float teta = 0; teta < 2 * PI - dTeta; teta += dTeta) {
 				 totalNumberPossibleParticles ++;
@@ -383,7 +384,7 @@ void CreateRigidBodiesPatternPipe_KindaRandom(
 	int loopCounter = -1;
 
 	for (int i = 1; i < n3Rigids.x ; i++) {
-		for  (float r = spaceRigids.x; r < channelRadius - spaceRigids.x; r += spaceRigids.x) {
+		for  (float r = 0.5 * spaceRigids.x; r < channelRadius - 0.5 * spaceRigids.x; r += spaceRigids.x) {
 			float dTeta = spaceRigids.x / r;
 			 for (float teta = 0; teta < 2 * PI - dTeta; teta += dTeta) {
 				 loopCounter ++;
