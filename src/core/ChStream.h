@@ -163,6 +163,7 @@ public:
 	ChStreamOutAscii& operator <<(const char*	str);
 	ChStreamOutAscii& operator <<(std::string&	str);
 	ChStreamOutAscii& operator <<(unsigned long unVal);
+    ChStreamOutAscii& operator <<(unsigned long long unVal);
 
 	template<class T>
 	ChStreamOutAscii& operator <<(T& obj)
