@@ -7,7 +7,7 @@
 #include "lcp/ChLcpIterativeBB.h"
 #include "lcp/ChLcpSimplexSolver.h"
 #include "core/ChLinearAlgebra.h"
-#include "physics/ChSystemSlim.h"
+#include "physics/ChSystemOpenMP.h"
 #include "assets/ChSphereShape.h"
 #include "physics/ChApidll.h"
 #include "physics/ChSystem.h"
@@ -31,7 +31,7 @@ using namespace chrono;
 #define CHCONTACTCONT ChContactContainer
 #define CHSOLVER ChLcpIterativeJacobi
 #define CHMODEL ChModelBullet
-#define CHSYS ChSystemSlim
+#define CHSYS ChSystemOpenMP
 
 void dump_matricies(ChLcpSystemDescriptor& mdescriptor) {
 	chrono::ChSparseMatrix mdM;
@@ -57,7 +57,7 @@ void dump_matricies(ChLcpSystemDescriptor& mdescriptor) {
 
 int main(int argc, char* argv[]) {
 
-    ChSystemSlim* mSys = new ChSystemSlim();
+    ChSystemOpenMP* mSys = new ChSystemOpenMP();
 	ChLcpSystemDescriptor *mdescriptor = new ChLcpSystemDescriptor();
 	ChContactContainer *mcontactcontainer = new ChContactContainer();
 	ChCollisionSystemBullet *mcollisionengine = new ChCollisionSystemBullet();
