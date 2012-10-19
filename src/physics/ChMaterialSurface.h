@@ -206,7 +206,7 @@ public:
 	virtual void StreamIN(ChStreamInBinary& mstream)
 						{
 							// class version number
-							int version = mstream.VersionRead();
+							//int version = mstream.VersionRead(); //unused
 
 							// deserialize parent class too
 							//ChShared::StreamIN(mstream); // nothing 

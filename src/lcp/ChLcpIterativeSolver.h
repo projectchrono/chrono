@@ -74,9 +74,9 @@ public:
 			  tot_iterations(0),
 			  warm_start(mwarm_start), 
 			  tolerance(mtolerance),
-			  record_violation_history(false),
 			  omega(momega),
-			  shlambda(mshlambda)
+			  shlambda(mshlambda),
+              record_violation_history(false)
 			{
 				violation_history.clear();
 				dlambda_history.clear();

@@ -102,7 +102,7 @@ private:
 //
 
 
-#if (defined(__linux__)||defined(__APPLE__))
+#if (defined(__linux__)||defined(APPLE))
 
 #include <pthread.h>
 #include <semaphore.h>

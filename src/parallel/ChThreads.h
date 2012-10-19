@@ -26,10 +26,9 @@
 	#include "ChThreadsWIN32.h"
 #endif
 
-#if (defined(__linux__) || defined(__APPLE__))
-	#include "ChThreadsPOSIX.h"
+#if (defined(__linux__) || defined(APPLE))
+    #include "ChThreadsPOSIX.h"
 #endif
-
 
 
 namespace chrono
