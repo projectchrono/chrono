@@ -90,8 +90,6 @@ SET(ENABLE_UNIT_MPI      FALSE   CACHE BOOL   "Turn this ON to generate the Chro
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
-elseif(CMAKE_CONFIGURATION_TYPES)
-SET(CMAKE_CONFIGURATION_TYPES ${CMAKE_CONFIGURATION_TYPES} Release CACHE STRING "" FORCE)
 endif()
 
 #set(CH_COMPILER "" CACHE STRING "Set Compiler Type, Re-Run configure after changing")
