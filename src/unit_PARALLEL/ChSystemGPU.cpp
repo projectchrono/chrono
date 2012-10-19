@@ -1,5 +1,5 @@
 #include "ChSystemGPU.h"
-#include <omp.h>
+//#include <omp.h>
 
 namespace chrono {
 
@@ -189,7 +189,7 @@ void ChSystemGPU::AddBody(ChSharedPtr<ChBodyGPU> newbody) {
 	gpu_data_manager->host_trq_data.push_back(F3(mbodyvar->Get_fb().ElementN(3), mbodyvar->Get_fb().ElementN(4), mbodyvar->Get_fb().ElementN(5))); //torques
 	gpu_data_manager->host_aux_data.push_back(F3(newbody->IsActive(), newbody->GetKfriction(), inv_mass));
 	gpu_data_manager->host_lim_data.push_back(F3(newbody->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
-	newbody->gpu_data_manager = gpu_data_manager;
+	//newbody->gpu_data_manager = gpu_data_manager;
 	counter++;
 	gpu_data_manager->number_of_objects = counter;
 }

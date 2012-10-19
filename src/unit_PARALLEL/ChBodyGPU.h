@@ -18,9 +18,9 @@
 #include "physics/ChBody.h"
 #include "ChApiGPU.h"
 #include "ChCCollisionModelGPU.h"
-#include "core/ChCoordsys.h"
-#include "core/ChTrasform.h"
-#include "ChDataManager.h"
+//#include "core/ChCoordsys.h"
+//#include "core/ChTrasform.h"
+//#include "ChDataManager.h"
 namespace chrono {
 using namespace collision;
 
@@ -180,7 +180,7 @@ public:
 	}*/
 
 	ChVector<> mAppliedForce;
-	ChGPUDataManager *gpu_data_manager;
+	//ChGPUDataManager *gpu_data_manager;
 	int id;
 
 private:

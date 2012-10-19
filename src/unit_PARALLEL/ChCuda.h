@@ -10,9 +10,7 @@
 //#define THRUST_DEBUG
 #include <time.h>
 #include <iostream>
-#include <cutil.h>
-#include <cutil_math.h>
-#include <cutil_inline.h>
+#include <helper_math.h>
 #include <thrust/sort.h>
 #include <thrust/copy.h>
 #include <thrust/count.h>
@@ -21,11 +19,11 @@
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 #include <thrust/iterator/constant_iterator.h>
-#include <thrust/set_operations.h>
+//#include <thrust/set_operations.h>
 #include <thrust/functional.h>
 #include <thrust/unique.h>
 #include "ChApiGPU.h"
-#include <omp.h>
+//#include <omp.h>
 #include <vector>
 using namespace std;
 using namespace thrust;
@@ -108,7 +106,8 @@ typedef unsigned int uint;
 #define Thrust_Max(x)					x[thrust::max_element(x.begin(),x.end())-x.begin()]
 #define Thrust_Min(x)					x[thrust::max_element(x.begin(),x.end())-x.begin()]
 #define Thrust_Total(x)					thrust::reduce(x.begin(),x.end())
-#define DBG(x)							printf(x);CUT_CHECK_ERROR(x);
+#define DBG(x)							printf(x);
+//CUT_CHECK_ERROR(x);
 
 #define	_SPHERE 0
 #define	_ELLIPSOID 1
@@ -128,17 +127,17 @@ typedef unsigned int uint;
 #define EPS FLT_EPSILON
 
 __device__ __host__ bool operator ==(const uint3 &a, const uint3 &b) {
-	return ((a.x == b.x) && (a.y == b.y) && (a.z == b.z));
+    return ((a.x == b.x) && (a.y == b.y) && (a.z == b.z));
 }
 
 __device__ __host__ inline void Swap(float3& a, float3& b) {
-	float3 tmp = a;
-	a = b;
-	b = tmp;
+    float3 tmp = a;
+    a = b;
+    b = tmp;
 }
 
 __device__ __host__ inline float4 inv(const float4& a) {
-	return (1.0f / (dot(a, a))) * F4(a.x, -a.y, -a.z, -a.w);
+    return (1.0f / (dot(a, a))) * F4(a.x, -a.y, -a.z, -a.w);
 }
 
 //__device__ __host__ inline float4 operator ~(const float4& a)

@@ -19,8 +19,7 @@
 #include <vector>
 #include "../collision/ChCCollisionModel.h"
 #include "ChApiGPU.h"
-#include <cutil_inline.h>
-#include <cutil_math.h>
+#include <helper_math.h>
 using namespace std;
 namespace chrono
 {
