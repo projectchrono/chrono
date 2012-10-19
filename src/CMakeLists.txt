@@ -357,6 +357,7 @@ IF (BUILD_CH_SDK)
 		physics/ChLinkMate.cpp 
 		physics/ChHistory.cpp 
 		physics/ChSystem.cpp 
+		physics/ChSystemSlim.cpp
 		physics/ChGlobal.cpp 
 		physics/ChEvents.cpp 
 		physics/ChMocap.cpp 
@@ -495,6 +496,7 @@ IF (BUILD_CH_SDK)
 		physics/ChSolvmin.h
 		physics/ChStack.h
 		physics/ChSystem.h
+		physics/ChSystemSlim.h
 		physics/ChAssembly.h
 		physics/ChBodyDEM.h
 		physics/ChContactContainerDEM.h

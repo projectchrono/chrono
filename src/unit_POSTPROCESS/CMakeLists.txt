@@ -14,15 +14,17 @@ IF(ENABLE_UNIT_POSTPROCESS)
 	# NOTE: to add a new source to this unit, just add its name
 	# here and re-run the CMake.
 	#
-	include(ExternalProject)
-	ExternalProject_Add( "TinyXML2" PREFIX "${CMAKE_BINARY_DIR}/tinyxml2/" GIT_REPOSITORY "git://github.com/leethomason/tinyxml2.git" CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND "")
-	find_file(TINYXML2_CPP "tinyxml2.cpp" "${CMAKE_BINARY_DIR}/tinyxml2/src/TinyXML2")
-	find_file(TINYXML2_H "tinyxml2.h" "${CMAKE_BINARY_DIR}/tinyxml2/src/TinyXML2")
+	#include(ExternalProject)
+	#ExternalProject_Add( "TinyXML2" PREFIX "${CMAKE_BINARY_DIR}/tinyxml2/" GIT_REPOSITORY "git://github.com/leethomason/tinyxml2.git" CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND "")
+
+	#find_file(TINYXML2_CPP "tinyxml2.cpp" "${CMAKE_BINARY_DIR}/tinyxml2/src/TinyXML2")
+	#find_file(TINYXML2_H "tinyxml2.h" "${CMAKE_BINARY_DIR}/tinyxml2/src/TinyXML2")
+	
 	SET(ChronoEngine_UNIT_POSTPROCESS_SOURCES 
 		ChPovRay.cpp
 		ChPovRayAssetCustom.cpp
 		ChMitsubaRender.cpp
-	    ${TINYXML2_CPP}
+	   	xml/tinyxml2.cpp
 		)
 	SET(ChronoEngine_UNIT_POSTPROCESS_HEADERS
 		ChApiPostProcess.h 
@@ -30,7 +32,7 @@ IF(ENABLE_UNIT_POSTPROCESS)
 		ChPovRayAssetCustom.h
 		ChMitsubaRender.h
 		ChPostProcessBase.h
-	    ${TINYXML2_H}
+	        xml/tinyxml2.h
 		)
 	#SET_SOURCE_FILES_PROPERTIES(ChronoEngine_UNIT_POSTPROCESS_HEADERS PROPERTIES  HEADER_FILE_ONLY)
 	SOURCE_GROUP(unit_POSTPROCESS FILES 

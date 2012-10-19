@@ -154,7 +154,7 @@ int ChFile::ParseNext (double* m_double)
 	
 int ChFile::ParseNext (char m_string[])
 {
-	int success = -1;
+	//int success = -1; //unused
 
 	while (fscanf  (handler, "%s", &buffer) != EOF) {
 		if (memcmp(buffer, "#",1) == 0) 

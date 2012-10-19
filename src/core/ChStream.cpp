@@ -360,7 +360,7 @@ ChStreamInAscii& ChStreamInAscii::operator >>( char* str)
 
 ChStreamInAscii& ChStreamInAscii::operator >>(std::string &str)
 {
-	bool stop = 0;
+	//bool stop = 0; //unused
 	int cnt = 0;
 	char loa[2];
 	loa[1]=0;

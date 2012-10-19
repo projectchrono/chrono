@@ -7,7 +7,7 @@
 #include "lcp/ChLcpIterativeBB.h"
 #include "lcp/ChLcpSimplexSolver.h"
 #include "core/ChLinearAlgebra.h"
-#include "physics/ChSystem.h"
+#include "physics/ChSystemSlim.h"
 #include "assets/ChSphereShape.h"
 #include "physics/ChApidll.h"
 #include "physics/ChSystem.h"
@@ -31,7 +31,7 @@ using namespace chrono;
 #define CHCONTACTCONT ChContactContainer
 #define CHSOLVER ChLcpIterativeJacobi
 #define CHMODEL ChModelBullet
-#define CHSYS ChSystem
+#define CHSYS ChSystemSlim
 
 void dump_matricies(ChLcpSystemDescriptor& mdescriptor) {
 	chrono::ChSparseMatrix mdM;
@@ -57,15 +57,15 @@ void dump_matricies(ChLcpSystemDescriptor& mdescriptor) {
 
 int main(int argc, char* argv[]) {
 
-	ChSystem* mSys = new ChSystem();
+    ChSystemSlim* mSys = new ChSystemSlim();
 	ChLcpSystemDescriptor *mdescriptor = new ChLcpSystemDescriptor();
 	ChContactContainer *mcontactcontainer = new ChContactContainer();
 	ChCollisionSystemBullet *mcollisionengine = new ChCollisionSystemBullet();
 	//ChLcpIterativeJacobi *msolver = new ChLcpIterativeJacobi();
-	//ChLcpIterativeSOR *msolver = new ChLcpIterativeSOR();
+	ChLcpIterativeSOR *msolver = new ChLcpIterativeSOR();
 	//ChLcpIterativeMINRES *msolver = new ChLcpIterativeMINRES();
 	//ChLcpIterativePMINRES *msolver = new ChLcpIterativePMINRES();
-	ChLcpIterativeBB *msolver = new ChLcpIterativeBB();
+	//ChLcpIterativeBB *msolver = new ChLcpIterativeBB();
 
 	mSys->ChangeLcpSystemDescriptor(mdescriptor);
 	mSys->ChangeContactContainer(mcontactcontainer);
@@ -114,12 +114,21 @@ int main(int argc, char* argv[]) {
 // 	ChOpenGLManager * window_manager = new ChOpenGLManager();
 // 	ChOpenGL openGLView(window_manager, mSys, 800, 600, 0, 0, "Test_Solvers");
 // 	openGLView.StartSpinning(window_manager);
-// 	window_manager->CallGlutMainLoop();
+// 	//window_manager->CallGlutMainLoop();
 
 	//msolver->Solve(*mdescriptor,true);
 	//dump_matricies(*mdescriptor);
 	//ChLcpIterativePMINRES msolver_krylov(20, false, 0.00001);
 	//msolver_krylov.Solve(mdescriptor);
+    
+    int counter=0;
+    while(counter<1000){
+        mSys->DoStepDynamics(.01);
+        cout<<counter<<endl;
+        counter++;
+        
+    }
+    
 
 	return 0;
 }
