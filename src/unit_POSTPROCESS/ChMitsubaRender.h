@@ -20,7 +20,7 @@
 #include <vector>
 #include <utility>
 #include <sstream>
-#include "tinyxml2.h"
+#include "xml/tinyxml2.h"
 #include "physics/ChSystem.h"
 #include "ChPostProcessBase.h"
 #include "assets/ChSphereShape.h"
