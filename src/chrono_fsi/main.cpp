@@ -365,7 +365,8 @@ void CreateRigidBodiesPatternPipe_KindaRandom(
 	srand ( time(NULL) );
 	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
 	//printf("cMin %f %f %f, cMax %f %f %f\n", straightChannelBoundaryMin.x, straightChannelBoundaryMin.y, straightChannelBoundaryMin.z, straightChannelBoundaryMax.x, straightChannelBoundaryMax.y, straightChannelBoundaryMax.z);
-	float3 spaceRigids = 2 * (referenceR + 2 * F3(HSML));
+//	float3 spaceRigids = 2 * (referenceR + 2 * F3(HSML));
+	float3 spaceRigids = 2 * (referenceR + 1.1 * F3(HSML));
 	float3 n3Rigids = (cMax - cMin) / spaceRigids;
 	int totalNumberPossibleParticles = 0;
 	for (int i = 1; i < n3Rigids.x ; i++) {
