@@ -66,7 +66,7 @@ int main() {
 	ChLCPDESC * mGPUDescriptor = new ChLCPDESC();
 	ChCONTACTCONT *mGPUContactContainer = new ChCONTACTCONT();
 	ChCOLLISIONSYS *mGPUCollisionEngine = new ChCOLLISIONSYS();
-	ChSOLVER *mGPUsolverSpeed = new ChSOLVER(mGPUContactContainer);
+	ChSOLVER *mGPUsolverSpeed = new ChSOLVER();
 
 	mSys->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD);
 
