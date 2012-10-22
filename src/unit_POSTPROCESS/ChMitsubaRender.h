@@ -46,9 +46,9 @@ public:
 	ChMitsubaRender(ChSystem* system);
 	~ChMitsubaRender() {
 	}
-
 	void ExportScript(const std::string &filename);
 	void ExportData(const std::string &filename);
+    void ExportDriver(const std::string &filename);
 	void SetIntegrator(string type, bool irrcache = false, int irrcache_res = 6) {
 		integrator = type;
 		use_irrcache = irrcache;
@@ -102,6 +102,10 @@ public:
 	void SetDataFolder(string folder) {
 		data_folder = folder;
 	}
+    void SetRenderFolder(string folder) {
+		render_folder = folder;
+	}
+
 	void AddIntegrator();
 	void AddSensor();
 	void AddObject(ChSharedPtr<ChAsset> & asset, ChBody * abody);
@@ -110,7 +114,7 @@ public:
 	int height, width, irr_resolution;
 	vector<xml_option> integrator_options, sensor_options, sampler_options, film_options;
 	ChVector<> camera_target, camera_origin, camera_up;
-	string data_folder;
+	string data_folder, render_folder;
 	XMLDocument doc, data;
 	XMLElement* root, *root_data;
 

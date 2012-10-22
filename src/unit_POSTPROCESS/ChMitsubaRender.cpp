@@ -77,24 +77,35 @@ void ChMitsubaRender::AddSensor() {
 }
 
 void ChMitsubaRender::AddObject(ChSharedPtr<ChAsset> & asset, ChBody * abody) {
-	XMLElement* xml = data.NewElement("shape");
+	
 
 	if (asset.IsType<ChSphereShape>()) {
+        XMLElement* xml = data.NewElement("shape");
 		xml->SetAttribute("type", "sphere");
+       
 
+        
+        
 		ChSphereShape * sphere_shape = ((ChSphereShape *) (asset.get_ptr()));
+        
+        XMLElement* xml_pos = data.NewElement("float");
+		xml_pos->SetAttribute("name", "radius");
+		xml_pos->SetAttribute("value", sphere_shape->GetSphereGeometry().rad);
+		xml->LinkEndChild(xml_pos);
+        
 		XMLElement* xml_transform = data.NewElement("transform");
 		xml_transform->SetAttribute("name", "toWorld");
 
-		XMLElement* xml_pos = data.NewElement("translate");
+		xml_pos = data.NewElement("translate");
 		xml_pos->SetAttribute("x", double(abody->GetPos().x));
 		xml_pos->SetAttribute("y", double(abody->GetPos().y));
 		xml_pos->SetAttribute("z", double(abody->GetPos().z));
 		xml_transform->LinkEndChild(xml_pos);
-		xml_pos = data.NewElement("scale");
-		xml_pos->SetAttribute("value", sphere_shape->GetSphereGeometry().rad);
-		xml_transform->LinkEndChild(xml_pos);
+		//xml_pos = data.NewElement("scale");
+		//xml_pos->SetAttribute("value", sphere_shape->GetSphereGeometry().rad);
+		//xml_transform->LinkEndChild(xml_pos);
 		xml->LinkEndChild(xml_transform);
+        root_data->LinkEndChild(xml);
 
 	}
 	//if (asset.IsType<ChGenericRender>()) {
@@ -119,9 +130,8 @@ void ChMitsubaRender::AddObject(ChSharedPtr<ChAsset> & asset, ChBody * abody) {
 		//xml_pos->SetAttribute("name", "radius");
 		//xml_pos->SetAttribute("value", box_shape->GetSphereGeometry().rad);
 		//xml->LinkEndChild(xml_pos);
-
 	//}
-	root_data->LinkEndChild(xml);
+	
 }
 
 ChMitsubaRender::ChMitsubaRender(ChSystem* system) :
@@ -215,5 +225,20 @@ void ChMitsubaRender::ExportData(const std::string &filename) {
 
 	data.InsertEndChild(root_data);
 	data.SaveFile(filename.c_str());
+}
+
+void ChMitsubaRender::ExportDriver(const std::string &filename){
+    ofstream of(filename.c_str());
+    
+    of<<"#!sh"<<endl;
+    of<<"for i in {0..999}"<<endl;
+    of<<"do"<<endl;
+    of<<"/Applications/Mitsuba.app/Contents/MacOS/mitsuba -D  file=$i -o "<<render_folder<<"/$i.png test.xml"<<endl;
+    of<<"done"<<endl;
+    
+    
+    
+    
+    
 }
 
