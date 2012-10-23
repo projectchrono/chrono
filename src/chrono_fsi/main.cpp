@@ -370,7 +370,8 @@ void CreateRigidBodiesPatternPipe_KindaRandom(
 	float3 n3Rigids = (cMax - cMin) / spaceRigids;
 	int totalNumberPossibleParticles = 0;
 	for (int i = 1; i < n3Rigids.x ; i++) {
-		for  (float r = 0.5 * spaceRigids.x; r < channelRadius - 0.5 * spaceRigids.x; r += spaceRigids.x) {
+		float shiftR = float(i % 4) / 4 * 2 * referenceR.x;
+		for  (float r = 0.5 * spaceRigids.x + shiftR; r < channelRadius - 0.5 * spaceRigids.x; r += spaceRigids.x) {
 			if (i == 1) printf("r %f\n", r);
 			float dTeta = spaceRigids.x / r;
 			 for (float teta = 0; teta < 2 * PI - dTeta; teta += dTeta) {
@@ -1084,7 +1085,7 @@ int main() {
 //	CreateRigidBodiesPatternPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax);
 	//**
 //	CreateRigidBodiesRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax, 4); //changed 2 to 4
-	CreateRigidBodiesPatternPipe_KindaRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax, 64);
+	CreateRigidBodiesPatternPipe_KindaRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax, 128);
 	printf("numRigids %d\n", rigidPos.size());
 	printf("rigid Radii %f %f %f\n", r3Ellipsoid.x, r3Ellipsoid.y, r3Ellipsoid.z);
 
