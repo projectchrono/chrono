@@ -230,15 +230,11 @@ void ChMitsubaRender::ExportData(const std::string &filename) {
 void ChMitsubaRender::ExportDriver(const std::string &filename){
     ofstream of(filename.c_str());
     
-    of<<"#!sh"<<endl;
+    of<<"#!/bin/sh"<<endl;
     of<<"for i in {0..999}"<<endl;
     of<<"do"<<endl;
     of<<"/Applications/Mitsuba.app/Contents/MacOS/mitsuba -D  file=$i -o "<<render_folder<<"/$i.png test.xml"<<endl;
     of<<"done"<<endl;
-    
-    
-    
-    
     
 }
 
