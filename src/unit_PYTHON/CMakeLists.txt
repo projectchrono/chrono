@@ -159,20 +159,29 @@ IF(ENABLE_UNIT_PYTHON)
 						)
 	SET_TARGET_PROPERTIES(${SWIG_MODULE_ChronoEngine_PYTHON_core_REAL_NAME} PROPERTIES 
 					PROJECT_LABEL "ChronoEngine_PYTHON_core"
-					LIBRARY_OUTPUT_DIRECTORY ".")
+					OUTPUT_NAME   "_ChronoEngine_PYTHON_core"
+					RUNTIME_OUTPUT_DIRECTORY "${CH_PYTHONDIR_PYD}"
+					LIBRARY_OUTPUT_DIRECTORY "${CH_PYTHONDIR_PYD}"	
+					)
 						
-	
-	
-	#ADD_CUSTOM_COMMAND(
-	#			TARGET ${SWIG_MODULE_ChronoEngine_PYTHON_core_REAL_NAME}
-	#			POST_BUILD
-	#			COMMAND ${CMAKE_COMMAND} -E copy
-	#				${CH_CHRONOSHAREDLNAME}
-	#				"${CH_PYTHONDIR_PYD}/${CH_LIBNAME}${CH_LIBNAMEPOSTFIXSHARED}"
-	#			COMMAND ${CMAKE_COMMAND} -E copy
-	#				${CH_CHRONOSHAREDLNAME_DBG}
-	#				"${CH_PYTHONDIR_PYD}/${CH_LIBNAME}DBG${CH_LIBNAMEPOSTFIXSHARED}"
-	#				)
+	# To complete the build process, the .pyd and necessary .dll libraries 
+	# must be copied into the DLLs directory (it will be needed by the .pyd file), so..
+			#  ... get the name of the most recent Chrono::Engine library to copy:
+	GET_TARGET_PROPERTY(CH_CHRONO_LIBNAME ChronoEngine LOCATION)
+			#  ... get the name of the .pyd library to copy:
+	GET_TARGET_PROPERTY(CH_CHRONOPYD_LIBNAME ${SWIG_MODULE_ChronoEngine_PYTHON_core_REAL_NAME} LOCATION)
+			#  ...then copy it to the DLLs Python folder with .pyd and .dll files
+	ADD_CUSTOM_COMMAND(
+				TARGET ${SWIG_MODULE_ChronoEngine_PYTHON_core_REAL_NAME}
+				POST_BUILD
+				COMMAND ${CMAKE_COMMAND} -E copy 
+					${CH_CHRONO_LIBNAME} 
+					${CH_PYTHONDIR_PYD}/.
+				COMMAND ${CMAKE_COMMAND} -E copy 
+					${CH_CHRONOPYD_LIBNAME} 
+					${CH_PYTHONDIR_PYD}/.
+				)
+				
 					
 	#SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 	SET_TARGET_PROPERTIES(${SWIG_MODULE_ChronoEngine_PYTHON_core_REAL_NAME} PROPERTIES
@@ -224,18 +233,28 @@ IF(ENABLE_UNIT_PYTHON)
 							)
 		SET_TARGET_PROPERTIES(${SWIG_MODULE_ChronoEngine_PYTHON_postprocess_REAL_NAME} PROPERTIES 
 						PROJECT_LABEL "ChronoEngine_PYTHON_postprocess"
-						LIBRARY_OUTPUT_DIRECTORY ".")
-								
-		#ADD_CUSTOM_COMMAND(
-		#			TARGET ${SWIG_MODULE_ChronoEngine_PYTHON_postprocess_REAL_NAME}
-		#			POST_BUILD
-		#			COMMAND ${CMAKE_COMMAND} -E copy
-		#				${CH_CHRONOPOSTPROCESSSHAREDLNAME}
-		#				"${CH_PYTHONDIR_PYD}/${CH_LIBNAME}_POSTPROCESS${CH_LIBNAMEPOSTFIXSHARED}"
-		#			COMMAND ${CMAKE_COMMAND} -E copy
-		#				${CH_CHRONOPOSTPROCESSSHAREDLNAME_DBG}
-		#				"${CH_PYTHONDIR_PYD}/${CH_LIBNAME}_POSTPROCESSDBG${CH_LIBNAMEPOSTFIXSHARED}"
-		#				)
+						OUTPUT_NAME   "_ChronoEngine_PYTHON_postprocess"
+						LIBRARY_OUTPUT_DIRECTORY "."	
+						)
+		
+		# To complete the build process, the .pyd and necessary .dll libraries 
+		# must be copied into the DLLs directory (it will be needed by the .pyd file), so..
+				#  ... get the name of the most recent Chrono::Engine postprocess library to copy:
+		GET_TARGET_PROPERTY(CH_CHRONOPOSTPROCESS_LIBNAME ChronoEngine_POSTPROCESS LOCATION)
+				#  ... get the name of the .pyd library to copy:
+		GET_TARGET_PROPERTY(CH_CHRONOPOSTPROCESSPYD_LIBNAME ${SWIG_MODULE_ChronoEngine_PYTHON_postprocess_REAL_NAME} LOCATION)
+				#  ... then copy them to the DLLs Python folder for .pyd and .dll files
+		ADD_CUSTOM_COMMAND(
+					TARGET ${SWIG_MODULE_ChronoEngine_PYTHON_postprocess_REAL_NAME}
+					POST_BUILD
+					COMMAND ${CMAKE_COMMAND} -E copy 
+						${CH_CHRONOPOSTPROCESS_LIBNAME} 
+						${CH_PYTHONDIR_PYD}/.
+					COMMAND ${CMAKE_COMMAND} -E copy 
+						${CH_CHRONOPOSTPROCESSPYD_LIBNAME} 
+						${CH_PYTHONDIR_PYD}/.
+					)
+					
 						
 		#SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 		SET_TARGET_PROPERTIES(${SWIG_MODULE_ChronoEngine_PYTHON_postprocess_REAL_NAME} PROPERTIES
