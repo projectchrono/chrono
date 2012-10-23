@@ -1,5 +1,17 @@
 #ifndef CHCOLOR_H
 #define CHCOLOR_H
+
+///////////////////////////////////////////////////
+//
+//   ChColor.h
+//
+//   Class for storing a color as an object asset
+//
+//   HEADER file for CHRONO,
+//	 Multibody dynamics engine
+//
+///////////////////////////////////////////////////
+
 #include "assets/ChAsset.h"
 
 namespace chrono {

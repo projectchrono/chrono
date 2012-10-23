@@ -1,10 +1,22 @@
 #ifndef CHMATERIAL_H
 #define CHMATERIAL_H
 
+///////////////////////////////////////////////////
+//
+//   ChColor.h
+//
+//   Class for storing a color as an object asset
+//
+//   HEADER file for CHRONO,
+//	 Multibody dynamics engine
+//
+///////////////////////////////////////////////////
+
 #include "assets/ChAsset.h"
 #include "assets/ChColor.h"
 #include <string>
 #include <vector>
+
 using namespace std;
 namespace chrono {
 enum ChMaterialType {
