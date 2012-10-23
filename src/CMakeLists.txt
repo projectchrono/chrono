@@ -18,7 +18,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 # This to avoid in-source builds. 
 
 IF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
-  MESSAGE( FATAL_ERROR  "In-source build is not possible and not reccomended. Choose an empty directory for build output.")
+    MESSAGE( FATAL_ERROR  "In-source build is not possible and not reccomended. Choose an empty directory for build output.")
 ENDIF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 
 ENABLE_TESTING()
@@ -38,7 +38,7 @@ MARK_AS_ADVANCED(CMAKE_INSTALL_PREFIX)
 # Disable the warning when adding a subdir that has not CMakeLists.txt
 
 if(COMMAND cmake_policy)
-  cmake_policy(SET CMP0014 OLD)
+    cmake_policy(SET CMP0014 OLD)
 endif(COMMAND cmake_policy)
 
 # Be sure to avoid troubles with library paths when using old policy
@@ -87,48 +87,43 @@ SET(ENABLE_UNIT_MPI      FALSE   CACHE BOOL   "Turn this ON to generate the Chro
 # the compiler, generator, platform, etc....
 
 # Set a default build type if none was specified
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
-    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
-endif()
 
-#set(CH_COMPILER "" CACHE STRING "Set Compiler Type, Re-Run configure after changing")
+if(MSVC OR XCODE_VERSION)
+    SET(CMAKE_CONFIGURATION_TYPES Release CACHE STRING "Choose the type of build.")
+    SET_PROPERTY(CACHE CMAKE_CONFIGURATION_TYPES PROPERTY STRINGS Debug Release)
+    file( COPY ${CMAKE_SOURCE_DIR}/demos/data/ DESTINATION ${CMAKE_BINARY_DIR}/bin/data/ PATTERN .svn EXCLUDE)
+    SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+    mark_as_advanced(FORCE CMAKE_BUILD_TYPE)
+    mark_as_advanced(CLEAR CMAKE_CONFIGURATION_TYPES)
+ELSE()
+    SET(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build.")
+    SET_PROPERTY(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release MinSizeRel RelWithDebInfo)
+    file( COPY ${CMAKE_SOURCE_DIR}/demos/data/ DESTINATION ${CMAKE_BINARY_DIR}/data/ PATTERN .svn EXCLUDE)
+ENDIF()
+#-----------------------------------------------------------------------------
+SET(CH_COMPILER " " CACHE STRING "Compiler Type" FORCE)
 
-IF (MINGW OR CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+IF (MINGW OR CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_CLANGXX)
     IF (CMAKE_SIZEOF_VOID_P MATCHES 4)
-        set (CH_COMPILER "COMPILER_GCC")
+        SET (CH_COMPILER "COMPILER_GCC" CACHE STRING "Compiler Type" FORCE)
     ELSE()
-        set (CH_COMPILER "COMPILER_GCC_X64")
-    ENDIF()
-ELSEIF (MSVC)
-    # Force only two types of configurations, for multi-configuration generators
-    SET(CMAKE_CONFIGURATION_TYPES  "Debug" "Release"  CACHE INTERNAL  "Allowed configuration types" FORCE)
-    IF (CMAKE_CL_64)
-        set (CH_COMPILER "COMPILER_MSVC_X64")
-    ELSE()
-        set (CH_COMPILER "COMPILER_MSVC")
+        SET (CH_COMPILER "COMPILER_GCC_X64" CACHE STRING "Compiler Type" FORCE)
     ENDIF()
 ENDIF()
 
-#message(STATUS "Detected CH_COMPILER='${DETECTED_CH_COMPILER}'")
-#message(STATUS "Detected CH_OS='${CMAKE_SYSTEM_NAME}'")
+IF (MSVC AND CMAKE_CL_64)
+    SET (CH_COMPILER "COMPILER_MSVC_X64" CACHE STRING "Compiler Type" FORCE)
+ELSEIF(MSVC)
+    SET (CH_COMPILER "COMPILER_MSVC" CACHE STRING "Compiler Type" FORCE)
+ENDIF()
+
+message(${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
 #set(CH_COMPILER "${DETECTED_CH_COMPILER}" CACHE STRING "Set Compiler Type, Re-Run configure after changing")
 #set(CH_COMPILER_VALUES "COMPILER_MSVC;COMPILER_GCC;COMPILER_MSVC_X64;COMPILER_GCC_X64")
 #set_property(CACHE CH_COMPILER PROPERTY STRINGS ${CH_COMPILER_VALUES})
 
-#set(CH_OS "${DETECTED_CH_OS}" CACHE STRING "Set OS, Re-Run configure after changing")
-#set(CH_OS_VALUES "WINDOWS;LINUX")
-#set_property(CACHE CH_OS PROPERTY STRINGS ${CH_OS_VALUES})
-
-# To hide unneeded stuff from GUI (require refresh by pressing 'configure', anyway)
-
-#IF(BUILD_CH_SDK)
-#ELSE()
-#	SET(ENABLE_UNIT_MPI FALSE)
-#	SET(ENABLE_UNIT_JS  FALSE)
-#	SET(ENABLE_UNIT_GPU FALSE)
-#ENDIF()
+set(CH_OS "${CMAKE_SYSTEM_NAME}" CACHE STRING "Set OS, Re-Run configure after changing")
 
 #-----------------------------------------------------------------------------
 # Generate configuration.h file
@@ -146,25 +141,14 @@ ENDIF()
 # Find the Chrono::Engine headers and related stuff contained
 # in its SDK, and setup related variables
 
-#get_filename_component(DETECTED_CH_PATH_SOURCE "${CMAKE_SOURCE_DIR}" ABSOLUTE)
-#string(REPLACE "ChronoEngine/source" "ChronoEngine" DETECTED_CH_PATH_SOURCE_PARENT "${DETECTED_CH_PATH_SOURCE}")
-#SET(CH_CHRONODIR    "${DETECTED_CH_PATH_SOURCE_PARENT}"    CACHE PATH   "Where is your ChronoEngine SDK installed? You must set this path!")
-#SET(CH_CHRONOSRC    "${CH_CHRONODIR}/source" )
-
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
-#SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY EXECUTABLE_OUTPUT_PATH)
-find_package("OpenMP")
-find_package("OpenGL")
-find_package("GLUT")
 
+find_package("OpenMP")
 if(OPENMP_FOUND)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 ENDIF(OPENMP_FOUND)
-
-#MARK_AS_ADVANCED(FORCE FREEGLUT_LIB)
-#SET(CPACK_SYSTEM_NAME "Win-x64")
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     IF (MSVC)
@@ -248,7 +232,6 @@ IF (ENABLE_UNIT_IRRLICHT)
 ENDIF()
 
 #INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC} )
-#FIND_LIBRARY( FREEGLUT_LIB NAMES freeglut PATHS ${FREEGLUT_BASE_PATH}/lib/)
 
 IF (BUILD_CH_SDK)
 
@@ -1106,7 +1089,7 @@ INSTALL(TARGETS ChronoEngine
     ARCHIVE DESTINATION lib
 )
 
-file( COPY ${CMAKE_SOURCE_DIR}/demos/data/ DESTINATION ${CMAKE_BINARY_DIR}/data/ PATTERN .svn EXCLUDE)
+
 INSTALL(DIRECTORY ${CMAKE_SOURCE_DIR}/demos/data/ DESTINATION data PATTERN .svn EXCLUDE)
 INSTALL(FILES ${ChronoEngine_core_HEADERS} DESTINATION include/core)
 INSTALL(FILES ${ChronoEngine_physics_HEADERS} DESTINATION include/physics)
