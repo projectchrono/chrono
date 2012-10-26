@@ -1039,7 +1039,7 @@ int main() {
 	//printf("side0 %d %d %d \n", side0.x, side0.y, side0.z);
 
 	//float delT = .02 * sizeScale;
-	float delT = .03 * sizeScale;
+	float delT = .06 * sizeScale;
 //	float delT = .001 * sizeScale;
 
 	bool readFromFile = false;  //true;		//true: initializes from file. False: initializes inside the code
@@ -1075,7 +1075,7 @@ int main() {
 	rhoRigid = 1180;//1000; //1050; //originally .079 //.179 for cylinder
 
 	//float rr = .4 * (float(rand()) / RAND_MAX + 1);
-	float3 r3Ellipsoid = F3(0.4, 0.4, 0.4) * sizeScale;//F3(0.4 * sizeScale); //F3(0.8 * sizeScale); //float3 r3Ellipsoid = F3(.03 * sizeScale); //F3(.05, .03, .02) * sizeScale; //F3(.03 * sizeScale);
+	float3 r3Ellipsoid = F3(0.4, 0.4, 2.0) * sizeScale;//F3(0.4 * sizeScale); //F3(0.8 * sizeScale); //float3 r3Ellipsoid = F3(.03 * sizeScale); //F3(.05, .03, .02) * sizeScale; //F3(.03 * sizeScale);
 	//**
 //	CreateRigidBodiesPattern(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
 	//**
@@ -1084,8 +1084,8 @@ int main() {
 //	//channelRadius = 1.0 * sizeScale;
 //	CreateRigidBodiesPatternPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax);
 	//**
-//	CreateRigidBodiesRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax, 4); //changed 2 to 4
-	CreateRigidBodiesPatternPipe_KindaRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax, 128);
+	CreateRigidBodiesRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax, 4); //changed 2 to 4
+//	CreateRigidBodiesPatternPipe_KindaRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax, 128);
 	printf("numRigids %d\n", rigidPos.size());
 	printf("rigid Radii %f %f %f\n", r3Ellipsoid.x, r3Ellipsoid.y, r3Ellipsoid.z);
 
