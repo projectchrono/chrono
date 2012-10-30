@@ -1039,7 +1039,7 @@ int main() {
 	//printf("side0 %d %d %d \n", side0.x, side0.y, side0.z);
 
 	//float delT = .02 * sizeScale;
-	float delT = .06 * sizeScale;
+	float delT = .03 * sizeScale;
 //	float delT = .001 * sizeScale;
 
 	bool readFromFile = false;  //true;		//true: initializes from file. False: initializes inside the code
