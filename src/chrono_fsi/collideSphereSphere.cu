@@ -212,7 +212,7 @@ __global__ void AddToCumulutaiveNumberOfPasses(
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void SumSurfaceInteractionForces(float3 * totalBodyForces3, float4 * totalSurfaceInteraction4, float4 * velMassRigidD) {
 	uint rigidSphereA = blockIdx.x * blockDim.x + threadIdx.x;
-	if (rigidSphereA > numRigidBodiesD) {
+	if (rigidSphereA >= numRigidBodiesD) {
 		return;
 	}
 	float4 dummyVelMas = velMassRigidD[rigidSphereA];
@@ -249,7 +249,7 @@ __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(
 //local torque = T' = A' * T
 __global__ void MapTorqueToLRFKernel(float3 * AD1, float3 * AD2, float3 * AD3, float3 * totalTorque3, float3 * LF_totalTorque3) {
 	uint rigidSphereA = blockIdx.x * blockDim.x + threadIdx.x;
-	if (rigidSphereA > numRigidBodiesD) {
+	if (rigidSphereA >= numRigidBodiesD) {
 		return;
 	}
 	float3 totalTorqueGRF = totalTorque3[rigidSphereA];
@@ -260,7 +260,7 @@ __global__ void MapTorqueToLRFKernel(float3 * AD1, float3 * AD2, float3 * AD3, f
 //updates the rigid body particles
 __global__ void UpdateKernelRigidTranstalation(float3 * totalBodyForces3, float3 * posRigidD, float3 * posRigidCumulativeD, float4 * velMassRigidD) {
 	uint rigidSphereA = blockIdx.x * blockDim.x + threadIdx.x;
-	if (rigidSphereA > numRigidBodiesD) {
+	if (rigidSphereA >= numRigidBodiesD) {
 		return;
 	}
 
@@ -283,7 +283,7 @@ __global__ void UpdateKernelRigidTranstalation(float3 * totalBodyForces3, float3
 // A is rotation matrix, A = [AD1; AD2; AD3]
 __global__ void UpdateRigidBodyQuaternion_kernel(float4 * qD, float3 * omegaLRF_D) {
 	uint rigidSphereA = blockIdx.x * blockDim.x + threadIdx.x;
-	if (rigidSphereA > numRigidBodiesD) {
+	if (rigidSphereA >= numRigidBodiesD) {
 		return;
 	}
 	float3 omega = omegaLRF_D[rigidSphereA];
@@ -300,7 +300,7 @@ __global__ void UpdateRigidBodyQuaternion_kernel(float4 * qD, float3 * omegaLRF_
 // in wikipedia, last quat comp is the angle, in my version, first one is the angle.
 __global__ void RotationMatirixFromQuaternion_kernel(float3 * AD1, float3 * AD2, float3 * AD3, float4 * qD) {
 	uint rigidSphereA = blockIdx.x * blockDim.x + threadIdx.x;
-	if (rigidSphereA > numRigidBodiesD) {
+	if (rigidSphereA >= numRigidBodiesD) {
 		return;
 	}
 	float4 q = qD[rigidSphereA];
@@ -317,7 +317,7 @@ __global__ void UpdateRigidBodyAngularVelocity_kernel(
 		float3 * jInvD2,
 		float3 * omegaLRF_D) {
 	uint rigidSphereA = blockIdx.x * blockDim.x + threadIdx.x;
-	if (rigidSphereA > numRigidBodiesD) {
+	if (rigidSphereA >= numRigidBodiesD) {
 		return;
 	}
 
@@ -1379,7 +1379,7 @@ void cudaCollisions(
 	FILE *outFileMultipleZones;
 
 	int povRayCounter = 0;
-	int stepEnd =2.4e6 * (.02 * sizeScale) / delT ; //1.4e6 * (.02 * sizeScale) / delT ;//0.7e6 * (.02 * sizeScale) / delT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
+	int stepEnd =5;//2.4e6 * (.02 * sizeScale) / delT ; //1.4e6 * (.02 * sizeScale) / delT ;//0.7e6 * (.02 * sizeScale) / delT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
 	printf("stepEnd %d\n", stepEnd);
 
 	float delTOrig = delT;
@@ -1497,5 +1497,5 @@ void cudaCollisions(
 	cudaEventElapsedTime(&time, start, stop);
 	cudaEventDestroy(start);
 	cudaEventDestroy(stop);
-	printf("total Time: %f\n ", time);
+	printf("total Time: %f\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n ", time);
 }
