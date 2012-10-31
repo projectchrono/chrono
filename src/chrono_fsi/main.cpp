@@ -316,13 +316,68 @@ void CreateRigidBodiesPatternPipe(
 
 	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
 	//printf("cMin %f %f %f, cMax %f %f %f\n", straightChannelBoundaryMin.x, straightChannelBoundaryMin.y, straightChannelBoundaryMin.z, straightChannelBoundaryMax.x, straightChannelBoundaryMax.y, straightChannelBoundaryMax.z);
-	float3 spaceRigids = 2 * (referenceR + 4 * F3(HSML));
+	float3 spaceRigids = 2 * (referenceR + 1.1 * F3(HSML));
 	float3 n3Rigids = (cMax - cMin) / spaceRigids;
 	for (int i = 1; i < n3Rigids.x - 1; i++) {
 		for  (float r = spaceRigids.x; r < channelRadius - spaceRigids.x; r += spaceRigids.x) {
 			float dTeta = spaceRigids.x / r;
 			 for (float teta = 0; teta < 2 * PI - dTeta; teta += dTeta) {
 				 float3 pos = F3(cMin.x, .5 * (cMin.y + cMax.y), 0.5 * (cMin.z + cMax.z)) +  F3(i * spaceRigids.x, float(r  * cos(teta)), float(r *  sin(teta)) );
+
+				 //printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
+				 rigidPos.push_back(pos);
+				 mQuatRot.push_back(F4(1, 0, 0, 0));
+				 ellipsoidRadii.push_back(referenceR);
+				 float mass;
+				 float3 j1, j2;
+				 CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x, referenceR.y, referenceR.z, rhoRigid);						//create Ellipsoid
+
+				spheresVelMas.push_back(F4(0, 0, 0, float(mass)));
+				rigidBodyOmega.push_back(F3(0, 0, 0));
+				rigidBody_J1.push_back(j1);
+				rigidBody_J2.push_back(j2);
+
+				float3 invJ1, invJ2;
+				CalcInvJ(j1, j2, invJ1, invJ2);
+				rigidBody_InvJ1.push_back(invJ1);
+				rigidBody_InvJ2.push_back(invJ2);
+			 }
+		}
+	}
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+void CreateRigidBodiesPatternStepPipe(
+		thrust::host_vector<float3> & rigidPos,
+		thrust::host_vector<float4> & mQuatRot,
+		thrust::host_vector<float4> & spheresVelMas,
+		thrust::host_vector<float3> & rigidBodyOmega,
+		thrust::host_vector<float3> & rigidBody_J1,
+		thrust::host_vector<float3> & rigidBody_J2,
+		thrust::host_vector<float3> & rigidBody_InvJ1,
+		thrust::host_vector<float3> & rigidBody_InvJ2,
+		thrust::host_vector<float3> & ellipsoidRadii,
+		const float3 referenceR,
+		const float rhoRigid,
+		float3 cMin,
+		float3 cMax) {
+
+	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
+	//printf("cMin %f %f %f, cMax %f %f %f\n", straightChannelBoundaryMin.x, straightChannelBoundaryMin.y, straightChannelBoundaryMin.z, straightChannelBoundaryMax.x, straightChannelBoundaryMax.y, straightChannelBoundaryMax.z);
+	float3 spaceRigids = 2 * (referenceR + 1.1 * F3(HSML));
+
+	float tubeLength = cMax.x - cMin.x;
+	float r1 = channelRadius;
+	float r2 = 0.5 * channelRadius;
+	float d1 = cMin.x +  .25 * tubeLength;
+	float d2 = cMin.x +  .75 * tubeLength;
+
+	float space = max( max(spaceRigids.x, spaceRigids.y) , spaceRigids.z);
+	float nX = (d2 - d1) / space;
+	for (int i = 1; i < nX - 1; i++) {
+		for  (float r = space; r < r1 -space; r += space) {
+			float dTeta = space / r;
+			 for (float teta = 0; teta < 2 * PI - dTeta; teta += dTeta) {
+				 float3 pos = F3(d1, .5 * (cMin.y + cMax.y), 0.5 * (cMin.z + cMax.z)) +  F3(i * space, float(r  * cos(teta)), float(r *  sin(teta)) );
 
 				 //printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
 				 rigidPos.push_back(pos);
@@ -765,6 +820,52 @@ float IsInsideTube(float3 posRad, float3 cMax, float3 cMin) {
 	return -largePenet;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+float IsInsideStepTube(float3 posRad, float3 cMax, float3 cMin) {
+	const float sphR = HSML;
+	float penDist1 = 0;
+	float penDist2 = 0;
+	//const float toleranceZone = 2 * sphR;
+	float largePenet = -5 * sphR; //like a large number. Should be negative (assume large initial penetration)
+	float2 centerLine = F2(.5 * (cMin.y + cMax.y), .5 * (cMin.z + cMax.z));
+	float r = length(F2(posRad.y, posRad.z) - centerLine);
+//printf("ch R %f\n", channelRadius);
+	//if (posRad.z > 3.0 * sizeScale) {penDist1 = 3.0 * sizeScale - posRad.z;}
+
+	float tubeLength = cMax.x - cMin.x;
+	float r1 = channelRadius;
+	float r2 = 0.5 * channelRadius;
+	float d1 = cMin.x +  .25 * tubeLength;
+	float d2 = cMin.x +  .75 * tubeLength;
+	float d3 = cMin.x +  tubeLength;
+	if (posRad.x < d1) {
+		if (r > r2) {
+			penDist1 = r2 - r;
+		}
+	} else if (posRad.x < d2) {
+		if (r > r1) {
+			penDist1 = r1 - r;
+		}
+	} else {
+		if (r > r2) {
+			penDist1 = r2 - r;
+		}
+	}
+	// vertical wall
+	if (r < r1 + 1.5 * toleranceZone) {
+		if (posRad.x < d1 ) {
+			penDist2 = posRad.x - d1;
+		}
+		if (posRad.x > d2) {
+			penDist2 = d2 - posRad.x;
+		}
+	}
+
+	if (penDist1 < 0 && penDist2 < 0) return max(penDist1, penDist2); //note: both are negative. max is closer to boundary
+	if (penDist1 < 0) return penDist1; //penDist2 is always either zero or negative
+	//printf("hey \n");
+	return -largePenet;
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 int2 CreateFluidParticles(
 		thrust::host_vector<float3> & mPosRad,
 		thrust::host_vector<float4> & mVelMas,
@@ -826,7 +927,8 @@ int2 CreateFluidParticles(
 				///penDist = IsInsideSerpentine(posRad);
 				///penDist = IsInsideStraightChannel(posRad);
 				///penDist = IsInsideStraightChannel_XZ(posRad);
-				penDist = IsInsideTube(posRad, cMax, cMin);
+				///penDist = IsInsideTube(posRad, cMax, cMin);
+				penDist = IsInsideStepTube(posRad, cMax, cMin);
 
 				if (penDist < -toleranceZone) flag = false;
 				if (flag) {
@@ -1075,7 +1177,7 @@ int main() {
 	rhoRigid = 1180;//1000; //1050; //originally .079 //.179 for cylinder
 
 	//float rr = .4 * (float(rand()) / RAND_MAX + 1);
-	float3 r3Ellipsoid = F3(0.4, 0.4, 2.0) * sizeScale;//F3(0.4 * sizeScale); //F3(0.8 * sizeScale); //float3 r3Ellipsoid = F3(.03 * sizeScale); //F3(.05, .03, .02) * sizeScale; //F3(.03 * sizeScale);
+	float3 r3Ellipsoid = F3(0.4, 0.4, 0.6) * sizeScale;//F3(0.4 * sizeScale); //F3(0.8 * sizeScale); //float3 r3Ellipsoid = F3(.03 * sizeScale); //F3(.05, .03, .02) * sizeScale; //F3(.03 * sizeScale);
 	//**
 //	CreateRigidBodiesPattern(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
 	//**
@@ -1083,8 +1185,10 @@ int main() {
 	//**
 //	//channelRadius = 1.0 * sizeScale;
 //	CreateRigidBodiesPatternPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax);
+	CreateRigidBodiesPatternStepPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax);
+
 	//**
-	CreateRigidBodiesRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax, 4); //changed 2 to 4
+//	CreateRigidBodiesRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax, 4); //changed 2 to 4
 //	CreateRigidBodiesPatternPipe_KindaRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax, 128);
 	printf("numRigids %d\n", rigidPos.size());
 	printf("rigid Radii %f %f %f\n", r3Ellipsoid.x, r3Ellipsoid.y, r3Ellipsoid.z);
