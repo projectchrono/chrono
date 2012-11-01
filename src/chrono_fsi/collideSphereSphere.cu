@@ -566,7 +566,7 @@ void PrintToFile(
 	}
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	ofstream fileNameSlice;
-	int stepSaveFluidSlice = 20000; //1;//20000;
+	int stepSaveFluidSlice = 5000; //1;//20000;
 	//if (tStep%100 == 0 &&  tStep > 20400) {
 	//if (tStep > 49100) {
 	if (tStep % stepSaveFluidSlice == 0) {
