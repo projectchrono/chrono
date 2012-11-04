@@ -36,7 +36,7 @@ typedef unsigned int uint;
 
 #define BASEPRES 0
 #define nPeriod 1
-#define Gravity make_float3(0, -.25, 0)
+#define Gravity make_float3(0, -.5, 0)
 //#define bodyForce4 make_float4(.005, 0, 0, 0)
 #define bodyForce4 make_float4(1.0, 0, 0, 0)
 //#define bodyForce4 make_float4(.1, 0, 0, 0)

@@ -70,9 +70,11 @@ __device__ inline float4 DifVelocityRho(
 			+ velMasB.w * (8.0f * multViscosity) * mu0 * pow(rhoPresMuA.x + rhoPresMuB.x, -2) * rAB_Dot_GradW_OverDist
 					* F3(velMasA - velMasB);
 	float zeta = 0;//.05;//.1;
-	float derivRho = rhoPresMuA.x * velMasB.w * invrhoPresMuBx * (dot(vel_XSPH_A - vel_XSPH_B, gradW)
-			+ zeta * rSPH * (10 * v_Max) * 2 * (rhoPresMuB.x / rhoPresMuA.x - 1) * rAB_Dot_GradW_OverDist
-			);
+	float derivRho = rhoPresMuA.x * velMasB.w * invrhoPresMuBx * dot(vel_XSPH_A - vel_XSPH_B, gradW);
+//	float zeta = 0;//.05;//.1;
+//	float derivRho = rhoPresMuA.x * velMasB.w * invrhoPresMuBx * (dot(vel_XSPH_A - vel_XSPH_B, gradW)
+//			+ zeta * rSPH * (10 * v_Max) * 2 * (rhoPresMuB.x / rhoPresMuA.x - 1) * rAB_Dot_GradW_OverDist
+//			);
 	return F4(derivV, derivRho);
 
 //	//*** Artificial viscosity type 1.3

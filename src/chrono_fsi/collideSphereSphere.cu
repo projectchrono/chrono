@@ -566,7 +566,7 @@ void PrintToFile(
 	}
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	ofstream fileNameSlice;
-	int stepSaveFluidSlice = 5000; //1;//20000;
+	int stepSaveFluidSlice = 50000; //1;//20000;
 	//if (tStep%100 == 0 &&  tStep > 20400) {
 	//if (tStep > 49100) {
 	if (tStep % stepSaveFluidSlice == 0) {
@@ -775,66 +775,66 @@ void PrintToFile(
 			fileRigidParticlesDataForTecplot.close();
 		}
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++com
-//		ofstream fileNameRigidBodies;
-//		ofstream fileNameFluidParticles;
-//		ofstream fileNameBoundaries;
-//
-//		system("mkdir -p povFiles");		//linux. In windows, it is System instead of system (to invoke a command in the command line)
-//		int tStepsPovFiles = 1000;
-//		if (tStep % tStepsPovFiles == 0) {
-//			char fileCounter[5];
-//			int dumNumChar = sprintf(fileCounter, "%d", int(tStep / tStepsPovFiles) );
-//
-//			char nameRigid[255];
-//			sprintf(nameRigid, "povFiles/rigid");
-//			strcat(nameRigid, fileCounter);
-//			strcat(nameRigid, ".dat");
-//			char nameFluid[255];
-//			sprintf(nameFluid, "povFiles/fluid");
-//			strcat(nameFluid, fileCounter);
-//			strcat(nameFluid, ".dat");
-//			char nameBoundary[255];
-//			sprintf(nameBoundary, "povFiles/boundary");
-//			strcat(nameBoundary, fileCounter);
-//			strcat(nameBoundary, ".dat");
-//
-//			fileNameRigidBodies.open(nameRigid);
-//			stringstream ssRigidBodies;
-//			if (referenceArray.size() > 2) {
-//				const int numRigidBodies = posRigidH.size();
-//				for (int j = 0; j < numRigidBodies; j++) {
-//					float3 p_rigid = posRigidH[j];
-//					float4 q_rigid = qH1[j];
-//					ssRigidBodies<<tStep * delT<<", "<< p_rigid.x<<", "<< p_rigid.y<<", "<< p_rigid.z<<", "<< q_rigid.x<<", "<< q_rigid.y<<", "<< q_rigid.z<<", "<< q_rigid.w<<endl;
-//				}
-//			}
-//			fileNameRigidBodies << ssRigidBodies.str();
-//			fileNameRigidBodies.close();
-//
-//			fileNameFluidParticles.open(nameFluid);
-//			stringstream ssFluidParticles;
-//			for (int i = referenceArray[0].x; i < referenceArray[0].y; i++) {
-//				float3 pos = posRadH[i];
-//				float3 vel = F3(velMasH[i]);
-//				float4 rP = rhoPresMuH[i];
-//				float velMag = length(vel);
-//				ssFluidParticles<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w<<endl;
-//			}
-//			fileNameFluidParticles<<ssFluidParticles.str();
-//			fileNameFluidParticles.close();
-//
-//			fileNameBoundaries.open(nameBoundary);
-//			stringstream ssBoundary;
-//			for (int i = referenceArray[1].x; i < referenceArray[1].y; i++) {
-//				float3 pos = posRadH[i];
-//				float3 vel = F3(velMasH[i]);
-//				float4 rP = rhoPresMuH[i];
-//				float velMag = length(vel);
-//				ssBoundary<<pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w<<endl;
-//			}
-//			fileNameBoundaries << ssBoundary.str();
-//			fileNameBoundaries.close();
-//		}
+		ofstream fileNameRigidBodies;
+		ofstream fileNameFluidParticles;
+		ofstream fileNameBoundaries;
+
+		system("mkdir -p povFiles");		//linux. In windows, it is System instead of system (to invoke a command in the command line)
+		int tStepsPovFiles = 2000;
+		if (tStep % tStepsPovFiles == 0) {
+			char fileCounter[5];
+			int dumNumChar = sprintf(fileCounter, "%d", int(tStep / tStepsPovFiles) );
+
+			char nameRigid[255];
+			sprintf(nameRigid, "povFiles/rigid");
+			strcat(nameRigid, fileCounter);
+			strcat(nameRigid, ".dat");
+			char nameFluid[255];
+			sprintf(nameFluid, "povFiles/fluid");
+			strcat(nameFluid, fileCounter);
+			strcat(nameFluid, ".dat");
+			char nameBoundary[255];
+			sprintf(nameBoundary, "povFiles/boundary");
+			strcat(nameBoundary, fileCounter);
+			strcat(nameBoundary, ".dat");
+
+			fileNameRigidBodies.open(nameRigid);
+			stringstream ssRigidBodies;
+			if (referenceArray.size() > 2) {
+				const int numRigidBodies = posRigidH.size();
+				for (int j = 0; j < numRigidBodies; j++) {
+					float3 p_rigid = posRigidH[j];
+					float4 q_rigid = qH1[j];
+					ssRigidBodies<<tStep * delT<<", "<< p_rigid.x<<", "<< p_rigid.y<<", "<< p_rigid.z<<", "<< q_rigid.x<<", "<< q_rigid.y<<", "<< q_rigid.z<<", "<< q_rigid.w<<endl;
+				}
+			}
+			fileNameRigidBodies << ssRigidBodies.str();
+			fileNameRigidBodies.close();
+
+			fileNameFluidParticles.open(nameFluid);
+			stringstream ssFluidParticles;
+			for (int i = referenceArray[0].x; i < referenceArray[0].y; i++) {
+				float3 pos = posRadH[i];
+				float3 vel = F3(velMasH[i]);
+				float4 rP = rhoPresMuH[i];
+				float velMag = length(vel);
+				ssFluidParticles<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w<<endl;
+			}
+			fileNameFluidParticles<<ssFluidParticles.str();
+			fileNameFluidParticles.close();
+
+			fileNameBoundaries.open(nameBoundary);
+			stringstream ssBoundary;
+			for (int i = referenceArray[1].x; i < referenceArray[1].y; i++) {
+				float3 pos = posRadH[i];
+				float3 vel = F3(velMasH[i]);
+				float4 rP = rhoPresMuH[i];
+				float velMag = length(vel);
+				ssBoundary<<pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w<<endl;
+			}
+			fileNameBoundaries << ssBoundary.str();
+			fileNameBoundaries.close();
+		}
 	posRadH.clear();
 	velMasH.clear();
 	rhoPresMuH.clear();
