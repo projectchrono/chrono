@@ -927,8 +927,8 @@ int2 CreateFluidParticles(
 				///penDist = IsInsideSerpentine(posRad);
 				///penDist = IsInsideStraightChannel(posRad);
 				///penDist = IsInsideStraightChannel_XZ(posRad);
-				///penDist = IsInsideTube(posRad, cMax, cMin);
-				penDist = IsInsideStepTube(posRad, cMax, cMin);
+				penDist = IsInsideTube(posRad, cMax, cMin);
+				///penDist = IsInsideStepTube(posRad, cMax, cMin);
 
 				if (penDist < -toleranceZone) flag = false;
 				if (flag) {
@@ -1142,7 +1142,7 @@ int main() {
 
 	//float delT = .02 * sizeScale;
 //	float delT = .01 * sizeScale;
-	float delT = .002 * sizeScale;//.01 * sizeScale;
+	float delT = .03 * sizeScale;//.01 * sizeScale;
 //	float delT = .001 * sizeScale;
 
 	bool readFromFile = false;  //true;		//true: initializes from file. False: initializes inside the code
@@ -1175,10 +1175,10 @@ int main() {
 
 	////***** here: define rigid bodies
 	string fileNameRigids("spheresPos.dat");
-	rhoRigid = 1.1 * rho0; // rho0;//1180;//1000; //1050; //originally .079 //.179 for cylinder
+	rhoRigid = 2.0 * rho0; // rho0;//1180;//1000; //1050; //originally .079 //.179 for cylinder
 
 	//float rr = .4 * (float(rand()) / RAND_MAX + 1);
-	float3 r3Ellipsoid = F3(0.15, 0.15, 0.2) * sizeScale;//F3(0.4 * sizeScale); //F3(0.8 * sizeScale); //float3 r3Ellipsoid = F3(.03 * sizeScale); //F3(.05, .03, .02) * sizeScale; //F3(.03 * sizeScale);
+	float3 r3Ellipsoid = F3(0.4, 0.4, 1.6) * sizeScale;//F3(0.4 * sizeScale); //F3(0.8 * sizeScale); //float3 r3Ellipsoid = F3(.03 * sizeScale); //F3(.05, .03, .02) * sizeScale; //F3(.03 * sizeScale);
 	//**
 //	CreateRigidBodiesPattern(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
 	//**
@@ -1186,10 +1186,10 @@ int main() {
 	//**
 //	//channelRadius = 1.0 * sizeScale;
 //	CreateRigidBodiesPatternPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax);
-	CreateRigidBodiesPatternStepPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax);
+//	CreateRigidBodiesPatternStepPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax);
 
 	//**
-//	CreateRigidBodiesRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax, 4); //changed 2 to 4
+	CreateRigidBodiesRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax, 4); //changed 2 to 4
 //	CreateRigidBodiesPatternPipe_KindaRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax, 128);
 	printf("numRigids %d\n", rigidPos.size());
 	printf("rigid Radii %f %f %f\n", r3Ellipsoid.x, r3Ellipsoid.y, r3Ellipsoid.z);
