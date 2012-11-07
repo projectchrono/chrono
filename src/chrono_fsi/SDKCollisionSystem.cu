@@ -1,4 +1,4 @@
-#include <cutil_math.h>
+#include <helper_math.h>
 //#include <cutil_inline.h>
 #include "SDKCollisionSystem.cuh"
 //#include "SDKCollisionSystemAdditional.cuh"

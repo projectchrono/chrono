@@ -25,7 +25,7 @@
 //#include <crtdbg.h>//just for min
 
 //#include <cutil_inline.h>
-#include <cutil_math.h>
+#include <helper_math.h>
 #include <thrust/host_vector.h>
 #include <thrust/scan.h>
 #include "collideSphereSphere.cuh"
@@ -1178,7 +1178,7 @@ int main() {
 	rhoRigid = 2.0 * rho0; // rho0;//1180;//1000; //1050; //originally .079 //.179 for cylinder
 
 	//float rr = .4 * (float(rand()) / RAND_MAX + 1);
-	float3 r3Ellipsoid = F3(0.4, 0.4, 1.6) * sizeScale;//F3(0.4 * sizeScale); //F3(0.8 * sizeScale); //float3 r3Ellipsoid = F3(.03 * sizeScale); //F3(.05, .03, .02) * sizeScale; //F3(.03 * sizeScale);
+	float3 r3Ellipsoid = F3(0.4, 0.4, 0.4) * sizeScale;//F3(0.4 * sizeScale); //F3(0.8 * sizeScale); //float3 r3Ellipsoid = F3(.03 * sizeScale); //F3(.05, .03, .02) * sizeScale; //F3(.03 * sizeScale);
 	//**
 //	CreateRigidBodiesPattern(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
 	//**
