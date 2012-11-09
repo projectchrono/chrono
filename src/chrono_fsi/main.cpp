@@ -1175,7 +1175,7 @@ int main() {
 
 	////***** here: define rigid bodies
 	string fileNameRigids("spheresPos.dat");
-	rhoRigid = 2.0 * rho0; // rho0;//1180;//1000; //1050; //originally .079 //.179 for cylinder
+	rhoRigid = 1.0 * rho0; // rho0;//1180;//1000; //1050; //originally .079 //.179 for cylinder
 
 	//float rr = .4 * (float(rand()) / RAND_MAX + 1);
 	float3 r3Ellipsoid = F3(0.4, 0.4, 0.4) * sizeScale;//F3(0.4 * sizeScale); //F3(0.8 * sizeScale); //float3 r3Ellipsoid = F3(.03 * sizeScale); //F3(.05, .03, .02) * sizeScale; //F3(.03 * sizeScale);
