@@ -716,7 +716,6 @@ IF (BUILD_CH_SDK)
 			${ChronoEngine_parallel_HEADERS}
 			)
 	
-	
 	SET(ChronoEngine_lcp_SOURCES
 		lcp/ChLcpSystemDescriptor.cpp 
 		lcp/ChLcpSolver.cpp 
@@ -1118,6 +1117,7 @@ ADD_SUBDIRECTORY(unit_CASCADE)
 # ADD_SUBDIRECTORY(unit_OPENGL)
 ADD_SUBDIRECTORY(unit_POSTPROCESS)
 ADD_SUBDIRECTORY(unit_PYTHON)
+ADD_SUBDIRECTORY(unit_COSIMULATION)
 #
 # Demo Files
 #
