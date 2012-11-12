@@ -66,6 +66,7 @@ int main(int argc, char* argv[])
 			// wait for a client to connect (this might put the program in 
 			// a long waiting state... a timeout can be useful then)
 		GetLog() << "Listening for connection... \n";
+		GetLog() << "(load 'data/cosimulation/test_socket.mdl' in Simulink and press Start...)\n\n";
 		myServer.listenToClient(1);
 
 		ChSocketTCP* client;    
@@ -114,6 +115,8 @@ int main(int argc, char* argv[])
 			stream_in >> c;
 			GetLog() << " a = " << a << "\n b = " << b << "\n c = " << c << "\n";
 
+			// change output var just for fun
+			a_out = 0.5*b;
 		}
 
 		delete client;
