@@ -51,23 +51,28 @@ public:
 	~ChCosimulation();
 
 		/// Wait for a client to connect to the interface,
-		/// on a given port.
-	bool WaitConnection(int nport);
+		/// on a given port, and wait until not connected.
+		/// aport is a free port number, for example 50009.
+	bool WaitConnection(int aport);
 
 		/// Exchange data with the client, by sending a
 		/// vector of floating point values over TCP socket
 		/// connection (values are double precision, little endian, 4 bytes each)
-	bool SendData(ChMatrix<double>* mdata);
+		/// Simulator actual time is also passed as first value.
+	bool SendData(double mtime, ChMatrix<double>* mdata);
 		
 		/// Exchange data with the client, by receiving a
 		/// vector of floating point values over TCP socket
 		/// connection (values are double precision, little endian, 4 bytes each)
-	bool ReceiveData(ChMatrix<double>* mdata);
+		/// External time is also received as first value.
+	bool ReceiveData(double& mtime, ChMatrix<double>* mdata);
 
 
 private:
 	ChSocketTCP* myServer;
 	ChSocketTCP* myClient;
+	int nport;
+
 	int in_n;
 	int out_n;
 };
