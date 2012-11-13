@@ -1103,7 +1103,7 @@ int main() {
 
 	time ( &rawtime );
 	timeinfo = localtime ( &rawtime );
-	printf ( "Job was submittet at date/time is: %s\n", asctime (timeinfo) );
+	printf ( "Job was submitted at date/time is: %s\n", asctime (timeinfo) );
 	//****************************************************************************************
 	//(void) cudaSetDevice(0);
 	int numAllParticles = 0;
