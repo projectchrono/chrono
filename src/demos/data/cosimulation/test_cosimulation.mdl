@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.26"
+    ComputedModelVersion    "1.27"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -25,9 +25,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "tasora"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Tue Nov 13 00:08:06 2012"
-  RTWModifiedTimeStamp	  274665873
-  ModelVersionFormat	  "1.%<AutoIncrement:26>"
+  LastModifiedDate	  "Tue Nov 13 00:27:49 2012"
+  RTWModifiedTimeStamp	  274666757
+  ModelVersionFormat	  "1.%<AutoIncrement:27>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -704,7 +704,7 @@ Model {
   }
   System {
     Name		    "test_cosimulation"
-    Location		    [161, 247, 1070, 644]
+    Location		    [303, 193, 1212, 590]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    212
@@ -736,7 +736,7 @@ Model {
       "dimensions of the exchanged vectors do match!                                                                   "
       "             "
       Ports		      [1, 1]
-      Position		      [270, 137, 380, 203]
+      Position		      [280, 129, 385, 211]
       BackgroundColor	      "lightBlue"
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
@@ -759,7 +759,7 @@ Model {
       "set_param(block_receive, 'DataSize', num2str(tcp_data_size+1));\nset_param(block_receive, 'Timeout', num2str(tcp"
       "_timeout));\nblock_send = [gcb, '/TCP Send'];\nset_param(block_send, 'Host', host_name);\nset_param(block_send, "
       "'Port', num2str(tcp_port));"
-      MaskDisplay	      "disp('C::E cosimulation')\n"
+      MaskDisplay	      "image(imread('block_logo.png'))\ndisp('C::E                   ')"
       MaskIconFrame	      on
       MaskIconOpaque	      on
       MaskIconRotate	      "none"

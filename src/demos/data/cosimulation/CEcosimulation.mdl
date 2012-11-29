@@ -15,9 +15,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "tasora"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Tue Nov 13 00:20:26 2012"
-  RTWModifiedTimeStamp	  274666775
-  ModelVersionFormat	  "1.%<AutoIncrement:3>"
+  LastModifiedDate	  "Thu Nov 29 17:08:56 2012"
+  RTWModifiedTimeStamp	  276109729
+  ModelVersionFormat	  "1.%<AutoIncrement:4>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -584,6 +584,11 @@ Library {
       Interpolate	      on
     }
     Block {
+      BlockType		      "M-S-Function"
+      FunctionName	      "mlfile"
+      DisplayMFileStacktrace  on
+    }
+    Block {
       BlockType		      Mux
       Inputs		      "4"
       DisplayOption	      "none"
@@ -633,9 +638,6 @@ Library {
       MinMaxOverflowLogging   "UseLocalSettings"
     }
     Block {
-      BlockType		      Terminator
-    }
-    Block {
       BlockType		      ZeroOrderHold
       SampleTime	      "1"
     }
@@ -656,19 +658,22 @@ Library {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    22
+    SIDHighWatermark	    23
     Block {
       BlockType		      SubSystem
-      Name		      "CoSimulate"
-      SID		      12
+      Name		      "CoSimulate1"
+      SID		      23
       Description	      "This block can be used to exchange data with Chrono::Engine.                                 "
       "                                                     \nA Chrono::Engine program with a running ChCosimulation in"
       "ferface must be started, it will work as a server; then the Simulink program must be run.\nNote! check that the "
       "dimensions of the exchanged vectors do match!                                                                   "
       "             "
       Ports		      [1, 1]
-      Position		      [175, 74, 280, 156]
+      Position		      [200, 86, 285, 154]
       BackgroundColor	      "lightBlue"
+      Priority		      "100"
+      AncestorBlock	      "CEcosimulation/CoSimulate"
+      LibraryVersion	      "*1.3"
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
       RTWSystemCode	      "Auto"
@@ -696,10 +701,10 @@ Library {
       MaskIconRotate	      "none"
       MaskPortRotate	      "default"
       MaskIconUnits	      "autoscale"
-      MaskValueString	      "0.2|2|localhost|50009|15"
+      MaskValueString	      "0.001|2|localhost|50009|15"
       System {
-	Name			"CoSimulate"
-	Location		[386, 115, 1204, 468]
+	Name			"CoSimulate1"
+	Location		[390, 119, 1208, 472]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -712,6 +717,8 @@ Library {
 	TiledPageScale		1
 	ShowPageBoundaries	off
 	ZoomFactor		"100"
+	SIDHighWatermark	23
+	SIDPrevWatermark	23
 	Block {
 	  BlockType		  Inport
 	  Name			  "In"
@@ -719,6 +726,21 @@ Library {
 	  Position		  [25, 173, 55, 187]
 	  BackgroundColor	  "orange"
 	  IconDisplay		  "Port number"
+	  Port {
+	    PortNumber		    1
+	    Name		    "input vector"
+	    PropagatedSignals	    "F"
+	    RTWStorageClass	    "Auto"
+	    DataLoggingNameMode	    "SignalName"
+	  }
+	}
+	Block {
+	  BlockType		  "M-S-Function"
+	  Name			  " "
+	  SID			  23
+	  Ports			  [2, 1]
+	  Position		  [495, 36, 550, 69]
+	  FunctionName		  "CEcosimulation_interp"
 	}
 	Block {
 	  BlockType		  Clock
@@ -758,7 +780,7 @@ Library {
 	  Name			  "TCP Receive"
 	  SID			  17
 	  Ports			  [0, 1]
-	  Position		  [250, 26, 360, 74]
+	  Position		  [250, 35, 360, 85]
 	  Priority		  "1"
 	  LibraryVersion	  "1.84"
 	  DialogController	  "instrumentcreatedialog"
@@ -770,7 +792,7 @@ Library {
 	  DataSize		  "3"
 	  EnableBlockingMode	  on
 	  Timeout		  "15"
-	  SampleTime		  "0.2"
+	  SampleTime		  "0.001"
 	  DataType		  "double"
 	  ByteOrder		  "LittleEndian"
 	}
@@ -779,7 +801,7 @@ Library {
 	  Name			  "TCP Send"
 	  SID			  18
 	  Ports			  [1]
-	  Position		  [250, 97, 360, 143]
+	  Position		  [250, 127, 360, 173]
 	  Priority		  "2"
 	  LibraryVersion	  "1.84"
 	  DialogController	  "instrumentcreatedialog"
@@ -788,21 +810,16 @@ Library {
 	  SourceType		  "TCP/IP Send"
 	  Host			  "localhost"
 	  Port			  "50009"
-	  EnableBlockingMode	  off
+	  EnableBlockingMode	  on
 	  Timeout		  "10"
 	  ByteOrder		  "LittleEndian"
-	}
-	Block {
-	  BlockType		  Terminator
-	  Name			  "Terminator"
-	  SID			  19
-	  Position		  [550, 25, 570, 45]
 	}
 	Block {
 	  BlockType		  ZeroOrderHold
 	  Name			  "Zero-Order\nHold"
 	  SID			  20
 	  Position		  [80, 95, 115, 125]
+	  Priority		  "0"
 	  SampleTime		  "com_step"
 	}
 	Block {
@@ -810,11 +827,12 @@ Library {
 	  Name			  "Zero-Order\nHold1"
 	  SID			  21
 	  Position		  [80, 165, 115, 195]
+	  Priority		  "0"
 	  SampleTime		  "com_step"
 	  Port {
 	    PortNumber		    1
 	    Name		    "input vector"
-	    PropagatedSignals	    ", , "
+	    PropagatedSignals	    "input vector"
 	    RTWStorageClass	    "Auto"
 	    DataLoggingNameMode	    "SignalName"
 	  }
@@ -823,9 +841,32 @@ Library {
 	  BlockType		  Outport
 	  Name			  "Out"
 	  SID			  22
-	  Position		  [545, 123, 575, 137]
+	  Position		  [645, 123, 675, 137]
 	  BackgroundColor	  "orange"
 	  IconDisplay		  "Port number"
+	}
+	Line {
+	  SrcBlock		  " "
+	  SrcPort		  1
+	  Points		  [35, 0; 0, 75]
+	  DstBlock		  "Out"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Demux"
+	  SrcPort		  2
+	  Points		  [30, 0]
+	  DstBlock		  " "
+	  DstPort		  2
+	}
+	Line {
+	  Name			  "C::E time (at sync)"
+	  Labels		  [0, 0]
+	  SrcBlock		  "Demux"
+	  SrcPort		  1
+	  Points		  [15, 0; 0, -65]
+	  DstBlock		  " "
+	  DstPort		  1
 	}
 	Line {
 	  SrcBlock		  "Zero-Order\nHold"
@@ -845,6 +886,7 @@ Library {
 	Line {
 	  SrcBlock		  "Mux"
 	  SrcPort		  1
+	  Points		  [5, 0]
 	  DstBlock		  "TCP Send"
 	  DstPort		  1
 	}
@@ -856,6 +898,7 @@ Library {
 	  DstPort		  1
 	}
 	Line {
+	  Name			  "input vector"
 	  SrcBlock		  "In"
 	  SrcPort		  1
 	  DstBlock		  "Zero-Order\nHold1"
@@ -864,29 +907,9 @@ Library {
 	Line {
 	  SrcBlock		  "TCP Receive"
 	  SrcPort		  1
-	  Points		  [25, 0; 0, 70]
+	  Points		  [25, 0; 0, 60]
 	  DstBlock		  "Demux"
 	  DstPort		  1
-	}
-	Line {
-	  Name			  "C::E time (at sync)"
-	  Labels		  [2, 0]
-	  SrcBlock		  "Demux"
-	  SrcPort		  1
-	  Points		  [0, -75]
-	  DstBlock		  "Terminator"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "Demux"
-	  SrcPort		  2
-	  DstBlock		  "Out"
-	  DstPort		  1
-	}
-	Annotation {
-	  Name			  "output vector"
-	  Position		  [485, 137]
-	  ForegroundColor	  "red"
 	}
 	Annotation {
 	  Name			  "Simulink time"
