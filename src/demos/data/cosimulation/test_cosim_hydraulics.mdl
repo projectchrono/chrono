@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.55"
+    ComputedModelVersion    "1.60"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -40,9 +40,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "tasora"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Thu Nov 29 18:44:17 2012"
+  LastModifiedDate	  "Fri Nov 30 16:29:02 2012"
   RTWModifiedTimeStamp	  276112733
-  ModelVersionFormat	  "1.%<AutoIncrement:55>"
+  ModelVersionFormat	  "1.%<AutoIncrement:60>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -56,7 +56,7 @@ Model {
   ShowTestPointIcons	  on
   ShowSignalResolutionIcons on
   ShowViewerIcons	  on
-  SortedOrder		  on
+  SortedOrder		  off
   ExecutionContextIcon	  off
   ShowLinearizationAnnotations on
   BlockNameDataTip	  off
@@ -622,10 +622,6 @@ Model {
       OutputAfterFinalValue   "Extrapolation"
     }
     Block {
-      BlockType		      Goto
-      IconDisplay	      "Tag"
-    }
-    Block {
       BlockType		      Inport
       Port		      "1"
       UseBusObject	      off
@@ -728,7 +724,7 @@ Model {
   }
   System {
     Name		    "test_cosim_hydraulics"
-    Location		    [144, 125, 1303, 737]
+    Location		    [144, 79, 1286, 739]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -742,7 +738,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    81
+    SIDHighWatermark	    82
     Block {
       BlockType		      SubSystem
       Name		      "CoSimulate1"
@@ -753,7 +749,7 @@ Model {
       "dimensions of the exchanged vectors do match!                                                                   "
       "             "
       Ports		      [1, 1]
-      Position		      [785, 106, 870, 174]
+      Position		      [480, 126, 565, 194]
       BackgroundColor	      "lightBlue"
       Priority		      "100"
       AncestorBlock	      "CEcosimulation/CoSimulate1"
@@ -1005,7 +1001,7 @@ Model {
       BlockType		      Constant
       Name		      "Constant"
       SID		      1
-      Position		      [15, 445, 45, 475]
+      Position		      [20, 615, 50, 645]
       FontName		      "Arial"
       Value		      "780"
       OutDataType	      "sfix(16)"
@@ -1016,16 +1012,10 @@ Model {
       Name		      "Demux"
       SID		      70
       Ports		      [1, 2]
-      Position		      [890, 121, 895, 159]
+      Position		      [585, 141, 590, 179]
       ShowName		      off
       Outputs		      "2"
       DisplayOption	      "bar"
-      Port {
-	PortNumber		1
-	Name			"Vel"
-	RTWStorageClass		"Auto"
-	DataLoggingNameMode	"SignalName"
-      }
     }
     Block {
       BlockType		      Reference
@@ -1033,7 +1023,7 @@ Model {
       SID		      2
       Tag		      "Factory Generic"
       Ports		      [0, 0, 0, 0, 0, 2, 2]
-      Position		      [165, 40, 245, 80]
+      Position		      [170, 210, 250, 250]
       NamePlacement	      "alternate"
       LibraryVersion	      "1.1"
       DialogController	      "NetworkEngine.DynNeDlgSource"
@@ -1077,7 +1067,7 @@ Model {
       Name		      "Error/System\nPressure"
       SID		      3
       Ports		      [2]
-      Position		      [580, 238, 610, 322]
+      Position		      [585, 408, 615, 492]
       BackgroundColor	      "orange"
       FontName		      "Arial"
       Floating		      off
@@ -1103,7 +1093,7 @@ Model {
       SID		      4
       Tag		      "Factory Generic"
       Ports		      [0, 0, 0, 0, 0, 1, 2]
-      Position		      [150, 340, 210, 400]
+      Position		      [155, 510, 215, 570]
       NamePlacement	      "alternate"
       LibraryVersion	      "1.1"
       DialogController	      "NetworkEngine.DynNeDlgSource"
@@ -1149,7 +1139,7 @@ Model {
       SID		      71
       Tag		      "Factory Generic"
       Ports		      [0, 0, 0, 0, 0, 1, 2]
-      Position		      [650, 30, 690, 70]
+      Position		      [345, 50, 385, 90]
       BackgroundColor	      "[1.000000, 1.000000, 0.501961]"
       LibraryVersion	      "1.1"
       DialogController	      "NetworkEngine.DynNeDlgSource"
@@ -1173,23 +1163,12 @@ Model {
       LocalVarLogging	      "[]"
     }
     Block {
-      BlockType		      Goto
-      Name		      "Goto8"
-      SID		      74
-      Position		      [930, 161, 985, 179]
-      ShowName		      off
-      FontName		      "Arial"
-      FontSize		      8
-      GotoTag		      "Disp"
-      TagVisibility	      "local"
-    }
-    Block {
       BlockType		      Reference
       Name		      "HP_1"
       SID		      5
       Tag		      "Factory Generic"
       Ports		      [0, 0, 0, 0, 0, 1, 1]
-      Position		      [130, 85, 170, 165]
+      Position		      [135, 255, 175, 335]
       BlockRotation	      270
       NamePlacement	      "alternate"
       LibraryVersion	      "1.1"
@@ -1243,7 +1222,7 @@ Model {
       SID		      6
       Tag		      "Factory Generic"
       Ports		      [0, 0, 0, 0, 0, 1, 1]
-      Position		      [240, 85, 280, 165]
+      Position		      [245, 255, 285, 335]
       BlockRotation	      270
       BlockMirror	      on
       LibraryVersion	      "1.1"
@@ -1297,7 +1276,7 @@ Model {
       SID		      7
       Tag		      "Factory Generic"
       Ports		      [0, 0, 0, 0, 0, 1]
-      Position		      [255, 430, 295, 455]
+      Position		      [260, 600, 300, 625]
       BlockRotation	      270
       BlockMirror	      on
       LibraryVersion	      "1.1"
@@ -1326,7 +1305,7 @@ Model {
       SID		      8
       Tag		      "Factory Generic"
       Ports		      [0, 0, 0, 0, 0, 0, 1]
-      Position		      [45, 280, 105, 320]
+      Position		      [50, 450, 110, 490]
       BackgroundColor	      "lightBlue"
       LibraryVersion	      "1.1"
       DialogController	      "NetworkEngine.DynNeDlgSource"
@@ -1361,7 +1340,7 @@ Model {
       SID		      9
       Tag		      "Factory Generic"
       Ports		      [0, 0, 0, 0, 0, 1, 2]
-      Position		      [110, 400, 150, 440]
+      Position		      [115, 570, 155, 610]
       BlockRotation	      270
       BlockMirror	      on
       LibraryVersion	      "1.1"
@@ -1390,7 +1369,7 @@ Model {
       Name		      "Input/Output"
       SID		      10
       Ports		      [2]
-      Position		      [575, 81, 605, 114]
+      Position		      [580, 251, 610, 284]
       BackgroundColor	      "orange"
       FontName		      "Arial"
       Floating		      off
@@ -1403,8 +1382,8 @@ Model {
 	axes2			"%<SignalLabel>"
       }
       TimeRange		      "20"
-      YMin		      "-0.001~0"
-      YMax		      "0.009~15"
+      YMin		      "-0.0075~0"
+      YMax		      "0.01~15"
       DataFormat	      "StructureWithTime"
       SampleTime	      "0"
     }
@@ -1414,7 +1393,7 @@ Model {
       SID		      18
       Tag		      "Factory Generic"
       Ports		      [0, 0, 0, 0, 0, 1]
-      Position		      [130, 470, 150, 490]
+      Position		      [135, 640, 155, 660]
       BlockRotation	      270
       BlockMirror	      on
       LibraryVersion	      "1.1"
@@ -1443,7 +1422,7 @@ Model {
       SID		      19
       Tag		      "Factory Generic"
       Ports		      [0, 0, 0, 0, 0, 1]
-      Position		      [115, 40, 135, 60]
+      Position		      [120, 210, 140, 230]
       BlockMirror	      on
       NamePlacement	      "alternate"
       LibraryVersion	      "1.1"
@@ -1472,7 +1451,7 @@ Model {
       SID		      75
       Tag		      "Factory Generic"
       Ports		      [0, 0, 0, 0, 0, 1]
-      Position		      [1005, 15, 1025, 35]
+      Position		      [700, 35, 720, 55]
       LibraryVersion	      "1.1"
       DialogController	      "NetworkEngine.DynNeDlgSource"
       FontName		      "Arial"
@@ -1498,7 +1477,7 @@ Model {
       Name		      "Motion \nSensor"
       SID		      20
       Ports		      [0, 1, 0, 0, 0, 1]
-      Position		      [360, 69, 415, 111]
+      Position		      [365, 239, 420, 281]
       BackgroundColor	      "orange"
       FontName		      "Arial"
       MinAlgLoopOccurrences   off
@@ -1668,7 +1647,7 @@ Model {
       SID		      26
       Tag		      "Factory Generic"
       Ports		      [0, 0, 0, 0, 0, 1, 1]
-      Position		      [315, 320, 355, 360]
+      Position		      [320, 490, 360, 530]
       BlockRotation	      270
       BlockMirror	      on
       LibraryVersion	      "1.1"
@@ -1713,7 +1692,7 @@ Model {
       Name		      "PS2S1"
       SID		      27
       Ports		      [0, 1, 0, 0, 0, 1]
-      Position		      [455, 195, 485, 225]
+      Position		      [460, 365, 490, 395]
       BlockMirror	      on
       ShowName		      off
       LibraryVersion	      "1.1"
@@ -1747,7 +1726,7 @@ Model {
       Name		      "PS2S2"
       SID		      28
       Ports		      [0, 1, 0, 0, 0, 1]
-      Position		      [455, 245, 485, 275]
+      Position		      [460, 415, 490, 445]
       ShowName		      off
       LibraryVersion	      "1.1"
       DialogController	      "NetworkEngine.DynNeUtilDlgSource"
@@ -1780,7 +1759,7 @@ Model {
       Name		      "PS2S3"
       SID		      76
       Ports		      [0, 1, 0, 0, 0, 1]
-      Position		      [720, 124, 750, 156]
+      Position		      [415, 144, 445, 176]
       BackgroundColor	      "[0.858824, 0.858824, 0.858824]"
       ShowName		      off
       LibraryVersion	      "1.1"
@@ -1814,7 +1793,7 @@ Model {
       Name		      "Pressure\nSensor"
       SID		      29
       Ports		      [0, 1, 0, 0, 0, 1]
-      Position		      [450, 285, 490, 315]
+      Position		      [455, 455, 495, 485]
       BackgroundColor	      "orange"
       FontName		      "Arial"
       MinAlgLoopOccurrences   off
@@ -1981,7 +1960,7 @@ Model {
       Name		      "Rotational Valve"
       SID		      35
       Ports		      [0, 0, 0, 0, 0, 3, 2]
-      Position		      [96, 185, 314, 230]
+      Position		      [101, 355, 319, 400]
       BlockRotation	      270
       BackgroundColor	      "lightBlue"
       NamePlacement	      "alternate"
@@ -2452,7 +2431,7 @@ Model {
       Name		      "S2PS"
       SID		      46
       Ports		      [1, 0, 0, 0, 0, 0, 1]
-      Position		      [65, 445, 95, 475]
+      Position		      [70, 615, 100, 645]
       LibraryVersion	      "1.1"
       DialogController	      "NetworkEngine.DynNeUtilDlgSource"
       FontName		      "Arial"
@@ -2479,16 +2458,19 @@ Model {
       BlockType		      Scope
       Name		      "Scope"
       SID		      80
-      Ports		      [1]
-      Position		      [1065, 84, 1095, 116]
+      Ports		      [2]
+      Position		      [695, 166, 725, 199]
       Floating		      off
-      Location		      [188, 390, 512, 629]
+      Location		      [472, 366, 796, 605]
       Open		      off
-      NumInputPorts	      "1"
+      NumInputPorts	      "2"
       List {
 	ListType		AxesTitles
 	axes1			"%<SignalLabel>"
+	axes2			"%<SignalLabel>"
       }
+      YMin		      "-5~-5"
+      YMax		      "5~5"
       SaveName		      "ScopeData1"
       DataFormat	      "StructureWithTime"
       SampleTime	      "0"
@@ -2498,7 +2480,7 @@ Model {
       Name		      "Simulink-PS\nConverter1"
       SID		      77
       Ports		      [1, 0, 0, 0, 0, 0, 1]
-      Position		      [940, 115, 970, 145]
+      Position		      [635, 135, 665, 165]
       BackgroundColor	      "[0.858824, 0.858824, 0.858824]"
       ShowName		      off
       LibraryVersion	      "1.1"
@@ -2528,7 +2510,7 @@ Model {
       Name		      "Solver\nConfiguration1"
       SID		      47
       Ports		      [0, 0, 0, 0, 0, 0, 1]
-      Position		      [50, 354, 95, 386]
+      Position		      [55, 524, 100, 556]
       LibraryVersion	      "1.1"
       DialogController	      "NetworkEngine.DynNeUtilDlgSource"
       FontName		      "Arial"
@@ -2565,7 +2547,7 @@ Model {
       Name		      "Steering\nWheel"
       SID		      48
       Ports		      [0, 0, 0, 0, 0, 0, 2]
-      Position		      [575, 165, 615, 225]
+      Position		      [580, 335, 620, 395]
       BlockMirror	      on
       BackgroundColor	      "gray"
       NamePlacement	      "alternate"
@@ -2953,7 +2935,7 @@ Model {
       Name		      "Torsion Bar"
       SID		      60
       Ports		      [0, 0, 0, 0, 0, 1, 2]
-      Position		      [355, 162, 415, 193]
+      Position		      [360, 332, 420, 363]
       BlockMirror	      on
       BackgroundColor	      "gray"
       NamePlacement	      "alternate"
@@ -3275,7 +3257,7 @@ Model {
       Name		      "Velocity Source"
       SID		      78
       Ports		      [0, 0, 0, 0, 0, 1, 2]
-      Position		      [830, 13, 885, 62]
+      Position		      [525, 33, 580, 82]
       BlockRotation	      180
       BlockMirror	      on
       BackgroundColor	      "[1.000000, 1.000000, 0.501961]"
@@ -3304,10 +3286,10 @@ Model {
       LineType		      "Connection"
       SrcBlock		      "Double-Acting\nHydraulic Cylinder"
       SrcPort		      RConn1
-      Points		      [50, 0]
+      Points		      [60, 0]
       Branch {
 	ConnectType		"DEST_SRC"
-	Points			[25, 40]
+	Points			[15, 0; 0, 40]
 	Branch {
 	  ConnectType		  "DEST_SRC"
 	  Points		  [0, 80]
@@ -3323,6 +3305,7 @@ Model {
       }
       Branch {
 	ConnectType		"DEST_SRC"
+	Points			[0, -150]
 	DstBlock		"Force Sensor"
 	DstPort			LConn1
       }
@@ -3453,10 +3436,10 @@ Model {
     }
     Line {
       LineType		      "Connection"
-      Points		      [245, 300; 0, 0; 90, 0]
+      Points		      [250, 470; 0, 0; 90, 0]
       Branch {
 	ConnectType		"SRC_DEST"
-	Points			[205, 300; 40, 0]
+	Points			[210, 470; 40, 0]
 	Branch {
 	  ConnectType		  "SRC_DEST"
 	  SrcBlock		  "Hydraulic Fluid1"
@@ -3539,6 +3522,7 @@ Model {
       LineType		      "Connection"
       SrcBlock		      "Force Sensor"
       SrcPort		      RConn2
+      Points		      [0, 0]
       DstBlock		      "PS2S3"
       DstPort		      LConn1
     }
@@ -3572,17 +3556,15 @@ Model {
       DstPort		      1
     }
     Line {
-      Name		      "Vel"
-      Labels		      [0, 0]
       SrcBlock		      "Demux"
       SrcPort		      1
-      Points		      [15, 0]
+      Points		      [20, 0]
       Branch {
 	DstBlock		"Simulink-PS\nConverter1"
 	DstPort			1
       }
       Branch {
-	Points			[0, -30]
+	Points			[0, 25]
 	DstBlock		"Scope"
 	DstPort			1
       }
@@ -3591,8 +3573,8 @@ Model {
       SrcBlock		      "Demux"
       SrcPort		      2
       Points		      [10, 0; 0, 20]
-      DstBlock		      "Goto8"
-      DstPort		      1
+      DstBlock		      "Scope"
+      DstPort		      2
     }
   }
 }
