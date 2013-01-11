@@ -805,7 +805,8 @@ void PrintToFile(
 //				for (int j = 0; j < numRigidBodies; j++) {
 //					float3 p_rigid = posRigidH[j];
 //					float4 q_rigid = qH1[j];
-//					ssRigidBodies<<tStep * delT<<", "<< p_rigid.x<<", "<< p_rigid.y<<", "<< p_rigid.z<<", "<< q_rigid.x<<", "<< q_rigid.y<<", "<< q_rigid.z<<", "<< q_rigid.w<<endl;
+//					float4 velMassRigid = velMassRigidH[j];
+//					ssRigidBodies<<tStep * delT<<", "<< p_rigid.x<<", "<< p_rigid.y<<", "<< p_rigid.z<<", "<< velMassRigid.x << ", " <<  velMassRigid.y << ", " <<  velMassRigid.z << ", " << q_rigid.x<<", "<< q_rigid.y<<", "<< q_rigid.z<<", "<< q_rigid.w<<", "<<endl;
 //				}
 //			}
 //			fileNameRigidBodies << ssRigidBodies.str();
