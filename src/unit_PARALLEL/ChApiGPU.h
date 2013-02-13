@@ -9,10 +9,10 @@
 //   that can be exported.
 //
 //   HEADER file for CHRONO,
-//	 Multibody dynamics engine
+//   Multibody dynamics engine
 //
 // ------------------------------------------------
-// 	 Copyright:Alessandro Tasora / DeltaKnowledge
+//   Copyright:Alessandro Tasora / DeltaKnowledge
 //             www.deltaknowledge.com
 // ------------------------------------------------
 ///////////////////////////////////////////////////
@@ -38,3 +38,4 @@
 #endif
 
 #endif  // END of header
+

@@ -3,38 +3,41 @@
 //   ChBody.cpp
 //
 // ------------------------------------------------
-// 	 Copyright:Alessandro Tasora / DeltaKnowledge
+//       Copyright:Alessandro Tasora / DeltaKnowledge
 //             www.deltaknowledge.com
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
 #include "ChBodyGPU.h"
-//#include "ChSystemGPU.h"
-namespace chrono {
-	using namespace collision;
+namespace chrono
+{
+    using namespace collision;
 
-	// Register into the object factory, to enable run-time
-	// dynamic creation and persistence
-	ChClassRegister<ChBodyGPU> a_registration_ChBodyGPU;
+    // Register into the object factory, to enable run-time
+    // dynamic creation and persistence
+    ChClassRegister<ChBodyGPU> a_registration_ChBodyGPU;
 
-	//////////////////////////////////////
-	/// CLASS FOR SOLID GPU BODIES
-	//////////////////////////////////////
-	ChBodyGPU::ChBodyGPU() :
-		ChBody() {
-		delete collision_model;
-		collision_model = InstanceCollisionModel();
-		id = 0;
-		//gpu_data_manager=0;
-	}
+    //////////////////////////////////////
+    /// CLASS FOR SOLID GPU BODIES
+    //////////////////////////////////////
+    ChBodyGPU::ChBodyGPU() :
+        ChBody()
+    {
+        delete collision_model;
+        collision_model = InstanceCollisionModel();
+        id = 0;
+    }
 
-	ChBodyGPU::~ChBodyGPU() {
-	}
+    ChBodyGPU::~ChBodyGPU()
+    {
+    }
 
-	ChCollisionModel* ChBodyGPU::InstanceCollisionModel() {
-		ChCollisionModel* collision_model_t = (ChCollisionModelGPU*) new ChCollisionModelGPU();
-		((ChCollisionModelGPU*) collision_model_t)->SetBody(this);
-		return collision_model_t;
-	}
+    ChCollisionModel *ChBodyGPU::InstanceCollisionModel()
+    {
+        ChCollisionModel *collision_model_t = (ChCollisionModelGPU *) new ChCollisionModelGPU();
+        ((ChCollisionModelGPU *) collision_model_t)->SetBody(this);
+        return collision_model_t;
+    }
 } // END_OF_NAMESPACE____
+
 
