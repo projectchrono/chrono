@@ -10,7 +10,6 @@
 //#define THRUST_DEBUG
 #include <time.h>
 #include <iostream>
-#include <helper_math.h>
 #include <thrust/sort.h>
 #include <thrust/copy.h>
 #include <thrust/count.h>
