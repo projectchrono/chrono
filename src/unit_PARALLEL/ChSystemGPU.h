@@ -14,7 +14,8 @@
 //             www.deltaknowledge.com
 // ------------------------------------------------
 ///////////////////////////////////////////////////
-#include "ChCuda.h"
+#include "ChCudaMath.h"
+#include "ChCudaDefines.h"
 #include <stdlib.h>
 #include <iostream>
 #include <string.h>
@@ -31,12 +32,10 @@
 #include "ChDataManager.h"
 #include "ChCCollisionSystemGPU.h"
 
-namespace chrono
-{
+namespace chrono {
     using namespace chrono;
 
-    class ChApiGPU ChSystemGPU: public ChSystem
-    {
+    class ChApiGPU ChSystemGPU: public ChSystem {
             CH_RTTI(ChSystemGPU, ChObj)
             ;
 
@@ -78,4 +77,5 @@ namespace chrono
 }
 
 #endif
+
 

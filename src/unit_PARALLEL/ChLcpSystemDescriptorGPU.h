@@ -14,14 +14,13 @@
 //             www.deltaknowledge.com
 // ------------------------------------------------
 ///////////////////////////////////////////////////
-#include "ChCuda.h"
+#include "ChCudaMath.h"
+#include "ChCudaDefines.h"
 #include <thrust/device_vector.h>
 #include "ChCCollisionGPU.h"
 #include "ChLcpSolverGPU.h"
-namespace chrono
-{
-    class ChApiGPU ChLcpSystemDescriptorGPU: public ChLcpSystemDescriptor
-    {
+namespace chrono {
+    class ChApiGPU ChLcpSystemDescriptorGPU: public ChLcpSystemDescriptor {
         public:
             ChLcpSystemDescriptorGPU() {}
             ~ChLcpSystemDescriptorGPU() {}
@@ -29,4 +28,5 @@ namespace chrono
 } // END_OF_NAMESPACE____
 
 #endif
+
 

@@ -1,12 +1,10 @@
 #include "ChSystemGPU.h"
 //#include <omp.h>
 
-namespace chrono
-{
+namespace chrono {
 
     ChSystemGPU::ChSystemGPU(unsigned int max_objects) :
-        ChSystem(1000, 10000, false)
-    {
+        ChSystem(1000, 10000, false) {
         counter = 0;
         cuda_device = -1;
         gpu_data_manager = new ChGPUDataManager();
@@ -15,10 +13,9 @@ namespace chrono
         collision_system = new ChCollisionSystemGPU();
         LCP_solver_speed = new ChLcpSolverGPU();
         ((ChCollisionSystemGPU *)(collision_system))->data_container = gpu_data_manager;
-        gpu_data_manager->gpu_data.bins_per_axis = F3(50, 50, 50);
+        gpu_data_manager->gpu_data.bins_per_axis = R3(50, 50, 50);
     }
-    int ChSystemGPU::Setup()
-    {
+    int ChSystemGPU::Setup() {
         this->stepcount++;
         nbodies = 0;
         nbodies_sleep = 0;
@@ -64,8 +61,7 @@ namespace chrono
         return 0;
     }
 
-    int ChSystemGPU::Integrate_Y_impulse_Anitescu()
-    {
+    int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
         mtimer_step.start();
         mtimer_updt.start();
         Setup();
@@ -98,12 +94,12 @@ namespace chrono
 //------------------------------------------------------------------------------------------------------------------------
         mtimer_updt.start();
         gpu_data_manager->DeviceToHost();
-        float3 *vel_pointer = gpu_data_manager->host_vel_data.data();
-        float3 *omg_pointer = gpu_data_manager->host_omg_data.data();
-        float3 *pos_pointer = gpu_data_manager->host_pos_data.data();
-        float4 *rot_pointer = gpu_data_manager->host_rot_data.data();
-        float3 *acc_pointer = gpu_data_manager->host_acc_data.data();
-        float3 *fap_pointer = gpu_data_manager->host_fap_data.data();
+        real3 *vel_pointer = gpu_data_manager->host_vel_data.data();
+        real3 *omg_pointer = gpu_data_manager->host_omg_data.data();
+        real3 *pos_pointer = gpu_data_manager->host_pos_data.data();
+        real4 *rot_pointer = gpu_data_manager->host_rot_data.data();
+        real3 *acc_pointer = gpu_data_manager->host_acc_data.data();
+        real3 *fap_pointer = gpu_data_manager->host_fap_data.data();
         #pragma omp parallel
         {
             #pragma omp for
@@ -130,7 +126,7 @@ namespace chrono
             }
 
             ChLcpConstraintTwoBodies *mbilateral = (ChLcpConstraintTwoBodies *)(mconstraints[ic]);
-            float gamma = gpu_data_manager->host_bilateral_data[counter + gpu_data_manager->number_of_bilaterals * 4].z;
+            real gamma = gpu_data_manager->host_bilateral_data[counter + gpu_data_manager->number_of_bilaterals * 4].z;
             mconstraints[ic]->Set_l_i(gamma);
             counter++;
         }
@@ -159,17 +155,14 @@ namespace chrono
         return 1;
     }
 
-    double ChSystemGPU::ComputeCollisions()
-    {
+    double ChSystemGPU::ComputeCollisions() {
         return 0;
     }
 
-    double ChSystemGPU::SolveSystem()
-    {
+    double ChSystemGPU::SolveSystem() {
         return 0;
     }
-    void ChSystemGPU::AddBody(ChSharedPtr<ChBodyGPU> newbody)
-    {
+    void ChSystemGPU::AddBody(ChSharedPtr<ChBodyGPU> newbody) {
         newbody->AddRef();
         newbody->SetSystem(this);
         bodylist.push_back((newbody).get_ptr());
@@ -181,26 +174,25 @@ namespace chrono
         }
 
         ChLcpVariablesBodyOwnMass *mbodyvar = &(newbody->Variables());
-        float inv_mass = (1.0) / (mbodyvar->GetBodyMass());
+        real inv_mass = (1.0) / (mbodyvar->GetBodyMass());
         newbody->GetRot().Normalize();
         ChMatrix33<> inertia = mbodyvar->GetBodyInvInertia();
-        gpu_data_manager->host_vel_data.push_back(F3(mbodyvar->Get_qb().GetElementN(0), mbodyvar->Get_qb().GetElementN(1), mbodyvar->Get_qb().GetElementN(2)));
-        gpu_data_manager->host_acc_data.push_back(F3(0, 0, 0));
-        gpu_data_manager->host_omg_data.push_back(F3(mbodyvar->Get_qb().GetElementN(3), mbodyvar->Get_qb().GetElementN(4), mbodyvar->Get_qb().GetElementN(5)));
-        gpu_data_manager->host_pos_data.push_back(F3(newbody->GetPos().x, newbody->GetPos().y, newbody->GetPos().z));
-        gpu_data_manager->host_rot_data.push_back(F4(newbody->GetRot().e0, newbody->GetRot().e1, newbody->GetRot().e2, newbody->GetRot().e3));
-        gpu_data_manager->host_inr_data.push_back(F3(inertia.GetElement(0, 0), inertia.GetElement(1, 1), inertia.GetElement(2, 2)));
-        gpu_data_manager->host_frc_data.push_back(F3(mbodyvar->Get_fb().ElementN(0), mbodyvar->Get_fb().ElementN(1), mbodyvar->Get_fb().ElementN(2))); //forces
-        gpu_data_manager->host_trq_data.push_back(F3(mbodyvar->Get_fb().ElementN(3), mbodyvar->Get_fb().ElementN(4), mbodyvar->Get_fb().ElementN(5))); //torques
-        gpu_data_manager->host_aux_data.push_back(F3(newbody->IsActive(), newbody->GetKfriction(), inv_mass));
-        gpu_data_manager->host_lim_data.push_back(F3(newbody->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
+        gpu_data_manager->host_vel_data.push_back(R3(mbodyvar->Get_qb().GetElementN(0), mbodyvar->Get_qb().GetElementN(1), mbodyvar->Get_qb().GetElementN(2)));
+        gpu_data_manager->host_acc_data.push_back(R3(0, 0, 0));
+        gpu_data_manager->host_omg_data.push_back(R3(mbodyvar->Get_qb().GetElementN(3), mbodyvar->Get_qb().GetElementN(4), mbodyvar->Get_qb().GetElementN(5)));
+        gpu_data_manager->host_pos_data.push_back(R3(newbody->GetPos().x, newbody->GetPos().y, newbody->GetPos().z));
+        gpu_data_manager->host_rot_data.push_back(R4(newbody->GetRot().e0, newbody->GetRot().e1, newbody->GetRot().e2, newbody->GetRot().e3));
+        gpu_data_manager->host_inr_data.push_back(R3(inertia.GetElement(0, 0), inertia.GetElement(1, 1), inertia.GetElement(2, 2)));
+        gpu_data_manager->host_frc_data.push_back(R3(mbodyvar->Get_fb().ElementN(0), mbodyvar->Get_fb().ElementN(1), mbodyvar->Get_fb().ElementN(2))); //forces
+        gpu_data_manager->host_trq_data.push_back(R3(mbodyvar->Get_fb().ElementN(3), mbodyvar->Get_fb().ElementN(4), mbodyvar->Get_fb().ElementN(5))); //torques
+        gpu_data_manager->host_aux_data.push_back(R3(newbody->IsActive(), newbody->GetKfriction(), inv_mass));
+        gpu_data_manager->host_lim_data.push_back(R3(newbody->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
         //newbody->gpu_data_manager = gpu_data_manager;
         counter++;
         gpu_data_manager->number_of_objects = counter;
     }
 
-    void ChSystemGPU::RemoveBody(ChSharedPtr<ChBodyGPU> mbody)
-    {
+    void ChSystemGPU::RemoveBody(ChSharedPtr<ChBodyGPU> mbody) {
         assert(std::find<std::vector<ChBody *>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr()) != bodylist.end());
 
 // remove from collision system
@@ -215,8 +207,7 @@ namespace chrono
         mbody->RemoveRef();
     }
 
-    void ChSystemGPU::RemoveBody(int body)
-    {
+    void ChSystemGPU::RemoveBody(int body) {
         //assert( std::find<std::vector<ChBody*>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr()) != bodylist.end());
         ChBodyGPU *mbody = ((ChBodyGPU *)(bodylist[body]));
 
@@ -231,17 +222,16 @@ namespace chrono
 // this may delete the body, if none else's still referencing it..
         //mbody->RemoveRef();
     }
-    void ChSystemGPU::Update()
-    {
-        float3 *vel_pointer = gpu_data_manager->host_vel_data.data();
-        float3 *omg_pointer = gpu_data_manager->host_omg_data.data();
-        float3 *pos_pointer = gpu_data_manager->host_pos_data.data();
-        float4 *rot_pointer = gpu_data_manager->host_rot_data.data();
-        float3 *inr_pointer = gpu_data_manager->host_inr_data.data();
-        float3 *frc_pointer = gpu_data_manager->host_frc_data.data();
-        float3 *trq_pointer = gpu_data_manager->host_trq_data.data();
-        float3 *aux_pointer = gpu_data_manager->host_aux_data.data();
-        float3 *lim_pointer = gpu_data_manager->host_lim_data.data();
+    void ChSystemGPU::Update() {
+        real3 *vel_pointer = gpu_data_manager->host_vel_data.data();
+        real3 *omg_pointer = gpu_data_manager->host_omg_data.data();
+        real3 *pos_pointer = gpu_data_manager->host_pos_data.data();
+        real4 *rot_pointer = gpu_data_manager->host_rot_data.data();
+        real3 *inr_pointer = gpu_data_manager->host_inr_data.data();
+        real3 *frc_pointer = gpu_data_manager->host_frc_data.data();
+        real3 *trq_pointer = gpu_data_manager->host_trq_data.data();
+        real3 *aux_pointer = gpu_data_manager->host_aux_data.data();
+        real3 *lim_pointer = gpu_data_manager->host_lim_data.data();
         unsigned int number_of_bilaterals = 0;
         uint cntr = 0;
         this->LCP_descriptor->BeginInsertion();
@@ -278,11 +268,11 @@ namespace chrono
             int idB = ((ChBodyGPU *)((ChLcpVariablesBody *)(mbilateral->GetVariables_b()))->GetUserData())->id;
             // Update auxiliary data in all constraints before starting, that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
             mconstraints[ic]->Update_auxiliary(); //***NOTE*** not efficient here - can be on GPU, and [Eq_i] not needed
-            float4 A, B, C, D;
-            A = F4(mbilateral->Get_Cq_a()->GetElementN(0), mbilateral->Get_Cq_a()->GetElementN(1), mbilateral->Get_Cq_a()->GetElementN(2), 0); //J1x
-            B = F4(mbilateral->Get_Cq_b()->GetElementN(0), mbilateral->Get_Cq_b()->GetElementN(1), mbilateral->Get_Cq_b()->GetElementN(2), 0); //J2x
-            C = F4(mbilateral->Get_Cq_a()->GetElementN(3), mbilateral->Get_Cq_a()->GetElementN(4), mbilateral->Get_Cq_a()->GetElementN(5), 0); //J1w
-            D = F4(mbilateral->Get_Cq_b()->GetElementN(3), mbilateral->Get_Cq_b()->GetElementN(4), mbilateral->Get_Cq_b()->GetElementN(5), 0); //J2w
+            real4 A, B, C, D;
+            A = R4(mbilateral->Get_Cq_a()->GetElementN(0), mbilateral->Get_Cq_a()->GetElementN(1), mbilateral->Get_Cq_a()->GetElementN(2), 0); //J1x
+            B = R4(mbilateral->Get_Cq_b()->GetElementN(0), mbilateral->Get_Cq_b()->GetElementN(1), mbilateral->Get_Cq_b()->GetElementN(2), 0); //J2x
+            C = R4(mbilateral->Get_Cq_a()->GetElementN(3), mbilateral->Get_Cq_a()->GetElementN(4), mbilateral->Get_Cq_a()->GetElementN(5), 0); //J1w
+            D = R4(mbilateral->Get_Cq_b()->GetElementN(3), mbilateral->Get_Cq_b()->GetElementN(4), mbilateral->Get_Cq_b()->GetElementN(5), 0); //J2w
             A.w = idA; //pointer to body B1 info in body buffer
             B.w = idB; //pointer to body B2 info in body buffer
             gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 0] = A;
@@ -309,21 +299,20 @@ namespace chrono
                 bodylist[i]->VariablesQbLoadSpeed();
                 ChLcpVariablesBody *mbodyvar = &(bodylist[i]->Variables());
                 ChMatrix33<> inertia = mbodyvar->GetBodyInvInertia();
-                vel_pointer[i] = (F3(bodylist[i]->GetPos_dt().x, bodylist[i]->GetPos_dt().y, bodylist[i]->GetPos_dt().z));
-                omg_pointer[i] = (F3(bodylist[i]->GetWvel_loc().x, bodylist[i]->GetWvel_loc().y, bodylist[i]->GetWvel_loc().z));
-                pos_pointer[i] = (F3(bodylist[i]->GetPos().x, bodylist[i]->GetPos().y, bodylist[i]->GetPos().z));
-                rot_pointer[i] = (F4(bodylist[i]->GetRot().e0, bodylist[i]->GetRot().e1, bodylist[i]->GetRot().e2, bodylist[i]->GetRot().e3));
-                inr_pointer[i] = (F3(inertia.GetElement(0, 0), inertia.GetElement(1, 1), inertia.GetElement(2, 2)));
-                frc_pointer[i] = (F3(mbodyvar->Get_fb().ElementN(0), mbodyvar->Get_fb().ElementN(1), mbodyvar->Get_fb().ElementN(2))); //forces
-                trq_pointer[i] = (F3(mbodyvar->Get_fb().ElementN(3), mbodyvar->Get_fb().ElementN(4), mbodyvar->Get_fb().ElementN(5))); //torques
-                aux_pointer[i] = (F3(bodylist[i]->IsActive(), bodylist[i]->GetKfriction(), 1.0f / mbodyvar->GetBodyMass()));
-                lim_pointer[i] = (F3(bodylist[i]->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
+                vel_pointer[i] = (R3(bodylist[i]->GetPos_dt().x, bodylist[i]->GetPos_dt().y, bodylist[i]->GetPos_dt().z));
+                omg_pointer[i] = (R3(bodylist[i]->GetWvel_loc().x, bodylist[i]->GetWvel_loc().y, bodylist[i]->GetWvel_loc().z));
+                pos_pointer[i] = (R3(bodylist[i]->GetPos().x, bodylist[i]->GetPos().y, bodylist[i]->GetPos().z));
+                rot_pointer[i] = (R4(bodylist[i]->GetRot().e0, bodylist[i]->GetRot().e1, bodylist[i]->GetRot().e2, bodylist[i]->GetRot().e3));
+                inr_pointer[i] = (R3(inertia.GetElement(0, 0), inertia.GetElement(1, 1), inertia.GetElement(2, 2)));
+                frc_pointer[i] = (R3(mbodyvar->Get_fb().ElementN(0), mbodyvar->Get_fb().ElementN(1), mbodyvar->Get_fb().ElementN(2))); //forces
+                trq_pointer[i] = (R3(mbodyvar->Get_fb().ElementN(3), mbodyvar->Get_fb().ElementN(4), mbodyvar->Get_fb().ElementN(5))); //torques
+                aux_pointer[i] = (R3(bodylist[i]->IsActive(), bodylist[i]->GetKfriction(), 1.0f / mbodyvar->GetBodyMass()));
+                lim_pointer[i] = (R3(bodylist[i]->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
             }
         }
     }
 
-    void ChSystemGPU::ChangeLcpSolverSpeed(ChLcpSolver *newsolver)
-    {
+    void ChSystemGPU::ChangeLcpSolverSpeed(ChLcpSolver *newsolver) {
         assert(newsolver);
 
         if (this->LCP_solver_speed)
@@ -333,8 +322,7 @@ namespace chrono
 //((ChLcpSolverGPU*) (LCP_solver_speed))->data_container = gpu_data_manager;
     }
 
-    void ChSystemGPU::ChangeCollisionSystem(ChCollisionSystem *newcollsystem)
-    {
+    void ChSystemGPU::ChangeCollisionSystem(ChCollisionSystem *newcollsystem) {
         assert(this->GetNbodies() == 0);
         assert(newcollsystem);
 
@@ -346,4 +334,5 @@ namespace chrono
     }
 
 }
+
 

@@ -19,17 +19,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "ChCuda.h"
+#include "ChCudaMath.h"
+#include "ChCudaDefines.h"
 #include "ChDataManager.h"
 #include "lcp/ChLcpIterativeSolver.h"
-#define HM_REAL float
-#define HM_REAL3 float3
-#define HM_REAL4 float4
 
-namespace chrono
-{
-    class ChApiGPU ChLcpSolverGPU: public ChLcpIterativeSolver
-    {
+namespace chrono {
+    class ChApiGPU ChLcpSolverGPU: public ChLcpIterativeSolver {
         public:
             ChLcpSolverGPU() {
                 lcp_contact_factor = .6;
@@ -41,26 +37,26 @@ namespace chrono
                 return 0;
             }
 
-            void RunTimeStep(float step, gpu_container &gpu_data);
+            void RunTimeStep(real step, gpu_container &gpu_data);
             void Preprocess(gpu_container &gpu_data);
             void Iterate(gpu_container &gpu_data);
             void Reduce(gpu_container &gpu_data);
             void Integrate(gpu_container &gpu_data);
             void WarmContact(const int &i);
-            float Max_DeltaGamma(device_vector<float> &device_dgm_data);
-            float Min_DeltaGamma(device_vector<float> &device_dgm_data);
-            float Avg_DeltaGamma(uint number_of_constraints, device_vector<float> &device_dgm_data);
-            float Total_KineticEnergy(gpu_container &gpu_data);
+            real Max_DeltaGamma(device_vector<real> &device_dgm_data);
+            real Min_DeltaGamma(device_vector<real> &device_dgm_data);
+            real Avg_DeltaGamma(uint number_of_constraints, device_vector<real> &device_dgm_data);
+            real Total_KineticEnergy(gpu_container &gpu_data);
 
             uint GetIterations() {
                 return iteration_number;
             }
-            void SetCompliance(float c, float cT, float a) {
+            void SetCompliance(real c, real cT, real a) {
                 compliance = c;
                 complianceT = cT;
                 alpha = a;
             }
-            void SetContactFactor(float f) {
+            void SetContactFactor(real f) {
                 lcp_contact_factor = f;
             }
             void SetOmegaBilateral(double mval) {
@@ -71,13 +67,13 @@ namespace chrono
             }
         private:
             unsigned int iteration_number;
-            float step_size;
-            float lcp_omega_bilateral;
-            float lcp_omega_contact;
-            float lcp_contact_factor;
-            float compliance;
-            float complianceT;
-            float alpha;
+            real step_size;
+            real lcp_omega_bilateral;
+            real lcp_omega_contact;
+            real lcp_contact_factor;
+            real compliance;
+            real complianceT;
+            real alpha;
             uint number_of_bilaterals;
             uint number_of_contacts;
             uint number_of_objects;
@@ -88,4 +84,5 @@ namespace chrono
 }
 
 #endif
+
 

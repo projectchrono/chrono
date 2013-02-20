@@ -9,8 +9,7 @@
 ///////////////////////////////////////////////////
 
 #include "ChBodyGPU.h"
-namespace chrono
-{
+namespace chrono {
     using namespace collision;
 
     // Register into the object factory, to enable run-time
@@ -21,23 +20,21 @@ namespace chrono
     /// CLASS FOR SOLID GPU BODIES
     //////////////////////////////////////
     ChBodyGPU::ChBodyGPU() :
-        ChBody()
-    {
+        ChBody() {
         delete collision_model;
         collision_model = InstanceCollisionModel();
         id = 0;
     }
 
-    ChBodyGPU::~ChBodyGPU()
-    {
+    ChBodyGPU::~ChBodyGPU() {
     }
 
-    ChCollisionModel *ChBodyGPU::InstanceCollisionModel()
-    {
+    ChCollisionModel *ChBodyGPU::InstanceCollisionModel() {
         ChCollisionModel *collision_model_t = (ChCollisionModelGPU *) new ChCollisionModelGPU();
         ((ChCollisionModelGPU *) collision_model_t)->SetBody(this);
         return collision_model_t;
     }
 } // END_OF_NAMESPACE____
+
 
 

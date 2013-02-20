@@ -19,19 +19,17 @@
 #include <vector>
 #include "../collision/ChCCollisionModel.h"
 #include "ChApiGPU.h"
-#include <helper_math.h>
+#include "ChCudaMath.h"
+#include "ChCudaDefines.h"
 using namespace std;
-namespace chrono
-{
+namespace chrono {
     // forward references
     class ChBody;
 
-    namespace collision
-    {
+    namespace collision {
         ///  A wrapper to uses GPU collision detection
 
-        class ChApiGPU ChCollisionModelGPU : public ChCollisionModel
-        {
+        class ChApiGPU ChCollisionModelGPU : public ChCollisionModel {
             public:
 
                 ChCollisionModelGPU();
@@ -138,10 +136,10 @@ namespace chrono
                 int GetNoCollFamily();
 
                 struct bData {
-                    float3 A;
-                    float3 B;
-                    float3 C;
-                    float4 R;
+                    real3 A;
+                    real3 B;
+                    real3 C;
+                    real4 R;
                     ShapeType type;
                 };
 
@@ -151,7 +149,7 @@ namespace chrono
 
 
 
-                float3 inertia;
+                real3 inertia;
                 ChBody *mbody;
                 unsigned int nObjects;
                 int colFam, noCollWith;
@@ -159,4 +157,5 @@ namespace chrono
     } // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____
 #endif
+
 

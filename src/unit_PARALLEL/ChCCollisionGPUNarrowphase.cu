@@ -12,27 +12,25 @@
 //  if (pair.z == 0) {
 //      object A = object_data[pair.x];
 //      object B = object_data[pair.y];
-//      float3 N = F3(B.A) - F3(A.A);
-//      float centerDist = dot(N, N);
-//      float rAB = B.B.x + A.B.x;
+//      real3 N = R3(B.A) - R3(A.A);
+//      real centerDist = dot(N, N);
+//      real rAB = B.B.x + A.B.x;
 //      if (centerDist <= (rAB) * (rAB)) {
-//          float dist = sqrtf(centerDist);
+//          real dist = sqrtf(centerDist);
 //          N = N / dist;
-//          AddContact(CData, index, A.A.w, B.A.w, F3(A.A) + A.B.x * N, F3(B.A)
+//          AddContact(CData, index, A.A.w, B.A.w, R3(A.A) + A.B.x * N, R3(B.A)
 //                  - B.B.x * N, N, -dist);
 //          Contact_Number[index] = index;
 //      }
 //  }
 //}
 
-__device__ __host__ inline float3 GetSupportPoint_Sphere(const float3 &B, const float3 &n)
-{
+__device__ __host__ inline real3 GetSupportPoint_Sphere(const real3 &B, const real3 &n) {
     return (B.x) * n;
 }
-__device__ __host__ inline float3 GetSupportPoint_Triangle(const float3 &A, const float3 &B, const float3 &C, const float3 &n)
-{
-    float dist = dot(A, n);
-    float3 point = A;
+__device__ __host__ inline real3 GetSupportPoint_Triangle(const real3 &A, const real3 &B, const real3 &C, const real3 &n) {
+    real dist = dot(A, n);
+    real3 point = A;
 
     if (dot(B, n) > dist) {
         dist = dot(B, n);
@@ -46,20 +44,17 @@ __device__ __host__ inline float3 GetSupportPoint_Triangle(const float3 &A, cons
 
     return point;
 }
-__device__ __host__ inline float3 GetSupportPoint_Box(const float3 &B, const float3 &n)
-{
-    float3 result = F3(0, 0, 0);
+__device__ __host__ inline real3 GetSupportPoint_Box(const real3 &B, const real3 &n) {
+    real3 result = R3(0, 0, 0);
     result.x = n.x <= 0 ? -B.x : B.x;
     result.y = n.y <= 0 ? -B.y : B.y;
     result.z = n.z <= 0 ? -B.z : B.z;
     return result;
 }
-__device__ __host__ inline float3 GetSupportPoint_Ellipsoid(const float3 &B, const float3 &n)
-{
+__device__ __host__ inline real3 GetSupportPoint_Ellipsoid(const real3 &B, const real3 &n) {
     return B * B * n / length(n * B);
 }
-__device__ __host__ float sign(float x)
-{
+__device__ __host__ real sign(real x) {
     if (x < 0) {
         return -1;
     } else {
@@ -67,12 +62,11 @@ __device__ __host__ float sign(float x)
     }
 }
 
-__device__ __host__ inline float3 GetSupportPoint_Cylinder(const float3 &B, const float3 &n)
-{
-    //return make_float3(0,0,0);
-    float3 u = F3(0, 1, 0);
-    float3 w = n - (dot(u, n)) * u;
-    float3 result;
+__device__ __host__ inline real3 GetSupportPoint_Cylinder(const real3 &B, const real3 &n) {
+    //return real3(0,0,0);
+    real3 u = R3(0, 1, 0);
+    real3 w = n - (dot(u, n)) * u;
+    real3 result;
 
     if (length(w) != 0) {
         result = sign(dot(u, n)) * B.y * u + B.x * normalize(w);
@@ -82,9 +76,8 @@ __device__ __host__ inline float3 GetSupportPoint_Cylinder(const float3 &B, cons
 
     return result;
 }
-__device__ __host__ inline float3 GetSupportPoint_Plane(const float3 &B, const float3 &n)
-{
-    float3 result = B;
+__device__ __host__ inline real3 GetSupportPoint_Plane(const real3 &B, const real3 &n) {
+    real3 result = B;
 
     if (n.x < 0)
         result.x = -result.x;
@@ -94,52 +87,42 @@ __device__ __host__ inline float3 GetSupportPoint_Plane(const float3 &B, const f
 
     return result;
 }
-__device__ __host__ inline float3 GetSupportPoint_Cone(const float3 &B, const float3 &n)
-{
-    return make_float3(0, 0, 0);
+__device__ __host__ inline real3 GetSupportPoint_Cone(const real3 &B, const real3 &n) {
+    return real3(0, 0, 0);
 }
-__device__ __host__ inline float3 GetCenter_Sphere()
-{
+__device__ __host__ inline real3 GetCenter_Sphere() {
     return Zero_Vector;
 }
-__device__ __host__ inline float3 GetCenter_Triangle(const float3 &A, const float3 &B, const float3 &C)
-{
-    return make_float3((A.x + B.x + C.x) / 3.0f, (A.y + B.y + C.y) / 3.0f, (A.z + B.z + C.z) / 3.0f);
+__device__ __host__ inline real3 GetCenter_Triangle(const real3 &A, const real3 &B, const real3 &C) {
+    return real3((A.x + B.x + C.x) / 3.0f, (A.y + B.y + C.y) / 3.0f, (A.z + B.z + C.z) / 3.0f);
 }
-__device__ __host__ inline float3 GetCenter_Box()
-{
+__device__ __host__ inline real3 GetCenter_Box() {
     return Zero_Vector;
 }
-__device__ __host__ inline float3 GetCenter_Ellipsoid()
-{
+__device__ __host__ inline real3 GetCenter_Ellipsoid() {
     return Zero_Vector;
 }
-__device__ __host__ inline float3 GetCenter_Cylinder()
-{
+__device__ __host__ inline real3 GetCenter_Cylinder() {
     return Zero_Vector;
 }
-__device__ __host__ inline float3 GetCenter_Plane()
-{
+__device__ __host__ inline real3 GetCenter_Plane() {
     return Zero_Vector;
 }
-__device__ __host__ inline float3 GetCenter_Cone()
-{
+__device__ __host__ inline real3 GetCenter_Cone() {
     return Zero_Vector;
 }
 
-__device__ __host__ float3 GetCenter(const int &type, const float3 &A, const float3 &B, const float3 &C)
-{
+__device__ __host__ real3 GetCenter(const int &type, const real3 &A, const real3 &B, const real3 &C) {
     if (type == _TRIANGLEMESH) {
         return GetCenter_Triangle(A, B, C);
     } //triangle
     else {
-        return make_float3(0, 0, 0) + A;
+        return real3(0, 0, 0) + A;
     } //All other shapes assumed to be locally centered
 }
-__device__ __host__ float3 TransformSupportVert(const int &type, const float3 &A, const float3 &B, const float3 &C, const float4 &R, const float3 &b)
-{
-    float3 localSupport;
-    float3 n = normalize(b);
+__device__ __host__ real3 TransformSupportVert(const int &type, const real3 &A, const real3 &B, const real3 &C, const real4 &R, const real3 &b) {
+    real3 localSupport;
+    real3 n = normalize(b);
 
     if (type == _TRIANGLEMESH) { //triangle
         return GetSupportPoint_Triangle(A, B, C, n);
@@ -160,10 +143,9 @@ __device__ __host__ float3 TransformSupportVert(const int &type, const float3 &A
     return quatRotate(localSupport, R) + A; //globalSupport
 }
 
-__device__ __host__ float dist_line(float3 &P, float3 &x0, float3 &b, float3 &witness)
-{
-    float dist, t;
-    float3 d, a;
+__device__ __host__ real dist_line(real3 &P, real3 &x0, real3 &b, real3 &witness) {
+    real dist, t;
+    real3 d, a;
     d = b - x0; // direction of segment
     a = x0 - P; // precompute vector from P to x0
     t = -(1.f) * dot(a, d);
@@ -177,19 +159,18 @@ __device__ __host__ float dist_line(float3 &P, float3 &x0, float3 &b, float3 &wi
         witness = b;
     } else {
         witness = d;
-        witness *= t;
+        witness =witness* t;
         witness += x0;
         dist = dot(witness - P, witness - P);
     }
 
     return dist;
 }
-__device__ __host__ float find_dist(float3 &P, float3 &x0, float3 &B, float3 &C, float3 &witness)
-{
-    float3 d1, d2, a;
-    float u, v, w, p, q, r;
-    float s, t, dist, dist2;
-    float3 witness2;
+__device__ __host__ real find_dist(real3 &P, real3 &x0, real3 &B, real3 &C, real3 &witness) {
+    real3 d1, d2, a;
+    real u, v, w, p, q, r;
+    real s, t, dist, dist2;
+    real3 witness2;
     d1 = B - x0;
     d2 = C - x0;
     a = x0 - P;
@@ -203,8 +184,8 @@ __device__ __host__ float find_dist(float3 &P, float3 &x0, float3 &B, float3 &C,
     t = (-s * r - q) / w;
 
     if ((IsZero(s) || s > 0.0f) && (isEqual(s, 1.0f) || s < 1.0f) && (IsZero(t) || t > 0.0f) && (isEqual(t, 1.0f) || t < 1.0f) && (isEqual(t + s, 1.0f) || t + s < 1.0f)) {
-        d1 *= s;
-        d2 *= t;
+        d1 =d1* s;
+        d2 =d2* t;
         witness = x0;
         witness += d1;
         witness += d2;
@@ -230,10 +211,9 @@ __device__ __host__ float find_dist(float3 &P, float3 &x0, float3 &B, float3 &C,
 }
 
 //Code for Convex-Convex Collision detection, adopted from xeno-collide
-__device__ __host__ bool CollideAndFindPoint(int typeA, float3 A_X, float3 A_Y, float3 A_Z, float4 A_R, int typeB, float3 B_X, float3 B_Y, float3 B_Z, float4 B_R, float3 &returnNormal, float3 &point,
-        float &depth)
-{
-    float3 v01, v02, v0, n, v11, v12, v1, v21, v22, v2;
+__device__ __host__ bool CollideAndFindPoint(int typeA, real3 A_X, real3 A_Y, real3 A_Z, real4 A_R, int typeB, real3 B_X, real3 B_Y, real3 B_Z, real4 B_R, real3 &returnNormal, real3 &point,
+        real &depth) {
+    real3 v01, v02, v0, n, v11, v12, v1, v21, v22, v2;
     // v0 = center of Minkowski sum
     v01 = GetCenter(typeA, A_X, A_Y, A_Z);
     v02 = GetCenter(typeB, B_X, B_Y, B_Z);
@@ -241,7 +221,7 @@ __device__ __host__ bool CollideAndFindPoint(int typeA, float3 A_X, float3 A_Y, 
 
     // Avoid case where centers overlap -- any direction is fine in this case
     if (IsZero3(v0))
-        v0 = make_float3(1, 0, 0);
+        v0 = real3(1, 0, 0);
 
     // v1 = support in direction of origin
     n = normalize(-v0);
@@ -287,7 +267,7 @@ __device__ __host__ bool CollideAndFindPoint(int typeA, float3 A_X, float3 A_Y, 
     }
 
     // Phase One: Identify a portal
-    float3 v31, v32, v3;
+    real3 v31, v32, v3;
 
     while (1) {
         // Obtain the support point in a direction perpendicular to the existing plane
@@ -337,21 +317,21 @@ __device__ __host__ bool CollideAndFindPoint(int typeA, float3 A_X, float3 A_Y, 
         }
 
         // Find the support point in the direction of the wedge face
-        float3 v41 = TransformSupportVert(typeA, A_X, A_Y, A_Z, A_R, -n);
-        float3 v42 = TransformSupportVert(typeB, B_X, B_Y, B_Z, B_R, n);
-        float3 v4 = v42 - v41;
-        float delta = dot((v4 - v3), n);
+        real3 v41 = TransformSupportVert(typeA, A_X, A_Y, A_Z, A_R, -n);
+        real3 v42 = TransformSupportVert(typeB, B_X, B_Y, B_Z, B_R, n);
+        real3 v4 = v42 - v41;
+        real delta = dot((v4 - v3), n);
         depth = -dot(v4, n);
 
         // If the boundary is thin enough or the origin is outside the support plane for the newly discovered vertex, then we can terminate
         if (delta <= kCollideEpsilon || depth >= 0. || phase2 > 100) {
             if (hit) {
                 // Compute the barycentric coordinates of the origin
-                float b0 = dot(cross(v1, v2), v3);
-                float b1 = dot(cross(v3, v2), v0);
-                float b2 = dot(cross(v0, v1), v3);
-                float b3 = dot(cross(v2, v1), v0);
-                float sum = b0 + b1 + b2 + b3;
+                real b0 = dot(cross(v1, v2), v3);
+                real b1 = dot(cross(v3, v2), v0);
+                real b2 = dot(cross(v0, v1), v3);
+                real b3 = dot(cross(v2, v1), v0);
+                real sum = b0 + b1 + b2 + b3;
 
                 if (sum <= 0.) {
                     b0 = 0;
@@ -361,9 +341,9 @@ __device__ __host__ bool CollideAndFindPoint(int typeA, float3 A_X, float3 A_Y, 
                     sum = b1 + b2 + b3;
                 }
 
-                float inv = 1.0f / sum;
+                real inv = 1.0f / sum;
                 point = (b0 * v01 + b1 * v11 + b2 * v21 + b3 * v31) + (b0 * v02 + b1 * v12 + b2 * v22 + b3 * v32);
-                point *= inv * .5;
+                point =point* inv * .5;
                 returnNormal = normalize(n);
             }
 
@@ -394,10 +374,9 @@ __device__ __host__ bool CollideAndFindPoint(int typeA, float3 A_X, float3 A_Y, 
     }
 }
 
-__host__ __device__ inline float4 Quat_from_AngAxis(const float &angle, const float3 &v)
-{
-    float sinhalf = sinf(angle * 0.5f);
-    float4 quat;
+__host__ __device__ inline real4 Quat_from_AngAxis(const real &angle, const real3 &v) {
+    real sinhalf = sinf(angle * 0.5f);
+    real4 quat;
     quat.x = cosf(angle * 0.5f);
     quat.y = v.x * sinhalf;
     quat.z = v.y * sinhalf;
@@ -405,8 +384,7 @@ __host__ __device__ inline float4 Quat_from_AngAxis(const float &angle, const fl
     return quat;
 }
 __host__ __device__
-unsigned int hash(unsigned int a)
-{
+unsigned int hash(unsigned int a) {
     a = (a + 0x7ed55d16) + (a << 12);
     a = (a ^ 0xc761c23c) ^ (a >> 19);
     a = (a + 0x165667b1) + (a << 5);
@@ -415,9 +393,8 @@ unsigned int hash(unsigned int a)
     a = (a ^ 0xb55a4f09) ^ (a >> 16);
     return a;
 }
-__global__ void MPR_GPU_Store(float3 *pos, float4 *rot, float3 *obA, float3 *obB, float3 *obC, float4 *obR, int3 *typ, long long *Pair, uint *Contact_Number, float3 *norm, float3 *ptA, float3 *ptB,
-                              float *contactDepth, int2 *ids, float3 *aux, uint totalPossibleConts)
-{
+__global__ void MPR_GPU_Store(real3 *pos, real4 *rot, real3 *obA, real3 *obB, real3 *obC, real4 *obR, int3 *typ, long long *Pair, uint *Contact_Number, real3 *norm, real3 *ptA, real3 *ptB,
+                              real *contactDepth, int2 *ids, real3 *aux, uint totalPossibleConts) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (index >= totalPossibleConts) {
@@ -431,13 +408,13 @@ __global__ void MPR_GPU_Store(float3 *pos, float4 *rot, float3 *obA, float3 *obB
     int2 pair = I2(int(p >> 32), int(p & 0xffffffff));
     //if(pair.z<4){return;}
     int3 A_T = typ[pair.x], B_T = typ[pair.y]; //Get the type data for each object in the collision pair
-    float3 posA = pos[A_T.z], posB = pos[B_T.z]; //Get the global object position
-    float4 rotA = rot[A_T.z], rotB = rot[B_T.z]; //Get the global object rotation
-    float3 A_X = obA[A_T.y], B_X = obA[B_T.y];
-    float3 A_Y = obB[A_T.y], B_Y = obB[B_T.y];
-    float3 A_Z = obC[A_T.y], B_Z = obC[B_T.y];
-    float4 A_R = mult(rotA, obR[A_T.y]);
-    float4 B_R = mult(rotB, obR[B_T.y]);
+    real3 posA = pos[A_T.z], posB = pos[B_T.z]; //Get the global object position
+    real4 rotA = rot[A_T.z], rotB = rot[B_T.z]; //Get the global object rotation
+    real3 A_X = obA[A_T.y], B_X = obA[B_T.y];
+    real3 A_Y = obB[A_T.y], B_Y = obB[B_T.y];
+    real3 A_Z = obC[A_T.y], B_Z = obC[B_T.y];
+    real4 A_R = mult(rotA, obR[A_T.y]);
+    real4 B_R = mult(rotB, obR[B_T.y]);
 
     if (A_T.x == _SPHERE || A_T.x == _ELLIPSOID || A_T.x == _BOX || A_T.x == _CYLINDER) {
         A_X = quatRotate(A_X, rotA) + posA;
@@ -457,36 +434,36 @@ __global__ void MPR_GPU_Store(float3 *pos, float4 *rot, float3 *obA, float3 *obB
 
     //unsigned int seed = hash(threadIdx.x) ;
     //thrust::default_random_engine rng(seed);
-    //thrust::uniform_real_distribution<float> u01(-.01, .01);
+    //thrust::uniform_real_distribution<real> u01(-.01, .01);
     int num = 0;
     //if (A_T.x == _SPHERE || B_T.x == _SPHERE) {
     //  num = 2;
     //}
-    float4 A_R_T = A_R, B_R_T = B_R;
-    //float3 vect1,vect2;
+    real4 A_R_T = A_R, B_R_T = B_R;
+    //real3 vect1,vect2;
 //  uint counter=0;
-//  float3 p1_old, p2_old;
+//  real3 p1_old, p2_old;
 //  while(counter<100) {
 //      counter++;
     //if (num == 0) {
-//          vect1 = normalize(F3(u01(rng), u01(rng), u01(rng)));
-//          vect2 = normalize(F3(u01(rng), u01(rng), u01(rng)));
+//          vect1 = normalize(R3(u01(rng), u01(rng), u01(rng)));
+//          vect2 = normalize(R3(u01(rng), u01(rng), u01(rng)));
     //}
     //if (num == 1) {
-    //  vect = F3(0, 1, 0);
+    //  vect = R3(0, 1, 0);
     //}
     //if (num == 2) {
-    //  vect = F3(0, 0, 1);
+    //  vect = R3(0, 0, 1);
     //}
-//      float4 rand1 = Quat_from_AngAxis(u01(rng), vect1);
-//      float4 rand2 = Quat_from_AngAxis(u01(rng), vect2);
+//      real4 rand1 = Quat_from_AngAxis(u01(rng), vect1);
+//      real4 rand2 = Quat_from_AngAxis(u01(rng), vect2);
 //      if (aux[A_T.z].x == 1) {
 //          A_R_T = mult(A_R, rand1);
 //      } else if (aux[B_T.z].x == 1) {
 //          B_R_T = mult(B_R, rand2);
 //      }
-    float3 N, p1, p2, p0;
-    float depth = 0;
+    real3 N, p1, p2, p0;
+    real depth = 0;
 
     if (!CollideAndFindPoint(A_T.x, A_X, A_Y, A_Z, A_R_T, B_T.x, B_X, B_Y, B_Z, B_R_T, N, p0, depth)) {
         return;
@@ -525,8 +502,7 @@ __global__ void MPR_GPU_Store(float3 *pos, float4 *rot, float3 *obA, float3 *obB
 //      if(num>3){return;}
 //  }
 }
-__global__ void CopyGamma(int *to, float3 *oldG, float3 *newG, int contacts)
-{
+__global__ void CopyGamma(int *to, real3 *oldG, real3 *newG, int contacts) {
     uint i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i >= contacts) {
@@ -536,8 +512,7 @@ __global__ void CopyGamma(int *to, float3 *oldG, float3 *newG, int contacts)
     newG[to[i]] = oldG[i];
 }
 
-void ChCCollisionGPU::Narrowphase(gpu_container &gpu_data)
-{
+void ChCCollisionGPU::Narrowphase(gpu_container &gpu_data) {
     //DBG("C ");
     gpu_data.generic_counter.resize(gpu_data.number_of_contacts_possible);
     thrust::fill(gpu_data.generic_counter.begin(), gpu_data.generic_counter.end(), 1);
@@ -549,10 +524,10 @@ void ChCCollisionGPU::Narrowphase(gpu_container &gpu_data)
     gpu_data.device_bids_data.resize(gpu_data.number_of_contacts_possible);
 //DBG(" X ")
     //cout << "  POSSIBLE  " << number_of_contacts_possible << "  ";
-    MPR_GPU_Store CUDA_KERNEL_DIM(BLOCKS(number_of_contacts_possible), THREADS)(CASTF3(gpu_data.device_pos_data), CASTF4(gpu_data.device_rot_data), CASTF3(gpu_data.device_ObA_data),
-            CASTF3(gpu_data.device_ObB_data), CASTF3(gpu_data.device_ObC_data), CASTF4(gpu_data.device_ObR_data), CASTI3(gpu_data.device_typ_data), CASTLL(gpu_data.device_pair_data),
-            CASTU1(gpu_data.generic_counter), CASTF3(gpu_data.device_norm_data), CASTF3(gpu_data.device_cpta_data), CASTF3(gpu_data.device_cptb_data), CASTF1(gpu_data.device_dpth_data),
-            CASTI2(gpu_data.device_bids_data), CASTF3(gpu_data.device_aux_data), number_of_contacts_possible);
+    MPR_GPU_Store CUDA_KERNEL_DIM(BLOCKS(number_of_contacts_possible), THREADS)(CASTR3(gpu_data.device_pos_data), CASTR4(gpu_data.device_rot_data), CASTR3(gpu_data.device_ObA_data),
+            CASTR3(gpu_data.device_ObB_data), CASTR3(gpu_data.device_ObC_data), CASTR4(gpu_data.device_ObR_data), CASTI3(gpu_data.device_typ_data), CASTLL(gpu_data.device_pair_data),
+            CASTU1(gpu_data.generic_counter), CASTR3(gpu_data.device_norm_data), CASTR3(gpu_data.device_cpta_data), CASTR3(gpu_data.device_cptb_data), CASTR1(gpu_data.device_dpth_data),
+            CASTI2(gpu_data.device_bids_data), CASTR3(gpu_data.device_aux_data), number_of_contacts_possible);
     gpu_data.number_of_contacts = number_of_contacts_possible - Thrust_Count(gpu_data.generic_counter, 1);
     //DBG(" Y ")
     //thrust::remove_if(gpu_data.device_norm_data.begin(),gpu_data.device_norm_data.end(),gpu_data.generic_counter.begin(),thrust::identity<int>());
@@ -572,7 +547,7 @@ void ChCCollisionGPU::Narrowphase(gpu_container &gpu_data)
 //
 //
 //
-//  //thrust::device_vector<float3> old_gamma = data_container->device_gam_data;
+//  //thrust::device_vector<real3> old_gamma = data_container->device_gam_data;
 //
     gpu_data.device_norm_data.resize(gpu_data.number_of_contacts);
     gpu_data.device_cpta_data.resize(gpu_data.number_of_contacts);
@@ -580,7 +555,7 @@ void ChCCollisionGPU::Narrowphase(gpu_container &gpu_data)
     gpu_data.device_dpth_data.resize(gpu_data.number_of_contacts);
     gpu_data.device_bids_data.resize(gpu_data.number_of_contacts);
     gpu_data.device_gam_data.resize(gpu_data.number_of_contacts);
-    Thrust_Fill(gpu_data.device_gam_data, F3(0));
+    Thrust_Fill(gpu_data.device_gam_data, R3(0));
     //  contact_pair.resize(number_of_contacts);
     //
     //  thrust::sort_by_key(contact_pair.begin(), contact_pair.end(), thrust::make_zip_iterator(thrust::make_tuple(data_container->device_norm_data.begin(), data_container->device_cpta_data.begin(),
@@ -598,8 +573,8 @@ void ChCCollisionGPU::Narrowphase(gpu_container &gpu_data)
     //          thrust::lower_bound(contact_pair.begin(), contact_pair.end(), old_contact_pair.begin(), old_contact_pair.end(), temporaryB.begin());//return index of common new contact
     //CopyGamma     <<<BLOCKS(numP),THREADS>>>(
     //              CASTI1(temporaryB),
-    //              CASTF3(old_gamma),
-    //              CASTF3(data_container->device_gam_data),
+    //              CASTR3(old_gamma),
+    //              CASTR3(data_container->device_gam_data),
     //              numP);
     //      //              for(int i=0; i<old_contact_pair.size(); i++){cout<<old_contact_pair[i]<<endl;}
     //      //              cout<<"------------------------"<<endl;
@@ -616,4 +591,5 @@ void ChCCollisionGPU::Narrowphase(gpu_container &gpu_data)
     //}
     //old_contact_pair = contact_pair;
 }
+
 

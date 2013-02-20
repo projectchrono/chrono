@@ -18,16 +18,11 @@
 #include "physics/ChBody.h"
 #include "ChApiGPU.h"
 #include "ChCCollisionModelGPU.h"
-//#include "core/ChCoordsys.h"
-//#include "core/ChTrasform.h"
-//#include "ChDataManager.h"
-namespace chrono
-{
+namespace chrono {
     using namespace collision;
 
 //class ChSystem;
-    class ChApiGPU ChBodyGPU: public ChBody
-    {
+    class ChApiGPU ChBodyGPU: public ChBody {
             CH_RTTI(ChBodyGPU, ChPhysicsItem)
             ;
 
@@ -193,4 +188,5 @@ namespace chrono
 } // END_OF_NAMESPACE____
 
 #endif
+
 

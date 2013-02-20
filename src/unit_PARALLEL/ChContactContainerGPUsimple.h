@@ -19,8 +19,7 @@
 #include "physics/ChContactContainerBase.h"
 #include <list>
 #include "ChApiGPU.h"
-namespace chrono
-{
+namespace chrono {
     /// Class representing a container of many contacts,
     /// implemented as a typical linked list of ChContactGPUsimple
     /// objects.
@@ -30,8 +29,7 @@ namespace chrono
     /// that does not use linked lists of cpu objects but rather
     /// keeps all contact data as GPU buffers on the GPU device.
 
-    class ChApiGPU ChContactContainerGPUsimple : public ChContactContainerBase
-    {
+    class ChApiGPU ChContactContainerGPUsimple : public ChContactContainerBase {
             CH_RTTI(ChContactContainerGPUsimple, ChContactContainerBase);
 
         protected:
@@ -123,3 +121,4 @@ namespace chrono
 } // END_OF_NAMESPACE____
 
 #endif
+

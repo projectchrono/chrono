@@ -15,7 +15,8 @@
 //             www.deltaknowledge.com
 // ------------------------------------------------
 ///////////////////////////////////////////////////
-#include "ChCuda.h"
+#include "ChCudaMath.h"
+#include "ChCudaDefines.h"
 #include "ChCCollisionModelGPU.h"
 #include "physics/ChBody.h"
 #include "ChCCollisionGPU.h"
@@ -24,17 +25,14 @@
 #include "../collision/ChCCollisionSystem.h"
 #include "../physics/ChProximityContainerBase.h"
 #include "ChBodyGPU.h"
-namespace chrono
-{
-    namespace collision
-    {
+namespace chrono {
+    namespace collision {
 ///
 /// Class for collision engine based on the spatial subdivision method.
 /// Contains both the broadphase and the narrow phase methods.
 ///
 
-        class ChApiGPU ChCollisionSystemGPU: public ChCollisionSystem
-        {
+        class ChApiGPU ChCollisionSystemGPU: public ChCollisionSystem {
             public:
 
                 ChCollisionSystemGPU();
@@ -99,4 +97,5 @@ namespace chrono
 } // END_OF_NAMESPACE____
 
 #endif
+
 
