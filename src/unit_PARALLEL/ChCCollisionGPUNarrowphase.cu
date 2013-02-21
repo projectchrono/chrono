@@ -1,7 +1,5 @@
 #include "ChCCollisionGPU.h"
 #include "ChCCollisionGPU.cuh"
-#include <thrust/remove.h>
-#include <thrust/random.h>
 //__global__ void Sphere_Sphere(object * object_data, int3 * Pair,
 //      uint* Contact_Number, contactGPU* CData, uint totalPossibleConts) {
 //  uint index = blockIdx.x * blockDim.x + threadIdx.x;

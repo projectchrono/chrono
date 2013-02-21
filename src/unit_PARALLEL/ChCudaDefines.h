@@ -10,6 +10,8 @@
 //#define THRUST_DEBUG
 #include <time.h>
 #include <iostream>
+//#include <helper_math.h>
+#include <math.h>
 #include <thrust/sort.h>
 #include <thrust/copy.h>
 #include <thrust/count.h>
@@ -20,6 +22,8 @@
 #include <thrust/iterator/constant_iterator.h>
 #include <thrust/functional.h>
 #include <thrust/unique.h>
+#include <thrust/remove.h>
+#include <thrust/random.h>
 #include "ChApiGPU.h"
 //#include <omp.h>
 #include <vector>

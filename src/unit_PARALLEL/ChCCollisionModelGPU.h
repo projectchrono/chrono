@@ -16,7 +16,6 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include <vector>
 #include "../collision/ChCCollisionModel.h"
 #include "ChApiGPU.h"
 #include "ChCudaMath.h"

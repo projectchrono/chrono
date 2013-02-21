@@ -16,7 +16,6 @@
 ///////////////////////////////////////////////////
 #include "ChCudaMath.h"
 #include "ChCudaDefines.h"
-#include <thrust/device_vector.h>
 #include "ChCCollisionGPU.h"
 #include "ChLcpSolverGPU.h"
 namespace chrono {

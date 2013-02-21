@@ -14,12 +14,26 @@
 #define R4  real4
 #define R2  real2
 #define I4  int4
-#define I3  make_int3
-#define I2  make_int2
+#define I3  _make_int3
+#define I2  _make_int2
 #define U3  make_uint3
 typedef unsigned int uint;
 
+static __host__ __device__ int3 _make_int3(int a, int b, int c) {
+    int3 t;
+    t.x = a;
+    t.y = b;
+    t.z = c;
+    return t;
+}
 
+
+static __host__ __device__ int2 _make_int2(int a, int b) {
+    int2 t;
+    t.x = a;
+    t.y = b;
+    return t;
+}
 
 typedef double real;
 struct real2;
@@ -32,7 +46,6 @@ struct real2 {
 };
 
 struct real3 {
-
     __host__ __device__ real3() {}
     __host__ __device__ real3(real a): x(a), y(a), z(a) {}
     __host__ __device__ real3(real a , real b , real c): x(a), y(b), z(c) {}
@@ -42,13 +55,13 @@ struct real3 {
 struct real4 {
     __host__ __device__ real4() {}
     __host__ __device__ real4(real3 a): x(a.x), y(a.y), z(a.z), w(0) {}
-    __host__ __device__ real4(real d , real a , real b , real c ): w(d), x(a), y(b), z(c) {}
+    __host__ __device__ real4(real d , real a , real b , real c): w(d), x(a), y(b), z(c) {}
 
     real w, x, y, z;
 };
 
 static __device__ __host__ real3 make_real3(const real4 &rhs) {
-    return real3(rhs.x,rhs.y,rhs.z);
+    return real3(rhs.x, rhs.y, rhs.z);
 }
 
 static __device__ __host__ real3 operator +(const real3 &rhs, const real3 &lhs) {
@@ -64,7 +77,6 @@ static __device__ __host__ real4 operator +(const real4 &rhs, const real4 &lhs) 
     temp.x = rhs.x + lhs.x;
     temp.y = rhs.y + lhs.y;
     temp.z = rhs.z + lhs.z;
-
     return temp;
 }
 static __device__ __host__ real3 operator -(const real3 &rhs) {
@@ -152,7 +164,7 @@ static __device__ __host__ inline real dot(const real3 &a, const real3 &b) {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 static __device__ __host__ inline real dot(const real4 &a, const real4 &b) {
-    return a.x * b.x + a.y * b.y + a.z * b.z+ a.w * b.w;
+    return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 }
 
 template<class T, class U> // dot product of the first three elements of real3/real4 values
@@ -311,3 +323,4 @@ struct bbox_transformation: public thrust::unary_function<real3, bbox> {
 };
 
 #endif
+

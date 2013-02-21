@@ -16,9 +16,6 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include "ChCudaMath.h"
 #include "ChCudaDefines.h"
 #include "ChDataManager.h"
