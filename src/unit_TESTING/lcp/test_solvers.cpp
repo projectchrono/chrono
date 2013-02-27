@@ -1,3 +1,5 @@
+#define DEBUG
+
 #include "lcp/ChLcpVariablesGeneric.h"
 #include "lcp/ChLcpVariablesBody.h"
 #include "lcp/ChLcpConstraintTwoGeneric.h"
@@ -20,19 +22,31 @@
 #include "physics/ChContactContainer.h"
 // #include "unit_OPENGL/ChOpenGL.h"
 #include "unit_POSTPROCESS/ChMitsubaRender.h"
+
+#include "unit_GPU/ChSystemGPU.h"
+
+
 // Remember to use the namespace 'chrono' because all classes 
 // of Chrono::Engine belong to this namespace and its children...
 
 using namespace chrono;
 using namespace postprocess;
-#define CHBODYSHAREDPTR ChSharedBodyPtr
-#define CHBODY ChBody
-#define CHCOLLISIONSYS ChCollisionSystemBullet
-#define CHLCPDESC ChLcpSystemDescriptor
-#define CHCONTACTCONT ChContactContainer
+//#define CHBODYSHAREDPTR ChSharedBodyPtr
+//#define CHBODY ChBody
+//#define CHCOLLISIONSYS ChCollisionSystemBullet
+//#define CHLCPDESC ChLcpSystemDescriptor
+//#define CHCONTACTCONT ChContactContainer
+//#define CHSOLVER ChLcpIterativeJacobi
+//#define CHMODEL ChModelBullet
+//#define CHSYS ChSystem
+#define CHBODYSHAREDPTR ChSharedBodyGPUPtr
+#define CHBODY ChBodyGPU
+#define CHCOLLISIONSYS ChCollisionSystemGPU
+#define CHLCPDESC ChLcpSystemDescriptorGPU
+#define CHCONTACTCONT ChContactContainerGPUsimple
 #define CHSOLVER ChLcpIterativeJacobi
-#define CHMODEL ChModelBullet
-#define CHSYS ChSystemOpenMP
+#define CHMODEL ChModelGPU
+#define CHSYS ChSystemGPU
 
 void dump_matricies(ChLcpSystemDescriptor& mdescriptor) {
 	chrono::ChSparseMatrix mdM;
@@ -55,15 +69,15 @@ void dump_matricies(ChLcpSystemDescriptor& mdescriptor) {
 	chrono::ChStreamOutAsciiFile file_fric("dump_fric.dat");
 	mdfric.StreamOUTdenseMatlabFormat(file_fric);
 }
-
-void RunTimeStep(ChSystem* mSys, const int frame){
+template<class T>
+void RunTimeStep(T* mSys, const int frame){
 	Vector lpos(0, 0, 0);
 	ChQuaternion<> quat(1, 0, 0, 0);
-	ChSharedBodyPtr sphere;
+	CHBODYSHAREDPTR sphere;
 	
     if(frame%10==0){
     for (int i = 0; i < 10; i++) {
-		sphere = ChSharedBodyPtr(new ChBody);
+		sphere = CHBODYSHAREDPTR(new CHBODY);
         Vector pos=Vector((rand() % 10000 / 1000.0 - 5), (0), (rand() % 10000 / 1000.0 - 5));
 		InitObject(sphere, 1.0, pos*.5 , quat, 1, 1, 0, true, false, 32, 17 + i);
 		AddCollisionGeometry(sphere, SPHERE, Vector(.3, .3, .3), lpos, quat);
@@ -78,19 +92,19 @@ void RunTimeStep(ChSystem* mSys, const int frame){
 
 int main(int argc, char* argv[]) {
 
-    ChSystemOpenMP* mSys = new ChSystemOpenMP();
-	ChLcpSystemDescriptor *mdescriptor = new ChLcpSystemDescriptor();
-	ChContactContainer *mcontactcontainer = new ChContactContainer();
-	ChCollisionSystemBullet *mcollisionengine = new ChCollisionSystemBullet();
+    CHSYS* mSys = new CHSYS();
+	CHLCPDESC *mdescriptor = new CHLCPDESC();
+	CHCONTACTCONT *mcontactcontainer = new CHCONTACTCONT();
+	CHCOLLISIONSYS *mcollisionengine = new CHCOLLISIONSYS();
 	//ChLcpIterativeJacobi *msolver = new ChLcpIterativeJacobi();
-	ChLcpIterativeSOR *msolver = new ChLcpIterativeSOR();
+	//ChLcpIterativeSOR *msolver = new ChLcpIterativeSOR();
 	//ChLcpIterativeMINRES *msolver = new ChLcpIterativeMINRES();
 	//ChLcpIterativePMINRES *msolver = new ChLcpIterativePMINRES();
 	//ChLcpIterativeBB *msolver = new ChLcpIterativeBB();
 
 	mSys->ChangeLcpSystemDescriptor(mdescriptor);
 	mSys->ChangeContactContainer(mcontactcontainer);
-	mSys->ChangeLcpSolverSpeed(msolver);
+	//mSys->ChangeLcpSolverSpeed(msolver);
 	mSys->ChangeCollisionSystem(mcollisionengine);
 
 	mSys->SetIntegrationType(ChSystem::INT_ANITESCU);
@@ -107,11 +121,11 @@ int main(int argc, char* argv[]) {
 //	}
 
 	float mWallMu = 1, container_width = 7.0, container_thickness = .1, container_height = 7.0, wscale = 1;
-	ChSharedBodyPtr L = ChSharedBodyPtr(new ChBody);
-	ChSharedBodyPtr R = ChSharedBodyPtr(new ChBody);
-	ChSharedBodyPtr F = ChSharedBodyPtr(new ChBody);
-	ChSharedBodyPtr B = ChSharedBodyPtr(new ChBody);
-	ChSharedBodyPtr BTM = ChSharedBodyPtr(new ChBody);
+	CHBODYSHAREDPTR L = CHBODYSHAREDPTR(new CHBODY);
+	CHBODYSHAREDPTR R = CHBODYSHAREDPTR(new CHBODY);
+	CHBODYSHAREDPTR F = CHBODYSHAREDPTR(new CHBODY);
+	CHBODYSHAREDPTR B = CHBODYSHAREDPTR(new CHBODY);
+	CHBODYSHAREDPTR BTM = CHBODYSHAREDPTR(new CHBODY);
 
 	InitObject(L, 100000, Vector(-container_width + container_thickness, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
 	InitObject(R, 100000, Vector(container_width - container_thickness, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
@@ -132,11 +146,11 @@ int main(int argc, char* argv[]) {
 	FinalizeObject(BTM, mSys);
 
 	mSys->SetStep(0.01);
-// 	//ChOpenGLManager * window_manager = new ChOpenGLManager();
-// 	//ChOpenGL openGLView(window_manager, mSys, 800, 600, 0, 0, "Test_Solvers");
-//     //openGLView.SetCustomCallback(RunTimeStep);
-// 	//openGLView.StartSpinning(window_manager);
-// 	//window_manager->CallGlutMainLoop();
+// 	ChOpenGLManager * window_manager = new ChOpenGLManager();
+// 	ChOpenGL openGLView(window_manager, mSys, 800, 600, 0, 0, "Test_Solvers");
+//     openGLView.SetCustomCallback(RunTimeStep);
+// 	openGLView.StartSpinning(window_manager);
+// 	window_manager->CallGlutMainLoop();
 
 	//msolver->Solve(*mdescriptor,true);
 	//dump_matricies(*mdescriptor);
