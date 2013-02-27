@@ -252,11 +252,11 @@ __global__ void LCP_Iteration_Bilaterals(
     int offset1 = offset[2 * number_of_contacts_const + index];
     int offset2 = offset[2 * number_of_contacts_const + index + number_of_bilaterals_const];
     updateV[offset1] = make_real3(vA); //  ---> store  v1 vel. in reduction buffer
-    updateO[offset1] = make_real3((bilaterals[index + 2 * number_of_bilaterals_const]) * vB * gamma_new); // line 2:  J1(w)// ---> store  w1 vel. in reduction buffer
+    updateO[offset1] = make_real3((bilaterals[index + 2 * number_of_bilaterals_const]) * make_real4(vB) * gamma_new); // line 2:  J1(w)// ---> store  w1 vel. in reduction buffer
     vB = inertia[B2_index]; // iJ iJ iJ im
     vA = (bilaterals[index + number_of_bilaterals_const]) * aux2.z * gamma_new; // line 1: J2(x)
     updateV[offset2] = make_real3(vA); //  ---> store  v2 vel. in reduction buffer
-    updateO[offset2] = make_real3((bilaterals[index + 3 * number_of_bilaterals_const]) * vB * gamma_new); // line 3:  J2(w)// ---> store  w2 vel. in reduction buffer
+    updateO[offset2] = make_real3((bilaterals[index + 3 * number_of_bilaterals_const]) * make_real4(vB) * gamma_new); // line 3:  J2(w)// ---> store  w2 vel. in reduction buffer
 }
 
 __device__ __host__ inline real4 computeRot_dt(real3 &omega, real4 &rot) {

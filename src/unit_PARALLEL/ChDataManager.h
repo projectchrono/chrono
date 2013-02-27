@@ -28,13 +28,14 @@ namespace chrono {
         thrust::device_vector<real3> device_cptb_data;
         thrust::device_vector<real> device_dpth_data;
         thrust::device_vector<int2> device_bids_data;
+        
         thrust::device_vector<real3> device_ObA_data;
-
         thrust::device_vector<real3> device_ObB_data;
         thrust::device_vector<real3> device_ObC_data;
         thrust::device_vector<real4> device_ObR_data;
         thrust::device_vector<int2> device_fam_data;
-        thrust::device_vector<int3> device_typ_data;
+        thrust::device_vector<int> device_typ_data;
+        thrust::device_vector<uint> device_id_data;
         thrust::device_vector<real3> device_aabb_data;
         thrust::device_vector<uint3> device_bin_data;
         thrust::device_vector<long long> device_pair_data;
@@ -132,7 +133,8 @@ namespace chrono {
             thrust::host_vector<real3> host_ObC_data;
             thrust::host_vector<real4> host_ObR_data;
             thrust::host_vector<int2> host_fam_data;
-            thrust::host_vector<int3> host_typ_data;
+            thrust::host_vector<int> host_typ_data;
+            thrust::host_vector<uint> host_id_data;
             thrust::host_vector<real3> host_aabb_data;
             thrust::host_vector<uint3> host_bin_data;
 

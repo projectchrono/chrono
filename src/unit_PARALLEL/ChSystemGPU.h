@@ -17,9 +17,6 @@
 #include "ChCudaMath.h"
 #include "ChCudaDefines.h"
 #include <stdlib.h>
-#include <iostream>
-#include <string.h>
-#include <math.h>
 #include <float.h>
 #include <memory.h>
 #include <algorithm>
@@ -30,7 +27,7 @@
 #include "ChLcpSolverGPU.h"
 #include "ChLcpSystemDescriptorGPU.h"
 #include "ChDataManager.h"
-#include "ChCCollisionSystemGPU.h"
+#include "collision/ChCCollisionSystemGPU.h"
 
 namespace chrono {
     using namespace chrono;

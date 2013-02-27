@@ -66,6 +66,8 @@ namespace chrono {
         mtimer_updt.start();
         Setup();
         Update();
+        
+        gpu_data_manager->HostToDeviceCD();
         gpu_data_manager->HostToDevice();
         gpu_data_manager->HostToDeviceForces();
         mtimer_updt.stop();
@@ -75,13 +77,9 @@ namespace chrono {
 
         if (gpu_data_manager->number_of_models > 0) {
             mtimer_cd_broad.start();
-            ChCCollisionGPU::ComputeAABB(gpu_data_manager->gpu_data);
-            gpu_data_manager->host_aabb_data = gpu_data_manager->gpu_data.device_aabb_data;
-            gpu_data_manager->gpu_data.bin_size_vec = (fabs(gpu_data_manager->gpu_data.max_bounding_point + fabs(gpu_data_manager->gpu_data.min_bounding_point)));
-            ChCCollisionGPU::Broadphase(gpu_data_manager->gpu_data, false);
+            collision_system->Run();
             mtimer_cd_broad.stop();
             mtimer_cd_narrow.start();
-            ChCCollisionGPU::Narrowphase(gpu_data_manager->gpu_data);
             mtimer_cd_narrow.stop();
         }
 
@@ -163,6 +161,7 @@ namespace chrono {
         return 0;
     }
     void ChSystemGPU::AddBody(ChSharedPtr<ChBodyGPU> newbody) {
+
         newbody->AddRef();
         newbody->SetSystem(this);
         bodylist.push_back((newbody).get_ptr());
@@ -223,6 +222,7 @@ namespace chrono {
         //mbody->RemoveRef();
     }
     void ChSystemGPU::Update() {
+
         real3 *vel_pointer = gpu_data_manager->host_vel_data.data();
         real3 *omg_pointer = gpu_data_manager->host_omg_data.data();
         real3 *pos_pointer = gpu_data_manager->host_pos_data.data();
@@ -286,9 +286,9 @@ namespace chrono {
             cntr++;
         }
 
-        #pragma omp parallel
+        //#pragma omp parallel
         {
-            #pragma omp for
+            //#pragma omp for
 
             for (int i = 0; i < bodylist.size(); i++) { // Updates recursively all other aux.vars
                 bodylist[i]->UpdateTime(ChTime);

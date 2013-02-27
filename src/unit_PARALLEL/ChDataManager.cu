@@ -12,17 +12,9 @@ ChGPUDataManager::ChGPUDataManager(unsigned int numDiv) {
 ChGPUDataManager::~ChGPUDataManager() {
 }
 void ChGPUDataManager::HostToDevice() {
-    if (host_ObB_data.size() != gpu_data.device_ObB_data.size()) {
-        gpu_data.device_ObA_data = host_ObA_data;
-        gpu_data.device_ObB_data = host_ObB_data;
-        gpu_data.device_ObC_data = host_ObC_data;
-        gpu_data.device_ObR_data = host_ObR_data;
-        gpu_data.device_fam_data = host_fam_data;
-        gpu_data.device_typ_data = host_typ_data;
-        //gpu_data.device_aabb_data = host_aabb_data;
-        //gpu_data.device_pair_data = host_pair_data;
-    }
-
+    cout << "A" << endl;
+    // if (host_ObB_data.size() != gpu_data.device_ObB_data.size()) {
+    // }
     gpu_data.device_vel_data = host_vel_data;
     gpu_data.device_omg_data = host_omg_data;
     gpu_data.device_pos_data = host_pos_data;
@@ -31,6 +23,7 @@ void ChGPUDataManager::HostToDevice() {
     gpu_data.device_acc_data = host_vel_data;
     gpu_data.device_aux_data = host_aux_data;
     gpu_data.device_lim_data = host_lim_data;
+    cout << "A" << endl;
     gpu_data.device_bilateral_data = host_bilateral_data;
     //gpu_data.min_bounding_point = min_bounding_point;
     //gpu_data.max_bounding_point = min_bounding_point;
@@ -38,6 +31,7 @@ void ChGPUDataManager::HostToDevice() {
     gpu_data.number_of_objects = number_of_objects;
     gpu_data.number_of_bilaterals = number_of_bilaterals;
     gpu_data.number_of_contacts_possible = number_of_contacts_possible;
+    cout << "A" << endl;
 }
 
 void ChGPUDataManager::DeviceToHost() {
@@ -65,13 +59,23 @@ void ChGPUDataManager::HostToDeviceForces() {
     gpu_data.device_trq_data = host_trq_data;
 }
 void ChGPUDataManager::HostToDeviceCD() {
+    cout << host_ObA_data.size() << endl;
+    cout << host_ObB_data.size() << endl;
+    cout << host_ObC_data.size() << endl;
+    cout << host_ObR_data.size() << endl;
+    cout << host_fam_data.size() << endl;
+    cout << host_typ_data.size() << endl;
+    cout << host_id_data.size() << endl;
     gpu_data.device_ObA_data = host_ObA_data;
     gpu_data.device_ObB_data = host_ObB_data;
     gpu_data.device_ObC_data = host_ObC_data;
     gpu_data.device_ObR_data = host_ObR_data;
     gpu_data.device_fam_data = host_fam_data;
     gpu_data.device_typ_data = host_typ_data;
+    gpu_data.device_id_data = host_id_data;
     gpu_data.number_of_models = number_of_models;
 }
+
+
 
 

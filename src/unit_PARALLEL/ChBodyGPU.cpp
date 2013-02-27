@@ -16,9 +16,7 @@ namespace chrono {
     // dynamic creation and persistence
     ChClassRegister<ChBodyGPU> a_registration_ChBodyGPU;
 
-    //////////////////////////////////////
-    /// CLASS FOR SOLID GPU BODIES
-    //////////////////////////////////////
+
     ChBodyGPU::ChBodyGPU() :
         ChBody() {
         delete collision_model;
@@ -35,6 +33,7 @@ namespace chrono {
         return collision_model_t;
     }
 } // END_OF_NAMESPACE____
+
 
 
 

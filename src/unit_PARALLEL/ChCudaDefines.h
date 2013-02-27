@@ -11,23 +11,23 @@
 #include <time.h>
 #include <iostream>
 //#include <helper_math.h>
+#include <thrust/host_vector.h>
+#include <thrust/device_vector.h>
 #include <math.h>
 #include <thrust/sort.h>
 #include <thrust/copy.h>
 #include <thrust/count.h>
 #include <thrust/scan.h>
 #include <thrust/sequence.h>
-#include <thrust/host_vector.h>
-#include <thrust/device_vector.h>
 #include <thrust/iterator/constant_iterator.h>
 #include <thrust/functional.h>
 #include <thrust/unique.h>
 #include <thrust/remove.h>
 #include <thrust/random.h>
 #include "ChApiGPU.h"
-//#include <omp.h>
+#include <omp.h>
 #include <vector>
-
+#include <string.h>
 using namespace std;
 using namespace thrust;
 typedef unsigned int uint;
@@ -39,16 +39,29 @@ typedef unsigned int uint;
 #define __constant__
 #define __shared__
 #define CUDA_KERNEL_DIM(...) ()
+#define __KERNEL__(...) ()
 #else
 #define CUDA_KERNEL_DIM(...)  <<< __VA_ARGS__ >>>
+#define __KERNEL__(...)  <<< __VA_ARGS__ >>>
 #endif
+
+
 
 #define Zero_Vector real3(0,0,0)
 #define PI  3.1415926535897932384626433832795
 #define PI_2   (PI / 2.0f)
 #define PI_180  (PI / 180.0f)
 
+#define SIM_ENABLE_GPU_MODE
+#ifdef SIM_ENABLE_GPU_MODE
+#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CUDA
+#define custom_vector thrust::device_vector
+#else
+//#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
+//#define custom_vector thrust::host_vector
+#endif
 
+#define DEBUG_GPU
 
 //defines to cast thrust vectors as raw pointers
 #define CASTC1(x) (char*)thrust::raw_pointer_cast(&x[0])
@@ -65,7 +78,7 @@ typedef unsigned int uint;
 #define CASTR3(x) (real3*)thrust::raw_pointer_cast(&x[0])
 #define CASTR4(x) (real4*)thrust::raw_pointer_cast(&x[0])
 #define CASTB1(x) (bool*)thrust::raw_pointer_cast(&x[0])
-
+#define CASTS(x) (shape_type*)thrust::raw_pointer_cast(&x[0])
 #define OBJCAST(x)  (object*)thrust::raw_pointer_cast(&x[0])
 #define AABBCAST(x) (AABB*)thrust::raw_pointer_cast(&x[0])
 #define CONTCAST(x) (contactGPU*)thrust::raw_pointer_cast(&x[0])
@@ -105,19 +118,37 @@ typedef unsigned int uint;
 #define Thrust_Min(x)                   x[thrust::max_element(x.begin(),x.end())-x.begin()]
 #define Thrust_Total(x)                 thrust::reduce(x.begin(),x.end())
 #define DBG(x)                          printf(x);
+//
+//enum SHAPE {    SPHERE,
+//                ELLIPSOID,
+//                BOX,
+//                CYLINDER,
+//                CONVEXHULL,
+//                TRIANGLEMESH,
+//                BARREL,
+//                RECT,               //Currently implemented on GPU only
+//                DISC,               //Currently implemented on GPU only
+//                ELLIPSE,            //Currently implemented on GPU only
+//                CAPSULE,            //Currently implemented on GPU only
+//                CONE,               //Currently implemented on GPU only
+//                COMPOUND            //Currently implemented on GPU only
+//                };
 
-#define _SPHERE 0
-#define _ELLIPSOID 1
-#define _BOX 2
-#define _CYLINDER 3
-#define _CONVEXHULL 4
-#define _TRIANGLEMESH 5
-#define _BARREL 6
-#define _RECT 7             //Currently implemented on GPU only
-#define _DISC 8             //Currently implemented on GPU only
-#define _ELLIPSE 9          //Currently implemented on GPU only
-#define _CAPSULE 10         //Currently implemented on GPU only
-#define _CONE 11            //Currently implemented on GPU only
+//typedef int shape_type;
+#define shape_type int
+
+//#define SPHERE 0
+//#define ELLIPSOID 1
+//#define BOX 2
+//#define CYLINDER 3
+//#define CONVEXHULL 4
+//#define TRIANGLEMESH 5
+//#define BARREL 6
+//#define RECT 7             //Currently implemented on GPU only
+//#define DISC 8             //Currently implemented on GPU only
+//#define ELLIPSE 9          //Currently implemented on GPU only
+//#define CAPSULE 10         //Currently implemented on GPU only
+//#define CONE 11            //Currently implemented on GPU only
 
 #define Vector_ZERO_EPSILON 1e-8
 #define MIN_ZERO_EPSILON 1.1754943508222875E-38
@@ -139,3 +170,5 @@ typedef unsigned int uint;
 #define CH_REDUCTION_HSIZE sizeof(CH_REALNUMBER4)
 
 #endif
+
+

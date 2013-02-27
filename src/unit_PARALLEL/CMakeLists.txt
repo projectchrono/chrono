@@ -32,34 +32,44 @@ SET(CUDA_VERBOSE_PTX FALSE CACHE BOOL "Show Verbose Kernel Info During Compilati
 # NOTE: to add a new source to this unit, just add its name here and re-run the CMake.
 #
 
+SET(ChronoEngine_unit_GPU_COLLISION
+    collision/ChCAABBGenerator.cuh
+    collision/ChCBroadphase.cuh
+    collision/ChCNarrowphase.cuh
+    
+    collision/ChCAABBGenerator.cu
+    collision/ChCBroadphase.cu
+    collision/ChCNarrowphase.cu
+    
+
+
+#collision/ChCCollisionGPU.h
+    collision/ChCSupportFunctions.cuh
+    collision/ChCCollisionModelGPU.h
+    collision/ChCCollisionModelGPU.cpp
+    collision/ChCCollisionSystemGPU.h
+    collision/ChCCollisionSystemGPU.cpp
+    collision/ChContactContainerGPUsimple.h
+    collision/ChContactContainerGPUsimple.cpp
+    #collision/ChCCollisionGPU.cu
+
+   )
 SET(ChronoEngine_unit_GPU_SOURCES
     ChBodyGPU.cpp
-    ChCCollisionModelGPU.cpp
-    ChCCollisionSystemGPU.cpp
-    ChContactContainerGPUsimple.cpp
     ChSystemGPU.cpp
-
    )
 SET(ChronoEngine_unit_GPU_HEADERS
     ChApiGPU.h
     ChCudaDefines.h
     ChCudaMath.h
     ChBodyGPU.h
-    ChCCollisionGPU.h
-    ChCCollisionGPU.cuh
     ChSystemGPU.h
     ChDataManager.h
     ChLcpSolverGPU.h
-    ChCCollisionModelGPU.h
-    ChCCollisionSystemGPU.h
-    ChContactContainerGPUsimple.h
     ChLcpSystemDescriptorGPU.h
    )
 SET(ChronoEngine_unit_GPU_CU
     ChLcpSolverGPU.cu
-    ChCCollisionGPU.cu
-    ChCCollisionGPUBroadphase.cu
-    ChCCollisionGPUNarrowphase.cu
     ChDataManager.cu
    )
 
@@ -67,7 +77,9 @@ SOURCE_GROUP(unit_GPU FILES
              ${ChronoEngine_unit_GPU_SOURCES}
              ${ChronoEngine_unit_GPU_HEADERS}
              ${ChronoEngine_unit_GPU_CU})
-
+SOURCE_GROUP(unit_GPU\\collision FILES
+             ${ChronoEngine_unit_GPU_COLLISION}
+            )
 #-----------------------------------------------------------------------------
 # In most cases, you do not need to edit the lines below.
 
@@ -123,6 +135,7 @@ if (CUDA_FOUND)
 # The GPU library is added to the project, and some custom properties of this target are set.
 
         CUDA_ADD_LIBRARY(ChronoEngine_GPU SHARED
+                         ${ChronoEngine_unit_GPU_COLLISION}
                          ${ChronoEngine_unit_GPU_SOURCES}
                          ${ChronoEngine_unit_GPU_HEADERS}
                          ${ChronoEngine_unit_GPU_CU})
@@ -134,12 +147,16 @@ if (CUDA_FOUND)
         ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
         ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+        SET_TARGET_PROPERTIES( ChronoEngine_GPU PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT YES )
         FIND_LIBRARY(CUDA_FRAMEWORK CUDA)
         ENDIF()
-
-
-
-
+        
+        
+        IF(${CMAKE_CONFIGURATION_TYPES} MATCHES "Debug")
+        add_definitions( -DDEBUG ) 
+         
+        ENDIF()
+        
 
         SET_TARGET_PROPERTIES(ChronoEngine_GPU PROPERTIES
                               LINK_FLAGS "${CH_LINKERFLAG_GPU}"
@@ -171,4 +188,5 @@ if (CUDA_FOUND)
 #MARK_AS_ADVANCED(FORCE CH_CUDA_LIBSDKUTIL)
 #MARK_AS_ADVANCED(FORCE CH_CUDART)
         ENDIF()
+
 

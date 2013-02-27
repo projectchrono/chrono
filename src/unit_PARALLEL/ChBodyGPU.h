@@ -17,51 +17,43 @@
 
 #include "physics/ChBody.h"
 #include "ChApiGPU.h"
-#include "ChCCollisionModelGPU.h"
+#include "collision/ChCCollisionModelGPU.h"
 namespace chrono {
     using namespace collision;
 
-//class ChSystem;
+    //////////////////////////////////////
+    /// CLASS FOR SOLID GPU BODIES
+    //////////////////////////////////////
     class ChApiGPU ChBodyGPU: public ChBody {
-            CH_RTTI(ChBodyGPU, ChPhysicsItem)
-            ;
+            CH_RTTI(ChBodyGPU, ChPhysicsItem);
 
         public:
 
             // CONSTRUCTORS
 
-            /// Build a rigid body.
             ChBodyGPU();
-            /// Destructor
             ~ChBodyGPU();
-            /// Instantiate the collision model
+        
             virtual ChCollisionModel *InstanceCollisionModel();
 
-            /// Returns the total applied force
             ChVector<> GetXForce() {
                 return Xforce;
             }
-            /// Returns the total applied torque
             ChVector<> GetXTorque() {
                 return Xtorque;
             }
-            /// Returns the gyroscopic torque
             ChVector<> GetGyro() {
                 return gyro;
             }
-            /// Set the applied force computed from contacts and the bilateral constraints acting on the body
             void SetAppliedForce(ChVector<> mForce) {
                 mAppliedForce = mForce;
             }
-            /// Get the applied force computed from contacts and the bilateral constraints acting on the body
             ChVector<> GetAppliedForce() {
                 return mAppliedForce;
             }
-            /// Set the identifier for the GPU body
             void SetId(int identifier) {
                 id = identifier;
             }
-            /// Get the identifier for the GPU body
             int GetId() {
                 return id;
             }
