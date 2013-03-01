@@ -24,12 +24,15 @@ ChClassRegister<ChBodyDEMMPI> a_registration_ChBodyDEMMPI;
 
 
 
-ChBodyDEMMPI::ChBodyDEMMPI ()
+ChBodyDEMMPI::ChBodyDEMMPI ():ChBodyDEM(false)
 {
 	
 }
 
+ChBodyDEMMPI::ChBodyDEMMPI(bool useSphCol):ChBodyDEM(useSphCol)
+{
 
+}
 
 ChBodyDEMMPI::~ChBodyDEMMPI ()
 {
