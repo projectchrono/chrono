@@ -731,6 +731,7 @@ IF (BUILD_CH_SDK)
 		lcp/ChLcpIterativePMINRES.cpp 
 		lcp/ChLcpIterativeBB.cpp 
 		lcp/ChLcpIterativePCG.cpp 
+		lcp/ChLcpIterativeAPGD.cpp 
 		lcp/ChLcpSimplexSolver.cpp 
 		lcp/ChLcpConstraint.cpp 
 		lcp/ChLcpConstraintTwo.cpp 
@@ -778,6 +779,7 @@ IF (BUILD_CH_SDK)
 		lcp/ChLcpIterativePMINRES.h
 		lcp/ChLcpIterativeBB.h
 		lcp/ChLcpIterativePCG.h
+		lcp/ChLcpIterativeAPGD.h
 		lcp/ChLcpIterativeSolver.h
 		lcp/ChLcpIterativeSOR.h
 		lcp/ChLcpIterativeSORmultithread.h
