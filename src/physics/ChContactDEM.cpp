@@ -14,6 +14,7 @@
 #include "physics/ChBodyDEM.h"
 #include "lcp/ChLcpConstraintTwoContactN.h"
 #include "collision/ChCModelBulletDEM.h"
+#include "collision/ChCModelSphereSetDEM.h"
 
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
 
@@ -112,10 +113,18 @@ void ChContactDEM::Reset(	collision::ChCollisionModel* mmodA,	///< model A
 	react_force = VNULL;
 	if (mdistance<0)
 	{
-		ChModelBulletDEM* modelA = (ChModelBulletDEM*)mmodA;
-		ChBodyDEM* bodyA = modelA->GetBody();
-		ChModelBulletDEM* modelB = (ChModelBulletDEM*)mmodB;
-		ChBodyDEM* bodyB = modelB->GetBody();
+		ChBodyDEM* bodyA;
+		ChBodyDEM* bodyB;
+
+		if (ChModelBulletDEM* modelA = dynamic_cast<ChModelBulletDEM*>(mmodA))
+			bodyA=modelA->GetBody();
+		else if (ChModelSphereSetDEM* modelA = dynamic_cast<ChModelSphereSetDEM*>(mmodA))
+			bodyA=modelA->GetBody();
+
+		if (ChModelBulletDEM* modelB = dynamic_cast<ChModelBulletDEM*>(mmodB))
+			bodyB=modelB->GetBody();
+		else if (ChModelSphereSetDEM* modelB = dynamic_cast<ChModelSphereSetDEM*>(mmodB))
+			bodyB=modelB->GetBody();
 
 		//spring force
 		react_force-=mkn*pow(fabs(mdistance), 1.5)*vN;
@@ -153,10 +162,18 @@ void ChContactDEM::Reset(	collision::ChCollisionModel* mmodA,	///< model A
 
 void ChContactDEM::ConstraintsFbLoadForces(double factor)
 {
-	ChModelBulletDEM* modelA = (ChModelBulletDEM*)modA;
-	ChBodyDEM* bodyA = modelA->GetBody();
-	ChModelBulletDEM* modelB = (ChModelBulletDEM*)modB;
-	ChBodyDEM* bodyB = modelB->GetBody();
+	ChBodyDEM* bodyA;
+	ChBodyDEM* bodyB;
+
+	if (ChModelBulletDEM* modelA = dynamic_cast<ChModelBulletDEM*>(modA))
+		bodyA=modelA->GetBody();
+	else if (ChModelSphereSetDEM* modelA = dynamic_cast<ChModelSphereSetDEM*>(modA))
+		bodyA=modelA->GetBody();
+
+	if (ChModelBulletDEM* modelB = dynamic_cast<ChModelBulletDEM*>(modB))
+		bodyB=modelB->GetBody();
+	else if (ChModelSphereSetDEM* modelB = dynamic_cast<ChModelSphereSetDEM*>(modB))
+		bodyB=modelB->GetBody();
 
 	ChVector<> pt1_loc = bodyA->Point_World2Body(&p1);
 	ChVector<> pt2_loc = bodyB->Point_World2Body(&p2);
