@@ -533,8 +533,8 @@ void ChSystemMPI::InterDomainSetup()
 						try 
 						{
 								//GetLog() << "ID=" << this->nodeMPI->id_MPI
-								//	 << "  SERIALIZE: " << item->GetRTTI()->GetName() 
-								//	 << "  key=" << item->GetIdentifier() << " ptr=" << (int)item 
+								//	 << "  SERIALIZE: " << item->GetRTTI()->GetName()
+								//	 << "  key=" << item->GetIdentifier() << " ptr=" << (int)item
 								//	 << "  to ID=" << this->nodeMPI->interfaces[ni].id_MPI << "\n";
 							this->nodeMPI->interfaces[ni].mchstreamo->AbstractWrite(item);
 						}
@@ -610,7 +610,7 @@ void ChSystemMPI::InterDomainSetup()
 						this->nodeMPI->interfaces[ni].mchstreami->AbstractReadCreate(&newitem);
 					
 							// GetLog() << "ID=" << this->nodeMPI->id_MPI
-							//	 << "  DESERIALIZED: " << newitem->GetRTTI()->GetName() 
+							//	 << "  DESERIALIZED: " << newitem->GetRTTI()->GetName()
 							//	 << "  key=" << newitem->GetIdentifier() << " ptr=" << (int)newitem
 							//	 << "  from ID=" << nodeMPI->interfaces[ni].id_MPI << "\n";
 					}
@@ -757,6 +757,7 @@ void ChSystemMPI::WriteOrderedDumpAABB(ChMPIfile& output)
 void ChSystemMPI::WriteOrderedDumpState(ChMPIfile& output)
 {
 	// save items contained in domain on file, if any, as xyz position and rotation
+	std::stringstream mstringstream;
 	std::string mstring = "";
 	chrono::Vector pos;
 	chrono::Quaternion rot;
@@ -802,7 +803,8 @@ void ChSystemMPI::WriteOrderedDumpState(ChMPIfile& output)
 			angs = rot.Q_to_NasaAngles();
 			char buffer[100];
 			sprintf(buffer, "%d, %d, %d, %g, %g, %g, %g, %g, %g,\n", this->nodeMPI->id_MPI, bod->GetIdentifier(), mshared, pos.x, pos.y, pos.z, angs.x, angs.y, angs.z);
-			mstring.append(buffer);
+			//mstring.append(buffer);
+			mstringstream << buffer;
 		}
 		else if (ChAssemblyMPI* assem = dynamic_cast<ChAssemblyMPI*>(*iterbod))
 		{
@@ -815,14 +817,16 @@ void ChSystemMPI::WriteOrderedDumpState(ChMPIfile& output)
 				angs = rot.Q_to_NasaAngles();
 				char buffer[100];
 				sprintf(buffer, "%d, %d, %d, %g, %g, %g, %g, %g, %g,\n", this->nodeMPI->id_MPI, cbod->GetIdentifier(), mshared, pos.x, pos.y, pos.z, angs.x, angs.y, angs.z);
-				mstring.append(buffer);
+				//mstring.append(buffer);
+				mstringstream << buffer;
 				assem_bod++;
 			}
 		}
 		iterbod++;
 	}
 
-	output.WriteOrdered((char*)mstring.c_str(), strlen(mstring.c_str()));
+	//output.WriteOrdered((char*)mstring.c_str(), strlen(mstring.c_str()));
+	output.WriteOrdered((char*)mstringstream.str().c_str(), strlen(mstringstream.str().c_str()));
 }
 
 
