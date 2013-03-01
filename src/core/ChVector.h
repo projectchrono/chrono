@@ -72,6 +72,7 @@ public:
 
 	ChVector(): x(0), y(0), z(0) {};
 	ChVector(const Real nx, const Real ny, const Real nz) : x(nx), y(ny), z(nz) {};
+	ChVector(const Real n) : x(n), y(n), z(n) {}; //initialize to a constant
 
 					/// Copy constructor
 	ChVector(const ChVector<Real>& other)	:x(other.x), y(other.y), z(other.z) {};
