@@ -19,7 +19,6 @@
 
 #include "physics/ChExternalObject.h"
 #include "collision/ChCModelBulletDEM.h"
-#include "collision/ChCModelSphereSetDEM.h"
 #include "core/ChLinearAlgebra.h"
 
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
@@ -49,23 +48,6 @@ ChBodyDEM::ChBodyDEM ()
 
 	//kn=392400.0;
 	//gn=420.0;
-	kn=2e5; //2e5		//2e8
-	gn=7.5e2;   //5		//15000
-	kt=kn;
-}
-
-ChBodyDEM::ChBodyDEM(bool useSphCol)
-{
-	if(useSphCol)
-	{
-		ChCollisionModel* collision_model_t= (ChModelSphereSetDEM*) new ChModelSphereSetDEM();
-		((ChModelSphereSetDEM*)collision_model_t)->SetBody(this);
-		collision_model=collision_model_t;
-	}
-	else
-	{
-		collision_model=ChBodyDEM::InstanceCollisionModel();
-	}
 	kn=2e5; //2e5		//2e8
 	gn=7.5e2;   //5		//15000
 	kt=kn;
