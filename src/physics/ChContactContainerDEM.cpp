@@ -14,7 +14,6 @@
 #include "physics/ChIndexedNodes.h"
 #include "physics/ChBodyDEM.h"
 #include "collision/ChCModelBulletDEM.h"
-#include "collision/ChCModelSphereSetDEM.h"
 
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
 
@@ -193,27 +192,7 @@ void ChContactContainerDEM::AddContact(const collision::ChCollisionInfo& mcontac
 			muA = mmboA->GetBody()->GetSfriction();
 			inactiveA = !mmboA->GetBody()->IsActive();
 		}
-		if (ChModelSphereSetDEM* mmboA = dynamic_cast<ChModelSphereSetDEM*>(mcontact.modelA))
-		{
-			frameA = mmboA->GetBody();
-			varA    =&mmboA->GetBody()->Variables();
-			springA = mmboA->GetBody()->GetSpringCoefficient();
-			dampingA= mmboA->GetBody()->GetDampingCoefficient();
-			springAT = mmboA->GetBody()->GetSpringCoefficientTangential();
-			muA = mmboA->GetBody()->GetSfriction();
-			inactiveA = !mmboA->GetBody()->IsActive();
-		}
 		if (ChModelBulletDEM* mmboB = dynamic_cast<ChModelBulletDEM*>(mcontact.modelB))
-		{
-			frameB = mmboB->GetBody();
-			varB    =&mmboB->GetBody()->Variables();
-			springB = mmboB->GetBody()->GetSpringCoefficient();
-			dampingB= mmboB->GetBody()->GetDampingCoefficient();
-			springBT = mmboB->GetBody()->GetSpringCoefficientTangential();
-			muB = mmboB->GetBody()->GetSfriction();
-			inactiveB = !mmboB->GetBody()->IsActive();
-		}
-		if (ChModelSphereSetDEM* mmboB = dynamic_cast<ChModelSphereSetDEM*>(mcontact.modelB))
 		{
 			frameB = mmboB->GetBody();
 			varB    =&mmboB->GetBody()->Variables();

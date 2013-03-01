@@ -16,7 +16,6 @@
 #include "lcp/ChLcpConstraintTwoContactN.h"
 #include "collision/ChCModelBulletBody.h"
 #include "collision/ChCModelBulletParticle.h"
-#include "collision/ChCModelSphereSetBody.h"
 
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
 
@@ -169,13 +168,6 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 			mmatA = mpclone->GetMaterialSurface();
 		}
 	}
-	if (ChModelSphereSetBody* mmssA = dynamic_cast<ChModelSphereSetBody*>(mcontact.modelA))
-	{
-		frameA = mmssA->GetBody();
-		varA    =&mmssA->GetBody()->Variables();
-		inactiveA = !mmssA->GetBody()->IsActive();
-		mmatA = mmssA->GetBody()->GetMaterialSurface();
-	}
 
 	if (ChModelBulletBody* mmboB = dynamic_cast<ChModelBulletBody*>(mcontact.modelB))
 	{
@@ -192,13 +184,6 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 		{
 			mmatB = mpclone->GetMaterialSurface();
 		}
-	}
-	if (ChModelSphereSetBody* mmssB = dynamic_cast<ChModelSphereSetBody*>(mcontact.modelB))
-	{
-		frameB = mmssB->GetBody();
-		varB    =&mmssB->GetBody()->Variables();
-		inactiveB = !mmssB->GetBody()->IsActive();
-		mmatB = mmssB->GetBody()->GetMaterialSurface();
 	}
 
 	if (!(frameA && frameB))
