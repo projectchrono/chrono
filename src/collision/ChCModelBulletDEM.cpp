@@ -25,6 +25,7 @@ namespace collision
 ChModelBulletDEM::ChModelBulletDEM()
 {
 	mbody = 0;
+	this->model_envelope=0.0f;
 }
 
 
