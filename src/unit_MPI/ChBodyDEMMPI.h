@@ -41,10 +41,6 @@ public:
 
 				/// Build a rigid body.
 	ChBodyDEMMPI ();
-
-				/// Create a DEM body and use CPU sphere-based CD
-	ChBodyDEMMPI(bool useSphCol);
-
 				/// Destructor
 	~ChBodyDEMMPI ();
 
