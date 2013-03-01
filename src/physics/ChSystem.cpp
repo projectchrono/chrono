@@ -35,6 +35,7 @@
 #include "lcp/ChLcpIterativePMINRES.h"
 #include "lcp/ChLcpIterativeBB.h"
 #include "lcp/ChLcpIterativePCG.h"
+#include "lcp/ChLcpIterativeAPGD.h"
 #include "lcp/ChLcpSolverDEM.h"
 
 
@@ -527,6 +528,7 @@ void ChSystem::Clear()
 
 	RemoveAllLinks();
 	RemoveAllBodies();
+	RemoveAllOtherPhysicsItems();
 	RemoveAllProbes();
 	RemoveAllControls();
 
@@ -587,6 +589,10 @@ void ChSystem::SetLcpSolverType(eCh_lcpSolver mval)
 	case LCP_ITERATIVE_PCG:
 		LCP_solver_speed = new ChLcpIterativePCG();
 		LCP_solver_stab = new ChLcpIterativePCG();
+		break;
+	case LCP_ITERATIVE_APGD:
+		LCP_solver_speed = new ChLcpIterativeAPGD();
+		LCP_solver_stab = new ChLcpIterativeAPGD();
 		break;
 	case LCP_DEM:
 		LCP_solver_speed = new ChLcpSolverDEM();
