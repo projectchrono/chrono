@@ -77,6 +77,10 @@ public:
 
 				/// Build a rigid body.
 	ChBodyDEM ();
+
+				/// Create a DEM body and use CPU sphere-based CD
+	ChBodyDEM(bool useSphCol);
+
 				/// Destructor
 	~ChBodyDEM ();
 
