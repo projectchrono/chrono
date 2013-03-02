@@ -23,46 +23,46 @@
 namespace chrono {
     struct gpu_container {
 
-        custom_vector<real3> device_norm_data;
-        custom_vector<real3> device_cpta_data;
-        custom_vector<real3> device_cptb_data;
-        custom_vector<real> device_dpth_data;
-        custom_vector<int2> device_bids_data;
+        thrust::device_vector<real3> device_norm_data;
+        thrust::device_vector<real3> device_cpta_data;
+        thrust::device_vector<real3> device_cptb_data;
+        thrust::device_vector<real> device_dpth_data;
+        thrust::device_vector<int2> device_bids_data;
         
-        custom_vector<real3> device_ObA_data;
-        custom_vector<real3> device_ObB_data;
-        custom_vector<real3> device_ObC_data;
-        custom_vector<real4> device_ObR_data;
-        custom_vector<int2> device_fam_data;
-        custom_vector<int> device_typ_data;
-        custom_vector<uint> device_id_data;
-        custom_vector<real3> device_aabb_data;
-        custom_vector<uint3> device_bin_data;
-        custom_vector<long long> device_pair_data;
+        thrust::device_vector<real3> device_ObA_data;
+        thrust::device_vector<real3> device_ObB_data;
+        thrust::device_vector<real3> device_ObC_data;
+        thrust::device_vector<real4> device_ObR_data;
+        thrust::device_vector<int2> device_fam_data;
+        thrust::device_vector<int> device_typ_data;
+        thrust::device_vector<uint> device_id_data;
+        thrust::device_vector<real3> device_aabb_data;
+        thrust::device_vector<uint3> device_bin_data;
+        thrust::device_vector<long long> device_pair_data;
 
-        custom_vector<real3> device_vel_data;
-        custom_vector<real3> device_omg_data;
-        custom_vector<real3> device_pos_data;
-        custom_vector<real4> device_rot_data;
-        custom_vector<real3> device_inr_data;
-        custom_vector<real3> device_frc_data;
-        custom_vector<real3> device_trq_data;
-        custom_vector<real3> device_acc_data;
-        custom_vector<real3> device_aux_data;
-        custom_vector<real3> device_dem_data;
-        custom_vector<real3> device_lim_data;
-        custom_vector<real3> device_gyr_data;
-        custom_vector<real3> device_fap_data;
+        thrust::device_vector<real3> device_vel_data;
+        thrust::device_vector<real3> device_omg_data;
+        thrust::device_vector<real3> device_pos_data;
+        thrust::device_vector<real4> device_rot_data;
+        thrust::device_vector<real3> device_inr_data;
+        thrust::device_vector<real3> device_frc_data;
+        thrust::device_vector<real3> device_trq_data;
+        thrust::device_vector<real3> device_acc_data;
+        thrust::device_vector<real3> device_aux_data;
+        thrust::device_vector<real3> device_dem_data;
+        thrust::device_vector<real3> device_lim_data;
+        thrust::device_vector<real3> device_gyr_data;
+        thrust::device_vector<real3> device_fap_data;
 
-        custom_vector<real4> device_bilateral_data;
-        custom_vector<real3> device_gam_data;
-        custom_vector<real> device_dgm_data;
+        thrust::device_vector<real4> device_bilateral_data;
+        thrust::device_vector<real3> device_gam_data;
+        thrust::device_vector<real> device_dgm_data;
 
-        custom_vector<real3> vel_update;
-        custom_vector<real3> omg_update;
-        custom_vector<uint> update_offset;
-        custom_vector<uint> body_number;
-        custom_vector<uint> offset_counter;
+        thrust::device_vector<real3> vel_update;
+        thrust::device_vector<real3> omg_update;
+        thrust::device_vector<uint> update_offset;
+        thrust::device_vector<uint> body_number;
+        thrust::device_vector<uint> offset_counter;
 
         uint number_of_contacts;
         uint number_of_contacts_possible;
@@ -71,9 +71,9 @@ namespace chrono {
         uint number_of_bilaterals;
         uint number_of_updates;
 
-        custom_vector<uint> OLD_bin_number;
-        custom_vector<long long> OLD_device_pair_data;
-        custom_vector<uint> generic_counter;
+        thrust::device_vector<uint> OLD_bin_number;
+        thrust::device_vector<long long> OLD_device_pair_data;
+        thrust::device_vector<uint> generic_counter;
     };
 
     class ChApiGPU ChGPUDataManager {
