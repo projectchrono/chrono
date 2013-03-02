@@ -35,7 +35,7 @@ ChCBroadphase::ChCBroadphase() {
     last_active_bin = 0;
     number_of_bin_intersections = 0;
     numAABB = 0;
-    bins_per_axis = R3(50, 20, 50);
+    bins_per_axis = R3(20, 20, 20);
     // TODO: Should make aabb_data organization less confusing, compiler should switch depending on if the user passes a host/device vector
     // TODO: Should be able to tune bins_per_axis, it's nice to have as a parameter though!
     // TODO: As the collision detection is progressing, we should free up vectors that are no longer being used! For example, Bin_Intersections is only used in steps 4&5
@@ -51,30 +51,30 @@ real3 ChCBroadphase::getBinsPerAxis() {
     return bins_per_axis;
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//template<class T>
-//inline int3 __host__ __device__ HashMax( //CHANGED: For maximum point, need to check if point lies on edge of bin (TODO: Hmm, fmod still doesn't work completely)
-//        const T &A,
-//        const real3 & bin_size_vec) {
-//    int3 temp;
-//    temp.x = A.x / bin_size_vec.x;
-//    if(!fmod(A.x,bin_size_vec.x)) temp.x--;
-//    temp.y = A.y / bin_size_vec.y;
-//    if(!fmod(A.y,bin_size_vec.y)) temp.y--;
-//    temp.z = A.z / bin_size_vec.z;
-//    if(!fmod(A.z,bin_size_vec.z)) temp.z--;
-//
-//    //cout << temp.x << " " << temp.y << " " << temp.z << endl;
-//    return temp;
-//}
+template<class T>
+inline int3 __host__ __device__ HashMax( //CHANGED: For maximum point, need to check if point lies on edge of bin (TODO: Hmm, fmod still doesn't work completely)
+        const T &A,
+        const real3 & bin_size_vec) {
+    int3 temp;
+    temp.x = A.x / bin_size_vec.x;
+    if(!fmod(A.x,bin_size_vec.x)) temp.x--;
+    temp.y = A.y / bin_size_vec.y;
+    if(!fmod(A.y,bin_size_vec.y)) temp.y--;
+    temp.z = A.z / bin_size_vec.z;
+    if(!fmod(A.z,bin_size_vec.z)) temp.z--;
+
+    //cout << temp.x << " " << temp.y << " " << temp.z << endl;
+    return temp;
+}
 
 template<class T>
-inline int3 __host__ __device__ Hash(
+inline int3 __host__ __device__ HashMin(
     const T &A,
     const real3 &bin_size_vec) {
     int3 temp;
-    temp.x = A.x * bin_size_vec.x;
-    temp.y = A.y * bin_size_vec.y;
-    temp.z = A.z * bin_size_vec.z;
+    temp.x = A.x / bin_size_vec.x;
+    temp.y = A.y / bin_size_vec.y;
+    temp.z = A.z / bin_size_vec.z;
     //cout << temp.x << " " << temp.y << " " << temp.z << endl;
     return temp;
 }
@@ -92,15 +92,15 @@ inline void __host__ __device__ function_Count_AABB_BIN_Intersection(
     const real3 &bin_size_vec,
     const uint &number_of_particles,
     uint *Bins_Intersected) {
-    int3 gmin = Hash(aabb_data[index], bin_size_vec);
-    int3 gmax = Hash(aabb_data[index + number_of_particles], bin_size_vec);
+    int3 gmin = HashMin(aabb_data[index], bin_size_vec);
+    int3 gmax = HashMax(aabb_data[index + number_of_particles], bin_size_vec);
     Bins_Intersected[index] = (gmax.x - gmin.x + 1) * (gmax.y - gmin.y + 1) * (gmax.z - gmin.z + 1);
 }
 //--------------------------------------------------------------------------
 __global__ void device_Count_AABB_BIN_Intersection(
     const real3 *aabb_data,
     uint *Bins_Intersected) {
-    INIT_CHECK_THREAD_BOUNDED(INDEX1D, numAABB_const)
+	INIT_CHECK_THREAD_BOUNDED(INDEX1D, numAABB_const)
     function_Count_AABB_BIN_Intersection(index, aabb_data, bin_size_vec_const, numAABB_const, Bins_Intersected);
 }
 //--------------------------------------------------------------------------
@@ -108,7 +108,6 @@ void ChCBroadphase::host_Count_AABB_BIN_Intersection(
     const real3 *aabb_data,
     uint *Bins_Intersected) {
     #pragma omp parallel for schedule(guided)
-
     for (int i = 0; i < numAABB; i++) {
         function_Count_AABB_BIN_Intersection(i, aabb_data, bin_size_vec, numAABB, Bins_Intersected);
     }
@@ -127,8 +126,8 @@ inline void __host__ __device__ function_Store_AABB_BIN_Intersection(
     uint *bin_number,
     uint *body_number) {
     uint count = 0, i, j, k;
-    int3 gmin = Hash(aabb_data[index], bin_size_vec);
-    int3 gmax = Hash(aabb_data[index + number_of_particles], bin_size_vec);
+    int3 gmin = HashMin(aabb_data[index], bin_size_vec);
+    int3 gmax = HashMax(aabb_data[index + number_of_particles], bin_size_vec);
     uint mInd = (index == 0) ? 0 : Bins_Intersected[index - 1];
 
     for (i = gmin.x; i <= gmax.x; i++) {
@@ -308,6 +307,10 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data, cus
     custom_vector<uint> bin_start_index;
     custom_vector<uint> Num_ContactD;
     double startTime = omp_get_wtime();
+    numAABB = aabb_data.size()/2;
+#ifdef DEBUG_GPU
+    cout << "Number of AABBs: "<<numAABB<<endl;
+#endif
     // STEP 1: Initialization TODO: this could be put in the constructor
 #ifdef SIM_ENABLE_GPU_MODE
     // set the default cache configuration on the device to prefer a larger L1 cache and smaller shared memory
@@ -326,10 +329,10 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data, cus
     bbox result = thrust::transform_reduce(aabb_data.begin(), aabb_data.end(), unary_op, init, binary_op);
     min_bounding_point = result.first;
     max_bounding_point = result.second;
-    global_origin = (min_bounding_point); //CHANGED: removed abs
+    global_origin = fabs(min_bounding_point); //CHANGED: removed abs
     bin_size_vec = (fabs(max_bounding_point + fabs(min_bounding_point)));
-    bin_size_vec = bins_per_axis / bin_size_vec; //CHANGED: this was supposed to be reversed, CHANGED BACK this is just the inverse for convenience (saves us the divide later)
-    thrust::transform(aabb_data.begin(), aabb_data.end(), thrust::constant_iterator<real3>(global_origin), aabb_data.begin(), thrust::minus<real3>()); //CHANGED: Should be a minus
+    bin_size_vec =  bin_size_vec/bins_per_axis; //CHANGED: this was supposed to be reversed, CHANGED BACK this is just the inverse for convenience (saves us the divide later)
+    thrust::transform(aabb_data.begin(), aabb_data.end(), thrust::constant_iterator<real3>(global_origin), aabb_data.begin(), thrust::plus<real3>()); //CHANGED: Should be a minus
 #ifdef DEBUG_GPU
     cout << "Global Origin: (" << global_origin.x << ", " << global_origin.y << ", " << global_origin.z << ")" << endl;
     cout << "Maximum bounding point: (" << max_bounding_point.x << ", " << max_bounding_point.y << ", " << max_bounding_point.z << ")" << endl;
@@ -360,19 +363,51 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data, cus
     host_Store_AABB_BIN_Intersection(aabb_data.data(), Bins_Intersected.data(),
                                      bin_number.data(), body_number.data());
 #endif
-    Thrust_Sort_By_Key(bin_number, body_number);
-    Thrust_Reduce_By_KeyA(last_active_bin, bin_number, bin_start_index);
-//      //QUESTION: I have no idea what is going on here
-    val =
-        bin_start_index[thrust::max_element(bin_start_index.begin(),
-                                            bin_start_index.begin() + last_active_bin)
-                        - bin_start_index.begin()];
+#ifdef DEBUG_GPU
+    cout<<"DONE WID DAT (device_Store_AABB_BIN_Intersection)"<<endl;
+#endif
+//    for(int i=0; i<bin_number.size(); i++){
+//    	cout<<bin_number[i]<<" "<<body_number[i]<<endl;
+//    }
 
-    if (val > 50) {
-        bins_per_axis = bins_per_axis * 1.1;
-    } else if (val < 25 && val > 1) {
-        bins_per_axis = bins_per_axis * .9;
-    }
+
+
+    Thrust_Sort_By_Key(bin_number, body_number);
+
+
+//    for(int i=0; i<bin_number.size(); i++){
+//    	cout<<bin_number[i]<<" "<<body_number[i]<<endl;
+//    }
+
+
+
+#ifdef DEBUG_GPU
+    cout<<"DONE WID DAT (SORT)"<<endl;
+#endif
+
+    host_vector<uint> bin_number_t=bin_number;
+    host_vector<uint> bin_start_index_t=bin_start_index;
+
+
+    Thrust_Reduce_By_KeyA(last_active_bin, bin_number_t, bin_start_index_t);
+
+    bin_number=bin_number_t;
+    bin_start_index=bin_start_index_t;
+
+#ifdef DEBUG_GPU
+    cout<<"DONE WID DAT (REDUCE)"<<endl;
+#endif
+////      //QUESTION: I have no idea what is going on here
+//    val =
+//        bin_start_index[thrust::max_element(bin_start_index.begin(),
+//                                            bin_start_index.begin() + last_active_bin)
+//                        - bin_start_index.begin()];
+//
+//    if (val > 50) {
+//        bins_per_axis = bins_per_axis * 1.1;
+//    } else if (val < 25 && val > 1) {
+//        bins_per_axis = bins_per_axis * .9;
+//    }
 
     bin_start_index.resize(last_active_bin);
 #ifdef DEBUG_GPU
@@ -419,6 +454,8 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data, cus
     thrust::sort(potentialCollisions.begin(), potentialCollisions.end());
     number_of_contacts_possible = thrust::unique(potentialCollisions.begin(),
                                   potentialCollisions.end()) - potentialCollisions.begin();
+
+    potentialCollisions.resize(number_of_contacts_possible);
 #ifdef DEBUG_GPU
     cout << "Number of possible collisions: " << number_of_contacts_possible << endl;
 #endif

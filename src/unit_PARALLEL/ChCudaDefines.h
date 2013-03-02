@@ -7,10 +7,8 @@
 //
 ///////////////////////////////////////////////////
 //#define THRUST_DEVICE_BACKEND THRUST_DEVICE_SYSTEM_CUDA
-//#define THRUST_DEBUG
 #include <time.h>
 #include <iostream>
-//#include <helper_math.h>
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 #include <math.h>
@@ -52,13 +50,13 @@ typedef unsigned int uint;
 #define PI_2   (PI / 2.0f)
 #define PI_180  (PI / 180.0f)
 
-#define SIM_ENABLE_GPU_MODE
+//#define SIM_ENABLE_GPU_MODE
 #ifdef SIM_ENABLE_GPU_MODE
 #define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CUDA
 #define custom_vector thrust::device_vector
 #else
-//#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
-//#define custom_vector thrust::host_vector
+#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
+#define custom_vector thrust::host_vector
 #endif
 
 #define DEBUG_GPU
@@ -154,6 +152,13 @@ typedef unsigned int uint;
 #define MIN_ZERO_EPSILON 1.1754943508222875E-38
 #define EPS FLT_EPSILON
 #define kCollideEpsilon  1e-5f
+
+
+
+
+
+
+
 
 //////////////////////////////////////////////////
 

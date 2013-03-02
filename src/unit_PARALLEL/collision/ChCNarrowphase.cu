@@ -431,7 +431,11 @@ void ChCNarrowphase::DoNarrowphase(
     custom_vector<real> &dpth_data,
     custom_vector<int2> &bids_data
 ) {
+
     uint total_possible_contacts = potentialCollisions.size();
+#ifdef DEBUG_GPU
+    cout << "Number of total_possible_contacts: " << total_possible_contacts << endl;
+#endif
     custom_vector<uint> generic_counter(total_possible_contacts);
     thrust::fill(generic_counter.begin(), generic_counter.end(), 1);
     norm_data.resize(total_possible_contacts);
@@ -475,7 +479,11 @@ void ChCNarrowphase::DoNarrowphase(
         dpth_data.data(),
         bids_data.data());
 #endif
+
     uint number_of_contacts = total_possible_contacts - Thrust_Count(generic_counter, 1);
+#ifdef DEBUG_GPU
+    cout << "Number of number_of_contacts: " << number_of_contacts << endl;
+#endif
     thrust::sort_by_key(
         generic_counter.begin(),
         generic_counter.end(),
@@ -486,6 +494,10 @@ void ChCNarrowphase::DoNarrowphase(
     cptb_data.resize(number_of_contacts);
     dpth_data.resize(number_of_contacts);
     bids_data.resize(number_of_contacts);
+
+
+    cout<<dpth_data<<endl;
+
 }
 
 

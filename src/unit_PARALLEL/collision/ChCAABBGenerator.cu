@@ -172,7 +172,7 @@ void ChCAABBGenerator::GenerateAABB(
     const custom_vector<real4> &body_rot,
     custom_vector<real3> &aabb_data) {
     numAABB = obj_data_T.size();
-    aabb_data.resize(numAABB);
+    aabb_data.resize(numAABB*2);
 #ifdef SIM_ENABLE_GPU_MODE
     COPY_TO_CONST_MEM(numAABB);
     device_ComputeAABB __KERNEL__(BLOCKS(numAABB), THREADS)(
@@ -197,6 +197,19 @@ void ChCAABBGenerator::GenerateAABB(
         body_rot.data(),
         aabb_data.data());
 #endif
+
+#ifdef DEBUG_GPU
+//    for(int i=0; i<numAABB; i++){
+//
+//    	cout<<real3(aabb_data[i]).x<<" "<<real3(aabb_data[i]).y<<" "<<real3(aabb_data[i]).z<<endl;
+//    	cout<<real3(aabb_data[i+numAABB]).x<<" "<<real3(aabb_data[i+numAABB]).y<<" "<<real3(aabb_data[i+numAABB]).z<<endl;
+//    	cout<<"-------"<<endl;
+//    }
+
+#endif
+
+
+
 }
 
 

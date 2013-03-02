@@ -49,7 +49,6 @@ namespace chrono {
             void Update();
             void ChangeCollisionSystem(ChCollisionSystem *newcollsystem);
             void ChangeLcpSolverSpeed(ChLcpSolver *newsolver);
-            void Set_CudaDevice(int dev) {cuda_device = dev;}
             int GetNcontacts() {
                 return gpu_data_manager->number_of_contacts;
             }
@@ -67,7 +66,6 @@ namespace chrono {
             unsigned int counter;
             float3 bounding_min, bounding_max;
             float3 bins_per_axis;
-            int cuda_device;
             double timer_collision;
             std::list<ChLink *>::iterator it;
     };

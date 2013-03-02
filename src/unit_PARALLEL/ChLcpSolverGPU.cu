@@ -511,7 +511,7 @@ void ChLcpSolverGPU::Integrate(gpu_container &gpu_data) {
         CASTR3(gpu_data.device_lim_data));
 }
 void ChLcpSolverGPU::RunTimeStep(real step, gpu_container &gpu_data) {
-    DBG("");
+	cout<<"START LCP"<<endl;
     lcp_omega_contact = omega;
     step_size = step;
     number_of_constraints = gpu_data.number_of_contacts + gpu_data.number_of_bilaterals;
@@ -539,7 +539,7 @@ void ChLcpSolverGPU::RunTimeStep(real step, gpu_container &gpu_data) {
     cudaFuncSetCacheConfig(LCP_Reduce_Speeds, cudaFuncCachePreferL1);
     cudaFuncSetCacheConfig(LCP_Integrate_Timestep, cudaFuncCachePreferL1);
     real old_gam = 1;
-
+    cout<<"AAA"<<endl;
     if (number_of_constraints != 0) {
         for (iteration_number = 0; iteration_number < max_iterations; iteration_number++) {
             LCP_Iteration_Contacts CUDA_KERNEL_DIM(BLOCKS(number_of_contacts), THREADS)(
@@ -594,7 +594,7 @@ void ChLcpSolverGPU::RunTimeStep(real step, gpu_container &gpu_data) {
             }
         }
     }
-
+    cout<<"BBB"<<endl;
     Integrate(gpu_data);
 }
 real ChLcpSolverGPU::Max_DeltaGamma(device_vector<real> &device_dgm_data) {

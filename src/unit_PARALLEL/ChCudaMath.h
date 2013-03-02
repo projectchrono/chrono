@@ -359,5 +359,40 @@ __host__ __device__ inline real min3(T a) {
 
 
 
+
+static ostream &operator<< (ostream &out, const custom_vector<bool> &x)
+{
+        for (uint i = 0; i < x.size(); i++) {
+                out << x[i] << " ";
+        }
+
+        return out;
+}
+static ostream &operator<< (ostream &out, const custom_vector<real> &x)
+{
+        for (uint i = 0; i < x.size(); i++) {
+                out << x[i] << " ";
+        }
+
+        return out;
+}
+static ostream &operator<< (ostream &out, const custom_vector<real3> &x)
+{
+        for (uint i = 0; i < x.size(); i++) {
+                out << real3(x[i]).x << " " << real3(x[i]).y << " " << real3(x[i]).z << " ";
+        }
+
+        return out;
+}
+static ostream &operator<< (ostream &out, const custom_vector<real4> &x)
+{
+        for (uint i = 0; i < x.size(); i++) {
+                out << real4(x[i]).x << " " << real4(x[i]).y << " " << real4(x[i]).z << " " << real4(x[i]).w << " ";
+        }
+
+        return out;
+}
+
+
 #endif
 

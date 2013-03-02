@@ -62,6 +62,7 @@ namespace chrono {
 
 
         void ChCollisionSystemGPU::Run() {
+        	cout<<"START AABB"<<endl;
             aabb_generator.GenerateAABB(
                 data_container->gpu_data.device_typ_data,
                 data_container->gpu_data.device_ObA_data,
@@ -72,7 +73,11 @@ namespace chrono {
                 data_container->gpu_data.device_pos_data,
                 data_container->gpu_data.device_rot_data,
                 data_container->gpu_data.device_aabb_data);
+            cout<<"END AABB"<<endl;
+            cout<<"START BROAD"<<endl;
             broadphase.detectPossibleCollisions(data_container->gpu_data.device_aabb_data, data_container->gpu_data.device_pair_data);
+            cout<<"END BROAD"<<endl;
+            cout<<"START NARROW"<<endl;
             narrowphase.DoNarrowphase(data_container->gpu_data.device_typ_data,
                                       data_container->gpu_data.device_ObA_data,
                                       data_container->gpu_data.device_ObB_data,
@@ -87,6 +92,7 @@ namespace chrono {
                                       data_container->gpu_data.device_cptb_data,
                                       data_container->gpu_data.device_dpth_data,
                                       data_container->gpu_data.device_bids_data);
+            cout<<"END NARROW"<<endl;
         }
     } // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____
