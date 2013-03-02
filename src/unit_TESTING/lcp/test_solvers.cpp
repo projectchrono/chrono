@@ -1,4 +1,4 @@
-#define DEBUG
+#define DEBUG 1
 
 #include "lcp/ChLcpVariablesGeneric.h"
 #include "lcp/ChLcpVariablesBody.h"
@@ -91,7 +91,6 @@ void RunTimeStep(T* mSys, const int frame){
 
 
 int main(int argc, char* argv[]) {
-
     CHSYS* mSys = new CHSYS();
 	ChLCPDESC *mdescriptor = new ChLCPDESC();
 	ChCONTACTCONT *mcontactcontainer = new ChCONTACTCONT();
@@ -151,28 +150,28 @@ int main(int argc, char* argv[]) {
     openGLView.SetCustomCallback(RunTimeStep);
 	openGLView.StartSpinning(window_manager);
 	window_manager->CallGlutMainLoop();
-
-	//msolver->Solve(*mdescriptor,true);
-	//dump_matricies(*mdescriptor);
-	//ChLcpIterativePMINRES msolver_krylov(20, false, 0.00001);
-	//msolver_krylov.Solve(mdescriptor);
-    
-    ChMitsubaRender output(mSys);
-    
-	output.SetIntegrator("photonmapper");
-	output.SetIntegratorOption("integer", "maxDepth", "32");
-	output.SetFilm("ldrfilm");
-	output.SetFilmOption("integer", "height", "1200");
-	output.SetFilmOption("integer", "width", "1920");
-    
-	output.camera_target = ChVector<>(0, 0, 0);
-	output.camera_origin = ChVector<>(0, 0, -10);
-	output.camera_up = ChVector<>(0, 1, 0);
-    
-	output.SetDataFolder("data");
-	output.ExportScript("test.xml");
-    output.SetRenderFolder("render");
-    output.ExportDriver("driver.sh");
+//
+//	//msolver->Solve(*mdescriptor,true);
+//	//dump_matricies(*mdescriptor);
+//	//ChLcpIterativePMINRES msolver_krylov(20, false, 0.00001);
+//	//msolver_krylov.Solve(mdescriptor);
+//    
+//    ChMitsubaRender output(mSys);
+//    
+//	output.SetIntegrator("photonmapper");
+//	output.SetIntegratorOption("integer", "maxDepth", "32");
+//	output.SetFilm("ldrfilm");
+//	output.SetFilmOption("integer", "height", "1200");
+//	output.SetFilmOption("integer", "width", "1920");
+//    
+//	output.camera_target = ChVector<>(0, 0, 0);
+//	output.camera_origin = ChVector<>(0, 0, -10);
+//	output.camera_up = ChVector<>(0, 1, 0);
+//    
+//	output.SetDataFolder("data");
+//	output.ExportScript("test.xml");
+//    output.SetRenderFolder("render");
+//    output.ExportDriver("driver.sh");
     
     int counter=0;
     
@@ -182,7 +181,7 @@ int main(int argc, char* argv[]) {
         
         stringstream ss;
 		ss << "data/" << counter << ".xml";
-		output.ExportData(ss.str());
+		//output.ExportData(ss.str());
         
        cout<<counter<<endl;
         counter++;
