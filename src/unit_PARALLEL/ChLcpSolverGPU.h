@@ -34,15 +34,36 @@ namespace chrono {
                 return 0;
             }
 
+            void host_process_contacts(real3 *norm,
+                    real3 *ptA,
+                    real3 *ptB,
+                    real *contactDepth,
+                    int2 *ids,
+                    real3 *G,
+                    real *dG,
+                    real3 *aux,
+                    real3 *inertia,
+                    real4 *rot,
+                    real3 *vel,
+                    real3 *omega,
+                    real3 *pos,
+                    real3 *updateV,
+                    real3 *updateO,
+                    uint *offset);
+            void host_addForces(real3 *aux, real3 *inertia, real3 *forces, real3 *torques, real3 *vel, real3 *omega);
+            void host_Reduce_Speeds(real3 *aux, real3 *vel, real3 *omega, real3 *updateV, real3 *updateO, uint *d_body_num, uint *counter, real3 *fap);
+            void host_ComputeGyro(real3 *omega, real3 *inertia, real3 *gyro, real3 *torque);
+            void host_Offsets(int2 *ids, real4 *bilaterals, uint *Body);
+            void host_Integrate_Timestep(real3 *aux, real3 *acc, real4 *rot, real3 *vel, real3 *omega, real3 *pos, real3 *lim);
             void RunTimeStep(real step, gpu_container &gpu_data);
             void Preprocess(gpu_container &gpu_data);
             void Iterate(gpu_container &gpu_data);
             void Reduce(gpu_container &gpu_data);
             void Integrate(gpu_container &gpu_data);
             void WarmContact(const int &i);
-            real Max_DeltaGamma(device_vector<real> &device_dgm_data);
-            real Min_DeltaGamma(device_vector<real> &device_dgm_data);
-            real Avg_DeltaGamma(uint number_of_constraints, device_vector<real> &device_dgm_data);
+            real Max_DeltaGamma(custom_vector<real> &device_dgm_data);
+            real Min_DeltaGamma(custom_vector<real> &device_dgm_data);
+            real Avg_DeltaGamma(uint number_of_constraints, custom_vector<real> &device_dgm_data);
             real Total_KineticEnergy(gpu_container &gpu_data);
 
             uint GetIterations() {

@@ -153,8 +153,7 @@ if (CUDA_FOUND)
         
         
         IF(${CMAKE_CONFIGURATION_TYPES} MATCHES "Debug")
-        add_definitions( -DDEBUG ) 
-         
+
         ENDIF()
         
 

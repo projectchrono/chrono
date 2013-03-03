@@ -59,7 +59,7 @@ typedef unsigned int uint;
 #define custom_vector thrust::host_vector
 #endif
 
-#define DEBUG_GPU
+//#define DEBUG_GPU
 
 //defines to cast thrust vectors as raw pointers
 #define CASTC1(x) (char*)thrust::raw_pointer_cast(&x[0])
@@ -104,8 +104,8 @@ typedef unsigned int uint;
 
 #define Thrust_Inclusive_Scan_Sum(x,y)  thrust::inclusive_scan(x.begin(),x.end(), x.begin()); y=x.back();
 #define Thrust_Sort_By_Key(x,y)         thrust::sort_by_key(x.begin(),x.end(),y.begin())
-#define Thrust_Reduce_By_KeyA(x,y,z)x=  thrust::reduce_by_key(y.begin(),y.end(),thrust::constant_iterator<uint>(1),y.begin(),z.begin()).first-y.begin()
-#define Thrust_Reduce_By_KeyB(x,y,z,w)x=thrust::reduce_by_key(y.begin(),y.end(),thrust::constant_iterator<uint>(1),z.begin(),w.begin()).first-z.begin()
+#define Thrust_Reduce_By_KeyA(x,y,z)x=  (thrust::reduce_by_key(y.begin(),y.end(),thrust::constant_iterator<uint>(1),y.begin(),z.begin()).first)-y.begin()
+#define Thrust_Reduce_By_KeyB(x,y,z,w)x=(thrust::reduce_by_key(y.begin(),y.end(),thrust::constant_iterator<uint>(1),z.begin(),w.begin()).first)-z.begin()
 #define Thrust_Inclusive_Scan(x)        thrust::inclusive_scan(x.begin(), x.end(), x.begin())
 #define Thrust_Fill(x,y)                thrust::fill(x.begin(),x.end(),y)
 #define Thrust_Sort(x)                  thrust::sort(x.begin(),x.end())

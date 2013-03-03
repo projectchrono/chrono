@@ -24,7 +24,8 @@ namespace chrono {
                                    custom_vector<real3> &cpta_data,
                                    custom_vector<real3> &cptb_data,
                                    custom_vector<real> &dpth_data,
-                                   custom_vector<int2> &bids_data);
+                                   custom_vector<int2> &bids_data,
+                                   uint & number_of_contacts);
 
                 void host_MPR_Store(
                     const shape_type *obj_data_T,

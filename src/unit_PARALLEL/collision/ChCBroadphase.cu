@@ -382,7 +382,6 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data, cus
 
 
 #ifdef DEBUG_GPU
-    cout<<"DONE WID DAT (SORT)"<<endl;
 #endif
 
     host_vector<uint> bin_number_t=bin_number;
@@ -395,7 +394,6 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data, cus
     bin_start_index=bin_start_index_t;
 
 #ifdef DEBUG_GPU
-    cout<<"DONE WID DAT (REDUCE)"<<endl;
 #endif
 ////      //QUESTION: I have no idea what is going on here
 //    val =

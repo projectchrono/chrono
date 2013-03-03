@@ -64,7 +64,6 @@ namespace chrono {
         mtimer_updt.start();
         Setup();
         Update();
-        cout<<"UPDATE"<<endl;
         gpu_data_manager->HostToDeviceCD();
         gpu_data_manager->HostToDevice();
         gpu_data_manager->HostToDeviceForces();
@@ -72,7 +71,6 @@ namespace chrono {
         timer_update = mtimer_updt();
 //------------------------------------------------------------------------------------------------------------------------
         mtimer_cd.start();
-        cout<<"CD"<<endl;
         if (gpu_data_manager->number_of_models > 0) {
             mtimer_cd_broad.start();
             collision_system->Run();
@@ -80,14 +78,12 @@ namespace chrono {
             mtimer_cd_narrow.start();
             mtimer_cd_narrow.stop();
         }
-        cout<<"LCP"<<endl;
         mtimer_cd.stop();
 //------------------------------------------------------------------------------------------------------------------------
         mtimer_lcp.start();
         ((ChLcpSolverGPU *)(LCP_solver_speed))->SetCompliance(0, 0, 0);
         ((ChLcpSolverGPU *)(LCP_solver_speed))->RunTimeStep(GetStep(), gpu_data_manager->gpu_data);
         mtimer_lcp.stop();
-        cout<<"LCP STOP"<<endl;
 //------------------------------------------------------------------------------------------------------------------------
         mtimer_updt.start();
         gpu_data_manager->DeviceToHost();
@@ -97,7 +93,6 @@ namespace chrono {
         real4 *rot_pointer = gpu_data_manager->host_rot_data.data();
         real3 *acc_pointer = gpu_data_manager->host_acc_data.data();
         real3 *fap_pointer = gpu_data_manager->host_fap_data.data();
-        cout<<"START SET"<<endl;
         #pragma omp parallel
         {
             #pragma omp for
@@ -115,10 +110,8 @@ namespace chrono {
                 }
             }
         }
-        cout<<"DONE SET"<<endl;
         uint counter = 0;
         std::vector<ChLcpConstraint *> &mconstraints = (*this->LCP_descriptor).GetConstraintsList();
-        cout<<"WAT"<<endl;
         for (uint ic = 0; ic < mconstraints.size(); ic++) {
             if (mconstraints[ic]->IsActive() == false) {
                 continue;
@@ -129,7 +122,6 @@ namespace chrono {
             mconstraints[ic]->Set_l_i(gamma);
             counter++;
         }
-        cout<<"WATTTT"<<endl;
 // updates the reactions of the constraint
         LCPresult_Li_into_reactions(1.0 / this->GetStep()); // R = l/dt  , approximately
         std::list<ChLink *>::iterator it;
@@ -137,11 +129,9 @@ namespace chrono {
         for (it = linklist.begin(); it != linklist.end(); it++) {
             (*it)->ConstraintsLiFetchSuggestedSpeedSolution();
         }
-        cout<<"ASDASD"<<endl;
         for (it = linklist.begin(); it != linklist.end(); it++) {
             (*it)->ConstraintsFetch_react(1.0 / this->GetStep());
         }
-        cout<<"YAY"<<endl;
         mtimer_updt.stop();
         timer_update += mtimer_updt();
         ChTime += GetStep();
