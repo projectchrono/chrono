@@ -1,4 +1,4 @@
-#define DEBUG 1
+#define THRUST_DEBUG 1
 
 #include "lcp/ChLcpVariablesGeneric.h"
 #include "lcp/ChLcpVariablesBody.h"
@@ -47,7 +47,7 @@ using namespace postprocess;
 #define CHSOLVER ChLcpIterativeJacobi
 #define CHMODEL ChModelGPU
 #define CHSYS ChSystemGPU
-
+uint num_objects=0;
 void dump_matricies(ChLcpSystemDescriptor& mdescriptor) {
 	chrono::ChSparseMatrix mdM;
 	chrono::ChSparseMatrix mdCq;
@@ -78,10 +78,11 @@ void RunTimeStep(T* mSys, const int frame){
     if(frame%10==0){
     for (int i = 0; i < 10; i++) {
 		sphere = ChBODYSHAREDPTR(new ChBODY);
-        Vector pos=Vector((rand() % 10000 / 1000.0 - 5), (0), (rand() % 10000 / 1000.0 - 5));
-		InitObject(sphere, 1.0, pos*.5 , quat, 1, 1, 0, true, false, 32, 17 + i);
+        Vector pos=Vector((rand() % 10000 / 1000.0 - 5), (10), (rand() % 10000 / 1000.0 - 5));
+		InitObject(sphere, 1.0, pos*.5 , quat, 1, 1, 0, true, false, 32, 17+num_objects);
 		AddCollisionGeometry(sphere, SPHERE, Vector(.3, .3, .3), lpos, quat);
-		FinalizeObject(sphere, mSys);
+		FinalizeObject(sphere, (CHSYS*) mSys);
+		num_objects++;
 	}
     }
     
