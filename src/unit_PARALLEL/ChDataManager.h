@@ -48,7 +48,9 @@ namespace chrono {
        custom_vector<real3> device_frc_data;
        custom_vector<real3> device_trq_data;
        custom_vector<real3> device_acc_data;
-       custom_vector<real3> device_aux_data;
+       custom_vector<bool> device_active_data;
+       custom_vector<real> device_mass_data;
+       custom_vector<real> device_fric_data;
        custom_vector<real3> device_dem_data;
        custom_vector<real3> device_lim_data;
        custom_vector<real3> device_gyr_data;
@@ -128,7 +130,9 @@ namespace chrono {
             thrust::host_vector<real3> host_frc_data;
             thrust::host_vector<real3> host_trq_data;
             thrust::host_vector<real3> host_acc_data;
-            thrust::host_vector<real3> host_aux_data;
+            thrust::host_vector<bool> host_active_data;
+            thrust::host_vector<real> host_mass_data;
+            thrust::host_vector<real> host_fric_data;
             thrust::host_vector<real3> host_lim_data;
             thrust::host_vector<real3> host_dem_data;
             thrust::host_vector<real3> host_gyr_data;

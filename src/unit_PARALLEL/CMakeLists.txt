@@ -59,9 +59,11 @@ SET(ChronoEngine_unit_GPU_SOURCES
     ChSystemGPU.cpp
    )
 SET(ChronoEngine_unit_GPU_HEADERS
+	
     ChApiGPU.h
     ChCudaDefines.h
     ChCudaMath.h
+    ChThrustLinearAlgebra.cuh
     ChBodyGPU.h
     ChSystemGPU.h
     ChDataManager.h
@@ -115,7 +117,7 @@ if (CUDA_FOUND)
 
         SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_${CUDA_DEVICE_VERSION},code=sm_${CUDA_SM_VERSION}" CACHE  STRING "" FORCE )
         SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DCH_API_COMPILE_UNIT_GPU" )
-        SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "--disable-warnings")
+        #SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "--disable-warnings")
         IF(CUDA_FAST_MATH)
         SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-use_fast_math")
         ENDIF()

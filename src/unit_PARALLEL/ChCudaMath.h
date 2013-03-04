@@ -8,8 +8,6 @@
 ///////////////////////////////////////////////////
 
 #include "ChCudaDefines.h"
-
-
 #define R3  real3
 #define R4  real4
 #define R2  real2
@@ -359,7 +357,7 @@ __host__ __device__ inline real min3(T a) {
 
 
 
-
+////////Output Operations
 static ostream &operator<< (ostream &out, const custom_vector<bool> &x)
 {
         for (uint i = 0; i < x.size(); i++) {
@@ -392,6 +390,10 @@ static ostream &operator<< (ostream &out, const custom_vector<real4> &x)
 
         return out;
 }
+////////Basic Linear Algebra
+
+
+
 
 
 #endif

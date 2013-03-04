@@ -384,14 +384,19 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data, cus
 #ifdef DEBUG_GPU
 #endif
 
-    host_vector<uint> bin_number_t=bin_number;
-    host_vector<uint> bin_start_index_t=bin_start_index;
+   Thrust_Reduce_By_KeyA(last_active_bin, bin_number,bin_start_index);
 
 
-    Thrust_Reduce_By_KeyA(last_active_bin, bin_number_t, bin_start_index_t);
 
-    bin_number=bin_number_t;
-    bin_start_index=bin_start_index_t;
+//    host_vector<uint> bin_number_t=bin_number;
+//    host_vector<uint> bin_start_index_t(number_of_bin_intersections);
+//    host_vector<uint> Output(number_of_bin_intersections);
+//    thrust::pair<uint*,uint*> new_end;
+//    last_active_bin= thrust::reduce_by_key(bin_number_t.begin(),bin_number_t.end(),thrust::constant_iterator<uint>(1),Output.begin(),bin_start_index_t.begin()).first-Output.begin();
+//
+//
+//    bin_number=Output;
+//    bin_start_index=bin_start_index_t;
 
 #ifdef DEBUG_GPU
 #endif

@@ -12,13 +12,19 @@
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 #include <math.h>
+#include <thrust/transform.h>
+#include <thrust/functional.h>
+#include <thrust/inner_product.h>
 #include <thrust/sort.h>
 #include <thrust/copy.h>
 #include <thrust/count.h>
 #include <thrust/scan.h>
 #include <thrust/sequence.h>
+#include <thrust/binary_search.h>
+#include <thrust/set_operations.h>
 #include <thrust/iterator/constant_iterator.h>
-#include <thrust/functional.h>
+#include <thrust/for_each.h>
+#include <thrust/iterator/zip_iterator.h>
 #include <thrust/unique.h>
 #include <thrust/remove.h>
 #include <thrust/random.h>
@@ -104,8 +110,8 @@ typedef unsigned int uint;
 
 #define Thrust_Inclusive_Scan_Sum(x,y)  thrust::inclusive_scan(x.begin(),x.end(), x.begin()); y=x.back();
 #define Thrust_Sort_By_Key(x,y)         thrust::sort_by_key(x.begin(),x.end(),y.begin())
-#define Thrust_Reduce_By_KeyA(x,y,z)x=  (thrust::reduce_by_key(y.begin(),y.end(),thrust::constant_iterator<uint>(1),y.begin(),z.begin()).first)-y.begin()
-#define Thrust_Reduce_By_KeyB(x,y,z,w)x=(thrust::reduce_by_key(y.begin(),y.end(),thrust::constant_iterator<uint>(1),z.begin(),w.begin()).first)-z.begin()
+#define Thrust_Reduce_By_KeyA(x,y,z)x=  (thrust::reduce_by_key(y.begin(),y.end(),thrust::constant_iterator<uint>(1),y.begin(),z.begin()).second)-z.begin()
+#define Thrust_Reduce_By_KeyB(x,y,z,w)x=(thrust::reduce_by_key(y.begin(),y.end(),thrust::constant_iterator<uint>(1),z.begin(),w.begin()).second)-w.begin()
 #define Thrust_Inclusive_Scan(x)        thrust::inclusive_scan(x.begin(), x.end(), x.begin())
 #define Thrust_Fill(x,y)                thrust::fill(x.begin(),x.end(),y)
 #define Thrust_Sort(x)                  thrust::sort(x.begin(),x.end())

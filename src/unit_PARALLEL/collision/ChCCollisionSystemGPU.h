@@ -15,7 +15,7 @@
 //             www.deltaknowledge.com
 // ------------------------------------------------
 ///////////////////////////////////////////////////
-#include "../ChCudaMath.h"
+
 #include "../ChCudaDefines.h"
 #include "ChCCollisionModelGPU.h"
 #include "physics/ChBody.h"

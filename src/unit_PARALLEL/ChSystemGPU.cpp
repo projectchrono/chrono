@@ -175,7 +175,9 @@ namespace chrono {
         gpu_data_manager->host_inr_data.push_back(R3(inertia.GetElement(0, 0), inertia.GetElement(1, 1), inertia.GetElement(2, 2)));
         gpu_data_manager->host_frc_data.push_back(R3(mbodyvar->Get_fb().ElementN(0), mbodyvar->Get_fb().ElementN(1), mbodyvar->Get_fb().ElementN(2))); //forces
         gpu_data_manager->host_trq_data.push_back(R3(mbodyvar->Get_fb().ElementN(3), mbodyvar->Get_fb().ElementN(4), mbodyvar->Get_fb().ElementN(5))); //torques
-        gpu_data_manager->host_aux_data.push_back(R3(newbody->IsActive(), newbody->GetKfriction(), inv_mass));
+        gpu_data_manager->host_active_data.push_back(newbody->IsActive());
+        gpu_data_manager->host_mass_data.push_back(inv_mass);
+        gpu_data_manager->host_fric_data.push_back(newbody->GetKfriction());
         gpu_data_manager->host_lim_data.push_back(R3(newbody->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
         //newbody->gpu_data_manager = gpu_data_manager;
         counter++;
@@ -221,7 +223,9 @@ namespace chrono {
         real3 *inr_pointer = gpu_data_manager->host_inr_data.data();
         real3 *frc_pointer = gpu_data_manager->host_frc_data.data();
         real3 *trq_pointer = gpu_data_manager->host_trq_data.data();
-        real3 *aux_pointer = gpu_data_manager->host_aux_data.data();
+        bool *active_pointer = gpu_data_manager->host_active_data.data();
+        real *mass_pointer = gpu_data_manager->host_mass_data.data();
+        real *fric_pointer = gpu_data_manager->host_fric_data.data();
         real3 *lim_pointer = gpu_data_manager->host_lim_data.data();
         unsigned int number_of_bilaterals = 0;
         uint cntr = 0;
@@ -297,7 +301,9 @@ namespace chrono {
                 inr_pointer[i] = (R3(inertia.GetElement(0, 0), inertia.GetElement(1, 1), inertia.GetElement(2, 2)));
                 frc_pointer[i] = (R3(mbodyvar->Get_fb().ElementN(0), mbodyvar->Get_fb().ElementN(1), mbodyvar->Get_fb().ElementN(2))); //forces
                 trq_pointer[i] = (R3(mbodyvar->Get_fb().ElementN(3), mbodyvar->Get_fb().ElementN(4), mbodyvar->Get_fb().ElementN(5))); //torques
-                aux_pointer[i] = (R3(bodylist[i]->IsActive(), bodylist[i]->GetKfriction(), 1.0f / mbodyvar->GetBodyMass()));
+                active_pointer[i] = bodylist[i]->IsActive();
+                mass_pointer[i] =  1.0f / mbodyvar->GetBodyMass();
+                fric_pointer[i] = bodylist[i]->GetKfriction();
                 lim_pointer[i] = (R3(bodylist[i]->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
             }
         }
