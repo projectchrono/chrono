@@ -10,8 +10,6 @@ namespace chrono {
 
         class ChApiGPU ChCAABBGenerator {
             public:
-                // variables
-                ;             //AABB Data
                 // functions
                 ChCAABBGenerator();
             
@@ -23,8 +21,8 @@ namespace chrono {
                     const custom_vector<real4> &obj_data_R, //Data D
                     const custom_vector<uint> &obj_data_ID, //Body ID
                     const custom_vector<real3> &body_pos,   //Position global
-                    const custom_vector<real4> &body_rot,
-                    custom_vector<real3> &aabb_data);  //Rotation global
+                    const custom_vector<real4> &body_rot,   //Rotation global
+                    custom_vector<real3> &aabb_data);
 
             private:
 
@@ -46,14 +44,6 @@ namespace chrono {
         };
     }
 }
-
-struct AABB {
-    real3 min, max;
-};
-
-
-
-
 
 #endif
 

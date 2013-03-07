@@ -53,7 +53,7 @@ namespace chrono {
                     uint *offset);
             void host_Bilaterals(
                 real4 *bilaterals,
-                                   real *mass,
+                real *mass,
                 real3 *inertia,
                 real4 *rot,
                 real3 *vel,

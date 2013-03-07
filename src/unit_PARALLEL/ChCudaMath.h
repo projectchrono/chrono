@@ -15,7 +15,7 @@
 #define I3  _make_int3
 #define I2  _make_int2
 #define U3  make_uint3
-#define ZERO_EPSILON 1e-10
+#define ZERO_EPSILON 1e-8
 typedef unsigned int uint;
 
 static __host__ __device__ int3 _make_int3(int a, int b, int c) {
@@ -35,12 +35,13 @@ static __host__ __device__ int2 _make_int2(int a, int b) {
 }
 
 ////////Define Real, either float or double
-typedef double real;
+typedef float real;
 ////////Structures
 struct real2 {
     __host__ __device__ real2() {}
     __host__ __device__ real2(real a): x(a), y(a) {}
     __host__ __device__ real2(real a, real b): x(a), y(b) {}
+
     real x, y;
 };
 
@@ -59,6 +60,20 @@ struct real4 {
 
     real w, x, y, z;
 };
+
+static ostream &operator<< (ostream &out, real2 &a) {
+    out << "[" << a.x << ", " << a.y << "]" << endl;
+    return out;
+}
+
+static ostream &operator<< (ostream &out, real3 &a) {
+    out << "[" << a.x << ", " << a.y << ", " << a.z << "]" << endl;
+    return out;
+}
+static ostream &operator<< (ostream &out, real4 &a) {
+    out << "[" << a.w << ", " << a.x << ", " << a.y << ", " << a.z << "]" << endl;
+    return out;
+}
 
 ////////defines
 
@@ -238,7 +253,11 @@ static __host__ __device__ inline real3 ceil(real3 a) {
 ////////Quaternion Operations
 
 static __host__ __device__ quaternion normalize(const quaternion &a) {
-    real length = 1.0 / sqrt(a.w * a.w + a.x * a.x + a.y * a.y + a.z * a.z);
+    real length = sqrt(a.w * a.w + a.x * a.x + a.y * a.y + a.z * a.z);
+    if(length<ZERO_EPSILON){
+    	return quaternion(1,0,0,0);
+    }
+    length=1.0/length;
     return quaternion(a.w * length, a.x * length, a.y * length, a.z * length);
 }
 
@@ -358,43 +377,22 @@ __host__ __device__ inline real min3(T a) {
 
 
 ////////Output Operations
-static ostream &operator<< (ostream &out, const custom_vector<bool> &x)
-{
-        for (uint i = 0; i < x.size(); i++) {
-                out << x[i] << " ";
-        }
+template<class T>
+static ostream &operator<< (ostream &out, const thrust::device_vector<T> &x) {
+    for (uint i = 0; i < x.size(); i++) {
+        out << x[i];
+    }
 
-        return out;
+    return out;
 }
-static ostream &operator<< (ostream &out, const custom_vector<real> &x)
-{
-        for (uint i = 0; i < x.size(); i++) {
-                out << x[i] << " ";
-        }
+template<class T>
+static ostream &operator<< (ostream &out, const thrust::host_vector<T> &x) {
+    for (uint i = 0; i < x.size(); i++) {
+        out << x[i];
+    }
 
-        return out;
+    return out;
 }
-static ostream &operator<< (ostream &out, const custom_vector<real3> &x)
-{
-        for (uint i = 0; i < x.size(); i++) {
-                out << real3(x[i]).x << " " << real3(x[i]).y << " " << real3(x[i]).z << " ";
-        }
-
-        return out;
-}
-static ostream &operator<< (ostream &out, const custom_vector<real4> &x)
-{
-        for (uint i = 0; i < x.size(); i++) {
-                out << real4(x[i]).x << " " << real4(x[i]).y << " " << real4(x[i]).z << " " << real4(x[i]).w << " ";
-        }
-
-        return out;
-}
-////////Basic Linear Algebra
-
-
-
-
-
 #endif
+
 

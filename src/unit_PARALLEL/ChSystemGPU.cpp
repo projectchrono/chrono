@@ -281,9 +281,9 @@ namespace chrono {
             cntr++;
         }
 
-        //#pragma omp parallel
+        #pragma omp parallel
         {
-            //#pragma omp for
+            #pragma omp for
 
             for (int i = 0; i < bodylist.size(); i++) { // Updates recursively all other aux.vars
                 bodylist[i]->UpdateTime(ChTime);

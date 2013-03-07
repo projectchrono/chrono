@@ -7,6 +7,9 @@
 namespace chrono {
     namespace collision {
 
+
+
+
         class ChApiGPU ChCBroadphase {
             public:
                 // variables
@@ -28,9 +31,6 @@ namespace chrono {
                 uint numAABB;
                 uint last_active_bin, number_of_bin_intersections, number_of_contacts_possible;
                 uint val;
-
-
-
 
                 // functions
                 void host_Count_AABB_BIN_Intersection(
@@ -59,8 +59,16 @@ namespace chrono {
 
 
         };
+        struct AABB {
+            real3 min, max;
+        };
+
+
     }
 }
+
+
+
 #endif
 
 

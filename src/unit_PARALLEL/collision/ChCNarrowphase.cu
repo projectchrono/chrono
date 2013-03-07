@@ -496,9 +496,6 @@ void ChCNarrowphase::DoNarrowphase(
     dpth_data.resize(number_of_contacts);
     bids_data.resize(number_of_contacts);
 
-    cout<<"CONTACTS: "<<number_of_contacts<<endl;
-
-
 }
 
 

@@ -6,6 +6,9 @@
 //   ChCuda.h
 //
 ///////////////////////////////////////////////////
+#define _GNU_SOURCE
+#include <fenv.h>
+
 //#define THRUST_DEVICE_BACKEND THRUST_DEVICE_SYSTEM_CUDA
 #include <time.h>
 #include <iostream>
@@ -53,10 +56,10 @@ typedef unsigned int uint;
 
 #define Zero_Vector real3(0,0,0)
 #define PI  3.1415926535897932384626433832795
-#define PI_2   (PI / 2.0f)
-#define PI_180  (PI / 180.0f)
+#define PI_2   (PI / 2.0)
+#define PI_180  (PI / 180.0)
 
-#define SIM_ENABLE_GPU_MODE
+//#define SIM_ENABLE_GPU_MODE
 #ifdef SIM_ENABLE_GPU_MODE
 #define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CUDA
 #define custom_vector thrust::device_vector
@@ -88,7 +91,7 @@ typedef unsigned int uint;
 #define CONTCAST(x) (contactGPU*)thrust::raw_pointer_cast(&x[0])
 
 #define CHVECCAST(v) ChVector<>(v.x,v.y,v.z)
-#define CHQUATCAST(q) ChQuaternion<>(q.x,q.y,q.z,q.w)
+#define CHQUATCAST(q) ChQuaternion<>(q.w,q.x,q.y,q.z)
 
 #define THREADS                         128
 #define MAXBLOCK                        65535
