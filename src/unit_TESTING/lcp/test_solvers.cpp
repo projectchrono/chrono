@@ -92,6 +92,8 @@ void RunTimeStep(T* mSys, const int frame){
 
 
 int main(int argc, char* argv[]) {
+	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+	omp_set_num_threads(6);
     CHSYS* mSys = new CHSYS();
 	CHLCPDESC *mdescriptor = new CHLCPDESC();
 	CHCONTACTCONT *mcontactcontainer = new CHCONTACTCONT();
@@ -120,7 +122,7 @@ int main(int argc, char* argv[]) {
 //		FinalizeObject(sphere, mSys);
 //	}
 
-	float mWallMu = 1, container_width = 7.0, container_thickness = .1, container_height = 7.0, wscale = 1;
+	float mWallMu = 1, container_width = 7.0, container_thickness = .5, container_height = 7.0, wscale = 1;
 	CHBODYSHAREDPTR L = CHBODYSHAREDPTR(new CHBODY);
 	CHBODYSHAREDPTR R = CHBODYSHAREDPTR(new CHBODY);
 	CHBODYSHAREDPTR F = CHBODYSHAREDPTR(new CHBODY);
@@ -137,7 +139,7 @@ int main(int argc, char* argv[]) {
 	AddCollisionGeometry(R, BOX, Vector(container_thickness, container_height, container_width), lpos, quat);
 	AddCollisionGeometry(F, BOX, Vector(container_width * wscale, container_height, container_thickness), lpos, quat);
 	AddCollisionGeometry(B, BOX, Vector(container_width * wscale, container_height, container_thickness), lpos, quat);
-	AddCollisionGeometry(BTM, BOX, Vector(container_width * wscale, container_thickness * .25, container_width), lpos, quat);
+	AddCollisionGeometry(BTM, BOX, Vector(container_width * wscale, container_thickness , container_width), lpos, quat);
 
 	FinalizeObject(L, mSys);
 	FinalizeObject(R, mSys);
