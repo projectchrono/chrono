@@ -1244,19 +1244,22 @@ void cudaCollisions(
 		thrust::host_vector<float3> jInvH2,
 		float binSize0,
 		float channelRadius) {
+	printf("***********************************************************************\n");
+	printf("Fluid-Solid Interaction library\n");
+	printf("Created by: Arman Pazouki\n");
+	printf("pazouki@wisc.edu\n\n");
+	printf("Simulation Based Engineering Laboratory\nDepartment of Mechanical Engineering\nUniversity of Wisconsin-Madison\n");
+	printf("***********************************************************************\n");
 	//--------- initialization ---------------
 	//cudaError_t dumDevErr = cudaSetDevice(2);
 	cudaEvent_t start, stop;
 	cudaEventCreate(&start);
 	cudaEventCreate(&stop);
 	cudaEventRecord(start, 0);
-	printf("a1 yoho\n");
-	//printf("cMin.x, y, z, CMAx.x, y, z, binSize %f %f %f , %f %f %f, %f\n", cMin.x, cMin.y, cMin.z, cMax.x, cMax.y, cMax.z, binSize0); 
 
 	cudaMemcpyToSymbolAsync(cMinD, &cMin, sizeof(cMin));
 	cudaMemcpyToSymbolAsync(cMaxD, &cMax, sizeof(cMax));
 	cudaMemcpyToSymbolAsync(mNumSpheresD, &mNSpheres, sizeof(mNSpheres));
-	printf("a2 yoho\n");
 
 	int numRigidBodies = posRigidH.size();
 	thrust::device_vector<float3> posRadD=mPosRad;
@@ -1265,7 +1268,6 @@ void cudaCollisions(
 	//thrust::copy(mVelMas.begin(), mVelMas.end(), velMasD.begin());
 	thrust::device_vector<float4> rhoPresMuD=mRhoPresMu;
 	//thrust::copy(mRhoPresMu.begin(), mRhoPresMu.end(), rhoPresMuD.begin());
-	printf("a3 yoho\n");
 
 	thrust::device_vector<float3> posRigidD=posRigidH;
 	//thrust::copy(posRigidH.begin(), posRigidH.end(), posRigidD.begin());
@@ -1275,7 +1277,7 @@ void cudaCollisions(
 	//thrust::copy(velMassRigidH.begin(), velMassRigidH.end(), velMassRigidD.begin());
 	thrust::device_vector<float3> omegaLRF_D=omegaLRF_H;
 	//thrust::copy(omegaLRF_H.begin(), omegaLRF_H.end(), omegaLRF_D.begin());
-	printf("a4 yoho\n");
+
 	thrust::device_vector<float3> jD1=jH1;
 	thrust::device_vector<float3> jD2=jH2;
 	thrust::device_vector<float3> jInvD1=jInvH1;
@@ -1284,11 +1286,11 @@ void cudaCollisions(
 	//thrust::copy(jH2.begin(), jH2.end(), jD2.begin());
 	//thrust::copy(jInvH1.begin(), jInvH1.end(), jInvD1.begin());
 	//thrust::copy(jInvH2.begin(), jInvH2.end(), jInvD2.begin());
-	printf("a5 yoho\n");
+
 	thrust::device_vector<uint> bodyIndexD=bodyIndex;
 	//thrust::copy(bodyIndex.begin(), bodyIndex.end(), bodyIndexD.begin());
 	thrust::device_vector<float4> derivVelRhoD(mNSpheres);
-	printf("a6 yoho\n");
+
 		//******************** rigid body some initialization
 	thrust::device_vector<int> rigidIdentifierD(0);
 
@@ -1316,17 +1318,15 @@ void cudaCollisions(
 	cudaMemcpyToSymbolAsync(startRigidParticleD, &startRigidParticle, sizeof(startRigidParticle)); //can be defined outside of the kernel, and only once
 	cudaMemcpyToSymbolAsync(numRigid_SphParticlesD, &numRigid_SphParticles, sizeof(numRigid_SphParticles)); //can be defined outside of the kernel, and only once
 
-	printf("a7 yoho\n");
 	//******************************************************************************
-
 	thrust::device_vector<float3> rigidSPH_MeshPos_LRF_D(numRigid_SphParticles);
 	uint nBlocks_numRigid_SphParticles;
 	uint nThreads_SphParticles;
 	computeGridSize(numRigid_SphParticles, 256, nBlocks_numRigid_SphParticles, nThreads_SphParticles);
-	printf("before first kernel\n");
+
 	Populate_RigidSPH_MeshPos_LRF_kernel<<<nBlocks_numRigid_SphParticles, nThreads_SphParticles>>>(F3CAST(rigidSPH_MeshPos_LRF_D), F3CAST(posRadD), I1CAST(rigidIdentifierD), F3CAST(posRigidD), startRigidParticle, numRigid_SphParticles);
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueShare");	printf("after first kernel\n");
+	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueShare");
 	//******************************************************************************
 	thrust::device_vector<float4> qD1 = mQuatRot;
 	thrust::device_vector<float3> AD1(numRigidBodies);

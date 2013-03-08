@@ -149,27 +149,16 @@ void CreateRigidBodiesRandom(
 
 	srand ( time(NULL) );
 	float num;
-	vector<float> randLinVec(0);
-	fstream inRandomFile("../randomLinear", ios::in);
-	inRandomFile >> num;
-	while (!inRandomFile.eof()) {
-		randLinVec.push_back(num);
-		inRandomFile >> num;
-	}
+
 	float maxR = max(referenceR.x, referenceR.y);
 	maxR = max(maxR, referenceR.z);
 
 	float xSpace = (cMax.x - cMin.x) / (numSpheres + 1);
 	for (int i = 0; i < numSpheres; i++) {
-//		int index = (int)(randLinVec.size() - 1) * float (rand()) / RAND_MAX;
-//		float r = (4.5 * sizeScale) * randLinVec[index];
-
-
 
 		float r = (channelRadius - maxR - 2 * HSML) * float (rand()) / RAND_MAX;
 //						float r = (channelRadius - maxR - 2 * HSML) * (.2);
 
-		printf("sizeRandomLinear %d\n", randLinVec.size() );	//4.5 comes from channelRadius
 		float teta = 2 * PI * float (rand()) / RAND_MAX;
 //						float teta = 2 * PI * float (.2);
 		float3 pos = F3(cMin.x, .5 * (cMin.y + cMax.y), 0.5 * (cMin.z + cMax.z)) + F3( (i + 1.0) * xSpace, float(r  * cos(teta)), float(r *  sin(teta)) );
@@ -196,7 +185,6 @@ void CreateRigidBodiesRandom(
 		rigidBody_InvJ1.push_back(invJ1);
 		rigidBody_InvJ2.push_back(invJ2);
 	}
-	randLinVec.clear();
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CreateRigidBodiesFromFile(
@@ -899,8 +887,7 @@ int2 CreateFluidParticles(
 	float initSpaceY = (cMax.y - cMin.y) / nFY;
 	int nFZ = ceil((cMax.z - cMin.z) / (initSpace0));
 	float initSpaceZ = (cMax.z - cMin.z) / nFZ;
-	//printf("&&&&& %f   %f %f %f \n", 1.1 * sphR, initSpaceX, initSpaceY, initSpaceZ);
-	printf("nFX Y Z %d %d %d, max distY %f, initSpaceY %f\n", nFX, nFY, nFZ, (nFY - 1) * initSpaceY, initSpaceY);
+
 	sphParticleMass = (initSpaceX * initSpaceY * initSpaceZ) * rho;
 	//printf("sphParticleMass * 1e12 %f\n", (initSpaceX * initSpaceY * initSpaceZ) * rho*1e12);
 
@@ -1137,7 +1124,7 @@ int main() {
 	straightChannelBoundaryMin = F3(cMin.x, 0.0 * sizeScale, 1.0 * sizeScale);
 	straightChannelBoundaryMax = F3(cMax.x, 1.0 * sizeScale, 3.0 * sizeScale);
 	printf("cMin.x, y, z %f %f %f cMax.x, y, z %f %f %f,  binSize %f\n", cMin.x, cMin.y, cMin.z, cMax.x, cMax.y, cMax.z, binSize0);
-	printf("HSML %f\n", HSML);
+	printf("SPH Kernel Size %f\n", HSML);
 	//printf("side0 %d %d %d \n", side0.x, side0.y, side0.z);
 
 	//float delT = .02 * sizeScale;
@@ -1196,8 +1183,6 @@ int main() {
 
 	thrust::host_vector<Rotation> rigidRotMatrix(mQuatRot.size());
 	ConvertQuatArray2RotArray(rigidRotMatrix, mQuatRot);
-
-	printf("size rigids %d\n", rigidPos.size());
 	//---------------------------------------------------------------------
 	// initialize fluid particles
 	if (readFromFile) {
@@ -1250,7 +1235,6 @@ int main() {
 		printf("num_BoundaryParticles: %d\n", num_fluidOrBoundaryParticles.y);
 
 		//rigid body: type = 1, 2, 3, ...
-		printf("num_RigidBodyParticles: \n");
 		for (int rigidSpheres = 0; rigidSpheres < rigidPos.size(); rigidSpheres++) {
 			int num_RigidBodyParticles = CreateEllipsoidParticles(mPosRad, mVelMas, mRhoPresMu, rigidPos[rigidSpheres], rigidRotMatrix[rigidSpheres], ellipsoidRadii[rigidSpheres], spheresVelMas[rigidSpheres],
 					rigidBodyOmega[rigidSpheres], r, sphParticleMass, rho0, pres, mu, cMin, cMax, rigidSpheres + 1);		//as type
@@ -1267,15 +1251,15 @@ int main() {
 			numAllParticles += num_RigidBodyParticles;
 			//printf(" %d \n", num_RigidBodyParticles);
 		}
-		printf("\n");
+		printf("num_RigidBodyParticles: %d\n", numAllParticles - num_fluidOrBoundaryParticles.x - num_fluidOrBoundaryParticles.y);
 	}
-
 	//@@@@@@@@ rigid body
 
 	thrust::host_vector<uint> bodyIndex(numAllParticles);
 	thrust::fill(bodyIndex.begin(), bodyIndex.end(), 1);
 	thrust::exclusive_scan(bodyIndex.begin(), bodyIndex.end(), bodyIndex.begin());
 	printf("numAllParticles %d\n", numAllParticles);
+	printf("\n");
 
 	if (numAllParticles != 0) {
 		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray, numAllParticles, cMax, cMin, delT, rigidPos, mQuatRot, spheresVelMas,
