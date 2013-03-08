@@ -942,7 +942,7 @@ void ForceSPH(
 	computeGridSize(mNSpheres, 256, nBlock_NumSpheres, nThreads_SphParticles);
 	Copy_SortedVelXSPH_To_VelXSPH<<<nBlock_NumSpheres, nThreads_SphParticles>>>(F3CAST(vel_XSPH_D), F3CAST(vel_XSPH_Sorted_D), U1CAST(m_dGridParticleIndex), mNSpheres);
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: Copy_SortedVelXSPH_To_VelXSPH");
+//	CUT_CHECK_ERROR("Kernel execution failed: Copy_SortedVelXSPH_To_VelXSPH");
 
 	////
 	m_dSortedPosRad.clear();
@@ -1024,7 +1024,7 @@ void UpdateFluid(
 	computeGridSize(updatePortion.y - updatePortion.x, 128, nBlock_UpdateFluid, nThreads);
 	UpdateKernelFluid<<<nBlock_UpdateFluid, nThreads>>>(F3CAST(posRadD), F4CAST(velMasD), F3CAST(vel_XSPH_D), F4CAST(rhoPresMuD), F4CAST(derivVelRhoD));
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelFluid");
+//	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelFluid");
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //updates the fluid particles by calling UpdateKernelFluid 
@@ -1043,7 +1043,7 @@ void UpdateBoundary(
 	computeGridSize(updatePortion.y - updatePortion.x, 128, nBlock_UpdateFluid, nThreads);
 	UpdateKernelBoundary<<<nBlock_UpdateFluid, nThreads>>>(F3CAST(posRadD), F4CAST(velMasD), F4CAST(rhoPresMuD), F4CAST(derivVelRhoD));
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelFluid");
+//	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelFluid");
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ApplyBoundary(
@@ -1057,7 +1057,7 @@ void ApplyBoundary(
 	computeGridSize(mNSpheres, 256, nBlock_NumSpheres, nThreads_SphParticles);
 	ApplyPeriodicBoundaryXKernel<<<nBlock_NumSpheres, nThreads_SphParticles>>>(F3CAST(posRadD), F4CAST(rhoPresMuD));
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: ApplyPeriodicBoundaryXKernel");
+//	CUT_CHECK_ERROR("Kernel execution failed: ApplyPeriodicBoundaryXKernel");
 //	ApplyPeriodicBoundaryYKernel<<<nBlock_NumSpheres, nThreads_SphParticles>>>(F3CAST(posRadD), F4CAST(rhoPresMuD));
 //	cudaThreadSynchronize();
 //	CUT_CHECK_ERROR("Kernel execution failed: ApplyPeriodicBoundaryXKernel");
@@ -1068,7 +1068,7 @@ void ApplyBoundary(
 	cudaMemcpyToSymbolAsync(numRigidBodiesD, &numRigidBodies, sizeof(numRigidBodies)); //can be defined outside of the kernel, and only once
 	ApplyPeriodicBoundaryXKernel_RigidBodies<<<nBlock_NumRigids, nThreads_RigidBodies>>>(F3CAST(posRigidD));
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
+//	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
 //	ApplyPeriodicBoundaryYKernel_RigidBodies<<<nBlock_NumRigids, nThreads_RigidBodies>>>(F3CAST(posRigidD));
 //	cudaThreadSynchronize();
 //	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
@@ -1094,7 +1094,7 @@ void FindPassesFromTheEnd(
 	cudaMemcpyToSymbolAsync(numRigidBodiesD, &numRigidBodies, sizeof(numRigidBodies)); //can be defined outside of the kernel, and only once
 	PassesFromTheEnd_Kernel<<<nBlock_NumRigids, nThreads_RigidBodies>>>(F3CAST(posRigidD), U1CAST(radialPositions), U1CAST(radialPosCounter), pipeCenter, dR);
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: PassesFromTheEnd_Kernel");
+//	CUT_CHECK_ERROR("Kernel execution failed: PassesFromTheEnd_Kernel");
 
 	thrust::sort_by_key(radialPositions.begin(), radialPositions.end(), radialPosCounter.begin());
 	thrust::device_vector<uint> radialPosCounter_Cumulative(numberOfSections + 2); //+2 for safety, specially when the particle goes outside of the pipe
@@ -1110,7 +1110,7 @@ void FindPassesFromTheEnd(
 	computeGridSize(numberOfSections, 128, nBlock_NumSections, nThreads_numSections);
 	AddToCumulutaiveNumberOfPasses<<<nBlock_NumSections, nThreads_numSections>>>(I1CAST(distributionD), U1CAST(dummy_radialPosition), U1CAST(radialPosCounter_Cumulative), numberOfSections);
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: AddToCumulutaiveNumberOfPasses");
+//	CUT_CHECK_ERROR("Kernel execution failed: AddToCumulutaiveNumberOfPasses");
 
 	radialPosCounter_Cumulative.clear();
 	dummy_radialPosition.clear();
@@ -1164,7 +1164,7 @@ void UpdateRigidBody(
 	thrust::fill(totalBodyForces3.begin(), totalBodyForces3.end(), F3(0));
 	SumSurfaceInteractionForces<<<nBlocks_numRigid_SphParticles, nThreads_SphParticles>>>(F3CAST(totalBodyForces3), F4CAST(totalSurfaceInteraction4), F4CAST(velMassRigidD));
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: SumSurfaceInteractionForces");
+//	CUT_CHECK_ERROR("Kernel execution failed: SumSurfaceInteractionForces");
 	totalSurfaceInteraction4.clear();
 
 
@@ -1172,7 +1172,7 @@ void UpdateRigidBody(
 	thrust::device_vector<float3> torqueParticlesD(numRigid_SphParticles);
 	CalcTorqueShare<<<nBlocks_numRigid_SphParticles, nThreads_SphParticles>>>(F3CAST(torqueParticlesD), F4CAST(derivVelRhoD), F3CAST(posRadD), I1CAST(rigidIdentifierD), F3CAST(posRigidD));
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueShare");
+//	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueShare");
 	(void) thrust::reduce_by_key(rigidIdentifierD.begin(), rigidIdentifierD.end(), torqueParticlesD.begin(), dummyIdentify.begin(),
 			totalTorque3.begin(), binary_pred, thrust::plus<float3>());
 
@@ -1195,31 +1195,31 @@ void UpdateRigidBody(
 	thrust::device_vector<float3> LF_totalTorque3(numRigidBodies);
 	MapTorqueToLRFKernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(F3CAST(AD1), F3CAST(AD2), F3CAST(AD3), F3CAST(totalTorque3), F3CAST(LF_totalTorque3));
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: MapTorqueToLRFKernel");
+//	CUT_CHECK_ERROR("Kernel execution failed: MapTorqueToLRFKernel");
 	totalTorque3.clear();
 
 	UpdateKernelRigidTranstalation<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(F3CAST(totalBodyForces3), F3CAST(posRigidD), F3CAST(posRigidCumulativeD), F4CAST(velMassRigidD));
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
+//	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
 	totalBodyForces3.clear();
 
 	UpdateRigidBodyQuaternion_kernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(F4CAST(qD), F3CAST(omegaLRF_D));
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: UpdateRotation");
+//	CUT_CHECK_ERROR("Kernel execution failed: UpdateRotation");
 
 	RotationMatirixFromQuaternion_kernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(F3CAST(AD1), F3CAST(AD2), F3CAST(AD3), F4CAST(qD));
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: UpdateRotation");
+//	CUT_CHECK_ERROR("Kernel execution failed: UpdateRotation");
 
 	UpdateRigidBodyAngularVelocity_kernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(F3CAST(LF_totalTorque3), F3CAST(jD1), F3CAST(jD2), F3CAST(jInvD1), F3CAST(jInvD2), F3CAST(omegaLRF_D));
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
+//	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
 
 	LF_totalTorque3.clear();
 	//################################################### update rigid body things
 	UpdateRigidParticlesPosition<<<nBlocks_numRigid_SphParticles, nThreads_SphParticles>>>(F3CAST(posRadD), F4CAST(velMasD), F3CAST(rigidSPH_MeshPos_LRF_D), I1CAST(rigidIdentifierD), F3CAST(posRigidD), F4CAST(velMassRigidD), F3CAST(omegaLRF_D), F3CAST(AD1), F3CAST(AD2), F3CAST(AD3));
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
+//	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
 }
 ////--------------------------------------------------------------------------------------------------------------------------------
 //##############################################################################################################################################
@@ -1326,7 +1326,7 @@ void cudaCollisions(
 
 	Populate_RigidSPH_MeshPos_LRF_kernel<<<nBlocks_numRigid_SphParticles, nThreads_SphParticles>>>(F3CAST(rigidSPH_MeshPos_LRF_D), F3CAST(posRadD), I1CAST(rigidIdentifierD), F3CAST(posRigidD), startRigidParticle, numRigid_SphParticles);
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueShare");
+//	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueShare");
 	//******************************************************************************
 	thrust::device_vector<float4> qD1 = mQuatRot;
 	thrust::device_vector<float3> AD1(numRigidBodies);
@@ -1337,7 +1337,7 @@ void cudaCollisions(
 	computeGridSize(numRigidBodies, 128, nBlock_UpdateRigid, nThreads_rigidParticles);
 	RotationMatirixFromQuaternion_kernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(F3CAST(AD1), F3CAST(AD2), F3CAST(AD3), F4CAST(qD1));
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: UpdateRotation");
+//	CUT_CHECK_ERROR("Kernel execution failed: UpdateRotation");
 
 	//int i =  rigidIdentifierD[429];
 	//printf("rigid body coord %d %f %f\n", i, posRigidH[i].x, posRigidH[i].z);
@@ -1378,9 +1378,9 @@ void cudaCollisions(
 	int numberOfSections = 20; //number of sections for measuring the distribution
 	thrust::device_vector<int>  distributionD(numberOfSections);
 
-	FILE *outFileMultipleZones;
+//	FILE *outFileMultipleZones;
 
-	int povRayCounter = 0;
+//	int povRayCounter = 0;
 	int stepEnd = .8e6 * (.02 * sizeScale) / delT ; //2.4e6 * (.02 * sizeScale) / delT ; //1.4e6 * (.02 * sizeScale) / delT ;//0.7e6 * (.02 * sizeScale) / delT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
 	printf("stepEnd %d\n", stepEnd);
 

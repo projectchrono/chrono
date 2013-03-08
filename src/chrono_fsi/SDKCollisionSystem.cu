@@ -69,7 +69,7 @@ __device__ inline float4 DifVelocityRho(
 	float3 derivV = -velMasB.w * (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y * (invrhoPresMuBx * invrhoPresMuBx)) * gradW
 			+ velMasB.w * (8.0f * multViscosity) * mu0 * pow(rhoPresMuA.x + rhoPresMuB.x, -2) * rAB_Dot_GradW_OverDist
 					* F3(velMasA - velMasB);
-	float zeta = 0;//.05;//.1;
+	//float zeta = 0;//.05;//.1;
 	float derivRho = rhoPresMuA.x * velMasB.w * invrhoPresMuBx * dot(vel_XSPH_A - vel_XSPH_B, gradW);
 //	float zeta = 0;//.05;//.1;
 //	float derivRho = rhoPresMuA.x * velMasB.w * invrhoPresMuBx * (dot(vel_XSPH_A - vel_XSPH_B, gradW)
@@ -232,7 +232,7 @@ float collideCellDensityReInit_F1(
 			if (j != index) { // check not colliding with self
 				float3 posRadB = FETCH(sortedPosRad, j);
 				float4 velMasB = FETCH(sortedVelMas, j);
-				float4 rhoPreMuB = FETCH(sortedRhoPreMu, j);
+//				float4 rhoPreMuB = FETCH(sortedRhoPreMu, j);
 				float3 dist3 = Distance(posRadA, posRadB);
 				float d = length(dist3);
 				if (d > RESOLUTION_LENGTH_MULT * HSML) continue;
@@ -412,7 +412,7 @@ void newVel_XSPH_D(float3* vel_XSPH_Sorted_D, // output: new velocity
 	//sortedVel_XSPH[index] = F3(velMasA) + EPS_XSPH * deltaV;
 
 	// write new velocity back to original unsorted location
-	uint originalIndex = gridParticleIndex[index];
+//	uint originalIndex = gridParticleIndex[index];
 	vel_XSPH_Sorted_D[index] = F3(velMasA) + EPS_XSPH * deltaV;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -542,7 +542,7 @@ void CalcCartesianDataD(
 		}
 	}
 	// write new velocity back to original unsorted location
-	uint originalIndex = gridParticleIndex[index];
+//	uint originalIndex = gridParticleIndex[index];
 
 	//float newDensity = densityShare + velMasA.w * W3(0); //?$ include the particle in its summation as well
 	//if (rhoPreMuA.w < -.1) { rhoPreMuA.x = newDensity; }
@@ -592,7 +592,7 @@ void calcHash(uint* gridParticleHash, uint* gridParticleIndex, float3 * posRad, 
 
 	// check if kernel invocation generated an error
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: calcHash");
+//	CUT_CHECK_ERROR("Kernel execution failed: calcHash");
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void reorderDataAndFindCellStart(
@@ -634,7 +634,7 @@ void reorderDataAndFindCellStart(
 			oldRhoPreMu,
 			numParticles);
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: reorderDataAndFindCellStartD");
+//	CUT_CHECK_ERROR("Kernel execution failed: reorderDataAndFindCellStartD");
 //#if USE_TEX
 //#if 0
 //    cutilSafeCall(cudaUnbindTexture(oldPosTex));
@@ -674,7 +674,7 @@ void RecalcVelocity_XSPH(
 			numParticles);
 
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: newVel_XSPH_D");
+//	CUT_CHECK_ERROR("Kernel execution failed: newVel_XSPH_D");
 
 	//#if USE_TEX
 	//    cutilSafeCall(cudaUnbindTexture(oldPosTex));
@@ -718,7 +718,7 @@ void collide(
 			numParticles);
 
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: collideD");
+//	CUT_CHECK_ERROR("Kernel execution failed: collideD");
 
 	//#if USE_TEX
 	//    cutilSafeCall(cudaUnbindTexture(oldPosTex));
@@ -764,7 +764,7 @@ void ReCalcDensity(
 			numParticles);
 
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: ReCalcDensityD");
+//	CUT_CHECK_ERROR("Kernel execution failed: ReCalcDensityD");
 
 	//#if USE_TEX
 	//    cutilSafeCall(cudaUnbindTexture(oldPosTex));
@@ -805,7 +805,7 @@ void CalcCartesianData(
 			cellEnd);
 
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: ReCalcDensityD");
+//	CUT_CHECK_ERROR("Kernel execution failed: ReCalcDensityD");
 
 	//#if USE_TEX
 	//    cutilSafeCall(cudaUnbindTexture(oldPosTex));
