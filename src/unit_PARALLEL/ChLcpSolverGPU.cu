@@ -412,7 +412,7 @@ __host__ __device__ void function_Reduce_Speeds(uint &index, bool *active, real 
         mUpdateO = mUpdateO + updateO[j + start];
     }
 
-    fap[id] += (mUpdateV / mass[id]) / step_size_const;
+    //fap[id] += (mUpdateV / mass[id]) / step_size_const;
     vel[id] += (mUpdateV);
     omega[id] += (mUpdateO);
 }
@@ -803,4 +803,3 @@ real ChLcpSolverGPU::Total_KineticEnergy(gpu_container &gpu_data) {
 
 
 
-
