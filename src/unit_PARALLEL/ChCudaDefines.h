@@ -6,8 +6,8 @@
 //   ChCuda.h
 //
 ///////////////////////////////////////////////////
-#define _GNU_SOURCE
-//#include <fenv.h>
+
+#include <fenv.h>
 #include <time.h>
 #include <iostream>
 #include <thrust/host_vector.h>
