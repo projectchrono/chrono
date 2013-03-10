@@ -35,7 +35,7 @@ ChCBroadphase::ChCBroadphase() {
     last_active_bin = 0;
     number_of_bin_intersections = 0;
     numAABB = 0;
-    bins_per_axis = R3(20, 20, 20);
+    bins_per_axis = R3(80, 80, 80);
     // TODO: Should make aabb_data organization less confusing, compiler should switch depending on if the user passes a host/device vector
     // TODO: Should be able to tune bins_per_axis, it's nice to have as a parameter though!
     // TODO: As the collision detection is progressing, we should free up vectors that are no longer being used! For example, Bin_Intersections is only used in steps 4&5
@@ -57,11 +57,11 @@ inline int3 __host__ __device__ HashMax( //CHANGED: For maximum point, need to c
         const real3 & bin_size_vec) {
     int3 temp;
     temp.x = A.x / bin_size_vec.x;
-    if(!fmod(A.x,bin_size_vec.x)) temp.x--;
+    if(!fmod(A.x,bin_size_vec.x)&&temp.x!=0) temp.x--;
     temp.y = A.y / bin_size_vec.y;
-    if(!fmod(A.y,bin_size_vec.y)) temp.y--;
+    if(!fmod(A.y,bin_size_vec.y)&&temp.y!=0) temp.y--;
     temp.z = A.z / bin_size_vec.z;
-    if(!fmod(A.z,bin_size_vec.z)) temp.z--;
+    if(!fmod(A.z,bin_size_vec.z)&&temp.z!=0) temp.z--;
 
     //cout << temp.x << " " << temp.y << " " << temp.z << endl;
     return temp;
@@ -401,17 +401,17 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data, cus
 #ifdef DEBUG_GPU
 #endif
 ////      //QUESTION: I have no idea what is going on here
-//    val =
-//        bin_start_index[thrust::max_element(bin_start_index.begin(),
-//                                            bin_start_index.begin() + last_active_bin)
-//                        - bin_start_index.begin()];
-//
-//    if (val > 50) {
-//        bins_per_axis = bins_per_axis * 1.1;
-//    } else if (val < 25 && val > 1) {
-//        bins_per_axis = bins_per_axis * .9;
-//    }
+    val =
+        bin_start_index[thrust::max_element(bin_start_index.begin(),
+                                            bin_start_index.begin() + last_active_bin)
+                        - bin_start_index.begin()];
 
+    if (val > 50) {
+        bins_per_axis = bins_per_axis * 1.1;
+    } else if (val < 25 && val > 1) {
+        bins_per_axis = bins_per_axis * .9;
+    }
+cout <<val<<" "<<bins_per_axis.x<<" "<<bins_per_axis.y<<" "<<bins_per_axis.z<<endl;
     bin_start_index.resize(last_active_bin);
 #ifdef DEBUG_GPU
     cout << "Last active bin: " << last_active_bin << endl;
