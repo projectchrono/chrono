@@ -92,6 +92,7 @@ namespace chrono {
         real3 *pos_pointer = gpu_data_manager->host_pos_data.data();
         real4 *rot_pointer = gpu_data_manager->host_rot_data.data();
         real3 *acc_pointer = gpu_data_manager->host_acc_data.data();
+        real3 *gyr_pointer = gpu_data_manager->host_gyr_data.data();
         real3 *fap_pointer = gpu_data_manager->host_fap_data.data();
         #pragma omp parallel
         {
@@ -107,6 +108,7 @@ namespace chrono {
                     mbody->SetPos_dtdt(CHVECCAST(acc_pointer[i]));
                     mbody->SetWvel_loc(CHVECCAST(omg_pointer[i]));
                     mbody->SetAppliedForce(CHVECCAST(fap_pointer[i]));
+                    mbody->SetGyro(CHVECCAST(gyr_pointer[i]));
                 }
             }
         }

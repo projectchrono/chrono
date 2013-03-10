@@ -29,51 +29,113 @@ __host__ __device__ void inline Compute_Jacobian(
     real3& T4,
     real3& T5
 ) {
-    real t1 = quaternion_rotation.y * quaternion_rotation.z;
-    real t2 = quaternion_rotation.x * quaternion_rotation.w;
-    real t3 = 2 * t1 - 2 * t2;
-    real t4 = quaternion_rotation.y * quaternion_rotation.w;
-    real t5 = quaternion_rotation.x * quaternion_rotation.z;
-    real t6 = 2 * t4 + 2 * t5;
-    real t7 = quaternion_rotation.z * quaternion_rotation.w;
-    real t8 = quaternion_rotation.x * quaternion_rotation.y;
-    real t9 = 2 * t7 - 2 * t8;
-    real t10 = quaternion_rotation.x * quaternion_rotation.x;
-    real t11 = quaternion_rotation.y * quaternion_rotation.y;
-    real t12 = quaternion_rotation.w * quaternion_rotation.w;
-    real t13 = quaternion_rotation.z * quaternion_rotation.z;
-    real t14 = t10 - t11 - t13 + t12;
-    real t15 = t6 * point.x + t9 * point.y + t14 * point.z;
-    real t16 = t10 - t11 + t13 - t12;
-    t7 = 2 * t7 + 2 * t8;
-    t8 = -t3 * point.x - t16 * point.y - t7 * point.z;
-    real t17 = t3 * t15 + t6 * t8;
-    real t18 = t16 * t15 + t9 * t8;
-    real t19 = t7 * t15 + t14 * t8;
-    t10 = t10 + t11 - t13 - t12;
-    t11 = -t15;
+    real    t1 = quaternion_rotation.x * quaternion_rotation.y;
+    real    t2 = quaternion_rotation.w * quaternion_rotation.z;
+    real    t3 = 2 * t1 - 2 * t2;
+    real    t4 = quaternion_rotation.x * quaternion_rotation.x;
+    real    t5 = quaternion_rotation.y * quaternion_rotation.y;
+    real    t6 = quaternion_rotation.w * quaternion_rotation.w;
+    real    t7 = quaternion_rotation.z * quaternion_rotation.z;
+    real    t8 = t6 - t4 + t5 - t7;
+    real    t9 = quaternion_rotation.y * quaternion_rotation.z;
+    real    t10 = quaternion_rotation.w * quaternion_rotation.x;
+    real    t11 = 2 * t9 + 2 * t10;
+    real    t12 = normal.x * t3 + normal.y * t8 + normal.z * t11;
+    real    t13 = quaternion_rotation.x * quaternion_rotation.z;
+    real    t14 = quaternion_rotation.w * quaternion_rotation.y;
+    real    t15 = 2 * t13 + 2 * t14;
+    t9 = 2 * t9 - 2 * t10;
+    t10 = t6 - t4 - t5 + t7;
+    real    t16 = t15 * point.x + t9 * point.y + t10 * point.z;
+    real    t17 = normal.x * t15 + normal.y * t9 + normal.z * t10;
+    real    t18 = -t3 * point.x - t8 * point.y - t11 * point.z;
+    t4 = t6 + t4 - t5 - t7;
     t1 = 2 * t1 + 2 * t2;
-    t2 = 2 * t4 - 2 * t5;
-    t4 = t10 * point.x + t1 * point.y + t2 * point.z;
-    t5 = t10 * t11 + t6 * t4;
-    t6 = t1 * t11 + t9 * t4;
-    t9 = t2 * t11 + t14 * t4;
-    t8 = -t8;
-    t4 = -t4;
-    t3 = t10 * t8 + t3 * t4;
-    t1 = t1 * t8 + t16 * t4;
-    t2 = t2 * t8 + t7 * t4;
-    T3.x = normal.x * t17 + normal.y * t18 + normal.z * t19;
-    T3.y = normal.x * t5 + normal.y * t6 + normal.z * t9;
-    T3.z = normal.x * t3 + normal.y * t1 + normal.z * t2;
-    T4.x = tangent_u.x * t17 + tangent_u.y * t18 + tangent_u.z * t19;
-    T4.y = tangent_u.x * t5 + tangent_u.y * t6 + tangent_u.z * t9;
-    T4.z = tangent_u.x * t3 + tangent_u.y * t1 + tangent_u.z * t2;
-    T5.x = tangent_w.x * t17 + tangent_w.y * t18 + tangent_w.z * t19;
-    T5.y = tangent_w.x * t5 + tangent_w.y * t6 + tangent_w.z * t9;
-    T5.z = tangent_w.x * t3 + tangent_w.y * t1 + tangent_w.z * t2;
+    t2 = 2 * t13 - 2 * t14;
+    t5 = normal.x * t4 + normal.y * t1 + normal.z * t2;
+    t6 = -t16;
+    t7 = t4 * point.x + t1 * point.y + t2 * point.z;
+    t13 = -t18;
+    t14 = -t7;
+    real    t19 = tangent_u.x * t3 + tangent_u.y * t8 + tangent_u.z * t11;
+    real    t20 = tangent_u.x * t15 + tangent_u.y * t9 + tangent_u.z * t10;
+    real    t21 = tangent_u.x * t4 + tangent_u.y * t1 + tangent_u.z * t2;
+    t3 = tangent_w.x * t3 + tangent_w.y * t8 + tangent_w.z * t11;
+    t8 = tangent_w.x * t15 + tangent_w.y * t9 + tangent_w.z * t10;
+    t1 = tangent_w.x * t4 + tangent_w.y * t1 + tangent_w.z * t2;
+    T3.x = t12 * t16 + t17 * t18;
+    T3.y = t5 * t6 + t17 * t7;
+    T3.z = t5 * t13 + t12 * t14;
+    T4.x = t19 * t16 + t20 * t18;
+    T4.y = t21 * t6 + t20 * t7;
+    T4.z = t21 * t13 + t19 * t14;
+    T5.x = t3 * t16 + t8 * t18;
+    T5.y = t1 * t6 + t8 * t7;
+    T5.z = t1 * t13 + t3 * t14;
 }
-__host__ __device__ void inline Compute_ContactJacobians(uint& index) {
+__host__ __device__ void inline function_ContactJacobians(uint& index,  real3* norm,
+        real3* ptA,
+        real3* ptB, real3* pos, real4* rot, int2* ids
+                                                         ) {
+//    real3 N = norm[index];
+//    real3 W = fabs(N);
+//    real3 U = real3(0, N.z, -N.y);
+//
+//    if (W.x > W.y) {
+//        U = real3(-N.z, 0, N.x);
+//    }
+//
+//    if (W.y > W.z) {
+//        U = real3(N.y, -N.x, 0);
+//    }
+//
+//    U = normalize(U);
+//    W = cross(N, U);
+//    std::cout << "[" << N.x << " " << N.y << " " << N.z << "]" << "[" << -N.x << " " << -N.y << " " << -N.z << "]" << std::endl;
+//    std::cout << "[" << U.x << " " << U.y << " " << U.z << "]" << "[" << -U.x << " " << -U.y << " " << -U.z << "]" << std::endl;
+//    std::cout << "[" << W.x << " " << W.y << " " << W.z << "]" << "[" << -W.x << " " << -W.y << " " << -W.z << "]" << std::endl;
+//    std::cout << "------" << std::endl;
+//    real3 T3, T4, T5, T6, T7, T8;
+//    int2 temp_id = ids[index];
+//    int B1_i = temp_id.x;
+//    int B2_i = temp_id.y;
+//    real3 sbar = ptA[index] - pos[B1_i]; //Contact Point on A - Position of A
+//    real4 E1 = rot[B1_i]; //bring in the Euler parameters associated with body 1;
+//    Compute_Jacobian(E1, N, U, W, sbar, T3, T4, T5); //A_i,p'*A_A*(sbar~_i,A)
+//    sbar = ptB[index] - pos[B2_i]; //Contact Point on B - Position of B
+//    real4 E2 = rot[B2_i]; //bring in the Euler parameters associated with body 2;
+//    Compute_Jacobian(E2, N, U, W, sbar, T6, T7, T8); //A_i,p'*A_B*(sbar~_i,B)
+//    T6 = -T6;
+//    T7 = -T7;
+//    T8 = -T8;
+//    std::cout << "[" << T3.x << " " << T3.y << " " << T3.z << "]" << "[" << T6.x << " " << T6.y << " " << T6.z << "]" << std::endl;
+//    std::cout << "[" << T4.x << " " << T4.y << " " << T4.z << "]" << "[" << T7.x << " " << T7.y << " " << T7.z << "]" << std::endl;
+//    std::cout << "[" << T5.x << " " << T5.y << " " << T5.z << "]" << "[" << T8.x << " " << T8.y << " " << T8.z << "]" << std::endl;
+//    std::cout << "****************" << std::endl;
+}
+
+
+void ChLcpSolverGPU::host_ContactJacobians(real3* norm,
+        real3* ptA,
+        real3* ptB,
+        real* contactDepth,
+        int2* ids,
+        real3* G,
+        real* dG,
+        real* mass,
+        real* fric,
+        real3* inertia,
+        real4* rot,
+        real3* vel,
+        real3* omega,
+        real3* pos,
+        real3* updateV,
+        real3* updateO,
+        uint* offset) {
+    // #pragma omp parallel for schedule(guided)
+    for (uint index = 0; index < number_of_contacts; index++) {
+        function_ContactJacobians(index, norm, ptA, ptB, pos, rot, ids);
+    }
 }
 
 __host__ __device__ void function_process_contacts(
@@ -379,7 +441,7 @@ __host__ __device__ void function_addForces(uint& index, bool* active,  real* ma
         // v += m_inv * h * f
         vel[index] += forces[index] * mass[index];
         // w += J_inv * h * c
-        omega[index] += torques[index] * inertia[index];
+        //omega[index] += torques[index] * inertia[index];
     }
 }
 __global__ void device_addForces(bool* active, real* mass, real3* inertia, real3* forces, real3* torques, real3* vel, real3* omega) {
@@ -484,7 +546,7 @@ void ChLcpSolverGPU::host_Integrate_Timestep(bool* active, real3* acc, real4* ro
 
 __host__ __device__ void function_ComputeGyro(uint& index, real3* omega, real3* inertia, real3* gyro, real3* torque) {
     real3 body_inertia = inertia[index];
-    body_inertia = R3(1 / body_inertia.x, 1 / body_inertia.y, 1 / body_inertia.z);
+    body_inertia = R3(1.0 / body_inertia.x, 1.0 / body_inertia.y, 1.0 / body_inertia.z);
     real3 body_omega = omega[index];
     real3 gyr = cross(body_omega, body_inertia * body_omega);
     gyro[index] = gyr;
@@ -675,6 +737,24 @@ void ChLcpSolverGPU::RunTimeStep(real step, gpu_container& gpu_data) {
     gpu_data.host_JUVW_data.resize(number_of_contacts * 3 * 2 + number_of_constraints * 2);
 #ifdef SIM_ENABLE_GPU_MODE
 #else
+    host_ContactJacobians(
+        gpu_data.device_norm_data.data(),
+        gpu_data.device_cpta_data.data(),
+        gpu_data.device_cptb_data.data(),
+        gpu_data.device_dpth_data.data(),
+        gpu_data.device_bids_data.data(),
+        gpu_data.device_gam_data.data(),
+        gpu_data.device_dgm_data.data(),
+        gpu_data.device_mass_data.data(),
+        gpu_data.device_fric_data.data(),
+        gpu_data.device_inr_data.data(),
+        gpu_data.device_rot_data.data(),
+        gpu_data.device_vel_data.data(),
+        gpu_data.device_omg_data.data(),
+        gpu_data.device_pos_data.data(),
+        gpu_data.vel_update.data(),
+        gpu_data.omg_update.data(),
+        gpu_data.update_offset.data());
 #endif
 
     if (number_of_constraints != 0) {

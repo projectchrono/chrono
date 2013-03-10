@@ -33,7 +33,23 @@ namespace chrono {
             virtual double Solve(ChLcpSystemDescriptor &sysd, bool add_Mq_to_f = false) {
                 return 0;
             }
-
+            void host_ContactJacobians(real3 *norm,
+                                real3 *ptA,
+                                real3 *ptB,
+                                real *contactDepth,
+                                int2 *ids,
+                                real3 *G,
+                                real *dG,
+                                real *mass,
+                                real *fric,
+                                real3 *inertia,
+                                real4 *rot,
+                                real3 *vel,
+                                real3 *omega,
+                                real3 *pos,
+                                real3 *updateV,
+                                real3 *updateO,
+                                uint *offset);
             void host_process_contacts(real3 *norm,
                     real3 *ptA,
                     real3 *ptB,

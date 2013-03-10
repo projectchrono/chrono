@@ -33,8 +33,8 @@ namespace chrono {
 
             ChBodyGPU();
             ~ChBodyGPU();
-        
-            virtual ChCollisionModel *InstanceCollisionModel();
+
+            virtual ChCollisionModel* InstanceCollisionModel();
 
             ChVector<> GetXForce() {
                 return Xforce;
@@ -44,6 +44,9 @@ namespace chrono {
             }
             ChVector<> GetGyro() {
                 return gyro;
+            }
+            ChVector<> SetGyro(ChVector<> g) {
+                gyro = g;
             }
             void SetAppliedForce(ChVector<> mForce) {
                 mAppliedForce = mForce;
@@ -182,3 +185,4 @@ namespace chrono {
 #endif
 
 
+
