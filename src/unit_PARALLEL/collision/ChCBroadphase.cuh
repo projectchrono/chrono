@@ -20,6 +20,7 @@ namespace chrono {
                 int detectPossibleCollisions(custom_vector<real3> &aabb_data, custom_vector<long long> &potentialCollisions);
                 int setBinsPerAxis(real3 binsPerAxis);
                 real3 getBinsPerAxis();
+                void setBodyPerBin(int max, int min){min_boby_per_bin=min;max_boby_per_bin=max;}
 
             private:
                 // variables
@@ -31,6 +32,7 @@ namespace chrono {
                 uint numAABB;
                 uint last_active_bin, number_of_bin_intersections, number_of_contacts_possible;
                 uint val;
+                int min_boby_per_bin,max_boby_per_bin;
 
                 // functions
                 void host_Count_AABB_BIN_Intersection(

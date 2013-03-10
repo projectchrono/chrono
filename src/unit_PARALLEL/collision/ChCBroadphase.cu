@@ -36,6 +36,8 @@ ChCBroadphase::ChCBroadphase() {
     number_of_bin_intersections = 0;
     numAABB = 0;
     bins_per_axis = R3(80, 80, 80);
+    min_boby_per_bin=50;
+    max_boby_per_bin=100;
     // TODO: Should make aabb_data organization less confusing, compiler should switch depending on if the user passes a host/device vector
     // TODO: Should be able to tune bins_per_axis, it's nice to have as a parameter though!
     // TODO: As the collision detection is progressing, we should free up vectors that are no longer being used! For example, Bin_Intersections is only used in steps 4&5
@@ -406,9 +408,9 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data, cus
                                             bin_start_index.begin() + last_active_bin)
                         - bin_start_index.begin()];
 
-    if (val > 50) {
+    if (val > max_boby_per_bin) {
         bins_per_axis = bins_per_axis * 1.1;
-    } else if (val < 25 && val > 1) {
+    } else if (val < min_boby_per_bin && val > 1) {
         bins_per_axis = bins_per_axis * .9;
     }
 cout <<val<<" "<<bins_per_axis.x<<" "<<bins_per_axis.y<<" "<<bins_per_axis.z<<endl;

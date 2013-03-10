@@ -91,12 +91,13 @@ namespace chrono {
                     return false;
                 }
                 ChGPUDataManager *data_container;
-            private:
-                /// Update data structures to pass into GPU for collision detection
-                //unsigned int counter;
                 ChCAABBGenerator aabb_generator;
                 ChCBroadphase broadphase;
                 ChCNarrowphase narrowphase;
+            private:
+                /// Update data structures to pass into GPU for collision detection
+                //unsigned int counter;
+
 
         };
     } // END_OF_NAMESPACE____
