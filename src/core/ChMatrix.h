@@ -145,12 +145,12 @@ public:
 					///	Increments this matrix by another matrix, in place
 	template <class RealB>
 	ChMatrix<Real>& operator+=(const ChMatrix<RealB>& matbis) 
-						{ MatrInc (matbis); return *this;};
+						{ MatrInc (matbis); return *this;}
 	
 					///	Decrements this matrix by another matrix, in place
 	template <class RealB>
 	ChMatrix<Real>& operator-=(const ChMatrix<RealB>& matbis) 
-						{ MatrDec (matbis); return *this;};
+						{ MatrDec (matbis); return *this;}
 
 					/// Matrices are equal?
 	bool operator==(const ChMatrix<Real>& other)  { return Equals(other);}
@@ -1024,19 +1024,19 @@ public:
 					/// Performance warning: a new object is created.
 	template <class RealB>
 	ChMatrixDynamic<Real> operator+(const ChMatrix<RealB>& matbis) 
-						{ ChMatrixDynamic<Real> result (this->rows, this->columns); result.MatrAdd (*this, matbis); return result;};
+						{ ChMatrixDynamic<Real> result (this->rows, this->columns); result.MatrAdd (*this, matbis); return result;}
 
 					///	Subtracts this matrix and another matrix. 
 					/// Performance warning: a new object is created.
 	template <class RealB>
     ChMatrixDynamic<Real> operator-(const ChMatrix<RealB>& matbis) 
-						{ ChMatrixDynamic<Real> result (this->rows, this->columns); result.MatrSub (*this, matbis); return result;};
+						{ ChMatrixDynamic<Real> result (this->rows, this->columns); result.MatrSub (*this, matbis); return result;}
 
 					///	Multiplies this matrix and another matrix. 
 					/// Performance warning: a new object is created.
 	template <class RealB>
 	ChMatrixDynamic<Real> operator*(const ChMatrix<RealB>& matbis)	
-						{ ChMatrixDynamic<Real> result (this->rows, matbis.GetColumns()); result.MatrMultiply (*this, matbis); return result;};
+						{ ChMatrixDynamic<Real> result (this->rows, matbis.GetColumns()); result.MatrMultiply (*this, matbis); return result;}
 
 					///	Multiplies this matrix by a scalar value.
 					/// Performance warning: a new object is created.
@@ -1149,7 +1149,7 @@ public:
 							ChMatrixNM<Real,preall_rows,preall_columns> result; 
 							result.MatrAdd (*this, matbis); 
 							return result;
-						};
+						}
 
 					///	Subtracts this matrix and another matrix (of same size). 
 					/// Performance warning: a new object is created.
@@ -1159,7 +1159,7 @@ public:
 							ChMatrixNM<Real,preall_rows,preall_columns> result; 
 							result.MatrSub (*this, matbis); 
 							return result;
-						};
+						}
 
 					///	Multiplies this matrix and another ChMatrixNM matrix.
 					/// This is optimized: it returns another ChMatrixMN because size of matbis is known statically.
@@ -1181,7 +1181,7 @@ public:
 							ChMatrixDynamic<Real> result (this->rows, matbis.GetColumns());
 							result.MatrMultiply (*this, matbis); 
 							return result;
-						};
+						}
 
 					///	Multiplies this matrix by a scalar value
 					/// Performance warning: a new object is created.
@@ -1281,7 +1281,7 @@ public:
 							ChMatrix33<Real> result; 
 							result.MatrAdd (*this, matbis); 
 							return result;
-						};
+						}
 
 					///	Subtracts this matrix and another matrix (of same size). 
 					/// Performance warning: a new object is created.
@@ -1291,7 +1291,7 @@ public:
 							ChMatrix33<Real> result; 
 							result.MatrSub (*this, matbis); 
 							return result;
-						};
+						}
 
 					///	Multiplies this ChMatrix33 matrix and another ChMatrix33 matrix. 
 					/// Performance warning: a new object is created.
@@ -1321,7 +1321,7 @@ public:
 							ChMatrixDynamic<Real> result (this->rows, matbis.GetColumns()); 
 							result.MatrMultiply (*this, matbis); 
 							return result;
-						};
+						}
 
 					///	Multiplies this matrix by a scalar value
 					/// Performance warning: a new object is created.

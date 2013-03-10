@@ -40,7 +40,7 @@ namespace geometry
 class ChApi ChGeometry  {
 
 								// Chrono simulation of RTTI, needed for serialization
-	CH_RTTI_ROOT(ChGeometry);
+	CH_RTTI_ROOT(ChGeometry)
 
 public:
 		//
