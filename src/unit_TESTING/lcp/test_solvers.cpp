@@ -148,11 +148,11 @@ int main(int argc, char* argv[]) {
 	FinalizeObject(BTM, mSys);
 
 	mSys->SetStep(0.01);
-//	ChOpenGLManager * window_manager = new ChOpenGLManager();
-//	ChOpenGL openGLView(window_manager, mSys, 800, 600, 0, 0, "Test_Solvers");
-//    openGLView.SetCustomCallback(RunTimeStep);
-//	openGLView.StartSpinning(window_manager);
-//	window_manager->CallGlutMainLoop();
+	ChOpenGLManager * window_manager = new ChOpenGLManager();
+	ChOpenGL openGLView(window_manager, mSys, 800, 600, 0, 0, "Test_Solvers");
+    openGLView.SetCustomCallback(RunTimeStep);
+	openGLView.StartSpinning(window_manager);
+	window_manager->CallGlutMainLoop();
 //
 //	//msolver->Solve(*mdescriptor,true);
 //	//dump_matricies(*mdescriptor);
