@@ -79,7 +79,7 @@ public:
 
 					/// Copy constructor between vectors float<->double etc
 	template <class RealB>
-	ChVector(const ChVector<RealB>& other)	:x((Real)other.x), y((Real)other.y), z((Real)other.z) {};
+	ChVector(const ChVector<RealB>& other)	:x((Real)other.x), y((Real)other.y), z((Real)other.z) {}
 
 			//
 			// OPERATORS OVERLOADING

@@ -92,7 +92,7 @@ void RunTimeStep(T* mSys, const int frame){
 
 
 int main(int argc, char* argv[]) {
-	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+	//feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 	omp_set_num_threads(6);
     CHSYS* mSys = new CHSYS();
 	ChLCPDESC *mdescriptor = new ChLCPDESC();
