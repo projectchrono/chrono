@@ -37,7 +37,7 @@ namespace chrono {
        custom_vector<int> device_typ_data;
        custom_vector<uint> device_id_data;
        custom_vector<real3> device_aabb_data;
-       custom_vector<uint3> device_bin_data;
+       //custom_vector<uint3> device_bin_data;
        custom_vector<long long> device_pair_data;
 
        custom_vector<real3> device_vel_data;
@@ -56,6 +56,10 @@ namespace chrono {
        custom_vector<real3> device_gyr_data;
        custom_vector<real3> device_fap_data;
 
+
+       custom_vector<real3> host_JXYZ_data;
+       custom_vector<real3> host_JUVW_data;
+
        custom_vector<real4> device_bilateral_data;
        custom_vector<real3> device_gam_data;
        custom_vector<real> device_dgm_data;
@@ -73,8 +77,6 @@ namespace chrono {
         uint number_of_bilaterals;
         uint number_of_updates;
 
-        custom_vector<uint> OLD_bin_number;
-        custom_vector<long long> OLD_device_pair_data;
         custom_vector<uint> generic_counter;
     };
 
@@ -109,7 +111,7 @@ namespace chrono {
             thrust::host_vector<int2> host_bids_data;
             thrust::host_vector<long long> host_pair_data;
             thrust::host_vector<real3> host_gam_data;
-            thrust::host_vector<real> host_dgm_data;
+            //thrust::host_vector<real> host_dgm_data;
             //collision data
             thrust::host_vector<real3> host_ObA_data;
             thrust::host_vector<real3> host_ObB_data;
@@ -118,8 +120,7 @@ namespace chrono {
             thrust::host_vector<int2> host_fam_data;
             thrust::host_vector<int> host_typ_data;
             thrust::host_vector<uint> host_id_data;
-            thrust::host_vector<real3> host_aabb_data;
-            thrust::host_vector<uint3> host_bin_data;
+            //thrust::host_vector<real3> host_aabb_data;
 
             //object data
             thrust::host_vector<real3> host_vel_data;
@@ -138,7 +139,12 @@ namespace chrono {
             thrust::host_vector<real3> host_gyr_data;
             thrust::host_vector<real3> host_fap_data;
 
-            //bilateral data
+
+
+
+            //constraint data
+
+
             thrust::host_vector<real4> host_bilateral_data;
 
             bool copyContacts;

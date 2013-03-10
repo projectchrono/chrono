@@ -36,14 +36,10 @@ SET(ChronoEngine_unit_GPU_COLLISION
     collision/ChCAABBGenerator.cuh
     collision/ChCBroadphase.cuh
     collision/ChCNarrowphase.cuh
-    
     collision/ChCAABBGenerator.cu
     collision/ChCBroadphase.cu
     collision/ChCNarrowphase.cu
-    
 
-
-#collision/ChCCollisionGPU.h
     collision/ChCSupportFunctions.cuh
     collision/ChCCollisionModelGPU.h
     collision/ChCCollisionModelGPU.cpp
@@ -51,15 +47,23 @@ SET(ChronoEngine_unit_GPU_COLLISION
     collision/ChCCollisionSystemGPU.cpp
     collision/ChContactContainerGPUsimple.h
     collision/ChContactContainerGPUsimple.cpp
-    #collision/ChCCollisionGPU.cu
-
    )
+SET(ChronoEngine_unit_GPU_SOLVER
+    solver/ChOptimization.h
+    solver/ChOptimizationJacobi.h
+    solver/ChSolverGPU.h
+
+    solver/ChSolverJacobi.h
+    solver/ChSolverJacobi.cu
+   )
+
+
+
 SET(ChronoEngine_unit_GPU_SOURCES
     ChBodyGPU.cpp
     ChSystemGPU.cpp
    )
 SET(ChronoEngine_unit_GPU_HEADERS
-	
     ChApiGPU.h
     ChCudaDefines.h
     ChCudaMath.h
@@ -81,6 +85,9 @@ SOURCE_GROUP(unit_GPU FILES
              ${ChronoEngine_unit_GPU_CU})
 SOURCE_GROUP(unit_GPU\\collision FILES
              ${ChronoEngine_unit_GPU_COLLISION}
+            )
+SOURCE_GROUP(unit_GPU\\solver FILES
+             ${ChronoEngine_unit_GPU_SOLVER}
             )
 #-----------------------------------------------------------------------------
 # In most cases, you do not need to edit the lines below.
@@ -117,7 +124,7 @@ if (CUDA_FOUND)
 
         SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_${CUDA_DEVICE_VERSION},code=sm_${CUDA_SM_VERSION}" CACHE  STRING "" FORCE )
         SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DCH_API_COMPILE_UNIT_GPU" )
-        #SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "--disable-warnings")
+#SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "--disable-warnings")
         IF(CUDA_FAST_MATH)
         SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-use_fast_math")
         ENDIF()
@@ -138,6 +145,7 @@ if (CUDA_FOUND)
 
         CUDA_ADD_LIBRARY(ChronoEngine_GPU SHARED
                          ${ChronoEngine_unit_GPU_COLLISION}
+                         ${ChronoEngine_unit_GPU_SOLVER}
                          ${ChronoEngine_unit_GPU_SOURCES}
                          ${ChronoEngine_unit_GPU_HEADERS}
                          ${ChronoEngine_unit_GPU_CU})
@@ -152,12 +160,12 @@ if (CUDA_FOUND)
         SET_TARGET_PROPERTIES( ChronoEngine_GPU PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT YES )
         FIND_LIBRARY(CUDA_FRAMEWORK CUDA)
         ENDIF()
-        
-        
+
+
         IF(${CMAKE_CONFIGURATION_TYPES} MATCHES "Debug")
 
         ENDIF()
-        
+
 
         SET_TARGET_PROPERTIES(ChronoEngine_GPU PROPERTIES
                               LINK_FLAGS "${CH_LINKERFLAG_GPU}"
@@ -191,3 +199,4 @@ if (CUDA_FOUND)
         ENDIF()
 
 
+

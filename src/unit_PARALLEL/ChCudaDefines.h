@@ -7,9 +7,7 @@
 //
 ///////////////////////////////////////////////////
 #define _GNU_SOURCE
-#include <fenv.h>
-
-//#define THRUST_DEVICE_BACKEND THRUST_DEVICE_SYSTEM_CUDA
+//#include <fenv.h>
 #include <time.h>
 #include <iostream>
 #include <thrust/host_vector.h>
@@ -59,7 +57,7 @@ typedef unsigned int uint;
 #define PI_2   (PI / 2.0)
 #define PI_180  (PI / 180.0)
 
-//#define SIM_ENABLE_GPU_MODE
+#define SIM_ENABLE_GPU_MODE
 #ifdef SIM_ENABLE_GPU_MODE
 #define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CUDA
 #define custom_vector thrust::device_vector
@@ -160,7 +158,7 @@ typedef unsigned int uint;
 #define Vector_ZERO_EPSILON 1e-8
 #define MIN_ZERO_EPSILON 1.1754943508222875E-38
 #define EPS FLT_EPSILON
-#define kCollideEpsilon  1e-5f
+#define kCollideEpsilon  1e-6f
 
 
 
@@ -171,17 +169,17 @@ typedef unsigned int uint;
 
 //////////////////////////////////////////////////
 
-#define CH_CONTACT_VSIZE 4
-#define CH_CONTACT_HSIZE sizeof(CH_REALNUMBER4)
-
-#define CH_BODY_VSIZE 8
-#define CH_BODY_HSIZE sizeof(CH_REALNUMBER4)
-
+//#define CH_CONTACT_VSIZE 4
+//#define CH_CONTACT_HSIZE sizeof(CH_REALNUMBER4)
+//
+//#define CH_BODY_VSIZE 8
+//#define CH_BODY_HSIZE sizeof(CH_REALNUMBER4)
+//
 #define CH_BILATERAL_VSIZE 5
 #define CH_BILATERAL_HSIZE sizeof(CH_REALNUMBER4)
-
-#define CH_REDUCTION_VSIZE 2
-#define CH_REDUCTION_HSIZE sizeof(CH_REALNUMBER4)
+//
+//#define CH_REDUCTION_VSIZE 2
+//#define CH_REDUCTION_HSIZE sizeof(CH_REALNUMBER4)
 
 #endif
 

@@ -29,7 +29,10 @@ static void SEAXPY(const real &a, custom_vector<real> &x, custom_vector<real> &y
 {
         thrust::transform(x.begin(), x.end(), y.begin(), output.begin(), saxpy_functor(a));
 }
-
+static void SEAXMY(const real &a, custom_vector<real> &x, custom_vector<real> &y, custom_vector<real> &output)
+{
+        thrust::transform(x.begin(), x.end(), y.begin(), output.begin(), saxmy_functor(a));
+}
 
 static custom_vector<real> operator +(const custom_vector<real> &x, const custom_vector<real> &y)
 {
@@ -82,6 +85,26 @@ static real Dot(const custom_vector<real> &x, const custom_vector<real> &y)
         thrust::multiplies<real> binary_op2;
         real answer = thrust::inner_product(x.begin(), x.end(), y.begin(), real(0.0), binary_op1, binary_op2);
         return answer;
+}
+static real Norm(const custom_vector<real> &x)
+{
+        return sqrt(Dot(x, x));
+
+}
+struct abs_functor : public thrust::unary_function<real, real> {
+
+        __host__ __device__
+        float operator()(const real &x) const {
+                return fabs(x);
+        }
+};
+
+static custom_vector<real> Abs(const custom_vector<real> &x)
+{
+			custom_vector<real> temp(x.size());
+	        thrust::transform(x.begin(), x.end(),temp.begin() , abs_functor());
+	        return temp;
+
 }
 
 

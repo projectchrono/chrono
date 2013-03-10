@@ -20,14 +20,14 @@ __constant__ real alpha_const; // [R]=alpha*[K]
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 __host__ __device__ void inline Compute_Jacobian(
-    const real4 &quaternion_rotation,
-    const real3 &normal,
-    const real3 &tangent_u,
-    const real3 &tangent_w,
-    const real3 &point,
-    real3 &T3,
-    real3 &T4,
-    real3 &T5
+    const real4& quaternion_rotation,
+    const real3& normal,
+    const real3& tangent_u,
+    const real3& tangent_w,
+    const real3& point,
+    real3& T3,
+    real3& T4,
+    real3& T5
 ) {
     real t1 = quaternion_rotation.y * quaternion_rotation.z;
     real t2 = quaternion_rotation.x * quaternion_rotation.w;
@@ -73,30 +73,32 @@ __host__ __device__ void inline Compute_Jacobian(
     T5.y = tangent_w.x * t5 + tangent_w.y * t6 + tangent_w.z * t9;
     T5.z = tangent_w.x * t3 + tangent_w.y * t1 + tangent_w.z * t2;
 }
+__host__ __device__ void inline Compute_ContactJacobians(uint& index) {
+}
 
 __host__ __device__ void function_process_contacts(
-    uint &index,
-    real &step_size,
-    real &lcp_contact_factor,
-    uint &number_of_contacts,
-    real &lcp_omega_contact,
-    real3 *norm,
-    real3 *ptA,
-    real3 *ptB,
-    real *contactDepth,
-    int2 *ids,
-    real3 *G,
-    real *dG,
-    real *mass,
-    real *fric,
-    real3 *inertia,
-    real4 *rot,
-    real3 *vel,
-    real3 *omega,
-    real3 *pos,
-    real3 *updateV,
-    real3 *updateO,
-    uint *offset) {
+    uint& index,
+    real& step_size,
+    real& lcp_contact_factor,
+    uint& number_of_contacts,
+    real& lcp_omega_contact,
+    real3* norm,
+    real3* ptA,
+    real3* ptB,
+    real* contactDepth,
+    int2* ids,
+    real3* G,
+    real* dG,
+    real* mass,
+    real* fric,
+    real3* inertia,
+    real4* rot,
+    real3* vel,
+    real3* omega,
+    real3* pos,
+    real3* updateV,
+    real3* updateO,
+    uint* offset) {
     real3 gamma, T3, T4, T5, T6, T7, T8;
     int2 temp_id = ids[index];
     real depth = -fabs(contactDepth[index]);
@@ -175,23 +177,23 @@ __host__ __device__ void function_process_contacts(
 //  Kernel for a single iteration of the LCP over all contacts
 //  Version 2.0 - Tasora
 //  Version 2.2- Hammad (optimized, cleaned etc)
-__global__ void device_process_contacts(real3 *norm,
-                                        real3 *ptA,
-                                        real3 *ptB,
-                                        real *contactDepth,
-                                        int2 *ids,
-                                        real3 *G,
-                                        real *dG,
-                                        real *mass,
-                                        real *fric,
-                                        real3 *inertia,
-                                        real4 *rot,
-                                        real3 *vel,
-                                        real3 *omega,
-                                        real3 *pos,
-                                        real3 *updateV,
-                                        real3 *updateO,
-                                        uint *offset) {
+__global__ void device_process_contacts(real3* norm,
+                                        real3* ptA,
+                                        real3* ptB,
+                                        real* contactDepth,
+                                        int2* ids,
+                                        real3* G,
+                                        real* dG,
+                                        real* mass,
+                                        real* fric,
+                                        real3* inertia,
+                                        real4* rot,
+                                        real3* vel,
+                                        real3* omega,
+                                        real3* pos,
+                                        real3* updateV,
+                                        real3* updateO,
+                                        uint* offset) {
     INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_contacts_const);
     function_process_contacts(index, step_size_const,
                               lcp_contact_factor_const,
@@ -199,25 +201,26 @@ __global__ void device_process_contacts(real3 *norm,
                               lcp_omega_contact_const, norm, ptA, ptB, contactDepth, ids, G, dG, mass, fric, inertia, rot, vel, omega, pos, updateV, updateO, offset);
 }
 
-void ChLcpSolverGPU::host_process_contacts(real3 *norm,
-        real3 *ptA,
-        real3 *ptB,
-        real *contactDepth,
-        int2 *ids,
-        real3 *G,
-        real *dG,
-        real *mass,
-        real *fric,
-        real3 *inertia,
-        real4 *rot,
-        real3 *vel,
-        real3 *omega,
-        real3 *pos,
-        real3 *updateV,
-        real3 *updateO,
-        uint *offset) {
-#pragma omp parallel for schedule(guided)
-	for (uint index = 0; index < number_of_contacts; index++) {
+void ChLcpSolverGPU::host_process_contacts(real3* norm,
+        real3* ptA,
+        real3* ptB,
+        real* contactDepth,
+        int2* ids,
+        real3* G,
+        real* dG,
+        real* mass,
+        real* fric,
+        real3* inertia,
+        real4* rot,
+        real3* vel,
+        real3* omega,
+        real3* pos,
+        real3* updateV,
+        real3* updateO,
+        uint* offset) {
+    #pragma omp parallel for schedule(guided)
+
+    for (uint index = 0; index < number_of_contacts; index++) {
         function_process_contacts(index, step_size,
                                   lcp_contact_factor,
                                   number_of_contacts,
@@ -232,21 +235,21 @@ void ChLcpSolverGPU::host_process_contacts(real3 *norm,
 //
 
 __host__ __device__ void function_Bilaterals(
-    uint &index,
-    uint   &number_of_bilaterals,
-    uint   &number_of_contacts,
-    real &lcp_omega_bilateral,
-    real4 *bilaterals,
-    real *mass,
-    real3 *inertia,
-    real4 *rot,
-    real3 *vel,
-    real3 *omega,
-    real3 *pos,
-    real3 *updateV,
-    real3 *updateO,
-    uint *offset,
-    real *dG) {
+    uint& index,
+    uint&   number_of_bilaterals,
+    uint&   number_of_contacts,
+    real& lcp_omega_bilateral,
+    real4* bilaterals,
+    real* mass,
+    real3* inertia,
+    real4* rot,
+    real3* vel,
+    real3* omega,
+    real3* pos,
+    real3* updateV,
+    real3* updateO,
+    uint* offset,
+    real* dG) {
     real4 vA;
     real3 vB;
     real gamma_new = 0, gamma_old = 0;
@@ -306,17 +309,17 @@ __host__ __device__ void function_Bilaterals(
 }
 
 __global__ void device_Bilaterals(
-    real4 *bilaterals,
-    real *mass,
-    real3 *inertia,
-    real4 *rot,
-    real3 *vel,
-    real3 *omega,
-    real3 *pos,
-    real3 *updateV,
-    real3 *updateO,
-    uint *offset,
-    real *dG) {
+    real4* bilaterals,
+    real* mass,
+    real3* inertia,
+    real4* rot,
+    real3* vel,
+    real3* omega,
+    real3* pos,
+    real3* updateV,
+    real3* updateO,
+    uint* offset,
+    real* dG) {
     INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_bilaterals_const);
     function_Bilaterals(
         index,
@@ -336,17 +339,17 @@ __global__ void device_Bilaterals(
         dG);
 }
 void ChLcpSolverGPU::host_Bilaterals(
-    real4 *bilaterals,
-    real *mass,
-    real3 *inertia,
-    real4 *rot,
-    real3 *vel,
-    real3 *omega,
-    real3 *pos,
-    real3 *updateV,
-    real3 *updateO,
-    uint *offset,
-    real *dG) {
+    real4* bilaterals,
+    real* mass,
+    real3* inertia,
+    real4* rot,
+    real3* vel,
+    real3* omega,
+    real3* pos,
+    real3* updateV,
+    real3* updateO,
+    uint* offset,
+    real* dG) {
     for (uint index = 0; index < number_of_bilaterals; index++) {
         function_Bilaterals(
             index,
@@ -371,7 +374,7 @@ void ChLcpSolverGPU::host_Bilaterals(
 // Kernel for adding invmass*force*step_size_const to body speed vector.
 // This kernel must be applied to the stream of the body buffer.
 
-__host__ __device__ void function_addForces(uint &index, bool *active,  real *mass, real3 *inertia, real3 *forces, real3 *torques, real3 *vel, real3 *omega) {
+__host__ __device__ void function_addForces(uint& index, bool* active,  real* mass, real3* inertia, real3* forces, real3* torques, real3* vel, real3* omega) {
     if (active[index] != 0) {
         // v += m_inv * h * f
         vel[index] += forces[index] * mass[index];
@@ -379,14 +382,15 @@ __host__ __device__ void function_addForces(uint &index, bool *active,  real *ma
         omega[index] += torques[index] * inertia[index];
     }
 }
-__global__ void device_addForces(bool *active, real *mass, real3 *inertia, real3 *forces, real3 *torques, real3 *vel, real3 *omega) {
+__global__ void device_addForces(bool* active, real* mass, real3* inertia, real3* forces, real3* torques, real3* vel, real3* omega) {
     INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_objects_const);
     function_addForces(index, active,  mass, inertia, forces, torques, vel, omega);
 }
 
-void ChLcpSolverGPU::host_addForces(bool *active, real *mass, real3 *inertia, real3 *forces, real3 *torques, real3 *vel, real3 *omega) {
-#pragma omp parallel for schedule(guided)
-	for (uint index = 0; index < number_of_objects; index++) {
+void ChLcpSolverGPU::host_addForces(bool* active, real* mass, real3* inertia, real3* forces, real3* torques, real3* vel, real3* omega) {
+    #pragma omp parallel for schedule(guided)
+
+    for (uint index = 0; index < number_of_objects; index++) {
         function_addForces(index, active,  mass, inertia, forces, torques, vel, omega);
     }
 }
@@ -395,7 +399,7 @@ void ChLcpSolverGPU::host_addForces(bool *active, real *mass, real3 *inertia, re
 // Updates the speeds in the body buffer with values accumulated in the
 // reduction buffer:   V_new = V_old + delta_speeds
 
-__host__ __device__ void function_Reduce_Speeds(uint &index, bool *active, real *mass, real3 *vel, real3 *omega, real3 *updateV, real3 *updateO, uint *d_body_num, uint *counter, real3 *fap) {
+__host__ __device__ void function_Reduce_Speeds(uint& index, bool* active, real* mass, real3* vel, real3* omega, real3* updateV, real3* updateO, uint* d_body_num, uint* counter, real3* fap) {
     int start = (index == 0) ? 0 : counter[index - 1], end = counter[index];
     int id = d_body_num[end - 1], j;
     real3 auxd = active[id];
@@ -417,17 +421,18 @@ __host__ __device__ void function_Reduce_Speeds(uint &index, bool *active, real 
     omega[id] += (mUpdateO);
 }
 
-__global__ void device_Reduce_Speeds(bool *active, real *mass,  real3 *vel, real3 *omega, real3 *updateV, real3 *updateO, uint *d_body_num, uint *counter, real3 *fap) {
+__global__ void device_Reduce_Speeds(bool* active, real* mass,  real3* vel, real3* omega, real3* updateV, real3* updateO, uint* d_body_num, uint* counter, real3* fap) {
     INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_updates_const);
     function_Reduce_Speeds(index, active, mass, vel, omega, updateV, updateO, d_body_num, counter, fap);
 }
-void ChLcpSolverGPU::host_Reduce_Speeds(bool *active, real *mass, real3 *vel, real3 *omega, real3 *updateV, real3 *updateO, uint *d_body_num, uint *counter, real3 *fap) {
-#pragma omp parallel for schedule(guided)
-	for (uint index = 0; index < number_of_updates; index++) {
+void ChLcpSolverGPU::host_Reduce_Speeds(bool* active, real* mass, real3* vel, real3* omega, real3* updateV, real3* updateO, uint* d_body_num, uint* counter, real3* fap) {
+    #pragma omp parallel for schedule(guided)
+
+    for (uint index = 0; index < number_of_updates; index++) {
         function_Reduce_Speeds(index, active, mass,  vel, omega, updateV, updateO, d_body_num, counter, fap);
     }
 }
-__host__ __device__ void function_Integrate_Timestep(uint &index, real &step_size,  bool *active, real3 *acc, real4 *rot, real3 *vel, real3 *omega, real3 *pos, real3 *lim) {
+__host__ __device__ void function_Integrate_Timestep(uint& index, real& step_size,  bool* active, real3* acc, real4* rot, real3* vel, real3* omega, real3* pos, real3* lim) {
     real3 velocity = vel[index];
 
     if (active[index] == 0) {
@@ -440,7 +445,6 @@ __host__ __device__ void function_Integrate_Timestep(uint &index, real &step_siz
     real3 omg = omega[index];
     real3 limits = lim[index];
     real wlen = length(omg);
-
 //    if (limits.x == 1) {
 //        real w = 2.0 * wlen;
 //
@@ -458,29 +462,27 @@ __host__ __device__ void function_Integrate_Timestep(uint &index, real &step_siz
 //        vel[index] = velocity;
 //        omega[index] = omg;
 //    }
-
     pos[index] = pos[index] + velocity * step_size; // Do 1st order integration of linear speeds
     real4 Rw = (fabs(wlen) > 10e-10) ? Q_from_AngAxis(step_size * wlen, omg / wlen) : real4(1, 0, 0, 0); // to avoid singularity for near zero angular speed
-    Rw=normalize(Rw);
+    Rw = normalize(Rw);
     real4 mq = mult(rot[index], Rw);
-
     mq = mq * rsqrtf(dot(mq, mq));
-
     rot[index] = mq;
     acc[index] = (velocity - acc[index]) / step_size;
 }
-__global__ void device_Integrate_Timestep(bool *active, real3 *acc, real4 *rot, real3 *vel, real3 *omega, real3 *pos, real3 *lim) {
+__global__ void device_Integrate_Timestep(bool* active, real3* acc, real4* rot, real3* vel, real3* omega, real3* pos, real3* lim) {
     INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_objects_const);
     function_Integrate_Timestep(index, step_size_const, active, acc, rot, vel, omega, pos, lim);
 }
-void ChLcpSolverGPU::host_Integrate_Timestep(bool *active, real3 *acc, real4 *rot, real3 *vel, real3 *omega, real3 *pos, real3 *lim) {
-#pragma omp parallel for schedule(guided)
-	for (uint index = 0; index < number_of_objects; index++) {
+void ChLcpSolverGPU::host_Integrate_Timestep(bool* active, real3* acc, real4* rot, real3* vel, real3* omega, real3* pos, real3* lim) {
+    #pragma omp parallel for schedule(guided)
+
+    for (uint index = 0; index < number_of_objects; index++) {
         function_Integrate_Timestep(index, step_size, active, acc, rot, vel, omega, pos, lim);
     }
 }
 
-__host__ __device__ void function_ComputeGyro(uint &index, real3 *omega, real3 *inertia, real3 *gyro, real3 *torque) {
+__host__ __device__ void function_ComputeGyro(uint& index, real3* omega, real3* inertia, real3* gyro, real3* torque) {
     real3 body_inertia = inertia[index];
     body_inertia = R3(1 / body_inertia.x, 1 / body_inertia.y, 1 / body_inertia.z);
     real3 body_omega = omega[index];
@@ -488,19 +490,20 @@ __host__ __device__ void function_ComputeGyro(uint &index, real3 *omega, real3 *
     gyro[index] = gyr;
 }
 
-__global__ void device_ComputeGyro(real3 *omega, real3 *inertia, real3 *gyro, real3 *torque) {
+__global__ void device_ComputeGyro(real3* omega, real3* inertia, real3* gyro, real3* torque) {
     INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_objects_const);
     function_ComputeGyro(index, omega, inertia, gyro, torque);
 }
 
-void ChLcpSolverGPU::host_ComputeGyro(real3 *omega, real3 *inertia, real3 *gyro, real3 *torque) {
-#pragma omp parallel for schedule(guided)
-	for (uint index = 0; index < number_of_objects; index++) {
+void ChLcpSolverGPU::host_ComputeGyro(real3* omega, real3* inertia, real3* gyro, real3* torque) {
+    #pragma omp parallel for schedule(guided)
+
+    for (uint index = 0; index < number_of_objects; index++) {
         function_ComputeGyro(index, omega, inertia, gyro, torque);
     }
 }
 
-__global__ void device_Offsets(int2 *ids, real4 *bilaterals, uint *Body) {
+__global__ void device_Offsets(int2* ids, real4* bilaterals, uint* Body) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (index < number_of_contacts_const) {
@@ -516,7 +519,7 @@ __global__ void device_Offsets(int2 *ids, real4 *bilaterals, uint *Body) {
 }
 
 
-void ChLcpSolverGPU::host_Offsets(int2 *ids, real4 *bilaterals, uint *Body) {
+void ChLcpSolverGPU::host_Offsets(int2* ids, real4* bilaterals, uint* Body) {
     for (uint index = 0; index < number_of_constraints; index++) {
         if (index < number_of_contacts) {
             int2 temp_id = ids[index];
@@ -531,7 +534,7 @@ void ChLcpSolverGPU::host_Offsets(int2 *ids, real4 *bilaterals, uint *Body) {
     }
 }
 
-void ChLcpSolverGPU::Preprocess(gpu_container &gpu_data) {
+void ChLcpSolverGPU::Preprocess(gpu_container& gpu_data) {
     gpu_data.number_of_updates = 0;
     gpu_data.device_gyr_data.resize(number_of_objects);
     custom_vector<uint> body_num;
@@ -607,11 +610,11 @@ void ChLcpSolverGPU::Preprocess(gpu_container &gpu_data) {
     }
 }
 
-void ChLcpSolverGPU::Iterate(gpu_container &gpu_data) {
+void ChLcpSolverGPU::Iterate(gpu_container& gpu_data) {
 }
-void ChLcpSolverGPU::Reduce(gpu_container &gpu_data) {
+void ChLcpSolverGPU::Reduce(gpu_container& gpu_data) {
 }
-void ChLcpSolverGPU::Integrate(gpu_container &gpu_data) {
+void ChLcpSolverGPU::Integrate(gpu_container& gpu_data) {
 #ifdef SIM_ENABLE_GPU_MODE
     device_Integrate_Timestep CUDA_KERNEL_DIM(BLOCKS(number_of_objects), THREADS)(
         CASTB1(gpu_data.device_active_data),
@@ -632,7 +635,7 @@ void ChLcpSolverGPU::Integrate(gpu_container &gpu_data) {
         gpu_data.device_lim_data.data());
 #endif
 }
-void ChLcpSolverGPU::RunTimeStep(real step, gpu_container &gpu_data) {
+void ChLcpSolverGPU::RunTimeStep(real step, gpu_container& gpu_data) {
     lcp_omega_contact = omega;
     step_size = step;
     number_of_constraints = gpu_data.number_of_contacts + gpu_data.number_of_bilaterals;
@@ -667,6 +670,12 @@ void ChLcpSolverGPU::RunTimeStep(real step, gpu_container &gpu_data) {
 #else
 #endif
     real old_gam = 1;
+    //COMPUTE JACOBIANS
+    gpu_data.host_JXYZ_data.resize(number_of_contacts * 3 * 2 + number_of_constraints * 2);
+    gpu_data.host_JUVW_data.resize(number_of_contacts * 3 * 2 + number_of_constraints * 2);
+#ifdef SIM_ENABLE_GPU_MODE
+#else
+#endif
 
     if (number_of_constraints != 0) {
         for (iteration_number = 0; iteration_number < max_iterations; iteration_number++) {
@@ -776,23 +785,23 @@ void ChLcpSolverGPU::RunTimeStep(real step, gpu_container &gpu_data) {
 
     Integrate(gpu_data);
 }
-real ChLcpSolverGPU::Max_DeltaGamma(custom_vector<real> &device_dgm_data) {
+real ChLcpSolverGPU::Max_DeltaGamma(custom_vector<real>& device_dgm_data) {
     return Thrust_Max(device_dgm_data);
 }
-real ChLcpSolverGPU::Min_DeltaGamma(custom_vector<real> &device_dgm_data) {
+real ChLcpSolverGPU::Min_DeltaGamma(custom_vector<real>& device_dgm_data) {
     return Thrust_Min(device_dgm_data);
 }
-real ChLcpSolverGPU::Avg_DeltaGamma(uint number_of_constraints, custom_vector<real> &device_dgm_data) {
+real ChLcpSolverGPU::Avg_DeltaGamma(uint number_of_constraints, custom_vector<real>& device_dgm_data) {
     real gamma = (Thrust_Total(device_dgm_data)) / real(number_of_constraints);
     //cout << gamma << endl;
     return gamma;
 }
-__global__ void Compute_KE(real3 *vel, real *mass, real *ke) {
+__global__ void Compute_KE(real3* vel, real* mass, real* ke) {
     INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_objects_const);
     real3 velocity = vel[index];
     ke[index] = .5 / mass[index] * dot(velocity, velocity);
 }
-real ChLcpSolverGPU::Total_KineticEnergy(gpu_container &gpu_data) {
+real ChLcpSolverGPU::Total_KineticEnergy(gpu_container& gpu_data) {
     custom_vector<real> device_ken_data;
     device_ken_data.resize(gpu_data.number_of_objects);
     Compute_KE CUDA_KERNEL_DIM(BLOCKS(gpu_data.number_of_objects), THREADS)(CASTR3(gpu_data.device_vel_data), CASTR1(gpu_data.device_mass_data), CASTR1(device_ken_data));
