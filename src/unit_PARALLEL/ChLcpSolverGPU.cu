@@ -168,14 +168,14 @@ __host__ __device__ void function_process_contacts(
     int B2_i = temp_id.y;
     real3 N = norm[index]; //assume: normalized, and if depth=0 norm=(1,0,0)
     real3 W = fabs(N); //Gramm Schmidt; work with the global axis that is "most perpendicular" to the contact normal vector;effectively this means looking for the smallest component (in abs) and using the corresponding direction to carry out cross product.
-    real3 U = real3(0, N.z, -N.y); //it turns out that X axis is closest to being perpendicular to contact vector;
+    real3 U = R3(0, N.z, -N.y); //it turns out that X axis is closest to being perpendicular to contact vector;
 
     if (W.x > W.y) {
-        U = real3(-N.z, 0, N.x);
+        U = R3(-N.z, 0, N.x);
     } //it turns out that Y axis is closest to being perpendicular to contact vector;
 
     if (W.y > W.z) {
-        U = real3(N.y, -N.x, 0);
+        U = R3(N.y, -N.x, 0);
     } //it turns out that Z axis is closest to being perpendicular to contact vector;
 
     U = normalize(U); //normalize the local contact Y,Z axis
@@ -363,11 +363,11 @@ __host__ __device__ void function_Bilaterals(
     int offset1 = offset[2 * number_of_contacts + index];
     int offset2 = offset[2 * number_of_contacts + index + number_of_bilaterals];
     updateV[offset1] = make_real3(vA); //  ---> store  v1 vel. in reduction buffer
-    updateO[offset1] = make_real3((bilaterals[index + 2 * number_of_bilaterals]) * make_real4(vB) * gamma_new); // line 2:  J1(w)// ---> store  w1 vel. in reduction buffer
+    updateO[offset1] = make_real3((bilaterals[index + 2 * number_of_bilaterals]) * R4(vB) * gamma_new); // line 2:  J1(w)// ---> store  w1 vel. in reduction buffer
     vB = inertia[B2_index]; // iJ iJ iJ im
     vA = (bilaterals[index + number_of_bilaterals]) * mass2 * gamma_new; // line 1: J2(x)
     updateV[offset2] = make_real3(vA); //  ---> store  v2 vel. in reduction buffer
-    updateO[offset2] = make_real3((bilaterals[index + 3 * number_of_bilaterals]) * make_real4(vB) * gamma_new); // line 3:  J2(w)// ---> store  w2 vel. in reduction buffer
+    updateO[offset2] = make_real3((bilaterals[index + 3 * number_of_bilaterals]) * R4(vB) * gamma_new); // line 3:  J2(w)// ---> store  w2 vel. in reduction buffer
 }
 
 __global__ void device_Bilaterals(
@@ -464,14 +464,14 @@ void ChLcpSolverGPU::host_addForces(bool* active, real* mass, real3* inertia, re
 __host__ __device__ void function_Reduce_Speeds(uint& index, bool* active, real* mass, real3* vel, real3* omega, real3* updateV, real3* updateO, uint* d_body_num, uint* counter, real3* fap) {
     int start = (index == 0) ? 0 : counter[index - 1], end = counter[index];
     int id = d_body_num[end - 1], j;
-    real3 auxd = active[id];
+    //real3 auxd = active[id];
 
     if (active[id] == 0) {
         return;
     }
 
-    real3 mUpdateV = real3(0);
-    real3 mUpdateO = real3(0);
+    real3 mUpdateV = R3(0);
+    real3 mUpdateO = R3(0);
 
     for (j = 0; j < end - start; j++) {
         mUpdateV = mUpdateV + updateV[j + start];
@@ -525,7 +525,7 @@ __host__ __device__ void function_Integrate_Timestep(uint& index, real& step_siz
 //        omega[index] = omg;
 //    }
     pos[index] = pos[index] + velocity * step_size; // Do 1st order integration of linear speeds
-    real4 Rw = (fabs(wlen) > 10e-10) ? Q_from_AngAxis(step_size * wlen, omg / wlen) : real4(1, 0, 0, 0); // to avoid singularity for near zero angular speed
+    real4 Rw = (fabs(wlen) > 10e-10) ? Q_from_AngAxis(step_size * wlen, omg / wlen) : R4(1, 0, 0, 0); // to avoid singularity for near zero angular speed
     Rw = normalize(Rw);
     real4 mq = mult(rot[index], Rw);
     mq = mq * rsqrtf(dot(mq, mq));

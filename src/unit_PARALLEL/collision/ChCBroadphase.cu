@@ -179,18 +179,18 @@ inline void __host__ __device__ function_Count_AABB_AABB_Intersection(
     uint *Num_ContactD) {
     uint end = bin_start_index[index], count = 0, i = (!index) ? 0 : bin_start_index[index - 1];
     uint tempa, tempb;
-    AABB A, B;
+    real3 Amin, Amax, Bmin, Bmax;
 
     for (; i < end; i++) {
         tempa = body_number[i];
-        A.min = aabb_data[tempa];
-        A.max = aabb_data[tempa + number_of_particles];
+        Amin = aabb_data[tempa];
+        Amax = aabb_data[tempa + number_of_particles];
 
         for (int k = i + 1; k < end; k++) {
             tempb = body_number[k];
-            B.min = aabb_data[tempb];
-            B.max = aabb_data[tempb + number_of_particles];
-            bool inContact = (A.min.x <= B.max.x && B.min.x <= A.max.x) && (A.min.y <= B.max.y && B.min.y <= A.max.y) && (A.min.z <= B.max.z && B.min.z <= A.max.z);
+            Bmin = aabb_data[tempb];
+            Bmax = aabb_data[tempb + number_of_particles];
+            bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) && (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
 
             if (inContact) count++;
         }
@@ -243,19 +243,19 @@ inline void __host__ __device__ function_Store_AABB_AABB_Intersection(
     }
 
     uint tempa, tempb;
-    AABB A, B;
+    real3 Amin, Amax, Bmin, Bmax;
 
     for (; i < end; i++) {
         ;
         tempa = body_number[i];
-        A.min = aabb_data[tempa];
-        A.max = aabb_data[tempa + number_of_particles];
+        Amin = aabb_data[tempa];
+        Amax = aabb_data[tempa + number_of_particles];
 
         for (int k = i + 1; k < end; k++) {
             tempb = body_number[k];
-            B.min = aabb_data[tempb];
-            B.max = aabb_data[tempb + number_of_particles];
-            bool inContact = (A.min.x <= B.max.x && B.min.x <= A.max.x) && (A.min.y <= B.max.y && B.min.y <= A.max.y) && (A.min.z <= B.max.z && B.min.z <= A.max.z);
+            Bmin = aabb_data[tempb];
+            Bmax = aabb_data[tempb + number_of_particles];
+            bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) && (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
 
             if (inContact == true) {
                 int a = tempa;

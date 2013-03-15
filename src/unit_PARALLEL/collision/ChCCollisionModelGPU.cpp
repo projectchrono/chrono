@@ -23,7 +23,7 @@ namespace chrono {
             nObjects = 0;
             colFam = -1;
             noCollWith = -2;
-            inertia = real3(0);
+            inertia = R3(0);
         }
 
         ChCollisionModelGPU::~ChCollisionModelGPU() {
@@ -60,14 +60,14 @@ namespace chrono {
             }
 
             double mass = this->GetBody()->GetMass();
-            inertia += pos->Length2() * mass + real3(2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius);
+            inertia += pos->Length2() * mass + R3(2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius);
             model_type = SPHERE;
             nObjects++;
             bData tData;
-            tData.A = real3(pos->x, pos->y, pos->z);
-            tData.B = real3(radius, 0, 0);
-            tData.C = real3(0, 0, 0);
-            tData.R = real4(1, 0, 0, 0);
+            tData.A = R3(pos->x, pos->y, pos->z);
+            tData.B = R3(radius, 0, 0);
+            tData.C = R3(0, 0, 0);
+            tData.R = R4(1, 0, 0, 0);
             tData.type = SPHERE;
             mData.push_back(tData);
             return true;
@@ -90,14 +90,14 @@ namespace chrono {
             }
 
             double mass = this->GetBody()->GetMass();
-            inertia += pos->Length2() * mass + real3(1 / 5.0 * mass * (ry * ry + rz * rz), 1 / 5.0 * mass * (rx * rx + rz * rz), 1 / 5.0 * mass * (rx * rx + ry * ry));
+            inertia += pos->Length2() * mass + R3(1 / 5.0 * mass * (ry * ry + rz * rz), 1 / 5.0 * mass * (rx * rx + rz * rz), 1 / 5.0 * mass * (rx * rx + ry * ry));
             model_type = ELLIPSOID;
             nObjects++;
             bData tData;
-            tData.A = real3(pos->x, pos->y, pos->z);
-            tData.B = real3(rx, ry, rz);
-            tData.C = real3(0, 0, 0);
-            tData.R = real4(rot->Get_A_quaternion().e0, rot->Get_A_quaternion().e1, rot->Get_A_quaternion().e2, rot->Get_A_quaternion().e3);
+            tData.A = R3(pos->x, pos->y, pos->z);
+            tData.B = R3(rx, ry, rz);
+            tData.C = R3(0, 0, 0);
+            tData.R = R4(rot->Get_A_quaternion().e0, rot->Get_A_quaternion().e1, rot->Get_A_quaternion().e2, rot->Get_A_quaternion().e3);
             tData.type = ELLIPSOID;
             mData.push_back(tData);
             return true;
@@ -120,14 +120,14 @@ namespace chrono {
             }
 
             double mass = this->GetBody()->GetMass();
-            inertia += pos->Length2() * mass + real3(1 / 12.0 * mass * (ry * ry + rz * rz), 1 / 12.0 * mass * (rx * rx + rz * rz), 1 / 12.0 * mass * (rx * rx + ry * ry));
+            inertia += pos->Length2() * mass + R3(1 / 12.0 * mass * (ry * ry + rz * rz), 1 / 12.0 * mass * (rx * rx + rz * rz), 1 / 12.0 * mass * (rx * rx + ry * ry));
             model_type = BOX;
             nObjects++;
             bData tData;
-            tData.A = real3(pos->x, pos->y, pos->z);
-            tData.B = real3(rx, ry, rz);
-            tData.C = real3(0, 0, 0);
-            tData.R = real4(rot->Get_A_quaternion().e0, rot->Get_A_quaternion().e1, rot->Get_A_quaternion().e2, rot->Get_A_quaternion().e3);
+            tData.A = R3(pos->x, pos->y, pos->z);
+            tData.B = R3(rx, ry, rz);
+            tData.C = R3(0, 0, 0);
+            tData.R = R4(rot->Get_A_quaternion().e0, rot->Get_A_quaternion().e1, rot->Get_A_quaternion().e2, rot->Get_A_quaternion().e3);
             tData.type = BOX;
             mData.push_back(tData);
             return true;
@@ -153,10 +153,10 @@ namespace chrono {
             model_type = TRIANGLEMESH;
             nObjects++;
             bData tData;
-            tData.A = real3(A.x + pos->x, A.y + pos->y, A.z + pos->z);
-            tData.B = real3(B.x + pos->x, B.y + pos->y, B.z + pos->z);
-            tData.C = real3(C.x + pos->x, C.y + pos->y, C.z + pos->z);
-            tData.R = real4(rot->Get_A_quaternion().e0, rot->Get_A_quaternion().e1, rot->Get_A_quaternion().e2, rot->Get_A_quaternion().e3);
+            tData.A = R3(A.x + pos->x, A.y + pos->y, A.z + pos->z);
+            tData.B = R3(B.x + pos->x, B.y + pos->y, B.z + pos->z);
+            tData.C = R3(C.x + pos->x, C.y + pos->y, C.z + pos->z);
+            tData.R = R4(rot->Get_A_quaternion().e0, rot->Get_A_quaternion().e1, rot->Get_A_quaternion().e2, rot->Get_A_quaternion().e3);
             tData.type = TRIANGLEMESH;
             mData.push_back(tData);
             return true;
@@ -180,14 +180,14 @@ namespace chrono {
             }
 
             double mass = this->GetBody()->GetMass();
-            inertia += pos->Length2() * mass + real3(1 / 12.0 * mass * (3 * rx * rx + ry * ry), 1 / 2.0 * mass * (rx * rx), 1 / 12.0 * mass * (3 * rx * rx + ry * ry));
+            inertia += pos->Length2() * mass + R3(1 / 12.0 * mass * (3 * rx * rx + ry * ry), 1 / 2.0 * mass * (rx * rx), 1 / 12.0 * mass * (3 * rx * rx + ry * ry));
             model_type = CYLINDER;
             nObjects++;
             bData tData;
-            tData.A = real3(pos->x, pos->y, pos->z);
-            tData.B = real3(rx, ry, rz);
-            tData.C = real3(0, 0, 0);
-            tData.R = real4(rot->Get_A_quaternion().e0, rot->Get_A_quaternion().e1, rot->Get_A_quaternion().e2, rot->Get_A_quaternion().e3);
+            tData.A = R3(pos->x, pos->y, pos->z);
+            tData.B = R3(rx, ry, rz);
+            tData.C = R3(0, 0, 0);
+            tData.R = R4(rot->Get_A_quaternion().e0, rot->Get_A_quaternion().e1, rot->Get_A_quaternion().e2, rot->Get_A_quaternion().e3);
             tData.type = CYLINDER;
             mData.push_back(tData);
             return true;
@@ -224,10 +224,10 @@ namespace chrono {
 
             for (int i = 0; i < trimesh.getNumTriangles(); i++) {
                 ChTriangle temptri = trimesh.getTriangle(i);
-                tData.A = real3(temptri.p1.x + pos->x, temptri.p1.y + pos->y, temptri.p1.z + pos->z);
-                tData.B = real3(temptri.p2.x + pos->x, temptri.p2.y + pos->y, temptri.p2.z + pos->z);
-                tData.C = real3(temptri.p3.x + pos->x, temptri.p3.y + pos->y, temptri.p3.z + pos->z);
-                tData.R = real4(rot->Get_A_quaternion().e0, rot->Get_A_quaternion().e1, rot->Get_A_quaternion().e2, rot->Get_A_quaternion().e3);
+                tData.A = R3(temptri.p1.x + pos->x, temptri.p1.y + pos->y, temptri.p1.z + pos->z);
+                tData.B = R3(temptri.p2.x + pos->x, temptri.p2.y + pos->y, temptri.p2.z + pos->z);
+                tData.C = R3(temptri.p3.x + pos->x, temptri.p3.y + pos->y, temptri.p3.z + pos->z);
+                tData.R = R4(rot->Get_A_quaternion().e0, rot->Get_A_quaternion().e1, rot->Get_A_quaternion().e2, rot->Get_A_quaternion().e3);
                 tData.type = TRIANGLEMESH;
                 mData.push_back(tData);
             }

@@ -10,7 +10,7 @@ __device__ __host__ real3 GetCenter(const shape_type &type, const real3 &A, cons
     if (type == TRIANGLEMESH) {
         return GetCenter_Triangle(A, B, C); //triangle center
     } else {
-        return real3(0, 0, 0) + A; //All other shapes assumed to be locally centered
+        return R3(0, 0, 0) + A; //All other shapes assumed to be locally centered
     }
 }
 
@@ -115,7 +115,7 @@ __device__ __host__ bool CollideAndFindPoint(shape_type typeA, real3 A_X, real3 
 
     // Avoid case where centers overlap -- any direction is fine in this case
     if (IsZero(v0))
-        v0 = real3(1, 0, 0);
+        v0 = R3(1, 0, 0);
 
     // v1 = support in direction of origin
     n = normalize(-v0);

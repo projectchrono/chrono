@@ -25,7 +25,7 @@ namespace chrono {
     class ChApiGPU ChLcpSolverGPU: public ChLcpIterativeSolver {
         public:
             ChLcpSolverGPU() {
-                lcp_contact_factor = .6;
+                lcp_contact_factor = .3;
                 lcp_omega_bilateral = .1;
             }
             ~ChLcpSolverGPU() {
