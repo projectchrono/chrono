@@ -85,14 +85,11 @@ void RunTimeStep(T* mSys, const int frame){
 		num_objects++;
 	}
     }
-    
 }
-
-
-
 
 int main(int argc, char* argv[]) {
 	//feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+	//cudaSetDevice(0);
 	omp_set_num_threads(6);
     CHSYS* mSys = new CHSYS();
 	ChLCPDESC *mdescriptor = new ChLCPDESC();
@@ -188,10 +185,7 @@ int main(int argc, char* argv[]) {
         
        cout<<counter<<endl;
         counter++;
-        
     }
-    
-
 	return 0;
 }
 
