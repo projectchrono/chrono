@@ -1,9 +1,9 @@
-#ifndef CHIRRAPPINTERFACE_H
-#define CHIRRAPPINTERFACE_H
+#ifndef CHIRRAPPINTERFACENEW_H
+#define CHIRRAPPINTERFACENEW_H
 
 //////////////////////////////////////////////////
 //
-//   ChIrrAppInterface.h
+//   ChIrrAppInterfaceNew.h
 //
 //   FOR IRRLICHT USERS ONLY!
 //
@@ -43,7 +43,7 @@ namespace irr
 /// timings, to change physical system settings easily, 
 /// and so on.
 
-class ChIrrAppInterface
+class ChIrrAppInterfaceNew
 {
 public: 
 	
@@ -52,7 +52,7 @@ public:
 	{
 	public:
 
-		ChIrrAppEventReceiver(ChIrrAppInterface* m_app)
+		ChIrrAppEventReceiver(ChIrrAppInterfaceNew* m_app)
 		{
 			app = m_app;
 		}
@@ -248,19 +248,21 @@ public:
 		}
 
 	private:
-		ChIrrAppInterface* app;
+		ChIrrAppInterfaceNew* app;
 	};
 
 
 
-			/// Create the IRRLICHT context (device, etc.) 
-		ChIrrAppInterface(chrono::ChSystem* mysystem, 
+
+			/// Create the IRRLICHT context (device, etc.)
+		ChIrrAppInterfaceNew(chrono::ChSharedPtr<chrono::ChSystem> shsystem, 
 						const wchar_t* title, 
 						core::dimension2d<u32> dimens = core::dimension2d<u32>(640,480),
 						bool do_fullscreen = false,
 						bool do_shadows = false,
 						video::E_DRIVER_TYPE mydriver = video::EDT_DIRECT3D9)
 		{
+
 			this->step_manage = true;
 			this->try_realtime = false;
 			this->pause_step = false;
@@ -385,22 +387,25 @@ public:
 
 			///
 
-			system = mysystem;
+			system = shsystem;
 			
 			show_infos = false;
+
+			// the container, a level that contains all chrono nodes
+			this->container = this->device->getSceneManager()->addEmptySceneNode();
 
 			// the event receiver, taking care of user interaction
 			ChIrrAppEventReceiver* receiver = new ChIrrAppEventReceiver(this);
 			device->setEventReceiver(receiver);
 
+
 		}
 
-			
+
 
 			/// This safely delete every Irrlicht item (including the 
-			/// scene nodes, so also the encapsulated Chrono bodies will
-			/// be deleted)
-	~ChIrrAppInterface()
+			/// Irrlicht scene nodes)
+	~ChIrrAppInterfaceNew()
 		{
 			device->drop();
 			//delete (receiver); 
@@ -412,7 +417,8 @@ public:
 	video::IVideoDriver*	GetVideoDriver() {return device->getVideoDriver();}
 	scene::ISceneManager*	GetSceneManager() {return device->getSceneManager();}
 	gui::IGUIEnvironment*	GetIGUIEnvironment() {return device->getGUIEnvironment();}
-	chrono::ChSystem*		GetSystem()  {return system;};
+	scene::ISceneNode*		GetContainer() {return this->container;};
+	chrono::ChSharedPtr<chrono::ChSystem>	GetSystem()  {return system;};
  
 				/// Show the info panel in the 3D view
 	void SetShowInfos(bool val) {show_infos= val;}		
@@ -654,12 +660,13 @@ public:
 private:
 	IrrlichtDevice* device;
 		
-	chrono::ChSystem* system;
+	chrono::ChSharedPtr<chrono::ChSystem> system;
 	
 	ChIrrAppEventReceiver* receiver;
 	
 	irr::IEventReceiver* user_receiver;
 
+	scene::ISceneNode* container;
 
 	bool show_infos;
 
@@ -723,5 +730,5 @@ private:
 
 } // END_OF_NAMESPACE____
 
-#endif // END of ChIrrAppInterface.h
+#endif // END of ChIrrAppInterfaceNew.h
 

@@ -16,6 +16,10 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
+//
+//  ***OBSOLETE*** 
+//  better: use the ChIrrNodeAsset approach
+//
 
 #include <irrlicht.h>
 #include <ITimer.h>
@@ -160,7 +164,6 @@ public:
 
 	void OnAnimate(u32 timeMs)
 	{
-		//setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
 
 		if (child_mesh)
 			child_mesh->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
@@ -236,6 +239,10 @@ public:
 
 	virtual ESCENE_NODE_TYPE getType()   {  return (ESCENE_NODE_TYPE)ESNT_ChBODY; }	
 };
+
+
+
+
 
 
 

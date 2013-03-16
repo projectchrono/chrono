@@ -133,7 +133,7 @@ void ChShaftsGear::ConstraintsFbLoadForces(double factor)
 void ChShaftsGear::ConstraintsLoadJacobians()
 {
 		// compute jacobians
-	constraint.Get_Cq_a()->SetElement(0,0, this->ratio);
+	constraint.Get_Cq_a()->SetElement(0,0, (float)this->ratio);
 	constraint.Get_Cq_b()->SetElement(0,0, -1);  
 }
  

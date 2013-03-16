@@ -20,6 +20,10 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
+//
+// ***OBSOLETE***   
+//  use the unit_POSTPROCESS
+
 #include "core/ChMath.h"
 #include "core/ChStream.h"
 #include "physics/ChSystem.h"

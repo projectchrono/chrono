@@ -19,6 +19,11 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
+//
+//  ***OBSOLETE*** 
+//  better: use the ChIrrNodeAsset approach
+//
+
 
 #include "ChBodySceneNode.h"
 #include "ChIrrMeshTools.h"

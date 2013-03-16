@@ -21,7 +21,7 @@
 ///////////////////////////////////////////////////
 
 
-
+#include "core/ChFrame.h"
 #include "physics/ChObject.h"
 #include "assets/ChAsset.h"
 #include "lcp/ChLcpSystemDescriptor.h"
@@ -75,9 +75,35 @@ public:
 				/// Set the pointer to the parent ChSystem()
 	virtual void SetSystem (ChSystem* m_system) {system= m_system;}
 
+
+				/// Add an optional asset (it can be used to define visualization shapes, es ChSphereShape,
+				/// or textures, or custom attached properties that the user can define by
+				/// creating his class inherited from ChAsset)
+	void AddAsset (ChSharedPtr<ChAsset> masset) { this->assets.push_back(masset);}
+
 				/// Access to the list of optional assets.
 	std::vector< ChSharedPtr<ChAsset> >& GetAssets () { return this->assets;}
+
+				/// Access the Nth asset in the list of optional assets.
 	ChSharedPtr<ChAsset> GetAssetN (unsigned int num) { if (num<assets.size()) return assets[num]; else {ChSharedPtr<ChAsset> none; return none;};}
+
+
+				/// Get the master coordinate system for assets that have some geometric meaning. 
+				/// It could be used, for example, by a visualization system to show a 3d shape of this item. 
+				/// Children classes might override this (for example, for a ChBody, this will 
+				/// return the coordinate system of the rigid body).
+				/// Optional parameter 'nclone' can be used for items that contain 'clones' (ex. lot 
+				/// of particles with the same visualization shape), so the corresponding coordinate frame
+				/// can be returned.
+	virtual ChFrame<> GetAssetsFrame(unsigned int nclone =0) {return ChFrame<>();}
+
+				/// Optionally, a ChPhysicsItem can return multiple asset coordinate systems;
+				/// this can be helpful if, for example, when a ChPhysicsItem contains 'clones'
+				/// with the same assets (ex. lot of particle with the same visualization shape).
+				/// If so, returns Nclones >0 , the number of clones including the original.
+				/// Then use GetAssetsFrame(n), n=0...Nclones-1, to access the corresponding coord.frame.
+	virtual unsigned int GetAssetsFrameNclones() {return 0;}
+
 
 		// --- INTERFACES --- 
 		// inherited classes might/should implement 

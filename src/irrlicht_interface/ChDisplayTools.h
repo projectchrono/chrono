@@ -34,6 +34,7 @@ namespace irr
 
 namespace core
 {
+
 /// Utility class to easily convert a Chrono::Engine vector into
 /// an Irrlicht vector3df. Simply create an Irrlicht compatible
 /// vector as:    myvector=vector3dfCH(mychronovector);
@@ -62,7 +63,7 @@ public:
 			core::matrix4 irrMat;
 			
 			// Get the rigid body actual rotation, as a 3x3 matrix [A]
-			chrono::ChMatrix33<> chMat(mcoords.rot);//GetBody()->GetA();
+			chrono::ChMatrix33<> chMat(mcoords.rot);
 			
 			// Fill the upper 3x3 submatrix with the [A] matrix
 			// transposed, since Irrlicht uses the row-major style as in D3D

@@ -139,19 +139,19 @@ void ChLinkDistance::Update (double mytime)
 	ChVector<> CqAr = -Vcross(D2relA,pos1);
 	ChVector<> CqBr =  Vcross(D2relB,pos2);
 
-	Cx.Get_Cq_a()->ElementN(0)=CqAx.x;
-	Cx.Get_Cq_a()->ElementN(1)=CqAx.y;
-	Cx.Get_Cq_a()->ElementN(2)=CqAx.z;
-	Cx.Get_Cq_a()->ElementN(3)=CqAr.x;
-	Cx.Get_Cq_a()->ElementN(4)=CqAr.y;
-	Cx.Get_Cq_a()->ElementN(5)=CqAr.z;
+	Cx.Get_Cq_a()->ElementN(0)=(float)CqAx.x;
+	Cx.Get_Cq_a()->ElementN(1)=(float)CqAx.y;
+	Cx.Get_Cq_a()->ElementN(2)=(float)CqAx.z;
+	Cx.Get_Cq_a()->ElementN(3)=(float)CqAr.x;
+	Cx.Get_Cq_a()->ElementN(4)=(float)CqAr.y;
+	Cx.Get_Cq_a()->ElementN(5)=(float)CqAr.z;
 
-	Cx.Get_Cq_b()->ElementN(0)=CqBx.x;
-	Cx.Get_Cq_b()->ElementN(1)=CqBx.y;
-	Cx.Get_Cq_b()->ElementN(2)=CqBx.z;
-	Cx.Get_Cq_b()->ElementN(3)=CqBr.x;
-	Cx.Get_Cq_b()->ElementN(4)=CqBr.y;
-	Cx.Get_Cq_b()->ElementN(5)=CqBr.z;
+	Cx.Get_Cq_b()->ElementN(0)=(float)CqBx.x;
+	Cx.Get_Cq_b()->ElementN(1)=(float)CqBx.y;
+	Cx.Get_Cq_b()->ElementN(2)=(float)CqBx.z;
+	Cx.Get_Cq_b()->ElementN(3)=(float)CqBr.x;
+	Cx.Get_Cq_b()->ElementN(4)=(float)CqBr.y;
+	Cx.Get_Cq_b()->ElementN(5)=(float)CqBr.z;
 
 	//***TO DO***  C_dt? C_dtdt? (may be never used..)
 }

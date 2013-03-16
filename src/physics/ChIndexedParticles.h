@@ -104,6 +104,11 @@ public:
 	virtual int GetDOF  ()   {return 6*GetNparticles();}
 
 
+				/// Get the master coordinate system for the assets (this will return the 
+				/// main coordinate system of the rigid body)
+	virtual ChFrame<> GetAssetsFrame(unsigned int nclone=0) { ChFrame<> res; res = GetParticle(nclone); return(res);}
+	virtual unsigned int GetAssetsFrameNclones() {return GetNparticles();}
+
 
 			//
 			// STREAMING

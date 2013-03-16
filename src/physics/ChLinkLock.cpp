@@ -1401,7 +1401,7 @@ void Transform_Cq_to_Cqw_row(ChMatrix<>* mCq, int qrow, ChMatrix<Real>* mCqw, in
             for (col=0; col < 4; col++)         {
                 sum+= ((mCq->GetElement (qrow,col+3))*(mGl.GetElement (colres,col)));
             }
-            mCqw->SetElement (qwrow, colres+3, sum * 0.25);
+            mCqw->SetElement (qwrow, colres+3, (float)(sum * 0.25));
     }
 }
 

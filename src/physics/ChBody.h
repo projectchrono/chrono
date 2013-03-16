@@ -318,6 +318,12 @@ public:
 				/// For the base ChBody, this is always the same reference of the COG.
 	virtual ChFrame<>& GetFrame_REF_to_abs() {return *this;}
 
+
+				/// Get the master coordinate system for the assets (this will return the 
+				/// main coordinate system of the rigid body)
+	virtual ChFrame<> GetAssetsFrame(unsigned int nclone=0) { return(GetFrame_REF_to_abs());}
+
+
 				/// Get the entire AABB axis-aligned bounding box of the object,
 				/// as defined by the collision model (if any).
 	virtual void GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax);
