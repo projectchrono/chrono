@@ -40,7 +40,7 @@ namespace geometry
 class ChApi ChTriangleMesh : public ChGeometry
 {
 					// Chrono simulation of RTTI, needed for serialization
-	CH_RTTI(ChTriangleMesh,ChGeometry)
+	CH_RTTI(ChTriangleMesh,ChGeometry);
 
 		// 
 		// DATA

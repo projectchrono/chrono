@@ -115,6 +115,7 @@ using namespace chrono;
 
 // assets
 %include "ChAsset.i"
+%include "ChColor.i"
 %include "ChVisualization.i"
 %include "ChObjShapeFile.i"
 %include "ChBoxShape.i"
