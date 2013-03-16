@@ -25,34 +25,29 @@ namespace chrono {
     class ChApiGPU ChLcpSolverGPU: public ChLcpIterativeSolver {
         public:
             ChLcpSolverGPU() {
-                lcp_contact_factor = .3;
+                lcp_contact_factor = 1;
                 lcp_omega_bilateral = .1;
+                tolerance=1e-7;
             }
             ~ChLcpSolverGPU() {
             }
             virtual double Solve(ChLcpSystemDescriptor &sysd, bool add_Mq_to_f = false) {
                 return 0;
             }
-            void host_ContactJacobians(real3 *norm,
-                                real3 *ptA,
-                                real3 *ptB,
-                                real *contactDepth,
-                                int2 *ids,
-                                real3 *G,
-                                real *dG,
-                                real *mass,
-                                real *fric,
-                                real3 *inertia,
-                                real4 *rot,
-                                real3 *vel,
-                                real3 *omega,
-                                real3 *pos,
-                                real3 *updateV,
-                                real3 *updateO,
-                                uint *offset);
-            void host_process_contacts(real3 *norm,
-                    real3 *ptA,
-                    real3 *ptB,
+            void host_ContactJacobians(real3* norm,
+                    real3* ptA,
+                    real3* ptB,
+                    int2* ids,
+                    real4* rot,
+                    real3* pos,
+                    real3* JXYZA,
+                    real3* JXYZB,
+                    real3* JUVWA,
+                    real3* JUVWB);
+            void host_process_contacts(real3* JXYZA,
+                    real3* JXYZB,
+                    real3* JUVWA,
+                    real3* JUVWB,
                     real *contactDepth,
                     int2 *ids,
                     real3 *G,

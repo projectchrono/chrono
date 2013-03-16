@@ -12,7 +12,7 @@ namespace chrono {
         public:
     	ChSolverJacobi();
 
-            void Solve(ChOptimizationJacobi& optim);
+            void Solve();
         private:
 
             int current_iteration;

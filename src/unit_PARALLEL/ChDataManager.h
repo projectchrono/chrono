@@ -56,9 +56,9 @@ namespace chrono {
        custom_vector<real3> device_gyr_data;
        custom_vector<real3> device_fap_data;
 
-
-       custom_vector<real3> host_JXYZ_data;
-       custom_vector<real3> host_JUVW_data;
+       custom_vector<real3> device_QXYZ_data,device_QUVW_data;
+       custom_vector<real3> device_JXYZA_data,device_JXYZB_data;
+       custom_vector<real3> device_JUVWA_data,device_JUVWB_data;
 
        custom_vector<real4> device_bilateral_data;
        custom_vector<real3> device_gam_data;

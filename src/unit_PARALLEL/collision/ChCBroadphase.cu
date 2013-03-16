@@ -413,7 +413,7 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data, cus
     } else if (val < min_boby_per_bin && val > 1) {
         bins_per_axis = bins_per_axis * .9;
     }
-cout <<val<<" "<<bins_per_axis.x<<" "<<bins_per_axis.y<<" "<<bins_per_axis.z<<endl;
+//cout <<val<<" "<<bins_per_axis.x<<" "<<bins_per_axis.y<<" "<<bins_per_axis.z<<endl;
     bin_start_index.resize(last_active_bin);
 #ifdef DEBUG_GPU
     cout << "Last active bin: " << last_active_bin << endl;
