@@ -149,6 +149,10 @@ public:
 					/// (It is the coordinate system of the 'master' marker2 relative to Body2)
 	ChCoordsys<> GetLinkRelativeCoords() {return this->marker2->GetCoord();};
 
+					/// Get the master coordinate system for the assets (this will return the 
+					/// absolute coordinate system of the 'master' marker2)
+	virtual ChFrame<> GetAssetsFrame(unsigned int nclone=0) { return this->marker2->GetAbsFrame();}
+
 
 			//
 			// UPDATING FUNCTIONS

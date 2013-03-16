@@ -235,6 +235,18 @@ TARGET_LINK_LIBRARIES(demo_convergence
  	ChronoEngine)
 ADD_DEPENDENCIES (demo_convergence ChronoEngine)
 
+
+ADD_EXECUTABLE(demo_irr_assets   	demo_irr_assets.cpp)
+SOURCE_GROUP(demos\\irrlicht FILES  demo_irr_assets.cpp)
+SET_TARGET_PROPERTIES(demo_irr_assets PROPERTIES 
+	FOLDER demos
+	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+	)
+TARGET_LINK_LIBRARIES(demo_irr_assets
+	${CH_IRRLICHTLIB} 
+ 	ChronoEngine)
+ADD_DEPENDENCIES (demo_irr_assets ChronoEngine)
+
 install(TARGETS demo_collision DESTINATION bin)
 install(TARGETS demo_benchmark DESTINATION bin)
 install(TARGETS demo_bricks DESTINATION bin)
@@ -254,6 +266,7 @@ install(TARGETS demo_suspension DESTINATION bin)
 install(TARGETS demo_tire DESTINATION bin)
 install(TARGETS demo_tracks DESTINATION bin)
 install(TARGETS demo_convergence DESTINATION bin)
+install(TARGETS demo_irr_assets DESTINATION bin)
 
 
 

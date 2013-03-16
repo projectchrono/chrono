@@ -59,9 +59,15 @@ public:
 		// and rotation respect to its parent.
 	ChFrame<>& GetFrame() {return levelframe;}
 
+
 		/// Access to the list of children assets.
 	std::vector< ChSharedPtr<ChAsset> >& GetAssets () { return this->assets;}
+		
+		/// Get the Nth asset in list
 	ChSharedPtr<ChAsset> GetAssetN (unsigned int num) { if (num<assets.size()) return assets[num]; else {ChSharedPtr<ChAsset> none; return none;};}
+
+		/// Add an asset
+	void AddAsset (ChSharedPtr<ChAsset> masset) { this->assets.push_back(masset);}
 
 };
 

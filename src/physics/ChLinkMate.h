@@ -148,6 +148,10 @@ public:
 					/// (It is the coordinate system of the contact plane relative to Body2)
 	virtual ChCoordsys<> GetLinkRelativeCoords() {return frame2.GetCoord();};
 
+					/// Get the master coordinate system for the assets (this will return the 
+					/// absolute coordinate system of the 'master' marker2)
+	virtual ChFrame<> GetAssetsFrame(unsigned int nclone=0) { return (frame2 >> *this->GetBody2() );}
+
 					/// Access the coordinate system considered attached to body1.
 					/// Its position is expressed in the coordinate system of body1.
 	ChFrame<>& GetFrame1() {return frame1;};

@@ -30,7 +30,6 @@
 #include "irrlicht_interface/ChIrrAppInterface.h"
 #include "core/ChRealtimeStep.h"
 #include "lcp/ChLcpIterativeMINRES.h"
- #include "irrlicht_interface/ChPovTools.h"
 
 #include <irrlicht.h>
  

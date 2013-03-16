@@ -153,9 +153,9 @@ void ChShaftsPlanetary::ConstraintsFbLoadForces(double factor)
 void ChShaftsPlanetary::ConstraintsLoadJacobians()
 {
 		// compute jacobians
-	constraint.Get_Cq_a()->SetElement(0,0, this->r1);
-	constraint.Get_Cq_b()->SetElement(0,0, this->r2);
-	constraint.Get_Cq_c()->SetElement(0,0, this->r3);
+	constraint.Get_Cq_a()->SetElement(0,0, (float)this->r1);
+	constraint.Get_Cq_b()->SetElement(0,0, (float)this->r2);
+	constraint.Get_Cq_c()->SetElement(0,0, (float)this->r3);
 }
  
 

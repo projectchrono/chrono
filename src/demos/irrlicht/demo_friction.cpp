@@ -21,7 +21,6 @@
 #include "irrlicht_interface/ChBodySceneNodeTools.h" 
 #include "irrlicht_interface/ChIrrAppInterface.h"
 #include "core/ChRealtimeStep.h"
-// #include "irrlicht_interface/ChParticlesSceneNode.h"
 
 #include <irrlicht.h>
 
@@ -40,7 +39,7 @@ using namespace gui;
 
 
 
-void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneManager, IVideoDriver* driver)
+void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneManager, IVideoDriver* driver)
 {
 	ChBodySceneNode* mrigidBody; 
 
@@ -61,7 +60,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 		double initial_linspeed = initial_angspeed*mradius;
 
 		mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easySphere(
-											&mphysicalSystem, msceneManager,
+											mphysicalSystem, msceneManager,
 											mmass, // mass
 											ChVector<>(-7, mradius-0.5, -5+bi*mradius*2.5), // pos
 											mradius, // radius
@@ -90,7 +89,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 	for (int bi = 0; bi < 10; bi++) 
 	{    
 		mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easySphere(
-											&mphysicalSystem, msceneManager,
+											mphysicalSystem, msceneManager,
 											mmass, // mass
 											ChVector<>(-8, 1+mradius-0.5, -5+bi*mradius*2.5), // pos
 											mradius, // radius
@@ -142,7 +141,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
  
 		// floor:
 	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											&mphysicalSystem, msceneManager,
+											mphysicalSystem, msceneManager,
 											1000.0,
 											ChVector<>(0,-1,0),
 											ChQuaternion<>(1,0,0,0), 
@@ -155,9 +154,8 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 	video::ITexture* cubeMap = driver->getTexture("../data/blu.png");
 	mrigidBody->setMaterialTexture(0,	cubeMap);
 
-
 	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											&mphysicalSystem, msceneManager,
+											mphysicalSystem, msceneManager,
 											100.0,
 											ChVector<>(-10,0,0),
 											ChQuaternion<>(1,0,0,0), 
@@ -167,7 +165,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 
 
 	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											&mphysicalSystem, msceneManager,
+											mphysicalSystem, msceneManager,
 											100.0,
 											ChVector<>(10,0,0),
 											ChQuaternion<>(1,0,0,0), 
@@ -176,7 +174,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 	mrigidBody->setMaterialTexture(0,	cubeMap);
 
 	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											&mphysicalSystem, msceneManager,
+											mphysicalSystem, msceneManager,
 											100.0,
 											ChVector<>(0,0,-10),
 											ChQuaternion<>(1,0,0,0), 
@@ -185,7 +183,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 	mrigidBody->setMaterialTexture(0,	cubeMap);
 
 	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											&mphysicalSystem, msceneManager,
+											mphysicalSystem, msceneManager,
 											100.0,
 											ChVector<>(0,0, 10),
 											ChQuaternion<>(1,0,0,0), 
@@ -193,6 +191,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 	mrigidBody->GetBody()->SetBodyFixed(true);
 	mrigidBody->setMaterialTexture(0,	cubeMap);
  
+
 
 
 } 
@@ -224,7 +223,7 @@ int main(int argc, char* argv[])
 
  
 	// Create all the rigid bodies.
-	create_some_falling_items(mphysicalSystem, application.GetSceneManager(), application.GetVideoDriver());
+	create_some_falling_items(&mphysicalSystem, application.GetSceneManager(), application.GetVideoDriver());
     
 
 	// Modify some setting of the physical system for the simulation, if you want

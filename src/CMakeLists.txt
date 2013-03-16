@@ -997,11 +997,15 @@ IF (BUILD_CH_SDK)
 		irrlicht_interface/ChBodySceneNodeTools.h
 		irrlicht_interface/ChDisplayTools.h
 		irrlicht_interface/ChIrrAppInterface.h
+		irrlicht_interface/ChIrrAppInterfaceNew.h
 		irrlicht_interface/ChIrrCamera.h
 		irrlicht_interface/ChIrrMeshTools.h
 		irrlicht_interface/ChIrrWizard.h
 		irrlicht_interface/ChParticlesSceneNode.h
 		irrlicht_interface/ChPovTools.h
+		irrlicht_interface/ChIrrAssetConverter.h
+		irrlicht_interface/ChIrrNode.h
+		irrlicht_interface/ChIrrNodeAsset.h
 	)
 	SOURCE_GROUP(irrlicht_interface FILES 
 			${ChronoEngine_irrlicht_SOURCES} 

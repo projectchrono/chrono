@@ -632,7 +632,8 @@ void ChPovRay::_recurseExportObjData( std::vector< ChSharedPtr<ChAsset> >& asset
 
 		// 1) asset k of object i references an .obj wavefront mesh?
 		if ( k_asset.IsType<ChObjShapeFile>() ||
-			 k_asset.IsType<ChSphereShape>() || 
+			 k_asset.IsType<ChSphereShape>() ||
+			 k_asset.IsType<ChCylinderShape>() ||
 			 k_asset.IsType<ChBoxShape>() )
 		{
 			mfilepov << "sh_"<< (size_t) k_asset.get_ptr() << "()\n"; // "(";
@@ -822,7 +823,7 @@ void ChPovRay::ExportData(const std::string &filename)
 			}
 			*/
 
-			// #) saving a cluster of particles ?
+			// #) saving a ChLinkMateGeneric constraint ?
 			if (mdata[i].IsType<ChLinkMateGeneric>() )
 			{
 				ChSharedPtr<ChLinkMateGeneric> mylinkmate(mdata[i]);

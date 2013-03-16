@@ -173,6 +173,11 @@ public:
 				/// By default is in the origin of Body2, but child classes should implement this.
 	virtual ChCoordsys<> GetLinkRelativeCoords() {return CSYSNORM;}
 
+				/// Get the master coordinate system for the assets (should be implemented 
+				/// by children classes)
+	virtual ChFrame<> GetAssetsFrame(unsigned int nclone=0) { return ChFrame<>();}
+
+
 				/// To get reaction force, expressed in link coordinate system:
 	ChVector<> Get_react_force() {return react_force;}
 				/// To get reaction torque,  expressed in link coordinate system:

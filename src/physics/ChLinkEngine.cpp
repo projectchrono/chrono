@@ -608,17 +608,17 @@ void ChLinkEngine::ConstraintsLoadJacobians()
 		this->innerconstraint1.Get_Cq_a()->ElementN(0)=0;
 		this->innerconstraint1.Get_Cq_a()->ElementN(1)=0;
 		this->innerconstraint1.Get_Cq_a()->ElementN(2)=0;
-		this->innerconstraint1.Get_Cq_a()->ElementN(3)=jacw.x;
-		this->innerconstraint1.Get_Cq_a()->ElementN(4)=jacw.y;
-		this->innerconstraint1.Get_Cq_a()->ElementN(5)=jacw.z;
+		this->innerconstraint1.Get_Cq_a()->ElementN(3)=(float)jacw.x;
+		this->innerconstraint1.Get_Cq_a()->ElementN(4)=(float)jacw.y;
+		this->innerconstraint1.Get_Cq_a()->ElementN(5)=(float)jacw.z;
 		this->innerconstraint1.Get_Cq_b()->ElementN(0)=-1;
 
 		this->innerconstraint2.Get_Cq_a()->ElementN(0)=0;
 		this->innerconstraint2.Get_Cq_a()->ElementN(1)=0;
 		this->innerconstraint2.Get_Cq_a()->ElementN(2)=0;
-		this->innerconstraint2.Get_Cq_a()->ElementN(3)=jacw.x;
-		this->innerconstraint2.Get_Cq_a()->ElementN(4)=jacw.y;
-		this->innerconstraint2.Get_Cq_a()->ElementN(5)=jacw.z;
+		this->innerconstraint2.Get_Cq_a()->ElementN(3)=(float)jacw.x;
+		this->innerconstraint2.Get_Cq_a()->ElementN(4)=(float)jacw.y;
+		this->innerconstraint2.Get_Cq_a()->ElementN(5)=(float)jacw.z;
 		this->innerconstraint2.Get_Cq_b()->ElementN(0)=-1;
 	}
 }
