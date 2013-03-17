@@ -226,7 +226,20 @@ typedef struct {
 void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSystem& msystem) throw(ChException)
 {
 	std::ostringstream sstream;
-	sstream << "from " << std::string(solidworks_py_file) << " import exported_items\n";
+
+	//sstream << "from " << std::string(solidworks_py_file) << " import exported_items\n";
+
+	sstream << "import builtins  \n";
+	sstream << "import imp  \n";
+	sstream << "mdirname, mmodulename= os.path.split('" << std::string(solidworks_py_file) << "')  \n";
+	sstream << "builtins.exported_system_relpath = mdirname + '/'  \n";
+	sstream << "fp, pathname, description = imp.find_module(mmodulename,[builtins.exported_system_relpath])  \n";
+	sstream << "try:  \n";
+	sstream << "    imported_mod = imp.load_module('imported_mod', fp, pathname, description)  \n";
+	sstream << "finally:  \n";
+	sstream << "    if fp:  \n";
+	sstream << "        fp.close()  \n";
+	sstream << "exported_items = imported_mod.exported_items  \n";
 
 	this->Run(sstream.str().c_str());
 	

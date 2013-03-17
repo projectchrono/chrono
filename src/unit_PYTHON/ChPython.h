@@ -76,6 +76,8 @@ public:
 
 
 			/// Load a .py file as it is saved by the SolidWorks add-in exporter.
+			/// You can pass a path too, ex "mydir/myotherdir/mysystem", but do NOT add .py
+			/// at the end!
 			/// That .py file, created when pressing the add-in button in SolidWorks CAD,
 			/// contains a python program that creates an equivalent mechanism in Chrono::Engine:
 			/// so it contains a sequce of creations of ChPhysicsItem objects (bodies, links, etc.).

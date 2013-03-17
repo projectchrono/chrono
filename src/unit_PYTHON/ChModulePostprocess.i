@@ -97,6 +97,7 @@ using namespace postprocess;
 %include "ChPovRay.i"
 
 %import  "ChAsset.i"
+%import  "ChColor.i"
 %include "ChPovRayAssetCustom.i"
 
 

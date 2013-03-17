@@ -30,7 +30,8 @@ print ("Loading C::E scene...");
 #  and add it to the ChSystem
 #
 
-from test4 import exported_items
+exported_items = chrono.ImportSolidWorksSystem('solid_works/test7')
+
 
 print ("...done!");
 
