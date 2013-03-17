@@ -364,10 +364,28 @@ private:
 // ADD PYTHON CODE
 //
 
-/*
+
 %pythoncode %{
 
+def ImportSolidWorksSystem(mpath):
+    import builtins
+    import imp
+	import os
+
+    mdirname, mmodulename= os.path.split(mpath)
+
+    builtins.exported_system_relpath = mdirname + "/"
+
+    fp, pathname, description = imp.find_module(mmodulename,[builtins.exported_system_relpath])
+    try:
+        imported_mod = imp.load_module('imported_mod', fp, pathname, description)
+    finally:
+        if fp:
+            fp.close()
+
+    return imported_mod.exported_items
+
 %}
-*/
+
 
 
