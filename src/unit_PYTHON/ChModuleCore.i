@@ -370,7 +370,7 @@ private:
 def ImportSolidWorksSystem(mpath):
     import builtins
     import imp
-	import os
+    import os
 
     mdirname, mmodulename= os.path.split(mpath)
 

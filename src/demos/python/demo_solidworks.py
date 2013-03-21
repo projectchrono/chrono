@@ -21,6 +21,10 @@ import os
 import math
 import ChronoEngine_PYTHON_core as chrono
 import ChronoEngine_PYTHON_postprocess as postprocess
+import ChronoEngine_PYTHON_irrlicht as ceirrlicht
+
+
+
 
 print ("Loading C::E scene...");
 

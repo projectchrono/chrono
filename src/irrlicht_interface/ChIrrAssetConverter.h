@@ -25,6 +25,7 @@
 #include "ChIrrMeshTools.h"
 #include "ChIrrNodeAsset.h"
 #include "ChDisplayTools.h"
+#include "ChIrrAppInterface.h"
 #include "geometry/ChCSphere.h"
 #include "geometry/ChCBox.h"
 #include "geometry/ChCTriangleMeshSoup.h"
@@ -61,6 +62,7 @@ public:
 	IAnimatedMesh* cylinderMesh;
 	irr::scene::ISceneManager* scenemanager;
 	irr::IrrlichtDevice* mdevice;
+	irr::ChIrrAppInterface* minterface;
 
 	chrono::ChCamera* mcamera;
 	bool camera_found_in_assets;
@@ -70,10 +72,11 @@ public:
 		// FUNCTIONS
 		// 
 
-	ChIrrAssetConverter(irr::IrrlichtDevice* adevice)
+	ChIrrAssetConverter(irr::ChIrrAppInterface& ainterface)
 	{
-		scenemanager = adevice->getSceneManager();
-		mdevice      = adevice;
+		minterface   = &ainterface;
+		scenemanager = ainterface.GetSceneManager();
+		mdevice      = ainterface.GetDevice();
 	
 		sphereMesh   = createEllipticalMesh(1.0,1.0,-2,+2,0, 15, 8);
 		cubeMesh     = scenemanager->getMesh((irrlicht_default_obj_dir+"cube.obj").c_str());
@@ -116,8 +119,10 @@ public:
 		/// corresponding to the geometric assets that have been added to the items.
 		/// NOTE. This conversion should be done only if needed (ex. at the beginning of an
 		/// animation), i.e. not too often, for performance reasons.
-	void UpdateAll(chrono::ChSharedPtr<ChSystem> msystem)
+	void UpdateAll()
 	{
+		chrono::ChSystem* msystem = minterface->GetSystem();
+
 		chrono::ChSystem::IteratorBodies myiter = msystem->IterBeginBodies();
 		while (myiter != msystem->IterEndBodies())
 		{
@@ -147,7 +152,7 @@ public:
 	{
 		// Scan assets in item and write the macro to set their position
 		std::vector< chrono::ChSharedPtr<chrono::ChAsset> > assetlist = mitem->GetAssets();
-
+	
 		for (unsigned int k = 0; k < assetlist.size(); k++)
 		{
 			chrono::ChSharedPtr<chrono::ChAsset> k_asset = assetlist[k];
@@ -182,15 +187,19 @@ public:
 				myirrasset = k_asset;
 			}
 		} 
-	
+
 		if (myirrasset.IsNull())
 			return;
+
 
 		// 3- If shapes must be 'clones', put all them inside an intermediate level
 		// (that will be cloned in ChIrrNode::OnAnimate), if necessary. Otherwise put shapes
 		// normally inside the ChIrrNode
 
 		irr::scene::ISceneNode* fillnode = myirrasset->GetIrrlichtNode();
+
+		if (!fillnode)
+			return;
 
 		if(mitem->GetAssetsFrameNclones()>0)
 		{
@@ -202,10 +211,10 @@ public:
 		// of the geometric assets in this ChPhysicsItem
 
 		irr::scene::ISceneNode* mnode = myirrasset->GetIrrlichtNode();
+
 		chrono::ChFrame<> bodyframe; // begin with no rotation/translation respect to ChPhysicsItem (ex. a body)
 
 		this->_recursePopulateIrrlicht(assetlist, bodyframe, fillnode); 
-
 
 	}
 
@@ -288,11 +297,10 @@ public:
 				irrcamera->setPosition(core::vector3dfCH(mycamera->GetPosition()));
 				irrcamera->setTarget(core::vector3dfCH(mycamera->GetAimPoint()));
 				double fov_rad = mycamera->GetAngle()*CH_C_DEG_TO_RAD;
-				irrcamera->setFOV(fov_rad); 
+				irrcamera->setFOV((irr::f32)fov_rad); 
 				irrcamera->setNearValue(0.3f);
 				irrcamera->setMinZoom(0.6f);
 			}
-
 			if ( k_asset.IsType<chrono::ChAssetLevel>() )
 			{
 				ChSharedPtr<chrono::ChAssetLevel> mylevel(k_asset);
@@ -341,7 +349,6 @@ public:
 		{
 			ChIrrTools::alignIrrlichtNodeToChronoCsys(mnode, parentframe.GetCoord());
 		}
-
 	}
 
 

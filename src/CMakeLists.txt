@@ -997,7 +997,7 @@ IF (BUILD_CH_SDK)
 		irrlicht_interface/ChBodySceneNodeTools.h
 		irrlicht_interface/ChDisplayTools.h
 		irrlicht_interface/ChIrrAppInterface.h
-		irrlicht_interface/ChIrrAppInterfaceNew.h
+		irrlicht_interface/ChIrrApp.h
 		irrlicht_interface/ChIrrCamera.h
 		irrlicht_interface/ChIrrMeshTools.h
 		irrlicht_interface/ChIrrWizard.h

@@ -253,14 +253,16 @@ public:
 
 
 
-			/// Create the IRRLICHT context (device, etc.) 
-		ChIrrAppInterface(chrono::ChSystem* mysystem, 
-						const wchar_t* title, 
+
+			/// Create the IRRLICHT context (device, etc.)
+		ChIrrAppInterface(chrono::ChSystem* psystem,//chrono::ChSharedPtr<chrono::ChSystem> shsystem, 
+						const wchar_t* title =0, 
 						core::dimension2d<u32> dimens = core::dimension2d<u32>(640,480),
 						bool do_fullscreen = false,
 						bool do_shadows = false,
 						video::E_DRIVER_TYPE mydriver = video::EDT_DIRECT3D9)
 		{
+
 			this->step_manage = true;
 			this->try_realtime = false;
 			this->pause_step = false;
@@ -283,7 +285,10 @@ public:
 				if (!device) return;
 			}
 
-			device->setWindowCaption(title);
+			if (title)
+				device->setWindowCaption(title);
+			else
+				device->setWindowCaption(L"Chrono::Engine");
 
 			gui::IGUISkin* skin = GetIGUIEnvironment()->getSkin();
 			gui::IGUIFont* font = GetIGUIEnvironment()->getFont("../data/fonts/arial8.xml");
@@ -385,25 +390,32 @@ public:
 
 			///
 
-			system = mysystem;
+			system = psystem;
+			
+			system->AddRef(); // so that it works as with shared ptr
 			
 			show_infos = false;
+
+			// the container, a level that contains all chrono nodes
+			this->container = this->device->getSceneManager()->addEmptySceneNode();
 
 			// the event receiver, taking care of user interaction
 			ChIrrAppEventReceiver* receiver = new ChIrrAppEventReceiver(this);
 			device->setEventReceiver(receiver);
 
+
 		}
 
-			
+
 
 			/// This safely delete every Irrlicht item (including the 
-			/// scene nodes, so also the encapsulated Chrono bodies will
-			/// be deleted)
+			/// Irrlicht scene nodes)
 	~ChIrrAppInterface()
 		{
 			device->drop();
 			//delete (receiver); 
+			
+			system->RemoveRef(); 
 
 		}
 
@@ -412,8 +424,10 @@ public:
 	video::IVideoDriver*	GetVideoDriver() {return device->getVideoDriver();}
 	scene::ISceneManager*	GetSceneManager() {return device->getSceneManager();}
 	gui::IGUIEnvironment*	GetIGUIEnvironment() {return device->getGUIEnvironment();}
+	scene::ISceneNode*		GetContainer() {return this->container;};
+	//chrono::ChSharedPtr<chrono::ChSystem>	GetSystem()  {return system;};
 	chrono::ChSystem*		GetSystem()  {return system;};
- 
+
 				/// Show the info panel in the 3D view
 	void SetShowInfos(bool val) {show_infos= val;}		
 	bool GetShowInfos() {return show_infos;}
@@ -450,6 +464,14 @@ public:
 				/// Use this function to hook a custom event receiver to the application. See examples.
 	void SetUserEventReceiver(irr::IEventReceiver* mreceiver) {this->user_receiver = mreceiver;}
 
+
+			/// Call this to clean the canvas at the beginning of each animation
+			/// frame
+	void BeginScene(bool backBuffer=true, bool zBuffer=true,
+		            irr::video::SColor color=irr::video::SColor(255,0,0,0))
+		{
+			this->GetVideoDriver()->beginScene(backBuffer, zBuffer, color);
+		}
 
 			/// Call this important function inside a cycle like
 			///    while(application.GetDevice()->run()) {...}
@@ -596,6 +618,15 @@ public:
 			GetIGUIEnvironment()->drawAll();
 		}
 
+
+			/// Call this to end the scene draw at the end of each animation
+			/// frame
+	void EndScene()
+		{
+			this->GetVideoDriver()->endScene();
+		}
+
+
 			/// Dump the last used system matrices and vectors in the current directory,
 			/// as 'dump_xxxx.dat' files that can be loaded with Matlab for debugging,
 			/// benchmarking etc. It saves M mass matrix, Cq jacobians, E compliance
@@ -650,16 +681,48 @@ public:
 
 		}
 
+			// 
+			// Some wizard functions for 'easy setup' of the application window:
+			//
+
+	void AddTypicalLogo(const char* mtexturedir = "../data/", const char* mlogofilename = "logo_chronoengine_alpha.png")
+	{
+		ChIrrWizard::add_typical_Logo(this->GetDevice(), mtexturedir,mlogofilename);
+	}
+
+	void AddTypicalCamera(core::vector3df mpos = core::vector3df(0,0,-8),
+						  core::vector3df mtarg = core::vector3df(0,0,0))
+	{
+		ChIrrWizard::add_typical_Camera(this->GetDevice(), mpos, mtarg);
+	}
+
+	void AddTypicalLights(		core::vector3df pos1 = core::vector3df(30.f, 100.f,  30.f),
+								core::vector3df pos2 = core::vector3df(30.f, 80.f, -30.f),
+								double rad1 = 290, double rad2 = 190,
+								video::SColorf col1  = video::SColorf(0.7f,0.7f,0.7f,1.0f),
+								video::SColorf col2  = video::SColorf(0.7f,0.8f,0.8f,1.0f))
+	{
+		ChIrrWizard::add_typical_Lights(this->GetDevice(), pos1,pos2, rad1, rad2, col1, col2);
+	}
+
+	void AddTypicalSky(const char* mtexturedir = "../data/skybox/")
+	{
+		ChIrrWizard::add_typical_Sky(this->GetDevice(), mtexturedir);
+	}
+
+
 
 private:
 	IrrlichtDevice* device;
 		
+	//chrono::ChSharedPtr<chrono::ChSystem> system;
 	chrono::ChSystem* system;
-	
+
 	ChIrrAppEventReceiver* receiver;
 	
 	irr::IEventReceiver* user_receiver;
 
+	scene::ISceneNode* container;
 
 	bool show_infos;
 

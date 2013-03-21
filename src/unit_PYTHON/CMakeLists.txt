@@ -84,6 +84,9 @@ IF(ENABLE_UNIT_PYTHON)
 	SET (CH_CHRONOPYPARSERSHAREDLNAME_DBG  "${CH_CHRONOPYPARSERSHAREDLNAME_DBG}" PARENT_SCOPE )
 
 
+
+
+
 	#----------------------------------------------------------------------------
 	# 
 	# From this point, define the projects for building the Python modules.
@@ -124,14 +127,6 @@ IF(ENABLE_UNIT_PYTHON)
 		ChHashFunction.i
 		)
 
-		
-	SET(ChronoEngine_unit_PYTHON_SOURCES
-		ChPython.cpp
-		)
-	SET(ChronoEngine_unit_PYTHON_HEADERS
-		ChApiPYTHON.h
-		ChPython.h
-		)
 				
 	
 	INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_PATH})
@@ -141,7 +136,7 @@ IF(ENABLE_UNIT_PYTHON)
 
 	IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 		SET(CMAKE_SWIG_OUTDIR "${CH_PYTHONDIR_PY}")
-	SET_SOURCE_FILES_PROPERTIES(${ChronoEngine_unit_SWIG_PYTHON_CONFIG} PROPERTIES COMPILE_FLAGS "-DWIN32")
+		SET_SOURCE_FILES_PROPERTIES(${ChronoEngine_unit_SWIG_PYTHON_CONFIG} PROPERTIES COMPILE_FLAGS "-DWIN32")
 	ENDIF()
 	IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 		SET(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/python")
@@ -213,12 +208,12 @@ IF(ENABLE_UNIT_PYTHON)
 		
 		SET(CMAKE_SWIG_FLAGS "-c++")
 		IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-		SET(CMAKE_SWIG_OUTDIR "${CH_PYTHONDIR_PY}")
-		SET_SOURCE_FILES_PROPERTIES(${ChronoEngine_unit_SWIG_PYTHON_CONFIG_postprocess} PROPERTIES COMPILE_FLAGS "-DWIN32")
-	ENDIF()
-	IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-		SET(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/python")
-	 ENDIF()
+			SET(CMAKE_SWIG_OUTDIR "${CH_PYTHONDIR_PY}")
+			SET_SOURCE_FILES_PROPERTIES(${ChronoEngine_unit_SWIG_PYTHON_CONFIG_postprocess} PROPERTIES COMPILE_FLAGS "-DWIN32")
+		ENDIF()
+		IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+			SET(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/python")
+		ENDIF()
 		 
 		SET_SOURCE_FILES_PROPERTIES(${ChronoEngine_unit_SWIG_PYTHON_CONFIG_postprocess} PROPERTIES CPLUSPLUS ON)
 
@@ -264,7 +259,91 @@ IF(ENABLE_UNIT_PYTHON)
 		ADD_DEPENDENCIES (${SWIG_MODULE_ChronoEngine_PYTHON_postprocess_REAL_NAME} ChronoEngine)  
 		ADD_DEPENDENCIES (${SWIG_MODULE_ChronoEngine_PYTHON_postprocess_REAL_NAME} ChronoEngine_POSTPROCESS)  						
 								
-	ENDIF(ENABLE_UNIT_POSTPROCESS)						
-	INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/python/ DESTINATION python)							
+	ENDIF(ENABLE_UNIT_POSTPROCESS)	
+	
+	
+	
+	
+	IF(ENABLE_UNIT_IRRLICHT)
+		
+		#-----------------------------------------------------------------------------
+		#
+		# MODULE for the ChronoEngine_PYTHON_irrlicht python wrapper.
+		#
+		# This will build a .pyd python module to be imported via Python language,
+		# not a .dll to be used with c++!!
+		#
+		# NOTE: to add a new source to this unit, just add its name
+		# here and re-run the CMake.
+		#
+		
+		SET(ChronoEngine_unit_SWIG_PYTHON_CONFIG_irrlicht 
+			ChModuleIrrlicht.i
+			)
+					
+		INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
+		
+		SET(CMAKE_SWIG_FLAGS "-c++")
+		IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+			SET(CMAKE_SWIG_OUTDIR "${CH_PYTHONDIR_PY}")
+			SET_SOURCE_FILES_PROPERTIES(${ChronoEngine_unit_SWIG_PYTHON_CONFIG_irrlicht} PROPERTIES COMPILE_FLAGS "-DWIN32")
+		ENDIF()
+		IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+			SET(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/python")
+		ENDIF()
+		 
+		SET_SOURCE_FILES_PROPERTIES(${ChronoEngine_unit_SWIG_PYTHON_CONFIG_irrlicht} PROPERTIES CPLUSPLUS ON)
+
+		
+		# SET_SOURCE_FILES_PROPERTIES(${ChronoEngine_unit_SWIG_PYTHON_WRAPPERS_irrlicht} PROPERTIES HEADER_FILE_ONLY TRUE)
+		
+		SWIG_ADD_MODULE(ChronoEngine_PYTHON_irrlicht python ${ChronoEngine_unit_SWIG_PYTHON_CONFIG_irrlicht}) 
+		SWIG_LINK_LIBRARIES(ChronoEngine_PYTHON_irrlicht 
+							${PYTHON_LIBRARY}
+							ChronoEngine
+							${CH_IRRLICHTLIB}  # no ChronoEngine_POSTPROCESS , enough static linking of Irrlicht lib...
+							)
+		SET_TARGET_PROPERTIES(${SWIG_MODULE_ChronoEngine_PYTHON_irrlicht_REAL_NAME} PROPERTIES 
+						PROJECT_LABEL "ChronoEngine_PYTHON_irrlicht"
+						OUTPUT_NAME   "_ChronoEngine_PYTHON_irrlicht"
+						LIBRARY_OUTPUT_DIRECTORY "."	
+						)
+		
+		# To complete the build process, the .pyd and necessary .dll libraries 
+		# must be copied into the DLLs directory (it will be needed by the .pyd file), so..
+				#  ... get the name of the most recent Chrono::Engine irrlicht library to copy:
+		# GET_TARGET_PROPERTY(CH_CHRONOIRRLICHT_LIBNAME ChronoEngine_IRRLICHT LOCATION) *** not needed since C::E Irrlicht lib is header-only
+				#  ... get the name of the .pyd library to copy:
+		GET_TARGET_PROPERTY(CH_CHRONOIRRLICHTPYD_LIBNAME ${SWIG_MODULE_ChronoEngine_PYTHON_irrlicht_REAL_NAME} LOCATION)
+				#  ... then copy them to the DLLs Python folder for .pyd and .dll files
+		ADD_CUSTOM_COMMAND(
+					TARGET ${SWIG_MODULE_ChronoEngine_PYTHON_irrlicht_REAL_NAME}
+					POST_BUILD
+					#COMMAND ${CMAKE_COMMAND} -E copy 
+					#	${CH_CHRONOIRRLICHT_LIBNAME} 
+					#	${CH_PYTHONDIR_PYD}/.           **** REMEMBER TO COPY THE IRRLICH.DLL INTO THE Python32/DLLs/ directory!!! ****
+					COMMAND ${CMAKE_COMMAND} -E copy 
+						${CH_CHRONOIRRLICHTPYD_LIBNAME} 
+						${CH_PYTHONDIR_PYD}/.
+					)
+					
+						
+		#SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
+		SET_TARGET_PROPERTIES(${SWIG_MODULE_ChronoEngine_PYTHON_irrlicht_REAL_NAME} PROPERTIES
+								FOLDER "ChronoEngine_PYTHON")
+
+
+		ADD_DEPENDENCIES (${SWIG_MODULE_ChronoEngine_PYTHON_irrlicht_REAL_NAME} ChronoEngine)  
+		# ADD_DEPENDENCIES (${SWIG_MODULE_ChronoEngine_PYTHON_irrlicht_REAL_NAME} ChronoEngine_IRRLICHT)  *** not needed since C::E Irrlicht lib is header-only
+								
+	ENDIF(ENABLE_UNIT_IRRLICHT)		
+	
+	
+	
+					
+	INSTALL(DIRECTORY ${CMAKE_BINARY_DIR}/python/ DESTINATION python)	
+	
+	
+							
 	
 ENDIF(ENABLE_UNIT_PYTHON)

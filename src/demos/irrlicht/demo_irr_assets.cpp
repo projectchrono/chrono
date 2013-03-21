@@ -24,7 +24,7 @@
 #include "physics/ChApidll.h" 
 #include "physics/ChParticlesClones.h"
 #include "irrlicht_interface/ChBodySceneNodeTools.h" 
-#include "irrlicht_interface/ChIrrAppInterfaceNew.h"
+#include "irrlicht_interface/ChIrrApp.h"
 #include "irrlicht_interface/ChIrrAssetConverter.h"
 
 #include <irrlicht.h>
@@ -54,18 +54,18 @@ int main(int argc, char* argv[])
 	DLL_CreateGlobals();
 
 	// Create a Chrono::Engine physical system
-	ChSharedPtr<ChSystem> mphysicalSystem(new ChSystem);
+	ChSystem mphysicalSystem;
 
 	// Create the Irrlicht visualization (open the Irrlicht device, 
 	// bind a simple user interface, etc. etc.)
-	ChIrrAppInterfaceNew application(mphysicalSystem, L"Assets for Irrlicht visualization",core::dimension2d<u32>(800,600),false, true);
+	ChIrrApp application(&mphysicalSystem, L"Assets for Irrlicht visualization",core::dimension2d<u32>(800,600),false, true);
 
 
 	// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-	ChIrrWizard::add_typical_Logo(application.GetDevice());
-	ChIrrWizard::add_typical_Sky(application.GetDevice());
-	ChIrrWizard::add_typical_Lights(application.GetDevice());
-	ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0,4,-6));
+	application.AddTypicalLogo();
+	application.AddTypicalSky();
+	application.AddTypicalLights();
+	application.AddTypicalCamera(core::vector3df(0,4,-6));
 
  
   
@@ -264,11 +264,10 @@ int main(int argc, char* argv[])
 	////////////////////////
 
 
-			// ==IMPORTANT!== Use the ChIrrAssetConverter for 'converting' the assets
-			// that you added to the bodies into 3D shapes that will be visualized by Irrlicht!
-	irr::scene::ChIrrAssetConverter mconverter(application.GetDevice());
+			// ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
+			// that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
 
-	mconverter.UpdateAll(application.GetSystem());
+	application.GetAssetConverter()->UpdateAll();
 
 
 	// 
@@ -281,13 +280,13 @@ int main(int argc, char* argv[])
 
 	while(application.GetDevice()->run()) 
 	{
-		application.GetVideoDriver()->beginScene(true, true, SColor(255,140,161,192));
+		application.BeginScene();
 
 		application.DrawAll();
 		
 		application.DoStep();
 			
-		application.GetVideoDriver()->endScene();  
+		application.EndScene();  
 	}
 	
  
