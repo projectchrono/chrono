@@ -7,6 +7,53 @@
 Release 1.7.0
 xx-xx-xxxx
 
+- New unit_COSIMULATION. It introduces functionalities to allow
+  a side-to-side simulation of Chrono::Engine and another
+  simulation software, such as Simulink or Amesim. It uses 
+  tcp-ip sockets for the communication and syncing. 
+  See the tutorial on the wiki.
+
+- Important. A completely new approach to the realtime visualization 
+  in Irrlicht 3D has been developed. This is based on a new asset,
+  called ChIrrNodeAsset: if added among the assets of a ChBody or other
+  items, it will cause the other shapes in assets to be rendered
+  in a Irrlicht window; it just takes a ChIrrAppInterfaceNew class and a
+  ChIrrAssetConverter. See demo_irr_asset.cpp for an example. 
+  This new approach is the same method that you use in the 
+  unit_POSTPROCESS, that is, shapes and textures are added as assets. 
+  This unifies the approach to visualization, that is, you can switch
+  to a POVray raytracing postprocessing to an Irrlicht realtime 
+  visualization by changing few lines of code. (Previously this was
+  not possible because the Irrlich visualization was based on ChBody
+  objects being wrapped inside ChBodySceneNodes that had to be inserted
+  in Irrlicht managers).
+
+- Improved method to handle 'cloned' items for visualization. The developer
+  of new classes inherited from ChPhysicsItem should implement 
+  GetAssetsFrame() to return the coordinate frame of the shapes in the 
+  assets, and in the case of multiple clones of the same shapes (ex in 
+  ChParticlesClones) it shoould implement GetAssetsFrameNclones()
+  and  GetAssetsFrame(int n) must return the frame of the nth clone.
+  This done, all visualization systems and postprocessors will
+  render correctly and automatically.
+
+- The way to import a SolidWorks system, in Python, has changed. 
+  Previously it was:
+     import my_saved_system
+  now it should be:
+     chrono.ImportSolidWorksSystem('my_saved_system')
+  This supports also paths, in the case that the saved system is in 
+  a subdirectory, ex '../my_dir/my_saved_system'. 
+  Also, it forces reloading.
+
+- The ImportSolidWorksSystem() in unit_PYPARSER has been improved to 
+  support the case of systems saved in subdirectories. If assets 
+  contain relative paths such as in ChObjShapeFile, these are
+  adjusted to avoid problems.
+
+- new CVisualization asset for defining the color of assets that define
+  shapes to be rendered
+
 - Improved ChPovRay postprocessor: when saving ChParticleClones
   items, instead than repeating the dump of assets in the my_stateNNN.pov
   file (which might lead to very large files when using >1'000 particles)

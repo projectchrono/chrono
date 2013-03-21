@@ -55,15 +55,15 @@ public:
 					Rot.Set33Identity();
 				};
 					
-			/// Build from pos, rotation, size
-	ChBox(Vector& mpos, ChMatrix33<>& mrot, Vector& msize) 
+			/// Build from pos, rotation, xyzlengths 
+	ChBox(ChVector<>& mpos, ChMatrix33<>& mrot, ChVector<>& mlengths) 
 				{
-					Pos = mpos; Size = msize;
+					Pos = mpos; Size = 0.5*mlengths;
 					Rot.CopyFromMatrix(mrot);
 				}
 
 			/// Build from first corner and three other neighbouring corners
-	ChBox(Vector& mC0, Vector& mC1,Vector& mC2,Vector& mC3);
+	ChBox(ChVector<>& mC0, ChVector<>& mC1, ChVector<>& mC2, ChVector<>& mC3);
 
 
 	ChBox(ChBox & source)
@@ -119,23 +119,33 @@ public:
 	ChMatrix33<>* GetRotm() {return &Rot;};
 
 		/// Access the position of the barycenter of the box
-	Vector& GetPos() {return Pos;};
+	ChVector<>& GetPos() {return Pos;};
 
 		/// Access the size of the box: a vector with the 
 		/// three hemi-lengths (lenghts divided by two!)
-	Vector& GetSize(){return Size;};
+	ChVector<>& GetSize(){return Size;};
+	
+		/// Get the x y z lenghts of this box (that is, double
+		/// the Size values)
+	ChVector<> GetLenghts(){return 2.0*Size;}
+
+		/// Set the x y z lenghts of this box (that is, double
+		/// the Size values)
+	void SetLenghts(ChVector<>& mlen){ Size = 0.5*mlen;}
+
+
 	
 					// Get the 8 corner points, translated and rotated
-	Vector GetP1();
-	Vector GetP2();
-	Vector GetP3();
-	Vector GetP4();
-	Vector GetP5();
-	Vector GetP6();
-	Vector GetP7();
-	Vector GetP8();
+	ChVector<> GetP1();
+	ChVector<> GetP2();
+	ChVector<> GetP3();
+	ChVector<> GetP4();
+	ChVector<> GetP5();
+	ChVector<> GetP6();
+	ChVector<> GetP7();
+	ChVector<> GetP8();
 					/// Get the n-th corner point, with ipoint = 1...8
-	Vector GetPn(int ipoint);
+	ChVector<> GetPn(int ipoint);
 
 					/// Get the volume (assuming no scaling in Rot matrix)
 	double GetVolume() {return Size.x*Size.y*Size.z*8.0;};
@@ -158,9 +168,9 @@ public:
 			/// Rotation of box
 	ChMatrix33<> Rot;
 			/// Position of center
-	Vector Pos;
+	ChVector<> Pos;
 			/// Hemi size (extension of box from center to corner)
-	Vector Size;
+	ChVector<> Size;
 };
 
 

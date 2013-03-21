@@ -19,7 +19,7 @@
 
 #include <irrlicht.h>
 #include "assets/ChAsset.h"
-#include "irrlicht_interface/ChIrrAppInterfaceNew.h"
+#include "irrlicht_interface/ChIrrAppInterface.h"
 #include "irrlicht_interface/ChIrrNode.h"
 
 
@@ -43,9 +43,9 @@ protected:
 
 	irr::scene::ChIrrNode* mnode;
 
-	irr::ChIrrAppInterfaceNew* mapp;
+	//irr::ChIrrAppInterfaceNew* mapp;
 
-	ChPhysicsItem* mitem;
+	//ChPhysicsItem* mitem;
 
 
 public:
@@ -53,7 +53,7 @@ public:
 	  			// CONSTRUCTORS
 				//
 
-	ChIrrNodeAsset () : mitem(0), mapp(0), mnode(0)
+	ChIrrNodeAsset () : mnode(0) //, mitem(0), mapp(0)
 	{
 	};
 
@@ -63,17 +63,17 @@ public:
 		this->UnBind();
 	};
 
-	void Bind (chrono::ChSharedPtr<chrono::ChPhysicsItem> aitem, irr::ChIrrAppInterfaceNew& aapp) 
+	void Bind (chrono::ChSharedPtr<chrono::ChPhysicsItem> aitem, irr::ChIrrAppInterface& aapp) 
 	{
 		UnBind();
 
-		mitem = aitem.get_ptr();
-		mapp = &aapp;
+		//mitem = aitem.get_ptr();
+		//mapp = &aapp;
 
 		mnode = new irr::scene::ChIrrNode(
 									aitem, 
-									mapp->GetContainer(), 
-									mapp->GetSceneManager(),
+									aapp.GetContainer(), 
+									aapp.GetSceneManager(),
 									0);
 		
 
@@ -90,8 +90,8 @@ public:
 
 			mnode = 0;
 		}
-		mapp = 0;
-		mitem = 0;
+		//mapp = 0;
+		//mitem = 0;
 	}
 
 

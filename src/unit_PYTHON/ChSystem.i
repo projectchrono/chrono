@@ -259,3 +259,9 @@ class IterOtherPhysicsItems():
             return presentiter.Ref()
 
 %}
+
+
+// Define also the shared pointer chrono::ChShared<ChSystem> 
+// (renamed as 'ChSystemShared' in python)
+
+%DefChSharedPtr(ChSystemShared, ChSystem)

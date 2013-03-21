@@ -231,6 +231,7 @@ void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSy
 
 	sstream << "import builtins  \n";
 	sstream << "import imp  \n";
+	sstream << "import os  \n";
 	sstream << "mdirname, mmodulename= os.path.split('" << std::string(solidworks_py_file) << "')  \n";
 	sstream << "builtins.exported_system_relpath = mdirname + '/'  \n";
 	sstream << "fp, pathname, description = imp.find_module(mmodulename,[builtins.exported_system_relpath])  \n";
