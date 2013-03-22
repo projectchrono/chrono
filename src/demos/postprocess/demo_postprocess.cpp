@@ -3,11 +3,8 @@
 //   Demo code about 
 //
 //     - using the assets system to create shapes
-//       that can be shown in the Irrlicht 3D view.
-//       This is a less invasive approach respect
-//       to the previous Irrlicht demos. Also, the
-//       same assets that you use for Irrlicht display
-//       can be used for postprocessing such as POVray etc.
+//       that can be shown in the 3D postprocessing,
+//       by using POVray.
 //
 //	 CHRONO    
 //   ------
@@ -19,29 +16,24 @@
 // ------------------------------------------------ 
 ///////////////////////////////////////////////////
  
-  
  
 #include "physics/ChApidll.h" 
 #include "physics/ChParticlesClones.h" 
-#include "irrlicht_interface/ChIrrApp.h"
-#include <irrlicht.h>
+#include "assets/ChBoxShape.h" 
+#include "assets/ChSphereShape.h" 
+#include "assets/ChCylinderShape.h" 
+#include "assets/ChObjShapeFile.h" 
+#include "assets/ChCamera.h" 
+#include "assets/ChVisualization.h" 
+#include "assets/ChTexture.h"
+#include "assets/ChAssetLevel.h"
+#include "unit_POSTPROCESS/ChPovRay.h" 
 
 
 // Use the namespace of Chrono
 
 using namespace chrono;
-
-// Use the main namespaces of Irrlicht
-using namespace irr;
-
-using namespace core;
-using namespace scene;
-using namespace video;
-using namespace io;
-using namespace gui;
-
-
-
+using namespace postprocess; // <- to keep things shorter
 
    
  
@@ -54,20 +46,8 @@ int main(int argc, char* argv[])
 	// Create a Chrono::Engine physical system
 	ChSystem mphysicalSystem;
 
-	// Create the Irrlicht visualization (open the Irrlicht device, 
-	// bind a simple user interface, etc. etc.)
-	ChIrrApp application(&mphysicalSystem, L"Assets for Irrlicht visualization",core::dimension2d<u32>(800,600),false, true);
-
-
-	// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-	application.AddTypicalLogo();
-	application.AddTypicalSky();
-	application.AddTypicalLights();
-	application.AddTypicalCamera(core::vector3df(0,4,-6));
 
  
-  
-
 	//
 	// EXAMPLE 1: 
 	//
@@ -89,7 +69,7 @@ int main(int argc, char* argv[])
 	mfloor->SetCollide(true);
 
 			// Add body to system
-	application.GetSystem()->Add(mfloor);
+	mphysicalSystem.Add(mfloor);
 
 			// ==Asset== attach a 'box' shape.
 			// Note that assets are managed via shared pointer, so they 
@@ -104,14 +84,6 @@ int main(int argc, char* argv[])
 	mfloorcolor->SetColor(ChColor(0.3,0.3,0.6));
 	mfloor->AddAsset(mfloorcolor);
 
-	/*
-			//  ==Asset== IRRLICHT! Add a ChIrrNodeAsset so that Irrlicht will be able
-			// to 'show' all the assets that we added to the body! 
-			// OTHERWISE: use the application.AssetBind() function as at the end..
-	ChSharedPtr<ChIrrNodeAsset> mirr_asset_floor(new ChIrrNodeAsset);
-	mirr_asset_floor->Bind(mfloor, application);
-	mfloor->AddAsset(mirr_asset_floor);
-	*/
 
 
 	//
@@ -126,7 +98,7 @@ int main(int argc, char* argv[])
 			// it is only for visualization tests)
 	ChSharedPtr<ChBody> mbody(new ChBody);
 	mbody->SetBodyFixed(true);
-	application.GetSystem()->Add(mbody);
+	mphysicalSystem.Add(mbody);
 
 			// ==Asset== Attach a 'sphere' shape  
 	ChSharedPtr<ChSphereShape> msphere(new ChSphereShape);
@@ -208,16 +180,6 @@ int main(int argc, char* argv[])
 	mcamera->SetAimPoint(ChVector<>(0,1,0));
 	mbody->AddAsset(mcamera);
 
-	/*
-			//  ==Asset== IRRLICHT! Add a ChIrrNodeAsset so that Irrlicht will be able
-			// to 'show' all the assets that we added to the body! 
-			// OTHERWISE: use the application.AssetBind() function as at the end..
-	ChSharedPtr<ChIrrNodeAsset> mirr_asset(new ChIrrNodeAsset);
-	mirr_asset->Bind(mbody, application);
-	mbody->AddAsset(mirr_asset);
-	*/
-
-
 
 	//
 	// EXAMPLE 3: 
@@ -242,7 +204,7 @@ int main(int argc, char* argv[])
 		mparticles->AddParticle(ChCoordsys<>(ChVector<>(ChRandom()-2,1.5,ChRandom()+2)));
 
 			// Do not forget to add the particle cluster to the system:
-	application.GetSystem()->Add(mparticles);
+	mphysicalSystem.Add(mparticles);
 
 			//  ==Asset== Attach a 'sphere' shape asset.. it will be used as a sample 
 			// shape to display all particles when rendering in 3D! 
@@ -250,53 +212,76 @@ int main(int argc, char* argv[])
 	mspherepart->GetSphereGeometry().rad = 0.05;
 	mparticles->AddAsset(mspherepart);
 
-	/*
-			//  ==Asset== IRRLICHT! Add a ChIrrNodeAsset so that Irrlicht will be able
-			// to 'show' all the assets that we added to the body! 
-			// OTHERWISE: use the application.AssetBind() function as at the end!
-	ChSharedPtr<ChIrrNodeAsset> mirr_assetpart(new ChIrrNodeAsset);
-	mirr_assetpart->Bind(mparticles, application);
-	mparticles->AddAsset(mirr_assetpart);
-	*/
 
 
 
-	////////////////////////
+	//
+	// SETUP THE POSTPROCESSING
+	//
+	
+			// Create an exporter to POVray !!!
+	
+	ChPovRay pov_exporter = ChPovRay(&mphysicalSystem);
+
+			// Sets some file names for in-out processes.
+	pov_exporter.SetTemplateFile    ("../data/_template_POV.pov");
+	pov_exporter.SetOutputScriptFile    ("rendering_frames.pov");
+	pov_exporter.SetOutputDataFilebase  ("my_state");
+	pov_exporter.SetPictureFilebase     ("picture");
+			
+			// Even better: save the .dat files and the .bmp files
+			// in two subdirectories, to avoid cluttering the current
+			// directory...
+	//if not os.path.exists("output"):
+	//	os.mkdir("output")
+	//if not os.path.exists("anim"):
+	//	os.mkdir("anim")
+	pov_exporter.SetOutputDataFilebase("output/my_state");
+	pov_exporter.SetPictureFilebase("anim/picture");
+
+			// IMPORTANT! Tell to the POVray exporter that 
+			// he must take care of converting the shapes of
+			// all items!
+
+	pov_exporter.AddAll();
+
+			// (Optional: tell selectively which physical items you 
+			// want to render in the folllowing way...)
+			//	pov_exporter.RemoveAll();
+			//	pov_exporter.Add(mfloor);
+			//	pov_exporter.Add(mbody);
+			//	pov_exporter.Add(mparticles);
 
 
-			// ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-			// in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-			// If you need a finer control on which item really needs a visualization proxy in 
-			// Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
-
-	application.AssetBindAll();
-
-			// ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-			// that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-	application.AssetUpdateAll();
-
-
-	// 
-	// THE SOFT-REAL-TIME CYCLE
+	//
+	// RUN THE SIMULATION AND SAVE THE POVray FILES AT EACH FRAME
 	//
 
-	application.SetStepManage(true);
-	application.SetTimestep(0.01);
-	application.SetTryRealtime(true);
+	// 1) Create the two .pov and .ini files for POV-Ray (this must be done
+	//    only once at the beginning of the simulation).
 
-	while(application.GetDevice()->run()) 
+	pov_exporter.ExportScript();
+
+
+	while (mphysicalSystem.GetChTime() < 1.5) 
 	{
-		application.BeginScene();
+		mphysicalSystem.DoStepDynamics(0.01);
 
-		application.DrawAll();
-		
-		application.DoStep();
-			
-		application.EndScene();  
+		GetLog()<< "time= " << mphysicalSystem.GetChTime() <<"\n";
+
+		// 2) Create the incremental nnnn.dat and nnnn.pov files that will be load
+		//    by the pov .ini script in POV-Ray (do this at each simulation timestep)
+		pov_exporter.ExportData();
 	}
-	
- 
+
+
+	// That's all! If all worked ok, this python script should
+	// have created a  "rendering_frames.pov.ini"  file that you can
+	// load in POV-Ray, then when you press 'RUN' you will see that
+	// POV-Ray will start rendering a short animation, saving the frames
+	// in the directory 'anim'.
+
+
  
 	// Remember this at the end of the program, if you started
 	// with DLL_CreateGlobals();
