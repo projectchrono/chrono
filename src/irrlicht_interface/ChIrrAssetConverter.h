@@ -100,12 +100,74 @@ public:
 			cylinderMesh->drop();
 	}
 
+		/// Shortcut to add and bind a ChIrrNodeAsset to an item, if
+		/// it has not been added previously.
+	void Bind(chrono::ChSharedPtr<chrono::ChPhysicsItem> mitem)
+	{
+		// find a ChIrrNodeAsset if there is already one...
+		chrono::ChSharedPtr<chrono::ChIrrNodeAsset> irrasset;
+		std::vector< chrono::ChSharedPtr<chrono::ChAsset> > assetlist = mitem->GetAssets();
+		for (unsigned int k = 0; k < assetlist.size(); k++)
+		{
+			chrono::ChSharedPtr<chrono::ChAsset> k_asset = assetlist[k];
+
+			// asset k of object i references a proxy to an irrlicht node?
+			if ( k_asset.IsType<chrono::ChIrrNodeAsset>() )
+			{
+				irrasset = k_asset;
+				irrasset->Bind(mitem, *minterface);
+			}
+		} 
+
+		if (irrasset.IsNull())
+		{
+			// add the ChIrrNodeAsset because it was not already there
+			chrono::ChSharedPtr<chrono::ChIrrNodeAsset> mirr_assetpart(new chrono::ChIrrNodeAsset);
+			mirr_assetpart->Bind(mitem, *minterface);
+			mitem->AddAsset(mirr_assetpart);
+		}
+
+	}
+
+
+		/// Shortcut to add and bind a ChIrrNodeAsset to all items in a ChSystem.
+		/// If it has been already added, the existing ChIrrNodeAsset is used.
+		/// NOTE. If you want a finer control on which item has an Irrlicht proxy,
+		/// and which other does not need it, just use Bind() on a per-item basis..
+		/// NOTE. This conversion should be done only if needed (ex. at the beginning of an
+		/// animation), i.e. not too often, for performance reasons.
+	void BindAll()
+	{
+		chrono::ChSystem* msystem = minterface->GetSystem();
+
+		chrono::ChSystem::IteratorBodies myiter = msystem->IterBeginBodies();
+		while (myiter != msystem->IterEndBodies())
+		{
+			Bind(*myiter);
+			++myiter;
+		}
+		chrono::ChSystem::IteratorOtherPhysicsItems myiterB = msystem->IterBeginOtherPhysicsItems();
+		while (myiterB != msystem->IterEndOtherPhysicsItems())
+		{
+			Bind(*myiterB);
+			++myiterB;
+		}
+		chrono::ChSystem::IteratorLinks myiterC = msystem->IterBeginLinks();
+		while (myiterC != msystem->IterEndLinks())
+		{
+			Bind(*myiterC);
+			++myiterC;
+		}
+	}
+
 		/// This function sets up the Irrlicht nodes corresponding to 
 		/// the geometric assets that are found in the ChPhysicsItem 'mitem'.
 		/// For example, if one has added a ChSphereShape and a ChBoxShape to 
 		/// the assets of a ChBody, and a ChIrrNodeAsset too, this Update() function
 		/// will prepare a ISceneNode in Irrlicht (precisely, a ChIrrNode node) and
 		/// it will fill it with a spherical triangle mesh, and a box triangle mesh.
+		/// NOTE. This must be done after the ChIrrNodeAsset has been created and bound,
+		/// for example via Bind().
 		/// NOTE. This conversion should be done only if needed (ex. at the beginning of an
 		/// animation or when a shape changes), i.e. not too often, for performance reasons.
 	void Update(chrono::ChSharedPtr<chrono::ChPhysicsItem> mitem)
@@ -117,6 +179,8 @@ public:
 
 		/// For all items in a ChSystem, this function sets up the Irrlicht nodes 
 		/// corresponding to the geometric assets that have been added to the items.
+		/// NOTE. This must be done after the ChIrrNodeAsset has been created and bound,
+		/// for example via Bind().
 		/// NOTE. This conversion should be done only if needed (ex. at the beginning of an
 		/// animation), i.e. not too often, for performance reasons.
 	void UpdateAll()
@@ -143,6 +207,8 @@ public:
 		}
 
 	}
+
+
 
 
 
