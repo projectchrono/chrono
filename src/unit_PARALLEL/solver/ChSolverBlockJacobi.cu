@@ -115,12 +115,12 @@ __host__ __device__ void function_process_contacts(
 	real3 vB1 = JXYZA[index + number_of_contacts * 0] * gamma.x + JXYZA[index + number_of_contacts * 1] * gamma.y + JXYZA[index + number_of_contacts * 2] * gamma.z;
 	real3 vB2 = JXYZB[index + number_of_contacts * 0] * gamma.x + JXYZB[index + number_of_contacts * 1] * gamma.y + JXYZB[index + number_of_contacts * 2] * gamma.z;
 
-	int offset1 = offset[index];
-	int offset2 = offset[index + number_of_contacts];
-	updateV[offset1] = real3(vB1 * inv_mass[body_id.x]); // compute and store dv1
-	updateO[offset1] = real3((JUVWA[index + number_of_contacts * 0] * gamma.x + JUVWA[index + number_of_contacts * 1] * gamma.y + JUVWA[index + number_of_contacts * 2] * gamma.z) * In1); // compute dw1 =  Inert.1' * J1w^ * deltagamma  and store  dw1
-	updateV[offset2] = real3(vB2 * inv_mass[body_id.y]); // compute and store dv2
-	updateO[offset2] = real3((JUVWB[index + number_of_contacts * 0] * gamma.x + JUVWB[index + number_of_contacts * 1] * gamma.y + JUVWB[index + number_of_contacts * 2] * gamma.z) * In2); // compute dw2 =  Inert.2' * J2w^ * deltagamma  and store  dw2
+	// int offset1 = offset[index];
+	// int offset2 = offset[index + number_of_contacts];
+	// updateV[offset1] = real3(vB1 * inv_mass[body_id.x]); // compute and store dv1
+	// updateO[offset1] = real3((JUVWA[index + number_of_contacts * 0] * gamma.x + JUVWA[index + number_of_contacts * 1] * gamma.y + JUVWA[index + number_of_contacts * 2] * gamma.z) * In1); // compute dw1 =  Inert.1' * J1w^ * deltagamma  and store  dw1
+	// updateV[offset2] = real3(vB2 * inv_mass[body_id.y]); // compute and store dv2
+	// updateO[offset2] = real3((JUVWB[index + number_of_contacts * 0] * gamma.x + JUVWB[index + number_of_contacts * 1] * gamma.y + JUVWB[index + number_of_contacts * 2] * gamma.z) * In2); // compute dw2 =  Inert.2' * J2w^ * deltagamma  and store  dw2
 
 }
 
@@ -495,6 +495,11 @@ void ChSolverJacobi::Solve(real step, gpu_container& gpu_data) {
 	COPY_TO_CONST_MEM(number_of_updates);
 #endif
 
+custom_vector<int2> temp_bids(number_of_constraints);
+				thrust::copy_n(gpu_data.device_bids_data.begin(), number_of_contacts, temp_bids.begin()+number_of_contacts*0);
+				thrust::copy_n(gpu_data.device_bids_data.begin(), number_of_contacts, temp_bids.begin()+number_of_contacts*1);
+				thrust::copy_n(gpu_data.device_bids_data.begin(), number_of_contacts, temp_bids.begin()+number_of_contacts*2);
+
 	if (number_of_constraints != 0) {
 		for (current_iteration = 0; current_iteration < 50; current_iteration++) {
 #ifdef SIM_ENABLE_GPU_MODE
@@ -566,29 +571,52 @@ void ChSolverJacobi::Solve(real step, gpu_container& gpu_data) {
 					gpu_data.device_dgm_data.data());
 #endif
 
-#ifdef SIM_ENABLE_GPU_MODE
-			device_Reduce_Speeds CUDA_KERNEL_DIM(BLOCKS(number_of_updates), THREADS)(
-					CASTB1(gpu_data.device_active_data),
-					CASTR1(gpu_data.device_mass_data),
-					CASTR3(gpu_data.device_vel_data),
-					CASTR3(gpu_data.device_omg_data),
-					CASTR3(gpu_data.vel_update),
-					CASTR3(gpu_data.omg_update),
-					CASTU1(gpu_data.body_number),
-					CASTU1(gpu_data.offset_counter),
-					CASTR3(gpu_data.device_fap_data));
-#else
-			host_Reduce_Speeds(
-					gpu_data.device_active_data.data(),
+// #ifdef SIM_ENABLE_GPU_MODE
+// 			device_Reduce_Speeds CUDA_KERNEL_DIM(BLOCKS(number_of_updates), THREADS)(
+// 					CASTB1(gpu_data.device_active_data),
+// 					CASTR1(gpu_data.device_mass_data),
+// 					CASTR3(gpu_data.device_vel_data),
+// 					CASTR3(gpu_data.device_omg_data),
+// 					CASTR3(gpu_data.vel_update),
+// 					CASTR3(gpu_data.omg_update),
+// 					CASTU1(gpu_data.body_number),
+// 					CASTU1(gpu_data.offset_counter),
+// 					CASTR3(gpu_data.device_fap_data));
+// #else
+// 			host_Reduce_Speeds(
+// 					gpu_data.device_active_data.data(),
+// 					gpu_data.device_mass_data.data(),
+// 					gpu_data.device_vel_data.data(),
+// 					gpu_data.device_omg_data.data(),
+// 					gpu_data.vel_update.data(),
+// 					gpu_data.omg_update.data(),
+// 					gpu_data.body_number.data(),
+// 					gpu_data.offset_counter.data(),
+// 					gpu_data.device_fap_data.data());
+// #endif
+
+Thrust_Fill(gpu_data->device_QXYZ_data, R3(0));
+Thrust_Fill(gpu_data->device_QUVW_data, R3(0));
+
+host_shurA_jacobi(
+					gpu_data.device_JXYZA_data.data(),
+					gpu_data.device_JXYZB_data.data(),
+					gpu_data.device_JUVWA_data.data(),
+					gpu_data.device_JUVWB_data.data(),
+					gpu_data.device_dgm_data.data(),
+					temp_bids.data(),
 					gpu_data.device_mass_data.data(),
-					gpu_data.device_vel_data.data(),
-					gpu_data.device_omg_data.data(),
-					gpu_data.vel_update.data(),
-					gpu_data.omg_update.data(),
-					gpu_data.body_number.data(),
-					gpu_data.offset_counter.data(),
-					gpu_data.device_fap_data.data());
-#endif
+					gpu_data.device_inr_data.data(),
+					gpu_data.device_active_data.data(),
+					gpu_data.device_QXYZ_data.data(),
+					gpu_data.device_QUVW_data.data());
+
+    gpu_data.device_QXYZ_data *=  gpu_data.device_mass_data;
+    gpu_data.device_QUVW_data *= gpu_data.device_inr_data;
+    gpu_data.device_vel_data += gpu_data.device_QXYZ_data;
+    gpu_data.device_omg_data += gpu_data.device_QUVW_data;
+
+
 			//			if (tolerance != 0) {
 			//				if (iteration_number > 20 && iteration_number % 20 == 0) {
 			//					real gam = Max_DeltaGamma(gpu_data.device_dgm_data);
@@ -602,11 +630,9 @@ void ChSolverJacobi::Solve(real step, gpu_container& gpu_data) {
 			//			}
 		}
 
-//		custom_vector<int2> temp_bids(number_of_constraints);
+//		
 //
-//				thrust::copy_n(gpu_data.device_bids_data.begin(), number_of_contacts, temp_bids.begin()+number_of_contacts*0);
-//				thrust::copy_n(gpu_data.device_bids_data.begin(), number_of_contacts, temp_bids.begin()+number_of_contacts*1);
-//				thrust::copy_n(gpu_data.device_bids_data.begin(), number_of_contacts, temp_bids.begin()+number_of_contacts*2);
+
 //
 //#ifdef SIM_ENABLE_GPU_MODE
 ////			device_shurA_jacobi CUDA_KERNEL_DIM(BLOCKS(number_of_constraints), THREADS)(
@@ -621,29 +647,10 @@ void ChSolverJacobi::Solve(real step, gpu_container& gpu_data) {
 //
 //
 //#else
-//			host_shurA_jacobi(
-//					gpu_data.device_JXYZA_data.data(),
-//					gpu_data.device_JXYZB_data.data(),
-//					gpu_data.device_JUVWA_data.data(),
-//					gpu_data.device_JUVWB_data.data(),
-//					gpu_data.device_dgm_data.data(),
-//					temp_bids.data(),
-//					gpu_data.device_mass_data.data(),
-//					gpu_data.device_inr_data.data(),
-//					gpu_data.device_active_data.data(),
-//					gpu_data.device_QXYZ_data.data(),
-//					gpu_data.device_QUVW_data.data());
+//			
 //#endif
 
 
-
-
-
-//			gpu_data.device_QXYZ_data=gpu_data.device_QXYZ_data*gpu_data.device_mass_data;
-//			gpu_data.device_QUVW_data=gpu_data.device_QUVW_data*gpu_data.device_inr_data;
-//
-//			gpu_data.device_vel_data=gpu_data.device_vel_data+gpu_data.device_QXYZ_data;
-//			gpu_data.device_omg_data=gpu_data.device_omg_data+gpu_data.device_QUVW_data;
 
 
 	}

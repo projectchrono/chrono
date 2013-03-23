@@ -69,11 +69,11 @@ typedef real4 quaternion;
 
 ////////Convert Between Types
 
-static __host__ __device__ real2 make_real2(real a, real b){
-	real2 t;
-	t.x=a;
-	t.y=b;
-	return t;
+static __host__ __device__ real2 make_real2(real a, real b) {
+    real2 t;
+    t.x = a;
+    t.y = b;
+    return t;
 }
 
 static __host__ __device__ real2 make_real2(const real3 &rhs) {
@@ -83,31 +83,31 @@ static __host__ __device__ real2 make_real2(const real3 &rhs) {
 static __host__ __device__ real2 make_real2(const real4 &rhs) {
     return make_real2(rhs.x, rhs.y);
 }
-static __host__ __device__ real3 make_real3(real a){
-	real3 t;
-	t.x=a;
-	t.y=a;
-	t.z=a;
-	return t;
+static __host__ __device__ real3 make_real3(real a) {
+    real3 t;
+    t.x = a;
+    t.y = a;
+    t.z = a;
+    return t;
 }
-static __host__ __device__ real3 make_real3(real a, real b, real c){
-	real3 t;
-	t.x=a;
-	t.y=b;
-	t.z=c;
-	return t;
+static __host__ __device__ real3 make_real3(real a, real b, real c) {
+    real3 t;
+    t.x = a;
+    t.y = b;
+    t.z = c;
+    return t;
 }
 
 static __host__ __device__ real3 make_real3(const real4 &rhs) {
     return R3(rhs.x, rhs.y, rhs.z);
 }
-static __host__ __device__ real4 make_real4(real d, real a, real b, real c){
-	real4 t;
-	t.w = d;
-	t.x=a;
-	t.y=b;
-	t.z=c;
-	return t;
+static __host__ __device__ real4 make_real4(real d, real a, real b, real c) {
+    real4 t;
+    t.w = d;
+    t.x = a;
+    t.y = b;
+    t.z = c;
+    return t;
 }
 
 static __host__ __device__ real4 make_real4(const real3 &rhs) {
@@ -173,7 +173,7 @@ static __host__ __device__ real2 operator *(const real2 &rhs, const real &lhs) {
     return R2(rhs.x * lhs, rhs.y * lhs);
 }
 
-static __host__ __device__ real3 operator *(const real &lhs,const real3 &rhs) {
+static __host__ __device__ real3 operator *(const real &lhs, const real3 &rhs) {
     return R3(rhs.x * lhs, rhs.y * lhs, rhs.z * lhs);
 }
 
@@ -278,10 +278,10 @@ static __host__ __device__ inline real3 ceil(real3 a) {
 
 static __host__ __device__ quaternion normalize(const quaternion &a) {
     real length = sqrt(a.w * a.w + a.x * a.x + a.y * a.y + a.z * a.z);
-    if(length<ZERO_EPSILON){
-    	return R4(1,0,0,0);
+    if (length < ZERO_EPSILON) {
+        return R4(1, 0, 0, 0);
     }
-    length=1.0/length;
+    length = 1.0 / length;
     return R4(a.w * length, a.x * length, a.y * length, a.z * length);
 }
 
@@ -339,13 +339,10 @@ static __host__ __device__ bool IsZero(const real3 &a) {
 static __host__ __device__ bool isEqual(const real &_a, const real &_b) {
     real ab;
     ab = fabs(_a - _b);
-
     if (fabs(ab) < ZERO_EPSILON) return 1;
-
     real a, b;
     a = fabs(_a);
     b = fabs(_b);
-
     if (b > a) {
         return ab < ZERO_EPSILON * b;
     } else {
@@ -411,7 +408,6 @@ static ostream &operator<< (ostream &out, const thrust::device_vector<T> &x) {
     for (uint i = 0; i < x.size(); i++) {
         out << x[i];
     }
-
     return out;
 }
 template<class T>
@@ -419,7 +415,6 @@ static ostream &operator<< (ostream &out, const thrust::host_vector<T> &x) {
     for (uint i = 0; i < x.size(); i++) {
         out << x[i];
     }
-
     return out;
 }
 #endif
