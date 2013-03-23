@@ -78,8 +78,8 @@ void RunTimeStep(T* mSys, const int frame){
     if(frame%10==0){
     for (int i = 0; i < 10; i++) {
 		sphere = ChBODYSHAREDPTR(new ChBODY);
-        Vector pos=Vector((rand() % 10000 / 1000.0 - 5), (10), (rand() % 10000 / 1000.0 - 5));
-		InitObject(sphere, 1.0, pos*.5 , quat, 1, 1, 0, true, false, 32, 17+num_objects);
+        Vector pos=Vector((rand() % 10000 / 10000.0 - .5), (.5), (rand() % 10000 / 10000.0 - .5));
+		InitObject(sphere, 1.0, pos*10 , quat, 1, 1, 0, true, false, 32, 17+num_objects);
 		AddCollisionGeometry(sphere, SPHERE, Vector(.3, .3, .3), lpos, quat);
 		FinalizeObject(sphere, (CHSYS*) mSys);
 		num_objects++;
@@ -88,7 +88,7 @@ void RunTimeStep(T* mSys, const int frame){
 }
 
 int main(int argc, char* argv[]) {
-	//feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 	//cudaSetDevice(0);
 	omp_set_num_threads(6);
     CHSYS* mSys = new CHSYS();
