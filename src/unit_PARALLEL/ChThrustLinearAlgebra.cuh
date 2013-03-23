@@ -9,7 +9,7 @@ struct saxpy_functor : public thrust::binary_function<real, real, real> {
         saxpy_functor(real _a) : a(_a) {}
 
         __host__ __device__
-        float operator()(const real &x, const real &y) const {
+        real operator()(const real &x, const real &y) const {
                 return a * x + y;
         }
 };
@@ -20,11 +20,24 @@ struct saxmy_functor : public thrust::binary_function<real, real, real> {
         saxmy_functor(real _a) : a(_a) {}
 
         __host__ __device__
-        float operator()(const real &x, const real &y) const {
+        real operator()(const real &x, const real &y) const {
                 return y - a * x;
         }
 };
-
+struct scale_real3_functor : public thrust::binary_function<real3, real, real3> {
+        scale_real3_functor() {}
+        __host__ __device__
+        real3 operator()(const real3 & x, const real &y) const {
+                return y * x;
+        }
+};
+struct real3_real3_functor : public thrust::binary_function<real3, real3, real3> {
+	real3_real3_functor() {}
+        __host__ __device__
+        real3 operator()(const real3 & x, const real3 &y) const {
+                return y * x;
+        }
+};
 static void SEAXPY(const real &a, custom_vector<real> &x, custom_vector<real> &y, custom_vector<real> &output)
 {
         thrust::transform(x.begin(), x.end(), y.begin(), output.begin(), saxpy_functor(a));
@@ -38,6 +51,13 @@ static custom_vector<real> operator +(const custom_vector<real> &x, const custom
 {
         custom_vector<real> temp(x.size());
         thrust::plus<real> op;
+        thrust::transform(x.begin(), x.end(), y.begin(), temp.begin(), op);
+        return temp;
+}
+static custom_vector<real3> operator +(const custom_vector<real3> &x, const custom_vector<real3> &y)
+{
+        custom_vector<real3> temp(x.size());
+        thrust::plus<real3> op;
         thrust::transform(x.begin(), x.end(), y.begin(), temp.begin(), op);
         return temp;
 }
@@ -69,6 +89,18 @@ static custom_vector<real> operator *(const custom_vector<real> &x, const custom
         custom_vector<real> temp(x.size());
         thrust::multiplies<real> op;
         thrust::transform(x.begin(), x.end(), y.begin(), temp.begin(), op);
+        return temp;
+}
+static custom_vector<real3> operator *(const custom_vector<real3> &x, const custom_vector<real> &y)
+{
+        custom_vector<real3> temp(x.size());
+        thrust::transform(x.begin(), x.end(), y.begin(), temp.begin(), scale_real3_functor());
+        return temp;
+}
+static custom_vector<real3> operator *(const custom_vector<real3> &x, const custom_vector<real3> &y)
+{
+        custom_vector<real3> temp(x.size());
+        thrust::transform(x.begin(), x.end(), y.begin(), temp.begin(), real3_real3_functor());
         return temp;
 }
 static custom_vector<real> operator /(const custom_vector<real> &x, const custom_vector<real> &y)

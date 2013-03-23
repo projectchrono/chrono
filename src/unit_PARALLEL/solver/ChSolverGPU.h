@@ -10,8 +10,8 @@ namespace chrono {
         public:
             ChSolverGPU(){}
 
-            void Solve(ChOptimization &optim){}
-        private:
+            void Solve(){}
+        protected:
 
             int current_iteration;
             int max_iteration;
@@ -22,8 +22,5 @@ namespace chrono {
     };
 
 }
-
-
-
 
 #endif

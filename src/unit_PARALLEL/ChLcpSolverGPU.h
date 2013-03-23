@@ -25,7 +25,7 @@ namespace chrono {
     class ChApiGPU ChLcpSolverGPU: public ChLcpIterativeSolver {
         public:
             ChLcpSolverGPU() {
-                lcp_contact_factor = 1;
+                lcp_contact_factor = .3;
                 lcp_omega_bilateral = .1;
                 tolerance=1e-7;
             }
@@ -44,40 +44,11 @@ namespace chrono {
                     real3* JXYZB,
                     real3* JUVWA,
                     real3* JUVWB);
-            void host_process_contacts(real3* JXYZA,
-                    real3* JXYZB,
-                    real3* JUVWA,
-                    real3* JUVWB,
-                    real *contactDepth,
-                    int2 *ids,
-                    real3 *G,
-                    real *dG,
-                    real *mass,
-                    real *fric,
-                    real3 *inertia,
-                    real4 *rot,
-                    real3 *vel,
-                    real3 *omega,
-                    real3 *pos,
-                    real3 *updateV,
-                    real3 *updateO,
-                    uint *offset);
-            void host_Bilaterals(
-                real4 *bilaterals,
-                real *mass,
-                real3 *inertia,
-                real4 *rot,
-                real3 *vel,
-                real3 *omega,
-                real3 *pos,
-                real3 *updateV,
-                real3 *updateO,
-                uint *offset,
-                real *dG);
+
             void host_addForces(bool* active, real *mass, real3 *inertia, real3 *forces, real3 *torques, real3 *vel, real3 *omega);
-            void host_Reduce_Speeds(bool *active,real * mass, real3 *vel, real3 *omega, real3 *updateV, real3 *updateO, uint *d_body_num, uint *counter, real3 *fap);
+
             void host_ComputeGyro(real3 *omega, real3 *inertia, real3 *gyro, real3 *torque);
-            void host_Offsets(int2 *ids, real4 *bilaterals, uint *Body);
+
             void host_Integrate_Timestep(bool *active, real3 *acc, real4 *rot, real3 *vel, real3 *omega, real3 *pos, real3 *lim);
 
 

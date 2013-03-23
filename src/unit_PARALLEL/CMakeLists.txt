@@ -18,7 +18,7 @@ MARK_AS_ADVANCED(FORCE CUDA_BUILD_EMULATION)
 MARK_AS_ADVANCED(FORCE CH_CUDART)
 MARK_AS_ADVANCED(FORCE CUDA_SM_VERSION)
 
-SET(CUDA_DEVICE_VERSION "21" CACHE STRING "CUDA Device Version")
+SET(CUDA_DEVICE_VERSION "20" CACHE STRING "CUDA Device Version")
 SET_PROPERTY(CACHE CUDA_DEVICE_VERSION PROPERTY STRINGS "10" "11" "12" "13" "20" "21" "30" "35")
 
 SET(CUDA_SM_VERSION "21" CACHE STRING "CUDA SM Version")
@@ -55,6 +55,8 @@ SET(ChronoEngine_unit_GPU_SOLVER
 
     solver/ChSolverBlockJacobi.h
     solver/ChSolverBlockJacobi.cu
+    solver/ChSolverCG.h
+    solver/ChSolverCG.cu
    )
 
 
@@ -199,4 +201,4 @@ if (CUDA_FOUND)
         ENDIF()
 
 
-
+
