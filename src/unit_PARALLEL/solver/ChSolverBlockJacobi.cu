@@ -63,13 +63,14 @@ __host__ __device__ void function_process_contacts(
 	real depth = -fabs(contactDepth[index]);
 
 	real bi =fmaxf(depth / (step_size), -lcp_contact_factor);
+
 	real3 W1 = omega[body_id.x];
 	real3 W2 = omega[body_id.y];
 	real3 V1 = vel[body_id.x];
 	real3 V2 = vel[body_id.y];
 	real3 gamma, gamma_old;
 	gamma.x = dot(JUVWA[index + number_of_contacts * 0], W1) + dot(JXYZA[index + number_of_contacts * 0], V1) + dot(JUVWB[index + number_of_contacts * 0], W2)
-			+ dot(JXYZB[index + number_of_contacts * 0], V2) + bi + .01 * G[index + number_of_contacts * 0]; //+bi
+			+ dot(JXYZB[index + number_of_contacts * 0], V2) + bi;// + .01 * G[index + number_of_contacts * 0]; //+bi
 
 	gamma.y = dot(JUVWA[index + number_of_contacts * 1], W1) + dot(JXYZA[index + number_of_contacts * 1], V1) + dot(JUVWB[index + number_of_contacts * 1], W2)
 			+ dot(JXYZB[index + number_of_contacts * 1], V2) /*+ cfmT * gamma_old.y*/;
@@ -93,7 +94,7 @@ __host__ __device__ void function_process_contacts(
 			+ dot(JXYZB[index + number_of_contacts * 1], JXYZB[index + number_of_contacts * 1]) * inv_mass[body_id.y]
 			+ dot(JXYZB[index + number_of_contacts * 2], JXYZB[index + number_of_contacts * 2]) * inv_mass[body_id.y];
 
-	eta = 2.0/ eta; // final value of eta
+	eta = 1.0/ eta; // final value of eta
 	gamma_old.x = G[index + number_of_contacts * 0]; // store gamma_new];
 	gamma_old.y = G[index + number_of_contacts * 1]; // store gamma_new];
 	gamma_old.z = G[index + number_of_contacts * 2]; // store gamma_new];
@@ -108,19 +109,19 @@ __host__ __device__ void function_process_contacts(
 	G[index + number_of_contacts * 2] = gamma.z; // store gamma_new
 
 	gamma -= gamma_old; // compute delta_gamma = gamma_new - gamma_old   = delta_gamma.
-	//dG[index+ number_of_contacts * 0] = gamma.x;
-	//dG[index+ number_of_contacts * 1] = gamma.y;
-	//dG[index+ number_of_contacts * 2] = gamma.z;
+	dG[index+ number_of_contacts * 0] = gamma.x;
+	dG[index+ number_of_contacts * 1] = gamma.y;
+	dG[index+ number_of_contacts * 2] = gamma.z;
 
 	real3 vB1 = JXYZA[index + number_of_contacts * 0] * gamma.x + JXYZA[index + number_of_contacts * 1] * gamma.y + JXYZA[index + number_of_contacts * 2] * gamma.z;
 	real3 vB2 = JXYZB[index + number_of_contacts * 0] * gamma.x + JXYZB[index + number_of_contacts * 1] * gamma.y + JXYZB[index + number_of_contacts * 2] * gamma.z;
 
-	// int offset1 = offset[index];
-	// int offset2 = offset[index + number_of_contacts];
-	// updateV[offset1] = real3(vB1 * inv_mass[body_id.x]); // compute and store dv1
-	// updateO[offset1] = real3((JUVWA[index + number_of_contacts * 0] * gamma.x + JUVWA[index + number_of_contacts * 1] * gamma.y + JUVWA[index + number_of_contacts * 2] * gamma.z) * In1); // compute dw1 =  Inert.1' * J1w^ * deltagamma  and store  dw1
-	// updateV[offset2] = real3(vB2 * inv_mass[body_id.y]); // compute and store dv2
-	// updateO[offset2] = real3((JUVWB[index + number_of_contacts * 0] * gamma.x + JUVWB[index + number_of_contacts * 1] * gamma.y + JUVWB[index + number_of_contacts * 2] * gamma.z) * In2); // compute dw2 =  Inert.2' * J2w^ * deltagamma  and store  dw2
+	 int offset1 = offset[index];
+	 int offset2 = offset[index + number_of_contacts];
+	 updateV[offset1] = real3(vB1 * inv_mass[body_id.x]); // compute and store dv1
+	 updateO[offset1] = real3((JUVWA[index + number_of_contacts * 0] * gamma.x + JUVWA[index + number_of_contacts * 1] * gamma.y + JUVWA[index + number_of_contacts * 2] * gamma.z) * In1); // compute dw1 =  Inert.1' * J1w^ * deltagamma  and store  dw1
+	 updateV[offset2] = real3(vB2 * inv_mass[body_id.y]); // compute and store dv2
+	 updateO[offset2] = real3((JUVWB[index + number_of_contacts * 0] * gamma.x + JUVWB[index + number_of_contacts * 1] * gamma.y + JUVWB[index + number_of_contacts * 2] * gamma.z) * In2); // compute dw2 =  Inert.2' * J2w^ * deltagamma  and store  dw2
 
 }
 
@@ -571,50 +572,50 @@ custom_vector<int2> temp_bids(number_of_constraints);
 					gpu_data.device_dgm_data.data());
 #endif
 
-// #ifdef SIM_ENABLE_GPU_MODE
-// 			device_Reduce_Speeds CUDA_KERNEL_DIM(BLOCKS(number_of_updates), THREADS)(
-// 					CASTB1(gpu_data.device_active_data),
-// 					CASTR1(gpu_data.device_mass_data),
-// 					CASTR3(gpu_data.device_vel_data),
-// 					CASTR3(gpu_data.device_omg_data),
-// 					CASTR3(gpu_data.vel_update),
-// 					CASTR3(gpu_data.omg_update),
-// 					CASTU1(gpu_data.body_number),
-// 					CASTU1(gpu_data.offset_counter),
-// 					CASTR3(gpu_data.device_fap_data));
-// #else
-// 			host_Reduce_Speeds(
-// 					gpu_data.device_active_data.data(),
-// 					gpu_data.device_mass_data.data(),
-// 					gpu_data.device_vel_data.data(),
-// 					gpu_data.device_omg_data.data(),
-// 					gpu_data.vel_update.data(),
-// 					gpu_data.omg_update.data(),
-// 					gpu_data.body_number.data(),
-// 					gpu_data.offset_counter.data(),
-// 					gpu_data.device_fap_data.data());
-// #endif
+ #ifdef SIM_ENABLE_GPU_MODE
+ 			device_Reduce_Speeds CUDA_KERNEL_DIM(BLOCKS(number_of_updates), THREADS)(
+ 					CASTB1(gpu_data.device_active_data),
+ 					CASTR1(gpu_data.device_mass_data),
+ 					CASTR3(gpu_data.device_vel_data),
+ 					CASTR3(gpu_data.device_omg_data),
+ 					CASTR3(gpu_data.vel_update),
+ 					CASTR3(gpu_data.omg_update),
+ 					CASTU1(gpu_data.body_number),
+ 					CASTU1(gpu_data.offset_counter),
+ 					CASTR3(gpu_data.device_fap_data));
+ #else
+ 			host_Reduce_Speeds(
+ 					gpu_data.device_active_data.data(),
+ 					gpu_data.device_mass_data.data(),
+ 					gpu_data.device_vel_data.data(),
+ 					gpu_data.device_omg_data.data(),
+ 					gpu_data.vel_update.data(),
+ 					gpu_data.omg_update.data(),
+ 					gpu_data.body_number.data(),
+ 					gpu_data.offset_counter.data(),
+ 					gpu_data.device_fap_data.data());
+ #endif
 
-Thrust_Fill(gpu_data->device_QXYZ_data, R3(0));
-Thrust_Fill(gpu_data->device_QUVW_data, R3(0));
-
-host_shurA_jacobi(
-					gpu_data.device_JXYZA_data.data(),
-					gpu_data.device_JXYZB_data.data(),
-					gpu_data.device_JUVWA_data.data(),
-					gpu_data.device_JUVWB_data.data(),
-					gpu_data.device_dgm_data.data(),
-					temp_bids.data(),
-					gpu_data.device_mass_data.data(),
-					gpu_data.device_inr_data.data(),
-					gpu_data.device_active_data.data(),
-					gpu_data.device_QXYZ_data.data(),
-					gpu_data.device_QUVW_data.data());
-
-    gpu_data.device_QXYZ_data *=  gpu_data.device_mass_data;
-    gpu_data.device_QUVW_data *= gpu_data.device_inr_data;
-    gpu_data.device_vel_data += gpu_data.device_QXYZ_data;
-    gpu_data.device_omg_data += gpu_data.device_QUVW_data;
+//Thrust_Fill(gpu_data.device_QXYZ_data, R3(0));
+//Thrust_Fill(gpu_data.device_QUVW_data, R3(0));
+//
+//host_shurA_jacobi(
+//					gpu_data.device_JXYZA_data.data(),
+//					gpu_data.device_JXYZB_data.data(),
+//					gpu_data.device_JUVWA_data.data(),
+//					gpu_data.device_JUVWB_data.data(),
+//					gpu_data.device_dgm_data.data(),
+//					temp_bids.data(),
+//					gpu_data.device_mass_data.data(),
+//					gpu_data.device_inr_data.data(),
+//					gpu_data.device_active_data.data(),
+//					gpu_data.device_QXYZ_data.data(),
+//					gpu_data.device_QUVW_data.data());
+//
+//    gpu_data.device_QXYZ_data *=  gpu_data.device_mass_data;
+//    gpu_data.device_QUVW_data *= gpu_data.device_inr_data;
+//    gpu_data.device_vel_data += gpu_data.device_QXYZ_data;
+//    gpu_data.device_omg_data += gpu_data.device_QUVW_data;
 
 
 			//			if (tolerance != 0) {

@@ -1,6 +1,7 @@
 #include "ChLcpSolverGPU.h"
 #include "ChThrustLinearAlgebra.cuh"
 #include "solver/ChSolverBlockJacobi.h"
+#include "solver/ChSolverCG.h"
 using namespace chrono;
 
 __constant__ real lcp_omega_bilateral_const;
@@ -379,8 +380,8 @@ void ChLcpSolverGPU::RunTimeStep(real step, gpu_container& gpu_data) {
 #endif
 	cout << max_iterations << " " << tolerance << endl;
 
-	ChSolverJacobi solver;
-
+	//ChSolverJacobi solver;
+	ChSolverCG solver;
 	solver.Solve(step, gpu_data);
 
 

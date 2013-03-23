@@ -35,7 +35,7 @@ ChCBroadphase::ChCBroadphase() {
     last_active_bin = 0;
     number_of_bin_intersections = 0;
     numAABB = 0;
-    bins_per_axis = R3(80, 80, 80);
+    bins_per_axis = R3(20, 20, 20);
     min_boby_per_bin=50;
     max_boby_per_bin=100;
     // TODO: Should make aabb_data organization less confusing, compiler should switch depending on if the user passes a host/device vector

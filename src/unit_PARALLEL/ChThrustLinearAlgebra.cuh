@@ -62,7 +62,7 @@ static custom_vector<real3> operator +(const custom_vector<real3> &x, const cust
         return temp;
 }
 
-static void operator +=(const custom_vector<real3> &x, const custom_vector<real3> &y)
+static void operator +=( custom_vector<real3> &x, const custom_vector<real3> &y)
 {
         thrust::plus<real3> op;
         thrust::transform(x.begin(), x.end(), y.begin(), x.begin(), op);
@@ -113,8 +113,11 @@ static custom_vector<real3> operator *(const custom_vector<real3> &x, const cust
 }
 
 
-
-static voidoperator *=(const custom_vector<real3> &x, const custom_vector<real3> &y)
+static void operator *=( custom_vector<real3> &x, const custom_vector<real> &y)
+{
+        thrust::transform(x.begin(), x.end(), y.begin(), x.begin(), scale_real3_functor());
+}
+static void operator *=( custom_vector<real3> &x, const custom_vector<real3> &y)
 {
         thrust::transform(x.begin(), x.end(), y.begin(), x.begin(), real3_real3_functor());
 }
