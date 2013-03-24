@@ -2,10 +2,10 @@
 using namespace chrono;
 
 
-ChSolverCG::ChSolverCG() {
+ChSolverAPGD::ChSolverAPGD() {
 }
 
-void ChSolverCG::Solve(real step, gpu_container &gpu_data_) {
+void ChSolverAPGD::Solve(real step, gpu_container &gpu_data_) {
     gpu_data = &gpu_data_;
     step_size = step;
     Setup();
@@ -18,8 +18,8 @@ void ChSolverCG::Solve(real step, gpu_container &gpu_data_) {
     }
 }
 
-uint ChSolverCG::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
-    real gdiff = 0.000001;
+uint ChSolverAPGD::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
+   /* real gdiff = 0.000001;
     custom_vector<real> ms, mg_tmp2, mb_tmp;
     custom_vector<real> mg = ShurProduct(x) - b;
     real L_k = Norm(ShurProduct(x - 1)) / Norm(x - 1);
@@ -61,6 +61,6 @@ uint ChSolverCG::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b,
         Project(mb_tmp);
         mb_tmp = (mb_tmp - x) / (-gdiff);
         real g_proj_norm = Norm(mb_tmp);
-    }
+    }*/
     return current_iteration;
 }

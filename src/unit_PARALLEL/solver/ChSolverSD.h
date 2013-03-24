@@ -1,9 +1,6 @@
 #ifndef CHSOLVERSD_H
 #define CHSOLVERSD_H
 
-#include "ChCudaMath.h"
-#include "ChCudaDefines.h"
-
 #include "ChSolverGPU.h"
 
 namespace chrono {

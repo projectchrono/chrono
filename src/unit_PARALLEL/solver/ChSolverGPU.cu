@@ -1,4 +1,6 @@
 #include "ChSolverGPU.h"
+using namespace chrono;
+
 __constant__ uint number_of_constraints_const;
 __constant__ uint number_of_contacts_const;
 __constant__ real step_size_const;
@@ -43,6 +45,7 @@ __global__ void device_Project(int2 *ids, real *friction, real *gamma ) {
     INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_contacts_const);
     function_Project(index, number_of_contacts_const, ids, friction , gamma);
 }
+
 void ChSolverGPU::host_Project(int2 *ids, real *friction, real *gamma) {
     for (uint index = 0; index < number_of_contacts; index++) {
         function_Project(index, number_of_contacts, ids, friction , gamma);
@@ -51,7 +54,7 @@ void ChSolverGPU::host_Project(int2 *ids, real *friction, real *gamma) {
 void ChSolverGPU::Project(custom_vector<real> & gamma) {
 #ifdef SIM_ENABLE_GPU_MODE
     device_Project CUDA_KERNEL_DIM(BLOCKS(number_of_contacts), THREADS)(
-        CASTR1(gpu_data->device_bids_data),
+        CASTI2(gpu_data->device_bids_data),
         CASTR1(gpu_data->device_fric_data),
         CASTR1(gamma));
 #else
@@ -178,6 +181,7 @@ __host__ __device__ void function_shurB(
     bool *active,
     real *inv_mass,
     real3 *inv_inertia,
+    real * gamma,
     real3 *JXYZA,
     real3 *JXYZB,
     real3 *JUVWA,
@@ -215,25 +219,26 @@ __host__ __device__ void function_shurB(
     AX[index] = temp + gamma[index] * inv_hhpa * compliance;
 }
 
-__global__ void device_shurB(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX) {
+__global__ void device_shurB(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia,real * gamma,  real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX) {
     INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_constraints_const);
-    function_shurB(index, ids, active, inv_mass, inv_inertia, JXYZA, JXYZB, JUVWA, JUVWB, QXYZ, QUVW, AX);
+    function_shurB(index, ids, active, inv_mass, inv_inertia,gamma, JXYZA, JXYZB, JUVWA, JUVWB, QXYZ, QUVW, AX);
 }
 
-void ChSolverGPU::host_shurB(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX) {
+void ChSolverGPU::host_shurB(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia,real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX) {
     #pragma omp parallel for schedule(guided)
     for (uint index = 0; index < number_of_constraints; index++) {
-        function_shurB(index, ids, active, inv_mass, inv_inertia, JXYZA, JXYZB, JUVWA, JUVWB, QXYZ, QUVW, AX);
+        function_shurB(index, ids, active, inv_mass, inv_inertia,gamma, JXYZA, JXYZB, JUVWA, JUVWB, QXYZ, QUVW, AX);
     }
 }
 
-void ChSolverGPU::shurB() {
+void ChSolverGPU::shurB(custom_vector<real> &x) {
 #ifdef SIM_ENABLE_GPU_MODE
     device_shurB CUDA_KERNEL_DIM(BLOCKS(number_of_constraints), THREADS)(
         CASTI2(temp_bids),
         CASTB1(gpu_data->device_active_data),
         CASTR1(gpu_data->device_mass_data),
         CASTR3(gpu_data->device_inr_data),
+        CASTR1(x),
         CASTR3(gpu_data->device_JXYZA_data),
         CASTR3(gpu_data->device_JXYZB_data),
         CASTR3(gpu_data->device_JUVWA_data),
@@ -247,6 +252,7 @@ void ChSolverGPU::shurB() {
         gpu_data->device_active_data.data(),
         gpu_data->device_mass_data.data(),
         gpu_data->device_inr_data.data(),
+        x.data(),
         gpu_data->device_JXYZA_data.data(),
         gpu_data->device_JXYZB_data.data(),
         gpu_data->device_JUVWA_data.data(),
@@ -296,7 +302,7 @@ __global__ void device_RHS(int2 *ids, real *correction, real3 *vel, real3 *omega
     function_RHS(index, step_size_const, ids, correction, vel, omega, JXYZA, JXYZB, JUVWA, JUVWB,  rhs);
 }
 
-void ChSolverCG::host_RHS(int2 *ids, real *correction, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs) {
+void ChSolverGPU::host_RHS(int2 *ids, real *correction, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs) {
     #pragma omp parallel for schedule(guided)
     for (uint index = 0; index < number_of_constraints; index++) {
         function_RHS(index, step_size, ids, correction, vel, omega, JXYZA, JXYZB, JUVWA, JUVWB,  rhs);
@@ -364,7 +370,7 @@ custom_vector<real> ChSolverGPU::ShurProduct( custom_vector<real> &x) {
     AX.resize(x.size());
     Thrust_Fill(AX, 0);
     shurA(x);
-    shurB();
+    shurB(x);
     return AX;
 }
 

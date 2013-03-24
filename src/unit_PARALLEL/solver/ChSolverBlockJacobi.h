@@ -4,7 +4,6 @@
 #include "ChCudaMath.h"
 #include "ChCudaDefines.h"
 #include "ChThrustLinearAlgebra.cuh"
-#include "ChOptimizationJacobi.h"
 #include "ChSolverGPU.h"
 #include "ChDataManager.h"
 namespace chrono {

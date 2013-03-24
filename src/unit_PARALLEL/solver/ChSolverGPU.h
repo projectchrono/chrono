@@ -17,17 +17,17 @@ class ChApiGPU ChSolverGPU {
             complianceT = 1e-4;
         }
         void Setup();
-        void Project();
+        void Project(custom_vector<real> & gamma);
         void shurA(custom_vector<real> &x);
-        void shurB();
+        void shurB(custom_vector<real> &x);
 
         void ComputeRHS();
         void ComputeImpulses();
 
-        void host_shurA(real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, int2 *ids, bool *active, real3 *QXYZ, real3 *QUVW);
-        void host_shurB(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX);
+        void host_shurA(int2 *ids, bool *active, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma,  real3 *QXYZ, real3 *QUVW);
+        void host_shurB(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia,real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX);
         void host_RHS(int2 *ids, real *correction, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs);
-        void host_Project(real *gam, real *fric, int2 *ids);
+        void host_Project(int2 *ids, real *friction, real *gamma);
         custom_vector<real> ShurProduct( custom_vector<real> &x_t);
 
 
@@ -61,7 +61,6 @@ class ChApiGPU ChSolverGPU {
 
         custom_vector<int2> temp_bids;
         custom_vector<real> AX, rhs, correction;
-        real step_size;
         gpu_container *gpu_data;
 };
 

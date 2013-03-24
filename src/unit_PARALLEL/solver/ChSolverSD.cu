@@ -2,7 +2,7 @@
 using namespace chrono;
 
 
-ChSolverCG::ChSolverSD() {
+ChSolverSD::ChSolverSD() {
 }
 
 void ChSolverSD::Solve(real step, gpu_container &gpu_data_) {

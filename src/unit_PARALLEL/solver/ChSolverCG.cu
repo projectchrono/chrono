@@ -47,6 +47,6 @@ uint ChSolverCG::SolveCG(custom_vector<real> &x, const custom_vector<real> &b, c
         SEAXPY(rsnew / rsold, p, r, p); //p = r + rsnew / rsold * p;
         rsold = rsnew;
     }
-    Project(x;
+    Project(x);
     return current_iteration;
 }
