@@ -52,7 +52,8 @@ SET(ChronoEngine_unit_GPU_SOLVER
     solver/ChOptimization.h
     solver/ChOptimizationJacobi.h
     solver/ChSolverGPU.h
-
+	solver/ChSolverGPU.cu
+	
     solver/ChSolverBlockJacobi.h
     solver/ChSolverBlockJacobi.cu
     solver/ChSolverCG.h
