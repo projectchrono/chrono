@@ -11,7 +11,7 @@ void ChSolverCG::Solve(real step, gpu_container &gpu_data_) {
     Setup();
     if (number_of_constraints > 0) {
         ComputeRHS();
-        SolveCG(gpu_data->device_gam_data, rhs, 100);
+        SolveCG(gpu_data->device_gam_data, rhs, 500);
         ComputeImpulses();
         gpu_data->device_vel_data += gpu_data->device_QXYZ_data;
         gpu_data->device_omg_data += gpu_data->device_QUVW_data;
@@ -34,12 +34,18 @@ uint ChSolverCG::SolveCG(custom_vector<real> &x, const custom_vector<real> &b, c
         Ap = ShurProduct(p);
         alpha = rsold / Dot(p, Ap);
         rsnew = 0;
+#ifdef SIM_ENABLE_GPU_MODE
+        SEAXPY(alpha, p, x, x);
+        SEAXPY(-alpha, Ap, r, r);
+        rsnew=Dot(r,r);
+#else
         #pragma omp parallel for reduction(+:rsnew)
         for (int i = 0; i < x.size(); i++) {
             x[i] = x[i] + alpha * p[i];
             r[i] = r[i] - alpha * Ap[i];
             rsnew += r[i] * r[i];
         }
+#endif
         residual = sqrtf(rsnew) * normb;
         if (residual < tolerance) {
             break;

@@ -378,12 +378,10 @@ void ChLcpSolverGPU::RunTimeStep(real step, gpu_container& gpu_data) {
 			gpu_data.device_JUVWB_data.data()
 	);
 #endif
-	cout << max_iterations << " " << tolerance << endl;
-
 	//ChSolverJacobi solver;
 	ChSolverCG solver;
 	solver.Solve(step, gpu_data);
-
+	cout<<solver.GetIteration()<<" "<<solver.GetResidual()<<"\t["<<solver.time_rhs<<"\t"<<solver.time_shurcompliment<<"\t"<<solver.time_project<<"\t"<<solver.time_integrate<<"]"<<endl;
 
 	Integrate(gpu_data);
 }

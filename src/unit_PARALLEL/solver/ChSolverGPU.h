@@ -5,12 +5,13 @@
 #include "ChCudaDefines.h"
 #include "ChThrustLinearAlgebra.cuh"
 #include "ChDataManager.h"
+#include "core/ChTimer.h"
 
 namespace chrono {
 class ChApiGPU ChSolverGPU {
     public:
         ChSolverGPU() {
-            tolerance = 1e-6;
+            tolerance = 1e-5;
             epsilon = 1e-3;
             alpha = .2;
             compliance = 1e-4;
@@ -40,7 +41,7 @@ class ChApiGPU ChSolverGPU {
         real GetResidual() {
             return residual;
         }
-
+        double time_rhs, time_shurcompliment, time_project, time_integrate;
     protected:
 
         real step_size;
@@ -62,6 +63,8 @@ class ChApiGPU ChSolverGPU {
         custom_vector<int2> temp_bids;
         custom_vector<real> AX, rhs, correction;
         gpu_container *gpu_data;
+        ChTimer<double> timer_rhs, timer_shurcompliment, timer_project, timer_integrate;
+
 };
 
 }

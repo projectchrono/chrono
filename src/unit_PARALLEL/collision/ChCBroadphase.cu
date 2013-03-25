@@ -36,8 +36,8 @@ ChCBroadphase::ChCBroadphase() {
     number_of_bin_intersections = 0;
     numAABB = 0;
     bins_per_axis = R3(20, 20, 20);
-    min_boby_per_bin=50;
-    max_boby_per_bin=100;
+    min_boby_per_bin=25;
+    max_boby_per_bin=50;
     // TODO: Should make aabb_data organization less confusing, compiler should switch depending on if the user passes a host/device vector
     // TODO: Should be able to tune bins_per_axis, it's nice to have as a parameter though!
     // TODO: As the collision detection is progressing, we should free up vectors that are no longer being used! For example, Bin_Intersections is only used in steps 4&5
