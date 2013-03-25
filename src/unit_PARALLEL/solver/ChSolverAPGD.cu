@@ -21,8 +21,9 @@ void ChSolverAPGD::Solve(real step, gpu_container &gpu_data_) {
 uint ChSolverAPGD::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
     //real gdiff = 0.000001;
     real theta_k=1.0;
-    custom_vector<real> ms, mg_tmp2, mb_tmp, x01, d01;
+    custom_vector<real> ms, mg_tmp2, mb_tmp, x01(x.size()), d01;
     custom_vector<real> mg = ShurProduct(x) - b;
+
     Thrust_Fill(x01, 1.0);
     d01=x-x01;
     real L_k = Norm(ShurProduct(d01)) / Norm(d01);
@@ -45,7 +46,8 @@ uint ChSolverAPGD::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &
             mg_tmp2 = ShurProduct(mx) - b;
             obj1 = Dot(mx, ShurProduct(mx) * .5 - b);
             ms = mx - my;
-            cout << "APGD halving stepsize at it " << current_iteration  << "\n";
+
+            //cout << "APGD halving stepsize at it " << current_iteration  << "\n";
         }
         real theta_k1 = (-pow(theta_k, 2) + theta_k * sqrt(pow(theta_k, 2) + 4)) / 2.0;
         real  beta_k1 = theta_k * (1.0 - theta_k) / (pow(theta_k, 2) + theta_k1);
@@ -54,7 +56,7 @@ uint ChSolverAPGD::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &
         if (Dot(mg, ms) > 0) {
             my = mx;
             theta_k1 = 1.0;
-            cout << "Restarting APGD at it " << current_iteration  << "\n";
+            //cout << "Restarting APGD at it " << current_iteration  << "\n";
         }
         L_k = 0.9 * L_k;
         t_k = 1 / L_k;
