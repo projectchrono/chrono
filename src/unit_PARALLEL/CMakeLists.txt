@@ -56,12 +56,20 @@ SET(ChronoEngine_unit_GPU_SOLVER
     solver/ChSolverBlockJacobi.cu
     solver/ChSolverCG.h
     solver/ChSolverCG.cu
+    solver/ChSolverCGS.h
+    solver/ChSolverCGS.cu
     solver/ChSolverGD.h
     solver/ChSolverGD.cu
     solver/ChSolverSD.h
     solver/ChSolverSD.cu
     solver/ChSolverAPGD.h
     solver/ChSolverAPGD.cu
+    solver/ChSolverMinRes.h
+    solver/ChSolverMinRes.cu
+    solver/ChSolverBiCG.h
+    solver/ChSolverBiCG.cu
+    solver/ChSolverBiCGStab.h
+    solver/ChSolverBiCGStab.cu
    )
 
 
