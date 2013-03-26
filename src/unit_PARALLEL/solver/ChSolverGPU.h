@@ -10,12 +10,26 @@
 namespace chrono {
 class ChApiGPU ChSolverGPU {
     public:
+		enum GPUSOLVERTYPE {
+			STEEPEST_DESCENT,
+			GRADIENT_DESCENT,
+			CONJUGATE_GRADIENT,
+			CONJUGATE_GRADIENT_SQUARED,
+			BICONJUGATE_GRADIENT,
+			BICONJUGATE_GRADIENT_STAB,
+			MINIMUM_RESIDUAL,
+			QUASAI_MINIMUM_RESIDUAL,
+			ACCELERATED_PROJECTED_GRADIENT_DESCENT
+		};
+
+
         ChSolverGPU() {
-            tolerance = 1e-5;
+            tolerance = 1e-3;
             epsilon = 1e-3;
             alpha = .2;
             compliance = 1e-4;
             complianceT = 1e-4;
+            max_iteration = 100;
         }
         void Setup();
         void Project(custom_vector<real> & gamma);
@@ -33,7 +47,15 @@ class ChApiGPU ChSolverGPU {
 
 
 
-        void Solve() {}
+        void Solve(GPUSOLVERTYPE solver_type, real step, gpu_container &gpu_data_);
+        uint SolveSD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
+        uint SolveGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
+        uint SolveCG(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
+        uint SolveCGS(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
+        uint SolveBiCG(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
+        uint SolveBiCGStab(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
+        uint SolveMinRes(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
+        uint SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 
         int GetIteration() {
             return current_iteration;
@@ -41,7 +63,7 @@ class ChApiGPU ChSolverGPU {
         real GetResidual() {
             return residual;
         }
-        double time_rhs, time_shurcompliment, time_project, time_integrate;
+        double time_rhs, time_shurcompliment, time_project, time_integrate, time_solver;
     protected:
 
         real step_size;
@@ -63,7 +85,7 @@ class ChApiGPU ChSolverGPU {
         custom_vector<int2> temp_bids;
         custom_vector<real> AX, rhs, correction;
         gpu_container *gpu_data;
-        ChTimer<double> timer_rhs, timer_shurcompliment, timer_project, timer_integrate;
+        ChTimer<double> timer_rhs, timer_shurcompliment, timer_project, timer_integrate, timer_solver;
 
 };
 

@@ -61,11 +61,6 @@ namespace chrono {
 
 
         };
-//        struct AABB {
-//            real3 min, max;
-//        };
-
-
     }
 }
 

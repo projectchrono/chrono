@@ -1,24 +1,7 @@
-#include "ChSolverBiCGStab.h"
+#include "ChSolverGPU.h"
 using namespace chrono;
 
-
-ChSolverBiCGStab::ChSolverBiCGStab() {
-}
-
-void ChSolverBiCGStab::Solve(real step, gpu_container &gpu_data_) {
-    gpu_data = &gpu_data_;
-    step_size = step;
-    Setup();
-    if (number_of_constraints > 0) {
-        ComputeRHS();
-        SolveBiCGStab(gpu_data->device_gam_data, rhs, 100);
-        ComputeImpulses();
-        gpu_data->device_vel_data += gpu_data->device_QXYZ_data;
-        gpu_data->device_omg_data += gpu_data->device_QUVW_data;
-    }
-}
-
-uint ChSolverBiCGStab::SolveBiCGStab(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
+uint ChSolverGPU::SolveBiCGStab(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
 	real rho_1, rho_2, alpha = 1, beta, omega = 1;
 	custom_vector<real> p, r, phat, s, shat, t, v;
 		real normb = Norm(b);

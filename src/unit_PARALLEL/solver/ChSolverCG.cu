@@ -1,24 +1,8 @@
-#include "ChSolverCG.h"
+#include "ChSolverGPU.h"
 using namespace chrono;
 
 
-ChSolverCG::ChSolverCG() {
-}
-
-void ChSolverCG::Solve(real step, gpu_container &gpu_data_) {
-    gpu_data = &gpu_data_;
-    step_size = step;
-    Setup();
-    if (number_of_constraints > 0) {
-        ComputeRHS();
-        SolveCG(gpu_data->device_gam_data, rhs, 500);
-        ComputeImpulses();
-        gpu_data->device_vel_data += gpu_data->device_QXYZ_data;
-        gpu_data->device_omg_data += gpu_data->device_QUVW_data;
-    }
-}
-
-uint ChSolverCG::SolveCG(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
+uint ChSolverGPU::SolveCG(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
     custom_vector<real> r(x.size()), p, Ap;
     real rsold, alpha, rsnew = 0, normb = Norm(b);
     if (normb == 0.0) {

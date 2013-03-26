@@ -1,24 +1,7 @@
-#include "ChSolverMinRes.h"
+#include "ChSolverGPU.h"
 using namespace chrono;
 
-
-ChSolverMinRes::ChSolverMinRes() {
-}
-
-void ChSolverMinRes::Solve(real step, gpu_container &gpu_data_) {
-    gpu_data = &gpu_data_;
-    step_size = step;
-    Setup();
-    if (number_of_constraints > 0) {
-        ComputeRHS();
-        SolveMinRes(gpu_data->device_gam_data, rhs, 100);
-        ComputeImpulses();
-        gpu_data->device_vel_data += gpu_data->device_QXYZ_data;
-        gpu_data->device_omg_data += gpu_data->device_QUVW_data;
-    }
-}
-
-uint ChSolverMinRes::SolveMinRes(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
+uint ChSolverGPU::SolveMinRes(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
 	uint N = b.size();
 		custom_vector<real> v(N, 0), v_hat, w(N, 0), w_old, xMR, v_old, Av, w_oold;
 		real beta, c = 1, eta, norm_rMR, norm_r0, c_old = 1, s_old = 0, s = 0, alpha, beta_old, c_oold, s_oold, r1_hat, r1, r2, r3;

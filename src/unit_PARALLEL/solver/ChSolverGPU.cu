@@ -371,6 +371,34 @@ void ChSolverGPU::ComputeImpulses() {
 	gpu_data->device_QUVW_data *= gpu_data->device_inr_data;
 }
 
+void ChSolverGPU::Solve(GPUSOLVERTYPE solver_type, real step, gpu_container &gpu_data_) {
+	timer_solver.start();
+    gpu_data = &gpu_data_;
+    step_size = step;
+    Setup();
+    if (number_of_constraints > 0) {
+        ComputeRHS();
+
+
+        if(solver_type==STEEPEST_DESCENT){SolveSD(gpu_data->device_gam_data, rhs, max_iteration);}
+        else if(solver_type==GRADIENT_DESCENT){SolveGD(gpu_data->device_gam_data, rhs, max_iteration);}
+        else if(solver_type==CONJUGATE_GRADIENT){SolveCG(gpu_data->device_gam_data, rhs, max_iteration);}
+        else if(solver_type==CONJUGATE_GRADIENT_SQUARED){SolveCGS(gpu_data->device_gam_data, rhs, max_iteration);}
+        else if(solver_type==BICONJUGATE_GRADIENT){SolveBiCG(gpu_data->device_gam_data, rhs, max_iteration);}
+        else if(solver_type==BICONJUGATE_GRADIENT_STAB){SolveBiCGStab(gpu_data->device_gam_data, rhs, max_iteration);}
+        else if(solver_type==MINIMUM_RESIDUAL){SolveMinRes(gpu_data->device_gam_data, rhs, max_iteration);}
+        //else if(solver_type==QUASAI_MINIMUM_RESIDUAL){SolveQMR(gpu_data->device_gam_data, rhs, max_iteration);}
+        else if(solver_type==ACCELERATED_PROJECTED_GRADIENT_DESCENT){SolveAPGD(gpu_data->device_gam_data, rhs, max_iteration);}
+
+        ComputeImpulses();
+        gpu_data->device_vel_data += gpu_data->device_QXYZ_data;
+        gpu_data->device_omg_data += gpu_data->device_QUVW_data;
+        timer_solver.stop();
+        time_solver = timer_solver();
+    }
+}
+
+
 //
 //__host__ __device__ void function_InvNDiag(uint index, int b1, int b2, int2* ids, real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB, real * inv_mass, real3 * inv_inertia, real & inv_n_diag) {
 //

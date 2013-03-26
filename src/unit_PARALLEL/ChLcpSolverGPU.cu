@@ -1,8 +1,8 @@
 #include "ChLcpSolverGPU.h"
 #include "ChThrustLinearAlgebra.cuh"
 #include "solver/ChSolverBlockJacobi.h"
-#include "solver/ChSolverCG.h"
-#include "solver/ChSolverAPGD.h"
+#include "solver/ChSolverGPU.h"
+
 using namespace chrono;
 
 __constant__ real lcp_omega_bilateral_const;
@@ -380,9 +380,9 @@ void ChLcpSolverGPU::RunTimeStep(real step, gpu_container& gpu_data) {
 	);
 #endif
 	//ChSolverJacobi solver;
-	ChSolverAPGD solver;
-	solver.Solve(step, gpu_data);
-	cout<<solver.GetIteration()<<" "<<solver.GetResidual()<<"\t["<<solver.time_rhs<<"\t"<<solver.time_shurcompliment<<"\t"<<solver.time_project<<"\t"<<solver.time_integrate<<"]"<<endl;
+	ChSolverGPU solver;
+	solver.Solve(ChSolverGPU::STEEPEST_DESCENT,step, gpu_data);
+	cout<<solver.GetIteration()<<" "<<solver.GetResidual()<<"\t["<<solver.time_rhs<<"\t"<<solver.time_shurcompliment<<"\t"<<solver.time_project<<"\t"<<solver.time_solver<<"]"<<endl;
 
 	Integrate(gpu_data);
 }

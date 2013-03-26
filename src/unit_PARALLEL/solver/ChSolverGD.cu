@@ -1,24 +1,7 @@
-#include "ChSolverGD.h"
+#include "ChSolverGPU.h"
 using namespace chrono;
 
-
-ChSolverGD::ChSolverGD() {
-}
-
-void ChSolverGD::Solve(real step, gpu_container &gpu_data_) {
-    gpu_data = &gpu_data_;
-    step_size = step;
-    Setup();
-    if (number_of_constraints > 0) {
-        ComputeRHS();
-        SolveGD(gpu_data->device_gam_data, rhs, 100);
-        ComputeImpulses();
-        gpu_data->device_vel_data += gpu_data->device_QXYZ_data;
-        gpu_data->device_omg_data += gpu_data->device_QUVW_data;
-    }
-}
-
-uint ChSolverGD::SolveGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
+uint ChSolverGPU::SolveGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
     real eps = step_size;
     custom_vector<real> r;
     r = b - ShurProduct(x);
