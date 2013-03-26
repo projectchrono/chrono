@@ -381,7 +381,7 @@ void ChLcpSolverGPU::RunTimeStep(real step, gpu_container& gpu_data) {
 #endif
 	//ChSolverJacobi solver;
 	ChSolverGPU solver;
-	solver.Solve(ChSolverGPU::STEEPEST_DESCENT,step, gpu_data);
+	solver.Solve(ChSolverGPU::CONJUGATE_GRADIENT,step, gpu_data);
 	cout<<solver.GetIteration()<<" "<<solver.GetResidual()<<"\t["<<solver.time_rhs<<"\t"<<solver.time_shurcompliment<<"\t"<<solver.time_project<<"\t"<<solver.time_solver<<"]"<<endl;
 
 	Integrate(gpu_data);
