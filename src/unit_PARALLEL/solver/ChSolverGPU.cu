@@ -8,6 +8,8 @@ __constant__ real alpha_const;
 __constant__ real compliance_const;
 __constant__ real inv_hpa_const;
 __constant__ real inv_hhpa_const;
+__constant__ real contact_recovery_speed_const;
+
 __host__ __device__ void function_Project(uint &index, uint number_of_contacts, int2 *ids, real *fric, real *gam) {
 	int2 body_id = ids[index];
 	real3 gamma;
@@ -68,7 +70,6 @@ void ChSolverGPU::Project(custom_vector<real> & gamma) {
 
 __host__ __device__ void function_shurA(uint &index, int2 *ids, bool *active, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *QXYZ, real3 *QUVW) {
 	real q_x = 0, q_y = 0, q_z = 0, q_u = 0, q_v = 0, q_w = 0;
-	real temp = 0, m;
 	uint b1 = ids[index].x;
 	uint b2 = ids[index].y;
 	if (active[b1] != 0) {
@@ -272,20 +273,26 @@ __host__ __device__ void function_RHS(
 	uint b1 = ids[index].x;
 	uint b2 = ids[index].y;
 	real temp = 0;
-	temp -= JXYZA[index].x * vel[b1].x;
-	temp -= JXYZA[index].y * vel[b1].y;
-	temp -= JXYZA[index].z * vel[b1].z;
-	temp -= JUVWA[index].x * omega[b1].x;
-	temp -= JUVWA[index].y * omega[b1].y;
-	temp -= JUVWA[index].z * omega[b1].z;
-	temp -= JXYZB[index].x * vel[b2].x;
-	temp -= JXYZB[index].y * vel[b2].y;
-	temp -= JXYZB[index].z * vel[b2].z;
-	temp -= JUVWB[index].x * omega[b2].x;
-	temp -= JUVWB[index].y * omega[b2].y;
-	temp -= JUVWB[index].z * omega[b2].z;
+
+	temp += dot(JXYZA[index], vel[b1]);
+	temp += dot(JUVWA[index], omega[b1]);
+	temp += dot(JXYZB[index], vel[b2]);
+	temp += dot(JUVWB[index], omega[b2]);
+
+//	temp -= JXYZA[index].x * vel[b1].x;
+//	temp -= JXYZA[index].y * vel[b1].y;
+//	temp -= JXYZA[index].z * vel[b1].z;
+//	temp -= JUVWA[index].x * omega[b1].x;
+//	temp -= JUVWA[index].y * omega[b1].y;
+//	temp -= JUVWA[index].z * omega[b1].z;
+//	temp -= JXYZB[index].x * vel[b2].x;
+//	temp -= JXYZB[index].y * vel[b2].y;
+//	temp -= JXYZB[index].z * vel[b2].z;
+//	temp -= JUVWB[index].x * omega[b2].x;
+//	temp -= JUVWB[index].y * omega[b2].y;
+//	temp -= JUVWB[index].z * omega[b2].z;
 	//rhs[index] = -((-temp) + fmaxf(inv_hpa * -fabs(correction[index]), 0));
-	rhs[index] = -((-temp) + inv_hpa * -fabs(correction[index]));
+	rhs[index] = -(temp + fmaxf(- inv_hpa * fabs(correction[index]),-.6));
 }
 
 __global__ void device_RHS(int2 *ids, real *correction, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs) {
@@ -307,15 +314,15 @@ void ChSolverGPU::ComputeRHS() {
 	Thrust_Fill(gpu_data->device_QUVW_data, R3(0));
 #ifdef SIM_ENABLE_GPU_MODE
 	device_RHS CUDA_KERNEL_DIM(BLOCKS(number_of_constraints), THREADS)(
-			CASTI2(temp_bids.data()),
-			CASTR1(correction.data()),
-			CASTR3(gpu_data->device_vel_data.data()),
-			CASTR3(gpu_data->device_omg_data.data()),
-			CASTR3(gpu_data->device_JXYZA_data.data()),
-			CASTR3(gpu_data->device_JXYZB_data.data()),
-			CASTR3(gpu_data->device_JUVWA_data.data()),
-			CASTR3(gpu_data->device_JUVWB_data.data()),
-			CASTR1(rhs.data()));
+			CASTI2(temp_bids),
+			CASTR1(correction),
+			CASTR3(gpu_data->device_vel_data),
+			CASTR3(gpu_data->device_omg_data),
+			CASTR3(gpu_data->device_JXYZA_data),
+			CASTR3(gpu_data->device_JXYZB_data),
+			CASTR3(gpu_data->device_JUVWA_data),
+			CASTR3(gpu_data->device_JUVWB_data),
+			CASTR1(rhs));
 	cudaDeviceSynchronize();
 #else
 	host_RHS(
@@ -339,11 +346,17 @@ void ChSolverGPU::Setup() {
 
 	number_of_constraints = gpu_data->number_of_contacts * 3 + gpu_data->number_of_bilaterals;
 	number_of_contacts = gpu_data->number_of_contacts;
+	number_of_bilaterals = gpu_data->number_of_bilaterals;
+	number_of_objects = gpu_data->number_of_objects;
 	temp_bids.resize(number_of_constraints);
 	correction.resize(number_of_constraints);
 	rhs.resize(number_of_constraints);
 	gpu_data->device_gam_data.resize((number_of_constraints));
 	AX.resize(number_of_constraints);
+
+	gpu_data->device_QXYZ_data.resize(number_of_objects);
+	gpu_data->device_QUVW_data.resize(number_of_objects);
+
 	///
 	Thrust_Fill(gpu_data->device_gam_data, 0);
 	Thrust_Fill(correction, 0);
@@ -365,6 +378,13 @@ void ChSolverGPU::Setup() {
 	COPY_TO_CONST_MEM(compliance);
 	COPY_TO_CONST_MEM(inv_hpa);
 	COPY_TO_CONST_MEM(inv_hhpa);
+
+
+	cudaFuncSetCacheConfig(device_Project, cudaFuncCachePreferL1);
+	cudaFuncSetCacheConfig(device_shurA, cudaFuncCachePreferL1);
+	cudaFuncSetCacheConfig(device_shurB, cudaFuncCachePreferL1);
+	cudaFuncSetCacheConfig(device_RHS, cudaFuncCachePreferL1);
+
 #else
 #endif
 }

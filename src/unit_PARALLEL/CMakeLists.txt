@@ -50,7 +50,7 @@ SET(ChronoEngine_unit_GPU_COLLISION
    )
 SET(ChronoEngine_unit_GPU_SOLVER
     solver/ChSolverGPU.h
-	solver/ChSolverGPU.cu
+    solver/ChSolverGPU.cu
     solver/ChSolverBlockJacobi.h
     solver/ChSolverBlockJacobi.cu
     solver/ChSolverCG.cu
@@ -79,10 +79,15 @@ SET(ChronoEngine_unit_GPU_HEADERS
     ChDataManager.h
     ChLcpSolverGPU.h
     ChLcpSystemDescriptorGPU.h
+    ChJacobianGPU.h
+    ChIntegratorGPU.h
+
    )
 SET(ChronoEngine_unit_GPU_CU
     ChLcpSolverGPU.cu
     ChDataManager.cu
+    ChJacobianGPU.cu
+	ChIntegratorGPU.cu
    )
 
 SOURCE_GROUP(unit_GPU FILES

@@ -50,8 +50,6 @@ typedef unsigned int uint;
 #define __KERNEL__(...)  <<< __VA_ARGS__ >>>
 #endif
 
-
-
 #define Zero_Vector real3(0,0,0)
 #define PI  3.1415926535897932384626433832795
 #define PI_2   (PI / 2.0)
@@ -101,8 +99,6 @@ typedef unsigned int uint;
 #define INDEX3D (threadIdx.x + blockDim.x * threadIdx.y + (blockIdx.x * blockDim.x * blockDim.y) + (blockIdx.y * blockDim.x * blockDim.y))
 #define INIT_CHECK_THREAD_BOUNDED(x,y)  uint index = x; if (index >= y) { return;}
 
-
-
 #define START_TIMING(x,y,z)             cudaEventCreate(&x); cudaEventCreate(&y); cudaEventRecord(x, 0); z=0;
 #define STOP_TIMING(x,y,z)              cudaThreadSynchronize(); cudaEventRecord(y, 0); cudaEventSynchronize(y); cudaEventElapsedTime(&z,x , y); cudaEventDestroy(x);  cudaEventDestroy(y);
 #define BIND_TEXF4(x)                   cudaBindTexture(NULL, x##_tex,   CASTF4(x),   x.size()*sizeof(real4));
@@ -120,10 +116,23 @@ typedef unsigned int uint;
 #define Thrust_Sequence(x)              thrust::sequence(x.begin(),x.end())
 #define Thrust_Equal(x,y)               thrust::equal(x.begin(),x.end(), y.begin())
 #define Thrust_Max(x)                   x[thrust::max_element(x.begin(),x.end())-x.begin()]
-#define Thrust_Min(x)                   x[thrust::max_element(x.begin(),x.end())-x.begin()]
+#define Thrust_Min(x)                   x[thrust::min_element(x.begin(),x.end())-x.begin()]
 #define Thrust_Total(x)                 thrust::reduce(x.begin(),x.end())
 #define DBG(x)                          printf(x);
-//
+
+enum GPUSOLVERTYPE {
+	STEEPEST_DESCENT,
+	GRADIENT_DESCENT,
+	CONJUGATE_GRADIENT,
+	CONJUGATE_GRADIENT_SQUARED,
+	BICONJUGATE_GRADIENT,
+	BICONJUGATE_GRADIENT_STAB,
+	MINIMUM_RESIDUAL,
+	QUASAI_MINIMUM_RESIDUAL,
+	ACCELERATED_PROJECTED_GRADIENT_DESCENT,
+	BLOCK_JACOBI
+};
+
 //enum SHAPE {    SPHERE,
 //                ELLIPSOID,
 //                BOX,
@@ -160,13 +169,6 @@ typedef unsigned int uint;
 #define EPS FLT_EPSILON
 #define kCollideEpsilon  1e-6f
 
-
-
-
-
-
-
-
 //////////////////////////////////////////////////
 
 //#define CH_CONTACT_VSIZE 4
@@ -182,5 +184,4 @@ typedef unsigned int uint;
 //#define CH_REDUCTION_HSIZE sizeof(CH_REALNUMBER4)
 
 #endif
-
 

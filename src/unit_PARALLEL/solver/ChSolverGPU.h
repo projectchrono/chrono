@@ -10,24 +10,13 @@
 namespace chrono {
 	class ChApiGPU ChSolverGPU {
 		public:
-			enum GPUSOLVERTYPE {
-				STEEPEST_DESCENT,
-				GRADIENT_DESCENT,
-				CONJUGATE_GRADIENT,
-				CONJUGATE_GRADIENT_SQUARED,
-				BICONJUGATE_GRADIENT,
-				BICONJUGATE_GRADIENT_STAB,
-				MINIMUM_RESIDUAL,
-				QUASAI_MINIMUM_RESIDUAL,
-				ACCELERATED_PROJECTED_GRADIENT_DESCENT
-			};
 
 			ChSolverGPU() {
-				tolerance = 1e-3;
+				tolerance = 1e-6;
 				epsilon = 1e-3;
-				alpha = .2;
-				compliance = 1e-4;
-				complianceT = 1e-4;
+				alpha = 0;
+				compliance = 0;
+				complianceT = 0;
 				max_iteration = 100;
 			}
 			void Setup();
@@ -69,24 +58,29 @@ namespace chrono {
 				max_iteration = max_iteration_value;
 			}
 
-			void SetComplianceParameters(const real alpha_value,const real compliance_value) {
+			void SetComplianceParameters(const real alpha_value,const real compliance_value,const real complianceT_value) {
 				alpha = alpha_value;
 				compliance = compliance_value;
+				complianceT = complianceT_value;
 
+			}
+
+			void SetContactRecoverySpeed(const real & recovery_speed) {
+				contact_recovery_speed = recovery_speed;
 			}
 
 			double time_rhs, time_shurcompliment, time_project, time_integrate, time_solver;
 			protected:
 
 			real step_size;
-			real lcp_omega_bilateral;
-			real lcp_omega_contact;
-			real lcp_contact_factor;
 			real compliance;
 			real complianceT;
 			real alpha;
 			real inv_hpa;
 			real inv_hhpa;
+			real contact_recovery_speed;
+
+
 			uint number_of_bilaterals;
 			uint number_of_contacts;
 			uint number_of_objects;
