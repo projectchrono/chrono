@@ -491,6 +491,7 @@ void ChSolverJacobi::Solve(real step, gpu_container& gpu_data_) {
 					gpu_data->device_JXYZB_data.data(),
 					gpu_data->device_JUVWA_data.data(),
 					gpu_data->device_JUVWB_data.data(),
+					rhs.data(),
 					gpu_data->device_dpth_data.data(),
 					gpu_data->device_active_data.data(),
 					gpu_data->device_bids_data.data(),
