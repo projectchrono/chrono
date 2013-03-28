@@ -75,6 +75,9 @@ namespace chrono {
 			void SetSolverType(GPUSOLVERTYPE type) {
 				solver_type = type;
 			}
+			void SetMaxIteration(uint max_iter) {
+				max_iteration = max_iter;
+			}
 		private:
 			real tolerance;
 			real compliance;
