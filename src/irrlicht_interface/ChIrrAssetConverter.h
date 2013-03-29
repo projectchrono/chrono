@@ -284,6 +284,34 @@ public:
 
 	}
 
+void mflipSurfacesOnX(scene::IMesh* mesh) const
+{
+	if (!mesh)
+		return;
+
+	const u32 bcount = mesh->getMeshBufferCount();
+	for (u32 b=0; b<bcount; ++b)
+	{
+		IMeshBuffer* buffer = mesh->getMeshBuffer(b);
+		const u32 idxcnt = buffer->getIndexCount();
+		u16* idx = buffer->getIndices();
+		s32 tmp;
+
+		for (u32 i=0; i<idxcnt; i+=3)
+		{
+			tmp = idx[i+1];
+			idx[i+1] = idx[i+2];
+			idx[i+2] = tmp;
+		}
+		const u32 vertcnt = buffer->getVertexCount();
+		for (u32 i=0; i<vertcnt; i++)
+		{
+			core::vector3df oldnorm = buffer->getNormal(i);
+			buffer->getNormal(i).X = -oldnorm.X; //mirrors normal on X 
+		}
+	}
+}
+
 
 	void _recursePopulateIrrlicht( 
 							std::vector< chrono::ChSharedPtr<chrono::ChAsset> >& assetlist, 
@@ -304,8 +332,17 @@ public:
 				irr::scene::IAnimatedMesh* genericMesh = this->scenemanager->getMesh(myobj->GetFilename().c_str());
 				if (genericMesh)
 				{
-					irr::scene::ISceneNode* mchildnode = this->scenemanager->addAnimatedMeshSceneNode(genericMesh,mnode);
-					mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
+					irr::scene::IAnimatedMeshSceneNode* mchildnode = this->scenemanager->addAnimatedMeshSceneNode(genericMesh,mnode);
+					mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, false);
+
+					mchildnode->setScale(irr::core::vector3df(-1,1,1)); // because of Irrlicht being left handed!!!
+					mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false); // because of Irrlicht being left handed!!!
+					//mflipSurfacesOnX(mchildnode->getMesh()); // this wold be better than disabling back culling, but it does not work!
+
+					// Xeffects for shadow maps!
+					this->minterface->GetEffects()->addShadowToNode(mchildnode);
+					//for(u32 i = 0;i < mchildnode->getMaterialCount();++i)
+					//	mchildnode->getMaterial(i).Lighting = false;
 				}
 			}
 			if ( k_asset.IsType<chrono::ChSphereShape>() && sphereMesh)
@@ -373,10 +410,10 @@ public:
 
 				std::vector< ChSharedPtr<ChAsset> >& subassetlist = mylevel->GetAssets();
 				ChFrame<> subassetframe = mylevel->GetFrame();
-				irr::scene::ISceneNode* mchildnode = scenemanager->addEmptySceneNode(mnode);
+				irr::scene::ISceneNode* subassetnode = scenemanager->addEmptySceneNode(mnode);
 	
 				// recurse level...
-				_recursePopulateIrrlicht(subassetlist, subassetframe, mchildnode);
+				_recursePopulateIrrlicht(subassetlist, subassetframe, subassetnode);
 			}
 
 		} // end loop on assets

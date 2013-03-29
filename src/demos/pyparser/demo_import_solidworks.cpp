@@ -45,6 +45,11 @@ int main(int argc, char* argv[])
 	// Create a Chrono::Engine physical system
 	ChSystem mphysicalSystem;
 
+	// Set the collision margins. This is expecially important for 
+	// very large or very small objects! Do this before creating shapes.
+	chrono::ChCollisionModel::SetDefaultSuggestedEnvelope(0.005);
+	chrono::ChCollisionModel::SetDefaultSuggestedMargin(0.005);
+
 
 	// 
 	// LOAD THE SYSTEM
@@ -60,21 +65,22 @@ int main(int argc, char* argv[])
 		// This is the instruction that loads the .py (as saved from SolidWorks) and 
 		// fills the system:
 
-		my_python.ImportSolidWorksSystem("../data/solid_works/test6", mphysicalSystem);  // note, don't type the .py suffic in filename..
+		my_python.ImportSolidWorksSystem("../data/solid_works/collisions", mphysicalSystem);  // note, don't type the .py suffic in filename..
 
-		GetLog()<< "SYSTEM ITEMS: \n";
-		mphysicalSystem.ShowHierarchy( GetLog()); 
 	}
 	catch (ChException myerror)
 	{
 		GetLog() << myerror.what();
 	}
 
+
 	// From this point, your ChSystem has been populated with objects and
 	// assets load from the .py files. So you can proceed and fetch 
 	// single items, modify them, or add constraints between them, etc.
 	// For example you can add other bodies, etc.
 
+	GetLog()<< "SYSTEM ITEMS: \n";
+	mphysicalSystem.ShowHierarchy( GetLog()); 
 
 
 	// 
@@ -95,8 +101,11 @@ int main(int argc, char* argv[])
 			// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
 	application.AddTypicalLogo();
 	application.AddTypicalSky();
-	application.AddTypicalLights();
-	application.AddTypicalCamera(core::vector3df(0,4,-6));
+	application.AddTypicalCamera(vector3df(0,2.5,-2.5));
+	//application.AddTypicalLights();
+	application.AddLightWithShadow(vector3df(-5,5,0), vector3df(0,0,0), 20, 1,10, 30);
+	//application.AddLightWithShadow(vector3df(3,3,3), vector3df(0,0,0), 12, 1,6, 30);
+	application.AddLight(vector3df(3,3,3), 12,SColorf(0.5,1,1));//, vector3df(0,0,0), 12, 1,6, 30);
 
 			// ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
 			// in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
@@ -117,7 +126,7 @@ int main(int argc, char* argv[])
 	//
 
 	application.SetStepManage(true);
-	application.SetTimestep(0.01);
+	application.SetTimestep(0.002);
 	application.SetTryRealtime(true);
 
 	while(application.GetDevice()->run()) 

@@ -32,6 +32,7 @@
 #include "collision/ChCModelBulletBody.h"
 #include "core/ChRealtimeStep.h"
 
+#include "ChIrrEffects.h"
 
 namespace irr
 {
@@ -255,7 +256,7 @@ public:
 
 
 			/// Create the IRRLICHT context (device, etc.)
-		ChIrrAppInterface(chrono::ChSystem* psystem,//chrono::ChSharedPtr<chrono::ChSystem> shsystem, 
+		ChIrrAppInterface(chrono::ChSystem* psystem, 
 						const wchar_t* title =0, 
 						core::dimension2d<u32> dimens = core::dimension2d<u32>(640,480),
 						bool do_fullscreen = false,
@@ -284,6 +285,11 @@ public:
 				device = createDevice(video::EDT_OPENGL, dimens,32,do_fullscreen,do_shadows);
 				if (!device) return;
 			}
+
+			// Xeffects for shadow maps!
+			effect = new EffectHandler(device, device->getVideoDriver()->getScreenSize(), true, true);
+			effect->setAmbientColor(SColor(255, 122, 122, 122));
+			
 
 			if (title)
 				device->setWindowCaption(title);
@@ -424,9 +430,11 @@ public:
 	video::IVideoDriver*	GetVideoDriver() {return device->getVideoDriver();}
 	scene::ISceneManager*	GetSceneManager() {return device->getSceneManager();}
 	gui::IGUIEnvironment*	GetIGUIEnvironment() {return device->getGUIEnvironment();}
+	EffectHandler*			GetEffects() {return effect;}
 	scene::ISceneNode*		GetContainer() {return this->container;};
 	//chrono::ChSharedPtr<chrono::ChSystem>	GetSystem()  {return system;};
 	chrono::ChSystem*		GetSystem()  {return system;};
+
 
 				/// Show the info panel in the 3D view
 	void SetShowInfos(bool val) {show_infos= val;}		
@@ -614,6 +622,10 @@ public:
 				this->gad_timestep->setEnabled(this->GetStepManage());
 			}
  
+			// Xeffects for shadow maps!
+			effect->update();
+
+
 			//if(show_infos)
 			GetIGUIEnvironment()->drawAll();
 		}
@@ -623,6 +635,8 @@ public:
 			/// frame
 	void EndScene()
 		{
+				
+
 			this->GetVideoDriver()->endScene();
 		}
 
@@ -710,12 +724,28 @@ public:
 		ChIrrWizard::add_typical_Sky(this->GetDevice(), mtexturedir);
 	}
 
+	irr::scene::ILightSceneNode* AddLight(core::vector3df pos, double radius, video::SColorf color = video::SColorf(0.7f,0.7f,0.7f,1.0f))
+	{	
+		irr::scene::ILightSceneNode* mlight = device->getSceneManager()->addLightSceneNode( 0,pos, color, (f32)radius);
+		return mlight;
+	}
+
+	irr::scene::ILightSceneNode* AddLightWithShadow(core::vector3df pos, core::vector3df aim, double radius, double mnear, double mfar, double angle, irr::u32 resolution=512, video::SColorf color = video::SColorf(1.f,1.f,1.f,1.f))
+	{	
+		irr::scene::ILightSceneNode* mlight =  device->getSceneManager()->addLightSceneNode( 0,pos, color, (f32)radius);
+		effect->addShadowLight(SShadowLight(resolution, pos, aim, color, (irr::f32)mnear , (irr::f32)mfar, ((irr::f32)angle * DEGTORAD)));
+		return mlight;
+	}
 
 
 private:
+		// The Irrlicht engine:
 	IrrlichtDevice* device;
-		
-	//chrono::ChSharedPtr<chrono::ChSystem> system;
+
+		// Xeffects for shadow maps!
+	EffectHandler* effect; 
+
+		// The Chrono::Engine system:
 	chrono::ChSystem* system;
 
 	ChIrrAppEventReceiver* receiver;

@@ -275,8 +275,8 @@ public:
 	static int drawAllBoundingBoxes(chrono::ChSystem& mphysicalSystem, 
 							video::IVideoDriver* driver)
 	{ 
-			if (mphysicalSystem.GetNbodiesTotal()==0)
-				return 0;
+			//if (mphysicalSystem.GetNbodiesTotal()==0)
+			//	return 0;
 
 			driver->setTransform(video::ETS_WORLD, core::matrix4());
 			video::SMaterial mattransp;
@@ -284,48 +284,53 @@ public:
 			mattransp.Lighting=false;
 			driver->setMaterial(mattransp);
 
-			chrono::ChSystem::IteratorBodies myiter = mphysicalSystem.IterBeginBodies();
-			while (myiter != mphysicalSystem.IterEndBodies())
+			chrono::ChSystem::IteratorPhysicsItems myiter = mphysicalSystem.IterBeginPhysicsItems();
+			while (myiter.HasItem())
 			{
-				video::SColor mcol;
-				if ((*myiter)->GetSleeping()) 
-					mcol=video::SColor(70,0,50,255);  // blue: sleeping
-				else
-					mcol=video::SColor(70,30,200,200);  // cyan: not sleeping
-				chrono::ChVector<> hi = chrono::VNULL;
-				chrono::ChVector<> lo = chrono::VNULL;
-				(*myiter)->GetTotalAABB(lo,hi);
-				chrono::ChVector<> p1(hi.x,lo.y,lo.z);
-				chrono::ChVector<> p2(lo.x,hi.y,lo.z);
-				chrono::ChVector<> p3 (lo.x,lo.y,hi.z);
-				chrono::ChVector<> p4 (hi.x,hi.y,lo.z);
-				chrono::ChVector<> p5 (lo.x,hi.y,hi.z);
-				chrono::ChVector<> p6 (hi.x,lo.y,hi.z);
-				chrono::ChVector<> p7 (lo.x,lo.y,hi.z);
-				chrono::ChVector<> p8 (lo.x,lo.y,hi.z);
-				chrono::ChVector<> p9 (lo.x,hi.y,lo.z);
-				chrono::ChVector<> p10(lo.x,hi.y,lo.z);
-				chrono::ChVector<> p11(hi.x,lo.y,lo.z);
-				chrono::ChVector<> p12(hi.x,lo.y,lo.z);
-				chrono::ChVector<> p14(hi.x,lo.y,hi.z);
-				chrono::ChVector<> p15(lo.x,hi.y,hi.z);
-				chrono::ChVector<> p16(lo.x,hi.y,hi.z);
-				chrono::ChVector<> p17(hi.x,hi.y,lo.z);
-				chrono::ChVector<> p18(hi.x,lo.y,hi.z);
-				chrono::ChVector<> p19(hi.x,hi.y,lo.z);
-				driver->draw3DLine(core::vector3dfCH(lo), core::vector3dfCH(p1), mcol );
-				driver->draw3DLine(core::vector3dfCH(lo), core::vector3dfCH(p2), mcol );
-				driver->draw3DLine(core::vector3dfCH(lo), core::vector3dfCH(p3), mcol );
-				driver->draw3DLine(core::vector3dfCH(hi), core::vector3dfCH(p4), mcol );
-				driver->draw3DLine(core::vector3dfCH(hi), core::vector3dfCH(p5), mcol );
-				driver->draw3DLine(core::vector3dfCH(hi), core::vector3dfCH(p6), mcol );
-				driver->draw3DLine(core::vector3dfCH(p7), core::vector3dfCH(p14), mcol );
-				driver->draw3DLine(core::vector3dfCH(p8), core::vector3dfCH(p15), mcol );
-				driver->draw3DLine(core::vector3dfCH(p9), core::vector3dfCH(p16), mcol );
-				driver->draw3DLine(core::vector3dfCH(p10), core::vector3dfCH(p17), mcol );
-				driver->draw3DLine(core::vector3dfCH(p11), core::vector3dfCH(p18), mcol );
-				driver->draw3DLine(core::vector3dfCH(p12), core::vector3dfCH(p19), mcol );
-				
+				if ((*myiter).IsType<chrono::ChBody>()) //item is inherited from ChBody?
+				{
+					chrono::ChSharedPtr<chrono::ChBody> abody (*myiter);
+
+					video::SColor mcol;
+					if (abody->GetSleeping()) 
+						mcol=video::SColor(70,0,50,255);  // blue: sleeping
+					else
+						mcol=video::SColor(70,30,200,200);  // cyan: not sleeping
+					chrono::ChVector<> hi = chrono::VNULL;
+					chrono::ChVector<> lo = chrono::VNULL;
+					abody->GetTotalAABB(lo,hi);
+					chrono::ChVector<> p1(hi.x,lo.y,lo.z);
+					chrono::ChVector<> p2(lo.x,hi.y,lo.z);
+					chrono::ChVector<> p3 (lo.x,lo.y,hi.z);
+					chrono::ChVector<> p4 (hi.x,hi.y,lo.z);
+					chrono::ChVector<> p5 (lo.x,hi.y,hi.z);
+					chrono::ChVector<> p6 (hi.x,lo.y,hi.z);
+					chrono::ChVector<> p7 (lo.x,lo.y,hi.z);
+					chrono::ChVector<> p8 (lo.x,lo.y,hi.z);
+					chrono::ChVector<> p9 (lo.x,hi.y,lo.z);
+					chrono::ChVector<> p10(lo.x,hi.y,lo.z);
+					chrono::ChVector<> p11(hi.x,lo.y,lo.z);
+					chrono::ChVector<> p12(hi.x,lo.y,lo.z);
+					chrono::ChVector<> p14(hi.x,lo.y,hi.z);
+					chrono::ChVector<> p15(lo.x,hi.y,hi.z);
+					chrono::ChVector<> p16(lo.x,hi.y,hi.z);
+					chrono::ChVector<> p17(hi.x,hi.y,lo.z);
+					chrono::ChVector<> p18(hi.x,lo.y,hi.z);
+					chrono::ChVector<> p19(hi.x,hi.y,lo.z);
+					driver->draw3DLine(core::vector3dfCH(lo), core::vector3dfCH(p1), mcol );
+					driver->draw3DLine(core::vector3dfCH(lo), core::vector3dfCH(p2), mcol );
+					driver->draw3DLine(core::vector3dfCH(lo), core::vector3dfCH(p3), mcol );
+					driver->draw3DLine(core::vector3dfCH(hi), core::vector3dfCH(p4), mcol );
+					driver->draw3DLine(core::vector3dfCH(hi), core::vector3dfCH(p5), mcol );
+					driver->draw3DLine(core::vector3dfCH(hi), core::vector3dfCH(p6), mcol );
+					driver->draw3DLine(core::vector3dfCH(p7), core::vector3dfCH(p14), mcol );
+					driver->draw3DLine(core::vector3dfCH(p8), core::vector3dfCH(p15), mcol );
+					driver->draw3DLine(core::vector3dfCH(p9), core::vector3dfCH(p16), mcol );
+					driver->draw3DLine(core::vector3dfCH(p10), core::vector3dfCH(p17), mcol );
+					driver->draw3DLine(core::vector3dfCH(p11), core::vector3dfCH(p18), mcol );
+					driver->draw3DLine(core::vector3dfCH(p12), core::vector3dfCH(p19), mcol );
+				}
+
 				++myiter;
 			}
 			return 0;
@@ -339,46 +344,48 @@ public:
 							video::IVideoDriver* driver,
 							double scale =0.01)
 	{ 
-			if (mphysicalSystem.GetNbodiesTotal()==0)
-				return 0;
-
 			driver->setTransform(video::ETS_WORLD, core::matrix4());
 			video::SMaterial mattransp;
 			mattransp.ZBuffer= true;
 			mattransp.Lighting=false;
 			driver->setMaterial(mattransp);
 
-			chrono::ChSystem::IteratorBodies myiter = mphysicalSystem.IterBeginBodies();
-			while (myiter != mphysicalSystem.IterEndBodies())
+			chrono::ChSystem::IteratorPhysicsItems myiter = mphysicalSystem.IterBeginPhysicsItems();
+			while (myiter.HasItem())
 			{
-				video::SColor mcol;
-				chrono::ChFrame<>* mframe_cog = &((*myiter)->GetFrame_COG_to_abs());
-				chrono::ChFrame<>* mframe_ref = &((*myiter)->GetFrame_REF_to_abs());
-				
-				chrono::ChVector<> p0 = mframe_cog->GetPos();
-				chrono::ChVector<> px = p0 + mframe_cog->GetA()->Get_A_Xaxis()*0.5;//*scale;
-				chrono::ChVector<> py = p0 + mframe_cog->GetA()->Get_A_Yaxis()*0.5;//*scale;
-				chrono::ChVector<> pz = p0 + mframe_cog->GetA()->Get_A_Zaxis()*0.5;//*scale;
+				if ((*myiter).IsType<chrono::ChBody>()) //item is inherited from ChBody?
+				{
+					chrono::ChSharedPtr<chrono::ChBody> abody (*myiter);
 
-				mcol=video::SColor(70,125,0,0);  // X red
-				driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(px), mcol );
-				mcol=video::SColor(70,0,125,0);  // Y green
-				driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(py), mcol );
-				mcol=video::SColor(70,0,0,125);  // Z blue
-				driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(pz), mcol );
+					video::SColor mcol;
+					chrono::ChFrame<>* mframe_cog = &(abody->GetFrame_COG_to_abs());
+					chrono::ChFrame<>* mframe_ref = &(abody->GetFrame_REF_to_abs());
+					
+					chrono::ChVector<> p0 = mframe_cog->GetPos();
+					chrono::ChVector<> px = p0 + mframe_cog->GetA()->Get_A_Xaxis()*0.5;//*scale;
+					chrono::ChVector<> py = p0 + mframe_cog->GetA()->Get_A_Yaxis()*0.5;//*scale;
+					chrono::ChVector<> pz = p0 + mframe_cog->GetA()->Get_A_Zaxis()*0.5;//*scale;
 
-				p0 = mframe_ref->GetPos();
-				px = p0 + mframe_ref->GetA()->Get_A_Xaxis();//*scale;
-				py = p0 + mframe_ref->GetA()->Get_A_Yaxis();//*scale;
-				pz = p0 + mframe_ref->GetA()->Get_A_Zaxis();//*scale;
+					mcol=video::SColor(70,125,0,0);  // X red
+					driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(px), mcol );
+					mcol=video::SColor(70,0,125,0);  // Y green
+					driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(py), mcol );
+					mcol=video::SColor(70,0,0,125);  // Z blue
+					driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(pz), mcol );
 
-				mcol=video::SColor(70,255,0,0);  // X red
-				driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(px), mcol );
-				mcol=video::SColor(70,0,255,0);  // Y green
-				driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(py), mcol );
-				mcol=video::SColor(70,0,0,255);  // Z blue
-				driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(pz), mcol );
-				
+					p0 = mframe_ref->GetPos();
+					px = p0 + mframe_ref->GetA()->Get_A_Xaxis();//*scale;
+					py = p0 + mframe_ref->GetA()->Get_A_Yaxis();//*scale;
+					pz = p0 + mframe_ref->GetA()->Get_A_Zaxis();//*scale;
+
+					mcol=video::SColor(70,255,0,0);  // X red
+					driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(px), mcol );
+					mcol=video::SColor(70,0,255,0);  // Y green
+					driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(py), mcol );
+					mcol=video::SColor(70,0,0,255);  // Z blue
+					driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(pz), mcol );
+				}
+
 				++myiter;
 			}
 			return 0;

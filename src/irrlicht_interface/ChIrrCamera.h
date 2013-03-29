@@ -303,7 +303,7 @@ void RTSCamera::OnRegisterSceneNode()
       if ((dp > -1.0001f && dp < -0.9999f) || (dp < 1.0001f && dp > 0.9999f)) 
          up.X += 1.0f; 
 
-      View.buildCameraLookAtMatrixLH(pos,Target,up); 
+      View.buildCameraLookAtMatrixLH(pos,Target,up);  // Right hand camera: use "..RH" here and in the following 
       recalculateViewArea(); 
 
       SceneManager->registerNodeForRendering(this,ESNRP_CAMERA); 
@@ -479,7 +479,7 @@ void RTSCamera::setMaxZoom(f32 amount)
 
 void RTSCamera::recalculateProjectionMatrix() 
 { 
-   Projection.buildProjectionMatrixPerspectiveFovLH(Fovy,Aspect,ZNear,ZFar); 
+   Projection.buildProjectionMatrixPerspectiveFovLH(Fovy,Aspect,ZNear,ZFar);   // Right hand camera: use "..RH" here and in the following
 } 
 
 void RTSCamera::recalculateViewArea() 
