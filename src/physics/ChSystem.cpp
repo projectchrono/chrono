@@ -3330,6 +3330,174 @@ ChSystem::IteratorOtherPhysicsItems ChSystem::IterEndOtherPhysicsItems() {return
 
 
 
+//////////////////////////////////////////////////////////////////
+
+
+ChSystem::IteratorPhysicsItems::IteratorPhysicsItems(ChSystem* msys) 
+{
+	this->msystem = msys;
+	//RewindToBegin();
+	node_body   = msystem->Get_bodylist()->begin();
+	node_link	  = msystem->Get_linklist()->begin();
+	node_otherphysics	 = msystem->Get_otherphysicslist()->begin();
+	stage = 0;
+    mptr = 0;
+	this->operator++(); // initialize with 1st available item
+}
+ChSystem::IteratorPhysicsItems::IteratorPhysicsItems()
+{
+	this->msystem = 0;
+	this->mptr    = 0;
+	this->stage   = 9999;  
+}
+
+//~ChSystem::IteratorPhysicsItems::IteratorPhysicsItems() {}
+/*
+void ChSystem::IteratorPhysicsItems::RewindToBegin()
+{
+  node_body   = msystem->Get_bodylist()->begin();
+  node_link	  = msystem->Get_linklist()->begin();
+  node_otherphysics	 = msystem->Get_otherphysicslist()->begin();
+  stage = 0;
+  mptr = 0;
+  this->operator++(); // initialize with 1st available item
+}
+
+bool ChSystem::IteratorPhysicsItems::ReachedEnd()
+{
+  if (stage == 9999)
+	  return true;
+  return false;
+}
+*/
+bool ChSystem::IteratorPhysicsItems::HasItem()
+{
+  if (mptr)
+	  return true;
+  return false;
+}
+
+ChSystem::IteratorPhysicsItems& ChSystem::IteratorPhysicsItems::operator=(const ChSystem::IteratorPhysicsItems& other)
+{
+  msystem			= other.msystem;
+  node_body			= other.node_body;
+  node_link			= other.node_link;
+  node_otherphysics	= other.node_otherphysics;
+  stage				= other.stage;
+  mptr				= other.mptr;
+  return(*this);
+}
+
+bool ChSystem::IteratorPhysicsItems::operator==(const ChSystem::IteratorPhysicsItems& other)
+{
+	return ( (mptr == other.mptr) && 
+		     (stage == other.stage) &&
+			 (msystem == other.msystem) ); //...***TO ChECK***
+}
+
+bool ChSystem::IteratorPhysicsItems::operator!=(const ChSystem::IteratorPhysicsItems& other)
+{
+	return!( this->operator==(other)); //...***TO ChECK***
+}
+
+ChSystem::IteratorPhysicsItems& ChSystem::IteratorPhysicsItems::operator++()
+{
+  switch (stage)
+  {
+	case 1:
+	{
+		node_body++; // try next body
+		if (node_body != msystem->Get_bodylist()->end())
+		{
+			mptr = (*node_body); 
+			return (*this);
+		} 
+		break;
+	}
+	case 2:
+	{
+		node_link++; // try next link
+		if (node_link != msystem->Get_linklist()->end())
+		{
+			mptr = (*node_link); 
+			return (*this);
+		}
+		break;
+	}
+	case 3:
+	{
+		node_otherphysics++; // try next otherphysics
+		if (node_otherphysics != msystem->Get_otherphysicslist()->end())
+		{
+			mptr = (*node_otherphysics); 
+			return (*this);
+		}
+		break;
+	}
+	default:
+		break;
+  }
+  // Something went wrong, some list was at the end, so jump to beginning of next list
+  do
+  {
+	  switch(stage)
+	  {
+	  case 0:
+		  {
+				  stage = 1;
+				  if (node_body != msystem->Get_bodylist()->end())
+				  {
+					  mptr = (*node_body); 
+					  return (*this);
+				  } 
+				  break;
+		  }
+	  case 1:
+		  {
+				  stage = 2;
+				  if (node_link != msystem->Get_linklist()->end())
+				  {
+					  mptr = (*node_link); 
+					  return (*this);
+				  } 
+				  break;
+		  }
+	  case 2:
+		  {
+				  stage = 3;
+				  if (node_otherphysics != msystem->Get_otherphysicslist()->end())
+				  {
+					  mptr = (*node_otherphysics); 
+					  return (*this);
+				  } 
+				  break;
+		  }
+	  case 3:
+		  {
+				  stage = 4;
+				  mptr = msystem->GetContactContainer(); 
+				  return (*this);
+		  }
+	  case 4:
+		  {
+				  stage = 9999;
+				  mptr = 0; 
+				  return (*this);
+		  }
+	  } // end cases
+  } while (true);
+
+ return(*this);
+}
+
+ChSharedPtr<ChPhysicsItem> ChSystem::IteratorPhysicsItems::operator*()
+{
+	mptr->AddRef(); // needed because ...
+	return (ChSharedPtr<ChPhysicsItem>(mptr));  // .. here I am not getting a new() data, but a reference to something created elsewhere
+}
+ChSystem::IteratorPhysicsItems ChSystem::IterBeginPhysicsItems() {return (IteratorPhysicsItems(this));};
+ChSystem::IteratorPhysicsItems ChSystem::IterEndPhysicsItems() {return (IteratorPhysicsItems());};
+
 
 
 

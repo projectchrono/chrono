@@ -487,7 +487,7 @@ public:
       IteratorBodies& operator++();
       ChSharedPtr<ChBody> operator*();
 	  IteratorBodies(){};
-	   private:
+	 private:
 	    std::vector<ChBody*>::iterator node_;
     };
 				/// Get a ChBody iterator, initialized at the beginning of body list
@@ -506,7 +506,7 @@ public:
       IteratorLinks& operator++();
       ChSharedPtr<ChLink> operator*();
 	  IteratorLinks(){};
-	   private:
+	 private:
 	    std::list<ChLink*>::iterator node_;
     };
 				/// Get a ChLink iterator, initialized at the beginning of link list
@@ -525,13 +525,42 @@ public:
       IteratorOtherPhysicsItems& operator++();
       ChSharedPtr<ChPhysicsItem> operator*();
 	  IteratorOtherPhysicsItems(){};
-	   private:
+	 private:
 	    std::list<ChPhysicsItem*>::iterator node_;
     };
 				/// Get a ChPhysics iterator, initialized at the beginning of additional ChPhysicsItems
 	IteratorOtherPhysicsItems IterBeginOtherPhysicsItems();
 	IteratorOtherPhysicsItems IterEndOtherPhysicsItems();
 
+				/// Iterator to scan through ALL physics items (bodies,
+				/// links, 'other' physics items, contact container)
+				/// Note, for performance reasons, if you know in advance that you
+				/// are going to scan only ChBody items, the IteratorBodies is faster,
+				/// and the same for IteratorLinks; so use IteratorPhysicsItems for generic cases.
+	class ChApi IteratorPhysicsItems
+	{
+     public:
+      IteratorPhysicsItems(ChSystem* msys);
+	  IteratorPhysicsItems();
+      IteratorPhysicsItems& operator=(const IteratorPhysicsItems& other);
+	  bool operator==(const IteratorPhysicsItems& other); 
+	  bool operator!=(const IteratorPhysicsItems& other); 
+	  IteratorPhysicsItems& operator++();
+	  ChSharedPtr<ChPhysicsItem> operator*();
+	  //void RewindToBegin();
+	  //bool ReachedEnd();
+	  bool HasItem();
+	 private:
+	   std::vector<ChBody*>::iterator node_body;
+	   std::list<ChLink*>::iterator node_link;
+	   std::list<ChPhysicsItem*>::iterator node_otherphysics;
+	   int stage;
+	   ChPhysicsItem* mptr;
+	   ChSystem* msystem;
+    };
+				/// Get a ChPhysics iterator
+	IteratorPhysicsItems IterBeginPhysicsItems();
+	IteratorPhysicsItems IterEndPhysicsItems();
 
 				/// Gets the list of children bodies -low level function-.
 				/// NOTE! use this list only to enumerate etc., but NOT to

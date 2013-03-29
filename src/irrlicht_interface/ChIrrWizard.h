@@ -138,7 +138,7 @@ public:
 			camera->setPosition(mpos);
 			camera->setTarget(mtarg);
 
-			camera->setNearValue(0.3f);
+			camera->setNearValue(0.1f);
 			camera->setMinZoom(0.6f);
 	}
 
