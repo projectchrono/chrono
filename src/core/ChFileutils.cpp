@@ -14,6 +14,14 @@
 #include <stdio.h>
 #include "core/ChFileutils.h"
 
+#if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
+	#include <direct.h>
+#else
+	#include <sys/types.h>
+	#include <sys/stat.h>
+#endif
+
+
 namespace chrono
 {
 
@@ -87,6 +95,21 @@ int ChFileutils::Get_file_size (char fname[])
   }
   fclose (fp);
   return m;
+}
+
+
+bool ChFileutils::MakeDirectory (char dirname[])
+{
+	#if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
+		int res = _mkdir(dirname);   // Windows
+	#else 
+		int res = mkdir(dirname, 0777); // Linux
+	#endif
+	
+		if (res ==0)
+			return true;
+		else
+			return false;
 }
 
 

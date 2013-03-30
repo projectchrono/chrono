@@ -40,6 +40,9 @@ public:
 
 			/// Get file size.
 	static int Get_file_size (char fname[]);
+	
+			/// Create a directory (return true if successful)
+	static bool MakeDirectory (char dirname[]);
 
 };
 

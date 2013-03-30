@@ -102,10 +102,9 @@ int main(int argc, char* argv[])
 	application.AddTypicalLogo();
 	application.AddTypicalSky();
 	application.AddTypicalCamera(vector3df(0,2.5,-2.5));
-	//application.AddTypicalLights();
 	application.AddLightWithShadow(vector3df(-5,5,0), vector3df(0,0,0), 20, 1,10, 30);
-	//application.AddLightWithShadow(vector3df(3,3,3), vector3df(0,0,0), 12, 1,6, 30);
 	application.AddLight(vector3df(3,3,3), 12,SColorf(0.5,1,1));//, vector3df(0,0,0), 12, 1,6, 30);
+
 
 			// ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
 			// in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.

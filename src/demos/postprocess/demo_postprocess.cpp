@@ -28,6 +28,7 @@
 #include "assets/ChTexture.h"
 #include "assets/ChAssetLevel.h"
 #include "unit_POSTPROCESS/ChPovRay.h" 
+#include "core/ChFileutils.h"
 
 
 // Use the namespace of Chrono
@@ -133,7 +134,7 @@ int main(int argc, char* argv[])
 				// ==Asset== Attach, in this level, a 'Wavefront mesh' asset, 
 				// referencing a .obj file:
 	ChSharedPtr<ChObjShapeFile> mobjmesh(new ChObjShapeFile);
-	mobjmesh->SetFilename("../data/forklift_body.obj");
+	mobjmesh->SetFilename("../data/forklift_body.obj"); 
 	mlevelA->AddAsset(mobjmesh);
 
 				// ==Asset== Attach also a texture, that will affect only the 
@@ -228,16 +229,16 @@ int main(int argc, char* argv[])
 	pov_exporter.SetOutputScriptFile    ("rendering_frames.pov");
 	pov_exporter.SetOutputDataFilebase  ("my_state");
 	pov_exporter.SetPictureFilebase     ("picture");
-			
+		
 			// Even better: save the .dat files and the .bmp files
 			// in two subdirectories, to avoid cluttering the current
 			// directory...
-	//if not os.path.exists("output"):
-	//	os.mkdir("output")
-	//if not os.path.exists("anim"):
-	//	os.mkdir("anim")
+	ChFileutils::MakeDirectory("output");
+	ChFileutils::MakeDirectory("anim");
+
 	pov_exporter.SetOutputDataFilebase("output/my_state");
 	pov_exporter.SetPictureFilebase("anim/picture");
+
 
 			// IMPORTANT! Tell to the POVray exporter that 
 			// he must take care of converting the shapes of
@@ -261,7 +262,6 @@ int main(int argc, char* argv[])
 	//    only once at the beginning of the simulation).
 
 	pov_exporter.ExportScript();
-
 
 	while (mphysicalSystem.GetChTime() < 1.5) 
 	{
