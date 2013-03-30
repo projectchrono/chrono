@@ -724,12 +724,18 @@ public:
 		ChIrrWizard::add_typical_Sky(this->GetDevice(), mtexturedir);
 	}
 
+			/// Add a point light to the scene
 	irr::scene::ILightSceneNode* AddLight(core::vector3df pos, double radius, video::SColorf color = video::SColorf(0.7f,0.7f,0.7f,1.0f))
 	{	
 		irr::scene::ILightSceneNode* mlight = device->getSceneManager()->addLightSceneNode( 0,pos, color, (f32)radius);
 		return mlight;
 	}
 
+			/// Add a point light that cast shadow (using soft shadows/shadow maps)
+			/// Note that the quality of the shadow strictly depends on how you set 'mnear' and
+			/// 'mfar' parameters as close as possible to the bounding box of the scene. 
+			/// NOTE: use myapplication.AddShadow(myitem) to enable shadow for an object! Otherwise,
+			/// use myapplication.AddShadowAll().
 	irr::scene::ILightSceneNode* AddLightWithShadow(core::vector3df pos, core::vector3df aim, double radius, double mnear, double mfar, double angle, irr::u32 resolution=512, video::SColorf color = video::SColorf(1.f,1.f,1.f,1.f))
 	{	
 		irr::scene::ILightSceneNode* mlight =  device->getSceneManager()->addLightSceneNode( 0,pos, color, (f32)radius);

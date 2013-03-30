@@ -100,24 +100,35 @@ public:
 			cylinderMesh->drop();
 	}
 
+
+		/// Returns the proxy to the ChIrrNode, by scanning all assets.
+		/// Note, check for the returned pointer, using mnode.IsNull(), 
+		/// just in the case a proxy has not been added.
+	chrono::ChSharedPtr<chrono::ChIrrNodeAsset> GetIrrNodeAsset(chrono::ChSharedPtr<chrono::ChPhysicsItem> mitem)
+	{
+		chrono::ChSharedPtr<chrono::ChIrrNodeAsset> myirrasset; // default: IsNull() will return true
+		std::vector< chrono::ChSharedPtr<chrono::ChAsset> > assetlist = mitem->GetAssets();
+
+		for (unsigned int k = 0; k < assetlist.size(); k++)
+		{
+			chrono::ChSharedPtr<chrono::ChAsset> k_asset = assetlist[k];
+			// asset k of object i references a proxy to an irrlicht node?
+			if ( k_asset.IsType<chrono::ChIrrNodeAsset>() )
+			{
+				myirrasset = k_asset;
+			}
+		}
+		return myirrasset;
+	}
+
+
 		/// Shortcut to add and bind a ChIrrNodeAsset to an item, if
 		/// it has not been added previously.
 	void Bind(chrono::ChSharedPtr<chrono::ChPhysicsItem> mitem)
 	{
 		// find a ChIrrNodeAsset if there is already one...
 		chrono::ChSharedPtr<chrono::ChIrrNodeAsset> irrasset;
-		std::vector< chrono::ChSharedPtr<chrono::ChAsset> > assetlist = mitem->GetAssets();
-		for (unsigned int k = 0; k < assetlist.size(); k++)
-		{
-			chrono::ChSharedPtr<chrono::ChAsset> k_asset = assetlist[k];
-
-			// asset k of object i references a proxy to an irrlicht node?
-			if ( k_asset.IsType<chrono::ChIrrNodeAsset>() )
-			{
-				irrasset = k_asset;
-				irrasset->Bind(mitem, *minterface);
-			}
-		} 
+		irrasset = GetIrrNodeAsset(mitem);
 
 		if (irrasset.IsNull())
 		{
@@ -210,27 +221,17 @@ public:
 
 
 
-
-
 		/// Clean all Irrlicht stuff that has been put in the ChIrrNode
 		/// in a previous Update or PopulateIrrlicht operation. 
 	void CleanIrrlicht(chrono::ChSharedPtr<chrono::ChPhysicsItem> mitem)
 	{
-		// Scan assets in item and write the macro to set their position
-		std::vector< chrono::ChSharedPtr<chrono::ChAsset> > assetlist = mitem->GetAssets();
-	
-		for (unsigned int k = 0; k < assetlist.size(); k++)
+		chrono::ChSharedPtr<chrono::ChIrrNodeAsset> irrasset;
+		irrasset = GetIrrNodeAsset(mitem);
+
+		if (!irrasset.IsNull())
 		{
-			chrono::ChSharedPtr<chrono::ChAsset> k_asset = assetlist[k];
-
-			// asset k of object i references a proxy to an irrlicht node?
-			if ( k_asset.IsType<chrono::ChIrrNodeAsset>() )
-			{
-				chrono::ChSharedPtr<chrono::ChIrrNodeAsset> myirrasset(k_asset);
-				myirrasset->GetIrrlichtNode()->removeAll();
-			}
-
-		} // end loop on assets
+			irrasset->GetIrrlichtNode()->removeAll();
+		}
 	}
 
 	void PopulateIrrlicht(chrono::ChSharedPtr<chrono::ChPhysicsItem> mitem)
@@ -244,15 +245,7 @@ public:
 		this->CleanIrrlicht(mitem);
 
 		// 2- Find the ChIrrNodeAsset proxy
-		for (unsigned int k = 0; k < assetlist.size(); k++)
-		{
-			chrono::ChSharedPtr<chrono::ChAsset> k_asset = assetlist[k];
-			// asset k of object i references a proxy to an irrlicht node?
-			if ( k_asset.IsType<chrono::ChIrrNodeAsset>() )
-			{
-				myirrasset = k_asset;
-			}
-		} 
+		myirrasset = GetIrrNodeAsset(mitem);
 
 		if (myirrasset.IsNull())
 			return;
@@ -338,11 +331,6 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 					mchildnode->setScale(irr::core::vector3df(-1,1,1)); // because of Irrlicht being left handed!!!
 					mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false); // because of Irrlicht being left handed!!!
 					//mflipSurfacesOnX(mchildnode->getMesh()); // this wold be better than disabling back culling, but it does not work!
-
-					// Xeffects for shadow maps!
-					this->minterface->GetEffects()->addShadowToNode(mchildnode);
-					//for(u32 i = 0;i < mchildnode->getMaterialCount();++i)
-					//	mchildnode->getMaterial(i).Lighting = false;
 				}
 			}
 			if ( k_asset.IsType<chrono::ChSphereShape>() && sphereMesh)

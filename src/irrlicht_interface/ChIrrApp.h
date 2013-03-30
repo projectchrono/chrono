@@ -62,7 +62,7 @@ public:
 				delete mconverter;
 		}
 
-			/// Gets the asset converter
+		/// Gets the asset converter
 	irr::scene::ChIrrAssetConverter* GetAssetConverter() {return mconverter;}
 
 
@@ -110,6 +110,51 @@ public:
 	{
 		GetAssetConverter()->UpdateAll();
 	}
+
+
+
+
+		/// Shortcut to enable shadow maps for an item.
+		/// Shadow maps in Irrlicht may slow visualization a bit.
+		/// Also, one must remember to add shadow-enabled lights,
+		/// using myapp.AddLightWithShadow(..)
+	void AddShadow (chrono::ChSharedPtr<chrono::ChPhysicsItem> mitem)
+	{
+		chrono::ChSharedPtr<chrono::ChIrrNodeAsset> myirrasset;
+		myirrasset = GetAssetConverter()->GetIrrNodeAsset(mitem);
+		if (!myirrasset.IsNull())
+		{
+			_recurse_add_shadow(myirrasset->GetIrrlichtNode());
+		}
+	}
+
+		/// Shortcut to enable shadow maps for all items in scene.
+		/// Shadow maps in Irrlicht may slow visualization a bit.
+		/// Also, one must remember to add shadow-enabled lights,
+		/// using myapp.AddLightWithShadow(..)
+	void AddShadowAll ()
+	{
+		chrono::ChSystem::IteratorPhysicsItems miter = this->GetSystem()->IterBeginPhysicsItems();
+		while(miter.HasItem())
+		{
+			AddShadow(*miter);
+			++miter;
+		}
+	}
+
+private:
+	void _recurse_add_shadow(irr::scene::ISceneNode* mnode)
+	{
+		ISceneNodeList::ConstIterator it = mnode->getChildren().begin();
+		for (; it != mnode->getChildren().end(); ++it)
+		{
+			_recurse_add_shadow((*it));
+		}
+		// add shadow only to leaves
+		if (mnode->getChildren().getSize()==0)
+			this->GetEffects()->addShadowToNode(mnode);
+	}
+
 
 private:
 	irr::scene::ChIrrAssetConverter* mconverter;
