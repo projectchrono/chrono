@@ -7,6 +7,12 @@
 Release 1.7.0
 xx-xx-xxxx
 
+- The Irrlicht visualization system supports shadow maps.
+  You just have to use application.AddLightWithShadow(..)
+  instead than application.AddLight(..) or AddTypicalLights(..).
+  The performance is a bit slower, but much faster and better looking
+  than the previous system that used stencil shadows.
+
 - New unit_COSIMULATION. It introduces functionalities to allow
   a side-to-side simulation of Chrono::Engine and another
   simulation software, such as Simulink or Amesim. It uses 
@@ -71,6 +77,11 @@ xx-xx-xxxx
    body_belt = chrono.ChConveyorShared(conv_length,conv_thick,conv_width)
   whereas previously you could do only
    body_belt = chrono.ChConveyorShared() 
+
+- bug with the Wavefront .obj loader for the POVray postprocessing 
+  unit (it crashed randomly when non-triangle faces were found). Note
+  that only triangle faces are used, anyway.
+
 
 Release 1.6.0
 19-07-2012

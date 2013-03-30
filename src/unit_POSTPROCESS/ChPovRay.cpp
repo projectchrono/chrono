@@ -384,13 +384,11 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 			// Do dynamic casting of the shared pointer to see which type
 			// of asset is contained...
 
-
 			// *) asset k of object i references an .obj wavefront mesh?
 			if (k_asset.IsType<ChObjShapeFile>() )
 			{
 				ChSharedPtr<ChObjShapeFile> myobjshapeasset(k_asset);
 				ChTriangleMeshConnected mytrimesh;
-
 				try {
 					// Load from the .obj file and convert.
 					mytrimesh.LoadWavefrontMesh( myobjshapeasset->GetFilename(), true, true );
@@ -443,13 +441,11 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 						assets_file <<" }\n";
 					}
 
-					/*
-					assets_file <<" pigment {color rgbt <" << 
-						myobjshapeasset->GetColor().R << "," << 
-						myobjshapeasset->GetColor().G << "," << 
-						myobjshapeasset->GetColor().B << "," << 
-						myobjshapeasset->GetFading() << "> }\n";
-					*/
+					//assets_file <<" pigment {color rgbt <" << 
+					//	myobjshapeasset->GetColor().R << "," << 
+					//	myobjshapeasset->GetColor().G << "," << 
+					//	myobjshapeasset->GetColor().B << "," << 
+					//	myobjshapeasset->GetFading() << "> }\n";
 
 					assets_file <<"}\n";
 
@@ -611,7 +607,6 @@ void ChPovRay::ExportAssets()
 
 	for (unsigned int i = 0; i< this->mdata.size(); i++)
 	{
-
 		_recurseExportAssets(mdata[i]->GetAssets(), assets_file); 
 
 	} // end loop on objects
