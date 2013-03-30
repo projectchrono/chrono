@@ -118,7 +118,8 @@ int main(int argc, char* argv[])
 
 	application.AssetUpdateAll();
 
-
+			// This is to enable shadow maps (shadow casting with soft shadows) in Irrlicht.
+	application.AddShadowAll();
 
 	// 
 	// THE SIMULATION LOOP
