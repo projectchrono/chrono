@@ -442,6 +442,7 @@ void ChSolverGPU::Solve(GPUSOLVERTYPE solver_type, real step, gpu_container &gpu
 		ComputeImpulses();
 		gpu_data->device_vel_data += gpu_data->device_QXYZ_data;
 		gpu_data->device_omg_data += gpu_data->device_QUVW_data;
+
 		timer_solver.stop();
 		time_solver = timer_solver();
 	}

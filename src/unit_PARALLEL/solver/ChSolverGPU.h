@@ -93,7 +93,7 @@ namespace chrono {
 			custom_vector<int2> temp_bids;
 			custom_vector<real> AX, rhs, correction;
 			gpu_container *gpu_data;
-			ChTimer<double> timer_rhs, timer_shurcompliment, timer_project, timer_integrate, timer_solver;
+			ChTimer<double> timer_rhs, timer_shurcompliment, timer_project, timer_solver;
 
 		};
 

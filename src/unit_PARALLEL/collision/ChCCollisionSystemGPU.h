@@ -90,6 +90,9 @@ namespace chrono {
                 virtual bool RayHit(const ChVector<> &from, const ChVector<> &to, ChRayhitResult &mresult) {
                     return false;
                 }
+
+                vector<int2>  GetOverlappingPairs();
+
                 ChGPUDataManager *data_container;
                 ChCAABBGenerator aabb_generator;
                 ChCBroadphase broadphase;

@@ -120,7 +120,8 @@ void ChLcpSolverGPU::RunTimeStep(real step, gpu_container& gpu_data) {
 		jacobi_solver.lcp_omega_bilateral = lcp_omega_bilateral;
 		jacobi_solver.lcp_omega_contact = lcp_omega_contact;
 		jacobi_solver.Solve(step, gpu_data);
-		cout << jacobi_solver.GetIteration() << " " << jacobi_solver.GetResidual()<<endl;
+		current_iteration = jacobi_solver.GetIteration();
+		residual = jacobi_solver.GetResidual();
 
 	} else {
 		ChSolverGPU solver;
@@ -129,8 +130,9 @@ void ChLcpSolverGPU::RunTimeStep(real step, gpu_container& gpu_data) {
 		solver.SetComplianceParameters(alpha, compliance, complianceT);
 		solver.SetContactRecoverySpeed(-contact_recovery_speed);
 		solver.Solve(solver_type, step, gpu_data);
-		cout << solver.GetIteration() << " " << solver.GetResidual() << "\t[" << solver.time_rhs << "\t" << solver.time_shurcompliment << "\t" << solver.time_project << "\t" << solver.time_solver
-				<< "]" << endl;
+		current_iteration = solver.GetIteration();
+		residual = solver.GetResidual();
+
 	}
 
 	ChIntegratorGPU integrator;

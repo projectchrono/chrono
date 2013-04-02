@@ -88,6 +88,7 @@ namespace chrono {
             void HostToDeviceForces();
             void DeviceToHost();
             void HostToDeviceCD();
+            void DeviceToHostPairData();
             void CopyContacts(bool c) {
                 copyContacts = c;
             }

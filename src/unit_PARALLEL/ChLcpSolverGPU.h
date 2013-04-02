@@ -34,7 +34,6 @@ namespace chrono {
 				lcp_omega_contact = .3;
 				lcp_omega_bilateral = .3;
 
-
 				max_iteration = 1000;
 
 				solver_type = BLOCK_JACOBI;
@@ -55,7 +54,6 @@ namespace chrono {
 			void Preprocess(gpu_container &gpu_data);
 			void SetTolerance(real tol) {
 				tolerance = tol;
-
 			}
 			void SetCompliance(real c, real cT, real a) {
 				alpha = a;
@@ -78,6 +76,13 @@ namespace chrono {
 			void SetMaxIteration(uint max_iter) {
 				max_iteration = max_iter;
 			}
+
+			real GetResidual() {
+				return residual;
+			}
+			uint GetCurrentIteration() {
+				return current_iteration;
+			}
 		private:
 			real tolerance;
 			real compliance;
@@ -94,6 +99,10 @@ namespace chrono {
 			uint number_of_updates;
 			uint number_of_constraints;
 			uint max_iteration;
+
+			uint current_iteration;
+			real residual;
+
 			GPUSOLVERTYPE solver_type;
 
 			cudaEvent_t start, stop;

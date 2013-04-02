@@ -54,7 +54,6 @@ void ChIntegratorGPU::host_Integrate_Timestep_Semi_Implicit(bool* active, real3*
 void ChIntegratorGPU::IntegrateSemiImplicit(real step, gpu_container& gpu_data_) {
 	gpu_data = &gpu_data_;
 	step_size = step;
-
 	number_of_objects = gpu_data->number_of_objects;
 
 #ifdef SIM_ENABLE_GPU_MODE
