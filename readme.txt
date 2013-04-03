@@ -7,12 +7,6 @@
 Release 1.7.0
 xx-xx-xxxx
 
-- The Irrlicht visualization system supports shadow maps.
-  You just have to use application.AddLightWithShadow(..)
-  instead than application.AddLight(..) or AddTypicalLights(..).
-  The performance is a bit slower, but much faster and better looking
-  than the previous system that used stencil shadows.
-
 - New unit_COSIMULATION. It introduces functionalities to allow
   a side-to-side simulation of Chrono::Engine and another
   simulation software, such as Simulink or Amesim. It uses 
@@ -81,6 +75,16 @@ xx-xx-xxxx
 - bug with the Wavefront .obj loader for the POVray postprocessing 
   unit (it crashed randomly when non-triangle faces were found). Note
   that only triangle faces are used, anyway.
+
+- Experimental. The Irrlicht visualization system supports shadow maps.
+  You just have to use application.AddLightWithShadow(..)
+  instead than application.AddLight(..) or AddTypicalLights(..).
+  The performance is a bit slower, but much faster and better looking
+  than the previous system that used stencil shadows.
+  NOTE!!! This works fine with Irrlicht v.1.7, but in Irrlicht v.1.8
+  it does not work with default DirextX driver: you must use video::EDT_OPENGL
+  as argument when creating the ChIrrApp for OpenGL driver (and it works
+  with a single lamp only).
 
 
 Release 1.6.0

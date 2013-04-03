@@ -287,9 +287,9 @@ public:
 			}
 
 			// Xeffects for shadow maps!
-			effect = new EffectHandler(device, device->getVideoDriver()->getScreenSize(), true, true);
+			effect = new EffectHandler(device, device->getVideoDriver()->getScreenSize(), true, true, true);
 			effect->setAmbientColor(SColor(255, 122, 122, 122));
-			
+			this->use_effects = false; // will be true as sson as a lightwith shadow is added.
 
 			if (title)
 				device->setWindowCaption(title);
@@ -623,8 +623,10 @@ public:
 			}
  
 			// Xeffects for shadow maps!
-			effect->update();
-
+			if(this->use_effects) 
+				effect->update();
+			else
+				this->GetSceneManager()->drawAll();
 
 			//if(show_infos)
 			GetIGUIEnvironment()->drawAll();
@@ -740,6 +742,7 @@ public:
 	{	
 		irr::scene::ILightSceneNode* mlight =  device->getSceneManager()->addLightSceneNode( 0,pos, color, (f32)radius);
 		effect->addShadowLight(SShadowLight(resolution, pos, aim, color, (irr::f32)mnear , (irr::f32)mfar, ((irr::f32)angle * DEGTORAD)));
+		this->use_effects = true;
 		return mlight;
 	}
 
@@ -750,6 +753,7 @@ private:
 
 		// Xeffects for shadow maps!
 	EffectHandler* effect; 
+	bool use_effects;
 
 		// The Chrono::Engine system:
 	chrono::ChSystem* system;

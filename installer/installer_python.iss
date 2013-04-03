@@ -1,7 +1,7 @@
 #include "ModifyPath.iss"
 
 #define MyAppName "ChronoEngine Python"
-#define MyAppVersion "v1.61"
+#define MyAppVersion "v1.7"
 #define MyAppPublisher "Alessandro Tasora"
 #define MyAppURL "http://www.chronoengine.info"
 #define MyWin32PythonDir  "C:\Python32"
@@ -29,11 +29,13 @@ OutputBaseFilename=ChronoEngine_for_Python_{#MyAppVersion}
 [Files]
 Source: {#MyWin32PythonDir}\DLLs\_ChronoEngine_PYTHON_core.pyd; DestDir: {code:myGetPathWin32PythonDLLs};  Flags: ignoreversion;  Check: myFoundWin32Python;
 Source: {#MyWin32PythonDir}\DLLs\_ChronoEngine_PYTHON_postprocess.pyd; DestDir: {code:myGetPathWin32PythonDLLs};  Flags: ignoreversion;  Check: myFoundWin32Python;
-Source: {#MyWin32PythonDir}\DLLs\ChronoEngine_POSTPROCESS.dll; DestDir: {code:myGetPathWin32PythonDLLs};  Flags: ignoreversion;  Check: myFoundWin32Python;
+Source: {#MyWin32PythonDir}\DLLs\_ChronoEngine_PYTHON_irrlicht.pyd; DestDir: {code:myGetPathWin32PythonDLLs};  Flags: ignoreversion;  Check: myFoundWin32Python;
 Source: {#MyWin32PythonDir}\DLLs\ChronoEngine.dll; DestDir: {code:myGetPathWin32PythonDLLs};  Flags: ignoreversion;  Check: myFoundWin32Python;
+Source: {#MyWin32PythonDir}\DLLs\ChronoEngine_POSTPROCESS.dll; DestDir: {code:myGetPathWin32PythonDLLs};  Flags: ignoreversion;  Check: myFoundWin32Python;
+Source: {#MyWin32PythonDir}\DLLs\Irrlicht.dll; DestDir: {code:myGetPathWin32PythonDLLs};  Flags: ignoreversion;  Check: myFoundWin32Python;
 Source: {#MyWin32PythonDir}\lib\ChronoEngine_PYTHON_core.py; DestDir: {code:myGetPathWin32PythonLib};  Flags: ignoreversion;  Check: myFoundWin32Python;
 Source: {#MyWin32PythonDir}\lib\ChronoEngine_PYTHON_postprocess.py; DestDir: {code:myGetPathWin32PythonLib};  Flags: ignoreversion;  Check: myFoundWin32Python;
-Source: {#MyWin32PythonDir}\lib\ChronoEngine_PYTHON_postprocess.py; DestDir: {code:myGetPathWin32PythonLib};  Flags: ignoreversion;  Check: myFoundWin32Python;
+Source: {#MyWin32PythonDir}\lib\ChronoEngine_PYTHON_irrlicht.py; DestDir: {code:myGetPathWin32PythonLib};  Flags: ignoreversion;  Check: myFoundWin32Python;
 
 
 [Icons]
