@@ -439,6 +439,44 @@ core::stringc CShaderPreprocessor::ppShaderFF(core::stringc shaderProgram)
 
 /////////////////////////////CScreenQuad.h
 
+//***ALEX*** fixes for Irrlicht 1.8
+class CScreenQuad
+{
+public:
+        CScreenQuad()
+        {
+                Material.Wireframe = false;
+                Material.Lighting = false;
+                Material.ZWriteEnable = false;
+ 
+                Vertices[0] = irr::video::S3DVertex(-1.0f,-1.0f,0.0f,0,0,1,irr::video::SColor(0x0),0.0f,1.0f);
+                Vertices[1] = irr::video::S3DVertex(-1.0f, 1.0f,0.0f,0,0,1,irr::video::SColor(0x0),0.0f,0.0f);
+                Vertices[2] = irr::video::S3DVertex( 1.0f, 1.0f,0.0f,0,0,1,irr::video::SColor(0x0),1.0f,0.0f);
+                Vertices[3] = irr::video::S3DVertex( 1.0f,-1.0f,0.0f,0,0,1,irr::video::SColor(0x0),1.0f,1.0f);
+        }
+ 
+        virtual void render(irr::video::IVideoDriver* driver)
+        {
+                const irr::u16 indices[6] = {0, 1, 2, 0, 2, 3};
+ 
+                driver->setMaterial(Material);
+                driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+                driver->drawIndexedTriangleList(&Vertices[0], 4, &indices[0], 2);
+        }
+ 
+        virtual irr::video::SMaterial& getMaterial()
+        {
+                return Material;
+        }  
+ 
+        irr::video::ITexture* rt[2];
+ 
+private:
+        irr::video::S3DVertex Vertices[4];
+        irr::video::SMaterial Material;
+};
+
+/*
 class CScreenQuad
 {
 public:
@@ -476,7 +514,7 @@ private:
 	irr::video::S3DVertex Vertices[6];
 	irr::video::SMaterial Material;
 };
-
+*/
 
 //////////////////////////////////////EffectShaders.h
 
@@ -1563,10 +1601,10 @@ AmbientColour(0x0), use32BitDepth(use32BitDepthBuffers), useVSM(useVSMShadows)
 		const u32 sampleCounts[EFT_COUNT] = {1, 4, 8, 12, 16};
 
 		const E_VERTEX_SHADER_TYPE vertexProfile = 
-			driver->queryFeature(video::EVDF_VERTEX_SHADER_3_0) ? EVST_VS_3_0 : EVST_VS_2_0;
+			driver->queryFeature(video::EVDF_VERTEX_SHADER_3_0) ? EVST_VS_3_0 : EVST_VS_2_0; 
 
 		const E_PIXEL_SHADER_TYPE pixelProfile = 
-			driver->queryFeature(video::EVDF_PIXEL_SHADER_3_0) ? EPST_PS_3_0 : EPST_PS_2_0;
+			driver->queryFeature(video::EVDF_PIXEL_SHADER_3_0) ? EPST_PS_3_0 : EPST_PS_2_0;  
 
 		for(u32 i = 0;i < EFT_COUNT;i++)
 		{
@@ -1999,8 +2037,8 @@ EffectHandler::SPostProcessingPair EffectHandler::obtainScreenQuadMaterialFromFi
 	sPP.addShaderDefine("SCREENX", core::stringc(ScreenRTTSize.Width));
 	sPP.addShaderDefine("SCREENY", core::stringc(ScreenRTTSize.Height));	
 	
-	video::E_VERTEX_SHADER_TYPE VertexLevel = driver->queryFeature(video::EVDF_VERTEX_SHADER_3_0) ? EVST_VS_3_0 : EVST_VS_2_0;
-	video::E_PIXEL_SHADER_TYPE PixelLevel = driver->queryFeature(video::EVDF_PIXEL_SHADER_3_0) ? EPST_PS_3_0 : EPST_PS_2_0;
+	video::E_VERTEX_SHADER_TYPE VertexLevel = driver->queryFeature(video::EVDF_VERTEX_SHADER_3_0) ? EVST_VS_3_0 : EVST_VS_2_0; 
+	video::E_PIXEL_SHADER_TYPE PixelLevel = driver->queryFeature(video::EVDF_PIXEL_SHADER_3_0) ? EPST_PS_2_0 : EPST_PS_2_0; 
 
 	E_SHADER_EXTENSION shaderExt = (driver->getDriverType() == EDT_DIRECT3D9) ? ESE_HLSL : ESE_GLSL;
 
@@ -2053,6 +2091,19 @@ void ScreenQuadCB::OnSetConstants(irr::video::IMaterialRendererServices* service
 	{
 		if(services->getVideoDriver()->getDriverType() == irr::video::EDT_OPENGL)
 		{
+			//***ALEX*** modified for Irrlicht 1.8
+			irr::s32 TexVar = 0;
+			services->setPixelShaderConstant("ColorMapSampler", &TexVar, 1);
+	 
+			TexVar = 1;
+			services->setPixelShaderConstant("ScreenMapSampler", &TexVar, 1);
+	 
+			TexVar = 2;
+			services->setPixelShaderConstant("DepthMapSampler", &TexVar, 1);
+	 
+			TexVar = 3;
+			services->setPixelShaderConstant("UserMapSampler", &TexVar, 1);
+			/*
 			irr::u32 TexVar = 0;
 			services->setPixelShaderConstant("ColorMapSampler", (irr::f32*)(&TexVar), 1); 
 
@@ -2064,6 +2115,7 @@ void ScreenQuadCB::OnSetConstants(irr::video::IMaterialRendererServices* service
 
 			TexVar = 3;
 			services->setPixelShaderConstant("UserMapSampler", (irr::f32*)(&TexVar), 1);
+			*/
 		}
 
 		if(defaultVertexShader)
