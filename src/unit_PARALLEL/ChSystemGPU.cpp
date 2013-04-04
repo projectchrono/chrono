@@ -8,7 +8,7 @@ ChSystemGPU::ChSystemGPU(unsigned int max_objects)
 	counter = 0;
 	gpu_data_manager = new ChGPUDataManager();
 	LCP_descriptor = new ChLcpSystemDescriptorGPU();
-	contact_container = new ChContactContainerGPUsimple();
+	contact_container = new ChContactContainerGPU();
 	collision_system = new ChCollisionSystemGPU();
 	LCP_solver_speed = new ChLcpSolverGPU();
 	((ChCollisionSystemGPU *) (collision_system))->data_container = gpu_data_manager;
@@ -72,16 +72,11 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 //------------------------------------------------------------------------------------------------------------------------
 	mtimer_cd.start();
 	if (gpu_data_manager->number_of_models > 0) {
-		mtimer_cd_broad.start();
 		collision_system->Run();
-		mtimer_cd_broad.stop();
-		mtimer_cd_narrow.start();
-		mtimer_cd_narrow.stop();
 	}
 	mtimer_cd.stop();
 //------------------------------------------------------------------------------------------------------------------------
 	mtimer_lcp.start();
-//	((ChLcpSolverGPU *) (LCP_solver_speed))->SetCompliance(0, 0, 0);
 	((ChLcpSolverGPU *) (LCP_solver_speed))->RunTimeStep(GetStep(), gpu_data_manager->gpu_data);
 	mtimer_lcp.stop();
 //------------------------------------------------------------------------------------------------------------------------
@@ -109,6 +104,7 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 				mbody->SetWvel_loc(CHVECCAST(omg_pointer[i]));
 				mbody->SetAppliedForce(CHVECCAST(fap_pointer[i]));
 				mbody->SetGyro(CHVECCAST(gyr_pointer[i]));
+				mbody->GetCollisionModel()->SyncPosition();
 			}
 		}
 	}
@@ -312,7 +308,6 @@ void ChSystemGPU::ChangeLcpSolverSpeed(ChLcpSolver *newsolver) {
 	if (this->LCP_solver_speed) delete (this->LCP_solver_speed);
 
 	this->LCP_solver_speed = newsolver;
-//((ChLcpSolverGPU*) (LCP_solver_speed))->data_container = gpu_data_manager;
 }
 
 void ChSystemGPU::ChangeCollisionSystem(ChCollisionSystem *newcollsystem) {
@@ -322,6 +317,11 @@ void ChSystemGPU::ChangeCollisionSystem(ChCollisionSystem *newcollsystem) {
 	if (this->collision_system) delete (this->collision_system);
 
 	this->collision_system = newcollsystem;
-	((ChCollisionSystemGPU *) (collision_system))->data_container = gpu_data_manager;
+
+	if (ChCollisionSystemGPU* coll_sys = dynamic_cast<ChCollisionSystemGPU*>(newcollsystem)) {
+		((ChCollisionSystemGPU *) (collision_system))->data_container = gpu_data_manager;
+	} else if (ChCollisionSystemBulletGPU* coll_sys = dynamic_cast<ChCollisionSystemBulletGPU*>(newcollsystem)) {
+		((ChCollisionSystemBulletGPU *) (collision_system))->data_container = gpu_data_manager;
+	}
 }
 

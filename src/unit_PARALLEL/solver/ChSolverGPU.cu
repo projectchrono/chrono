@@ -10,6 +10,17 @@ __constant__ real inv_hpa_const;
 __constant__ real inv_hhpa_const;
 __constant__ real contact_recovery_speed_const;
 
+__device__ double atomicAdd(double* address, double val) {
+	unsigned long long int* address_as_ull = (unsigned long long int*) address;
+	unsigned long long int old = *address_as_ull, assumed;
+	do {
+		assumed = old;
+		old = atomicCAS(address_as_ull, assumed, __double_as_longlong(val + __longlong_as_double(assumed)));
+	} while (assumed != old);
+	return __longlong_as_double(old);
+}
+
+
 __host__ __device__ void function_Project(uint &index, uint number_of_contacts, int2 *ids, real *fric, real *gam) {
 	int2 body_id = ids[index];
 	real3 gamma;
@@ -18,7 +29,9 @@ __host__ __device__ void function_Project(uint &index, uint number_of_contacts, 
 	gamma.z = gam[index + number_of_contacts * 2];
 	real f_tang = sqrtf(gamma.y * gamma.y + gamma.z * gamma.z);
 	real mu = (fric[body_id.x] + fric[body_id.y]) * .5f;
-	if (f_tang > (mu * gamma.x)) { // inside upper cone? keep untouched!
+	if (mu == 0) {
+		gamma.y = gamma.z = 0;
+	} else if (f_tang > (mu * gamma.x)) { // inside upper cone? keep untouched!
 		if ((f_tang) < -(1.0 / mu) * gamma.x || (fabsf(gamma.x) < 0)) { // inside lower cone? reset  normal,u,v to zero!
 			gamma = R3(0);
 		} else { // remaining case: project orthogonally to generator segment of upper cone
@@ -27,8 +40,6 @@ __host__ __device__ void function_Project(uint &index, uint number_of_contacts, 
 			gamma.y *= tproj_div_t;
 			gamma.z *= tproj_div_t;
 		}
-	} else if (mu == 0) {
-		gamma.y = gamma.z = 0;
 	}
 	//  if (gamma.x < 0) {
 	//      gamma.x = 0;
@@ -262,6 +273,7 @@ __host__ __device__ void function_RHS(
 		real &step_size,
 		int2 *ids,
 		real *correction,
+		real & recovery_speed,
 		real3 *vel,
 		real3 *omega,
 		real3 *JXYZA,
@@ -292,18 +304,19 @@ __host__ __device__ void function_RHS(
 //	temp -= JUVWB[index].y * omega[b2].y;
 //	temp -= JUVWB[index].z * omega[b2].z;
 	//rhs[index] = -((-temp) + fmaxf(inv_hpa * -fabs(correction[index]), 0));
-	rhs[index] = -(temp + fmaxf(- inv_hpa * fabs(correction[index]),-.6));
+	rhs[index] = -(temp + fmax(inv_hpa * correction[index], real(-recovery_speed)));
+
 }
 
 __global__ void device_RHS(int2 *ids, real *correction, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs) {
 	INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_constraints_const);
-	function_RHS(index, step_size_const, ids, correction, vel, omega, JXYZA, JXYZB, JUVWA, JUVWB, inv_hpa_const, rhs);
+	function_RHS(index, step_size_const, ids, correction, contact_recovery_speed_const, vel, omega, JXYZA, JXYZB, JUVWA, JUVWB, inv_hpa_const, rhs);
 }
 
 void ChSolverGPU::host_RHS(int2 *ids, real *correction, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs) {
 #pragma omp parallel for schedule(guided)
 	for (uint index = 0; index < number_of_constraints; index++) {
-		function_RHS(index, step_size, ids, correction, vel, omega, JXYZA, JXYZB, JUVWA, JUVWB, inv_hpa, rhs);
+		function_RHS(index, step_size, ids, correction, contact_recovery_speed, vel, omega, JXYZA, JXYZB, JUVWA, JUVWB, inv_hpa, rhs);
 	}
 }
 
@@ -378,7 +391,7 @@ void ChSolverGPU::Setup() {
 	COPY_TO_CONST_MEM(compliance);
 	COPY_TO_CONST_MEM(inv_hpa);
 	COPY_TO_CONST_MEM(inv_hhpa);
-
+	COPY_TO_CONST_MEM(contact_recovery_speed);
 
 	cudaFuncSetCacheConfig(device_Project, cudaFuncCachePreferL1);
 	cudaFuncSetCacheConfig(device_shurA, cudaFuncCachePreferL1);

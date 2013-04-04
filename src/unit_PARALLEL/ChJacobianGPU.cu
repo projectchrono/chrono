@@ -68,19 +68,35 @@ __host__ __device__ void inline function_ContactJacobians(
 		real3* JUVWA,
 		real3* JUVWB) {
 	real3 U = norm[index];
-	real3 W = fabs(U);
-	real3 V = R3(0, U.z, -U.y);
+	real3 W = cross(U,R3(0,1,0));
+	real3 mVsingular = R3(0,1,0);
+	if (length(W) < 0.0001) // was near singularity? change singularity reference vector!
+		{
+			if (0 < 0.9)
+				mVsingular = R3(0,0,1);
+			if (1 < 0.9)
+				mVsingular = R3(0,1,0);
+			if (0 < 0.9)
+				mVsingular = R3(1,0,0);
+			W = cross(U, mVsingular);
+		}
+	W = normalize(W);
+	real3 V = cross(W,U);
 
-	if (W.x > W.y) {
-		V = R3(-U.z, 0, U.x);
-	}
-
-	if (W.y > W.z) {
-		V = R3(U.y, -U.x, 0);
-	}
-
-	V = normalize(V);
-	W = cross(U, V);
+//	real3 U = norm[index];
+//	real3 W = fabs(U);
+//	real3 V = R3(0, U.z, -U.y);
+//
+//	if (W.x > W.y) {
+//		V = R3(-U.z, 0, U.x);
+//	}
+//
+//	if (W.y > W.z) {
+//		V = R3(U.y, -U.x, 0);
+//	}
+//
+//	V = normalize(V);
+//	W = cross(U, V);
 
 	JXYZA[index + num_contacts * 0] = -U;
 	JXYZA[index + num_contacts * 1] = -V;

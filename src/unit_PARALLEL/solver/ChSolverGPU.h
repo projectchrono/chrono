@@ -69,6 +69,23 @@ namespace chrono {
 				contact_recovery_speed = recovery_speed;
 			}
 
+
+			void Dump_Rhs(ostream& out){
+				//ComputeRHS();
+				for (int i=0; i<rhs.size(); i++){
+					out<<rhs[i]<<endl;
+				}
+			}
+			void Dump_Lambda(std::ostream& out){
+					for (int i=0; i<gpu_data->device_gam_data.size(); i++){
+						out<<gpu_data->device_gam_data[i]<<std::endl;
+					}
+				}
+
+			void Dump_M(){}
+			void Dump_D(){}
+			void Dump_E(){}
+
 			double time_rhs, time_shurcompliment, time_project, time_integrate, time_solver;
 			protected:
 

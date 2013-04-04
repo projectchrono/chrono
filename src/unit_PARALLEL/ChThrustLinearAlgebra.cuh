@@ -162,7 +162,7 @@ static real CompRes(const custom_vector<real> &res, const uint n_o_c)
 			//real minval = *thrust::min_element(res.begin(), res.end());
 			//real minval = *thrust::min_element(res.begin(), res.begin()+n_o_c);
 			real minval = res[thrust::min_element(res.begin(),res.begin()+n_o_c)-res.begin()];
-			return max(0.0,-minval);
+			return fmax(real(0.0),-minval);
 }
 
 #endif

@@ -28,7 +28,7 @@
 #include "ChLcpSystemDescriptorGPU.h"
 #include "ChDataManager.h"
 #include "collision/ChCCollisionSystemGPU.h"
-
+#include "collision/ChCCollisionSystemBulletGPU.h"
 namespace chrono {
 	using namespace chrono;
 

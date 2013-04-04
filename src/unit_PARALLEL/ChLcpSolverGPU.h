@@ -20,7 +20,7 @@
 #include "ChCudaDefines.h"
 #include "ChDataManager.h"
 #include "lcp/ChLcpIterativeSolver.h"
-
+#include "solver/ChSolverGPU.h"
 namespace chrono {
 	class ChApiGPU ChLcpSolverGPU: public ChLcpIterativeSolver {
 		public:
@@ -59,6 +59,7 @@ namespace chrono {
 				alpha = a;
 				compliance = c;
 				complianceT = cT;
+				contact_recovery_speed = .6;
 			}
 			void SetContactRecoverySpeed(real recovery_speed) {
 				contact_recovery_speed = fabs(recovery_speed);
@@ -83,6 +84,12 @@ namespace chrono {
 			uint GetCurrentIteration() {
 				return current_iteration;
 			}
+			void Dump_Rhs(ostream& out) {
+				solver.Dump_Rhs(out);
+			}
+			void Dump_Lambda(ostream& out) {
+				solver.Dump_Lambda(out);
+			}
 		private:
 			real tolerance;
 			real compliance;
@@ -106,6 +113,7 @@ namespace chrono {
 			GPUSOLVERTYPE solver_type;
 
 			cudaEvent_t start, stop;
+			ChSolverGPU solver;
 
 	};
 }

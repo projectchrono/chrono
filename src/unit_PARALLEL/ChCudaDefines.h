@@ -55,7 +55,7 @@ typedef unsigned int uint;
 #define PI_2   (PI / 2.0)
 #define PI_180  (PI / 180.0)
 
-#define SIM_ENABLE_GPU_MODE
+//#define SIM_ENABLE_GPU_MODE
 #ifdef SIM_ENABLE_GPU_MODE
 #define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CUDA
 #define custom_vector thrust::device_vector

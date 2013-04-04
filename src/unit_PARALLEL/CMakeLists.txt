@@ -45,8 +45,10 @@ SET(ChronoEngine_unit_GPU_COLLISION
     collision/ChCCollisionModelGPU.cpp
     collision/ChCCollisionSystemGPU.h
     collision/ChCCollisionSystemGPU.cpp
-    collision/ChContactContainerGPUsimple.h
-    collision/ChContactContainerGPUsimple.cpp
+    collision/ChCCollisionSystemBulletGPU.h
+    collision/ChCCollisionSystemBulletGPU.cpp
+    collision/ChContactContainerGPU.h
+    collision/ChContactContainerGPU.cpp
    )
 SET(ChronoEngine_unit_GPU_SOLVER
     solver/ChSolverGPU.h

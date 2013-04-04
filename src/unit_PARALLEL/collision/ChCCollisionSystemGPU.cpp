@@ -13,6 +13,7 @@
 namespace chrono {
 	namespace collision {
 		ChCollisionSystemGPU::ChCollisionSystemGPU() {
+			collision_envelope = .03;
 		}
 		void ChCollisionSystemGPU::Add(ChCollisionModel *model) {
 			if (model->GetPhysicsItem()->GetCollide() == true) {
@@ -23,6 +24,9 @@ namespace chrono {
 				for (int j = 0; j < body->GetNObjects(); j++) {
 					real3 obA = body->mData[j].A;
 					real3 obB = body->mData[j].B;
+					if (body->mData[j].type != TRIANGLEMESH) {
+						obB += R3(collision_envelope);
+					}
 					real3 obC = body->mData[j].C;
 					real4 obR = body->mData[j].R;
 					data_container->host_ObA_data.push_back(obA);
@@ -70,6 +74,9 @@ namespace chrono {
 					data_container->gpu_data.device_rot_data,
 					data_container->gpu_data.device_aabb_data);
 			broadphase.detectPossibleCollisions(data_container->gpu_data.device_aabb_data, data_container->gpu_data.device_pair_data);
+
+			narrowphase.SetCollisionEnvelope(collision_envelope);
+
 			narrowphase.DoNarrowphase(
 					data_container->gpu_data.device_typ_data,
 					data_container->gpu_data.device_ObA_data,

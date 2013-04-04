@@ -62,9 +62,8 @@ __host__ __device__ void function_process_contacts(
 		uint* offset) {
 
 	int2 body_id = ids[index];
-	real depth = -fabs(contactDepth[index]);
 
-	real bi = fmaxf(depth / (step_size), contact_recovery_speed);
+	real bi = fmax(contactDepth[index] / (step_size), -contact_recovery_speed);
 
 	real3 W1 = omega[body_id.x];
 	real3 W2 = omega[body_id.y];
@@ -461,7 +460,7 @@ void ChSolverJacobi::Solve(real step, gpu_container& gpu_data_) {
 
 	if (number_of_constraints != 0) {
 		for (current_iteration = 0; current_iteration < max_iteration; current_iteration++) {
-			ComputeRHS();
+			//ComputeRHS();
 
 #ifdef SIM_ENABLE_GPU_MODE
 			device_process_contacts CUDA_KERNEL_DIM(BLOCKS(number_of_contacts), THREADS)(

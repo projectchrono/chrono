@@ -35,7 +35,7 @@ static __host__ __device__ int2 _make_int2(int a, int b) {
 }
 
 ////////Define Real, either float or double
-typedef float real;
+typedef double real;
 ////////Structures
 struct real2 {
     real x, y;
@@ -418,5 +418,7 @@ static ostream &operator<< (ostream &out, const thrust::host_vector<T> &x) {
     return out;
 }
 #endif
+
+
 
 
