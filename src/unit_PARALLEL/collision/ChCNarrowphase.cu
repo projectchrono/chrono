@@ -504,7 +504,6 @@ uint & number_of_contacts
 				dpth_data.data(),
 				bids_data.data());
 #endif
-		cout<<collision_envelope<<endl;
 		number_of_contacts = total_possible_contacts - Thrust_Count(generic_counter, 1);
 #ifdef DEBUG_GPU
 		cout << "Number of number_of_contacts: " << number_of_contacts << endl;
