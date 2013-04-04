@@ -43,7 +43,7 @@ using namespace postprocess;
 #define CHBODY ChBodyGPU
 #define CHCOLLISIONSYS ChCollisionSystemGPU
 #define CHLCPDESC ChLcpSystemDescriptorGPU
-#define CHCONTACTCONT ChContactContainerGPUsimple
+#define CHCONTACTCONT ChContactContainerGPU
 #define CHSOLVER ChLcpIterativeJacobi
 #define CHMODEL ChModelGPU
 #define CHSYS ChSystemGPU

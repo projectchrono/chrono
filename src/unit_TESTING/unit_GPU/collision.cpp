@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
 	ChSystemGPU * system_gpu = new ChSystemGPU;
 	{
 		ChLcpSystemDescriptorGPU *mdescriptor = new ChLcpSystemDescriptorGPU();
-		ChContactContainerGPUsimple *mcontactcontainer = new ChContactContainerGPUsimple();
+		ChContactContainerGPU *mcontactcontainer = new ChContactContainerGPU();
 		ChCollisionSystemGPU *mcollisionengine = new ChCollisionSystemGPU();
 
 		system_gpu->ChangeLcpSystemDescriptor(mdescriptor);
