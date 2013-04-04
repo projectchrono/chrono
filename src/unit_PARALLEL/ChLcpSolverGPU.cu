@@ -4,6 +4,7 @@
 #include "solver/ChSolverGPU.h"
 #include "ChJacobianGPU.h"
 #include "ChIntegratorGPU.h"
+#include "solver/ChSolverGPU.h"
 using namespace chrono;
 __constant__ uint number_of_objects_const;
 __constant__ uint number_of_contacts_const;
@@ -124,7 +125,7 @@ void ChLcpSolverGPU::RunTimeStep(real step, gpu_container& gpu_data) {
 		residual = jacobi_solver.GetResidual();
 
 	} else {
-
+ChSolverGPU solver;
 		solver.SetMaxIterations(max_iteration);
 		solver.SetTolerance(tolerance);
 		solver.SetComplianceParameters(alpha, compliance, complianceT);

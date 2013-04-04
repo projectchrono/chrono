@@ -20,7 +20,7 @@
 #include "ChCudaDefines.h"
 #include "ChDataManager.h"
 #include "lcp/ChLcpIterativeSolver.h"
-#include "solver/ChSolverGPU.h"
+
 namespace chrono {
 	class ChApiGPU ChLcpSolverGPU: public ChLcpIterativeSolver {
 		public:
@@ -85,10 +85,10 @@ namespace chrono {
 				return current_iteration;
 			}
 			void Dump_Rhs(ostream& out) {
-				solver.Dump_Rhs(out);
+				//solver.Dump_Rhs(out);
 			}
 			void Dump_Lambda(ostream& out) {
-				solver.Dump_Lambda(out);
+				//solver.Dump_Lambda(out);
 			}
 		private:
 			real tolerance;
@@ -113,7 +113,7 @@ namespace chrono {
 			GPUSOLVERTYPE solver_type;
 
 			cudaEvent_t start, stop;
-			ChSolverGPU solver;
+			
 
 	};
 }
