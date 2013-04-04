@@ -68,8 +68,20 @@ public:
 				ChLcpSystemDescriptor& sysd,		///< system description with constraints and variables	
 				bool add_Mq_to_f = false			///< if true, takes the initial 'q' and adds [M]*q to 'f' vector  
 				);
+//The extra stuff below is for debugging
 
-
+	ChMatrixDynamic<> mb;
+	ChMatrixDynamic<> ml;
+	void Dump_Rhs(std::ostream& out){
+		for (int i=0; i<mb.GetRows(); i++){
+			out<<mb(i,0)<<std::endl;
+		}
+	}
+	void Dump_Lambda(std::ostream& out){
+			for (int i=0; i<ml.GetRows(); i++){
+				out<<ml(i,0)<<std::endl;
+			}
+		}
 };
 
 

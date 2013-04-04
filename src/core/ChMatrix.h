@@ -990,7 +990,7 @@ public:
 									/// Rows and columns cannot be zero or negative.
 	inline ChMatrixDynamic (const int row, const int col )
 						{
-							assert (row >0 && col >0);
+							assert (row >=0 && col >=0);
 							this->rows= row;
 							this->columns = col;
 							this->address = new Real[row*col]; 

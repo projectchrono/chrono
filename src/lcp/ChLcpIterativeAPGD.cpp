@@ -47,7 +47,8 @@ double ChLcpIterativeAPGD::Solve(
 	int nc = sysd.CountActiveConstraints();
 	if (verbose) GetLog() <<"\n-----Accelerated Projected Gradient Descent, solving nc=" << nc << "unknowns \n";
 
-	ChMatrixDynamic<> ml(nc,1);
+	//ChMatrixDynamic<> ml(nc,1);		//I made this into a class variable so I could print it easier -Hammad
+	ml.Resize(nc,1);
 	ChMatrixDynamic<> mx(nc,1);
 	ChMatrixDynamic<> ms(nc,1);
 	ChMatrixDynamic<> my(nc,1);
@@ -56,7 +57,8 @@ double ChLcpIterativeAPGD::Solve(
 	ChMatrixDynamic<> mg_tmp(nc,1);
 	ChMatrixDynamic<> mg_tmp1(nc,1);
 	ChMatrixDynamic<> mg_tmp2(nc,1);
-	ChMatrixDynamic<> mb(nc,1);
+	//ChMatrixDynamic<> mb(nc,1);   //I made this into a class variable so I could print it easier -Hammad
+	mb.Resize(nc,1);
 	ChMatrixDynamic<> mb_tmp(nc,1);
 
 
@@ -152,7 +154,11 @@ double ChLcpIterativeAPGD::Solve(
 	mb_tmp.FillElem(-1.0);
 	mb_tmp.MatrInc(ml);
 	sysd.ShurComplementProduct(mg_tmp,&mb_tmp,0); // 1)  g = N*l ...        #### MATR.MULTIPLICATION!!!###
-	L_k=mg_tmp.NormTwo()/mb_tmp.NormTwo();
+	if(mb_tmp.NormTwo()==0){
+		L_k=1;
+	}else{
+		L_k=mg_tmp.NormTwo()/mb_tmp.NormTwo();
+	}
 	t_k=1/L_k;
 
 	double obj1=0;
