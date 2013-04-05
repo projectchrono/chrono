@@ -2092,6 +2092,7 @@ void ScreenQuadCB::OnSetConstants(irr::video::IMaterialRendererServices* service
 		if(services->getVideoDriver()->getDriverType() == irr::video::EDT_OPENGL)
 		{
 			//***ALEX*** modified for Irrlicht 1.8
+			/*
 			irr::s32 TexVar = 0;
 			services->setPixelShaderConstant("ColorMapSampler", &TexVar, 1);
 	 
@@ -2103,7 +2104,8 @@ void ScreenQuadCB::OnSetConstants(irr::video::IMaterialRendererServices* service
 	 
 			TexVar = 3;
 			services->setPixelShaderConstant("UserMapSampler", &TexVar, 1);
-			/*
+			*/
+			/// Version for Irrlicht 1.7.3
 			irr::u32 TexVar = 0;
 			services->setPixelShaderConstant("ColorMapSampler", (irr::f32*)(&TexVar), 1); 
 
@@ -2115,7 +2117,6 @@ void ScreenQuadCB::OnSetConstants(irr::video::IMaterialRendererServices* service
 
 			TexVar = 3;
 			services->setPixelShaderConstant("UserMapSampler", (irr::f32*)(&TexVar), 1);
-			*/
 		}
 
 		if(defaultVertexShader)

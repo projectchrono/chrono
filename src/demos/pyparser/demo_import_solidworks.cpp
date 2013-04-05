@@ -47,8 +47,8 @@ int main(int argc, char* argv[])
 
 	// Set the collision margins. This is expecially important for 
 	// very large or very small objects! Do this before creating shapes.
-	chrono::ChCollisionModel::SetDefaultSuggestedEnvelope(0.005);
-	chrono::ChCollisionModel::SetDefaultSuggestedMargin(0.005);
+	chrono::ChCollisionModel::SetDefaultSuggestedEnvelope(0.001);
+	chrono::ChCollisionModel::SetDefaultSuggestedMargin(0.001);
 
 
 	// 
@@ -63,9 +63,12 @@ int main(int argc, char* argv[])
 	try
 	{
 		// This is the instruction that loads the .py (as saved from SolidWorks) and 
-		// fills the system:
+		// fills the system.
+		//   In this example, we load a mechanical system that represents 
+		// a (quite simplified & approximated) clock escapement, that has been 
+		// modeled in SolidWorks and saved using the Chrono Add-in for SolidWorks.
 
-		my_python.ImportSolidWorksSystem("../data/solid_works/collisions", mphysicalSystem);  // note, don't type the .py suffic in filename..
+		my_python.ImportSolidWorksSystem("../data/solid_works/swiss_escapement", mphysicalSystem);  // note, don't type the .py suffic in filename..
 
 	}
 	catch (ChException myerror)
@@ -79,8 +82,48 @@ int main(int argc, char* argv[])
 	// single items, modify them, or add constraints between them, etc.
 	// For example you can add other bodies, etc.
 
+			// Log out all the names of the items inserted in the system:
 	GetLog()<< "SYSTEM ITEMS: \n";
-	mphysicalSystem.ShowHierarchy( GetLog()); 
+	mphysicalSystem.ShowHierarchy( GetLog());
+
+			// Fetch some bodies, given their names,
+			// and apply forces/constraints/etc
+	ChSharedPtr<ChPhysicsItem> myitemE= mphysicalSystem.Search("escape_wheel^escapement-1");
+	ChSharedPtr<ChPhysicsItem> myitemA= mphysicalSystem.Search("truss^escapement-1");
+	ChSharedPtr<ChPhysicsItem> myitemB= mphysicalSystem.Search("balance^escapement-1");
+	ChSharedPtr<ChPhysicsItem> myitemC= mphysicalSystem.Search("anchor^escapement-1");
+	if ((!myitemE.IsNull() && myitemE.IsType<ChBody>() ) &&
+		(!myitemA.IsNull() && myitemA.IsType<ChBody>() ) &&
+		(!myitemB.IsNull() && myitemB.IsType<ChBody>() ) &&
+	    (!myitemC.IsNull() && myitemC.IsType<ChBody>() ))
+	{
+				// Downcast to specialized type (after we checked with IsType<...> this is safe)
+		ChSharedPtr<ChBody> mescape_wheel = myitemE;	
+		ChSharedPtr<ChBody> mtruss		  = myitemA;	 
+		ChSharedPtr<ChBody> mbalance	  = myitemB;
+		ChSharedPtr<ChBody> manchor		  = myitemC;
+
+				// Set a constant torque to escape wheel, in a 
+				// very simple way:
+		mescape_wheel->Set_Scr_torque(ChVector<>(0, -0.03,0));
+
+				// Add a torsional spring
+		ChSharedPtr<ChLinkLockFree> mspring(new ChLinkLockFree);
+		mspring->Initialize(mtruss, mbalance, CSYSNORM); // origin does not matter, it's only torque
+		mspring->GetForce_Ry()->Set_K(0.24);
+		mspring->GetForce_Ry()->Set_active(1);
+		mphysicalSystem.Add(mspring);
+
+				// Set an initial angular velocity to the balance:
+		mbalance->SetWvel_par(ChVector<>(0,5,0)); 
+
+				// Set no friction in all parts
+		mbalance->GetMaterialSurface()->SetFriction(0);
+		mescape_wheel->GetMaterialSurface()->SetFriction(0);
+		manchor->GetMaterialSurface()->SetFriction(0);
+	}
+	else
+		GetLog() << "Error: cannot one or more objects from their names in the C::E system! \n\n";
 
 
 	// 
@@ -95,17 +138,15 @@ int main(int argc, char* argv[])
 
 			// Create the Irrlicht visualization (open the Irrlicht device, 
 			// bind a simple user interface, etc. etc.)
-	ChIrrApp application(&mphysicalSystem, L"Import a SolidWorks system",core::dimension2d<u32>(800,600),false, false, video::EDT_OPENGL);
+	ChIrrApp application(&mphysicalSystem, L"Import a SolidWorks system",core::dimension2d<u32>(800,600),false);
 
 
 			// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
 	application.AddTypicalLogo();
 	application.AddTypicalSky();
-	application.AddTypicalCamera(vector3df(0,2.5,2.5));
-	application.AddLight(vector3df(-5,5,0), 8, SColorf(1,1,1));
-	//application.AddLightWithShadow(vector3df(-5,5,0), vector3df(0,0,0), 12, 1,10, 30,512, video::SColorf(1,0.9,0.9));
-	application.AddLight(vector3df(3,3,3), 8,SColorf(0.5,0.7,0.8));//, vector3df(0,0,0), 12, 1,6, 30);
-	//application.AddLightWithShadow(vector3df(3,3,3), vector3df(0,0,0), 12, 1,6, 30, 512, video::SColorf(0.6,0.8,1));
+	application.AddTypicalCamera(vector3df(0, 0.25, 0.25), vector3df(0, 0, -0.1));
+	application.AddLightWithShadow(vector3df(-0.5,0.5,0), vector3df(0,0,0), 1, 0.2,1.2, 30,512, video::SColorf(1,0.9,0.9));
+	application.AddLightWithShadow(vector3df(0.5,0.5,0.5), vector3df(0,0,0), 1, 0.2,1.2, 30, 512, video::SColorf(0.6,0.8,1));
 
 			// ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
 			// in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
@@ -119,12 +160,18 @@ int main(int argc, char* argv[])
 
 	application.AssetUpdateAll();
 
-			// This is to enable shadow maps (shadow casting with soft shadows) in Irrlicht.
+			// This is to enable shadow maps (shadow casting with soft shadows) in Irrlicht
+			// for all objects (or use application.AddShadow(..) for enable shadow on a per-item basis)
+
 	application.AddShadowAll();
+
 
 	// 
 	// THE SIMULATION LOOP
 	//
+
+			// set a low stabilization value because objects are small!
+	application.GetSystem()->SetMaxPenetrationRecoverySpeed(0.002); 
 
 	application.SetStepManage(true);
 	application.SetTimestep(0.002);

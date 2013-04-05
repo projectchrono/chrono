@@ -1006,6 +1006,7 @@ IF (BUILD_CH_SDK)
 		irrlicht_interface/ChIrrAssetConverter.h
 		irrlicht_interface/ChIrrNode.h
 		irrlicht_interface/ChIrrNodeAsset.h
+		irrlicht_interface/ChIrrEffects.h
 	)
 	SOURCE_GROUP(irrlicht_interface FILES 
 			${ChronoEngine_irrlicht_SOURCES} 

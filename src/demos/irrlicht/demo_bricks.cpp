@@ -233,7 +233,7 @@ int main(int argc, char* argv[])
 		application.GetVideoDriver()->beginScene(true, true, SColor(255,140,161,192));
 
 		ChIrrTools::drawGrid(application.GetVideoDriver(), 5,5, 20,20, 
-			ChCoordsys<>(ChVector<>(0,0.2,0),Q_from_AngAxis(CH_C_PI/2,VECT_X)), video::SColor(50,90,90,100),true);
+			ChCoordsys<>(ChVector<>(0,0.2,0),Q_from_AngAxis(CH_C_PI/2,VECT_X)), video::SColor(50,90,90,150),true);
 
 		application.DrawAll();
 
