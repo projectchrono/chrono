@@ -12,8 +12,6 @@ __constant__ uint number_of_bilaterals_const;
 __constant__ uint number_of_updates_const;
 __constant__ real step_size_const;
 
-//__constant__ real force_factor_const;
-//__constant__ real negated_recovery_speed_const;
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Kernel for adding invmass*force*step_size_const to body speed vector.
 // This kernel must be applied to the stream of the body buffer.
@@ -114,7 +112,6 @@ void ChLcpSolverGPU::RunTimeStep(real step, gpu_container& gpu_data) {
 	if (solver_type == BLOCK_JACOBI) {
 		ChSolverJacobi jacobi_solver;
 		jacobi_solver.SetMaxIterations(max_iteration);
-
 		jacobi_solver.SetTolerance(tolerance);
 		jacobi_solver.SetComplianceParameters(alpha, compliance, complianceT);
 		jacobi_solver.SetContactRecoverySpeed(contact_recovery_speed);
@@ -125,7 +122,7 @@ void ChLcpSolverGPU::RunTimeStep(real step, gpu_container& gpu_data) {
 		residual = jacobi_solver.GetResidual();
 
 	} else {
-ChSolverGPU solver;
+		ChSolverGPU solver;
 		solver.SetMaxIterations(max_iteration);
 		solver.SetTolerance(tolerance);
 		solver.SetComplianceParameters(alpha, compliance, complianceT);
@@ -133,7 +130,6 @@ ChSolverGPU solver;
 		solver.Solve(solver_type, step, gpu_data);
 		current_iteration = solver.GetIteration();
 		residual = solver.GetResidual();
-
 	}
 
 	ChIntegratorGPU integrator;

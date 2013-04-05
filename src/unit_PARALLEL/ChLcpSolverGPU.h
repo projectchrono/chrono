@@ -20,7 +20,6 @@
 #include "ChCudaDefines.h"
 #include "ChDataManager.h"
 #include "lcp/ChLcpIterativeSolver.h"
-
 namespace chrono {
 	class ChApiGPU ChLcpSolverGPU: public ChLcpIterativeSolver {
 		public:
@@ -111,7 +110,7 @@ namespace chrono {
 			real residual;
 
 			GPUSOLVERTYPE solver_type;
-
+			//ChSolverGPU solver;
 			cudaEvent_t start, stop;
 			
 
