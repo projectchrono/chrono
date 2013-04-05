@@ -539,7 +539,17 @@ public:
 					str += system->GetNsysvars_w();
 					gad_textFPS->setText(str.c_str());
 
-			GetSceneManager()->drawAll();
+						
+			if(this->use_effects) 
+			{
+				// DRAW 3D SCENE using Xeffects for shadow maps, if used!
+				effect->update();
+			}
+			else
+			{
+				// DRAW 3D SCENE the usual way, if no shadow maps 
+				this->GetSceneManager()->drawAll();
+			}
 
 			int dmode = this->gad_drawcontacts->getSelected();
 			ChIrrTools::drawAllContactPoints(*system, GetVideoDriver(), 1, (ChIrrTools::eCh_ContactsDrawMode)dmode);
@@ -622,11 +632,7 @@ public:
 				this->gad_timestep->setEnabled(this->GetStepManage());
 			}
  
-			// Xeffects for shadow maps!
-			if(this->use_effects) 
-				effect->update();
-			else
-				this->GetSceneManager()->drawAll();
+
 
 			//if(show_infos)
 			GetIGUIEnvironment()->drawAll();
