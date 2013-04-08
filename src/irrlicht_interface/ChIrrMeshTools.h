@@ -279,6 +279,217 @@ static IAnimatedMesh* createEllipticalMesh(f32 radiusH, f32 radiusV, f32 Ylow, f
 	return Amesh;
 }
 
+		/// Same as irr::CGeomentryCreator::createCubeMesh(), but with no
+		/// shared normals between faces (
+static IMesh* createCubeMesh(const core::vector3df& size) 
+{
+	SMeshBuffer* buffer = new SMeshBuffer();
+
+	// Create indices
+	const u16 u[36] = {   0,1,2,   0,2,3, 
+						  4,6,5,   4,7,6,
+						  8,9,10,  8,10,11, 
+						  12,14,13, 12,15,14,
+						  16,18,17, 16,19,18,
+						  20,21,22, 20,22,23 };
+
+	buffer->Indices.set_used(36);
+
+	for (u32 i=0; i<36; ++i)
+		buffer->Indices[i] = u[i];
+
+	// Create vertices
+	video::SColor clr(255,255,255,255);
+
+	buffer->Vertices.reallocate(24);
+
+	buffer->Vertices.push_back(video::S3DVertex(0,0,0,  0, 0,-1, clr, 0, 0));
+	buffer->Vertices.push_back(video::S3DVertex(0,1,0,  0, 0,-1, clr, 0, 1));
+	buffer->Vertices.push_back(video::S3DVertex(1,1,0,  0, 0,-1, clr, 1, 1));
+	buffer->Vertices.push_back(video::S3DVertex(1,0,0,  0, 0,-1, clr, 1, 0));
+
+	buffer->Vertices.push_back(video::S3DVertex(0,0,1,  0, 0, 1, clr, 0, 0));
+	buffer->Vertices.push_back(video::S3DVertex(0,1,1,  0, 0, 1, clr, 0, 1));
+	buffer->Vertices.push_back(video::S3DVertex(1,1,1,  0, 0, 1, clr, 1, 1));
+	buffer->Vertices.push_back(video::S3DVertex(1,0,1,  0, 0, 1, clr, 1, 0));
+
+	buffer->Vertices.push_back(video::S3DVertex(0,0,0, -1, 0, 0, clr, 0, 0));
+	buffer->Vertices.push_back(video::S3DVertex(0,0,1, -1, 0, 0, clr, 0, 1));
+	buffer->Vertices.push_back(video::S3DVertex(0,1,1, -1, 0, 0, clr, 1, 1));
+	buffer->Vertices.push_back(video::S3DVertex(0,1,0, -1, 0, 0, clr, 1, 0));
+
+	buffer->Vertices.push_back(video::S3DVertex(1,0,0,  1, 0, 0, clr, 0, 0));
+	buffer->Vertices.push_back(video::S3DVertex(1,0,1,  1, 0, 0, clr, 0, 1));
+	buffer->Vertices.push_back(video::S3DVertex(1,1,1,  1, 0, 0, clr, 1, 1));
+	buffer->Vertices.push_back(video::S3DVertex(1,1,0,  1, 0, 0, clr, 1, 0));
+
+    buffer->Vertices.push_back(video::S3DVertex(0,0,0,  0,-1, 0, clr, 0, 0));
+	buffer->Vertices.push_back(video::S3DVertex(0,0,1,  0,-1, 0, clr, 0, 1));
+	buffer->Vertices.push_back(video::S3DVertex(1,0,1,  0,-1, 0, clr, 1, 1));
+	buffer->Vertices.push_back(video::S3DVertex(1,0,0,  0,-1, 0, clr, 1, 0));
+
+	buffer->Vertices.push_back(video::S3DVertex(0,1,0,  0, 1, 0, clr, 0, 0));
+	buffer->Vertices.push_back(video::S3DVertex(0,1,1,  0, 1, 0, clr, 0, 1));
+	buffer->Vertices.push_back(video::S3DVertex(1,1,1,  0, 1, 0, clr, 1, 1));
+	buffer->Vertices.push_back(video::S3DVertex(1,1,0,  0, 1, 0, clr, 1, 0));
+
+	// Recalculate bounding box
+	buffer->BoundingBox.reset(0,0,0);
+
+	for (u32 i=0; i<24; ++i)
+	{
+		buffer->Vertices[i].Pos -= core::vector3df(0.5f, 0.5f, 0.5f);
+		buffer->Vertices[i].Pos *= size;
+		buffer->BoundingBox.addInternalPoint(buffer->Vertices[i].Pos);
+	}
+
+	SMesh* mesh = new SMesh;
+	mesh->addMeshBuffer(buffer);
+	buffer->drop();
+
+	mesh->recalculateBoundingBox();
+	return mesh;
+}
+
+
+		/// Same as irr::CGeomentryCreator::createCylinderMesh(), but with no
+		/// shared normals between caps and hull
+static IMesh* createCylinderMesh(f32 radius, f32 length, 
+			u32 tesselation) 
+{
+	f32 oblique = 0;
+	video::SColor color(255, 255,255,255);
+
+	SMeshBuffer* buffer = new SMeshBuffer();
+
+	const f32 recTesselation = core::reciprocal((f32)tesselation);
+	const f32 recTesselationHalf = recTesselation * 0.5f;
+	const f32 angleStep = (core::PI * 2.f ) * recTesselation;
+	const f32 angleStepHalf = angleStep*0.5f;
+
+	// HULL
+
+	u32 i;
+	video::S3DVertex v;
+	v.Color = color;
+	f32 tcx = 0.f;
+
+	for ( i = 0; i <= tesselation; ++i )
+	{
+		const f32 angle = angleStep * i;
+		v.Pos.X = radius * cosf(angle);
+		v.Pos.Y = -length; 
+		v.Pos.Z = radius * sinf(angle);
+		v.Normal = vector3df(cosf(angle),0,sinf(angle));
+		v.TCoords.X=tcx;
+		v.TCoords.Y=0.f;
+		buffer->Vertices.push_back(v);
+
+		v.Pos.Y = length;
+		v.Normal = vector3df(cosf(angle),0,sinf(angle));
+		v.TCoords.Y=1.f;
+		buffer->Vertices.push_back(v);
+
+		tcx += recTesselation;
+	}
+
+	// indices for the main hull part
+	for (i=0; i < tesselation*2; i += 2)
+	{
+		buffer->Indices.push_back(i + 2);
+		buffer->Indices.push_back(i + 0);
+		buffer->Indices.push_back(i + 1);
+
+		buffer->Indices.push_back(i + 2);
+		buffer->Indices.push_back(i + 1);
+		buffer->Indices.push_back(i + 3);
+	}
+
+
+	// BOTTOM
+
+	u32 index_bottom = buffer->Vertices.size();
+
+	for ( i = 0; i <= tesselation; ++i )
+	{
+		const f32 angle = angleStep * i;
+		v.Pos.X = radius * cosf(angle);
+		v.Pos.Y = -length; 
+		v.Pos.Z = radius * sinf(angle);
+		v.Normal = irr::core::vector3df(0,-1,0);
+		v.TCoords.X=0.5f+0.5f*cosf(angle);
+		v.TCoords.Y=0.5f+0.5f*sinf(angle);
+		buffer->Vertices.push_back(v);
+	}
+
+	v.Pos.X = 0.f;
+	v.Pos.Y = -length;
+	v.Pos.Z = 0.f;
+	v.Normal.X = 0.f;
+	v.Normal.Y = -1.f;
+	v.Normal.Z = 0.f;
+	v.TCoords.X = 0.5;
+	v.TCoords.Y = 0.5;
+	buffer->Vertices.push_back(v);
+
+	u32 index_center = buffer->Vertices.size() - 1;
+
+	for ( i = 0; i < tesselation; ++i)
+	{
+		buffer->Indices.push_back(index_center);
+		buffer->Indices.push_back(index_bottom + i + 0);
+		buffer->Indices.push_back(index_bottom + i + 1);
+	}
+
+	// TOP
+
+	u32 index_top = buffer->Vertices.size();
+
+	for ( i = 0; i <= tesselation; ++i )
+	{
+		const f32 angle = angleStep * i;
+		v.Pos.X = radius * cosf(angle);
+		v.Pos.Y = length; 
+		v.Pos.Z = radius * sinf(angle);
+		v.Normal = vector3df(0,1,0);
+		v.TCoords.X=0.5f+0.5f*cosf(angle);
+		v.TCoords.Y=0.5f+0.5f*sinf(angle);
+		buffer->Vertices.push_back(v);
+	}
+
+	v.Pos.X = 0.f;
+	v.Pos.Y = length; 
+	v.Pos.Z = 0.f;
+	v.Normal.X = 0.f;
+	v.Normal.Y = 1.f;
+	v.Normal.Z = 0.f;
+	v.TCoords.X = 0.5;
+	v.TCoords.Y = 0.5;
+	buffer->Vertices.push_back(v);
+
+	index_center = buffer->Vertices.size() - 1;
+
+	for ( i = 0; i < tesselation; ++i)
+	{
+		buffer->Indices.push_back(index_center);
+		buffer->Indices.push_back(index_top + i + 1);
+		buffer->Indices.push_back(index_top + i + 0);
+	}
+
+
+	buffer->recalculateBoundingBox();
+	SMesh* mesh = new SMesh();
+	mesh->addMeshBuffer(buffer);
+	mesh->setHardwareMappingHint(EHM_STATIC);
+	mesh->recalculateBoundingBox();
+	buffer->drop();
+	return mesh;
+}
+
+
+
+
+
 
 // This function is based on a modified version of the irrlicht_bullet demo,
 // see  http://www.continuousphysics.com
