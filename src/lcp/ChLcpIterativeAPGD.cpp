@@ -344,7 +344,7 @@ double ChLcpIterativeAPGD::Solve(
 	
 
 	if (verbose) GetLog() <<"-----\n";
-
+	current_residual = lastgoodres;
 	return lastgoodres;
 
 }

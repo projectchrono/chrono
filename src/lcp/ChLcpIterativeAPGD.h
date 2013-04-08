@@ -72,14 +72,19 @@ public:
 
 	ChMatrixDynamic<> mb;
 	ChMatrixDynamic<> ml;
-	void Dump_Rhs(std::ostream& out){
+	double current_residual;
+
+	double GetResidual(){
+		return current_residual;
+	}
+	void Dump_Rhs(std::vector<double> &temp){
 		for (int i=0; i<mb.GetRows(); i++){
-			out<<mb(i,0)<<std::endl;
+			temp.push_back(mb(i,0));
 		}
 	}
-	void Dump_Lambda(std::ostream& out){
+	void Dump_Lambda(std::vector<double> &temp){
 			for (int i=0; i<ml.GetRows(); i++){
-				out<<ml(i,0)<<std::endl;
+				temp.push_back(ml(i,0));
 			}
 		}
 };
