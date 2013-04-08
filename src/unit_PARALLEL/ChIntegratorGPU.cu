@@ -20,7 +20,7 @@ __host__ __device__ void function_Integrate_Timestep_Semi_Implicit(uint& index, 
 //
 //        if (w > limits.z) {
 //            omg = omg * limits.z / w;
-//            wlen = sqrtf(dot3(omg, omg));
+//            wlen = sqrt(dot3(omg, omg));
 //        }
 //
 //        real v = length(velocity);
@@ -35,10 +35,10 @@ __host__ __device__ void function_Integrate_Timestep_Semi_Implicit(uint& index, 
 	//printf("%f, %f, %f ", pos[index].x,pos[index].y,pos[index].z);
 	pos[index] = pos[index] + velocity * step_size; // Do 1st order integration of linear speeds
 	//printf("%f, %f, %f\n", pos[index].x,pos[index].y,pos[index].z);
-	real4 Rw = (fabs(wlen) > 10e-10) ? Q_from_AngAxis(step_size * wlen, omg / wlen) : R4(1, 0, 0, 0); // to avoid singularity for near zero angular speed
+	real4 Rw = (abs(wlen) > 10e-10) ? Q_from_AngAxis(step_size * wlen, omg / wlen) : R4(1, 0, 0, 0); // to avoid singularity for near zero angular speed
 	Rw = normalize(Rw);
 	real4 mq = mult(rot[index], Rw);
-	mq = mq * rsqrtf(dot(mq, mq));
+	mq = mq /sqrt(dot(mq, mq));
 	rot[index] = mq;
 	acc[index] = (velocity - acc[index]) / step_size;
 }

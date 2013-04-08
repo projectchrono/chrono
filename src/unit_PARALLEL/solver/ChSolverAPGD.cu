@@ -1,4 +1,4 @@
-#include "ChSolverGPU.h"
+#include "ChSolverGPU.cuh"
 using namespace chrono;
 
 uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
@@ -8,22 +8,26 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 	custom_vector<real> zvec(x.size());
 	Thrust_Fill(zvec,0.0);
 
+	custom_vector<real> ms, mg_tmp2, mb_tmp(x.size()), d01(x.size());
+	custom_vector<real> mg_tmp(x.size()), mg_tmp1(x.size());
+
 	real lastgoodres=10e30;
 	real theta_k=1.0;
 	real theta_k1=theta_k;
 	real beta_k1=0.0;
-	custom_vector<real> ms, mg_tmp2, mb_tmp(x.size()), d01(x.size());
-	custom_vector<real> mg_tmp(x.size()), mg_tmp1(x.size());
-	custom_vector<real> mg = ShurProduct(x) - b;
+	custom_vector<real> ml = x;
+	Project(ml);
+	custom_vector<real> ml_candidate = ml;
+	custom_vector<real> mg = ShurProduct(x) - b;	// 1)  g = N*l // 2)  g = N*l - b_shur ...
+
 
 	Thrust_Fill(d01, -1.0);
-	real L_k = Norm(ShurProduct(d01)) / Norm(d01);
+	d01+=ml;
+	real L_k = (Norm(d01)==0) ? 1 : Norm(ShurProduct(d01)) / Norm(d01);
 	real t_k = 1 / L_k;
 	if (verbose) cout << "L_k:" << L_k << " t_k:" << t_k << "\n";
 	custom_vector<real> my = x;
 	custom_vector<real> mx = x;
-	custom_vector<real> ml = x;
-	custom_vector<real> ml_candidate = x;
 
 	real obj1=0.0;
 	real obj2=0.0;
@@ -33,7 +37,9 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 		mg = mg_tmp1-b;
 		SEAXPY(-t_k, mg, my, mx); // mx = my + mg*(-t_k);
 		Project(mx);
-
+//		for(int i=0; i<mx.size(); i++){
+//			std::cout<<mx[i]<<endl;
+//		}
 		mg_tmp = ShurProduct(mx);
 		mg_tmp2 = mg_tmp-b;
 		//mg_tmp = 0.5*mg_tmp-b;
@@ -55,8 +61,10 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 		}
 		theta_k1 = (-pow(theta_k, 2) + theta_k * sqrt(pow(theta_k, 2) + 4)) / 2.0;
 		beta_k1 = theta_k * (1.0 - theta_k) / (pow(theta_k, 2) + theta_k1);
+
+		my = mx + beta_k1 * (mx - ml);
 		ms = mx - ml;
-		my = mx + beta_k1 * ms;
+
 		if (Dot(mg, ms) > 0) {
 			my = mx;
 			theta_k1 = 1.0;

@@ -35,7 +35,7 @@ static __host__ __device__ int2 _make_int2(int a, int b) {
 }
 
 ////////Define Real, either float or double
-typedef float real;
+typedef double real;
 ////////Structures
 struct real2 {
     real x, y;
@@ -406,14 +406,14 @@ __host__ __device__ inline real min3(T a) {
 template<class T>
 static ostream &operator<< (ostream &out, const thrust::device_vector<T> &x) {
     for (uint i = 0; i < x.size(); i++) {
-        out << x[i];
+        out << x[i]<<endl;
     }
     return out;
 }
 template<class T>
 static ostream &operator<< (ostream &out, const thrust::host_vector<T> &x) {
     for (uint i = 0; i < x.size(); i++) {
-        out << x[i];
+        out << x[i]<<endl;
     }
     return out;
 }

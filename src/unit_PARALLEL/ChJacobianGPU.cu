@@ -7,9 +7,24 @@ __host__ __device__ void inline Compute_Jacobian(
 		const real3& tangent_u,
 		const real3& tangent_w,
 		const real3& point,
-		real3& T3,
-		real3& T4,
-		real3& T5) {
+		real3& T1,
+		real3& T2,
+		real3& T3) {
+//	T1.x = (normal.x * (2 * quaternion_rotation.x * quaternion_rotation.y - 2 * quaternion_rotation.w * quaternion_rotation.z) + normal.y * (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x + quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) + normal.z * (2 * quaternion_rotation.y * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.x)) * ((2 * quaternion_rotation.x * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.y) * point.x + (2 * quaternion_rotation.y * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.x) * point.y + (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y + quaternion_rotation.z * quaternion_rotation.z) * point.z) + (normal.x * (2 * quaternion_rotation.x * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.y) + normal.y * (2 * quaternion_rotation.y * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.x) + normal.z * (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y + quaternion_rotation.z * quaternion_rotation.z)) * (-(2 * quaternion_rotation.x * quaternion_rotation.y - 2 * quaternion_rotation.w * quaternion_rotation.z) * point.x - (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x + quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) * point.y - (2 * quaternion_rotation.y * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.x) * point.z);
+//	T1.y = (normal.x * (quaternion_rotation.w * quaternion_rotation.w + quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) + normal.y * (2 * quaternion_rotation.x * quaternion_rotation.y + 2 * quaternion_rotation.w * quaternion_rotation.z) + normal.z * (2 * quaternion_rotation.x * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.y)) * (-(2 * quaternion_rotation.x * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.y) * point.x - (2 * quaternion_rotation.y * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.x) * point.y - (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y + quaternion_rotation.z * quaternion_rotation.z) * point.z) + (normal.x * (2 * quaternion_rotation.x * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.y) + normal.y * (2 * quaternion_rotation.y * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.x) + normal.z * (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y + quaternion_rotation.z * quaternion_rotation.z)) * ((quaternion_rotation.w * quaternion_rotation.w + quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) * point.x + (2 * quaternion_rotation.x * quaternion_rotation.y + 2 * quaternion_rotation.w * quaternion_rotation.z) * point.y + (2 * quaternion_rotation.x * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.y) * point.z);
+//	T1.z = (normal.x * (quaternion_rotation.w * quaternion_rotation.w + quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) + normal.y * (2 * quaternion_rotation.x * quaternion_rotation.y + 2 * quaternion_rotation.w * quaternion_rotation.z) + normal.z * (2 * quaternion_rotation.x * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.y)) * ((2 * quaternion_rotation.x * quaternion_rotation.y - 2 * quaternion_rotation.w * quaternion_rotation.z) * point.x + (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x + quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) * point.y + (2 * quaternion_rotation.y * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.x) * point.z) + (normal.x * (2 * quaternion_rotation.x * quaternion_rotation.y - 2 * quaternion_rotation.w * quaternion_rotation.z) + normal.y * (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x + quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) + normal.z * (2 * quaternion_rotation.y * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.x)) * (-(quaternion_rotation.w * quaternion_rotation.w + quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) * point.x - (2 * quaternion_rotation.x * quaternion_rotation.y + 2 * quaternion_rotation.w * quaternion_rotation.z) * point.y - (2 * quaternion_rotation.x * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.y) * point.z);
+//	T2.x = (tangent_u.x * (2 * quaternion_rotation.x * quaternion_rotation.y - 2 * quaternion_rotation.w * quaternion_rotation.z) + tangent_u.y * (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x + quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) + tangent_u.z * (2 * quaternion_rotation.y * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.x)) * ((2 * quaternion_rotation.x * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.y) * point.x + (2 * quaternion_rotation.y * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.x) * point.y + (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y + quaternion_rotation.z * quaternion_rotation.z) * point.z) + (tangent_u.x * (2 * quaternion_rotation.x * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.y) + tangent_u.y * (2 * quaternion_rotation.y * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.x) + tangent_u.z * (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y + quaternion_rotation.z * quaternion_rotation.z)) * (-(2 * quaternion_rotation.x * quaternion_rotation.y - 2 * quaternion_rotation.w * quaternion_rotation.z) * point.x - (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x + quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) * point.y - (2 * quaternion_rotation.y * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.x) * point.z);
+//	T2.y = (tangent_u.x * (quaternion_rotation.w * quaternion_rotation.w + quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) + tangent_u.y * (2 * quaternion_rotation.x * quaternion_rotation.y + 2 * quaternion_rotation.w * quaternion_rotation.z) + tangent_u.z * (2 * quaternion_rotation.x * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.y)) * (-(2 * quaternion_rotation.x * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.y) * point.x - (2 * quaternion_rotation.y * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.x) * point.y - (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y + quaternion_rotation.z * quaternion_rotation.z) * point.z) + (tangent_u.x * (2 * quaternion_rotation.x * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.y) + tangent_u.y * (2 * quaternion_rotation.y * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.x) + tangent_u.z * (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y + quaternion_rotation.z * quaternion_rotation.z)) * ((quaternion_rotation.w * quaternion_rotation.w + quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) * point.x + (2 * quaternion_rotation.x * quaternion_rotation.y + 2 * quaternion_rotation.w * quaternion_rotation.z) * point.y + (2 * quaternion_rotation.x * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.y) * point.z);
+//	T2.z = (tangent_u.x * (quaternion_rotation.w * quaternion_rotation.w + quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) + tangent_u.y * (2 * quaternion_rotation.x * quaternion_rotation.y + 2 * quaternion_rotation.w * quaternion_rotation.z) + tangent_u.z * (2 * quaternion_rotation.x * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.y)) * ((2 * quaternion_rotation.x * quaternion_rotation.y - 2 * quaternion_rotation.w * quaternion_rotation.z) * point.x + (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x + quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) * point.y + (2 * quaternion_rotation.y * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.x) * point.z) + (tangent_u.x * (2 * quaternion_rotation.x * quaternion_rotation.y - 2 * quaternion_rotation.w * quaternion_rotation.z) + tangent_u.y * (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x + quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) + tangent_u.z * (2 * quaternion_rotation.y * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.x)) * (-(quaternion_rotation.w * quaternion_rotation.w + quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) * point.x - (2 * quaternion_rotation.x * quaternion_rotation.y + 2 * quaternion_rotation.w * quaternion_rotation.z) * point.y - (2 * quaternion_rotation.x * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.y) * point.z);
+//	T3.x = (tangent_w.x * (2 * quaternion_rotation.x * quaternion_rotation.y - 2 * quaternion_rotation.w * quaternion_rotation.z) + tangent_w.y * (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x + quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) + tangent_w.z * (2 * quaternion_rotation.y * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.x)) * ((2 * quaternion_rotation.x * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.y) * point.x + (2 * quaternion_rotation.y * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.x) * point.y + (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y + quaternion_rotation.z * quaternion_rotation.z) * point.z) + (tangent_w.x * (2 * quaternion_rotation.x * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.y) + tangent_w.y * (2 * quaternion_rotation.y * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.x) + tangent_w.z * (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y + quaternion_rotation.z * quaternion_rotation.z)) * (-(2 * quaternion_rotation.x * quaternion_rotation.y - 2 * quaternion_rotation.w * quaternion_rotation.z) * point.x - (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x + quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) * point.y - (2 * quaternion_rotation.y * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.x) * point.z);
+//	T3.y = (tangent_w.x * (quaternion_rotation.w * quaternion_rotation.w + quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) + tangent_w.y * (2 * quaternion_rotation.x * quaternion_rotation.y + 2 * quaternion_rotation.w * quaternion_rotation.z) + tangent_w.z * (2 * quaternion_rotation.x * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.y)) * (-(2 * quaternion_rotation.x * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.y) * point.x - (2 * quaternion_rotation.y * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.x) * point.y - (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y + quaternion_rotation.z * quaternion_rotation.z) * point.z) + (tangent_w.x * (2 * quaternion_rotation.x * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.y) + tangent_w.y * (2 * quaternion_rotation.y * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.x) + tangent_w.z * (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y + quaternion_rotation.z * quaternion_rotation.z)) * ((quaternion_rotation.w * quaternion_rotation.w + quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) * point.x + (2 * quaternion_rotation.x * quaternion_rotation.y + 2 * quaternion_rotation.w * quaternion_rotation.z) * point.y + (2 * quaternion_rotation.x * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.y) * point.z);
+//	T3.z = (tangent_w.x * (quaternion_rotation.w * quaternion_rotation.w + quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) + tangent_w.y * (2 * quaternion_rotation.x * quaternion_rotation.y + 2 * quaternion_rotation.w * quaternion_rotation.z) + tangent_w.z * (2 * quaternion_rotation.x * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.y)) * ((2 * quaternion_rotation.x * quaternion_rotation.y - 2 * quaternion_rotation.w * quaternion_rotation.z) * point.x + (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x + quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) * point.y + (2 * quaternion_rotation.y * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.x) * point.z) + (tangent_w.x * (2 * quaternion_rotation.x * quaternion_rotation.y - 2 * quaternion_rotation.w * quaternion_rotation.z) + tangent_w.y * (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x + quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) + tangent_w.z * (2 * quaternion_rotation.y * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.x)) * (-(quaternion_rotation.w * quaternion_rotation.w + quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) * point.x - (2 * quaternion_rotation.x * quaternion_rotation.y + 2 * quaternion_rotation.w * quaternion_rotation.z) * point.y - (2 * quaternion_rotation.x * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.y) * point.z);
+
+
+
+
+
+
 	real t1 = quaternion_rotation.x * quaternion_rotation.y;
 	real t2 = quaternion_rotation.w * quaternion_rotation.z;
 	real t3 = 2 * t1 - 2 * t2;
@@ -44,15 +59,20 @@ __host__ __device__ void inline Compute_Jacobian(
 	t3 = tangent_w.x * t3 + tangent_w.y * t8 + tangent_w.z * t11;
 	t8 = tangent_w.x * t15 + tangent_w.y * t9 + tangent_w.z * t10;
 	t1 = tangent_w.x * t4 + tangent_w.y * t1 + tangent_w.z * t2;
-	T3.x = t12 * t16 + t17 * t18;
-	T3.y = t5 * t6 + t17 * t7;
-	T3.z = t5 * t13 + t12 * t14;
-	T4.x = t19 * t16 + t20 * t18;
-	T4.y = t21 * t6 + t20 * t7;
-	T4.z = t21 * t13 + t19 * t14;
-	T5.x = t3 * t16 + t8 * t18;
-	T5.y = t1 * t6 + t8 * t7;
-	T5.z = t1 * t13 + t3 * t14;
+	T1.x = t12 * t16 + t17 * t18;
+	T1.y = t5 * t6 + t17 * t7;
+	T1.z = t5 * t13 + t12 * t14;
+	T2.x = t19 * t16 + t20 * t18;
+	T2.y = t21 * t6 + t20 * t7;
+	T2.z = t21 * t13 + t19 * t14;
+	T3.x = t3 * t16 + t8 * t18;
+	T3.y = t1 * t6 + t8 * t7;
+	T3.z = t1 * t13 + t3 * t14;
+
+
+
+
+
 }
 __host__ __device__ void inline function_ContactJacobians(
 		uint& index,
@@ -68,20 +88,17 @@ __host__ __device__ void inline function_ContactJacobians(
 		real3* JUVWA,
 		real3* JUVWB) {
 	real3 U = norm[index];
-	real3 W = cross(U,R3(0,1,0));
-	real3 mVsingular = R3(0,1,0);
+	real3 W = cross(U, R3(0, 1, 0));
+	real3 mVsingular = R3(0, 1, 0);
 	if (length(W) < 0.0001) // was near singularity? change singularity reference vector!
-		{
-			if (0 < 0.9)
-				mVsingular = R3(0,0,1);
-			if (1 < 0.9)
-				mVsingular = R3(0,1,0);
-			if (0 < 0.9)
-				mVsingular = R3(1,0,0);
-			W = cross(U, mVsingular);
-		}
+			{
+		if (0 < 0.9) mVsingular = R3(0, 0, 1);
+		if (1 < 0.9) mVsingular = R3(0, 1, 0);
+		if (0 < 0.9) mVsingular = R3(1, 0, 0);
+		W = cross(U, mVsingular);
+	}
 	W = normalize(W);
-	real3 V = cross(W,U);
+	real3 V = cross(W, U);
 
 //	real3 U = norm[index];
 //	real3 W = fabs(U);
@@ -194,8 +211,32 @@ void ChJacobianGPU::ComputeJacobians(gpu_container& gpu_data_) {
 			gpu_data->device_JXYZA_data.data(),
 			gpu_data->device_JXYZB_data.data(),
 			gpu_data->device_JUVWA_data.data(),
-			gpu_data->device_JUVWB_data.data()
-	);
+			gpu_data->device_JUVWB_data.data());
+
 #endif
+
+//	for (int i = 0; i < gpu_data->device_JXYZA_data.size() / 3; i++) {
+//		std::cout << "[" << gpu_data->device_JXYZA_data[i].x << " " << gpu_data->device_JXYZA_data[i].y << " " << gpu_data->device_JXYZA_data[i].z << "][" << gpu_data->device_JXYZB_data[i].x << " "
+//				<< gpu_data->device_JXYZB_data[i].y << " " << gpu_data->device_JXYZB_data[i].z << "]" << endl;
+//
+//		std::cout << "[" << gpu_data->device_JXYZA_data[i + number_of_contacts * 1].x << " " << gpu_data->device_JXYZA_data[i + number_of_contacts * 1].y << " "
+//				<< gpu_data->device_JXYZA_data[i + number_of_contacts * 1].z << "][" << gpu_data->device_JXYZB_data[i + number_of_contacts * 1].x << " "
+//				<< gpu_data->device_JXYZB_data[i + number_of_contacts * 1].y << " " << gpu_data->device_JXYZB_data[i + number_of_contacts * 1].z << "]" << endl;
+//		std::cout << "[" << gpu_data->device_JXYZA_data[i + number_of_contacts * 2].x << " " << gpu_data->device_JXYZA_data[i + number_of_contacts * 2].y << " "
+//				<< gpu_data->device_JXYZA_data[i + number_of_contacts * 2].z << "][" << gpu_data->device_JXYZB_data[i + number_of_contacts * 2].x << " "
+//				<< gpu_data->device_JXYZB_data[i + number_of_contacts * 2].y << " " << gpu_data->device_JXYZB_data[i + number_of_contacts * 2].z << "]" << endl;
+//
+//		std::cout << "[" << gpu_data->device_JUVWA_data[i].x << " " << gpu_data->device_JUVWA_data[i].y << " " << gpu_data->device_JUVWA_data[i].z << "][" << gpu_data->device_JUVWB_data[i].x << " "
+//				<< gpu_data->device_JUVWB_data[i].y << " " << gpu_data->device_JUVWB_data[i].z << "]" << endl;
+//
+//		std::cout << "[" << gpu_data->device_JUVWA_data[i + number_of_contacts * 1].x << " " << gpu_data->device_JUVWA_data[i + number_of_contacts * 1].y << " "
+//				<< gpu_data->device_JUVWA_data[i + number_of_contacts * 1].z << "][" << gpu_data->device_JUVWB_data[i + number_of_contacts * 1].x << " "
+//				<< gpu_data->device_JUVWB_data[i + number_of_contacts * 1].y << " " << gpu_data->device_JUVWB_data[i + number_of_contacts * 1].z << "]" << endl;
+//
+//		std::cout << "[" << gpu_data->device_JUVWA_data[i + number_of_contacts * 2].x << " " << gpu_data->device_JUVWA_data[i + number_of_contacts * 2].y << " "
+//				<< gpu_data->device_JUVWA_data[i + number_of_contacts * 2].z << "][" << gpu_data->device_JUVWB_data[i + number_of_contacts * 2].x << " "
+//				<< gpu_data->device_JUVWB_data[i + number_of_contacts * 2].y << " " << gpu_data->device_JUVWB_data[i + number_of_contacts * 2].z << "]" << endl;
+//
+//	}
 
 }

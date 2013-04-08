@@ -1,4 +1,4 @@
-#include "ChSolverGPU.h"
+#include "ChSolverGPU.cuh"
 using namespace chrono;
 
 __constant__ uint number_of_constraints_const;
@@ -20,31 +20,48 @@ __device__ double atomicAdd(double* address, double val) {
 	return __longlong_as_double(old);
 }
 
-
 __host__ __device__ void function_Project(uint &index, uint number_of_contacts, int2 *ids, real *fric, real *gam) {
 	int2 body_id = ids[index];
 	real3 gamma;
 	gamma.x = gam[index + number_of_contacts * 0];
 	gamma.y = gam[index + number_of_contacts * 1];
 	gamma.z = gam[index + number_of_contacts * 2];
-	real f_tang = sqrtf(gamma.y * gamma.y + gamma.z * gamma.z);
-	real mu = (fric[body_id.x] + fric[body_id.y]) * .5f;
+	real f_tang = sqrt(gamma.y * gamma.y + gamma.z * gamma.z);
+	real mu = (fric[body_id.x]==0||fric[body_id.y]==0)? 0: (fric[body_id.x] + fric[body_id.y]) * .5;
 	if (mu == 0) {
+		gamma.x = gamma.x < 0 ? 0 : gamma.x;
 		gamma.y = gamma.z = 0;
-	} else if (f_tang > (mu * gamma.x)) { // inside upper cone? keep untouched!
-		if ((f_tang) < -(1.0 / mu) * gamma.x || (fabsf(gamma.x) < 0)) { // inside lower cone? reset  normal,u,v to zero!
-			gamma = R3(0);
-		} else { // remaining case: project orthogonally to generator segment of upper cone
-			gamma.x = (f_tang * mu + gamma.x) / (mu * mu + 1);
-			real tproj_div_t = (gamma.x * mu) / f_tang; //  reg = tproj_div_t
-			gamma.y *= tproj_div_t;
-			gamma.z *= tproj_div_t;
-		}
+
+		gam[index + number_of_contacts * 0] = gamma.x;
+		gam[index + number_of_contacts * 1] = gamma.y;
+		gam[index + number_of_contacts * 2] = gamma.z;
+
+		return;
+
 	}
-	//  if (gamma.x < 0) {
-	//      gamma.x = 0;
-	//  }
-	//  gamma.y = gamma.z = 0;
+	// inside upper cone? keep untouched!
+	if (f_tang < (mu * gamma.x)) {
+		return;
+	}
+
+	// inside lower cone? reset  normal,u,v to zero!
+
+	if ((f_tang) < -(1.0 / mu) * gamma.x || (fabs(gamma.x) < 10e-15)) {
+		gamma = R3(0);
+		gam[index + number_of_contacts * 0] = gamma.x;
+		gam[index + number_of_contacts * 1] = gamma.y;
+		gam[index + number_of_contacts * 2] = gamma.z;
+
+		return;
+	}
+
+	// remaining case: project orthogonally to generator segment of upper cone
+
+	gamma.x = (f_tang * mu + gamma.x) / (mu * mu + 1);
+	real tproj_div_t = (gamma.x * mu) / f_tang;
+	gamma.y *= tproj_div_t;
+	gamma.z *= tproj_div_t;
+
 	gam[index + number_of_contacts * 0] = gamma.x;
 	gam[index + number_of_contacts * 1] = gamma.y;
 	gam[index + number_of_contacts * 2] = gamma.z;
@@ -79,78 +96,104 @@ void ChSolverGPU::Project(custom_vector<real> & gamma) {
 		time_project += timer_project();
 	}
 
-__host__ __device__ void function_shurA(uint &index, int2 *ids, bool *active, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *QXYZ, real3 *QUVW) {
+__host__ __device__ void function_shurA(
+		uint &index,
+		int2 *ids,
+		bool *active,
+		real *inv_mass,
+		real3 *inv_inertia,
+		real3 *JXYZA,
+		real3 *JXYZB,
+		real3 *JUVWA,
+		real3 *JUVWB,
+		real *gamma,
+		real3 *QXYZ,
+		real3 *QUVW) {
 	real q_x = 0, q_y = 0, q_z = 0, q_u = 0, q_v = 0, q_w = 0;
 	uint b1 = ids[index].x;
 	uint b2 = ids[index].y;
+	real m1 = inv_mass[b1];
+	real m2 = inv_mass[b2];
+	real3 inertia1 = inv_inertia[b1];
+	real3 inertia2 = inv_inertia[b2];
 	if (active[b1] != 0) {
-		q_x = JXYZA[index].x * gamma[index];
-		q_y = JXYZA[index].y * gamma[index];
-		q_z = JXYZA[index].z * gamma[index];
-		q_u = JUVWA[index].x * gamma[index];
-		q_v = JUVWA[index].y * gamma[index];
-		q_w = JUVWA[index].z * gamma[index];
+		q_x = JXYZA[index].x * gamma[index] * m1;
+		q_y = JXYZA[index].y * gamma[index] * m1;
+		q_z = JXYZA[index].z * gamma[index] * m1;
+		q_u = JUVWA[index].x * gamma[index] * inertia1.x;
+		q_v = JUVWA[index].y * gamma[index] * inertia1.y;
+		q_w = JUVWA[index].z * gamma[index] * inertia1.z;
+
+		//cout << q_x << " " << q_y << " " << q_z << " " << q_u << " " << q_v << " " << q_w << endl;
+
 		QXYZ[b1] += R3(q_x, q_y, q_z);
 		QUVW[b1] += R3(q_u, q_v, q_w);
 	}
 	if (active[b2] != 0) {
-		q_x = JXYZB[index].x * gamma[index];
-		q_y = JXYZB[index].y * gamma[index];
-		q_z = JXYZB[index].z * gamma[index];
-		q_u = JUVWB[index].x * gamma[index];
-		q_v = JUVWB[index].y * gamma[index];
-		q_w = JUVWB[index].z * gamma[index];
+		q_x = JXYZB[index].x * gamma[index] * m2;
+		q_y = JXYZB[index].y * gamma[index] * m2;
+		q_z = JXYZB[index].z * gamma[index] * m2;
+		q_u = JUVWB[index].x * gamma[index] * inertia2.x;
+		q_v = JUVWB[index].y * gamma[index] * inertia2.y;
+		q_w = JUVWB[index].z * gamma[index] * inertia2.z;
+
+		//cout << q_x << " " << q_y << " " << q_z << " " << q_u << " " << q_v << " " << q_w << endl;
+
 		QXYZ[b2] += R3(q_x, q_y, q_z);
 		QUVW[b2] += R3(q_u, q_v, q_w);
 	}
 }
-__global__ void device_shurA(int2 *ids, bool *active, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *QXYZ, real3 *QUVW) {
+__global__ void device_shurA(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *QXYZ, real3 *QUVW) {
 	INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_constraints_const);
 	real q_x = 0, q_y = 0, q_z = 0, q_u = 0, q_v = 0, q_w = 0;
 	real temp = 0, m;
 	uint b1 = ids[index].x;
 	uint b2 = ids[index].y;
-	if (active[b1] != 0) {
-		q_x = JXYZA[index].x * gamma[index];
-		atomicAdd(&QXYZ[b1].x, q_x);
-		q_y = JXYZA[index].y * gamma[index];
-		atomicAdd(&QXYZ[b1].y, q_y);
-		q_z = JXYZA[index].z * gamma[index];
-		atomicAdd(&QXYZ[b1].z, q_z);
+	real m1 = inv_mass[b1];
+	real m2 = inv_mass[b2];
+	real3 inertia1 = inv_inertia[b1];
+	real3 inertia2 = inv_inertia[b2];
+	//if (active[b1] != 0) {
+	q_x = JXYZA[index].x * gamma[index] * m1;
+	atomicAdd(&QXYZ[b1].x, q_x);
+	q_y = JXYZA[index].y * gamma[index] * m1;
+	atomicAdd(&QXYZ[b1].y, q_y);
+	q_z = JXYZA[index].z * gamma[index] * m1;
+	atomicAdd(&QXYZ[b1].z, q_z);
 
-		q_u = JUVWA[index].x * gamma[index];
-		atomicAdd(&QUVW[b1].x, q_u);
-		q_v = JUVWA[index].y * gamma[index];
-		atomicAdd(&QUVW[b1].y, q_v);
-		q_w = JUVWA[index].z * gamma[index];
-		atomicAdd(&QUVW[b1].z, q_w);
+	q_u = JUVWA[index].x * gamma[index] * inertia1.x;
+	atomicAdd(&QUVW[b1].x, q_u);
+	q_v = JUVWA[index].y * gamma[index] * inertia1.y;
+	atomicAdd(&QUVW[b1].y, q_v);
+	q_w = JUVWA[index].z * gamma[index] * inertia1.z;
+	atomicAdd(&QUVW[b1].z, q_w);
 
-		//QXYZ[b1] += R3(q_x, q_y, q_z);
-		//QUVW[b1] += R3(q_u, q_v, q_w);
-	}
-	if (active[b2] != 0) {
-		q_x = JXYZB[index].x * gamma[index];
-		atomicAdd(&QXYZ[b2].x, q_x);
-		q_y = JXYZB[index].y * gamma[index];
-		atomicAdd(&QXYZ[b2].y, q_y);
-		q_z = JXYZB[index].z * gamma[index];
-		atomicAdd(&QXYZ[b2].z, q_z);
+	//QXYZ[b1] += R3(q_x, q_y, q_z);
+	//QUVW[b1] += R3(q_u, q_v, q_w);
+	//}
+	//if (active[b2] != 0) {
+	q_x = JXYZB[index].x * gamma[index] * m2;
+	atomicAdd(&QXYZ[b2].x, q_x);
+	q_y = JXYZB[index].y * gamma[index] * m2;
+	atomicAdd(&QXYZ[b2].y, q_y);
+	q_z = JXYZB[index].z * gamma[index] * m2;
+	atomicAdd(&QXYZ[b2].z, q_z);
 
-		q_u = JUVWB[index].x * gamma[index];
-		atomicAdd(&QUVW[b2].x, q_u);
-		q_v = JUVWB[index].y * gamma[index];
-		atomicAdd(&QUVW[b2].y, q_v);
-		q_w = JUVWB[index].z * gamma[index];
-		atomicAdd(&QUVW[b2].z, q_w);
+	q_u = JUVWB[index].x * gamma[index] * inertia2.x;
+	atomicAdd(&QUVW[b2].x, q_u);
+	q_v = JUVWB[index].y * gamma[index] * inertia2.y;
+	atomicAdd(&QUVW[b2].y, q_v);
+	q_w = JUVWB[index].z * gamma[index] * inertia2.z;
+	atomicAdd(&QUVW[b2].z, q_w);
 
-		//QXYZ[b2] += R3(q_x, q_y, q_z);
-		//QUVW[b2] += R3(q_u, q_v, q_w);
-	}
+	//QXYZ[b2] += R3(q_x, q_y, q_z);
+	//QUVW[b2] += R3(q_u, q_v, q_w);
+	//}
 }
 
-void ChSolverGPU::host_shurA(int2 *ids, bool *active, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *QXYZ, real3 *QUVW) {
+void ChSolverGPU::host_shurA(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *QXYZ, real3 *QUVW) {
 	for (uint index = 0; index < number_of_constraints; index++) {
-		function_shurA(index, ids, active, JXYZA, JXYZB, JUVWA, JUVWB, gamma, QXYZ, QUVW);
+		function_shurA(index, ids, active, inv_mass, inv_inertia, JXYZA, JXYZB, JUVWA, JUVWB, gamma, QXYZ, QUVW);
 	}
 }
 void ChSolverGPU::shurA(custom_vector<real> &x) {
@@ -158,6 +201,8 @@ void ChSolverGPU::shurA(custom_vector<real> &x) {
 		device_shurA CUDA_KERNEL_DIM(BLOCKS(number_of_constraints), THREADS)(
 				CASTI2(temp_bids),
 				CASTB1(gpu_data->device_active_data),
+				CASTR1(gpu_data->device_mass_data),
+				CASTR3(gpu_data->device_inr_data),
 				CASTR3(gpu_data->device_JXYZA_data),
 				CASTR3(gpu_data->device_JXYZB_data),
 				CASTR3(gpu_data->device_JUVWA_data),
@@ -170,6 +215,8 @@ void ChSolverGPU::shurA(custom_vector<real> &x) {
 		host_shurA(
 				temp_bids.data(),
 				gpu_data->device_active_data.data(),
+				gpu_data->device_mass_data.data(),
+				gpu_data->device_inr_data.data(),
 				gpu_data->device_JXYZA_data.data(),
 				gpu_data->device_JXYZB_data.data(),
 				gpu_data->device_JUVWA_data.data(),
@@ -205,20 +252,20 @@ __host__ __device__ void function_shurB(
 	real3 inertia1 = inv_inertia[b1];
 	real3 inertia2 = inv_inertia[b2];
 	if (active[b1] != 0) {
-		temp += QXYZ[b1].x * JXYZA[index].x * m1;
-		temp += QXYZ[b1].y * JXYZA[index].y * m1;
-		temp += QXYZ[b1].z * JXYZA[index].z * m1;
-		temp += QUVW[b1].x * JUVWA[index].x * inertia1.x;
-		temp += QUVW[b1].y * JUVWA[index].y * inertia1.y;
-		temp += QUVW[b1].z * JUVWA[index].z * inertia1.z;
+		temp += QXYZ[b1].x * JXYZA[index].x;
+		temp += QXYZ[b1].y * JXYZA[index].y;
+		temp += QXYZ[b1].z * JXYZA[index].z;
+		temp += QUVW[b1].x * JUVWA[index].x;
+		temp += QUVW[b1].y * JUVWA[index].y;
+		temp += QUVW[b1].z * JUVWA[index].z;
 	}
 	if (active[b2] != 0) {
-		temp += QXYZ[b2].x * JXYZB[index].x * m2;
-		temp += QXYZ[b2].y * JXYZB[index].y * m2;
-		temp += QXYZ[b2].z * JXYZB[index].z * m2;
-		temp += QUVW[b2].x * JUVWB[index].x * inertia2.x;
-		temp += QUVW[b2].y * JUVWB[index].y * inertia2.y;
-		temp += QUVW[b2].z * JUVWB[index].z * inertia2.z;
+		temp += QXYZ[b2].x * JXYZB[index].x;
+		temp += QXYZ[b2].y * JXYZB[index].y;
+		temp += QXYZ[b2].z * JXYZB[index].z;
+		temp += QUVW[b2].x * JUVWB[index].x;
+		temp += QUVW[b2].y * JUVWB[index].y;
+		temp += QUVW[b2].z * JUVWB[index].z;
 	}
 	AX[index] = temp + gamma[index] * inv_hhpa * compliance;
 }
@@ -410,6 +457,10 @@ custom_vector<real> ChSolverGPU::ShurProduct( custom_vector<real> &x) {
 	AX.resize(x.size());
 	Thrust_Fill(AX, 0);
 	shurA(x);
+//for(int i=0;  i<gpu_data->device_QXYZ_data.size(); i++){
+//	//cout<<gpu_data->device_QXYZ_data[i].x<<" "<<gpu_data->device_QXYZ_data[i].y<<" "<<gpu_data->device_QXYZ_data[i].z<<endl;
+//	cout<<gpu_data->device_QUVW_data[i].x<<" "<<gpu_data->device_QUVW_data[i].y<<" "<<gpu_data->device_QUVW_data[i].z<<endl;
+//}
 	shurB(x);
 	timer_shurcompliment.stop();
 	time_shurcompliment +=timer_shurcompliment();
@@ -420,8 +471,14 @@ void ChSolverGPU::ComputeImpulses() {
 	Thrust_Fill(gpu_data->device_QXYZ_data, R3(0));
 	Thrust_Fill(gpu_data->device_QUVW_data, R3(0));
 	shurA(gpu_data->device_gam_data);
-	gpu_data->device_QXYZ_data *= gpu_data->device_mass_data;
-	gpu_data->device_QUVW_data *= gpu_data->device_inr_data;
+
+	//for(int i=0;  i<gpu_data->device_QXYZ_data.size(); i++){
+	//cout<<gpu_data->device_QXYZ_data[i].x<<" "<<gpu_data->device_QXYZ_data[i].y<<" "<<gpu_data->device_QXYZ_data[i].z<<endl;
+	//cout<<gpu_data->device_QUVW_data[i].x<<" "<<gpu_data->device_QUVW_data[i].y<<" "<<gpu_data->device_QUVW_data[i].z<<endl;
+	//}
+
+	//gpu_data->device_QXYZ_data *= gpu_data->device_mass_data;
+	//gpu_data->device_QUVW_data *= gpu_data->device_inr_data;
 }
 
 void ChSolverGPU::Solve(GPUSOLVERTYPE solver_type, real step, gpu_container &gpu_data_) {

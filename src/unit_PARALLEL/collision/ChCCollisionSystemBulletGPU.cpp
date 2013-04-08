@@ -116,6 +116,11 @@ namespace chrono {
 				double marginA = icontact.modelA->GetSafeMargin();
 				double marginB = icontact.modelB->GetSafeMargin();
 
+				bool activeA = (( ChBody*) (icontact.modelA->GetPhysicsItem()))->IsActive();
+				bool activeB = (( ChBody*) (icontact.modelB->GetPhysicsItem()))->IsActive();
+
+				if(activeA==0&&activeB==0){continue;}
+
 				// Execute custom broadphase callback, if any
 				bool do_narrow_contactgeneration = true;
 				if (this->broad_callback) do_narrow_contactgeneration = this->broad_callback->BroadCallback(icontact.modelA, icontact.modelB);

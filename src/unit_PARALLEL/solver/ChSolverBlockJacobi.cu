@@ -17,11 +17,11 @@ __constant__ real alpha_const; // [R]=alpha*[K]
 __host__ __device__ void function_Project_jacobi(uint & index, real3 & gamma, real* fric, int2* ids) {
 	int2 body_id = ids[index];
 
-	real f_tang = sqrtf(gamma.y * gamma.y + gamma.z * gamma.z);
+	real f_tang = sqrt(gamma.y * gamma.y + gamma.z * gamma.z);
 	real mu = (fric[body_id.x] + fric[body_id.y]) * .5f;
 
 	if (f_tang > (mu * gamma.x)) { // inside upper cone? keep untouched!
-		if ((f_tang) < -(1.0 / mu) * gamma.x || (fabsf(gamma.x) < 0)) { // inside lower cone? reset  normal,u,v to zero!
+		if ((f_tang) < -(1.0 / mu) * gamma.x || (abs(gamma.x) < 0)) { // inside lower cone? reset  normal,u,v to zero!
 			gamma = R3(0);
 		} else { // remaining case: project orthogonally to generator segment of upper cone
 			gamma.x = (f_tang * mu + gamma.x) / (mu * mu + 1);

@@ -1,4 +1,4 @@
-#include "ChSolverGPU.h"
+#include "ChSolverGPU.cuh"
 using namespace chrono;
 
 uint ChSolverGPU::SolveMinRes(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {

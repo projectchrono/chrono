@@ -21,7 +21,7 @@ struct saxmy_functor : public thrust::binary_function<real, real, real> {
 
         __host__ __device__
         real operator()(const real &x, const real &y) const {
-                return y - a * x;
+                return a * x - y;
         }
 };
 struct scale_real3_functor : public thrust::binary_function<real3, real, real3> {

@@ -1,4 +1,4 @@
-#include "ChSolverGPU.h"
+#include "ChSolverGPU.cuh"
 using namespace chrono;
 
 
@@ -30,7 +30,7 @@ uint ChSolverGPU::SolveCG(custom_vector<real> &x, const custom_vector<real> &b, 
             rsnew += r[i] * r[i];
         }
 #endif
-        residual = sqrtf(rsnew) * normb;
+        residual = sqrt(rsnew) * normb;
         if (residual < tolerance) {
             break;
         }

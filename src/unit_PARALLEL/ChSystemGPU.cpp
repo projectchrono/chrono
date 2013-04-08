@@ -89,10 +89,8 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	real3 *acc_pointer = gpu_data_manager->host_acc_data.data();
 	real3 *gyr_pointer = gpu_data_manager->host_gyr_data.data();
 	real3 *fap_pointer = gpu_data_manager->host_fap_data.data();
-#pragma omp parallel
-	{
-#pragma omp for
 
+#pragma omp parallel for
 		for (int i = 0; i < bodylist.size(); i++) {
 			ChBodyGPU *mbody = (ChBodyGPU *) bodylist[i];
 
@@ -104,10 +102,9 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 				mbody->SetWvel_loc(CHVECCAST(omg_pointer[i]));
 				mbody->SetAppliedForce(CHVECCAST(fap_pointer[i]));
 				mbody->SetGyro(CHVECCAST(gyr_pointer[i]));
-				mbody->GetCollisionModel()->SyncPosition();
+
 			}
 		}
-	}
 	uint counter = 0;
 	std::vector<ChLcpConstraint *> &mconstraints = (*this->LCP_descriptor).GetConstraintsList();
 	for (uint ic = 0; ic < mconstraints.size(); ic++) {
@@ -299,6 +296,7 @@ void ChSystemGPU::Update() {
 		mass_pointer[i] = 1.0f / mbodyvar->GetBodyMass();
 		fric_pointer[i] = bodylist[i]->GetKfriction();
 		lim_pointer[i] = (R3(bodylist[i]->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
+		bodylist[i]->GetCollisionModel()->SyncPosition();
 	}
 }
 

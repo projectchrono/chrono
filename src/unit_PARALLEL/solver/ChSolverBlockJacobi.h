@@ -4,7 +4,7 @@
 #include "ChCudaMath.h"
 #include "ChCudaDefines.h"
 #include "ChThrustLinearAlgebra.cuh"
-#include "ChSolverGPU.h"
+#include "ChSolverGPU.cuh"
 #include "ChDataManager.h"
 namespace chrono {
 	class ChApiGPU ChSolverJacobi: public ChSolverGPU {

@@ -83,11 +83,21 @@ namespace chrono {
 			uint GetCurrentIteration() {
 				return current_iteration;
 			}
-			void Dump_Rhs(ostream& out) {
-				//solver.Dump_Rhs(out);
+			void Dump_Rhs(std::vector<double> &temp) {
+				for (int i = 0; i < rhs.size(); i++) {
+					temp.push_back(rhs[i]);
+				}
 			}
-			void Dump_Lambda(ostream& out) {
-				//solver.Dump_Lambda(out);
+			void Dump_Shur(std::vector<double> &temp) {
+
+				for (int i = 0; i < debug.size(); i++) {
+					temp.push_back(debug[i]);
+				}
+			}
+			void Dump_Lambda(std::vector<double> &temp) {
+				for (int i = 0; i < lambda.size(); i++) {
+					temp.push_back(lambda[i]);
+				}
 			}
 		private:
 			real tolerance;
@@ -110,12 +120,12 @@ namespace chrono {
 			real residual;
 
 			GPUSOLVERTYPE solver_type;
-			//ChSolverGPU solver;
-			cudaEvent_t start, stop;
-			
 
-	};
-}
+			cudaEvent_t start, stop;
+
+			custom_vector<real> rhs, debug, lambda;
+
+		};}
 
 #endif
 

@@ -1,4 +1,4 @@
-#include "ChSolverGPU.h"
+#include "ChSolverGPU.cuh"
 using namespace chrono;
 
 

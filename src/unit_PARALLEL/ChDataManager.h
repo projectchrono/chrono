@@ -90,6 +90,7 @@ namespace chrono {
             void HostToDeviceCD();
             void DeviceToHostPairData();
             void HostToDeviceContacts();
+            void DeviceToHostJacobians();
             void CopyContacts(bool c) {
                 copyContacts = c;
             }
@@ -142,7 +143,8 @@ namespace chrono {
             thrust::host_vector<real3> host_fap_data;
 
 
-
+            thrust::host_vector<real3> host_JXYZA_data,host_JXYZB_data;
+            thrust::host_vector<real3> host_JUVWA_data,host_JUVWB_data;
 
             //constraint data
 

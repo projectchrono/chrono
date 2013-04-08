@@ -1,10 +1,9 @@
 #include "ChLcpSolverGPU.h"
 #include "ChThrustLinearAlgebra.cuh"
 #include "solver/ChSolverBlockJacobi.h"
-#include "solver/ChSolverGPU.h"
+#include "solver/ChSolverGPU.cuh"
 #include "ChJacobianGPU.h"
 #include "ChIntegratorGPU.h"
-#include "solver/ChSolverGPU.h"
 using namespace chrono;
 __constant__ uint number_of_objects_const;
 __constant__ uint number_of_contacts_const;
@@ -109,6 +108,7 @@ void ChLcpSolverGPU::RunTimeStep(real step, gpu_container& gpu_data) {
 	Preprocess(gpu_data);
 	ChJacobianGPU jacobian_compute;
 	jacobian_compute.ComputeJacobians(gpu_data);
+
 	if (solver_type == BLOCK_JACOBI) {
 		ChSolverJacobi jacobi_solver;
 		jacobi_solver.SetMaxIterations(max_iteration);
@@ -130,6 +130,11 @@ void ChLcpSolverGPU::RunTimeStep(real step, gpu_container& gpu_data) {
 		solver.Solve(solver_type, step, gpu_data);
 		current_iteration = solver.GetIteration();
 		residual = solver.GetResidual();
+		rhs = solver.rhs;
+		lambda = gpu_data.device_gam_data;
+		custom_vector<real> temp=rhs;
+		Thrust_Fill(temp,1);
+		debug = solver.ShurProduct(temp);
 	}
 
 	ChIntegratorGPU integrator;
