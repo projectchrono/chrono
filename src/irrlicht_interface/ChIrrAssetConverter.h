@@ -58,8 +58,10 @@ public:
 
 			// shared meshes
 	IAnimatedMesh* sphereMesh;
-	IAnimatedMesh* cubeMesh;
-	IAnimatedMesh* cylinderMesh;
+	//IAnimatedMesh* cubeMesh;
+	//IAnimatedMesh* cylinderMesh;
+	IMesh* cubeMesh;
+	IMesh* cylinderMesh;
 	irr::scene::ISceneManager* scenemanager;
 	irr::IrrlichtDevice* mdevice;
 	irr::ChIrrAppInterface* minterface;
@@ -79,8 +81,9 @@ public:
 		mdevice      = ainterface.GetDevice();
 	
 		sphereMesh   = createEllipticalMesh(1.0,1.0,-2,+2,0, 15, 8);
-		cubeMesh     = scenemanager->getMesh((irrlicht_default_obj_dir+"cube.obj").c_str());
-		cylinderMesh = scenemanager->getMesh((irrlicht_default_obj_dir+"cylinder.obj").c_str());
+		cubeMesh     = createCubeMesh(core::vector3df(2,2,2)); // -/+ 1 unit each xyz axis  
+		cylinderMesh = createCylinderMesh(1,1,32); 
+		
 
 		//if (sphereMesh)
 		//	sphereMesh->grab();
@@ -100,6 +103,13 @@ public:
 			cylinderMesh->drop();
 	}
 
+		/// Set the directory where the cube, cylinder, etc. primitives 
+		/// are stored as .obj  files (by default, it is "../data/")
+		/// Must be set _before_ creating the ChIrrApp or the ChIrrAssetConverter (it is a static method)
+	static void SetDefaultObjectDir(std::string mdir)
+	{
+		irrlicht_default_obj_dir = mdir;
+	}
 
 		/// Returns the proxy to the ChIrrNode, by scanning all assets.
 		/// Note, check for the returned pointer, using mnode.IsNull(), 
@@ -345,7 +355,8 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 			if ( k_asset.IsType<chrono::ChCylinderShape>() && cylinderMesh)
 			{
 				chrono::ChSharedPtr<chrono::ChCylinderShape> mycylinder(k_asset);
-				irr::scene::ISceneNode* mchildnode = this->scenemanager->addAnimatedMeshSceneNode(this->cylinderMesh,mnode);
+				//irr::scene::ISceneNode* mchildnode = this->scenemanager->addAnimatedMeshSceneNode(this->cylinderMesh,mnode);
+				irr::scene::ISceneNode* mchildnode = this->scenemanager->addMeshSceneNode(this->cylinderMesh,mnode);
 				double rad = mycylinder->GetCylinderGeometry().rad;
 				chrono::ChVector<> dir = mycylinder->GetCylinderGeometry().p2 - mycylinder->GetCylinderGeometry().p1;
 				double height = dir.Length();
@@ -363,7 +374,8 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 			if ( k_asset.IsType<chrono::ChBoxShape>() && cubeMesh)
 			{
 				chrono::ChSharedPtr<chrono::ChBoxShape> mybox(k_asset);
-				irr::scene::ISceneNode* mchildnode = this->scenemanager->addAnimatedMeshSceneNode(this->cubeMesh,mnode);
+				//irr::scene::ISceneNode* mchildnode = this->scenemanager->addAnimatedMeshSceneNode(this->cubeMesh,mnode);
+				irr::scene::ISceneNode* mchildnode = this->scenemanager->addMeshSceneNode(this->cubeMesh,mnode);
 				chrono::ChCoordsys<> irrboxcoords(mybox->GetBoxGeometry().Pos, mybox->GetBoxGeometry().Rot.Get_A_quaternion());				
 				mchildnode->setScale(core::vector3dfCH(mybox->GetBoxGeometry().Size));
 				ChIrrTools::alignIrrlichtNodeToChronoCsys(mchildnode, irrboxcoords);

@@ -136,8 +136,8 @@ int main(int argc, char* argv[])
 
 			// ==Asset== Attach also a 'box' shape 
 	ChSharedPtr<ChBoxShape> mbox(new ChBoxShape);
-	mbox->GetBoxGeometry().Pos = ChVector<>(1,0,0);
-	mbox->GetBoxGeometry().Size = ChVector<>(0.2,0.5,0.1);
+	mbox->GetBoxGeometry().Pos = ChVector<>(1,1,0);
+	mbox->GetBoxGeometry().Size = ChVector<>(0.3,0.5,0.1);
 	mbody->AddAsset(mbox);
 
 			// ==Asset== Attach also a 'cylinder' shape 
@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
 	ChSharedPtr<ChVisualization> mvisual(new ChVisualization);
 	mvisual->SetColor(ChColor(0.9,0.4,0.2));
 	mbody->AddAsset(mvisual);
-
+	
 			// ==Asset== Attach a level that contains other assets.
 			// Note: a ChAssetLevel can define a rotation/translation respect to paren level,
 			// Note: a ChAssetLevel can contain colors or textures: if any, they affect only objects in the level.
