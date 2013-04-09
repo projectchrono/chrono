@@ -86,6 +86,13 @@ int main(int argc, char* argv[])
 	GetLog()<< "SYSTEM ITEMS: \n";
 	mphysicalSystem.ShowHierarchy( GetLog());
 
+	ChSystem::IteratorPhysicsItems myiter = mphysicalSystem.IterBeginPhysicsItems();
+	while (myiter.HasItem())
+	{
+		GetLog()<< "item:" << (*myiter)->GetRTTI()->GetName() << "\n";
+		++myiter;
+	}
+
 			// Fetch some bodies, given their names,
 			// and apply forces/constraints/etc
 	ChSharedPtr<ChPhysicsItem> myitemE= mphysicalSystem.Search("escape_wheel^escapement-1");
