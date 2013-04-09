@@ -39,14 +39,13 @@ body_1= chrono.ChBodyAuxRefShared()
 my_system.Add(body_1)
 
 # Attach a visualization asset to the body (a Wavefront .obj mesh)
-myasset = chrono.ChObjShapeFileShared()
-myasset.SetFilename("body_1.obj")
-myasset.SetColor(chrono.ChColor(1,1,0.8))
+myasset = chrono.ChSphereShapeShared()
+myasset.GetSphereGeometry().rad =0.2
 body_1.GetAssets().push_back(myasset)
 
-# Assets can be shared, to save memory...
+# Assets can be shared, ex. to save memory...
 body_2= chrono.ChBodyAuxRefShared()
-body_2.SetPos(chrono.ChVectorD(0.1,0,0))
+body_2.SetPos(chrono.ChVectorD(0.5,0,0))
 my_system.Add(body_2)
 body_2.GetAssets().push_back(myasset)
 
@@ -57,13 +56,12 @@ body_2.GetAssets().push_back(myasset)
 pov_exporter = postprocess.ChPovRay(my_system)
 
  # Sets some file names for in-out processes.
-pov_exporter.SetTemplateFile        ("../../../data/_template_POV.pov")
+pov_exporter.SetTemplateFile        ("../data/_template_POV.pov")
 pov_exporter.SetOutputScriptFile    ("rendering_frames.pov")
 pov_exporter.SetOutputDataFilebase  ("my_state")
 pov_exporter.SetPictureFilebase     ("picture")
- # Even better: save the .dat files and the .bmp files
- # in two subdirectories, to avoid cluttering the current
- # directory...
+ # Save the .dat files and the .bmp files in two subdirectories,
+ # to avoid cluttering the current directory...
 if not os.path.exists("output"):
     os.mkdir("output")
 if not os.path.exists("anim"):
@@ -71,10 +69,10 @@ if not os.path.exists("anim"):
 pov_exporter.SetOutputDataFilebase("output/my_state")
 pov_exporter.SetPictureFilebase("anim/picture")
 
- # Optional: tell selectively which physical items you want to render
-pov_exporter.RemoveAll()
+ # Tell selectively which physical items you want to render, or use AddAll()
 pov_exporter.Add(body_1)
 pov_exporter.Add(body_2)
+
 
  # 1) Create the two .pov and .ini files for POV-Ray (this must be done
  #    only once at the beginning of the simulation).

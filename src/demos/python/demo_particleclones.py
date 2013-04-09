@@ -122,7 +122,7 @@ for ix in range(0,2):
 pov_exporter = postprocess.ChPovRay(my_system)
 
  # Sets some file names for in-out processes.
-pov_exporter.SetTemplateFile        ("../../../data/_template_POV.pov")
+pov_exporter.SetTemplateFile        ("../data/_template_POV.pov")
 pov_exporter.SetOutputScriptFile    ("rendering_frames.pov")
 if not os.path.exists("output"):
     os.mkdir("output")
@@ -169,6 +169,8 @@ while (my_system.GetChTime() < 0.7) :
 
     print ('time=', my_system.GetChTime() )
 
+    # 2) Create the incremental nnnn.dat and nnnn.pov files that will be load
+    #    by the pov .ini script in POV-Ray (do this at each simulation timestep)
     pov_exporter.ExportData()
 
 

@@ -33,7 +33,7 @@ print ("Example: create a system and visualize it in realtime 3D");
 
 mysystem      = chrono.ChSystem()
 
-# Create a rigid body, with a collision shape too
+# Create rigid body
 
 mbody1 = chrono.ChBodyShared()
 mbody1.SetBodyFixed(False)
@@ -43,6 +43,9 @@ mboxasset = chrono.ChBoxShapeShared()
 mboxasset.GetBoxGeometry().Size = chrono.ChVectorD(0.2,0.5,0.1)
 mbody1.AddAsset(mboxasset)
 
+mboxtexture = chrono.ChTextureShared()
+mboxtexture.SetTextureFilename('../data/concrete.jpg')
+mbody1.GetAssets().push_back(mboxtexture)
 
 
 
@@ -53,8 +56,8 @@ mbody1.AddAsset(mboxasset)
 
 myapplication = chronoirr.ChIrrApp(mysystem)
 
-myapplication.AddTypicalSky('../../../data/skybox/')
-myapplication.AddTypicalCamera(chronoirr.vector3df(0.3,0.3,0.4))
+myapplication.AddTypicalSky('../data/skybox/')
+myapplication.AddTypicalCamera(chronoirr.vector3df(0.6,0.6,0.8))
 myapplication.AddTypicalLights()
 
             # ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items

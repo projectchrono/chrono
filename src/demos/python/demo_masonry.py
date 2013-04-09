@@ -125,7 +125,7 @@ body_floor_shape.GetBoxGeometry().Size = chrono.ChVectorD(3, 1, 3)
 body_floor.GetAssets().push_back(body_floor_shape)
 
 body_floor_texture = chrono.ChTextureShared()
-body_floor_texture.SetTextureFilename('../../../data/concrete.jpg')
+body_floor_texture.SetTextureFilename('../data/concrete.jpg')
 body_floor.GetAssets().push_back(body_floor_texture)
 
 my_system.Add(body_floor)
@@ -155,7 +155,7 @@ body_table_shape.SetColor(chrono.ChColor(0.4,0.4,0.5))
 body_table.GetAssets().push_back(body_table_shape)
 
 body_table_texture = chrono.ChTextureShared()
-body_table_texture.SetTextureFilename('../../../data/concrete.jpg')
+body_table_texture.SetTextureFilename('../data/concrete.jpg')
 body_table.GetAssets().push_back(body_table_texture)
 
 my_system.Add(body_table)
@@ -185,11 +185,6 @@ link_shaker.SetMotion_Z(mfunZ)
 
 
 
-# ---------------------------------------------------------------------
-#
-#  Setup a visualization
-#
-
 
 # ---------------------------------------------------------------------
 #
@@ -198,7 +193,7 @@ link_shaker.SetMotion_Z(mfunZ)
 
 myapplication = chronoirr.ChIrrApp(my_system)
 
-myapplication.AddTypicalSky('../../../data/skybox/')
+myapplication.AddTypicalSky('../data/skybox/')
 myapplication.AddTypicalCamera(chronoirr.vector3df(0.5,0.5,1.0))
 myapplication.AddLightWithShadow(chronoirr.vector3df(2,4,2),    # point
                                  chronoirr.vector3df(0,0,0),    # aimpoint
