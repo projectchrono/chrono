@@ -12,7 +12,8 @@
 #define ChApi 
 
 
-/* Parse the header file to generate wrappers */
+/* Parse the header file(s) to generate wrappers */
+%include "../physics/ChLinkforce.h"  
 %include "../physics/ChLinkMasked.h"  
 
 

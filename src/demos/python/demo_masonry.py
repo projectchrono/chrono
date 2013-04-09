@@ -19,13 +19,20 @@ if __name__ == '__main__':
 # Load the Chrono::Engine unit and the postprocessing unit!!!
 import ChronoEngine_PYTHON_core as chrono
 import ChronoEngine_PYTHON_postprocess as postprocess
+import ChronoEngine_PYTHON_irrlicht as chronoirr
+
 
 # We will create two directories for saving some files, we need this:
 import os
 import math
 
 
-# Create a physical system,
+
+# ---------------------------------------------------------------------
+#
+#  Create the simulation system and add items
+#
+
 my_system = chrono.ChSystem()
 
 
@@ -33,6 +40,14 @@ my_system = chrono.ChSystem()
 # this is epecially important for very large or very small objects.
 chrono.ChCollisionModel.SetDefaultSuggestedEnvelope(0.001)
 chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001)
+
+# Maybe you want to change some settings for the solver. For example you
+# might want to use SetIterLCPmaxItersSpeed to set the number of iterations
+# per timestep, etc.
+
+#my_system.SetLcpSolverType(chrono.ChSystem.LCP_ITERATIVE_BARZILAIBORWEIN) # precise, more slow
+my_system.SetIterLCPmaxItersSpeed(70)
+
 
 
 # Create a contact material (surface property)to share between all objects.
@@ -84,7 +99,7 @@ for ix in range(0,nbricks_on_x):
         body_brick_shape = chrono.ChBoxShapeShared()
         body_brick_shape.GetBoxGeometry().Size = chrono.ChVectorD(size_brick_x/2, size_brick_y/2, size_brick_z/2)
         if iy%2==0 :
-            body_brick_shape.SetColor(chrono.ChColor(0.8, 0.8, 0.8)) # set gray color only for odd bricks
+            body_brick_shape.SetColor(chrono.ChColor(0.65, 0.65, 0.6)) # set gray color only for odd bricks
         body_brick.GetAssets().push_back(body_brick_shape)
 
         my_system.Add(body_brick)
@@ -98,17 +113,20 @@ body_floor.SetBodyFixed(True)
 body_floor.SetPos(chrono.ChVectorD(0, -2, 0 ))
 body_floor.SetMaterialSurface(brick_material)
 
-# Collision shape (shared by all particle clones)
+# Collision shape
 body_floor.GetCollisionModel().ClearModel()
 body_floor.GetCollisionModel().AddBox(3, 1, 3) # hemi sizes
 body_floor.GetCollisionModel().BuildModel()
 body_floor.SetCollide(True)
 
-# Visualization shape (shared by all particle clones)
+# Visualization shape
 body_floor_shape = chrono.ChBoxShapeShared()
 body_floor_shape.GetBoxGeometry().Size = chrono.ChVectorD(3, 1, 3)
-body_floor_shape.SetColor(chrono.ChColor(0.5,0.5,0.5))
 body_floor.GetAssets().push_back(body_floor_shape)
+
+body_floor_texture = chrono.ChTextureShared()
+body_floor_texture.SetTextureFilename('../../../data/concrete.jpg')
+body_floor.GetAssets().push_back(body_floor_texture)
 
 my_system.Add(body_floor)
 
@@ -124,17 +142,21 @@ body_table = chrono.ChBodyShared()
 body_table.SetPos(chrono.ChVectorD(0, -size_table_y/2, 0 ))
 body_table.SetMaterialSurface(brick_material)
 
-# Collision shape (shared by all particle clones)
+# Collision shape
 body_table.GetCollisionModel().ClearModel()
 body_table.GetCollisionModel().AddBox(size_table_x/2, size_table_y/2, size_table_z/2) # hemi sizes
 body_table.GetCollisionModel().BuildModel()
 body_table.SetCollide(True)
 
-# Visualization shape (shared by all particle clones)
+# Visualization shape
 body_table_shape = chrono.ChBoxShapeShared()
 body_table_shape.GetBoxGeometry().Size = chrono.ChVectorD(size_table_x/2, size_table_y/2, size_table_z/2)
 body_table_shape.SetColor(chrono.ChColor(0.4,0.4,0.5))
 body_table.GetAssets().push_back(body_table_shape)
+
+body_table_texture = chrono.ChTextureShared()
+body_table_texture.SetTextureFilename('../../../data/concrete.jpg')
+body_table.GetAssets().push_back(body_table_texture)
 
 my_system.Add(body_table)
 
@@ -163,69 +185,56 @@ link_shaker.SetMotion_Z(mfunZ)
 
 
 
-#  Since we want to render a short animation by generating scripts
-#  to be used with POV-Ray, a ChPovRay postprocessing tool must be created
-#  and some parameters to be set..
-
-pov_exporter = postprocess.ChPovRay(my_system)
-
- # Sets some file names for in-out processes.
-pov_exporter.SetTemplateFile        ("../../../data/_template_POV.pov")
-pov_exporter.SetOutputScriptFile    ("rendering_frames.pov")
-if not os.path.exists("output"):
-    os.mkdir("output")
-if not os.path.exists("anim"):
-    os.mkdir("anim")
-pov_exporter.SetOutputDataFilebase("output/my_state")
-pov_exporter.SetPictureFilebase("anim/picture")
-
-pov_exporter.SetCamera(chrono.ChVectorD(1.2,0.5,2.5), chrono.ChVectorD(0,0.4,0), 35)
-pov_exporter.SetLight(chrono.ChVectorD(-2,2,-1), chrono.ChColor(1.1,1.2,1.2), 1)
-pov_exporter.SetPictureSize(640,480)
-pov_exporter.SetAmbientLight(chrono.ChColor(2,2,2))
-
- # Add additional POV objects/lights/materials in the following way
-pov_exporter.SetCustomPOVcommandsScript(
-'''
-light_source{ <1,3,1.5> color rgb<1.1,1.1,1.1> }
-// Grid(0.05,0.04, rgb<0.7,0.7,0.7>, rgbt<1,1,1,1>)
-''')
-
- # Tell which physical items you want to render
-pov_exporter.AddAll()
-
- # Tell that you want to render the contacts
-##pov_exporter.SetShowContacts(1,
-##                            postprocess.ChPovRay.SYMBOL_VECTOR_SCALELENGTH,
-##                            0.001,  # scale
-##                            0.002,  # width
-##                            0.2,    # max size
-##                            1,0,0.5 ) # colormap on, blue at 0, red at 0.5
-
- # 1) Create the two .pov and .ini files for POV-Ray (this must be done
- #    only once at the beginning of the simulation).
-pov_exporter.ExportScript()
+# ---------------------------------------------------------------------
+#
+#  Setup a visualization
+#
 
 
+# ---------------------------------------------------------------------
+#
+#  Create an Irrlicht application to visualize the system
+#
 
-# If you want to change some settings for the solver, here is the right place
-# to do it. For example you might want to use SetIterLCPmaxItersSpeed to set
-# the number of iterations per timestep, etc.
+myapplication = chronoirr.ChIrrApp(my_system)
 
-#my_system.SetLcpSolverType(chrono.ChSystem.LCP_ITERATIVE_BARZILAIBORWEIN) # precise, more slow
-my_system.SetIterLCPmaxItersSpeed(70)
+myapplication.AddTypicalSky('../../../data/skybox/')
+myapplication.AddTypicalCamera(chronoirr.vector3df(0.5,0.5,1.0))
+myapplication.AddLightWithShadow(chronoirr.vector3df(2,4,2),    # point
+                                 chronoirr.vector3df(0,0,0),    # aimpoint
+                                 9,                 # radius (power)
+                                 1,9,               # near, far
+                                 30)                # angle of FOV
 
+            # ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
+			# in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
+			# If you need a finer control on which item really needs a visualization proxy in
+			# Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
 
-# Now perform the simulation by advancing the timestep in a
-# loop. For each timestep also write the data for postprocessing.
+myapplication.AssetBindAll();
 
-while (my_system.GetChTime() < 2) :
+			# ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
+			# that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
 
-    my_system.DoStepDynamics(0.005)
+myapplication.AssetUpdateAll();
 
-    print ('time=', my_system.GetChTime() )
+            # If you want to show shadows because you used "AddLightWithShadow()'
+            # you must remember this:
+myapplication.AddShadowAll();
 
-    pov_exporter.ExportData()
+# ---------------------------------------------------------------------
+#
+#  Run the simulation
+#
 
+myapplication.SetStepManage(True)
+myapplication.SetTimestep(0.001)
+myapplication.SetTryRealtime(True)
+
+while(myapplication.GetDevice().run()):
+    myapplication.BeginScene()
+    myapplication.DrawAll()
+    myapplication.DoStep()
+    myapplication.EndScene()
 
 

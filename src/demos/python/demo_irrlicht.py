@@ -51,13 +51,10 @@ mbody1.AddAsset(mboxasset)
 #  Create an Irrlicht application to visualize the system
 #
 
-#chronoirr.ChIrrAssetConverter.SetDefaultObjectDir('../../../data/')
-
 myapplication = chronoirr.ChIrrApp(mysystem)
 
 myapplication.AddTypicalSky('../../../data/skybox/')
-#myapplication.AddTypicalLogo('../../../data/logo_chronoengine_alpha.png')
-myapplication.AddTypicalCamera()
+myapplication.AddTypicalCamera(chronoirr.vector3df(0.3,0.3,0.4))
 myapplication.AddTypicalLights()
 
             # ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items

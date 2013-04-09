@@ -28,6 +28,10 @@ xx-xx-xxxx
   objects being wrapped inside ChBodySceneNodes that had to be inserted
   in Irrlicht managers).
 
+- The Irrlicht visualization does not need to load the sphere and
+  cylinder template meshes from .obj files in ../data/ , so there are
+  troubles if the executable resides in a different directory structure.
+
 - Improved method to handle 'cloned' items for visualization. The developer
   of new classes inherited from ChPhysicsItem should implement 
   GetAssetsFrame() to return the coordinate frame of the shapes in the 
