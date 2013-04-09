@@ -15,6 +15,7 @@ using namespace chrono;
 typedef chrono::ChSystem::IteratorBodies IteratorBodies;
 typedef chrono::ChSystem::IteratorLinks  IteratorLinks;
 typedef chrono::ChSystem::IteratorOtherPhysicsItems IteratorOtherPhysicsItems;
+typedef chrono::ChSystem::IteratorPhysicsItems IteratorPhysicsItems;
 //typedef chrono::ChSystem::ChCustomCollisionPointCallback ChCustomCollisionPointCallback;
 //typedef chrono::ChSystem::ChCustomComputeCollisionCallback ChCustomComputeCollisionCallback;
 
@@ -74,6 +75,12 @@ class IteratorOtherPhysicsItems
       bool operator==(const IteratorOtherPhysicsItems& other);
       bool operator!=(const IteratorOtherPhysicsItems& other);
     };
+class IteratorPhysicsItems
+	{
+    public:
+      bool operator==(const IteratorPhysicsItems& other);
+      bool operator!=(const IteratorPhysicsItems& other);
+    };
 class ChCustomCollisionPointCallbackP
 	{
 	public:	
@@ -129,6 +136,19 @@ class ChCustomComputeCollisionCallbackP
 			return $self->operator*();
 	  }
 };
+%extend IteratorPhysicsItems{
+	  IteratorPhysicsItems Next()
+	  {
+			IteratorPhysicsItems mynext(*$self);
+			mynext++;
+			return mynext;
+	  }
+	  chrono::ChSharedPtr<ChPhysicsItem> Ref()   // note the chrono:: namespace
+	  {
+			return $self->operator*();
+	  }
+};
+
 
 // NESTED CLASSES - trick - step 4
 //
@@ -163,6 +183,14 @@ class ChCustomComputeCollisionCallbackP
 	  {
 			return $self->IterEndOtherPhysicsItems();
 	  }
+	::IteratorPhysicsItems IterBeginPhysicsItems()   // note the :: at the beginning, otherwise SWIG (unsuccesfully) tries to use the nested one
+	  {
+			return $self->IterBeginPhysicsItems();
+	  }
+	::IteratorPhysicsItems IterEndPhysicsItems()   // note the :: at the beginning, otherwise SWIG (unsuccesfully) tries to use the nested one
+	  {
+			return $self->IterEndPhysicsItems();
+	  }
 	void SetCustomCollisionPointCallback(::ChCustomCollisionPointCallbackP* mcallb)  // note the :: at the beginning
 	  {
 		  $self->SetCustomCollisionPointCallback(mcallb);
@@ -185,6 +213,8 @@ class ChCustomComputeCollisionCallbackP
 %ignore chrono::ChSystem::IterEndLinks();
 %ignore chrono::ChSystem::IterBeginOtherPhysicsItems();
 %ignore chrono::ChSystem::IterEndOtherPhysicsItems();
+%ignore chrono::ChSystem::IterBeginPhysicsItems();
+%ignore chrono::ChSystem::IterEndPhysicsItems();
 %ignore chrono::ChSystem::SetCustomCollisionPointCallback();
 %ignore chrono::ChSystem::SetCustomComputeCollisionCallback();
 
@@ -252,6 +282,23 @@ class IterOtherPhysicsItems():
         return self.next()
     def next(self):
         if self.iterph == self.asystem.IterEndOtherPhysicsItems():
+            raise StopIteration
+        else:
+            presentiter = self.iterph
+            self.iterph = self.iterph.Next()
+            return presentiter.Ref()
+
+class IterPhysicsItems():
+    def __init__(self,asystem):
+        self.iterph = asystem.IterBeginPhysicsItems()
+        self.asystem = asystem
+    def __iter__(self):
+        return self
+    def __next__(self):
+        """2.6-3.x version"""
+        return self.next()
+    def next(self):
+        if self.iterph == self.asystem.IterEndPhysicsItems():
             raise StopIteration
         else:
             presentiter = self.iterph

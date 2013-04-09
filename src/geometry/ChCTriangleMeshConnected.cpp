@@ -842,9 +842,9 @@ void ChTriangleMeshConnected::LoadWavefrontMesh(std::string filename, bool load_
 	GeometryInterface emptybm; // BuildMesh bm;
 
 	OBJ obj;
-GetLog()<< "Loading: 1  \n";
+
 	obj.LoadMesh(filename.c_str(), &emptybm, true);
-GetLog()<< "Loading: 2  \n";
+
 	for (unsigned int iv= 0; iv< obj.mVerts.size(); iv += 3)
 	{
 		this->m_vertices.push_back(ChVector<double> (obj.mVerts[iv], obj.mVerts[iv+1], obj.mVerts[iv+2]));

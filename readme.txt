@@ -56,7 +56,11 @@ xx-xx-xxxx
   adjusted to avoid problems.
 
 - new CVisualization asset for defining the color of assets that define
-  shapes to be rendered
+  shapes to be rendered.
+
+- Added ChSystem::IteratorPhysicsItems that iterates over all bodies, 
+  links and other physical items in general, that are inherited from
+  the base class ChPhysicsItem.
 
 - Improved ChPovRay postprocessor: when saving ChParticleClones
   items, instead than repeating the dump of assets in the my_stateNNN.pov
