@@ -105,7 +105,11 @@ using namespace gui;
 
 %include "irrTypes.h"
 %include "vector2d.h"
+%template(vector2df) irr::core::vector2d<irr::f32>;
+%template(vector2di) irr::core::vector2d<irr::s32>;
 %include "vector3d.h"
+%template(vector3df) irr::core::vector3d<irr::f32>;
+%template(vector3di) irr::core::vector3d<irr::s32>;
 %include "SColor.h"
 %include "IVideoDriver.h"
 %include "IrrlichtDevice.h"
