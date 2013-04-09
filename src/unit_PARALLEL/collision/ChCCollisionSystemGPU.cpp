@@ -84,6 +84,7 @@ namespace chrono {
 					data_container->gpu_data.device_ObC_data,
 					data_container->gpu_data.device_ObR_data,
 					data_container->gpu_data.device_id_data,
+					data_container->gpu_data.device_active_data,
 					data_container->gpu_data.device_pos_data,
 					data_container->gpu_data.device_rot_data,
 					data_container->gpu_data.device_pair_data,

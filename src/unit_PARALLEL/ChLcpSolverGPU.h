@@ -30,8 +30,8 @@ namespace chrono {
 				compliance = 0;
 				complianceT = 0;
 				contact_recovery_speed = .6;
-				lcp_omega_contact = .3;
-				lcp_omega_bilateral = .3;
+				lcp_omega_contact = .2;
+				lcp_omega_bilateral = .2;
 
 				max_iteration = 1000;
 

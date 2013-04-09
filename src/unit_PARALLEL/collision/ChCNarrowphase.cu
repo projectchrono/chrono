@@ -254,7 +254,7 @@ __device__ __host__ bool CollideAndFindPoint(
 			return hit;
 		}
 
-		if (dot(cross(v4, v1), v0) < 0.) { // Compute the tetrahedron dividing face (v4,v0,v1)
+		if (dot(cross(v4, v1), v0) < 0) { // Compute the tetrahedron dividing face (v4,v0,v1)
 			if (dot(cross(v4, v2), v0) < 0) { // Compute the tetrahedron dividing face (v4,v0,v2)
 				v1 = v4;
 				v11 = v41;
@@ -265,7 +265,7 @@ __device__ __host__ bool CollideAndFindPoint(
 				v32 = v42; // Inside d1 & outside d2 ==> eliminate v3
 			}
 		} else {
-			if (dot(cross(v4, v3), v0) < 0.) { // Compute the tetrahedron dividing face (v4,v0,v3)
+			if (dot(cross(v4, v3), v0) < 0) { // Compute the tetrahedron dividing face (v4,v0,v3)
 				v2 = v4;
 				v21 = v41;
 				v22 = v42; // Outside d1 & inside d3 ==> eliminate v2
@@ -286,6 +286,7 @@ __host__ __device__ void function_MPR_Store(
 		const real3 *obj_data_C,
 		const real4 *obj_data_R,
 		const uint *obj_data_ID,
+		const bool * obj_active,
 		const real3 *body_pos,
 		const real4 *body_rot,
 		const real & collision_envelope,
@@ -298,11 +299,16 @@ __host__ __device__ void function_MPR_Store(
 		int2 *ids
 
 		) {
+
+
 	long long p = contact_pair[index];
 	int2 pair = I2(int(p >> 32), int(p & 0xffffffff));
 	shape_type A_T = obj_data_T[pair.x], B_T = obj_data_T[pair.y]; //Get the type data for each object in the collision pair
 	uint ID_A = obj_data_ID[pair.x];
 	uint ID_B = obj_data_ID[pair.y];
+
+	if(obj_active[ID_A]==false&&obj_active[ID_B]==false){return;}
+
 	real3 posA = body_pos[ID_A], posB = body_pos[ID_B]; //Get the global object position
 	real4 rotA = body_rot[ID_A], rotB = body_rot[ID_B]; //Get the global object rotation
 	real3 A_X = obj_data_A[pair.x], B_X = obj_data_A[pair.y];
@@ -340,10 +346,11 @@ __host__ __device__ void function_MPR_Store(
 	p1 = dot((TransformSupportVert(A_T, A_X, A_Y, A_Z, A_R, -N) - p0), N) * N + p0;
 	p2 = dot((TransformSupportVert(B_T, B_X, B_Y, B_Z, B_R, N) - p0), N) * N + p0;
 	//THIS DEPTH IS TEMP, CHECK IF CORRECT
-	//depth = sqrt(dot(p2-p1,p2-p1));
+
 	p1=p1-(-N)*envelope;
 	p2=p2+(-N)*envelope;
-	depth=(depth)+envelope+envelope;
+	depth = sqrt(dot(p2-p1,p2-p1));
+	depth=(-depth);//+envelope+envelope;
 //	printf("%f,%f,%f\t", p1.x,p1.y,p1.z);
 //	printf("%f,%f,%f\t", p2.x,p2.y,p2.z);
 //
@@ -364,6 +371,7 @@ __global__ void device_MPR_Store(
 		const real3 *obj_data_C,
 		const real4 *obj_data_R,
 		const uint *obj_data_ID,
+		const bool * obj_active,
 		const real3 *body_pos,
 		const real4 *body_rot,
 		long long *contact_pair,
@@ -382,6 +390,7 @@ __global__ void device_MPR_Store(
 			obj_data_C,
 			obj_data_R,
 			obj_data_ID,
+			obj_active,
 			body_pos,
 			body_rot,
 			collision_envelope_const,
@@ -401,6 +410,7 @@ void ChCNarrowphase::host_MPR_Store(
 		const real3 *obj_data_C,
 		const real4 *obj_data_R,
 		const uint *obj_data_ID,
+		const bool * obj_active,
 		const real3 *body_pos,
 		const real4 *body_rot,
 		long long *contact_pair,
@@ -421,6 +431,7 @@ void ChCNarrowphase::host_MPR_Store(
 				obj_data_C,
 				obj_data_R,
 				obj_data_ID,
+				obj_active,
 				body_pos,
 				body_rot,
 				collision_envelope,
@@ -445,6 +456,7 @@ const custom_vector<real3> &obj_data_B,
 const custom_vector<real3> &obj_data_C,
 const custom_vector<real4> &obj_data_R,
 const custom_vector<uint> &obj_data_ID,
+const custom_vector<bool> & obj_active,
 const custom_vector<real3> &body_pos,
 const custom_vector<real4> &body_rot,
 custom_vector<long long> &potentialCollisions,
@@ -477,6 +489,7 @@ uint & number_of_contacts
 				CASTR3(obj_data_C),
 				CASTR4(obj_data_R),
 				CASTU1(obj_data_ID),
+				CASTB1(obj_active),
 				CASTR3(body_pos),
 				CASTR4(body_rot),
 				CASTLL(potentialCollisions),
@@ -494,6 +507,7 @@ uint & number_of_contacts
 				obj_data_C.data(),
 				obj_data_R.data(),
 				obj_data_ID.data(),
+				obj_active.data(),
 				body_pos.data(),
 				body_rot.data(),
 				potentialCollisions.data(),

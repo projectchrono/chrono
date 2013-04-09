@@ -78,6 +78,16 @@ void ChGPUDataManager::HostToDeviceContacts() {
 	gpu_data.number_of_models = number_of_models;
 	gpu_data.number_of_objects = number_of_objects;
 }
+void ChGPUDataManager::DeviceToHostContacts() {
+	host_norm_data = gpu_data.device_norm_data;
+	host_cpta_data = gpu_data.device_cpta_data;
+	host_cptb_data = gpu_data.device_cptb_data;
+	host_dpth_data = gpu_data.device_dpth_data;
+	host_bids_data = gpu_data.device_bids_data;
+	number_of_contacts = gpu_data.number_of_contacts;
+	number_of_models = gpu_data.number_of_models;
+	number_of_objects = gpu_data.number_of_objects;
+}
 void ChGPUDataManager::DeviceToHostPairData() {
 
 	host_pair_data = gpu_data.device_pair_data;

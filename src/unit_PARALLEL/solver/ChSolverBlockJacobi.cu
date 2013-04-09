@@ -18,20 +18,25 @@ __host__ __device__ void function_Project_jacobi(uint & index, real3 & gamma, re
 	int2 body_id = ids[index];
 
 	real f_tang = sqrt(gamma.y * gamma.y + gamma.z * gamma.z);
-	real mu = (fric[body_id.x] + fric[body_id.y]) * .5f;
+	real mu = (fric[body_id.x] == 0 || fric[body_id.y] == 0) ? 0 : (fric[body_id.x] + fric[body_id.y]) * .5;
 
-	if (f_tang > (mu * gamma.x)) { // inside upper cone? keep untouched!
-		if ((f_tang) < -(1.0 / mu) * gamma.x || (abs(gamma.x) < 0)) { // inside lower cone? reset  normal,u,v to zero!
-			gamma = R3(0);
-		} else { // remaining case: project orthogonally to generator segment of upper cone
-			gamma.x = (f_tang * mu + gamma.x) / (mu * mu + 1);
-			real tproj_div_t = (gamma.x * mu) / f_tang; //  reg = tproj_div_t
-			gamma.y *= tproj_div_t;
-			gamma.z *= tproj_div_t;
-		}
-	} else if (mu == 0) {
+	if (mu == 0) {
+		gamma.x = gamma.x < 0 ? 0 : gamma.x;
 		gamma.y = gamma.z = 0;
+		return;
 	}
+	if (f_tang < (mu * gamma.x)) {
+		return;
+	}
+	if ((f_tang) < -(1.0 / mu) * gamma.x || (fabs(gamma.x) < 10e-15)) {
+		gamma = R3(0);
+		return;
+	}
+	gamma.x = (f_tang * mu + gamma.x) / (mu * mu + 1);
+	real tproj_div_t = (gamma.x * mu) / f_tang;
+	gamma.y *= tproj_div_t;
+	gamma.z *= tproj_div_t;
+
 }
 
 __host__ __device__ void function_process_contacts(
@@ -104,8 +109,15 @@ __host__ __device__ void function_process_contacts(
 	gamma_old.x = G[index + number_of_contacts * 0]; // store gamma_new];
 	gamma_old.y = G[index + number_of_contacts * 1]; // store gamma_new];
 	gamma_old.z = G[index + number_of_contacts * 2]; // store gamma_new];
-	gamma = eta * gamma; // perform gamma *= omega*eta
-	gamma = gamma_old - gamma; // perform gamma = gamma_old - gamma ;  in place.
+
+	gamma = eta * -gamma; // perform gamma *= omega*eta
+//	if(index ==0){
+//		std::cout<<gamma.x<<std::endl;
+//		std::cout<<gamma.y<<std::endl;
+//		std::cout<<gamma.z<<std::endl;
+//		}
+
+	gamma = gamma_old + gamma; // perform gamma = gamma_old - gamma ;  in place.
 	/// ---- perform projection of 'a8' onto friction cone  --------
 
 	function_Project_jacobi(index, gamma, fric, ids);
@@ -393,6 +405,9 @@ void ChSolverJacobi::host_Offsets(int2* ids, real4* bilaterals, uint* Body) {
 	}
 }
 ChSolverJacobi::ChSolverJacobi() {
+
+
+
 }
 void ChSolverJacobi::Solve(real step, gpu_container& gpu_data_) {
 	step_size = step;
@@ -562,7 +577,7 @@ void ChSolverJacobi::Solve(real step, gpu_container& gpu_data_) {
 			//thrust::copy_n(gpu_data->device_gam_data.begin(), gpu_data->number_of_contacts, gammas.begin() + gpu_data->number_of_contacts * 0);
 			resnew = Norm(gpu_data->device_gam_data);
 			residual = abs(resnew - resold);
-			if (residual < tolerance&&current_iteration>10) {
+			if (residual < tolerance) {
 				break;
 			}
 			resold = resnew;
