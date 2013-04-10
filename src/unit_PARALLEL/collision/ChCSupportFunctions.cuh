@@ -2,7 +2,8 @@
 #define CHC_SUPPORTFUNCTIONS_H
 
 __device__ __host__ inline real3 GetSupportPoint_Sphere(const real3 &B, const real3 &n) {
-    return B.x * n;
+    real3 result = normalize(n);
+	return B.x * result;
 }
 __device__ __host__ inline real3 GetSupportPoint_Triangle(const real3 &A, const real3 &B, const real3 &C, const real3 &n) {
     real dist = dot(A, n);
@@ -22,9 +23,9 @@ __device__ __host__ inline real3 GetSupportPoint_Triangle(const real3 &A, const 
 }
 __device__ __host__ inline real3 GetSupportPoint_Box(const real3 &B, const real3 &n) {
     real3 result = R3(0, 0, 0);
-    result.x = n.x <= 0 ? -B.x : B.x;
-    result.y = n.y <= 0 ? -B.y : B.y;
-    result.z = n.z <= 0 ? -B.z : B.z;
+    result.x = sign(n.x)*B.x;
+    result.y = sign(n.y)*B.y;
+    result.z = sign(n.z)*B.z;
     return result;
 }
 __device__ __host__ inline real3 GetSupportPoint_Ellipsoid(const real3 &B, const real3 &n) {
