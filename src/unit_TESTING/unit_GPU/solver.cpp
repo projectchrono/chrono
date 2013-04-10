@@ -831,9 +831,9 @@ int main(int argc, char* argv[]) {
 		//createGeometryCPU(system_cpu);
 		LoadObjects_CPU(system_cpu, "100_bodies.txt");
 
-		((ChLcpIterativeJacobi *) (system_cpu->GetLcpSolverSpeed()))->SetMaxIterations(1);
-		system_cpu->SetMaxiter(1);
-		system_cpu->SetIterLCPmaxItersSpeed(1);
+		((ChLcpIterativeJacobi *) (system_cpu->GetLcpSolverSpeed()))->SetMaxIterations(100);
+		system_cpu->SetMaxiter(100);
+		system_cpu->SetIterLCPmaxItersSpeed(100);
 		system_cpu->SetTol(1e-8);
 		system_cpu->SetTolSpeeds(1e-8);
 		((ChLcpIterativeJacobi *) (system_cpu->GetLcpSolverSpeed()))->SetTolerance(1e-8);
@@ -854,9 +854,9 @@ int main(int argc, char* argv[]) {
 		system_gpu->Set_G_acc(Vector(0, -9.80665, 0));
 		system_gpu->SetStep(0.01);
 		//-9.80665
-		((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->SetMaxIteration(1);
-		system_gpu->SetMaxiter(1);
-		system_gpu->SetIterLCPmaxItersSpeed(1);
+		((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->SetMaxIteration(100);
+		system_gpu->SetMaxiter(100);
+		system_gpu->SetIterLCPmaxItersSpeed(100);
 		system_gpu->SetTol(1e-4);
 		system_gpu->SetTolSpeeds(1e-4);
 		((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->SetTolerance(1e-8);
@@ -870,12 +870,12 @@ int main(int argc, char* argv[]) {
 		LoadObjects_GPU(system_gpu, "100_bodies.txt");
 	}
 //
-//	ChOpenGLManager * window_manager = new ChOpenGLManager();
-//	ChOpenGL openGLView(window_manager, system_gpu, 800, 600, 0, 0, "Test_Solvers");
-//	openGLView.AddSystem(system_cpu);
-//	openGLView.SetCustomCallback(RunTimeStep);
-//	openGLView.StartSpinning(window_manager);
-//	window_manager->CallGlutMainLoop();
+	ChOpenGLManager * window_manager = new ChOpenGLManager();
+	ChOpenGL openGLView(window_manager, system_gpu, 800, 600, 0, 0, "Test_Solvers");
+	openGLView.AddSystem(system_cpu);
+	openGLView.SetCustomCallback(RunTimeStep);
+	openGLView.StartSpinning(window_manager);
+	window_manager->CallGlutMainLoop();
 
 	int counter = 0;
 
