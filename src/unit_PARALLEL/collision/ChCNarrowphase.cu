@@ -20,20 +20,20 @@ __device__ __host__ real3 TransformSupportVert(const shape_type &type, const rea
 	if (type == TRIANGLEMESH) {
 		return GetSupportPoint_Triangle(A, B, C, n);
 	} else if (type == SPHERE) {
-		localSupport = GetSupportPoint_Sphere(B, quatRotateMat(n, (R)));
+		localSupport = GetSupportPoint_Sphere(B, quatRotateMatT(n, (R)));
 	} else if (type == ELLIPSOID) {
-		localSupport = GetSupportPoint_Ellipsoid(B, quatRotateMat(n, (R)));
+		localSupport = GetSupportPoint_Ellipsoid(B, quatRotateMatT(n, (R)));
 	} else if (type == BOX) {
-		localSupport = GetSupportPoint_Box(B, quatRotateMat(n, (R)));
+		localSupport = GetSupportPoint_Box(B, quatRotateMatT(n, (R)));
 	} else if (type == CYLINDER) {
-		localSupport = GetSupportPoint_Cylinder(B, quatRotateMat(n, (R)));
+		localSupport = GetSupportPoint_Cylinder(B, quatRotateMatT(n, (R)));
 	} else if (type == RECT) {
-		localSupport = GetSupportPoint_Plane(B, quatRotateMat(n, (R)));
+		localSupport = GetSupportPoint_Plane(B, quatRotateMatT(n, (R)));
 	} else if (type == CONE) {
-		localSupport = GetSupportPoint_Cone(B, quatRotateMat(n, (R)));
+		localSupport = GetSupportPoint_Cone(B, quatRotateMatT(n, (R)));
 	}
 
-	return quatRotateMatT(localSupport, R) + A; //globalSupport
+	return quatRotateMat(localSupport, R) + A; //globalSupport
 }
 
 __device__ __host__ real dist_line(real3 &P, real3 &x0, real3 &b, real3 &witness) {
@@ -244,7 +244,7 @@ __device__ __host__ bool CollideAndFindPoint(
 			depth = dot(v4, n);
 
 			// If the boundary is thin enough or the origin is outside the support plane for the newly discovered vertex, then we can terminate
-			if (delta <= 1e-8 || depth < 0.0 || phase2 > max_iterations) {
+			if (delta <= 1e-8 || depth <= 0.0 || phase2 > max_iterations) {
 				//cout << "ITERS MAX" << delta << " " << depth << " " << phase2 << endl;
 				if (hit) {
 					//cout << "HIT" << endl;
@@ -487,7 +487,7 @@ void ChCNarrowphase::host_MPR_Store(
 		real3 *ptB,
 		real *contactDepth,
 		int2 *ids) {
-//#pragma omp parallel for schedule(guided)
+#pragma omp parallel for schedule(guided)
 
 	for (uint index = 0; index < total_possible_contacts; index++) {
 		function_MPR_Store(
