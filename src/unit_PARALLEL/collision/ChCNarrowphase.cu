@@ -20,20 +20,20 @@ __device__ __host__ real3 TransformSupportVert(const shape_type &type, const rea
 	if (type == TRIANGLEMESH) {
 		return GetSupportPoint_Triangle(A, B, C, n);
 	} else if (type == SPHERE) {
-		localSupport = GetSupportPoint_Sphere(B, quatRotateMatT(n, (R)));
+		localSupport = GetSupportPoint_Sphere(B, quatRotateMat(n, (R)));
 	} else if (type == ELLIPSOID) {
-		localSupport = GetSupportPoint_Ellipsoid(B, quatRotateMatT(n, (R)));
+		localSupport = GetSupportPoint_Ellipsoid(B, quatRotateMat(n, (R)));
 	} else if (type == BOX) {
-		localSupport = GetSupportPoint_Box(B, quatRotateMatT(n, (R)));
+		localSupport = GetSupportPoint_Box(B, quatRotateMat(n, (R)));
 	} else if (type == CYLINDER) {
-		localSupport = GetSupportPoint_Cylinder(B, quatRotateMatT(n, (R)));
+		localSupport = GetSupportPoint_Cylinder(B, quatRotateMat(n, (R)));
 	} else if (type == RECT) {
-		localSupport = GetSupportPoint_Plane(B, quatRotateMatT(n, (R)));
+		localSupport = GetSupportPoint_Plane(B, quatRotateMat(n, (R)));
 	} else if (type == CONE) {
-		localSupport = GetSupportPoint_Cone(B, quatRotateMatT(n, (R)));
+		localSupport = GetSupportPoint_Cone(B, quatRotateMat(n, (R)));
 	}
 
-	return quatRotateMat(localSupport, R) + A; //globalSupport
+	return quatRotateMatT(localSupport, R) + A; //globalSupport
 }
 
 __device__ __host__ real dist_line(real3 &P, real3 &x0, real3 &b, real3 &witness) {
@@ -244,8 +244,8 @@ __device__ __host__ bool CollideAndFindPoint(
 			depth = dot(v4, n);
 
 			// If the boundary is thin enough or the origin is outside the support plane for the newly discovered vertex, then we can terminate
-			if (delta <= 1e-8 || depth <= 0.0 || phase2 > max_iterations) {
-				//cout << "ITERS MAX" << delta << " " << depth << " " << phase2 << endl;
+			if (delta <= 1e-20 || depth <= 0.0 || phase2 > max_iterations) {
+				//cout << "ITERS MAX" << delta << " " << depth << " " << phase2 <<" "<<hit<< endl;
 				if (hit) {
 					//cout << "HIT" << endl;
 					// Compute the barycentric coordinates of the origin
@@ -334,8 +334,8 @@ __host__ __device__ void function_MPR_Store(
 	real3 A_X = obj_data_A[pair.x], B_X = obj_data_A[pair.y];
 	real3 A_Y = obj_data_B[pair.x], B_Y = obj_data_B[pair.y];
 	real3 A_Z = obj_data_C[pair.x], B_Z = obj_data_C[pair.y];
-	real4 A_R = mult(rotA, obj_data_R[pair.x]);
-	real4 B_R = mult(rotB, obj_data_R[pair.y]);
+	real4 A_R = inv(mult(rotA, obj_data_R[pair.x]));
+	real4 B_R = inv(mult(rotB, obj_data_R[pair.y]));
 
 	real envelope = collision_envelope;
 
@@ -365,12 +365,12 @@ __host__ __device__ void function_MPR_Store(
 //		real3 relpos = B_X - A_X;
 //		real d2 = dot(relpos, relpos);
 //		real collide_dist = A_Y.x + B_Y.x;
-//		if (ID_A == 0 && ID_B == 36) {
-//			cout << "OMG: " << d2 << " " << collide_dist << endl;
-//		}
-//		if (ID_A == 1 && ID_B == 11) {
-//			cout << "OMG: " << d2 << " " << collide_dist << endl;
-//		}
+//		//if (ID_A == 0 && ID_B == 36) {
+//		//	cout << "OMG: " << d2 << " " << collide_dist << endl;
+//		//}
+//		//if (ID_A == 1 && ID_B == 11) {
+//		//	cout << "OMG: " << d2 << " " << collide_dist << endl;
+//		//}
 //		if (d2 <= collide_dist * collide_dist) {
 //			real dist = A_Y.x + B_Y.x;
 //			N = normalize(relpos);
@@ -378,11 +378,11 @@ __host__ __device__ void function_MPR_Store(
 //			p2 = B_X - N * B_Y.x;
 //			depth = length(relpos) - dist;
 //
-//			if (ID_A == 0 && ID_B == 36) {
+//			//if (ID_A == 0 && ID_B == 36) {
 //
-//				cout << "OMG: " << depth << endl;
+//				//cout << "OMG: " << depth << endl;
 //
-//			}
+//			//}
 //
 //		} else {
 //			return;
@@ -392,37 +392,27 @@ __host__ __device__ void function_MPR_Store(
 	{
 
 		if (!CollideAndFindPoint(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, N, p0, depth)) {
-
+//
+//					if (ID_A == 1 && ID_B == 1004) {
+//						cout << A_X.x << " " << A_X.y << " " << A_X.z << " | ";
+//						cout << B_X.x << " " << B_X.y << " " << B_X.z << " || ";
+//						cout << A_Y.x << " " << A_Y.y << " " << A_Y.z << " | ";
+//						cout << B_Y.x << " " << B_Y.y << " " << B_Y.z << " || ";
+//						cout << N.x << " " << N.y << " " << N.z << " | " << depth;
+//
+//					}
 			return;
 
 		}
-
-//		if (ID_A == 3 && ID_B == 104) {
-//			cout << A_X.x << " " << A_X.y << " " << A_X.z << " | ";
-//			cout << B_X.x << " " << B_X.y << " " << B_X.z << " || ";
-//			cout << A_Y.x << " " << A_Y.y << " " << A_Y.z << " | ";
-//			cout << B_Y.x << " " << B_Y.y << " " << B_Y.z << " || ";
-//			cout << N.x << " " << N.y << " " << N.z << " | " << depth;
-//
-//		}
-
 		p1 = dot((TransformSupportVert(A_T, A_X, A_Y, A_Z, A_R, -N) - p0), N) * N + p0;
 		p2 = dot((TransformSupportVert(B_T, B_X, B_Y, B_Z, B_R, N) - p0), N) * N + p0;
-		//THIS DEPTH IS TEMP, CHECK IF CORRECT
-
 		N = -N;
 
 	}
 
 	p1 = p1 - (N) * envelope;
 	p2 = p2 + (N) * envelope;
-	//depth = sqrt(dot(p2 - p1, p2 - p1));
 	depth = -(depth - envelope - envelope);
-//	printf("%f,%f,%f\t", p1.x,p1.y,p1.z);
-//	printf("%f,%f,%f\t", p2.x,p2.y,p2.z);
-//
-//	printf("%f,%f,%f\t", N.x,N.y,N.z);
-//	printf("%f",depth);
 	norm[index] = N;
 	ptA[index] = p1;
 	ptB[index] = p2;

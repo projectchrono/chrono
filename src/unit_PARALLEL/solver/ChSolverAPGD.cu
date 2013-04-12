@@ -37,9 +37,6 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 		mg = mg_tmp1-b;
 		SEAXPY(-t_k, mg, my, mx); // mx = my + mg*(-t_k);
 		Project(mx);
-//		for(int i=0; i<mx.size(); i++){
-//			std::cout<<mx[i]<<endl;
-//		}
 		mg_tmp = ShurProduct(mx);
 		mg_tmp2 = mg_tmp-b;
 		//mg_tmp = 0.5*mg_tmp-b;
@@ -61,9 +58,9 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 		}
 		theta_k1 = (-pow(theta_k, 2) + theta_k * sqrt(pow(theta_k, 2) + 4)) / 2.0;
 		beta_k1 = theta_k * (1.0 - theta_k) / (pow(theta_k, 2) + theta_k1);
-
-		my = mx + beta_k1 * (mx - ml);
 		ms = mx - ml;
+		my = mx + beta_k1 * (ms);
+
 
 		if (Dot(mg, ms) > 0) {
 			my = mx;

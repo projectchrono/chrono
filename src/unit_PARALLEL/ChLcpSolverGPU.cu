@@ -120,6 +120,7 @@ void ChLcpSolverGPU::RunTimeStep(real step, gpu_container& gpu_data) {
 		jacobi_solver.Solve(step, gpu_data);
 		current_iteration = jacobi_solver.GetIteration();
 		residual = jacobi_solver.GetResidual();
+		lambda = gpu_data.device_gam_data;
 
 	} else {
 		ChSolverGPU solver;

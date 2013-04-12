@@ -74,62 +74,75 @@ __host__ __device__ void function_process_contacts(
 	real3 W2 = omega[body_id.y];
 	real3 V1 = vel[body_id.x];
 	real3 V2 = vel[body_id.y];
-	real3 gamma, gamma_old;
-
+	real3 gamma = R3(0), gamma_old;
+	bool active_a = active[body_id.x];
+	bool active_b = active[body_id.y];
+	real eta = 0;
 //	gamma.x = -rhs[index + number_of_contacts * 0];
 //	gamma.y = -rhs[index + number_of_contacts * 1];
 //	gamma.z = -rhs[index + number_of_contacts * 2];
 
-	gamma.x = dot(JUVWA[index + number_of_contacts * 0], W1) + dot(JXYZA[index + number_of_contacts * 0], V1) + dot(JUVWB[index + number_of_contacts * 0], W2)
-			+ dot(JXYZB[index + number_of_contacts * 0], V2) + bi; // + .01 * G[index + number_of_contacts * 0]; //+bi
-
-	gamma.y = dot(JUVWA[index + number_of_contacts * 1], W1) + dot(JXYZA[index + number_of_contacts * 1], V1) + dot(JUVWB[index + number_of_contacts * 1], W2)
-			+ dot(JXYZB[index + number_of_contacts * 1], V2) /*+ cfmT * gamma_old.y*/;
-
-	gamma.z = dot(JUVWA[index + number_of_contacts * 2], W1) + dot(JXYZA[index + number_of_contacts * 2], V1) + dot(JUVWB[index + number_of_contacts * 2], W2)
-			+ dot(JXYZB[index + number_of_contacts * 2], V2) /*+ cfmT * gamma_old.z*/;
 	real3 In1 = inv_inertia[body_id.x]; // bring in the inertia attributes; to be used to compute \eta
 	real3 In2 = inv_inertia[body_id.y]; // bring in the inertia attributes; to be used to compute \eta
 
-	real eta = dot(JUVWA[index + number_of_contacts * 0] * JUVWA[index + number_of_contacts * 0], In1) + dot(JUVWA[index + number_of_contacts * 1] * JUVWA[index + number_of_contacts * 1], In1)
-			+ dot(JUVWA[index + number_of_contacts * 2] * JUVWA[index + number_of_contacts * 2], In1); // update expression of eta
+	if (active_a) {
+		gamma.x += dot(JUVWA[index + number_of_contacts * 0], W1) + dot(JXYZA[index + number_of_contacts * 0], V1);
+		gamma.y += dot(JUVWA[index + number_of_contacts * 1], W1) + dot(JXYZA[index + number_of_contacts * 1], V1);
+		gamma.z += dot(JUVWA[index + number_of_contacts * 2], W1) + dot(JXYZA[index + number_of_contacts * 2], V1);
 
-	eta += dot(JUVWB[index + number_of_contacts * 0] * JUVWB[index + number_of_contacts * 0], In2) + dot(JUVWB[index + number_of_contacts * 1] * JUVWB[index + number_of_contacts * 1], In2)
-			+ dot(JUVWB[index + number_of_contacts * 2] * JUVWB[index + number_of_contacts * 2], In2);
+		eta += dot(JUVWA[index + number_of_contacts * 0] * JUVWA[index + number_of_contacts * 0], In1) + dot(JUVWA[index + number_of_contacts * 1] * JUVWA[index + number_of_contacts * 1], In1)
+				+ dot(JUVWA[index + number_of_contacts * 2] * JUVWA[index + number_of_contacts * 2], In1);
 
-	eta += dot(JXYZA[index + number_of_contacts * 0], JXYZA[index + number_of_contacts * 0]) * inv_mass[body_id.x]
-			+ dot(JXYZA[index + number_of_contacts * 1], JXYZA[index + number_of_contacts * 1]) * inv_mass[body_id.x]
-			+ dot(JXYZA[index + number_of_contacts * 2], JXYZA[index + number_of_contacts * 2]) * inv_mass[body_id.x];
+		eta += dot(JXYZA[index + number_of_contacts * 0], JXYZA[index + number_of_contacts * 0]) * inv_mass[body_id.x]
+				+ dot(JXYZA[index + number_of_contacts * 1], JXYZA[index + number_of_contacts * 1]) * inv_mass[body_id.x]
+				+ dot(JXYZA[index + number_of_contacts * 2], JXYZA[index + number_of_contacts * 2]) * inv_mass[body_id.x];
 
-	eta += dot(JXYZB[index + number_of_contacts * 0], JXYZB[index + number_of_contacts * 0]) * inv_mass[body_id.y]
-			+ dot(JXYZB[index + number_of_contacts * 1], JXYZB[index + number_of_contacts * 1]) * inv_mass[body_id.y]
-			+ dot(JXYZB[index + number_of_contacts * 2], JXYZB[index + number_of_contacts * 2]) * inv_mass[body_id.y];
+	}
+	if (active_b) {
+		gamma.x += dot(JUVWB[index + number_of_contacts * 0], W2) + dot(JXYZB[index + number_of_contacts * 0], V2); // + bi; // + .01 * G[index + number_of_contacts * 0]; //+bi
+		gamma.y += dot(JUVWB[index + number_of_contacts * 1], W2) + dot(JXYZB[index + number_of_contacts * 1], V2) /*+ cfmT * gamma_old.y*/;
+		gamma.z += dot(JUVWB[index + number_of_contacts * 2], W2) + dot(JXYZB[index + number_of_contacts * 2], V2) /*+ cfmT * gamma_old.z*/;
 
-	eta = 3.0 * lcp_omega_contact / eta; // final value of eta
+		eta += dot(JUVWB[index + number_of_contacts * 0] * JUVWB[index + number_of_contacts * 0], In2) + dot(JUVWB[index + number_of_contacts * 1] * JUVWB[index + number_of_contacts * 1], In2)
+				+ dot(JUVWB[index + number_of_contacts * 2] * JUVWB[index + number_of_contacts * 2], In2);
+
+		eta += dot(JXYZB[index + number_of_contacts * 0], JXYZB[index + number_of_contacts * 0]) * inv_mass[body_id.y]
+				+ dot(JXYZB[index + number_of_contacts * 1], JXYZB[index + number_of_contacts * 1]) * inv_mass[body_id.y]
+				+ dot(JXYZB[index + number_of_contacts * 2], JXYZB[index + number_of_contacts * 2]) * inv_mass[body_id.y];
+	}
+	gamma.x += bi;
+
+	dG[index + number_of_contacts * 0] = fabs(fmin(0.0, gamma.x));
+	dG[index + number_of_contacts * 1] = gamma.y;
+	dG[index + number_of_contacts * 2] = gamma.z;
+
+	gamma = 3.0 * lcp_omega_contact / (eta) * -gamma; // perform gamma *= omega*eta
+
 	gamma_old.x = G[index + number_of_contacts * 0]; // store gamma_new];
 	gamma_old.y = G[index + number_of_contacts * 1]; // store gamma_new];
 	gamma_old.z = G[index + number_of_contacts * 2]; // store gamma_new];
 
-	gamma = eta * -gamma; // perform gamma *= omega*eta
-//	if(index ==0){
-//		std::cout<<gamma.x<<std::endl;
-//		std::cout<<gamma.y<<std::endl;
-//		std::cout<<gamma.z<<std::endl;
-//		}
+	//std::cout << gamma.x << std::endl;
+	//std::cout << gamma.y << " ";
+	//std::cout << gamma.z << std::endl;
 
 	gamma = gamma_old + gamma; // perform gamma = gamma_old - gamma ;  in place.
+
 	/// ---- perform projection of 'a8' onto friction cone  --------
 
 	function_Project_jacobi(index, gamma, fric, ids);
-	if (active[body_id.x] && active[body_id.y]) {
-		G[index + number_of_contacts * 0] = gamma.x; // store gamma_new
-		G[index + number_of_contacts * 1] = gamma.y; // store gamma_new
-		G[index + number_of_contacts * 2] = gamma.z; // store gamma_new
-	}
+
+	//if(index ==158){
+	//	cout<<"GPU"<<endl;
+	//					std::cout<<gamma.x<<std::endl;
+	//					std::cout<<gamma.y<<std::endl;
+	//					std::cout<<gamma.z<<std::endl;
+	//					}
+
+	G[index + number_of_contacts * 0] = gamma.x; // store gamma_new
+	G[index + number_of_contacts * 1] = gamma.y; // store gamma_new
+	G[index + number_of_contacts * 2] = gamma.z; // store gamma_new
 	gamma -= gamma_old; // compute delta_gamma = gamma_new - gamma_old   = delta_gamma.
-	dG[index + number_of_contacts * 0] = gamma.x;
-	dG[index + number_of_contacts * 1] = gamma.y;
-	dG[index + number_of_contacts * 2] = gamma.z;
 
 	real3 vB1 = JXYZA[index + number_of_contacts * 0] * gamma.x + JXYZA[index + number_of_contacts * 1] * gamma.y + JXYZA[index + number_of_contacts * 2] * gamma.z;
 	real3 vB2 = JXYZB[index + number_of_contacts * 0] * gamma.x + JXYZB[index + number_of_contacts * 1] * gamma.y + JXYZB[index + number_of_contacts * 2] * gamma.z;
@@ -406,8 +419,6 @@ void ChSolverJacobi::host_Offsets(int2* ids, real4* bilaterals, uint* Body) {
 }
 ChSolverJacobi::ChSolverJacobi() {
 
-
-
 }
 void ChSolverJacobi::Solve(real step, gpu_container& gpu_data_) {
 	step_size = step;
@@ -442,6 +453,7 @@ void ChSolverJacobi::Solve(real step, gpu_container& gpu_data_) {
 		gpu_data->update_offset.resize((number_of_constraints) * 2, 0);
 		body_num.resize((number_of_constraints) * 2, 0);
 		gpu_data->device_dgm_data.resize((number_of_constraints));
+		gpu_data->device_gam_data.resize((number_of_constraints));
 		Thrust_Fill(gpu_data->device_dgm_data, 1);
 		gpu_data->vel_update.resize((number_of_constraints) * 2);
 		gpu_data->omg_update.resize((number_of_constraints) * 2);
@@ -470,9 +482,6 @@ void ChSolverJacobi::Solve(real step, gpu_container& gpu_data_) {
 #ifdef SIM_ENABLE_GPU_MODE
 	COPY_TO_CONST_MEM(number_of_updates);
 #endif
-
-	real resnew = 0, resold = 1;
-
 	if (number_of_constraints != 0) {
 		for (current_iteration = 0; current_iteration < max_iteration; current_iteration++) {
 			//ComputeRHS();
@@ -573,14 +582,13 @@ void ChSolverJacobi::Solve(real step, gpu_container& gpu_data_) {
 					gpu_data->offset_counter.data(),
 					gpu_data->device_fap_data.data());
 #endif
-			//custom_vector<real> gammas(gpu_data->number_of_contacts);
-			//thrust::copy_n(gpu_data->device_gam_data.begin(), gpu_data->number_of_contacts, gammas.begin() + gpu_data->number_of_contacts * 0);
-			resnew = Norm(gpu_data->device_gam_data);
-			residual = abs(resnew - resold);
+			//residual = CompRes(gpu_data->device_dgm_data, number_of_contacts);
+			residual = gpu_data->device_dgm_data[thrust::max_element(gpu_data->device_dgm_data.begin(),gpu_data->device_dgm_data.begin()+number_of_contacts)-gpu_data->device_dgm_data.begin()];
+
+
 			if (residual < tolerance) {
 				break;
 			}
-			resold = resnew;
 		}
 
 	}

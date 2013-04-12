@@ -27,7 +27,7 @@ __host__ __device__ void function_Project(uint &index, uint number_of_contacts, 
 	gamma.y = gam[index + number_of_contacts * 1];
 	gamma.z = gam[index + number_of_contacts * 2];
 	real f_tang = sqrt(gamma.y * gamma.y + gamma.z * gamma.z);
-	real mu = (fric[body_id.x]==0||fric[body_id.y]==0)? 0: (fric[body_id.x] + fric[body_id.y]) * .5;
+	real mu = (fric[body_id.x] == 0 || fric[body_id.y] == 0) ? 0 : (fric[body_id.x] + fric[body_id.y]) * .5;
 	if (mu == 0) {
 		gamma.x = gamma.x < 0 ? 0 : gamma.x;
 		gamma.y = gamma.z = 0;
@@ -153,42 +153,42 @@ __global__ void device_shurA(int2 *ids, bool *active, real *inv_mass, real3 *inv
 	real m2 = inv_mass[b2];
 	real3 inertia1 = inv_inertia[b1];
 	real3 inertia2 = inv_inertia[b2];
-	//if (active[b1] != 0) {
-	q_x = JXYZA[index].x * gamma[index] * m1;
-	atomicAdd(&QXYZ[b1].x, q_x);
-	q_y = JXYZA[index].y * gamma[index] * m1;
-	atomicAdd(&QXYZ[b1].y, q_y);
-	q_z = JXYZA[index].z * gamma[index] * m1;
-	atomicAdd(&QXYZ[b1].z, q_z);
+	if (active[b1] != 0) {
+		q_x = JXYZA[index].x * gamma[index] * m1;
+		atomicAdd(&QXYZ[b1].x, q_x);
+		q_y = JXYZA[index].y * gamma[index] * m1;
+		atomicAdd(&QXYZ[b1].y, q_y);
+		q_z = JXYZA[index].z * gamma[index] * m1;
+		atomicAdd(&QXYZ[b1].z, q_z);
 
-	q_u = JUVWA[index].x * gamma[index] * inertia1.x;
-	atomicAdd(&QUVW[b1].x, q_u);
-	q_v = JUVWA[index].y * gamma[index] * inertia1.y;
-	atomicAdd(&QUVW[b1].y, q_v);
-	q_w = JUVWA[index].z * gamma[index] * inertia1.z;
-	atomicAdd(&QUVW[b1].z, q_w);
+		q_u = JUVWA[index].x * gamma[index] * inertia1.x;
+		atomicAdd(&QUVW[b1].x, q_u);
+		q_v = JUVWA[index].y * gamma[index] * inertia1.y;
+		atomicAdd(&QUVW[b1].y, q_v);
+		q_w = JUVWA[index].z * gamma[index] * inertia1.z;
+		atomicAdd(&QUVW[b1].z, q_w);
 
-	//QXYZ[b1] += R3(q_x, q_y, q_z);
-	//QUVW[b1] += R3(q_u, q_v, q_w);
-	//}
-	//if (active[b2] != 0) {
-	q_x = JXYZB[index].x * gamma[index] * m2;
-	atomicAdd(&QXYZ[b2].x, q_x);
-	q_y = JXYZB[index].y * gamma[index] * m2;
-	atomicAdd(&QXYZ[b2].y, q_y);
-	q_z = JXYZB[index].z * gamma[index] * m2;
-	atomicAdd(&QXYZ[b2].z, q_z);
+		//QXYZ[b1] += R3(q_x, q_y, q_z);
+		//QUVW[b1] += R3(q_u, q_v, q_w);
+	}
+	if (active[b2] != 0) {
+		q_x = JXYZB[index].x * gamma[index] * m2;
+		atomicAdd(&QXYZ[b2].x, q_x);
+		q_y = JXYZB[index].y * gamma[index] * m2;
+		atomicAdd(&QXYZ[b2].y, q_y);
+		q_z = JXYZB[index].z * gamma[index] * m2;
+		atomicAdd(&QXYZ[b2].z, q_z);
 
-	q_u = JUVWB[index].x * gamma[index] * inertia2.x;
-	atomicAdd(&QUVW[b2].x, q_u);
-	q_v = JUVWB[index].y * gamma[index] * inertia2.y;
-	atomicAdd(&QUVW[b2].y, q_v);
-	q_w = JUVWB[index].z * gamma[index] * inertia2.z;
-	atomicAdd(&QUVW[b2].z, q_w);
+		q_u = JUVWB[index].x * gamma[index] * inertia2.x;
+		atomicAdd(&QUVW[b2].x, q_u);
+		q_v = JUVWB[index].y * gamma[index] * inertia2.y;
+		atomicAdd(&QUVW[b2].y, q_v);
+		q_w = JUVWB[index].z * gamma[index] * inertia2.z;
+		atomicAdd(&QUVW[b2].z, q_w);
 
-	//QXYZ[b2] += R3(q_x, q_y, q_z);
-	//QUVW[b2] += R3(q_u, q_v, q_w);
-	//}
+		//QXYZ[b2] += R3(q_x, q_y, q_z);
+		//QUVW[b2] += R3(q_u, q_v, q_w);
+	}
 }
 
 void ChSolverGPU::host_shurA(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *QXYZ, real3 *QUVW) {
@@ -321,6 +321,7 @@ __host__ __device__ void function_RHS(
 		int2 *ids,
 		real *correction,
 		real & recovery_speed,
+		bool* active,
 		real3 *vel,
 		real3 *omega,
 		real3 *JXYZA,
@@ -332,11 +333,14 @@ __host__ __device__ void function_RHS(
 	uint b1 = ids[index].x;
 	uint b2 = ids[index].y;
 	real temp = 0;
-
-	temp += dot(JXYZA[index], vel[b1]);
-	temp += dot(JUVWA[index], omega[b1]);
-	temp += dot(JXYZB[index], vel[b2]);
-	temp += dot(JUVWB[index], omega[b2]);
+	if (active[b1]) {
+		temp += dot(JXYZA[index], vel[b1]);
+		temp += dot(JUVWA[index], omega[b1]);
+	}
+	if (active[b2]) {
+		temp += dot(JXYZB[index], vel[b2]);
+		temp += dot(JUVWB[index], omega[b2]);
+	}
 
 //	temp -= JXYZA[index].x * vel[b1].x;
 //	temp -= JXYZA[index].y * vel[b1].y;
@@ -355,15 +359,15 @@ __host__ __device__ void function_RHS(
 
 }
 
-__global__ void device_RHS(int2 *ids, real *correction, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs) {
+__global__ void device_RHS(int2 *ids, real *correction, bool * active, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs) {
 	INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_constraints_const);
-	function_RHS(index, step_size_const, ids, correction, contact_recovery_speed_const, vel, omega, JXYZA, JXYZB, JUVWA, JUVWB, inv_hpa_const, rhs);
+	function_RHS(index, step_size_const, ids, correction, contact_recovery_speed_const, active, vel, omega, JXYZA, JXYZB, JUVWA, JUVWB, inv_hpa_const, rhs);
 }
 
-void ChSolverGPU::host_RHS(int2 *ids, real *correction, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs) {
+void ChSolverGPU::host_RHS(int2 *ids, real *correction, bool * active, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs) {
 #pragma omp parallel for schedule(guided)
 	for (uint index = 0; index < number_of_constraints; index++) {
-		function_RHS(index, step_size, ids, correction, contact_recovery_speed, vel, omega, JXYZA, JXYZB, JUVWA, JUVWB, inv_hpa, rhs);
+		function_RHS(index, step_size, ids, correction, contact_recovery_speed, active, vel, omega, JXYZA, JXYZB, JUVWA, JUVWB, inv_hpa, rhs);
 	}
 }
 
@@ -376,6 +380,7 @@ void ChSolverGPU::ComputeRHS() {
 	device_RHS CUDA_KERNEL_DIM(BLOCKS(number_of_constraints), THREADS)(
 			CASTI2(temp_bids),
 			CASTR1(correction),
+			CASTB1(gpu_data->device_active_data),
 			CASTR3(gpu_data->device_vel_data),
 			CASTR3(gpu_data->device_omg_data),
 			CASTR3(gpu_data->device_JXYZA_data),
@@ -388,6 +393,7 @@ void ChSolverGPU::ComputeRHS() {
 	host_RHS(
 			temp_bids.data(),
 			correction.data(),
+			gpu_data->device_active_data.data(),
 			gpu_data->device_vel_data.data(),
 			gpu_data->device_omg_data.data(),
 			gpu_data->device_JXYZA_data.data(),
