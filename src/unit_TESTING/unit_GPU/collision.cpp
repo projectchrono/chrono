@@ -38,6 +38,8 @@ Vector lpos(0, 0, 0);
 ChQuaternion<> lquat(1, 0, 0, 0);
 
 real tolerance = 1e-6;
+real envelope = 0.03;
+
 bool dump_to_file = true;
 using namespace chrono;
 uint num_objects = 0;
@@ -62,7 +64,7 @@ void LoadObjects_CPU(ChSystem* mSys, string filename) {
 	ChSharedBodyPtr body;
 	int counter = 0;
 	real mass = 1;
-	real radius = 1;
+	real radius = .1;
 	Vector pos, pos_dt, wvel_loc;
 	Quaternion quat;
 	string temp;
@@ -88,8 +90,8 @@ void LoadObjects_CPU(ChSystem* mSys, string filename) {
 		body->SetInertiaXX(inertia);
 		body->SetPos_dt(pos_dt);
 		body->SetWvel_loc(wvel_loc);
-		//body->GetCollisionModel()->SetDefaultSuggestedEnvelope(0);
-		//body->GetCollisionModel()->SetDefaultSuggestedMargin(0);
+		body->GetCollisionModel()->SetDefaultSuggestedEnvelope(envelope);
+		//body->GetCollisionModel()->SetDefaultSuggestedMargin(0.01);
 		counter++;
 	}
 	{
@@ -124,20 +126,20 @@ void LoadObjects_CPU(ChSystem* mSys, string filename) {
 		FinalizeObject(B, mSys);
 		FinalizeObject(BTM, mSys);
 
-//		L->GetCollisionModel()->SetDefaultSuggestedEnvelope(0);
-//		L->GetCollisionModel()->SetDefaultSuggestedMargin(0);
-//
-//		R->GetCollisionModel()->SetDefaultSuggestedEnvelope(0);
-//		R->GetCollisionModel()->SetDefaultSuggestedMargin(0);
-//
-//		F->GetCollisionModel()->SetDefaultSuggestedEnvelope(0);
-//		F->GetCollisionModel()->SetDefaultSuggestedMargin(0);
-//
-//		B->GetCollisionModel()->SetDefaultSuggestedEnvelope(0);
-//		B->GetCollisionModel()->SetDefaultSuggestedMargin(0);
-//
-//		BTM->GetCollisionModel()->SetDefaultSuggestedEnvelope(0);
-//		BTM->GetCollisionModel()->SetDefaultSuggestedMargin(0);
+		L->GetCollisionModel()->SetDefaultSuggestedEnvelope(envelope);
+		//L->GetCollisionModel()->SetDefaultSuggestedMargin(0);
+
+		R->GetCollisionModel()->SetDefaultSuggestedEnvelope(envelope);
+		//R->GetCollisionModel()->SetDefaultSuggestedMargin(0);
+
+		F->GetCollisionModel()->SetDefaultSuggestedEnvelope(envelope);
+		//F->GetCollisionModel()->SetDefaultSuggestedMargin(0);
+
+		B->GetCollisionModel()->SetDefaultSuggestedEnvelope(envelope);
+		//B->GetCollisionModel()->SetDefaultSuggestedMargin(0);
+
+		BTM->GetCollisionModel()->SetDefaultSuggestedEnvelope(envelope);
+		//BTM->GetCollisionModel()->SetDefaultSuggestedMargin(0);
 
 	}
 
@@ -148,7 +150,7 @@ void LoadObjects_GPU(ChSystemGPU* mSys, string filename) {
 	ChSharedBodyGPUPtr body;
 	int counter = 0;
 	real mass = 1;
-	real radius = 1;
+	real radius = .1;
 	Vector pos, pos_dt, wvel_loc;
 	Quaternion quat;
 	string temp;
@@ -842,13 +844,55 @@ void printContactsBullet(btCollisionWorld* bt_collision_world) {
 void comparecontacts() {
 
 	for (int i = 0; i < contact_cpu.size(); i++) {
-		cout << contact_cpu[i].idA << " " << contact_cpu[i].idB << " | " << contact_gpu[i].idA << " " << contact_gpu[i].idB << " || ";
-		cout << contact_cpu[i].N.x << " " << contact_cpu[i].N.y << " " << contact_cpu[i].N.z << " | ";
-		cout << contact_gpu[i].N.x << " " << contact_gpu[i].N.y << " " << contact_gpu[i].N.z << " || ";
-		cout << contact_cpu[i].posA.x << " " << contact_cpu[i].posA.y << " " << contact_cpu[i].posA.z << " | ";
-		cout << contact_gpu[i].posA.x << " " << contact_gpu[i].posA.y << " " << contact_gpu[i].posA.z << " || ";
 
-		cout << contact_cpu[i].dist << " " << contact_gpu[i].dist << endl;
+		real3 N = contact_cpu[i].N - contact_gpu[i].N;
+		real3 Pa = contact_cpu[i].posA - contact_gpu[i].posA;
+		real3 Pb = contact_cpu[i].posB - contact_gpu[i].posB;
+		real d = contact_cpu[i].dist - contact_gpu[i].dist;
+
+//		if (fabs(N.x) > tolerance) {
+//			cout << "N x: [" << i << ", " << N.x << endl;
+//		}
+//		if (fabs(N.y) > tolerance) {
+//			cout << "N y: [" << i << ", " << N.y << endl;
+//		}
+//		if (fabs(N.z) > tolerance) {
+//			cout << "N z: [" << i << ", " << N.z << endl;
+//		}
+//
+//		if (fabs(Pa.x) > tolerance) {
+//			cout << "Pa x: [" << i << ", " << Pa.x << endl;
+//		}
+//		if (fabs(Pa.y) > tolerance) {
+//			cout << "Pa y: [" << i << ", " << Pa.y << endl;
+//		}
+//		if (fabs(Pa.z) > tolerance) {
+//			cout << "Pa z: [" << i << ", " << Pa.z << endl;
+//		}
+//
+//		if (fabs(Pb.x) > tolerance) {
+//			cout << "Pb x: [" << i << ", " << Pb.x << endl;
+//		}
+//		if (fabs(Pb.y) > tolerance) {
+//			cout << "Pb y: [" << i << ", " << Pb.y << endl;
+//		}
+//		if (fabs(Pb.z) > tolerance) {
+//			cout << "Pb z: [" << i << ", " << Pb.z << endl;
+//		}
+//		if (fabs(d) > tolerance) {
+//			cout << "dist: [" << i << ", " << d << endl;
+//		}
+		cout << contact_cpu[i].idA << " " << contact_cpu[i].idB << " | " << contact_gpu[i].idA << " " << contact_gpu[i].idB << "\n";
+//		cout<<"-------------------------------------------------------------------------------------"<<endl;
+//		cout << "[" << contact_cpu[i].N.x << "," << contact_cpu[i].N.y << "," << contact_cpu[i].N.z << "]\n";
+//		cout << "[" << contact_gpu[i].N.x << "," << contact_gpu[i].N.y << "," << contact_gpu[i].N.z << "]\n";
+//		cout<<"-------------------------------------------------------------------------------------"<<endl;
+//		cout << contact_cpu[i].posA.x << " " << contact_cpu[i].posA.y << " " << contact_cpu[i].posA.z << "\n";
+//		cout << contact_gpu[i].posA.x << " " << contact_gpu[i].posA.y << " " << contact_gpu[i].posA.z << "\n";
+//		cout<<"-------------------------------------------------------------------------------------"<<endl;
+//
+//		cout << contact_cpu[i].dist << " " << contact_gpu[i].dist << endl;
+//		cout << "============================================================================================" << endl;
 	}
 
 }
@@ -879,13 +923,13 @@ bool printContactsGPU(ChSystemGPU* system_gpu) {
 
 	}
 	cout << "Contacts: " << system_gpu->gpu_data_manager->number_of_contacts << endl;
-	for (int i = 0; i < system_gpu->gpu_data_manager->host_pair_data.size(); i++) {
-
-		long long p = system_gpu->gpu_data_manager->host_pair_data[i];
-		int2 pair = I2(int(p >> 32), int(p & 0xffffffff));
-		cout << pair.x << " " << pair.y << endl;
-
-	}
+//	for (int i = 0; i < system_gpu->gpu_data_manager->host_pair_data.size(); i++) {
+//
+//		long long p = system_gpu->gpu_data_manager->host_pair_data[i];
+//		int2 pair = I2(int(p >> 32), int(p & 0xffffffff));
+//		cout << pair.x << " " << pair.y << endl;
+//
+//	}
 
 }
 int main(int argc, char* argv[]) {
@@ -908,7 +952,7 @@ int main(int argc, char* argv[]) {
 		system_cpu->Set_G_acc(Vector(0, -9.80665, 0));
 		system_cpu->SetStep(0.01);
 		//createGeometryCPU(system_cpu);
-		LoadObjects_CPU(system_cpu, "100_bodies.txt");
+		LoadObjects_CPU(system_cpu, "pile1000_bodies.txt");
 
 		((ChLcpIterativeJacobi *) (system_cpu->GetLcpSolverSpeed()))->SetMaxIterations(1);
 		system_cpu->SetMaxiter(1);
@@ -942,11 +986,11 @@ int main(int argc, char* argv[]) {
 		((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->SetCompliance(0, 0, 0);
 		((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->SetContactRecoverySpeed(.6);
 		((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->SetSolverType(BLOCK_JACOBI);
-		((ChCollisionSystemGPU *) (system_gpu->GetCollisionSystem()))->SetCollisionEnvelope(0.03);
+		((ChCollisionSystemGPU *) (system_gpu->GetCollisionSystem()))->SetCollisionEnvelope(envelope);
 
 		//createGeometryGPU(system_gpu);
 		//100_bodies
-		LoadObjects_GPU(system_gpu, "100_bodies.txt");
+		LoadObjects_GPU(system_gpu, "pile1000_bodies.txt");
 	}
 //
 //	ChOpenGLManager * window_manager = new ChOpenGLManager();
@@ -968,12 +1012,12 @@ int main(int argc, char* argv[]) {
 		validate_velocities(system_cpu, system_gpu);
 		validate_omega(system_cpu, system_gpu);
 		cout << "CPU: =============" << endl;
-		system_cpu->DoStepDynamics(.0000001);
+		system_cpu->DoStepDynamics(.01);
 		cout << "ITER: " << ((ChLcpIterativeJacobi *) (system_cpu->GetLcpSolverSpeed()))->GetTotalIterations() << endl;
 		//cout << "Residual: " << ((ChLcpIterativeJacobi *) (system_cpu->GetLcpSolverSpeed()))->GetResidual() << endl;
 		cout << "GPU: =============" << endl;
-		system_gpu->DoStepDynamics(.0000001);
-		cout << "ITER: " << ((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->GetCurrentIteration() << endl;
+		system_gpu->DoStepDynamics(.01);
+		cout << "ITER: " << ((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->GetTotalIterations() << endl;
 		cout << "Residual: " << ((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->GetResidual() << endl;
 		cout << "=============" << endl;
 
