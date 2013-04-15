@@ -118,7 +118,7 @@ void ChLcpSolverGPU::RunTimeStep(real step, gpu_container& gpu_data) {
 		jacobi_solver.lcp_omega_bilateral = lcp_omega_bilateral;
 		jacobi_solver.lcp_omega_contact = lcp_omega_contact;
 		jacobi_solver.Solve(step, gpu_data);
-		current_iteration = jacobi_solver.GetIteration();
+		tot_iterations = jacobi_solver.GetIteration();
 		residual = jacobi_solver.GetResidual();
 		lambda = gpu_data.device_gam_data;
 
@@ -129,7 +129,7 @@ void ChLcpSolverGPU::RunTimeStep(real step, gpu_container& gpu_data) {
 		solver.SetComplianceParameters(alpha, compliance, complianceT);
 		solver.SetContactRecoverySpeed(contact_recovery_speed);
 		solver.Solve(solver_type, step, gpu_data);
-		current_iteration = solver.GetIteration();
+		tot_iterations = solver.GetIteration();
 		residual = solver.GetResidual();
 		rhs = solver.rhs;
 		lambda = gpu_data.device_gam_data;

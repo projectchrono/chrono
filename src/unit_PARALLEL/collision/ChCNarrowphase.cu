@@ -328,6 +328,9 @@ __host__ __device__ void function_MPR_Store(
 	if (obj_active[ID_A] == false && obj_active[ID_B] == false) {
 		return;
 	}
+	if (ID_A == ID_B) {
+		return;
+	}
 
 	real3 posA = body_pos[ID_A], posB = body_pos[ID_B]; //Get the global object position
 	real4 rotA = body_rot[ID_A], rotB = body_rot[ID_B]; //Get the global object rotation

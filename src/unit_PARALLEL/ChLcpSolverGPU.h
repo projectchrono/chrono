@@ -80,9 +80,6 @@ namespace chrono {
 			real GetResidual() {
 				return residual;
 			}
-			uint GetCurrentIteration() {
-				return current_iteration;
-			}
 			void Dump_Rhs(std::vector<double> &temp) {
 				for (int i = 0; i < rhs.size(); i++) {
 					temp.push_back(rhs[i]);
@@ -116,7 +113,6 @@ namespace chrono {
 			uint number_of_constraints;
 			uint max_iteration;
 
-			uint current_iteration;
 			real residual;
 
 			GPUSOLVERTYPE solver_type;
