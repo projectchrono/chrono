@@ -1,11 +1,12 @@
 #include "ModifyPath.iss"
 
-#define MyAppName "ChronoEngine Python"
+#define MyAppName "PyChronoEngine"
 #define MyAppVersion "v1.7"
 #define MyAppPublisher "Alessandro Tasora"
 #define MyAppURL "http://www.chronoengine.info"
 #define MyWin32PythonDir  "C:\Python32"
 #define MyPythonVers "3.2"
+#define MyChronoEngineSDK "C:\tasora\code\nightly_repo\code\ChronoEngine"
 
 [Setup]
 ShowLanguageDialog=yes
@@ -17,16 +18,19 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={pf}\
+DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 WizardImageFile=SetupModern20.bmp
 WizardSmallImageFile=SetupModernSmall26.bmp
 PrivilegesRequired=admin
 ;Compression=none
 OutputDir=c:\tasora\lavori\data_chrono
-OutputBaseFilename=ChronoEngine_for_Python_{#MyAppVersion}
+OutputBaseFilename=PyChronoEngine_{#MyAppVersion}
 
 [Files]
+Source: {#MyChronoEngineSDK}\bin\data\*; Excludes: "*\.svn,\data\mpi"; DestDir: "{app}\bin\data"; Flags: recursesubdirs createallsubdirs
+Source: {#MyChronoEngineSDK}\python\*; DestDir: "{app}\python"; Flags: recursesubdirs createallsubdirs
+
 Source: {#MyWin32PythonDir}\DLLs\_ChronoEngine_PYTHON_core.pyd; DestDir: {code:myGetPathWin32PythonDLLs};  Flags: ignoreversion;  Check: myFoundWin32Python;
 Source: {#MyWin32PythonDir}\DLLs\_ChronoEngine_PYTHON_postprocess.pyd; DestDir: {code:myGetPathWin32PythonDLLs};  Flags: ignoreversion;  Check: myFoundWin32Python;
 Source: {#MyWin32PythonDir}\DLLs\_ChronoEngine_PYTHON_irrlicht.pyd; DestDir: {code:myGetPathWin32PythonDLLs};  Flags: ignoreversion;  Check: myFoundWin32Python;
@@ -40,6 +44,7 @@ Source: {#MyWin32PythonDir}\lib\ChronoEngine_PYTHON_irrlicht.py; DestDir: {code:
 
 [Icons]
 Name: "{group}\Getting started"; Filename: "http://www.chronoengine.info"
+Name: "{group}\Demos"; Filename: "{app}\python"
 Name: "{group}\Uninstall"; Filename: "{uninstallexe}"
 
 
