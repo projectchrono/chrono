@@ -229,7 +229,8 @@ myapplication.SetTryRealtime(True)
 while(myapplication.GetDevice().run()):
     myapplication.BeginScene()
     myapplication.DrawAll()
-    myapplication.DoStep()
+    for substep in range(0,5):
+        myapplication.DoStep()
     myapplication.EndScene()
 
 
