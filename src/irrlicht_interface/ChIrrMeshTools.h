@@ -380,13 +380,13 @@ static IMesh* createCylinderMesh(f32 radius, f32 length,
 		v.Pos.X = radius * cosf(angle);
 		v.Pos.Y = -length; 
 		v.Pos.Z = radius * sinf(angle);
-		v.Normal = vector3df(cosf(angle),0,sinf(angle));
+		v.Normal = irr::core::vector3df(cosf(angle),0,sinf(angle));
 		v.TCoords.X=tcx;
 		v.TCoords.Y=0.f;
 		buffer->Vertices.push_back(v);
 
 		v.Pos.Y = length;
-		v.Normal = vector3df(cosf(angle),0,sinf(angle));
+		v.Normal = irr::core::vector3df(cosf(angle),0,sinf(angle));
 		v.TCoords.Y=1.f;
 		buffer->Vertices.push_back(v);
 
@@ -451,7 +451,7 @@ static IMesh* createCylinderMesh(f32 radius, f32 length,
 		v.Pos.X = radius * cosf(angle);
 		v.Pos.Y = length; 
 		v.Pos.Z = radius * sinf(angle);
-		v.Normal = vector3df(0,1,0);
+		v.Normal = irr::core::vector3df(0,1,0);
 		v.TCoords.X=0.5f+0.5f*cosf(angle);
 		v.TCoords.Y=0.5f+0.5f*sinf(angle);
 		buffer->Vertices.push_back(v);
