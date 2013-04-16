@@ -101,16 +101,7 @@ IF(ENABLE_UNIT_MPI)
 	
 	SET_TARGET_PROPERTIES(ChronoEngine_MPI PROPERTIES 
 	                          LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
-	                          COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_MPI"
-	                          ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CH_LIBDIR}"
-	                          ARCHIVE_OUTPUT_DIRECTORY_DEBUG   "${CH_LIBDIR}"
-	                          RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CH_BINDIR}"
-	                          RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CH_BINDIR}"
-	                          LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CH_LIBDIR}"
-	                          LIBRARY_OUTPUT_DIRECTORY_DEBUG   "${CH_LIBDIR}"
-	                           RUNTIME_OUTPUT_NAME_DEBUG "ChronoEngine_MPIDBG"
-	                           LIBRARY_OUTPUT_NAME_DEBUG "ChronoEngine_MPIDBG"
-	                           ARCHIVE_OUTPUT_NAME_DEBUG "ChronoEngine_MPIDBG")
+	                          COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_MPI")
 	                          
 	TARGET_LINK_LIBRARIES(ChronoEngine_MPI
 		${CH_MPILIB} 
