@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="8.00"
 	Name="chrono_proj_debug_libs"
+	OutputDirectory="$(ChronoEngineBin)\Debug"
 	>
 	<Tool
 		Name="VCCLCompilerTool"
@@ -12,8 +13,8 @@
 	/>
 	<Tool
 		Name="VCLinkerTool"
-		AdditionalDependencies="ChronoEngineDBG.lib Irrlicht.lib"
-		AdditionalLibraryDirectories="&quot;$(ChronoEngineDir)\lib\Win32_VisualStudio&quot;;&quot;$(IrrlichtDir)\lib\Win32-visualstudio&quot;"
+		AdditionalDependencies="ChronoEngine.lib Irrlicht.lib"
+		AdditionalLibraryDirectories="&quot;$(ChronoEngineLib)\Debug&quot;;&quot;$(IrrlichtDir)\lib\Win32-visualstudio&quot;"
 		GenerateDebugInformation="true"
 	/>
 </VisualStudioPropertySheet>

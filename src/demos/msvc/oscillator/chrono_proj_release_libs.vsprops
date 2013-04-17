@@ -3,10 +3,11 @@
 	ProjectType="Visual C++"
 	Version="8.00"
 	Name="chrono_proj_release_libs"
+	OutputDirectory="$(ChronoEngineBin)\Release"
 	>
 	<Tool
 		Name="VCLinkerTool"
 		AdditionalDependencies="ChronoEngine.lib Irrlicht.lib"
-		AdditionalLibraryDirectories="&quot;$(ChronoEngineDir)\lib\Win32_VisualStudio&quot;;&quot;$(IrrlichtDir)\lib\Win32-visualstudio&quot;"
+		AdditionalLibraryDirectories="&quot;$(ChronoEngineLib)\Release&quot;;&quot;$(IrrlichtDir)\lib\Win32-visualstudio&quot;"
 	/>
 </VisualStudioPropertySheet>
