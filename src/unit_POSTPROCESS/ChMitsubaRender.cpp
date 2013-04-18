@@ -82,10 +82,7 @@ void ChMitsubaRender::AddObject(ChSharedPtr<ChAsset> & asset, ChBody * abody) {
 	if (asset.IsType<ChSphereShape>()) {
         XMLElement* xml = data.NewElement("shape");
 		xml->SetAttribute("type", "sphere");
-       
 
-        
-        
 		ChSphereShape * sphere_shape = ((ChSphereShape *) (asset.get_ptr()));
         
         XMLElement* xml_pos = data.NewElement("float");
@@ -93,13 +90,16 @@ void ChMitsubaRender::AddObject(ChSharedPtr<ChAsset> & asset, ChBody * abody) {
 		xml_pos->SetAttribute("value", sphere_shape->GetSphereGeometry().rad);
 		xml->LinkEndChild(xml_pos);
         
+		Vector center = sphere_shape->GetSphereGeometry().center;
+		center = abody->GetRot().Rotate(center);
+
 		XMLElement* xml_transform = data.NewElement("transform");
 		xml_transform->SetAttribute("name", "toWorld");
 
 		xml_pos = data.NewElement("translate");
-		xml_pos->SetAttribute("x", double(abody->GetPos().x));
-		xml_pos->SetAttribute("y", double(abody->GetPos().y));
-		xml_pos->SetAttribute("z", double(abody->GetPos().z));
+		xml_pos->SetAttribute("x", double(abody->GetPos().x+center.x));
+		xml_pos->SetAttribute("y", double(abody->GetPos().y+center.x));
+		xml_pos->SetAttribute("z", double(abody->GetPos().z+center.x));
 		xml_transform->LinkEndChild(xml_pos);
 		//xml_pos = data.NewElement("scale");
 		//xml_pos->SetAttribute("value", sphere_shape->GetSphereGeometry().rad);

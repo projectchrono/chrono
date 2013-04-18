@@ -244,11 +244,11 @@ void createGeometryGPU(ChSystemGPU* mSys) {
 	srand(11);
 	int counter = 0;
 
-	for (int i = 0; i < 10; i++) {
+	for (int i = 0; i < 100; i++) {
 		real mass = 1;
 		real radius = .1;
 		sphere = ChSharedBodyGPUPtr(new ChBodyGPU);
-		//sphere->SetCollisionModelBullet();
+		sphere->SetCollisionModelBullet();
 		Vector pos = Vector((rand() % 10000 / 1000.0 - 5), i / 100.0 - 5, (rand() % 10000 / 1000.0 - 5));
 		InitObject(sphere, mass, pos, quat, 1, 1, 0, true, false, 32, counter);
 		AddCollisionGeometry(sphere, SPHERE, Vector(radius, radius, radius), Vector(0, 0, 0), quat);
@@ -266,11 +266,11 @@ void createGeometryGPU(ChSystemGPU* mSys) {
 	ChSharedBodyGPUPtr B = ChSharedBodyGPUPtr(new ChBodyGPU);
 	ChSharedBodyGPUPtr BTM = ChSharedBodyGPUPtr(new ChBodyGPU);
 
-	//L->SetCollisionModelBullet();
-	//R->SetCollisionModelBullet();
-	//F->SetCollisionModelBullet();
-	//B->SetCollisionModelBullet();
-	//BTM->SetCollisionModelBullet();
+	L->SetCollisionModelBullet();
+	R->SetCollisionModelBullet();
+	F->SetCollisionModelBullet();
+	B->SetCollisionModelBullet();
+	BTM->SetCollisionModelBullet();
 
 	ChQuaternion<> fortyfive;
 	fortyfive.Q_from_AngAxis(PI / 4.0, ChVector<>(1, 0, 0));
@@ -954,8 +954,8 @@ int main(int argc, char* argv[]) {
 		system_cpu->SetIntegrationType(ChSystem::INT_ANITESCU);
 		system_cpu->Set_G_acc(Vector(0, -9.80665, 0));
 		system_cpu->SetStep(0.005);
-		//createGeometryCPU(system_cpu);
-		LoadObjects_CPU(system_cpu, "fly10_bodies.txt");
+		createGeometryCPU(system_cpu);
+		//LoadObjects_CPU(system_cpu, "fly10_bodies.txt");
 
 		((ChLcpIterativeJacobi *) (system_cpu->GetLcpSolverSpeed()))->SetMaxIterations(100);
 		system_cpu->SetMaxiter(100);
@@ -996,12 +996,12 @@ int main(int argc, char* argv[]) {
 		LoadObjects_GPU(system_gpu, "fly10_bodies.txt");
 	}
 ////
-//	ChOpenGLManager * window_manager = new ChOpenGLManager();
-//	ChOpenGL openGLView(window_manager, system_gpu, 800, 600, 0, 0, "Test_Solvers");
-//	openGLView.AddSystem(system_cpu);
-//	openGLView.SetCustomCallback(RunTimeStep);
-//	openGLView.StartSpinning(window_manager);
-//	window_manager->CallGlutMainLoop();
+	ChOpenGLManager * window_manager = new ChOpenGLManager();
+	ChOpenGL openGLView(window_manager, system_gpu, 800, 600, 0, 0, "Test_Solvers");
+	//openGLView.AddSystem(system_cpu);
+	openGLView.SetCustomCallback(RunTimeStep);
+	openGLView.StartSpinning(window_manager);
+	window_manager->CallGlutMainLoop();
 
 	int counter = 0;
 	ChTimer<double> timer;
