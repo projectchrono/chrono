@@ -16,7 +16,7 @@ IF(ENABLE_UNIT_PYTHON)
 
 	GET_FILENAME_COMPONENT(CH_PYTHONDIR "${PYTHON_EXECUTABLE}" PATH)
 	SET (CH_PYTHONINC "${PYTHON_INCLUDE_PATH}")
-	SET (CH_PYTHONLIB "${PYTHON_LIBRARIES}")
+	SET (CH_PYTHONLIB "${PYTHON_LIBRARY}")
 	
 	
 	#-----------------------------------------------------------------------------
