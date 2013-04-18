@@ -12,7 +12,8 @@
 #define MyAppPublisher "Alessandro Tasora"
 #define MyAppURL "http://www.chronoengine.info"
 #define MyChronoEngineSDK   "C:\tasora\code\nightly_repo\code\ChronoEngine"
-#define MyChronoEngineBUILD "C:\tasora\code\nightly_build"
+#define MyChronoEngineBUILD32 "C:\tasora\code\nightly_build"
+#define MyChronoEngineBUILD64 "C:\tasora\code\nightly_build64"
 
 [Setup]
 AppName={#MyAppName}
@@ -36,11 +37,14 @@ OutputDir=c:\tasora\lavori\data_chrono
 OutputBaseFilename=ChronoEngine_{#MyAppVersion}
 
 [Files]
-Source: {#MyChronoEngineSDK}\*; Excludes: "*.c,*.cpp,*.cu,doxygen,\bin,\scripts,\source\collision\gimpact,\source\collision\edgetempest,\source\HOWTO_COMPILE_API.txt,*.pdb,_obsolete,\installer,*.o,*.obj,*.ncb,*.bat,source\*.def,*\.svn"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs
+Source: {#MyChronoEngineSDK}\*; Excludes: "*.c,*.cpp,*.cu,doxygen,\bin,\lib,\scripts,\source\collision\gimpact,\source\collision\edgetempest,\source\HOWTO_COMPILE_API.txt,*.pdb,_obsolete,\installer,*.o,*.obj,*.ncb,*.bat,source\*.def,*\.svn"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs
 Source: {#MyChronoEngineSDK}\source\demos\*; Excludes: "*.pdb,demo_benchmark.exe,*\.svn,*.ilk,*.idb"; DestDir: "{app}\source\demos"; Flags: recursesubdirs createallsubdirs
 
-Source: {#MyChronoEngineBUILD}\bin\*; Excludes: "*.pdb,demo_benchmark.exe,*\.svn,*.ilk,*.idb,\data\mpi"; DestDir: "{app}\bin"; Flags: recursesubdirs createallsubdirs
-Source: {#MyChronoEngineBUILD}\lib\*; Excludes: "*.pdb,*\.svn,*.ilk,*.idb"; DestDir: "{app}\lib"; Flags: recursesubdirs createallsubdirs
+Source: {#MyChronoEngineBUILD32}\bin\*; Excludes: "*.pdb,demo_benchmark.exe,*\.svn,*.ilk,*.idb,\data\mpi"; DestDir: "{app}\32bit\bin"; Flags: recursesubdirs createallsubdirs
+Source: {#MyChronoEngineBUILD32}\lib\*; Excludes: "*.pdb,*\.svn,*.ilk,*.idb"; DestDir: "{app}\lib"; Flags: recursesubdirs createallsubdirs
+
+Source: {#MyChronoEngineBUILD64}\bin\*; Excludes: "*.pdb,demo_benchmark.exe,*\.svn,*.ilk,*.idb,\data\mpi"; DestDir: "{app}\64bit\bin"; Flags: recursesubdirs createallsubdirs
+Source: {#MyChronoEngineBUILD64}\lib\*; Excludes: "*.pdb,*\.svn,*.ilk,*.idb"; DestDir: "{app}\lib"; Flags: recursesubdirs createallsubdirs
 
 
 Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\*; DestDir: {code:myGetPathVisual9}VCWizards\ChronoEngineWizard; Check: myFoundVisual9; Flags: recursesubdirs createallsubdirs
@@ -58,25 +62,25 @@ Name: "{group}\Getting started"; Filename: "{app}\docs\WebDocumentation.URL"
 Name: "{group}\Tutorials"; Filename: "{app}\docs\WebTutorials.URL"
 Name: "{group}\API documentation"; Filename: "{app}\docs\html\help.chm"
 Name: "{group}\Readme"; Filename: "{app}\readme.txt"
-Name: "{group}\Convex decomp. utility"; Filename: "{app}\bin\Release\demo_decomposition.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Crank"; Filename: "{app}\bin\Release\demo_crank.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Four bar"; Filename: "{app}\bin\Release\demo_fourbar.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Pendulum"; Filename: "{app}\bin\Release\demo_pendulum.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Collision"; Filename: "{app}\bin\Release\demo_collision.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Bricks"; Filename: "{app}\bin\Release\demo_bricks.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Suspension"; Filename: "{app}\bin\Release\demo_suspension.exe"; WorkingDir: "{app}\bin\Release"
-;Name: "{group}\demos\Racing"; Filename: "{app}\bin\Release\demo_racing.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Oscillator"; Filename: "{app}\bin\Release\demo_oscillator.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Gears"; Filename: "{app}\bin\Release\demo_gears.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Tracks"; Filename: "{app}\bin\Release\demo_tracks.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Mecanum"; Filename: "{app}\bin\Release\demo_mecanum.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Matlab"; Filename: "{app}\bin\Release\demo_matlab.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Roll.friction"; Filename: "{app}\bin\Release\demo_friction.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Forklift"; Filename: "{app}\bin\Release\demo_forklift.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Tire convex decomp."; Filename: "{app}\bin\Release\demo_tire.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Cohesion"; Filename: "{app}\bin\Release\demo_cohesion.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Conveyor"; Filename: "{app}\bin\Release\demo_conveyor.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Imp.Solidworks (Python 3 required)"; Filename: "{app}\bin\Release\demo_import_solidworks.exe"; WorkingDir: "{app}\bin\Release"
+Name: "{group}\Convex decomp. utility"; Filename: "{app}\32bit\bin\Release\demo_decomposition.exe"; WorkingDir: "{app}\bin\Release"
+Name: "{group}\demos\Crank"; Filename: "{app}\32bit\bin\Release\demo_crank.exe"; WorkingDir: "{app}\bin\Release"
+Name: "{group}\demos\Four bar"; Filename: "{app}\32bit\bin\Release\demo_fourbar.exe"; WorkingDir: "{app}\bin\Release"
+Name: "{group}\demos\Pendulum"; Filename: "{app}\32bit\bin\Release\demo_pendulum.exe"; WorkingDir: "{app}\bin\Release"
+Name: "{group}\demos\Collision"; Filename: "{app}\32bit\bin\Release\demo_collision.exe"; WorkingDir: "{app}\bin\Release"
+Name: "{group}\demos\Bricks"; Filename: "{app}\32bit\bin\Release\demo_bricks.exe"; WorkingDir: "{app}\bin\Release"
+Name: "{group}\demos\Suspension"; Filename: "{app}\32bit\bin\Release\demo_suspension.exe"; WorkingDir: "{app}\bin\Release"
+;Name: "{group}\demos\Racing"; Filename: "{app}\32bit\bin\Release\demo_racing.exe"; WorkingDir: "{app}\bin\Release"
+Name: "{group}\demos\Oscillator"; Filename: "{app}\32bit\bin\Release\demo_oscillator.exe"; WorkingDir: "{app}\bin\Release"
+Name: "{group}\demos\Gears"; Filename: "{app}\32bit\bin\Release\demo_gears.exe"; WorkingDir: "{app}\bin\Release"
+Name: "{group}\demos\Tracks"; Filename: "{app}\32bit\bin\Release\demo_tracks.exe"; WorkingDir: "{app}\bin\Release"
+Name: "{group}\demos\Mecanum"; Filename: "{app}\32bit\bin\Release\demo_mecanum.exe"; WorkingDir: "{app}\bin\Release"
+Name: "{group}\demos\Matlab"; Filename: "{app}\32bit\bin\Release\demo_matlab.exe"; WorkingDir: "{app}\bin\Release"
+Name: "{group}\demos\Roll.friction"; Filename: "{app}\32bit\bin\Release\demo_friction.exe"; WorkingDir: "{app}\bin\Release"
+Name: "{group}\demos\Forklift"; Filename: "{app}\32bit\bin\Release\demo_forklift.exe"; WorkingDir: "{app}\bin\Release"
+Name: "{group}\demos\Tire convex decomp."; Filename: "{app}\32bit\bin\Release\demo_tire.exe"; WorkingDir: "{app}\bin\Release"
+Name: "{group}\demos\Cohesion"; Filename: "{app}\32bit\bin\Release\demo_cohesion.exe"; WorkingDir: "{app}\bin\Release"
+Name: "{group}\demos\Conveyor"; Filename: "{app}\32bit\bin\Release\demo_conveyor.exe"; WorkingDir: "{app}\bin\Release"
+;Name: "{group}\demos\Imp.Solidworks (Python 3 required)"; Filename: "{app}\32bit\bin\Release\demo_import_solidworks.exe"; WorkingDir: "{app}\bin\Release"
 Name: "{group}\Uninstall"; Filename: "{uninstallexe}"
 
 ;[Run]
@@ -152,23 +156,7 @@ begin
   Result := output_string;
 end;
 
-// Not used anymore (it was used to init config.mak)
-procedure myAfterMakesInstall();
-var
-  myContent: String;
-  myContentFile: String;
-  myIrrlichtDir: String;
-  myIrrklangDir: String;
-  myChronoDir: String;
-begin
-  myContentFile := ExpandConstant(CurrentFileName);
-  myChronoDir   :=  ExpandConstant('{app}');
-  myIrrlichtDir :=  IrrlichtDirPage.Values[0];
-  LoadStringFromFile(myContentFile, myContent);
-  StringChange(myContent, '***CHRONODIR***', myChronoDir);
-  StringChange(myContent, '***IRRLICHTDIR***', myIrrlichtDir);
-  SaveStringToFile(myContentFile, myContent, false);
-end;
+
 
 procedure myAfterWizardInstall();
 var
@@ -184,6 +172,8 @@ begin
   myIrrklangDir := BackslashToDoubleBackslash(IrrklangDirPage.Values[0]);
   LoadStringFromFile(myContentFile, myContent);
   StringChange(myContent, '***CHRONODIR***', myChronoDir);
+  StringChange(myContent, '***CHRONOLIB***', myChronoDir + '\32bit\lib');
+  StringChange(myContent, '***CHRONOBIN***', myChronoDir + '\32bit\bin');
   StringChange(myContent, '***IRRLICHTDIR***', myIrrlichtDir);
   StringChange(myContent, '***IRRKLANGDIR***', myIrrklangDir);
   SaveStringToFile(myContentFile, myContent, false);
@@ -270,7 +260,7 @@ begin
   //
   // Select components to be configured
   //
-  
+         
   mTitleIrrOptions :=              ' If you are using Microsoft Visual Studio, this installer will add a new '#13+
                                    'wizard type to the VC++ project templates, to ease the creation of new projects.'#13+
                                    'This installer can help you to configure the VC++ wizard. '#13+
@@ -286,7 +276,7 @@ begin
   'Configuration helper', 'Do you want the installer to configure your Chrono::Engine SDK?',
   mTitleIrrOptions,
   False, False);
-
+ 
   // Add items
   ConfigOptionPage.Add('I have the Irrlicht SDK installed on my PC');
 
@@ -297,7 +287,7 @@ begin
   ConfigOptionPage.Values[0] := False;
   ConfigOptionPage.Values[1] := False;
 
-
+  
 
   //
   // Select directory dialog for Irrlicht
@@ -320,7 +310,7 @@ begin
     False, '');
   IrrklangDirPage.Add('');
   IrrklangDirPage.Values[0] := '';
-
+            
 end;
 
 
