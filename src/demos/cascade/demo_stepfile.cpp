@@ -21,14 +21,13 @@
  
 #include "physics/ChApidll.h" 
 #include "core/ChRealtimeStep.h"
-#include "irrlicht_interface/ChIrrAppInterface.h"
-#include "irrlicht_interface/ChBodySceneNodeTools.h" 
 #include "unit_CASCADE/ChCascadeDoc.h"
 #include "unit_CASCADE/ChCascadeMeshTools.h"
 #include "unit_CASCADE/ChIrrCascadeMeshTools.h"
 #include "unit_CASCADE/ChIrrCascade.h"
 #include "irrlicht_interface/ChBodySceneNode.h" 
-
+#include "irrlicht_interface/ChIrrAppInterface.h"
+#include "irrlicht_interface/ChBodySceneNodeTools.h" 
 
 #include <irrlicht.h>
 

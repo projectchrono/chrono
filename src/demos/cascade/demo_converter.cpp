@@ -17,17 +17,12 @@
   
  
 #include "physics/ChApidll.h" 
-#include "irrlicht_interface/ChIrrAppInterface.h"
-#include "irrlicht_interface/ChIrrMeshTools.h"
 #include "core/ChRealtimeStep.h"
 #include "collision/ChCConvexDecomposition.h"
 
 #include "unit_CASCADE/ChCascadeDoc.h"
 #include "unit_CASCADE/ChCascadeMeshTools.h"
 #include "unit_CASCADE/ChIrrCascadeMeshTools.h"
-
-#include <irrlicht.h>
-
 
 #include <TopoDS_Shape.hxx>
 #include <TopoDS.hxx>
@@ -82,6 +77,10 @@
 #include <TObj_TObject.hxx>
 #include <TObj_TReference.hxx>
 #include <TNaming_NamedShape.hxx>
+
+#include "irrlicht_interface/ChIrrAppInterface.h"
+#include "irrlicht_interface/ChIrrMeshTools.h"
+
 
 // Use the namespace of Chrono
 using namespace chrono;
