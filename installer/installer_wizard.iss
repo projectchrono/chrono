@@ -124,6 +124,8 @@ begin
   myIrrklangDir := BackslashToDoubleBackslash(IrrklangDirPage.Values[0]);
   LoadStringFromFile(myContentFile, myContent);
   StringChange(myContent, '***CHRONODIR***', myChronoDir);
+  StringChange(myContent, '***CHRONOLIB***', myChronoDir + '\lib');
+  StringChange(myContent, '***CHRONOBIN***', myChronoDir + '\bin');
   StringChange(myContent, '***IRRLICHTDIR***', myIrrlichtDir);
   StringChange(myContent, '***IRRKLANGDIR***', myIrrklangDir);
   SaveStringToFile(myContentFile, myContent, false);
