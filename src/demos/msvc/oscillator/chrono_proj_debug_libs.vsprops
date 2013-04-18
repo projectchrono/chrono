@@ -3,7 +3,6 @@
 	ProjectType="Visual C++"
 	Version="8.00"
 	Name="chrono_proj_debug_libs"
-	OutputDirectory="$(ChronoEngineBin)\Debug"
 	>
 	<Tool
 		Name="VCCLCompilerTool"

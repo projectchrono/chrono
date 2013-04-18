@@ -12,8 +12,8 @@
 	/>
 	<Tool
 		Name="VCLinkerTool"
-		AdditionalDependencies="ChronoEngineDBG.lib Irrlicht.lib irrKlang.lib"
-		AdditionalLibraryDirectories="&quot;$(IrrklangDir)\lib\Win32-visualStudio&quot;;&quot;$(ChronoEngineDir)\lib\Win32_VisualStudio&quot;;&quot;$(IrrlichtDir)\lib\Win32-visualstudio&quot;"
+		AdditionalDependencies="ChronoEngine.lib Irrlicht.lib irrKlang.lib"
+		AdditionalLibraryDirectories="&quot;$(IrrklangDir)\lib\Win32-visualStudio&quot;;&quot;$(ChronoEngineLib)\Debug&quot;;&quot;$(IrrlichtDir)\lib\Win32-visualstudio&quot;"
 		GenerateDebugInformation="true"
 	/>
 </VisualStudioPropertySheet>

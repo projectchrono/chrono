@@ -17,7 +17,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(ChronoEngineDir)\bin\Win32_VisualStudio"
+			OutputDirectory="$(ChronoEngineBin)\Debug"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			InheritedPropertySheets=".\chrono_proj_config.vsprops;.\chrono_proj_debug_libs.vsprops"
@@ -84,7 +84,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(ChronoEngineDir)\bin\Win32_VisualStudio"
+			OutputDirectory="$(ChronoEngineBin)\Release"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			InheritedPropertySheets=".\chrono_proj_config.vsprops;.\chrono_proj_release_libs.vsprops"

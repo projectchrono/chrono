@@ -3,16 +3,23 @@
 	ProjectType="Visual C++"
 	Version="8.00"
 	Name="chrono_proj_config"
-	OutputDirectory="$(ChronoEngineDir)\bin\Win32_VisualStudio"
 	>
 	<Tool
 		Name="VCCLCompilerTool"
-		AdditionalIncludeDirectories="&quot;$(IrrklangDir)\include&quot;;&quot;$(ChronoEngineDir)\source&quot;;&quot;$(ChronoEngineDir)\source\collision\bullet&quot;;&quot;$(IrrlichtDir)\include&quot;"
+		AdditionalIncludeDirectories="&quot;$(ChronoEngineDir)\source&quot;;&quot;$(ChronoEngineDir)\source\collision\bullet&quot;;&quot;$(IrrlichtDir)\include&quot;;&quot;$(IrrklangDir)\include&quot;"
 		PreprocessorDefinitions="WIN32;_CRT_SECURE_NO_DEPRECATE"
 	/>
 	<UserMacro
 		Name="ChronoEngineDir"
 		Value="..\..\..\..\..\ChronoEngine"
+	/>
+	<UserMacro
+		Name="ChronoEngineBin"
+		Value="C:\tasora\code\nightly_build\bin"
+	/>
+	<UserMacro
+		Name="ChronoEngineLib"
+		Value="C:\tasora\code\nightly_build\lib"
 	/>
 	<UserMacro
 		Name="IrrlichtDir"
