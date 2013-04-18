@@ -23,23 +23,23 @@ __host__ __device__ void inline Compute_Jacobian(
 //	T3.y = (tangent_w.x * (quaternion_rotation.w * quaternion_rotation.w + quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) + tangent_w.y * (2 * quaternion_rotation.x * quaternion_rotation.y + 2 * quaternion_rotation.w * quaternion_rotation.z) + tangent_w.z * (2 * quaternion_rotation.x * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.y)) * (-(2 * quaternion_rotation.x * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.y) * point.x - (2 * quaternion_rotation.y * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.x) * point.y - (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y + quaternion_rotation.z * quaternion_rotation.z) * point.z) + (tangent_w.x * (2 * quaternion_rotation.x * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.y) + tangent_w.y * (2 * quaternion_rotation.y * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.x) + tangent_w.z * (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y + quaternion_rotation.z * quaternion_rotation.z)) * ((quaternion_rotation.w * quaternion_rotation.w + quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) * point.x + (2 * quaternion_rotation.x * quaternion_rotation.y + 2 * quaternion_rotation.w * quaternion_rotation.z) * point.y + (2 * quaternion_rotation.x * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.y) * point.z);
 //	T3.z = (tangent_w.x * (quaternion_rotation.w * quaternion_rotation.w + quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) + tangent_w.y * (2 * quaternion_rotation.x * quaternion_rotation.y + 2 * quaternion_rotation.w * quaternion_rotation.z) + tangent_w.z * (2 * quaternion_rotation.x * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.y)) * ((2 * quaternion_rotation.x * quaternion_rotation.y - 2 * quaternion_rotation.w * quaternion_rotation.z) * point.x + (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x + quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) * point.y + (2 * quaternion_rotation.y * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.x) * point.z) + (tangent_w.x * (2 * quaternion_rotation.x * quaternion_rotation.y - 2 * quaternion_rotation.w * quaternion_rotation.z) + tangent_w.y * (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x + quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) + tangent_w.z * (2 * quaternion_rotation.y * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.x)) * (-(quaternion_rotation.w * quaternion_rotation.w + quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) * point.x - (2 * quaternion_rotation.x * quaternion_rotation.y + 2 * quaternion_rotation.w * quaternion_rotation.z) * point.y - (2 * quaternion_rotation.x * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.y) * point.z);
 
-	M33 contact_plane;
+//	M33 contact_plane;
+//
+//	contact_plane.U = normal;
+//	contact_plane.V = tangent_u;
+//	contact_plane.W = tangent_w;
+//
+//	real3 Pl = quatRotateMat(point, quaternion_rotation);
+//
+//	M33 Ps = XMatrix(Pl);
+//	M33 Jtemp = MatMult(AMat(quaternion_rotation), Ps);
+//	M33 Jr = MatTMult(contact_plane, Jtemp);
+//
+//	T1 = R3(Jr.U.x, Jr.V.x, Jr.W.x);
+//	T2 = R3(Jr.U.y, Jr.V.y, Jr.W.y);
+//	T3 = R3(Jr.U.z, Jr.V.z, Jr.W.z);
 
-	contact_plane.U = normal;
-	contact_plane.V = tangent_u;
-	contact_plane.W = tangent_w;
 
-	real3 Pl = quatRotateMat(point, quaternion_rotation);
-
-	M33 Ps = XMatrix(Pl);
-	M33 Jtemp = MatMult(AMat(quaternion_rotation), Ps);
-	M33 Jr = MatTMult(contact_plane, Jtemp);
-
-	T1 = R3(Jr.U.x, Jr.V.x, Jr.W.x);
-	T2 = R3(Jr.U.y, Jr.V.y, Jr.W.y);
-	T3 = R3(Jr.U.z, Jr.V.z, Jr.W.z);
-
-	/*
 	 real t1 = quaternion_rotation.x * quaternion_rotation.y;
 	 real t2 = quaternion_rotation.w * quaternion_rotation.z;
 	 real t3 = 2 * t1 - 2 * t2;
@@ -83,7 +83,7 @@ __host__ __device__ void inline Compute_Jacobian(
 	 T3.x = t3 * t16 + t8 * t18;
 	 T3.y = t1 * t6 + t8 * t7;
 	 T3.z = t1 * t13 + t3 * t14;
-	 */
+
 }
 
 __host__ __device__ void inline function_ContactJacobians(

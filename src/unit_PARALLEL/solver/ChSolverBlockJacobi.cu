@@ -121,8 +121,8 @@ __host__ __device__ void function_process_contacts(
 
 
 	dG[index + number_of_contacts * 0] = fabs(fmin(0.0, gamma.x));
-	//dG[index + number_of_contacts * 1] = gamma.y;
-	//dG[index + number_of_contacts * 2] = gamma.z;
+	dG[index + number_of_contacts * 1] = gamma.y;
+	dG[index + number_of_contacts * 2] = gamma.z;
 
 	gamma = 3.0 * lcp_omega_contact / (eta) * -gamma; // perform gamma *= omega*eta
 
