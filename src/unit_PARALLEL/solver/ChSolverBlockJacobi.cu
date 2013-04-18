@@ -90,10 +90,11 @@ __host__ __device__ void function_process_contacts(
 		gamma.y += dot(JUVWA[index + number_of_contacts * 1], W1) + dot(JXYZA[index + number_of_contacts * 1], V1);
 		gamma.z += dot(JUVWA[index + number_of_contacts * 2], W1) + dot(JXYZA[index + number_of_contacts * 2], V1);
 
-		eta += dot(JUVWA[index + number_of_contacts * 0] * JUVWA[index + number_of_contacts * 0], In1) + dot(JUVWA[index + number_of_contacts * 1] * JUVWA[index + number_of_contacts * 1], In1)
+		eta +=    dot(JUVWA[index + number_of_contacts * 0] * JUVWA[index + number_of_contacts * 0], In1)
+				+ dot(JUVWA[index + number_of_contacts * 1] * JUVWA[index + number_of_contacts * 1], In1)
 				+ dot(JUVWA[index + number_of_contacts * 2] * JUVWA[index + number_of_contacts * 2], In1);
 
-		eta += dot(JXYZA[index + number_of_contacts * 0], JXYZA[index + number_of_contacts * 0]) * inv_mass[body_id.x]
+		eta +=    dot(JXYZA[index + number_of_contacts * 0], JXYZA[index + number_of_contacts * 0]) * inv_mass[body_id.x]
 				+ dot(JXYZA[index + number_of_contacts * 1], JXYZA[index + number_of_contacts * 1]) * inv_mass[body_id.x]
 				+ dot(JXYZA[index + number_of_contacts * 2], JXYZA[index + number_of_contacts * 2]) * inv_mass[body_id.x];
 
@@ -103,18 +104,25 @@ __host__ __device__ void function_process_contacts(
 		gamma.y += dot(JUVWB[index + number_of_contacts * 1], W2) + dot(JXYZB[index + number_of_contacts * 1], V2) /*+ cfmT * gamma_old.y*/;
 		gamma.z += dot(JUVWB[index + number_of_contacts * 2], W2) + dot(JXYZB[index + number_of_contacts * 2], V2) /*+ cfmT * gamma_old.z*/;
 
-		eta += dot(JUVWB[index + number_of_contacts * 0] * JUVWB[index + number_of_contacts * 0], In2) + dot(JUVWB[index + number_of_contacts * 1] * JUVWB[index + number_of_contacts * 1], In2)
+		eta +=    dot(JUVWB[index + number_of_contacts * 0] * JUVWB[index + number_of_contacts * 0], In2)
+				+ dot(JUVWB[index + number_of_contacts * 1] * JUVWB[index + number_of_contacts * 1], In2)
 				+ dot(JUVWB[index + number_of_contacts * 2] * JUVWB[index + number_of_contacts * 2], In2);
 
-		eta += dot(JXYZB[index + number_of_contacts * 0], JXYZB[index + number_of_contacts * 0]) * inv_mass[body_id.y]
+		eta +=    dot(JXYZB[index + number_of_contacts * 0], JXYZB[index + number_of_contacts * 0]) * inv_mass[body_id.y]
 				+ dot(JXYZB[index + number_of_contacts * 1], JXYZB[index + number_of_contacts * 1]) * inv_mass[body_id.y]
 				+ dot(JXYZB[index + number_of_contacts * 2], JXYZB[index + number_of_contacts * 2]) * inv_mass[body_id.y];
 	}
 	gamma.x += bi;
 
+
+	//std::cout << gamma.x << " ";
+	//std::cout << gamma.y << " ";
+	//std::cout << gamma.z << std::endl;
+
+
 	dG[index + number_of_contacts * 0] = fabs(fmin(0.0, gamma.x));
-	dG[index + number_of_contacts * 1] = gamma.y;
-	dG[index + number_of_contacts * 2] = gamma.z;
+	//dG[index + number_of_contacts * 1] = gamma.y;
+	//dG[index + number_of_contacts * 2] = gamma.z;
 
 	gamma = 3.0 * lcp_omega_contact / (eta) * -gamma; // perform gamma *= omega*eta
 
