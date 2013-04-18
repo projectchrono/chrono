@@ -826,12 +826,13 @@ void printContactsBullet(btCollisionWorld* bt_collision_world) {
 
 					contacts++;
 					// Execute some user custom callback, if any
+					cout << icontact.idA << " "<< icontact.idB << " ";
 
-//					cout << icontact.vN.x << " " << icontact.vN.y << " " << icontact.vN.z << " ";
-//					cout << icontact.vpA.x << " " << icontact.vpA.y << " " << icontact.vpA.z << " ";
-//					cout << icontact.vpB.x << " " << icontact.vpB.y << " " << icontact.vpB.z << " ";
-//					cout << " dist_cpu " << icontact.distance << " Envelopes: " << envelopeA << " " << envelopeB << " " << icontact.modelA->GetPhysicsItem()->GetIdentifier() << " "
-//							<< icontact.modelB->GetPhysicsItem()->GetIdentifier() << endl;
+					cout << icontact.N.x << " " << icontact.N.y << " " << icontact.N.z << " ";
+					cout << icontact.posA.x << " " << icontact.posA.y << " " << icontact.posA.z << " ";
+					cout << icontact.posB.x << " " << icontact.posB.y << " " << icontact.posB.z << " ";
+					cout << " dist_cpu " << icontact.dist << " Envelopes: " << envelopeA << " " << envelopeB << endl;
+
 
 				}
 			}
@@ -923,13 +924,13 @@ bool printContactsGPU(ChSystemGPU* system_gpu) {
 
 	}
 	cout << "Contacts: " << system_gpu->gpu_data_manager->number_of_contacts << endl;
-//	for (int i = 0; i < system_gpu->gpu_data_manager->host_pair_data.size(); i++) {
-//
-//		long long p = system_gpu->gpu_data_manager->host_pair_data[i];
-//		int2 pair = I2(int(p >> 32), int(p & 0xffffffff));
-//		cout << pair.x << " " << pair.y << endl;
-//
-//	}
+	for (int i = 0; i < system_gpu->gpu_data_manager->host_pair_data.size(); i++) {
+
+		long long p = system_gpu->gpu_data_manager->host_pair_data[i];
+		int2 pair = I2(int(p >> 32), int(p & 0xffffffff));
+		cout << pair.x << " " << pair.y << endl;
+
+	}
 
 }
 int main(int argc, char* argv[]) {
@@ -952,11 +953,11 @@ int main(int argc, char* argv[]) {
 		system_cpu->Set_G_acc(Vector(0, -9.80665, 0));
 		system_cpu->SetStep(0.01);
 		//createGeometryCPU(system_cpu);
-		LoadObjects_CPU(system_cpu, "pile1000_bodies.txt");
+		LoadObjects_CPU(system_cpu, "fly10_bodies.txt");
 
-		((ChLcpIterativeJacobi *) (system_cpu->GetLcpSolverSpeed()))->SetMaxIterations(1);
-		system_cpu->SetMaxiter(1);
-		system_cpu->SetIterLCPmaxItersSpeed(1);
+		((ChLcpIterativeJacobi *) (system_cpu->GetLcpSolverSpeed()))->SetMaxIterations(100);
+		system_cpu->SetMaxiter(100);
+		system_cpu->SetIterLCPmaxItersSpeed(100);
 		system_cpu->SetTol(1e-8);
 		system_cpu->SetTolSpeeds(1e-8);
 		((ChLcpIterativeJacobi *) (system_cpu->GetLcpSolverSpeed()))->SetTolerance(1e-8);
@@ -977,9 +978,9 @@ int main(int argc, char* argv[]) {
 		system_gpu->Set_G_acc(Vector(0, -9.80665, 0));
 		system_gpu->SetStep(0.01);
 		//-9.80665
-		((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->SetMaxIteration(1);
-		system_gpu->SetMaxiter(1);
-		system_gpu->SetIterLCPmaxItersSpeed(1);
+		((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->SetMaxIteration(100);
+		system_gpu->SetMaxiter(100);
+		system_gpu->SetIterLCPmaxItersSpeed(100);
 		system_gpu->SetTol(1e-4);
 		system_gpu->SetTolSpeeds(1e-4);
 		((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->SetTolerance(1e-8);
@@ -990,7 +991,7 @@ int main(int argc, char* argv[]) {
 
 		//createGeometryGPU(system_gpu);
 		//100_bodies
-		LoadObjects_GPU(system_gpu, "pile1000_bodies.txt");
+		LoadObjects_GPU(system_gpu, "fly10_bodies.txt");
 	}
 //
 //	ChOpenGLManager * window_manager = new ChOpenGLManager();
@@ -1002,7 +1003,7 @@ int main(int argc, char* argv[]) {
 
 	int counter = 0;
 
-	while (counter < 1) {
+	while (counter < 10) {
 
 		RunTimeStep(system_cpu, counter);
 		RunTimeStep(system_gpu, counter);
@@ -1012,11 +1013,11 @@ int main(int argc, char* argv[]) {
 		validate_velocities(system_cpu, system_gpu);
 		validate_omega(system_cpu, system_gpu);
 		cout << "CPU: =============" << endl;
-		system_cpu->DoStepDynamics(.01);
+		system_cpu->DoStepDynamics(.005);
 		cout << "ITER: " << ((ChLcpIterativeJacobi *) (system_cpu->GetLcpSolverSpeed()))->GetTotalIterations() << endl;
 		//cout << "Residual: " << ((ChLcpIterativeJacobi *) (system_cpu->GetLcpSolverSpeed()))->GetResidual() << endl;
 		cout << "GPU: =============" << endl;
-		system_gpu->DoStepDynamics(.01);
+		system_gpu->DoStepDynamics(.005);
 		cout << "ITER: " << ((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->GetTotalIterations() << endl;
 		cout << "Residual: " << ((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->GetResidual() << endl;
 		cout << "=============" << endl;
