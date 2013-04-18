@@ -30,7 +30,14 @@
 Vector lpos(0, 0, 0);
 ChQuaternion<> lquat(1, 0, 0, 0);
 
-real tolerance = 1e-6;
+struct contact_dat {
+		real3 posA, posB, N;
+		real dist;
+		uint idA, idB;
+};
+vector<contact_dat> contact_cpu, contact_gpu;
+
+real tolerance = 0;
 bool dump_to_file = true;
 using namespace chrono;
 uint num_objects = 0;
@@ -54,7 +61,7 @@ void LoadObjects_CPU(ChSystem* mSys, string filename) {
 	ChSharedBodyPtr body;
 	int counter = 0;
 	real mass = 1;
-	real radius = 1;
+	real radius = .1;
 	Vector pos, pos_dt, wvel_loc;
 	Quaternion quat;
 	string temp;
@@ -117,7 +124,7 @@ void LoadObjects_GPU(ChSystemGPU* mSys, string filename) {
 	ChSharedBodyGPUPtr body;
 	int counter = 0;
 	real mass = 1;
-	real radius = 1;
+	real radius = .1;
 	Vector pos, pos_dt, wvel_loc;
 	Quaternion quat;
 	string temp;
@@ -127,7 +134,7 @@ void LoadObjects_GPU(ChSystemGPU* mSys, string filename) {
 			break;
 		}
 		body = ChSharedBodyGPUPtr(new ChBodyGPU);
-		//body->SetCollisionModelBullet();
+		body->SetCollisionModelBullet();
 		//cout << "GPU LOAD BODY: " << counter << endl;
 
 		stringstream ss(temp);
@@ -154,11 +161,11 @@ void LoadObjects_GPU(ChSystemGPU* mSys, string filename) {
 		ChSharedBodyGPUPtr B = ChSharedBodyGPUPtr(new ChBodyGPU);
 		ChSharedBodyGPUPtr BTM = ChSharedBodyGPUPtr(new ChBodyGPU);
 
-//		L->SetCollisionModelBullet();
-//		R->SetCollisionModelBullet();
-//		F->SetCollisionModelBullet();
-//		B->SetCollisionModelBullet();
-//		BTM->SetCollisionModelBullet();
+		L->SetCollisionModelBullet();
+		R->SetCollisionModelBullet();
+		F->SetCollisionModelBullet();
+		B->SetCollisionModelBullet();
+		BTM->SetCollisionModelBullet();
 
 		float mWallMu = 1, container_width = 7.0, container_thickness = .25, container_height = 7.0, wscale = 1;
 		InitObject(L, 100000, Vector(-container_width + container_thickness, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
@@ -188,13 +195,13 @@ void RunTimeStep(T* mSys, const int frame) {
 void createGeometryCPU(ChSystem* mSys) {
 	ChQuaternion<> quat(1, 0, 0, 0);
 	ChSharedBodyPtr sphere;
-	srand(1);
-	for (int i = 0; i < 1000; i++) {
+	srand(11);
+	for (int i = 0; i < 10; i++) {
 		sphere = ChSharedBodyPtr(new ChBody);
 		real mass = 1;
 		real radius = .1;
 		//(rand() % 10000 / 1000.0 - 5)
-		Vector pos = Vector((rand() % 10000 / 1000.0 - 5), i / 20.0, (rand() % 10000 / 1000.0 - 5));
+		Vector pos = Vector((rand() % 10000 / 1000.0 - 5), i / 100.0 - 5, (rand() % 10000 / 1000.0 - 5));
 		InitObject(sphere, mass, pos, quat, 1, 1, 0, true, false, 32, 17 + i);
 		AddCollisionGeometry(sphere, SPHERE, Vector(radius, radius, radius), lpos, lquat);
 		Vector inertia = Vector(2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius);
@@ -234,19 +241,22 @@ void createGeometryGPU(ChSystemGPU* mSys) {
 
 	ChQuaternion<> quat(1, 0, 0, 0);
 	ChSharedBodyGPUPtr sphere; //= ChSharedBodyGPUPtr(new ChBodyGPU);
-	srand(1);
-	for (int i = 0; i < 1; i++) {
+	srand(11);
+	int counter = 0;
+
+	for (int i = 0; i < 10; i++) {
 		real mass = 1;
-		real radius = 1;
+		real radius = .1;
 		sphere = ChSharedBodyGPUPtr(new ChBodyGPU);
 		//sphere->SetCollisionModelBullet();
-		Vector pos = Vector((rand() % 10000 / 1000.0 - 5), i / 400.0-5, (rand() % 10000 / 1000.0 - 5));
-		InitObject(sphere, mass, pos, quat, 1, 1, 0, true, false, 32, 17 + i);
-		AddCollisionGeometry(sphere, SPHERE, Vector(radius, radius, radius), Vector(-radius*.5,0,0), quat);
-		AddCollisionGeometry(sphere, SPHERE, Vector(radius, radius, radius), Vector(radius*.5,0,0), quat);
+		Vector pos = Vector((rand() % 10000 / 1000.0 - 5), i / 100.0 - 5, (rand() % 10000 / 1000.0 - 5));
+		InitObject(sphere, mass, pos, quat, 1, 1, 0, true, false, 32, counter);
+		AddCollisionGeometry(sphere, SPHERE, Vector(radius, radius, radius), Vector(0, 0, 0), quat);
+		//AddCollisionGeometry(sphere, SPHERE, Vector(radius, radius, radius), Vector(radius*.5,0,0), quat);
 		FinalizeObject(sphere, mSys);
 		Vector inertia = Vector(2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius);
 		sphere->SetInertiaXX(inertia);
+		counter++;
 	}
 
 	float mWallMu = 1, container_width = 7.0, container_thickness = .25, container_height = 7.0, wscale = 1;
@@ -498,27 +508,51 @@ bool validate_jacobians(ChSystem* system_cpu, ChSystemGPU* system_gpu) {
 
 	for (int i = 0; i < mconstraints.size(); i++) {
 
-		double diff1 = length(JXYZA_cpu[i] - JXYZA_gpu[i]);
-		double diff2 = length(JUVWA_cpu[i] - JUVWA_gpu[i]);
-		double diff3 = length(JXYZB_cpu[i] - JXYZB_gpu[i]);
-		double diff4 = length(JUVWB_cpu[i] - JUVWB_gpu[i]);
+		real3 diff1 = (JXYZA_cpu[i] - JXYZA_gpu[i]);
+		real3 diff2 = (JUVWA_cpu[i] - JUVWA_gpu[i]);
+		real3 diff3 = (JXYZB_cpu[i] - JXYZB_gpu[i]);
+		real3 diff4 = (JUVWB_cpu[i] - JUVWB_gpu[i]);
 
-		if (fabs(diff1) > tolerance) {
-			cout << "jacobian Error1: [" << i << ", " << diff1 << endl;
-			//return false;
+		if (fabs(diff1.x) > tolerance) {
+			cout << "jacobian Error JXYZA X: [" << i << ", " << diff1.x << endl;
 		}
-		if (fabs(diff2) > tolerance) {
-			cout << "jacobian Error2: [" << i << ", " << diff2 << endl;
-			//return false;
+		if (fabs(diff1.y) > tolerance) {
+			cout << "jacobian Error JXYZA Y: [" << i << ", " << diff1.y << endl;
 		}
-		if (fabs(diff3) > tolerance) {
-			cout << "jacobian Error3: [" << i << ", " << diff3 << endl;
-			//return false;
+		if (fabs(diff1.z) > tolerance) {
+			cout << "jacobian Error JXYZA Z: [" << i << ", " << diff1.z << endl;
 		}
-		if (fabs(diff4) > tolerance) {
-			cout << "jacobian Error4: [" << i << ", " << diff4 << endl;
-			//return false;
+
+		if (fabs(diff2.x) > tolerance) {
+			cout << "jacobian Error JUVWA X: [" << i << ", " << diff2.x << endl;
 		}
+		if (fabs(diff2.y) > tolerance) {
+			cout << "jacobian Error JUVWA Y: [" << i << ", " << diff2.y << endl;
+		}
+		if (fabs(diff2.z) > tolerance) {
+			cout << "jacobian Error JUVWA Z: [" << i << ", " << diff2.z << endl;
+		}
+
+		if (fabs(diff3.x) > tolerance) {
+			cout << "jacobian Error JXYZB X: [" << i << ", " << diff2.x << endl;
+		}
+		if (fabs(diff3.y) > tolerance) {
+			cout << "jacobian Error JXYZB Y: [" << i << ", " << diff2.y << endl;
+		}
+		if (fabs(diff3.z) > tolerance) {
+			cout << "jacobian Error JXYZB Z: [" << i << ", " << diff2.z << endl;
+		}
+
+		if (fabs(diff4.x) > tolerance) {
+			cout << "jacobian Error JUVWB X: [" << i << ", " << diff4.x << endl;
+		}
+		if (fabs(diff4.y) > tolerance) {
+			cout << "jacobian Error JUVWB Y: [" << i << ", " << diff4.y << endl;
+		}
+		if (fabs(diff4.z) > tolerance) {
+			cout << "jacobian Error JUVWB Z: [" << i << ", " << diff4.z << endl;
+		}
+
 	}
 	cout << "validating jacobians - PASSED" << endl;
 	return true;
@@ -526,7 +560,7 @@ bool validate_jacobians(ChSystem* system_cpu, ChSystemGPU* system_gpu) {
 bool validate_lagrange(ChSystem* system_cpu, ChSystemGPU* system_gpu) {
 	vector<double> lagrange_cpu, lagrange_gpu;
 
-	((ChLcpIterativeJacobi *) (system_cpu->GetLcpSolverSpeed()))->Dump_Lambda(lagrange_cpu);
+	//((ChLcpIterativeJacobi *) (system_cpu->GetLcpSolverSpeed()))->Dump_Lambda(lagrange_cpu);
 	((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->Dump_Lambda(lagrange_gpu);
 	cout << "validating lagrange" << lagrange_cpu.size() << " " << lagrange_gpu.size() << endl;
 	for (int i = 0, j = 0; i < lagrange_cpu.size(), j < lagrange_cpu.size() / 3; i += 3, j++) {
@@ -727,29 +761,38 @@ bool validate_ContactsBullet(ChSystem* system_cpu, ChSystemGPU* system_gpu) {
 	cout << "validating contacts - PASSED" << endl;
 	return true;
 }
+bool operator <(const contact_dat &i, const contact_dat &j) {
 
+	if (i.idA == j.idA) {
+		return i.idB < j.idB;
+	} else {
+		return i.idA < j.idA;
+	}
+}
 void printContactsBullet(btCollisionWorld* bt_collision_world) {
+
 	int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds();
 	uint contacts = 0;
-	ChCollisionInfo icontact;
+	contact_dat icontact;
+	ChCollisionInfo jcontact;
 	for (int i = 0; i < numManifolds; i++) {
 		btPersistentManifold* contactManifold = bt_collision_world->getDispatcher()->getManifoldByIndexInternal(i);
 		btCollisionObject* obA = static_cast<btCollisionObject*>(contactManifold->getBody0());
 		btCollisionObject* obB = static_cast<btCollisionObject*>(contactManifold->getBody1());
 		contactManifold->refreshContactPoints(obA->getWorldTransform(), obB->getWorldTransform());
 
-		icontact.modelA = (ChCollisionModel*) obA->getUserPointer();
-		icontact.modelB = (ChCollisionModel*) obB->getUserPointer();
+		jcontact.modelA = (ChCollisionModel*) obA->getUserPointer();
+		jcontact.modelB = (ChCollisionModel*) obB->getUserPointer();
 
-		if (((ChBody*) (icontact.modelA->GetPhysicsItem()))->IsActive() == false && ((ChBody*) (icontact.modelB->GetPhysicsItem()))->IsActive() == false) {
+		if (((ChBody*) (jcontact.modelA->GetPhysicsItem()))->IsActive() == false && ((ChBody*) (jcontact.modelB->GetPhysicsItem()))->IsActive() == false) {
 			continue;
 		}
 
-		double envelopeA = icontact.modelA->GetEnvelope();
-		double envelopeB = icontact.modelB->GetEnvelope();
+		double envelopeA = jcontact.modelA->GetEnvelope();
+		double envelopeB = jcontact.modelB->GetEnvelope();
 
-		double marginA = icontact.modelA->GetSafeMargin();
-		double marginB = icontact.modelB->GetSafeMargin();
+		double marginA = jcontact.modelA->GetSafeMargin();
+		double marginB = jcontact.modelB->GetSafeMargin();
 
 		// Execute custom broadphase callback, if any
 		bool do_narrow_contactgeneration = true;
@@ -766,58 +809,135 @@ void printContactsBullet(btCollisionWorld* bt_collision_world) {
 					btVector3 ptA = pt.getPositionWorldOnA();
 					btVector3 ptB = pt.getPositionWorldOnB();
 
-					icontact.vpA.Set(ptA.getX(), ptA.getY(), ptA.getZ());
-					icontact.vpB.Set(ptB.getX(), ptB.getY(), ptB.getZ());
+					icontact.posA = R3(ptA.getX(), ptA.getY(), ptA.getZ());
+					icontact.posB = R3(ptB.getX(), ptB.getY(), ptB.getZ());
 
-					icontact.vN.Set(-pt.m_normalWorldOnB.getX(), -pt.m_normalWorldOnB.getY(), -pt.m_normalWorldOnB.getZ());
-					icontact.vN.Normalize();
+					icontact.N = R3(-pt.m_normalWorldOnB.getX(), -pt.m_normalWorldOnB.getY(), -pt.m_normalWorldOnB.getZ());
+					icontact.N = normalize(icontact.N);
 
 					double ptdist = pt.getDistance();
 
-					icontact.vpA = icontact.vpA - icontact.vN * envelopeA;
-					icontact.vpB = icontact.vpB + icontact.vN * envelopeB;
-					icontact.distance = ptdist + envelopeA + envelopeB;
+					icontact.posA = icontact.posA - icontact.N * envelopeA;
+					icontact.posB = icontact.posB + icontact.N * envelopeB;
+					icontact.dist = ptdist + envelopeA + envelopeB;
+					icontact.idA = jcontact.modelA->GetPhysicsItem()->GetIdentifier();
+					icontact.idB = jcontact.modelB->GetPhysicsItem()->GetIdentifier();
 
-					icontact.reaction_cache = pt.reactions_cache;
+					//icontact.reaction_cache = pt.reactions_cache;
+
+					contact_cpu.push_back(icontact);
 
 					contacts++;
 					// Execute some user custom callback, if any
-
-					cout << icontact.vN.x << " " << icontact.vN.y << " " << icontact.vN.z << " ";
-					cout << icontact.vpA.x << " " << icontact.vpA.y << " " << icontact.vpA.z << " ";
-					cout << icontact.vpB.x << " " << icontact.vpB.y << " " << icontact.vpB.z << " ";
-					cout << " dist_cpu " << icontact.distance << " Envelopes: " << envelopeA << " " << envelopeB << " " << icontact.modelA->GetPhysicsItem()->GetIdentifier() << " "
-							<< icontact.modelB->GetPhysicsItem()->GetIdentifier() << endl;
+//					cout << icontact.idA << " "<< icontact.idB << " ";
+//
+//					cout << icontact.N.x << " " << icontact.N.y << " " << icontact.N.z << " ";
+//					cout << icontact.posA.x << " " << icontact.posA.y << " " << icontact.posA.z << " ";
+//					cout << icontact.posB.x << " " << icontact.posB.y << " " << icontact.posB.z << " ";
+//					cout << " dist_cpu " << icontact.dist << " Envelopes: " << envelopeA << " " << envelopeB << endl;
 
 				}
-
 			}
 		}
 	}
-
+	std::sort(contact_cpu.begin(), contact_cpu.end());
 	cout << "Contacts: " << contacts << endl;
 }
 bool printContactsGPU(ChSystemGPU* system_gpu) {
 
 	system_gpu->gpu_data_manager->DeviceToHostContacts();
-
+	contact_dat icontact;
 	for (int i = 0; i < system_gpu->gpu_data_manager->number_of_contacts; i++) {
 		real3 vN = system_gpu->gpu_data_manager->host_norm_data[i];
 		real3 vpA = system_gpu->gpu_data_manager->host_cpta_data[i];
 		real3 vpB = system_gpu->gpu_data_manager->host_cptb_data[i];
 		real distance = system_gpu->gpu_data_manager->host_dpth_data[i];
 
-		cout << vN.x << " " << vN.y << " " << vN.z << " ";
-		cout << vpA.x << " " << vpA.y << " " << vpA.z << " ";
-		cout << vpB.x << " " << vpB.y << " " << vpB.z << " ";
-		cout << " dist_gpu " << distance << endl;
+		icontact.posA = system_gpu->gpu_data_manager->host_cpta_data[i];
+		icontact.posB = system_gpu->gpu_data_manager->host_cptb_data[i];
+		icontact.N = system_gpu->gpu_data_manager->host_norm_data[i];
+		icontact.dist = system_gpu->gpu_data_manager->host_dpth_data[i];
+		icontact.idA = system_gpu->gpu_data_manager->host_bids_data[i].x;
+		icontact.idB = system_gpu->gpu_data_manager->host_bids_data[i].y;
 
+		contact_gpu.push_back(icontact);
+
+//		cout << vN.x << " " << vN.y << " " << vN.z << " ";
+//		cout << vpA.x << " " << vpA.y << " " << vpA.z << " ";
+//		cout << vpB.x << " " << vpB.y << " " << vpB.z << " ";
+//		cout << " dist_gpu " << distance << " "<< system_gpu->gpu_data_manager->host_bids_data[i].x<<" "<< system_gpu->gpu_data_manager->host_bids_data[i].y<<endl;
+
+	}
+	cout << "Contacts: " << system_gpu->gpu_data_manager->number_of_contacts << endl;
+//	for (int i = 0; i < system_gpu->gpu_data_manager->host_pair_data.size(); i++) {
+//
+//		long long p = system_gpu->gpu_data_manager->host_pair_data[i];
+//		int2 pair = I2(int(p >> 32), int(p & 0xffffffff));
+//		cout << pair.x << " " << pair.y << endl;
+//
+//	}
+
+}
+void comparecontacts() {
+	cout << "compare contacts" << endl;
+	for (int i = 0; i < contact_cpu.size(); i++) {
+
+		real3 N = contact_cpu[i].N - contact_gpu[i].N;
+		real3 Pa = contact_cpu[i].posA - contact_gpu[i].posA;
+		real3 Pb = contact_cpu[i].posB - contact_gpu[i].posB;
+		real d = contact_cpu[i].dist - contact_gpu[i].dist;
+
+		//if (fabs(N.x) > tolerance) {
+			cout << "N x: [" << i << ", " << N.x << endl;
+		//}
+		//if (fabs(N.y) > tolerance) {
+			cout << "N y: [" << i << ", " << N.y << endl;
+		//}
+		//if (fabs(N.z) > tolerance) {
+			cout << "N z: [" << i << ", " << N.z << endl;
+		//}
+
+		//if (fabs(Pa.x) > tolerance) {
+			cout << "Pa x: [" << i << ", " << Pa.x << endl;
+		//}
+		//if (fabs(Pa.y) > tolerance) {
+			cout << "Pa y: [" << i << ", " << Pa.y << endl;
+		//}
+		//if (fabs(Pa.z) > tolerance) {
+			cout << "Pa z: [" << i << ", " << Pa.z << endl;
+		//}
+
+		//if (fabs(Pb.x) > tolerance) {
+			cout << "Pb x: [" << i << ", " << Pb.x << endl;
+		//}
+		//if (fabs(Pb.y) > tolerance) {
+			cout << "Pb y: [" << i << ", " << Pb.y << endl;
+		//}
+		//if (fabs(Pb.z) > tolerance) {
+			cout << "Pb z: [" << i << ", " << Pb.z << endl;
+		//}
+		//if (fabs(d) > tolerance) {
+			cout << "dist: [" << i << ", " << d << endl;
+		//}
+//		cout << contact_cpu[i].idA << " " << contact_cpu[i].idB << " | " << contact_gpu[i].idA << " " << contact_gpu[i].idB << "\n";
+//		cout<<"-------------------------------------------------------------------------------------"<<endl;
+//		cout << "[" << contact_cpu[i].N.x << "," << contact_cpu[i].N.y << "," << contact_cpu[i].N.z << "]\n";
+//		cout << "[" << contact_gpu[i].N.x << "," << contact_gpu[i].N.y << "," << contact_gpu[i].N.z << "]\n";
+//		cout<<"-------------------------------------------------------------------------------------"<<endl;
+//		cout << contact_cpu[i].posA.x << " " << contact_cpu[i].posA.y << " " << contact_cpu[i].posA.z << "\n";
+//		cout << contact_gpu[i].posA.x << " " << contact_gpu[i].posA.y << " " << contact_gpu[i].posA.z << "\n";
+//		cout<<"-------------------------------------------------------------------------------------"<<endl;
+//
+//		cout << contact_cpu[i].dist << " " << contact_gpu[i].dist << endl;
+//		cout << "============================================================================================" << endl;
 	}
 
 }
+
+
 int main(int argc, char* argv[]) {
 	//feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
-	omp_set_num_threads(3);
+//	omp_set_num_threads(3);
 //cudaSetDevice(0);
 
 	ChSystem * system_cpu = new ChSystem;
@@ -825,7 +945,7 @@ int main(int argc, char* argv[]) {
 		ChLcpSystemDescriptor *mdescriptor = new ChLcpSystemDescriptor();
 		ChContactContainer *mcontactcontainer = new ChContactContainer();
 		ChCollisionSystemBullet *mcollisionengine = new ChCollisionSystemBullet();
-		ChLcpIterativeJacobi *msolver = new ChLcpIterativeJacobi(120, false, 1e-4);
+		ChLcpIterativeJacobi *msolver = new ChLcpIterativeJacobi(100, false, 1e-4);
 
 		system_cpu->ChangeLcpSystemDescriptor(mdescriptor);
 		system_cpu->ChangeContactContainer(mcontactcontainer);
@@ -833,15 +953,15 @@ int main(int argc, char* argv[]) {
 		system_cpu->ChangeCollisionSystem(mcollisionengine);
 		system_cpu->SetIntegrationType(ChSystem::INT_ANITESCU);
 		system_cpu->Set_G_acc(Vector(0, -9.80665, 0));
-		system_cpu->SetStep(0.01);
-		createGeometryCPU(system_cpu);
-		//LoadObjects_CPU(system_cpu, "100_bodies.txt");
+		system_cpu->SetStep(0.005);
+		//createGeometryCPU(system_cpu);
+		LoadObjects_CPU(system_cpu, "fly10_bodies.txt");
 
 		((ChLcpIterativeJacobi *) (system_cpu->GetLcpSolverSpeed()))->SetMaxIterations(100);
 		system_cpu->SetMaxiter(100);
 		system_cpu->SetIterLCPmaxItersSpeed(100);
-		system_cpu->SetTol(1e-8);
-		system_cpu->SetTolSpeeds(1e-8);
+		system_cpu->SetTol(1e-4);
+		system_cpu->SetTolSpeeds(1e-4);
 		((ChLcpIterativeJacobi *) (system_cpu->GetLcpSolverSpeed()))->SetTolerance(1e-4);
 		system_cpu->SetMaxPenetrationRecoverySpeed(.6);
 	}
@@ -850,15 +970,15 @@ int main(int argc, char* argv[]) {
 	{
 		ChLcpSystemDescriptorGPU *mdescriptor = new ChLcpSystemDescriptorGPU();
 		ChContactContainerGPU *mcontactcontainer = new ChContactContainerGPU();
-		//ChCollisionSystemBulletGPU *mcollisionengine = new ChCollisionSystemBulletGPU();
-		ChCollisionSystemGPU *mcollisionengine = new ChCollisionSystemGPU();
+		ChCollisionSystemBulletGPU *mcollisionengine = new ChCollisionSystemBulletGPU();
+		//ChCollisionSystemGPU *mcollisionengine = new ChCollisionSystemGPU();
 
 		system_gpu->ChangeLcpSystemDescriptor(mdescriptor);
 		system_gpu->ChangeContactContainer(mcontactcontainer);
 		system_gpu->ChangeCollisionSystem(mcollisionengine);
 		system_gpu->SetIntegrationType(ChSystem::INT_ANITESCU);
 		system_gpu->Set_G_acc(Vector(0, -9.80665, 0));
-		system_gpu->SetStep(0.0025);
+		system_gpu->SetStep(0.005);
 		//-9.80665
 		((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->SetMaxIteration(100);
 		system_gpu->SetMaxiter(100);
@@ -871,50 +991,54 @@ int main(int argc, char* argv[]) {
 		((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->SetSolverType(BLOCK_JACOBI);
 		((ChCollisionSystemGPU *) (system_gpu->GetCollisionSystem()))->SetCollisionEnvelope(0.01);
 
-		createGeometryGPU(system_gpu);
+		//createGeometryGPU(system_gpu);
 		//100_bodies
-		//LoadObjects_GPU(system_gpu, "100_bodies.txt");
+		LoadObjects_GPU(system_gpu, "fly10_bodies.txt");
 	}
 ////
-	ChOpenGLManager * window_manager = new ChOpenGLManager();
-	ChOpenGL openGLView(window_manager, system_gpu, 800, 600, 0, 0, "Test_Solvers");
-	//openGLView.AddSystem(system_cpu);
-	openGLView.SetCustomCallback(RunTimeStep);
-	openGLView.StartSpinning(window_manager);
-	window_manager->CallGlutMainLoop();
+//	ChOpenGLManager * window_manager = new ChOpenGLManager();
+//	ChOpenGL openGLView(window_manager, system_gpu, 800, 600, 0, 0, "Test_Solvers");
+//	openGLView.AddSystem(system_cpu);
+//	openGLView.SetCustomCallback(RunTimeStep);
+//	openGLView.StartSpinning(window_manager);
+//	window_manager->CallGlutMainLoop();
 
 	int counter = 0;
 	ChTimer<double> timer;
 	timer.start();
 
-	while (counter < 350) {
+	while (counter < 4) {
 
 //		RunTimeStep(system_cpu, counter);
 //		RunTimeStep(system_gpu, counter);
 //
-//		validate_positions(system_cpu, system_gpu);
-//		validate_rotations(system_cpu, system_gpu);
-//		validate_velocities(system_cpu, system_gpu);
-//		validate_omega(system_cpu, system_gpu);
-//		cout << "CPU: =============" << endl;
-		system_cpu->DoStepDynamics(.01);
-//		cout << "ITER: " << ((ChLcpIterativeJacobi *) (system_cpu->GetLcpSolverSpeed()))->GetTotalIterations() << endl;
-//		//cout << "Residual: " << ((ChLcpIterativeJacobi *) (system_cpu->GetLcpSolverSpeed()))->GetResidual() << endl;
-//		cout << "GPU: =============" << endl;
-//		system_gpu->DoStepDynamics(.01);
-//		cout << "ITER: " << ((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->GetCurrentIteration() << endl;
-//		cout << "Residual: " << ((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->GetResidual() << endl;
+		validate_positions(system_cpu, system_gpu);
+		validate_rotations(system_cpu, system_gpu);
+		validate_velocities(system_cpu, system_gpu);
+		validate_omega(system_cpu, system_gpu);
+		cout << "CPU: =============" << endl;
+		system_cpu->DoStepDynamics(.005);
+		cout << "ITER: " << ((ChLcpIterativeJacobi *) (system_cpu->GetLcpSolverSpeed()))->GetTotalIterations() << endl;
+//		cout << "Residual: " << ((ChLcpIterativeJacobi *) (system_cpu->GetLcpSolverSpeed()))->GetResidual() << endl;
+		cout << "GPU: =============" << endl;
+		system_gpu->DoStepDynamics(.005);
+		cout << "ITER: " << ((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->GetTotalIterations() << endl;
+		cout << "Residual: " << ((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->GetResidual() << endl;
 //		cout << "=============" << endl;
 //		validate_ContactsBullet(system_cpu, system_gpu);
 		//printContactsBullet(((ChCollisionSystemBullet*) (system_cpu->GetCollisionSystem()))->GetBulletCollisionWorld());
 //		printContactsGPU(system_gpu);
-//		validate_positions(system_cpu, system_gpu);
-//		validate_rotations(system_cpu, system_gpu);
-//		validate_velocities(system_cpu, system_gpu);
-//		validate_omega(system_cpu, system_gpu);
-//		//validate_rhs(system_cpu, system_gpu);
-//		validate_jacobians(system_cpu, system_gpu);
-//		validate_lagrange(system_cpu, system_gpu);
+		printContactsBullet(((ChCollisionSystemBullet*) (system_cpu->GetCollisionSystem()))->GetBulletCollisionWorld());
+		printContactsGPU(system_gpu);
+		comparecontacts();
+
+		validate_positions(system_cpu, system_gpu);
+		validate_rotations(system_cpu, system_gpu);
+		validate_velocities(system_cpu, system_gpu);
+		validate_omega(system_cpu, system_gpu);
+		validate_rhs(system_cpu, system_gpu);
+		validate_jacobians(system_cpu, system_gpu);
+		validate_lagrange(system_cpu, system_gpu);
 //		//validate_shur(system_cpu, system_gpu);
 //		validate_q(system_cpu, system_gpu);
 //
@@ -972,7 +1096,7 @@ int main(int argc, char* argv[]) {
 	}
 	timer.stop();
 	cout << "TIME TAKEN: " << timer() << endl;
-	DumpObjects(system_cpu, "pile1000_bodies.txt");
+	//DumpObjects(system_cpu, "fly10_bodies.txt");
 
 	return 0;
 }
