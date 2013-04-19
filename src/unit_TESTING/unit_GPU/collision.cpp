@@ -934,7 +934,9 @@ bool printContactsGPU(ChSystemGPU* system_gpu) {
 
 }
 int main(int argc, char* argv[]) {
-	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+#ifndef __APPLE__
+    feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+#endif
 	omp_set_num_threads(3);
 //cudaSetDevice(0);
 

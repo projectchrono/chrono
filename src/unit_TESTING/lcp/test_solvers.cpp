@@ -25,6 +25,12 @@
 
 #include "unit_GPU/ChSystemGPU.h"
 
+#ifdef __APPLE__
+#include <pthread.h>
+pthread_attr_t gomp_thread_attr;
+#endif
+
+
 
 // Remember to use the namespace 'chrono' because all classes 
 // of Chrono::Engine belong to this namespace and its children...
@@ -88,7 +94,9 @@ void RunTimeStep(T* mSys, const int frame){
 }
 
 int main(int argc, char* argv[]) {
-	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+#ifndef __APPLE__
+    feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+#endif
 	//cudaSetDevice(0);
 	omp_set_num_threads(6);
     CHSYS* mSys = new CHSYS();

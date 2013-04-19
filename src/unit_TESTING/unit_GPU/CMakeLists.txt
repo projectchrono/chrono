@@ -5,7 +5,7 @@ INCLUDE_DIRECTORIES( 	${CH_CUDA_INC}
 			${CH_CUDA_SDK_INC} 
 			)
 		 	
-SET(UNIT_GPU_INCLUDE_LIBS ChronoEngine ChronoEngine_GPU ChronoEngine_OPENGL ChronoEngine_POSTPROCESS) 
+SET(UNIT_GPU_INCLUDE_LIBS  ${CUDA_FRAMEWORK} ChronoEngine ChronoEngine_GPU ChronoEngine_OPENGL ChronoEngine_POSTPROCESS) 
 
 #--------------------------------------------------------------
 #ADD_EXECUTABLE(test_gravity_gpu	gravity.cpp)
