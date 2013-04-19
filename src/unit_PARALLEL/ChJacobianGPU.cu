@@ -175,7 +175,7 @@ __global__ void device_ContactJacobians(real3* norm, real3* ptA, real3* ptB, int
 	//function_ContactJacobians(index, number_of_contacts_const, norm, ptA, ptB, pos, rot, ids, JXYZA, JXYZB, JUVWA, JUVWB);
 }
 void ChJacobianGPU::host_ContactJacobians(real3* norm, real3* ptA, real3* ptB, int2* ids, real4* rot, real3* pos, real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB) {
-	// #pragma omp parallel for schedule(guided)
+    #pragma omp parallel for schedule(guided)
 	for (uint index = 0; index < number_of_contacts; index++) {
 		function_ContactJacobians(index, number_of_contacts, norm, ptA, ptB, pos, rot, ids, JXYZA, JXYZB, JUVWA, JUVWB);
 	}

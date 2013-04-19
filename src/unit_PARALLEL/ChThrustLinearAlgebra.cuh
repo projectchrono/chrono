@@ -38,11 +38,11 @@ struct real3_real3_functor : public thrust::binary_function<real3, real3, real3>
                 return y * x;
         }
 };
-static void SEAXPY(const real &a, custom_vector<real> &x, custom_vector<real> &y, custom_vector<real> &output)
+static void SEAXPY(const real &a, const custom_vector<real> &x,const custom_vector<real> &y, custom_vector<real> &output)
 {
         thrust::transform(x.begin(), x.end(), y.begin(), output.begin(), saxpy_functor(a));
 }
-static void SEAXMY(const real &a, custom_vector<real> &x, custom_vector<real> &y, custom_vector<real> &output)
+static void SEAXMY(const real &a,const custom_vector<real> &x,const custom_vector<real> &y, custom_vector<real> &output)
 {
         thrust::transform(x.begin(), x.end(), y.begin(), output.begin(), saxmy_functor(a));
 }
