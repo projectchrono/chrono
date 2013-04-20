@@ -40,11 +40,11 @@ OutputBaseFilename=ChronoEngine_{#MyAppVersion}
 Source: {#MyChronoEngineSDK}\*; Excludes: "*.c,*.cpp,*.cu,doxygen,\bin,\lib,\scripts,\source\collision\gimpact,\source\collision\edgetempest,\source\HOWTO_COMPILE_API.txt,*.pdb,_obsolete,\installer,*.o,*.obj,*.ncb,*.bat,source\*.def,*\.svn"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs
 Source: {#MyChronoEngineSDK}\source\demos\*; Excludes: "*.pdb,demo_benchmark.exe,*\.svn,*.ilk,*.idb"; DestDir: "{app}\source\demos"; Flags: recursesubdirs createallsubdirs
 
-Source: {#MyChronoEngineBUILD32}\bin\*; Excludes: "*.pdb,demo_benchmark.exe,*\.svn,*.ilk,*.idb,\data\mpi"; DestDir: "{app}\32bit\bin"; Flags: recursesubdirs createallsubdirs
-Source: {#MyChronoEngineBUILD32}\lib\*; Excludes: "*.pdb,*\.svn,*.ilk,*.idb"; DestDir: "{app}\lib"; Flags: recursesubdirs createallsubdirs
+Source: {#MyChronoEngineBUILD32}\bin\*; Excludes: "*.pdb,demo_benchmark.exe,*\.svn,*.ilk,*.idb,\data\mpi"; DestDir: "{app}\Win32\bin"; Flags: recursesubdirs createallsubdirs
+Source: {#MyChronoEngineBUILD32}\lib\*; Excludes: "*.pdb,*\.svn,*.ilk,*.idb"; DestDir: "{app}\Win32\lib"; Flags: recursesubdirs createallsubdirs
 
-Source: {#MyChronoEngineBUILD64}\bin\*; Excludes: "*.pdb,demo_benchmark.exe,*\.svn,*.ilk,*.idb,\data\mpi"; DestDir: "{app}\64bit\bin"; Flags: recursesubdirs createallsubdirs
-Source: {#MyChronoEngineBUILD64}\lib\*; Excludes: "*.pdb,*\.svn,*.ilk,*.idb"; DestDir: "{app}\lib"; Flags: recursesubdirs createallsubdirs
+Source: {#MyChronoEngineBUILD64}\bin\*; Excludes: "*.pdb,demo_benchmark.exe,*\.svn,*.ilk,*.idb,\data\mpi,*.exe"; DestDir: "{app}\Win64\bin"; Flags: recursesubdirs createallsubdirs
+Source: {#MyChronoEngineBUILD64}\lib\*; Excludes: "*.pdb,*\.svn,*.ilk,*.idb"; DestDir: "{app}\Win64\lib"; Flags: recursesubdirs createallsubdirs
 
 
 Source: {#MyChronoEngineSDK}\msvc_config\ChronoEngineWizard\*; DestDir: {code:myGetPathVisual9}VCWizards\ChronoEngineWizard; Check: myFoundVisual9; Flags: recursesubdirs createallsubdirs
@@ -62,25 +62,25 @@ Name: "{group}\Getting started"; Filename: "{app}\docs\WebDocumentation.URL"
 Name: "{group}\Tutorials"; Filename: "{app}\docs\WebTutorials.URL"
 Name: "{group}\API documentation"; Filename: "{app}\docs\html\help.chm"
 Name: "{group}\Readme"; Filename: "{app}\readme.txt"
-Name: "{group}\Convex decomp. utility"; Filename: "{app}\32bit\bin\Release\demo_decomposition.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Crank"; Filename: "{app}\32bit\bin\Release\demo_crank.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Four bar"; Filename: "{app}\32bit\bin\Release\demo_fourbar.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Pendulum"; Filename: "{app}\32bit\bin\Release\demo_pendulum.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Collision"; Filename: "{app}\32bit\bin\Release\demo_collision.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Bricks"; Filename: "{app}\32bit\bin\Release\demo_bricks.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Suspension"; Filename: "{app}\32bit\bin\Release\demo_suspension.exe"; WorkingDir: "{app}\bin\Release"
-;Name: "{group}\demos\Racing"; Filename: "{app}\32bit\bin\Release\demo_racing.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Oscillator"; Filename: "{app}\32bit\bin\Release\demo_oscillator.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Gears"; Filename: "{app}\32bit\bin\Release\demo_gears.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Tracks"; Filename: "{app}\32bit\bin\Release\demo_tracks.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Mecanum"; Filename: "{app}\32bit\bin\Release\demo_mecanum.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Matlab"; Filename: "{app}\32bit\bin\Release\demo_matlab.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Roll.friction"; Filename: "{app}\32bit\bin\Release\demo_friction.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Forklift"; Filename: "{app}\32bit\bin\Release\demo_forklift.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Tire convex decomp."; Filename: "{app}\32bit\bin\Release\demo_tire.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Cohesion"; Filename: "{app}\32bit\bin\Release\demo_cohesion.exe"; WorkingDir: "{app}\bin\Release"
-Name: "{group}\demos\Conveyor"; Filename: "{app}\32bit\bin\Release\demo_conveyor.exe"; WorkingDir: "{app}\bin\Release"
-;Name: "{group}\demos\Imp.Solidworks (Python 3 required)"; Filename: "{app}\32bit\bin\Release\demo_import_solidworks.exe"; WorkingDir: "{app}\bin\Release"
+Name: "{group}\Convex decomp. utility"; Filename: "{app}\Win32\bin\Release\demo_decomposition.exe"; WorkingDir: "{app}\Win32\bin\Release"
+Name: "{group}\demos\Crank"; Filename: "{app}\Win32\bin\Release\demo_crank.exe"; WorkingDir: "{app}\Win32\bin\Release"
+Name: "{group}\demos\Four bar"; Filename: "{app}\Win32\bin\Release\demo_fourbar.exe"; WorkingDir: "{app}\Win32\bin\Release"
+Name: "{group}\demos\Pendulum"; Filename: "{app}\Win32\bin\Release\demo_pendulum.exe"; WorkingDir: "{app}\Win32\bin\Release"
+Name: "{group}\demos\Collision"; Filename: "{app}\Win32\bin\Release\demo_collision.exe"; WorkingDir: "{app}\Win32\bin\Release"
+Name: "{group}\demos\Bricks"; Filename: "{app}\Win32\bin\Release\demo_bricks.exe"; WorkingDir: "{app}\Win32\bin\Release"
+Name: "{group}\demos\Suspension"; Filename: "{app}\Win32\bin\Release\demo_suspension.exe"; WorkingDir: "{app}\Win32\bin\Release"
+;Name: "{group}\demos\Racing"; Filename: "{app}\Win32\bin\Release\demo_racing.exe"; WorkingDir: "{app}\Win32\bin\Release"
+Name: "{group}\demos\Oscillator"; Filename: "{app}\Win32\bin\Release\demo_oscillator.exe"; WorkingDir: "{app}\Win32\bin\Release"
+Name: "{group}\demos\Gears"; Filename: "{app}\Win32\bin\Release\demo_gears.exe"; WorkingDir: "{app}\Win32\bin\Release"
+Name: "{group}\demos\Tracks"; Filename: "{app}\Win32\bin\Release\demo_tracks.exe"; WorkingDir: "{app}\Win32\bin\Release"
+Name: "{group}\demos\Mecanum"; Filename: "{app}\Win32\bin\Release\demo_mecanum.exe"; WorkingDir: "{app}\Win32\bin\Release"
+Name: "{group}\demos\Matlab"; Filename: "{app}\Win32\bin\Release\demo_matlab.exe"; WorkingDir: "{app}\Win32\bin\Release"
+Name: "{group}\demos\Roll.friction"; Filename: "{app}\Win32\bin\Release\demo_friction.exe"; WorkingDir: "{app}\Win32\bin\Release"
+Name: "{group}\demos\Forklift"; Filename: "{app}\Win32\bin\Release\demo_forklift.exe"; WorkingDir: "{app}\Win32\bin\Release"
+Name: "{group}\demos\Tire convex decomp."; Filename: "{app}\Win32\bin\Release\demo_tire.exe"; WorkingDir: "{app}\Win32\bin\Release"
+Name: "{group}\demos\Cohesion"; Filename: "{app}\Win32\bin\Release\demo_cohesion.exe"; WorkingDir: "{app}\Win32\bin\Release"
+Name: "{group}\demos\Conveyor"; Filename: "{app}\Win32\bin\Release\demo_conveyor.exe"; WorkingDir: "{app}\Win32\bin\Release"
+Name: "{group}\demos\Imp.Solidworks (Python 3 required)"; Filename: "{app}\Win32\bin\Release\demo_import_solidworks.exe"; WorkingDir: "{app}\Win32\bin\Release"
 Name: "{group}\Uninstall"; Filename: "{uninstallexe}"
 
 ;[Run]
@@ -172,8 +172,8 @@ begin
   myIrrklangDir := BackslashToDoubleBackslash(IrrklangDirPage.Values[0]);
   LoadStringFromFile(myContentFile, myContent);
   StringChange(myContent, '***CHRONODIR***', myChronoDir);
-  StringChange(myContent, '***CHRONOLIB***', myChronoDir + '\32bit\lib');
-  StringChange(myContent, '***CHRONOBIN***', myChronoDir + '\32bit\bin');
+  StringChange(myContent, '***CHRONOLIB***', myChronoDir + '\\Win32\\lib');
+  StringChange(myContent, '***CHRONOBIN***', myChronoDir + '\\Win32\\bin');
   StringChange(myContent, '***IRRLICHTDIR***', myIrrlichtDir);
   StringChange(myContent, '***IRRKLANGDIR***', myIrrklangDir);
   SaveStringToFile(myContentFile, myContent, false);
