@@ -55,6 +55,9 @@ xx-xx-xxxx
   contain relative paths such as in ChObjShapeFile, these are
   adjusted to avoid problems.
 
+- new demo_import_solidworks.cpp to show how to load a system 
+  that has been saved with SolidWorks using the C::E add-in.
+
 - new CVisualization asset for defining the color of assets that define
   shapes to be rendered.
 
@@ -89,10 +92,24 @@ xx-xx-xxxx
   instead than application.AddLight(..) or AddTypicalLights(..).
   The performance is a bit slower, but much faster and better looking
   than the previous system that used stencil shadows.
-  NOTE!!! This works fine with Irrlicht v.1.7, but in Irrlicht v.1.8
+  NOTE!!! This works fine with Irrlicht v.1.7.3, but in Irrlicht v.1.8
   it does not work with default DirextX driver: you must use video::EDT_OPENGL
   as argument when creating the ChIrrApp for OpenGL driver (and it works
   with a single lamp only).
+
+- The build system has been changed so that the built binaries are not
+  copied in the ChronoEngine source directory, in bin/, but stay into out-of-source
+  directories. Also, debug and release libraries are not stored together
+  anymore: the _DBG suffix is not used anymore, they are stored in Release
+  and Debug sub directories. This will help porting to different platforms.
+  The previous ChronoEngine/bin/ and ChronoEngine/lib/ directories
+  are not used anymore. The ready-to-use prebuilt SDK has prebuit 
+  binaries and libs in Win32/, Win64/ directories.
+
+- The installer for the prebuilt SDK has been updated.
+
+- The template for the MSVC wizard has been update to reflect the new
+  asset-based approach to visualization.
 
 
 Release 1.6.0

@@ -295,7 +295,7 @@ begin
 
   IrrlichtDirPage := CreateInputDirPage(ConfigOptionPage.ID,
     'Set Irrlicht directory', 'Where have you installed Irrlicht SDK?',
-    'Here you must set the directory where you installed your Irrlicht SDK (for example C:\Programs\irrlicht-1.7.1) ',
+    'Here you must set the directory where you installed your Irrlicht SDK (for example C:\Programs\irrlicht-1.7.3) ',
     False, '');
   IrrlichtDirPage.Add('');
   IrrlichtDirPage.Values[0] := '';
