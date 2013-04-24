@@ -66,6 +66,7 @@ template <class Real = double> class ChMatrixDynamic ;
 /// some cases, if sizes are wrong, debug asserts are used).
 
 
+
 template <class Real = double>
 class ChMatrix 
 {
@@ -84,6 +85,7 @@ public:
 			//
 			// CONSTRUCTORS (none - abstract class that must be implemented with child classes)
 			//
+
 
 	virtual ~ChMatrix () {};
 
@@ -174,6 +176,7 @@ public:
 			//
 			// FUNCTIONS
 			//
+
 
 					/// Sets the element at row,col position. Indexes start with zero.
 	inline void   SetElement ( int row, int col, Real elem)
@@ -343,6 +346,32 @@ public:
 									SetElement (j,i,(matra.Element(i,j)));
 						}
 	
+					/// Copy the transposed upper triangular part of "matra" in the lower triangular 
+					/// part of this matrix. (matra must be square)
+					/// Note that the destination matrix will be resized if necessary.
+	template <class RealB>																			//		_______								//
+	void CopyTUpMatrix (ChMatrix<RealB>& matra)														//		\      |			|\				//
+						{																			//		  \  A'|	--->	|  \			//
+							Resize(matra.GetRows(), matra.GetColumns());							//		    \  |			|this\			//
+							for(int i=0; i<matra.GetRows(); i++){									//			  \|			|______\		//
+								for(int j=0; j<matra.GetRows(); j++)
+									SetElement(j,i,matra.GetElement(i,j));
+							}
+						}
+
+					/// Copy the transposed lower triangulat part of "matra" in the upper triangular 
+					/// part of this matrix. (matra must be square)
+					/// Note that the destination matrix will be resized if necessary.
+	template <class RealB>																			//							_______			//
+	void CopyTLwMatrix (ChMatrix<RealB>& matra)														//		|\					\      |		//
+						{																			//		|  \		--->	  \this|		//
+							Resize(matra.GetRows(), matra.GetColumns());							//		|A'  \					\  |		//
+							for(int i=0; i<matra.GetRows(); i++){									//		|______\				  \|		//
+								for(int j=0; j<matra.GetRows(); j++)
+									SetElement(i,j,matra.GetElement(j,i));
+							}
+						}
+
 
 			//
 			// STREAMING
@@ -589,7 +618,38 @@ public:
 										Element(row,col)=matrcopy.Element(col,row);
 							}
 						}
-			
+		
+					///returns the determinant of the matrix (max 3x3)
+	double Det(){
+		try{
+			if (this->GetRows() != this->GetColumns())
+				throw("non-square matrix");
+			if (this->GetRows() > 3)
+				throw("order of the matrix > 3");
+			double det;
+			switch (this->GetRows()) {
+				case 1:
+					det = (*this)(0,0);
+					break;
+				case 2:
+					det = (*this)(0,0)*(*this)(1,1)-
+						  (*this)(0,1)*(*this)(1,0);
+					break;
+				case 3:
+					det = (*this)(0,0)*(*this)(1,1)*(*this)(2,2)+
+						  (*this)(0,1)*(*this)(1,2)*(*this)(2,0)+
+						  (*this)(0,2)*(*this)(1,0)*(*this)(2,1)-
+						  (*this)(2,0)*(*this)(1,1)*(*this)(0,2)-
+						  (*this)(2,1)*(*this)(1,2)*(*this)(0,0)-
+						  (*this)(2,2)*(*this)(1,0)*(*this)(0,1);
+					break;
+			}
+			return det;
+		}
+		catch (char *a) {
+			GetLog() << "Unable to calculate the Determinant: " << a << "\n";
+		}
+	}
 
 					/// Returns true if vector is identical to other vector
 	bool	Equals ( const ChMatrix<Real>& other) { return Equals(other,0.0); }
@@ -759,6 +819,11 @@ public:
 									if (GetColumns()>1)	Element(iv,iu) += umin+(umax-umin)*((double)iu/((double)(GetColumns()-1)));
 								}
 						}
+
+
+
+
+
 
 			//
 			// BOOKKEEPING
@@ -1916,7 +1981,6 @@ public:
 
 
 
-
 //
 // Conversion from/to matrix declarated as double[3][3]  \todo implement as class members
 //
@@ -1925,10 +1989,6 @@ void Chrono_to_Marray   (ChMatrix33<>& ma, double marr[3][3]);
 
 ChApi
 void Chrono_from_Marray (ChMatrix33<>& ma, double marr[3][3]);
-
-
-
-
 
 
 
