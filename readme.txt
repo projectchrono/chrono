@@ -115,6 +115,10 @@ xx-xx-xxxx
 - The template for the MSVC wizard has been update to reflect the new
   asset-based approach to visualization.
 
+- The makes/FindChronoEngine.txt file has been updated to reflect the
+  new build system. Also, the template_project/ files have been 
+  modified and a new demo project is here.
+
 
 Release 1.6.0
 19-07-2012
