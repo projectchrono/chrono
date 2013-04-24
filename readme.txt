@@ -55,6 +55,10 @@ xx-xx-xxxx
   contain relative paths such as in ChObjShapeFile, these are
   adjusted to avoid problems.
 
+- new Python demos. 
+  The python demos have been moved into ChronoEngine/python, they
+  have been removed from ChronoEngine/source/demos/python
+  
 - new demo_import_solidworks.cpp to show how to load a system 
   that has been saved with SolidWorks using the C::E add-in.
 
