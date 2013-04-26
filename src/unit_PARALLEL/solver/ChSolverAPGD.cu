@@ -218,8 +218,13 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 
 		real obj1=0.0;
 		real obj2=0.0;
-
+#ifdef PRINT_DEBUG_GPU
+		cout<<"solver_inner"<<endl;
+#endif
 		for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
+#ifdef PRINT_DEBUG_GPU
+		cout<<"iter_start"<<endl;
+#endif
 			ShurProduct(my,mg_tmp1);
 			//mg = mg_tmp1-b;
 			//SEAXPY(-t_k, mg, my, mx); // mx = my + mg*(t_k);
@@ -294,6 +299,11 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 			}
 
 			residual=lastgoodres;
+
+#ifdef PRINT_DEBUG_GPU
+		cout<<"iter_end"<<endl;
+#endif
+
 			if (residual < tolerance) {
 				break;
 			}
