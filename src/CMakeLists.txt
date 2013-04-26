@@ -191,10 +191,10 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     SET (CPACK_SYSTEM_NAME "Linux-x64")
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     SET (CH_BUILDFLAGS "-DAPPLE -D__APPLE__ -fpermissive")
-    SET (CH_LINKERFLAG_SHARED "-lpthread ")		
+    SET (CH_LINKERFLAG_SHARED "-lpthread -fpermissive")		
     SET (CPACK_SYSTEM_NAME "OSX-x64")
 ENDIF()
-
+message(${CMAKE_SYSTEM_NAME})
 #-----------------------------------------------------------------------------
 # Some global  C++ definitions and includes that are used 
 # everywhere for all targets and all configurations.
@@ -1069,6 +1069,7 @@ SET_TARGET_PROPERTIES( ChronoEngine PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUP
 endif()
 
 SET_TARGET_PROPERTIES(ChronoEngine PROPERTIES 
+                        COMPILE_FLAGS "${CH_BUILDFLAGS}"
 						LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
 						COMPILE_DEFINITIONS "CH_API_COMPILE")
 
