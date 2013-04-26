@@ -84,7 +84,7 @@ namespace chrono {
 				/// The basic behavior of the implementation is the following: collision system
 				/// will call in sequence the functions BeginAddContact(), AddContact() (x n times),
 				/// EndAddContact() of the contact container.
-				virtual void ReportContacts(ChContactContainerBase* mcontactcontainer){}
+				virtual void ReportContacts(ChContactContainerBase* mcontactcontainer);
 
 				/// After the Run() has completed, you can call this function to
 				/// fill a 'proximity container' (container of narrow phase pairs), that is

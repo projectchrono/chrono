@@ -34,11 +34,17 @@ __host__ __device__ void function_Integrate_Timestep_Semi_Implicit(uint& index, 
 //    }
 	//printf("%f, %f, %f ", pos[index].x,pos[index].y,pos[index].z);
 	pos[index] = pos[index] + velocity * step_size; // Do 1st order integration of linear speeds
+
+	real3 newwel_abs = MatMult(AMat(rot[index]),omg);
+	real mangle = length(newwel_abs)*step_size;
+	newwel_abs=normalize(newwel_abs);
+	real4 mdeltarot = Q_from_AngAxis(mangle, newwel_abs);
+
 	//printf("%f, %f, %f\n", pos[index].x,pos[index].y,pos[index].z);
-	real4 Rw = (abs(wlen) > 10e-10) ? Q_from_AngAxis(step_size * wlen, omg / wlen) : R4(1, 0, 0, 0); // to avoid singularity for near zero angular speed
-	Rw = normalize(Rw);
-	real4 mq = mult(rot[index], Rw);
-	mq = mq /sqrt(dot(mq, mq));
+	//real4 Rw = (abs(wlen) > 10e-10) ? Q_from_AngAxis(step_size * wlen, omg / wlen) : R4(1, 0, 0, 0); // to avoid singularity for near zero angular speed
+	//Rw = normalize(Rw);
+	real4 mq = mult2(mdeltarot,rot[index]);
+	//mq = mq /sqrt(dot(mq, mq));
 	rot[index] = mq;
 	acc[index] = (velocity - acc[index]) / step_size;
 }

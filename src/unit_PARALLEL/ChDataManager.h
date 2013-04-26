@@ -114,7 +114,7 @@ namespace chrono {
             thrust::host_vector<real> host_dpth_data;
             thrust::host_vector<int2> host_bids_data;
             thrust::host_vector<long long> host_pair_data;
-            thrust::host_vector<real3> host_gam_data;
+            thrust::host_vector<real> host_gam_data;
             //thrust::host_vector<real> host_dgm_data;
             //collision data
             thrust::host_vector<real3> host_ObA_data;

@@ -4,8 +4,10 @@ using namespace chrono;
 
 uint ChSolverGPU::SolveCGS(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
 	real rho_1, rho_2, alpha, beta;
-	custom_vector<real> r = b - ShurProduct(x);
-		custom_vector<real> p = r, phat, q = r, qhat, vhat, u = r, uhat;
+	custom_vector<real> r(x.size());
+	ShurProduct(x,r);
+	r= b - r;
+		custom_vector<real> p = r, phat, q = r, qhat(x.size()), vhat(x.size()), u = r, uhat(x.size());
 		real normb = Norm(b);
 		custom_vector<real> rtilde = r;
 
@@ -29,12 +31,12 @@ uint ChSolverGPU::SolveCGS(custom_vector<real> &x, const custom_vector<real> &b,
 			}
 
 			phat = p;
-			vhat = ShurProduct(phat);
+			ShurProduct(phat,vhat);
 			alpha = rho_1 / Dot(rtilde, vhat);
 			SEAXPY(-alpha, vhat, u, q); //q = u - alpha * vhat;
 			uhat = (u + q);
 			SEAXPY(alpha, uhat, x, x);  //x = x + alpha * uhat;
-			qhat = ShurProduct(uhat);
+			ShurProduct(uhat,qhat);
 			SEAXPY(-alpha, qhat, r, r); //r = r - alpha * qhat;
 			rho_2 = rho_1;
 			residual = (Norm(r) / normb);

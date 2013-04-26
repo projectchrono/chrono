@@ -3,19 +3,20 @@ using namespace chrono;
 
 
 uint ChSolverGPU::SolveCG(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
-    custom_vector<real> r(x.size()), p, Ap;
+    custom_vector<real> r(x.size()), p, Ap(x.size());
     real rsold, alpha, rsnew = 0, normb = Norm(b);
     if (normb == 0.0) {
         normb = 1;
     }
-    p = r = b - ShurProduct(x);
+    ShurProduct(x,r);
+    p = r = b - r;
     rsold = Dot(r, r);
     normb = 1.0 / normb;
     if (sqrt(rsold) * normb <= tolerance) {
         return 0;
     }
     for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
-        Ap = ShurProduct(p);
+        ShurProduct(p,Ap);
         alpha = rsold / Dot(p, Ap);
         rsnew = 0;
 #ifdef SIM_ENABLE_GPU_MODE

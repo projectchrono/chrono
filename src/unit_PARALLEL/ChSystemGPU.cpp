@@ -1,10 +1,12 @@
 #include "ChSystemGPU.h"
+#include "ChBodyGPU.h"
+#include "physics/ChBody.h"
 #include <omp.h>
 
 using namespace chrono;
 
-ChSystemGPU::ChSystemGPU(unsigned int max_objects)
-		: ChSystem(1000, 10000, false) {
+ChSystemGPU::ChSystemGPU(unsigned int max_objects) :
+		ChSystem(1000, 10000, false) {
 	counter = 0;
 	gpu_data_manager = new ChGPUDataManager();
 	LCP_descriptor = new ChLcpSystemDescriptorGPU();
@@ -12,6 +14,7 @@ ChSystemGPU::ChSystemGPU(unsigned int max_objects)
 	collision_system = new ChCollisionSystemGPU();
 	LCP_solver_speed = new ChLcpSolverGPU();
 	((ChCollisionSystemGPU *) (collision_system))->data_container = gpu_data_manager;
+	((ChLcpSystemDescriptorGPU *) (LCP_descriptor))->data_container = gpu_data_manager;
 }
 int ChSystemGPU::Setup() {
 	this->stepcount++;
@@ -73,6 +76,7 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	mtimer_cd.start();
 	if (gpu_data_manager->number_of_models > 0) {
 		collision_system->Run();
+		collision_system->ReportContacts(this->contact_container);
 	}
 	mtimer_cd.stop();
 //------------------------------------------------------------------------------------------------------------------------
@@ -82,29 +86,48 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 //------------------------------------------------------------------------------------------------------------------------
 	mtimer_updt.start();
 	gpu_data_manager->DeviceToHost();
-	real3 *vel_pointer = gpu_data_manager->host_vel_data.data();
-	real3 *omg_pointer = gpu_data_manager->host_omg_data.data();
-	real3 *pos_pointer = gpu_data_manager->host_pos_data.data();
-	real4 *rot_pointer = gpu_data_manager->host_rot_data.data();
-	real3 *acc_pointer = gpu_data_manager->host_acc_data.data();
-	real3 *gyr_pointer = gpu_data_manager->host_gyr_data.data();
-	real3 *fap_pointer = gpu_data_manager->host_fap_data.data();
-
+	std::vector<ChLcpVariables*> vvariables = LCP_descriptor->GetVariablesList();
 #pragma omp parallel for
-		for (int i = 0; i < bodylist.size(); i++) {
-			ChBodyGPU *mbody = (ChBodyGPU *) bodylist[i];
+	for (int i = 0; i < vvariables.size(); i++) {
 
-			if (mbody->IsActive()) {
-				mbody->SetPos(CHVECCAST(pos_pointer[i]));
-				mbody->SetRot(CHQUATCAST(rot_pointer[i]));
-				mbody->SetPos_dt(CHVECCAST(vel_pointer[i]));
-				mbody->SetPos_dtdt(CHVECCAST(acc_pointer[i]));
-				mbody->SetWvel_loc(CHVECCAST(omg_pointer[i]));
-				mbody->SetAppliedForce(CHVECCAST(fap_pointer[i]));
-				mbody->SetGyro(CHVECCAST(gyr_pointer[i]));
+		real3 vel = gpu_data_manager->host_vel_data[i];
+		real3 omg = gpu_data_manager->host_omg_data[i];
+		vvariables[i]->Get_qb().SetElement(0, 0, vel.x);
+		vvariables[i]->Get_qb().SetElement(1, 0, vel.y);
+		vvariables[i]->Get_qb().SetElement(2, 0, vel.z);
+		vvariables[i]->Get_qb().SetElement(3, 0, omg.x);
+		vvariables[i]->Get_qb().SetElement(4, 0, omg.y);
+		vvariables[i]->Get_qb().SetElement(5, 0, omg.z);
+		ChBodyGPU *mbody = (ChBodyGPU *) bodylist[i];
 
-			}
-		}
+		mbody->VariablesQbIncrementPosition(this->GetStep());
+		mbody->VariablesQbSetSpeed(this->GetStep());
+
+	}
+
+//	real3 *vel_pointer = gpu_data_manager->host_vel_data.data();
+//	real3 *omg_pointer = gpu_data_manager->host_omg_data.data();
+//	real3 *pos_pointer = gpu_data_manager->host_pos_data.data();
+//	real4 *rot_pointer = gpu_data_manager->host_rot_data.data();
+//	real3 *acc_pointer = gpu_data_manager->host_acc_data.data();
+//	real3 *gyr_pointer = gpu_data_manager->host_gyr_data.data();
+//	real3 *fap_pointer = gpu_data_manager->host_fap_data.data();
+//
+//#pragma omp parallel for
+//		for (int i = 0; i < bodylist.size(); i++) {
+//			ChBodyGPU *mbody = (ChBodyGPU *) bodylist[i];
+//
+//			if (mbody->IsActive()) {
+//				mbody->SetPos(CHVECCAST(pos_pointer[i]));
+//				mbody->SetRot(CHQUATCAST(rot_pointer[i]));
+//				mbody->SetPos_dt(CHVECCAST(vel_pointer[i]));
+//				mbody->SetPos_dtdt(CHVECCAST(acc_pointer[i]));
+//				mbody->SetWvel_loc(CHVECCAST(omg_pointer[i]));
+//				mbody->SetAppliedForce(CHVECCAST(fap_pointer[i]));
+//				mbody->SetGyro(CHVECCAST(gyr_pointer[i]));
+//
+//			}
+//		}
 	uint counter = 0;
 	std::vector<ChLcpConstraint *> &mconstraints = (*this->LCP_descriptor).GetConstraintsList();
 	for (uint ic = 0; ic < mconstraints.size(); ic++) {
@@ -183,7 +206,8 @@ void ChSystemGPU::RemoveBody(ChSharedPtr<ChBodyGPU> mbody) {
 	assert(std::find<std::vector<ChBody *>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr()) != bodylist.end());
 
 // remove from collision system
-	if (mbody->GetCollide()) mbody->RemoveCollisionModelsFromSystem();
+	if (mbody->GetCollide())
+		mbody->RemoveCollisionModelsFromSystem();
 
 // warning! linear time search, to erase pointer from container.
 	bodylist.erase(std::find<std::vector<ChBody *>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr()));
@@ -198,7 +222,8 @@ void ChSystemGPU::RemoveBody(int body) {
 	ChBodyGPU *mbody = ((ChBodyGPU *) (bodylist[body]));
 
 // remove from collision system
-	if (mbody->GetCollide()) mbody->RemoveCollisionModelsFromSystem();
+	if (mbody->GetCollide())
+		mbody->RemoveCollisionModelsFromSystem();
 
 // warning! linear time search, to erase pointer from container.
 	//bodylist.erase(std::find<std::vector<ChBody*>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr()));
@@ -234,7 +259,6 @@ void ChSystemGPU::Update() {
 		(*it)->InjectConstraints(*this->LCP_descriptor);
 	}
 
-	this->LCP_descriptor->EndInsertion();
 	std::vector<ChLcpConstraint *> &mconstraints = (*this->LCP_descriptor).GetConstraintsList();
 
 	for (uint ic = 0; ic < mconstraints.size(); ic++) {
@@ -275,18 +299,21 @@ void ChSystemGPU::Update() {
 	}
 
 //#pragma omp parallel for
-
 	for (int i = 0; i < bodylist.size(); i++) { // Updates recursively all other aux.vars
+
 		bodylist[i]->UpdateTime(ChTime);
 		bodylist[i]->UpdateMarkers(ChTime);
 		bodylist[i]->UpdateForces(ChTime);
 		bodylist[i]->VariablesFbReset();
 		bodylist[i]->VariablesFbLoadForces(GetStep());
 		bodylist[i]->VariablesQbLoadSpeed();
+		///START DEBUG
+		bodylist[i]->InjectVariables(*this->LCP_descriptor);
+		///END DEBUG
 		ChLcpVariablesBody *mbodyvar = &(bodylist[i]->Variables());
 		ChMatrix33<> inertia = mbodyvar->GetBodyInvInertia();
-		vel_pointer[i] = (R3(bodylist[i]->GetPos_dt().x, bodylist[i]->GetPos_dt().y, bodylist[i]->GetPos_dt().z));
-		omg_pointer[i] = (R3(bodylist[i]->GetWvel_loc().x, bodylist[i]->GetWvel_loc().y, bodylist[i]->GetWvel_loc().z));
+		vel_pointer[i] = (R3(mbodyvar->Get_qb().ElementN(0), mbodyvar->Get_qb().ElementN(1), mbodyvar->Get_qb().ElementN(2)));
+		omg_pointer[i] = (R3(mbodyvar->Get_qb().ElementN(3), mbodyvar->Get_qb().ElementN(4), mbodyvar->Get_qb().ElementN(5)));
 		pos_pointer[i] = (R3(bodylist[i]->GetPos().x, bodylist[i]->GetPos().y, bodylist[i]->GetPos().z));
 		rot_pointer[i] = (R4(bodylist[i]->GetRot().e0, bodylist[i]->GetRot().e1, bodylist[i]->GetRot().e2, bodylist[i]->GetRot().e3));
 		inr_pointer[i] = (R3(inertia.GetElement(0, 0), inertia.GetElement(1, 1), inertia.GetElement(2, 2)));
@@ -298,12 +325,16 @@ void ChSystemGPU::Update() {
 		lim_pointer[i] = (R3(bodylist[i]->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
 		bodylist[i]->GetCollisionModel()->SyncPosition();
 	}
+
+	LCP_descriptor->EndInsertion();
+
 }
 
 void ChSystemGPU::ChangeLcpSolverSpeed(ChLcpSolver *newsolver) {
 	assert(newsolver);
 
-	if (this->LCP_solver_speed) delete (this->LCP_solver_speed);
+	if (this->LCP_solver_speed)
+		delete (this->LCP_solver_speed);
 
 	this->LCP_solver_speed = newsolver;
 }
@@ -312,7 +343,8 @@ void ChSystemGPU::ChangeCollisionSystem(ChCollisionSystem *newcollsystem) {
 	assert(this->GetNbodies() == 0);
 	assert(newcollsystem);
 
-	if (this->collision_system) delete (this->collision_system);
+	if (this->collision_system)
+		delete (this->collision_system);
 
 	this->collision_system = newcollsystem;
 
@@ -323,3 +355,11 @@ void ChSystemGPU::ChangeCollisionSystem(ChCollisionSystem *newcollsystem) {
 	}
 }
 
+void ChSystemGPU::ChangeLcpSystemDescriptor(ChLcpSystemDescriptor* newdescriptor) {
+	assert(newdescriptor);
+	if (this->LCP_descriptor)
+		delete (this->LCP_descriptor);
+	this->LCP_descriptor = newdescriptor;
+
+	((ChLcpSystemDescriptorGPU *) (this->LCP_descriptor))->data_container = gpu_data_manager;
+}

@@ -120,7 +120,7 @@ __host__ __device__ void function_process_contacts(
 	//std::cout << gamma.z << std::endl;
 
 
-	dG[index + number_of_contacts * 0] = fabs(fmin(0.0, gamma.x));
+	dG[index + number_of_contacts * 0] = fabs(fmin(real(0.0), gamma.x));
 	dG[index + number_of_contacts * 1] = gamma.y;
 	dG[index + number_of_contacts * 2] = gamma.z;
 

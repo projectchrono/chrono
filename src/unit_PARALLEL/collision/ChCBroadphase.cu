@@ -211,7 +211,7 @@ inline void __host__ __device__ function_Store_AABB_AABB_Intersection(
 	real3 Amin, Amax, Bmin, Bmax;
 
 	for (; i < end; i++) {
-		;
+
 		tempa = body_number[i];
 		Amin = aabb_data[tempa];
 		Amax = aabb_data[tempa + number_of_particles];
@@ -257,7 +257,7 @@ void ChCBroadphase::host_Store_AABB_AABB_Intersection(
 		const uint *bin_start_index,
 		const uint *Num_ContactD,
 		long long *potential_contacts) {
-#pragma omp parallel for schedule(guided)
+#pragma omp parallel for
 
 	for (int index = 0; index < last_active_bin; index++) {
 		function_Store_AABB_AABB_Intersection(index, aabb_data, numAABB, bin_number, body_number, bin_start_index, Num_ContactD, potential_contacts);

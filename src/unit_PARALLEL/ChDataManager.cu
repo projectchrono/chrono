@@ -99,4 +99,5 @@ void ChGPUDataManager::DeviceToHostJacobians() {
 	host_JUVWA_data = gpu_data.device_JUVWA_data;
 	host_JXYZB_data = gpu_data.device_JXYZB_data;
 	host_JUVWB_data = gpu_data.device_JUVWB_data;
+	host_gam_data = gpu_data.device_gam_data;
 }

@@ -133,12 +133,9 @@ void ChLcpSolverGPU::RunTimeStep(real step, gpu_container& gpu_data) {
 		residual = solver.GetResidual();
 		rhs = solver.rhs;
 		lambda = gpu_data.device_gam_data;
-		custom_vector<real> temp=rhs;
-		Thrust_Fill(temp,1);
-		debug = solver.ShurProduct(temp);
 	}
 
-	ChIntegratorGPU integrator;
-	integrator.IntegrateSemiImplicit(step, gpu_data);
+	//ChIntegratorGPU integrator;
+	//integrator.IntegrateSemiImplicit(step, gpu_data);
 }
 

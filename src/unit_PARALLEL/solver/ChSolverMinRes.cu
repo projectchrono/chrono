@@ -3,9 +3,10 @@ using namespace chrono;
 
 uint ChSolverGPU::SolveMinRes(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
 	uint N = b.size();
-		custom_vector<real> v(N, 0), v_hat, w(N, 0), w_old, xMR, v_old, Av, w_oold;
+		custom_vector<real> v(N, 0), v_hat(x.size()), w(N, 0), w_old, xMR, v_old, Av(x.size()), w_oold;
 		real beta, c = 1, eta, norm_rMR, norm_r0, c_old = 1, s_old = 0, s = 0, alpha, beta_old, c_oold, s_oold, r1_hat, r1, r2, r3;
-		v_hat = b - ShurProduct(x);
+		ShurProduct(x,v_hat);
+		v_hat = b - v_hat;
 		beta = Norm(v_hat);
 		w_old = w;
 		eta = beta;
@@ -19,7 +20,7 @@ uint ChSolverGPU::SolveMinRes(custom_vector<real> &x, const custom_vector<real> 
 			//// Lanczos
 			v_old = v;
 			v = 1.0 / beta * v_hat;
-			Av = ShurProduct(v);
+			ShurProduct(v,Av);
 			alpha = Dot(v, Av);
 			v_hat = Av - alpha * v - beta * v_old;
 			beta_old = beta;

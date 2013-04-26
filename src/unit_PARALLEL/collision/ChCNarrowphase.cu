@@ -415,7 +415,10 @@ __host__ __device__ void function_MPR_Store(
 
 	p1 = p1 - (N) * envelope;
 	p2 = p2 + (N) * envelope;
-	depth = -(depth - envelope - envelope);
+
+
+	depth = dot(N,p2-p1);
+	//depth = -(depth - envelope - envelope);
 	norm[index] = N;
 	ptA[index] = p1;
 	ptB[index] = p2;

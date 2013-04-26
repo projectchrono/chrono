@@ -22,6 +22,7 @@
 #include <algorithm>
 #include "core/ChTimer.h"
 #include "physics/ChSystem.h"
+#include "physics/ChBody.h"
 #include "physics/ChGlobal.h"
 #include "physics/ChContactContainer.h"
 #include "ChLcpSolverGPU.h"
@@ -48,6 +49,7 @@ namespace chrono {
 			int Setup();
 			void Update();
 			void ChangeCollisionSystem(ChCollisionSystem *newcollsystem);
+			void ChangeLcpSystemDescriptor(ChLcpSystemDescriptor* newdescriptor);
 			void ChangeLcpSolverSpeed(ChLcpSolver *newsolver);
 			int GetNcontacts() {
 				return gpu_data_manager->number_of_contacts;
