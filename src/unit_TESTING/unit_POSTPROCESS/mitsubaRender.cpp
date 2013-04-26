@@ -27,7 +27,7 @@ using namespace tinyxml2;
 #define CHMODEL ChModelBullet
 #define CHSYS ChSystem
 
-void InitObject(ChSharedPtr<CHBODY> &body, double mass, ChVector<> pos, ChQuaternion<> rot, double sfric, double kfric, double restitution, bool collide, bool fixed, int family, int nocolwith) {
+void InitObject_(ChSharedPtr<CHBODY> &body, double mass, ChVector<> pos, ChQuaternion<> rot, double sfric, double kfric, double restitution, bool collide, bool fixed, int family, int nocolwith) {
 	body->SetMass(mass);
 	body->SetPos(pos);
 	body->SetRot(rot);
@@ -43,7 +43,7 @@ void InitObject(ChSharedPtr<CHBODY> &body, double mass, ChVector<> pos, ChQuater
 	//body->SetUseSleeping(true);
 }
 
-void AddCollisionGeometry(ChSharedPtr<CHBODY> &body, ShapeType type, ChVector<> dim, ChVector<> lPos, ChQuaternion<> lRot) {
+void AddCollisionGeometry_(ChSharedPtr<CHBODY> &body, ShapeType type, ChVector<> dim, ChVector<> lPos, ChQuaternion<> lRot) {
 	ChMatrix33<> *rotation = new ChMatrix33<>(lRot);
 	CHMODEL * model = (CHMODEL*) body->GetCollisionModel();
 	if (type == SPHERE) {
@@ -56,7 +56,7 @@ void AddCollisionGeometry(ChSharedPtr<CHBODY> &body, ShapeType type, ChVector<> 
 		model->AddCylinder(dim.x, dim.y, dim.z, &lPos, rotation);
 	}
 }
-void FinalizeObject(ChSharedPtr<CHBODY> newbody, CHSYS * mSystem) {
+void FinalizeObject_(ChSharedPtr<CHBODY> newbody, CHSYS * mSystem) {
 	newbody->GetCollisionModel()->BuildModel();
 	mSystem->AddBody(newbody);
 }
@@ -89,9 +89,9 @@ int main() {
 	ChQuaternion<> quat(1, 0, 0, 0);
 	for (int i = 0; i < 1000; i++) {
 		sphere = ChSharedBodyPtr(new ChBody);
-		InitObject(sphere, 1.0, ChVector<>((rand() % 10000 / 1000.0 - 5) * 2, (rand() % 10000 / 1000.0 - 5) * 2, (rand() % 10000 / 1000.0 - 5) * 2), quat, 0, 0, 0, true, false, -1, i);
-		AddCollisionGeometry(sphere, SPHERE, ChVector<>(.06, .06, .06), lpos, quat);
-		FinalizeObject(sphere, mSys);
+		InitObject_(sphere, 1.0, ChVector<>((rand() % 10000 / 1000.0 - 5) * 2, (rand() % 10000 / 1000.0 - 5) * 2, (rand() % 10000 / 1000.0 - 5) * 2), quat, 0, 0, 0, true, false, -1, i);
+		AddCollisionGeometry_(sphere, SPHERE, ChVector<>(.06, .06, .06), lpos, quat);
+		FinalizeObject_(sphere, mSys);
 		ChSharedPtr<ChSphereShape> sphere_shape = ChSharedPtr<ChAsset>(new ChSphereShape);
 		sphere_shape->SetColor(ChColor(1, 0, 0));
 		sphere_shape->GetSphereGeometry().rad = .06;
@@ -111,23 +111,23 @@ int main() {
 	CHBODYSHAREDPTR FREE = CHBODYSHAREDPTR(new CHBODY);
 	ChQuaternion<> quat2(1, 0, 0, 0);
 	quat2.Q_from_AngAxis(PI / 6.0, ChVector<>(1, 0, 0));
-	InitObject(L, 100000, ChVector<>(-container_R, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
-	InitObject(R, 100000, ChVector<>(container_R, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
-	InitObject(F, 100000, ChVector<>(0, 0, -container_R), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
-	InitObject(B, 100000, ChVector<>(0, 0, container_R), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
-	InitObject(BTM, 1, ChVector<>(0, -container_R, 0), quat, mWallMu, mWallMu, 0, true, true, -1000, -20000);
+	InitObject_(L, 100000, ChVector<>(-container_R, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
+	InitObject_(R, 100000, ChVector<>(container_R, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
+	InitObject_(F, 100000, ChVector<>(0, 0, -container_R), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
+	InitObject_(B, 100000, ChVector<>(0, 0, container_R), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
+	InitObject_(BTM, 1, ChVector<>(0, -container_R, 0), quat, mWallMu, mWallMu, 0, true, true, -1000, -20000);
 
-	AddCollisionGeometry(L, BOX, ChVector<>(container_T, container_R, container_R), lpos, quat);
-	AddCollisionGeometry(R, BOX, ChVector<>(container_T, container_R, container_R), lpos, quat);
-	AddCollisionGeometry(F, BOX, ChVector<>(container_R, container_R, container_T), lpos, quat);
-	AddCollisionGeometry(B, BOX, ChVector<>(container_R, container_R, container_T), lpos, quat);
-	AddCollisionGeometry(BTM, BOX, ChVector<>(container_R, container_T, container_R), lpos, quat);
+	AddCollisionGeometry_(L, BOX, ChVector<>(container_T, container_R, container_R), lpos, quat);
+	AddCollisionGeometry_(R, BOX, ChVector<>(container_T, container_R, container_R), lpos, quat);
+	AddCollisionGeometry_(F, BOX, ChVector<>(container_R, container_R, container_T), lpos, quat);
+	AddCollisionGeometry_(B, BOX, ChVector<>(container_R, container_R, container_T), lpos, quat);
+	AddCollisionGeometry_(BTM, BOX, ChVector<>(container_R, container_T, container_R), lpos, quat);
 
 	//FinalizeObject(L, mSys);
 	//FinalizeObject(R, mSys);
 	//FinalizeObject(F, mSys);
 	//FinalizeObject(B, mSys);
-	FinalizeObject(BTM, mSys);
+	FinalizeObject_(BTM, mSys);
 
 
 	ChMitsubaRender output(mSys);

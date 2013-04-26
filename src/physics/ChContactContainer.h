@@ -76,6 +76,9 @@ public:
 					/// Tell the number of added contacts
 	virtual int GetNcontacts  () {return n_added + n_added_roll;}
 
+					/// Return the contact List
+	virtual std::list<ChContact*> & GetContactList() {return contactlist;}
+
 					/// Remove (delete) all contained contact data.
 	virtual void RemoveAllContacts();
 
