@@ -532,7 +532,8 @@ uint & number_of_contacts
 ) {
 
 	total_possible_contacts = potentialCollisions.size();
-#ifdef DEBUG_GPU
+
+#ifdef PRINT_DEBUG_GPU
 		cout << "Number of total_possible_contacts: " << total_possible_contacts << endl;
 #endif
 		custom_vector<uint> generic_counter(total_possible_contacts);
@@ -582,7 +583,7 @@ uint & number_of_contacts
 				bids_data.data());
 #endif
 		number_of_contacts = total_possible_contacts - Thrust_Count(generic_counter, 1);
-#ifdef DEBUG_GPU
+#ifdef PRINT_DEBUG_GPU
 		cout << "Number of number_of_contacts: " << number_of_contacts << endl;
 #endif
 		thrust::sort_by_key(

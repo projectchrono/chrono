@@ -104,11 +104,18 @@ void ChLcpSolverGPU::RunTimeStep(real step, gpu_container& gpu_data) {
 	number_of_bilaterals = 0; ///gpu_data.number_of_bilaterals;
 	number_of_objects = gpu_data.number_of_objects;
 	//cout << number_of_constraints << " " << number_of_contacts << " " << number_of_bilaterals << " " << number_of_objects << endl;
-
+#ifdef PRINT_DEBUG_GPU
+		cout << "Preprocess: " << endl;
+#endif
 	Preprocess(gpu_data);
+#ifdef PRINT_DEBUG_GPU
+		cout << "Jacobians: " << endl;
+#endif
 	ChJacobianGPU jacobian_compute;
 	jacobian_compute.ComputeJacobians(gpu_data);
-
+#ifdef PRINT_DEBUG_GPU
+		cout << "Solve: " << endl;
+#endif
 	if (solver_type == BLOCK_JACOBI) {
 		ChSolverJacobi jacobi_solver;
 		jacobi_solver.SetMaxIterations(max_iteration);
@@ -134,7 +141,9 @@ void ChLcpSolverGPU::RunTimeStep(real step, gpu_container& gpu_data) {
 		rhs = solver.rhs;
 		lambda = gpu_data.device_gam_data;
 	}
-
+#ifdef PRINT_DEBUG_GPU
+		cout << "Solve Done: "<<residual << endl;
+#endif
 	//ChIntegratorGPU integrator;
 	//integrator.IntegrateSemiImplicit(step, gpu_data);
 }

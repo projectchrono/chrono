@@ -275,7 +275,9 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data, cus
 	custom_vector<uint> Num_ContactD;
 	double startTime = omp_get_wtime();
 	numAABB = aabb_data.size()/2;
-#ifdef DEBUG_GPU
+
+
+#ifdef PRINT_DEBUG_GPU
 		cout << "Number of AABBs: "<<numAABB<<endl;
 #endif
 		// STEP 1: Initialization TODO: this could be put in the constructor
@@ -300,7 +302,7 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data, cus
 		bin_size_vec = (fabs(max_bounding_point + fabs(min_bounding_point)));
 		bin_size_vec = bin_size_vec/bins_per_axis;//CHANGED: this was supposed to be reversed, CHANGED BACK this is just the inverse for convenience (saves us the divide later)
 		thrust::transform(aabb_data.begin(), aabb_data.end(), thrust::constant_iterator<real3>(global_origin), aabb_data.begin(), thrust::plus<real3>());//CHANGED: Should be a minus
-#ifdef DEBUG_GPU
+#ifdef PRINT_DEBUG_GPU
 		cout << "Global Origin: (" << global_origin.x << ", " << global_origin.y << ", " << global_origin.z << ")" << endl;
 		cout << "Maximum bounding point: (" << max_bounding_point.x << ", " << max_bounding_point.y << ", " << max_bounding_point.z << ")" << endl;
 		cout << "Bin size vector: (" << bin_size_vec.x << ", " << bin_size_vec.y << ", " << bin_size_vec.z << ")" << endl;
@@ -316,7 +318,7 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data, cus
 		host_Count_AABB_BIN_Intersection(aabb_data.data(), Bins_Intersected.data());
 #endif
 		Thrust_Inclusive_Scan_Sum(Bins_Intersected, number_of_bin_intersections);
-#ifdef DEBUG_GPU
+#ifdef PRINT_DEBUG_GPU
 		cout << "Number of bin intersections: " << number_of_bin_intersections << endl;
 #endif
 		bin_number.resize(number_of_bin_intersections);
@@ -330,7 +332,7 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data, cus
 		host_Store_AABB_BIN_Intersection(aabb_data.data(), Bins_Intersected.data(),
 				bin_number.data(), body_number.data());
 #endif
-#ifdef DEBUG_GPU
+#ifdef PRINT_DEBUG_GPU
 		cout<<"DONE WID DAT (device_Store_AABB_BIN_Intersection)"<<endl;
 #endif
 //    for(int i=0; i<bin_number.size(); i++){
@@ -343,7 +345,7 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data, cus
 //    	cout<<bin_number[i]<<" "<<body_number[i]<<endl;
 //    }
 
-#ifdef DEBUG_GPU
+#ifdef PRINT_DEBUG_GPU
 #endif
 
 		Thrust_Reduce_By_KeyA(last_active_bin, bin_number,bin_start_index);
@@ -358,7 +360,7 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data, cus
 //    bin_number=Output;
 //    bin_start_index=bin_start_index_t;
 
-#ifdef DEBUG_GPU
+#ifdef PRINT_DEBUG_GPU
 #endif
 ////      //QUESTION: I have no idea what is going on here
 		if(last_active_bin<=0) {number_of_contacts_possible = 0; return 0;}
@@ -370,9 +372,9 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data, cus
 			bins_per_axis = bins_per_axis * .9;
 		}
 
-//cout <<val<<" "<<bins_per_axis.x<<" "<<bins_per_axis.y<<" "<<bins_per_axis.z<<endl;
 		bin_start_index.resize(last_active_bin);
-#ifdef DEBUG_GPU
+#ifdef PRINT_DEBUG_GPU
+		cout <<val<<" "<<bins_per_axis.x<<" "<<bins_per_axis.y<<" "<<bins_per_axis.z<<endl;
 		cout << "Last active bin: " << last_active_bin << endl;
 #endif
 		Thrust_Inclusive_Scan(bin_start_index);
@@ -418,12 +420,12 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data, cus
 				potentialCollisions.end()) - potentialCollisions.begin();
 
 		potentialCollisions.resize(number_of_contacts_possible);
-#ifdef DEBUG_GPU
+#ifdef PRINT_DEBUG_GPU
 		cout << "Number of possible collisions: " << number_of_contacts_possible << endl;
 #endif
 		// END STEP 6
 		double endTime = omp_get_wtime();
-#ifdef DEBUG_GPU
+#ifdef PRINT_DEBUG_GPU
 		printf("Time to detect: %lf seconds\n", (endTime - startTime));
 #endif
 		return 0;

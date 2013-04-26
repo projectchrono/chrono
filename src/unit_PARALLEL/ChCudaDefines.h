@@ -64,7 +64,7 @@ typedef unsigned int uint;
 #define custom_vector thrust::host_vector
 #endif
 
-//#define DEBUG_GPU
+//#define PRINT_DEBUG_GPU
 
 //defines to cast thrust vectors as raw pointers
 #define CASTC1(x) (char*)thrust::raw_pointer_cast(&x[0])
