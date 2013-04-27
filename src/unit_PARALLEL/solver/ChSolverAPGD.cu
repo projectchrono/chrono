@@ -120,7 +120,7 @@ custom_vector<real> &obj1_tmp,
 custom_vector<real> &obj2_tmp) {
 
 #ifdef SIM_ENABLE_GPU_MODE
-		partOne_device CUDA_KERNEL_DIM(BLOCKS(size), THREADS)(size,
+		partTwo_device CUDA_KERNEL_DIM(BLOCKS(size), THREADS)(size,
 				CASTR1(ms),
 				CASTR1(mg),
 				CASTR1(obj1_tmp),
