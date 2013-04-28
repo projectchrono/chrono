@@ -34,7 +34,7 @@ namespace chrono {
 					uint *offset);
 			void host_Bilaterals(real4 *bilaterals, real *mass, real3 *inertia, real4 *rot, real3 *vel, real3 *omega, real3 *pos, real3 *updateV, real3 *updateO, uint *offset, real *dG);
 			void host_Reduce_Speeds(bool *active, real * mass, real3 *vel, real3 *omega, real3 *updateV, real3 *updateO, uint *d_body_num, uint *counter, real3 *fap);
-			void host_Offsets(int2 *ids, real4 *bilaterals, uint *Body);
+			//void host_Offsets(int2 *ids, real4 *bilaterals, uint *Body);
 
 			real lcp_omega_bilateral;
 			real lcp_omega_contact;

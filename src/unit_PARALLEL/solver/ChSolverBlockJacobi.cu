@@ -390,41 +390,41 @@ __global__ void device_Reduce_Speeds(bool* active, real* mass, real3* vel, real3
 	function_Reduce_Speeds(index, active, mass, vel, omega, updateV, updateO, d_body_num, counter, fap);
 }
 void ChSolverJacobi::host_Reduce_Speeds(bool* active, real* mass, real3* vel, real3* omega, real3* updateV, real3* updateO, uint* d_body_num, uint* counter, real3* fap) {
-#pragma omp parallel for schedule(guided)
+#pragma omp parallel for
 
 	for (uint index = 0; index < number_of_updates; index++) {
 		function_Reduce_Speeds(index, active, mass, vel, omega, updateV, updateO, d_body_num, counter, fap);
 	}
 }
-__global__ void device_Offsets(int2* ids, real4* bilaterals, uint* Body) {
-	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-
-	if (index < number_of_contacts_const) {
-		int2 temp_id = ids[index];
-		Body[index] = temp_id.x;
-		Body[index + number_of_contacts_const] = temp_id.y;
-	}
-
-	if (index < number_of_bilaterals_const) {
-		Body[2 * number_of_contacts_const + index] = bilaterals[index].w;
-		Body[2 * number_of_contacts_const + index + number_of_bilaterals_const] = bilaterals[index + number_of_bilaterals_const].w;
-	}
-}
-
-void ChSolverJacobi::host_Offsets(int2* ids, real4* bilaterals, uint* Body) {
-	for (uint index = 0; index < number_of_constraints; index++) {
-		if (index < number_of_contacts) {
-			int2 temp_id = ids[index];
-			Body[index] = temp_id.x;
-			Body[index + number_of_contacts] = temp_id.y;
-		}
-
-		if (index < number_of_bilaterals) {
-			Body[2 * number_of_contacts + index] = bilaterals[index].w;
-			Body[2 * number_of_contacts + index + number_of_bilaterals] = bilaterals[index + number_of_bilaterals].w;
-		}
-	}
-}
+//__global__ void device_Offsets(int2* ids, real4* bilaterals, uint* Body) {
+//	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+//
+//	if (index < number_of_contacts_const) {
+//		int2 temp_id = ids[index];
+//		Body[index] = temp_id.x;
+//		Body[index + number_of_contacts_const] = temp_id.y;
+//	}
+//
+//	if (index < number_of_bilaterals_const) {
+//		Body[2 * number_of_contacts_const + index] = bilaterals[index].w;
+//		Body[2 * number_of_contacts_const + index + number_of_bilaterals_const] = bilaterals[index + number_of_bilaterals_const].w;
+//	}
+//}
+//
+//void ChSolverJacobi::host_Offsets(int2* ids, real4* bilaterals, uint* Body) {
+//	for (uint index = 0; index < number_of_contacts+number_of_bilaterals; index++) {
+//		if (index < number_of_contacts) {
+//			int2 temp_id = ids[index];
+//			Body[index] = temp_id.x;
+//			Body[index + number_of_contacts] = temp_id.y;
+//		}
+//
+//		if (index < number_of_bilaterals) {
+//			Body[2 * number_of_contacts + index] = bilaterals[index].w;
+//			Body[2 * number_of_contacts + index + number_of_bilaterals] = bilaterals[index + number_of_bilaterals].w;
+//		}
+//	}
+//}
 ChSolverJacobi::ChSolverJacobi() {
 
 }
@@ -452,45 +452,45 @@ void ChSolverJacobi::Solve(real step, gpu_container& gpu_data_) {
 #else
 #endif
 
-	custom_vector<uint> body_num;
-	custom_vector<uint> update_number;
-
-	if (number_of_constraints > 0) {
-		update_number.resize((number_of_constraints) * 2, 0);
-		gpu_data->offset_counter.resize((number_of_constraints) * 2, 0);
-		gpu_data->update_offset.resize((number_of_constraints) * 2, 0);
-		body_num.resize((number_of_constraints) * 2, 0);
-		gpu_data->device_dgm_data.resize((number_of_constraints));
-		gpu_data->device_gam_data.resize((number_of_constraints));
-		Thrust_Fill(gpu_data->device_dgm_data, 1);
-		gpu_data->vel_update.resize((number_of_constraints) * 2);
-		gpu_data->omg_update.resize((number_of_constraints) * 2);
-#ifdef SIM_ENABLE_GPU_MODE
-		device_Offsets CUDA_KERNEL_DIM(BLOCKS(number_of_constraints), THREADS)(CASTI2(gpu_data->device_bids_data), CASTR4(gpu_data->device_bilateral_data), CASTU1(body_num));
-#else
-		host_Offsets(gpu_data->device_bids_data.data(), gpu_data->device_bilateral_data.data(), body_num.data());
-#endif
-		Thrust_Sequence(update_number);
-		Thrust_Sequence(gpu_data->update_offset);
-		Thrust_Fill(gpu_data->offset_counter, 0);
-		Thrust_Sort_By_Key(body_num, update_number);
-		Thrust_Sort_By_Key(update_number, gpu_data->update_offset);
-		gpu_data->body_number = body_num;
-		Thrust_Reduce_By_KeyB(gpu_data->number_of_updates, body_num, update_number, gpu_data->offset_counter);
-//        host_vector<uint> body_num_t=body_num;
-//        host_vector<uint> update_number_t=update_number;
-//        host_vector<uint> offset_counter_t=gpu_data->offset_counter;
-//        Thrust_Reduce_By_KeyB(gpu_data->number_of_updates, body_num_t, update_number_t, offset_counter_t);
-//        body_num=body_num_t;
-//        update_number=update_number_t;
-//        gpu_data->offset_counter=offset_counter_t;
-		Thrust_Inclusive_Scan(gpu_data->offset_counter);
-	}
-	number_of_updates = gpu_data->number_of_updates;
+//	custom_vector<uint> body_num;
+//	custom_vector<uint> update_number;
+//	uint number_of_cont_bilat = number_of_contacts + number_of_bilaterals;
+//	if (number_of_cont_bilat > 0) {
+//		update_number.resize((number_of_cont_bilat) * 2, 0);
+//		gpu_data->offset_counter.resize((number_of_cont_bilat) * 2, 0);
+//		gpu_data->update_offset.resize((number_of_cont_bilat) * 2, 0);
+//		body_num.resize((number_of_cont_bilat) * 2, 0);
+//		gpu_data->device_dgm_data.resize((number_of_constraints));
+//		gpu_data->device_gam_data.resize((number_of_constraints));
+//		Thrust_Fill(gpu_data->device_dgm_data, 1);
+//		gpu_data->vel_update.resize((number_of_cont_bilat) * 2);
+//		gpu_data->omg_update.resize((number_of_cont_bilat) * 2);
+//#ifdef SIM_ENABLE_GPU_MODE
+//		device_Offsets CUDA_KERNEL_DIM(BLOCKS(number_of_cont_bilat), THREADS)(CASTI2(gpu_data->device_bids_data), CASTR4(gpu_data->device_bilateral_data), CASTU1(body_num));
+//#else
+//		host_Offsets(gpu_data->device_bids_data.data(), gpu_data->device_bilateral_data.data(), body_num.data());
+//#endif
+//		Thrust_Sequence(update_number);
+//		Thrust_Sequence(gpu_data->update_offset);
+//		Thrust_Fill(gpu_data->offset_counter, 0);
+//		Thrust_Sort_By_Key(body_num, update_number);
+//		Thrust_Sort_By_Key(update_number, gpu_data->update_offset);
+//		gpu_data->body_number = body_num;
+//		Thrust_Reduce_By_KeyB(gpu_data->number_of_updates, body_num, update_number, gpu_data->offset_counter);
+////        host_vector<uint> body_num_t=body_num;
+////        host_vector<uint> update_number_t=update_number;
+////        host_vector<uint> offset_counter_t=gpu_data->offset_counter;
+////        Thrust_Reduce_By_KeyB(gpu_data->number_of_updates, body_num_t, update_number_t, offset_counter_t);
+////        body_num=body_num_t;
+////        update_number=update_number_t;
+////        gpu_data->offset_counter=offset_counter_t;
+//		Thrust_Inclusive_Scan(gpu_data->offset_counter);
+//	}
+//	number_of_updates = gpu_data->number_of_updates;
 #ifdef SIM_ENABLE_GPU_MODE
 	COPY_TO_CONST_MEM(number_of_updates);
 #endif
-	if (number_of_constraints != 0) {
+	if (number_of_contacts + number_of_bilaterals != 0) {
 		for (current_iteration = 0; current_iteration < max_iteration; current_iteration++) {
 			//ComputeRHS();
 

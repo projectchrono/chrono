@@ -27,11 +27,13 @@ namespace chrono {
 			void ComputeRHS();
 			void ComputeImpulses();
 
-			void host_shurA(int2 *ids, bool *active,real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *QXYZ, real3 *QUVW);
+			void host_shurA(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *QXYZ, real3 *QUVW,uint* offset);
 			void host_shurB(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia,real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX);
 			void host_RHS(int2 *ids, real *correction,bool * active, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs);
 			void host_bi(real *correction, real* bi);
 			void host_Project(int2 *ids, real *friction, real *gamma);
+			void host_Offsets(int2 *ids, real4 *bilaterals, uint *Body);
+			void host_Reduce_Shur(bool *active, real3 *vel, real3 *omega, real3 *updateV, real3 *updateO, uint *d_body_num, uint *counter);
 			void ShurProduct( custom_vector<real> &x_t, custom_vector<real> & AX);
 
 			void Solve(GPUSOLVERTYPE solver_type, real step, gpu_container &gpu_data_);
@@ -43,6 +45,23 @@ namespace chrono {
 			uint SolveBiCGStab(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 			uint SolveMinRes(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 			uint SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
+			/////APGD specific:
+
+			void PART_A(const uint size, custom_vector<bool> & active, custom_vector<int2> & ids,
+					custom_vector<real> & fric,
+					custom_vector<real3> & QXYZ, custom_vector<real3> & QUVW,
+					custom_vector<real> & mx,custom_vector<real> & my,custom_vector<real> & ms,
+					const custom_vector<real> & b,custom_vector<real> & mg,custom_vector<real> & mg_tmp2,
+
+					custom_vector<real3> & JXYZA, custom_vector<real3> & JXYZB,
+					custom_vector<real3> & JUVWA, custom_vector<real3> & JUVWB,
+					const real & t_k,
+
+					real & obj1,real& obj2);
+			///////
+
+
+
 
 			int GetIteration() {
 				return current_iteration;
@@ -105,13 +124,19 @@ namespace chrono {
 			uint number_of_updates;
 			uint number_of_constraints;
 
-			int current_iteration, max_iteration;
+			int current_iteration, max_iteration, total_iteration;
 			real residual, epsilon, tolerance;
 
 			custom_vector<int2> temp_bids;
 			custom_vector<real> rhs, correction, bi;
 			gpu_container *gpu_data;
 			ChTimer<double> timer_rhs, timer_shurcompliment, timer_project, timer_solver;
+
+			custom_vector<uint> body_num;
+			custom_vector<uint> update_number;
+
+
+
 		protected:
 		};
 
