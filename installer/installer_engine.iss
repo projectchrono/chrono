@@ -288,7 +288,6 @@ begin
   ConfigOptionPage.Values[1] := False;
 
   
-
   //
   // Select directory dialog for Irrlicht
   //
