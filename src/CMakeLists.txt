@@ -152,8 +152,8 @@ set(CH_OS "${CMAKE_SYSTEM_NAME}" CACHE STRING "Set OS, Re-Run configure after ch
 # Find the Chrono::Engine headers and related stuff contained
 # in its SDK, and setup related variables
 
-#SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-#SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 find_package("OpenMP")
 if(OPENMP_FOUND)
