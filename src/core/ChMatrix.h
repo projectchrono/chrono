@@ -619,15 +619,21 @@ public:
 							}
 						}
 		
-					///returns the determinant of the matrix (max 3x3)
-	double Det(){
-		try{
-			if (this->GetRows() != this->GetColumns())
-				throw("non-square matrix");
+					/// Returns the determinant of the matrix. 
+					/// Note! This method must be used only with max 3x3 matrices, 
+					/// otherwise it throws an exception.
+	double Det()
+		{
+			assert (this->GetRows()==this->GetColumns());
+			assert (this->GetRows() <= 3);
+
+			if (this->GetRows() != this->GetColumns()) 
+				throw("Cannot compute matrix determinant because rectangular matrix");
 			if (this->GetRows() > 3)
-				throw("order of the matrix > 3");
-			double det;
-			switch (this->GetRows()) {
+				throw("Cannot compute matrix determinant because matr. larger than 3x3");
+			double det = 0;
+			switch (this->GetRows()) 
+			{
 				case 1:
 					det = (*this)(0,0);
 					break;
@@ -645,11 +651,8 @@ public:
 					break;
 			}
 			return det;
-		}
-		catch (char *a) {
-			GetLog() << "Unable to calculate the Determinant: " << a << "\n";
-		}
 	}
+
 
 					/// Returns true if vector is identical to other vector
 	bool	Equals ( const ChMatrix<Real>& other) { return Equals(other,0.0); }
