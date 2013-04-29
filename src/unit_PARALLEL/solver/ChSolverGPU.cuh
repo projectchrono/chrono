@@ -33,7 +33,8 @@ namespace chrono {
 			void host_bi(real *correction, real* bi);
 			void host_Project(int2 *ids, real *friction, real *gamma);
 			void host_Offsets(int2 *ids, real4 *bilaterals, uint *Body);
-			void host_Reduce_Shur(bool *active, real3 *vel, real3 *omega, real3 *updateV, real3 *updateO, uint *d_body_num, uint *counter);
+			void host_Reduce_Shur(bool* active, real3* QXYZ, real3* QUVW,real *inv_mass, real3 *inv_inertia, real3* updateQXYZ, real3* updateQUVW, uint* d_body_num, uint* counter);
+
 			void ShurProduct( custom_vector<real> &x_t, custom_vector<real> & AX);
 
 			void Solve(GPUSOLVERTYPE solver_type, real step, gpu_container &gpu_data_);
@@ -47,7 +48,7 @@ namespace chrono {
 			uint SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 			/////APGD specific:
 
-			void PART_A(const uint size, custom_vector<bool> & active, custom_vector<int2> & ids,
+			real PART_A(const uint size, custom_vector<bool> & active, custom_vector<int2> & ids,
 					custom_vector<real> & fric,
 					custom_vector<real3> & QXYZ, custom_vector<real3> & QUVW,
 					custom_vector<real> & mx,custom_vector<real> & my,custom_vector<real> & ms,
@@ -55,9 +56,25 @@ namespace chrono {
 
 					custom_vector<real3> & JXYZA, custom_vector<real3> & JXYZB,
 					custom_vector<real3> & JUVWA, custom_vector<real3> & JUVWB,
-					const real & t_k,
+					const real & t_k,const real & L_k,
 
-					real & obj1,real& obj2);
+					real & obj1,real& obj2,real& min_val,
+					custom_vector<real> &obj1_tmp,custom_vector<real> &obj2_tmp,custom_vector<real> &obj3_tmp1,custom_vector<real> &obj3_tmp2
+			);
+
+			real PART_B(const uint size, custom_vector<bool> & active, custom_vector<int2> & ids,
+			custom_vector<real> & fric,
+			custom_vector<real3> & QXYZ, custom_vector<real3> & QUVW,
+			custom_vector<real> & mx,custom_vector<real> & my,custom_vector<real> & ms,
+			const custom_vector<real> & b,custom_vector<real> & mg,custom_vector<real> & mg_tmp2,
+
+			custom_vector<real3> & JXYZA, custom_vector<real3> & JXYZB,
+			custom_vector<real3> & JUVWA, custom_vector<real3> & JUVWB,
+			const real & t_k,const real & L_k,
+
+			real & obj1,real& obj2,real& min_val,
+			custom_vector<real> &obj1_tmp,custom_vector<real> &obj2_tmp,custom_vector<real> &obj3_tmp1,custom_vector<real> &obj3_tmp2);
+
 			///////
 
 
