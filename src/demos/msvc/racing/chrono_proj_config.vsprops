@@ -19,7 +19,7 @@
 	/>
 	<UserMacro
 		Name="ChronoEngineLib"
-		Value="C:\tasora\code\nightly_build"
+		Value="C:\tasora\code\nightly_build\lib"
 	/>
 	<UserMacro
 		Name="IrrlichtDir"
