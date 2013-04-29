@@ -20,7 +20,7 @@
    ...
 	<UserMacro
 		Name="IrrlichtDir"
-		Value="C:\irrlicht-1.7.1"
+		Value="C:\irrlicht-1.7.3"
 	/>
 	
 - now double click on the xxxxxx.sln file to open the Microsoft
