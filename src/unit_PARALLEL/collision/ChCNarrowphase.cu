@@ -179,7 +179,7 @@ __device__ __host__ bool CollideAndFindPoint(
 	bool hit = false;
 	int phase1 = 0;
 	int phase2 = 0;
-	int max_iterations = 34;
+	int max_iterations = 340;
 
 	while (true) {
 		if (phase1 > max_iterations) {
