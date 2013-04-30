@@ -77,19 +77,18 @@ void ChMitsubaRender::AddSensor() {
 }
 
 void ChMitsubaRender::AddObject(ChSharedPtr<ChAsset> & asset, ChBody * abody) {
-	
 
 	if (asset.IsType<ChSphereShape>()) {
-        XMLElement* xml = data.NewElement("shape");
+		XMLElement* xml = data.NewElement("shape");
 		xml->SetAttribute("type", "sphere");
 
 		ChSphereShape * sphere_shape = ((ChSphereShape *) (asset.get_ptr()));
-        
-        XMLElement* xml_pos = data.NewElement("float");
+
+		XMLElement* xml_pos = data.NewElement("float");
 		xml_pos->SetAttribute("name", "radius");
 		xml_pos->SetAttribute("value", sphere_shape->GetSphereGeometry().rad);
 		xml->LinkEndChild(xml_pos);
-        
+
 		Vector center = sphere_shape->GetSphereGeometry().center;
 		center = abody->GetRot().Rotate(center);
 
@@ -97,41 +96,41 @@ void ChMitsubaRender::AddObject(ChSharedPtr<ChAsset> & asset, ChBody * abody) {
 		xml_transform->SetAttribute("name", "toWorld");
 
 		xml_pos = data.NewElement("translate");
-		xml_pos->SetAttribute("x", double(abody->GetPos().x+center.x));
-		xml_pos->SetAttribute("y", double(abody->GetPos().y+center.x));
-		xml_pos->SetAttribute("z", double(abody->GetPos().z+center.x));
+		xml_pos->SetAttribute("x", double(abody->GetPos().x + center.x));
+		xml_pos->SetAttribute("y", double(abody->GetPos().y + center.x));
+		xml_pos->SetAttribute("z", double(abody->GetPos().z + center.x));
 		xml_transform->LinkEndChild(xml_pos);
 		//xml_pos = data.NewElement("scale");
 		//xml_pos->SetAttribute("value", sphere_shape->GetSphereGeometry().rad);
 		//xml_transform->LinkEndChild(xml_pos);
 		xml->LinkEndChild(xml_transform);
-        root_data->LinkEndChild(xml);
+		root_data->LinkEndChild(xml);
 
 	}
 	//if (asset.IsType<ChGenericRender>()) {
 
-		//ChGenericRender * obj_shape = ((ChGenericRender *) (asset.get_ptr()));
+	//ChGenericRender * obj_shape = ((ChGenericRender *) (asset.get_ptr()));
 
-		//xml->SetAttribute("type", "serialized");
+	//xml->SetAttribute("type", "serialized");
 
-		//xml_name = data.NewElement("string");
-		//xml_name->SetAttribute("name", "filename");
-		//xml_name->SetAttribute("value", obj_shape->model_file);
-		//xml->LinkEndChild(xml_name);
+	//xml_name = data.NewElement("string");
+	//xml_name->SetAttribute("name", "filename");
+	//xml_name->SetAttribute("value", obj_shape->model_file);
+	//xml->LinkEndChild(xml_name);
 
-		//XMLElement* xml_pos = data.NewElement("point");
-		//xml_pos->SetAttribute("name", "center");
-		//xml_pos->SetAttribute("x", double(obj_shape->GetBoxGeometry().Pos.x));
-		//xml_pos->SetAttribute("y", double(obj_shape->GetBoxGeometry().Pos.y));
-		//xml_pos->SetAttribute("z", double(obj_shape->GetBoxGeometry().Pos.z));
-		//xml->LinkEndChild(xml_pos);
+	//XMLElement* xml_pos = data.NewElement("point");
+	//xml_pos->SetAttribute("name", "center");
+	//xml_pos->SetAttribute("x", double(obj_shape->GetBoxGeometry().Pos.x));
+	//xml_pos->SetAttribute("y", double(obj_shape->GetBoxGeometry().Pos.y));
+	//xml_pos->SetAttribute("z", double(obj_shape->GetBoxGeometry().Pos.z));
+	//xml->LinkEndChild(xml_pos);
 
-		//xml_pos = data.NewElement("float");
-		//xml_pos->SetAttribute("name", "radius");
-		//xml_pos->SetAttribute("value", box_shape->GetSphereGeometry().rad);
-		//xml->LinkEndChild(xml_pos);
+	//xml_pos = data.NewElement("float");
+	//xml_pos->SetAttribute("name", "radius");
+	//xml_pos->SetAttribute("value", box_shape->GetSphereGeometry().rad);
+	//xml->LinkEndChild(xml_pos);
 	//}
-	
+
 }
 
 ChMitsubaRender::ChMitsubaRender(ChSystem* system) :
@@ -218,8 +217,10 @@ void ChMitsubaRender::ExportData(const std::string &filename) {
 	for (int i = 0; i < mSystem->Get_bodylist()->size(); i++) {
 		ChBody* abody = (ChBody*) mSystem->Get_bodylist()->at(i);
 		if (abody->GetAssets().size() > 0) {
-			ChSharedPtr<ChAsset> asset = abody->GetAssets().at(0);
-			AddObject(asset, abody);
+			for (int j = 0; j < abody->GetAssets().size(); j++) {
+				ChSharedPtr<ChAsset> asset = abody->GetAssets().at(j);
+				AddObject(asset, abody);
+			}
 		}
 	}
 
@@ -227,14 +228,14 @@ void ChMitsubaRender::ExportData(const std::string &filename) {
 	data.SaveFile(filename.c_str());
 }
 
-void ChMitsubaRender::ExportDriver(const std::string &filename){
-    ofstream of(filename.c_str());
-    
-    of<<"#!/bin/sh"<<endl;
-    of<<"for i in {0..999}"<<endl;
-    of<<"do"<<endl;
-    of<<"/Applications/Mitsuba.app/Contents/MacOS/mitsuba -D  file=$i -o "<<render_folder<<"/$i.png test.xml"<<endl;
-    of<<"done"<<endl;
-    
+void ChMitsubaRender::ExportDriver(const std::string &filename) {
+	ofstream of(filename.c_str());
+
+	of << "#!/bin/sh" << endl;
+	of << "for i in {0..999}" << endl;
+	of << "do" << endl;
+	of << "/Applications/Mitsuba.app/Contents/MacOS/mitsuba -D  file=$i -o " << render_folder << "/$i.png test.xml" << endl;
+	of << "done" << endl;
+
 }
 
