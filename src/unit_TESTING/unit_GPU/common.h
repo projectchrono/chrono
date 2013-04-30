@@ -266,7 +266,7 @@ bool printContactsCPU(ChSystem* system_cpu, vector<contact_dat> & contact_cpu) {
 	contact_dat icontact;
 	std::vector<ChLcpConstraint*>& mconstraints = system_cpu->GetLcpSystemDescriptor()->GetConstraintsList();
 	int i = 0;
-	ChMatrix<double>* JA, *JB;
+	ChMatrix<float>* JA, *JB;
 	real lagrange;
 
 	vector<double> rhs_cpu;

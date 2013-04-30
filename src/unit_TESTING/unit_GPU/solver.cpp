@@ -2,9 +2,9 @@
 
 vector<contact_dat> contact_cpu, contact_gpu;
 real tolerance = 0;
-real step_size=.005;
-real solver_tolerance = 1e-3;
-uint solver_iter = 20;
+real step_size = .005;
+real solver_tolerance = 1e-1;
+uint solver_iter = 100;
 real mass = 1;
 real radius = .1;
 Vector inertia = Vector(2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius);
@@ -14,6 +14,10 @@ real envelope = 1e-3;
 
 template<class T>
 void RunTimeStep(T* mSys, const int frame) {
+
+	cout << "Residual: " << ((ChLcpSolverGPU *) (mSys->GetLcpSolverSpeed()))->GetResidual() << endl;
+	cout << "ITER: " << ((ChLcpSolverGPU *) (mSys->GetLcpSolverSpeed()))->GetTotalIterations() << endl;
+
 }
 
 template<class T>
@@ -115,7 +119,7 @@ void LoadObjects(ChSystemGPU* mSys, string filename) {
 		ReadLine(temp, body, counter);
 		counter++;
 	}
-
+	cout << "Done oading" << endl;
 	ChSharedBodyGPUPtr L = ChSharedBodyGPUPtr(new ChBodyGPU);
 	ChSharedBodyGPUPtr R = ChSharedBodyGPUPtr(new ChBodyGPU);
 	ChSharedBodyGPUPtr F = ChSharedBodyGPUPtr(new ChBodyGPU);
@@ -138,7 +142,7 @@ void LoadObjects(ChSystemGPU* mSys, string filename) {
 
 }
 int main(int argc, char* argv[]) {
-//omp_set_num_threads(1);
+omp_set_num_threads(3);
 
 	ChSystem * system_cpu = new ChSystem;
 //	{
@@ -195,28 +199,32 @@ int main(int argc, char* argv[]) {
 		((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->SetCompliance(0, 0, 0);
 		((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->SetContactRecoverySpeed(.6);
 		((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->SetSolverType(ACCELERATED_PROJECTED_GRADIENT_DESCENT);
+		//((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->SetSolverType(BLOCK_JACOBI);
 		((ChCollisionSystemGPU *) (system_gpu->GetCollisionSystem()))->SetCollisionEnvelope(envelope);
 
 		//createGeometryGPU(system_gpu);
 		LoadObjects(system_gpu, "stack10000_bodies.txt");
 	}
-//	ChOpenGLManager * window_manager = new ChOpenGLManager();
-//	ChOpenGL openGLView(window_manager, system_gpu, 800, 600, 0, 0, "Test_Solvers");
-//	//openGLView.AddSystem(system_cpu);
-//	openGLView.SetCustomCallback(RunTimeStep);
-//	openGLView.StartSpinning(window_manager);
-//	window_manager->CallGlutMainLoop();
-
+	ChOpenGLManager * window_manager = new ChOpenGLManager();
+	ChOpenGL openGLView(window_manager, system_gpu, 800, 600, 0, 0, "Test_Solvers");
+	//openGLView.AddSystem(system_cpu);
+	openGLView.SetCustomCallback(RunTimeStep);
+	openGLView.StartSpinning(window_manager);
+	window_manager->CallGlutMainLoop();
+	ChTimer<double> timer;
+	timer.start();
 	int counter = 0;
-	while (counter < 100) {
+	while (counter < 20) {
 		RunTimeStep(system_gpu, counter);
 		system_gpu->DoStepDynamics(step_size);
-
+		cout << "Residual: " << ((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->GetResidual() << endl;
+		cout << "ITER: " << ((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->GetTotalIterations() << endl;
 		cout << "DONE: =============" << counter << endl;
+
 		counter++;
 	}
-
-
+	timer.stop();
+	cout << "TOTAL TIME " << timer();
 
 //	while (counter < 1) {
 //
