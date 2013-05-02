@@ -30,10 +30,17 @@ __device__ __host__ inline real3 GetSupportPoint_Box(const real3 &B, const real3
 }
 __device__ __host__ inline real3 GetSupportPoint_Ellipsoid(const real3 &B, const real3 &n) {
 
-	real3 norm=normalize(n);
-	real3 dim=(norm*norm)/(B*B);
-	real k = sqrt(1/(dim.x+dim.y+dim.z));
-	return k*norm;
+	real3 normal=normalize(n);
+	real3 result = B*B*normal/length(B*normal);
+	//cout << result.x << " " << result.y << " " << result.z<<endl;
+	return result;
+
+
+//
+//	real3 norm=normalize(n);
+//	real3 dim=(norm*norm)/(B*B);
+//	real k = sqrt(1/(dim.x+dim.y+dim.z));
+//	return k*norm;
 }
 
 __device__ __host__ inline real3 GetSupportPoint_Cylinder(const real3 &B, const real3 &n) {

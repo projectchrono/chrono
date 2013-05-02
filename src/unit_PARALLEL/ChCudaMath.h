@@ -269,7 +269,7 @@ static __host__     __device__ real3 normalize(const T &a) {
 
 	real len = length(a);
 	if (len < 1.e-20) {
-		return R3(1, 0, 0);
+		return R3(0, 1, 0);
 	}
 	return a * 1.0 / len;
 }
@@ -568,6 +568,37 @@ static __host__     __device__ M33 AMat(real4 q) {
 //	result.U.z = (2 * q.x * q.z - 2 * q.w * q.y);
 //	result.V.z = (2 * q.y * q.z + 2 * q.w * q.x);
 //	result.W.z = (q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z);
+	return result;
+
+}
+//[U.x,U.y,U.z]
+//[V.x,V.y,V.z]
+//[W.x,W.y,W.z]
+static __host__     __device__ M33 AMatT(real4 q) {
+	M33 result;
+
+	real e0e0 = q.w * q.w;
+	real e1e1 = q.x * q.x;
+	real e2e2 = q.y * q.y;
+	real e3e3 = q.z * q.z;
+	real e0e1 = q.w * q.x;
+	real e0e2 = q.w * q.y;
+	real e0e3 = q.w * q.z;
+	real e1e2 = q.x * q.y;
+	real e1e3 = q.x * q.z;
+	real e2e3 = q.y * q.z;
+	result.U.x = (e0e0 + e1e1) * 2 - 1;
+	result.U.y = (e1e2 - e0e3) * 2;
+	result.U.z = (e1e3 + e0e2) * 2;
+
+	result.V.x = (e1e2 + e0e3) * 2;
+	result.V.y = (e0e0 + e2e2) * 2 - 1;
+	result.V.z = (e2e3 - e0e1) * 2;
+
+	result.W.x = (e1e3 - e0e2) * 2;
+	result.W.y = (e2e3 + e0e1) * 2;
+	result.W.z = (e0e0 + e3e3) * 2 - 1;
+
 	return result;
 
 }
