@@ -1,384 +1,335 @@
-///////////////////////////////////////////////////
-//
-//   Demo code about
-//
-//     - using GPU solver - Tasora implementation.
-//
-//	 NOTE! this program should be copied
-//   on multiple hosts of a cluster and executed
-//   using the launcher utility of the MPICH2
-//   toolchain (ex. mpiexec or wmpiexec.exe).
-//
-//	 CHRONO
-//   ------
-//   Multibody dinamics engine
-//
-// ------------------------------------------------
-// 	 Copyright:Alessandro Tasora / DeltaKnowledge
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+#include "common.h"
 
-#include "lcp/ChLcpVariablesGeneric.h"
-#include "lcp/ChLcpVariablesBody.h"
-#include "lcp/ChLcpConstraintTwoGeneric.h"
-#include "lcp/ChLcpSystemDescriptor.h"
-#include "lcp/ChLcpIterativeSOR.h"
-#include "lcp/ChLcpIterativePMINRES.h"
-#include "lcp/ChLcpIterativeBB.h"
-#include "lcp/ChLcpSimplexSolver.h"
-#include "core/ChLinearAlgebra.h"
-#include "physics/ChSystemOpenMP.h"
-#include "assets/ChSphereShape.h"
-#include "physics/ChApidll.h"
-#include "physics/ChSystem.h"
-#include "lcp/ChLcpIterativeMINRES.h"
-#include "core/ChRealtimeStep.h"
-#include "lcp/ChLcpIterativeSOR.h"
-#include "lcp/ChLcpIterativeJacobi.h"
-#include "collision/ChCModelBullet.h"
-#include "collision/ChCCollisionSystemBullet.h"
-#include "physics/ChContactContainer.h"
-#include "unit_OPENGL/ChOpenGL.h"
-#include "unit_POSTPROCESS/ChMitsubaRender.h"
-
-#include "unit_GPU/ChSystemGPU.h"
-#include "unit_GPU/ChLcpSolverGPU.h"
-
-//Defines for selecting CPU or GPU solver
-
-//#define CHBODYSHAREDPTR ChSharedBodyPtr
-//#define CHBODY ChBody
-//#define CHCOLLISIONSYS ChCollisionSystemBullet
-//#define CHLCPDESC ChLcpSystemDescriptor
-//#define CHCONTACTCONT ChContactContainer
-//#define CHSOLVER ChLcpIterativeJacobi
-//#define CHMODEL ChModelBullet
-//#define CHSYS ChSystem
-#define CHBODYSHAREDPTR ChSharedBodyGPUPtr
-#define CHBODY ChBodyGPU
-#define CHCOLLISIONSYS ChCollisionSystemGPU
-#define CHLCPDESC ChLcpSystemDescriptorGPU
-#define CHCONTACTCONT ChContactContainerGPU
-#define CHSOLVER ChLcpIterativeJacobi
-#define CHMODEL ChModelGPU
-#define CHSYS ChSystemGPU
-
-// Use the namespace of Chrono
-using namespace chrono;
+vector<contact_dat> contact_cpu, contact_gpu;
+real tolerance = 0;
+real step_size = .001;
+real solver_tolerance = 1e-5;
+uint solver_iter = 100;
+real mass = 1;
+real radius = .1;
+Vector inertia = Vector(2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius);
+int max_bodies = 10000;
+real envelope = .01;
+//#define GPU_BULLET 1
 
 template<class T>
-void AddBoundary(T* mSystem, double L, double W, double H, double th, float mu1) {
-	ChVector<> pos_p0(0, 0, 0);
+void RunTimeStep(T* mSys, const int frame) {
 
-	CHBODYSHAREDPTR BTM = CHBODYSHAREDPTR(new CHBODY);
-	BTM->SetIdentifier(1);
-	InitObject(BTM, 100, Vector(0, 0, 0), QUNIT, mu1, mu1, 0, true, true, -20, -20);
-	AddCollisionGeometry(BTM, BOX, Vector(L / 2.0, th / 2.0, W / 2.0), VNULL, QUNIT);
-	FinalizeObject(BTM, (CHSYS*) mSystem);
+	cout << "Residual: " << ((ChLcpSolverGPU *) (mSys->GetLcpSolverSpeed()))->GetResidual() << endl;
+	cout << "ITER: " << ((ChLcpSolverGPU *) (mSys->GetLcpSolverSpeed()))->GetTotalIterations() << endl;
 
-	CHBODYSHAREDPTR RIGHT = CHBODYSHAREDPTR(new CHBODY);
-	RIGHT->SetIdentifier(2);
-	InitObject(RIGHT, 100, Vector(L / 2.0, H / 2.0, 0), QUNIT, mu1, mu1, 0, true, true, -20, -20);
-	AddCollisionGeometry(RIGHT, BOX, Vector(th / 2.0, H / 2.0, W / 2.0), VNULL, QUNIT);
-	FinalizeObject(RIGHT, (CHSYS*) mSystem);
-
-	CHBODYSHAREDPTR LEFT = CHBODYSHAREDPTR(new CHBODY);
-	LEFT->SetIdentifier(3);
-	InitObject(LEFT, 100, Vector(-L / 2.0, H / 2.0, 0), QUNIT, mu1, mu1, 0, true, true, -20, -20);
-	AddCollisionGeometry(LEFT, BOX, Vector(th / 2.0, H / 2.0, W / 2.0), VNULL, QUNIT);
-	FinalizeObject(LEFT, (CHSYS*) mSystem);
-
-	CHBODYSHAREDPTR FRONT = CHBODYSHAREDPTR(new CHBODY);
-	FRONT->SetIdentifier(4);
-	InitObject(FRONT, 100, Vector(0.0, H / 2.0, W / 2.0), QUNIT, mu1, mu1, 0, true, true, -20, -20);
-	AddCollisionGeometry(FRONT, BOX, Vector(L / 2.0, H / 2.0, th / 2.0), VNULL, QUNIT);
-	FinalizeObject(FRONT, (CHSYS*) mSystem);
-
-	CHBODYSHAREDPTR BACK = CHBODYSHAREDPTR(new CHBODY);
-	BACK->SetIdentifier(5);
-	InitObject(BACK, 100, Vector(0.0, H / 2.0, -W / 2.0), QUNIT, mu1, mu1, 0, true, true, -20, -20);
-	AddCollisionGeometry(BACK, BOX, Vector(L / 2.0, H / 2.0, th / 2.0), VNULL, QUNIT);
-	FinalizeObject(BACK, (CHSYS*) mSystem);
 }
 
 template<class T>
-void AddSomeParticles(T* mSystem, double rad, double mass, double L, double W, double h, int n_x, int n_z, int n_curr_spheres, float mu2) {
-	int id_offset = 300;
+void ReadLine(string temp, T & body, int counter) {
+	Quaternion quat;
+	Vector pos, pos_dt, wvel_loc;
+	stringstream ss(temp);
+	ss >> pos.x >> pos.y >> pos.z >> quat.e0 >> quat.e1 >> quat.e2 >> quat.e3 >> pos_dt.x >> pos_dt.y >> pos_dt.z >> wvel_loc.x >> wvel_loc.y >> wvel_loc.z;
+	body->SetPos(pos);
+	body->SetRot(quat);
+	body->SetPos_dt(pos_dt);
+	body->SetWvel_loc(wvel_loc);
+	body->SetInertiaXX(inertia);
+	body->SetIdentifier(counter);
+}
+template<class T, class U>
+void GenerateContainer(T& L, T& R, T& F, T& B, T& BTM, U* mSys, int counter) {
+	ChQuaternion<> quat(1, 0, 0, 0);
+	float mWallMu = 1, container_width = 7.0, container_thickness = .25, container_height = 7.0, wscale = 1;
+	InitObject(L, 100000, Vector(-container_width + container_thickness, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
+	InitObject(R, 100000, Vector(container_width - container_thickness, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
+	InitObject(F, 100000, Vector(0, 0, -container_width + container_thickness), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
+	InitObject(B, 100000, Vector(0, 0, container_width - container_thickness), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
+	InitObject(BTM, 100000, Vector(0, -container_height + container_thickness, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);
 
-	double box_x = L - 5 * rad;
-	double box_z = W - 5 * rad;
-	double spacing_x = box_x / (n_x - 1);
-	double spacing_z = box_z / (n_z - 1);
-	double first_x = -box_x / 2;
-	double first_z = -box_z / 2;
-	int cid = 0;
+	AddCollisionGeometry(L, BOX, Vector(container_thickness, container_height, container_width), lpos, lquat);
+	AddCollisionGeometry(R, BOX, Vector(container_thickness, container_height, container_width), lpos, lquat);
+	AddCollisionGeometry(F, BOX, Vector(container_width * wscale, container_height, container_thickness), lpos, lquat);
+	AddCollisionGeometry(B, BOX, Vector(container_width * wscale, container_height, container_thickness), lpos, lquat);
+	AddCollisionGeometry(BTM, BOX, Vector(container_width * wscale, container_thickness, container_width), lpos, lquat);
 
-	for (int ii = 0; ii < n_x; ii++) {
-		for (int jj = 0; jj < n_z; jj++) {
-			double perturb_x = ChRandom() * rad - rad / 2;
-			double perturb_z = ChRandom() * rad - rad / 2;
-			Vector particle_pos(first_x + ii * spacing_x + perturb_x, h, first_z + jj * spacing_z + perturb_z);
+	FinalizeObject(L, mSys);
+	FinalizeObject(R, mSys);
+	FinalizeObject(F, mSys);
+	FinalizeObject(B, mSys);
+	FinalizeObject(BTM, mSys);
 
-			CHBODYSHAREDPTR mybody = CHBODYSHAREDPTR(new CHBODY);
-			mybody->GetCollisionModel()->SetDefaultSuggestedEnvelope(0.1 * rad);
-			InitObject(mybody, mass, particle_pos, QUNIT, mu2, mu2, 0, true, false, 32, 64);
-			AddCollisionGeometry(mybody, SPHERE, Vector(rad, rad, rad), VNULL, QUNIT);
-			mybody->SetInertiaXX((2.0 / 5.0) * mass * pow(rad, 2) * ChVector<>(1, 1, 1));
-			FinalizeObject(mybody, (CHSYS*) mSystem);
+	L->SetIdentifier(counter);
+	R->SetIdentifier(counter + 1);
+	F->SetIdentifier(counter + 2);
+	B->SetIdentifier(counter + 3);
+	BTM->SetIdentifier(counter + 4);
 
-			cid++;
+}
+void LoadObjects(ChSystem* mSys, string filename) {
+	ifstream ifile(filename.c_str());
+	ChSharedBodyPtr body;
+	int counter = 0;
+
+	string temp;
+	while (ifile.fail() == false && counter < max_bodies) {
+		getline(ifile, temp);
+		if (ifile.fail() == true) {
+			break;
 		}
+		body = ChSharedBodyPtr(new ChBody);
+		InitObject(body, mass, Vector(0, 0, 0), Quaternion(1, 0, 0, 0), 1, 1, 0, true, false, 32, 17 + counter);
+		AddCollisionGeometry(body, SPHERE, Vector(radius, radius, radius), lpos, lquat);
+		FinalizeObject(body, mSys);
+		ReadLine(temp, body, counter);
+		body->GetCollisionModel()->SetDefaultSuggestedEnvelope(envelope);
+		counter++;
 	}
+
+	ChSharedBodyPtr L = ChSharedBodyPtr(new ChBody);
+	ChSharedBodyPtr R = ChSharedBodyPtr(new ChBody);
+	ChSharedBodyPtr F = ChSharedBodyPtr(new ChBody);
+	ChSharedBodyPtr B = ChSharedBodyPtr(new ChBody);
+	ChSharedBodyPtr BTM = ChSharedBodyPtr(new ChBody);
+
+	GenerateContainer(L, R, F, B, BTM, mSys, counter);
+
+	L->GetCollisionModel()->SetDefaultSuggestedEnvelope(envelope);
+	R->GetCollisionModel()->SetDefaultSuggestedEnvelope(envelope);
+	F->GetCollisionModel()->SetDefaultSuggestedEnvelope(envelope);
+	B->GetCollisionModel()->SetDefaultSuggestedEnvelope(envelope);
+	BTM->GetCollisionModel()->SetDefaultSuggestedEnvelope(envelope);
+
 }
+void LoadObjects(ChSystemGPU* mSys, string filename) {
+	ifstream ifile(filename.c_str());
+	ChSharedBodyGPUPtr body;
+	int counter = 0;
 
-template<class T>
-int add_particles_fromFile(T* mSystem, int n_load, double body_radius, double particle_mass, float fric, std::string tfilename) {
-	CHBODYSHAREDPTR mrigidBody;
-
-	cout << tfilename;
-	ChStreamInAsciiFile terrain_file(tfilename.c_str());
-	int num_p = 0;
-	printf("Loading particles...");
-	int pid = 0;
-	double xx = 0.0;
-	double yy = 0.0;
-	double zz = 0.0;
-	double r1 = 0.0;
-	double r2 = 0.0;
-	double r3 = 0.0;
-	while (num_p < n_load) {
-		terrain_file >> pid;
-		terrain_file >> xx;
-		terrain_file >> yy;
-		terrain_file >> zz;
-		terrain_file >> r1;
-		terrain_file >> r2;
-		terrain_file >> r3;
-		if (pid > 36257) //36257 for RE, 40824 for orig
-				{
-			mrigidBody = CHBODYSHAREDPTR(new CHBODY);
-			mrigidBody->SetIdentifier(num_p + 10);
-			mrigidBody->GetCollisionModel()->SetDefaultSuggestedEnvelope(0.1 * body_radius);
-			InitObject(mrigidBody, particle_mass, Vector(xx, yy, zz), QUNIT, fric, fric, 0, true, false, 32, 64);
-			AddCollisionGeometry(mrigidBody, SPHERE, Vector(body_radius, body_radius, body_radius), VNULL, QUNIT);
-			mrigidBody->SetInertiaXX((2.0 / 5.0) * particle_mass * pow(body_radius, 2) * ChVector<>(1, 1, 1));
-			FinalizeObject(mrigidBody, (CHSYS*) mSystem);
-			num_p++;
+	string temp;
+	while (ifile.fail() == false && counter < max_bodies) {
+		getline(ifile, temp);
+		if (ifile.fail() == true) {
+			break;
 		}
-
-		if (num_p % 4000 == 0)
-			printf("loaded %i\n", num_p);
+		body = ChSharedBodyGPUPtr(new ChBodyGPU);
+#ifdef GPU_BULLET
+		body->SetCollisionModelBullet();
+		//body->GetCollisionModel()->SetDefaultSuggestedEnvelope(envelope);
+#endif
+		InitObject(body, mass, Vector(0, 0, 0), Quaternion(1, 0, 0, 0), 1, 1, 0, true, false, 32, 17 + counter);
+		AddCollisionGeometry(body, SPHERE, Vector(radius, radius, radius), lpos, lquat);
+		FinalizeObject(body, mSys);
+		ReadLine(temp, body, counter);
+		counter++;
 	}
-	printf("Done loading %i particles\n", num_p);
-	return num_p;
+	cout << "Done oading" << endl;
+	ChSharedBodyGPUPtr L = ChSharedBodyGPUPtr(new ChBodyGPU);
+	ChSharedBodyGPUPtr R = ChSharedBodyGPUPtr(new ChBodyGPU);
+	ChSharedBodyGPUPtr F = ChSharedBodyGPUPtr(new ChBodyGPU);
+	ChSharedBodyGPUPtr B = ChSharedBodyGPUPtr(new ChBodyGPU);
+	ChSharedBodyGPUPtr BTM = ChSharedBodyGPUPtr(new ChBodyGPU);
+#ifdef GPU_BULLET
+	L->SetCollisionModelBullet();
+	R->SetCollisionModelBullet();
+	F->SetCollisionModelBullet();
+	B->SetCollisionModelBullet();
+	BTM->SetCollisionModelBullet();
+	//L->GetCollisionModel()->SetDefaultSuggestedEnvelope(envelope);
+	//R->GetCollisionModel()->SetDefaultSuggestedEnvelope(envelope);
+	//F->GetCollisionModel()->SetDefaultSuggestedEnvelope(envelope);
+	//B->GetCollisionModel()->SetDefaultSuggestedEnvelope(envelope);
+	//BTM->GetCollisionModel()->SetDefaultSuggestedEnvelope(envelope);
+#endif
+
+	GenerateContainer(L, R, F, B, BTM, mSys, counter);
+
 }
-
-template<class T>
-int add_particles_fromFile_V2(T* mSystem, int n_load, double body_radius, double particle_mass, float fric, std::string tfilename) {
-	CHBODYSHAREDPTR mrigidBody;
-
-	cout << tfilename;
-
-	ifstream terrain_file(tfilename.c_str());
-	int num_p = 0;
-	printf("Loading particles...");
-	int pid = 0;
-	double xx = 0.0;
-	double yy = 0.0;
-	double zz = 0.0;
-	double r1 = 0.0;
-	double r2 = 0.0;
-	double r3 = 0.0;
-	double v1 = 0.0;
-	double v2 = 0.0;
-	double v3 = 0.0;
-	while (num_p < n_load) {
-		terrain_file >> pid;
-		terrain_file >> xx;
-		terrain_file >> yy;
-		terrain_file >> zz;
-		terrain_file >> r1;
-		terrain_file >> r2;
-		terrain_file >> r3;
-		terrain_file >> v1;
-		terrain_file >> v2;
-		terrain_file >> v3;
-		if (pid > 5) //
-				{
-			mrigidBody = CHBODYSHAREDPTR(new CHBODY);
-			mrigidBody->SetIdentifier(num_p + 10);
-			mrigidBody->GetCollisionModel()->SetDefaultSuggestedEnvelope(0.1 * body_radius);
-			InitObject(mrigidBody, particle_mass, Vector(xx, yy, zz), QUNIT, fric, fric, 0, true, false, 32, 64);
-			AddCollisionGeometry(mrigidBody, SPHERE, Vector(body_radius, body_radius, body_radius), VNULL, QUNIT);
-			mrigidBody->SetInertiaXX((2.0 / 5.0) * particle_mass * pow(body_radius, 2) * ChVector<>(1, 1, 1));
-			mrigidBody->SetPos_dt(Vector(v1, v2, v3));
-			FinalizeObject(mrigidBody, (CHSYS*) mSystem);
-			num_p++;
-		}
-
-		if (num_p % 4000 == 0)
-			printf("loaded %i\n", num_p);
-	}
-	printf("Done loading %i particles\n", num_p);
-	return num_p;
-}
-
-template<class T>
-void AddBall(T* mSystem, double Px, double Py, double Pz, double Vy, double bRad, double bMass, float mu1) {
-	CHBODYSHAREDPTR theBall = CHBODYSHAREDPTR(new CHBODY);
-	theBall->SetIdentifier(-1);
-	theBall->GetCollisionModel()->SetDefaultSuggestedEnvelope(0.1 * bRad);
-	InitObject(theBall, bMass, Vector(Px, Py, Pz), QUNIT, mu1, mu1, 0, true, false, 8, 16);
-	ChVector<> inertias((2.0 / 5.0) * bMass * bRad * bRad, (2.0 / 5.0) * bMass * bRad * bRad, (2.0 / 5.0) * bMass * bRad * bRad);
-	theBall->SetInertiaXX(inertias);
-	AddCollisionGeometry(theBall, SPHERE, Vector(bRad, bRad, bRad), VNULL, QUNIT);
-	theBall->SetPos_dt(Vector(0.0, Vy, 0.0));
-	FinalizeObject(theBall, (CHSYS*) mSystem);
-}
-
 int main(int argc, char* argv[]) {
-	omp_set_num_threads(8);
-	//for the particles
-	double prad = 0.0005; //r = 500 um = 0.5 mm => d=1mm
-	double pmass = 2500.0 * (4.0 / 3.0) * CH_C_PI * pow(prad, 3); //density=2500 kg/m^3
-	int curr_particles = 0;
-	int num_batch_x = 60; //120
-	int num_batch_z = 60; //120
-	int batchID = 0;
-	int num_particles = 500000; //2000000, 10000000
-	float mu = 0.3;
+	omp_set_num_threads(3);
 
-	double ballR = 0.0127; //d=2.54 cm = 1 in
-	double ballM = 0.00600617265; //6.006 g
-	double Py = 0.0592 + prad + ballR;
-	double drop_h = 0.1; // 10 cm
-	double rho_b = 700;
+	ChSystem * system_cpu = new ChSystem;
+	{
+		ChLcpSystemDescriptor *mdescriptor = new ChLcpSystemDescriptor();
+		ChContactContainer *mcontactcontainer = new ChContactContainer();
+		ChCollisionSystemBullet *mcollisionengine = new ChCollisionSystemBullet();
+		ChLcpIterativeAPGD *msolver = new ChLcpIterativeAPGD(100, false, 1e-4);
+		//ChLcpIterativeJacobi *msolver = new ChLcpIterativeJacobi(100, false, 1e-4);
 
-	//for the boundary
-	double LL = 0.1; //0.2
-	double WW = 0.1; //0.2
-	double HH = 0.15; //0.19
-	double th = 0.01;
+		system_cpu->ChangeLcpSystemDescriptor(mdescriptor);
+		system_cpu->ChangeContactContainer(mcontactcontainer);
+		system_cpu->ChangeLcpSolverSpeed(msolver);
+		system_cpu->ChangeCollisionSystem(mcollisionengine);
+		system_cpu->SetIntegrationType(ChSystem::INT_ANITESCU);
+		system_cpu->Set_G_acc(Vector(0, -9.80665, 0));
+		system_cpu->SetStep(step_size);
 
-	//for the time-stepping
-	double current_time = 0.0;
-	double time_step = 0.00002; //0.001
-	double end_time = time_step; //0.05
-	int outMult = 5; //for step of 1e-3, use 30
-	int addMult = 1; //for step of 1e-5, use 1000
-	bool output = true;
-	int frame_number = 0;
-	int fOuts = outMult;
-	int fAdds = addMult;
+		((ChLcpIterativeSolver *) (system_cpu->GetLcpSolverSpeed()))->SetMaxIterations(solver_iter);
+		system_cpu->SetMaxiter(solver_iter);
+		system_cpu->SetIterLCPmaxItersSpeed(solver_iter);
+		system_cpu->SetTol(solver_tolerance);
+		system_cpu->SetTolSpeeds(solver_tolerance);
+		((ChLcpIterativeSolver *) (system_cpu->GetLcpSolverSpeed()))->SetTolerance(solver_tolerance);
+		system_cpu->SetMaxPenetrationRecoverySpeed(.6);
 
-	int num_to_load = 0;
-	char* ofileBase = "testData";
-
-	if (argc == 5) {
-		num_to_load = atoi(argv[1]);
-		drop_h = atof(argv[2]);
-		rho_b = atof(argv[3]);
-		ofileBase = argv[4];
-	} else {
-		std::cout << "Invalid arguments, please try again.\n";
-		return 0;
+		//createGeometryCPU(system_cpu);
+		//LoadObjects(system_cpu, "stack10000_bodies.txt");
 	}
-	double Vy = -sqrt(2 * 9.80665 * drop_h);
-	ballM = rho_b * (4.0 / 3.0) * CH_C_PI * pow(ballR, 3);
 
-	CHSYS* mSys = new CHSYS();
-	CHLCPDESC *mdescriptor = new CHLCPDESC();
-	CHCONTACTCONT *mcontactcontainer = new CHCONTACTCONT();
-	CHCOLLISIONSYS *mcollisionengine = new CHCOLLISIONSYS();
-	//ChLcpIterativeJacobi *msolver = new ChLcpIterativeJacobi();
-	//ChLcpIterativeSOR *msolver = new ChLcpIterativeSOR();
-	//ChLcpIterativeMINRES *msolver = new ChLcpIterativeMINRES();
-	//ChLcpIterativePMINRES *msolver = new ChLcpIterativePMINRES();
-	//ChLcpIterativeBB *msolver = new ChLcpIterativeBB();
+	ChSystemGPU * system_gpu = new ChSystemGPU;
+	{
+		ChLcpSystemDescriptorGPU *mdescriptor = new ChLcpSystemDescriptorGPU();
+		ChContactContainerGPU *mcontactcontainer = new ChContactContainerGPU();
+#ifdef GPU_BULLET
+		ChCollisionSystemBulletGPU *mcollisionengine = new ChCollisionSystemBulletGPU();
+#else
+		ChCollisionSystemGPU *mcollisionengine = new ChCollisionSystemGPU();
+#endif
 
-	mcollisionengine->SetCollisionEnvelope(0.1 * prad);
+		system_gpu->ChangeLcpSystemDescriptor(mdescriptor);
+		system_gpu->ChangeContactContainer(mcontactcontainer);
+		system_gpu->ChangeCollisionSystem(mcollisionengine);
+		system_gpu->SetIntegrationType(ChSystem::INT_ANITESCU);
+		system_gpu->Set_G_acc(Vector(0, -9.80665, 0));
+		system_gpu->SetStep(step_size);
+		//-9.80665
+		((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->SetMaxIteration(solver_iter);
+		system_gpu->SetMaxiter(solver_iter);
+		system_gpu->SetIterLCPmaxItersSpeed(solver_iter);
+		system_gpu->SetTol(solver_tolerance);
+		system_gpu->SetTolSpeeds(solver_tolerance);
 
-	mSys->ChangeLcpSystemDescriptor(mdescriptor);
-	mSys->ChangeContactContainer(mcontactcontainer);
-	//mSys->ChangeLcpSolverSpeed(msolver);
-	mSys->ChangeCollisionSystem(mcollisionengine);
+		((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->SetTolerance(solver_tolerance);
+		((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->SetCompliance(0, 0, 0);
+		((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->SetContactRecoverySpeed(.6);
+		((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->SetSolverType(ACCELERATED_PROJECTED_GRADIENT_DESCENT);
+		//((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->SetSolverType(BLOCK_JACOBI);
+		((ChCollisionSystemGPU *) (system_gpu->GetCollisionSystem()))->SetCollisionEnvelope(envelope);
 
-	mSys->SetIntegrationType(ChSystem::INT_ANITESCU);
-	mSys->Set_G_acc(Vector(0, -9.80665, 0));
+		Quaternion quat(1,0,0,0);
 
-	mSys->SetTolSpeeds(0.001);
-	mSys->SetIterLCPmaxItersSpeed(100);
-	((ChLcpSolverGPU*) (mSys->GetLcpSolverSpeed()))->SetSolverType(ACCELERATED_PROJECTED_GRADIENT_DESCENT);
-	//((ChLcpSolverGPU*) (mSys->GetLcpSolverSpeed()))->SetSolverType(CONJUGATE_GRADIENT);
-	//((ChLcpSolverGPU*) (mSys->GetLcpSolverSpeed()))->SetSolverType(BLOCK_JACOBI);
-	((ChLcpSolverGPU*) (mSys->GetLcpSolverSpeed()))->SetCompliance(0.0, 0.0, 0.0);
-	((ChLcpSolverGPU*) (mSys->GetLcpSolverSpeed()))->SetContactRecoverySpeed(0.6); //0.6
-	((ChLcpSolverGPU*) (mSys->GetLcpSolverSpeed()))->SetTolerance(0.001); //1e-3
-	((ChLcpSolverGPU*) (mSys->GetLcpSolverSpeed()))->SetMaxIteration(100); //1000
+		quat.Set(ChRandom(), ChRandom(), ChRandom(), ChRandom());
+				quat.Normalize();
+		real rad_a = .25;
+		real rad_b = .25;
+		real rad_c = 1;
 
-	mcollisionengine->broadphase.setBinsPerAxis(R3(200, 200, 200));
-	mcollisionengine->broadphase.setBodyPerBin(100, 50);
+		ChSharedBodyGPUPtr body;
+		for (int k = 0; k < 1; k++) {
+		for (int i = 0; i < 1; i++) {
+			for (int j = 0; j < 2; j++) {
 
-	//Create the system:
-	AddBoundary(mSys, LL, WW, HH, th, mu);
-	//curr_particles+=add_particles_fromFile(mSys, num_to_load, prad, pmass, mu, "input_data/SpherePos_500K_RE.dat");
-	curr_particles += add_particles_fromFile_V2(mSys, num_to_load, prad, pmass, mu, "Sphere_Ball_Drop.dat");
-	AddBall(mSys, 0.0, Py, 0.0, Vy, ballR, ballM, mu); //NOTE: this is commented out for a re-settling sim, also I scaled up y-positions, and changed contact recovery speed to 0.2, and max its to 100 from 1000
-
-	//Do the simulation
-	chrono::Quaternion bodyRot;
-	chrono::Vector bodyAngs;
-	while (current_time < end_time) {
-		if (curr_particles < num_particles && fAdds == addMult) {
-			AddSomeParticles(mSys, prad, pmass, LL - th, WW - th, th / 2 + 2 * prad + (2 * batchID) * prad, num_batch_x, num_batch_z, curr_particles, mu);
-			curr_particles += num_batch_x * num_batch_z;
-			batchID++;
-			fAdds = 0;
-		}
-		if (output && fOuts == outMult) {
-
-			char padnumber[256];
-			sprintf(padnumber, "%d", (frame_number + 10000));
-			char filename[256];
-			sprintf(filename, "%s/pos%s.txt", ofileBase, padnumber + 1);
-
-			ChStreamOutAsciiFile data_spheres_positions(filename);
-			std::vector<ChBody*>::iterator abody = mSys->Get_bodylist()->begin();
-			while (abody != mSys->Get_bodylist()->end()) {
-				if (ChBody* bbb = dynamic_cast<ChBody*>(*abody)) {
-					ChVector<> bodypos = bbb->GetPos();
-					ChVector<> bodyvel = bbb->GetPos_dt();
-					bodyRot = bbb->GetRot();
-					bodyAngs = bodyRot.Q_to_NasaAngles();
-					data_spheres_positions << bbb->GetIdentifier() << ", ";
-					data_spheres_positions << float(bodypos.x) << ", ";
-					data_spheres_positions << float(bodypos.y) << ", ";
-					data_spheres_positions << float(bodypos.z) << ", ";
-					data_spheres_positions << float(bodyAngs.x) << ", ";
-					data_spheres_positions << float(bodyAngs.y) << ", ";
-					data_spheres_positions << float(bodyAngs.z) << ", ";
-					data_spheres_positions << float(bodyvel.x) << ", ";
-					data_spheres_positions << float(bodyvel.y) << ", ";
-					data_spheres_positions << float(bodyvel.z) << ",\n";
-				}
-				abody++;
+				body = ChSharedBodyGPUPtr(new ChBodyGPU);
+				InitObject(body, mass, Vector(i/2.0, -1, j/2.0), quat, 1, 1, 0, true, false, 0, 1);
+				AddCollisionGeometry(body, ELLIPSOID, Vector(rad_a, rad_b, rad_c), lpos, QUNIT);
+				body->SetInertiaXX((1.0 / 5.0) * mass * ChVector<>(rad_b * rad_b + rad_c * rad_c, rad_c * rad_c + rad_a * rad_a, rad_a * rad_a + rad_b * rad_b));
+				FinalizeObject(body, (ChSystemGPU*) system_gpu);
 			}
-
-			frame_number++;
-			fOuts = 0;
 		}
+		}
+		ChSharedBodyGPUPtr L = ChSharedBodyGPUPtr(new ChBodyGPU);
+		ChSharedBodyGPUPtr R = ChSharedBodyGPUPtr(new ChBodyGPU);
+		ChSharedBodyGPUPtr F = ChSharedBodyGPUPtr(new ChBodyGPU);
+		ChSharedBodyGPUPtr B = ChSharedBodyGPUPtr(new ChBodyGPU);
+		ChSharedBodyGPUPtr BTM = ChSharedBodyGPUPtr(new ChBodyGPU);
 
-		mSys->DoStepDynamics(time_step);
-		GetLog() << "Residual: " << ((ChLcpSolverGPU *) (mSys->GetLcpSolverSpeed()))->GetResidual() << "\n";
-		GetLog() << "ITER: " << ((ChLcpSolverGPU *) (mSys->GetLcpSolverSpeed()))->GetTotalIterations() << "\n";
-		GetLog() << "OUTPUT STEP: Time= " << current_time << " bodies= " << mSys->GetNbodies() << " contacts= " << mSys->GetNcontacts() << " step time=" << mSys->GetTimerStep() << " lcp time="
-				<< mSys->GetTimerLcp() << " CDbroad time=" << mSys->GetTimerCollisionBroad() << " CDnarrow time=" << mSys->GetTimerCollisionNarrow() << " Iterations="
-				<< ((ChLcpSolverGPU*) (mSys->GetLcpSolverSpeed()))->GetTotalIterations() << "\n";
-		fOuts++;
-		fAdds++;
-		current_time += time_step;
+		//		L->SetCollisionModelBullet();
+		//		R->SetCollisionModelBullet();
+		//		F->SetCollisionModelBullet();
+		//		B->SetCollisionModelBullet();
+		//		BTM->SetCollisionModelBullet();
+
+		float mWallMu = 1, container_width = 20.0, container_thickness = .25, container_height = 7.0, wscale = 1;
+		InitObject(L, 100000, Vector(-container_width + container_thickness, 0, 0), QUNIT, mWallMu, mWallMu, 0, true, true, -20, -20);
+		InitObject(R, 100000, Vector(container_width - container_thickness, 0, 0), QUNIT, mWallMu, mWallMu, 0, true, true, -20, -20);
+		InitObject(F, 100000, Vector(0, 0, -container_width + container_thickness), QUNIT, mWallMu, mWallMu, 0, true, true, -20, -20);
+		InitObject(B, 100000, Vector(0, 0, container_width - container_thickness), QUNIT, mWallMu, mWallMu, 0, true, true, -20, -20);
+		InitObject(BTM, 100000, Vector(0, -container_height + container_thickness, 0), QUNIT, mWallMu, mWallMu, 0, true, true, -20, -20);
+
+		AddCollisionGeometry(L, BOX, Vector(container_thickness, container_height, container_width), lpos, lquat);
+		AddCollisionGeometry(R, BOX, Vector(container_thickness, container_height, container_width), lpos, lquat);
+		AddCollisionGeometry(F, BOX, Vector(container_width * wscale, container_height, container_thickness), lpos, lquat);
+		AddCollisionGeometry(B, BOX, Vector(container_width * wscale, container_height, container_thickness), lpos, lquat);
+		AddCollisionGeometry(BTM, BOX, Vector(container_width * wscale, container_thickness, container_width), lpos, lquat);
+
+		FinalizeObject(L, system_gpu);
+		FinalizeObject(R, system_gpu);
+		FinalizeObject(F, system_gpu);
+		FinalizeObject(B, system_gpu);
+		FinalizeObject(BTM, system_gpu);
+
+		//createGeometryGPU(system_gpu);
+		//LoadObjects(system_gpu, "stack10000_bodies.txt");
 	}
+	ChOpenGLManager * window_manager = new ChOpenGLManager();
+	ChOpenGL openGLView(window_manager, system_gpu, 800, 600, 0, 0, "Test_Solvers");
+	//openGLView.AddSystem(system_cpu);
+	openGLView.SetCustomCallback(RunTimeStep);
+	openGLView.StartSpinning(window_manager);
+	window_manager->CallGlutMainLoop();
+	ChTimer<double> timer;
+	timer.start();
+	int counter = 0;
+	while (counter < 20) {
+		RunTimeStep(system_gpu, counter);
+		system_gpu->DoStepDynamics(step_size);
+		cout << "Residual: " << ((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->GetResidual() << endl;
+		cout << "ITER: " << ((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->GetTotalIterations() << endl;
+		cout << "DONE: =============" << counter << endl;
 
-	return 0;
+		counter++;
+	}
+	timer.stop();
+	cout << "TOTAL TIME " << timer();
+
+//	while (counter < 1) {
+//
+//		RunTimeStep(system_cpu, counter);
+//		RunTimeStep(system_gpu, counter);
+//
+//		validate_positions(system_cpu, system_gpu, tolerance);
+//		validate_rotations(system_cpu, system_gpu, tolerance);
+//		//validate_velocities(system_cpu, system_gpu, tolerance);
+//		//validate_omega(system_cpu, system_gpu, tolerance);
+//		cout << "CPU: =============" << endl;
+//		system_cpu->DoStepDynamics(step_size);
+//		cout << "ITER: " << ((ChLcpIterativeSolver *) (system_cpu->GetLcpSolverSpeed()))->GetTotalIterations() << endl;
+//		cout << "Residual: " << ((ChLcpIterativeAPGD *) (system_cpu->GetLcpSolverSpeed()))->GetResidual() << endl;
+//		cout << "GPU: =============" << endl;
+//		system_gpu->DoStepDynamics(step_size);
+//		cout << "ITER: " << ((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->GetTotalIterations() << endl;
+//		cout << "Residual: " << ((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->GetResidual() << endl;
+//		cout << "=============" << endl;
+//
+//		//		validate_ContactsBullet(system_cpu, system_gpu);
+//		printContactsCPU(system_cpu, contact_cpu);
+//		printContactsGPU(system_gpu, contact_gpu);
+//		comparecontacts(contact_cpu, contact_gpu, tolerance);
+//		validate_positions(system_cpu, system_gpu, tolerance);
+//		validate_rotations(system_cpu, system_gpu, tolerance);
+//		//validate_velocities(system_cpu, system_gpu, tolerance);
+//		//validate_omega(system_cpu, system_gpu, tolerance);
+//		chrono::ChSparseMatrix M_cpu, M_gpu;
+//		chrono::ChMatrixDynamic<double> F_cpu, F_gpu;
+//
+////		dump_matricies(system_cpu->GetLcpSystemDescriptor(), M_cpu, F_cpu);
+////		dump_matricies(((ChLcpSystemDescriptorGPU*) (system_gpu->GetLcpSystemDescriptor())), M_gpu, F_gpu);
+////
+////		chrono::ChStreamOutAsciiFile file_M_cpu("dump_M_cpu.dat");
+////		chrono::ChStreamOutAsciiFile file_M_gpu("dump_M_gpu.dat");
+////		M_cpu.StreamOUTsparseMatlabFormat(file_M_cpu);
+////		M_gpu.StreamOUTsparseMatlabFormat(file_M_gpu);
+////
+////		chrono::ChStreamOutAsciiFile file_F_cpu("dump_F_cpu.dat");
+////		chrono::ChStreamOutAsciiFile file_F_gpu("dump_F_gpu.dat");
+////		F_cpu.StreamOUTdenseMatlabFormat(file_F_cpu);
+////		F_gpu.StreamOUTdenseMatlabFormat(file_F_gpu);
+//
+//		compare_variables(system_cpu->GetLcpSystemDescriptor(), system_gpu->GetLcpSystemDescriptor(), tolerance);
+//
+////		if (M_cpu == M_gpu) {
+////			cout << "M equal!" << endl;
+////		} else {
+////			cout << "M NOT equal!" << endl;
+////		}
+//		cout << "DONE: =============" << counter << endl;
+//
+//		counter++;
+//	}
 }
