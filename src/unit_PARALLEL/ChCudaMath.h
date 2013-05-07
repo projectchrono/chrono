@@ -18,7 +18,7 @@
 #define ZERO_EPSILON 1e-8
 typedef unsigned int uint;
 
-static __host__     __device__ int3 _make_int3(int a, int b, int c) {
+static __host__      __device__ int3 _make_int3(int a, int b, int c) {
 	int3 t;
 	t.x = a;
 	t.y = b;
@@ -26,7 +26,7 @@ static __host__     __device__ int3 _make_int3(int a, int b, int c) {
 	return t;
 }
 
-static __host__     __device__ int2 _make_int2(int a, int b) {
+static __host__      __device__ int2 _make_int2(int a, int b) {
 	int2 t;
 	t.x = a;
 	t.y = b;
@@ -34,7 +34,7 @@ static __host__     __device__ int2 _make_int2(int a, int b) {
 }
 
 ////////Define Real, either float or double
-typedef double real;
+typedef float real;
 ////////Structures
 struct real2 {
 	real x, y;
@@ -68,28 +68,37 @@ typedef real4 quaternion;
 
 ////////Convert Between Types
 
-static __host__     __device__ real2 make_real2(real a, real b) {
+static __host__      __device__ real2 make_real2(real a, real b) {
 	real2 t;
 	t.x = a;
 	t.y = b;
 	return t;
 }
 
-static __host__     __device__ real2 make_real2(const real3 &rhs) {
+static __host__      __device__ real2 make_real2(const real3 &rhs) {
 	return make_real2(rhs.x, rhs.y);
 }
 
-static __host__     __device__ real2 make_real2(const real4 &rhs) {
+static __host__      __device__ real2 make_real2(const real4 &rhs) {
 	return make_real2(rhs.x, rhs.y);
 }
-static __host__     __device__ real3 make_real3(real a) {
+
+static __host__      __device__ int3 _make_int3(real3 a) {
+	int3 t;
+	t.x = a.x;
+	t.y = a.y;
+	t.z = a.z;
+	return t;
+}
+
+static __host__      __device__ real3 make_real3(real a) {
 	real3 t;
 	t.x = a;
 	t.y = a;
 	t.z = a;
 	return t;
 }
-static __host__     __device__ real3 make_real3(real a, real b, real c) {
+static __host__      __device__ real3 make_real3(real a, real b, real c) {
 	real3 t;
 	t.x = a;
 	t.y = b;
@@ -97,10 +106,10 @@ static __host__     __device__ real3 make_real3(real a, real b, real c) {
 	return t;
 }
 
-static __host__     __device__ real3 make_real3(const real4 &rhs) {
+static __host__      __device__ real3 make_real3(const real4 &rhs) {
 	return R3(rhs.x, rhs.y, rhs.z);
 }
-static __host__     __device__ real4 make_real4(real d, real a, real b, real c) {
+static __host__      __device__ real4 make_real4(real d, real a, real b, real c) {
 	real4 t;
 	t.w = d;
 	t.x = a;
@@ -109,101 +118,101 @@ static __host__     __device__ real4 make_real4(real d, real a, real b, real c) 
 	return t;
 }
 
-static __host__     __device__ real4 make_real4(const real3 &rhs) {
+static __host__      __device__ real4 make_real4(const real3 &rhs) {
 	return R4(0, rhs.x, rhs.y, rhs.z);
 }
 ////////Operator - Negate
 
-static __host__     __device__ real3 operator -(const real3 &rhs) {
+static __host__      __device__ real3 operator -(const real3 &rhs) {
 	return R3(-rhs.x, -rhs.y, -rhs.z);
 }
 
-static __host__     __device__ real4 operator -(const real4 &rhs) {
+static __host__      __device__ real4 operator -(const real4 &rhs) {
 	return R4(-rhs.w, -rhs.x, -rhs.y, -rhs.z);
 }
 
 ////////Operator - Plus
 
-static __host__     __device__ real2 operator +(const real2 &rhs, const real2 &lhs) {
+static __host__      __device__ real2 operator +(const real2 &rhs, const real2 &lhs) {
 	return R2(rhs.x + lhs.x, rhs.y + lhs.y);
 }
 
-static __host__     __device__ real3 operator +(const real &rhs, const real3 &lhs) {
+static __host__      __device__ real3 operator +(const real &rhs, const real3 &lhs) {
 	return R3(rhs + lhs.x, rhs + lhs.y, rhs + lhs.z);
 }
 
-static __host__     __device__ real3 operator +(const real3 &rhs, const real3 &lhs) {
+static __host__      __device__ real3 operator +(const real3 &rhs, const real3 &lhs) {
 	return R3(rhs.x + lhs.x, rhs.y + lhs.y, rhs.z + lhs.z);
 }
 
-static __host__     __device__ real4 operator +(const real4 &rhs, const real4 &lhs) {
+static __host__      __device__ real4 operator +(const real4 &rhs, const real4 &lhs) {
 	return R4(rhs.w + lhs.w, rhs.x + lhs.x, rhs.y + lhs.y, rhs.z + lhs.z);
 }
 ////////Operator - minus
 
-static __host__     __device__ real2 operator -(const real2 &rhs, const real2 &lhs) {
+static __host__      __device__ real2 operator -(const real2 &rhs, const real2 &lhs) {
 	return R2(rhs.x - lhs.x, rhs.y - lhs.y);
 }
 
-static __host__     __device__ real3 operator -(const real3 &rhs, const real3 &lhs) {
+static __host__      __device__ real3 operator -(const real3 &rhs, const real3 &lhs) {
 	return R3(rhs.x - lhs.x, rhs.y - lhs.y, rhs.z - lhs.z);
 }
 
-static __host__     __device__ real4 operator -(const real4 &rhs, const real4 &lhs) {
+static __host__      __device__ real4 operator -(const real4 &rhs, const real4 &lhs) {
 	return R4(rhs.w - lhs.w, rhs.x - lhs.x, rhs.y - lhs.y, rhs.z - lhs.z);
 }
 ////////Operator - times
 
-static __host__     __device__ real2 operator *(const real2 &rhs, const real2 &lhs) {
+static __host__      __device__ real2 operator *(const real2 &rhs, const real2 &lhs) {
 	return R2(rhs.x * lhs.x, rhs.y * lhs.y);
 }
 
-static __host__     __device__ real3 operator *(const real3 &rhs, const real3 &lhs) {
+static __host__      __device__ real3 operator *(const real3 &rhs, const real3 &lhs) {
 	return R3(rhs.x * lhs.x, rhs.y * lhs.y, rhs.z * lhs.z);
 }
 
-static __host__     __device__ real4 operator *(const real4 &rhs, const real4 &lhs) {
+static __host__      __device__ real4 operator *(const real4 &rhs, const real4 &lhs) {
 	return R4(rhs.w * lhs.w, rhs.x * lhs.x, rhs.y * lhs.y, rhs.z * lhs.z);
 }
 
-static __host__     __device__ real2 operator *(const real2 &rhs, const real &lhs) {
+static __host__      __device__ real2 operator *(const real2 &rhs, const real &lhs) {
 	return R2(rhs.x * lhs, rhs.y * lhs);
 }
 
-static __host__     __device__ real3 operator *(const real &lhs, const real3 &rhs) {
+static __host__      __device__ real3 operator *(const real &lhs, const real3 &rhs) {
 	return R3(rhs.x * lhs, rhs.y * lhs, rhs.z * lhs);
 }
 
-static __host__     __device__ real3 operator *(const real3 &rhs, const real &lhs) {
+static __host__      __device__ real3 operator *(const real3 &rhs, const real &lhs) {
 	return R3(rhs.x * lhs, rhs.y * lhs, rhs.z * lhs);
 }
 
-static __host__     __device__ real4 operator *(const real4 &rhs, const real &lhs) {
+static __host__      __device__ real4 operator *(const real4 &rhs, const real &lhs) {
 	return R4(rhs.w * lhs, rhs.x * lhs, rhs.y * lhs, rhs.z * lhs);
 }
 
 ////////Operator - divide
-static __host__     __device__ real2 operator /(const real2 &rhs, const real2 &lhs) {
+static __host__      __device__ real2 operator /(const real2 &rhs, const real2 &lhs) {
 	return R2(rhs.x / lhs.x, rhs.y / lhs.y);
 }
 
-static __host__     __device__ real3 operator /(const real3 &rhs, const real3 &lhs) {
+static __host__      __device__ real3 operator /(const real3 &rhs, const real3 &lhs) {
 	return R3(rhs.x / lhs.x, rhs.y / lhs.y, rhs.z / lhs.z);
 }
 
-static __host__     __device__ real4 operator /(const real4 &rhs, const real4 &lhs) {
+static __host__      __device__ real4 operator /(const real4 &rhs, const real4 &lhs) {
 	return R4(rhs.w / lhs.w, rhs.x / lhs.x, rhs.y / lhs.y, rhs.z / lhs.z);
 }
 
-static __host__     __device__ real2 operator /(const real2 &rhs, const real &lhs) {
+static __host__      __device__ real2 operator /(const real2 &rhs, const real &lhs) {
 	return R2(rhs.x / lhs, rhs.y / lhs);
 }
 
-static __host__     __device__ real3 operator /(const real3 &rhs, const real &lhs) {
+static __host__      __device__ real3 operator /(const real3 &rhs, const real &lhs) {
 	return R3(rhs.x / lhs, rhs.y / lhs, rhs.z / lhs);
 }
 
-static __host__     __device__ real4 operator /(const real4 &rhs, const real &lhs) {
+static __host__      __device__ real4 operator /(const real4 &rhs, const real &lhs) {
 	return R4(rhs.w / lhs, rhs.x / lhs, rhs.y / lhs, rhs.z / lhs);
 }
 
@@ -240,19 +249,19 @@ static __host__ __device__ bool operator ==(const real4 &a, const real4 &b) {
 }
 
 ////////Vector Operations
-static __host__     __device__            inline real dot(const real3 &a, const real3 &b) {
+static __host__      __device__             inline real dot(const real3 &a, const real3 &b) {
 	return a.x * b.x + a.y * b.y + a.z * b.z;
 }
-static __host__     __device__            inline real dot(const real4 &a, const real4 &b) {
+static __host__      __device__             inline real dot(const real4 &a, const real4 &b) {
 	return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 }
 
 template<class T, class U> // dot product of the first three elements of real3/real4 values
-inline __host__            __device__ real dot3(const T &a, const U &b) {
+inline __host__             __device__ real dot3(const T &a, const U &b) {
 	return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
-static __host__     __device__            inline real3 cross(const real3 &a, const real3 &b) {
+static __host__      __device__             inline real3 cross(const real3 &a, const real3 &b) {
 	real3 result;
 	result.x = (a.y * b.z) - (a.z * b.y);
 	result.y = (a.z * b.x) - (a.x * b.z);
@@ -261,11 +270,11 @@ static __host__     __device__            inline real3 cross(const real3 &a, con
 
 }
 template<class T>
-static __host__     __device__ real length(const T &a) {
-	return sqrt(a.x*a.x+a.y*a.y+a.z*a.z);
+static __host__      __device__ real length(const T &a) {
+	return sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
 }
 template<class T>
-static __host__     __device__ real3 normalize(const T &a) {
+static __host__      __device__ real3 normalize(const T &a) {
 
 	real len = length(a);
 	if (len < 1.e-20) {
@@ -274,13 +283,13 @@ static __host__     __device__ real3 normalize(const T &a) {
 	return a * 1.0 / len;
 }
 
-static __host__     __device__            inline real3 ceil(real3 a) {
+static __host__      __device__             inline real3 ceil(real3 a) {
 	return R3(ceil(a.x), ceil(a.y), ceil(a.z));
 }
 
 ////////Quaternion Operations
 
-static __host__     __device__ quaternion normalize(const quaternion &a) {
+static __host__      __device__ quaternion normalize(const quaternion &a) {
 	real length = sqrt(a.w * a.w + a.x * a.x + a.y * a.y + a.z * a.z);
 	if (length < ZERO_EPSILON) {
 		return R4(1, 0, 0, 0);
@@ -289,7 +298,7 @@ static __host__     __device__ quaternion normalize(const quaternion &a) {
 	return R4(a.w * length, a.x * length, a.y * length, a.z * length);
 }
 
-static __host__     __device__ quaternion Q_from_AngAxis(real angle, real3 axis) {
+static __host__      __device__ quaternion Q_from_AngAxis(real angle, real3 axis) {
 	quaternion quat;
 	real halfang;
 	real sinhalf;
@@ -302,7 +311,7 @@ static __host__     __device__ quaternion Q_from_AngAxis(real angle, real3 axis)
 	return (quat);
 }
 
-static __host__     __device__            inline quaternion inv(quaternion a) {
+static __host__      __device__             inline quaternion inv(quaternion a) {
 	quaternion temp;
 	real t1 = a.w * a.w + a.x * a.x + a.y * a.y + a.z * a.z;
 	t1 = 1.0 / t1;
@@ -312,7 +321,7 @@ static __host__     __device__            inline quaternion inv(quaternion a) {
 	temp.z = -t1 * a.z;
 	return temp;
 }
-static __host__     __device__            inline quaternion mult2(const quaternion &qa, const quaternion &qb) {
+static __host__      __device__             inline quaternion mult2(const quaternion &qa, const quaternion &qb) {
 	quaternion temp;
 
 	temp.w = qa.w * qb.w - qa.x * qb.x - qa.y * qb.y - qa.z * qb.z;
@@ -321,9 +330,8 @@ static __host__     __device__            inline quaternion mult2(const quaterni
 	temp.z = qa.w * qb.z + qa.z * qb.w - qa.y * qb.x + qa.x * qb.y;
 	return temp;
 }
-static __host__     __device__            inline quaternion mult(const quaternion &a, const quaternion &b) {
+static __host__      __device__             inline quaternion mult(const quaternion &a, const quaternion &b) {
 	quaternion temp;
-
 
 	temp.w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
 	temp.x = a.w * b.x + b.w * a.x + a.y * b.z - a.z * b.y;
@@ -332,11 +340,11 @@ static __host__     __device__            inline quaternion mult(const quaternio
 	return temp;
 }
 
-static __host__     __device__            inline real3 quatRotate(const real3 &v, const quaternion &q) {
+static __host__      __device__             inline real3 quatRotate(const real3 &v, const quaternion &q) {
 	quaternion r = mult(mult(q, R4(0, v.x, v.y, v.z)), inv(q));
 	return R3(r.x, r.y, r.z);
 }
-static __host__     __device__            inline real3 quatRotateMat(const real3 &v, const quaternion &q) {
+static __host__      __device__             inline real3 quatRotateMat(const real3 &v, const quaternion &q) {
 
 	real3 result;
 	result.x = (q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z) * v.x + (2 * q.x * q.y - 2 * q.w * q.z) * v.y + (2 * q.x * q.z + 2 * q.w * q.y) * v.z;
@@ -344,7 +352,7 @@ static __host__     __device__            inline real3 quatRotateMat(const real3
 	result.z = (2 * q.x * q.z - 2 * q.w * q.y) * v.x + (2 * q.y * q.z + 2 * q.w * q.x) * v.y + (q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z) * v.z;
 	return result;
 }
-static __host__     __device__            inline real3 quatRotateMatT(const real3 &v, const quaternion &q) {
+static __host__      __device__             inline real3 quatRotateMatT(const real3 &v, const quaternion &q) {
 
 	real3 result;
 	result.x = (q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z) * v.x + (2 * q.x * q.y + 2 * q.w * q.z) * v.y + (2 * q.x * q.z - 2 * q.w * q.y) * v.z;
@@ -352,7 +360,7 @@ static __host__     __device__            inline real3 quatRotateMatT(const real
 	result.z = (2 * q.x * q.z + 2 * q.w * q.y) * v.x + (2 * q.y * q.z - 2 * q.w * q.x) * v.y + (q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z) * v.z;
 	return result;
 }
-static __host__     __device__ quaternion operator %(const quaternion rhs, const quaternion lhs) {
+static __host__      __device__ quaternion operator %(const quaternion rhs, const quaternion lhs) {
 	return mult(rhs, lhs);
 }
 
@@ -385,7 +393,7 @@ static __host__ __device__ bool isEqual(const real3 &a, const real3 &b) {
 }
 
 ////////Other Operations
-static __host__     __device__ uint nearest_pow(uint num) {
+static __host__      __device__ uint nearest_pow(uint num) {
 	uint n = num > 0 ? num - 1 : 0;
 	n |= n >> 1;
 	n |= n >> 2;
@@ -396,7 +404,7 @@ static __host__     __device__ uint nearest_pow(uint num) {
 	return n;
 }
 
-static __host__     __device__ real sign(real x) {
+static __host__      __device__ real sign(real x) {
 	if (x < 0) {
 		return -1;
 	} else if (x > 0) {
@@ -414,7 +422,7 @@ static __host__ __device__ inline void Swap(T &a, T &b) {
 	b = tmp;
 }
 
-static __host__     __device__ real3 fabs(const real3 &a) {
+static __host__      __device__ real3 fabs(const real3 &a) {
 	return R3(fabs(a.x), fabs(a.y), fabs(a.z));
 }
 
@@ -463,7 +471,7 @@ struct M33 {
 	//[U.z,V.z,W.z][z]
 };
 
-static __host__     __device__ M33 XMatrix(real3 vect) {
+static __host__      __device__ M33 XMatrix(real3 vect) {
 	M33 Xmat;
 	Xmat.U.x = 0;
 	Xmat.V.x = -vect.z;
@@ -478,7 +486,7 @@ static __host__     __device__ M33 XMatrix(real3 vect) {
 	Xmat.W.z = 0;
 	return Xmat;
 }
-static __host__     __device__ M33 MatMult(M33 A, M33 B) {
+static __host__      __device__ M33 MatMult(M33 A, M33 B) {
 	M33 result;
 	result.U.x = A.U.x * B.U.x + A.V.x * B.U.y + A.W.x * B.U.z; //row1 * col1
 	result.V.x = A.U.x * B.V.x + A.V.x * B.V.y + A.W.x * B.V.z; //row1 * col2
@@ -494,7 +502,7 @@ static __host__     __device__ M33 MatMult(M33 A, M33 B) {
 
 	return result;
 }
-static __host__     __device__ real3 MatMult(M33 A, real3 B) {
+static __host__      __device__ real3 MatMult(M33 A, real3 B) {
 	real3 result;
 
 	result.x = A.U.x * B.x + A.V.x * B.y + A.W.x * B.z; //row1 * col1
@@ -505,7 +513,7 @@ static __host__     __device__ real3 MatMult(M33 A, real3 B) {
 }
 
 //A is transposed
-static __host__     __device__ M33 MatTMult(M33 A, M33 B) {
+static __host__      __device__ M33 MatTMult(M33 A, M33 B) {
 	M33 result;
 	result.U.x = A.U.x * B.U.x + A.U.y * B.U.y + A.U.z * B.U.z; //row1 * col1
 	result.V.x = A.U.x * B.V.x + A.U.y * B.V.y + A.U.z * B.V.z; //row1 * col2
@@ -522,7 +530,7 @@ static __host__     __device__ M33 MatTMult(M33 A, M33 B) {
 	return result;
 }
 
-static __host__     __device__ real3 MatTMult(M33 A, real3 B) {
+static __host__      __device__ real3 MatTMult(M33 A, real3 B) {
 	real3 result;
 
 	result.x = A.U.x * B.x + A.U.y * B.y + A.U.z * B.z; //row1 * col1
@@ -532,7 +540,7 @@ static __host__     __device__ real3 MatTMult(M33 A, real3 B) {
 	return result;
 }
 
-static __host__     __device__ M33 AMat(real4 q) {
+static __host__      __device__ M33 AMat(real4 q) {
 	M33 result;
 
 	real e0e0 = q.w * q.w;
@@ -574,7 +582,7 @@ static __host__     __device__ M33 AMat(real4 q) {
 //[U.x,U.y,U.z]
 //[V.x,V.y,V.z]
 //[W.x,W.y,W.z]
-static __host__     __device__ M33 AMatT(real4 q) {
+static __host__      __device__ M33 AMatT(real4 q) {
 	M33 result;
 
 	real e0e0 = q.w * q.w;
@@ -602,7 +610,7 @@ static __host__     __device__ M33 AMatT(real4 q) {
 	return result;
 
 }
-static __host__     __device__ M33 AbsMat(M33 A) {
+static __host__      __device__ M33 AbsMat(M33 A) {
 	M33 result;
 	result.U.x = fabs(A.U.x);
 	result.U.y = fabs(A.U.y);

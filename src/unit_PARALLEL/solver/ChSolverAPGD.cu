@@ -689,6 +689,9 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 #ifdef PRINT_DEBUG_GPU
 		cout<<"iter_end "<<residual<<endl;
 #endif
+		real maxdeltalambda = NormInf(ms);
+
+		AtIterationEnd(residual, maxdeltalambda, current_iteration);
 
 		if (residual < tolerance) {
 			break;

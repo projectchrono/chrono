@@ -593,11 +593,11 @@ void ChSolverJacobi::Solve(real step, gpu_container& gpu_data_) {
 			//residual = CompRes(gpu_data->device_dgm_data, number_of_contacts);
 			residual = gpu_data->device_dgm_data[thrust::max_element(gpu_data->device_dgm_data.begin(),gpu_data->device_dgm_data.begin()+number_of_contacts)-gpu_data->device_dgm_data.begin()];
 
+			AtIterationEnd(residual, 0, current_iteration);
 
 			if (residual < tolerance) {
 				break;
 			}
 		}
-
 	}
 }

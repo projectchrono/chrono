@@ -37,6 +37,9 @@ uint ChSolverGPU::SolveCG(custom_vector<real> &x, const custom_vector<real> &b, 
         }
         SEAXPY(rsnew / rsold, p, r, p); //p = r + rsnew / rsold * p;
         rsold = rsnew;
+
+        AtIterationEnd(residual, 0, current_iteration);
+
     }
     Project(x);
     return current_iteration;

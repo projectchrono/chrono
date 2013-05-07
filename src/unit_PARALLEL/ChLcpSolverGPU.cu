@@ -78,20 +78,10 @@ void ChLcpSolverGPU::Preprocess(gpu_container& gpu_data) {
 			CASTR3(gpu_data.device_vel_data),
 			CASTR3(gpu_data.device_omg_data));
 #else
-	host_ComputeGyro(
-			gpu_data.device_omg_data.data(),
-			gpu_data.device_inr_data.data(),
-			gpu_data.device_gyr_data.data(),
-			gpu_data.device_trq_data.data());
+	host_ComputeGyro(gpu_data.device_omg_data.data(), gpu_data.device_inr_data.data(), gpu_data.device_gyr_data.data(), gpu_data.device_trq_data.data());
 
-	host_addForces(
-			gpu_data.device_active_data.data(),
-			gpu_data.device_mass_data.data(),
-			gpu_data.device_inr_data.data(),
-			gpu_data.device_frc_data.data(),
-			gpu_data.device_trq_data.data(),
-			gpu_data.device_vel_data.data(),
-			gpu_data.device_omg_data.data());
+	host_addForces(gpu_data.device_active_data.data(), gpu_data.device_mass_data.data(), gpu_data.device_inr_data.data(), gpu_data.device_frc_data.data(), gpu_data.device_trq_data.data(),
+			gpu_data.device_vel_data.data(), gpu_data.device_omg_data.data());
 #endif
 	gpu_data.device_fap_data.resize(number_of_objects);
 	Thrust_Fill(gpu_data.device_fap_data, R3(0));
@@ -105,16 +95,16 @@ void ChLcpSolverGPU::RunTimeStep(real step, gpu_container& gpu_data) {
 	number_of_objects = gpu_data.number_of_objects;
 	//cout << number_of_constraints << " " << number_of_contacts << " " << number_of_bilaterals << " " << number_of_objects << endl;
 #ifdef PRINT_DEBUG_GPU
-		cout << "Preprocess: " << endl;
+	cout << "Preprocess: " << endl;
 #endif
 	Preprocess(gpu_data);
 #ifdef PRINT_DEBUG_GPU
-		cout << "Jacobians: " << endl;
+	cout << "Jacobians: " << endl;
 #endif
 	ChJacobianGPU jacobian_compute;
 	jacobian_compute.ComputeJacobians(gpu_data);
 #ifdef PRINT_DEBUG_GPU
-		cout << "Solve: " << endl;
+	cout << "Solve: " << endl;
 #endif
 	if (solver_type == BLOCK_JACOBI) {
 		ChSolverJacobi jacobi_solver;
@@ -140,9 +130,15 @@ void ChLcpSolverGPU::RunTimeStep(real step, gpu_container& gpu_data) {
 		residual = solver.GetResidual();
 		rhs = solver.rhs;
 		lambda = gpu_data.device_gam_data;
+
+		for (int i = 0; i < solver.iter_hist.size(); i++) {
+			AtIterationEnd(solver.maxd_hist[i], solver.maxdeltalambda_hist[i], solver.iter_hist[i]);
+
+		}
 	}
+
 #ifdef PRINT_DEBUG_GPU
-		cout << "Solve Done: "<<residual << endl;
+	cout << "Solve Done: "<<residual << endl;
 #endif
 	//ChIntegratorGPU integrator;
 	//integrator.IntegrateSemiImplicit(step, gpu_data);

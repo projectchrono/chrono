@@ -476,7 +476,11 @@ void ChSolverGPU::host_Offsets(int2* ids, real4* bilaterals, uint* Body) {
 
 void ChSolverGPU::Setup() {
 	time_rhs = time_shurcompliment = time_project = time_integrate = 0;
-
+	///
+	maxd_hist.clear();
+	maxdeltalambda_hist.clear();
+	iter_hist.clear();
+	///
 	number_of_constraints = gpu_data->number_of_contacts * 3 + gpu_data->number_of_bilaterals;
 	number_of_contacts = gpu_data->number_of_contacts;
 	number_of_bilaterals = gpu_data->number_of_bilaterals;

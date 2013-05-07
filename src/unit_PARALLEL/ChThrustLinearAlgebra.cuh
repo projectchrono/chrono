@@ -151,6 +151,23 @@ struct square
 	}
 };
 
+struct abs_functor: public thrust::unary_function<real, real> {
+
+	__host__ __device__
+	float operator()(const real &x) const {
+		return fabs(x);
+	}
+};
+
+
+static custom_vector<real> Abs(const custom_vector<real> &x)
+{
+	custom_vector<real> temp(x.size());
+	thrust::transform(x.begin(), x.end(),temp.begin() , abs_functor());
+	return temp;
+
+}
+
 static real Norm(const custom_vector<real> &x)
 {
 	square<float> unary_op;
@@ -160,21 +177,16 @@ static real Norm(const custom_vector<real> &x)
 	//return sqrt(Dot(x, x));
 
 	}
-struct abs_functor: public thrust::unary_function<real, real> {
-
-	__host__ __device__
-	float operator()(const real &x) const {
-		return fabs(x);
-	}
-};
-
-static custom_vector<real> Abs(const custom_vector<real> &x)
+static real NormInf(const custom_vector<real> &x)
 {
-	custom_vector<real> temp(x.size());
-	thrust::transform(x.begin(), x.end(),temp.begin() , abs_functor());
-	return temp;
 
+	custom_vector<real> res = Abs(x);
+
+	return res[thrust::max_element(res.begin(),res.end())-res.begin()];
 }
+
+
+
 
 static real CompRes(const custom_vector<real> &res, const uint n_o_c)
 {
