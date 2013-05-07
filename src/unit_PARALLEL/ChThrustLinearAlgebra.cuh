@@ -170,9 +170,9 @@ static custom_vector<real> Abs(const custom_vector<real> &x)
 
 static real Norm(const custom_vector<real> &x)
 {
-	square<float> unary_op;
-	thrust::plus<float> binary_op;
-	float init = 0;
+	square<real> unary_op;
+	thrust::plus<real> binary_op;
+	real init = 0;
 	return sqrt( thrust::transform_reduce(x.begin(), x.end(), unary_op, init, binary_op) );
 	//return sqrt(Dot(x, x));
 

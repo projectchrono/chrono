@@ -611,6 +611,9 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 		//
 		//
 		while (obj1 > obj3) {
+#ifdef PRINT_DEBUG_GPU
+			cout <<"L_k "<<L_k<<" t_k "<<t_k<<endl;
+#endif
 			L_k = 2 * L_k;
 			t_k = 1.0 / L_k;
 //			SEAXPY(-t_k, mg, my, mx); // mx = my + mg*(t_k);
@@ -685,11 +688,13 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 	}
 
 	residual=lastgoodres;
+	real maxdeltalambda = NormInf(ms);
 
 #ifdef PRINT_DEBUG_GPU
 		cout<<"iter_end "<<residual<<endl;
+		cout<<"maxdeltalambda "<<maxdeltalambda<<endl;
 #endif
-		real maxdeltalambda = NormInf(ms);
+
 
 		AtIterationEnd(residual, maxdeltalambda, current_iteration);
 
