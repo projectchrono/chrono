@@ -24,7 +24,6 @@
 namespace chrono
 {
 
-
 ///    Base class for DIRECT solvers aimed at solving
 ///   LCP linear complementarity problems arising
 ///   from QP optimization problems.

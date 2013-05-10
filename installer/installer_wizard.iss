@@ -5,7 +5,7 @@
 ; Copyright 2009 A.Tasora
 
 #define MyAppName "ChronoEngine_wizard"
-#define MyAppVersion "v1.3.0"
+#define MyAppVersion "v1.7.0"
 #define MyAppPublisher "Alessandro Tasora"
 #define MyAppURL "http://dynamics.eng.unipr.it"
 #define MyChronoEngineSDK "C:\tasora\code\nightly_repo\code\ChronoEngine"

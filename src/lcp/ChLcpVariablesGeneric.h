@@ -8,14 +8,6 @@
 //    Specialized class for representing a N-DOF item for a
 //   LCP system, that is an item with mass matrix and
 //   associate variables.
-//    Specialized class for representing a mass matrix
-//   and associate variables for a generic item
-//   with a normal (uncompressed) mass matrix, to be
-//   used in a LCP problem of the type:
-//
-//    | M -Cq'|*|q|- | f|= |0| ,  c>0, l>0, l*r=0;
-//    | Cq  0 | |l|  |-b|  |c|
-//
 //
 //   HEADER file for CHRONO HYPEROCTANT LCP solver
 //
@@ -152,10 +144,30 @@ public:
 						result = (*Mmass)*vect;
 					};
 
+				/// Computes the product of the corresponding block in the 
+				/// system matrix (ie. the mass matrix) by 'vect', and add to 'result'. 
+				/// NOTE: the 'vect' and 'result' vectors must already have
+				/// the size of the total variables&constraints in the system; the procedure
+				/// will use the ChVariable offsets (that must be already updated) to know the 
+				/// indexes in result and vect.
+	virtual void MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect) const
+					{
+						assert(result.GetColumns()==1 && vect.GetColumns()==1);
+	
+						for (int i = 0; i < Mmass->GetRows(); i++)
+						{
+							double tot = 0;
+							for (int j = 0; j < Mmass->GetColumns(); j++)
+							{
+								tot += (*Mmass)(i,j)* vect(this->offset + i);
+							}
+							result(this->offset + i) += tot;
+						}
+					}
+
 				/// Build the mass matrix (for these variables) storing
 				/// it in 'storage' sparse matrix, at given column/row offset.
-				/// This function is used only by the ChLcpSimplex solver (iterative 
-				/// solvers don't need to know mass matrix explicitly).
+				/// Note, most iterative solvers don't need to know mass matrix explicitly.
 	virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol)
 					{
 						storage.PasteMatrix(Mmass, insrow, inscol);

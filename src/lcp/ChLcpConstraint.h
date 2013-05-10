@@ -6,14 +6,9 @@
 //   ChLcpConstraint.h
 //
 //    Base class for representing a constraint for
-//   the sparse LCP solver, used with LCP systems
+//   sparse variational problems (VI/CCP/LCP/linear problems)
 //   including inequalities, equalities, nonlinearities,
 //   etc.
-//
-//    Constraints can be either bilateral, unilateral,
-//   boxed (lmin<l<lmax), or also nonlinear (as in 3D
-//   friction analysis) if the iterative solver is
-//   used - see inherited constraint classes.
 //
 //
 //   HEADER file for CHRONO HYPEROCTANT LCP solver
@@ -47,14 +42,21 @@ enum eChConstraintMode {
 
 
 ///  Base class for representing constraints to be used
-/// with LCP solvers, used with LCP systems including
-/// inequalities, equalities, nonlinearities, etc.
+/// with variational inequality solvers, used with Linear/CCP/LCP
+/// problems including inequalities, equalities, nonlinearities, etc.
+/// The matrices define the variational inequality VI(Z*x-d,K):
 ///
-///    | M -Cq'|*|q|- | f|= |0| ,  c>=0, l>=0, l*c=0;
-///    | Cq  0 | |l|  |-b|  |c|
+///  | M -Cq'|*|q|- | f|= |0| , l \in Y, C \in Ny, normal cone to Y  
+///  | Cq -E | |l|  |-b|  |c|    
 ///
+/// Also Z symmetric by flipping sign of l_i: |M  Cq'|*| q|-| f|=|0|  
+///                                           |Cq  E | |-l| |-b| |c|
+/// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals)
+/// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0)
+/// * case CCP: Y_i are friction cones)
 ///  The jacobian matrix [Cq] is built row by row by jacobians
-/// [Cq_i] of the constraints.
+/// [Cq_i] of the constraints. [E] optionally includes 'cfm_i' terms 
+/// on the diagonal.
 ///  In general, typical bilateral constraints must be solved
 /// to have residual the residual c_i = 0 (unilaterals: c_i>0)
 /// where the following linearization is introduced:
@@ -205,9 +207,9 @@ public:
 
 
 				/// Compute the residual of the constraint using the LINEAR 
-				/// expression   c_i= [Cq_i]*q + b_i . For a satisfied bilateral
+				/// expression   c_i= [Cq_i]*q + cfm_i*l_i + b_i . For a satisfied bilateral
 				/// constraint, this residual must be near zero.
-	virtual double Compute_c_i() { c_i = Compute_Cq_q() + b_i; return c_i;};
+	virtual double Compute_c_i() { c_i = Compute_Cq_q() + cfm_i*l_i + b_i; return c_i;};
 
 				///  This function must update the 'c_i' residual of
 				/// the constraint.								  // CURRENTLY NOT USED
@@ -291,6 +293,21 @@ public:
 				/// inherited classes!
 	virtual void Increment_q(const double deltal) = 0;
 
+				/// Computes the product of the corresponding block in the 
+				/// system matrix by 'vect', and add to 'result'. 
+				/// NOTE: the 'vect' vector must already have
+				/// the size of the total variables&constraints in the system; the procedure
+				/// will use the ChVariable offsets (that must be already updated) to know the 
+				/// indexes in result and vect; 
+	virtual void MultiplyAndAdd(double& result, ChMatrix<double>& vect) = 0;
+
+				/// Computes the product of the corresponding transposed block in the 
+				/// system matrix (ie. the TRANSPOSED jacobian matrix C_q') by 'l', and add to 'result'. 
+				/// NOTE: the 'result' vectors must already have
+				/// the size of the total variables&constraints in the system; the procedure
+				/// will use the ChVariable offsets (that must be already updated) to know the 
+				/// indexes in result and vect; 
+	virtual void MultiplyTandAdd(ChMatrix<double>& result, double l) = 0;
 
 				/// For iterative solvers: project the value of a possible
 				/// 'l_i' value of constraint reaction onto admissible orthant/set.

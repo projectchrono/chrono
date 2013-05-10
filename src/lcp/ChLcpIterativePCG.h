@@ -26,12 +26,16 @@ namespace chrono
 
 /// An iterative solver based on modified 
 /// Krylov iteration of projected conjugate gradient.
-/// The problem is described by an LCP of type
+/// The problem is described by a variational inequality VI(Z*x-d,K):
 ///
-///    | M -Cq'|*|q|- | f|= |0| ,   c>=0, l>=0, l*c=0;
-///    | Cq  0 | |l|  |-b|  |c|
+///  | M -Cq'|*|q|- | f|= |0| , l \in Y, c \in Ny, normal cone to Y  
+///  | Cq -E | |l|  |-b|  |c|    
 ///
-/// or similar CCP problem.
+/// Also Z symmetric by flipping sign of l_i: |M  Cq'|*| q|-| f|=|0|  
+///                                           |Cq  E | |-l| |-b| |c|
+/// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals
+/// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
+/// * case CCP: Y_i are friction cones
 
 class ChApi ChLcpIterativePCG : public ChLcpIterativeSolver
 {

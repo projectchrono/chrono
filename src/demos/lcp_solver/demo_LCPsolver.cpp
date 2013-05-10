@@ -18,8 +18,10 @@
 // Include some headers used by this tutorial...
 
 #include "lcp/ChLcpVariablesGeneric.h"
-#include "lcp/ChLcpVariablesBody.h"
+#include "lcp/ChLcpVariablesBodyOwnMass.h"
 #include "lcp/ChLcpConstraintTwoGeneric.h"
+#include "lcp/ChLcpConstraintTwoBodies.h"
+#include "lcp/ChLcpKstiffnessGeneric.h"
 #include "lcp/ChLcpSystemDescriptor.h"
 #include "lcp/ChLcpIterativeSOR.h"
 #include "lcp/ChLcpIterativePMINRES.h"
@@ -33,20 +35,22 @@ using namespace chrono;
 
 
 
-//  The HyperOCTANT solver is aimed at solving
-// LCP/CCP complementarity problems arising
+//  The HyperOCTANT solver is aimed at solving linear problems and
+// VI/LCP/CCP complementarity problems, as those arising
 // from QP optimization problems.
-//  The LCP problem must be in this (symmetric) 
-// form:
+//  The problem is described by a variational inequality VI(Z*x-d,K):
 //
-//   | M -Cq'|*|q|- | f|= |0| ,   c>=0, l>=0, l*c=0;
-//   | Cq  0 | |l|  |-b|  |c|
+//  | M -Cq'|*|q|- | f|= |0| , l \in Y, C \in Ny, normal cone to Y  
+//  | Cq -E | |l|  |-b|  |c|    
 //
-// as arising in the solution of QP with
-// inequalities or in multibody problems.
+// Also w.symmetric Z by flipping sign of l_i: |M  Cq'|*| q|-| f|=|0|  
+//                                             |Cq  E | |-l| |-b| |c|
+// * case linear problem:  all Y_i = R, Ny=0, ex. all bilateral constr.
+// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0 ex. unilateral constr.
+// * case CCP: Y_i are friction cones, etc.
 //
 //  The HyperOCTANT technology is mostly targeted
-// at solving LCP for multibody problems of Chrono::Engine
+// at solving multibody problems in Chrono::Engine
 // so it offers optimizations for the case where the M matrix
 // is diagonal or block-diagonal: each block refers to a 
 // ChLcpVariables object, and each line of jacobian Cq belongs
@@ -68,15 +72,15 @@ using namespace chrono;
 //  CONSTRAINTS (unknowns reactions 'l' in the scheme).
 // As an example, let's solve the following mixed LCP:
 //
-//  | 10  0  0          . -1  0 | |q_a0|   |  1|   |  0|
-//  |  0 10  0          . -2 -1 | |q_a1|   |  2|   |  0|
-//  |  0  0 10          .  1  0 | |q_a2|   |  0|   |  0|
-//  |          20  0  0 . -1  0 | |q_b0|   |  0|   |  0|
-//  |           0 20  0 .  2  1 | |q_b1| - |  0| = |  0|
+//  | 10  0  0          .  1  0 | |q_a0|   |  1|   |  0|
+//  |  0 10  0          .  2  1 | |q_a1|   |  2|   |  0|
+//  |  0  0 10          . -1  0 | |q_a2|   |  0|   |  0|
+//  |          20  0  0 .  1  0 | |q_b0|   |  0|   |  0|
+//  |           0 20  0 . -2 -1 | |q_b1| - |  0| = |  0|
 //  |           0  0 20 .  0  0 | |q_b2|   |  0|   |  0|
 //  | ..........................| |....|   |...|   |...|
-//  |  1  2 -1  1 -2  0 .       | | l_1|   |  5|   |c_1|
-//  |  0  1  0  0 -1  0 .       | | l_2|   | -1|   |c_2|
+//  |  1  2 -1  1 -2  0 .       | |-l_1|   |  5|   |c_1|
+//  |  0  1  0  0 -1  0 .       | |-l_2|   | -1|   |c_2|
 
 void test_1()
 {
@@ -90,7 +94,7 @@ void test_1()
 
 	// Now let's add variables and constraints, as sparse data:
 
-	mdescriptor.BeginInsertion();  // ----- system description is finished
+	mdescriptor.BeginInsertion();  // ----- system description starts here
 
 		// create C++ objects representing 'variables':
 
@@ -120,7 +124,6 @@ void test_1()
 	mca.Get_Cq_b()->ElementN(0)=1;
 	mca.Get_Cq_b()->ElementN(1)=-2;
 	mca.Get_Cq_b()->ElementN(2)=0;
-	//	mca.SetMode(CONSTRAINT_UNILATERAL);
 
 	ChLcpConstraintTwoGeneric mcb(&mvarA, &mvarB);
 	mcb.Set_b_i( 1);
@@ -130,9 +133,7 @@ void test_1()
 	mcb.Get_Cq_b()->ElementN(0)=0;
 	mcb.Get_Cq_b()->ElementN(1)=-2;
 	mcb.Get_Cq_b()->ElementN(2)=0;
-	//	mcb.SetMode(CONSTRAINT_UNILATERAL);
 
-	std::vector<ChLcpConstraint*> vconstr;
 	
 	mdescriptor.InsertConstraint(&mca);	
 	mdescriptor.InsertConstraint(&mcb);
@@ -339,6 +340,178 @@ void test_2()
 
 
 
+// Test 3
+// Create three variables, with some mass, and also add a
+// ChLcpStiffness item that connects two of these variables
+// with random stiffness. 
+// Also use the ChLcpSystemDescriptor functions FromUnknownsToVector
+// and FromVectorToUnknowns for doing checks.
+//
+//  | M+K   K       . Cq' | |q_a |   |f_a|   |  0|
+//  |  K   M+K      . Cq' | |q_b |   |f_b|   |  0|
+//  |            M  .     | |q_c |   |f_c| = |  0|
+//  | ....................| |... |   |...|   |...|
+//  |  Cq   Cq      .     | |-l_1|   |  5|   |c_1|
+
+
+void test_3()
+{
+	GetLog() << "\n-------------------------------------------------\n";
+	GetLog() << "TEST: generic system with stiffness blocks \n\n";
+
+	// Important: create a 'system descriptor' object that 
+	// contains variables and constraints:
+
+	ChLcpSystemDescriptor mdescriptor;
+
+	// Now let's add variables and constraints, as sparse data:
+
+	mdescriptor.BeginInsertion();  // ----- system description 
+
+		// Create C++ objects representing 'variables', set their M blocks
+		// (the masses) and set their known terms 'fb'
+
+	ChMatrix33<> minertia;
+	minertia.FillDiag(6);
+
+	ChLcpVariablesBodyOwnMass mvarA;
+	mvarA.SetBodyMass(5);
+	mvarA.SetBodyInertia(&minertia);
+	mvarA.Get_fb().FillRandom(-3,3);
+
+	ChLcpVariablesBodyOwnMass mvarB;
+	mvarB.SetBodyMass(4);
+	mvarB.SetBodyInertia(&minertia);
+	mvarB.Get_fb().FillRandom(2,5);
+
+	ChLcpVariablesBodyOwnMass mvarC;
+	mvarC.SetBodyMass(5.5);
+	mvarC.SetBodyInertia(&minertia);
+	mvarC.Get_fb().FillRandom(-8,3);
+
+	mdescriptor.InsertVariables(&mvarA);
+	mdescriptor.InsertVariables(&mvarB);
+	mdescriptor.InsertVariables(&mvarC);
+
+		// Create two C++ objects representing 'constraints' between variables
+		// and set the jacobian to random values; 
+		// Also set cfm term (E diagonal = -cfm)
+
+	ChLcpConstraintTwoBodies mca(&mvarA, &mvarB);
+	mca.Set_b_i(5);
+	mca.Get_Cq_a()->FillRandom(-1,1);
+	mca.Get_Cq_b()->FillRandom(-1,1);
+	mca.Set_cfm_i(0.2);
+
+	ChLcpConstraintTwoBodies mcb(&mvarA, &mvarB);
+	mcb.Set_b_i(5);
+	mcb.Get_Cq_a()->FillRandom(-1,1);
+	mcb.Get_Cq_b()->FillRandom(-1,1);
+	mcb.Set_cfm_i(0.1);
+
+	mdescriptor.InsertConstraint(&mca);
+	mdescriptor.InsertConstraint(&mcb);
+
+
+		// Create two C++ objects representing 'stiffness' between variables:
+
+	ChLcpKstiffnessGeneric mKa;
+	// set the affected variables (so this K is a 12x12 matrix, relative to 4 6x6 blocks)
+	std::vector<ChLcpVariables*> mvarsa;
+	mvarsa.push_back(&mvarA);
+	mvarsa.push_back(&mvarB);
+	mKa.SetVariables(mvarsa); 
+
+	mKa.Get_K()->FillRandom(0.3,0.3);
+	
+	mdescriptor.InsertKstiffness(&mKa);
+	
+
+	ChLcpKstiffnessGeneric mKb;
+	// set the affected variables (so this K is a 12x12 matrix, relative to 4 6x6 blocks)
+	std::vector<ChLcpVariables*> mvarsb;
+	mvarsb.push_back(&mvarB);
+	mvarsb.push_back(&mvarC);
+	mKb.SetVariables(mvarsb); 
+
+	mKb.Get_K()->FillRandom(-9.2,9.02);
+	
+	mdescriptor.InsertKstiffness(&mKb);
+
+
+	mdescriptor.EndInsertion();  // ----- system description ends here
+
+  
+	// A- Check functionality of the full system product Z*x
+
+	int nv = mdescriptor.CountActiveVariables();
+	int nc = mdescriptor.CountActiveConstraints();
+
+	chrono::ChMatrixDynamic<double> mx(nv+nc, 1);
+	chrono::ChMatrixDynamic<double> prod_e(nv+nc, 1);
+	chrono::ChMatrixDynamic<double> prod_f(nv+nc, 1);
+	mx.FillRandom(-3,3);	// a random x vector
+
+	mdescriptor.SystemProduct(prod_e, &mx);   //! HERE DO: e = Z*x
+
+
+	// check exactness by doing the product with matrices:
+
+	chrono::ChSparseMatrix mdM;
+	chrono::ChSparseMatrix mdCq;
+	chrono::ChSparseMatrix mdE;
+	chrono::ChMatrixDynamic<double> mdf;
+	chrono::ChMatrixDynamic<double> mdb;
+	chrono::ChMatrixDynamic<double> mdfric;
+	// fill the matrices given the system:
+	mdescriptor.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, 0);
+	// make Z from [M+K,Cq';Cq',E]
+	chrono::ChSparseMatrix mdZ(nv+nc, nv+nc);
+	mdZ.PasteMatrix(&mdM,0,0);
+	mdZ.PasteMatrix(&mdE,nv,nv);
+	mdZ.PasteMatrix(&mdCq,nv,0);
+	mdZ.PasteTranspMatrix(&mdCq,0,nv);
+	// convert sparse to full 
+	chrono::ChMatrixDynamic<double> mdZd(nv+nc, nv+nc);
+	mdZ.CopyToMatrix(&mdZd);
+	prod_f.MatrMultiply(mdZd,mx);
+
+			try
+			{
+				chrono::ChStreamOutAsciiFile file_M("dump_M.dat");
+				mdM.StreamOUTsparseMatlabFormat(file_M);
+				chrono::ChStreamOutAsciiFile file_Cq("dump_Cq.dat");
+				mdCq.StreamOUTsparseMatlabFormat(file_Cq);
+				chrono::ChStreamOutAsciiFile file_E("dump_E.dat");
+				mdE.StreamOUTsparseMatlabFormat(file_E);
+				chrono::ChStreamOutAsciiFile file_Z("dump_Z.dat");
+				mdZ.StreamOUTsparseMatlabFormat(file_Z);
+				chrono::ChStreamOutAsciiFile file_f("dump_f.dat");
+				mdf.StreamOUTdenseMatlabFormat(file_f);
+				chrono::ChStreamOutAsciiFile file_b("dump_b.dat");
+				mdb.StreamOUTdenseMatlabFormat(file_b);
+				chrono::ChStreamOutAsciiFile file_x("dump_x.dat");
+				mx.StreamOUTdenseMatlabFormat(file_x);
+				chrono::ChStreamOutAsciiFile file_e_cpp("dump_e_cpp.dat");
+				prod_e.StreamOUTdenseMatlabFormat(file_e_cpp);
+			} 
+			catch(chrono::ChException myexc)
+			{
+				chrono::GetLog() << myexc.what();
+			}
+
+	GetLog() << "SystemProduct Z*x -------------------\n";
+	GetLog() << prod_e << "\n";
+
+	GetLog() << "Matrix (check) product Z*x -------------------\n";
+	GetLog() << prod_f << "\n";
+
+	GetLog() << "norm err check product Z*x -------------------\n";
+	GetLog() << (prod_f - prod_e).NormInf() << "\n";
+
+}
+
+
 
 // Do some tests in a single run, inside the main() function.
 // Results will be simply text-formatted outputs in the console..
@@ -353,6 +526,9 @@ int main(int argc, char* argv[])
 
 	// Test: the 'inverted pendulum' benchmark (compute reactions with Krylov solver)
 	test_2();
+
+	// Test: the stiffness benchmark
+	test_3();
 
 	return 0;
 }

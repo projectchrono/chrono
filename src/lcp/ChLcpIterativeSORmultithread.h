@@ -5,7 +5,7 @@
 //
 //   ChLcpIterativeSORmultithread.h
 //
-//  An iterative LCP solver based on projective
+//  An iterative VI solver based on projective
 //  fixed point method, with overrelaxation
 //  and immediate variable update as in SOR methods,
 //  implemented on multicore processors.

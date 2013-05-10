@@ -25,23 +25,22 @@ namespace chrono
 {
 
 
-///    An iterative LCP solver based on projective
-///   fixed point method, similar to a projected 
-///   Jacobi method.
-///   Note: this method is here mostly for comparison
-///   and tests: we suggest you to use the more efficient
-///   ChLcpIterativeSOR - similar, but faster & converges better.
-///    This solver must be used for mixed-linear
-///   complementarity problems (MLCP) in this
-///   form:
+/// An iterative solver for VI (VI/CCP/LCP/linear problems,..) based 
+/// on projective fixed point method, similar to a projected 
+/// Jacobi method.
+/// Note: this method is here mostly for comparison
+/// and tests: we suggest you to use the more efficient
+/// ChLcpIterativeSOR - similar, but faster & converges better.
+/// The problem is described by a variational inequality VI(Z*x-d,K):
 ///
-///    | M -Cq'|*|q|- | f|= |0| ,   c>=0, l>=0, l*c=0;
-///    | Cq  0 | |l|  |-b|  |c|
+///  | M -Cq'|*|q|- | f|= |0| , l \in Y, c \in Ny, normal cone to Y  
+///  | Cq -E | |l|  |-b|  |c|    
 ///
-///   as arising in the solution of QP with
-///   inequalities or in multibody problems.
-///    Note that this solver supports also the case of
-///   boxed constraints on 'l', such as lmin<l<lmax
+/// Also Z symmetric by flipping sign of l_i: |M  Cq'|*| q|-| f|=|0|  
+///                                           |Cq  E | |-l| |-b| |c|
+/// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals
+/// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
+/// * case CCP: Y_i are friction cones
 
 class ChApi ChLcpIterativeJacobi : public ChLcpIterativeSolver
 {

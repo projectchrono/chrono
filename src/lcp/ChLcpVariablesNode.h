@@ -7,11 +7,7 @@
 //
 //    Specialized class for representing a mass matrix
 //   and associate variables (3 element vector, ex.speed)
-//   for a 3D point 'node', in a LCP problem of the type:
-//
-//    | M -Cq'|*|q|- | f|= |0| ,  c>0, l>0, l*c=0;
-//    | Cq  0 | |l|  |-b|  |c|
-//
+//   for a 3D point 'node'.
 //
 //   HEADER file for CHRONO HYPEROCTANT LCP solver
 //
@@ -162,10 +158,24 @@ public:
 						result(2)= mass * vect(2);
 					};
 
+				/// Computes the product of the corresponding block in the 
+				/// system matrix (ie. the mass matrix) by 'vect', and add to 'result'. 
+				/// NOTE: the 'vect' and 'result' vectors must already have
+				/// the size of the total variables&constraints in the system; the procedure
+				/// will use the ChVariable offsets (that must be already updated) to know the 
+				/// indexes in result and vect.
+	virtual void MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect) const
+					{
+						assert(result.GetColumns()==1 && vect.GetColumns()==1);
+						// optimized unrolled operations
+						result(this->offset  )+= mass * vect(this->offset  );
+						result(this->offset+1)+= mass * vect(this->offset+1);
+						result(this->offset+2)+= mass * vect(this->offset+2);
+					}
+
 				/// Build the mass matrix (for these variables) storing
 				/// it in 'storage' sparse matrix, at given column/row offset.
-				/// This function is used only by the ChLcpSimplex solver (iterative 
-				/// solvers don't need to know mass matrix explicitly).
+				/// Note, most iterative solvers don't need to know mass matrix explicitly.
 				/// Optimised: doesn't fill unneeded elements except mass.
 	virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol)
 					{

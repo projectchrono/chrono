@@ -3,7 +3,7 @@
 
 
 ADD_EXECUTABLE(demo_LCPsolver  	demo_LCPsolver.cpp)
-SOURCE_GROUP(demos\\gpu FILES  		demo_LCPsolver.cpp)
+SOURCE_GROUP(demos\\lcp_solver FILES  		demo_LCPsolver.cpp)
 SET_TARGET_PROPERTIES(demo_LCPsolver PROPERTIES 
 	FOLDER demos
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"

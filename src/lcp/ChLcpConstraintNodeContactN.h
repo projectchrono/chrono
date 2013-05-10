@@ -7,8 +7,9 @@
 //
 //    An 'easy' derived class for representing a
 //   constraint between two ChLcpVariable items.
-//   Used with LCP systems including inequalities,
-//   equalities, nonlinearities, etc.
+//   Used with for building sparse variational problems 
+//   (VI/CCP/LCP/linear problems) described by 
+//   a ChLcpSystemDescriptor
 //
 //
 //   HEADER file for CHRONO HYPEROCTANT LCP solver

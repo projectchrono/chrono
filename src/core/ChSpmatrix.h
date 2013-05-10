@@ -186,6 +186,7 @@ class ChApi ChSparseMatrix : public ChMatrix<double> {
 	void PasteMatrix (ChSparseMatrix* matra, int insrow, int inscol);
 	void PasteTranspMatrix (ChSparseMatrix* matra, int insrow, int inscol);
 	void PasteClippedMatrix (ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol);
+	void PasteSumClippedMatrix (ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol);
 	void PasteSumMatrix (ChMatrix<>* matra, int insrow, int inscol);
 	void PasteSumTranspMatrix (ChMatrix<>* matra, int insrow, int inscol);
 
