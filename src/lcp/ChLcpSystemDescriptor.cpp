@@ -98,7 +98,7 @@ int ChLcpSystemDescriptor::CountActiveVariables()
 	{
 		if (vvariables[iv]->IsActive())
 		{
-			//vvariables[iv]->SetOffset(n_q);	// also store offsets in state and MC matrix
+			vvariables[iv]->SetOffset(n_q);	// also store offsets in state and MC matrix
 			n_q += vvariables[iv]->Get_ndof();
 		}
 	}
@@ -149,16 +149,9 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm (
 	// Count active variables, by scanning through all variable blocks,
 	// and set offsets
 
-	int n_q=0;
-	for (unsigned int iv = 0; iv< vvariables.size(); iv++)
-	{
-		if (vvariables[iv]->IsActive())
-		{
-			vvariables[iv]->SetOffset(n_q);	// also store offsets in state and MC matrix
-			n_q += vvariables[iv]->Get_ndof();
-		}
-	}
+	int n_q = this->CountActiveVariables();
 
+	
 	// Reset and resize (if needed) auxiliary vectors
 
 	if (Cq) 
@@ -189,6 +182,14 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm (
 		}
 	}  
 	
+	// If some stiffness / hessian matrix has been added to M ,
+	// also add it to the sparse M
+	int s_k=0;
+	for (unsigned int ik = 0; ik< this->vstiffness.size(); ik++)
+	{
+		this->vstiffness[ik]->Build_K(*M, true); 
+	} 
+
 	// Fills Cq jacobian, E 'compliance' matrix , the 'b' vector and friction coeff.vector, 
 	// by looping on constraints
 	int s_c=0;
@@ -383,6 +384,76 @@ int ChLcpSystemDescriptor::FromVectorToConstraints(
 }
 
 
+int ChLcpSystemDescriptor::FromUnknownsToVector(	
+								ChMatrix<>& mvector,	
+								bool resize_vector
+								)
+{
+	// Count active variables & constraints and resize vector if necessary
+	if (resize_vector)
+	{
+		int n_q= CountActiveVariables();
+		int n_c= CountActiveConstraints();
+		mvector.Resize(n_q+n_c, 1);
+	}
+
+	// Fill the first part of vector, x.q ,with variables q
+	int s_u=0;
+	for (unsigned int iv = 0; iv< vvariables.size(); iv++)
+	{
+		if (vvariables[iv]->IsActive())
+		{
+			mvector.PasteMatrix(&vvariables[iv]->Get_qb(), s_u, 0);
+			s_u += vvariables[iv]->Get_ndof();
+		}
+	}
+	// Fill the second part of vector, x.l, with constraint multipliers -l (with flipped sign!)
+	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
+	{
+		if (vconstraints[ic]->IsActive())
+		{
+			mvector(s_u) = -vconstraints[ic]->Get_l_i();
+			++s_u;
+		}
+	}
+
+	return  s_u;
+}
+
+		
+
+int ChLcpSystemDescriptor::FromVectorToUnknowns(
+								ChMatrix<>& mvector	
+								)
+{
+	#ifdef CH_DEBUG
+		int n_q= CountActiveVariables();
+		assert(n_q == mvector.GetRows());
+		assert(mvector.GetColumns()==1);
+	#endif
+
+	// fetch from the first part of vector (x.q = q)
+	int s_u=0;
+	for (unsigned int iv = 0; iv< vvariables.size(); iv++)
+	{
+		if (vvariables[iv]->IsActive())
+		{
+			vvariables[iv]->Get_qb().PasteClippedMatrix(&mvector, s_u, 0,  vvariables[iv]->Get_ndof(),1,  0,0);
+			s_u += vvariables[iv]->Get_ndof();
+		}
+	}
+	// fetch from the second part of vector (x.l = -l), with flipped sign!
+	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
+	{
+		if (vconstraints[ic]->IsActive())
+		{
+			vconstraints[ic]->Set_l_i( -mvector(s_u));
+			++s_u;
+		}
+	}
+
+	return s_u;
+}
 
 
 
@@ -531,6 +602,8 @@ void ChLcpSystemDescriptor::ShurComplementProduct(
 								std::vector<bool>* enabled  
 								)
 {
+	assert(this->vstiffness.size() == 0); // currently, the case with ChLcpKstiffness items is not supported (only diagonal M is supported, no K)
+
 	#ifdef CH_DEBUG
 		int n_c=CountActiveConstraints();
 		assert(result.GetRows() == n_c);
@@ -726,6 +799,78 @@ void ChLcpSystemDescriptor::ShurComplementProduct(
 	#endif
 
 
+}
+
+
+
+
+void ChLcpSystemDescriptor::SystemProduct(	
+								ChMatrix<>&	result,			///< matrix which contains the result of matrix by x 
+								ChMatrix<>* x		        ///< optional matrix with the vector to be multiplied (if null, use current l_i and q)
+								// std::vector<bool>* enabled=0 ///< optional: vector of enable flags, one per scalar constraint. true=enable, false=disable (skip)
+								)
+{
+	int n_q = this->CountActiveVariables();
+	int n_c = this->CountActiveConstraints();
+
+	ChMatrix<>* x_ql = 0;
+
+	ChMatrix<>* vect;
+
+	if (x)
+		vect = x;
+	else
+	{
+		x_ql = new ChMatrixDynamic<double>(n_q+n_c,1);
+		vect = x_ql;
+		this->FromUnknownsToVector(*vect);
+	}
+
+	result.Reset();
+
+	// 1) First row: result.q part =  [M + K]*x.q + [Cq']*x.l
+
+	// 1.1)  do  M*x.q
+	for (unsigned int iv = 0; iv< vvariables.size(); iv++)
+		if (vvariables[iv]->IsActive())
+		{
+			vvariables[iv]->MultiplyAndAdd(result,*x);
+		}
+
+	// 1.2)  add also K*x.q
+	for (unsigned int ik = 0; ik< vstiffness.size(); ik++)
+	{
+		vstiffness[ik]->MultiplyAndAdd(result,*x);
+	}
+
+	// 1.3)  add also [Cq]'*x.l
+	int s_c= n_q;
+	for (unsigned int ic = 0; ic < vconstraints.size(); ic++)
+	{	
+		if (vconstraints[ic]->IsActive())
+		{
+			vconstraints[ic]->MultiplyTandAdd(result,  (*x)(s_c));
+			++s_c;
+		}
+	}
+
+	// 2) Second row: result.l part =  [C_q]*x.q + [E]*x.l
+	s_c= n_q;
+	for (unsigned int ic = 0; ic < vconstraints.size(); ic++)
+	{	
+		if (vconstraints[ic]->IsActive())
+		{
+			vconstraints[ic]->MultiplyAndAdd(result(s_c), (*x));  // result.l_i += [C_q_i]*x.q
+			result(s_c) -= vconstraints[ic]->Get_cfm_i()* (*x)(s_c); // result.l_i += [E]*x.l_i  NOTE:  cfm = -E
+			++s_c;
+		}
+	}		
+	
+
+
+	// if a temp vector has been created because x was not provided, then delete it
+	if (x_ql)
+		delete x_ql;
 }
 
 

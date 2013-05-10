@@ -7,7 +7,6 @@
 //
 //  Class used to represent friction constraint
 // between a 3DOF node and a 6DOF body.
-// Since
 //
 //
 //   HEADER file for CHRONO HYPEROCTANT LCP solver

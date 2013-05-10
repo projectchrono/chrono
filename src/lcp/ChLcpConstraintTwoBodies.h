@@ -7,8 +7,9 @@
 //
 //    An 'easy' derived class for representing a
 //   constraint between two ChLcpVariableBody items.
-//   Used with LCP systems including inequalities,
-//   equalities, nonlinearities, etc.
+//   Used with for building sparse variational problems 
+//   (VI/CCP/LCP/linear problems) described by 
+//   a ChLcpSystemDescriptor
 //
 //
 //   HEADER file for CHRONO HYPEROCTANT LCP solver
@@ -167,6 +168,46 @@ public:
 						if (variables_b->IsActive())
 						 for (int i= 0; i < 6; i++)
 							variables_b->Get_qb()(i) += Eq_b.ElementN(i) * deltal;
+					};
+
+				/// Computes the product of the corresponding block in the 
+				/// system matrix by 'vect', and add to 'result'. 
+				/// NOTE: the 'vect' vector must already have
+				/// the size of the total variables&constraints in the system; the procedure
+				/// will use the ChVariable offsets (that must be already updated) to know the 
+				/// indexes in result and vect; 
+	virtual void MultiplyAndAdd(double& result, ChMatrix<double>& vect)
+					{
+						int off_a = variables_a->GetOffset();
+						int off_b = variables_b->GetOffset();
+
+						if (variables_a->IsActive())
+						 for (int i= 0; i < 6; i++)
+							result += vect(off_a+i) * Cq_a.ElementN(i);
+
+						if (variables_b->IsActive())
+						 for (int i= 0; i < 6; i++)
+							result += vect(off_b+i) * Cq_b.ElementN(i);
+					};
+
+				/// Computes the product of the corresponding transposed blocks in the 
+				/// system matrix (ie. the TRANSPOSED jacobian matrix C_q') by 'l', and add to 'result'. 
+				/// NOTE: the 'result' vector must already have
+				/// the size of the total variables&constraints in the system; the procedure
+				/// will use the ChVariable offsets (that must be already updated) to know the 
+				/// indexes in result and vect; 
+	virtual void MultiplyTandAdd(ChMatrix<double>& result, double l)
+					{
+						int off_a = variables_a->GetOffset();
+						int off_b = variables_b->GetOffset();
+
+						if (variables_a->IsActive())
+						 for (int i= 0; i < 6; i++)
+							result(off_a+i) += Cq_a.ElementN(i) * l;
+
+						if (variables_b->IsActive())
+						 for (int i= 0; i < 6; i++)
+							result(off_b+i) += Cq_b.ElementN(i) * l;
 					};
 
 

@@ -7,7 +7,6 @@
 //
 //  Class used to represent friction constraint
 // between two ChLcpVariable() items.
-// Since
 //
 //
 //   HEADER file for CHRONO HYPEROCTANT LCP solver

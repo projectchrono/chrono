@@ -5,7 +5,7 @@
 //
 //   ChLcpIterativeSOR.h
 //
-//   An iterative LCP solver based on symmetric projective
+//   An iterative VI solver based on symmetric projective
 //   fixed point method, with overrelaxation
 //   and immediate variable update as in SSOR methods.
 //
@@ -26,20 +26,19 @@ namespace chrono
 {
 
 
-///    An iterative LCP solver based on symmetric projective
-///   fixed point method, with overrelaxation
-///   and immediate variable update as in SSOR methods.
-///    This solver must be used for mixed-linear
-///   complementarity problems (MLCP) in this
-///   form:
+/// An iterative LCP solver based on symmetric projective
+/// fixed point method, with overrelaxation
+/// and immediate variable update as in SSOR methods.
+/// The problem is described by a variational inequality VI(Z*x-d,K):
 ///
-///    | M -Cq'|*|q|- | f|= |0| ,   c>=0, l>=0, l*c=0;
-///    | Cq  0 | |l|  |-b|  |c|
+///  | M -Cq'|*|q|- | f|= |0| , l \in Y, C \in Ny, normal cone to Y  
+///  | Cq -E | |l|  |-b|  |c|    
 ///
-///   as arising in the solution of QP with
-///   inequalities or in multibody problems.
-///    Note that this solver supports also the case of
-///   boxed constraints on 'l', such as lmin<l<lmax
+/// Also Z symmetric by flipping sign of l_i: |M  Cq'|*| q|-| f|=|0|  
+///                                           |Cq  E | |-l| |-b| |c|
+/// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals
+/// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
+/// * case CCP: Y_i are friction cones
 
 class ChApi ChLcpIterativeSymmSOR : public ChLcpIterativeSolver
 {

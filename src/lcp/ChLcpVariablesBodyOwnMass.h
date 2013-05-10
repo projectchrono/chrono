@@ -7,11 +7,7 @@
 //
 //    Specialized class for representing a mass matrix
 //   and associate variables (6 element vector, ex.speed)
-//   for a 3D rigid body, in a LCP problem of the type:
-//
-//    | M -Cq'|*|q|- | f|= |0| ,  c>0, l>0, l*c=0;
-//    | Cq  0 | |l|  |-b|  |c|
-//
+//   for a 3D rigid body.
 //
 //   HEADER file for CHRONO HYPEROCTANT LCP solver
 //
@@ -190,10 +186,33 @@ public:
 						result(5)= (inertia(2,0)*vect(3) + inertia(2,1)*vect(4) + inertia(2,2)*vect(5));
 					};
 
+				/// Computes the product of the corresponding block in the 
+				/// system matrix (ie. the mass matrix) by 'vect', and add to 'result'. 
+				/// NOTE: the 'vect' and 'result' vectors must already have
+				/// the size of the total variables&constraints in the system; the procedure
+				/// will use the ChVariable offsets (that must be already updated) to know the 
+				/// indexes in result and vect.
+	virtual void MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect) const
+					{
+						assert(result.GetColumns()==1 && vect.GetColumns()==1);
+						// optimized unrolled operations
+						double q0 = vect(this->offset+0);
+						double q1 = vect(this->offset+1);
+						double q2 = vect(this->offset+2);
+						double q3 = vect(this->offset+3);
+						double q4 = vect(this->offset+4);
+						double q5 = vect(this->offset+5);
+						result(this->offset+0)+= mass * q0;
+						result(this->offset+1)+= mass * q1;
+						result(this->offset+2)+= mass * q2;
+						result(this->offset+3)+= (inertia(0,0)*q3 + inertia(0,1)*q4 + inertia(0,2)*q5);
+						result(this->offset+4)+= (inertia(1,0)*q3 + inertia(1,1)*q4 + inertia(1,2)*q5);
+						result(this->offset+5)+= (inertia(2,0)*q3 + inertia(2,1)*q4 + inertia(2,2)*q5);
+					}
+	
 				/// Build the mass matrix (for these variables) storing
 				/// it in 'storage' sparse matrix, at given column/row offset.
-				/// This function is used only by the ChLcpSimplex solver (iterative 
-				/// solvers don't need to know mass matrix explicitly).
+				/// Note, most iterative solvers don't need to know mass matrix explicitly.
 				/// Optimised: doesn't fill unneeded elements except mass and 3x3 inertia.
 	virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol)
 					{

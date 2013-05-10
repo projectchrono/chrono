@@ -664,6 +664,36 @@ void ChSparseMatrix::PasteClippedMatrix (ChMatrix<>* matra, int cliprow, int cli
 	}
 }
 
+void ChSparseMatrix::PasteSumClippedMatrix (ChMatrix<>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol)
+{
+	int i, j;
+	int maxrows = matra->GetRows();
+	int maxcol = matra->GetColumns();
+	ChMelement* eguess;
+	ChMelement* eguessread;
+	double val, aval, sum;
+
+	for (i=0;i < nrows;i++)
+	{
+		eguess = *(elarray+i+insrow);
+		eguessread= eguess;
+
+		for (j=0;j < ncolumns;j++)
+		{
+			val = (matra->GetElement (i+cliprow,j+clipcol));
+			if (val)
+			{
+				eguessread= GetElement (i+insrow, j+inscol, &aval, eguessread);
+				sum = val+aval;
+				eguess = SetElement (i+insrow,
+						j+inscol,
+						sum,
+						eguess);
+			}
+		}
+	}
+}
+
 
 void ChSparseMatrix::MatrMultiply ( ChSparseMatrix* matra, ChSparseMatrix* matrb)
 {

@@ -151,7 +151,7 @@ public:
 							ret += Cq_b.ElementN(i) * variables_b->Get_qb().ElementN(i);
 
 						if (variables_c->IsActive())
-							ret += Cq_c.ElementN(1) * variables_c->Get_qb().ElementN(1);
+							ret += Cq_c.ElementN(0) * variables_c->Get_qb().ElementN(0);
 
 						return ret;
 					}
@@ -174,9 +174,49 @@ public:
 							variables_b->Get_qb()(i) += Eq_b.ElementN(i) * deltal;
 
 						if (variables_c->IsActive())
-							variables_c->Get_qb()(1) += Eq_c.ElementN(1) * deltal;
+							variables_c->Get_qb()(0) += Eq_c.ElementN(0) * deltal;
 					};
 
+
+				/// Computes the product of the corresponding block in the 
+				/// system matrix by 'vect', and add to 'result'. 
+				/// NOTE: the 'vect' vector must already have
+				/// the size of the total variables&constraints in the system; the procedure
+				/// will use the ChVariable offsets (that must be already updated) to know the 
+				/// indexes in result and vect; 
+	virtual void MultiplyAndAdd(double& result, ChMatrix<double>& vect)
+					{
+						if (variables_a->IsActive())
+						 for (int i= 0; i < Cq_a.GetRows(); i++)
+							result += vect(variables_a->GetOffset()+i) * Cq_a.ElementN(i);
+
+						if (variables_b->IsActive())
+						 for (int i= 0; i < Cq_b.GetRows(); i++)
+							result += vect(variables_b->GetOffset()+i) * Cq_b.ElementN(i);
+
+						if (variables_c->IsActive())
+							result += vect(variables_c->GetOffset()) * Cq_c.ElementN(0);  
+					};
+
+				/// Computes the product of the corresponding transposed blocks in the 
+				/// system matrix (ie. the TRANSPOSED jacobian matrix C_q') by 'l', and add to 'result'. 
+				/// NOTE: the 'result' vector must already have
+				/// the size of the total variables&constraints in the system; the procedure
+				/// will use the ChVariable offsets (that must be already updated) to know the 
+				/// indexes in result and vect; 
+	virtual void MultiplyTandAdd(ChMatrix<double>& result, double l)
+					{
+						if (variables_a->IsActive())
+						 for (int i= 0; i < Cq_a.GetRows(); i++)
+							result(variables_a->GetOffset()+i) += Cq_a.ElementN(i) * l;
+
+						if (variables_b->IsActive())
+						 for (int i= 0; i < Cq_b.GetRows(); i++)
+							result(variables_b->GetOffset()+i) += Cq_b.ElementN(i) * l;
+
+						if (variables_c->IsActive())
+							result(variables_c->GetOffset()) += Cq_c.ElementN(0) * l;  
+					};
 
 				/// Puts the jacobian parts into the 'insrow' row of a sparse matrix,
 				/// where both portions of the jacobian are shifted in order to match the 

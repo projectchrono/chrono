@@ -5,7 +5,7 @@
 //
 //   ChLcpIterativeSolver.h
 //
-//    Base class for all LCP solution methods
+//    Base class for all solution methods
 //   based on iterative schemes, such as the
 //   SOR method and so on.
 //
@@ -25,20 +25,23 @@ namespace chrono
 {
 
 
-///    Base class for ITERATIVE solvers aimed at solving
-///   LCP linear complementarity problems arising
-///   from QP optimization problems.
-///    This class does nothing: it is up to inherited
-///   classes to implement specific solution methods,
-///   such as simplex, iterative SOR, etc.
-///    The LCP problem must be in this (symmetric) 
-///   form:
+/// Base class for ITERATIVE solvers aimed at solving
+/// LCP linear complementarity problems arising
+/// from QP optimization problems.
+/// This class does nothing: it is up to inherited
+/// classes to implement specific solution methods,
+/// such as simplex, iterative SOR, etc.
+/// The problem is described by a variational inequality VI(Z*x-d,K):
 ///
-///    | M -Cq'|*|q|- | f|= |0| ,   c>=0, l>=0, l*c=0;
-///    | Cq  0 | |l|  |-b|  |c|
+///  | M -Cq'|*|q|- | f|= |0| , l \in Y, C \in Ny, normal cone to Y  
+///  | Cq -E | |l|  |-b|  |c|    
 ///
-///   as arising in the solution of QP with
-///   inequalities or in multibody problems.
+/// Also Z symmetric by flipping sign of l_i: |M  Cq'|*| q|-| f|=|0|  
+///                                           |Cq  E | |-l| |-b| |c|
+/// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals
+/// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
+/// * case CCP: Y_i are friction cones
+
 
 class ChApi ChLcpIterativeSolver : public ChLcpSolver
 {

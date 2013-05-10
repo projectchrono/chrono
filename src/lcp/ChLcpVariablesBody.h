@@ -7,10 +7,7 @@
 //
 //    Specialized class for representing a mass matrix
 //   and associate variables (6 element vector, ex.speed)
-//   for a 3D rigid body, in a LCP problem of the type:
-//
-//    | M -Cq'|*|q|- | f|= |0| ,  c>0, l>0, l*c=0;
-//    | Cq  0 | |l|  |-b|  |c|
+//   for a 3D rigid body.
 //
 //
 //   HEADER file for CHRONO HYPEROCTANT LCP solver

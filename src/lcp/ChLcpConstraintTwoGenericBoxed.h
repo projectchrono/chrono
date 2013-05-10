@@ -8,7 +8,9 @@
 //    An 'easy' derived class for representing a
 //   constraint between two ChLcpVariable items, where
 //   the multiplier must be   l_min < l < l_max
-//
+//   Used with for building sparse variational problems 
+//   (VI/CCP/LCP/linear problems) described by 
+//   a ChLcpSystemDescriptor
 //
 //   HEADER file for CHRONO HYPEROCTANT LCP solver
 //

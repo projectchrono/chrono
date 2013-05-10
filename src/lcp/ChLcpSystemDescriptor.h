@@ -6,7 +6,7 @@
 //   ChLcpSystemDescriptor.h
 //
 //    Base class for collecting objects inherited 
-//   from ChLcpConstraint or ChLcpVariables. 
+//   from ChLcpConstraint, ChLcpVariables, ChLcpStiffness. 
 //
 //   HEADER file for CHRONO HYPEROCTANT LCP solver
 //
@@ -20,6 +20,7 @@
 
 #include "lcp/ChLcpVariables.h"
 #include "lcp/ChLcpConstraint.h"
+#include "lcp/ChLcpKstiffness.h"
 #include <vector>
 #include "parallel/ChThreads.h"
 #include "parallel/ChThreadsSync.h"
@@ -29,15 +30,28 @@ namespace chrono
 {
 
 
-/// Base class for collecting objects inherited 
-/// from ChLcpConstraint or ChLcpVariables. 
+/// Base class for collecting objects inherited from ChLcpConstraint ,
+/// ChLcpVariables and, optionally ChLcpKstiffness. These objects
+/// can be used to define a sparse representation of the system.
+///  The problem is described by a variational inequality VI(Z*x-d,K):
+///
+///  | M -Cq'|*|q|- | f|= |0| , l \in Y, C \in Ny, normal cone to Y  
+///  | Cq -E | |l|  |-b|  |c|    
+///
+/// Also Z symmetric by flipping sign of l_i: |M  Cq'|*| q|-| f|=|0|  
+///                                           |Cq  E | |-l| |-b| |c|
+/// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals
+/// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
+/// * case CCP: Y_i are friction cones
+/// Optionally, also objects inherited from ChLcpKstiffness can be added 
+/// too, hence M becomes M+K (but not all solvers handle ChLcpKstiffness!)
 /// All LCP solvers require that the description of
 /// the system is passed by means of a ChLcpSystemDescriptor,
 /// where all constraints, variables, masses, known terms 
 ///	(ex.forces) are represented as sparse data that
 /// are objects inherited from ChLcpConstraint or ChLcpVariables. 
 /// Within this default implementation, the ChLcpSystemDescriptor
-/// simply contains two vectors with pointers to the variables
+/// simply contains vectors with pointers to the variables
 /// and constraints, but more advanced implementation (ex. for
 /// supporting parallel GPU solvers) could store constraints
 /// and variables structures with more efficient data schemes.
@@ -52,6 +66,7 @@ protected:
 			//
 		std::vector<ChLcpConstraint*> vconstraints;
 		std::vector<ChLcpVariables*>  vvariables;
+		std::vector<ChLcpKstiffness*>  vstiffness;
 		
 		int num_threads;
 		ChThreads* solver_threads;
@@ -73,12 +88,16 @@ public:
 		/// Access the vector of variables
 	std::vector<ChLcpVariables*>& GetVariablesList() {return vvariables;};
 
+		/// Access the vector of stiffness matrix blocks
+	std::vector<ChLcpKstiffness*>& GetKstiffnessLis() {return vstiffness;};
+
 
 		/// Begin insertion of items
 	virtual void BeginInsertion()
 					{
 						vconstraints.clear();
 						vvariables.clear();
+						vstiffness.clear();
 					}
 
 		/// Insert reference to a ChLcpConstraint object
@@ -86,6 +105,10 @@ public:
 
 		/// Insert reference to a ChLcpVariables object
 	virtual void InsertVariables(ChLcpVariables* mv) { vvariables.push_back(mv); }
+
+		/// Insert reference to a ChLcpKstiffness object (a piece of K matrix)
+	virtual void InsertKstiffness(ChLcpKstiffness* mk) { vstiffness.push_back(mk); }
+
 
 		/// Begin insertion of items
 	virtual void EndInsertion()
@@ -114,6 +137,7 @@ public:
 				/// Count the scalar variables in the system (excluding ChLcpVariable objects
 				/// that have  IsActive() as false). Note: the number of scalar variables is not necessarily
 				/// the number of inserted ChLcpVariable objects.
+				/// Note: this function also updates the offsets of all variables (see GetOffset() in ChLcpVariables)
 	virtual int CountActiveVariables();
 
 				/// Count the scalar constraints in the system (excluding ChLcpConstraint objects
@@ -138,7 +162,7 @@ public:
 				/// Using this function, one may get a vector with all the variables 'q'
 				/// ordered into a column vector. The column vector must be passed as a ChMatrix<>
 				/// object, which will be automatically reset and resized to the proper length if necessary
-				/// (but uf you are sure that the vector has already the proper size, you can optimize
+				/// (but if you are sure that the vector has already the proper size, you can optimize
 				/// the performance a bit by setting resize_vector as false).
 				/// \return  the number of scalar variables (i.e. the rows of the column vector).
 	virtual int FromVariablesToVector(
@@ -187,6 +211,29 @@ public:
 								);
 
 
+
+				/// Using this function, one may get a vector with all the unknowns x={q,l} i.e. q variables & l_i constr.
+				/// ordered into a column vector. The column vector must be passed as a ChMatrix<>
+				/// object, which will be automatically reset and resized to the proper length if necessary
+				/// (but if you are sure that the vector has already the proper size, you can optimize
+				/// the performance a bit by setting resize_vector as false).
+				/// \return  the number of scalar unknowns
+	virtual int FromUnknownsToVector(
+								ChMatrix<>& mvector,	///< matrix which will contain the entire vector x={q,l}
+								bool resize_vector=true	///< if true the vector size will be checked & resized if necessary
+								);
+
+				/// Using this function, one may go in the opposite direction of the FromUnknownsToVector()
+				/// function, i.e. one gives a vector with all the unknowns x={q,l} ordered into a column vector, and
+				/// the variables q and constr.multipliers l objects are updated according to these values.
+				/// NOTE!!! differently from  FromUnknownsToVector(), which always works, this
+				/// function will fail if mvector does not match the amount and ordering of
+				/// the variable and constraint objects!!! (it is up to the user to check this!)
+	virtual int FromVectorToUnknowns(
+								ChMatrix<>& mvector		///< matrix which contains the entire vector x={q,l}
+								);
+
+
 				/// Performs the product of N, the Shur complement of the KKT matrix, by an 
 				/// l vector (if x not provided, use current lagrangian multipliers l_i), that is 
 				///    result = [N]*l = [ [Cq][M^(-1)][Cq'] - [E] ] * l
@@ -196,13 +243,29 @@ public:
 				/// inserted constraints and inserted variables.
 				/// Optionally, you can pass an 'enabled' vector of bools, that must have the same
 				/// length of the l_i reactions vector; constraints with enabled=false are not handled.
-				/// Note! the 'q' data in the ChVariables of the system descriptor is changed by this
+				/// NOTE! the 'q' data in the ChVariables of the system descriptor is changed by this
 				/// operation, so it may happen that you need to backup them via FromVariablesToVector()
+				/// NOTE! currently this function does NOT support the cases that use also ChLcpKstiffness
+				/// objects, because it would need to invert the global M+K, that is not diagonal,
+				/// for doing = [N]*l = [ [Cq][(M+K)^(-1)][Cq'] - [E] ] * l
 	virtual void ShurComplementProduct(	
 								ChMatrix<>&	result,			///< matrix which contains the result of  N*l_i 
 								ChMatrix<>* lvector,		///< optional matrix with the vector to be multiplied (if null, use current constr. multipliers l_i)
 								std::vector<bool>* enabled=0 ///< optional: vector of enable flags, one per scalar constraint. true=enable, false=disable (skip)
 								);
+
+
+				/// Performs the product of the entire system matrix (KKT matrix), by a vector x ={q,l} 
+				/// (if x not provided, use values in current lagrangian multipliers l_i 
+				/// and current q variables)
+				/// NOTE! the 'q' data in the ChVariables of the system descriptor is changed by this
+				/// operation, so it may happen that you need to backup them via FromVariablesToVector()
+	virtual void SystemProduct(	
+								ChMatrix<>&	result,			///< matrix which contains the result of matrix by x 
+								ChMatrix<>* x		        ///< optional matrix with the vector to be multiplied (if null, use current l_i and q)
+								// std::vector<bool>* enabled=0 ///< optional: vector of enable flags, one per scalar constraint. true=enable, false=disable (skip)
+								);
+
 
 				/// Performs projecton of constraint multipliers onto allowed set (in case
 				/// of bilateral constraints it does not affect multipliers, but for frictional 
@@ -220,17 +283,19 @@ public:
 				/// the jacobians of all the constraints/contacts, all the mass matrices, all vectors,
 				/// as they are _currently_ stored in the sparse data of all ChConstraint and ChVariables 
 				/// contained in this ChLcpSystemDescriptor. 
-				/// The matrices define the DVI variational inequality:
+				/// The matrices define the VI variational inequality:
 				///
-				///  | M -Cq'|*|q|- | f|= |0| , l \in friction cone, C \in normal to friction cone 
-				///  | Cq  E | |l|  |-b|  |C|    (case no friction: LCP C>=0, l>=0, l*c=0;)   
+				///  | M -Cq'|*|q|- | f|= |0| , l \in Y (es friction cone), C \in normal cone to Y  
+				///  | Cq -E | |l|  |-b|  |C|    (case no friction: LCP C>=0, l>=0, l*c=0;)        
 				///                              (case only bilaterals: linear system, c=0)
 				///
+				/// also symmetrizable by flipping the sign of l_i terms:  | M  Cq'|*| q|- | f|= |0|  
+				///                                                        | Cq -E | |-l|  |-b|  |C|
 				/// Note 1: most often you'll call ConvertToMatrixForm() right after a dynamic simulation timestep,
 				///         because the system matrices are properly initialized,
 				/// Note 2: when using Anitescu default stepper, the 'f' vector contains forces*timestep = F*dt
 				/// Note 3: when using Anitescu default stepper, q represents the 'delta speed',
-				/// Note 4: when using Anitescu default stepper, b represents the dt/phi stabilization term. 
+				/// Note 4: when using Anitescu default stepper, b represents the dt/phi stabilization term.
 				///  This can be useful for debugging, data dumping, and similar purposes (most solvers avoid 
 				/// using these matrices, for performance), for example you will load these matrices in Matlab.
 				/// Optionally, tangential (u,v) contact jacobians may be skipped, or only bilaterals can be considered
@@ -245,12 +310,14 @@ public:
 								bool only_bilaterals = false, 
 								bool skip_contacts_uv = false);
 
-				/// OBSOLETE. Kept only for bacward compability. Use rather: ConvertToMatrixForm
+
+
+				/// OBSOLETE. Kept only for backward compability. Use rather: ConvertToMatrixForm
 	virtual void BuildMatrices (ChSparseMatrix* Cq,
 								ChSparseMatrix* M,
 								bool only_bilaterals = false, 
 								bool skip_contacts_uv = false);
-				/// OBSOLETE. Kept only for bacward compability. Use rather: ConvertToMatrixForm, or BuildFbVector or BuildBiVector
+				/// OBSOLETE. Kept only for backward compability. Use rather: ConvertToMatrixForm, or BuildFbVector or BuildBiVector
 	virtual void BuildVectors (ChSparseMatrix* f, 
 								ChSparseMatrix* b,	
 								bool only_bilaterals = false, 
