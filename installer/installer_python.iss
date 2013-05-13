@@ -217,8 +217,9 @@ begin
       mPathWin32PythonDLLs := AddBackslash(mPathWin32Python) + 'DLLs';
       mPathWin32PythonLib  := AddBackslash(mPathWin32Python) + 'Lib';
         
-      if FileOrDirExists(mPathWin32Python) then begin
+      if FileOrDirExists(mPathWin32Python) and FileOrDirExists(mPathWin32PythonDLLs) and FileOrDirExists(mPathWin32PythonLib) then begin
         Result := True;
+        mFoundWin32Python :=1;
       end else begin
         MsgBox('Error. The directory '+ mPathWin32Python + ' does not exist', mbError, MB_OK);
         Result := False;
