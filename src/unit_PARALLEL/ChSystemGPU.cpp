@@ -155,8 +155,14 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	ChTime += GetStep();
 	mtimer_step.stop();
 	timer_collision = mtimer_cd();
-	timer_collision_broad = mtimer_cd_broad();
-	timer_collision_narrow = mtimer_cd_narrow();
+	if (ChCollisionSystemGPU* coll_sys = dynamic_cast<ChCollisionSystemGPU*>(collision_system)) {
+		timer_collision_broad = coll_sys->mtimer_cd_broad();
+		timer_collision_narrow = coll_sys->mtimer_cd_narrow();
+	} else {
+		timer_collision_broad = 0;
+		timer_collision_narrow = 0;
+
+	}
 	timer_lcp = mtimer_lcp();
 	timer_step = mtimer_step(); // Time elapsed for step..
 	return 1;

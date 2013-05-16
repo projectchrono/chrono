@@ -67,6 +67,7 @@ void ChCollisionSystemGPU::Remove(ChCollisionModel *model) {
 }
 
 void ChCollisionSystemGPU::Run() {
+	mtimer_cd_broad.start();
 	ChCAABBGenerator aabb_generator;
 	ChCBroadphase broadphase;
 	broadphase.setBinsPerAxis(bpa);
@@ -77,13 +78,17 @@ void ChCollisionSystemGPU::Run() {
 			data_container->gpu_data.device_ObR_data, data_container->gpu_data.device_id_data, data_container->gpu_data.device_pos_data, data_container->gpu_data.device_rot_data,
 			data_container->gpu_data.device_aabb_data);
 	broadphase.detectPossibleCollisions(data_container->gpu_data.device_aabb_data, data_container->gpu_data.device_pair_data);
+	mtimer_cd_broad.stop();
 
+	mtimer_cd_narrow.start();
 	narrowphase.SetCollisionEnvelope(collision_envelope);
 
 	narrowphase.DoNarrowphase(data_container->gpu_data.device_typ_data, data_container->gpu_data.device_ObA_data, data_container->gpu_data.device_ObB_data, data_container->gpu_data.device_ObC_data,
 			data_container->gpu_data.device_ObR_data, data_container->gpu_data.device_id_data, data_container->gpu_data.device_active_data, data_container->gpu_data.device_pos_data,
 			data_container->gpu_data.device_rot_data, data_container->gpu_data.device_pair_data, data_container->gpu_data.device_norm_data, data_container->gpu_data.device_cpta_data,
 			data_container->gpu_data.device_cptb_data, data_container->gpu_data.device_dpth_data, data_container->gpu_data.device_bids_data, data_container->gpu_data.number_of_contacts);
+	mtimer_cd_narrow.stop();
+
 }
 
 vector<int2> ChCollisionSystemGPU::GetOverlappingPairs() {

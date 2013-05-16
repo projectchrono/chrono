@@ -19,7 +19,7 @@
 #include "../ChCudaDefines.h"
 #include "ChCCollisionModelGPU.h"
 #include "physics/ChBody.h"
-
+#include "core/ChTimer.h"
 #include "../ChLcpSystemDescriptorGPU.h"
 #include "ChContactContainerGPU.h"
 #include "../../collision/ChCCollisionSystem.h"
@@ -110,6 +110,7 @@ public:
 		max_body_per_bin = max;
 	}
 	ChGPUDataManager *data_container;
+	ChTimer<double> mtimer_cd_broad, mtimer_cd_narrow;
 
 private:
 	real collision_envelope;
@@ -118,6 +119,7 @@ private:
 	real3 bpa;
 	int min_body_per_bin;
 	int max_body_per_bin;
+
 
 };
 } // END_OF_NAMESPACE____

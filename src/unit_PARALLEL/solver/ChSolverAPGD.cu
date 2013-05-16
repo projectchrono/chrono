@@ -40,19 +40,20 @@ custom_vector<real> & fric,
 custom_vector<real3> & QXYZ, custom_vector<real3> & QUVW,
 custom_vector<real> & mx,custom_vector<real> & my,custom_vector<real> & ms,
 const custom_vector<real> & b,custom_vector<real> & mg,custom_vector<real> & mg_tmp2,
-
 custom_vector<real3> & JXYZA, custom_vector<real3> & JXYZB,
 custom_vector<real3> & JUVWA, custom_vector<real3> & JUVWB,
 const real & t_k,const real & L_k,
-
 real & obj1,real& obj2,real& min_val,
 custom_vector<real> &obj1_tmp,custom_vector<real> &obj2_tmp,custom_vector<real> &obj3_tmp1,custom_vector<real> &obj3_tmp2
 
 ) {
 
 	shurA (my);
-
-#pragma omp parallel for
+	real _obj1 = 0;
+	real _obj2 = 0;
+	real temp1 = 0;
+	real temp2 = 0;
+#pragma omp parallel for reduction(+:_obj2)
 		for (uint index = 0; index < number_of_contacts; index++) {
 			real3 temp = R3(0);
 			int2 id_=ids[index];
@@ -110,9 +111,9 @@ custom_vector<real> &obj1_tmp,custom_vector<real> &obj2_tmp,custom_vector<real> 
 
 		real3 _obj2_tmp = 0.5 * _mg_tmp1 -_b;
 
-		obj2_tmp[index+ number_of_contacts * 0] = _obj2_tmp.x * _my.x;
-		obj2_tmp[index+ number_of_contacts * 1] = _obj2_tmp.y * _my.y;
-		obj2_tmp[index+ number_of_contacts * 2] = _obj2_tmp.z * _my.z;
+		_obj2 += _obj2_tmp.x * _my.x;
+		_obj2 += _obj2_tmp.y * _my.y;
+		_obj2 += _obj2_tmp.z * _my.z;
 
 		_mx.x = _my.x + _mg.x * t_k;
 		_mx.y = _my.y + _mg.y * t_k;
@@ -131,7 +132,7 @@ custom_vector<real> &obj1_tmp,custom_vector<real> &obj2_tmp,custom_vector<real> 
 #pragma omp parallel private(lm)
 		{
 			lm=FLT_MAX;
-#pragma omp for
+#pragma omp for reduction(+:_obj1,temp1,temp2)
 		for (uint index = 0; index < number_of_contacts; index++) {
 			real3 temp = R3(0);
 			int2 id_=ids[index];
@@ -192,13 +193,13 @@ custom_vector<real> &obj1_tmp,custom_vector<real> &obj2_tmp,custom_vector<real> 
 			_mg.y = mg[index+ number_of_contacts * 1];
 			_mg.z = mg[index+ number_of_contacts * 2];
 
-			obj3_tmp1[index+ number_of_contacts * 0] = _mg.x * _ms.x;
-			obj3_tmp1[index+ number_of_contacts * 1] = _mg.y * _ms.y;
-			obj3_tmp1[index+ number_of_contacts * 2] = _mg.z * _ms.z;
+			temp1+= _mg.x * _ms.x;
+			temp1+= _mg.y * _ms.y;
+			temp1+= _mg.z * _ms.z;
 
-			obj3_tmp2[index+ number_of_contacts * 0] = _ms.x * _ms.x;
-			obj3_tmp2[index+ number_of_contacts * 1] = _ms.y * _ms.y;
-			obj3_tmp2[index+ number_of_contacts * 2] = _ms.z * _ms.z;
+			temp2+= _ms.x * _ms.x;
+			temp2+= _ms.y * _ms.y;
+			temp2+= _ms.z * _ms.z;
 
 			real3 _mg_tmp = temp;
 			real3 _mg_tmp2 = _mg_tmp-_b;
@@ -211,9 +212,9 @@ custom_vector<real> &obj1_tmp,custom_vector<real> &obj2_tmp,custom_vector<real> 
 
 			real3 _obj1_tmp = 0.5 * _mg_tmp-_b;
 
-			obj1_tmp[index+ number_of_contacts * 0] = _obj1_tmp.x * _mx.x;
-			obj1_tmp[index+ number_of_contacts * 1] = _obj1_tmp.y * _mx.y;
-			obj1_tmp[index+ number_of_contacts * 2] = _obj1_tmp.z * _mx.z;
+			_obj1+= _obj1_tmp.x * _mx.x;
+			_obj1+= _obj1_tmp.y * _mx.y;
+			_obj1+= _obj1_tmp.z * _mx.z;
 
 		}
 
@@ -226,21 +227,16 @@ custom_vector<real> &obj1_tmp,custom_vector<real> &obj2_tmp,custom_vector<real> 
 
 }
 
-real _obj1 = 0;
-real _obj2 = 0;
-real temp1 = 0;
-real temp2 = 0;
-
-#pragma omp parallel for  reduction(+:_obj1,_obj2,temp1,temp2)
-		for (int i = 0; i < size; i++) {
-			_obj1 += obj1_tmp[i];
-			_obj2 += obj2_tmp[i];
-			temp1+= obj3_tmp1[i];
-			temp2+= obj3_tmp2[i];
-		}
-		obj1 = _obj1;
-		obj2 = _obj2;
-		temp2 = sqrt(temp2);
+//#pragma omp parallel for  reduction(+:_obj1,_obj2,temp1,temp2)
+//		for (int i = 0; i < size; i++) {
+//			_obj1 += obj1_tmp[i];
+//			_obj2 += obj2_tmp[i];
+//			temp1+= obj3_tmp1[i];
+//			temp2+= obj3_tmp2[i];
+//		}
+obj1 = _obj1;
+obj2 = _obj2;
+temp2 = sqrt(temp2);
 //
 //thrust::tuple<real,real,real,real> init (0,0,0,0);
 //
@@ -272,9 +268,9 @@ real temp2 = 0;
 //		real temp1=Thrust_Total(obj3_tmp1);
 //		real temp2=sqrt(Thrust_Total(obj3_tmp2));
 
-		return obj2 + temp1 + 0.5 * L_k * powf(temp2, real(2.0));
+return obj2 + temp1 + 0.5 * L_k * powf(temp2, real(2.0));
 
-	}
+}
 struct partB_functor: public thrust::binary_function<thrust::tuple<real, real, real>, thrust::tuple<real, real, real>, thrust::tuple<real, real, real, real> > {
 	__host__ __device__
 	thrust::tuple<real, real, real> operator()(const thrust::tuple<real, real, real> &lhs, const thrust::tuple<real, real, real> &rhs) const {
@@ -612,10 +608,10 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 		//
 		while (obj1 > obj3) {
 #ifdef PRINT_DEBUG_GPU
-			cout <<"L_k "<<L_k<<" t_k "<<t_k<<endl;
+		cout <<"L_k "<<L_k<<" t_k "<<t_k<<endl;
 #endif
-			L_k = 2 * L_k;
-			t_k = 1.0 / L_k;
+		L_k = 2 * L_k;
+		t_k = 1.0 / L_k;
 //			SEAXPY(-t_k, mg, my, mx); // mx = my + mg*(t_k);
 //			Project(mx);
 //
@@ -624,19 +620,19 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 //			obj1 = Dot(mx, 0.5*mg_tmp-b);
 //			ms = mx - my;
 //			obj3 = partTwo_host(x.size(),obj2,L_k,ms,mg,obj1_tmp,obj2_tmp);
-			min_val = FLT_MAX;
-			obj3 = PART_B(x.size(), gpu_data->device_active_data, temp_bids,
-					gpu_data->device_fric_data,
-					gpu_data->device_QXYZ_data,gpu_data->device_QUVW_data,
-					mx,my,ms,
-					b,mg,mg_tmp2,
-					gpu_data->device_JXYZA_data, gpu_data->device_JXYZB_data,
-					gpu_data->device_JUVWA_data, gpu_data->device_JUVWB_data,
-					-t_k,L_k,
-					obj1,obj2,min_val,
-					obj1_tmp,obj2_tmp,obj3_tmp1,obj3_tmp2
+		min_val = FLT_MAX;
+		obj3 = PART_B(x.size(), gpu_data->device_active_data, temp_bids,
+				gpu_data->device_fric_data,
+				gpu_data->device_QXYZ_data,gpu_data->device_QUVW_data,
+				mx,my,ms,
+				b,mg,mg_tmp2,
+				gpu_data->device_JXYZA_data, gpu_data->device_JXYZB_data,
+				gpu_data->device_JUVWA_data, gpu_data->device_JUVWB_data,
+				-t_k,L_k,
+				obj1,obj2,min_val,
+				obj1_tmp,obj2_tmp,obj3_tmp1,obj3_tmp2
 
-			);
+		);
 
 #ifdef PRINT_DEBUG_GPU
 		cout << "APGD halving stepsize at it " << current_iteration << ", now t_k=" << -t_k << "\n";
@@ -694,7 +690,6 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 		cout<<"iter_end "<<residual<<endl;
 		cout<<"maxdeltalambda "<<maxdeltalambda<<endl;
 #endif
-
 
 		AtIterationEnd(residual, maxdeltalambda, current_iteration);
 

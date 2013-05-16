@@ -142,15 +142,6 @@ static real Dot(const custom_vector<real> &x, const custom_vector<real> &y)
 	return answer;
 }
 
-template<typename T>
-struct square
-{
-	__host__ __device__
-	T operator()(const T& x) const {
-		return x * x;
-	}
-};
-
 struct abs_functor: public thrust::unary_function<real, real> {
 
 	__host__ __device__
@@ -159,7 +150,6 @@ struct abs_functor: public thrust::unary_function<real, real> {
 	}
 };
 
-
 static custom_vector<real> Abs(const custom_vector<real> &x)
 {
 	custom_vector<real> temp(x.size());
@@ -167,6 +157,15 @@ static custom_vector<real> Abs(const custom_vector<real> &x)
 	return temp;
 
 }
+
+template<typename T>
+struct square
+{
+	__host__ __device__
+	T operator()(const T& x) const {
+		return x * x;
+	}
+};
 
 static real Norm(const custom_vector<real> &x)
 {
@@ -184,9 +183,6 @@ static real NormInf(const custom_vector<real> &x)
 
 	return res[thrust::max_element(res.begin(),res.end())-res.begin()];
 }
-
-
-
 
 static real CompRes(const custom_vector<real> &res, const uint n_o_c)
 {
