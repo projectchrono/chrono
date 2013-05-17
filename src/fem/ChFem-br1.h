@@ -1,16 +1,17 @@
-#ifndef CHFEM_TE1_H
-#define CHFEM_TE1_H
+#ifndef CHFEM_BR1_H
+#define CHFEM_BR1_H
 
 //////////////////////////////////////////////////
-//  
-//   ChFem-te1.h
 //
-//   TETRAHEDRON LINEAR
-//   Definition of the "te1" (tetrahedron 3d linear) 
-//   solid element, inherited from the basic 
-//   "Felem" class.  ***OBSOLETE***
-//  
-//   
+//   ChFem-br1.h
+//
+//   BRICK LINEAR
+//   Definition of the "br1" (brick 3d linear)
+//   solid element, inherited from the basic
+//   "Felem" class. ***OBSOLETE***
+//
+//
+//
 //   HEADER file for CHRONO,
 //	 Multibody dynamics engine
 //
@@ -21,19 +22,19 @@
 ///////////////////////////////////////////////////
 
 
-#include <math.h>
-#include <float.h>
-#include <memory.h>
+
 
 #include "core/ChLog.h"
 #include "core/ChMath.h"
+#include "fem/ChFem.h"
 
-
-namespace chrono 
+namespace chrono
+{
+namespace fem
 {
 
+#define CHCLASS_FELEM_BRICKLINEAR 21
 
-#define CHCLASS_FELEM_TETRALINEAR 22
 
 // INHERIT ALL THE FINITE ELEMENTS FROM THE BASE CLASS "Felem", PROVIDING THE
 // SPECIFIC IMPLEMENTATIONS OF THE VIRTUAL FUNCTIONS.
@@ -45,10 +46,10 @@ namespace chrono
 // most of matrices as static objects, whenever possible, just to
 // waste as few memory as possible.
 
-/// Tetrahedron, 3d constant stress, for Finite Element methods.
+/// Linear brick element, 3d constant stress, for Finite Element methods
 /// Uses the parametric element theory.
 
-class ChApi ChFelem_TetraLinear : public ChFelem
+class ChApi ChFelem_BrickLinear : public ChFelem
 {
 private:
 	static ChMatrix<>* Ematr;
@@ -66,19 +67,19 @@ private:
 	static ChMatrix<>* Fr;
 	static double Jdet;
 	static ChVector<> par;
-	static int fem_instanced;	
+	static int fem_instanced;
 public:
 
-	ChFelem_TetraLinear();
-	~ChFelem_TetraLinear();
+	ChFelem_BrickLinear();
+	~ChFelem_BrickLinear();
 
 
-	int Get_type () {return FELEM_TETRA_LINEAR;};
-	int Get_dof	 () {return 12;}
-	int Get_nodes () {return 4;}
-	
-	ChMatrix<>* Get_E() {return Ematr;}		
-	ChMatrix<>* Get_C() {return C;}
+	int Get_type () {return FELEM_BRICK_LINEAR;};
+	int Get_dof	 () {return 24;}
+	int Get_nodes () {return 8;}
+
+	ChMatrix<>* Get_C()  {return C;}
+	ChMatrix<>* Get_E()  {return Ematr;}
 	ChMatrix<>* Get_N()  {return N;}
 	ChMatrix<>* Get_Be() {return Be;}
 	ChMatrix<>* Get_Dl() {return Dl;}
@@ -87,10 +88,13 @@ public:
 	void Compute_Ematr (double E, double v, double G, double l, double u);
 	void Compute_C ();								///< set coords [C] matrix
 	void Compute_N	(double i, double j, double k);	///< set shape functions, [N]=[N(i,j,k)]
+
 	void Compute_Bi (double i, double j, double k); ///< set shape derivatives, in param.space
 	void Compute_Bx (double i, double j, double k); ///< set shape derivatives, in world space
-	void Compute_Be (double i, double j, double k); ///< set Be from Bx, for elasticity problem
-	ChMatrix<>* Compute_BEBj (double i, double j, double k); ///< computes the argument of Gauss integral
+	void Compute_Be (double i, double j, double k);	///< set Be from Bx, for elasticity problem
+
+	ChMatrix<>* Compute_BEBj (double i, double j, double k);  ///< computes the argument of Gauss integra
+
 
 	void Compute_Kl();					///< computes the Kl (stiffness matrix) of this element
 
@@ -99,6 +103,6 @@ public:
 
 
 } // END_OF_NAMESPACE____
-
+} // END_OF_NAMESPACE____
 
 #endif

@@ -10,21 +10,18 @@
 
 
 
-#include <stdlib.h>
-#include <iostream>
-#include <math.h>
-#include <float.h>
-#include <memory.h>
 
 #include "core/ChMath.h"
 #include "core/ChTrasform.h"
 #include "physics/ChObject.h"
-#include "physics/ChQuadra.h"
-#include "physics/ChFem.h"
-#include "physics/ChFem-br1.h"
+#include "fem/ChQuadra.h"
+#include "fem/ChFem.h"
+#include "fem/ChFem-br1.h"
 
 
 namespace chrono 
+{
+namespace fem
 {
 
 //////////////////////////////////////
@@ -281,4 +278,4 @@ void ChFelem_BrickLinear::Update_A()
 
 
 } // END_OF_NAMESPACE____
-
+} // END_OF_NAMESPACE____

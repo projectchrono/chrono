@@ -173,6 +173,18 @@ public:
 						result(this->offset+2)+= mass * vect(this->offset+2);
 					}
 
+				/// Add the diagonal of the mass matrix (as a column vector) to 'result'.
+				/// NOTE: the 'result' vector must already have the size of system unknowns, ie
+				/// the size of the total variables&constraints in the system; the procedure
+				/// will use the ChVariable offset (that must be already updated) as index.
+	virtual void DiagonalAdd(ChMatrix<double>& result) const 
+					{
+						assert(result.GetColumns()==1);
+						result(this->offset  )+= mass;
+						result(this->offset+1)+= mass;
+						result(this->offset+2)+= mass;
+					}
+
 				/// Build the mass matrix (for these variables) storing
 				/// it in 'storage' sparse matrix, at given column/row offset.
 				/// Note, most iterative solvers don't need to know mass matrix explicitly.

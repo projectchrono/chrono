@@ -26,11 +26,12 @@
 
 #include "core/ChMath.h"
 #include "physics/ChObject.h"
-#include "physics/ChFem.h"
+#include "fem/ChFem.h"
 
 namespace chrono 
 {
-
+namespace fem
+{
 
 
 #define CHCLASS_QUADRATURE 7
@@ -64,6 +65,7 @@ public:
 };
 
 
+} // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____
 
 #endif // eof

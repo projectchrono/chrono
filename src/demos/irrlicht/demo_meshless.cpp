@@ -24,14 +24,15 @@
 #include "physics/ChSystem.h"
 #include "physics/ChNodeBody.h"
 #include "physics/ChProximityContainerMeshless.h"
-#include "physics/ChMatterMeshless.h"
 #include "physics/ChContactContainerNodes.h"
+#include "fem/ChMatterMeshless.h"
+#include "fem/ChContinuumMaterial.h" //***TEST****
 #include "irrlicht_interface/ChBodySceneNode.h"
 #include "irrlicht_interface/ChBodySceneNodeTools.h" 
 #include "irrlicht_interface/ChIrrAppInterface.h"
 #include "core/ChRealtimeStep.h"
 #include "irrlicht_interface/ChParticlesSceneNode.h" //***TEST****
-#include "physics/ChContinuumMaterial.h" //***TEST****
+
 
 #include <irrlicht.h>
  
@@ -40,6 +41,7 @@
 // Use the namespace of Chrono
 
 using namespace chrono;
+using namespace fem;
 
 // Use the main namespaces of Irrlicht
 using namespace irr;

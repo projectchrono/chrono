@@ -13,7 +13,8 @@
 
 namespace chrono 
 {
-
+namespace fem 
+{
 
 
 void ChContinuumMaterial::StreamOUT(ChStreamOutBinary& mstream)
@@ -370,6 +371,6 @@ void ChContinuumDruckerPrager::StreamIN(ChStreamInBinary& mstream)
 
 
 
-
+} // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____
 

@@ -10,7 +10,7 @@
  
   
 #include "physics/ChProximityContainerMeshless.h"
-#include "physics/ChMatterMeshless.h"
+#include "fem/ChMatterMeshless.h"
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"
 #include "collision/ChCModelBulletNode.h"
@@ -21,7 +21,7 @@
 namespace chrono
 {
 
-
+using namespace fem;
 using namespace collision;
 using namespace geometry;
 

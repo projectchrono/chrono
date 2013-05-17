@@ -20,11 +20,14 @@
 #include "core/ChMath.h"
 #include "core/ChTrasform.h"
 #include "physics/ChObject.h"
-#include "physics/ChFem.h"
-#include "physics/ChQuadra.h"
+#include "fem/ChFem.h"
+#include "fem/ChQuadra.h"
 
 namespace chrono 
 {
+namespace fem
+{
+
 
 //////////////////////////////////////
 //////////////////////////////////////
@@ -283,5 +286,6 @@ void ChFelem::Compute_Fr ()
 
 
 
+} // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____
 

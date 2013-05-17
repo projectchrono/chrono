@@ -11,13 +11,14 @@
 
 #include "core/ChMath.h"
 #include "physics/ChObject.h"
-#include "physics/ChQuadra.h"
-#include "physics/ChFem.h"
-#include "physics/ChMesh.h"
+#include "fem/ChQuadra.h"
+#include "fem/ChFem.h"
+#include "fem/ChMesh.h"
 
 namespace chrono 
 {
-
+namespace fem
+{
 
 //////////////////////////////////////
 //////////////////////////////////////
@@ -224,5 +225,6 @@ void ChFMesh::UpdateALL (ChMatrix<>* state_vector, int X_offset, int Xdt_offset,
 }
 
 
+} // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____
 

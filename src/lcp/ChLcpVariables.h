@@ -193,9 +193,15 @@ public:
 				/// system matrix (ie. the mass matrix) by 'vect', and add to 'result'. 
 				/// NOTE: the 'vect' and 'result' vectors must already have
 				/// the size of the total variables&constraints in the system; the procedure
-				/// will use the ChVariable offsets (that must be already updated) to know the 
+				/// will use the ChVariable offset (that must be already updated) to know the 
 				/// indexes in result and vect.
 	virtual void MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect) const = 0;
+
+				/// Add the diagonal of the mass matrix (as a column vector) to 'result'.
+				/// NOTE: the 'result' vector must already have the size of system unknowns, ie
+				/// the size of the total variables&constraints in the system; the procedure
+				/// will use the ChVariable offset (that must be already updated) as index.
+	virtual void DiagonalAdd(ChMatrix<double>& result) const = 0;
 
 				/// Build the mass submatrix (for these variables) storing
 				/// it in 'storage' sparse matrix, at given column/row offset.

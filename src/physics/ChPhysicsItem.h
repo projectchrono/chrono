@@ -286,6 +286,17 @@ public:
 	virtual void ConstraintsFetch_react(double factor=1.) {};
 
 
+				/// Tell to a system descriptor that there are items of type
+				/// ChLcpKstiffness in this object (for further passing it to a LCP solver)
+				/// Basically does nothing, but maybe that inherited classes may specialize this.
+	virtual void InjectKmatrices(ChLcpSystemDescriptor& mdescriptor) {};
+
+				/// Adds the current stiffness K and damping R matrices in encapsulated
+				/// ChLcpKstiffness item(s), if any. The K and R matrices are load with scaling 
+				/// values Kfactor and Rfactor. 
+	virtual void KmatricesLoad(double Kfactor, double Rfactor) {};
+
+
 			//
 			// STREAMING
 			//

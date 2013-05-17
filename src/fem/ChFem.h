@@ -26,11 +26,124 @@
 #include <memory.h>
 
 #include "core/ChMath.h"
-#include "physics/ChObject.h"
+#include "physics/ChIndexedNodes.h"
+#include "lcp/ChLcpKstiffnessGeneric.h"
 
 
 namespace chrono
 {
+namespace fem
+{
+
+
+/// Class for a generic finite element node 
+/// in 3D space, with x,y,z displacement 
+///  ***NEW, EXPERIMENTAL ***
+
+class ChApi ChNodeFEM : public chrono::ChNodeBase
+{
+public:
+	Vector X0;		///< reference position
+
+	void Relax () { X0 = this->pos; this->pos_dt=VNULL; this->pos_dtdt=VNULL; }
+};
+
+
+/// Base class for a generic finete element, with stiffness
+/// matrix, local coordinate system, mass, etc. 
+///  ***NEW, EXPERIMENTAL ***
+
+class ChApi ChElementBase
+{
+protected:
+
+public:
+
+	ChElementBase() {};
+	virtual ~ChElementBase() {};
+
+	virtual int GetNnodes() =0;
+	virtual ChNodeFEM* GetNodeN(int n) =0;
+
+			//
+			// Functions for interfacing to the LCP solver
+			// 
+
+				/// Tell to a system descriptor that there are item(s) of type
+				/// ChLcpKstiffness in this object (for further passing it to a LCP solver)
+				/// Basically does nothing, but inherited classes must specialize this.
+	virtual void InjectKmatrices(ChLcpSystemDescriptor& mdescriptor) =0;
+
+				/// Adds the current stiffness K and damping R matrices in encapsulated
+				/// ChLcpKstiffness item(s), if any. The K and R matrices are load with scaling 
+				/// values Kfactor and Rfactor. 
+	virtual void KmatricesLoad(double Kfactor, double Rfactor) =0;
+
+};
+
+
+
+/// Simple finite element with two nodes and a spring between
+/// the two nodes.
+///  ***NEW, EXPERIMENTAL ***
+
+class ChApi ChElementSpring : public ChElementBase
+{
+protected:
+	std::vector<ChNodeFEM*> nodes;
+	ChLcpKstiffnessGeneric Kmatr;
+	double spring_k;
+public:
+
+	ChElementSpring() { spring_k = 1.0; nodes.resize(2);};
+	virtual ~ChElementSpring() {};
+
+	virtual int GetNnodes() {return 2;};
+	virtual ChNodeFEM* GetNodeN(int n) {return nodes[n];};
+
+	virtual void SetNodes(ChNodeFEM* nodeA, ChNodeFEM* nodeB) 
+				{
+					nodes[0]=nodeA; 
+					nodes[1]=nodeB;
+					std::vector<ChLcpVariables*> mvars;
+					mvars.push_back(&nodes[0]->Variables());
+					mvars.push_back(&nodes[1]->Variables());
+					Kmatr.SetVariables(mvars);
+				}
+
+
+			//
+			// Functions for interfacing to the LCP solver
+			//
+
+				/// Tell to a system descriptor that there are item(s) of type
+				/// ChLcpKstiffness in this object (for further passing it to a LCP solver)
+				/// Basically does nothing, but inherited classes must specialize this.
+	virtual void InjectKmatrices(ChLcpSystemDescriptor& mdescriptor)
+				{
+					mdescriptor.InsertKstiffness(&Kmatr);
+				}
+
+
+				/// Adds the current stiffness K and damping R matrices in encapsulated
+				/// ChLcpKstiffness item(s), if any. The K and R matrices are load with scaling 
+				/// values Kfactor and Rfactor. 
+	virtual void KmatricesLoad(double Kfactor, double Rfactor)
+				{
+					// compute stiffness matrix 
+					//Kmatr.Get_K()->SetElement( 				//***TO DO***
+					///....
+				}
+
+
+};
+
+
+
+
+
+////////////////////////////////////////////
+////////////////////////////////////////////
 
 
 /// Class for a generic finite element node 
@@ -195,6 +308,7 @@ public:
 };
 
 
+} // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____
 
 
