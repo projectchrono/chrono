@@ -36,7 +36,6 @@
 #include "physics/ChBody.h"
 #include "physics/ChMarker.h"
 #include "physics/ChForce.h"
-#include "physics/ChFem.h"
 #include "physics/ChLinksAll.h"
 #include "physics/ChHistory.h"
 #include "physics/ChEvents.h"

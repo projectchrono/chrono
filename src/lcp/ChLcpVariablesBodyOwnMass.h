@@ -210,6 +210,21 @@ public:
 						result(this->offset+5)+= (inertia(2,0)*q3 + inertia(2,1)*q4 + inertia(2,2)*q5);
 					}
 	
+				/// Add the diagonal of the mass matrix (as a column vector) to 'result'.
+				/// NOTE: the 'result' vector must already have the size of system unknowns, ie
+				/// the size of the total variables&constraints in the system; the procedure
+				/// will use the ChVariable offset (that must be already updated) as index.
+	virtual void DiagonalAdd(ChMatrix<double>& result) const 
+					{
+						assert(result.GetColumns()==1);
+						result(this->offset+0)+= mass;
+						result(this->offset+1)+= mass;
+						result(this->offset+2)+= mass;
+						result(this->offset+3)+= inertia(0,0);
+						result(this->offset+4)+= inertia(1,1);
+						result(this->offset+5)+= inertia(2,2);
+					}
+
 				/// Build the mass matrix (for these variables) storing
 				/// it in 'storage' sparse matrix, at given column/row offset.
 				/// Note, most iterative solvers don't need to know mass matrix explicitly.

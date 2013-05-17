@@ -276,6 +276,69 @@ int ChLcpSystemDescriptor::BuildBiVector(
 }
 
 
+int ChLcpSystemDescriptor::BuildDiVector(
+								ChMatrix<>& Dvector	
+						)
+{
+	int n_q=CountActiveVariables();
+	int n_c=CountActiveConstraints();
+
+	Dvector.Reset(n_q+n_c,1);		// fast! Reset() method does not realloc if size doesn't change
+
+	// Fills the 'f' vector part
+	int s_u=0;
+	for (unsigned int iv = 0; iv< vvariables.size(); iv++)
+	{
+		if (vvariables[iv]->IsActive())
+		{
+			Dvector.PasteMatrix(&vvariables[iv]->Get_fb(), s_u, 0);
+			s_u += vvariables[iv]->Get_ndof();
+		}
+	}
+	// Fill the '-b' vector (with flipped sign!)
+	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
+	{
+		if (vconstraints[ic]->IsActive())
+		{
+			Dvector(s_u) = -vconstraints[ic]->Get_b_i();
+			++s_u;
+		}
+	}
+
+	return  s_u; 
+}
+
+int  ChLcpSystemDescriptor::BuildDiagonalVector(
+								ChMatrix<>& Diagonal_vect  	///< matrix which will contain the entire vector of terms on M and E diagonal
+							)
+{
+	int n_q=CountActiveVariables();
+	int n_c=CountActiveConstraints();
+
+	Diagonal_vect.Reset(n_q+n_c,1);		// fast! Reset() method does not realloc if size doesn't change
+
+	// Get the 'M' diagonal terms
+	int s_u=0;
+	for (unsigned int iv = 0; iv< vvariables.size(); iv++)
+	{
+		if (vvariables[iv]->IsActive())
+		{
+			vvariables[iv]->DiagonalAdd(Diagonal_vect);
+			s_u += vvariables[iv]->Get_ndof();
+		}
+	}
+	// Get the 'E' diagonal terms (note the sign: E_i = -cfm_i )
+	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
+	{
+		if (vconstraints[ic]->IsActive())
+		{
+			Diagonal_vect(s_u) = -vconstraints[ic]->Get_cfm_i();
+			++s_u;
+		}
+	}
+	return s_u;
+}
+
 
 int ChLcpSystemDescriptor::FromVariablesToVector(	
 								ChMatrix<>& mvector,	
@@ -885,6 +948,43 @@ void ChLcpSystemDescriptor::ConstraintsProject(
 					if (vconstraints[ic]->IsActive())
 							vconstraints[ic]->Project();
 	this->FromConstraintsToVector(multipliers,false);		
+}
+
+
+void ChLcpSystemDescriptor::UnknownsProject(	
+								ChMatrix<>&	mx		///< matrix which contains the entire vector of unknowns x={q,-l} (only the l part is projected)
+								)
+{
+	int s_u= this->CountActiveVariables();
+	int s_u_bk = s_u;
+
+	// vector -> constraints
+	// Fetch from the second part of vector (x.l = -l), with flipped sign!
+	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
+	{
+		if (vconstraints[ic]->IsActive())
+		{
+			vconstraints[ic]->Set_l_i( -mx(s_u));
+			++s_u;
+		}
+	}
+		
+	// constraint projection!
+	for (unsigned int ic = 0; ic < vconstraints.size(); ic++)
+			if (vconstraints[ic]->IsActive())
+					vconstraints[ic]->Project();
+
+	// constraints -> vector
+	// Fill the second part of vector, x.l, with constraint multipliers -l (with flipped sign!)
+	s_u = s_u_bk;
+	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
+	{
+		if (vconstraints[ic]->IsActive())
+		{
+			mx(s_u) = -vconstraints[ic]->Get_l_i();
+			++s_u;
+		}
+	}		
 }
 
 

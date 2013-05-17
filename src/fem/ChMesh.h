@@ -21,20 +21,88 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "physics/ChObject.h"
-#include "core/ChMath.h"
+#include "physics/ChPhysicsItem.h"
+#include "fem/ChContinuumMaterial.h"
 
 
 namespace chrono 
 {
+namespace fem
+{
 
 
-#define CHCLASS_FMESH 2
+
+/// Class which defines a mesh of finite elements of class ChFelem,
+/// between nodes of class  ChFnode.  ***NEW, EXPERIMENTAL ***
+
+class ChApi ChMesh : public ChPhysicsItem 
+{
+private:
+
+	std::vector<ChNodeFEM*>	 vnodes;	//  nodes
+	std::vector<ChElementBase*>	 velements;	//  elements
+
+	//ChContinuumMaterial* material;
+
+	//double volume;		// volume
+	//double mass;		// total mass
+
+public:
+
+	ChMesh() {};
+	~ChMesh() {};
+
+	void AddNode (ChNodeFEM* m_node);
+	void AddElement (ChElementBase* m_elem);
+	void ClearNodes ();
+	void ClearElements ();
+	unsigned int GetNnodes () {return vnodes.size();}
+	unsigned int GetNelements () {return velements.size();}
+
+
+	void Setup ();				// - X0 = X for all nodes
+								// - build all [A0] and [A]
+								// - build [E]
+								// - build all [Kl] */
+
+	void UpdateTime(double m_time);
+
+	void Update_A ();			// - updates all [A] coord.systems for corotational elements
+
+
+			//
+			// LCP SYSTEM FUNCTIONS
+			//
+
+				/// Tell to a system descriptor that there are items of type
+				/// ChLcpKstiffness in this object (for further passing it to a LCP solver)
+				/// Basically does nothing, but maybe that inherited classes may specialize this.
+	virtual void InjectKmatrices(ChLcpSystemDescriptor& mdescriptor) 
+			{
+				for (int ie = 0; ie < this->velements.size(); ie++)
+					this->velements[ie]->InjectKmatrices(mdescriptor);
+			}
+
+				/// Adds the current stiffness K and damping R matrices in encapsulated
+				/// ChLcpKstiffness item(s), if any. The K and R matrices are load with scaling 
+				/// values Kfactor and Rfactor. 
+	virtual void KmatricesLoad(double Kfactor, double Rfactor)
+			{
+				for (int ie = 0; ie < this->velements.size(); ie++)
+					this->velements[ie]->KmatricesLoad(Kfactor,Rfactor);
+			}
+
+};
+
+
+
+
+
 
 //////////////////////////////////////
 //////////////////////////////////////
 
-// CLASS FOR FINITE ELEMENT MESH
+// CLASS FOR FINITE ELEMENT MESH   ***OBSOLETE***
 //
 /// Class which defines a mesh of finite elements of class ChFelem,
 /// between nodes of class  ChFnode.  ***OBSOLETE***
@@ -53,7 +121,7 @@ private:
 	int Mnumber;
 	int offset;			// offset in state vector
 
-	ChFnode*   node_list;	// linklist of nodes
+	ChFnode*	 node_list;	// linklist of nodes
 	ChFelem*	 elem_list;	// linklist of elements
 
 	double E;			// Young Modulus
@@ -117,6 +185,7 @@ public:
 };
 
 
-
 } // END_OF_NAMESPACE____
+} // END_OF_NAMESPACE____
+
 #endif 

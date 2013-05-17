@@ -20,12 +20,14 @@
 #include "core/ChMath.h"
 #include "core/ChTrasform.h"
 #include "physics/ChObject.h"
-#include "physics/ChQuadra.h"
-#include "physics/ChFem.h"
-#include "physics/ChFem-te1.h"
+#include "fem/ChQuadra.h"
+#include "fem/ChFem.h"
+#include "fem/ChFem-te1.h"
 
 
 namespace chrono 
+{
+namespace fem
 {
 
 
@@ -265,4 +267,4 @@ void ChFelem_TetraLinear::Update_A()
 
 
 } // END_OF_NAMESPACE____
-
+} // END_OF_NAMESPACE____

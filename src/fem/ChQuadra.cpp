@@ -17,11 +17,13 @@
 
 #include "core/ChMath.h"
 #include "physics/ChObject.h"
-#include "physics/ChQuadra.h"
+#include "fem/ChQuadra.h"
 
 
 
 namespace chrono 
+{
+namespace fem 
 {
 
 //////////////////////////////////////
@@ -105,5 +107,6 @@ void ChQuadrature::GaussIntegrate (ChFelem* element,
 	delete temp;
 }
 
-} // END_OF_NAMESPACE____
 
+} // END_OF_NAMESPACE____
+} // END_OF_NAMESPACE____

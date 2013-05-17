@@ -89,7 +89,7 @@ public:
 	std::vector<ChLcpVariables*>& GetVariablesList() {return vvariables;};
 
 		/// Access the vector of stiffness matrix blocks
-	std::vector<ChLcpKstiffness*>& GetKstiffnessLis() {return vstiffness;};
+	std::vector<ChLcpKstiffness*>& GetKstiffnessList() {return vstiffness;};
 
 
 		/// Begin insertion of items
@@ -158,6 +158,21 @@ public:
 	virtual int BuildBiVector(
 								ChMatrix<>& Bvector  	///< matrix which will contain the entire vector of 'b'
 							);
+
+				/// Get the d vector = {f; -b} with all the 'fb' and 'bi' known terms, as in  Z*y-d
+				/// (it is the concatenation of BuildFbVector and BuildBiVector) The column vector must be passed as a ChMatrix<>
+				/// object, which will be automatically reset and resized to the proper length if necessary.
+	virtual int BuildDiVector(
+								ChMatrix<>& Dvector  	///< matrix which will contain the entire vector of {f;-b}
+							);
+
+				/// Get the D diagonal of the Z system matrix, as a single column vector (it includes all the diagonal
+				/// masses of M, and all the diagonal E (-cfm) terms).
+				/// The Diagonal_vect must already have the size of n. of unknowns, otherwise it will be resized if necessary).
+	virtual int BuildDiagonalVector(
+								ChMatrix<>& Diagonal_vect  	///< matrix which will contain the entire vector of terms on M and E diagonal
+							);
+
 
 				/// Using this function, one may get a vector with all the variables 'q'
 				/// ordered into a column vector. The column vector must be passed as a ChMatrix<>
@@ -277,6 +292,14 @@ public:
 								ChMatrix<>&	multipliers		///< matrix which contains the entire vector of 'l_i' multipliers to be projected
 								);
 
+				/// As ConstraintsProject(), but instead of passing the l vector, the entire
+				/// vector of unknowns x={q,-l} is passed. 	
+				/// Note! the 'l_i' data in the ChConstraints of the system descriptor are changed
+				/// by this operation (they get the value of 'multipliers' after the projection), so 
+				/// it may happen that you need to backup them via FromConstraintToVector().
+	virtual void UnknownsProject(	
+								ChMatrix<>&	mx		///< matrix which contains the entire vector of unknowns x={q,-l} (only the l part is projected)
+								);
 
 				/// The following function may be used to create the Jacobian and the 
 				/// mass matrix of the variational problem in matrix form, by assembling all 

@@ -316,16 +316,11 @@ IF (BUILD_CH_SDK)
 		physics/ChParser.cpp 
 		physics/ChFunction.cpp 
 		physics/ChLimit.cpp 
-		physics/ChQuadra.cpp 
 		physics/ChObject.cpp 
 		physics/ChMarker.cpp 
 		physics/ChForce.cpp 
 		physics/ChBody.cpp
 		physics/ChBodyAuxRef.cpp
-		physics/ChFem.cpp 
-		physics/ChFem-br1.cpp 
-		physics/ChFem-te1.cpp 
-		physics/ChMesh.cpp 
 		physics/ChLinkforce.cpp 
 		physics/ChLinkMask.cpp 
 		physics/ChLink.cpp 
@@ -371,7 +366,6 @@ IF (BUILD_CH_SDK)
 		physics/ChIndexedNodes.cpp 
 		physics/ChNodeBody.cpp 
 		physics/ChMatterSPH.cpp 
-		physics/ChMatterMeshless.cpp 
 		physics/ChContact.cpp 
 		physics/ChContactRolling.cpp 
 		physics/ChContactNode.cpp 
@@ -388,7 +382,6 @@ IF (BUILD_CH_SDK)
 		physics/ChShaftsMotor.cpp 
 		physics/ChShaftsBody.cpp 
 		physics/ChShaftsTorsionSpring.cpp 
-		physics/ChContinuumMaterial.cpp 
 		physics/ChConveyor.cpp 
 		physics/ChFx.cpp 
 		physics/ChAssembly.cpp
@@ -410,15 +403,11 @@ IF (BUILD_CH_SDK)
 		physics/ChContactContainerNodes.h
 		physics/ChContactNode.h
 		physics/ChContactRolling.h
-		physics/ChContinuumMaterial.h
 		physics/ChController.h
 		physics/ChControls.h
 		physics/ChConveyor.h
 		physics/ChEvents.h
 		physics/ChExternalObject.h
-		physics/ChFem.h
-		physics/ChFem-br1.h
-		physics/ChFem-te1.h
 		physics/ChFilePS.h
 		physics/ChForce.h
 		physics/ChFormule.h
@@ -460,9 +449,7 @@ IF (BUILD_CH_SDK)
 		physics/ChMarker.h
 		physics/ChMaterialCouple.h
 		physics/ChMaterialSurface.h
-		physics/ChMatterMeshless.h
 		physics/ChMatterSPH.h
-		physics/ChMesh.h
 		physics/ChMocap.h
 		physics/ChNlsolver.h
 		physics/ChNodeBody.h
@@ -475,7 +462,6 @@ IF (BUILD_CH_SDK)
 		physics/ChProximityContainerBase.h
 		physics/ChProximityContainerMeshless.h
 		physics/ChProximityContainerSPH.h
-		physics/ChQuadra.h
 		physics/ChRef.h
 		physics/ChScriptEngine.h
 		physics/ChShaft.h
@@ -563,7 +549,32 @@ IF (BUILD_CH_SDK)
 	SOURCE_GROUP(assets FILES  
 			${ChronoEngine_assets_SOURCES}
 			${ChronoEngine_assets_HEADERS}
-			)	
+			)
+	
+	SET(ChronoEngine_fem_SOURCES
+		fem/ChQuadra.cpp 
+		fem/ChFem.cpp 
+		fem/ChFem-br1.cpp 
+		fem/ChFem-te1.cpp
+		fem/ChMesh.cpp  
+		fem/ChMatterMeshless.cpp 
+		fem/ChContinuumMaterial.cpp
+	)
+	SET(ChronoEngine_fem_HEADERS
+		fem/ChTensors.h
+		fem/ChQuadra.h 
+		fem/ChFem.h 
+		fem/ChFem-br1.h 
+		fem/ChFem-te1.h 
+		fem/ChMesh.h 
+		fem/ChMatterMeshless.h 
+		fem/ChContinuumMaterial.h
+	)
+	SOURCE_GROUP(fem FILES  
+			${ChronoEngine_fem_SOURCES}
+			${ChronoEngine_fem_HEADERS}
+			)
+				
 	
 	SET(ChronoEngine_collision_SOURCES
 		collision/ChCCollisionModel.cpp 
@@ -1044,6 +1055,8 @@ IF (BUILD_CH_SDK)
 		${ChronoEngine_geometry_HEADERS}
 		${ChronoEngine_assets_SOURCES}
 		${ChronoEngine_assets_HEADERS}
+		${ChronoEngine_fem_SOURCES}
+		${ChronoEngine_fem_HEADERS}
 		${ChronoEngine_collision_edgetempest_SOURCES}
 		${ChronoEngine_collision_edgetempest_HEADERS}
 		${ChronoEngine_collision_convexdecompJR_SOURCES}

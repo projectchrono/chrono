@@ -79,6 +79,16 @@ public:
 				);
 
 
+				/// Same as Solve(), but this also supports the presence of
+				/// ChLcpKstiffness blocks. If Solve() is called and stiffness is present,
+				/// Solve() automatically falls back to this function.
+				/// It does not solve the Schur complement N*l-r=0 as Solve does, here the 
+				/// entire system KKT matrix with duals l and primals q is used.
+	virtual double Solve_SupportingStiffness(
+				ChLcpSystemDescriptor& sysd,		///< system description with constraints and variables	
+				bool add_Mq_to_f = false			///< if true, takes the initial 'q' and adds [M]*q to 'f' vector  
+				);
+
 	void   SetNarmijo (int mf) {this->n_armijo = mf;}
 	double GetNarmijo () {return this->n_armijo;}
 

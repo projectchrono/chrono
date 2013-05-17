@@ -26,6 +26,11 @@ double ChLcpIterativeBB::Solve(
 	std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
 	std::vector<ChLcpVariables*>&  mvariables	= sysd.GetVariablesList();
 
+		// If stiffness blocks are used, the Schur complement cannot be esily
+		// used, so fall back to the Solve_SupportingStiffness method, that operates on KKT.
+	if (sysd.GetKstiffnessList().size() > 0)
+		return this->Solve_SupportingStiffness(sysd, add_Mq_to_f);
+
 
 	// Tuning of the spectral gradient search
 	double a_min = 1e-13;
@@ -58,7 +63,7 @@ double ChLcpIterativeBB::Solve(
 	ChMatrixDynamic<> mg(nc,1);
 	ChMatrixDynamic<> mg_p(nc,1);
 	ChMatrixDynamic<> ml_p(nc,1);
-	ChMatrixDynamic<> md(nc,1);
+	ChMatrixDynamic<> mdir(nc,1);
 	ChMatrixDynamic<> mb(nc,1);
 	ChMatrixDynamic<> mb_tmp(nc,1);
 	ChMatrixDynamic<> ms(nc,1);
@@ -178,27 +183,27 @@ double ChLcpIterativeBB::Solve(
 		if (do_preconditioning)
 			mDg.MatrDivScale(mD);
 		
-		// d  = [P(l - alpha*Dg) - l]
-		md.CopyFromMatrix(mDg);						// 1) d = Dg  ...
-		md.MatrScale(-alpha);						// 2) d = - alpha*Dg  ...
-		md.MatrInc(ml);								// 3) d = l - alpha*Dg  ...
-		sysd.ConstraintsProject(md);				// 4) d = P(l - alpha*Dg) ...
-		md.MatrDec(ml);								// 5) d = P(l - alpha*Dg) - l
+		// dir  = [P(l - alpha*Dg) - l]
+		mdir.CopyFromMatrix(mDg);					// 1) dir = Dg  ...
+		mdir.MatrScale(-alpha);						// 2) dir = - alpha*Dg  ...
+		mdir.MatrInc(ml);							// 3) dir = l - alpha*Dg  ...
+		sysd.ConstraintsProject(mdir);				// 4) dir = P(l - alpha*Dg) ...
+		mdir.MatrDec(ml);							// 5) dir = P(l - alpha*Dg) - l
 
-		// dTg = d'*g;
-		double dTg = md.MatrDot(&md,&mg);
+		// dTg = dir'*g;
+		double dTg = mdir.MatrDot(&mdir,&mg);
 
 		// BB dir backward!? fallback to nonpreconditioned dir
 		if (dTg > 1e-8)
 		{	
-			// d  = [P(l - alpha*g) - l]
-			md.CopyFromMatrix(mg);						// 1) d = g  ...
-			md.MatrScale(-alpha);						// 2) d = - alpha*g  ...
-			md.MatrInc(ml);								// 3) d = l - alpha*g  ...
-			sysd.ConstraintsProject(md);				// 4) d = P(l - alpha*g) ...
-			md.MatrDec(ml);								// 5) d = P(l - alpha*g) - l
+			// dir  = [P(l - alpha*g) - l]
+			mdir.CopyFromMatrix(mg);					// 1) dir = g  ...
+			mdir.MatrScale(-alpha);						// 2) dir = - alpha*g  ...
+			mdir.MatrInc(ml);							// 3) dir = l - alpha*g  ...
+			sysd.ConstraintsProject(mdir);				// 4) dir = P(l - alpha*g) ...
+			mdir.MatrDec(ml);							// 5) dir = P(l - alpha*g) - l
 			// dTg = d'*g;
-			dTg = md.MatrDot(&md,&mg);
+			dTg = mdir.MatrDot(&mdir,&mg);
 		}
 
 		double lambda = 1;
@@ -210,8 +215,8 @@ double ChLcpIterativeBB::Solve(
 
 		while (armijo_repeat)
 		{
-			// l_p = l + lambda*d;
-			ml_p.CopyFromMatrix(md);
+			// l_p = l + lambda*dir;
+			ml_p.CopyFromMatrix(mdir);
 			ml_p.MatrScale(lambda);
 			ml_p.MatrInc(ml);
 
@@ -400,6 +405,360 @@ double ChLcpIterativeBB::Solve(
 	return lastgoodres;
 
 }
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+
+
+
+double ChLcpIterativeBB::Solve_SupportingStiffness(
+				ChLcpSystemDescriptor& sysd,		///< system description with constraints and variables	
+				bool add_Mq_to_f   			       ///< if true, takes the initial 'q' and adds [M]*q to 'f' vector  
+				)
+{
+
+	std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
+	std::vector<ChLcpVariables*>&  mvariables	= sysd.GetVariablesList();
+	std::vector<ChLcpKstiffness*>& mstiffness	= sysd.GetKstiffnessList();
+
+
+	// Tuning of the spectral gradient search
+	double a_min = 1e-13;
+	double a_max = 1e13;
+	double sigma_min = 0.1;
+	double sigma_max = 0.9;
+	double alpha = 0.0001;
+	double gamma = 1e-4;
+	double gdiff= 0.000001;
+	bool do_preconditioning = true;
+
+	bool do_BB1e2= true;
+	bool do_BB1	 = false;
+	bool do_BB2	 = false;
+	double neg_BB1_fallback = 0.11;
+	double neg_BB2_fallback = 0.12;
+
+	bool verbose = false;
+
+
+	int i_friction_comp = 0;
+	tot_iterations = 0;
+
+	// Allocate auxiliary vectors;
+	
+	int nv = sysd.CountActiveVariables();
+	int nc = sysd.CountActiveConstraints();
+	int nx = nv+nc;  // total scalar unknowns, in x vector for full KKT system Z*x-d=0
+
+	if (verbose) GetLog() <<"\n-----Barzilai-Borwein -supporting stiffness-, n.unknowns nx=" << nx << "unknowns \n";
+
+	ChMatrixDynamic<> mx(nx,1);
+	ChMatrixDynamic<> mx_candidate(nx,1);
+	ChMatrixDynamic<> mg(nx,1);
+	ChMatrixDynamic<> mg_p(nx,1);
+	ChMatrixDynamic<> mx_p(nx,1);
+	ChMatrixDynamic<> mdir(nx,1);
+	ChMatrixDynamic<> md(nx,1);
+	ChMatrixDynamic<> md_tmp(nx,1);
+	ChMatrixDynamic<> ms(nx,1);
+	ChMatrixDynamic<> my(nx,1);
+	ChMatrixDynamic<> mD (nx,1);
+	ChMatrixDynamic<> mDg (nx,1);
+
+	//
+	// --- Compute a diagonal (scaling) preconditioner for the KKT system:
+    //
+
+	// Initialize the mD vector with the diagonal of the Z matrix
+	sysd.BuildDiagonalVector(mD);
+
+	// Its inverse can be used as a scaling for the q unknowns, but not 
+	// for the l unknowns, since their diagonal is most often 0. So
+	// we will use the g_i=[Cq_i]*[invM_i]*[Cq_i]' terms (note, K stiffness
+	// if any, takes no effect).
+	// Firs, update auxiliary data in all constraints before starting,
+	// that will compute g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
+	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
+		mconstraints[ic]->Update_auxiliary();
+
+	// Average all g_i for the triplet of contact constraints n,u,v.
+	//  This is necessary because we want the scaling to be isotropic for each friction cone
+	int j_friction_comp = 0;
+	double gi_values[3];
+	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
+	{
+		if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) 
+		{
+			gi_values[j_friction_comp] = mconstraints[ic]->Get_g_i();
+			j_friction_comp++;
+			if (j_friction_comp==3)
+			{
+				double average_g_i = (gi_values[0]+gi_values[1]+gi_values[2])/3.0;
+				mconstraints[ic-2]->Set_g_i(average_g_i);
+				mconstraints[ic-1]->Set_g_i(average_g_i);
+				mconstraints[ic-0]->Set_g_i(average_g_i);
+				j_friction_comp=0;
+			}
+		}	
+	}
+	// Store the g_i terms in the mD vector, whose inverse will be used for scaling.
+	int s_u = nv;
+	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
+		if (mconstraints[ic]->IsActive())
+		{
+			mD(s_u) = mconstraints[ic]->Get_g_i();
+			++s_u;
+		}
+
+
+	//
+	// --- Vector initialization and book-keeping 
+    //
+
+	// Initialize the x vector of unknowns x ={q; -l} (if warm starting needed, initialize 
+	// x with current values of q and l in variables and constraints)
+	if (warm_start)
+		sysd.FromUnknownsToVector(mx);
+	else
+		mx.FillElem(0);
+
+	// Initialize the d vector filling it with {f, -b}
+	sysd.BuildDiVector(md);
+
+	// If user wants M*q to be added to f, add it directly to d={f+M*q, -b}
+	if (add_Mq_to_f)
+	{
+		if (!warm_start)
+			sysd.FromUnknownsToVector(mx);
+		for (unsigned int iv = 0; iv< mvariables.size(); iv++)
+			if (mvariables[iv]->IsActive())
+				mvariables[iv]->MultiplyAndAdd(md, mx); // d_i += M_i*x_i
+	}
+
+
+	//
+	// --- THE SPG ALGORITHM
+	//
+
+	// Initial projection of mx   
+	sysd.UnknownsProject(mx);
+
+
+	// Fallback solution
+	double lastgoodres  = 10e30;
+	double lastgoodfval = 10e30;
+	mx_candidate = mx;
+
+	// g = Z*x-d 
+	sysd.SystemProduct(mg, &mx);				// 1)  g = Z*x ...        #### MATR.MULTIPLICATION!!!###
+	mg.MatrDec(md);								// 2)  g = Z*x - d ...
+
+	mg_p = mg;
+
+
+	//
+	// THE LOOP
+	//
+
+	double mf_p =0;
+	double mf =1e29;
+	std::vector<double> f_hist;
+
+	for (int iter = 0; iter < max_iterations; iter++)
+	{
+		// Dg = Di*g;
+		mDg = mg;
+		if (do_preconditioning)
+			mDg.MatrDivScale(mD);
+		
+		// dir  = [P(l - alpha*Dg) - l]
+		mdir.CopyFromMatrix(mDg);					// 1) dir = Dg  ...
+		mdir.MatrScale(-alpha);						// 2) dir = - alpha*Dg  ...
+		mdir.MatrInc(mx);							// 3) dir = l - alpha*Dg  ...
+		sysd.UnknownsProject(mdir);					// 4) dir = P(l - alpha*Dg) ...
+		mdir.MatrDec(mx);							// 5) dir = P(l - alpha*Dg) - l
+
+		// dTg = dir'*g;
+		double dTg = mdir.MatrDot(&mdir,&mg);
+
+		// BB dir backward!? fallback to nonpreconditioned dir
+		if (dTg > 1e-8)
+		{	
+			// dir  = [P(l - alpha*g) - l]
+			mdir.CopyFromMatrix(mg);					// 1) dir = g  ...
+			mdir.MatrScale(-alpha);						// 2) dir = - alpha*g  ...
+			mdir.MatrInc(mx);							// 3) dir = l - alpha*g  ...
+			sysd.UnknownsProject(mdir);					// 4) dir = P(l - alpha*g) ...
+			mdir.MatrDec(mx);							// 5) dir = P(l - alpha*g) - l
+			// dTg = d'*g;
+			dTg = mdir.MatrDot(&mdir,&mg);
+		}
+
+		double lambda = 1;
+
+		
+		
+		int  n_backtracks = 0;
+		bool armijo_repeat = true;
+
+		while (armijo_repeat)
+		{
+			// x_p = x + lambda*dir;
+			mx_p.CopyFromMatrix(mdir);
+			mx_p.MatrScale(lambda);
+			mx_p.MatrInc(mx);
+
+			// Zx_p = Z*x_p;                        #### MATR.MULTIPLICATION!!!###
+			sysd.SystemProduct(md_tmp, &mx_p );			 // 1)  md_tmp = Z*x_p  = Zx_p 
+
+			// g_p = Z*x_p - d  = Zx_p - d		
+			mg_p.MatrSub(md_tmp, md);					 // 2)  g_p = Z*x_p - d
+
+			// f_p = 0.5*x_p'*Z*x_p - x_p'*d  = x_p'*(0.5*Zx_p - d);
+			md_tmp.MatrScale(0.5);
+			md_tmp.MatrDec(md);
+			mf_p = mx_p.MatrDot(&mx_p,&md_tmp);
+			
+			f_hist.push_back(mf_p);
+
+
+			double max_compare = 10e29;
+			for (int h = 1; h <= ChMin(iter,this->n_armijo); h++)
+			{
+				double compare = f_hist[iter-h] + gamma*lambda*dTg;
+				if (compare > max_compare)
+					max_compare = compare;
+			}
+
+			if (mf_p > max_compare)
+			{
+				armijo_repeat = true;
+				if (iter>0)
+					mf = f_hist[iter-1];
+				double lambdanew = - lambda * lambda * dTg / (2*(mf_p - mf -lambda*dTg));
+				lambda = ChMax(sigma_min*lambda, ChMin(sigma_max*lambda,lambdanew));
+				if (verbose)  GetLog() << " Repeat Armijo, new lambda=" << lambda << "\n";
+			}
+			else
+			{
+				armijo_repeat = false;
+			}
+        
+			n_backtracks = n_backtracks +1;
+			if (n_backtracks > this->max_armijo_backtrace)
+				armijo_repeat = false;
+		}
+
+		// s = x_p - x;
+		ms.MatrSub(mx_p, mx);
+		
+		// y = g_p - g;
+		my.MatrSub(mg_p, mg);
+
+		// x = x_p;
+		mx.CopyFromMatrix(mx_p);
+
+		// g = g_p;
+		mg.CopyFromMatrix(mg_p);
+
+		if (((do_BB1e2) && (iter%2 ==0)) || do_BB1)
+		{
+			md_tmp = ms;
+			if (do_preconditioning)
+				md_tmp.MatrScale(mD);
+			double sDs = ms.MatrDot(&ms,&md_tmp);
+			double sy  = ms.MatrDot(&ms, &my);
+			if (sy <= 0)
+			{
+				alpha = neg_BB1_fallback;
+			}
+			else
+			{
+				double alph = sDs / sy;  // (s,Ds)/(s,y)   BB1
+				alpha = ChMin (a_max, ChMax(a_min, alph));
+			}
+		}
+
+	
+		if (((do_BB1e2) && (iter%2 !=0)) || do_BB2)
+		{
+			double sy = ms.MatrDot(&ms,&my);
+			md_tmp = my;
+			if (do_preconditioning)
+				md_tmp.MatrDivScale(mD);
+			double yDy = my.MatrDot(&my, &md_tmp);
+			if (sy <= 0)
+			{
+				alpha = neg_BB2_fallback;
+			}
+			else
+			{
+				double alph = sy / yDy;  // (s,y)/(y,Di*y)   BB2
+				alpha = ChMin (a_max, ChMax(a_min, alph));
+			}
+		}
+
+        // Project the gradient (for rollback strategy)
+		// g_proj = (x-project_orthogonal(x - gdiff*g, fric))/gdiff;
+		md_tmp = mg;
+		md_tmp.MatrScale(-gdiff);
+		md_tmp.MatrInc(mx);
+		sysd.UnknownsProject(md_tmp);
+		md_tmp.MatrDec(mx);
+		md_tmp.MatrDivScale(-gdiff);
+
+		double g_proj_norm = md_tmp.NormTwo(); // NormInf() is faster..
+
+		// Rollback solution: the last best candidate ('x' with lowest projected gradient)
+		// in fact the method is not monotone and it is quite 'noisy', if we do not
+		// do this, a prematurely truncated iteration might give a crazy result.
+        if(g_proj_norm < lastgoodres)
+		{
+            lastgoodres  = g_proj_norm;
+            mx_candidate = mx;
+		}  
+
+
+		// METRICS - convergence, plots, etc
+
+		double maxdeltalambda = ms.NormInf();
+		double maxd			  = lastgoodres;  
+			
+		// For recording into correction/residuals/violation history, if debugging
+		if (this->record_violation_history)
+			AtIterationEnd(maxd, maxdeltalambda, iter);
+
+		if (verbose) GetLog() << "  iter=" << iter << "   f=" << mf_p << "  |d|=" << maxd << "  |s|=" << maxdeltalambda  << "\n";
+
+		tot_iterations++;
+
+		// Terminate the loop if tolerance reached
+		// ***TO DO*** a reliable termination creterion.. 
+		/*
+		if (maxd < this->tolerance)  
+		{
+			GetLog() <<"BB premature proj.gradient break at i=" << iter << "\n";
+			break;
+		}
+		*/
+		
+	}
+
+
+	// After having solved for unknowns x={q;-l}, now copy those values from x vector to
+	// the q values in ChLcpVariable items and to l values in ChLcpConstraint items
+	sysd.FromVectorToUnknowns(mx_candidate); // was FromVectorToUnknowns(mx), but mx is not monotone, mx_candidate is. 
+
+	
+	if (verbose) GetLog() <<"-----\n";
+
+	return lastgoodres;
+
+}
+
 
 
 

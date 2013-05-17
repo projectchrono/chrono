@@ -4,7 +4,7 @@
 #define MyAppVersion "v1.7.1"
 #define MyAppPublisher "Alessandro Tasora"
 #define MyAppURL "http://www.chronoengine.info"
-#define MyWin32PythonDir  "C:\Python32"
+#define MyWin32PythonDir  "C:\Python33"
 #define MyPythonVers "3.3"
 #define MyChronoEngineSDK "C:\tasora\code\nightly_repo\code\ChronoEngine"
 
