@@ -1,7 +1,7 @@
 #include "ChSolverGPU.cuh"
 using namespace chrono;
 
-__host__ __device__ void function_Project_single(uint &index, int2 &ids, real *fric, real3 & gamma) {
+__host__ __device__ void function_Project_single(int2 &ids, real *fric, real3 & gamma) {
 	int2 body_id = ids;
 	real f_tang = sqrt(gamma.y * gamma.y + gamma.z * gamma.z);
 	real mu = (fric[body_id.x] == 0 || fric[body_id.y] == 0) ? 0 : (fric[body_id.x] + fric[body_id.y]) * .5;
@@ -119,7 +119,7 @@ custom_vector<real> &obj1_tmp,custom_vector<real> &obj2_tmp,custom_vector<real> 
 		_mx.y = _my.y + _mg.y * t_k;
 		_mx.z = _my.z + _mg.z * t_k;
 
-		function_Project_single(index, id_, fric.data(), _mx);
+		function_Project_single(id_, fric.data(), _mx);
 
 		mx[index+ number_of_contacts * 0] = _mx.x;
 		mx[index+ number_of_contacts * 1] = _mx.y;
@@ -291,6 +291,8 @@ const real & t_k,const real & L_k,
 real & obj1,real& obj2,real& min_val,
 custom_vector<real> &obj1_tmp,custom_vector<real> &obj2_tmp,custom_vector<real> &obj3_tmp1,custom_vector<real> &obj3_tmp2) {
 
+	custom_vector<real> lm(number_of_contacts);
+
 #pragma omp parallel for
 		for (uint index = 0; index < number_of_contacts; index++) {
 			int2 id_ = ids[index];
@@ -299,7 +301,7 @@ custom_vector<real> &obj1_tmp,custom_vector<real> &obj2_tmp,custom_vector<real> 
 			_mx.y = my[index + number_of_contacts * 1] + mg[index + number_of_contacts * 1] * (t_k);
 			_mx.z = my[index + number_of_contacts * 2] + mg[index + number_of_contacts * 2] * (t_k);
 
-			function_Project_single(index, id_, fric.data(), _mx);
+			function_Project_single(id_, fric.data(), _mx);
 
 			mx[index + number_of_contacts * 0] = _mx.x;
 			mx[index + number_of_contacts * 1] = _mx.y;
@@ -308,11 +310,8 @@ custom_vector<real> &obj1_tmp,custom_vector<real> &obj2_tmp,custom_vector<real> 
 		}
 
 		shurA(mx);
-		real lm;
-#pragma omp parallel private(lm)
-		{
-			lm=FLT_MAX;
-#pragma omp for
+
+#pragma omp parallel for
 		for (uint index = 0; index < number_of_contacts; index++) {
 			real3 temp = R3(0);
 			int2 id_ = ids[index];
@@ -363,7 +362,7 @@ custom_vector<real> &obj1_tmp,custom_vector<real> &obj2_tmp,custom_vector<real> 
 //			mg_tmp2[index + number_of_contacts * 1] = _mg_tmp2.y;
 //			mg_tmp2[index + number_of_contacts * 2] = _mg_tmp2.z;
 
-		lm = std::min(lm, _mg_tmp2.x);
+		lm[index] = _mg_tmp2.x;
 
 		real3 _obj1_tmp = 0.5 * _mg_tmp - _b;
 
@@ -399,17 +398,12 @@ custom_vector<real> &obj1_tmp,custom_vector<real> &obj2_tmp,custom_vector<real> 
 
 	}
 
-	if ( lm < min_val ) {
-#pragma critical
-		{
-			if ( lm < min_val ) min_val = lm;
-		}
-	}
-}
-real _obj1 = 0;
+	min_val = Thrust_Min(lm);
 
-real temp1 = 0;
-real temp2 = 0;
+	real _obj1 = 0;
+
+	real temp1 = 0;
+	real temp2 = 0;
 
 #pragma omp parallel for reduction(+:_obj1,temp1,temp2)
 		for (int i = 0; i < size; i++) {
