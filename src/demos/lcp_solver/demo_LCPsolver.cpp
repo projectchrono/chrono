@@ -25,6 +25,7 @@
 #include "lcp/ChLcpSystemDescriptor.h"
 #include "lcp/ChLcpIterativeSOR.h"
 #include "lcp/ChLcpIterativePMINRES.h"
+#include "lcp/ChLcpIterativeBB.h"
 #include "lcp/ChLcpSimplexSolver.h"
 #include "core/ChLinearAlgebra.h"
 
@@ -142,7 +143,7 @@ void test_1()
 	mdescriptor.EndInsertion();  // ----- system description ends here
 
   
-	// Solve the problem with an iterative interior-point solver, for an
+	// Solve the problem with an iterative fixed-point solver, for an
 	// approximate (but very fast) solution:
 	//
 	// .. create the solver 
@@ -364,7 +365,7 @@ void test_3()
 
 	ChLcpSystemDescriptor mdescriptor;
 
-	// Now let's add variables and constraints, as sparse data:
+	// Now let's add variables, constraints and stiffness, as sparse data:
 
 	mdescriptor.BeginInsertion();  // ----- system description 
 
@@ -377,12 +378,12 @@ void test_3()
 	ChLcpVariablesBodyOwnMass mvarA;
 	mvarA.SetBodyMass(5);
 	mvarA.SetBodyInertia(&minertia);
-	mvarA.Get_fb().FillRandom(-3,3);
+	mvarA.Get_fb().FillRandom(-3,5);
 
 	ChLcpVariablesBodyOwnMass mvarB;
 	mvarB.SetBodyMass(4);
 	mvarB.SetBodyInertia(&minertia);
-	mvarB.Get_fb().FillRandom(2,5);
+	mvarB.Get_fb().FillRandom(1,3);
 
 	ChLcpVariablesBodyOwnMass mvarC;
 	mvarC.SetBodyMass(5.5);
@@ -398,7 +399,7 @@ void test_3()
 		// Also set cfm term (E diagonal = -cfm)
 
 	ChLcpConstraintTwoBodies mca(&mvarA, &mvarB);
-	mca.Set_b_i(5);
+	mca.Set_b_i(3);
 	mca.Get_Cq_a()->FillRandom(-1,1);
 	mca.Get_Cq_b()->FillRandom(-1,1);
 	mca.Set_cfm_i(0.2);
@@ -422,8 +423,13 @@ void test_3()
 	mvarsa.push_back(&mvarB);
 	mKa.SetVariables(mvarsa); 
 
-	mKa.Get_K()->FillRandom(0.3,0.3);
-	
+	// just fill K with random values (but symmetric, by making a product of matr*matrtransposed)
+	ChMatrixDynamic<> mtempA = *mKa.Get_K(); // easy init to same size of K
+	mtempA.FillRandom(-0.3,0.3);
+	ChMatrixDynamic<> mtempB;
+	mtempB.CopyFromMatrixT(mtempA);
+	*mKa.Get_K() = -mtempA*mtempB;
+
 	mdescriptor.InsertKstiffness(&mKa);
 	
 
@@ -434,80 +440,73 @@ void test_3()
 	mvarsb.push_back(&mvarC);
 	mKb.SetVariables(mvarsb); 
 
-	mKb.Get_K()->FillRandom(-9.2,9.02);
+	*mKb.Get_K() =  *mKa.Get_K(); 
 	
 	mdescriptor.InsertKstiffness(&mKb);
 
 
 	mdescriptor.EndInsertion();  // ----- system description ends here
 
-  
-	// A- Check functionality of the full system product Z*x
+ 
+	// SOLVE the problem with an iterative Krylov solver.
+	// In this case we use a MINRES-like solver, that features
+	// very good convergence, it supports indefinite cases (ex. 
+	// redundant constraints) and also supports the presence
+	// of ChStiffness blocks (other solvers cannot cope with this!)
 
-	int nv = mdescriptor.CountActiveVariables();
-	int nc = mdescriptor.CountActiveConstraints();
+	// .. create the solver 
 
-	chrono::ChMatrixDynamic<double> mx(nv+nc, 1);
-	chrono::ChMatrixDynamic<double> prod_e(nv+nc, 1);
-	chrono::ChMatrixDynamic<double> prod_f(nv+nc, 1);
-	mx.FillRandom(-3,3);	// a random x vector
+	ChLcpIterativePMINRES msolver_mr(80,		// max iterations
+									 false,		// don't use warm start
+									 1e-12);	// termination tolerance
+	
+	// .. set optional parameters of solver
+	msolver_mr.SetDiagonalPreconditioning(true);
+	msolver_mr.SetVerbose(true);
 
-	mdescriptor.SystemProduct(prod_e, &mx);   //! HERE DO: e = Z*x
+	// .. solve the system (passing variables, constraints, stiffness
+	//    blocks with the ChSystemDescriptor that we populated above)
+
+	msolver_mr.Solve(mdescriptor);
 
 
-	// check exactness by doing the product with matrices:
+	// .. optional: get the result as a single vector (it collects all q_i and l_i 
+	//    solved values stored in variables and constraints), just for check.
+	chrono::ChMatrixDynamic<double> mx;
+	mdescriptor.FromUnknownsToVector(mx);		// x ={q,-l}
 
-	chrono::ChSparseMatrix mdM;
-	chrono::ChSparseMatrix mdCq;
-	chrono::ChSparseMatrix mdE;
-	chrono::ChMatrixDynamic<double> mdf;
-	chrono::ChMatrixDynamic<double> mdb;
-	chrono::ChMatrixDynamic<double> mdfric;
-	// fill the matrices given the system:
-	mdescriptor.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, 0);
-	// make Z from [M+K,Cq';Cq',E]
-	chrono::ChSparseMatrix mdZ(nv+nc, nv+nc);
-	mdZ.PasteMatrix(&mdM,0,0);
-	mdZ.PasteMatrix(&mdE,nv,nv);
-	mdZ.PasteMatrix(&mdCq,nv,0);
-	mdZ.PasteTranspMatrix(&mdCq,0,nv);
-	// convert sparse to full 
-	chrono::ChMatrixDynamic<double> mdZd(nv+nc, nv+nc);
-	mdZ.CopyToMatrix(&mdZd);
-	prod_f.MatrMultiply(mdZd,mx);
 
-			try
-			{
-				chrono::ChStreamOutAsciiFile file_M("dump_M.dat");
-				mdM.StreamOUTsparseMatlabFormat(file_M);
-				chrono::ChStreamOutAsciiFile file_Cq("dump_Cq.dat");
-				mdCq.StreamOUTsparseMatlabFormat(file_Cq);
-				chrono::ChStreamOutAsciiFile file_E("dump_E.dat");
-				mdE.StreamOUTsparseMatlabFormat(file_E);
-				chrono::ChStreamOutAsciiFile file_Z("dump_Z.dat");
-				mdZ.StreamOUTsparseMatlabFormat(file_Z);
-				chrono::ChStreamOutAsciiFile file_f("dump_f.dat");
-				mdf.StreamOUTdenseMatlabFormat(file_f);
-				chrono::ChStreamOutAsciiFile file_b("dump_b.dat");
-				mdb.StreamOUTdenseMatlabFormat(file_b);
-				chrono::ChStreamOutAsciiFile file_x("dump_x.dat");
-				mx.StreamOUTdenseMatlabFormat(file_x);
-				chrono::ChStreamOutAsciiFile file_e_cpp("dump_e_cpp.dat");
-				prod_e.StreamOUTdenseMatlabFormat(file_e_cpp);
-			} 
-			catch(chrono::ChException myexc)
-			{
-				chrono::GetLog() << myexc.what();
-			}
 
-	GetLog() << "SystemProduct Z*x -------------------\n";
-	GetLog() << prod_e << "\n";
+	// CHECK. Test if, with the solved x, we really have Z*x-d=0 ...
+	// to this end do the multiplication with the special function
+	// SystemProduct() that is 'sparse-friendly' and does not build Z explicitly:
+	
+	chrono::ChMatrixDynamic<double> md;
+	mdescriptor.BuildDiVector(md);				// d={f;-b}
 
-	GetLog() << "Matrix (check) product Z*x -------------------\n";
-	GetLog() << prod_f << "\n";
+	chrono::ChMatrixDynamic<double> mZx;
+	mdescriptor.SystemProduct(mZx, &mx);		// Zx = Z*x
+	
+	GetLog() << "CHECK: norm of solver residual: ||Z*x-d|| -------------------\n";
+	GetLog() << (mZx - md).NormInf() << "\n";
 
-	GetLog() << "norm err check product Z*x -------------------\n";
-	GetLog() << (prod_f - prod_e).NormInf() << "\n";
+	/*
+	// Alternatively, instead of using FromUnknownsToVector, to fetch
+	// result, you could just loop over the variables (q values) and 
+	// over the constraints (l values), as already shown in previous examples:
+
+	for (int im = 0; im < mdescriptor.GetVariablesList().size(); im++)
+		GetLog() << "   " << mdescriptor.GetVariablesList()[im]->Get_qb()(0) << "\n";
+
+	for (int ic = 0; ic < mdescriptor.GetConstraintsList().size(); ic++)
+		GetLog() << "   " << mdescriptor.GetConstraintsList()[ic]->Get_l_i() << "\n"; 
+	*/
+
+	
+
+
+
+	
 
 }
 
