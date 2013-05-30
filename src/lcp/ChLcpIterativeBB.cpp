@@ -40,7 +40,7 @@ double ChLcpIterativeBB::Solve(
 	double alpha = 0.0001;
 	double gamma = 1e-4;
 	double gdiff= 0.000001;
-	bool do_preconditioning = true;
+	bool do_preconditioning = this->diag_preconditioning;
 
 	bool do_BB1e2= true;
 	bool do_BB1	 = false;
@@ -433,15 +433,13 @@ double ChLcpIterativeBB::Solve_SupportingStiffness(
 	double alpha = 0.0001;
 	double gamma = 1e-4;
 	double gdiff= 0.000001;
-	bool do_preconditioning = true;
+	bool do_preconditioning = this->diag_preconditioning;
 
 	bool do_BB1e2= true;
 	bool do_BB1	 = false;
 	bool do_BB2	 = false;
 	double neg_BB1_fallback = 0.11;
 	double neg_BB2_fallback = 0.12;
-
-	bool verbose = false;
 
 
 	int i_friction_comp = 0;
@@ -453,7 +451,7 @@ double ChLcpIterativeBB::Solve_SupportingStiffness(
 	int nc = sysd.CountActiveConstraints();
 	int nx = nv+nc;  // total scalar unknowns, in x vector for full KKT system Z*x-d=0
 
-	if (verbose) GetLog() <<"\n-----Barzilai-Borwein -supporting stiffness-, n.unknowns nx=" << nx << "unknowns \n";
+	if (verbose) GetLog() <<"\n-----Barzilai-Borwein -supporting stiffness-, n.unknowns nx=" << nx << " \n";
 
 	ChMatrixDynamic<> mx(nx,1);
 	ChMatrixDynamic<> mx_candidate(nx,1);
@@ -577,9 +575,9 @@ double ChLcpIterativeBB::Solve_SupportingStiffness(
 		// dir  = [P(l - alpha*Dg) - l]
 		mdir.CopyFromMatrix(mDg);					// 1) dir = Dg  ...
 		mdir.MatrScale(-alpha);						// 2) dir = - alpha*Dg  ...
-		mdir.MatrInc(mx);							// 3) dir = l - alpha*Dg  ...
-		sysd.UnknownsProject(mdir);					// 4) dir = P(l - alpha*Dg) ...
-		mdir.MatrDec(mx);							// 5) dir = P(l - alpha*Dg) - l
+		mdir.MatrInc(mx);							// 3) dir = x - alpha*Dg  ...
+		sysd.UnknownsProject(mdir);					// 4) dir = P(x - alpha*Dg) ...
+		mdir.MatrDec(mx);							// 5) dir = P(x - alpha*Dg) - x
 
 		// dTg = dir'*g;
 		double dTg = mdir.MatrDot(&mdir,&mg);
@@ -590,9 +588,9 @@ double ChLcpIterativeBB::Solve_SupportingStiffness(
 			// dir  = [P(l - alpha*g) - l]
 			mdir.CopyFromMatrix(mg);					// 1) dir = g  ...
 			mdir.MatrScale(-alpha);						// 2) dir = - alpha*g  ...
-			mdir.MatrInc(mx);							// 3) dir = l - alpha*g  ...
-			sysd.UnknownsProject(mdir);					// 4) dir = P(l - alpha*g) ...
-			mdir.MatrDec(mx);							// 5) dir = P(l - alpha*g) - l
+			mdir.MatrInc(mx);							// 3) dir = x - alpha*g  ...
+			sysd.UnknownsProject(mdir);					// 4) dir = P(x - alpha*g) ...
+			mdir.MatrDec(mx);							// 5) dir = P(x - alpha*g) - x
 			// dTg = d'*g;
 			dTg = mdir.MatrDot(&mdir,&mg);
 		}

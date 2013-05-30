@@ -47,6 +47,7 @@ protected:
 			//
 	int		n_armijo;
 	int		max_armijo_backtrace;
+	bool	diag_preconditioning;
 
 public:
 			//
@@ -62,6 +63,7 @@ public:
 			{
 				n_armijo = 10;
 				max_armijo_backtrace = 3;
+				diag_preconditioning = true;
 			};
 				
 	virtual ~ChLcpIterativeBB() {};
@@ -84,18 +86,27 @@ public:
 				/// Solve() automatically falls back to this function.
 				/// It does not solve the Schur complement N*l-r=0 as Solve does, here the 
 				/// entire system KKT matrix with duals l and primals q is used.
+				/// ***NOT WORKING***
 	virtual double Solve_SupportingStiffness(
 				ChLcpSystemDescriptor& sysd,		///< system description with constraints and variables	
 				bool add_Mq_to_f = false			///< if true, takes the initial 'q' and adds [M]*q to 'f' vector  
 				);
 
+
+				/// Number of max tolerated steps in non-monotone Armijo
+				/// line search; usually good values are in 1..10 range.
 	void   SetNarmijo (int mf) {this->n_armijo = mf;}
 	double GetNarmijo () {return this->n_armijo;}
-
+				
 	void SetMaxArmijoBacktrace (int mm) {this->max_armijo_backtrace = mm;}
 	int  GetMaxArmijoBacktrace () {return this->max_armijo_backtrace;}
 
-
+				/// Enable diagonal preconditioning. It a simple but fast
+				/// preconditioning technique that is expecially useful to 
+				/// fix slow convergence in case variables have very different orders
+				/// of magnitude.
+	void SetDiagonalPreconditioning(bool mp) {this->diag_preconditioning = mp;}
+	bool GetDiagonalPreconditioning() {return this->diag_preconditioning;}
 };
 
 

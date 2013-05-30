@@ -51,11 +51,13 @@ public:
 			// DATA
 			//
 
+	bool verbose;
+
 			//
 			// CONSTRUCTORS
 			//
 
-	ChLcpSolver() {};
+	ChLcpSolver() { verbose = false; };
 
 	virtual ~ChLcpSolver() {};
 
@@ -83,7 +85,8 @@ public:
 			// Utility functions
 			//
 
-
+	void SetVerbose(bool mv) {this->verbose = mv;}
+	bool GetVerbose() {return this->verbose;}
 
 };
 

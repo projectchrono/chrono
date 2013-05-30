@@ -93,6 +93,12 @@ public:
 				/// indexes in result and vect.
 	virtual void MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect) = 0;
 
+				/// Add the diagonal of the stiffness matrix block(s) as a column vector to 'result'.
+				/// NOTE: the 'result' vector must already have the size of system unknowns, ie
+				/// the size of the total variables&constraints in the system; the procedure
+				/// will use the ChVariable offsets (that must be already updated) as index.
+	virtual void DiagonalAdd(ChMatrix<double>& result) = 0;
+
 				/// Writes (and adds) the K matrix associated to these variables into 
 				/// a global 'storage' matrix, at the offsets of variables. 
 				/// Most solvers do not need this: the sparse 'storage' matrix is used for testing, for

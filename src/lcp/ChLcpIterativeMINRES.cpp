@@ -31,7 +31,6 @@ double ChLcpIterativeMINRES::Solve(
 	int i_friction_comp = 0;
 	//int iter_tot = 0;	// replaced with tot_iterations - Hammad
 
-	bool verbose = false;
 
 	// Update auxiliary data in all constraints before starting,
 	// that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'

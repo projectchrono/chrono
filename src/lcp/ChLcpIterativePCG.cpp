@@ -29,9 +29,6 @@ double ChLcpIterativePCG::Solve(
 	tot_iterations = 0;
 	double maxviolation = 0.;
 
-	
-	bool verbose = false;
-
 
 	// Update auxiliary data in all constraints before starting,
 	// that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
