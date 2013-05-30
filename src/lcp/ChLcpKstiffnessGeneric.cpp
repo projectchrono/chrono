@@ -103,6 +103,27 @@ void ChLcpKstiffnessGeneric::MultiplyAndAdd(ChMatrix<double>& result, const ChMa
 }
 
 
+void ChLcpKstiffnessGeneric::DiagonalAdd(ChMatrix<double>& result)  
+{
+	assert(result.GetColumns()==1);
+
+	int kio =0;
+	for (unsigned int iv = 0; iv< this->GetNvars(); iv++)
+	{
+		int io = this->GetVariableN(iv)->GetOffset();
+		int in = this->GetVariableN(iv)->Get_ndof();
+
+		for (int r = 0; r < in; r++)
+		{
+			//GetLog() << "Summing" << result(io+r) << " to " << (*this->K)(kio+r,kio+r) << "\n";
+			result(io+r) += (*this->K)(kio+r,kio+r);
+		}
+		kio += in;
+	}
+
+}
+
+
 void ChLcpKstiffnessGeneric::Build_K(ChSparseMatrix& storage, bool add)
 {
 	if (!K) 

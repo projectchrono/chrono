@@ -23,46 +23,15 @@ double ChLcpIterativePMINRES::Solve(
 					bool add_Mq_to_f 
 					)
 {
-	bool do_preconditioning = false;
-	bool verbose = false;
-this->grad_diffstep = 0.000000001;
+	bool do_preconditioning = this->diag_preconditioning;
 
-/*
-//***TEST***
-bool do_dump = false;
-int iters_to_dump=5;
-
-chrono::ChStreamOutAsciiFile* file_alphabeta= 0;
-if (do_dump) //***TEST***
-{
-file_alphabeta = new chrono::ChStreamOutAsciiFile("test__alpha_beta.dat"); file_alphabeta->SetNumFormat("%.9g");
-chrono::ChMatrixDynamic<double> mvold;
-sysd.FromVariablesToVector(mvold);
-chrono::ChStreamOutAsciiFile file_vold("test_v_old.dat"); file_vold.SetNumFormat("%.9g");
-mvold.StreamOUTdenseMatlabFormat(file_vold);
-chrono::ChSparseMatrix mdM;
-chrono::ChSparseMatrix mdCq;
-chrono::ChSparseMatrix mdE;
-chrono::ChMatrixDynamic<double> mdf;
-chrono::ChMatrixDynamic<double> mdb;
-chrono::ChMatrixDynamic<double> mdfric;
-sysd.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
-chrono::ChStreamOutAsciiFile file_M("test_M.dat"); file_M.SetNumFormat("%.9g");
-mdM.StreamOUTsparseMatlabFormat(file_M);
-chrono::ChStreamOutAsciiFile file_Cq("test_Cq.dat"); file_Cq.SetNumFormat("%.9g");
-mdCq.StreamOUTsparseMatlabFormat(file_Cq);
-chrono::ChStreamOutAsciiFile file_E("test_E.dat"); file_E.SetNumFormat("%.9g");
-mdE.StreamOUTsparseMatlabFormat(file_E);
-chrono::ChStreamOutAsciiFile file_f("test_f.dat"); file_f.SetNumFormat("%.9g");
-mdf.StreamOUTdenseMatlabFormat(file_f);
-chrono::ChStreamOutAsciiFile file_b("test_b.dat"); file_b.SetNumFormat("%.9g");
-mdb.StreamOUTdenseMatlabFormat(file_b);
-chrono::ChStreamOutAsciiFile file_fric("test_fric.dat"); file_fric.SetNumFormat("%.9g");
-mdfric.StreamOUTdenseMatlabFormat(file_fric);
-}
-*/
 	std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
 	std::vector<ChLcpVariables*>&  mvariables	= sysd.GetVariablesList();
+
+		// If stiffness blocks are used, the Schur complement cannot be esily
+		// used, so fall back to the Solve_SupportingStiffness method, that operates on KKT.
+	if (sysd.GetKstiffnessList().size() > 0)
+		return this->Solve_SupportingStiffness(sysd, add_Mq_to_f);
 
 
 		// Allocate auxiliary vectors;
@@ -83,7 +52,7 @@ mdfric.StreamOUTdenseMatlabFormat(file_fric);
 	ChMatrixDynamic<> mtmp(nc,1);
 	ChMatrixDynamic<> mD (nc,1);
 
-	tot_iterations = 0;
+	this->tot_iterations = 0;
 	double maxviolation = 0.;
 
 
@@ -160,8 +129,8 @@ mdfric.StreamOUTdenseMatlabFormat(file_fric);
 	sysd.FromVariablesToVector(mq, true);	
 
 
-	double rel_tol = 1e-6;
-	double abs_tol = 1e-6;
+	double rel_tol = this->rel_tolerance;
+	double abs_tol = this->tolerance;
 	double rel_tol_b = mb.NormInf() * rel_tol;
 
 
@@ -233,13 +202,6 @@ mdfric.StreamOUTdenseMatlabFormat(file_fric);
 
 		double maxdeltalambda = mtmp.NormTwo(); //***better NormInf() for speed reasons?
 
-		/*
-		if (maxdeltalambda < this->GetTolerance() ) 
-		{
-			if (verbose) GetLog() << "Converged! iter=" << iter <<  "\n";
-		 	//break;
-		}
-		*/
 
 		// l = Proj(l)
 		sysd.ConstraintsProject(ml);				// l = P(l) 
@@ -258,7 +220,8 @@ mdfric.StreamOUTdenseMatlabFormat(file_fric);
 		mr.MatrDivScale(this->grad_diffstep);		// r = (P(l+diff*r)-l)/diff 
 		
 
-		tot_iterations++;
+		this->tot_iterations++;
+
 		// Terminate iteration when the projected r is small, if (norm(r,2) <= max(rel_tol_b,abs_tol))
 		double r_proj_resid = mr.NormTwo();
 		if (r_proj_resid < ChMax(rel_tol_b, abs_tol) )
@@ -286,16 +249,17 @@ mdfric.StreamOUTdenseMatlabFormat(file_fric);
 		mtmp.MatrSub(mNMr,mNMr_old);
 		double numerator = mz.MatrDot(&mz,&mtmp);
 		double denominator = mz_old.MatrDot(&mz_old, &mNMr_old);
-		/*
-		if (fabs(denominator)<10e-12)
-		 {
-			if (verbose) GetLog() << "Rayleygh quotient beta breakdown: " << numerator << " / " << denominator <<  "  iter=" << iter << "\n";
-			denominator=10e-12;
-		 }
-		 */
+		
 		double beta = numerator / denominator;
 		
-		beta = ChMax(0.0, beta);
+		// Robustness improver: restart if beta=0 or too large 
+		if (fabs(denominator)<10e-30 || fabs(numerator)<10e-30)
+		{
+			if (verbose) GetLog() << "Ribiere quotient beta restart: " << numerator << " / " << denominator <<  "  iter=" << iter << "\n";
+			beta =0;
+		}
+
+		//beta = ChMax(0.0, beta); //***NOT NEEDED!!! (may be negative in not positive def.matrices!)
 
 		// p = z + beta * p;   
 		mtmp = mp;
@@ -307,7 +271,6 @@ mdfric.StreamOUTdenseMatlabFormat(file_fric);
 		// Np = NMr + beta*Np;   // Optimization!! avoid matr x vect!!! (if no 'p' projection has been done)
 		mNp.MatrScale(beta);
 		mNp.MatrInc(mNMr);
-
 
 
 
@@ -346,6 +309,296 @@ mdfric.StreamOUTdenseMatlabFormat(file_fric);
 
 }
 
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+
+
+
+double ChLcpIterativePMINRES::Solve_SupportingStiffness(
+				ChLcpSystemDescriptor& sysd,		///< system description with constraints and variables	
+				bool add_Mq_to_f   			       ///< if true, takes the initial 'q' and adds [M]*q to 'f' vector  
+				)
+{
+	bool do_preconditioning = this->diag_preconditioning;
+	bool verbose = true;
+
+	std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
+	std::vector<ChLcpVariables*>&  mvariables	= sysd.GetVariablesList();
+	std::vector<ChLcpKstiffness*>& mstiffness	= sysd.GetKstiffnessList();
+
+	this->tot_iterations = 0;
+
+	// Allocate auxiliary vectors;
+	
+	int nv = sysd.CountActiveVariables();
+	int nc = sysd.CountActiveConstraints();
+	int nx = nv+nc;  // total scalar unknowns, in x vector for full KKT system Z*x-d=0
+
+	if (verbose) GetLog() <<"\n-----Projected MINRES -supporting stiffness-, n.unknowns nx=" << nx << "unknowns \n";
+
+	ChMatrixDynamic<> mx(nx,1);
+	ChMatrixDynamic<> md(nx,1);
+	ChMatrixDynamic<> mp(nx,1);
+	ChMatrixDynamic<> mr(nx,1);
+	ChMatrixDynamic<> mz(nx,1);
+	ChMatrixDynamic<> mz_old(nx,1);
+	ChMatrixDynamic<> mZp(nx,1);
+	ChMatrixDynamic<> mMZp(nx,1);
+	ChMatrixDynamic<> mZMr(nx,1);
+	ChMatrixDynamic<> mZMr_old(nx,1);
+	ChMatrixDynamic<> mtmp(nx,1);
+	ChMatrixDynamic<> mD (nx,1);
+
+	this->tot_iterations = 0;
+	double maxviolation = 0.;
+
+
+	//
+	// --- Compute a diagonal (scaling) preconditioner for the KKT system:
+    //
+
+	// Initialize the mD vector with the diagonal of the Z matrix
+	sysd.BuildDiagonalVector(mD);
+
+	// Its inverse can be used as a scaling for the q unknowns, but not 
+	// for the l unknowns, since their diagonal is most often 0. So
+	// we will use the g_i=[Cq_i]*[invM_i]*[Cq_i]' terms (note, K stiffness
+	// if any, takes no effect).
+	// Firs, update auxiliary data in all constraints before starting,
+	// that will compute g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
+	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
+		mconstraints[ic]->Update_auxiliary();
+
+	// Average all g_i for the triplet of contact constraints n,u,v.
+	//  This is necessary because we want the scaling to be isotropic for each friction cone
+	int j_friction_comp = 0;
+	double gi_values[3];
+	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
+	{
+		if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) 
+		{
+			gi_values[j_friction_comp] = mconstraints[ic]->Get_g_i();
+			j_friction_comp++;
+			if (j_friction_comp==3)
+			{
+				double average_g_i = (gi_values[0]+gi_values[1]+gi_values[2])/3.0;
+				mconstraints[ic-2]->Set_g_i(average_g_i);
+				mconstraints[ic-1]->Set_g_i(average_g_i);
+				mconstraints[ic-0]->Set_g_i(average_g_i);
+				j_friction_comp=0;
+			}
+		}	
+	}
+	// Store the g_i terms in the mD vector, whose inverse will be used for scaling.
+	int s_u = nv;
+	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
+		if (mconstraints[ic]->IsActive())
+		{
+			mD(s_u) = mconstraints[ic]->Get_g_i();
+			++s_u;
+		}
+
+
+	//
+	// --- Vector initialization and book-keeping 
+    //
+
+
+	// Initialize the x vector of unknowns x ={q; -l} (if warm starting needed, initialize 
+	// x with current values of q and l in variables and constraints)
+	if (warm_start)
+		sysd.FromUnknownsToVector(mx);
+	else
+		mx.FillElem(0);
+
+	// Initialize the d vector filling it with {f, -b}
+	sysd.BuildDiVector(md);
+
+
+/*
+	// If user wants M*q to be added to f, add it directly to d={f+M*q, -b}
+	if (add_Mq_to_f)
+	{
+		if (!warm_start)
+			sysd.FromUnknownsToVector(mx);
+		for (unsigned int iv = 0; iv< mvariables.size(); iv++)
+			if (mvariables[iv]->IsActive())
+				mvariables[iv]->MultiplyAndAdd(md, mx); // d_i += M_i*x_i
+		if (!warm_start)
+			mx.FillElem(0);
+	}
+*/
+
+
+	//
+	// --- THE P-MINRES ALGORITHM
+	//
+
+	double rel_tol = this->rel_tolerance;
+	double abs_tol = this->tolerance;
+	double rel_tol_d = md.NormInf() * rel_tol;
+
+	// Initial projection of mx   ***TO DO***?
+	sysd.UnknownsProject(mx);
+
+	// r = d - Z*x;
+	sysd.SystemProduct(mr, &mx);				// 1)  r = Z*x ...        #### MATR.MULTIPLICATION!!!### can be avoided if no warm starting!
+	mr.MatrNeg();								// 2)  r =-Z*x
+	mr.MatrInc(md);								// 3)  r =-Z*x+d
+
+	// r = (project_orthogonal(x+diff*r, fric) - x)/diff;
+	mr.MatrScale(this->grad_diffstep);
+	mr.MatrInc(mx);
+	sysd.UnknownsProject(mr);					// p = P(x+diff*p) ...
+	mr.MatrDec(mx);
+	mr.MatrDivScale(this->grad_diffstep);		// p = (P(x+diff*p)-x)/diff
+
+	// p = Mi * r;
+	mp = mr;  
+	if (do_preconditioning)
+		mp.MatrDivScale(mD);
+	
+	// z = Mi * r;
+	mz = mp;
+
+	// ZMr = Z*M*r = Z*z
+	sysd.SystemProduct(mZMr, &mz);		// ZMr = Z*z    #### MATR.MULTIPLICATION!!!###
+
+	// Zp = Z*p  
+	sysd.SystemProduct(mZp, &mp);		// Zp = Z*p    #### MATR.MULTIPLICATION!!!###
+
+
+	//
+	// THE LOOP
+	//
+
+
+	for (int iter = 0; iter < max_iterations; iter++)
+	{
+		// MZp = Mi*Zp; % = Mi*Z*p                  %% -- Precond
+		mMZp = mZp;
+		if (do_preconditioning)
+			mMZp.MatrDivScale(mD);
+
+		// alpha = (z'*(ZMr))/((MZp)'*(Zp));
+		double zZMr =  mz.MatrDot(&mz,&mZMr);		// 1)  zZMr = z'* ZMr
+		double MZpZp = mMZp.MatrDot(&mMZp,&mZp);	// 2)  MZpZp = ((MZp)'*(Zp))
+		
+		// Robustness improver: case of division by zero
+		if (fabs(MZpZp)<10e-30) 
+		{
+			if (verbose) GetLog() << "Rayleygh alpha denominator breakdown: " << zZMr << " / " << MZpZp << "=" << (zZMr/MZpZp) << "  iter=" << iter << "\n";
+			MZpZp=10e-30;
+		}
+		// Robustness improver: case when r is orthogonal to Z*r (ex at first iteration, if f=0, x=0, with constraints)
+		if (fabs(zZMr)<10e-30) 
+		{
+			if (verbose) GetLog() << "Rayleygh alpha numerator breakdown: " << zZMr << " / " << MZpZp << "=" << (zZMr/MZpZp) << "  iter=" << iter << "\n";
+			zZMr=1;
+			MZpZp=1;
+		}
+		 
+		double alpha = zZMr/MZpZp;					// 3)  alpha = (z'*(ZMr))/((MZp)'*(Zp));
+
+		// x = x + alpha * p;
+		mtmp = mp;
+		mtmp.MatrScale(alpha);
+		mx.MatrInc(mtmp);
+
+		double maxdeltaunknowns = mtmp.NormTwo(); //***better NormInf() for speed reasons?
+
+
+		// x = Proj(x)
+		sysd.UnknownsProject(mx);				// x = P(x) 
+
+
+		// r = d - Z*x;
+		sysd.SystemProduct(mr, &mx);				// 1)  r = Z*x ...        #### MATR.MULTIPLICATION!!!###
+		mr.MatrNeg();								// 2)  r =-Z*x
+		mr.MatrInc(md);								// 3)  r =-Z*x+d
+	
+		// r = (project_orthogonal(x+diff*r, fric) - x)/diff; 
+		mr.MatrScale(this->grad_diffstep);
+		mr.MatrInc(mx);
+		sysd.UnknownsProject(mr);				// r = P(x+diff*r) ...
+		mr.MatrDec(mx);
+		mr.MatrDivScale(this->grad_diffstep);	// r = (P(x+diff*r)-x)/diff 
+		
+		this->tot_iterations++;
+
+		// Terminate iteration when the projected r is small, if (norm(r,2) <= max(rel_tol_d,abs_tol))
+		double r_proj_resid = mr.NormTwo();
+		if (r_proj_resid < ChMax(rel_tol_d, abs_tol) )
+		{
+			if (verbose) 
+				GetLog() << "P(r)-converged! iter=" << iter <<  " |P(r)|=" << r_proj_resid << "\n";
+			break;
+		}
+
+		// z_old = z;
+		mz_old = mz;
+    
+		// z = Mi*r;                                 %% -- Precond
+		mz = mr;
+		if (do_preconditioning)
+			mz.MatrDivScale(mD);
+
+		// ZMr_old = ZMr;
+		mZMr_old = mZMr;
+   
+		// ZMr = Z*z;                             
+		sysd.SystemProduct(mZMr, &mz);		// ZMr = Z*z;    #### MATR.MULTIPLICATION!!!###
+
+		// beta = z'*(ZMr-ZMr_old)/(z_old'*(ZMr_old));
+		mtmp.MatrSub(mZMr,mZMr_old);
+		double numerator = mz.MatrDot(&mz,&mtmp);
+		double denominator = mz_old.MatrDot(&mz_old, &mZMr_old);
+	 
+		double beta = numerator / denominator;
+		
+		// Robustness improver: restart if beta=0 or too large 
+		if (fabs(denominator)<10e-30 || fabs(numerator)<10e-30)
+		{
+			if (verbose) GetLog() << "Ribiere quotient beta restart: " << numerator << " / " << denominator <<  "  iter=" << iter << "\n";
+			beta =0;
+		}
+
+		// p = z + beta * p;   
+		mtmp = mp;
+		mtmp.MatrScale(beta);
+		mp = mz;
+		mp.MatrInc(mtmp);
+
+		// Zp = ZMr + beta*Zp;   // Optimization!! avoid matr x vect!!! (if no 'p' projection has been done)
+		mZp.MatrScale(beta);
+		mZp.MatrInc(mZMr);
+
+
+		// ---------------------------------------------
+		// METRICS - convergence, plots, etc
+
+		// For recording into correction/residuals/violation history, if debugging
+		if (this->record_violation_history)
+			AtIterationEnd(r_proj_resid, maxdeltaunknowns, iter);
+			
+	}
+
+	// After having solved for unknowns x={q;-l}, now copy those values from x vector to
+	// the q values in ChLcpVariable items and to l values in ChLcpConstraint items
+	sysd.FromVectorToUnknowns(mx);  
+
+	
+	if (verbose) GetLog() <<"-----\n";
+
+	return maxviolation;
+
+}
 
 
 

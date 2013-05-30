@@ -27,7 +27,7 @@ double ChLcpIterativeAPGD::Solve(
 	std::vector<ChLcpVariables*>&  mvariables	= sysd.GetVariablesList();
 
 
-	bool verbose = false;
+	
 
 	double gdiff= 0.000001;
 

@@ -317,6 +317,11 @@ int  ChLcpSystemDescriptor::BuildDiagonalVector(
 
 	Diagonal_vect.Reset(n_q+n_c,1);		// fast! Reset() method does not realloc if size doesn't change
 
+	// Fill the diagonal values given by stiffness blocks, if any
+	for (unsigned int is = 0; is< vstiffness.size(); is++)
+	{
+		vstiffness[is]->DiagonalAdd(Diagonal_vect);
+	}
 	// Get the 'M' diagonal terms
 	int s_u=0;
 	for (unsigned int iv = 0; iv< vvariables.size(); iv++)
@@ -889,7 +894,7 @@ void ChLcpSystemDescriptor::SystemProduct(
 		this->FromUnknownsToVector(*vect);
 	}
 
-	result.Reset();
+	result.Reset(n_q+n_c,1); // fast! Reset() method does not realloc if size doesn't change
 
 	// 1) First row: result.q part =  [M + K]*x.q + [Cq']*x.l
 
@@ -984,7 +989,7 @@ void ChLcpSystemDescriptor::UnknownsProject(
 			mx(s_u) = -vconstraints[ic]->Get_l_i();
 			++s_u;
 		}
-	}		
+	}	
 }
 
 
