@@ -27,7 +27,7 @@ public:
 	void ComputeRHS();
 	void ComputeImpulses();
 
-	void host_shurA(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *QXYZ, real3 *QUVW,uint* offset);
+	void host_shurA(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO,real3 *QXYZ, real3 *QUVW,uint* offset);
 	void host_shurB(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia,real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX);
 	void host_RHS(int2 *ids, real *correction,bool * active, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs);
 	void host_bi(real *correction, real* bi);
@@ -48,32 +48,22 @@ public:
 	uint SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 	/////APGD specific:
 
-			real PART_A(const uint size, custom_vector<bool> & active, custom_vector<int2> & ids,
-					custom_vector<real> & fric,
-					custom_vector<real3> & QXYZ, custom_vector<real3> & QUVW,
+			real PART_A(const uint size, custom_vector<int2> & ids,
+
 					custom_vector<real> & mx,custom_vector<real> & my,custom_vector<real> & ms,
 					const custom_vector<real> & b,custom_vector<real> & mg,custom_vector<real> & mg_tmp2,
 
-					custom_vector<real3> & JXYZA, custom_vector<real3> & JXYZB,
-					custom_vector<real3> & JUVWA, custom_vector<real3> & JUVWB,
 					const real & t_k,const real & L_k,
 
-					real & obj1,real& obj2,real& min_val,
-					custom_vector<real> &obj1_tmp,custom_vector<real> &obj2_tmp,custom_vector<real> &obj3_tmp1,custom_vector<real> &obj3_tmp2
+					real & obj1,real& obj2,real& min_val
 			);
 
-			real PART_B(const uint size, custom_vector<bool> & active, custom_vector<int2> & ids,
-					custom_vector<real> & fric,
-					custom_vector<real3> & QXYZ, custom_vector<real3> & QUVW,
+			real PART_B(const uint size, custom_vector<int2> & ids,
 					custom_vector<real> & mx,custom_vector<real> & my,custom_vector<real> & ms,
 					const custom_vector<real> & b,custom_vector<real> & mg,custom_vector<real> & mg_tmp2,
-
-					custom_vector<real3> & JXYZA, custom_vector<real3> & JXYZB,
-					custom_vector<real3> & JUVWA, custom_vector<real3> & JUVWB,
 					const real & t_k,const real & L_k,
 
-					real & obj1,real& obj2,real& min_val,
-					custom_vector<real> &obj1_tmp,custom_vector<real> &obj2_tmp,custom_vector<real> &obj3_tmp1,custom_vector<real> &obj3_tmp2);
+					real & obj1,real& obj2,real& min_val);
 
 			///////
 
@@ -153,7 +143,8 @@ public:
 			host_vector<real> maxd_hist,maxdeltalambda_hist,iter_hist;
 
 		protected:
-		};
+		}
+			;
 
 		}
 

@@ -172,7 +172,7 @@ __global__ void device_shurA(int2 *ids, bool *active, real *inv_mass, real3 *inv
 }
 
 void ChSolverGPU::host_shurA(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO,
-		uint* offset) {
+		real3* QXYZ, real3* QUVW, uint* offset) {
 #pragma omp parallel for
 	for (int index = 0; index < number_of_contacts; index++) {
 		real3 gam;
@@ -185,13 +185,13 @@ void ChSolverGPU::host_shurA(int2 *ids, bool *active, real *inv_mass, real3 *inv
 		int offset2 = offset[index + number_of_contacts];
 
 		if (active[b1] != 0) {
-			updateV[offset1] = JXYZA[index + number_of_contacts * 0] * gam.x + JXYZA[index + number_of_contacts * 1] * gam.y + JXYZA[index + number_of_contacts * 2] * gam.z;
-			updateO[offset1] = JUVWA[index + number_of_contacts * 0] * gam.x + JUVWA[index + number_of_contacts * 1] * gam.y + JUVWA[index + number_of_contacts * 2] * gam.z;
+			updateV[offset1]= JXYZA[index + number_of_contacts * 0] * gam.x + JXYZA[index + number_of_contacts * 1] * gam.y + JXYZA[index + number_of_contacts * 2] * gam.z;
+			updateO[offset1]= JUVWA[index + number_of_contacts * 0] * gam.x + JUVWA[index + number_of_contacts * 1] * gam.y + JUVWA[index + number_of_contacts * 2] * gam.z;
 		}
 		uint b2 = ids[index].y;
 		if (active[b2] != 0) {
-			updateV[offset2] = JXYZB[index + number_of_contacts * 0] * gam.x + JXYZB[index + number_of_contacts * 1] * gam.y + JXYZB[index + number_of_contacts * 2] * gam.z;
-			updateO[offset2] = JUVWB[index + number_of_contacts * 0] * gam.x + JUVWB[index + number_of_contacts * 1] * gam.y + JUVWB[index + number_of_contacts * 2] * gam.z;
+			updateV[offset2]= JXYZB[index + number_of_contacts * 0] * gam.x + JXYZB[index + number_of_contacts * 1] * gam.y + JXYZB[index + number_of_contacts * 2] * gam.z;
+			updateO[offset2]= JUVWB[index + number_of_contacts * 0] * gam.x + JUVWB[index + number_of_contacts * 1] * gam.y + JUVWB[index + number_of_contacts * 2] * gam.z;
 		}
 	}
 
@@ -225,6 +225,8 @@ void ChSolverGPU::shurA(custom_vector<real> &x) {
 				x.data(),
 				gpu_data->vel_update.data(),
 				gpu_data->omg_update.data(),
+				gpu_data->device_QXYZ_data.data(),
+				gpu_data->device_QUVW_data.data(),
 				gpu_data->update_offset.data());
 #endif
 
@@ -362,7 +364,7 @@ void ChSolverGPU::host_bi(real *correction, real* bi) {
 	for (uint index = 0; index < number_of_contacts; index++) {
 
 		if (compliance) {
-			bi[index + number_of_contacts * 0] = inv_hpa* correction[index];
+			bi[index + number_of_contacts * 0] = inv_hpa * correction[index];
 			bi[index + number_of_contacts * 1] = 0;
 			bi[index + number_of_contacts * 2] = 0;
 		} else {
