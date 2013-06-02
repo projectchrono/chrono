@@ -394,14 +394,12 @@ public:
 	ChLcpSystemDescriptor* GetLcpSystemDescriptor() {return this->LCP_descriptor;};
 
 
-				/// Changes the number of parallel threads (by default=2).
-				/// Note that this value is meaningless if you do not use parallel solvers like,
-				/// for example, the LCP_ITERATIVE_SOR_MULTITHREAD complemementarity solver
-				/// (other solvers will use a single thread anyway). If you have a N-core processor,
-				/// this should be set at least =N for maximum performance.
+				/// Changes the number of parallel threads (by default is n.of cores).
+				/// Note that not all solvers use parallel computation.
+				/// If you have a N-core processor, this should be set at least =N for maximum performance.
 	void SetParallelThreadNumber(int mthreads = 2); 
-				/// Get the number of parallel threads. Note that this value is meaningless if
-				/// you are not using a parallel solver (other solvers will use a single thread anyway).
+				/// Get the number of parallel threads. 
+				/// Note that not all solvers use parallel computation.
 	int GetParallelThreadNumber() {return parallel_thread_number;}
 
 

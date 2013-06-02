@@ -37,7 +37,8 @@ double ChLcpIterativePMINRES::Solve(
 		// Allocate auxiliary vectors;
 	
 	int nc = sysd.CountActiveConstraints();
-	if (verbose) GetLog() <<"\n-----Projected MINRES, solving nc=" << nc << "unknowns \n";
+	if (verbose) 
+		GetLog() <<"\n-----Projected MINRES, solving nc=" << nc << "unknowns \n";
 
 	ChMatrixDynamic<> ml(nc,1);
 	ChMatrixDynamic<> mb(nc,1);
@@ -50,7 +51,7 @@ double ChLcpIterativePMINRES::Solve(
 	ChMatrixDynamic<> mNMr(nc,1);
 	ChMatrixDynamic<> mNMr_old(nc,1);
 	ChMatrixDynamic<> mtmp(nc,1);
-	ChMatrixDynamic<> mD (nc,1);
+	ChMatrixDynamic<> mDi (nc,1);
 
 	this->tot_iterations = 0;
 	double maxviolation = 0.;
@@ -82,12 +83,12 @@ double ChLcpIterativePMINRES::Solve(
 		}	
 	}
 			
-	// The vector with the diagonal of the N matrix
+	// The vector with the inverse of diagonal of the N matrix
 	int d_i = 0;
 	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
 		if (mconstraints[ic]->IsActive())
 		{
-			mD(d_i, 0) = mconstraints[ic]->Get_g_i();
+			mDi(d_i, 0) = 1.0 / mconstraints[ic]->Get_g_i();
 			++d_i;
 		}
 
@@ -153,12 +154,12 @@ double ChLcpIterativePMINRES::Solve(
 	mr.MatrInc(ml);
 	sysd.ConstraintsProject(mr);				// p = P(l+diff*p) ...
 	mr.MatrDec(ml);
-	mr.MatrDivScale(this->grad_diffstep);		// p = (P(l+diff*p)-l)/diff
+	mr.MatrScale(1.0/this->grad_diffstep);		// p = (P(l+diff*p)-l)/diff
 
 	// p = Mi * r;
 	mp = mr;  
 	if (do_preconditioning)
-		mp.MatrDivScale(mD);
+		mp.MatrScale(mDi);
 	
 	// z = Mi * r;
 	mz = mp;
@@ -181,7 +182,7 @@ double ChLcpIterativePMINRES::Solve(
 		// MNp = Mi*Np; % = Mi*N*p                  %% -- Precond
 		mMNp = mNp;
 		if (do_preconditioning)
-			mMNp.MatrDivScale(mD);
+			mMNp.MatrScale(mDi);
 
 		// alpha = (z'*(NMr))/((MNp)'*(Np));
 		double zNMr =  mz.MatrDot(&mz,&mNMr);		// 1)  zMNr = z'* NMr
@@ -217,7 +218,7 @@ double ChLcpIterativePMINRES::Solve(
 		mr.MatrInc(ml);
 		sysd.ConstraintsProject(mr);				// r = P(l+diff*r) ...
 		mr.MatrDec(ml);
-		mr.MatrDivScale(this->grad_diffstep);		// r = (P(l+diff*r)-l)/diff 
+		mr.MatrScale(1.0/this->grad_diffstep);		// r = (P(l+diff*r)-l)/diff 
 		
 
 		this->tot_iterations++;
@@ -226,7 +227,7 @@ double ChLcpIterativePMINRES::Solve(
 		double r_proj_resid = mr.NormTwo();
 		if (r_proj_resid < ChMax(rel_tol_b, abs_tol) )
 		{
-			//if (verbose) 
+			if (verbose) 
 				GetLog() << "P(r)-converged! iter=" << iter <<  " |P(r)|=" << r_proj_resid << "\n";
 			break;
 		}
@@ -237,7 +238,7 @@ double ChLcpIterativePMINRES::Solve(
 		// z = Mi*r;                                 %% -- Precond
 		mz = mr;
 		if (do_preconditioning)
-			mz.MatrDivScale(mD);
+			mz.MatrScale(mDi);
 
 		// NMr_old = NMr;
 		mNMr_old = mNMr;
@@ -326,7 +327,6 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 				)
 {
 	bool do_preconditioning = this->diag_preconditioning;
-	bool verbose = true;
 
 	std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
 	std::vector<ChLcpVariables*>&  mvariables	= sysd.GetVariablesList();
@@ -340,7 +340,8 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 	int nc = sysd.CountActiveConstraints();
 	int nx = nv+nc;  // total scalar unknowns, in x vector for full KKT system Z*x-d=0
 
-	if (verbose) GetLog() <<"\n-----Projected MINRES -supporting stiffness-, n.unknowns nx=" << nx << "unknowns \n";
+	if (verbose) 
+		GetLog() <<"\n-----Projected MINRES -supporting stiffness-, n.unknowns nx=" << nx << "unknowns \n";
 
 	ChMatrixDynamic<> mx(nx,1);
 	ChMatrixDynamic<> md(nx,1);
@@ -353,7 +354,7 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 	ChMatrixDynamic<> mZMr(nx,1);
 	ChMatrixDynamic<> mZMr_old(nx,1);
 	ChMatrixDynamic<> mtmp(nx,1);
-	ChMatrixDynamic<> mD (nx,1);
+	ChMatrixDynamic<> mDi (nx,1);
 
 	this->tot_iterations = 0;
 	double maxviolation = 0.;
@@ -363,8 +364,8 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 	// --- Compute a diagonal (scaling) preconditioner for the KKT system:
     //
 
-	// Initialize the mD vector with the diagonal of the Z matrix
-	sysd.BuildDiagonalVector(mD);
+	// Initialize the mDi vector with the diagonal of the Z matrix
+	sysd.BuildDiagonalVector(mDi);
 
 	// Its inverse can be used as a scaling for the q unknowns, but not 
 	// for the l unknowns, since their diagonal is most often 0. So
@@ -395,14 +396,20 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 			}
 		}	
 	}
-	// Store the g_i terms in the mD vector, whose inverse will be used for scaling.
+	// Store additional g_i terms in the mDi vector, whose inverse will be used for scaling.
 	int s_u = nv;
 	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
 		if (mconstraints[ic]->IsActive())
 		{
-			mD(s_u) = mconstraints[ic]->Get_g_i();
+			mDi(s_u) = mconstraints[ic]->Get_g_i();
 			++s_u;
 		}
+	// Pre-invert the values, to avoid wasting time with divisions in the following.
+	// From now, mDi contains the inverse of the diagonal of Z.
+	for (int nel=0; nel < mDi.GetRows(); nel++)
+	{
+		mDi(nel) = 1.0/mDi(nel);
+	}
 
 
 	//
@@ -420,8 +427,6 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 	// Initialize the d vector filling it with {f, -b}
 	sysd.BuildDiVector(md);
 
-
-/*
 	// If user wants M*q to be added to f, add it directly to d={f+M*q, -b}
 	if (add_Mq_to_f)
 	{
@@ -433,7 +438,6 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 		if (!warm_start)
 			mx.FillElem(0);
 	}
-*/
 
 
 	//
@@ -457,12 +461,12 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 	mr.MatrInc(mx);
 	sysd.UnknownsProject(mr);					// p = P(x+diff*p) ...
 	mr.MatrDec(mx);
-	mr.MatrDivScale(this->grad_diffstep);		// p = (P(x+diff*p)-x)/diff
+	mr.MatrScale(1.0/this->grad_diffstep);		// p = (P(x+diff*p)-x)/diff
 
 	// p = Mi * r;
 	mp = mr;  
 	if (do_preconditioning)
-		mp.MatrDivScale(mD);
+		mp.MatrScale(mDi);
 	
 	// z = Mi * r;
 	mz = mp;
@@ -484,7 +488,7 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 		// MZp = Mi*Zp; % = Mi*Z*p                  %% -- Precond
 		mMZp = mZp;
 		if (do_preconditioning)
-			mMZp.MatrDivScale(mD);
+			mMZp.MatrScale(mDi);
 
 		// alpha = (z'*(ZMr))/((MZp)'*(Zp));
 		double zZMr =  mz.MatrDot(&mz,&mZMr);		// 1)  zZMr = z'* ZMr
@@ -528,7 +532,7 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 		mr.MatrInc(mx);
 		sysd.UnknownsProject(mr);				// r = P(x+diff*r) ...
 		mr.MatrDec(mx);
-		mr.MatrDivScale(this->grad_diffstep);	// r = (P(x+diff*r)-x)/diff 
+		mr.MatrScale(1.0/this->grad_diffstep);	// r = (P(x+diff*r)-x)/diff 
 		
 		this->tot_iterations++;
 
@@ -547,7 +551,7 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 		// z = Mi*r;                                 %% -- Precond
 		mz = mr;
 		if (do_preconditioning)
-			mz.MatrDivScale(mD);
+			mz.MatrScale(mDi);
 
 		// ZMr_old = ZMr;
 		mZMr_old = mZMr;

@@ -64,7 +64,13 @@ namespace chrono
 				/// within its thread team.
 		static int  GetThreadNum() { return omp_get_thread_num(); }
 
+				/// Returns the number of available processors on this machine
+		static int  GetNumProcs() { return omp_get_num_procs(); }
 
+				/// Returns the max.number of threads that would be used
+				/// by default if num_threads not specified. This is the same 
+				/// number as GetNumProcs() on most OMP implementations.
+		static int  GetMaxThreads() { return omp_get_max_threads(); }
 	};
 	
 
@@ -86,6 +92,8 @@ namespace chrono
 		static void SetNumThreads(int mth) { }
 		static int  GetNumThreads() { return 1;}
 		static int  GetThreadNum() { return 0;}
+		static int  GetNumProcs() { return 1;}
+		static int  GetMaxThreads() { return 1;}
 	};
 
  #endif

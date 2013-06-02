@@ -79,7 +79,7 @@ private:
 	bool disabled;
 
 protected:
-				/// offset in global state (not needed by iterative solvers, but simplex solver needs it)
+				/// offset in global q state vector (needed by some solvers)
 	int offset;
 
 public:
@@ -210,9 +210,9 @@ public:
 				/// inherited classes
 	virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol) = 0;
 
-				/// Set offset in global state (set automatically by ChLcpSystemDescriptor)
+				/// Set offset in global q vector (set automatically by ChLcpSystemDescriptor)
 	void SetOffset(int moff) {offset = moff;}
-				/// Get offset in global state 
+				/// Get offset in global q vector 
 	int GetOffset() {return offset;}
 
 };

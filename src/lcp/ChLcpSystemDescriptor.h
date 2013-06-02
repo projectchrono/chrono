@@ -22,9 +22,8 @@
 #include "lcp/ChLcpConstraint.h"
 #include "lcp/ChLcpKstiffness.h"
 #include <vector>
-#include "parallel/ChThreads.h"
+#include "parallel/ChOpenMP.h"
 #include "parallel/ChThreadsSync.h"
-
 
 namespace chrono
 {
@@ -69,8 +68,13 @@ protected:
 		std::vector<ChLcpKstiffness*>  vstiffness;
 		
 		int num_threads;
-		ChThreads* solver_threads;
-		ChMutexSpinlock* locktable;
+
+		ChSpinlock* spinlocktable;
+
+private:
+		int n_q; // n.active variables
+		int n_c; // n.active constraints
+		bool freeze_count; // for optimizartions
 
 public:
 
@@ -82,6 +86,11 @@ public:
 	virtual ~ChLcpSystemDescriptor();
 
 	
+			//
+			// DATA MANAGEMENT FUNCTIONS
+			//
+
+
 		/// Access the vector of constraints
 	std::vector<ChLcpConstraint*>& GetConstraintsList() {return vconstraints;};
 
@@ -110,41 +119,35 @@ public:
 	virtual void InsertKstiffness(ChLcpKstiffness* mk) { vstiffness.push_back(mk); }
 
 
-		/// Begin insertion of items
+		/// End insertion of items
 	virtual void EndInsertion()
 					{
+						UpdateCountsAndOffsets();
 					}
 
 
-			// UTILITY FUNCTIONS
-
-				/// Set the number of threads (some operations like ShurComplementProduct
-				/// are CPU intensive, so they can be run in parallel threads).
-	virtual void SetNumThreads(int nthreads);
-	virtual int  GetNumThreads() {return this->num_threads;}
-
-
-				/// The following function may be called after a LCP solver's 'Solve()'
-				/// operation has been performed. This gives an extimate of 'how
-				/// good' the solver had been in finding the proper solution.
-				/// Resulting estimates are passed as references in member arguments.
-
-	virtual void ComputeFeasabilityViolation(
-					double& resulting_maxviolation,		///< gets the max constraint violation (either bi- and unilateral.)
-					double& resulting_lcpfeasability	///< gets the max feasability as max |l*c| , for unilateral only
-				);
-
-				/// Count the scalar variables in the system (excluding ChLcpVariable objects
+				/// Count & returns the scalar variables in the system (excluding ChLcpVariable objects
 				/// that have  IsActive() as false). Note: the number of scalar variables is not necessarily
-				/// the number of inserted ChLcpVariable objects.
-				/// Note: this function also updates the offsets of all variables (see GetOffset() in ChLcpVariables)
+				/// the number of inserted ChLcpVariable objects, some could be inactive.
+				/// Note: this function also updates the offsets of all variables 
+				/// in 'q' global vector (see GetOffset() in ChLcpVariables).
 	virtual int CountActiveVariables();
 
-				/// Count the scalar constraints in the system (excluding ChLcpConstraint objects
+				/// Count & returns the scalar constraints in the system (excluding ChLcpConstraint objects
 				/// that have  IsActive() as false). 
+				/// Note: this function also updates the offsets of all constraints 
+				/// in 'l' global vector (see GetOffset() in ChLcpConstraint).
 	virtual int CountActiveConstraints();
 
+				/// Updates counts of scalar variables and scalar constraints,
+				/// if you added/removed some item or if you switched some active state,
+				/// otherwise CountActiveVariables() and CountActiveConstraints() might fail.
+	virtual void UpdateCountsAndOffsets();
 
+
+			//
+			// DATA <-> MATH.VECTORS FUNCTIONS
+			//
 
 				/// Get a vector with all the 'fb' known terms ('forces'etc.) associated to all variables,
 				/// ordered into a column vector. The column vector must be passed as a ChMatrix<>
@@ -249,6 +252,10 @@ public:
 								);
 
 
+			//
+			// MATHEMATICAL OPERATIONS ON DATA
+			//
+
 				/// Performs the product of N, the Shur complement of the KKT matrix, by an 
 				/// l vector (if x not provided, use current lagrangian multipliers l_i), that is 
 				///    result = [N]*l = [ [Cq][M^(-1)][Cq'] - [E] ] * l
@@ -301,6 +308,35 @@ public:
 								ChMatrix<>&	mx		///< matrix which contains the entire vector of unknowns x={q,-l} (only the l part is projected)
 								);
 
+
+
+
+				/// The following (obsolete) function may be called after a LCP solver's 'Solve()'
+				/// operation has been performed. This gives an extimate of 'how
+				/// good' the solver had been in finding the proper solution.
+				/// Resulting estimates are passed as references in member arguments.
+
+	virtual void ComputeFeasabilityViolation(
+					double& resulting_maxviolation,		///< gets the max constraint violation (either bi- and unilateral.)
+					double& resulting_lcpfeasability	///< gets the max feasability as max |l*c| , for unilateral only
+				);
+
+
+			//
+			// MISC
+			//
+
+				/// Set the number of threads (some operations like ShurComplementProduct
+				/// are CPU intensive, so they can be run in parallel threads).
+				/// By default, the number of threads is the same of max.available OpenMP cores
+	virtual void SetNumThreads(int nthreads);
+	virtual int  GetNumThreads() {return this->num_threads;}
+
+
+			//
+			// LOGGING/OUTPUT/ETC.
+			//
+
 				/// The following function may be used to create the Jacobian and the 
 				/// mass matrix of the variational problem in matrix form, by assembling all 
 				/// the jacobians of all the constraints/contacts, all the mass matrices, all vectors,
@@ -345,6 +381,8 @@ public:
 								ChSparseMatrix* b,	
 								bool only_bilaterals = false, 
 								bool skip_contacts_uv = false);
+
+
 };
 
 
