@@ -4,8 +4,34 @@
   History of API changes, bug fixes, new features
 
 
-Release 1.7.0
+Release 1.8.0
 xx-xx-xxxx
+
+- Support for stiffness blocks in LCP/CCP/VIs/linear systems. For
+  instance, this will foster the development of FEM functionalities.
+  See files source/lcp/ChLcpKstiffness.h and similars.
+
+- New functions BuildDiVector, FromVectorToUnknowns, FromUnknownsToVector, 
+  BuildDiagonalVector, in source/lcp/ChLcpSystemDescriptor.h
+  These make much easier to develop solvers that leverage on the 
+  matrix by vector primitive, for the full VI(Z*x-d) problem (not the
+  reduced dual problem on Schur complement VI(N*l-r) as usual).
+
+- Parallelization of many loops in performance-critical primitives in
+  ChLcpSystemDescriptor, using OpenMP.
+  This means that, in case of large systems, the performance is 
+  much better than in the previous releases. 
+
+- Optimizations in ChLcpConstraints about flags (the IsActive()
+  function previously took many booleans, now it is cached).
+
+
+
+Release 1.7.0
+20-05-2013
+
+- Python support upgraded to Python 3.3 from 3.2, in pyChrono::Engine
+  installer.
 
 - New unit_COSIMULATION. It introduces functionalities to allow
   a side-to-side simulation of Chrono::Engine and another

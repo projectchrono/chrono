@@ -63,7 +63,7 @@ public:
 			{
 				grad_diffstep = 0.01; // too small can cause numerical roundoff troubles!
 				rel_tolerance = 0.0;
-				diag_preconditioning = false;
+				diag_preconditioning = true;
 			};
 				
 	virtual ~ChLcpIterativePMINRES() {};
@@ -86,7 +86,6 @@ public:
 				/// Solve() automatically falls back to this function.
 				/// It does not solve the Schur complement N*l-r=0 as Solve does, here the 
 				/// entire system KKT matrix with duals l and primals q is used.
-				/// ***NOT WORKING***
 	virtual double Solve_SupportingStiffness(
 				ChLcpSystemDescriptor& sysd,		///< system description with constraints and variables	
 				bool add_Mq_to_f = false			///< if true, takes the initial 'q' and adds [M]*q to 'f' vector  

@@ -53,11 +53,11 @@ void ChLcpConstraintTwoBodies::SetVariables(ChLcpVariables* mvariables_a, ChLcpV
 
 	if (!mvariables_a || !mvariables_b)
 	{
-		valid = false;
+		SetValid(false);
 		return ;
 	}
 
-	valid = true;
+	SetValid(true);
 	variables_a = mvariables_a;
 	variables_b = mvariables_b;
 	

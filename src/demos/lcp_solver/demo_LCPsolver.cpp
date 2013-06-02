@@ -147,14 +147,16 @@ void test_1()
 	// approximate (but very fast) solution:
 	//
 	// .. create the solver 
-	ChLcpIterativeSOR msolver_iter( 50,		// max iterations
+
+	ChLcpIterativeSOR msolver_iter( 1,		// max iterations
 									false,	// don't use warm start
 									0.0,	// termination tolerance
-									1.0);   // omega
+									0.8);   // omega
 
 	// .. pass the constraint and the variables to the solver 
 	//    to solve - that's all.
 	msolver_iter.Solve(mdescriptor);
+
 
 	// Ok, now present the result to the user, with some
 	// statistical information:
@@ -235,7 +237,7 @@ void test_2()
 {
 	
 	GetLog() << "\n-------------------------------------------------\n";
-	GetLog() << "TEST: 1D vertical pendulum - ChLcpIterativeMINRES \n\n";
+	GetLog() << "TEST: 1D vertical pendulum - ChLcpIterativePMINRES \n\n";
 
 	ChLcpSystemDescriptor mdescriptor;
 
@@ -526,7 +528,7 @@ int main(int argc, char* argv[])
 	// Test: the 'inverted pendulum' benchmark (compute reactions with Krylov solver)
 	test_2();
 
-	// Test: the stiffness benchmark
+	// Test: the stiffness benchmark (add also sparse stiffness blocks over M)
 	test_3();
 
 	return 0;

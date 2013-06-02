@@ -34,6 +34,7 @@ ChLcpConstraint& ChLcpConstraint::operator=(const ChLcpConstraint& other)
 	l_i=other.l_i;
 	cfm_i= other.cfm_i;
 	valid = other.valid;
+	_active = other._active;
 	disabled = other.disabled;
 	redundant = other.redundant;
 	broken = other.broken;
@@ -47,6 +48,7 @@ bool ChLcpConstraint::operator==(const ChLcpConstraint& other) const
 {
 	return	other.cfm_i==cfm_i &&
 			other.valid==valid &&
+			other._active==_active &&
 			other.disabled==disabled &&
 			other.redundant==redundant &&
 			other.broken==broken &&
@@ -102,6 +104,7 @@ void ChLcpConstraint::StreamIN(ChStreamInBinary& mstream)
 	mstream >> redundant;
 	mstream >> broken;
 	mstream >> mint;	mode = (eChConstraintMode)mint;
+	this->UpdateActiveFlag();
 }
 
 

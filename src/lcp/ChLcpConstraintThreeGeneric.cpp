@@ -109,11 +109,11 @@ void ChLcpConstraintThreeGeneric::SetVariables(ChLcpVariables* mvariables_a, ChL
 {
 	if (!mvariables_a || !mvariables_b ||  !mvariables_c)
 	{
-		valid = false;
+		SetValid(false);
 		return ;
 	}
 
-	valid = true;
+	SetValid(true);
 	variables_a = mvariables_a;
 	variables_b = mvariables_b;
 	variables_c = mvariables_c;

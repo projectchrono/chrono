@@ -279,7 +279,6 @@ int main(int argc, char* argv[])
 	// bind a simple user interface, etc. etc.)
 	ChIrrAppInterface application(&mphysicalSystem, L"Collisions between objects",core::dimension2d<u32>(800,600),false);
 
-
 	// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
 	ChIrrWizard::add_typical_Logo(application.GetDevice());
 	ChIrrWizard::add_typical_Sky(application.GetDevice());
@@ -294,7 +293,6 @@ int main(int argc, char* argv[])
 
 
 	// Modify some setting of the physical system for the simulation, if you want
-
 	mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
 	mphysicalSystem.SetIterLCPmaxItersSpeed(20);
 	mphysicalSystem.SetIterLCPmaxItersStab(5);

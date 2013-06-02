@@ -17,24 +17,25 @@
 #include "ChLcpConstraintTwoRollingN.h"
 #include "ChLcpConstraintTwoRollingT.h"
 
-
-
  
 namespace chrono 
 {
 
+#define CH_SPINLOCK_HASHSIZE 203
 
 ChLcpSystemDescriptor::ChLcpSystemDescriptor()
 {
 	vconstraints.clear();
 	vvariables.clear();
+	vstiffness.clear();
+	
+	n_q=0;
+	n_c=0;
+	freeze_count = false;
 
-	this->num_threads = 0;
-	solver_threads = 0;
-	SetNumThreads(this->num_threads);
-/*
-	locktable = new ChMutexSpinlock[100];
-*/
+	this->num_threads = CHOMPfunctions::GetNumProcs();
+
+	spinlocktable = new ChSpinlock[CH_SPINLOCK_HASHSIZE];
 };
 
 
@@ -42,16 +43,12 @@ ChLcpSystemDescriptor::~ChLcpSystemDescriptor()
 {
 	vconstraints.clear();
 	vvariables.clear();
+	vstiffness.clear();
 
-	if (solver_threads) 
-		delete (solver_threads); 
-	solver_threads =0;
+	if (spinlocktable)
+		delete[] spinlocktable;
+	spinlocktable=0;
 
-/*
-	if (locktable)
-		delete[] locktable;
-	locktable=0;
-*/
 };
 
 
@@ -93,7 +90,10 @@ void ChLcpSystemDescriptor::ComputeFeasabilityViolation(
 
 int ChLcpSystemDescriptor::CountActiveVariables()
 {
-	int n_q=0;
+	if (this->freeze_count) // optimization, avoid list count all times 
+		return n_q;
+
+	n_q=0;
 	for (unsigned int iv = 0; iv< vvariables.size(); iv++)
 	{
 		if (vvariables[iv]->IsActive())
@@ -108,16 +108,30 @@ int ChLcpSystemDescriptor::CountActiveVariables()
 				
 int ChLcpSystemDescriptor::CountActiveConstraints()
 {
-	int n_c=0;
+	if (this->freeze_count) // optimization, avoid list count all times 
+		return n_c;
+
+	n_c=0;
 	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
 	{
 		if (vconstraints[ic]->IsActive())
 		{
+			vconstraints[ic]->SetOffset(n_c);	// also store offsets in state and MC matrix
 			n_c++;
 		}
 	}
 	return n_c;
 }
+
+
+void ChLcpSystemDescriptor::UpdateCountsAndOffsets()
+{
+	freeze_count = false;
+	CountActiveVariables();
+	CountActiveConstraints();
+	freeze_count = true;
+}
+
 
 
 void ChLcpSystemDescriptor::ConvertToMatrixForm (
@@ -234,6 +248,8 @@ void  ChLcpSystemDescriptor::BuildVectors (ChSparseMatrix* f,
 	this->ConvertToMatrixForm(0,0,0,f,b,0,only_bilaterals,skip_contacts_uv);
 }
 
+
+
 int ChLcpSystemDescriptor::BuildFbVector(
 								ChMatrix<>& Fvector	///< matrix which will contain the entire vector of 'f'
 						)
@@ -242,16 +258,15 @@ int ChLcpSystemDescriptor::BuildFbVector(
 	Fvector.Reset(n_q,1);		// fast! Reset() method does not realloc if size doesn't change
 
 	// Fills the 'f' vector
-	int s_q=0;
-	for (unsigned int iv = 0; iv< vvariables.size(); iv++)
+	#pragma omp parallel for num_threads(this->num_threads)
+	for (int iv = 0; iv< (int)vvariables.size(); iv++)
 	{
 		if (vvariables[iv]->IsActive())
 		{
-			Fvector.PasteMatrix(&vvariables[iv]->Get_fb(), s_q, 0);
-			s_q += vvariables[iv]->Get_ndof();
+			Fvector.PasteMatrix(&vvariables[iv]->Get_fb(), vvariables[iv]->GetOffset(), 0);
 		}
 	}
-	return  s_q; 
+	return  this->n_q;
 }
 
 int ChLcpSystemDescriptor::BuildBiVector(
@@ -262,17 +277,22 @@ int ChLcpSystemDescriptor::BuildBiVector(
 	Bvector.Resize(n_c, 1);
 	
 	// Fill the 'b' vector
-	int s_c=0;
-	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
+	#pragma omp parallel for num_threads(this->num_threads)
+	for (int ic = 0; ic< (int)vconstraints.size(); ic++)
 	{
+		/*
+		int rank = CHOMPfunctions::GetThreadNum();
+		int count = CHOMPfunctions::GetNumThreads();
+		GetLog() << "      BuildFbVector thread " << rank << " on " << count << "\n";
+		GetLog().Flush();
+		*/
 		if (vconstraints[ic]->IsActive())
 		{
-			Bvector(s_c) = vconstraints[ic]->Get_b_i();
-			++s_c;
+			Bvector(vconstraints[ic]->GetOffset()) = vconstraints[ic]->Get_b_i();
 		}
 	}
 
-	return s_c;
+	return n_c;
 }
 
 
@@ -286,26 +306,25 @@ int ChLcpSystemDescriptor::BuildDiVector(
 	Dvector.Reset(n_q+n_c,1);		// fast! Reset() method does not realloc if size doesn't change
 
 	// Fills the 'f' vector part
-	int s_u=0;
-	for (unsigned int iv = 0; iv< vvariables.size(); iv++)
+	#pragma omp parallel for num_threads(this->num_threads)
+	for (int iv = 0; iv< (int)vvariables.size(); iv++)
 	{
 		if (vvariables[iv]->IsActive())
 		{
-			Dvector.PasteMatrix(&vvariables[iv]->Get_fb(), s_u, 0);
-			s_u += vvariables[iv]->Get_ndof();
+			Dvector.PasteMatrix(&vvariables[iv]->Get_fb(), vvariables[iv]->GetOffset(), 0);
 		}
 	}
 	// Fill the '-b' vector (with flipped sign!)
-	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
+	#pragma omp parallel for num_threads(this->num_threads)
+	for (int ic = 0; ic< (int)vconstraints.size(); ic++)
 	{
 		if (vconstraints[ic]->IsActive())
 		{
-			Dvector(s_u) = -vconstraints[ic]->Get_b_i();
-			++s_u;
+			Dvector(vconstraints[ic]->GetOffset() + n_q) = - vconstraints[ic]->Get_b_i();
 		}
 	}
 
-	return  s_u; 
+	return  n_q+n_c; 
 }
 
 int  ChLcpSystemDescriptor::BuildDiagonalVector(
@@ -318,30 +337,32 @@ int  ChLcpSystemDescriptor::BuildDiagonalVector(
 	Diagonal_vect.Reset(n_q+n_c,1);		// fast! Reset() method does not realloc if size doesn't change
 
 	// Fill the diagonal values given by stiffness blocks, if any
-	for (unsigned int is = 0; is< vstiffness.size(); is++)
+	// (This cannot be easily parallelized because of possible write concurrency).
+	for (int is = 0; is< (int)vstiffness.size(); is++)
 	{
 		vstiffness[is]->DiagonalAdd(Diagonal_vect);
 	}
+
 	// Get the 'M' diagonal terms
-	int s_u=0;
-	for (unsigned int iv = 0; iv< vvariables.size(); iv++)
+	#pragma omp parallel for num_threads(this->num_threads)
+	for (int iv = 0; iv< (int)vvariables.size(); iv++)
 	{
 		if (vvariables[iv]->IsActive())
 		{
 			vvariables[iv]->DiagonalAdd(Diagonal_vect);
-			s_u += vvariables[iv]->Get_ndof();
 		}
 	}
+
 	// Get the 'E' diagonal terms (note the sign: E_i = -cfm_i )
-	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
+	#pragma omp parallel for num_threads(this->num_threads)
+	for (int ic = 0; ic< (int)vconstraints.size(); ic++)
 	{
 		if (vconstraints[ic]->IsActive())
 		{
-			Diagonal_vect(s_u) = -vconstraints[ic]->Get_cfm_i();
-			++s_u;
+			Diagonal_vect(vconstraints[ic]->GetOffset() + n_q) = - vconstraints[ic]->Get_cfm_i();
 		}
 	}
-	return s_u;
+	return n_q+n_c;
 }
 
 
@@ -358,17 +379,16 @@ int ChLcpSystemDescriptor::FromVariablesToVector(
 	}
 
 	// Fill the vector
-	int s_q=0;
-	for (unsigned int iv = 0; iv< vvariables.size(); iv++)
+	#pragma omp parallel for num_threads(this->num_threads)
+	for (int iv = 0; iv< (int)vvariables.size(); iv++)
 	{
 		if (vvariables[iv]->IsActive())
 		{
-			mvector.PasteMatrix(&vvariables[iv]->Get_qb(), s_q, 0);
-			s_q += vvariables[iv]->Get_ndof();
+			mvector.PasteMatrix(&vvariables[iv]->Get_qb(), vvariables[iv]->GetOffset(), 0);
 		}
 	}
 
-	return  s_q;
+	return  n_q;
 }
 
 		
@@ -384,17 +404,16 @@ int ChLcpSystemDescriptor::FromVectorToVariables(
 	#endif
 
 	// fetch from the vector
-	int s_q=0;
-	for (unsigned int iv = 0; iv< vvariables.size(); iv++)
+	#pragma omp parallel for num_threads(this->num_threads)
+	for (int iv = 0; iv< (int)vvariables.size(); iv++)
 	{
 		if (vvariables[iv]->IsActive())
 		{
-			vvariables[iv]->Get_qb().PasteClippedMatrix(&mvector, s_q, 0,  vvariables[iv]->Get_ndof(),1,  0,0);
-			s_q += vvariables[iv]->Get_ndof();
+			vvariables[iv]->Get_qb().PasteClippedMatrix(&mvector, vvariables[iv]->GetOffset(), 0,  vvariables[iv]->Get_ndof(),1,  0,0);
 		}
 	}
 
-	return s_q;
+	return n_q;
 }
 
 
@@ -412,17 +431,16 @@ int ChLcpSystemDescriptor::FromConstraintsToVector(
 	}
 
 	// Fill the vector
-	int s_c=0;
-	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
+	#pragma omp parallel for num_threads(this->num_threads)
+	for (int ic = 0; ic< (int)vconstraints.size(); ic++)
 	{
 		if (vconstraints[ic]->IsActive())
 		{
-			mvector(s_c) = vconstraints[ic]->Get_l_i();
-			++s_c;
+			mvector(vconstraints[ic]->GetOffset()) = vconstraints[ic]->Get_l_i();
 		}
 	}
 
-	return s_c;
+	return n_c;
 }
 
 		
@@ -438,17 +456,16 @@ int ChLcpSystemDescriptor::FromVectorToConstraints(
 	#endif
 
 	// Fill the vector
-	int s_c=0;
-	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
+	#pragma omp parallel for num_threads(this->num_threads)
+	for (int ic = 0; ic< (int)vconstraints.size(); ic++)
 	{
 		if (vconstraints[ic]->IsActive())
 		{
-			vconstraints[ic]->Set_l_i(mvector(s_c));
-			++s_c;
+			vconstraints[ic]->Set_l_i( mvector(vconstraints[ic]->GetOffset()) );
 		}
 	}
 
-	return s_c;
+	return n_c;
 }
 
 
@@ -466,26 +483,25 @@ int ChLcpSystemDescriptor::FromUnknownsToVector(
 	}
 
 	// Fill the first part of vector, x.q ,with variables q
-	int s_u=0;
-	for (unsigned int iv = 0; iv< vvariables.size(); iv++)
+	#pragma omp parallel for num_threads(this->num_threads)
+	for (int iv = 0; iv< (int)vvariables.size(); iv++)
 	{
 		if (vvariables[iv]->IsActive())
 		{
-			mvector.PasteMatrix(&vvariables[iv]->Get_qb(), s_u, 0);
-			s_u += vvariables[iv]->Get_ndof();
+			mvector.PasteMatrix(&vvariables[iv]->Get_qb(), vvariables[iv]->GetOffset(), 0);
 		}
 	}
 	// Fill the second part of vector, x.l, with constraint multipliers -l (with flipped sign!)
-	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
+	#pragma omp parallel for num_threads(this->num_threads)
+	for (int ic = 0; ic< (int)vconstraints.size(); ic++)
 	{
 		if (vconstraints[ic]->IsActive())
 		{
-			mvector(s_u) = -vconstraints[ic]->Get_l_i();
-			++s_u;
+			mvector(vconstraints[ic]->GetOffset() + n_q) = -vconstraints[ic]->Get_l_i();
 		}
 	}
 
-	return  s_u;
+	return  n_q+n_c;
 }
 
 		
@@ -496,172 +512,41 @@ int ChLcpSystemDescriptor::FromVectorToUnknowns(
 {
 	#ifdef CH_DEBUG
 		int n_q= CountActiveVariables();
-		assert(n_q == mvector.GetRows());
+		int n_c= CountActiveVariables();
+		assert((n_q+n_c) == mvector.GetRows());
 		assert(mvector.GetColumns()==1);
 	#endif
 
 	// fetch from the first part of vector (x.q = q)
-	int s_u=0;
-	for (unsigned int iv = 0; iv< vvariables.size(); iv++)
+	#pragma omp parallel for num_threads(this->num_threads)
+	for (int iv = 0; iv< (int)vvariables.size(); iv++)
 	{
+		int rank  = CHOMPfunctions::GetThreadNum();
+		int count = CHOMPfunctions::GetNumThreads();
+		GetLog() << "      FromVectorToUnknowns: thread " << rank << " on " << count << "\n";
+		GetLog().Flush();
+
 		if (vvariables[iv]->IsActive())
 		{
-			vvariables[iv]->Get_qb().PasteClippedMatrix(&mvector, s_u, 0,  vvariables[iv]->Get_ndof(),1,  0,0);
-			s_u += vvariables[iv]->Get_ndof();
+			vvariables[iv]->Get_qb().PasteClippedMatrix(&mvector, vvariables[iv]->GetOffset(), 0,  vvariables[iv]->Get_ndof(),1,  0,0);
 		}
 	}
 	// fetch from the second part of vector (x.l = -l), with flipped sign!
-	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
+	#pragma omp parallel for num_threads(this->num_threads)
+	for (int ic = 0; ic< (int)vconstraints.size(); ic++)
 	{
 		if (vconstraints[ic]->IsActive())
 		{
-			vconstraints[ic]->Set_l_i( -mvector(s_u));
-			++s_u;
+			vconstraints[ic]->Set_l_i( - mvector( vconstraints[ic]->GetOffset() + n_q ));
 		}
 	}
 
-	return s_u;
+	return n_q+n_c;
 }
 
 
 
 
-struct thread_pdata 
-{
-	ChLcpSystemDescriptor* descriptor;		// reference to sys.descriptor 
-	ChMutexSpinlock* mutex;	// this will be used to avoid race condition when writing to shared memory.
-	
-	ChMatrix<>* result;
-	ChMatrix<>* lvector;
-	std::vector<bool>* enabled;
-
-	enum solver_stage
-	{
-		STAGE1_PRODUCT = 0,
-		STAGE2_PRODUCT,
-	};
-	solver_stage stage;
-
-				// the range of scanned multipliers (for loops on multipliers)
-	unsigned int constr_from;	
-	unsigned int constr_to;
-	unsigned int cont_stride; // in result vector where inactive constr. are squeezed away
-		
-				// the range of scanned 'variables' objects (for loops on variables, aka rigid bodies)
-	unsigned int var_from;
-	unsigned int var_to;
-
-	std::vector<ChLcpConstraint*>* mconstraints;
-	std::vector<ChLcpVariables*>*  mvariables;
-	bool madd_Mq_to_f;
-};
-
-// Don't create local store memory, just return 0
-
-void*	SystemdMemoryFunc()
-{
-	return 0;
-}
-
-
-// The following is the function which will be executed by 
-// each thread, when threads are launched at each Solve()  
-
-
-void SystemdThreadFunc(void* userPtr,void* lsMemory)
-{
-//	GetLog() << " SystemdThreadFunc \n";
-	thread_pdata* tdata = (thread_pdata*)userPtr;
-
-	std::vector<ChLcpConstraint*>* vconstraints = tdata->mconstraints;
-	std::vector<ChLcpVariables*>*  vvariables = tdata->mvariables;
-	bool madd_Mq_to_f = tdata->madd_Mq_to_f;
-	ChMatrix<>*	result = tdata->result;
-	ChMatrix<>* lvector = tdata->lvector;
-	std::vector<bool>* enabled = tdata->enabled;
-
-	switch (tdata->stage)
-	{
-	case thread_pdata::STAGE1_PRODUCT:
-		{
-		//	GetLog() << " STAGE1_PRODUCT  from " << tdata->constr_from << " to " <<   tdata->constr_to << "\n";
-
-			int s_c= tdata->cont_stride;
-			for (unsigned int ic = tdata->constr_from; ic< tdata->constr_to; ic++)
-			{	
-				if ((*vconstraints)[ic]->IsActive())
-				{
-					bool process=true;
-					if (enabled)
-						if ((*enabled)[s_c]==false)
-							process = false;
-
-					if (process) 
-					{
-						double li;
-						if (lvector)
-							li = (*lvector)(s_c,0);
-						else
-							li = (*vconstraints)[ic]->Get_l_i();
-
-						// Compute qb += [M^(-1)][Cq']*l_i
-
-					//int it = ..some hashed value here..; //***TO DO***
-					//((tdata->mutex)+it)->Lock();
-					
-						(*vconstraints)[ic]->Increment_q(li);	// <----!!!  fpu intensive
-					
-					//((tdata->mutex)+it)->Unlock();  //***TO DO***
-
-						// Add constraint force mixing term  result = cfm * l_i = -[E]*l_i
-						(*result)(s_c,0) = (*vconstraints)[ic]->Get_cfm_i() * li;
-
-					}
-					++s_c;
-				}
-			}
-			break;  // end stage
-		}
-
-	case thread_pdata::STAGE2_PRODUCT:
-		{
-		//	GetLog() << " STAGE2_PRODUCT  from " << tdata->constr_from << " to " <<   tdata->constr_to << "\n";
-
-			int s_c= tdata->cont_stride;
-			for (unsigned int ic = tdata->constr_from; ic< tdata->constr_to; ic++)
-			{	
-				if ((*vconstraints)[ic]->IsActive())
-				{
-					bool process=true;
-					if (enabled)
-						if ((*enabled)[s_c]==false)
-							process = false;
-					
-					if (process) 
-						(*result)(s_c,0)+= (*vconstraints)[ic]->Compute_Cq_q();	// <----!!!  fpu intensive
-					else
-						(*result)(s_c,0)= 0; // not enabled constraints, just set to 0 result 
-					
-					++s_c;
-				}
-			}
-			break;  // end stage
-		}
-
-	default:
-		{
-			break;
-		}
-
-	} // end stage  switching
-
-}
-
-
-
-#define CH_SERIAL_SHUR
-//#define CH_PARALLEL_SHUR
-//#define CH_PARALLEL_TEST
 
 
 void ChLcpSystemDescriptor::ShurComplementProduct(	
@@ -670,37 +555,41 @@ void ChLcpSystemDescriptor::ShurComplementProduct(
 								std::vector<bool>* enabled  
 								)
 {
-	assert(this->vstiffness.size() == 0); // currently, the case with ChLcpKstiffness items is not supported (only diagonal M is supported, no K)
-
 	#ifdef CH_DEBUG
+		assert(this->vstiffness.size() == 0); // currently, the case with ChLcpKstiffness items is not supported (only diagonal M is supported, no K)
 		int n_c=CountActiveConstraints();
-		assert(result.GetRows() == n_c);
-		assert(result.GetColumns()==1);
+		assert(lvector->GetRows()   == n_c);
+		assert(lvector->GetColumns()== 1);
 		if (enabled) assert(enabled->size() == n_c);
 	#endif
 
+	result.Reset(n_c,1);  // fast! Reset() method does not realloc if size doesn't change
 
-	#ifdef CH_SERIAL_SHUR
 
 	// Performs the sparse product    result = [N]*l = [ [Cq][M^(-1)][Cq'] - [E] ] *l
 	// in different phases:
 
 	// 1 - set the qb vector (aka speeds, in each ChLcpVariable sparse data) as zero
 
-	for (unsigned int iv = 0; iv< vvariables.size(); iv++)
+	#pragma omp parallel for num_threads(this->num_threads)
+	for (int iv = 0; iv< (int)vvariables.size(); iv++)
+	{
 		if (vvariables[iv]->IsActive())
 			vvariables[iv]->Get_qb().FillElem(0);
+	}
 
 	// 2 - performs    qb=[M^(-1)][Cq']*l  by
 	//     iterating over all constraints (when implemented in parallel this
 	//     could be non-trivial because race conditions might occur -> reduction buffer etc.)
 	//     Also, begin to add the cfm term ( -[E]*l ) to the result.
 
-	int s_c=0;
-	for (unsigned int ic = 0; ic < vconstraints.size(); ic++)
+	//#pragma omp parallel for num_threads(this->num_threads)  ***NOT POSSIBLE!!! concurrent write to same q may happen
+	for (int ic = 0; ic < (int)vconstraints.size(); ic++)
 	{	
 		if (vconstraints[ic]->IsActive())
 		{
+			int s_c = vconstraints[ic]->GetOffset();
+
 			bool process=true;
 			if (enabled)
 				if ((*enabled)[s_c]==false)
@@ -715,6 +604,7 @@ void ChLcpSystemDescriptor::ShurComplementProduct(
 					li = vconstraints[ic]->Get_l_i();
 
 				// Compute qb += [M^(-1)][Cq']*l_i
+				//  NOTE! parallel update to same q data, risk of collision if parallel!!
 				vconstraints[ic]->Increment_q(li);	// <----!!!  fpu intensive
 
 				// Add constraint force mixing term  result = cfm * l_i = -[E]*l_i
@@ -722,149 +612,28 @@ void ChLcpSystemDescriptor::ShurComplementProduct(
 
 			}
 
-			++s_c;
 		}
 	}
 
 	// 3 - performs    result=[Cq']*qb    by
-	//     iterating over all constraints (when implemented in parallel this is trivial)
+	//     iterating over all constraints 
 
-	s_c=0;
-	for (unsigned int ic = 0; ic < vconstraints.size(); ic++)
+	#pragma omp parallel for num_threads(this->num_threads)
+	for (int ic = 0; ic < (int)vconstraints.size(); ic++)
 	{	
 		if (vconstraints[ic]->IsActive())
 		{
 			bool process=true;
 			if (enabled)
-				if ((*enabled)[s_c]==false)
+				if ((*enabled)[vconstraints[ic]->GetOffset()]==false)
 					process = false;
 			
 			if (process) 
-				result(s_c,0)+= vconstraints[ic]->Compute_Cq_q();	// <----!!!  fpu intensive
+				result(vconstraints[ic]->GetOffset(),0)+= vconstraints[ic]->Compute_Cq_q();	// <----!!!  fpu intensive
 			else
-				result(s_c,0)= 0; // not enabled constraints, just set to 0 result 
-			
-			++s_c;
+				result(vconstraints[ic]->GetOffset(),0)= 0; // not enabled constraints, just set to 0 result 
 		}
 	}
-
-	#endif
-
-	#ifdef CH_PARALLEL_TEST
-	ChMatrixDynamic<> TEST_lvector(lvector->GetRows(),1);
-	TEST_lvector.CopyFromMatrix(*lvector);
-	ChMatrixDynamic<> TEST_result(result.GetRows(),1);
-	TEST_result.CopyFromMatrix(result);
-	ChMatrixDynamic<> TEST_diff(result.GetRows(),1);
-	TEST_diff.CopyFromMatrix(result);
-	TEST_diff.Reset();
-	#endif
-
-	#ifdef CH_PARALLEL_SHUR
-
-	// set the qb vector (aka speeds, in each ChLcpVariable sparse data) as zero
-
-	for (unsigned int iv = 0; iv< vvariables.size(); iv++)
-		if (vvariables[iv]->IsActive())
-			vvariables[iv]->Get_qb().FillElem(0);
-
-	//ChMutexSpinlock spinlock;
-
-	// Preparation: 
-	//        subdivide the workload to the threads and prepare their 'thread_data':
-
-	int numthreads = this->num_threads;
-	std::vector<thread_pdata> mdataN(numthreads);
-
-//static ChMutexSpinlock* alocktable = new ChMutexSpinlock[1];
-
-	int var_slice = 0;
-	int constr_slice = 0;
-	for (int nth = 0; nth < numthreads; nth++)
-	{
-		unsigned int var_from = var_slice;
-		unsigned int var_to = var_from + (vvariables.size()-var_from) / (numthreads-nth);
-		unsigned int constr_from = constr_slice;
-		unsigned int constr_to = constr_from + (vconstraints.size()-constr_from) / (numthreads-nth);
-		if(constr_to < vconstraints.size()) // do not slice the three contact multipliers (or six in case of rolling)
-		{
-			if (dynamic_cast<ChLcpConstraintTwoFrictionT*>(vconstraints[constr_to]))
-				constr_to++;
-			if (dynamic_cast<ChLcpConstraintTwoFrictionT*>(vconstraints[constr_to]))
-				constr_to++;
-			if (constr_to < vconstraints.size())
-			{
-				if (dynamic_cast<ChLcpConstraintTwoRollingN*>(vconstraints[constr_to]))
-					constr_to++;
-				if (dynamic_cast<ChLcpConstraintTwoRollingT*>(vconstraints[constr_to]))
-					constr_to++;
-				if (dynamic_cast<ChLcpConstraintTwoRollingT*>(vconstraints[constr_to]))
-					constr_to++;
-			}
-		}
-		
-		mdataN[nth].descriptor = this;
-		mdataN[nth].mutex = this->locktable;
-		mdataN[nth].constr_from = constr_from;
-		mdataN[nth].constr_to   = constr_to;
-		mdataN[nth].var_from = var_from;
-		mdataN[nth].var_to = var_to;
-		mdataN[nth].mconstraints = &vconstraints;
-		mdataN[nth].mvariables = &vvariables;
-		mdataN[nth].result = &result;
-		mdataN[nth].lvector = lvector;
-		mdataN[nth].enabled = enabled;
-
-		var_slice = var_to;
-		constr_slice = constr_to;
-	}
-
-	// compute strides for vectors, because some constr. might be inactive
-	int st_c=0;
-	int in_th=0;
-	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
-	{
-		if (ic == mdataN[in_th].constr_from)
-		{
-			mdataN[in_th].cont_stride=st_c;
-			++in_th;
-		}
-		if (in_th >= numthreads) 
-			break;
-
-		if (vconstraints[ic]->IsActive())
-			++st_c;
-	}
-
-	// LAUNCH THE PARALLEL COMPUTATION ON THREADS !!!!
-
-	// --1--  stage:  
-	for (int nth = 0; nth < numthreads; nth++)
-	{
-		mdataN[nth].stage = thread_pdata::STAGE1_PRODUCT;
-		solver_threads->sendRequest(1, &mdataN[nth], nth);
-	}
-	//... must wait that the all the threads finished their stage!!!
-	solver_threads->flush();
-
-	// --2--  stage:  
-	for (int nth = 0; nth < numthreads; nth++)
-	{
-		mdataN[nth].stage = thread_pdata::STAGE2_PRODUCT;
-		solver_threads->sendRequest(1, &mdataN[nth], nth);
-	}
-	//... must wait that the all the threads finished their stage!!!
-	solver_threads->flush();
-
-
-	#endif
-
-	#ifdef CH_PARALLEL_TEST
-	 TEST_diff.MatrSub(result, TEST_result);
-	 double mdiff = TEST_diff.NormInf();
-	 if (mdiff>10e-14) 
-		GetLog() << "ERROR! product diff = " << TEST_diff.NormInf() << "\n";
-	#endif
 
 
 }
@@ -886,7 +655,13 @@ void ChLcpSystemDescriptor::SystemProduct(
 	ChMatrix<>* vect;
 
 	if (x)
+	{
+		#ifdef CH_DEBUG
+			assert(x->GetRows()   == n_q+n_c);
+			assert(x->GetColumns()== 1);
+		#endif
 		vect = x;
+	}
 	else
 	{
 		x_ql = new ChMatrixDynamic<double>(n_q+n_c,1);
@@ -899,38 +674,37 @@ void ChLcpSystemDescriptor::SystemProduct(
 	// 1) First row: result.q part =  [M + K]*x.q + [Cq']*x.l
 
 	// 1.1)  do  M*x.q
-	for (unsigned int iv = 0; iv< vvariables.size(); iv++)
+	#pragma omp parallel for num_threads(this->num_threads)
+	for (int iv = 0; iv< (int)vvariables.size(); iv++)
 		if (vvariables[iv]->IsActive())
 		{
 			vvariables[iv]->MultiplyAndAdd(result,*x);
 		}
 
-	// 1.2)  add also K*x.q
-	for (unsigned int ik = 0; ik< vstiffness.size(); ik++)
+	// 1.2)  add also K*x.q  (NON straight parallelizable - risk of concurrency in writing)
+	for (int ik = 0; ik< (int)vstiffness.size(); ik++)
 	{
 		vstiffness[ik]->MultiplyAndAdd(result,*x);
 	}
 
-	// 1.3)  add also [Cq]'*x.l
-	int s_c= n_q;
-	for (unsigned int ic = 0; ic < vconstraints.size(); ic++)
+	// 1.3)  add also [Cq]'*x.l  (NON straight parallelizable - risk of concurrency in writing)
+	for (int ic = 0; ic < (int)vconstraints.size(); ic++)
 	{	
 		if (vconstraints[ic]->IsActive())
 		{
-			vconstraints[ic]->MultiplyTandAdd(result,  (*x)(s_c));
-			++s_c;
+			vconstraints[ic]->MultiplyTandAdd(result,  (*x)(vconstraints[ic]->GetOffset()+n_q));
 		}
 	}
 
 	// 2) Second row: result.l part =  [C_q]*x.q + [E]*x.l
-	s_c= n_q;
-	for (unsigned int ic = 0; ic < vconstraints.size(); ic++)
+	#pragma omp parallel for num_threads(this->num_threads)
+	for (int ic = 0; ic < (int)vconstraints.size(); ic++)
 	{	
 		if (vconstraints[ic]->IsActive())
 		{
-			vconstraints[ic]->MultiplyAndAdd(result(s_c), (*x));  // result.l_i += [C_q_i]*x.q
+			int s_c = vconstraints[ic]->GetOffset() + n_q;
+			vconstraints[ic]->MultiplyAndAdd(result(s_c), (*x));     // result.l_i += [C_q_i]*x.q
 			result(s_c) -= vconstraints[ic]->Get_cfm_i()* (*x)(s_c); // result.l_i += [E]*x.l_i  NOTE:  cfm = -E
-			++s_c;
 		}
 	}		
 	
@@ -948,10 +722,15 @@ void ChLcpSystemDescriptor::ConstraintsProject(
 								ChMatrix<>&	multipliers		///< matrix which contains the entire vector of 'l_i' multipliers to be projected
 								)
 {
-	this->FromVectorToConstraints(multipliers);		
-		for (unsigned int ic = 0; ic < vconstraints.size(); ic++)
-					if (vconstraints[ic]->IsActive())
-							vconstraints[ic]->Project();
+	this->FromVectorToConstraints(multipliers);	
+
+	#pragma omp parallel for num_threads(this->num_threads)
+	for (int ic = 0; ic < (int)vconstraints.size(); ic++)
+	{
+		if (vconstraints[ic]->IsActive())
+				vconstraints[ic]->Project();
+	}
+
 	this->FromConstraintsToVector(multipliers,false);		
 }
 
@@ -960,34 +739,35 @@ void ChLcpSystemDescriptor::UnknownsProject(
 								ChMatrix<>&	mx		///< matrix which contains the entire vector of unknowns x={q,-l} (only the l part is projected)
 								)
 {
-	int s_u= this->CountActiveVariables();
-	int s_u_bk = s_u;
+	int n_q= this->CountActiveVariables();
 
 	// vector -> constraints
 	// Fetch from the second part of vector (x.l = -l), with flipped sign!
-	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
+	#pragma omp parallel for num_threads(this->num_threads)
+	for (int ic = 0; ic< (int)vconstraints.size(); ic++)
 	{
 		if (vconstraints[ic]->IsActive())
 		{
-			vconstraints[ic]->Set_l_i( -mx(s_u));
-			++s_u;
+			vconstraints[ic]->Set_l_i( - mx( vconstraints[ic]->GetOffset() + n_q ));
 		}
 	}
 		
 	// constraint projection!
-	for (unsigned int ic = 0; ic < vconstraints.size(); ic++)
-			if (vconstraints[ic]->IsActive())
-					vconstraints[ic]->Project();
+	#pragma omp parallel for num_threads(this->num_threads)
+	for (int ic = 0; ic < (int)vconstraints.size(); ic++)
+	{
+		if (vconstraints[ic]->IsActive())
+				vconstraints[ic]->Project();
+	}
 
 	// constraints -> vector
 	// Fill the second part of vector, x.l, with constraint multipliers -l (with flipped sign!)
-	s_u = s_u_bk;
-	for (unsigned int ic = 0; ic< vconstraints.size(); ic++)
+	#pragma omp parallel for num_threads(this->num_threads)
+	for (int ic = 0; ic< (int)vconstraints.size(); ic++)
 	{
 		if (vconstraints[ic]->IsActive())
 		{
-			mx(s_u) = -vconstraints[ic]->Get_l_i();
-			++s_u;
+			mx( vconstraints[ic]->GetOffset() + n_q ) = - vconstraints[ic]->Get_l_i();
 		}
 	}	
 }
@@ -1002,22 +782,6 @@ void ChLcpSystemDescriptor::SetNumThreads(int nthreads)
 		return;
 
 	this->num_threads = nthreads;
-
-	// Delete the threads container
-	if (this->solver_threads) 
-		delete (solver_threads); 
-	solver_threads =0;
-
-	if (this->num_threads==0)
-		return;
-
-	// Create the threads container
-	ChThreadConstructionInfo create_args ( (char*)"solver",
-						SystemdThreadFunc, 
-						SystemdMemoryFunc, 
-						this->num_threads);
-
-	this->solver_threads = new ChThreads(create_args); 
 
 	/* not needed?
 	if (locktable)

@@ -33,8 +33,12 @@ Modified by: Alessandro Tasora
 #include <Xtl.h>
 #else
 #include <Windows.h>
+#include <intrin.h>
 #endif
 
+
+		/// Class that wraps a thread mutex, a locking mechanism to avoid,
+		/// for instance, multiple thread concurrent access to the same data.
 class ChMutexSpinlock
 {
 public:
@@ -65,33 +69,54 @@ private:
 };
 
 
-class ChSpinlock
+
+#define EBUSY 16
+#pragma intrinsic(_InterlockedExchange)
+#pragma intrinsic(_ReadWriteBarrier)
+
+		/// Class that wraps a spinlock, a very fast locking mutex 
+		/// that should be used only for short wait periods.
+		/// This uses MSVC intrinsics to mimic a fast spinlock as 
+		/// in pthreads.h, but without the need of including 
+		/// the pthreads library for windows.
+		/// See http://locklessinc.com/articles/pthreads_on_windows/
+class ChApi ChSpinlock
 {
 public:
-	typedef CRITICAL_SECTION SpinVariable;
-
-	ChSpinlock (SpinVariable* var)
-		: spinVariable (var)
-	{}
-
-	void Init ()
-	{
-		InitializeCriticalSection(spinVariable);
-	}
-
-	void Lock ()
-	{
-		EnterCriticalSection(spinVariable);
-	}
-
-	void Unlock ()
-	{
-		LeaveCriticalSection(spinVariable);
-	}
+   ChSpinlock() 
+			{ 
+				lock = 0;
+			}
+   ~ChSpinlock() 
+			{ 
+			}
+   void Lock() 
+			{ 
+				while (_InterlockedExchange(&lock, EBUSY))
+				{
+					/* Don't lock the bus whilst waiting */
+					while (lock)
+					{
+						YieldProcessor();
+						/* Compiler barrier.  Prevent caching of *l */
+						_ReadWriteBarrier();
+					}
+				}
+			}
+   void Unlock() 
+			{ 
+				_ReadWriteBarrier();
+				lock = 0;
+			}
+   
 
 private:
-	SpinVariable* spinVariable;
+	 typedef long pseudo_pthread_spinlock_t;
+	pseudo_pthread_spinlock_t lock;
 };
+
+
+
 
 #endif
 
@@ -107,6 +132,8 @@ private:
 #include <pthread.h>
 #include <semaphore.h>
 
+		/// Class that wraps a thread mutex, a locking mechanism to avoid,
+		/// for instance, multiple thread concurrent access to the same data.
 class ChMutexSpinlock
 {
 public:
@@ -133,33 +160,35 @@ private:
 	pthread_mutex_t _cs_mutex;
 };
 
-
+		/// Class that wraps a spinlock, a very fast locking mutex 
+		/// that should be used only for short wait periods. 
+		/// ***TO BE TESTED***
 class ChSpinlock
 {
 public:
-	typedef pthread_mutex_t SpinVariable;
+	typedef pthread_spinlock_t SpinVariable;
 
-	ChSpinlock (SpinVariable* var)
-		: spinVariable (var)
-	{}
-
-	void Init ()
+	ChSpinlock ()
 	{
-		pthread_mutex_init( spinVariable ,0);
+		pthread_spin_init( &spinVariable ,0);
+	}
+	~ChSpinlock() 
+	{ 
+		pthread_spin_destroy( &spinVariable);
 	}
 
 	void Lock ()
 	{
-		pthread_mutex_lock( spinVariable);
+		pthread_spin_lock( &spinVariable);
 	}
 
 	void Unlock ()
 	{
-		pthread_mutex_unlock( spinVariable);
+		pthread_spin_unlock( &spinVariable);
 	}
 
 private:
-	SpinVariable* spinVariable;
+	SpinVariable spinVariable;
 };
 
 #endif

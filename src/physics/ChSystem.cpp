@@ -37,7 +37,7 @@
 #include "lcp/ChLcpIterativePCG.h"
 #include "lcp/ChLcpIterativeAPGD.h"
 #include "lcp/ChLcpSolverDEM.h"
-
+#include "parallel/ChOpenMP.h"
 
 #include "core/ChTimer.h"
 #include "collision/ChCCollisionSystemBullet.h"
@@ -333,7 +333,7 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
 	min_bounce_speed = 0.15;
 	max_penetration_recovery_speed = 0.6;
 
-	parallel_thread_number = 2;
+	parallel_thread_number = CHOMPfunctions::GetNumProcs(); // default n.threads as n.cores
 
 	this->contact_container=0;
 	// default contact container

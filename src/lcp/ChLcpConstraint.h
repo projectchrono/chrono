@@ -90,7 +90,7 @@ protected:
 
 
 			// FLAGS
-
+private:
 				/// Flag: the link has no formal problems (references restored correctly, etc)
 	bool valid;
 				/// Flag: the user can turn on/off the link easily
@@ -99,13 +99,21 @@ protected:
 	bool redundant;
 				/// Flag: the constraint is broken (someone pulled too much..)
 	bool broken;
+				/// Cached active state depending on previous flags. Internal update.
+	bool _active; 
+
+
+protected:
 				/// The mode of the constraint: free / lock / complementar
 	eChConstraintMode mode;
 
-				// Auxiliary data, (ex. for iterative solvers):
+			// Auxiliary data, (ex. for iterative solvers):
 
 				/// The 'g_i' product [Cq_i]*[invM_i]*[Cq_i]' (+cfm)
 	double g_i;
+
+				/// offset in global "l" state vector (needed by some solvers)
+	int offset;
 
 public:
 
@@ -119,6 +127,7 @@ public:
 						disabled = false;
 						redundant = false;
 						broken = false;
+						_active = true;
 						mode = CONSTRAINT_LOCK;
 					};
 
@@ -156,26 +165,27 @@ public:
 			//
 
 				/// Tells if the constraint data is currently valid.
-				/// Instead of implementing it, child classes may simply
-				/// set valid=false (or true) depending on the result of their
-				/// implementations of RestoreReference();
 	virtual bool IsValid() {return valid;}
+				/// Use this function to set the valid state (child class 
+				/// Children classes must use this function depending on 
+				/// the result of their implementations of RestoreReference();
+	virtual void SetValid(bool mon) {valid = mon; UpdateActiveFlag();}
 
 				/// Tells if the constraint is currently turned on or off by the user.
 	virtual bool IsDisabled() {return disabled;}
 				/// User can use this to enable/disable the constraint as desired
-	virtual void SetDisabled(bool mon) {disabled = mon;}
+	virtual void SetDisabled(bool mon) {disabled = mon; UpdateActiveFlag();}
 
 				/// Tells if the constraint is redundant or singular.
 	virtual bool IsRedundant() {return redundant;}
 				/// Solvers may use the following to mark a constraint as redundant
-	virtual void SetRedundant(bool mon) {redundant = mon;}
+	virtual void SetRedundant(bool mon) {redundant = mon; UpdateActiveFlag();}
 
 				/// Tells if the constraint is broken, for eccess of pulling/pushing.
 	virtual bool IsBroken() {return broken;}
 				/// 3rd party software can set the 'broken' status via this method
 				/// (by default, constraints never break);
-	virtual void SetBroken(bool mon) {broken = mon;}
+	virtual void SetBroken(bool mon) {broken = mon; UpdateActiveFlag();}
 
 				/// Tells if the constraint is unilateral (typical complementarity constraint).
 	virtual bool IsUnilateral() {return mode==CONSTRAINT_UNILATERAL;}
@@ -188,21 +198,24 @@ public:
 	eChConstraintMode GetMode() {return mode;}
 
 				/// Sets the mode of the constraint: free / lock / complementary
-	void SetMode(eChConstraintMode mmode) {mode = mmode;}
+	void SetMode(eChConstraintMode mmode) {mode = mmode; UpdateActiveFlag();}
 
 
 				/// A VERY IMPORTANT function!
 				/// Tells if the constraint is currently active, in general,
 				/// that is tells if it must be included into the system solver or not.
 				/// This method cumulates the effect of all flags (so a constraint may
-				/// be not active either because disabled, or broken, etc)
+				/// be not active either because 'disabled', or 'broken', o 'redundant', or not 'valid'.)
 	virtual bool IsActive()
 					{
+						/*
 						return ( valid &&
 								!disabled &&
 								!redundant &&
 								!broken &&
 								mode!=(CONSTRAINT_FREE));
+								*/ // Optimized: booleans precomputed and cached in _active.
+						return _active;
 					}
 
 
@@ -343,6 +356,11 @@ public:
 				/// solver (for example, constraint with two jacobians of 6 elements each). 
 	virtual bool IsGPUcompatible() {return false;}
 
+				/// Set offset in global q vector (set automatically by ChLcpSystemDescriptor)
+	void SetOffset(int moff) {offset = moff;}
+				/// Get offset in global q vector 
+	int GetOffset() {return offset;}
+
 			//
 			// STREAMING
 			//
@@ -355,6 +373,16 @@ public:
 					/// binary archive (ex: a file).
 	virtual void StreamOUT(ChStreamOutBinary& mstream);
 
+
+private: 
+	void UpdateActiveFlag()
+				{
+					this->_active = ( valid &&
+								!disabled &&
+								!redundant &&
+								!broken &&
+								mode!=(CONSTRAINT_FREE));
+				}
 };
 
 
