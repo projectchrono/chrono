@@ -139,6 +139,11 @@ int ChMPI::Wait(ChMPIrequest* mreq, ChMPIstatus* mstatus)
 	return MPI_Wait( (MPI_Request*) mreq->mpireq,  (MPI_Status*) mstatus->mpistat);
 }
 
+double ChMPI::Wtime()
+{
+	return MPI_Wtime();
+}
+
 bool ChMPI::Test(ChMPIrequest* mreq, ChMPIstatus* mstatus)
 {
 	int flag;

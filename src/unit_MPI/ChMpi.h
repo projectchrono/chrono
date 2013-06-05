@@ -94,6 +94,9 @@ public:
 
 	/// Wait until a request is complete (for nonblocking send or receive).
 	static int Wait(ChMPIrequest* mreq, ChMPIstatus* mstatus);
+	
+	/// Return an elapsed time
+	static double Wtime();
 
 	/// Test if a request is complete (for nonblocking send or receive).
 	static bool Test(ChMPIrequest* mreq, ChMPIstatus* mstatus);
