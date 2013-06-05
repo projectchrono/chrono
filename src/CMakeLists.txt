@@ -194,7 +194,7 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     SET (CH_LINKERFLAG_SHARED "-lpthread -fpermissive")		
     SET (CPACK_SYSTEM_NAME "OSX-x64")
 ENDIF()
-message(${CMAKE_SYSTEM_NAME})
+
 #-----------------------------------------------------------------------------
 # Some global  C++ definitions and includes that are used 
 # everywhere for all targets and all configurations.
