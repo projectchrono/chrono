@@ -5,8 +5,7 @@
 //
 //   ChFem.h
 //
-//   Finite elements definition with class for
-//   mesh of f.e. too.
+//   Finite elements
 //
 //   HEADER file for CHRONO,
 //	 Multibody dynamics engine
@@ -28,6 +27,7 @@
 #include "core/ChMath.h"
 #include "physics/ChIndexedNodes.h"
 #include "lcp/ChLcpKstiffnessGeneric.h"
+#include "lcp/ChLcpVariablesNode.h"
 
 
 namespace chrono
@@ -36,21 +36,161 @@ namespace fem
 {
 
 
-/// Class for a generic finite element node 
-/// in 3D space, with x,y,z displacement 
-///  ***NEW, EXPERIMENTAL ***
 
-class ChApi ChNodeFEM : public chrono::ChNodeBase
+/// Base class for a generic finite element node
+/// that can be stored in ChMesh containers.
+/// Children classes must implement specialized versions.
+
+class ChApi ChNodeFEMbase
 {
 public:
-	Vector X0;		///< reference position
+				/// Access the 'LCP variables' of the node. To be implemented in children classes.
+	virtual ChLcpVariables& GetVariables() =0;
 
-	void Relax () { X0 = this->pos; this->pos_dt=VNULL; this->pos_dtdt=VNULL; }
+				/// Set the rest position as the actual position.
+	virtual void Relax () =0;
+
+				/// Get the number of degrees of freedom
+	int Get_ndof() { return this->GetVariables().Get_ndof();}
+
+
+			//
+			// Functions for interfacing to the LCP solver
+			//
+
+				/// Sets the 'fb' part (the known term) of the encapsulated ChLcpVariables to zero.
+	virtual void VariablesFbReset() { GetVariables().Get_fb().FillElem(0.0); }
+
+				/// Adds the current forces (applied to node) into the
+				/// encapsulated ChLcpVariables, in the 'fb' part: qf+=forces*factor
+	virtual void VariablesFbLoadForces(double factor=1.) {};
+
+				/// Initialize the 'qb' part of the ChLcpVariables with the 
+				/// current value of speeds. 
+	virtual void VariablesQbLoadSpeed() {};
+
+				/// Fetches the item speed (ex. linear velocity, in xyz nodes) from the
+				/// 'qb' part of the ChLcpVariables and sets it as the current item speed.
+				/// If 'step' is not 0, also should compute the approximate acceleration of
+				/// the item using backward differences, that is  accel=(new_speed-old_speed)/step.
+				/// Mostly used after the LCP provided the solution in ChLcpVariables.
+	virtual void VariablesQbSetSpeed(double step=0.) {};
+
+				/// Increment node positions by the 'qb' part of the ChLcpVariables,
+				/// multiplied by a 'step' factor.
+				///     pos+=qb*step
+				/// If qb is a speed, this behaves like a single step of 1-st order
+				/// numerical integration (Eulero integration).
+	virtual void VariablesQbIncrementPosition(double step) {};
+
 };
 
 
-/// Base class for a generic finete element, with stiffness
-/// matrix, local coordinate system, mass, etc. 
+
+/// Class for a generic finite element node 
+/// in 3D space, with x,y,z displacement. This is the typical
+/// node that can be used for tetahedrons, etc.
+
+class ChApi ChNodeFEMxyz : public ChNodeFEMbase, 
+						   public chrono::ChNodeBase
+{
+private:
+	ChLcpVariablesNode	variables; /// 3D node variables, with x,y,z
+
+	ChVector<> X0;		///< reference position
+	ChVector<> Force;	///< applied force
+	
+	double mass;
+
+public:
+
+	ChNodeFEMxyz(ChVector<> initial_pos = VNULL)
+					{
+						X0 = initial_pos;
+						Force = VNULL;
+					}
+
+	~ChNodeFEMxyz() {};
+
+
+	virtual ChLcpVariables& GetVariables() 
+					{
+						return this->variables; 
+					} 
+	virtual ChLcpVariables& Variables()
+					{
+						return this->variables; 
+					} 
+
+	virtual void Relax () 
+					{
+						X0 = this->pos; this->pos_dt=VNULL; this->pos_dtdt=VNULL; 
+					}
+
+			//
+			// Functions for interfacing to the LCP solver
+			//
+
+	virtual void VariablesFbLoadForces(double factor=1.) 
+					{ 
+						this->variables.Get_fb().PasteSumVector( this->Force * factor ,0,0);
+					};
+
+	virtual void VariablesQbLoadSpeed() 
+					{ 
+						this->variables.Get_qb().PasteVector(this->pos_dt,0,0); 
+					};
+
+	virtual void VariablesQbSetSpeed(double step=0.) 
+					{
+						ChVector<> old_dt = this->pos_dt;
+						this->SetPos_dt( this->variables.Get_qb().ClipVector(0,0) );
+						if (step)
+						{
+							this->SetPos_dtdt( (this->pos_dt - old_dt)  / step);
+						}
+					};
+
+	virtual void VariablesQbIncrementPosition(double step) 
+					{
+						ChVector<> newspeed = variables.Get_qb().ClipVector(0,0);
+
+						// ADVANCE POSITION: pos' = pos + dt * vel
+						this->SetPos( this->GetPos() + newspeed * step);
+					};
+
+			//
+			// Custom properties functions
+			//
+				/// Set mass of the node.
+	virtual double GetMass() const {return mass;}
+				/// Set mass of the node.
+	virtual void SetMass(double mm) {mass=mm;}
+
+
+				/// Set the initial (reference) position
+	virtual void SetX0(ChVector<> mx) { X0 = mx;}
+				/// Get the initial (reference) position
+	virtual ChVector<> GetX0 () {return X0;}
+
+				/// Set the 3d applied force, in absolute reference
+	virtual void SetForce(ChVector<> mf) { Force = mf;}
+				/// Get the 3d applied force, in absolute reference
+	virtual ChVector<> GetForce () {return Force;}
+
+};
+
+
+
+
+
+
+
+
+
+
+/// Base class for all finite elements, that can be
+/// used in the ChMesh physics item.
 ///  ***NEW, EXPERIMENTAL ***
 
 class ChApi ChElementBase
@@ -62,8 +202,37 @@ public:
 	ChElementBase() {};
 	virtual ~ChElementBase() {};
 
+	virtual int GetNcoords() =0;
 	virtual int GetNnodes() =0;
-	virtual ChNodeFEM* GetNodeN(int n) =0;
+	virtual ChNodeFEMbase* GetNodeN(int n) =0;
+	
+
+			//
+			// FEM functions
+			//
+
+				/// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
+				/// superimposes global damping matrix R, scaled by Rfactor. Corotational
+				/// elements can take the local Kl & Rl matrices and rotate them.
+				/// ChLDREN CLASSES MUST IMPLEMENT THIS!!!
+	virtual void ComputeKRmatricesGlobal (ChMatrix<>& H, double Kfactor, double Rfactor=0)  = 0;
+
+				/// Sets Hl as the local stiffness matrix K, scaled  by Kfactor. Optionally, also
+				/// superimposes local damping matrix R, scaled by Rfactor.
+				/// This is usually called only once in the simulation. 
+				/// ChLDREN CLASSES MUST IMPLEMENT THIS!!!
+	virtual void ComputeKRmatricesLocal (ChMatrix<>& Hl, double Kfactor, double Rfactor=0) = 0;
+
+				/// Computes the internal forces (ex. the actual position of
+				/// nodes is not in relaxed reference position) and set values
+				/// in the Fi vector, whith n.rows = n.of dof of element.
+				/// ChLDREN CLASSES MUST IMPLEMENT THIS!!!
+	virtual void ComputeInternalForces	(ChMatrixDynamic<>& Fi) = 0;
+
+				/// Setup (optional). Precompute matrices that do not change during the 
+				/// simulation, such as the local stiffness of each element, if needed, etc.
+	virtual void Setup() {};
+
 
 			//
 			// Functions for interfacing to the LCP solver
@@ -79,37 +248,31 @@ public:
 				/// values Kfactor and Rfactor. 
 	virtual void KmatricesLoad(double Kfactor, double Rfactor) =0;
 
+				/// Adds the internal forces, expressed as nodal forces, into the
+				/// encapsulated ChLcpVariables, in the 'fb' part: qf+=forces*factor
+	virtual void VariablesFbLoadInternalForces(double factor=1.) {};
+
+
 };
 
 
+/// Class for all elements whose stiffness matrix can be seen
+/// as a NxN block-matrix to be splitted between N nodes.
+/// Helps reducing the complexity of inherited FEM elements because
+/// it implements some bookkeeping for the interface with LCP solver.
 
-/// Simple finite element with two nodes and a spring between
-/// the two nodes.
-///  ***NEW, EXPERIMENTAL ***
-
-class ChApi ChElementSpring : public ChElementBase
+class ChApi ChElementGeneric : public ChElementBase
 {
 protected:
-	std::vector<ChNodeFEM*> nodes;
 	ChLcpKstiffnessGeneric Kmatr;
-	double spring_k;
+
 public:
 
-	ChElementSpring() { spring_k = 1.0; nodes.resize(2);};
-	virtual ~ChElementSpring() {};
+	ChElementGeneric() {};
+	virtual ~ChElementGeneric() {};
 
-	virtual int GetNnodes() {return 2;};
-	virtual ChNodeFEM* GetNodeN(int n) {return nodes[n];};
-
-	virtual void SetNodes(ChNodeFEM* nodeA, ChNodeFEM* nodeB) 
-				{
-					nodes[0]=nodeA; 
-					nodes[1]=nodeB;
-					std::vector<ChLcpVariables*> mvars;
-					mvars.push_back(&nodes[0]->Variables());
-					mvars.push_back(&nodes[1]->Variables());
-					Kmatr.SetVariables(mvars);
-				}
+				/// Access the proxy to stiffness, for sparse LCP solver
+	ChLcpKstiffnessGeneric& Kstiffness() {return Kmatr;}
 
 
 			//
@@ -124,17 +287,149 @@ public:
 					mdescriptor.InsertKstiffness(&Kmatr);
 				}
 
-
 				/// Adds the current stiffness K and damping R matrices in encapsulated
 				/// ChLcpKstiffness item(s), if any. The K and R matrices are load with scaling 
 				/// values Kfactor and Rfactor. 
 	virtual void KmatricesLoad(double Kfactor, double Rfactor)
 				{
-					// compute stiffness matrix 
-					//Kmatr.Get_K()->SetElement( 				//***TO DO***
-					///....
+					this->ComputeKRmatricesGlobal(*this->Kmatr.Get_K(), Kfactor, Rfactor);
 				}
 
+				/// Adds the internal forces, expressed as nodal forces, into the
+				/// encapsulated ChLcpVariables, in the 'fb' part: qf+=forces*factor
+	virtual void VariablesFbLoadInternalForces(double factor=1.) 
+				{
+					// (This is a default (unoptimal) book keeping so that in children classes you can avoid 
+					// implementing this VariablesFbLoadInternalForces function, unless you need faster code)
+					ChMatrixDynamic<> mFi(this->GetNcoords(), 1);
+					this->ComputeInternalForces(mFi);
+					int stride = 0;
+					for (int in=0; in < this->GetNnodes(); in++)
+					{
+						int nodedofs = GetNodeN(in)->Get_ndof();
+						GetNodeN(in)->GetVariables().Get_fb().PasteSumClippedMatrix(&mFi, stride,0, nodedofs,1, 0,0);
+						stride += nodedofs;
+					}
+				};
+
+};
+
+
+/// Simple finite element with two nodes and a spring between
+/// the two nodes.
+///  ***NEW, EXPERIMENTAL ***
+
+class ChApi ChElementSpring : public ChElementGeneric
+{
+protected:
+	std::vector<ChNodeFEMxyz*> nodes;
+	double spring_k;
+	double damper_r;
+public:
+
+	ChElementSpring() { spring_k = 1.0; damper_r = 0.01; nodes.resize(2);};
+	virtual ~ChElementSpring() {};
+
+	virtual int GetNcoords() {return 6;}
+	virtual int GetNnodes()  {return 2;}
+	virtual ChNodeFEMbase* GetNodeN(int n) {return nodes[n];}
+	
+
+	virtual void SetNodes(ChNodeFEMxyz* nodeA, ChNodeFEMxyz* nodeB) 
+				{
+					nodes[0]=nodeA; 
+					nodes[1]=nodeB;
+					std::vector<ChLcpVariables*> mvars;
+					mvars.push_back(&nodes[0]->Variables());
+					mvars.push_back(&nodes[1]->Variables());
+					Kmatr.SetVariables(mvars);
+				}
+
+			//
+			// FEM functions
+			//
+
+				/// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
+				/// superimposes global damping matrix R, scaled by Rfactor.
+				/// (For the spring matrix there is no need to corotate local matrices: we already know a closed form expression.)
+	virtual void ComputeKRmatricesGlobal	(ChMatrix<>& H, double Kfactor, double Rfactor=0) 
+				{
+					assert((H->GetRows() == 6) && (H->GetColumns()==6));
+
+					// compute stiffness matrix (this is already the explicit
+					// formulation of the corotational stiffness matrix in 3D)
+					
+					ChVector<> dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
+					ChMatrixDynamic<> dircolumn; 
+					dircolumn.PasteVector(dir, 0,0);
+
+					ChMatrix33<> submatr;
+					submatr.MatrTMultiply(dircolumn, dircolumn);
+
+						// note that stiffness and damping matrices are the same, so join stuff here
+					double commonfactor = this->spring_k * Kfactor + 
+										  this->damper_r * Rfactor ;
+					submatr.MatrScale(commonfactor);
+					H.PasteMatrix(&submatr,0,0);
+					H.PasteMatrix(&submatr,3,3);
+					submatr.MatrNeg();
+					H.PasteMatrix(&submatr,0,3);
+					H.PasteMatrix(&submatr,3,0);
+				}
+
+				/// Sets Hl as the local stiffness matrix K, scaled  by Kfactor. Optionally, also
+				/// superimposes local damping matrix R, scaled by Rfactor.
+				/// This is usually called only once in the simulation. 
+	virtual void ComputeKRmatricesLocal (ChMatrix<>& Hl, double Kfactor, double Rfactor=0)
+				{
+					assert((H->GetRows() == 6) && (H->GetColumns() == 6));
+
+					// to keep things short, here local K is as global K (anyway, only global K is used in simulations)
+					ComputeKRmatricesLocal (Hl, Kfactor, Rfactor);
+				}
+
+				/// Computes the internal forces (ex. the actual position of
+				/// nodes is not in relaxed reference position) and set values
+				/// in the Fi vector.
+	virtual void ComputeInternalForces	(ChMatrixDynamic<>& Fi)
+				{
+					assert((Fi->GetRows() == 6) && (Fi->GetColumns()==1));
+
+					ChVector<> dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
+					double L_ref = (nodes[1]->GetX0()  - nodes[0]->GetX0() ).Length();
+					double L     = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
+					double internal_Kforce_local = this->spring_k * (L - L_ref); 
+					double internal_Rforce_local = this->spring_k * (L - L_ref);
+					double internal_force_local = internal_Kforce_local + internal_Rforce_local;
+					ChMatrixDynamic<> displacements(6,1);
+					ChVector<> int_forceA =  dir * internal_force_local;
+					ChVector<> int_forceB = -dir * internal_force_local;
+					Fi.PasteVector(int_forceA, 0,0);
+					Fi.PasteVector(int_forceB, 3,0);
+				}
+
+				/// Setup. Precompute matrices that do not change during the 
+				/// simulation, such as the local tangent stiffness Kl of each element, if needed, etc.
+				/// (**Not needed for the spring element because global K is computed on-the-fly in ComputeAddKRmatricesGlobal() )
+	virtual void Setup() {}
+
+
+			//
+			// Custom properties functions
+			//
+
+				/// Set the stiffness of the spring that connects the two nodes (N/m)
+	void   SetSpringK(double ms) { spring_k = ms;}
+	double GetSpringK() {return spring_k;}
+
+				/// Set the damping of the damper that connects the two nodes (Ns/M)
+	void   SetDamperR(double md) { damper_r = md;}
+	double GetDamperR() {return damper_r;}
+
+
+			//
+			// Functions for interfacing to the LCP solver 
+			//            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
 
 };
 
@@ -143,7 +438,7 @@ public:
 
 
 ////////////////////////////////////////////
-////////////////////////////////////////////
+////////////////////////////////////////////   OBSOLETE STUFF!!!!   OBSOLETE STUFF!!!!   OBSOLETE STUFF!!!!   OBSOLETE STUFF!!!!   OBSOLETE STUFF!!!! 
 
 
 /// Class for a generic finite element node 
