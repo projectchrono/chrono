@@ -163,7 +163,7 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm (
 	// Count active variables, by scanning through all variable blocks,
 	// and set offsets
 
-	int n_q = this->CountActiveVariables();
+	n_q = this->CountActiveVariables();
 
 	
 	// Reset and resize (if needed) auxiliary vectors
@@ -254,7 +254,7 @@ int ChLcpSystemDescriptor::BuildFbVector(
 								ChMatrix<>& Fvector	///< matrix which will contain the entire vector of 'f'
 						)
 {
-	int n_q=CountActiveVariables();
+	n_q=CountActiveVariables();
 	Fvector.Reset(n_q,1);		// fast! Reset() method does not realloc if size doesn't change
 
 	// Fills the 'f' vector
@@ -300,8 +300,8 @@ int ChLcpSystemDescriptor::BuildDiVector(
 								ChMatrix<>& Dvector	
 						)
 {
-	int n_q=CountActiveVariables();
-	int n_c=CountActiveConstraints();
+	n_q=CountActiveVariables();
+	n_c=CountActiveConstraints();
 
 	Dvector.Reset(n_q+n_c,1);		// fast! Reset() method does not realloc if size doesn't change
 
@@ -331,8 +331,8 @@ int  ChLcpSystemDescriptor::BuildDiagonalVector(
 								ChMatrix<>& Diagonal_vect  	///< matrix which will contain the entire vector of terms on M and E diagonal
 							)
 {
-	int n_q=CountActiveVariables();
-	int n_c=CountActiveConstraints();
+	n_q=CountActiveVariables();
+	n_c=CountActiveConstraints();
 
 	Diagonal_vect.Reset(n_q+n_c,1);		// fast! Reset() method does not realloc if size doesn't change
 
@@ -374,7 +374,7 @@ int ChLcpSystemDescriptor::FromVariablesToVector(
 	// Count active variables and resize vector if necessary
 	if (resize_vector)
 	{
-		int n_q= CountActiveVariables();
+		n_q= CountActiveVariables();
 		mvector.Resize(n_q, 1);
 	}
 
@@ -398,7 +398,7 @@ int ChLcpSystemDescriptor::FromVectorToVariables(
 								)
 {
 	#ifdef CH_DEBUG
-		int n_q= CountActiveVariables();
+		n_q= CountActiveVariables();
 		assert(n_q == mvector.GetRows());
 		assert(mvector.GetColumns()==1);
 	#endif
@@ -449,8 +449,9 @@ int ChLcpSystemDescriptor::FromVectorToConstraints(
 								ChMatrix<>& mvector	
 								)
 {
+	n_c=CountActiveConstraints();
+
 	#ifdef CH_DEBUG
-		int n_c=CountActiveConstraints();
 		assert(n_c == mvector.GetRows());
 		assert(mvector.GetColumns()==1);
 	#endif
@@ -475,10 +476,11 @@ int ChLcpSystemDescriptor::FromUnknownsToVector(
 								)
 {
 	// Count active variables & constraints and resize vector if necessary
+	n_q= CountActiveVariables();
+	n_c= CountActiveConstraints();
+
 	if (resize_vector)
 	{
-		int n_q= CountActiveVariables();
-		int n_c= CountActiveConstraints();
 		mvector.Resize(n_q+n_c, 1);
 	}
 
@@ -510,9 +512,10 @@ int ChLcpSystemDescriptor::FromVectorToUnknowns(
 								ChMatrix<>& mvector	
 								)
 {
+	n_q= CountActiveVariables();
+	n_c= CountActiveVariables();
+
 	#ifdef CH_DEBUG
-		int n_q= CountActiveVariables();
-		int n_c= CountActiveVariables();
 		assert((n_q+n_c) == mvector.GetRows());
 		assert(mvector.GetColumns()==1);
 	#endif
@@ -521,10 +524,10 @@ int ChLcpSystemDescriptor::FromVectorToUnknowns(
 	#pragma omp parallel for num_threads(this->num_threads)
 	for (int iv = 0; iv< (int)vvariables.size(); iv++)
 	{
-		int rank  = CHOMPfunctions::GetThreadNum();
-		int count = CHOMPfunctions::GetNumThreads();
-		GetLog() << "      FromVectorToUnknowns: thread " << rank << " on " << count << "\n";
-		GetLog().Flush();
+		//int rank  = CHOMPfunctions::GetThreadNum();
+		//int count = CHOMPfunctions::GetNumThreads();
+		//GetLog() << "      FromVectorToUnknowns: thread " << rank << " on " << count << "\n";
+		//GetLog().Flush();
 
 		if (vvariables[iv]->IsActive())
 		{
@@ -647,8 +650,8 @@ void ChLcpSystemDescriptor::SystemProduct(
 								// std::vector<bool>* enabled=0 ///< optional: vector of enable flags, one per scalar constraint. true=enable, false=disable (skip)
 								)
 {
-	int n_q = this->CountActiveVariables();
-	int n_c = this->CountActiveConstraints();
+	n_q = this->CountActiveVariables();
+	n_c = this->CountActiveConstraints();
 
 	ChMatrix<>* x_ql = 0;
 
@@ -739,7 +742,7 @@ void ChLcpSystemDescriptor::UnknownsProject(
 								ChMatrix<>&	mx		///< matrix which contains the entire vector of unknowns x={q,-l} (only the l part is projected)
 								)
 {
-	int n_q= this->CountActiveVariables();
+	n_q= this->CountActiveVariables();
 
 	// vector -> constraints
 	// Fetch from the second part of vector (x.l = -l), with flipped sign!

@@ -455,14 +455,14 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 	sysd.SystemProduct(mr, &mx);				// 1)  r = Z*x ...        #### MATR.MULTIPLICATION!!!### can be avoided if no warm starting!
 	mr.MatrNeg();								// 2)  r =-Z*x
 	mr.MatrInc(md);								// 3)  r =-Z*x+d
-
+/*
 	// r = (project_orthogonal(x+diff*r, fric) - x)/diff;
 	mr.MatrScale(this->grad_diffstep);
 	mr.MatrInc(mx);
 	sysd.UnknownsProject(mr);					// p = P(x+diff*p) ...
 	mr.MatrDec(mx);
 	mr.MatrScale(1.0/this->grad_diffstep);		// p = (P(x+diff*p)-x)/diff
-
+*/
 	// p = Mi * r;
 	mp = mr;  
 	if (do_preconditioning)
@@ -526,14 +526,14 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 		sysd.SystemProduct(mr, &mx);				// 1)  r = Z*x ...        #### MATR.MULTIPLICATION!!!###
 		mr.MatrNeg();								// 2)  r =-Z*x
 		mr.MatrInc(md);								// 3)  r =-Z*x+d
-	
+/*	
 		// r = (project_orthogonal(x+diff*r, fric) - x)/diff; 
 		mr.MatrScale(this->grad_diffstep);
 		mr.MatrInc(mx);
 		sysd.UnknownsProject(mr);				// r = P(x+diff*r) ...
 		mr.MatrDec(mx);
 		mr.MatrScale(1.0/this->grad_diffstep);	// r = (P(x+diff*r)-x)/diff 
-		
+*/	
 		this->tot_iterations++;
 
 		// Terminate iteration when the projected r is small, if (norm(r,2) <= max(rel_tol_d,abs_tol))
