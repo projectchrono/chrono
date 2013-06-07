@@ -129,8 +129,54 @@ private:
 
 #if (defined(__linux__)||defined(__APPLE__))
 
+
 #include <pthread.h>
 #include <semaphore.h>
+//pthread_spin functions are not defined on APPLE
+//this is a work around, no clue if it works. - Hammad
+#if defined(__APPLE__)
+#include <cerrno>
+typedef int pthread_spinlock_t;
+
+static inline int pthread_spin_init(pthread_spinlock_t *lock, int pshared) {
+	__asm__ __volatile__ ("" ::: "memory");
+	*lock = 0;
+	return 0;
+}
+
+static inline int pthread_spin_destroy(pthread_spinlock_t *lock) {
+	return 0;
+}
+
+static inline int pthread_spin_lock(pthread_spinlock_t *lock) {
+	while (1) {
+		int i;
+		for (i = 0; i < 10000; i++) {
+			if (__sync_bool_compare_and_swap(lock, 0, 1)) {
+				return 0;
+			}
+		}
+		sched_yield();
+	}
+}
+
+static inline int pthread_spin_trylock(pthread_spinlock_t *lock) {
+	if (__sync_bool_compare_and_swap(lock, 0, 1)) {
+		return 0;
+	}
+	return EBUSY;
+}
+
+static inline int pthread_spin_unlock(pthread_spinlock_t *lock) {
+	__asm__ __volatile__ ("" ::: "memory");
+	*lock = 0;
+	return 0;
+}
+
+
+
+#endif
+
 
 		/// Class that wraps a thread mutex, a locking mechanism to avoid,
 		/// for instance, multiple thread concurrent access to the same data.
