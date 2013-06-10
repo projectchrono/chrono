@@ -122,17 +122,17 @@ public:
 
 				/// Access the N-th node 
 	virtual ChNodeBase& GetNode(unsigned int n) =0;
-				
-				/// Resize the node cluster. Also clear the state of 
-				/// previously created particles, if any.
-	virtual void ResizeNnodes(int newsize) =0;
 
 				/// Add a new node to the particle cluster, passing a 
 				/// vector as initial position.
-	virtual void AddNode(ChVector<double> initial_state) =0;
+//	virtual void AddNode(ChVector<double> initial_state) =0;
+
+				/// Resize the node cluster. Also clear the state of 
+				/// previously created particles, if any.
+//	virtual void ResizeNnodes(int newsize) =0;
 
 				/// Number of coordinates of the node cluster
-	virtual int GetDOF  ()   {return 3*GetNnodes();} 
+//	virtual int GetDOF  ()   {return 3*GetNnodes();} 
 
 
 
