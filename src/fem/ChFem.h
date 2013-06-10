@@ -354,7 +354,7 @@ public:
 				/// (For the spring matrix there is no need to corotate local matrices: we already know a closed form expression.)
 	virtual void ComputeKRmatricesGlobal	(ChMatrix<>& H, double Kfactor, double Rfactor=0) 
 				{
-					assert((H->GetRows() == 6) && (H->GetColumns()==6));
+					assert((H.GetRows() == 6) && (H.GetColumns()==6));
 
 					// compute stiffness matrix (this is already the explicit
 					// formulation of the corotational stiffness matrix in 3D)
@@ -382,7 +382,7 @@ public:
 				/// This is usually called only once in the simulation. 
 	virtual void ComputeKRmatricesLocal (ChMatrix<>& Hl, double Kfactor, double Rfactor=0)
 				{
-					assert((H->GetRows() == 6) && (H->GetColumns() == 6));
+					assert((Hl.GetRows() == 6) && (Hl.GetColumns() == 6));
 
 					// to keep things short, here local K is as global K (anyway, only global K is used in simulations)
 					ComputeKRmatricesLocal (Hl, Kfactor, Rfactor);
@@ -393,7 +393,7 @@ public:
 				/// in the Fi vector.
 	virtual void ComputeInternalForces	(ChMatrixDynamic<>& Fi)
 				{
-					assert((Fi->GetRows() == 6) && (Fi->GetColumns()==1));
+					assert((Fi.GetRows() == 6) && (Fi.GetColumns()==1));
 
 					ChVector<> dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
 					double L_ref = (nodes[1]->GetX0()  - nodes[0]->GetX0() ).Length();

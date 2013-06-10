@@ -19,8 +19,10 @@
 
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
+#include "physics/ChNodeBody.h"
 #include "fem/ChFem.h"
 #include "fem/ChMesh.h"
+#include "fem/ChMatterMeshless.h"
 
 
 // Remember to use the namespace 'chrono' because all classes 
@@ -70,9 +72,30 @@ void test_1()
 	my_system.Add(my_mesh);
 
 
-	//***TO DO***
+	
+				// Create also a truss
+	ChSharedPtr<ChBody> truss(new ChBody);
+	truss->SetBodyFixed(true);
+	my_system.Add(truss);
 
+				// Create a constraint between a node and the truss
+	ChSharedPtr<ChNodeBody> constraintA(new ChNodeBody);
+
+ChSharedPtr<ChIndexedNodes> my_nodes = my_mesh; // cast shared ptr
+	
+ChSharedPtr<ChMatterMeshless> mymatter(new ChMatterMeshless);
+my_system.Add(mymatter);
+mymatter->AddNode(ChVector<>(1,1,1));
+//ChSharedPtr<ChIndexedNodes> my_nodes = mymatter; // cast shared ptr
+
+	constraintA->Initialize(my_nodes,		// node container
+							0,				// index of node in node container 
+							truss);			// body to be connected to
+							
+	my_system.Add(constraintA);
+	
 }
+
 
 
 
