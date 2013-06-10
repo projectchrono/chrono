@@ -114,7 +114,7 @@ public:
 				/// The attachment position is the actual position of the node (unless
 				/// otherwise defines, using the optional 'mattach' parameter).
 				/// Note, mnodes and mbody must belong to the same ChSystem. 
-	virtual int Initialize(ChSharedPtr<ChIndexedNodes>& mnodes, ///< nodes container
+	virtual int Initialize(ChSharedPtr<ChIndexedNodes> mnodes, ///< nodes container
 						   unsigned int mnode_index, ///< index of the node to join
 						   ChSharedPtr<ChBody>&  mbody,  ///< body to join 
 						   ChVector<>* mattach=0		 ///< optional: if not null, sets the attachment position in absolute coordinates 

@@ -63,7 +63,7 @@ void test_1()
 				// Create a mesh, that is a container for groups
 				// of elements and their referenced nodes.
 	ChSharedPtr<ChMesh> my_mesh(new ChMesh);
-
+	
 				// Remember to add nodes and elements to the mesh!
 	my_mesh->AddNode(mnodeA);
 	my_mesh->AddNode(mnodeB);
@@ -81,14 +81,8 @@ void test_1()
 				// Create a constraint between a node and the truss
 	ChSharedPtr<ChNodeBody> constraintA(new ChNodeBody);
 
-ChSharedPtr<ChIndexedNodes> my_nodes = my_mesh; // cast shared ptr
-	
-ChSharedPtr<ChMatterMeshless> mymatter(new ChMatterMeshless);
-my_system.Add(mymatter);
-mymatter->AddNode(ChVector<>(1,1,1));
-//ChSharedPtr<ChIndexedNodes> my_nodes = mymatter; // cast shared ptr
 
-	constraintA->Initialize(my_nodes,		// node container
+	constraintA->Initialize(my_mesh,		// node container
 							0,				// index of node in node container 
 							truss);			// body to be connected to
 							

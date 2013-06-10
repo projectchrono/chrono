@@ -41,47 +41,20 @@ namespace fem
 /// that can be stored in ChMesh containers.
 /// Children classes must implement specialized versions.
 
-class ChApi ChNodeFEMbase
+class ChApi ChNodeFEMbase  :  public chrono::ChNodeBase
 {
 public:
 				/// Access the 'LCP variables' of the node. To be implemented in children classes.
-	virtual ChLcpVariables& GetVariables() =0;
+	//virtual ChLcpVariables& GetVariables() =0;
 
 				/// Set the rest position as the actual position.
 	virtual void Relax () =0;
 
 				/// Get the number of degrees of freedom
-	int Get_ndof() { return this->GetVariables().Get_ndof();}
+	int Get_ndof() { return this->Variables().Get_ndof();}
 
 
-			//
-			// Functions for interfacing to the LCP solver
-			//
 
-				/// Sets the 'fb' part (the known term) of the encapsulated ChLcpVariables to zero.
-	virtual void VariablesFbReset() { GetVariables().Get_fb().FillElem(0.0); }
-
-				/// Adds the current forces (applied to node) into the
-				/// encapsulated ChLcpVariables, in the 'fb' part: qf+=forces*factor
-	virtual void VariablesFbLoadForces(double factor=1.) {};
-
-				/// Initialize the 'qb' part of the ChLcpVariables with the 
-				/// current value of speeds. 
-	virtual void VariablesQbLoadSpeed() {};
-
-				/// Fetches the item speed (ex. linear velocity, in xyz nodes) from the
-				/// 'qb' part of the ChLcpVariables and sets it as the current item speed.
-				/// If 'step' is not 0, also should compute the approximate acceleration of
-				/// the item using backward differences, that is  accel=(new_speed-old_speed)/step.
-				/// Mostly used after the LCP provided the solution in ChLcpVariables.
-	virtual void VariablesQbSetSpeed(double step=0.) {};
-
-				/// Increment node positions by the 'qb' part of the ChLcpVariables,
-				/// multiplied by a 'step' factor.
-				///     pos+=qb*step
-				/// If qb is a speed, this behaves like a single step of 1-st order
-				/// numerical integration (Eulero integration).
-	virtual void VariablesQbIncrementPosition(double step) {};
 
 };
 
@@ -91,8 +64,8 @@ public:
 /// in 3D space, with x,y,z displacement. This is the typical
 /// node that can be used for tetahedrons, etc.
 
-class ChApi ChNodeFEMxyz : public ChNodeFEMbase, 
-						   public chrono::ChNodeBase
+class ChApi ChNodeFEMxyz : public ChNodeFEMbase
+
 {
 private:
 	ChLcpVariablesNode	variables; /// 3D node variables, with x,y,z
@@ -113,10 +86,10 @@ public:
 	~ChNodeFEMxyz() {};
 
 
-	virtual ChLcpVariables& GetVariables() 
-					{
-						return this->variables; 
-					} 
+	//virtual ChLcpVariables& GetVariables() 
+	//				{
+	//					return this->variables; 
+	//				} 
 	virtual ChLcpVariables& Variables()
 					{
 						return this->variables; 
@@ -307,7 +280,7 @@ public:
 					for (int in=0; in < this->GetNnodes(); in++)
 					{
 						int nodedofs = GetNodeN(in)->Get_ndof();
-						GetNodeN(in)->GetVariables().Get_fb().PasteSumClippedMatrix(&mFi, stride,0, nodedofs,1, 0,0);
+						GetNodeN(in)->Variables().Get_fb().PasteSumClippedMatrix(&mFi, stride,0, nodedofs,1, 0,0);
 						stride += nodedofs;
 					}
 				};

@@ -238,7 +238,7 @@ int main(int argc, char* argv[])
 			{
 				for (unsigned int ip = 0; ip < myfluid->GetNnodes(); ip++)
 				{
-					ChNodeSPH* mnode = (ChNodeSPH*)&(myfluid->GetNode(ip));
+					ChNodeSPH* mnode = (ChNodeSPH*)(myfluid->GetNode(ip));
 					ChVector<> mv = mnode->GetPos();
 					float rad = (float)mnode->GetKernelRadius(); 
 					core::vector3df mpos((irr::f32)mv.x, (irr::f32)mv.y, (irr::f32)mv.z);

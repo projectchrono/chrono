@@ -32,7 +32,7 @@ class ChCollisionInfo
 {
 public:
 	ChCollisionModel* modelA; ///<  model A
-	ChCollisionModel* modelB; ///<  model A
+	ChCollisionModel* modelB; ///<  model B
 	ChVector<> vpA;			  ///<  coll.point on A, in abs coords
 	ChVector<> vpB;		      ///<  coll.point on B, in abs coords
 	ChVector<> vN; 		      ///<  coll.normal, respect to A, in abs coords

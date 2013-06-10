@@ -76,6 +76,35 @@ public:
 			// Access the 'LCP variables' of the node. To be implemented in children classes
 	virtual ChLcpVariables& Variables() =0; 
 
+				//
+			// Functions for interfacing to the LCP solver
+			//
+
+				/// Sets the 'fb' part (the known term) of the encapsulated ChLcpVariables to zero.
+	virtual void VariablesFbReset() { Variables().Get_fb().FillElem(0.0); }
+
+				/// Adds the current forces (applied to node) into the
+				/// encapsulated ChLcpVariables, in the 'fb' part: qf+=forces*factor
+	virtual void VariablesFbLoadForces(double factor=1.) {};
+
+				/// Initialize the 'qb' part of the ChLcpVariables with the 
+				/// current value of speeds. 
+	virtual void VariablesQbLoadSpeed() {};
+
+				/// Fetches the item speed (ex. linear velocity, in xyz nodes) from the
+				/// 'qb' part of the ChLcpVariables and sets it as the current item speed.
+				/// If 'step' is not 0, also should compute the approximate acceleration of
+				/// the item using backward differences, that is  accel=(new_speed-old_speed)/step.
+				/// Mostly used after the LCP provided the solution in ChLcpVariables.
+	virtual void VariablesQbSetSpeed(double step=0.) {};
+
+				/// Increment node positions by the 'qb' part of the ChLcpVariables,
+				/// multiplied by a 'step' factor.
+				///     pos+=qb*step
+				/// If qb is a speed, this behaves like a single step of 1-st order
+				/// numerical integration (Eulero integration).
+	virtual void VariablesQbIncrementPosition(double step) {};
+
 					//
 					// DATA
 					// 
@@ -121,7 +150,7 @@ public:
 	virtual unsigned int GetNnodes() =0;
 
 				/// Access the N-th node 
-	virtual ChNodeBase& GetNode(unsigned int n) =0;
+	virtual ChNodeBase* GetNode(unsigned int n) =0;
 
 				/// Add a new node to the particle cluster, passing a 
 				/// vector as initial position.
