@@ -45,7 +45,7 @@ void ChModelBulletNode::SyncPosition()
 {
 	assert(nodes);
 
-	ChNodeBase* ppointer = &nodes->GetNode(this->node_id);
+	ChNodeBase* ppointer = nodes->GetNode(this->node_id);
 	
 	assert(ppointer);
 	assert(nodes->GetSystem());

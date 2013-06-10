@@ -35,8 +35,7 @@ namespace fem
 /// Class which defines a mesh of finite elements of class ChFelem,
 /// between nodes of class  ChFnode.  ***NEW, EXPERIMENTAL ***
 
-class ChApi ChMesh : //public ChPhysicsItem , 
-					 public ChIndexedNodes
+class ChApi ChMesh : public ChIndexedNodes
 {
 private:
 
@@ -58,9 +57,9 @@ public:
 	void ClearElements ();
 	
 				/// Access the N-th node 
-	virtual ChNodeBase& GetNode(unsigned int n) {return *((ChNodeBase*)vnodes[n]);};
+	virtual ChNodeBase* GetNode(unsigned int n) {return (ChNodeBase*)(vnodes[n]);};
 				/// Access the N-th element 
-	virtual ChElementBase& GetElement(unsigned int n) {return *velements[n];};
+	virtual ChElementBase* GetElement(unsigned int n) {return velements[n];};
 
 	unsigned int GetNnodes () {return vnodes.size();}
 	unsigned int GetNelements () {return velements.size();}

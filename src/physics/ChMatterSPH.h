@@ -200,11 +200,11 @@ public:
 	  		// FUNCTIONS
 			//
 
-				/// Get the number of nodes
+			 	/// Get the number of nodes
 	unsigned int GetNnodes() {return nodes.size();}
 
 				/// Access the N-th node 
-	ChNodeBase& GetNode(unsigned int n) { assert(n<nodes.size()); return *nodes[n];}
+	ChNodeBase* GetNode(unsigned int n) { assert(n<nodes.size()); return nodes[n];}
 				
 				/// Resize the node cluster. Also clear the state of 
 				/// previously created particles, if any.

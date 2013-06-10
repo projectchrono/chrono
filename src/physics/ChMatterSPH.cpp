@@ -285,7 +285,7 @@ void ChMatterSPH::FillBox (const ChVector<> size,
 
 	for (unsigned int ip = 0; ip < this->GetNnodes(); ip++)
 	{
-		ChNodeSPH* mnode = (ChNodeSPH*)&(this->GetNode(ip));
+		ChNodeSPH* mnode = (ChNodeSPH*)(this->GetNode(ip));
 		mnode->SetKernelRadius(kernelrad);
 		mnode->SetCollisionRadius(spacing*0.1); 
 		mnode->SetMass(nodemass);

@@ -66,7 +66,7 @@ void ChNodeBody::Copy(ChNodeBody* source)
 }
 
 
-int ChNodeBody::Initialize(ChSharedPtr<ChIndexedNodes>& mnodes, ///< nodes container
+int ChNodeBody::Initialize(ChSharedPtr<ChIndexedNodes> mnodes, ///< nodes container
 						   unsigned int mnode_index, ///< index of the node to join
 						   ChSharedPtr<ChBody>&  mbody,   ///< body to join 
 						   ChVector<>* mattach 	
@@ -81,10 +81,10 @@ int ChNodeBody::Initialize(ChSharedPtr<ChIndexedNodes>& mnodes, ///< nodes conta
 	this->node_index = mnode_index;
 	this->body = mm2;
 
-	this->constraint1.SetVariables(&(mm1->GetNode(node_index).Variables()), &mm2->Variables());
-	this->constraint2.SetVariables(&(mm1->GetNode(node_index).Variables()), &mm2->Variables());
-	this->constraint3.SetVariables(&(mm1->GetNode(node_index).Variables()), &mm2->Variables());
-
+	this->constraint1.SetVariables(&(mm1->GetNode(node_index)->Variables()), &mm2->Variables());
+	this->constraint2.SetVariables(&(mm1->GetNode(node_index)->Variables()), &mm2->Variables());
+	this->constraint3.SetVariables(&(mm1->GetNode(node_index)->Variables()), &mm2->Variables());
+/*
 	this->SetSystem(this->body->GetSystem());
 
 	if (mattach)
@@ -96,6 +96,7 @@ int ChNodeBody::Initialize(ChSharedPtr<ChIndexedNodes>& mnodes, ///< nodes conta
 		Vector temp=nodes->GetNode(node_index).GetPos();
 		this->attach_position = body->Point_World2Body(&temp);
 	}
+*/
 	return true;
 }
 
@@ -137,7 +138,7 @@ void ChNodeBody::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
 	//if (!this->IsActive())
 	//	return;
 
-	ChVector<> res = this->nodes->GetNode(this->node_index).GetPos() - this->body->Point_Body2World(&this->attach_position) ; 
+	ChVector<> res = this->nodes->GetNode(this->node_index)->GetPos() - this->body->Point_Body2World(&this->attach_position) ; 
 
 	this->constraint1.Set_b_i(constraint1.Get_b_i() +  factor * res.x);
 	this->constraint2.Set_b_i(constraint2.Get_b_i() +  factor * res.y);

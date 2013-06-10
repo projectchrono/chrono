@@ -277,7 +277,7 @@ void ChMatterMeshless::FillBox (const ChVector<> size,
 
 	for (unsigned int ip = 0; ip < this->GetNnodes(); ip++)
 	{
-		ChNodeMeshless* mnode = (ChNodeMeshless*)&(this->GetNode(ip));
+		ChNodeMeshless* mnode = (ChNodeMeshless*)(this->GetNode(ip));
 		mnode->SetKernelRadius(kernelrad);
 		mnode->SetCollisionRadius(spacing*0.1); 
 		mnode->SetMass(nodemass);
