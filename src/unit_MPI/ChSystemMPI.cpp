@@ -100,6 +100,7 @@ void ChSystemMPI::LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor)
 	{
 		PHpointer->InjectVariables(mdescriptor);
 		PHpointer->InjectConstraints(mdescriptor);
+		PHpointer->InjectKmatrices(mdescriptor);
 		HIER_OTHERPHYSICS_NEXT
 	}
 
