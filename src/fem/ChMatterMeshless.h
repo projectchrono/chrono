@@ -46,7 +46,7 @@ using namespace collision;
 
 /// Class for a single node in the meshless FEM  cluster
 
-class ChApi ChNodeMeshless : public ChNodeBase  
+class ChApi ChNodeMeshless : public ChNodeXYZ  
 {
 public:
 	ChNodeMeshless();

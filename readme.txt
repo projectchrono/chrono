@@ -7,6 +7,8 @@
 Release 1.8.0
 xx-xx-xxxx
 
+- Removed obsolete code in ChObject (old intrusive list members and data)
+
 - Support for stiffness blocks in LCP/CCP/VIs/linear systems. For
   instance, this will foster the development of FEM functionalities.
   See files source/lcp/ChLcpKstiffness.h and similars.

@@ -189,23 +189,23 @@ ChFMesh::~ChFMesh()
 
 void ChFMesh::Free_elements ()
 {
-	if (elem_list != NULL) { KillList ((ChObj**)&elem_list);}
+// OLD LIST!!!	if (elem_list != NULL) { KillList ((ChObj**)&elem_list);}
 }
 
 void ChFMesh::Free_nodes ()
 {
-	if (node_list != NULL) { KillList ((ChObj**)&node_list);}
+// OLD LIST!!!	if (node_list != NULL) { KillList ((ChObj**)&node_list);}
 }
 
 void ChFMesh::Add_node (ChFnode* m_node)
 {
 	// queue a node into nodelist;
-	m_node->AddToList ((ChObj**) &node_list);
+// OLD LIST!!!	m_node->AddToList ((ChObj**) &node_list);
 }
 
 void ChFMesh::Add_element (ChFelem* m_elem)
 {
-	m_elem->AddToList ((ChObj**) &elem_list);
+// OLD LIST!!!	m_elem->AddToList ((ChObj**) &elem_list);
 }
 
 
@@ -254,8 +254,8 @@ void ChFMesh::Setup ()
 	n_coords = 0;
 
 	ChFnode* Npointer = node_list;
-	while (Npointer != NULL)
-	{
+//	while (Npointer != NULL)   OLD LIST!!
+//	{ 
 			//    - count the nodes
 		n_nodes ++;
 			//    - count the degrees of freedom 
@@ -264,12 +264,12 @@ void ChFMesh::Setup ()
 			//    - "relaxes" the structure by setting all X0 = 0, and null speeds
 		Npointer->Relax();
 
-		Npointer = (ChFnode*) Npointer->GetNext();
-	}
+//		Npointer = (ChFnode*) Npointer->GetNext();
+//	}
 
 	ChFelem* Epointer = elem_list;
-	while (Epointer != NULL)
-	{
+//	while (Epointer != NULL)
+//	{
 			//    - count the elements
 		n_elements ++;
 
@@ -285,8 +285,8 @@ void ChFMesh::Setup ()
 			//    - sets the [Kl] of each element
 		Epointer->Compute_Kl();
 
-		Epointer = (ChFelem*) Epointer->GetNext();
-	}
+// OLD LIST!!!		Epointer = (ChFelem*) Epointer->GetNext();
+//	}
 
 }
 
@@ -311,13 +311,13 @@ void ChFMesh::UpdateTime (double m_time)
 void ChFMesh::Update_A ()
 {
 	ChFelem* Epointer = elem_list;
-	while (Epointer != NULL)
-	{
+//	while (Epointer != NULL)   OLD LIST!!
+//	{
 			//    - update [A] for all elements
 		Epointer->Update_A();
 
-		Epointer = (ChFelem*) Epointer->GetNext();
-	}
+//		Epointer = (ChFelem*) Epointer->GetNext();
+//	}
 
 }
 
@@ -337,8 +337,8 @@ void ChFMesh::UpdateALL (ChMatrix<>* state_vector, int X_offset, int Xdt_offset,
 	
 	// -) For all nodes, fetch the new states:
 	ChFnode* Npointer = node_list;
-	while (Npointer != NULL)
-	{
+//	while (Npointer != NULL) OLD LIST 
+//	{
 			//    - sets the position of the knot
 		Npointer->X = state_vector->ClipVector(iX_offset,0);
 
@@ -351,8 +351,8 @@ void ChFMesh::UpdateALL (ChMatrix<>* state_vector, int X_offset, int Xdt_offset,
 		iXdt_offset += Npointer->Get_dof();
 
 
-		Npointer = (ChFnode*) Npointer->GetNext();
-	}
+//		Npointer = (ChFnode*) Npointer->GetNext();
+//	}
 
 		// -) For all elements:
 

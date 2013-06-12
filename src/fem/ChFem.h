@@ -41,7 +41,7 @@ namespace fem
 /// that can be stored in ChMesh containers.
 /// Children classes must implement specialized versions.
 
-class ChApi ChNodeFEMbase  :  public chrono::ChNodeBase
+class ChApi ChNodeFEMbase  :  public chrono::ChNodeXYZ
 {
 public:
 				/// Access the 'LCP variables' of the node. To be implemented in children classes.
@@ -49,11 +49,6 @@ public:
 
 				/// Set the rest position as the actual position.
 	virtual void Relax () =0;
-
-				/// Get the number of degrees of freedom
-	int Get_ndof() { return this->Variables().Get_ndof();}
-
-
 
 
 };
@@ -80,16 +75,14 @@ public:
 	ChNodeFEMxyz(ChVector<> initial_pos = VNULL)
 					{
 						X0 = initial_pos;
+						pos = initial_pos;
 						Force = VNULL;
+						mass = 1.0;
 					}
 
 	~ChNodeFEMxyz() {};
 
 
-	//virtual ChLcpVariables& GetVariables() 
-	//				{
-	//					return this->variables; 
-	//				} 
 	virtual ChLcpVariables& Variables()
 					{
 						return this->variables; 
@@ -136,9 +129,9 @@ public:
 			// Custom properties functions
 			//
 				/// Set mass of the node.
-	virtual double GetMass() const {return mass;}
+	virtual double GetMass() const {return this->variables.GetNodeMass();}
 				/// Set mass of the node.
-	virtual void SetMass(double mm) {mass=mm;}
+	virtual void SetMass(double mm) {this->variables.SetNodeMass(mm);}
 
 
 				/// Set the initial (reference) position

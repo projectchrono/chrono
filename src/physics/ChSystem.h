@@ -715,6 +715,8 @@ protected:
 	virtual void LCPprepare_load(      bool load_jacobians, ///< load jacobians into ChConstraints
 							   bool load_v,			///< load v_old (current speeds) in q (to use LCP solver with option 'add_Mq_to_f')
 							   double F_factor, 	///< load F (forces) in fb: fb+=F*F_factor
+							   double K_factor,		///< load K stiff.matrices, if any ChLcpKstiffness blocks, multiplied by K_factor
+							   double R_factor,		///< load R damp.matrices, if any ChLcpKstiffness blocks, multiplied by R_factor
 							   double Ct_factor,	///< load Ct into bi:  bi+= Ct*Ct_factor
 							   double C_factor,		///< load C  into bi:  bi+= C*C_factor, otherwise..
 							   double recovery_clamp,///< if do_clamp=true,  bi+= min(C*C_factor, recovery_clamp); 
@@ -961,6 +963,12 @@ public:
 
 
 				// ---- STATICS
+
+				/// Solve the position of static equilibrium (and the
+				/// reactions). This is a one-step only approach that solves
+				/// the _linear_ equilibrium. To be used mostly for FEM 
+				/// problems with small deformations.
+	int DoStaticLinear();
 
 				/// Finds the position of static equilibrium (and the
 				/// reactions) starting from the current position.

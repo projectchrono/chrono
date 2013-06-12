@@ -44,7 +44,7 @@ class ChSystem;
 /// (it does not define mass, inertia and shape becuase those
 /// data are shared between them)
 
-class ChApi ChNodeSPH : public ChNodeBase  
+class ChApi ChNodeSPH : public ChNodeXYZ  
 {
 public:
 	ChNodeSPH();

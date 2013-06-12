@@ -60,7 +60,7 @@ ChNodeSPH::~ChNodeSPH()
 }
 
 ChNodeSPH::ChNodeSPH (const ChNodeSPH& other) :
-					ChNodeBase(other) 
+					ChNodeXYZ(other) 
 {
 	this->collision_model = new ChModelBulletNode;
 	this->collision_model->AddSphere(other.coll_rad); 
@@ -84,7 +84,7 @@ ChNodeSPH& ChNodeSPH::operator= (const ChNodeSPH& other)
 	if (&other == this) 
 		return *this;
 
-	ChNodeBase::operator=(other);
+	ChNodeXYZ::operator=(other);
 
 	this->collision_model->ClearModel();
 	this->collision_model->AddSphere(other.coll_rad ); 

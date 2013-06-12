@@ -50,8 +50,8 @@ ChClassRegister<ChObj> a_registration_ChObj;
 ChObj::ChObj ()						// builder
 {
 	name.clear();
-	next= 0;
-	prev= 0;
+	//next= 0;
+	//prev= 0;
 
 	ChTime = 0;
 	identifier = 0;
@@ -70,8 +70,6 @@ void ChObj::Copy(ChObj* source)
 {
 	identifier = source->identifier;
 
-	next = NULL;	// copies not list-linked!
-	prev = NULL;
 	name = source->name;
 	ChTime = source->ChTime;
 
@@ -97,111 +95,6 @@ void ChObj::SetNoExternalObject()
 	external_obj = NULL;
 }
 
-//
-// LIST MANAGEMENT FUNCTIONS
-//
-
-ChObj* ChObj::GetAddrFromID (ChObj** ChList, int myID)
-{
-	ChObj* ChPointer = *ChList;
-	ChObj* Candidate = NULL;
-
-	while (ChPointer != NULL)
-	{
-		if (myID == ChPointer->GetIdentifier())
-		{
-			Candidate = ChPointer;
-		}
-		ChPointer = (ChObj*) ChPointer->GetNext();
-	}
-	return (Candidate);
-}
-
-
-ChObj* ChObj::Search (ChObj** ChList, char* m_name)
-{
-	ChObj* ChPointer = *ChList;
-	ChObj* Candidate = NULL;
-
-	while (ChPointer != NULL)
-	{
-		if (!(strcmp(m_name,ChPointer->GetName())))
-		{
-			Candidate = ChPointer;
-		}
-		ChPointer = (ChObj*) ChPointer->GetNext();
-	}
-	return (Candidate);
-}
-
-void ChObj::AddToList (ChObj** ChList)
-{
-	next= NULL;
-
-	if (*ChList != NULL)
-	{
-		ChObj* ChPointer = *ChList;
-		while (ChPointer->GetNext() != NULL)
-		{
-			ChPointer = (ChObj*) ChPointer->GetNext();
-		}
-		ChPointer->SetNext(this);
-		prev= ChPointer;
-	}
-	else
-	{
-		*ChList= this;
-		prev= NULL;
-	}
-}
-
-void ChObj::RemoveFromList (ChObj** ChList)
-{
-	// relink the link gap
-	if (next)
-		next->prev= prev;
-	if (prev)
-		prev->next= next;
-
-	// if it was first in list
-	if (!prev)
-		*ChList = NULL;
-
-	// set linked pointers of this obj.
-	next = NULL;
-	prev = NULL;
-}
-
-
-int ChObj::ListCount (ChObj** ChList)
-{
-	int count = 0;
-
-	ChObj* ChPointer = *ChList;
-
-	while (ChPointer != NULL)
-	{
-		++count ;
-		ChPointer = (ChObj*) ChPointer->GetNext();
-	}
-
-	return count;
-}
-
-void ChObj::KillList (ChObj** ChList)
-{
-	ChObj* ChTemp;
-	ChObj* ChPointer = *ChList;
-
-	while (ChPointer != NULL)
-	{
-		ChTemp= ChPointer;
-		ChPointer = (ChObj*) ChPointer->GetNext();
-		int iden = ChTemp->GetIdentifier();
-		delete (ChTemp);
-	}
-	*ChList= NULL;
-}
 
 
 //

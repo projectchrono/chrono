@@ -57,13 +57,13 @@ public:
 	void ClearElements ();
 	
 				/// Access the N-th node 
-	virtual ChNodeBase* GetNode(unsigned int n) {return (ChNodeBase*)(vnodes[n]);};
+	virtual ChNodeBase* GetNode(unsigned int n) {return vnodes[n];};
 				/// Access the N-th element 
 	virtual ChElementBase* GetElement(unsigned int n) {return velements[n];};
 
 	unsigned int GetNnodes () {return vnodes.size();}
 	unsigned int GetNelements () {return velements.size();}
-	unsigned int GetNdof () {return n_dofs;}
+	virtual  int GetDOF () {return n_dofs;}
 
 				/// - Computes the total number of degrees of freedom
 				/// - Precompute auxiliary data, such as (local) stiffness matrices Kl, if any, etc
