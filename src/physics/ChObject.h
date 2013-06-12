@@ -88,9 +88,6 @@ private:
 				// ID for referencing
 	int identifier;				
 
-				// Pointers for fast linked lists
-	ChObj* next;
-	ChObj* prev;
 
 				// Reference to an external object associated to this item,
 				// useful if encapsulating into other 3d engines or apps.
@@ -140,32 +137,7 @@ public:
 				/// Sets the name of this object, as std::string 
 	void SetNameString (std::string& myname);
 
-				 /// Given a fast list of ChObj, returns the address of the first matching the name
-	ChObj* Search (ChObj** ChList, char* m_name);
 
-
-			//
-			// 'Fast list' functions. The list itself is simply a ChObj* pointer
-			// to the first element in the list.
-			//
-	
-				/// Get next element in list, if this object is a part of a 'fast list'.
-	ChObj* GetNext () { return next;}	
-				/// Get previous element in list, if this object is a part of a 'fast list'.
-	ChObj* GetPrev () { return prev;}
-				/// Set next element in list, if this object is a part of a 'fast list'.
-	void SetNext (ChObj* newnext) { next= newnext;}
-				/// Set previous element in list, if this object is a part of a 'fast list'.
-	void SetPrev (ChObj* newprev) { next= newprev;}
-
-				/// Add this object to a preexisting 'fast list', at the end.
-	void AddToList (ChObj** ChList);
-				/// Removes this object to a preexisting 'fast list', at the end (do not delete it)
-	void RemoveFromList(ChObj** ChList);
-				/// Count objects in a 'fast list', given pointer to pointer to list.
-	static int  ListCount (ChObj** ChList);
-				/// Deletes all objects building a 'fast list', given pointer to pointer to list..
-	static void KillList	(ChObj** ChList);
 	
 
 				/// Returns a reference to the ChExternalObject object associated

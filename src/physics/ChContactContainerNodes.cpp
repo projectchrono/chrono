@@ -146,7 +146,7 @@ void ChContactContainerNodes::AddContact(const collision::ChCollisionInfo& mcont
 	//fixedA    = mmboA->GetBody()->GetBodyFixed();
 	frictionA = mmboA->GetBody()->GetSfriction();
 	
-	ChNodeBase* mnode = mmnoB->GetNodes()->GetNode(mmnoB->GetNodeId());
+	ChNodeXYZ* mnode = (ChNodeXYZ*)mmnoB->GetNodes()->GetNode(mmnoB->GetNodeId());
 	posB      = &mnode->pos;
 	varB      = (ChLcpVariablesNode*)&mnode->Variables();
 	//fixedB    = mmnoB->GetNodes()->GetBodyFixed();

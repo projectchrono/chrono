@@ -1695,6 +1695,8 @@ void ChSystem::LCPprepare_reset()
 void ChSystem::LCPprepare_load(bool load_jacobians,
 							   bool load_v,
 							   double F_factor,
+							   double K_factor,		
+							   double R_factor,		
 							   double Ct_factor,
 							   double C_factor,
 							   double recovery_clamp,
@@ -1738,6 +1740,8 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
 			PHpointer->ConstraintsBiLoad_Ct(Ct_factor);			// Ct
 		if (load_jacobians)
 			PHpointer->ConstraintsLoadJacobians();
+		if (K_factor || R_factor)
+			PHpointer->KmatricesLoad(K_factor, R_factor);
 		HIER_OTHERPHYSICS_NEXT
 	}
 
@@ -1771,6 +1775,7 @@ void ChSystem::LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor)
 	{
 		PHpointer->InjectVariables(mdescriptor);
 		PHpointer->InjectConstraints(mdescriptor);
+		PHpointer->InjectKmatrices(mdescriptor);
 		HIER_OTHERPHYSICS_NEXT
 	}
 	this->contact_container->InjectConstraints(mdescriptor);
@@ -2092,13 +2097,15 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 
 	// fill LCP known-term vectors with proper terms (forces, etc.):
 	//
-	// | M -Cq'|*|v_new|- | [M]*v_old + f*dt      | = |0| ,  c>=0, l>=0, l*c=0;
-	// | Cq  0 | |l    |  | -C/dt +min(-C/dt,vlim)|   |c|
+	// | M+dt^2*K+dt*R -Cq'|*|v_new|- | [M]*v_old + f*dt      | = |0| ,  c>=0, l>=0, l*c=0;
+	// | Cq              0 | |l    |  | -C/dt +min(-C/dt,vlim)|   |c|
 	//
 
 	LCPprepare_load(true,		    // Cq,
 					true,			// v_old (needed for adding [M]*v_old to the known vector)
 					GetStep(),      // f*dt
+					GetStep()*GetStep(), // dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
+					GetStep(),		// dt*R   (nb only non-Schur based solvers support R matrix blocks)
 					1.0,		    // Ct   (needed, for rheonomic motors)
 					1.0/GetStep(),  // C/dt
 					max_penetration_recovery_speed,	 // vlim, max penetrations recovery speed (positive for exiting)
@@ -2239,6 +2246,8 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 	LCPprepare_load(true,			// Cq
 					true,			// v_old   (needed for adding [M]*v_old to the known vector)
 					GetStep(),      // f*dt
+					GetStep()*GetStep(), // dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
+					GetStep(),		// dt*R   (nb only non-Schur based solvers support K matrix blocks)
 					1.0,			// Ct      (needed, for rheonomic motors)
 					1.0/GetStep(),  // C/dt
 					0.0,			// max constr.recovery speed (positive for exiting) 
@@ -2312,6 +2321,8 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 	LCPprepare_load(false,  // Cq are already there.. 
 					false,  // no initialization of Dpos 
 					0,		// no forces
+					0,		// no K matrix
+					0,		// no R matrix
 					0,		// no Ct term
 					1.0,	// C
 					0.0,	// recovery max speed (not used)
@@ -2411,6 +2422,8 @@ int ChSystem::DoAssembly(int action, int mflags)
 			LCPprepare_load(true,  // Cq 
 					false,	// no initialization of Dpos
 					0,		// no forces
+					0,		// no K matrix
+					0,		// no R matrix
 					0,		// no Ct term
 					1.0,	// C
 					0.0,	// 
@@ -2461,7 +2474,7 @@ int ChSystem::DoAssembly(int action, int mflags)
 
 	if ((action & ASS_SPEED)||(action & ASS_ACCEL))			// 2) -------- SPEEDS and ACCELERATIONS
 	{
-		double mfake_dt = 0.0000001;
+		double foo_dt = 1e-7;
 
 		// reset known-term vectors
 		LCPprepare_reset();
@@ -2473,7 +2486,9 @@ int ChSystem::DoAssembly(int action, int mflags)
 		//
 		LCPprepare_load(false,  // Cq are already there.. 
 					true,	    // v_old   (needed for adding [M]*v_old to the known vector)
-					mfake_dt,	// f*dt
+					foo_dt,		// f*dt
+					foo_dt*foo_dt,// dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
+					foo_dt,		// dt*R   (nb only non-Schur based solvers support K matrix blocks)
 					1.0,		// Ct term
 					0,			// no C term
 					0.0,		// 
@@ -2492,8 +2507,8 @@ int ChSystem::DoAssembly(int action, int mflags)
 		HIER_BODY_INIT
 		while HIER_BODY_NOSTOP
 		{
-			// Set body speed -  and approximates the acceleration by BDF, with step mfake_dt
-			Bpointer->VariablesQbSetSpeed(mfake_dt);
+			// Set body speed -  and approximates the acceleration by BDF, with step foo_dt
+			Bpointer->VariablesQbSetSpeed(foo_dt);
 			// Now also updates all markers & forces
 			Bpointer->Update(this->ChTime);
 			HIER_BODY_NEXT
@@ -2501,8 +2516,8 @@ int ChSystem::DoAssembly(int action, int mflags)
 		HIER_OTHERPHYSICS_INIT
 		while HIER_OTHERPHYSICS_NOSTOP
 		{
-			// Set speed -  and approximates the acceleration by BDF, with step mfake_dt
-			PHpointer->VariablesQbSetSpeed(mfake_dt);
+			// Set speed -  and approximates the acceleration by BDF, with step foo_dt
+			PHpointer->VariablesQbSetSpeed(foo_dt);
 			// Now also updates all markers & forces
 			PHpointer->Update(this->ChTime);
 			HIER_OTHERPHYSICS_NEXT
@@ -2558,6 +2573,96 @@ int ChSystem::DoRemoveRedundancy()
 	*/
 	return 0;
 }
+
+
+// **** PERFORM THE LINEAR STATIC ANALYSIS
+
+int ChSystem::DoStaticLinear()
+{
+	Setup();
+	Update();
+
+		// reset known-term vectors
+	LCPprepare_reset();
+
+	// Fill known-term vectors with proper terms 0 and -C :
+	//
+	// | M+K -Cq'|*|Dpos|- |f |= |0| ,  c>=0, l>=0, l*c=0;
+	// | Cq    0 | |l   |  |C |  |c|
+	//
+
+	LCPprepare_load(true,  // Cq 
+			false,	// no initialization of Dpos
+			1.0,	// f  forces
+			1.0,	// K  matrix
+			0,		// no R matrix
+			0,		// no Ct term
+			1.0,	// C constraint gap violation, if any
+			0.0,	// 
+			false);	// no clamping on -C/dt
+	
+	// make the vectors of pointers to constraint and variables, for LCP solver
+	LCPprepare_inject(*this->LCP_descriptor);
+
+//***DEBUG***
+try
+	{
+		chrono::ChSparseMatrix mdM;
+		chrono::ChSparseMatrix mdCq;
+		chrono::ChSparseMatrix mdE;
+		chrono::ChMatrixDynamic<double> mdf;
+		chrono::ChMatrixDynamic<double> mdb;
+		chrono::ChMatrixDynamic<double> mdfric;
+		this->LCP_descriptor->ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
+		chrono::ChStreamOutAsciiFile file_M("dump_M.dat");
+		mdM.StreamOUTsparseMatlabFormat(file_M);
+		chrono::ChStreamOutAsciiFile file_Cq("dump_Cq.dat");
+		mdCq.StreamOUTsparseMatlabFormat(file_Cq);
+		chrono::ChStreamOutAsciiFile file_E("dump_E.dat");
+		mdE.StreamOUTsparseMatlabFormat(file_E);
+		chrono::ChStreamOutAsciiFile file_f("dump_f.dat");
+		mdf.StreamOUTdenseMatlabFormat(file_f);
+		chrono::ChStreamOutAsciiFile file_b("dump_b.dat");
+		mdb.StreamOUTdenseMatlabFormat(file_b);
+		chrono::ChStreamOutAsciiFile file_fric("dump_fric.dat");
+		mdfric.StreamOUTdenseMatlabFormat(file_fric);
+	} 
+	catch(chrono::ChException myexc)
+	{
+		chrono::GetLog() << myexc.what();
+	}
+
+
+		// Solve the LCP problem.
+		// Solution variables are 'Dpos', delta positions.
+		// Note: use settings of the 'speed' lcp solver (i.e. use max number
+		// of iterations as you would use for the speed probl., if iterative solver)
+	GetLcpSolverSpeed()->Solve(
+							*this->LCP_descriptor,
+							false);			// do not add [M]*v to known vector
+
+	// Move bodies to updated position
+	HIER_BODY_INIT
+	while HIER_BODY_NOSTOP
+	{
+		Bpointer->VariablesQbIncrementPosition(1.0); // pos+=Dpos
+		Bpointer->Update(this->ChTime);
+		HIER_BODY_NEXT
+	}
+	HIER_OTHERPHYSICS_INIT
+	while HIER_OTHERPHYSICS_NOSTOP
+	{
+		PHpointer->VariablesQbIncrementPosition(1.0); // pos+=Dpos
+		PHpointer->Update(this->ChTime);
+		HIER_OTHERPHYSICS_NEXT
+	}
+
+	Update(); // Update everything
+
+	return 0;
+}
+
+
 
 
 // **** PERFORM THE STATIC ANALYSIS, FINDING THE STATIC

@@ -118,6 +118,8 @@ void ChSystemOpenMP::Update()
 void ChSystemOpenMP::LCPprepare(bool load_jacobians,
                                bool load_v,
                                double F_factor,
+							   double K_factor,
+							   double R_factor,
                                double Ct_factor,
                                double C_factor,
                                double recovery_clamp,
@@ -174,9 +176,12 @@ void ChSystemOpenMP::LCPprepare(bool load_jacobians,
             PHpointer->ConstraintsBiLoad_Ct(Ct_factor);         // Ct
         if (load_jacobians)
             PHpointer->ConstraintsLoadJacobians();
+		if (K_factor || R_factor)
+			PHpointer->KmatricesLoad(K_factor, R_factor);
         PHpointer->ConstraintsLiLoadSuggestedSpeedSolution();
         PHpointer->InjectVariables(mdescriptor);
         PHpointer->InjectConstraints(mdescriptor);
+		PHpointer->InjectKmatrices(mdescriptor);
         HIER_OTHERPHYSICS_NEXT
     }
 
@@ -237,13 +242,15 @@ int ChSystemOpenMP::Integrate_Y_impulse_Anitescu() {
 
         // fill LCP known-term vectors with proper terms (forces, etc.):
         //
-        // | M -Cq'|*|v_new|- | [M]*v_old + f*dt      | = |0| ,  c>=0, l>=0, l*c=0;
-        // | Cq  0 | |l    |  | -C/dt +min(-C/dt,vlim)|   |c|
+        // | M+dt^2*K+dt*R  -Cq'|*|v_new|- | [M]*v_old + f*dt      | = |0| ,  c>=0, l>=0, l*c=0;
+        // | Cq              0  | |l    |  | -C/dt +min(-C/dt,vlim)|   |c|
         //
 
         LCPprepare(true,           // Cq,
                         true,           // v_old (needed for adding [M]*v_old to the known vector)
                         GetStep(),      // f*dt
+						GetStep()*GetStep(), // dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
+						GetStep(),		// dt*R   (nb only non-Schur based solvers support K matrix blocks)
                         1.0,            // Ct   (needed, for rheonomic motors)
                         1.0/GetStep(),  // C/dt
                         max_penetration_recovery_speed,  // vlim, max penetrations recovery speed (positive for exiting)

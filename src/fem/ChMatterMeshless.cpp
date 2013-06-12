@@ -63,7 +63,7 @@ ChNodeMeshless::~ChNodeMeshless()
 }
 
 ChNodeMeshless::ChNodeMeshless (const ChNodeMeshless& other) :
-					ChNodeBase(other) 
+					ChNodeXYZ(other) 
 {
 	this->collision_model = new ChModelBulletNode;
 	this->collision_model->AddSphere(other.coll_rad); 
@@ -93,7 +93,7 @@ ChNodeMeshless& ChNodeMeshless::operator= (const ChNodeMeshless& other)
 	if (&other == this) 
 		return *this;
 
-	ChNodeBase::operator=(other);
+	ChNodeXYZ::operator=(other);
 
 	this->collision_model->ClearModel();
 	this->collision_model->AddSphere(other.coll_rad ); 

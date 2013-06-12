@@ -138,7 +138,7 @@ void ChNodeBody::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
 	//if (!this->IsActive())
 	//	return;
 
-	ChVector<> res = this->nodes->GetNode(this->node_index)->GetPos() - this->body->Point_Body2World(&this->attach_position) ; 
+	ChVector<> res = ((ChNodeXYZ*)(this->nodes->GetNode(this->node_index)))->GetPos() - this->body->Point_Body2World(&this->attach_position) ; 
 
 	this->constraint1.Set_b_i(constraint1.Get_b_i() +  factor * res.x);
 	this->constraint2.Set_b_i(constraint2.Get_b_i() +  factor * res.y);

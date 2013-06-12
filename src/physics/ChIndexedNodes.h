@@ -37,8 +37,8 @@ using namespace collision;
 class ChSystem;
 
 
-/// Class for a single 'point' node, that has 3 DOF degrees of
-/// freedom and a mass.
+/// Class for a node, that has some degrees of 
+/// freedom and that contain a proxy to the solver.
 
 class ChApi ChNodeBase    
 {
@@ -53,30 +53,15 @@ public:
 					// FUNCTIONS
 					//
 
-			// Position of the node - in absolute csys.
-	ChVector<> GetPos() {return pos;}
-			// Position of the node - in absolute csys.
-	void SetPos(const ChVector<>& mpos) {pos = mpos;}
-
-			// Velocity of the node - in absolute csys.
-	ChVector<> GetPos_dt() {return pos_dt;}
-			// Velocity of the node - in absolute csys.
-	void SetPos_dt(const ChVector<>& mposdt) {pos_dt = mposdt;}
-
-			// Acceleration of the node - in absolute csys.
-	ChVector<> GetPos_dtdt() {return pos_dtdt;}
-			// Acceleration of the node - in absolute csys.
-	void SetPos_dtdt(const ChVector<>& mposdtdt) {pos_dtdt = mposdtdt;}
-
-			// Get mass of the node. To be implemented in children classes
-	virtual double GetMass() const = 0;
-			// Set mass of the node. To be implemented in children classes
-	virtual void SetMass(double mm) = 0;
 
 			// Access the 'LCP variables' of the node. To be implemented in children classes
 	virtual ChLcpVariables& Variables() =0; 
 
-				//
+			/// Get the number of degrees of freedom
+	int Get_ndof() { return this->Variables().Get_ndof();}
+
+
+			//
 			// Functions for interfacing to the LCP solver
 			//
 
@@ -105,6 +90,46 @@ public:
 				/// numerical integration (Eulero integration).
 	virtual void VariablesQbIncrementPosition(double step) {};
 
+
+};
+
+
+/// Class for a single 'point' node, that has 3 DOF degrees of
+/// freedom and a mass.
+
+class ChApi ChNodeXYZ : public ChNodeBase 
+{
+public:
+	ChNodeXYZ ();
+	virtual ~ChNodeXYZ ();
+
+	ChNodeXYZ (const ChNodeXYZ& other); // Copy constructor
+	ChNodeXYZ& operator= (const ChNodeXYZ& other); //Assignment operator
+
+					//
+					// FUNCTIONS
+					//
+
+			// Position of the node - in absolute csys.
+	ChVector<> GetPos() {return pos;}
+			// Position of the node - in absolute csys.
+	void SetPos(const ChVector<>& mpos) {pos = mpos;}
+
+			// Velocity of the node - in absolute csys.
+	ChVector<> GetPos_dt() {return pos_dt;}
+			// Velocity of the node - in absolute csys.
+	void SetPos_dt(const ChVector<>& mposdt) {pos_dt = mposdt;}
+
+			// Acceleration of the node - in absolute csys.
+	ChVector<> GetPos_dtdt() {return pos_dtdt;}
+			// Acceleration of the node - in absolute csys.
+	void SetPos_dtdt(const ChVector<>& mposdtdt) {pos_dtdt = mposdtdt;}
+
+			// Get mass of the node. To be implemented in children classes
+	virtual double GetMass() const = 0;
+			// Set mass of the node. To be implemented in children classes
+	virtual void SetMass(double mm) = 0;
+
 					//
 					// DATA
 					// 
@@ -112,7 +137,6 @@ public:
 	ChVector<> pos_dt;
 	ChVector<> pos_dtdt;
 };
-
 
 
 /// Interface class for clusters of points that can
