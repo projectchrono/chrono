@@ -522,7 +522,8 @@ IF (BUILD_CH_SDK)
 	SET(ChronoEngine_assets_SOURCES
 		assets/ChAsset.cpp 
 		assets/ChVisualization.cpp
-		assets/ChObjShapeFile.cpp 
+		assets/ChObjShapeFile.cpp
+		assets/ChTriangleMeshShape.cpp 
 		assets/ChSphereShape.cpp
 		assets/ChEllipsoidShape.cpp
 		assets/ChBoxShape.cpp
@@ -535,6 +536,7 @@ IF (BUILD_CH_SDK)
 		assets/ChAsset.h
 		assets/ChVisualization.h
 		assets/ChObjShapeFile.h
+		assets/ChTriangleMeshShape.h
 		assets/ChSphereShape.h
 		assets/ChEllipsoidShape.h
 		assets/ChBoxShape.h

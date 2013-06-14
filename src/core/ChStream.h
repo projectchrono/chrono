@@ -166,7 +166,7 @@ public:
     ChStreamOutAscii& operator <<(unsigned long long unVal);
 
 	template<class T>
-	ChStreamOutAscii& operator <<(T& obj)
+	ChStreamOutAscii& operator <<(T obj)
 				{
 					obj.StreamOUT(*this);
 					return *this;
