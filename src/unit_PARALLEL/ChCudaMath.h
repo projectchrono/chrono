@@ -34,7 +34,7 @@ static __host__        __device__ int2 _make_int2(int a, int b) {
 }
 
 ////////Define Real, either float or double
-typedef double real;
+typedef float real;
 ////////Structures
 struct real2 {
 	real x, y;

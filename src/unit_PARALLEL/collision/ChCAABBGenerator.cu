@@ -97,9 +97,9 @@ __device__ __host__ void function_ComputeAABB(const uint &index, const shape_typ
 
 		//}
 	} else if (type == 5) {
-		A = quatRotate(A + position, rotation);
-		B = quatRotate(B + position, rotation);
-		C = quatRotate(C + position, rotation);
+		A = quatRotate(A, body_rot[id]) + position;
+		B = quatRotate(B, body_rot[id]) + position;
+		C = quatRotate(C, body_rot[id]) + position;
 		ComputeAABBTriangle(A, B, C, temp_min, temp_max);
 	} else if (type == 1 || type == 2 || type == 3) {
 		ComputeAABBBox(B, A, position, obj_data_R[index], body_rot[id], temp_min, temp_max);

@@ -217,11 +217,27 @@ namespace chrono {
             return false;
         }
 /// Add a triangle mesh to this model
-        bool ChCollisionModelGPU::AddTriangleMesh(const geometry::ChTriangleMesh &trimesh, bool is_static, bool is_convex, ChVector<> *pos, ChMatrix33<> *rot) {
+        bool ChCollisionModelGPU::AddTriangleMesh(const geometry::ChTriangleMesh &trimesh, bool is_static, bool is_convex, ChVector<> *posv, ChMatrix33<> *rotv) {
+            ChVector<> *pos;
+
+            if (posv != 0) {
+                pos = posv;
+            } else {
+                pos = new ChVector<>(0, 0, 0);
+            }
+
+            ChMatrix33<> *rot;
+
+            if (rotv != 0) {
+                rot = rotv;
+            } else {
+                rot = new ChMatrix33<>();
+            }
+
+
             model_type = TRIANGLEMESH;
             nObjects += trimesh.getNumTriangles();
             bData tData;
-
             for (int i = 0; i < trimesh.getNumTriangles(); i++) {
                 ChTriangle temptri = trimesh.getTriangle(i);
                 tData.A = R3(temptri.p1.x + pos->x, temptri.p1.y + pos->y, temptri.p1.z + pos->z);

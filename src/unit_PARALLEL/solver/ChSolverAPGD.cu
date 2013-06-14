@@ -92,9 +92,7 @@ real ChSolverGPU::PART_A(const uint size, custom_vector<int2> & ids,custom_vecto
 
 		real3 _obj2_tmp = 0.5 * _mg_tmp1 -_b;
 
-		_obj2 += _obj2_tmp.x * _my.x;
-		_obj2 += _obj2_tmp.y * _my.y;
-		_obj2 += _obj2_tmp.z * _my.z;
+		_obj2 += dot(_obj2_tmp ,_my);
 
 		_mx.x = _my.x + _mg.x * t_k;
 		_mx.y = _my.y + _mg.y * t_k;

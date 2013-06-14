@@ -274,6 +274,12 @@ void ChSystemGPU::Update() {
 	}
 
 	gpu_data_manager->number_of_bilaterals = number_of_bilaterals;
+
+	gpu_data_manager->host_JXYZA_data_bilateral.resize(number_of_bilaterals);
+	gpu_data_manager->host_JXYZB_data_bilateral.resize(number_of_bilaterals);
+	gpu_data_manager->host_JUVWA_data_bilateral.resize(number_of_bilaterals);
+	gpu_data_manager->host_JUVWB_data_bilateral.resize(number_of_bilaterals);
+	gpu_data_manager->host_residual_bilateral.resize(number_of_bilaterals);
 	gpu_data_manager->host_bilateral_data.resize(number_of_bilaterals * CH_BILATERAL_VSIZE);
 
 	for (uint ic = 0; ic < mconstraints.size(); ic++) {
@@ -286,21 +292,29 @@ void ChSystemGPU::Update() {
 		int idB = ((ChBodyGPU *) ((ChLcpVariablesBody *) (mbilateral->GetVariables_b()))->GetUserData())->id;
 		// Update auxiliary data in all constraints before starting, that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
 		mconstraints[ic]->Update_auxiliary(); //***NOTE*** not efficient here - can be on GPU, and [Eq_i] not needed
-		real4 A, B, C, D;
-		A = R4(mbilateral->Get_Cq_a()->GetElementN(0), mbilateral->Get_Cq_a()->GetElementN(1), mbilateral->Get_Cq_a()->GetElementN(2), 0); //J1x
-		B = R4(mbilateral->Get_Cq_b()->GetElementN(0), mbilateral->Get_Cq_b()->GetElementN(1), mbilateral->Get_Cq_b()->GetElementN(2), 0); //J2x
-		C = R4(mbilateral->Get_Cq_a()->GetElementN(3), mbilateral->Get_Cq_a()->GetElementN(4), mbilateral->Get_Cq_a()->GetElementN(5), 0); //J1w
-		D = R4(mbilateral->Get_Cq_b()->GetElementN(3), mbilateral->Get_Cq_b()->GetElementN(4), mbilateral->Get_Cq_b()->GetElementN(5), 0); //J2w
-		A.w = idA; //pointer to body B1 info in body buffer
-		B.w = idB; //pointer to body B2 info in body buffer
-		gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 0] = A;
-		gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 1] = B;
-		gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 2] = C;
-		gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 3] = D;
-		gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 4].x = (1.0 / mbilateral->Get_g_i()); // eta = 1/g
-		gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 4].y = mbilateral->Get_b_i(); // b_i is residual b
-		gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 4].z = 0; //gammma, no warm starting
-		gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 4].w = (mbilateral->IsUnilateral()) ? 1 : 0;
+		real3 A, B, C, D;
+		A = R3(mbilateral->Get_Cq_a()->GetElementN(0), mbilateral->Get_Cq_a()->GetElementN(1), mbilateral->Get_Cq_a()->GetElementN(2)); //J1x
+		B = R3(mbilateral->Get_Cq_b()->GetElementN(0), mbilateral->Get_Cq_b()->GetElementN(1), mbilateral->Get_Cq_b()->GetElementN(2)); //J2x
+		C = R3(mbilateral->Get_Cq_a()->GetElementN(3), mbilateral->Get_Cq_a()->GetElementN(4), mbilateral->Get_Cq_a()->GetElementN(5)); //J1w
+		D = R3(mbilateral->Get_Cq_b()->GetElementN(3), mbilateral->Get_Cq_b()->GetElementN(4), mbilateral->Get_Cq_b()->GetElementN(5)); //J2w
+		//A.w = idA; //pointer to body B1 info in body buffer
+		//B.w = idB; //pointer to body B2 info in body buffer
+		gpu_data_manager->host_JXYZA_data_bilateral[cntr] = A;
+		gpu_data_manager->host_JXYZB_data_bilateral[cntr] = B;
+		gpu_data_manager->host_JUVWA_data_bilateral[cntr] = C;
+		gpu_data_manager->host_JUVWB_data_bilateral[cntr] = D;
+		gpu_data_manager->host_residual_bilateral[cntr] = mbilateral->Get_b_i();
+
+
+
+		//gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 0] = A; //JXYZA
+		//gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 1] = B; //JXYZW
+		//gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 2] = C; //JUVWA
+		//gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 3] = D; //JUVWB
+		//gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 4].x = (1.0 / mbilateral->Get_g_i()); // eta = 1/g
+		//gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 4].y = mbilateral->Get_b_i(); // b_i is residual b
+		//gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 4].z = 0; //gammma, no warm starting
+		//gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 4].w = (mbilateral->IsUnilateral()) ? 1 : 0;
 		cntr++;
 	}
 

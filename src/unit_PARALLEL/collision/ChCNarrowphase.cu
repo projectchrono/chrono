@@ -19,7 +19,7 @@ __device__ __host__ real3 TransformSupportVert(const shape_type &type, const rea
 
 	//M33 orientation = AMat(R);
 	//M33 invorientation = AMatT(R);
-	real3 rotated_n = quatRotateMatT(n,R);
+	real3 rotated_n = quatRotateMatT(n, R);
 
 	if (type == TRIANGLEMESH) {
 		return GetSupportPoint_Triangle(A, B, C, n);
@@ -37,7 +37,7 @@ __device__ __host__ real3 TransformSupportVert(const shape_type &type, const rea
 		localSupport = GetSupportPoint_Cone(B, rotated_n);
 	}
 
-	return quatRotateMat(localSupport,R) + A; //globalSupport
+	return quatRotateMat(localSupport, R) + A; //globalSupport
 }
 
 __device__ __host__ real dist_line(real3 &P, real3 &x0, real3 &b, real3 &witness) {
@@ -172,7 +172,7 @@ __device__ __host__ bool CollideAndFindPoint(shape_type typeA, real3 A_X, real3 
 	bool hit = false;
 	int phase1 = 0;
 	int phase2 = 0;
-	int max_iterations = 34;
+	int max_iterations = 10;
 
 	while (true) {
 		if (phase1 > max_iterations) {
@@ -314,8 +314,8 @@ __host__ __device__ void function_MPR_Store(const uint &index, const shape_type 
 	real3 A_X = obj_data_A[pair.x], B_X = obj_data_A[pair.y];
 	real3 A_Y = obj_data_B[pair.x], B_Y = obj_data_B[pair.y];
 	real3 A_Z = obj_data_C[pair.x], B_Z = obj_data_C[pair.y];
-	real4 A_R = rotA;//(mult(rotA, obj_data_R[pair.x]));
-	real4 B_R = rotB;//(mult(rotB, obj_data_R[pair.y]));
+	real4 A_R = rotA; //(mult(rotA, obj_data_R[pair.x]));
+	real4 B_R = rotB; //(mult(rotB, obj_data_R[pair.y]));
 
 	real envelope = collision_envelope;
 
@@ -323,18 +323,18 @@ __host__ __device__ void function_MPR_Store(const uint &index, const shape_type 
 		A_X = quatRotate(A_X, rotA) + posA;
 	} else if (A_T == TRIANGLEMESH) {
 		envelope = 0;
-		A_X = quatRotate(A_X + posA, A_R);
-		A_Y = quatRotate(A_Y + posA, A_R);
-		A_Z = quatRotate(A_Z + posA, A_R);
+		A_X = quatRotate(A_X, rotA) + posA;
+		A_Y = quatRotate(A_Y, rotA) + posA;
+		A_Z = quatRotate(A_Z, rotA) + posA;
 	}
 
 	if (B_T == SPHERE || B_T == ELLIPSOID || B_T == BOX || B_T == CYLINDER) {
 		B_X = quatRotate(B_X, rotB) + posB;
 	} else if (B_T == TRIANGLEMESH) {
 		envelope = 0;
-		B_X = quatRotate(B_X + posB, B_R);
-		B_Y = quatRotate(B_Y + posB, B_R);
-		B_Z = quatRotate(B_Z + posB, B_R);
+		B_X = quatRotate(B_X, rotB) + posB;
+		B_Y = quatRotate(B_Y, rotB) + posB;
+		B_Z = quatRotate(B_Z, rotB) + posB;
 	}
 
 	real3 N = R3(1, 0, 0), p1 = R3(0), p2 = R3(0), p0 = R3(0);
