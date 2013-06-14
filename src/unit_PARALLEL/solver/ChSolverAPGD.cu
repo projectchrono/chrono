@@ -1,12 +1,18 @@
 #include "ChSolverGPU.cuh"
 using namespace chrono;
 
-__host__ __device__ void function_Project_single(uint &index, int2 &ids, real *fric, real3 & gamma) {
+__host__ __device__ void function_Project_single(uint &index, int2 &ids, real *fric, real *cohesion, real3 & gamma) {
 	int2 body_id = ids;
+
+
+
+	real coh = (cohesion[body_id.x] + cohesion[body_id.y]) * .5;
+	gamma.x += coh;
+
 	real f_tang = sqrt(gamma.y * gamma.y + gamma.z * gamma.z);
 	real mu = (fric[body_id.x] == 0 || fric[body_id.y] == 0) ? 0 : (fric[body_id.x] + fric[body_id.y]) * .5;
 	if (mu == 0) {
-		gamma.x = gamma.x < 0 ? 0 : gamma.x;
+		gamma.x = gamma.x < 0 ? 0 : gamma.x - coh;
 		gamma.y = gamma.z = 0;
 		return;
 	}
@@ -20,7 +26,7 @@ __host__ __device__ void function_Project_single(uint &index, int2 &ids, real *f
 		return;
 	}
 	// remaining case: project orthogonally to generator segment of upper cone
-	gamma.x = (f_tang * mu + gamma.x) / (mu * mu + 1);
+	gamma.x = (f_tang * mu + gamma.x) / (mu * mu + 1) - coh;
 	real tproj_div_t = (gamma.x * mu) / f_tang;
 	gamma.y *= tproj_div_t;
 	gamma.z *= tproj_div_t;
@@ -98,7 +104,7 @@ real ChSolverGPU::PART_A(const uint size, custom_vector<int2> & ids,custom_vecto
 		_mx.y = _my.y + _mg.y * t_k;
 		_mx.z = _my.z + _mg.z * t_k;
 
-		function_Project_single(index, id_, gpu_data->device_fric_data.data(), _mx);
+		function_Project_single(index, id_, gpu_data->device_fric_data.data(), gpu_data->device_cohesion_data.data(), _mx);
 
 		mx[index+ number_of_contacts * 0] = _mx.x;
 		mx[index+ number_of_contacts * 1] = _mx.y;
@@ -225,7 +231,7 @@ real & obj1,real& obj2,real& min_val) {
 		_mx.y = my[index + number_of_contacts * 1] + mg[index + number_of_contacts * 1] * (t_k);
 		_mx.z = my[index + number_of_contacts * 2] + mg[index + number_of_contacts * 2] * (t_k);
 
-		function_Project_single(index, id_, gpu_data->device_fric_data.data(), _mx);
+		function_Project_single(index, id_, gpu_data->device_fric_data.data(),gpu_data->device_cohesion_data.data(), _mx);
 
 		mx[index + number_of_contacts * 0] = _mx.x;
 		mx[index + number_of_contacts * 1] = _mx.y;

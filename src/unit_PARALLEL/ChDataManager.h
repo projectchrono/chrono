@@ -50,6 +50,7 @@ struct gpu_container {
 	custom_vector<bool> device_active_data;
 	custom_vector<real> device_mass_data;
 	custom_vector<real> device_fric_data;
+	custom_vector<real> device_cohesion_data;
 	custom_vector<real3> device_dem_data;
 	custom_vector<real3> device_lim_data;
 	custom_vector<real3> device_gyr_data;
@@ -137,6 +138,7 @@ public:
 	thrust::host_vector<bool> host_active_data;
 	thrust::host_vector<real> host_mass_data;
 	thrust::host_vector<real> host_fric_data;
+	thrust::host_vector<real> host_cohesion_data;
 	thrust::host_vector<real3> host_lim_data;
 	thrust::host_vector<real3> host_dem_data;
 	thrust::host_vector<real3> host_gyr_data;

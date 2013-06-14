@@ -20,56 +20,62 @@
 #include "collision/ChCCollisionModelGPU.h"
 #include "collision/ChCModelBulletBody.h"
 namespace chrono {
-	using namespace collision;
+using namespace collision;
 
-	//////////////////////////////////////
-	/// CLASS FOR SOLID GPU BODIES
-	//////////////////////////////////////
-	class ChApiGPU ChBodyGPU: public ChBody {
-		CH_RTTI(ChBodyGPU, ChPhysicsItem)
-			;
+//////////////////////////////////////
+/// CLASS FOR SOLID GPU BODIES
+//////////////////////////////////////
+class ChApiGPU ChBodyGPU: public ChBody {
+CH_RTTI(ChBodyGPU, ChPhysicsItem)
+	;
 
-		public:
+public:
 
-			// CONSTRUCTORS
+	// CONSTRUCTORS
 
-			ChBodyGPU();
-			~ChBodyGPU();
+	ChBodyGPU();
+	~ChBodyGPU();
 
-			virtual ChCollisionModel* InstanceCollisionModel();
-			ChCollisionModel* SetCollisionModelBullet();
-			ChVector<> GetXForce() {
-				return Xforce;
-			}
-			ChVector<> GetXTorque() {
-				return Xtorque;
-			}
-			ChVector<> GetGyro() {
-				return gyro;
-			}
-			void SetGyro(ChVector<> g) {
-				gyro = g;
-			}
-			void SetAppliedForce(ChVector<> mForce) {
-				mAppliedForce = mForce;
-			}
-			ChVector<> GetAppliedForce() {
-				return mAppliedForce;
-			}
-			void SetId(int identifier) {
-				id = identifier;
-			}
-			int GetId() {
-				return id;
-			}
-			ChVector<> mAppliedForce;
-			int id;
+	virtual ChCollisionModel* InstanceCollisionModel();
+	ChCollisionModel* SetCollisionModelBullet();
+	ChVector<> GetXForce() {
+		return Xforce;
+	}
+	ChVector<> GetXTorque() {
+		return Xtorque;
+	}
+	ChVector<> GetGyro() {
+		return gyro;
+	}
+	void SetGyro(ChVector<> g) {
+		gyro = g;
+	}
+	void SetAppliedForce(ChVector<> mForce) {
+		mAppliedForce = mForce;
+	}
+	ChVector<> GetAppliedForce() {
+		return mAppliedForce;
+	}
+	void SetId(int identifier) {
+		id = identifier;
+	}
+	int GetId() {
+		return id;
+	}
+	ChVector<> mAppliedForce;
+	int id;
+	void SetCohesion(real c) {
+		cohesion = c;
+	}
+	real GetCohesion() {
+		return cohesion;
+	}
+private:
+	real cohesion;
 
-		private:
+};
 
-	};
-
-	typedef ChSharedPtr<ChBodyGPU> ChSharedBodyGPUPtr;
+typedef ChSharedPtr<ChBodyGPU> ChSharedBodyGPUPtr;
 } // END_OF_NAMESPACE____
 
 #endif

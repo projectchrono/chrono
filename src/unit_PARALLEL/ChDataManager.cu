@@ -23,6 +23,7 @@ void ChGPUDataManager::HostToDevice() {
 	gpu_data.device_active_data = host_active_data;
 	gpu_data.device_mass_data = host_mass_data;
 	gpu_data.device_fric_data = host_fric_data;
+	gpu_data.device_cohesion_data = host_cohesion_data;
 	gpu_data.device_lim_data = host_lim_data;
 	gpu_data.device_bilateral_data = host_bilateral_data;
 	//gpu_data.min_bounding_point = min_bounding_point;

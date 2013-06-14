@@ -34,6 +34,7 @@ namespace chrono {
 		SetUseSleeping(true);
 		variables.SetUserData((void*) this);
 		id = 0;
+		cohesion = 0;
 	}
 
 	ChBodyGPU::~ChBodyGPU() {
