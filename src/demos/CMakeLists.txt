@@ -53,4 +53,10 @@ IF (ENABLE_UNIT_POSTPROCESS)
 	ADD_SUBDIRECTORY(postprocess)
 ENDIF()
 
+
+# Justin 160613, add directory for tests with the softSoil mobility database
+IF (ENABLE_UNIT_TERRAIN)
+	ADD_SUBDIRECTORY(vti)
+ENDIF()
+
 ENDIF()
