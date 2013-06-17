@@ -29,12 +29,6 @@ using namespace video;
 using namespace io; 
 using namespace gui; 
 
-#include <direct.h>
-std::string get_working_path()
-{
-   char temp[255];
-   return ( _getcwd(temp, 255) ? std::string( temp ) : std::string("") );
-}
 class ParticleGenerator {
 public:
 	// data
@@ -601,10 +595,6 @@ int main(int argc, char* argv[])
 
 	// Create a ChronoENGINE physical system
 	ChSystem mphysicalSystem;
-	// FIXME: for some reason the executable working directory is set in the /vti directory
-	GetLog() << get_working_path() << "\n";
-	_chdir("C:/ChronoEngine_svn/ChronoEngine/bin/Win64_VisualStudio/bin/Debug");
-	GetLog() << get_working_path() << "\n";
 
 	// Create the Irrlicht visualization (open the Irrlicht device, 
 	// bind a simple user interface, etc. etc.)
