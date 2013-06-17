@@ -46,7 +46,7 @@ namespace chrono {
 			void AddBody(ChSharedPtr<ChBodyGPU> newbody);
 			void RemoveBody(ChSharedPtr<ChBodyGPU> mbody);
 			void RemoveBody(int i);
-			int Setup();
+			//int Setup();
 			void Update();
 			void ChangeCollisionSystem(ChCollisionSystem *newcollsystem);
 			void ChangeLcpSystemDescriptor(ChLcpSystemDescriptor* newdescriptor);

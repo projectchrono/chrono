@@ -31,8 +31,8 @@ public:
 	void host_shurB(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia,real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX);
 	void host_RHS(int2 *ids, real *correction,bool * active, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs);
 	void host_bi(real *correction, real* bi);
-	void host_Project(int2 *ids, real *friction, real *gamma);
-	void host_Offsets(int2 *ids, real4 *bilaterals, uint *Body);
+	void host_Project(int2 *ids, real *friction, real* cohesion, real *gamma);
+	void host_Offsets(int2 *ids_contacts, int2 *ids_bilaterals, uint *Body);
 	void host_Reduce_Shur(bool* active, real3* QXYZ, real3* QUVW,real *inv_mass, real3 *inv_inertia, real3* updateQXYZ, real3* updateQUVW, uint* d_body_num, uint* counter);
 
 	void ShurProduct( custom_vector<real> &x_t, custom_vector<real> & AX);
@@ -46,6 +46,7 @@ public:
 	uint SolveBiCGStab(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 	uint SolveMinRes(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 	uint SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
+	uint SolveAPGD_ALT(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 	/////APGD specific:
 
 			real PART_A(const uint size, custom_vector<int2> & ids,

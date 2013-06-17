@@ -90,12 +90,10 @@ __host__ __device__ void function_process_contacts(
 		gamma.y += dot(JUVWA[index + number_of_contacts * 1], W1) + dot(JXYZA[index + number_of_contacts * 1], V1);
 		gamma.z += dot(JUVWA[index + number_of_contacts * 2], W1) + dot(JXYZA[index + number_of_contacts * 2], V1);
 
-		eta +=    dot(JUVWA[index + number_of_contacts * 0] * JUVWA[index + number_of_contacts * 0], In1)
-				+ dot(JUVWA[index + number_of_contacts * 1] * JUVWA[index + number_of_contacts * 1], In1)
+		eta += dot(JUVWA[index + number_of_contacts * 0] * JUVWA[index + number_of_contacts * 0], In1) + dot(JUVWA[index + number_of_contacts * 1] * JUVWA[index + number_of_contacts * 1], In1)
 				+ dot(JUVWA[index + number_of_contacts * 2] * JUVWA[index + number_of_contacts * 2], In1);
 
-		eta +=    dot(JXYZA[index + number_of_contacts * 0], JXYZA[index + number_of_contacts * 0]) * inv_mass[body_id.x]
-				+ dot(JXYZA[index + number_of_contacts * 1], JXYZA[index + number_of_contacts * 1]) * inv_mass[body_id.x]
+		eta += dot(JXYZA[index + number_of_contacts * 0], JXYZA[index + number_of_contacts * 0]) * inv_mass[body_id.x] + dot(JXYZA[index + number_of_contacts * 1], JXYZA[index + number_of_contacts * 1]) * inv_mass[body_id.x]
 				+ dot(JXYZA[index + number_of_contacts * 2], JXYZA[index + number_of_contacts * 2]) * inv_mass[body_id.x];
 
 	}
@@ -104,21 +102,17 @@ __host__ __device__ void function_process_contacts(
 		gamma.y += dot(JUVWB[index + number_of_contacts * 1], W2) + dot(JXYZB[index + number_of_contacts * 1], V2) /*+ cfmT * gamma_old.y*/;
 		gamma.z += dot(JUVWB[index + number_of_contacts * 2], W2) + dot(JXYZB[index + number_of_contacts * 2], V2) /*+ cfmT * gamma_old.z*/;
 
-		eta +=    dot(JUVWB[index + number_of_contacts * 0] * JUVWB[index + number_of_contacts * 0], In2)
-				+ dot(JUVWB[index + number_of_contacts * 1] * JUVWB[index + number_of_contacts * 1], In2)
+		eta += dot(JUVWB[index + number_of_contacts * 0] * JUVWB[index + number_of_contacts * 0], In2) + dot(JUVWB[index + number_of_contacts * 1] * JUVWB[index + number_of_contacts * 1], In2)
 				+ dot(JUVWB[index + number_of_contacts * 2] * JUVWB[index + number_of_contacts * 2], In2);
 
-		eta +=    dot(JXYZB[index + number_of_contacts * 0], JXYZB[index + number_of_contacts * 0]) * inv_mass[body_id.y]
-				+ dot(JXYZB[index + number_of_contacts * 1], JXYZB[index + number_of_contacts * 1]) * inv_mass[body_id.y]
+		eta += dot(JXYZB[index + number_of_contacts * 0], JXYZB[index + number_of_contacts * 0]) * inv_mass[body_id.y] + dot(JXYZB[index + number_of_contacts * 1], JXYZB[index + number_of_contacts * 1]) * inv_mass[body_id.y]
 				+ dot(JXYZB[index + number_of_contacts * 2], JXYZB[index + number_of_contacts * 2]) * inv_mass[body_id.y];
 	}
 	gamma.x += bi;
 
-
 	//std::cout << gamma.x << " ";
 	//std::cout << gamma.y << " ";
 	//std::cout << gamma.z << std::endl;
-
 
 	dG[index + number_of_contacts * 0] = fabs(fmin(real(0.0), gamma.x));
 	dG[index + number_of_contacts * 1] = gamma.y;
@@ -281,7 +275,14 @@ __host__ __device__ void function_Bilaterals(
 		uint& number_of_bilaterals,
 		uint& number_of_contacts,
 		real& lcp_omega_bilateral,
-		real4* bilaterals,
+		real3* JXYZA,
+		real3* JXYZB,
+		real3* JUVWA,
+		real3* JUVWB,
+		int2* bids,
+		real* gamma,
+		real* eta,
+		real* bi,
 		real* mass,
 		real3* inertia,
 		real4* rot,
@@ -292,71 +293,108 @@ __host__ __device__ void function_Bilaterals(
 		real3* updateO,
 		uint* offset,
 		real* dG) {
-	real4 vA;
+	real3 vA;
 	real3 vB;
 	real gamma_new = 0, gamma_old = 0;
 	int B1_index = 0, B2_index = 0;
-	B1_index = bilaterals[index].w;
-	B2_index = bilaterals[index + number_of_bilaterals].w;
+	B1_index = bids[index].x;
+	B2_index = bids[index].y;
 	real mass1 = mass[B1_index];
 	real mass2 = mass[B2_index];
 	// ---- perform   gamma_new = ([J1 J2] {v1 | v2}^ + b)
 	{
-		vA = bilaterals[index]; // line 0
+		vA = JXYZA[index]; // line 0
 		vB = vel[B1_index]; // v1
 		gamma_new += dot3(vA, vB);
-		vA = bilaterals[index + 2 * number_of_bilaterals]; // line 2
+		vA = JUVWA[index]; // line 2
 		vB = omega[B1_index]; // w1
 		gamma_new += dot3(vA, vB);
 	}
 	{
-		vA = bilaterals[index + number_of_bilaterals]; // line 1
+		vA = JXYZB[index]; // line 1
 		vB = vel[B2_index]; // v2
 		gamma_new += dot3(vA, vB);
-		vA = bilaterals[index + 3 * number_of_bilaterals]; // line 3
+		vA = JUVWB[index]; // line 3
 		vB = omega[B2_index]; // w2
 		gamma_new += dot3(vA, vB);
 	}
-	vA = bilaterals[index + 4 * number_of_bilaterals]; // line 4   (eta, b, gamma, 0)
-	gamma_new += vA.y; // add known term     + b
-	gamma_old = vA.z; // old gamma
+	//real4 temp = bilaterals[index + 4 * number_of_bilaterals]; // line 4   (eta, b, gamma, 0)
+	//vA = R3(temp.x, temp.y, temp.z);
+	gamma_new += bi[index]; // add known term     + b
+	gamma_old = gamma[index]; // old gamma
 	/// ---- perform gamma_new *= omega/g_i
 	gamma_new *= lcp_omega_bilateral; // lcp_omega_const is in constant memory
-	gamma_new *= vA.x; // eta = 1/g_i;
+	gamma_new *= eta[index]; // eta = 1/g_i;
 	/// ---- perform gamma_new = gamma_old - gamma_new ; in place.
 	gamma_new = gamma_old - gamma_new;
 
 	/// ---- perform projection of 'a' (only if simple unilateral behavior C>0 is requested)
-	if (vA.w && gamma_new < 0.) {
-		gamma_new = 0.;
-	}
+//	if (temp.w && gamma_new < 0.) {
+//		gamma_new = 0.;
+//	}
 
 	// ----- store gamma_new
-	vA.z = gamma_new;
-	bilaterals[index + 4 * number_of_bilaterals] = vA;
+	gamma[index] = gamma_new;
+	//bilaterals[index + 4 * number_of_bilaterals] = R4(0, vA.x, vA.y, vA.z);
 	/// ---- compute delta in multipliers: gamma_new = gamma_new - gamma_old   = delta_gamma    , in place.
 	gamma_new -= gamma_old;
 	dG[number_of_contacts + index] = (gamma_new);
 	/// ---- compute dv1 =  invInert.18 * J1^ * deltagamma
 	vB = inertia[B1_index]; // iJ iJ iJ im
-	vA = (bilaterals[index]) * mass1 * gamma_new; // line 0: J1(x)
+	vA = (JXYZA[index]) * mass1 * gamma_new; // line 0: J1(x)
 	int offset1 = offset[2 * number_of_contacts + index];
 	int offset2 = offset[2 * number_of_contacts + index + number_of_bilaterals];
-	updateV[offset1] = make_real3(vA); //  ---> store  v1 vel. in reduction buffer
-	updateO[offset1] = make_real3((bilaterals[index + 2 * number_of_bilaterals]) * R4(vB) * gamma_new); // line 2:  J1(w)// ---> store  w1 vel. in reduction buffer
+	updateV[offset1] = vA; //  ---> store  v1 vel. in reduction buffer
+	updateO[offset1] = JUVWA[index] * vB * gamma_new; // line 2:  J1(w)// ---> store  w1 vel. in reduction buffer
 	vB = inertia[B2_index]; // iJ iJ iJ im
-	vA = (bilaterals[index + number_of_bilaterals]) * mass2 * gamma_new; // line 1: J2(x)
-	updateV[offset2] = make_real3(vA); //  ---> store  v2 vel. in reduction buffer
-	updateO[offset2] = make_real3((bilaterals[index + 3 * number_of_bilaterals]) * R4(vB) * gamma_new); // line 3:  J2(w)// ---> store  w2 vel. in reduction buffer
+	vA = (JXYZB[index]) * mass2 * gamma_new; // line 1: J2(x)
+	updateV[offset2] = vA; //  ---> store  v2 vel. in reduction buffer
+	updateO[offset2] = JUVWB[index] * vB * gamma_new; // line 3:  J2(w)// ---> store  w2 vel. in reduction buffer
 }
 
-__global__ void device_Bilaterals(real4* bilaterals, real* mass, real3* inertia, real4* rot, real3* vel, real3* omega, real3* pos, real3* updateV, real3* updateO, uint* offset, real* dG) {
+__global__ void device_Bilaterals(
+		real3* JXYZA,
+		real3* JXYZB,
+		real3* JUVWA,
+		real3* JUVWB,
+		int2* bids,
+		real* gamma,
+		real* eta,
+		real* bi,
+		real* mass,
+		real3* inertia,
+		real4* rot,
+		real3* vel,
+		real3* omega,
+		real3* pos,
+		real3* updateV,
+		real3* updateO,
+		uint* offset,
+		real* dG) {
 	INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_bilaterals_const);
-	function_Bilaterals(index, number_of_bilaterals_const, number_of_contacts_const, lcp_omega_bilateral_const, bilaterals, mass, inertia, rot, vel, omega, pos, updateV, updateO, offset, dG);
+	function_Bilaterals(index, number_of_bilaterals_const, number_of_contacts_const, lcp_omega_bilateral_const, JXYZA, JXYZB, JUVWA, JUVWB, bids, gamma, eta, bi, mass, inertia, rot, vel, omega, pos, updateV, updateO, offset, dG);
 }
-void ChSolverJacobi::host_Bilaterals(real4* bilaterals, real* mass, real3* inertia, real4* rot, real3* vel, real3* omega, real3* pos, real3* updateV, real3* updateO, uint* offset, real* dG) {
+void ChSolverJacobi::host_Bilaterals(
+		real3* JXYZA,
+		real3* JXYZB,
+		real3* JUVWA,
+		real3* JUVWB,
+		int2* bids,
+		real* gamma,
+		real* eta,
+		real* bi,
+		real* mass,
+		real3* inertia,
+		real4* rot,
+		real3* vel,
+		real3* omega,
+		real3* pos,
+		real3* updateV,
+		real3* updateO,
+		uint* offset,
+		real* dG) {
 	for (uint index = 0; index < number_of_bilaterals; index++) {
-		function_Bilaterals(index, number_of_bilaterals, number_of_contacts, lcp_omega_bilateral, bilaterals, mass, inertia, rot, vel, omega, pos, updateV, updateO, offset, dG);
+		function_Bilaterals(index, number_of_bilaterals, number_of_contacts, lcp_omega_bilateral, JXYZA, JXYZB, JUVWA, JUVWB, bids, gamma, eta, bi, mass, inertia, rot, vel, omega, pos, updateV, updateO, offset, dG);
 	}
 }
 
@@ -554,7 +592,14 @@ void ChSolverJacobi::Solve(real step, gpu_container& gpu_data_) {
 					CASTR1(gpu_data->device_dgm_data));
 #else
 			host_Bilaterals(
-					gpu_data->device_bilateral_data.data(),
+					gpu_data->device_JXYZA_bilateral.data(),
+					gpu_data->device_JXYZB_bilateral.data(),
+					gpu_data->device_JUVWA_bilateral.data(),
+					gpu_data->device_JUVWB_bilateral.data(),
+					gpu_data->device_bids_bilateral.data(),
+					gpu_data->device_gamma_bilateral.data(),
+					gpu_data->device_correction_bilateral.data(),
+					gpu_data->device_residual_bilateral.data(),
 					gpu_data->device_mass_data.data(),
 					gpu_data->device_inr_data.data(),
 					gpu_data->device_rot_data.data(),
@@ -591,7 +636,7 @@ void ChSolverJacobi::Solve(real step, gpu_container& gpu_data_) {
 					gpu_data->device_fap_data.data());
 #endif
 			//residual = CompRes(gpu_data->device_dgm_data, number_of_contacts);
-			residual = gpu_data->device_dgm_data[thrust::max_element(gpu_data->device_dgm_data.begin(),gpu_data->device_dgm_data.begin()+number_of_contacts)-gpu_data->device_dgm_data.begin()];
+			residual = gpu_data->device_dgm_data[thrust::max_element(gpu_data->device_dgm_data.begin(), gpu_data->device_dgm_data.begin() + number_of_contacts) - gpu_data->device_dgm_data.begin()];
 
 			AtIterationEnd(residual, 0, current_iteration);
 

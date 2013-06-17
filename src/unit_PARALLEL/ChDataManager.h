@@ -60,7 +60,15 @@ struct gpu_container {
 	custom_vector<real3> device_JXYZA_data,device_JXYZB_data;
 	custom_vector<real3> device_JUVWA_data,device_JUVWB_data;
 
-	custom_vector<real4> device_bilateral_data;
+	//custom_vector<real4> device_bilateral_data;
+
+	thrust::host_vector<real3> device_JXYZA_bilateral, device_JXYZB_bilateral;
+	thrust::host_vector<real3> device_JUVWA_bilateral, device_JUVWB_bilateral;
+	thrust::host_vector<real> device_residual_bilateral;
+	thrust::host_vector<real> device_correction_bilateral;
+	thrust::host_vector<int2> device_bids_bilateral;
+	thrust::host_vector<real> device_gamma_bilateral;
+
 	custom_vector<real> device_gam_data;
 	custom_vector<real> device_dgm_data;
 
@@ -147,14 +155,15 @@ public:
 	thrust::host_vector<real3> host_JXYZA_data, host_JXYZB_data;
 	thrust::host_vector<real3> host_JUVWA_data, host_JUVWB_data;
 
-	thrust::host_vector<real3> host_JXYZA_data_bilateral, host_JXYZB_data_bilateral;
-	thrust::host_vector<real3> host_JUVWA_data_bilateral, host_JUVWB_data_bilateral;
+	thrust::host_vector<real3> host_JXYZA_bilateral, host_JXYZB_bilateral;
+	thrust::host_vector<real3> host_JUVWA_bilateral, host_JUVWB_bilateral;
 	thrust::host_vector<real> host_residual_bilateral;
-	thrust::host_vector<int2> host_bid_bilateral;
+	thrust::host_vector<real> host_correction_bilateral;
+	thrust::host_vector<int2> host_bids_bilateral;
 	thrust::host_vector<real> host_gamma_bilateral;
 	//constraint data
 
-	thrust::host_vector<real4> host_bilateral_data;
+	//thrust::host_vector<real4> host_bilateral_data;
 
 	bool copyContacts;
 	double stepSize;

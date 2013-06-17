@@ -3,33 +3,33 @@ using namespace chrono;
 
 __host__ __device__ void function_Project_single(uint &index, int2 &ids, real *fric, real *cohesion, real3 & gamma) {
 	int2 body_id = ids;
-
-
-
 	real coh = (cohesion[body_id.x] + cohesion[body_id.y]) * .5;
 	gamma.x += coh;
 
 	real f_tang = sqrt(gamma.y * gamma.y + gamma.z * gamma.z);
 	real mu = (fric[body_id.x] == 0 || fric[body_id.y] == 0) ? 0 : (fric[body_id.x] + fric[body_id.y]) * .5;
 	if (mu == 0) {
-		gamma.x = gamma.x < 0 ? 0 : gamma.x - coh;
+		gamma.x = gamma.x < 0 ? 0 : gamma.x-coh ;
 		gamma.y = gamma.z = 0;
 		return;
 	}
 	// inside upper cone? keep untouched!
 	if (f_tang < (mu * gamma.x)) {
+		gamma.x-=coh;
 		return;
 	}
 	// inside lower cone? reset  normal,u,v to zero!
 	if ((f_tang) < -(1.0 / mu) * gamma.x || (fabs(gamma.x) < 10e-15)) {
-		gamma = R3(0);
+		gamma = R3(-coh,0,0);
 		return;
 	}
-	// remaining case: project orthogonally to generator segment of upper cone
-	gamma.x = (f_tang * mu + gamma.x) / (mu * mu + 1) - coh;
+//	// remaining case: project orthogonally to generator segment of upper cone
+	gamma.x = (f_tang * mu + gamma.x) / (mu * mu + 1);
 	real tproj_div_t = (gamma.x * mu) / f_tang;
 	gamma.y *= tproj_div_t;
 	gamma.z *= tproj_div_t;
+//
+	gamma.x -=coh;
 
 }
 
@@ -111,7 +111,39 @@ real ChSolverGPU::PART_A(const uint size, custom_vector<int2> & ids,custom_vecto
 		mx[index+ number_of_contacts * 2] = _mx.z;
 
 	}
+#pragma omp parallel for reduction(+:_obj2)
+	for (uint index = 0; index < number_of_bilaterals; index++) {
+		real temp =0;
+		int2 id_=ids[index+ number_of_contacts * 3];
+		uint b1 = id_.x;
+		uint b2 = id_.y;
 
+		if (gpu_data->device_active_data[b1] != 0) {
+			real3 XYZ = gpu_data->device_QXYZ_data[b1];
+			real3 UVW = gpu_data->device_QUVW_data[b1];
+
+			temp += dot(XYZ, gpu_data->device_JXYZA_data[index + number_of_contacts * 3]);
+			temp += dot(UVW, gpu_data->device_JUVWA_data[index + number_of_contacts * 3]);
+		}
+		if (gpu_data->device_active_data[b2] != 0) {
+			real3 XYZ = gpu_data->device_QXYZ_data[b2];
+			real3 UVW = gpu_data->device_QUVW_data[b2];
+
+			temp += dot(XYZ, gpu_data->device_JXYZB_data[index + number_of_contacts * 3]);
+			temp += dot(UVW, gpu_data->device_JUVWB_data[index + number_of_contacts * 3]);
+		}
+		temp+= my[index + number_of_contacts * 3] * inv_hhpa * compliance;
+		real _mg_tmp1 = temp; //+ gamma[index] * inv_hhpa * compliance;
+		real _b,_my,_mx;
+		_b = b[index+ number_of_contacts * 3];
+		_my = my[index+ number_of_contacts * 3];
+		real _mg = _mg_tmp1 -_b;
+		mg[index+ number_of_contacts * 3] = _mg;
+		real _obj2_tmp = 0.5 * _mg_tmp1 -_b;
+		_obj2 += _obj2_tmp *_my;
+		_mx = _my + _mg * t_k;
+		mx[index+ number_of_contacts * 3] = _mx;
+	}
 	shurA(mx);
 	real lm;
 #pragma omp parallel private(lm)
@@ -203,19 +235,60 @@ real ChSolverGPU::PART_A(const uint size, custom_vector<int2> & ids,custom_vecto
 
 		}
 
+#pragma omp for reduction(+:_obj1,temp1,temp2)
+		for (uint index = 0; index < number_of_bilaterals; index++) {
+			real temp =0;
+			int2 id_=ids[index+ number_of_contacts * 3];
+			uint b1 = id_.x;
+			uint b2 = id_.y;
+
+			if (gpu_data->device_active_data[b1] != 0) {
+				real3 XYZ = gpu_data->device_QXYZ_data[b1];
+				real3 UVW = gpu_data->device_QUVW_data[b1];
+
+				temp += dot(XYZ, gpu_data->device_JXYZA_data[index + number_of_contacts * 3]);
+				temp += dot(UVW, gpu_data->device_JUVWA_data[index + number_of_contacts * 3]);
+			}
+			if (gpu_data->device_active_data[b2] != 0) {
+				real3 XYZ = gpu_data->device_QXYZ_data[b2];
+				real3 UVW = gpu_data->device_QUVW_data[b2];
+
+				temp += dot(XYZ, gpu_data->device_JXYZB_data[index + number_of_contacts * 3]);
+				temp += dot(UVW, gpu_data->device_JUVWB_data[index + number_of_contacts * 3]);
+			}
+
+			temp+= mx[index + number_of_contacts * 3] * inv_hhpa * compliance;
+
+			real _mx,_my,_b,_ms, _mg;
+			_mx = mx[index+ number_of_contacts * 3];
+			_my = my[index+ number_of_contacts * 3];
+			_ms = _mx-_my;
+			ms[index+ number_of_contacts * 3] = _ms;
+			_b = b[index+ number_of_contacts * 3];
+			_mg = mg[index+ number_of_contacts * 3];
+
+			temp1+= _mg * _ms;
+			temp2+= _ms * _ms;
+			real _mg_tmp = temp;
+			real _mg_tmp2 = _mg_tmp-_b;
+
+//			mg_tmp2[index+ number_of_contacts * 3] = _mg_tmp2;
+			//lm = std::min(lm, _mg_tmp2);
+			real _obj1_tmp = 0.5 * _mg_tmp-_b;
+			_obj1+= _obj1_tmp * _mx;
+		}
+
 		if ( lm < min_val ) {
 #pragma critical
 			{
 				if ( lm < min_val ) min_val = lm;
 			}
 		}
-
 	}
 	obj1 = _obj1;
 	obj2 = _obj2;
 	temp2 = sqrt(temp2);
 	return obj2 + temp1 + 0.5 * L_k * powf(temp2, real(2.0));
-
 }
 real ChSolverGPU::PART_B(const uint size, custom_vector<int2> & ids,
 custom_vector<real> & mx,custom_vector<real> & my,custom_vector<real> & ms,
@@ -236,9 +309,15 @@ real & obj1,real& obj2,real& min_val) {
 		mx[index + number_of_contacts * 0] = _mx.x;
 		mx[index + number_of_contacts * 1] = _mx.y;
 		mx[index + number_of_contacts * 2] = _mx.z;
-
 	}
-
+#pragma omp parallel for
+	for (uint index = 0; index < number_of_bilaterals; index++) {
+		int2 id_ = ids[index+ number_of_contacts * 3];
+		real _mx;
+		_mx = my[index + number_of_contacts * 3] + mg[index + number_of_contacts * 3] * (t_k);
+		//function_Project_single(index, id_, gpu_data->device_fric_data.data(),gpu_data->device_cohesion_data.data(), _mx);
+		mx[index + number_of_contacts * 3] = _mx;
+	}
 	shurA(mx);
 	real lm;
 	real _obj1 = 0;
@@ -334,7 +413,50 @@ real & obj1,real& obj2,real& min_val) {
 			temp2+= _ms.z * _ms.z;
 
 		}
+#pragma omp for reduction(+:_obj1,temp1,temp2)
+		for (uint index = 0; index < number_of_bilaterals; index++) {
+			real temp = 0;
+			int2 id_ = ids[index+ number_of_contacts * 3];
+			uint b1 = id_.x;
+			uint b2 = id_.y;
 
+			if (gpu_data->device_active_data[b1] != 0) {
+				real3 XYZ = gpu_data->device_QXYZ_data[b1];
+				real3 UVW = gpu_data->device_QUVW_data[b1];
+
+				temp += dot(XYZ, gpu_data->device_JXYZA_data[index + number_of_contacts * 3]);
+				temp += dot(UVW, gpu_data->device_JUVWA_data[index + number_of_contacts * 3]);
+			}
+			if (gpu_data->device_active_data[b2] != 0) {
+				real3 XYZ = gpu_data->device_QXYZ_data[b2];
+				real3 UVW = gpu_data->device_QUVW_data[b2];
+
+				temp += dot(XYZ, gpu_data->device_JXYZB_data[index + number_of_contacts * 3]);
+				temp += dot(UVW, gpu_data->device_JUVWB_data[index + number_of_contacts * 3]);
+			}
+			temp+= mx[index + number_of_contacts * 3] * inv_hhpa * compliance;
+
+			real _b,_mx,_my,_ms,_mg;
+			_b = b[index + number_of_contacts * 3];
+			real _mg_tmp = temp;
+			real _mg_tmp2 = _mg_tmp - _b;
+
+//			mg_tmp2[index + number_of_contacts * 3] = _mg_tmp2;
+
+			//lm = std::min(lm, _mg_tmp2);
+
+			real _obj1_tmp = 0.5 * _mg_tmp - _b;
+
+			_mx = mx[index+ number_of_contacts * 3];
+			_my = my[index+ number_of_contacts * 3];
+
+			_obj1 += _obj1_tmp * _mx;
+			_ms = _mx - _my;
+			ms[index + number_of_contacts * 3] = _ms;
+			_mg = mg[index+ number_of_contacts * 3];
+			temp1 += _mg * _ms;
+			temp2+= _ms * _ms;
+		}
 		if ( lm < min_val ) {
 #pragma critical
 			{
@@ -389,7 +511,6 @@ real & temp_dot_prod) {
 	}
 
 #endif
-
 	temp_dot_prod=Thrust_Total(obj1_tmp);
 }
 
@@ -408,28 +529,28 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 	real theta_k1=theta_k;
 	real beta_k1=0.0;
 	//custom_vector<real> ml = x;
-		Project(x);
+	Project(x);
 	//custom_vector<real> ml_candidate = ml;
 
-		custom_vector<real> mg(x.size());
-		ShurProduct(x,mg);
-		mg=mg- b;// 1)  g = N*l // 2)  g = N*l - b_shur ...
+	custom_vector<real> mg(x.size());
+	ShurProduct(x,mg);
+	mg=mg- b;// 1)  g = N*l // 2)  g = N*l - b_shur ...
 
-		Thrust_Fill(d01, -1.0);
-		d01+=x;
-		ShurProduct(d01,temp);
-		real L_k = (Norm(d01)==0) ? 1 : Norm(temp) / Norm(d01);
-		real t_k = 1.0 / L_k;
-		if (verbose) cout << "L_k:" << L_k << " t_k:" << -t_k << "\n";
-		custom_vector<real> my = x;
-		custom_vector<real> mx = x;
+	Thrust_Fill(d01, -1.0);
+	d01+=x;
+	ShurProduct(d01,temp);
+	real L_k = (Norm(d01)==0) ? 1 : Norm(temp) / Norm(d01);
+	real t_k = 1.0 / L_k;
+	if (verbose) cout << "L_k:" << L_k << " t_k:" << -t_k << "\n";
+	custom_vector<real> my = x;
+	custom_vector<real> mx = x;
 
-		real obj1=0.0;
-		real obj2=0.0;
+	real obj1=0.0;
+	real obj2=0.0;
 #ifdef PRINT_DEBUG_GPU
-		cout<<"solver_inner"<<endl;
+	cout<<"solver_inner"<<endl;
 #endif
-		for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
+	for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
 #ifdef PRINT_DEBUG_GPU
 		cout<<"iter_start"<<endl;
 #endif
@@ -449,10 +570,10 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 
 		while (obj1 > obj3) {
 #ifdef PRINT_DEBUG_GPU
-		cout <<"L_k "<<L_k<<" t_k "<<t_k<<endl;
+			cout <<"L_k "<<L_k<<" t_k "<<t_k<<endl;
 #endif
-		L_k = 2 * L_k;
-		t_k = 1.0 / L_k;
+			L_k = 2 * L_k;
+			t_k = 1.0 / L_k;
 //			SEAXPY(-t_k, mg, my, mx); // mx = my + mg*(t_k);
 //			Project(mx);
 //
@@ -460,60 +581,60 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 //			mg_tmp2 = mg_tmp-b;
 //			obj1 = Dot(mx, 0.5*mg_tmp-b);
 //			ms = mx - my;
-		min_val = FLT_MAX;
-		obj3 = PART_B(x.size(), temp_bids,mx,my,ms,b,mg,mg_tmp2,-t_k,L_k,obj1,obj2,min_val);
+			min_val = FLT_MAX;
+			obj3 = PART_B(x.size(), temp_bids,mx,my,ms,b,mg,mg_tmp2,-t_k,L_k,obj1,obj2,min_val);
 
 #ifdef PRINT_DEBUG_GPU
-		cout << "APGD halving stepsize at it " << current_iteration << ", now t_k=" << -t_k << "\n";
+			cout << "APGD halving stepsize at it " << current_iteration << ", now t_k=" << -t_k << "\n";
 #endif
-	}
-	theta_k1 = (-pow(theta_k, 2) + theta_k * sqrt(pow(theta_k, 2) + 4)) / 2.0;
-	beta_k1 = theta_k * (1.0 - theta_k) / (pow(theta_k, 2) + theta_k1);
-	real temp_dot_prod=0;
+		}
+		theta_k1 = (-pow(theta_k, 2) + theta_k * sqrt(pow(theta_k, 2) + 4)) / 2.0;
+		beta_k1 = theta_k * (1.0 - theta_k) / (pow(theta_k, 2) + theta_k1);
+		real temp_dot_prod=0;
 
-	//ms = mx - ml;
-	//SEAXPY(beta_k1,ms,mx,my);//my = mx + beta_k1 * (ms);
-	//temp_dot_prod = Dot(mg, ms);
-	partThree_host(x.size(),
-	mx,
-	x,
-	mg,
-	beta_k1,
-	ms,
-	my,
-	obj1_tmp,
-	temp_dot_prod);
-	if (temp_dot_prod > 0) {
-		my = mx;
-		theta_k1 = 1.0;
+		//ms = mx - ml;
+		//SEAXPY(beta_k1,ms,mx,my);//my = mx + beta_k1 * (ms);
+		//temp_dot_prod = Dot(mg, ms);
+		partThree_host(x.size(),
+		mx,
+		x,
+		mg,
+		beta_k1,
+		ms,
+		my,
+		obj1_tmp,
+		temp_dot_prod);
+		if (temp_dot_prod > 0) {
+			my = mx;
+			theta_k1 = 1.0;
 #ifdef PRINT_DEBUG_GPU
-		cout << "Restarting APGD at it " << current_iteration << "\n";
+			cout << "Restarting APGD at it " << current_iteration << "\n";
 #endif
-	}
-	L_k = 0.9 * L_k;
-	t_k = 1.0 / L_k;
+		}
+		L_k = 0.9 * L_k;
+		t_k = 1.0 / L_k;
 
-	//x = mx;
-	theta_k = theta_k1;
+		//x = mx;
+		theta_k = theta_k1;
 
-	//this is res1
-	real g_proj_norm=fmax(real(0.0),-min_val);
-	//CompRes(mg_tmp2,number_of_contacts);
-	//cout<<"MINVAL "<<g_proj_norm<<" "<<fmax(real(0.0),-min_val)<<endl;
-	//this is res4
-	//SEAXPY(-gdiff, mg_tmp2, x, mb_tmp); //mb_tmp=x+mg_tmp2*(-gdiff)
-	//Project(mb_tmp);
-	//d01=mb_tmp-x;
-	//mb_tmp = (-1.0/gdiff)*d01;
-	//real g_proj_norm = Norm(mb_tmp);
+		//this is res1
+		real g_proj_norm=fmax(real(0.0),-min_val);
+		//CompRes(mg_tmp2,number_of_contacts);
+		//cout<<"MINVAL "<<g_proj_norm<<" "<<fmax(real(0.0),-min_val)<<endl;
+		//this is res4
+		//SEAXPY(-gdiff, mg_tmp2, x, mb_tmp); //mb_tmp=x+mg_tmp2*(-gdiff)
+		//Project(mb_tmp);
+		//d01=mb_tmp-x;
+		//mb_tmp = (-1.0/gdiff)*d01;
+		//real g_proj_norm = Norm(mb_tmp);
 
-	if(g_proj_norm < lastgoodres) {
-		lastgoodres = g_proj_norm;
-		//ml_candidate = ml;
-	}
+		if(g_proj_norm < lastgoodres) {
+			lastgoodres = g_proj_norm;
+			//ml_candidate = ml;
+		}
 
-	residual=lastgoodres;
-	real maxdeltalambda = 0; //NormInf(ms);
+		residual=lastgoodres;
+		real maxdeltalambda = 0; //NormInf(ms);
 
 #ifdef PRINT_DEBUG_GPU
 		cout<<"iter_end "<<residual<<endl;
@@ -529,3 +650,126 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 	//x=ml_candidate;
 	return current_iteration;
 }
+
+uint ChSolverGPU::SolveAPGD_ALT(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
+	bool verbose = false;
+	//cout<<b<<endl;
+		real gdiff = 0.000001;
+
+		custom_vector<real> ms(x.size()), mg_tmp2, mb_tmp(x.size());
+		custom_vector<real> mg_tmp(x.size()), mg_tmp1(x.size());
+		custom_vector<real> obj1_tmp(x.size());
+		real lastgoodres=10e30;
+		real theta_k=1.0;
+		real theta_k1=theta_k;
+		real beta_k1=0.0;
+		custom_vector<real> ml = x;
+		Project(x);
+	//custom_vector<real> ml_candidate = ml;
+
+		custom_vector<real> mg(x.size());
+		ShurProduct(x,mg);
+		mg=mg- b;// 1)  g = N*l // 2)  g = N*l - b_shur ...
+
+
+		Thrust_Fill(mb_tmp, -1.0);
+		mb_tmp+=x;
+		ShurProduct(mb_tmp,mg_tmp);
+		//cout<<mg_tmp<<endl;
+		real L_k;
+		if (Norm(mb_tmp) == 0) {
+			L_k = 1;
+			std::cout<<"HERE"<<std::endl;
+		} else {
+			L_k =Norm(mg_tmp) / Norm(mb_tmp);
+		}
+
+		// L_k = (Norm(d01)==0) ? 1 : Norm(temp) / Norm(d01);
+
+		real t_k = 1.0 / L_k;
+		if (verbose) cout << "L_k:" << L_k << " t_k:" << -t_k << "\n";
+		custom_vector<real> my = x;
+		custom_vector<real> mx = x;
+
+		real obj1=0.0;
+		real obj2=0.0;
+		//std::cout<<"tk "<<t_k<<std::endl;
+
+
+
+		for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
+			ShurProduct(my,mg_tmp1);
+			mg = mg_tmp1-b;
+			SEAXPY(-t_k, mg, my, mx); // mx = my + mg*(t_k);
+			Project(mx);
+			ShurProduct(mx,mg_tmp);
+			mg_tmp2 = mg_tmp-b;
+			obj1 = Dot(mx, 0.5*mg_tmp-b);
+			obj2 = Dot(my, 0.5*mg_tmp1-b);
+			ms = mx - my;
+
+			//std::cout<<"OBJ "<<obj1<<" "<<obj2<<std::endl;
+
+			real obj3 = obj2 + Dot(mg, ms) + 0.5 * L_k * powf(Norm(ms), 2.0);
+
+			while (obj1 > obj3) {
+				L_k = 2 * L_k;
+				t_k = 1.0 / L_k;
+				SEAXPY(-t_k, mg, my, mx); // mx = my + mg*(t_k);
+				Project(mx);
+
+				ShurProduct(mx,mg_tmp);
+				mg_tmp2 = mg_tmp-b;
+				obj1 = Dot(mx, 0.5*mg_tmp-b);
+				ms = mx - my;
+				obj3 = obj2 + Dot(mg, ms) + 0.5 * L_k * powf(Norm(ms), 2.0);
+
+			}
+			theta_k1 = (-pow(theta_k, 2) + theta_k * sqrt(pow(theta_k, 2) + 4)) / 2.0;
+			beta_k1 = theta_k * (1.0 - theta_k) / (pow(theta_k, 2) + theta_k1);
+			real temp_dot_prod=0;
+
+			ms = mx - ml;
+			SEAXPY(beta_k1,ms,mx,my); //my = mx + beta_k1 * (ms);
+			temp_dot_prod = Dot(mg, ms);
+
+			if (temp_dot_prod > 0) {
+				my = mx;
+				theta_k1 = 1.0;
+			}
+			L_k = 0.9 * L_k;
+			t_k = 1.0 / L_k;
+
+			x = mx;
+			theta_k = theta_k1;
+
+			//this is res1
+			//real g_proj_norm=fmax(real(0.0),-min_val);
+			real g_proj_norm=CompRes(mg_tmp2,number_of_contacts);
+			//cout<<"MINVAL "<<g_proj_norm<<" "<<fmax(real(0.0),-min_val)<<endl;
+			//this is res4
+			//SEAXPY(-gdiff, mg_tmp2, x, mb_tmp); //mb_tmp=x+mg_tmp2*(-gdiff)
+			//Project(mb_tmp);
+			//d01=mb_tmp-x;
+			//mb_tmp = (-1.0/gdiff)*d01;
+			//real g_proj_norm = Norm(mb_tmp);
+
+			if(g_proj_norm < lastgoodres) {
+				lastgoodres = g_proj_norm;
+				//ml_candidate = ml;
+			}
+
+			residual=lastgoodres;
+			real maxdeltalambda = 0; //NormInf(ms);
+
+			AtIterationEnd(residual, maxdeltalambda, current_iteration);
+
+			if (residual < tolerance) {
+				break;
+			}
+		}
+		//cout<<x<<endl;
+//x=ml_candidate;
+		return current_iteration;
+	}
+

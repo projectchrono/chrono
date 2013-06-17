@@ -16,51 +16,51 @@ ChSystemGPU::ChSystemGPU(unsigned int max_objects) :
 	((ChCollisionSystemGPU *) (collision_system))->data_container = gpu_data_manager;
 	((ChLcpSystemDescriptorGPU *) (LCP_descriptor))->data_container = gpu_data_manager;
 }
-int ChSystemGPU::Setup() {
-	this->stepcount++;
-	nbodies = 0;
-	nbodies_sleep = 0;
-	nbodies_fixed = 0;
-	ncoords = 0;
-	ncoords_w = 0;
-	ndoc = 0;
-	ndoc_w = 0;
-	ndoc_w_C = 0;
-	ndoc_w_D = 0;
-	nlinks = 0;
-	nphysicsitems = 0;
-
-	for (int i = 0; i < bodylist.size(); i++) { // Updates recursively all other aux.vars
-		if (!bodylist[i]->GetBodyFixed()) {
-			if (!bodylist[i]->GetSleeping()) {
-				nbodies++; // Count bodies and indicize them.
-			} else {
-				nbodies_sleep++;
-			}
-		} else {
-			nbodies_fixed++;
-		}
-	}
-
-	ncoords_w += nbodies * 6;
-	ncoords += nbodies * 7; // with quaternion coords
-	ndoc += nbodies; // There is a quaternion constr. for each active body.
-	ndoc = ndoc_w + nbodies; // sets number of constraints including quaternion constraints.
-	nsysvars = ncoords + ndoc; // sets number of total variables (=coordinates + lagrangian multipliers)
-	nsysvars_w = ncoords_w + ndoc_w; // sets number of total variables (with 6 dof per body)
-	ndof = ncoords - ndoc; // sets number of left degrees of freedom (approximate - does not consider constr. redundancy, etc)
-	std::list<ChLink *>::iterator it;
-
-	for (it = linklist.begin(); it != linklist.end(); it++) {
-		nlinks++;
-		ndoc_w += (*it)->GetDOC();
-		ndoc_w_C += (*it)->GetDOC_c();
-		ndoc_w_D += (*it)->GetDOC_d();
-	}
-
-	ndoc_w_D += contact_container->GetDOC_d();
-	return 0;
-}
+//int ChSystemGPU::Setup() {
+//	this->stepcount++;
+//	nbodies = 0;
+//	nbodies_sleep = 0;
+//	nbodies_fixed = 0;
+//	ncoords = 0;
+//	ncoords_w = 0;
+//	ndoc = 0;
+//	ndoc_w = 0;
+//	ndoc_w_C = 0;
+//	ndoc_w_D = 0;
+//	nlinks = 0;
+//	nphysicsitems = 0;
+//
+//	for (int i = 0; i < bodylist.size(); i++) { // Updates recursively all other aux.vars
+//		if (!bodylist[i]->GetBodyFixed()) {
+//			if (!bodylist[i]->GetSleeping()) {
+//				nbodies++; // Count bodies and indicize them.
+//			} else {
+//				nbodies_sleep++;
+//			}
+//		} else {
+//			nbodies_fixed++;
+//		}
+//	}
+//
+//	ncoords_w += nbodies * 6;
+//	ncoords += nbodies * 7; // with quaternion coords
+//	ndoc += nbodies; // There is a quaternion constr. for each active body.
+//	ndoc = ndoc_w + nbodies; // sets number of constraints including quaternion constraints.
+//	nsysvars = ncoords + ndoc; // sets number of total variables (=coordinates + lagrangian multipliers)
+//	nsysvars_w = ncoords_w + ndoc_w; // sets number of total variables (with 6 dof per body)
+//	ndof = ncoords - ndoc; // sets number of left degrees of freedom (approximate - does not consider constr. redundancy, etc)
+//	std::list<ChLink *>::iterator it;
+//
+//	for (it = linklist.begin(); it != linklist.end(); it++) {
+//		nlinks++;
+//		ndoc_w += (*it)->GetDOC();
+//		ndoc_w_C += (*it)->GetDOC_c();
+//		ndoc_w_D += (*it)->GetDOC_d();
+//	}
+//
+//	ndoc_w_D += contact_container->GetDOC_d();
+//	return 0;
+//}
 
 int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	mtimer_step.start();
@@ -87,7 +87,21 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	mtimer_updt.start();
 	gpu_data_manager->DeviceToHost();
 	std::vector<ChLcpVariables*> vvariables = LCP_descriptor->GetVariablesList();
-#pragma omp parallel for
+
+	uint counter = 0;
+	std::vector<ChLcpConstraint *> &mconstraints = (*this->LCP_descriptor).GetConstraintsList();
+	for (uint ic = 0; ic < mconstraints.size(); ic++) {
+		if (mconstraints[ic]->IsActive() == false) {
+			continue;
+		}
+		ChLcpConstraintTwoBodies *mbilateral = (ChLcpConstraintTwoBodies *) (mconstraints[ic]);
+		mconstraints[ic]->Set_l_i(gpu_data_manager->host_gamma_bilateral[counter]);
+		counter++;
+	}
+// updates the reactions of the constraint
+	LCPresult_Li_into_reactions(1.0 / this->GetStep()); // R = l/dt  , approximately
+
+//#pragma omp parallel for
 	for (int i = 0; i < vvariables.size(); i++) {
 
 		real3 vel = gpu_data_manager->host_vel_data[i];
@@ -103,6 +117,7 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 		mbody->VariablesQbIncrementPosition(this->GetStep());
 		mbody->VariablesQbSetSpeed(this->GetStep());
 
+		mbody->Update(ChTime);
 	}
 
 //	real3 *vel_pointer = gpu_data_manager->host_vel_data.data();
@@ -128,28 +143,7 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 //
 //			}
 //		}
-	uint counter = 0;
-	std::vector<ChLcpConstraint *> &mconstraints = (*this->LCP_descriptor).GetConstraintsList();
-	for (uint ic = 0; ic < mconstraints.size(); ic++) {
-		if (mconstraints[ic]->IsActive() == false) {
-			continue;
-		}
 
-		ChLcpConstraintTwoBodies *mbilateral = (ChLcpConstraintTwoBodies *) (mconstraints[ic]);
-		real gamma = gpu_data_manager->host_bilateral_data[counter + gpu_data_manager->number_of_bilaterals * 4].z;
-		mconstraints[ic]->Set_l_i(gamma);
-		counter++;
-	}
-// updates the reactions of the constraint
-	LCPresult_Li_into_reactions(1.0 / this->GetStep()); // R = l/dt  , approximately
-	std::list<ChLink *>::iterator it;
-
-	for (it = linklist.begin(); it != linklist.end(); it++) {
-		(*it)->ConstraintsLiFetchSuggestedSpeedSolution();
-	}
-	for (it = linklist.begin(); it != linklist.end(); it++) {
-		(*it)->ConstraintsFetch_react(1.0 / this->GetStep());
-	}
 	mtimer_updt.stop();
 	timer_update += mtimer_updt();
 	ChTime += GetStep();
@@ -253,10 +247,17 @@ void ChSystemGPU::Update() {
 	real *fric_pointer = gpu_data_manager->host_fric_data.data();
 	real *cohesion_pointer = gpu_data_manager->host_cohesion_data.data();
 	real3 *lim_pointer = gpu_data_manager->host_lim_data.data();
-	unsigned int number_of_bilaterals = 0;
-	uint cntr = 0;
+
+	//========================================================================
 	this->LCP_descriptor->BeginInsertion();
 
+	for (int i = 0; i < bodylist.size(); i++) {
+		bodylist[i]->Update(ChTime);
+		bodylist[i]->VariablesFbReset();
+		bodylist[i]->VariablesFbLoadForces(GetStep());
+		bodylist[i]->VariablesQbLoadSpeed();
+		bodylist[i]->InjectVariables(*this->LCP_descriptor);
+	}
 	for (it = linklist.begin(); it != linklist.end(); it++) {
 		(*it)->Update(ChTime);
 		(*it)->ConstraintsBiReset();
@@ -266,72 +267,50 @@ void ChSystemGPU::Update() {
 		(*it)->ConstraintsLoadJacobians();
 		(*it)->InjectConstraints(*this->LCP_descriptor);
 	}
+	LCP_descriptor->EndInsertion();
+	//========================================================================
+//	LCPprepare_reset();
+	//	for (it = linklist.begin(); it != linklist.end(); it++) {
+//
+//	}
+//
+//	for (int i = 0; i < bodylist.size(); i++) {
+//
+//	}
+	//========================================================================
+//	LCPprepare_load(true, // Cq,
+//			true, // v_old (needed for adding [M]*v_old to the known vector)
+//			GetStep(), // f*dt
+//			GetStep() * GetStep(), // dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
+//			GetStep(), // dt*R   (nb only non-Schur based solvers support R matrix blocks)
+//			1.0, // Ct   (needed, for rheonomic motors)
+//			1.0 / GetStep(), // C/dt
+//			max_penetration_recovery_speed, // vlim, max penetrations recovery speed (positive for exiting)
+//			true); // do above max. clamping on -C/dt
 
-	std::vector<ChLcpConstraint *> &mconstraints = (*this->LCP_descriptor).GetConstraintsList();
+	//	for (it = linklist.begin(); it != linklist.end(); it++) {
+//
+//	}
+//	for (int i = 0; i < bodylist.size(); i++) {
+//	}
+//	LCPprepare_Li_from_speed_cache();
+	//========================================================================
+//	this->LCP_descriptor->BeginInsertion();
+//	for (it = linklist.begin(); it != linklist.end(); it++) {
+//
+//	}
+//	for (int i = 0; i < bodylist.size(); i++) {
+//
+//	}
+//
+//	LCP_descriptor->EndInsertion();
+//	LCPprepare_inject(*this->LCP_descriptor);
+	//========================================================================
 
-	for (uint ic = 0; ic < mconstraints.size(); ic++) {
-		if (mconstraints[ic]->IsActive() == true) {
-			number_of_bilaterals++;
-		}
-	}
+	//========================================================================
 
-	gpu_data_manager->number_of_bilaterals = number_of_bilaterals;
-
-	gpu_data_manager->host_JXYZA_data_bilateral.resize(number_of_bilaterals);
-	gpu_data_manager->host_JXYZB_data_bilateral.resize(number_of_bilaterals);
-	gpu_data_manager->host_JUVWA_data_bilateral.resize(number_of_bilaterals);
-	gpu_data_manager->host_JUVWB_data_bilateral.resize(number_of_bilaterals);
-	gpu_data_manager->host_residual_bilateral.resize(number_of_bilaterals);
-	gpu_data_manager->host_bilateral_data.resize(number_of_bilaterals * CH_BILATERAL_VSIZE);
-
-	for (uint ic = 0; ic < mconstraints.size(); ic++) {
-		if (mconstraints[ic]->IsActive() == false) {
-			continue;
-		}
-
-		ChLcpConstraintTwoBodies *mbilateral = (ChLcpConstraintTwoBodies *) (mconstraints[ic]);
-		int idA = ((ChBodyGPU *) ((ChLcpVariablesBody *) (mbilateral->GetVariables_a()))->GetUserData())->id;
-		int idB = ((ChBodyGPU *) ((ChLcpVariablesBody *) (mbilateral->GetVariables_b()))->GetUserData())->id;
-		// Update auxiliary data in all constraints before starting, that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
-		mconstraints[ic]->Update_auxiliary(); //***NOTE*** not efficient here - can be on GPU, and [Eq_i] not needed
-		real3 A, B, C, D;
-		A = R3(mbilateral->Get_Cq_a()->GetElementN(0), mbilateral->Get_Cq_a()->GetElementN(1), mbilateral->Get_Cq_a()->GetElementN(2)); //J1x
-		B = R3(mbilateral->Get_Cq_b()->GetElementN(0), mbilateral->Get_Cq_b()->GetElementN(1), mbilateral->Get_Cq_b()->GetElementN(2)); //J2x
-		C = R3(mbilateral->Get_Cq_a()->GetElementN(3), mbilateral->Get_Cq_a()->GetElementN(4), mbilateral->Get_Cq_a()->GetElementN(5)); //J1w
-		D = R3(mbilateral->Get_Cq_b()->GetElementN(3), mbilateral->Get_Cq_b()->GetElementN(4), mbilateral->Get_Cq_b()->GetElementN(5)); //J2w
-		//A.w = idA; //pointer to body B1 info in body buffer
-		//B.w = idB; //pointer to body B2 info in body buffer
-		gpu_data_manager->host_JXYZA_data_bilateral[cntr] = A;
-		gpu_data_manager->host_JXYZB_data_bilateral[cntr] = B;
-		gpu_data_manager->host_JUVWA_data_bilateral[cntr] = C;
-		gpu_data_manager->host_JUVWB_data_bilateral[cntr] = D;
-		gpu_data_manager->host_residual_bilateral[cntr] = mbilateral->Get_b_i();
-
-
-
-		//gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 0] = A; //JXYZA
-		//gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 1] = B; //JXYZW
-		//gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 2] = C; //JUVWA
-		//gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 3] = D; //JUVWB
-		//gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 4].x = (1.0 / mbilateral->Get_g_i()); // eta = 1/g
-		//gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 4].y = mbilateral->Get_b_i(); // b_i is residual b
-		//gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 4].z = 0; //gammma, no warm starting
-		//gpu_data_manager->host_bilateral_data[cntr + number_of_bilaterals * 4].w = (mbilateral->IsUnilateral()) ? 1 : 0;
-		cntr++;
-	}
-
-//#pragma omp parallel for
-	for (int i = 0; i < bodylist.size(); i++) { // Updates recursively all other aux.vars
-
-		bodylist[i]->UpdateTime(ChTime);
-		bodylist[i]->UpdateMarkers(ChTime);
-		bodylist[i]->UpdateForces(ChTime);
-		bodylist[i]->VariablesFbReset();
-		bodylist[i]->VariablesFbLoadForces(GetStep());
-		bodylist[i]->VariablesQbLoadSpeed();
-		///START DEBUG
-		bodylist[i]->InjectVariables(*this->LCP_descriptor);
-		///END DEBUG
+	#pragma omp parallel for
+	for (int i = 0; i < bodylist.size(); i++) {
 		ChLcpVariablesBody *mbodyvar = &(bodylist[i]->Variables());
 		ChMatrix33<> inertia = mbodyvar->GetBodyInvInertia();
 		vel_pointer[i] = (R3(mbodyvar->Get_qb().ElementN(0), mbodyvar->Get_qb().ElementN(1), mbodyvar->Get_qb().ElementN(2)));
@@ -349,7 +328,66 @@ void ChSystemGPU::Update() {
 		bodylist[i]->GetCollisionModel()->SyncPosition();
 	}
 
-	LCP_descriptor->EndInsertion();
+	unsigned int number_of_bilaterals = 0, cntr = 0;
+	std::vector<ChLcpConstraint *> &mconstraints = (*this->LCP_descriptor).GetConstraintsList();
+	for (uint ic = 0; ic < mconstraints.size(); ic++) {
+		if (mconstraints[ic]->IsActive() == true) {
+			number_of_bilaterals++;
+		}
+	}
+	gpu_data_manager->number_of_bilaterals = number_of_bilaterals;
+
+	gpu_data_manager->host_JXYZA_bilateral.resize(number_of_bilaterals);
+	gpu_data_manager->host_JXYZB_bilateral.resize(number_of_bilaterals);
+	gpu_data_manager->host_JUVWA_bilateral.resize(number_of_bilaterals);
+	gpu_data_manager->host_JUVWB_bilateral.resize(number_of_bilaterals);
+	gpu_data_manager->host_residual_bilateral.resize(number_of_bilaterals);
+	gpu_data_manager->host_correction_bilateral.resize(number_of_bilaterals);
+	gpu_data_manager->host_bids_bilateral.resize(number_of_bilaterals);
+	gpu_data_manager->host_gamma_bilateral.resize(number_of_bilaterals);
+#pragma omp parallel for
+	for (uint ic = 0; ic < mconstraints.size(); ic++) {
+		if (mconstraints[ic]->IsActive() == false) {
+			continue;
+		}
+
+		ChLcpConstraintTwoBodies *mbilateral = (ChLcpConstraintTwoBodies *) (mconstraints[ic]);
+		int idA = ((ChBodyGPU *) ((ChLcpVariablesBody *) (mbilateral->GetVariables_a()))->GetUserData())->id;
+		int idB = ((ChBodyGPU *) ((ChLcpVariablesBody *) (mbilateral->GetVariables_b()))->GetUserData())->id;
+		// Update auxiliary data in all constraints before starting, that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
+		mconstraints[ic]->Update_auxiliary(); //***NOTE*** not efficient here - can be on GPU, and [Eq_i] not needed
+		real3 A, B, C, D;
+		A = R3(mbilateral->Get_Cq_a()->GetElementN(0), mbilateral->Get_Cq_a()->GetElementN(1), mbilateral->Get_Cq_a()->GetElementN(2)); //J1x
+		B = R3(mbilateral->Get_Cq_b()->GetElementN(0), mbilateral->Get_Cq_b()->GetElementN(1), mbilateral->Get_Cq_b()->GetElementN(2)); //J2x
+		C = R3(mbilateral->Get_Cq_a()->GetElementN(3), mbilateral->Get_Cq_a()->GetElementN(4), mbilateral->Get_Cq_a()->GetElementN(5)); //J1w
+		D = R3(mbilateral->Get_Cq_b()->GetElementN(3), mbilateral->Get_Cq_b()->GetElementN(4), mbilateral->Get_Cq_b()->GetElementN(5)); //J2w
+
+//		std::cout<<"A: "<<A.x<<" "<<A.y<<" "<<A.z<<std::endl;
+//		std::cout<<"B: "<<B.x<<" "<<B.y<<" "<<B.z<<std::endl;
+//		std::cout<<"C: "<<C.x<<" "<<C.y<<" "<<C.z<<std::endl;
+//		std::cout<<"D: "<<D.x<<" "<<D.y<<" "<<D.z<<std::endl;
+
+//		real3 vA = gpu_data_manager->host_vel_data[idA];
+//		std::cout << vA.x << " " << vA.y << " " << vA.z << " ";
+//		vA = gpu_data_manager->host_omg_data[idA];
+//		std::cout << vA.x << " " << vA.y << " " << vA.z << " | ";
+//		vA = gpu_data_manager->host_vel_data[idB];
+//		std::cout << vA.x << " " << vA.y << " " << vA.z << " ";
+//		vA = gpu_data_manager->host_omg_data[idB];
+//		std::cout << vA.x << " " << vA.y << " " << vA.z << "\n";
+
+		//cout<<idA<<" "<<idB<<" "<<mbilateral->Get_b_i()<<" "<<1.0 / mbilateral->Get_g_i()<<endl;
+
+		gpu_data_manager->host_JXYZA_bilateral[cntr] = A;
+		gpu_data_manager->host_JXYZB_bilateral[cntr] = B;
+		gpu_data_manager->host_JUVWA_bilateral[cntr] = C;
+		gpu_data_manager->host_JUVWB_bilateral[cntr] = D;
+		gpu_data_manager->host_residual_bilateral[cntr] = mbilateral->Get_b_i(); // b_i is residual b
+		gpu_data_manager->host_correction_bilateral[cntr] = 1.0 / mbilateral->Get_g_i(); // eta = 1/g
+		gpu_data_manager->host_bids_bilateral[cntr] = I2(idA, idB);
+		gpu_data_manager->host_gamma_bilateral[cntr] = mbilateral->Get_l_i();
+		cntr++;
+	}
 
 }
 

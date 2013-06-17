@@ -25,13 +25,23 @@ void ChGPUDataManager::HostToDevice() {
 	gpu_data.device_fric_data = host_fric_data;
 	gpu_data.device_cohesion_data = host_cohesion_data;
 	gpu_data.device_lim_data = host_lim_data;
-	gpu_data.device_bilateral_data = host_bilateral_data;
+	//gpu_data.device_bilateral_data = host_bilateral_data;
 	//gpu_data.min_bounding_point = min_bounding_point;
 	//gpu_data.max_bounding_point = min_bounding_point;
 	gpu_data.number_of_models = number_of_models;
 	gpu_data.number_of_objects = number_of_objects;
 	gpu_data.number_of_bilaterals = number_of_bilaterals;
 	gpu_data.number_of_contacts_possible = number_of_contacts_possible;
+
+	gpu_data.device_JXYZA_bilateral=host_JXYZA_bilateral;
+	gpu_data.device_JXYZB_bilateral=host_JXYZB_bilateral;
+	gpu_data.device_JUVWA_bilateral=host_JUVWA_bilateral;
+	gpu_data.device_JUVWB_bilateral=host_JUVWB_bilateral;
+	gpu_data.device_residual_bilateral=host_residual_bilateral;
+	gpu_data.device_correction_bilateral=host_correction_bilateral;
+	gpu_data.device_bids_bilateral=host_bids_bilateral;
+	gpu_data.device_gamma_bilateral=host_gamma_bilateral;
+
 }
 
 void ChGPUDataManager::DeviceToHost() {
@@ -53,7 +63,8 @@ void ChGPUDataManager::DeviceToHost() {
 	}
 
 	number_of_contacts = gpu_data.number_of_contacts;
-	host_bilateral_data = gpu_data.device_bilateral_data;
+	host_gamma_bilateral=gpu_data.device_gamma_bilateral;
+	//host_bilateral_data = gpu_data.device_bilateral_data;
 }
 void ChGPUDataManager::HostToDeviceForces() {
 	gpu_data.device_frc_data = host_frc_data;

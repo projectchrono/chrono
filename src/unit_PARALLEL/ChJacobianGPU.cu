@@ -227,6 +227,13 @@ void ChJacobianGPU::ComputeJacobians(gpu_container& gpu_data_) {
 			gpu_data->device_JUVWA_data.data(),
 			gpu_data->device_JUVWB_data.data());
 
+	thrust::copy_n(gpu_data->device_JXYZA_bilateral.begin(), gpu_data->number_of_bilaterals, gpu_data->device_JXYZA_data.begin() + gpu_data->number_of_contacts * 3);
+	thrust::copy_n(gpu_data->device_JXYZB_bilateral.begin(), gpu_data->number_of_bilaterals, gpu_data->device_JXYZB_data.begin() + gpu_data->number_of_contacts * 3);
+	thrust::copy_n(gpu_data->device_JUVWA_bilateral.begin(), gpu_data->number_of_bilaterals, gpu_data->device_JUVWA_data.begin() + gpu_data->number_of_contacts * 3);
+	thrust::copy_n(gpu_data->device_JUVWB_bilateral.begin(), gpu_data->number_of_bilaterals, gpu_data->device_JUVWB_data.begin() + gpu_data->number_of_contacts * 3);
+
+
+
 #endif
 
 //	for (int i = 0; i < gpu_data->device_JXYZA_data.size() / 3; i++) {
