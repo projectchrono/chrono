@@ -81,11 +81,18 @@ SET(ENABLE_UNIT_IRRLICHT FALSE   CACHE BOOL   "Turn this ON to generate the Chro
 SET(ENABLE_UNIT_TESTS    FALSE   CACHE BOOL   "Turn this ON to generate Chrono::Engine unit tests")
 SET(ENABLE_UNIT_MPI      FALSE   CACHE BOOL   "Turn this ON to generate the Chrono::Engine MPI library")
 
+# Justin 160613, set the directories for the soft soil folder.
+SET(ENABLE_UNIT_TERRAIN		 FALSE	 CACHE BOOL	"Turn ON to generate a Chrono::Terrain project")
+# IF(ENABLE_UNIT_TERRAIN)
+# 	SET(ENABLE_UNIT_BOOST TRUE	 CACHE BOOL "Use Boost libraries to enable Asynchronous execuation?")
+#     SET(TM_BINDIR	"C:/Users/newJustin/JTM_build/bin" CACHE PATH   "Where is your TerraMechanics build diretory?")
+# 	SET(TM_DATADIR	"C:/Users/newJustin/JTM_build/Data" CACHE PATH	"Where is your TerraMechanics data directory?")
+# 	SET(TM_LIBDIR	"C:/Users/newJustin/JTM_build/lib" CACHE PATH "where is your TerraMechanics lib dir?")
+# ENDIF()
 
 # Also, some variables that were used in previous makefile system (some
 # of them could be set automatically because CMake should recognize automatically 
 # the compiler, generator, platform, etc....
-
 # Set a default build type if none was specified
 
 if(MSVC)
@@ -219,7 +226,7 @@ INCLUDE_DIRECTORIES( ${CH_INCLUDES} )
 # Some other variables that will be used when building with Irrlicht or Matlab
 
 IF (ENABLE_UNIT_IRRLICHT)
-    SET(CH_IRRLICHTDIR       ""    	CACHE PATH   "Where is your Irrlicht SDK installed? You must set this path to compile demos with 3D display.")
+    SET(CH_IRRLICHTDIR "D:/irrlicht-1.8"  CACHE PATH   "Where is your Irrlicht SDK installed? You must set this path to compile demos with 3D display.")
     IF(EXISTS "${CH_IRRLICHTDIR}/include")
         SET(CH_IRRLICHTINC "${CH_IRRLICHTDIR}/include")
     ELSE()
@@ -239,10 +246,9 @@ IF (ENABLE_UNIT_IRRLICHT)
         FIND_LIBRARY( CH_IRRLICHTLIB NAMES Irrlicht PATHS "/usr/local/lib" ${CH_IRRLICHTDIR}/lib/Linux)
         SET (CH_IRRLICHTLIB "${CH_IRRLICHTLIB}" -lXxf86vm -lglut -lX11 -lGL)
     ENDIF()
-
+	INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC} )
 ENDIF()
-
-#INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC} )
+INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC} )
 
 IF (BUILD_CH_SDK)
 
