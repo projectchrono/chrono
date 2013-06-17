@@ -54,9 +54,4 @@ IF (ENABLE_UNIT_POSTPROCESS)
 ENDIF()
 
 
-# Justin 160613, add directory for tests with the softSoil mobility database
-IF (ENABLE_UNIT_TERRAIN)
-	ADD_SUBDIRECTORY(vti)
-ENDIF()
-
 ENDIF()

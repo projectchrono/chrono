@@ -247,6 +247,17 @@ TARGET_LINK_LIBRARIES(demo_irr_assets
  	ChronoEngine)
 ADD_DEPENDENCIES (demo_irr_assets ChronoEngine)
 
+# Justin 170613, adding soil bin to the demos folder
+ADD_EXECUTABLE(demo_soilbin		demo_soilbin.cpp)
+SOURCE_GROUP(demos\\irrlicht FILES demo_soilbin.cpp)
+SET_TARGET_PROPERTIES(demo_soilbin PROPERTIES
+	FOLDER demos
+	LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+TARGET_LINK_LIBRARIES(demo_soilbin
+	${CH_IRRLICHTLIB}
+	ChronoEngine)
+ADD_DEPENDENCIES(demo_soilbin ChronoEngine)
+
 install(TARGETS demo_collision DESTINATION bin)
 install(TARGETS demo_benchmark DESTINATION bin)
 install(TARGETS demo_bricks DESTINATION bin)
@@ -267,6 +278,7 @@ install(TARGETS demo_tire DESTINATION bin)
 install(TARGETS demo_tracks DESTINATION bin)
 install(TARGETS demo_convergence DESTINATION bin)
 install(TARGETS demo_irr_assets DESTINATION bin)
+install(TARGETS demo_soilbin	DESTINATION bin)
 
 
 

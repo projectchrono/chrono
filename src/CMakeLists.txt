@@ -81,15 +81,6 @@ SET(ENABLE_UNIT_IRRLICHT FALSE   CACHE BOOL   "Turn this ON to generate the Chro
 SET(ENABLE_UNIT_TESTS    FALSE   CACHE BOOL   "Turn this ON to generate Chrono::Engine unit tests")
 SET(ENABLE_UNIT_MPI      FALSE   CACHE BOOL   "Turn this ON to generate the Chrono::Engine MPI library")
 
-# Justin 160613, set the directories for the soft soil folder.
-SET(ENABLE_UNIT_TERRAIN		 FALSE	 CACHE BOOL	"Turn ON to generate a Chrono::Terrain project")
-# IF(ENABLE_UNIT_TERRAIN)
-# 	SET(ENABLE_UNIT_BOOST TRUE	 CACHE BOOL "Use Boost libraries to enable Asynchronous execuation?")
-#     SET(TM_BINDIR	"C:/Users/newJustin/JTM_build/bin" CACHE PATH   "Where is your TerraMechanics build diretory?")
-# 	SET(TM_DATADIR	"C:/Users/newJustin/JTM_build/Data" CACHE PATH	"Where is your TerraMechanics data directory?")
-# 	SET(TM_LIBDIR	"C:/Users/newJustin/JTM_build/lib" CACHE PATH "where is your TerraMechanics lib dir?")
-# ENDIF()
-
 # Also, some variables that were used in previous makefile system (some
 # of them could be set automatically because CMake should recognize automatically 
 # the compiler, generator, platform, etc....
