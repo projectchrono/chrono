@@ -33,7 +33,7 @@ __host__ __device__ void function_Project_single(uint &index, int2 &ids, real *f
 
 }
 
-real ChSolverGPU::PART_A(const uint size, custom_vector<int2> & ids,custom_vector<real> & mx,custom_vector<real> & my,custom_vector<real> & ms,const custom_vector<real> & b,custom_vector<real> & mg,custom_vector<real> & mg_tmp2,const real & t_k,constreal & L_k,real & obj1,real& obj2,real& min_val) {
+real ChSolverGPU::PART_A(const uint size, custom_vector<int2> & ids,custom_vector<real> & mx,custom_vector<real> & my,custom_vector<real> & ms,const custom_vector<real> & b,custom_vector<real> & mg,custom_vector<real> & mg_tmp2,const real & t_k,const real & L_k,real & obj1,real& obj2,real& min_val) {
 
 	shurA (my);
 	custom_vector<real> temp1(size);
