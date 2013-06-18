@@ -9,18 +9,18 @@ __host__ __device__ void function_Project_single(uint &index, int2 &ids, real *f
 	real f_tang = sqrt(gamma.y * gamma.y + gamma.z * gamma.z);
 	real mu = (fric[body_id.x] == 0 || fric[body_id.y] == 0) ? 0 : (fric[body_id.x] + fric[body_id.y]) * .5;
 	if (mu == 0) {
-		gamma.x = gamma.x < 0 ? 0 : gamma.x-coh ;
+		gamma.x = gamma.x < 0 ? 0 : gamma.x - coh;
 		gamma.y = gamma.z = 0;
 		return;
 	}
 	// inside upper cone? keep untouched!
 	if (f_tang < (mu * gamma.x)) {
-		gamma.x-=coh;
+		gamma.x -= coh;
 		return;
 	}
 	// inside lower cone? reset  normal,u,v to zero!
 	if ((f_tang) < -(1.0 / mu) * gamma.x || (fabs(gamma.x) < 10e-15)) {
-		gamma = R3(-coh,0,0);
+		gamma = R3(-coh, 0, 0);
 		return;
 	}
 //	// remaining case: project orthogonally to generator segment of upper cone
@@ -29,18 +29,20 @@ __host__ __device__ void function_Project_single(uint &index, int2 &ids, real *f
 	gamma.y *= tproj_div_t;
 	gamma.z *= tproj_div_t;
 //
-	gamma.x -=coh;
+	gamma.x -= coh;
 
 }
 
-real ChSolverGPU::PART_A(const uint size, custom_vector<int2> & ids,custom_vector<real> & mx,custom_vector<real> & my,custom_vector<real> & ms,const custom_vector<real> & b,custom_vector<real> & mg,custom_vector<real> & mg_tmp2,const real & t_k,const real & L_k,real & obj1,real& obj2,real& min_val) {
+real ChSolverGPU::PART_A(const uint size, custom_vector<int2> & ids,custom_vector<real> & mx,custom_vector<real> & my,custom_vector<real> & ms,const custom_vector<real> & b,custom_vector<real> & mg,custom_vector<real> & mg_tmp2,const real & t_k,constreal & L_k,real & obj1,real& obj2,real& min_val) {
 
 	shurA (my);
-	real _obj1 = 0;
-	real _obj2 = 0;
-	real temp1 = 0;
-	real temp2 = 0;
-#pragma omp parallel for reduction(+:_obj2)
+	custom_vector<real> temp1(size);
+	custom_vector<real> temp2(size);
+
+	custom_vector<real> obj2_temp(size);
+	custom_vector<real> obj1_temp(size);
+
+#pragma omp parallel for
 	for (uint index = 0; index < number_of_contacts; index++) {
 		real3 temp = R3(0);
 		int2 id_=ids[index];
@@ -98,7 +100,10 @@ real ChSolverGPU::PART_A(const uint size, custom_vector<int2> & ids,custom_vecto
 
 		real3 _obj2_tmp = 0.5 * _mg_tmp1 -_b;
 
-		_obj2 += dot(_obj2_tmp ,_my);
+		//_obj2 += dot(_obj2_tmp ,_my);
+		obj2_temp[index+ number_of_contacts * 0]=_obj2_tmp.x*_my.x;
+		obj2_temp[index+ number_of_contacts * 1]=_obj2_tmp.y*_my.y;
+		obj2_temp[index+ number_of_contacts * 2]=_obj2_tmp.z*_my.z;
 
 		_mx.x = _my.x + _mg.x * t_k;
 		_mx.y = _my.y + _mg.y * t_k;
@@ -111,7 +116,7 @@ real ChSolverGPU::PART_A(const uint size, custom_vector<int2> & ids,custom_vecto
 		mx[index+ number_of_contacts * 2] = _mx.z;
 
 	}
-#pragma omp parallel for reduction(+:_obj2)
+#pragma omp parallel for
 	for (uint index = 0; index < number_of_bilaterals; index++) {
 		real temp =0;
 		int2 id_=ids[index+ number_of_contacts * 3];
@@ -140,7 +145,8 @@ real ChSolverGPU::PART_A(const uint size, custom_vector<int2> & ids,custom_vecto
 		real _mg = _mg_tmp1 -_b;
 		mg[index+ number_of_contacts * 3] = _mg;
 		real _obj2_tmp = 0.5 * _mg_tmp1 -_b;
-		_obj2 += _obj2_tmp *_my;
+//		_obj2 += _obj2_tmp *_my;
+		obj2_temp[index+ number_of_contacts * 3]=_obj2_tmp*_my;
 		_mx = _my + _mg * t_k;
 		mx[index+ number_of_contacts * 3] = _mx;
 	}
@@ -149,7 +155,7 @@ real ChSolverGPU::PART_A(const uint size, custom_vector<int2> & ids,custom_vecto
 #pragma omp parallel private(lm)
 	{
 		lm=FLT_MAX;
-#pragma omp for reduction(+:_obj1,temp1,temp2)
+#pragma omp for
 		for (uint index = 0; index < number_of_contacts; index++) {
 			real3 temp = R3(0);
 			int2 id_=ids[index];
@@ -210,13 +216,13 @@ real ChSolverGPU::PART_A(const uint size, custom_vector<int2> & ids,custom_vecto
 			_mg.y = mg[index+ number_of_contacts * 1];
 			_mg.z = mg[index+ number_of_contacts * 2];
 
-			temp1+= _mg.x * _ms.x;
-			temp1+= _mg.y * _ms.y;
-			temp1+= _mg.z * _ms.z;
+			temp1[index+ number_of_contacts * 0]= _mg.x * _ms.x;
+			temp1[index+ number_of_contacts * 1]= _mg.y * _ms.y;
+			temp1[index+ number_of_contacts * 2]= _mg.z * _ms.z;
 
-			temp2+= _ms.x * _ms.x;
-			temp2+= _ms.y * _ms.y;
-			temp2+= _ms.z * _ms.z;
+			temp2[index+ number_of_contacts * 0]= _ms.x * _ms.x;
+			temp2[index+ number_of_contacts * 1]= _ms.y * _ms.y;
+			temp2[index+ number_of_contacts * 2]= _ms.z * _ms.z;
 
 			real3 _mg_tmp = temp;
 			real3 _mg_tmp2 = _mg_tmp-_b;
@@ -229,13 +235,13 @@ real ChSolverGPU::PART_A(const uint size, custom_vector<int2> & ids,custom_vecto
 
 			real3 _obj1_tmp = 0.5 * _mg_tmp-_b;
 
-			_obj1+= _obj1_tmp.x * _mx.x;
-			_obj1+= _obj1_tmp.y * _mx.y;
-			_obj1+= _obj1_tmp.z * _mx.z;
+			obj1_temp[index+ number_of_contacts * 0]= _obj1_tmp.x * _mx.x;
+			obj1_temp[index+ number_of_contacts * 1]= _obj1_tmp.y * _mx.y;
+			obj1_temp[index+ number_of_contacts * 2]= _obj1_tmp.z * _mx.z;
 
 		}
 
-#pragma omp for reduction(+:_obj1,temp1,temp2)
+#pragma omp for
 		for (uint index = 0; index < number_of_bilaterals; index++) {
 			real temp =0;
 			int2 id_=ids[index+ number_of_contacts * 3];
@@ -267,15 +273,15 @@ real ChSolverGPU::PART_A(const uint size, custom_vector<int2> & ids,custom_vecto
 			_b = b[index+ number_of_contacts * 3];
 			_mg = mg[index+ number_of_contacts * 3];
 
-			temp1+= _mg * _ms;
-			temp2+= _ms * _ms;
+			temp1[index+ number_of_contacts * 3]= _mg * _ms;
+			temp2[index+ number_of_contacts * 3]= _ms * _ms;
 			real _mg_tmp = temp;
 			real _mg_tmp2 = _mg_tmp-_b;
 
 //			mg_tmp2[index+ number_of_contacts * 3] = _mg_tmp2;
 			//lm = std::min(lm, _mg_tmp2);
 			real _obj1_tmp = 0.5 * _mg_tmp-_b;
-			_obj1+= _obj1_tmp * _mx;
+			obj1_temp[index+ number_of_contacts * 3]= _obj1_tmp * _mx;
 		}
 
 		if ( lm < min_val ) {
@@ -285,10 +291,12 @@ real ChSolverGPU::PART_A(const uint size, custom_vector<int2> & ids,custom_vecto
 			}
 		}
 	}
-	obj1 = _obj1;
-	obj2 = _obj2;
-	temp2 = sqrt(temp2);
-	return obj2 + temp1 + 0.5 * L_k * powf(temp2, real(2.0));
+
+	obj1 = Thrust_Total(obj1_temp);
+	obj2 = Thrust_Total(obj2_temp);
+	real _temp2 = sqrt(Thrust_Total(temp2));
+	real _temp1 = Thrust_Total(temp1);
+	return obj2 + _temp1 + 0.5 * L_k * powf(_temp2, real(2.0));
 }
 real ChSolverGPU::PART_B(const uint size, custom_vector<int2> & ids,
 custom_vector<real> & mx,custom_vector<real> & my,custom_vector<real> & ms,
@@ -320,14 +328,16 @@ real & obj1,real& obj2,real& min_val) {
 	}
 	shurA(mx);
 	real lm;
-	real _obj1 = 0;
-	real temp1 = 0;
-	real temp2 = 0;
+	custom_vector<real> temp1(size);
+	custom_vector<real> temp2(size);
+
+	custom_vector<real> obj2_temp(size);
+	custom_vector<real> obj1_temp(size);
 
 #pragma omp parallel private(lm)
 	{
 		lm=FLT_MAX;
-#pragma omp for reduction(+:_obj1,temp1,temp2)
+#pragma omp for
 		for (uint index = 0; index < number_of_contacts; index++) {
 			real3 temp = R3(0);
 			int2 id_ = ids[index];
@@ -390,9 +400,9 @@ real & obj1,real& obj2,real& min_val) {
 			_my.y = my[index+ number_of_contacts * 1];
 			_my.z = my[index+ number_of_contacts * 2];
 
-			_obj1 += _obj1_tmp.x * _mx.x;
-			_obj1 += _obj1_tmp.y * _mx.y;
-			_obj1 += _obj1_tmp.z * _mx.z;
+			obj1_temp[index+ number_of_contacts * 0]= _obj1_tmp.x * _mx.x;
+			obj1_temp[index+ number_of_contacts * 1]= _obj1_tmp.y * _mx.y;
+			obj1_temp[index+ number_of_contacts * 2]= _obj1_tmp.z * _mx.z;
 
 			_ms = _mx - _my;
 
@@ -404,16 +414,16 @@ real & obj1,real& obj2,real& min_val) {
 			_mg.y = mg[index+ number_of_contacts * 1];
 			_mg.z = mg[index+ number_of_contacts * 2];
 
-			temp1 += _mg.x * _ms.x;
-			temp1 += _mg.y * _ms.y;
-			temp1 += _mg.z * _ms.z;
+			temp1[index+ number_of_contacts * 0]= _mg.x * _ms.x;
+			temp1[index+ number_of_contacts * 1]= _mg.y * _ms.y;
+			temp1[index+ number_of_contacts * 2]= _mg.z * _ms.z;
 
-			temp2+= _ms.x * _ms.x;
-			temp2+= _ms.y * _ms.y;
-			temp2+= _ms.z * _ms.z;
+			temp2[index+ number_of_contacts * 0]= _ms.x * _ms.x;
+			temp2[index+ number_of_contacts * 1]= _ms.y * _ms.y;
+			temp2[index+ number_of_contacts * 2]= _ms.z * _ms.z;
 
 		}
-#pragma omp for reduction(+:_obj1,temp1,temp2)
+#pragma omp for
 		for (uint index = 0; index < number_of_bilaterals; index++) {
 			real temp = 0;
 			int2 id_ = ids[index+ number_of_contacts * 3];
@@ -450,12 +460,12 @@ real & obj1,real& obj2,real& min_val) {
 			_mx = mx[index+ number_of_contacts * 3];
 			_my = my[index+ number_of_contacts * 3];
 
-			_obj1 += _obj1_tmp * _mx;
+			obj1_temp[index+ number_of_contacts * 3] = _obj1_tmp * _mx;
 			_ms = _mx - _my;
 			ms[index + number_of_contacts * 3] = _ms;
 			_mg = mg[index+ number_of_contacts * 3];
-			temp1 += _mg * _ms;
-			temp2+= _ms * _ms;
+			temp1[index+ number_of_contacts * 3]= _mg * _ms;
+			temp2[index+ number_of_contacts * 3]= _ms * _ms;
 		}
 		if ( lm < min_val ) {
 #pragma critical
@@ -464,10 +474,10 @@ real & obj1,real& obj2,real& min_val) {
 			}
 		}
 	}
-	obj1 = _obj1;
-
-	temp2=sqrt(temp2);
-	return obj2 + temp1 + 0.5 * L_k * powf(temp2, real(2.0));
+	obj1 = Thrust_Total(obj1_temp);
+	real _temp2=sqrt(Thrust_Total(temp2));
+	real _temp1 = Thrust_Total(temp1);
+	return obj2 + _temp1 + 0.5 * L_k * powf(_temp2, real(2.0));
 }
 
 __host__ __device__ void partThree_function(const uint &i, const real* mx, real* ml, const real* mg, const real beta_k1, real* ms, real* my, real* obj1_tmp) {
@@ -671,7 +681,6 @@ uint ChSolverGPU::SolveAPGD_ALT(custom_vector<real> &x, const custom_vector<real
 		ShurProduct(x,mg);
 		mg=mg- b;// 1)  g = N*l // 2)  g = N*l - b_shur ...
 
-
 		Thrust_Fill(mb_tmp, -1.0);
 		mb_tmp+=x;
 		ShurProduct(mb_tmp,mg_tmp);
@@ -694,8 +703,6 @@ uint ChSolverGPU::SolveAPGD_ALT(custom_vector<real> &x, const custom_vector<real
 		real obj1=0.0;
 		real obj2=0.0;
 		//std::cout<<"tk "<<t_k<<std::endl;
-
-
 
 		for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
 			ShurProduct(my,mg_tmp1);
