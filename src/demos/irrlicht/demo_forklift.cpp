@@ -263,7 +263,7 @@ public:
 				fork->GetBody()->GetCollisionModel()->BuildModel();
 				fork->GetBody()->SetCollide(true);
 
-				// .. create the revolute joint between the wheel and the truss
+				// .. create the prismatic joint between the fork and arm
 				link_prismaticFork = ChSharedPtr<ChLinkLockPrismatic>(new ChLinkLockPrismatic); 
 				link_prismaticFork->Initialize(fork->GetBody(), arm->GetBody(), 
 					ChCoordsys<>(POS_prismatic , chrono::Q_from_AngAxis(CH_C_PI/2, VECT_X)) ); // set prism as vertical (default would be aligned to z, horizontal
