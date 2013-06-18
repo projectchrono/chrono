@@ -41,6 +41,7 @@ real ChSolverGPU::PART_A(const uint size, custom_vector<int2> & ids,custom_vecto
 
 	custom_vector<real> obj2_temp(size);
 	custom_vector<real> obj1_temp(size);
+	custom_vector<real> lm(number_of_contacts);
 
 #pragma omp parallel for
 	for (uint index = 0; index < number_of_contacts; index++) {
@@ -151,146 +152,137 @@ real ChSolverGPU::PART_A(const uint size, custom_vector<int2> & ids,custom_vecto
 		mx[index+ number_of_contacts * 3] = _mx;
 	}
 	shurA(mx);
-	real lm;
-#pragma omp parallel private(lm)
-	{
-		lm=FLT_MAX;
-#pragma omp for
-		for (uint index = 0; index < number_of_contacts; index++) {
-			real3 temp = R3(0);
-			int2 id_=ids[index];
-			uint b1 = id_.x;
-			uint b2 = id_.y;
 
-			if (gpu_data->device_active_data[b1] != 0) {
-				real3 XYZ = gpu_data->device_QXYZ_data[b1];
-				real3 UVW = gpu_data->device_QUVW_data[b1];
+#pragma omp parallel for
+	for (uint index = 0; index < number_of_contacts; index++) {
+		real3 temp = R3(0);
+		int2 id_=ids[index];
+		uint b1 = id_.x;
+		uint b2 = id_.y;
 
-				temp.x += dot(XYZ, gpu_data->device_JXYZA_data[index+ number_of_contacts * 0]);
-				temp.x += dot(UVW, gpu_data->device_JUVWA_data[index+ number_of_contacts * 0]);
+		if (gpu_data->device_active_data[b1] != 0) {
+			real3 XYZ = gpu_data->device_QXYZ_data[b1];
+			real3 UVW = gpu_data->device_QUVW_data[b1];
 
-				temp.y += dot(XYZ, gpu_data->device_JXYZA_data[index+ number_of_contacts * 1]);
-				temp.y += dot(UVW, gpu_data->device_JUVWA_data[index+ number_of_contacts * 1]);
+			temp.x += dot(XYZ, gpu_data->device_JXYZA_data[index+ number_of_contacts * 0]);
+			temp.x += dot(UVW, gpu_data->device_JUVWA_data[index+ number_of_contacts * 0]);
 
-				temp.z += dot(XYZ, gpu_data->device_JXYZA_data[index+ number_of_contacts * 2]);
-				temp.z += dot(UVW, gpu_data->device_JUVWA_data[index+ number_of_contacts * 2]);
+			temp.y += dot(XYZ, gpu_data->device_JXYZA_data[index+ number_of_contacts * 1]);
+			temp.y += dot(UVW, gpu_data->device_JUVWA_data[index+ number_of_contacts * 1]);
 
-			}
-			if (gpu_data->device_active_data[b2] != 0) {
-				real3 XYZ = gpu_data->device_QXYZ_data[b2];
-				real3 UVW = gpu_data->device_QUVW_data[b2];
+			temp.z += dot(XYZ, gpu_data->device_JXYZA_data[index+ number_of_contacts * 2]);
+			temp.z += dot(UVW, gpu_data->device_JUVWA_data[index+ number_of_contacts * 2]);
 
-				temp.x += dot(XYZ, gpu_data->device_JXYZB_data[index+ number_of_contacts * 0]);
-				temp.x += dot(UVW, gpu_data->device_JUVWB_data[index+ number_of_contacts * 0]);
+		}
+		if (gpu_data->device_active_data[b2] != 0) {
+			real3 XYZ = gpu_data->device_QXYZ_data[b2];
+			real3 UVW = gpu_data->device_QUVW_data[b2];
 
-				temp.y += dot(XYZ, gpu_data->device_JXYZB_data[index+ number_of_contacts * 1]);
-				temp.y += dot(UVW, gpu_data->device_JUVWB_data[index+ number_of_contacts * 1]);
+			temp.x += dot(XYZ, gpu_data->device_JXYZB_data[index+ number_of_contacts * 0]);
+			temp.x += dot(UVW, gpu_data->device_JUVWB_data[index+ number_of_contacts * 0]);
 
-				temp.z += dot(XYZ, gpu_data->device_JXYZB_data[index+ number_of_contacts * 2]);
-				temp.z += dot(UVW, gpu_data->device_JUVWB_data[index+ number_of_contacts * 2]);
-			}
-			temp.x+= mx[index + number_of_contacts * 0] * inv_hhpa * compliance;
-			temp.y+= mx[index + number_of_contacts * 1] * inv_hhpa * compliance;
-			temp.z+= mx[index + number_of_contacts * 2] * inv_hhpa * compliance;
+			temp.y += dot(XYZ, gpu_data->device_JXYZB_data[index+ number_of_contacts * 1]);
+			temp.y += dot(UVW, gpu_data->device_JUVWB_data[index+ number_of_contacts * 1]);
 
-			real3 _mx,_my,_b,_ms, _mg;
-			_mx.x = mx[index+ number_of_contacts * 0];
-			_mx.y = mx[index+ number_of_contacts * 1];
-			_mx.z = mx[index+ number_of_contacts * 2];
+			temp.z += dot(XYZ, gpu_data->device_JXYZB_data[index+ number_of_contacts * 2]);
+			temp.z += dot(UVW, gpu_data->device_JUVWB_data[index+ number_of_contacts * 2]);
+		}
+		temp.x+= mx[index + number_of_contacts * 0] * inv_hhpa * compliance;
+		temp.y+= mx[index + number_of_contacts * 1] * inv_hhpa * compliance;
+		temp.z+= mx[index + number_of_contacts * 2] * inv_hhpa * compliance;
 
-			_my.x = my[index+ number_of_contacts * 0];
-			_my.y = my[index+ number_of_contacts * 1];
-			_my.z = my[index+ number_of_contacts * 2];
+		real3 _mx,_my,_b,_ms, _mg;
+		_mx.x = mx[index+ number_of_contacts * 0];
+		_mx.y = mx[index+ number_of_contacts * 1];
+		_mx.z = mx[index+ number_of_contacts * 2];
 
-			_ms = _mx-_my;
+		_my.x = my[index+ number_of_contacts * 0];
+		_my.y = my[index+ number_of_contacts * 1];
+		_my.z = my[index+ number_of_contacts * 2];
 
-			ms[index+ number_of_contacts * 0] = _ms.x;
-			ms[index+ number_of_contacts * 1] = _ms.y;
-			ms[index+ number_of_contacts * 2] = _ms.z;
+		_ms = _mx-_my;
 
-			_b.x = b[index+ number_of_contacts * 0];
-			_b.y = b[index+ number_of_contacts * 1];
-			_b.z = b[index+ number_of_contacts * 2];
+		ms[index+ number_of_contacts * 0] = _ms.x;
+		ms[index+ number_of_contacts * 1] = _ms.y;
+		ms[index+ number_of_contacts * 2] = _ms.z;
 
-			_mg.x = mg[index+ number_of_contacts * 0];
-			_mg.y = mg[index+ number_of_contacts * 1];
-			_mg.z = mg[index+ number_of_contacts * 2];
+		_b.x = b[index+ number_of_contacts * 0];
+		_b.y = b[index+ number_of_contacts * 1];
+		_b.z = b[index+ number_of_contacts * 2];
 
-			temp1[index+ number_of_contacts * 0]= _mg.x * _ms.x;
-			temp1[index+ number_of_contacts * 1]= _mg.y * _ms.y;
-			temp1[index+ number_of_contacts * 2]= _mg.z * _ms.z;
+		_mg.x = mg[index+ number_of_contacts * 0];
+		_mg.y = mg[index+ number_of_contacts * 1];
+		_mg.z = mg[index+ number_of_contacts * 2];
 
-			temp2[index+ number_of_contacts * 0]= _ms.x * _ms.x;
-			temp2[index+ number_of_contacts * 1]= _ms.y * _ms.y;
-			temp2[index+ number_of_contacts * 2]= _ms.z * _ms.z;
+		temp1[index+ number_of_contacts * 0]= _mg.x * _ms.x;
+		temp1[index+ number_of_contacts * 1]= _mg.y * _ms.y;
+		temp1[index+ number_of_contacts * 2]= _mg.z * _ms.z;
 
-			real3 _mg_tmp = temp;
-			real3 _mg_tmp2 = _mg_tmp-_b;
+		temp2[index+ number_of_contacts * 0]= _ms.x * _ms.x;
+		temp2[index+ number_of_contacts * 1]= _ms.y * _ms.y;
+		temp2[index+ number_of_contacts * 2]= _ms.z * _ms.z;
+
+		real3 _mg_tmp = temp;
+		real3 _mg_tmp2 = _mg_tmp-_b;
 
 //			mg_tmp2[index+ number_of_contacts * 0] = _mg_tmp2.x;
 //			mg_tmp2[index+ number_of_contacts * 1] = _mg_tmp2.y;
 //			mg_tmp2[index+ number_of_contacts * 2] = _mg_tmp2.z;
 
-			lm = std::min(lm, _mg_tmp2.x);
+		lm[index] = _mg_tmp2.x;
 
-			real3 _obj1_tmp = 0.5 * _mg_tmp-_b;
+		real3 _obj1_tmp = 0.5 * _mg_tmp-_b;
 
-			obj1_temp[index+ number_of_contacts * 0]= _obj1_tmp.x * _mx.x;
-			obj1_temp[index+ number_of_contacts * 1]= _obj1_tmp.y * _mx.y;
-			obj1_temp[index+ number_of_contacts * 2]= _obj1_tmp.z * _mx.z;
+		obj1_temp[index+ number_of_contacts * 0]= _obj1_tmp.x * _mx.x;
+		obj1_temp[index+ number_of_contacts * 1]= _obj1_tmp.y * _mx.y;
+		obj1_temp[index+ number_of_contacts * 2]= _obj1_tmp.z * _mx.z;
 
+	}
+
+#pragma omp parallel for
+	for (uint index = 0; index < number_of_bilaterals; index++) {
+		real temp =0;
+		int2 id_=ids[index+ number_of_contacts * 3];
+		uint b1 = id_.x;
+		uint b2 = id_.y;
+
+		if (gpu_data->device_active_data[b1] != 0) {
+			real3 XYZ = gpu_data->device_QXYZ_data[b1];
+			real3 UVW = gpu_data->device_QUVW_data[b1];
+
+			temp += dot(XYZ, gpu_data->device_JXYZA_data[index + number_of_contacts * 3]);
+			temp += dot(UVW, gpu_data->device_JUVWA_data[index + number_of_contacts * 3]);
+		}
+		if (gpu_data->device_active_data[b2] != 0) {
+			real3 XYZ = gpu_data->device_QXYZ_data[b2];
+			real3 UVW = gpu_data->device_QUVW_data[b2];
+
+			temp += dot(XYZ, gpu_data->device_JXYZB_data[index + number_of_contacts * 3]);
+			temp += dot(UVW, gpu_data->device_JUVWB_data[index + number_of_contacts * 3]);
 		}
 
-#pragma omp for
-		for (uint index = 0; index < number_of_bilaterals; index++) {
-			real temp =0;
-			int2 id_=ids[index+ number_of_contacts * 3];
-			uint b1 = id_.x;
-			uint b2 = id_.y;
+		temp+= mx[index + number_of_contacts * 3] * inv_hhpa * compliance;
 
-			if (gpu_data->device_active_data[b1] != 0) {
-				real3 XYZ = gpu_data->device_QXYZ_data[b1];
-				real3 UVW = gpu_data->device_QUVW_data[b1];
+		real _mx,_my,_b,_ms, _mg;
+		_mx = mx[index+ number_of_contacts * 3];
+		_my = my[index+ number_of_contacts * 3];
+		_ms = _mx-_my;
+		ms[index+ number_of_contacts * 3] = _ms;
+		_b = b[index+ number_of_contacts * 3];
+		_mg = mg[index+ number_of_contacts * 3];
 
-				temp += dot(XYZ, gpu_data->device_JXYZA_data[index + number_of_contacts * 3]);
-				temp += dot(UVW, gpu_data->device_JUVWA_data[index + number_of_contacts * 3]);
-			}
-			if (gpu_data->device_active_data[b2] != 0) {
-				real3 XYZ = gpu_data->device_QXYZ_data[b2];
-				real3 UVW = gpu_data->device_QUVW_data[b2];
-
-				temp += dot(XYZ, gpu_data->device_JXYZB_data[index + number_of_contacts * 3]);
-				temp += dot(UVW, gpu_data->device_JUVWB_data[index + number_of_contacts * 3]);
-			}
-
-			temp+= mx[index + number_of_contacts * 3] * inv_hhpa * compliance;
-
-			real _mx,_my,_b,_ms, _mg;
-			_mx = mx[index+ number_of_contacts * 3];
-			_my = my[index+ number_of_contacts * 3];
-			_ms = _mx-_my;
-			ms[index+ number_of_contacts * 3] = _ms;
-			_b = b[index+ number_of_contacts * 3];
-			_mg = mg[index+ number_of_contacts * 3];
-
-			temp1[index+ number_of_contacts * 3]= _mg * _ms;
-			temp2[index+ number_of_contacts * 3]= _ms * _ms;
-			real _mg_tmp = temp;
-			real _mg_tmp2 = _mg_tmp-_b;
+		temp1[index+ number_of_contacts * 3]= _mg * _ms;
+		temp2[index+ number_of_contacts * 3]= _ms * _ms;
+		real _mg_tmp = temp;
+		real _mg_tmp2 = _mg_tmp-_b;
 
 //			mg_tmp2[index+ number_of_contacts * 3] = _mg_tmp2;
-			//lm = std::min(lm, _mg_tmp2);
-			real _obj1_tmp = 0.5 * _mg_tmp-_b;
-			obj1_temp[index+ number_of_contacts * 3]= _obj1_tmp * _mx;
-		}
-
-		if ( lm < min_val ) {
-#pragma critical
-			{
-				if ( lm < min_val ) min_val = lm;
-			}
-		}
+		//lm = std::min(lm, _mg_tmp2);
+		real _obj1_tmp = 0.5 * _mg_tmp-_b;
+		obj1_temp[index+ number_of_contacts * 3]= _obj1_tmp * _mx;
 	}
+
+	min_val = Thrust_Min(lm);
 
 	obj1 = Thrust_Total(obj1_temp);
 	obj2 = Thrust_Total(obj2_temp);
@@ -327,155 +319,149 @@ real & obj1,real& obj2,real& min_val) {
 		mx[index + number_of_contacts * 3] = _mx;
 	}
 	shurA(mx);
-	real lm;
+
 	custom_vector<real> temp1(size);
 	custom_vector<real> temp2(size);
 
 	custom_vector<real> obj2_temp(size);
 	custom_vector<real> obj1_temp(size);
+	custom_vector<real> lm(number_of_contacts);
 
-#pragma omp parallel private(lm)
-	{
-		lm=FLT_MAX;
-#pragma omp for
-		for (uint index = 0; index < number_of_contacts; index++) {
-			real3 temp = R3(0);
-			int2 id_ = ids[index];
-			uint b1 = id_.x;
-			uint b2 = id_.y;
+#pragma omp parallel for
+	for (uint index = 0; index < number_of_contacts; index++) {
+		real3 temp = R3(0);
+		int2 id_ = ids[index];
+		uint b1 = id_.x;
+		uint b2 = id_.y;
 
-			if (gpu_data->device_active_data[b1] != 0) {
-				real3 XYZ = gpu_data->device_QXYZ_data[b1];
-				real3 UVW = gpu_data->device_QUVW_data[b1];
+		if (gpu_data->device_active_data[b1] != 0) {
+			real3 XYZ = gpu_data->device_QXYZ_data[b1];
+			real3 UVW = gpu_data->device_QUVW_data[b1];
 
-				temp.x += dot(XYZ, gpu_data->device_JXYZA_data[index + number_of_contacts * 0]);
-				temp.x += dot(UVW, gpu_data->device_JUVWA_data[index + number_of_contacts * 0]);
+			temp.x += dot(XYZ, gpu_data->device_JXYZA_data[index + number_of_contacts * 0]);
+			temp.x += dot(UVW, gpu_data->device_JUVWA_data[index + number_of_contacts * 0]);
 
-				temp.y += dot(XYZ, gpu_data->device_JXYZA_data[index + number_of_contacts * 1]);
-				temp.y += dot(UVW, gpu_data->device_JUVWA_data[index + number_of_contacts * 1]);
+			temp.y += dot(XYZ, gpu_data->device_JXYZA_data[index + number_of_contacts * 1]);
+			temp.y += dot(UVW, gpu_data->device_JUVWA_data[index + number_of_contacts * 1]);
 
-				temp.z += dot(XYZ, gpu_data->device_JXYZA_data[index + number_of_contacts * 2]);
-				temp.z += dot(UVW, gpu_data->device_JUVWA_data[index + number_of_contacts * 2]);
+			temp.z += dot(XYZ, gpu_data->device_JXYZA_data[index + number_of_contacts * 2]);
+			temp.z += dot(UVW, gpu_data->device_JUVWA_data[index + number_of_contacts * 2]);
 
-			}
-			if (gpu_data->device_active_data[b2] != 0) {
-				real3 XYZ = gpu_data->device_QXYZ_data[b2];
-				real3 UVW = gpu_data->device_QUVW_data[b2];
+		}
+		if (gpu_data->device_active_data[b2] != 0) {
+			real3 XYZ = gpu_data->device_QXYZ_data[b2];
+			real3 UVW = gpu_data->device_QUVW_data[b2];
 
-				temp.x += dot(XYZ, gpu_data->device_JXYZB_data[index + number_of_contacts * 0]);
-				temp.x += dot(UVW, gpu_data->device_JUVWB_data[index + number_of_contacts * 0]);
+			temp.x += dot(XYZ, gpu_data->device_JXYZB_data[index + number_of_contacts * 0]);
+			temp.x += dot(UVW, gpu_data->device_JUVWB_data[index + number_of_contacts * 0]);
 
-				temp.y += dot(XYZ, gpu_data->device_JXYZB_data[index + number_of_contacts * 1]);
-				temp.y += dot(UVW, gpu_data->device_JUVWB_data[index + number_of_contacts * 1]);
+			temp.y += dot(XYZ, gpu_data->device_JXYZB_data[index + number_of_contacts * 1]);
+			temp.y += dot(UVW, gpu_data->device_JUVWB_data[index + number_of_contacts * 1]);
 
-				temp.z += dot(XYZ, gpu_data->device_JXYZB_data[index + number_of_contacts * 2]);
-				temp.z += dot(UVW, gpu_data->device_JUVWB_data[index + number_of_contacts * 2]);
-			}
+			temp.z += dot(XYZ, gpu_data->device_JXYZB_data[index + number_of_contacts * 2]);
+			temp.z += dot(UVW, gpu_data->device_JUVWB_data[index + number_of_contacts * 2]);
+		}
 
-			temp.x+= mx[index + number_of_contacts * 0] * inv_hhpa * compliance;
-			temp.y+= mx[index + number_of_contacts * 1] * inv_hhpa * compliance;
-			temp.z+= mx[index + number_of_contacts * 2] * inv_hhpa * compliance;
+		temp.x+= mx[index + number_of_contacts * 0] * inv_hhpa * compliance;
+		temp.y+= mx[index + number_of_contacts * 1] * inv_hhpa * compliance;
+		temp.z+= mx[index + number_of_contacts * 2] * inv_hhpa * compliance;
 
-			real3 _b,_mx,_my,_ms,_mg;
-			_b.x = b[index + number_of_contacts * 0];
-			_b.y = b[index + number_of_contacts * 1];
-			_b.z = b[index + number_of_contacts * 2];
+		real3 _b,_mx,_my,_ms,_mg;
+		_b.x = b[index + number_of_contacts * 0];
+		_b.y = b[index + number_of_contacts * 1];
+		_b.z = b[index + number_of_contacts * 2];
 
-			real3 _mg_tmp = temp;
-			real3 _mg_tmp2 = _mg_tmp - _b;
+		real3 _mg_tmp = temp;
+		real3 _mg_tmp2 = _mg_tmp - _b;
 
 //			mg_tmp2[index + number_of_contacts * 0] = _mg_tmp2.x;
 //			mg_tmp2[index + number_of_contacts * 1] = _mg_tmp2.y;
 //			mg_tmp2[index + number_of_contacts * 2] = _mg_tmp2.z;
 
-			lm = std::min(lm, _mg_tmp2.x);
+		lm[index] = _mg_tmp2.x;
 
-			real3 _obj1_tmp = 0.5 * _mg_tmp - _b;
+		real3 _obj1_tmp = 0.5 * _mg_tmp - _b;
 
-			_mx.x = mx[index+ number_of_contacts * 0];
-			_mx.y = mx[index+ number_of_contacts * 1];
-			_mx.z = mx[index+ number_of_contacts * 2];
+		_mx.x = mx[index+ number_of_contacts * 0];
+		_mx.y = mx[index+ number_of_contacts * 1];
+		_mx.z = mx[index+ number_of_contacts * 2];
 
-			_my.x = my[index+ number_of_contacts * 0];
-			_my.y = my[index+ number_of_contacts * 1];
-			_my.z = my[index+ number_of_contacts * 2];
+		_my.x = my[index+ number_of_contacts * 0];
+		_my.y = my[index+ number_of_contacts * 1];
+		_my.z = my[index+ number_of_contacts * 2];
 
-			obj1_temp[index+ number_of_contacts * 0]= _obj1_tmp.x * _mx.x;
-			obj1_temp[index+ number_of_contacts * 1]= _obj1_tmp.y * _mx.y;
-			obj1_temp[index+ number_of_contacts * 2]= _obj1_tmp.z * _mx.z;
+		obj1_temp[index+ number_of_contacts * 0]= _obj1_tmp.x * _mx.x;
+		obj1_temp[index+ number_of_contacts * 1]= _obj1_tmp.y * _mx.y;
+		obj1_temp[index+ number_of_contacts * 2]= _obj1_tmp.z * _mx.z;
 
-			_ms = _mx - _my;
+		_ms = _mx - _my;
 
-			ms[index + number_of_contacts * 0] = _ms.x;
-			ms[index + number_of_contacts * 1] = _ms.y;
-			ms[index + number_of_contacts * 2] = _ms.z;
+		ms[index + number_of_contacts * 0] = _ms.x;
+		ms[index + number_of_contacts * 1] = _ms.y;
+		ms[index + number_of_contacts * 2] = _ms.z;
 
-			_mg.x = mg[index+ number_of_contacts * 0];
-			_mg.y = mg[index+ number_of_contacts * 1];
-			_mg.z = mg[index+ number_of_contacts * 2];
+		_mg.x = mg[index+ number_of_contacts * 0];
+		_mg.y = mg[index+ number_of_contacts * 1];
+		_mg.z = mg[index+ number_of_contacts * 2];
 
-			temp1[index+ number_of_contacts * 0]= _mg.x * _ms.x;
-			temp1[index+ number_of_contacts * 1]= _mg.y * _ms.y;
-			temp1[index+ number_of_contacts * 2]= _mg.z * _ms.z;
+		temp1[index+ number_of_contacts * 0]= _mg.x * _ms.x;
+		temp1[index+ number_of_contacts * 1]= _mg.y * _ms.y;
+		temp1[index+ number_of_contacts * 2]= _mg.z * _ms.z;
 
-			temp2[index+ number_of_contacts * 0]= _ms.x * _ms.x;
-			temp2[index+ number_of_contacts * 1]= _ms.y * _ms.y;
-			temp2[index+ number_of_contacts * 2]= _ms.z * _ms.z;
+		temp2[index+ number_of_contacts * 0]= _ms.x * _ms.x;
+		temp2[index+ number_of_contacts * 1]= _ms.y * _ms.y;
+		temp2[index+ number_of_contacts * 2]= _ms.z * _ms.z;
 
+	}
+#pragma omp parallel for
+	for (uint index = 0; index < number_of_bilaterals; index++) {
+		real temp = 0;
+		int2 id_ = ids[index+ number_of_contacts * 3];
+		uint b1 = id_.x;
+		uint b2 = id_.y;
+
+		if (gpu_data->device_active_data[b1] != 0) {
+			real3 XYZ = gpu_data->device_QXYZ_data[b1];
+			real3 UVW = gpu_data->device_QUVW_data[b1];
+
+			temp += dot(XYZ, gpu_data->device_JXYZA_data[index + number_of_contacts * 3]);
+			temp += dot(UVW, gpu_data->device_JUVWA_data[index + number_of_contacts * 3]);
 		}
-#pragma omp for
-		for (uint index = 0; index < number_of_bilaterals; index++) {
-			real temp = 0;
-			int2 id_ = ids[index+ number_of_contacts * 3];
-			uint b1 = id_.x;
-			uint b2 = id_.y;
+		if (gpu_data->device_active_data[b2] != 0) {
+			real3 XYZ = gpu_data->device_QXYZ_data[b2];
+			real3 UVW = gpu_data->device_QUVW_data[b2];
 
-			if (gpu_data->device_active_data[b1] != 0) {
-				real3 XYZ = gpu_data->device_QXYZ_data[b1];
-				real3 UVW = gpu_data->device_QUVW_data[b1];
+			temp += dot(XYZ, gpu_data->device_JXYZB_data[index + number_of_contacts * 3]);
+			temp += dot(UVW, gpu_data->device_JUVWB_data[index + number_of_contacts * 3]);
+		}
+		temp+= mx[index + number_of_contacts * 3] * inv_hhpa * compliance;
 
-				temp += dot(XYZ, gpu_data->device_JXYZA_data[index + number_of_contacts * 3]);
-				temp += dot(UVW, gpu_data->device_JUVWA_data[index + number_of_contacts * 3]);
-			}
-			if (gpu_data->device_active_data[b2] != 0) {
-				real3 XYZ = gpu_data->device_QXYZ_data[b2];
-				real3 UVW = gpu_data->device_QUVW_data[b2];
-
-				temp += dot(XYZ, gpu_data->device_JXYZB_data[index + number_of_contacts * 3]);
-				temp += dot(UVW, gpu_data->device_JUVWB_data[index + number_of_contacts * 3]);
-			}
-			temp+= mx[index + number_of_contacts * 3] * inv_hhpa * compliance;
-
-			real _b,_mx,_my,_ms,_mg;
-			_b = b[index + number_of_contacts * 3];
-			real _mg_tmp = temp;
-			real _mg_tmp2 = _mg_tmp - _b;
+		real _b,_mx,_my,_ms,_mg;
+		_b = b[index + number_of_contacts * 3];
+		real _mg_tmp = temp;
+		real _mg_tmp2 = _mg_tmp - _b;
 
 //			mg_tmp2[index + number_of_contacts * 3] = _mg_tmp2;
 
-			//lm = std::min(lm, _mg_tmp2);
+		//lm = std::min(lm, _mg_tmp2);
 
-			real _obj1_tmp = 0.5 * _mg_tmp - _b;
+		real _obj1_tmp = 0.5 * _mg_tmp - _b;
 
-			_mx = mx[index+ number_of_contacts * 3];
-			_my = my[index+ number_of_contacts * 3];
+		_mx = mx[index+ number_of_contacts * 3];
+		_my = my[index+ number_of_contacts * 3];
 
-			obj1_temp[index+ number_of_contacts * 3] = _obj1_tmp * _mx;
-			_ms = _mx - _my;
-			ms[index + number_of_contacts * 3] = _ms;
-			_mg = mg[index+ number_of_contacts * 3];
-			temp1[index+ number_of_contacts * 3]= _mg * _ms;
-			temp2[index+ number_of_contacts * 3]= _ms * _ms;
-		}
-		if ( lm < min_val ) {
-#pragma critical
-			{
-				if ( lm < min_val ) min_val = lm;
-			}
-		}
+		obj1_temp[index+ number_of_contacts * 3] = _obj1_tmp * _mx;
+		_ms = _mx - _my;
+		ms[index + number_of_contacts * 3] = _ms;
+		_mg = mg[index+ number_of_contacts * 3];
+		temp1[index+ number_of_contacts * 3]= _mg * _ms;
+		temp2[index+ number_of_contacts * 3]= _ms * _ms;
 	}
+
+	min_val = Thrust_Min(lm);
+
 	obj1 = Thrust_Total(obj1_temp);
-	real _temp2=sqrt(Thrust_Total(temp2));
+	real _temp2 = sqrt(Thrust_Total(temp2));
 	real _temp1 = Thrust_Total(temp1);
 	return obj2 + _temp1 + 0.5 * L_k * powf(_temp2, real(2.0));
 }
