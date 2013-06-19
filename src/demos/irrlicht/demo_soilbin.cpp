@@ -453,7 +453,6 @@ public:
 	{
 		// store pointer to physical system & other stuff so we can tweak them by user keyboard
 		this->app = mapp;
-		app->GetDevice()->setEventReceiver(this);
 		// any rigid bodies that have their states modified by the GUI need to go here
 		this->mwheel = wheel;
 		this->mtester = tester;
@@ -557,6 +556,38 @@ public:
 
 			switch(event.GUIEvent.EventType)
 			{
+				case EGET_SCROLL_BAR_CHANGED:
+				if( id == 1101) // id of particle size slider
+				{
+					s32 currPos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
+					this->currParticleSize = particleSize0 + ((currPos - 50)/50.0)*particleSize0 + 0.001;
+					char message[50]; sprintf(message,"p Size [m]: %g",currParticleSize);
+					text_pSize->setText(core::stringw(message).c_str());
+				}
+				if( id == 1102) // id of particle Dev slider
+				{
+					s32 currPos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
+					this->currParticleDev = particleDev0 + ((currPos - 50)/50.0)*particleDev0 + 0.001;
+					char message[50]; sprintf(message,"p Dev [m]: %g",currParticleDev);
+					text_pDev->setText(core::stringw(message).c_str());
+				}
+				if( id == 1103) // torque slider
+				{
+					s32 currPos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
+					double torquenew = ((currPos - 50.0)/50.0)*maxTorque;
+					char message[50]; sprintf(message,"Torque [N/m]: %g",torquenew);
+					text_torque->setText(core::stringw(message).c_str());
+					// set the new torque to the tester
+					this->mtester->currTorque = torquenew;	// set the new torque
+				}
+				if( id == 1104) // # particles to generate
+				{
+					s32 currPos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
+					this->currNparticlesGen =  nParticlesGenMax + ((currPos - 50)/50.0)*nParticlesGenMax;
+					char message[50]; sprintf(message,"# Gen. particles: %d",this->currNparticlesGen);
+					text_nParticlesGen->setText(core::stringw(message).c_str());
+				}
+			break;
 			case gui::EGET_CHECKBOX_CHANGED:
 				if( id == 2110)
 				{
@@ -595,42 +626,7 @@ public:
 					return true;
 				}
 			break;
-			case EGET_SCROLL_BAR_CHANGED:
-				if( id == 1101) // id of particle size slider
-				{
-					s32 currPos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
-					this->currParticleSize = particleSize0 + ((currPos - 50)/50.0)*particleSize0 + 0.001;
-					char message[50]; sprintf(message,"p Size [m]: %g",currParticleSize);
-					text_pSize->setText(core::stringw(message).c_str());
-					return true;
-				}
-				if( id == 1102) // id of particle Dev slider
-				{
-					s32 currPos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
-					this->currParticleDev = particleDev0 + ((currPos - 50)/50.0)*particleDev0 + 0.001;
-					char message[50]; sprintf(message,"p Dev [m]: %g",currParticleDev);
-					text_pDev->setText(core::stringw(message).c_str());
-					return true;
-				}
-				if( id == 1103) // torque slider
-				{
-					s32 currPos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
-					double torquenew = ((currPos - 50.0)/50.0)*maxTorque;
-					char message[50]; sprintf(message,"Torque [N/m]: %g",torquenew);
-					text_torque->setText(core::stringw(message).c_str());
-					// set the new torque to the tester
-					this->mtester->currTorque = torquenew;	// set the new torque
-					return true;
-				}
-				if( id == 1104) // # particles to generate
-				{
-					s32 currPos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
-					this->currNparticlesGen =  nParticlesGenMax + ((currPos - 50)/50.0)*nParticlesGenMax;
-					char message[50]; sprintf(message,"# Gen. particles: %d",this->currNparticlesGen);
-					text_nParticlesGen->setText(core::stringw(message).c_str());
-					return true;
-				}
-			break;
+			
 			}
 			
 		} 
