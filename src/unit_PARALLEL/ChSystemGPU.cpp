@@ -101,7 +101,7 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 // updates the reactions of the constraint
 	LCPresult_Li_into_reactions(1.0 / this->GetStep()); // R = l/dt  , approximately
 
-//#pragma omp parallel for
+#pragma omp parallel for
 	for (int i = 0; i < vvariables.size(); i++) {
 
 		real3 vel = gpu_data_manager->host_vel_data[i];
@@ -116,8 +116,16 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 
 		mbody->VariablesQbIncrementPosition(this->GetStep());
 		mbody->VariablesQbSetSpeed(this->GetStep());
+		mbody->UpdateTime(ChTime);
+		//TrySleeping();			// See if the body can fall asleep; if so, put it to sleeping
+		mbody->ClampSpeed(); // Apply limits (if in speed clamping mode) to speeds.
+		mbody->ComputeGyro(); // Set the gyroscopic momentum.
+		mbody->UpdateForces(ChTime);
 
-		mbody->Update(ChTime);
+	}
+	for (int i = 0; i < vvariables.size(); i++) {
+		ChBodyGPU *mbody = (ChBodyGPU *) bodylist[i];
+		mbody->UpdateMarkers(ChTime);
 	}
 
 //	real3 *vel_pointer = gpu_data_manager->host_vel_data.data();
@@ -249,15 +257,25 @@ void ChSystemGPU::Update() {
 	real3 *lim_pointer = gpu_data_manager->host_lim_data.data();
 
 	//========================================================================
-	this->LCP_descriptor->BeginInsertion();
 
+#pragma omp parallel for
 	for (int i = 0; i < bodylist.size(); i++) {
-		bodylist[i]->Update(ChTime);
+		bodylist[i]->UpdateTime(ChTime);
+		//TrySleeping();			// See if the body can fall asleep; if so, put it to sleeping
+		bodylist[i]->ClampSpeed(); // Apply limits (if in speed clamping mode) to speeds.
+		bodylist[i]->ComputeGyro(); // Set the gyroscopic momentum.
+		bodylist[i]->UpdateForces(ChTime);
 		bodylist[i]->VariablesFbReset();
 		bodylist[i]->VariablesFbLoadForces(GetStep());
 		bodylist[i]->VariablesQbLoadSpeed();
+	}
+	this->LCP_descriptor->BeginInsertion();
+
+	for (int i = 0; i < bodylist.size(); i++) {
+		bodylist[i]->UpdateMarkers(ChTime);
 		bodylist[i]->InjectVariables(*this->LCP_descriptor);
 	}
+
 	for (it = linklist.begin(); it != linklist.end(); it++) {
 		(*it)->Update(ChTime);
 		(*it)->ConstraintsBiReset();
@@ -309,7 +327,7 @@ void ChSystemGPU::Update() {
 
 	//========================================================================
 
-	#pragma omp parallel for
+#pragma omp parallel for
 	for (int i = 0; i < bodylist.size(); i++) {
 		ChLcpVariablesBody *mbodyvar = &(bodylist[i]->Variables());
 		ChMatrix33<> inertia = mbodyvar->GetBodyInvInertia();

@@ -550,16 +550,33 @@ void ChSolverGPU::Setup() {
 	rhs.resize(number_of_constraints);
 	bi.resize(number_of_constraints);
 	gpu_data->device_gam_data.resize((number_of_constraints));
-
 	gpu_data->device_QXYZ_data.resize(number_of_objects);
 	gpu_data->device_QUVW_data.resize(number_of_objects);
 
 	///////////////////////////////////////
+#ifdef SIM_ENABLE_GPU_MODE
 	Thrust_Fill(gpu_data->device_QXYZ_data, R3(0));
 	Thrust_Fill(gpu_data->device_QUVW_data, R3(0));
 	Thrust_Fill(gpu_data->device_gam_data, 0);
 	Thrust_Fill(correction, 0);
+
+#else
+#pragma omp parallel for
+	for (int i = 0; i < number_of_objects; i++) {
+		gpu_data->device_QXYZ_data[i] = R3(0);
+		gpu_data->device_QUVW_data[i] = R3(0);
+	}
+#pragma omp parallel for
+	for (int i = 0; i < number_of_constraints; i++) {
+		gpu_data->device_gam_data[i] = 0;
+		correction[i] = 0;
+	}
+#endif
+
+
+
 	///////////////////////////////////////
+
 	thrust::copy_n(gpu_data->device_dpth_data.begin(), gpu_data->number_of_contacts, correction.begin() + gpu_data->number_of_contacts * 0);
 	///////////////////////////////////////
 	thrust::copy_n(gpu_data->device_gamma_bilateral.begin(), gpu_data->number_of_bilaterals, gpu_data->device_gam_data.begin() + gpu_data->number_of_contacts * 3);
@@ -599,8 +616,6 @@ void ChSolverGPU::Setup() {
 		gpu_data->offset_counter.resize((number_of_cont_bilat) * 2, 0);
 		gpu_data->update_offset.resize((number_of_cont_bilat) * 2, 0);
 		body_num.resize((number_of_cont_bilat) * 2, 0);
-		gpu_data->device_dgm_data.resize((number_of_constraints));
-		Thrust_Fill(gpu_data->device_dgm_data, 1);
 		gpu_data->vel_update.resize((number_of_cont_bilat) * 2);
 		gpu_data->omg_update.resize((number_of_cont_bilat) * 2);
 #ifdef SIM_ENABLE_GPU_MODE
@@ -623,13 +638,21 @@ void ChSolverGPU::Setup() {
 void ChSolverGPU::ShurProduct(custom_vector<real> &x, custom_vector<real> & output) {
 	timer_shurcompliment.start();
 	Thrust_Fill(output, 0);
-	Thrust_Fill(gpu_data->device_QXYZ_data, R3(0));
-	Thrust_Fill(gpu_data->device_QUVW_data, R3(0));
-	shurA(x);
-	shurB(x,output);
-	timer_shurcompliment.stop();
-	time_shurcompliment +=timer_shurcompliment();
-}
+#ifdef SIM_ENABLE_GPU_MODE
+		Thrust_Fill(gpu_data->device_QXYZ_data, R3(0));
+		Thrust_Fill(gpu_data->device_QUVW_data, R3(0));
+#else
+#pragma omp parallel for
+		for (int i = 0; i < number_of_objects; i++) {
+			gpu_data->device_QXYZ_data[i] = R3(0);
+			gpu_data->device_QUVW_data[i] = R3(0);
+		}
+#endif
+		shurA(x);
+		shurB(x,output);
+		timer_shurcompliment.stop();
+		time_shurcompliment +=timer_shurcompliment();
+	}
 
 void ChSolverGPU::ComputeImpulses() {
 	shurA(gpu_data->device_gam_data);

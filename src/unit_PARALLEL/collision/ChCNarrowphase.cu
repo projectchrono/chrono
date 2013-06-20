@@ -20,21 +20,28 @@ __device__ __host__ real3 TransformSupportVert(const shape_type &type, const rea
 	//M33 orientation = AMat(R);
 	//M33 invorientation = AMatT(R);
 	real3 rotated_n = quatRotateMatT(n, R);
-
-	if (type == TRIANGLEMESH) {
-		return GetSupportPoint_Triangle(A, B, C, n);
-	} else if (type == SPHERE) {
+	switch (type) {
+	case SPHERE:
 		localSupport = GetSupportPoint_Sphere(B, rotated_n);
-	} else if (type == ELLIPSOID) {
+		break;
+	case ELLIPSOID:
 		localSupport = GetSupportPoint_Ellipsoid(B, rotated_n);
-	} else if (type == BOX) {
+		break;
+	case BOX:
 		localSupport = GetSupportPoint_Box(B, rotated_n);
-	} else if (type == CYLINDER) {
+		break;
+	case CYLINDER:
 		localSupport = GetSupportPoint_Cylinder(B, rotated_n);
-	} else if (type == RECT) {
+		break;
+	case RECT:
 		localSupport = GetSupportPoint_Plane(B, rotated_n);
-	} else if (type == CONE) {
+		break;
+	case CONE:
 		localSupport = GetSupportPoint_Cone(B, rotated_n);
+		break;
+	case TRIANGLEMESH:
+		return GetSupportPoint_Triangle(A, B, C, n);
+		break;
 	}
 
 	return quatRotateMat(localSupport, R) + A; //globalSupport
@@ -108,8 +115,7 @@ __device__ __host__ real find_dist(real3 &P, real3 &x0, real3 &B, real3 &C, real
 }
 
 //Code for Convex-Convex Collision detection, adopted from xeno-collide
-__device__ __host__ bool CollideAndFindPoint(shape_type typeA, real3 A_X, real3 A_Y, real3 A_Z, real4 A_R, shape_type typeB, real3 B_X, real3 B_Y, real3 B_Z, real4 B_R, real3 &returnNormal,
-		real3 &point, real &depth) {
+__device__ __host__ bool CollideAndFindPoint(shape_type typeA, real3 A_X, real3 A_Y, real3 A_Z, real4 A_R, shape_type typeB, real3 B_X, real3 B_Y, real3 B_Z, real4 B_R, real3 &returnNormal, real3 &point, real &depth) {
 	real3 v01, v02, v0, n, v11, v12, v1, v21, v22, v2;
 	// v0 = center of Minkowski sum
 	v01 = GetCenter(typeA, A_X, A_Y, A_Z);
@@ -290,9 +296,25 @@ __device__ __host__ bool CollideAndFindPoint(shape_type typeA, real3 A_X, real3 
 	}
 }
 
-__host__ __device__ void function_MPR_Store(const uint &index, const shape_type *obj_data_T, const real3 *obj_data_A, const real3 *obj_data_B, const real3 *obj_data_C, const real4 *obj_data_R,
-		const uint *obj_data_ID, const bool * obj_active, const real3 *body_pos, const real4 *body_rot, const real & collision_envelope, long long *contact_pair, uint *contact_active, real3 *norm,
-		real3 *ptA, real3 *ptB, real *contactDepth, int2 *ids
+__host__ __device__ void function_MPR_Store(
+		const uint &index,
+		const shape_type *obj_data_T,
+		const real3 *obj_data_A,
+		const real3 *obj_data_B,
+		const real3 *obj_data_C,
+		const real4 *obj_data_R,
+		const uint *obj_data_ID,
+		const bool * obj_active,
+		const real3 *body_pos,
+		const real4 *body_rot,
+		const real & collision_envelope,
+		long long *contact_pair,
+		uint *contact_active,
+		real3 *norm,
+		real3 *ptA,
+		real3 *ptB,
+		real *contactDepth,
+		int2 *ids
 
 		) {
 
@@ -405,20 +427,48 @@ __host__ __device__ void function_MPR_Store(const uint &index, const shape_type 
 	contact_active[index] = 0;
 }
 
-__global__ void device_MPR_Store(const shape_type *obj_data_T, const real3 *obj_data_A, const real3 *obj_data_B, const real3 *obj_data_C, const real4 *obj_data_R, const uint *obj_data_ID,
-		const bool * obj_active, const real3 *body_pos, const real4 *body_rot, long long *contact_pair, uint *contact_active, real3 *norm, real3 *ptA, real3 *ptB, real *contactDepth, int2 *ids) {
+__global__ void device_MPR_Store(
+		const shape_type *obj_data_T,
+		const real3 *obj_data_A,
+		const real3 *obj_data_B,
+		const real3 *obj_data_C,
+		const real4 *obj_data_R,
+		const uint *obj_data_ID,
+		const bool * obj_active,
+		const real3 *body_pos,
+		const real4 *body_rot,
+		long long *contact_pair,
+		uint *contact_active,
+		real3 *norm,
+		real3 *ptA,
+		real3 *ptB,
+		real *contactDepth,
+		int2 *ids) {
 	INIT_CHECK_THREAD_BOUNDED(INDEX1D, total_possible_contacts_const);
-	function_MPR_Store(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, obj_active, body_pos, body_rot, collision_envelope_const, contact_pair, contact_active, norm,
-			ptA, ptB, contactDepth, ids);
+	function_MPR_Store(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, obj_active, body_pos, body_rot, collision_envelope_const, contact_pair, contact_active, norm, ptA, ptB, contactDepth, ids);
 }
 
-void ChCNarrowphase::host_MPR_Store(const shape_type *obj_data_T, const real3 *obj_data_A, const real3 *obj_data_B, const real3 *obj_data_C, const real4 *obj_data_R, const uint *obj_data_ID,
-		const bool * obj_active, const real3 *body_pos, const real4 *body_rot, long long *contact_pair, uint *contact_active, real3 *norm, real3 *ptA, real3 *ptB, real *contactDepth, int2 *ids) {
+void ChCNarrowphase::host_MPR_Store(
+		const shape_type *obj_data_T,
+		const real3 *obj_data_A,
+		const real3 *obj_data_B,
+		const real3 *obj_data_C,
+		const real4 *obj_data_R,
+		const uint *obj_data_ID,
+		const bool * obj_active,
+		const real3 *body_pos,
+		const real4 *body_rot,
+		long long *contact_pair,
+		uint *contact_active,
+		real3 *norm,
+		real3 *ptA,
+		real3 *ptB,
+		real *contactDepth,
+		int2 *ids) {
 #pragma omp parallel for
 
 	for (uint index = 0; index < total_possible_contacts; index++) {
-		function_MPR_Store(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, obj_active, body_pos, body_rot, collision_envelope, contact_pair, contact_active, norm, ptA,
-				ptB, contactDepth, ids);
+		function_MPR_Store(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, obj_active, body_pos, body_rot, collision_envelope, contact_pair, contact_active, norm, ptA, ptB, contactDepth, ids);
 	}
 }
 ChCNarrowphase::ChCNarrowphase() {
@@ -500,11 +550,21 @@ uint & number_of_contacts
 #ifdef PRINT_DEBUG_GPU
 		cout << "Number of number_of_contacts: " << number_of_contacts << endl;
 #endif
-		thrust::sort_by_key(
-				generic_counter.begin(),
-				generic_counter.end(),
-				thrust::make_zip_iterator(thrust::make_tuple(norm_data.begin(), cpta_data.begin(), cptb_data.begin(), dpth_data.begin(), bids_data.begin(), potentialCollisions.begin()))
-		);
+		thrust::remove_if(norm_data.begin(), norm_data.end(), generic_counter.begin(), thrust::identity<int>());
+		thrust::remove_if(cpta_data.begin(), cpta_data.end(), generic_counter.begin(), thrust::identity<int>());
+		thrust::remove_if(cptb_data.begin(), cptb_data.end(), generic_counter.begin(), thrust::identity<int>());
+		thrust::remove_if(dpth_data.begin(), dpth_data.end(), generic_counter.begin(), thrust::identity<int>());
+		thrust::remove_if(bids_data.begin(), bids_data.end(), generic_counter.begin(), thrust::identity<int>());
+		thrust::remove_if(potentialCollisions.begin(), potentialCollisions.end(), generic_counter.begin(), thrust::identity<int>());
+
+
+
+
+//		thrust::sort_by_key(
+//				generic_counter.begin(),
+//				generic_counter.end(),
+//				thrust::make_zip_iterator(thrust::make_tuple(norm_data.begin(), cpta_data.begin(), cptb_data.begin(), dpth_data.begin(), bids_data.begin(), potentialCollisions.begin()))
+//		);
 		norm_data.resize(number_of_contacts);
 		cpta_data.resize(number_of_contacts);
 		cptb_data.resize(number_of_contacts);

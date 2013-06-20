@@ -6,8 +6,13 @@
 //   ChCuda.h
 //
 ///////////////////////////////////////////////////
-
+#ifdef SIM_ENABLE_GPU_MODE
+#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CUDA
+#else
+#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
+#endif
 #include <fenv.h>
+#include <vector_types.h>
 #include <time.h>
 #include <iostream>
 #include <thrust/host_vector.h>
@@ -20,7 +25,9 @@
 #include <thrust/copy.h>
 #include <thrust/count.h>
 #include <thrust/scan.h>
+#include <thrust/merge.h>
 #include <thrust/sequence.h>
+#include <thrust/extrema.h>
 #include <thrust/binary_search.h>
 #include <thrust/set_operations.h>
 #include <thrust/iterator/constant_iterator.h>

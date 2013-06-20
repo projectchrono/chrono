@@ -71,6 +71,7 @@ SET(ChronoEngine_unit_GPU_SOURCES
     ChBodyGPU.cpp
     ChSystemGPU.cpp
    )
+
 SET(ChronoEngine_unit_GPU_HEADERS
     ChApiGPU.h
     ChCudaDefines.h
@@ -82,14 +83,14 @@ SET(ChronoEngine_unit_GPU_HEADERS
     ChLcpSolverGPU.h
     ChLcpSystemDescriptorGPU.h
     ChJacobianGPU.h
-    ChIntegratorGPU.h
+    #ChIntegratorGPU.h
 
    )
 SET(ChronoEngine_unit_GPU_CU
     ChLcpSolverGPU.cu
     ChDataManager.cu
     ChJacobianGPU.cu
-	ChIntegratorGPU.cu
+	#ChIntegratorGPU.cu
    )
 
 SOURCE_GROUP(unit_GPU FILES
@@ -150,9 +151,8 @@ if (CUDA_FOUND)
 
 # These need to get straightened out
 # Anything using the SDK should only be used by nvcc, no need to include them for anything being sent to the system compiler
-        CUDA_INCLUDE_DIRECTORIES(${CH_CUDA_INC})
-        CUDA_INCLUDE_DIRECTORIES(${CH_CUDA_SDK_INC})
-        INCLUDE_DIRECTORIES( ${CH_CUDA_INC} ${CH_CUDA_SDK_INC} )
+        CUDA_INCLUDE_DIRECTORIES(${CH_CUDA_INC} ${CH_CUDA_SDK_INC} "../")
+        INCLUDE_DIRECTORIES( ${CH_CUDA_INC} ${CH_CUDA_SDK_INC} "../")
 
 # The GPU library is added to the project, and some custom properties of this target are set.
 

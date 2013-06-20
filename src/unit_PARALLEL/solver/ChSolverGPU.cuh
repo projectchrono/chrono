@@ -66,6 +66,13 @@ public:
 
 					real & obj1,real& obj2,real& min_val);
 
+			void partThree_host(const uint size, const custom_vector<real> &mx,
+					custom_vector<real> &ml,
+					const custom_vector<real> &mg,
+					const real &beta_k1,
+					custom_vector<real> &ms,
+					custom_vector<real> &my,
+					real & temp_dot_prod);
 			///////
 
 			int GetIteration() {
@@ -143,9 +150,16 @@ public:
 			custom_vector<uint> update_number;
 			host_vector<real> maxd_hist,maxdeltalambda_hist,iter_hist;
 
+			custom_vector<real> temp1;
+			custom_vector<real> temp2;
+
+			custom_vector<real> obj2_temp;
+			custom_vector<real> obj1_temp;
+			custom_vector<real> lm;
+
 		protected:
 		}
-			;
+		;
 
 		}
 

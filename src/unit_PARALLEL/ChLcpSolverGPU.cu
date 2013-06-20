@@ -29,7 +29,7 @@ __global__ void device_addForces(bool* active, real* mass, real3* inertia, real3
 }
 
 void ChLcpSolverGPU::host_addForces(bool* active, real* mass, real3* inertia, real3* forces, real3* torques, real3* vel, real3* omega) {
-#pragma omp parallel for schedule(guided)
+#pragma omp parallel for
 
 	for (uint index = 0; index < number_of_objects; index++) {
 		function_addForces(index, active, mass, inertia, forces, torques, vel, omega);
@@ -50,7 +50,7 @@ __global__ void device_ComputeGyro(real3* omega, real3* inertia, real3* gyro, re
 }
 
 void ChLcpSolverGPU::host_ComputeGyro(real3* omega, real3* inertia, real3* gyro, real3* torque) {
-#pragma omp parallel for schedule(guided)
+#pragma omp parallel for
 
 	for (uint index = 0; index < number_of_objects; index++) {
 		function_ComputeGyro(index, omega, inertia, gyro, torque);
@@ -83,8 +83,6 @@ void ChLcpSolverGPU::Preprocess(gpu_container& gpu_data) {
 	host_addForces(gpu_data.device_active_data.data(), gpu_data.device_mass_data.data(), gpu_data.device_inr_data.data(), gpu_data.device_frc_data.data(), gpu_data.device_trq_data.data(),
 			gpu_data.device_vel_data.data(), gpu_data.device_omg_data.data());
 #endif
-	gpu_data.device_fap_data.resize(number_of_objects);
-	Thrust_Fill(gpu_data.device_fap_data, R3(0));
 }
 
 void ChLcpSolverGPU::RunTimeStep(real step, gpu_container& gpu_data) {

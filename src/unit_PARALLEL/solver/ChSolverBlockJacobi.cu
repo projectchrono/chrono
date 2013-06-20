@@ -402,14 +402,13 @@ void ChSolverJacobi::host_Bilaterals(
 // Updates the speeds in the body buffer with values accumulated in the
 // reduction buffer:   V_new = V_old + delta_speeds
 
-__host__ __device__ void function_Reduce_Speeds(uint& index, bool* active, real* mass, real3* vel, real3* omega, real3* updateV, real3* updateO, uint* d_body_num, uint* counter, real3* fap) {
+__host__ __device__ void function_Reduce_Speeds(uint& index, bool* active, real* mass, real3* vel, real3* omega, real3* updateV, real3* updateO, uint* d_body_num, uint* counter) {
 	int start = (index == 0) ? 0 : counter[index - 1], end = counter[index];
 	int id = d_body_num[end - 1], j;
 
 	if (active[id] == 0) {
 		return;
 	}
-
 	real3 mUpdateV = R3(0);
 	real3 mUpdateO = R3(0);
 
@@ -417,21 +416,19 @@ __host__ __device__ void function_Reduce_Speeds(uint& index, bool* active, real*
 		mUpdateV = mUpdateV + updateV[j + start];
 		mUpdateO = mUpdateO + updateO[j + start];
 	}
-
-	//fap[id] += (mUpdateV / mass[id]) / step_size_const;
 	vel[id] += (mUpdateV);
 	omega[id] += (mUpdateO);
 }
 
-__global__ void device_Reduce_Speeds(bool* active, real* mass, real3* vel, real3* omega, real3* updateV, real3* updateO, uint* d_body_num, uint* counter, real3* fap) {
+__global__ void device_Reduce_Speeds(bool* active, real* mass, real3* vel, real3* omega, real3* updateV, real3* updateO, uint* d_body_num, uint* counter) {
 	INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_updates_const);
-	function_Reduce_Speeds(index, active, mass, vel, omega, updateV, updateO, d_body_num, counter, fap);
+	function_Reduce_Speeds(index, active, mass, vel, omega, updateV, updateO, d_body_num, counter);
 }
-void ChSolverJacobi::host_Reduce_Speeds(bool* active, real* mass, real3* vel, real3* omega, real3* updateV, real3* updateO, uint* d_body_num, uint* counter, real3* fap) {
+void ChSolverJacobi::host_Reduce_Speeds(bool* active, real* mass, real3* vel, real3* omega, real3* updateV, real3* updateO, uint* d_body_num, uint* counter) {
 #pragma omp parallel for
 
 	for (uint index = 0; index < number_of_updates; index++) {
-		function_Reduce_Speeds(index, active, mass, vel, omega, updateV, updateO, d_body_num, counter, fap);
+		function_Reduce_Speeds(index, active, mass, vel, omega, updateV, updateO, d_body_num, counter);
 	}
 }
 //__global__ void device_Offsets(int2* ids, real4* bilaterals, uint* Body) {
@@ -621,8 +618,7 @@ void ChSolverJacobi::Solve(real step, gpu_container& gpu_data_) {
 					CASTR3(gpu_data->vel_update),
 					CASTR3(gpu_data->omg_update),
 					CASTU1(gpu_data->body_number),
-					CASTU1(gpu_data->offset_counter),
-					CASTR3(gpu_data->device_fap_data));
+					CASTU1(gpu_data->offset_counter));
 #else
 			host_Reduce_Speeds(
 					gpu_data->device_active_data.data(),
@@ -632,8 +628,7 @@ void ChSolverJacobi::Solve(real step, gpu_container& gpu_data_) {
 					gpu_data->vel_update.data(),
 					gpu_data->omg_update.data(),
 					gpu_data->body_number.data(),
-					gpu_data->offset_counter.data(),
-					gpu_data->device_fap_data.data());
+					gpu_data->offset_counter.data());
 #endif
 			//residual = CompRes(gpu_data->device_dgm_data, number_of_contacts);
 			residual = gpu_data->device_dgm_data[thrust::max_element(gpu_data->device_dgm_data.begin(), gpu_data->device_dgm_data.begin() + number_of_contacts) - gpu_data->device_dgm_data.begin()];

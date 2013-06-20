@@ -54,7 +54,6 @@ struct gpu_container {
 	custom_vector<real3> device_dem_data;
 	custom_vector<real3> device_lim_data;
 	custom_vector<real3> device_gyr_data;
-	custom_vector<real3> device_fap_data;
 
 	custom_vector<real3> device_QXYZ_data,device_QUVW_data;
 	custom_vector<real3> device_JXYZA_data,device_JXYZB_data;
@@ -150,7 +149,6 @@ public:
 	thrust::host_vector<real3> host_lim_data;
 	thrust::host_vector<real3> host_dem_data;
 	thrust::host_vector<real3> host_gyr_data;
-	thrust::host_vector<real3> host_fap_data;
 
 	thrust::host_vector<real3> host_JXYZA_data, host_JXYZB_data;
 	thrust::host_vector<real3> host_JUVWA_data, host_JUVWB_data;

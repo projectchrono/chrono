@@ -51,7 +51,6 @@ void ChGPUDataManager::DeviceToHost() {
 	host_rot_data = gpu_data.device_rot_data;
 	host_acc_data = gpu_data.device_acc_data;
 	host_gyr_data = gpu_data.device_gyr_data;
-	host_fap_data = gpu_data.device_fap_data;
 
 	//host_bilateral_data = gpu_data.device_bilateral_data;
 	if (copyContacts) {
