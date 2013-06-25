@@ -35,7 +35,7 @@ public:
 
 	// functions
 	ParticleGenerator(ChSystem* mphysicalSystem, ISceneManager* msceneManager, IVideoDriver* driver,
-		double width, double len, double sphDensity = 100.0, double boxDensity = 100.0){
+		double width, double len, double sphDensity = 100.0, double boxDensity = 100.0, double mu = 0.33){
 		// just set the data
 		this->msys = mphysicalSystem;
 		this->mscene = msceneManager;
@@ -47,7 +47,8 @@ public:
 		this->simTime_lastPcreated = 0.0;
 		this->totalParticles = 0;
 		this->totalParticleMass = 0.0;
-		this->parent =  msceneManager->addEmptySceneNode();
+		this->particleParent =  msceneManager->addEmptySceneNode();
+		this->mu = mu;
 	}
 
 	~ParticleGenerator() {
@@ -64,12 +65,57 @@ public:
 		return (this->totalParticleMass);
 	}
 
+	// turn visibility on/off
+	void toggleVisibility(bool togglevis)
+	{
+		this->particleParent->setVisible(togglevis);
+
+	}
+
+
+	const double getMu() {
+		return this->mu;	}
+
+	void setMu(double newMu)
+	{
+		if(newMu < 0.0) 
+		{
+			GetLog() << "can't set mu less than 0  \n" ;
+			return;
+		}
+		if(newMu > 1.0)
+			GetLog() << "probably shouldn't have mu > 1.0   \n";
+		
+		// set mu anyway if >1.0
+		this->mu = newMu;
+	}
+
+	const double getSphDensity(){
+		return this->sphDens;
+	}
+	void setSphDensity(double newDens)
+	{
+		if(newDens < 0.0) 
+			GetLog() << "can't set density less than 0  \n" ;
+		else
+			this->sphDens = newDens;
+	}
+
+	void setBoxDensity(double newDens)
+	{
+		if(newDens < 0.0) 
+			GetLog() << "can't set density less than 0  \n" ;
+		else
+			this->boxDens = newDens;
+
+	}
+
 	// create some spheres with size = pSize + ChRank()*pDev
 	// also, you can create boxes too, with the sides being sized in the same sort of manner as the spheres
 	const bool create_some_falling_items(double pSize, double pDev, int nParticles,
 		int nBoxes = 0)
 	{
-		double minTime_betweenCreate = 0.1;	// this much simulation time MUST elapse before being allowed to
+		double minTime_betweenCreate = 0.05;	// this much simulation time MUST elapse before being allowed to
 											// create more particles
 		if( (msys->GetChTime() - this->simTime_lastPcreated ) >= minTime_betweenCreate )
 		{
@@ -107,9 +153,9 @@ public:
 													(4/3)*CH_C_PI*pow(sphrad,3)*sphdens,
 													currPos,
 													sphrad,
-													15, 8, this->parent);
+													15, 8, this->particleParent);
 				currRigidBody->GetBody()->SetInertiaXX(ChVector<>(sphinertia,sphinertia,sphinertia));
-				currRigidBody->GetBody()->SetFriction(0.4f);
+				currRigidBody->GetBody()->SetFriction(this->mu);
 				currRigidBody->GetBody()->SetRot(randrot);
 				//mrigidBody->addShadowVolumeSceneNode();
 				currRigidBody->setMaterialTexture(0,	rockMap);
@@ -140,7 +186,7 @@ public:
 				currRigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(msys, mscene, 
 					boxmass,
 					currPos, randrot, 
-					boxSize, parent);
+					boxSize, particleParent);
 				// set inertia, friction
 				currRigidBody->GetBody()->SetInertiaXX(ChVector<>(boxmass*(boxSize.y*boxSize.y + boxSize.z*boxSize.z)/12.0,
 					boxmass*(boxSize.x*boxSize.x + boxSize.z*boxSize.z)/12.0,
@@ -162,7 +208,7 @@ private:
 	ChSystem* msys;
 	ISceneManager* mscene;
 	IVideoDriver* mdriver;
-	ISceneNode* parent;	// hold onto pointers to the particles as they are created
+	ISceneNode* particleParent;	// hold onto pointers to the particles as they are created
 	int totalParticles;
 	double totalParticleMass;	
 	double bedLength;
@@ -173,6 +219,7 @@ private:
 	// density of shape primitives
 	double sphDens;
 	double boxDens;
+	double mu;	// friction coef
 };
 
 
@@ -309,7 +356,7 @@ public:
 		// create the floor
 		floor = (ChBodySceneNode*)addChBodySceneNode_easyBox(
 			mapp.GetSystem(), mapp.GetSceneManager(), 
-			100.0,	ChVector<>(0, -0.5 - wallWidth / 2.0, 0), ChQuaternion<>(1,0,0,0), 
+			10.0,	ChVector<>(0, -0.5 - wallWidth / 2.0, 0), ChQuaternion<>(1,0,0,0), 
 			ChVector<>( binWidth+wallWidth/2.0, wallWidth, binLength+wallWidth/2.0) );
 		floor->GetBody()->SetBodyFixed(true);
 		floor->GetBody()->SetFriction(0.5);	// NOTE: May need to change this if the walls have effects on the soil response
@@ -318,7 +365,7 @@ public:
 		// wall 1
 		wall1 = (ChBodySceneNode*)addChBodySceneNode_easyBox(
 			mapp.GetSystem(), mapp.GetSceneManager(), 
-			100.0, ChVector<>(-binWidth/2.0 - wallWidth/2.0, 0, 0),	ChQuaternion<>(1,0,0,0), 
+			10.0, ChVector<>(-binWidth/2.0 - wallWidth/2.0, 0, 0),	ChQuaternion<>(1,0,0,0), 
 			ChVector<>(wallWidth, binHeight, binLength) );
 		wall1->GetBody()->SetBodyFixed(true);
 		// wall1->setMaterialTexture(0,	cubeMap);
@@ -327,7 +374,7 @@ public:
 		// wall 2
 		wall2 = (ChBodySceneNode*)addChBodySceneNode_easyBox(
 			mapp.GetSystem(), mapp.GetSceneManager(), 
-			100.0,	ChVector<>(binWidth/2.0 + wallWidth/2.0, 0, 0),	ChQuaternion<>(1,0,0,0), 
+			10.0,	ChVector<>(binWidth/2.0 + wallWidth/2.0, 0, 0),	ChQuaternion<>(1,0,0,0), 
 			ChVector<>(wallWidth,binHeight,binLength) );
 		wall2->GetBody()->SetBodyFixed(true);
 		// wall2->setMaterialTexture(0,	rockMap);
@@ -339,15 +386,16 @@ public:
 		// wall 3
 		wall3 = (ChBodySceneNode*)addChBodySceneNode_easyBox(
 			mapp.GetSystem(), mapp.GetSceneManager(), 
-			100.0, ChVector<>(0, 0, -binLength/2.0 - wallWidth/2.0), ChQuaternion<>(1,0,0,0), 
+			10.0, ChVector<>(0, 0, -binLength/2.0 - wallWidth/2.0), ChQuaternion<>(1,0,0,0), 
 			ChVector<>(binWidth + wallWidth/2.0, binHeight, wallWidth) );
 		wall3->GetBody()->SetBodyFixed(true);
+		wall3->setVisible(false);	// hide this one as well
 		// wall3->setMaterialTexture(0,	wall3tex);
 
 		// wall 4
 		wall4 = (ChBodySceneNode*)addChBodySceneNode_easyBox(
 			mapp.GetSystem(), mapp.GetSceneManager(), 
-			100.0,	ChVector<>(0,0, binLength/2.0 + wallWidth/2.0),	ChQuaternion<>(1,0,0,0), 
+			10.0,	ChVector<>(0,0, binLength/2.0 + wallWidth/2.0),	ChQuaternion<>(1,0,0,0), 
 			ChVector<>(binWidth + wallWidth/2.0, binHeight, wallWidth) );
 		wall4->GetBody()->SetBodyFixed(true);
 		// wall4->setMaterialTexture(0,	wall4tex);
@@ -360,7 +408,7 @@ public:
 		video::ITexture* bluMap = mapp.GetVideoDriver()->getTexture("../data/blu.png");
 		ChVector<> trussCM = wheelBody->GetBody()->GetPos();
 		truss = (ChBodySceneNode*)addChBodySceneNode_easyBox(mapp.GetSystem(), mapp.GetSceneManager(),
-			1.0, trussCM, QUNIT, ChVector<>(0.2,0.2,0.4));
+			5.0, trussCM, QUNIT, ChVector<>(0.2,0.2,0.4));
 		truss->setMaterialTexture(0,bluMap);
 		// truss shouldn't be used for Collisions
 		truss->GetBody()->SetCollide(false);
@@ -470,78 +518,114 @@ public:
 
 		// **** ***
 		// create the GUI items here
+		irr::s32 x0 = 740;	irr::s32 y0 = 20;	// box0 top left corner
+		// create the tabs for the rig output: NOTE: GUI widget locations are all relative to the TabControl!
+		gad_tabbed = mapp->GetIGUIEnvironment()->addTabControl(core::rect<s32>(x0,y0,x0+255,y0+440), 0, true, true);
+		gad_tab_controls = gad_tabbed->addTab(L"Controls");	// static text will be printed w/ each checkbox or slider
+		gad_text_wheelControls = mapp->GetIGUIEnvironment()->addStaticText(L"Wheel Control", core::rect<s32>(10,10,245,150), true, true, gad_tab_controls);
+		irr::s32 y1 = 165;	// box1 top left corner
+		gad_text_pControls = mapp->GetIGUIEnvironment()->addStaticText(L"Particle Control", core::rect<s32>(10,y1,245,y1+230), true, true, gad_tab_controls);
+		gad_tab_wheel = gad_tabbed->addTab(L"Wheel State");
+		gad_text_wheelState = mapp->GetIGUIEnvironment()->addStaticText(L"WS", core::rect<s32>(10,10,240,250), true, true, gad_tab_wheel);
+		gad_tab_soil = gad_tabbed->addTab(L"Soil State");
+		gad_text_soilState = mapp->GetIGUIEnvironment()->addStaticText(L"SS", core::rect<s32>(10,10,240,250), true, true, gad_tab_soil);
 
-		// ..add a GUI for wheel position lock ( id = 110 )
+		// **** GUI CONTROLS ***
+		// ..add a GUI for wheel position lock ( id = 2110 )
 		checkbox_wheelLocked = app->GetIGUIEnvironment()->addCheckBox(
-			wheelLocked, core::rect<s32>(620, 185, 650, 200), 0, 2110);
+			wheelLocked, core::rect<s32>(20, 30, 35, 45), gad_tab_controls, 2110);
 		text_wheelLocked = app->GetIGUIEnvironment()->addStaticText(
-			L"Wheel Position Locked", core::rect<s32>(650,185,900,200), false);
+			L"Wheel Locked", core::rect<s32>(45,30, 125,45), false,false,gad_tab_controls);
 		checkbox_wheelLocked->setVisible(true);
 		text_wheelLocked->setVisible(true);
 		this->mwheel->wheel->GetBody()->SetBodyFixed(wheelLocked);	// set IC of checkbox
 		this->mtester->truss->GetBody()->SetBodyFixed(wheelLocked);
 		this->mtester->suspweight->GetBody()->SetBodyFixed(wheelLocked);
 
-		// add a GUI for turning particle creation on/off ( id = 111 )
+		// add a GUI for turning particle creation on/off ( id = 2111 )
 		checkbox_createParticles = app->GetIGUIEnvironment()->addCheckBox(
-			makeParticles, core::rect<s32>(620, 215, 650, 230), 0, 2111);
+			makeParticles, core::rect<s32>(20, y1+20, 35, y1+35), gad_tab_controls, 2111);
 		text_createParticles = app->GetIGUIEnvironment()->addStaticText(
-			L"create Particles? ", core::rect<s32>(650,215,900,230), false);
+			L"create Particles? ", core::rect<s32>(45,y1+20,165,y1+35), false,false,gad_tab_controls);
 		checkbox_createParticles->setVisible(true);
 		text_createParticles->setVisible(true);
 
-		// add a GUI for setting the wheel collision ( id = 112 )
+		// add a GUI for setting the wheel collision ( id = 2112 )
 		checkbox_wheelCollision = app->GetIGUIEnvironment()->addCheckBox(
-			wheelCollision, core::rect<s32>(620, 245, 650, 260), 0, 2112);
+			wheelCollision, core::rect<s32>(20, 60, 35, 75), gad_tab_controls, 2112);
 		text_wheelCollision = app->GetIGUIEnvironment()->addStaticText(
-			L"wheel Collision On/Off ", core::rect<s32>(650,245,900,260), false);
+			L"Wheel collide? ", core::rect<s32>(45,60,125,75), false,false,gad_tab_controls);
 		checkbox_wheelCollision->setVisible(true);
 		text_wheelCollision->setVisible(true);
 		this->mwheel->wheel->GetBody()->SetCollide(wheelCollision);	// set IC of checkbox
 
-		// ..add a GUI for turning torque on/off ( id = 113 )
+		// ..add a GUI for turning torque on/off ( id = 2113 )
 		checkbox_applyTorque = app->GetIGUIEnvironment()->addCheckBox(
-			applyTorque, core::rect<s32>(620, 275, 650, 300), 0, 2113);
+			applyTorque, core::rect<s32>(20, 90, 35, 105), gad_tab_controls, 2113);
 		text_applyTorque = app->GetIGUIEnvironment()->addStaticText(
-			L"Apply wheel Torque?", core::rect<s32>(650,275,900,300), false);
+			L"Apply Torque?", core::rect<s32>(45,90,125,105), false,false,gad_tab_controls);
 		checkbox_applyTorque->setVisible(true);
 		text_applyTorque->setVisible(true);
 		this->mtester->isTorqueApplied = false;	// set IC of checkbox
 
-		// create sliders to modify particle size/dev ( id = 101)
-		scrollbar_pSize = mapp->GetIGUIEnvironment()->addScrollBar( true, rect<s32>(520, 315, 650, 330), 0, 1101);
+		// add a checkbox to make particle visibility turn on/off, id = 2114
+		checkbox_particlesVisible = app->GetIGUIEnvironment()->addCheckBox(
+			pVisible, core::rect<s32>(180,y1+20,195,y1+35),gad_tab_controls, 2114);
+		text_particlesVisible = app->GetIGUIEnvironment()->addStaticText(
+			L"visible?", core::rect<s32>(205,y1+20,290,y1+35),false,false,gad_tab_controls);
+
+		// create sliders to modify particle size/dev ( id = 1101)
+		scrollbar_pSize = mapp->GetIGUIEnvironment()->addScrollBar( true, rect<s32>(20, y1+50, 150, y1+65), gad_tab_controls, 1101);
 		scrollbar_pSize->setMax(100); 
 		scrollbar_pSize->setPos(50);
-		char message[50]; sprintf(message,"p Size [m]: %g",particleSize0);
+		char message[50]; sprintf(message,"p rad [m]: %g",particleSize0);
 		text_pSize = mapp->GetIGUIEnvironment()->addStaticText(
-			core::stringw(message).c_str(), rect<s32>(660,315,760,330), false);
+			core::stringw(message).c_str(), rect<s32>(160,y1+50,300,y1+65), false,false,gad_tab_controls);
 		this->currParticleSize = particleSize0;	// set the IC
 
-		// particle Dev slider	(id = 102)
-		scrollbar_pDev = mapp->GetIGUIEnvironment()->addScrollBar(true, rect<s32>(520, 345, 650, 360), 0, 1102);
+		// particle rad Deviation slider	(id = 1102)
+		scrollbar_pDev = mapp->GetIGUIEnvironment()->addScrollBar(true, rect<s32>(20, y1+80, 150, y1+95), gad_tab_controls, 1102);
 		scrollbar_pDev->setMax(100); 
 		scrollbar_pDev->setPos(50);
-		char message1[50]; sprintf(message1,"p Dev [m]: %g",particleDev0);
+		char message1[50]; sprintf(message1,"p dev.[m]: %g",particleDev0);
 		text_pDev = mapp->GetIGUIEnvironment()->addStaticText(
-			core::stringw(message1).c_str(), rect<s32>(660,345,760,360), false);
+			core::stringw(message1).c_str(), rect<s32>(160,y1+80,300,y1+95), false,false,gad_tab_controls);
 		this->currParticleDev = particleDev0;	// set the IC for the slider
 
-		// torque slider	(id = 103)
-		scrollbar_torque = mapp->GetIGUIEnvironment()->addScrollBar(true, rect<s32>(520, 375, 650, 390), 0, 1103);
+		// torque slider	(id = 1103)
+		scrollbar_torque = mapp->GetIGUIEnvironment()->addScrollBar(true, rect<s32>(20, y1+110, 150, y1+125), gad_tab_controls, 1103);
 		scrollbar_torque->setMax(100);
 		scrollbar_torque->setPos(50);
 		text_torque = mapp->GetIGUIEnvironment()->addStaticText(
-			L"Torque [N/m]: 0 ", rect<s32>(660, 375, 760,390), false);
+			L"Torque[N/m]: 0 ", rect<s32>(160, y1+110, 300,y1+125), false,false,gad_tab_controls);
 		this->mtester->currTorque = 0;	// set the IC of this slider
 
-		// nParticlesGen slider ( id = 104)
-		scrollbar_nParticlesGen = mapp->GetIGUIEnvironment()->addScrollBar(true, rect<s32>(520, 405, 650, 420), 0, 1104);
+		// nParticlesGen slider ( id = 1104)
+		scrollbar_nParticlesGen = mapp->GetIGUIEnvironment()->addScrollBar(true, rect<s32>(20, y1+140, 150, y1+155), gad_tab_controls, 1104);
 		scrollbar_nParticlesGen->setMax(100);
 		scrollbar_nParticlesGen->setPos(50);
 		this->currNparticlesGen = nParticlesGenMax/2;	// IC of this slider
-		char message2[50]; sprintf(message2,"# Gen. particles: %d",currNparticlesGen);
+		char message2[50]; sprintf(message2,"# p Gen: %d",this->currNparticlesGen);
 		text_nParticlesGen = mapp->GetIGUIEnvironment()->addStaticText(
-			core::stringw(message2).c_str(), rect<s32>(660, 405, 760,420), false);
+			core::stringw(message2).c_str(), rect<s32>(160, y1+140, 300,y1+155), false,false,gad_tab_controls);
+
+		// friction coefficient of particles, id = 1105
+		scrollbar_particleFriction = mapp->GetIGUIEnvironment()->addScrollBar(true, rect<s32>(20, y1+170, 150, y1+185), gad_tab_controls, 1105);
+		scrollbar_particleFriction->setMax(100);
+		scrollbar_particleFriction->setPos(33);
+		this->currParticleFriction = 0.33;
+		char message3[50]; sprintf(message3,"mu: %g", this->currParticleFriction);
+		text_particleFriction = mapp->GetIGUIEnvironment()->addStaticText(
+			core::stringw(message3).c_str(), rect<s32>(160, y1+170, 300,y1+185), false,false,gad_tab_controls);
+
+		// particle density, id = 1106
+		scrollbar_particleDensity = mapp->GetIGUIEnvironment()->addScrollBar(true, rect<s32>(20, y1+200, 150, y1+215), gad_tab_controls, 1106);
+		scrollbar_particleDensity->setMax(100);
+		scrollbar_particleDensity->setPos(50);
+		this->avgDensity = this->mgenerator->getSphDensity();
+		char message4[50]; sprintf(message4,"rho [kg/m3]: %g", this->avgDensity);
+		text_particleDensity = mapp->GetIGUIEnvironment()->addStaticText(
+			core::stringw(message4).c_str(), rect<s32>(160, y1+200, 300,y1+215),false,false,gad_tab_controls);
 
 	}
 
@@ -561,21 +645,21 @@ public:
 				{
 					s32 currPos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
 					this->currParticleSize = particleSize0 + ((currPos - 50)/50.0)*particleSize0 + 0.001;
-					char message[50]; sprintf(message,"p Size [m]: %g",currParticleSize);
+					char message[50]; sprintf(message,"p rad [m]: %g",currParticleSize);
 					text_pSize->setText(core::stringw(message).c_str());
 				}
 				if( id == 1102) // id of particle Dev slider
 				{
 					s32 currPos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
 					this->currParticleDev = particleDev0 + ((currPos - 50)/50.0)*particleDev0 + 0.001;
-					char message[50]; sprintf(message,"p Dev [m]: %g",currParticleDev);
+					char message[50]; sprintf(message,"p dev.[m]: %g",currParticleDev);
 					text_pDev->setText(core::stringw(message).c_str());
 				}
 				if( id == 1103) // torque slider
 				{
 					s32 currPos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
 					double torquenew = ((currPos - 50.0)/50.0)*maxTorque;
-					char message[50]; sprintf(message,"Torque [N/m]: %g",torquenew);
+					char message[50]; sprintf(message,"Torque[N/m]: %g",torquenew);
 					text_torque->setText(core::stringw(message).c_str());
 					// set the new torque to the tester
 					this->mtester->currTorque = torquenew;	// set the new torque
@@ -584,8 +668,27 @@ public:
 				{
 					s32 currPos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
 					this->currNparticlesGen =  nParticlesGenMax + ((currPos - 50)/50.0)*nParticlesGenMax;
-					char message[50]; sprintf(message,"# Gen. particles: %d",this->currNparticlesGen);
+					char message[50]; sprintf(message,"# p Gen: %d",this->currNparticlesGen);
 					text_nParticlesGen->setText(core::stringw(message).c_str());
+				}
+				if( id == 1105) // mu of particlers
+				{
+					s32 sliderPos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
+					this->currParticleFriction = sliderPos / 100.0;
+					char message[50]; sprintf(message,"mu: %g",this->currParticleFriction);
+					text_particleFriction->setText(core::stringw(message).c_str());
+					// set the friction of the particles generated
+					this->mgenerator->setMu( sliderPos / 100.0 );
+				}
+				if( id == 1106) // density of spheres
+				{
+					s32 sliderPos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
+					double density = this->avgDensity +  ((sliderPos - 50.0) /100.0) * this->avgDensity;
+					char message[50]; sprintf(message,"rho [kg/m3]: %g", density);
+					text_particleDensity->setText(core::stringw(message).c_str());
+					// now, set the Sph density in the particle generator
+					this->mgenerator->setSphDensity( density );
+
 				}
 			break;
 			case gui::EGET_CHECKBOX_CHANGED:
@@ -604,7 +707,7 @@ public:
 					makeParticles = checkbox_createParticles->isChecked();
 					GetLog() << checkbox_createParticles->isChecked() << "\n";
 					// if checked, report the total # of particles
-					char message[50]; sprintf(message,"create Particles? Total: %d",this->mgenerator->nparticles() );
+					char message[50]; sprintf(message,"create Particles?: %d",this->mgenerator->nparticles() );
 					text_createParticles->setText(core::stringw(message).c_str());
 					GetLog() << "total particle mass = " << this->mgenerator->particleMass() << "\n";
 					return true;
@@ -624,6 +727,13 @@ public:
 					// apply a torque to the wheel?
 					this->mtester->isTorqueApplied = wheelCollision;
 					return true;
+				}
+				if( id == 2114)
+				{
+					pVisible = checkbox_particlesVisible->isChecked();
+					GetLog() << checkbox_particlesVisible->isChecked() << "\n";
+					// turn off the particle visibility
+					this->mgenerator->toggleVisibility(pVisible);
 				}
 			break;
 			
@@ -650,6 +760,44 @@ public:
 		}
 	}
 
+	void drawGrid()
+	{	
+
+		// wall 1
+		ChCoordsys<> wall1Csys = this->mtester->wall1->GetBody()->GetCoord();
+		wall1Csys.rot = chrono::Q_from_AngAxis(CH_C_PI/2.0, VECT_Y);
+		wall1Csys.pos.x += .05;
+		ChIrrTools::drawGrid(this->app->GetVideoDriver(),0.1,0.05,24,20, wall1Csys,
+			video::SColor(255,80,130,130),true);
+/*
+		// wall 2
+		ChCoordsys<> wall2Csys = this->mtester->wall2->GetBody()->GetCoord();
+		wall2Csys.pos.x -= .05;
+		wall2Csys.rot = chrono::Q_from_AngAxis(CH_C_PI/2.0, VECT_Y);
+		ChIrrTools::drawGrid(this->app->GetVideoDriver(),0.1,0.05,24,20, wall2Csys,
+			video::SColor(255,80,130,130),true);
+*/
+		// wall 3
+		ChCoordsys<> wall3Csys = this->mtester->wall3->GetBody()->GetCoord();
+		wall3Csys.pos.z += .05;
+		ChIrrTools::drawGrid(this->app->GetVideoDriver(),0.1,0.05,10,20, wall3Csys, 
+			video::SColor(255,80,130,130),true);
+
+		// wall 4
+		ChCoordsys<> wall4Csys = this->mtester->wall4->GetBody()->GetCoord();
+		wall4Csys.pos.z -= .05;
+		ChIrrTools::drawGrid(this->app->GetVideoDriver(),0.1,0.05,10,20, wall4Csys,
+			video::SColor(255,80,130,130),true);
+	}
+
+	// output any relevant test rig data here
+	void outputDisplay()
+	{
+
+
+	}
+
+
 	// helper functions, these are called in the time step loop
 	const double getCurrentPsize(){
 		return currParticleSize;
@@ -675,10 +823,11 @@ private:
 	TestMech* mtester;
 	ParticleGenerator* mgenerator;
 	// for check boxes
-	bool wheelLocked;	// id = 110
-	bool makeParticles; // 111
-	bool wheelCollision;// 112
-	bool applyTorque;	// 113
+	bool wheelLocked;	// id = 2110
+	bool makeParticles; // 2111
+	bool wheelCollision;// 2112
+	bool applyTorque;	// 2113
+	bool pVisible;	//	2114
 
 	// particle size, deviation
 	double particleSize0;		// initial
@@ -688,28 +837,45 @@ private:
 	double maxTorque;		// max torque applied to wheel
 	int nParticlesGenMax;	// max number of particles to generate
 	int currNparticlesGen;	// # of particles to generate this step
+	double currParticleFriction;	// coulomb friction coef, between 0-1
+	double avgDensity;		// input/average density for soil particles
 
-	// menu items
-	gui::IGUIContextMenu* menu;
-	gui::IGUICheckBox*	 checkbox_wheelLocked; // ic = 110
+	// menu items, checkboxes ids are: 2xxx
+//	gui::IGUIContextMenu* menu;
+	gui::IGUICheckBox*	 checkbox_wheelLocked; // ic = 2110
 	gui::IGUIStaticText* text_wheelLocked;
-	gui::IGUICheckBox*	checkbox_createParticles; // id = 111
+	gui::IGUICheckBox*	checkbox_createParticles; // id = 2111
 	gui::IGUIStaticText* text_createParticles;
-	gui::IGUICheckBox*	checkbox_wheelCollision;	// id = 112
+	gui::IGUICheckBox*	checkbox_wheelCollision;	// id = 2112
 	gui::IGUIStaticText* text_wheelCollision;
-	gui::IGUICheckBox*	checkbox_applyTorque;	// id = 113
+	gui::IGUICheckBox*	checkbox_applyTorque;	// id = 2113
 	gui::IGUIStaticText* text_applyTorque;
+	gui::IGUICheckBox*	checkbox_particlesVisible;	// id = 2114
+	gui::IGUIStaticText*	text_particlesVisible;
 
-
-	// scroll bars
-	IGUIScrollBar* scrollbar_pSize;	// particle size, id = 101
+	// scroll bars, ids are: 1xxx
+	IGUIScrollBar* scrollbar_pSize;	// particle size, id = 1101
 	IGUIStaticText* text_pSize;
-	IGUIScrollBar* scrollbar_pDev;	// deviation of mean particle size, id = 102
+	IGUIScrollBar* scrollbar_pDev;	// deviation of mean particle size, id = 1102
 	IGUIStaticText* text_pDev;	
-	IGUIScrollBar* scrollbar_torque; // torque applied to wheel, id = 103
+	IGUIScrollBar* scrollbar_torque; // torque applied to wheel, id = 1103
 	IGUIStaticText* text_torque;
-	IGUIScrollBar* scrollbar_nParticlesGen;	// particles to spawn, id = 104
+	IGUIScrollBar* scrollbar_nParticlesGen;	// particles to spawn, id = 1104
 	IGUIStaticText* text_nParticlesGen;
+	IGUIScrollBar* scrollbar_particleFriction;	// friction coefficient of particles, id = 1105
+	IGUIStaticText* text_particleFriction;
+	IGUIScrollBar*	scrollbar_particleDensity; 		// particle density, id = 1106
+	IGUIStaticText*	text_particleDensity;
+
+	// output tabs, and their text boxes
+	gui::IGUITabControl* gad_tabbed;
+	gui::IGUIStaticText* gad_text_wheelControls;
+	gui::IGUIStaticText* gad_text_pControls;
+	gui::IGUITab*		gad_tab_controls;
+	gui::IGUITab*		gad_tab_wheel;
+	gui::IGUIStaticText* gad_text_wheelState;	// panel for all wheel state output data
+	gui::IGUITab*		gad_tab_soil;
+	gui::IGUIStaticText* gad_text_soilState;	// panel for all soil state output data
 };
 
 int main(int argc, char* argv[])
@@ -723,19 +889,21 @@ int main(int argc, char* argv[])
 	ChSystem mphysicalSystem;
 
 	// ** user input
-	double wheelMass = 25.0;	// mass of wheel
-	double suspMass = 100.0;	// mass of suspended weight
+	double wheelMass = 5.0;	// mass of wheel
+	double suspMass = 10.0;	// mass of suspended weight
 
 	// Create the Irrlicht visualization (open the Irrlicht device, 
 	// bind a simple user interface, etc. etc.)
 	char header[150]; sprintf(header,"soil bin, mass wheel/weight = %g, %g ",wheelMass, suspMass);
-	ChIrrAppInterface application(&mphysicalSystem, core::stringw(header).c_str(),core::dimension2d<u32>(800,600),false);
+	ChIrrAppInterface application(&mphysicalSystem, core::stringw(header).c_str(),core::dimension2d<u32>(1024,768),false);
 
 
 	// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
 	ChIrrWizard::add_typical_Logo(application.GetDevice());
 	ChIrrWizard::add_typical_Sky(application.GetDevice());
-	ChIrrWizard::add_typical_Lights(application.GetDevice());
+	ChIrrWizard::add_typical_Lights(application.GetDevice(),
+		irr::core::vector3df(20.,30.,25.), irr::core::vector3df(25.,25.,-25.),
+		65.0, 75.);
 	ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(3.5f,2.5f,-2.4f));
 
 
@@ -751,19 +919,19 @@ int main(int argc, char* argv[])
 	ChVector<> wheelCMpos = ChVector<>(0,0.5,0);
 	ChVector<> wheelInertia = ChVector<>(1.0,1.0,1.0);
 	// Use Trelleborg tire
-//	SoilbinWheel* mwheel = new SoilbinWheel(application, wheelCMpos, wheelMass, wheelInertia);
+	SoilbinWheel* mwheel = new SoilbinWheel(application, wheelCMpos, wheelMass, wheelInertia);
 	// use cylinder tire
 	double wheel_width = 0.6;
 	double wheel_d_outer = 1.15;	// outer radius
 	double wheel_d_inner = 0.64;	// inner radius, only used for inertia calculation
-	SoilbinWheel* mwheel = new SoilbinWheel(application,	wheelCMpos, wheelMass,	wheel_width, wheel_d_outer, wheel_d_inner);
+//	SoilbinWheel* mwheel = new SoilbinWheel(application,	wheelCMpos, wheelMass,	wheel_width, wheel_d_outer, wheel_d_inner);
 
 	// ***** TESTING MECHANISM
 	// now, create the testing mechanism and attach the wheel to it
 	double binWidth = 1.0;
 	double binLen = 2.4;
 	TestMech* mTestMechanism = new TestMech( mwheel->wheel, application,
-		binWidth, binLen, suspMass);
+		binWidth, binLen, suspMass, 2500., 10.);
 	
 	// ***** PARTICLE GENERATOR
 	// make a particle generator, that the sceneManager can use to easily dump a bunch of dirt in the bin
@@ -772,15 +940,17 @@ int main(int argc, char* argv[])
 
 	
 	// ***** Create the User - GUI
-	MyEventReceiver receiver(&application, mwheel, mTestMechanism, mParticleGen );
+	double torqueMax = 50.;
+	MyEventReceiver receiver(&application, mwheel, mTestMechanism, mParticleGen, 0.02, 0.02, torqueMax);
 	 // add a custom event receiver to the default interface:
 	application.SetUserEventReceiver(&receiver);
 
 	//set some integrator settings
 	// mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_APGD);	// see if Toby's works
-	mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-	mphysicalSystem.SetIterLCPmaxItersSpeed(100);
-	mphysicalSystem.SetIterLCPmaxItersStab(5);
+	mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD);
+	mphysicalSystem.SetIterLCPmaxItersSpeed(70);
+	mphysicalSystem.SetIterLCPmaxItersStab(15);
+	mphysicalSystem.SetParallelThreadNumber(4);
 
 	// Use real-time step of the simulation, OR...
 	application.SetStepManage(true);
@@ -793,6 +963,9 @@ int main(int argc, char* argv[])
 		application.DrawAll();
 		// draw the custom links
 		receiver.drawSprings();
+		receiver.drawGrid();
+		// output relevant wheel data
+		receiver.outputDisplay();
 		// apply torque to the wheel
 		mTestMechanism->applyTorque();
 
