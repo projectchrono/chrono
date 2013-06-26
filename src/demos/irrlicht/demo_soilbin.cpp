@@ -640,20 +640,25 @@ public:
 		// create the tabs for the rig output: NOTE: GUI widget locations are all relative to the TabControl!
 		gad_tabbed = mapp->GetIGUIEnvironment()->addTabControl(core::rect<s32>(x0,y0,x0+255,y0+440), 0, true, true);
 		gad_tab_controls = gad_tabbed->addTab(L"Controls");	// static text will be printed w/ each checkbox or slider
-		gad_text_wheelControls = mapp->GetIGUIEnvironment()->addStaticText(L"Wheel Control", core::rect<s32>(10,10,205,150), true, true, gad_tab_controls);
+		gad_text_wheelControls = mapp->GetIGUIEnvironment()->addStaticText(L"Wheel Control",
+			core::rect<s32>(10,10,245,150), true, true, gad_tab_controls);
 		irr::s32 y1 = 165;	// box1 top left corner
-		gad_text_pControls = mapp->GetIGUIEnvironment()->addStaticText(L"Particle Control", core::rect<s32>(10,y1,205,y1+230), true, true, gad_tab_controls);
+		gad_text_pControls = mapp->GetIGUIEnvironment()->addStaticText(L"Particle Control",
+			core::rect<s32>(10,y1,245,y1+230), true, true, gad_tab_controls);
 		gad_tab_wheel = gad_tabbed->addTab(L"Wheel State");
-		gad_text_wheelState = mapp->GetIGUIEnvironment()->addStaticText(L"WS", core::rect<s32>(10,10,240,250), true, true, gad_tab_wheel);
+		gad_text_wheelState = mapp->GetIGUIEnvironment()->addStaticText(L"WS",
+			core::rect<s32>(10,10,290,250), true, true, gad_tab_wheel);
 		gad_tab_soil = gad_tabbed->addTab(L"Soil State");
-		gad_text_soilState = mapp->GetIGUIEnvironment()->addStaticText(L"SS", core::rect<s32>(10,10,240,250), true, true, gad_tab_soil);
+		gad_text_soilState = mapp->GetIGUIEnvironment()->addStaticText(L"SS", 
+			core::rect<s32>(10,10,290,250), true, true, gad_tab_soil);
 
 		// **** GUI CONTROLS ***
+		// -------- Wheel controls
 		// ..add a GUI for wheel position lock ( id = 2110 )
-		checkbox_wheelLocked = app->GetIGUIEnvironment()->addCheckBox(
-			wheelLocked, core::rect<s32>(20, 30, 35, 45), gad_tab_controls, 2110);
-		text_wheelLocked = app->GetIGUIEnvironment()->addStaticText(
-			L"Wheel Locked", core::rect<s32>(45,30, 125,45), false,false,gad_tab_controls);
+		checkbox_wheelLocked = app->GetIGUIEnvironment()->addCheckBox(wheelLocked,
+			core::rect<s32>(20, 30, 35, 45), gad_tab_controls, 2110);
+		text_wheelLocked = app->GetIGUIEnvironment()->addStaticText(L"Wheel Locked",
+			core::rect<s32>(45,30, 125,45), false,false,gad_tab_controls);
 		checkbox_wheelLocked->setVisible(true);
 		text_wheelLocked->setVisible(true);
 		this->mwheel->wheel->GetBody()->SetBodyFixed(wheelLocked);	// set IC of checkbox
@@ -661,24 +666,16 @@ public:
 		this->mtester->suspweight->GetBody()->SetBodyFixed(wheelLocked);
 
 		// turn wheel visibility on/off, ie = 2115
-		checkbox_wheelVisible = app->GetIGUIEnvironment()->addCheckBox(
-			wheelVisible, core::rect<s32>(150, 30, 165, 45), gad_tab_controls,2115);
-		text_wheelVisible = app->GetIGUIEnvironment()->addStaticText(
-			L"visible?", core::rect<s32>(175, 30, 275, 45),false,false,gad_tab_controls);
-
-		// add a GUI for turning particle creation on/off ( id = 2111 )
-		checkbox_createParticles = app->GetIGUIEnvironment()->addCheckBox(
-			makeParticles, core::rect<s32>(20, y1+20, 35, y1+35), gad_tab_controls, 2111);
-		text_createParticles = app->GetIGUIEnvironment()->addStaticText(
-			L"create Particles? ", core::rect<s32>(45,y1+20,165,y1+35), false,false,gad_tab_controls);
-		checkbox_createParticles->setVisible(true);
-		text_createParticles->setVisible(true);
+		checkbox_wheelVisible = app->GetIGUIEnvironment()->addCheckBox(wheelVisible,
+			core::rect<s32>(180, 30, 195, 45), gad_tab_controls,2115);
+		text_wheelVisible = app->GetIGUIEnvironment()->addStaticText(L"visible?",
+			core::rect<s32>(205, 30, 290, 45),false,false,gad_tab_controls);
 
 		// add a GUI for setting the wheel collision ( id = 2112 )
-		checkbox_wheelCollision = app->GetIGUIEnvironment()->addCheckBox(
-			wheelCollision, core::rect<s32>(20, 60, 35, 75), gad_tab_controls, 2112);
-		text_wheelCollision = app->GetIGUIEnvironment()->addStaticText(
-			L"Wheel collide? ", core::rect<s32>(45,60,125,75), false,false,gad_tab_controls);
+		checkbox_wheelCollision = app->GetIGUIEnvironment()->addCheckBox(wheelCollision,
+			core::rect<s32>(20, 60, 35, 75), gad_tab_controls, 2112);
+		text_wheelCollision = app->GetIGUIEnvironment()->addStaticText(L"Wheel collide? ",
+			core::rect<s32>(45,60,125,75), false,false,gad_tab_controls);
 		checkbox_wheelCollision->setVisible(true);
 		text_wheelCollision->setVisible(true);
 		this->mwheel->wheel->GetBody()->SetCollide(wheelCollision);	// set IC of checkbox
@@ -686,95 +683,110 @@ public:
 		// ..add a GUI for turning torque on/off ( id = 2113 )
 		checkbox_applyTorque = app->GetIGUIEnvironment()->addCheckBox(
 			applyTorque, core::rect<s32>(20, 90, 35, 105), gad_tab_controls, 2113);
-		text_applyTorque = app->GetIGUIEnvironment()->addStaticText(
-			L"Apply Torque?", core::rect<s32>(45,90,125,105), false,false,gad_tab_controls);
+		text_applyTorque = app->GetIGUIEnvironment()->addStaticText(L"Apply Torque?",
+			core::rect<s32>(45,90,125,105), false,false,gad_tab_controls);
 		checkbox_applyTorque->setVisible(true);
 		text_applyTorque->setVisible(true);
 		this->mtester->isTorqueApplied = false;	// set IC of checkbox
 
+		// torque slider	(id = 1103)
+		scrollbar_torque = mapp->GetIGUIEnvironment()->addScrollBar(true, 
+			rect<s32>(20, 115, 150, 130), gad_tab_controls, 1103);
+		scrollbar_torque->setMax(100);
+		scrollbar_torque->setPos(50);
+		text_torque = mapp->GetIGUIEnvironment()->addStaticText(L"Torque[N/m]: 0 ",
+			rect<s32>(160, 115, 300,130), false,false,gad_tab_controls);
+		this->mtester->currTorque = 0;	// set the IC of this slider
+
+		// -------- Particle Controls
+		// add a GUI for turning particle creation on/off ( id = 2111 )
+		checkbox_createParticles = app->GetIGUIEnvironment()->addCheckBox(makeParticles, 
+			core::rect<s32>(20, y1+20, 35, y1+35), gad_tab_controls, 2111);
+		text_createParticles = app->GetIGUIEnvironment()->addStaticText(L"create Particles? ", 
+			core::rect<s32>(45,y1+20,165,y1+35), false,false,gad_tab_controls);
+		checkbox_createParticles->setVisible(true);
+		text_createParticles->setVisible(true);
+
 		// add a checkbox to make particle visibility turn on/off, id = 2114
-		checkbox_particlesVisible = app->GetIGUIEnvironment()->addCheckBox(
-			pVisible, core::rect<s32>(180,y1+20,195,y1+35),gad_tab_controls, 2114);
-		text_particlesVisible = app->GetIGUIEnvironment()->addStaticText(
-			L"visible?", core::rect<s32>(205,y1+20,290,y1+35),false,false,gad_tab_controls);
+		checkbox_particlesVisible = app->GetIGUIEnvironment()->addCheckBox(pVisible, 
+			core::rect<s32>(180,y1+20,195,y1+35),gad_tab_controls, 2114);
+		text_particlesVisible = app->GetIGUIEnvironment()->addStaticText( L"visible?", 
+			core::rect<s32>(205,y1+20,290,y1+35),false,false,gad_tab_controls);
 
 		// create sliders to modify particle size/dev ( id = 1101)
-		scrollbar_pSize = mapp->GetIGUIEnvironment()->addScrollBar( true, rect<s32>(20, y1+50, 150, y1+65), gad_tab_controls, 1101);
+		scrollbar_pSize = mapp->GetIGUIEnvironment()->addScrollBar( true, 
+			rect<s32>(20, y1+50, 150, y1+65), gad_tab_controls, 1101);
 		scrollbar_pSize->setMax(100); 
 		scrollbar_pSize->setPos(50);
 		char message[50]; sprintf(message,"p rad [m]: %g",particleSize0);
-		text_pSize = mapp->GetIGUIEnvironment()->addStaticText(
-			core::stringw(message).c_str(), rect<s32>(160,y1+50,300,y1+65), false,false,gad_tab_controls);
+		text_pSize = mapp->GetIGUIEnvironment()->addStaticText( core::stringw(message).c_str(), 
+			rect<s32>(160,y1+50,300,y1+65), false,false,gad_tab_controls);
 		this->currParticleSize = particleSize0;	// set the IC
 
 		// particle rad Deviation slider	(id = 1102)
-		scrollbar_pDev = mapp->GetIGUIEnvironment()->addScrollBar(true, rect<s32>(20, y1+80, 150, y1+95), gad_tab_controls, 1102);
+		scrollbar_pDev = mapp->GetIGUIEnvironment()->addScrollBar(true, 
+			rect<s32>(20, y1+80, 150, y1+95), gad_tab_controls, 1102);
 		scrollbar_pDev->setMax(100); 
 		scrollbar_pDev->setPos(50);
 		char message1[50]; sprintf(message1,"p dev.[m]: %g",particleDev0);
-		text_pDev = mapp->GetIGUIEnvironment()->addStaticText(
-			core::stringw(message1).c_str(), rect<s32>(160,y1+80,300,y1+95), false,false,gad_tab_controls);
+		text_pDev = mapp->GetIGUIEnvironment()->addStaticText(core::stringw(message1).c_str(),
+			rect<s32>(160,y1+80,300,y1+95), false,false,gad_tab_controls);
 		this->currParticleDev = particleDev0;	// set the IC for the slider
 
-		// torque slider	(id = 1103)
-		scrollbar_torque = mapp->GetIGUIEnvironment()->addScrollBar(true, rect<s32>(20, y1+110, 150, y1+125), gad_tab_controls, 1103);
-		scrollbar_torque->setMax(100);
-		scrollbar_torque->setPos(50);
-		text_torque = mapp->GetIGUIEnvironment()->addStaticText(
-			L"Torque[N/m]: 0 ", rect<s32>(160, y1+110, 300,y1+125), false,false,gad_tab_controls);
-		this->mtester->currTorque = 0;	// set the IC of this slider
-
 		// nParticlesGen slider ( id = 1104)
-		scrollbar_nParticlesGen = mapp->GetIGUIEnvironment()->addScrollBar(true, rect<s32>(20, y1+140, 150, y1+155), gad_tab_controls, 1104);
+		scrollbar_nParticlesGen = mapp->GetIGUIEnvironment()->addScrollBar(true, 
+			rect<s32>(20, y1+110, 150, y1+125), gad_tab_controls, 1104);
 		scrollbar_nParticlesGen->setMax(100);
 		scrollbar_nParticlesGen->setPos(50);
 		this->currNparticlesGen = nParticlesGenMax/2;	// IC of this slider
 		char message2[50]; sprintf(message2,"# p Gen: %d",this->currNparticlesGen);
-		text_nParticlesGen = mapp->GetIGUIEnvironment()->addStaticText(
-			core::stringw(message2).c_str(), rect<s32>(160, y1+140, 300,y1+155), false,false,gad_tab_controls);
+		text_nParticlesGen = mapp->GetIGUIEnvironment()->addStaticText(core::stringw(message2).c_str(),
+			rect<s32>(160, y1+110, 300,y1+125), false,false,gad_tab_controls);
 
 		// friction coefficient of particles, id = 1105
-		scrollbar_particleFriction = mapp->GetIGUIEnvironment()->addScrollBar(true, rect<s32>(20, y1+170, 150, y1+185), gad_tab_controls, 1105);
+		scrollbar_particleFriction = mapp->GetIGUIEnvironment()->addScrollBar(true,
+			rect<s32>(20, y1+140, 150, y1+155), gad_tab_controls, 1105);
 		scrollbar_particleFriction->setMax(100);
 		scrollbar_particleFriction->setPos(33);
 		this->currParticleFriction = 0.33;
 		char message3[50]; sprintf(message3,"mu: %g", this->currParticleFriction);
-		text_particleFriction = mapp->GetIGUIEnvironment()->addStaticText(
-			core::stringw(message3).c_str(), rect<s32>(160, y1+170, 300,y1+185), false,false,gad_tab_controls);
+		text_particleFriction = mapp->GetIGUIEnvironment()->addStaticText(core::stringw(message3).c_str(), 
+			rect<s32>(160, y1+140, 300,y1+155), false,false,gad_tab_controls);
 
 		// particle density, id = 1106
-		scrollbar_particleDensity = mapp->GetIGUIEnvironment()->addScrollBar(true, rect<s32>(20, y1+200, 150, y1+215), gad_tab_controls, 1106);
+		scrollbar_particleDensity = mapp->GetIGUIEnvironment()->addScrollBar(true, 
+			rect<s32>(20, y1+170, 150, y1+185), gad_tab_controls, 1106);
 		scrollbar_particleDensity->setMax(100);
 		scrollbar_particleDensity->setPos(50);
 		this->avgDensity = this->mgenerator->getSphDensity();
 		char message4[50]; sprintf(message4,"rho [kg/m3]: %g", this->avgDensity);
-		text_particleDensity = mapp->GetIGUIEnvironment()->addStaticText(
-			core::stringw(message4).c_str(), rect<s32>(160, y1+200, 300,y1+215),false,false,gad_tab_controls);
+		text_particleDensity = mapp->GetIGUIEnvironment()->addStaticText(core::stringw(message4).c_str(),
+			rect<s32>(160, y1+170, 300,y1+185),false,false,gad_tab_controls);
 
 		// ******* GUI WHEEL STATE
 		// Data I care about:
 		// wheel CM pos
 		ChVector<> cm = mwheel->wheel->GetBody()->GetPos();
 		char message5[100]; sprintf(message5,"CM pos, x: %4.4g, y: %4.4g, z: %4.4g",cm.x,cm.y,cm.z);
-		text_cmPos = mapp->GetIGUIEnvironment()->addStaticText(
-			core::stringw(message5).c_str(), rect<s32>(10,30,280,45),false,false,gad_tab_wheel);
+		text_cmPos = mapp->GetIGUIEnvironment()->addStaticText(core::stringw(message5).c_str(),
+			rect<s32>(10,30,280,45),false,false,gad_tab_wheel);
 		// wheel CM vel
 		ChVector<> cmVel = mwheel->wheel->GetBody()->GetPos_dt();
 		char messageV[100]; sprintf(messageV,"CM vel, x: %4.4g, y: %4.4g, z: %4.4g",cmVel.x,cmVel.y,cmVel.z);
-		text_cmVel = mapp->GetIGUIEnvironment()->addStaticText(
-			core::stringw(message5).c_str(), rect<s32>(10,60,280,75),false,false,gad_tab_wheel);
+		text_cmVel = mapp->GetIGUIEnvironment()->addStaticText(core::stringw(message5).c_str(),
+			rect<s32>(10,60,280,75),false,false,gad_tab_wheel);
 		// rxn. forces on spindle
 // TODO: figure out how to get joint reaction forces
 //		ChVector<> rxnF = ChVector<>(mtester->spindle->force_X->getiforce(), mtester->spindle->force_Y->getiforce(), mtester->spindle->force_Z->getiforce() );
 		ChVector<> rxnF = ChVector<>(1,2,3);
 		char messageF[100]; sprintf(messageF,"spindle Rxn. F, x: %4.3g, y: %4.3g, z: %4.3g",rxnF.x,rxnF.y,rxnF.z);
-		text_cmVel = mapp->GetIGUIEnvironment()->addStaticText(
-			core::stringw(message5).c_str(), rect<s32>(10,90,280,105),false,false,gad_tab_wheel);		// rxn. torques on spindle
+		text_cmVel = mapp->GetIGUIEnvironment()->addStaticText(core::stringw(message5).c_str(),
+			rect<s32>(10,90,280,105),false,false,gad_tab_wheel);		// rxn. torques on spindle
 //		ChVector<> rxnT = ChVector<>(mtester->spindle);
 		ChVector<> rxnT = ChVector<>(4,5,6);
 		char messageT[100]; sprintf(messageT,"spindle Rxn. T, x: %4.3g, y: %4.3g, z: %4.3g", rxnT.x, rxnT.y, rxnT.z);
-		text_spindleTorque = mapp->GetIGUIEnvironment()->addStaticText(
-			core::stringw(messageT).c_str(), rect<s32>(10,120, 280, 135),false,false,gad_tab_wheel);
+		text_spindleTorque = mapp->GetIGUIEnvironment()->addStaticText(core::stringw(messageT).c_str(),
+			rect<s32>(10,120, 280, 135),false,false,gad_tab_wheel);
 		// ******* GUI PARTICLE STATE
 
 		// Data I care about:
@@ -786,12 +798,12 @@ public:
 		std::vector<double> particleStats = this->mgenerator->getStatistics();
 
 		char messageRad[100]; sprintf(messageRad,"p Rad mean, std. dev: %4.4g, %4.4g",particleStats[0],particleStats[1]);
-		text_pRad = mapp->GetIGUIEnvironment()->addStaticText(
-			core::stringw(messageRad).c_str(), rect<s32>(10,30, 280, 45),false,false,gad_tab_soil);
+		text_pRad = mapp->GetIGUIEnvironment()->addStaticText(core::stringw(messageRad).c_str(),
+			rect<s32>(10,30, 280, 45),false,false,gad_tab_soil);
 		char messageMass[100]; sprintf(messageMass,"p mass mean, std. dev: %4.4g, %4.4g",
 			particleStats[6],particleStats[7]);
-		text_pMass = mapp->GetIGUIEnvironment()->addStaticText(
-			core::stringw(messageMass).c_str(), rect<s32>(10,60, 280, 75),false,false,gad_tab_soil);
+		text_pMass = mapp->GetIGUIEnvironment()->addStaticText(core::stringw(messageMass).c_str(),
+			rect<s32>(10,60, 280, 75),false,false,gad_tab_soil);
 	}
 
 	bool OnEvent(const SEvent& event)
