@@ -49,6 +49,15 @@ public:
 		this->totalParticleMass = 0.0;
 		this->particleParent =  msceneManager->addEmptySceneNode();
 		this->mu = mu;
+
+		// keep track of some statistics
+		this->pRadMean = 0.0;
+		this->pRadStdDev = 0.0;
+		this->pRad_s1 = 0.0;
+		this->pRad_s2 = 0.0;
+		this->pMass_s2 = 0.0;
+		this->pMassMean = 0.0;
+		this->pMassStdDev = 0.0;
 	}
 
 	~ParticleGenerator() {
@@ -161,6 +170,10 @@ public:
 				currRigidBody->setMaterialTexture(0,	rockMap);
 				// every time we add a body, increment the counter and mass
 				this->totalParticleMass += sphmass;
+				this->pMass_s2 += sphmass*sphmass;
+				this->pRad_s1 += sphrad;
+				this->pRad_s2 += sphrad*sphrad;
+
 			} 
 
 			// create the boxes
@@ -195,15 +208,41 @@ public:
 				currRigidBody->setMaterialTexture(0, cubeMap);
 				this->totalParticles++;
 				this->totalParticleMass += boxmass;
+				this->pMass_s2 += boxmass*boxmass;
 
 			}
 
+
+			// update the statistics
+			this->pRadMean = pRad_s1 / (double)totalParticles;
+			this->pRadStdDev = sqrt( (double)totalParticles*pRad_s2 - pRad_s1*pRad_s1) / (double)totalParticles;
+			this->pMassMean = this->totalParticleMass / (double)totalParticles;
+			this->pMassStdDev = sqrt( (double)totalParticles*pMass_s2 - totalParticleMass*totalParticleMass) / (double)totalParticles;
 			return true;	// created particles this step
 		}
 		else 
 			return false;	// did not create particles this time step
 
 	} 
+
+	// output in the same order as in class list
+	std::vector<double> getStatistics()
+	{
+		int nStats = 9;
+		std::vector<double> out;
+		out.resize(9);
+		out[0] = pRadMean;
+		out[1] = pRadStdDev;
+		out[2] = pRad_s1;
+		out[3] = pRad_s2;
+		out[4] = totalParticleMass;
+		out[5] = pMass_s2;
+		out[6] = pMassMean;
+		out[7] = pMassStdDev;
+
+		return out;
+	}
+
 private:
 	ChSystem* msys;
 	ISceneManager* mscene;
@@ -220,6 +259,16 @@ private:
 	double sphDens;
 	double boxDens;
 	double mu;	// friction coef
+
+	// for statistics
+	double pRadMean;
+	double pRadStdDev;	// running std. dev. of particle rad
+	double pRad_s1;	// running sum of radius
+	double pRad_s2;	// running square of radius
+	// double pMass_s1 = totalParticleMass
+	double pMass_s2;	// running square of mass
+	double pMassMean;
+	double pMassStdDev;	// running std. dev. of mass
 };
 
 
@@ -301,6 +350,12 @@ public:
 		wheel->setMaterialTexture(0, cylinderMap);
 	}
 
+	// toggle wheel visibility
+	void toggleVisibility(bool isVisible)
+	{
+		this->wheel->setVisible(isVisible);
+	}
+
 	~SoilbinWheel() {
 		// ChSystem* msys = wheel->GetBody()->GetSystem();
 		// remove the bodies, joints
@@ -326,6 +381,8 @@ public:
 	ChBodySceneNode* wall4;
 	ChSharedPtr<ChLinkSpring> spring;
 	ChSharedPtr<ChLinkEngine> torqueDriver;
+	ChSharedPtr<ChLinkLockRevolute> spindle;
+
 	// GUI-tweaked data
 	bool isTorqueApplied;
 	double currTorque;
@@ -413,7 +470,7 @@ public:
 		// truss shouldn't be used for Collisions
 		truss->GetBody()->SetCollide(false);
 		// create the revolute joint between the wheel and spindle
-		ChSharedPtr<ChLinkLockRevolute> spindle(new ChLinkLockRevolute);
+		spindle = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
 		spindle->Initialize(truss->GetBody(), wheelBody->GetBody(), 
 			ChCoordsys<>(trussCM, chrono::Q_from_AngAxis(CH_C_PI/2, VECT_Y)) );
 		mapp.GetSystem()->AddLink(spindle);
@@ -487,10 +544,68 @@ public:
 
 };
 
+
+// Differently from friction, that has always a default value that 
+// is computed as the average of two friction values of the two rigid 
+// bodies, the 'cohesion' has no body-specific setting (at least in 
+// this Chrono::Engine release) so it is always zero by default. 
+// Therefore it is up to the user to set it when each contact is created, 
+// by instancing a callback as in the following example:
+
+class MyContactCallback : public ChSystem::ChCustomCollisionPointCallback
+{
+	public:	virtual void ContactCallback(
+							const collision::ChCollisionInfo& mcontactinfo, ///< get info about contact (cannot change it)				
+							ChMaterialCouple&  material,
+							double friction0 = 0.3,
+							double compliance0 = 0.0,
+							double cohesion0 = 0.0,
+							double dampingf0 = 0.1)			  		///< you can modify this!	
+	{
+		// set the ICs
+		this->friction = friction0;
+		this->compliance = compliance0;
+		this->cohesion = cohesion0;
+		this->dampingf = dampingf0;
+		// Set friction according to user setting:
+		material.static_friction = this->friction;
+		// Set compliance (normal and tangential at once)
+		material.compliance  =  this->compliance;
+		material.complianceT = this->compliance;
+		material.dampingf	 =  this->dampingf;
+
+		// Set cohesion according to user setting:
+		// Note that we must scale the cohesion force value by time step, because 
+		// the material 'cohesion' value has the dimension of an impulse.
+		double my_cohesion_force =  cohesion;
+		material.cohesion = msystem->GetStep() * my_cohesion_force; //<- all contacts will have this cohesion!
+
+		if (mcontactinfo.distance>0.12)
+			material.cohesion = 0;
+		// Note that here you might decide to modify the cohesion 
+		// depending on object sizes, type, time, position, etc. etc.
+		// For example, after some time disable cohesion at all, just
+		// add here:  
+		//    if (msystem->GetChTime() > 10) material.cohesion = 0;
+	};
+
+	ChSystem* msystem;
+	// this will be modified by the user
+	double friction;
+	double cohesion;
+	double compliance;
+	double dampingf;
+
+};
      
 class MyEventReceiver : public IEventReceiver
 {
 public:
+	// keep the tabs public
+	gui::IGUITabControl* gad_tabbed;
+	gui::IGUITab*		gad_tab_controls;
+	gui::IGUITab*		gad_tab_wheel;
+	gui::IGUITab*		gad_tab_soil;
 
 	// @param pSize particle radius
 	// @param pDev multiplier added to ChRandom()
@@ -507,9 +622,12 @@ public:
 		this->mgenerator = particleGenerator;
 		// initial checkbox values
 		this->wheelLocked = true;
-//		trussLocked = true;
-		this->wheelCollision = false;
 		this->makeParticles = false;
+		this->applyTorque = false;
+		this->wheelCollision = false;
+		this->pVisible = true;
+		this->wheelVisible = true;
+
 		// initial values for the sliders
 		this->particleSize0 = pSize;
 		this->particleDev0 = pDev;
@@ -522,9 +640,9 @@ public:
 		// create the tabs for the rig output: NOTE: GUI widget locations are all relative to the TabControl!
 		gad_tabbed = mapp->GetIGUIEnvironment()->addTabControl(core::rect<s32>(x0,y0,x0+255,y0+440), 0, true, true);
 		gad_tab_controls = gad_tabbed->addTab(L"Controls");	// static text will be printed w/ each checkbox or slider
-		gad_text_wheelControls = mapp->GetIGUIEnvironment()->addStaticText(L"Wheel Control", core::rect<s32>(10,10,245,150), true, true, gad_tab_controls);
+		gad_text_wheelControls = mapp->GetIGUIEnvironment()->addStaticText(L"Wheel Control", core::rect<s32>(10,10,205,150), true, true, gad_tab_controls);
 		irr::s32 y1 = 165;	// box1 top left corner
-		gad_text_pControls = mapp->GetIGUIEnvironment()->addStaticText(L"Particle Control", core::rect<s32>(10,y1,245,y1+230), true, true, gad_tab_controls);
+		gad_text_pControls = mapp->GetIGUIEnvironment()->addStaticText(L"Particle Control", core::rect<s32>(10,y1,205,y1+230), true, true, gad_tab_controls);
 		gad_tab_wheel = gad_tabbed->addTab(L"Wheel State");
 		gad_text_wheelState = mapp->GetIGUIEnvironment()->addStaticText(L"WS", core::rect<s32>(10,10,240,250), true, true, gad_tab_wheel);
 		gad_tab_soil = gad_tabbed->addTab(L"Soil State");
@@ -541,6 +659,12 @@ public:
 		this->mwheel->wheel->GetBody()->SetBodyFixed(wheelLocked);	// set IC of checkbox
 		this->mtester->truss->GetBody()->SetBodyFixed(wheelLocked);
 		this->mtester->suspweight->GetBody()->SetBodyFixed(wheelLocked);
+
+		// turn wheel visibility on/off, ie = 2115
+		checkbox_wheelVisible = app->GetIGUIEnvironment()->addCheckBox(
+			wheelVisible, core::rect<s32>(150, 30, 165, 45), gad_tab_controls,2115);
+		text_wheelVisible = app->GetIGUIEnvironment()->addStaticText(
+			L"visible?", core::rect<s32>(175, 30, 275, 45),false,false,gad_tab_controls);
 
 		// add a GUI for turning particle creation on/off ( id = 2111 )
 		checkbox_createParticles = app->GetIGUIEnvironment()->addCheckBox(
@@ -627,6 +751,47 @@ public:
 		text_particleDensity = mapp->GetIGUIEnvironment()->addStaticText(
 			core::stringw(message4).c_str(), rect<s32>(160, y1+200, 300,y1+215),false,false,gad_tab_controls);
 
+		// ******* GUI WHEEL STATE
+		// Data I care about:
+		// wheel CM pos
+		ChVector<> cm = mwheel->wheel->GetBody()->GetPos();
+		char message5[100]; sprintf(message5,"CM pos, x: %4.4g, y: %4.4g, z: %4.4g",cm.x,cm.y,cm.z);
+		text_cmPos = mapp->GetIGUIEnvironment()->addStaticText(
+			core::stringw(message5).c_str(), rect<s32>(10,30,280,45),false,false,gad_tab_wheel);
+		// wheel CM vel
+		ChVector<> cmVel = mwheel->wheel->GetBody()->GetPos_dt();
+		char messageV[100]; sprintf(messageV,"CM vel, x: %4.4g, y: %4.4g, z: %4.4g",cmVel.x,cmVel.y,cmVel.z);
+		text_cmVel = mapp->GetIGUIEnvironment()->addStaticText(
+			core::stringw(message5).c_str(), rect<s32>(10,60,280,75),false,false,gad_tab_wheel);
+		// rxn. forces on spindle
+// TODO: figure out how to get joint reaction forces
+//		ChVector<> rxnF = ChVector<>(mtester->spindle->force_X->getiforce(), mtester->spindle->force_Y->getiforce(), mtester->spindle->force_Z->getiforce() );
+		ChVector<> rxnF = ChVector<>(1,2,3);
+		char messageF[100]; sprintf(messageF,"spindle Rxn. F, x: %4.3g, y: %4.3g, z: %4.3g",rxnF.x,rxnF.y,rxnF.z);
+		text_cmVel = mapp->GetIGUIEnvironment()->addStaticText(
+			core::stringw(message5).c_str(), rect<s32>(10,90,280,105),false,false,gad_tab_wheel);		// rxn. torques on spindle
+//		ChVector<> rxnT = ChVector<>(mtester->spindle);
+		ChVector<> rxnT = ChVector<>(4,5,6);
+		char messageT[100]; sprintf(messageT,"spindle Rxn. T, x: %4.3g, y: %4.3g, z: %4.3g", rxnT.x, rxnT.y, rxnT.z);
+		text_spindleTorque = mapp->GetIGUIEnvironment()->addStaticText(
+			core::stringw(messageT).c_str(), rect<s32>(10,120, 280, 135),false,false,gad_tab_wheel);
+		// ******* GUI PARTICLE STATE
+
+		// Data I care about:
+		//	average particle size: pRadMean
+		//	running/continuous std. dev	:  pRadStdDev
+		// total particle mass:	totalParticleMass
+		// average particle mass: pMassMean
+		// running/continuous std. dev of mass: pMassStdDev 
+		std::vector<double> particleStats = this->mgenerator->getStatistics();
+
+		char messageRad[100]; sprintf(messageRad,"p Rad mean, std. dev: %4.4g, %4.4g",particleStats[0],particleStats[1]);
+		text_pRad = mapp->GetIGUIEnvironment()->addStaticText(
+			core::stringw(messageRad).c_str(), rect<s32>(10,30, 280, 45),false,false,gad_tab_soil);
+		char messageMass[100]; sprintf(messageMass,"p mass mean, std. dev: %4.4g, %4.4g",
+			particleStats[6],particleStats[7]);
+		text_pMass = mapp->GetIGUIEnvironment()->addStaticText(
+			core::stringw(messageMass).c_str(), rect<s32>(10,60, 280, 75),false,false,gad_tab_soil);
 	}
 
 	bool OnEvent(const SEvent& event)
@@ -735,6 +900,13 @@ public:
 					// turn off the particle visibility
 					this->mgenerator->toggleVisibility(pVisible);
 				}
+				if( id == 2115 )
+				{
+					wheelVisible = checkbox_wheelVisible->isChecked();
+					GetLog() << checkbox_wheelVisible->isChecked() << "\n";
+					// turn wheel visibility on/off
+					this->mwheel->toggleVisibility(wheelVisible);
+				}
 			break;
 			
 			}
@@ -791,12 +963,35 @@ public:
 	}
 
 	// output any relevant test rig data here
-	void outputDisplay()
+	void drawWheelOutput()
 	{
-
-
+		ChVector<> cm = mwheel->wheel->GetBody()->GetPos();
+		char messageCM[100]; sprintf(messageCM,"CM pos, x: %4.4g, y: %4.4g, z: %4.4g",cm.x,cm.y,cm.z);
+		text_cmPos->setText(core::stringw(messageCM).c_str());
+		// wheel CM vel
+		ChVector<> cmVel = mwheel->wheel->GetBody()->GetPos_dt();
+		char messageV[100]; sprintf(messageV,"CM vel, x: %4.4g, y: %4.4g, z: %4.4g",cmVel.x,cmVel.y,cmVel.z);
+		text_cmVel->setText( core::stringw(messageV).c_str() );
+		// rxn. forces on spindle
+//		ChVector<> rxnF = ChVector<>(mtester->spindle->force_X->getiforce(), mtester->spindle->force_Y->getiforce(), mtester->spindle->force_Z->getiforce() );
+		ChVector<> rxnF = ChVector<>(1,2,3);
+		char messageF[100]; sprintf(messageF,"spindle Rxn. F, x: %4.3g, y: %4.3g, z: %4.3g",rxnF.x,rxnF.y,rxnF.z);
+		text_cmVel->setText( core::stringw(messageF).c_str() );
+		// rxn. torques on spindle
+		ChVector<> rxnT = ChVector<>(5,6,7);
+		char messageT[100];
 	}
 
+	void drawSoilOutput()
+	{
+		std::vector<double> particleStats = this->mgenerator->getStatistics();
+		char messageRad[100]; sprintf(messageRad,"p Rad mean, std. dev: %4.4g, %4.4g",particleStats[0],particleStats[1]);
+		text_pRad->setText( core::stringw(messageRad).c_str() );
+
+		char messageMass[100]; sprintf(messageMass,"p mass mean, std. dev: %4.4g, %4.4g",
+			particleStats[6],particleStats[7]);
+		text_pMass->setText( core::stringw(messageMass).c_str() );
+	}
 
 	// helper functions, these are called in the time step loop
 	const double getCurrentPsize(){
@@ -822,12 +1017,14 @@ private:
 	SoilbinWheel* mwheel;
 	TestMech* mtester;
 	ParticleGenerator* mgenerator;
+	MyContactCallback* mcallback;
 	// for check boxes
 	bool wheelLocked;	// id = 2110
 	bool makeParticles; // 2111
 	bool wheelCollision;// 2112
 	bool applyTorque;	// 2113
 	bool pVisible;	//	2114
+	bool wheelVisible;	// 2115
 
 	// particle size, deviation
 	double particleSize0;		// initial
@@ -852,6 +1049,8 @@ private:
 	gui::IGUIStaticText* text_applyTorque;
 	gui::IGUICheckBox*	checkbox_particlesVisible;	// id = 2114
 	gui::IGUIStaticText*	text_particlesVisible;
+	gui::IGUICheckBox*		checkbox_wheelVisible;	// id = 2115
+	gui::IGUIStaticText*	text_wheelVisible;
 
 	// scroll bars, ids are: 1xxx
 	IGUIScrollBar* scrollbar_pSize;	// particle size, id = 1101
@@ -868,14 +1067,19 @@ private:
 	IGUIStaticText*	text_particleDensity;
 
 	// output tabs, and their text boxes
-	gui::IGUITabControl* gad_tabbed;
+
 	gui::IGUIStaticText* gad_text_wheelControls;
 	gui::IGUIStaticText* gad_text_pControls;
-	gui::IGUITab*		gad_tab_controls;
-	gui::IGUITab*		gad_tab_wheel;
+
 	gui::IGUIStaticText* gad_text_wheelState;	// panel for all wheel state output data
-	gui::IGUITab*		gad_tab_soil;
+	gui::IGUIStaticText* text_cmPos;
+	gui::IGUIStaticText* text_cmVel;
+	gui::IGUIStaticText* text_spindleForces;	// spindle reaction forces, torques
+	gui::IGUIStaticText* text_spindleTorque;
+
 	gui::IGUIStaticText* gad_text_soilState;	// panel for all soil state output data
+	gui::IGUIStaticText* text_pRad;
+	gui::IGUIStaticText* text_pMass;
 };
 
 int main(int argc, char* argv[])
@@ -964,8 +1168,12 @@ int main(int argc, char* argv[])
 		// draw the custom links
 		receiver.drawSprings();
 		receiver.drawGrid();
-		// output relevant wheel data
-		receiver.outputDisplay();
+		// output relevant soil, wheel data if the tab is selected
+		if( receiver.gad_tab_soil->isVisible() )
+			receiver.drawSoilOutput();
+		if( receiver.gad_tab_wheel->isVisible() )
+			receiver.drawWheelOutput();
+		receiver.drawWheelOutput();
 		// apply torque to the wheel
 		mTestMechanism->applyTorque();
 
