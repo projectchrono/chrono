@@ -611,19 +611,20 @@ public:
 	// @param pDev multiplier added to ChRandom()
 	// @param maxTorque max slider torque applied to wheel
 	// @param maxParticles max number of particles to generate each spawning event
-	MyEventReceiver(ChIrrAppInterface* mapp, SoilbinWheel* wheel, TestMech* tester, ParticleGenerator* particleGenerator,
-		double pSize = 0.02, double pDev = 0.02, double maxTorque = 100.0, double maxParticles = 50)
+	MyEventReceiver(ChIrrAppInterface* app, SoilbinWheel* wheel, TestMech* tester, ParticleGenerator* particleGenerator,
+		double pSize = 0.02, double pDev = 0.02, double maxTorque = 100.0, int maxParticles = 50)
 	{
 		// store pointer to physical system & other stuff so we can tweak them by user keyboard
-		this->app = mapp;
+		this->mapp = app;
 		// any rigid bodies that have their states modified by the GUI need to go here
 		this->mwheel = wheel;
 		this->mtester = tester;
 		this->mgenerator = particleGenerator;
+		// for getting output from the TM_Module module
 		// initial checkbox values
 		this->wheelLocked = true;
 		this->makeParticles = false;
-		this->applyTorque = false;
+//		this->applyTorque = false;
 		this->wheelCollision = false;
 		this->pVisible = true;
 		this->wheelVisible = true;
@@ -679,7 +680,7 @@ public:
 		checkbox_wheelCollision->setVisible(true);
 		text_wheelCollision->setVisible(true);
 		this->mwheel->wheel->GetBody()->SetCollide(wheelCollision);	// set IC of checkbox
-
+/*
 		// ..add a GUI for turning torque on/off ( id = 2113 )
 		checkbox_applyTorque = app->GetIGUIEnvironment()->addCheckBox(
 			applyTorque, core::rect<s32>(20, 90, 35, 105), gad_tab_controls, 2113);
@@ -688,7 +689,7 @@ public:
 		checkbox_applyTorque->setVisible(true);
 		text_applyTorque->setVisible(true);
 		this->mtester->isTorqueApplied = false;	// set IC of checkbox
-
+*/
 		// torque slider	(id = 1103)
 		scrollbar_torque = mapp->GetIGUIEnvironment()->addScrollBar(true, 
 			rect<s32>(20, 115, 150, 130), gad_tab_controls, 1103);
@@ -775,20 +776,20 @@ public:
 		char messageV[100]; sprintf(messageV,"CM vel, x: %4.4g, y: %4.4g, z: %4.4g",cmVel.x,cmVel.y,cmVel.z);
 		text_cmVel = mapp->GetIGUIEnvironment()->addStaticText(core::stringw(message5).c_str(),
 			rect<s32>(10,60,280,75),false,false,gad_tab_wheel);
-		// rxn. forces on spindle
-// TODO: figure out how to get joint reaction forces
-//		ChVector<> rxnF = ChVector<>(mtester->spindle->force_X->getiforce(), mtester->spindle->force_Y->getiforce(), mtester->spindle->force_Z->getiforce() );
-		ChVector<> rxnF = ChVector<>(1,2,3);
+		// rxn. forces on spindle, in the local coordinate system
+		ChVector<> rxnF = mtester->spindle->Get_react_force();
 		char messageF[100]; sprintf(messageF,"spindle Rxn. F, x: %4.3g, y: %4.3g, z: %4.3g",rxnF.x,rxnF.y,rxnF.z);
-		text_cmVel = mapp->GetIGUIEnvironment()->addStaticText(core::stringw(message5).c_str(),
-			rect<s32>(10,90,280,105),false,false,gad_tab_wheel);		// rxn. torques on spindle
-//		ChVector<> rxnT = ChVector<>(mtester->spindle);
-		ChVector<> rxnT = ChVector<>(4,5,6);
+		text_spindleForces = mapp->GetIGUIEnvironment()->addStaticText(core::stringw(message5).c_str(),
+			rect<s32>(10,90,280,105),false,false,gad_tab_wheel);		
+		// rxn. torques on spindle, in local coordinate system
+		ChVector<> rxnT = mtester->spindle->Get_react_torque();
 		char messageT[100]; sprintf(messageT,"spindle Rxn. T, x: %4.3g, y: %4.3g, z: %4.3g", rxnT.x, rxnT.y, rxnT.z);
 		text_spindleTorque = mapp->GetIGUIEnvironment()->addStaticText(core::stringw(messageT).c_str(),
 			rect<s32>(10,120, 280, 135),false,false,gad_tab_wheel);
-		// ******* GUI PARTICLE STATE
 
+
+
+		// ******* GUI PARTICLE STATE
 		// Data I care about:
 		//	average particle size: pRadMean
 		//	running/continuous std. dev	:  pRadStdDev
@@ -813,7 +814,7 @@ public:
 		if (event.EventType == EET_GUI_EVENT)
 		{
 			s32 id = event.GUIEvent.Caller->getID();
-			gui::IGUIEnvironment* env = app->GetIGUIEnvironment();
+			gui::IGUIEnvironment* env = mapp->GetIGUIEnvironment();
 
 			switch(event.GUIEvent.EventType)
 			{
@@ -897,6 +898,7 @@ public:
 					this->mwheel->wheel->GetBody()->SetCollide(wheelCollision);
 					return true;
 				}
+				/*
 				if( id == 2113)
 				{
 					applyTorque = checkbox_applyTorque->isChecked();
@@ -905,6 +907,7 @@ public:
 					this->mtester->isTorqueApplied = wheelCollision;
 					return true;
 				}
+				*/
 				if( id == 2114)
 				{
 					pVisible = checkbox_particlesVisible->isChecked();
@@ -930,13 +933,13 @@ public:
 
 	void drawSprings()
 	{
-		std::list<chrono::ChLink*>::iterator iterlink =  app->GetSystem()->Get_linklist()->begin();
+		std::list<chrono::ChLink*>::iterator iterlink =  mapp->GetSystem()->Get_linklist()->begin();
 		// .. draw the spring constraints as simplified spring helix
-		iterlink =  app->GetSystem()->Get_linklist()->begin();
-		while(iterlink != app->GetSystem()->Get_linklist()->end())
+		iterlink =  mapp->GetSystem()->Get_linklist()->begin();
+		while(iterlink != mapp->GetSystem()->Get_linklist()->end())
 		{
 			if (ChLinkSpring* mylinkspri = ChDynamicCast(ChLinkSpring,(*iterlink)))
-				ChIrrTools::drawSpring(app->GetVideoDriver(), 0.05, 
+				ChIrrTools::drawSpring(mapp->GetVideoDriver(), 0.05, 
 					mylinkspri->GetEndPoint1Abs(),
 					mylinkspri->GetEndPoint2Abs(),
 					video::SColor(255,   150,20,20),   80,  15,  true);
@@ -951,7 +954,7 @@ public:
 		ChCoordsys<> wall1Csys = this->mtester->wall1->GetBody()->GetCoord();
 		wall1Csys.rot = chrono::Q_from_AngAxis(CH_C_PI/2.0, VECT_Y);
 		wall1Csys.pos.x += .05;
-		ChIrrTools::drawGrid(this->app->GetVideoDriver(),0.1,0.05,24,20, wall1Csys,
+		ChIrrTools::drawGrid(this->mapp->GetVideoDriver(),0.1,0.05,24,20, wall1Csys,
 			video::SColor(255,80,130,130),true);
 /*
 		// wall 2
@@ -964,13 +967,13 @@ public:
 		// wall 3
 		ChCoordsys<> wall3Csys = this->mtester->wall3->GetBody()->GetCoord();
 		wall3Csys.pos.z += .05;
-		ChIrrTools::drawGrid(this->app->GetVideoDriver(),0.1,0.05,10,20, wall3Csys, 
+		ChIrrTools::drawGrid(this->mapp->GetVideoDriver(),0.1,0.05,10,20, wall3Csys, 
 			video::SColor(255,80,130,130),true);
 
 		// wall 4
 		ChCoordsys<> wall4Csys = this->mtester->wall4->GetBody()->GetCoord();
 		wall4Csys.pos.z -= .05;
-		ChIrrTools::drawGrid(this->app->GetVideoDriver(),0.1,0.05,10,20, wall4Csys,
+		ChIrrTools::drawGrid(this->mapp->GetVideoDriver(),0.1,0.05,10,20, wall4Csys,
 			video::SColor(255,80,130,130),true);
 	}
 
@@ -985,13 +988,17 @@ public:
 		char messageV[100]; sprintf(messageV,"CM vel, x: %4.4g, y: %4.4g, z: %4.4g",cmVel.x,cmVel.y,cmVel.z);
 		text_cmVel->setText( core::stringw(messageV).c_str() );
 		// rxn. forces on spindle
-//		ChVector<> rxnF = ChVector<>(mtester->spindle->force_X->getiforce(), mtester->spindle->force_Y->getiforce(), mtester->spindle->force_Z->getiforce() );
-		ChVector<> rxnF = ChVector<>(1,2,3);
+		ChVector<> rxnF = mtester->spindle->Get_react_force();
 		char messageF[100]; sprintf(messageF,"spindle Rxn. F, x: %4.3g, y: %4.3g, z: %4.3g",rxnF.x,rxnF.y,rxnF.z);
-		text_cmVel->setText( core::stringw(messageF).c_str() );
+		text_spindleForces->setText( core::stringw(messageF).c_str() );
 		// rxn. torques on spindle
-		ChVector<> rxnT = ChVector<>(5,6,7);
-		char messageT[100];
+		ChVector<> rxnT = mtester->spindle->Get_react_torque();
+		char messageT[100]; sprintf(messageT,"spindle Rxn. T, x: %4.3g, y: %4.3g, z: %4.3g", rxnT.x, rxnT.y, rxnT.z);
+		text_spindleTorque->setText( core::stringw(messageT).c_str() );
+
+		// draw reaction forces on the wheel, to make sure they're the correct output
+	//	if( 
+
 	}
 
 	void drawSoilOutput()
@@ -1024,17 +1031,17 @@ public:
 	}
 
 private:
-	ChIrrAppInterface* app;
+	ChIrrAppInterface* mapp;
 	// bodies/joints
 	SoilbinWheel* mwheel;
 	TestMech* mtester;
 	ParticleGenerator* mgenerator;
-	MyContactCallback* mcallback;
+//	MyContactCallback* mcallback;
 	// for check boxes
 	bool wheelLocked;	// id = 2110
 	bool makeParticles; // 2111
 	bool wheelCollision;// 2112
-	bool applyTorque;	// 2113
+//	bool applyTorque;	// 2113
 	bool pVisible;	//	2114
 	bool wheelVisible;	// 2115
 
@@ -1057,8 +1064,8 @@ private:
 	gui::IGUIStaticText* text_createParticles;
 	gui::IGUICheckBox*	checkbox_wheelCollision;	// id = 2112
 	gui::IGUIStaticText* text_wheelCollision;
-	gui::IGUICheckBox*	checkbox_applyTorque;	// id = 2113
-	gui::IGUIStaticText* text_applyTorque;
+//	gui::IGUICheckBox*	checkbox_applyTorque;	// id = 2113
+//	gui::IGUIStaticText* text_applyTorque;
 	gui::IGUICheckBox*	checkbox_particlesVisible;	// id = 2114
 	gui::IGUIStaticText*	text_particlesVisible;
 	gui::IGUICheckBox*		checkbox_wheelVisible;	// id = 2115
@@ -1093,7 +1100,6 @@ private:
 	gui::IGUIStaticText* text_pRad;
 	gui::IGUIStaticText* text_pMass;
 };
-
 int main(int argc, char* argv[])
 {
 
@@ -1134,7 +1140,7 @@ int main(int argc, char* argv[])
 	// Create the wheel
 	ChVector<> wheelCMpos = ChVector<>(0,0.5,0);
 	ChVector<> wheelInertia = ChVector<>(1.0,1.0,1.0);
-	// Use Trelleborg tire
+	// Use Trelleborg tire, with Alessandro's method of using convex hulls
 	SoilbinWheel* mwheel = new SoilbinWheel(application, wheelCMpos, wheelMass, wheelInertia);
 	// use cylinder tire
 	double wheel_width = 0.6;
