@@ -20,6 +20,7 @@
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "physics/ChNodeBody.h"
+#include "lcp/ChLcpIterativePMINRES.h"
 #include "fem/ChFem.h"
 #include "fem/ChMesh.h"
 #include "fem/ChMatterMeshless.h"
@@ -69,7 +70,7 @@ void test_1()
 				// two 3D nodes:
 	ChElementSpring melementA;
 	melementA.SetNodes(&mnodeA, &mnodeB);
-	melementA.SetSpringK(10000);
+	melementA.SetSpringK(1000);
 
 				// Remember to add elements to the mesh!
 	my_mesh->AddElement(melementA);
@@ -97,11 +98,15 @@ void test_1()
 	my_system.Add(constraintA);
 		
 				// Set no gravity
-	my_system.Set_G_acc(VNULL);
+	//my_system.Set_G_acc(VNULL);
 
 
 				// Perform a linear static analysis
 	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES); // <- NEEDED because other solvers can't handle stiffness matrices
+	chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
+	my_system.SetIterLCPmaxItersSpeed(40);
+	msolver->SetDiagonalPreconditioning(false);
+	msolver->SetVerbose(true);
 
 	my_system.DoStaticLinear();
 
@@ -109,8 +114,8 @@ void test_1()
 	GetLog() << "Positions after linear static analysis: \n";
 	GetLog() << "  nodeA.pos \n" << mnodeA.GetPos();
 	GetLog() << "  nodeB.pos \n" << mnodeB.GetPos();
-
-
+	GetLog() << "Forces after linear static analysis: \n";
+	GetLog() << "  constraintA.react \n" << constraintA->GetReactionOnBody();
 }
 
 

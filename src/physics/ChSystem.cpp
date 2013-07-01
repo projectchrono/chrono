@@ -2641,6 +2641,9 @@ try
 							*this->LCP_descriptor,
 							false);			// do not add [M]*v to known vector
 
+	// Updates the reactions of the constraint, getting them from solver data
+	LCPresult_Li_into_reactions(1.0) ; 
+
 	// Move bodies to updated position
 	HIER_BODY_INIT
 	while HIER_BODY_NOSTOP

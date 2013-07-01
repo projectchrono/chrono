@@ -187,13 +187,14 @@ double ChLcpIterativePMINRES::Solve(
 		// alpha = (z'*(NMr))/((MNp)'*(Np));
 		double zNMr =  mz.MatrDot(&mz,&mNMr);		// 1)  zMNr = z'* NMr
 		double MNpNp = mMNp.MatrDot(&mMNp,&mNp);	// 2)  MNpNp = ((MNp)'*(Np))
-		/*
+		
 		 if (fabs(MNpNp)<10e-12) 
 		 {
-			if (verbose) GetLog() << "Rayleygh quotient alpha breakdown: " << zNMr << " / " << MNpNp << "  iter=" << iter << "\n";
+			if (verbose) 
+				GetLog() << "Iter=" << iter << " Rayleygh quotient alpha breakdown: " << zNMr << " / " << MNpNp << "\n";
 			MNpNp=10e-12;
 		 }
-		 */
+		 
 		double alpha = zNMr/MNpNp;					// 3)  alpha = (z'*(NMr))/((MNp)'*(Np));
 
 		// l = l + alpha * p;
@@ -228,7 +229,7 @@ double ChLcpIterativePMINRES::Solve(
 		if (r_proj_resid < ChMax(rel_tol_b, abs_tol) )
 		{
 			if (verbose) 
-				GetLog() << "P(r)-converged! iter=" << iter <<  " |P(r)|=" << r_proj_resid << "\n";
+				GetLog() << "Iter=" << iter <<  " P(r)-converged!  |P(r)|=" << r_proj_resid << "\n";
 			break;
 		}
 
@@ -256,7 +257,8 @@ double ChLcpIterativePMINRES::Solve(
 		// Robustness improver: restart if beta=0 or too large 
 		if (fabs(denominator)<10e-30 || fabs(numerator)<10e-30)
 		{
-			if (verbose) GetLog() << "Ribiere quotient beta restart: " << numerator << " / " << denominator <<  "  iter=" << iter << "\n";
+			if (verbose) 
+				GetLog() << "Iter=" << iter << " Ribiere quotient beta restart: " << numerator << " / " << denominator << "\n";
 			beta =0;
 		}
 
@@ -482,6 +484,8 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 	// THE LOOP
 	//
 
+	if (this->verbose)
+		GetLog() << "PMINRES max iterations = " << max_iterations <<"\n";
 
 	for (int iter = 0; iter < max_iterations; iter++)
 	{
