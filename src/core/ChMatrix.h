@@ -620,16 +620,16 @@ public:
 						}
 		
 					/// Returns the determinant of the matrix. 
-					/// Note! This method must be used only with max 3x3 matrices, 
+					/// Note! This method must be used only with max 4x4 matrices, 
 					/// otherwise it throws an exception.
 	double Det()
 		{
 			assert (this->GetRows()==this->GetColumns());
-			assert (this->GetRows() <= 3);
+			assert (this->GetRows() <= 4);
 
 			if (this->GetRows() != this->GetColumns()) 
 				throw("Cannot compute matrix determinant because rectangular matrix");
-			if (this->GetRows() > 3)
+			if (this->GetRows() > 4)
 				throw("Cannot compute matrix determinant because matr. larger than 3x3");
 			double det = 0;
 			switch (this->GetRows()) 
@@ -649,8 +649,86 @@ public:
 						  (*this)(2,1)*(*this)(1,2)*(*this)(0,0)-
 						  (*this)(2,2)*(*this)(1,0)*(*this)(0,1);
 					break;
+				case 4:
+					det = (*this)(0,0)*(*this)(1,1)*(*this)(2,2)*(*this)(3,3)+(*this)(0,0)*(*this)(1,2)*(*this)(2,3)*(*this)(3,1)+(*this)(0,0)*(*this)(1,3)*(*this)(2,1)*(*this)(3,2)+
+						  (*this)(0,1)*(*this)(1,0)*(*this)(2,3)*(*this)(3,2)+(*this)(0,1)*(*this)(1,2)*(*this)(2,0)*(*this)(3,3)+(*this)(0,1)*(*this)(1,3)*(*this)(2,2)*(*this)(3,0)+
+						  (*this)(0,2)*(*this)(1,0)*(*this)(2,1)*(*this)(3,3)+(*this)(0,2)*(*this)(1,1)*(*this)(2,3)*(*this)(3,0)+(*this)(0,2)*(*this)(1,3)*(*this)(2,0)*(*this)(3,1)+
+						  (*this)(0,3)*(*this)(1,0)*(*this)(2,2)*(*this)(3,1)+(*this)(0,3)*(*this)(1,1)*(*this)(2,0)*(*this)(3,2)+(*this)(0,3)*(*this)(1,2)*(*this)(2,1)*(*this)(3,0)-
+						  (*this)(0,0)*(*this)(1,1)*(*this)(2,3)*(*this)(3,2)-(*this)(0,0)*(*this)(1,2)*(*this)(2,1)*(*this)(3,3)-(*this)(0,0)*(*this)(1,3)*(*this)(2,2)*(*this)(3,1)-
+						  (*this)(0,1)*(*this)(1,0)*(*this)(2,2)*(*this)(3,3)-(*this)(0,1)*(*this)(1,2)*(*this)(2,3)*(*this)(3,0)-(*this)(0,1)*(*this)(1,3)*(*this)(2,0)*(*this)(3,2)-
+						  (*this)(0,2)*(*this)(1,0)*(*this)(2,3)*(*this)(3,1)-(*this)(0,2)*(*this)(1,1)*(*this)(2,0)*(*this)(3,3)-(*this)(0,2)*(*this)(1,3)*(*this)(2,1)*(*this)(3,0)-
+						  (*this)(0,3)*(*this)(1,0)*(*this)(2,1)*(*this)(3,2)-(*this)(0,3)*(*this)(1,1)*(*this)(2,2)*(*this)(3,0)-(*this)(0,3)*(*this)(1,2)*(*this)(2,0)*(*this)(3,1);
+
 			}
 			return det;
+	}
+
+					/// Returns the inverse of the matrix. 
+					/// Note! This method must be used only with max 4x4 matrices, 
+					/// otherwise it throws an exception.
+	void MatrInverse()
+		{
+			assert (this->GetRows()==this->GetColumns());
+			assert (this->GetRows() <= 4);
+			assert (this->Det() !=0);
+
+			if (this->GetRows() != this->GetColumns()) 
+				throw("Cannot compute matrix inverse because rectangular matrix");
+			if (this->GetRows() > 4)
+				throw("Cannot compute matrix inverse because matr. larger than 4x4");
+			if (this->Det() == 0)
+				throw("Cannot compute matrix inverse because singular matrix");
+
+			switch (this->GetRows()) 
+			{
+				case 1:
+					(*this)(0,0) = (1/(*this)(0,0));
+					break;
+				case 2:
+					{
+					ChMatrixDynamic<Real> inv(2,2);
+					inv(0,0) = (*this)(1,1);
+					inv(0,1) = -(*this)(0,1);
+					inv(1,1) = (*this)(0,0);
+					inv(1,0) = -(*this)(1,0);
+					inv.MatrDivScale((*this).Det());
+					this->CopyFromMatrix(inv);
+					break;
+					}
+				case 3:
+					{
+					ChMatrixDynamic<Real> inv(3,3);
+					inv(0,0)=(*this)(1,1)*(*this)(2,2)-(*this)(1,2)*(*this)(2,1);	inv(0,1)=(*this)(2,1)*(*this)(0,2)-(*this)(0,1)*(*this)(2,2);	inv(0,2)=(*this)(0,1)*(*this)(1,2)-(*this)(0,2)*(*this)(1,1);
+					inv(1,0)=(*this)(1,2)*(*this)(2,0)-(*this)(1,0)*(*this)(2,2);	inv(1,1)=(*this)(2,2)*(*this)(0,0)-(*this)(2,0)*(*this)(0,2);	inv(1,2)=(*this)(0,2)*(*this)(1,0)-(*this)(1,2)*(*this)(0,0);
+					inv(2,0)=(*this)(1,0)*(*this)(2,1)-(*this)(1,1)*(*this)(2,0);	inv(2,1)=(*this)(0,1)*(*this)(2,0)-(*this)(0,0)*(*this)(2,1);	inv(2,2)=(*this)(0,0)*(*this)(1,1)-(*this)(0,1)*(*this)(1,0);
+					inv.MatrDivScale((*this).Det());
+					this->CopyFromMatrix(inv);
+					break;
+					}
+				case 4:
+					{
+					ChMatrixDynamic<Real> inv(4,4);
+					inv.SetElement(0,0, (*this)(1,2)*(*this)(2,3)*(*this)(3,1) - (*this)(1,3)*(*this)(2,2)*(*this)(3,1) + (*this)(1,3)*(*this)(2,1)*(*this)(3,2) - (*this)(1,1)*(*this)(2,3)*(*this)(3,2) - (*this)(1,2)*(*this)(2,1)*(*this)(3,3) + (*this)(1,1)*(*this)(2,2)*(*this)(3,3));
+					inv.SetElement(0,1, (*this)(0,3)*(*this)(2,2)*(*this)(3,1) - (*this)(0,2)*(*this)(2,3)*(*this)(3,1) - (*this)(0,3)*(*this)(2,1)*(*this)(3,2) + (*this)(0,1)*(*this)(2,3)*(*this)(3,2) + (*this)(0,2)*(*this)(2,1)*(*this)(3,3) - (*this)(0,1)*(*this)(2,2)*(*this)(3,3));
+					inv.SetElement(0,2, (*this)(0,2)*(*this)(1,3)*(*this)(3,1) - (*this)(0,3)*(*this)(1,2)*(*this)(3,1) + (*this)(0,3)*(*this)(1,1)*(*this)(3,2) - (*this)(0,1)*(*this)(1,3)*(*this)(3,2) - (*this)(0,2)*(*this)(1,1)*(*this)(3,3) + (*this)(0,1)*(*this)(1,2)*(*this)(3,3));
+					inv.SetElement(0,3, (*this)(0,3)*(*this)(1,2)*(*this)(2,1) - (*this)(0,2)*(*this)(1,3)*(*this)(2,1) - (*this)(0,3)*(*this)(1,1)*(*this)(2,2) + (*this)(0,1)*(*this)(1,3)*(*this)(2,2) + (*this)(0,2)*(*this)(1,1)*(*this)(2,3) - (*this)(0,1)*(*this)(1,2)*(*this)(2,3));
+					inv.SetElement(1,0, (*this)(1,3)*(*this)(2,2)*(*this)(3,0) - (*this)(1,2)*(*this)(2,3)*(*this)(3,0) - (*this)(1,3)*(*this)(2,0)*(*this)(3,2) + (*this)(1,0)*(*this)(2,3)*(*this)(3,2) + (*this)(1,2)*(*this)(2,0)*(*this)(3,3) - (*this)(1,0)*(*this)(2,2)*(*this)(3,3));
+					inv.SetElement(1,1, (*this)(0,2)*(*this)(2,3)*(*this)(3,0) - (*this)(0,3)*(*this)(2,2)*(*this)(3,0) + (*this)(0,3)*(*this)(2,0)*(*this)(3,2) - (*this)(0,0)*(*this)(2,3)*(*this)(3,2) - (*this)(0,2)*(*this)(2,0)*(*this)(3,3) + (*this)(0,0)*(*this)(2,2)*(*this)(3,3));
+					inv.SetElement(1,2, (*this)(0,3)*(*this)(1,2)*(*this)(3,0) - (*this)(0,2)*(*this)(1,3)*(*this)(3,0) - (*this)(0,3)*(*this)(1,0)*(*this)(3,2) + (*this)(0,0)*(*this)(1,3)*(*this)(3,2) + (*this)(0,2)*(*this)(1,0)*(*this)(3,3) - (*this)(0,0)*(*this)(1,2)*(*this)(3,3));
+					inv.SetElement(1,3, (*this)(0,2)*(*this)(1,3)*(*this)(2,0) - (*this)(0,3)*(*this)(1,2)*(*this)(2,0) + (*this)(0,3)*(*this)(1,0)*(*this)(2,2) - (*this)(0,0)*(*this)(1,3)*(*this)(2,2) - (*this)(0,2)*(*this)(1,0)*(*this)(2,3) + (*this)(0,0)*(*this)(1,2)*(*this)(2,3));
+					inv.SetElement(2,0, (*this)(1,1)*(*this)(2,3)*(*this)(3,0) - (*this)(1,3)*(*this)(2,1)*(*this)(3,0) + (*this)(1,3)*(*this)(2,0)*(*this)(3,1) - (*this)(1,0)*(*this)(2,3)*(*this)(3,1) - (*this)(1,1)*(*this)(2,0)*(*this)(3,3) + (*this)(1,0)*(*this)(2,1)*(*this)(3,3));
+					inv.SetElement(2,1, (*this)(0,3)*(*this)(2,1)*(*this)(3,0) - (*this)(0,1)*(*this)(2,3)*(*this)(3,0) - (*this)(0,3)*(*this)(2,0)*(*this)(3,1) + (*this)(0,0)*(*this)(2,3)*(*this)(3,1) + (*this)(0,1)*(*this)(2,0)*(*this)(3,3) - (*this)(0,0)*(*this)(2,1)*(*this)(3,3));
+					inv.SetElement(2,2, (*this)(0,1)*(*this)(1,3)*(*this)(3,0) - (*this)(0,3)*(*this)(1,1)*(*this)(3,0) + (*this)(0,3)*(*this)(1,0)*(*this)(3,1) - (*this)(0,0)*(*this)(1,3)*(*this)(3,1) - (*this)(0,1)*(*this)(1,0)*(*this)(3,3) + (*this)(0,0)*(*this)(1,1)*(*this)(3,3));
+					inv.SetElement(2,3, (*this)(0,3)*(*this)(1,1)*(*this)(2,0) - (*this)(0,1)*(*this)(1,3)*(*this)(2,0) - (*this)(0,3)*(*this)(1,0)*(*this)(2,1) + (*this)(0,0)*(*this)(1,3)*(*this)(2,1) + (*this)(0,1)*(*this)(1,0)*(*this)(2,3) - (*this)(0,0)*(*this)(1,1)*(*this)(2,3));
+					inv.SetElement(3,0, (*this)(1,2)*(*this)(2,1)*(*this)(3,0) - (*this)(1,1)*(*this)(2,2)*(*this)(3,0) - (*this)(1,2)*(*this)(2,0)*(*this)(3,1) + (*this)(1,0)*(*this)(2,2)*(*this)(3,1) + (*this)(1,1)*(*this)(2,0)*(*this)(3,2) - (*this)(1,0)*(*this)(2,1)*(*this)(3,2));
+					inv.SetElement(3,1, (*this)(0,1)*(*this)(2,2)*(*this)(3,0) - (*this)(0,2)*(*this)(2,1)*(*this)(3,0) + (*this)(0,2)*(*this)(2,0)*(*this)(3,1) - (*this)(0,0)*(*this)(2,2)*(*this)(3,1) - (*this)(0,1)*(*this)(2,0)*(*this)(3,2) + (*this)(0,0)*(*this)(2,1)*(*this)(3,2));
+					inv.SetElement(3,2, (*this)(0,2)*(*this)(1,1)*(*this)(3,0) - (*this)(0,1)*(*this)(1,2)*(*this)(3,0) - (*this)(0,2)*(*this)(1,0)*(*this)(3,1) + (*this)(0,0)*(*this)(1,2)*(*this)(3,1) + (*this)(0,1)*(*this)(1,0)*(*this)(3,2) - (*this)(0,0)*(*this)(1,1)*(*this)(3,2));
+					inv.SetElement(3,3, (*this)(0,1)*(*this)(1,2)*(*this)(2,0) - (*this)(0,2)*(*this)(1,1)*(*this)(2,0) + (*this)(0,2)*(*this)(1,0)*(*this)(2,1) - (*this)(0,0)*(*this)(1,2)*(*this)(2,1) - (*this)(0,1)*(*this)(1,0)*(*this)(2,2) + (*this)(0,0)*(*this)(1,1)*(*this)(2,2));
+					inv.MatrDivScale((*this).Det());
+					this->CopyFromMatrix(inv);
+					break;
+					}
+			}
 	}
 
 
