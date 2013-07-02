@@ -1,9 +1,9 @@
-#ifndef CHFEM_H
-#define CHFEM_H
+#ifndef CHNODEFEMBASE_H
+#define CHNODEFEMBASE_H
 
 //////////////////////////////////////////////////
 //
-//   ChFem.h
+//   ChNodeFEMbase.h
 //
 //   HEADER file for CHRONO,
 //	 Multibody dynamics engine
@@ -15,25 +15,27 @@
 ///////////////////////////////////////////////////
 
 
-#include <stdlib.h>
-#include <iostream>
-#include <string.h>
-#include <math.h>
-#include <float.h>
-#include <memory.h>
-
-#include "core/ChMath.h"
 #include "physics/ChIndexedNodes.h"
-#include "lcp/ChLcpKstiffnessGeneric.h"
-#include "lcp/ChLcpVariablesNode.h"
-#include "fem/ChNodeFEMbase.h"
-#include "fem/ChNodeFEMxyz.h"
 
 
 namespace chrono
 {
 namespace fem
 {
+
+
+/// Base class for a generic finite element node
+/// that can be stored in ChMesh containers.
+/// Children classes must implement specialized versions.
+
+class ChApi ChNodeFEMbase  :  public chrono::ChNodeXYZ
+{
+public:
+
+				/// Set the rest position as the actual position.
+	virtual void Relax () =0;
+
+};
 
 
 

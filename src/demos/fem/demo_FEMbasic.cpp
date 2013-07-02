@@ -21,9 +21,8 @@
 #include "physics/ChSystem.h"
 #include "physics/ChNodeBody.h"
 #include "lcp/ChLcpIterativePMINRES.h"
-#include "fem/ChFem.h"
+#include "fem/ChElementSpring.h"
 #include "fem/ChMesh.h"
-#include "fem/ChMatterMeshless.h"
 
 
 // Remember to use the namespace 'chrono' because all classes 
@@ -56,8 +55,8 @@ void test_1()
 				// for many types of FEM elements in space.
 	ChNodeFEMxyz mnodeA(ChVector<>(0,0,0));
 	ChNodeFEMxyz mnodeB(ChVector<>(1,0,0));
-	mnodeA.SetMass(0.1);
-	mnodeB.SetMass(0.1);
+	mnodeA.SetMass(0.0);
+	mnodeB.SetMass(0.0);
 	
 				// For example, set an applied force to a node:
 	mnodeB.SetForce(ChVector<>(5,0,0));
@@ -70,7 +69,7 @@ void test_1()
 				// two 3D nodes:
 	ChElementSpring melementA;
 	melementA.SetNodes(&mnodeA, &mnodeB);
-	melementA.SetSpringK(1000);
+	melementA.SetSpringK(100000);
 
 				// Remember to add elements to the mesh!
 	my_mesh->AddElement(melementA);
@@ -104,9 +103,10 @@ void test_1()
 				// Perform a linear static analysis
 	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES); // <- NEEDED because other solvers can't handle stiffness matrices
 	chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
-	my_system.SetIterLCPmaxItersSpeed(40);
-	msolver->SetDiagonalPreconditioning(false);
+	msolver->SetDiagonalPreconditioning(true);
 	msolver->SetVerbose(true);
+	my_system.SetIterLCPmaxItersSpeed(40);
+	my_system.SetTolSpeeds(1e-10);
 
 	my_system.DoStaticLinear();
 

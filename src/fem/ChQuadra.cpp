@@ -31,14 +31,9 @@ namespace fem
 
 // CLASS FOR GAUSS QUADRATURE
 
-// Performs the Gauss quadrature (numerical integration) of a function,
-// passed as parameter. The function must have three xyz parameters, to 
-// allow at least 3d integrals, and must return a pointer to a matrix, ie.
-// the numerically evaluated value/vector/matrix of the function at the
-// xyz point. Note; the xyz parameters must range into the cubic space
-// of limit -1 .. +1  , so the integrated function must be a _normalized_
-// function!. 
+
  
+/*
 
 void ChQuadrature::GaussIntegrate (ChFelem* element, 
 					ChMatrix<>* result, int orderX, int orderY, int orderZ, int dimensions)
@@ -107,6 +102,7 @@ void ChQuadrature::GaussIntegrate (ChFelem* element,
 	delete temp;
 }
 
+*/
 
 } // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____

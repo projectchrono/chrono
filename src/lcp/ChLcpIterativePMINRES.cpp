@@ -188,7 +188,7 @@ double ChLcpIterativePMINRES::Solve(
 		double zNMr =  mz.MatrDot(&mz,&mNMr);		// 1)  zMNr = z'* NMr
 		double MNpNp = mMNp.MatrDot(&mMNp,&mNp);	// 2)  MNpNp = ((MNp)'*(Np))
 		
-		 if (fabs(MNpNp)<10e-12) 
+		 if (fabs(MNpNp)<10e-30) 
 		 {
 			if (verbose) 
 				GetLog() << "Iter=" << iter << " Rayleygh quotient alpha breakdown: " << zNMr << " / " << MNpNp << "\n";
@@ -343,7 +343,7 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 	int nx = nv+nc;  // total scalar unknowns, in x vector for full KKT system Z*x-d=0
 
 	if (verbose) 
-		GetLog() <<"\n-----Projected MINRES -supporting stiffness-, n.unknowns nx=" << nx << "unknowns \n";
+		GetLog() <<"\n-----Projected MINRES -supporting stiffness-, n.vars nx=" << nx << "  max.iters=" << max_iterations << "\n";
 
 	ChMatrixDynamic<> mx(nx,1);
 	ChMatrixDynamic<> md(nx,1);
@@ -369,48 +369,16 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 	// Initialize the mDi vector with the diagonal of the Z matrix
 	sysd.BuildDiagonalVector(mDi);
 
-	// Its inverse can be used as a scaling for the q unknowns, but not 
-	// for the l unknowns, since their diagonal is most often 0. So
-	// we will use the g_i=[Cq_i]*[invM_i]*[Cq_i]' terms (note, K stiffness
-	// if any, takes no effect).
-	// Firs, update auxiliary data in all constraints before starting,
-	// that will compute g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
-	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
-		mconstraints[ic]->Update_auxiliary();
-
-	// Average all g_i for the triplet of contact constraints n,u,v.
-	//  This is necessary because we want the scaling to be isotropic for each friction cone
-	int j_friction_comp = 0;
-	double gi_values[3];
-	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
-	{
-		if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) 
-		{
-			gi_values[j_friction_comp] = mconstraints[ic]->Get_g_i();
-			j_friction_comp++;
-			if (j_friction_comp==3)
-			{
-				double average_g_i = (gi_values[0]+gi_values[1]+gi_values[2])/3.0;
-				mconstraints[ic-2]->Set_g_i(average_g_i);
-				mconstraints[ic-1]->Set_g_i(average_g_i);
-				mconstraints[ic-0]->Set_g_i(average_g_i);
-				j_friction_comp=0;
-			}
-		}	
-	}
-	// Store additional g_i terms in the mDi vector, whose inverse will be used for scaling.
-	int s_u = nv;
-	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
-		if (mconstraints[ic]->IsActive())
-		{
-			mDi(s_u) = mconstraints[ic]->Get_g_i();
-			++s_u;
-		}
 	// Pre-invert the values, to avoid wasting time with divisions in the following.
 	// From now, mDi contains the inverse of the diagonal of Z.
+	// Note, for constraints, the diagonal is 0, so set inverse of D as 1 assuming
+	// a constraint preconditioning and assuming the dot product of jacobians is already about 1.
 	for (int nel=0; nel < mDi.GetRows(); nel++)
 	{
-		mDi(nel) = 1.0/mDi(nel);
+		if (fabs(mDi(nel)) > 1e-9)
+			mDi(nel) = 1.0/mDi(nel);
+		else 
+			mDi(nel) = 1.0;
 	}
 
 
@@ -483,9 +451,6 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 	//
 	// THE LOOP
 	//
-
-	if (this->verbose)
-		GetLog() << "PMINRES max iterations = " << max_iterations <<"\n";
 
 	for (int iter = 0; iter < max_iterations; iter++)
 	{

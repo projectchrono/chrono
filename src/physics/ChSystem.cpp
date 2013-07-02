@@ -2605,6 +2605,7 @@ int ChSystem::DoStaticLinear()
 	LCPprepare_inject(*this->LCP_descriptor);
 
 //***DEBUG***
+/*
 try
 	{
 		chrono::ChSparseMatrix mdM;
@@ -2631,7 +2632,7 @@ try
 	{
 		chrono::GetLog() << myexc.what();
 	}
-
+*/
 
 		// Solve the LCP problem.
 		// Solution variables are 'Dpos', delta positions.

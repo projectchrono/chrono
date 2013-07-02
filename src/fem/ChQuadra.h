@@ -18,15 +18,9 @@
 ///////////////////////////////////////////////////
 
 
-#include <stdlib.h>
-#include <iostream>
-#include <math.h>
-#include <float.h>
-#include <memory.h>
 
 #include "core/ChMath.h"
 #include "physics/ChObject.h"
-#include "fem/ChFem.h"
 
 namespace chrono 
 {
@@ -52,6 +46,7 @@ public:
 	ChQuadrature() {};
 	~ChQuadrature() {};
 
+	/* ***OBSOLETE***
 		// Performs the Gauss quadrature (numerical integration) of a function,
 		// passed as parameter. The function must have three xyz parameters, to 
 		// allow at least 3d integrals, and must return a pointer to a matrix, ie.
@@ -62,6 +57,8 @@ public:
  
 	void GaussIntegrate (ChFelem* element, 
 					ChMatrix<>* result, int orderX, int orderY, int orderZ, int dimensions);
+	*/
+
 };
 
 
