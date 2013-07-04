@@ -73,6 +73,7 @@ private:
 	double v;			// Poisson ratio
 	double G;			// shear modulus
 	double l;			// Lame's modulus
+	ChMatrixDynamic<> StressStrainMatrix;		//Elasticity (stiffness) matrix		σ = [E] ε
 
 public:
 
@@ -112,7 +113,7 @@ public:
 			/// Get the shear modulus G, in Pa (N/m^2)
 	double Get_G () {return G;}
 
-			/// Get Lam� first parameter (the second is shear modulus, so Get_G() )
+			/// Get Lamé first parameter (the second is shear modulus, so Get_G() )
 	double Get_l () {return l;}
 
 			/// Get bulk modulus (increase of pressure for decrease of volume), in Pa. 
@@ -120,6 +121,13 @@ public:
 
 			/// Get P-wave modulus (if V=speed of propagation of a P-wave, then (M/density)=V^2 ) 
 	double Get_WaveModulus () {return E*((1.-v)/(1.+v)*(1.-2.*v));}
+
+
+			/// Computes Elasticity matrix and stores the value in this->StressStrainMatrix
+			/// Note: is performed every time you change a material parameter
+	void ComputeStressStrainMatrix();
+			/// Get the Elasticity matrix 
+	ChMatrixDynamic<> Get_StressStrainatrix () {return StressStrainMatrix;}
 
 
 			/// Compute elastic stress from elastic strain
