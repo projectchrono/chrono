@@ -155,10 +155,11 @@ int main(int argc, char* argv[])
 		//
 		// .. draw items belonging to Irrlicht scene, if any
 		msceneManager->drawAll();
-		// .. draw GUI items belonging to Irrlicht screen, if any
-		guienv->drawAll();
 		// .. draw a grid
 		ChIrrTools::drawGrid(driver, 0.5, 0.5);
+		// .. draw GUI items belonging to Irrlicht screen, if any
+		guienv->drawAll();
+
 		// .. draw the rod (from joint BC to joint CA)
 		ChIrrTools::drawSegment(driver, 
 			my_link_BC->GetMarker1()->GetAbsCoord().pos, 
@@ -177,8 +178,8 @@ int main(int argc, char* argv[])
 		{
 				my_system.RemoveLink(my_link_AB); 
 				removed = true;
-		}
-		*/
+		}*/
+		
 
 		// HERE CHRONO INTEGRATION IS PERFORMED: THE 
 		// TIME OF THE SIMULATION ADVANCES FOR A SINGLE

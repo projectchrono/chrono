@@ -429,6 +429,7 @@ Vector mv(1, 2, 3);
 	
 	DLL_DeleteGlobals();
 
+	system("pause");
 	return 0;
 }
  

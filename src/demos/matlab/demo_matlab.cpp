@@ -47,14 +47,14 @@ int main(int argc, char* argv[])
 
 	
 		ChMatlabEngine matlab_engine;
-
+		
 
 		// 
 		// EXAMPLE 1: execute a Matlab command
 		//
-
+		
 		GetLog() << "- Execute plotting command from Chrono::Engine...\n\n";
-
+		
 		matlab_engine.Eval("z=peaks(25); \
 						    surf(z);  \
 							colormap(jet); \
@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
 
 		// Wait some seconds before closing all
 
-		matlab_engine.Eval("pause(4)");
+		matlab_engine.Eval("pause(60)");
 
 	}
 	catch (ChException mex)
@@ -104,6 +104,7 @@ int main(int argc, char* argv[])
 	// with DLL_CreateGlobals();
 	DLL_DeleteGlobals();
 
+	system("pause");
 	return 0;
 }
   
