@@ -21,7 +21,7 @@
 #include "core/ChMath.h"
 #include "lcp/ChLcpSystemDescriptor.h"
 #include "fem/ChNodeFEMbase.h"
-
+#include "fem/ChContinuumMaterial.h"
 
 namespace chrono
 {
@@ -56,7 +56,7 @@ public:
 				/// superimposes global damping matrix R, scaled by Rfactor. Corotational
 				/// elements can take the local Kl & Rl matrices and rotate them.
 				/// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
-	virtual void ComputeKRmatricesGlobal (ChMatrix<>& H, double Kfactor, double Rfactor=0)  = 0;
+	virtual void ComputeKRmatricesGlobal (ChMatrix<>& H, double Kfactor, double Rfactor=0) = 0;
 
 				/// Sets Hl as the local stiffness matrix K, scaled  by Kfactor. Optionally, also
 				/// superimposes local damping matrix R, scaled by Rfactor.

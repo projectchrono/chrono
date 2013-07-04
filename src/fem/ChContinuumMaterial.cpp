@@ -48,6 +48,7 @@ ChContinuumElastic::ChContinuumElastic(double myoung, double mpoisson, double md
 {
 	E = myoung;
 	Set_v(mpoisson); // sets also G and l
+	ComputeStressStrainMatrix(); // sets Elasticity matrix
 }
 
 ChContinuumElastic::~ChContinuumElastic()
@@ -59,6 +60,7 @@ void ChContinuumElastic::Set_E (double m_E)
 	E = m_E;
 	G = E/(2*(1+v));	// fixed v, E, get G
 	l = (v*E)/((1+v)*(1-2*v));	// Lame's constant l
+	ComputeStressStrainMatrix(); // updates Elasticity matrix
 }
 
 void ChContinuumElastic::Set_v (double m_v)
@@ -66,6 +68,7 @@ void ChContinuumElastic::Set_v (double m_v)
 	v = m_v;
 	G = E/(2*(1+v));	// fixed v, E, get G
 	l = (v*E)/((1+v)*(1-2*v));	// Lame's constant l
+	ComputeStressStrainMatrix(); // updates Elasticity matrix
 }
 
 void ChContinuumElastic::Set_G (double m_G)
@@ -73,6 +76,26 @@ void ChContinuumElastic::Set_G (double m_G)
 	G = m_G;
 	v = (E/(2*G))-1;	// fixed G, E, get v
 	l = (v*E)/((1+v)*(1-2*v)); // Lame's constant l
+	ComputeStressStrainMatrix(); // updates Elasticity matrix
+}
+
+void ChContinuumElastic::ComputeStressStrainMatrix()
+{
+	StressStrainMatrix.Resize(6,6);
+	StressStrainMatrix.SetElement(0,0,(E *(1-v))/(1+v)/(1-2*v));
+	//StressStrainMatrix.SetElement(1,1,StressStrainMatrix.GetElement(0,0));	//
+	//StressStrainMatrix.SetElement(2,2,StressStrainMatrix.GetElement(0,0));	//per non ricalcolare; qual'è meglio?
+	StressStrainMatrix.SetElement(1,1,(E*(1-v))/(1+v)/(1-2*v));
+	StressStrainMatrix.SetElement(2,2,(E*(1-v))/(1+v)/(1-2*v));
+	StressStrainMatrix.SetElement(0,1,(E*(v))/(1+v)/(1-2*v));
+	StressStrainMatrix.SetElement(0,2,(E*(v))/(1+v)/(1-2*v));
+	StressStrainMatrix.SetElement(1,0,(E*(v))/(1+v)/(1-2*v));
+	StressStrainMatrix.SetElement(1,2,(E*(v))/(1+v)/(1-2*v));
+	StressStrainMatrix.SetElement(2,0,(E*(v))/(1+v)/(1-2*v));
+	StressStrainMatrix.SetElement(2,1,(E*(v))/(1+v)/(1-2*v));
+	StressStrainMatrix.SetElement(3,3,(E*(1-2*v))/(1+v)/(1-2*v)/2);
+	StressStrainMatrix.SetElement(4,4,(E*(1-2*v))/(1+v)/(1-2*v)/2);
+	StressStrainMatrix.SetElement(5,5,(E*(1-2*v))/(1+v)/(1-2*v)/2);
 }
 
 void ChContinuumElastic::StreamOUT(ChStreamOutBinary& mstream)
