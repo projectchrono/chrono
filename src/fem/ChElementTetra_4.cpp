@@ -12,6 +12,8 @@ ChElementTetra_4::ChElementTetra_4()
 {
 
 	nodes.resize(4);
+	this->MatrB.Resize(6,12);
+	this->StiffnessMatrix.Resize(12,12);
 }
 
 
