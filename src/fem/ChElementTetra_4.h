@@ -125,6 +125,7 @@ public:
 	virtual void ComputeKRmatricesGlobal	(ChMatrix<>& H, double Kfactor, double Rfactor=0) 
 				{
 					assert((H.GetRows() == 12) && (H.GetColumns()==12));
+					GetLog()<<"Sto eseguendo ComputeKRmatricesGlobal!!!\n";
 
 					// compute stiffness matrix (this is already the explicit
 					// formulation of the corotational stiffness matrix in 3D)
