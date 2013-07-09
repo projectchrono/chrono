@@ -138,7 +138,7 @@ void test_2()
 				// Create a material, that must be assigned to each element,
 				// and set its parameters
 	ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
-	mmaterial->Set_E(209E9);
+	mmaterial->Set_E(209E1);
 	mmaterial->Set_v(0.3);
 
 				// Create some nodes. These are the classical point-like
@@ -148,10 +148,10 @@ void test_2()
 	ChNodeFEMxyz mnode2(ChVector<>(0,0,1));
 	ChNodeFEMxyz mnode3(ChVector<>(0,1,0));
 	ChNodeFEMxyz mnode4(ChVector<>(1,0,0));
-	mnode1.SetMass(0.0);
-	mnode2.SetMass(0.0);
-	mnode3.SetMass(0.0);
-	mnode4.SetMass(0.0);
+	mnode1.SetMass(0.001);
+	mnode2.SetMass(0.001);
+	mnode3.SetMass(0.001);
+	mnode4.SetMass(0.001);
 	
 				// For example, set an applied force to a node:
 	mnode3.SetForce(ChVector<>(0,1000,0));
@@ -202,7 +202,7 @@ void test_2()
 							truss);			// body to be connected to
 							
 	constraint3->Initialize(my_mesh,		// node container
-							2,				// index of node in node container 
+							3,				// index of node in node container 
 							truss);			// body to be connected to
 							
 	my_system.Add(constraint1);

@@ -2605,18 +2605,18 @@ int ChSystem::DoStaticLinear()
 	LCPprepare_inject(*this->LCP_descriptor);
 
 //***DEBUG***
-/*
+
 try
 	{
-		chrono::ChSparseMatrix mdM;
+		chrono::ChSparseMatrix mdMK;
 		chrono::ChSparseMatrix mdCq;
 		chrono::ChSparseMatrix mdE;
 		chrono::ChMatrixDynamic<double> mdf;
 		chrono::ChMatrixDynamic<double> mdb;
 		chrono::ChMatrixDynamic<double> mdfric;
-		this->LCP_descriptor->ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
-		chrono::ChStreamOutAsciiFile file_M("dump_M.dat");
-		mdM.StreamOUTsparseMatlabFormat(file_M);
+		this->LCP_descriptor->ConvertToMatrixForm(&mdCq, &mdMK, &mdE, &mdf, &mdb, &mdfric);
+		chrono::ChStreamOutAsciiFile file_MK("dump_MK.dat");
+		mdMK.StreamOUTsparseMatlabFormat(file_MK);
 		chrono::ChStreamOutAsciiFile file_Cq("dump_Cq.dat");
 		mdCq.StreamOUTsparseMatlabFormat(file_Cq);
 		chrono::ChStreamOutAsciiFile file_E("dump_E.dat");
@@ -2625,14 +2625,14 @@ try
 		mdf.StreamOUTdenseMatlabFormat(file_f);
 		chrono::ChStreamOutAsciiFile file_b("dump_b.dat");
 		mdb.StreamOUTdenseMatlabFormat(file_b);
-		chrono::ChStreamOutAsciiFile file_fric("dump_fric.dat");
-		mdfric.StreamOUTdenseMatlabFormat(file_fric);
+		//chrono::ChStreamOutAsciiFile file_fric("dump_fric.dat");
+		//mdfric.StreamOUTdenseMatlabFormat(file_fric);
 	} 
 	catch(chrono::ChException myexc)
 	{
 		chrono::GetLog() << myexc.what();
 	}
-*/
+
 
 		// Solve the LCP problem.
 		// Solution variables are 'Dpos', delta positions.
