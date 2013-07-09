@@ -6,6 +6,10 @@
 //   ChCuda.h
 //
 ///////////////////////////////////////////////////
+
+#undef _GLIBCXX_ATOMIC_BUILTINS
+#undef _GLIBCXX_USE_INT128 
+
 #ifdef SIM_ENABLE_GPU_MODE
 #define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CUDA
 #else
