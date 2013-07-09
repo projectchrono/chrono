@@ -3,8 +3,8 @@
 
 
 
-#include "fem\ChElement3D.h"
-#include "fem\ChNodeFEMxyz.h"
+#include "fem/ChElement3D.h"
+#include "fem/ChNodeFEMxyz.h"
 
 namespace chrono{
 	namespace fem{
@@ -44,7 +44,7 @@ public:
 			// FEM functions
 			//
 
-	double ChElementTetra_4::ComputeVolume(){
+	double ComputeVolume(){
 			ChVector<> B1,C1,D1;
 			B1.Sub(nodes[1]->pos,nodes[0]->pos);
 			C1.Sub(nodes[2]->pos,nodes[0]->pos);
