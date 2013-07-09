@@ -41,7 +41,7 @@ namespace core
 class vector3dfCH : public vector3df
 {
 public:
-	vector3dfCH(chrono::ChVector<>& mch) { X=((f32)mch.x); Y=((f32)mch.y); Z=((f32)mch.z);};
+	vector3dfCH(const chrono::ChVector<>& mch) { X=((f32)mch.x); Y=((f32)mch.y); Z=((f32)mch.z);};
 	vector3dfCH(chrono::ChVector<>* mch) { X=((f32)mch->x); Y=((f32)mch->y); Z=((f32)mch->z);};
 };
 
@@ -57,7 +57,7 @@ public:
 			/// Function to align an Irrlicht object to a Chrono::Engine 
 			/// coordsys:
 
-	static void alignIrrlichtNodeToChronoCsys(scene::ISceneNode* mnode, chrono::ChCoordsys<>& mcoords)
+	static void alignIrrlichtNodeToChronoCsys(scene::ISceneNode* mnode, const chrono::ChCoordsys<>& mcoords)
 	{
 		// Output: will be an Irrlicht 4x4 matrix
 			core::matrix4 irrMat;
