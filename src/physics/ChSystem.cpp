@@ -2607,31 +2607,42 @@ int ChSystem::DoStaticLinear()
 //***DEBUG***
 
 try
-	{
-		chrono::ChSparseMatrix mdMK;
-		chrono::ChSparseMatrix mdCq;
-		chrono::ChSparseMatrix mdE;
-		chrono::ChMatrixDynamic<double> mdf;
-		chrono::ChMatrixDynamic<double> mdb;
-		chrono::ChMatrixDynamic<double> mdfric;
-		this->LCP_descriptor->ConvertToMatrixForm(&mdCq, &mdMK, &mdE, &mdf, &mdb, &mdfric);
-		chrono::ChStreamOutAsciiFile file_MK("dump_MK.dat");
-		mdMK.StreamOUTsparseMatlabFormat(file_MK);
-		chrono::ChStreamOutAsciiFile file_Cq("dump_Cq.dat");
-		mdCq.StreamOUTsparseMatlabFormat(file_Cq);
-		chrono::ChStreamOutAsciiFile file_E("dump_E.dat");
-		mdE.StreamOUTsparseMatlabFormat(file_E);
-		chrono::ChStreamOutAsciiFile file_f("dump_f.dat");
-		mdf.StreamOUTdenseMatlabFormat(file_f);
-		chrono::ChStreamOutAsciiFile file_b("dump_b.dat");
-		mdb.StreamOUTdenseMatlabFormat(file_b);
-		//chrono::ChStreamOutAsciiFile file_fric("dump_fric.dat");
-		//mdfric.StreamOUTdenseMatlabFormat(file_fric);
-	} 
-	catch(chrono::ChException myexc)
-	{
-		chrono::GetLog() << myexc.what();
-	}
+{
+	chrono::ChSparseMatrix mdMK;
+	chrono::ChSparseMatrix mdCq;
+	chrono::ChSparseMatrix mdE;
+	chrono::ChMatrixDynamic<double> mdf;
+	chrono::ChMatrixDynamic<double> mdb;
+	chrono::ChMatrixDynamic<double> mdfric;
+	this->LCP_descriptor->ConvertToMatrixForm(&mdCq, &mdMK, &mdE, &mdf, &mdb, &mdfric);
+	chrono::ChStreamOutAsciiFile file_MK("dump_MK.dat");
+	mdMK.StreamOUTsparseMatlabFormat(file_MK);
+	chrono::ChStreamOutAsciiFile file_Cq("dump_Cq.dat");
+	mdCq.StreamOUTsparseMatlabFormat(file_Cq);
+	chrono::ChStreamOutAsciiFile file_E("dump_E.dat");
+	mdE.StreamOUTsparseMatlabFormat(file_E);
+	chrono::ChStreamOutAsciiFile file_f("dump_f.dat");
+	mdf.StreamOUTdenseMatlabFormat(file_f);
+	chrono::ChStreamOutAsciiFile file_b("dump_b.dat");
+	mdb.StreamOUTdenseMatlabFormat(file_b);
+} 
+catch(chrono::ChException myexc)
+{
+	chrono::GetLog() << myexc.what();
+}
+
+
+chrono::ChMatrixDynamic<double> md1;
+GetLcpSystemDescriptor()->BuildDiVector(md1);				// d={f;-b}
+
+chrono::ChMatrixDynamic<double> mx1;
+GetLcpSystemDescriptor()->FromUnknownsToVector(mx1);		// x ={q,-l}
+
+chrono::ChMatrixDynamic<double> mZx1;
+GetLcpSystemDescriptor()->SystemProduct(mZx1, &mx1);		// Zx = Z*x
+
+GetLog() << "CHECK-pre: norm of solver residual: ||Z*x-d|| -------------------\n";
+GetLog() << (mZx1 - md1).NormInf() << "\n";
 
 
 		// Solve the LCP problem.
@@ -2641,6 +2652,21 @@ try
 	GetLcpSolverSpeed()->Solve(
 							*this->LCP_descriptor,
 							false);			// do not add [M]*v to known vector
+
+// **CHECK*** optional check for correctness in result
+chrono::ChMatrixDynamic<double> md;
+GetLcpSystemDescriptor()->BuildDiVector(md);			// d={f;-b}
+
+chrono::ChMatrixDynamic<double> mx;
+GetLcpSystemDescriptor()->FromUnknownsToVector(mx);		// x ={q,-l}
+chrono::ChStreamOutAsciiFile file_x("dump_x.dat");
+mx.StreamOUTdenseMatlabFormat(file_x);
+
+chrono::ChMatrixDynamic<double> mZx;
+GetLcpSystemDescriptor()->SystemProduct(mZx, &mx);		// Zx = Z*x
+
+GetLog() << "CHECK-after: norm of solver residual: ||Z*x-d|| -------------------\n";
+GetLog() << (mZx - md).NormInf() << "\n";
 
 	// Updates the reactions of the constraint, getting them from solver data
 	LCPresult_Li_into_reactions(1.0) ; 

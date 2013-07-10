@@ -191,11 +191,11 @@ public:
 						int off_b = variables_b->GetOffset();
 
 						if (variables_a->IsActive())
-						 for (int i= 0; i < Cq_a->GetRows(); i++)
+						 for (int i= 0; i < Cq_a->GetColumns(); i++)
 							result += vect(off_a+i) * Cq_a->ElementN(i);
 
 						if (variables_b->IsActive())
-						 for (int i= 0; i < Cq_b->GetRows(); i++)
+						 for (int i= 0; i < Cq_b->GetColumns(); i++)
 							result += vect(off_b+i) * Cq_b->ElementN(i);
 					};
 
@@ -211,11 +211,11 @@ public:
 						int off_b = variables_b->GetOffset();
 
 						if (variables_a->IsActive())
-						 for (int i= 0; i < Cq_a->GetRows(); i++)
+						 for (int i= 0; i < Cq_a->GetColumns(); i++)
 							result(off_a+i) += Cq_a->ElementN(i) * l;
 
 						if (variables_b->IsActive())
-						 for (int i= 0; i < Cq_b->GetRows(); i++)
+						 for (int i= 0; i < Cq_b->GetColumns(); i++)
 							result(off_b+i) += Cq_b->ElementN(i) * l;
 					};
 

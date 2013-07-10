@@ -54,12 +54,12 @@ void test_1()
 				// nodes with x,y,z degrees of freedom, that can be used 
 				// for many types of FEM elements in space.
 	ChNodeFEMxyz mnodeA(ChVector<>(0,0,0));
-	ChNodeFEMxyz mnodeB(ChVector<>(1,0,0));
+	ChNodeFEMxyz mnodeB(ChVector<>(0,1,0));
 	mnodeA.SetMass(0.0);
 	mnodeB.SetMass(0.0);
 	
 				// For example, set an applied force to a node:
-	mnodeB.SetForce(ChVector<>(5,0,0));
+	mnodeB.SetForce(ChVector<>(0,5,0));
 
 				// Remember to add nodes and elements to the mesh!
 	my_mesh->AddNode(mnodeA);
@@ -138,7 +138,7 @@ void test_2()
 				// Create a material, that must be assigned to each element,
 				// and set its parameters
 	ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
-	mmaterial->Set_E(209E1);
+	mmaterial->Set_E(209e9);
 	mmaterial->Set_v(0.3);
 
 				// Create some nodes. These are the classical point-like
@@ -154,7 +154,7 @@ void test_2()
 	mnode4.SetMass(0.001);
 	
 				// For example, set an applied force to a node:
-	mnode3.SetForce(ChVector<>(0,1000,0));
+	mnode3.SetForce(ChVector<>(0, 10000,0));
 
 				// Remember to add nodes and elements to the mesh!
 	my_mesh->AddNode(mnode1);
@@ -168,7 +168,10 @@ void test_2()
 	melement1.SetNodes(&mnode1, &mnode2, &mnode3, &mnode4);
 	melement1.SetMaterial(mmaterial);
 
+				// This is necessary in order to precompute the 
+				// stiffness matrices
 	melement1.Setup();
+
 	GetLog()<<melement1.GetStiffnessMatrix()<<"\n";
 	GetLog()<<melement1.GetMatrB()<<"\n";
 
@@ -196,7 +199,7 @@ void test_2()
 	constraint1->Initialize(my_mesh,		// node container
 							0,				// index of node in node container 
 							truss);			// body to be connected to
-	
+
 	constraint2->Initialize(my_mesh,		// node container
 							1,				// index of node in node container 
 							truss);			// body to be connected to
@@ -204,13 +207,14 @@ void test_2()
 	constraint3->Initialize(my_mesh,		// node container
 							3,				// index of node in node container 
 							truss);			// body to be connected to
-							
+					
 	my_system.Add(constraint1);
 	my_system.Add(constraint2);
 	my_system.Add(constraint3);
-		
+
 				// Set no gravity
 	//my_system.Set_G_acc(VNULL);
+
 
 
 				// Perform a linear static analysis
@@ -218,7 +222,7 @@ void test_2()
 	chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
 	msolver->SetDiagonalPreconditioning(true);
 	msolver->SetVerbose(true);
-	my_system.SetIterLCPmaxItersSpeed(40);
+	my_system.SetIterLCPmaxItersSpeed(80);
 	my_system.SetTolSpeeds(1e-10);
 
 
@@ -230,7 +234,6 @@ void test_2()
 	GetLog()<<mnode2.pos<<"\n";
 	GetLog()<<mnode3.pos<<"\n";
 	GetLog()<<mnode4.pos<<"\n";
-
 
 }
 
@@ -244,7 +247,6 @@ int main(int argc, char* argv[])
 	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
 	// global functions are needed. 
 	DLL_CreateGlobals();
-
 
 
 	GetLog() << " Example: the FEM techology for finite elements \n\n\n";
