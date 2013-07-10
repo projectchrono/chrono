@@ -70,9 +70,9 @@ public:
 				/// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
 	virtual void ComputeInternalForces	(ChMatrixDynamic<>& Fi) = 0;
 
-				/// Setup (optional). Precompute matrices that do not change during the 
-				/// simulation, such as the local stiffness of each element, if needed, etc.
-	virtual void Setup() {};
+				/// Initial setup: This is used mostly to precompute matrices 
+				/// that do not change during the simulation, i.e. the local stiffness of each element, if any, etc.
+	virtual void SetupInitial() {};
 
 
 			//

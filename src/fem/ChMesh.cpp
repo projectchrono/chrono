@@ -21,7 +21,7 @@ namespace fem
 
 
 
-void ChMesh::Setup ()
+void ChMesh::SetupInitial()
 {
 	n_dofs = 0;
 
@@ -34,7 +34,7 @@ void ChMesh::Setup ()
 	for (unsigned int i=0; i< velements.size(); i++)
 	{
 			//    - precompute matrices, such as the [Kl] local stiffness of each element, if needed, etc.
-		velements[i]->Setup();
+		velements[i]->SetupInitial();
 	}
 
 }

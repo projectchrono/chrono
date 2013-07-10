@@ -67,11 +67,11 @@ public:
 	virtual  int GetDOF () {return n_dofs;}
 
 				/// - Computes the total number of degrees of freedom
-				/// - Precompute auxiliary data, such as (local) stiffness matrices Kl, if any, etc
-	void Setup ();				
+				/// - Precompute auxiliary data, such as (local) stiffness matrices Kl, if any, for each element.
+	void SetupInitial ();				
 
 				/// Set reference position of nodes as current position, for all nodes.
-	void Relax ();			
+	void Relax ();
 
 				/// Update time dependent data, for all elements. 
 	void UpdateTime(double m_time);

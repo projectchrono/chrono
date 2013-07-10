@@ -168,17 +168,15 @@ void test_2()
 	melement1.SetNodes(&mnode1, &mnode2, &mnode3, &mnode4);
 	melement1.SetMaterial(mmaterial);
 
-				// This is necessary in order to precompute the 
-				// stiffness matrices
-	melement1.Setup();
-
-	GetLog()<<melement1.GetStiffnessMatrix()<<"\n";
-	GetLog()<<melement1.GetMatrB()<<"\n";
-
-
 				// Remember to add elements to the mesh!
 	my_mesh->AddElement(melement1);
 
+				// This is necessary in order to precompute the 
+				// stiffness matrices for all inserted elements in mesh
+	my_mesh->SetupInitial();
+
+	GetLog()<<melement1.GetStiffnessMatrix()<<"\n";
+	GetLog()<<melement1.GetMatrB()<<"\n";
 
 				// Remember to add the mesh to the system!
 	my_system.Add(my_mesh);

@@ -60,7 +60,7 @@ public:
 	
 				/// Compute the global STIFFNESS MATRIX of the element:    
 				/// K = Volume * [B]' * [D] * [B]
-	virtual void Setup() {
+	virtual void SetupInitial() {
 			ComputeVolume();
 			ChMatrixDynamic<> MatCoeff(3,3);
 			MatCoeff.PasteVector(nodes[1]->pos,0,0);
@@ -131,7 +131,7 @@ public:
 					// formulation of the corotational stiffness matrix in 3D)
 					
 						// calculate global stiffness matrix
-					Setup();
+					//Setup(); // NO, we assume it has been computed at the beginning of the simulation
 					ChMatrixDynamic<> tempMatr = StiffnessMatrix;
 					tempMatr.MatrScale( Kfactor );
 
