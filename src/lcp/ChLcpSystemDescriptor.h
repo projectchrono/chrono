@@ -34,7 +34,7 @@ namespace chrono
 /// can be used to define a sparse representation of the system.
 ///  The problem is described by a variational inequality VI(Z*x-d,K):
 ///
-///  | M -Cq'|*|q|- | f|= |0| , l \in Y, C \in Ny, normal cone to Y  
+///  | M -Cq'|*|q|- | f|= |0| , l \in Y, c \in Ny, normal cone to Y  
 ///  | Cq -E | |l|  |-b|  |c|    
 ///
 /// Also Z symmetric by flipping sign of l_i: |M  Cq'|*| q|-| f|=|0|  
@@ -344,8 +344,8 @@ public:
 				/// contained in this ChLcpSystemDescriptor. 
 				/// The matrices define the VI variational inequality:
 				///
-				///  | M -Cq'|*|q|- | f|= |0| , l \in Y (es friction cone), C \in normal cone to Y  
-				///  | Cq -E | |l|  |-b|  |C|    (case no friction: LCP C>=0, l>=0, l*c=0;)        
+				///  | M -Cq'|*|q|- | f|= |0| , l \in Y (es friction cone), c \in normal cone to Y  
+				///  | Cq -E | |l|  |-b|  |c|    (case no friction: LCP c>=0, l>=0, l*c=0;)        
 				///                              (case only bilaterals: linear system, c=0)
 				///
 				/// also symmetrizable by flipping the sign of l_i terms:  | M  Cq'|*| q|- | f|= |0|  

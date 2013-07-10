@@ -84,7 +84,7 @@ int ChNodeBody::Initialize(ChSharedPtr<ChIndexedNodes> mnodes, ///< nodes contai
 	this->constraint1.SetVariables(&(mm1->GetNode(node_index)->Variables()), &mm2->Variables());
 	this->constraint2.SetVariables(&(mm1->GetNode(node_index)->Variables()), &mm2->Variables());
 	this->constraint3.SetVariables(&(mm1->GetNode(node_index)->Variables()), &mm2->Variables());
-/*
+
 	this->SetSystem(this->body->GetSystem());
 
 	if (mattach)
@@ -93,10 +93,10 @@ int ChNodeBody::Initialize(ChSharedPtr<ChIndexedNodes> mnodes, ///< nodes contai
 	}
 	else
 	{
-		Vector temp=nodes->GetNode(node_index).GetPos();
+		ChVector<> temp= ((ChNodeXYZ*)(this->nodes->GetNode(this->node_index)))->GetPos(); // warning, downcast to ChNodeXYZ* 
 		this->attach_position = body->Point_World2Body(&temp);
 	}
-*/
+
 	return true;
 }
 
