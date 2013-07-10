@@ -149,14 +149,14 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm (
 
 	// Count bilateral and other constraints.. (if wanted, bilaterals only)
 
-	int n_c=0;
+	int mn_c=0;
 	for (unsigned int ic = 0; ic< mconstraints.size(); ic++)
 	{
 		if (mconstraints[ic]->IsActive())
 		  if (! ((mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) && only_bilaterals))
 			  if ( ! (( dynamic_cast<ChLcpConstraintTwoFrictionT*> (mconstraints[ic])) && skip_contacts_uv))
 			  {
-				n_c++;
+				mn_c++;
 			  }
 	}
 
@@ -169,17 +169,17 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm (
 	// Reset and resize (if needed) auxiliary vectors
 
 	if (Cq) 
-		Cq->Reset(n_c, n_q);
+		Cq->Reset(mn_c, n_q);
 	if (M)
 		M->Reset (n_q, n_q);
 	if (E)
-		E->Reset (n_c, n_c);
+		E->Reset (mn_c, mn_c);
 	if (Fvector)
 		Fvector->Reset (n_q, 1);
 	if (Bvector)
-		Bvector->Reset (n_c, 1);
+		Bvector->Reset (mn_c, 1);
 	if (Frict)
-		Frict->Reset (n_c, 1);
+		Frict->Reset (mn_c, 1);
 
 	// Fills M submasses and 'f' vector,
 	// by looping on variables
@@ -273,7 +273,7 @@ int ChLcpSystemDescriptor::BuildBiVector(
 								ChMatrix<>& Bvector	///< matrix which will contain the entire vector of 'b'
 						)
 {
-	int n_c=CountActiveConstraints();
+	n_c=CountActiveConstraints();
 	Bvector.Resize(n_c, 1);
 	
 	// Fill the 'b' vector
@@ -426,7 +426,7 @@ int ChLcpSystemDescriptor::FromConstraintsToVector(
 	// Count active constraints and resize vector if necessary
 	if (resize_vector)
 	{
-		int n_c=CountActiveConstraints();
+		n_c=CountActiveConstraints();
 		mvector.Resize(n_c, 1);
 	}
 
@@ -513,7 +513,7 @@ int ChLcpSystemDescriptor::FromVectorToUnknowns(
 								)
 {
 	n_q= CountActiveVariables();
-	n_c= CountActiveVariables();
+	n_c= CountActiveConstraints();
 
 	#ifdef CH_DEBUG
 		assert((n_q+n_c) == mvector.GetRows());

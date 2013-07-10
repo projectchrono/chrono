@@ -409,7 +409,6 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 			mx.FillElem(0);
 	}
 
-
 	//
 	// --- THE P-MINRES ALGORITHM
 	//
@@ -446,7 +445,6 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 
 	// Zp = Z*p  
 	sysd.SystemProduct(mZp, &mp);		// Zp = Z*p    #### MATR.MULTIPLICATION!!!###
-
 
 	//
 	// THE LOOP
@@ -566,7 +564,7 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 	// the q values in ChLcpVariable items and to l values in ChLcpConstraint items
 	sysd.FromVectorToUnknowns(mx);  
 
-	
+
 	if (verbose) GetLog() <<"-----\n";
 
 	return maxviolation;
