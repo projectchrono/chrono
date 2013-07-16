@@ -97,7 +97,7 @@ public:
 			//
 			// Custom properties functions
 			//
-				/// Set mass of the node.
+				/// Get mass of the node.
 	virtual double GetMass() const {return this->variables.GetNodeMass();}
 				/// Set mass of the node.
 	virtual void SetMass(double mm) {this->variables.SetNodeMass(mm);}
