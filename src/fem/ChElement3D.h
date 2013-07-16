@@ -5,6 +5,7 @@ namespace chrono{
 
 /// Class for all 3-Dimensional elements 
 
+
 class ChApi ChElement3D : public ChElementGeneric
 {
 protected:
@@ -12,7 +13,7 @@ protected:
 
 public:
 	/// Computes the volume of the element (and stores the value in this->volume)
-	double ComputeVolume(){return 1;};
+	virtual double ComputeVolume() = 0;
 	double GetVolume() {return Volume;}
 
 
@@ -20,6 +21,10 @@ public:
 
 
 
+struct MatrixAndDet {				//use this structure to keep in memory MatrB and the Jacobian determinant (necessary for integration)
+	ChMatrixDynamic<> Matrix;
+	double JacobianDet;
+};
 
 class ChApi ChTetrahedron : public ChElement3D
 {

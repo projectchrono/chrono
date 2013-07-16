@@ -6,15 +6,17 @@
 #include "fem/ChElement3D.h"
 #include "fem/ChNodeFEMxyz.h"
 
-namespace chrono{
-	namespace fem{
+namespace chrono
+{
+namespace fem
+{
 
 class ChApi ChElementTetra_4 : public ChTetrahedron
 {
 protected:
 		std::vector<ChNodeFEMxyz*> nodes;
 		ChSharedPtr<ChContinuumElastic> Material;
-		ChMatrixDynamic<> MatrB;
+		ChMatrixDynamic<> MatrB;		// matrix of shape function's partial derivatives
 		ChMatrixDynamic<> StiffnessMatrix;
 	
 public:
@@ -44,80 +46,89 @@ public:
 			// FEM functions
 			//
 
-	double ComputeVolume(){
-			ChVector<> B1,C1,D1;
-			B1.Sub(nodes[1]->pos,nodes[0]->pos);
-			C1.Sub(nodes[2]->pos,nodes[0]->pos);
-			D1.Sub(nodes[3]->pos,nodes[0]->pos);
-			ChMatrixDynamic<> M(3,3);
-			M.PasteVector(B1,0,0);
-			M.PasteVector(C1,0,1);
-			M.PasteVector(D1,0,2);
-			M.MatrTranspose();
-			Volume = abs(M.Det()/6);
-			return Volume;
-		}
+	double ComputeVolume()
+				{
+					ChVector<> B1,C1,D1;
+					B1.Sub(nodes[1]->pos,nodes[0]->pos);
+					C1.Sub(nodes[2]->pos,nodes[0]->pos);
+					D1.Sub(nodes[3]->pos,nodes[0]->pos);
+					ChMatrixDynamic<> M(3,3);
+					M.PasteVector(B1,0,0);
+					M.PasteVector(C1,0,1);
+					M.PasteVector(D1,0,2);
+					M.MatrTranspose();
+					Volume = abs(M.Det()/6);
+					return Volume;
+				}
+
 	
-				/// Compute the global STIFFNESS MATRIX of the element:    
+				/// Computes the global STIFFNESS MATRIX of the element:    
 				/// K = Volume * [B]' * [D] * [B]
-	virtual void SetupInitial() {
-			ComputeVolume();
-			ChMatrixDynamic<> MatCoeff(3,3);
-			MatCoeff.PasteVector(nodes[1]->pos,0,0);
-			MatCoeff.PasteVector(nodes[2]->pos,0,1);
-			MatCoeff.PasteVector(nodes[3]->pos,0,2); 
-			MatCoeff.MatrTranspose();
-			ChMatrixDynamic<> MatCoeffB = MatCoeff;
-		MatCoeffB.PasteVector(ChVector<>(1,1,1),0,0);
-			double b1=-MatCoeffB.Det();
-			MatCoeffB.SetElement(0,1,nodes[0]->pos.y);
-			MatCoeffB.SetElement(0,2,nodes[0]->pos.z);
-			double b2=MatCoeffB.Det();
-			MatCoeffB.SetElement(1,1,nodes[1]->pos.y);
-			MatCoeffB.SetElement(1,2,nodes[1]->pos.z);
-			double b3=-MatCoeffB.Det();
-			MatCoeffB.SetElement(2,1,nodes[2]->pos.y);
-			MatCoeffB.SetElement(2,2,nodes[2]->pos.z);
-			double b4=MatCoeffB.Det();
-			ChMatrixDynamic<> MatCoeffC = MatCoeff;
-		MatCoeffC.PasteVector(ChVector<>(1,1,1),0,1);
-			double c1=-MatCoeffC.Det();
-			MatCoeffC.SetElement(0,0,nodes[0]->pos.x);
-			MatCoeffC.SetElement(0,2,nodes[0]->pos.z);
-			double c2=MatCoeffC.Det();
-			MatCoeffC.SetElement(1,0,nodes[1]->pos.x);
-			MatCoeffC.SetElement(1,2,nodes[1]->pos.z);
-			double c3=-MatCoeffC.Det();
-			MatCoeffC.SetElement(2,0,nodes[2]->pos.x);
-			MatCoeffC.SetElement(2,2,nodes[2]->pos.z);
-			double c4=MatCoeffC.Det();
-			ChMatrixDynamic<> MatCoeffD = MatCoeff;
-		MatCoeffD.PasteVector(ChVector<>(1,1,1),0,2);
-			double d1=-MatCoeffD.Det();
-			MatCoeffD.SetElement(0,0,nodes[0]->pos.x);
-			MatCoeffD.SetElement(0,1,nodes[0]->pos.y);
-			double d2=MatCoeffD.Det();
-			MatCoeffD.SetElement(1,0,nodes[1]->pos.x);
-			MatCoeffD.SetElement(1,1,nodes[1]->pos.y);
-			double d3=-MatCoeffD.Det();
-			MatCoeffD.SetElement(2,0,nodes[2]->pos.x);
-			MatCoeffD.SetElement(2,1,nodes[2]->pos.y);
-			double d4=MatCoeffD.Det();
-			//setting matrix B
-			MatrB.Resize(6,12);
-			MatrB.SetElement(0,0,b1);	MatrB.SetElement(0,3,b2);	MatrB.SetElement(0,6,b3);	MatrB.SetElement(0,9,b4);	
-			MatrB.SetElement(1,1,c1);	MatrB.SetElement(1,4,c2);	MatrB.SetElement(1,7,c3);	MatrB.SetElement(1,10,c4);
-			MatrB.SetElement(2,2,d1);	MatrB.SetElement(2,5,d2);	MatrB.SetElement(2,8,d3);	MatrB.SetElement(2,11,d4);	
-			MatrB.SetElement(3,0,c1);	MatrB.SetElement(3,1,b1);	MatrB.SetElement(3,3,c2);	MatrB.SetElement(3,4,b2);	MatrB.SetElement(3,6,c3);	MatrB.SetElement(3,7,b3);	MatrB.SetElement(3,9,c4);	MatrB.SetElement(3,10,b4);
-			MatrB.SetElement(4,1,d1);	MatrB.SetElement(4,2,c1);	MatrB.SetElement(4,4,d2);	MatrB.SetElement(4,5,c2);	MatrB.SetElement(4,7,d3);	MatrB.SetElement(4,8,c3);	MatrB.SetElement(4,10,d4);	MatrB.SetElement(4,11,c4);
-			MatrB.SetElement(5,0,d1);	MatrB.SetElement(5,2,b1);	MatrB.SetElement(5,3,d2);	MatrB.SetElement(5,5,b2);	MatrB.SetElement(5,6,d3);	MatrB.SetElement(5,8,b3);	MatrB.SetElement(5,9,d4);	MatrB.SetElement(5,11,b4);
-			MatrB.MatrDivScale(6*Volume);
-			ChMatrixDynamic<> temp(12,6);
-			temp.MatrTMultiply(MatrB, Material->Get_StressStrainatrix());
-			StiffnessMatrix.Resize(12,12);
-			StiffnessMatrix.MatrMultiply(temp,MatrB);
-			StiffnessMatrix.MatrScale(Volume);
-		}
+	virtual void ComputeStiffnessMatrix()
+				{
+					ChMatrixDynamic<> MatCoeff(3,3);
+					MatCoeff.PasteVector(nodes[1]->pos,0,0);
+					MatCoeff.PasteVector(nodes[2]->pos,0,1);
+					MatCoeff.PasteVector(nodes[3]->pos,0,2); 
+					MatCoeff.MatrTranspose();
+					ChMatrixDynamic<> MatCoeffB = MatCoeff;
+				MatCoeffB.PasteVector(ChVector<>(1,1,1),0,0);
+					double b1=-MatCoeffB.Det();
+					MatCoeffB.SetElement(0,1,nodes[0]->pos.y);
+					MatCoeffB.SetElement(0,2,nodes[0]->pos.z);
+					double b2=MatCoeffB.Det();
+					MatCoeffB.SetElement(1,1,nodes[1]->pos.y);
+					MatCoeffB.SetElement(1,2,nodes[1]->pos.z);
+					double b3=-MatCoeffB.Det();
+					MatCoeffB.SetElement(2,1,nodes[2]->pos.y);
+					MatCoeffB.SetElement(2,2,nodes[2]->pos.z);
+					double b4=MatCoeffB.Det();
+					ChMatrixDynamic<> MatCoeffC = MatCoeff;
+				MatCoeffC.PasteVector(ChVector<>(1,1,1),0,1);
+					double c1=-MatCoeffC.Det();
+					MatCoeffC.SetElement(0,0,nodes[0]->pos.x);
+					MatCoeffC.SetElement(0,2,nodes[0]->pos.z);
+					double c2=MatCoeffC.Det();
+					MatCoeffC.SetElement(1,0,nodes[1]->pos.x);
+					MatCoeffC.SetElement(1,2,nodes[1]->pos.z);
+					double c3=-MatCoeffC.Det();
+					MatCoeffC.SetElement(2,0,nodes[2]->pos.x);
+					MatCoeffC.SetElement(2,2,nodes[2]->pos.z);
+					double c4=MatCoeffC.Det();
+					ChMatrixDynamic<> MatCoeffD = MatCoeff;
+				MatCoeffD.PasteVector(ChVector<>(1,1,1),0,2);
+					double d1=-MatCoeffD.Det();
+					MatCoeffD.SetElement(0,0,nodes[0]->pos.x);
+					MatCoeffD.SetElement(0,1,nodes[0]->pos.y);
+					double d2=MatCoeffD.Det();
+					MatCoeffD.SetElement(1,0,nodes[1]->pos.x);
+					MatCoeffD.SetElement(1,1,nodes[1]->pos.y);
+					double d3=-MatCoeffD.Det();
+					MatCoeffD.SetElement(2,0,nodes[2]->pos.x);
+					MatCoeffD.SetElement(2,1,nodes[2]->pos.y);
+					double d4=MatCoeffD.Det();
+					//setting matrix B
+					MatrB.Resize(6,12);
+					MatrB.SetElement(0,0,b1);	MatrB.SetElement(0,3,b2);	MatrB.SetElement(0,6,b3);	MatrB.SetElement(0,9,b4);	
+					MatrB.SetElement(1,1,c1);	MatrB.SetElement(1,4,c2);	MatrB.SetElement(1,7,c3);	MatrB.SetElement(1,10,c4);
+					MatrB.SetElement(2,2,d1);	MatrB.SetElement(2,5,d2);	MatrB.SetElement(2,8,d3);	MatrB.SetElement(2,11,d4);	
+					MatrB.SetElement(3,0,c1);	MatrB.SetElement(3,1,b1);	MatrB.SetElement(3,3,c2);	MatrB.SetElement(3,4,b2);	MatrB.SetElement(3,6,c3);	MatrB.SetElement(3,7,b3);	MatrB.SetElement(3,9,c4);	MatrB.SetElement(3,10,b4);
+					MatrB.SetElement(4,1,d1);	MatrB.SetElement(4,2,c1);	MatrB.SetElement(4,4,d2);	MatrB.SetElement(4,5,c2);	MatrB.SetElement(4,7,d3);	MatrB.SetElement(4,8,c3);	MatrB.SetElement(4,10,d4);	MatrB.SetElement(4,11,c4);
+					MatrB.SetElement(5,0,d1);	MatrB.SetElement(5,2,b1);	MatrB.SetElement(5,3,d2);	MatrB.SetElement(5,5,b2);	MatrB.SetElement(5,6,d3);	MatrB.SetElement(5,8,b3);	MatrB.SetElement(5,9,d4);	MatrB.SetElement(5,11,b4);
+					MatrB.MatrDivScale(6*Volume);
+					ChMatrixDynamic<> temp(12,6);
+					temp.MatrTMultiply(MatrB, Material->Get_StressStrainatrix());
+					StiffnessMatrix.Resize(12,12);
+					StiffnessMatrix.MatrMultiply(temp,MatrB);
+					StiffnessMatrix.MatrScale(Volume);
+				}
+
+				/// set up the element's parameters and matrices 
+	virtual void SetupInitial() 
+				{
+					ComputeVolume();
+					ComputeStiffnessMatrix();
+				}
 
 				/// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
 				/// superimposes global damping matrix R, scaled by Rfactor.
@@ -125,13 +136,12 @@ public:
 	virtual void ComputeKRmatricesGlobal	(ChMatrix<>& H, double Kfactor, double Rfactor=0) 
 				{
 					assert((H.GetRows() == 12) && (H.GetColumns()==12));
-					GetLog()<<"Sto eseguendo ComputeKRmatricesGlobal!!!\n";
 
 					// compute stiffness matrix (this is already the explicit
 					// formulation of the corotational stiffness matrix in 3D)
 					
 						// calculate global stiffness matrix
-					//Setup(); // NO, we assume it has been computed at the beginning of the simulation
+					//SetupInitial(); // NO, we assume it has been computed at the beginning of the simulation
 					ChMatrixDynamic<> tempMatr = StiffnessMatrix;
 					tempMatr.MatrScale( Kfactor );
 
@@ -190,7 +200,7 @@ public:
 
 };
 
-	}//___end of namespace fem___
+}//___end of namespace fem___
 }//___end of namespace chrono___
 
 #endif
