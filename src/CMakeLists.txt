@@ -553,7 +553,8 @@ IF (BUILD_CH_SDK)
 	SET(ChronoEngine_fem_SOURCES
 		fem/ChQuadra.cpp
 		fem/ChElementSpring.cpp  
-		fem/ChElementTetra_4.cpp 
+		fem/ChElementTetra_4.cpp
+		fem/ChElementTetra_10.cpp 
 		fem/ChMesh.cpp  
 		fem/ChMatterMeshless.cpp 
 		fem/ChContinuumMaterial.cpp
@@ -568,6 +569,7 @@ IF (BUILD_CH_SDK)
 		fem/ChElementSpring.h 
 		fem/ChElement3D.h
 		fem/ChElementTetra_4.h
+		fem/ChElementTetra_10.h
 		fem/ChMesh.h 
 		fem/ChMatterMeshless.h 
 		fem/ChContinuumMaterial.h
