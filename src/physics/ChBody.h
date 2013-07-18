@@ -7,7 +7,7 @@
 //
 //   Class for rigid bodies, that is rigid moving
 //   parts with mass and maybe collision geometry.
-//   A rigid body encloses markers and forces too.
+//   A rigid body encloses markers and forces too
 //
 //   HEADER file for CHRONO,
 //	 Multibody dynamics engine

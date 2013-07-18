@@ -295,9 +295,9 @@ namespace HACD
         IChUll *                                    m_convexHulls;				//>! convex-hulls associated with the final HACD clusters
 		Graph										m_graph;					//>! simplification graph
         size_t                                      m_nVerticesPerCH;			//>! maximum number of vertices per convex-hull
-		reservable_priority_queue<GraphEdgePriorityQueue, 
-            std::vector<GraphEdgePriorityQueue>,
-			std::greater<std::vector<GraphEdgePriorityQueue>::value_type> > m_pqueue;		//!> priority queue
+//		reservable_priority_queue<GraphEdgePriorityQueue, 
+//            std::vector<GraphEdgePriorityQueue>,
+//			std::greater<std::vector<GraphEdgePriorityQueue>::value_type> > m_pqueue;		//!> priority queue
 													HACD(const HACD & rhs);
 		CallBackFunction							m_callBack;					//>! call-back function
 		long *										m_partition;				//>! array of size m_nTriangles where the i-th element specifies the cluster to which belong the i-th triangle

@@ -101,13 +101,13 @@ public:
 				/// Computes the matrix of partial derivatives and puts data in "A"
 				///	ID (0,...,3) identifies the integration point; zeta1,...,zeta4 are its four natural coordinates
 				/// note: in case of tetrahedral elements natural coord. vary in the range 0 ... +1
-	virtual void ComputeMatrB(MatrixAndDet* A, int ID, double zeta1, double zeta2, double zeta3, double zeta4) 
+	virtual void ComputeMatrB(int ID, double zeta1, double zeta2, double zeta3, double zeta4, double& JacobianDet) 
 			{
 				ChMatrixDynamic<> Jacobian(4,4);
 				ComputeJacobian(Jacobian, zeta1, zeta2, zeta3, zeta4);
 				
 				double Jdet=Jacobian.Det();
-				A->JacobianDet = Jdet;		// !!! store the Jacobian Determinant in A.JacobianDet
+				JacobianDet = Jdet;		// !!! store the Jacobian Determinant: needed for the integration
 		
 				MatrB[ID].SetElement(0,0,(4*zeta1-1)*((Jacobian(2,3)-Jacobian(2,1))*(Jacobian(3,2)-Jacobian(3,1))-(Jacobian(2,2)-Jacobian(2,1))*(Jacobian(3,3)-Jacobian(3,1)))/Jdet);
 				MatrB[ID].SetElement(0,3,(4*zeta2-1)*((Jacobian(2,2)-Jacobian(2,0))*(Jacobian(3,3)-Jacobian(3,2))-(Jacobian(2,2)-Jacobian(2,3))*(Jacobian(3,0)-Jacobian(3,2)))/Jdet);
@@ -216,20 +216,21 @@ public:
 			//Exact Integration (4 Gp)
 			//========================
 				double zeta1, zeta2, zeta3, zeta4;
+				double JacobianDet;
 				ChMatrixDynamic<> temp;
 				ChMatrixDynamic<> BT;
-				MatrixAndDet A;
+
 
 				zeta1=0.58541020;
 				zeta2=0.1381966;
 				zeta3=0.1381966;
 				zeta4=0.1381966;
 
-				ComputeMatrB(&A, 0, zeta1, zeta2, zeta3, zeta4);
+				ComputeMatrB(0, zeta1, zeta2, zeta3, zeta4, JacobianDet);
 				BT=MatrB[0];
 				BT.MatrTranspose();
 				temp = (BT * Material->Get_StressStrainatrix() * MatrB[0]);
-				temp.MatrScale(A.JacobianDet/6);
+				temp.MatrScale(JacobianDet/6);
 					//Gauss integration weight = 1*1/4*1/4*1/4
 				temp.MatrDivScale(16);
 				StiffnessMatrix = temp;
@@ -239,11 +240,11 @@ public:
 				zeta3=0.1381966;
 				zeta4=0.1381966;
 
-				ComputeMatrB(&A, 1, zeta1, zeta2, zeta3, zeta4);
+				ComputeMatrB(1, zeta1, zeta2, zeta3, zeta4, JacobianDet);
 				BT=MatrB[1];
 				BT.MatrTranspose();
 				temp = (BT * Material->Get_StressStrainatrix() * MatrB[1]);
-				temp.MatrScale(A.JacobianDet/6);
+				temp.MatrScale(JacobianDet/6);
 					//Gauss integration weight = 1*1/4*1/4*1/4
 				temp.MatrDivScale(16);
 				StiffnessMatrix.MatrAdd(StiffnessMatrix,temp);
@@ -253,11 +254,11 @@ public:
 				zeta3=0.58541020;
 				zeta4=0.1381966;
 
-				ComputeMatrB(&A, 2, zeta1, zeta2, zeta3, zeta4);
+				ComputeMatrB(2, zeta1, zeta2, zeta3, zeta4, JacobianDet);
 				BT=MatrB[2];
 				BT.MatrTranspose();
 				temp = (BT * Material->Get_StressStrainatrix() * MatrB[2]);
-				temp.MatrScale(A.JacobianDet/6);
+				temp.MatrScale(JacobianDet/6);
 					//Gauss integration weight = 1*1/4*1/4*1/4
 				temp.MatrDivScale(16);
 				StiffnessMatrix.MatrAdd(StiffnessMatrix,temp);
@@ -267,11 +268,11 @@ public:
 				zeta3=0.1381966;
 				zeta4=0.58541020;
 
-				ComputeMatrB(&A, 3, zeta1, zeta2, zeta3, zeta4);
+				ComputeMatrB(3, zeta1, zeta2, zeta3, zeta4, JacobianDet);
 				BT=MatrB[3];
 				BT.MatrTranspose();
 				temp = (BT * Material->Get_StressStrainatrix() * MatrB[3]);
-				temp.MatrScale(A.JacobianDet/6);
+				temp.MatrScale(JacobianDet/6);
 					//Gauss integration weight = 1*1/4*1/4*1/4
 				temp.MatrDivScale(16);
 				StiffnessMatrix.MatrAdd(StiffnessMatrix,temp);
