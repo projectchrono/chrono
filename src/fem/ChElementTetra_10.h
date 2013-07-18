@@ -3,8 +3,8 @@
 
 
 
-#include "fem\ChElement3D.h"
-#include "fem\ChNodeFEMxyz.h"
+#include "fem/ChElement3D.h"
+#include "fem/ChNodeFEMxyz.h"
 
 namespace chrono
 {
@@ -16,7 +16,7 @@ class ChApi ChElementTetra_10 : public ChTetrahedron
 protected:
 		std::vector<ChNodeFEMxyz*> nodes;
 		ChSharedPtr<ChContinuumElastic> Material;
-		std::vector<ChMatrixDynamic<>> MatrB;		// matrices of shape function's partial derivatives (one for each integration point)
+		std::vector<ChMatrixDynamic<> > MatrB;		// matrices of shape function's partial derivatives (one for each integration point)
 													// we use a vector to keep in memory all the four matrices (-> 4 integr. point)
 		ChMatrixDynamic<> StiffnessMatrix;
 	
