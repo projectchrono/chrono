@@ -1,3 +1,6 @@
+#ifndef CHELEMENT3D_H
+#define CHELEMENT3D_H
+
 #include "fem/ChElementGeneric.h"
 
 namespace chrono{
@@ -21,23 +24,38 @@ public:
 
 
 
-struct MatrixAndDet {				//use this structure to keep in memory MatrB and the Jacobian determinant (necessary for integration)
-	ChMatrixDynamic<> Matrix;
-	double JacobianDet;
-};
+//struct MatrixAndDet						// use this structure to keep in memory booth 'MatrB'  
+//	{										// and Jacobian determinant (necessary for integration)
+//		ChMatrixDynamic<> Matrix;			// Not necessary because we store all MatrB matrices
+//		double JacobianDet;
+//	};
 
-class ChApi ChTetrahedron : public ChElement3D
-{
-protected:
-	
-public:
-	int ID;
 
-};
+	//////// calss for tetrahedral elements
+class ChApi ChTetrahedron : public ChElement3D					//		  /|\						//
+{																//		 / |  \						//
+protected:														//		/  |	\					//
+																//	   /.  |	  \					//
+public:															//	   \   |.		\				//
+	int ID;														//		\  |	.	  \				//
+																//		 \ |		.	\			//
+};																//		  \|__ __ __ __'__\			//
 
+
+															
+class ChApi ChHexahedron : public ChElement3D					//		    __ __ __ __				//
+{																//		  /			  /|			//				
+protected:														//		 /_|__ __ __ / |			//
+																//		|			|  |			//
+public:															//		|  |		|  |			//
+	int ID;														//		|	 __	 __	|  |			//
+																//		| /			| /				//		
+};																//		|__ __ __ __|/				//			  
 
 
 
 
 	}//___end of namespace fem___
 }//___end of namespace chrono___
+
+#endif

@@ -611,11 +611,11 @@ namespace HACD
 	}
     bool HACD::InitializePriorityQueue()
     {
-		m_pqueue.reserve(m_graph.m_nE + 100);
+//		m_pqueue.reserve(m_graph.m_nE + 100);
         for (size_t e=0; e < m_graph.m_nE; ++e) 
         {
             ComputeEdgeCost(static_cast<long>(e));
-			m_pqueue.push(GraphEdgePriorityQueue(static_cast<long>(e), m_graph.m_edges[e].m_error));
+//			m_pqueue.push(GraphEdgePriorityQueue(static_cast<long>(e), m_graph.m_edges[e].m_error));
         }
 		return true;
     }
@@ -629,7 +629,7 @@ namespace HACD
         double globalConcavity  = 0.0;     
 		char msg[1024];
 		double ptgStep = 1.0;
-        while ( !m_pqueue.empty() ) 
+/*        while ( !m_pqueue.empty() ) 
 		{
 
             progress = 100.0-m_graph.GetNVertices() * 100.0 / m_nTriangles;
@@ -863,7 +863,7 @@ namespace HACD
 			{
 				break;
 			}
-		}
+		}*/
         m_cVertices.clear();
 		m_nClusters = m_graph.GetNVertices();
         m_cVertices.reserve(m_nClusters);

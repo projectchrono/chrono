@@ -23,6 +23,8 @@
 #include "lcp/ChLcpIterativePMINRES.h"
 #include "fem/ChElementSpring.h"
 #include "fem/ChElementTetra_4.h"
+#include "fem/ChElementTetra_10.h"
+#include "fem/ChElementHexa_8.h"
 #include "fem/ChMesh.h"
 
 
@@ -34,10 +36,11 @@ using namespace fem;
 
 
 
-
-// Test 1
-// First example: 
-
+//////////////////////////////////////////
+// ====================================	//
+// Test 1								//
+// First example: SPRING ELEMENT		//
+// ==================================== //
 void test_1()
 {
 	GetLog() << "\n-------------------------------------------------\n";
@@ -77,18 +80,15 @@ void test_1()
 
 				// Remember to add the mesh to the system!
 	my_system.Add(my_mesh);
-
-
 			
+
 				// Create also a truss
 	ChSharedPtr<ChBody> truss(new ChBody);
 	truss->SetBodyFixed(true);
 	my_system.Add(truss);
 
-
 				// Create a constraint between a node and the truss
 	ChSharedPtr<ChNodeBody> constraintA(new ChNodeBody);
-
 
 	constraintA->Initialize(my_mesh,		// node container
 							0,				// index of node in node container 
@@ -108,7 +108,6 @@ void test_1()
 	my_system.SetIterLCPmaxItersSpeed(40);
 	my_system.SetTolSpeeds(1e-10);
 
-
 	my_system.DoStaticLinear();
 
 				// Output result
@@ -119,14 +118,16 @@ void test_1()
 	GetLog() << "  constraintA.react \n" << constraintA->GetReactionOnBody();
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-// Test 2
-// Second example: TETRAHEDRAL ELEMENT
 
+//////////////////////////////////////////////////////////////////
+// ============================================================ //
+// Test 2													    //
+// Second example: LINEAR TETRAHEDRAL ELEMENT				    //
+// ============================================================ //
 void test_2()
 {
 	GetLog() << "\n-------------------------------------------------\n";
-	GetLog() << "TEST: tetrahedral element FEM  \n\n";
+	GetLog() << "TEST: LINEAR tetrahedral element FEM  \n\n";
 
 				// The physical system: it contains all physical objects.
 	ChSystem my_system; 
@@ -182,7 +183,6 @@ void test_2()
 	my_system.Add(my_mesh);
 
 
-			
 				// Create also a truss
 	ChSharedPtr<ChBody> truss(new ChBody);
 	truss->SetBodyFixed(true);
@@ -192,7 +192,6 @@ void test_2()
 	ChSharedPtr<ChNodeBody> constraint1(new ChNodeBody);
 	ChSharedPtr<ChNodeBody> constraint2(new ChNodeBody);
 	ChSharedPtr<ChNodeBody> constraint3(new ChNodeBody);
-
 
 	constraint1->Initialize(my_mesh,		// node container
 							0,				// index of node in node container 
@@ -214,7 +213,6 @@ void test_2()
 	//my_system.Set_G_acc(VNULL);
 
 
-
 				// Perform a linear static analysis
 	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES); // <- NEEDED because other solvers can't handle stiffness matrices
 	chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
@@ -222,8 +220,6 @@ void test_2()
 	msolver->SetVerbose(true);
 	my_system.SetIterLCPmaxItersSpeed(80);
 	my_system.SetTolSpeeds(1e-10);
-
-
 
 	my_system.DoStaticLinear();
 
@@ -236,6 +232,268 @@ void test_2()
 }
 
 
+//////////////////////////////////////////////////////////////////
+// ============================================================ //
+// Test 3													    //
+// Second example: QUADRATIC TETRAHEDRAL ELEMENT				//
+// ============================================================ //
+void test_3()
+{
+	GetLog() << "\n-------------------------------------------------\n";
+	GetLog() << "TEST: QUADRATIC tetrahedral element FEM  \n\n";
+
+				// The physical system: it contains all physical objects.
+	ChSystem my_system; 
+					
+				// Create a mesh, that is a container for groups
+				// of elements and their referenced nodes.
+	ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+
+				// Create a material, that must be assigned to each element,
+				// and set its parameters
+	ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
+	mmaterial->Set_E(207e9);
+	mmaterial->Set_v(0.3);
+
+				// Create some nodes. These are the classical point-like
+				// nodes with x,y,z degrees of freedom, that can be used 
+				// for many types of FEM elements in space.
+	ChNodeFEMxyz mnode1(ChVector<>(0,0,0));
+	ChNodeFEMxyz mnode2(ChVector<>(0.001,0,0));
+	ChNodeFEMxyz mnode3(ChVector<>(0,0.001,0));
+	ChNodeFEMxyz mnode4(ChVector<>(0,0,0.001));
+				// Build a Constant Metric tetrahedron
+	ChNodeFEMxyz mnode5(ChVector<>((mnode1.pos.x+mnode2.pos.x)/2,(mnode1.pos.y+mnode2.pos.y)/2,(mnode1.pos.z+mnode2.pos.z)/2));
+	ChNodeFEMxyz mnode6(ChVector<>((mnode2.pos.x+mnode3.pos.x)/2,(mnode2.pos.y+mnode3.pos.y)/2,(mnode2.pos.z+mnode3.pos.z)/2));
+	ChNodeFEMxyz mnode7(ChVector<>((mnode3.pos.x+mnode1.pos.x)/2,(mnode3.pos.y+mnode1.pos.y)/2,(mnode3.pos.z+mnode1.pos.z)/2));
+	ChNodeFEMxyz mnode8(ChVector<>((mnode1.pos.x+mnode4.pos.x)/2,(mnode1.pos.y+mnode4.pos.y)/2,(mnode1.pos.z+mnode4.pos.z)/2));
+	ChNodeFEMxyz mnode9(ChVector<>((mnode4.pos.x+mnode2.pos.x)/2,(mnode4.pos.y+mnode2.pos.y)/2,(mnode4.pos.z+mnode2.pos.z)/2));
+	ChNodeFEMxyz mnode10(ChVector<>((mnode3.pos.x+mnode4.pos.x)/2,(mnode3.pos.y+mnode4.pos.y)/2,(mnode3.pos.z+mnode4.pos.z)/2));
+	mnode1.SetMass(0.001);
+	mnode2.SetMass(0.001);
+	mnode3.SetMass(0.001);
+	mnode4.SetMass(0.001);
+	mnode5.SetMass(0.001);
+	mnode6.SetMass(0.001);
+	mnode7.SetMass(0.001);
+	mnode8.SetMass(0.001);
+	mnode9.SetMass(0.001);
+	mnode10.SetMass(0.001);
+	
+				// For example, set an applied force to a node:
+	mnode3.SetForce(ChVector<>(0, -1000, 0));
+
+				// Remember to add nodes and elements to the mesh!
+	my_mesh->AddNode(mnode1);
+	my_mesh->AddNode(mnode2);
+	my_mesh->AddNode(mnode3);
+	my_mesh->AddNode(mnode4);
+	my_mesh->AddNode(mnode5);
+	my_mesh->AddNode(mnode6);
+	my_mesh->AddNode(mnode7);
+	my_mesh->AddNode(mnode8);
+	my_mesh->AddNode(mnode9);
+	my_mesh->AddNode(mnode10);
+
+				// Create the tetrahedron element, and assign 
+				// it nodes and material
+	ChElementTetra_10 melement1;
+	melement1.SetNodes(&mnode1, &mnode2, &mnode3, &mnode4, &mnode5, &mnode6, &mnode7, &mnode8, &mnode9, &mnode10);
+	melement1.SetMaterial(mmaterial);
+
+				// Remember to add elements to the mesh!
+	my_mesh->AddElement(melement1);
+
+				// This is necessary in order to precompute the 
+				// stiffness matrices for all inserted elements in mesh
+	my_mesh->SetupInitial();
+
+				// Remember to add the mesh to the system!
+	my_system.Add(my_mesh);
+
+
+				// Create also a truss
+	ChSharedPtr<ChBody> truss(new ChBody);
+	my_system.Add(truss);
+	truss->SetBodyFixed(true);
+	
+				// Create a constraint between a node and the truss
+	ChSharedPtr<ChNodeBody> constraint1(new ChNodeBody);
+	ChSharedPtr<ChNodeBody> constraint2(new ChNodeBody);
+	ChSharedPtr<ChNodeBody> constraint3(new ChNodeBody);
+
+	constraint1->Initialize(my_mesh,		// node container
+							0,				// index of node in node container 
+							truss);			// body to be connected to
+
+	constraint2->Initialize(my_mesh,		// node container
+							1,				// index of node in node container 
+							truss);			// body to be connected to
+							
+	constraint3->Initialize(my_mesh,		// node container
+							3,				// index of node in node container 
+							truss);			// body to be connected to
+					
+	my_system.Add(constraint1);
+	my_system.Add(constraint2);
+	my_system.Add(constraint3);
+
+				// Set no gravity
+	//my_system.Set_G_acc(VNULL);
+
+
+				// Perform a linear static analysis
+	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES); // <- NEEDED because other solvers can't handle stiffness matrices
+	chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
+	msolver->SetDiagonalPreconditioning(true);
+	msolver->SetVerbose(true);
+	my_system.SetIterLCPmaxItersSpeed(100);
+	my_system.SetTolSpeeds(1e-12);
+
+	my_system.DoStaticLinear();
+
+				// Output result
+	//GetLog()<<melement1.GetStiffnessMatrix()<<"\n";
+	//GetLog()<<melement1.GetMatrB()<<"\n";
+	GetLog()<<mnode1.GetPos()<<"\n";
+	GetLog()<<mnode2.GetPos()<<"\n";
+	GetLog()<<mnode3.GetPos()<<"\n";
+	GetLog()<<mnode4.GetPos()<<"\n";
+	GetLog()<<"node3 displ: "<< mnode3.GetPos()-mnode3.GetX0()<<"\n";
+
+}
+
+
+//////////////////////////////////////////////////////////////////
+// ============================================================ //
+// Test 4													    //
+// Second example: LINEAR HEXAHEDRAL ELEMENT					//
+// ============================================================ //
+void test_4()
+{
+	GetLog() << "\n-------------------------------------------------\n";
+	GetLog() << "TEST: LINEAR hexahedral element FEM  \n\n";
+
+				// The physical system: it contains all physical objects.
+	ChSystem my_system; 
+					
+				// Create a mesh, that is a container for groups
+				// of elements and their referenced nodes.
+	ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+
+				// Create a material, that must be assigned to each element,
+				// and set its parameters
+	ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
+	mmaterial->Set_E(207e6);
+	mmaterial->Set_v(0.3);
+
+				// Create some nodes. These are the classical point-like
+				// nodes with x,y,z degrees of freedom, that can be used 
+				// for many types of FEM elements in space.
+	ChNodeFEMxyz mnode1(ChVector<>(0,0,0));
+	ChNodeFEMxyz mnode2(ChVector<>(0,0,0.001));
+	ChNodeFEMxyz mnode3(ChVector<>(0.001,0,0.001));
+	ChNodeFEMxyz mnode4(ChVector<>(0.001,0,0));
+	ChNodeFEMxyz mnode5(ChVector<>(0,0.001,0));
+	ChNodeFEMxyz mnode6(ChVector<>(0,0.001,0.001));
+	ChNodeFEMxyz mnode7(ChVector<>(0.001,0.001,0.001));
+	ChNodeFEMxyz mnode8(ChVector<>(0.001,0.001,0));
+	mnode1.SetMass(0.001);
+	mnode2.SetMass(0.001);
+	mnode3.SetMass(0.001);
+	mnode4.SetMass(0.001);
+	mnode5.SetMass(0.001);
+	mnode6.SetMass(0.001);
+	mnode7.SetMass(0.001);
+	mnode8.SetMass(0.001);
+	
+				// For example, set an applied force to a node:
+	mnode7.SetForce(ChVector<>(0, -1000, 0));
+
+				// Remember to add nodes and elements to the mesh!
+	my_mesh->AddNode(mnode1);
+	my_mesh->AddNode(mnode2);
+	my_mesh->AddNode(mnode3);
+	my_mesh->AddNode(mnode4);
+	my_mesh->AddNode(mnode5);
+	my_mesh->AddNode(mnode6);
+	my_mesh->AddNode(mnode7);
+	my_mesh->AddNode(mnode8);
+
+				// Create the tetrahedron element, and assign 
+				// it nodes and material
+	ChElementHexa_8 melement1;
+	melement1.SetNodes(&mnode1, &mnode2, &mnode3, &mnode4, &mnode5, &mnode6, &mnode7, &mnode8);
+	melement1.SetMaterial(mmaterial);
+
+				// Remember to add elements to the mesh!
+	my_mesh->AddElement(melement1);
+
+				// This is necessary in order to precompute the 
+				// stiffness matrices for all inserted elements in mesh
+	my_mesh->SetupInitial();
+
+				// Remember to add the mesh to the system!
+	my_system.Add(my_mesh);
+
+
+				// Create also a truss
+	ChSharedPtr<ChBody> truss(new ChBody);
+	my_system.Add(truss);
+	truss->SetBodyFixed(true);
+	
+				// Create a constraint between a node and the truss
+	ChSharedPtr<ChNodeBody> constraint1(new ChNodeBody);
+	constraint1->Initialize(my_mesh,		// node container
+							0,				// index of node in node container 
+							truss);			// body to be connected to
+
+	ChSharedPtr<ChNodeBody> constraint2(new ChNodeBody);
+	constraint2->Initialize(my_mesh,		// node container
+							1,				// index of node in node container 
+							truss);			// body to be connected to
+						
+	ChSharedPtr<ChNodeBody> constraint3(new ChNodeBody);
+	constraint3->Initialize(my_mesh,		// node container
+							2,				// index of node in node container 
+							truss);			// body to be connected to
+
+	ChSharedPtr<ChNodeBody> constraint4(new ChNodeBody);
+	constraint4->Initialize(my_mesh,		// node container
+							3,				// index of node in node container 
+							truss);			// body to be connected to
+					
+	my_system.Add(constraint1);
+	my_system.Add(constraint2);
+	my_system.Add(constraint3);
+	my_system.Add(constraint4);
+
+				// Set no gravity
+	//my_system.Set_G_acc(VNULL);
+
+
+				// Perform a linear static analysis
+	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES); // <- NEEDED because other solvers can't handle stiffness matrices
+	chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
+	msolver->SetDiagonalPreconditioning(true);
+	msolver->SetVerbose(true);
+	my_system.SetIterLCPmaxItersSpeed(100);
+	my_system.SetTolSpeeds(1e-12);
+
+	my_system.DoStaticLinear();
+
+				// Output result
+	//GetLog()<<melement1.GetStiffnessMatrix()<<"\n";
+	//GetLog()<<melement1.GetMatrB()<<"\n";
+	GetLog()<<mnode1.GetPos()<<"\n";
+	GetLog()<<mnode2.GetPos()<<"\n";
+	GetLog()<<mnode3.GetPos()<<"\n";
+	GetLog()<<mnode4.GetPos()<<"\n";
+	GetLog()<<mnode7.GetPos()<<"\n";
+	GetLog()<<"node7 displ: "<< mnode7.GetPos()-mnode7.GetX0()<<"\n";
+
+}
+
 
 // Do some tests in a single run, inside the main() function.
 // Results will be simply text-formatted outputs in the console..
@@ -246,11 +504,11 @@ int main(int argc, char* argv[])
 	// global functions are needed. 
 	DLL_CreateGlobals();
 
-
 	GetLog() << " Example: the FEM techology for finite elements \n\n\n";
 
+
 	// Test: an introductory problem:
-	test_2();
+	test_4();
 
 
 	// Remember this at the end of the program, if you started

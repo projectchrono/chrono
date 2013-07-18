@@ -306,8 +306,8 @@ ChStreamInAscii& ChStreamInAscii::operator >>(double	&dVal)
 	*this >> buffer;
 	RemoveTrailingCommas(buffer);
 	dVal = atof(buffer.c_str());
-	if (errno)
-		throw (ChException( "String " +buffer+ " is not a valid number format"));
+	//if (errno)
+		//throw (ChException( "String " +buffer+ " is not a valid number format"));
 	return *this;
 }
 
@@ -317,8 +317,8 @@ ChStreamInAscii& ChStreamInAscii::operator >>(float	&dVal)
 	*this >> buffer;
 	RemoveTrailingCommas(buffer);
 	dVal = (float)(atof(buffer.c_str()));
-	if (errno)
-		throw (ChException( "String " +buffer+ " is not a valid number format"));
+	//if (errno)
+		//throw (ChException( "String " +buffer+ " is not a valid number format"));
 	return *this;
 }
 
