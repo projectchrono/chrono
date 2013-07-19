@@ -7,7 +7,6 @@ ChGPUDataManager::ChGPUDataManager() {
 	number_of_bilaterals = 0;
 	number_of_contacts_possible = 0;
 	copyContacts = false;
-	stepSize = 0;
 }
 ChGPUDataManager::~ChGPUDataManager() {
 }
@@ -28,10 +27,6 @@ void ChGPUDataManager::HostToDevice() {
 	//gpu_data.device_bilateral_data = host_bilateral_data;
 	//gpu_data.min_bounding_point = min_bounding_point;
 	//gpu_data.max_bounding_point = min_bounding_point;
-	gpu_data.number_of_models = number_of_models;
-	gpu_data.number_of_objects = number_of_objects;
-	gpu_data.number_of_bilaterals = number_of_bilaterals;
-	gpu_data.number_of_contacts_possible = number_of_contacts_possible;
 
 	gpu_data.device_JXYZA_bilateral=host_JXYZA_bilateral;
 	gpu_data.device_JXYZB_bilateral=host_JXYZB_bilateral;
@@ -61,7 +56,6 @@ void ChGPUDataManager::DeviceToHost() {
 		host_bids_data = gpu_data.device_bids_data;
 	}
 
-	number_of_contacts = gpu_data.number_of_contacts;
 	host_gamma_bilateral=gpu_data.device_gamma_bilateral;
 	//host_bilateral_data = gpu_data.device_bilateral_data;
 }
@@ -77,7 +71,6 @@ void ChGPUDataManager::HostToDeviceCD() {
 	gpu_data.device_ObR_data = host_ObR_data;
 	gpu_data.device_fam_data = host_fam_data;
 	gpu_data.device_id_data = host_id_data;
-	gpu_data.number_of_models = number_of_models;
 }
 void ChGPUDataManager::HostToDeviceContacts() {
 	gpu_data.device_norm_data = host_norm_data;
@@ -85,9 +78,6 @@ void ChGPUDataManager::HostToDeviceContacts() {
 	gpu_data.device_cptb_data = host_cptb_data;
 	gpu_data.device_dpth_data = host_dpth_data;
 	gpu_data.device_bids_data = host_bids_data;
-	gpu_data.number_of_contacts = number_of_contacts;
-	gpu_data.number_of_models = number_of_models;
-	gpu_data.number_of_objects = number_of_objects;
 }
 void ChGPUDataManager::DeviceToHostContacts() {
 	host_norm_data = gpu_data.device_norm_data;
@@ -96,14 +86,9 @@ void ChGPUDataManager::DeviceToHostContacts() {
 	host_dpth_data = gpu_data.device_dpth_data;
 	host_bids_data = gpu_data.device_bids_data;
 	host_pair_data = gpu_data.device_pair_data;
-	number_of_contacts = gpu_data.number_of_contacts;
-	number_of_models = gpu_data.number_of_models;
-	number_of_objects = gpu_data.number_of_objects;
 }
 void ChGPUDataManager::DeviceToHostPairData() {
-
 	host_pair_data = gpu_data.device_pair_data;
-
 }
 void ChGPUDataManager::DeviceToHostJacobians() {
 	host_JXYZA_data = gpu_data.device_JXYZA_data;

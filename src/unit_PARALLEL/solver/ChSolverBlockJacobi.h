@@ -10,7 +10,7 @@ namespace chrono {
 class ChApiGPU ChSolverJacobi: public ChSolverGPU {
 public:
 	ChSolverJacobi();
-	void Solve(real step, gpu_container& gpu_data);
+	void Solve(real step, ChGPUDataManager *data_container_);
 	void host_process_contacts(
 			real3* JXYZA,
 			real3* JXYZB,

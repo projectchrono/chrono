@@ -36,7 +36,6 @@ struct gpu_container {
 	custom_vector<int> device_typ_data;
 	custom_vector<uint> device_id_data;
 	custom_vector<real3> device_aabb_data;
-	//custom_vector<uint3> device_bin_data;
 	custom_vector<long long> device_pair_data;
 
 	custom_vector<real3> device_vel_data;
@@ -59,8 +58,6 @@ struct gpu_container {
 	custom_vector<real3> device_JXYZA_data,device_JXYZB_data;
 	custom_vector<real3> device_JUVWA_data,device_JUVWB_data;
 
-	//custom_vector<real4> device_bilateral_data;
-
 	thrust::host_vector<real3> device_JXYZA_bilateral, device_JXYZB_bilateral;
 	thrust::host_vector<real3> device_JUVWA_bilateral, device_JUVWB_bilateral;
 	thrust::host_vector<real> device_residual_bilateral;
@@ -76,13 +73,6 @@ struct gpu_container {
 	custom_vector<uint> update_offset;
 	custom_vector<uint> body_number;
 	custom_vector<uint> offset_counter;
-
-	uint number_of_contacts;
-	uint number_of_contacts_possible;
-	uint number_of_models;
-	uint number_of_objects;
-	uint number_of_bilaterals;
-	uint number_of_updates;
 
 	custom_vector<uint> generic_counter;
 };
@@ -102,8 +92,6 @@ public:
 	void CopyContacts(bool c) {
 		copyContacts = c;
 	}
-	/// Depending on the number of GPUs this function will split the
-
 	gpu_container gpu_data;
 
 	uint number_of_contacts;
@@ -161,11 +149,7 @@ public:
 	thrust::host_vector<real> host_gamma_bilateral;
 	//constraint data
 
-	//thrust::host_vector<real4> host_bilateral_data;
-
 	bool copyContacts;
-	double stepSize;
-
 };
 }
 

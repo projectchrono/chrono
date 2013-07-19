@@ -86,7 +86,7 @@ void ChCollisionSystemGPU::Run() {
 	narrowphase.DoNarrowphase(data_container->gpu_data.device_typ_data, data_container->gpu_data.device_ObA_data, data_container->gpu_data.device_ObB_data, data_container->gpu_data.device_ObC_data,
 			data_container->gpu_data.device_ObR_data, data_container->gpu_data.device_id_data, data_container->gpu_data.device_active_data, data_container->gpu_data.device_pos_data,
 			data_container->gpu_data.device_rot_data, data_container->gpu_data.device_pair_data, data_container->gpu_data.device_norm_data, data_container->gpu_data.device_cpta_data,
-			data_container->gpu_data.device_cptb_data, data_container->gpu_data.device_dpth_data, data_container->gpu_data.device_bids_data, data_container->gpu_data.number_of_contacts);
+			data_container->gpu_data.device_cptb_data, data_container->gpu_data.device_dpth_data, data_container->gpu_data.device_bids_data, data_container->number_of_contacts);
 	mtimer_cd_narrow.stop();
 
 }

@@ -49,7 +49,7 @@ namespace chrono {
 
 			void host_Integrate_Timestep(bool *active, real3 *acc, real4 *rot, real3 *vel, real3 *omega, real3 *pos, real3 *lim);
 
-			void RunTimeStep(real step, gpu_container &gpu_data);
+			void RunTimeStep(real step, ChGPUDataManager *data_container);
 			void Preprocess(gpu_container &gpu_data);
 			void SetTolerance(real tol) {
 				tolerance = tol;
@@ -112,6 +112,8 @@ namespace chrono {
 			uint number_of_updates;
 			uint number_of_constraints;
 			uint max_iteration;
+
+			ChGPUDataManager *data_container;
 
 			real residual;
 

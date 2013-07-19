@@ -81,7 +81,7 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	mtimer_cd.stop();
 //------------------------------------------------------------------------------------------------------------------------
 	mtimer_lcp.start();
-	((ChLcpSolverGPU *) (LCP_solver_speed))->RunTimeStep(GetStep(), gpu_data_manager->gpu_data);
+	((ChLcpSolverGPU *) (LCP_solver_speed))->RunTimeStep(GetStep(), gpu_data_manager);
 	mtimer_lcp.stop();
 //------------------------------------------------------------------------------------------------------------------------
 	mtimer_updt.start();

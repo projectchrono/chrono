@@ -9,25 +9,25 @@
 
 namespace chrono {
 class ChApiGPU ChSolverGPU {
-public:
+	public:
 
-	ChSolverGPU() {
-		tolerance = 1e-6;
-		epsilon = 1e-3;
-		alpha = 0;
-		compliance = 0;
-		complianceT = 0;
-		max_iteration = 100;
-	}
-	void Setup();
-	void Project(custom_vector<real> & gamma);
-	void shurA(custom_vector<real> &x);
-	void shurB(custom_vector<real> &x, custom_vector<real> &out);
+		ChSolverGPU() {
+			tolerance = 1e-6;
+			epsilon = 1e-3;
+			alpha = 0;
+			compliance = 0;
+			complianceT = 0;
+			max_iteration = 100;
+		}
+		void Setup();
+		void Project(custom_vector<real> & gamma);
+		void shurA(custom_vector<real> &x);
+		void shurB(custom_vector<real> &x, custom_vector<real> &out);
 
-	void ComputeRHS();
-	void ComputeImpulses();
+		void ComputeRHS();
+		void ComputeImpulses();
 
-	void host_shurA(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO,real3 *QXYZ, real3 *QUVW,uint* offset);
+		void host_shurA(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO,real3 *QXYZ,real3 *QUVW,uint* offset);
 	void host_shurB(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia,real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX);
 	void host_RHS(int2 *ids, real *correction,bool * active, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs);
 	void host_bi(real *correction, real* bi);
@@ -37,7 +37,7 @@ public:
 
 	void ShurProduct( custom_vector<real> &x_t, custom_vector<real> & AX);
 
-	void Solve(GPUSOLVERTYPE solver_type, real step, gpu_container &gpu_data_);
+	void Solve(GPUSOLVERTYPE solver_type, real step, ChGPUDataManager *data_container_);
 	uint SolveSD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 	uint SolveGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 	uint SolveCG(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
@@ -46,33 +46,33 @@ public:
 	uint SolveBiCGStab(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 	uint SolveMinRes(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 	uint SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
-	uint SolveAPGD_ALT(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
+	//uint SolveAPGD_ALT(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 	/////APGD specific:
 
-			real PART_A(const uint size, custom_vector<int2> & ids,
-
-					custom_vector<real> & mx,custom_vector<real> & my,custom_vector<real> & ms,
-					const custom_vector<real> & b,custom_vector<real> & mg,custom_vector<real> & mg_tmp2,
-
-					const real & t_k,const real & L_k,
-
-					real & obj1,real& obj2,real& min_val
-			);
-
-			real PART_B(const uint size, custom_vector<int2> & ids,
-					custom_vector<real> & mx,custom_vector<real> & my,custom_vector<real> & ms,
-					const custom_vector<real> & b,custom_vector<real> & mg,custom_vector<real> & mg_tmp2,
-					const real & t_k,const real & L_k,
-
-					real & obj1,real& obj2,real& min_val);
-
-			void partThree_host(const uint size, const custom_vector<real> &mx,
-					custom_vector<real> &ml,
-					const custom_vector<real> &mg,
-					const real &beta_k1,
-					custom_vector<real> &ms,
-					custom_vector<real> &my,
-					real & temp_dot_prod);
+//			real PART_A(const uint size, custom_vector<int2> & ids,
+//
+//					custom_vector<real> & mx,custom_vector<real> & my,custom_vector<real> & ms,
+//					const custom_vector<real> & b,custom_vector<real> & mg,custom_vector<real> & mg_tmp2,
+//
+//					const real & t_k,const real & L_k,
+//
+//					real & obj1,real& obj2,real& min_val
+//			);
+//
+//			real PART_B(const uint size, custom_vector<int2> & ids,
+//					custom_vector<real> & mx,custom_vector<real> & my,custom_vector<real> & ms,
+//					const custom_vector<real> & b,custom_vector<real> & mg,custom_vector<real> & mg_tmp2,
+//					const real & t_k,const real & L_k,
+//
+//					real & obj1,real& obj2,real& min_val);
+//
+//			void partThree_host(const uint size, const custom_vector<real> &mx,
+//					custom_vector<real> &ml,
+//					const custom_vector<real> &mg,
+//					const real &beta_k1,
+//					custom_vector<real> &ms,
+//					custom_vector<real> &my,
+//					real & temp_dot_prod);
 			///////
 
 			int GetIteration() {
@@ -113,9 +113,9 @@ public:
 				}
 			}
 			void Dump_Lambda(std::ostream& out) {
-				for (int i=0; i<gpu_data->device_gam_data.size(); i++) {
-					out<<gpu_data->device_gam_data[i]<<std::endl;
-				}
+//				for (int i=0; i<gpu_data->device_gam_data.size(); i++) {
+//					out<<gpu_data->device_gam_data[i]<<std::endl;
+//				}
 			}
 
 			void Dump_M() {}
@@ -143,7 +143,7 @@ public:
 
 			custom_vector<int2> temp_bids;
 			custom_vector<real> rhs, correction, bi;
-			gpu_container *gpu_data;
+			ChGPUDataManager *data_container;
 			ChTimer<double> timer_rhs, timer_shurcompliment, timer_project, timer_solver;
 
 			custom_vector<uint> body_num;
@@ -159,8 +159,8 @@ public:
 
 		protected:
 		}
-		;
+				;
 
-		}
+			}
 
 #endif

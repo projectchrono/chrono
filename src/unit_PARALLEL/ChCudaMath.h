@@ -681,5 +681,6 @@ static __host__         __device__ M33 AbsMat(M33 A) {
 	return result;
 
 }
+
 #endif
 

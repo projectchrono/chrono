@@ -13,10 +13,10 @@ namespace chrono {
 			ChJacobianGPU() {
 			}
 			void Setup();
-			void ComputeJacobians(gpu_container& gpu_data_);
+			void ComputeJacobians(ChGPUDataManager *data_container_);
 			void host_ContactJacobians(real3* norm, real3* ptA, real3* ptB, int2* ids, real4* rot, real3* pos, real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB);
 		protected:
-			gpu_container *gpu_data;
+			ChGPUDataManager *data_container;
 
 			uint number_of_bilaterals;
 			uint number_of_contacts;
