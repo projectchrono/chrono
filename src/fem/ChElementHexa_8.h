@@ -58,7 +58,7 @@ public:
 
 				/// Approximation!! not the exact volume
 				/// This returns an exact value only in case of Constant Metric Tetrahedron
-	double ChElementHexa_8::ComputeVolume()
+	double ComputeVolume()
 				{
 					ChVector<> B1,C1,D1;
 					B1.Sub(nodes[1]->pos,nodes[0]->pos);
