@@ -97,6 +97,47 @@ public:
 
 	}
 
+	/// JCM, added to allow offsets between mesh and COG of body
+	ChBodySceneNode(chrono::ChSystem* msystem,   ///< pointer to the Chrono::Engine physical simulation system
+					IAnimatedMesh* mesh,		 ///< a 3D mesh for representing the shape of the body 
+					ISceneNode* parent,  ///< the parent node in Irrlicht hierarchy
+					ISceneManager* mgr,	 ///< the Irrlicht scene manager 
+					s32 id,				 ///< the Irrlicht identifier
+					chrono::ChVector<>& offset
+					)
+		:	scene::ISceneNode(parent, mgr, id) , 						 
+			ChronoControlled(true)
+	{
+		assert(msystem);
+
+		#ifdef _DEBUG
+			setDebugName("ChBodySceneNode");
+		#endif
+
+		child_mesh =0;
+		if (mesh)
+			child_mesh = mgr->addAnimatedMeshSceneNode(mesh, this,-1,
+				irr::core::vector3df(-offset.x,-offset.y,-offset.z) );
+		
+		if (child_mesh)
+			child_mesh->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
+
+		// Create the shared pointer, and the ChBody object
+		// pointed by the shared pointer.
+		// Creating dynamically the shared pointer from heap is not
+		// nice to see, but it must be managed dynamically in this wrapper node..
+
+		bodyp = new chrono::ChSharedPtr<chrono::ChBody>(new chrono::ChBody);
+		
+		// set an unique identifier
+		body_identifier++;
+		GetBody()->SetIdentifier(body_identifier);
+
+		// Automatically add to the Chrono::Engine system.
+		msystem->AddBody(GetBody());
+
+	}
+
 
 		/// Destructor.
 		/// Note: as this Irrlicht node is destructed, it also automatically removes 
