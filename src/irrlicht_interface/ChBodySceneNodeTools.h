@@ -75,14 +75,15 @@ ISceneNode* addChBodySceneNode(chrono::ChSystem* asystem,
 
 
 /// JCM, added to allow user to specify an offset distance between COG and mesh location
+//  Note: the mesh remains in the same location, but the COG of the rigid body changes by the offset amount
 static
-ISceneNode* addChBodySceneNode_offsets(chrono::ChSystem* asystem,
+ISceneNode* addChBodySceneNode_offsetCOG(chrono::ChSystem* asystem,
 										   ISceneManager* amanager,
 										   IAnimatedMesh* amesh, 
 										   double mmass = 1.0, 
 										   const chrono::ChVector<>& mesh_position = chrono::ChVector<>(0,0,0),	
 										   const chrono::ChQuaternion<>& rotation = chrono::ChQuaternion<>(1,0,0,0),
-										   const chrono::ChVector<>& cm_offset = chrono::ChVector<>(0,0,0),
+										   const chrono::ChVector<>& COG_offset = chrono::ChVector<>(0,0,0),
 										   ISceneNode* aparent=0, 
 										   s32 mid=-1
 										   )
@@ -95,10 +96,10 @@ ISceneNode* addChBodySceneNode_offsets(chrono::ChSystem* asystem,
 													amesh, 
 													aparent,
 													amanager,
-													mid
-													);
+													mid,
+													COG_offset);
 	// set some ChronoENGINE specific properties for the body...
-	rigidBodyZ->GetBody()->SetPos(mesh_position+cm_offset);
+	rigidBodyZ->GetBody()->SetPos(mesh_position);
 	rigidBodyZ->GetBody()->SetRot(rotation);
 	rigidBodyZ->GetBody()->SetMass(mmass);
 	 
