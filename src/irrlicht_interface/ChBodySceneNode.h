@@ -103,7 +103,7 @@ public:
 					ISceneNode* parent,  ///< the parent node in Irrlicht hierarchy
 					ISceneManager* mgr,	 ///< the Irrlicht scene manager 
 					s32 id,				 ///< the Irrlicht identifier
-					chrono::ChVector<>& offset
+					const chrono::ChVector<>& offset
 					)
 		:	scene::ISceneNode(parent, mgr, id) , 						 
 			ChronoControlled(true)
