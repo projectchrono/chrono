@@ -112,7 +112,7 @@ void ChSystemGPU::AddBody(ChSharedPtr<ChBodyGPU> newbody) {
 	newbody->SetSystem(this);
 	bodylist.push_back((newbody).get_ptr());
 	ChBodyGPU *gpubody = ((ChBodyGPU *) newbody.get_ptr());
-	gpubody->id = counter;
+	gpubody->SetId(counter);
 
 	if (newbody->GetCollide()) {
 		newbody->AddCollisionModelsToSystem();
@@ -133,7 +133,7 @@ void ChSystemGPU::AddBody(ChSharedPtr<ChBodyGPU> newbody) {
 	gpu_data_manager->host_active_data.push_back(newbody->IsActive());
 	gpu_data_manager->host_mass_data.push_back(inv_mass);
 	gpu_data_manager->host_fric_data.push_back(newbody->GetKfriction());
-	gpu_data_manager->host_cohesion_data.push_back(newbody->GetCohesion());
+	gpu_data_manager->host_cohesion_data.push_back(newbody->GetMaterialSurface()->GetCohesion());
 	gpu_data_manager->host_lim_data.push_back(R3(newbody->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
 	//newbody->gpu_data_manager = gpu_data_manager;
 	counter++;
@@ -221,7 +221,7 @@ void ChSystemGPU::UpdateBodies() {
 		active_pointer[i] = bodylist[i]->IsActive();
 		mass_pointer[i] = 1.0f / mbodyvar->GetBodyMass();
 		fric_pointer[i] = bodylist[i]->GetKfriction();
-		cohesion_pointer[i] = ((ChBodyGPU*) (bodylist[i]))->GetCohesion();
+		cohesion_pointer[i] = ((ChBodyGPU*) (bodylist[i]))->GetMaterialSurface()->GetCohesion();
 		lim_pointer[i] = (R3(bodylist[i]->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
 		bodylist[i]->GetCollisionModel()->SyncPosition();
 	}
@@ -261,8 +261,8 @@ void ChSystemGPU::UpdateBilaterals() {
 		}
 
 		ChLcpConstraintTwoBodies *mbilateral = (ChLcpConstraintTwoBodies *) (mconstraints[ic]);
-		int idA = ((ChBodyGPU *) ((ChLcpVariablesBody *) (mbilateral->GetVariables_a()))->GetUserData())->id;
-		int idB = ((ChBodyGPU *) ((ChLcpVariablesBody *) (mbilateral->GetVariables_b()))->GetUserData())->id;
+		int idA = ((ChBodyGPU *) ((ChLcpVariablesBody *) (mbilateral->GetVariables_a()))->GetUserData())->GetId();
+		int idB = ((ChBodyGPU *) ((ChLcpVariablesBody *) (mbilateral->GetVariables_b()))->GetUserData())->GetId();
 		// Update auxiliary data in all constraints before starting, that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
 		mconstraints[ic]->Update_auxiliary(); //***NOTE*** not efficient here - can be on GPU, and [Eq_i] not needed
 		real3 A, B, C, D;

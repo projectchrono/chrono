@@ -38,44 +38,10 @@ public:
 
 	virtual ChCollisionModel* InstanceCollisionModel();
 	ChCollisionModel* SetCollisionModelBullet();
-	ChVector<> GetXForce() {
-		return Xforce;
-	}
-	ChVector<> GetXTorque() {
-		return Xtorque;
-	}
-	ChVector<> GetGyro() {
-		return gyro;
-	}
-	void SetGyro(ChVector<> g) {
-		gyro = g;
-	}
-	void SetAppliedForce(ChVector<> mForce) {
-		mAppliedForce = mForce;
-	}
-	ChVector<> GetAppliedForce() {
-		return mAppliedForce;
-	}
-	void SetId(int identifier) {
-		id = identifier;
-	}
-	int GetId() {
-		return id;
-	}
-	ChVector<> mAppliedForce;
-	int id;
-	void SetCohesion(real c) {
-		cohesion = c;
-	}
-	real GetCohesion() {
-		return cohesion;
-	}
-private:
-	real cohesion;
 
 };
 
-typedef ChSharedPtr<ChBodyGPU> ChSharedBodyGPUPtr;
+//typedef ChSharedPtr<ChBodyGPU> ChSharedBodyGPUPtr;
 } // END_OF_NAMESPACE____
 
 #endif
