@@ -48,6 +48,8 @@ namespace chrono {
 			void RemoveBody(int i);
 			//int Setup();
 			void Update();
+			void UpdateBodies();
+			void UpdateBilaterals();
 			void ChangeCollisionSystem(ChCollisionSystem *newcollsystem);
 			void ChangeLcpSystemDescriptor(ChLcpSystemDescriptor* newdescriptor);
 			void ChangeLcpSolverSpeed(ChLcpSolver *newsolver);

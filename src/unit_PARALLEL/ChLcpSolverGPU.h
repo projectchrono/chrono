@@ -21,109 +21,110 @@
 #include "ChDataManager.h"
 #include "lcp/ChLcpIterativeSolver.h"
 namespace chrono {
-	class ChApiGPU ChLcpSolverGPU: public ChLcpIterativeSolver {
-		public:
+class ChApiGPU ChLcpSolverGPU: public ChLcpIterativeSolver {
+	public:
 
-			ChLcpSolverGPU() {
-				tolerance = 1e-7;
-				alpha = 0;
-				compliance = 0;
-				complianceT = 0;
-				contact_recovery_speed = .6;
-				lcp_omega_contact = .2;
-				lcp_omega_bilateral = .2;
+		ChLcpSolverGPU() {
+			tolerance = 1e-7;
+			alpha = 0;
+			compliance = 0;
+			complianceT = 0;
+			contact_recovery_speed = .6;
+			lcp_omega_contact = .2;
+			lcp_omega_bilateral = .2;
 
-				max_iteration = 1000;
+			max_iteration = 1000;
 
-				solver_type = BLOCK_JACOBI;
+			solver_type = BLOCK_JACOBI;
 
+		}
+		~ChLcpSolverGPU() {
+		}
+		virtual double Solve(ChLcpSystemDescriptor &sysd, bool add_Mq_to_f = false) {
+			return 0;
+		}
+		void host_addForces(bool* active, real *mass, real3 *inertia, real3 *forces, real3 *torques, real3 *vel, real3 *omega);
+
+		void host_ComputeGyro(real3 *omega, real3 *inertia, real3 *gyro, real3 *torque);
+
+		void host_Integrate_Timestep(bool *active, real3 *acc, real4 *rot, real3 *vel, real3 *omega, real3 *pos, real3 *lim);
+
+		void RunTimeStep(real step);
+		void Preprocess(gpu_container &gpu_data);
+		void SetTolerance(real tol) {
+			tolerance = tol;
+		}
+		void SetCompliance(real c, real cT, real a) {
+			alpha = a;
+			compliance = c;
+			complianceT = cT;
+			contact_recovery_speed = .6;
+		}
+		void SetContactRecoverySpeed(real recovery_speed) {
+			contact_recovery_speed = fabs(recovery_speed);
+
+		}
+		void SetOmegaBilateral(real mval) {
+			lcp_omega_bilateral = mval;
+		}
+		void SetOmegaContact(real mval) {
+			lcp_omega_contact = mval;
+		}
+		void SetSolverType(GPUSOLVERTYPE type) {
+			solver_type = type;
+		}
+		void SetMaxIteration(uint max_iter) {
+			max_iteration = max_iter;
+		}
+
+		real GetResidual() {
+			return residual;
+		}
+		void Dump_Rhs(std::vector<double> &temp) {
+			for (int i = 0; i < rhs.size(); i++) {
+				temp.push_back(rhs[i]);
 			}
-			~ChLcpSolverGPU() {
-			}
-			virtual double Solve(ChLcpSystemDescriptor &sysd, bool add_Mq_to_f = false) {
-				return 0;
-			}
-			void host_addForces(bool* active, real *mass, real3 *inertia, real3 *forces, real3 *torques, real3 *vel, real3 *omega);
+		}
+		void Dump_Shur(std::vector<double> &temp) {
 
-			void host_ComputeGyro(real3 *omega, real3 *inertia, real3 *gyro, real3 *torque);
-
-			void host_Integrate_Timestep(bool *active, real3 *acc, real4 *rot, real3 *vel, real3 *omega, real3 *pos, real3 *lim);
-
-			void RunTimeStep(real step, ChGPUDataManager *data_container);
-			void Preprocess(gpu_container &gpu_data);
-			void SetTolerance(real tol) {
-				tolerance = tol;
+			for (int i = 0; i < debug.size(); i++) {
+				temp.push_back(debug[i]);
 			}
-			void SetCompliance(real c, real cT, real a) {
-				alpha = a;
-				compliance = c;
-				complianceT = cT;
-				contact_recovery_speed = .6;
+		}
+		void Dump_Lambda(std::vector<double> &temp) {
+			for (int i = 0; i < lambda.size(); i++) {
+				temp.push_back(lambda[i]);
 			}
-			void SetContactRecoverySpeed(real recovery_speed) {
-				contact_recovery_speed = fabs(recovery_speed);
+		}
 
-			}
-			void SetOmegaBilateral(real mval) {
-				lcp_omega_bilateral = mval;
-			}
-			void SetOmegaContact(real mval) {
-				lcp_omega_contact = mval;
-			}
-			void SetSolverType(GPUSOLVERTYPE type) {
-				solver_type = type;
-			}
-			void SetMaxIteration(uint max_iter) {
-				max_iteration = max_iter;
-			}
+		ChGPUDataManager *data_container;
 
-			real GetResidual() {
-				return residual;
-			}
-			void Dump_Rhs(std::vector<double> &temp) {
-				for (int i = 0; i < rhs.size(); i++) {
-					temp.push_back(rhs[i]);
-				}
-			}
-			void Dump_Shur(std::vector<double> &temp) {
+	private:
+		real tolerance;
+		real compliance;
+		real complianceT;
+		real alpha;
+		real contact_recovery_speed;
+		real lcp_omega_bilateral;
+		real lcp_omega_contact;
 
-				for (int i = 0; i < debug.size(); i++) {
-					temp.push_back(debug[i]);
-				}
-			}
-			void Dump_Lambda(std::vector<double> &temp) {
-				for (int i = 0; i < lambda.size(); i++) {
-					temp.push_back(lambda[i]);
-				}
-			}
-		private:
-			real tolerance;
-			real compliance;
-			real complianceT;
-			real alpha;
-			real contact_recovery_speed;
-			real lcp_omega_bilateral;
-			real lcp_omega_contact;
+		real step_size;
+		uint number_of_bilaterals;
+		uint number_of_contacts;
+		uint number_of_objects;
+		uint number_of_updates;
+		uint number_of_constraints;
+		uint max_iteration;
 
-			real step_size;
-			uint number_of_bilaterals;
-			uint number_of_contacts;
-			uint number_of_objects;
-			uint number_of_updates;
-			uint number_of_constraints;
-			uint max_iteration;
+		real residual;
 
-			ChGPUDataManager *data_container;
+		GPUSOLVERTYPE solver_type;
 
-			real residual;
+		cudaEvent_t start, stop;
 
-			GPUSOLVERTYPE solver_type;
+		custom_vector<real> rhs, debug, lambda;
 
-			cudaEvent_t start, stop;
-
-			custom_vector<real> rhs, debug, lambda;
-
-		};}
+	};}
 
 #endif
 

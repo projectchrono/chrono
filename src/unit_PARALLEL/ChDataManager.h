@@ -81,13 +81,12 @@ class ChApiGPU ChGPUDataManager {
 public:
 	ChGPUDataManager();
 	~ChGPUDataManager();
-	void HostToDevice();
-	void HostToDeviceForces();
-	void DeviceToHost();
-	void HostToDeviceCD();
+	void Copy(GPUCOPYTYPE type);
+	void CopyBodyData(GPUCOPYTYPE type);
+	void CopyBilateralData(GPUCOPYTYPE type);
+	void CopyGeometryData(GPUCOPYTYPE type);
 	void DeviceToHostPairData();
-	void HostToDeviceContacts();
-	void DeviceToHostContacts();
+	void CopyContactData(GPUCOPYTYPE type);
 	void DeviceToHostJacobians();
 	void CopyContacts(bool c) {
 		copyContacts = c;

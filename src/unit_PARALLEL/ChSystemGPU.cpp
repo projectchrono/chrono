@@ -15,77 +15,29 @@ ChSystemGPU::ChSystemGPU(unsigned int max_objects) :
 	LCP_solver_speed = new ChLcpSolverGPU();
 	((ChCollisionSystemGPU *) (collision_system))->data_container = gpu_data_manager;
 	((ChLcpSystemDescriptorGPU *) (LCP_descriptor))->data_container = gpu_data_manager;
+	((ChLcpSolverGPU *) (LCP_solver_speed))->data_container = gpu_data_manager;
 }
-//int ChSystemGPU::Setup() {
-//	this->stepcount++;
-//	nbodies = 0;
-//	nbodies_sleep = 0;
-//	nbodies_fixed = 0;
-//	ncoords = 0;
-//	ncoords_w = 0;
-//	ndoc = 0;
-//	ndoc_w = 0;
-//	ndoc_w_C = 0;
-//	ndoc_w_D = 0;
-//	nlinks = 0;
-//	nphysicsitems = 0;
-//
-//	for (int i = 0; i < bodylist.size(); i++) { // Updates recursively all other aux.vars
-//		if (!bodylist[i]->GetBodyFixed()) {
-//			if (!bodylist[i]->GetSleeping()) {
-//				nbodies++; // Count bodies and indicize them.
-//			} else {
-//				nbodies_sleep++;
-//			}
-//		} else {
-//			nbodies_fixed++;
-//		}
-//	}
-//
-//	ncoords_w += nbodies * 6;
-//	ncoords += nbodies * 7; // with quaternion coords
-//	ndoc += nbodies; // There is a quaternion constr. for each active body.
-//	ndoc = ndoc_w + nbodies; // sets number of constraints including quaternion constraints.
-//	nsysvars = ncoords + ndoc; // sets number of total variables (=coordinates + lagrangian multipliers)
-//	nsysvars_w = ncoords_w + ndoc_w; // sets number of total variables (with 6 dof per body)
-//	ndof = ncoords - ndoc; // sets number of left degrees of freedom (approximate - does not consider constr. redundancy, etc)
-//	std::list<ChLink *>::iterator it;
-//
-//	for (it = linklist.begin(); it != linklist.end(); it++) {
-//		nlinks++;
-//		ndoc_w += (*it)->GetDOC();
-//		ndoc_w_C += (*it)->GetDOC_c();
-//		ndoc_w_D += (*it)->GetDOC_d();
-//	}
-//
-//	ndoc_w_D += contact_container->GetDOC_d();
-//	return 0;
-//}
-
 int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	mtimer_step.start();
+	//=============================================================================================
 	mtimer_updt.start();
 	Setup();
 	Update();
-	gpu_data_manager->HostToDeviceCD();
-	gpu_data_manager->HostToDevice();
-	gpu_data_manager->HostToDeviceForces();
+	gpu_data_manager->Copy(HOST_TO_DEVICE);
 	mtimer_updt.stop();
 	timer_update = mtimer_updt();
-//------------------------------------------------------------------------------------------------------------------------
+	//=============================================================================================
 	mtimer_cd.start();
-	if (gpu_data_manager->number_of_models > 0) {
-		collision_system->Run();
-		collision_system->ReportContacts(this->contact_container);
-	}
+	collision_system->Run();
+	collision_system->ReportContacts(this->contact_container);
 	mtimer_cd.stop();
-//------------------------------------------------------------------------------------------------------------------------
+	//=============================================================================================
 	mtimer_lcp.start();
-	((ChLcpSolverGPU *) (LCP_solver_speed))->RunTimeStep(GetStep(), gpu_data_manager);
+	((ChLcpSolverGPU *) (LCP_solver_speed))->RunTimeStep(GetStep());
 	mtimer_lcp.stop();
-//------------------------------------------------------------------------------------------------------------------------
+	//=============================================================================================
 	mtimer_updt.start();
-	gpu_data_manager->DeviceToHost();
+	gpu_data_manager->Copy(DEVICE_TO_HOST);
 	std::vector<ChLcpVariables*> vvariables = LCP_descriptor->GetVariablesList();
 
 	uint counter = 0;
@@ -128,32 +80,9 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 		mbody->UpdateMarkers(ChTime);
 	}
 
-//	real3 *vel_pointer = gpu_data_manager->host_vel_data.data();
-//	real3 *omg_pointer = gpu_data_manager->host_omg_data.data();
-//	real3 *pos_pointer = gpu_data_manager->host_pos_data.data();
-//	real4 *rot_pointer = gpu_data_manager->host_rot_data.data();
-//	real3 *acc_pointer = gpu_data_manager->host_acc_data.data();
-//	real3 *gyr_pointer = gpu_data_manager->host_gyr_data.data();
-//	real3 *fap_pointer = gpu_data_manager->host_fap_data.data();
-//
-//#pragma omp parallel for
-//		for (int i = 0; i < bodylist.size(); i++) {
-//			ChBodyGPU *mbody = (ChBodyGPU *) bodylist[i];
-//
-//			if (mbody->IsActive()) {
-//				mbody->SetPos(CHVECCAST(pos_pointer[i]));
-//				mbody->SetRot(CHQUATCAST(rot_pointer[i]));
-//				mbody->SetPos_dt(CHVECCAST(vel_pointer[i]));
-//				mbody->SetPos_dtdt(CHVECCAST(acc_pointer[i]));
-//				mbody->SetWvel_loc(CHVECCAST(omg_pointer[i]));
-//				mbody->SetAppliedForce(CHVECCAST(fap_pointer[i]));
-//				mbody->SetGyro(CHVECCAST(gyr_pointer[i]));
-//
-//			}
-//		}
-
 	mtimer_updt.stop();
 	timer_update += mtimer_updt();
+	//=============================================================================================
 	ChTime += GetStep();
 	mtimer_step.stop();
 	timer_collision = mtimer_cd();
@@ -242,7 +171,12 @@ void ChSystemGPU::RemoveBody(int body) {
 	//mbody->RemoveRef();
 }
 void ChSystemGPU::Update() {
-
+	this->LCP_descriptor->BeginInsertion();
+	UpdateBodies();
+	UpdateBilaterals();
+	LCP_descriptor->EndInsertion();
+}
+void ChSystemGPU::UpdateBodies() {
 	real3 *vel_pointer = gpu_data_manager->host_vel_data.data();
 	real3 *omg_pointer = gpu_data_manager->host_omg_data.data();
 	real3 *pos_pointer = gpu_data_manager->host_pos_data.data();
@@ -256,12 +190,10 @@ void ChSystemGPU::Update() {
 	real *cohesion_pointer = gpu_data_manager->host_cohesion_data.data();
 	real3 *lim_pointer = gpu_data_manager->host_lim_data.data();
 
-	//========================================================================
-
 #pragma omp parallel for
 	for (int i = 0; i < bodylist.size(); i++) {
 		bodylist[i]->UpdateTime(ChTime);
-		//TrySleeping();			// See if the body can fall asleep; if so, put it to sleeping
+		//bodylist[i]->TrySleeping();			// See if the body can fall asleep; if so, put it to sleeping
 		bodylist[i]->ClampSpeed(); // Apply limits (if in speed clamping mode) to speeds.
 		bodylist[i]->ComputeGyro(); // Set the gyroscopic momentum.
 		bodylist[i]->UpdateForces(ChTime);
@@ -269,63 +201,11 @@ void ChSystemGPU::Update() {
 		bodylist[i]->VariablesFbLoadForces(GetStep());
 		bodylist[i]->VariablesQbLoadSpeed();
 	}
-	this->LCP_descriptor->BeginInsertion();
 
 	for (int i = 0; i < bodylist.size(); i++) {
 		bodylist[i]->UpdateMarkers(ChTime);
 		bodylist[i]->InjectVariables(*this->LCP_descriptor);
 	}
-
-	for (it = linklist.begin(); it != linklist.end(); it++) {
-		(*it)->Update(ChTime);
-		(*it)->ConstraintsBiReset();
-		(*it)->ConstraintsBiLoad_C(1.0 / GetStep(), max_penetration_recovery_speed, true);
-		(*it)->ConstraintsBiLoad_Ct(1);
-		(*it)->ConstraintsFbLoadForces(GetStep());
-		(*it)->ConstraintsLoadJacobians();
-		(*it)->InjectConstraints(*this->LCP_descriptor);
-	}
-	LCP_descriptor->EndInsertion();
-	//========================================================================
-//	LCPprepare_reset();
-	//	for (it = linklist.begin(); it != linklist.end(); it++) {
-//
-//	}
-//
-//	for (int i = 0; i < bodylist.size(); i++) {
-//
-//	}
-	//========================================================================
-//	LCPprepare_load(true, // Cq,
-//			true, // v_old (needed for adding [M]*v_old to the known vector)
-//			GetStep(), // f*dt
-//			GetStep() * GetStep(), // dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
-//			GetStep(), // dt*R   (nb only non-Schur based solvers support R matrix blocks)
-//			1.0, // Ct   (needed, for rheonomic motors)
-//			1.0 / GetStep(), // C/dt
-//			max_penetration_recovery_speed, // vlim, max penetrations recovery speed (positive for exiting)
-//			true); // do above max. clamping on -C/dt
-
-	//	for (it = linklist.begin(); it != linklist.end(); it++) {
-//
-//	}
-//	for (int i = 0; i < bodylist.size(); i++) {
-//	}
-//	LCPprepare_Li_from_speed_cache();
-	//========================================================================
-//	this->LCP_descriptor->BeginInsertion();
-//	for (it = linklist.begin(); it != linklist.end(); it++) {
-//
-//	}
-//	for (int i = 0; i < bodylist.size(); i++) {
-//
-//	}
-//
-//	LCP_descriptor->EndInsertion();
-//	LCPprepare_inject(*this->LCP_descriptor);
-	//========================================================================
-
-	//========================================================================
 
 #pragma omp parallel for
 	for (int i = 0; i < bodylist.size(); i++) {
@@ -345,7 +225,18 @@ void ChSystemGPU::Update() {
 		lim_pointer[i] = (R3(bodylist[i]->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
 		bodylist[i]->GetCollisionModel()->SyncPosition();
 	}
+}
 
+void ChSystemGPU::UpdateBilaterals() {
+	for (it = linklist.begin(); it != linklist.end(); it++) {
+		(*it)->Update(ChTime);
+		(*it)->ConstraintsBiReset();
+		(*it)->ConstraintsBiLoad_C(1.0 / GetStep(), max_penetration_recovery_speed, true);
+		(*it)->ConstraintsBiLoad_Ct(1);
+		(*it)->ConstraintsFbLoadForces(GetStep());
+		(*it)->ConstraintsLoadJacobians();
+		(*it)->InjectConstraints(*this->LCP_descriptor);
+	}
 	unsigned int number_of_bilaterals = 0, cntr = 0;
 	std::vector<ChLcpConstraint *> &mconstraints = (*this->LCP_descriptor).GetConstraintsList();
 	for (uint ic = 0; ic < mconstraints.size(); ic++) {
@@ -380,22 +271,6 @@ void ChSystemGPU::Update() {
 		C = R3(mbilateral->Get_Cq_a()->GetElementN(3), mbilateral->Get_Cq_a()->GetElementN(4), mbilateral->Get_Cq_a()->GetElementN(5)); //J1w
 		D = R3(mbilateral->Get_Cq_b()->GetElementN(3), mbilateral->Get_Cq_b()->GetElementN(4), mbilateral->Get_Cq_b()->GetElementN(5)); //J2w
 
-//		std::cout<<"A: "<<A.x<<" "<<A.y<<" "<<A.z<<std::endl;
-//		std::cout<<"B: "<<B.x<<" "<<B.y<<" "<<B.z<<std::endl;
-//		std::cout<<"C: "<<C.x<<" "<<C.y<<" "<<C.z<<std::endl;
-//		std::cout<<"D: "<<D.x<<" "<<D.y<<" "<<D.z<<std::endl;
-
-//		real3 vA = gpu_data_manager->host_vel_data[idA];
-//		std::cout << vA.x << " " << vA.y << " " << vA.z << " ";
-//		vA = gpu_data_manager->host_omg_data[idA];
-//		std::cout << vA.x << " " << vA.y << " " << vA.z << " | ";
-//		vA = gpu_data_manager->host_vel_data[idB];
-//		std::cout << vA.x << " " << vA.y << " " << vA.z << " ";
-//		vA = gpu_data_manager->host_omg_data[idB];
-//		std::cout << vA.x << " " << vA.y << " " << vA.z << "\n";
-
-		//cout<<idA<<" "<<idB<<" "<<mbilateral->Get_b_i()<<" "<<1.0 / mbilateral->Get_g_i()<<endl;
-
 		gpu_data_manager->host_JXYZA_bilateral[cntr] = A;
 		gpu_data_manager->host_JXYZB_bilateral[cntr] = B;
 		gpu_data_manager->host_JUVWA_bilateral[cntr] = C;
@@ -406,7 +281,6 @@ void ChSystemGPU::Update() {
 		gpu_data_manager->host_gamma_bilateral[cntr] = mbilateral->Get_l_i();
 		cntr++;
 	}
-
 }
 
 void ChSystemGPU::ChangeLcpSolverSpeed(ChLcpSolver *newsolver) {

@@ -185,7 +185,7 @@ void ChCollisionSystemBulletGPU::ReportContacts(ChContactContainerBase* mcontact
 		//contactManifold->clearManifold();
 	}
 
-	data_container->HostToDeviceContacts();
+	data_container->CopyContactData(HOST_TO_DEVICE);
 	mcontactcontainer->EndAddContact();
 
 }

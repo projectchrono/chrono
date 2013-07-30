@@ -85,9 +85,8 @@ void ChLcpSolverGPU::Preprocess(gpu_container& gpu_data) {
 #endif
 }
 
-void ChLcpSolverGPU::RunTimeStep(real step, ChGPUDataManager *data_container_) {
+void ChLcpSolverGPU::RunTimeStep(real step) {
 	step_size = step;
-	data_container = data_container_;
 	number_of_constraints = data_container->number_of_contacts * 3 + data_container->number_of_bilaterals;
 	number_of_contacts = data_container->number_of_contacts;
 	number_of_bilaterals = 0; ///data_container->number_of_bilaterals;
