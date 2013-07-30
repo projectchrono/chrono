@@ -2,6 +2,8 @@
 #define CHELEMENT3D_H
 
 #include "fem/ChElementGeneric.h"
+#include "fem/ChGaussIntegrationRule.h"
+
 
 namespace chrono{
 	namespace fem{
@@ -15,10 +17,6 @@ protected:
 	double Volume;
 
 public:
-	/// Computes the volume of the element (and stores the value in this->volume)
-	virtual double ComputeVolume() = 0;
-	double GetVolume() {return Volume;}
-
 
 };
 
@@ -31,26 +29,36 @@ public:
 //	};
 
 
-	//////// calss for tetrahedral elements
+		///
+		/// Calss for tetrahedral elements
+		///
 class ChApi ChTetrahedron : public ChElement3D					//		  /|\						//
 {																//		 / |  \						//
 protected:														//		/  |	\					//
 																//	   /.  |	  \					//
 public:															//	   \   |.		\				//
 	int ID;														//		\  |	.	  \				//
-																//		 \ |		.	\			//
-};																//		  \|__ __ __ __'__\			//
-
-
+		// Computes the volume of the element					//		 \ |		.	\			//
+		// (and stores the value in this->volume)				//		  \|__ __ __ __'__\			//
+	virtual double ComputeVolume() = 0;
+	double GetVolume() {return Volume;}
 															
+};																
+
+		///
+		/// Calss for hexahedral elements
+		///
 class ChApi ChHexahedron : public ChElement3D					//		    __ __ __ __				//
 {																//		  /			  /|			//				
 protected:														//		 /_|__ __ __ / |			//
-																//		|			|  |			//
-public:															//		|  |		|  |			//
-	int ID;														//		|	 __	 __	|  |			//
-																//		| /			| /				//		
-};																//		|__ __ __ __|/				//			  
+	ChGaussIntegrationRule* ir;									//		|			|  |			//
+	std::vector<ChGaussPoint*> GpVector;						//		|  |		|  |			//
+																//		|	 __	 __	|  |			//	
+																//		| /			| /				//
+public:															//		|__ __ __ __|/				//
+	int ID;														
+																		
+};																			  
 
 
 

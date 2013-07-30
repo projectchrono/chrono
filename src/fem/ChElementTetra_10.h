@@ -229,7 +229,7 @@ public:
 				ComputeMatrB(0, zeta1, zeta2, zeta3, zeta4, JacobianDet);
 				BT=MatrB[0];
 				BT.MatrTranspose();
-				temp = (BT * Material->Get_StressStrainatrix() * MatrB[0]);
+				temp = (BT * Material->Get_StressStrainMatrix() * MatrB[0]);
 				temp.MatrScale(JacobianDet/6);
 					//Gauss integration weight = 1*1/4*1/4*1/4
 				temp.MatrDivScale(16);
@@ -243,7 +243,7 @@ public:
 				ComputeMatrB(1, zeta1, zeta2, zeta3, zeta4, JacobianDet);
 				BT=MatrB[1];
 				BT.MatrTranspose();
-				temp = (BT * Material->Get_StressStrainatrix() * MatrB[1]);
+				temp = (BT * Material->Get_StressStrainMatrix() * MatrB[1]);
 				temp.MatrScale(JacobianDet/6);
 					//Gauss integration weight = 1*1/4*1/4*1/4
 				temp.MatrDivScale(16);
@@ -257,7 +257,7 @@ public:
 				ComputeMatrB(2, zeta1, zeta2, zeta3, zeta4, JacobianDet);
 				BT=MatrB[2];
 				BT.MatrTranspose();
-				temp = (BT * Material->Get_StressStrainatrix() * MatrB[2]);
+				temp = (BT * Material->Get_StressStrainMatrix() * MatrB[2]);
 				temp.MatrScale(JacobianDet/6);
 					//Gauss integration weight = 1*1/4*1/4*1/4
 				temp.MatrDivScale(16);
@@ -271,7 +271,7 @@ public:
 				ComputeMatrB(3, zeta1, zeta2, zeta3, zeta4, JacobianDet);
 				BT=MatrB[3];
 				BT.MatrTranspose();
-				temp = (BT * Material->Get_StressStrainatrix() * MatrB[3]);
+				temp = (BT * Material->Get_StressStrainMatrix() * MatrB[3]);
 				temp.MatrScale(JacobianDet/6);
 					//Gauss integration weight = 1*1/4*1/4*1/4
 				temp.MatrDivScale(16);

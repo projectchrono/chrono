@@ -82,93 +82,96 @@ public:
 			//
 			// FEM functions
 			//
+	
+					//
+					// QUADRATURE functions
+					//
+	virtual void SetDefaultIntegrationRule()
+			{
+				this->ir->SetIntOnCube(27, &this->GpVector);
+			}
 
-				/// Approximation!! not the exact volume
-				/// This returns an exact value only in case of Constant Metric Tetrahedron
-	double ComputeVolume()
-				{
-					ChVector<> B1,C1,D1;
-					B1.Sub(nodes[1]->pos,nodes[0]->pos);
-					C1.Sub(nodes[2]->pos,nodes[0]->pos);
-					D1.Sub(nodes[3]->pos,nodes[0]->pos);
-					ChMatrixDynamic<> M(3,3);
-					M.PasteVector(B1,0,0);
-					M.PasteVector(C1,0,1);
-					M.PasteVector(D1,0,2);
-					M.MatrTranspose();
-					Volume = abs(M.Det()/6);
-					return Volume;
-				}
-			
+	virtual void SetReducedIntegrationRule()
+			{
+				this->ir->SetIntOnCube(8, &this->GpVector);
+			}
+
+	virtual void SetIntegrationRule(int nPoints)
+			{
+				this->ir->SetIntOnCube(nPoints, &this->GpVector);
+			}
+
+
+		
 				/// Puts inside 'Jacobian' and 'J1' the Jacobian matrix and the shape functions derivatives matrix of the element
-				/// zeta1,...,zeta3 are the three natural coordinates of the integration point
-				/// in case of hexahedral elements natural coord. vary in the classical range -1 ... +1
-	virtual void ComputeJacobian(ChMatrixDynamic<>& Jacobian, ChMatrixDynamic<>& J1, double zeta1, double zeta2, double zeta3) 
+				/// The vector "coord" contains the natural coordinates of the integration point
+				/// in case of hexahedral elements natural coords vary in the classical range -1 ... +1
+	virtual void ComputeJacobian(ChMatrixDynamic<>& Jacobian, ChMatrixDynamic<>& J1, ChVector<> coord) 
 				{
 					ChMatrixDynamic<> J2(20,3);
 
-					J1.SetElement(0,0,-(1-zeta2)*(1-zeta3)*(-1-2*zeta1-zeta2-zeta3)/8);
-					J1.SetElement(0,1,+(1-zeta2)*(1-zeta3)*(-1+2*zeta1-zeta2-zeta3)/8);
-					J1.SetElement(0,2,+(1+zeta2)*(1-zeta3)*(-1+2*zeta1+zeta2-zeta3)/8);
-					J1.SetElement(0,3,-(1+zeta2)*(1-zeta3)*(-1-2*zeta1+zeta2-zeta3)/8);
-					J1.SetElement(0,4,-(1-zeta2)*(1+zeta3)*(-1-2*zeta1-zeta2+zeta3)/8);
-					J1.SetElement(0,5,+(1-zeta2)*(1+zeta3)*(-1+2*zeta1-zeta2+zeta3)/8);
-					J1.SetElement(0,6,+(1+zeta2)*(1+zeta3)*(-1+2*zeta1+zeta2+zeta3)/8);
-					J1.SetElement(0,7,-(1+zeta2)*(1+zeta3)*(-1-2*zeta1+zeta2+zeta3)/8);
-					J1.SetElement(0,8, zeta1*(1-zeta2)*(1-zeta3)/(-2));
-					J1.SetElement(0,9,+(1-zeta2*zeta2)*(1-zeta3)/4);
-					J1.SetElement(0,10, zeta1*(1+zeta2)*(1-zeta3)/(-2));
-					J1.SetElement(0,11,-(1-zeta2*zeta2)*(1-zeta3)/4);
-					J1.SetElement(0,12, zeta1*(1-zeta2)*(1+zeta3)/(-2));
-					J1.SetElement(0,13,+(1-zeta2*zeta2)*(1+zeta3)/4);
-					J1.SetElement(0,14, zeta1*(1+zeta2)*(1+zeta3)/(-2));
-					J1.SetElement(0,15,-(1-zeta2*zeta2)*(1+zeta3)/4);
-					J1.SetElement(0,16,+(1-zeta2)*(1-zeta3*zeta3)/4);
-					J1.SetElement(0,17,+(1+zeta2)*(1-zeta3*zeta3)/4);
-					J1.SetElement(0,18,-(1+zeta2)*(1-zeta3*zeta3)/4);
-					J1.SetElement(0,19,-(1-zeta2)*(1-zeta3*zeta3)/4);
+					J1.SetElement(0,0,-(1-coord.y)*(1-coord.z)*(-1-2*coord.x-coord.y-coord.z)/8);
+					J1.SetElement(0,1,+(1-coord.y)*(1-coord.z)*(-1+2*coord.x-coord.y-coord.z)/8);
+					J1.SetElement(0,2,+(1+coord.y)*(1-coord.z)*(-1+2*coord.x+coord.y-coord.z)/8);
+					J1.SetElement(0,3,-(1+coord.y)*(1-coord.z)*(-1-2*coord.x+coord.y-coord.z)/8);
+					J1.SetElement(0,4,-(1-coord.y)*(1+coord.z)*(-1-2*coord.x-coord.y+coord.z)/8);
+					J1.SetElement(0,5,+(1-coord.y)*(1+coord.z)*(-1+2*coord.x-coord.y+coord.z)/8);
+					J1.SetElement(0,6,+(1+coord.y)*(1+coord.z)*(-1+2*coord.x+coord.y+coord.z)/8);
+					J1.SetElement(0,7,-(1+coord.y)*(1+coord.z)*(-1-2*coord.x+coord.y+coord.z)/8);
+					J1.SetElement(0,8, coord.x*(1-coord.y)*(1-coord.z)/(-2));
+					J1.SetElement(0,9,+(1-coord.y*coord.y)*(1-coord.z)/4);
+					J1.SetElement(0,10, coord.x*(1+coord.y)*(1-coord.z)/(-2));
+					J1.SetElement(0,11,-(1-coord.y*coord.y)*(1-coord.z)/4);
+					J1.SetElement(0,12, coord.x*(1-coord.y)*(1+coord.z)/(-2));
+					J1.SetElement(0,13,+(1-coord.y*coord.y)*(1+coord.z)/4);
+					J1.SetElement(0,14, coord.x*(1+coord.y)*(1+coord.z)/(-2));
+					J1.SetElement(0,15,-(1-coord.y*coord.y)*(1+coord.z)/4);
+					J1.SetElement(0,16,+(1-coord.y)*(1-coord.z*coord.z)/4);
+					J1.SetElement(0,17,+(1+coord.y)*(1-coord.z*coord.z)/4);
+					J1.SetElement(0,18,-(1+coord.y)*(1-coord.z*coord.z)/4);
+					J1.SetElement(0,19,-(1-coord.y)*(1-coord.z*coord.z)/4);
 
-					J1.SetElement(1,0,-(1-zeta1)*(1-zeta3)*(-1-zeta1-2*zeta2-zeta3)/8);
-					J1.SetElement(1,1,-(1+zeta1)*(1-zeta3)*(-1+zeta1-2*zeta2-zeta3)/8);
-					J1.SetElement(1,2,+(1+zeta1)*(1-zeta3)*(-1+zeta1+2*zeta2-zeta3)/8);
-					J1.SetElement(1,3,+(1-zeta1)*(1-zeta3)*(-1-zeta1+2*zeta2-zeta3)/8);
-					J1.SetElement(1,4,-(1-zeta1)*(1+zeta3)*(-1-zeta1-2*zeta2+zeta3)/8);
-					J1.SetElement(1,5,-(1+zeta1)*(1+zeta3)*(-1+zeta1-2*zeta2+zeta3)/8);
-					J1.SetElement(1,6,+(1+zeta1)*(1+zeta3)*(-1+zeta1+2*zeta2+zeta3)/8);
-					J1.SetElement(1,7,+(1-zeta1)*(1+zeta3)*(-1-zeta1+2*zeta2+zeta3)/8);
-					J1.SetElement(1,8,-(1-zeta1*zeta1)*(1-zeta3)/4);
-					J1.SetElement(1,9, zeta2*(1+zeta1)*(1-zeta3)/(-2));
-					J1.SetElement(1,10,+(1-zeta1*zeta1)*(1-zeta3)/4);
-					J1.SetElement(1,11, zeta2*(1-zeta1)*(1-zeta3)/(-2));
-					J1.SetElement(1,12,-(1-zeta1*zeta1)*(1+zeta3)/4);
-					J1.SetElement(1,13, zeta2*(1+zeta1)*(1+zeta3)/(-2));
-					J1.SetElement(1,14,+(1-zeta1*zeta1)*(1+zeta3)/4);
-					J1.SetElement(1,15, zeta2*(1-zeta1)*(1+zeta3)/(-2));
-					J1.SetElement(1,16,-(1+zeta1)*(1-zeta3*zeta3)/4);
-					J1.SetElement(1,17,+(1+zeta1)*(1-zeta3*zeta3)/4);
-					J1.SetElement(1,18,+(1-zeta1)*(1-zeta3*zeta3)/4);
-					J1.SetElement(1,19,-(1-zeta1)*(1-zeta3*zeta3)/4);
+					J1.SetElement(1,0,-(1-coord.x)*(1-coord.z)*(-1-coord.x-2*coord.y-coord.z)/8);
+					J1.SetElement(1,1,-(1+coord.x)*(1-coord.z)*(-1+coord.x-2*coord.y-coord.z)/8);
+					J1.SetElement(1,2,+(1+coord.x)*(1-coord.z)*(-1+coord.x+2*coord.y-coord.z)/8);
+					J1.SetElement(1,3,+(1-coord.x)*(1-coord.z)*(-1-coord.x+2*coord.y-coord.z)/8);
+					J1.SetElement(1,4,-(1-coord.x)*(1+coord.z)*(-1-coord.x-2*coord.y+coord.z)/8);
+					J1.SetElement(1,5,-(1+coord.x)*(1+coord.z)*(-1+coord.x-2*coord.y+coord.z)/8);
+					J1.SetElement(1,6,+(1+coord.x)*(1+coord.z)*(-1+coord.x+2*coord.y+coord.z)/8);
+					J1.SetElement(1,7,+(1-coord.x)*(1+coord.z)*(-1-coord.x+2*coord.y+coord.z)/8);
+					J1.SetElement(1,8,-(1-coord.x*coord.x)*(1-coord.z)/4);
+					J1.SetElement(1,9, coord.y*(1+coord.x)*(1-coord.z)/(-2));
+					J1.SetElement(1,10,+(1-coord.x*coord.x)*(1-coord.z)/4);
+					J1.SetElement(1,11, coord.y*(1-coord.x)*(1-coord.z)/(-2));
+					J1.SetElement(1,12,-(1-coord.x*coord.x)*(1+coord.z)/4);
+					J1.SetElement(1,13, coord.y*(1+coord.x)*(1+coord.z)/(-2));
+					J1.SetElement(1,14,+(1-coord.x*coord.x)*(1+coord.z)/4);
+					J1.SetElement(1,15, coord.y*(1-coord.x)*(1+coord.z)/(-2));
+					J1.SetElement(1,16,-(1+coord.x)*(1-coord.z*coord.z)/4);
+					J1.SetElement(1,17,+(1+coord.x)*(1-coord.z*coord.z)/4);
+					J1.SetElement(1,18,+(1-coord.x)*(1-coord.z*coord.z)/4);
+					J1.SetElement(1,19,-(1-coord.x)*(1-coord.z*coord.z)/4);
 
-					J1.SetElement(2,0,-(1-zeta1)*(1-zeta2)*(-1-zeta1-zeta2-2*zeta3)/8);
-					J1.SetElement(2,1,-(1+zeta1)*(1-zeta2)*(-1+zeta1-zeta2-2*zeta3)/8);
-					J1.SetElement(2,2,-(1+zeta1)*(1+zeta2)*(-1+zeta1+zeta2-2*zeta3)/8);
-					J1.SetElement(2,3,-(1-zeta1)*(1+zeta2)*(-1-zeta1+zeta2-2*zeta3)/8);
-					J1.SetElement(2,4,+(1-zeta1)*(1-zeta2)*(-1-zeta1-zeta2+2*zeta3)/8);
-					J1.SetElement(2,5,+(1+zeta1)*(1-zeta2)*(-1+zeta1-zeta2+2*zeta3)/8);
-					J1.SetElement(2,6,+(1+zeta1)*(1+zeta2)*(-1+zeta1+zeta2+2*zeta3)/8);
-					J1.SetElement(2,7,+(1-zeta1)*(1+zeta2)*(-1-zeta1+zeta2+2*zeta3)/8);
-					J1.SetElement(2,8,-(1-zeta1*zeta1)*(1-zeta2)/4);
-					J1.SetElement(2,9,-(1+zeta1)*(1-zeta2*zeta2)/4);
-					J1.SetElement(2,10,-(1-zeta1*zeta1)*(1+zeta2)/4);
-					J1.SetElement(2,11,-(1-zeta1)*(1-zeta2*zeta2)/4);
-					J1.SetElement(2,12,+(1-zeta1*zeta1)*(1-zeta2)/4);
-					J1.SetElement(2,13,+(1+zeta1)*(1-zeta2*zeta2)/4);
-					J1.SetElement(2,14,+(1-zeta1*zeta1)*(1+zeta2)/4);
-					J1.SetElement(2,15,+(1-zeta1)*(1-zeta2*zeta2)/4);
-					J1.SetElement(2,16,zeta3*(1+zeta1)*(1-zeta2)/(-2));
-					J1.SetElement(2,17,zeta3*(1+zeta1)*(1+zeta2)/(-2));
-					J1.SetElement(2,18,zeta3*(1-zeta1)*(1+zeta2)/(-2));
-					J1.SetElement(2,19,zeta3*(1-zeta1)*(1-zeta2)/(-2));
+					J1.SetElement(2,0,-(1-coord.x)*(1-coord.y)*(-1-coord.x-coord.y-2*coord.z)/8);
+					J1.SetElement(2,1,-(1+coord.x)*(1-coord.y)*(-1+coord.x-coord.y-2*coord.z)/8);
+					J1.SetElement(2,2,-(1+coord.x)*(1+coord.y)*(-1+coord.x+coord.y-2*coord.z)/8);
+					J1.SetElement(2,3,-(1-coord.x)*(1+coord.y)*(-1-coord.x+coord.y-2*coord.z)/8);
+					J1.SetElement(2,4,+(1-coord.x)*(1-coord.y)*(-1-coord.x-coord.y+2*coord.z)/8);
+					J1.SetElement(2,5,+(1+coord.x)*(1-coord.y)*(-1+coord.x-coord.y+2*coord.z)/8);
+					J1.SetElement(2,6,+(1+coord.x)*(1+coord.y)*(-1+coord.x+coord.y+2*coord.z)/8);
+					J1.SetElement(2,7,+(1-coord.x)*(1+coord.y)*(-1-coord.x+coord.y+2*coord.z)/8);
+					J1.SetElement(2,8,-(1-coord.x*coord.x)*(1-coord.y)/4);
+					J1.SetElement(2,9,-(1+coord.x)*(1-coord.y*coord.y)/4);
+					J1.SetElement(2,10,-(1-coord.x*coord.x)*(1+coord.y)/4);
+					J1.SetElement(2,11,-(1-coord.x)*(1-coord.y*coord.y)/4);
+					J1.SetElement(2,12,+(1-coord.x*coord.x)*(1-coord.y)/4);
+					J1.SetElement(2,13,+(1+coord.x)*(1-coord.y*coord.y)/4);
+					J1.SetElement(2,14,+(1-coord.x*coord.x)*(1+coord.y)/4);
+					J1.SetElement(2,15,+(1-coord.x)*(1-coord.y*coord.y)/4);
+					J1.SetElement(2,16,coord.z*(1+coord.x)*(1-coord.y)/(-2));
+					J1.SetElement(2,17,coord.z*(1+coord.x)*(1+coord.y)/(-2));
+					J1.SetElement(2,18,coord.z*(1-coord.x)*(1+coord.y)/(-2));
+					J1.SetElement(2,19,coord.z*(1-coord.x)*(1-coord.y)/(-2));
 					
 					
 					J2.SetElement(0,0,nodes[0]->pos.x);
@@ -234,18 +237,17 @@ public:
 					J2.SetElement(18,2,nodes[18]->pos.z);
 					J2.SetElement(19,2,nodes[19]->pos.z);
 
-
 					Jacobian.MatrMultiply(J1,J2);				
 				}
 
-				/// Computes the matrix of partial derivatives and puts data in "A"
-				///	ID (0,...,7) identifies the integration point; zeta1,...,zeta3 are its three natural coordinates
-				/// in case of tetrahedral elements natural coord. vary in the canonical range -1 ... +1
-	virtual void ComputeMatrB(int ID, double zeta1, double zeta2, double zeta3, double& JacobianDet) 
+
+				/// Computes the matrix of partial derivatives and puts data in "GaussPt"
+				///	Stores the determinant of the jacobian in "JacobianDet"
+	virtual void ComputeMatrB(ChGaussPoint* GaussPt, double& JacobianDet) 
 				{
 					ChMatrixDynamic<> Jacobian(3,3);
 					ChMatrixDynamic<> J1(3,20);
-					ComputeJacobian(Jacobian, J1, zeta1, zeta2, zeta3);
+					ComputeJacobian(Jacobian, J1, (*GaussPt).GetLocalCoordinates());
 				
 					double Jdet=Jacobian.Det();
 					JacobianDet = Jdet;		// !!! store the Jacobian Determinant: needed for the integration
@@ -255,200 +257,225 @@ public:
 
 					ChMatrixDynamic<> Btemp(3,20);
 					Btemp.MatrMultiply(Jinv,J1);
+					GaussPt->MatrB->Resize(6,60);	// Remember to resize the matrix!
 
-					MatrB[ID].SetElement(0,0,Btemp(0,0));
-					MatrB[ID].SetElement(0,3,Btemp(0,1));
-					MatrB[ID].SetElement(0,6,Btemp(0,2));
-					MatrB[ID].SetElement(0,9,Btemp(0,3));
-					MatrB[ID].SetElement(0,12,Btemp(0,4));
-					MatrB[ID].SetElement(0,15,Btemp(0,5));
-					MatrB[ID].SetElement(0,18,Btemp(0,6));
-					MatrB[ID].SetElement(0,21,Btemp(0,7));
-					MatrB[ID].SetElement(0,24,Btemp(0,8));
-					MatrB[ID].SetElement(0,27,Btemp(0,9));
-					MatrB[ID].SetElement(0,30,Btemp(0,10));
-					MatrB[ID].SetElement(0,33,Btemp(0,11));
-					MatrB[ID].SetElement(0,36,Btemp(0,12));
-					MatrB[ID].SetElement(0,39,Btemp(0,13));
-					MatrB[ID].SetElement(0,42,Btemp(0,14));
-					MatrB[ID].SetElement(0,45,Btemp(0,15));
-					MatrB[ID].SetElement(0,48,Btemp(0,16));
-					MatrB[ID].SetElement(0,51,Btemp(0,17));
-					MatrB[ID].SetElement(0,54,Btemp(0,18));
-					MatrB[ID].SetElement(0,57,Btemp(0,19));
+					GaussPt->MatrB->SetElement(0,0,Btemp(0,0));
+					GaussPt->MatrB->SetElement(0,3,Btemp(0,1));
+					GaussPt->MatrB->SetElement(0,6,Btemp(0,2));
+					GaussPt->MatrB->SetElement(0,9,Btemp(0,3));
+					GaussPt->MatrB->SetElement(0,12,Btemp(0,4));
+					GaussPt->MatrB->SetElement(0,15,Btemp(0,5));
+					GaussPt->MatrB->SetElement(0,18,Btemp(0,6));
+					GaussPt->MatrB->SetElement(0,21,Btemp(0,7));
+					GaussPt->MatrB->SetElement(0,24,Btemp(0,8));
+					GaussPt->MatrB->SetElement(0,27,Btemp(0,9));
+					GaussPt->MatrB->SetElement(0,30,Btemp(0,10));
+					GaussPt->MatrB->SetElement(0,33,Btemp(0,11));
+					GaussPt->MatrB->SetElement(0,36,Btemp(0,12));
+					GaussPt->MatrB->SetElement(0,39,Btemp(0,13));
+					GaussPt->MatrB->SetElement(0,42,Btemp(0,14));
+					GaussPt->MatrB->SetElement(0,45,Btemp(0,15));
+					GaussPt->MatrB->SetElement(0,48,Btemp(0,16));
+					GaussPt->MatrB->SetElement(0,51,Btemp(0,17));
+					GaussPt->MatrB->SetElement(0,54,Btemp(0,18));
+					GaussPt->MatrB->SetElement(0,57,Btemp(0,19));
 
-					MatrB[ID].SetElement(1,1,Btemp(1,0));
-					MatrB[ID].SetElement(1,4,Btemp(1,1));
-					MatrB[ID].SetElement(1,7,Btemp(1,2));
-					MatrB[ID].SetElement(1,10,Btemp(1,3));
-					MatrB[ID].SetElement(1,13,Btemp(1,4));
-					MatrB[ID].SetElement(1,16,Btemp(1,5));
-					MatrB[ID].SetElement(1,19,Btemp(1,6));
-					MatrB[ID].SetElement(1,22,Btemp(1,7));
-					MatrB[ID].SetElement(1,25,Btemp(1,8));
-					MatrB[ID].SetElement(1,28,Btemp(1,9));
-					MatrB[ID].SetElement(1,31,Btemp(1,10));
-					MatrB[ID].SetElement(1,34,Btemp(1,11));
-					MatrB[ID].SetElement(1,37,Btemp(1,12));
-					MatrB[ID].SetElement(1,40,Btemp(1,13));
-					MatrB[ID].SetElement(1,43,Btemp(1,14));
-					MatrB[ID].SetElement(1,46,Btemp(1,15));
-					MatrB[ID].SetElement(1,49,Btemp(1,16));
-					MatrB[ID].SetElement(1,52,Btemp(1,17));
-					MatrB[ID].SetElement(1,55,Btemp(1,18));
-					MatrB[ID].SetElement(1,58,Btemp(1,19));
+					GaussPt->MatrB->SetElement(1,1,Btemp(1,0));
+					GaussPt->MatrB->SetElement(1,4,Btemp(1,1));
+					GaussPt->MatrB->SetElement(1,7,Btemp(1,2));
+					GaussPt->MatrB->SetElement(1,10,Btemp(1,3));
+					GaussPt->MatrB->SetElement(1,13,Btemp(1,4));
+					GaussPt->MatrB->SetElement(1,16,Btemp(1,5));
+					GaussPt->MatrB->SetElement(1,19,Btemp(1,6));
+					GaussPt->MatrB->SetElement(1,22,Btemp(1,7));
+					GaussPt->MatrB->SetElement(1,25,Btemp(1,8));
+					GaussPt->MatrB->SetElement(1,28,Btemp(1,9));
+					GaussPt->MatrB->SetElement(1,31,Btemp(1,10));
+					GaussPt->MatrB->SetElement(1,34,Btemp(1,11));
+					GaussPt->MatrB->SetElement(1,37,Btemp(1,12));
+					GaussPt->MatrB->SetElement(1,40,Btemp(1,13));
+					GaussPt->MatrB->SetElement(1,43,Btemp(1,14));
+					GaussPt->MatrB->SetElement(1,46,Btemp(1,15));
+					GaussPt->MatrB->SetElement(1,49,Btemp(1,16));
+					GaussPt->MatrB->SetElement(1,52,Btemp(1,17));
+					GaussPt->MatrB->SetElement(1,55,Btemp(1,18));
+					GaussPt->MatrB->SetElement(1,58,Btemp(1,19));
 
-					MatrB[ID].SetElement(2,2,Btemp(2,0));
-					MatrB[ID].SetElement(2,5,Btemp(2,1));
-					MatrB[ID].SetElement(2,8,Btemp(2,2));
-					MatrB[ID].SetElement(2,11,Btemp(2,3));
-					MatrB[ID].SetElement(2,14,Btemp(2,4));
-					MatrB[ID].SetElement(2,17,Btemp(2,5));
-					MatrB[ID].SetElement(2,20,Btemp(2,6));
-					MatrB[ID].SetElement(2,23,Btemp(2,7));
-					MatrB[ID].SetElement(2,26,Btemp(2,8));
-					MatrB[ID].SetElement(2,29,Btemp(2,9));
-					MatrB[ID].SetElement(2,32,Btemp(2,10));
-					MatrB[ID].SetElement(2,35,Btemp(2,11));
-					MatrB[ID].SetElement(2,38,Btemp(2,12));
-					MatrB[ID].SetElement(2,41,Btemp(2,13));
-					MatrB[ID].SetElement(2,44,Btemp(2,14));
-					MatrB[ID].SetElement(2,47,Btemp(2,15));
-					MatrB[ID].SetElement(2,50,Btemp(2,16));
-					MatrB[ID].SetElement(2,53,Btemp(2,17));
-					MatrB[ID].SetElement(2,56,Btemp(2,18));
-					MatrB[ID].SetElement(2,59,Btemp(2,19));
+					GaussPt->MatrB->SetElement(2,2,Btemp(2,0));
+					GaussPt->MatrB->SetElement(2,5,Btemp(2,1));
+					GaussPt->MatrB->SetElement(2,8,Btemp(2,2));
+					GaussPt->MatrB->SetElement(2,11,Btemp(2,3));
+					GaussPt->MatrB->SetElement(2,14,Btemp(2,4));
+					GaussPt->MatrB->SetElement(2,17,Btemp(2,5));
+					GaussPt->MatrB->SetElement(2,20,Btemp(2,6));
+					GaussPt->MatrB->SetElement(2,23,Btemp(2,7));
+					GaussPt->MatrB->SetElement(2,26,Btemp(2,8));
+					GaussPt->MatrB->SetElement(2,29,Btemp(2,9));
+					GaussPt->MatrB->SetElement(2,32,Btemp(2,10));
+					GaussPt->MatrB->SetElement(2,35,Btemp(2,11));
+					GaussPt->MatrB->SetElement(2,38,Btemp(2,12));
+					GaussPt->MatrB->SetElement(2,41,Btemp(2,13));
+					GaussPt->MatrB->SetElement(2,44,Btemp(2,14));
+					GaussPt->MatrB->SetElement(2,47,Btemp(2,15));
+					GaussPt->MatrB->SetElement(2,50,Btemp(2,16));
+					GaussPt->MatrB->SetElement(2,53,Btemp(2,17));
+					GaussPt->MatrB->SetElement(2,56,Btemp(2,18));
+					GaussPt->MatrB->SetElement(2,59,Btemp(2,19));
 
-					MatrB[ID].SetElement(3,0,Btemp(1,0));
-					MatrB[ID].SetElement(3,1,Btemp(0,0));
-					MatrB[ID].SetElement(3,3,Btemp(1,1));
-					MatrB[ID].SetElement(3,4,Btemp(0,1));
-					MatrB[ID].SetElement(3,6,Btemp(1,2));
-					MatrB[ID].SetElement(3,7,Btemp(0,2));
-					MatrB[ID].SetElement(3,9,Btemp(1,3));
-					MatrB[ID].SetElement(3,10,Btemp(0,3));
-					MatrB[ID].SetElement(3,12,Btemp(1,4));
-					MatrB[ID].SetElement(3,13,Btemp(0,4));
-					MatrB[ID].SetElement(3,15,Btemp(1,5));
-					MatrB[ID].SetElement(3,16,Btemp(0,5));
-					MatrB[ID].SetElement(3,18,Btemp(1,6));
-					MatrB[ID].SetElement(3,19,Btemp(0,6));
-					MatrB[ID].SetElement(3,21,Btemp(1,7));
-					MatrB[ID].SetElement(3,22,Btemp(0,7));
-					MatrB[ID].SetElement(3,24,Btemp(1,8));
-					MatrB[ID].SetElement(3,25,Btemp(0,8));
-					MatrB[ID].SetElement(3,27,Btemp(1,9));
-					MatrB[ID].SetElement(3,28,Btemp(0,9));
-					MatrB[ID].SetElement(3,30,Btemp(1,10));
-					MatrB[ID].SetElement(3,31,Btemp(0,10));
-					MatrB[ID].SetElement(3,33,Btemp(1,11));
-					MatrB[ID].SetElement(3,34,Btemp(0,11));
-					MatrB[ID].SetElement(3,36,Btemp(1,12));
-					MatrB[ID].SetElement(3,37,Btemp(0,12));
-					MatrB[ID].SetElement(3,39,Btemp(1,13));
-					MatrB[ID].SetElement(3,40,Btemp(0,13));
-					MatrB[ID].SetElement(3,42,Btemp(1,14));
-					MatrB[ID].SetElement(3,43,Btemp(0,14));
-					MatrB[ID].SetElement(3,45,Btemp(1,15));
-					MatrB[ID].SetElement(3,46,Btemp(0,15));
-					MatrB[ID].SetElement(3,48,Btemp(1,16));
-					MatrB[ID].SetElement(3,49,Btemp(0,16));
-					MatrB[ID].SetElement(3,51,Btemp(1,17));
-					MatrB[ID].SetElement(3,52,Btemp(0,17));
-					MatrB[ID].SetElement(3,54,Btemp(1,18));
-					MatrB[ID].SetElement(3,55,Btemp(0,18));
-					MatrB[ID].SetElement(3,57,Btemp(1,19));
-					MatrB[ID].SetElement(3,58,Btemp(0,19));
+					GaussPt->MatrB->SetElement(3,0,Btemp(1,0));
+					GaussPt->MatrB->SetElement(3,1,Btemp(0,0));
+					GaussPt->MatrB->SetElement(3,3,Btemp(1,1));
+					GaussPt->MatrB->SetElement(3,4,Btemp(0,1));
+					GaussPt->MatrB->SetElement(3,6,Btemp(1,2));
+					GaussPt->MatrB->SetElement(3,7,Btemp(0,2));
+					GaussPt->MatrB->SetElement(3,9,Btemp(1,3));
+					GaussPt->MatrB->SetElement(3,10,Btemp(0,3));
+					GaussPt->MatrB->SetElement(3,12,Btemp(1,4));
+					GaussPt->MatrB->SetElement(3,13,Btemp(0,4));
+					GaussPt->MatrB->SetElement(3,15,Btemp(1,5));
+					GaussPt->MatrB->SetElement(3,16,Btemp(0,5));
+					GaussPt->MatrB->SetElement(3,18,Btemp(1,6));
+					GaussPt->MatrB->SetElement(3,19,Btemp(0,6));
+					GaussPt->MatrB->SetElement(3,21,Btemp(1,7));
+					GaussPt->MatrB->SetElement(3,22,Btemp(0,7));
+					GaussPt->MatrB->SetElement(3,24,Btemp(1,8));
+					GaussPt->MatrB->SetElement(3,25,Btemp(0,8));
+					GaussPt->MatrB->SetElement(3,27,Btemp(1,9));
+					GaussPt->MatrB->SetElement(3,28,Btemp(0,9));
+					GaussPt->MatrB->SetElement(3,30,Btemp(1,10));
+					GaussPt->MatrB->SetElement(3,31,Btemp(0,10));
+					GaussPt->MatrB->SetElement(3,33,Btemp(1,11));
+					GaussPt->MatrB->SetElement(3,34,Btemp(0,11));
+					GaussPt->MatrB->SetElement(3,36,Btemp(1,12));
+					GaussPt->MatrB->SetElement(3,37,Btemp(0,12));
+					GaussPt->MatrB->SetElement(3,39,Btemp(1,13));
+					GaussPt->MatrB->SetElement(3,40,Btemp(0,13));
+					GaussPt->MatrB->SetElement(3,42,Btemp(1,14));
+					GaussPt->MatrB->SetElement(3,43,Btemp(0,14));
+					GaussPt->MatrB->SetElement(3,45,Btemp(1,15));
+					GaussPt->MatrB->SetElement(3,46,Btemp(0,15));
+					GaussPt->MatrB->SetElement(3,48,Btemp(1,16));
+					GaussPt->MatrB->SetElement(3,49,Btemp(0,16));
+					GaussPt->MatrB->SetElement(3,51,Btemp(1,17));
+					GaussPt->MatrB->SetElement(3,52,Btemp(0,17));
+					GaussPt->MatrB->SetElement(3,54,Btemp(1,18));
+					GaussPt->MatrB->SetElement(3,55,Btemp(0,18));
+					GaussPt->MatrB->SetElement(3,57,Btemp(1,19));
+					GaussPt->MatrB->SetElement(3,58,Btemp(0,19));
 
-					MatrB[ID].SetElement(4,1,Btemp(2,0));
-					MatrB[ID].SetElement(4,2,Btemp(1,0));
-					MatrB[ID].SetElement(4,4,Btemp(2,1));
-					MatrB[ID].SetElement(4,5,Btemp(1,1));
-					MatrB[ID].SetElement(4,7,Btemp(2,2));
-					MatrB[ID].SetElement(4,8,Btemp(1,2));
-					MatrB[ID].SetElement(4,10,Btemp(2,3));
-					MatrB[ID].SetElement(4,11,Btemp(1,3));
-					MatrB[ID].SetElement(4,13,Btemp(2,4));
-					MatrB[ID].SetElement(4,14,Btemp(1,4));
-					MatrB[ID].SetElement(4,16,Btemp(2,5));
-					MatrB[ID].SetElement(4,17,Btemp(1,5));
-					MatrB[ID].SetElement(4,19,Btemp(2,6));
-					MatrB[ID].SetElement(4,20,Btemp(1,6));
-					MatrB[ID].SetElement(4,22,Btemp(2,7));
-					MatrB[ID].SetElement(4,23,Btemp(1,7));
-					MatrB[ID].SetElement(4,25,Btemp(2,8));
-					MatrB[ID].SetElement(4,26,Btemp(1,8));
-					MatrB[ID].SetElement(4,28,Btemp(2,9));
-					MatrB[ID].SetElement(4,29,Btemp(1,9));
-					MatrB[ID].SetElement(4,31,Btemp(2,10));
-					MatrB[ID].SetElement(4,32,Btemp(1,10));
-					MatrB[ID].SetElement(4,34,Btemp(2,11));
-					MatrB[ID].SetElement(4,35,Btemp(1,11));
-					MatrB[ID].SetElement(4,37,Btemp(2,12));
-					MatrB[ID].SetElement(4,38,Btemp(1,12));
-					MatrB[ID].SetElement(4,40,Btemp(2,13));
-					MatrB[ID].SetElement(4,41,Btemp(1,13));
-					MatrB[ID].SetElement(4,43,Btemp(2,14));
-					MatrB[ID].SetElement(4,44,Btemp(1,14));
-					MatrB[ID].SetElement(4,46,Btemp(2,15));
-					MatrB[ID].SetElement(4,47,Btemp(1,15));
-					MatrB[ID].SetElement(4,49,Btemp(2,16));
-					MatrB[ID].SetElement(4,50,Btemp(1,16));
-					MatrB[ID].SetElement(4,52,Btemp(2,17));
-					MatrB[ID].SetElement(4,53,Btemp(1,17));
-					MatrB[ID].SetElement(4,55,Btemp(2,18));
-					MatrB[ID].SetElement(4,56,Btemp(1,18));
-					MatrB[ID].SetElement(4,58,Btemp(2,19));
-					MatrB[ID].SetElement(4,59,Btemp(1,19));
+					GaussPt->MatrB->SetElement(4,1,Btemp(2,0));
+					GaussPt->MatrB->SetElement(4,2,Btemp(1,0));
+					GaussPt->MatrB->SetElement(4,4,Btemp(2,1));
+					GaussPt->MatrB->SetElement(4,5,Btemp(1,1));
+					GaussPt->MatrB->SetElement(4,7,Btemp(2,2));
+					GaussPt->MatrB->SetElement(4,8,Btemp(1,2));
+					GaussPt->MatrB->SetElement(4,10,Btemp(2,3));
+					GaussPt->MatrB->SetElement(4,11,Btemp(1,3));
+					GaussPt->MatrB->SetElement(4,13,Btemp(2,4));
+					GaussPt->MatrB->SetElement(4,14,Btemp(1,4));
+					GaussPt->MatrB->SetElement(4,16,Btemp(2,5));
+					GaussPt->MatrB->SetElement(4,17,Btemp(1,5));
+					GaussPt->MatrB->SetElement(4,19,Btemp(2,6));
+					GaussPt->MatrB->SetElement(4,20,Btemp(1,6));
+					GaussPt->MatrB->SetElement(4,22,Btemp(2,7));
+					GaussPt->MatrB->SetElement(4,23,Btemp(1,7));
+					GaussPt->MatrB->SetElement(4,25,Btemp(2,8));
+					GaussPt->MatrB->SetElement(4,26,Btemp(1,8));
+					GaussPt->MatrB->SetElement(4,28,Btemp(2,9));
+					GaussPt->MatrB->SetElement(4,29,Btemp(1,9));
+					GaussPt->MatrB->SetElement(4,31,Btemp(2,10));
+					GaussPt->MatrB->SetElement(4,32,Btemp(1,10));
+					GaussPt->MatrB->SetElement(4,34,Btemp(2,11));
+					GaussPt->MatrB->SetElement(4,35,Btemp(1,11));
+					GaussPt->MatrB->SetElement(4,37,Btemp(2,12));
+					GaussPt->MatrB->SetElement(4,38,Btemp(1,12));
+					GaussPt->MatrB->SetElement(4,40,Btemp(2,13));
+					GaussPt->MatrB->SetElement(4,41,Btemp(1,13));
+					GaussPt->MatrB->SetElement(4,43,Btemp(2,14));
+					GaussPt->MatrB->SetElement(4,44,Btemp(1,14));
+					GaussPt->MatrB->SetElement(4,46,Btemp(2,15));
+					GaussPt->MatrB->SetElement(4,47,Btemp(1,15));
+					GaussPt->MatrB->SetElement(4,49,Btemp(2,16));
+					GaussPt->MatrB->SetElement(4,50,Btemp(1,16));
+					GaussPt->MatrB->SetElement(4,52,Btemp(2,17));
+					GaussPt->MatrB->SetElement(4,53,Btemp(1,17));
+					GaussPt->MatrB->SetElement(4,55,Btemp(2,18));
+					GaussPt->MatrB->SetElement(4,56,Btemp(1,18));
+					GaussPt->MatrB->SetElement(4,58,Btemp(2,19));
+					GaussPt->MatrB->SetElement(4,59,Btemp(1,19));
 
-					MatrB[ID].SetElement(5,0,Btemp(2,0));
-					MatrB[ID].SetElement(5,2,Btemp(0,0));
-					MatrB[ID].SetElement(5,3,Btemp(2,1));
-					MatrB[ID].SetElement(5,5,Btemp(0,1));
-					MatrB[ID].SetElement(5,6,Btemp(2,2));
-					MatrB[ID].SetElement(5,8,Btemp(0,2));
-					MatrB[ID].SetElement(5,9,Btemp(2,3));
-					MatrB[ID].SetElement(5,11,Btemp(0,3));
-					MatrB[ID].SetElement(5,12,Btemp(2,4));
-					MatrB[ID].SetElement(5,14,Btemp(0,4));
-					MatrB[ID].SetElement(5,15,Btemp(2,5));
-					MatrB[ID].SetElement(5,17,Btemp(0,5));
-					MatrB[ID].SetElement(5,18,Btemp(2,6));
-					MatrB[ID].SetElement(5,20,Btemp(0,6));
-					MatrB[ID].SetElement(5,21,Btemp(2,7));
-					MatrB[ID].SetElement(5,23,Btemp(0,7));
-					MatrB[ID].SetElement(5,24,Btemp(2,8));
-					MatrB[ID].SetElement(5,26,Btemp(0,8));
-					MatrB[ID].SetElement(5,27,Btemp(2,9));
-					MatrB[ID].SetElement(5,29,Btemp(0,9));
-					MatrB[ID].SetElement(5,30,Btemp(2,10));
-					MatrB[ID].SetElement(5,32,Btemp(0,10));
-					MatrB[ID].SetElement(5,33,Btemp(2,11));
-					MatrB[ID].SetElement(5,35,Btemp(0,11));
-					MatrB[ID].SetElement(5,36,Btemp(2,12));
-					MatrB[ID].SetElement(5,38,Btemp(0,12));
-					MatrB[ID].SetElement(5,39,Btemp(2,13));
-					MatrB[ID].SetElement(5,41,Btemp(0,13));
-					MatrB[ID].SetElement(5,42,Btemp(2,14));
-					MatrB[ID].SetElement(5,44,Btemp(0,14));
-					MatrB[ID].SetElement(5,45,Btemp(2,15));
-					MatrB[ID].SetElement(5,47,Btemp(0,15));
-					MatrB[ID].SetElement(5,48,Btemp(2,16));
-					MatrB[ID].SetElement(5,50,Btemp(0,16));
-					MatrB[ID].SetElement(5,51,Btemp(2,17));
-					MatrB[ID].SetElement(5,53,Btemp(0,17));
-					MatrB[ID].SetElement(5,54,Btemp(2,18));
-					MatrB[ID].SetElement(5,56,Btemp(0,18));
-					MatrB[ID].SetElement(5,57,Btemp(2,19));
-					MatrB[ID].SetElement(5,59,Btemp(0,19));
+					GaussPt->MatrB->SetElement(5,0,Btemp(2,0));
+					GaussPt->MatrB->SetElement(5,2,Btemp(0,0));
+					GaussPt->MatrB->SetElement(5,3,Btemp(2,1));
+					GaussPt->MatrB->SetElement(5,5,Btemp(0,1));
+					GaussPt->MatrB->SetElement(5,6,Btemp(2,2));
+					GaussPt->MatrB->SetElement(5,8,Btemp(0,2));
+					GaussPt->MatrB->SetElement(5,9,Btemp(2,3));
+					GaussPt->MatrB->SetElement(5,11,Btemp(0,3));
+					GaussPt->MatrB->SetElement(5,12,Btemp(2,4));
+					GaussPt->MatrB->SetElement(5,14,Btemp(0,4));
+					GaussPt->MatrB->SetElement(5,15,Btemp(2,5));
+					GaussPt->MatrB->SetElement(5,17,Btemp(0,5));
+					GaussPt->MatrB->SetElement(5,18,Btemp(2,6));
+					GaussPt->MatrB->SetElement(5,20,Btemp(0,6));
+					GaussPt->MatrB->SetElement(5,21,Btemp(2,7));
+					GaussPt->MatrB->SetElement(5,23,Btemp(0,7));
+					GaussPt->MatrB->SetElement(5,24,Btemp(2,8));
+					GaussPt->MatrB->SetElement(5,26,Btemp(0,8));
+					GaussPt->MatrB->SetElement(5,27,Btemp(2,9));
+					GaussPt->MatrB->SetElement(5,29,Btemp(0,9));
+					GaussPt->MatrB->SetElement(5,30,Btemp(2,10));
+					GaussPt->MatrB->SetElement(5,32,Btemp(0,10));
+					GaussPt->MatrB->SetElement(5,33,Btemp(2,11));
+					GaussPt->MatrB->SetElement(5,35,Btemp(0,11));
+					GaussPt->MatrB->SetElement(5,36,Btemp(2,12));
+					GaussPt->MatrB->SetElement(5,38,Btemp(0,12));
+					GaussPt->MatrB->SetElement(5,39,Btemp(2,13));
+					GaussPt->MatrB->SetElement(5,41,Btemp(0,13));
+					GaussPt->MatrB->SetElement(5,42,Btemp(2,14));
+					GaussPt->MatrB->SetElement(5,44,Btemp(0,14));
+					GaussPt->MatrB->SetElement(5,45,Btemp(2,15));
+					GaussPt->MatrB->SetElement(5,47,Btemp(0,15));
+					GaussPt->MatrB->SetElement(5,48,Btemp(2,16));
+					GaussPt->MatrB->SetElement(5,50,Btemp(0,16));
+					GaussPt->MatrB->SetElement(5,51,Btemp(2,17));
+					GaussPt->MatrB->SetElement(5,53,Btemp(0,17));
+					GaussPt->MatrB->SetElement(5,54,Btemp(2,18));
+					GaussPt->MatrB->SetElement(5,56,Btemp(0,18));
+					GaussPt->MatrB->SetElement(5,57,Btemp(2,19));
+					GaussPt->MatrB->SetElement(5,59,Btemp(0,19));
 
 
 			}
 
 				/// Computes the global STIFFNESS MATRIX of the element:    
 				/// K = Volume * [B]' * [D] * [B]
-				/// 
+				/// The number of Gauss Point is defined by SetIntegrationRule function (default: 27 Gp)
 	virtual void ComputeStiffnessMatrix() 
+		{
+			double Jdet;
+			ChMatrixDynamic<> *temp = new ChMatrixDynamic<>;
+			ChMatrixDynamic<> BT;
+
+			for(int i=0; i < GpVector.size(); i++)
+			{
+				ComputeMatrB(GpVector[i], Jdet);
+				BT = *GpVector[i]->MatrB;
+				BT.MatrTranspose();
+				*temp = (BT * Material->Get_StressStrainMatrix() * *(GpVector[i]->MatrB));
+				temp->MatrScale(GpVector[i]->GetWeight());
+				temp->MatrScale(Jdet);
+				StiffnessMatrix.MatrAdd(StiffnessMatrix,*temp);
+
+			}
+			delete temp;
+		}
+
+//////////////////// *** OLD METHOD (before GaussIntegrationRule) *** //////////////////////
+				/// Computes the global STIFFNESS MATRIX of the element:    
+				/// K = Volume * [B]' * [D] * [B]
+				/// 
+/*	virtual void ComputeStiffnessMatrix() 
 			{
 				//========================
 				//Exact Integration (27 Gp)
@@ -469,7 +496,7 @@ public:
 					ComputeMatrB(0, zeta1, zeta2, zeta3, Jdet);
 					BT=MatrB[0];
 					BT.MatrTranspose();
-					temp = (BT * Material->Get_StressStrainatrix() * MatrB[0]);
+					temp = (BT * Material->Get_StressStrainMatrix() * MatrB[0]);
 					temp.MatrScale(Jdet);
 					//Gauss integration weight = 1
 					this->StiffnessMatrix = temp;
@@ -481,7 +508,7 @@ public:
 					ComputeMatrB(1, zeta1, zeta2, zeta3, Jdet);
 					BT=MatrB[1];
 					BT.MatrTranspose();
-					temp = (BT * Material->Get_StressStrainatrix() * MatrB[1]);
+					temp = (BT * Material->Get_StressStrainMatrix() * MatrB[1]);
 					temp.MatrScale(Jdet);
 					//Gauss integration weight = 1
 					StiffnessMatrix.MatrAdd(StiffnessMatrix,temp);
@@ -493,7 +520,7 @@ public:
 					ComputeMatrB(2, zeta1, zeta2, zeta3, Jdet);
 					BT=MatrB[2];
 					BT.MatrTranspose();
-					temp = (BT * Material->Get_StressStrainatrix() * MatrB[2]);
+					temp = (BT * Material->Get_StressStrainMatrix() * MatrB[2]);
 					temp.MatrScale(Jdet);
 					//Gauss integration weight = 1
 					StiffnessMatrix.MatrAdd(StiffnessMatrix,temp);
@@ -505,7 +532,7 @@ public:
 					ComputeMatrB(3, zeta1, zeta2, zeta3, Jdet);
 					BT=MatrB[3];
 					BT.MatrTranspose();
-					temp = (BT * Material->Get_StressStrainatrix() * MatrB[3]);
+					temp = (BT * Material->Get_StressStrainMatrix() * MatrB[3]);
 					temp.MatrScale(Jdet);
 					//Gauss integration weight = 1
 					StiffnessMatrix.MatrAdd(StiffnessMatrix,temp);
@@ -517,7 +544,7 @@ public:
 					ComputeMatrB(4, zeta1, zeta2, zeta3, Jdet);
 					BT=MatrB[4];
 					BT.MatrTranspose();
-					temp = (BT * Material->Get_StressStrainatrix() * MatrB[4]);
+					temp = (BT * Material->Get_StressStrainMatrix() * MatrB[4]);
 					temp.MatrScale(Jdet);
 					//Gauss integration weight = 1
 					StiffnessMatrix.MatrAdd(StiffnessMatrix,temp);
@@ -529,7 +556,7 @@ public:
 					ComputeMatrB(5, zeta1, zeta2, zeta3, Jdet);
 					BT=MatrB[5];
 					BT.MatrTranspose();
-					temp = (BT * Material->Get_StressStrainatrix() * MatrB[5]);
+					temp = (BT * Material->Get_StressStrainMatrix() * MatrB[5]);
 					temp.MatrScale(Jdet);
 					//Gauss integration weight = 1
 					StiffnessMatrix.MatrAdd(StiffnessMatrix,temp);
@@ -541,7 +568,7 @@ public:
 					ComputeMatrB(6, zeta1, zeta2, zeta3, Jdet);
 					BT=MatrB[6];
 					BT.MatrTranspose();
-					temp = (BT * Material->Get_StressStrainatrix() * MatrB[6]);
+					temp = (BT * Material->Get_StressStrainMatrix() * MatrB[6]);
 					temp.MatrScale(Jdet);
 					//Gauss integration weight = 1
 					StiffnessMatrix.MatrAdd(StiffnessMatrix,temp);
@@ -553,12 +580,12 @@ public:
 					ComputeMatrB(7, zeta1, zeta2, zeta3, Jdet);
 					BT=MatrB[7];
 					BT.MatrTranspose();
-					temp = (BT * Material->Get_StressStrainatrix() * MatrB[7]);
+					temp = (BT * Material->Get_StressStrainMatrix() * MatrB[7]);
 					temp.MatrScale(Jdet);
 					//Gauss integration weight = 1
 					StiffnessMatrix.MatrAdd(StiffnessMatrix,temp);
 
-			}
+			}*/
 
 	virtual void SetupInitial() 
 			{
