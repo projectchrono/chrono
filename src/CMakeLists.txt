@@ -556,7 +556,9 @@ IF (BUILD_CH_SDK)
 		fem/ChElementTetra_4.cpp
 		fem/ChElementTetra_10.cpp
 		fem/ChElementHexa_8.cpp
-		fem/ChElementHexa_20.cpp  
+		fem/ChElementHexa_20.cpp 
+		fem/ChGaussIntegrationRule.cpp
+		fem/ChGaussPoint.cpp
 		fem/ChMesh.cpp  
 		fem/ChMatterMeshless.cpp 
 		fem/ChContinuumMaterial.cpp
@@ -574,6 +576,8 @@ IF (BUILD_CH_SDK)
 		fem/ChElementTetra_10.h
 		fem/ChElementHexa_8.h
 		fem/ChElementHexa_20.h
+		fem/ChGaussIntegrationRule.h
+		fem/ChGaussPoint.h
 		fem/ChMesh.h 
 		fem/ChMatterMeshless.h 
 		fem/ChContinuumMaterial.h
