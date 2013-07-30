@@ -53,10 +53,10 @@ bool operator <(const contact_dat &i, const contact_dat &j) {
 void addHCPSheet(int grid_x, int grid_z, real height, real mass, real radius, real mu, bool active, real global_x, real global_z, Vector vel, ChSystemGPU* mSys) {
 	real offset = 0;
 	real x = 0, y = height, z = 0;
-	ChSharedBodyGPUPtr body;
+	ChSharedBodyPtr body;
 	for (int i = 0; i < grid_x; i++) {
 		for (int k = 0; k < grid_z; k++) {
-			body = ChSharedBodyGPUPtr(new ChBodyGPU);
+			body = ChSharedBodyPtr(new ChBodyGPU);
 
 			offset = (k % 2 != 0) ? radius : 0;
 			x = i * 2 * radius + offset - grid_x * 2 * radius / 2.0 + global_x;

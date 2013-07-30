@@ -90,6 +90,7 @@ protected:
 			//
 
 	int bflag;			// body-specific flags.
+	unsigned int body_id; // HM - body specific identifier, used for indexing
 
 						// list of child markers
 	std::vector<ChMarker*> marklist;
@@ -146,6 +147,8 @@ public:
 
 				/// Build a rigid body.
 	ChBody ();
+				/// Build a rigid body with a different collision model.
+	ChBody (ChCollisionModel* new_collision_model);
 				/// Destructor
 	~ChBody ();
 
@@ -221,7 +224,10 @@ public:
 				/// Tell if the body is active, i.e. it is neither fixed to ground nor
 				/// it is in sleep mode.
 	bool IsActive() {return !BFlagGet(BF_SLEEPING | BF_FIXED);}
-
+				/// Set the body identifier - HM
+	void SetId(int identifier) { body_id = identifier; }
+				/// Set the body identifier - HM
+	unsigned int GetId() { return body_id;}
 
 			//
 	  		// FUNCTIONS

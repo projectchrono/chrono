@@ -47,9 +47,9 @@ public:
 	void CreateObjects(int x, int y, int z, double posX, double posY, double posZ, bool rand, int type);
 	void DoTimeStep();
 	void PrintStats();
-	void MakeSphere(ChSharedBodyGPUPtr &body, double radius, double mass,ChVector<> pos,double sfric,double kfric,double restitution,bool collide);
-	void MakeBox(ChSharedBodyGPUPtr &body, ChVector<> radius, double mass,ChVector<> pos,ChQuaternion<> rot,double sfric,double kfric,double restitution,int family,int nocolwith,bool collide, bool fixed);
-	void MakeEllipsoid(ChSharedBodyGPUPtr &body, ChVector<> radius, double mass,ChVector<> pos,ChQuaternion<> rot,double sfric,double kfric,double restitution,bool collide);
+	void MakeSphere(ChSharedBodyPtr &body, double radius, double mass,ChVector<> pos,double sfric,double kfric,double restitution,bool collide);
+	void MakeBox(ChSharedBodyPtr &body, ChVector<> radius, double mass,ChVector<> pos,ChQuaternion<> rot,double sfric,double kfric,double restitution,int family,int nocolwith,bool collide, bool fixed);
+	void MakeEllipsoid(ChSharedBodyPtr &body, ChVector<> radius, double mass,ChVector<> pos,ChQuaternion<> rot,double sfric,double kfric,double restitution,bool collide);
 	void LoadTriangleMesh(string name, ChVector<> pos, ChQuaternion<> rot, float mass);
 	void drawAll();
 	void renderScene(){	PrintStats();	DoTimeStep();}

@@ -56,7 +56,7 @@ double System::GetMFR(double height){
 }
 
 
-void System::MakeSphere(ChSharedBodyGPUPtr &body, double radius, double mass,ChVector<> pos,double sfric,double kfric,double restitution,bool collide){
+void System::MakeSphere(ChSharedBodyPtr &body, double radius, double mass,ChVector<> pos,double sfric,double kfric,double restitution,bool collide){
 	body.get_ptr()->SetMass(mass);
 	body.get_ptr()->SetPos(pos);
 	body.get_ptr()->SetInertiaXX(ChVector<>(2.0/5.0*mass*radius*radius,2.0/5.0*mass*radius*radius,2.0/5.0*mass*radius*radius));
@@ -70,7 +70,7 @@ void System::MakeSphere(ChSharedBodyGPUPtr &body, double radius, double mass,ChV
 	body.get_ptr()->SetKfriction(kfric);
 	mSystem->AddBody(body);
 }
-void System::MakeBox(ChSharedBodyGPUPtr &body, ChVector<> dim, double mass,ChVector<> pos, ChQuaternion<> rot,double sfric,double kfric,double restitution,int family,int nocolwith,bool collide, bool fixed){
+void System::MakeBox(ChSharedBodyPtr &body, ChVector<> dim, double mass,ChVector<> pos, ChQuaternion<> rot,double sfric,double kfric,double restitution,int family,int nocolwith,bool collide, bool fixed){
 	body.get_ptr()->SetMass(mass);
 	body.get_ptr()->SetPos(pos);
 	body.get_ptr()->SetRot(rot);
@@ -87,7 +87,7 @@ void System::MakeBox(ChSharedBodyGPUPtr &body, ChVector<> dim, double mass,ChVec
 	(body.get_ptr()->GetCollisionModel())->SetFamily(family);
 	(body.get_ptr()->GetCollisionModel())->SetFamilyMaskNoCollisionWithFamily(nocolwith);
 }
-void System::MakeEllipsoid(ChSharedBodyGPUPtr &body, ChVector<> radius, double mass,ChVector<> pos, ChQuaternion<> rot,double sfric,double kfric,double restitution,bool collide){
+void System::MakeEllipsoid(ChSharedBodyPtr &body, ChVector<> radius, double mass,ChVector<> pos, ChQuaternion<> rot,double sfric,double kfric,double restitution,bool collide){
 	body.get_ptr()->SetMass(mass);
 	body.get_ptr()->SetPos(pos);
 	body.get_ptr()->SetRot(rot);
@@ -104,7 +104,7 @@ void System::MakeEllipsoid(ChSharedBodyGPUPtr &body, ChVector<> radius, double m
 void System::CreateObjects(int x, int y, int z, double posX, double posY, double posZ, bool rnd,int type){
 
 	mNumCurrentSpheres+=x*y*z;
-	ChSharedBodyGPUPtr mrigidBody;
+	ChSharedBodyPtr mrigidBody;
 	for (int xx=0; xx<x; xx++){
 		for (int yy=0; yy<y; yy++){
 			for (int zz=0; zz<z; zz++){
@@ -116,7 +116,7 @@ void System::CreateObjects(int x, int y, int z, double posX, double posY, double
 					mParticlePos.z+=(rand()%1000)/4000.f;
 					quat.Q_from_NasaAngles(ChVector<>((rand()%4000)/1000.0f,(rand()%4000)/1000.f,(rand()%4000)/1000.f));
 				}
-				mrigidBody = ChSharedBodyGPUPtr(new ChBodyGPU);
+				mrigidBody = ChSharedBodyPtr(new ChBodyGPU);
 				if(type==0){MakeSphere(mrigidBody, mSphereRadius, mSphereMass, mParticlePos, mMu, mMu, mSphereRestitution, true);}
 				if(type==1){MakeBox(mrigidBody, ChVector<>(mSphereRadius,mSphereRadius,mSphereRadius), mSphereMass, mParticlePos,quat, mMu, mMu, mSphereRestitution,mNumCurrentObjects,mNumCurrentObjects,true, false);}
 				if(type==2){MakeEllipsoid(mrigidBody, ChVector<>(mSphereRadius*2,mSphereRadius,mSphereRadius*2), mSphereMass, mParticlePos,quat, mMu, mMu, mSphereRestitution, true);}
@@ -260,11 +260,11 @@ int main(int argc, char* argv[]){
 	ChQuaternion<> quat1,quat2,quat3,quat4;
 	double angle=0;//PI/4.0;
 
-	ChSharedBodyGPUPtr L	=	ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr R	=	ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr F	=	ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr W	=	ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr B	=	ChSharedBodyGPUPtr(new ChBodyGPU);
+	ChSharedBodyPtr L	=	ChSharedBodyPtr(new ChBodyGPU);
+	ChSharedBodyPtr R	=	ChSharedBodyPtr(new ChBodyGPU);
+	ChSharedBodyPtr F	=	ChSharedBodyPtr(new ChBodyGPU);
+	ChSharedBodyPtr W	=	ChSharedBodyPtr(new ChBodyGPU);
+	ChSharedBodyPtr B	=	ChSharedBodyPtr(new ChBodyGPU);
 
 	GPUSystem->MakeBox(L,	ChVector<>(.1,10,15), 100000,ChVector<>(-10,-10,0),base,mWallMu,mWallMu,0,-20,-20,true,true);
 	GPUSystem->MakeBox(R,	ChVector<>(.1,10,15), 100000,ChVector<>(10,-10,0), base,mWallMu,mWallMu,0,-20,-20,true,true);
