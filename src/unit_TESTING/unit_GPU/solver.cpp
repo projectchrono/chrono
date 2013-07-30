@@ -99,7 +99,7 @@ void LoadObjects(ChSystem* mSys, string filename) {
 }
 void LoadObjects(ChSystemGPU* mSys, string filename) {
 	ifstream ifile(filename.c_str());
-	ChSharedBodyGPUPtr body;
+	ChSharedBodyPtr body;
 	int counter = 0;
 
 	string temp;
@@ -108,7 +108,7 @@ void LoadObjects(ChSystemGPU* mSys, string filename) {
 		if (ifile.fail() == true) {
 			break;
 		}
-		body = ChSharedBodyGPUPtr(new ChBodyGPU);
+		body = ChSharedBodyPtr(new ChBodyGPU);
 #ifdef GPU_BULLET
 		body->SetCollisionModelBullet();
 		//body->GetCollisionModel()->SetDefaultSuggestedEnvelope(envelope);
@@ -120,11 +120,11 @@ void LoadObjects(ChSystemGPU* mSys, string filename) {
 		counter++;
 	}
 	cout << "Done oading" << endl;
-	ChSharedBodyGPUPtr L = ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr R = ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr F = ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr B = ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr BTM = ChSharedBodyGPUPtr(new ChBodyGPU);
+	ChSharedBodyPtr L = ChSharedBodyPtr(new ChBodyGPU);
+	ChSharedBodyPtr R = ChSharedBodyPtr(new ChBodyGPU);
+	ChSharedBodyPtr F = ChSharedBodyPtr(new ChBodyGPU);
+	ChSharedBodyPtr B = ChSharedBodyPtr(new ChBodyGPU);
+	ChSharedBodyPtr BTM = ChSharedBodyPtr(new ChBodyGPU);
 #ifdef GPU_BULLET
 	L->SetCollisionModelBullet();
 	R->SetCollisionModelBullet();

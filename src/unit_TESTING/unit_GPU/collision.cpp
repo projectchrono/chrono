@@ -99,7 +99,7 @@ void LoadObjects(ChSystem* mSys, string filename) {
 }
 void LoadObjects(ChSystemGPU* mSys, string filename) {
 	ifstream ifile(filename.c_str());
-	ChSharedBodyGPUPtr body;
+	ChSharedBodyPtr body;
 	int counter = 0;
 
 	string temp;
@@ -108,7 +108,7 @@ void LoadObjects(ChSystemGPU* mSys, string filename) {
 		if (ifile.fail() == true) {
 			break;
 		}
-		body = ChSharedBodyGPUPtr(new ChBodyGPU);
+		body = ChSharedBodyPtr(new ChBodyGPU);
 #ifdef GPU_BULLET
 		body->SetCollisionModelBullet();
 		//body->GetCollisionModel()->SetDefaultSuggestedEnvelope(envelope);
@@ -120,11 +120,11 @@ void LoadObjects(ChSystemGPU* mSys, string filename) {
 		counter++;
 	}
 	cout << "Done oading" << endl;
-	ChSharedBodyGPUPtr L = ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr R = ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr F = ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr B = ChSharedBodyGPUPtr(new ChBodyGPU);
-	ChSharedBodyGPUPtr BTM = ChSharedBodyGPUPtr(new ChBodyGPU);
+	ChSharedBodyPtr L = ChSharedBodyPtr(new ChBodyGPU);
+	ChSharedBodyPtr R = ChSharedBodyPtr(new ChBodyGPU);
+	ChSharedBodyPtr F = ChSharedBodyPtr(new ChBodyGPU);
+	ChSharedBodyPtr B = ChSharedBodyPtr(new ChBodyGPU);
+	ChSharedBodyPtr BTM = ChSharedBodyPtr(new ChBodyGPU);
 #ifdef GPU_BULLET
 	L->SetCollisionModelBullet();
 	R->SetCollisionModelBullet();
@@ -210,12 +210,12 @@ int main(int argc, char* argv[]) {
 		real rad_b = .25;
 		real rad_c = 1;
 
-		ChSharedBodyGPUPtr body;
+		ChSharedBodyPtr body;
 		for (int k = 0; k < 1; k++) {
 		for (int i = 0; i < 1; i++) {
 			for (int j = 0; j < 2; j++) {
 
-				body = ChSharedBodyGPUPtr(new ChBodyGPU);
+				body = ChSharedBodyPtr(new ChBodyGPU);
 				InitObject(body, mass, Vector(i/2.0, -1, j/2.0), quat, 1, 1, 0, true, false, 0, 1);
 				AddCollisionGeometry(body, ELLIPSOID, Vector(rad_a, rad_b, rad_c), lpos, QUNIT);
 				body->SetInertiaXX((1.0 / 5.0) * mass * ChVector<>(rad_b * rad_b + rad_c * rad_c, rad_c * rad_c + rad_a * rad_a, rad_a * rad_a + rad_b * rad_b));
@@ -223,11 +223,11 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		}
-		ChSharedBodyGPUPtr L = ChSharedBodyGPUPtr(new ChBodyGPU);
-		ChSharedBodyGPUPtr R = ChSharedBodyGPUPtr(new ChBodyGPU);
-		ChSharedBodyGPUPtr F = ChSharedBodyGPUPtr(new ChBodyGPU);
-		ChSharedBodyGPUPtr B = ChSharedBodyGPUPtr(new ChBodyGPU);
-		ChSharedBodyGPUPtr BTM = ChSharedBodyGPUPtr(new ChBodyGPU);
+		ChSharedBodyPtr L = ChSharedBodyPtr(new ChBodyGPU);
+		ChSharedBodyPtr R = ChSharedBodyPtr(new ChBodyGPU);
+		ChSharedBodyPtr F = ChSharedBodyPtr(new ChBodyGPU);
+		ChSharedBodyPtr B = ChSharedBodyPtr(new ChBodyGPU);
+		ChSharedBodyPtr BTM = ChSharedBodyPtr(new ChBodyGPU);
 
 		//		L->SetCollisionModelBullet();
 		//		R->SetCollisionModelBullet();
