@@ -599,6 +599,10 @@ void test_5()
 						&mnode17, &mnode18, &mnode19, &mnode20);
 	melement1.SetMaterial(mmaterial);
 
+				// Use this statement to use the reduced integration
+				// Default number of gauss point: 27. Reduced integration -> 8 Gp.
+	melement1.SetReducedIntegrationRule();
+
 				// Remember to add elements to the mesh!
 	my_mesh->AddElement(melement1);
 
