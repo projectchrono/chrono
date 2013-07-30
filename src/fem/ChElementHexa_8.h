@@ -16,8 +16,10 @@ class ChApi ChElementHexa_8 : public ChHexahedron
 protected:
 		std::vector<ChNodeFEMxyz*> nodes;
 		ChSharedPtr<ChContinuumElastic> Material;
-		std::vector< ChMatrixDynamic<> > MatrB;		// matrices of shape function's partial derivatives (one for each integration point)
+		//std::vector< ChMatrixDynamic<> > MatrB;		// matrices of shape function's partial derivatives (one for each integration point)
 													// we use a vector to keep in memory all the 8 matrices (-> 8 integr. point)
+													// NO! each matrix is stored in the respective gauss point
+
 		ChMatrixDynamic<> StiffnessMatrix;
 
 public:
@@ -463,7 +465,7 @@ public:
 	ChSharedPtr<ChContinuumElastic> GetMaterial() {return Material;}
 
 				/// Get the partial derivatives matrix MatrB and the StiffnessMatrix
-	ChMatrixDynamic<>   GetMatrB(int n) { return MatrB[n];}
+	//ChMatrixDynamic<>   GetMatrB(int n) { return MatrB[n];}
 	ChMatrixDynamic<> GetStiffnessMatrix() {return StiffnessMatrix;}
 
 
