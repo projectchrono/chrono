@@ -21,6 +21,8 @@ ChElementHexa_20::ChElementHexa_20()
 	MatrB[6].Resize(6,60);
 	MatrB[7].Resize(6,60);
 	this->StiffnessMatrix.Resize(60,60);
+	this->ir = new ChGaussIntegrationRule;
+	this->SetDefaultIntegrationRule();
 }
 
 

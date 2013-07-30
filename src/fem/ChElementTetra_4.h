@@ -117,7 +117,7 @@ public:
 					MatrB.SetElement(5,0,d1);	MatrB.SetElement(5,2,b1);	MatrB.SetElement(5,3,d2);	MatrB.SetElement(5,5,b2);	MatrB.SetElement(5,6,d3);	MatrB.SetElement(5,8,b3);	MatrB.SetElement(5,9,d4);	MatrB.SetElement(5,11,b4);
 					MatrB.MatrDivScale(6*Volume);
 					ChMatrixDynamic<> temp(12,6);
-					temp.MatrTMultiply(MatrB, Material->Get_StressStrainatrix());
+					temp.MatrTMultiply(MatrB, Material->Get_StressStrainMatrix());
 					StiffnessMatrix.Resize(12,12);
 					StiffnessMatrix.MatrMultiply(temp,MatrB);
 					StiffnessMatrix.MatrScale(Volume);

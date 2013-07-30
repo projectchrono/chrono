@@ -127,7 +127,7 @@ public:
 			/// Note: is performed every time you change a material parameter
 	void ComputeStressStrainMatrix();
 			/// Get the Elasticity matrix 
-	ChMatrixDynamic<> Get_StressStrainatrix () {return StressStrainMatrix;}
+	ChMatrixDynamic<> Get_StressStrainMatrix () {return StressStrainMatrix;}
 
 
 			/// Compute elastic stress from elastic strain
