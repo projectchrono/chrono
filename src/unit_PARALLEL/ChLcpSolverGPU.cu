@@ -1,6 +1,5 @@
 #include "ChLcpSolverGPU.h"
 #include "ChThrustLinearAlgebra.cuh"
-#include "solver/ChSolverBlockJacobi.h"
 #include "solver/ChSolverGPU.cuh"
 #include "ChJacobianGPU.h"
 #include "ChIntegratorGPU.h"
