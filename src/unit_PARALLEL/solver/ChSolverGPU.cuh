@@ -6,9 +6,9 @@
 #include "ChThrustLinearAlgebra.cuh"
 #include "ChDataManager.h"
 #include "core/ChTimer.h"
-
+#include "ChBaseGPU.h"
 namespace chrono {
-class ChApiGPU ChSolverGPU {
+class ChApiGPU ChSolverGPU: public ChBaseGPU {
 	public:
 
 		ChSolverGPU() {
@@ -24,28 +24,76 @@ class ChApiGPU ChSolverGPU {
 		void shurA(custom_vector<real> &x);
 		void shurB(custom_vector<real> &x, custom_vector<real> &out);
 
-		void ComputeRHS();
 		void ComputeImpulses();
 
 		void host_shurA(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO,real3 *QXYZ,real3 *QUVW,uint* offset);
-	void host_shurB(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia,real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX);
-	void host_RHS(int2 *ids, real *correction,bool * active, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs);
-	void host_bi(real *correction, real* bi);
-	void host_Project(int2 *ids, real *friction, real* cohesion, real *gamma);
-	void host_Offsets(int2 *ids_contacts, int2 *ids_bilaterals, uint *Body);
-	void host_Reduce_Shur(bool* active, real3* QXYZ, real3* QUVW,real *inv_mass, real3 *inv_inertia, real3* updateQXYZ, real3* updateQUVW, uint* d_body_num, uint* counter);
+		void host_shurB(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia,real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX);
 
-	void ShurProduct( custom_vector<real> &x_t, custom_vector<real> & AX);
+		void host_Project(int2 *ids, real *friction, real* cohesion, real *gamma);
+		void host_Offsets(int2 *ids_contacts, int2 *ids_bilaterals, uint *Body);
+		void host_Reduce_Shur(bool* active, real3* QXYZ, real3* QUVW,real *inv_mass, real3 *inv_inertia, real3* updateQXYZ, real3* updateQUVW, uint* d_body_num, uint* counter);
 
-	void Solve(GPUSOLVERTYPE solver_type, real step, ChGPUDataManager *data_container_);
-	uint SolveSD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
-	uint SolveGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
-	uint SolveCG(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
-	uint SolveCGS(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
-	uint SolveBiCG(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
-	uint SolveBiCGStab(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
-	uint SolveMinRes(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
-	uint SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
+		void ShurProduct( custom_vector<real> &x_t, custom_vector<real> & AX);
+
+		void Solve(GPUSOLVERTYPE solver_type, real step, ChGPUDataManager *data_container_);
+		void SolveStab(real step, ChGPUDataManager *data_container_);
+		uint SolveSD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
+		uint SolveGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
+		uint SolveCG(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
+		uint SolveCGS(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
+		uint SolveBiCG(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
+		uint SolveBiCGStab(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
+		uint SolveMinRes(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
+		uint SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
+		void SolveJacobi();
+
+
+		void host_process_contacts(
+					real3* JXYZA,
+					real3* JXYZB,
+					real3* JUVWA,
+					real3* JUVWB,
+					real * rhs,
+					real *contactDepth,
+					bool *active,
+					int2 *ids,
+					real *Gamma,
+					real *dG,
+					real *mass,
+					real *fric,
+					real3 *inertia,
+					real4 *rot,
+					real3 *vel,
+					real3 *omega,
+					real3 *pos,
+					real3 *updateV,
+					real3 *updateO,
+					uint *offset);
+			void host_Bilaterals(
+					real3* JXYZA,
+					real3* JXYZB,
+					real3* JUVWA,
+					real3* JUVWB,
+					int2* bids,
+					real* gamma,
+					real* eta,
+					real* bi,
+					real *mass,
+					real3 *inertia,
+					real4 *rot,
+					real3 *vel,
+					real3 *omega,
+					real3 *pos,
+					real3 *updateV,
+					real3 *updateO,
+					uint *offset,
+					real *dG);
+			void host_Reduce_Speeds(bool *active, real * mass, real3 *vel, real3 *omega, real3 *updateV, real3 *updateO, uint *d_body_num, uint *counter);
+			//void host_Offsets(int2 *ids, real4 *bilaterals, uint *Body);
+
+			real lcp_omega_bilateral;
+			real lcp_omega_contact;
+
 	//uint SolveAPGD_ALT(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 	/////APGD specific:
 
@@ -108,8 +156,8 @@ class ChApiGPU ChSolverGPU {
 
 			void Dump_Rhs(ostream& out) {
 				//ComputeRHS();
-				for (int i=0; i<rhs.size(); i++) {
-					out<<rhs[i]<<endl;
+				for (int i=0; i<data_container->gpu_data.device_rhs_data.size(); i++) {
+					out<<data_container->gpu_data.device_rhs_data[i]<<endl;
 				}
 			}
 			void Dump_Lambda(std::ostream& out) {
@@ -122,29 +170,13 @@ class ChApiGPU ChSolverGPU {
 			void Dump_D() {}
 			void Dump_E() {}
 
-			double time_rhs, time_shurcompliment, time_project, time_integrate, time_solver;
-
-			real step_size;
-			real compliance;
-			real complianceT;
-			real alpha;
-			real inv_hpa;
-			real inv_hhpa;
-			real contact_recovery_speed;
-
-			uint number_of_bilaterals;
-			uint number_of_contacts;
-			uint number_of_objects;
-			uint number_of_updates;
-			uint number_of_constraints;
+			double  time_shurcompliment, time_project, time_integrate, time_solver;
 
 			int current_iteration, max_iteration, total_iteration;
 			real residual, epsilon, tolerance;
 
-			custom_vector<int2> temp_bids;
-			custom_vector<real> rhs, correction, bi;
-			ChGPUDataManager *data_container;
-			ChTimer<double> timer_rhs, timer_shurcompliment, timer_project, timer_solver;
+
+			ChTimer<double>  timer_shurcompliment, timer_project, timer_solver;
 
 			custom_vector<uint> body_num;
 			custom_vector<uint> update_number;

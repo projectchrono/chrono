@@ -55,13 +55,12 @@ class ChApiGPU ChLcpSolverGPU: public ChLcpIterativeSolver {
 			tolerance = tol;
 		}
 		void SetCompliance(real c, real cT, real a) {
-			alpha = a;
-			compliance = c;
-			complianceT = cT;
-			contact_recovery_speed = .6;
+			data_container->alpha = a;
+			data_container->compliance = c;
+			data_container->complianceT = cT;
 		}
 		void SetContactRecoverySpeed(real recovery_speed) {
-			contact_recovery_speed = fabs(recovery_speed);
+			data_container->contact_recovery_speed = fabs(recovery_speed);
 
 		}
 		void SetOmegaBilateral(real mval) {

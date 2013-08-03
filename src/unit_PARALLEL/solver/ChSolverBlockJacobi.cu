@@ -1,4 +1,4 @@
-#include "ChSolverBlockJacobi.h"
+#include "ChSolverGPU.cuh"
 using namespace chrono;
 
 __constant__ real lcp_omega_bilateral_const;
@@ -173,7 +173,7 @@ __global__ void device_process_contacts(
 			offset);
 }
 
-void ChSolverJacobi::host_process_contacts(
+void ChSolverGPU::host_process_contacts(
 		real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB, real * rhs, real* contactDepth, bool * active, int2* ids, real* gamma, real* dG, real* mass, real* fric, real3* inertia, real4* rot,
 		real3* vel, real3* omega, real3* pos, real3* updateV, real3* updateO, uint* offset) {
 #pragma omp parallel for schedule(guided)
@@ -304,7 +304,7 @@ __global__ void device_Bilaterals(
 			offset,
 			dG);
 }
-void ChSolverJacobi::host_Bilaterals(
+void ChSolverGPU::host_Bilaterals(
 		real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB, int2* bids, real* gamma, real* eta, real* bi, real* mass, real3* inertia, real4* rot, real3* vel, real3* omega, real3* pos,
 		real3* updateV, real3* updateO, uint* offset, real* dG) {
 	for (uint index = 0; index < number_of_bilaterals; index++) {
@@ -360,7 +360,7 @@ __global__ void device_Reduce_Speeds(bool* active, real* mass, real3* vel, real3
 	INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_updates_const);
 	function_Reduce_Speeds(index, active, mass, vel, omega, updateV, updateO, d_body_num, counter);
 }
-void ChSolverJacobi::host_Reduce_Speeds(bool* active, real* mass, real3* vel, real3* omega, real3* updateV, real3* updateO, uint* d_body_num, uint* counter) {
+void ChSolverGPU::host_Reduce_Speeds(bool* active, real* mass, real3* vel, real3* omega, real3* updateV, real3* updateO, uint* d_body_num, uint* counter) {
 #pragma omp parallel for
 
 	for (uint index = 0; index < number_of_updates; index++) {
@@ -396,13 +396,9 @@ void ChSolverJacobi::host_Reduce_Speeds(bool* active, real* mass, real3* vel, re
 //		}
 //	}
 //}
-ChSolverJacobi::ChSolverJacobi() {
 
-}
-void ChSolverJacobi::Solve(real step, ChGPUDataManager *data_container_) {
-	step_size = step;
-	data_container = data_container_;
-	Setup();
+void ChSolverGPU::SolveJacobi() {
+
 #ifdef SIM_ENABLE_GPU_MODE
 	COPY_TO_CONST_MEM(number_of_contacts);
 	COPY_TO_CONST_MEM(number_of_constraints);
@@ -423,47 +419,11 @@ void ChSolverJacobi::Solve(real step, ChGPUDataManager *data_container_) {
 #else
 #endif
 
-//	custom_vector<uint> body_num;
-//	custom_vector<uint> update_number;
-//	uint number_of_cont_bilat = number_of_contacts + number_of_bilaterals;
-//	if (number_of_cont_bilat > 0) {
-//		update_number.resize((number_of_cont_bilat) * 2, 0);
-//		data_container->gpu_data.offset_counter.resize((number_of_cont_bilat) * 2, 0);
-//		data_container->gpu_data.update_offset.resize((number_of_cont_bilat) * 2, 0);
-//		body_num.resize((number_of_cont_bilat) * 2, 0);
-//		data_container->gpu_data.device_dgm_data.resize((number_of_constraints));
-//		data_container->gpu_data.device_gam_data.resize((number_of_constraints));
-//		Thrust_Fill(data_container->gpu_data.device_dgm_data, 1);
-//		data_container->gpu_data.vel_update.resize((number_of_cont_bilat) * 2);
-//		data_container->gpu_data.omg_update.resize((number_of_cont_bilat) * 2);
-//#ifdef SIM_ENABLE_GPU_MODE
-//		device_Offsets CUDA_KERNEL_DIM(BLOCKS(number_of_cont_bilat), THREADS)(CASTI2(data_container->gpu_data.device_bids_data), CASTR4(data_container->gpu_data.device_bilateral_data), CASTU1(body_num));
-//#else
-//		host_Offsets(data_container->gpu_data.device_bids_data.data(), data_container->gpu_data.device_bilateral_data.data(), body_num.data());
-//#endif
-//		Thrust_Sequence(update_number);
-//		Thrust_Sequence(data_container->gpu_data.update_offset);
-//		Thrust_Fill(data_container->gpu_data.offset_counter, 0);
-//		Thrust_Sort_By_Key(body_num, update_number);
-//		Thrust_Sort_By_Key(update_number, data_container->gpu_data.update_offset);
-//		data_container->gpu_data.body_number = body_num;
-//		Thrust_Reduce_By_KeyB(data_container->gpu_data.number_of_updates, body_num, update_number, data_container->gpu_data.offset_counter);
-////        host_vector<uint> body_num_t=body_num;
-////        host_vector<uint> update_number_t=update_number;
-////        host_vector<uint> offset_counter_t=data_container->gpu_data.offset_counter;
-////        Thrust_Reduce_By_KeyB(data_container->gpu_data.number_of_updates, body_num_t, update_number_t, offset_counter_t);
-////        body_num=body_num_t;
-////        update_number=update_number_t;
-////        data_container->gpu_data.offset_counter=offset_counter_t;
-//		Thrust_Inclusive_Scan(data_container->gpu_data.offset_counter);
-//	}
-//	number_of_updates = data_container->gpu_data.number_of_updates;
 #ifdef SIM_ENABLE_GPU_MODE
 	COPY_TO_CONST_MEM(number_of_updates);
 #endif
 	if (number_of_contacts + number_of_bilaterals != 0) {
 		for (current_iteration = 0; current_iteration < max_iteration; current_iteration++) {
-			//ComputeRHS();
 
 #ifdef SIM_ENABLE_GPU_MODE
 			device_process_contacts CUDA_KERNEL_DIM(BLOCKS(number_of_contacts), THREADS)(
@@ -471,7 +431,7 @@ void ChSolverJacobi::Solve(real step, ChGPUDataManager *data_container_) {
 					CASTR3(data_container->gpu_data.device_JXYZB_data),
 					CASTR3(data_container->gpu_data.device_JUVWA_data),
 					CASTR3(data_container->gpu_data.device_JUVWB_data),
-					CASTR1(rhs),
+					CASTR1(data_container->device_rhs_data),
 					CASTR1(data_container->gpu_data.device_dpth_data),
 					CASTB1(data_container->gpu_data.device_active_data),
 					CASTI2(data_container->gpu_data.device_bids_data),
@@ -493,7 +453,7 @@ void ChSolverJacobi::Solve(real step, ChGPUDataManager *data_container_) {
 					data_container->gpu_data.device_JXYZB_data.data(),
 					data_container->gpu_data.device_JUVWA_data.data(),
 					data_container->gpu_data.device_JUVWB_data.data(),
-					rhs.data(),
+					data_container->gpu_data.device_rhs_data.data(),
 					data_container->gpu_data.device_dpth_data.data(),
 					data_container->gpu_data.device_active_data.data(),
 					data_container->gpu_data.device_bids_data.data(),

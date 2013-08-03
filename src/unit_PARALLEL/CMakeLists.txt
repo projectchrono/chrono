@@ -53,7 +53,7 @@ SET(ChronoEngine_unit_GPU_COLLISION
 SET(ChronoEngine_unit_GPU_SOLVER
     solver/ChSolverGPU.cuh
     solver/ChSolverGPU.cu
-    solver/ChSolverBlockJacobi.h
+    #solver/ChSolverBlockJacobi.h
     solver/ChSolverBlockJacobi.cu
     solver/ChSolverCG.cu
     solver/ChSolverCGS.cu
@@ -74,6 +74,7 @@ SET(ChronoEngine_unit_GPU_SOURCES
 
 SET(ChronoEngine_unit_GPU_HEADERS
     ChApiGPU.h
+    ChBaseGPU.h
     ChCudaDefines.h
     ChCudaMath.h
     ChThrustLinearAlgebra.cuh
@@ -83,13 +84,16 @@ SET(ChronoEngine_unit_GPU_HEADERS
     ChLcpSolverGPU.h
     ChLcpSystemDescriptorGPU.h
     ChJacobianGPU.h
+    ChComputeRHSGPU.h
     #ChIntegratorGPU.h
 
    )
 SET(ChronoEngine_unit_GPU_CU
     ChLcpSolverGPU.cu
+    ChBaseGPU.cu
     ChDataManager.cu
     ChJacobianGPU.cu
+    ChComputeRHSGPU.cu
 	#ChIntegratorGPU.cu
    )
 

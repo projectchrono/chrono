@@ -160,10 +160,7 @@ void ChJacobianGPU::host_ContactJacobians(real3* norm, real3* ptA, real3* ptB, i
 }
 
 void ChJacobianGPU::Setup() {
-	number_of_constraints = data_container->number_of_contacts * 3 + data_container->number_of_bilaterals;
-	number_of_contacts = data_container->number_of_contacts;
-	number_of_bilaterals = data_container->number_of_bilaterals;
-	number_of_objects = data_container->number_of_objects;
+	Initialize();
 
 	data_container->gpu_data.device_JXYZA_data.resize(number_of_constraints);
 	data_container->gpu_data.device_JXYZB_data.resize(number_of_constraints);
