@@ -1,15 +1,15 @@
 #include "physics/ChApidll.h"
 #include "core/ChMath.h"
 #include "lcp/ChLcpSystemDescriptor.h"
-//#include "fem/ChNodeFEMbase.h"
-//#include "fem/ChContinuumMaterial.h"
-//#include "fem/ChGaussIntegrationRule.h"
 #include "fem/ChTensors.h"
 
 namespace chrono
 {
 namespace fem
 {
+
+/// Class for a gauss point, that has a position (1D-3D) and a weight.
+/// It also contains the strain and the stress tensor.
 
 class ChGaussPoint
 {

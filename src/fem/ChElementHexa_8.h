@@ -16,7 +16,7 @@ class ChApi ChElementHexa_8 : public ChHexahedron
 protected:
 		std::vector<ChNodeFEMxyz*> nodes;
 		ChSharedPtr<ChContinuumElastic> Material;
-		//std::vector< ChMatrixDynamic<> > MatrB;		// matrices of shape function's partial derivatives (one for each integration point)
+		//std::vector< ChMatrixDynamic<> > MatrB;	// matrices of shape function's partial derivatives (one for each integration point)
 													// we use a vector to keep in memory all the 8 matrices (-> 8 integr. point)
 													// NO! each matrix is stored in the respective gauss point
 
@@ -54,14 +54,11 @@ public:
 					Kmatr.SetVariables(mvars);
 				}
 			
+
 			//
-			// FEM functions
+			// QUADRATURE functions
 			//
 
-
-					//
-					// QUADRATURE functions
-					//
 	virtual void SetDefaultIntegrationRule()
 			{
 				this->ir->SetIntOnCube(8, &this->GpVector);
@@ -76,12 +73,15 @@ public:
 			{
 				this->ir->SetIntOnCube(nPoints, &this->GpVector);
 			}
-	
 
-			
-				/// Puts inside 'Jacobian' and 'J1' the Jacobian matrix and the shape functions derivatives matrix of the element
-				/// The vector "coord" contains the natural coordinates of the integration point
-				/// in case of hexahedral elements natural coords vary in the classical range -1 ... +1
+	
+			//
+			// FEM functions
+			//
+				
+				/// Puts inside 'Jacobian' and 'J1' the Jacobian matrix and the shape functions derivatives matrix of the element.
+				/// The vector "coord" contains the natural coordinates of the integration point.
+				/// in case of hexahedral elements natural coords vary in the classical range -1 ... +1.
 	virtual void ComputeJacobian(ChMatrixDynamic<>& Jacobian, ChMatrixDynamic<>& J1, ChVector<> coord) 
 				{
 					ChMatrixDynamic<> J2(8,3);
@@ -144,8 +144,8 @@ public:
 				}
 
 	
-				/// Computes the matrix of partial derivatives and puts data in "GaussPt"
-				///	Stores the determinant of the jacobian in "JacobianDet"
+				/// Computes the matrix of partial derivatives and puts data in "GaussPt".
+				///	Stores the determinant of the jacobian in "JacobianDet".
 	virtual void ComputeMatrB(ChGaussPoint* GaussPt, double& JacobianDet) 
 				{
 					ChMatrixDynamic<> Jacobian(3,3);
@@ -245,7 +245,7 @@ public:
 				
 				/// Computes the global STIFFNESS MATRIX of the element:    
 				/// K = Volume * [B]' * [D] * [B]
-				/// The number of Gauss Point is defined by SetIntegrationRule function (default: 8 Gp)
+				/// The number of Gauss Point is defined by SetIntegrationRule function (default: 8 Gp).
 	virtual void ComputeStiffnessMatrix() 
 		{
 			double Jdet;
@@ -267,143 +267,34 @@ public:
 		}
 
 
-
-//////////////////// *** OLD METHOD (before GaussIntegrationRule) *** //////////////////////
-				/// Computes the global STIFFNESS MATRIX of the element:    
-				/// K = Volume * [B]' * [D] * [B]
-				/// 
-/*	virtual void ComputeStiffnessMatrix1() 
-			{
-
-				//========================
-				//Exact Integration (8 Gp)
-				//========================
-					double zeta1, zeta2, zeta3;
-					double Jdet;
-					ChMatrixDynamic<> temp;
-					ChMatrixDynamic<> BT;
-
-					/////////////////////////////////
-					/// Reduced Integration (1Gp) ///
-					/////////////////////////////////
-					//
-					// zeta1=0;
-					// zeta2=0;
-					// zeta3=0;
-					// ComputeMatrB(0, zeta1, zeta2, zeta3, Jdet);
-					// BT=MatrB[0];
-					// BT.MatrTranspose();
-					// temp = (BT * Material->Get_StressStrainMatrix() * MatrB[0]);
-					// temp.MatrScale(*Jdet);
-					// //Gauss integration weight = 1
-					// this->StiffnessMatrix = temp;
-					//
-/*	
-					zeta1=0.577350269189626;
-					zeta2=0.577350269189626;
-					zeta3=0.577350269189626;
-					
-					ComputeMatrB(0, zeta1, zeta2, zeta3, Jdet);
-					BT=MatrB[0];
-					BT.MatrTranspose();
-					temp = (BT * Material->Get_StressStrainMatrix() * MatrB[0]);
-					temp.MatrScale(Jdet);
-					//Gauss integration weight = 1
-					this->StiffnessMatrix = temp;
-
-					zeta1=-0.577350269189626;
-					zeta2=0.577350269189626;
-					zeta3=0.577350269189626;
-
-					ComputeMatrB(1, zeta1, zeta2, zeta3, Jdet);
-					BT=MatrB[1];
-					BT.MatrTranspose();
-					temp = (BT * Material->Get_StressStrainMatrix() * MatrB[1]);
-					temp.MatrScale(Jdet);
-					//Gauss integration weight = 1
-					StiffnessMatrix.MatrAdd(StiffnessMatrix,temp);
-
-					zeta1=0.577350269189626;
-					zeta2=-0.577350269189626;
-					zeta3=0.577350269189626;
-
-					ComputeMatrB(2, zeta1, zeta2, zeta3, Jdet);
-					BT=MatrB[2];
-					BT.MatrTranspose();
-					temp = (BT * Material->Get_StressStrainMatrix() * MatrB[2]);
-					temp.MatrScale(Jdet);
-					//Gauss integration weight = 1
-					StiffnessMatrix.MatrAdd(StiffnessMatrix,temp);
-
-					zeta1=0.577350269189626;
-					zeta2=0.577350269189626;
-					zeta3=-0.577350269189626;
-
-					ComputeMatrB(3, zeta1, zeta2, zeta3, Jdet);
-					BT=MatrB[3];
-					BT.MatrTranspose();
-					temp = (BT * Material->Get_StressStrainMatrix() * MatrB[3]);
-					temp.MatrScale(Jdet);
-					//Gauss integration weight = 1
-					StiffnessMatrix.MatrAdd(StiffnessMatrix,temp);
-
-					zeta1=-0.577350269189626;
-					zeta2=-0.577350269189626;
-					zeta3=0.577350269189626;
-
-					ComputeMatrB(4, zeta1, zeta2, zeta3, Jdet);
-					BT=MatrB[4];
-					BT.MatrTranspose();
-					temp = (BT * Material->Get_StressStrainMatrix() * MatrB[4]);
-					temp.MatrScale(Jdet);
-					//Gauss integration weight = 1
-					StiffnessMatrix.MatrAdd(StiffnessMatrix,temp);
-
-					zeta1=-0.577350269189626;
-					zeta2=0.577350269189626;
-					zeta3=-0.577350269189626;
-
-					ComputeMatrB(5, zeta1, zeta2, zeta3, Jdet);
-					BT=MatrB[5];
-					BT.MatrTranspose();
-					temp = (BT * Material->Get_StressStrainMatrix() * MatrB[5]);
-					temp.MatrScale(Jdet);
-					//Gauss integration weight = 1
-					StiffnessMatrix.MatrAdd(StiffnessMatrix,temp);
-
-					zeta1=0.577350269189626;
-					zeta2=-0.577350269189626;
-					zeta3=-0.577350269189626;
-
-					ComputeMatrB(6, zeta1, zeta2, zeta3, Jdet);
-					BT=MatrB[6];
-					BT.MatrTranspose();
-					temp = (BT * Material->Get_StressStrainMatrix() * MatrB[6]);
-					temp.MatrScale(Jdet);
-					//Gauss integration weight = 1
-					StiffnessMatrix.MatrAdd(StiffnessMatrix,temp);
-	
-					zeta1=-0.577350269189626;
-					zeta2=-0.577350269189626;
-					zeta3=-0.577350269189626;
-
-					ComputeMatrB(7, zeta1, zeta2, zeta3, Jdet);
-					BT=MatrB[7];
-					BT.MatrTranspose();
-					temp = (BT * Material->Get_StressStrainMatrix() * MatrB[7]);
-					temp.MatrScale(Jdet);
-					//Gauss integration weight = 1
-					StiffnessMatrix.MatrAdd(StiffnessMatrix,temp);
-
-			}*/
-
 	virtual void SetupInitial() 
 			{
 				ComputeStiffnessMatrix();
 
 			}
 
-	
+	virtual void GetStrain()
+			{
+						// Set up vector of nodal displacements
+				ChMatrixDynamic<> displ(GetNcoords(),1);
+				for(int i=0; i<GetNnodes(); i++)
+					displ.PasteVector(this->nodes[i]->GetPos()-nodes[i]->GetX0(),i*3,0);
+					
+				for(int i=0; i<GpVector.size(); i++)
+				{
+					GpVector[i]->Strain.MatrMultiply((*GpVector[i]->MatrB), displ);
+					delete GpVector[i]->MatrB;
+				}
+			}
+
+	virtual void GetStress()
+			{
+				for(int i=0; i<GpVector.size(); i++)
+				{
+					GpVector[i]->Stress.MatrMultiply(Material->Get_StressStrainMatrix(), GpVector[i]->Strain);
+				}
+			}
+
 				/// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
 				/// superimposes global damping matrix R, scaled by Rfactor.
 				/// (For the spring matrix there is no need to corotate local matrices: we already know a closed form expression.)
@@ -464,9 +355,10 @@ public:
 	void   SetMaterial( ChSharedPtr<ChContinuumElastic> my_material) { Material = my_material; }
 	ChSharedPtr<ChContinuumElastic> GetMaterial() {return Material;}
 
-				/// Get the partial derivatives matrix MatrB and the StiffnessMatrix
-	//ChMatrixDynamic<>   GetMatrB(int n) { return MatrB[n];}
+				/// Get the StiffnessMatrix
 	ChMatrixDynamic<> GetStiffnessMatrix() {return StiffnessMatrix;}
+				/// Get the Nth gauss point
+	ChGaussPoint* GetGaussPoint(int N) {return GpVector[N];}
 
 
 			//
