@@ -79,14 +79,12 @@ public:
 					mvars.push_back(&nodes[19]->Variables());
 					Kmatr.SetVariables(mvars);
 				}
-			
+
+
 			//
-			// FEM functions
+			// QUADRATURE functions
 			//
-	
-					//
-					// QUADRATURE functions
-					//
+
 	virtual void SetDefaultIntegrationRule()
 			{
 				this->ir->SetIntOnCube(27, &this->GpVector);
@@ -102,8 +100,11 @@ public:
 				this->ir->SetIntOnCube(nPoints, &this->GpVector);
 			}
 
-
-		
+			
+			//
+			// FEM functions
+			//
+	
 				/// Puts inside 'Jacobian' and 'J1' the Jacobian matrix and the shape functions derivatives matrix of the element
 				/// The vector "coord" contains the natural coordinates of the integration point
 				/// in case of hexahedral elements natural coords vary in the classical range -1 ... +1
@@ -594,6 +595,27 @@ public:
 
 			}
 
+	virtual void GetStrain()
+			{
+						// Set up vector of nodal displacements
+				ChMatrixDynamic<> displ(GetNcoords(),1);
+				for(int i=0; i<GetNnodes(); i++)
+					displ.PasteVector(this->nodes[i]->GetPos()-nodes[i]->GetX0(),i*3,0);
+					
+				for(int i=0; i<GpVector.size(); i++)
+				{
+					GpVector[i]->Strain.MatrMultiply((*GpVector[i]->MatrB), displ);
+					delete GpVector[i]->MatrB;
+				}
+			}
+
+	virtual void GetStress()
+			{
+				for(int i=0; i<GpVector.size(); i++)
+				{
+					GpVector[i]->Stress.MatrMultiply(Material->Get_StressStrainMatrix(), GpVector[i]->Strain);
+				}
+			}
 	
 				/// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
 				/// superimposes global damping matrix R, scaled by Rfactor.
@@ -667,9 +689,10 @@ public:
 	void   SetMaterial( ChSharedPtr<ChContinuumElastic> my_material) { Material = my_material; }
 	ChSharedPtr<ChContinuumElastic> GetMaterial() {return Material;}
 
-				/// Get the partial derivatives matrix MatrB and the StiffnessMatrix
-	//ChMatrixDynamic<>   GetMatrB(int n) { return MatrB[n];}
+				/// Get the StiffnessMatrix
 	ChMatrixDynamic<> GetStiffnessMatrix() {return StiffnessMatrix;}
+				/// Get the Nth gauss point
+	ChGaussPoint* GetGaussPoint(int N) {return GpVector[N];}
 
 
 			//
