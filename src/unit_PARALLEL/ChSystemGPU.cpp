@@ -1,5 +1,4 @@
 #include "ChSystemGPU.h"
-#include "ChBodyGPU.h"
 #include "physics/ChBody.h"
 #include <omp.h>
 
@@ -64,7 +63,7 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 		vvariables[i]->Get_qb().SetElement(3, 0, omg.x);
 		vvariables[i]->Get_qb().SetElement(4, 0, omg.y);
 		vvariables[i]->Get_qb().SetElement(5, 0, omg.z);
-		ChBodyGPU *mbody = (ChBodyGPU *) bodylist[i];
+		ChBody *mbody = bodylist[i];
 
 		mbody->VariablesQbIncrementPosition(this->GetStep());
 		mbody->VariablesQbSetSpeed(this->GetStep());
@@ -76,7 +75,7 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 
 	}
 	for (int i = 0; i < vvariables.size(); i++) {
-		ChBodyGPU *mbody = (ChBodyGPU *) bodylist[i];
+		ChBody *mbody = bodylist[i];
 		mbody->UpdateMarkers(ChTime);
 	}
 
@@ -106,12 +105,12 @@ double ChSystemGPU::ComputeCollisions() {
 double ChSystemGPU::SolveSystem() {
 	return 0;
 }
-void ChSystemGPU::AddBody(ChSharedPtr<ChBodyGPU> newbody) {
+void ChSystemGPU::AddBody(ChSharedPtr<ChBody> newbody) {
 
 	newbody->AddRef();
 	newbody->SetSystem(this);
 	bodylist.push_back((newbody).get_ptr());
-	ChBodyGPU *gpubody = ((ChBodyGPU *) newbody.get_ptr());
+	ChBody *gpubody = ((ChBody *) newbody.get_ptr());
 	gpubody->SetId(counter);
 
 	if (newbody->GetCollide()) {
@@ -134,13 +133,14 @@ void ChSystemGPU::AddBody(ChSharedPtr<ChBodyGPU> newbody) {
 	gpu_data_manager->host_mass_data.push_back(inv_mass);
 	gpu_data_manager->host_fric_data.push_back(newbody->GetKfriction());
 	gpu_data_manager->host_cohesion_data.push_back(newbody->GetMaterialSurface()->GetCohesion());
+	gpu_data_manager->host_compliance_data.push_back(newbody->GetMaterialSurface()->GetCompliance());
 	gpu_data_manager->host_lim_data.push_back(R3(newbody->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
 	//newbody->gpu_data_manager = gpu_data_manager;
 	counter++;
 	gpu_data_manager->number_of_objects = counter;
 }
 
-void ChSystemGPU::RemoveBody(ChSharedPtr<ChBodyGPU> mbody) {
+void ChSystemGPU::RemoveBody(ChSharedPtr<ChBody> mbody) {
 	assert(std::find<std::vector<ChBody *>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr()) != bodylist.end());
 
 // remove from collision system
@@ -157,7 +157,7 @@ void ChSystemGPU::RemoveBody(ChSharedPtr<ChBodyGPU> mbody) {
 
 void ChSystemGPU::RemoveBody(int body) {
 	//assert( std::find<std::vector<ChBody*>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr()) != bodylist.end());
-	ChBodyGPU *mbody = ((ChBodyGPU *) (bodylist[body]));
+	ChBody *mbody = ((ChBody *) (bodylist[body]));
 
 // remove from collision system
 	if (mbody->GetCollide())
@@ -188,6 +188,7 @@ void ChSystemGPU::UpdateBodies() {
 	real *mass_pointer = gpu_data_manager->host_mass_data.data();
 	real *fric_pointer = gpu_data_manager->host_fric_data.data();
 	real *cohesion_pointer = gpu_data_manager->host_cohesion_data.data();
+	real *compliance_pointer = gpu_data_manager->host_compliance_data.data();
 	real3 *lim_pointer = gpu_data_manager->host_lim_data.data();
 
 #pragma omp parallel for
@@ -221,7 +222,8 @@ void ChSystemGPU::UpdateBodies() {
 		active_pointer[i] = bodylist[i]->IsActive();
 		mass_pointer[i] = 1.0f / mbodyvar->GetBodyMass();
 		fric_pointer[i] = bodylist[i]->GetKfriction();
-		cohesion_pointer[i] = ((ChBodyGPU*) (bodylist[i]))->GetMaterialSurface()->GetCohesion();
+		cohesion_pointer[i] = ((bodylist[i]))->GetMaterialSurface()->GetCohesion();
+		compliance_pointer[i] = ((bodylist[i]))->GetMaterialSurface()->GetCompliance();
 		lim_pointer[i] = (R3(bodylist[i]->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
 		bodylist[i]->GetCollisionModel()->SyncPosition();
 	}
@@ -261,8 +263,8 @@ void ChSystemGPU::UpdateBilaterals() {
 		}
 
 		ChLcpConstraintTwoBodies *mbilateral = (ChLcpConstraintTwoBodies *) (mconstraints[ic]);
-		int idA = ((ChBodyGPU *) ((ChLcpVariablesBody *) (mbilateral->GetVariables_a()))->GetUserData())->GetId();
-		int idB = ((ChBodyGPU *) ((ChLcpVariablesBody *) (mbilateral->GetVariables_b()))->GetUserData())->GetId();
+		int idA = ((ChBody *) ((ChLcpVariablesBody *) (mbilateral->GetVariables_a()))->GetUserData())->GetId();
+		int idB = ((ChBody *) ((ChLcpVariablesBody *) (mbilateral->GetVariables_b()))->GetUserData())->GetId();
 		// Update auxiliary data in all constraints before starting, that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
 		mconstraints[ic]->Update_auxiliary(); //***NOTE*** not efficient here - can be on GPU, and [Eq_i] not needed
 		real3 A, B, C, D;

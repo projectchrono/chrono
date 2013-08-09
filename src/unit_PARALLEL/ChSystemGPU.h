@@ -43,8 +43,8 @@ namespace chrono {
 			double ComputeCollisions();
 			double SolveSystem();
 			double SplitData();
-			void AddBody(ChSharedPtr<ChBodyGPU> newbody);
-			void RemoveBody(ChSharedPtr<ChBodyGPU> mbody);
+			void AddBody(ChSharedPtr<ChBody> newbody);
+			void RemoveBody(ChSharedPtr<ChBody> mbody);
 			void RemoveBody(int i);
 			//int Setup();
 			void Update();

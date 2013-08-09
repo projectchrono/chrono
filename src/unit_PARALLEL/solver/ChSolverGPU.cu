@@ -133,7 +133,7 @@ __global__ void device_shurA(int2 *ids, bool *active, real *inv_mass, real3 *inv
 	INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_constraints_const);
 }
 
-void ChSolverGPU::host_shurA(
+void ChSolverGPU::host_shurA_contacts(
 		int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO, real3* QXYZ, real3* QUVW,
 		uint* offset) {
 #pragma omp parallel for
@@ -157,6 +157,12 @@ void ChSolverGPU::host_shurA(
 			updateO[offset2] = JUVWB[index + number_of_contacts * 0] * gam.x + JUVWB[index + number_of_contacts * 1] * gam.y + JUVWB[index + number_of_contacts * 2] * gam.z;
 		}
 	}
+}
+
+void ChSolverGPU::host_shurA_bilaterals(
+		int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO, real3* QXYZ, real3* QUVW,
+		uint* offset) {
+
 #pragma omp parallel for
 	for (int index = 0; index < number_of_bilaterals; index++) {
 		real gam;
@@ -194,7 +200,22 @@ void ChSolverGPU::shurA(custom_vector<real> &x) {
 				CASTR3(data_container->gpu_data.device_QUVW_data));
 		cudaDeviceSynchronize();
 #else
-		host_shurA(
+		host_shurA_contacts(
+				data_container->gpu_data.device_bidlist_data.data(),
+				data_container->gpu_data.device_active_data.data(),
+				data_container->gpu_data.device_mass_data.data(),
+				data_container->gpu_data.device_inr_data.data(),
+				data_container->gpu_data.device_JXYZA_data.data(),
+				data_container->gpu_data.device_JXYZB_data.data(),
+				data_container->gpu_data.device_JUVWA_data.data(),
+				data_container->gpu_data.device_JUVWB_data.data(),
+				x.data(),
+				data_container->gpu_data.vel_update.data(),
+				data_container->gpu_data.omg_update.data(),
+				data_container->gpu_data.device_QXYZ_data.data(),
+				data_container->gpu_data.device_QUVW_data.data(),
+				data_container->gpu_data.update_offset.data());
+		host_shurA_bilaterals(
 				data_container->gpu_data.device_bidlist_data.data(),
 				data_container->gpu_data.device_active_data.data(),
 				data_container->gpu_data.device_mass_data.data(),
@@ -227,11 +248,12 @@ void ChSolverGPU::shurA(custom_vector<real> &x) {
 //=================================================================================================================================
 __host__ __device__
 void function_shurB(
-		uint &index, int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, const real &alpha,
-		const real &compliance, const real & inv_hhpa, real *AX) {
+		uint &index, int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW,
+		const real &alpha, const real & inv_hhpa, real *AX) {
 	real temp = 0;
 	uint b1 = ids[index].x;
 	uint b2 = ids[index].y;
+
 	real3 JXYZ = JXYZA[index];
 	if (active[b1] != 0) {
 		temp += dot(QXYZ[b1], JXYZ);
@@ -241,20 +263,17 @@ void function_shurB(
 		temp += dot(QXYZ[b2], -JXYZ);
 		temp += dot(QUVW[b2], JUVWB[index]);
 	}
-	AX[index] = temp + gamma[index] * inv_hhpa * compliance;
+	AX[index] = temp + gamma[index] * inv_hhpa * compliance[index];
 }
 
-__global__ void device_shurB(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX) {
+__global__ void device_shurB(
+		int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX) {
 	INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_constraints_const);
-	function_shurB(index, ids, active, inv_mass, inv_inertia, gamma, JXYZA, JXYZB, JUVWA, JUVWB, QXYZ, QUVW, alpha_const, compliance_const, inv_hhpa_const, AX);
+	function_shurB(index, ids, active, inv_mass, inv_inertia, compliance, gamma, JXYZA, JXYZB, JUVWA, JUVWB, QXYZ, QUVW, alpha_const, inv_hhpa_const, AX);
 }
 
-void ChSolverGPU::host_shurB(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX) {
-
-//#pragma omp parallel for
-//	for (uint index = 0; index < number_of_constraints; index++) {
-//		function_shurB(index, ids, active, inv_mass, inv_inertia, gamma, JXYZA, JXYZB, JUVWA, JUVWB, QXYZ, QUVW, alpha, compliance, inv_hhpa, AX);
-//	}
+void ChSolverGPU::host_shurB_contacts(
+		int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX) {
 
 #pragma omp parallel for
 	for (uint index = 0; index < number_of_contacts; index++) {
@@ -290,10 +309,15 @@ void ChSolverGPU::host_shurB(int2 *ids, bool *active, real *inv_mass, real3 *inv
 			temp.z += dot(XYZ, JXYZB[index + number_of_contacts * 2]);
 			temp.z += dot(UVW, JUVWB[index + number_of_contacts * 2]);
 		}
-		AX[index + number_of_contacts * 0] += temp.x + gamma[index + number_of_contacts * 0] * inv_hhpa * compliance;
-		AX[index + number_of_contacts * 1] += temp.y + gamma[index + number_of_contacts * 1] * inv_hhpa * complianceT;
-		AX[index + number_of_contacts * 2] += temp.z + gamma[index + number_of_contacts * 2] * inv_hhpa * complianceT;
+		AX[index + number_of_contacts * 0] += temp.x + gamma[index + number_of_contacts * 0] * inv_hhpa * compliance[index];
+		AX[index + number_of_contacts * 1] += temp.y + gamma[index + number_of_contacts * 1] * inv_hhpa * compliance[index];
+		AX[index + number_of_contacts * 2] += temp.z + gamma[index + number_of_contacts * 2] * inv_hhpa * compliance[index];
 	}
+
+}
+void ChSolverGPU::host_shurB_bilaterals(
+		int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX) {
+
 #pragma omp parallel for
 	for (uint index = 0; index < number_of_bilaterals; index++) {
 
@@ -315,10 +339,10 @@ void ChSolverGPU::host_shurB(int2 *ids, bool *active, real *inv_mass, real3 *inv
 			temp += dot(UVW, JUVWB[index + number_of_contacts * 3]);
 
 		}
-		AX[index + number_of_contacts * 3] = temp + gamma[index + number_of_contacts * 3] * inv_hhpa * complianceT;
+
+		AX[index + number_of_contacts * 3] = temp;
 	}
 }
-
 void ChSolverGPU::shurB(custom_vector<real> &x, custom_vector<real> &out) {
 #ifdef SIM_ENABLE_GPU_MODE
 		device_shurB CUDA_KERNEL_DIM(BLOCKS(number_of_constraints), THREADS)(
@@ -326,6 +350,8 @@ void ChSolverGPU::shurB(custom_vector<real> &x, custom_vector<real> &out) {
 				CASTB1(data_container->gpu_data.device_active_data),
 				CASTR1(data_container->gpu_data.device_mass_data),
 				CASTR3(data_container->gpu_data.device_inr_data),
+				CASTR1(data_container->gpu_data.device_compliance_data),
+				CASTR1(data_container->gpu_data.device_complianceT_data),
 				CASTR1(x),
 				CASTR3(data_container->gpu_data.device_JXYZA_data),
 				CASTR3(data_container->gpu_data.device_JXYZB_data),
@@ -335,7 +361,21 @@ void ChSolverGPU::shurB(custom_vector<real> &x, custom_vector<real> &out) {
 				CASTR3(data_container->gpu_data.device_QUVW_data),
 				CASTR1(out));
 #else
-		host_shurB(
+		host_shurB_contacts(
+				data_container->gpu_data.device_bidlist_data.data(),
+				data_container->gpu_data.device_active_data.data(),
+				data_container->gpu_data.device_mass_data.data(),
+				data_container->gpu_data.device_inr_data.data(),
+				data_container->gpu_data.device_comp_data.data(),
+				x.data(),
+				data_container->gpu_data.device_JXYZA_data.data(),
+				data_container->gpu_data.device_JXYZB_data.data(),
+				data_container->gpu_data.device_JUVWA_data.data(),
+				data_container->gpu_data.device_JUVWB_data.data(),
+				data_container->gpu_data.device_QXYZ_data.data(),
+				data_container->gpu_data.device_QUVW_data.data(),
+				out.data());
+		host_shurB_bilaterals(
 				data_container->gpu_data.device_bidlist_data.data(),
 				data_container->gpu_data.device_active_data.data(),
 				data_container->gpu_data.device_mass_data.data(),
@@ -350,8 +390,78 @@ void ChSolverGPU::shurB(custom_vector<real> &x, custom_vector<real> &out) {
 				out.data());
 #endif
 	}
+void ChSolverGPU::ShurProduct(custom_vector<real> &x, custom_vector<real> & output) {
+	timer_shurcompliment.start();
+	Thrust_Fill(output, 0);
+#ifdef SIM_ENABLE_GPU_MODE
+		Thrust_Fill(data_container->gpu_data.device_QXYZ_data, R3(0));
+		Thrust_Fill(data_container->gpu_data.device_QUVW_data, R3(0));
+#else
+#pragma omp parallel for
+		for (int i = 0; i < number_of_objects; i++) {
+			data_container->gpu_data.device_QXYZ_data[i] = R3(0);
+			data_container->gpu_data.device_QUVW_data[i] = R3(0);
+		}
+#endif
+		shurA(x);
+		shurB(x,output);
+		timer_shurcompliment.stop();
+		time_shurcompliment +=timer_shurcompliment();
+	}
+#define JXYZA_bilateral data_container->gpu_data.device_JXYZA_bilateral
+#define JXYZB_bilateral data_container->gpu_data.device_JXYZB_bilateral
+#define JUVWA_bilateral data_container->gpu_data.device_JUVWA_bilateral
+#define JUVWB_bilateral data_container->gpu_data.device_JUVWB_bilateral
 //=================================================================================================================================
+void ChSolverGPU::ShurBilaterals(custom_vector<real> &x_t, custom_vector<real> & AX) {
 
+	for (int i = 0; i < number_of_objects; i++) {
+		data_container->gpu_data.device_QXYZ_data[i] = R3(0);
+		data_container->gpu_data.device_QUVW_data[i] = R3(0);
+	}
+
+	for (int index = 0; index < number_of_bilaterals; index++) {
+		real gam;
+		gam = x_t[index];
+		uint b1 = data_container->gpu_data.device_bidlist_data[index + number_of_contacts * 3].x;
+
+		if (data_container->gpu_data.device_active_data[b1] != 0) {
+			data_container->gpu_data.device_QXYZ_data[b1] += JXYZA_bilateral[index] * gam;
+			data_container->gpu_data.device_QUVW_data[b1] += JUVWA_bilateral[index] * gam;
+		}
+
+		uint b2 = data_container->gpu_data.device_bidlist_data[index + number_of_contacts * 3].y;
+		if (data_container->gpu_data.device_active_data[b2] != 0) {
+			data_container->gpu_data.device_QXYZ_data[b2] += JXYZB_bilateral[index ] * gam;
+			data_container->gpu_data.device_QUVW_data[b2] += JUVWB_bilateral[index ] * gam;
+		}
+	}
+
+#pragma omp parallel for
+		for (uint index = 0; index < number_of_bilaterals; index++) {
+
+			real temp = 0;
+			uint b1 = data_container->gpu_data.device_bidlist_data[index + number_of_contacts * 3].x;
+			if (data_container->gpu_data.device_active_data[b1] != 0) {
+				real3 XYZ = data_container->gpu_data.device_QXYZ_data[b1]* data_container->gpu_data.device_mass_data[b1];
+				real3 UVW = data_container->gpu_data.device_QUVW_data[b1]* data_container->gpu_data.device_inr_data[b1];
+				temp += dot(XYZ, JXYZA_bilateral[index ]);
+				temp += dot(UVW, JUVWA_bilateral[index ]);
+
+			}
+			uint b2 = data_container->gpu_data.device_bidlist_data[index + number_of_contacts * 3].y;
+			if (data_container->gpu_data.device_active_data[b2] != 0) {
+
+				real3 XYZ = data_container->gpu_data.device_QXYZ_data[b2]* data_container->gpu_data.device_mass_data[b2];;
+				real3 UVW = data_container->gpu_data.device_QUVW_data[b2]* data_container->gpu_data.device_inr_data[b2];
+				temp += dot(XYZ, JXYZB_bilateral[index ]);
+				temp += dot(UVW, JUVWB_bilateral[index ]);
+
+			}
+			AX[index ] = temp;
+		}
+
+	}
 //=================================================================================================================================
 __global__ void device_Offsets(int2* ids, real4* bilaterals, uint* Body) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -393,7 +503,6 @@ void ChSolverGPU::Setup() {
 	///////////////////////////////////////
 	Initialize();
 
-
 	data_container->gpu_data.device_gam_data.resize((number_of_constraints));
 	data_container->gpu_data.device_QXYZ_data.resize(number_of_objects);
 	data_container->gpu_data.device_QUVW_data.resize(number_of_objects);
@@ -419,7 +528,6 @@ void ChSolverGPU::Setup() {
 
 	///////////////////////////////////////
 
-
 	///////////////////////////////////////
 	thrust::copy_n(
 			data_container->gpu_data.device_gamma_bilateral.begin(),
@@ -428,14 +536,12 @@ void ChSolverGPU::Setup() {
 
 	///////////////////////////////////////
 
-
 #ifdef SIM_ENABLE_GPU_MODE
 	COPY_TO_CONST_MEM(number_of_constraints);
 	COPY_TO_CONST_MEM(number_of_contacts);
 	COPY_TO_CONST_MEM(number_of_bilaterals);
 	COPY_TO_CONST_MEM(step_size);
 	COPY_TO_CONST_MEM(alpha);
-	COPY_TO_CONST_MEM(compliance);
 	COPY_TO_CONST_MEM(inv_hpa);
 	COPY_TO_CONST_MEM(inv_hhpa);
 	COPY_TO_CONST_MEM(contact_recovery_speed);
@@ -472,26 +578,8 @@ void ChSolverGPU::Setup() {
 		Thrust_Inclusive_Scan(data_container->gpu_data.offset_counter);
 	}
 	number_of_updates = data_container->number_of_updates;
-}
 
-void ChSolverGPU::ShurProduct(custom_vector<real> &x, custom_vector<real> & output) {
-	timer_shurcompliment.start();
-	Thrust_Fill(output, 0);
-#ifdef SIM_ENABLE_GPU_MODE
-		Thrust_Fill(data_container->gpu_data.device_QXYZ_data, R3(0));
-		Thrust_Fill(data_container->gpu_data.device_QUVW_data, R3(0));
-#else
-#pragma omp parallel for
-		for (int i = 0; i < number_of_objects; i++) {
-			data_container->gpu_data.device_QXYZ_data[i] = R3(0);
-			data_container->gpu_data.device_QUVW_data[i] = R3(0);
-		}
-#endif
-		shurA(x);
-		shurB(x,output);
-		timer_shurcompliment.stop();
-		time_shurcompliment +=timer_shurcompliment();
-	}
+}
 
 void ChSolverGPU::ComputeImpulses() {
 	shurA(data_container->gpu_data.device_gam_data);
@@ -507,7 +595,6 @@ void ChSolverGPU::Solve(GPUSOLVERTYPE solver_type, real step, ChGPUDataManager *
 	Setup();
 	total_iteration = 0;
 	if (number_of_constraints > 0) {
-
 
 		if (solver_type == STEEPEST_DESCENT) {
 			total_iteration += SolveSD(data_container->gpu_data.device_gam_data, data_container->gpu_data.device_rhs_data, max_iteration);
@@ -526,9 +613,27 @@ void ChSolverGPU::Solve(GPUSOLVERTYPE solver_type, real step, ChGPUDataManager *
 		}
 		//else if(solver_type==QUASAI_MINIMUM_RESIDUAL){SolveQMR(data_container->gpu_data.device_gam_data, rhs, max_iteration);}
 		else if (solver_type == ACCELERATED_PROJECTED_GRADIENT_DESCENT) {
+//				for (int i = 0; i < max_iteration; i += 4) {
+//				total_iteration += SolveAPGD(data_container->gpu_data.device_gam_data, data_container->gpu_data.device_rhs_data, 2);
+//				thrust::copy_n(
+//						data_container->gpu_data.device_gam_data.begin() + data_container->number_of_contacts * 3,
+//						data_container->number_of_bilaterals,
+//						data_container->gpu_data.device_gamma_bilateral.begin());
+//				custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals);
+//				thrust::copy_n(data_container->gpu_data.device_rhs_data.begin() + data_container->number_of_contacts * 3, data_container->number_of_bilaterals, rhs_bilateral.begin());
+//
+//				SolveStab(data_container->gpu_data.device_gamma_bilateral, rhs_bilateral, 10);
+//
+//				thrust::copy_n(
+//						data_container->gpu_data.device_gamma_bilateral.begin(),
+//						data_container->number_of_bilaterals,
+//						data_container->gpu_data.device_gam_data.begin() + data_container->number_of_contacts * 3);
+//
+//				total_iteration += SolveAPGD(data_container->gpu_data.device_gam_data, data_container->gpu_data.device_rhs_data, 2);
+
+//}
 			total_iteration += SolveAPGD(data_container->gpu_data.device_gam_data, data_container->gpu_data.device_rhs_data, max_iteration);
-		}
-		else if (solver_type == BLOCK_JACOBI) {
+		} else if (solver_type == BLOCK_JACOBI) {
 			SolveJacobi();
 		}
 		thrust::copy_n(
@@ -543,17 +648,97 @@ void ChSolverGPU::Solve(GPUSOLVERTYPE solver_type, real step, ChGPUDataManager *
 	}
 }
 
-void ChSolverGPU::SolveStab(real step, ChGPUDataManager *data_container_) {
+void ChSolverGPU::VelocityStabilization(ChGPUDataManager *data_container_) {
+	data_container = data_container_;
+	custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals);
 
+	thrust::copy_n(data_container->gpu_data.device_rhs_data.begin() + data_container->number_of_contacts * 3, data_container->number_of_bilaterals, rhs_bilateral.begin());
 
+	SolveStab(data_container->gpu_data.device_gamma_bilateral, rhs_bilateral, 10);
 
+	thrust::copy_n(
+			data_container->gpu_data.device_gamma_bilateral.begin(),
+			data_container->number_of_bilaterals,
+			data_container->gpu_data.device_gam_data.begin() + data_container->number_of_contacts * 3);
 
+	for (int i = 0; i < number_of_objects; i++) {
+		data_container->gpu_data.device_QXYZ_data[i] = R3(0);
+		data_container->gpu_data.device_QUVW_data[i] = R3(0);
+	}
 
+	for (int index = 0; index < number_of_bilaterals; index++) {
+		real gam;
+		gam = data_container->gpu_data.device_gamma_bilateral[index];
+		uint b1 = data_container->gpu_data.device_bidlist_data[index + number_of_contacts * 3].x;
 
+		if (data_container->gpu_data.device_active_data[b1] != 0) {
+			data_container->gpu_data.device_QXYZ_data[b1] += JXYZA_bilateral[index] * gam * data_container->gpu_data.device_mass_data[b1];
+			data_container->gpu_data.device_QUVW_data[b1] += JUVWA_bilateral[index] * gam * data_container->gpu_data.device_inr_data[b1];
+		}
+
+		uint b2 = data_container->gpu_data.device_bidlist_data[index + number_of_contacts * 3].y;
+		if (data_container->gpu_data.device_active_data[b2] != 0) {
+			data_container->gpu_data.device_QXYZ_data[b2] += JXYZB_bilateral[index] * gam * data_container->gpu_data.device_mass_data[b2];
+			data_container->gpu_data.device_QUVW_data[b2] += JUVWB_bilateral[index] * gam * data_container->gpu_data.device_inr_data[b2];
+		}
+	}
+
+	data_container->gpu_data.device_vel_data += data_container->gpu_data.device_QXYZ_data;
+	data_container->gpu_data.device_omg_data += data_container->gpu_data.device_QUVW_data;
 
 }
 
+uint ChSolverGPU::SolveStab(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
+	uint N = b.size();
+	custom_vector<real> v(N, 0), v_hat(x.size()), w(N, 0), w_old, xMR, v_old, Av(x.size()), w_oold;
+	real beta, c = 1, eta, norm_rMR, norm_r0, c_old = 1, s_old = 0, s = 0, alpha, beta_old, c_oold, s_oold, r1_hat, r1, r2, r3;
+	ShurBilaterals(x,v_hat);
+	v_hat = b - v_hat;
+	beta = Norm(v_hat);
+	w_old = w;
+	eta = beta;
+	xMR = x;
+	norm_rMR = beta;
+	norm_r0 = beta;
 
+	if (beta == 0 || norm_rMR / norm_r0 < tolerance) {return 0;}
+
+	for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
+		//// Lanczos
+		v_old = v;
+		v = 1.0 / beta * v_hat;
+		ShurBilaterals(v,Av);
+		alpha = Dot(v, Av);
+		v_hat = Av - alpha * v - beta * v_old;
+		beta_old = beta;
+		beta = Norm(v_hat);
+		//// QR factorization
+		c_oold = c_old;
+		c_old = c;
+		s_oold = s_old;
+		s_old = s;
+		r1_hat = c_old * alpha - c_oold * s_old * beta_old;
+		r1 = 1 / sqrt(r1_hat * r1_hat + beta * beta);
+		r2 = s_old * alpha + c_oold * c_old * beta_old;
+		r3 = s_oold * beta_old;
+		//// Givens Rotation
+		c = r1_hat * r1;
+		s = beta * r1;
+		//// update
+		w_oold = w_old;
+		w_old = w;
+		w = r1 * (v - r3 * w_oold - r2 * w_old);
+		x = x + c * eta * w;
+		norm_rMR = norm_rMR * abs(s);
+		eta = -s * eta;
+		residual = norm_rMR / norm_r0;
+
+		if (residual < tolerance) {break;}
+	}
+
+	return current_iteration;
+
+}
 
 //
 //__host__ __device__ void function_InvNDiag(uint index, int b1, int b2, int2* ids, real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB, real * inv_mass, real3 * inv_inertia, real & inv_n_diag) {

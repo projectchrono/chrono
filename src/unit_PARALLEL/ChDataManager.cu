@@ -28,6 +28,7 @@ void ChGPUDataManager::CopyBodyData(GPUCOPYTYPE type) {
 		gpu_data.device_mass_data = host_mass_data;
 		gpu_data.device_fric_data = host_fric_data;
 		gpu_data.device_cohesion_data = host_cohesion_data;
+		gpu_data.device_compliance_data = host_compliance_data;
 		gpu_data.device_lim_data = host_lim_data;
 		gpu_data.device_frc_data = host_frc_data;
 		gpu_data.device_trq_data = host_trq_data;

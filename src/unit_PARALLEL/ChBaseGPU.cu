@@ -8,8 +8,8 @@ void ChBaseGPU::Initialize() {
 	number_of_constraints = data_container->number_of_contacts * 3 + data_container->number_of_bilaterals;
 
 	step_size = data_container->step_size;
-	compliance = data_container->compliance;
-	complianceT = data_container->complianceT;
+//	compliance = data_container->compliance;
+//	complianceT = data_container->complianceT;
 	alpha = data_container->alpha;
 	contact_recovery_speed = data_container->contact_recovery_speed;
 

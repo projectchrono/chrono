@@ -127,8 +127,7 @@ namespace chrono {
                 virtual bool GetFamilyMaskDoesCollisionWithFamily(int mfamily);
                 /// Return a pointer to the body
                 ChBody *GetBody() const {return mbody;};
-                /// Set the pointer to the body
-                void SetBody(ChBody *mbo) {mbody = mbo;};
+
                 /// Get the number of objects in this model
                 int GetNObjects() {return nObjects;}
                 ///Get family to not collide with
@@ -149,7 +148,6 @@ namespace chrono {
 
 
                 real3 inertia;
-                ChBody *mbody;
                 unsigned int nObjects;
                 int colFam, noCollWith;
         };

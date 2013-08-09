@@ -28,6 +28,8 @@ struct gpu_container {
 		custom_vector<real> device_dpth_data;
 		custom_vector<int2> device_bids_data;
 
+		custom_vector<real> device_comp_data;
+
 		custom_vector<real3> device_ObA_data;
 		custom_vector<real3> device_ObB_data;
 		custom_vector<real3> device_ObC_data;
@@ -50,6 +52,7 @@ struct gpu_container {
 		custom_vector<real> device_mass_data;
 		custom_vector<real> device_fric_data;
 		custom_vector<real> device_cohesion_data;
+		custom_vector<real> device_compliance_data;
 		custom_vector<real3> device_dem_data;
 		custom_vector<real3> device_lim_data;
 		custom_vector<real3> device_gyr_data;
@@ -59,7 +62,6 @@ struct gpu_container {
 		custom_vector<real3> device_JUVWA_data,device_JUVWB_data;
 		custom_vector<real> device_rhs_data;
 		custom_vector<int2> device_bidlist_data;
-
 
 		thrust::host_vector<real3> device_JXYZA_bilateral, device_JXYZB_bilateral;
 		thrust::host_vector<real3> device_JUVWA_bilateral, device_JUVWB_bilateral;
@@ -141,6 +143,7 @@ class ChApiGPU ChGPUDataManager {
 		thrust::host_vector<real> host_mass_data;
 		thrust::host_vector<real> host_fric_data;
 		thrust::host_vector<real> host_cohesion_data;
+		thrust::host_vector<real> host_compliance_data;
 		thrust::host_vector<real3> host_lim_data;
 		thrust::host_vector<real3> host_dem_data;
 		thrust::host_vector<real3> host_gyr_data;

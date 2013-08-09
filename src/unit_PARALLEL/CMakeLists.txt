@@ -68,7 +68,7 @@ SET(ChronoEngine_unit_GPU_SOLVER
 
 
 SET(ChronoEngine_unit_GPU_SOURCES
-    ChBodyGPU.cpp
+    #ChBodyGPU.cpp
     ChSystemGPU.cpp
    )
 
@@ -78,7 +78,7 @@ SET(ChronoEngine_unit_GPU_HEADERS
     ChCudaDefines.h
     ChCudaMath.h
     ChThrustLinearAlgebra.cuh
-    ChBodyGPU.h
+    #ChBodyGPU.h
     ChSystemGPU.h
     ChDataManager.h
     ChLcpSolverGPU.h

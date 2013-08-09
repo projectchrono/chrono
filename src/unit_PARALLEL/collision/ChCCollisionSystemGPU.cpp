@@ -22,7 +22,7 @@ ChCollisionSystemGPU::ChCollisionSystemGPU() {
 void ChCollisionSystemGPU::Add(ChCollisionModel *model) {
 	if (model->GetPhysicsItem()->GetCollide() == true) {
 		ChCollisionModelGPU *body = (ChCollisionModelGPU *) model;
-		int body_id = ((ChBodyGPU *) body->GetBody())->GetId();
+		int body_id =  body->GetBody()->GetId();
 		int2 fam = I2(body->GetFamily(), body->GetNoCollFamily());
 
 		for (int j = 0; j < body->GetNObjects(); j++) {

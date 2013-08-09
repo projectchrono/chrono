@@ -143,7 +143,7 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 	//jacobian_compute.ComputeJacobians(data_container);
 	//rhs_compute.ComputeRHS(data_container);
 
-	solver.SolveStab(step, data_container);
+	//solver.VelocityStabilization(data_container);
 
 #ifdef PRINT_DEBUG_GPU
 	cout << "Solve Done: "<<residual << endl;

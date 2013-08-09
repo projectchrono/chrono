@@ -15,8 +15,6 @@ class ChApiGPU ChSolverGPU: public ChBaseGPU {
 			tolerance = 1e-6;
 			epsilon = 1e-3;
 			alpha = 0;
-			compliance = 0;
-			complianceT = 0;
 			max_iteration = 100;
 		}
 		void Setup();
@@ -26,17 +24,25 @@ class ChApiGPU ChSolverGPU: public ChBaseGPU {
 
 		void ComputeImpulses();
 
-		void host_shurA(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO,real3 *QXYZ,real3 *QUVW,uint* offset);
-		void host_shurB(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia,real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX);
+		void host_shurA_contacts(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO,real3 *QXYZ,real3 *QUVW,uint* offset);
+		void host_shurA_bilaterals(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO,real3 *QXYZ,real3 *QUVW,uint* offset);
+
+		void host_shurB_contacts(
+				int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ,
+				real3 *QUVW, real *AX);
+		void host_shurB_bilaterals(
+				int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX);
 
 		void host_Project(int2 *ids, real *friction, real* cohesion, real *gamma);
 		void host_Offsets(int2 *ids_contacts, int2 *ids_bilaterals, uint *Body);
 		void host_Reduce_Shur(bool* active, real3* QXYZ, real3* QUVW,real *inv_mass, real3 *inv_inertia, real3* updateQXYZ, real3* updateQUVW, uint* d_body_num, uint* counter);
 
 		void ShurProduct( custom_vector<real> &x_t, custom_vector<real> & AX);
+		void ShurBilaterals( custom_vector<real> &x_t, custom_vector<real> & AX);
 
 		void Solve(GPUSOLVERTYPE solver_type, real step, ChGPUDataManager *data_container_);
-		void SolveStab(real step, ChGPUDataManager *data_container_);
+		void VelocityStabilization(ChGPUDataManager *data_container_);
+		uint SolveStab(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 		uint SolveSD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 		uint SolveGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 		uint SolveCG(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
@@ -145,9 +151,6 @@ class ChApiGPU ChSolverGPU: public ChBaseGPU {
 
 			void SetComplianceParameters(const real alpha_value,const real compliance_value,const real complianceT_value) {
 				alpha = alpha_value;
-				compliance = compliance_value;
-				complianceT = complianceT_value;
-
 			}
 
 			void SetContactRecoverySpeed(const real & recovery_speed) {

@@ -16,7 +16,7 @@ class ChApiGPU ChComputeRHSGPU: public ChBaseGPU {
 		}
 		void Setup();
 		void host_RHS(int2 *ids, real *correction, bool * active, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs);
-		void host_bi(real *correction, real* bi);
+		void host_bi(real *correction, real* compliance, real* bi);
 		void ComputeRHS(ChGPUDataManager *data_container_);
 
 		custom_vector<real> correction, bi;

@@ -7,7 +7,7 @@ void ChComputeRHSGPU::Setup() {
 	correction.resize(number_of_constraints);
 	data_container->gpu_data.device_rhs_data.resize(number_of_constraints);
 	bi.resize(number_of_constraints);
-	Thrust_Fill(correction,0);
+	Thrust_Fill(correction, 0);
 	thrust::copy_n(data_container->gpu_data.device_dpth_data.begin(), data_container->number_of_contacts, correction.begin() + data_container->number_of_contacts * 0);
 }
 
@@ -17,10 +17,10 @@ __host__ __device__ void function_bi(uint &index, uint & num_contacts, real &ste
 	bi[index + num_contacts * 2] = 0;
 }
 
-void ChComputeRHSGPU::host_bi(real *correction, real* bi) {
+void ChComputeRHSGPU::host_bi(real *correction, real * compliance, real* bi) {
 #pragma omp parallel for
 	for (uint index = 0; index < number_of_contacts; index++) {
-		if (compliance) {
+		if (compliance[index]) {
 			bi[index + number_of_contacts * 0] = inv_hpa * correction[index];
 			bi[index + number_of_contacts * 1] = 0;
 			bi[index + number_of_contacts * 2] = 0;
@@ -90,9 +90,20 @@ void ChComputeRHSGPU::ComputeRHS(ChGPUDataManager *data_container_) {
 	Setup();
 	//Thrust_Fill(data_container->gpu_data.device_QXYZ_data, R3(0));
 	//Thrust_Fill(data_container->gpu_data.device_QUVW_data, R3(0));
+
+	data_container->gpu_data.device_comp_data.resize(number_of_contacts);
+	for (int i = 0; i < number_of_contacts; i++) {
+		uint b1 = data_container->gpu_data.device_bidlist_data[i].x;
+		uint b2 = data_container->gpu_data.device_bidlist_data[i].y;
+		real compb1 = data_container->gpu_data.device_compliance_data[b1];
+		real compb2 = data_container->gpu_data.device_compliance_data[b2];
+
+		real comp = (compb1 == 0 || compb2 == 0) ? 0 : (compb1 + compb2) * .5;
+		data_container->gpu_data.device_comp_data[i] = comp;
+	}
 	thrust::copy_n(data_container->gpu_data.device_residual_bilateral.begin(), number_of_bilaterals, bi.begin() + number_of_contacts * 3);
 
-	host_bi(correction.data(), bi.data());
+	host_bi(correction.data(), data_container->gpu_data.device_comp_data.data(), bi.data());
 
 	host_RHS(
 			data_container->gpu_data.device_bidlist_data.data(),
