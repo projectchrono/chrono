@@ -47,7 +47,6 @@ public:
     	/// Gets the pointer to the client owner rigid body. 
   ChBody* GetBody() const {return mbody;};
 		/// Sets the pointer to the client owner rigid body
-  void SetBody(ChBody* mbo) {mbody = mbo;};
 
   
 	// Overrides and implementations of base members:
@@ -60,7 +59,7 @@ public:
   virtual ChPhysicsItem* GetPhysicsItem() {return (ChPhysicsItem*)GetBody();};
 
 private:
-	ChBody* mbody;
+
 };
 
 

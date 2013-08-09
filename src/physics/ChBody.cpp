@@ -115,6 +115,7 @@ ChBody::ChBody (ChCollisionModel* new_collision_model)
 	cdim = VNULL;
 
 	collision_model=new_collision_model;
+	collision_model->SetBody(this);
 
 	matsurface = ChSharedPtr<ChMaterialSurface>(new ChMaterialSurface);
 
