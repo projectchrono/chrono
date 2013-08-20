@@ -32,19 +32,19 @@ typedef unsigned int uint;
 
 //HSML .04 was for the dimensions around 1, .2 is for the dimesions around 11.2
 //#define HSML 0.04f*sizeScale
-#define HSML 0.15f*sizeScale
+#define HSML 0.1f*sizeScale
 
 #define BASEPRES 0
 #define nPeriod 1
 #define Gravity make_float3(0, 0, 0)
-//#define bodyForce4 make_float4(.005, 0, 0, 0)
-#define bodyForce4 make_float4(.04, 0, 0, 0)
-//#define bodyForce4 make_float4(.1, 0, 0, 0)
-//#define bodyForce4 make_float4(.0004, 0, 0, 0) //segre. size Scale 1
 #define rho0 1180
 //#define mu0 .001f
 #define mu0 0.05f
 //#define mu0 1.0f
+//#define bodyForce4 make_float4(.005, 0, 0, 0)
+#define bodyForce4 make_float4(.04, 0, 0, 0)
+//#define bodyForce4 make_float4(.1, 0, 0, 0)
+//#define bodyForce4 make_float4(.0004, 0, 0, 0) //segre. size Scale 1
 //#define v_Max .1f
 #define v_Max 0.005f
 //#define v_Max .014f //estimated maximum velocity of fluid
