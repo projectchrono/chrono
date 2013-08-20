@@ -279,6 +279,30 @@ __global__ void UpdateKernelRigidTranstalation(float3 * totalBodyForces3, float3
 	velMassRigidD[rigidSphereA] = dummyVelMas;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
+//updates the rigid body particles
+__global__ void UpdateKernelRigidTranstalationBeta(float3 * totalBodyForces3, float3 * posRigidD, float3 * posRigidCumulativeD, float4 * velMassRigidD) {
+	uint rigidSphereA = blockIdx.x * blockDim.x + threadIdx.x;
+	if (rigidSphereA >= numRigidBodiesD) {
+		return;
+	}
+
+	float3 dummyPos = posRigidD[rigidSphereA];
+	float4 dummyVelMas = velMassRigidD[rigidSphereA];
+
+	float3 derivV_SPH = totalBodyForces3[rigidSphereA]; //in fact, totalBodyForce4 is originially sum of dV/dt of sph particles and should be multiplied by m to produce force. gravity is applied in the force kernel
+	derivV_SPH.y = 0;
+	derivV_SPH.z = 0;
+
+	float3 deltaPos = F3(dummyVelMas) * dTD;
+	dummyPos += deltaPos;
+	posRigidD[rigidSphereA] = dummyPos;
+	posRigidCumulativeD[rigidSphereA] += deltaPos;
+
+	float3 deltaVel = derivV_SPH * dTD;
+	dummyVelMas += F4(deltaVel, 0);
+	velMassRigidD[rigidSphereA] = dummyVelMas;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 //updates the rigid body Quaternion of Rotation
 // A is rotation matrix, A = [AD1; AD2; AD3]
 __global__ void UpdateRigidBodyQuaternion_kernel(float4 * qD, float3 * omegaLRF_D) {
@@ -339,6 +363,45 @@ __global__ void UpdateRigidBodyAngularVelocity_kernel(
 	j2 = jInvD2[rigidSphereA];
 	//printf("j j %f %f %f %f %f %f\n", j1.x, j1.y, j1.z, j2.x, j2.y, j2.z);
 	float3 omegaDot3 = torquingTerm.x * j1 + torquingTerm.y * F3(j1.y, j2.x, j2.y) + torquingTerm.z * F3(j1.z, j2.y, j2.z);
+//	//	*** for 2D motion
+//		omegaDot3.x = 0;
+//		omegaDot3.z = 0;
+
+	omega3 += omegaDot3 * dTD;
+	omegaLRF_D[rigidSphereA] = omega3;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+__global__ void UpdateRigidBodyAngularVelocity_kernelBeta(
+		float3 * LF_totalTorque3,
+		float3 * jD1,
+		float3 * jD2,
+		float3 * jInvD1,
+		float3 * jInvD2,
+		float3 * omegaLRF_D) {
+	uint rigidSphereA = blockIdx.x * blockDim.x + threadIdx.x;
+	if (rigidSphereA >= numRigidBodiesD) {
+		return;
+	}
+
+	float3 omega3 = omegaLRF_D[rigidSphereA];
+	float3 j1 = jD1[rigidSphereA];
+	float3 j2 = jD2[rigidSphereA];
+	//printf("j j %f %f %f %f %f %f\n", j1.x, j1.y, j1.z, j2.x, j2.y, j2.z);
+	float3 torquingTerm;
+	torquingTerm.x = (-omega3.z * j1.y + omega3.y * j1.z) * omega3.x + (-omega3.z * j2.x + omega3.y * j2.y) * omega3.y
+			+ (-omega3.z * j2.y + omega3.y * j2.z) * omega3.z;
+	torquingTerm.y = (omega3.z * j1.x - omega3.x * j1.z) * omega3.x + (omega3.z * j1.y - omega3.x * j2.y) * omega3.y
+			+ (omega3.z * j1.z - omega3.x * j2.z) * omega3.z;
+	torquingTerm.z = (-omega3.y * j1.x + omega3.x * j1.y) * omega3.x + (-omega3.y * j1.y + omega3.x * j2.x) * omega3.y
+			+ (-omega3.y * j1.z + omega3.x * j2.y) * omega3.z;
+
+	torquingTerm = rigid_SPH_massD * LF_totalTorque3[rigidSphereA] - torquingTerm;
+	//*** from this point j1 and j2 will represent the j_Inverse
+	j1 = jInvD1[rigidSphereA];
+	j2 = jInvD2[rigidSphereA];
+	//printf("j j %f %f %f %f %f %f\n", j1.x, j1.y, j1.z, j2.x, j2.y, j2.z);
+	float3 omegaDot3 = torquingTerm.x * j1 + torquingTerm.y * F3(j1.y, j2.x, j2.y) + torquingTerm.z * F3(j1.z, j2.y, j2.z);
+	omegaDot3 = F3(0);
 //	//	*** for 2D motion
 //		omegaDot3.x = 0;
 //		omegaDot3.z = 0;
@@ -1159,6 +1222,7 @@ void UpdateRigidBody(
 		int numRigidBodies,
 		int startRigidParticle,
 		int numRigid_SphParticles,
+		float fracSimulation,
 		float dT) {
 	if (referenceArray.size() < 3) {
 		return;
@@ -1216,7 +1280,11 @@ void UpdateRigidBody(
 //	CUT_CHECK_ERROR("Kernel execution failed: MapTorqueToLRFKernel");
 	totalTorque3.clear();
 
-	UpdateKernelRigidTranstalation<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(F3CAST(totalBodyForces3), F3CAST(posRigidD), F3CAST(posRigidCumulativeD), F4CAST(velMassRigidD));
+	if (fracSimulation <.1) {
+		UpdateKernelRigidTranstalationBeta<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(F3CAST(totalBodyForces3), F3CAST(posRigidD), F3CAST(posRigidCumulativeD), F4CAST(velMassRigidD));
+	} else {
+		UpdateKernelRigidTranstalation<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(F3CAST(totalBodyForces3), F3CAST(posRigidD), F3CAST(posRigidCumulativeD), F4CAST(velMassRigidD));
+	}
 	cudaThreadSynchronize();
 //	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
 	totalBodyForces3.clear();
@@ -1229,7 +1297,11 @@ void UpdateRigidBody(
 	cudaThreadSynchronize();
 //	CUT_CHECK_ERROR("Kernel execution failed: UpdateRotation");
 
-	UpdateRigidBodyAngularVelocity_kernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(F3CAST(LF_totalTorque3), F3CAST(jD1), F3CAST(jD2), F3CAST(jInvD1), F3CAST(jInvD2), F3CAST(omegaLRF_D));
+	if (fracSimulation <.1) {
+		UpdateRigidBodyAngularVelocity_kernelBeta<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(F3CAST(LF_totalTorque3), F3CAST(jD1), F3CAST(jD2), F3CAST(jInvD1), F3CAST(jInvD2), F3CAST(omegaLRF_D));
+	} else {
+		UpdateRigidBodyAngularVelocity_kernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(F3CAST(LF_totalTorque3), F3CAST(jD1), F3CAST(jD2), F3CAST(jInvD1), F3CAST(jInvD2), F3CAST(omegaLRF_D));
+	}
 	cudaThreadSynchronize();
 //	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
 
@@ -1432,14 +1504,14 @@ void cudaCollisions(
 		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT); //assumes ...D2 is a copy of ...D
 		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT);		//assumes ...D2 is a copy of ...D
 		UpdateRigidBody(posRadD2, velMasD2, posRigidD2, posRadRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2, derivVelRhoD, rigidIdentifierD,
-				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidParticle, numRigid_SphParticles, 0.5 * delT);
+				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidParticle, numRigid_SphParticles, float(tStep)/stepEnd, 0.5 * delT);
 		ApplyBoundary(posRadD2, rhoPresMuD2, mNSpheres, posRigidD2, velMassRigidD2, numRigidBodies);
 
 		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, mNSpheres, SIDE);
 		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, delT);
 		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, delT);
 		UpdateRigidBody(posRadD, velMasD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, derivVelRhoD, rigidIdentifierD,
-				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidParticle, numRigid_SphParticles, delT);
+				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidParticle, numRigid_SphParticles, float(tStep)/stepEnd, delT);
 			/* post_process for Segre-Silberberg */
 			if(tStep >= 0) {
 				float2 channelCenter = .5 * F2(cMax.y + cMin.y, cMax.z + cMin.z);

@@ -96,7 +96,7 @@ __device__ inline float3 DifVelocity_SSI_DEM(
 	if (l < 0) {
 		return F3(0);
 	}
-	float kS = 6;//3; //50; //1000.0; //392400.0;	//spring. 50 worked almost fine. I am using 30 to be sure!
+	float kS = 3;//3; //50; //1000.0; //392400.0;	//spring. 50 worked almost fine. I am using 30 to be sure!
 	float kD = 40;//20.0; //420.0;				//damping coef.
 	float3 n = dist3 / d; //unit vector B to A
 	float m_eff = (velMasA.w * velMasB.w) / (velMasA.w + velMasB.w);
