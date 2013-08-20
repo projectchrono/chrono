@@ -1135,7 +1135,7 @@ int main() {
 
 	//float delT = .02 * sizeScale;
 //	float delT = .01 * sizeScale;
-	float delT = .05 * sizeScale;//.01 * sizeScale;
+	float delT = .005 * sizeScale;//.01 * sizeScale;
 //	float delT = .001 * sizeScale;
 
 	bool readFromFile = false;  //true;		//true: initializes from file. False: initializes inside the code
