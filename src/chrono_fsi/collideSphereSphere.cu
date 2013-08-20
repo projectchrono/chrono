@@ -684,58 +684,54 @@ void PrintToFile(
 //	}
 //	vel_VelMag_CartH.clear();
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	ofstream fileRigidParticleCenterVsTime;
-	ofstream fileRigidParticleCenterVsDistance;
-	int numRigidBodiesInOnePeriod = int(posRigidH.size() / float(nPeriod) + .5);
-	int tStepRigidCenterPos = 1000;
-	if (tStep % tStepRigidCenterPos == 0) {
-		if (tStep / tStepRigidCenterPos == 0) {
-			fileRigidParticleCenterVsTime.open("dataRigidCenterVsTime.txt");
-			fileRigidParticleCenterVsTime<<"variables = \"t(s)\"";
-			for (int j = 0; j < numRigidBodiesInOnePeriod; j++) {
-				fileRigidParticleCenterVsTime<<", \"t"<<j<<"(s)\", \"Y"<<j<<"(m)\", \"Z"<<j<<"(m)\"";
+	float2 channelCenterYZ = F2(11.2/2, 11.2/2) * sizeScale;
+		ofstream fileRigidParticleCenterVsTimeAndDistance;
+		int numRigidBodiesInOnePeriod = int(posRigidH.size() / float(nPeriod) + .5);
+		int tStepRigidCenterPos = 1000;
+		if (tStep % tStepRigidCenterPos == 0) {
+			if (tStep / tStepRigidCenterPos == 0) {
+				fileRigidParticleCenterVsTimeAndDistance.open("dataRigidCenterVsTimeAndDistance.txt");
+				fileRigidParticleCenterVsTimeAndDistance<<"(t, x, dist[or y], dum[or z],   x_cumul, y, z,   vx, vy, vz,   omega_x, omega_y, omega_z) (sequentially for all particles), average flow velocity (x, y, z, magnitude), channel radius\n" << endl;
+			} else {
+				fileRigidParticleCenterVsTimeAndDistance.open("dataRigidCenterVsTimeAndDistance.txt", ios::app);
 			}
-			fileRigidParticleCenterVsTime<<"\nzone\n";
+	//		(void) thrust::reduce_by_key(rigidIdentifierD.begin(), rigidIdentifierD.end(), torqueParticlesD.begin(), dummyIdentify.begin(),
+	//					totalTorque3.begin(), binary_pred, thrust::plus<float3>());
 
-			fileRigidParticleCenterVsDistance.open("dataRigidCenterVsDistance.txt");
-			fileRigidParticleCenterVsDistance << "variables = \"X(m)\"";
-			for (int j = 0; j < numRigidBodiesInOnePeriod; j++) {
-				fileRigidParticleCenterVsDistance<<", \"X"<<j<<"(m)\", \"Y"<<j<<"(m)\", \"Z"<<j<<"(m)\"";
+			printf("channel radius %f\n", channelRadius);
+			float4 sumVelocity = F4(0);
+			float4 initSumF4 = F4(0);
+			sumVelocity = thrust::reduce(velMasD.begin() + referenceArray[0].x, velMasD.begin() + referenceArray[0].y, initSumF4, thrust::plus<float4>());
+			float3 aveVel = F3(sumVelocity / (referenceArray[0].y - referenceArray[0].x));
+
+			stringstream ssParticleCenterVsTime;
+			if (referenceArray.size() > 2) {
+				for (int j = 0; j < numRigidBodiesInOnePeriod; j++) {
+					float3 p_rigid = posRigidH[j];
+					float3 v_rigid = F3(velMassRigidH[j]);
+					float3 omega_rigid = omegaLRF_H[j];
+					//printf("position %f %f %f %f\n", p_rigid.x, p_rigid.y, p_rigid.z,0);
+					float3 p_rigidCumul = posRigidCumulativeH[j];
+	//				//***cartesian distance (channel, duct)
+	//				ssParticleCenterVsTime << tStep * delT << ", " << p_rigid.y << ", " << p_rigid.z;
+	//				ssParticleCenterVsDistance << p_rigidCumul.x << ", " << p_rigid.y << ", " << p_rigid.z;
+
+	//				//***radial distance (tube)
+					float2 dist2 = F2(channelCenterYZ.x - p_rigid.y, channelCenterYZ.y - p_rigid.z);
+					printf("center %f %f and radius %f and py and pz %f %f\n", channelCenterYZ.x, channelCenterYZ.y, channelRadius, p_rigid.y, p_rigid.z);
+					ssParticleCenterVsTime << tStep * delT << ", " <<  p_rigidCumul.x << ", " <<
+							length(dist2) / channelRadius << ", " << length(dist2) / channelRadius << ", " <<
+							p_rigidCumul.x << ", " << p_rigid.y << ", " << p_rigid.z << ", " <<
+							v_rigid.x << ", " << v_rigid.y << ", " << v_rigid.z << ", " <<
+							omega_rigid.x << ", " << omega_rigid.y << ", " << omega_rigid.z << ", " << aveVel.x << ", " << aveVel.y << ", " << aveVel.z << ", " << length(aveVel) << ", " << channelRadius << ", ";
+				}
+				ssParticleCenterVsTime<<endl;
+				//fprintf(fileRigidParticleCenterVsTimeAndDistance, "\n");
+				//fprintf(fileRigidParticleCenterVsDistance, "\n");
 			}
-			fileRigidParticleCenterVsDistance<< "\nzone\n";
-		} else {
-			fileRigidParticleCenterVsTime.open("dataRigidCenterVsTime.txt", ios::app);
-			fileRigidParticleCenterVsDistance.open("dataRigidCenterVsDistance.txt", ios::app);
+			fileRigidParticleCenterVsTimeAndDistance << ssParticleCenterVsTime.str();
+			fileRigidParticleCenterVsTimeAndDistance.close();
 		}
-		stringstream ssParticleCenterVsTime;
-		stringstream ssParticleCenterVsDistance;
-		if (referenceArray.size() > 2) {
-			fileRigidParticleCenterVsTime<<0; //dummy
-			fileRigidParticleCenterVsDistance<< 0; //dummy
-
-			for (int j = 0; j < numRigidBodiesInOnePeriod; j++) {
-				float3 p_rigid = posRigidH[j];
-				//printf("position %f %f %f %f\n", p_rigid.x, p_rigid.y, p_rigid.z,0);
-				float3 p_rigidCumul = posRigidCumulativeH[j];
-//				//***cartesian distance (channel, duct)
-//				ssParticleCenterVsTime<<", " << tStep * delT<<", "<< p_rigid.y<<", "<< p_rigid.z;
-//				ssParticleCenterVsDistance<<", "<<p_rigidCumul.x<<", "<<p_rigid.y<<", "<< p_rigid.z;
-
-//				//***radial distance (tube)
-				float2 dist2 = F2(.5 * (cMax.y + cMin.y) - p_rigid.y, .5 * (cMax.z + cMin.z) - p_rigid.z);
-				ssParticleCenterVsTime<<", " << tStep * delT<<", "<< length(dist2) / channelRadius<<", "<<length(dist2) / channelRadius;
-				ssParticleCenterVsDistance<<", "<<p_rigidCumul.x<<", "<<length(dist2) / channelRadius<<", "<<length(dist2) / channelRadius;
-			}
-			ssParticleCenterVsTime<<endl;
-			ssParticleCenterVsDistance<<endl;
-			//fprintf(fileRigidParticleCenterVsTime, "\n");
-			//fprintf(fileRigidParticleCenterVsDistance, "\n");
-		}
-		fileRigidParticleCenterVsTime << ssParticleCenterVsTime.str();
-		fileRigidParticleCenterVsTime.close();
-		fileRigidParticleCenterVsDistance << ssParticleCenterVsDistance.str();
-		fileRigidParticleCenterVsDistance.close();
-	}
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		ofstream fileRigidParticlesDataForTecplot;
 		int tStepRigidParticlesDataForTecplot = 1000;
@@ -774,68 +770,90 @@ void PrintToFile(
 			fileRigidParticlesDataForTecplot << ssRigidParticlesDataForTecplot.str();
 			fileRigidParticlesDataForTecplot.close();
 		}
-//////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++com
-//		ofstream fileNameRigidBodies;
-//		ofstream fileNameFluidParticles;
-//		ofstream fileNameBoundaries;
-//
-//		system("mkdir -p povFiles");		//linux. In windows, it is System instead of system (to invoke a command in the command line)
-//		int tStepsPovFiles = 2000;
-//		if (tStep % tStepsPovFiles == 0) {
-//			char fileCounter[5];
-//			int dumNumChar = sprintf(fileCounter, "%d", int(tStep / tStepsPovFiles) );
-//
-//			char nameRigid[255];
-//			sprintf(nameRigid, "povFiles/rigid");
-//			strcat(nameRigid, fileCounter);
-//			strcat(nameRigid, ".dat");
-//			char nameFluid[255];
-//			sprintf(nameFluid, "povFiles/fluid");
-//			strcat(nameFluid, fileCounter);
-//			strcat(nameFluid, ".dat");
-//			char nameBoundary[255];
-//			sprintf(nameBoundary, "povFiles/boundary");
-//			strcat(nameBoundary, fileCounter);
-//			strcat(nameBoundary, ".dat");
-//
-//			fileNameRigidBodies.open(nameRigid);
-//			stringstream ssRigidBodies;
-//			if (referenceArray.size() > 2) {
-//				const int numRigidBodies = posRigidH.size();
-//				for (int j = 0; j < numRigidBodies; j++) {
-//					float3 p_rigid = posRigidH[j];
-//					float4 q_rigid = qH1[j];
-//					float4 velMassRigid = velMassRigidH[j];
-//					ssRigidBodies<<tStep * delT<<", "<< p_rigid.x<<", "<< p_rigid.y<<", "<< p_rigid.z<<", "<< velMassRigid.x << ", " <<  velMassRigid.y << ", " <<  velMassRigid.z << ", " << q_rigid.x<<", "<< q_rigid.y<<", "<< q_rigid.z<<", "<< q_rigid.w<<", "<<endl;
-//				}
-//			}
-//			fileNameRigidBodies << ssRigidBodies.str();
-//			fileNameRigidBodies.close();
-//
-//			fileNameFluidParticles.open(nameFluid);
-//			stringstream ssFluidParticles;
-//			for (int i = referenceArray[0].x; i < referenceArray[0].y; i++) {
-//				float3 pos = posRadH[i];
-//				float3 vel = F3(velMasH[i]);
-//				float4 rP = rhoPresMuH[i];
-//				float velMag = length(vel);
-//				ssFluidParticles<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w<<endl;
-//			}
-//			fileNameFluidParticles<<ssFluidParticles.str();
-//			fileNameFluidParticles.close();
-//
-//			fileNameBoundaries.open(nameBoundary);
-//			stringstream ssBoundary;
-//			for (int i = referenceArray[1].x; i < referenceArray[1].y; i++) {
-//				float3 pos = posRadH[i];
-//				float3 vel = F3(velMasH[i]);
-//				float4 rP = rhoPresMuH[i];
-//				float velMag = length(vel);
-//				ssBoundary<<pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w<<endl;
-//			}
-//			fileNameBoundaries << ssBoundary.str();
-//			fileNameBoundaries.close();
-//		}
+		//////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++com
+				ofstream fileNameRigidBodies;
+				ofstream fileNameFluidParticles;
+				ofstream fileNameBoundaries;
+				ofstream fileNameFluidBoundaries;
+
+				system("mkdir -p povFiles");
+				int tStepsPovFiles = 2000;
+				if (tStep % tStepsPovFiles == 0) {
+					if (tStep / tStepsPovFiles == 0) {
+								//linux. In windows, it is System instead of system (to invoke a command in the command line)
+						system("rm povFiles/*.csv");
+					}
+					char fileCounter[5];
+					int dumNumChar = sprintf(fileCounter, "%d", int(tStep / tStepsPovFiles) );
+
+					char nameRigid[255];
+					sprintf(nameRigid, "povFiles/rigid");
+					strcat(nameRigid, fileCounter);
+					strcat(nameRigid, ".csv");
+					char nameFluid[255];
+					sprintf(nameFluid, "povFiles/fluid");
+					strcat(nameFluid, fileCounter);
+					strcat(nameFluid, ".csv");
+					char nameBoundary[255];
+					sprintf(nameBoundary, "povFiles/boundary");
+					strcat(nameBoundary, fileCounter);
+					strcat(nameBoundary, ".csv");
+					char nameFluidBoundaries[255];
+					sprintf(nameFluidBoundaries, "povFiles/fluid_boundary");
+					strcat(nameFluidBoundaries, fileCounter);
+					strcat(nameFluidBoundaries, ".csv");
+
+					fileNameRigidBodies.open(nameRigid);
+					stringstream ssRigidBodies;
+					if (referenceArray.size() > 2) {
+						const int numRigidBodies = posRigidH.size();
+						for (int j = 0; j < numRigidBodies; j++) {
+							float3 p_rigid = posRigidH[j];
+							float4 q_rigid = qH1[j];
+							float4 velMassRigid = velMassRigidH[j];
+							ssRigidBodies<<tStep * delT<<", "<< p_rigid.x<<", "<< p_rigid.y<<", "<< p_rigid.z<<", "<< velMassRigid.x << ", " <<  velMassRigid.y << ", " <<  velMassRigid.z <<", "<< length(F3(velMassRigid)) <<  ", "<< length(F3(velMassRigid)) << ", "<< q_rigid.x<<", "<< q_rigid.y<<", "<< q_rigid.z<<", "<< q_rigid.w<<", "<<endl;
+						}
+					}
+					fileNameRigidBodies << ssRigidBodies.str();
+					fileNameRigidBodies.close();
+
+					fileNameFluidParticles.open(nameFluid);
+					stringstream ssFluidParticles;
+					for (int i = referenceArray[0].x; i < referenceArray[0].y; i++) {
+						float3 pos = posRadH[i];
+						float3 vel = F3(velMasH[i]);
+						float4 rP = rhoPresMuH[i];
+						float velMag = length(vel);
+						ssFluidParticles<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w<<", "<<endl;
+					}
+					fileNameFluidParticles<<ssFluidParticles.str();
+					fileNameFluidParticles.close();
+
+					fileNameBoundaries.open(nameBoundary);
+					stringstream ssBoundary;
+					for (int i = referenceArray[1].x; i < referenceArray[1].y; i++) {
+						float3 pos = posRadH[i];
+						float3 vel = F3(velMasH[i]);
+						float4 rP = rhoPresMuH[i];
+						float velMag = length(vel);
+						ssBoundary<<pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w<<", "<<endl;
+					}
+					fileNameBoundaries << ssBoundary.str();
+					fileNameBoundaries.close();
+
+					fileNameFluidBoundaries.open(nameFluidBoundaries);
+					stringstream ssFluidBoundaryParticles;
+			//		ssFluidBoundaryParticles.precision(20);
+					for (int i = referenceArray[0].x; i < referenceArray[1].y; i++) {
+						float3 pos = posRadH[i];
+						float3 vel = F3(velMasH[i]);
+						float4 rP = rhoPresMuH[i];
+						float velMag = length(vel);
+						ssFluidBoundaryParticles<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.z<<", "<< rP.w<<endl;
+					}
+					fileNameFluidBoundaries<<ssFluidBoundaryParticles.str();
+					fileNameFluidBoundaries.close();
+				}
 	//++++++++++++++++++++++++++++++++++++++
 	posRadH.clear();
 	velMasH.clear();
@@ -1381,7 +1399,7 @@ void cudaCollisions(
 //	FILE *outFileMultipleZones;
 
 //	int povRayCounter = 0;
-	int stepEnd = .8e6 * (.02 * sizeScale) / delT ; //2.4e6 * (.02 * sizeScale) / delT ; //1.4e6 * (.02 * sizeScale) / delT ;//0.7e6 * (.02 * sizeScale) / delT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
+	int stepEnd = 2e6;//.8e6 * (.02 * sizeScale) / delT ; //2.4e6 * (.02 * sizeScale) / delT ; //1.4e6 * (.02 * sizeScale) / delT ;//0.7e6 * (.02 * sizeScale) / delT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
 	printf("stepEnd %d\n", stepEnd);
 
 	float delTOrig = delT;

@@ -1108,7 +1108,12 @@ int main() {
 	///float3 cMax = make_float3( nPeriod * sPeriod, 1.5 * sizeScale,  4.0 * sizeScale);  //for serpentine
 
 	//float3 cMax = make_float3( nPeriod * 1.0 + 0, 1.5,  4.0) * sizeScale;  //for  straight channel
-	float3 cMax = make_float3( nPeriod * 20.0 + 0, 11.2 + 2,  11.2 + 2) * sizeScale;  //for  tube
+	fstream inp("dist.txt", ios::in);
+	float distance;
+	inp >> distance;
+	inp.close();
+	printf("distance, %f\n", distance);
+	float3 cMax = make_float3( nPeriod * distance + 0, 11.2 + 2,  11.2 + 2) * sizeScale;  //for  tube
 
 				//	float3 cMax = make_float3(nPeriod * 1.0 + 0, .5,  3.5) * sizeScale;  //for straight channel, sphere
 				//	float3 cMin = make_float3(0, -0.1, 0.5) * sizeScale;
@@ -1120,6 +1125,7 @@ int main() {
 	float3 binSize3 = make_float3((cMax.x - cMin.x) / side0.x, (cMax.y - cMin.y) / side0.y, (cMax.z - cMin.z) / side0.z);
 	float binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
 	binSize0 = (binSize0 > binSize3.z) ? binSize0 : binSize3.z;
+	binSize0 = binSize3.x;
 	cMax = cMin + binSize0 * make_float3(side0);
 	straightChannelBoundaryMin = F3(cMin.x, 0.0 * sizeScale, 1.0 * sizeScale);
 	straightChannelBoundaryMax = F3(cMax.x, 1.0 * sizeScale, 3.0 * sizeScale);
@@ -1129,7 +1135,7 @@ int main() {
 
 	//float delT = .02 * sizeScale;
 //	float delT = .01 * sizeScale;
-	float delT = .03 * sizeScale;//.01 * sizeScale;
+	float delT = .05 * sizeScale;//.01 * sizeScale;
 //	float delT = .001 * sizeScale;
 
 	bool readFromFile = false;  //true;		//true: initializes from file. False: initializes inside the code
@@ -1169,14 +1175,14 @@ int main() {
 	//**
 //	CreateRigidBodiesPattern(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
 	//**
-//	CreateRigidBodiesFromFile(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, cMin, cMax, fileNameRigids, rhoRigid);
+	CreateRigidBodiesFromFile(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, cMin, cMax, fileNameRigids, rhoRigid);
 	//**
 //	//channelRadius = 1.0 * sizeScale;
 //	CreateRigidBodiesPatternPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax);
 //	CreateRigidBodiesPatternStepPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax);
 
 	//**
-	CreateRigidBodiesRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax, 4); //changed 2 to 4
+//	CreateRigidBodiesRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax, 4); //changed 2 to 4
 //	CreateRigidBodiesPatternPipe_KindaRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax, 128);
 	printf("numRigids %d\n", rigidPos.size());
 	printf("rigid Radii %f %f %f\n", r3Ellipsoid.x, r3Ellipsoid.y, r3Ellipsoid.z);
