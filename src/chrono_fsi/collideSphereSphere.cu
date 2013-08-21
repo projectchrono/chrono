@@ -1280,7 +1280,7 @@ void UpdateRigidBody(
 //	CUT_CHECK_ERROR("Kernel execution failed: MapTorqueToLRFKernel");
 	totalTorque3.clear();
 
-	if (fracSimulation <.1) {
+	if (fracSimulation <.002) {
 		UpdateKernelRigidTranstalationBeta<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(F3CAST(totalBodyForces3), F3CAST(posRigidD), F3CAST(posRigidCumulativeD), F4CAST(velMassRigidD));
 	} else {
 		UpdateKernelRigidTranstalation<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(F3CAST(totalBodyForces3), F3CAST(posRigidD), F3CAST(posRigidCumulativeD), F4CAST(velMassRigidD));
@@ -1297,7 +1297,7 @@ void UpdateRigidBody(
 	cudaThreadSynchronize();
 //	CUT_CHECK_ERROR("Kernel execution failed: UpdateRotation");
 
-	if (fracSimulation <.1) {
+	if (fracSimulation <.002) {
 		UpdateRigidBodyAngularVelocity_kernelBeta<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(F3CAST(LF_totalTorque3), F3CAST(jD1), F3CAST(jD2), F3CAST(jInvD1), F3CAST(jInvD2), F3CAST(omegaLRF_D));
 	} else {
 		UpdateRigidBodyAngularVelocity_kernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(F3CAST(LF_totalTorque3), F3CAST(jD1), F3CAST(jD2), F3CAST(jInvD1), F3CAST(jInvD2), F3CAST(omegaLRF_D));
@@ -1471,7 +1471,7 @@ void cudaCollisions(
 //	FILE *outFileMultipleZones;
 
 //	int povRayCounter = 0;
-	int stepEnd = 2e6;//.8e6 * (.02 * sizeScale) / delT ; //2.4e6 * (.02 * sizeScale) / delT ; //1.4e6 * (.02 * sizeScale) / delT ;//0.7e6 * (.02 * sizeScale) / delT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
+	int stepEnd = 4e6;//.8e6 * (.02 * sizeScale) / delT ; //2.4e6 * (.02 * sizeScale) / delT ; //1.4e6 * (.02 * sizeScale) / delT ;//0.7e6 * (.02 * sizeScale) / delT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
 	printf("stepEnd %d\n", stepEnd);
 
 	float delTOrig = delT;
