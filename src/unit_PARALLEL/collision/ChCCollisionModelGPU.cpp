@@ -220,11 +220,11 @@ namespace chrono {
         bool ChCollisionModelGPU::AddTriangleMesh(const geometry::ChTriangleMesh &trimesh, bool is_static, bool is_convex, ChVector<> *posv, ChMatrix33<> *rotv) {
             ChVector<> *pos;
 
-            if (posv != 0) {
-                pos = posv;
-            } else {
+           // if (posv != 0) {
+           //     pos = posv;
+          //  } else {
                 pos = new ChVector<>(0, 0, 0);
-            }
+           // }
 
             ChMatrix33<> *rot;
 

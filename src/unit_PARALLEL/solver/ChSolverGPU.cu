@@ -30,6 +30,9 @@ __host__ __device__ void function_Project(uint &index, uint number_of_contacts, 
 	gamma.z = gam[index + number_of_contacts * 2];
 
 	real coh = (cohesion[body_id.x] + cohesion[body_id.y]) * .5;
+	if (coh < 0) {
+		coh = 0;
+	}
 	gamma.x += coh;
 	real f_tang = sqrt(gamma.y * gamma.y + gamma.z * gamma.z);
 	real mu = (fric[body_id.x] == 0 || fric[body_id.y] == 0) ? 0 : (fric[body_id.x] + fric[body_id.y]) * .5;
@@ -104,7 +107,16 @@ void ChSolverGPU::Project(custom_vector<real> & gamma) {
 //=================================================================================================================================
 
 __host__ __device__ void function_Reduce_Shur(
-		uint& index, bool* active, real3* QXYZ, real3* QUVW, real *inv_mass, real3 *inv_inertia, real3* updateQXYZ, real3* updateQUVW, uint* d_body_num, uint* counter) {
+		uint& index,
+		bool* active,
+		real3* QXYZ,
+		real3* QUVW,
+		real *inv_mass,
+		real3 *inv_inertia,
+		real3* updateQXYZ,
+		real3* updateQUVW,
+		uint* d_body_num,
+		uint* counter) {
 	int start = (index == 0) ? 0 : counter[index - 1], end = counter[index];
 	int id = d_body_num[end - 1], j;
 
@@ -122,19 +134,51 @@ __host__ __device__ void function_Reduce_Shur(
 	QUVW[id] = mUpdateO * inv_inertia[id];
 }
 
-void ChSolverGPU::host_Reduce_Shur(bool* active, real3* QXYZ, real3* QUVW, real *inv_mass, real3 *inv_inertia, real3* updateQXYZ, real3* updateQUVW, uint* d_body_num, uint* counter) {
+void ChSolverGPU::host_Reduce_Shur(
+		bool* active,
+		real3* QXYZ,
+		real3* QUVW,
+		real *inv_mass,
+		real3 *inv_inertia,
+		real3* updateQXYZ,
+		real3* updateQUVW,
+		uint* d_body_num,
+		uint* counter) {
 #pragma omp parallel for
 	for (uint index = 0; index < number_of_updates; index++) {
 		function_Reduce_Shur(index, active, QXYZ, QUVW, inv_mass, inv_inertia, updateQXYZ, updateQUVW, d_body_num, counter);
 	}
 }
 //=================================================================================================================================
-__global__ void device_shurA(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *QXYZ, real3 *QUVW) {
+__global__ void device_shurA(
+		int2 *ids,
+		bool *active,
+		real *inv_mass,
+		real3 *inv_inertia,
+		real3 *JXYZA,
+		real3 *JXYZB,
+		real3 *JUVWA,
+		real3 *JUVWB,
+		real *gamma,
+		real3 *QXYZ,
+		real3 *QUVW) {
 	INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_constraints_const);
 }
 
 void ChSolverGPU::host_shurA_contacts(
-		int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO, real3* QXYZ, real3* QUVW,
+		int2 *ids,
+		bool *active,
+		real *inv_mass,
+		real3 *inv_inertia,
+		real3 *JXYZA,
+		real3 *JXYZB,
+		real3 *JUVWA,
+		real3 *JUVWB,
+		real *gamma,
+		real3 *updateV,
+		real3 *updateO,
+		real3* QXYZ,
+		real3* QUVW,
 		uint* offset) {
 #pragma omp parallel for
 	for (int index = 0; index < number_of_contacts; index++) {
@@ -148,19 +192,35 @@ void ChSolverGPU::host_shurA_contacts(
 		int offset2 = offset[index + number_of_contacts];
 
 		if (active[b1] != 0) {
-			updateV[offset1] = JXYZA[index + number_of_contacts * 0] * gam.x + JXYZA[index + number_of_contacts * 1] * gam.y + JXYZA[index + number_of_contacts * 2] * gam.z;
-			updateO[offset1] = JUVWA[index + number_of_contacts * 0] * gam.x + JUVWA[index + number_of_contacts * 1] * gam.y + JUVWA[index + number_of_contacts * 2] * gam.z;
+			updateV[offset1] = JXYZA[index + number_of_contacts * 0] * gam.x + JXYZA[index + number_of_contacts * 1] * gam.y
+					+ JXYZA[index + number_of_contacts * 2] * gam.z;
+			updateO[offset1] = JUVWA[index + number_of_contacts * 0] * gam.x + JUVWA[index + number_of_contacts * 1] * gam.y
+					+ JUVWA[index + number_of_contacts * 2] * gam.z;
 		}
 		uint b2 = ids[index].y;
 		if (active[b2] != 0) {
-			updateV[offset2] = JXYZB[index + number_of_contacts * 0] * gam.x + JXYZB[index + number_of_contacts * 1] * gam.y + JXYZB[index + number_of_contacts * 2] * gam.z;
-			updateO[offset2] = JUVWB[index + number_of_contacts * 0] * gam.x + JUVWB[index + number_of_contacts * 1] * gam.y + JUVWB[index + number_of_contacts * 2] * gam.z;
+			updateV[offset2] = JXYZB[index + number_of_contacts * 0] * gam.x + JXYZB[index + number_of_contacts * 1] * gam.y
+					+ JXYZB[index + number_of_contacts * 2] * gam.z;
+			updateO[offset2] = JUVWB[index + number_of_contacts * 0] * gam.x + JUVWB[index + number_of_contacts * 1] * gam.y
+					+ JUVWB[index + number_of_contacts * 2] * gam.z;
 		}
 	}
 }
 
 void ChSolverGPU::host_shurA_bilaterals(
-		int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO, real3* QXYZ, real3* QUVW,
+		int2 *ids,
+		bool *active,
+		real *inv_mass,
+		real3 *inv_inertia,
+		real3 *JXYZA,
+		real3 *JXYZB,
+		real3 *JUVWA,
+		real3 *JUVWB,
+		real *gamma,
+		real3 *updateV,
+		real3 *updateO,
+		real3* QXYZ,
+		real3* QUVW,
 		uint* offset) {
 
 #pragma omp parallel for
@@ -248,8 +308,22 @@ void ChSolverGPU::shurA(custom_vector<real> &x) {
 //=================================================================================================================================
 __host__ __device__
 void function_shurB(
-		uint &index, int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW,
-		const real &alpha, const real & inv_hhpa, real *AX) {
+		uint &index,
+		int2 *ids,
+		bool *active,
+		real *inv_mass,
+		real3 *inv_inertia,
+		real * compliance,
+		real * gamma,
+		real3 *JXYZA,
+		real3 *JXYZB,
+		real3 *JUVWA,
+		real3 *JUVWB,
+		real3 *QXYZ,
+		real3 *QUVW,
+		const real &alpha,
+		const real & inv_hhpa,
+		real *AX) {
 	real temp = 0;
 	uint b1 = ids[index].x;
 	uint b2 = ids[index].y;
@@ -267,13 +341,53 @@ void function_shurB(
 }
 
 __global__ void device_shurB(
-		int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX) {
+		int2 *ids,
+		bool *active,
+		real *inv_mass,
+		real3 *inv_inertia,
+		real * compliance,
+		real * gamma,
+		real3 *JXYZA,
+		real3 *JXYZB,
+		real3 *JUVWA,
+		real3 *JUVWB,
+		real3 *QXYZ,
+		real3 *QUVW,
+		real *AX) {
 	INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_constraints_const);
-	function_shurB(index, ids, active, inv_mass, inv_inertia, compliance, gamma, JXYZA, JXYZB, JUVWA, JUVWB, QXYZ, QUVW, alpha_const, inv_hhpa_const, AX);
+	function_shurB(
+			index,
+			ids,
+			active,
+			inv_mass,
+			inv_inertia,
+			compliance,
+			gamma,
+			JXYZA,
+			JXYZB,
+			JUVWA,
+			JUVWB,
+			QXYZ,
+			QUVW,
+			alpha_const,
+			inv_hhpa_const,
+			AX);
 }
 
 void ChSolverGPU::host_shurB_contacts(
-		int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX) {
+		int2 *ids,
+		bool *active,
+		real *inv_mass,
+		real3 *inv_inertia,
+		real * compliance,
+		real * gamma,
+		real3 *JXYZA,
+		real3 *JXYZB,
+		real3 *JUVWA,
+		real3 *JUVWB,
+		real3 *QXYZ,
+		real3 *QUVW,
+		real *AX) {
 
 #pragma omp parallel for
 	for (uint index = 0; index < number_of_contacts; index++) {
@@ -316,7 +430,18 @@ void ChSolverGPU::host_shurB_contacts(
 
 }
 void ChSolverGPU::host_shurB_bilaterals(
-		int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX) {
+		int2 *ids,
+		bool *active,
+		real *inv_mass,
+		real3 *inv_inertia,
+		real * gamma,
+		real3 *JXYZA,
+		real3 *JXYZB,
+		real3 *JUVWA,
+		real3 *JUVWB,
+		real3 *QXYZ,
+		real3 *QUVW,
+		real *AX) {
 
 #pragma omp parallel for
 	for (uint index = 0; index < number_of_bilaterals; index++) {
@@ -613,26 +738,28 @@ void ChSolverGPU::Solve(GPUSOLVERTYPE solver_type, real step, ChGPUDataManager *
 		}
 		//else if(solver_type==QUASAI_MINIMUM_RESIDUAL){SolveQMR(data_container->gpu_data.device_gam_data, rhs, max_iteration);}
 		else if (solver_type == ACCELERATED_PROJECTED_GRADIENT_DESCENT) {
-//				for (int i = 0; i < max_iteration; i += 4) {
-//				total_iteration += SolveAPGD(data_container->gpu_data.device_gam_data, data_container->gpu_data.device_rhs_data, 2);
-//				thrust::copy_n(
-//						data_container->gpu_data.device_gam_data.begin() + data_container->number_of_contacts * 3,
-//						data_container->number_of_bilaterals,
-//						data_container->gpu_data.device_gamma_bilateral.begin());
-//				custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals);
-//				thrust::copy_n(data_container->gpu_data.device_rhs_data.begin() + data_container->number_of_contacts * 3, data_container->number_of_bilaterals, rhs_bilateral.begin());
-//
-//				SolveStab(data_container->gpu_data.device_gamma_bilateral, rhs_bilateral, 10);
-//
-//				thrust::copy_n(
-//						data_container->gpu_data.device_gamma_bilateral.begin(),
-//						data_container->number_of_bilaterals,
-//						data_container->gpu_data.device_gam_data.begin() + data_container->number_of_contacts * 3);
-//
-//				total_iteration += SolveAPGD(data_container->gpu_data.device_gam_data, data_container->gpu_data.device_rhs_data, 2);
 
-//}
-			total_iteration += SolveAPGD(data_container->gpu_data.device_gam_data, data_container->gpu_data.device_rhs_data, max_iteration);
+			custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals);
+			thrust::copy_n(data_container->gpu_data.device_rhs_data.begin() + data_container->number_of_contacts * 3, data_container->number_of_bilaterals, rhs_bilateral.begin());
+
+			for (int i = 0; i < max_iteration; i += 4) {
+				total_iteration += SolveAPGD(data_container->gpu_data.device_gam_data, data_container->gpu_data.device_rhs_data, 2);
+				thrust::copy_n(
+						data_container->gpu_data.device_gam_data.begin() + data_container->number_of_contacts * 3,
+						data_container->number_of_bilaterals,
+						data_container->gpu_data.device_gamma_bilateral.begin());
+
+				SolveStab(data_container->gpu_data.device_gamma_bilateral, rhs_bilateral, 30);
+
+				thrust::copy_n(
+						data_container->gpu_data.device_gamma_bilateral.begin(),
+						data_container->number_of_bilaterals,
+						data_container->gpu_data.device_gam_data.begin() + data_container->number_of_contacts * 3);
+
+				total_iteration += SolveAPGD(data_container->gpu_data.device_gam_data, data_container->gpu_data.device_rhs_data, 2);
+
+			}
+//			total_iteration += SolveAPGD(data_container->gpu_data.device_gam_data, data_container->gpu_data.device_rhs_data, max_iteration);
 		} else if (solver_type == BLOCK_JACOBI) {
 			SolveJacobi();
 		}
@@ -652,7 +779,10 @@ void ChSolverGPU::VelocityStabilization(ChGPUDataManager *data_container_) {
 	data_container = data_container_;
 	custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals);
 
-	thrust::copy_n(data_container->gpu_data.device_rhs_data.begin() + data_container->number_of_contacts * 3, data_container->number_of_bilaterals, rhs_bilateral.begin());
+	thrust::copy_n(
+			data_container->gpu_data.device_rhs_data.begin() + data_container->number_of_contacts * 3,
+			data_container->number_of_bilaterals,
+			rhs_bilateral.begin());
 
 	SolveStab(data_container->gpu_data.device_gamma_bilateral, rhs_bilateral, 10);
 
