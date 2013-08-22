@@ -743,20 +743,20 @@ void ChSolverGPU::Solve(GPUSOLVERTYPE solver_type, real step, ChGPUDataManager *
 			thrust::copy_n(data_container->gpu_data.device_rhs_data.begin() + data_container->number_of_contacts * 3, data_container->number_of_bilaterals, rhs_bilateral.begin());
 
 			for (int i = 0; i < max_iteration; i += 4) {
-				total_iteration += SolveAPGD(data_container->gpu_data.device_gam_data, data_container->gpu_data.device_rhs_data, 2);
+				total_iteration += SolveAPGD(data_container->gpu_data.device_gam_data, data_container->gpu_data.device_rhs_data, 4);
 				thrust::copy_n(
 						data_container->gpu_data.device_gam_data.begin() + data_container->number_of_contacts * 3,
 						data_container->number_of_bilaterals,
 						data_container->gpu_data.device_gamma_bilateral.begin());
 
-				SolveStab(data_container->gpu_data.device_gamma_bilateral, rhs_bilateral, 30);
+				SolveStab(data_container->gpu_data.device_gamma_bilateral, rhs_bilateral, 50);
 
 				thrust::copy_n(
 						data_container->gpu_data.device_gamma_bilateral.begin(),
 						data_container->number_of_bilaterals,
 						data_container->gpu_data.device_gam_data.begin() + data_container->number_of_contacts * 3);
 
-				total_iteration += SolveAPGD(data_container->gpu_data.device_gam_data, data_container->gpu_data.device_rhs_data, 2);
+				total_iteration += SolveAPGD(data_container->gpu_data.device_gam_data, data_container->gpu_data.device_rhs_data, 4);
 
 			}
 //			total_iteration += SolveAPGD(data_container->gpu_data.device_gam_data, data_container->gpu_data.device_rhs_data, max_iteration);

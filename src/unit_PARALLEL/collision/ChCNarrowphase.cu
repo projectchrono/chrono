@@ -7,51 +7,57 @@ __constant__ real collision_envelope_const;
 
 __device__ __host__ real3 GetCenter(const shape_type &type, const real3 &A, const real3 &B, const real3 &C) {
 	if (type == TRIANGLEMESH) {
-		return GetCenter_Triangle(A, B, C); //triangle center
+		return GetCenter_Triangle(A, B, C);     //triangle center
 	} else {
-		return R3(0, 0, 0) + A; //All other shapes assumed to be locally centered
+		return R3(0, 0, 0) + A;     //All other shapes assumed to be locally centered
 	}
 }
 
-__device__ __host__ real3 TransformSupportVert(const shape_type &type, const real3 &A, const real3 &B, const real3 &C, const real4 &R, const real3 &b) {
+__device__ __host__ real3 TransformSupportVert(
+		const shape_type &type,
+		const real3 &A,
+		const real3 &B,
+		const real3 &C,
+		const real4 &R,
+		const real3 &b) {
 	real3 localSupport;
 	real3 n = normalize(b);
 
-	//M33 orientation = AMat(R);
-	//M33 invorientation = AMatT(R);
+//M33 orientation = AMat(R);
+//M33 invorientation = AMatT(R);
 	real3 rotated_n = quatRotateMatT(n, R);
 	switch (type) {
-	case SPHERE:
-		localSupport = GetSupportPoint_Sphere(B, rotated_n);
-		break;
-	case ELLIPSOID:
-		localSupport = GetSupportPoint_Ellipsoid(B, rotated_n);
-		break;
-	case BOX:
-		localSupport = GetSupportPoint_Box(B, rotated_n);
-		break;
-	case CYLINDER:
-		localSupport = GetSupportPoint_Cylinder(B, rotated_n);
-		break;
-	case RECT:
-		localSupport = GetSupportPoint_Plane(B, rotated_n);
-		break;
-	case CONE:
-		localSupport = GetSupportPoint_Cone(B, rotated_n);
-		break;
-	case TRIANGLEMESH:
-		return GetSupportPoint_Triangle(A, B, C, n);
-		break;
+		case SPHERE:
+			localSupport = GetSupportPoint_Sphere(B, rotated_n);
+			break;
+		case ELLIPSOID:
+			localSupport = GetSupportPoint_Ellipsoid(B, rotated_n);
+			break;
+		case BOX:
+			localSupport = GetSupportPoint_Box(B, rotated_n);
+			break;
+		case CYLINDER:
+			localSupport = GetSupportPoint_Cylinder(B, rotated_n);
+			break;
+		case RECT:
+			localSupport = GetSupportPoint_Plane(B, rotated_n);
+			break;
+		case CONE:
+			localSupport = GetSupportPoint_Cone(B, rotated_n);
+			break;
+		case TRIANGLEMESH:
+			return GetSupportPoint_Triangle(A, B, C, n);
+			break;
 	}
 
-	return quatRotateMat(localSupport, R) + A; //globalSupport
+	return quatRotateMat(localSupport, R) + A;     //globalSupport
 }
 
 __device__ __host__ real dist_line(real3 &P, real3 &x0, real3 &b, real3 &witness) {
 	real dist, t;
 	real3 d, a;
-	d = b - x0; // direction of segment
-	a = x0 - P; // precompute vector from P to x0
+	d = b - x0;     // direction of segment
+	a = x0 - P;     // precompute vector from P to x0
 	t = -(1.f) * dot(a, d);
 	t = t / dot(d, d);
 
@@ -87,7 +93,8 @@ __device__ __host__ real find_dist(real3 &P, real3 &x0, real3 &B, real3 &C, real
 	s = (q * r - w * p) / (w * v - r * r);
 	t = (-s * r - q) / w;
 
-	if ((IsZero(s) || s > 0.0f) && (isEqual(s, 1.0f) || s < 1.0f) && (IsZero(t) || t > 0.0f) && (isEqual(t, 1.0f) || t < 1.0f) && (isEqual(t + s, 1.0f) || t + s < 1.0f)) {
+	if ((IsZero(s) || s > 0.0f) && (isEqual(s, 1.0f) || s < 1.0f) && (IsZero(t) || t > 0.0f) && (isEqual(t, 1.0f) || t < 1.0f)
+			&& (isEqual(t + s, 1.0f) || t + s < 1.0f)) {
 		d1 = d1 * s;
 		d2 = d2 * t;
 		witness = x0;
@@ -115,19 +122,32 @@ __device__ __host__ real find_dist(real3 &P, real3 &x0, real3 &B, real3 &C, real
 }
 
 //Code for Convex-Convex Collision detection, adopted from xeno-collide
-__device__ __host__ bool CollideAndFindPoint(shape_type typeA, real3 A_X, real3 A_Y, real3 A_Z, real4 A_R, shape_type typeB, real3 B_X, real3 B_Y, real3 B_Z, real4 B_R, real3 &returnNormal, real3 &point, real &depth) {
+__device__ __host__ bool CollideAndFindPoint(
+		shape_type typeA,
+		real3 A_X,
+		real3 A_Y,
+		real3 A_Z,
+		real4 A_R,
+		shape_type typeB,
+		real3 B_X,
+		real3 B_Y,
+		real3 B_Z,
+		real4 B_R,
+		real3 &returnNormal,
+		real3 &point,
+		real &depth) {
 	real3 v01, v02, v0, n, v11, v12, v1, v21, v22, v2;
-	// v0 = center of Minkowski sum
+// v0 = center of Minkowski sum
 	v01 = GetCenter(typeA, A_X, A_Y, A_Z);
 	v02 = GetCenter(typeB, B_X, B_Y, B_Z);
 	v0 = v02 - v01;
 
-	// Avoid case where centers overlap -- any direction is fine in this case
+// Avoid case where centers overlap -- any direction is fine in this case
 	if (IsZero(v0))
 		v0 = R3(1, 0, 0);
 
-	// v1 = support in direction of origin
-	//n = normalize(-v0);
+// v1 = support in direction of origin
+//n = normalize(-v0);
 	n = -v0;
 	v11 = TransformSupportVert(typeA, A_X, A_Y, A_Z, A_R, -n);
 	v12 = TransformSupportVert(typeB, B_X, B_Y, B_Z, B_R, n);
@@ -138,7 +158,7 @@ __device__ __host__ bool CollideAndFindPoint(shape_type typeA, real3 A_X, real3 
 		return false;
 	}
 
-	// v2 - support perpendicular to v1,v0
+// v2 - support perpendicular to v1,v0
 	n = cross(v1, v0);
 
 	if (IsZero(n)) {
@@ -162,10 +182,10 @@ __device__ __host__ bool CollideAndFindPoint(shape_type typeA, real3 A_X, real3 
 		return false;
 	}
 
-	// Determine whether origin is on + or - side of plane (v1,v0,v2)
+// Determine whether origin is on + or - side of plane (v1,v0,v2)
 	n = (cross((v1 - v0), (v2 - v0)));
 
-	// If the origin is on the - side of the plane, reverse the direction of the plane
+// If the origin is on the - side of the plane, reverse the direction of the plane
 	if (dot(n, v0) > 0.0) {
 		Swap(v1, v2);
 		Swap(v11, v21);
@@ -173,7 +193,7 @@ __device__ __host__ bool CollideAndFindPoint(shape_type typeA, real3 A_X, real3 
 		n = -n;
 	}
 
-	// Phase One: Identify a portal
+// Phase One: Identify a portal
 	real3 v31, v32, v3;
 	bool hit = false;
 	int phase1 = 0;
@@ -232,7 +252,7 @@ __device__ __host__ bool CollideAndFindPoint(shape_type typeA, real3 A_X, real3 
 			// Compute distance from origin to wedge face
 			// If the origin is inside the wedge, we have a hit
 			if (dot(n, v1) >= 0.0 && !hit) {
-				hit = true; // HIT!!!
+				hit = true;     // HIT!!!
 			}
 
 			// Find the support point in the direction of the wedge face
@@ -271,25 +291,25 @@ __device__ __host__ bool CollideAndFindPoint(shape_type typeA, real3 A_X, real3 
 				return hit;
 			}
 
-			if (dot(cross(v4, v1), v0) < 0) { // Compute the tetrahedron dividing face (v4,v0,v1)
-				if (dot(cross(v4, v2), v0) < 0) { // Compute the tetrahedron dividing face (v4,v0,v2)
+			if (dot(cross(v4, v1), v0) < 0) {     // Compute the tetrahedron dividing face (v4,v0,v1)
+				if (dot(cross(v4, v2), v0) < 0) {     // Compute the tetrahedron dividing face (v4,v0,v2)
 					v1 = v4;
 					v11 = v41;
-					v12 = v42; // Inside d1 & inside d2 ==> eliminate v1
+					v12 = v42;     // Inside d1 & inside d2 ==> eliminate v1
 				} else {
 					v3 = v4;
 					v31 = v41;
-					v32 = v42; // Inside d1 & outside d2 ==> eliminate v3
+					v32 = v42;     // Inside d1 & outside d2 ==> eliminate v3
 				}
 			} else {
-				if (dot(cross(v4, v3), v0) < 0) { // Compute the tetrahedron dividing face (v4,v0,v3)
+				if (dot(cross(v4, v3), v0) < 0) {     // Compute the tetrahedron dividing face (v4,v0,v3)
 					v2 = v4;
 					v21 = v41;
-					v22 = v42; // Outside d1 & inside d3 ==> eliminate v2
+					v22 = v42;     // Outside d1 & inside d3 ==> eliminate v2
 				} else {
 					v1 = v4;
 					v11 = v41;
-					v12 = v42; // Outside d1 & outside d3 ==> eliminate v1
+					v12 = v42;     // Outside d1 & outside d3 ==> eliminate v1
 				}
 			}
 		}
@@ -320,7 +340,7 @@ __host__ __device__ void function_MPR_Store(
 
 	long long p = contact_pair[index];
 	int2 pair = I2(int(p >> 32), int(p & 0xffffffff));
-	shape_type A_T = obj_data_T[pair.x], B_T = obj_data_T[pair.y]; //Get the type data for each object in the collision pair
+	shape_type A_T = obj_data_T[pair.x], B_T = obj_data_T[pair.y];     //Get the type data for each object in the collision pair
 	uint ID_A = obj_data_ID[pair.x];
 	uint ID_B = obj_data_ID[pair.y];
 
@@ -331,17 +351,17 @@ __host__ __device__ void function_MPR_Store(
 		return;
 	}
 
-	real3 posA = body_pos[ID_A], posB = body_pos[ID_B]; //Get the global object position
-	real4 rotA = body_rot[ID_A], rotB = body_rot[ID_B]; //Get the global object rotation
+	real3 posA = body_pos[ID_A], posB = body_pos[ID_B];     //Get the global object position
+	real4 rotA = body_rot[ID_A], rotB = body_rot[ID_B];     //Get the global object rotation
 	real3 A_X = obj_data_A[pair.x], B_X = obj_data_A[pair.y];
 	real3 A_Y = obj_data_B[pair.x], B_Y = obj_data_B[pair.y];
 	real3 A_Z = obj_data_C[pair.x], B_Z = obj_data_C[pair.y];
-	real4 A_R = rotA; //(mult(rotA, obj_data_R[pair.x]));
-	real4 B_R = rotB; //(mult(rotB, obj_data_R[pair.y]));
+	real4 A_R = rotA;     //(mult(rotA, obj_data_R[pair.x]));
+	real4 B_R = rotB;     //(mult(rotB, obj_data_R[pair.y]));
 
 	real envelope = collision_envelope;
 
-	if (A_T == SPHERE || A_T == ELLIPSOID || A_T == BOX || A_T == CYLINDER) {
+	if (A_T == SPHERE || A_T == ELLIPSOID || A_T == BOX || A_T == CYLINDER || A_T == CONE) {
 		A_X = quatRotate(A_X, rotA) + posA;
 	} else if (A_T == TRIANGLEMESH) {
 		envelope = 0;
@@ -350,7 +370,7 @@ __host__ __device__ void function_MPR_Store(
 		A_Z = quatRotate(A_Z, rotA) + posA;
 	}
 
-	if (B_T == SPHERE || B_T == ELLIPSOID || B_T == BOX || B_T == CYLINDER) {
+	if (B_T == SPHERE || B_T == ELLIPSOID || B_T == BOX || B_T == CYLINDER || B_T == CONE) {
 		B_X = quatRotate(B_X, rotB) + posB;
 	} else if (B_T == TRIANGLEMESH) {
 		envelope = 0;
@@ -411,14 +431,14 @@ __host__ __device__ void function_MPR_Store(
 		N = -N;
 
 	}
-	//cout << p1.x << " " << p1.y << " " << p1.z << "||" << p2.x << " " << p2.y << " " << p2.z
-	//		<< "||" << p0.x << " " << p0.y << " " << p0.z
-	//		<< "||" << N.x << " " << N.y << " " << N.z<< endl;
+//cout << p1.x << " " << p1.y << " " << p1.z << "||" << p2.x << " " << p2.y << " " << p2.z
+//		<< "||" << p0.x << " " << p0.y << " " << p0.z
+//		<< "||" << N.x << " " << N.y << " " << N.z<< endl;
 	p1 = p1 - (N) * envelope;
 	p2 = p2 + (N) * envelope;
 
 	depth = dot(N, p2 - p1);
-	//depth = -(depth - envelope - envelope);
+//depth = -(depth - envelope - envelope);
 	norm[index] = N;
 	ptA[index] = p1;
 	ptB[index] = p2;
@@ -445,7 +465,25 @@ __global__ void device_MPR_Store(
 		real *contactDepth,
 		int2 *ids) {
 	INIT_CHECK_THREAD_BOUNDED(INDEX1D, total_possible_contacts_const);
-	function_MPR_Store(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, obj_active, body_pos, body_rot, collision_envelope_const, contact_pair, contact_active, norm, ptA, ptB, contactDepth, ids);
+	function_MPR_Store(
+			index,
+			obj_data_T,
+			obj_data_A,
+			obj_data_B,
+			obj_data_C,
+			obj_data_R,
+			obj_data_ID,
+			obj_active,
+			body_pos,
+			body_rot,
+			collision_envelope_const,
+			contact_pair,
+			contact_active,
+			norm,
+			ptA,
+			ptB,
+			contactDepth,
+			ids);
 }
 
 void ChCNarrowphase::host_MPR_Store(
@@ -468,7 +506,25 @@ void ChCNarrowphase::host_MPR_Store(
 #pragma omp parallel for
 
 	for (uint index = 0; index < total_possible_contacts; index++) {
-		function_MPR_Store(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, obj_active, body_pos, body_rot, collision_envelope, contact_pair, contact_active, norm, ptA, ptB, contactDepth, ids);
+		function_MPR_Store(
+				index,
+				obj_data_T,
+				obj_data_A,
+				obj_data_B,
+				obj_data_C,
+				obj_data_R,
+				obj_data_ID,
+				obj_active,
+				body_pos,
+				body_rot,
+				collision_envelope,
+				contact_pair,
+				contact_active,
+				norm,
+				ptA,
+				ptB,
+				contactDepth,
+				ids);
 	}
 }
 ChCNarrowphase::ChCNarrowphase() {
@@ -556,9 +612,6 @@ uint & number_of_contacts
 		thrust::remove_if(dpth_data.begin(), dpth_data.end(), generic_counter.begin(), thrust::identity<int>());
 		thrust::remove_if(bids_data.begin(), bids_data.end(), generic_counter.begin(), thrust::identity<int>());
 		thrust::remove_if(potentialCollisions.begin(), potentialCollisions.end(), generic_counter.begin(), thrust::identity<int>());
-
-
-
 
 //		thrust::sort_by_key(
 //				generic_counter.begin(),
