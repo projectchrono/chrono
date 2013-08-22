@@ -490,6 +490,7 @@ IF (BUILD_CH_SDK)
 		geometry/ChCSphere.cpp 
 		geometry/ChCEllipsoid.cpp 
 		geometry/ChCBox.cpp
+		geometry/ChCCone.cpp 
 		geometry/ChCCylinder.cpp 
 		geometry/ChCLine.cpp 
 		geometry/ChCLineCam.cpp 
@@ -502,6 +503,7 @@ IF (BUILD_CH_SDK)
 		geometry/ChCSphere.h
 		geometry/ChCEllipsoid.h
 		geometry/ChCBox.h
+		geometry/ChCCone.h
 		geometry/ChCCylinder.h
 		geometry/ChCLine.h
 		geometry/ChCLineCam.h
@@ -524,6 +526,7 @@ IF (BUILD_CH_SDK)
 		assets/ChSphereShape.cpp
 		assets/ChEllipsoidShape.cpp
 		assets/ChBoxShape.cpp
+		assets/ChConeShape.cpp
 		assets/ChCylinderShape.cpp
 		assets/ChTexture.cpp
 		assets/ChCamera.cpp
@@ -537,6 +540,7 @@ IF (BUILD_CH_SDK)
 		assets/ChSphereShape.h
 		assets/ChEllipsoidShape.h
 		assets/ChBoxShape.h
+		assets/ChConeShape.h
 		assets/ChCylinderShape.h
 		assets/ChTexture.h
 		assets/ChCamera.h

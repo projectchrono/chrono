@@ -90,6 +90,9 @@ public:
   		/// Add a cylinder to this model (default axis on Y direction), for collision purposes
   virtual bool AddCylinder (double rx, double rz, double hy,  ChVector<>* pos=0, ChMatrix33<>* rot=0);
 
+  /// Add a cylinder to this model (default axis on Y direction), for collision purposes
+    virtual bool AddCone (double rx, double rz, double hy,  ChVector<>* pos=0, ChMatrix33<>* rot=0){return false;}
+
   		/// Add a convex hull to this model. A convex hull is simply a point cloud that describe
 		/// a convex polytope. Connectivity between the vertexes, as faces/edges in triangle meshes is not necessary.
 		/// Points are passed as a list, that is instantly copied into the model.
