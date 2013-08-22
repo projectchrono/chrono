@@ -256,7 +256,7 @@ void ChSystemGPU::UpdateBilaterals() {
 	gpu_data_manager->host_correction_bilateral.resize(number_of_bilaterals);
 	gpu_data_manager->host_bids_bilateral.resize(number_of_bilaterals);
 	gpu_data_manager->host_gamma_bilateral.resize(number_of_bilaterals);
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (uint ic = 0; ic < mconstraints.size(); ic++) {
 		if (mconstraints[ic]->IsActive() == false) {
 			continue;
