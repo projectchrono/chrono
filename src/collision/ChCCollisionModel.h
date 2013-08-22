@@ -1,6 +1,6 @@
 #ifndef CHC_COLLISIONMODEL_H
 #define CHC_COLLISIONMODEL_H
- 
+
 //////////////////////////////////////////////////
 //  
 //   ChCCollisionModel.h
@@ -28,23 +28,23 @@
 
 
 
-namespace chrono 
+namespace chrono
 {
 
 // forward references
 class ChPhysicsItem;
 class ChBody;
 
-namespace collision 
+namespace collision
 {
 /// Shape types that can be created. Used so that shape type can be determined without going to bullet
 /// Both GPU and CPU Collision Models use this enum
 enum ShapeType
 {
 	SPHERE,
-	ELLIPSOID, 
-	BOX, 
-	CYLINDER, 
+	ELLIPSOID,
+	BOX,
+	CYLINDER,
 	CONVEXHULL,
 	TRIANGLEMESH,
 	BARREL,
@@ -73,7 +73,7 @@ public:
   ChCollisionModel();
 
   virtual ~ChCollisionModel() {};
-  
+
 
 		/// Deletes all inserted geometries.
 		/// Also, if you begin the definition of a model, AFTER adding
@@ -86,13 +86,13 @@ public:
 		/// MUST be inherited by child classes! (ex for bulding BV hierarchies)
   virtual int BuildModel() = 0;
 
-  
-	// 
-	// GEOMETRY DESCRIPTION	
-	//	
-	//  The following functions must be called inbetween 
+
+	//
+	// GEOMETRY DESCRIPTION
+	//
+	//  The following functions must be called inbetween
 	//  the ClearModel() BuildModel() pair.
-	//  The class must implement automatic deletion of the created 
+	//  The class must implement automatic deletion of the created
 	//  geometries at class destruction time and at ClearModel()
 	//  Return value is true if the child class implements the
 	//  corresponding type of geometry.
@@ -100,19 +100,19 @@ public:
 		/// Add a sphere shape to this model, for collision purposes
   virtual bool AddSphere   (double radius,			///< the radius of the sphere
 							ChVector<>* pos=0		///< the position of the sphere in model coordinates
-							)=0;		
+							)=0;
 
   		/// Add an ellipsoid shape to this model, for collision purposes
   virtual bool AddEllipsoid   (double rx, 			///< the rad on x axis
-							   double ry,			///< the rad on y axis 
+							   double ry,			///< the rad on y axis
 							   double rz,			///< the rad on z axis
 							   ChVector<>* pos=0,	///< the position of the ellipsoid
-							   ChMatrix33<>* rot=0	///< the matrix defining rotation (orthogonal) 
+							   ChMatrix33<>* rot=0	///< the matrix defining rotation (orthogonal)
 							   )=0;
 
 		/// Add a box shape to this model, for collision purposes
   virtual bool AddBox      (double hx, 				///< the halfsize on x axis
-							double hy,				///< the halfsize on y axis 
+							double hy,				///< the halfsize on y axis
 							double hz,				///< the halfsize on z axis
 							ChVector<>* pos=0,		///< the position of the box COG
 							ChMatrix33<>* rot=0		///< the rotation of the box - matrix must be orthogonal
@@ -120,7 +120,10 @@ public:
 
 		/// Add a cylinder to this model (default axis on Y direction), for collision purposes
   virtual bool AddCylinder (double rx, double rz, double hy, ChVector<>* pos=0, ChMatrix33<>* rot=0)=0;
-		
+
+		/// Add a cone to this model (default axis on Y direction), for collision purposes
+  virtual bool AddCone (double rx, double rz, double hy, ChVector<>* pos=0, ChMatrix33<>* rot=0)=0;
+
 		/// Add a convex hull to this model. A convex hull is simply a point cloud that describe
 		/// a convex polytope. Connectivity between the vertexes, as faces/edges in triangle meshes is not necessary.
 		/// Points are passed as a list, that is instantly copied into the model.
@@ -135,7 +138,7 @@ public:
 								bool is_static,			///< true only if model doesn't move (es.a terrain). May improve performance
 								bool is_convex,			///< true if mesh convex hull is used (only for simple mesh). May improve robustness
 								ChVector<>* pos=0, ChMatrix33<>* rot=0 ///< displacement respect to COG (optional)
-								)=0;  
+								)=0;
 
   		/// Add a barrel-like shape to this model (main axis on Y direction), for collision purposes.
 		/// The barrel shape is made by lathing an arc of an ellipse around the vertical Y axis.
@@ -162,7 +165,7 @@ public:
   //
 
 
-  		/// Gets the pointer to the client owner ChPhysicsItem. 
+  		/// Gets the pointer to the client owner ChPhysicsItem.
 		/// MUST be implemented by child classes!
   virtual ChPhysicsItem* GetPhysicsItem() = 0;
 
@@ -201,7 +204,7 @@ public:
 		///  the body to a ChSystem, using AddBody(). Use after AddBody(). 
   virtual bool GetFamilyMaskDoesCollisionWithFamily(int mfamily)=0;
 
-	
+
 	// TOLERANCES, ENVELOPES, THRESHOLDS
 	//
 
@@ -215,7 +218,7 @@ public:
 		/// but might be slower and less reliable)
 		/// Side effect: think at the margin as a radius of a 'smoothing' fillet
 		/// on all corners of the shapes - that's why you cannot exceed with this...
-  virtual void SetSafeMargin(double amargin) 
+  virtual void SetSafeMargin(double amargin)
 		{
 			model_safe_margin = (float)amargin;
 		}
@@ -236,7 +239,7 @@ public:
 		/// exagerate with this value, CD might be slower and too sensible.
 		/// On the other hand, if you set this value to 0, contacts are detected
 		/// only for dist<=0, thus causing unstable simulation.
-  virtual void SetEnvelope(double amargin) 
+  virtual void SetEnvelope(double amargin)
 		{
 			model_envelope = (float)amargin;
 		}
@@ -280,15 +283,15 @@ public:
 
 protected:
 
-	virtual float GetSuggestedFullMargin() 
+	virtual float GetSuggestedFullMargin()
 		{
 			return model_envelope + model_safe_margin;
-		}			
+		}
 				// Maximum envelope: surrounding volume from surface
 				// to the exterior
 	float model_envelope;
 
-				// This is the max.value to be used for fast penetration 
+				// This is the max.value to be used for fast penetration
 				// contact detection.
 	float model_safe_margin;
 
