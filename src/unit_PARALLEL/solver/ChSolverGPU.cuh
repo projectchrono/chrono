@@ -192,6 +192,9 @@ class ChApiGPU ChSolverGPU: public ChBaseGPU {
 			custom_vector<real> obj1_temp;
 			custom_vector<real> lm;
 
+			bool do_stab;
+
+
 		protected:
 		}
 				;

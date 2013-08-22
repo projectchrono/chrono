@@ -34,7 +34,7 @@ class ChApiGPU ChLcpSolverGPU: public ChLcpIterativeSolver {
 			lcp_omega_bilateral = .2;
 
 			max_iteration = 1000;
-
+			do_stab=false;
 			solver_type = BLOCK_JACOBI;
 
 		}
@@ -76,7 +76,9 @@ class ChApiGPU ChLcpSolverGPU: public ChLcpIterativeSolver {
 		void SetMaxIteration(uint max_iter) {
 			max_iteration = max_iter;
 		}
-
+		void DoStabilization(bool stab) {
+			do_stab = stab;
+		}
 		real GetResidual() {
 			return residual;
 		}
@@ -115,6 +117,8 @@ class ChApiGPU ChLcpSolverGPU: public ChLcpIterativeSolver {
 		uint number_of_updates;
 		uint number_of_constraints;
 		uint max_iteration;
+
+		bool do_stab;
 
 		real residual;
 

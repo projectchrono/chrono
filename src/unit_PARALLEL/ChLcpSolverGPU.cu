@@ -129,6 +129,7 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 		solver.SetContactRecoverySpeed(contact_recovery_speed);
 		solver.lcp_omega_bilateral = lcp_omega_bilateral;
 		solver.lcp_omega_contact = lcp_omega_contact;
+		solver.do_stab = do_stab;
 		solver.Solve(solver_type, step, data_container);
 
 		tot_iterations = solver.GetIteration();
