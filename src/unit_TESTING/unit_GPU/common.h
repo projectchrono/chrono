@@ -372,10 +372,10 @@ bool printContactsGPU(ChSystemGPU* system_gpu, vector<contact_dat> & contact_gpu
 	system_gpu->gpu_data_manager->DeviceToHostContacts();
 	contact_dat icontact;
 	system_gpu->gpu_data_manager->DeviceToHostJacobians();
-	uint constraints = system_gpu->gpu_data_manager->number_of_contacts;
+	uint constraints = system_gpu->gpu_data_manager->number_of_rigid_rigid;
 	vector<double> rhs_gpu;
 	((ChLcpSolverGPU *) (system_gpu->GetLcpSolverSpeed()))->Dump_Rhs(rhs_gpu);
-	for (int i = 0; i < system_gpu->gpu_data_manager->number_of_contacts; i++) {
+	for (int i = 0; i < system_gpu->gpu_data_manager->number_of_rigid_rigid; i++) {
 		real3 vN = system_gpu->gpu_data_manager->host_norm_data[i];
 		real3 vpA = system_gpu->gpu_data_manager->host_cpta_data[i];
 		real3 vpB = system_gpu->gpu_data_manager->host_cptb_data[i];
