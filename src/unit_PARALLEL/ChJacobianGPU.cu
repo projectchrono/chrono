@@ -200,10 +200,10 @@ void ChJacobianGPU::host_ContactJacobians(
 void ChJacobianGPU::Setup() {
 	Initialize();
 
-	data_container->host_data.JXYZA_data.resize(number_of_constraints);
-	data_container->host_data.JXYZB_data.resize(number_of_constraints);
-	data_container->host_data.JUVWA_data.resize(number_of_constraints);
-	data_container->host_data.JUVWB_data.resize(number_of_constraints);
+	data_container->host_data.JXYZA_data.resize(number_of_contacts * 3);
+	data_container->host_data.JXYZB_data.resize(number_of_contacts * 3);
+	data_container->host_data.JUVWA_data.resize(number_of_contacts * 3);
+	data_container->host_data.JUVWB_data.resize(number_of_contacts * 3);
 #ifdef SIM_ENABLE_GPU_MODE
 	COPY_TO_CONST_MEM(number_of_contacts);
 #endif
@@ -241,47 +241,6 @@ void ChJacobianGPU::ComputeJacobians(ChGPUDataManager *data_container_) {
 			data_container->host_data.JUVWA_data.data(),
 			data_container->host_data.JUVWB_data.data());
 
-	thrust::copy_n(
-			data_container->host_data.JXYZA_bilateral.begin(),
-			data_container->number_of_bilaterals,
-			data_container->host_data.JXYZA_data.begin() + data_container->number_of_contacts * 3);
-	thrust::copy_n(
-			data_container->host_data.JXYZB_bilateral.begin(),
-			data_container->number_of_bilaterals,
-			data_container->host_data.JXYZB_data.begin() + data_container->number_of_contacts * 3);
-	thrust::copy_n(
-			data_container->host_data.JUVWA_bilateral.begin(),
-			data_container->number_of_bilaterals,
-			data_container->host_data.JUVWA_data.begin() + data_container->number_of_contacts * 3);
-	thrust::copy_n(
-			data_container->host_data.JUVWB_bilateral.begin(),
-			data_container->number_of_bilaterals,
-			data_container->host_data.JUVWB_data.begin() + data_container->number_of_contacts * 3);
-
 #endif
-
-//	for (int i = 0; i < data_container->gpu_data.device_JXYZA_data.size() / 3; i++) {
-//		std::cout << "[" << data_container->gpu_data.device_JXYZA_data[i].x << " " << data_container->gpu_data.device_JXYZA_data[i].y << " " << data_container->gpu_data.device_JXYZA_data[i].z << "][" << data_container->gpu_data.device_JXYZB_data[i].x << " "
-//				<< data_container->gpu_data.device_JXYZB_data[i].y << " " << data_container->gpu_data.device_JXYZB_data[i].z << "]" << endl;
-//
-//		std::cout << "[" << data_container->gpu_data.device_JXYZA_data[i + number_of_contacts * 1].x << " " << data_container->gpu_data.device_JXYZA_data[i + number_of_contacts * 1].y << " "
-//				<< data_container->gpu_data.device_JXYZA_data[i + number_of_contacts * 1].z << "][" << data_container->gpu_data.device_JXYZB_data[i + number_of_contacts * 1].x << " "
-//				<< data_container->gpu_data.device_JXYZB_data[i + number_of_contacts * 1].y << " " << data_container->gpu_data.device_JXYZB_data[i + number_of_contacts * 1].z << "]" << endl;
-//		std::cout << "[" << data_container->gpu_data.device_JXYZA_data[i + number_of_contacts * 2].x << " " << data_container->gpu_data.device_JXYZA_data[i + number_of_contacts * 2].y << " "
-//				<< data_container->gpu_data.device_JXYZA_data[i + number_of_contacts * 2].z << "][" << data_container->gpu_data.device_JXYZB_data[i + number_of_contacts * 2].x << " "
-//				<< data_container->gpu_data.device_JXYZB_data[i + number_of_contacts * 2].y << " " << data_container->gpu_data.device_JXYZB_data[i + number_of_contacts * 2].z << "]" << endl;
-//
-//		std::cout << "[" << data_container->gpu_data.device_JUVWA_data[i].x << " " << data_container->gpu_data.device_JUVWA_data[i].y << " " << data_container->gpu_data.device_JUVWA_data[i].z << "][" << data_container->gpu_data.device_JUVWB_data[i].x << " "
-//				<< data_container->gpu_data.device_JUVWB_data[i].y << " " << data_container->gpu_data.device_JUVWB_data[i].z << "]" << endl;
-//
-//		std::cout << "[" << data_container->gpu_data.device_JUVWA_data[i + number_of_contacts * 1].x << " " << data_container->gpu_data.device_JUVWA_data[i + number_of_contacts * 1].y << " "
-//				<< data_container->gpu_data.device_JUVWA_data[i + number_of_contacts * 1].z << "][" << data_container->gpu_data.device_JUVWB_data[i + number_of_contacts * 1].x << " "
-//				<< data_container->gpu_data.device_JUVWB_data[i + number_of_contacts * 1].y << " " << data_container->gpu_data.device_JUVWB_data[i + number_of_contacts * 1].z << "]" << endl;
-//
-//		std::cout << "[" << data_container->gpu_data.device_JUVWA_data[i + number_of_contacts * 2].x << " " << data_container->gpu_data.device_JUVWA_data[i + number_of_contacts * 2].y << " "
-//				<< data_container->gpu_data.device_JUVWA_data[i + number_of_contacts * 2].z << "][" << data_container->gpu_data.device_JUVWB_data[i + number_of_contacts * 2].x << " "
-//				<< data_container->gpu_data.device_JUVWB_data[i + number_of_contacts * 2].y << " " << data_container->gpu_data.device_JUVWB_data[i + number_of_contacts * 2].z << "]" << endl;
-//
-//	}
 
 }

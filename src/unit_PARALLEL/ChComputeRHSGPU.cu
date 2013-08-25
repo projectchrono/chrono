@@ -4,9 +4,9 @@ using namespace chrono;
 void ChComputeRHSGPU::Setup() {
 	Initialize();
 	time_rhs = 0;
-	correction.resize(number_of_constraints);
+	correction.resize(number_of_contacts);
 	data_container->host_data.rhs_data.resize(number_of_constraints);
-	bi.resize(number_of_constraints);
+	bi.resize(number_of_contacts);
 	Thrust_Fill(correction, 0);
 	thrust::copy_n(
 			data_container->host_data.dpth_data.begin(),
@@ -23,8 +23,6 @@ __host__ __device__ void function_bi(
 		const real & alpha,
 		real *bi) {
 	bi[index + num_contacts * 0] = fmax(real(1.0) / step_size * correction[index], -recovery_speed);
-	bi[index + num_contacts * 1] = 0;
-	bi[index + num_contacts * 2] = 0;
 }
 
 void ChComputeRHSGPU::host_bi(real *correction, real * compliance, real* bi) {
@@ -32,12 +30,8 @@ void ChComputeRHSGPU::host_bi(real *correction, real * compliance, real* bi) {
 	for (uint index = 0; index < number_of_contacts; index++) {
 		if (compliance[index]) {
 			bi[index + number_of_contacts * 0] = inv_hpa * correction[index];
-			bi[index + number_of_contacts * 1] = 0;
-			bi[index + number_of_contacts * 2] = 0;
 		} else {
 			bi[index + number_of_contacts * 0] = fmax(real(1.0) / step_size * correction[index], -contact_recovery_speed);
-			bi[index + number_of_contacts * 1] = 0;
-			bi[index + number_of_contacts * 2] = 0;
 		}
 
 		//function_bi(index, number_of_contacts, step_size, correction, contact_recovery_speed, alpha, bi);
@@ -80,7 +74,7 @@ __host__ __device__ void function_RHS(
 
 }
 
-void ChComputeRHSGPU::host_RHS(
+void ChComputeRHSGPU::host_RHS_contacts(
 		int2 *ids,
 		real *bi,
 		bool * active,
@@ -111,27 +105,40 @@ void ChComputeRHSGPU::host_RHS(
 				rhs);
 	}
 
+}
+void ChComputeRHSGPU::host_RHS_bilaterals(
+		int2 *ids,
+		real *bi,
+		bool * active,
+		real3 *vel,
+		real3 *omega,
+		real3 *JXYZA,
+		real3 *JXYZB,
+		real3 *JUVWA,
+		real3 *JUVWB,
+		real *rhs) {
+
 #pragma omp parallel for
 	for (uint index = 0; index < number_of_bilaterals; index++) {
-		uint b1 = ids[index + number_of_contacts * 3].x;
-		uint b2 = ids[index + number_of_contacts * 3].y;
+		uint b1 = ids[index].x;
+		uint b2 = ids[index].y;
 		real temp = 0;
 		if (active[b1]) {
-			temp += dot(JXYZA[index + number_of_contacts * 3], vel[b1]);
-			temp += dot(JUVWA[index + number_of_contacts * 3], omega[b1]);
+			temp += dot(JXYZA[index], vel[b1]);
+			temp += dot(JUVWA[index], omega[b1]);
 			real3 vA = vel[b1];
 			vA = omega[b1];
 
 		}
 		if (active[b2]) {
-			temp += dot(JXYZB[index + number_of_contacts * 3], vel[b2]);
-			temp += dot(JUVWB[index + number_of_contacts * 3], omega[b2]);
+			temp += dot(JXYZB[index], vel[b2]);
+			temp += dot(JUVWB[index], omega[b2]);
 
 			real3 vA = vel[b1];
 			vA = omega[b1];
 
 		}
-		rhs[index + number_of_contacts * 3] = -temp - bi[index + number_of_contacts * 3];     //(temp + fmax(inv_hpa * correction[index], real(-recovery_speed)));
+		rhs[index + number_of_contacts * 3] = -temp - bi[index];     //(temp + fmax(inv_hpa * correction[index], real(-recovery_speed)));
 	}
 
 }
@@ -145,20 +152,19 @@ void ChComputeRHSGPU::ComputeRHS(ChGPUDataManager *data_container_) {
 
 	data_container->host_data.comp_data.resize(number_of_contacts);
 	for (int i = 0; i < number_of_contacts; i++) {
-		uint b1 = data_container->host_data.bidlist_data[i].x;
-		uint b2 = data_container->host_data.bidlist_data[i].y;
+		uint b1 = data_container->host_data.bids_data[i].x;
+		uint b2 = data_container->host_data.bids_data[i].y;
 		real compb1 = data_container->host_data.compliance_data[b1];
 		real compb2 = data_container->host_data.compliance_data[b2];
 
 		real comp = (compb1 == 0 || compb2 == 0) ? 0 : (compb1 + compb2) * .5;
 		data_container->host_data.comp_data[i] = comp;
 	}
-	thrust::copy_n(data_container->host_data.residual_bilateral.begin(), number_of_bilaterals, bi.begin() + number_of_contacts * 3);
 
 	host_bi(correction.data(), data_container->host_data.comp_data.data(), bi.data());
 
-	host_RHS(
-			data_container->host_data.bidlist_data.data(),
+	host_RHS_contacts(
+			data_container->host_data.bids_data.data(),
 			bi.data(),
 			data_container->host_data.active_data.data(),
 			data_container->host_data.vel_data.data(),
@@ -168,7 +174,17 @@ void ChComputeRHSGPU::ComputeRHS(ChGPUDataManager *data_container_) {
 			data_container->host_data.JUVWA_data.data(),
 			data_container->host_data.JUVWB_data.data(),
 			data_container->host_data.rhs_data.data());
-
+	host_RHS_bilaterals(
+			data_container->host_data.bids_bilateral.data(),
+			data_container->host_data.residual_bilateral.data(),
+			data_container->host_data.active_data.data(),
+			data_container->host_data.vel_data.data(),
+			data_container->host_data.omg_data.data(),
+			data_container->host_data.JXYZA_bilateral.data(),
+			data_container->host_data.JXYZB_bilateral.data(),
+			data_container->host_data.JUVWA_bilateral.data(),
+			data_container->host_data.JUVWB_bilateral.data(),
+			data_container->host_data.rhs_data.data());
 	timer_rhs.stop();
 	time_rhs = timer_rhs();
 }

@@ -228,19 +228,19 @@ void ChSolverGPU::host_shurA_bilaterals(
 	for (int index = 0; index < number_of_bilaterals; index++) {
 		real gam;
 		gam = gamma[index + number_of_contacts * 3];
-		uint b1 = ids[index + number_of_contacts * 3].x;
+		uint b1 = ids[index].x;
 		int offset1 = offset[2 * number_of_contacts + index];
 		int offset2 = offset[2 * number_of_contacts + index + number_of_bilaterals];
 
 		if (active[b1] != 0) {
-			updateV[offset1] = JXYZA[index + number_of_contacts * 3] * gam;
-			updateO[offset1] = JUVWA[index + number_of_contacts * 3] * gam;
+			updateV[offset1] = JXYZA[index] * gam;
+			updateO[offset1] = JUVWA[index] * gam;
 		}
 
 		uint b2 = ids[index + number_of_contacts * 3].y;
 		if (active[b2] != 0) {
-			updateV[offset2] = JXYZB[index + number_of_contacts * 3] * gam;
-			updateO[offset2] = JUVWB[index + number_of_contacts * 3] * gam;
+			updateV[offset2] = JXYZB[index] * gam;
+			updateO[offset2] = JUVWB[index] * gam;
 		}
 	}
 }
@@ -262,7 +262,7 @@ void ChSolverGPU::shurA(custom_vector<real> &x) {
 		cudaDeviceSynchronize();
 #else
 		host_shurA_contacts(
-				data_container->host_data.bidlist_data.data(),
+				data_container->host_data.bids_data.data(),
 				data_container->host_data.active_data.data(),
 				data_container->host_data.mass_data.data(),
 				data_container->host_data.inr_data.data(),
@@ -277,14 +277,14 @@ void ChSolverGPU::shurA(custom_vector<real> &x) {
 				data_container->host_data.QUVW_data.data(),
 				data_container->host_data.update_offset.data());
 		host_shurA_bilaterals(
-				data_container->host_data.bidlist_data.data(),
+				data_container->host_data.bids_bilateral.data(),
 				data_container->host_data.active_data.data(),
 				data_container->host_data.mass_data.data(),
 				data_container->host_data.inr_data.data(),
-				data_container->host_data.JXYZA_data.data(),
-				data_container->host_data.JXYZB_data.data(),
-				data_container->host_data.JUVWA_data.data(),
-				data_container->host_data.JUVWB_data.data(),
+				data_container->host_data.JXYZA_bilateral.data(),
+				data_container->host_data.JXYZB_bilateral.data(),
+				data_container->host_data.JUVWA_bilateral.data(),
+				data_container->host_data.JUVWB_bilateral.data(),
 				x.data(),
 				data_container->host_data.vel_update.data(),
 				data_container->host_data.omg_update.data(),
@@ -448,12 +448,12 @@ void ChSolverGPU::host_shurB_bilaterals(
 	for (uint index = 0; index < number_of_bilaterals; index++) {
 
 		real temp = 0;
-		uint b1 = ids[index + number_of_contacts * 3].x;
+		uint b1 = ids[index].x;
 		if (active[b1] != 0) {
 			real3 XYZ = QXYZ[b1];
 			real3 UVW = QUVW[b1];
-			temp += dot(XYZ, JXYZA[index + number_of_contacts * 3]);
-			temp += dot(UVW, JUVWA[index + number_of_contacts * 3]);
+			temp += dot(XYZ, JXYZA[index]);
+			temp += dot(UVW, JUVWA[index]);
 
 		}
 		uint b2 = ids[index + number_of_contacts * 3].y;
@@ -461,8 +461,8 @@ void ChSolverGPU::host_shurB_bilaterals(
 
 			real3 XYZ = QXYZ[b2];
 			real3 UVW = QUVW[b2];
-			temp += dot(XYZ, JXYZB[index + number_of_contacts * 3]);
-			temp += dot(UVW, JUVWB[index + number_of_contacts * 3]);
+			temp += dot(XYZ, JXYZB[index]);
+			temp += dot(UVW, JUVWB[index]);
 
 		}
 
@@ -488,7 +488,7 @@ void ChSolverGPU::shurB(custom_vector<real> &x, custom_vector<real> &out) {
 				CASTR1(out));
 #else
 		host_shurB_contacts(
-				data_container->host_data.bidlist_data.data(),
+				data_container->host_data.bids_data.data(),
 				data_container->host_data.active_data.data(),
 				data_container->host_data.mass_data.data(),
 				data_container->host_data.inr_data.data(),
@@ -502,15 +502,15 @@ void ChSolverGPU::shurB(custom_vector<real> &x, custom_vector<real> &out) {
 				data_container->host_data.QUVW_data.data(),
 				out.data());
 		host_shurB_bilaterals(
-				data_container->host_data.bidlist_data.data(),
+				data_container->host_data.bids_bilateral.data(),
 				data_container->host_data.active_data.data(),
 				data_container->host_data.mass_data.data(),
 				data_container->host_data.inr_data.data(),
 				x.data(),
-				data_container->host_data.JXYZA_data.data(),
-				data_container->host_data.JXYZB_data.data(),
-				data_container->host_data.JUVWA_data.data(),
-				data_container->host_data.JUVWB_data.data(),
+				data_container->host_data.JXYZA_bilateral.data(),
+				data_container->host_data.JXYZB_bilateral.data(),
+				data_container->host_data.JUVWA_bilateral.data(),
+				data_container->host_data.JUVWB_bilateral.data(),
 				data_container->host_data.QXYZ_data.data(),
 				data_container->host_data.QUVW_data.data(),
 				out.data());
@@ -549,14 +549,14 @@ void ChSolverGPU::ShurBilaterals(custom_vector<real> &x_t, custom_vector<real> &
 	for (int index = 0; index < number_of_bilaterals; index++) {
 		real gam;
 		gam = x_t[index];
-		uint b1 = data_container->host_data.bidlist_data[index + number_of_contacts * 3].x;
+		uint b1 = data_container->host_data.bids_bilateral[index].x;
 
 		if (data_container->host_data.active_data[b1] != 0) {
 			data_container->host_data.QXYZ_data[b1] += JXYZA_bilateral[index] * gam;
 			data_container->host_data.QUVW_data[b1] += JUVWA_bilateral[index] * gam;
 		}
 
-		uint b2 = data_container->host_data.bidlist_data[index + number_of_contacts * 3].y;
+		uint b2 = data_container->host_data.bids_bilateral[index].y;
 		if (data_container->host_data.active_data[b2] != 0) {
 			data_container->host_data.QXYZ_data[b2] += JXYZB_bilateral[index ] * gam;
 			data_container->host_data.QUVW_data[b2] += JUVWB_bilateral[index ] * gam;
@@ -567,7 +567,7 @@ void ChSolverGPU::ShurBilaterals(custom_vector<real> &x_t, custom_vector<real> &
 		for (uint index = 0; index < number_of_bilaterals; index++) {
 
 			real temp = 0;
-			uint b1 = data_container->host_data.bidlist_data[index + number_of_contacts * 3].x;
+			uint b1 = data_container->host_data.bids_bilateral[index ].x;
 			if (data_container->host_data.active_data[b1] != 0) {
 				real3 XYZ = data_container->host_data.QXYZ_data[b1]* data_container->host_data.mass_data[b1];
 				real3 UVW = data_container->host_data.QUVW_data[b1]* data_container->host_data.inr_data[b1];
@@ -575,7 +575,7 @@ void ChSolverGPU::ShurBilaterals(custom_vector<real> &x_t, custom_vector<real> &
 				temp += dot(UVW, JUVWA_bilateral[index ]);
 
 			}
-			uint b2 = data_container->host_data.bidlist_data[index + number_of_contacts * 3].y;
+			uint b2 = data_container->host_data.bids_bilateral[index ].y;
 			if (data_container->host_data.active_data[b2] != 0) {
 
 				real3 XYZ = data_container->host_data.QXYZ_data[b2]* data_container->host_data.mass_data[b2];;
