@@ -58,41 +58,41 @@ void ChLcpSolverGPU::host_ComputeGyro(real3* omega, real3* inertia, real3* gyro,
 	}
 }
 
-void ChLcpSolverGPU::Preprocess(gpu_container& gpu_data) {
+void ChLcpSolverGPU::Preprocess() {
 	data_container->number_of_updates = 0;
-	data_container->gpu_data.device_gyr_data.resize(number_of_objects);
+	data_container->host_data.gyr_data.resize(number_of_objects);
 
 #ifdef SIM_ENABLE_GPU_MODE
 	COPY_TO_CONST_MEM(number_of_objects);
 
 	device_ComputeGyro CUDA_KERNEL_DIM(BLOCKS(number_of_objects), THREADS)(
-			CASTR3(data_container->gpu_data.device_omg_data),
-			CASTR3(data_container->gpu_data.device_inr_data),
-			CASTR3(data_container->gpu_data.device_gyr_data),
-			CASTR3(data_container->gpu_data.device_trq_data));
+			CASTR3(data_container->device_data.device_omg_data),
+			CASTR3(data_container->device_data.device_inr_data),
+			CASTR3(data_container->device_data.device_gyr_data),
+			CASTR3(data_container->device_data.device_trq_data));
 	device_addForces CUDA_KERNEL_DIM(BLOCKS(number_of_objects), THREADS)(
-			CASTB1(data_container->gpu_data.device_active_data),
-			CASTR1(data_container->gpu_data.device_mass_data),
-			CASTR3(data_container->gpu_data.device_inr_data),
-			CASTR3(data_container->gpu_data.device_frc_data),
-			CASTR3(data_container->gpu_data.device_trq_data),
-			CASTR3(data_container->gpu_data.device_vel_data),
-			CASTR3(data_container->gpu_data.device_omg_data));
+			CASTB1(data_container->device_data.device_active_data),
+			CASTR1(data_container->device_data.device_mass_data),
+			CASTR3(data_container->device_data.device_inr_data),
+			CASTR3(data_container->device_data.device_frc_data),
+			CASTR3(data_container->device_data.device_trq_data),
+			CASTR3(data_container->device_data.device_vel_data),
+			CASTR3(data_container->device_data.device_omg_data));
 #else
 	host_ComputeGyro(
-			data_container->gpu_data.device_omg_data.data(),
-			data_container->gpu_data.device_inr_data.data(),
-			data_container->gpu_data.device_gyr_data.data(),
-			data_container->gpu_data.device_trq_data.data());
+			data_container->host_data.omg_data.data(),
+			data_container->host_data.inr_data.data(),
+			data_container->host_data.gyr_data.data(),
+			data_container->host_data.trq_data.data());
 
 	host_addForces(
-			data_container->gpu_data.device_active_data.data(),
-			data_container->gpu_data.device_mass_data.data(),
-			data_container->gpu_data.device_inr_data.data(),
-			data_container->gpu_data.device_frc_data.data(),
-			data_container->gpu_data.device_trq_data.data(),
-			data_container->gpu_data.device_vel_data.data(),
-			data_container->gpu_data.device_omg_data.data());
+			data_container->host_data.active_data.data(),
+			data_container->host_data.mass_data.data(),
+			data_container->host_data.inr_data.data(),
+			data_container->host_data.frc_data.data(),
+			data_container->host_data.trq_data.data(),
+			data_container->host_data.vel_data.data(),
+			data_container->host_data.omg_data.data());
 #endif
 }
 
@@ -108,7 +108,7 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 #ifdef PRINT_DEBUG_GPU
 	cout << "Preprocess: " << endl;
 #endif
-	Preprocess(data_container->gpu_data);
+	Preprocess();
 #ifdef PRINT_DEBUG_GPU
 	cout << "Jacobians: " << endl;
 #endif
@@ -134,8 +134,8 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 
 		tot_iterations = solver.GetIteration();
 		residual = solver.GetResidual();
-		rhs = data_container->gpu_data.device_rhs_data;
-		lambda = data_container->gpu_data.device_gam_data;
+		rhs = data_container->host_data.rhs_data;
+		lambda = data_container->host_data.gam_data;
 
 		for (int i = 0; i < solver.iter_hist.size(); i++) {
 			AtIterationEnd(solver.maxd_hist[i], solver.maxdeltalambda_hist[i], solver.iter_hist[i]);

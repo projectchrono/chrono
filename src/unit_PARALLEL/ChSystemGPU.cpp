@@ -22,7 +22,7 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	mtimer_updt.start();
 	Setup();
 	Update();
-	gpu_data_manager->Copy(HOST_TO_DEVICE);
+	//gpu_data_manager->Copy(HOST_TO_DEVICE);
 	mtimer_updt.stop();
 	timer_update = mtimer_updt();
 	//=============================================================================================
@@ -36,7 +36,7 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	mtimer_lcp.stop();
 	//=============================================================================================
 	mtimer_updt.start();
-	gpu_data_manager->Copy(DEVICE_TO_HOST);
+	//gpu_data_manager->Copy(DEVICE_TO_HOST);
 	std::vector<ChLcpVariables*> vvariables = LCP_descriptor->GetVariablesList();
 
 	uint counter = 0;
@@ -46,7 +46,7 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 			continue;
 		}
 		ChLcpConstraintTwoBodies *mbilateral = (ChLcpConstraintTwoBodies *) (mconstraints[ic]);
-		mconstraints[ic]->Set_l_i(gpu_data_manager->host_gamma_bilateral[counter]);
+		mconstraints[ic]->Set_l_i(gpu_data_manager->host_data.gamma_bilateral[counter]);
 		counter++;
 	}
 // updates the reactions of the constraint
@@ -55,8 +55,8 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 #pragma omp parallel for
 	for (int i = 0; i < vvariables.size(); i++) {
 
-		real3 vel = gpu_data_manager->host_vel_data[i];
-		real3 omg = gpu_data_manager->host_omg_data[i];
+		real3 vel = gpu_data_manager->host_data.vel_data[i];
+		real3 omg = gpu_data_manager->host_data.omg_data[i];
 		vvariables[i]->Get_qb().SetElement(0, 0, vel.x);
 		vvariables[i]->Get_qb().SetElement(1, 0, vel.y);
 		vvariables[i]->Get_qb().SetElement(2, 0, vel.z);
@@ -121,20 +121,20 @@ void ChSystemGPU::AddBody(ChSharedPtr<ChBody> newbody) {
 	real inv_mass = (1.0) / (mbodyvar->GetBodyMass());
 	newbody->GetRot().Normalize();
 	ChMatrix33<> inertia = mbodyvar->GetBodyInvInertia();
-	gpu_data_manager->host_vel_data.push_back(R3(mbodyvar->Get_qb().GetElementN(0), mbodyvar->Get_qb().GetElementN(1), mbodyvar->Get_qb().GetElementN(2)));
-	gpu_data_manager->host_acc_data.push_back(R3(0, 0, 0));
-	gpu_data_manager->host_omg_data.push_back(R3(mbodyvar->Get_qb().GetElementN(3), mbodyvar->Get_qb().GetElementN(4), mbodyvar->Get_qb().GetElementN(5)));
-	gpu_data_manager->host_pos_data.push_back(R3(newbody->GetPos().x, newbody->GetPos().y, newbody->GetPos().z));
-	gpu_data_manager->host_rot_data.push_back(R4(newbody->GetRot().e0, newbody->GetRot().e1, newbody->GetRot().e2, newbody->GetRot().e3));
-	gpu_data_manager->host_inr_data.push_back(R3(inertia.GetElement(0, 0), inertia.GetElement(1, 1), inertia.GetElement(2, 2)));
-	gpu_data_manager->host_frc_data.push_back(R3(mbodyvar->Get_fb().ElementN(0), mbodyvar->Get_fb().ElementN(1), mbodyvar->Get_fb().ElementN(2))); //forces
-	gpu_data_manager->host_trq_data.push_back(R3(mbodyvar->Get_fb().ElementN(3), mbodyvar->Get_fb().ElementN(4), mbodyvar->Get_fb().ElementN(5))); //torques
-	gpu_data_manager->host_active_data.push_back(newbody->IsActive());
-	gpu_data_manager->host_mass_data.push_back(inv_mass);
-	gpu_data_manager->host_fric_data.push_back(newbody->GetKfriction());
-	gpu_data_manager->host_cohesion_data.push_back(newbody->GetMaterialSurface()->GetCohesion());
-	gpu_data_manager->host_compliance_data.push_back(newbody->GetMaterialSurface()->GetCompliance());
-	gpu_data_manager->host_lim_data.push_back(R3(newbody->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
+	gpu_data_manager->host_data.vel_data.push_back(R3(mbodyvar->Get_qb().GetElementN(0), mbodyvar->Get_qb().GetElementN(1), mbodyvar->Get_qb().GetElementN(2)));
+	gpu_data_manager->host_data.acc_data.push_back(R3(0, 0, 0));
+	gpu_data_manager->host_data.omg_data.push_back(R3(mbodyvar->Get_qb().GetElementN(3), mbodyvar->Get_qb().GetElementN(4), mbodyvar->Get_qb().GetElementN(5)));
+	gpu_data_manager->host_data.pos_data.push_back(R3(newbody->GetPos().x, newbody->GetPos().y, newbody->GetPos().z));
+	gpu_data_manager->host_data.rot_data.push_back(R4(newbody->GetRot().e0, newbody->GetRot().e1, newbody->GetRot().e2, newbody->GetRot().e3));
+	gpu_data_manager->host_data.inr_data.push_back(R3(inertia.GetElement(0, 0), inertia.GetElement(1, 1), inertia.GetElement(2, 2)));
+	gpu_data_manager->host_data.frc_data.push_back(R3(mbodyvar->Get_fb().ElementN(0), mbodyvar->Get_fb().ElementN(1), mbodyvar->Get_fb().ElementN(2))); //forces
+	gpu_data_manager->host_data.trq_data.push_back(R3(mbodyvar->Get_fb().ElementN(3), mbodyvar->Get_fb().ElementN(4), mbodyvar->Get_fb().ElementN(5))); //torques
+	gpu_data_manager->host_data.active_data.push_back(newbody->IsActive());
+	gpu_data_manager->host_data.mass_data.push_back(inv_mass);
+	gpu_data_manager->host_data.fric_data.push_back(newbody->GetKfriction());
+	gpu_data_manager->host_data.cohesion_data.push_back(newbody->GetMaterialSurface()->GetCohesion());
+	gpu_data_manager->host_data.compliance_data.push_back(newbody->GetMaterialSurface()->GetCompliance());
+	gpu_data_manager->host_data.lim_data.push_back(R3(newbody->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
 	//newbody->gpu_data_manager = gpu_data_manager;
 	counter++;
 	gpu_data_manager->number_of_objects = counter;
@@ -177,19 +177,19 @@ void ChSystemGPU::Update() {
 	LCP_descriptor->EndInsertion();
 }
 void ChSystemGPU::UpdateBodies() {
-	real3 *vel_pointer = gpu_data_manager->host_vel_data.data();
-	real3 *omg_pointer = gpu_data_manager->host_omg_data.data();
-	real3 *pos_pointer = gpu_data_manager->host_pos_data.data();
-	real4 *rot_pointer = gpu_data_manager->host_rot_data.data();
-	real3 *inr_pointer = gpu_data_manager->host_inr_data.data();
-	real3 *frc_pointer = gpu_data_manager->host_frc_data.data();
-	real3 *trq_pointer = gpu_data_manager->host_trq_data.data();
-	bool *active_pointer = gpu_data_manager->host_active_data.data();
-	real *mass_pointer = gpu_data_manager->host_mass_data.data();
-	real *fric_pointer = gpu_data_manager->host_fric_data.data();
-	real *cohesion_pointer = gpu_data_manager->host_cohesion_data.data();
-	real *compliance_pointer = gpu_data_manager->host_compliance_data.data();
-	real3 *lim_pointer = gpu_data_manager->host_lim_data.data();
+	real3 *vel_pointer = gpu_data_manager->host_data.vel_data.data();
+	real3 *omg_pointer = gpu_data_manager->host_data.omg_data.data();
+	real3 *pos_pointer = gpu_data_manager->host_data.pos_data.data();
+	real4 *rot_pointer = gpu_data_manager->host_data.rot_data.data();
+	real3 *inr_pointer = gpu_data_manager->host_data.inr_data.data();
+	real3 *frc_pointer = gpu_data_manager->host_data.frc_data.data();
+	real3 *trq_pointer = gpu_data_manager->host_data.trq_data.data();
+	bool *active_pointer = gpu_data_manager->host_data.active_data.data();
+	real *mass_pointer = gpu_data_manager->host_data.mass_data.data();
+	real *fric_pointer = gpu_data_manager->host_data.fric_data.data();
+	real *cohesion_pointer = gpu_data_manager->host_data.cohesion_data.data();
+	real *compliance_pointer = gpu_data_manager->host_data.compliance_data.data();
+	real3 *lim_pointer = gpu_data_manager->host_data.lim_data.data();
 
 #pragma omp parallel for
 	for (int i = 0; i < bodylist.size(); i++) {
@@ -248,14 +248,14 @@ void ChSystemGPU::UpdateBilaterals() {
 	}
 	gpu_data_manager->number_of_bilaterals = number_of_bilaterals;
 
-	gpu_data_manager->host_JXYZA_bilateral.resize(number_of_bilaterals);
-	gpu_data_manager->host_JXYZB_bilateral.resize(number_of_bilaterals);
-	gpu_data_manager->host_JUVWA_bilateral.resize(number_of_bilaterals);
-	gpu_data_manager->host_JUVWB_bilateral.resize(number_of_bilaterals);
-	gpu_data_manager->host_residual_bilateral.resize(number_of_bilaterals);
-	gpu_data_manager->host_correction_bilateral.resize(number_of_bilaterals);
-	gpu_data_manager->host_bids_bilateral.resize(number_of_bilaterals);
-	gpu_data_manager->host_gamma_bilateral.resize(number_of_bilaterals);
+	gpu_data_manager->host_data.JXYZA_bilateral.resize(number_of_bilaterals);
+	gpu_data_manager->host_data.JXYZB_bilateral.resize(number_of_bilaterals);
+	gpu_data_manager->host_data.JUVWA_bilateral.resize(number_of_bilaterals);
+	gpu_data_manager->host_data.JUVWB_bilateral.resize(number_of_bilaterals);
+	gpu_data_manager->host_data.residual_bilateral.resize(number_of_bilaterals);
+	gpu_data_manager->host_data.correction_bilateral.resize(number_of_bilaterals);
+	gpu_data_manager->host_data.bids_bilateral.resize(number_of_bilaterals);
+	gpu_data_manager->host_data.gamma_bilateral.resize(number_of_bilaterals);
 //#pragma omp parallel for
 	for (uint ic = 0; ic < mconstraints.size(); ic++) {
 		if (mconstraints[ic]->IsActive() == false) {
@@ -273,14 +273,14 @@ void ChSystemGPU::UpdateBilaterals() {
 		C = R3(mbilateral->Get_Cq_a()->GetElementN(3), mbilateral->Get_Cq_a()->GetElementN(4), mbilateral->Get_Cq_a()->GetElementN(5)); //J1w
 		D = R3(mbilateral->Get_Cq_b()->GetElementN(3), mbilateral->Get_Cq_b()->GetElementN(4), mbilateral->Get_Cq_b()->GetElementN(5)); //J2w
 
-		gpu_data_manager->host_JXYZA_bilateral[cntr] = A;
-		gpu_data_manager->host_JXYZB_bilateral[cntr] = B;
-		gpu_data_manager->host_JUVWA_bilateral[cntr] = C;
-		gpu_data_manager->host_JUVWB_bilateral[cntr] = D;
-		gpu_data_manager->host_residual_bilateral[cntr] = mbilateral->Get_b_i(); // b_i is residual b
-		gpu_data_manager->host_correction_bilateral[cntr] = 1.0 / mbilateral->Get_g_i(); // eta = 1/g
-		gpu_data_manager->host_bids_bilateral[cntr] = I2(idA, idB);
-		gpu_data_manager->host_gamma_bilateral[cntr] = mbilateral->Get_l_i();
+		gpu_data_manager->host_data.JXYZA_bilateral[cntr] = A;
+		gpu_data_manager->host_data.JXYZB_bilateral[cntr] = B;
+		gpu_data_manager->host_data.JUVWA_bilateral[cntr] = C;
+		gpu_data_manager->host_data.JUVWB_bilateral[cntr] = D;
+		gpu_data_manager->host_data.residual_bilateral[cntr] = mbilateral->Get_b_i(); // b_i is residual b
+		gpu_data_manager->host_data.correction_bilateral[cntr] = 1.0 / mbilateral->Get_g_i(); // eta = 1/g
+		gpu_data_manager->host_data.bids_bilateral[cntr] = I2(idA, idB);
+		gpu_data_manager->host_data.gamma_bilateral[cntr] = mbilateral->Get_l_i();
 		cntr++;
 	}
 }

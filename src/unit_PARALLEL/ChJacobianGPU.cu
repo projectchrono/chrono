@@ -3,7 +3,14 @@ using namespace chrono;
 __constant__ uint number_of_contacts_const;
 
 __host__ __device__ void inline Compute_Jacobian(
-		const real4& quaternion_rotation, const real3& normal, const real3& tangent_u, const real3& tangent_w, const real3& point, real3& T1, real3& T2, real3& T3) {
+		const real4& quaternion_rotation,
+		const real3& normal,
+		const real3& tangent_u,
+		const real3& tangent_w,
+		const real3& point,
+		real3& T1,
+		real3& T2,
+		real3& T3) {
 //	T1.x = (normal.x * (2 * quaternion_rotation.x * quaternion_rotation.y - 2 * quaternion_rotation.w * quaternion_rotation.z) + normal.y * (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x + quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) + normal.z * (2 * quaternion_rotation.y * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.x)) * ((2 * quaternion_rotation.x * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.y) * point.x + (2 * quaternion_rotation.y * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.x) * point.y + (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y + quaternion_rotation.z * quaternion_rotation.z) * point.z) + (normal.x * (2 * quaternion_rotation.x * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.y) + normal.y * (2 * quaternion_rotation.y * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.x) + normal.z * (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y + quaternion_rotation.z * quaternion_rotation.z)) * (-(2 * quaternion_rotation.x * quaternion_rotation.y - 2 * quaternion_rotation.w * quaternion_rotation.z) * point.x - (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x + quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) * point.y - (2 * quaternion_rotation.y * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.x) * point.z);
 //	T1.y = (normal.x * (quaternion_rotation.w * quaternion_rotation.w + quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) + normal.y * (2 * quaternion_rotation.x * quaternion_rotation.y + 2 * quaternion_rotation.w * quaternion_rotation.z) + normal.z * (2 * quaternion_rotation.x * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.y)) * (-(2 * quaternion_rotation.x * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.y) * point.x - (2 * quaternion_rotation.y * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.x) * point.y - (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y + quaternion_rotation.z * quaternion_rotation.z) * point.z) + (normal.x * (2 * quaternion_rotation.x * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.y) + normal.y * (2 * quaternion_rotation.y * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.x) + normal.z * (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y + quaternion_rotation.z * quaternion_rotation.z)) * ((quaternion_rotation.w * quaternion_rotation.w + quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) * point.x + (2 * quaternion_rotation.x * quaternion_rotation.y + 2 * quaternion_rotation.w * quaternion_rotation.z) * point.y + (2 * quaternion_rotation.x * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.y) * point.z);
 //	T1.z = (normal.x * (quaternion_rotation.w * quaternion_rotation.w + quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) + normal.y * (2 * quaternion_rotation.x * quaternion_rotation.y + 2 * quaternion_rotation.w * quaternion_rotation.z) + normal.z * (2 * quaternion_rotation.x * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.y)) * ((2 * quaternion_rotation.x * quaternion_rotation.y - 2 * quaternion_rotation.w * quaternion_rotation.z) * point.x + (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x + quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) * point.y + (2 * quaternion_rotation.y * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.x) * point.z) + (normal.x * (2 * quaternion_rotation.x * quaternion_rotation.y - 2 * quaternion_rotation.w * quaternion_rotation.z) + normal.y * (quaternion_rotation.w * quaternion_rotation.w - quaternion_rotation.x * quaternion_rotation.x + quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) + normal.z * (2 * quaternion_rotation.y * quaternion_rotation.z + 2 * quaternion_rotation.w * quaternion_rotation.x)) * (-(quaternion_rotation.w * quaternion_rotation.w + quaternion_rotation.x * quaternion_rotation.x - quaternion_rotation.y * quaternion_rotation.y - quaternion_rotation.z * quaternion_rotation.z) * point.x - (2 * quaternion_rotation.x * quaternion_rotation.y + 2 * quaternion_rotation.w * quaternion_rotation.z) * point.y - (2 * quaternion_rotation.x * quaternion_rotation.z - 2 * quaternion_rotation.w * quaternion_rotation.y) * point.z);
@@ -78,7 +85,18 @@ __host__ __device__ void inline Compute_Jacobian(
 }
 
 __host__ __device__ void inline function_ContactJacobians(
-		uint& index, uint& num_contacts, real3* norm, real3* ptA, real3* ptB, real3* pos, real4* rot, int2* ids, real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB) {
+		uint& index,
+		uint& num_contacts,
+		real3* norm,
+		real3* ptA,
+		real3* ptB,
+		real3* pos,
+		real4* rot,
+		int2* ids,
+		real3* JXYZA,
+		real3* JXYZB,
+		real3* JUVWA,
+		real3* JUVWB) {
 	real3 U = norm[index];
 
 	if (U == R3(0, 0, 0)) {
@@ -90,7 +108,7 @@ __host__ __device__ void inline function_ContactJacobians(
 	real3 W = cross(U, R3(0, 1, 0));
 	real mzlen = length(W);
 
-	if (mzlen < 0.0001) { // was near singularity? change singularity reference vector!
+	if (mzlen < 0.0001) {     // was near singularity? change singularity reference vector!
 		real3 mVsingular = R3(0, 1, 0);
 		if (mVsingular.x < 0.9) {
 			mVsingular = R3(0, 0, 1);
@@ -148,11 +166,31 @@ __host__ __device__ void inline function_ContactJacobians(
 //    std::cout << "****************" << std::endl;
 }
 
-__global__ void device_ContactJacobians(real3* norm, real3* ptA, real3* ptB, int2* ids, real4* rot, real3* pos, real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB) {
+__global__ void device_ContactJacobians(
+		real3* norm,
+		real3* ptA,
+		real3* ptB,
+		int2* ids,
+		real4* rot,
+		real3* pos,
+		real3* JXYZA,
+		real3* JXYZB,
+		real3* JUVWA,
+		real3* JUVWB) {
 	INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_contacts_const);
 	//function_ContactJacobians(index, number_of_contacts_const, norm, ptA, ptB, pos, rot, ids, JXYZA, JXYZB, JUVWA, JUVWB);
 }
-void ChJacobianGPU::host_ContactJacobians(real3* norm, real3* ptA, real3* ptB, int2* ids, real4* rot, real3* pos, real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB) {
+void ChJacobianGPU::host_ContactJacobians(
+		real3* norm,
+		real3* ptA,
+		real3* ptB,
+		int2* ids,
+		real4* rot,
+		real3* pos,
+		real3* JXYZA,
+		real3* JXYZB,
+		real3* JUVWA,
+		real3* JUVWB) {
 #pragma omp parallel for schedule(guided)
 	for (uint index = 0; index < number_of_contacts; index++) {
 		function_ContactJacobians(index, number_of_contacts, norm, ptA, ptB, pos, rot, ids, JXYZA, JXYZB, JUVWA, JUVWB);
@@ -162,10 +200,10 @@ void ChJacobianGPU::host_ContactJacobians(real3* norm, real3* ptA, real3* ptB, i
 void ChJacobianGPU::Setup() {
 	Initialize();
 
-	data_container->gpu_data.device_JXYZA_data.resize(number_of_constraints);
-	data_container->gpu_data.device_JXYZB_data.resize(number_of_constraints);
-	data_container->gpu_data.device_JUVWA_data.resize(number_of_constraints);
-	data_container->gpu_data.device_JUVWB_data.resize(number_of_constraints);
+	data_container->host_data.JXYZA_data.resize(number_of_constraints);
+	data_container->host_data.JXYZB_data.resize(number_of_constraints);
+	data_container->host_data.JUVWA_data.resize(number_of_constraints);
+	data_container->host_data.JUVWB_data.resize(number_of_constraints);
 #ifdef SIM_ENABLE_GPU_MODE
 	COPY_TO_CONST_MEM(number_of_contacts);
 #endif
@@ -179,46 +217,46 @@ void ChJacobianGPU::ComputeJacobians(ChGPUDataManager *data_container_) {
 
 #ifdef SIM_ENABLE_GPU_MODE
 	device_ContactJacobians CUDA_KERNEL_DIM(BLOCKS(number_of_contacts), THREADS)(
-			CASTR3(data_container->gpu_data.device_norm_data),
-			CASTR3(data_container->gpu_data.device_cpta_data),
-			CASTR3(data_container->gpu_data.device_cptb_data),
-			CASTI2(data_container->gpu_data.device_bids_data),
-			CASTR4(data_container->gpu_data.device_rot_data),
-			CASTR3(data_container->gpu_data.device_pos_data),
-			CASTR3(data_container->gpu_data.device_JXYZA_data),
-			CASTR3(data_container->gpu_data.device_JXYZB_data),
-			CASTR3(data_container->gpu_data.device_JUVWA_data),
-			CASTR3(data_container->gpu_data.device_JUVWB_data));
+			CASTR3(data_container->device_data.device_norm_data),
+			CASTR3(data_container->device_data.device_cpta_data),
+			CASTR3(data_container->device_data.device_cptb_data),
+			CASTI2(data_container->device_data.device_bids_data),
+			CASTR4(data_container->device_data.device_rot_data),
+			CASTR3(data_container->device_data.device_pos_data),
+			CASTR3(data_container->device_data.device_JXYZA_data),
+			CASTR3(data_container->device_data.device_JXYZB_data),
+			CASTR3(data_container->device_data.device_JUVWA_data),
+			CASTR3(data_container->device_data.device_JUVWB_data));
 
 #else
 	host_ContactJacobians(
-			data_container->gpu_data.device_norm_data.data(),
-			data_container->gpu_data.device_cpta_data.data(),
-			data_container->gpu_data.device_cptb_data.data(),
-			data_container->gpu_data.device_bids_data.data(),
-			data_container->gpu_data.device_rot_data.data(),
-			data_container->gpu_data.device_pos_data.data(),
-			data_container->gpu_data.device_JXYZA_data.data(),
-			data_container->gpu_data.device_JXYZB_data.data(),
-			data_container->gpu_data.device_JUVWA_data.data(),
-			data_container->gpu_data.device_JUVWB_data.data());
+			data_container->host_data.norm_data.data(),
+			data_container->host_data.cpta_data.data(),
+			data_container->host_data.cptb_data.data(),
+			data_container->host_data.bids_data.data(),
+			data_container->host_data.rot_data.data(),
+			data_container->host_data.pos_data.data(),
+			data_container->host_data.JXYZA_data.data(),
+			data_container->host_data.JXYZB_data.data(),
+			data_container->host_data.JUVWA_data.data(),
+			data_container->host_data.JUVWB_data.data());
 
 	thrust::copy_n(
-			data_container->gpu_data.device_JXYZA_bilateral.begin(),
+			data_container->host_data.JXYZA_bilateral.begin(),
 			data_container->number_of_bilaterals,
-			data_container->gpu_data.device_JXYZA_data.begin() + data_container->number_of_contacts * 3);
+			data_container->host_data.JXYZA_data.begin() + data_container->number_of_contacts * 3);
 	thrust::copy_n(
-			data_container->gpu_data.device_JXYZB_bilateral.begin(),
+			data_container->host_data.JXYZB_bilateral.begin(),
 			data_container->number_of_bilaterals,
-			data_container->gpu_data.device_JXYZB_data.begin() + data_container->number_of_contacts * 3);
+			data_container->host_data.JXYZB_data.begin() + data_container->number_of_contacts * 3);
 	thrust::copy_n(
-			data_container->gpu_data.device_JUVWA_bilateral.begin(),
+			data_container->host_data.JUVWA_bilateral.begin(),
 			data_container->number_of_bilaterals,
-			data_container->gpu_data.device_JUVWA_data.begin() + data_container->number_of_contacts * 3);
+			data_container->host_data.JUVWA_data.begin() + data_container->number_of_contacts * 3);
 	thrust::copy_n(
-			data_container->gpu_data.device_JUVWB_bilateral.begin(),
+			data_container->host_data.JUVWB_bilateral.begin(),
 			data_container->number_of_bilaterals,
-			data_container->gpu_data.device_JUVWB_data.begin() + data_container->number_of_contacts * 3);
+			data_container->host_data.JUVWB_data.begin() + data_container->number_of_contacts * 3);
 
 #endif
 

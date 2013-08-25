@@ -20,7 +20,70 @@
 #include "ChCudaDefines.h"
 
 namespace chrono {
-struct gpu_container {
+struct host_container {
+		//collision data
+		thrust::host_vector<real3> ObA_data;
+		thrust::host_vector<real3> ObB_data;
+		thrust::host_vector<real3> ObC_data;
+		thrust::host_vector<real4> ObR_data;
+		thrust::host_vector<int2> fam_data;
+		thrust::host_vector<int> typ_data;
+		thrust::host_vector<uint> id_data;
+		thrust::host_vector<real3> aabb_data;
+
+		//contact data
+		thrust::host_vector<real3> norm_data;
+		thrust::host_vector<real3> cpta_data;
+		thrust::host_vector<real3> cptb_data;
+		thrust::host_vector<real> dpth_data;
+		thrust::host_vector<int2> bids_data;
+		thrust::host_vector<long long> pair_data;
+		thrust::host_vector<real> gam_data;
+		thrust::host_vector<real> dgm_data;
+
+		thrust::host_vector<real> comp_data;
+
+		//object data
+		thrust::host_vector<real3> vel_data;
+		thrust::host_vector<real3> omg_data;
+		thrust::host_vector<real3> pos_data;
+		thrust::host_vector<real4> rot_data;
+		thrust::host_vector<real3> inr_data;
+		thrust::host_vector<real3> frc_data;
+		thrust::host_vector<real3> trq_data;
+		thrust::host_vector<real3> acc_data;
+		thrust::host_vector<bool> active_data;
+		thrust::host_vector<real> mass_data;
+		thrust::host_vector<real> fric_data;
+		thrust::host_vector<real> cohesion_data;
+		thrust::host_vector<real> compliance_data;
+		thrust::host_vector<real3> lim_data;
+		thrust::host_vector<real3> dem_data;
+		thrust::host_vector<real3> gyr_data;
+
+		thrust::host_vector<real> rhs_data;
+		thrust::host_vector<int2> bidlist_data;
+		thrust::host_vector<real3> QXYZ_data, QUVW_data;
+		thrust::host_vector<real3> JXYZA_data, JXYZB_data;
+		thrust::host_vector<real3> JUVWA_data, JUVWB_data;
+
+		thrust::host_vector<real3> JXYZA_bilateral, JXYZB_bilateral;
+		thrust::host_vector<real3> JUVWA_bilateral, JUVWB_bilateral;
+		thrust::host_vector<real> residual_bilateral;
+		thrust::host_vector<real> correction_bilateral;
+		thrust::host_vector<int2> bids_bilateral;
+		thrust::host_vector<real> gamma_bilateral;
+
+		thrust::host_vector<real3> vel_update;
+		thrust::host_vector<real3> omg_update;
+		thrust::host_vector<uint> update_offset;
+		thrust::host_vector<uint> body_number;
+		thrust::host_vector<uint> offset_counter;
+		thrust::host_vector<uint> generic_counter;
+
+};
+
+struct device_container {
 
 		custom_vector<real3> device_norm_data;
 		custom_vector<real3> device_cpta_data;
@@ -63,12 +126,12 @@ struct gpu_container {
 		custom_vector<real> device_rhs_data;
 		custom_vector<int2> device_bidlist_data;
 
-		thrust::host_vector<real3> device_JXYZA_bilateral, device_JXYZB_bilateral;
-		thrust::host_vector<real3> device_JUVWA_bilateral, device_JUVWB_bilateral;
-		thrust::host_vector<real> device_residual_bilateral;
-		thrust::host_vector<real> device_correction_bilateral;
-		thrust::host_vector<int2> device_bids_bilateral;
-		thrust::host_vector<real> device_gamma_bilateral;
+		custom_vector<real3> device_JXYZA_bilateral, device_JXYZB_bilateral;
+		custom_vector<real3> device_JUVWA_bilateral, device_JUVWB_bilateral;
+		custom_vector<real> device_residual_bilateral;
+		custom_vector<real> device_correction_bilateral;
+		custom_vector<int2> device_bids_bilateral;
+		custom_vector<real> device_gamma_bilateral;
 
 		custom_vector<real> device_gam_data;
 		custom_vector<real> device_dgm_data;
@@ -78,7 +141,6 @@ struct gpu_container {
 		custom_vector<uint> update_offset;
 		custom_vector<uint> body_number;
 		custom_vector<uint> offset_counter;
-
 		custom_vector<uint> generic_counter;
 	};
 
@@ -96,7 +158,8 @@ class ChApiGPU ChGPUDataManager {
 		void CopyContacts(bool c) {
 			copyContacts = c;
 		}
-		gpu_container gpu_data;
+		device_container device_data;
+		host_container host_data;
 
 		uint number_of_contacts;
 		uint number_of_contacts_possible;
@@ -110,54 +173,6 @@ class ChApiGPU ChGPUDataManager {
 		real complianceT;
 		real alpha;
 		real contact_recovery_speed;
-
-		//contact data
-		thrust::host_vector<real3> host_norm_data;
-		thrust::host_vector<real3> host_cpta_data;
-		thrust::host_vector<real3> host_cptb_data;
-		thrust::host_vector<real> host_dpth_data;
-		thrust::host_vector<int2> host_bids_data;
-		thrust::host_vector<long long> host_pair_data;
-		thrust::host_vector<real> host_gam_data;
-		//thrust::host_vector<real> host_dgm_data;
-		//collision data
-		thrust::host_vector<real3> host_ObA_data;
-		thrust::host_vector<real3> host_ObB_data;
-		thrust::host_vector<real3> host_ObC_data;
-		thrust::host_vector<real4> host_ObR_data;
-		thrust::host_vector<int2> host_fam_data;
-		thrust::host_vector<int> host_typ_data;
-		thrust::host_vector<uint> host_id_data;
-		//thrust::host_vector<real3> host_aabb_data;
-
-		//object data
-		thrust::host_vector<real3> host_vel_data;
-		thrust::host_vector<real3> host_omg_data;
-		thrust::host_vector<real3> host_pos_data;
-		thrust::host_vector<real4> host_rot_data;
-		thrust::host_vector<real3> host_inr_data;
-		thrust::host_vector<real3> host_frc_data;
-		thrust::host_vector<real3> host_trq_data;
-		thrust::host_vector<real3> host_acc_data;
-		thrust::host_vector<bool> host_active_data;
-		thrust::host_vector<real> host_mass_data;
-		thrust::host_vector<real> host_fric_data;
-		thrust::host_vector<real> host_cohesion_data;
-		thrust::host_vector<real> host_compliance_data;
-		thrust::host_vector<real3> host_lim_data;
-		thrust::host_vector<real3> host_dem_data;
-		thrust::host_vector<real3> host_gyr_data;
-
-		thrust::host_vector<real3> host_JXYZA_data, host_JXYZB_data;
-		thrust::host_vector<real3> host_JUVWA_data, host_JUVWB_data;
-
-		thrust::host_vector<real3> host_JXYZA_bilateral, host_JXYZB_bilateral;
-		thrust::host_vector<real3> host_JUVWA_bilateral, host_JUVWB_bilateral;
-		thrust::host_vector<real> host_residual_bilateral;
-		thrust::host_vector<real> host_correction_bilateral;
-		thrust::host_vector<int2> host_bids_bilateral;
-		thrust::host_vector<real> host_gamma_bilateral;
-		//constraint data
 
 		bool copyContacts;
 };

@@ -99,11 +99,11 @@ void ChCollisionSystemBulletGPU::Run() {
 }
 void ChCollisionSystemBulletGPU::ReportContacts(ChContactContainerBase* mcontactcontainer) {
 
-	data_container->host_norm_data.clear();
-	data_container->host_cpta_data.clear();
-	data_container->host_cptb_data.clear();
-	data_container->host_dpth_data.clear();
-	data_container->host_bids_data.clear();
+	data_container->host_data.norm_data.clear();
+	data_container->host_data.cpta_data.clear();
+	data_container->host_data.cptb_data.clear();
+	data_container->host_data.dpth_data.clear();
+	data_container->host_data.bids_data.clear();
 	data_container->number_of_contacts = 0;
 	mcontactcontainer->BeginAddContact();
 	ChCollisionInfo icontact;
@@ -169,11 +169,11 @@ void ChCollisionSystemBulletGPU::ReportContacts(ChContactContainerBase* mcontact
 					// Add to contact container
 					mcontactcontainer->AddContact(icontact);
 
-					data_container->host_norm_data.push_back(R3(icontact.vN.x, icontact.vN.y, icontact.vN.z));
-					data_container->host_cpta_data.push_back(R3(icontact.vpA.x, icontact.vpA.y, icontact.vpA.z));
-					data_container->host_cptb_data.push_back(R3(icontact.vpB.x, icontact.vpB.y, icontact.vpB.z));
-					data_container->host_dpth_data.push_back(icontact.distance);
-					data_container->host_bids_data.push_back(I2(obA->getCompanionId(), obB->getCompanionId()));
+					data_container->host_data.norm_data.push_back(R3(icontact.vN.x, icontact.vN.y, icontact.vN.z));
+					data_container->host_data.cpta_data.push_back(R3(icontact.vpA.x, icontact.vpA.y, icontact.vpA.z));
+					data_container->host_data.cptb_data.push_back(R3(icontact.vpB.x, icontact.vpB.y, icontact.vpB.z));
+					data_container->host_data.dpth_data.push_back(icontact.distance);
+					data_container->host_data.bids_data.push_back(I2(obA->getCompanionId(), obB->getCompanionId()));
 					data_container->number_of_contacts++;
 
 

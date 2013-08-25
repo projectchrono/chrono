@@ -34,7 +34,7 @@ public:
 
 		int n_c = data_container->number_of_contacts * 3 + data_container->number_of_bilaterals;
 
-		int n_q = Thrust_Count(data_container->host_active_data,1)*6;
+		int n_q = Thrust_Count(data_container->host_data.active_data,1)*6;
 		//cout << " " << n_q << " " << data_container->number_of_objects << " " << endl;
 		if (Cq)
 			Cq->Reset(n_c, n_q);

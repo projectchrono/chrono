@@ -159,8 +159,8 @@ class ChApiGPU ChSolverGPU: public ChBaseGPU {
 
 			void Dump_Rhs(ostream& out) {
 				//ComputeRHS();
-				for (int i=0; i<data_container->gpu_data.device_rhs_data.size(); i++) {
-					out<<data_container->gpu_data.device_rhs_data[i]<<endl;
+				for (int i=0; i<data_container->host_data.rhs_data.size(); i++) {
+					out<<data_container->host_data.rhs_data[i]<<endl;
 				}
 			}
 			void Dump_Lambda(std::ostream& out) {

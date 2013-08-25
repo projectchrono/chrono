@@ -59,7 +59,7 @@ void ChIntegratorGPU::host_Integrate_Timestep_Semi_Implicit(bool* active, real3*
 		function_Integrate_Timestep_Semi_Implicit(index, step_size, active, acc, rot, vel, omega, pos, lim);
 	}
 }
-void ChIntegratorGPU::IntegrateSemiImplicit(real step, gpu_container& gpu_data_) {
+void ChIntegratorGPU::IntegrateSemiImplicit(real step, device_container& gpu_data_) {
 	gpu_data = &gpu_data_;
 	step_size = step;
 	number_of_objects = gpu_data->number_of_objects;

@@ -22,7 +22,7 @@ ChCollisionSystemGPU::ChCollisionSystemGPU() {
 void ChCollisionSystemGPU::Add(ChCollisionModel *model) {
 	if (model->GetPhysicsItem()->GetCollide() == true) {
 		ChCollisionModelGPU *body = (ChCollisionModelGPU *) model;
-		int body_id =  body->GetBody()->GetId();
+		int body_id = body->GetBody()->GetId();
 		int2 fam = I2(body->GetFamily(), body->GetNoCollFamily());
 
 		for (int j = 0; j < body->GetNObjects(); j++) {
@@ -33,13 +33,13 @@ void ChCollisionSystemGPU::Add(ChCollisionModel *model) {
 			}
 			real3 obC = body->mData[j].C;
 			real4 obR = body->mData[j].R;
-			data_container->host_ObA_data.push_back(obA);
-			data_container->host_ObB_data.push_back(obB);
-			data_container->host_ObC_data.push_back(obC);
-			data_container->host_ObR_data.push_back(obR);
-			data_container->host_fam_data.push_back(fam);
-			data_container->host_typ_data.push_back(body->mData[j].type);
-			data_container->host_id_data.push_back(body_id);
+			data_container->host_data.ObA_data.push_back(obA);
+			data_container->host_data.ObB_data.push_back(obB);
+			data_container->host_data.ObC_data.push_back(obC);
+			data_container->host_data.ObR_data.push_back(obR);
+			data_container->host_data.fam_data.push_back(fam);
+			data_container->host_data.typ_data.push_back(body->mData[j].type);
+			data_container->host_data.id_data.push_back(body_id);
 			data_container->number_of_models++;
 		}
 	}
@@ -78,37 +78,37 @@ void ChCollisionSystemGPU::Run() {
 
 	ChCNarrowphase narrowphase;
 	aabb_generator.GenerateAABB(
-			data_container->gpu_data.device_typ_data,
-			data_container->gpu_data.device_ObA_data,
-			data_container->gpu_data.device_ObB_data,
-			data_container->gpu_data.device_ObC_data,
-			data_container->gpu_data.device_ObR_data,
-			data_container->gpu_data.device_id_data,
-			data_container->gpu_data.device_pos_data,
-			data_container->gpu_data.device_rot_data,
-			data_container->gpu_data.device_aabb_data);
-	broadphase.detectPossibleCollisions(data_container->gpu_data.device_aabb_data, data_container->gpu_data.device_pair_data);
+			data_container->host_data.typ_data,
+			data_container->host_data.ObA_data,
+			data_container->host_data.ObB_data,
+			data_container->host_data.ObC_data,
+			data_container->host_data.ObR_data,
+			data_container->host_data.id_data,
+			data_container->host_data.pos_data,
+			data_container->host_data.rot_data,
+			data_container->host_data.aabb_data);
+	broadphase.detectPossibleCollisions(data_container->host_data.aabb_data, data_container->host_data.pair_data);
 	mtimer_cd_broad.stop();
 
 	mtimer_cd_narrow.start();
 	narrowphase.SetCollisionEnvelope(collision_envelope);
 
 	narrowphase.DoNarrowphase(
-			data_container->gpu_data.device_typ_data,
-			data_container->gpu_data.device_ObA_data,
-			data_container->gpu_data.device_ObB_data,
-			data_container->gpu_data.device_ObC_data,
-			data_container->gpu_data.device_ObR_data,
-			data_container->gpu_data.device_id_data,
-			data_container->gpu_data.device_active_data,
-			data_container->gpu_data.device_pos_data,
-			data_container->gpu_data.device_rot_data,
-			data_container->gpu_data.device_pair_data,
-			data_container->gpu_data.device_norm_data,
-			data_container->gpu_data.device_cpta_data,
-			data_container->gpu_data.device_cptb_data,
-			data_container->gpu_data.device_dpth_data,
-			data_container->gpu_data.device_bids_data,
+			data_container->host_data.typ_data,
+			data_container->host_data.ObA_data,
+			data_container->host_data.ObB_data,
+			data_container->host_data.ObC_data,
+			data_container->host_data.ObR_data,
+			data_container->host_data.id_data,
+			data_container->host_data.active_data,
+			data_container->host_data.pos_data,
+			data_container->host_data.rot_data,
+			data_container->host_data.pair_data,
+			data_container->host_data.norm_data,
+			data_container->host_data.cpta_data,
+			data_container->host_data.cptb_data,
+			data_container->host_data.dpth_data,
+			data_container->host_data.bids_data,
 			data_container->number_of_contacts);
 	mtimer_cd_narrow.stop();
 
@@ -116,16 +116,16 @@ void ChCollisionSystemGPU::Run() {
 
 vector<int2> ChCollisionSystemGPU::GetOverlappingPairs() {
 	vector<int2> pairs;
-	pairs.resize(data_container->host_pair_data.size());
+	pairs.resize(data_container->host_data.pair_data.size());
 	data_container->DeviceToHostPairData();
-	for (int i = 0; i < data_container->host_pair_data.size(); i++) {
-		int2 pair = I2(int(data_container->host_pair_data[i] >> 32), int(data_container->host_pair_data[i] & 0xffffffff));
+	for (int i = 0; i < data_container->host_data.pair_data.size(); i++) {
+		int2 pair = I2(int(data_container->host_data.pair_data[i] >> 32), int(data_container->host_data.pair_data[i] & 0xffffffff));
 		pairs[i] = pair;
 
 	}
 	return pairs;
 }
 
-} // END_OF_NAMESPACE____
-} // END_OF_NAMESPACE____
+}     // END_OF_NAMESPACE____
+}     // END_OF_NAMESPACE____
 

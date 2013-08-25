@@ -51,7 +51,7 @@ class ChApiGPU ChLcpSolverGPU: public ChLcpIterativeSolver {
 
 		void RunTimeStep(real step);
 		void RunStab(real step);
-		void Preprocess(gpu_container &gpu_data);
+		void Preprocess();
 		void SetTolerance(real tol) {
 			tolerance = tol;
 		}
