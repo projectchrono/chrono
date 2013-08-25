@@ -65,7 +65,12 @@ SET(ChronoEngine_unit_GPU_SOLVER
     solver/ChSolverBiCGStab.cu
    )
 
-
+SET(ChronoEngine_unit_GPU_CONSTRAINTS
+    constraints/ChConstraintRigidRigid.cu
+    constraints/ChConstraintRigidRigid.h
+    constraints/ChConstraintBilateral.cu
+    constraints/ChConstraintBilateral.h
+   )
 
 SET(ChronoEngine_unit_GPU_SOURCES
     #ChBodyGPU.cpp
@@ -106,6 +111,10 @@ SOURCE_GROUP(unit_GPU\\collision FILES
             )
 SOURCE_GROUP(unit_GPU\\solver FILES
              ${ChronoEngine_unit_GPU_SOLVER}
+            )
+            
+            SOURCE_GROUP(unit_GPU\\constraints FILES
+             ${ChronoEngine_unit_GPU_CONSTRAINTS}
             )
 #-----------------------------------------------------------------------------
 # In most cases, you do not need to edit the lines below.
@@ -162,6 +171,7 @@ if (CUDA_FOUND)
 
         CUDA_ADD_LIBRARY(ChronoEngine_GPU SHARED
                          ${ChronoEngine_unit_GPU_COLLISION}
+                         ${ChronoEngine_unit_GPU_CONSTRAINTS}
                          ${ChronoEngine_unit_GPU_SOLVER}
                          ${ChronoEngine_unit_GPU_SOURCES}
                          ${ChronoEngine_unit_GPU_HEADERS}

@@ -192,20 +192,20 @@ void ChJacobianGPU::host_ContactJacobians(
 		real3* JUVWA,
 		real3* JUVWB) {
 #pragma omp parallel for schedule(guided)
-	for (uint index = 0; index < number_of_contacts; index++) {
-		function_ContactJacobians(index, number_of_contacts, norm, ptA, ptB, pos, rot, ids, JXYZA, JXYZB, JUVWA, JUVWB);
+	for (uint index = 0; index < number_of_rigid_rigid; index++) {
+		function_ContactJacobians(index, number_of_rigid_rigid, norm, ptA, ptB, pos, rot, ids, JXYZA, JXYZB, JUVWA, JUVWB);
 	}
 }
 
 void ChJacobianGPU::Setup() {
 	Initialize();
 
-	data_container->host_data.JXYZA_data.resize(number_of_contacts * 3);
-	data_container->host_data.JXYZB_data.resize(number_of_contacts * 3);
-	data_container->host_data.JUVWA_data.resize(number_of_contacts * 3);
-	data_container->host_data.JUVWB_data.resize(number_of_contacts * 3);
+	data_container->host_data.JXYZA_data.resize(number_of_rigid_rigid * 3);
+	data_container->host_data.JXYZB_data.resize(number_of_rigid_rigid * 3);
+	data_container->host_data.JUVWA_data.resize(number_of_rigid_rigid * 3);
+	data_container->host_data.JUVWB_data.resize(number_of_rigid_rigid * 3);
 #ifdef SIM_ENABLE_GPU_MODE
-	COPY_TO_CONST_MEM(number_of_contacts);
+	COPY_TO_CONST_MEM(number_of_rigid_rigid);
 #endif
 
 }
@@ -216,7 +216,7 @@ void ChJacobianGPU::ComputeJacobians(ChGPUDataManager *data_container_) {
 	Setup();
 
 #ifdef SIM_ENABLE_GPU_MODE
-	device_ContactJacobians CUDA_KERNEL_DIM(BLOCKS(number_of_contacts), THREADS)(
+	device_ContactJacobians CUDA_KERNEL_DIM(BLOCKS(number_of_rigid_rigid), THREADS)(
 			CASTR3(data_container->device_data.device_norm_data),
 			CASTR3(data_container->device_data.device_cpta_data),
 			CASTR3(data_container->device_data.device_cptb_data),

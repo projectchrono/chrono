@@ -109,7 +109,7 @@ void ChCollisionSystemGPU::Run() {
 			data_container->host_data.cptb_data,
 			data_container->host_data.dpth_data,
 			data_container->host_data.bids_data,
-			data_container->number_of_contacts);
+			data_container->number_of_rigid_rigid);
 	mtimer_cd_narrow.stop();
 
 }

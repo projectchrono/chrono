@@ -17,8 +17,8 @@ class ChApiGPU ChBaseGPU {
 		void Initialize();
 	protected:
 		ChGPUDataManager *data_container;
-		uint number_of_objects;
-		uint number_of_contacts;
+		uint number_of_rigid;
+		uint number_of_rigid_rigid;
 		uint number_of_bilaterals;
 		uint number_of_constraints;
 		uint number_of_updates;

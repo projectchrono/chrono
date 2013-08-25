@@ -4,14 +4,14 @@ using namespace chrono;
 void ChComputeRHSGPU::Setup() {
 	Initialize();
 	time_rhs = 0;
-	correction.resize(number_of_contacts);
+	correction.resize(number_of_rigid_rigid);
 	data_container->host_data.rhs_data.resize(number_of_constraints);
-	bi.resize(number_of_contacts);
+	bi.resize(number_of_rigid_rigid);
 	Thrust_Fill(correction, 0);
 	thrust::copy_n(
 			data_container->host_data.dpth_data.begin(),
-			data_container->number_of_contacts,
-			correction.begin() + data_container->number_of_contacts * 0);
+			data_container->number_of_rigid_rigid,
+			correction.begin() + data_container->number_of_rigid_rigid * 0);
 }
 
 __host__ __device__ void function_bi(
@@ -27,11 +27,11 @@ __host__ __device__ void function_bi(
 
 void ChComputeRHSGPU::host_bi(real *correction, real * compliance, real* bi) {
 #pragma omp parallel for
-	for (uint index = 0; index < number_of_contacts; index++) {
+	for (uint index = 0; index < number_of_rigid_rigid; index++) {
 		if (compliance[index]) {
-			bi[index + number_of_contacts * 0] = inv_hpa * correction[index];
+			bi[index + number_of_rigid_rigid * 0] = inv_hpa * correction[index];
 		} else {
-			bi[index + number_of_contacts * 0] = fmax(real(1.0) / step_size * correction[index], -contact_recovery_speed);
+			bi[index + number_of_rigid_rigid * 0] = fmax(real(1.0) / step_size * correction[index], -contact_recovery_speed);
 		}
 
 		//function_bi(index, number_of_contacts, step_size, correction, contact_recovery_speed, alpha, bi);
@@ -86,10 +86,10 @@ void ChComputeRHSGPU::host_RHS_contacts(
 		real3 *JUVWB,
 		real *rhs) {
 #pragma omp parallel for
-	for (uint index = 0; index < number_of_contacts; index++) {
+	for (uint index = 0; index < number_of_rigid_rigid; index++) {
 		function_RHS(
 				index,
-				number_of_contacts,
+				number_of_rigid_rigid,
 				step_size,
 				ids,
 				bi,
@@ -138,7 +138,7 @@ void ChComputeRHSGPU::host_RHS_bilaterals(
 			vA = omega[b1];
 
 		}
-		rhs[index + number_of_contacts * 3] = -temp - bi[index];     //(temp + fmax(inv_hpa * correction[index], real(-recovery_speed)));
+		rhs[index + number_of_rigid_rigid * 3] = -temp - bi[index];     //(temp + fmax(inv_hpa * correction[index], real(-recovery_speed)));
 	}
 
 }
@@ -150,8 +150,8 @@ void ChComputeRHSGPU::ComputeRHS(ChGPUDataManager *data_container_) {
 	//Thrust_Fill(data_container->gpu_data.device_QXYZ_data, R3(0));
 	//Thrust_Fill(data_container->gpu_data.device_QUVW_data, R3(0));
 
-	data_container->host_data.comp_data.resize(number_of_contacts);
-	for (int i = 0; i < number_of_contacts; i++) {
+	data_container->host_data.comp_data.resize(number_of_rigid_rigid);
+	for (int i = 0; i < number_of_rigid_rigid; i++) {
 		uint b1 = data_container->host_data.bids_data[i].x;
 		uint b2 = data_container->host_data.bids_data[i].y;
 		real compb1 = data_container->host_data.compliance_data[b1];

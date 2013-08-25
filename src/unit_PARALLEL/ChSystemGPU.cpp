@@ -137,7 +137,7 @@ void ChSystemGPU::AddBody(ChSharedPtr<ChBody> newbody) {
 	gpu_data_manager->host_data.lim_data.push_back(R3(newbody->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
 	//newbody->gpu_data_manager = gpu_data_manager;
 	counter++;
-	gpu_data_manager->number_of_objects = counter;
+	gpu_data_manager->number_of_rigid = counter;
 }
 
 void ChSystemGPU::RemoveBody(ChSharedPtr<ChBody> mbody) {

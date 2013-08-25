@@ -161,10 +161,10 @@ class ChApiGPU ChGPUDataManager {
 		device_container device_data;
 		host_container host_data;
 
-		uint number_of_contacts;
+		uint number_of_rigid_rigid;
 		uint number_of_contacts_possible;
 		uint number_of_models;
-		uint number_of_objects;
+		uint number_of_rigid;
 		uint number_of_bilaterals;
 		uint number_of_updates;
 		real3 min_bounding_point, max_bounding_point;

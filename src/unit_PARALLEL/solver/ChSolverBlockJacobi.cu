@@ -178,12 +178,12 @@ void ChSolverGPU::host_process_contacts(
 		real3* vel, real3* omega, real3* pos, real3* updateV, real3* updateO, uint* offset) {
 #pragma omp parallel for schedule(guided)
 
-	for (uint index = 0; index < number_of_contacts; index++) {
+	for (uint index = 0; index < number_of_rigid_rigid; index++) {
 		function_process_contacts(
 				index,
 				step_size,
 				contact_recovery_speed,
-				number_of_contacts,
+				number_of_rigid_rigid,
 				lcp_omega_contact,
 				JXYZA,
 				JXYZB,
@@ -311,7 +311,7 @@ void ChSolverGPU::host_Bilaterals(
 		function_Bilaterals(
 				index,
 				number_of_bilaterals,
-				number_of_contacts,
+				number_of_rigid_rigid,
 				lcp_omega_bilateral,
 				JXYZA,
 				JXYZB,
@@ -400,7 +400,7 @@ void ChSolverGPU::host_Reduce_Speeds(bool* active, real* mass, real3* vel, real3
 void ChSolverGPU::SolveJacobi() {
 
 #ifdef SIM_ENABLE_GPU_MODE
-	COPY_TO_CONST_MEM(number_of_contacts);
+	COPY_TO_CONST_MEM(number_of_rigid_rigid);
 	COPY_TO_CONST_MEM(number_of_constraints);
 	COPY_TO_CONST_MEM(number_of_bilaterals);
 	COPY_TO_CONST_MEM(number_of_objects);
@@ -422,11 +422,11 @@ void ChSolverGPU::SolveJacobi() {
 #ifdef SIM_ENABLE_GPU_MODE
 	COPY_TO_CONST_MEM(number_of_updates);
 #endif
-	if (number_of_contacts + number_of_bilaterals != 0) {
+	if (number_of_rigid_rigid + number_of_bilaterals != 0) {
 		for (current_iteration = 0; current_iteration < max_iteration; current_iteration++) {
 
 #ifdef SIM_ENABLE_GPU_MODE
-			device_process_contacts CUDA_KERNEL_DIM(BLOCKS(number_of_contacts), THREADS)(
+			device_process_contacts CUDA_KERNEL_DIM(BLOCKS(number_of_rigid_rigid), THREADS)(
 					CASTR3(data_container->device_data.device_JXYZA_data),
 					CASTR3(data_container->device_data.device_JXYZB_data),
 					CASTR3(data_container->device_data.device_JUVWA_data),
@@ -529,7 +529,7 @@ void ChSolverGPU::SolveJacobi() {
 			//residual = CompRes(data_container->gpu_data.device_dgm_data, number_of_contacts);
 			residual = data_container->device_data.device_dgm_data[thrust::max_element(
 					data_container->device_data.device_dgm_data.begin(),
-					data_container->device_data.device_dgm_data.begin() + number_of_contacts) - data_container->device_data.device_dgm_data.begin()];
+					data_container->device_data.device_dgm_data.begin() + number_of_rigid_rigid) - data_container->device_data.device_dgm_data.begin()];
 
 			AtIterationEnd(residual, 0, current_iteration);
 

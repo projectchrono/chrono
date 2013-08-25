@@ -54,7 +54,7 @@ namespace chrono {
 			void ChangeLcpSystemDescriptor(ChLcpSystemDescriptor* newdescriptor);
 			void ChangeLcpSolverSpeed(ChLcpSolver *newsolver);
 			int GetNcontacts() {
-				return gpu_data_manager->number_of_contacts;
+				return gpu_data_manager->number_of_rigid_rigid;
 			}
 			double GetTimerCollision() {
 				return timer_collision;

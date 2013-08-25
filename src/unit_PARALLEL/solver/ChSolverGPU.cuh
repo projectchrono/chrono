@@ -7,6 +7,8 @@
 #include "ChDataManager.h"
 #include "core/ChTimer.h"
 #include "ChBaseGPU.h"
+#include "constraints/ChConstraintRigidRigid.h"
+#include "constraints/ChConstraintBilateral.h"
 namespace chrono {
 class ChApiGPU ChSolverGPU: public ChBaseGPU {
 	public:
@@ -24,7 +26,7 @@ class ChApiGPU ChSolverGPU: public ChBaseGPU {
 
 		void ComputeImpulses();
 
-		void host_shurA_contacts(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO,real3 *QXYZ,real3 *QUVW,uint* offset);
+		void host_shurA_contacts(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB,real *gamma, real3 *updateV, real3 *updateO,real3 *QXYZ,real3 *QUVW,uint* offset);
 		void host_shurA_bilaterals(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO,real3 *QXYZ,real3 *QUVW,uint* offset);
 
 		void host_shurB_contacts(
@@ -52,6 +54,8 @@ class ChApiGPU ChSolverGPU: public ChBaseGPU {
 		uint SolveMinRes(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 		uint SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 		void SolveJacobi();
+
+		void InitAPGD(custom_vector<real> &x);
 
 
 		void host_process_contacts(
@@ -191,6 +195,14 @@ class ChApiGPU ChSolverGPU: public ChBaseGPU {
 			custom_vector<real> obj2_temp;
 			custom_vector<real> obj1_temp;
 			custom_vector<real> lm;
+
+			custom_vector<real> ms, mg_tmp2, mb_tmp,mg_tmp, mg_tmp1;
+			custom_vector<real> mg,ml;
+
+
+
+			ChConstraintRigidRigid *rigid_rigid;
+			ChConstraintBilateral *bilateral;
 
 			bool do_stab;
 
