@@ -36,6 +36,7 @@ __constant__ int flagD;
 __constant__ int numRigidBodiesD;
 __constant__ int startRigidParticleD;
 __constant__ int numRigid_SphParticlesD;
+__constant__ float rParticlesD;
 
 int maxblock = 65535;
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -217,6 +218,32 @@ __global__ void SumSurfaceInteractionForces(float3 * totalBodyForces3, float4 * 
 	}
 	float4 dummyVelMas = velMassRigidD[rigidSphereA];
 	totalBodyForces3[rigidSphereA] = rigid_SPH_massD / dummyVelMas.w * F3(totalSurfaceInteraction4[rigidSphereA]);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+__global__ void LubricationForces(float3 * totalBodyForces3, float3* posRigidD, float4 * velMassRigidD) {
+	uint rigidSphereA = blockIdx.x * blockDim.x + threadIdx.x;
+	if (rigidSphereA >= numRigidBodiesD) {
+		return;
+	}
+	float cutOffVal = HSML;
+	float3 force3 = F3(0);
+//	if (rigidSphereA == 0 ) printf("num rigids in kernel %d\n", numRigidBodiesD);
+	for (int i = 0; i < numRigidBodiesD; i++) {
+		if (i == rigidSphereA) continue;
+		float4 velMasA = velMassRigidD[rigidSphereA];
+		float3 posRadA = posRigidD[rigidSphereA];
+		float4 velMasB = velMassRigidD[i];
+		float3 posRadB = posRigidD[i];
+
+		float3 dist3 = Distance(posRadA, posRadB); //center distance of the rigid bodies
+		float d = length(dist3);
+		float penetSize = d - 2 * rParticlesD;
+		if (penetSize < cutOffVal) {
+			force3 += -(1.5 * PI * mu0) * (rParticlesD * rParticlesD) * (1.0 / rParticlesD - 1 / cutOffVal) * dot(dist3, F3(velMasA - velMasB)) * dist3 / (d * d);
+		}
+	}
+	float4 dummyVelMas = velMassRigidD[rigidSphereA];
+	totalBodyForces3[rigidSphereA] += force3 / dummyVelMas.w;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void CalcTorqueShare(float3* torqueParticlesD, float4* derivVelRhoD, float3* posRadD, int* rigidIdentifierD, float3* posRigidD) {
@@ -551,6 +578,9 @@ void PrintToFile(
 		float delT,
 		int tStep,
 		float channelRadius) {
+	float2 channelCenterYZ = F2(11.2/2, 11.2/2) * sizeScale; //terrible
+
+
 	thrust::host_vector<float3> posRadH = posRadD;
 	thrust::host_vector<float4> velMasH = velMasD;
 	thrust::host_vector<float4> rhoPresMuH = rhoPresMuD;
@@ -657,22 +687,22 @@ void PrintToFile(
 		fileNameSlice.close();
 	}
 ////////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//comcom
-//	ofstream fileNameCartesianTotal;
-//	thrust::host_vector<float4> rho_Pres_CartH(1);
-//	thrust::host_vector<float4> vel_VelMag_CartH(1);
-//	float resolution = 2 * HSML;
-//	int3 cartesianGridDims;
-//	int tStepCartesianTotal = 1000000;
-//	int tStepCartesianSlice = 100000;
-//	int tStepPoiseuilleProf = 1000; //tStepCartesianSlice;
-//
-//	int stepCalcCartesian = min(tStepCartesianTotal, tStepCartesianSlice);
-//	stepCalcCartesian = min(stepCalcCartesian, tStepPoiseuilleProf);
-//
-//	if (tStep % stepCalcCartesian == 0) {
-//		MapSPH_ToGrid(resolution, cartesianGridDims, rho_Pres_CartH, vel_VelMag_CartH, posRadD, velMasD, rhoPresMuD,
-//				referenceArray[referenceArray.size() - 1].y, paramsH);
-//	}
+	ofstream fileNameCartesianTotal;
+	thrust::host_vector<float4> rho_Pres_CartH(1);
+	thrust::host_vector<float4> vel_VelMag_CartH(1);
+	float resolution = 2 * HSML;
+	int3 cartesianGridDims;
+	int tStepCartesianTotal = 1000000;
+	int tStepCartesianSlice = 100000;
+	int tStepPoiseuilleProf = 1000; //tStepCartesianSlice;
+
+	int stepCalcCartesian = min(tStepCartesianTotal, tStepCartesianSlice);
+	stepCalcCartesian = min(stepCalcCartesian, tStepPoiseuilleProf);
+
+	if (tStep % stepCalcCartesian == 0) {
+		MapSPH_ToGrid(resolution, cartesianGridDims, rho_Pres_CartH, vel_VelMag_CartH, posRadD, velMasD, rhoPresMuD,
+				referenceArray[referenceArray.size() - 1].y, paramsH);
+	}
 //	if (tStep % tStepCartesianTotal == 0) {
 //		if (tStep / tStepCartesianTotal == 0) {
 //			fileNameCartesianTotal.open("dataCartesianTotal.txt");
@@ -696,7 +726,7 @@ void PrintToFile(
 //		fileNameCartesianTotal<<ssCartesianTotal.str();
 //		fileNameCartesianTotal.close();
 //	}
-//////////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //comcom
+////////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //comcom
 //	ofstream fileNameCartesianMidplane;
 //	if (tStep % tStepCartesianSlice == 0) {
 //		if (tStep / tStepCartesianSlice == 0) {
@@ -721,33 +751,37 @@ void PrintToFile(
 //		fileNameCartesianMidplane.close();
 //	}
 //	rho_Pres_CartH.clear();
-//////////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++comcom
-//	ofstream fileVelocityProfPoiseuille;
-//	if (tStep % tStepPoiseuilleProf == 0) {
-//		if (tStep / tStepPoiseuilleProf == 0) {
-//			fileVelocityProfPoiseuille.open("dataVelProfile.txt");
-//			fileVelocityProfPoiseuille<< "variables = \"Z(m)\", \"Vx(m/s)\"\n";
-//
-//		} else {
-//			fileVelocityProfPoiseuille.open("dataVelProfile.txt", ios::app);
-//		}
-//		fileVelocityProfPoiseuille<<"zone T=\"t = "<<delT * tStep<<"\""endl;
-//		stringstream ssVelocityProfPoiseuille;
-//		int j = cartesianGridDims.y / 2;
-//		int i = cartesianGridDims.x / 2;
-//		for (int k = 0; k < cartesianGridDims.z; k++) {
-//			int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
-//			float3 gridNodeLoc = resolution * F3(i, j, k) + paramsH.worldOrigin;
-//			if (gridNodeLoc.z > 1 * sizeScale && gridNodeLoc.z < 2 * sizeScale) {
-//				ssVelocityProfPoiseuille<<gridNodeLoc.z<<", "<< vel_VelMag_CartH[index].x<<endl;
-//			}
-//		}
-//		fileVelocityProfPoiseuille<<ssVelocityProfPoiseuille.str();
-//		fileVelocityProfPoiseuille.close();
-//	}
-//	vel_VelMag_CartH.clear();
+////////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++comcom
+	ofstream fileVelocityProfPoiseuille;
+	if (tStep % tStepPoiseuilleProf == 0) {
+		if (tStep / tStepPoiseuilleProf == 0) {
+			fileVelocityProfPoiseuille.open("dataVelProfile.txt");
+			fileVelocityProfPoiseuille<< "variables = \"Z(m)\", \"Vx(m/s)\"\n";
+
+		} else {
+			fileVelocityProfPoiseuille.open("dataVelProfile.txt", ios::app);
+		}
+		fileVelocityProfPoiseuille<<"zone T=\"t = "<<delT * tStep<<"\""<<endl;
+		stringstream ssVelocityProfPoiseuille;
+
+			printf("^^^ bodDim %f %f %f, GridDim %d %d %d, resolution %f \n", paramsH.boxDims.x, paramsH.boxDims.y, paramsH.boxDims.z, cartesianGridDims.x,
+					cartesianGridDims.y, cartesianGridDims.z, resolution);
+
+		int i = cartesianGridDims.x / 2;
+		int j = channelCenterYZ.x / resolution;
+		int kMax = (channelCenterYZ.x + 11.2*sizeScale) / resolution;
+		for (int k = 0; k < kMax; k++) {
+			int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
+			float3 gridNodeLoc = resolution * F3(i, j, k) + paramsH.worldOrigin;
+			//if (gridNodeLoc.z > 1 * sizeScale && gridNodeLoc.z < 2 * sizeScale) {
+				ssVelocityProfPoiseuille<<gridNodeLoc.z<<", "<< vel_VelMag_CartH[index].x<<endl;
+			//}
+		}
+		fileVelocityProfPoiseuille<<ssVelocityProfPoiseuille.str();
+		fileVelocityProfPoiseuille.close();
+	}
+	vel_VelMag_CartH.clear();
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	float2 channelCenterYZ = F2(11.2/2, 11.2/2) * sizeScale;
 		ofstream fileRigidParticleCenterVsTimeAndDistance;
 		int numRigidBodiesInOnePeriod = int(posRigidH.size() / float(nPeriod) + .5);
 		int tStepRigidCenterPos = 1000;
@@ -781,7 +815,7 @@ void PrintToFile(
 
 	//				//***radial distance (tube)
 					float2 dist2 = F2(channelCenterYZ.x - p_rigid.y, channelCenterYZ.y - p_rigid.z);
-					printf("center %f %f and radius %f and py and pz %f %f\n", channelCenterYZ.x, channelCenterYZ.y, channelRadius, p_rigid.y, p_rigid.z);
+//					printf("center %f %f and radius %f and py and pz %f %f\n", channelCenterYZ.x, channelCenterYZ.y, channelRadius, p_rigid.y, p_rigid.z);
 					ssParticleCenterVsTime << tStep * delT << ", " <<  p_rigidCumul.x << ", " <<
 							length(dist2) / channelRadius << ", " << length(dist2) / channelRadius << ", " <<
 							p_rigidCumul.x << ", " << p_rigid.y << ", " << p_rigid.z << ", " <<
@@ -1249,7 +1283,10 @@ void UpdateRigidBody(
 //	CUT_CHECK_ERROR("Kernel execution failed: SumSurfaceInteractionForces");
 	totalSurfaceInteraction4.clear();
 
-
+	if (USE_LUBRICATION) {
+		LubricationForces<<<nBlocks_numRigid_SphParticles, nThreads_SphParticles>>>(F3CAST(totalBodyForces3), F3CAST(posRigidD), F4CAST(velMassRigidD));
+		cudaThreadSynchronize();
+	}
 
 	thrust::device_vector<float3> torqueParticlesD(numRigid_SphParticles);
 	CalcTorqueShare<<<nBlocks_numRigid_SphParticles, nThreads_SphParticles>>>(F3CAST(torqueParticlesD), F4CAST(derivVelRhoD), F3CAST(posRadD), I1CAST(rigidIdentifierD), F3CAST(posRigidD));
@@ -1333,7 +1370,8 @@ void cudaCollisions(
 		thrust::host_vector<float3> jInvH1,
 		thrust::host_vector<float3> jInvH2,
 		float binSize0,
-		float channelRadius) {
+		float channelRadius,
+		float3 r3Ellipsoid) {
 	printf("***********************************************************************\n");
 	printf("Fluid-Solid Interaction library\n");
 	printf("Created by: Arman Pazouki\n");
@@ -1350,6 +1388,9 @@ void cudaCollisions(
 	cudaMemcpyToSymbolAsync(cMinD, &cMin, sizeof(cMin));
 	cudaMemcpyToSymbolAsync(cMaxD, &cMax, sizeof(cMax));
 	cudaMemcpyToSymbolAsync(mNumSpheresD, &mNSpheres, sizeof(mNSpheres));
+
+	float rSphere = r3Ellipsoid.x;
+	cudaMemcpyToSymbolAsync(rParticlesD, &rSphere, sizeof(rSphere));
 
 	int numRigidBodies = posRigidH.size();
 	thrust::device_vector<float3> posRadD=mPosRad;
@@ -1542,7 +1583,7 @@ void cudaCollisions(
 		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, cMax, cMin, paramsH,
 				delT, tStep, channelRadius);
 
-//		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
+		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
 		//************
 		float time2;
 		cudaEventRecord(stop2, 0);

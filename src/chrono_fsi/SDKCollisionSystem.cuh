@@ -50,6 +50,7 @@ typedef unsigned int uint;
 //#define v_Max .014f //estimated maximum velocity of fluid
 //#define v_Max .0005f //estimated maximum velocity of fluid
 #define EPS_XSPH .5f
+#define USE_LUBRICATION true
 
 #define F4	make_float4
 #define F3	make_float3

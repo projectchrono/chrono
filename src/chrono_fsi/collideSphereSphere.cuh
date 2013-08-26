@@ -22,6 +22,7 @@ void cudaCollisions(
 		thrust::host_vector<float3> jInvH1,
 		thrust::host_vector<float3> jInvH2,
 		float binSize0,
-		float channelRadius);
+		float channelRadius,
+		float3 r3Ellipsoid);
 
 #endif
