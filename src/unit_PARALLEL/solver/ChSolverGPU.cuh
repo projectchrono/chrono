@@ -187,7 +187,7 @@ class ChApiGPU ChSolverGPU: public ChBaseGPU {
 
 			custom_vector<uint> body_num;
 			custom_vector<uint> update_number;
-			host_vector<real> maxd_hist,maxdeltalambda_hist,iter_hist;
+			thrust::host_vector<real> maxd_hist,maxdeltalambda_hist,iter_hist;
 
 			custom_vector<real> temp1;
 			custom_vector<real> temp2;
@@ -197,7 +197,7 @@ class ChApiGPU ChSolverGPU: public ChBaseGPU {
 			custom_vector<real> lm;
 
 			custom_vector<real> ms, mg_tmp2, mb_tmp,mg_tmp, mg_tmp1;
-			custom_vector<real> mg,ml;
+			custom_vector<real> mg,ml, mx, my;
 
 
 

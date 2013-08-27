@@ -9,6 +9,8 @@ SET(ENABLE_UNIT_GPU      FALSE    CACHE BOOL   "Turn ON this to generate the Chr
 
 IF(ENABLE_UNIT_GPU)
 
+#add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP)
+#add_definitions(-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP)
 MARK_AS_ADVANCED(FORCE CUDA_BUILD_CUBIN)
 MARK_AS_ADVANCED(FORCE CUDA_VERBOSE_BUILD)
 MARK_AS_ADVANCED(FORCE CUDA_FAST_MATH)
@@ -124,7 +126,7 @@ SOURCE_GROUP(unit_GPU\\solver FILES
 # Interesting vars that are set: paths CUDA_SDK_ROOT_DIR and CUDA_TOOLKIT_ROOT_DIR
 
 find_package(CUDA QUIET)
-
+#find_package(TBB)
 if (CUDA_FOUND)
     message(STATUS "CUDA found")
     else()
@@ -165,7 +167,9 @@ if (CUDA_FOUND)
 # These need to get straightened out
 # Anything using the SDK should only be used by nvcc, no need to include them for anything being sent to the system compiler
         CUDA_INCLUDE_DIRECTORIES(${CH_CUDA_INC} ${CH_CUDA_SDK_INC} "../")
-        INCLUDE_DIRECTORIES( ${CH_CUDA_INC} ${CH_CUDA_SDK_INC} "../")
+        
+        INCLUDE_DIRECTORIES( ${CH_CUDA_INC} ${CH_CUDA_SDK_INC} "../" 
+)
 
 # The GPU library is added to the project, and some custom properties of this target are set.
 
@@ -200,7 +204,7 @@ if (CUDA_FOUND)
 
 # Let some variables be visible also from outside this directory, using the PARENT_SCOPE trick
 
-        TARGET_LINK_LIBRARIES(ChronoEngine_GPU ChronoEngine ${CUDA_FRAMEWORK})
+        TARGET_LINK_LIBRARIES(ChronoEngine_GPU ChronoEngine ${CUDA_FRAMEWORK} )
         ADD_DEPENDENCIES (ChronoEngine_GPU ChronoEngine)  # better, because not automatic
 
         SET (CH_CUDA_INC      		"${CUDA_TOOLKIT_ROOT_DIR}/include" 	PARENT_SCOPE )

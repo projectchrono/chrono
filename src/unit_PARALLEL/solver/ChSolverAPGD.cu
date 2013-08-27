@@ -7,13 +7,10 @@ void ChSolverGPU::InitAPGD(custom_vector<real> &x) {
 	mb_tmp.resize(x.size());
 	mg_tmp.resize(x.size());
 	mg_tmp1.resize(x.size());
-
-	mg_tmp.resize(x.size());
-	mg_tmp.resize(x.size());
-
 	mg.resize(x.size());
-
 	ml.resize(x.size());
+	mx.resize(x.size());
+	my.resize(x.size());
 
 }
 
@@ -28,10 +25,11 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 	ml = x;
 	Project(x);
 	ShurProduct(x,mg);
-	mg=mg- b;
+	Sub(mg,mg,b); //mg = mg -b;
 
-	Thrust_Fill(mb_tmp, -1.0);
-	mb_tmp+=x;
+	thrust::fill(mb_tmp.begin(),mb_tmp.end(),-1.0);
+	//memset(mb_tmp.data(), -1, mb_tmp.size() * sizeof(real));
+	PLUS_EQ(mb_tmp,x);//mb_tmp+=x;
 	ShurProduct(mb_tmp,mg_tmp);
 	real L_k;
 	if (Norm(mb_tmp) == 0) {
@@ -43,24 +41,24 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 
 	real t_k = 1.0 / L_k;
 	if (verbose) cout << "L_k:" << L_k << " t_k:" << -t_k << "\n";
-	custom_vector<real> my = x;
-	custom_vector<real> mx = x;
+	my = x;
+	mx = x;
 
 	real obj1=0.0;
 	real obj2=0.0;
 
 	for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
 		ShurProduct(my,mg_tmp1);
-		mg = mg_tmp1-b;
+		Sub(mg,mg_tmp1,b);//mg = mg_tmp1-b;
 		SEAXPY(-t_k, mg, my, mx);     // mx = my + mg*(t_k);
 		Project(mx);
 		ShurProduct(mx,mg_tmp);
-		mg_tmp2 = mg_tmp-b;
+		Sub(mg_tmp2,mg_tmp,b); //mg_tmp2 = mg_tmp-b
 		SEAXMY(.5,mg_tmp,b,ms);//use ms as a temp variable
 		obj1 = Dot(mx, ms);
 		SEAXMY(.5,mg_tmp1,b,ms);//use ms as a temp variable
 		obj2 = Dot(my, ms);
-		ms = mx - my;
+		Sub(ms,mx,my);//ms = mx - my;
 
 		while (obj1 > obj2 + Dot(mg, ms) + 0.5 * L_k * powf(Norm(ms), 2.0)) {
 			L_k = 2 * L_k;
@@ -69,15 +67,15 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 			Project(mx);
 
 			ShurProduct(mx,mg_tmp);
-			mg_tmp2 = mg_tmp-b;
+			Sub(mg_tmp2,mg_tmp,b);//mg_tmp2 = mg_tmp-b
 			SEAXMY(.5,mg_tmp,b,ms);	//use ms as a temp variable
 			obj1 = Dot(mx, ms);
-			ms = mx - my;
+			Sub(ms,mx,my);//ms = mx - my;
 		}
 		theta_k1 = (-pow(theta_k, 2) + theta_k * sqrt(pow(theta_k, 2) + 4)) / 2.0;
 		beta_k1 = theta_k * (1.0 - theta_k) / (pow(theta_k, 2) + theta_k1);
 
-		ms = mx - ml;
+		Sub(ms,mx,ml);//ms = mx - ml;
 		SEAXPY(beta_k1,ms,mx,my);     //my = mx + beta_k1 * (ms);
 
 		if (Dot(mg, ms) > 0) {
@@ -86,6 +84,7 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 		}
 		L_k = 0.9 * L_k;
 		t_k = 1.0 / L_k;
+
 		ml = mx;
 		x = mx;
 		theta_k = theta_k1;
@@ -109,7 +108,7 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 		residual=lastgoodres;
 		real maxdeltalambda = 0;     //NormInf(ms);
 
-		AtIterationEnd(residual, maxdeltalambda, current_iteration);
+		//AtIterationEnd(residual, maxdeltalambda, current_iteration);
 
 		if (residual < tolerance) {
 			break;

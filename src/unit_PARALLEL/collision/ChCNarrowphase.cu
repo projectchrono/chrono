@@ -382,36 +382,29 @@ __host__ __device__ void function_MPR_Store(
 	real3 N = R3(1, 0, 0), p1 = R3(0), p2 = R3(0), p0 = R3(0);
 	real depth = 0;
 
-//	if (A_T == SPHERE && B_T == SPHERE) {
-//
-//		real3 relpos = B_X - A_X;
-//		real d2 = dot(relpos, relpos);
-//		real collide_dist = A_Y.x + B_Y.x;
-//		//if (ID_A == 0 && ID_B == 36) {
-//		//	cout << "OMG: " << d2 << " " << collide_dist << endl;
-//		//}
-//		//if (ID_A == 1 && ID_B == 11) {
-//		//	cout << "OMG: " << d2 << " " << collide_dist << endl;
-//		//}
-//		if (d2 <= collide_dist * collide_dist) {
-//			real dist = A_Y.x + B_Y.x;
-//			N = normalize(relpos);
-//			p1 = A_X + N * A_Y.x;
-//			p2 = B_X - N * B_Y.x;
-//			depth = length(relpos) - dist;
-//
-//			//if (ID_A == 0 && ID_B == 36) {
-//
-//				//cout << "OMG: " << depth << endl;
-//
-//			//}
-//
-//		} else {
-//			return;
-//		}
-//
-//	} else
-	{
+	if (A_T == SPHERE && B_T == SPHERE) {
+
+		real3 relpos = B_X - A_X;
+		real d2 = dot(relpos, relpos);
+		real collide_dist = A_Y.x + B_Y.x;
+		if (d2 <= collide_dist * collide_dist) {
+			real dist = A_Y.x + B_Y.x;
+			N = normalize(relpos);
+			p1 = A_X + N * A_Y.x;
+			p2 = B_X - N * B_Y.x;
+			//depth = length(relpos) - dist;
+
+			//if (ID_A == 0 && ID_B == 36) {
+
+			//cout << "OMG: " << depth << endl;
+
+			//}
+
+		} else {
+			return;
+		}
+
+	} else {
 
 		if (!CollideAndFindPoint(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, N, p0, depth)) {
 //
@@ -434,6 +427,7 @@ __host__ __device__ void function_MPR_Store(
 //cout << p1.x << " " << p1.y << " " << p1.z << "||" << p2.x << " " << p2.y << " " << p2.z
 //		<< "||" << p0.x << " " << p0.y << " " << p0.z
 //		<< "||" << N.x << " " << N.y << " " << N.z<< endl;
+
 	p1 = p1 - (N) * envelope;
 	p2 = p2 + (N) * envelope;
 
@@ -602,7 +596,7 @@ uint & number_of_contacts
 				dpth_data.data(),
 				bids_data.data());
 #endif
-		number_of_contacts = total_possible_contacts - Thrust_Count(generic_counter, 1);
+		number_of_contacts = total_possible_contacts - thrust::count(generic_counter.begin(),generic_counter.end(),1);
 #ifdef PRINT_DEBUG_GPU
 		cout << "Number of number_of_contacts: " << number_of_contacts << endl;
 #endif

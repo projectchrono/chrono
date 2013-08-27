@@ -30,11 +30,8 @@ class ChApiGPU ChConstraintBilateral: public ChBaseGPU {
 				real3 *JUVWA,
 				real3 *JUVWB,
 				real *gamma,
-				real3 *updateV,
-				real3 *updateO,
 				real3* QXYZ,
-				real3* QUVW,
-				uint* offset);
+				real3* QUVW);
 		void host_shurB(
 				int2 *ids,
 				bool *active,

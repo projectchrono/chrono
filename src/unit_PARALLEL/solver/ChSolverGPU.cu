@@ -55,6 +55,7 @@ void ChSolverGPU::ShurProduct(custom_vector<real> &x, custom_vector<real> & outp
 	timer_shurcompliment.stop();
 	time_shurcompliment +=timer_shurcompliment();
 }
+
 #define JXYZA_bilateral data_container->host_data.JXYZA_bilateral
 #define JXYZB_bilateral data_container->host_data.JXYZB_bilateral
 #define JUVWA_bilateral data_container->host_data.JUVWA_bilateral
@@ -86,15 +87,20 @@ void ChSolverGPU::Setup() {
 	Thrust_Fill(correction, 0);
 
 #else
-#pragma omp parallel for
-	for (int i = 0; i < number_of_rigid; i++) {
-		data_container->host_data.QXYZ_data[i] = R3(0);
-		data_container->host_data.QUVW_data[i] = R3(0);
-	}
-#pragma omp parallel for
-	for (int i = 0; i < number_of_constraints; i++) {
-		data_container->host_data.gam_data[i] = 0;
-	}
+
+	memset(data_container->host_data.QXYZ_data.data(), 0, data_container->host_data.QXYZ_data.size() * sizeof(real3));
+	memset(data_container->host_data.QUVW_data.data(), 0, data_container->host_data.QUVW_data.size() * sizeof(real3));
+	memset(data_container->host_data.gam_data.data(), 0, data_container->host_data.gam_data.size() * sizeof(real));
+
+//#pragma omp parallel for
+//	for (int i = 0; i < number_of_rigid; i++) {
+//		data_container->host_data.QXYZ_data[i] = R3(0);
+//		data_container->host_data.QUVW_data[i] = R3(0);
+//	}
+//#pragma omp parallel for
+//	for (int i = 0; i < number_of_constraints; i++) {
+//		data_container->host_data.gam_data[i] = 0;
+//	}
 #endif
 
 	///////////////////////////////////////

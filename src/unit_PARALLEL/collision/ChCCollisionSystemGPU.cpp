@@ -87,7 +87,10 @@ void ChCollisionSystemGPU::Run() {
 			data_container->host_data.pos_data,
 			data_container->host_data.rot_data,
 			data_container->host_data.aabb_data);
-	broadphase.detectPossibleCollisions(data_container->host_data.aabb_data, data_container->host_data.pair_data);
+	broadphase.detectPossibleCollisions(
+			data_container->host_data.aabb_data,
+			data_container->host_data.fam_data,
+			data_container->host_data.pair_data);
 	mtimer_cd_broad.stop();
 
 	mtimer_cd_narrow.start();

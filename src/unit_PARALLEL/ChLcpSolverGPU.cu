@@ -89,11 +89,11 @@ void ChLcpSolverGPU::Preprocess() {
 			CASTR3(data_container->device_data.device_vel_data),
 			CASTR3(data_container->device_data.device_omg_data));
 #else
-	host_ComputeGyro(
-			data_container->host_data.omg_data.data(),
-			data_container->host_data.inr_data.data(),
-			data_container->host_data.gyr_data.data(),
-			data_container->host_data.trq_data.data());
+//	host_ComputeGyro(
+//			data_container->host_data.omg_data.data(),
+//			data_container->host_data.inr_data.data(),
+//			data_container->host_data.gyr_data.data(),
+//			data_container->host_data.trq_data.data());
 
 	host_addForces(
 			data_container->host_data.active_data.data(),
@@ -156,12 +156,12 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 
 	tot_iterations = solver.GetIteration();
 	residual = solver.GetResidual();
-	rhs = data_container->host_data.rhs_data;
-	lambda = data_container->host_data.gam_data;
+	//rhs = data_container->host_data.rhs_data;
+	//lambda = data_container->host_data.gam_data;
 
-	for (int i = 0; i < solver.iter_hist.size(); i++) {
-		AtIterationEnd(solver.maxd_hist[i], solver.maxdeltalambda_hist[i], solver.iter_hist[i]);
-	}
+//	for (int i = 0; i < solver.iter_hist.size(); i++) {
+//		AtIterationEnd(solver.maxd_hist[i], solver.maxdeltalambda_hist[i], solver.iter_hist[i]);
+//	}
 	//stabilization  code
 	//jacobian_compute.ComputeJacobians(data_container);
 	//rhs_compute.ComputeRHS(data_container);

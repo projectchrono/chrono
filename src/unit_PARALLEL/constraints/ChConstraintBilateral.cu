@@ -8,17 +8,7 @@ void ChConstraintBilateral::Project(custom_vector<real> & gamma) {
 }
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-void ChConstraintBilateral::host_RHS(
-		int2 *ids,
-		real *bi,
-		bool * active,
-		real3 *vel,
-		real3 *omega,
-		real3 *JXYZA,
-		real3 *JXYZB,
-		real3 *JUVWA,
-		real3 *JUVWB,
-		real *rhs) {
+void ChConstraintBilateral::host_RHS(int2 *ids, real *bi, bool * active, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs) {
 #pragma omp parallel for
 	for (uint index = 0; index < number_of_bilaterals; index++) {
 		uint b1 = ids[index].x;
@@ -61,39 +51,22 @@ void ChConstraintBilateral::ComputeJacobians() {
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-void ChConstraintBilateral::host_shurA(
-		int2 *ids,
-		bool *active,
-		real *inv_mass,
-		real3 *inv_inertia,
-		real3 *JXYZA,
-		real3 *JXYZB,
-		real3 *JUVWA,
-		real3 *JUVWB,
-		real *gamma,
-		real3 *updateV,
-		real3 *updateO,
-		real3* QXYZ,
-		real3* QUVW,
-		uint* offset) {
+void ChConstraintBilateral::host_shurA(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3* QXYZ, real3* QUVW) {
 
-#pragma omp parallel for
 	for (int index = 0; index < number_of_bilaterals; index++) {
 		real gam;
 		gam = gamma[index + number_of_rigid_rigid * 3];
 		uint b1 = ids[index].x;
-		int offset1 = offset[2 * number_of_rigid_rigid + index];
-		int offset2 = offset[2 * number_of_rigid_rigid + index + number_of_bilaterals];
 
 		if (active[b1] != 0) {
-			updateV[offset1] = JXYZA[index] * gam;
-			updateO[offset1] = JUVWA[index] * gam;
+			QXYZ[b1] += JXYZA[index] * gam * inv_mass[b1];
+			QUVW[b1] += JUVWA[index] * gam * inv_inertia[b1];
 		}
 
 		uint b2 = ids[index].y;
 		if (active[b2] != 0) {
-			updateV[offset2] = JXYZB[index] * gam;
-			updateO[offset2] = JUVWB[index] * gam;
+			QXYZ[b2] += JXYZB[index] * gam * inv_mass[b2];
+			QUVW[b2] += JUVWB[index] * gam * inv_inertia[b2];
 		}
 	}
 }
@@ -149,11 +122,8 @@ void ChConstraintBilateral::ShurA(custom_vector<real> &x) {
 			data_container->host_data.JUVWA_bilateral.data(),
 			data_container->host_data.JUVWB_bilateral.data(),
 			x.data(),
-			data_container->host_data.vel_update.data(),
-			data_container->host_data.omg_update.data(),
 			data_container->host_data.QXYZ_data.data(),
-			data_container->host_data.QUVW_data.data(),
-			data_container->host_data.update_offset.data());
+			data_container->host_data.QUVW_data.data());
 
 }
 void ChConstraintBilateral::ShurB(custom_vector<real> &x, custom_vector<real> & output) {

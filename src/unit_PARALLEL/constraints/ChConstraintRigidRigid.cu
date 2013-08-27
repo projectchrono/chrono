@@ -289,7 +289,7 @@ void ChConstraintRigidRigid::host_shurA(
 		real3* QXYZ,
 		real3* QUVW,
 		uint* offset) {
-#pragma omp parallel for
+#pragma omp parallel for schedule(dynamic, 100)
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		real3 gam;
 		gam.x = gamma[index + number_of_rigid_rigid * 0];
@@ -314,6 +314,7 @@ void ChConstraintRigidRigid::host_shurA(
 					+ JUVWB[index + number_of_rigid_rigid * 2] * gam.z);
 		}
 	}
+
 }
 
 void ChConstraintRigidRigid::host_shurB(
@@ -331,7 +332,7 @@ void ChConstraintRigidRigid::host_shurB(
 		real3 *QUVW,
 		real *AX) {
 
-#pragma omp parallel for
+#pragma omp parallel for schedule(dynamic, 100)
 	for (uint index = 0; index < number_of_rigid_rigid; index++) {
 		real3 temp = R3(0);
 		int2 id_ = ids[index];
@@ -409,13 +410,14 @@ void ChConstraintRigidRigid::host_Reduce_Shur(
 		real3* updateQUVW,
 		uint* d_body_num,
 		uint* counter) {
-#pragma omp parallel for
+#pragma omp parallel for schedule(dynamic, 100)
 	for (uint index = 0; index < number_of_updates; index++) {
 		function_Reduce_Shur(index, active, QXYZ, QUVW, inv_mass, inv_inertia, updateQXYZ, updateQUVW, d_body_num, counter);
 	}
 }
 
 void ChConstraintRigidRigid::host_Offsets(int2* ids, uint* Body) {
+#pragma omp parallel for
 	for (uint index = 0; index < number_of_rigid_rigid; index++) {
 		if (index < number_of_rigid_rigid) {
 			int2 temp_id = ids[index];

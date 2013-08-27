@@ -13,12 +13,14 @@
 #ifdef SIM_ENABLE_GPU_MODE
 #define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CUDA
 #else
-#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
+//#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
+//#define THRUST_HOST_SYSTEM THRUST_HOST_SYSTEM_OMP
 #endif
 #include <fenv.h>
 #include <vector_types.h>
 #include <time.h>
 #include <iostream>
+
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 #include <math.h>
@@ -40,12 +42,14 @@
 #include <thrust/unique.h>
 #include <thrust/remove.h>
 #include <thrust/random.h>
+#include <thrust/system/omp/execution_policy.h>
+#include <thrust/system/tbb/execution_policy.h>
 #include "ChApiGPU.h"
 #include <omp.h>
 #include <vector>
 #include <string.h>
 using namespace std;
-using namespace thrust;
+//using namespace thrust;
 typedef unsigned int uint;
 
 #ifdef __CDT_PARSER__
@@ -68,10 +72,8 @@ typedef unsigned int uint;
 
 //#define SIM_ENABLE_GPU_MODE
 #ifdef SIM_ENABLE_GPU_MODE
-#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CUDA
 #define custom_vector thrust::device_vector
 #else
-#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
 #define custom_vector thrust::host_vector
 #endif
 

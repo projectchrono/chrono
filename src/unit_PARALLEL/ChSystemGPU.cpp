@@ -37,7 +37,7 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	//=============================================================================================
 	mtimer_updt.start();
 	//gpu_data_manager->Copy(DEVICE_TO_HOST);
-	std::vector<ChLcpVariables*> vvariables = LCP_descriptor->GetVariablesList();
+	//std::vector<ChLcpVariables*> vvariables = LCP_descriptor->GetVariablesList();
 
 	uint counter = 0;
 	std::vector<ChLcpConstraint *> &mconstraints = (*this->LCP_descriptor).GetConstraintsList();
@@ -53,30 +53,28 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	LCPresult_Li_into_reactions(1.0 / this->GetStep()); // R = l/dt  , approximately
 
 #pragma omp parallel for
-	for (int i = 0; i < vvariables.size(); i++) {
+	for (int i = 0; i < bodylist.size(); i++) {
 
 		real3 vel = gpu_data_manager->host_data.vel_data[i];
 		real3 omg = gpu_data_manager->host_data.omg_data[i];
-		vvariables[i]->Get_qb().SetElement(0, 0, vel.x);
-		vvariables[i]->Get_qb().SetElement(1, 0, vel.y);
-		vvariables[i]->Get_qb().SetElement(2, 0, vel.z);
-		vvariables[i]->Get_qb().SetElement(3, 0, omg.x);
-		vvariables[i]->Get_qb().SetElement(4, 0, omg.y);
-		vvariables[i]->Get_qb().SetElement(5, 0, omg.z);
-		ChBody *mbody = bodylist[i];
+		bodylist[i]->Variables().Get_qb().SetElement(0, 0, vel.x);
+		bodylist[i]->Variables().Get_qb().SetElement(1, 0, vel.y);
+		bodylist[i]->Variables().Get_qb().SetElement(2, 0, vel.z);
+		bodylist[i]->Variables().Get_qb().SetElement(3, 0, omg.x);
+		bodylist[i]->Variables().Get_qb().SetElement(4, 0, omg.y);
+		bodylist[i]->Variables().Get_qb().SetElement(5, 0, omg.z);
 
-		mbody->VariablesQbIncrementPosition(this->GetStep());
-		mbody->VariablesQbSetSpeed(this->GetStep());
-		mbody->UpdateTime(ChTime);
+		bodylist[i]->VariablesQbIncrementPosition(this->GetStep());
+		bodylist[i]->VariablesQbSetSpeed(this->GetStep());
+		bodylist[i]->UpdateTime(ChTime);
 		//TrySleeping();			// See if the body can fall asleep; if so, put it to sleeping
-		mbody->ClampSpeed(); // Apply limits (if in speed clamping mode) to speeds.
-		mbody->ComputeGyro(); // Set the gyroscopic momentum.
-		mbody->UpdateForces(ChTime);
+		//bodylist[i]->ClampSpeed(); // Apply limits (if in speed clamping mode) to speeds.
+		//bodylist[i]->ComputeGyro(); // Set the gyroscopic momentum.
+		//bodylist[i]->UpdateForces(ChTime);
 
 	}
-	for (int i = 0; i < vvariables.size(); i++) {
-		ChBody *mbody = bodylist[i];
-		mbody->UpdateMarkers(ChTime);
+	for (int i = 0; i < bodylist.size(); i++) {
+		bodylist[i]->UpdateMarkers(ChTime);
 	}
 
 	mtimer_updt.stop();
@@ -205,22 +203,21 @@ void ChSystemGPU::UpdateBodies() {
 
 	for (int i = 0; i < bodylist.size(); i++) {
 		bodylist[i]->UpdateMarkers(ChTime);
-		bodylist[i]->InjectVariables(*this->LCP_descriptor);
+		//bodylist[i]->InjectVariables(*this->LCP_descriptor);
 	}
 
 #pragma omp parallel for
 	for (int i = 0; i < bodylist.size(); i++) {
-		ChLcpVariablesBody *mbodyvar = &(bodylist[i]->Variables());
-		ChMatrix33<> inertia = mbodyvar->GetBodyInvInertia();
-		vel_pointer[i] = (R3(mbodyvar->Get_qb().ElementN(0), mbodyvar->Get_qb().ElementN(1), mbodyvar->Get_qb().ElementN(2)));
-		omg_pointer[i] = (R3(mbodyvar->Get_qb().ElementN(3), mbodyvar->Get_qb().ElementN(4), mbodyvar->Get_qb().ElementN(5)));
+		ChMatrix33<> inertia = bodylist[i]->Variables().GetBodyInvInertia();
+		vel_pointer[i] = (R3(bodylist[i]->Variables().Get_qb().ElementN(0), bodylist[i]->Variables().Get_qb().ElementN(1), bodylist[i]->Variables().Get_qb().ElementN(2)));
+		omg_pointer[i] = (R3(bodylist[i]->Variables().Get_qb().ElementN(3), bodylist[i]->Variables().Get_qb().ElementN(4), bodylist[i]->Variables().Get_qb().ElementN(5)));
 		pos_pointer[i] = (R3(bodylist[i]->GetPos().x, bodylist[i]->GetPos().y, bodylist[i]->GetPos().z));
 		rot_pointer[i] = (R4(bodylist[i]->GetRot().e0, bodylist[i]->GetRot().e1, bodylist[i]->GetRot().e2, bodylist[i]->GetRot().e3));
 		inr_pointer[i] = (R3(inertia.GetElement(0, 0), inertia.GetElement(1, 1), inertia.GetElement(2, 2)));
-		frc_pointer[i] = (R3(mbodyvar->Get_fb().ElementN(0), mbodyvar->Get_fb().ElementN(1), mbodyvar->Get_fb().ElementN(2))); //forces
-		trq_pointer[i] = (R3(mbodyvar->Get_fb().ElementN(3), mbodyvar->Get_fb().ElementN(4), mbodyvar->Get_fb().ElementN(5))); //torques
+		frc_pointer[i] = (R3(bodylist[i]->Variables().Get_fb().ElementN(0), bodylist[i]->Variables().Get_fb().ElementN(1), bodylist[i]->Variables().Get_fb().ElementN(2))); //forces
+		trq_pointer[i] = (R3(bodylist[i]->Variables().Get_fb().ElementN(3), bodylist[i]->Variables().Get_fb().ElementN(4), bodylist[i]->Variables().Get_fb().ElementN(5))); //torques
 		active_pointer[i] = bodylist[i]->IsActive();
-		mass_pointer[i] = 1.0f / mbodyvar->GetBodyMass();
+		mass_pointer[i] = 1.0f / bodylist[i]->Variables().GetBodyMass();
 		fric_pointer[i] = bodylist[i]->GetKfriction();
 		cohesion_pointer[i] = ((bodylist[i]))->GetMaterialSurface()->GetCohesion();
 		compliance_pointer[i] = ((bodylist[i]))->GetMaterialSurface()->GetCompliance();
