@@ -686,101 +686,101 @@ void PrintToFile(
 		fileNameSlice<<ssSlice.str();
 		fileNameSlice.close();
 	}
-////////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//comcom
-	ofstream fileNameCartesianTotal;
-	thrust::host_vector<float4> rho_Pres_CartH(1);
-	thrust::host_vector<float4> vel_VelMag_CartH(1);
-	float resolution = 2 * HSML;
-	int3 cartesianGridDims;
-	int tStepCartesianTotal = 1000000;
-	int tStepCartesianSlice = 100000;
-	int tStepPoiseuilleProf = 1000; //tStepCartesianSlice;
-
-	int stepCalcCartesian = min(tStepCartesianTotal, tStepCartesianSlice);
-	stepCalcCartesian = min(stepCalcCartesian, tStepPoiseuilleProf);
-
-	if (tStep % stepCalcCartesian == 0) {
-		MapSPH_ToGrid(resolution, cartesianGridDims, rho_Pres_CartH, vel_VelMag_CartH, posRadD, velMasD, rhoPresMuD,
-				referenceArray[referenceArray.size() - 1].y, paramsH);
-	}
-//	if (tStep % tStepCartesianTotal == 0) {
-//		if (tStep / tStepCartesianTotal == 0) {
-//			fileNameCartesianTotal.open("dataCartesianTotal.txt");
-//			fileNameCartesianTotal<<"variables = \"x\", \"y\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\"\n";
-//		} else {
-//			fileNameCartesianTotal .open("dataCartesianTotal.txt", ios::app);
-//		}
-//		fileNameCartesianTotal<<"zone I = "<<cartesianGridDims.x<<", J = "<<cartesianGridDims.y<<", K = "<<cartesianGridDims.z<<endl;
-//		stringstream ssCartesianTotal;
-//		for (int k = 0; k < cartesianGridDims.z; k++) {
-//			for (int j = 0; j < cartesianGridDims.y; j++) {
-//				for (int i = 0; i < cartesianGridDims.x; i++) {
-//					int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
-//					float3 gridNodeLoc = resolution * F3(i, j, k) + paramsH.worldOrigin;
-//					ssCartesianTotal<<gridNodeLoc.x<<", "<< gridNodeLoc.y<<", "<< gridNodeLoc.z<<", "<<
-//							vel_VelMag_CartH[index].x<<", "<< vel_VelMag_CartH[index].y<<", "<< vel_VelMag_CartH[index].z<<", "<< vel_VelMag_CartH[index].w<<", "<<
-//							rho_Pres_CartH[index].x<<", "<< rho_Pres_CartH[index].y<<endl;
-//				}
-//			}
-//		}
-//		fileNameCartesianTotal<<ssCartesianTotal.str();
-//		fileNameCartesianTotal.close();
+//////////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//comcom
+//	ofstream fileNameCartesianTotal;
+//	thrust::host_vector<float4> rho_Pres_CartH(1);
+//	thrust::host_vector<float4> vel_VelMag_CartH(1);
+//	float resolution = 2 * HSML;
+//	int3 cartesianGridDims;
+//	int tStepCartesianTotal = 1000000;
+//	int tStepCartesianSlice = 100000;
+//	int tStepPoiseuilleProf = 1000; //tStepCartesianSlice;
+//
+//	int stepCalcCartesian = min(tStepCartesianTotal, tStepCartesianSlice);
+//	stepCalcCartesian = min(stepCalcCartesian, tStepPoiseuilleProf);
+//
+//	if (tStep % stepCalcCartesian == 0) {
+//		MapSPH_ToGrid(resolution, cartesianGridDims, rho_Pres_CartH, vel_VelMag_CartH, posRadD, velMasD, rhoPresMuD,
+//				referenceArray[referenceArray.size() - 1].y, paramsH);
 //	}
-////////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //comcom
-//	ofstream fileNameCartesianMidplane;
-//	if (tStep % tStepCartesianSlice == 0) {
-//		if (tStep / tStepCartesianSlice == 0) {
-//			fileNameCartesianMidplane.open("dataCartesianMidplane.txt");
-//			fileNameCartesianMidplane<<"variables = \"x\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\"\n";
+////	if (tStep % tStepCartesianTotal == 0) {
+////		if (tStep / tStepCartesianTotal == 0) {
+////			fileNameCartesianTotal.open("dataCartesianTotal.txt");
+////			fileNameCartesianTotal<<"variables = \"x\", \"y\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\"\n";
+////		} else {
+////			fileNameCartesianTotal .open("dataCartesianTotal.txt", ios::app);
+////		}
+////		fileNameCartesianTotal<<"zone I = "<<cartesianGridDims.x<<", J = "<<cartesianGridDims.y<<", K = "<<cartesianGridDims.z<<endl;
+////		stringstream ssCartesianTotal;
+////		for (int k = 0; k < cartesianGridDims.z; k++) {
+////			for (int j = 0; j < cartesianGridDims.y; j++) {
+////				for (int i = 0; i < cartesianGridDims.x; i++) {
+////					int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
+////					float3 gridNodeLoc = resolution * F3(i, j, k) + paramsH.worldOrigin;
+////					ssCartesianTotal<<gridNodeLoc.x<<", "<< gridNodeLoc.y<<", "<< gridNodeLoc.z<<", "<<
+////							vel_VelMag_CartH[index].x<<", "<< vel_VelMag_CartH[index].y<<", "<< vel_VelMag_CartH[index].z<<", "<< vel_VelMag_CartH[index].w<<", "<<
+////							rho_Pres_CartH[index].x<<", "<< rho_Pres_CartH[index].y<<endl;
+////				}
+////			}
+////		}
+////		fileNameCartesianTotal<<ssCartesianTotal.str();
+////		fileNameCartesianTotal.close();
+////	}
+//////////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //comcom
+////	ofstream fileNameCartesianMidplane;
+////	if (tStep % tStepCartesianSlice == 0) {
+////		if (tStep / tStepCartesianSlice == 0) {
+////			fileNameCartesianMidplane.open("dataCartesianMidplane.txt");
+////			fileNameCartesianMidplane<<"variables = \"x\", \"z\", \"Vx\", \"Vy\", \"Vz\", \"Velocity Magnitude\", \"Rho\", \"Pressure\"\n";
+////		} else {
+////			fileNameCartesianMidplane .open("dataCartesianMidplane.txt", ios::app);
+////		}
+////		fileNameCartesianMidplane<< "zone I = "<<cartesianGridDims.x<<", J = "<<cartesianGridDims.z<<"\n";
+////		int j = cartesianGridDims.y / 2;
+////		stringstream ssCartesianMidplane;
+////		for (int k = 0; k < cartesianGridDims.z; k++) {
+////			for (int i = 0; i < cartesianGridDims.x; i++) {
+////				int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
+////				float3 gridNodeLoc = resolution * F3(i, j, k) + paramsH.worldOrigin;
+////				ssCartesianMidplane<<gridNodeLoc.x<<", "<< gridNodeLoc.z<<", "<< vel_VelMag_CartH[index].x<<", "<<
+////						vel_VelMag_CartH[index].y<<", "<< vel_VelMag_CartH[index].z<<", "<< vel_VelMag_CartH[index].w<<", "<< rho_Pres_CartH[index].x<<", "<<
+////						rho_Pres_CartH[index].y<<endl;
+////			}
+////		}
+////		fileNameCartesianMidplane<<ssCartesianMidplane.str();
+////		fileNameCartesianMidplane.close();
+////	}
+////	rho_Pres_CartH.clear();
+//////////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++comcom
+//	ofstream fileVelocityProfPoiseuille;
+//	if (tStep % tStepPoiseuilleProf == 0) {
+//		if (tStep / tStepPoiseuilleProf == 0) {
+//			fileVelocityProfPoiseuille.open("dataVelProfile.txt");
+//			fileVelocityProfPoiseuille<< "variables = \"Z(m)\", \"Vx(m/s)\"\n";
+//
 //		} else {
-//			fileNameCartesianMidplane .open("dataCartesianMidplane.txt", ios::app);
+//			fileVelocityProfPoiseuille.open("dataVelProfile.txt", ios::app);
 //		}
-//		fileNameCartesianMidplane<< "zone I = "<<cartesianGridDims.x<<", J = "<<cartesianGridDims.z<<"\n";
-//		int j = cartesianGridDims.y / 2;
-//		stringstream ssCartesianMidplane;
-//		for (int k = 0; k < cartesianGridDims.z; k++) {
-//			for (int i = 0; i < cartesianGridDims.x; i++) {
-//				int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
-//				float3 gridNodeLoc = resolution * F3(i, j, k) + paramsH.worldOrigin;
-//				ssCartesianMidplane<<gridNodeLoc.x<<", "<< gridNodeLoc.z<<", "<< vel_VelMag_CartH[index].x<<", "<<
-//						vel_VelMag_CartH[index].y<<", "<< vel_VelMag_CartH[index].z<<", "<< vel_VelMag_CartH[index].w<<", "<< rho_Pres_CartH[index].x<<", "<<
-//						rho_Pres_CartH[index].y<<endl;
-//			}
+//		fileVelocityProfPoiseuille<<"zone T=\"t = "<<delT * tStep<<"\""<<endl;
+//		stringstream ssVelocityProfPoiseuille;
+//
+//			printf("^^^ bodDim %f %f %f, GridDim %d %d %d, resolution %f \n", paramsH.boxDims.x, paramsH.boxDims.y, paramsH.boxDims.z, cartesianGridDims.x,
+//					cartesianGridDims.y, cartesianGridDims.z, resolution);
+//
+//		int i = cartesianGridDims.x / 2;
+//		int j = channelCenterYZ.x / resolution;
+//		int kMax = (channelCenterYZ.x + 11.2*sizeScale) / resolution;
+//		for (int k = 0; k < kMax; k++) {
+//			int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
+//			float3 gridNodeLoc = resolution * F3(i, j, k) + paramsH.worldOrigin;
+//			//if (gridNodeLoc.z > 1 * sizeScale && gridNodeLoc.z < 2 * sizeScale) {
+//				ssVelocityProfPoiseuille<<gridNodeLoc.z<<", "<< vel_VelMag_CartH[index].x<<endl;
+//			//}
 //		}
-//		fileNameCartesianMidplane<<ssCartesianMidplane.str();
-//		fileNameCartesianMidplane.close();
+//		fileVelocityProfPoiseuille<<ssVelocityProfPoiseuille.str();
+//		fileVelocityProfPoiseuille.close();
 //	}
-//	rho_Pres_CartH.clear();
-////////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++comcom
-	ofstream fileVelocityProfPoiseuille;
-	if (tStep % tStepPoiseuilleProf == 0) {
-		if (tStep / tStepPoiseuilleProf == 0) {
-			fileVelocityProfPoiseuille.open("dataVelProfile.txt");
-			fileVelocityProfPoiseuille<< "variables = \"Z(m)\", \"Vx(m/s)\"\n";
-
-		} else {
-			fileVelocityProfPoiseuille.open("dataVelProfile.txt", ios::app);
-		}
-		fileVelocityProfPoiseuille<<"zone T=\"t = "<<delT * tStep<<"\""<<endl;
-		stringstream ssVelocityProfPoiseuille;
-
-			printf("^^^ bodDim %f %f %f, GridDim %d %d %d, resolution %f \n", paramsH.boxDims.x, paramsH.boxDims.y, paramsH.boxDims.z, cartesianGridDims.x,
-					cartesianGridDims.y, cartesianGridDims.z, resolution);
-
-		int i = cartesianGridDims.x / 2;
-		int j = channelCenterYZ.x / resolution;
-		int kMax = (channelCenterYZ.x + 11.2*sizeScale) / resolution;
-		for (int k = 0; k < kMax; k++) {
-			int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
-			float3 gridNodeLoc = resolution * F3(i, j, k) + paramsH.worldOrigin;
-			//if (gridNodeLoc.z > 1 * sizeScale && gridNodeLoc.z < 2 * sizeScale) {
-				ssVelocityProfPoiseuille<<gridNodeLoc.z<<", "<< vel_VelMag_CartH[index].x<<endl;
-			//}
-		}
-		fileVelocityProfPoiseuille<<ssVelocityProfPoiseuille.str();
-		fileVelocityProfPoiseuille.close();
-	}
-	vel_VelMag_CartH.clear();
+//	vel_VelMag_CartH.clear();
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		ofstream fileRigidParticleCenterVsTimeAndDistance;
 		int numRigidBodiesInOnePeriod = int(posRigidH.size() / float(nPeriod) + .5);
