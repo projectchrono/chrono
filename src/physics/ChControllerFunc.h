@@ -72,33 +72,42 @@ private:
 	double P;	///< proportional coefficient
 	double I;	///< integrative coefficient
 	double D;	///< derivative coefficient
-	// JCM added
-	double usedInput;	// actual value passed to the controller when calling Get_Out
-	double t_lag;		// time to go from 0 to 
+	// JCM added, have the controller input follow a pre-defined functional curve, which can
+	//	be modified with user input
+	double t_lag;		// time to go from 0 to mInput; interpolated values from m_func
 	Function_Type m_func;	// use a ChFunction derived type (see ChFunction.h)
-	double y0;		// the value of the controller when the Function was created and passed
-	double t0;		// the value of time when the Function was created and passed in
+	double y0_func;		// the value of the controller input when the last change in input occured
+	double t0_func;		// the value of time when the last change in input occured
 
 public:
 	ChControllerFunc();
-	ChControllerFunc(const double p, const double i, const double d);
-	ChControllerFunc(const double p, const double i, const double d,
-		const double time_lag, Function_Type& m_fun, double time);
+	ChControllerFunc(double p, double i, double d,
+		const double time_lag = 1.0);
 	//~ChControllerFunc();
 	
 	/// COMPUTE CONTROL value!
-	/// Given an input i, returns the output o=P*i+D*di/dt+I*Int(i dt)
+	/// Given an input time, returns the output o=P*f(i)+D*df(i)/dt+I*Int(f(i) dt)
 	/// that is o = Pcomp+Icomp+Dcomp
 	/// Calls to Get_Output must be done in (possibly uniform) time steps, 
 	/// otherwise remember to call Reset() before other sequences of calls.
-	double Get_Out(double mInput, double mTime);
+	double Get_Out(double mTime);
 
-				/// Same, but just returns last computed output
+	/// Same, but just returns last computed output
 	double Get_Out() {return Out;};
 
-				// Read-only values, telling which was the components 
-				// of the last outputted control, divided by proportional or
-				// integrative or derivative part.
+	// when the user moves the slider, it will result in a new def. of the function.
+	// e.g., f(i) = (mInput-Out) * sin(wt)
+	//		df(i)/dt = w*(mInput-Out) * cos(wt)
+	//		Int(f(i) dt) = -1/w * (mInput-Out) * cos(wt)
+	void Set_newInput(double mInput, double time);
+	void Set_timeLag(double mT_lag);
+
+	// use the ChFunction to find the actual val to be passed to the PID controller
+	double Get_Func_val(double new_t);
+
+	// Read-only values, telling which was the components 
+	// of the last outputted control, divided by proportional or
+	// integrative or derivative part.
 	double Get_Pcomp() {return Pcomp;}	
 	double Get_Icomp() {return Icomp;}
 	double Get_Dcomp() {return Dcomp;}
@@ -106,10 +115,8 @@ public:
 	double Get_In_dt()   {return In_dt;}
 	double Get_In()   {return In;}
 
-				/// Use Reset to set accumulator to zero, at beginning. For integrative part.
+	/// Use Reset to set accumulator to zero, at beginning. For integrative part.
 	void Reset(); 
-	void ResetFunc(Function_Type& fun, double time);	// when the user moves the slider, it will result in a new def. of the function
-	double Get_Func_val(double new_in, double new_t);	// use the ChFunction to find the actual val to be passed to the PID controller
 };
 
 
