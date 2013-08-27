@@ -43,7 +43,7 @@
 #include <thrust/remove.h>
 #include <thrust/random.h>
 #include <thrust/system/omp/execution_policy.h>
-#include <thrust/system/tbb/execution_policy.h>
+//#include <thrust/system/tbb/execution_policy.h>
 #include "ChApiGPU.h"
 #include <omp.h>
 #include <vector>
