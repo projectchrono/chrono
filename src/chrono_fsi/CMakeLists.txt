@@ -57,11 +57,11 @@ set_compute_capability("20")
 # You should only have to edit these lines.
 # This executable needs cutil, so only compile and link it if it was found
 #### Library Thing
-#cuda_add_library(FSI SHARED collideSphereSphere.cu SDKCollisionSystem.cu)
-#cuda_add_executable(cudaSPHProjEXE main.cpp)
-#target_link_libraries(cudaSPHProjEXE FSI)
+cuda_add_library(FSI SHARED collideSphereSphere.cu SDKCollisionSystem.cu  printToFile.cu)
+cuda_add_executable(cudaSPHProjEXE main.cpp)
+target_link_libraries(cudaSPHProjEXE FSI)
 ####
-cuda_add_executable(cudaSPHProjEXE main.cpp collideSphereSphere.cu SDKCollisionSystem.cu)
+###cuda_add_executable(cudaSPHProjEXE main.cpp collideSphereSphere.cu SDKCollisionSystem.cu)
 #IF (LIBCUTIL)
 #	cuda_add_executable(cudaSPHProjEXE main.cpp collideSphereSphere.cu SDKCollisionSystem.cu)
 

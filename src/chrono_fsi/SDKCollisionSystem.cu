@@ -1,11 +1,13 @@
-#include <helper_math.h>
-//#include <cutil_inline.h>
+#include "custom_cutil_math.h"
+#include "SPHCudaUtils.h"
 #include "SDKCollisionSystem.cuh"
 //#include "SDKCollisionSystemAdditional.cuh"
 
+__constant__ real_ dTD_SDK;
+
 //--------------------------------------------------------------------------------------------------------------------------------
 // calculate position in uniform grid
-__device__ int3 calcGridPos(float3 p) {
+__device__ int3 calcGridPos(real3 p) {
 	int3 gridPos;
 	gridPos.x = floor((p.x - paramsD.worldOrigin.x) / paramsD.cellSize.x);
 	gridPos.y = floor((p.y - paramsD.worldOrigin.y) / paramsD.cellSize.y);
@@ -28,99 +30,99 @@ __device__ uint calcGridHash(int3 gridPos) {
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //computes dV/dt and dRho/dt, i.e. force terms. First
-__device__ inline float4 DifVelocityRho(
-		const float3 & dist3,
-		const float & d,
-		const float & rSPH,
-		const float4 & velMasA,
-		const float3 & vel_XSPH_A,
-		const float4 & velMasB,
-		const float3 & vel_XSPH_B,
-		const float4 & rhoPresMuA,
-		const float4 & rhoPresMuB,
-		float multViscosity) {
+__device__ inline real4 DifVelocityRho(
+		const real3 & dist3,
+		const real_ & d,
+		const real_ & rSPH,
+		const real4 & velMasA,
+		const real3 & vel_XSPH_A,
+		const real4 & velMasB,
+		const real3 & vel_XSPH_B,
+		const real4 & rhoPresMuA,
+		const real4 & rhoPresMuB,
+		real_ multViscosity) {
 
 
-	float epsilonMutualDistance = .01f;
-	float3 gradW = GradW(dist3);
+	real_ epsilonMutualDistance = .01f;
+	real3 gradW = GradW(dist3);
 
-	//float vAB_Dot_rAB = dot(F3(velMasA - velMasB), dist3);
+	//real_ vAB_Dot_rAB = dot(R3(velMasA - velMasB), dist3);
 
 //	//*** Artificial viscosity type 1.1
-//	float alpha = .001;
-//	float c_ab = 10 * v_Max; //Ma = .1;//sqrt(7.0f * 10000 / ((rhoPresMuA.x + rhoPresMuB.x) / 2.0f));
-//	//float h = HSML;
-//	float rho = .5f * (rhoPresMuA.x + rhoPresMuB.x);
-//	float nu = alpha * rSPH * c_ab / rho;
+//	real_ alpha = .001;
+//	real_ c_ab = 10 * v_Max; //Ma = .1;//sqrt(7.0f * 10000 / ((rhoPresMuA.x + rhoPresMuB.x) / 2.0f));
+//	//real_ h = HSML;
+//	real_ rho = .5f * (rhoPresMuA.x + rhoPresMuB.x);
+//	real_ nu = alpha * rSPH * c_ab / rho;
 
 //	//*** Artificial viscosity type 1.2
-//	float nu = 22.8f * mu0 / 2.0f / (rhoPresMuA.x * rhoPresMuB.x);
-//	float3 derivV = -velMasB.w * (
+//	real_ nu = 22.8f * mu0 / 2.0f / (rhoPresMuA.x * rhoPresMuB.x);
+//	real3 derivV = -velMasB.w * (
 //		rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)
 //		- nu * vAB_Dot_rAB / ( d * d + epsilonMutualDistance * rSPH * rSPH )
 //		) * gradW;
-//	return F4(derivV,
+//	return R4(derivV,
 //		rhoPresMuA.x * velMasB.w / rhoPresMuB.x * dot(vel_XSPH_A - vel_XSPH_B, gradW));
 
 	//*** Artificial viscosity type 2
-	float rAB_Dot_GradW = dot(dist3, gradW);
-	float invrhoPresMuBx=1.0f/ rhoPresMuB.x;
-	float rAB_Dot_GradW_OverDist = rAB_Dot_GradW / (d * d + epsilonMutualDistance * rSPH * rSPH);
-	float3 derivV = -velMasB.w * (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y * (invrhoPresMuBx * invrhoPresMuBx)) * gradW
+	real_ rAB_Dot_GradW = dot(dist3, gradW);
+	real_ invrhoPresMuBx=1.0f/ rhoPresMuB.x;
+	real_ rAB_Dot_GradW_OverDist = rAB_Dot_GradW / (d * d + epsilonMutualDistance * rSPH * rSPH);
+	real3 derivV = -velMasB.w * (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y * (invrhoPresMuBx * invrhoPresMuBx)) * gradW
 			+ velMasB.w * (8.0f * multViscosity) * mu0 * pow(rhoPresMuA.x + rhoPresMuB.x, -2) * rAB_Dot_GradW_OverDist
-					* F3(velMasA - velMasB);
-	//float zeta = 0;//.05;//.1;
-	float derivRho = rhoPresMuA.x * velMasB.w * invrhoPresMuBx * dot(vel_XSPH_A - vel_XSPH_B, gradW);
-//	float zeta = 0;//.05;//.1;
-//	float derivRho = rhoPresMuA.x * velMasB.w * invrhoPresMuBx * (dot(vel_XSPH_A - vel_XSPH_B, gradW)
+					* R3(velMasA - velMasB);
+	real_ zeta = 0;//.05;//.1;
+	real_ derivRho = rhoPresMuA.x * velMasB.w * invrhoPresMuBx * dot(vel_XSPH_A - vel_XSPH_B, gradW);
+//	real_ zeta = 0;//.05;//.1;
+//	real_ derivRho = rhoPresMuA.x * velMasB.w * invrhoPresMuBx * (dot(vel_XSPH_A - vel_XSPH_B, gradW)
 //			+ zeta * rSPH * (10 * v_Max) * 2 * (rhoPresMuB.x / rhoPresMuA.x - 1) * rAB_Dot_GradW_OverDist
 //			);
-	return F4(derivV, derivRho);
+	return R4(derivV, derivRho);
 
 //	//*** Artificial viscosity type 1.3
-//	float rAB_Dot_GradW = dot(dist3, gradW);
-//	float3 derivV = -velMasB.w * (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) * gradW
-//		+ velMasB.w / (rhoPresMuA.x * rhoPresMuB.x) * 2.0f * mu0 * rAB_Dot_GradW / ( d * d + epsilonMutualDistance * rSPH * rSPH ) * F3(velMasA - velMasB);
-//	return F4(derivV,
+//	real_ rAB_Dot_GradW = dot(dist3, gradW);
+//	real3 derivV = -velMasB.w * (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) * gradW
+//		+ velMasB.w / (rhoPresMuA.x * rhoPresMuB.x) * 2.0f * mu0 * rAB_Dot_GradW / ( d * d + epsilonMutualDistance * rSPH * rSPH ) * R3(velMasA - velMasB);
+//	return R4(derivV,
 //		rhoPresMuA.x * velMasB.w / rhoPresMuB.x * dot(vel_XSPH_A - vel_XSPH_B, gradW));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-__device__ inline float3 DifVelocity_SSI_DEM(
-				const float3 & dist3,
-				const float & d,
-				const float & rSPH,
-				const float4 & velMasA,
-				const float4 & velMasB) {
+__device__ inline real3 DifVelocity_SSI_DEM(
+				const real3 & dist3,
+				const real_ & d,
+				const real_ & rSPH,
+				const real4 & velMasA,
+				const real4 & velMasB) {
 //printf("** DifVelocity_SSI_DEM\n");
-	float l = 2 * rSPH - d;
+	real_ l = 1 * rSPH - d;
 	if (l < 0) {
-		return F3(0);
+		return R3(0);
 	}
-	float kS = 3;//3; //50; //1000.0; //392400.0;	//spring. 50 worked almost fine. I am using 30 to be sure!
-	float kD = 40;//20.0; //420.0;				//damping coef.
-	float3 n = dist3 / d; //unit vector B to A
-	float m_eff = (velMasA.w * velMasB.w) / (velMasA.w + velMasB.w);
-	float3 force = (/*pow(sizeScale, 3) * */kS * l - kD * m_eff * dot(F3(velMasA - velMasB), n)) * n; //relative velocity at contact is simply assumed as the relative vel of the centers. If you are updating the rotation, this should be modified.
+	real_ kS =  6;//3; //50; //1000.0; //392400.0;	//spring. 50 worked almost fine. I am using 30 to be sure!
+	real_ kD = 40;//20.0; //420.0;				//damping coef.
+	real3 n = dist3 / d; //unit vector B to A
+	real_ m_eff = (velMasA.w * velMasB.w) / (velMasA.w + velMasB.w);
+	real3 force = (/*pow(sizeScale, 3) * */kS * l - kD * m_eff * dot(R3(velMasA - velMasB), n)) * n; //relative velocity at contact is simply assumed as the relative vel of the centers. If you are updating the rotation, this should be modified.
 	return force / velMasA.w; //return dV/dT same as SPH
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // collide a particle against all other particles in a given cell
 __device__
-float3 deltaVShare(
+real3 deltaVShare(
 		int3 gridPos,
 		uint index,
-		float3 posRadA,
-		float4 velMasA,
-		float4 rhoPresMuA,
-		float3* sortedPosRad,
-		float4* sortedVelMas,
-		float4* sortedRhoPreMu,
+		real3 posRadA,
+		real4 velMasA,
+		real4 rhoPresMuA,
+		real3* sortedPosRad,
+		real4* sortedVelMas,
+		real4* sortedRhoPreMu,
 		uint* cellStart,
 		uint* cellEnd) {
 
 	uint gridHash = calcGridHash(gridPos);
 	// get start of bucket for this cell
-	float3 deltaV = F3(0.0f);
+	real3 deltaV = R3(0.0f);
 
 	uint startIndex = FETCH(cellStart, gridHash);
 	if (startIndex != 0xffffffff) { // cell is not empty
@@ -129,15 +131,15 @@ float3 deltaVShare(
 
 		for (uint j = startIndex; j < endIndex; j++) {
 			if (j != index) { // check not colliding with self
-				float3 posRadB = FETCH(sortedPosRad, j);
-				float3 dist3 = Distance(posRadA, posRadB);
-				float d = length(dist3);
+				real3 posRadB = FETCH(sortedPosRad, j);
+				real3 dist3 = Distance(posRadA, posRadB);
+				real_ d = length(dist3);
 				if (d > RESOLUTION_LENGTH_MULT * HSML) continue;
-				float4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
+				real4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
 				if (!( rhoPresMuA.w <0 && rhoPresMuB.w < 0 )) continue;//# A and B must be fluid, accoring to colagrossi (2003), the other phase (i.e. rigid) should not be considered)
-				float multRho = 2.0f / (rhoPresMuA.x + rhoPresMuB.x);
-				float4 velMasB = FETCH(sortedVelMas, j);
-				deltaV += velMasB.w * F3(velMasB - velMasA) * W3(d) * multRho;
+				real_ multRho = 2.0f / (rhoPresMuA.x + rhoPresMuB.x);
+				real4 velMasB = FETCH(sortedVelMas, j);
+				deltaV += velMasB.w * R3(velMasB - velMasA) * W3(d) * multRho;
 			}
 		}
 	}
@@ -146,25 +148,25 @@ float3 deltaVShare(
 //--------------------------------------------------------------------------------------------------------------------------------
 // collide a particle against all other particles in a given cell
 __device__
-float4 collideCell(
+real4 collideCell(
 		int3 gridPos,
 		uint index,
-		float3 posRadA,
-		float4 velMasA,
-		float3 vel_XSPH_A,
-		float4 rhoPresMuA,
-		float3* sortedPosRad,
-		float4* sortedVelMas,
-		float3* vel_XSPH_Sorted_D,
-		float4* sortedRhoPreMu,
+		real3 posRadA,
+		real4 velMasA,
+		real3 vel_XSPH_A,
+		real4 rhoPresMuA,
+		real3* sortedPosRad,
+		real4* sortedVelMas,
+		real3* vel_XSPH_Sorted_D,
+		real4* sortedRhoPreMu,
 		uint* cellStart,
 		uint* cellEnd,
 		uint* gridParticleIndex) {
 
 	uint gridHash = calcGridHash(gridPos);
 	// get start of bucket for this cell
-	float3 derivV = F3(0.0f);
-	float derivRho = 0.0f;
+	real3 derivV = R3(0.0f);
+	real_ derivRho = 0.0f;
 
 	uint startIndex = FETCH(cellStart, gridHash);
 	if (startIndex != 0xffffffff) { // cell is not empty
@@ -173,57 +175,55 @@ float4 collideCell(
 
 		for (uint j = startIndex; j < endIndex; j++) {
 			if (j != index) { // check not colliding with self
-				float3 posRadB = FETCH(sortedPosRad, j);
-				float3 dist3 = Distance(posRadA, posRadB);
-				float rSPH = HSML;
-				float d = length(dist3);
+				real3 posRadB = FETCH(sortedPosRad, j);
+				real3 dist3 = Distance(posRadA, posRadB);
+				real_ rSPH = HSML;
+				real_ d = length(dist3);
 				if (d > RESOLUTION_LENGTH_MULT * HSML) continue;
-				float4 velMasB = FETCH(sortedVelMas, j);
-				float4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
+				real4 velMasB = FETCH(sortedVelMas, j);
+				real4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
 
 				if (rhoPresMuA.w < 0  ||  rhoPresMuB.w < 0) {
 					if (rhoPresMuA.w == 0) continue;
-					float multViscosit = 1.0f;
-					if ( rhoPresMuB.w == 0) { //**one of them is boundary, the other one is fluid
+					real_ multViscosit = 1.0f;
+					if ( rhoPresMuB.w == 0 || rhoPresMuB.w > 0 || rhoPresMuA.w > 0) { //**one of them is boundary, the other one is fluid
 						multViscosit = 5.0f;
 					}
 					else { //**One of them is fluid, the other one is fluid/solid (boundary was considered previously)
 						multViscosit = 1.0f;
 					}
-					float4 derivVelRho = F4(0.0f);
-					float3 vel_XSPH_B = FETCH(vel_XSPH_Sorted_D, j);
+					real4 derivVelRho = R4(0.0f);
+					real3 vel_XSPH_B = FETCH(vel_XSPH_Sorted_D, j);
 					derivVelRho = DifVelocityRho(dist3, d, rSPH, velMasA, vel_XSPH_A, velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB, multViscosit);
-					derivV += F3(derivVelRho);
+					derivV += R3(derivVelRho);
 					derivRho += derivVelRho.w;
 				}
 				else if (fabs(rhoPresMuA.w - rhoPresMuB.w) > 0) { //implies: one of them is solid/boundary, ther other one is solid/boundary of different type or different solid
-					if (!(USE_LUBRICATION)) {
-						derivV += DifVelocity_SSI_DEM(dist3, d, rSPH, velMasA, velMasB);
-					}
+					derivV += DifVelocity_SSI_DEM(dist3, d, rSPH, velMasA, velMasB);
 				}
 			}
 		}
 	}
 
-	return F4(derivV, derivRho);
+	return R4(derivV, derivRho);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // collide a particle against all other particles in a given cell
 __device__
-float collideCellDensityReInit_F1(
+real_ collideCellDensityReInit_F1(
 		int3 gridPos,
 		uint index,
-		float3 posRadA,
-		float3* sortedPosRad,
-		float4* sortedVelMas,
-		float4* sortedRhoPreMu,
+		real3 posRadA,
+		real3* sortedPosRad,
+		real4* sortedVelMas,
+		real4* sortedRhoPreMu,
 		uint* cellStart,
 		uint* cellEnd) {
 
 	//?c2 printf("grid pos %d %d %d \n", gridPos.x, gridPos.y, gridPos.z);
 	uint gridHash = calcGridHash(gridPos);
 	// get start of bucket for this cell
-	float densityShare = 0.0f;
+	real_ densityShare = 0.0f;
 
 	uint startIndex = FETCH(cellStart, gridHash);
 	if (startIndex != 0xffffffff) { // cell is not empty
@@ -232,11 +232,11 @@ float collideCellDensityReInit_F1(
 
 		for (uint j = startIndex; j < endIndex; j++) {
 			if (j != index) { // check not colliding with self
-				float3 posRadB = FETCH(sortedPosRad, j);
-				float4 velMasB = FETCH(sortedVelMas, j);
-//				float4 rhoPreMuB = FETCH(sortedRhoPreMu, j);
-				float3 dist3 = Distance(posRadA, posRadB);
-				float d = length(dist3);
+				real3 posRadB = FETCH(sortedPosRad, j);
+				real4 velMasB = FETCH(sortedVelMas, j);
+				real4 rhoPreMuB = FETCH(sortedRhoPreMu, j);
+				real3 dist3 = Distance(posRadA, posRadB);
+				real_ d = length(dist3);
 				if (d > RESOLUTION_LENGTH_MULT * HSML) continue;
 				densityShare += velMasB.w * W3(d); //optimize it ?$
 				//if (fabs(W3(d)) < .00000001) {printf("good evening, distance %f %f %f\n", dist3.x, dist3.y, dist3.z);
@@ -251,13 +251,13 @@ float collideCellDensityReInit_F1(
 // collide a particle against all other particles in a given cell
 __device__
 void calcOnCartesianShare(
-		float3 & v_share,
-		float4 & rp_share,
+		real3 & v_share,
+		real4 & rp_share,
 		int3 gridPos,
-		float4 gridNodePos4,
-		float3* sortedPosRad,
-		float4* sortedVelMas,
-		float4* sortedRhoPreMu,
+		real4 gridNodePos4,
+		real3* sortedPosRad,
+		real4* sortedVelMas,
+		real4* sortedRhoPreMu,
 		uint* cellStart,
 		uint* cellEnd) {
 
@@ -270,14 +270,14 @@ void calcOnCartesianShare(
 		uint endIndex = FETCH(cellEnd, gridHash);
 
 		for (uint j = startIndex; j < endIndex; j++) {
-			float3 posRadB = FETCH(sortedPosRad, j);
-			float4 velMasB = FETCH(sortedVelMas, j);
-			float4 rhoPreMuB = FETCH(sortedRhoPreMu, j);
-			float3 dist3 = Distance(gridNodePos4, posRadB);
-			float d = length(dist3);
-			float mult = velMasB.w / rhoPreMuB.x * W3(d);
-			v_share += mult * F3(velMasB); //optimize it ?$
-			rp_share += mult * F4(rhoPreMuB.x, rhoPreMuB.y, 0, 0);
+			real3 posRadB = FETCH(sortedPosRad, j);
+			real4 velMasB = FETCH(sortedVelMas, j);
+			real4 rhoPreMuB = FETCH(sortedRhoPreMu, j);
+			real3 dist3 = Distance(gridNodePos4, posRadB);
+			real_ d = length(dist3);
+			real_ mult = velMasB.w / rhoPreMuB.x * W3(d);
+			v_share += mult * R3(velMasB); //optimize it ?$
+			rp_share += mult * R4(rhoPreMuB.x, rhoPreMuB.y, 0, 0);
 		}
 	}
 }
@@ -285,14 +285,14 @@ void calcOnCartesianShare(
 // calculate grid hash value for each particle
 __global__ void calcHashD(uint* gridParticleHash, // output
 		uint* gridParticleIndex, // output
-		float3* posRad, // input: positions
+		real3* posRad, // input: positions
 		uint numParticles) {
 	uint index = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
 	if (index >= numParticles) return;
 
-	volatile float3 p = posRad[index];
+	volatile real3 p = posRad[index];
 
-	float3 boxCorner = paramsD.worldOrigin;
+	real3 boxCorner = paramsD.worldOrigin;
 	if (p.x < boxCorner.x || p.y < boxCorner.y || p.z < boxCorner.z) {
 		printf("Out of Min Boundary\n");
 		return;
@@ -319,14 +319,14 @@ __global__
 void reorderDataAndFindCellStartD(
 		uint* cellStart, // output: cell start index
 		uint* cellEnd, // output: cell end index
-		float3* sortedPosRad, // output: sorted positions
-		float4* sortedVelMas, // output: sorted velocities
-		float4* sortedRhoPreMu,
+		real3* sortedPosRad, // output: sorted positions
+		real4* sortedVelMas, // output: sorted velocities
+		real4* sortedRhoPreMu,
 		uint * gridParticleHash, // input: sorted grid hashes
 		uint * gridParticleIndex, // input: sorted particle indices
-		float3* oldPosRad, // input: sorted position array
-		float4* oldVelMas, // input: sorted velocity array
-		float4* oldRhoPreMu,
+		real3* oldPosRad, // input: sorted position array
+		real4* oldVelMas, // input: sorted velocity array
+		real4* oldRhoPreMu,
 		uint numParticles) {
 	extern __shared__ uint sharedHash[]; // blockSize + 1 elements
 	uint index = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
@@ -367,9 +367,9 @@ void reorderDataAndFindCellStartD(
 
 		// Now use the sorted index to reorder the pos and vel data
 		uint sortedIndex = gridParticleIndex[index];
-		float3 posRad = FETCH(oldPosRad, sortedIndex); // macro does either global read or texture fetch
-		float4 velMas = FETCH(oldVelMas, sortedIndex); // see particles_kernel.cuh
-		float4 rhoPreMu = FETCH(oldRhoPreMu, sortedIndex);
+		real3 posRad = FETCH(oldPosRad, sortedIndex); // macro does either global read or texture fetch
+		real4 velMas = FETCH(oldVelMas, sortedIndex); // see particles_kernel.cuh
+		real4 rhoPreMu = FETCH(oldRhoPreMu, sortedIndex);
 
 		sortedPosRad[index] = posRad;
 		sortedVelMas[index] = velMas;
@@ -378,10 +378,10 @@ void reorderDataAndFindCellStartD(
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__
-void newVel_XSPH_D(float3* vel_XSPH_Sorted_D, // output: new velocity
-		float3* sortedPosRad, // input: sorted positions
-		float4* sortedVelMas, // input: sorted velocities
-		float4* sortedRhoPreMu,
+void newVel_XSPH_D(real3* vel_XSPH_Sorted_D, // output: new velocity
+		real3* sortedPosRad, // input: sorted positions
+		real4* sortedVelMas, // input: sorted velocities
+		real4* sortedRhoPreMu,
 		uint* gridParticleIndex, // input: sorted particle indices
 		uint* cellStart,
 		uint* cellEnd,
@@ -390,10 +390,10 @@ void newVel_XSPH_D(float3* vel_XSPH_Sorted_D, // output: new velocity
 	if (index >= numParticles) return;
 
 	// read particle data from sorted arrays
-	float3 posRadA = FETCH(sortedPosRad, index);
-	float4 velMasA = FETCH(sortedVelMas, index);
-	float4 rhoPreMuA = FETCH(sortedRhoPreMu, index);
-	float3 deltaV = F3(0);
+	real3 posRadA = FETCH(sortedPosRad, index);
+	real4 velMasA = FETCH(sortedVelMas, index);
+	real4 rhoPreMuA = FETCH(sortedRhoPreMu, index);
+	real3 deltaV = R3(0);
 
 	// get address in grid
 	int3 gridPos = calcGridPos(posRadA);
@@ -411,19 +411,19 @@ void newVel_XSPH_D(float3* vel_XSPH_Sorted_D, // output: new velocity
 		}
 	}
 	//   // write new velocity back to original unsorted location
-	//sortedVel_XSPH[index] = F3(velMasA) + EPS_XSPH * deltaV;
+	//sortedVel_XSPH[index] = R3(velMasA) + EPS_XSPH * deltaV;
 
 	// write new velocity back to original unsorted location
-//	uint originalIndex = gridParticleIndex[index];
-	vel_XSPH_Sorted_D[index] = F3(velMasA) + EPS_XSPH * deltaV;
+	uint originalIndex = gridParticleIndex[index];
+	vel_XSPH_Sorted_D[index] = R3(velMasA) + EPS_XSPH * deltaV;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__
-void collideD(float4* derivVelRhoD, // output: new velocity
-		float3* sortedPosRad, // input: sorted positions
-		float4* sortedVelMas, // input: sorted velocities
-		float3* vel_XSPH_Sorted_D,
-		float4* sortedRhoPreMu,
+void collideD(real4* derivVelRhoD, // output: new velocity
+		real3* sortedPosRad, // input: sorted positions
+		real4* sortedVelMas, // input: sorted velocities
+		real3* vel_XSPH_Sorted_D,
+		real4* sortedRhoPreMu,
 		uint* gridParticleIndex, // input: sorted particle indices
 		uint* cellStart,
 		uint* cellEnd,
@@ -432,14 +432,14 @@ void collideD(float4* derivVelRhoD, // output: new velocity
 	if (index >= numParticles) return;
 
 	// read particle data from sorted arrays
-	float3 posRadA = FETCH(sortedPosRad, index);
-	float4 velMasA = FETCH(sortedVelMas, index);
-	float4 rhoPreMuA = FETCH(sortedRhoPreMu, index);
+	real3 posRadA = FETCH(sortedPosRad, index);
+	real4 velMasA = FETCH(sortedVelMas, index);
+	real4 rhoPreMuA = FETCH(sortedRhoPreMu, index);
 
 	uint originalIndex = gridParticleIndex[index];
-	float3 vel_XSPH_A = FETCH(vel_XSPH_Sorted_D, index);
+	real3 vel_XSPH_A = FETCH(vel_XSPH_Sorted_D, index);
 
-	float4 derivVelRho =derivVelRhoD[originalIndex];
+	real4 derivVelRho =derivVelRhoD[originalIndex];
 
 	// get address in grid
 	int3 gridPos = calcGridPos(posRadA);
@@ -455,6 +455,17 @@ void collideD(float4* derivVelRhoD, // output: new velocity
 	}
 
 	// write new velocity back to original unsorted location
+	// *** let's tweak a little bit :)
+	real3 derivV = R3(derivVelRho);
+	if (length(derivV) > .2 * HSML / (dTD_SDK * dTD_SDK)) {
+		derivV *= ( .2 * HSML / (dTD_SDK * dTD_SDK) ) / length(derivV);
+		derivVelRho = R4(derivV, derivVelRho.w);
+	}
+	if (fabs(derivVelRho.w) > .005 * rhoPreMuA.x / dTD_SDK) {
+		derivVelRho.w *= (.005 * rhoPreMuA.x / dTD_SDK) / fabs(derivVelRho.w); //to take care of the sign as well
+	}
+	// *** end tweak
+
 	derivVelRhoD[originalIndex] = derivVelRho;
 
 	//syncthreads();
@@ -463,12 +474,12 @@ void collideD(float4* derivVelRhoD, // output: new velocity
 //without normalization
 __global__
 void ReCalcDensityD_F1(
-		float3* oldPosRad,
-		float4* oldVelMas,
-		float4* oldRhoPreMu,
-		float3* sortedPosRad,
-		float4* sortedVelMas,
-		float4* sortedRhoPreMu,
+		real3* oldPosRad,
+		real4* oldVelMas,
+		real4* oldRhoPreMu,
+		real3* sortedPosRad,
+		real4* sortedVelMas,
+		real4* sortedRhoPreMu,
 		uint* gridParticleIndex,
 		uint* cellStart,
 		uint* cellEnd,
@@ -477,16 +488,16 @@ void ReCalcDensityD_F1(
 	if (index >= numParticles) return;
 
 	// read particle data from sorted arrays
-	float3 posRadA = FETCH(sortedPosRad, index);
-	float4 velMasA = FETCH(sortedVelMas, index);
-	float4 rhoPreMuA = FETCH(sortedRhoPreMu, index);
+	real3 posRadA = FETCH(sortedPosRad, index);
+	real4 velMasA = FETCH(sortedVelMas, index);
+	real4 rhoPreMuA = FETCH(sortedRhoPreMu, index);
 
 	if (rhoPreMuA.w > -.1) return;
 
 	// get address in grid
 	int3 gridPos = calcGridPos(posRadA);
 
-	float densityShare = 0.0f;
+	real_ densityShare = 0.0f;
 	// examine neighbouring cells
 	for (int z = -1; z <= 1; z++) {
 		for (int y = -1; y <= 1; y++) {
@@ -500,7 +511,7 @@ void ReCalcDensityD_F1(
 	// write new velocity back to original unsorted location
 	uint originalIndex = gridParticleIndex[index];
 
-	float newDensity = densityShare + velMasA.w * W3(0); //?$ include the particle in its summation as well
+	real_ newDensity = densityShare + velMasA.w * W3(0); //?$ include the particle in its summation as well
 	if (rhoPreMuA.w < 0) {
 		rhoPreMuA.x = newDensity;
 	}
@@ -511,11 +522,11 @@ void ReCalcDensityD_F1(
 //without normalization
 __global__
 void CalcCartesianDataD(
-		float4* rho_Pres_CartD,
-		float4* vel_VelMag_CartD,
-		float3* sortedPosRad,
-		float4* sortedVelMas,
-		float4* sortedRhoPreMu,
+		real4* rho_Pres_CartD,
+		real4* vel_VelMag_CartD,
+		real3* sortedPosRad,
+		real4* sortedVelMas,
+		real4* sortedRhoPreMu,
 		uint* gridParticleIndex,
 		uint* cellStart,
 		uint* cellEnd) {
@@ -528,25 +539,25 @@ void CalcCartesianDataD(
 	gridLoc.x = (index % (cartesianGridDimsD.x * cartesianGridDimsD.y)) % cartesianGridDimsD.x;
 
 	// get address in grid
-	float3 gridNodePos3 = F3(gridLoc) * resolutionD + paramsD.worldOrigin;
+	real3 gridNodePos3 = R3(gridLoc) * resolutionD + paramsD.worldOrigin;
 	int3 gridPos = calcGridPos(gridNodePos3);
 
-	float3 vel_share = F3(0.0f);
-	float4 rho_pres_share = F4(0.0f);
+	real3 vel_share = R3(0.0f);
+	real4 rho_pres_share = R4(0.0f);
 	// examine neighbouring cells
 	for (int z = -1; z <= 1; z++) {
 		for (int y = -1; y <= 1; y++) {
 			for (int x = -1; x <= 1; x++) {
 				int3 neighbourPos = gridPos + I3(x, y, z);
-				calcOnCartesianShare(vel_share, rho_pres_share, neighbourPos, F4(gridNodePos3), sortedPosRad, sortedVelMas, sortedRhoPreMu, cellStart,
+				calcOnCartesianShare(vel_share, rho_pres_share, neighbourPos, R4(gridNodePos3), sortedPosRad, sortedVelMas, sortedRhoPreMu, cellStart,
 						cellEnd);
 			}
 		}
 	}
 	// write new velocity back to original unsorted location
-//	uint originalIndex = gridParticleIndex[index];
+	uint originalIndex = gridParticleIndex[index];
 
-	//float newDensity = densityShare + velMasA.w * W3(0); //?$ include the particle in its summation as well
+	//real_ newDensity = densityShare + velMasA.w * W3(0); //?$ include the particle in its summation as well
 	//if (rhoPreMuA.w < -.1) { rhoPreMuA.x = newDensity; }
 	//rhoPreMuA.y = Eos(rhoPreMuA.x, rhoPreMuA.w);
 	//   oldRhoPreMu[originalIndex] = rhoPreMuA;
@@ -554,7 +565,7 @@ void CalcCartesianDataD(
 	/////printf("densityshare %f\n", densityShare);
 	/////printf("gridPos x y z %d %d %d %f\n", gridPos.x, gridPos.y, gridPos.z, densityShare);
 	rho_Pres_CartD[index] = rho_pres_share;
-	vel_VelMag_CartD[index] = F4(vel_share, length(vel_share));
+	vel_VelMag_CartD[index] = R4(vel_share, length(vel_share));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void allocateArray(void **devPtr, size_t size) {
@@ -582,7 +593,7 @@ void setParameters(SimParams *hostParams) {
 	cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, hostParams, sizeof(SimParams)));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void calcHash(uint* gridParticleHash, uint* gridParticleIndex, float3 * posRad, int numParticles) {
+void calcHash(uint* gridParticleHash, uint* gridParticleIndex, real3 * posRad, int numParticles) {
 	uint numThreads, numBlocks;
 	computeGridSize(numParticles, 256, numBlocks, numThreads);
 
@@ -594,20 +605,20 @@ void calcHash(uint* gridParticleHash, uint* gridParticleIndex, float3 * posRad, 
 
 	// check if kernel invocation generated an error
 	cudaThreadSynchronize();
-//	CUT_CHECK_ERROR("Kernel execution failed: calcHash");
+	CUT_CHECK_ERROR("Kernel execution failed: calcHash");
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void reorderDataAndFindCellStart(
 		uint* cellStart,
 		uint* cellEnd,
-		float3* sortedPosRad,
-		float4* sortedVelMas,
-		float4* sortedRhoPreMu,
+		real3* sortedPosRad,
+		real4* sortedVelMas,
+		real4* sortedRhoPreMu,
 		uint* gridParticleHash,
 		uint* gridParticleIndex,
-		float3* oldPosRad,
-		float4* oldVelMas,
-		float4* oldRhoPreMu,
+		real3* oldPosRad,
+		real4* oldVelMas,
+		real4* oldRhoPreMu,
 		uint numParticles,
 		uint numCells) {
 	uint numThreads, numBlocks;
@@ -618,8 +629,8 @@ void reorderDataAndFindCellStart(
 
 //#if USE_TEX
 //#if 0
-//    cutilSafeCall(cudaBindTexture(0, oldPosTex, oldPosRad, numParticles*sizeof(float4)));
-//    cutilSafeCall(cudaBindTexture(0, oldVelTex, oldVelMas, numParticles*sizeof(float4)));
+//    cutilSafeCall(cudaBindTexture(0, oldPosTex, oldPosRad, numParticles*sizeof(real4)));
+//    cutilSafeCall(cudaBindTexture(0, oldVelTex, oldVelMas, numParticles*sizeof(real4)));
 //#endif
 
 	uint smemSize = sizeof(uint) * (numThreads + 1);
@@ -636,7 +647,7 @@ void reorderDataAndFindCellStart(
 			oldRhoPreMu,
 			numParticles);
 	cudaThreadSynchronize();
-//	CUT_CHECK_ERROR("Kernel execution failed: reorderDataAndFindCellStartD");
+	CUT_CHECK_ERROR("Kernel execution failed: reorderDataAndFindCellStartD");
 //#if USE_TEX
 //#if 0
 //    cutilSafeCall(cudaUnbindTexture(oldPosTex));
@@ -645,18 +656,18 @@ void reorderDataAndFindCellStart(
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void RecalcVelocity_XSPH(
-		float3* vel_XSPH_Sorted_D,
-		float3* sortedPosRad,
-		float4* sortedVelMas,
-		float4* sortedRhoPreMu,
+		real3* vel_XSPH_Sorted_D,
+		real3* sortedPosRad,
+		real4* sortedVelMas,
+		real4* sortedRhoPreMu,
 		uint* gridParticleIndex,
 		uint* cellStart,
 		uint* cellEnd,
 		uint numParticles,
 		uint numCells) {
 	//#if USE_TEX
-	//    cutilSafeCall(cudaBindTexture(0, oldPosTex, sortedPosRad, numParticles*sizeof(float4)));
-	//    cutilSafeCall(cudaBindTexture(0, oldVelTex, sortedVelMas, numParticles*sizeof(float4)));
+	//    cutilSafeCall(cudaBindTexture(0, oldPosTex, sortedPosRad, numParticles*sizeof(real4)));
+	//    cutilSafeCall(cudaBindTexture(0, oldVelTex, sortedVelMas, numParticles*sizeof(real4)));
 	//    cutilSafeCall(cudaBindTexture(0, cellStartTex, cellStart, numCells*sizeof(uint)));
 	//    cutilSafeCall(cudaBindTexture(0, cellEndTex, cellEnd, numCells*sizeof(uint)));    
 	//#endif
@@ -676,7 +687,7 @@ void RecalcVelocity_XSPH(
 			numParticles);
 
 	cudaThreadSynchronize();
-//	CUT_CHECK_ERROR("Kernel execution failed: newVel_XSPH_D");
+	CUT_CHECK_ERROR("Kernel execution failed: newVel_XSPH_D");
 
 	//#if USE_TEX
 	//    cutilSafeCall(cudaUnbindTexture(oldPosTex));
@@ -687,22 +698,25 @@ void RecalcVelocity_XSPH(
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void collide(
-		float4* derivVelRhoD,
-		float3* sortedPosRad,
-		float4* sortedVelMas,
-		float3* vel_XSPH_Sorted_D,
-		float4* sortedRhoPreMu,
+		real4* derivVelRhoD,
+		real3* sortedPosRad,
+		real4* sortedVelMas,
+		real3* vel_XSPH_Sorted_D,
+		real4* sortedRhoPreMu,
 		uint* gridParticleIndex,
 		uint* cellStart,
 		uint* cellEnd,
 		uint numParticles,
-		uint numCells) {
+		uint numCells,
+		real_ dT) {
 	//#if USE_TEX
-	//    cutilSafeCall(cudaBindTexture(0, oldPosTex, sortedPosRad, numParticles*sizeof(float4)));
-	//    cutilSafeCall(cudaBindTexture(0, oldVelTex, sortedVelMas, numParticles*sizeof(float4)));
+	//    cutilSafeCall(cudaBindTexture(0, oldPosTex, sortedPosRad, numParticles*sizeof(real4)));
+	//    cutilSafeCall(cudaBindTexture(0, oldVelTex, sortedVelMas, numParticles*sizeof(real4)));
 	//    cutilSafeCall(cudaBindTexture(0, cellStartTex, cellStart, numCells*sizeof(uint)));
 	//    cutilSafeCall(cudaBindTexture(0, cellEndTex, cellEnd, numCells*sizeof(uint)));    
 	//#endif
+
+	cudaMemcpyToSymbolAsync(dTD_SDK, &dT, sizeof(dT));
 
 	// thread per particle
 	uint numThreads, numBlocks;
@@ -720,7 +734,7 @@ void collide(
 			numParticles);
 
 	cudaThreadSynchronize();
-//	CUT_CHECK_ERROR("Kernel execution failed: collideD");
+	CUT_CHECK_ERROR("Kernel execution failed: collideD");
 
 	//#if USE_TEX
 	//    cutilSafeCall(cudaUnbindTexture(oldPosTex));
@@ -731,20 +745,20 @@ void collide(
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ReCalcDensity(
-		float3* oldPosRad,
-		float4* oldVelMas,
-		float4* oldRhoPreMu,
-		float3* sortedPosRad,
-		float4* sortedVelMas,
-		float4* sortedRhoPreMu,
+		real3* oldPosRad,
+		real4* oldVelMas,
+		real4* oldRhoPreMu,
+		real3* sortedPosRad,
+		real4* sortedVelMas,
+		real4* sortedRhoPreMu,
 		uint* gridParticleIndex,
 		uint* cellStart,
 		uint* cellEnd,
 		uint numParticles,
 		uint numCells) {
 	//#if USE_TEX
-	//    cutilSafeCall(cudaBindTexture(0, oldPosTex, sortedPosRad, numParticles*sizeof(float4)));
-	//    cutilSafeCall(cudaBindTexture(0, oldVelTex, sortedVelMas, numParticles*sizeof(float4)));
+	//    cutilSafeCall(cudaBindTexture(0, oldPosTex, sortedPosRad, numParticles*sizeof(real4)));
+	//    cutilSafeCall(cudaBindTexture(0, oldVelTex, sortedVelMas, numParticles*sizeof(real4)));
 	//    cutilSafeCall(cudaBindTexture(0, cellStartTex, cellStart, numCells*sizeof(uint)));
 	//    cutilSafeCall(cudaBindTexture(0, cellEndTex, cellEnd, numCells*sizeof(uint)));    
 	//#endif
@@ -766,7 +780,7 @@ void ReCalcDensity(
 			numParticles);
 
 	cudaThreadSynchronize();
-//	CUT_CHECK_ERROR("Kernel execution failed: ReCalcDensityD");
+	CUT_CHECK_ERROR("Kernel execution failed: ReCalcDensityD");
 
 	//#if USE_TEX
 	//    cutilSafeCall(cudaUnbindTexture(oldPosTex));
@@ -777,17 +791,17 @@ void ReCalcDensity(
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void CalcCartesianData(
-		float4* rho_Pres_CartD,
-		float4* vel_VelMag_CartD,
-		float3* sortedPosRad,
-		float4* sortedVelMas,
-		float4* sortedRhoPreMu,
+		real4* rho_Pres_CartD,
+		real4* vel_VelMag_CartD,
+		real3* sortedPosRad,
+		real4* sortedVelMas,
+		real4* sortedRhoPreMu,
 		uint* gridParticleIndex,
 		uint* cellStart,
 		uint* cellEnd,
 		uint cartesianGridSize,
 		int3 cartesianGridDims,
-		float resolution) {
+		real_ resolution) {
 
 	cutilSafeCall( cudaMemcpyToSymbolAsync(cartesianGridDimsD, &cartesianGridDims, sizeof(cartesianGridDims)));
 	cutilSafeCall( cudaMemcpyToSymbolAsync(resolutionD, &resolution, sizeof(resolution)));
@@ -807,7 +821,7 @@ void CalcCartesianData(
 			cellEnd);
 
 	cudaThreadSynchronize();
-//	CUT_CHECK_ERROR("Kernel execution failed: ReCalcDensityD");
+	CUT_CHECK_ERROR("Kernel execution failed: ReCalcDensityD");
 
 	//#if USE_TEX
 	//    cutilSafeCall(cudaUnbindTexture(oldPosTex));

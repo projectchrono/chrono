@@ -1,6 +1,7 @@
 #ifndef SDKCOLLISIONSYSTEM_CUH
 #define SDKCOLLISIONSYSTEM_CUH
 #include <cstdio>
+#include "custom_cutil_math.h"
 
 #ifdef __CDT_PARSER__
 #define __host__
@@ -14,10 +15,6 @@
 #endif
 
 
-#define cutilSafeCall(x)  x
-#define CUT_CHECK_ERROR(x) x
-
-
 typedef unsigned int uint;
 
 //#if USE_TEX
@@ -28,65 +25,71 @@ typedef unsigned int uint;
 #endif
 
 //#define sizeScale .001
-#define sizeScale .001
+#define sizeScale 1
 
 //HSML .04 was for the dimensions around 1, .2 is for the dimesions around 11.2
-//#define HSML 0.04f*sizeScale
-#define HSML (0.15f*sizeScale)
-
+//#define HSML (0.04f*sizeScale)
+#define HSML (2.0*sizeScale) //I changed it from 0.2
+#define MULT_INITSPACE 1.0;
 #define BASEPRES 0
 #define nPeriod 1
-#define Gravity make_float3(0, 0, 0)
-#define rho0 1180
+#define Gravity R3(0, 0, 0)
+	//#define bodyForce4 R4(.005, 0, 0, 0)
+//#define bodyForce4 R4(.00001, 0, 0, 0)
+#define bodyForce4 R4(6.4e-9, 0, 0, 0)
+	//#define bodyForce4 R4(.1, 0, 0, 0)
+	//#define bodyForce4 R4(.0004, 0, 0, 0) //segre. size Scale 1
+	//#define rho0 1180
+#define rho0 1000
 //#define mu0 .001f
-#define mu0 0.05f
-//#define mu0 1.0f
-//#define bodyForce4 make_float4(.005, 0, 0, 0)
-#define bodyForce4 make_float4(4, 0, 0, 0)
-//#define bodyForce4 make_float4(.1, 0, 0, 0)
-//#define bodyForce4 make_float4(.0004, 0, 0, 0) //segre. size Scale 1
+//#define mu0 0.05f
+#define mu0 1.0f
 //#define v_Max .1f
-#define v_Max 0.5f
+#define v_Max 2e-3
 //#define v_Max .014f //estimated maximum velocity of fluid
 //#define v_Max .0005f //estimated maximum velocity of fluid
 #define EPS_XSPH .5f
-#define USE_LUBRICATION true
+//Integration Properties
+#define dT_EXPLICIT 10
+#define kdT 5
+#define gammaBB 0.5
 
-#define F4	make_float4
-#define F3	make_float3
-#define F2	make_float2
-#define I2	make_int2
-#define I3	make_int3
+
 #define PI 3.1415926535897932384626433832795028841971693993751058f
 #define INVPI 0.3183098861837906715377675267450287240689192914809128f
 struct SimParams {
-		float3 gravity;
-		float globalDamping;
-		float particleRadius;
+		real3 gravity;
+		real_ globalDamping;
+		real_ particleRadius;
 
 		int3 gridSize;
-		float3 worldOrigin;
-		float3 cellSize;
+		real3 worldOrigin;
+		real3 cellSize;
 
 		uint numBodies;
-		float3 boxDims;
+		real3 boxDims;
+};
+struct real3By3 {
+		real3 a; //first row
+		real3 b; //second row
+		real3 c; //third row
 };
 struct fluidData {
-		float rho;
-		float pressure;
-		float velocityMag;
-		float3 velocity;
+		real_ rho;
+		real_ pressure;
+		real_ velocityMag;
+		real3 velocity;
 };
 __constant__ SimParams paramsD;
 __constant__ int3 cartesianGridDimsD;
-__constant__ float resolutionD;
+__constant__ real_ resolutionD;
 
 #define RESOLUTION_LENGTH_MULT 2
 //--------------------------------------------------------------------------------------------------------------------------------
 //3D SPH kernel function, W3_SplineA
-__device__ inline float W3_Spline(float d) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
-	float h = HSML;
-	float q = fabs(d) / h;
+__device__ inline real_ W3_Spline(real_ d) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
+	real_ h = HSML;
+	real_ q = fabs(d) / h;
 	if (q < 1) {
 		return (0.25f / (PI * h * h * h) * (pow(2 - q, 3) - 4 * pow(1 - q, 3)));
 	}
@@ -97,9 +100,9 @@ __device__ inline float W3_Spline(float d) { // d is positive. h is the sph part
 }
 ////--------------------------------------------------------------------------------------------------------------------------------
 ////2D SPH kernel function, W2_SplineA
-//__device__ inline float W2_Spline(float d) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
-//	float h = HSML;
-//	float q = fabs(d) / h;
+//__device__ inline real_ W2_Spline(real_ d) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
+//	real_ h = HSML;
+//	real_ q = fabs(d) / h;
 //	if (q < 1) {
 //		return (5 / (14 * PI * h * h) * (pow(2 - q, 3) - 4 * pow(1 - q, 3)));
 //	}
@@ -110,8 +113,8 @@ __device__ inline float W3_Spline(float d) { // d is positive. h is the sph part
 //}
 ////--------------------------------------------------------------------------------------------------------------------------------
 ////3D SPH kernel function, W3_QuadraticA
-//__device__ inline float W3_Quadratic(float d, float h) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
-//	float q = fabs(d) / h;
+//__device__ inline real_ W3_Quadratic(real_ d, real_ h) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
+//	real_ q = fabs(d) / h;
 //	if (q < 2) {
 //		return (1.25f / (PI * h * h * h) * .75f * (pow(.5f * q, 2) - q + 1));
 //	}
@@ -119,8 +122,8 @@ __device__ inline float W3_Spline(float d) { // d is positive. h is the sph part
 //}
 ////--------------------------------------------------------------------------------------------------------------------------------
 ////2D SPH kernel function, W2_QuadraticA
-//__device__ inline float W2_Quadratic(float d, float h) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
-//	float q = fabs(d) / h;
+//__device__ inline real_ W2_Quadratic(real_ d, real_ h) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
+//	real_ q = fabs(d) / h;
 //	if (q < 2) {
 //		return (2.0f / (PI * h * h) * .75f * (pow(.5f * q, 2) - q + 1));
 //	}
@@ -130,9 +133,9 @@ __device__ inline float W3_Spline(float d) { // d is positive. h is the sph part
 //Gradient of the kernel function
 // d: magnitude of the distance of the two particles
 // dW * dist3 gives the gradiant of W3_Quadratic, where dist3 is the distance vector of the two particles, (dist3)a = pos_a - pos_b
-__device__ inline float3 GradW_Spline(float3 d) { // d is positive. r is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
-	float h = HSML;
-	float q = length(d) / h;
+__device__ inline real3 GradW_Spline(real3 d) { // d is positive. r is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
+	real_ h = HSML;
+	real_ q = length(d) / h;
 	bool less1 = (q < 1);
 	bool less2 = (q < 2);
 	return (less1 * (3 * q - 4) + less2 * (!less1) * (-q + 4.0f - 4.0f / q)) * .75f * (INVPI) *powf(h, -5) * d;
@@ -142,18 +145,18 @@ __device__ inline float3 GradW_Spline(float3 d) { // d is positive. r is the sph
 //	if (q < 2) {
 //		return .75f * (INVPI) *powf(h, -5)* (-q + 4.0f - 4.0f / q) * d;
 //	}
-//	return F3(0);
+//	return R3(0);
 }
 ////--------------------------------------------------------------------------------------------------------------------------------
 ////Gradient of the kernel function
 //// d: magnitude of the distance of the two particles
 //// dW * dist3 gives the gradiant of W3_Quadratic, where dist3 is the distance vector of the two particles, (dist3)a = pos_a - pos_b
-//__device__ inline float3 GradW_Quadratic(float3 d, float h) { // d is positive. r is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
-//	float q = length(d) / h;
+//__device__ inline real3 GradW_Quadratic(real3 d, real_ h) { // d is positive. r is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
+//	real_ q = length(d) / h;
 //	if (q < 2) {
 //		return 1.25f / (PI * powf(h, 5)) * .75f * (.5f - 1.0f / q) * d;
 //	}
-//	return F3(0);
+//	return R3(0);
 //}
 //--------------------------------------------------------------------------------------------------------------------------------
 #define W3 W3_Spline
@@ -162,7 +165,7 @@ __device__ inline float3 GradW_Spline(float3 d) { // d is positive. r is the sph
 //--------------------------------------------------------------------------------------------------------------------------------
 //Eos is also defined in SDKCollisionSystem.cu
 //fluid equation of state
-__device__ inline float Eos(float rho, float type) {
+__device__ inline real_ Eos(real_ rho, real_ type) {
 	////******************************
 	//int gama = 1;
 	//if (type < -.1) {
@@ -175,15 +178,15 @@ __device__ inline float Eos(float rho, float type) {
 
 	//******************************	
 	int gama = 7;
-	float B = 100 * rho0 * v_Max * v_Max / gama; //200;//314e6; //c^2 * rho0 / gama where c = 1484 m/s for water
+	real_ B = 100 * rho0 * v_Max * v_Max / gama; //200;//314e6; //c^2 * rho0 / gama where c = 1484 m/s for water
 	if (type < +.1f) {
 		return B * (pow(rho / rho0, gama) - 1); //1 * (B * (pow(rho / rho0, gama) - 1) + BASEPRES);
 	} else return BASEPRES;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //distance between two particles, considering the periodic boundary condition
-__device__ inline float3 Distance(float3 a, float3 b) {
-	float3 dist3 = a - b;
+__device__ inline real3 Distance(real3 a, real3 b) {
+	real3 dist3 = a - b;
 	dist3.x -= ((dist3.x > 0.5f * paramsD.boxDims.x) ? paramsD.boxDims.x : 0);
 	dist3.x += ((dist3.x < -0.5f * paramsD.boxDims.x) ? paramsD.boxDims.x : 0);
 
@@ -196,13 +199,13 @@ __device__ inline float3 Distance(float3 a, float3 b) {
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //distance between two particles, considering the periodic boundary condition
-__device__ inline float3 Distance(float4 posRadA, float4 posRadB) {
-	return Distance(F3(posRadA), F3(posRadB));
+__device__ inline real3 Distance(real4 posRadA, real4 posRadB) {
+	return Distance(R3(posRadA), R3(posRadB));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //distance between two particles, considering the periodic boundary condition
-__device__ inline float3 Distance(float4 posRadA, float3 posRadB) {
-	return Distance(F3(posRadA), posRadB);
+__device__ inline real3 Distance(real4 posRadA, real3 posRadB) {
+	return Distance(R3(posRadA), posRadB);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void allocateArray(void **devPtr, size_t size);
@@ -211,27 +214,48 @@ void setParameters(SimParams *hostParams);
 
 void computeGridSize(uint n, uint blockSize, uint &numBlocks, uint &numThreads);
 
-void calcHash(uint* gridParticleHash, uint* gridParticleIndex, float3 * pos, int numParticles);
+void calcHash(uint* gridParticleHash, uint* gridParticleIndex, real3 * pos, int numParticles);
 
 void reorderDataAndFindCellStart(
 		uint* cellStart,
 		uint* cellEnd,
-		float3* sortedPosRad,
-		float4* sortedVelMas,
-		float4* sortedRhoPreMu,
+		real3* sortedPosRad,
+		real4* sortedVelMas,
+		real4* sortedRhoPreMu,
 		uint* gridParticleHash,
 		uint* gridParticleIndex,
-		float3* oldPosRad,
-		float4* oldVelMas,
-		float4* oldRhoPreMu,
+		real3* oldPosRad,
+		real4* oldVelMas,
+		real4* oldRhoPreMu,
 		uint numParticles,
 		uint numCells);
 
+void reorderArrays(
+		real_ * vDot_PSorted,
+		uint * bodyIndexSortedArrangedOriginalized,
+		real_ * vDot_P,
+		uint * bodyIndexD,
+		uint * gridParticleIndex, // input: sorted particle indices
+		uint numParticles);
+
+
+void CopyBackSortedToOriginal(
+		real_ * vDot_P,
+		real3* posRadD,
+		real4* velMasD,
+		real4* rhoPreMuD,
+		real_ * vDot_PSorted,
+		real3* sortedPosRad,
+		real4* sortedVelMas,
+		real4* sortedRhoPreMu,
+		uint * gridParticleIndex,
+		uint numParticles);
+
 void RecalcVelocity_XSPH(
-		float3* vel_XSPH_D,
-		float3* sortedPosRad,
-		float4* sortedVelMas,
-		float4* sortedRhoPreMu,
+		real3* vel_XSPH_D,
+		real3* sortedPosRad,
+		real4* sortedVelMas,
+		real4* sortedRhoPreMu,
 		uint* gridParticleIndex,
 		uint* cellStart,
 		uint* cellEnd,
@@ -239,24 +263,44 @@ void RecalcVelocity_XSPH(
 		uint numCells);
 
 void collide(
-		float4* derivVelRhoD,
-		float3* sortedPosRad,
-		float4* sortedVelMas,
-		float3* vel_XSPH_D,
-		float4* sortedRhoPreMu,
+		real4* derivVelRhoD,
+		real3* sortedPosRad,
+		real4* sortedVelMas,
+		real3* vel_XSPH_Sorted_D,
+		real4* sortedRhoPreMu,
 		uint* gridParticleIndex,
 		uint* cellStart,
 		uint* cellEnd,
 		uint numParticles,
-		uint numCells);
+		uint numCells,
+		real_ dT);
+
+void UpdatePosVelP(
+		real3* m_dSortedPosRadNew,
+		real4* m_dSortedVelMasNew,
+		real4* m_dSortedRhoPreMuNew,
+		real3* m_dSortedPosRad,
+		real4* m_dSortedVelMas,
+		real4* m_dSortedRhoPreMu,
+		real_* vDot_PSortedNew,
+		real_* vDot_PSorted,
+		uint numParticles);
+
+void UpdateBC(
+		real3* m_dSortedPosRadNew,
+		real4* m_dSortedVelMasNew,
+		real4* m_dSortedRhoPreMuNew,
+		real_* vDot_PSortedNew,
+		int2* ShortestDistanceIndicesBoundaryOrRigidWithFluid,
+		int numBoundaryAndRigid);
 
 void ReCalcDensity(
-		float3* posRadD,
-		float4* velMasD,
-		float4* rhoPresMuD,
-		float3* m_dSortedPosRad,
-		float4* m_dSortedVelMas,
-		float4* m_dSortedRhoPreMu,
+		real3* posRadD,
+		real4* velMasD,
+		real4* rhoPresMuD,
+		real3* m_dSortedPosRad,
+		real4* m_dSortedVelMas,
+		real4* m_dSortedRhoPreMu,
 		uint* m_dGridParticleIndex,
 		uint* m_dCellStart,
 		uint* m_dCellEnd,
@@ -264,16 +308,58 @@ void ReCalcDensity(
 		uint numCells);
 
 void CalcCartesianData(
-		float4* rho_Pres_CartD,
-		float4* vel_VelMag_CartD,
-		float3* sortedPosRad,
-		float4* sortedVelMas,
-		float4* sortedRhoPreMu,
+		real4* rho_Pres_CartD,
+		real4* vel_VelMag_CartD,
+		real3* sortedPosRad,
+		real4* sortedVelMas,
+		real4* sortedRhoPreMu,
 		uint* gridParticleIndex,
 		uint* cellStart,
 		uint* cellEnd,
 		uint cartesianGridSize,
 		int3 cartesianGridDims,
-		float resolution);
+		real_ resolution);
+
+void CalcNumberInterferences(
+		int* contactFluidFromFluid_D,
+		int* contactFluidFromTotal_D,
+		real3* sortedPosRad,
+		real4* sortedRhoPreMu,
+		uint* gridParticleIndex,
+		uint* cellStart,
+		uint* cellEnd,
+		uint numParticles,
+		uint numCells,
+		int2* contactIndicesFTotal,
+		bool flagWrite);
+
+void FindMinimumDistanceIndices(
+			int2 * ShortestDistanceIndicesBoundaryOrRigidWithFluid,
+			int * ShortestDistanceIsAvailable,
+			real3* sortedPosRad,
+			real4* sortedRhoPreMu,
+			uint* gridParticleIndex,
+			uint* cellStart,
+			uint* cellEnd,
+			uint numParticles,
+			int numFluidMarkers,
+			int numBoundaryAndRigid);
+
+void CalcJacobianAndResidual(
+		int* COO_row,
+		int* COO_col,
+		real_* COO_val,
+		real_* resULF,
+		real_* sortedVDot_P,
+		real3* sortedPosRad,
+		real4* sortedVelMas,
+		real4* sortedRhoPreMu,
+		uint* gridParticleIndex,
+		int * contactFluidFromFluid_D,
+		int * contactFluidFromTotal_D,
+		int2 * contactIndicesFTotal,
+		int totalNumberOfInterferenceFTotal,
+		uint numParticles,
+		uint numFluidMarkers);
 
 #endif
