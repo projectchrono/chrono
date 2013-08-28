@@ -49,6 +49,9 @@ class ChApiGPU ChConstraintBilateral: public ChBaseGPU {
 		void ShurA(custom_vector<real> &x);
 		void ShurB(custom_vector<real> &x, custom_vector<real> & output);
 		void ShurBilaterals(custom_vector<real> &x_t, custom_vector<real> & AX);
+
+		void host_Diag(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real* diag);
+		void Diag();
 		protected:
 		custom_vector<real> rhs;
 

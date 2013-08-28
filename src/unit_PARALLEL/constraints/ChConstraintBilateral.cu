@@ -143,10 +143,7 @@ void ChConstraintBilateral::ShurB(custom_vector<real> &x, custom_vector<real> & 
 
 }
 
-#define JXYZA_bilateral data_container->host_data.JXYZA_bilateral
-#define JXYZB_bilateral data_container->host_data.JXYZB_bilateral
-#define JUVWA_bilateral data_container->host_data.JUVWA_bilateral
-#define JUVWB_bilateral data_container->host_data.JUVWB_bilateral
+
 
 void ChConstraintBilateral::ShurBilaterals(custom_vector<real> &x_t, custom_vector<real> & AX) {
 
@@ -161,14 +158,14 @@ void ChConstraintBilateral::ShurBilaterals(custom_vector<real> &x_t, custom_vect
 		uint b1 = data_container->host_data.bids_bilateral[index].x;
 
 		if (data_container->host_data.active_data[b1] != 0) {
-			data_container->host_data.QXYZ_data[b1] += JXYZA_bilateral[index] * gam;
-			data_container->host_data.QUVW_data[b1] += JUVWA_bilateral[index] * gam;
+			data_container->host_data.QXYZ_data[b1] += data_container->host_data.JXYZA_bilateral[index] * gam;
+			data_container->host_data.QUVW_data[b1] += data_container->host_data.JUVWA_bilateral[index] * gam;
 		}
 
 		uint b2 = data_container->host_data.bids_bilateral[index].y;
 		if (data_container->host_data.active_data[b2] != 0) {
-			data_container->host_data.QXYZ_data[b2] += JXYZB_bilateral[index] * gam;
-			data_container->host_data.QUVW_data[b2] += JUVWB_bilateral[index] * gam;
+			data_container->host_data.QXYZ_data[b2] += data_container->host_data.JXYZB_bilateral[index] * gam;
+			data_container->host_data.QUVW_data[b2] += data_container->host_data.JUVWB_bilateral[index] * gam;
 		}
 	}
 
@@ -180,8 +177,8 @@ void ChConstraintBilateral::ShurBilaterals(custom_vector<real> &x_t, custom_vect
 			if (data_container->host_data.active_data[b1] != 0) {
 				real3 XYZ = data_container->host_data.QXYZ_data[b1]* data_container->host_data.mass_data[b1];
 				real3 UVW = data_container->host_data.QUVW_data[b1]* data_container->host_data.inr_data[b1];
-				temp += dot(XYZ, JXYZA_bilateral[index ]);
-				temp += dot(UVW, JUVWA_bilateral[index ]);
+				temp += dot(XYZ, data_container->host_data.JXYZA_bilateral[index ]);
+				temp += dot(UVW, data_container->host_data.JUVWA_bilateral[index ]);
 
 			}
 			uint b2 = data_container->host_data.bids_bilateral[index].y;
@@ -189,11 +186,54 @@ void ChConstraintBilateral::ShurBilaterals(custom_vector<real> &x_t, custom_vect
 
 				real3 XYZ = data_container->host_data.QXYZ_data[b2]* data_container->host_data.mass_data[b2];;
 				real3 UVW = data_container->host_data.QUVW_data[b2]* data_container->host_data.inr_data[b2];
-				temp += dot(XYZ, JXYZB_bilateral[index ]);
-				temp += dot(UVW, JUVWB_bilateral[index ]);
+				temp += dot(XYZ, data_container->host_data.JXYZB_bilateral[index ]);
+				temp += dot(UVW, data_container->host_data.JUVWB_bilateral[index ]);
 
 			}
 			AX[index ] = temp;
 		}
 
 	}
+void ChConstraintBilateral::host_Diag(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real* diag) {
+#pragma omp parallel for
+	for (uint index = 0; index < number_of_bilaterals; index++) {
+		real3 temp = R3(0);
+		int2 id_ = ids[index];
+		uint b1 = id_.x;
+		uint b2 = id_.y;
+		real3 eta = R3(0);
+		if (active[b1] != 0) {
+
+			real inverse_mass = inv_mass[b1];
+			eta.x += dot(JXYZA[index], JXYZA[index]) * inverse_mass;
+
+			real3 inverse_inertia = inv_inertia[b1];
+			eta.x += dot(JUVWA[index] * JUVWA[index], inverse_inertia);
+
+		}
+		if (active[b2] != 0) {
+
+			real inverse_mass = inv_mass[b2];
+			eta.x += dot(JXYZB[index], JXYZB[index]) * inverse_mass;
+
+			real3 inverse_inertia = inv_inertia[b2];
+			eta.x += dot(JUVWB[index] * JUVWB[index], inverse_inertia);
+
+		}
+		diag[index + number_of_rigid_rigid * 3] = eta.x;
+
+	}
+}
+
+void ChConstraintBilateral::Diag() {
+	host_Diag(
+			data_container->host_data.bids_bilateral.data(),
+			data_container->host_data.active_data.data(),
+			data_container->host_data.mass_data.data(),
+			data_container->host_data.inr_data.data(),
+			data_container->host_data.JXYZA_bilateral.data(),
+			data_container->host_data.JXYZB_bilateral.data(),
+			data_container->host_data.JUVWA_bilateral.data(),
+			data_container->host_data.JUVWB_bilateral.data(),
+			data_container->host_data.diag.data());
+}

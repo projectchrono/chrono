@@ -11,7 +11,9 @@ void func_Project(uint &index, uint number_of_contacts, int2 *ids, real *fric, r
 	gamma.z = gam[index + number_of_contacts * 2];
 
 	real coh = (cohesion[body_id.x] + cohesion[body_id.y]) * .5;
-	if(coh<0){coh = 0;}
+	if (coh < 0) {
+		coh = 0;
+	}
 	gamma.x += coh;
 	real f_tang = sqrt(gamma.y * gamma.y + gamma.z * gamma.z);
 	real mu = (fric[body_id.x] == 0 || fric[body_id.y] == 0) ? 0 : (fric[body_id.x] + fric[body_id.y]) * .5;
@@ -70,18 +72,7 @@ void ChConstraintRigidRigid::Project(custom_vector<real> & gamma) {
 }
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-void ChConstraintRigidRigid::host_RHS(
-		int2 *ids,
-		real *correction,
-		real * compliance,
-		bool * active,
-		real3 *vel,
-		real3 *omega,
-		real3 *JXYZA,
-		real3 *JXYZB,
-		real3 *JUVWA,
-		real3 *JUVWB,
-		real *rhs) {
+void ChConstraintRigidRigid::host_RHS(int2 *ids, real *correction, real * compliance, bool * active, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs) {
 
 #pragma omp parallel for
 	for (uint index = 0; index < number_of_rigid_rigid; index++) {
@@ -164,17 +155,7 @@ __host__ __device__ void inline Compute_Jacobian(
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-void ChConstraintRigidRigid::host_Jacobians(
-		real3* norm,
-		real3* ptA,
-		real3* ptB,
-		int2* ids,
-		real4* rot,
-		real3* pos,
-		real3* JXYZA,
-		real3* JXYZB,
-		real3* JUVWA,
-		real3* JUVWB) {
+void ChConstraintRigidRigid::host_Jacobians(real3* norm, real3* ptA, real3* ptB, int2* ids, real4* rot, real3* pos, real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB) {
 #pragma omp parallel for
 	for (uint index = 0; index < number_of_rigid_rigid; index++) {
 		real3 U = norm[index];
@@ -301,17 +282,13 @@ void ChConstraintRigidRigid::host_shurA(
 		int offset2 = offset[index + number_of_rigid_rigid];
 
 		if (active[b1] != 0) {
-			updateV[offset1] = (JXYZA[index + number_of_rigid_rigid * 0] * gam.x + JXYZA[index + number_of_rigid_rigid * 1] * gam.y
-					+ JXYZA[index + number_of_rigid_rigid * 2] * gam.z);
-			updateO[offset1] = (JUVWA[index + number_of_rigid_rigid * 0] * gam.x + JUVWA[index + number_of_rigid_rigid * 1] * gam.y
-					+ JUVWA[index + number_of_rigid_rigid * 2] * gam.z);
+			updateV[offset1] = (JXYZA[index + number_of_rigid_rigid * 0] * gam.x + JXYZA[index + number_of_rigid_rigid * 1] * gam.y + JXYZA[index + number_of_rigid_rigid * 2] * gam.z);
+			updateO[offset1] = (JUVWA[index + number_of_rigid_rigid * 0] * gam.x + JUVWA[index + number_of_rigid_rigid * 1] * gam.y + JUVWA[index + number_of_rigid_rigid * 2] * gam.z);
 		}
 		uint b2 = ids[index].y;
 		if (active[b2] != 0) {
-			updateV[offset2] = (JXYZB[index + number_of_rigid_rigid * 0] * gam.x + JXYZB[index + number_of_rigid_rigid * 1] * gam.y
-					+ JXYZB[index + number_of_rigid_rigid * 2] * gam.z);
-			updateO[offset2] = (JUVWB[index + number_of_rigid_rigid * 0] * gam.x + JUVWB[index + number_of_rigid_rigid * 1] * gam.y
-					+ JUVWB[index + number_of_rigid_rigid * 2] * gam.z);
+			updateV[offset2] = (JXYZB[index + number_of_rigid_rigid * 0] * gam.x + JXYZB[index + number_of_rigid_rigid * 1] * gam.y + JXYZB[index + number_of_rigid_rigid * 2] * gam.z);
+			updateO[offset2] = (JUVWB[index + number_of_rigid_rigid * 0] * gam.x + JUVWB[index + number_of_rigid_rigid * 1] * gam.y + JUVWB[index + number_of_rigid_rigid * 2] * gam.z);
 		}
 	}
 
@@ -400,16 +377,7 @@ __host__ __device__ void function_Reduce_Shur(
 	QUVW[id] = mUpdateO * inv_inertia[id];
 }
 
-void ChConstraintRigidRigid::host_Reduce_Shur(
-		bool* active,
-		real3* QXYZ,
-		real3* QUVW,
-		real *inv_mass,
-		real3 *inv_inertia,
-		real3* updateQXYZ,
-		real3* updateQUVW,
-		uint* d_body_num,
-		uint* counter) {
+void ChConstraintRigidRigid::host_Reduce_Shur(bool* active, real3* QXYZ, real3* QUVW, real *inv_mass, real3 *inv_inertia, real3* updateQXYZ, real3* updateQUVW, uint* d_body_num, uint* counter) {
 #pragma omp parallel for schedule(dynamic, 100)
 	for (uint index = 0; index < number_of_updates; index++) {
 		function_Reduce_Shur(index, active, QXYZ, QUVW, inv_mass, inv_inertia, updateQXYZ, updateQUVW, d_body_num, counter);
@@ -472,4 +440,56 @@ void ChConstraintRigidRigid::ShurB(custom_vector<real> &x, custom_vector<real> &
 			data_container->host_data.QXYZ_data.data(),
 			data_container->host_data.QUVW_data.data(),
 			output.data());
+}
+void ChConstraintRigidRigid::host_Diag(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real* diag) {
+#pragma omp parallel for schedule(dynamic, 100)
+	for (uint index = 0; index < number_of_rigid_rigid; index++) {
+		real3 temp = R3(0);
+		int2 id_ = ids[index];
+		uint b1 = id_.x;
+		uint b2 = id_.y;
+		real3 eta = R3(0);
+		if (active[b1] != 0) {
+
+			real inverse_mass = inv_mass[b1];
+			eta.x += dot(JXYZA[index + number_of_rigid_rigid * 0], JXYZA[index + number_of_rigid_rigid * 0]) * inverse_mass;
+			eta.y += dot(JXYZA[index + number_of_rigid_rigid * 1], JXYZA[index + number_of_rigid_rigid * 1]) * inverse_mass;
+			eta.z += dot(JXYZA[index + number_of_rigid_rigid * 2], JXYZA[index + number_of_rigid_rigid * 2]) * inverse_mass;
+
+			real3 inverse_inertia = inv_inertia[b1];
+			eta.x += dot(JUVWA[index + number_of_rigid_rigid * 0] * JUVWA[index + number_of_rigid_rigid * 0], inverse_inertia);
+			eta.y += dot(JUVWA[index + number_of_rigid_rigid * 1] * JUVWA[index + number_of_rigid_rigid * 1], inverse_inertia);
+			eta.z += dot(JUVWA[index + number_of_rigid_rigid * 2] * JUVWA[index + number_of_rigid_rigid * 2], inverse_inertia);
+
+		}
+		if (active[b2] != 0) {
+
+			real inverse_mass = inv_mass[b2];
+			eta.x += dot(JXYZB[index + number_of_rigid_rigid * 0], JXYZB[index + number_of_rigid_rigid * 0]) * inverse_mass;
+			eta.y += dot(JXYZB[index + number_of_rigid_rigid * 1], JXYZB[index + number_of_rigid_rigid * 1]) * inverse_mass;
+			eta.z += dot(JXYZB[index + number_of_rigid_rigid * 2], JXYZB[index + number_of_rigid_rigid * 2]) * inverse_mass;
+
+			real3 inverse_inertia = inv_inertia[b2];
+			eta.x += dot(JUVWB[index + number_of_rigid_rigid * 0] * JUVWB[index + number_of_rigid_rigid * 0], inverse_inertia);
+			eta.y += dot(JUVWB[index + number_of_rigid_rigid * 1] * JUVWB[index + number_of_rigid_rigid * 1], inverse_inertia);
+			eta.z += dot(JUVWB[index + number_of_rigid_rigid * 2] * JUVWB[index + number_of_rigid_rigid * 2], inverse_inertia);
+
+		}
+		diag[index + number_of_rigid_rigid * 0] = eta.x;
+		diag[index + number_of_rigid_rigid * 1] = eta.y;
+		diag[index + number_of_rigid_rigid * 2] = eta.z;
+	}
+}
+
+void ChConstraintRigidRigid::Diag() {
+	host_Diag(
+			data_container->host_data.bids_data.data(),
+			data_container->host_data.active_data.data(),
+			data_container->host_data.mass_data.data(),
+			data_container->host_data.inr_data.data(),
+			JXYZA_rigid_rigid.data(),
+			JXYZB_rigid_rigid.data(),
+			JUVWA_rigid_rigid.data(),
+			JUVWB_rigid_rigid.data(),
+			data_container->host_data.diag.data());
 }

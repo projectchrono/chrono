@@ -112,7 +112,6 @@ class ChApiGPU ChLcpSolverGPU: public ChLcpIterativeSolver {
 
 		real step_size;
 		uint number_of_bilaterals;
-		uint number_of_contacts;
 		uint number_of_objects;
 		uint number_of_updates;
 		uint number_of_constraints;

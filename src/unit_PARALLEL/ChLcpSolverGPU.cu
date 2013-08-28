@@ -18,15 +18,7 @@ __constant__ real step_size_const;
 // Kernel for adding invmass*force*step_size_const to body speed vector.
 // This kernel must be applied to the stream of the body buffer.
 
-__host__ __device__ void function_addForces(
-		uint& index,
-		bool* active,
-		real* mass,
-		real3* inertia,
-		real3* forces,
-		real3* torques,
-		real3* vel,
-		real3* omega) {
+__host__ __device__ void function_addForces(uint& index, bool* active, real* mass, real3* inertia, real3* forces, real3* torques, real3* vel, real3* omega) {
 	if (active[index] != 0) {
 		// v += m_inv * h * f
 		vel[index] += forces[index] * mass[index];
@@ -111,7 +103,6 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 	data_container->step_size = step;
 
 	number_of_constraints = data_container->number_of_rigid_rigid * 3 + data_container->number_of_bilaterals;
-	number_of_contacts = data_container->number_of_rigid_rigid;
 	number_of_bilaterals = 0;     ///data_container->number_of_bilaterals;
 	number_of_objects = data_container->number_of_rigid;
 	//cout << number_of_constraints << " " << number_of_contacts << " " << number_of_bilaterals << " " << number_of_objects << endl;
@@ -129,14 +120,17 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 //	rhs_compute.ComputeRHS(data_container);
 
 	data_container->host_data.rhs_data.resize(number_of_constraints);
+	data_container->host_data.diag.resize(number_of_constraints);
 
 	ChConstraintRigidRigid rigid_rigid(data_container);
 	rigid_rigid.ComputeJacobians();
 	rigid_rigid.ComputeRHS();
+	//rigid_rigid.Diag();
 
 	ChConstraintBilateral bilateral(data_container);
 	bilateral.ComputeJacobians();
 	bilateral.ComputeRHS();
+	//bilateral.Diag();
 
 #ifdef PRINT_DEBUG_GPU
 	cout << "Solve: " << endl;

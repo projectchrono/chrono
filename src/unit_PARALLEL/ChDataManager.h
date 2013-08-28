@@ -62,6 +62,7 @@ struct host_container {
 		thrust::host_vector<real3> gyr_data;
 
 		thrust::host_vector<real> rhs_data;
+		thrust::host_vector<real> diag;
 		//thrust::host_vector<int2> bidlist_data;
 		thrust::host_vector<real3> QXYZ_data, QUVW_data;
 		thrust::host_vector<real3> JXYZA_data, JXYZB_data;
