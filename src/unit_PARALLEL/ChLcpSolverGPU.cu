@@ -204,8 +204,8 @@ void ChLcpSolverGPU::RunWarmStartPostProcess() {
 	points = (data_container->host_data.cpta_rigid_rigid + data_container->host_data.cptb_rigid_rigid);
 	points = .5 * points;
 
-	real3 max_point = R3(-MAXFLOAT);
-	real3 min_point = R3(MAXFLOAT);
+	real3 max_point = R3(-FLT_MAX);
+	real3 min_point = R3(FLT_MAX);
 	real3 origin;
 
 	for (int i = 0; i < N; i++) {
