@@ -83,12 +83,7 @@ inline uint __host__ __device__ Hash_Index(const T &A) {
 }
 
 //Function to Count AABB Bin intersections
-inline void __host__ __device__ function_Count_AABB_BIN_Intersection(
-		const uint &index,
-		const real3 *aabb_data,
-		const real3 &bin_size_vec,
-		const uint &number_of_particles,
-		uint *Bins_Intersected) {
+inline void __host__ __device__ function_Count_AABB_BIN_Intersection(const uint &index, const real3 *aabb_data, const real3 &bin_size_vec, const uint &number_of_particles, uint *Bins_Intersected) {
 	int3 gmin = HashMin(aabb_data[index], bin_size_vec);
 	int3 gmax = HashMax(aabb_data[index + number_of_particles], bin_size_vec);
 	Bins_Intersected[index] = (gmax.x - gmin.x + 1) * (gmax.y - gmin.y + 1) * (gmax.z - gmin.z + 1);
@@ -174,8 +169,7 @@ inline void __host__ __device__ function_Count_AABB_AABB_Intersection(
 			tempb = body_number[k];
 			Bmin = aabb_data[tempb];
 			Bmax = aabb_data[tempb + number_of_particles];
-			bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y)
-					&& (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
+			bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) && (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
 			if (fam_data[body_number[k]].x != fam_data[body_number[i]].y && fam_data[body_number[i]].x != fam_data[body_number[k]].y) {
 				if (inContact) {
 					count++;
@@ -187,25 +181,13 @@ inline void __host__ __device__ function_Count_AABB_AABB_Intersection(
 	Num_ContactD[index] = count;
 }
 //--------------------------------------------------------------------------
-__global__ void device_Count_AABB_AABB_Intersection(
-		const real3 *aabb_data,
-		const uint *bin_number,
-		const uint *body_number,
-		const uint *bin_start_index,
-		const int2 * fam_data,
-		uint *Num_ContactD) {
+__global__ void device_Count_AABB_AABB_Intersection(const real3 *aabb_data, const uint *bin_number, const uint *body_number, const uint *bin_start_index, const int2 * fam_data, uint *Num_ContactD) {
 	INIT_CHECK_THREAD_BOUNDED(INDEX1D, last_active_bin_const);
 	function_Count_AABB_AABB_Intersection(index, aabb_data, numAABB_const, bin_number, body_number, bin_start_index, fam_data, Num_ContactD);
 }
 
 //--------------------------------------------------------------------------
-void ChCBroadphase::host_Count_AABB_AABB_Intersection(
-		const real3 *aabb_data,
-		const uint *bin_number,
-		const uint *body_number,
-		const uint *bin_start_index,
-		const int2 * fam_data,
-		uint *Num_ContactD) {
+void ChCBroadphase::host_Count_AABB_AABB_Intersection(const real3 *aabb_data, const uint *bin_number, const uint *body_number, const uint *bin_start_index, const int2 * fam_data, uint *Num_ContactD) {
 #pragma omp parallel for schedule(dynamic, 100)
 
 	for (int i = 0; i < last_active_bin; i++) {
@@ -246,8 +228,7 @@ inline void __host__ __device__ function_Store_AABB_AABB_Intersection(
 			tempb = body_number[k];
 			Bmin = aabb_data[tempb];
 			Bmax = aabb_data[tempb + number_of_particles];
-			bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y)
-					&& (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
+			bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) && (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
 			if (fam_data[body_number[k]].x != fam_data[body_number[i]].y && fam_data[body_number[i]].x != fam_data[body_number[k]].y) {
 				if (inContact == true) {
 					int a = tempa;
@@ -276,16 +257,7 @@ __global__ void device_Store_AABB_AABB_Intersection(
 		const int2 * fam_data,
 		long long *potential_contacts) {
 	INIT_CHECK_THREAD_BOUNDED(INDEX1D, last_active_bin_const);
-	function_Store_AABB_AABB_Intersection(
-			index,
-			aabb_data,
-			numAABB_const,
-			bin_number,
-			body_number,
-			bin_start_index,
-			Num_ContactD,
-			fam_data,
-			potential_contacts);
+	function_Store_AABB_AABB_Intersection(index, aabb_data, numAABB_const, bin_number, body_number, bin_start_index, Num_ContactD, fam_data, potential_contacts);
 //--------------------------------------------------------------------------
 }
 void ChCBroadphase::host_Store_AABB_AABB_Intersection(
@@ -299,16 +271,7 @@ void ChCBroadphase::host_Store_AABB_AABB_Intersection(
 #pragma omp parallel for schedule (dynamic, 100)
 
 	for (int index = 0; index < last_active_bin; index++) {
-		function_Store_AABB_AABB_Intersection(
-				index,
-				aabb_data,
-				numAABB,
-				bin_number,
-				body_number,
-				bin_start_index,
-				Num_ContactD,
-				fam_data,
-				potential_contacts);
+		function_Store_AABB_AABB_Intersection(index, aabb_data, numAABB, bin_number, body_number, bin_start_index, Num_ContactD, fam_data, potential_contacts);
 	}
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -345,10 +308,10 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data,cust
 		bbox result = thrust::transform_reduce(thrust::omp::par,aabb_data.begin(), aabb_data.end(), unary_op, init, binary_op);
 		min_bounding_point = result.first;
 		max_bounding_point = result.second;
-		global_origin = fabs(min_bounding_point);//CHANGED: removed abs
-		bin_size_vec = (fabs(max_bounding_point + fabs(min_bounding_point)));
+		global_origin = (min_bounding_point);//CHANGED: removed abs
+		bin_size_vec = (fabs(max_bounding_point ));
 		bin_size_vec = bin_size_vec/bins_per_axis;//CHANGED: this was supposed to be reversed, CHANGED BACK this is just the inverse for convenience (saves us the divide later)
-		thrust::transform(aabb_data.begin(), aabb_data.end(), thrust::constant_iterator<real3>(global_origin), aabb_data.begin(), thrust::plus<real3>());//CHANGED: Should be a plus
+		thrust::transform(aabb_data.begin(), aabb_data.end(), thrust::constant_iterator<real3>(global_origin), aabb_data.begin(), thrust::minus<real3>());
 #ifdef PRINT_DEBUG_GPU
 		cout << "Global Origin: (" << global_origin.x << ", " << global_origin.y << ", " << global_origin.z << ")" << endl;
 		cout << "Maximum bounding point: (" << max_bounding_point.x << ", " << max_bounding_point.y << ", " << max_bounding_point.z << ")" << endl;
@@ -395,7 +358,7 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data,cust
 #ifdef PRINT_DEBUG_GPU
 #endif
 
-		last_active_bin=  (thrust::reduce_by_key(bin_number.begin(),bin_number.end(),thrust::constant_iterator<uint>(1),bin_number.begin(),bin_start_index.begin()).second)-bin_start_index.begin();
+		last_active_bin= (thrust::reduce_by_key(bin_number.begin(),bin_number.end(),thrust::constant_iterator<uint>(1),bin_number.begin(),bin_start_index.begin()).second)-bin_start_index.begin();
 
 //    host_vector<uint> bin_number_t=bin_number;
 //    host_vector<uint> bin_start_index_t(number_of_bin_intersections);

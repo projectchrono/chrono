@@ -15,10 +15,10 @@ void func_Project(uint &index, uint number_of_contacts, int2 *ids, real *fric, r
 		coh = 0;
 	}
 	gamma.x += coh;
-	real f_tang = sqrt(gamma.y * gamma.y + gamma.z * gamma.z);
+
 	real mu = (fric[body_id.x] == 0 || fric[body_id.y] == 0) ? 0 : (fric[body_id.x] + fric[body_id.y]) * .5;
 	if (mu == 0) {
-		gamma.x = gamma.x < 0 ? 0 : gamma.x;
+		gamma.x = gamma.x < 0 ? 0 : gamma.x - coh;
 		gamma.y = gamma.z = 0;
 
 		gam[index + number_of_contacts * 0] = gamma.x;
@@ -28,6 +28,8 @@ void func_Project(uint &index, uint number_of_contacts, int2 *ids, real *fric, r
 		return;
 
 	}
+
+	real f_tang = sqrt(gamma.y * gamma.y + gamma.z * gamma.z);
 	// inside upper cone? keep untouched!
 	if (f_tang < (mu * gamma.x)) {
 		return;
@@ -65,7 +67,7 @@ void ChConstraintRigidRigid::host_Project(int2 *ids, real *friction, real* cohes
 
 void ChConstraintRigidRigid::Project(custom_vector<real> & gamma) {
 	host_Project(
-			data_container->host_data.bids_data.data(),
+			data_container->host_data.bids_rigid_rigid.data(),
 			data_container->host_data.fric_data.data(),
 			data_container->host_data.cohesion_data.data(),
 			gamma.data());
@@ -83,13 +85,11 @@ void ChConstraintRigidRigid::host_RHS(int2 *ids, real *correction, real * compli
 			temp.x += dot(JXYZA[index + number_of_rigid_rigid * 0], vel[b1]) + dot(JUVWA[index + number_of_rigid_rigid * 0], omega[b1]);
 			temp.y += dot(JXYZA[index + number_of_rigid_rigid * 1], vel[b1]) + dot(JUVWA[index + number_of_rigid_rigid * 1], omega[b1]);
 			temp.z += dot(JXYZA[index + number_of_rigid_rigid * 2], vel[b1]) + dot(JUVWA[index + number_of_rigid_rigid * 2], omega[b1]);
-
 		}
 		if (active[b2]) {
 			temp.x += dot(JXYZB[index + number_of_rigid_rigid * 0], vel[b2]) + dot(JUVWB[index + number_of_rigid_rigid * 0], omega[b2]);
 			temp.y += dot(JXYZB[index + number_of_rigid_rigid * 1], vel[b2]) + dot(JUVWB[index + number_of_rigid_rigid * 1], omega[b2]);
 			temp.z += dot(JXYZB[index + number_of_rigid_rigid * 2], vel[b2]) + dot(JUVWB[index + number_of_rigid_rigid * 2], omega[b2]);
-
 		}
 		real bi = 0;
 
@@ -111,8 +111,8 @@ void ChConstraintRigidRigid::host_RHS(int2 *ids, real *correction, real * compli
 void ChConstraintRigidRigid::ComputeRHS() {
 
 	host_RHS(
-			data_container->host_data.bids_data.data(),
-			data_container->host_data.dpth_data.data(),
+			data_container->host_data.bids_rigid_rigid.data(),
+			data_container->host_data.dpth_rigid_rigid.data(),
 			comp_rigid_rigid.data(),
 			data_container->host_data.active_data.data(),
 			data_container->host_data.vel_data.data(),
@@ -122,6 +122,16 @@ void ChConstraintRigidRigid::ComputeRHS() {
 			JUVWA_rigid_rigid.data(),
 			JUVWB_rigid_rigid.data(),
 			data_container->host_data.rhs_data.data());
+
+//#pragma omp parallel for
+//	for (uint index = 0; index < number_of_rigid_rigid; index++) {
+//		uint b1 = data_container->host_data.bids_rigid_rigid[index].x;
+//		uint b2 = data_container->host_data.bids_rigid_rigid[index].y;
+//
+//
+//
+//
+//	}
 
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -229,10 +239,10 @@ void ChConstraintRigidRigid::ComputeJacobians() {
 	JUVWB_rigid_rigid.resize(number_of_rigid_rigid * 3);
 
 	host_Jacobians(
-			data_container->host_data.norm_data.data(),
-			data_container->host_data.cpta_data.data(),
-			data_container->host_data.cptb_data.data(),
-			data_container->host_data.bids_data.data(),
+			data_container->host_data.norm_rigid_rigid.data(),
+			data_container->host_data.cpta_rigid_rigid.data(),
+			data_container->host_data.cptb_rigid_rigid.data(),
+			data_container->host_data.bids_rigid_rigid.data(),
 			data_container->host_data.rot_data.data(),
 			data_container->host_data.pos_data.data(),
 			JXYZA_rigid_rigid.data(),
@@ -243,8 +253,8 @@ void ChConstraintRigidRigid::ComputeJacobians() {
 	comp_rigid_rigid.resize(number_of_rigid_rigid);
 #pragma omp parallel for
 	for (int i = 0; i < number_of_rigid_rigid; i++) {
-		uint b1 = data_container->host_data.bids_data[i].x;
-		uint b2 = data_container->host_data.bids_data[i].y;
+		uint b1 = data_container->host_data.bids_rigid_rigid[i].x;
+		uint b2 = data_container->host_data.bids_rigid_rigid[i].y;
 		real compb1 = data_container->host_data.compliance_data[b1];
 		real compb2 = data_container->host_data.compliance_data[b2];
 
@@ -398,7 +408,7 @@ void ChConstraintRigidRigid::host_Offsets(int2* ids, uint* Body) {
 void ChConstraintRigidRigid::ShurA(custom_vector<real> &x) {
 
 	host_shurA(
-			data_container->host_data.bids_data.data(),
+			data_container->host_data.bids_rigid_rigid.data(),
 			data_container->host_data.active_data.data(),
 			data_container->host_data.mass_data.data(),
 			data_container->host_data.inr_data.data(),
@@ -427,7 +437,7 @@ void ChConstraintRigidRigid::ShurA(custom_vector<real> &x) {
 }
 void ChConstraintRigidRigid::ShurB(custom_vector<real> &x, custom_vector<real> & output) {
 	host_shurB(
-			data_container->host_data.bids_data.data(),
+			data_container->host_data.bids_rigid_rigid.data(),
 			data_container->host_data.active_data.data(),
 			data_container->host_data.mass_data.data(),
 			data_container->host_data.inr_data.data(),
@@ -483,7 +493,7 @@ void ChConstraintRigidRigid::host_Diag(int2 *ids, bool *active, real *inv_mass, 
 
 void ChConstraintRigidRigid::Diag() {
 	host_Diag(
-			data_container->host_data.bids_data.data(),
+			data_container->host_data.bids_rigid_rigid.data(),
 			data_container->host_data.active_data.data(),
 			data_container->host_data.mass_data.data(),
 			data_container->host_data.inr_data.data(),

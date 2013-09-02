@@ -190,6 +190,18 @@ static custom_vector<real> operator *(const custom_vector<real> &x, const custom
 #endif
 	return temp;
 }
+
+static custom_vector<real3> operator *(const real &x, const custom_vector<real3> &y)
+{
+	custom_vector<real3> temp(y.size());
+#pragma omp parallel for
+	for(int i=0; i<y.size(); i++) {
+		temp[i] = x*y[i];
+	}
+
+	return temp;
+}
+
 static custom_vector<real3> operator *(const custom_vector<real3> &x, const custom_vector<real> &y)
 {
 	custom_vector<real3> temp(x.size());

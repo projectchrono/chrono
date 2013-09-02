@@ -22,26 +22,26 @@
 namespace chrono {
 struct host_container {
 		//collision data
-		thrust::host_vector<real3> ObA_data;
-		thrust::host_vector<real3> ObB_data;
-		thrust::host_vector<real3> ObC_data;
-		thrust::host_vector<real4> ObR_data;
-		thrust::host_vector<int2> fam_data;
-		thrust::host_vector<int> typ_data;
-		thrust::host_vector<uint> id_data;
-		thrust::host_vector<real3> aabb_data;
+		thrust::host_vector<real3> ObA_rigid;
+		thrust::host_vector<real3> ObB_rigid;
+		thrust::host_vector<real3> ObC_rigid;
+		thrust::host_vector<real4> ObR_rigid;
+		thrust::host_vector<int2> fam_rigid;
+		thrust::host_vector<int> typ_rigid;
+		thrust::host_vector<uint> id_rigid;
+		thrust::host_vector<real3> aabb_rigid;
 
 		//contact data
-		thrust::host_vector<real3> norm_data;
-		thrust::host_vector<real3> cpta_data;
-		thrust::host_vector<real3> cptb_data;
-		thrust::host_vector<real> dpth_data;
-		thrust::host_vector<int2> bids_data;
-		thrust::host_vector<long long> pair_data;
-		thrust::host_vector<real> gam_data;
+		thrust::host_vector<real3> norm_rigid_rigid;
+		thrust::host_vector<real3> cpta_rigid_rigid;
+		thrust::host_vector<real3> cptb_rigid_rigid;
+		thrust::host_vector<real> dpth_rigid_rigid;
+		thrust::host_vector<int2> bids_rigid_rigid;
+		thrust::host_vector<long long> pair_rigid_rigid;
+		thrust::host_vector<real> gamma_data;
 		thrust::host_vector<real> dgm_data;
 
-		thrust::host_vector<real> comp_data;
+		thrust::host_vector<real> compliance_rigid_rigid;
 
 		//object data
 		thrust::host_vector<real3> vel_data;
@@ -60,10 +60,12 @@ struct host_container {
 		thrust::host_vector<real3> lim_data;
 		thrust::host_vector<real3> dem_data;
 		thrust::host_vector<real3> gyr_data;
+		thrust::host_vector<real> pressure_data;
+		thrust::host_vector<real> bin_number;
+
 
 		thrust::host_vector<real> rhs_data;
 		thrust::host_vector<real> diag;
-		//thrust::host_vector<int2> bidlist_data;
 		thrust::host_vector<real3> QXYZ_data, QUVW_data;
 		thrust::host_vector<real3> JXYZA_data, JXYZB_data;
 		thrust::host_vector<real3> JUVWA_data, JUVWB_data;
@@ -75,12 +77,12 @@ struct host_container {
 		thrust::host_vector<int2> bids_bilateral;
 		thrust::host_vector<real> gamma_bilateral;
 
-		thrust::host_vector<real3> vel_update;
-		thrust::host_vector<real3> omg_update;
-		thrust::host_vector<uint> update_offset;
-		thrust::host_vector<uint> body_number;
-		thrust::host_vector<uint> offset_counter;
-		thrust::host_vector<uint> generic_counter;
+		thrust::host_vector<real3> JXYZA_fluid_fluid, JXYZB_fluid_fluid;
+		thrust::host_vector<real3> JXYZA_rigid_fluid, JXYZB_rigid_fluid, JUVWB_rigid_fluid;
+
+		thrust::host_vector<real3> fluid_pos, fluid_vel, fluid_force;
+		thrust::host_vector<real> fluid_mass, fluid_density;
+		thrust::host_vector<real3> aabb_fluid;
 
 };
 
@@ -174,6 +176,9 @@ class ChApiGPU ChGPUDataManager {
 		real complianceT;
 		real alpha;
 		real contact_recovery_speed;
+
+		real fluid_rad;
+
 
 		bool copyContacts;
 };

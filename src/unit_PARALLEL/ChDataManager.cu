@@ -60,39 +60,39 @@ void ChGPUDataManager::CopyBilateralData(GPUCOPYTYPE type) {
 
 void ChGPUDataManager::CopyGeometryData(GPUCOPYTYPE type) {
 	if (type == HOST_TO_DEVICE) {
-		device_data.device_typ_data = host_data.typ_data;
-		device_data.device_ObA_data = host_data.ObA_data;
-		device_data.device_ObB_data = host_data.ObB_data;
-		device_data.device_ObC_data = host_data.ObC_data;
-		device_data.device_ObR_data = host_data.ObR_data;
-		device_data.device_fam_data = host_data.fam_data;
-		device_data.device_id_data = host_data.id_data;
+		device_data.device_typ_data = host_data.typ_rigid;
+		device_data.device_ObA_data = host_data.ObA_rigid;
+		device_data.device_ObB_data = host_data.ObB_rigid;
+		device_data.device_ObC_data = host_data.ObC_rigid;
+		device_data.device_ObR_data = host_data.ObR_rigid;
+		device_data.device_fam_data = host_data.fam_rigid;
+		device_data.device_id_data = host_data.id_rigid;
 	}
 }
 void ChGPUDataManager::CopyContactData(GPUCOPYTYPE type) {
 	if (type == HOST_TO_DEVICE) {
-		device_data.device_norm_data = host_data.norm_data;
-		device_data.device_cpta_data = host_data.cpta_data;
-		device_data.device_cptb_data = host_data.cptb_data;
-		device_data.device_dpth_data = host_data.dpth_data;
-		device_data.device_bids_data = host_data.bids_data;
+		device_data.device_norm_data = host_data.norm_rigid_rigid;
+		device_data.device_cpta_data = host_data.cpta_rigid_rigid;
+		device_data.device_cptb_data = host_data.cptb_rigid_rigid;
+		device_data.device_dpth_data = host_data.dpth_rigid_rigid;
+		device_data.device_bids_data = host_data.bids_rigid_rigid;
 	} else {
-		host_data.norm_data = device_data.device_norm_data;
-		host_data.cpta_data = device_data.device_cpta_data;
-		host_data.cptb_data = device_data.device_cptb_data;
-		host_data.dpth_data = device_data.device_dpth_data;
-		host_data.bids_data = device_data.device_bids_data;
-		host_data.pair_data = device_data.device_pair_data;
+		host_data.norm_rigid_rigid = device_data.device_norm_data;
+		host_data.cpta_rigid_rigid = device_data.device_cpta_data;
+		host_data.cptb_rigid_rigid = device_data.device_cptb_data;
+		host_data.dpth_rigid_rigid = device_data.device_dpth_data;
+		host_data.bids_rigid_rigid = device_data.device_bids_data;
+		host_data.pair_rigid_rigid = device_data.device_pair_data;
 	}
 }
 
 void ChGPUDataManager::DeviceToHostPairData() {
-	host_data.pair_data = device_data.device_pair_data;
+	host_data.pair_rigid_rigid = device_data.device_pair_data;
 }
 void ChGPUDataManager::DeviceToHostJacobians() {
 	host_data.JXYZA_data = device_data.device_JXYZA_data;
 	host_data.JUVWA_data = device_data.device_JUVWA_data;
 	host_data.JXYZB_data = device_data.device_JXYZB_data;
 	host_data.JUVWB_data = device_data.device_JUVWB_data;
-	host_data.gam_data = device_data.device_gam_data;
+	host_data.gamma_data = device_data.device_gam_data;
 }

@@ -136,6 +136,16 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 	cout << "Solve: " << endl;
 #endif
 
+	data_container->host_data.gamma_data.resize((number_of_constraints));
+
+#pragma omp parallel for
+	for (int i = 0; i < number_of_constraints; i++) {
+		data_container->host_data.gamma_data[i] = 0;
+	}
+	if (warm_start) {
+		//cout<<"WARM"<<endl;
+		RunWarmStartPreprocess();
+	}
 	ChSolverGPU solver;
 	solver.SetMaxIterations(max_iteration);
 	solver.SetTolerance(tolerance);
@@ -153,9 +163,14 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 	//rhs = data_container->host_data.rhs_data;
 	//lambda = data_container->host_data.gam_data;
 
-//	for (int i = 0; i < solver.iter_hist.size(); i++) {
-//		AtIterationEnd(solver.maxd_hist[i], solver.maxdeltalambda_hist[i], solver.iter_hist[i]);
-//	}
+	for (int i = 0; i < solver.iter_hist.size(); i++) {
+		AtIterationEnd(solver.maxd_hist[i], solver.maxdeltalambda_hist[i], solver.iter_hist[i]);
+	}
+	if (warm_start) {
+		RunWarmStartPostProcess();
+	}
+	//determine binning
+
 	//stabilization  code
 	//jacobian_compute.ComputeJacobians(data_container);
 	//rhs_compute.ComputeRHS(data_container);
@@ -167,5 +182,112 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 #endif
 	//ChIntegratorGPU integrator;
 	//integrator.IntegrateSemiImplicit(step, data_container->gpu_data);
+}
+
+void ChLcpSolverGPU::RunWarmStartPostProcess() {
+	if (data_container->number_of_rigid_rigid == 0) {
+		return;
+	}
+
+	num_bins_per_axis = I3(20,40,20);
+	int l = num_bins_per_axis.x;
+	int h = num_bins_per_axis.y;
+	int w = num_bins_per_axis.z;
+	uint N = data_container->number_of_rigid_rigid;
+
+	thrust::host_vector<real3> points(N);
+	thrust::host_vector<uint> counter((l + 1) * (w + 1) * (h + 1), 0);
+
+	data_container->host_data.bin_number.resize((l + 1) * (w + 1) * (h + 1));
+	thrust::fill(data_container->host_data.bin_number.begin(), data_container->host_data.bin_number.end(), 0);
+
+	points = (data_container->host_data.cpta_rigid_rigid + data_container->host_data.cptb_rigid_rigid);
+	points = .5 * points;
+
+	real3 max_point = R3(-MAXFLOAT);
+	real3 min_point = R3(MAXFLOAT);
+	real3 origin;
+
+	for (int i = 0; i < N; i++) {
+		max_point.x = max(points[i].x, max_point.x);
+		max_point.y = max(points[i].y, max_point.y);
+		max_point.z = max(points[i].z, max_point.z);
+
+		min_point.x = min(points[i].x, min_point.x);
+		min_point.y = min(points[i].y, min_point.y);
+		min_point.z = min(points[i].z, min_point.z);
+	}
+
+	origin = min_point;
+	real3 bin_size_vec = (fabs(max_point - origin));
+	bin_size_vec.x = bin_size_vec.x / real(l);
+	bin_size_vec.y = bin_size_vec.y / real(h);
+	bin_size_vec.z = bin_size_vec.z / real(w);
+
+	for (int i = 0; i < N; i++) {
+		points[i] = points[i] - origin;
+
+		int3 temp;
+		temp.x = floor(points[i].x / bin_size_vec.x);
+		temp.y = floor(points[i].y / bin_size_vec.y);
+		temp.z = floor(points[i].z / bin_size_vec.z);
+		data_container->host_data.bin_number[temp.x + temp.y * w + temp.z * w * h] += data_container->host_data.gamma_data[i];
+		counter[temp.x + temp.y * w + temp.z * w * h]++;
+
+	}
+	for (int i = 0; i < counter.size(); i++) {
+		if (counter[i] > 0) {
+			data_container->host_data.bin_number[i] = data_container->host_data.bin_number[i] / counter[i];
+		}
+	}
+}
+void ChLcpSolverGPU::RunWarmStartPreprocess() {
+	if (data_container->number_of_rigid_rigid == 0) {
+		return;
+	}
+	if (data_container->host_data.bin_number.size() == 0) {
+		return;
+	}
+	num_bins_per_axis = I3(20,40,20);
+	int l = num_bins_per_axis.x;
+	int h = num_bins_per_axis.y;
+	int w = num_bins_per_axis.z;
+	uint N = data_container->number_of_rigid_rigid;
+
+	thrust::host_vector<real3> points(N);
+
+	points = (data_container->host_data.cpta_rigid_rigid + data_container->host_data.cptb_rigid_rigid);
+	points = .5 * points;
+
+	real3 max_point = R3(-MAXFLOAT);
+	real3 min_point = R3(MAXFLOAT);
+
+	for (int i = 0; i < N; i++) {
+		max_point.x = max(points[i].x, max_point.x);
+		max_point.y = max(points[i].y, max_point.y);
+		max_point.z = max(points[i].z, max_point.z);
+
+		min_point.x = min(points[i].x, min_point.x);
+		min_point.y = min(points[i].y, min_point.y);
+		min_point.z = min(points[i].z, min_point.z);
+	}
+
+	origin = min_point;
+	bin_size_vec = (fabs(max_point - origin));
+	bin_size_vec.x = bin_size_vec.x / real(l);
+	bin_size_vec.y = bin_size_vec.y / real(h);
+	bin_size_vec.z = bin_size_vec.z / real(w);
+
+	for (int i = 0; i < N; i++) {
+		points[i] = points[i] - origin;
+
+		int3 temp;
+		temp.x = floor(points[i].x / bin_size_vec.x);
+		temp.y = floor(points[i].y / bin_size_vec.y);
+		temp.z = floor(points[i].z / bin_size_vec.z);
+		data_container->host_data.gamma_data[i] = data_container->host_data.bin_number[temp.x + temp.y * w + temp.z * w * h];
+
+	}
+
 }
 

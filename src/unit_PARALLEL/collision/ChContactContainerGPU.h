@@ -31,25 +31,28 @@ namespace chrono {
 /// keeps all contact data as GPU buffers on the GPU device.
 
 class ChApiGPU ChContactContainerGPU: public ChContactContainer {
-CH_RTTI(ChContactContainerGPU, ChContactContainer)
-	;
+	CH_RTTI(ChContactContainerGPU, ChContactContainer)
+		;
 
-protected:
+	protected:
 
-public:
-	//
-	// CONSTRUCTORS
-	//
+	public:
+		//
+		// CONSTRUCTORS
+		//
 
-	ChContactContainerGPU();
+		ChContactContainerGPU();
 
-	virtual ~ChContactContainerGPU();
+		virtual ~ChContactContainerGPU();
+		int GetNcontacts() {
+			return data_container->number_of_rigid_rigid;
 
-	//
-	// FUNCTIONS
-	//
+		}
+		//
+		// FUNCTIONS
+		//
 
-	ChGPUDataManager* data_container;
+		ChGPUDataManager* data_container;
 };
 
 //////////////////////////////////////////////////////

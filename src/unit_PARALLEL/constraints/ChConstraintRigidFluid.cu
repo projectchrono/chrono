@@ -5,26 +5,23 @@ using namespace chrono;
 
 void func_Project_rigid_fluid(uint &index, uint number_of_contacts, int2 *ids, real *gam) {
 	int2 body_id = ids[index];
-	real3 gamma;
-	gamma.x = gam[index + number_of_contacts];
-	real f_tang = sqrt(gamma.y * gamma.y + gamma.z * gamma.z);
-	gamma.x = gamma.x < 0 ? 0 : gamma.x;
-	gamma.y = gamma.z = 0;
-
-	gam[index + number_of_contacts] = gamma.x;
 
 }
 
-void ChConstraintRigidFluid::host_Project(int2 *ids, real *gamma) {
+void ChConstraintRigidFluid::host_Project(int2 *ids, real *gam) {
 	for (uint index = 0; index < number_of_rigid_fluid; index++) {
-		func_Project_rigid_fluid(index, number_of_rigid_rigid * 3, ids, gamma);
+		real3 gamma;
+		gamma.x = gam[index + number_of_rigid_rigid * 3];
+		gamma.x = gamma.x < 0 ? 0 : gamma.x;
+		gamma.y = gamma.z = 0;
+		gam[index + number_of_rigid_rigid * 3] = gamma.x;
 	}
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 void ChConstraintRigidFluid::Project(custom_vector<real> & gamma) {
 	host_Project(
-			data_container->device_data.device_bids_rigid_fluid.data(),
+			data_container->gpu_data.device_bids_rigid_fluid.data(),
 			gamma.data());
 }
 
@@ -46,7 +43,7 @@ void ChConstraintRigidFluid::host_RHS(
 		uint b1 = ids[index].x;
 		uint b2 = ids[index].y;
 		real temp = 0;
-
+//cout<<b1<<" "<<b2<<endl;
 		temp += dot(JXYZA[index], vel_fluid[b1]);
 
 		if (active[b2]) {
@@ -56,7 +53,7 @@ void ChConstraintRigidFluid::host_RHS(
 		real bi = fmax(real(1.0) / step_size * correction[index], -contact_recovery_speed);
 
 		//rhs[index] = -((-temp) + fmaxf(inv_hpa * -fabs(correction[index]), 0));
-		rhs[index+number_of_rigid_rigid*3] = -temp - bi; //(temp + fmax(inv_hpa * correction[index], real(-recovery_speed)));
+		rhs[index + number_of_rigid_rigid * 3] = -temp - bi; //(temp + fmax(inv_hpa * correction[index], real(-recovery_speed)));
 
 		//cout<<correction[index]<<endl;
 
@@ -66,20 +63,19 @@ void ChConstraintRigidFluid::host_RHS(
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 void ChConstraintRigidFluid::ComputeRHS() {
-	//rhs.resize(number_of_rigid_fluid);
+
 	host_RHS(
-			data_container->device_data.device_bids_rigid_fluid.data(),
-			data_container->device_data.device_dpth_rigid_fluid.data(),
-			data_container->device_data.device_active_data.data(),
-			data_container->device_data.device_vel_data.data(),
-			data_container->device_data.device_omg_data.data(),
-			data_container->device_data.device_vel_fluid.data(),
+			data_container->gpu_data.device_bids_rigid_fluid.data(),
+			data_container->gpu_data.device_dpth_rigid_fluid.data(),
+			data_container->gpu_data.device_active_data.data(),
+			data_container->gpu_data.device_vel_data.data(),
+			data_container->gpu_data.device_omg_data.data(),
+			data_container->gpu_data.device_vel_fluid.data(),
 			device_JXYZA_rigid_fluid.data(),
 			device_JXYZB_rigid_fluid.data(),
 			device_JUVWB_rigid_fluid.data(),
-			data_container->device_data.device_rhs_data.data());
+			data_container->gpu_data.device_rhs_data.data());
 
-	//thrust::copy_n(rhs.begin(), number_of_rigid_fluid, data_container->gpu_data.device_rhs_data.begin() + number_of_rigid_rigid * 3);
 
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -136,12 +132,12 @@ void ChConstraintRigidFluid::ComputeJacobians() {
 	device_JUVWB_rigid_fluid.resize(number_of_rigid_fluid);
 
 	host_Jacobians(
-			data_container->device_data.device_norm_rigid_fluid.data(),
-			data_container->device_data.device_cpta_rigid_fluid.data(),
-			data_container->device_data.device_cptb_rigid_fluid.data(),
-			data_container->device_data.device_bids_rigid_fluid.data(),
-			data_container->device_data.device_rot_data.data(),
-			data_container->device_data.device_pos_data.data(),
+			data_container->gpu_data.device_norm_rigid_fluid.data(),
+			data_container->gpu_data.device_cpta_rigid_fluid.data(),
+			data_container->gpu_data.device_cptb_rigid_fluid.data(),
+			data_container->gpu_data.device_bids_rigid_fluid.data(),
+			data_container->gpu_data.device_rot_data.data(),
+			data_container->gpu_data.device_pos_data.data(),
 			device_JXYZA_rigid_fluid.data(),
 			device_JXYZB_rigid_fluid.data(),
 			device_JUVWB_rigid_fluid.data());
@@ -222,51 +218,36 @@ void ChConstraintRigidFluid::host_shurB(
 
 }
 void ChConstraintRigidFluid::ShurA(custom_vector<real> &x) {
-//	gamma.resize(number_of_rigid_fluid);
-//	thrust::copy_n(
-//			x.begin()+number_of_rigid_rigid*3,
-//			number_of_rigid_fluid,
-//			gamma.begin());
 		host_shurA(
-				data_container->device_data.device_bids_rigid_fluid.data(),
-				data_container->device_data.device_active_data.data(),
-				data_container->device_data.device_mass_data.data(),
-				data_container->device_data.device_inr_data.data(),
-				data_container->device_data.device_mass_fluid.data(),
+				data_container->gpu_data.device_bids_rigid_fluid.data(),
+				data_container->gpu_data.device_active_data.data(),
+				data_container->gpu_data.device_mass_data.data(),
+				data_container->gpu_data.device_inr_data.data(),
+				data_container->gpu_data.device_mass_fluid.data(),
 				device_JXYZA_rigid_fluid.data(),
 				device_JXYZB_rigid_fluid.data(),
 				device_JUVWB_rigid_fluid.data(),
 				x.data(),
-				data_container->device_data.device_QXYZ_data.data(),
-				data_container->device_data.device_QUVW_data.data(),
-				data_container->device_data.device_QXYZ_fluid.data());
+				data_container->gpu_data.device_QXYZ_data.data(),
+				data_container->gpu_data.device_QUVW_data.data(),
+				data_container->gpu_data.device_QXYZ_fluid.data());
 
 	}
 void ChConstraintRigidFluid::ShurB(custom_vector<real> &x, custom_vector<real> & output) {
-//	gamma.resize(number_of_rigid_fluid);
-//	ax.resize(number_of_rigid_fluid);
-//	thrust::copy_n(
-//			x.begin()+number_of_rigid_rigid*3 ,
-//			number_of_rigid_fluid,
-//			gamma.begin());
-
 		host_shurB(
-				data_container->device_data.device_bids_rigid_fluid.data(),
-				data_container->device_data.device_active_data.data(),
-				data_container->device_data.device_mass_data.data(),
-				data_container->device_data.device_inr_data.data(),
-				data_container->device_data.device_mass_fluid.data(),
+				data_container->gpu_data.device_bids_rigid_fluid.data(),
+				data_container->gpu_data.device_active_data.data(),
+				data_container->gpu_data.device_mass_data.data(),
+				data_container->gpu_data.device_inr_data.data(),
+				data_container->gpu_data.device_mass_fluid.data(),
 				device_comp_rigid_fluid.data(),
 				x.data(),
 				device_JXYZA_rigid_fluid.data(),
 				device_JXYZB_rigid_fluid.data(),
 				device_JUVWB_rigid_fluid.data(),
-				data_container->device_data.device_QXYZ_data.data(),
-				data_container->device_data.device_QUVW_data.data(),
-				data_container->device_data.device_QXYZ_fluid.data(),
+				data_container->gpu_data.device_QXYZ_data.data(),
+				data_container->gpu_data.device_QUVW_data.data(),
+				data_container->gpu_data.device_QXYZ_fluid.data(),
 				output.data());
-//	thrust::copy_n(
-//			ax.begin() ,
-//			number_of_rigid_fluid,
-//			output.begin()+number_of_rigid_rigid*3);
+
 	}

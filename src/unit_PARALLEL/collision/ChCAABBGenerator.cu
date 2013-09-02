@@ -18,14 +18,7 @@ static __device__ __host__ void ComputeAABBTriangle(const real3 &A, const real3 
 	maxp.z = max(A.z, max(B.z, C.z));
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-static __host__ __device__ void ComputeAABBBox(
-		const real3 &dim,
-		const real3 &lpositon,
-		const real3 &positon,
-		const real4 &lrotation,
-		const real4 &rotation,
-		real3 &minp,
-		real3 &maxp) {
+static __host__ __device__ void ComputeAABBBox(const real3 &dim, const real3 &lpositon, const real3 &positon, const real4 &lrotation, const real4 &rotation, real3 &minp, real3 &maxp) {
 
 	real4 q1 = mult(rotation, lrotation);
 	M33 rotmat = AMat(q1);
@@ -84,14 +77,7 @@ static __host__ __device__ void ComputeAABBBox(
 //    maxp = R3(maxb[0], maxb[1], maxb[2]);
 }
 
-static __host__ __device__ void ComputeAABBCone(
-		const real3 &dim,
-		const real3 &lpositon,
-		const real3 &positon,
-		const real4 &lrotation,
-		const real4 &rotation,
-		real3 &minp,
-		real3 &maxp) {
+static __host__ __device__ void ComputeAABBCone(const real3 &dim, const real3 &lpositon, const real3 &positon, const real4 &lrotation, const real4 &rotation, real3 &minp, real3 &maxp) {
 
 	real4 q1 = mult(rotation, lrotation);
 	M33 rotmat = AMat(q1);
@@ -158,18 +144,7 @@ __global__ void device_ComputeAABB(
 		const real4 *body_rot,
 		real3 *aabb_data) {
 	INIT_CHECK_THREAD_BOUNDED(INDEX1D, numAABB_const);
-	function_ComputeAABB(
-			index,
-			obj_data_T,
-			obj_data_A,
-			obj_data_B,
-			obj_data_C,
-			obj_data_R,
-			obj_data_ID,
-			body_pos,
-			body_rot,
-			numAABB_const,
-			aabb_data);
+	function_ComputeAABB(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, body_pos, body_rot, numAABB_const, aabb_data);
 }
 
 void ChCAABBGenerator::host_ComputeAABB(
@@ -247,3 +222,12 @@ custom_vector<real3> &aabb_data) {
 
 	}
 
+void ChCAABBGenerator::GenerateAABBFluid(const custom_vector<real3> &fluid_pos,
+const real radius,
+custom_vector<real3> &aabb_data) {
+
+
+
+
+
+}

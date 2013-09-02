@@ -18,6 +18,9 @@ class ChApiGPU ChSolverGPU: public ChBaseGPU {
 			epsilon = 1e-3;
 			alpha = 0;
 			max_iteration = 100;
+			total_iteration = 0;
+			current_iteration = 0;
+
 		}
 		void Setup();
 		void Project(custom_vector<real> & gamma);
@@ -184,9 +187,6 @@ class ChApiGPU ChSolverGPU: public ChBaseGPU {
 
 
 			ChTimer<double>  timer_shurcompliment, timer_project, timer_solver;
-
-			custom_vector<uint> body_num;
-			custom_vector<uint> update_number;
 			thrust::host_vector<real> maxd_hist,maxdeltalambda_hist,iter_hist;
 
 			custom_vector<real> temp1;

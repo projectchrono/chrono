@@ -33,13 +33,13 @@ void ChCollisionSystemGPU::Add(ChCollisionModel *model) {
 			}
 			real3 obC = body->mData[j].C;
 			real4 obR = body->mData[j].R;
-			data_container->host_data.ObA_data.push_back(obA);
-			data_container->host_data.ObB_data.push_back(obB);
-			data_container->host_data.ObC_data.push_back(obC);
-			data_container->host_data.ObR_data.push_back(obR);
-			data_container->host_data.fam_data.push_back(fam);
-			data_container->host_data.typ_data.push_back(body->mData[j].type);
-			data_container->host_data.id_data.push_back(body_id);
+			data_container->host_data.ObA_rigid.push_back(obA);
+			data_container->host_data.ObB_rigid.push_back(obB);
+			data_container->host_data.ObC_rigid.push_back(obC);
+			data_container->host_data.ObR_rigid.push_back(obR);
+			data_container->host_data.fam_rigid.push_back(fam);
+			data_container->host_data.typ_rigid.push_back(body->mData[j].type);
+			data_container->host_data.id_rigid.push_back(body_id);
 			data_container->number_of_models++;
 		}
 	}
@@ -78,51 +78,76 @@ void ChCollisionSystemGPU::Run() {
 
 	ChCNarrowphase narrowphase;
 	aabb_generator.GenerateAABB(
-			data_container->host_data.typ_data,
-			data_container->host_data.ObA_data,
-			data_container->host_data.ObB_data,
-			data_container->host_data.ObC_data,
-			data_container->host_data.ObR_data,
-			data_container->host_data.id_data,
+			data_container->host_data.typ_rigid,
+			data_container->host_data.ObA_rigid,
+			data_container->host_data.ObB_rigid,
+			data_container->host_data.ObC_rigid,
+			data_container->host_data.ObR_rigid,
+			data_container->host_data.id_rigid,
 			data_container->host_data.pos_data,
 			data_container->host_data.rot_data,
-			data_container->host_data.aabb_data);
-	broadphase.detectPossibleCollisions(
-			data_container->host_data.aabb_data,
-			data_container->host_data.fam_data,
-			data_container->host_data.pair_data);
+			data_container->host_data.aabb_rigid);
+
+	aabb_generator.GenerateAABBFluid(data_container->host_data.fluid_pos, data_container->fluid_rad, data_container->host_data.aabb_fluid);
+
+	broadphase.detectPossibleCollisions(data_container->host_data.aabb_rigid, data_container->host_data.fam_rigid, data_container->host_data.pair_rigid_rigid);
 	mtimer_cd_broad.stop();
 
 	mtimer_cd_narrow.start();
 	narrowphase.SetCollisionEnvelope(collision_envelope);
 
 	narrowphase.DoNarrowphase(
-			data_container->host_data.typ_data,
-			data_container->host_data.ObA_data,
-			data_container->host_data.ObB_data,
-			data_container->host_data.ObC_data,
-			data_container->host_data.ObR_data,
-			data_container->host_data.id_data,
+			data_container->host_data.typ_rigid,
+			data_container->host_data.ObA_rigid,
+			data_container->host_data.ObB_rigid,
+			data_container->host_data.ObC_rigid,
+			data_container->host_data.ObR_rigid,
+			data_container->host_data.id_rigid,
 			data_container->host_data.active_data,
 			data_container->host_data.pos_data,
 			data_container->host_data.rot_data,
-			data_container->host_data.pair_data,
-			data_container->host_data.norm_data,
-			data_container->host_data.cpta_data,
-			data_container->host_data.cptb_data,
-			data_container->host_data.dpth_data,
-			data_container->host_data.bids_data,
+			data_container->host_data.pair_rigid_rigid,
+			data_container->host_data.norm_rigid_rigid,
+			data_container->host_data.cpta_rigid_rigid,
+			data_container->host_data.cptb_rigid_rigid,
+			data_container->host_data.dpth_rigid_rigid,
+			data_container->host_data.bids_rigid_rigid,
 			data_container->number_of_rigid_rigid);
 	mtimer_cd_narrow.stop();
 
 }
 
+void ChCollisionSystemGPU::GetOverlappingAABB(vector<bool> &active_id, real3 Amin, real3 Amax) {
+	ChCAABBGenerator aabb_generator;
+
+	aabb_generator.GenerateAABB(
+			data_container->host_data.typ_rigid,
+			data_container->host_data.ObA_rigid,
+			data_container->host_data.ObB_rigid,
+			data_container->host_data.ObC_rigid,
+			data_container->host_data.ObR_rigid,
+			data_container->host_data.id_rigid,
+			data_container->host_data.pos_data,
+			data_container->host_data.rot_data,
+			data_container->host_data.aabb_rigid);
+
+	for (int i = 0; i < data_container->host_data.typ_rigid.size(); i++) {
+		real3 Bmin = data_container->host_data.aabb_rigid[i];
+		real3 Bmax = data_container->host_data.aabb_rigid[i + data_container->host_data.typ_rigid.size()];
+
+		bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) && (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
+		if (inContact) {
+			active_id[data_container->host_data.id_rigid[i]] = true;
+		}
+	}
+}
+
 vector<int2> ChCollisionSystemGPU::GetOverlappingPairs() {
 	vector<int2> pairs;
-	pairs.resize(data_container->host_data.pair_data.size());
+	pairs.resize(data_container->host_data.pair_rigid_rigid.size());
 	data_container->DeviceToHostPairData();
-	for (int i = 0; i < data_container->host_data.pair_data.size(); i++) {
-		int2 pair = I2(int(data_container->host_data.pair_data[i] >> 32), int(data_container->host_data.pair_data[i] & 0xffffffff));
+	for (int i = 0; i < data_container->host_data.pair_rigid_rigid.size(); i++) {
+		int2 pair = I2(int(data_container->host_data.pair_rigid_rigid[i] >> 32), int(data_container->host_data.pair_rigid_rigid[i] & 0xffffffff));
 		pairs[i] = pair;
 
 	}

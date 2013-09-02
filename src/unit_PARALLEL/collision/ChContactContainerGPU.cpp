@@ -28,6 +28,7 @@ namespace chrono {
 
     ChContactContainerGPU::ChContactContainerGPU() {
         n_added = 0;
+        data_container = 0;
     }
 
     ChContactContainerGPU::~ChContactContainerGPU() {

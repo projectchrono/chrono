@@ -230,10 +230,10 @@ void ChJacobianGPU::ComputeJacobians(ChGPUDataManager *data_container_) {
 
 #else
 	host_ContactJacobians(
-			data_container->host_data.norm_data.data(),
-			data_container->host_data.cpta_data.data(),
-			data_container->host_data.cptb_data.data(),
-			data_container->host_data.bids_data.data(),
+			data_container->host_data.norm_rigid_rigid.data(),
+			data_container->host_data.cpta_rigid_rigid.data(),
+			data_container->host_data.cptb_rigid_rigid.data(),
+			data_container->host_data.bids_rigid_rigid.data(),
 			data_container->host_data.rot_data.data(),
 			data_container->host_data.pos_data.data(),
 			data_container->host_data.JXYZA_data.data(),

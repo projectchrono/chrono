@@ -34,8 +34,10 @@ class ChApiGPU ChLcpSolverGPU: public ChLcpIterativeSolver {
 			lcp_omega_bilateral = .2;
 
 			max_iteration = 1000;
-			do_stab=false;
+			do_stab = false;
 			solver_type = BLOCK_JACOBI;
+			record_violation_history = true;
+			warm_start = false;
 
 		}
 		~ChLcpSolverGPU() {
@@ -51,6 +53,8 @@ class ChApiGPU ChLcpSolverGPU: public ChLcpIterativeSolver {
 
 		void RunTimeStep(real step);
 		void RunStab(real step);
+		void RunWarmStartPostProcess();
+		void RunWarmStartPreprocess();
 		void Preprocess();
 		void SetTolerance(real tol) {
 			tolerance = tol;
@@ -100,7 +104,9 @@ class ChApiGPU ChLcpSolverGPU: public ChLcpIterativeSolver {
 		}
 
 		ChGPUDataManager *data_container;
-
+		int3 num_bins_per_axis;
+		real3 origin;
+		real3 bin_size_vec;
 	private:
 		real tolerance;
 		real compliance;
@@ -126,6 +132,8 @@ class ChApiGPU ChLcpSolverGPU: public ChLcpIterativeSolver {
 		cudaEvent_t start, stop;
 
 		custom_vector<real> rhs, debug, lambda;
+
+
 
 	};}
 

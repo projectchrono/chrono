@@ -69,8 +69,7 @@ void ChSolverGPU::Setup() {
 	iter_hist.clear();
 	///////////////////////////////////////
 	Initialize();
-
-	data_container->host_data.gam_data.resize((number_of_constraints));
+	//data_container->host_data.gamma_data.resize((number_of_constraints));
 	data_container->host_data.QXYZ_data.resize(number_of_rigid);
 	data_container->host_data.QUVW_data.resize(number_of_rigid);
 
@@ -94,20 +93,17 @@ void ChSolverGPU::Setup() {
 	}
 #pragma omp parallel for
 	for (int i = 0; i < number_of_constraints; i++) {
-		data_container->host_data.gam_data[i] = 0;
+		//data_container->host_data.gamma_data[i] = 0;
 	}
 #endif
 
 	///////////////////////////////////////
-	thrust::copy_n(
-			data_container->host_data.gamma_bilateral.begin(),
-			data_container->number_of_bilaterals,
-			data_container->host_data.gam_data.begin() + data_container->number_of_rigid_rigid * 3);
+	thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals, data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 3);
 
 }
 
 void ChSolverGPU::ComputeImpulses() {
-	shurA(data_container->host_data.gam_data);
+	shurA(data_container->host_data.gamma_data);
 	data_container->host_data.vel_data += data_container->host_data.QXYZ_data;
 	data_container->host_data.omg_data += data_container->host_data.QUVW_data;
 }
@@ -120,35 +116,35 @@ void ChSolverGPU::Solve(GPUSOLVERTYPE solver_type, real step, ChGPUDataManager *
 	Setup();
 	total_iteration = 0;
 	if (number_of_constraints > 0) {
-
+		//total_iteration += SolveSD(data_container->host_data.gamma_data, data_container->host_data.rhs_data, 10);
 		if (solver_type == STEEPEST_DESCENT) {
-			total_iteration += SolveSD(data_container->host_data.gam_data, data_container->host_data.rhs_data, max_iteration);
+			total_iteration += SolveSD(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration);
 		} else if (solver_type == GRADIENT_DESCENT) {
-			total_iteration += SolveGD(data_container->host_data.gam_data, data_container->host_data.rhs_data, max_iteration);
+			total_iteration += SolveGD(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration);
 		} else if (solver_type == CONJUGATE_GRADIENT) {
-			total_iteration += SolveCG(data_container->host_data.gam_data, data_container->host_data.rhs_data, max_iteration);
+			total_iteration += SolveCG(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration);
 		} else if (solver_type == CONJUGATE_GRADIENT_SQUARED) {
-			total_iteration += SolveCGS(data_container->host_data.gam_data, data_container->host_data.rhs_data, max_iteration);
+			total_iteration += SolveCGS(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration);
 		} else if (solver_type == BICONJUGATE_GRADIENT) {
-			total_iteration += SolveBiCG(data_container->host_data.gam_data, data_container->host_data.rhs_data, max_iteration);
+			total_iteration += SolveBiCG(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration);
 		} else if (solver_type == BICONJUGATE_GRADIENT_STAB) {
-			total_iteration += SolveBiCGStab(data_container->host_data.gam_data, data_container->host_data.rhs_data, max_iteration);
+			total_iteration += SolveBiCGStab(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration);
 		} else if (solver_type == MINIMUM_RESIDUAL) {
-			total_iteration += SolveMinRes(data_container->host_data.gam_data, data_container->host_data.rhs_data, max_iteration);
+			total_iteration += SolveMinRes(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration);
 		}
 		//else if(solver_type==QUASAI_MINIMUM_RESIDUAL){SolveQMR(data_container->gpu_data.device_gam_data, rhs, max_iteration);}
 		else if (solver_type == ACCELERATED_PROJECTED_GRADIENT_DESCENT) {
 
-			InitAPGD(data_container->host_data.gam_data);
+			InitAPGD(data_container->host_data.gamma_data);
 
 			if (do_stab) {
 				custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals);
 				thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->number_of_rigid_rigid * 3, data_container->number_of_bilaterals, rhs_bilateral.begin());
 
 				for (int i = 0; i < max_iteration; i += 4) {
-					total_iteration += SolveAPGD(data_container->host_data.gam_data, data_container->host_data.rhs_data, 4);
+					total_iteration += SolveAPGD(data_container->host_data.gamma_data, data_container->host_data.rhs_data, 4);
 					thrust::copy_n(
-							data_container->host_data.gam_data.begin() + data_container->number_of_rigid_rigid * 3,
+							data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 3,
 							data_container->number_of_bilaterals,
 							data_container->host_data.gamma_bilateral.begin());
 
@@ -157,18 +153,18 @@ void ChSolverGPU::Solve(GPUSOLVERTYPE solver_type, real step, ChGPUDataManager *
 					thrust::copy_n(
 							data_container->host_data.gamma_bilateral.begin(),
 							data_container->number_of_bilaterals,
-							data_container->host_data.gam_data.begin() + data_container->number_of_rigid_rigid * 3);
+							data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 3);
 
-					total_iteration += SolveAPGD(data_container->host_data.gam_data, data_container->host_data.rhs_data, 4);
+					total_iteration += SolveAPGD(data_container->host_data.gamma_data, data_container->host_data.rhs_data, 4);
 				}
 			} else {
-				total_iteration += SolveAPGD(data_container->host_data.gam_data, data_container->host_data.rhs_data, max_iteration);
+				total_iteration += SolveAPGD(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration);
 			}
 		} else if (solver_type == BLOCK_JACOBI) {
 			SolveJacobi();
 		}
 		thrust::copy_n(
-				data_container->host_data.gam_data.begin() + data_container->number_of_rigid_rigid * 3,
+				data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 3,
 				data_container->number_of_bilaterals,
 				data_container->host_data.gamma_bilateral.begin());
 

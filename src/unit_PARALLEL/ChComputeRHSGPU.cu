@@ -9,7 +9,7 @@ void ChComputeRHSGPU::Setup() {
 	bi.resize(number_of_rigid_rigid);
 	Thrust_Fill(correction, 0);
 	thrust::copy_n(
-			data_container->host_data.dpth_data.begin(),
+			data_container->host_data.dpth_rigid_rigid.begin(),
 			data_container->number_of_rigid_rigid,
 			correction.begin() + data_container->number_of_rigid_rigid * 0);
 }
@@ -150,21 +150,21 @@ void ChComputeRHSGPU::ComputeRHS(ChGPUDataManager *data_container_) {
 	//Thrust_Fill(data_container->gpu_data.device_QXYZ_data, R3(0));
 	//Thrust_Fill(data_container->gpu_data.device_QUVW_data, R3(0));
 
-	data_container->host_data.comp_data.resize(number_of_rigid_rigid);
+	data_container->host_data.compliance_rigid_rigid.resize(number_of_rigid_rigid);
 	for (int i = 0; i < number_of_rigid_rigid; i++) {
-		uint b1 = data_container->host_data.bids_data[i].x;
-		uint b2 = data_container->host_data.bids_data[i].y;
+		uint b1 = data_container->host_data.bids_rigid_rigid[i].x;
+		uint b2 = data_container->host_data.bids_rigid_rigid[i].y;
 		real compb1 = data_container->host_data.compliance_data[b1];
 		real compb2 = data_container->host_data.compliance_data[b2];
 
 		real comp = (compb1 == 0 || compb2 == 0) ? 0 : (compb1 + compb2) * .5;
-		data_container->host_data.comp_data[i] = comp;
+		data_container->host_data.compliance_rigid_rigid[i] = comp;
 	}
 
-	host_bi(correction.data(), data_container->host_data.comp_data.data(), bi.data());
+	host_bi(correction.data(), data_container->host_data.compliance_rigid_rigid.data(), bi.data());
 
 	host_RHS_contacts(
-			data_container->host_data.bids_data.data(),
+			data_container->host_data.bids_rigid_rigid.data(),
 			bi.data(),
 			data_container->host_data.active_data.data(),
 			data_container->host_data.vel_data.data(),

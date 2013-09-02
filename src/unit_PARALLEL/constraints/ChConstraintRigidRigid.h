@@ -18,7 +18,7 @@ class ChApiGPU ChConstraintRigidRigid: public ChBaseGPU {
 				vel_update.resize((number_of_rigid_rigid) * 2);
 				omg_update.resize((number_of_rigid_rigid) * 2);
 
-				host_Offsets(data_container->host_data.bids_data.data(), body_num.data());
+				host_Offsets(data_container->host_data.bids_rigid_rigid.data(), body_num.data());
 
 				thrust::sequence(update_number.begin(), update_number.end());
 				thrust::sequence(update_offset.begin(), update_offset.end());
