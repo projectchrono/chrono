@@ -13,13 +13,7 @@ __device__ __host__ real3 GetCenter(const shape_type &type, const real3 &A, cons
 	}
 }
 
-__device__ __host__ real3 TransformSupportVert(
-		const shape_type &type,
-		const real3 &A,
-		const real3 &B,
-		const real3 &C,
-		const real4 &R,
-		const real3 &b) {
+__device__ __host__ real3 TransformSupportVert(const shape_type &type, const real3 &A, const real3 &B, const real3 &C, const real4 &R, const real3 &b) {
 	real3 localSupport;
 	real3 n = normalize(b);
 
@@ -93,8 +87,7 @@ __device__ __host__ real find_dist(real3 &P, real3 &x0, real3 &B, real3 &C, real
 	s = (q * r - w * p) / (w * v - r * r);
 	t = (-s * r - q) / w;
 
-	if ((IsZero(s) || s > 0.0f) && (isEqual(s, 1.0f) || s < 1.0f) && (IsZero(t) || t > 0.0f) && (isEqual(t, 1.0f) || t < 1.0f)
-			&& (isEqual(t + s, 1.0f) || t + s < 1.0f)) {
+	if ((IsZero(s) || s > 0.0f) && (isEqual(s, 1.0f) || s < 1.0f) && (IsZero(t) || t > 0.0f) && (isEqual(t, 1.0f) || t < 1.0f) && (isEqual(t + s, 1.0f) || t + s < 1.0f)) {
 		d1 = d1 * s;
 		d2 = d2 * t;
 		witness = x0;
@@ -607,16 +600,18 @@ uint & number_of_contacts
 		thrust::remove_if(bids_data.begin(), bids_data.end(), generic_counter.begin(), thrust::identity<int>());
 		thrust::remove_if(potentialCollisions.begin(), potentialCollisions.end(), generic_counter.begin(), thrust::identity<int>());
 
-//		thrust::sort_by_key(
-//				generic_counter.begin(),
-//				generic_counter.end(),
-//				thrust::make_zip_iterator(thrust::make_tuple(norm_data.begin(), cpta_data.begin(), cptb_data.begin(), dpth_data.begin(), bids_data.begin(), potentialCollisions.begin()))
-//		);
+		potentialCollisions.resize(number_of_contacts);
 		norm_data.resize(number_of_contacts);
 		cpta_data.resize(number_of_contacts);
 		cptb_data.resize(number_of_contacts);
 		dpth_data.resize(number_of_contacts);
 		bids_data.resize(number_of_contacts);
+
+		thrust::sort_by_key(thrust::omp::par,
+				potentialCollisions.begin(),
+				potentialCollisions.end(),
+				thrust::make_zip_iterator(thrust::make_tuple(norm_data.begin(), cpta_data.begin(), cptb_data.begin(), dpth_data.begin(), bids_data.begin()))
+		);
 
 	}
 

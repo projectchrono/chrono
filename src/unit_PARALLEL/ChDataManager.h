@@ -33,12 +33,15 @@ struct host_container {
 
 		//contact data
 		thrust::host_vector<real3> norm_rigid_rigid;
+		thrust::host_vector<real3> old_norm_rigid_rigid;
 		thrust::host_vector<real3> cpta_rigid_rigid;
 		thrust::host_vector<real3> cptb_rigid_rigid;
 		thrust::host_vector<real> dpth_rigid_rigid;
 		thrust::host_vector<int2> bids_rigid_rigid;
 		thrust::host_vector<long long> pair_rigid_rigid;
+		thrust::host_vector<long long> old_pair_rigid_rigid;
 		thrust::host_vector<real> gamma_data;
+		thrust::host_vector<real> old_gamma_data;
 		thrust::host_vector<real> dgm_data;
 
 		thrust::host_vector<real> compliance_rigid_rigid;
@@ -165,6 +168,7 @@ class ChApiGPU ChGPUDataManager {
 		host_container host_data;
 
 		uint number_of_rigid_rigid;
+		uint old_number_of_rigid_rigid;
 		uint number_of_contacts_possible;
 		uint number_of_models;
 		uint number_of_rigid;

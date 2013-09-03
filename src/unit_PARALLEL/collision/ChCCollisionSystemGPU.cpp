@@ -70,6 +70,10 @@ void ChCollisionSystemGPU::Run() {
 	if (data_container->number_of_models <= 0) {
 		return;
 	}
+
+	data_container->host_data.old_pair_rigid_rigid = data_container->host_data.pair_rigid_rigid;
+	data_container->host_data.old_norm_rigid_rigid = data_container->host_data.norm_rigid_rigid;
+	data_container->old_number_of_rigid_rigid = data_container->number_of_rigid_rigid;
 	mtimer_cd_broad.start();
 	ChCAABBGenerator aabb_generator;
 	ChCBroadphase broadphase;

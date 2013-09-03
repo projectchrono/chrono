@@ -19,7 +19,7 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 	real gdiff = 0.000001;
 
 	real lastgoodres=10e30;
-	real theta_k=.1;
+	real theta_k=1;
 	real theta_k1=theta_k;
 	real beta_k1=0.0;
 	ml = x;
@@ -60,7 +60,7 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 			Sub(ms,mx,my);//ms = mx - my;
 
 			while (obj1 > obj2 + Dot(mg, ms) + 0.5 * L_k * powf(Norm(ms), 2.0)) {
-				L_k = 3 * L_k;
+				L_k = 2 * L_k;
 				t_k = 1.0 / L_k;
 				SEAXPY(-t_k, mg, my, mx);     // mx = my + mg*(t_k);
 				Project(mx);
@@ -81,7 +81,7 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 				my = mx;
 				theta_k1 = 1.0;
 			}
-			L_k = 0.5 * L_k;
+			L_k = 0.9 * L_k;
 			t_k = 1.0 / L_k;
 
 			ml = mx;
