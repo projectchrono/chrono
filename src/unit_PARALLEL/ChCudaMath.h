@@ -42,7 +42,7 @@ struct real2 {
 
 struct real3 {
 	real x, y, z;
-};
+} ;
 struct real4 {
 	real w, x, y, z;
 };

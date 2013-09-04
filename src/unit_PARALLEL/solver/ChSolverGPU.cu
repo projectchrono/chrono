@@ -96,9 +96,10 @@ void ChSolverGPU::Setup() {
 		//data_container->host_data.gamma_data[i] = 0;
 	}
 #endif
-
+	//Thrust_Fill(data_container->host_data.gamma_bilateral, 0);
 	///////////////////////////////////////
-	thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals, data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 3);
+	//data_container->host_data.gamma_bilateral = data_container->host_data.gamma_bilateral*0;
+	//thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals, data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 3);
 
 }
 
@@ -141,14 +142,14 @@ void ChSolverGPU::Solve(GPUSOLVERTYPE solver_type, real step, ChGPUDataManager *
 				custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals);
 				thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->number_of_rigid_rigid * 3, data_container->number_of_bilaterals, rhs_bilateral.begin());
 
-				for (int i = 0; i < max_iteration; i += 4) {
+				for (int i = 0; i < max_iteration; i += 8) {
 					total_iteration += SolveAPGD(data_container->host_data.gamma_data, data_container->host_data.rhs_data, 4);
 					thrust::copy_n(
 							data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 3,
 							data_container->number_of_bilaterals,
 							data_container->host_data.gamma_bilateral.begin());
 
-					SolveStab(data_container->host_data.gamma_bilateral, rhs_bilateral, 50);
+					SolveStab(data_container->host_data.gamma_bilateral, rhs_bilateral, 10);
 
 					thrust::copy_n(
 							data_container->host_data.gamma_bilateral.begin(),
@@ -163,10 +164,10 @@ void ChSolverGPU::Solve(GPUSOLVERTYPE solver_type, real step, ChGPUDataManager *
 		} else if (solver_type == BLOCK_JACOBI) {
 			SolveJacobi();
 		}
-		thrust::copy_n(
-				data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 3,
-				data_container->number_of_bilaterals,
-				data_container->host_data.gamma_bilateral.begin());
+//		thrust::copy_n(
+//				data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 3,
+//				data_container->number_of_bilaterals,
+//				data_container->host_data.gamma_bilateral.begin());
 
 		current_iteration = total_iteration;
 		ComputeImpulses();

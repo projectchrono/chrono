@@ -309,7 +309,7 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data,cust
 		min_bounding_point = result.first;
 		max_bounding_point = result.second;
 		global_origin = (min_bounding_point);//CHANGED: removed abs
-		bin_size_vec = (fabs(max_bounding_point ));
+		bin_size_vec = (fabs(max_bounding_point - global_origin));
 		bin_size_vec = bin_size_vec/bins_per_axis;//CHANGED: this was supposed to be reversed, CHANGED BACK this is just the inverse for convenience (saves us the divide later)
 		thrust::transform(aabb_data.begin(), aabb_data.end(), thrust::constant_iterator<real3>(global_origin), aabb_data.begin(), thrust::minus<real3>());
 #ifdef PRINT_DEBUG_GPU

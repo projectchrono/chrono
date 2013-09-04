@@ -17,7 +17,7 @@ ChSystemGPU::ChSystemGPU(unsigned int max_objects) :
 	((ChLcpSolverGPU *) (LCP_solver_speed))->data_container = gpu_data_manager;
 	((ChContactContainerGPU*) contact_container)->data_container = gpu_data_manager;
 
-
+	use_aabb_active = 0;
 }
 int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	mtimer_step.start();
@@ -29,13 +29,15 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	mtimer_updt.stop();
 	timer_update = mtimer_updt();
 	//=============================================================================================
-//	vector<bool> body_active(gpu_data_manager->number_of_rigid, false);
-//	((ChCollisionSystemGPU*) collision_system)->GetOverlappingAABB(body_active, R3(-2, -10, -2), R3(2, 10, 2));
-//	for (int i = 0; i < bodylist.size(); i++) {
-//		if (bodylist[i]->IsActive() == true) {
-//			gpu_data_manager->host_data.active_data[i] = body_active[i];
-//		}
-//	}
+	if (use_aabb_active) {
+		vector<bool> body_active(gpu_data_manager->number_of_rigid, false);
+		((ChCollisionSystemGPU*) collision_system)->GetOverlappingAABB(body_active, aabb_min, aabb_max);
+		for (int i = 0; i < bodylist.size(); i++) {
+			if (bodylist[i]->IsActive() == true && bodylist[i]->GetCollide() == true) {
+				gpu_data_manager->host_data.active_data[i] = body_active[i];
+			}
+		}
+	}
 	//=============================================================================================
 	mtimer_cd.start();
 	collision_system->Run();
@@ -61,7 +63,7 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 		counter++;
 	}
 // updates the reactions of the constraint
-	LCPresult_Li_into_reactions(1.0 / this->GetStep());     // R = l/dt  , approximately
+	LCPresult_Li_into_reactions(1.0 / this->GetStep());		// R = l/dt  , approximately
 
 #pragma omp parallel for
 	for (int i = 0; i < bodylist.size(); i++) {
@@ -206,7 +208,7 @@ void ChSystemGPU::UpdateBodies() {
 	for (int i = 0; i < bodylist.size(); i++) {
 		bodylist[i]->UpdateTime(ChTime);
 		//bodylist[i]->TrySleeping();			// See if the body can fall asleep; if so, put it to sleeping
-		bodylist[i]->ClampSpeed();     // Apply limits (if in speed clamping mode) to speeds.
+		//bodylist[i]->ClampSpeed();     // Apply limits (if in speed clamping mode) to speeds.
 		bodylist[i]->ComputeGyro();     // Set the gyroscopic momentum.
 		bodylist[i]->UpdateForces(ChTime);
 		bodylist[i]->VariablesFbReset();
@@ -290,7 +292,8 @@ void ChSystemGPU::UpdateBilaterals() {
 		gpu_data_manager->host_data.residual_bilateral[cntr] = mbilateral->Get_b_i();     // b_i is residual b
 		gpu_data_manager->host_data.correction_bilateral[cntr] = 1.0 / mbilateral->Get_g_i();     // eta = 1/g
 		gpu_data_manager->host_data.bids_bilateral[cntr] = I2(idA, idB);
-		gpu_data_manager->host_data.gamma_bilateral[cntr] = mbilateral->Get_l_i();
+		gpu_data_manager->host_data.gamma_bilateral[cntr] = -mbilateral->Get_l_i();
+		//cout<<"gamma "<<mbilateral->Get_l_i()<<endl;
 		cntr++;
 	}
 }

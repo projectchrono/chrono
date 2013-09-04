@@ -286,19 +286,24 @@ void ChConstraintRigidRigid::host_shurA(
 		gam.x = gamma[index + number_of_rigid_rigid * 0];
 		gam.y = gamma[index + number_of_rigid_rigid * 1];
 		gam.z = gamma[index + number_of_rigid_rigid * 2];
+
+
 		uint b1 = ids[index].x;
 
 		int offset1 = offset[index];
 		int offset2 = offset[index + number_of_rigid_rigid];
 
+
+
+
 		if (active[b1] != 0) {
-			updateV[offset1] = (JXYZA[index + number_of_rigid_rigid * 0] * gam.x + JXYZA[index + number_of_rigid_rigid * 1] * gam.y + JXYZA[index + number_of_rigid_rigid * 2] * gam.z);
-			updateO[offset1] = (JUVWA[index + number_of_rigid_rigid * 0] * gam.x + JUVWA[index + number_of_rigid_rigid * 1] * gam.y + JUVWA[index + number_of_rigid_rigid * 2] * gam.z);
+			updateV[offset1] = JXYZA[index + number_of_rigid_rigid * 0] * gam.x + JXYZA[index + number_of_rigid_rigid * 1] * gam.y + JXYZA[index + number_of_rigid_rigid * 2] * gam.z;
+			updateO[offset1] = JUVWA[index + number_of_rigid_rigid * 0] * gam.x + JUVWA[index + number_of_rigid_rigid * 1] * gam.y + JUVWA[index + number_of_rigid_rigid * 2] * gam.z;
 		}
 		uint b2 = ids[index].y;
 		if (active[b2] != 0) {
-			updateV[offset2] = (JXYZB[index + number_of_rigid_rigid * 0] * gam.x + JXYZB[index + number_of_rigid_rigid * 1] * gam.y + JXYZB[index + number_of_rigid_rigid * 2] * gam.z);
-			updateO[offset2] = (JUVWB[index + number_of_rigid_rigid * 0] * gam.x + JUVWB[index + number_of_rigid_rigid * 1] * gam.y + JUVWB[index + number_of_rigid_rigid * 2] * gam.z);
+			updateV[offset2] = JXYZB[index + number_of_rigid_rigid * 0] * gam.x + JXYZB[index + number_of_rigid_rigid * 1] * gam.y + JXYZB[index + number_of_rigid_rigid * 2] * gam.z;
+			updateO[offset2] = JUVWB[index + number_of_rigid_rigid * 0] * gam.x + JUVWB[index + number_of_rigid_rigid * 1] * gam.y + JUVWB[index + number_of_rigid_rigid * 2] * gam.z;
 		}
 	}
 
