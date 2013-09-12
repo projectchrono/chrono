@@ -261,6 +261,12 @@ static __host__         __device__       inline real clamp(const real & a, const
 	}
 
 }
+
+static __host__         __device__       inline real lerp(const real &a, const real &b, real alpha) {
+	return (a + alpha * (b - a));
+
+}
+
 ////////Vector Operations
 static __host__         __device__       inline real dot(const real3 &a, const real3 &b) {
 	return a.x * b.x + a.y * b.y + a.z * b.z;
