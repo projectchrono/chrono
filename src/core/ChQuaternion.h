@@ -26,7 +26,6 @@ namespace chrono
 {
 
 
-#define CHCLASS_QUATERNION 10
 
 ///
 /// QUATERNION:	

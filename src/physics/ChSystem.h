@@ -41,7 +41,7 @@
 #include "physics/ChEvents.h"
 #include "physics/ChProbe.h"
 #include "physics/ChControls.h"
-#include "physics/ChImpacts.h"
+//#include "physics/ChImpacts.h"
 #include "physics/ChMaterialCouple.h"
 #include "physics/ChScriptEngine.h"
 #include "physics/ChGlobal.h"
@@ -63,7 +63,6 @@ class ChLcpSystemDescriptor;
 class ChContactContainerBase;
 
 
-#define CHCLASS_SYSTEM 6
 
 //////////////////////////////////////
 // CLASS FOR PHYSICAL SYSTEM
@@ -634,8 +633,6 @@ public:
 	int GetNdoc() {return ndoc;}
 				/// Gets the number of system variables (coordinates plus the constraint multipliers, in case of quaternions)
 	int GetNsysvars() {return nsysvars;}
-				/// Gets the number of redundant scalar constraints - Note: feature currently disabled.
-	int GetNredundancy() {return nredundancy;}
 				/// Gets the number of coordinates (considering 6 coords for rigid bodies, 3 transl.+3rot.)
 	int GetNcoords_w() {return ncoords_w;}
 				/// Gets the number of scalar constraints added to the system		
@@ -781,16 +778,6 @@ public:
 	int ExecuteControlsForStep();
 	int ExecuteControlsFor3DStep();
 
-				/// Getting the array of pivots and the number of redundant costraints
-				/// as provided by the Gauss solution routine, it sets the "redundant"
-				/// flags for the unuseful costraints in links. Returns TRUE.
-				/// NOTE - function deactivated in latest versions!
-	int    OffRedundantCostraints(int* pivarray, int numredund);
-
-				/// Restore the costraints which has been temporarily disabled
-				/// because redundant. Returns number oc modified constr. states (on/off)
-				/// NOTE - function deactivated in latest versions!
-	int	   OnRedundantCostraints();
 
 
 				/// All bodies with collision detection data are requested to
@@ -979,13 +966,6 @@ public:
 
 
 
-				// --- REMOVE REDUNDANT LINKS
-
-				/// Tries to identify the ill-placed constraints and switch off their active flags
-				/// Returns tot number of bad constraint equations removed.
-	int DoRemoveRedundancy();
-
-
 
 
 			//
@@ -1119,7 +1099,6 @@ protected:
 	int ncoords_w;		// number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
 	int ndoc_w;			// number of scalar costraints  when using 3 rot. dof. per body;  for all active bodies
 	int nsysvars_w;		// number of variables when using 3 rot. dof. per body; i.e. = ncoords_w+ndoc_w
-	int nredundancy;	// number of redundant (or bad) constraints, i.e. ill posed constr. scalar equations
 	int ndof;			// number of degrees of freedom, = ncoords-ndoc =  ncoords_w-ndoc_w ,
 	int ndoc_w_C;		// number of scalar costraints C, when using 3 rot. dof. per body (excluding unilaterals)
 	int ndoc_w_D;		// number of scalar costraints D, when using 3 rot. dof. per body (only unilaterals)

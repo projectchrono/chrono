@@ -38,7 +38,6 @@ namespace chrono
 
 
 
-#define CHCLASS_OPTVAR	23
 
 /////////////////////////////////////
 // CLASS FOR OPTIMIZATION VARIABLES 

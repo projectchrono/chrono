@@ -32,7 +32,6 @@ namespace chrono
 {
 
 
-#define CHCLASS_VECTOR 9
 
 ///
 /// VECTOR:	a class for general purpose 3d vectorial variables, such as

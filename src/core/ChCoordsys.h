@@ -30,9 +30,6 @@ namespace chrono
 
 
 
-#define CHCLASS_COORDSYS 13
-
-
 ///
 /// COORDSYS:	
 ///
