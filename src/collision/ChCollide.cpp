@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////
 //
-//   ChCollide.cpp
+//   ChCCollisionUtils.cpp
 //
 // ------------------------------------------------
 // 	 Copyright:Alessandro Tasora / DeltaKnowledge
@@ -17,7 +17,7 @@
 #include <memory.h>
 
 #include "core/ChTrasform.h"
-#include "physics/ChCollide.h"
+#include "collision/ChCollide.h"
 #include "physics/ChGlobal.h"
 #include "physics/ChSolvmin.h"
 #include "physics/ChNlsolver.h"
@@ -28,7 +28,8 @@
 
 namespace chrono
 {
-
+namespace collision 
+{
 
 
 
@@ -44,7 +45,7 @@ namespace chrono
 //    Pb = P3 + mub (P4 - P3)
 // Return FALSE if no solution exists.
 
-int ChLineLineIntersect(
+int ChCollisionUtils::LineLineIntersect(
    Vector p1, Vector p2,Vector p3,Vector p4,Vector *pa,Vector *pb,
    double *mua, double *mub)
 {
@@ -98,7 +99,7 @@ int ChLineLineIntersect(
 // with segment dA,dB. Returns distance. Also, the mu value reference
 // tells if the nearest projection of point on line falls into segment (for mu 0...1)
 
-double ChPointLineDistance(Vector p, Vector dA, Vector dB, double& mu, int& is_insegment)
+double ChCollisionUtils::PointLineDistance(Vector p, Vector dA, Vector dB, double& mu, int& is_insegment)
 {
 	mu=-1.0;
 	is_insegment = 0;
@@ -125,7 +126,7 @@ double ChPointLineDistance(Vector p, Vector dA, Vector dB, double& mu, int& is_i
 // Also computes if projection is inside the triangle.
 //
 
-double ChPointTriangleDistance(Vector B, Vector A1, Vector A2, Vector A3,
+double ChCollisionUtils::PointTriangleDistance(Vector B, Vector A1, Vector A2, Vector A3,
 							   double& mu, double& mv, int& is_into,
 							   Vector& Bprojected)
 {
@@ -177,7 +178,7 @@ double ChPointTriangleDistance(Vector B, Vector A1, Vector A2, Vector A3,
 
 
  
-int ChDegenerateTriangle(Vector Dx, Vector Dy)
+int ChCollisionUtils::DegenerateTriangle(Vector Dx, Vector Dy)
 {
 	Vector vcr;
 	vcr = Vcross(Dx,Dy);
@@ -190,7 +191,7 @@ int ChDegenerateTriangle(Vector Dx, Vector Dy)
 
 
 
-
+} // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____
 
 

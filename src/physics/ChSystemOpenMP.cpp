@@ -18,7 +18,7 @@
 
 #include "physics/ChSystemOpenMP.h"
 #include "physics/ChGlobal.h"
-#include "physics/ChCollide.h"
+//#include "physics/ChCollide.h"
 #include "physics/ChBodyAuxRef.h"
 #include "physics/ChContactContainer.h"
 #include "physics/ChProximityContainerBase.h"
