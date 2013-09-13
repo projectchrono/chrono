@@ -18,11 +18,10 @@
 ///////////////////////////////////////////////////
 
 
-#include <stdlib.h>
 #include "core/ChApiCE.h"
 #include "core/ChMath.h"
 #include "core/ChShared.h"
-#include "fem/ChTensors.h"
+#include "physics/ChTensors.h"
 
 namespace chrono 
 {
