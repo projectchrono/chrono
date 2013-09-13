@@ -41,7 +41,6 @@
 #include "physics/ChEvents.h"
 #include "physics/ChProbe.h"
 #include "physics/ChControls.h"
-//#include "physics/ChImpacts.h"
 #include "physics/ChMaterialCouple.h"
 #include "physics/ChScriptEngine.h"
 #include "physics/ChGlobal.h"
@@ -76,7 +75,6 @@ class ChContactContainerBase;
 
 #define STATIC_MAX_STEPS	35
 
-#define CHSYS_NVARIABLES	12
 #define CHSYS_ERRLEN		200
 
 
