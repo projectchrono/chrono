@@ -65,7 +65,7 @@ public:
 								   Vector& Bprojected);
 
 
-}
+};
 
 
 } // END_OF_NAMESPACE____

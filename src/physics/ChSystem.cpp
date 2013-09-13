@@ -295,7 +295,6 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
 	ncoords_w=0;
 	nsysvars = 0;
 	ncoords_w=0;
-	nredundancy = 0;
 	ncontacts = 0;
 	nbodies_sleep=0;
 	nbodies_fixed=0;
@@ -447,7 +446,6 @@ void ChSystem::Copy(ChSystem* source)
 	ndof = source->GetNdof();
 	nsysvars = source->GetNsysvars();
 	nsysvars_w = source->GetNsysvars_w();
-	nredundancy = source->GetNredundancy();
 	ncontacts = source->GetNcontacts();
 	nbodies_sleep = source->GetNbodiesSleeping();
 	nbodies_fixed = source->GetNbodiesFixed();
@@ -516,7 +514,6 @@ void ChSystem::Clear()
 	ncoords_w=0;
 	nsysvars = 0;
 	ncoords_w=0;
-	nredundancy = 0;
 	ncontacts = 0;
 	nbodies_sleep = 0;
 	nbodies_fixed = 0;
@@ -1604,61 +1601,6 @@ void ChSystem::UpdateExternalGeometry ()
 
 
 
-///
-///
-///  REDUNDANCY HANDLING
-///
-
-int  ChSystem::OffRedundantCostraints(int* pivarray, int numredund)
-{
-	/* 
-	int mdocCount = 0;
-	int mred;
-	int mcostrnum, mmasknum;
-	int oldlinkDOC;
-	int maskedvector[10];
-	int maskedcount;
-
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
-	{
-		oldlinkDOC = Lpointer->GetDOC();
-		maskedcount = 0;
-		for (mred = 0; mred < numredund; mred++)
-		{
-			mcostrnum = pivarray[nsysvars_w-1-mred] - ncoords_w;
-			mmasknum = mcostrnum - mdocCount;
-			if ((mmasknum>=0) && (mmasknum < oldlinkDOC))
-			{
-				// fill the vector of costraint mask flags to set
-				maskedvector[maskedcount] = mmasknum;
-				maskedcount++;
-			}
-		}
-		// apply the flags to the link
-		if (maskedcount)
-			Lpointer->SetRedundantByArray(maskedvector, maskedcount);
-		mdocCount += oldlinkDOC;
-
-		HIER_LINK_NEXT
-	}
-	*/
-	return TRUE;
-}
-
-
-int ChSystem::OnRedundantCostraints()
-{
-	int nchanges =0;
-	HIER_LINK_INIT
-	while HIER_LINK_NOSTOP
-	{
-		nchanges += Lpointer->RestoreRedundant();
-		HIER_LINK_NEXT
-	}
-	return nchanges;
-}
-
 
 ///////////////////////////////
 /////////
@@ -2529,49 +2471,6 @@ int ChSystem::DoAssembly(int action, int mflags)
 
 
 
-
-// **** SWITCHES OFF THE REDUNDANT CONSTRAINTS
-// **** (redundancy analysys)
-
-int ChSystem::DoRemoveRedundancy()
-{
-	/*
-	if (nsysvars_w == 0)
-	{
-		GetLog() << "Ok, no redundant or ill-placed constraints (no parts in the system).\n";
-		return 0;
-	}
-
-	MCw->Reset(nsysvars_w, nsysvars_w); // reset the system's MC matrix
-
-	MCw_Insert_all_links(MCw, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-	MCw_Insert_all_bodies(MCw, NULL, NULL, NULL);
-
-	// decompose
-
-	int* mpivarray = (int*) calloc ((nsysvars_w), sizeof(int));
-	double mdet;
-
-	nredundancy = MCw->Decompose_LDL(mpivarray, &mdet);
-
-	if(nredundancy)
-	{
-		GetLog() << "Redundant or ill-placed constraints found! Will be switched off.\n";
-		OffRedundantCostraints(mpivarray, nredundancy);
-		Setup();
-		Update();
-	}
-	else
-	{
-		GetLog() << "Ok, no redundant or ill-placed constraints. \n";
-	}
-
-	free (mpivarray);
-
-	return nredundancy;
-	*/
-	return 0;
-}
 
 
 // **** PERFORM THE LINEAR STATIC ANALYSIS

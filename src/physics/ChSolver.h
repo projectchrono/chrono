@@ -40,7 +40,6 @@ namespace chrono
 
 // ***TO DO***
 
-#define CHCLASS_SOLVER 24
 
 class ChApi ChSolver : public ChObj {
 

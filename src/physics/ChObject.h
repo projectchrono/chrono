@@ -44,7 +44,6 @@ class ChTag;
 class ChExternalObject;
 
 
-#define CHCLASS_CHOBJ 1
 
 #define CHOBJ_NAMELENGTH 20
 
@@ -178,18 +177,6 @@ public:
 					/// as a readable item, for example   "chrono::GetLog() << myobject;"
 	virtual void StreamOUT(ChStreamOutAscii& mstream);
 
-
-
-				/// Translate is used to set a Ch_Tag structure, given a string with the name of a variable.
-				/// (All sub classes should implement this one, and call the up-class Translate() only if fail 
-				///  to parse the token. The function TranslateWithThesaurus, can be called to help you in parsing..)
-	virtual int Translate (char* string, char* string_end, ChTag& ret_tag);
-
-				/// The ParseTag function executes a function of the type 
-				/// retv= fx(param, param->next, etc...) depending on the tag identifier of mtag, with optional params.
-				/// If "set" = true, the retv is stored into tag (if possible) instead of "get"ting ret = tag.
-				/// (All sub classes should implement this, redirecting to the correct up-class if needed)
-	virtual int ParseTag (ChTag mtag, ChVar* retv, ChNode<ChVar>* param, int set);
 
 };
 

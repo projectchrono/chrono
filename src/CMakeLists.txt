@@ -306,8 +306,7 @@ IF (BUILD_CH_SDK)
 	SET(ChronoEngine_physics_SOURCES
 		physics/ChApidll.cpp 
 		physics/ChFilePS.cpp 
-		physics/ChNlsolver.cpp 
-		physics/ChParser.cpp 
+		physics/ChNlsolver.cpp  
 		physics/ChFunction.cpp 
 		physics/ChLimit.cpp 
 		physics/ChObject.cpp 
@@ -348,7 +347,6 @@ IF (BUILD_CH_SDK)
 		physics/ChControls.cpp 
 		physics/ChIntegrator.cpp 
 		physics/ChController.cpp 
-		physics/ChImpacts.cpp 
 		physics/ChIterative.cpp 
 		physics/ChRef.cpp 
 		physics/ChConstraint.cpp 
@@ -404,7 +402,6 @@ IF (BUILD_CH_SDK)
 		physics/ChFx.h
 		physics/ChGlobal.h
 		physics/ChHistory.h
-		physics/ChImpacts.h
 		physics/ChIndexedNodes.h
 		physics/ChIndexedParticles.h
 		physics/ChIntegrator.h
@@ -442,7 +439,6 @@ IF (BUILD_CH_SDK)
 		physics/ChNlsolver.h
 		physics/ChNodeBody.h
 		physics/ChObject.h
-		physics/ChParser.h
 		physics/ChParticlesClones.h
 		physics/ChPhysicsItem.h
 		physics/ChProbe.h

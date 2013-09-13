@@ -48,7 +48,6 @@ namespace chrono
 //forward declaration
 template <class Real = double> class ChMatrixDynamic ;
 
-#define CHCLASS_MATRIX 14
 
 ///
 /// ChMatrix:		

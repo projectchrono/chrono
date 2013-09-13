@@ -17,7 +17,7 @@
 #include <memory.h>
 
 #include "core/ChTrasform.h"
-#include "collision/ChCollide.h"
+#include "collision/ChCCollisionUtils.h"
 #include "physics/ChGlobal.h"
 #include "physics/ChSolvmin.h"
 #include "physics/ChNlsolver.h"
@@ -178,7 +178,7 @@ double ChCollisionUtils::PointTriangleDistance(Vector B, Vector A1, Vector A2, V
 
 
  
-int ChCollisionUtils::DegenerateTriangle(Vector Dx, Vector Dy)
+int DegenerateTriangle(Vector Dx, Vector Dy)
 {
 	Vector vcr;
 	vcr = Vcross(Dx,Dy);

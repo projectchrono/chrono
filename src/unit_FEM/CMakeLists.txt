@@ -18,7 +18,6 @@ IF(ENABLE_UNIT_FEM)
 
 	
 	SET(ChronoEngine_UNIT_FEM_SOURCES 
-		ChQuadra.cpp
 		ChElementSpring.cpp  
 		ChElementTetra_4.cpp
 		ChElementTetra_10.cpp
@@ -31,8 +30,7 @@ IF(ENABLE_UNIT_FEM)
 		ChProximityContainerMeshless.cpp
 		)
 	SET(ChronoEngine_UNIT_FEM_HEADERS
-		ChApiFEM.h 
-		ChQuadra.h 
+		ChApiFEM.h  
 		ChNodeFEMbase.h 
 		ChNodeFEMxyz.h 
 		ChElementBase.h

@@ -41,11 +41,11 @@ namespace chrono
 ////////////////////////////////////////////////
 // the 'integrator' object
 
-#define CHCLASS_INTEGRATOR 36
 
 
 /// Class for methods which perform numerical integration of ODEs
 /// (Ordinary Differential Equations).
+/// ***OBSOLETE*** DO NOT USE
 
 class ChApi ChIntegrator : public ChObj {
 

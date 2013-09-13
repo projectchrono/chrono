@@ -22,8 +22,7 @@
 namespace chrono 
 {
  
-
-#define CHCLASS_EVENTS 43		
+	
 
 #define CHCLASS_EVENTS_DEFAULTNUM 100		
 
