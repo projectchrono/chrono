@@ -11,7 +11,7 @@
   
 #include "physics/ChLinkFastContact.h"
 #include "physics/ChSystem.h"
-#include "physics/ChCollide.h"
+//#include "physics/ChCollide.h"
 #include "lcp/ChLcpConstraintTwoContactN.h"
 
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.

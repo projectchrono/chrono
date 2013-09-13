@@ -40,7 +40,6 @@ IF(ENABLE_UNIT_JS)
 		ChJs_force.cpp
 		ChJs_funct.cpp
 		ChJs_geometry.cpp
-		ChJs_impact.cpp
 		ChJs_link.cpp
 		ChJs_marker.cpp
 		ChJs_math.cpp
@@ -64,7 +63,6 @@ IF(ENABLE_UNIT_JS)
 		ChJs_force.h
 		ChJs_funct.h
 		ChJs_geometry.h
-		ChJs_impact.h
 		ChJs_link.h
 		ChJs_marker.h
 		ChJs_math.h

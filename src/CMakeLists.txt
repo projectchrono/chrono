@@ -258,7 +258,6 @@ IF (BUILD_CH_SDK)
 		core/ChLog.cpp 
 		core/ChClassRegister.cpp 
 		core/ChFileutils.cpp 
-		core/ChFile.cpp 
 		core/ChStream.cpp 
 		core/ChMathematics.cpp 
 		core/ChVector.cpp 
@@ -290,8 +289,7 @@ IF (BUILD_CH_SDK)
 		core/ChRunTimeType.h
 		core/ChShared.h
 		core/ChSmartpointers.h 
-		core/ChFileutils.h 
-		core/ChFile.h 
+		core/ChFileutils.h  
 		core/ChRealtimeStep.h 
 		core/ChStream.h 
 		core/ChTimer.h
@@ -344,10 +342,8 @@ IF (BUILD_CH_SDK)
 		physics/ChSystem.cpp 
 		physics/ChSystemOpenMP.cpp
 		physics/ChGlobal.cpp 
-		physics/ChEvents.cpp 
-		physics/ChMocap.cpp 
-		physics/ChSolvmin.cpp 
-		physics/ChCollide.cpp 
+		physics/ChEvents.cpp  
+		physics/ChSolvmin.cpp  
 		physics/ChProbe.cpp 
 		physics/ChControls.cpp 
 		physics/ChIntegrator.cpp 
@@ -390,7 +386,6 @@ IF (BUILD_CH_SDK)
 		physics/ChApidll.h
 		physics/ChBody.h
 		physics/ChBodyAuxRef.h
-		physics/ChCollide.h
 		physics/ChConstraint.h
 		physics/ChContact.h
 		physics/ChContactContainer.h
@@ -444,7 +439,6 @@ IF (BUILD_CH_SDK)
 		physics/ChMaterialCouple.h
 		physics/ChMaterialSurface.h
 		physics/ChMatterSPH.h
-		physics/ChMocap.h
 		physics/ChNlsolver.h
 		physics/ChNodeBody.h
 		physics/ChObject.h
@@ -562,6 +556,7 @@ IF (BUILD_CH_SDK)
 		collision/ChCCollisionSystemBullet.cpp 
 		collision/ChCConvexDecomposition.cpp 
 		collision/ChCModelBulletDEM.cpp 
+		collision/ChCCollisionUtils.cpp
 	)
 	SET(ChronoEngine_collision_HEADERS
 		collision/ChCCollisionInfo.h
@@ -574,7 +569,8 @@ IF (BUILD_CH_SDK)
 		collision/ChCModelBulletBody.h
 		collision/ChCModelBulletNode.h
 		collision/ChCModelBulletParticle.h 
-		collision/ChCModelBulletDEM.h 
+		collision/ChCModelBulletDEM.h
+		collision/ChCCollisionUtils.h
 	)
 	SOURCE_GROUP(collision FILES  
 			${ChronoEngine_collision_SOURCES}

@@ -31,8 +31,7 @@ CPPFILES_LIB_JS = \
 	ChJs_optimizer.cpp \
 	ChJs_geometry.cpp \
 	ChJs_controller.cpp \
-	ChJs_constraint.cpp \
-	ChJs_impact.cpp 
+	ChJs_constraint.cpp 
 	
 	
 

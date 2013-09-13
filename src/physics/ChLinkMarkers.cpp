@@ -10,7 +10,7 @@
 
 
 #include "physics/ChLinkMarkers.h"
-#include "physics/ChCollide.h"
+//#include "physics/ChCollide.h"
 #include "physics/ChExternalObject.h"
 
 

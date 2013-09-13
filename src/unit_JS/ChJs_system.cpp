@@ -15,7 +15,6 @@
 #include "ChJs_body.h"
 #include "ChJs_marker.h"
 #include "ChJs_link.h"
-#include "ChJs_impact.h"
 #include "physics/ChSystem.h"
 #include "physics/ChGlobal.h"
 
