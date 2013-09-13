@@ -15,7 +15,7 @@
 ///////////////////////////////////////////////////
 
 
-#include "fem/ChNodeFEMbase.h"
+#include "ChNodeFEMbase.h"
 
 
 namespace chrono
@@ -28,7 +28,7 @@ namespace fem
 /// in 3D space, with x,y,z displacement. This is the typical
 /// node that can be used for tetahedrons, etc.
 
-class ChApi ChNodeFEMxyz : public ChNodeFEMbase
+class ChApiFem ChNodeFEMxyz : public ChNodeFEMbase
 
 {
 private:

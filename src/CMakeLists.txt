@@ -79,7 +79,7 @@ SET(BUILD_CH_SDK         TRUE    CACHE BOOL   "Turn this ON to generate the Chro
 # SET(BUILD_DEMOS          TRUE    CACHE BOOL   "Turn this ON to generate Chrono::Engine demos")
 SET(ENABLE_UNIT_IRRLICHT FALSE   CACHE BOOL   "Turn this ON to generate the Chrono::Engine demos with Irrlicht 3D display")
 SET(ENABLE_UNIT_TESTS    FALSE   CACHE BOOL   "Turn this ON to generate Chrono::Engine unit tests")
-SET(ENABLE_UNIT_MPI      FALSE   CACHE BOOL   "Turn this ON to generate the Chrono::Engine MPI library")
+
 
 # Also, some variables that were used in previous makefile system (some
 # of them could be set automatically because CMake should recognize automatically 
@@ -309,7 +309,6 @@ IF (BUILD_CH_SDK)
 		physics/ChApidll.cpp 
 		physics/ChFilePS.cpp 
 		physics/ChNlsolver.cpp 
-		physics/ChFormule.cpp 
 		physics/ChParser.cpp 
 		physics/ChFunction.cpp 
 		physics/ChLimit.cpp 
@@ -370,8 +369,7 @@ IF (BUILD_CH_SDK)
 		physics/ChContactContainer.cpp 
 		physics/ChContactContainerNodes.cpp 
 		physics/ChProximityContainerBase.cpp 
-		physics/ChProximityContainerSPH.cpp 
-		physics/ChProximityContainerMeshless.cpp 
+		physics/ChProximityContainerSPH.cpp  
 		physics/ChShaft.cpp 
 		physics/ChShaftsGear.cpp 
 		physics/ChShaftsClutch.cpp 
@@ -385,7 +383,7 @@ IF (BUILD_CH_SDK)
 		physics/ChBodyDEM.cpp
 		physics/ChContactContainerDEM.cpp
 		physics/ChContactDEM.cpp
-
+		physics/ChContinuumMaterial.cpp
 	)
 	SET(ChronoEngine_physics_HEADERS
 
@@ -407,7 +405,6 @@ IF (BUILD_CH_SDK)
 		physics/ChExternalObject.h
 		physics/ChFilePS.h
 		physics/ChForce.h
-		physics/ChFormule.h
 		physics/ChFunction.h
 		physics/ChFx.h
 		physics/ChGlobal.h
@@ -457,7 +454,6 @@ IF (BUILD_CH_SDK)
 		physics/ChProbe.h
 		physics/ChProplist.h
 		physics/ChProximityContainerBase.h
-		physics/ChProximityContainerMeshless.h
 		physics/ChProximityContainerSPH.h
 		physics/ChRef.h
 		physics/ChScriptEngine.h
@@ -478,6 +474,8 @@ IF (BUILD_CH_SDK)
 		physics/ChBodyDEM.h
 		physics/ChContactContainerDEM.h
 		physics/ChContactDEM.h
+		physics/ChTensors.h
+		physics/ChContinuumMaterial.h
 	)
 	SOURCE_GROUP(physics FILES  
 			${ChronoEngine_physics_SOURCES}
@@ -552,43 +550,6 @@ IF (BUILD_CH_SDK)
 	SOURCE_GROUP(assets FILES  
 			${ChronoEngine_assets_SOURCES}
 			${ChronoEngine_assets_HEADERS}
-			)
-	
-	SET(ChronoEngine_fem_SOURCES
-		fem/ChQuadra.cpp
-		fem/ChElementSpring.cpp  
-		fem/ChElementTetra_4.cpp
-		fem/ChElementTetra_10.cpp
-		fem/ChElementHexa_8.cpp
-		fem/ChElementHexa_20.cpp 
-		fem/ChGaussIntegrationRule.cpp
-		fem/ChGaussPoint.cpp
-		fem/ChMesh.cpp  
-		fem/ChMatterMeshless.cpp 
-		fem/ChContinuumMaterial.cpp
-	)
-	SET(ChronoEngine_fem_HEADERS
-		fem/ChTensors.h
-		fem/ChQuadra.h 
-		fem/ChNodeFEMbase.h 
-		fem/ChNodeFEMxyz.h 
-		fem/ChElementBase.h
-		fem/ChElementGeneric.h
-		fem/ChElementSpring.h 
-		fem/ChElement3D.h
-		fem/ChElementTetra_4.h
-		fem/ChElementTetra_10.h
-		fem/ChElementHexa_8.h
-		fem/ChElementHexa_20.h
-		fem/ChGaussIntegrationRule.h
-		fem/ChGaussPoint.h
-		fem/ChMesh.h 
-		fem/ChMatterMeshless.h 
-		fem/ChContinuumMaterial.h
-	)
-	SOURCE_GROUP(fem FILES  
-			${ChronoEngine_fem_SOURCES}
-			${ChronoEngine_fem_HEADERS}
 			)
 				
 	
@@ -1071,8 +1032,6 @@ IF (BUILD_CH_SDK)
 		${ChronoEngine_geometry_HEADERS}
 		${ChronoEngine_assets_SOURCES}
 		${ChronoEngine_assets_HEADERS}
-		${ChronoEngine_fem_SOURCES}
-		${ChronoEngine_fem_HEADERS}
 		${ChronoEngine_collision_edgetempest_SOURCES}
 		${ChronoEngine_collision_edgetempest_HEADERS}
 		${ChronoEngine_collision_convexdecompJR_SOURCES}
@@ -1185,6 +1144,7 @@ ADD_SUBDIRECTORY(unit_CASCADE)
 ADD_SUBDIRECTORY(unit_POSTPROCESS)
 ADD_SUBDIRECTORY(unit_PYTHON)
 ADD_SUBDIRECTORY(unit_COSIMULATION)
+ADD_SUBDIRECTORY(unit_FEM)
 #
 # Demo Files
 #

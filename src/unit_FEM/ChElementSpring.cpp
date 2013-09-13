@@ -10,7 +10,7 @@
 
 
 
-#include "fem/ChElementSpring.h"
+#include "ChElementSpring.h"
 
 
 namespace chrono

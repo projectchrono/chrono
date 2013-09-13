@@ -1,11 +1,11 @@
 #=============================================================================
-# CHRONO::ENGINE   CMake configuration file for MPI unit
+# CHRONO::ENGINE   CMake configuration file for postprocessing unit
 # 
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
 
-SET(ENABLE_UNIT_POSTPROCESS      FALSE	CACHE BOOL   "Turn ON this to generate the Chrono::Engine Render unit.")
+SET(ENABLE_UNIT_POSTPROCESS      FALSE	CACHE BOOL   "Turn ON this to generate the Chrono::Engine postprocessing unit.")
 IF(ENABLE_UNIT_POSTPROCESS)
 
 	#-----------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-#include "fem/ChElementHexa_20.h"
+#include "ChElementHexa_20.h"
 
 
 namespace chrono

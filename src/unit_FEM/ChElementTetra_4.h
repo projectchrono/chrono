@@ -1,17 +1,31 @@
 #ifndef CHELEMENTTETRA4_H
 #define CHELEMENTTETRA4_H
 
+//////////////////////////////////////////////////
+//  
+//   ChElementTetra_4.h
+//
+//   Class for tetahedrons 4 nodes
+//
+//
+//   HEADER file for CHRONO,
+//	 Multibody dynamics engine
+//
+// ------------------------------------------------
+// 	 Copyright: 
+//
+// ------------------------------------------------
+///////////////////////////////////////////////////
 
-
-#include "fem/ChElement3D.h"
-#include "fem/ChNodeFEMxyz.h"
+#include "ChElement3D.h"
+#include "ChNodeFEMxyz.h"
 
 namespace chrono
 {
 namespace fem
 {
 
-class ChApi ChElementTetra_4 : public ChTetrahedron
+class ChApiFem ChElementTetra_4 : public ChTetrahedron
 {
 protected:
 		std::vector<ChNodeFEMxyz*> nodes;

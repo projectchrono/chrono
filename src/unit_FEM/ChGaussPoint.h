@@ -1,7 +1,27 @@
+#ifndef CHGAUSSPOINT
+#define CHGAUSSPOINT
+
+//////////////////////////////////////////////////
+//  
+//   ChGaussPoint.h
+//
+//   Class for Gauss point in Gauss quadrature
+//
+//
+//   HEADER file for CHRONO,
+//	 Multibody dynamics engine
+//
+// ------------------------------------------------
+// 	 Copyright: 
+//
+// ------------------------------------------------
+///////////////////////////////////////////////////
+
 #include "physics/ChApidll.h"
+#include "physics/ChTensors.h"
 #include "core/ChMath.h"
 #include "lcp/ChLcpSystemDescriptor.h"
-#include "fem/ChTensors.h"
+
 
 namespace chrono
 {
@@ -68,3 +88,5 @@ public:
 
 }//__end mamespace fem
 }//__end namespace chrono
+
+#endif

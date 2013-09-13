@@ -15,8 +15,8 @@
 ///////////////////////////////////////////////////
 
 
-#include "fem/ChElementGeneric.h"
-#include "fem/ChNodeFEMxyz.h"
+#include "ChElementGeneric.h"
+#include "ChNodeFEMxyz.h"
 
 
 namespace chrono
@@ -29,7 +29,7 @@ namespace fem
 /// Simple finite element with two nodes and a spring/damper
 /// between the two nodes.
 
-class ChApi ChElementSpring : public ChElementGeneric
+class ChApiFem ChElementSpring : public ChElementGeneric
 {
 protected:
 	std::vector<ChNodeFEMxyz*> nodes;

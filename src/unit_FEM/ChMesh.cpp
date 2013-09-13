@@ -11,8 +11,8 @@
 
 #include "core/ChMath.h"
 #include "physics/ChObject.h"
-#include "fem/ChQuadra.h"
-#include "fem/ChMesh.h"
+#include "ChQuadra.h"
+#include "ChMesh.h"
 
 namespace chrono 
 {

@@ -1,4 +1,23 @@
-#include "fem/ChGaussPoint.h"
+#ifndef CHGAUSSINTEGRATIONRULE
+#define CHGAUSSINTEGRATIONRULE
+
+//////////////////////////////////////////////////
+//  
+//   ChGaussIntegrationRule.h
+//
+//   Class for Gauss quadrature
+//
+//
+//   HEADER file for CHRONO,
+//	 Multibody dynamics engine
+//
+// ------------------------------------------------
+// 	 Copyright: 
+//
+// ------------------------------------------------
+///////////////////////////////////////////////////
+
+#include "ChGaussPoint.h"
 
 namespace chrono
 {
@@ -32,3 +51,5 @@ public:
 
 }//__end mamespace fem
 }//__end namespace chrono
+
+#endif

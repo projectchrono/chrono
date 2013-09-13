@@ -1,4 +1,4 @@
-#include "fem/ChGaussPoint.h"
+#include "ChGaussPoint.h"
 
 namespace chrono 
 {

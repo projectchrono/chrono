@@ -1,4 +1,4 @@
-#include "fem/ChElementTetra_10.h"
+#include "ChElementTetra_10.h"
 
 
 namespace chrono

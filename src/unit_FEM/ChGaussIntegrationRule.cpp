@@ -1,4 +1,4 @@
-#include "fem/ChGaussIntegrationRule.h"
+#include "ChGaussIntegrationRule.h"
 
 namespace chrono 
 {

@@ -23,7 +23,7 @@
 #include <math.h>
 
 #include "physics/ChIndexedNodes.h"
-#include "fem/ChContinuumMaterial.h"
+#include "physics/ChContinuumMaterial.h"
 #include "collision/ChCCollisionModel.h"
 #include "lcp/ChLcpVariablesNode.h"
 

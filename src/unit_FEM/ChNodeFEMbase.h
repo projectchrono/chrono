@@ -14,7 +14,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-
+#include "ChApiFEM.h"
 #include "physics/ChIndexedNodes.h"
 
 
@@ -28,7 +28,7 @@ namespace fem
 /// that can be stored in ChMesh containers.
 /// Children classes must implement specialized versions.
 
-class ChApi ChNodeFEMbase  :  public chrono::ChNodeXYZ
+class ChApiFem ChNodeFEMbase  :  public chrono::ChNodeXYZ
 {
 public:
 

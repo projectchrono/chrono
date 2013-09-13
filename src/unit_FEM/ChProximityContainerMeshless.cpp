@@ -9,11 +9,11 @@
 ///////////////////////////////////////////////////
  
   
-#include "physics/ChProximityContainerMeshless.h"
-#include "fem/ChMatterMeshless.h"
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"
 #include "collision/ChCModelBulletNode.h"
+#include "ChMatterMeshless.h"
+#include "ChProximityContainerMeshless.h"
 
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
 

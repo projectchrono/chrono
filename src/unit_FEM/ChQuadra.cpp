@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////
 //
-//   ChQuadra.cpp
+//   ChQuadra.cpp   ***OBSOLETE***
 //
 // ------------------------------------------------
 // 	 Copyright:Alessandro Tasora / DeltaKnowledge
@@ -17,7 +17,7 @@
 
 #include "core/ChMath.h"
 #include "physics/ChObject.h"
-#include "fem/ChQuadra.h"
+#include "ChQuadra.h"
 
 
 
