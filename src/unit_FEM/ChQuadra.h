@@ -18,7 +18,7 @@
 ///////////////////////////////////////////////////
 
 
-
+#include "ChApiFEM.h"
 #include "core/ChMath.h"
 #include "physics/ChObject.h"
 
@@ -38,7 +38,7 @@ namespace fem
 /// quadrature (definite integral over nD intervals)
 ///
 
-class ChApi ChQuadrature: public ChObj
+class ChApiFem ChQuadrature: public ChObj
 {
 private:
 

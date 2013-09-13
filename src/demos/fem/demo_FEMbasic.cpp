@@ -21,12 +21,12 @@
 #include "physics/ChSystem.h"
 #include "physics/ChNodeBody.h"
 #include "lcp/ChLcpIterativePMINRES.h"
-#include "fem/ChElementSpring.h"
-#include "fem/ChElementTetra_4.h"
-#include "fem/ChElementTetra_10.h"
-#include "fem/ChElementHexa_8.h"
-#include "fem/ChElementHexa_20.h"
-#include "fem/ChMesh.h"
+#include "unit_FEM/ChElementSpring.h"
+#include "unit_FEM/ChElementTetra_4.h"
+#include "unit_FEM/ChElementTetra_10.h"
+#include "unit_FEM/ChElementHexa_8.h"
+#include "unit_FEM/ChElementHexa_20.h"
+#include "unit_FEM/ChMesh.h"
 
 
 // Remember to use the namespace 'chrono' because all classes 

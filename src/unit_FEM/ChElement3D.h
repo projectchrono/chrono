@@ -1,8 +1,8 @@
 #ifndef CHELEMENT3D_H
 #define CHELEMENT3D_H
 
-#include "fem/ChElementGeneric.h"
-#include "fem/ChGaussIntegrationRule.h"
+#include "ChElementGeneric.h"
+#include "ChGaussIntegrationRule.h"
 
 
 namespace chrono{
@@ -11,7 +11,7 @@ namespace chrono{
 /// Class for all 3-Dimensional elements. 
 
 
-class ChApi ChElement3D : public ChElementGeneric
+class ChApiFem ChElement3D : public ChElementGeneric
 {
 protected:
 	double Volume;
@@ -32,7 +32,7 @@ public:
 		///
 		/// Calss for tetrahedral elements.
 		///
-class ChApi ChTetrahedron : public ChElement3D					//		  /|\						//
+class ChApiFem ChTetrahedron : public ChElement3D				//		  /|\						//
 {																//		 / |  \						//
 protected:														//		/  |	\					//
 																//	   /.  |	  \					//
@@ -50,7 +50,7 @@ public:															//	   \   |.		\				//
 		///
 		/// Calss for hexahedral elements.
 		///
-class ChApi ChHexahedron : public ChElement3D					//		    __ __ __ __				//
+class ChApiFem ChHexahedron : public ChElement3D				//		    __ __ __ __				//
 {																//		  /			  /|			//				
 protected:														//		 /_|__ __ __ / |			//
 	ChGaussIntegrationRule* ir;									//		|			|  |			//

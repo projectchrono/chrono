@@ -22,9 +22,9 @@
 #include <math.h>
 
 #include "physics/ChPhysicsItem.h"
-#include "fem/ChContinuumMaterial.h"
-#include "fem/ChNodeFEMbase.h"
-#include "fem/ChElementBase.h"
+#include "physics/ChContinuumMaterial.h"
+#include "ChNodeFEMbase.h"
+#include "ChElementBase.h"
 
 namespace chrono 
 {
@@ -36,7 +36,7 @@ namespace fem
 /// Class which defines a mesh of finite elements of class ChFelem,
 /// between nodes of class  ChFnode. 
 
-class ChApi ChMesh : public ChIndexedNodes
+class ChApiFem ChMesh : public ChIndexedNodes
 {
 private:
 

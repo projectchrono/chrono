@@ -22,11 +22,11 @@
 
 #include <math.h>
 
+#include "ChApiFEM.h"
 #include "physics/ChIndexedNodes.h"
-#include "fem/ChContinuumMaterial.h"
 #include "collision/ChCCollisionModel.h"
 #include "lcp/ChLcpVariablesNode.h"
-
+#include "physics/ChContinuumMaterial.h"
 
 namespace chrono
 {
@@ -46,7 +46,7 @@ using namespace collision;
 
 /// Class for a single node in the meshless FEM  cluster
 
-class ChApi ChNodeMeshless : public ChNodeXYZ  
+class ChApiFem ChNodeMeshless : public ChNodeXYZ  
 {
 public:
 	ChNodeMeshless();
@@ -114,7 +114,7 @@ public:
 /// using the approach in Mueller ("Point based.." 2004 paper)
 /// that is with a 'meshless' FEM approach.
 
-class ChApi ChMatterMeshless : public ChIndexedNodes
+class ChApiFem ChMatterMeshless : public ChIndexedNodes
 {
 						// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChMatterMeshless,ChIndexedNodes);

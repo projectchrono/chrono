@@ -152,18 +152,6 @@ TARGET_LINK_LIBRARIES(demo_mecanum
 ADD_DEPENDENCIES (demo_mecanum ChronoEngine)
 
  	
-ADD_EXECUTABLE(demo_meshless   		demo_meshless.cpp)
-SOURCE_GROUP(demos\\irrlicht FILES  demo_meshless.cpp)
-SET_TARGET_PROPERTIES(demo_meshless PROPERTIES 
-	FOLDER demos
-	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	)
-TARGET_LINK_LIBRARIES(demo_meshless
-	${CH_IRRLICHTLIB} 
- 	ChronoEngine)
-ADD_DEPENDENCIES (demo_meshless ChronoEngine)
-
- 	
 ADD_EXECUTABLE(demo_pendulum   		demo_pendulum.cpp)
 SOURCE_GROUP(demos\\irrlicht FILES  demo_pendulum.cpp)
 SET_TARGET_PROPERTIES(demo_pendulum PROPERTIES 
@@ -270,7 +258,6 @@ install(TARGETS demo_fourbar DESTINATION bin)
 install(TARGETS demo_friction DESTINATION bin)
 install(TARGETS demo_gears DESTINATION bin)
 install(TARGETS demo_mecanum DESTINATION bin)
-install(TARGETS demo_meshless DESTINATION bin)
 install(TARGETS demo_pendulum DESTINATION bin)
 install(TARGETS demo_sph DESTINATION bin)
 install(TARGETS demo_suspension DESTINATION bin)

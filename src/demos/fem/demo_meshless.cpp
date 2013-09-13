@@ -23,10 +23,10 @@
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "physics/ChNodeBody.h"
-#include "physics/ChProximityContainerMeshless.h"
 #include "physics/ChContactContainerNodes.h"
-#include "fem/ChMatterMeshless.h"
-#include "fem/ChContinuumMaterial.h" //***TEST****
+#include "unit_FEM/ChMatterMeshless.h"
+#include "unit_FEM/ChProximityContainerMeshless.h"
+//#include "unit_FEM/ChContinuumMaterial.h" //***TEST****
 #include "irrlicht_interface/ChBodySceneNode.h"
 #include "irrlicht_interface/ChBodySceneNodeTools.h" 
 #include "irrlicht_interface/ChIrrAppInterface.h"

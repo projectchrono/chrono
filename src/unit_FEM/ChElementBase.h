@@ -18,10 +18,11 @@
 
 
 #include "physics/ChApidll.h"
+#include "physics/ChContinuumMaterial.h"
 #include "core/ChMath.h"
 #include "lcp/ChLcpSystemDescriptor.h"
-#include "fem/ChNodeFEMbase.h"
-#include "fem/ChContinuumMaterial.h"
+#include "ChNodeFEMbase.h"
+
 
 namespace chrono
 {
@@ -34,7 +35,7 @@ namespace fem
 /// Base class for all finite elements, that can be
 /// used in the ChMesh physics item.
 
-class ChApi ChElementBase
+class ChApiFem ChElementBase
 {
 protected:
 

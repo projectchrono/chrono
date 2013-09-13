@@ -12,11 +12,10 @@
 #include <stdlib.h>
 #include <algorithm>
 
-#include "fem/ChMatterMeshless.h"
+#include "ChMatterMeshless.h"
+#include "ChProximityContainerMeshless.h"
 #include "physics/ChSystem.h"
-
 #include "physics/ChExternalObject.h"
-#include "physics/ChProximityContainerMeshless.h"
 #include "collision/ChCModelBulletNode.h"
 #include "core/ChLinearAlgebra.h"
 

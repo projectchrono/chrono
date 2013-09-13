@@ -1,17 +1,27 @@
 #ifndef CHELEMENTHEXA8_H
 #define CHELEMENTHEXA8_H
 
+//////////////////////////////////////////////////
+//  
+//   ChElementHexa_8.h
+//
+//   Class for hexaedrons
+//
+//
+//   HEADER file for CHRONO,
+//	 Multibody dynamics engine
+//
+///////////////////////////////////////////////////
 
-
-#include "fem/ChElement3D.h"
-#include "fem/ChNodeFEMxyz.h"
+#include "ChElement3D.h"
+#include "ChNodeFEMxyz.h"
 
 namespace chrono
 {
 namespace fem
 {
 
-class ChApi ChElementHexa_8 : public ChHexahedron
+class ChApiFem ChElementHexa_8 : public ChHexahedron
 {
 protected:
 		std::vector<ChNodeFEMxyz*> nodes;

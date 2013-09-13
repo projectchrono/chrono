@@ -1,4 +1,4 @@
-#include "fem/ChElementHexa_8.h"
+#include "ChElementHexa_8.h"
 
 
 namespace chrono

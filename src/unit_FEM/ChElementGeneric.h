@@ -17,7 +17,7 @@
 
 #include "lcp/ChLcpKstiffnessGeneric.h"
 #include "lcp/ChLcpVariablesNode.h"
-#include "fem/ChElementBase.h"
+#include "ChElementBase.h"
 
 
 namespace chrono
@@ -32,7 +32,7 @@ namespace fem
 /// Helps reducing the complexity of inherited FEM elements because
 /// it implements some bookkeeping for the interface with LCP solver.
 
-class ChApi ChElementGeneric : public ChElementBase
+class ChApiFem ChElementGeneric : public ChElementBase
 {
 protected:
 	ChLcpKstiffnessGeneric Kmatr;
