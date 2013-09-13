@@ -56,7 +56,12 @@ bool ChCollisionModelGPU::AddSphere(double radius, ChVector<> *posv) {
 	}
 
 	double mass = this->GetBody()->GetMass();
-	inertia += pos->Length2() * mass + R3(2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius);
+
+	real3 local_inertia = R3(2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius);
+	inertia.x += local_inertia.x+mass*(pos->Length2()-pos->x*pos->x);
+	inertia.y += local_inertia.y+mass*(pos->Length2()-pos->y*pos->y);
+	inertia.z += local_inertia.z+mass*(pos->Length2()-pos->z*pos->z);
+
 	model_type = SPHERE;
 	nObjects++;
 	bData tData;
@@ -86,8 +91,14 @@ bool ChCollisionModelGPU::AddEllipsoid(double rx, double ry, double rz, ChVector
 	}
 
 	double mass = this->GetBody()->GetMass();
-	inertia += pos->Length2() * mass
-			+ R3(1 / 5.0 * mass * (ry * ry + rz * rz), 1 / 5.0 * mass * (rx * rx + rz * rz), 1 / 5.0 * mass * (rx * rx + ry * ry));
+
+
+	real3 local_inertia =R3(1 / 5.0 * mass * (ry * ry + rz * rz), 1 / 5.0 * mass * (rx * rx + rz * rz), 1 / 5.0 * mass * (rx * rx + ry * ry));
+	inertia.x += local_inertia.x+mass*(pos->Length2()-pos->x*pos->x);
+	inertia.y += local_inertia.y+mass*(pos->Length2()-pos->y*pos->y);
+	inertia.z += local_inertia.z+mass*(pos->Length2()-pos->z*pos->z);
+
+
 	model_type = ELLIPSOID;
 	nObjects++;
 	bData tData;
@@ -117,8 +128,12 @@ bool ChCollisionModelGPU::AddBox(double rx, double ry, double rz, ChVector<> *po
 	}
 
 	double mass = this->GetBody()->GetMass();
-	inertia += pos->Length2() * mass
-			+ R3(1 / 12.0 * mass * (ry * ry + rz * rz), 1 / 12.0 * mass * (rx * rx + rz * rz), 1 / 12.0 * mass * (rx * rx + ry * ry));
+
+	real3 local_inertia =R3(1 / 12.0 * mass * (ry * ry + rz * rz), 1 / 12.0 * mass * (rx * rx + rz * rz), 1 / 12.0 * mass * (rx * rx + ry * ry));
+	inertia.x += local_inertia.x+mass*(pos->Length2()-pos->x*pos->x);
+	inertia.y += local_inertia.y+mass*(pos->Length2()-pos->y*pos->y);
+	inertia.z += local_inertia.z+mass*(pos->Length2()-pos->z*pos->z);
+
 	model_type = BOX;
 	nObjects++;
 	bData tData;
@@ -178,8 +193,11 @@ bool ChCollisionModelGPU::AddCylinder(double rx, double ry, double rz, ChVector<
 	}
 
 	double mass = this->GetBody()->GetMass();
-	inertia += pos->Length2() * mass
-			+ R3(1 / 12.0 * mass * (3 * rx * rx + ry * ry), 1 / 2.0 * mass * (rx * rx), 1 / 12.0 * mass * (3 * rx * rx + ry * ry));
+
+	real3 local_inertia =R3(1 / 12.0 * mass * (3 * rx * rx + ry * ry), 1 / 2.0 * mass * (rx * rx), 1 / 12.0 * mass * (3 * rx * rx + ry * ry));
+	inertia.x += local_inertia.x+mass*(pos->Length2()-pos->x*pos->x);
+	inertia.y += local_inertia.y+mass*(pos->Length2()-pos->y*pos->y);
+	inertia.z += local_inertia.z+mass*(pos->Length2()-pos->z*pos->z);
 	model_type = CYLINDER;
 	nObjects++;
 	bData tData;
@@ -213,12 +231,14 @@ bool ChCollisionModelGPU::AddCone(double rx, double ry, double rz, ChVector<> *p
 	real radius = rx;
 	real height = ry;
 
-
-
-	inertia += pos->Length2() * mass + R3(
+	real3 local_inertia =R3(
 			(3.0f / 80.0f) * mass * (radius * radius + 4 * height * height),
 			(3.0f / 10.0f) * mass * radius * radius,
 			(3.0f / 80.0f) * mass * (radius * radius + 4 * height * height));
+	inertia.x += local_inertia.x+mass*(pos->Length2()-pos->x*pos->x);
+	inertia.y += local_inertia.y+mass*(pos->Length2()-pos->y*pos->y);
+	inertia.z += local_inertia.z+mass*(pos->Length2()-pos->z*pos->z);
+
 	model_type = CONE;
 	nObjects++;
 	bData tData;
