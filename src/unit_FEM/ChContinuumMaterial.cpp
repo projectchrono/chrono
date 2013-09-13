@@ -9,7 +9,7 @@
 ///////////////////////////////////////////////////
 
 
-#include "fem/ChContinuumMaterial.h"
+#include "ChContinuumMaterial.h"
 
 namespace chrono 
 {
