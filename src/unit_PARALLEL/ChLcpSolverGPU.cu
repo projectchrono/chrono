@@ -102,7 +102,7 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 	step_size = step;
 	data_container->step_size = step;
 
-	number_of_constraints = data_container->number_of_rigid_rigid * 3 + data_container->number_of_bilaterals;
+	number_of_constraints = data_container->number_of_rigid_rigid * 6 + data_container->number_of_bilaterals;
 	number_of_bilaterals = 0;     ///data_container->number_of_bilaterals;
 	number_of_objects = data_container->number_of_rigid;
 	//cout << number_of_constraints << " " << number_of_contacts << " " << number_of_bilaterals << " " << number_of_objects << endl;

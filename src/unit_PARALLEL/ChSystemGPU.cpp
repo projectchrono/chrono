@@ -144,6 +144,8 @@ void ChSystemGPU::AddBody(ChSharedPtr<ChBody> newbody) {
 	gpu_data_manager->host_data.active_data.push_back(newbody->IsActive());
 	gpu_data_manager->host_data.mass_data.push_back(inv_mass);
 	gpu_data_manager->host_data.fric_data.push_back(newbody->GetKfriction());
+	gpu_data_manager->host_data.fric_roll_data.push_back(newbody->GetMaterialSurface()->GetRollingFriction());
+	gpu_data_manager->host_data.fric_spin_data.push_back(newbody->GetMaterialSurface()->GetSpinningFriction());
 	gpu_data_manager->host_data.cohesion_data.push_back(newbody->GetMaterialSurface()->GetCohesion());
 	gpu_data_manager->host_data.compliance_data.push_back(newbody->GetMaterialSurface()->GetCompliance());
 	gpu_data_manager->host_data.lim_data.push_back(R3(newbody->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
@@ -200,6 +202,8 @@ void ChSystemGPU::UpdateBodies() {
 	bool *active_pointer = gpu_data_manager->host_data.active_data.data();
 	real *mass_pointer = gpu_data_manager->host_data.mass_data.data();
 	real *fric_pointer = gpu_data_manager->host_data.fric_data.data();
+	real *fric_roll_pointer = gpu_data_manager->host_data.fric_roll_data.data();
+	real *fric_spin_pointer = gpu_data_manager->host_data.fric_spin_data.data();
 	real *cohesion_pointer = gpu_data_manager->host_data.cohesion_data.data();
 	real *compliance_pointer = gpu_data_manager->host_data.compliance_data.data();
 	real3 *lim_pointer = gpu_data_manager->host_data.lim_data.data();
@@ -234,6 +238,8 @@ void ChSystemGPU::UpdateBodies() {
 		active_pointer[i] = bodylist[i]->IsActive();
 		mass_pointer[i] = 1.0f / bodylist[i]->Variables().GetBodyMass();
 		fric_pointer[i] = bodylist[i]->GetKfriction();
+		fric_roll_pointer[i] = ((bodylist[i]))->GetMaterialSurface()->GetRollingFriction();
+		fric_spin_pointer[i] = ((bodylist[i]))->GetMaterialSurface()->GetSpinningFriction();
 		cohesion_pointer[i] = ((bodylist[i]))->GetMaterialSurface()->GetCohesion();
 		compliance_pointer[i] = ((bodylist[i]))->GetMaterialSurface()->GetCompliance();
 		lim_pointer[i] = (R3(bodylist[i]->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));

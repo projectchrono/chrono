@@ -2,7 +2,77 @@
 using namespace chrono;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+void Project_rolling(real3 gamma_f, real3 & gamma_roll, real rollingfriction, real spinningfriction) {
+	real f_n = gamma_f.x;
+	real t_n = gamma_roll.x;
+	real t_u = gamma_roll.y;
+	real t_v = gamma_roll.z;
+	real t_tang = sqrt(t_v * t_v + t_u * t_u);
+	real t_sptang = fabs(t_n);     // = sqrt(t_n*t_n);
 
+
+	if (spinningfriction != 0) {
+		if (t_sptang < spinningfriction * f_n) {
+		} else {
+			// inside lower cone? reset  normal,u,v to zero!
+			if ((t_sptang < -(1.0 / spinningfriction) * f_n) || (fabs(f_n) < 10e-15)) {
+				//constraint_N->Set_l_i(0);
+				gamma_f.x = 0;
+				gamma_roll.x = 0;
+
+			} else {
+				// remaining case: project orthogonally to generator segment of upper cone (CAN BE simplified)
+				double f_n_proj = (t_sptang * spinningfriction + f_n) / (spinningfriction * spinningfriction + 1);
+				double t_tang_proj = f_n_proj * spinningfriction;
+				double tproj_div_t = t_tang_proj / t_sptang;
+				double t_n_proj = tproj_div_t * t_n;
+
+				gamma_f.x = f_n_proj;
+				gamma_roll.x = t_n_proj;
+			}
+		}
+	}
+
+	if (rollingfriction == 0) {
+		gamma_roll.y = 0;
+		gamma_roll.z = 0;
+		if (f_n < 0) {
+			gamma_f.x = 0;
+		}
+		return;
+	}
+
+	// inside upper cone? keep untouched!
+	if (t_tang < rollingfriction * f_n) {
+		return;
+	}
+
+	// inside lower cone? reset  normal,u,v to zero!
+	if ((t_tang < -(1.0 / rollingfriction) * f_n) || (fabs(f_n) < 10e-15)) {
+		double f_n_proj = 0;
+		double t_u_proj = 0;
+		double t_v_proj = 0;
+
+		//constraint_N->Set_l_i(f_n_proj);
+		gamma_f.x = 0;
+		gamma_roll.y = 0;
+		gamma_roll.z = 0;
+
+		return;
+	}
+
+	// remaining case: project orthogonally to generator segment of upper cone
+	double f_n_proj = (t_tang * rollingfriction + f_n) / (rollingfriction * rollingfriction + 1);
+	double t_tang_proj = f_n_proj * rollingfriction;
+	double tproj_div_t = t_tang_proj / t_tang;
+	double t_u_proj = tproj_div_t * t_u;
+	double t_v_proj = tproj_div_t * t_v;
+
+	gamma_f.x = f_n_proj;
+	gamma_roll.y = t_u_proj;
+	gamma_roll.z = t_v_proj;
+
+}
 void func_Project(uint &index, uint number_of_contacts, int2 *ids, real *fric, real* cohesion, real *gam) {
 	int2 body_id = ids[index];
 	real3 gamma;
@@ -30,12 +100,12 @@ void func_Project(uint &index, uint number_of_contacts, int2 *ids, real *fric, r
 	}
 
 	real f_tang = sqrt(gamma.y * gamma.y + gamma.z * gamma.z);
-	// inside upper cone? keep untouched!
+// inside upper cone? keep untouched!
 	if (f_tang < (mu * gamma.x)) {
 		return;
 	}
 
-	// inside lower cone? reset  normal,u,v to zero!
+// inside lower cone? reset  normal,u,v to zero!
 
 	if ((f_tang) < -(1.0 / mu) * gamma.x || (fabs(gamma.x) < 10e-15)) {
 		gamma = R3(0);
@@ -46,7 +116,7 @@ void func_Project(uint &index, uint number_of_contacts, int2 *ids, real *fric, r
 		return;
 	}
 
-	// remaining case: project orthogonally to generator segment of upper cone
+// remaining case: project orthogonally to generator segment of upper cone
 
 	gamma.x = (f_tang * mu + gamma.x) / (mu * mu + 1);
 	real tproj_div_t = (gamma.x * mu) / f_tang;
@@ -56,11 +126,38 @@ void func_Project(uint &index, uint number_of_contacts, int2 *ids, real *fric, r
 	gam[index + number_of_contacts * 0] = gamma.x - coh;
 	gam[index + number_of_contacts * 1] = gamma.y;
 	gam[index + number_of_contacts * 2] = gamma.z;
+
 }
-void ChConstraintRigidRigid::host_Project(int2 *ids, real *friction, real* cohesion, real *gamma) {
+void func_Project_rolling(uint &index, uint number_of_contacts, int2 *ids, real *fric_roll, real* fric_spin, real* cohesion, real *gam) {
+	int2 body_id = ids[index];
+	real3 gamma;
+	gamma.x = gam[index + number_of_contacts * 0];
+	gamma.y = gam[index + number_of_contacts * 1];
+	gamma.z = gam[index + number_of_contacts * 2];
+
+	real3 gamma_roll = R3(0);
+	gamma_roll.x = gam[index + number_of_contacts * 3];
+	gamma_roll.y = gam[index + number_of_contacts * 4];
+	gamma_roll.z = gam[index + number_of_contacts * 5];
+
+	real mu_roll = (fric_roll[body_id.x] == 0 || fric_roll[body_id.y] == 0) ? 0 : (fric_roll[body_id.x] + fric_roll[body_id.y]) * .5;
+	real mu_spin = (fric_spin[body_id.x] == 0 || fric_spin[body_id.y] == 0) ? 0 : (fric_spin[body_id.x] + fric_spin[body_id.y]) * .5;
+
+
+	Project_rolling(gamma, gamma_roll, mu_roll, mu_spin);
+	//cout <<"rolll "<< gamma_roll.x << " " << gamma_roll.y << " " << gamma_roll.z << endl;
+
+	gam[index + number_of_contacts * 3] = gamma_roll.x;
+	gam[index + number_of_contacts * 4] = gamma_roll.y;
+	gam[index + number_of_contacts * 5] = gamma_roll.z;
+
+}
+
+void ChConstraintRigidRigid::host_Project(int2 *ids, real *friction,real *friction_roll, real *friction_spin, real* cohesion, real *gamma) {
 #pragma omp parallel for
 	for (uint index = 0; index < number_of_rigid_rigid; index++) {
 		func_Project(index, number_of_rigid_rigid, ids, friction, cohesion, gamma);
+		func_Project_rolling(index, number_of_rigid_rigid, ids, friction_roll, friction_spin, cohesion, gamma);
 	}
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -69,6 +166,8 @@ void ChConstraintRigidRigid::Project(custom_vector<real> & gamma) {
 	host_Project(
 			data_container->host_data.bids_rigid_rigid.data(),
 			data_container->host_data.fric_data.data(),
+			data_container->host_data.fric_roll_data.data(),
+			data_container->host_data.fric_spin_data.data(),
 			data_container->host_data.cohesion_data.data(),
 			gamma.data());
 }
@@ -103,6 +202,24 @@ void ChConstraintRigidRigid::host_RHS(int2 *ids, real *correction, real * compli
 		rhs[index + number_of_rigid_rigid * 0] = -temp.x - bi;     //(temp + fmax(inv_hpa * correction[index], real(-recovery_speed)));
 		rhs[index + number_of_rigid_rigid * 1] = -temp.y - 0;
 		rhs[index + number_of_rigid_rigid * 2] = -temp.z - 0;
+		///
+		temp = R3(0);
+		if (active[b1]) {
+			temp.x += dot(JUVWA[index + number_of_rigid_rigid * 3], omega[b1]);
+			temp.y += dot(JUVWA[index + number_of_rigid_rigid * 4], omega[b1]);
+			temp.z += dot(JUVWA[index + number_of_rigid_rigid * 5], omega[b1]);
+		}
+		if (active[b2]) {
+			temp.x += dot(JUVWB[index + number_of_rigid_rigid * 3], omega[b2]);
+			temp.y += dot(JUVWB[index + number_of_rigid_rigid * 4], omega[b2]);
+			temp.z += dot(JUVWB[index + number_of_rigid_rigid * 5], omega[b2]);
+		}
+		//cout << temp.x << " " << temp.y << " " << temp.z << endl;
+
+		rhs[index + number_of_rigid_rigid * 3] = -temp.x;
+		rhs[index + number_of_rigid_rigid * 4] = -temp.y;
+		rhs[index + number_of_rigid_rigid * 5] = -temp.z;
+
 	}
 
 }
@@ -163,6 +280,23 @@ __host__ __device__ void inline Compute_Jacobian(
 	T3 = R3(Jr.U.z, Jr.V.z, Jr.W.z);
 
 }
+
+__host__ __device__ void inline Compute_Jacobian_Rolling(const real4& quaternion_rotation, const real3& normal, const real3& tangent_u, const real3& tangent_w, real3& T1, real3& T2, real3& T3) {
+
+	M33 contact_plane;
+
+	contact_plane.U = normal;
+	contact_plane.V = tangent_u;
+	contact_plane.W = tangent_w;
+
+	M33 Jr = MatTMult(contact_plane, AMat(quaternion_rotation));
+
+	T1 = R3(Jr.U.x, Jr.V.x, Jr.W.x);
+	T2 = R3(Jr.U.y, Jr.V.y, Jr.W.y);
+	T3 = R3(Jr.U.z, Jr.V.z, Jr.W.z);
+
+}
+
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 void ChConstraintRigidRigid::host_Jacobians(real3* norm, real3* ptA, real3* ptB, int2* ids, real4* rot, real3* pos, real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB) {
@@ -229,16 +363,80 @@ void ChConstraintRigidRigid::host_Jacobians(real3* norm, real3* ptA, real3* ptB,
 	}
 }
 
+void ChConstraintRigidRigid::host_Jacobians_Rolling(real3* norm, real3* ptA, real3* ptB, int2* ids, real4* rot, real3* pos, real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB) {
+#pragma omp parallel for
+	for (uint index = 0; index < number_of_rigid_rigid; index++) {
+		real3 U = norm[index];
+
+		if (U == R3(0, 0, 0)) {
+			U = R3(1, 0, 0);
+		} else {
+			U = normalize(U);
+		}
+		U = normalize(U);
+		real3 W = cross(U, R3(0, 1, 0));
+		real mzlen = length(W);
+
+		if (mzlen < 0.0001) {     // was near singularity? change singularity reference vector!
+			real3 mVsingular = R3(0, 1, 0);
+			if (mVsingular.x < 0.9) {
+				mVsingular = R3(0, 0, 1);
+			}
+			if (mVsingular.y < 0.9) {
+				mVsingular = R3(0, 1, 0);
+			}
+			if (mVsingular.z < 0.9) {
+				mVsingular = R3(1, 0, 0);
+			}
+
+			W = cross(U, mVsingular);
+			mzlen = length(W);
+		}
+		W = W * 1.0 / mzlen;
+		real3 V = cross(W, U);
+
+		int2 body_id = ids[index];
+		real3 T3, T4, T5, T6, T7, T8;
+
+		real4 E1 = rot[body_id.x];
+		Compute_Jacobian_Rolling(E1, U, V, W, T3, T4, T5);
+		T3 = -T3;
+		T4 = -T4;
+		T5 = -T5;
+		real4 E2 = rot[body_id.y];
+		Compute_Jacobian_Rolling(E2, U, V, W, T6, T7, T8);
+
+		JUVWA[index + number_of_rigid_rigid * 3] = T3;
+		JUVWA[index + number_of_rigid_rigid * 4] = T4;
+		JUVWA[index + number_of_rigid_rigid * 5] = T5;
+
+		JUVWB[index + number_of_rigid_rigid * 3] = T6;
+		JUVWB[index + number_of_rigid_rigid * 4] = T7;
+		JUVWB[index + number_of_rigid_rigid * 5] = T8;
+	}
+}
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 void ChConstraintRigidRigid::ComputeJacobians() {
 
 	JXYZA_rigid_rigid.resize(number_of_rigid_rigid * 3);
 	JXYZB_rigid_rigid.resize(number_of_rigid_rigid * 3);
-	JUVWA_rigid_rigid.resize(number_of_rigid_rigid * 3);
-	JUVWB_rigid_rigid.resize(number_of_rigid_rigid * 3);
+	JUVWA_rigid_rigid.resize(number_of_rigid_rigid * 6);
+	JUVWB_rigid_rigid.resize(number_of_rigid_rigid * 6);
 
 	host_Jacobians(
+			data_container->host_data.norm_rigid_rigid.data(),
+			data_container->host_data.cpta_rigid_rigid.data(),
+			data_container->host_data.cptb_rigid_rigid.data(),
+			data_container->host_data.bids_rigid_rigid.data(),
+			data_container->host_data.rot_data.data(),
+			data_container->host_data.pos_data.data(),
+			JXYZA_rigid_rigid.data(),
+			JXYZB_rigid_rigid.data(),
+			JUVWA_rigid_rigid.data(),
+			JUVWB_rigid_rigid.data());
+
+	host_Jacobians_Rolling(
 			data_container->host_data.norm_rigid_rigid.data(),
 			data_container->host_data.cpta_rigid_rigid.data(),
 			data_container->host_data.cptb_rigid_rigid.data(),
@@ -282,31 +480,36 @@ void ChConstraintRigidRigid::host_shurA(
 		uint* offset) {
 #pragma omp parallel for schedule(dynamic, 100)
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
-		real3 gam;
+		real3 gam, gam_roll;
 		gam.x = gamma[index + number_of_rigid_rigid * 0];
 		gam.y = gamma[index + number_of_rigid_rigid * 1];
 		gam.z = gamma[index + number_of_rigid_rigid * 2];
 
+		gam_roll.x = gamma[index + number_of_rigid_rigid * 3];
+		gam_roll.y = gamma[index + number_of_rigid_rigid * 4];
+		gam_roll.z = gamma[index + number_of_rigid_rigid * 5];
 
 		uint b1 = ids[index].x;
 
 		int offset1 = offset[index];
 		int offset2 = offset[index + number_of_rigid_rigid];
 
-
-
-
 		if (active[b1] != 0) {
 			updateV[offset1] = JXYZA[index + number_of_rigid_rigid * 0] * gam.x + JXYZA[index + number_of_rigid_rigid * 1] * gam.y + JXYZA[index + number_of_rigid_rigid * 2] * gam.z;
 			updateO[offset1] = JUVWA[index + number_of_rigid_rigid * 0] * gam.x + JUVWA[index + number_of_rigid_rigid * 1] * gam.y + JUVWA[index + number_of_rigid_rigid * 2] * gam.z;
+
+			updateO[offset1] += JUVWA[index + number_of_rigid_rigid * 3] * gam_roll.x + JUVWA[index + number_of_rigid_rigid * 4] * gam_roll.y + JUVWA[index + number_of_rigid_rigid * 5] * gam_roll.z;
+
 		}
 		uint b2 = ids[index].y;
 		if (active[b2] != 0) {
 			updateV[offset2] = JXYZB[index + number_of_rigid_rigid * 0] * gam.x + JXYZB[index + number_of_rigid_rigid * 1] * gam.y + JXYZB[index + number_of_rigid_rigid * 2] * gam.z;
 			updateO[offset2] = JUVWB[index + number_of_rigid_rigid * 0] * gam.x + JUVWB[index + number_of_rigid_rigid * 1] * gam.y + JUVWB[index + number_of_rigid_rigid * 2] * gam.z;
+
+			updateO[offset2] += JUVWB[index + number_of_rigid_rigid * 3] * gam_roll.x + JUVWB[index + number_of_rigid_rigid * 4] * gam_roll.y + JUVWB[index + number_of_rigid_rigid * 5] * gam_roll.z;
+
 		}
 	}
-
 }
 
 void ChConstraintRigidRigid::host_shurB(
@@ -327,6 +530,8 @@ void ChConstraintRigidRigid::host_shurB(
 #pragma omp parallel for schedule(dynamic, 100)
 	for (uint index = 0; index < number_of_rigid_rigid; index++) {
 		real3 temp = R3(0);
+		real3 temp_roll = R3(0);
+
 		int2 id_ = ids[index];
 		uint b1 = id_.x;
 		uint b2 = id_.y;
@@ -344,6 +549,10 @@ void ChConstraintRigidRigid::host_shurB(
 			temp.z += dot(XYZ, JXYZA[index + number_of_rigid_rigid * 2]);
 			temp.z += dot(UVW, JUVWA[index + number_of_rigid_rigid * 2]);
 
+			temp_roll.x += dot(UVW, JUVWA[index + number_of_rigid_rigid * 3]);
+			temp_roll.y += dot(UVW, JUVWA[index + number_of_rigid_rigid * 4]);
+			temp_roll.z += dot(UVW, JUVWA[index + number_of_rigid_rigid * 5]);
+
 		}
 		if (active[b2] != 0) {
 			real3 XYZ = QXYZ[b2];
@@ -357,10 +566,19 @@ void ChConstraintRigidRigid::host_shurB(
 
 			temp.z += dot(XYZ, JXYZB[index + number_of_rigid_rigid * 2]);
 			temp.z += dot(UVW, JUVWB[index + number_of_rigid_rigid * 2]);
+
+			temp_roll.x += dot(UVW, JUVWB[index + number_of_rigid_rigid * 3]);
+			temp_roll.y += dot(UVW, JUVWB[index + number_of_rigid_rigid * 4]);
+			temp_roll.z += dot(UVW, JUVWB[index + number_of_rigid_rigid * 5]);
 		}
 		AX[index + number_of_rigid_rigid * 0] = temp.x + gamma[index + number_of_rigid_rigid * 0] * compliance[index];
 		AX[index + number_of_rigid_rigid * 1] = temp.y + gamma[index + number_of_rigid_rigid * 1] * compliance[index];
 		AX[index + number_of_rigid_rigid * 2] = temp.z + gamma[index + number_of_rigid_rigid * 2] * compliance[index];
+
+		AX[index + number_of_rigid_rigid * 3] = temp_roll.x + gamma[index + number_of_rigid_rigid * 3] * compliance[index];
+		AX[index + number_of_rigid_rigid * 4] = temp_roll.y + gamma[index + number_of_rigid_rigid * 4] * compliance[index];
+		AX[index + number_of_rigid_rigid * 5] = temp_roll.z + gamma[index + number_of_rigid_rigid * 5] * compliance[index];
+
 	}
 }
 

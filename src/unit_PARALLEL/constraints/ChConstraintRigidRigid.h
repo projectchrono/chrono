@@ -34,13 +34,15 @@ class ChApiGPU ChConstraintRigidRigid: public ChBaseGPU {
 		}
 		~ChConstraintRigidRigid() {
 		}
-		void host_Project(int2 *ids, real *friction, real* cohesion, real *gamma);
+		void host_Project(int2 *ids, real *friction, real* friction_roll, real* friction_spin, real* cohesion, real *gamma);
 		void Project(custom_vector<real> & gamma);
 
 		void host_RHS(int2 *ids, real *correction, real * compliance, bool * active, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs);
 		void ComputeRHS();
 
 		void host_Jacobians(real3* norm, real3* ptA, real3* ptB, int2* ids, real4* rot, real3* pos, real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB);
+		void host_Jacobians_Rolling(real3* norm, real3* ptA, real3* ptB, int2* ids, real4* rot, real3* pos, real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB);
+
 		void ComputeJacobians();
 
 		void host_shurA(
