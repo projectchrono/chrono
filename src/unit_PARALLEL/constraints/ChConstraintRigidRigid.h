@@ -30,6 +30,7 @@ class ChApiGPU ChConstraintRigidRigid: public ChBaseGPU {
 						- offset_counter.begin();
 				thrust::inclusive_scan(offset_counter.begin(), offset_counter.end(), offset_counter.begin());
 			}
+			solve_all = false;
 
 		}
 		~ChConstraintRigidRigid() {
@@ -72,7 +73,7 @@ class ChApiGPU ChConstraintRigidRigid: public ChBaseGPU {
 
 
 
-
+		bool solve_all;
 
 	protected:
 

@@ -115,7 +115,6 @@ void ChSolverGPU::Solve(GPUSOLVERTYPE solver_type, real step, ChGPUDataManager *
 	step_size = step;
 
 	Setup();
-	total_iteration = 0;
 	if (number_of_constraints > 0) {
 		//total_iteration += SolveSD(data_container->host_data.gamma_data, data_container->host_data.rhs_data, 10);
 		if (solver_type == STEEPEST_DESCENT) {
@@ -170,7 +169,7 @@ void ChSolverGPU::Solve(GPUSOLVERTYPE solver_type, real step, ChGPUDataManager *
 //				data_container->host_data.gamma_bilateral.begin());
 
 		current_iteration = total_iteration;
-		ComputeImpulses();
+
 		timer_solver.stop();
 		time_solver = timer_solver();
 	}

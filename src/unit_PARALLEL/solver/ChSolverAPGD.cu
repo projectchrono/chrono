@@ -19,7 +19,7 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 	real gdiff = 0.000001;
 
 	real lastgoodres=10e30;
-	real theta_k=1;
+	real theta_k=.1;
 	real theta_k1=theta_k;
 	real beta_k1=0.0;
 	ml = x;

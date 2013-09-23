@@ -123,8 +123,10 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 	data_container->host_data.diag.resize(number_of_constraints);
 
 	ChConstraintRigidRigid rigid_rigid(data_container);
+	rigid_rigid.solve_all = false;
 	rigid_rigid.ComputeJacobians();
 	rigid_rigid.ComputeRHS();
+
 	//rigid_rigid.Diag();
 
 	ChConstraintBilateral bilateral(data_container);
@@ -157,6 +159,16 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 	solver.lcp_omega_contact = lcp_omega_contact;
 	solver.do_stab = do_stab;
 	solver.Solve(solver_type, step, data_container);
+	rigid_rigid.solve_all = true;
+//	rigid_rigid.ComputeJacobians();
+	rigid_rigid.ComputeRHS();
+//
+//	bilateral.ComputeJacobians();
+//	bilateral.ComputeRHS();
+
+	solver.Solve(solver_type, step, data_container);
+
+	solver.ComputeImpulses();
 
 	tot_iterations = solver.GetIteration();
 	residual = solver.GetResidual();
@@ -284,7 +296,6 @@ void ChLcpSolverGPU::RunWarmStartPreprocess() {
 #pragma omp parallel for
 			for (int i = 0; i < numP; i++) {
 
-
 				M33 contact_plane_old;
 
 				{
@@ -322,12 +333,17 @@ void ChLcpSolverGPU::RunWarmStartPreprocess() {
 					contact_plane_old.W = W;
 				}
 
-				real3 old_gamma = R3(0);
+				real3 old_gamma = R3(0), old_gamma_spinning = R3(0);
 				old_gamma.x = data_container->host_data.old_gamma_data[temporaryA[i] + old_number_of_rigid_rigid * 0];
 				old_gamma.y = data_container->host_data.old_gamma_data[temporaryA[i] + old_number_of_rigid_rigid * 1];
 				old_gamma.z = data_container->host_data.old_gamma_data[temporaryA[i] + old_number_of_rigid_rigid * 2];
 
+				old_gamma_spinning.x = data_container->host_data.old_gamma_data[temporaryA[i] + old_number_of_rigid_rigid * 3];
+				old_gamma_spinning.y = data_container->host_data.old_gamma_data[temporaryA[i] + old_number_of_rigid_rigid * 4];
+				old_gamma_spinning.z = data_container->host_data.old_gamma_data[temporaryA[i] + old_number_of_rigid_rigid * 5];
+
 				real3 global_gamma = MatMult(contact_plane_old, old_gamma);
+				real3 global_gamma_spin = MatMult(contact_plane_old, old_gamma_spinning);
 
 				M33 contact_plane_new;
 
@@ -366,10 +382,15 @@ void ChLcpSolverGPU::RunWarmStartPreprocess() {
 					contact_plane_new.W = W;
 				}
 				real3 new_gamma = MatTMult(contact_plane_new, global_gamma);
+				real3 new_gamma_spin = MatTMult(contact_plane_new, global_gamma_spin);
 
-				data_container->host_data.gamma_data[temporaryB[i] + number_of_rigid_rigid * 0] = new_gamma.x*.5;
-				data_container->host_data.gamma_data[temporaryB[i] + number_of_rigid_rigid * 1] = new_gamma.y*.5;
-				data_container->host_data.gamma_data[temporaryB[i] + number_of_rigid_rigid * 2] = new_gamma.z*.5;
+				data_container->host_data.gamma_data[temporaryB[i] + number_of_rigid_rigid * 0] = new_gamma.x * .9;
+				data_container->host_data.gamma_data[temporaryB[i] + number_of_rigid_rigid * 1] = new_gamma.y * .9;
+				data_container->host_data.gamma_data[temporaryB[i] + number_of_rigid_rigid * 2] = new_gamma.z * .9;
+
+				data_container->host_data.gamma_data[temporaryB[i] + number_of_rigid_rigid * 3] = new_gamma_spin.x * .9;
+				data_container->host_data.gamma_data[temporaryB[i] + number_of_rigid_rigid * 4] = new_gamma_spin.y * .9;
+				data_container->host_data.gamma_data[temporaryB[i] + number_of_rigid_rigid * 5] = new_gamma_spin.z * .9;
 
 			}
 

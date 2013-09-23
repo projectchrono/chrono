@@ -20,6 +20,11 @@
 #include "ChCudaDefines.h"
 
 namespace chrono {
+
+enum ContactType{C_NORMAL,C_SLIDING,C_SLIDING_ROLL,C_ROLL};
+
+
+
 struct host_container {
 		//collision data
 		thrust::host_vector<real3> ObA_rigid;
@@ -43,6 +48,7 @@ struct host_container {
 		thrust::host_vector<real> gamma_data;
 		thrust::host_vector<real> old_gamma_data;
 		thrust::host_vector<real> dgm_data;
+		thrust::host_vector<ContactType> contact_type;
 
 		thrust::host_vector<real> compliance_rigid_rigid;
 
