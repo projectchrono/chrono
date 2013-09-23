@@ -1,3 +1,15 @@
+//
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2009-2012 Alessandro Tasora
+// Copyright (c) 2013 Project Chrono
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be 
+// found in the LICENSE file at the top level of the distribution
+// and at http://projectchrono.org/license-chrono.txt.
+//
+
 ; Script for INNO SETUP
 ;
 ; This script generates the ChronoEngine_v.xxx.exe SDK installer (the 'setup exe' which can
@@ -5,7 +17,6 @@
 ; It copies the .h headers, the libs, the dls, the docs etc. on the target system. Also,
 ; it installs a new VisualStudio wizard.
 ;
-; Copyright 2009 A.Tasora
 
 #define MyAppName "ChronoEngine"
 #define MyAppVersion "v1.7.0"
