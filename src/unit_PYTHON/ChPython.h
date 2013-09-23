@@ -52,38 +52,38 @@ public:
 
 			/// Retrieve a value of an existing floating point variable. 
 			/// Returns false if unsuccesfull.
-	bool ChPythonEngine::GetFloat(const char* variable, double& return_val);
+	bool GetFloat(const char* variable, double& return_val);
 			
 			/// Set a value of a floating point variable. If a variable with the same
 			/// name is existing, it is overwritten, otherwise it is created (in __main__ namespace)
-	void ChPythonEngine::SetFloat(const char* variable, const double val);
+	void SetFloat(const char* variable, const double val);
 
 
 			/// Retrieve a value of an existing integer variable. 
 			/// Returns false if unsuccesfull.
-	bool ChPythonEngine::GetInteger(const char* variable, int& return_val);
+	bool GetInteger(const char* variable, int& return_val);
 			
 			/// Set a value of a integer variable. If a variable with the same
 			/// name is existing, it is overwritten, otherwise it is created (in __main__ namespace)
-	void ChPythonEngine::SetInteger(const char* variable, const int val);
+	void SetInteger(const char* variable, const int val);
 
 
 			/// Retrieve a value of an existing bool variable. 
 			/// Returns false if unsuccesfull.
-	bool ChPythonEngine::GetBool(const char* variable, bool& return_val);
+	bool GetBool(const char* variable, bool& return_val);
 			
 			/// Set a value of a bool variable. If a variable with the same
 			/// name is existing, it is overwritten, otherwise it is created (in __main__ namespace)
-	void ChPythonEngine::SetBool(const char* variable, const bool val);
+	void SetBool(const char* variable, const bool val);
 
 
 			/// Retrieve a value of an existing string variable. 
 			/// Returns false if unsuccesfull.
-	bool ChPythonEngine::GetString(const char* variable, std::string& return_val);
+	bool GetString(const char* variable, std::string& return_val);
 			
 			/// Set a value of a string variable. If a variable with the same
 			/// name is existing, it is overwritten, otherwise it is created (in __main__ namespace)
-	void ChPythonEngine::SetString(const char* variable, std::string& val);
+	void SetString(const char* variable, std::string& val);
 
 
 			/// Load a .py file as it is saved by the SolidWorks add-in exporter.
