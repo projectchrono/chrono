@@ -126,7 +126,6 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 	rigid_rigid.solve_all = false;
 	rigid_rigid.ComputeJacobians();
 	rigid_rigid.ComputeRHS();
-
 	//rigid_rigid.Diag();
 
 	ChConstraintBilateral bilateral(data_container);
@@ -162,10 +161,10 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 	rigid_rigid.solve_all = true;
 //	rigid_rigid.ComputeJacobians();
 	rigid_rigid.ComputeRHS();
-//
-//	bilateral.ComputeJacobians();
-//	bilateral.ComputeRHS();
 
+//	bilateral.ComputeJacobians();
+	bilateral.ComputeRHS();
+	//solver.SetMaxIterations(max_iteration*2);
 	solver.Solve(solver_type, step, data_container);
 
 	solver.ComputeImpulses();
@@ -246,7 +245,6 @@ void ChLcpSolverGPU::RunWarmStartPostProcess() {
 		temp.z = floor(points[i].z / bin_size_vec.z);
 		data_container->host_data.bin_number[temp.x + temp.y * w + temp.z * w * h] += data_container->host_data.gamma_data[i];
 		counter[temp.x + temp.y * w + temp.z * w * h]++;
-
 	}
 	for (int i = 0; i < counter.size(); i++) {
 		if (counter[i] > 0) {
@@ -263,8 +261,6 @@ void ChLcpSolverGPU::RunWarmStartPreprocess() {
 
 //		cout << "SORTEDN: " << thrust::is_sorted(data_container->host_data.pair_rigid_rigid.begin(), data_container->host_data.pair_rigid_rigid.end())<<endl;
 //		cout << "SORTEDO: " << thrust::is_sorted(data_container->host_data.old_pair_rigid_rigid.begin(), data_container->host_data.old_pair_rigid_rigid.end())<<endl;
-//
-//
 //		return;
 
 		thrust::host_vector<long long> res1(data_container->host_data.pair_rigid_rigid.size());
@@ -393,7 +389,6 @@ void ChLcpSolverGPU::RunWarmStartPreprocess() {
 				data_container->host_data.gamma_data[temporaryB[i] + number_of_rigid_rigid * 5] = new_gamma_spin.z * .9;
 
 			}
-
 		}
 	}
 

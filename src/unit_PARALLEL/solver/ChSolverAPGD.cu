@@ -96,7 +96,7 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 			temp_norm = mg_tmp2[thrust::min_element(thrust::omp::par,mg_tmp2.begin(),mg_tmp2.begin()+number_of_rigid_rigid)-mg_tmp2.begin()];
 			//cout<<"norm1: "<<temp_norm<<endl;
 			g_proj_norm = fmax(real(0.0),-temp_norm);
-			temp_norm = mg_tmp2[thrust::min_element(thrust::omp::par,mg_tmp2.begin()+number_of_rigid_rigid*3,mg_tmp2.end())-mg_tmp2.begin()];
+			temp_norm = mg_tmp2[thrust::min_element(thrust::omp::par,mg_tmp2.begin()+number_of_rigid_rigid*6,mg_tmp2.end())-mg_tmp2.begin()];
 			//cout<<"norm2: "<<temp_norm<<endl;
 			g_proj_norm = fmax(g_proj_norm,-temp_norm);
 
