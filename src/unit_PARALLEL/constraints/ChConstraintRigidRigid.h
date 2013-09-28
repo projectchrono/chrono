@@ -30,7 +30,8 @@ class ChApiGPU ChConstraintRigidRigid: public ChBaseGPU {
 						- offset_counter.begin();
 				thrust::inclusive_scan(offset_counter.begin(), offset_counter.end(), offset_counter.begin());
 			}
-			solve_all = false;
+			solve_sliding = false;
+			solve_spinning = true;
 
 		}
 		~ChConstraintRigidRigid() {
@@ -39,6 +40,7 @@ class ChApiGPU ChConstraintRigidRigid: public ChBaseGPU {
 		void Project(custom_vector<real> & gamma);
 
 		void host_RHS(int2 *ids, real *correction, real * compliance, bool * active, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs);
+		void host_RHS_spinning(int2 *ids, real *correction, real * compliance, bool * active, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs);
 		void ComputeRHS();
 
 		void host_Jacobians(real3* norm, real3* ptA, real3* ptB, int2* ids, real4* rot, real3* pos, real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB);
@@ -49,8 +51,13 @@ class ChApiGPU ChConstraintRigidRigid: public ChBaseGPU {
 		void host_shurA(
 				int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO, real3* QXYZ, real3*QUVW,
 				uint* offset);
+		void host_shurA_spinning(
+						int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO, real3* QXYZ, real3*QUVW,
+						uint* offset);
 		void host_shurB(
 				int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX);
+		void host_shurB_spinning(
+						int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX);
 
 		void host_Offsets(int2* ids_contacts, uint* Body);
 
@@ -73,8 +80,8 @@ class ChApiGPU ChConstraintRigidRigid: public ChBaseGPU {
 
 
 
-		bool solve_all;
-
+		bool solve_sliding;
+		bool solve_spinning;
 	protected:
 
 		custom_vector<real3> JXYZA_rigid_rigid;

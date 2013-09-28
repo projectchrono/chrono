@@ -19,7 +19,7 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 	real gdiff = 0.000001;
 
 	real lastgoodres=10e30;
-	real theta_k=.1;
+	real theta_k=1.0;
 	real theta_k1=theta_k;
 	real beta_k1=0.0;
 	ml = x;
@@ -93,13 +93,22 @@ uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b
 			real g_proj_norm=0;//CompRes(mg_tmp2,number_of_rigid_rigid);
 			real temp_norm = 0;
 
-			temp_norm = mg_tmp2[thrust::min_element(thrust::omp::par,mg_tmp2.begin(),mg_tmp2.begin()+number_of_rigid_rigid)-mg_tmp2.begin()];
+			temp_norm = mg_tmp2[thrust::min_element(thrust::omp::par,mg_tmp2.begin(),mg_tmp2.end())-mg_tmp2.begin()];
 			//cout<<"norm1: "<<temp_norm<<endl;
-			g_proj_norm = fmax(real(0.0),-temp_norm);
-			temp_norm = mg_tmp2[thrust::min_element(thrust::omp::par,mg_tmp2.begin()+number_of_rigid_rigid*6,mg_tmp2.end())-mg_tmp2.begin()];
+			//g_proj_norm = fmax(real(0.0),-temp_norm);
+			//temp_norm = mg_tmp2[thrust::min_element(thrust::omp::par,mg_tmp2.begin()+number_of_rigid_rigid*6,mg_tmp2.end())-mg_tmp2.begin()];
 			//cout<<"norm2: "<<temp_norm<<endl;
 			g_proj_norm = fmax(g_proj_norm,-temp_norm);
-
+//
+//			int count_resolved = mg_tmp2.size();
+//
+//			for(int i=0; i<mg_tmp2.size(); i++) {
+//				if(mg_tmp2[i]<tolerance) {
+//
+//					count_resolved --;
+//				}
+//			}
+//			cout<<"resolved "<<count_resolved<<endl;
 			//cout<<"MINVAL "<<g_proj_norm<<" "<<fmax(real(0.0),-min_val)<<endl;
 			//this is res4
 			//SEAXPY(-gdiff, mg_tmp2, x, mb_tmp); //mb_tmp=x+mg_tmp2*(-gdiff)

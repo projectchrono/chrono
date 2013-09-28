@@ -122,20 +122,7 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 	data_container->host_data.rhs_data.resize(number_of_constraints);
 	data_container->host_data.diag.resize(number_of_constraints);
 
-	ChConstraintRigidRigid rigid_rigid(data_container);
-	rigid_rigid.solve_all = false;
-	rigid_rigid.ComputeJacobians();
-	rigid_rigid.ComputeRHS();
-	//rigid_rigid.Diag();
-
-	ChConstraintBilateral bilateral(data_container);
-	bilateral.ComputeJacobians();
-	bilateral.ComputeRHS();
 	//bilateral.Diag();
-
-#ifdef PRINT_DEBUG_GPU
-	cout << "Solve: " << endl;
-#endif
 
 	data_container->host_data.gamma_data.resize((number_of_constraints));
 
@@ -147,9 +134,14 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 		//cout<<"WARM"<<endl;
 		RunWarmStartPreprocess();
 	}
+
+	ChConstraintRigidRigid rigid_rigid(data_container);
+	ChConstraintBilateral bilateral(data_container);
+
 	ChSolverGPU solver;
 	solver.SetMaxIterations(max_iteration);
 	solver.SetTolerance(tolerance);
+
 	solver.SetComplianceParameters(alpha, compliance, complianceT);
 	solver.SetContactRecoverySpeed(contact_recovery_speed);
 	solver.lcp_omega_bilateral = lcp_omega_bilateral;
@@ -157,16 +149,37 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 	solver.bilateral = &bilateral;
 	solver.lcp_omega_contact = lcp_omega_contact;
 	solver.do_stab = do_stab;
-	solver.Solve(solver_type, step, data_container);
-	rigid_rigid.solve_all = true;
-//	rigid_rigid.ComputeJacobians();
-	rigid_rigid.ComputeRHS();
-
-//	bilateral.ComputeJacobians();
+	solver.Initial(step, data_container);
+//solve initial
+	//solver.SetComplianceParameters(.2, 1e-3, 1e-3);
+	rigid_rigid.solve_sliding = true;
+	rigid_rigid.ComputeJacobians();
+	//rigid_rigid.ComputeRHS();
+	bilateral.ComputeJacobians();
 	bilateral.ComputeRHS();
-	//solver.SetMaxIterations(max_iteration*2);
-	solver.Solve(solver_type, step, data_container);
+	//solver.SetMaxIterations(5);
+	//solver.Solve(solver_type);
 
+//solve normal
+	solver.SetMaxIterations(max_iteration);
+	solver.SetComplianceParameters(alpha, compliance, complianceT);
+	rigid_rigid.solve_sliding = false;
+	rigid_rigid.solve_spinning = false;
+	rigid_rigid.ComputeRHS();
+	solver.Solve(solver_type);
+
+	//solve full
+	solver.SetMaxIterations(max_iteration/2.0);
+	rigid_rigid.solve_sliding = true;
+	rigid_rigid.solve_spinning = false;
+	rigid_rigid.ComputeRHS();
+	solver.Solve(solver_type);
+
+	solver.SetMaxIterations(max_iteration/2.0);
+	rigid_rigid.solve_sliding = true;
+	rigid_rigid.solve_spinning = true;
+	rigid_rigid.ComputeRHS();
+	solver.Solve(solver_type);
 	solver.ComputeImpulses();
 
 	tot_iterations = solver.GetIteration();
@@ -380,13 +393,13 @@ void ChLcpSolverGPU::RunWarmStartPreprocess() {
 				real3 new_gamma = MatTMult(contact_plane_new, global_gamma);
 				real3 new_gamma_spin = MatTMult(contact_plane_new, global_gamma_spin);
 
-				data_container->host_data.gamma_data[temporaryB[i] + number_of_rigid_rigid * 0] = new_gamma.x * .9;
-				data_container->host_data.gamma_data[temporaryB[i] + number_of_rigid_rigid * 1] = new_gamma.y * .9;
-				data_container->host_data.gamma_data[temporaryB[i] + number_of_rigid_rigid * 2] = new_gamma.z * .9;
+				data_container->host_data.gamma_data[temporaryB[i] + number_of_rigid_rigid * 0] = new_gamma.x * .4;
+				data_container->host_data.gamma_data[temporaryB[i] + number_of_rigid_rigid * 1] = new_gamma.y * .4;
+				data_container->host_data.gamma_data[temporaryB[i] + number_of_rigid_rigid * 2] = new_gamma.z * .4;
 
-				data_container->host_data.gamma_data[temporaryB[i] + number_of_rigid_rigid * 3] = new_gamma_spin.x * .9;
-				data_container->host_data.gamma_data[temporaryB[i] + number_of_rigid_rigid * 4] = new_gamma_spin.y * .9;
-				data_container->host_data.gamma_data[temporaryB[i] + number_of_rigid_rigid * 5] = new_gamma_spin.z * .9;
+				data_container->host_data.gamma_data[temporaryB[i] + number_of_rigid_rigid * 3] = new_gamma_spin.x * .4;
+				data_container->host_data.gamma_data[temporaryB[i] + number_of_rigid_rigid * 4] = new_gamma_spin.y * .4;
+				data_container->host_data.gamma_data[temporaryB[i] + number_of_rigid_rigid * 5] = new_gamma_spin.z * .4;
 
 			}
 		}

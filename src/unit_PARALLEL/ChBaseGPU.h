@@ -28,8 +28,8 @@ class ChApiGPU ChBaseGPU {
 		real inv_hpa;
 		real inv_hhpa;
 
-//		real compliance;
-//		real complianceT;
+		real compliance;
+		real complianceT;
 		real alpha;
 		real contact_recovery_speed;
 

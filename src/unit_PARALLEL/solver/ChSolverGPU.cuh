@@ -23,6 +23,7 @@ class ChApiGPU ChSolverGPU: public ChBaseGPU {
 
 		}
 		void Setup();
+		void Initial (real step, ChGPUDataManager *data_container_);
 		void Project(custom_vector<real> & gamma);
 		void shurA(custom_vector<real> &x);
 		void shurB(custom_vector<real> &x, custom_vector<real> &out);
@@ -45,7 +46,7 @@ class ChApiGPU ChSolverGPU: public ChBaseGPU {
 		void ShurProduct( custom_vector<real> &x_t, custom_vector<real> & AX);
 		void ShurBilaterals( custom_vector<real> &x_t, custom_vector<real> & AX);
 
-		void Solve(GPUSOLVERTYPE solver_type, real step, ChGPUDataManager *data_container_);
+		void Solve(GPUSOLVERTYPE solver_type);
 		void VelocityStabilization(ChGPUDataManager *data_container_);
 		uint SolveStab(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 		uint SolveSD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
@@ -158,6 +159,8 @@ class ChApiGPU ChSolverGPU: public ChBaseGPU {
 
 			void SetComplianceParameters(const real alpha_value,const real compliance_value,const real complianceT_value) {
 				alpha = alpha_value;
+				compliance = compliance_value;
+				complianceT = complianceT_value;
 			}
 
 			void SetContactRecoverySpeed(const real & recovery_speed) {

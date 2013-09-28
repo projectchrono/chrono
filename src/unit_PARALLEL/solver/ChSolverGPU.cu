@@ -64,9 +64,9 @@ void ChSolverGPU::ShurBilaterals(custom_vector<real> &x_t, custom_vector<real> &
 void ChSolverGPU::Setup() {
 	time_shurcompliment = time_project = time_integrate = 0;
 	///////////////////////////////////////
-	maxd_hist.clear();
-	maxdeltalambda_hist.clear();
-	iter_hist.clear();
+	//maxd_hist.clear();
+	//maxdeltalambda_hist.clear();
+	//iter_hist.clear();
 	///////////////////////////////////////
 	Initialize();
 	//data_container->host_data.gamma_data.resize((number_of_constraints));
@@ -108,13 +108,15 @@ void ChSolverGPU::ComputeImpulses() {
 	data_container->host_data.vel_data += data_container->host_data.QXYZ_data;
 	data_container->host_data.omg_data += data_container->host_data.QUVW_data;
 }
-
-void ChSolverGPU::Solve(GPUSOLVERTYPE solver_type, real step, ChGPUDataManager *data_container_) {
-	timer_solver.start();
+void ChSolverGPU::Initial(real step, ChGPUDataManager *data_container_) {
 	data_container = data_container_;
 	step_size = step;
-
 	Setup();
+
+}
+void ChSolverGPU::Solve(GPUSOLVERTYPE solver_type) {
+	timer_solver.start();
+
 	if (number_of_constraints > 0) {
 		//total_iteration += SolveSD(data_container->host_data.gamma_data, data_container->host_data.rhs_data, 10);
 		if (solver_type == STEEPEST_DESCENT) {
