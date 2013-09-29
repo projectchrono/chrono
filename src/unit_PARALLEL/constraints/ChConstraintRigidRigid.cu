@@ -141,7 +141,7 @@ void func_Project_rolling(uint &index, uint number_of_contacts, int2 *ids, real 
 	real mu_spin = (fric_spin[body_id.x] == 0 || fric_spin[body_id.y] == 0) ? 0 : (fric_spin[body_id.x] + fric_spin[body_id.y]) * .5;
 
 	Project_rolling(gamma, gamma_roll, mu_roll, mu_spin);
-	gam[index + number_of_contacts * 0] = gamma.x;
+	//gam[index + number_of_contacts * 0] = gamma.x;
 	gam[index + number_of_contacts * 3] = gamma_roll.x;
 	gam[index + number_of_contacts * 4] = gamma_roll.y;
 	gam[index + number_of_contacts * 5] = gamma_roll.z;
@@ -367,17 +367,7 @@ void ChConstraintRigidRigid::host_Jacobians(real3* norm, real3* ptA, real3* ptB,
 		real mzlen = length(W);
 
 		if (mzlen < 0.0001) {     // was near singularity? change singularity reference vector!
-			real3 mVsingular = R3(0, 1, 0);
-			if (mVsingular.x < 0.9) {
-				mVsingular = R3(0, 0, 1);
-			}
-			if (mVsingular.y < 0.9) {
-				mVsingular = R3(0, 1, 0);
-			}
-			if (mVsingular.z < 0.9) {
-				mVsingular = R3(1, 0, 0);
-			}
-
+			real3 mVsingular = R3(1, 0, 0);
 			W = cross(U, mVsingular);
 			mzlen = length(W);
 		}

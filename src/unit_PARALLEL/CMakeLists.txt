@@ -90,8 +90,6 @@ SET(ChronoEngine_unit_GPU_HEADERS
     ChDataManager.h
     ChLcpSolverGPU.h
     ChLcpSystemDescriptorGPU.h
-    ChJacobianGPU.h
-    ChComputeRHSGPU.h
     #ChIntegratorGPU.h
 
    )
@@ -99,8 +97,6 @@ SET(ChronoEngine_unit_GPU_CU
     ChLcpSolverGPU.cu
     ChBaseGPU.cu
     ChDataManager.cu
-    ChJacobianGPU.cu
-    ChComputeRHSGPU.cu
 	#ChIntegratorGPU.cu
    )
 

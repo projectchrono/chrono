@@ -1,9 +1,7 @@
 #include "ChLcpSolverGPU.h"
 #include "ChThrustLinearAlgebra.cuh"
 #include "solver/ChSolverGPU.cuh"
-#include "ChJacobianGPU.h"
 #include "ChIntegratorGPU.h"
-#include "ChComputeRHSGPU.h"
 #include "constraints/ChConstraintRigidRigid.h"
 #include "constraints/ChConstraintBilateral.h"
 
@@ -106,18 +104,8 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 	number_of_bilaterals = 0;     ///data_container->number_of_bilaterals;
 	number_of_objects = data_container->number_of_rigid;
 	//cout << number_of_constraints << " " << number_of_contacts << " " << number_of_bilaterals << " " << number_of_objects << endl;
-#ifdef PRINT_DEBUG_GPU
-	cout << "Preprocess: " << endl;
-#endif
+
 	Preprocess();
-#ifdef PRINT_DEBUG_GPU
-	cout << "Jacobians: " << endl;
-#endif
-//	ChJacobianGPU jacobian_compute;
-//	jacobian_compute.ComputeJacobians(data_container);
-//
-//	ChComputeRHSGPU rhs_compute;
-//	rhs_compute.ComputeRHS(data_container);
 
 	data_container->host_data.rhs_data.resize(number_of_constraints);
 	data_container->host_data.diag.resize(number_of_constraints);
@@ -131,7 +119,6 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 		data_container->host_data.gamma_data[i] = 0;
 	}
 	if (warm_start) {
-		//cout<<"WARM"<<endl;
 		RunWarmStartPreprocess();
 	}
 
@@ -157,8 +144,6 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 	//rigid_rigid.ComputeRHS();
 	bilateral.ComputeJacobians();
 	bilateral.ComputeRHS();
-	//solver.SetMaxIterations(5);
-	//solver.Solve(solver_type);
 
 //solve normal
 	solver.SetMaxIterations(max_iteration);
@@ -169,13 +154,13 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 	solver.Solve(solver_type);
 
 	//solve full
-	solver.SetMaxIterations(max_iteration/2.0);
+	solver.SetMaxIterations(max_iteration / 2.0);
 	rigid_rigid.solve_sliding = true;
 	rigid_rigid.solve_spinning = false;
 	rigid_rigid.ComputeRHS();
 	solver.Solve(solver_type);
 
-	solver.SetMaxIterations(max_iteration/2.0);
+	solver.SetMaxIterations(max_iteration / 2.0);
 	rigid_rigid.solve_sliding = true;
 	rigid_rigid.solve_spinning = true;
 	rigid_rigid.ComputeRHS();
@@ -191,16 +176,9 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 	for (int i = 0; i < solver.iter_hist.size(); i++) {
 		AtIterationEnd(solver.maxd_hist[i], solver.maxdeltalambda_hist[i], solver.iter_hist[i]);
 	}
-	if (warm_start) {
-		//RunWarmStartPostProcess();
-	}
-	//determine binning
-
-	//stabilization  code
-	//jacobian_compute.ComputeJacobians(data_container);
-	//rhs_compute.ComputeRHS(data_container);
-
-	//solver.VelocityStabilization(data_container);
+	//if (warm_start) {
+	//RunWarmStartPostProcess();
+	//}
 
 #ifdef PRINT_DEBUG_GPU
 	cout << "Solve Done: "<<residual << endl;
