@@ -257,11 +257,14 @@ void ChSystemGPU::UpdateBilaterals() {
 		(*it)->ConstraintsLoadJacobians();
 		(*it)->InjectConstraints(*this->LCP_descriptor);
 	}
-	unsigned int number_of_bilaterals = 0, cntr = 0;
+	unsigned int number_of_bilaterals = 0;
 	std::vector<ChLcpConstraint *> &mconstraints = (*this->LCP_descriptor).GetConstraintsList();
+	vector<int> mapping;
+
 	for (uint ic = 0; ic < mconstraints.size(); ic++) {
 		if (mconstraints[ic]->IsActive() == true) {
 			number_of_bilaterals++;
+			mapping.push_back(ic);
 		}
 	}
 	gpu_data_manager->number_of_bilaterals = number_of_bilaterals;
@@ -274,33 +277,30 @@ void ChSystemGPU::UpdateBilaterals() {
 	gpu_data_manager->host_data.correction_bilateral.resize(number_of_bilaterals);
 	gpu_data_manager->host_data.bids_bilateral.resize(number_of_bilaterals);
 	gpu_data_manager->host_data.gamma_bilateral.resize(number_of_bilaterals);
-//#pragma omp parallel for
-	for (uint ic = 0; ic < mconstraints.size(); ic++) {
-		if (mconstraints[ic]->IsActive() == false) {
-			continue;
-		}
-
-		ChLcpConstraintTwoBodies *mbilateral = (ChLcpConstraintTwoBodies *) (mconstraints[ic]);
+#pragma omp parallel for
+	for (uint i = 0; i < number_of_bilaterals; i++) {
+		int cntr = mapping[i];
+		ChLcpConstraintTwoBodies *mbilateral = (ChLcpConstraintTwoBodies *) (mconstraints[cntr]);
 		int idA = ((ChBody *) ((ChLcpVariablesBody *) (mbilateral->GetVariables_a()))->GetUserData())->GetId();
 		int idB = ((ChBody *) ((ChLcpVariablesBody *) (mbilateral->GetVariables_b()))->GetUserData())->GetId();
 		// Update auxiliary data in all constraints before starting, that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
-		mconstraints[ic]->Update_auxiliary();     //***NOTE*** not efficient here - can be on GPU, and [Eq_i] not needed
+		mconstraints[cntr]->Update_auxiliary();     //***NOTE*** not efficient here - can be on GPU, and [Eq_i] not needed
 		real3 A, B, C, D;
 		A = R3(mbilateral->Get_Cq_a()->GetElementN(0), mbilateral->Get_Cq_a()->GetElementN(1), mbilateral->Get_Cq_a()->GetElementN(2));     //J1x
 		B = R3(mbilateral->Get_Cq_b()->GetElementN(0), mbilateral->Get_Cq_b()->GetElementN(1), mbilateral->Get_Cq_b()->GetElementN(2));     //J2x
 		C = R3(mbilateral->Get_Cq_a()->GetElementN(3), mbilateral->Get_Cq_a()->GetElementN(4), mbilateral->Get_Cq_a()->GetElementN(5));     //J1w
 		D = R3(mbilateral->Get_Cq_b()->GetElementN(3), mbilateral->Get_Cq_b()->GetElementN(4), mbilateral->Get_Cq_b()->GetElementN(5));     //J2w
 
-		gpu_data_manager->host_data.JXYZA_bilateral[cntr] = A;
-		gpu_data_manager->host_data.JXYZB_bilateral[cntr] = B;
-		gpu_data_manager->host_data.JUVWA_bilateral[cntr] = C;
-		gpu_data_manager->host_data.JUVWB_bilateral[cntr] = D;
-		gpu_data_manager->host_data.residual_bilateral[cntr] = mbilateral->Get_b_i();     // b_i is residual b
-		gpu_data_manager->host_data.correction_bilateral[cntr] = 1.0 / mbilateral->Get_g_i();     // eta = 1/g
-		gpu_data_manager->host_data.bids_bilateral[cntr] = I2(idA, idB);
-		gpu_data_manager->host_data.gamma_bilateral[cntr] = -mbilateral->Get_l_i();
+		gpu_data_manager->host_data.JXYZA_bilateral[i] = A;
+		gpu_data_manager->host_data.JXYZB_bilateral[i] = B;
+		gpu_data_manager->host_data.JUVWA_bilateral[i] = C;
+		gpu_data_manager->host_data.JUVWB_bilateral[i] = D;
+		gpu_data_manager->host_data.residual_bilateral[i] = mbilateral->Get_b_i();     // b_i is residual b
+		gpu_data_manager->host_data.correction_bilateral[i] = 1.0 / mbilateral->Get_g_i();     // eta = 1/g
+		gpu_data_manager->host_data.bids_bilateral[i] = I2(idA, idB);
+		gpu_data_manager->host_data.gamma_bilateral[i] = -mbilateral->Get_l_i();
 		//cout<<"gamma "<<mbilateral->Get_l_i()<<endl;
-		cntr++;
+
 	}
 }
 
