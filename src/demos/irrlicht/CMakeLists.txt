@@ -5,14 +5,20 @@ INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC} )
 
 
 #--------------------------------------------------------------
-# Add executables
 
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	SET (CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
+ENDIF()
+
+# Add executables
 
 ADD_EXECUTABLE(demo_collision   	demo_collision.cpp)
 SOURCE_GROUP(demos\\irrlicht FILES  demo_collision.cpp)
 SET_TARGET_PROPERTIES(demo_collision PROPERTIES 
 	FOLDER demos
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+	
 	)
 TARGET_LINK_LIBRARIES(demo_collision
 	${CH_IRRLICHTLIB}
@@ -24,6 +30,7 @@ ADD_EXECUTABLE(demo_benchmark   	demo_benchmark.cpp)
 SOURCE_GROUP(demos\\irrlicht FILES  demo_benchmark.cpp)
 SET_TARGET_PROPERTIES(demo_benchmark PROPERTIES 
 	FOLDER demos
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_benchmark
@@ -36,6 +43,7 @@ ADD_EXECUTABLE(demo_bricks   	    demo_bricks.cpp)
 SOURCE_GROUP(demos\\irrlicht FILES  demo_bricks.cpp)
 SET_TARGET_PROPERTIES(demo_bricks PROPERTIES 
 	FOLDER demos
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_bricks
@@ -48,6 +56,7 @@ ADD_EXECUTABLE(demo_cohesion   	    demo_cohesion.cpp)
 SOURCE_GROUP(demos\\irrlicht FILES  demo_cohesion.cpp)
 SET_TARGET_PROPERTIES(demo_cohesion PROPERTIES 
 	FOLDER demos
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_cohesion
@@ -60,6 +69,7 @@ ADD_EXECUTABLE(demo_conveyor   	    demo_conveyor.cpp)
 SOURCE_GROUP(demos\\irrlicht FILES  demo_conveyor.cpp)
 SET_TARGET_PROPERTIES(demo_conveyor PROPERTIES 
 	FOLDER demos
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_conveyor
@@ -72,6 +82,7 @@ ADD_EXECUTABLE(demo_crank   	    demo_crank.cpp)
 SOURCE_GROUP(demos\\irrlicht FILES  demo_crank.cpp)
 SET_TARGET_PROPERTIES(demo_crank PROPERTIES 
 	FOLDER demos
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_crank
@@ -84,6 +95,7 @@ ADD_EXECUTABLE(demo_decomposition   demo_decomposition.cpp)
 SOURCE_GROUP(demos\\irrlicht FILES  demo_decomposition.cpp)
 SET_TARGET_PROPERTIES(demo_decomposition PROPERTIES 
 	FOLDER demos
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_decomposition
@@ -96,6 +108,7 @@ ADD_EXECUTABLE(demo_forklift    	demo_forklift.cpp)
 SOURCE_GROUP(demos\\irrlicht FILES  demo_forklift.cpp)
 SET_TARGET_PROPERTIES(demo_forklift PROPERTIES 
 	FOLDER demos
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_forklift
@@ -108,6 +121,7 @@ ADD_EXECUTABLE(demo_fourbar    		demo_fourbar.cpp)
 SOURCE_GROUP(demos\\irrlicht FILES  demo_fourbar.cpp)
 SET_TARGET_PROPERTIES(demo_fourbar PROPERTIES 
 	FOLDER demos
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_fourbar
@@ -120,6 +134,7 @@ ADD_EXECUTABLE(demo_friction   		demo_friction.cpp)
 SOURCE_GROUP(demos\\irrlicht FILES  demo_friction.cpp)
 SET_TARGET_PROPERTIES(demo_friction PROPERTIES 
 	FOLDER demos
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_friction
@@ -132,6 +147,7 @@ ADD_EXECUTABLE(demo_gears   		demo_gears.cpp)
 SOURCE_GROUP(demos\\irrlicht FILES  demo_gears.cpp)
 SET_TARGET_PROPERTIES(demo_gears PROPERTIES 
 	FOLDER demos
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_gears
@@ -144,6 +160,7 @@ ADD_EXECUTABLE(demo_mecanum   		demo_mecanum.cpp)
 SOURCE_GROUP(demos\\irrlicht FILES  demo_mecanum.cpp)
 SET_TARGET_PROPERTIES(demo_mecanum PROPERTIES 
 	FOLDER demos
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_mecanum
@@ -156,6 +173,7 @@ ADD_EXECUTABLE(demo_pendulum   		demo_pendulum.cpp)
 SOURCE_GROUP(demos\\irrlicht FILES  demo_pendulum.cpp)
 SET_TARGET_PROPERTIES(demo_pendulum PROPERTIES 
 	FOLDER demos
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_pendulum
@@ -168,6 +186,7 @@ ADD_EXECUTABLE(demo_sph   		    demo_sph.cpp)
 SOURCE_GROUP(demos\\irrlicht FILES  demo_sph.cpp)
 SET_TARGET_PROPERTIES(demo_sph PROPERTIES 
 	FOLDER demos
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_sph
@@ -180,6 +199,7 @@ ADD_EXECUTABLE(demo_suspension   	demo_suspension.cpp)
 SOURCE_GROUP(demos\\irrlicht FILES  demo_suspension.cpp)
 SET_TARGET_PROPERTIES(demo_suspension PROPERTIES 
 	FOLDER demos
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_suspension
@@ -192,6 +212,7 @@ ADD_EXECUTABLE(demo_tire   			demo_tire.cpp)
 SOURCE_GROUP(demos\\irrlicht FILES  demo_tire.cpp)
 SET_TARGET_PROPERTIES(demo_tire PROPERTIES 
 	FOLDER demos
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_tire
@@ -204,6 +225,7 @@ ADD_EXECUTABLE(demo_tracks   		demo_tracks.cpp)
 SOURCE_GROUP(demos\\irrlicht FILES  demo_tracks.cpp)
 SET_TARGET_PROPERTIES(demo_tracks PROPERTIES 
 	FOLDER demos
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_tracks
@@ -216,6 +238,7 @@ ADD_EXECUTABLE(demo_convergence   		demo_convergence.cpp)
 SOURCE_GROUP(demos\\irrlicht FILES  demo_convergence.cpp)
 SET_TARGET_PROPERTIES(demo_convergence PROPERTIES 
 	FOLDER demos
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_convergence
@@ -228,6 +251,7 @@ ADD_EXECUTABLE(demo_irr_assets   	demo_irr_assets.cpp)
 SOURCE_GROUP(demos\\irrlicht FILES  demo_irr_assets.cpp)
 SET_TARGET_PROPERTIES(demo_irr_assets PROPERTIES 
 	FOLDER demos
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
 	)
 TARGET_LINK_LIBRARIES(demo_irr_assets
@@ -240,6 +264,7 @@ ADD_EXECUTABLE(demo_soilbin		demo_soilbin.cpp)
 SOURCE_GROUP(demos\\irrlicht FILES demo_soilbin.cpp)
 SET_TARGET_PROPERTIES(demo_soilbin PROPERTIES
 	FOLDER demos
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}")
 TARGET_LINK_LIBRARIES(demo_soilbin
 	${CH_IRRLICHTLIB}
