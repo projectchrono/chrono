@@ -349,8 +349,8 @@ __host__ __device__ void function_MPR_Store(
 	real3 A_X = obj_data_A[pair.x], B_X = obj_data_A[pair.y];
 	real3 A_Y = obj_data_B[pair.x], B_Y = obj_data_B[pair.y];
 	real3 A_Z = obj_data_C[pair.x], B_Z = obj_data_C[pair.y];
-	real4 A_R = rotA;     //(mult(rotA, obj_data_R[pair.x]));
-	real4 B_R = rotB;     //(mult(rotB, obj_data_R[pair.y]));
+	real4 A_R = (mult(rotA, obj_data_R[pair.x]));
+	real4 B_R = (mult(rotB, obj_data_R[pair.y]));
 
 	real envelope = collision_envelope;
 

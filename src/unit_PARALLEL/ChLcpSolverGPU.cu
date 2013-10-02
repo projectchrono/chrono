@@ -139,7 +139,7 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 	solver.Initial(step, data_container);
 //solve initial
 	//solver.SetComplianceParameters(.2, 1e-3, 1e-3);
-	rigid_rigid.solve_sliding = true;
+	//rigid_rigid.solve_sliding = true;
 	rigid_rigid.ComputeJacobians();
 	//rigid_rigid.ComputeRHS();
 	bilateral.ComputeJacobians();
@@ -154,17 +154,19 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 	solver.Solve(solver_type);
 
 	//solve full
-	solver.SetMaxIterations(max_iteration / 2.0);
+	solver.SetMaxIterations(max_iteration/2.0);
 	rigid_rigid.solve_sliding = true;
 	rigid_rigid.solve_spinning = false;
 	rigid_rigid.ComputeRHS();
 	solver.Solve(solver_type);
 
-	solver.SetMaxIterations(max_iteration / 2.0);
+	solver.SetMaxIterations(max_iteration/2.0);
 	rigid_rigid.solve_sliding = true;
 	rigid_rigid.solve_spinning = true;
 	rigid_rigid.ComputeRHS();
 	solver.Solve(solver_type);
+
+
 	solver.ComputeImpulses();
 
 	tot_iterations = solver.GetIteration();
