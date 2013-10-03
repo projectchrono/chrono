@@ -12,10 +12,10 @@
 
 #include "collision/ChCModelBullet.h"
 #include "physics/ChBody.h"
-#include "../ChCudaDefines.h"
-#include "../ChLcpSystemDescriptorGPU.h"
-#include "../../collision/ChCCollisionSystem.h"
-#include "../../physics/ChProximityContainerBase.h"
+#include "ChCudaDefines.h"
+#include "ChLcpSystemDescriptorGPU.h"
+#include "collision/ChCCollisionSystem.h"
+#include "physics/ChProximityContainerBase.h"
 
 namespace chrono {
 namespace collision {

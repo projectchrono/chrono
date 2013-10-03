@@ -16,15 +16,15 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "../ChCudaDefines.h"
+#include "ChCudaDefines.h"
 #include "ChCCollisionModelGPU.h"
 #include "physics/ChBody.h"
 #include "core/ChTimer.h"
-#include "../ChLcpSystemDescriptorGPU.h"
+#include "ChLcpSystemDescriptorGPU.h"
 #include "ChContactContainerGPU.h"
-#include "../../collision/ChCCollisionSystem.h"
-#include "../../physics/ChProximityContainerBase.h"
-#include "../../physics/ChBody.h"
+#include "collision/ChCCollisionSystem.h"
+#include "physics/ChProximityContainerBase.h"
+#include "physics/ChBody.h"
 #include "ChCAABBGenerator.cuh"
 #include "ChCNarrowphase.cuh"
 #include "ChCBroadphase.cuh"

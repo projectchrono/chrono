@@ -1,13 +1,16 @@
+cmake_minimum_required(VERSION 2.8)
+project(ChronoEngine_GPU)
+
 #=============================================================================
 # CHRONO::ENGINE   CMake configuration file for GPU unit
 #
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
+find_package("OpenMP" REQUIRED)
 
-
-SET(ENABLE_UNIT_GPU      FALSE    CACHE BOOL   "Turn ON this to generate the Chrono::Engine GPU unit.")
-
-IF(ENABLE_UNIT_GPU)
+# Add the OpenMP-specific compiler and linker flags
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 
 #add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP)
 #add_definitions(-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP)
@@ -85,35 +88,62 @@ SET(ChronoEngine_unit_GPU_HEADERS
     ChCudaDefines.h
     ChCudaMath.h
     ChThrustLinearAlgebra.cuh
-    #ChBodyGPU.h
     ChSystemGPU.h
     ChDataManager.h
     ChLcpSolverGPU.h
     ChLcpSystemDescriptorGPU.h
-    #ChIntegratorGPU.h
-
    )
 SET(ChronoEngine_unit_GPU_CU
     ChLcpSolverGPU.cu
     ChBaseGPU.cu
     ChDataManager.cu
-	#ChIntegratorGPU.cu
    )
 
 SOURCE_GROUP(unit_GPU FILES
              ${ChronoEngine_unit_GPU_SOURCES}
              ${ChronoEngine_unit_GPU_HEADERS}
              ${ChronoEngine_unit_GPU_CU})
+             
 SOURCE_GROUP(unit_GPU\\collision FILES
-             ${ChronoEngine_unit_GPU_COLLISION}
-            )
+             ${ChronoEngine_unit_GPU_COLLISION})
+             
 SOURCE_GROUP(unit_GPU\\solver FILES
-             ${ChronoEngine_unit_GPU_SOLVER}
-            )
-            
-            SOURCE_GROUP(unit_GPU\\constraints FILES
-             ${ChronoEngine_unit_GPU_CONSTRAINTS}
-            )
+             ${ChronoEngine_unit_GPU_SOLVER})
+                   
+SOURCE_GROUP(unit_GPU\\constraints FILES
+	     ${ChronoEngine_unit_GPU_CONSTRAINTS})
+
+# User specified path to ChronoEngine
+SET(CHRONO_INC       ""   CACHE PATH "Where is ChronoEngine Source located")
+
+# Include directories based on user path to ChronoEngine
+SET(INC_DIRS ${CHRONO_INC} "${CHRONO_INC}/collision" "${CHRONO_INC}/collision/bullet")
+
+# User specified path to ChronoEngine Libraries
+SET(CHRONO_LIB_PATH  ""   CACHE PATH "Where is CHRONOLIB located")
+
+# Find required Libraries
+FIND_LIBRARY(CHRONO_LIB NAMES ChronoEngine PATHS ${CHRONO_LIB_PATH} REQUIRED)
+
+#FIND_LIBRARY(CHRONO_LIB_POSTPROCESS NAMES ChronoEngine_POSTPROCESS PATHS ${CHRONO_LIB_PATH} REQUIRED)
+#FIND_LIBRARY(CHRONO_LIB_OPENGL NAMES ChronoEngine_OPENGL PATHS ${CHRONO_LIB_PATH} REQUIRED)
+
+
+SET(INCLUDE_DIR
+	${CH_CUDA_INC} 
+	${CHRONO_INC} 
+	${CHRONO_INC}/collision/bullet/ 
+	${CMAKE_SOURCE_DIR}
+	)
+
+SET(INCLUDE_LIB
+	#${CHRONO_LIB_POSTPROCESS}
+    #${CHRONO_LIB_OPENGL}
+	${CHRONO_LIB}
+	)
+
+
+
 #-----------------------------------------------------------------------------
 # In most cases, you do not need to edit the lines below.
 
@@ -125,9 +155,9 @@ find_package(CUDA QUIET)
 #find_package(TBB)
 if (CUDA_FOUND)
     message(STATUS "CUDA found")
-    else()
-        message(FATAL_ERROR "CUDA not found! (you may switch off ENABLE_UNIT_GPU and build without this unit)")
-        endif()
+else()
+    message(FATAL_ERROR "CUDA not found! (you may switch off ENABLE_UNIT_GPU and build without this unit)")
+endif()
 
 # Detect what architecture we're on
 # Paths we'll use to find some of the extra libraries
@@ -162,68 +192,48 @@ if (CUDA_FOUND)
 
 # These need to get straightened out
 # Anything using the SDK should only be used by nvcc, no need to include them for anything being sent to the system compiler
-        CUDA_INCLUDE_DIRECTORIES(${CH_CUDA_INC} ${CH_CUDA_SDK_INC} "../")
-        
-        INCLUDE_DIRECTORIES( ${CH_CUDA_INC} ${CH_CUDA_SDK_INC} "../" 
-)
+CUDA_INCLUDE_DIRECTORIES(${INCLUDE_DIR})
+INCLUDE_DIRECTORIES(${INCLUDE_DIR})
 
 # The GPU library is added to the project, and some custom properties of this target are set.
 
-        CUDA_ADD_LIBRARY(ChronoEngine_GPU SHARED
-                         ${ChronoEngine_unit_GPU_COLLISION}
-                         ${ChronoEngine_unit_GPU_CONSTRAINTS}
-                         ${ChronoEngine_unit_GPU_SOLVER}
-                         ${ChronoEngine_unit_GPU_SOURCES}
-                         ${ChronoEngine_unit_GPU_HEADERS}
-                         ${ChronoEngine_unit_GPU_CU})
+CUDA_ADD_LIBRARY(ChronoEngine_GPU SHARED
+                 ${ChronoEngine_unit_GPU_COLLISION}
+                 ${ChronoEngine_unit_GPU_CONSTRAINTS}
+                 ${ChronoEngine_unit_GPU_SOLVER}
+                 ${ChronoEngine_unit_GPU_SOURCES}
+                 ${ChronoEngine_unit_GPU_HEADERS}
+                 ${ChronoEngine_unit_GPU_CU})
 
 
-        IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-        SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -DWIN32_LEAN_AND_MEAN")
-        SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DWIN32_LEAN_AND_MEAN")
-        ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -DWIN32_LEAN_AND_MEAN")
+	SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DWIN32_LEAN_AND_MEAN")
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-        ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-        SET_TARGET_PROPERTIES( ChronoEngine_GPU PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT YES )
-        FIND_LIBRARY(CUDA_FRAMEWORK CUDA)
-        ENDIF()
-
-
-        IF(${CMAKE_CONFIGURATION_TYPES} MATCHES "Debug")
-
-        ENDIF()
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	SET_TARGET_PROPERTIES( ChronoEngine_GPU PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT YES )
+	FIND_LIBRARY(CUDA_FRAMEWORK CUDA)
+ENDIF()
 
 
-        SET_TARGET_PROPERTIES(ChronoEngine_GPU PROPERTIES
-                              LINK_FLAGS "${CH_LINKERFLAG_GPU}"
-                              COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_GPU")
+IF(${CMAKE_CONFIGURATION_TYPES} MATCHES "Debug")
 
-# Let some variables be visible also from outside this directory, using the PARENT_SCOPE trick
+ENDIF()
 
-        TARGET_LINK_LIBRARIES(ChronoEngine_GPU ChronoEngine ${CUDA_FRAMEWORK} )
-        ADD_DEPENDENCIES (ChronoEngine_GPU ChronoEngine)  # better, because not automatic
 
-        SET (CH_CUDA_INC      		"${CUDA_TOOLKIT_ROOT_DIR}/include" 	PARENT_SCOPE )
-        SET (CH_CUDA_SDK_INC  		"${CUDA_SDK_ROOT_DIR}/common/inc"  	PARENT_SCOPE )
-        INSTALL(TARGETS ChronoEngine_GPU
-                RUNTIME DESTINATION bin
-                LIBRARY DESTINATION lib
-                ARCHIVE DESTINATION lib
-               )
-        ELSE()
+SET_TARGET_PROPERTIES(ChronoEngine_GPU PROPERTIES
+                      LINK_FLAGS "${CH_LINKERFLAG_GPU}"
+                      COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_GPU")
 
-#MARK_AS_ADVANCED(FORCE CUDA_BUILD_CUBIN)
-#MARK_AS_ADVANCED(FORCE CUDA_SDK_ROOT_DIR)
-#MARK_AS_ADVANCED(FORCE CUDA_TOOLKIT_ROOT_DIR)
-#MARK_AS_ADVANCED(FORCE CUDA_VERBOSE_BUILD)
-#MARK_AS_ADVANCED(FORCE CUDA_FAST_MATH)
-#MARK_AS_ADVANCED(FORCE CUDA_USE_CUSTOM_COMPILER)
-#MARK_AS_ADVANCED(FORCE CUDA_VERBOSE_PTX)
-#MARK_AS_ADVANCED(FORCE CUDA_DEVICE_VERSION)
-#MARK_AS_ADVANCED(FORCE CUDA_BUILD_EMULATION)
-#MARK_AS_ADVANCED(FORCE CH_CUDA_LIBSDKUTIL)
-#MARK_AS_ADVANCED(FORCE CH_CUDART)
-        ENDIF()
+TARGET_LINK_LIBRARIES(ChronoEngine_GPU ${INCLUDE_LIB} ${CUDA_FRAMEWORK} )
+
+INSTALL(TARGETS ChronoEngine_GPU
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+)
+
 
 
 

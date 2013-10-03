@@ -18,7 +18,7 @@
 ///////////////////////////////////////////////////
 #include "physics/ChContactContainer.h"
 #include <list>
-#include "../ChApiGPU.h"
+#include "ChApiGPU.h"
 #include "ChDataManager.h"
 namespace chrono {
 /// Class representing a container of many contacts,

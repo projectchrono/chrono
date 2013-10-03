@@ -1,10 +1,10 @@
 #ifndef CHC_NARROWPHASE_H
 #define CHC_NARROWPHASE_H
 
-#include "../ChCudaMath.h"
-#include "../ChCudaDefines.h"
+#include "ChCudaMath.h"
+#include "ChCudaDefines.h"
 #include "ChCSupportFunctions.cuh"
-#include "../../collision/ChCCollisionModel.h"
+#include "collision/ChCCollisionModel.h"
 namespace chrono {
 	namespace collision {
 

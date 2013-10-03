@@ -16,10 +16,10 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "../../collision/ChCCollisionModel.h"
-#include "../ChApiGPU.h"
-#include "../ChCudaMath.h"
-#include "../ChCudaDefines.h"
+#include "collision/ChCCollisionModel.h"
+#include "ChApiGPU.h"
+#include "ChCudaMath.h"
+#include "ChCudaDefines.h"
 using namespace std;
 namespace chrono {
 // forward references

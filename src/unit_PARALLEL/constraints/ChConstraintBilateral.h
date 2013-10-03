@@ -1,7 +1,7 @@
 #ifndef CHCONSTRAINT_BILATERAL_H
 #define CHCONSTRAINT_BILATERAL_H
 
-#include "ChBaseGPU.h"
+#include "../ChBaseGPU.h"
 
 namespace chrono {
 class ChApiGPU ChConstraintBilateral: public ChBaseGPU {
