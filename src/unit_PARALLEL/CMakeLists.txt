@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(ChronoEngine_GPU)
+project(ChronoEngine_Parallel)
 
 #=============================================================================
 # CHRONO::ENGINE   CMake configuration file for GPU unit
@@ -21,65 +21,63 @@ set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 #
 
 SET(ChronoEngine_unit_GPU_COLLISION
-    collision/ChCAABBGenerator.h
-    collision/ChCBroadphase.h
-    collision/ChCNarrowphase.h
-    collision/ChCAABBGenerator.cpp
-    collision/ChCBroadphase.cpp
-    collision/ChCNarrowphase.cpp
+    src/collision/ChCAABBGenerator.h
+    src/collision/ChCBroadphase.h
+    src/collision/ChCNarrowphase.h
+    src/collision/ChCAABBGenerator.cpp
+    src/collision/ChCBroadphase.cpp
+    src/collision/ChCNarrowphase.cpp
 
-    collision/ChCSupportFunctions.h
-    collision/ChCCollisionModelParallel.h
-    collision/ChCCollisionModelParallel.cpp
-    collision/ChCCollisionSystemParallel.h
-    collision/ChCCollisionSystemParallel.cpp
-    collision/ChCCollisionSystemBulletParallel.h
-    collision/ChCCollisionSystemBulletParallel.cpp
-    collision/ChContactContainerParallel.h
-    collision/ChContactContainerParallel.cpp
+    src/collision/ChCSupportFunctions.h
+    src/collision/ChCCollisionModelParallel.h
+    src/collision/ChCCollisionModelParallel.cpp
+    src/collision/ChCCollisionSystemParallel.h
+    src/collision/ChCCollisionSystemParallel.cpp
+    src/collision/ChCCollisionSystemBulletParallel.h
+    src/collision/ChCCollisionSystemBulletParallel.cpp
+    src/collision/ChContactContainerParallel.h
+    src/collision/ChContactContainerParallel.cpp
    )
 SET(ChronoEngine_unit_GPU_SOLVER
-    solver/ChSolverParallel.h
-    solver/ChSolverParallel.cpp
-    #solver/ChSolverBlockJacobi.h
-    solver/ChSolverBlockJacobi.cpp
-    solver/ChSolverCG.cpp
-    solver/ChSolverCGS.cpp
-    solver/ChSolverGD.cpp
-    solver/ChSolverSD.cpp
-    solver/ChSolverAPGD.cpp
-    solver/ChSolverMinRes.cpp
-    solver/ChSolverBiCG.cpp
-    solver/ChSolverBiCGStab.cpp
+    src/solver/ChSolverParallel.h
+    src/solver/ChSolverParallel.cpp
+    src/solver/ChSolverBlockJacobi.cpp
+    src/solver/ChSolverCG.cpp
+    src/solver/ChSolverCGS.cpp
+    src/solver/ChSolverGD.cpp
+    src/solver/ChSolverSD.cpp
+    src/solver/ChSolverAPGD.cpp
+    src/solver/ChSolverMinRes.cpp
+    src/solver/ChSolverBiCG.cpp
+    src/solver/ChSolverBiCGStab.cpp
    )
 
 SET(ChronoEngine_unit_GPU_CONSTRAINTS
-    constraints/ChConstraintRigidRigid.cpp
-    constraints/ChConstraintRigidRigid.h
-    constraints/ChConstraintBilateral.cpp
-    constraints/ChConstraintBilateral.h
+    src/constraints/ChConstraintRigidRigid.cpp
+    src/constraints/ChConstraintRigidRigid.h
+    src/constraints/ChConstraintBilateral.cpp
+    src/constraints/ChConstraintBilateral.h
    )
 
 SET(ChronoEngine_unit_GPU_SOURCES
-    #ChBodyGPU.cpp
-    ChSystemParallel.cpp
+    src/ChSystemParallel.cpp
    )
 
 SET(ChronoEngine_unit_GPU_HEADERS
-    ChApiParallel.h
-    ChBaseParallel.h
-    ChParallelDefines.h
-    ChParallelMath.h
-    ChThrustLinearAlgebra.h
-    ChSystemParallel.h
-    ChDataManager.h
-    ChLcpSolverParallel.h
-    ChLcpSystemDescriptorParallel.h
+    src/ChApiParallel.h
+    src/ChBaseParallel.h
+    src/ChParallelDefines.h
+    src/ChParallelMath.h
+    src/ChThrustLinearAlgebra.h
+    src/ChSystemParallel.h
+    src/ChDataManager.h
+    src/ChLcpSolverParallel.h
+    src/ChLcpSystemDescriptorParallel.h
    )
 SET(ChronoEngine_unit_GPU_CU
-    ChLcpSolverParallel.cpp
-    ChBaseParallel.cpp
-    ChDataManager.cpp
+    src/ChLcpSolverParallel.cpp
+    src/ChBaseParallel.cpp
+    src/ChDataManager.cpp
    )
 
 SOURCE_GROUP(unit_GPU FILES
@@ -112,7 +110,7 @@ SET(INCLUDE_DIR
 	${CH_CUDA_INC} 
 	${CHRONO_INC} 
 	${CHRONO_INC}/collision/bullet/ 
-	${CMAKE_SOURCE_DIR}
+	${CMAKE_SOURCE_DIR}/src
 	)
 
 SET(INCLUDE_LIB
@@ -175,7 +173,7 @@ INCLUDE_DIRECTORIES(${INCLUDE_DIR} ${CUDA_TOOLKIT_INCLUDE})
 
 # The GPU library is added to the project, and some custom properties of this target are set.
 
-ADD_LIBRARY(ChronoEngine_GPU SHARED
+ADD_LIBRARY(ChronoEngine_Parallel SHARED
                  ${ChronoEngine_unit_GPU_COLLISION}
                  ${ChronoEngine_unit_GPU_CONSTRAINTS}
                  ${ChronoEngine_unit_GPU_SOLVER}
@@ -189,7 +187,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	SET_TARGET_PROPERTIES( ChronoEngine_GPU PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT YES )
+	SET_TARGET_PROPERTIES( ChronoEngine_Parallel PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT YES )
 	FIND_LIBRARY(CUDA_FRAMEWORK CUDA)
 ENDIF()
 
@@ -199,13 +197,13 @@ IF(${CMAKE_CONFIGURATION_TYPES} MATCHES "Debug")
 ENDIF()
 
 
-SET_TARGET_PROPERTIES(ChronoEngine_GPU PROPERTIES
+SET_TARGET_PROPERTIES(ChronoEngine_Parallel PROPERTIES
                       LINK_FLAGS "${CH_LINKERFLAG_GPU}"
                       COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_GPU")
 
-TARGET_LINK_LIBRARIES(ChronoEngine_GPU ${INCLUDE_LIB} ${CUDA_FRAMEWORK} )
+TARGET_LINK_LIBRARIES(ChronoEngine_Parallel ${INCLUDE_LIB} ${CUDA_FRAMEWORK} )
 
-INSTALL(TARGETS ChronoEngine_GPU
+INSTALL(TARGETS ChronoEngine_Parallel
             RUNTIME DESTINATION bin
             LIBRARY DESTINATION lib
             ARCHIVE DESTINATION lib
