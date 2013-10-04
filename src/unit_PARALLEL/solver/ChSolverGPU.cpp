@@ -1,25 +1,6 @@
-#include "ChSolverGPU.cuh"
+#include "ChSolverGPU.h"
 using namespace chrono;
 
-__constant__ uint number_of_constraints_const;
-__constant__ uint number_of_contacts_const;
-__constant__ uint number_of_bilaterals_const;
-__constant__ real step_size_const;
-__constant__ real alpha_const;
-__constant__ real compliance_const;
-__constant__ real inv_hpa_const;
-__constant__ real inv_hhpa_const;
-__constant__ real contact_recovery_speed_const;
-
-__device__ double atomicAdd(double* address, double val) {
-	unsigned long long int* address_as_ull = (unsigned long long int*) address;
-	unsigned long long int old = *address_as_ull, assumed;
-	do {
-		assumed = old;
-		old = atomicCAS(address_as_ull, assumed, __double_as_longlong(val + __longlong_as_double(assumed)));
-	} while (assumed != old);
-	return __longlong_as_double(old);
-}
 
 void ChSolverGPU::Project(custom_vector<real> & gamma) {
 	timer_project.start();

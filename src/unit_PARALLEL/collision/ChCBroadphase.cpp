@@ -1,10 +1,5 @@
-#include "ChCBroadphase.cuh"
+#include "ChCBroadphase.h"
 using namespace chrono::collision;
-
-__constant__ uint numAABB_const;
-__constant__ uint last_active_bin_const;
-__constant__ uint number_of_contacts_possible_const;
-__constant__ real3 bin_size_vec_const;
 
 typedef thrust::pair<real3, real3> bbox;
 // reduce a pair of bounding boxes (a,b) to a bounding box containing a and b
@@ -88,11 +83,7 @@ inline void __host__ __device__ function_Count_AABB_BIN_Intersection(const uint 
 	int3 gmax = HashMax(aabb_data[index + number_of_particles], bin_size_vec);
 	Bins_Intersected[index] = (gmax.x - gmin.x + 1) * (gmax.y - gmin.y + 1) * (gmax.z - gmin.z + 1);
 }
-//--------------------------------------------------------------------------
-__global__ void device_Count_AABB_BIN_Intersection(const real3 *aabb_data, uint *Bins_Intersected) {
-	INIT_CHECK_THREAD_BOUNDED(INDEX1D, numAABB_const)
-	function_Count_AABB_BIN_Intersection(index, aabb_data, bin_size_vec_const, numAABB_const, Bins_Intersected);
-}
+
 //--------------------------------------------------------------------------
 void ChCBroadphase::host_Count_AABB_BIN_Intersection(const real3 *aabb_data, uint *Bins_Intersected) {
 #pragma omp parallel for schedule(guided)
@@ -121,18 +112,18 @@ inline void __host__ __device__ function_Store_AABB_BIN_Intersection(
 	for (i = gmin.x; i <= gmax.x; i++) {
 		for (j = gmin.y; j <= gmax.y; j++) {
 			for (k = gmin.z; k <= gmax.z; k++) {
-				bin_number[mInd + count] = Hash_Index(U3(i, j, k));
+				uint3 location;
+				location.x = i;
+				location.y = j;
+				location.z = k;
+				bin_number[mInd + count] = Hash_Index(location);
 				body_number[mInd + count] = index;
 				count++;
 			}
 		}
 	}
 }
-//--------------------------------------------------------------------------
-__global__ void device_Store_AABB_BIN_Intersection(const real3 *aabb_data, const uint *Bins_Intersected, uint *bin_number, uint *body_number) {
-	INIT_CHECK_THREAD_BOUNDED(INDEX1D, numAABB_const);
-	function_Store_AABB_BIN_Intersection(index, aabb_data, Bins_Intersected, bin_size_vec_const, numAABB_const, bin_number, body_number);
-}
+
 //--------------------------------------------------------------------------
 
 void ChCBroadphase::host_Store_AABB_BIN_Intersection(const real3 *aabb_data, const uint *Bins_Intersected, uint *bin_number, uint *body_number) {
@@ -179,11 +170,6 @@ inline void __host__ __device__ function_Count_AABB_AABB_Intersection(
 	}
 
 	Num_ContactD[index] = count;
-}
-//--------------------------------------------------------------------------
-__global__ void device_Count_AABB_AABB_Intersection(const real3 *aabb_data, const uint *bin_number, const uint *body_number, const uint *bin_start_index, const int2 * fam_data, uint *Num_ContactD) {
-	INIT_CHECK_THREAD_BOUNDED(INDEX1D, last_active_bin_const);
-	function_Count_AABB_AABB_Intersection(index, aabb_data, numAABB_const, bin_number, body_number, bin_start_index, fam_data, Num_ContactD);
 }
 
 //--------------------------------------------------------------------------
@@ -248,18 +234,7 @@ inline void __host__ __device__ function_Store_AABB_AABB_Intersection(
 	}
 }
 //--------------------------------------------------------------------------
-__global__ void device_Store_AABB_AABB_Intersection(
-		const real3 *aabb_data,
-		const uint *bin_number,
-		const uint *body_number,
-		const uint *bin_start_index,
-		const uint *Num_ContactD,
-		const int2 * fam_data,
-		long long *potential_contacts) {
-	INIT_CHECK_THREAD_BOUNDED(INDEX1D, last_active_bin_const);
-	function_Store_AABB_AABB_Intersection(index, aabb_data, numAABB_const, bin_number, body_number, bin_start_index, Num_ContactD, fam_data, potential_contacts);
-//--------------------------------------------------------------------------
-}
+
 void ChCBroadphase::host_Store_AABB_AABB_Intersection(
 		const real3 *aabb_data,
 		const uint *bin_number,

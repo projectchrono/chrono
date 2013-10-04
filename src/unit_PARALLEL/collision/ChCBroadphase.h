@@ -3,7 +3,7 @@
 
 #include "ChCudaMath.h"
 #include "ChCudaDefines.h"
-#include "ChCAABBGenerator.cuh"
+#include "ChCAABBGenerator.h"
 namespace chrono {
 namespace collision {
 

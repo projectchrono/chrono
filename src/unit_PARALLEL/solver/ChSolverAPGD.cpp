@@ -1,4 +1,4 @@
-#include "ChSolverGPU.cuh"
+#include "ChSolverGPU.h"
 using namespace chrono;
 
 void ChSolverGPU::InitAPGD(custom_vector<real> &x) {

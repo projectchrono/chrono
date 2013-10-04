@@ -1,16 +1,11 @@
 #include "ChLcpSolverGPU.h"
-#include "ChThrustLinearAlgebra.cuh"
-#include "solver/ChSolverGPU.cuh"
+#include "ChThrustLinearAlgebra.h"
+#include "solver/ChSolverGPU.h"
 #include "ChIntegratorGPU.h"
 #include "constraints/ChConstraintRigidRigid.h"
 #include "constraints/ChConstraintBilateral.h"
 
 using namespace chrono;
-__constant__ uint number_of_objects_const;
-__constant__ uint number_of_contacts_const;
-__constant__ uint number_of_bilaterals_const;
-__constant__ uint number_of_updates_const;
-__constant__ real step_size_const;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Kernel for adding invmass*force*step_size_const to body speed vector.
@@ -24,10 +19,7 @@ __host__ __device__ void function_addForces(uint& index, bool* active, real* mas
 		omega[index] += torques[index] * inertia[index];
 	}
 }
-__global__ void device_addForces(bool* active, real* mass, real3* inertia, real3* forces, real3* torques, real3* vel, real3* omega) {
-	INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_objects_const);
-	function_addForces(index, active, mass, inertia, forces, torques, vel, omega);
-}
+
 
 void ChLcpSolverGPU::host_addForces(bool* active, real* mass, real3* inertia, real3* forces, real3* torques, real3* vel, real3* omega) {
 #pragma omp parallel for
@@ -45,10 +37,7 @@ __host__ __device__ void function_ComputeGyro(uint& index, real3* omega, real3* 
 	gyro[index] = gyr;
 }
 
-__global__ void device_ComputeGyro(real3* omega, real3* inertia, real3* gyro, real3* torque) {
-	INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_objects_const);
-	function_ComputeGyro(index, omega, inertia, gyro, torque);
-}
+
 
 void ChLcpSolverGPU::host_ComputeGyro(real3* omega, real3* inertia, real3* gyro, real3* torque) {
 #pragma omp parallel for

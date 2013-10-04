@@ -1,4 +1,4 @@
-#include "ChCNarrowphase.cuh"
+#include "ChCNarrowphase.h"
 
 using namespace chrono::collision;
 
@@ -432,45 +432,6 @@ __host__ __device__ void function_MPR_Store(
 	contactDepth[index] = depth;
 	ids[index] = I2(ID_A, ID_B);
 	contact_active[index] = 0;
-}
-
-__global__ void device_MPR_Store(
-		const shape_type *obj_data_T,
-		const real3 *obj_data_A,
-		const real3 *obj_data_B,
-		const real3 *obj_data_C,
-		const real4 *obj_data_R,
-		const uint *obj_data_ID,
-		const bool * obj_active,
-		const real3 *body_pos,
-		const real4 *body_rot,
-		long long *contact_pair,
-		uint *contact_active,
-		real3 *norm,
-		real3 *ptA,
-		real3 *ptB,
-		real *contactDepth,
-		int2 *ids) {
-	INIT_CHECK_THREAD_BOUNDED(INDEX1D, total_possible_contacts_const);
-	function_MPR_Store(
-			index,
-			obj_data_T,
-			obj_data_A,
-			obj_data_B,
-			obj_data_C,
-			obj_data_R,
-			obj_data_ID,
-			obj_active,
-			body_pos,
-			body_rot,
-			collision_envelope_const,
-			contact_pair,
-			contact_active,
-			norm,
-			ptA,
-			ptB,
-			contactDepth,
-			ids);
 }
 
 void ChCNarrowphase::host_MPR_Store(

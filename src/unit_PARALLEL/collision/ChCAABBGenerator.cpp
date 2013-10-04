@@ -1,4 +1,4 @@
-#include "ChCAABBGenerator.cuh"
+#include "ChCAABBGenerator.h"
 using namespace chrono::collision;
 
 __constant__ uint numAABB_const;
@@ -133,19 +133,7 @@ __device__ __host__ void function_ComputeAABB(
 	aabb_data[index] = temp_min;
 	aabb_data[index + numAABB] = temp_max;
 }
-__global__ void device_ComputeAABB(
-		const shape_type *obj_data_T,
-		const real3 *obj_data_A,
-		const real3 *obj_data_B,
-		const real3 *obj_data_C,
-		const real4 *obj_data_R,
-		const uint *obj_data_ID,
-		const real3 *body_pos,
-		const real4 *body_rot,
-		real3 *aabb_data) {
-	INIT_CHECK_THREAD_BOUNDED(INDEX1D, numAABB_const);
-	function_ComputeAABB(index, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, body_pos, body_rot, numAABB_const, aabb_data);
-}
+
 
 void ChCAABBGenerator::host_ComputeAABB(
 		const shape_type *obj_data_T,

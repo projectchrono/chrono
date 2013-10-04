@@ -14,14 +14,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 
 #add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP)
 #add_definitions(-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP)
-MARK_AS_ADVANCED(FORCE CUDA_BUILD_CUBIN)
-MARK_AS_ADVANCED(FORCE CUDA_VERBOSE_BUILD)
-MARK_AS_ADVANCED(FORCE CUDA_FAST_MATH)
-MARK_AS_ADVANCED(FORCE CUDA_VERBOSE_PTX)
-MARK_AS_ADVANCED(FORCE CUDA_DEVICE_VERSION)
-MARK_AS_ADVANCED(FORCE CUDA_BUILD_EMULATION)
-MARK_AS_ADVANCED(FORCE CH_CUDART)
-MARK_AS_ADVANCED(FORCE CUDA_SM_VERSION)
 
 SET(CUDA_DEVICE_VERSION "20" CACHE STRING "CUDA Device Version")
 SET_PROPERTY(CACHE CUDA_DEVICE_VERSION PROPERTY STRINGS "10" "11" "12" "13" "20" "21" "30" "35")
@@ -38,14 +30,14 @@ SET(CUDA_VERBOSE_PTX FALSE CACHE BOOL "Show Verbose Kernel Info During Compilati
 #
 
 SET(ChronoEngine_unit_GPU_COLLISION
-    collision/ChCAABBGenerator.cuh
-    collision/ChCBroadphase.cuh
-    collision/ChCNarrowphase.cuh
-    collision/ChCAABBGenerator.cu
-    collision/ChCBroadphase.cu
-    collision/ChCNarrowphase.cu
+    collision/ChCAABBGenerator.h
+    collision/ChCBroadphase.h
+    collision/ChCNarrowphase.h
+    collision/ChCAABBGenerator.cpp
+    collision/ChCBroadphase.cpp
+    collision/ChCNarrowphase.cpp
 
-    collision/ChCSupportFunctions.cuh
+    collision/ChCSupportFunctions.h
     collision/ChCCollisionModelGPU.h
     collision/ChCCollisionModelGPU.cpp
     collision/ChCCollisionSystemGPU.h
@@ -56,24 +48,24 @@ SET(ChronoEngine_unit_GPU_COLLISION
     collision/ChContactContainerGPU.cpp
    )
 SET(ChronoEngine_unit_GPU_SOLVER
-    solver/ChSolverGPU.cuh
-    solver/ChSolverGPU.cu
+    solver/ChSolverGPU.h
+    solver/ChSolverGPU.cpp
     #solver/ChSolverBlockJacobi.h
-    solver/ChSolverBlockJacobi.cu
-    solver/ChSolverCG.cu
-    solver/ChSolverCGS.cu
-    solver/ChSolverGD.cu
-    solver/ChSolverSD.cu
-    solver/ChSolverAPGD.cu
-    solver/ChSolverMinRes.cu
-    solver/ChSolverBiCG.cu
-    solver/ChSolverBiCGStab.cu
+    solver/ChSolverBlockJacobi.cpp
+    solver/ChSolverCG.cpp
+    solver/ChSolverCGS.cpp
+    solver/ChSolverGD.cpp
+    solver/ChSolverSD.cpp
+    solver/ChSolverAPGD.cpp
+    solver/ChSolverMinRes.cpp
+    solver/ChSolverBiCG.cpp
+    solver/ChSolverBiCGStab.cpp
    )
 
 SET(ChronoEngine_unit_GPU_CONSTRAINTS
-    constraints/ChConstraintRigidRigid.cu
+    constraints/ChConstraintRigidRigid.cpp
     constraints/ChConstraintRigidRigid.h
-    constraints/ChConstraintBilateral.cu
+    constraints/ChConstraintBilateral.cpp
     constraints/ChConstraintBilateral.h
    )
 
@@ -87,16 +79,16 @@ SET(ChronoEngine_unit_GPU_HEADERS
     ChBaseGPU.h
     ChCudaDefines.h
     ChCudaMath.h
-    ChThrustLinearAlgebra.cuh
+    ChThrustLinearAlgebra.h
     ChSystemGPU.h
     ChDataManager.h
     ChLcpSolverGPU.h
     ChLcpSystemDescriptorGPU.h
    )
 SET(ChronoEngine_unit_GPU_CU
-    ChLcpSolverGPU.cu
-    ChBaseGPU.cu
-    ChDataManager.cu
+    ChLcpSolverGPU.cpp
+    ChBaseGPU.cpp
+    ChDataManager.cpp
    )
 
 SOURCE_GROUP(unit_GPU FILES
@@ -125,10 +117,6 @@ SET(CHRONO_LIB_PATH  ""   CACHE PATH "Where is CHRONOLIB located")
 # Find required Libraries
 FIND_LIBRARY(CHRONO_LIB NAMES ChronoEngine PATHS ${CHRONO_LIB_PATH} REQUIRED)
 
-#FIND_LIBRARY(CHRONO_LIB_POSTPROCESS NAMES ChronoEngine_POSTPROCESS PATHS ${CHRONO_LIB_PATH} REQUIRED)
-#FIND_LIBRARY(CHRONO_LIB_OPENGL NAMES ChronoEngine_OPENGL PATHS ${CHRONO_LIB_PATH} REQUIRED)
-
-
 SET(INCLUDE_DIR
 	${CH_CUDA_INC} 
 	${CHRONO_INC} 
@@ -152,7 +140,6 @@ SET(INCLUDE_LIB
 # Interesting vars that are set: paths CUDA_SDK_ROOT_DIR and CUDA_TOOLKIT_ROOT_DIR
 
 find_package(CUDA QUIET)
-#find_package(TBB)
 if (CUDA_FOUND)
     message(STATUS "CUDA found")
 else()
@@ -162,49 +149,48 @@ endif()
 # Detect what architecture we're on
 # Paths we'll use to find some of the extra libraries
 # Ensure that correct path for architecture is selected
-        IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
-        SET(CUDA_TOOLKIT_LIB_DIR
-            ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64
-            ${CUDA_TOOLKIT_ROOT_DIR}/lib
-            ${CUDA_TOOLKIT_ROOT_DIR}/lib64)
-        SET(CUDA_SDK_LIB_DIR
-            ${CUDA_SDK_ROOT_DIR}/common/lib/x64
-            ${CUDA_SDK_ROOT_DIR}/common/lib/linux/x86_64
-            ${CUDA_SDK_ROOT_DIR}/common/lib/darwin)
-        ELSE()
-        message(FATAL_ERROR "Architecture detected as 32-bit. Only 64-bit Builds Supported!")
-        ENDIF()
+IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
+SET(CUDA_TOOLKIT_LIB_DIR
+    ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64
+    ${CUDA_TOOLKIT_ROOT_DIR}/lib
+    ${CUDA_TOOLKIT_ROOT_DIR}/lib64)
+SET(CUDA_SDK_LIB_DIR
+    ${CUDA_SDK_ROOT_DIR}/common/lib/x64
+    ${CUDA_SDK_ROOT_DIR}/common/lib/linux/x86_64
+    ${CUDA_SDK_ROOT_DIR}/common/lib/darwin)
+ELSE()
+	message(FATAL_ERROR "Architecture detected as 32-bit. Only 64-bit Builds Supported!")
+ENDIF()
 
-        find_library(CH_CUDART NAMES cudart libcudart PATHS ${CUDA_TOOLKIT_LIB_DIR})
+find_library(CH_CUDART NAMES cudart libcudart PATHS ${CUDA_TOOLKIT_LIB_DIR})
 
-        SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_${CUDA_DEVICE_VERSION},code=sm_${CUDA_SM_VERSION}" CACHE  STRING "" FORCE )
-        SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DCH_API_COMPILE_UNIT_GPU" )
-#SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "--disable-warnings")
-        IF(CUDA_FAST_MATH)
-        SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-use_fast_math")
-        ENDIF()
-        IF(CUDA_VERBOSE_PTX)
-        SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "--ptxas-options=-v")
-        ENDIF()
+SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_${CUDA_DEVICE_VERSION},code=sm_${CUDA_SM_VERSION}" CACHE  STRING "" FORCE )
+SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DCH_API_COMPILE_UNIT_GPU" )
 
-        SET (CH_CUDA_INC     	"${CUDA_TOOLKIT_ROOT_DIR}/include" )
-        SET (CH_CUDA_SDK_INC 	"${CUDA_SDK_ROOT_DIR}/common/inc"  )
+IF(CUDA_FAST_MATH)
+	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-use_fast_math")
+ENDIF()
+IF(CUDA_VERBOSE_PTX)
+	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "--ptxas-options=-v")
+ENDIF()
+
+SET (CH_CUDA_INC     	"${CUDA_TOOLKIT_ROOT_DIR}/include" )
+SET (CH_CUDA_SDK_INC 	"${CUDA_SDK_ROOT_DIR}/common/inc"  )
 
 # These need to get straightened out
 # Anything using the SDK should only be used by nvcc, no need to include them for anything being sent to the system compiler
-CUDA_INCLUDE_DIRECTORIES(${INCLUDE_DIR})
-INCLUDE_DIRECTORIES(${INCLUDE_DIR})
+#CUDA_INCLUDE_DIRECTORIES(${INCLUDE_DIR} ${CUDA_TOOLKIT_INCLUDE})
+INCLUDE_DIRECTORIES(${INCLUDE_DIR} ${CUDA_TOOLKIT_INCLUDE})
 
 # The GPU library is added to the project, and some custom properties of this target are set.
 
-CUDA_ADD_LIBRARY(ChronoEngine_GPU SHARED
+ADD_LIBRARY(ChronoEngine_GPU SHARED
                  ${ChronoEngine_unit_GPU_COLLISION}
                  ${ChronoEngine_unit_GPU_CONSTRAINTS}
                  ${ChronoEngine_unit_GPU_SOLVER}
                  ${ChronoEngine_unit_GPU_SOURCES}
                  ${ChronoEngine_unit_GPU_HEADERS}
                  ${ChronoEngine_unit_GPU_CU})
-
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -DWIN32_LEAN_AND_MEAN")

@@ -1,4 +1,4 @@
-#include "ChSolverGPU.cuh"
+#include "ChSolverGPU.h"
 using namespace chrono;
 
 __constant__ real lcp_omega_bilateral_const;
@@ -141,37 +141,7 @@ __host__ __device__ void function_process_contacts(
 //  Kernel for a single iteration of the LCP over all contacts
 //  Version 2.0 - Tasora
 //  Version 2.2- Hammad (optimized, cleaned etc)
-__global__ void device_process_contacts(
-		real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB, real * rhs, real* contactDepth, bool * active, int2* ids, real* gamma, real* dG, real* mass, real* fric, real3* inertia, real4* rot,
-		real3* vel, real3* omega, real3* pos, real3* updateV, real3* updateO, uint* offset) {
-	INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_contacts_const);
-	function_process_contacts(
-			index,
-			step_size_const,
-			contact_recovery_speed_const,
-			number_of_contacts_const,
-			lcp_omega_contact_const,
-			JXYZA,
-			JXYZB,
-			JUVWA,
-			JUVWB,
-			rhs,
-			contactDepth,
-			active,
-			ids,
-			gamma,
-			dG,
-			mass,
-			fric,
-			inertia,
-			rot,
-			vel,
-			omega,
-			pos,
-			updateV,
-			updateO,
-			offset);
-}
+
 
 void ChSolverGPU::host_process_contacts(
 		real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB, real * rhs, real* contactDepth, bool * active, int2* ids, real* gamma, real* dG, real* mass, real* fric, real3* inertia, real4* rot,
@@ -276,34 +246,7 @@ __host__ __device__ void function_Bilaterals(
 	updateO[offset2] = JUVWB[index] * vB * gamma_new; // line 3:  J2(w)// ---> store  w2 vel. in reduction buffer
 }
 
-__global__ void device_Bilaterals(
-		real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB, int2* bids, real* gamma, real* eta, real* bi, real* mass, real3* inertia, real4* rot, real3* vel, real3* omega, real3* pos,
-		real3* updateV, real3* updateO, uint* offset, real* dG) {
-	INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_bilaterals_const);
-	function_Bilaterals(
-			index,
-			number_of_bilaterals_const,
-			number_of_contacts_const,
-			lcp_omega_bilateral_const,
-			JXYZA,
-			JXYZB,
-			JUVWA,
-			JUVWB,
-			bids,
-			gamma,
-			eta,
-			bi,
-			mass,
-			inertia,
-			rot,
-			vel,
-			omega,
-			pos,
-			updateV,
-			updateO,
-			offset,
-			dG);
-}
+
 void ChSolverGPU::host_Bilaterals(
 		real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB, int2* bids, real* gamma, real* eta, real* bi, real* mass, real3* inertia, real4* rot, real3* vel, real3* omega, real3* pos,
 		real3* updateV, real3* updateO, uint* offset, real* dG) {
@@ -356,10 +299,7 @@ __host__ __device__ void function_Reduce_Speeds(uint& index, bool* active, real*
 	omega[id] += (mUpdateO);
 }
 
-__global__ void device_Reduce_Speeds(bool* active, real* mass, real3* vel, real3* omega, real3* updateV, real3* updateO, uint* d_body_num, uint* counter) {
-	INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_updates_const);
-	function_Reduce_Speeds(index, active, mass, vel, omega, updateV, updateO, d_body_num, counter);
-}
+
 void ChSolverGPU::host_Reduce_Speeds(bool* active, real* mass, real3* vel, real3* omega, real3* updateV, real3* updateO, uint* d_body_num, uint* counter) {
 #pragma omp parallel for
 

@@ -3,7 +3,7 @@
 
 #include "ChCudaMath.h"
 #include "ChCudaDefines.h"
-#include "ChThrustLinearAlgebra.cuh"
+#include "ChThrustLinearAlgebra.h"
 #include "ChDataManager.h"
 #include "core/ChTimer.h"
 namespace chrono {

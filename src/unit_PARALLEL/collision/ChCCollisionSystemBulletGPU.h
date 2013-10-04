@@ -25,9 +25,9 @@
 #include "collision/ChCCollisionSystem.h"
 #include "physics/ChProximityContainerBase.h"
 #include "physics/ChBody.h"
-#include "ChCAABBGenerator.cuh"
-#include "ChCNarrowphase.cuh"
-#include "ChCBroadphase.cuh"
+#include "ChCAABBGenerator.h"
+#include "ChCNarrowphase.h"
+#include "ChCBroadphase.h"
 #include "collision/ChCCollisionSystem.h"
 #include "collision/bullet/btBulletCollisionCommon.h"
 
