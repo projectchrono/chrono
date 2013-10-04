@@ -20,6 +20,10 @@
 #include "ChParallelDefines.h"
 #include "ChDataManager.h"
 #include "lcp/ChLcpIterativeSolver.h"
+#include "ChIntegratorParallel.h"
+#include "solver/ChSolverParallel.h"
+#include "constraints/ChConstraintRigidRigid.h"
+#include "constraints/ChConstraintBilateral.h"
 namespace chrono {
 class ChApiGPU ChLcpSolverParallel: public ChLcpIterativeSolver {
 	public:
@@ -132,6 +136,9 @@ class ChApiGPU ChLcpSolverParallel: public ChLcpIterativeSolver {
 		cudaEvent_t start, stop;
 
 		custom_vector<real> rhs, debug, lambda;
+		ChSolverParallel solver;
+		ChConstraintRigidRigid rigid_rigid;
+		ChConstraintBilateral bilateral;
 
 
 

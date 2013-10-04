@@ -1,9 +1,7 @@
 #include "ChLcpSolverParallel.h"
 #include "ChThrustLinearAlgebra.h"
-#include "solver/ChSolverParallel.h"
-#include "ChIntegratorParallel.h"
-#include "constraints/ChConstraintRigidRigid.h"
-#include "constraints/ChConstraintBilateral.h"
+
+
 
 using namespace chrono;
 
@@ -20,7 +18,6 @@ __host__ __device__ void function_addForces(uint& index, bool* active, real* mas
 	}
 }
 
-
 void ChLcpSolverParallel::host_addForces(bool* active, real* mass, real3* inertia, real3* forces, real3* torques, real3* vel, real3* omega) {
 #pragma omp parallel for
 
@@ -36,8 +33,6 @@ __host__ __device__ void function_ComputeGyro(uint& index, real3* omega, real3* 
 	real3 gyr = cross(body_omega, body_inertia * body_omega);
 	gyro[index] = gyr;
 }
-
-
 
 void ChLcpSolverParallel::host_ComputeGyro(real3* omega, real3* inertia, real3* gyro, real3* torque) {
 #pragma omp parallel for
@@ -111,10 +106,9 @@ void ChLcpSolverParallel::RunTimeStep(real step) {
 		RunWarmStartPreprocess();
 	}
 
-	ChConstraintRigidRigid rigid_rigid(data_container);
-	ChConstraintBilateral bilateral(data_container);
+	rigid_rigid.Setup(data_container);
+	bilateral.Setup(data_container);
 
-	ChSolverParallel solver;
 	solver.SetMaxIterations(max_iteration);
 	solver.SetTolerance(tolerance);
 
@@ -126,7 +120,8 @@ void ChLcpSolverParallel::RunTimeStep(real step) {
 	solver.lcp_omega_contact = lcp_omega_contact;
 	solver.do_stab = do_stab;
 	solver.Initial(step, data_container);
-//solve initial
+
+	//solve initial
 	//solver.SetComplianceParameters(.2, 1e-3, 1e-3);
 	//rigid_rigid.solve_sliding = true;
 	rigid_rigid.ComputeJacobians();
@@ -134,7 +129,7 @@ void ChLcpSolverParallel::RunTimeStep(real step) {
 	bilateral.ComputeJacobians();
 	bilateral.ComputeRHS();
 
-//solve normal
+	//solve normal
 	solver.SetMaxIterations(max_iteration);
 	solver.SetComplianceParameters(alpha, compliance, complianceT);
 	rigid_rigid.solve_sliding = false;
@@ -143,18 +138,17 @@ void ChLcpSolverParallel::RunTimeStep(real step) {
 	solver.Solve(solver_type);
 
 	//solve full
-	solver.SetMaxIterations(max_iteration/2.0);
+	solver.SetMaxIterations(max_iteration / 2.0);
 	rigid_rigid.solve_sliding = true;
 	rigid_rigid.solve_spinning = false;
 	rigid_rigid.ComputeRHS();
 	solver.Solve(solver_type);
 
-	solver.SetMaxIterations(max_iteration/2.0);
+	solver.SetMaxIterations(max_iteration / 2.0);
 	rigid_rigid.solve_sliding = true;
 	rigid_rigid.solve_spinning = true;
 	rigid_rigid.ComputeRHS();
 	solver.Solve(solver_type);
-
 
 	solver.ComputeImpulses();
 

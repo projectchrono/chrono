@@ -6,7 +6,9 @@
 namespace chrono {
 class ChApiGPU ChConstraintBilateral: public ChBaseParallel {
 	public:
-		ChConstraintBilateral(ChGPUDataManager *data_container_) {
+		ChConstraintBilateral(){
+		}
+		void Setup(ChGPUDataManager *data_container_) {
 			data_container = data_container_;
 			Initialize();
 		}
