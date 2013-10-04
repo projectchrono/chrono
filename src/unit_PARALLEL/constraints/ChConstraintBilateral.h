@@ -1,10 +1,10 @@
 #ifndef CHCONSTRAINT_BILATERAL_H
 #define CHCONSTRAINT_BILATERAL_H
 
-#include "ChBaseGPU.h"
+#include "ChBaseParallel.h"
 
 namespace chrono {
-class ChApiGPU ChConstraintBilateral: public ChBaseGPU {
+class ChApiGPU ChConstraintBilateral: public ChBaseParallel {
 	public:
 		ChConstraintBilateral(ChGPUDataManager *data_container_) {
 			data_container = data_container_;
