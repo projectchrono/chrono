@@ -29,7 +29,7 @@ namespace collision {
  }
  */
 
-ChCollisionSystemBulletGPU::ChCollisionSystemBulletGPU(unsigned int max_objects, double scene_size) {
+ChCollisionSystemBulletParallel::ChCollisionSystemBulletParallel(unsigned int max_objects, double scene_size) {
 	// btDefaultCollisionConstructionInfo conf_info(...); ***TODO***
 	bt_collision_configuration = new btDefaultCollisionConfiguration();
 	bt_dispatcher = new btCollisionDispatcher(bt_collision_configuration);
@@ -56,7 +56,7 @@ ChCollisionSystemBulletGPU::ChCollisionSystemBulletGPU(unsigned int max_objects,
 
 }
 
-ChCollisionSystemBulletGPU::~ChCollisionSystemBulletGPU() {
+ChCollisionSystemBulletParallel::~ChCollisionSystemBulletParallel() {
 	if (bt_collision_world)
 		delete bt_collision_world;
 	if (bt_broadphase)
@@ -67,7 +67,7 @@ ChCollisionSystemBulletGPU::~ChCollisionSystemBulletGPU() {
 		delete bt_collision_configuration;
 }
 
-void ChCollisionSystemBulletGPU::Clear(void) {
+void ChCollisionSystemBulletParallel::Clear(void) {
 	int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds();
 	for (int i = 0; i < numManifolds; i++) {
 		btPersistentManifold* contactManifold = bt_collision_world->getDispatcher()->getManifoldByIndexInternal(i);
@@ -75,7 +75,7 @@ void ChCollisionSystemBulletGPU::Clear(void) {
 	}
 }
 
-void ChCollisionSystemBulletGPU::Add(ChCollisionModel* model) {
+void ChCollisionSystemBulletParallel::Add(ChCollisionModel* model) {
 	if (((ChModelBullet*) model)->GetBulletModel()->getCollisionShape()) {
 		model->SyncPosition();
 		((ChModelBullet*) model)->GetBulletModel()->setCompanionId(counter);
@@ -85,19 +85,19 @@ void ChCollisionSystemBulletGPU::Add(ChCollisionModel* model) {
 	}
 }
 
-void ChCollisionSystemBulletGPU::Remove(ChCollisionModel* model) {
+void ChCollisionSystemBulletParallel::Remove(ChCollisionModel* model) {
 	if (((ChModelBullet*) model)->GetBulletModel()->getCollisionShape()) {
 		bt_collision_world->removeCollisionObject(((ChModelBullet*) model)->GetBulletModel());
 	}
 }
 
-void ChCollisionSystemBulletGPU::Run() {
+void ChCollisionSystemBulletParallel::Run() {
 	if (bt_collision_world) {
 		bt_collision_world->performDiscreteCollisionDetection();
 	}
 
 }
-void ChCollisionSystemBulletGPU::ReportContacts(ChContactContainerBase* mcontactcontainer) {
+void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainerBase* mcontactcontainer) {
 
 	data_container->host_data.norm_rigid_rigid.clear();
 	data_container->host_data.cpta_rigid_rigid.clear();
