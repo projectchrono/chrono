@@ -16,15 +16,15 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "ChCudaMath.h"
-#include "ChCudaDefines.h"
+#include "ChParallelMath.h"
+#include "ChParallelDefines.h"
 #include "ChDataManager.h"
 #include "lcp/ChLcpIterativeSolver.h"
 namespace chrono {
-class ChApiGPU ChLcpSolverGPU: public ChLcpIterativeSolver {
+class ChApiGPU ChLcpSolverParallel: public ChLcpIterativeSolver {
 	public:
 
-		ChLcpSolverGPU() {
+		ChLcpSolverParallel() {
 			tolerance = 1e-7;
 			alpha = 0;
 			compliance = 0;
@@ -40,7 +40,7 @@ class ChApiGPU ChLcpSolverGPU: public ChLcpIterativeSolver {
 			warm_start = false;
 
 		}
-		~ChLcpSolverGPU() {
+		~ChLcpSolverParallel() {
 		}
 		virtual double Solve(ChLcpSystemDescriptor &sysd, bool add_Mq_to_f = false) {
 			return 0;

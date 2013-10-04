@@ -1,8 +1,8 @@
-#include "ChSolverGPU.h"
+#include "ChSolverParallel.h"
 using namespace chrono;
 
 
-void ChSolverGPU::Project(custom_vector<real> & gamma) {
+void ChSolverParallel::Project(custom_vector<real> & gamma) {
 	timer_project.start();
 
 	rigid_rigid->Project(gamma);
@@ -12,7 +12,7 @@ void ChSolverGPU::Project(custom_vector<real> & gamma) {
 }
 //=================================================================================================================================
 
-void ChSolverGPU::shurA(custom_vector<real> &x) {
+void ChSolverParallel::shurA(custom_vector<real> &x) {
 #pragma omp parallel for
 		for (int i = 0; i < number_of_rigid; i++) {
 			data_container->host_data.QXYZ_data[i] = R3(0);
@@ -24,11 +24,11 @@ void ChSolverGPU::shurA(custom_vector<real> &x) {
 	}
 //=================================================================================================================================
 
-void ChSolverGPU::shurB(custom_vector<real> &x, custom_vector<real> &out) {
+void ChSolverParallel::shurB(custom_vector<real> &x, custom_vector<real> &out) {
 	rigid_rigid->ShurB(x,out);
 	bilateral->ShurB(x,out);
 }
-void ChSolverGPU::ShurProduct(custom_vector<real> &x, custom_vector<real> & output) {
+void ChSolverParallel::ShurProduct(custom_vector<real> &x, custom_vector<real> & output) {
 	timer_shurcompliment.start();
 	Thrust_Fill(output, 0);
 	shurA(x);
@@ -37,12 +37,12 @@ void ChSolverGPU::ShurProduct(custom_vector<real> &x, custom_vector<real> & outp
 	time_shurcompliment +=timer_shurcompliment();
 }
 //=================================================================================================================================
-void ChSolverGPU::ShurBilaterals(custom_vector<real> &x_t, custom_vector<real> & AX) {
+void ChSolverParallel::ShurBilaterals(custom_vector<real> &x_t, custom_vector<real> & AX) {
 	bilateral->ShurBilaterals(x_t,AX);
 }
 //=================================================================================================================================
 //=================================================================================================================================
-void ChSolverGPU::Setup() {
+void ChSolverParallel::Setup() {
 	time_shurcompliment = time_project = time_integrate = 0;
 	///////////////////////////////////////
 	//maxd_hist.clear();
@@ -84,18 +84,18 @@ void ChSolverGPU::Setup() {
 
 }
 
-void ChSolverGPU::ComputeImpulses() {
+void ChSolverParallel::ComputeImpulses() {
 	shurA(data_container->host_data.gamma_data);
 	data_container->host_data.vel_data += data_container->host_data.QXYZ_data;
 	data_container->host_data.omg_data += data_container->host_data.QUVW_data;
 }
-void ChSolverGPU::Initial(real step, ChGPUDataManager *data_container_) {
+void ChSolverParallel::Initial(real step, ChGPUDataManager *data_container_) {
 	data_container = data_container_;
 	step_size = step;
 	Setup();
 
 }
-void ChSolverGPU::Solve(GPUSOLVERTYPE solver_type) {
+void ChSolverParallel::Solve(GPUSOLVERTYPE solver_type) {
 	timer_solver.start();
 
 	if (number_of_constraints > 0) {
@@ -158,11 +158,11 @@ void ChSolverGPU::Solve(GPUSOLVERTYPE solver_type) {
 	}
 }
 
-void ChSolverGPU::VelocityStabilization(ChGPUDataManager *data_container_) {
+void ChSolverParallel::VelocityStabilization(ChGPUDataManager *data_container_) {
 
 }
 
-uint ChSolverGPU::SolveStab(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
+uint ChSolverParallel::SolveStab(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
 	uint N = b.size();
 	custom_vector<real> v(N, 0), v_hat(x.size()), w(N, 0), w_old, xMR, v_old, Av(x.size()), w_oold;
 	real beta, c = 1, eta, norm_rMR, norm_r0, c_old = 1, s_old = 0, s = 0, alpha, beta_old, c_oold, s_oold, r1_hat, r1, r2, r3;

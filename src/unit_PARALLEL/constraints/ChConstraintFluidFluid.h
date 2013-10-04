@@ -1,10 +1,10 @@
 #ifndef CHCONSTRAINT_FLUIDFLUID_H
 #define CHCONSTRAINT_FLUIDFLUID_H
 
-#include "ChBaseGPU.h"
+#include "ChBaseParallel.h"
 
 namespace chrono {
-class ChApiGPU ChConstraintFluidFluid: public ChBaseGPU {
+class ChApiGPU ChConstraintFluidFluid: public ChBaseParallel {
 	public:
 		ChConstraintFluidFluid(ChGPUDataManager *data_container_) {
 			data_container = data_container_;

@@ -1,4 +1,4 @@
-#include "ChSolverGPU.h"
+#include "ChSolverParallel.h"
 using namespace chrono;
 
 __constant__ real lcp_omega_bilateral_const;
@@ -143,7 +143,7 @@ __host__ __device__ void function_process_contacts(
 //  Version 2.2- Hammad (optimized, cleaned etc)
 
 
-void ChSolverGPU::host_process_contacts(
+void ChSolverParallel::host_process_contacts(
 		real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB, real * rhs, real* contactDepth, bool * active, int2* ids, real* gamma, real* dG, real* mass, real* fric, real3* inertia, real4* rot,
 		real3* vel, real3* omega, real3* pos, real3* updateV, real3* updateO, uint* offset) {
 #pragma omp parallel for schedule(guided)
@@ -247,7 +247,7 @@ __host__ __device__ void function_Bilaterals(
 }
 
 
-void ChSolverGPU::host_Bilaterals(
+void ChSolverParallel::host_Bilaterals(
 		real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB, int2* bids, real* gamma, real* eta, real* bi, real* mass, real3* inertia, real4* rot, real3* vel, real3* omega, real3* pos,
 		real3* updateV, real3* updateO, uint* offset, real* dG) {
 	for (uint index = 0; index < number_of_bilaterals; index++) {
@@ -300,7 +300,7 @@ __host__ __device__ void function_Reduce_Speeds(uint& index, bool* active, real*
 }
 
 
-void ChSolverGPU::host_Reduce_Speeds(bool* active, real* mass, real3* vel, real3* omega, real3* updateV, real3* updateO, uint* d_body_num, uint* counter) {
+void ChSolverParallel::host_Reduce_Speeds(bool* active, real* mass, real3* vel, real3* omega, real3* updateV, real3* updateO, uint* d_body_num, uint* counter) {
 #pragma omp parallel for
 
 	for (uint index = 0; index < number_of_updates; index++) {
@@ -337,7 +337,7 @@ void ChSolverGPU::host_Reduce_Speeds(bool* active, real* mass, real3* vel, real3
 //	}
 //}
 
-void ChSolverGPU::SolveJacobi() {
+void ChSolverParallel::SolveJacobi() {
 
 #ifdef SIM_ENABLE_GPU_MODE
 	COPY_TO_CONST_MEM(number_of_rigid_rigid);

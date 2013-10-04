@@ -1,4 +1,4 @@
-#include "ChIntegratorGPU.h"
+#include "ChIntegratorParallel.h"
 using namespace chrono;
 __constant__ uint number_of_objects_const;
 __constant__ real step_size_const;
@@ -52,14 +52,14 @@ __global__ void device_Integrate_Timestep_Semi_Implicit(bool* active, real3* acc
 	INIT_CHECK_THREAD_BOUNDED(INDEX1D, number_of_objects_const);
 	function_Integrate_Timestep_Semi_Implicit(index, step_size_const, active, acc, rot, vel, omega, pos, lim);
 }
-void ChIntegratorGPU::host_Integrate_Timestep_Semi_Implicit(bool* active, real3* acc, real4* rot, real3* vel, real3* omega, real3* pos, real3* lim) {
+void ChIntegratorParallel::host_Integrate_Timestep_Semi_Implicit(bool* active, real3* acc, real4* rot, real3* vel, real3* omega, real3* pos, real3* lim) {
 #pragma omp parallel for schedule(guided)
 
 	for (uint index = 0; index < number_of_objects; index++) {
 		function_Integrate_Timestep_Semi_Implicit(index, step_size, active, acc, rot, vel, omega, pos, lim);
 	}
 }
-void ChIntegratorGPU::IntegrateSemiImplicit(real step, device_container& gpu_data_) {
+void ChIntegratorParallel::IntegrateSemiImplicit(real step, device_container& gpu_data_) {
 	gpu_data = &gpu_data_;
 	step_size = step;
 	number_of_objects = gpu_data->number_of_objects;

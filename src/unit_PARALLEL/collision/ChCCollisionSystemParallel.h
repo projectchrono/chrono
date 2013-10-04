@@ -16,12 +16,12 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "ChCudaDefines.h"
-#include "ChCCollisionModelGPU.h"
+#include "ChParallelDefines.h"
+#include "ChCCollisionModelParallel.h"
 #include "physics/ChBody.h"
 #include "core/ChTimer.h"
-#include "ChLcpSystemDescriptorGPU.h"
-#include "ChContactContainerGPU.h"
+#include "ChLcpSystemDescriptorParallel.h"
+#include "ChContactContainerParallel.h"
 #include "collision/ChCCollisionSystem.h"
 #include "physics/ChProximityContainerBase.h"
 #include "physics/ChBody.h"
@@ -35,12 +35,12 @@ namespace collision {
 /// Contains both the broadphase and the narrow phase methods.
 ///
 
-class ChApiGPU ChCollisionSystemGPU: public ChCollisionSystem {
+class ChApiGPU ChCollisionSystemParallel: public ChCollisionSystem {
 	public:
 
-		ChCollisionSystemGPU();
+		ChCollisionSystemParallel();
 
-		virtual ~ChCollisionSystemGPU() {
+		virtual ~ChCollisionSystemParallel() {
 		}
 
 		/// Clears all data instanced by this algorithm

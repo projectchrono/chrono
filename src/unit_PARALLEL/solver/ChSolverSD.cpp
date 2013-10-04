@@ -1,7 +1,7 @@
-#include "ChSolverGPU.h"
+#include "ChSolverParallel.h"
 using namespace chrono;
 
-uint ChSolverGPU::SolveSD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
+uint ChSolverParallel::SolveSD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
 	custom_vector<real> r(x.size()),temp(x.size());
 	ShurProduct(x,r);
 	r = b - r;

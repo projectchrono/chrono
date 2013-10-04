@@ -14,16 +14,16 @@
 //             www.deltaknowledge.com
 // ------------------------------------------------
 ///////////////////////////////////////////////////
-#include "ChCudaMath.h"
-#include "ChCudaDefines.h"
-#include "ChLcpSolverGPU.h"
+#include "ChParallelMath.h"
+#include "ChParallelDefines.h"
+#include "ChLcpSolverParallel.h"
 #include "lcp/ChLcpSystemDescriptor.h"
 namespace chrono {
-class ChApiGPU ChLcpSystemDescriptorGPU: public ChLcpSystemDescriptor {
+class ChApiGPU ChLcpSystemDescriptorParallel: public ChLcpSystemDescriptor {
 public:
-	ChLcpSystemDescriptorGPU() {
+	ChLcpSystemDescriptorParallel() {
 	}
-	~ChLcpSystemDescriptorGPU() {
+	~ChLcpSystemDescriptorParallel() {
 	}
 
 	void ConvertToMatrixForm(ChSparseMatrix* Cq, ChSparseMatrix* M, ChSparseMatrix* E, ChMatrix<>* Fvector, ChMatrix<>* Bvector, ChMatrix<>* Frict) {

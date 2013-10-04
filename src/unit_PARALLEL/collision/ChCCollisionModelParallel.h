@@ -17,9 +17,9 @@
 ///////////////////////////////////////////////////
 
 #include "collision/ChCCollisionModel.h"
-#include "ChApiGPU.h"
-#include "ChCudaMath.h"
-#include "ChCudaDefines.h"
+#include "ChApiParallel.h"
+#include "ChParallelMath.h"
+#include "ChParallelDefines.h"
 using namespace std;
 namespace chrono {
 // forward references

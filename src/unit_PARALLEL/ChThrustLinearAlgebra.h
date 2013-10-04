@@ -1,7 +1,7 @@
 #ifndef CHTHRUSTLINEARALGEBRA_H
 #define CHTHRUSTLINEARALGEBRA_H
 
-#include "ChCudaMath.h"
+#include "ChParallelMath.h"
 
 struct saxpy_functor: public thrust::binary_function<real, real, real> {
 		const real a;

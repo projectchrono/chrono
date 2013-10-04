@@ -38,18 +38,18 @@ SET(ChronoEngine_unit_GPU_COLLISION
     collision/ChCNarrowphase.cpp
 
     collision/ChCSupportFunctions.h
-    collision/ChCCollisionModelGPU.h
-    collision/ChCCollisionModelGPU.cpp
-    collision/ChCCollisionSystemGPU.h
-    collision/ChCCollisionSystemGPU.cpp
-    collision/ChCCollisionSystemBulletGPU.h
-    collision/ChCCollisionSystemBulletGPU.cpp
-    collision/ChContactContainerGPU.h
-    collision/ChContactContainerGPU.cpp
+    collision/ChCCollisionModelParallel.h
+    collision/ChCCollisionModelParallel.cpp
+    collision/ChCCollisionSystemParallel.h
+    collision/ChCCollisionSystemParallel.cpp
+    collision/ChCCollisionSystemBulletParallel.h
+    collision/ChCCollisionSystemBulletParallel.cpp
+    collision/ChContactContainerParallel.h
+    collision/ChContactContainerParallel.cpp
    )
 SET(ChronoEngine_unit_GPU_SOLVER
-    solver/ChSolverGPU.h
-    solver/ChSolverGPU.cpp
+    solver/ChSolverParallel.h
+    solver/ChSolverParallel.cpp
     #solver/ChSolverBlockJacobi.h
     solver/ChSolverBlockJacobi.cpp
     solver/ChSolverCG.cpp
@@ -71,23 +71,23 @@ SET(ChronoEngine_unit_GPU_CONSTRAINTS
 
 SET(ChronoEngine_unit_GPU_SOURCES
     #ChBodyGPU.cpp
-    ChSystemGPU.cpp
+    ChSystemParallel.cpp
    )
 
 SET(ChronoEngine_unit_GPU_HEADERS
-    ChApiGPU.h
-    ChBaseGPU.h
-    ChCudaDefines.h
-    ChCudaMath.h
+    ChApiParallel.h
+    ChBaseParallel.h
+    ChParallelDefines.h
+    ChParallelMath.h
     ChThrustLinearAlgebra.h
-    ChSystemGPU.h
+    ChSystemParallel.h
     ChDataManager.h
-    ChLcpSolverGPU.h
-    ChLcpSystemDescriptorGPU.h
+    ChLcpSolverParallel.h
+    ChLcpSystemDescriptorParallel.h
    )
 SET(ChronoEngine_unit_GPU_CU
-    ChLcpSolverGPU.cpp
-    ChBaseGPU.cpp
+    ChLcpSolverParallel.cpp
+    ChBaseParallel.cpp
     ChDataManager.cpp
    )
 

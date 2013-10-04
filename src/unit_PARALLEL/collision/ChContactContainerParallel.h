@@ -18,7 +18,7 @@
 ///////////////////////////////////////////////////
 #include "physics/ChContactContainer.h"
 #include <list>
-#include "ChApiGPU.h"
+#include "ChApiParallel.h"
 #include "ChDataManager.h"
 namespace chrono {
 /// Class representing a container of many contacts,
@@ -30,8 +30,8 @@ namespace chrono {
 /// that does not use linked lists of cpu objects but rather
 /// keeps all contact data as GPU buffers on the GPU device.
 
-class ChApiGPU ChContactContainerGPU: public ChContactContainer {
-	CH_RTTI(ChContactContainerGPU, ChContactContainer)
+class ChApiGPU ChContactContainerParallel: public ChContactContainer {
+	CH_RTTI(ChContactContainerParallel, ChContactContainer)
 		;
 
 	protected:
@@ -41,9 +41,9 @@ class ChApiGPU ChContactContainerGPU: public ChContactContainer {
 		// CONSTRUCTORS
 		//
 
-		ChContactContainerGPU();
+		ChContactContainerParallel();
 
-		virtual ~ChContactContainerGPU();
+		virtual ~ChContactContainerParallel();
 		int GetNcontacts() {
 			return data_container->number_of_rigid_rigid;
 

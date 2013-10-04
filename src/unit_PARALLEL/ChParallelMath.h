@@ -7,7 +7,7 @@
 //
 ///////////////////////////////////////////////////
 
-#include "ChCudaDefines.h"
+#include "ChParallelDefines.h"
 #define R3  make_real3
 #define R4  make_real4
 #define R2  make_real2

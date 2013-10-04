@@ -1,7 +1,7 @@
-#include "ChBaseGPU.h"
+#include "ChBaseParallel.h"
 using namespace chrono;
 
-void ChBaseGPU::Initialize() {
+void ChBaseParallel::Initialize() {
 	number_of_rigid = data_container->number_of_rigid;
 	number_of_rigid_rigid = data_container->number_of_rigid_rigid;
 	number_of_bilaterals = data_container->number_of_bilaterals;

@@ -1,17 +1,17 @@
 #ifndef CHBASEGPU_H
 #define CHBASEGPU_H
 
-#include "ChCudaMath.h"
-#include "ChCudaDefines.h"
+#include "ChParallelMath.h"
+#include "ChParallelDefines.h"
 #include "ChThrustLinearAlgebra.h"
 #include "ChDataManager.h"
 #include "core/ChTimer.h"
 namespace chrono {
-class ChApiGPU ChBaseGPU {
+class ChApiGPU ChBaseParallel {
 	public:
-		ChBaseGPU() {
+		ChBaseParallel() {
 		}
-		~ChBaseGPU() {
+		~ChBaseParallel() {
 		}
 
 		void Initialize();

@@ -1,10 +1,10 @@
 #ifndef CHCONSTRAINT_RIGIDRIGID_H
 #define CHCONSTRAINT_RIGIDRIGID_H
 
-#include "ChBaseGPU.h"
+#include "ChBaseParallel.h"
 
 namespace chrono {
-class ChApiGPU ChConstraintRigidRigid: public ChBaseGPU {
+class ChApiGPU ChConstraintRigidRigid: public ChBaseParallel {
 	public:
 		ChConstraintRigidRigid(ChGPUDataManager *data_container_) {
 			data_container = data_container_;

@@ -44,7 +44,7 @@
 #include <thrust/random.h>
 #include <thrust/system/omp/execution_policy.h>
 //#include <thrust/system/tbb/execution_policy.h>
-#include "ChApiGPU.h"
+#include "ChApiParallel.h"
 #include <omp.h>
 #include <vector>
 #include <string.h>

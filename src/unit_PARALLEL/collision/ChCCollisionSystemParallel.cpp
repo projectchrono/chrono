@@ -8,18 +8,18 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "ChCCollisionSystemGPU.h"
+#include "ChCCollisionSystemParallel.h"
 
 namespace chrono {
 namespace collision {
-ChCollisionSystemGPU::ChCollisionSystemGPU() {
+ChCollisionSystemParallel::ChCollisionSystemParallel() {
 	collision_envelope = .03;
 	bpa = R3(20, 20, 20);
 	max_body_per_bin = 100;
 	min_body_per_bin = 20;
 
 }
-void ChCollisionSystemGPU::Add(ChCollisionModel *model) {
+void ChCollisionSystemParallel::Add(ChCollisionModel *model) {
 	if (model->GetPhysicsItem()->GetCollide() == true) {
 		ChCollisionModelGPU *body = (ChCollisionModelGPU *) model;
 		int body_id = body->GetBody()->GetId();
@@ -45,7 +45,7 @@ void ChCollisionSystemGPU::Add(ChCollisionModel *model) {
 	}
 }
 
-void ChCollisionSystemGPU::Remove(ChCollisionModel *model) {
+void ChCollisionSystemParallel::Remove(ChCollisionModel *model) {
 //            ChCollisionModelGPU *body = (ChCollisionModelGPU *) model;
 //            int body_id = ((ChBodyGPU *) body->GetBody())->id;
 //
@@ -66,7 +66,7 @@ void ChCollisionSystemGPU::Remove(ChCollisionModel *model) {
 //            //}
 }
 
-void ChCollisionSystemGPU::Run() {
+void ChCollisionSystemParallel::Run() {
 	if (data_container->number_of_models <= 0) {
 		return;
 	}
@@ -121,7 +121,7 @@ void ChCollisionSystemGPU::Run() {
 
 }
 
-void ChCollisionSystemGPU::GetOverlappingAABB(vector<bool> &active_id, real3 Amin, real3 Amax) {
+void ChCollisionSystemParallel::GetOverlappingAABB(vector<bool> &active_id, real3 Amin, real3 Amax) {
 	ChCAABBGenerator aabb_generator;
 
 	aabb_generator.GenerateAABB(
@@ -146,7 +146,7 @@ void ChCollisionSystemGPU::GetOverlappingAABB(vector<bool> &active_id, real3 Ami
 	}
 }
 
-vector<int2> ChCollisionSystemGPU::GetOverlappingPairs() {
+vector<int2> ChCollisionSystemParallel::GetOverlappingPairs() {
 	vector<int2> pairs;
 	pairs.resize(data_container->host_data.pair_rigid_rigid.size());
 	data_container->DeviceToHostPairData();

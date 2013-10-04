@@ -16,12 +16,12 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "../ChCudaDefines.h"
-#include "ChCCollisionModelGPU.h"
+#include "../ChParallelDefines.h"
+#include "ChCCollisionModelParallel.h"
 #include "physics/ChBody.h"
 
-#include "../ChLcpSystemDescriptorGPU.h"
-#include "ChContactContainerGPU.h"
+#include "../ChLcpSystemDescriptorParallel.h"
+#include "ChContactContainerParallel.h"
 #include "collision/ChCCollisionSystem.h"
 #include "physics/ChProximityContainerBase.h"
 #include "physics/ChBody.h"

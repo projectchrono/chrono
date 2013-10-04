@@ -1,9 +1,9 @@
-#ifndef CHAPIGPU_H
-#define CHAPIGPU_H
+#ifndef CHAPIPARALLEL_H
+#define CHAPIPARALLEL_H
 
 //////////////////////////////////////////////////
 //
-//   ChApiGPU.h
+//   ChApiParallel.h
 //
 //   Base header for all headers that have symbols
 //   that can be exported.

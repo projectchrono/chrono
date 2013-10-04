@@ -1,7 +1,7 @@
-#include "ChSolverGPU.h"
+#include "ChSolverParallel.h"
 using namespace chrono;
 
-void ChSolverGPU::InitAPGD(custom_vector<real> &x) {
+void ChSolverParallel::InitAPGD(custom_vector<real> &x) {
 	ms.resize(x.size());
 	mg_tmp2.resize(x.size());
 	mb_tmp.resize(x.size());
@@ -14,7 +14,7 @@ void ChSolverGPU::InitAPGD(custom_vector<real> &x) {
 
 }
 
-uint ChSolverGPU::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
+uint ChSolverParallel::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
 	bool verbose = false;
 	real gdiff = 0.000001;
 

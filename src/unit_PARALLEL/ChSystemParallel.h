@@ -14,8 +14,8 @@
 //             www.deltaknowledge.com
 // ------------------------------------------------
 ///////////////////////////////////////////////////
-#include "ChCudaMath.h"
-#include "ChCudaDefines.h"
+#include "ChParallelMath.h"
+#include "ChParallelDefines.h"
 #include <stdlib.h>
 #include <float.h>
 #include <memory.h>
@@ -25,20 +25,20 @@
 #include "physics/ChBody.h"
 #include "physics/ChGlobal.h"
 #include "physics/ChContactContainer.h"
-#include "ChLcpSolverGPU.h"
-#include "ChLcpSystemDescriptorGPU.h"
+#include "ChLcpSolverParallel.h"
+#include "ChLcpSystemDescriptorParallel.h"
 #include "ChDataManager.h"
-#include "collision/ChCCollisionSystemGPU.h"
-#include "collision/ChCCollisionSystemBulletGPU.h"
+#include "collision/ChCCollisionSystemParallel.h"
+#include "collision/ChCCollisionSystemBulletParallel.h"
 namespace chrono {
 using namespace chrono;
 
-class ChApiGPU ChSystemGPU: public ChSystem {
-	CH_RTTI(ChSystemGPU, ChObj)
+class ChApiGPU ChSystemParallel: public ChSystem {
+	CH_RTTI(ChSystemParallel, ChObj)
 		;
 
 	public:
-		ChSystemGPU(unsigned int max_objects = 1000);
+		ChSystemParallel(unsigned int max_objects = 1000);
 		virtual int Integrate_Y_impulse_Anitescu();
 		double ComputeCollisions();
 		double SolveSystem();

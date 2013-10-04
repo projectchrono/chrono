@@ -8,7 +8,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "ChCCollisionModelGPU.h"
+#include "ChCCollisionModelParallel.h"
 #include "physics/ChBody.h"
 #include "physics/ChSystem.h"
 

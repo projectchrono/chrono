@@ -1,16 +1,16 @@
 #ifndef CHINTEGRATORGPU_H
 #define CHINTEGRATORGPU_H
 
-#include "ChCudaMath.h"
-#include "ChCudaDefines.h"
+#include "ChParallelMath.h"
+#include "ChParallelDefines.h"
 #include "ChThrustLinearAlgebra.h"
 #include "ChDataManager.h"
 
 namespace chrono {
-	class ChApiGPU ChIntegratorGPU {
+	class ChApiGPU ChIntegratorParallel {
 		public:
 
-			ChIntegratorGPU() {
+			ChIntegratorParallel() {
 			}
 			void IntegrateSemiImplicit(real step, device_container& gpu_data_);
 			void host_Integrate_Timestep_Semi_Implicit(bool* active, real3* acc, real4* rot, real3* vel, real3* omega, real3* pos, real3* lim);

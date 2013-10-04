@@ -1,25 +1,25 @@
-#include "ChSystemGPU.h"
+#include "ChSystemParallel.h"
 #include "physics/ChBody.h"
 #include <omp.h>
 
 using namespace chrono;
 
-ChSystemGPU::ChSystemGPU(unsigned int max_objects) :
+ChSystemParallel::ChSystemParallel(unsigned int max_objects) :
 		ChSystem(1000, 10000, false) {
 	counter = 0;
 	gpu_data_manager = new ChGPUDataManager();
-	LCP_descriptor = new ChLcpSystemDescriptorGPU();
-	contact_container = new ChContactContainerGPU();
-	collision_system = new ChCollisionSystemGPU();
-	LCP_solver_speed = new ChLcpSolverGPU();
-	((ChCollisionSystemGPU *) (collision_system))->data_container = gpu_data_manager;
-	((ChLcpSystemDescriptorGPU *) (LCP_descriptor))->data_container = gpu_data_manager;
-	((ChLcpSolverGPU *) (LCP_solver_speed))->data_container = gpu_data_manager;
-	((ChContactContainerGPU*) contact_container)->data_container = gpu_data_manager;
+	LCP_descriptor = new ChLcpSystemDescriptorParallel();
+	contact_container = new ChContactContainerParallel();
+	collision_system = new ChCollisionSystemParallel();
+	LCP_solver_speed = new ChLcpSolverParallel();
+	((ChCollisionSystemParallel *) (collision_system))->data_container = gpu_data_manager;
+	((ChLcpSystemDescriptorParallel *) (LCP_descriptor))->data_container = gpu_data_manager;
+	((ChLcpSolverParallel *) (LCP_solver_speed))->data_container = gpu_data_manager;
+	((ChContactContainerParallel*) contact_container)->data_container = gpu_data_manager;
 
 	use_aabb_active = 0;
 }
-int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
+int ChSystemParallel::Integrate_Y_impulse_Anitescu() {
 	mtimer_step.start();
 	//=============================================================================================
 	mtimer_updt.start();
@@ -31,7 +31,7 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	//=============================================================================================
 	if (use_aabb_active) {
 		vector<bool> body_active(gpu_data_manager->number_of_rigid, false);
-		((ChCollisionSystemGPU*) collision_system)->GetOverlappingAABB(body_active, aabb_min, aabb_max);
+		((ChCollisionSystemParallel*) collision_system)->GetOverlappingAABB(body_active, aabb_min, aabb_max);
 		for (int i = 0; i < bodylist.size(); i++) {
 			if (bodylist[i]->IsActive() == true && bodylist[i]->GetCollide() == true) {
 				gpu_data_manager->host_data.active_data[i] = body_active[i];
@@ -45,7 +45,7 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	mtimer_cd.stop();
 	//=============================================================================================
 	mtimer_lcp.start();
-	((ChLcpSolverGPU *) (LCP_solver_speed))->RunTimeStep(GetStep());
+	((ChLcpSolverParallel *) (LCP_solver_speed))->RunTimeStep(GetStep());
 	mtimer_lcp.stop();
 	//=============================================================================================
 	mtimer_updt.start();
@@ -97,7 +97,7 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	ChTime += GetStep();
 	mtimer_step.stop();
 	timer_collision = mtimer_cd();
-	if (ChCollisionSystemGPU* coll_sys = dynamic_cast<ChCollisionSystemGPU*>(collision_system)) {
+	if (ChCollisionSystemParallel* coll_sys = dynamic_cast<ChCollisionSystemParallel*>(collision_system)) {
 		timer_collision_broad = coll_sys->mtimer_cd_broad();
 		timer_collision_narrow = coll_sys->mtimer_cd_narrow();
 	} else {
@@ -110,14 +110,14 @@ int ChSystemGPU::Integrate_Y_impulse_Anitescu() {
 	return 1;
 }
 
-double ChSystemGPU::ComputeCollisions() {
+double ChSystemParallel::ComputeCollisions() {
 	return 0;
 }
 
-double ChSystemGPU::SolveSystem() {
+double ChSystemParallel::SolveSystem() {
 	return 0;
 }
-void ChSystemGPU::AddBody(ChSharedPtr<ChBody> newbody) {
+void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
 
 	newbody->AddRef();
 	newbody->SetSystem(this);
@@ -155,7 +155,7 @@ void ChSystemGPU::AddBody(ChSharedPtr<ChBody> newbody) {
 	gpu_data_manager->number_of_rigid = counter;
 }
 
-void ChSystemGPU::RemoveBody(ChSharedPtr<ChBody> mbody) {
+void ChSystemParallel::RemoveBody(ChSharedPtr<ChBody> mbody) {
 	assert(std::find<std::vector<ChBody *>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr()) != bodylist.end());
 
 // remove from collision system
@@ -170,7 +170,7 @@ void ChSystemGPU::RemoveBody(ChSharedPtr<ChBody> mbody) {
 	mbody->RemoveRef();
 }
 
-void ChSystemGPU::RemoveBody(int body) {
+void ChSystemParallel::RemoveBody(int body) {
 	//assert( std::find<std::vector<ChBody*>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr()) != bodylist.end());
 	ChBody *mbody = ((ChBody *) (bodylist[body]));
 
@@ -185,13 +185,13 @@ void ChSystemGPU::RemoveBody(int body) {
 // this may delete the body, if none else's still referencing it..
 	//mbody->RemoveRef();
 }
-void ChSystemGPU::Update() {
+void ChSystemParallel::Update() {
 	this->LCP_descriptor->BeginInsertion();
 	UpdateBodies();
 	UpdateBilaterals();
 	LCP_descriptor->EndInsertion();
 }
-void ChSystemGPU::UpdateBodies() {
+void ChSystemParallel::UpdateBodies() {
 	real3 *vel_pointer = gpu_data_manager->host_data.vel_data.data();
 	real3 *omg_pointer = gpu_data_manager->host_data.omg_data.data();
 	real3 *pos_pointer = gpu_data_manager->host_data.pos_data.data();
@@ -247,7 +247,7 @@ void ChSystemGPU::UpdateBodies() {
 	}
 }
 
-void ChSystemGPU::UpdateBilaterals() {
+void ChSystemParallel::UpdateBilaterals() {
 	for (it = linklist.begin(); it != linklist.end(); it++) {
 		(*it)->Update(ChTime);
 		(*it)->ConstraintsBiReset();
@@ -304,7 +304,7 @@ void ChSystemGPU::UpdateBilaterals() {
 	}
 }
 
-void ChSystemGPU::ChangeLcpSolverSpeed(ChLcpSolver *newsolver) {
+void ChSystemParallel::ChangeLcpSolverSpeed(ChLcpSolver *newsolver) {
 	assert(newsolver);
 
 	if (this->LCP_solver_speed)
@@ -313,7 +313,7 @@ void ChSystemGPU::ChangeLcpSolverSpeed(ChLcpSolver *newsolver) {
 	this->LCP_solver_speed = newsolver;
 }
 
-void ChSystemGPU::ChangeCollisionSystem(ChCollisionSystem *newcollsystem) {
+void ChSystemParallel::ChangeCollisionSystem(ChCollisionSystem *newcollsystem) {
 	assert(this->GetNbodies() == 0);
 	assert(newcollsystem);
 
@@ -322,18 +322,18 @@ void ChSystemGPU::ChangeCollisionSystem(ChCollisionSystem *newcollsystem) {
 
 	this->collision_system = newcollsystem;
 
-	if (ChCollisionSystemGPU* coll_sys = dynamic_cast<ChCollisionSystemGPU*>(newcollsystem)) {
-		((ChCollisionSystemGPU *) (collision_system))->data_container = gpu_data_manager;
+	if (ChCollisionSystemParallel* coll_sys = dynamic_cast<ChCollisionSystemParallel*>(newcollsystem)) {
+		((ChCollisionSystemParallel *) (collision_system))->data_container = gpu_data_manager;
 	} else if (ChCollisionSystemBulletGPU* coll_sys = dynamic_cast<ChCollisionSystemBulletGPU*>(newcollsystem)) {
 		((ChCollisionSystemBulletGPU *) (collision_system))->data_container = gpu_data_manager;
 	}
 }
 
-void ChSystemGPU::ChangeLcpSystemDescriptor(ChLcpSystemDescriptor* newdescriptor) {
+void ChSystemParallel::ChangeLcpSystemDescriptor(ChLcpSystemDescriptor* newdescriptor) {
 	assert(newdescriptor);
 	if (this->LCP_descriptor)
 		delete (this->LCP_descriptor);
 	this->LCP_descriptor = newdescriptor;
 
-	((ChLcpSystemDescriptorGPU *) (this->LCP_descriptor))->data_container = gpu_data_manager;
+	((ChLcpSystemDescriptorParallel *) (this->LCP_descriptor))->data_container = gpu_data_manager;
 }

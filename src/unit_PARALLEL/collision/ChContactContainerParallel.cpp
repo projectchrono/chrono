@@ -8,7 +8,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "ChContactContainerGPU.h"
+#include "ChContactContainerParallel.h"
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"
 #include "physics/ChParticlesClones.h"
@@ -24,14 +24,14 @@ namespace chrono {
 
     // Register into the object factory, to enable run-time
     // dynamic creation and persistence
-    ChClassRegister<ChContactContainerGPU> a_registration_ChContactContainerGPU;
+    ChClassRegister<ChContactContainerParallel> a_registration_ChContactContainerGPU;
 
-    ChContactContainerGPU::ChContactContainerGPU() {
+    ChContactContainerParallel::ChContactContainerParallel() {
         n_added = 0;
         data_container = 0;
     }
 
-    ChContactContainerGPU::~ChContactContainerGPU() {
+    ChContactContainerParallel::~ChContactContainerParallel() {
         n_added = 0;
     }
 

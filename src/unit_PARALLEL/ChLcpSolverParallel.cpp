@@ -1,7 +1,7 @@
-#include "ChLcpSolverGPU.h"
+#include "ChLcpSolverParallel.h"
 #include "ChThrustLinearAlgebra.h"
-#include "solver/ChSolverGPU.h"
-#include "ChIntegratorGPU.h"
+#include "solver/ChSolverParallel.h"
+#include "ChIntegratorParallel.h"
 #include "constraints/ChConstraintRigidRigid.h"
 #include "constraints/ChConstraintBilateral.h"
 
@@ -21,7 +21,7 @@ __host__ __device__ void function_addForces(uint& index, bool* active, real* mas
 }
 
 
-void ChLcpSolverGPU::host_addForces(bool* active, real* mass, real3* inertia, real3* forces, real3* torques, real3* vel, real3* omega) {
+void ChLcpSolverParallel::host_addForces(bool* active, real* mass, real3* inertia, real3* forces, real3* torques, real3* vel, real3* omega) {
 #pragma omp parallel for
 
 	for (uint index = 0; index < number_of_objects; index++) {
@@ -39,7 +39,7 @@ __host__ __device__ void function_ComputeGyro(uint& index, real3* omega, real3* 
 
 
 
-void ChLcpSolverGPU::host_ComputeGyro(real3* omega, real3* inertia, real3* gyro, real3* torque) {
+void ChLcpSolverParallel::host_ComputeGyro(real3* omega, real3* inertia, real3* gyro, real3* torque) {
 #pragma omp parallel for
 
 	for (uint index = 0; index < number_of_objects; index++) {
@@ -47,7 +47,7 @@ void ChLcpSolverGPU::host_ComputeGyro(real3* omega, real3* inertia, real3* gyro,
 	}
 }
 
-void ChLcpSolverGPU::Preprocess() {
+void ChLcpSolverParallel::Preprocess() {
 	data_container->number_of_updates = 0;
 	data_container->host_data.gyr_data.resize(number_of_objects);
 
@@ -85,7 +85,7 @@ void ChLcpSolverGPU::Preprocess() {
 #endif
 }
 
-void ChLcpSolverGPU::RunTimeStep(real step) {
+void ChLcpSolverParallel::RunTimeStep(real step) {
 	step_size = step;
 	data_container->step_size = step;
 
@@ -114,7 +114,7 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 	ChConstraintRigidRigid rigid_rigid(data_container);
 	ChConstraintBilateral bilateral(data_container);
 
-	ChSolverGPU solver;
+	ChSolverParallel solver;
 	solver.SetMaxIterations(max_iteration);
 	solver.SetTolerance(tolerance);
 
@@ -178,7 +178,7 @@ void ChLcpSolverGPU::RunTimeStep(real step) {
 	//integrator.IntegrateSemiImplicit(step, data_container->gpu_data);
 }
 
-void ChLcpSolverGPU::RunWarmStartPostProcess() {
+void ChLcpSolverParallel::RunWarmStartPostProcess() {
 	if (data_container->number_of_rigid_rigid == 0) {
 		return;
 	}
@@ -234,7 +234,7 @@ void ChLcpSolverGPU::RunWarmStartPostProcess() {
 		}
 	}
 }
-void ChLcpSolverGPU::RunWarmStartPreprocess() {
+void ChLcpSolverParallel::RunWarmStartPreprocess() {
 	if (data_container->number_of_rigid_rigid == 0) {
 		return;
 	}
