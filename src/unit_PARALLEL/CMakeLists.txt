@@ -12,6 +12,21 @@ find_package("OpenMP" REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 
+
+
+SET(INTEL_OPT "SSE2" CACHE STRING "intel optimizations")
+SET_PROPERTY(CACHE INTEL_OPT PROPERTY STRINGS "SSE2" "SSE3" "SSSE3" "SSE4.1" "SSE4.2" "AVX" "CORE-AVX-I" "CORE-AVX2")
+
+if (${CMAKE_C_COMPILER} MATCHES "icc.*$") 
+  	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -x${INTEL_OPT}")
+	set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -x${INTEL_OPT}")
+endif ()
+
+
+
+
+
+
 #add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP)
 #add_definitions(-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP)
 
@@ -153,25 +168,14 @@ ENDIF()
 
 find_library(CH_CUDART NAMES cudart libcudart PATHS ${CUDA_TOOLKIT_LIB_DIR})
 
-SET(CUDA_NVCC_FLAGS "-gencode=arch=compute_${CUDA_DEVICE_VERSION},code=sm_${CUDA_SM_VERSION}" CACHE  STRING "" FORCE )
-SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DCH_API_COMPILE_UNIT_GPU" )
-
-IF(CUDA_FAST_MATH)
-	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-use_fast_math")
-ENDIF()
-IF(CUDA_VERBOSE_PTX)
-	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "--ptxas-options=-v")
-ENDIF()
-
 SET (CH_CUDA_INC     	"${CUDA_TOOLKIT_ROOT_DIR}/include" )
 SET (CH_CUDA_SDK_INC 	"${CUDA_SDK_ROOT_DIR}/common/inc"  )
 
 # These need to get straightened out
 # Anything using the SDK should only be used by nvcc, no need to include them for anything being sent to the system compiler
-#CUDA_INCLUDE_DIRECTORIES(${INCLUDE_DIR} ${CUDA_TOOLKIT_INCLUDE})
 INCLUDE_DIRECTORIES(${INCLUDE_DIR} ${CUDA_TOOLKIT_INCLUDE})
 
-# The GPU library is added to the project, and some custom properties of this target are set.
+# The library is added to the project, and some custom properties of this target are set.
 
 ADD_LIBRARY(ChronoEngine_Parallel SHARED
                  ${ChronoEngine_unit_GPU_COLLISION}
@@ -209,6 +213,12 @@ INSTALL(TARGETS ChronoEngine_Parallel
             ARCHIVE DESTINATION lib
 )
 
-
+ mark_as_advanced(FORCE 
+ CUDA_BUILD_CUBIN
+ CUDA_BUILD_EMULATION
+ CUDA_SEPARABLE_COMPILATION
+ CUDA_SDK_ROOT_DIR
+ CUDA_VERBOSE_BUILD
+ CUDA_HOST_COMPILER)
 
 

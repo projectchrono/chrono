@@ -491,21 +491,7 @@ void ChConstraintRigidRigid::ComputeJacobians() {
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-void ChConstraintRigidRigid::host_shurA(
-		int2 *ids,
-		bool *active,
-		real *inv_mass,
-		real3 *inv_inertia,
-		real3 *JXYZA,
-		real3 *JXYZB,
-		real3 *JUVWA,
-		real3 *JUVWB,
-		real *gamma,
-		real3 *updateV,
-		real3 *updateO,
-		real3* QXYZ,
-		real3* QUVW,
-		uint* offset) {
+void ChConstraintRigidRigid::host_shurA(int2 *ids, bool *active, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO, uint* offset) {
 #pragma omp parallel for
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		real3 gam, gam_roll;
@@ -539,21 +525,7 @@ void ChConstraintRigidRigid::host_shurA(
 	}
 }
 
-void ChConstraintRigidRigid::host_shurA_spinning(
-		int2 *ids,
-		bool *active,
-		real *inv_mass,
-		real3 *inv_inertia,
-		real3 *JXYZA,
-		real3 *JXYZB,
-		real3 *JUVWA,
-		real3 *JUVWB,
-		real *gamma,
-		real3 *updateV,
-		real3 *updateO,
-		real3* QXYZ,
-		real3* QUVW,
-		uint* offset) {
+void ChConstraintRigidRigid::host_shurA_spinning(int2 *ids, bool *active, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO, uint* offset) {
 #pragma omp parallel for
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		real3 gam, gam_roll;
@@ -740,8 +712,6 @@ void ChConstraintRigidRigid::ShurA(custom_vector<real> &x) {
 	host_shurA(
 			data_container->host_data.bids_rigid_rigid.data(),
 			data_container->host_data.active_data.data(),
-			data_container->host_data.mass_data.data(),
-			data_container->host_data.inr_data.data(),
 			JXYZA_rigid_rigid.data(),
 			JXYZB_rigid_rigid.data(),
 			JUVWA_rigid_rigid.data(),
@@ -749,15 +719,11 @@ void ChConstraintRigidRigid::ShurA(custom_vector<real> &x) {
 			x.data(),
 			vel_update.data(),
 			omg_update.data(),
-			data_container->host_data.QXYZ_data.data(),
-			data_container->host_data.QUVW_data.data(),
 			update_offset.data());
 
 	host_shurA_spinning(
 			data_container->host_data.bids_rigid_rigid.data(),
 			data_container->host_data.active_data.data(),
-			data_container->host_data.mass_data.data(),
-			data_container->host_data.inr_data.data(),
 			JXYZA_rigid_rigid.data(),
 			JXYZB_rigid_rigid.data(),
 			JUVWA_rigid_rigid.data(),
@@ -765,8 +731,6 @@ void ChConstraintRigidRigid::ShurA(custom_vector<real> &x) {
 			x.data(),
 			vel_update.data(),
 			omg_update.data(),
-			data_container->host_data.QXYZ_data.data(),
-			data_container->host_data.QUVW_data.data(),
 			update_offset.data());
 
 	host_Reduce_Shur(

@@ -52,11 +52,9 @@ class ChApiGPU ChConstraintRigidRigid: public ChBaseParallel {
 		void ComputeJacobians();
 
 		void host_shurA(
-				int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO, real3* QXYZ, real3*QUVW,
-				uint* offset);
+				int2 *ids, bool *active, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO, uint* offset);
 		void host_shurA_spinning(
-						int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO, real3* QXYZ, real3*QUVW,
-						uint* offset);
+				int2 *ids, bool *active, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO, uint* offset);
 		void host_shurB(
 				int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX);
 		void host_shurB_spinning(
@@ -102,7 +100,7 @@ class ChApiGPU ChConstraintRigidRigid: public ChBaseParallel {
 		custom_vector<uint> offset_counter;
 		custom_vector<uint> body_number;
 	}
-				;
-			}
+		;
+	}
 
 #endif
