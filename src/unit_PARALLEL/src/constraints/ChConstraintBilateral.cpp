@@ -51,22 +51,76 @@ void ChConstraintBilateral::ComputeJacobians() {
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-void ChConstraintBilateral::host_shurA(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3* QXYZ, real3* QUVW) {
+void ChConstraintBilateral::host_Offsets(int2* ids, uint* Body) {
+#pragma omp parallel for
+	for (uint index = 0; index < number_of_bilaterals; index++) {
+		if (index < number_of_bilaterals) {
+			int2 temp_id = ids[index];
+			Body[index] = temp_id.x;
+			Body[index + number_of_bilaterals] = temp_id.y;
+		}
+	}
+}
 
+__host__ __device__ void function_Reduce_Shur_Bilateral(uint& index,bool* active, real3* QXYZ, real3* QUVW, real *inv_mass, real3 *inv_inertia, real3* updateQXYZ, real3* updateQUVW, uint* d_body_num, uint* counter) {
+	int start = (index == 0) ? 0 : counter[index - 1], end = counter[index];
+	int id = d_body_num[end - 1], j;
+
+	if (active[id] == 0) {
+		return;
+	}
+
+	real3 mUpdateV = R3(0);
+	real3 mUpdateO = R3(0);
+
+	for (j = 0; j < end - start; j++) {
+		mUpdateV += updateQXYZ[j + start];
+		mUpdateO += updateQUVW[j + start];
+	}
+	QXYZ[id] += mUpdateV * inv_mass[id];
+	QUVW[id] += mUpdateO * inv_inertia[id];
+}
+
+void ChConstraintBilateral::host_Reduce_Shur(bool* active, real3* QXYZ, real3* QUVW, real *inv_mass, real3 *inv_inertia, real3* updateQXYZ, real3* updateQUVW, uint* d_body_num, uint* counter) {
+#pragma omp parallel for
+	for (uint index = 0; index < number_of_updates; index++) {
+		function_Reduce_Shur_Bilateral(index, active, QXYZ, QUVW, inv_mass, inv_inertia, updateQXYZ, updateQUVW, d_body_num, counter);
+	}
+}
+
+void ChConstraintBilateral::host_shurA(
+		int2 *ids,
+		bool *active,
+		real *inv_mass,
+		real3 *inv_inertia,
+		real3 *JXYZA,
+		real3 *JXYZB,
+		real3 *JUVWA,
+		real3 *JUVWB,
+		real *gamma,
+		real3 *updateV,
+		real3 *updateO,
+		real3* QXYZ,
+		real3* QUVW,
+		uint* offset) {
+#pragma omp parallel for
 	for (int index = 0; index < number_of_bilaterals; index++) {
 		real gam;
 		gam = gamma[index + number_of_rigid_rigid * 6];
 		uint b1 = ids[index].x;
 
+		int offset1 = offset[index];
+		int offset2 = offset[index + number_of_bilaterals];
+
 		if (active[b1] != 0) {
-			QXYZ[b1] += JXYZA[index] * gam * inv_mass[b1];
-			QUVW[b1] += JUVWA[index] * gam * inv_inertia[b1];
+			updateV[offset1] = JXYZA[index] * gam;
+			updateO[offset1] = JUVWA[index] * gam;
 		}
 
 		uint b2 = ids[index].y;
 		if (active[b2] != 0) {
-			QXYZ[b2] += JXYZB[index] * gam * inv_mass[b2];
-			QUVW[b2] += JUVWB[index] * gam * inv_inertia[b2];
+			updateV[offset2] = JXYZB[index] * gam;
+			updateO[offset2] = JUVWB[index] * gam;
 		}
 	}
 }
@@ -122,8 +176,22 @@ void ChConstraintBilateral::ShurA(custom_vector<real> &x) {
 			data_container->host_data.JUVWA_bilateral.data(),
 			data_container->host_data.JUVWB_bilateral.data(),
 			x.data(),
+			vel_update.data(),
+			omg_update.data(),
 			data_container->host_data.QXYZ_data.data(),
-			data_container->host_data.QUVW_data.data());
+			data_container->host_data.QUVW_data.data(),
+			update_offset.data());
+
+	host_Reduce_Shur(
+			data_container->host_data.active_data.data(),
+			data_container->host_data.QXYZ_data.data(),
+			data_container->host_data.QUVW_data.data(),
+			data_container->host_data.mass_data.data(),
+			data_container->host_data.inr_data.data(),
+			vel_update.data(),
+			omg_update.data(),
+			body_number.data(),
+			offset_counter.data());
 
 }
 void ChConstraintBilateral::ShurB(custom_vector<real> &x, custom_vector<real> & output) {
@@ -142,8 +210,6 @@ void ChConstraintBilateral::ShurB(custom_vector<real> &x, custom_vector<real> & 
 			output.data());
 
 }
-
-
 
 void ChConstraintBilateral::ShurBilaterals(custom_vector<real> &x_t, custom_vector<real> & AX) {
 
