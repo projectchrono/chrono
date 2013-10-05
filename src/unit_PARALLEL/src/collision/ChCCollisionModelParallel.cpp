@@ -15,17 +15,17 @@
 namespace chrono {
 namespace collision {
 
-ChCollisionModelGPU::ChCollisionModelGPU() {
+ChCollisionModelParallel::ChCollisionModelParallel() {
 	nObjects = 0;
 	colFam = -1;
 	noCollWith = -2;
 	inertia = R3(0);
 }
 
-ChCollisionModelGPU::~ChCollisionModelGPU() {
+ChCollisionModelParallel::~ChCollisionModelParallel() {
 	mData.clear();
 }
-int ChCollisionModelGPU::ClearModel() {
+int ChCollisionModelParallel::ClearModel() {
 	if (GetPhysicsItem()->GetSystem() && GetPhysicsItem()->GetCollide()) {
 		GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Remove(this);
 	}
@@ -37,7 +37,7 @@ int ChCollisionModelGPU::ClearModel() {
 	return 1;
 }
 
-int ChCollisionModelGPU::BuildModel() {
+int ChCollisionModelParallel::BuildModel() {
 	this->GetBody()->SetInertiaXX(ChVector<>(inertia.x, inertia.y, inertia.z));
 
 	if (GetPhysicsItem()->GetSystem() && GetPhysicsItem()->GetCollide()) {
@@ -46,7 +46,7 @@ int ChCollisionModelGPU::BuildModel() {
 
 	return 1;
 }
-bool ChCollisionModelGPU::AddSphere(double radius, ChVector<> *posv) {
+bool ChCollisionModelParallel::AddSphere(double radius, ChVector<> *posv) {
 	ChVector<> *pos;
 
 	if (posv != 0) {
@@ -73,7 +73,7 @@ bool ChCollisionModelGPU::AddSphere(double radius, ChVector<> *posv) {
 	mData.push_back(tData);
 	return true;
 }
-bool ChCollisionModelGPU::AddEllipsoid(double rx, double ry, double rz, ChVector<> *posv, ChMatrix33<> *rotv) {
+bool ChCollisionModelParallel::AddEllipsoid(double rx, double ry, double rz, ChVector<> *posv, ChMatrix33<> *rotv) {
 	ChVector<> *pos;
 
 	if (posv != 0) {
@@ -110,7 +110,7 @@ bool ChCollisionModelGPU::AddEllipsoid(double rx, double ry, double rz, ChVector
 	mData.push_back(tData);
 	return true;
 }
-bool ChCollisionModelGPU::AddBox(double rx, double ry, double rz, ChVector<> *posv, ChMatrix33<> *rotv) {
+bool ChCollisionModelParallel::AddBox(double rx, double ry, double rz, ChVector<> *posv, ChMatrix33<> *rotv) {
 	ChVector<> *pos;
 
 	if (posv != 0) {
@@ -145,7 +145,7 @@ bool ChCollisionModelGPU::AddBox(double rx, double ry, double rz, ChVector<> *po
 	mData.push_back(tData);
 	return true;
 }
-bool ChCollisionModelGPU::AddTriangle(ChVector<> A, ChVector<> B, ChVector<> C, ChVector<> *posv, ChMatrix33<> *rotv) {
+bool ChCollisionModelParallel::AddTriangle(ChVector<> A, ChVector<> B, ChVector<> C, ChVector<> *posv, ChMatrix33<> *rotv) {
 	ChVector<> *pos;
 
 	if (posv != 0) {
@@ -175,7 +175,7 @@ bool ChCollisionModelGPU::AddTriangle(ChVector<> A, ChVector<> B, ChVector<> C, 
 	return true;
 }
 
-bool ChCollisionModelGPU::AddCylinder(double rx, double ry, double rz, ChVector<> *posv, ChMatrix33<> *rotv) {
+bool ChCollisionModelParallel::AddCylinder(double rx, double ry, double rz, ChVector<> *posv, ChMatrix33<> *rotv) {
 	ChVector<> *pos;
 
 	if (posv != 0) {
@@ -210,7 +210,7 @@ bool ChCollisionModelGPU::AddCylinder(double rx, double ry, double rz, ChVector<
 	return true;
 }
 
-bool ChCollisionModelGPU::AddCone(double rx, double ry, double rz, ChVector<> *posv, ChMatrix33<> *rotv) {
+bool ChCollisionModelParallel::AddCone(double rx, double ry, double rz, ChVector<> *posv, ChMatrix33<> *rotv) {
 	ChVector<> *pos;
 
 	if (posv != 0) {
@@ -251,31 +251,31 @@ bool ChCollisionModelGPU::AddCone(double rx, double ry, double rz, ChVector<> *p
 	return true;
 }
 
-bool ChCollisionModelGPU::AddConvexHull(std::vector<ChVector<double> > &pointlist, ChVector<> *pos, ChMatrix33<> *rot) {
+bool ChCollisionModelParallel::AddConvexHull(std::vector<ChVector<double> > &pointlist, ChVector<> *pos, ChMatrix33<> *rot) {
 	//NOT SUPPORTED
 	return false;
 }
-bool ChCollisionModelGPU::AddBarrel(double Y_low, double Y_high, double R_vert, double R_hor, double R_offset, ChVector<> *pos, ChMatrix33<> *rot) {
+bool ChCollisionModelParallel::AddBarrel(double Y_low, double Y_high, double R_vert, double R_hor, double R_offset, ChVector<> *pos, ChMatrix33<> *rot) {
 	//NOT SUPPORTED
 	return false;
 }
-bool ChCollisionModelGPU::AddRectangle(double rx, double ry) {
+bool ChCollisionModelParallel::AddRectangle(double rx, double ry) {
 	return false;
 }
-bool ChCollisionModelGPU::AddDisc(double rad) {
+bool ChCollisionModelParallel::AddDisc(double rad) {
 	return false;
 }
-bool ChCollisionModelGPU::AddEllipse(double rx, double ry) {
+bool ChCollisionModelParallel::AddEllipse(double rx, double ry) {
 	return false;
 }
-bool ChCollisionModelGPU::AddCapsule(double len, double rad) {
+bool ChCollisionModelParallel::AddCapsule(double len, double rad) {
 	return false;
 }
-bool ChCollisionModelGPU::AddCone(double rad, double h) {
+bool ChCollisionModelParallel::AddCone(double rad, double h) {
 	return false;
 }
 /// Add a triangle mesh to this model
-bool ChCollisionModelGPU::AddTriangleMesh(
+bool ChCollisionModelParallel::AddTriangleMesh(
 		const geometry::ChTriangleMesh &trimesh,
 		bool is_static,
 		bool is_convex,
@@ -312,44 +312,44 @@ bool ChCollisionModelGPU::AddTriangleMesh(
 
 	return true;
 }
-bool ChCollisionModelGPU::AddCopyOfAnotherModel(ChCollisionModel *another) {
+bool ChCollisionModelParallel::AddCopyOfAnotherModel(ChCollisionModel *another) {
 	//NOT SUPPORTED
 	return false;
 }
-void ChCollisionModelGPU::GetAABB(ChVector<> &bbmin, ChVector<> &bbmax) const {
+void ChCollisionModelParallel::GetAABB(ChVector<> &bbmin, ChVector<> &bbmax) const {
 }
 
-void ChCollisionModelGPU::SetFamily(int mfamily) {
+void ChCollisionModelParallel::SetFamily(int mfamily) {
 	colFam = mfamily;
 }
 
-int ChCollisionModelGPU::GetFamily() {
+int ChCollisionModelParallel::GetFamily() {
 	return colFam;
 }
 
-void ChCollisionModelGPU::SetFamilyMaskNoCollisionWithFamily(int mfamily) {
+void ChCollisionModelParallel::SetFamilyMaskNoCollisionWithFamily(int mfamily) {
 	noCollWith = mfamily;
 }
 
-void ChCollisionModelGPU::SetFamilyMaskDoCollisionWithFamily(int mfamily) {
+void ChCollisionModelParallel::SetFamilyMaskDoCollisionWithFamily(int mfamily) {
 	if (noCollWith == mfamily) {
 		noCollWith = -1;
 	}
 }
-bool ChCollisionModelGPU::GetFamilyMaskDoesCollisionWithFamily(int mfamily) {
+bool ChCollisionModelParallel::GetFamilyMaskDoesCollisionWithFamily(int mfamily) {
 	return (noCollWith != mfamily);
 }
 
-int ChCollisionModelGPU::GetNoCollFamily() {
+int ChCollisionModelParallel::GetNoCollFamily() {
 	return noCollWith;
 }
-void ChCollisionModelGPU::SyncPosition() {
+void ChCollisionModelParallel::SyncPosition() {
 	ChBody *bpointer = GetBody();
 	assert(bpointer);
 	//assert(bpointer->GetSystem());
 }
 
-ChPhysicsItem *ChCollisionModelGPU::GetPhysicsItem() {
+ChPhysicsItem *ChCollisionModelParallel::GetPhysicsItem() {
 	return (ChPhysicsItem *) GetBody();
 }
 }     // END_OF_NAMESPACE____

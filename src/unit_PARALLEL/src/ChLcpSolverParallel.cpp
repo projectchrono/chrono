@@ -109,6 +109,13 @@ void ChLcpSolverParallel::RunTimeStep(real step) {
 	rigid_rigid.Setup(data_container);
 	bilateral.Setup(data_container);
 
+
+	solver.current_iteration = 0;
+	solver.total_iteration = 0;
+	solver.maxd_hist.clear();
+	solver.maxdeltalambda_hist.clear();
+	solver.iter_hist.clear();
+
 	solver.SetMaxIterations(max_iteration);
 	solver.SetTolerance(tolerance);
 
@@ -164,6 +171,9 @@ void ChLcpSolverParallel::RunTimeStep(real step) {
 	//if (warm_start) {
 	//RunWarmStartPostProcess();
 	//}
+
+
+
 
 #ifdef PRINT_DEBUG_GPU
 	cout << "Solve Done: "<<residual << endl;

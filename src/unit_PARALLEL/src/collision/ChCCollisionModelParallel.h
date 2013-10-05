@@ -28,11 +28,11 @@ class ChBody;
 namespace collision {
 ///  A wrapper to uses GPU collision detection
 
-class ChApiGPU ChCollisionModelGPU: public ChCollisionModel {
+class ChApiGPU ChCollisionModelParallel: public ChCollisionModel {
 	public:
 
-		ChCollisionModelGPU();
-		virtual ~ChCollisionModelGPU();
+		ChCollisionModelParallel();
+		virtual ~ChCollisionModelParallel();
 
 		/// Deletes all inserted geometries.
 		/// Also, if you begin the definition of a model, AFTER adding

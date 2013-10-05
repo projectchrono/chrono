@@ -21,7 +21,7 @@ ChCollisionSystemParallel::ChCollisionSystemParallel() {
 }
 void ChCollisionSystemParallel::Add(ChCollisionModel *model) {
 	if (model->GetPhysicsItem()->GetCollide() == true) {
-		ChCollisionModelGPU *body = (ChCollisionModelGPU *) model;
+		ChCollisionModelParallel *body = (ChCollisionModelParallel *) model;
 		int body_id = body->GetBody()->GetId();
 		int2 fam = I2(body->GetFamily(), body->GetNoCollFamily());
 
