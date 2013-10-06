@@ -120,7 +120,7 @@ int ChSystemParallel::Integrate_Y_impulse_Anitescu() {
 	timer_accumulator.pop_back();
 
 	double sum_of_elems = std::accumulate(timer_accumulator.begin(), timer_accumulator.end(), 0.0);
-	cout << "timer_accumulator " << sum_of_elems / 10.0 << " s: " << timer_accumulator[0] << endl;
+	//cout << "timer_accumulator " << sum_of_elems / 10.0 << " s: " << timer_accumulator[0] << endl;
 
 	if (frame == 100 && detect_optimal == false) {
 		frame = 0;
@@ -142,7 +142,7 @@ int ChSystemParallel::Integrate_Y_impulse_Anitescu() {
 
 		}
 	}
-	cout << "current threads " << current_threads <<" "<<frame<<" "<<detect_optimal<< endl;
+	//cout << "current threads " << current_threads <<" "<<frame<<" "<<detect_optimal<< endl;
 	frame++;
 	return 1;
 }
