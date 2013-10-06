@@ -18,8 +18,16 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects) :
 	((ChContactContainerParallel*) contact_container)->data_container = gpu_data_manager;
 
 	use_aabb_active = 0;
+	timer_accumulator.resize(10, 0);
+	frame = 0;
+	old_timer = 0;
+	detect_optimal = false;
+	current_threads = 1;
 }
 int ChSystemParallel::Integrate_Y_impulse_Anitescu() {
+	max_threads = this->GetParallelThreadNumber();
+	min_threads = 1;
+
 	mtimer_step.start();
 	//=============================================================================================
 	mtimer_updt.start();
@@ -38,6 +46,7 @@ int ChSystemParallel::Integrate_Y_impulse_Anitescu() {
 			}
 		}
 	}
+
 	//=============================================================================================
 	mtimer_cd.start();
 	collision_system->Run();
@@ -107,6 +116,34 @@ int ChSystemParallel::Integrate_Y_impulse_Anitescu() {
 	}
 	timer_lcp = mtimer_lcp();
 	timer_step = mtimer_step();     // Time elapsed for step..
+	timer_accumulator.insert(timer_accumulator.begin(), timer_step);
+	timer_accumulator.pop_back();
+
+	double sum_of_elems = std::accumulate(timer_accumulator.begin(), timer_accumulator.end(), 0.0);
+	cout << "timer_accumulator " << sum_of_elems / 10.0 << " s: " << timer_accumulator[0] << endl;
+
+	if (frame == 100 && detect_optimal == false) {
+		frame = 0;
+		if (current_threads < max_threads) {
+			detect_optimal = true;
+			old_timer = sum_of_elems / 10.0;
+			current_threads++;
+			omp_set_num_threads(current_threads);
+			cout << "current threads increased" << endl;
+		}
+	} else if (frame == 10 && detect_optimal) {
+		double current_timer = sum_of_elems / 10.0;
+		detect_optimal = false;
+		frame = 0;
+		if (old_timer < current_timer) {
+			current_threads--;
+			omp_set_num_threads(current_threads);
+			cout << "current threads reduced back" << endl;
+
+		}
+	}
+	cout << "current threads " << current_threads <<" "<<frame<<" "<<detect_optimal<< endl;
+	frame++;
 	return 1;
 }
 

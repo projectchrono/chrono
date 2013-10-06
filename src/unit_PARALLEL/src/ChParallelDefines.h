@@ -20,7 +20,7 @@
 #include <vector_types.h>
 #include <time.h>
 #include <iostream>
-
+#include <numeric>
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 #include <math.h>

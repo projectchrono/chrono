@@ -75,12 +75,21 @@ class ChApiGPU ChSystemParallel: public ChSystem {
 		ChGPUDataManager *gpu_data_manager;
 	private:
 		ChTimer<double> mtimer_lcp, mtimer_step, mtimer_cd_broad, mtimer_cd_narrow, mtimer_cd, mtimer_updt;
+
 		unsigned int counter;
 		double timer_collision;
 		std::list<ChLink *>::iterator it;
 
 		bool use_aabb_active;
 		real3 aabb_min, aabb_max;
+		int max_threads;
+		int current_threads;
+		int min_threads;
+
+		vector<double> timer_accumulator;
+		double old_timer;
+		bool detect_optimal;
+		uint frame;
 
 };
 }
