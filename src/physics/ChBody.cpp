@@ -217,7 +217,8 @@ void ChBody::VariablesFbLoadForces(double factor)
 {
 	// add applied forces and torques (and also the gyroscopic torque!) to 'fb' vector
 	this->variables.Get_fb().PasteSumVector( Xforce * factor ,0,0);
-	this->variables.Get_fb().PasteSumVector((Xtorque - gyro)* factor ,3,0);
+	//this->variables.Get_fb().PasteSumVector((Xtorque - gyro)* factor ,3,0);
+	this->variables.Get_fb().PasteSumVector((Xtorque)* factor ,3,0);
 }
 
 
