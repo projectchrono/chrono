@@ -2,9 +2,57 @@
 using namespace chrono;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-void Project_rolling(real3 & gamma_f, real3 & gamma_roll, real rollingfriction, real spinningfriction) {
+bool Cone_generalized(real & gamma_n, real & gamma_u, real & gamma_v, const real & mu) {
+
+	real f_tang = sqrt(gamma_u * gamma_u + gamma_v * gamma_v);
+
+	// inside upper cone? keep untouched!
+	if (f_tang < (mu * gamma_n)) {
+		return false;
+	}
+
+	// inside lower cone? reset  normal,u,v to zero!
+	if ((f_tang) < -(1.0 / mu) * gamma_n || (fabs(gamma_n) < 10e-15)) {
+		gamma_n = 0;
+		gamma_u = 0;
+		gamma_v = 0;
+		return false;
+	}
+
+	// remaining case: project orthogonally to generator segment of upper cone
+
+	gamma_n = (f_tang * mu + gamma_n) / (mu * mu + 1);
+	real tproj_div_t = (gamma_n * mu) / f_tang;
+	gamma_u *= tproj_div_t;
+	gamma_v *= tproj_div_t;
+
+	return true;
+}
+
+void Cone_single(real & gamma_n, real & gamma_s, const real & mu) {
+
+	real f_tang = abs(gamma_s);
+
+	// inside upper cone? keep untouched!
+	if (f_tang < (mu * gamma_n)) {
+		return;
+	}
+
+	// inside lower cone? reset  normal,u,v to zero!
+	if ((f_tang) < -(1.0 / mu) * gamma_n || (fabs(gamma_n) < 10e-15)) {
+		gamma_n = 0;
+		gamma_s = 0;
+		return;
+	}
+
+	// remaining case: project orthogonally to generator segment of upper cone
+
+	gamma_n = (f_tang * mu + gamma_n) / (mu * mu + 1);
+	real tproj_div_t = (gamma_n * mu) / f_tang;
+	gamma_s *= tproj_div_t;
 
 }
+
 void func_Project(uint &index, uint number_of_contacts, int2 *ids, real *fric, real* cohesion, real *gam) {
 	int2 body_id = ids[index];
 	real3 gamma;
@@ -30,31 +78,11 @@ void func_Project(uint &index, uint number_of_contacts, int2 *ids, real *fric, r
 		return;
 	}
 
-	real f_tang = sqrt(gamma.y * gamma.y + gamma.z * gamma.z);
-// inside upper cone? keep untouched!
-	if (f_tang < (mu * gamma.x)) {
-		return;
+	if (Cone_generalized(gamma.x, gamma.y, gamma.z, mu)) {
+		gamma.x = gamma.x - coh;
 	}
 
-// inside lower cone? reset  normal,u,v to zero!
-
-	if ((f_tang) < -(1.0 / mu) * gamma.x || (fabs(gamma.x) < 10e-15)) {
-		gamma = R3(0);
-		gam[index + number_of_contacts * 0] = gamma.x;
-		gam[index + number_of_contacts * 1] = gamma.y;
-		gam[index + number_of_contacts * 2] = gamma.z;
-
-		return;
-	}
-
-// remaining case: project orthogonally to generator segment of upper cone
-
-	gamma.x = (f_tang * mu + gamma.x) / (mu * mu + 1);
-	real tproj_div_t = (gamma.x * mu) / f_tang;
-	gamma.y *= tproj_div_t;
-	gamma.z *= tproj_div_t;
-
-	gam[index + number_of_contacts * 0] = gamma.x - coh;
+	gam[index + number_of_contacts * 0] = gamma.x;
 	gam[index + number_of_contacts * 1] = gamma.y;
 	gam[index + number_of_contacts * 2] = gamma.z;
 
@@ -70,77 +98,38 @@ void func_Project_rolling(uint &index, uint number_of_contacts, int2 *ids, real 
 //		gam[index + number_of_contacts * 2] = 0;
 //	}
 
-	real f_n = gam[index + number_of_contacts * 0];
-	real t_n = gam[index + number_of_contacts * 3];
-	real t_u = gam[index + number_of_contacts * 4];
-	real t_v = gam[index + number_of_contacts * 5];
-	real t_tang = sqrt(t_v * t_v + t_u * t_u);
-	real t_sptang = fabs(t_n);     // = sqrt(t_n*t_n);
+	real gamma_n = gam[index + number_of_contacts * 0];
+	real gamma_s = gam[index + number_of_contacts * 3];
+	real gamma_tu = gam[index + number_of_contacts * 4];
+	real gamma_tv = gam[index + number_of_contacts * 5];
 
-	if (spinningfriction != 0) {
-		if (t_sptang >= spinningfriction * f_n) {
-			// inside lower cone? reset  normal,u,v to zero!
-			if ((t_sptang < -(1.0 / spinningfriction) * f_n) || (fabs(f_n) < 10e-15)) {
-				//gam[index + number_of_contacts * 0] = 0;
-				gam[index + number_of_contacts * 3] = 0;
-			} else {
-				// remaining case: project orthogonally to generator segment of upper cone (CAN BE simplified)
-				double f_n_proj = (t_sptang * spinningfriction + f_n) / (spinningfriction * spinningfriction + 1);
-				double t_tang_proj = f_n_proj * spinningfriction;
-				double tproj_div_t = t_tang_proj / t_sptang;
-				double t_n_proj = tproj_div_t * t_n;
+	if (spinningfriction == 0) {
+		gamma_s = 0;
 
-				//gam[index + number_of_contacts * 0] = f_n_proj;
-				gam[index + number_of_contacts * 3] = t_n_proj;
-			}
-		}
 	} else {
-
-		gam[index + number_of_contacts * 3] = 0;
+		Cone_single(gamma_n, gamma_s, spinningfriction);
 	}
 
 	if (rollingfriction == 0) {
-		gam[index + number_of_contacts * 4] = 0;
-		gam[index + number_of_contacts * 5] = 0;
-		if (f_n < 0) {
-			//gam[index + number_of_contacts * 0] = 0;
-		}
-		return;
+		gamma_tu = 0;
+		gamma_tv = 0;
+//		if (gamma_n < 0) {
+//			gamma_n = 0;
+//		}
+	} else {
+		Cone_generalized(gamma_n, gamma_tu, gamma_tv, rollingfriction);
 	}
-	// inside upper cone? keep untouched!
-	if (t_tang < rollingfriction * f_n) {
-		return;
-	}
-
-	// inside lower cone? reset  normal,u,v to zero!
-	if ((t_tang < -(1.0 / rollingfriction) * f_n) || (fabs(f_n) < 10e-15)) {
-		double f_n_proj = 0;
-		double t_u_proj = 0;
-		double t_v_proj = 0;
-
-		//gam[index + number_of_contacts * 0] = 0;
-		gam[index + number_of_contacts * 4] = 0;
-		gam[index + number_of_contacts * 5] = 0;
-
-		return;
-	}
-
-	// remaining case: project orthogonally to generator segment of upper cone
-	double f_n_proj = (t_tang * rollingfriction + f_n) / (rollingfriction * rollingfriction + 1);
-	double t_tang_proj = f_n_proj * rollingfriction;
-	double tproj_div_t = t_tang_proj / t_tang;
-	double t_u_proj = tproj_div_t * t_u;
-	double t_v_proj = tproj_div_t * t_v;
-
-	//gam[index + number_of_contacts * 0] = f_n_proj;
-	gam[index + number_of_contacts * 4] = t_u_proj;
-	gam[index + number_of_contacts * 5] = t_v_proj;
+	//gam[index + number_of_contacts * 0] = gamma_n;
+	gam[index + number_of_contacts * 3] = gamma_s;
+	gam[index + number_of_contacts * 4] = gamma_tu;
+	gam[index + number_of_contacts * 5] = gamma_tv;
 
 }
 
 void ChConstraintRigidRigid::host_Project(int2 *ids, real *friction, real *friction_roll, real *friction_spin, real* cohesion, real *gamma) {
 #pragma omp parallel for
 	for (uint index = 0; index < number_of_rigid_rigid; index++) {
+		//always project normal
 
 		if (solve_sliding) {
 			func_Project(index, number_of_rigid_rigid, ids, friction, cohesion, gamma);
