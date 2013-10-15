@@ -3,9 +3,18 @@
   
   History of API changes, bug fixes, new features
 
+  
+Release 2.0.0
+14-10-2013
+
+- Migration of repository from SVN to GIT
+
+- New FindChronoEngine.cmake file for easy creation of third party projects based on Chrono::Engine, using CMake.
+
+
 
 Release 1.8.0
-xx-xx-xxxx
+1-9-2013
 
 - Removed obsolete code in ChObject (old intrusive list members and data)
 
@@ -306,11 +315,11 @@ Release 1.5.0
   program screen redraw loop, that is change commands like 
       mphysicalSystem.DoStepDynamics( 0.01);
   into the new command
-  	  application.DoStep();
+      application.DoStep();
   Note that before entering the 'while()' loop, you need to enable
   the advanced step control by calling something like this:
      application.SetStepManage(true);
-	 application.SetTimestep(0.02);
+     application.SetTimestep(0.02);
     
 - New solver based on spectral gradient method (Barzilai-Borwein)
   with nonmonotone Armijo steplength. It is called ChLcpIterativeBB.
@@ -857,7 +866,7 @@ Release 0.6
   the zoom is controlled by mouse wheel or rmb+lmb+mouse, the position can 
   be changed also with keyboard up/down/left/right arrows, the height can be 
   changed with keyboard 'PgUp' and 'PgDn' keys.
-			
+            
 - Improved function ChIrrWizard functions (add_typical_Lights etc)
 
 - New class ChIrrAppInterface to ease the creation of applications
