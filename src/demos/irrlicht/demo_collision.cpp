@@ -89,7 +89,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 		mrigidBody->addShadowVolumeSceneNode();
 
 
-		video::ITexture* sphereMap = driver->getTexture("../data/superman.png");
+		video::ITexture* sphereMap = driver->getTexture("../data/bluwhite.png");
 		mrigidBody->setMaterialTexture(0,	sphereMap);
 
 		mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
@@ -234,7 +234,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 							 Q_from_AngAxis(CH_C_PI_2, VECT_X)) );
 	my_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
 	if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(my_motor->Get_spe_funct()))
-		mfun->Set_yconst(CH_C_PI/0.5); // speed w=90°/s
+		mfun->Set_yconst(CH_C_PI/2); // speed w=90°/s
 	mphysicalSystem.AddLink(my_motor);
 
 
