@@ -145,17 +145,17 @@ void ChLcpSolverParallel::RunTimeStep(real step) {
 	solver.Solve(solver_type);
 
 	//solve full
-	solver.SetMaxIterations(max_iteration / 2.0);
-	rigid_rigid.solve_sliding = true;
-	rigid_rigid.solve_spinning = false;
-	rigid_rigid.ComputeRHS();
-	solver.Solve(solver_type);
-
-	solver.SetMaxIterations(max_iteration / 2.0);
+	solver.SetMaxIterations(max_iteration);
 	rigid_rigid.solve_sliding = true;
 	rigid_rigid.solve_spinning = true;
 	rigid_rigid.ComputeRHS();
 	solver.Solve(solver_type);
+
+//	solver.SetMaxIterations(max_iteration / 2.0);
+//	rigid_rigid.solve_sliding = true;
+//	rigid_rigid.solve_spinning = true;
+//	rigid_rigid.ComputeRHS();
+//	solver.Solve(solver_type);
 
 	solver.ComputeImpulses();
 
