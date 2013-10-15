@@ -13,7 +13,7 @@ Main features
 * collision shapes and frictional contact
 * time integration based on non-smooth dynamics (DVI)
 * real-time visualization or ray-tracing postprocessing
-* modularity: optional units can be built for special purposes (postprocessing, cosimulation, etc.)
+* modularity: optional units can be built for special purposes (postprocessing, cosimulation, FEM, etc.)
 * wrapper for Python scripting
 * demo code explaining how to develop third party applications
 
