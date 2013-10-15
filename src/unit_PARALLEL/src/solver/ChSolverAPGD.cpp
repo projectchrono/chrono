@@ -19,7 +19,7 @@ uint ChSolverParallel::SolveAPGD(custom_vector<real> &x, const custom_vector<rea
 	real gdiff = 1;
 
 	real lastgoodres=10e30;
-	real theta_k=0.001;
+	real theta_k=1.0;
 	real theta_k1=theta_k;
 	real beta_k1=0.0;
 	ml = x;
