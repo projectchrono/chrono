@@ -19,6 +19,7 @@
 #include <vector>
 #include <cstdlib> //for RAND_MAX
 
+
 //for memory leak detection, apparently does not work in conjunction with cuda
 //#define _CRTDBG_MAP_ALLOC
 //#include <stdlib.h>
