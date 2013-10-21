@@ -29,6 +29,7 @@ __constant__ int numRigidBodiesD;
 __constant__ int startRigidParticleD;
 __constant__ int numRigid_SphParticlesD;
 
+
 int maxblock = 65535;
 //--------------------------------------------------------------------------------------------------------------------------------
 //updates the fluid particles' properties, i.e. velocity, density, pressure, position
