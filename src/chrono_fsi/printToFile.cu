@@ -20,7 +20,7 @@ void PrintToFile(
 		thrust::device_vector<real3> & posRadD,
 		thrust::device_vector<real4> & velMasD,
 		thrust::device_vector<real4> & rhoPresMuD,
-		const thrust::host_vector<int3> & referenceArray,
+		const thrust::host_vector<int2> & referenceArray,
 		const thrust::device_vector<int> & rigidIdentifierD,
 		thrust::device_vector<real3> & posRigidD,
 		thrust::device_vector<real3> & posRigidCumulativeD,
@@ -90,7 +90,7 @@ void PrintToFile(
 		stringstream ssRigidsSPH;
 		if (referenceArray.size() > 2) {
 			const int numRigidBodies = posRigidH.size();
-			int startRigidParticle = (I2(referenceArray[2])).x;
+			int startRigidParticle = (referenceArray[2]).x;
 
 			for (int i = startRigidParticle; i < referenceArray[2 + numRigidBodies - 1].y; i++) {
 				real3 pos = posRadH[i];
