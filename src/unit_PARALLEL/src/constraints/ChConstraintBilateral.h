@@ -12,7 +12,7 @@ class ChApiGPU ChConstraintBilateral: public ChBaseParallel {
 			data_container = data_container_;
 			Initialize();
 
-			if (number_of_rigid_rigid > 0) {
+			if (number_of_bilaterals > 0) {
 				update_number.resize((number_of_bilaterals) * 2, 0);
 				offset_counter.resize((number_of_bilaterals) * 2, 0);
 				update_offset.resize((number_of_bilaterals) * 2, 0);
