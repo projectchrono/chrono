@@ -22,6 +22,8 @@ uint ChSolverParallel::SolveAPGD(custom_vector<real> &x, const custom_vector<rea
 	real theta_k=1.0;
 	real theta_k1=theta_k;
 	real beta_k1=0.0;
+	custom_vector<real> x_initial =x;
+
 	ml = x;
 	Project(x);
 	ShurProduct(x,mg);
@@ -111,7 +113,7 @@ uint ChSolverParallel::SolveAPGD(custom_vector<real> &x, const custom_vector<rea
 //			cout<<"resolved "<<count_resolved<<endl;
 			//cout<<"MINVAL "<<g_proj_norm<<" "<<fmax(real(0.0),-min_val)<<endl;
 			//this is res4
-			SEAXPY(-gdiff, mg_tmp2, x, mb_tmp); //mb_tmp=x+mg_tmp2*(-gdiff)
+			SEAXPY(-gdiff, mg_tmp2, x, mb_tmp);//mb_tmp=x+mg_tmp2*(-gdiff)
 			Project(mb_tmp);
 			custom_vector<real> d01=mb_tmp-x;
 			mb_tmp = (-1.0/gdiff)*d01;
@@ -126,7 +128,16 @@ uint ChSolverParallel::SolveAPGD(custom_vector<real> &x, const custom_vector<rea
 			real maxdeltalambda = CompRes(b,number_of_rigid_rigid);     //NormInf(ms);
 
 			AtIterationEnd(residual, maxdeltalambda, current_iteration);
+			custom_vector<real> error = (x_initial-x)/x;
+			//x_initial = x;
 
+			//for(int i=0; i<x.size(); i++) {
+			//	if(x[i]==0) {
+			//		error[i]=0;
+			//	}
+			//}
+			//summary_stats_data<real> result = Statistics(error);
+			//cout<<"current_iteration: "<<current_iteration<<" Max: "<<result.max<<" Mean: "<<result.mean<<" StdDev: "<<std::sqrt(result.variance_n())<<" Variance: "<<result.variance()<<endl;
 			if (residual < tolerance) {
 				break;
 			}

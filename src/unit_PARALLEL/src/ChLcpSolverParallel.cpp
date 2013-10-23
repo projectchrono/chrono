@@ -135,7 +135,7 @@ void ChLcpSolverParallel::RunTimeStep(real step) {
 	//rigid_rigid.ComputeRHS();
 	bilateral.ComputeJacobians();
 	bilateral.ComputeRHS();
-
+	//cout<<"Solve normal"<<endl;
 	//solve normal
 	solver.SetMaxIterations(max_iteration/3.0);
 	solver.SetComplianceParameters(alpha, compliance, complianceT);
@@ -143,14 +143,14 @@ void ChLcpSolverParallel::RunTimeStep(real step) {
 	rigid_rigid.solve_spinning = false;
 	rigid_rigid.ComputeRHS();
 	solver.Solve(solver_type);
-
+	//cout<<"Solve sliding"<<endl;
 	//solve full
 	solver.SetMaxIterations(max_iteration/3.0);
 	rigid_rigid.solve_sliding = true;
 	rigid_rigid.solve_spinning = false;
 	rigid_rigid.ComputeRHS();
 	solver.Solve(solver_type);
-
+	//cout<<"Solve Full"<<endl;
 	solver.SetMaxIterations(max_iteration/3.0);
 	rigid_rigid.solve_sliding = true;
 	rigid_rigid.solve_spinning = true;
