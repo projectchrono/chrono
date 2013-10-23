@@ -79,10 +79,9 @@ void func_Project(uint &index, uint number_of_contacts, int2 *ids, real *fric, r
 	}
 
 	if (Cone_generalized(gamma.x, gamma.y, gamma.z, mu)) {
-		gamma.x = gamma.x - coh;
 	}
 
-	gam[index + number_of_contacts * 0] = gamma.x;
+	gam[index + number_of_contacts * 0] = gamma.x- coh;
 	gam[index + number_of_contacts * 1] = gamma.y;
 	gam[index + number_of_contacts * 2] = gamma.z;
 
@@ -98,7 +97,7 @@ void func_Project_rolling(uint &index, uint number_of_contacts, int2 *ids, real 
 //		gam[index + number_of_contacts * 2] = 0;
 //	}
 
-	real gamma_n = gam[index + number_of_contacts * 0];
+	real gamma_n = abs(gam[index + number_of_contacts * 0]);
 	real gamma_s = gam[index + number_of_contacts * 3];
 	real gamma_tu = gam[index + number_of_contacts * 4];
 	real gamma_tv = gam[index + number_of_contacts * 5];
