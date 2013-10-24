@@ -281,13 +281,13 @@ __global__ void CalcTorqueShare(real3* torqueParticlesD, real4* derivVelRhoD, re
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void MapForcesOnNodes(
-		real3* flexNodesForces1,
-		real3* flexNodesForces2,
+		real3* flexNodesForcesAllMarkers1,
+		real3* flexNodesForcesAllMarkers2,
 		int* flexIdentifierD,
-		int* ANCF_NumNodes_Per_Beam,
+//		int* ANCF_NumNodes_Per_Beam,
 		int* ANCF_NumMarkers_Per_Beam,
 		int* ANCF_NumMarkers_Per_Beam_cumul, //exclusive scan
-		int* ANCF_NumNodesMultMarkers_Per_Beam,
+//		int* ANCF_NumNodesMultMarkers_Per_Beam,
 		int* ANCF_NumNodesMultMarkers_Per_Beam_Cumul, //exclusive scan
 		real_* parametricDist,
 		real4* derivVelRhoD,
@@ -313,8 +313,6 @@ __global__ void MapForcesOnNodes(
 //	Fi ---> flexNodesForces[numSavedForcesSoFar + (i * numMarkersOnThisBeam + markerIndexOnThisBeam)];
 	//...
 	///////
-
-
 
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1012,111 +1010,65 @@ void UpdateFlexibleBody(
 
 	int startFlexParticle = (referenceArray[numFlBcRigid]).x;
 
-	thrust::device_vector<real3> flexNodesForces1();//(totalNumberOfFlexNodes * totalNumberOfFlexMarkers); Size:sum(numNodesOfEachBeam*numSPH_MarkersOfEachBeam)
-	thrust::device_vector<real3> flexNodesForces2();//(totalNumberOfFlexNodes * totalNumberOfFlexMarkers);
+	thrust::device_vector<real3> flexNodesForces1();//(totalNumberOfFlexNodes); Size:sum(numNodesOfEachBeam*numSPH_MarkersOfEachBeam)
+	thrust::device_vector<real3> flexNodesForces2();
+
+	thrust::device_vector<real3> flexNodesForcesAllMarkers1();//(totalNumberOfFlexNodes * totalNumberOfFlexMarkers); Size:sum(numNodesOfEachBeam*numSPH_MarkersOfEachBeam)
+	thrust::device_vector<real3> flexNodesForcesAllMarkers2();//(totalNumberOfFlexNodes * totalNumberOfFlexMarkers);
 
 	uint nBlocks_numFlex_SphMarkers;
 	uint nThreads_SphMarkers;
 	computeGridSize(numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
-	MapForcesOnNodes<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(R3CAST(flexNodesForces1), R3CAST(flexNodesForces2),
+	MapForcesOnNodes<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(
+			R3CAST(flexNodesForcesAllMarkers1),
+			R3CAST(flexNodesForcesAllMarkers2),
 			I1CAST(flexIdentifierD),
-			I1CAST(ANCF_NumNodes_Per_Beam), I1CAST(ANCF_NumMarkers_Per_Beam), I1CAST(ANCF_NumNodesMultMarkers_Per_Beam), I1CAST(ANCF_NumNodesMultMarkers_Per_Beam_Cumul),
+			I1CAST(ANCF_NumMarkers_Per_Beam),
+			I1CAST(ANCF_NumMarkers_Per_Beam_cumul),
+			I1CAST(ANCF_NumNodesMultMarkers_Per_Beam_Cumul),
 			R1CAST(parametricDist),
 			R4CAST(derivVelRhoD),
+			markerMass,
 			numFlex_SphMarkers);
 
-
-
-	for (int i = 0; i < numFlexBodies; i++) {
-		int2 flexNodesPortion = ANCF_ReferenceArrayNodesOnBeams[i];
-		int2 flexMarkersPortion = referenceArray[numFlBcRigid + i];
-		int numNodes = flexNodesPortion.y - flexNodesPortion.x;
-		int numMarkers = flexMarkersPortion.y - flexMarkersPortion.x;
-		flexNodesForces1.resize(numNodes * numMarkers);
-		flexNodesForces2.resize(numNodes * numMarkers);
+	if (nodesAndFlexPairIdentifier.size() != flexNodesForcesAllMarkers1.size()) {
+		printf("we have size inconsistency between flex nodesForces and nodesPair identifier");
 	}
-	flexNodesForces1.clear();
-	flexNodesForces2.clear();
+	thrust::device_vector<int> dummyNodesFlexIdentify(nodesAndFlexPairIdentifier.size());
+	thrust::equal_to<int2> binary_pred_int2; //if binary_pred int2 does not work, you have to either add operator == to custom_cutil_math, or you have to map nodes identifiers from int2 to int
+	(void) thrust::reduce_by_key(nodesAndFlexPairIdentifier.begin(), nodesAndFlexPairIdentifier.end(), flexNodesForcesAllMarkers1.begin(), dummyNodesFlexIdentify.begin(),
+			flexNodesForces1.begin(), binary_pred_int2, thrust::plus<real3>());
+	(void) thrust::reduce_by_key(nodesAndFlexPairIdentifier.begin(), nodesAndFlexPairIdentifier.end(), flexNodesForcesAllMarkers2.begin(), dummyNodesFlexIdentify.begin(),
+			flexNodesForces2.begin(), binary_pred_int2, thrust::plus<real3>());
+	flexNodesForcesAllMarkers1.clear();
+	flexNodesForcesAllMarkers2.clear();
 
-//g
-	CalcForceOnNodes<<< , >>>()
-			thrust::device_vector<real4> totalSurfaceInteractionRigid4(numRigidBodies);
-			thrust::device_vector<real3> totalTorque3(numRigidBodies);
-			thrust::fill(totalSurfaceInteractionRigid4.begin(), totalSurfaceInteractionRigid4.end(), R4(0));
-	thrust::device_vector<int> dummyIdentify(numRigidBodies);
-	thrust::equal_to<int> binary_pred;
+//	//TODO: update flex bodies here
+//	 ....
+//	 ....
+//	 ....
+//	 ....
+//	//end
 
-	(void) thrust::reduce_by_key(rigidIdentifierD.begin(), rigidIdentifierD.end(), derivVelRhoD.begin() + startRigidMarkers, dummyIdentify.begin(),
-			totalSurfaceInteractionRigid4.begin(), binary_pred, thrust::plus<real4>());
+//	//TODO: add gravity to Flex objects
+//	thrust::device_vector<real3> gravityForces3(numRigidBodies);
+//	thrust::fill(gravityForces3.begin(), gravityForces3.end(), paramsH.gravity);
+//	thrust::transform(totalForcesRigid3.begin(), totalForcesRigid3.end(), gravityForces3.begin(), totalForcesRigid3.begin(), thrust::plus<real3>());
+//	gravityForces3.clear();
+//	//
 
-	uint nBlocks_numRigid_SphMarkers;
-	uint nThreads_SphMarkers;
-	computeGridSize(numRigid_SphMarkers, 256, nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);
-
-	thrust::device_vector<real3> totalForcesRigid3(numRigidBodies);
-	thrust::fill(totalForcesRigid3.begin(), totalForcesRigid3.end(), R3(0));
-	SumSurfaceInteractionForces<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(R3CAST(totalForcesRigid3), R4CAST(totalSurfaceInteractionRigid4), R4CAST(velMassRigidD));
-	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: SumSurfaceInteractionForces");
-	totalSurfaceInteractionRigid4.clear();
-
-
-
-	thrust::device_vector<real3> torqueParticlesD(numRigid_SphMarkers);
-	CalcTorqueShare<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(R3CAST(torqueParticlesD), R4CAST(derivVelRhoD), R3CAST(posRadD), I1CAST(rigidIdentifierD), R3CAST(posRigidD));
-	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueShare");
-	(void) thrust::reduce_by_key(rigidIdentifierD.begin(), rigidIdentifierD.end(), torqueParticlesD.begin(), dummyIdentify.begin(),
-			totalTorque3.begin(), binary_pred, thrust::plus<real3>());
-
-	torqueParticlesD.clear();
-	dummyIdentify.clear();
-
-	//add gravity
-	thrust::device_vector<real3> gravityForces3(numRigidBodies);
-	thrust::fill(gravityForces3.begin(), gravityForces3.end(), paramsH.gravity);
-	thrust::transform(totalForcesRigid3.begin(), totalForcesRigid3.end(), gravityForces3.begin(), totalForcesRigid3.begin(), thrust::plus<real3>());
-	gravityForces3.clear();
-
-	//################################################### update rigid body things
-	uint nBlock_UpdateRigid;
-	uint nThreads_rigidParticles;
-	computeGridSize(numRigidBodies, 128, nBlock_UpdateRigid, nThreads_rigidParticles);
-	cudaMemcpyToSymbolAsync(numRigidBodiesD, &numRigidBodies, sizeof(numRigidBodies)); //can be defined outside of the kernel, and only once
-
-	// copy rigid_SPH_mass to symbol -constant memory
-	thrust::device_vector<real3> LF_totalTorque3(numRigidBodies);
-	MapTorqueToLRFKernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(R3CAST(AD1), R3CAST(AD2), R3CAST(AD3), R3CAST(totalTorque3), R3CAST(LF_totalTorque3));
-	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: MapTorqueToLRFKernel");
-	totalTorque3.clear();
-
-	if (fracSimulation <.01) {
-		UpdateKernelRigidTranstalationBeta<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(R3CAST(totalForcesRigid3), R3CAST(posRigidD), R3CAST(posRigidCumulativeD), R4CAST(velMassRigidD));
-	} else {
-		UpdateKernelRigidTranstalation<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(R3CAST(totalForcesRigid3), R3CAST(posRigidD), R3CAST(posRigidCumulativeD), R4CAST(velMassRigidD));
-	}
-	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
-	totalForcesRigid3.clear();
-
-	UpdateRigidBodyQuaternion_kernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(R4CAST(qD), R3CAST(omegaLRF_D));
-	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: UpdateRotation");
-
-	RotationMatirixFromQuaternion_kernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(R3CAST(AD1), R3CAST(AD2), R3CAST(AD3), R4CAST(qD));
-	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: UpdateRotation");
-
-	UpdateRigidBodyAngularVelocity_kernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(R3CAST(LF_totalTorque3), R3CAST(jD1), R3CAST(jD2), R3CAST(jInvD1), R3CAST(jInvD2), R3CAST(omegaLRF_D));
-	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
-
-	LF_totalTorque3.clear();
 	//################################################### update rigid body things
 	UpdateRigidParticlesPosition<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(R3CAST(posRadD), R4CAST(velMasD), R3CAST(rigidSPH_MeshPos_LRF_D), I1CAST(rigidIdentifierD), R3CAST(posRigidD), R4CAST(velMassRigidD), R3CAST(omegaLRF_D), R3CAST(AD1), R3CAST(AD2), R3CAST(AD3));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
+
+
+	//------------------------ delete stuff
+	dummyNodesFlexIdentify.clear();
+
+
+	flexNodesForces1.clear();
+	flexNodesForces2.clear();
 }
 ////--------------------------------------------------------------------------------------------------------------------------------
 //##############################################################################################################################################
