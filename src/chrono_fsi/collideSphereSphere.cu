@@ -280,6 +280,44 @@ __global__ void CalcTorqueShare(real3* torqueParticlesD, real4* derivVelRhoD, re
 	torqueParticlesD[index] = cross(dist3, R3(derivVelRhoD[rigidParticleIndex]));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
+__global__ void MapForcesOnNodes(
+		real3* flexNodesForces1,
+		real3* flexNodesForces2,
+		int* flexIdentifierD,
+		int* ANCF_NumNodes_Per_Beam,
+		int* ANCF_NumMarkers_Per_Beam,
+		int* ANCF_NumMarkers_Per_Beam_cumul, //exclusive scan
+		int* ANCF_NumNodesMultMarkers_Per_Beam,
+		int* ANCF_NumNodesMultMarkers_Per_Beam_Cumul, //exclusive scan
+		real_* parametricDist,
+		real4* derivVelRhoD,
+		real_ markerMass,
+		int numFlex_SphMarkers) {
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	if (index >= numFlex_SphMarkers) {
+		return;
+	}
+	real_ t = parametricDist[index];
+	real3 derivVel = F3(derivVelRhoD[index]);
+	real3 markerForce = markerMass * derivVel;
+
+	int flexIndex = flexIdentifierD[index];
+	int numFlexMarkersPreviousBeamsTotal = ANCF_NumMarkers_Per_Beam_cumul[flexIndex];
+	int numSavedForcesSoFar = ANCF_NumNodesMultMarkers_Per_Beam_Cumul[flexIndex];
+	int markerIndexOnThisBeam = index - numFlexMarkersPreviousBeamsTotal
+
+	int numMarkersOnThisBeam = ANCF_NumMarkers_Per_Beam[flexIndex];
+
+	//TODO: Map Marker Force to ANCF Nodes, gives you as many forces as the number of nodes per beam
+//	F0, F1, ..., F(m-1) : Forces on nodes 0, 1, 2, ..., m-1
+//	Fi ---> flexNodesForces[numSavedForcesSoFar + (i * numMarkersOnThisBeam + markerIndexOnThisBeam)];
+	//...
+	///////
+
+
+
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(
 		real3* rigidSPH_MeshPos_LRF_D,
 		real3* posRadD,
@@ -940,7 +978,12 @@ void UpdateFlexibleBody(
 		thrust::device_vector<real3> & ANCF_VelNodes,
 		thrust::device_vector<real3> & ANCF_VelSlopes,
 		thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeams,
-		const thrust::device_vector<real_> & flexIdentifierD,
+		thrust::device_vector<int> & ANCF_NumNodes_Per_Beam,
+		thrust::device_vector<int> & ANCF_NumMarkers_Per_Beam,
+		thrust::device_vector<int> & ANCF_NumNodesMultMarkers_Per_Beam,
+		thrust::device_vector<int> & ANCF_NumNodesMultMarkers_Per_Beam_Cumul,
+
+		const thrust::device_vector<int> & flexIdentifierD,
 		const thrust::device_vector<real_> & parametricDist,
 		const thrust::host_vector<int2> & referenceArray,
 
@@ -964,17 +1007,23 @@ void UpdateFlexibleBody(
 
 	int numFlBcRigid = 2 + numRigidBodies;
 	int totalNumberOfFlexNodes = ANCF_ReferenceArrayNodesOnBeams[ANCF_ReferenceArrayNodesOnBeams.size() - 1].y;
-	int totalNumberOfFlexMarkers = referenceArray[numFlBcRigid + numFlexBodies - 1].y - referenceArray[numFlBcRigid].x;
+	int numFlex_SphMarkers = referenceArray[numFlBcRigid + numFlexBodies - 1].y - referenceArray[numFlBcRigid].x;
 
 
 	int startFlexParticle = (referenceArray[numFlBcRigid]).x;
 
-	thrust::device_vector<real3> flexNodesForces1();//(totalNumberOfFlexNodes * totalNumberOfFlexMarkers);
+	thrust::device_vector<real3> flexNodesForces1();//(totalNumberOfFlexNodes * totalNumberOfFlexMarkers); Size:sum(numNodesOfEachBeam*numSPH_MarkersOfEachBeam)
 	thrust::device_vector<real3> flexNodesForces2();//(totalNumberOfFlexNodes * totalNumberOfFlexMarkers);
 
 	uint nBlocks_numFlex_SphMarkers;
 	uint nThreads_SphMarkers;
-	computeGridSize(numRigid_SphMarkers, 256, nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);
+	computeGridSize(numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
+	MapForcesOnNodes<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(R3CAST(flexNodesForces1), R3CAST(flexNodesForces2),
+			I1CAST(flexIdentifierD),
+			I1CAST(ANCF_NumNodes_Per_Beam), I1CAST(ANCF_NumMarkers_Per_Beam), I1CAST(ANCF_NumNodesMultMarkers_Per_Beam), I1CAST(ANCF_NumNodesMultMarkers_Per_Beam_Cumul),
+			R1CAST(parametricDist),
+			R4CAST(derivVelRhoD),
+			numFlex_SphMarkers);
 
 
 
