@@ -461,7 +461,7 @@ __global__ void UpdateRigidBodyAngularVelocity_kernel(
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //updates the rigid body particles
-__global__ void UpdateRigidParticlesPosition(
+__global__ void UpdateRigidMarkersPosition(
 		real3 * posRadD,
 		real4 * velMasD,
 		const real3 * rigidSPH_MeshPos_LRF_D,
@@ -499,10 +499,39 @@ __global__ void UpdateRigidParticlesPosition(
 	velMasD[rigidParticleIndex] = R4(R3(vM_Rigid) + R3(dot(a1, omegaCrossS), dot(a2, omegaCrossS), dot(a3, omegaCrossS)), vM.w);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-//updates the rigid body particles
-__global__ void UpdateFlexParticlesPosition(
+//updates the flex body markers
+__global__ void UpdateFlexMarkersPosition(
 		real3 * posRadD,
 		real4 * velMasD,
+		int* flexIdentifierD,
+		real_* parametricDist,
+		real_* ANCF_Beam_Length,
+		int* ANCF_NumNodes_Per_Beam,
+		real3 * ANCF_Nodes,
+		real3 * ANCF_Slopes,
+		real3 * ANCF_VelNodes,
+		real3 * ANCF_VelSlopes,
+		int numFlex_SphMarkers) {
+
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	uint rigidParticleIndex = index + startRigidParticleD; // updatePortionD = [start, end] index of the update portion
+	if (index >= numRigid_SphParticlesD) {
+		return;
+	}
+	real_ t = parametricDist[index];
+	int rigidBodyIndex = flexIdentifierD[index];
+	real_ l = ANCF_Beam_Length[rigidBodyIndex];
+	int nNodes = ANCF_NumNodes_Per_Beam[rigidBodyIndex];
+
+	int indexOfClosestNode = int(t / l) * nNodes;
+	if (indexOfClosestNode == nNodes) indexOfClosestNode--;
+
+
+
+
+
+
+
 		const real3 * rigidSPH_MeshPos_LRF_D,
 		const int * rigidIdentifierD,
 		real3 * posRigidD,
@@ -962,7 +991,7 @@ void UpdateRigidBody(
 
 	LF_totalTorque3.clear();
 	//################################################### update rigid body things
-	UpdateRigidParticlesPosition<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(R3CAST(posRadD), R4CAST(velMasD), R3CAST(rigidSPH_MeshPos_LRF_D), I1CAST(rigidIdentifierD), R3CAST(posRigidD), R4CAST(velMassRigidD), R3CAST(omegaLRF_D), R3CAST(AD1), R3CAST(AD2), R3CAST(AD3));
+	UpdateRigidMarkersPosition<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(R3CAST(posRadD), R4CAST(velMasD), R3CAST(rigidSPH_MeshPos_LRF_D), I1CAST(rigidIdentifierD), R3CAST(posRigidD), R4CAST(velMassRigidD), R3CAST(omegaLRF_D), R3CAST(AD1), R3CAST(AD2), R3CAST(AD3));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
 }
@@ -983,18 +1012,10 @@ void UpdateFlexibleBody(
 
 		const thrust::device_vector<int> & flexIdentifierD,
 		const thrust::device_vector<real_> & parametricDist,
+		const thrust::device_vector<real_> & ANCF_Beam_Length,
 		const thrust::host_vector<int2> & referenceArray,
 
-		thrust::device_vector<real4> & derivVelRhoD,
-
-		const thrust::device_vector<real3> & rigidSPH_MeshPos_LRF_D,
-		const thrust::device_vector<real3> & jD1,
-		const thrust::device_vector<real3> & jD2,
-		const thrust::device_vector<real3> & jInvD1,
-		const thrust::device_vector<real3> & jInvD2,
 		SimParams paramsH,
-		int startRigidMarkers,
-		int numRigid_SphMarkers,
 		float fracSimulation,
 		real_ dT) {
 	int numFlexBodies = ANCF_ReferenceArrayNodesOnBeams.size();
@@ -1058,8 +1079,22 @@ void UpdateFlexibleBody(
 //	//
 
 	//################################################### update rigid body things
-	UpdateRigidParticlesPosition<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(R3CAST(posRadD), R4CAST(velMasD), R3CAST(rigidSPH_MeshPos_LRF_D), I1CAST(rigidIdentifierD), R3CAST(posRigidD), R4CAST(velMassRigidD), R3CAST(omegaLRF_D), R3CAST(AD1), R3CAST(AD2), R3CAST(AD3));
+	computeGridSize(numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
+
+	UpdateFlexMarkersPosition<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(
+			R3CAST(posRadD), R4CAST(velMasD),
+			I1CAST(flexIdentifierD),
+			R1CAST(parametricDist),
+			R1CAST(ANCF_Beam_Length),
+			I1CAST(ANCF_NumNodes_Per_Beam),
+			R3CAST(ANCF_Nodes),
+			R3CAST(ANCF_Slopes),
+			R3CAST(ANCF_VelNodes),
+			R3CAST(ANCF_VelSlopes),
+			numFlex_SphMarkers);
+
 	cudaThreadSynchronize();
+
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
 
 
