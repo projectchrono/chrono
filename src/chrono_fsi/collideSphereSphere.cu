@@ -356,9 +356,9 @@ __global__ void Populate_FlexSPH_MeshPos_LRF_kernel(
 	int indexOfClosestNode = int(s / l) * nNodes;
 	if (indexOfClosestNode == nNodes) indexOfClosestNode--;
 
-	real3_ beamPointPos = ANCF_Point_Pos(ANCF_Nodes, ANCF_Slopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	real3 beamPointPos = ANCF_Point_Pos(ANCF_Nodes, ANCF_Slopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
 
-	real3_ dist3 = posRadD[absMarkerIndex] - beamPointPos;
+	real3 dist3 = posRadD[absMarkerIndex] - beamPointPos;
 	flexSPH_MeshPos_LRF_D[index] = dist3;
 }
 
@@ -535,6 +535,7 @@ __global__ void UpdateFlexMarkersPosition(
 		real3 * posRadD,
 		real4 * velMasD,
 		int* flexIdentifierD,
+		real3* flexSPH_MeshPos_LRF_D,
 		real_* parametricDist,
 		real_* ANCF_Beam_Length,
 		int* ANCF_NumNodes_Per_Beam,
@@ -556,54 +557,13 @@ __global__ void UpdateFlexMarkersPosition(
 	int indexOfClosestNode = int(s / l) * nNodes;
 	if (indexOfClosestNode == nNodes) indexOfClosestNode--;
 
-	real3_ beamPointPos = ANCF_Point_Pos(ANCF_Nodes, ANCF_Slopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
-	real3_ beamPointSlope = ANCF_Point_Slope(ANCF_Nodes, ANCF_Slopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
-	real3_ beamPointOmega;
+	real3 beamPointPos = ANCF_Point_Pos(ANCF_Nodes, ANCF_Slopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	real3 beamPointSlope = ANCF_Point_Slope(ANCF_Nodes, ANCF_Slopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	real3 beamPointOmega;
 
-	real3_ beamPointVel = ANCF_Point_Vel(ANCF_Nodes, ANCF_Slopes, ANCF_VelNodes, ANCF_VelSlopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	real3 beamPointVel = ANCF_Point_Vel(ANCF_Nodes, ANCF_Slopes, ANCF_VelNodes, ANCF_VelSlopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
 
-	real3_ ra = posRadD[absMarkerIndex];
-
-
-
-
-
-
-
-
-		const real3 * rigidSPH_MeshPos_LRF_D,
-		const int * rigidIdentifierD,
-		real3 * posRigidD,
-		real4 * velMassRigidD,
-		real3 * omegaLRF_D,
-		real3 * AD1,
-		real3 * AD2,
-		real3 * AD3) {
-
-	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	uint rigidMarkerIndex = index + startRigidMarkersD; // updatePortionD = [start, end] index of the update portion
-	if (index >= numRigid_SphMarkersD) {
-		return;
-	}
-	int rigidBodyIndex = rigidIdentifierD[index];
-
-	real3 a1, a2, a3;
-	a1 = AD1[rigidBodyIndex];
-	a2 = AD2[rigidBodyIndex];
-	a3 = AD3[rigidBodyIndex];
-
-	real3 rigidSPH_MeshPos_LRF = rigidSPH_MeshPos_LRF_D[index];
-
-	//position
-	real3 p_Rigid = posRigidD[rigidBodyIndex];
-	posRadD[rigidMarkerIndex] = p_Rigid + R3(dot(a1, rigidSPH_MeshPos_LRF), dot(a2, rigidSPH_MeshPos_LRF), dot(a3, rigidSPH_MeshPos_LRF));
-
-	//velociy
-	real4 vM = velMasD[rigidMarkerIndex];
-	real4 vM_Rigid = velMassRigidD[rigidBodyIndex];
-	real3 omega3 = omegaLRF_D[rigidBodyIndex];
-	real3 omegaCrossS = cross(omega3, rigidSPH_MeshPos_LRF);
-	velMasD[rigidMarkerIndex] = R4(R3(vM_Rigid) + R3(dot(a1, omegaCrossS), dot(a2, omegaCrossS), dot(a3, omegaCrossS)), vM.w);
+	real3 dist3 = flexSPH_MeshPos_LRF_D[index];
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void MapSPH_ToGrid(
@@ -1052,6 +1012,7 @@ void UpdateFlexibleBody(
 		thrust::device_vector<int> & ANCF_NumNodesMultMarkers_Per_Beam_Cumul,
 
 		const thrust::device_vector<int> & flexIdentifierD,
+		const thrust::device_vector<real3> & flexSPH_MeshPos_LRF_D,
 		const thrust::device_vector<real_> & parametricDist,
 		const thrust::device_vector<real_> & ANCF_Beam_Length,
 		const thrust::host_vector<int2> & referenceArray,
@@ -1119,6 +1080,7 @@ void UpdateFlexibleBody(
 	UpdateFlexMarkersPosition<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(
 			R3CAST(posRadD), R4CAST(velMasD),
 			I1CAST(flexIdentifierD),
+			R3CAST(flexSPH_MeshPos_LRF_D),
 			R1CAST(parametricDist),
 			R1CAST(ANCF_Beam_Length),
 			I1CAST(ANCF_NumNodes_Per_Beam),
