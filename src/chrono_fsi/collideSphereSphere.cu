@@ -273,7 +273,7 @@ __global__ void SumSurfaceInteractionForces(real3 * totalForcesRigid3, real4 * t
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void CalcTorqueShare(real3* torqueParticlesD, real4* derivVelRhoD, real3* posRadD, int* rigidIdentifierD, real3* posRigidD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	uint rigidMarkerIndex = index + startRigidMarkersD; // updatePortionD = [start, end] index of the update portion
+	uint rigidMarkerIndex = index + startRigidMarkersD;
 	if (index >= numRigid_SphMarkersD) {
 		return;
 	}
@@ -292,22 +292,24 @@ __global__ void MapForcesOnNodes(
 		int* ANCF_NumNodesMultMarkers_Per_Beam_Cumul, //exclusive scan
 		real_* parametricDist,
 		real4* derivVelRhoD,
-		real_ markerMass,
-		int numFlex_SphMarkers) {
+		real_ markerMass)
+{
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	if (index >= numFlex_SphMarkers) {
+	if (index >= numFlex_SphMarkersD) {
 		return;
 	}
+	uint absMarkerIndex = index + startFlexMarkersD;
 	real_ s = parametricDist[index];
-	real3 derivVel = F3(derivVelRhoD[index]);
+
+	real3 derivVel = F3( derivVelRhoD[absMarkerIndex] );
 	real3 markerForce = markerMass * derivVel;
 
-	int flexIndex = flexIdentifierD[index];
-	int numFlexMarkersPreviousBeamsTotal = ANCF_NumMarkers_Per_Beam_cumul[flexIndex];
-	int numSavedForcesSoFar = ANCF_NumNodesMultMarkers_Per_Beam_Cumul[flexIndex];
-	int markerIndexOnThisBeam = index - numFlexMarkersPreviousBeamsTotal
+	int flexBodyIndex = flexIdentifierD[index];
+	int numFlexMarkersPreviousBeamsTotal = ANCF_NumMarkers_Per_Beam_cumul[flexBodyIndex];
+	int numSavedForcesSoFar = ANCF_NumNodesMultMarkers_Per_Beam_Cumul[flexBodyIndex];
+		int markerIndexOnThisBeam = index - numFlexMarkersPreviousBeamsTotal
 
-	int numMarkersOnThisBeam = ANCF_NumMarkers_Per_Beam[flexIndex];
+		int numMarkersOnThisBeam = ANCF_NumMarkers_Per_Beam[flexBodyIndex];
 
 	//TODO: Map Marker Force to ANCF Nodes, gives you as many forces as the number of nodes per beam
 //	F0, F1, ..., F(m-1) : Forces on nodes 0, 1, 2, ..., m-1
@@ -321,17 +323,45 @@ __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(
 		real3* rigidSPH_MeshPos_LRF_D,
 		real3* posRadD,
 		int* rigidIdentifierD,
-		real3* posRigidD,
-		int startRigidParticleH,
-		int numRigid_SphParticlesH) {
+		real3* posRigidD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	uint rigidMarkerIndex = index + startRigidParticleH; // updatePortionD = [start, end] index of the update portion
-	if (index >= numRigid_SphParticlesH) {
+	uint rigidMarkerIndex = index + startRigidMarkersD; // updatePortionD = [start, end] index of the update portion
+	if (index >= numRigid_SphParticlesD) {
 		return;
 	}
 	real3 dist3 = posRadD[rigidMarkerIndex] - posRigidD[rigidIdentifierD[index]];
 	rigidSPH_MeshPos_LRF_D[index] = dist3;
 }
+//--------------------------------------------------------------------------------------------------------------------------------
+
+__global__ void Populate_FlexSPH_MeshPos_LRF_kernel(
+		real3* flexSPH_MeshPos_LRF_D,
+		real3 * posRadD,
+		int* flexIdentifierD,
+		real_* parametricDist,
+		real_* ANCF_Beam_Length,
+		int* ANCF_NumNodes_Per_Beam,
+		real3 * ANCF_Nodes,
+		real3 * ANCF_Slopes) {
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	if (index >= numFlex_SphMarkersD) {
+		return;
+	}
+	uint absMarkerIndex = index + startFlexMarkersD; // updatePortionD = [start, end] index of the update portion
+	real_ s = parametricDist[index];
+	int flexBodyIndex = flexIdentifierD[index];
+	real_ l = ANCF_Beam_Length[flexBodyIndex];
+	int nNodes = ANCF_NumNodes_Per_Beam[flexBodyIndex];
+
+	int indexOfClosestNode = int(s / l) * nNodes;
+	if (indexOfClosestNode == nNodes) indexOfClosestNode--;
+
+	real3_ beamPointPos = ANCF_Point_Pos(ANCF_Nodes, ANCF_Slopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+
+	real3_ dist3 = posRadD[absMarkerIndex] - beamPointPos;
+	flexSPH_MeshPos_LRF_D[index] = dist3;
+}
+
 //--------------------------------------------------------------------------------------------------------------------------------
 //the rigid body torque has been calculated in global RF. This kernel maps it to local RF to be appropriate for the formulas
 //local torque = T' = A' * T
@@ -511,14 +541,13 @@ __global__ void UpdateFlexMarkersPosition(
 		real3 * ANCF_Nodes,
 		real3 * ANCF_Slopes,
 		real3 * ANCF_VelNodes,
-		real3 * ANCF_VelSlopes,
-		int numFlex_SphMarkers) {
+		real3 * ANCF_VelSlopes) {
 
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	if (index >= numFlex_SphMarkers) {
+	if (index >= numFlex_SphMarkersD) {
 		return;
 	}
-	uint flexMarkerIndex = index + startFlexMarkersD; // updatePortionD = [start, end] index of the update portion
+	uint absMarkerIndex = index + startFlexMarkersD; // updatePortionD = [start, end] index of the update portion
 	real_ s = parametricDist[index];
 	int flexBodyIndex = flexIdentifierD[index];
 	real_ l = ANCF_Beam_Length[flexBodyIndex];
@@ -533,7 +562,7 @@ __global__ void UpdateFlexMarkersPosition(
 
 	real3_ beamPointVel = ANCF_Point_Vel(ANCF_Nodes, ANCF_Slopes, ANCF_VelNodes, ANCF_VelSlopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
 
-	real3_ r =
+	real3_ ra = posRadD[absMarkerIndex];
 
 
 
@@ -1010,6 +1039,8 @@ void UpdateFlexibleBody(
 		thrust::device_vector<real3> & posRadD,
 		thrust::device_vector<real4> & velMasD,
 		const int numRigidBodies,
+		const int numFlexBodies,
+		const int numFlex_SphMarkers,
 		thrust::device_vector<real3> & ANCF_Nodes,
 		thrust::device_vector<real3> & ANCF_Slopes,
 		thrust::device_vector<real3> & ANCF_VelNodes,
@@ -1028,15 +1059,13 @@ void UpdateFlexibleBody(
 		SimParams paramsH,
 		float fracSimulation,
 		real_ dT) {
-	int numFlexBodies = ANCF_ReferenceArrayNodesOnBeams.size();
-	if (referenceArray.size() < 3 || numFlexBodies < 1) {
+	if (numFlexBodies == 0) {
 		return;
 	}
 	cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(dT));
 
 	int numFlBcRigid = 2 + numRigidBodies;
 	int totalNumberOfFlexNodes = ANCF_ReferenceArrayNodesOnBeams[ANCF_ReferenceArrayNodesOnBeams.size() - 1].y;
-	int numFlex_SphMarkers = referenceArray[numFlBcRigid + numFlexBodies - 1].y - referenceArray[numFlBcRigid].x;
 
 	thrust::device_vector<real3> flexNodesForces1();//(totalNumberOfFlexNodes); Size:sum(numNodesOfEachBeam*numSPH_MarkersOfEachBeam)
 	thrust::device_vector<real3> flexNodesForces2();
@@ -1056,8 +1085,7 @@ void UpdateFlexibleBody(
 			I1CAST(ANCF_NumNodesMultMarkers_Per_Beam_Cumul),
 			R1CAST(parametricDist),
 			R4CAST(derivVelRhoD),
-			markerMass,
-			numFlex_SphMarkers);
+			markerMass);
 
 	if (nodesAndFlexPairIdentifier.size() != flexNodesForcesAllMarkers1.size()) {
 		printf("we have size inconsistency between flex nodesForces and nodesPair identifier");
@@ -1097,8 +1125,8 @@ void UpdateFlexibleBody(
 			R3CAST(ANCF_Nodes),
 			R3CAST(ANCF_Slopes),
 			R3CAST(ANCF_VelNodes),
-			R3CAST(ANCF_VelSlopes),
-			numFlex_SphMarkers);
+			R3CAST(ANCF_VelSlopes)
+			);
 
 	cudaThreadSynchronize();
 
@@ -1184,7 +1212,7 @@ void cudaCollisions(
 		//******************** rigid body some initialization
 	thrust::device_vector<int> rigidIdentifierD(0);
 
-	real_ rigid_SPH_mass;
+	real_ rigid_SPH_mass;																					//____________________________> typical mass, save to constant memory
 	int numRigid_SphMarkers = 0;
 	int startRigidMarkers = (referenceArray[1]).y;
 	if (referenceArray.size() > 2) {
@@ -1209,22 +1237,8 @@ void cudaCollisions(
 	cudaMemcpyToSymbolAsync(numRigid_SphMarkersD, &numRigid_SphMarkers, sizeof(numRigid_SphMarkers)); //can be defined outside of the kernel, and only once
 
 	printf("a7 yoho\n");
-	//******************************************************************************
-	//******************** flex body some initialization
 
-	int numFlBcRigid = 2 + numRigidBodies;
-	int numFlexBodies = ANCF_Beam_Length.size();
-//	int totalNumberOfFlexNodes = ANCF_ReferenceArrayNodesOnBeams[ANCF_ReferenceArrayNodesOnBeams.size() - 1].y;
-//	int numFlex_SphMarkers = referenceArray[numFlBcRigid + numFlexBodies - 1].y - referenceArray[numFlBcRigid].x;
-
-
-	int startFlexMarkers = (referenceArray[numFlBcRigid-1]).y;
-	cudaMemcpyToSymbolAsync(startFlexMarkersD, &startFlexMarkers, sizeof(startFlexMarkers)); //can be defined outside of the kernel, and only once
-	numFlex_SphMarkers = referenceArray[numFlBcRigid + numFlexBodies - 1].y - startRigidMarkers;
-	cudaMemcpyToSymbolAsync(numFlex_SphMarkersD, &numFlex_SphMarkers, sizeof(numFlex_SphMarkers)); //can be defined outside of the kernel, and only once
-	//******************************************************************************
-
-
+		//******************************************************************************
 	thrust::device_vector<real3> rigidSPH_MeshPos_LRF_D(numRigid_SphMarkers);
 	uint nBlocks_numRigid_SphMarkers;
 	uint nThreads_SphMarkers;
@@ -1232,7 +1246,27 @@ void cudaCollisions(
 	printf("before first kernel\n");
 	Populate_RigidSPH_MeshPos_LRF_kernel<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(R3CAST(rigidSPH_MeshPos_LRF_D), R3CAST(posRadD), I1CAST(rigidIdentifierD), R3CAST(posRigidD), startRigidMarkers, numRigid_SphMarkers);
 	cudaThreadSynchronize();
+	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueShare");	printf("after first kernel\n");
+	//******************************************************************************
+	//******************** flex body some initialization
+
+	int numFlBcRigid = 2 + numRigidBodies;
+	int numFlexBodies = ANCF_Beam_Length.size();
+//	int totalNumberOfFlexNodes = ANCF_ReferenceArrayNodesOnBeams[ANCF_ReferenceArrayNodesOnBeams.size() - 1].y;
+	int startFlexMarkers = (referenceArray[numFlBcRigid-1]).y;
+	int numFlex_SphMarkers = referenceArray[numFlBcRigid + numFlexBodies - 1].y - startFlexMarkers;
+	cudaMemcpyToSymbolAsync(startFlexMarkersD, &startFlexMarkers, sizeof(startFlexMarkers)); //can be defined outside of the kernel, and only once
+	cudaMemcpyToSymbolAsync(numFlex_SphMarkersD, &numFlex_SphMarkers, sizeof(numFlex_SphMarkers)); //can be defined outside of the kernel, and only once
+		//******************************************************************************
+	thrust::device_vector<real3> flexSPH_MeshPos_LRF_D(numFlex_SphMarkers);
+	uint nBlocks_numFlex_SphMarkers;
+	uint nThreads_SphMarkers;
+	computeGridSize(numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
+	printf("before first kernel\n");
+	Populate_FlexSPH_MeshPos_LRF_kernel<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>//(R3CAST(rigidSPH_MeshPos_LRF_D), R3CAST(posRadD), I1CAST(rigidIdentifierD), R3CAST(posRigidD), startRigidMarkers, numRigid_SphMarkers);
+	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueShare");	printf("after first kernel\n");
+
 	//******************************************************************************
 	thrust::device_vector<real4> qD1 = mQuatRot;
 	thrust::device_vector<real3> AD1(numRigidBodies);
@@ -1382,6 +1416,7 @@ void cudaCollisions(
 	derivVelRhoD.clear();
 	rigidIdentifierD.clear();
 	rigidSPH_MeshPos_LRF_D.clear();
+	flexSPH_MeshPos_LRF_D.clear();
 	qD1.clear();
 	AD1.clear();
 	AD2.clear();
