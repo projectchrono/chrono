@@ -26,9 +26,10 @@ __constant__ real3 cMaxD;
 __constant__ int2 portionD;
 __constant__ int flagD;
 __constant__ int numRigidBodiesD;
-__constant__ int startRigidParticleD;
-__constant__ int numRigid_SphParticlesD;
-
+__constant__ int startRigidMarkersD;
+__constant__ int startFlexMarkersD;
+__constant__ int numRigid_SphMarkersD;
+__constant__ int numFlex_SphMarkersD;
 
 int maxblock = 65535;
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -272,12 +273,12 @@ __global__ void SumSurfaceInteractionForces(real3 * totalForcesRigid3, real4 * t
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void CalcTorqueShare(real3* torqueParticlesD, real4* derivVelRhoD, real3* posRadD, int* rigidIdentifierD, real3* posRigidD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	uint rigidParticleIndex = index + startRigidParticleD; // updatePortionD = [start, end] index of the update portion
-	if (index >= numRigid_SphParticlesD) {
+	uint rigidMarkerIndex = index + startRigidMarkersD; // updatePortionD = [start, end] index of the update portion
+	if (index >= numRigid_SphMarkersD) {
 		return;
 	}
-	real3 dist3 = Distance(posRadD[rigidParticleIndex], posRigidD[rigidIdentifierD[index]]);
-	torqueParticlesD[index] = cross(dist3, R3(derivVelRhoD[rigidParticleIndex]));
+	real3 dist3 = Distance(posRadD[rigidMarkerIndex], posRigidD[rigidIdentifierD[index]]);
+	torqueParticlesD[index] = cross(dist3, R3(derivVelRhoD[rigidMarkerIndex]));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void MapForcesOnNodes(
@@ -297,7 +298,7 @@ __global__ void MapForcesOnNodes(
 	if (index >= numFlex_SphMarkers) {
 		return;
 	}
-	real_ t = parametricDist[index];
+	real_ s = parametricDist[index];
 	real3 derivVel = F3(derivVelRhoD[index]);
 	real3 markerForce = markerMass * derivVel;
 
@@ -324,11 +325,11 @@ __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(
 		int startRigidParticleH,
 		int numRigid_SphParticlesH) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	uint rigidParticleIndex = index + startRigidParticleH; // updatePortionD = [start, end] index of the update portion
+	uint rigidMarkerIndex = index + startRigidParticleH; // updatePortionD = [start, end] index of the update portion
 	if (index >= numRigid_SphParticlesH) {
 		return;
 	}
-	real3 dist3 = posRadD[rigidParticleIndex] - posRigidD[rigidIdentifierD[index]];
+	real3 dist3 = posRadD[rigidMarkerIndex] - posRigidD[rigidIdentifierD[index]];
 	rigidSPH_MeshPos_LRF_D[index] = dist3;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -474,10 +475,10 @@ __global__ void UpdateRigidMarkersPosition(
 		real3 * AD3) {
 
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	uint rigidParticleIndex = index + startRigidParticleD; // updatePortionD = [start, end] index of the update portion
-	if (index >= numRigid_SphParticlesD) {
+	if (index >= numRigid_SphMarkersD) {
 		return;
 	}
+	uint rigidMarkerIndex = index + startRigidMarkersD; // updatePortionD = [start, end] index of the update portion
 	int rigidBodyIndex = rigidIdentifierD[index];
 
 	real3 a1, a2, a3;
@@ -489,14 +490,14 @@ __global__ void UpdateRigidMarkersPosition(
 
 	//position
 	real3 p_Rigid = posRigidD[rigidBodyIndex];
-	posRadD[rigidParticleIndex] = p_Rigid + R3(dot(a1, rigidSPH_MeshPos_LRF), dot(a2, rigidSPH_MeshPos_LRF), dot(a3, rigidSPH_MeshPos_LRF));
+	posRadD[rigidMarkerIndex] = p_Rigid + R3(dot(a1, rigidSPH_MeshPos_LRF), dot(a2, rigidSPH_MeshPos_LRF), dot(a3, rigidSPH_MeshPos_LRF));
 
 	//velociy
-	real4 vM = velMasD[rigidParticleIndex];
+	real4 vM = velMasD[rigidMarkerIndex];
 	real4 vM_Rigid = velMassRigidD[rigidBodyIndex];
 	real3 omega3 = omegaLRF_D[rigidBodyIndex];
 	real3 omegaCrossS = cross(omega3, rigidSPH_MeshPos_LRF);
-	velMasD[rigidParticleIndex] = R4(R3(vM_Rigid) + R3(dot(a1, omegaCrossS), dot(a2, omegaCrossS), dot(a3, omegaCrossS)), vM.w);
+	velMasD[rigidMarkerIndex] = R4(R3(vM_Rigid) + R3(dot(a1, omegaCrossS), dot(a2, omegaCrossS), dot(a3, omegaCrossS)), vM.w);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //updates the flex body markers
@@ -514,17 +515,26 @@ __global__ void UpdateFlexMarkersPosition(
 		int numFlex_SphMarkers) {
 
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	uint rigidParticleIndex = index + startRigidParticleD; // updatePortionD = [start, end] index of the update portion
-	if (index >= numRigid_SphParticlesD) {
+	if (index >= numFlex_SphMarkers) {
 		return;
 	}
-	real_ t = parametricDist[index];
-	int rigidBodyIndex = flexIdentifierD[index];
-	real_ l = ANCF_Beam_Length[rigidBodyIndex];
-	int nNodes = ANCF_NumNodes_Per_Beam[rigidBodyIndex];
+	uint flexMarkerIndex = index + startFlexMarkersD; // updatePortionD = [start, end] index of the update portion
+	real_ s = parametricDist[index];
+	int flexBodyIndex = flexIdentifierD[index];
+	real_ l = ANCF_Beam_Length[flexBodyIndex];
+	int nNodes = ANCF_NumNodes_Per_Beam[flexBodyIndex];
 
-	int indexOfClosestNode = int(t / l) * nNodes;
+	int indexOfClosestNode = int(s / l) * nNodes;
 	if (indexOfClosestNode == nNodes) indexOfClosestNode--;
+
+	real3_ beamPointPos = ANCF_Point_Pos(ANCF_Nodes, ANCF_Slopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	real3_ beamPointSlope = ANCF_Point_Slope(ANCF_Nodes, ANCF_Slopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	real3_ beamPointOmega;
+
+	real3_ beamPointVel = ANCF_Point_Vel(ANCF_Nodes, ANCF_Slopes, ANCF_VelNodes, ANCF_VelSlopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+
+	real3_ r =
+
 
 
 
@@ -542,8 +552,8 @@ __global__ void UpdateFlexMarkersPosition(
 		real3 * AD3) {
 
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	uint rigidParticleIndex = index + startRigidParticleD; // updatePortionD = [start, end] index of the update portion
-	if (index >= numRigid_SphParticlesD) {
+	uint rigidMarkerIndex = index + startRigidMarkersD; // updatePortionD = [start, end] index of the update portion
+	if (index >= numRigid_SphMarkersD) {
 		return;
 	}
 	int rigidBodyIndex = rigidIdentifierD[index];
@@ -557,14 +567,14 @@ __global__ void UpdateFlexMarkersPosition(
 
 	//position
 	real3 p_Rigid = posRigidD[rigidBodyIndex];
-	posRadD[rigidParticleIndex] = p_Rigid + R3(dot(a1, rigidSPH_MeshPos_LRF), dot(a2, rigidSPH_MeshPos_LRF), dot(a3, rigidSPH_MeshPos_LRF));
+	posRadD[rigidMarkerIndex] = p_Rigid + R3(dot(a1, rigidSPH_MeshPos_LRF), dot(a2, rigidSPH_MeshPos_LRF), dot(a3, rigidSPH_MeshPos_LRF));
 
 	//velociy
-	real4 vM = velMasD[rigidParticleIndex];
+	real4 vM = velMasD[rigidMarkerIndex];
 	real4 vM_Rigid = velMassRigidD[rigidBodyIndex];
 	real3 omega3 = omegaLRF_D[rigidBodyIndex];
 	real3 omegaCrossS = cross(omega3, rigidSPH_MeshPos_LRF);
-	velMasD[rigidParticleIndex] = R4(R3(vM_Rigid) + R3(dot(a1, omegaCrossS), dot(a2, omegaCrossS), dot(a3, omegaCrossS)), vM.w);
+	velMasD[rigidMarkerIndex] = R4(R3(vM_Rigid) + R3(dot(a1, omegaCrossS), dot(a2, omegaCrossS), dot(a3, omegaCrossS)), vM.w);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void MapSPH_ToGrid(
@@ -1028,9 +1038,6 @@ void UpdateFlexibleBody(
 	int totalNumberOfFlexNodes = ANCF_ReferenceArrayNodesOnBeams[ANCF_ReferenceArrayNodesOnBeams.size() - 1].y;
 	int numFlex_SphMarkers = referenceArray[numFlBcRigid + numFlexBodies - 1].y - referenceArray[numFlBcRigid].x;
 
-
-	int startFlexParticle = (referenceArray[numFlBcRigid]).x;
-
 	thrust::device_vector<real3> flexNodesForces1();//(totalNumberOfFlexNodes); Size:sum(numNodesOfEachBeam*numSPH_MarkersOfEachBeam)
 	thrust::device_vector<real3> flexNodesForces2();
 
@@ -1198,11 +1205,25 @@ void cudaCollisions(
 		rigid_SPH_mass = 100 * dummyFluid.w;
 	}
 	cutilSafeCall( cudaMemcpyToSymbolAsync(rigid_SPH_massD, &rigid_SPH_mass, sizeof(rigid_SPH_mass)));
-	cudaMemcpyToSymbolAsync(startRigidParticleD, &startRigidMarkers, sizeof(startRigidMarkers)); //can be defined outside of the kernel, and only once
-	cudaMemcpyToSymbolAsync(numRigid_SphParticlesD, &numRigid_SphMarkers, sizeof(numRigid_SphMarkers)); //can be defined outside of the kernel, and only once
+	cudaMemcpyToSymbolAsync(startRigidMarkersD, &startRigidMarkers, sizeof(startRigidMarkers)); //can be defined outside of the kernel, and only once
+	cudaMemcpyToSymbolAsync(numRigid_SphMarkersD, &numRigid_SphMarkers, sizeof(numRigid_SphMarkers)); //can be defined outside of the kernel, and only once
 
 	printf("a7 yoho\n");
 	//******************************************************************************
+	//******************** flex body some initialization
+
+	int numFlBcRigid = 2 + numRigidBodies;
+	int numFlexBodies = ANCF_Beam_Length.size();
+//	int totalNumberOfFlexNodes = ANCF_ReferenceArrayNodesOnBeams[ANCF_ReferenceArrayNodesOnBeams.size() - 1].y;
+//	int numFlex_SphMarkers = referenceArray[numFlBcRigid + numFlexBodies - 1].y - referenceArray[numFlBcRigid].x;
+
+
+	int startFlexMarkers = (referenceArray[numFlBcRigid-1]).y;
+	cudaMemcpyToSymbolAsync(startFlexMarkersD, &startFlexMarkers, sizeof(startFlexMarkers)); //can be defined outside of the kernel, and only once
+	numFlex_SphMarkers = referenceArray[numFlBcRigid + numFlexBodies - 1].y - startRigidMarkers;
+	cudaMemcpyToSymbolAsync(numFlex_SphMarkersD, &numFlex_SphMarkers, sizeof(numFlex_SphMarkers)); //can be defined outside of the kernel, and only once
+	//******************************************************************************
+
 
 	thrust::device_vector<real3> rigidSPH_MeshPos_LRF_D(numRigid_SphMarkers);
 	uint nBlocks_numRigid_SphMarkers;
