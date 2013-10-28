@@ -53,7 +53,7 @@ void Cone_single(real & gamma_n, real & gamma_s, const real & mu) {
 
 }
 
-void func_Project(uint &index, uint number_of_contacts, int2 *ids, real *fric, real* cohesion, real *gam) {
+void func_Project(int &index, uint number_of_contacts, int2 *ids, real *fric, real* cohesion, real *gam) {
 	int2 body_id = ids[index];
 	real3 gamma;
 	gamma.x = gam[index + number_of_contacts * 0];
@@ -86,7 +86,7 @@ void func_Project(uint &index, uint number_of_contacts, int2 *ids, real *fric, r
 	gam[index + number_of_contacts * 2] = gamma.z;
 
 }
-void func_Project_rolling(uint &index, uint number_of_contacts, int2 *ids, real *fric_roll, real* fric_spin, real* cohesion, real *gam, bool solve_spinning) {
+void func_Project_rolling(int &index, uint number_of_contacts, int2 *ids, real *fric_roll, real* fric_spin, real* cohesion, real *gam, bool solve_spinning) {
 	real3 gamma_roll = R3(0);
 	int2 body_id = ids[index];
 	real rollingfriction = (fric_roll[body_id.x] == 0 || fric_roll[body_id.y] == 0) ? 0 : (fric_roll[body_id.x] + fric_roll[body_id.y]) * .5;
@@ -127,7 +127,7 @@ void func_Project_rolling(uint &index, uint number_of_contacts, int2 *ids, real 
 
 void ChConstraintRigidRigid::host_Project(int2 *ids, real *friction, real *friction_roll, real *friction_spin, real* cohesion, real *gamma) {
 #pragma omp parallel for
-	for (uint index = 0; index < number_of_rigid_rigid; index++) {
+	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		//always project normal
 
 		if (solve_sliding) {
@@ -170,7 +170,7 @@ void ChConstraintRigidRigid::Project(custom_vector<real> & gamma) {
 void ChConstraintRigidRigid::host_RHS(int2 *ids, real *correction, real * compliance, bool * active, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs) {
 
 #pragma omp parallel for
-	for (uint index = 0; index < number_of_rigid_rigid; index++) {
+	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		uint b1 = ids[index].x;
 		uint b2 = ids[index].y;
 		real3 temp = R3(0);
@@ -220,7 +220,7 @@ void ChConstraintRigidRigid::host_RHS_spinning(
 		real *rhs) {
 
 #pragma omp parallel for
-	for (uint index = 0; index < number_of_rigid_rigid; index++) {
+	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		uint b1 = ids[index].x;
 		uint b2 = ids[index].y;
 		real3 temp = R3(0);
@@ -289,7 +289,7 @@ void ChConstraintRigidRigid::ComputeRHS() {
 			data_container->host_data.rhs_data.data());
 
 //#pragma omp parallel for
-//	for (uint index = 0; index < number_of_rigid_rigid; index++) {
+//	for (int index = 0; index < number_of_rigid_rigid; index++) {
 //		uint b1 = data_container->host_data.bids_rigid_rigid[index].x;
 //		uint b2 = data_container->host_data.bids_rigid_rigid[index].y;
 //
@@ -349,7 +349,7 @@ __host__ __device__ void inline Compute_Jacobian_Rolling(const real4& quaternion
 
 void ChConstraintRigidRigid::host_Jacobians(real3* norm, real3* ptA, real3* ptB, int2* ids, real4* rot, real3* pos, real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB) {
 #pragma omp parallel for
-	for (uint index = 0; index < number_of_rigid_rigid; index++) {
+	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		real3 U = norm[index];
 
 		if (U == R3(0, 0, 0)) {
@@ -403,7 +403,7 @@ void ChConstraintRigidRigid::host_Jacobians(real3* norm, real3* ptA, real3* ptB,
 
 void ChConstraintRigidRigid::host_Jacobians_Rolling(real3* norm, real3* ptA, real3* ptB, int2* ids, real4* rot, real3* pos, real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB) {
 #pragma omp parallel for
-	for (uint index = 0; index < number_of_rigid_rigid; index++) {
+	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		real3 U = norm[index];
 
 		if (U == R3(0, 0, 0)) {
@@ -556,7 +556,7 @@ void ChConstraintRigidRigid::host_shurB(
 		real *AX) {
 
 #pragma omp parallel for
-	for (uint index = 0; index < number_of_rigid_rigid; index++) {
+	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		real3 temp = R3(0);
 
 		int2 id_ = ids[index];
@@ -616,7 +616,7 @@ void ChConstraintRigidRigid::host_shurB_spinning(
 		real *AX) {
 
 #pragma omp parallel for
-	for (uint index = 0; index < number_of_rigid_rigid; index++) {
+	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		real3 temp = R3(0);
 		real3 temp_roll = R3(0);
 
@@ -650,7 +650,7 @@ void ChConstraintRigidRigid::host_shurB_spinning(
 }
 
 __host__ __device__ void function_Reduce_Shur(
-		uint& index,
+		int& index,
 		bool* active,
 		real3* QXYZ,
 		real3* QUVW,
@@ -679,14 +679,14 @@ __host__ __device__ void function_Reduce_Shur(
 
 void ChConstraintRigidRigid::host_Reduce_Shur(bool* active, real3* QXYZ, real3* QUVW, real *inv_mass, real3 *inv_inertia, real3* updateQXYZ, real3* updateQUVW, uint* d_body_num, uint* counter) {
 #pragma omp parallel for schedule(dynamic, 100)
-	for (uint index = 0; index < number_of_updates; index++) {
+	for (int index = 0; index < number_of_updates; index++) {
 		function_Reduce_Shur(index, active, QXYZ, QUVW, inv_mass, inv_inertia, updateQXYZ, updateQUVW, d_body_num, counter);
 	}
 }
 
 void ChConstraintRigidRigid::host_Offsets(int2* ids, uint* Body) {
 #pragma omp parallel for
-	for (uint index = 0; index < number_of_rigid_rigid; index++) {
+	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		if (index < number_of_rigid_rigid) {
 			int2 temp_id = ids[index];
 			Body[index] = temp_id.x;
@@ -766,7 +766,7 @@ void ChConstraintRigidRigid::ShurB(custom_vector<real> &x, custom_vector<real> &
 }
 void ChConstraintRigidRigid::host_Diag(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real* diag) {
 #pragma omp parallel for schedule(dynamic, 100)
-	for (uint index = 0; index < number_of_rigid_rigid; index++) {
+	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		real3 temp = R3(0);
 		int2 id_ = ids[index];
 		uint b1 = id_.x;
