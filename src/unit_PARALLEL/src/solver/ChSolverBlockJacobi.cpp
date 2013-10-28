@@ -14,7 +14,7 @@ __constant__ real compliance_const;
 __constant__ real complianceT_const;
 __constant__ real alpha_const; // [R]=alpha*[K]
 
-__host__ __device__ void function_Project_jacobi(uint & index, real3 & gamma, real* fric, int2* ids) {
+__host__ __device__ void function_Project_jacobi(int & index, real3 & gamma, real* fric, int2* ids) {
 	int2 body_id = ids[index];
 
 	real f_tang = sqrt(gamma.y * gamma.y + gamma.z * gamma.z);
@@ -40,7 +40,7 @@ __host__ __device__ void function_Project_jacobi(uint & index, real3 & gamma, re
 }
 
 __host__ __device__ void function_process_contacts(
-		uint &index, real& step_size, real& contact_recovery_speed, uint& number_of_contacts, real& lcp_omega_contact, real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB, real * rhs,
+		int &index, real& step_size, real& contact_recovery_speed, uint& number_of_contacts, real& lcp_omega_contact, real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB, real * rhs,
 		real* contactDepth, bool* active, int2* ids, real* G, real* dG, real* inv_mass, real* fric, real3* inv_inertia, real4* rot, real3* vel, real3* omega, real3* pos, real3* updateV,
 		real3* updateO, uint* offset) {
 
@@ -148,7 +148,7 @@ void ChSolverParallel::host_process_contacts(
 		real3* vel, real3* omega, real3* pos, real3* updateV, real3* updateO, uint* offset) {
 #pragma omp parallel for schedule(guided)
 
-	for (uint index = 0; index < number_of_rigid_rigid; index++) {
+	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		function_process_contacts(
 				index,
 				step_size,
@@ -185,7 +185,7 @@ void ChSolverParallel::host_process_contacts(
 //
 
 __host__ __device__ void function_Bilaterals(
-		uint& index, uint& number_of_bilaterals, uint& number_of_contacts, real& lcp_omega_bilateral, real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB, int2* bids, real* gamma, real* eta,
+		int& index, uint& number_of_bilaterals, uint& number_of_contacts, real& lcp_omega_bilateral, real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB, int2* bids, real* gamma, real* eta,
 		real* bi, real* mass, real3* inertia, real4* rot, real3* vel, real3* omega, real3* pos, real3* updateV, real3* updateO, uint* offset, real* dG) {
 	real3 vA;
 	real3 vB;
@@ -250,7 +250,7 @@ __host__ __device__ void function_Bilaterals(
 void ChSolverParallel::host_Bilaterals(
 		real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB, int2* bids, real* gamma, real* eta, real* bi, real* mass, real3* inertia, real4* rot, real3* vel, real3* omega, real3* pos,
 		real3* updateV, real3* updateO, uint* offset, real* dG) {
-	for (uint index = 0; index < number_of_bilaterals; index++) {
+	for (int index = 0; index < number_of_bilaterals; index++) {
 		function_Bilaterals(
 				index,
 				number_of_bilaterals,
@@ -281,7 +281,7 @@ void ChSolverParallel::host_Bilaterals(
 // Updates the speeds in the body buffer with values accumulated in the
 // reduction buffer:   V_new = V_old + delta_speeds
 
-__host__ __device__ void function_Reduce_Speeds(uint& index, bool* active, real* mass, real3* vel, real3* omega, real3* updateV, real3* updateO, uint* d_body_num, uint* counter) {
+__host__ __device__ void function_Reduce_Speeds(int& index, bool* active, real* mass, real3* vel, real3* omega, real3* updateV, real3* updateO, uint* d_body_num, uint* counter) {
 	int start = (index == 0) ? 0 : counter[index - 1], end = counter[index];
 	int id = d_body_num[end - 1], j;
 
@@ -303,12 +303,12 @@ __host__ __device__ void function_Reduce_Speeds(uint& index, bool* active, real*
 void ChSolverParallel::host_Reduce_Speeds(bool* active, real* mass, real3* vel, real3* omega, real3* updateV, real3* updateO, uint* d_body_num, uint* counter) {
 #pragma omp parallel for
 
-	for (uint index = 0; index < number_of_updates; index++) {
+	for (int index = 0; index < number_of_updates; index++) {
 		function_Reduce_Speeds(index, active, mass, vel, omega, updateV, updateO, d_body_num, counter);
 	}
 }
 //__global__ void device_Offsets(int2* ids, real4* bilaterals, uint* Body) {
-//	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+//	int index = blockIdx.x * blockDim.x + threadIdx.x;
 //
 //	if (index < number_of_contacts_const) {
 //		int2 temp_id = ids[index];
@@ -323,7 +323,7 @@ void ChSolverParallel::host_Reduce_Speeds(bool* active, real* mass, real3* vel, 
 //}
 //
 //void ChSolverJacobi::host_Offsets(int2* ids, real4* bilaterals, uint* Body) {
-//	for (uint index = 0; index < number_of_contacts+number_of_bilaterals; index++) {
+//	for (int index = 0; index < number_of_contacts+number_of_bilaterals; index++) {
 //		if (index < number_of_contacts) {
 //			int2 temp_id = ids[index];
 //			Body[index] = temp_id.x;
