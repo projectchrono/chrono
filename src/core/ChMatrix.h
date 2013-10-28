@@ -2065,6 +2065,26 @@ public:
 
 						return (rod);
 					}
+					/// Returns the absolute value of each element in the matrix
+	ChMatrix33<Real> Get_Abs_Matrix()
+				{
+		ChMatrix33<Real> temp;
+
+		temp.SetElement(0,0,fabs(GetElement(0,0)));
+		temp.SetElement(0,1,fabs(GetElement(0,1)));
+		temp.SetElement(0,2,fabs(GetElement(0,2)));
+
+		temp.SetElement(1,0,fabs(GetElement(1,0)));
+		temp.SetElement(1,1,fabs(GetElement(1,1)));
+		temp.SetElement(1,2,fabs(GetElement(1,2)));
+
+		temp.SetElement(2,0,fabs(GetElement(2,0)));
+		temp.SetElement(2,1,fabs(GetElement(2,1)));
+		temp.SetElement(2,2,fabs(GetElement(2,2)));
+
+		return temp;
+
+				}
 
 };
 
