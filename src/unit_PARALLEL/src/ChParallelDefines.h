@@ -16,7 +16,9 @@
 //#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
 //#define THRUST_HOST_SYSTEM THRUST_HOST_SYSTEM_OMP
 #endif
+#ifndef _MSC_VER
 #include <fenv.h>
+#endif
 #include <vector_types.h>
 #include <time.h>
 #include <iostream>
