@@ -101,17 +101,19 @@ public:
 						double& zmin, double& zmax,
 						ChMatrix33<>* Rot = NULL)
 				{
-					Vector trsfCenter = p1;
-					if (Rot)
-					{
-						trsfCenter = Rot->MatrT_x_Vect(p1);
-					}
-					xmin=trsfCenter.x-rad;
-					xmax=trsfCenter.x+rad;
-					ymin=trsfCenter.y-rad;
-					ymax=trsfCenter.y+rad;
-					zmin=trsfCenter.z-rad;
-					zmax=trsfCenter.z+rad;
+
+					Vector dims = Vector(rad, p2.y - p1.y, rad);
+					ChMatrix33<> rotation=Rot->Get_Abs_Matrix();
+					Vector temp = rotation.Matr_x_Vect(dims);
+					Vector pos = Baricenter();
+
+					xmin = pos.x-temp.x;
+					ymin = pos.y-temp.y;
+					zmin = pos.z-temp.z;
+
+					xmax = pos.x+temp.x;
+					ymax = pos.y+temp.y;
+					zmax = pos.z+temp.z;
 				}
 	
 	virtual ChVector<> Baricenter() {return (p1+p2)*0.5;};
