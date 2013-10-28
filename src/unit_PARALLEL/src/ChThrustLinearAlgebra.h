@@ -388,8 +388,8 @@ struct summary_stats_binary_op: public thrust::binary_function<const summary_sta
 
 			//Basic number of samples (n), min, and max
 			result.n = n;
-			result.min = thrust::min(x.min, y.min);
-			result.max = thrust::max(x.max, y.max);
+			result.min = fmin(x.min, y.min);
+			result.max = fmax(x.max, y.max);
 
 			result.mean = x.mean + delta * y.n / n;
 
