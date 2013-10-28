@@ -1648,7 +1648,8 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
 							   bool load_v,
 							   double F_factor,
 							   double K_factor,		
-							   double R_factor,		
+							   double R_factor,
+							   double M_factor,
 							   double Ct_factor,
 							   double C_factor,
 							   double recovery_clamp,
@@ -1693,7 +1694,7 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
 		if (load_jacobians)
 			PHpointer->ConstraintsLoadJacobians();
 		if (K_factor || R_factor)
-			PHpointer->KmatricesLoad(K_factor, R_factor);
+			PHpointer->KRMmatricesLoad(K_factor, R_factor, M_factor);
 		HIER_OTHERPHYSICS_NEXT
 	}
 
@@ -1727,7 +1728,7 @@ void ChSystem::LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor)
 	{
 		PHpointer->InjectVariables(mdescriptor);
 		PHpointer->InjectConstraints(mdescriptor);
-		PHpointer->InjectKmatrices(mdescriptor);
+		PHpointer->InjectKRMmatrices(mdescriptor);
 		HIER_OTHERPHYSICS_NEXT
 	}
 	this->contact_container->InjectConstraints(mdescriptor);
@@ -2058,6 +2059,7 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 					GetStep(),      // f*dt
 					GetStep()*GetStep(), // dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
 					GetStep(),		// dt*R   (nb only non-Schur based solvers support R matrix blocks)
+					1.0,			// M (for FEM with non-lumped masses, add their mass-matrixes)
 					1.0,		    // Ct   (needed, for rheonomic motors)
 					1.0/GetStep(),  // C/dt
 					max_penetration_recovery_speed,	 // vlim, max penetrations recovery speed (positive for exiting)
@@ -2200,6 +2202,7 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 					GetStep(),      // f*dt
 					GetStep()*GetStep(), // dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
 					GetStep(),		// dt*R   (nb only non-Schur based solvers support K matrix blocks)
+					1.0,			// M (for FEM with non-lumped masses, add their mass-matrices)
 					1.0,			// Ct      (needed, for rheonomic motors)
 					1.0/GetStep(),  // C/dt
 					0.0,			// max constr.recovery speed (positive for exiting) 
@@ -2275,6 +2278,7 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 					0,		// no forces
 					0,		// no K matrix
 					0,		// no R matrix
+					1.0,	// M (for FEM with non-lumped masses, add their mass-matrices)
 					0,		// no Ct term
 					1.0,	// C
 					0.0,	// recovery max speed (not used)
@@ -2376,6 +2380,7 @@ int ChSystem::DoAssembly(int action, int mflags)
 					0,		// no forces
 					0,		// no K matrix
 					0,		// no R matrix
+					1.0,	// M (for FEM with non-lumped masses, add their mass-matrices)
 					0,		// no Ct term
 					1.0,	// C
 					0.0,	// 
@@ -2441,6 +2446,7 @@ int ChSystem::DoAssembly(int action, int mflags)
 					foo_dt,		// f*dt
 					foo_dt*foo_dt,// dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
 					foo_dt,		// dt*R   (nb only non-Schur based solvers support K matrix blocks)
+					1.0,			// M (for FEM with non-lumped masses, add their mass-matrices)
 					1.0,		// Ct term
 					0,			// no C term
 					0.0,		// 
@@ -2496,7 +2502,7 @@ int ChSystem::DoStaticLinear()
 
 	// Fill known-term vectors with proper terms 0 and -C :
 	//
-	// | M+K -Cq'|*|Dpos|- |f |= |0| ,  c>=0, l>=0, l*c=0;
+	// | K   -Cq'|*|Dpos|- |f |= |0| ,  c>=0, l>=0, l*c=0;
 	// | Cq    0 | |l   |  |C |  |c|
 	//
 
@@ -2505,6 +2511,7 @@ int ChSystem::DoStaticLinear()
 			1.0,	// f  forces
 			1.0,	// K  matrix
 			0,		// no R matrix
+			0,		// no M matrix (for FEM with non-lumped masses, do not add their mass-matrices)
 			0,		// no Ct term
 			1.0,	// C constraint gap violation, if any
 			0.0,	// 

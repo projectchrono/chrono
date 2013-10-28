@@ -723,6 +723,7 @@ protected:
 							   double F_factor, 	///< load F (forces) in fb: fb+=F*F_factor
 							   double K_factor,		///< load K stiff.matrices, if any ChLcpKstiffness blocks, multiplied by K_factor
 							   double R_factor,		///< load R damp.matrices, if any ChLcpKstiffness blocks, multiplied by R_factor
+							   double M_factor,		///< load M mass.matrices, if any ChLcpKstiffness blocks, multiplied by M_factor (ex in non-lumped-mass FEM)
 							   double Ct_factor,	///< load Ct into bi:  bi+= Ct*Ct_factor
 							   double C_factor,		///< load C  into bi:  bi+= C*C_factor, otherwise..
 							   double recovery_clamp,///< if do_clamp=true,  bi+= min(C*C_factor, recovery_clamp); 

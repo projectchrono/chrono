@@ -64,16 +64,18 @@ public:
 			//
 
 				/// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
-				/// superimposes global damping matrix R, scaled by Rfactor. Corotational
-				/// elements can take the local Kl & Rl matrices and rotate them.
+				/// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M, 
+				/// scaled by Mfactor. 
+				/// Corotational elements can take the local Kl & Rl matrices and rotate them.
 				/// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
-	virtual void ComputeKRmatricesGlobal (ChMatrix<>& H, double Kfactor, double Rfactor=0) = 0;
+	virtual void ComputeKRMmatricesGlobal (ChMatrix<>& H, double Kfactor, double Rfactor=0, double Mfactor=0) = 0;
 
 				/// Sets Hl as the local stiffness matrix K, scaled  by Kfactor. Optionally, also
-				/// superimposes local damping matrix R, scaled by Rfactor.
+				/// superimposes local damping matrix R, scaled by Rfactor, and local mass matrix M, 
+				/// scaled by Mfactor. 
 				/// This is usually called only once in the simulation. 
 				/// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
-	virtual void ComputeKRmatricesLocal (ChMatrix<>& Hl, double Kfactor, double Rfactor=0) = 0;
+	virtual void ComputeKRMmatricesLocal (ChMatrix<>& Hl, double Kfactor, double Rfactor=0, double Mfactor=0) = 0;
 
 				/// Computes the internal forces (ex. the actual position of
 				/// nodes is not in relaxed reference position) and set values
@@ -93,12 +95,12 @@ public:
 				/// Tell to a system descriptor that there are item(s) of type
 				/// ChLcpKstiffness in this object (for further passing it to a LCP solver)
 				/// Basically does nothing, but inherited classes must specialize this.
-	virtual void InjectKmatrices(ChLcpSystemDescriptor& mdescriptor) =0;
+	virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) =0;
 
-				/// Adds the current stiffness K and damping R matrices in encapsulated
-				/// ChLcpKstiffness item(s), if any. The K and R matrices are load with scaling 
-				/// values Kfactor and Rfactor. 
-	virtual void KmatricesLoad(double Kfactor, double Rfactor) =0;
+				/// Adds the current stiffness K and damping R and mass M matrices in encapsulated
+				/// ChLcpKstiffness item(s), if any. The K, R, M matrices are added with scaling 
+				/// values Kfactor, Rfactor, Mfactor.  
+	virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) =0;
 
 				/// Adds the internal forces, expressed as nodal forces, into the
 				/// encapsulated ChLcpVariables, in the 'fb' part: qf+=forces*factor

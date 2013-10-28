@@ -131,6 +131,7 @@ void ChSystemOpenMP::LCPprepare(bool load_jacobians,
                                double F_factor,
 							   double K_factor,
 							   double R_factor,
+							   double M_factor,
                                double Ct_factor,
                                double C_factor,
                                double recovery_clamp,
@@ -188,11 +189,11 @@ void ChSystemOpenMP::LCPprepare(bool load_jacobians,
         if (load_jacobians)
             PHpointer->ConstraintsLoadJacobians();
 		if (K_factor || R_factor)
-			PHpointer->KmatricesLoad(K_factor, R_factor);
+			PHpointer->KRMmatricesLoad(K_factor, R_factor, M_factor);
         PHpointer->ConstraintsLiLoadSuggestedSpeedSolution();
         PHpointer->InjectVariables(mdescriptor);
         PHpointer->InjectConstraints(mdescriptor);
-		PHpointer->InjectKmatrices(mdescriptor);
+		PHpointer->InjectKRMmatrices(mdescriptor);
         HIER_OTHERPHYSICS_NEXT
     }
 
@@ -262,6 +263,7 @@ int ChSystemOpenMP::Integrate_Y_impulse_Anitescu() {
                         GetStep(),      // f*dt
 						GetStep()*GetStep(), // dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
 						GetStep(),		// dt*R   (nb only non-Schur based solvers support K matrix blocks)
+						1.0,			// M (for FEM with non-lumped masses, add their mass-matrices)
                         1.0,            // Ct   (needed, for rheonomic motors)
                         1.0/GetStep(),  // C/dt
                         max_penetration_recovery_speed,  // vlim, max penetrations recovery speed (positive for exiting)
