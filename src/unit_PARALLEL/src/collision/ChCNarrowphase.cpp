@@ -453,7 +453,7 @@ void ChCNarrowphase::host_MPR_Store(
 		int2 *ids) {
 #pragma omp parallel for
 
-	for (uint index = 0; index < total_possible_contacts; index++) {
+	for (int index = 0; index < total_possible_contacts; index++) {
 		function_MPR_Store(
 				index,
 				obj_data_T,

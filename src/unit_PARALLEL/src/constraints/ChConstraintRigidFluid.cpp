@@ -9,7 +9,7 @@ void func_Project_rigid_fluid(uint &index, uint number_of_contacts, int2 *ids, r
 }
 
 void ChConstraintRigidFluid::host_Project(int2 *ids, real *gam) {
-	for (uint index = 0; index < number_of_rigid_fluid; index++) {
+	for (int index = 0; index < number_of_rigid_fluid; index++) {
 		real3 gamma;
 		gamma.x = gam[index + number_of_rigid_rigid * 3];
 		gamma.x = gamma.x < 0 ? 0 : gamma.x;
@@ -39,7 +39,7 @@ void ChConstraintRigidFluid::host_RHS(
 		real *rhs) {
 
 //#pragma omp parallel for
-	for (uint index = 0; index < number_of_rigid_fluid; index++) {
+	for (int index = 0; index < number_of_rigid_fluid; index++) {
 		uint b1 = ids[index].x;
 		uint b2 = ids[index].y;
 		real temp = 0;
@@ -97,7 +97,7 @@ void ChConstraintRigidFluid::host_Jacobians(
 		real3* JXYZB,
 		real3* JUVWB) {
 #pragma omp parallel for
-	for (uint index = 0; index < number_of_rigid_fluid; index++) {
+	for (int index = 0; index < number_of_rigid_fluid; index++) {
 		real3 U = norm[index];
 
 		if (U == R3(0, 0, 0)) {
@@ -196,7 +196,7 @@ void ChConstraintRigidFluid::host_shurB(
 		real *AX) {
 
 //#pragma omp parallel for
-	for (uint index = 0; index < number_of_rigid_fluid; index++) {
+	for (int index = 0; index < number_of_rigid_fluid; index++) {
 		real temp = 0;
 		int2 id_ = ids[index];
 		uint b1 = id_.x;

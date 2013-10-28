@@ -55,7 +55,7 @@ __global__ void device_Integrate_Timestep_Semi_Implicit(bool* active, real3* acc
 void ChIntegratorParallel::host_Integrate_Timestep_Semi_Implicit(bool* active, real3* acc, real4* rot, real3* vel, real3* omega, real3* pos, real3* lim) {
 #pragma omp parallel for schedule(guided)
 
-	for (uint index = 0; index < number_of_objects; index++) {
+	for (int index = 0; index < number_of_objects; index++) {
 		function_Integrate_Timestep_Semi_Implicit(index, step_size, active, acc, rot, vel, omega, pos, lim);
 	}
 }

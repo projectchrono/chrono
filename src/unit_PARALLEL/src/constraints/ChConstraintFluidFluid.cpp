@@ -10,7 +10,7 @@ real W_Poly6(real r, real h) {
 
 void ChConstraintFluidFluid::host_Project(int2 *ids, real *gam) {
 #pragma omp parallel for
-	for (uint index = 0; index < number_of_fluid_fluid; index++) {
+	for (int index = 0; index < number_of_fluid_fluid; index++) {
 		real gamma = gam[index + number_of_rigid_rigid * 3 + number_of_rigid_fluid];
 		gamma = gamma < 0 ? 0 : gamma;
 		gam[index + number_of_rigid_rigid * 3 + number_of_rigid_fluid] = gamma;
@@ -28,7 +28,7 @@ void ChConstraintFluidFluid::Project(custom_vector<real> & gamma) {
 void ChConstraintFluidFluid::host_RHS(int2 *ids, real3 *position, real *rad, real * compliance, real3 *vel, real3 *JXYZA, real3 *JXYZB, real *rhs) {
 
 #pragma omp parallel for
-	for (uint index = 0; index < number_of_fluid_fluid; index++) {
+	for (int index = 0; index < number_of_fluid_fluid; index++) {
 		uint b1 = ids[index].x;
 		uint b2 = ids[index].y;
 		real3 temp = R3(0);
@@ -70,7 +70,7 @@ void ChConstraintFluidFluid::ComputeRHS() {
 
 void ChConstraintFluidFluid::host_Jacobians(int2* ids, real3* pos, real3* JXYZA, real3* JXYZB) {
 #pragma omp parallel for
-	for (uint index = 0; index < number_of_fluid_fluid; index++) {
+	for (int index = 0; index < number_of_fluid_fluid; index++) {
 		uint b1 = ids[index].x;
 		uint b2 = ids[index].y;
 		real3 pos_a = pos[b1];
@@ -132,7 +132,7 @@ void ChConstraintFluidFluid::host_shurB(
 		real *AX) {
 
 #pragma omp parallel for
-	for (uint index = 0; index < number_of_fluid_fluid; index++) {
+	for (int index = 0; index < number_of_fluid_fluid; index++) {
 		real3 temp = R3(0);
 		int2 id_ = ids[index];
 		uint b1 = id_.x;

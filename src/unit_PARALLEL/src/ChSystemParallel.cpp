@@ -315,7 +315,7 @@ void ChSystemParallel::UpdateBilaterals() {
 	gpu_data_manager->host_data.bids_bilateral.resize(number_of_bilaterals);
 	gpu_data_manager->host_data.gamma_bilateral.resize(number_of_bilaterals);
 #pragma omp parallel for
-	for (uint i = 0; i < number_of_bilaterals; i++) {
+	for (int i = 0; i < number_of_bilaterals; i++) {
 		int cntr = mapping[i];
 		ChLcpConstraintTwoBodies *mbilateral = (ChLcpConstraintTwoBodies *) (mconstraints[cntr]);
 		int idA = ((ChBody *) ((ChLcpVariablesBody *) (mbilateral->GetVariables_a()))->GetUserData())->GetId();

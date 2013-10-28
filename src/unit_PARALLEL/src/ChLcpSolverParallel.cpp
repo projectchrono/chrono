@@ -9,7 +9,7 @@ using namespace chrono;
 // Kernel for adding invmass*force*step_size_const to body speed vector.
 // This kernel must be applied to the stream of the body buffer.
 
-__host__ __device__ void function_addForces(uint& index, bool* active, real* mass, real3* inertia, real3* forces, real3* torques, real3* vel, real3* omega) {
+__host__ __device__ void function_addForces(int& index, bool* active, real* mass, real3* inertia, real3* forces, real3* torques, real3* vel, real3* omega) {
 	if (active[index] != 0) {
 		// v += m_inv * h * f
 		vel[index] += forces[index] * mass[index];
@@ -21,12 +21,12 @@ __host__ __device__ void function_addForces(uint& index, bool* active, real* mas
 void ChLcpSolverParallel::host_addForces(bool* active, real* mass, real3* inertia, real3* forces, real3* torques, real3* vel, real3* omega) {
 #pragma omp parallel for
 
-	for (uint index = 0; index < number_of_objects; index++) {
+	for (int index = 0; index < number_of_objects; index++) {
 		function_addForces(index, active, mass, inertia, forces, torques, vel, omega);
 	}
 }
 
-__host__ __device__ void function_ComputeGyro(uint& index, real3* omega, real3* inertia, real3* gyro, real3* torque) {
+__host__ __device__ void function_ComputeGyro(int& index, real3* omega, real3* inertia, real3* gyro, real3* torque) {
 	real3 body_inertia = inertia[index];
 	body_inertia = R3(1.0 / body_inertia.x, 1.0 / body_inertia.y, 1.0 / body_inertia.z);
 	real3 body_omega = omega[index];
@@ -37,7 +37,7 @@ __host__ __device__ void function_ComputeGyro(uint& index, real3* omega, real3* 
 void ChLcpSolverParallel::host_ComputeGyro(real3* omega, real3* inertia, real3* gyro, real3* torque) {
 #pragma omp parallel for
 
-	for (uint index = 0; index < number_of_objects; index++) {
+	for (int index = 0; index < number_of_objects; index++) {
 		function_ComputeGyro(index, omega, inertia, gyro, torque);
 	}
 }

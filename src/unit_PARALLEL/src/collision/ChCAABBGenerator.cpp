@@ -147,7 +147,7 @@ void ChCAABBGenerator::host_ComputeAABB(
 		real3 *aabb_data) {
 #pragma omp parallel for
 
-	for (uint i = 0; i < numAABB; i++) {
+	for (int i = 0; i < numAABB; i++) {
 		function_ComputeAABB(i, obj_data_T, obj_data_A, obj_data_B, obj_data_C, obj_data_R, obj_data_ID, body_pos, body_rot, numAABB, aabb_data);
 	}
 }
