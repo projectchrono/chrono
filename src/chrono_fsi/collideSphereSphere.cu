@@ -356,10 +356,35 @@ __global__ void Populate_FlexSPH_MeshPos_LRF_kernel(
 	int indexOfClosestNode = int(s / l) * nNodes;
 	if (indexOfClosestNode == nNodes) indexOfClosestNode--;
 
-	real3 beamPointPos = ANCF_Point_Pos(ANCF_Nodes, ANCF_Slopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	real3 beamPointPos = Calc_ANCF_Point_Pos(ANCF_Nodes, ANCF_Slopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
 
 	real3 dist3 = posRadD[absMarkerIndex] - beamPointPos;
 	flexSPH_MeshPos_LRF_D[index] = dist3;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+__global__ void Populate_FlexSPH_MeshSlope_LRF_kernel(
+		real3* flexSPH_MeshSlope_Initial_D,
+		int* flexIdentifierD,
+		real_* parametricDist,
+		real_* ANCF_Beam_Length,
+		int* ANCF_NumNodes_Per_Beam,
+		real3 * ANCF_Nodes,
+		real3 * ANCF_Slopes) {
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	if (index >= numFlex_SphMarkersD) {
+		return;
+	}
+	uint absMarkerIndex = index + startFlexMarkersD; // updatePortionD = [start, end] index of the update portion
+	real_ s = parametricDist[index];
+	int flexBodyIndex = flexIdentifierD[index];
+	real_ l = ANCF_Beam_Length[flexBodyIndex];
+	int nNodes = ANCF_NumNodes_Per_Beam[flexBodyIndex];
+
+	int indexOfClosestNode = int(s / l) * nNodes;
+	if (indexOfClosestNode == nNodes) indexOfClosestNode--;
+
+	real3 beamPointSlope = Calc_ANCF_Point_Slope(ANCF_Nodes, ANCF_Slopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	flexSPH_MeshSlope_Initial_D[index] = beamPointSlope;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -439,9 +464,16 @@ __global__ void UpdateRigidBodyQuaternion_kernel(real4 * qD, real3 * omegaLRF_D)
 	qD[rigidSphereA] = q;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
+__device__ inline void RotationMatirixFromQuaternion_kernelD(real3 & AD1, real3 & AD2, real3 & AD3, const real4 & q) {
+	AD1 = 2 * R3(0.5f - q.z * q.z - q.w * q.w, q.y * q.z - q.x * q.w, q.y * q.w + q.x * q.z);
+	AD2 = 2 * R3(q.y * q.z + q.x * q.w, 0.5f - q.y * q.y - q.w * q.w, q.z * q.w - q.x * q.y);
+	AD3 = 2 * R3(q.y * q.w - q.x * q.z, q.z * q.w + q.x * q.y, 0.5f - q.y * q.y - q.z * q.z);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 //updates the rigid body Rotation
 // A is rotation matrix, A = [AD1; AD2; AD3], first comp of q is rotation, last 3 components are axis of rot
 // in wikipedia, last quat comp is the angle, in my version, first one is the angle.
+// here is the mapping between wikipedia (g) and mine (q): [gx, gy, gz, gw] = [qy, qz, qw, qx]
 __global__ void RotationMatirixFromQuaternion_kernel(real3 * AD1, real3 * AD2, real3 * AD3, real4 * qD) {
 	uint rigidSphereA = blockIdx.x * blockDim.x + threadIdx.x;
 	if (rigidSphereA >= numRigidBodiesD) {
@@ -536,6 +568,7 @@ __global__ void UpdateFlexMarkersPosition(
 		real4 * velMasD,
 		int* flexIdentifierD,
 		real3* flexSPH_MeshPos_LRF_D,
+		real3* flexSPH_MeshSlope_Initial_D,
 		real_* parametricDist,
 		real_* ANCF_Beam_Length,
 		int* ANCF_NumNodes_Per_Beam,
@@ -557,13 +590,29 @@ __global__ void UpdateFlexMarkersPosition(
 	int indexOfClosestNode = int(s / l) * nNodes;
 	if (indexOfClosestNode == nNodes) indexOfClosestNode--;
 
-	real3 beamPointPos = ANCF_Point_Pos(ANCF_Nodes, ANCF_Slopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
-	real3 beamPointSlope = ANCF_Point_Slope(ANCF_Nodes, ANCF_Slopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	real3 beamPointPos = Calc_ANCF_Point_Pos(ANCF_Nodes, ANCF_Slopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	real3 beamPointSlope = Calc_ANCF_Point_Slope(ANCF_Nodes, ANCF_Slopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
 	real3 beamPointOmega;
 
-	real3 beamPointVel = ANCF_Point_Vel(ANCF_Nodes, ANCF_Slopes, ANCF_VelNodes, ANCF_VelSlopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	real3 beamPointVel = Calc_ANCF_Point_Vel(ANCF_Nodes, ANCF_Slopes, ANCF_VelNodes, ANCF_VelSlopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
 
 	real3 dist3 = flexSPH_MeshPos_LRF_D[index];
+	real3 beamPointSlopeInitial = flexSPH_MeshSlope_Initial_D[index];
+	//Important Important Important Important Important Important Important Important Important
+	//Important Important Important Important Important Important Important Important Important
+	//Important Important Important Important Important Important Important Important Important
+	// Assumed Calc_ANCF_Point_Slope returns the unit vector. theta calculation is based on this assumption. Also cross product
+	real_ theta = acos(dot(beamPointSlopeInitial, beamPointSlope));
+	real3 n3 = cross(beamPointSlopeInitial, beamPointSlope);
+	n3 /= length(n3);
+	real4 q = R4(cos(0.5 * theta),
+			n3.x * sin(0.5 * theta), n3.y * sin(0.5 * theta), n3.z * sin(0.5 * theta));
+	real3 A1, A2, A3;
+	RotationMatirixFromQuaternion_kernelD(A1, A2, A3, q);
+	posRadD[absMarkerIndex] = beamPointPos + R3(dot(A1, dist3), dot(A2, dist3), dot(A3, dist3));
+	real3 absOmega = 	Calc_ANCF_Point_Omega(ANCF_Nodes, ANCF_Slopes, ANCF_VelNodes, ANCF_VelSlopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	velMasD[absMarkerIndex] = beamPointVel + cross(absOmega, dist3);
+
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void MapSPH_ToGrid(
@@ -1221,13 +1270,21 @@ void cudaCollisions(
 	cudaMemcpyToSymbolAsync(numFlex_SphMarkersD, &numFlex_SphMarkers, sizeof(numFlex_SphMarkers)); //can be defined outside of the kernel, and only once
 		//******************************************************************************
 	thrust::device_vector<real3> flexSPH_MeshPos_LRF_D(numFlex_SphMarkers);
+	thrust::device_vector<real3> flexSPH_MeshSlope_Initial_D(numFlex_SphMarkers);
 	uint nBlocks_numFlex_SphMarkers;
 	uint nThreads_SphMarkers;
 	computeGridSize(numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
 	printf("before first kernel\n");
-	Populate_FlexSPH_MeshPos_LRF_kernel<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>//(R3CAST(rigidSPH_MeshPos_LRF_D), R3CAST(posRadD), I1CAST(rigidIdentifierD), R3CAST(posRigidD), startRigidMarkers, numRigid_SphMarkers);
+
+	Populate_FlexSPH_MeshPos_LRF_kernel<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(R3CAST(flexSPH_MeshPos_LRF_D), R3CAST(posRadD), I1CAST(flexIdentifierD), R1CAST(parametricDist), R1CAST(ANCF_Beam_Length),
+			I1CAST(ANCF_NumNodes_Per_Beam), R3CAST(ANCF_Nodes), R3CAST(ANCF_Slopes));
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueShare");	printf("after first kernel\n");
+		CUT_CHECK_ERROR("Kernel execution failed: Populate_FlexSPH_MeshPos_LRF_kernel");	printf("after first kernel\n");
+
+	Populate_FlexSPH_MeshSlope_LRF_kernel<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(R3CAST(flexSPH_MeshSlope_Initial_D), I1CAST(flexIdentifierD), R1CAST(parametricDist), R1CAST(ANCF_Beam_Length),
+				I1CAST(ANCF_NumNodes_Per_Beam), R3CAST(ANCF_Nodes), R3CAST(ANCF_Slopes));
+	cudaThreadSynchronize();
+	CUT_CHECK_ERROR("Kernel execution failed: Populate_FlexSPH_MeshSlope_LRF_kernel");	printf("after first kernel\n");
 
 	//******************************************************************************
 	thrust::device_vector<real4> qD1 = mQuatRot;
@@ -1379,6 +1436,7 @@ void cudaCollisions(
 	rigidIdentifierD.clear();
 	rigidSPH_MeshPos_LRF_D.clear();
 	flexSPH_MeshPos_LRF_D.clear();
+	flexSPH_MeshSlope_Initial_D.clear();
 	qD1.clear();
 	AD1.clear();
 	AD2.clear();
