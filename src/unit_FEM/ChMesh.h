@@ -54,8 +54,7 @@ private:
 	std::vector<ChElementBase*>	 velements;	//  elements
 
 	unsigned int n_dofs; // total degrees of freedom
-	//double volume;	 // total volume
-	//double mass;		 // total mass
+
 
 public:
 

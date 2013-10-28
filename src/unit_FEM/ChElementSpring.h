@@ -100,7 +100,7 @@ public:
 				/// Sets Hl as the local stiffness matrix K, scaled  by Kfactor. Optionally, also
 				/// superimposes local damping matrix R, scaled by Rfactor, and local mass matrix M multiplied by Mfactor.
 				/// This is usually called only once in the simulation. 
-	virtual void ComputeKRmatricesLocal (ChMatrix<>& Hl, double Kfactor, double Rfactor=0, double Mfactor=0)
+	virtual void ComputeKRMmatricesLocal (ChMatrix<>& Hl, double Kfactor, double Rfactor=0, double Mfactor=0)
 				{
 					assert((Hl.GetRows() == 6) && (Hl.GetColumns() == 6));
 
