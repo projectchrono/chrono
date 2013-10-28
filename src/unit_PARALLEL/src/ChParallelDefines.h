@@ -79,6 +79,12 @@ typedef unsigned int uint;
 #define custom_vector thrust::host_vector
 #endif
 
+#if defined(_WIN32) || defined(_WIN64)
+#define fmax max
+#define fmin min
+#endif
+
+
 //#define PRINT_DEBUG_GPU
 
 //defines to cast thrust vectors as raw pointers
