@@ -96,7 +96,7 @@ namespace chrono {
 				virtual void ReportProximities(ChProximityContainerBase* mproximitycontainer){}
 
 				/// Perform a raycast (ray-hit test with the collision models).
-				virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult){}
+				virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult){return false;}
 
 				// For Bullet related stuff
 				btCollisionWorld* GetBulletCollisionWorld() {
