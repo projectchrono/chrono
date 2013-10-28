@@ -518,6 +518,21 @@ bool IsInsideCylinder_XZ(real3 sphParPos, real3 rigidPos, real3 radii, real_ cle
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+bool IsInsideCylinder_3D(real3 sphParPos, real3 pa3, real3 pb3, real_ rad) {
+	real3 n3 = pb3 - pa3;
+	real3 n3Normal = n3 / length(n3);
+	real3 r = sphParPos - pa3;
+	real_ s = dot(r, n3Normal);
+	if (s < 0 || s > length(n3))
+		return false;
+	real3 s3 = s * n3Normal;
+	if (length(sphParPos - s3) < rad) {
+		return true;
+	} else {
+		return false;
+	}
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 real_ IsInEllipse(real2 pos, real2 radii) {
 //	printf(" pos %f %f  r2 %f %f\n", pos.x, pos.y, radii.x, radii.y);
 //	real2 kk  = pos / radii;

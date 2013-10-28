@@ -610,9 +610,8 @@ __global__ void UpdateFlexMarkersPosition(
 	real3 A1, A2, A3;
 	RotationMatirixFromQuaternion_kernelD(A1, A2, A3, q);
 	posRadD[absMarkerIndex] = beamPointPos + R3(dot(A1, dist3), dot(A2, dist3), dot(A3, dist3));
-	real3 absOmega = 	Calc_ANCF_Point_Omega(ANCF_Nodes, ANCF_Slopes, ANCF_VelNodes, ANCF_VelSlopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	real3 absOmega = Calc_ANCF_Point_Omega(ANCF_Nodes, ANCF_Slopes, ANCF_VelNodes, ANCF_VelSlopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
 	velMasD[absMarkerIndex] = beamPointVel + cross(absOmega, dist3);
-
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void MapSPH_ToGrid(
