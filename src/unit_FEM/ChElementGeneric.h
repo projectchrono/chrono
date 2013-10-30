@@ -84,6 +84,7 @@ public:
 					// implementing this VariablesFbLoadInternalForces function, unless you need faster code)
 					ChMatrixDynamic<> mFi(this->GetNcoords(), 1);
 					this->ComputeInternalForces(mFi);
+					mFi.MatrScale(factor);
 					int stride = 0;
 					for (int in=0; in < this->GetNnodes(); in++)
 					{

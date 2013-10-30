@@ -41,14 +41,6 @@ namespace fem
 class ChApiFem ChNodeFEMxyz : public ChNodeFEMbase
 
 {
-private:
-	ChLcpVariablesNode	variables; /// 3D node variables, with x,y,z
-
-	ChVector<> X0;		///< reference position
-	ChVector<> Force;	///< applied force
-	
-	double mass;
-
 public:
 
 	ChNodeFEMxyz(ChVector<> initial_pos = VNULL)
@@ -56,21 +48,80 @@ public:
 						X0 = initial_pos;
 						pos = initial_pos;
 						Force = VNULL;
-						mass = 1.0;
+						variables.SetNodeMass(1.0);
 					}
 
 	~ChNodeFEMxyz() {};
 
+	ChNodeFEMxyz::ChNodeFEMxyz (const ChNodeFEMxyz& other) :
+						ChNodeFEMbase(other) 
+	{
+		this->X0 = other.X0;
+		this->pos = other.pos;
+		this->pos_dt = other.pos_dt;
+		this->pos_dtdt = other.pos_dtdt;
+		this->Force = other.Force;
+		this->variables = other.variables;
+	}
+
+	ChNodeFEMxyz& ChNodeFEMxyz::operator= (const ChNodeFEMxyz& other)
+	{
+		if (&other == this) 
+			return *this;
+
+		ChNodeFEMbase::operator=(other);
+
+		this->X0 = other.X0;
+		this->pos = other.pos;
+		this->pos_dt = other.pos_dt;
+		this->pos_dtdt = other.pos_dtdt;
+		this->Force = other.Force;
+		this->variables = other.variables;
+		return *this;
+	}
 
 	virtual ChLcpVariables& Variables()
 					{
 						return this->variables; 
 					} 
 
+				/// Set the rest position as the actual position.
 	virtual void Relax () 
 					{
 						X0 = this->pos; this->pos_dt=VNULL; this->pos_dtdt=VNULL; 
 					}
+
+				/// Get mass of the node.
+	virtual double GetMass() const {return this->variables.GetNodeMass();}
+				/// Set mass of the node.
+	virtual void SetMass(double mm) {this->variables.SetNodeMass(mm);}
+
+				/// Set the initial (reference) position
+	virtual void SetX0(ChVector<> mx) { X0 = mx;}
+				/// Get the initial (reference) position
+	virtual ChVector<> GetX0 () {return X0;}
+
+				/// Set the 3d applied force, in absolute reference
+	virtual void SetForce(ChVector<> mf) { Force = mf;}
+				/// Get the 3d applied force, in absolute reference
+	virtual ChVector<> GetForce () {return Force;}
+
+				/// Position of the node - in absolute csys.
+	ChVector<> GetPos() {return pos;}
+				/// Position of the node - in absolute csys.
+	void SetPos(const ChVector<>& mpos) {pos = mpos;}
+
+				/// Velocity of the node - in absolute csys.
+	ChVector<> GetPos_dt() {return pos_dt;}
+				/// Velocity of the node - in absolute csys.
+	void SetPos_dt(const ChVector<>& mposdt) {pos_dt = mposdt;}
+
+				/// Acceleration of the node - in absolute csys.
+	ChVector<> GetPos_dtdt() {return pos_dtdt;}
+				/// Acceleration of the node - in absolute csys.
+	void SetPos_dtdt(const ChVector<>& mposdtdt) {pos_dtdt = mposdtdt;}
+
+
 
 			//
 			// Functions for interfacing to the LCP solver
@@ -104,24 +155,17 @@ public:
 						this->SetPos( this->GetPos() + newspeed * step);
 					};
 
-			//
-			// Custom properties functions
-			//
-				/// Get mass of the node.
-	virtual double GetMass() const {return this->variables.GetNodeMass();}
-				/// Set mass of the node.
-	virtual void SetMass(double mm) {this->variables.SetNodeMass(mm);}
+private:
+	ChLcpVariablesNode	variables; /// 3D node variables, with x,y,z
 
+	ChVector<> X0;		///< reference position
+	ChVector<> Force;	///< applied force
+	
+public:
+	ChVector<> pos;		
+	ChVector<> pos_dt;
+	ChVector<> pos_dtdt;
 
-				/// Set the initial (reference) position
-	virtual void SetX0(ChVector<> mx) { X0 = mx;}
-				/// Get the initial (reference) position
-	virtual ChVector<> GetX0 () {return X0;}
-
-				/// Set the 3d applied force, in absolute reference
-	virtual void SetForce(ChVector<> mf) { Force = mf;}
-				/// Get the 3d applied force, in absolute reference
-	virtual ChVector<> GetForce () {return Force;}
 
 };
 

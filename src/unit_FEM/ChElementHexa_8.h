@@ -331,7 +331,7 @@ public:
 					assert((Hl.GetRows() == 24) && (Hl.GetColumns() == 24));
 
 					// to keep things short, here local K is as global K (anyway, only global K is used in simulations)
-					ComputeKRMmatricesLocal (Hl, Kfactor, Rfactor, Mfactor);
+					ComputeKRMmatricesGlobal (Hl, Kfactor, Rfactor, Mfactor);
 				}
 
 				/// Computes the internal forces (ex. the actual position of

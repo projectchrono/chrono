@@ -151,15 +151,25 @@ public:
 				{
 					assert((H.GetRows() == 12) && (H.GetColumns()==12));
 
-					// compute stiffness matrix (this is already the explicit
-					// formulation of the corotational stiffness matrix in 3D)
-					
-						// calculate global stiffness matrix
-					//SetupInitial(); // NO, we assume it has been computed at the beginning of the simulation
+					// For K stiffness matrix and R damping matrix:
+
 					ChMatrixDynamic<> tempMatr = StiffnessMatrix;
 					tempMatr.MatrScale( Kfactor );
 
 					H.PasteMatrix(&tempMatr,0,0);
+
+					//***TO DO*** corotate the stiffness/damping matrix
+
+					// For M mass matrix:
+					if (Mfactor)
+					{
+						double lumped_node_mass = (this->GetVolume() * this->Material->Get_density() ) / 4.0;
+						for (int id = 0; id < 12; id++)
+						{
+							H(id,id)+= Mfactor * lumped_node_mass;
+						}
+					}
+					//***TO DO*** better per-node lumping, or 12x12 consistent mass matrix.
 				}
 
 				/// Sets Hl as the local stiffness matrix K, scaled  by Kfactor. Optionally, also
@@ -170,7 +180,7 @@ public:
 					assert((Hl.GetRows() == 12) && (Hl.GetColumns() == 12));
 
 					// to keep things short, here local K is as global K (anyway, only global K is used in simulations)
-					ComputeKRMmatricesLocal (Hl, Kfactor, Rfactor, Mfactor);
+					ComputeKRMmatricesGlobal (Hl, Kfactor, Rfactor, Mfactor);
 				}
 
 				/// Computes the internal forces (ex. the actual position of

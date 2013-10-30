@@ -38,7 +38,7 @@ namespace fem
 /// that can be stored in ChMesh containers.
 /// Children classes must implement specialized versions.
 
-class ChApiFem ChNodeFEMbase  :  public chrono::ChNodeXYZ
+class ChApiFem ChNodeFEMbase  :  public chrono::ChNodeBase
 {
 public:
 
