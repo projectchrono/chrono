@@ -80,6 +80,10 @@ void ConvertQuatArray2RotArray (thrust::host_vector<Rotation> & rotArray, const 
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+real_ myRand() {
+	return real_(rand())/RAND_MAX;
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 real_ Min(real_ a, real_ b) {
 	return (a < b) ? a : b;
 }
@@ -465,6 +469,89 @@ void CreateRigidBodiesPatternPipe_KindaRandom(
 				 particleCounter ++;
 				 real3 pos = R3(cMin.x, channelCenterYZ.x, channelCenterYZ.y) +  R3(i * spaceRigids.x, real_(r  * cos(teta)), real_(r *  sin(teta)) );
 
+				 //printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
+				 rigidPos.push_back(pos);
+				 mQuatRot.push_back(R4(1, 0, 0, 0));
+				 ellipsoidRadii.push_back(referenceR);
+				 real_ mass;
+				 real3 j1, j2;
+				 CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x, referenceR.y, referenceR.z, rhoRigid);						//create Ellipsoid
+
+				spheresVelMas.push_back(R4(0, 0, 0, real_(mass)));
+				rigidBodyOmega.push_back(R3(0, 0, 0));
+				rigidBody_J1.push_back(j1);
+				rigidBody_J2.push_back(j2);
+
+				real3 invJ1, invJ2;
+				CalcInvJ(j1, j2, invJ1, invJ2);
+				rigidBody_InvJ1.push_back(invJ1);
+				rigidBody_InvJ2.push_back(invJ2);
+			 }
+		}
+	}
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+void CreateFlexBodies(
+		thrust::host_vector<real3> & ANCF_Nodes,
+		thrust::host_vector<real3> & ANCF_Slopes,
+		thrust::host_vector<real3> & ANCF_VelNodes,
+		thrust::host_vector<real3> & ANCF_VelSlopes,
+		thrust::host_vector<int2> & ANCF_ReferenceArrayNodesOnBeams,
+		real_ pipeRadius,
+		real_ pipeLength,
+		real3 pipeInPoint3,
+
+			thrust::host_vector<real3> & rigidPos,
+			thrust::host_vector<real4> & mQuatRot,
+			thrust::host_vector<real4> & spheresVelMas,
+			thrust::host_vector<real3> & rigidBodyOmega,
+			thrust::host_vector<real3> & rigidBody_J1,
+			thrust::host_vector<real3> & rigidBody_J2,
+			thrust::host_vector<real3> & rigidBody_InvJ1,
+			thrust::host_vector<real3> & rigidBody_InvJ2,
+			thrust::host_vector<real3> & ellipsoidRadii,
+			const real3 referenceR,
+		const real_ rhoRigid,
+			int3 stride) {
+
+	int numBeams = 10;
+	int numElementsPerBeam = 4;
+	real_ sectionLenght = pipeLength / numBeams;
+	for (int i = 0; i < numBeams; i++) {
+		real_ x = (i + myRand()) * sectionLenght + pipeInPoint3.x;
+		real_ r = myRand() * pipeRadius;
+		real_ theta = myRand() * PI / 180;
+		real3 pa3 = R3(x, r*cos(theta) + pipeInPoint3.y, r*sin(theta) + pipeInPoint3.z);
+
+		x = (i + myRand()) * sectionLenght + pipeInPoint3.x;
+		r = myRand() * pipeRadius;
+		theta = myRand() * PI / 180;
+		real3 pb3 = R3(x, r*cos(theta) + pipeInPoint3.y, r*sin(theta) + pipeInPoint3.z);
+
+		real3 slope = pb3 - pa3;
+		real_ beamLength = length(slope);
+		slope /= beamLength;
+		for (int m = 0; m < numElementsPerBeam + 1; m++) {
+			ANCF_Nodes.push_back(pa3 + m * (beamLength / numElementsPerBeam) * slope);
+			ANCF_Slopes.push_back(slope);
+			ANCF_VelNodes.push_back(R3(0));
+			ANCF_VelSlopes.push_back(R3(0));
+		}
+		if (i == 0) {
+			ANCF_ReferenceArrayNodesOnBeams.push_back(I2(0, numElementsPerBeam + 1));
+		} else {
+			int nodesSofar = ANCF_ReferenceArrayNodesOnBeams[i-1].y;
+			ANCF_ReferenceArrayNodesOnBeams.push_back(I2(nodesSofar, nodesSofar + numElementsPerBeam + 1));
+		}
+	}
+	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
+	//printf("cMin %f %f %f, cMax %f %f %f\n", straightChannelBoundaryMin.x, straightChannelBoundaryMin.y, straightChannelBoundaryMin.z, straightChannelBoundaryMax.x, straightChannelBoundaryMax.y, straightChannelBoundaryMax.z);
+	real3 spaceRigids = 2 * (referenceR + 0.6 * R3(HSML));
+	real3 n3Rigids = (straightChannelBoundaryMax - straightChannelBoundaryMin) / spaceRigids;
+	for (int i = 1; i < n3Rigids.x - 1; i += stride.x) {
+		for  (int j = 1; j < n3Rigids.y - 1; j += stride.y) {
+			 for (int k = 1; k < n3Rigids.z - 1; k += stride.z) {
+				 real3 pos = straightChannelBoundaryMin + R3(i, j, k) * spaceRigids;
 				 //printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
 				 rigidPos.push_back(pos);
 				 mQuatRot.push_back(R4(1, 0, 0, 0));
