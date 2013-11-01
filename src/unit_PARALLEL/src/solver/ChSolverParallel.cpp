@@ -122,12 +122,12 @@ void ChSolverParallel::Solve(GPUSOLVERTYPE solver_type) {
 
 			if (do_stab) {
 				custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals);
-				thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->number_of_rigid_rigid * 3, data_container->number_of_bilaterals, rhs_bilateral.begin());
+				thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, rhs_bilateral.begin());
 
 				for (int i = 0; i < max_iteration; i += 8) {
 					total_iteration += SolveAPGD(data_container->host_data.gamma_data, data_container->host_data.rhs_data, 4);
 					thrust::copy_n(
-							data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 3,
+							data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6,
 							data_container->number_of_bilaterals,
 							data_container->host_data.gamma_bilateral.begin());
 

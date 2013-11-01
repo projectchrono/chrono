@@ -1,8 +1,6 @@
 #include "ChLcpSolverParallel.h"
 #include "ChThrustLinearAlgebra.h"
 
-
-
 using namespace chrono;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -109,7 +107,6 @@ void ChLcpSolverParallel::RunTimeStep(real step) {
 	rigid_rigid.Setup(data_container);
 	bilateral.Setup(data_container);
 
-
 	solver.current_iteration = 0;
 	solver.total_iteration = 0;
 	solver.maxd_hist.clear();
@@ -135,9 +132,19 @@ void ChLcpSolverParallel::RunTimeStep(real step) {
 	//rigid_rigid.ComputeRHS();
 	bilateral.ComputeJacobians();
 	bilateral.ComputeRHS();
+
+	custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals);
+	thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, rhs_bilateral.begin());
+
+	thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, data_container->host_data.gamma_bilateral.begin());
+
+	solver.SolveStab(data_container->host_data.gamma_bilateral, rhs_bilateral, max_iteration);
+
+	thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals, data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6);
+
 	//cout<<"Solve normal"<<endl;
 	//solve normal
-	solver.SetMaxIterations(max_iteration/3.0);
+	solver.SetMaxIterations(max_iteration / 3.0);
 	solver.SetComplianceParameters(alpha, compliance, complianceT);
 	rigid_rigid.solve_sliding = false;
 	rigid_rigid.solve_spinning = false;
@@ -145,13 +152,13 @@ void ChLcpSolverParallel::RunTimeStep(real step) {
 	solver.Solve(solver_type);
 	//cout<<"Solve sliding"<<endl;
 	//solve full
-	solver.SetMaxIterations(max_iteration/3.0);
+	solver.SetMaxIterations(max_iteration / 3.0);
 	rigid_rigid.solve_sliding = true;
 	rigid_rigid.solve_spinning = false;
 	rigid_rigid.ComputeRHS();
 	solver.Solve(solver_type);
 	//cout<<"Solve Full"<<endl;
-	solver.SetMaxIterations(max_iteration/3.0);
+	solver.SetMaxIterations(max_iteration / 3.0);
 	rigid_rigid.solve_sliding = true;
 	rigid_rigid.solve_spinning = true;
 	rigid_rigid.ComputeRHS();
@@ -171,9 +178,6 @@ void ChLcpSolverParallel::RunTimeStep(real step) {
 	//if (warm_start) {
 	//RunWarmStartPostProcess();
 	//}
-
-
-
 
 #ifdef PRINT_DEBUG_GPU
 	cout << "Solve Done: "<<residual << endl;
