@@ -27,7 +27,7 @@
 ///////////////////////////////////////////////////
 
 
-#include "unit_MPI/ChApiMPI.h"
+#include "ChApiMPI.h"
 #include "lcp/ChLcpSystemDescriptor.h"
 #include "ChDomainNodeMPI.h"
 

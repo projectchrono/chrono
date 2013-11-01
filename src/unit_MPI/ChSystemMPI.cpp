@@ -26,7 +26,7 @@
 #include "ChBodyDEMMPI.h"
 #include "ChAssemblyMPI.h"
 #include "physics/ChContactContainer.h"
-#include "unit_MPI/ChContactContainerDEMMPI.h"
+#include "ChContactContainerDEMMPI.h"
 #include "collision/ChCCollisionSystemBullet.h"
 #include "ChLcpSystemDescriptorMPI.h"
 #include <algorithm>

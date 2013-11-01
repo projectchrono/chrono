@@ -28,7 +28,7 @@
 ///////////////////////////////////////////////////
 
 
-#include "unit_MPI/ChApiMPI.h"
+#include "ChApiMPI.h"
 #include "physics/ChContactContainerDEM.h"
 
 

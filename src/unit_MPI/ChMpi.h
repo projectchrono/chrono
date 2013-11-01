@@ -27,7 +27,7 @@
 
 
 #include "mpi.h"
-#include "unit_MPI/ChApiMPI.h"
+#include "ChApiMPI.h"
 #include "core/ChLog.h"
 #include "core/ChMath.h"
 

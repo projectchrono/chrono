@@ -21,7 +21,7 @@
 
      
 #include "ChBodyDEMMPI.h"
-#include "unit_MPI/ChSystemMPI.h"
+#include "ChSystemMPI.h"
 #include "ChLcpSystemDescriptorMPI.h"
 
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.

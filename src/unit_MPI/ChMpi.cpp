@@ -25,7 +25,7 @@
 #include <sstream>
 #include <math.h>
 
-#include "unit_MPI/ChMpi.h"
+#include "ChMpi.h"
 
 
 #ifndef CH_API_COMPILE_UNIT_MPI
