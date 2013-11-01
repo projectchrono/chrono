@@ -28,12 +28,6 @@
 #include "ChMpi.h"
 
 
-#ifndef CH_API_COMPILE_UNIT_MPI
-#error Warning! You are compiling the MPI unit of Chrono::Engine, \
-	so you need to define CH_API_COMPILE_UNIT_MPI (add that symbol \
-	to the compiler defines, for all compiled files in this unit). 
-#endif 
-
 
 using namespace std;
 
@@ -96,7 +90,7 @@ ChMPIfile::~ChMPIfile()
 void ChMPIfile::WriteOrdered(char* buf, int length)
 {
 	MPI_Status status;
-	int rc = MPI_File_write_ordered( (*(MPI_File*)this->mpifile), buf, length, MPI_ChAR, &status );
+	int rc = MPI_File_write_ordered( (*(MPI_File*)this->mpifile), buf, length, MPI_CHAR, &status );
 	if (rc) {
        throw ChException("Error while doing MPI write ordered.");
     }
