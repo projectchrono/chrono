@@ -500,19 +500,7 @@ void CreateFlexBodies(
 		real_ pipeRadius,
 		real_ pipeLength,
 		real3 pipeInPoint3,
-
-			thrust::host_vector<real3> & rigidPos,
-			thrust::host_vector<real4> & mQuatRot,
-			thrust::host_vector<real4> & spheresVelMas,
-			thrust::host_vector<real3> & rigidBodyOmega,
-			thrust::host_vector<real3> & rigidBody_J1,
-			thrust::host_vector<real3> & rigidBody_J2,
-			thrust::host_vector<real3> & rigidBody_InvJ1,
-			thrust::host_vector<real3> & rigidBody_InvJ2,
-			thrust::host_vector<real3> & ellipsoidRadii,
-			const real3 referenceR,
-		const real_ rhoRigid,
-			int3 stride) {
+		const real_ rhoRigid) {
 
 	int numBeams = 10;
 	int numElementsPerBeam = 4;
@@ -528,12 +516,12 @@ void CreateFlexBodies(
 		theta = myRand() * PI / 180;
 		real3 pb3 = R3(x, r*cos(theta) + pipeInPoint3.y, r*sin(theta) + pipeInPoint3.z);
 
-		real3 slope = pb3 - pa3;
-		real_ beamLength = length(slope);
-		slope /= beamLength;
+		real3 slope3 = pb3 - pa3;
+		real_ beamLength = length(slope3);
+		slope3 /= beamLength;
 		for (int m = 0; m < numElementsPerBeam + 1; m++) {
-			ANCF_Nodes.push_back(pa3 + m * (beamLength / numElementsPerBeam) * slope);
-			ANCF_Slopes.push_back(slope);
+			ANCF_Nodes.push_back(pa3 + m * (beamLength / numElementsPerBeam) * slope3);
+			ANCF_Slopes.push_back(slope3);
 			ANCF_VelNodes.push_back(R3(0));
 			ANCF_VelSlopes.push_back(R3(0));
 		}
@@ -543,34 +531,13 @@ void CreateFlexBodies(
 			int nodesSofar = ANCF_ReferenceArrayNodesOnBeams[i-1].y;
 			ANCF_ReferenceArrayNodesOnBeams.push_back(I2(nodesSofar, nodesSofar + numElementsPerBeam + 1));
 		}
-	}
-	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
-	//printf("cMin %f %f %f, cMax %f %f %f\n", straightChannelBoundaryMin.x, straightChannelBoundaryMin.y, straightChannelBoundaryMin.z, straightChannelBoundaryMax.x, straightChannelBoundaryMax.y, straightChannelBoundaryMax.z);
-	real3 spaceRigids = 2 * (referenceR + 0.6 * R3(HSML));
-	real3 n3Rigids = (straightChannelBoundaryMax - straightChannelBoundaryMin) / spaceRigids;
-	for (int i = 1; i < n3Rigids.x - 1; i += stride.x) {
-		for  (int j = 1; j < n3Rigids.y - 1; j += stride.y) {
-			 for (int k = 1; k < n3Rigids.z - 1; k += stride.z) {
-				 real3 pos = straightChannelBoundaryMin + R3(i, j, k) * spaceRigids;
-				 //printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
-				 rigidPos.push_back(pos);
-				 mQuatRot.push_back(R4(1, 0, 0, 0));
-				 ellipsoidRadii.push_back(referenceR);
-				 real_ mass;
-				 real3 j1, j2;
-				 CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x, referenceR.y, referenceR.z, rhoRigid);						//create Ellipsoid
 
-				spheresVelMas.push_back(R4(0, 0, 0, real_(mass)));
-				rigidBodyOmega.push_back(R3(0, 0, 0));
-				rigidBody_J1.push_back(j1);
-				rigidBody_J2.push_back(j2);
+		// mass and stiffness properties of beams
+//		real3 invJ1, invJ2;
+//		CalcInvJ(j1, j2, invJ1, invJ2);
+//		rigidBody_InvJ1.push_back(invJ1);
+//		rigidBody_InvJ2.push_back(invJ2);
 
-				real3 invJ1, invJ2;
-				CalcInvJ(j1, j2, invJ1, invJ2);
-				rigidBody_InvJ1.push_back(invJ1);
-				rigidBody_InvJ2.push_back(invJ2);
-			 }
-		}
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
@@ -605,7 +572,7 @@ bool IsInsideCylinder_XZ(real3 sphParPos, real3 rigidPos, real3 radii, real_ cle
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-bool IsInsideCylinder_3D(real3 sphParPos, real3 pa3, real3 pb3, real_ rad) {
+bool IsInsideCylinder_3D(real3 sphParPos, real3 pa3, real3 pb3, real_ rad, real_ clearance) {
 	real3 n3 = pb3 - pa3;
 	real3 n3Normal = n3 / length(n3);
 	real3 r = sphParPos - pa3;
@@ -613,11 +580,15 @@ bool IsInsideCylinder_3D(real3 sphParPos, real3 pa3, real3 pb3, real_ rad) {
 	if (s < 0 || s > length(n3))
 		return false;
 	real3 s3 = s * n3Normal;
-	if (length(sphParPos - s3) < rad) {
+	if (length(sphParPos - s3) < rad + clearance) {
 		return true;
 	} else {
 		return false;
 	}
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+bool IsInsideStraightFlex(real3 sphParPos, real3 pa3, real3 pb3, real_ rad, real_ clearance) {
+	return IsInsideCylinder_3D(sphParPos, pa3, pb3, rad, clearance);
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 real_ IsInEllipse(real2 pos, real2 radii) {
@@ -985,7 +956,9 @@ int2 CreateFluidParticles(
 		real3 cMin,
 		real_ rho,
 		real_ pres,
-		real_ mu) {
+		real_ mu,
+		const thrust::host_vector<real3> & ANCF_Nodes,
+		const thrust::host_vector<int2> & ANCF_ReferenceArrayNodesOnBeams) {
 	//real2 rad2 = .5 * R2(cMax.y - cMin.y, cMax.z - cMin.z);
 	//channelRadius = (rad2.x < rad2.y) ? rad2.x : rad2.y;
 	int num_FluidParticles = 0;
@@ -1038,6 +1011,11 @@ int2 CreateFluidParticles(
 					for (int rigidSpheres = 0; rigidSpheres < rigidPos.size(); rigidSpheres++) {
 						if (IsInsideEllipsoid(posRad, rigidPos[rigidSpheres], rigidRotMatrix[rigidSpheres], ellipsoidRadii[rigidSpheres], initSpace0)) { flag = false; }
 //						if ( IsInsideCylinder_XZ(posRad, rigidPos[rigidSpheres], ellipsoidRadii[rigidSpheres], initSpace0 ) ) { flag = false;}
+					}
+					for (int flexID = 0; flexID < ANCF_ReferenceArrayNodesOnBeams.size(); flexID++) {
+						real3 pa3 = ANCF_Nodes[ ANCF_ReferenceArrayNodesOnBeams[flexID].x ];
+						real3 pb3 = ANCF_Nodes[ ANCF_ReferenceArrayNodesOnBeams[flexID].y - 1 ];
+						if (IsInsideStraightFlex(posRad, pa3, pb3, 2 * initSpace0, initSpace0)) { flag = false; }
 					}
 				}
 				if (flag) {
@@ -1279,6 +1257,7 @@ int main() {
 	thrust::host_vector<real4> mRhoPresMu;
 	thrust::host_vector<int3> mType;
 
+	//*** rigid bodies
 	//thrust::host_vector<real4> spheresPosRad;
 	thrust::host_vector<real3> rigidPos;
 	thrust::host_vector<real4> mQuatRot;
@@ -1291,6 +1270,16 @@ int main() {
 	thrust::host_vector<real3> rigidBody_InvJ2;
 	real_ sphParticleMass;
 
+	//*** flex bodies
+	thrust::host_vector<real3> ANCF_Nodes;
+	thrust::host_vector<real3> ANCF_Slopes;
+	thrust::host_vector<real3> ANCF_VelNodes;
+	thrust::host_vector<real3> ANCF_VelSlopes;
+	thrust::host_vector<int2>  ANCF_ReferenceArrayNodesOnBeams;
+	real_ pipeRadius;
+	real_ pipeLength;
+	real3 pipeInPoint3 = R3(cMin.x, channelCenterYZ.x, channelCenterYZ.y);
+
 	////***** here: define rigid bodies
 	string fileNameRigids("spheresPos.dat");
 	rhoRigid = 1.0 * rho0;//1.5 * rho0; // rho0;//1180;//1000; //1050; //originally .079 //.179 for cylinder
@@ -1302,8 +1291,14 @@ int main() {
 //	int3 stride = I3(5, 5, 5);
 //	CreateRigidBodiesPattern(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride);
 	//**
-	CreateRigidBodiesFromFile(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, cMin, cMax, fileNameRigids, rhoRigid);
+//	CreateRigidBodiesFromFile(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, cMin, cMax, fileNameRigids, rhoRigid);
 	//**
+	CreateFlexBodies(ANCF_Nodes, ANCF_Slopes, ANCF_VelNodes, ANCF_VelSlopes,
+			ANCF_ReferenceArrayNodesOnBeams,
+			channelRadius,
+			cMax.x - cMin.x,
+			pipeInPoint3,
+			rhoRigid);
 //	//channelRadius = 1.0 * sizeScale;
 //	CreateRigidBodiesPatternPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax);
 //	CreateRigidBodiesPatternStepPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, cMin, cMax);
@@ -1352,7 +1347,8 @@ int main() {
 		thrust::host_vector<int3> mTypeBoundary;
 
 		int2 num_fluidOrBoundaryParticles = CreateFluidParticles(mPosRad, mVelMas, mRhoPresMu, mType, mPosRadBoundary, mVelMasBoundary, mRhoPresMuBoundary, mTypeBoundary, sphParticleMass,
-				rigidPos, rigidRotMatrix, ellipsoidRadii, r, cMax, cMin, rho0, pres, mu);
+				rigidPos, rigidRotMatrix, ellipsoidRadii, r, cMax, cMin, rho0, pres, mu,
+				ANCF_VelNodes, ANCF_ReferenceArrayNodesOnBeams);
 		referenceArray.push_back(I2(0, num_fluidOrBoundaryParticles.x));  //map fluid -1
 //		referenceArray_Types.push_back((I3(-1, 0, 0)));
 		numAllParticles += num_fluidOrBoundaryParticles.x;
@@ -1429,5 +1425,11 @@ int main() {
 	rigidBody_J2.clear();
 	rigidBody_InvJ1.clear();
 	rigidBody_InvJ2.clear();
+
+	ANCF_Nodes.clear();
+	ANCF_Slopes.clear();
+	ANCF_VelNodes.clear();
+	ANCF_VelSlopes.clear();
+	ANCF_ReferenceArrayNodesOnBeams.clear();
 	return 0;
 }
