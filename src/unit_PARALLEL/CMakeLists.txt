@@ -23,10 +23,6 @@ if (${CMAKE_C_COMPILER} MATCHES "icc.*$")
 endif ()
 
 
-
-
-
-
 #add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP)
 #add_definitions(-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP)
 
@@ -35,24 +31,168 @@ endif ()
 # NOTE: to add a new source to this unit, just add its name here and re-run the CMake.
 #
 
-SET(ChronoEngine_unit_GPU_COLLISION
-    src/collision/ChCAABBGenerator.h
-    src/collision/ChCBroadphase.h
-    src/collision/ChCNarrowphase.h
-    src/collision/ChCAABBGenerator.cpp
-    src/collision/ChCBroadphase.cpp
-    src/collision/ChCNarrowphase.cpp
+# Visual Studio is great...
+if(MSVC)
+	# ... I love depcrecation warnings ...
+	ADD_DEFINITIONS( "-D_CRT_SECURE_NO_DEPRECATE" )
+	ADD_DEFINITIONS( "-D_SCL_SECURE_NO_DEPRECATE" )
+	# ... and hidden macros that break min/max
+	SET (CH_BUILDFLAGS "/DNOMINMAX")
+	
+	# Windows doesn't automatically pick up Bullet source included in Chrono's build	
+	SET(ChronoEngine_unit_GPU_COLLISION
+		src/collision/ChCAABBGenerator.h
+		src/collision/ChCBroadphase.h
+		src/collision/ChCNarrowphase.h
+		src/collision/ChCAABBGenerator.cpp
+		src/collision/ChCBroadphase.cpp
+		src/collision/ChCNarrowphase.cpp
 
-    src/collision/ChCSupportFunctions.h
-    src/collision/ChCCollisionModelParallel.h
-    src/collision/ChCCollisionModelParallel.cpp
-    src/collision/ChCCollisionSystemParallel.h
-    src/collision/ChCCollisionSystemParallel.cpp
-    src/collision/ChCCollisionSystemBulletParallel.h
-    src/collision/ChCCollisionSystemBulletParallel.cpp
-    src/collision/ChContactContainerParallel.h
-    src/collision/ChContactContainerParallel.cpp
-   )
+		src/collision/ChCSupportFunctions.h
+		src/collision/ChCCollisionModelParallel.h
+		src/collision/ChCCollisionModelParallel.cpp
+		src/collision/ChCCollisionSystemParallel.h
+		src/collision/ChCCollisionSystemParallel.cpp
+		src/collision/ChCCollisionSystemBulletParallel.h
+		src/collision/ChCCollisionSystemBulletParallel.cpp
+		src/collision/ChContactContainerParallel.h
+		src/collision/ChContactContainerParallel.cpp
+		# JCM: Windows doesn't automatically pick up Bullet source included in Chrono's build
+
+	# CollisionDispatch	
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btActivatingCollisionAlgorithm.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btActivatingCollisionAlgorithm.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btBoxBoxCollisionAlgorithm.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btBoxBoxCollisionAlgorithm.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btCollisionDispatcher.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btCollisionDispatcher.cpp	
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btCollisionObject.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btCollisionObject.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btCollisionWorld.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btCollisionWorld.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btManifoldResult.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btManifoldResult.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btSphereTriangleCollisionAlgorithm.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btSphereTriangleCollisionAlgorithm.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btEmptyCollisionAlgorithm.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btEmptyCollisionAlgorithm.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btCompoundCollisionAlgorithm.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btCompoundCollisionAlgorithm.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btConvexConcaveCollisionAlgorithm.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btConvexConcaveCollisionAlgorithm.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btConvexPlaneCollisionAlgorithm.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btConvexPlaneCollisionAlgorithm.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btConvexConvexAlgorithm.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btConvexConvexAlgorithm.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/SphereTriangleDetector.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/SphereTriangleDetector.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btBoxBoxDetector.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btBoxBoxDetector.cpp	
+	# CollisionShapes
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btBvhTriangleMeshShape.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btBvhTriangleMeshShape.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btCollisionShape.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btCollisionShape.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btConvexInternalShape.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btConvexInternalShape.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btConcaveShape.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btConcaveShape.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btConvexShape.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btConvexShape.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btOptimizedBvh.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btOptimizedBvh.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btPolyhedralConvexShape.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btSphereShape.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btSphereShape.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btTetrahedronShape.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btTetrahedronShape.cpp	
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btTriangleCallback.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btTriangleCallback.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btTriangleMeshShape.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btTriangleMeshShape.cpp
+	# BroadphaseCollision
+		${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btAxisSweep3.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btAxisSweep3.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btDbvt.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btDbvt.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btDispatcher.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btDispatcher.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btCollisionAlgorithm.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btDbvtBroadphase.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btDbvtBroadphase.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btOverlappingPairCache.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btOverlappingPairCache.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btMultiSapBroadphase.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btMultiSapBroadphase.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btQuantizedBvh.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btQuantizedBvh.cpp	
+	# NarrowPhaseCollision	
+		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btContinuousConvexCollision.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btContinuousConvexCollision.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btConvexCast.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btConvexCast.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkConvexCast.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkConvexCast.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkEpa2.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkEpa2.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkEpaPenetrationDepthSolver.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkEpaPenetrationDepthSolver.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkPairDetector.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkPairDetector.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btMinkowskiPenetrationDepthSolver.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btMinkowskiPenetrationDepthSolver.cpp	
+		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btPersistentManifold.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btPersistentManifold.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btRaycastCallback.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btRaycastCallback.cpp
+		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btSubSimplexConvexCast.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btSubSimplexConvexCast.cpp	
+		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.h
+		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.cpp	
+		
+	# gimpact	
+		${CHRONO_INC}/collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.h
+		${CHRONO_INC}/collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.cpp	
+		${CHRONO_INC}/collision/gimpact/GIMPACT/Bullet/btGImpactQuantizedBvh.h
+		${CHRONO_INC}/collision/gimpact/GIMPACT/Bullet/btGImpactQuantizedBvh.cpp
+		${CHRONO_INC}/collision/gimpact/GIMPACT/Bullet/btTriangleShapeEx.h
+		${CHRONO_INC}/collision/gimpact/GIMPACT/Bullet/btTriangleShapeEx.cpp
+		
+	# LinearMath	
+		${CHRONO_INC}/collision/bullet/LinearMath/btAlignedAllocator.h
+		${CHRONO_INC}/collision/bullet/LinearMath/btAlignedAllocator.cpp	
+		${CHRONO_INC}/collision/bullet/LinearMath/btQuickprof.h
+		${CHRONO_INC}/collision/bullet/LinearMath/btQuickprof.cpp
+	   )
+else()
+	SET(ChronoEngine_unit_GPU_COLLISION
+		src/collision/ChCAABBGenerator.h
+		src/collision/ChCBroadphase.h
+		src/collision/ChCNarrowphase.h
+		src/collision/ChCAABBGenerator.cpp
+		src/collision/ChCBroadphase.cpp
+		src/collision/ChCNarrowphase.cpp
+
+		src/collision/ChCSupportFunctions.h
+		src/collision/ChCCollisionModelParallel.h
+		src/collision/ChCCollisionModelParallel.cpp
+		src/collision/ChCCollisionSystemParallel.h
+		src/collision/ChCCollisionSystemParallel.cpp
+		src/collision/ChCCollisionSystemBulletParallel.h
+		src/collision/ChCCollisionSystemBulletParallel.cpp
+		src/collision/ChContactContainerParallel.h
+		src/collision/ChContactContainerParallel.cpp
+	   )
+endif()
+
 SET(ChronoEngine_unit_GPU_SOLVER
     src/solver/ChSolverParallel.h
     src/solver/ChSolverParallel.cpp
@@ -94,6 +234,8 @@ SET(ChronoEngine_unit_GPU_CU
     src/ChBaseParallel.cpp
     src/ChDataManager.cpp
    )
+  
+
 
 SOURCE_GROUP(unit_GPU FILES
              ${ChronoEngine_unit_GPU_SOURCES}
@@ -113,7 +255,9 @@ SOURCE_GROUP(unit_GPU\\constraints FILES
 SET(CHRONO_INC       ""   CACHE PATH "Where is ChronoEngine Source located")
 
 # Include directories based on user path to ChronoEngine
-SET(INC_DIRS ${CHRONO_INC} "${CHRONO_INC}/collision" "${CHRONO_INC}/collision/bullet")
+# JCM: windows needs you the specify all the subdirectories for bullet collision?
+SET(INC_DIRS ${CHRONO_INC} "${CHRONO_INC}/collision" "${CHRONO_INC}/collision/bullet" "${CHRONO_INC}/collision/bullet/LinearMath" "${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision" )
+
 
 # User specified path to ChronoEngine Libraries
 SET(CHRONO_LIB_PATH  ""   CACHE PATH "Where is CHRONOLIB located")
@@ -121,11 +265,13 @@ SET(CHRONO_LIB_PATH  ""   CACHE PATH "Where is CHRONOLIB located")
 # Find required Libraries
 FIND_LIBRARY(CHRONO_LIB NAMES ChronoEngine PATHS ${CHRONO_LIB_PATH} REQUIRED)
 
+# JCM: don't forget to add {INC_DIRS} to the list
 SET(INCLUDE_DIR
 	${CH_CUDA_INC} 
 	${CHRONO_INC} 
 	${CHRONO_INC}/collision/bullet/ 
 	${CMAKE_SOURCE_DIR}/src
+	${INC_DIRS}	
 	)
 
 SET(INCLUDE_LIB
@@ -195,13 +341,14 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	FIND_LIBRARY(CUDA_FRAMEWORK CUDA)
 ENDIF()
 
+# JCM: Cmake doesn't like this
+# IF(${CMAKE_CONFIGURATION_TYPES} MATCHES "Debug")
 
-IF(${CMAKE_CONFIGURATION_TYPES} MATCHES "Debug")
-
-ENDIF()
+# ENDIF()
 
 
 SET_TARGET_PROPERTIES(ChronoEngine_Parallel PROPERTIES
+					  COMPILE_FLAGS "${CH_BUILDFLAGS}"
                       LINK_FLAGS "${CH_LINKERFLAG_GPU}"
                       COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_GPU")
 
