@@ -8,24 +8,11 @@
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
+// File author: A.Tasora
 
 #ifndef CHAPIFEM_H
 #define CHAPIFEM_H
 
-//////////////////////////////////////////////////
-//
-//   ChApiFEM.h
-//
-//   Base header for all headers that have symbols
-//   that can be exported.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include "core/ChPlatform.h"
 

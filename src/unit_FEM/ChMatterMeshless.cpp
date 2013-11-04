@@ -8,17 +8,8 @@
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
-
-///////////////////////////////////////////////////
-//
-//   ChMatterMeshless.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-    
+// File authors: Alessandro Tasora
+  
 #include <stdlib.h>
 #include <algorithm>
 

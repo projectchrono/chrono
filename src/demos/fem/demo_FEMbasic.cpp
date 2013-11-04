@@ -150,7 +150,7 @@ void test_2()
 				// Create a material, that must be assigned to each element,
 				// and set its parameters
 	ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
-	mmaterial->Set_E(209e9);
+	mmaterial->Set_E(0.01e9); // rubber 0.01e9, steel 200e9
 	mmaterial->Set_v(0.3);
 
 				// Create some nodes. These are the classical point-like
@@ -160,13 +160,10 @@ void test_2()
 	ChNodeFEMxyz mnode2(ChVector<>(0,0,1));
 	ChNodeFEMxyz mnode3(ChVector<>(0,1,0));
 	ChNodeFEMxyz mnode4(ChVector<>(1,0,0));
-	mnode1.SetMass(0.001);
-	mnode2.SetMass(0.001);
-	mnode3.SetMass(0.001);
-	mnode4.SetMass(0.001);
-	
+
+
 				// For example, set an applied force to a node:
-	mnode3.SetForce(ChVector<>(0, 10000,0));
+	mnode3.SetForce(ChVector<>(0, 10000, 0));
 
 				// Remember to add nodes and elements to the mesh!
 	my_mesh->AddNode(mnode1);
@@ -186,9 +183,6 @@ void test_2()
 				// This is necessary in order to precompute the 
 				// stiffness matrices for all inserted elements in mesh
 	my_mesh->SetupInitial();
-
-	GetLog()<<melement1.GetStiffnessMatrix()<<"\n";
-	GetLog()<<melement1.GetMatrB()<<"\n";
 
 				// Remember to add the mesh to the system!
 	my_system.Add(my_mesh);
@@ -229,17 +223,22 @@ void test_2()
 	chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
 	msolver->SetDiagonalPreconditioning(true);
 	msolver->SetVerbose(true);
-	my_system.SetIterLCPmaxItersSpeed(80);
+	my_system.SetIterLCPmaxItersSpeed(100);
 	my_system.SetTolSpeeds(1e-10);
 
 	my_system.DoStaticLinear();
 
 				// Output result
-	GetLog()<<mnode1.pos<<"\n";
-	GetLog()<<mnode2.pos<<"\n";
-	GetLog()<<mnode3.pos<<"\n";
-	GetLog()<<mnode4.pos<<"\n";
+	GetLog()<< "Resulting node positions:\n";
+	GetLog()<< mnode1.pos<<"\n";
+	GetLog()<< mnode2.pos<<"\n";
+	GetLog()<< mnode3.pos<<"\n";
+	GetLog()<< mnode4.pos<<"\n";
 
+	GetLog()<< "Resulting constraint reactions:\n";
+	GetLog()<< constraint1->GetReactionOnBody();
+	GetLog()<< constraint2->GetReactionOnBody();
+	GetLog()<< constraint3->GetReactionOnBody();
 }
 
 
@@ -695,7 +694,7 @@ int main(int argc, char* argv[])
 
 
 	// Test: an introductory problem:
-	test_5();
+	test_2();
 
 
 	// Remember this at the end of the program, if you started

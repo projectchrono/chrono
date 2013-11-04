@@ -8,26 +8,10 @@
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
+// File authors: Alessandro Tasora
 
 #ifndef CHPROXIMITYCONTAINERMESHLESS_H
 #define CHPROXIMITYCONTAINERMESHLESS_H
-
-///////////////////////////////////////////////////
-//
-//   ChProximityContainerMeshless.h
-//
-//   Class for container of many proximity pairs for SPH (Smooth 
-//   Particle Hydrodinamics and similar meshless force computations), 
-//   as CPU typical linked list of ChProximitySPH objects
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 
 
 #include "physics/ChProximityContainerBase.h"

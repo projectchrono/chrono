@@ -8,21 +8,11 @@
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
+// File authors: Alessandro Tasora
 
 #ifndef CHELEMENTSPRING_H
 #define CHELEMENTSPRING_H
 
-//////////////////////////////////////////////////
-//
-//   ChElementSpring.h
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 
 #include "ChElementGeneric.h"

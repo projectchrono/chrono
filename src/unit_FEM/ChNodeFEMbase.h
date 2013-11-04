@@ -8,21 +8,11 @@
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
+// File authors: Andrea Favali, Alessandro Tasora
 
 #ifndef CHNODEFEMBASE_H
 #define CHNODEFEMBASE_H
 
-//////////////////////////////////////////////////
-//
-//   ChNodeFEMbase.h
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include "ChApiFEM.h"
 #include "physics/ChIndexedNodes.h"

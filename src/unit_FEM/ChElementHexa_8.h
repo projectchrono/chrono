@@ -1,17 +1,18 @@
+//
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2013 Project Chrono
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be 
+// found in the LICENSE file at the top level of the distribution
+// and at http://projectchrono.org/license-chrono.txt.
+//
+// File authors: Andrea Favali
+
 #ifndef CHELEMENTHEXA8_H
 #define CHELEMENTHEXA8_H
 
-//////////////////////////////////////////////////
-//  
-//   ChElementHexa_8.h
-//
-//   Class for hexaedrons
-//
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-///////////////////////////////////////////////////
 
 #include "ChElement3D.h"
 #include "ChNodeFEMxyz.h"
@@ -20,6 +21,9 @@ namespace chrono
 {
 namespace fem
 {
+
+	/// Class for FEM elements of hexahedron type (isoparametric 3D bricks) 
+	/// with 8 nodes. This element has a linear displacement field.
 
 class ChApiFem ChElementHexa_8 : public ChHexahedron
 {
@@ -281,6 +285,12 @@ public:
 			{
 				ComputeStiffnessMatrix();
 
+			}
+
+					// compute large rotation of element for corotational approach
+	virtual void UpdateRotation()
+			{
+					//***TO DO***
 			}
 
 	virtual void GetStrain()

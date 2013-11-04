@@ -8,16 +8,8 @@
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
+// File authors: Alessandro Tasora
 
-///////////////////////////////////////////////////
-//
-//   ChProximityContainerMeshless.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
- 
   
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"

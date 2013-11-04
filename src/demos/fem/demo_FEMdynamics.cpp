@@ -155,8 +155,8 @@ void test_2()
 	ChNodeFEMxyz mnodeB(ChVector<>(0,1,0));
 
 				// Set no point-like masses because mass is already in bar element:
-	mnodeA.SetMass(1.0);	
-	mnodeB.SetMass(1.0);
+	mnodeA.SetMass(0.0);	
+	mnodeB.SetMass(0.0);
 	
 				// For example, set an applied force to a node:
 	mnodeB.SetForce(ChVector<>(0,0,0));
@@ -176,7 +176,7 @@ void test_2()
 	melementA.SetBarArea(0.01*0.01);
 	melementA.SetBarYoungModulus(0.01e9); // rubber 0.01e9, steel 200e9
 	melementA.SetBarRaleyghDamping(0.0);
-	melementA.SetBarDensity(0.1);
+	melementA.SetBarDensity(1000);
 	
 
 				// Remember to add elements to the mesh!
@@ -220,6 +220,109 @@ void test_2()
 		my_system.DoStepDynamics(timestep);
 
 		GetLog() << " t=" << my_system.GetChTime() << "  nodeB.pos.y=" << mnodeB.GetPos().y << "  \n";
+	}
+
+}
+
+
+
+
+void test_3()
+{
+	GetLog() << "\n-------------------------------------------------\n";
+	GetLog() << "TEST: tetahedron FEM dynamics, implicit integration \n\n";
+
+				// The physical system: it contains all physical objects.
+	ChSystem my_system; 
+					
+				// Create a mesh, that is a container for groups
+				// of elements and their referenced nodes.
+	ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+	
+				// Create a material, that must be assigned to each element,
+				// and set its parameters
+	ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
+	mmaterial->Set_E(0.01e9); // rubber 0.01e9, steel 200e9
+	mmaterial->Set_v(0.3);
+	mmaterial->Set_RayleighDampingK(0.01);
+	mmaterial->Set_density(1000);
+
+				// Create some nodes. These are the classical point-like
+				// nodes with x,y,z degrees of freedom, that can be used 
+				// for many types of FEM elements in space.
+	ChNodeFEMxyz mnode1(ChVector<>(0,0,0));
+	ChNodeFEMxyz mnode2(ChVector<>(0,0,1));
+	ChNodeFEMxyz mnode3(ChVector<>(0,1,0));
+	ChNodeFEMxyz mnode4(ChVector<>(1,0,0));
+
+				// For example, set a point-like mass at a node:
+	mnode3.SetMass(100);
+
+				// For example, set an initial displacement to a node:
+	mnode3.SetPos( mnode3.GetX0() + ChVector<>(0,0.01,0) );
+
+	// Remember to add nodes and elements to the mesh!
+	my_mesh->AddNode(mnode1);
+	my_mesh->AddNode(mnode2);
+	my_mesh->AddNode(mnode3);
+	my_mesh->AddNode(mnode4);
+
+				// Create the tetrahedron element, and assign 
+				// nodes and material
+	ChElementTetra_4 melement1;
+	melement1.SetNodes(&mnode1, &mnode2, &mnode3, &mnode4);
+	melement1.SetMaterial(mmaterial);
+
+				// Remember to add elements to the mesh!
+	my_mesh->AddElement(melement1);
+
+				// This is necessary in order to precompute the 
+				// stiffness matrices for all inserted elements in mesh
+	my_mesh->SetupInitial();
+
+				// Remember to add the mesh to the system!
+	my_system.Add(my_mesh);
+
+
+				// Create also a truss
+	ChSharedPtr<ChBody> truss(new ChBody);
+	truss->SetBodyFixed(true);
+	my_system.Add(truss);
+	
+				// Create a constraint between a node and the truss
+	ChSharedPtr<ChNodeBody> constraint1(new ChNodeBody);
+	ChSharedPtr<ChNodeBody> constraint2(new ChNodeBody);
+	ChSharedPtr<ChNodeBody> constraint3(new ChNodeBody);
+
+	constraint1->Initialize(my_mesh,		// node container
+							0,				// index of node in node container 
+							truss);			// body to be connected to
+
+	constraint2->Initialize(my_mesh,		// node container
+							1,				// index of node in node container 
+							truss);			// body to be connected to
+							
+	constraint3->Initialize(my_mesh,		// node container
+							3,				// index of node in node container 
+							truss);			// body to be connected to
+					
+	my_system.Add(constraint1);
+	my_system.Add(constraint2);
+	my_system.Add(constraint3);
+
+				// Perform a dynamic time integration:
+
+	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES); // <- NEEDED because other solvers can't handle stiffness matrices
+	chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
+	my_system.SetIterLCPmaxItersSpeed(40);
+	my_system.SetTolSpeeds(1e-10);
+
+	double timestep = 0.001;
+	while (my_system.GetChTime() < 0.2)
+	{
+		my_system.DoStepDynamics(timestep);
+
+		GetLog() << " t=" << my_system.GetChTime() << "  mnode3.pos.y=" << mnode3.GetPos().y << "  \n";
 	}
 
 }
