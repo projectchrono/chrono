@@ -155,14 +155,14 @@ void test_2()
 	ChNodeFEMxyz mnodeB(ChVector<>(0,1,0));
 
 				// Set no point-like masses because mass is already in bar element:
-	mnodeA.SetMass(0.0);	
-	mnodeB.SetMass(0.0);
+	//mnodeA.SetMass(100.0);	
+	//mnodeB.SetMass(100.0);
 	
 				// For example, set an applied force to a node:
-	mnodeB.SetForce(ChVector<>(0,0,0));
+	mnodeB.SetForce(ChVector<>(0,5,0));
 
 				// For example, set an initial displacement to a node:
-	mnodeB.SetPos( mnodeB.GetX0() + ChVector<>(0,0.01,0) );
+	mnodeB.SetPos( mnodeB.GetX0() + ChVector<>(0,0.1,0) );
 
 				// Remember to add nodes and elements to the mesh!
 	my_mesh->AddNode(mnodeA);
@@ -173,11 +173,13 @@ void test_2()
 				// two 3D nodes:
 	ChElementBar melementA;
 	melementA.SetNodes(&mnodeA, &mnodeB);
-	melementA.SetBarArea(0.01*0.01);
+	melementA.SetBarArea(0.1*0.02);
 	melementA.SetBarYoungModulus(0.01e9); // rubber 0.01e9, steel 200e9
 	melementA.SetBarRaleyghDamping(0.0);
-	melementA.SetBarDensity(1000);
+	melementA.SetBarDensity(2.*0.1/(melementA.GetBarArea()*1.0));
+	//melementA.SetBarDensity(0);
 	
+
 
 				// Remember to add elements to the mesh!
 	my_mesh->AddElement(melementA);
@@ -211,8 +213,11 @@ void test_2()
 
 	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES); // <- NEEDED because other solvers can't handle stiffness matrices
 	chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
-	my_system.SetIterLCPmaxItersSpeed(40);
+	msolver->SetDiagonalPreconditioning(false);
+	my_system.SetIterLCPmaxItersSpeed(100);
 	my_system.SetTolSpeeds(1e-10);
+
+	GetLog() << "K of bar = " << (melementA.GetBarArea() * melementA.GetBarYoungModulus())/melementA.GetRestLength() << "\n";
 
 	double timestep = 0.001;
 	while (my_system.GetChTime() < 0.2)
@@ -221,6 +226,11 @@ void test_2()
 
 		GetLog() << " t=" << my_system.GetChTime() << "  nodeB.pos.y=" << mnodeB.GetPos().y << "  \n";
 	}
+
+	GetLog() << " Bar mass = " << melementA.GetMass() << "  restlength = " << melementA.GetRestLength() << "\n";
+
+	GetLog() << "K of bar = " << (melementA.GetBarArea() * melementA.GetBarYoungModulus())/melementA.GetRestLength() << "\n";
+	GetLog() << "kmatr = " << *melementA.Kstiffness().Get_K() ;
 
 }
 
@@ -256,7 +266,7 @@ void test_3()
 	ChNodeFEMxyz mnode4(ChVector<>(1,0,0));
 
 				// For example, set a point-like mass at a node:
-	mnode3.SetMass(100);
+	mnode3.SetMass(200);
 
 				// For example, set an initial displacement to a node:
 	mnode3.SetPos( mnode3.GetX0() + ChVector<>(0,0.01,0) );
@@ -318,11 +328,11 @@ void test_3()
 	my_system.SetTolSpeeds(1e-10);
 
 	double timestep = 0.001;
-	while (my_system.GetChTime() < 0.2)
+	while (my_system.GetChTime() < 0.6)
 	{
 		my_system.DoStepDynamics(timestep);
 
-		GetLog() << " t=" << my_system.GetChTime() << "  mnode3.pos.y=" << mnode3.GetPos().y << "  \n";
+		GetLog() << " t =" << my_system.GetChTime() << "  mnode3.pos.y=" << mnode3.GetPos().y << "  \n";
 	}
 
 }
@@ -341,7 +351,7 @@ int main(int argc, char* argv[])
 
 
 	// Test: an introductory problem:
-	test_1();
+	test_2();
 
 
 	// Remember this at the end of the program, if you started

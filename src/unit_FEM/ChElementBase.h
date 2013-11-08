@@ -57,14 +57,6 @@ public:
 				/// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
 	virtual void ComputeKRMmatricesGlobal (ChMatrix<>& H, double Kfactor, double Rfactor=0, double Mfactor=0) = 0;
 
-/*
-				/// Sets Hl as the local stiffness matrix K, scaled  by Kfactor. Optionally, also
-				/// superimposes local damping matrix R, scaled by Rfactor, and local mass matrix M, 
-				/// scaled by Mfactor. 
-				/// This is usually called only once in the simulation. 
-				/// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
-	virtual void ComputeKRMmatricesLocal (ChMatrix<>& Hl, double Kfactor, double Rfactor=0, double Mfactor=0) = 0;
-*/
 				/// Computes the internal forces (ex. the actual position of
 				/// nodes is not in relaxed reference position) and set values
 				/// in the Fi vector, whith n.rows = n.of dof of element.

@@ -233,6 +233,7 @@ public:
 					ChMatrixCorotation::ComputeKCt(CK, this->A, 4, CKCt);
 
 					// DEBUG
+					/*
 					ChMatrixDynamic<> Ctest(12,12);
 					Ctest.PasteMatrix(&A,0,0);
 					Ctest.PasteMatrix(&A,3,3);
@@ -243,6 +244,7 @@ public:
 					ChMatrixDynamic<> CKCttest(12,12);
 					CKCttest.MatrMultiplyT(CKtest,Ctest);
 					GetLog() << "CKCt difference \n" << CKCt-CKCttest << "\n";
+					*/
 
 					// For K stiffness matrix and R damping matrix:
 
@@ -266,18 +268,7 @@ public:
 					//***TO DO*** better per-node lumping, or 12x12 consistent mass matrix.
 				}
 
-/*
-				/// Sets Hl as the local stiffness matrix K, scaled  by Kfactor. Optionally, also
-				/// superimposes local damping matrix R, scaled by Rfactor, and local mass matrix M multiplied by Mfactor.
-				/// This is usually called only once in the simulation. 
-	virtual void ComputeKRMmatricesLocal (ChMatrix<>& Hl, double Kfactor, double Rfactor=0, double Mfactor=0)
-				{
-					assert((Hl.GetRows() == 12) && (Hl.GetColumns() == 12));
 
-					// to keep things short, here local K is as global K (anyway, only global K is used in simulations)
-					ComputeKRMmatricesGlobal (Hl, Kfactor, Rfactor, Mfactor);
-				}
-*/
 				/// Computes the internal forces (ex. the actual position of
 				/// nodes is not in relaxed reference position) and set values
 				/// in the Fi vector.
@@ -310,6 +301,8 @@ public:
 					//***TO DO*** better per-node lumping, or 12x12 consistent mass matrix.
 
 					FiK_local.MatrInc(FiR_local);
+
+					FiK_local.MatrScale(-1.0);
 
 						// Fi = C * Fi_local  with C block-diagonal rotations A
 					ChMatrixCorotation::ComputeCK(FiK_local, this->A, 4, Fi);

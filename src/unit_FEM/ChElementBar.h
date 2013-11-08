@@ -99,24 +99,14 @@ public:
 					H.PasteMatrix(&submatr,3,0);
 						
 					// For M mass matrix, do mass lumping:
-					H(0,0) += mass*0.5; //node A x,y,z
-					H(1,1) += mass*0.5;
-					H(2,2) += mass*0.5;
-					H(3,3) += mass*0.5; //node B x,y,z
-					H(4,4) += mass*0.5;
-					H(5,5) += mass*0.5;
+					H(0,0) += Mfactor* mass*0.5; //node A x,y,z
+					H(1,1) += Mfactor* mass*0.5;
+					H(2,2) += Mfactor* mass*0.5;
+					H(3,3) += Mfactor* mass*0.5; //node B x,y,z
+					H(4,4) += Mfactor* mass*0.5;
+					H(5,5) += Mfactor* mass*0.5;
 				}
 
-				/// Sets Hl as the local stiffness matrix K, scaled  by Kfactor. Optionally, also
-				/// superimposes local damping matrix R, scaled by Rfactor, and local mass matrix M multiplied by Mfactor.
-				/// This is usually called only once in the simulation. 
-	virtual void ComputeKRMmatricesLocal (ChMatrix<>& Hl, double Kfactor, double Rfactor=0, double Mfactor=0)
-				{
-					assert((Hl.GetRows() == 6) && (Hl.GetColumns() == 6));
-
-					// to keep things short, here local K is as global K (anyway, only global K is used in simulations)
-					ComputeKRMmatricesGlobal (Hl, Kfactor, Rfactor, Mfactor);
-				}
 
 				/// Setup. Precompute mass and matrices that do not change during the 
 				/// simulation, such as the local tangent stiffness Kl of each element, if needed, etc.
