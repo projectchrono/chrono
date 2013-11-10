@@ -46,7 +46,7 @@ class ChApiGPU ChLcpSolverParallel: public ChLcpIterativeSolver {
 		}
 		~ChLcpSolverParallel() {
 		}
-		virtual double Solve(ChLcpSystemDescriptor &sysd, bool add_Mq_to_f = false) {
+		virtual double Solve(ChLcpSystemDescriptor &sysd) {
 			return 0;
 		}
 		void host_addForces(bool* active, real *mass, real3 *inertia, real3 *forces, real3 *torques, real3 *vel, real3 *omega);
