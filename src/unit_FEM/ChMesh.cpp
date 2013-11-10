@@ -127,6 +127,17 @@ void ChMesh::VariablesQbLoadSpeed()
 		this->vnodes[ie]->VariablesQbLoadSpeed();
 }
 
+void ChMesh::VariablesFbIncrementMq() 
+{
+	// nodal masses
+	for (unsigned int ie = 0; ie < this->vnodes.size(); ie++)
+		this->vnodes[ie]->VariablesFbIncrementMq();
+
+	// internal masses
+	for (unsigned int ie = 0; ie < this->velements.size(); ie++)
+		this->velements[ie]->VariablesFbIncrementMq();
+}
+
 void ChMesh::VariablesQbSetSpeed(double step) 
 {
 	for (unsigned int ie = 0; ie < this->vnodes.size(); ie++)

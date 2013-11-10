@@ -62,7 +62,6 @@ struct thread_data
 
 	std::vector<ChLcpConstraint*>* mconstraints;
 	std::vector<ChLcpVariables*>*  mvariables;
-	bool madd_Mq_to_f;
 };
 
 
@@ -91,7 +90,6 @@ void SolverThreadFunc(void* userPtr,void* lsMemory)
 
 	std::vector<ChLcpConstraint*>* mconstraints = tdata->mconstraints;
 	std::vector<ChLcpVariables*>*  mvariables = tdata->mvariables;
-	bool madd_Mq_to_f = tdata->madd_Mq_to_f;
 
 	switch (tdata->stage)
 	{
@@ -134,10 +132,7 @@ void SolverThreadFunc(void* userPtr,void* lsMemory)
 			//
 			for (unsigned int iv = tdata->var_from; iv< tdata->var_to; iv++)
 				if ((*mvariables)[iv]->IsActive())
-					if (madd_Mq_to_f)
-						(*mvariables)[iv]->Compute_inc_invMb_v((*mvariables)[iv]->Get_qb(), (*mvariables)[iv]->Get_fb()); // q = q_old + [M]'*fb 
-					else
-						(*mvariables)[iv]->Compute_invMb_v((*mvariables)[iv]->Get_qb(), (*mvariables)[iv]->Get_fb()); // q = [M]'*fb 
+					(*mvariables)[iv]->Compute_invMb_v((*mvariables)[iv]->Get_qb(), (*mvariables)[iv]->Get_fb()); // q = [M]'*fb 
 			
 			break; // end stage
 		}
@@ -344,8 +339,7 @@ ChLcpIterativeSORmultithread::~ChLcpIterativeSORmultithread()
 // solution is done.
 
 double ChLcpIterativeSORmultithread::Solve(
-					ChLcpSystemDescriptor& sysd,		///< system description with constraints and variables	
-					bool add_Mq_to_f 
+					ChLcpSystemDescriptor& sysd		///< system description with constraints and variables	
 					)
 {
 	std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
@@ -400,7 +394,6 @@ double ChLcpIterativeSORmultithread::Solve(
 		mdataN[nth].var_to = var_to;
 		mdataN[nth].mconstraints = &mconstraints;
 		mdataN[nth].mvariables = &mvariables;
-		mdataN[nth].madd_Mq_to_f = add_Mq_to_f;
 
 		var_slice = var_to;
 		constr_slice = constr_to;

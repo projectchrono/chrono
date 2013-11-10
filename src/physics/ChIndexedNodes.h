@@ -87,6 +87,11 @@ public:
 				/// current value of speeds. 
 	virtual void VariablesQbLoadSpeed() {};
 
+				/// Adds M*q (masses multiplied current 'qb') to Fb, ex. if qb is initialized
+				/// with v_old using VariablesQbLoadSpeed, this method can be used in 
+				/// timestepping schemes that do: M*v_new = M*v_old + forces*dt
+	virtual void VariablesFbIncrementMq() {};
+
 				/// Fetches the item speed (ex. linear velocity, in xyz nodes) from the
 				/// 'qb' part of the ChLcpVariables and sets it as the current item speed.
 				/// If 'step' is not 0, also should compute the approximate acceleration of

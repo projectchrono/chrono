@@ -208,6 +208,8 @@ public:
 
 	void VariablesQbLoadSpeed();
 
+	void VariablesFbIncrementMq();
+
 	void VariablesQbSetSpeed(double step=0.);
 
 	void VariablesQbIncrementPosition(double step);

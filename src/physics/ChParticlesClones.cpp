@@ -276,6 +276,13 @@ void ChParticlesClones::VariablesQbLoadSpeed()
 	}
 }
 
+void ChParticlesClones::VariablesFbIncrementMq()
+{
+	for (unsigned int j = 0; j < particles.size(); j++)
+	{
+		this->particles[j]->variables.Compute_inc_Mb_v(this->particles[j]->variables.Get_fb(), this->particles[j]->variables.Get_qb());
+	}
+}
 
 void ChParticlesClones::VariablesQbSetSpeed(double step)
 {

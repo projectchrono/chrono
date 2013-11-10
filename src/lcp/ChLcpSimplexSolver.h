@@ -98,8 +98,7 @@ public:
 				/// \return  the maximum constraint violation after termination.
 
 	virtual double Solve(
-				ChLcpSystemDescriptor& sysd,		///< system description with constraints and variables	
-				bool add_Mq_to_f = false			///< if true, takes the initial 'q' and adds [M]*q to 'f' vector  
+				ChLcpSystemDescriptor& sysd		///< system description with constraints and variables	
 				);
 
 				/// Set truncation step (that is, the method stops anyway after

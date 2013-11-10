@@ -92,6 +92,11 @@ public:
 				/// encapsulated ChLcpVariables, in the 'fb' part: qf+=forces*factor
 	virtual void VariablesFbLoadInternalForces(double factor=1.) {};
 
+				/// Adds M*q (internal masses multiplied current 'qb') to Fb, ex. if qb is initialized
+				/// with v_old using VariablesQbLoadSpeed, this method can be used in 
+				/// timestepping schemes that do: M*v_new = M*v_old + forces*dt
+	virtual void VariablesFbIncrementMq() {};
+
 
 };
 

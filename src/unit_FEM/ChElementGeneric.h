@@ -83,6 +83,39 @@ public:
 					}
 				};
 
+				/// Adds M*q (internal masses multiplied current 'qb') to Fb, ex. if qb is initialized
+				/// with v_old using VariablesQbLoadSpeed, this method can be used in 
+				/// timestepping schemes that do: M*v_new = M*v_old + forces*dt
+	virtual void VariablesFbIncrementMq() 
+				{
+					// This is a default (VERY UNOPTIMAL) book keeping so that in children classes you can avoid 
+					// implementing this VariablesFbIncrementMq function, unless you need faster code)
+
+					ChMatrixDynamic<> mMi(this->GetNcoords(), this->GetNcoords());
+					this->ComputeKRMmatricesGlobal(mMi, 0, 0, 1.0); // fill M mass matrix 
+					
+					ChMatrixDynamic<> mqi(this->GetNcoords(), 1);
+					int stride = 0;
+					for (int in=0; in < this->GetNnodes(); in++)
+					{
+						int nodedofs = GetNodeN(in)->Get_ndof();
+						mqi.PasteMatrix(&GetNodeN(in)->Variables().Get_qb(), stride, 0);
+						stride += nodedofs;
+					}
+
+					ChMatrixDynamic<> mFi(this->GetNcoords(), 1);
+					mFi.MatrMultiply(mMi, mqi);
+
+					stride = 0;
+					for (int in=0; in < this->GetNnodes(); in++)
+					{
+						int nodedofs = GetNodeN(in)->Get_ndof();
+						GetNodeN(in)->Variables().Get_fb().PasteSumClippedMatrix(&mFi, stride,0, nodedofs,1, 0,0);
+						stride += nodedofs;
+					}
+
+				}
+
 };
 
 

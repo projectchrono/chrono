@@ -155,11 +155,11 @@ void test_2()
 	ChNodeFEMxyz mnodeB(ChVector<>(0,1,0));
 
 				// Set no point-like masses because mass is already in bar element:
-	//mnodeA.SetMass(100.0);	
-	//mnodeB.SetMass(100.0);
+	mnodeA.SetMass(0.0);	
+	mnodeB.SetMass(0.0);
 	
 				// For example, set an applied force to a node:
-	mnodeB.SetForce(ChVector<>(0,5,0));
+	//mnodeB.SetForce(ChVector<>(0,5,0));
 
 				// For example, set an initial displacement to a node:
 	mnodeB.SetPos( mnodeB.GetX0() + ChVector<>(0,0.1,0) );
@@ -175,7 +175,7 @@ void test_2()
 	melementA.SetNodes(&mnodeA, &mnodeB);
 	melementA.SetBarArea(0.1*0.02);
 	melementA.SetBarYoungModulus(0.01e9); // rubber 0.01e9, steel 200e9
-	melementA.SetBarRaleyghDamping(0.0);
+	melementA.SetBarRaleyghDamping(0.02);
 	melementA.SetBarDensity(2.*0.1/(melementA.GetBarArea()*1.0));
 	//melementA.SetBarDensity(0);
 	
@@ -213,7 +213,7 @@ void test_2()
 
 	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES); // <- NEEDED because other solvers can't handle stiffness matrices
 	chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
-	msolver->SetDiagonalPreconditioning(false);
+	msolver->SetDiagonalPreconditioning(true);
 	my_system.SetIterLCPmaxItersSpeed(100);
 	my_system.SetTolSpeeds(1e-10);
 
@@ -328,7 +328,7 @@ void test_3()
 	my_system.SetTolSpeeds(1e-10);
 
 	double timestep = 0.001;
-	while (my_system.GetChTime() < 0.6)
+	while (my_system.GetChTime() < 0.2)
 	{
 		my_system.DoStepDynamics(timestep);
 
@@ -351,7 +351,7 @@ int main(int argc, char* argv[])
 
 
 	// Test: an introductory problem:
-	test_2();
+	test_3();
 
 
 	// Remember this at the end of the program, if you started

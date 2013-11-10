@@ -30,8 +30,7 @@ namespace chrono
 {
 
 double ChLcpIterativeBB::Solve(
-					ChLcpSystemDescriptor& sysd,		///< system description with constraints and variables	
-					bool add_Mq_to_f 
+					ChLcpSystemDescriptor& sysd		///< system description with constraints and variables	
 					)
 {
 	std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
@@ -40,7 +39,7 @@ double ChLcpIterativeBB::Solve(
 		// If stiffness blocks are used, the Schur complement cannot be esily
 		// used, so fall back to the Solve_SupportingStiffness method, that operates on KKT.
 	if (sysd.GetKstiffnessList().size() > 0)
-		return this->Solve_SupportingStiffness(sysd, add_Mq_to_f);
+		return this->Solve_SupportingStiffness(sysd);
 
 
 	// Tuning of the spectral gradient search
@@ -131,10 +130,7 @@ double ChLcpIterativeBB::Solve(
 	// Put (M^-1)*k    in  q  sparse vector of each variable..
 	for (unsigned int iv = 0; iv< mvariables.size(); iv++)
 		if (mvariables[iv]->IsActive())
-			if (add_Mq_to_f)
-				mvariables[iv]->Compute_inc_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb()); // q = q_old + [M]'*fb 
-			else
-				mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb()); // q = [M]'*fb 
+			mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb()); // q = [M]'*fb 
 
 	// ...and now do  b_shur = - D'*q = - D'*(M^-1)*k ..
 	int s_i = 0;
@@ -426,8 +422,7 @@ double ChLcpIterativeBB::Solve(
 
 
 double ChLcpIterativeBB::Solve_SupportingStiffness(
-				ChLcpSystemDescriptor& sysd,		///< system description with constraints and variables	
-				bool add_Mq_to_f   			       ///< if true, takes the initial 'q' and adds [M]*q to 'f' vector  
+				ChLcpSystemDescriptor& sysd		///< system description with constraints and variables	 
 				)
 {
 
@@ -537,15 +532,6 @@ double ChLcpIterativeBB::Solve_SupportingStiffness(
 	// Initialize the d vector filling it with {f, -b}
 	sysd.BuildDiVector(md);
 
-	// If user wants M*q to be added to f, add it directly to d={f+M*q, -b}
-	if (add_Mq_to_f)
-	{
-		if (!warm_start)
-			sysd.FromUnknownsToVector(mx);
-		for (unsigned int iv = 0; iv< mvariables.size(); iv++)
-			if (mvariables[iv]->IsActive())
-				mvariables[iv]->MultiplyAndAdd(md, mx); // d_i += M_i*x_i
-	}
 
 
 	//

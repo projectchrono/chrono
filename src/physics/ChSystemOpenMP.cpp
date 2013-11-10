@@ -259,7 +259,7 @@ int ChSystemOpenMP::Integrate_Y_impulse_Anitescu() {
         //
 
         LCPprepare(true,           // Cq,
-                        true,           // v_old (needed for adding [M]*v_old to the known vector)
+                        true,           // add [M]*v_old to the known vector
                         GetStep(),      // f*dt
 						GetStep()*GetStep(), // dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
 						GetStep(),		// dt*R   (nb only non-Schur based solvers support K matrix blocks)
@@ -280,8 +280,8 @@ int ChSystemOpenMP::Integrate_Y_impulse_Anitescu() {
         // Solve the LCP problem.
         // Solution variables are new speeds 'v_new'
         GetLcpSolverSpeed()->Solve(
-                                *this->LCP_descriptor,
-                                true);          // add [M]*v_old to the known vector
+                                *this->LCP_descriptor
+                                );          
 
         mtimer_lcp.stop();
         timer_lcp = mtimer_lcp();

@@ -65,7 +65,7 @@ namespace chrono
 ///  Note: in sake of highest generalization, this base
 /// class does NOT include a mass submatrix (a sub part of the M
 /// matrix) but just declares methods such as Compute_invMb_v(),
-/// Compute_Mb_v() (which are used by iterative solvers) which MUST
+/// (which are used by iterative solvers) which MUST
 /// be implemented by child classes. This doing, some child 
 /// classes too may implement all three methods without needing to
 /// store entire mass submatrices, if possible, in sake of efficiency.
@@ -194,11 +194,11 @@ public:
 	virtual void Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) = 0;
 
 				/// Computes the product of the mass matrix by a
-				/// vector, and store in result: result = [Mb]*vect
+				/// vector, and increment result: result = [Mb]*vect
 				/// *** This function MUST BE OVERRIDDEN by specialized
 				/// inherited classes
-	virtual void Compute_Mb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) = 0;
-	virtual void Compute_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) = 0;
+	virtual void Compute_inc_Mb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) = 0;
+	virtual void Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) = 0;
 
 				/// Computes the product of the corresponding block in the 
 				/// system matrix (ie. the mass matrix) by 'vect', and add to 'result'. 

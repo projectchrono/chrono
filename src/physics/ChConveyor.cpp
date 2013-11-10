@@ -124,6 +124,13 @@ void ChConveyor::VariablesFbLoadForces(double factor)
 	this->conveyor_plate->VariablesFbLoadForces(factor);
 }
 
+void ChConveyor::VariablesFbIncrementMq()
+{
+					// inherit parent class
+	ChBody::VariablesFbIncrementMq();
+
+	this->conveyor_plate->VariablesFbIncrementMq();
+}
 
 void ChConveyor::VariablesQbLoadSpeed()
 {

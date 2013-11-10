@@ -433,6 +433,13 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor)
 
 }
 
+void ChMatterMeshless::VariablesFbIncrementMq()
+{
+	for (unsigned int j = 0; j < nodes.size(); j++)
+	{
+		this->nodes[j]->variables.Compute_inc_Mb_v(this->nodes[j]->variables.Get_fb(), this->nodes[j]->variables.Get_qb());
+	}
+}
 
 void ChMatterMeshless::VariablesQbLoadSpeed()
 {

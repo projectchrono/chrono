@@ -226,6 +226,15 @@ void ChAssembly::VariablesFbLoadForces(double factor)
 	}
 }
 
+void ChAssembly::VariablesFbIncrementMq()
+{
+	HIER_BODY_INIT
+	while HIER_BODY_NOSTOP
+	{
+		Bpointer->VariablesFbIncrementMq();
+		HIER_BODY_NEXT
+	}
+}
 
 void ChAssembly::VariablesQbLoadSpeed()
 {

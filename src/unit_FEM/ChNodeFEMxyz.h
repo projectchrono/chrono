@@ -136,6 +136,11 @@ public:
 						}
 					};
 
+	virtual void VariablesFbIncrementMq() 
+					{
+						this->variables.Compute_inc_Mb_v(this->variables.Get_fb(), this->variables.Get_qb());
+					};
+
 	virtual void VariablesQbIncrementPosition(double step) 
 					{
 						ChVector<> newspeed = variables.Get_qb().ClipVector(0,0);

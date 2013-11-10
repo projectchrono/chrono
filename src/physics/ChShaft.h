@@ -157,10 +157,13 @@ public:
 
 				/// Initialize the 'qb' part of the ChLcpVariables with the 
 				/// current value of shaft speed. Note: since 'qb' is the unknown of the LCP, this
-				/// function sems unuseful, however the LCP solver has an option 'add_Mq_to_f', that
-				/// takes [M]*qb and add to the 'fb' term before starting (this is often needed in
-				/// the Anitescu time stepping method, for instance); this explains the need of this method..
+				/// function seems unuseful, unless used before VariablesFbIncrementMq()
 	void VariablesQbLoadSpeed();
+
+				/// Adds M*q (masses multiplied current 'qb') to Fb, ex. if qb is initialized
+				/// with v_old using VariablesQbLoadSpeed, this method can be used in 
+				/// timestepping schemes that do: M*v_new = M*v_old + forces*dt
+	void VariablesFbIncrementMq();
 
 				/// Fetches the shaft speed from the 'qb' part of the ChLcpVariables (does not 
 				/// updates the full shaft state) and sets it as the current shaft speed.

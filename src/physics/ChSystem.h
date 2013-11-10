@@ -719,7 +719,7 @@ protected:
 				/// The parameters of this function specify which data must be loaded
 				/// in the known terms.
 	virtual void LCPprepare_load(      bool load_jacobians, ///< load jacobians into ChConstraints
-							   bool load_v,			///< load v_old (current speeds) in q (to use LCP solver with option 'add_Mq_to_f')
+							   bool   load_Mv,		///< load M*v in fb: fb+=M*v (for timestepping where fb=F*h+M*v_old). Also, sets q=v_old.
 							   double F_factor, 	///< load F (forces) in fb: fb+=F*F_factor
 							   double K_factor,		///< load K stiff.matrices, if any ChLcpKstiffness blocks, multiplied by K_factor
 							   double R_factor,		///< load R damp.matrices, if any ChLcpKstiffness blocks, multiplied by R_factor

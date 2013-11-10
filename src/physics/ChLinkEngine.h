@@ -208,6 +208,7 @@ public:
 	virtual void VariablesFbReset();
 	virtual void VariablesFbLoadForces(double factor=1.);
 	virtual void VariablesQbLoadSpeed();
+	virtual void VariablesFbIncrementMq();
 	virtual void VariablesQbSetSpeed(double step=0.);
 	virtual void VariablesQbIncrementPosition(double step);
 

@@ -133,6 +133,10 @@ void ChShaft::VariablesFbLoadForces(double factor)
 	this->variables.Get_fb().ElementN(0) += this->torque * factor;
 }
 
+void ChShaft::VariablesFbIncrementMq()
+{
+	this->variables.Compute_inc_Mb_v(this->variables.Get_fb(), this->variables.Get_qb());
+}
 
 void ChShaft::VariablesQbLoadSpeed()
 {
