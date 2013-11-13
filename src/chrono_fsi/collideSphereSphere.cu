@@ -1269,7 +1269,7 @@ void cudaCollisions(
 	cudaMemcpyToSymbolAsync(numFlex_SphMarkersD, &numFlex_SphMarkers, sizeof(numFlex_SphMarkers)); //can be defined outside of the kernel, and only once
 		//******************************************************************************
 	thrust::device_vector<real3> flexSPH_MeshPos_LRF_D(numFlex_SphMarkers);
-	thrust::device_vector<real3> flexSPH_MeshSlope_Initial_D(numFlex_SphMarkers);
+	thrust::device_vector<real3> flexSPH_MeshSlope_Initial_D(numFlex_SphMarkers);  //slope of the beam at BCE marker (associated to BCE marker)
 	uint nBlocks_numFlex_SphMarkers;
 	uint nThreads_SphMarkers;
 	computeGridSize(numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);

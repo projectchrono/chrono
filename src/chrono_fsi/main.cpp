@@ -1072,8 +1072,6 @@ int CreateEllipsoidParticles(
 		real_ rho,
 		real_ pres,
 		real_ mu,
-		real3 cMin,
-		real3 cMax,
 		int type) {
 	int num_rigidBodyParticles = 0;
 	//real_ spacing = .9 * sphR;
@@ -1130,6 +1128,74 @@ int CreateEllipsoidParticles(
 		}
 	}
 	//printf("num_rigidBodyParticles %f\n", num_rigidBodyParticles);
+	return num_rigidBodyParticles;
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+int CreateFlexParticles(
+		thrust::host_vector<real3> & mPosRad,
+		thrust::host_vector<real4> & mVelMas,
+		thrust::host_vector<real4> & mRhoPresMu,
+		thrust::host_vector<int3> & mType,
+
+		int flexBodyIndex,
+		thrust::host_vector<real_> & parametricDist,
+		thrust::host_vector<int> & flexIdentifier,
+
+		real3 pa, //inital point
+		real3 pb, //end point
+		real_ l,  //beam length			//thrust::host_vector<real_> &  ANCF_Beam_Length
+
+
+					thrust::host_vector<real3> & ANCF_Nodes,
+					thrust::host_vector<real3> & ANCF_Slopes,
+					thrust::host_vector<real3> & ANCF_VelNodes,
+					thrust::host_vector<real3> & ANCF_VelSlopes,
+					thrust::host_vector<int2> & ANCF_ReferenceArrayNodesOnBeams,
+			real3 rigidPos,
+			Rotation rigidRotMatrix,
+			real3 ellipsoidRadii,
+			real4 sphereVelMas,
+			real3 rigidBodyOmega,
+		real_ sphR,
+		real_ sphParticleMass,
+		real_ rho,
+		real_ pres,
+		real_ mu,
+		int type) {
+	real_ multInitSpace = MULT_INITSPACE;//0.9;//1.0;//0.9;
+	real_ spacing = multInitSpace * sphR;
+
+	real3 n3 = pb - pa;
+	n3 /= length(n3);
+	for (real_ s = 0; s <= l; s += spacing) {
+		parametricDist.push_back(s);
+		real3 centerPoint = pa + s * n3;
+		mPosRad.push_back(centerPoint);
+		flexIdentifier.push_back(flexBodyIndex);
+		num_FlexParticles++;
+		for (real_ r = spacing; r <= 2 * spacing; r += spacing) {
+			real_ deltaTeta = spacing / r;
+			for (real_ teta = .1 * deltaTeta; teta < 2 * PI - .1 * deltaTeta; teta += deltaTeta) {
+			real3 BCE_Pos_local = R3(0, r * cos(teta), r * sin(teta));
+			mPosRad.push_back(posRadRigid_sphParticle);
+			real3 vel = R3(sphereVelMas) + cross(rigidBodyOmega, posRadRigid_sphParticle - rigidPos); //assuming LRF is the same as GRF at time zero (rigibodyOmega is in LRF, the second term of the cross is in GRF)
+			mVelMas.push_back(R4(vel, sphParticleMass));
+			real_ representedArea = spacing * spacing;
+			mRhoPresMu.push_back(R4(rho, pres, mu, type));					// for rigid body particle, rho represents the represented area
+			mType.push_back(I3(1, type, 0));
+			//																						// for the rigid particles, the fluid properties are those of the contacting fluid particles
+			num_FlexParticles++;
+			//printf("num_rigidBodyParticles %d\n", num_rigidBodyParticles);
+			//printf("y %f\n", y);
+
+
+			}
+		}
+	}
+
+
+
+
 	return num_rigidBodyParticles;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
@@ -1313,7 +1379,7 @@ int main() {
 	ConvertQuatArray2RotArray(rigidRotMatrix, mQuatRot);
 
 	printf("size rigids %d\n", rigidPos.size());
-	//---------------------------------------------------------------------
+	// ---------------------------------------------------------------------
 	// initialize fluid particles
 	if (readFromFile) {
 		int num_FluidParticles = 0;
@@ -1378,7 +1444,25 @@ int main() {
 		printf("num_RigidBodyParticles: \n");
 		for (int rigidSpheres = 0; rigidSpheres < rigidPos.size(); rigidSpheres++) {
 			int num_RigidBodyParticles = CreateEllipsoidParticles(mPosRad, mVelMas, mRhoPresMu, mType, rigidPos[rigidSpheres], rigidRotMatrix[rigidSpheres], ellipsoidRadii[rigidSpheres], spheresVelMas[rigidSpheres],
-					rigidBodyOmega[rigidSpheres], r, sphParticleMass, rho0, pres, mu, cMin, cMax, rigidSpheres + 1);		//as type
+					rigidBodyOmega[rigidSpheres], r, sphParticleMass, rho0, pres, mu, rigidSpheres + 1);		//as type
+//			int num_RigidBodyParticles = CreateCylinderParticles_XZ(mPosRad, mVelMas, mRhoPresMu, mType,
+//													rigidPos[rigidSpheres], ellipsoidRadii[rigidSpheres],
+//													 spheresVelMas[rigidSpheres],
+//													 rigidBodyOmega[rigidSpheres],
+//													 r,
+//													sphParticleMass,
+//													 rho0, pres, mu,
+//													 cMin, cMax,
+//													 rigidSpheres + 1);		//as type
+			referenceArray.push_back(I2(numAllParticles, numAllParticles + num_RigidBodyParticles));  //map bc : rigidSpheres + 1
+//			referenceArray_Types.push_back(I3(1, rigidSpheres, 0));
+			numAllParticles += num_RigidBodyParticles;
+			//printf(" %d \n", num_RigidBodyParticles);
+		}
+		for (int flexBody = 0; flexBody < ANCF_ReferenceArrayNodesOnBeams.size(); flexBody++) {
+			int num_FlexParticles = CreateFlexParticles(mPosRad, mVelMas, mRhoPresMu, mType,
+							rigidPos[flexBody], rigidRotMatrix[flexBody], ellipsoidRadii[flexBody], spheresVelMas[flexBody],
+							rigidBodyOmega[rigidSpheres], r, sphParticleMass, rho0, pres, mu, rigidSpheres + 1);		//as type
 //			int num_RigidBodyParticles = CreateCylinderParticles_XZ(mPosRad, mVelMas, mRhoPresMu, mType,
 //													rigidPos[rigidSpheres], ellipsoidRadii[rigidSpheres],
 //													 spheresVelMas[rigidSpheres],
