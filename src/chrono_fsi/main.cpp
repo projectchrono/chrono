@@ -11,6 +11,7 @@
 //
 //	Created by Arman Pazouki
 ///////////////////////////////////////////////////////////////////////////////
+// mType : fluid: (-1,0,0), boundary: (0,0,0), rigid: (1, rigidIdx + 1, 0), flex: (2, flexIdx + 1, 0)
 
 #include <iostream>
 #include <fstream>
@@ -58,6 +59,7 @@ struct Rotation {
 		real_ a00, a01, a02, a10, a11, a12, a20, a21, a22;
 };
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+// first comp of q is rotation, last 3 components are axis of rot
 void CalcQuat2RotationMatrix (Rotation & rotMat, const real4 & q) {
 	rotMat.a00 = 2.0 * (0.5f - q.z * q.z - q.w * q.w);
 	rotMat.a01 = 2.0 * (q.y * q.z - q.x * q.w);
@@ -70,6 +72,20 @@ void CalcQuat2RotationMatrix (Rotation & rotMat, const real4 & q) {
 	rotMat.a20 = 2 *  (q.y * q.w - q.x * q.z);
 	rotMat.a21 = 2 * (q.z * q.w + q.x * q.y);
 	rotMat.a22 = 2 * (0.5f - q.y * q.y - q.z * q.z);
+};
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+// first comp of q is rotation, last 3 components are axis of rot
+real3 Rotate_By_RotationMatrix (const Rotation & rotMat, const real3 & r3) {
+	return R3(rotMat.a00 * r3.x + rotMat.a01 * r3.y + rotMat.a02 * r3.z,
+			rotMat.a10 * r3.x + rotMat.a11 * r3.y + rotMat.a12 * r3.z,
+			rotMat.a20 * r3.x + rotMat.a21 * r3.y + rotMat.a22 * r3.z);
+};
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+// first comp of q is rotation, last 3 components are axis of rot
+real3 Rotate_By_Quaternion (const real4 & q4, const real3 & r3) {
+	Rotation rotMat;
+	CalcQuat2RotationMatrix(rotMat, q4);
+	return Rotate_By_RotationMatrix(rotMat, r3);
 };
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void ConvertQuatArray2RotArray (thrust::host_vector<Rotation> & rotArray, const thrust::host_vector<real4> & quat) {
@@ -496,6 +512,7 @@ void CreateFlexBodies(
 		thrust::host_vector<real3> & ANCF_Slopes,
 		thrust::host_vector<real3> & ANCF_VelNodes,
 		thrust::host_vector<real3> & ANCF_VelSlopes,
+		thrust::host_vector<real_> & ANCF_Beam_Length,
 		thrust::host_vector<int2> & ANCF_ReferenceArrayNodesOnBeams,
 		real_ pipeRadius,
 		real_ pipeLength,
@@ -518,6 +535,7 @@ void CreateFlexBodies(
 
 		real3 slope3 = pb3 - pa3;
 		real_ beamLength = length(slope3);
+		ANCF_Beam_Length.push_back(beamLength);
 		slope3 /= beamLength;
 		for (int m = 0; m < numElementsPerBeam + 1; m++) {
 			ANCF_Nodes.push_back(pa3 + m * (beamLength / numElementsPerBeam) * slope3);
@@ -1138,65 +1156,55 @@ int CreateFlexParticles(
 		thrust::host_vector<int3> & mType,
 
 		int flexBodyIndex,
-		thrust::host_vector<real_> & parametricDist,
+		thrust::host_vector<real_> & flexParametricDist,
 		thrust::host_vector<int> & flexIdentifier,
 
-		real3 pa, //inital point
-		real3 pb, //end point
+		real3 pa3, //inital point
+		real3 pb3, //end point
 		real_ l,  //beam length			//thrust::host_vector<real_> &  ANCF_Beam_Length
-
-
-					thrust::host_vector<real3> & ANCF_Nodes,
-					thrust::host_vector<real3> & ANCF_Slopes,
-					thrust::host_vector<real3> & ANCF_VelNodes,
-					thrust::host_vector<real3> & ANCF_VelSlopes,
-					thrust::host_vector<int2> & ANCF_ReferenceArrayNodesOnBeams,
-			real3 rigidPos,
-			Rotation rigidRotMatrix,
-			real3 ellipsoidRadii,
-			real4 sphereVelMas,
-			real3 rigidBodyOmega,
 		real_ sphR,
 		real_ sphParticleMass,
 		real_ rho,
 		real_ pres,
-		real_ mu,
-		int type) {
+		real_ mu) {
+	int num_FlexParticles = 0;
 	real_ multInitSpace = MULT_INITSPACE;//0.9;//1.0;//0.9;
 	real_ spacing = multInitSpace * sphR;
 
-	real3 n3 = pb - pa;
+	real3 n3 = pb3 - pa3;
 	n3 /= length(n3);
 	for (real_ s = 0; s <= l; s += spacing) {
-		parametricDist.push_back(s);
-		real3 centerPoint = pa + s * n3;
+		real3 centerPoint = pa3 + s * n3;
 		mPosRad.push_back(centerPoint);
+		mVelMas.push_back(R4(0, 0, 0, sphParticleMass));
+		int type = flexBodyIndex + 1;
+		mRhoPresMu.push_back(R4(rho, pres, mu, type));	//take care of type
+		flexParametricDist.push_back(s);
 		flexIdentifier.push_back(flexBodyIndex);
+		mType.push_back(I3(2, type, 0));
 		num_FlexParticles++;
 		for (real_ r = spacing; r <= 2 * spacing; r += spacing) {
 			real_ deltaTeta = spacing / r;
 			for (real_ teta = .1 * deltaTeta; teta < 2 * PI - .1 * deltaTeta; teta += deltaTeta) {
-			real3 BCE_Pos_local = R3(0, r * cos(teta), r * sin(teta));
-			mPosRad.push_back(posRadRigid_sphParticle);
-			real3 vel = R3(sphereVelMas) + cross(rigidBodyOmega, posRadRigid_sphParticle - rigidPos); //assuming LRF is the same as GRF at time zero (rigibodyOmega is in LRF, the second term of the cross is in GRF)
-			mVelMas.push_back(R4(vel, sphParticleMass));
-			real_ representedArea = spacing * spacing;
-			mRhoPresMu.push_back(R4(rho, pres, mu, type));					// for rigid body particle, rho represents the represented area
-			mType.push_back(I3(1, type, 0));
-			//																						// for the rigid particles, the fluid properties are those of the contacting fluid particles
-			num_FlexParticles++;
-			//printf("num_rigidBodyParticles %d\n", num_rigidBodyParticles);
-			//printf("y %f\n", y);
+				real3 BCE_Pos_local = R3(0, r * cos(teta), r * sin(teta));
 
+				real3 axis3 = cross(R3(1, 0, 0), n3);
+				axis3 /= length(axis3);
+				real_ angle = acos(dot(axis3, n3));
 
+				real4 q4 = R4(cos(0.5 * angle), axis3.x * sin(0.5 * angle), axis3.y * sin(0.5 * angle), axis3.z * sin(0.5 * angle));
+				real3 BCE_Pos_Global = Rotate_By_Quaternion(q4, BCE_Pos_local) + centerPoint;
+				mPosRad.push_back(BCE_Pos_Global);
+				mVelMas.push_back(R4(0, 0, 0, sphParticleMass));
+				mRhoPresMu.push_back(R4(rho, pres, mu, type));	//take care of type
+				flexParametricDist.push_back(s);
+				flexIdentifier.push_back(flexBodyIndex);
+				mType.push_back(I3(2, type, 0));
+				num_FlexParticles++;
 			}
 		}
 	}
-
-
-
-
-	return num_rigidBodyParticles;
+	return num_FlexParticles;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 int CreateCylinderParticles_XZ(
@@ -1317,7 +1325,6 @@ int main() {
 	//--------------------buffer initialization ---------------------------
 	thrust::host_vector<int2> referenceArray;
 //	thrust::host_vector<int3> referenceArray_Types;
-	thrust::host_vector<int2> flexIdentifier;
 	thrust::host_vector<real3> mPosRad;			//do not set the size here since you are using push back later
 	thrust::host_vector<real4> mVelMas;
 	thrust::host_vector<real4> mRhoPresMu;
@@ -1341,7 +1348,14 @@ int main() {
 	thrust::host_vector<real3> ANCF_Slopes;
 	thrust::host_vector<real3> ANCF_VelNodes;
 	thrust::host_vector<real3> ANCF_VelSlopes;
+	thrust::host_vector<real_> ANCF_Beam_Length;
 	thrust::host_vector<int2>  ANCF_ReferenceArrayNodesOnBeams;
+	//*** flex markers
+	thrust::host_vector<int> flexIdentifier;
+	thrust::host_vector<real_> flexParametricDist;
+
+
+
 	real_ pipeRadius;
 	real_ pipeLength;
 	real3 pipeInPoint3 = R3(cMin.x, channelCenterYZ.x, channelCenterYZ.y);
@@ -1360,7 +1374,7 @@ int main() {
 //	CreateRigidBodiesFromFile(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, cMin, cMax, fileNameRigids, rhoRigid);
 	//**
 	CreateFlexBodies(ANCF_Nodes, ANCF_Slopes, ANCF_VelNodes, ANCF_VelSlopes,
-			ANCF_ReferenceArrayNodesOnBeams,
+			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams,
 			channelRadius,
 			cMax.x - cMin.x,
 			pipeInPoint3,
@@ -1459,22 +1473,41 @@ int main() {
 			numAllParticles += num_RigidBodyParticles;
 			//printf(" %d \n", num_RigidBodyParticles);
 		}
-		for (int flexBody = 0; flexBody < ANCF_ReferenceArrayNodesOnBeams.size(); flexBody++) {
+		for (int flexBodyIdx = 0; flexBodyIdx < ANCF_ReferenceArrayNodesOnBeams.size(); flexBodyIdx++) {
+			real3 pa3 = ANCF_Nodes[ ANCF_ReferenceArrayNodesOnBeams[flexBodyIdx].x ];
+			real3 pb3 = ANCF_Nodes[ ANCF_ReferenceArrayNodesOnBeams[flexBodyIdx].y - 1 ];
 			int num_FlexParticles = CreateFlexParticles(mPosRad, mVelMas, mRhoPresMu, mType,
-							rigidPos[flexBody], rigidRotMatrix[flexBody], ellipsoidRadii[flexBody], spheresVelMas[flexBody],
-							rigidBodyOmega[rigidSpheres], r, sphParticleMass, rho0, pres, mu, rigidSpheres + 1);		//as type
-//			int num_RigidBodyParticles = CreateCylinderParticles_XZ(mPosRad, mVelMas, mRhoPresMu, mType,
-//													rigidPos[rigidSpheres], ellipsoidRadii[rigidSpheres],
-//													 spheresVelMas[rigidSpheres],
-//													 rigidBodyOmega[rigidSpheres],
-//													 r,
-//													sphParticleMass,
-//													 rho0, pres, mu,
-//													 cMin, cMax,
-//													 rigidSpheres + 1);		//as type
+
+					flexBodyIdx,
+					flexParametricDist,
+					flexIdentifier,
+
+					pa3, //inital point
+					pb3, //end point
+					ANCF_Beam_Length[flexBodyIdx],  //beam length			//thrust::host_vector<real_> &  ANCF_Beam_Length
+					r,
+					sphParticleMass,
+					rho0,
+					pres,
+					mu);
+
+			// take care of reference array both here and for rigid bodies
+
+
+
+
+
+
+
+
+
+
+
+
+
 			referenceArray.push_back(I2(numAllParticles, numAllParticles + num_RigidBodyParticles));  //map bc : rigidSpheres + 1
 //			referenceArray_Types.push_back(I3(1, rigidSpheres, 0));
-			numAllParticles += num_RigidBodyParticles;
+			numAllParticles += num_FlexParticles;
 			//printf(" %d \n", num_RigidBodyParticles);
 		}
 		printf("\n");
@@ -1488,7 +1521,7 @@ int main() {
 	printf("numAllParticles %d\n", numAllParticles);
 
 	if (numAllParticles != 0) {
-		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray, flexIdentifier, numAllParticles, cMax, cMin, delT, rigidPos, mQuatRot, spheresVelMas,
+		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray, ANCF_Beam_Length, flexParametricDist, flexIdentifier, numAllParticles, cMax, cMin, delT, rigidPos, mQuatRot, spheresVelMas,
 				rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, binSize0, channelRadius, channelCenterYZ);
 	}
 	mPosRad.clear();
@@ -1498,6 +1531,7 @@ int main() {
 	bodyIndex.clear();
 	referenceArray.clear();
 //	referenceArray_Types.clear();
+	flexParametricDist.clear();
 	flexIdentifier.clear();
 	rigidPos.clear();
 	mQuatRot.clear();
@@ -1515,5 +1549,6 @@ int main() {
 	ANCF_VelNodes.clear();
 	ANCF_VelSlopes.clear();
 	ANCF_ReferenceArrayNodesOnBeams.clear();
+	ANCF_Beam_Length.clear();
 	return 0;
 }
