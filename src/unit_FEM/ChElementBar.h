@@ -133,7 +133,6 @@ public:
 					double internal_Kforce_local = Kstiffness * (L - L_ref); 
 					double internal_Rforce_local = Rdamping * L_dt;
 					double internal_force_local = internal_Kforce_local + internal_Rforce_local;
-					ChMatrixDynamic<> displacements(6,1);
 					ChVector<> int_forceA =  dir * internal_force_local;
 					ChVector<> int_forceB = -dir * internal_force_local;
 					Fi.PasteVector(int_forceA, 0,0);

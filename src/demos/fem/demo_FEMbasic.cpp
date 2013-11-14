@@ -127,6 +127,8 @@ void test_1()
 	GetLog() << "  nodeB.pos \n" << mnodeB.GetPos();
 	GetLog() << "Forces after linear static analysis: \n";
 	GetLog() << "  constraintA.react \n" << constraintA->GetReactionOnBody();
+
+
 }
 
 
@@ -694,7 +696,7 @@ int main(int argc, char* argv[])
 
 
 	// Test: an introductory problem:
-	test_2();
+	test_1();
 
 
 	// Remember this at the end of the program, if you started

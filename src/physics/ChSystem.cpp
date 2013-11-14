@@ -1704,7 +1704,7 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
 			PHpointer->ConstraintsBiLoad_Ct(Ct_factor);			// Ct
 		if (load_jacobians)
 			PHpointer->ConstraintsLoadJacobians();
-		if (K_factor || R_factor)
+		if (K_factor || R_factor || M_factor)
 			PHpointer->KRMmatricesLoad(K_factor, R_factor, M_factor);
 		HIER_OTHERPHYSICS_NEXT
 	}

@@ -87,8 +87,8 @@ void test_1()
 				// two 3D nodes:
 	ChElementSpring melementA;
 	melementA.SetNodes(&mnodeA, &mnodeB);
-	melementA.SetSpringK(200);
-	melementA.SetDamperR(4);
+	melementA.SetSpringK(2000);
+	melementA.SetDamperR(100);
 
 				// Remember to add elements to the mesh!
 	my_mesh->AddElement(melementA);
@@ -175,7 +175,7 @@ void test_2()
 	melementA.SetNodes(&mnodeA, &mnodeB);
 	melementA.SetBarArea(0.1*0.02);
 	melementA.SetBarYoungModulus(0.01e9); // rubber 0.01e9, steel 200e9
-	melementA.SetBarRaleyghDamping(0.02);
+	melementA.SetBarRaleyghDamping(0.01);
 	melementA.SetBarDensity(2.*0.1/(melementA.GetBarArea()*1.0));
 	//melementA.SetBarDensity(0);
 	
@@ -217,8 +217,6 @@ void test_2()
 	my_system.SetIterLCPmaxItersSpeed(100);
 	my_system.SetTolSpeeds(1e-10);
 
-	GetLog() << "K of bar = " << (melementA.GetBarArea() * melementA.GetBarYoungModulus())/melementA.GetRestLength() << "\n";
-
 	double timestep = 0.001;
 	while (my_system.GetChTime() < 0.2)
 	{
@@ -228,12 +226,91 @@ void test_2()
 	}
 
 	GetLog() << " Bar mass = " << melementA.GetMass() << "  restlength = " << melementA.GetRestLength() << "\n";
-
-	GetLog() << "K of bar = " << (melementA.GetBarArea() * melementA.GetBarYoungModulus())/melementA.GetRestLength() << "\n";
-	GetLog() << "kmatr = " << *melementA.Kstiffness().Get_K() ;
-
 }
 
+void test_2b()
+{
+	GetLog() << "\n-------------------------------------------------\n";
+	GetLog() << "TEST: spring FEM dynamics compare to bar \n\n";
+
+				// The physical system: it contains all physical objects.
+	ChSystem my_system; 
+					
+				// Create a mesh, that is a container for groups
+				// of elements and their referenced nodes.
+	ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+	
+				// Create some nodes. These are the classical point-like
+				// nodes with x,y,z degrees of freedom, that can be used 
+				// for many types of FEM elements in space.
+	ChNodeFEMxyz mnodeA(ChVector<>(0,0,0));
+	ChNodeFEMxyz mnodeB(ChVector<>(0,1,0));
+				
+				// Default mass for FEM nodes is zero, so set point-like 
+				// masses because the ChElementSpring FEM element that we
+				// are going to use won't add any mass:
+	mnodeA.SetMass( 0.1);
+	mnodeB.SetMass( 0.1);
+	
+				// For example, set an applied force to a node:
+	//mnodeB.SetForce(ChVector<>(0,5,0));
+
+				// For example, set an initial displacement to a node:
+	mnodeB.SetPos( mnodeB.GetX0() + ChVector<>(0,0.1,0) );
+
+
+				// Remember to add nodes and elements to the mesh!
+	my_mesh->AddNode(mnodeA);
+	my_mesh->AddNode(mnodeB);
+
+				// Create some elements of 'spring-damper' type, each connecting
+				// two 3D nodes:
+	ChElementSpring melementA;
+	melementA.SetNodes(&mnodeA, &mnodeB);
+	melementA.SetSpringK(20000);
+	melementA.SetDamperR(200);
+
+				// Remember to add elements to the mesh!
+	my_mesh->AddElement(melementA);
+
+
+				// Remember to add the mesh to the system!
+	my_system.Add(my_mesh);
+			
+
+				// Create also a truss
+	ChSharedPtr<ChBody> truss(new ChBody);
+	truss->SetBodyFixed(true);
+	my_system.Add(truss);
+
+				// Create a constraint between a node and the truss
+	ChSharedPtr<ChNodeBody> constraintA(new ChNodeBody);
+
+	constraintA->Initialize(my_mesh,		// node container
+							0,				// index of node in node container 
+							truss);			// body to be connected to
+							
+	my_system.Add(constraintA);
+		
+				// Set no gravity
+	//my_system.Set_G_acc(VNULL);
+
+
+				// Perform a dynamic time integration:
+
+	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES); // <- NEEDED because other solvers can't handle stiffness matrices
+	chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
+	my_system.SetIterLCPmaxItersSpeed(200);
+	my_system.SetTolSpeeds(1e-10);
+
+	double timestep = 0.001;
+	while (my_system.GetChTime() < 0.2)
+	{
+		my_system.DoStepDynamics(timestep);
+
+		GetLog() << " t=" << my_system.GetChTime() << "  nodeB.pos.y=" << mnodeB.GetPos().y << "  \n";
+	}
+}
 
 
 
@@ -351,7 +428,7 @@ int main(int argc, char* argv[])
 
 
 	// Test: an introductory problem:
-	test_3();
+	test_2b();
 
 
 	// Remember this at the end of the program, if you started
