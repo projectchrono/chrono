@@ -1505,7 +1505,7 @@ int main() {
 
 
 
-			referenceArray.push_back(I2(numAllParticles, numAllParticles + num_RigidBodyParticles));  //map bc : rigidSpheres + 1
+			referenceArray.push_back(I2(numAllParticles, numAllParticles + num_FlexParticles));  //map bc : rigidSpheres + 1
 //			referenceArray_Types.push_back(I3(1, rigidSpheres, 0));
 			numAllParticles += num_FlexParticles;
 			//printf(" %d \n", num_RigidBodyParticles);
