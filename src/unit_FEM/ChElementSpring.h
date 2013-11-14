@@ -72,11 +72,11 @@ public:
 					// formulation of the corotational stiffness matrix in 3D)
 					
 					ChVector<> dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
-					ChMatrixDynamic<> dircolumn; 
+					ChMatrixNM<double,3,1> dircolumn; 
 					dircolumn.PasteVector(dir, 0,0);
 
 					ChMatrix33<> submatr;
-					submatr.MatrTMultiply(dircolumn, dircolumn);
+					submatr.MatrMultiplyT(dircolumn, dircolumn);
 
 						// note that stiffness and damping matrices are the same, so join stuff here
 					double commonfactor = this->spring_k * Kfactor + 
