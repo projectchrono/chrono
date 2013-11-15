@@ -285,12 +285,12 @@ __global__ void MapForcesOnNodes(
 		real3* flexNodesForcesAllMarkers1,
 		real3* flexNodesForcesAllMarkers2,
 		int* flexIdentifierD,
-//		int* ANCF_NumNodes_Per_Beam,
-		int* ANCF_NumMarkers_Per_Beam,
-		int* ANCF_NumMarkers_Per_Beam_cumul, //exclusive scan
-//		int* ANCF_NumNodesMultMarkers_Per_Beam,
-		int* ANCF_NumNodesMultMarkers_Per_Beam_Cumul, //exclusive scan
-		real_* flexParametricDist,
+//		int* ANCF_NumNodes_Per_BeamD,
+		int* ANCF_NumMarkers_Per_BeamD,
+		int* ANCF_NumMarkers_Per_Beam_cumulD, //exclusive scan
+//		int* ANCF_NumNodesMultMarkers_Per_BeamD,
+		int* ANCF_NumNodesMultMarkers_Per_Beam_CumulD, //exclusive scan
+		real_* flexParametricDistD,
 		real4* derivVelRhoD,
 		real_ markerMass)
 {
@@ -299,17 +299,17 @@ __global__ void MapForcesOnNodes(
 		return;
 	}
 	uint absMarkerIndex = index + startFlexMarkersD;
-	real_ s = flexParametricDist[index];
+	real_ s = flexParametricDistD[index];
 
 	real3 derivVel = F3( derivVelRhoD[absMarkerIndex] );
 	real3 markerForce = markerMass * derivVel;
 
 	int flexBodyIndex = flexIdentifierD[index];
-	int numFlexMarkersPreviousBeamsTotal = ANCF_NumMarkers_Per_Beam_cumul[flexBodyIndex];
-	int numSavedForcesSoFar = ANCF_NumNodesMultMarkers_Per_Beam_Cumul[flexBodyIndex];
+	int numFlexMarkersPreviousBeamsTotal = ANCF_NumMarkers_Per_Beam_cumulD[flexBodyIndex];
+	int numSavedForcesSoFar = ANCF_NumNodesMultMarkers_Per_Beam_CumulD[flexBodyIndex];
 		int markerIndexOnThisBeam = index - numFlexMarkersPreviousBeamsTotal
 
-		int numMarkersOnThisBeam = ANCF_NumMarkers_Per_Beam[flexBodyIndex];
+		int numMarkersOnThisBeam = ANCF_NumMarkers_Per_BeamD[flexBodyIndex];
 
 	//TODO: Map Marker Force to ANCF Nodes, gives you as many forces as the number of nodes per beam
 //	F0, F1, ..., F(m-1) : Forces on nodes 0, 1, 2, ..., m-1
@@ -338,25 +338,25 @@ __global__ void Populate_FlexSPH_MeshPos_LRF_kernel(
 		real3* flexSPH_MeshPos_LRF_D,
 		real3 * posRadD,
 		int* flexIdentifierD,
-		real_* flexParametricDist,
-		real_* ANCF_Beam_Length,
-		int* ANCF_NumNodes_Per_Beam,
-		real3 * ANCF_Nodes,
-		real3 * ANCF_Slopes) {
+		real_* flexParametricDistD,
+		real_* ANCF_Beam_LengthD,
+		int* ANCF_NumNodes_Per_BeamD,
+		real3 * ANCF_NodesD,
+		real3 * ANCF_SlopesD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (index >= numFlex_SphMarkersD) {
 		return;
 	}
 	uint absMarkerIndex = index + startFlexMarkersD; // updatePortionD = [start, end] index of the update portion
-	real_ s = flexParametricDist[index];
+	real_ s = flexParametricDistD[index];
 	int flexBodyIndex = flexIdentifierD[index];
-	real_ l = ANCF_Beam_Length[flexBodyIndex];
-	int nNodes = ANCF_NumNodes_Per_Beam[flexBodyIndex];
+	real_ l = ANCF_Beam_LengthD[flexBodyIndex];
+	int nNodes = ANCF_NumNodes_Per_BeamD[flexBodyIndex];
 
 	int indexOfClosestNode = int(s / l) * nNodes;
 	if (indexOfClosestNode == nNodes) indexOfClosestNode--;
 
-	real3 beamPointPos = Calc_ANCF_Point_Pos(ANCF_Nodes, ANCF_Slopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	real3 beamPointPos = Calc_ANCF_Point_Pos(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
 
 	real3 dist3 = posRadD[absMarkerIndex] - beamPointPos;
 	flexSPH_MeshPos_LRF_D[index] = dist3;
@@ -365,25 +365,25 @@ __global__ void Populate_FlexSPH_MeshPos_LRF_kernel(
 __global__ void Populate_FlexSPH_MeshSlope_LRF_kernel(
 		real3* flexSPH_MeshSlope_Initial_D,
 		int* flexIdentifierD,
-		real_* flexParametricDist,
-		real_* ANCF_Beam_Length,
-		int* ANCF_NumNodes_Per_Beam,
-		real3 * ANCF_Nodes,
-		real3 * ANCF_Slopes) {
+		real_* flexParametricDistD,
+		real_* ANCF_Beam_LengthD,
+		int* ANCF_NumNodes_Per_BeamD,
+		real3 * ANCF_NodesD,
+		real3 * ANCF_SlopesD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (index >= numFlex_SphMarkersD) {
 		return;
 	}
 	uint absMarkerIndex = index + startFlexMarkersD; // updatePortionD = [start, end] index of the update portion
-	real_ s = flexParametricDist[index];
+	real_ s = flexParametricDistD[index];
 	int flexBodyIndex = flexIdentifierD[index];
-	real_ l = ANCF_Beam_Length[flexBodyIndex];
-	int nNodes = ANCF_NumNodes_Per_Beam[flexBodyIndex];
+	real_ l = ANCF_Beam_LengthD[flexBodyIndex];
+	int nNodes = ANCF_NumNodes_Per_BeamD[flexBodyIndex];
 
 	int indexOfClosestNode = int(s / l) * nNodes;
 	if (indexOfClosestNode == nNodes) indexOfClosestNode--;
 
-	real3 beamPointSlope = Calc_ANCF_Point_Slope(ANCF_Nodes, ANCF_Slopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	real3 beamPointSlope = Calc_ANCF_Point_Slope(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
 	flexSPH_MeshSlope_Initial_D[index] = beamPointSlope;
 }
 
@@ -570,32 +570,32 @@ __global__ void UpdateFlexMarkersPosition(
 		int* flexIdentifierD,
 		real3* flexSPH_MeshPos_LRF_D,
 		real3* flexSPH_MeshSlope_Initial_D,
-		real_* flexParametricDist,
-		real_* ANCF_Beam_Length,
-		int* ANCF_NumNodes_Per_Beam,
-		real3 * ANCF_Nodes,
-		real3 * ANCF_Slopes,
-		real3 * ANCF_VelNodes,
-		real3 * ANCF_VelSlopes) {
+		real_* flexParametricDistD,
+		real_* ANCF_Beam_LengthD,
+		int* ANCF_NumNodes_Per_BeamD,
+		real3 * ANCF_NodesD,
+		real3 * ANCF_SlopesD,
+		real3 * ANCF_NodesVelD,
+		real3 * ANCF_SlopesVelD) {
 
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (index >= numFlex_SphMarkersD) {
 		return;
 	}
 	uint absMarkerIndex = index + startFlexMarkersD; // updatePortionD = [start, end] index of the update portion
-	real_ s = flexParametricDist[index];
+	real_ s = flexParametricDistD[index];
 	int flexBodyIndex = flexIdentifierD[index];
-	real_ l = ANCF_Beam_Length[flexBodyIndex];
-	int nNodes = ANCF_NumNodes_Per_Beam[flexBodyIndex];
+	real_ l = ANCF_Beam_LengthD[flexBodyIndex];
+	int nNodes = ANCF_NumNodes_Per_BeamD[flexBodyIndex];
 
 	int indexOfClosestNode = int(s / l) * nNodes;
 	if (indexOfClosestNode == nNodes) indexOfClosestNode--;
 
-	real3 beamPointPos = Calc_ANCF_Point_Pos(ANCF_Nodes, ANCF_Slopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
-	real3 beamPointSlope = Calc_ANCF_Point_Slope(ANCF_Nodes, ANCF_Slopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	real3 beamPointPos = Calc_ANCF_Point_Pos(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	real3 beamPointSlope = Calc_ANCF_Point_Slope(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
 	real3 beamPointOmega;
 
-	real3 beamPointVel = Calc_ANCF_Point_Vel(ANCF_Nodes, ANCF_Slopes, ANCF_VelNodes, ANCF_VelSlopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	real3 beamPointVel = Calc_ANCF_Point_Vel(ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
 
 	real3 dist3 = flexSPH_MeshPos_LRF_D[index];
 	real3 beamPointSlopeInitial = flexSPH_MeshSlope_Initial_D[index];
@@ -611,7 +611,7 @@ __global__ void UpdateFlexMarkersPosition(
 	real3 A1, A2, A3;
 	RotationMatirixFromQuaternion_kernelD(A1, A2, A3, q);
 	posRadD[absMarkerIndex] = beamPointPos + R3(dot(A1, dist3), dot(A2, dist3), dot(A3, dist3));
-	real3 absOmega = Calc_ANCF_Point_Omega(ANCF_Nodes, ANCF_Slopes, ANCF_VelNodes, ANCF_VelSlopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	real3 absOmega = Calc_ANCF_Point_Omega(ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
 	velMasD[absMarkerIndex] = beamPointVel + cross(absOmega, dist3);
 }
 ////--------------------------------------------------------------------------------------------------------------------------------
@@ -1096,20 +1096,20 @@ void UpdateFlexibleBody(
 		const int numRigidBodies,
 		const int numFlexBodies,
 		const int numFlex_SphMarkers,
-		thrust::device_vector<real3> & ANCF_Nodes,
-		thrust::device_vector<real3> & ANCF_Slopes,
-		thrust::device_vector<real3> & ANCF_VelNodes,
-		thrust::device_vector<real3> & ANCF_VelSlopes,
-		thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeams,
-		thrust::device_vector<int> & ANCF_NumNodes_Per_Beam,
-		thrust::device_vector<int> & ANCF_NumMarkers_Per_Beam,
-		thrust::device_vector<int> & ANCF_NumNodesMultMarkers_Per_Beam,
-		thrust::device_vector<int> & ANCF_NumNodesMultMarkers_Per_Beam_Cumul,
+		thrust::device_vector<real3> & ANCF_NodesD,
+		thrust::device_vector<real3> & ANCF_SlopesD,
+		thrust::device_vector<real3> & ANCF_NodesVelD,
+		thrust::device_vector<real3> & ANCF_SlopesVelD,
+		thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
+		thrust::device_vector<int> & ANCF_NumNodes_Per_BeamD,
+		thrust::device_vector<int> & ANCF_NumMarkers_Per_BeamD,
+		thrust::device_vector<int> & ANCF_NumNodesMultMarkers_Per_BeamD,
+		thrust::device_vector<int> & ANCF_NumNodesMultMarkers_Per_Beam_CumulD,
 
 		const thrust::device_vector<int> & flexIdentifierD,
 		const thrust::device_vector<real3> & flexSPH_MeshPos_LRF_D,
-		const thrust::device_vector<real_> & flexParametricDist,
-		const thrust::device_vector<real_> & ANCF_Beam_Length,
+		const thrust::device_vector<real_> & flexParametricDistD,
+		const thrust::device_vector<real_> & ANCF_Beam_LengthD,
 		const thrust::host_vector<int3> & referenceArray,
 
 		SimParams paramsH,
@@ -1121,7 +1121,7 @@ void UpdateFlexibleBody(
 	cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(dT));
 
 	int numFlBcRigid = 2 + numRigidBodies;
-	int totalNumberOfFlexNodes = ANCF_ReferenceArrayNodesOnBeams[ANCF_ReferenceArrayNodesOnBeams.size() - 1].y;
+	int totalNumberOfFlexNodes = ANCF_ReferenceArrayNodesOnBeamsD[ANCF_ReferenceArrayNodesOnBeamsD.size() - 1].y;
 
 	thrust::device_vector<real3> flexNodesForces1();//(totalNumberOfFlexNodes); Size:sum(numNodesOfEachBeam*numSPH_MarkersOfEachBeam)
 	thrust::device_vector<real3> flexNodesForces2();
@@ -1136,10 +1136,10 @@ void UpdateFlexibleBody(
 			R3CAST(flexNodesForcesAllMarkers1),
 			R3CAST(flexNodesForcesAllMarkers2),
 			I1CAST(flexIdentifierD),
-			I1CAST(ANCF_NumMarkers_Per_Beam),
-			I1CAST(ANCF_NumMarkers_Per_Beam_cumul),
-			I1CAST(ANCF_NumNodesMultMarkers_Per_Beam_Cumul),
-			R1CAST(flexParametricDist),
+			I1CAST(ANCF_NumMarkers_Per_BeamD),
+			I1CAST(ANCF_NumMarkers_Per_Beam_cumulD),
+			I1CAST(ANCF_NumNodesMultMarkers_Per_Beam_CumulD),
+			R1CAST(flexParametricDistD),
 			R4CAST(derivVelRhoD),
 			markerMass);
 
@@ -1176,13 +1176,13 @@ void UpdateFlexibleBody(
 			R3CAST(posRadD), R4CAST(velMasD),
 			I1CAST(flexIdentifierD),
 			R3CAST(flexSPH_MeshPos_LRF_D),
-			R1CAST(flexParametricDist),
-			R1CAST(ANCF_Beam_Length),
-			I1CAST(ANCF_NumNodes_Per_Beam),
-			R3CAST(ANCF_Nodes),
-			R3CAST(ANCF_Slopes),
-			R3CAST(ANCF_VelNodes),
-			R3CAST(ANCF_VelSlopes)
+			R1CAST(flexParametricDistD),
+			R1CAST(ANCF_Beam_LengthD),
+			I1CAST(ANCF_NumNodes_Per_BeamD),
+			R3CAST(ANCF_NodesD),
+			R3CAST(ANCF_SlopesD),
+			R3CAST(ANCF_NodesVelD),
+			R3CAST(ANCF_SlopesVelD)
 			);
 
 	cudaThreadSynchronize();
@@ -1205,7 +1205,13 @@ void cudaCollisions(
 		thrust::host_vector<real4> & mRhoPresMu,
 		const thrust::host_vector<uint> & bodyIndex,
 		const thrust::host_vector<int3> & referenceArray,
+
+		const thrust::host_vector<real3> & ANCF_Nodes,
+		const thrust::host_vector<real3> & ANCF_Slopes,
+		const thrust::host_vector<real3> & ANCF_VelNodes,
+		const thrust::host_vector<real3> & ANCF_VelSlopes,
 		const thrust::host_vector<real_> & ANCF_Beam_Length,
+
 		const thrust::host_vector<real_> & flexParametricDist,
 		int & mNSpheres,
 		real3 cMax,
@@ -1301,7 +1307,7 @@ void cudaCollisions(
 
 	int numFlBcRigid = 2 + numRigidBodies;
 	int numFlexBodies = ANCF_Beam_Length.size();
-//	int totalNumberOfFlexNodes = ANCF_ReferenceArrayNodesOnBeams[ANCF_ReferenceArrayNodesOnBeams.size() - 1].y;
+//	int totalNumberOfFlexNodes = ANCF_ReferenceArrayNodesOnBeamsD[ANCF_ReferenceArrayNodesOnBeamsD.size() - 1].y;
 	int startFlexMarkers = (referenceArray[numFlBcRigid-1]).y;
 	int numFlex_SphMarkers = referenceArray[numFlBcRigid + numFlexBodies - 1].y - startFlexMarkers;
 
@@ -1322,6 +1328,11 @@ void cudaCollisions(
 	//build flex identifier the same way as rigidIdentifier. remove it from main.cpp
 
 
+	thrust::device_vector<real3> ANCF_NodesD = ANCF_Nodes;
+	thrust::device_vector<real3> ANCF_SlopesD = ANCF_Slopes;
+	thrust::device_vector<real3> ANCF_VelNodesD = ANCF_VelNodes;
+	thrust::device_vector<real3> ANCF_VelSlopesD = ANCF_VelSlopes;
+	thrust::device_vector<real_> ANCF_Beam_LengthD = ANCF_Beam_Length;
 
 
 
@@ -1342,13 +1353,13 @@ void cudaCollisions(
 	computeGridSize(numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
 	printf("before first kernel\n");
 
-	Populate_FlexSPH_MeshPos_LRF_kernel<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(R3CAST(flexSPH_MeshPos_LRF_D), R3CAST(posRadD), I1CAST(flexIdentifierD), R1CAST(flexParametricDist), R1CAST(ANCF_Beam_Length),
-			I1CAST(ANCF_NumNodes_Per_Beam), R3CAST(ANCF_Nodes), R3CAST(ANCF_Slopes));
+	Populate_FlexSPH_MeshPos_LRF_kernel<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(R3CAST(flexSPH_MeshPos_LRF_D), R3CAST(posRadD), I1CAST(flexIdentifierD), R1CAST(flexParametricDistD), R1CAST(ANCF_Beam_LengthD),
+			I1CAST(ANCF_NumNodes_Per_BeamD), R3CAST(ANCF_NodesD), R3CAST(ANCF_SlopesD));
 	cudaThreadSynchronize();
 		CUT_CHECK_ERROR("Kernel execution failed: Populate_FlexSPH_MeshPos_LRF_kernel");	printf("after first kernel\n");
 
-	Populate_FlexSPH_MeshSlope_LRF_kernel<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(R3CAST(flexSPH_MeshSlope_Initial_D), I1CAST(flexIdentifierD), R1CAST(flexParametricDist), R1CAST(ANCF_Beam_Length),
-				I1CAST(ANCF_NumNodes_Per_Beam), R3CAST(ANCF_Nodes), R3CAST(ANCF_Slopes));
+	Populate_FlexSPH_MeshSlope_LRF_kernel<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(R3CAST(flexSPH_MeshSlope_Initial_D), I1CAST(flexIdentifierD), R1CAST(flexParametricDistD), R1CAST(ANCF_Beam_LengthD),
+				I1CAST(ANCF_NumNodes_Per_BeamD), R3CAST(ANCF_NodesD), R3CAST(ANCF_SlopesD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: Populate_FlexSPH_MeshSlope_LRF_kernel");	printf("after first kernel\n");
 
@@ -1494,6 +1505,13 @@ void cudaCollisions(
 	velMasD.clear();
 	rhoPresMuD.clear();
 	posRigidD.clear();
+
+	ANCF_NodesD.clear();
+	ANCF_SlopesD.clear();
+	ANCF_VelNodesD.clear();
+	ANCF_VelSlopesD.clear();
+	ANCF_Beam_LengthD.clear();
+
 	posRigidCumulativeD.clear();
 	velMassRigidD.clear();
 	omegaLRF_D.clear();
