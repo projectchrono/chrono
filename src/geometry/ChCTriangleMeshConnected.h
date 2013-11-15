@@ -59,10 +59,12 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh
 	std::vector< ChVector<double> >	m_vertices;
 	std::vector< ChVector<double> >	m_normals;
 	std::vector< ChVector<double> >	m_UV;
+	std::vector< ChVector<float> >	m_colors;
 
 	std::vector< ChVector<int> >	m_face_v_indices;
 	std::vector< ChVector<int> >	m_face_n_indices;
 	std::vector< ChVector<int> >	m_face_u_indices;
+	std::vector< ChVector<int> >	m_face_col_indices;
 	
 public:
 	ChTriangleMeshConnected () {};
@@ -75,10 +77,12 @@ public:
 	std::vector< ChVector<double> >& getCoordsVertices() {return m_vertices;}
 	std::vector< ChVector<double> >& getCoordsNormals()  {return m_normals;}
 	std::vector< ChVector<double> >& getCoordsUV()	     {return m_UV;}
+	std::vector< ChVector<float > >& getCoordsColors()	 {return m_colors;}
 
 	std::vector< ChVector<int> >&	getIndicesVertexes() {return m_face_v_indices;}
 	std::vector< ChVector<int> >&	getIndicesNormals() {return m_face_n_indices;}
 	std::vector< ChVector<int> >&	getIndicesUV() {return m_face_u_indices;}
+	std::vector< ChVector<int> >&	getIndicesColors() {return m_face_col_indices;}
 
 		// Load a triangle mesh saved as a Wavefront .obj file
 	void LoadWavefrontMesh(std::string filename, bool load_normals = true, bool load_uv = false);
@@ -120,6 +124,18 @@ public:
 		return ChTriangle( m_vertices[m_face_v_indices[index].x],  m_vertices[m_face_v_indices[index].y],  m_vertices[m_face_v_indices[index].z] );
 	}
 
+			/// Clear all data
+	virtual void Clear()
+	{
+		this->getCoordsVertices().clear();
+		this->getCoordsNormals().clear();
+		this->getCoordsUV().clear();
+		this->getCoordsColors().clear();
+		this->getIndicesVertexes().clear();
+		this->getIndicesNormals().clear();
+		this->getIndicesNormals().clear();
+		this->getIndicesColors().clear();
+	}
 
 
 		//

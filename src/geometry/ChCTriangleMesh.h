@@ -80,6 +80,8 @@ public:
 			/// Get the n-th triangle in mesh
 	virtual ChTriangle getTriangle(int index) const = 0;
 
+			/// Clear all data
+	virtual void Clear() = 0;
 
 
 		//

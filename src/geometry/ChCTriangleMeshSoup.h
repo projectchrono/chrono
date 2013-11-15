@@ -98,6 +98,11 @@ public:
 		return m_triangles[index];
 	}
 
+			/// Clear all data
+	virtual void Clear()
+	{
+		this->m_triangles.clear();
+	}
 
 		//
 		// OVERRIDE BASE CLASS FUNCTIONS
