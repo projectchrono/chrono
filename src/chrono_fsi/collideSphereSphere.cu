@@ -701,7 +701,7 @@ void ForceSPH(
 		thrust::device_vector<real4> & rhoPresMuD,
 		thrust::device_vector<uint> & bodyIndexD,
 		thrust::device_vector<real4> & derivVelRhoD,
-		const thrust::host_vector<int2> & referenceArray,
+		const thrust::host_vector<int3> & referenceArray,
 		int mNSpheres,
 		int3 SIDE,
 		real_ dT) {
@@ -823,9 +823,14 @@ void UpdateFluid(
 		thrust::device_vector<real3> & vel_XSPH_D,
 		thrust::device_vector<real4> & rhoPresMuD,
 		thrust::device_vector<real4> & derivVelRhoD,
-		const thrust::host_vector<int2> & referenceArray,
+		const thrust::host_vector<int3> & referenceArray,
 		real_ dT) {
-	int2 updatePortion = referenceArray[0];
+	int3 referencePortion = referenceArray[0];
+	if (referencePortion.z != -1) {
+		printf("error in UpdateFluid, accessing non fluid\n");
+		return;
+	}
+	int2 updatePortion = I2(referencePortion);
 	//int2 updatePortion = I2(referenceArray[0].x, referenceArray[0].y);
 	cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(dT));
 	cudaMemcpyToSymbolAsync(updatePortionD, &updatePortion, sizeof(updatePortion));
@@ -843,9 +848,14 @@ void UpdateBoundary(
 		thrust::device_vector<real4> & velMasD,
 		thrust::device_vector<real4> & rhoPresMuD,
 		thrust::device_vector<real4> & derivVelRhoD,
-		const thrust::host_vector<int2> & referenceArray,
+		const thrust::host_vector<int3> & referenceArray,
 		real_ dT) {
-	int2 updatePortion = referenceArray[1];
+	int3 referencePortion = referenceArray[1];
+	if (referencePortion.z != 0) {
+		printf("error in UpdateBoundary, accessing non boundary\n");
+		return;
+	}
+	int2 updatePortion = I2(referencePortion);
 	cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(dT));
 	cudaMemcpyToSymbolAsync(updatePortionD, &updatePortion, sizeof(updatePortion));
 
@@ -949,7 +959,7 @@ void UpdateRigidBody(
 		thrust::device_vector<real4> & derivVelRhoD,
 		const thrust::device_vector<int> & rigidIdentifierD,
 		const thrust::device_vector<real3> & rigidSPH_MeshPos_LRF_D,
-		const thrust::host_vector<int2> & referenceArray,
+		const thrust::host_vector<int3> & referenceArray,
 		const thrust::device_vector<real3> & jD1,
 		const thrust::device_vector<real3> & jD2,
 		const thrust::device_vector<real3> & jInvD1,
@@ -1064,7 +1074,7 @@ void UpdateFlexibleBody(
 		const thrust::device_vector<real3> & flexSPH_MeshPos_LRF_D,
 		const thrust::device_vector<real_> & flexParametricDist,
 		const thrust::device_vector<real_> & ANCF_Beam_Length,
-		const thrust::host_vector<int2> & referenceArray,
+		const thrust::host_vector<int3> & referenceArray,
 
 		SimParams paramsH,
 		float fracSimulation,
@@ -1159,7 +1169,7 @@ void cudaCollisions(
 		thrust::host_vector<real4> & mVelMas,
 		thrust::host_vector<real4> & mRhoPresMu,
 		const thrust::host_vector<uint> & bodyIndex,
-		const thrust::host_vector<int2> & referenceArray,
+		const thrust::host_vector<int3> & referenceArray,
 		const thrust::host_vector<real_> & ANCF_Beam_Length,
 		const thrust::host_vector<real_> & flexParametricDist,
 		const thrust::host_vector<int> & flexIdentifier,
@@ -1233,7 +1243,12 @@ void cudaCollisions(
 		numRigid_SphMarkers = referenceArray[2 + numRigidBodies - 1].y - startRigidMarkers;
 		rigidIdentifierD.resize(numRigid_SphMarkers);
 		for (int rigidSphereA = 0; rigidSphereA < numRigidBodies; rigidSphereA++) {
-			int2 updatePortion = referenceArray[2 + rigidSphereA]; //first two component of the referenceArray denote to the fluid and boundary particles
+			int3 referencePart = referenceArray[2 + rigidSphereA];
+			if (referencePart.z != 1) {
+				printf("error in accessing rigid bodies. Reference array indexing is wrong\n");
+				return;
+			}
+			int2 updatePortion = I2(referencePart); //first two component of the referenceArray denote to the fluid and boundary particles
 			thrust::fill(rigidIdentifierD.begin() + (updatePortion.x - startRigidMarkers),
 					rigidIdentifierD.begin() + (updatePortion.y - startRigidMarkers), rigidSphereA);
 		}

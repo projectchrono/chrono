@@ -8,7 +8,7 @@ void cudaCollisions(
 		thrust::host_vector<real4> & mVelMas,
 		thrust::host_vector<real4> & mRhoPresMu,
 		const thrust::host_vector<uint> & bodyIndex,
-		const thrust::host_vector<int2> & referenceArray,
+		const thrust::host_vector<int3> & referenceArray,
 		const thrust::host_vector<int2> & flexIdentifier,
 		int & mNSpheres,
 		real3 cMax,

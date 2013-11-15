@@ -11,7 +11,7 @@
 //
 //	Created by Arman Pazouki
 ///////////////////////////////////////////////////////////////////////////////
-// mType : fluid: (-1,0,0), boundary: (0,0,0), rigid: (1, rigidIdx + 1, 0), flex: (2, flexIdx + 1, 0)
+		// mType : fluid: (-1,0,0), boundary: (0,0,0), rigid: (1, rigidIdx + 1, 0), flex: (2, flexIdx + 1, 0)
 
 #include <iostream>
 #include <fstream>
@@ -1323,7 +1323,7 @@ int main() {
 	//num_FluidParticles = 40000;//5000;//10000;//4096;//16384;//65536;//8192;//32768;;//262144;//1024;//262144;//1024; //262144;//1000000;//16 * 1024;//262144;//1024;//262144;//1024;//262144;//1024 * 16;//262144;//4194304;//262144;//1024;//4194304; //2097152;//262144;//262144;//1024;//65536;//262144;	// The number of bodies
 
 	//--------------------buffer initialization ---------------------------
-	thrust::host_vector<int2> referenceArray;
+	thrust::host_vector<int3> referenceArray;
 //	thrust::host_vector<int3> referenceArray_Types;
 	thrust::host_vector<real3> mPosRad;			//do not set the size here since you are using push back later
 	thrust::host_vector<real4> mVelMas;
@@ -1418,7 +1418,7 @@ int main() {
 			mType.push_back(I3(type1, 0, 0));
 		}
 		//num_FluidParticles *= 2;
-		referenceArray.push_back(I2(0, num_FluidParticles)); //map fluid -1
+		referenceArray.push_back(I3(0, num_FluidParticles, -1)); //map fluid -1
 //		referenceArray_Types.push_back(I3(-1, 0, 0));
 	} else {
 		thrust::host_vector<real3> mPosRadBoundary;			//do not set the size here since you are using push back later
@@ -1429,7 +1429,7 @@ int main() {
 		int2 num_fluidOrBoundaryParticles = CreateFluidParticles(mPosRad, mVelMas, mRhoPresMu, mType, mPosRadBoundary, mVelMasBoundary, mRhoPresMuBoundary, mTypeBoundary, sphParticleMass,
 				rigidPos, rigidRotMatrix, ellipsoidRadii, r, cMax, cMin, rho0, pres, mu,
 				ANCF_VelNodes, ANCF_ReferenceArrayNodesOnBeams);
-		referenceArray.push_back(I2(0, num_fluidOrBoundaryParticles.x));  //map fluid -1
+		referenceArray.push_back(I3(0, num_fluidOrBoundaryParticles.x, -1));  //map fluid -1
 //		referenceArray_Types.push_back((I3(-1, 0, 0)));
 		numAllParticles += num_fluidOrBoundaryParticles.x;
 		printf("num_FluidParticles: %d\n", num_fluidOrBoundaryParticles.x);
@@ -1449,7 +1449,7 @@ int main() {
 		mRhoPresMuBoundary.clear();
 		mTypeBoundary.clear();
 
-		referenceArray.push_back(I2(numAllParticles, numAllParticles + num_fluidOrBoundaryParticles.y));  //map bc 0
+		referenceArray.push_back(I3(numAllParticles, numAllParticles + num_fluidOrBoundaryParticles.y, 0));  //map bc 0
 //		referenceArray_Types.push_back(I3(0, 0, 0));
 		numAllParticles += num_fluidOrBoundaryParticles.y;
 		printf("num_BoundaryParticles: %d\n", num_fluidOrBoundaryParticles.y);
@@ -1468,7 +1468,7 @@ int main() {
 //													 rho0, pres, mu,
 //													 cMin, cMax,
 //													 rigidSpheres + 1);		//as type
-			referenceArray.push_back(I2(numAllParticles, numAllParticles + num_RigidBodyParticles));  //map bc : rigidSpheres + 1
+			referenceArray.push_back(I3(numAllParticles, numAllParticles + num_RigidBodyParticles, 1));  //rigid type: 1
 //			referenceArray_Types.push_back(I3(1, rigidSpheres, 0));
 			numAllParticles += num_RigidBodyParticles;
 			//printf(" %d \n", num_RigidBodyParticles);
@@ -1505,7 +1505,7 @@ int main() {
 
 
 
-			referenceArray.push_back(I2(numAllParticles, numAllParticles + num_FlexParticles));  //map bc : rigidSpheres + 1
+			referenceArray.push_back(I3(numAllParticles, numAllParticles + num_FlexParticles, 2));  //map bc : rigidSpheres + 1
 //			referenceArray_Types.push_back(I3(1, rigidSpheres, 0));
 			numAllParticles += num_FlexParticles;
 			//printf(" %d \n", num_RigidBodyParticles);

@@ -11,7 +11,7 @@ void PrintToFile(
 		thrust::device_vector<real3> & posRadD,
 		thrust::device_vector<real4> & velMasD,
 		thrust::device_vector<real4> & rhoPresMuD,
-		const thrust::host_vector<int2> & referenceArray,
+		const thrust::host_vector<int3> & referenceArray,
 		const thrust::device_vector<int> & rigidIdentifierD,
 		thrust::device_vector<real3> & posRigidD,
 		thrust::device_vector<real3> & posRigidCumulativeD,
