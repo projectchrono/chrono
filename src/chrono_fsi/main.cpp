@@ -11,7 +11,6 @@
 //
 //	Created by Arman Pazouki
 ///////////////////////////////////////////////////////////////////////////////
-		// mType : fluid: (-1,0,0), boundary: (0,0,0), rigid: (1, rigidIdx + 1, 0), flex: (2, flexIdx + 1, 0)
 
 #include <iostream>
 #include <fstream>
@@ -960,11 +959,9 @@ int2 CreateFluidParticles(
 		thrust::host_vector<real3> & mPosRad,
 		thrust::host_vector<real4> & mVelMas,
 		thrust::host_vector<real4> & mRhoPresMu,
-		thrust::host_vector<int3> & mType,
 		thrust::host_vector<real3> & mPosRadBoundary,
 		thrust::host_vector<real4> & mVelMasBoundary,
 		thrust::host_vector<real4> & mRhoPresMuBoundary,
-		thrust::host_vector<int3> & mTypeBoundary,
 		real_ & sphParticleMass,
 		const thrust::host_vector<real3> & rigidPos,
 		const thrust::host_vector<Rotation> rigidRotMatrix,
@@ -1056,7 +1053,6 @@ int2 CreateFluidParticles(
 																		//															//just note that the type, i.e. mRhoPresMu.w is real_.
 																		//															//viscosity of the water is .0018
 																		//	}
-							mType.push_back(I3(-1, 0, 0));											//}
 
 						}
 					} else {
@@ -1065,7 +1061,6 @@ int2 CreateFluidParticles(
 						mVelMasBoundary.push_back(R4(0, 0, 0, sphParticleMass));
 						mRhoPresMuBoundary.push_back(R4(rho, pres, mu, 0));	//rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
 						//just note that the type, i.e. mRhoPresMu.w is real_.
-						mTypeBoundary.push_back(I3(0, 0, 0));
 						//viscosity of the water is .0018
 					}
 				}
@@ -1079,7 +1074,6 @@ int CreateEllipsoidParticles(
 		thrust::host_vector<real3> & mPosRad,
 		thrust::host_vector<real4> & mVelMas,
 		thrust::host_vector<real4> & mRhoPresMu,
-		thrust::host_vector<int3> & mType,
 		real3 rigidPos,
 		Rotation rigidRotMatrix,
 		real3 ellipsoidRadii,
@@ -1132,7 +1126,6 @@ int CreateEllipsoidParticles(
 					mVelMas.push_back(R4(vel, sphParticleMass));
 					real_ representedArea = spacing * spacing;
 					mRhoPresMu.push_back(R4(rho, pres, mu, type));					// for rigid body particle, rho represents the represented area
-					mType.push_back(I3(1, type, 0));
 					//																						// for the rigid particles, the fluid properties are those of the contacting fluid particles
 					num_rigidBodyParticles++;
 					//printf("num_rigidBodyParticles %d\n", num_rigidBodyParticles);
@@ -1153,7 +1146,6 @@ int CreateFlexParticles(
 		thrust::host_vector<real3> & mPosRad,
 		thrust::host_vector<real4> & mVelMas,
 		thrust::host_vector<real4> & mRhoPresMu,
-		thrust::host_vector<int3> & mType,
 
 		int flexBodyIndex,
 		thrust::host_vector<real_> & flexParametricDist,
@@ -1181,7 +1173,6 @@ int CreateFlexParticles(
 		mRhoPresMu.push_back(R4(rho, pres, mu, type));	//take care of type
 		flexParametricDist.push_back(s);
 		flexIdentifier.push_back(flexBodyIndex);
-		mType.push_back(I3(2, type, 0));
 		num_FlexParticles++;
 		for (real_ r = spacing; r <= 2 * spacing; r += spacing) {
 			real_ deltaTeta = spacing / r;
@@ -1199,7 +1190,6 @@ int CreateFlexParticles(
 				mRhoPresMu.push_back(R4(rho, pres, mu, type));	//take care of type
 				flexParametricDist.push_back(s);
 				flexIdentifier.push_back(flexBodyIndex);
-				mType.push_back(I3(2, type, 0));
 				num_FlexParticles++;
 			}
 		}
@@ -1211,7 +1201,6 @@ int CreateCylinderParticles_XZ(
 		thrust::host_vector<real3> & mPosRad,
 		thrust::host_vector<real4> & mVelMas,
 		thrust::host_vector<real4> & mRhoPresMu,
-		thrust::host_vector<int3> & mType,
 		real3 rigidPos,
 		real3 ellipsoidRadii,
 		real4 sphereVelMas,
@@ -1243,7 +1232,6 @@ int CreateCylinderParticles_XZ(
 					mVelMas.push_back(R4(vel, sphParticleMass));
 					real_ representedArea = spacing * spacing;
 					mRhoPresMu.push_back(R4(rho, pres, mu, type));					// for rigid body particle, rho represents the represented area
-					mType.push_back(I3(1, type, 0));
 					//																						// for the rigid particles, the fluid properties are those of the contacting fluid particles 
 					num_rigidBodyParticles++;
 					//printf("num_rigidBodyParticles %d\n", num_rigidBodyParticles);
@@ -1328,7 +1316,6 @@ int main() {
 	thrust::host_vector<real3> mPosRad;			//do not set the size here since you are using push back later
 	thrust::host_vector<real4> mVelMas;
 	thrust::host_vector<real4> mRhoPresMu;
-	thrust::host_vector<int3> mType;
 
 	//*** rigid bodies
 	//thrust::host_vector<real4> spheresPosRad;
@@ -1415,7 +1402,6 @@ int main() {
 			mPosRad.push_back(posRad);
 			mVelMas.push_back(velMas);
 			mRhoPresMu.push_back(rhoPresMu);
-			mType.push_back(I3(type1, 0, 0));
 		}
 		//num_FluidParticles *= 2;
 		referenceArray.push_back(I3(0, num_FluidParticles, -1)); //map fluid -1
@@ -1424,9 +1410,8 @@ int main() {
 		thrust::host_vector<real3> mPosRadBoundary;			//do not set the size here since you are using push back later
 		thrust::host_vector<real4> mVelMasBoundary;
 		thrust::host_vector<real4> mRhoPresMuBoundary;
-		thrust::host_vector<int3> mTypeBoundary;
 
-		int2 num_fluidOrBoundaryParticles = CreateFluidParticles(mPosRad, mVelMas, mRhoPresMu, mType, mPosRadBoundary, mVelMasBoundary, mRhoPresMuBoundary, mTypeBoundary, sphParticleMass,
+		int2 num_fluidOrBoundaryParticles = CreateFluidParticles(mPosRad, mVelMas, mRhoPresMu, mPosRadBoundary, mVelMasBoundary, mRhoPresMuBoundary, sphParticleMass,
 				rigidPos, rigidRotMatrix, ellipsoidRadii, r, cMax, cMin, rho0, pres, mu,
 				ANCF_VelNodes, ANCF_ReferenceArrayNodesOnBeams);
 		referenceArray.push_back(I3(0, num_fluidOrBoundaryParticles.x, -1));  //map fluid -1
@@ -1443,11 +1428,9 @@ int main() {
 		thrust::copy(mPosRadBoundary.begin(), mPosRadBoundary.end(), mPosRad.begin() + num_fluidOrBoundaryParticles.x);
 		thrust::copy(mVelMasBoundary.begin(), mVelMasBoundary.end(), mVelMas.begin() + num_fluidOrBoundaryParticles.x);
 		thrust::copy(mRhoPresMuBoundary.begin(), mRhoPresMuBoundary.end(), mRhoPresMu.begin() + num_fluidOrBoundaryParticles.x);
-		thrust::copy(mTypeBoundary.begin(), mTypeBoundary.end(), mType.begin() + num_fluidOrBoundaryParticles.x);
 		mPosRadBoundary.clear();
 		mVelMasBoundary.clear();
 		mRhoPresMuBoundary.clear();
-		mTypeBoundary.clear();
 
 		referenceArray.push_back(I3(numAllParticles, numAllParticles + num_fluidOrBoundaryParticles.y, 0));  //map bc 0
 //		referenceArray_Types.push_back(I3(0, 0, 0));
@@ -1457,9 +1440,9 @@ int main() {
 		//rigid body: type = 1, 2, 3, ...
 		printf("num_RigidBodyParticles: \n");
 		for (int rigidSpheres = 0; rigidSpheres < rigidPos.size(); rigidSpheres++) {
-			int num_RigidBodyParticles = CreateEllipsoidParticles(mPosRad, mVelMas, mRhoPresMu, mType, rigidPos[rigidSpheres], rigidRotMatrix[rigidSpheres], ellipsoidRadii[rigidSpheres], spheresVelMas[rigidSpheres],
+			int num_RigidBodyParticles = CreateEllipsoidParticles(mPosRad, mVelMas, mRhoPresMu, rigidPos[rigidSpheres], rigidRotMatrix[rigidSpheres], ellipsoidRadii[rigidSpheres], spheresVelMas[rigidSpheres],
 					rigidBodyOmega[rigidSpheres], r, sphParticleMass, rho0, pres, mu, rigidSpheres + 1);		//as type
-//			int num_RigidBodyParticles = CreateCylinderParticles_XZ(mPosRad, mVelMas, mRhoPresMu, mType,
+//			int num_RigidBodyParticles = CreateCylinderParticles_XZ(mPosRad, mVelMas, mRhoPresMu,
 //													rigidPos[rigidSpheres], ellipsoidRadii[rigidSpheres],
 //													 spheresVelMas[rigidSpheres],
 //													 rigidBodyOmega[rigidSpheres],
@@ -1476,7 +1459,7 @@ int main() {
 		for (int flexBodyIdx = 0; flexBodyIdx < ANCF_ReferenceArrayNodesOnBeams.size(); flexBodyIdx++) {
 			real3 pa3 = ANCF_Nodes[ ANCF_ReferenceArrayNodesOnBeams[flexBodyIdx].x ];
 			real3 pb3 = ANCF_Nodes[ ANCF_ReferenceArrayNodesOnBeams[flexBodyIdx].y - 1 ];
-			int num_FlexParticles = CreateFlexParticles(mPosRad, mVelMas, mRhoPresMu, mType,
+			int num_FlexParticles = CreateFlexParticles(mPosRad, mVelMas, mRhoPresMu,
 
 					flexBodyIdx,
 					flexParametricDist,
@@ -1527,7 +1510,6 @@ int main() {
 	mPosRad.clear();
 	mVelMas.clear();
 	mRhoPresMu.clear();
-	mType.clear();
 	bodyIndex.clear();
 	referenceArray.clear();
 //	referenceArray_Types.clear();
