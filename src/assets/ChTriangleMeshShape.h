@@ -9,8 +9,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHOBJSHAPEFILE_H
-#define CHOBJSHAPEFILE_H
+#ifndef CHTRIANGLEMESHSHAPE_H
+#define CHTRIANGLEMESHSHAPE_H
 
 ///////////////////////////////////////////////////
 //
@@ -33,11 +33,9 @@
 namespace chrono
 {
 
-/// Class for referencing a Wavefront/Alias .obj
-/// file containing a shape that can be visualized
-/// in some way.
-/// The file is not load into this object: it
-/// is simply a reference to the resource on the disk.
+/// Class for referencing a triangle mesh shape that can be 
+/// visualized in some way. Being a child class of ChAsset, it can
+/// be 'attached' to physics items.
 
 class ChApi ChTriangleMeshShape : public ChVisualization {
 
@@ -61,7 +59,7 @@ public:
 				//
 
 
-	geometry::ChTriangleMeshConnected GetMesh() const {return trimesh;}
+	geometry::ChTriangleMeshConnected& GetMesh()  {return trimesh;}
 	void SetMesh(const geometry::ChTriangleMeshConnected & mesh) {trimesh = mesh;}
 
 };
