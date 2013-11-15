@@ -1856,6 +1856,19 @@ public:
 						this->MatrScale((1/(1+gam)));
 					}
 
+					/// Use the Gram-Schmidt orthonormalization to find the three
+					/// orthogonal vectors of a coordinate system whose X axis is this vector.
+					/// mVsingular (optional) suggests the XY plane, possibly it is not too parallel to X.
+	void	Set_A_Xdir( ChVector<Real> Xdir,			///< X axis 
+						ChVector<Real>* mVsingular =0	///< a direction on XY plane (optional suggestion for Y axis) 
+					   ) 
+					{
+						ChVector<Real> mX;
+						ChVector<Real> mY;
+						ChVector<Real> mZ;
+						Xdir.DirToDxDyDz(&mX,&mY,&mZ, mVsingular);
+						this->Set_A_axis(mX,mY,mZ);
+					}
 
 					/// Given a 3x3 rotation matrix, computes the corresponding 
 					/// quaternion.
