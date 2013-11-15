@@ -84,7 +84,7 @@ public:
 				}
 
 	
-				/// Computes the global STIFFNESS MATRIX of the element:    
+				/// Computes the local STIFFNESS MATRIX of the element:    
 				/// K = Volume * [B]' * [D] * [B]
 	virtual void ComputeStiffnessMatrix()
 				{
@@ -209,18 +209,17 @@ public:
 									sum+= (P(row,col))*(mM(col,colres));
 							F(row, colres)= sum;
 						}
-					ChMatrix33<double> S;
-					double det = ChPolarDecomposition<double>::Compute(F, this->A, S, 1E-6);
+					ChMatrix33<> S;
+					double det = ChPolarDecomposition::Compute(F, this->A, S, 1E-6);
 					if (det <0)
 						this->A.MatrScale(-1.0);
 
-					//GetLog() << "FEM rotation: \n" << A << "\n" 
+					GetLog() << "FEM rotation: \n" << A << "\n" ;
 				}
 
 
 				/// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
 				/// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
-				/// (For the spring matrix there is no need to corotate local matrices: we already know a closed form expression.)
 	virtual void ComputeKRMmatricesGlobal	(ChMatrix<>& H, double Kfactor, double Rfactor=0, double Mfactor=0) 
 				{
 					assert((H.GetRows() == 12) && (H.GetColumns()==12));

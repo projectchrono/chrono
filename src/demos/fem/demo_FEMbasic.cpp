@@ -67,6 +67,7 @@ void test_1()
 				// Create some nodes. These are the classical point-like
 				// nodes with x,y,z degrees of freedom, that can be used 
 				// for many types of FEM elements in space.
+				// While creating them, also set X0 undeformed positions.
 	ChNodeFEMxyz mnodeA(ChVector<>(0,0,0));
 	ChNodeFEMxyz mnodeB(ChVector<>(0,1,0));
 	mnodeA.SetMass(0.0);
@@ -91,7 +92,6 @@ void test_1()
 
 				// Remember to add the mesh to the system!
 	my_system.Add(my_mesh);
-			
 
 				// Create also a truss
 	ChSharedPtr<ChBody> truss(new ChBody);
@@ -158,6 +158,7 @@ void test_2()
 				// Create some nodes. These are the classical point-like
 				// nodes with x,y,z degrees of freedom, that can be used 
 				// for many types of FEM elements in space.
+				// While creating them, also set X0 undeformed positions.
 	ChNodeFEMxyz mnode1(ChVector<>(0,0,0));
 	ChNodeFEMxyz mnode2(ChVector<>(0,0,1));
 	ChNodeFEMxyz mnode3(ChVector<>(0,1,0));
@@ -188,7 +189,6 @@ void test_2()
 
 				// Remember to add the mesh to the system!
 	my_system.Add(my_mesh);
-
 
 				// Create also a truss
 	ChSharedPtr<ChBody> truss(new ChBody);
@@ -270,27 +270,17 @@ void test_3()
 				// Create some nodes. These are the classical point-like
 				// nodes with x,y,z degrees of freedom, that can be used 
 				// for many types of FEM elements in space.
+				// While creating them, also set X0 undeformed positions.
 	ChNodeFEMxyz mnode1(ChVector<>(0,0,0));
 	ChNodeFEMxyz mnode2(ChVector<>(0.001,0,0));
 	ChNodeFEMxyz mnode3(ChVector<>(0,0.001,0));
 	ChNodeFEMxyz mnode4(ChVector<>(0,0,0.001));
-				// Build a Constant Metric tetrahedron
-	ChNodeFEMxyz mnode5(ChVector<>((mnode1.pos.x+mnode2.pos.x)/2,(mnode1.pos.y+mnode2.pos.y)/2,(mnode1.pos.z+mnode2.pos.z)/2));
-	ChNodeFEMxyz mnode6(ChVector<>((mnode2.pos.x+mnode3.pos.x)/2,(mnode2.pos.y+mnode3.pos.y)/2,(mnode2.pos.z+mnode3.pos.z)/2));
-	ChNodeFEMxyz mnode7(ChVector<>((mnode3.pos.x+mnode1.pos.x)/2,(mnode3.pos.y+mnode1.pos.y)/2,(mnode3.pos.z+mnode1.pos.z)/2));
-	ChNodeFEMxyz mnode8(ChVector<>((mnode1.pos.x+mnode4.pos.x)/2,(mnode1.pos.y+mnode4.pos.y)/2,(mnode1.pos.z+mnode4.pos.z)/2));
-	ChNodeFEMxyz mnode9(ChVector<>((mnode4.pos.x+mnode2.pos.x)/2,(mnode4.pos.y+mnode2.pos.y)/2,(mnode4.pos.z+mnode2.pos.z)/2));
-	ChNodeFEMxyz mnode10(ChVector<>((mnode3.pos.x+mnode4.pos.x)/2,(mnode3.pos.y+mnode4.pos.y)/2,(mnode3.pos.z+mnode4.pos.z)/2));
-	mnode1.SetMass(0.001);
-	mnode2.SetMass(0.001);
-	mnode3.SetMass(0.001);
-	mnode4.SetMass(0.001);
-	mnode5.SetMass(0.001);
-	mnode6.SetMass(0.001);
-	mnode7.SetMass(0.001);
-	mnode8.SetMass(0.001);
-	mnode9.SetMass(0.001);
-	mnode10.SetMass(0.001);
+	ChNodeFEMxyz mnode5 ((mnode1.pos + mnode2.pos)*0.5); //  nodes at mid length of edges
+	ChNodeFEMxyz mnode6 ((mnode2.pos + mnode3.pos)*0.5);
+	ChNodeFEMxyz mnode7 ((mnode3.pos + mnode1.pos)*0.5);
+	ChNodeFEMxyz mnode8 ((mnode1.pos + mnode4.pos)*0.5);
+	ChNodeFEMxyz mnode9 ((mnode4.pos + mnode2.pos)*0.5);
+	ChNodeFEMxyz mnode10((mnode3.pos + mnode4.pos)*0.5);
 	
 				// For example, set an applied force to a node:
 	mnode3.SetForce(ChVector<>(0, -1000, 0));
@@ -402,25 +392,24 @@ void test_4()
 				// Create some nodes. These are the classical point-like
 				// nodes with x,y,z degrees of freedom, that can be used 
 				// for many types of FEM elements in space.
-	ChNodeFEMxyz mnode1(ChVector<>(0,0,0));
-	ChNodeFEMxyz mnode2(ChVector<>(0,0,0.001));
-	ChNodeFEMxyz mnode3(ChVector<>(0.001,0,0.001));
-	ChNodeFEMxyz mnode4(ChVector<>(0.001,0,0));
-	ChNodeFEMxyz mnode5(ChVector<>(0,0.001,0));
-	ChNodeFEMxyz mnode6(ChVector<>(0,0.001,0.001));
-	ChNodeFEMxyz mnode7(ChVector<>(0.001,0.001,0.001));
-	ChNodeFEMxyz mnode8(ChVector<>(0.001,0.001,0));
-	mnode1.SetMass(0.001);
-	mnode2.SetMass(0.001);
-	mnode3.SetMass(0.001);
-	mnode4.SetMass(0.001);
-	mnode5.SetMass(0.001);
-	mnode6.SetMass(0.001);
-	mnode7.SetMass(0.001);
-	mnode8.SetMass(0.001);
-	
-				// For example, set an applied force to a node:
+				// While creating them, also set X0 undeformed positions.
+	double sx = 0.01;
+	double sy = 0.10;
+	double sz = 0.01;
+	ChNodeFEMxyz mnode1(ChVector<>(0, 0,  0));
+	ChNodeFEMxyz mnode2(ChVector<>(0, 0,  sz));
+	ChNodeFEMxyz mnode3(ChVector<>(sx,0,  sz));
+	ChNodeFEMxyz mnode4(ChVector<>(sx,0,  0));
+	ChNodeFEMxyz mnode5(ChVector<>(0, sy, 0));
+	ChNodeFEMxyz mnode6(ChVector<>(0, sy, sz));
+	ChNodeFEMxyz mnode7(ChVector<>(sx,sy, sz));
+	ChNodeFEMxyz mnode8(ChVector<>(sx,sy, 0));
+
+				// For example, set applied forces to nodes:
+	mnode5.SetForce(ChVector<>(0, -1000, 0));
+	mnode6.SetForce(ChVector<>(0, -1000, 0));
 	mnode7.SetForce(ChVector<>(0, -1000, 0));
+	mnode8.SetForce(ChVector<>(0, -1000, 0));
 
 				// Remember to add nodes and elements to the mesh!
 	my_mesh->AddNode(mnode1);
@@ -501,9 +490,10 @@ void test_4()
 	GetLog()<<mnode2.GetPos()<<"\n";
 	GetLog()<<mnode3.GetPos()<<"\n";
 	GetLog()<<mnode4.GetPos()<<"\n";
-	GetLog()<<mnode7.GetPos()<<"\n";
+	GetLog()<<"node5 displ: "<< mnode5.GetPos()-mnode5.GetX0()<<"\n";
+	GetLog()<<"node6 displ: "<< mnode6.GetPos()-mnode6.GetX0()<<"\n";
 	GetLog()<<"node7 displ: "<< mnode7.GetPos()-mnode7.GetX0()<<"\n";
-
+	GetLog()<<"node8 displ: "<< mnode8.GetPos()-mnode8.GetX0()<<"\n";
 }
 
 //////////////////////////////////////////////////////////////////
@@ -532,53 +522,40 @@ void test_5()
 				// Create some nodes. These are the classical point-like
 				// nodes with x,y,z degrees of freedom, that can be used 
 				// for many types of FEM elements in space.
-	ChNodeFEMxyz mnode1(ChVector<>(0,0,0));
-	ChNodeFEMxyz mnode2(ChVector<>(0,0,0.001));
-	ChNodeFEMxyz mnode3(ChVector<>(0.001,0,0.001));
-	ChNodeFEMxyz mnode4(ChVector<>(0.001,0,0));
-	ChNodeFEMxyz mnode5(ChVector<>(0,0.001,0));
-	ChNodeFEMxyz mnode6(ChVector<>(0,0.001,0.001));
-	ChNodeFEMxyz mnode7(ChVector<>(0.001,0.001,0.001));
-	ChNodeFEMxyz mnode8(ChVector<>(0.001,0.001,0));
-	
-	ChNodeFEMxyz mnode9(ChVector<>((mnode1.pos.x+mnode2.pos.x)/2,(mnode1.pos.y+mnode2.pos.y)/2,(mnode1.pos.z+mnode2.pos.z)/2));
-	ChNodeFEMxyz mnode10(ChVector<>((mnode2.pos.x+mnode3.pos.x)/2,(mnode2.pos.y+mnode3.pos.y)/2,(mnode2.pos.z+mnode3.pos.z)/2));
-	ChNodeFEMxyz mnode11(ChVector<>((mnode3.pos.x+mnode4.pos.x)/2,(mnode3.pos.y+mnode4.pos.y)/2,(mnode3.pos.z+mnode4.pos.z)/2));
-	ChNodeFEMxyz mnode12(ChVector<>((mnode1.pos.x+mnode4.pos.x)/2,(mnode1.pos.y+mnode4.pos.y)/2,(mnode1.pos.z+mnode4.pos.z)/2));
+				// While creating them, also set X0 undeformed positions.
+	double sx = 0.01;
+	double sy = 0.1;
+	double sz = 0.01;
+	ChNodeFEMxyz mnode1(ChVector<>(0, 0,  0));
+	ChNodeFEMxyz mnode2(ChVector<>(0, 0,  sz));
+	ChNodeFEMxyz mnode3(ChVector<>(sx,0,  sz));
+	ChNodeFEMxyz mnode4(ChVector<>(sx,0,  0));
+	ChNodeFEMxyz mnode5(ChVector<>(0, sy, 0));
+	ChNodeFEMxyz mnode6(ChVector<>(0, sy, sz));
+	ChNodeFEMxyz mnode7(ChVector<>(sx,sy, sz));
+	ChNodeFEMxyz mnode8(ChVector<>(sx,sy, 0));
+	ChNodeFEMxyz mnode9 ((mnode1.pos + mnode2.pos)*0.5); // in between front face
+	ChNodeFEMxyz mnode10((mnode2.pos + mnode3.pos)*0.5); 
+	ChNodeFEMxyz mnode11((mnode3.pos + mnode4.pos)*0.5); 
+	ChNodeFEMxyz mnode12((mnode1.pos + mnode4.pos)*0.5); 
+	ChNodeFEMxyz mnode13((mnode5.pos + mnode6.pos)*0.5); // in between back face
+	ChNodeFEMxyz mnode14((mnode6.pos + mnode7.pos)*0.5); 
+	ChNodeFEMxyz mnode15((mnode7.pos + mnode8.pos)*0.5); 
+	ChNodeFEMxyz mnode16((mnode8.pos + mnode5.pos)*0.5); 
+	ChNodeFEMxyz mnode17((mnode2.pos + mnode6.pos)*0.5); // in between side edges
+	ChNodeFEMxyz mnode18((mnode3.pos + mnode7.pos)*0.5); 
+	ChNodeFEMxyz mnode19((mnode4.pos + mnode8.pos)*0.5); 
+	ChNodeFEMxyz mnode20((mnode1.pos + mnode5.pos)*0.5); 
 
-	ChNodeFEMxyz mnode13(ChVector<>((mnode5.pos.x+mnode6.pos.x)/2,(mnode5.pos.y+mnode6.pos.y)/2,(mnode5.pos.z+mnode6.pos.z)/2));
-	ChNodeFEMxyz mnode14(ChVector<>((mnode6.pos.x+mnode7.pos.x)/2,(mnode6.pos.y+mnode7.pos.y)/2,(mnode6.pos.z+mnode7.pos.z)/2));
-	ChNodeFEMxyz mnode15(ChVector<>((mnode7.pos.x+mnode8.pos.x)/2,(mnode7.pos.y+mnode8.pos.y)/2,(mnode7.pos.z+mnode8.pos.z)/2));
-	ChNodeFEMxyz mnode16(ChVector<>((mnode8.pos.x+mnode5.pos.x)/2,(mnode8.pos.y+mnode5.pos.y)/2,(mnode8.pos.z+mnode5.pos.z)/2));
-
-	ChNodeFEMxyz mnode17(ChVector<>((mnode2.pos.x+mnode6.pos.x)/2,(mnode2.pos.y+mnode6.pos.y)/2,(mnode2.pos.z+mnode6.pos.z)/2));
-	ChNodeFEMxyz mnode18(ChVector<>((mnode3.pos.x+mnode7.pos.x)/2,(mnode3.pos.y+mnode7.pos.y)/2,(mnode3.pos.z+mnode7.pos.z)/2));
-	ChNodeFEMxyz mnode19(ChVector<>((mnode4.pos.x+mnode8.pos.x)/2,(mnode4.pos.y+mnode8.pos.y)/2,(mnode4.pos.z+mnode8.pos.z)/2));
-	ChNodeFEMxyz mnode20(ChVector<>((mnode1.pos.x+mnode5.pos.x)/2,(mnode1.pos.y+mnode5.pos.y)/2,(mnode1.pos.z+mnode5.pos.z)/2));
-
-	mnode1.SetMass(0.001);
-	mnode2.SetMass(0.001);
-	mnode3.SetMass(0.001);
-	mnode4.SetMass(0.001);
-	mnode5.SetMass(0.001);
-	mnode6.SetMass(0.001);
-	mnode7.SetMass(0.001);
-	mnode8.SetMass(0.001);
-	mnode9.SetMass(0.001);
-	mnode10.SetMass(0.001);
-	mnode11.SetMass(0.001);
-	mnode12.SetMass(0.001);
-	mnode13.SetMass(0.001);
-	mnode14.SetMass(0.001);
-	mnode15.SetMass(0.001);
-	mnode16.SetMass(0.001);
-	mnode17.SetMass(0.001);
-	mnode18.SetMass(0.001);
-	mnode19.SetMass(0.001);
-	mnode20.SetMass(0.001);
-	
-				// For example, set an applied force to a node:
-	mnode7.SetForce(ChVector<>(0, -1000, 0));
+				// For example, set applied forces to nodes:
+	mnode5.SetForce(ChVector<>(0, -500, 0));
+	mnode6.SetForce(ChVector<>(0, -500, 0));
+	mnode7.SetForce(ChVector<>(0, -500, 0));
+	mnode8.SetForce(ChVector<>(0, -500, 0));
+	mnode13.SetForce(ChVector<>(0, -500, 0));
+	mnode14.SetForce(ChVector<>(0, -500, 0));
+	mnode15.SetForce(ChVector<>(0, -500, 0));
+	mnode16.SetForce(ChVector<>(0, -500, 0));
 
 				// Remember to add nodes and elements to the mesh!
 	my_mesh->AddNode(mnode1);
@@ -603,7 +580,7 @@ void test_5()
 	my_mesh->AddNode(mnode20);
 
 				// Create the tetrahedron element, and assign 
-				// it nodes and material
+				// its nodes and material
 	ChElementHexa_20 melement1;
 	melement1.SetNodes(&mnode1, &mnode2, &mnode3, &mnode4, &mnode5, &mnode6, &mnode7, &mnode8,
 						&mnode9, &mnode10, &mnode11, &mnode12, &mnode13, &mnode14, &mnode15, &mnode16,
@@ -670,15 +647,12 @@ void test_5()
 
 	my_system.DoStaticLinear();
 
-				// Output result
-	//GetLog()<<melement1.GetStiffnessMatrix()<<"\n";
-	//GetLog()<<melement1.GetMatrB()<<"\n";
-	GetLog()<<mnode1.GetPos()<<"\n";
-	GetLog()<<mnode2.GetPos()<<"\n";
-	GetLog()<<mnode3.GetPos()<<"\n";
-	GetLog()<<mnode4.GetPos()<<"\n";
-	GetLog()<<mnode7.GetPos()<<"\n";
+				// Output some results
+	GetLog()<<"node5 displ: "<< mnode5.GetPos()-mnode5.GetX0()<<"\n";
+	GetLog()<<"node6 displ: "<< mnode6.GetPos()-mnode6.GetX0()<<"\n";
 	GetLog()<<"node7 displ: "<< mnode7.GetPos()-mnode7.GetX0()<<"\n";
+	GetLog()<<"node8 displ: "<< mnode8.GetPos()-mnode8.GetX0()<<"\n";
+	GetLog()<<"Element volume" << melement1.GetVolume() << "\n";
 
 }
 
@@ -696,7 +670,7 @@ int main(int argc, char* argv[])
 
 
 	// Test: an introductory problem:
-	test_1();
+	test_4();
 
 
 	// Remember this at the end of the program, if you started

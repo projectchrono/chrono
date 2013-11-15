@@ -190,68 +190,68 @@ public:
 					J1.SetElement(2,19,coord.z*(1-coord.x)*(1-coord.y)/(-2));
 					
 					
-					J2.SetElement(0,0,nodes[0]->pos.x);
-					J2.SetElement(1,0,nodes[1]->pos.x);
-					J2.SetElement(2,0,nodes[2]->pos.x);
-					J2.SetElement(3,0,nodes[3]->pos.x);
-					J2.SetElement(4,0,nodes[4]->pos.x);
-					J2.SetElement(5,0,nodes[5]->pos.x);
-					J2.SetElement(6,0,nodes[6]->pos.x);
-					J2.SetElement(7,0,nodes[7]->pos.x);
-					J2.SetElement(8,0,nodes[8]->pos.x);
-					J2.SetElement(9,0,nodes[9]->pos.x);
-					J2.SetElement(10,0,nodes[10]->pos.x);
-					J2.SetElement(11,0,nodes[11]->pos.x);
-					J2.SetElement(12,0,nodes[12]->pos.x);
-					J2.SetElement(13,0,nodes[13]->pos.x);
-					J2.SetElement(14,0,nodes[14]->pos.x);
-					J2.SetElement(15,0,nodes[15]->pos.x);
-					J2.SetElement(16,0,nodes[16]->pos.x);
-					J2.SetElement(17,0,nodes[17]->pos.x);
-					J2.SetElement(18,0,nodes[18]->pos.x);
-					J2.SetElement(19,0,nodes[19]->pos.x);
+					J2.SetElement(0,0,nodes[0]->GetX0().x);
+					J2.SetElement(1,0,nodes[1]->GetX0().x);
+					J2.SetElement(2,0,nodes[2]->GetX0().x);
+					J2.SetElement(3,0,nodes[3]->GetX0().x);
+					J2.SetElement(4,0,nodes[4]->GetX0().x);
+					J2.SetElement(5,0,nodes[5]->GetX0().x);
+					J2.SetElement(6,0,nodes[6]->GetX0().x);
+					J2.SetElement(7,0,nodes[7]->GetX0().x);
+					J2.SetElement(8,0,nodes[8]->GetX0().x);
+					J2.SetElement(9,0,nodes[9]->GetX0().x);
+					J2.SetElement(10,0,nodes[10]->GetX0().x);
+					J2.SetElement(11,0,nodes[11]->GetX0().x);
+					J2.SetElement(12,0,nodes[12]->GetX0().x);
+					J2.SetElement(13,0,nodes[13]->GetX0().x);
+					J2.SetElement(14,0,nodes[14]->GetX0().x);
+					J2.SetElement(15,0,nodes[15]->GetX0().x);
+					J2.SetElement(16,0,nodes[16]->GetX0().x);
+					J2.SetElement(17,0,nodes[17]->GetX0().x);
+					J2.SetElement(18,0,nodes[18]->GetX0().x);
+					J2.SetElement(19,0,nodes[19]->GetX0().x);
 	
-					J2.SetElement(0,1,nodes[0]->pos.y);
-					J2.SetElement(1,1,nodes[1]->pos.y);
-					J2.SetElement(2,1,nodes[2]->pos.y);
-					J2.SetElement(3,1,nodes[3]->pos.y);
-					J2.SetElement(4,1,nodes[4]->pos.y);
-					J2.SetElement(5,1,nodes[5]->pos.y);
-					J2.SetElement(6,1,nodes[6]->pos.y);
-					J2.SetElement(7,1,nodes[7]->pos.y);
-					J2.SetElement(8,1,nodes[8]->pos.y);
-					J2.SetElement(9,1,nodes[9]->pos.y);
-					J2.SetElement(10,1,nodes[10]->pos.y);
-					J2.SetElement(11,1,nodes[11]->pos.y);
-					J2.SetElement(12,1,nodes[12]->pos.y);
-					J2.SetElement(13,1,nodes[13]->pos.y);
-					J2.SetElement(14,1,nodes[14]->pos.y);
-					J2.SetElement(15,1,nodes[15]->pos.y);
-					J2.SetElement(16,1,nodes[16]->pos.y);
-					J2.SetElement(17,1,nodes[17]->pos.y);
-					J2.SetElement(18,1,nodes[18]->pos.y);
-					J2.SetElement(19,1,nodes[19]->pos.y);
+					J2.SetElement(0,1,nodes[0]->GetX0().y);
+					J2.SetElement(1,1,nodes[1]->GetX0().y);
+					J2.SetElement(2,1,nodes[2]->GetX0().y);
+					J2.SetElement(3,1,nodes[3]->GetX0().y);
+					J2.SetElement(4,1,nodes[4]->GetX0().y);
+					J2.SetElement(5,1,nodes[5]->GetX0().y);
+					J2.SetElement(6,1,nodes[6]->GetX0().y);
+					J2.SetElement(7,1,nodes[7]->GetX0().y);
+					J2.SetElement(8,1,nodes[8]->GetX0().y);
+					J2.SetElement(9,1,nodes[9]->GetX0().y);
+					J2.SetElement(10,1,nodes[10]->GetX0().y);
+					J2.SetElement(11,1,nodes[11]->GetX0().y);
+					J2.SetElement(12,1,nodes[12]->GetX0().y);
+					J2.SetElement(13,1,nodes[13]->GetX0().y);
+					J2.SetElement(14,1,nodes[14]->GetX0().y);
+					J2.SetElement(15,1,nodes[15]->GetX0().y);
+					J2.SetElement(16,1,nodes[16]->GetX0().y);
+					J2.SetElement(17,1,nodes[17]->GetX0().y);
+					J2.SetElement(18,1,nodes[18]->GetX0().y);
+					J2.SetElement(19,1,nodes[19]->GetX0().y);
 
-					J2.SetElement(0,2,nodes[0]->pos.z);
-					J2.SetElement(1,2,nodes[1]->pos.z);
-					J2.SetElement(2,2,nodes[2]->pos.z);
-					J2.SetElement(3,2,nodes[3]->pos.z);
-					J2.SetElement(4,2,nodes[4]->pos.z);
-					J2.SetElement(5,2,nodes[5]->pos.z);
-					J2.SetElement(6,2,nodes[6]->pos.z);
-					J2.SetElement(7,2,nodes[7]->pos.z);
-					J2.SetElement(8,2,nodes[8]->pos.z);
-					J2.SetElement(9,2,nodes[9]->pos.z);
-					J2.SetElement(10,2,nodes[10]->pos.z);
-					J2.SetElement(11,2,nodes[11]->pos.z);
-					J2.SetElement(12,2,nodes[12]->pos.z);
-					J2.SetElement(13,2,nodes[13]->pos.z);
-					J2.SetElement(14,2,nodes[14]->pos.z);
-					J2.SetElement(15,2,nodes[15]->pos.z);
-					J2.SetElement(16,2,nodes[16]->pos.z);
-					J2.SetElement(17,2,nodes[17]->pos.z);
-					J2.SetElement(18,2,nodes[18]->pos.z);
-					J2.SetElement(19,2,nodes[19]->pos.z);
+					J2.SetElement(0,2,nodes[0]->GetX0().z);
+					J2.SetElement(1,2,nodes[1]->GetX0().z);
+					J2.SetElement(2,2,nodes[2]->GetX0().z);
+					J2.SetElement(3,2,nodes[3]->GetX0().z);
+					J2.SetElement(4,2,nodes[4]->GetX0().z);
+					J2.SetElement(5,2,nodes[5]->GetX0().z);
+					J2.SetElement(6,2,nodes[6]->GetX0().z);
+					J2.SetElement(7,2,nodes[7]->GetX0().z);
+					J2.SetElement(8,2,nodes[8]->GetX0().z);
+					J2.SetElement(9,2,nodes[9]->GetX0().z);
+					J2.SetElement(10,2,nodes[10]->GetX0().z);
+					J2.SetElement(11,2,nodes[11]->GetX0().z);
+					J2.SetElement(12,2,nodes[12]->GetX0().z);
+					J2.SetElement(13,2,nodes[13]->GetX0().z);
+					J2.SetElement(14,2,nodes[14]->GetX0().z);
+					J2.SetElement(15,2,nodes[15]->GetX0().z);
+					J2.SetElement(16,2,nodes[16]->GetX0().z);
+					J2.SetElement(17,2,nodes[17]->GetX0().z);
+					J2.SetElement(18,2,nodes[18]->GetX0().z);
+					J2.SetElement(19,2,nodes[19]->GetX0().z);
 
 					Jacobian.MatrMultiply(J1,J2);				
 				}
@@ -472,8 +472,9 @@ public:
 			double Jdet;
 			ChMatrixDynamic<> *temp = new ChMatrixDynamic<>;
 			ChMatrixDynamic<> BT;
+			this->Volume = 0;
 
-			for(int i=0; i < GpVector.size(); i++)
+			for(unsigned int i=0; i < GpVector.size(); i++)
 			{
 				ComputeMatrB(GpVector[i], Jdet);
 				BT = *GpVector[i]->MatrB;
@@ -482,7 +483,9 @@ public:
 				temp->MatrScale(GpVector[i]->GetWeight());
 				temp->MatrScale(Jdet);
 				StiffnessMatrix.MatrAdd(StiffnessMatrix,*temp);
-
+				
+				// by the way also computes volume:
+				this->Volume  += GpVector[i]->GetWeight() * Jdet;
 			}
 			delete temp;
 		}
@@ -612,7 +615,55 @@ public:
 					// compute large rotation of element for corotational approach
 	virtual void UpdateRotation()
 			{
-					//***TO DO***
+				ChVector<> avgX1;
+				avgX1 = this->nodes[0]->GetX0() + 
+						this->nodes[1]->GetX0() + 
+						this->nodes[2]->GetX0() + 
+						this->nodes[3]->GetX0();
+				ChVector<> avgX2;
+				avgX2 = this->nodes[4]->GetX0() + 
+						this->nodes[5]->GetX0() + 
+						this->nodes[6]->GetX0() + 
+						this->nodes[7]->GetX0();
+				ChVector<> Xdir = avgX2 - avgX1;
+
+				ChVector<> avgY1;
+				avgY1 = this->nodes[0]->GetX0() + 
+						this->nodes[1]->GetX0() + 
+						this->nodes[4]->GetX0() + 
+						this->nodes[5]->GetX0();
+				ChVector<> avgY2;
+				avgY2 = this->nodes[2]->GetX0() + 
+						this->nodes[3]->GetX0() + 
+						this->nodes[6]->GetX0() + 
+						this->nodes[7]->GetX0();
+				ChVector<> Ydir = avgY2 - avgY1;
+				ChMatrix33<> rotX0;
+				rotX0.Set_A_Xdir(Xdir.GetNormalized(), &Ydir.GetNormalized());
+
+				avgX1 = this->nodes[0]->pos + 
+						this->nodes[1]->pos + 
+						this->nodes[2]->pos + 
+						this->nodes[3]->pos;
+				avgX2 = this->nodes[4]->pos + 
+						this->nodes[5]->pos + 
+						this->nodes[6]->pos + 
+						this->nodes[7]->pos;
+				Xdir = avgX2 - avgX1;
+
+				avgY1 = this->nodes[0]->pos + 
+						this->nodes[1]->pos + 
+						this->nodes[4]->pos + 
+						this->nodes[5]->pos;
+				avgY2 = this->nodes[2]->pos + 
+						this->nodes[3]->pos + 
+						this->nodes[6]->pos + 
+						this->nodes[7]->pos;
+				Ydir = avgY2 - avgY1;
+				ChMatrix33<> rotXcurrent;
+				rotXcurrent.Set_A_Xdir(Xdir.GetNormalized(), &Ydir.GetNormalized());
+
+				this->A.MatrMultiplyT(rotXcurrent,rotX0);
 			}
 
 
@@ -623,7 +674,7 @@ public:
 				for(int i=0; i<GetNnodes(); i++)
 					displ.PasteVector(this->nodes[i]->GetPos()-nodes[i]->GetX0(),i*3,0);
 					
-				for(int i=0; i<GpVector.size(); i++)
+				for(unsigned int i=0; i<GpVector.size(); i++)
 				{
 					GpVector[i]->Strain.MatrMultiply((*GpVector[i]->MatrB), displ);
 					delete GpVector[i]->MatrB;
@@ -632,7 +683,7 @@ public:
 
 	virtual void GetStress()
 			{
-				for(int i=0; i<GpVector.size(); i++)
+				for(unsigned int i=0; i<GpVector.size(); i++)
 				{
 					GpVector[i]->Stress.MatrMultiply(Material->Get_StressStrainMatrix(), GpVector[i]->Strain);
 				}
@@ -640,24 +691,37 @@ public:
 	
 				/// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
 				/// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
-				/// (For the spring matrix there is no need to corotate local matrices: we already know a closed form expression.)
 	virtual void ComputeKRMmatricesGlobal	(ChMatrix<>& H, double Kfactor, double Rfactor=0, double Mfactor=0) 
 				{
-					assert((H.GetRows() == 60) && (H.GetColumns()==60));
+					assert((H.GetRows() == 3*20) && (H.GetColumns()==3*20));
 
-					// compute stiffness matrix (this is already the explicit
-					// formulation of the corotational stiffness matrix in 3D)
-					
-						// calculate global stiffness matrix
-					//SetupInitial(); // NO, we assume it has been computed at the beginning of the simulation
-					ChMatrixDynamic<> tempMatr = StiffnessMatrix;
-					tempMatr.MatrScale( Kfactor );
+					// warp the local stiffness matrix K in order to obtain global 
+					// tangent stiffness CKCt:
+					ChMatrixDynamic<> CK(3*20, 3*20);
+					ChMatrixDynamic<> CKCt(3*20, 3*20); // the global, corotated, K matrix, for 20 nodes
+					ChMatrixCorotation::ComputeCK(StiffnessMatrix, this->A, 20, CK);
+					ChMatrixCorotation::ComputeKCt(CK, this->A, 20, CKCt);
 
-					H.PasteMatrix(&tempMatr,0,0);
+					// For K stiffness matrix and R damping matrix:
 
-					//***TO DO*** COROTATIONAL 
+					double mkfactor = Kfactor + Rfactor * this->GetMaterial()->Get_RayleighDampingK();
 
-					//***TO DO*** ADD DAMPING EFFECT
+					CKCt.MatrScale( mkfactor );
+
+					H.PasteMatrix(&CKCt,0,0);
+
+
+					// For M mass matrix:
+					if (Mfactor)
+					{
+						double lumped_node_mass = (this->Volume * this->Material->Get_density() ) / 20.0;
+						for (int id = 0; id < 3*20; id++)
+						{
+							double amfactor = Mfactor + Rfactor * this->GetMaterial()->Get_RayleighDampingM();
+							H(id,id)+= amfactor * lumped_node_mass;
+						}
+					}
+					//***TO DO*** better per-node lumping, or 12x12 consistent mass matrix.
 
 				}
 
@@ -667,37 +731,38 @@ public:
 				/// in the Fi vector.
 	virtual void ComputeInternalForces	(ChMatrixDynamic<>& Fi)
 				{
-					assert((Fi.GetRows() == 60) && (Fi.GetColumns()==1));
+					assert((Fi.GetRows() == 3*20) && (Fi.GetColumns()==1));
 
-						// set up vector of nodal displacements
-					ChMatrixDynamic<> displ(60,1);
-					displ.PasteVector(nodes[0]->pos - nodes[0]->GetX0(), 0, 0);
-					displ.PasteVector(nodes[1]->pos - nodes[1]->GetX0(), 3, 0);
-					displ.PasteVector(nodes[2]->pos - nodes[2]->GetX0(), 6, 0);
-					displ.PasteVector(nodes[3]->pos - nodes[3]->GetX0(), 9, 0);
-					displ.PasteVector(nodes[4]->pos - nodes[4]->GetX0(), 12, 0);
-					displ.PasteVector(nodes[5]->pos - nodes[5]->GetX0(), 15, 0);
-					displ.PasteVector(nodes[6]->pos - nodes[6]->GetX0(), 18, 0);
-					displ.PasteVector(nodes[7]->pos - nodes[7]->GetX0(), 21, 0);
-					displ.PasteVector(nodes[8]->pos - nodes[8]->GetX0(), 24, 0);
-					displ.PasteVector(nodes[9]->pos - nodes[9]->GetX0(), 27, 0);
-					displ.PasteVector(nodes[10]->pos - nodes[10]->GetX0(), 30, 0);
-					displ.PasteVector(nodes[11]->pos - nodes[11]->GetX0(), 33, 0);
-					displ.PasteVector(nodes[12]->pos - nodes[12]->GetX0(), 36, 0);
-					displ.PasteVector(nodes[13]->pos - nodes[13]->GetX0(), 39, 0);
-					displ.PasteVector(nodes[14]->pos - nodes[14]->GetX0(), 42, 0);
-					displ.PasteVector(nodes[15]->pos - nodes[15]->GetX0(), 45, 0);
-					displ.PasteVector(nodes[16]->pos - nodes[16]->GetX0(), 48, 0);
-					displ.PasteVector(nodes[17]->pos - nodes[17]->GetX0(), 51, 0);
-					displ.PasteVector(nodes[18]->pos - nodes[18]->GetX0(), 54, 0);
-					displ.PasteVector(nodes[19]->pos - nodes[19]->GetX0(), 57, 0);
+						// set up vector of nodal displacements (in local element system) u_l = R*p - p0
+					ChMatrixDynamic<> displ(3*20,1);
+					for (int in=0; in < 20; ++in)
+					{
+						displ.PasteVector(A.MatrT_x_Vect(nodes[in]->pos) - nodes[in]->GetX0(), in*3, 0); // nodal displacements, local
+					}
 
-						// [Internal Forces] = [K] * [displ]
-					Fi.MatrMultiply(StiffnessMatrix,displ);
+						// [local Internal Forces] = [Klocal] * displ + [Rlocal] * displ_dt
+					ChMatrixDynamic<> FiK_local(3*20,1);
+					FiK_local.MatrMultiply(StiffnessMatrix, displ);
 
-					//***TO DO*** COROTATIONAL 
+					for (int in=0; in < 20; ++in)
+					{
+						displ.PasteVector(A.MatrT_x_Vect(nodes[in]->pos_dt), in*3, 0); // nodal speeds, local
+					}
+					ChMatrixDynamic<> FiR_local(3*20,1);
+					FiR_local.MatrMultiply(StiffnessMatrix, displ);
+					FiR_local.MatrScale(this->Material->Get_RayleighDampingK());
 
-					//***TO DO*** ADD DAMPING EFFECT
+					double lumped_node_mass = (this->Volume * this->Material->Get_density() ) / 20.0;
+					displ.MatrScale(lumped_node_mass * this->Material->Get_RayleighDampingM() ); // reuse 'displ' for performance 
+					FiR_local.MatrInc(displ); 
+					//***TO DO*** better per-node lumping, or 12x12 consistent mass matrix.
+
+					FiK_local.MatrInc(FiR_local);
+
+					FiK_local.MatrScale(-1.0);
+
+						// Fi = C * Fi_local  with C block-diagonal rotations A
+					ChMatrixCorotation::ComputeCK(FiK_local, this->A, 20, Fi);
 				}
 
 			//

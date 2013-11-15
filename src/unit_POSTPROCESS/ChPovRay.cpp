@@ -24,6 +24,7 @@
 #include "ChPovRay.h"
 #include "geometry/ChCTriangleMeshConnected.h"
 #include "assets/ChObjShapeFile.h"
+#include "assets/ChTriangleMeshShape.h"
 #include "assets/ChSphereShape.h"
 #include "assets/ChCylinderShape.h"
 #include "assets/ChBoxShape.h"
@@ -396,79 +397,98 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 			// of asset is contained...
 
 			// *) asset k of object i references an .obj wavefront mesh?
-			if (k_asset.IsType<ChObjShapeFile>() )
+			if((k_asset.IsType<ChObjShapeFile>() ) ||
+			   (k_asset.IsType<ChTriangleMeshShape>() ) ) 
 			{
-				ChSharedPtr<ChObjShapeFile> myobjshapeasset(k_asset);
-				ChTriangleMeshConnected mytrimesh;
-				try {
-					// Load from the .obj file and convert.
-					mytrimesh.LoadWavefrontMesh( myobjshapeasset->GetFilename(), true, true );
+				ChTriangleMeshConnected* mytrimesh;
 
-					// POV macro to build the asset - begin
-					assets_file << "#macro sh_"<< (size_t) k_asset.get_ptr() << "()\n"; //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
-
-					// Create mesh
-					assets_file << "mesh2  {\n";
-
-					assets_file << " vertex_vectors {\n";
-					assets_file << (int)mytrimesh.m_vertices.size() << ",\n";
-					for (unsigned int iv = 0; iv < mytrimesh.m_vertices.size(); iv++)
-						assets_file << "  <" << mytrimesh.m_vertices[iv].x << "," <<  mytrimesh.m_vertices[iv].y << "," <<  mytrimesh.m_vertices[iv].z << ">,\n";
-					assets_file <<" }\n";
-
-					assets_file << " normal_vectors {\n";
-					assets_file << (int)mytrimesh.m_normals.size() << ",\n";
-					for (unsigned int iv = 0; iv < mytrimesh.m_normals.size(); iv++)
-						assets_file << "  <" << mytrimesh.m_normals[iv].x << "," <<  mytrimesh.m_normals[iv].y << "," <<  mytrimesh.m_normals[iv].z << ">,\n";
-					assets_file <<" }\n";
-
-					assets_file << " uv_vectors {\n";
-					assets_file << (int)mytrimesh.m_UV.size() << ",\n";
-					for (unsigned int iv = 0; iv < mytrimesh.m_UV.size(); iv++)
-						assets_file << "  <" << mytrimesh.m_UV[iv].x << "," <<  mytrimesh.m_UV[iv].y << ">,\n";
-					assets_file <<" }\n";
-
-					assets_file << " face_indices {\n";
-					assets_file << (int)mytrimesh.m_face_v_indices.size() << ",\n";
-					for (unsigned int it = 0; it < mytrimesh.m_face_v_indices.size(); it++)
-						assets_file << "  <" << mytrimesh.m_face_v_indices[it].x << "," <<  mytrimesh.m_face_v_indices[it].y << "," <<  mytrimesh.m_face_v_indices[it].z << ">,\n";
-					assets_file <<" }\n";
-
-					//if (mytrimesh.m_normals.size() != mytrimesh.m_vertices.size())
-					if (mytrimesh.m_face_n_indices != mytrimesh.m_face_v_indices)
-					{
-						assets_file << " normal_indices {\n";
-						assets_file << (int)mytrimesh.m_face_n_indices.size() << ",\n";
-						for (unsigned int it = 0; it < mytrimesh.m_face_n_indices.size(); it++)
-							assets_file << "  <" << mytrimesh.m_face_n_indices[it].x << "," <<  mytrimesh.m_face_n_indices[it].y << "," <<  mytrimesh.m_face_n_indices[it].z << ">,\n";
-						assets_file <<" }\n";
-					}
-					if (mytrimesh.m_face_u_indices != mytrimesh.m_face_v_indices)
-					{
-						assets_file << " uv_indices {\n";
-						assets_file << (int)mytrimesh.m_face_u_indices.size() << ",\n";
-						for (unsigned int it = 0; it < mytrimesh.m_face_u_indices.size(); it++)
-							assets_file << "  <" << mytrimesh.m_face_u_indices[it].x << "," <<  mytrimesh.m_face_u_indices[it].y << "," <<  mytrimesh.m_face_u_indices[it].z << ">,\n";
-						assets_file <<" }\n";
-					}
-
-					//assets_file <<" pigment {color rgbt <" << 
-					//	myobjshapeasset->GetColor().R << "," << 
-					//	myobjshapeasset->GetColor().G << "," << 
-					//	myobjshapeasset->GetColor().B << "," << 
-					//	myobjshapeasset->GetFading() << "> }\n";
-
-					assets_file <<"}\n";
-
-					// POV macro - end
-					assets_file << "#end \n";
-				} 
-				catch (ChException)
+				if (k_asset.IsType<ChObjShapeFile>() )
 				{
-					char error[400];
-					sprintf(error,"Asset n.%d: can't read .obj file %s", k,myobjshapeasset->GetFilename().c_str() );
-					throw (ChException(error));
+					ChSharedPtr<ChObjShapeFile> myobjshapeasset(k_asset);
+					try 
+					{
+						ChTriangleMeshConnected loadtrimesh;
+
+						// Load from the .obj file and convert.
+						loadtrimesh.LoadWavefrontMesh( myobjshapeasset->GetFilename(), true, true );
+
+						mytrimesh = &loadtrimesh;
+					}
+					catch (ChException)
+					{
+						char error[400];
+						sprintf(error,"Asset n.%d: can't read .obj file %s", k,myobjshapeasset->GetFilename().c_str() );
+						throw (ChException(error));
+					}
 				}
+				if (k_asset.IsType<ChTriangleMeshShape>() )
+				{
+					ChSharedPtr<ChTriangleMeshShape> mytrimeshshapeasset(k_asset);
+
+					mytrimesh = &mytrimeshshapeasset->GetMesh();
+				}
+
+				
+				// POV macro to build the asset - begin
+				assets_file << "#macro sh_"<< (size_t) k_asset.get_ptr() << "()\n"; //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
+
+				// Create mesh
+				assets_file << "mesh2  {\n";
+
+				assets_file << " vertex_vectors {\n";
+				assets_file << (int)mytrimesh->m_vertices.size() << ",\n";
+				for (unsigned int iv = 0; iv < mytrimesh->m_vertices.size(); iv++)
+					assets_file << "  <" << mytrimesh->m_vertices[iv].x << "," <<  mytrimesh->m_vertices[iv].y << "," <<  mytrimesh->m_vertices[iv].z << ">,\n";
+				assets_file <<" }\n";
+
+				assets_file << " normal_vectors {\n";
+				assets_file << (int)mytrimesh->m_normals.size() << ",\n";
+				for (unsigned int iv = 0; iv < mytrimesh->m_normals.size(); iv++)
+					assets_file << "  <" << mytrimesh->m_normals[iv].x << "," <<  mytrimesh->m_normals[iv].y << "," <<  mytrimesh->m_normals[iv].z << ">,\n";
+				assets_file <<" }\n";
+
+				assets_file << " uv_vectors {\n";
+				assets_file << (int)mytrimesh->m_UV.size() << ",\n";
+				for (unsigned int iv = 0; iv < mytrimesh->m_UV.size(); iv++)
+					assets_file << "  <" << mytrimesh->m_UV[iv].x << "," <<  mytrimesh->m_UV[iv].y << ">,\n";
+				assets_file <<" }\n";
+
+				assets_file << " face_indices {\n";
+				assets_file << (int)mytrimesh->m_face_v_indices.size() << ",\n";
+				for (unsigned int it = 0; it < mytrimesh->m_face_v_indices.size(); it++)
+					assets_file << "  <" << mytrimesh->m_face_v_indices[it].x << "," <<  mytrimesh->m_face_v_indices[it].y << "," <<  mytrimesh->m_face_v_indices[it].z << ">,\n";
+				assets_file <<" }\n";
+
+				if ((mytrimesh->m_face_n_indices.size() != mytrimesh->m_face_v_indices.size()) && 
+					(mytrimesh->m_face_n_indices.size() >0))
+				{
+					assets_file << " normal_indices {\n";
+					assets_file << (int)mytrimesh->m_face_n_indices.size() << ",\n";
+					for (unsigned int it = 0; it < mytrimesh->m_face_n_indices.size(); it++)
+						assets_file << "  <" << mytrimesh->m_face_n_indices[it].x << "," <<  mytrimesh->m_face_n_indices[it].y << "," <<  mytrimesh->m_face_n_indices[it].z << ">,\n";
+					assets_file <<" }\n";
+				}
+				if ((mytrimesh->m_face_u_indices.size() != mytrimesh->m_face_v_indices.size()) &&
+					(mytrimesh->m_face_u_indices.size() >0))
+				{
+					assets_file << " uv_indices {\n";
+					assets_file << (int)mytrimesh->m_face_u_indices.size() << ",\n";
+					for (unsigned int it = 0; it < mytrimesh->m_face_u_indices.size(); it++)
+						assets_file << "  <" << mytrimesh->m_face_u_indices[it].x << "," <<  mytrimesh->m_face_u_indices[it].y << "," <<  mytrimesh->m_face_u_indices[it].z << ">,\n";
+					assets_file <<" }\n";
+				}
+
+				//assets_file <<" pigment {color rgbt <" << 
+				//	myobjshapeasset->GetColor().R << "," << 
+				//	myobjshapeasset->GetColor().G << "," << 
+				//	myobjshapeasset->GetColor().B << "," << 
+				//	myobjshapeasset->GetFading() << "> }\n";
+
+				assets_file <<"}\n";
+
+				// POV macro - end
+				assets_file << "#end \n";
+				
 			}
 
 			// *) asset k of object i is a sphere ?

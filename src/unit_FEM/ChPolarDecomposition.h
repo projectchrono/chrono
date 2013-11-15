@@ -48,8 +48,11 @@ namespace fem
   Jernej Barbic made some adaptions to the polar decomposition code (wrap into a C++ class, some change in input/output format, etc.). 
   He releases his adaptions of the polar decomposition code into the public domain, free of charge. The above EULA still applies, of course.
 */
+
+/*
 	// This class is wrapped by ChPolarDecomposition (see below)
 	// It is based on VEGA (J. Barbic).
+
 class PolarDecomposition
 {
 public:
@@ -184,7 +187,7 @@ double PolarDecomposition::Compute(const double * M, double * Q, double * S, dou
   return (det);
 }
 
-
+*/
 
 
 
@@ -197,9 +200,8 @@ double PolarDecomposition::Compute(const double * M, double * Q, double * S, dou
 
 /// Perform a polar decomposition of a 3x3 P matrix in order to retrieve
 /// the orthogonal Q and the symmetric S form, as P=Q*S
-/// 
+/// This class is based on an algorithm in VEGA (J. Barbic), see header for license.
 
-template <class Real = double>
 class ChApiFem ChPolarDecomposition 
 {
 public:
@@ -213,12 +215,124 @@ public:
 	//   return value: det(Q) that can be -1 or +1.
 
 
-	static double Compute(const ChMatrix33<Real>& M,  /// a 3x3 input matrix to decompose
-								ChMatrix33<Real>& Q,  /// resulting 3x3 orthogonal output matrix
-								ChMatrix33<Real>& S,  /// resulting 3x3 symmetric output matrix
+	static double Compute(const ChMatrix33<double>& M,  /// a 3x3 input matrix to decompose
+								ChMatrix33<double>& Q,  /// resulting 3x3 orthogonal output matrix
+								ChMatrix33<double>& S,  /// resulting 3x3 symmetric output matrix
 								double tolerance = 1E-6)
 	{
-		return PolarDecomposition::Compute(M.GetAddress(), Q.GetAddress(), S.GetAddress());
+		return __Compute(M.GetAddress(), Q.GetAddress(), S.GetAddress());
+	}
+
+protected:
+
+		// compute the one-norm of a 3x3 matrix (row-major)
+	static double oneNorm(const double * A)
+	{
+	  double norm = 0.0;
+	  for (int i=0; i<3; i++) 
+	  {
+		double columnAbsSum = fabs(A[i + 0]) + fabs(A[i + 3]) + fabs(A[i + 6]);
+		if (columnAbsSum > norm) 
+		  norm = columnAbsSum;
+	  }
+	  return norm;
+	}
+
+	// compute the inf-norm of a 3x3 matrix (row-major)
+	static double infNorm(const double * A)
+	{
+	  double norm = 0.0;
+	  for (int i=0; i<3; i++) 
+	  {
+		double rowSum = fabs(A[3 * i + 0]) + fabs(A[3 * i + 1]) + fabs(A[3 * i + 2]);
+		if (rowSum > norm) 
+		  norm = rowSum;
+	  }
+	  return norm;
+	}
+
+	// a, b, c are 3-vectors
+	// compute cross product c = a x b
+	inline static void crossProduct(const double * a, const double * b, double * c)
+	{
+		c[0] = a[1] * b[2] - a[2] * b[1];
+		c[1] = a[2] * b[0] - a[0] * b[2];
+		c[2] = a[0] * b[1] - a[1] * b[0];
+	}
+
+	// Input: M (3x3 mtx)
+	// Output: Q (3x3 rotation mtx), S (3x3 symmetric mtx)
+	static double __Compute(const double * M, double * Q, double * S, double tolerance = 1E-6)
+	{
+	  double Mk[9];
+	  double Ek[9];
+	  double det, M_oneNorm, M_infNorm, E_oneNorm;
+
+	  // Mk = M^T
+	  for(int i=0; i<3; i++)
+		for(int j=0; j<3; j++)
+		  Mk[3 * i + j] = M[3 * j + i];
+
+	  M_oneNorm = oneNorm(Mk); 
+	  M_infNorm = infNorm(Mk);
+
+	  do 
+	  {
+		double MadjTk[9];
+	 
+		// row 2 x row 3
+		crossProduct(&(Mk[3]), &(Mk[6]), &(MadjTk[0])); 
+		// row 3 x row 1
+		crossProduct(&(Mk[6]), &(Mk[0]), &(MadjTk[3]));
+		// row 1 x row 2
+		crossProduct(&(Mk[0]), &(Mk[3]), &(MadjTk[6]));
+
+		det = Mk[0] * MadjTk[0] + Mk[1] * MadjTk[1] + Mk[2] * MadjTk[2];
+		if (det == 0.0) 
+		{
+		  printf("Warning (polarDecomposition) : zero determinant encountered.\n");
+		  break;
+		}
+
+		double MadjT_one = oneNorm(MadjTk); 
+		double MadjT_inf = infNorm(MadjTk);
+
+		double gamma = sqrt(sqrt((MadjT_one * MadjT_inf) / (M_oneNorm * M_infNorm)) / fabs(det));
+		double g1 = gamma * 0.5;
+		double g2 = 0.5 / (gamma * det);
+
+		for(int i=0; i<9; i++)
+		{
+		  Ek[i] = Mk[i];
+		  Mk[i] = g1 * Mk[i] + g2 * MadjTk[i];
+		  Ek[i] -= Mk[i];
+		}
+
+		E_oneNorm = oneNorm(Ek);
+		M_oneNorm = oneNorm(Mk);  
+		M_infNorm = infNorm(Mk);
+	  }
+	  while ( E_oneNorm > M_oneNorm * tolerance );
+
+	  // Q = Mk^T 
+	  for(int i=0; i<3; i++)
+		for(int j=0; j<3; j++)
+		  Q[3*i+j] = Mk[3*j+i];
+
+	  for(int i=0; i<3; i++)
+		for(int j=0; j<3; j++)
+		{
+		  S[3*i+j] = 0;
+		  for(int k=0; k<3; k++)
+			S[3*i+j] += Mk[3*i+k] * M[3*k+j];
+		}
+	    
+	  // S must be symmetric; enforce the symmetry
+	  for (int i=0; i<3; i++) 
+		for (int j=i; j<3; j++)
+		  S[3 * i + j] = S[3 * j + i] = 0.5 * (S[3 * i + j] + S[3 * j + i]);
+
+	  return (det);
 	}
 
 };

@@ -30,7 +30,7 @@ protected:
 	double Volume;
 
 public:
-
+	double GetVolume() {return Volume;}
 };
 
 
@@ -76,8 +76,8 @@ public:															//	   \   |.		\				//
 	int ID;														//		\  |	.	  \				//
 		// Computes the volume of the element					//		 \ |		.	\			//
 		// (and stores the value in this->volume)				//		  \|__ __ __ __'__\			//
-	virtual double ComputeVolume() = 0;
-	double GetVolume() {return Volume;}
+	//virtual double ComputeVolume() = 0;
+
 															
 };																
 

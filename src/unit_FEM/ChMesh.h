@@ -69,11 +69,9 @@ public:
 	void Relax ();
 
 				/// Update time dependent data, for all elements. 
-	void UpdateTime(double m_time);
-
 				/// Updates all [A] coord.systems for all (corotational) elements.
-				/// Not needed? Can be done directly when calling KRMmatricesLoad() ...
-	//void UpdateRotation ();			
+	void Update(double m_time);
+			
 
 
 			//

@@ -15,6 +15,7 @@
 
 
 #include "ChNodeFEMbase.h"
+#include "lcp/ChLcpVariablesNode.h"
 
 
 namespace chrono

@@ -288,7 +288,7 @@ public:
 
 					/// Use the Gram-Schmidt orthonormalization to find the three
 					/// orthogonal vectors of a coordinate system whose X axis is this vector.
-					/// mVsingular (optional) sets the normal to the plane on which Dz must lie.
+					/// mVsingular (optional) suggests the XY plane, possibly it is not too parallel to X.
 	void	DirToDxDyDz( ChVector<Real>* Vx,  
 						 ChVector<Real>* Vy, 
 						 ChVector<Real>* Vz,

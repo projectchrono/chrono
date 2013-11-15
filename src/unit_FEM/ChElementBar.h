@@ -10,7 +10,6 @@
 //
 // File author: Alessandro Tasora
 
-
 #ifndef CHELEMENTBAR_H
 #define CHELEMENTBAR_H
 

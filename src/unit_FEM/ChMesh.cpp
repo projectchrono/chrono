@@ -79,8 +79,9 @@ void ChMesh::ClearNodes ()
 // Updates all time-dependant variables, if any...
 // Ex: maybe the elasticity can increase in time, etc.
 
-void ChMesh::UpdateTime (double m_time)
+void ChMesh::Update (double m_time)
 {
+	// Parent class update
 	ChIndexedNodes::Update(m_time);
 	
 	for (unsigned int i=0; i< velements.size(); i++)

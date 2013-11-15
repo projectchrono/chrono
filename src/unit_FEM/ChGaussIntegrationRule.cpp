@@ -35,7 +35,6 @@ namespace fem
 			// Note: the coordinates used are local (area coordinates L1=A1/Atot).
 void ChGaussIntegrationRule::SetIntOnTriangle(int nPoints, std::vector<ChGaussPoint*>* GpVector)
 {
-    int i, j, k;
     double weight;
     ChVector<> coord;
 	std::vector<double> c, w;
