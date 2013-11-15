@@ -1149,7 +1149,6 @@ int CreateFlexParticles(
 
 		int flexBodyIndex,
 		thrust::host_vector<real_> & flexParametricDist,
-		thrust::host_vector<int> & flexIdentifier,
 
 		real3 pa3, //inital point
 		real3 pb3, //end point
@@ -1172,7 +1171,6 @@ int CreateFlexParticles(
 		int type = flexBodyIndex + 1;
 		mRhoPresMu.push_back(R4(rho, pres, mu, type));	//take care of type
 		flexParametricDist.push_back(s);
-		flexIdentifier.push_back(flexBodyIndex);
 		num_FlexParticles++;
 		for (real_ r = spacing; r <= 2 * spacing; r += spacing) {
 			real_ deltaTeta = spacing / r;
@@ -1189,7 +1187,6 @@ int CreateFlexParticles(
 				mVelMas.push_back(R4(0, 0, 0, sphParticleMass));
 				mRhoPresMu.push_back(R4(rho, pres, mu, type));	//take care of type
 				flexParametricDist.push_back(s);
-				flexIdentifier.push_back(flexBodyIndex);
 				num_FlexParticles++;
 			}
 		}
@@ -1338,7 +1335,6 @@ int main() {
 	thrust::host_vector<real_> ANCF_Beam_Length;
 	thrust::host_vector<int2>  ANCF_ReferenceArrayNodesOnBeams;
 	//*** flex markers
-	thrust::host_vector<int> flexIdentifier;
 	thrust::host_vector<real_> flexParametricDist;
 
 
@@ -1463,7 +1459,6 @@ int main() {
 
 					flexBodyIdx,
 					flexParametricDist,
-					flexIdentifier,
 
 					pa3, //inital point
 					pb3, //end point
@@ -1504,7 +1499,7 @@ int main() {
 	printf("numAllParticles %d\n", numAllParticles);
 
 	if (numAllParticles != 0) {
-		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray, ANCF_Beam_Length, flexParametricDist, flexIdentifier, numAllParticles, cMax, cMin, delT, rigidPos, mQuatRot, spheresVelMas,
+		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray, ANCF_Beam_Length, flexParametricDist, numAllParticles, cMax, cMin, delT, rigidPos, mQuatRot, spheresVelMas,
 				rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, binSize0, channelRadius, channelCenterYZ);
 	}
 	mPosRad.clear();
@@ -1514,7 +1509,6 @@ int main() {
 	referenceArray.clear();
 //	referenceArray_Types.clear();
 	flexParametricDist.clear();
-	flexIdentifier.clear();
 	rigidPos.clear();
 	mQuatRot.clear();
 	rigidRotMatrix.clear();

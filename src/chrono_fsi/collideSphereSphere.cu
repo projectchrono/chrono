@@ -614,6 +614,42 @@ __global__ void UpdateFlexMarkersPosition(
 	real3 absOmega = Calc_ANCF_Point_Omega(ANCF_Nodes, ANCF_Slopes, ANCF_VelNodes, ANCF_VelSlopes, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
 	velMasD[absMarkerIndex] = beamPointVel + cross(absOmega, dist3);
 }
+////--------------------------------------------------------------------------------------------------------------------------------
+void MakeRigidIdentifier(
+		thrust::device_vector<int> & rigidIdentifierD,
+		int numRigidBodies, int startRigidMarkers, const thrust::host_vector<int3> & referenceArray)
+{
+	if (numRigidBodies > 0) {
+		for (int rigidSphereA = 0; rigidSphereA < numRigidBodies; rigidSphereA++) {
+			int3 referencePart = referenceArray[2 + rigidSphereA];
+			if (referencePart.z != 1) {
+				printf("error in accessing rigid bodies. Reference array indexing is wrong\n");
+				return;
+			}
+			int2 updatePortion = I2(referencePart); //first two component of the referenceArray denote to the fluid and boundary particles
+			thrust::fill(rigidIdentifierD.begin() + (updatePortion.x - startRigidMarkers),
+					rigidIdentifierD.begin() + (updatePortion.y - startRigidMarkers), rigidSphereA);
+		}
+	}
+}
+////--------------------------------------------------------------------------------------------------------------------------------
+void MakeFlexIdentifier(
+		thrust::device_vector<int> & flexIdentifierD,
+		int numFlexBodies, int numFlBcRigid, int startFlexMarkers, const thrust::host_vector<int3> & referenceArray)
+{
+	if (numFlexBodies > 0) {
+		for (int flexIdx = 0; flexIdx < numFlexBodies; flexIdx++) {
+			int3 referencePart = referenceArray[numFlBcRigid + flexIdx];
+			if (referencePart.z != 1) {
+				printf("error in accessing rigid bodies. Reference array indexing is wrong\n");
+				return;
+			}
+			int2 updatePortion = I2(referencePart); //first two component of the referenceArray denote to the fluid and boundary particles
+			thrust::fill(flexIdentifierD.begin() + (updatePortion.x - startFlexMarkers),
+					flexIdentifierD.begin() + (updatePortion.y - startFlexMarkers), flexIdx);
+		}
+	}
+}
 //--------------------------------------------------------------------------------------------------------------------------------
 void MapSPH_ToGrid(
 		real_ resolution,
@@ -1161,7 +1197,6 @@ void UpdateFlexibleBody(
 	flexNodesForces1.clear();
 	flexNodesForces2.clear();
 }
-////--------------------------------------------------------------------------------------------------------------------------------
 //##############################################################################################################################################
 // the main function, which updates the particles and implements BC
 void cudaCollisions(
@@ -1172,7 +1207,6 @@ void cudaCollisions(
 		const thrust::host_vector<int3> & referenceArray,
 		const thrust::host_vector<real_> & ANCF_Beam_Length,
 		const thrust::host_vector<real_> & flexParametricDist,
-		const thrust::host_vector<int> & flexIdentifier,
 		int & mNSpheres,
 		real3 cMax,
 		real3 cMin,
@@ -1233,27 +1267,12 @@ void cudaCollisions(
 	thrust::device_vector<real4> derivVelRhoD(mNSpheres);
 	printf("a6 yoho\n");
 		//******************** rigid body some initialization
-	thrust::device_vector<int> rigidIdentifierD(0);
-
 	real_ rigid_SPH_mass;																					//____________________________> typical mass, save to constant memory
 	int numRigid_SphMarkers = 0;
 	int startRigidMarkers = (referenceArray[1]).y;
+	numRigid_SphMarkers = referenceArray[2 + numRigidBodies - 1].y - startRigidMarkers;
+	thrust::device_vector<int> rigidIdentifierD(numRigid_SphMarkers);
 	if (numRigidBodies > 0) {
-		startRigidMarkers = (referenceArray[2]).x;
-		numRigid_SphMarkers = referenceArray[2 + numRigidBodies - 1].y - startRigidMarkers;
-		rigidIdentifierD.resize(numRigid_SphMarkers);
-		for (int rigidSphereA = 0; rigidSphereA < numRigidBodies; rigidSphereA++) {
-			int3 referencePart = referenceArray[2 + rigidSphereA];
-			if (referencePart.z != 1) {
-				printf("error in accessing rigid bodies. Reference array indexing is wrong\n");
-				return;
-			}
-			int2 updatePortion = I2(referencePart); //first two component of the referenceArray denote to the fluid and boundary particles
-			thrust::fill(rigidIdentifierD.begin() + (updatePortion.x - startRigidMarkers),
-					rigidIdentifierD.begin() + (updatePortion.y - startRigidMarkers), rigidSphereA);
-		}
-
-		//---
 		real4 typicalRigidSPH = mVelMas[referenceArray[2].x];
 		rigid_SPH_mass = typicalRigidSPH.w;
 	} else {
@@ -1263,6 +1282,8 @@ void cudaCollisions(
 	cutilSafeCall( cudaMemcpyToSymbolAsync(rigid_SPH_massD, &rigid_SPH_mass, sizeof(rigid_SPH_mass)));
 	cudaMemcpyToSymbolAsync(startRigidMarkersD, &startRigidMarkers, sizeof(startRigidMarkers)); //can be defined outside of the kernel, and only once
 	cudaMemcpyToSymbolAsync(numRigid_SphMarkersD, &numRigid_SphMarkers, sizeof(numRigid_SphMarkers)); //can be defined outside of the kernel, and only once
+
+	MakeRigidIdentifier(rigidIdentifierD, numRigidBodies, startRigidMarkers, referenceArray);
 
 	printf("a7 yoho\n");
 
@@ -1283,11 +1304,14 @@ void cudaCollisions(
 //	int totalNumberOfFlexNodes = ANCF_ReferenceArrayNodesOnBeams[ANCF_ReferenceArrayNodesOnBeams.size() - 1].y;
 	int startFlexMarkers = (referenceArray[numFlBcRigid-1]).y;
 	int numFlex_SphMarkers = referenceArray[numFlBcRigid + numFlexBodies - 1].y - startFlexMarkers;
+
 	cudaMemcpyToSymbolAsync(startFlexMarkersD, &startFlexMarkers, sizeof(startFlexMarkers)); //can be defined outside of the kernel, and only once
 	cudaMemcpyToSymbolAsync(numFlex_SphMarkersD, &numFlex_SphMarkers, sizeof(numFlex_SphMarkers)); //can be defined outside of the kernel, and only once
 	//******************************************************************************
 	thrust::device_vector<real_> flexParametricDistD = flexParametricDist;
-	thrust::device_vector<int> flexIdentifierD = flexIdentifier;
+	thrust::device_vector<int> flexIdentifierD(numFlexBodies);
+
+	MakeFlexIdentifier(flexIdentifierD, numFlexBodies, numFlBcRigid, startFlexMarkers, referenceArray);
 
 
 
