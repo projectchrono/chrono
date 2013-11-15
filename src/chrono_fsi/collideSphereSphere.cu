@@ -1238,7 +1238,7 @@ void cudaCollisions(
 	real_ rigid_SPH_mass;																					//____________________________> typical mass, save to constant memory
 	int numRigid_SphMarkers = 0;
 	int startRigidMarkers = (referenceArray[1]).y;
-	if (referenceArray.size() > 2) {
+	if (numRigidBodies > 0) {
 		startRigidMarkers = (referenceArray[2]).x;
 		numRigid_SphMarkers = referenceArray[2 + numRigidBodies - 1].y - startRigidMarkers;
 		rigidIdentifierD.resize(numRigid_SphMarkers);
@@ -1288,6 +1288,29 @@ void cudaCollisions(
 	//******************************************************************************
 	thrust::device_vector<real_> flexParametricDistD = flexParametricDist;
 	thrust::device_vector<int> flexIdentifierD = flexIdentifier;
+
+
+
+
+
+
+
+	//build flex identifier the same way as rigidIdentifier. remove it from main.cpp
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	thrust::device_vector<real3> flexSPH_MeshPos_LRF_D(numFlex_SphMarkers);
 	thrust::device_vector<real3> flexSPH_MeshSlope_Initial_D(numFlex_SphMarkers);  //slope of the beam at BCE marker (associated to BCE marker)
 	uint nBlocks_numFlex_SphMarkers;
