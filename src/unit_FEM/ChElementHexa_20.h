@@ -1,21 +1,18 @@
+//
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2013 Project Chrono
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be 
+// found in the LICENSE file at the top level of the distribution
+// and at http://projectchrono.org/license-chrono.txt.
+//
+// File authors: Andrea Favali
+
 #ifndef CHELEMENTHEXA20_H
 #define CHELEMENTHEXA20_H
 
-//////////////////////////////////////////////////
-//  
-//   ChElementHexa_20.h
-//
-//   Class for hexaedrons 20 nodes
-//
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-// 	 Copyright: 
-//
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include "ChElement3D.h"
 #include "ChNodeFEMxyz.h"
@@ -24,6 +21,9 @@ namespace chrono
 {
 namespace fem
 {
+
+	/// Class for FEM elements of hexahedron type (isoparametric 3D bricks) 
+	/// with 20 nodes.
 
 class ChApiFem ChElementHexa_20 : public ChHexahedron
 {
@@ -609,6 +609,13 @@ public:
 
 			}
 
+					// compute large rotation of element for corotational approach
+	virtual void UpdateRotation()
+			{
+					//***TO DO***
+			}
+
+
 	virtual void GetStrain()
 			{
 						// Set up vector of nodal displacements
@@ -648,19 +655,12 @@ public:
 
 					H.PasteMatrix(&tempMatr,0,0);
 
-					// That's all, there is no damping and diffuse mass anyway.
+					//***TO DO*** COROTATIONAL 
+
+					//***TO DO*** ADD DAMPING EFFECT
+
 				}
 
-				/// Sets Hl as the local stiffness matrix K, scaled  by Kfactor. Optionally, also
-				/// superimposes local damping matrix R, scaled by Rfactor, and local mass matrix M multiplied by Mfactor.
-				/// This is usually called only once in the simulation. 
-	virtual void ComputeKRMmatricesLocal (ChMatrix<>& Hl, double Kfactor, double Rfactor=0, double Mfactor=0)
-				{
-					assert((Hl.GetRows() == 60) && (Hl.GetColumns() == 60));
-
-					// to keep things short, here local K is as global K (anyway, only global K is used in simulations)
-					ComputeKRMmatricesGlobal (Hl, Kfactor, Rfactor, Mfactor);
-				}
 
 				/// Computes the internal forces (ex. the actual position of
 				/// nodes is not in relaxed reference position) and set values
@@ -695,6 +695,9 @@ public:
 						// [Internal Forces] = [K] * [displ]
 					Fi.MatrMultiply(StiffnessMatrix,displ);
 
+					//***TO DO*** COROTATIONAL 
+
+					//***TO DO*** ADD DAMPING EFFECT
 				}
 
 			//

@@ -8,15 +8,7 @@
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
-
-///////////////////////////////////////////////////
-//
-//   ChMesh.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// File authors: Andrea Favali, Alessandro Tasora
 
 
 #include "core/ChMath.h"
@@ -89,7 +81,13 @@ void ChMesh::ClearNodes ()
 
 void ChMesh::UpdateTime (double m_time)
 {
-	ChTime = m_time;
+	ChIndexedNodes::Update(m_time);
+	
+	for (unsigned int i=0; i< velements.size(); i++)
+	{
+			//    - update auxiliary stuff, ex. update element's rotation matrices if corotational..
+		velements[i]->Update();
+	}
 
 }
 
@@ -127,6 +125,17 @@ void ChMesh::VariablesQbLoadSpeed()
 {
 	for (unsigned int ie = 0; ie < this->vnodes.size(); ie++)
 		this->vnodes[ie]->VariablesQbLoadSpeed();
+}
+
+void ChMesh::VariablesFbIncrementMq() 
+{
+	// nodal masses
+	for (unsigned int ie = 0; ie < this->vnodes.size(); ie++)
+		this->vnodes[ie]->VariablesFbIncrementMq();
+
+	// internal masses
+	for (unsigned int ie = 0; ie < this->velements.size(); ie++)
+		this->velements[ie]->VariablesFbIncrementMq();
 }
 
 void ChMesh::VariablesQbSetSpeed(double step) 

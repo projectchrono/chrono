@@ -8,6 +8,7 @@
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
+// File authors: Alessandro Tasora
 
 #ifndef CHMATTERMESHLESS_H
 #define CHMATTERMESHLESS_H
@@ -206,6 +207,8 @@ public:
 	void VariablesFbLoadForces(double factor=1.);
 
 	void VariablesQbLoadSpeed();
+
+	void VariablesFbIncrementMq();
 
 	void VariablesQbSetSpeed(double step=0.);
 

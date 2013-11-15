@@ -732,6 +732,18 @@ void ChLinkEngine::VariablesFbLoadForces(double factor)
 	}
 }
 
+void ChLinkEngine::VariablesFbIncrementMq()
+{
+					// inherit parent class
+	ChLinkLock::VariablesFbIncrementMq();
+
+	if (this->eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT )
+	{
+		this->innershaft1.VariablesFbIncrementMq();
+		this->innershaft2.VariablesFbIncrementMq();
+	}
+}
+
 void ChLinkEngine::VariablesQbLoadSpeed()
 {
 	// First, inherit to parent class

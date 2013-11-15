@@ -1,21 +1,18 @@
+//
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2013 Project Chrono
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be 
+// found in the LICENSE file at the top level of the distribution
+// and at http://projectchrono.org/license-chrono.txt.
+//
+// File authors: Andrea Favali, Alessandro Tasora
+
 #ifndef CHELEMENTTETRA10_H
 #define CHELEMENTTETRA10_H
 
-//////////////////////////////////////////////////
-//  
-//   ChElementTetra_10.h
-//
-//   Class for tetahedrons 4 nodes
-//
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-// 	 Copyright: 
-//
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include "ChElement3D.h"
 #include "ChNodeFEMxyz.h"
@@ -25,6 +22,10 @@ namespace chrono
 namespace fem
 {
 
+	/// Tetahedron FEM element with 10 nodes.
+	/// This is a quadratic element for displacementes; stress and strain 
+	/// are interpolated depending on Gauss points.
+
 class ChApiFem ChElementTetra_10 : public ChTetrahedron
 {
 protected:
@@ -33,7 +34,9 @@ protected:
 		std::vector<ChMatrixDynamic<> > MatrB;		// matrices of shape function's partial derivatives (one for each integration point)
 													// we use a vector to keep in memory all the four matrices (-> 4 integr. point)
 		ChMatrixDynamic<> StiffnessMatrix;
-	
+
+		ChMatrixNM<double,4,4> mM; // for speeding up corotational approach
+
 public:
 
 	ChElementTetra_10();
@@ -226,6 +229,19 @@ public:
 				/// 
 	virtual void ComputeStiffnessMatrix() 
 			{
+				// for speeding up corotational:
+				// M = [ X0_0 X0_1 X0_2 X0_3 ] ^-1
+				//     [ 1    1    1    1    ]
+				mM.PasteVector(nodes[0]->GetX0(), 0,0);
+				mM.PasteVector(nodes[1]->GetX0(), 0,1);
+				mM.PasteVector(nodes[2]->GetX0(), 0,2);
+				mM.PasteVector(nodes[3]->GetX0(), 0,3);
+				mM(3,0)=1.0;
+				mM(3,1)=1.0;
+				mM(3,2)=1.0;
+				mM(3,3)=1.0;
+				mM.MatrInverse();
+
 			//========================
 			//Exact Integration (4 Gp)
 			//========================
@@ -298,11 +314,44 @@ public:
 
 	virtual void SetupInitial() 
 			{
+				ComputeVolume();
 				ComputeStiffnessMatrix();
-
 			}
 
-	
+			// compute large rotation of element for corotational approach
+	virtual void UpdateRotation()
+			{
+				// P = [ p_0  p_1  p_2  p_3 ]  
+				//     [ 1    1    1    1   ]
+				ChMatrixNM<double,4,4> P;
+				P.PasteVector(nodes[0]->pos, 0,0);
+				P.PasteVector(nodes[1]->pos, 0,1);
+				P.PasteVector(nodes[2]->pos, 0,2);
+				P.PasteVector(nodes[3]->pos, 0,3);
+				P(3,0)=1.0;
+				P(3,1)=1.0;
+				P(3,2)=1.0;
+				P(3,3)=1.0;
+
+				ChMatrix33<double> F; 
+				// F=P*mM (only upper-left 3x3 block!)
+				double sum;
+				for (int colres=0; colres < 3; ++colres)
+					for (int row=0; row < 3; ++row)
+					{
+						sum = 0;
+						for (int col=0; col < 4; ++col)
+								sum+= (P(row,col))*(mM(col,colres));
+						F(row, colres)= sum;
+					}
+				ChMatrix33<double> S;
+				double det = ChPolarDecomposition<double>::Compute(F, this->A, S, 1E-6);
+				if (det <0)
+					this->A.MatrScale(-1.0);
+
+				//GetLog() << "FEM rotation: \n" << A << "\n" 
+			}
+
 				/// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
 				/// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
 				/// (For the spring matrix there is no need to corotate local matrices: we already know a closed form expression.)
@@ -310,27 +359,34 @@ public:
 				{
 					assert((H.GetRows() == 30) && (H.GetColumns()==30));
 
-					// compute stiffness matrix (this is already the explicit
-					// formulation of the corotational stiffness matrix in 3D)
+					// warp the local stiffness matrix K in order to obtain global 
+					// tangent stiffness CKCt:
+					ChMatrixDynamic<> CK(30,30);
+					ChMatrixDynamic<> CKCt(30,30); // the global, corotated, K matrix
+					ChMatrixCorotation::ComputeCK(StiffnessMatrix, this->A, 10, CK);
+					ChMatrixCorotation::ComputeKCt(CK, this->A, 10, CKCt);
 					
-						// calculate global stiffness matrix
-					//SetupInitial(); // NO, we assume it has been computed at the beginning of the simulation
-					ChMatrixDynamic<> tempMatr = StiffnessMatrix;
-					tempMatr.MatrScale( Kfactor );
+					// For K stiffness matrix and R damping matrix:
 
-					H.PasteMatrix(&tempMatr,0,0);
+					double mkfactor = Kfactor + Rfactor * this->GetMaterial()->Get_RayleighDampingK();
+
+					CKCt.MatrScale( mkfactor );
+
+					H.PasteMatrix(&CKCt,0,0);
+
+					// For M mass matrix:
+					if (Mfactor)
+					{
+						double lumped_node_mass = (this->GetVolume() * this->Material->Get_density() ) / (double)this->GetNnodes();
+						for (int id = 0; id < 30; id++)
+						{
+							double amfactor = Mfactor + Rfactor * this->GetMaterial()->Get_RayleighDampingM();
+							H(id,id)+= amfactor * lumped_node_mass;
+						}
+					}
+					//***TO DO*** better per-node lumping, or 30x30 consistent mass matrix.
 				}
 
-				/// Sets Hl as the local stiffness matrix K, scaled  by Kfactor. Optionally, also
-				/// superimposes local damping matrix R, scaled by Rfactor, and local mass matrix M multiplied by Mfactor.
-				/// This is usually called only once in the simulation. 
-	virtual void ComputeKRMmatricesLocal (ChMatrix<>& Hl, double Kfactor, double Rfactor=0, double Mfactor=0)
-				{
-					assert((Hl.GetRows() == 30) && (Hl.GetColumns() == 30));
-
-					// to keep things short, here local K is as global K (anyway, only global K is used in simulations)
-					ComputeKRMmatricesGlobal (Hl, Kfactor, Rfactor, Mfactor);
-				}
 
 				/// Computes the internal forces (ex. the actual position of
 				/// nodes is not in relaxed reference position) and set values
@@ -339,21 +395,48 @@ public:
 				{
 					assert((Fi.GetRows() == 30) && (Fi.GetColumns()==1));
 
-						// set up vector of nodal displacements
+						// set up vector of nodal displacements (in local element system) u_l = R*p - p0
 					ChMatrixDynamic<> displ(30,1);
-					displ.PasteVector(nodes[0]->pos - nodes[0]->GetX0(), 0, 0);
-					displ.PasteVector(nodes[1]->pos - nodes[1]->GetX0(), 3, 0);
-					displ.PasteVector(nodes[2]->pos - nodes[2]->GetX0(), 6, 0);
-					displ.PasteVector(nodes[3]->pos - nodes[3]->GetX0(), 9, 0);
-					displ.PasteVector(nodes[4]->pos - nodes[4]->GetX0(), 12, 0);
-					displ.PasteVector(nodes[5]->pos - nodes[5]->GetX0(), 15, 0);
-					displ.PasteVector(nodes[6]->pos - nodes[6]->GetX0(), 18, 0);
-					displ.PasteVector(nodes[7]->pos - nodes[7]->GetX0(), 21, 0);
-					displ.PasteVector(nodes[8]->pos - nodes[8]->GetX0(), 24, 0);
-					displ.PasteVector(nodes[9]->pos - nodes[9]->GetX0(), 27, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[0]->pos) - nodes[0]->GetX0(), 0, 0); // nodal displacements, local
+					displ.PasteVector(A.MatrT_x_Vect(nodes[1]->pos) - nodes[1]->GetX0(), 3, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[2]->pos) - nodes[2]->GetX0(), 6, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[3]->pos) - nodes[3]->GetX0(), 9, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[4]->pos) - nodes[4]->GetX0(),12, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[5]->pos) - nodes[5]->GetX0(),15, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[6]->pos) - nodes[6]->GetX0(),18, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[7]->pos) - nodes[7]->GetX0(),21, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[8]->pos) - nodes[8]->GetX0(),24, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[9]->pos) - nodes[9]->GetX0(),27, 0);
 
-						// [Internal Forces] = [K] * [displ]
-					Fi.MatrMultiply(StiffnessMatrix,displ);
+						// [local Internal Forces] = [Klocal] * displ + [Rlocal] * displ_dt
+					ChMatrixDynamic<> FiK_local(30,1);
+					FiK_local.MatrMultiply(StiffnessMatrix, displ);
+
+					displ.PasteVector(A.MatrT_x_Vect(nodes[0]->pos_dt), 0, 0); // nodal speeds, local
+					displ.PasteVector(A.MatrT_x_Vect(nodes[1]->pos_dt), 3, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[2]->pos_dt), 6, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[3]->pos_dt), 9, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[4]->pos_dt),12, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[5]->pos_dt),15, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[6]->pos_dt),18, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[7]->pos_dt),21, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[8]->pos_dt),24, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[9]->pos_dt),27, 0);
+					ChMatrixDynamic<> FiR_local(30,1);
+					FiR_local.MatrMultiply(StiffnessMatrix, displ);
+					FiR_local.MatrScale(this->Material->Get_RayleighDampingK());
+
+					double lumped_node_mass = (this->GetVolume() * this->Material->Get_density() ) / (double)this->GetNnodes();
+					displ.MatrScale(lumped_node_mass * this->Material->Get_RayleighDampingM() ); // reuse 'displ' for performance 
+					FiR_local.MatrInc(displ); 
+					//***TO DO*** better per-node lumping, or 12x12 consistent mass matrix.
+
+					FiK_local.MatrInc(FiR_local);
+
+					FiK_local.MatrScale(-1.0);
+
+						// Fi = C * Fi_local  with C block-diagonal rotations A
+					ChMatrixCorotation::ComputeCK(FiK_local, this->A, 10, Fi);
 
 				}
 

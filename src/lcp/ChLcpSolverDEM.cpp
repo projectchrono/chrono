@@ -29,8 +29,7 @@ namespace chrono
 {
 
 double ChLcpSolverDEM::Solve(
-					ChLcpSystemDescriptor& sysd,		///< system description with constraints and variables	
-					bool add_Mq_to_f 
+					ChLcpSystemDescriptor& sysd		///< system description with constraints and variables	 
 					)
 {
 	std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
@@ -51,14 +50,7 @@ double ChLcpSolverDEM::Solve(
 	{
 		if (mvariables[iv]->IsActive())
 		{
-			if (add_Mq_to_f)
-			{
-				mvariables[iv]->Compute_inc_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb()); // q = q_old + [M]'*fb
-			}
-			else
-			{
 				mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb()); // q = [M]'*fb
-			}
 		}
 	}
 

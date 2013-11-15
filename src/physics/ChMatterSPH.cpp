@@ -396,7 +396,6 @@ void ChMatterSPH::VariablesFbLoadForces(double factor)
 
 }
 
-
 void ChMatterSPH::VariablesQbLoadSpeed()
 {
 	for (unsigned int j = 0; j < nodes.size(); j++)
@@ -406,6 +405,13 @@ void ChMatterSPH::VariablesQbLoadSpeed()
 	}
 }
 
+void ChMatterSPH::VariablesFbIncrementMq()
+{
+	for (unsigned int j = 0; j < nodes.size(); j++)
+	{
+		this->nodes[j]->variables.Compute_inc_Mb_v(this->nodes[j]->variables.Get_fb(), this->nodes[j]->variables.Get_qb());
+	}
+}
 
 void ChMatterSPH::VariablesQbSetSpeed(double step)
 {

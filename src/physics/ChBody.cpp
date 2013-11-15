@@ -237,6 +237,12 @@ void ChBody::VariablesFbLoadForces(double factor)
 }
 
 
+void ChBody::VariablesFbIncrementMq()
+{
+	this->variables.Compute_inc_Mb_v(this->variables.Get_fb(), this->variables.Get_qb());
+}
+
+
 void ChBody::VariablesQbLoadSpeed()
 {
     // set current speed in 'qb', it can be used by the LCP solver when working in incremental mode

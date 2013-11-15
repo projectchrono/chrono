@@ -60,6 +60,8 @@ ChContinuumElastic::ChContinuumElastic(double myoung, double mpoisson, double md
 	E = myoung;
 	Set_v(mpoisson); // sets also G and l
 	ComputeStressStrainMatrix(); // sets Elasticity matrix
+	this->damping_M = 0;
+	this->damping_K = 0;
 }
 
 ChContinuumElastic::~ChContinuumElastic()
@@ -122,6 +124,8 @@ void ChContinuumElastic::StreamOUT(ChStreamOutBinary& mstream)
 	mstream << this->v;
 	mstream << this->G;
 	mstream << this->l;
+	mstream << this->damping_M;
+	mstream << this->damping_K;
 }
 
 void ChContinuumElastic::StreamIN(ChStreamInBinary& mstream)
@@ -137,6 +141,8 @@ void ChContinuumElastic::StreamIN(ChStreamInBinary& mstream)
 	mstream >> this->v;
 	mstream >> this->G;
 	mstream >> this->l;
+	mstream >> this->damping_M;
+	mstream >> this->damping_K;
 }
 
 

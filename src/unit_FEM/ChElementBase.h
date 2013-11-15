@@ -8,23 +8,10 @@
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
+// File authors: Andrea Favali, Alessandro Tasora
 
 #ifndef CHELEMENTBASE_H
 #define CHELEMENTBASE_H
-
-//////////////////////////////////////////////////
-//
-//   ChElementBase.h
-//
-//   Finite elements
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 
 #include "physics/ChApidll.h"
@@ -70,13 +57,6 @@ public:
 				/// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
 	virtual void ComputeKRMmatricesGlobal (ChMatrix<>& H, double Kfactor, double Rfactor=0, double Mfactor=0) = 0;
 
-				/// Sets Hl as the local stiffness matrix K, scaled  by Kfactor. Optionally, also
-				/// superimposes local damping matrix R, scaled by Rfactor, and local mass matrix M, 
-				/// scaled by Mfactor. 
-				/// This is usually called only once in the simulation. 
-				/// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
-	virtual void ComputeKRMmatricesLocal (ChMatrix<>& Hl, double Kfactor, double Rfactor=0, double Mfactor=0) = 0;
-
 				/// Computes the internal forces (ex. the actual position of
 				/// nodes is not in relaxed reference position) and set values
 				/// in the Fi vector, whith n.rows = n.of dof of element.
@@ -87,6 +67,11 @@ public:
 				/// that do not change during the simulation, i.e. the local 
 				/// stiffness of each element, if any, the mass, etc.
 	virtual void SetupInitial() {};
+
+				/// Update: this is called at least at each time step. If the
+				/// element has to keep updated some auxiliary data, such as the rotation
+				/// matrices for corotational approach, this is the proper place.
+	virtual void Update() {};
 
 
 			//
@@ -106,6 +91,11 @@ public:
 				/// Adds the internal forces, expressed as nodal forces, into the
 				/// encapsulated ChLcpVariables, in the 'fb' part: qf+=forces*factor
 	virtual void VariablesFbLoadInternalForces(double factor=1.) {};
+
+				/// Adds M*q (internal masses multiplied current 'qb') to Fb, ex. if qb is initialized
+				/// with v_old using VariablesQbLoadSpeed, this method can be used in 
+				/// timestepping schemes that do: M*v_new = M*v_old + forces*dt
+	virtual void VariablesFbIncrementMq() {};
 
 
 };

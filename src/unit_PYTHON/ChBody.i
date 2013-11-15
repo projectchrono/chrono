@@ -61,6 +61,7 @@ public:
 
 	void VariablesFbLoadForces(double factor=1.);
 	void VariablesQbLoadSpeed();
+	void VariablesFbIncrementMq();
 	void VariablesQbSetSpeed(double step=0.);
 	void VariablesQbIncrementPosition(double step);
 	virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);

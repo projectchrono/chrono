@@ -50,8 +50,7 @@ ChLcpSimplexSolver::~ChLcpSimplexSolver()
 
 
 double ChLcpSimplexSolver::Solve(
-					ChLcpSystemDescriptor& sysd,		///< system description with constraints and variables	
-					bool add_Mq_to_f  
+					ChLcpSystemDescriptor& sysd		///< system description with constraints and variables	
 					)
 {
 	std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
@@ -127,13 +126,7 @@ double ChLcpSimplexSolver::Solve(
 		{
 			mvariables[iv]->Build_M(*MC, s_q, s_q);				// .. fills  MC (M part)
 			B->PasteMatrix(&mvariables[iv]->Get_fb(),s_q, 0);	// .. fills  B  (f part)
-			if (add_Mq_to_f)
-			{
-				ChMatrixDynamic<double> mbv(	mvariables[iv]->Get_qb().GetRows(),
-												mvariables[iv]->Get_qb().GetColumns() );
-				mvariables[iv]->Compute_Mb_v(mbv, mvariables[iv]->Get_qb());
-				B->PasteSumMatrix(&mbv, s_q,0);
-			}
+
 			s_q += mvariables[iv]->Get_ndof();
 		}
 	}  

@@ -150,23 +150,23 @@ public:
 
 				/// Computes the product of the mass matrix by a
 				/// vector, and set in result: result = [Mb]*vect
-	virtual void Compute_Mb_v(ChMatrix<float>& result, const ChMatrix<float>& vect)
+	virtual void Compute_inc_Mb_v(ChMatrix<float>& result, const ChMatrix<float>& vect)
 					{
 						assert (result.GetRows() == Get_ndof());
 						assert (vect.GetRows()   == Get_ndof());
 						// optimized unrolled operations
-						result(0)= (float)mass * vect(0);
-						result(1)= (float)mass * vect(1);
-						result(2)= (float)mass * vect(2);
+						result(0)+= (float)mass * vect(0);
+						result(1)+= (float)mass * vect(1);
+						result(2)+= (float)mass * vect(2);
 					};
-	virtual void Compute_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect)
+	virtual void Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect)
 					{
 						assert (result.GetRows() == vect.GetRows());
 						assert (vect.GetRows()   == Get_ndof());
 						// optimized unrolled operations
-						result(0)= mass * vect(0);
-						result(1)= mass * vect(1);
-						result(2)= mass * vect(2);
+						result(0)+= mass * vect(0);
+						result(1)+= mass * vect(1);
+						result(2)+= mass * vect(2);
 					};
 
 				/// Computes the product of the corresponding block in the 

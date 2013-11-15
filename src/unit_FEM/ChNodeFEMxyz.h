@@ -8,21 +8,10 @@
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
+// File authors: Andrea Favali, Alessandro Tasora
 
 #ifndef CHNODEFEMXYZ_H
 #define CHNODEFEMXYZ_H
-
-//////////////////////////////////////////////////
-//
-//   ChNodeFEMxyz.h
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 
 #include "ChNodeFEMbase.h"
@@ -145,6 +134,11 @@ public:
 						{
 							this->SetPos_dtdt( (this->pos_dt - old_dt)  / step);
 						}
+					};
+
+	virtual void VariablesFbIncrementMq() 
+					{
+						this->variables.Compute_inc_Mb_v(this->variables.Get_fb(), this->variables.Get_qb());
 					};
 
 	virtual void VariablesQbIncrementPosition(double step) 

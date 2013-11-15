@@ -1645,7 +1645,7 @@ void ChSystem::LCPprepare_reset()
 
 
 void ChSystem::LCPprepare_load(bool load_jacobians,
-							   bool load_v,
+							   bool load_Mv,
 							   double F_factor,
 							   double K_factor,		
 							   double R_factor,
@@ -1665,6 +1665,11 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
 			Lpointer->ConstraintsBiLoad_Ct(Ct_factor);			// Ct
 		if (F_factor)
 			Lpointer->ConstraintsFbLoadForces(F_factor);		// f*dt
+		if (load_Mv)
+		{
+			Lpointer->VariablesQbLoadSpeed();					//   v_old 
+			Lpointer->VariablesFbIncrementMq();					// M*v_old
+		}
 		if (load_jacobians)
 			Lpointer->ConstraintsLoadJacobians();
 		HIER_LINK_NEXT
@@ -1675,8 +1680,11 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
 	{
 		if (F_factor)
 			Bpointer->VariablesFbLoadForces(F_factor);			// f*dt
-		if (load_v)
-			Bpointer->VariablesQbLoadSpeed();					// v_old  
+		if (load_Mv)
+		{
+			Bpointer->VariablesQbLoadSpeed();					//   v_old 
+			Bpointer->VariablesFbIncrementMq();					// M*v_old
+		} 
 		HIER_BODY_NEXT
 	}
 
@@ -1685,15 +1693,18 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
 	{
 		if (F_factor)
 			PHpointer->VariablesFbLoadForces(F_factor);			// f*dt
-		if (load_v)
-			PHpointer->VariablesQbLoadSpeed();					// v_old 
+		if (load_Mv)
+		{
+			PHpointer->VariablesQbLoadSpeed();					//   v_old 
+			PHpointer->VariablesFbIncrementMq();				// M*v_old
+		}
 		if (C_factor)
 			PHpointer->ConstraintsBiLoad_C(C_factor, recovery_clamp, do_clamp);
 		if (Ct_factor)
 			PHpointer->ConstraintsBiLoad_Ct(Ct_factor);			// Ct
 		if (load_jacobians)
 			PHpointer->ConstraintsLoadJacobians();
-		if (K_factor || R_factor)
+		if (K_factor || R_factor || M_factor)
 			PHpointer->KRMmatricesLoad(K_factor, R_factor, M_factor);
 		HIER_OTHERPHYSICS_NEXT
 	}
@@ -2055,7 +2066,7 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 	//
 
 	LCPprepare_load(true,		    // Cq,
-					true,			// v_old (needed for adding [M]*v_old to the known vector)
+					true,			// adds [M]*v_old to the known vector
 					GetStep(),      // f*dt
 					GetStep()*GetStep(), // dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
 					GetStep(),		// dt*R   (nb only non-Schur based solvers support R matrix blocks)
@@ -2075,9 +2086,8 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 	// Solve the LCP problem.
 	// Solution variables are new speeds 'v_new'
 	GetLcpSolverSpeed()->Solve(
-							*this->LCP_descriptor,
-							true);  		// add [M]*v_old to the known vector
-		
+							*this->LCP_descriptor
+							);
 	mtimer_lcp.stop();
 	timer_lcp = mtimer_lcp();
 
@@ -2198,7 +2208,7 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 	//
 
 	LCPprepare_load(true,			// Cq
-					true,			// v_old   (needed for adding [M]*v_old to the known vector)
+					true,			// adds [M]*v_old to the known vector
 					GetStep(),      // f*dt
 					GetStep()*GetStep(), // dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
 					GetStep(),		// dt*R   (nb only non-Schur based solvers support K matrix blocks)
@@ -2219,8 +2229,8 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 	// Solution variables are new speeds 'v_new'
 	
 	GetLcpSolverSpeed()->Solve(
-							*this->LCP_descriptor,
-							true);  		// add [M]*v_old to the known term
+							*this->LCP_descriptor
+							);  
 		
 	// stores computed multipliers in constraint caches, maybe useful for warm starting next step 
 	LCPresult_Li_into_speed_cache();
@@ -2274,7 +2284,7 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 	//
 	
 	LCPprepare_load(false,  // Cq are already there.. 
-					false,  // no initialization of Dpos 
+					false,  // no addition of M*v in known term 
 					0,		// no forces
 					0,		// no K matrix
 					0,		// no R matrix
@@ -2291,8 +2301,8 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 	// Solution variables are 'Dpos', delta positions.
 
 	GetLcpSolverStab()->Solve(
-							*this->LCP_descriptor,
-							false);			// do NOT add [M]*v_old to known vector 
+							*this->LCP_descriptor
+							);
 
 	// stores computed multipliers in constraint caches, maybe useful for warm starting next step 
 	LCPresult_Li_into_position_cache();
@@ -2376,7 +2386,7 @@ int ChSystem::DoAssembly(int action, int mflags)
 			//
 
 			LCPprepare_load(true,  // Cq 
-					false,	// no initialization of Dpos
+					false,	// no addition of M*v in known term 
 					0,		// no forces
 					0,		// no K matrix
 					0,		// no R matrix
@@ -2404,8 +2414,8 @@ int ChSystem::DoAssembly(int action, int mflags)
 				// Note: use settings of the 'speed' lcp solver (i.e. use max number
 				// of iterations as you would use for the speed probl., if iterative solver)
 			GetLcpSolverSpeed()->Solve(
-									*this->LCP_descriptor,
-									false);			// do not add [M]*v to known vector
+									*this->LCP_descriptor
+									);
 
 			// Move bodies to updated position
 			HIER_BODY_INIT
@@ -2442,7 +2452,7 @@ int ChSystem::DoAssembly(int action, int mflags)
 		// | Cq  0 | |l    |  |  - Ct           |   |c|
 		//
 		LCPprepare_load(false,  // Cq are already there.. 
-					true,	    // v_old   (needed for adding [M]*v_old to the known vector)
+					true,	    // adds [M]*v_old to the known vector
 					foo_dt,		// f*dt
 					foo_dt*foo_dt,// dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
 					foo_dt,		// dt*R   (nb only non-Schur based solvers support K matrix blocks)
@@ -2459,8 +2469,9 @@ int ChSystem::DoAssembly(int action, int mflags)
 		// Solve the LCP problem with iterative Gauss-Seidel solver. Solution
 		// variables are new speeds 'v_new'
 		GetLcpSolverSpeed()->Solve(
-								*this->LCP_descriptor,
-								true);			// add [M]*v_old
+								*this->LCP_descriptor
+								);	
+
 
 		HIER_BODY_INIT
 		while HIER_BODY_NOSTOP
@@ -2507,7 +2518,7 @@ int ChSystem::DoStaticLinear()
 	//
 
 	LCPprepare_load(true,  // Cq 
-			false,	// no initialization of Dpos
+			false,	// no addition of [M]*v_old to the known vector
 			1.0,	// f  forces
 			1.0,	// K  matrix
 			0,		// no R matrix
@@ -2554,8 +2565,8 @@ catch(chrono::ChException myexc)
 		// Note: use settings of the 'speed' lcp solver (i.e. use max number
 		// of iterations as you would use for the speed probl., if iterative solver)
 	GetLcpSolverSpeed()->Solve(
-							*this->LCP_descriptor,
-							false);			// do not add [M]*v to known vector
+							*this->LCP_descriptor
+							);	
 
 //***DEBUG***
 /*

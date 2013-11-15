@@ -8,21 +8,11 @@
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
+// File authors: Alessandro Tasora
 
 #ifndef CHELEMENTSPRING_H
 #define CHELEMENTSPRING_H
 
-//////////////////////////////////////////////////
-//
-//   ChElementSpring.h
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 
 #include "ChElementGeneric.h"
@@ -82,11 +72,11 @@ public:
 					// formulation of the corotational stiffness matrix in 3D)
 					
 					ChVector<> dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
-					ChMatrixDynamic<> dircolumn; 
+					ChMatrixNM<double,3,1> dircolumn; 
 					dircolumn.PasteVector(dir, 0,0);
 
 					ChMatrix33<> submatr;
-					submatr.MatrTMultiply(dircolumn, dircolumn);
+					submatr.MatrMultiplyT(dircolumn, dircolumn);
 
 						// note that stiffness and damping matrices are the same, so join stuff here
 					double commonfactor = this->spring_k * Kfactor + 
@@ -98,19 +88,10 @@ public:
 					H.PasteMatrix(&submatr,0,3);
 					H.PasteMatrix(&submatr,3,0);
 					 
+
 					  // finally, do nothing about mass matrix because this element is mass-less 
 				}
 
-				/// Sets Hl as the local stiffness matrix K, scaled  by Kfactor. Optionally, also
-				/// superimposes local damping matrix R, scaled by Rfactor, and local mass matrix M multiplied by Mfactor.
-				/// This is usually called only once in the simulation. 
-	virtual void ComputeKRMmatricesLocal (ChMatrix<>& Hl, double Kfactor, double Rfactor=0, double Mfactor=0)
-				{
-					assert((Hl.GetRows() == 6) && (Hl.GetColumns() == 6));
-
-					// to keep things short, here local K is as global K (anyway, only global K is used in simulations)
-					ComputeKRMmatricesGlobal (Hl, Kfactor, Rfactor, Mfactor);
-				}
 
 				/// Computes the internal forces (ex. the actual position of
 				/// nodes is not in relaxed reference position) and set values
@@ -126,7 +107,6 @@ public:
 					double internal_Kforce_local = this->spring_k * (L - L_ref); 
 					double internal_Rforce_local = this->damper_r * L_dt;
 					double internal_force_local = internal_Kforce_local + internal_Rforce_local;
-					ChMatrixDynamic<> displacements(6,1);
 					ChVector<> int_forceA =  dir * internal_force_local;
 					ChVector<> int_forceB = -dir * internal_force_local;
 					Fi.PasteVector(int_forceA, 0,0);
