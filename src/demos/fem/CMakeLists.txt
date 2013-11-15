@@ -17,6 +17,22 @@ ADD_DEPENDENCIES (demo_FEMbasic ChronoEngine ChronoEngine_FEM)
 install(TARGETS demo_FEMbasic DESTINATION bin)
 
 
+ADD_EXECUTABLE(demo_FEMdynamics  	demo_FEMdynamics.cpp)
+SOURCE_GROUP(demos\\fem FILES  		demo_FEMdynamics.cpp)
+SET_TARGET_PROPERTIES(demo_FEMdynamics PROPERTIES 
+	FOLDER demos
+	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+	)
+TARGET_LINK_LIBRARIES(demo_FEMdynamics 
+ 	ChronoEngine
+	ChronoEngine_FEM
+	)
+ADD_DEPENDENCIES (demo_FEMdynamics ChronoEngine ChronoEngine_FEM)
+
+install(TARGETS demo_FEMdynamics DESTINATION bin)
+
+
+
 # For demo executables that use Irrlicht:
 
 IF (ENABLE_UNIT_IRRLICHT)

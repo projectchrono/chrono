@@ -78,7 +78,7 @@ class ChApi ChSystemOpenMP: public ChSystem {
         virtual ~ChSystemOpenMP();
         void Update();
 
-        void LCPprepare(bool load_jacobians, bool load_v, double F_factor, double K_factor, double R_factor, double Ct_factor, double C_factor, double recovery_clamp, bool do_clamp, ChLcpSystemDescriptor& mdescriptor);
+        void LCPprepare(bool load_jacobians, bool load_v, double F_factor, double K_factor, double R_factor, double M_factor, double Ct_factor, double C_factor, double recovery_clamp, bool do_clamp, ChLcpSystemDescriptor& mdescriptor);
 
         /// Copy from another ChSystem.
         /// Note! All settings are copied, but the hierarchy of children

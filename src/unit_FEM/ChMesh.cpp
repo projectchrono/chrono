@@ -94,16 +94,16 @@ void ChMesh::UpdateTime (double m_time)
 }
 
 
-void ChMesh::InjectKmatrices(ChLcpSystemDescriptor& mdescriptor) 
+void ChMesh::InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) 
 {
 	for (unsigned int ie = 0; ie < this->velements.size(); ie++)
-		this->velements[ie]->InjectKmatrices(mdescriptor);
+		this->velements[ie]->InjectKRMmatrices(mdescriptor);
 }
 
-void ChMesh::KmatricesLoad(double Kfactor, double Rfactor)
+void ChMesh::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor)
 {
 	for (unsigned int ie = 0; ie < this->velements.size(); ie++)
-		this->velements[ie]->KmatricesLoad(Kfactor,Rfactor);
+		this->velements[ie]->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
 }
 
 void ChMesh::VariablesFbReset()

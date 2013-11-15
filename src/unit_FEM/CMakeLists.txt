@@ -19,6 +19,7 @@ IF(ENABLE_UNIT_FEM)
 	
 	SET(ChronoEngine_UNIT_FEM_SOURCES 
 		ChElementSpring.cpp  
+		ChElementBar.cpp  
 		ChElementTetra_4.cpp
 		ChElementTetra_10.cpp
 		ChElementHexa_8.cpp
@@ -35,7 +36,8 @@ IF(ENABLE_UNIT_FEM)
 		ChNodeFEMxyz.h 
 		ChElementBase.h
 		ChElementGeneric.h
-		ChElementSpring.h 
+		ChElementSpring.h
+		ChElementBar.h 
 		ChElement3D.h
 		ChElementTetra_4.h
 		ChElementTetra_10.h

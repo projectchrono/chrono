@@ -63,17 +63,17 @@ public:
 				/// Tell to a system descriptor that there are item(s) of type
 				/// ChLcpKstiffness in this object (for further passing it to a LCP solver)
 				/// Basically does nothing, but inherited classes must specialize this.
-	virtual void InjectKmatrices(ChLcpSystemDescriptor& mdescriptor)
+	virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor)
 				{
 					mdescriptor.InsertKstiffness(&Kmatr);
 				}
 
-				/// Adds the current stiffness K and damping R matrices in encapsulated
-				/// ChLcpKstiffness item(s), if any. The K and R matrices are load with scaling 
-				/// values Kfactor and Rfactor. 
-	virtual void KmatricesLoad(double Kfactor, double Rfactor)
+				/// Adds the current stiffness K and damping R and mass M matrices in encapsulated
+				/// ChLcpKstiffness item(s), if any. The K, R, M matrices are load with scaling 
+				/// values Kfactor, Rfactor, Mfactor. 
+	virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor)
 				{
-					this->ComputeKRmatricesGlobal(*this->Kmatr.Get_K(), Kfactor, Rfactor);
+					this->ComputeKRMmatricesGlobal(*this->Kmatr.Get_K(), Kfactor, Rfactor, Mfactor);
 				}
 
 				/// Adds the internal forces, expressed as nodal forces, into the
@@ -84,6 +84,7 @@ public:
 					// implementing this VariablesFbLoadInternalForces function, unless you need faster code)
 					ChMatrixDynamic<> mFi(this->GetNcoords(), 1);
 					this->ComputeInternalForces(mFi);
+					mFi.MatrScale(factor);
 					int stride = 0;
 					for (int in=0; in < this->GetNnodes(); in++)
 					{

@@ -210,6 +210,7 @@ public:
 								case 4: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_BARZILAIBORWEIN); break;
 								case 5: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_PCG); break;
 								case 6: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_PMINRES); break;
+								case 7: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_APGD); break;
 							}
 							break;
 						}
@@ -372,6 +373,7 @@ public:
 				gad_ccpsolver->addItem(L"Projected BB");
 				gad_ccpsolver->addItem(L"Projected PCG");
 				gad_ccpsolver->addItem(L"Projected MINRES");
+				gad_ccpsolver->addItem(L"APGD");
 				gad_ccpsolver->addItem(L" ");
 			gad_ccpsolver->setSelected(5);
 
@@ -620,6 +622,7 @@ public:
 					case chrono::ChSystem::LCP_ITERATIVE_BARZILAIBORWEIN: 	gad_ccpsolver->setSelected(4); break;
 					case chrono::ChSystem::LCP_ITERATIVE_PCG: 		gad_ccpsolver->setSelected(5); break;
 					case chrono::ChSystem::LCP_ITERATIVE_PMINRES: 	gad_ccpsolver->setSelected(6); break;
+					case chrono::ChSystem::LCP_ITERATIVE_APGD: 		gad_ccpsolver->setSelected(7); break;
 					default: gad_ccpsolver->setSelected(5); break;
 				}
 				switch(this->GetSystem()->GetIntegrationType())
