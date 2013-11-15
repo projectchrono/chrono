@@ -31,6 +31,7 @@ IF(ENABLE_UNIT_FEM)
 		ChProximityContainerMeshless.cpp
 		ChPolarDecomposition.cpp
 		ChMatrixCorotation.cpp
+		ChVisualizationFEMmesh.cpp
 		)
 	SET(ChronoEngine_UNIT_FEM_HEADERS
 		ChApiFEM.h  
@@ -52,6 +53,7 @@ IF(ENABLE_UNIT_FEM)
 		ChProximityContainerMeshless.h
 		ChPolarDecomposition.h
 		ChMatrixCorotation.h
+		ChVisualizationFEMmesh.h
 		)
 	#SET_SOURCE_FILES_PROPERTIES(ChronoEngine_UNIT_FEM_HEADERS PROPERTIES  HEADER_FILE_ONLY)
 	SOURCE_GROUP(unit_FEM FILES 
