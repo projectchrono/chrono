@@ -131,9 +131,9 @@ public:
 				truss->GetChildMesh()->setPosition(-vector3df(COG_truss.x, COG_truss.y, COG_truss.z));// offset the mesh
 				truss->addShadowVolumeSceneNode();
 				truss->GetBody()->GetCollisionModel()->ClearModel();
-				truss->GetBody()->GetCollisionModel()->AddBox(1.227/2., 1.621/2., 1.864/2., &ChVector<>(-0.003, 1.019, 0.192));
-				truss->GetBody()->GetCollisionModel()->AddBox(0.187/2., 0.773/2., 1.201/2., &ChVector<>( 0.486 , 0.153,-0.047));
-				truss->GetBody()->GetCollisionModel()->AddBox(0.187/2., 0.773/2., 1.201/2., &ChVector<>(-0.486 , 0.153,-0.047));
+				truss->GetBody()->GetCollisionModel()->AddBox(1.227/2., 1.621/2., 1.864/2., ChVector<>(-0.003, 1.019, 0.192));
+				truss->GetBody()->GetCollisionModel()->AddBox(0.187/2., 0.773/2., 1.201/2., ChVector<>( 0.486 , 0.153,-0.047));
+				truss->GetBody()->GetCollisionModel()->AddBox(0.187/2., 0.773/2., 1.201/2., ChVector<>(-0.486 , 0.153,-0.047));
 				truss->GetBody()->GetCollisionModel()->BuildModel();
 				truss->GetBody()->SetCollide(true);
 
@@ -151,7 +151,7 @@ public:
 				// Describe the (invisible) colliding shape
 				ChMatrix33<>Arot(chrono::Q_from_AngAxis(CH_C_PI/2, VECT_Z));
 				wheelRF->GetBody()->GetCollisionModel()->ClearModel();
-				wheelRF->GetBody()->GetCollisionModel()->AddCylinder(RAD_front_wheel,RAD_front_wheel, 0.1, &ChVector<>(0,0,0), &Arot); 
+				wheelRF->GetBody()->GetCollisionModel()->AddCylinder(RAD_front_wheel,RAD_front_wheel, 0.1, ChVector<>(0,0,0), Arot); 
 				wheelRF->GetBody()->GetCollisionModel()->BuildModel();
 				wheelRF->GetBody()->SetCollide(true);
 
@@ -175,7 +175,7 @@ public:
 				wheelLF->GetChildMesh()->setPosition(-vector3df(COG_wheelRF.x, COG_wheelRF.y, COG_wheelRF.z));// offset the mesh (reuse RF)
 				// Describe the (invisible) colliding shape
 				wheelLF->GetBody()->GetCollisionModel()->ClearModel();
-				wheelLF->GetBody()->GetCollisionModel()->AddCylinder(RAD_front_wheel,RAD_front_wheel, 0.1, &ChVector<>(0,0,0), &Arot); 
+				wheelLF->GetBody()->GetCollisionModel()->AddCylinder(RAD_front_wheel,RAD_front_wheel, 0.1, ChVector<>(0,0,0), Arot); 
 				wheelLF->GetBody()->GetCollisionModel()->BuildModel();
 				wheelLF->GetBody()->SetCollide(true);
 
@@ -220,7 +220,7 @@ public:
 				double rescale = RAD_back_wheel/RAD_front_wheel;
 				// Describe the (invisible) colliding shape
 				wheelB->GetBody()->GetCollisionModel()->ClearModel();
-				wheelB->GetBody()->GetCollisionModel()->AddCylinder(RAD_back_wheel,RAD_back_wheel, 0.1, &ChVector<>(0,0,0), &Arot); 
+				wheelB->GetBody()->GetCollisionModel()->AddCylinder(RAD_back_wheel,RAD_back_wheel, 0.1, ChVector<>(0,0,0), Arot); 
 				wheelB->GetBody()->GetCollisionModel()->BuildModel();
 				wheelB->GetBody()->SetCollide(true);
 
@@ -268,9 +268,9 @@ public:
 				fork->GetChildMesh()->setPosition(-vector3df(COG_fork.x, COG_fork.y, COG_fork.z));// offset the mesh
 				// Describe the (invisible) colliding shapes - two cubes for the two fingers, etc
 				fork->GetBody()->GetCollisionModel()->ClearModel();
-				fork->GetBody()->GetCollisionModel()->AddBox(0.1/2., 0.032/2., 1.033/2., &ChVector<>(-0.352, -0.312, 0.613)); 
-				fork->GetBody()->GetCollisionModel()->AddBox(0.1/2., 0.032/2., 1.033/2., &ChVector<>( 0.352, -0.312, 0.613)); 
-				fork->GetBody()->GetCollisionModel()->AddBox(0.344/2., 1.134/2., 0.101/2., &ChVector<>(-0.000, 0.321, -0.009));
+				fork->GetBody()->GetCollisionModel()->AddBox(0.1/2.,   0.032/2., 1.033/2., ChVector<>(-0.352, -0.312, 0.613)); 
+				fork->GetBody()->GetCollisionModel()->AddBox(0.1/2.,   0.032/2., 1.033/2., ChVector<>( 0.352, -0.312, 0.613)); 
+				fork->GetBody()->GetCollisionModel()->AddBox(0.344/2., 1.134/2., 0.101/2., ChVector<>(-0.000, 0.321, -0.009));
 				fork->GetBody()->GetCollisionModel()->BuildModel();
 				fork->GetBody()->SetCollide(true);
 
