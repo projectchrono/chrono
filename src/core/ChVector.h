@@ -180,6 +180,9 @@ public:
 					/// Sets the vector as a null vector
 	void SetNull() { x=y=z=0;};
 
+					/// Returns true if this vector is the null vector
+	bool IsNull() const {return x == 0 && y == 0 && z == 0;}
+
 					/// Returns true if vector is identical to other vector
 	bool	Equals ( const ChVector<Real>& other) const { return (other.x==x) && (other.y==y) && (other.z==z);}
 
