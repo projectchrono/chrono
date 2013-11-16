@@ -108,68 +108,91 @@ public:
 	//  Return value is true if the child class implements the
 	//  corresponding type of geometry.
 
-		/// Add a sphere shape to this model, for collision purposes
-  virtual bool AddSphere   (double radius,			///< the radius of the sphere
-							ChVector<>* pos=0		///< the position of the sphere in model coordinates
-							)=0;
+	/// Add a sphere shape to this model, for collision purposes
+  virtual bool AddSphere (double            radius,              ///< the radius of the sphere
+                          const ChVector<>& pos = ChVector<>()   ///< the position of the sphere in model coordinates
+                          ) = 0;
 
-  		/// Add an ellipsoid shape to this model, for collision purposes
-  virtual bool AddEllipsoid   (double rx, 			///< the rad on x axis
-							   double ry,			///< the rad on y axis
-							   double rz,			///< the rad on z axis
-							   ChVector<>* pos=0,	///< the position of the ellipsoid
-							   ChMatrix33<>* rot=0	///< the matrix defining rotation (orthogonal)
-							   )=0;
+	/// Add an ellipsoid shape to this model, for collision purposes
+  virtual bool AddEllipsoid (double              rx,                     ///< the rad on x axis
+                             double              ry,                     ///< the rad on y axis
+                             double              rz,                     ///< the rad on z axis
+                             const ChVector<>&   pos = ChVector<>(),     ///< the position of the ellipsoid
+                             const ChMatrix33<>& rot = ChMatrix33<>(1)   ///< the matrix defining rotation (orthogonal)
+                             ) = 0;
 
-		/// Add a box shape to this model, for collision purposes
-  virtual bool AddBox      (double hx, 				///< the halfsize on x axis
-							double hy,				///< the halfsize on y axis
-							double hz,				///< the halfsize on z axis
-							ChVector<>* pos=0,		///< the position of the box COG
-							ChMatrix33<>* rot=0		///< the rotation of the box - matrix must be orthogonal
-							)=0;
+	/// Add a box shape to this model, for collision purposes
+  virtual bool AddBox (double              hx,                     ///< the halfsize on x axis
+                       double              hy,                     ///< the halfsize on y axis
+                       double              hz,                     ///< the halfsize on z axis
+                       const ChVector<>&   pos = ChVector<>(),     ///< the position of the box COG
+                       const ChMatrix33<>& rot = ChMatrix33<>(1)   ///< the rotation of the box - matrix must be orthogonal
+                       ) = 0;
 
-		/// Add a cylinder to this model (default axis on Y direction), for collision purposes
-  virtual bool AddCylinder (double rx, double rz, double hy, ChVector<>* pos=0, ChMatrix33<>* rot=0)=0;
+	/// Add a cylinder to this model (default axis on Y direction), for collision purposes
+  virtual bool AddCylinder (double              rx,
+                            double              rz,
+                            double              hy,
+                            const ChVector<>&   pos = ChVector<>(),
+                            const ChMatrix33<>& rot = ChMatrix33<>(1)
+                            ) = 0;
 
-		/// Add a cone to this model (default axis on Y direction), for collision purposes
-  virtual bool AddCone (double rx, double rz, double hy, ChVector<>* pos=0, ChMatrix33<>* rot=0)=0;
+	/// Add a cone to this model (default axis on Y direction), for collision purposes
+  virtual bool AddCone (double              rx,
+                        double              rz,
+                        double              hy,
+                        const ChVector<>&   pos = ChVector<>(),
+                        const ChMatrix33<>& rot = ChMatrix33<>(1)
+                        ) = 0;
 
-		/// Add a convex hull to this model. A convex hull is simply a point cloud that describe
-		/// a convex polytope. Connectivity between the vertexes, as faces/edges in triangle meshes is not necessary.
-		/// Points are passed as a list, that is instantly copied into the model.
-  virtual bool AddConvexHull (std::vector<ChVector<double> >& pointlist, ChVector<>* pos=0, ChMatrix33<>* rot=0)=0;
+	/// Add a convex hull to this model. A convex hull is simply a point cloud that describe
+	/// a convex polytope. Connectivity between the vertexes, as faces/edges in triangle meshes is not necessary.
+	/// Points are passed as a list, that is instantly copied into the model.
+  virtual bool AddConvexHull (std::vector<ChVector<double> >& pointlist,
+                              const ChVector<>&               pos = ChVector<>(),
+                              const ChMatrix33<>&             rot = ChMatrix33<>(1)
+                              ) = 0;
 
-		/// Add a triangle mesh to this model, passing a triangle mesh (do not delete the triangle mesh
-		/// until the collision model, because depending on the implementation of inherited ChCollisionModel
-		/// classes, maybe the triangle is referenced via a striding interface or just copied)
-		/// Note: if possible, in sake of high performance, avoid triangle meshes and prefer simplified 
-		/// representations as compounds of convex shapes of boxes/spheres/etc.. type. See functions above.
-  virtual bool AddTriangleMesh (const geometry::ChTriangleMesh& trimesh,	///< the triangle mesh
-								bool is_static,			///< true only if model doesn't move (es.a terrain). May improve performance
-								bool is_convex,			///< true if mesh convex hull is used (only for simple mesh). May improve robustness
-								ChVector<>* pos=0, ChMatrix33<>* rot=0 ///< displacement respect to COG (optional)
-								)=0;
+	/// Add a triangle mesh to this model, passing a triangle mesh (do not delete the triangle mesh
+	/// until the collision model, because depending on the implementation of inherited ChCollisionModel
+	/// classes, maybe the triangle is referenced via a striding interface or just copied)
+	/// Note: if possible, in sake of high performance, avoid triangle meshes and prefer simplified 
+	/// representations as compounds of convex shapes of boxes/spheres/etc.. type. See functions above.
+  virtual bool AddTriangleMesh (const geometry::ChTriangleMesh& trimesh,                ///< the triangle mesh
+                                bool                            is_static,              ///< true only if model doesn't move (es.a terrain). May improve performance
+                                bool                            is_convex,              ///< true if mesh convex hull is used (only for simple mesh). May improve robustness
+                                const ChVector<>&               pos = ChVector<>(),     ///< displacement respect to COG (optional)
+                                const ChMatrix33<>&             rot = ChMatrix33<>(1)   ///< the rotation of the mesh - matrix must be orthogonal
+                                ) = 0;
 
-  		/// Add a barrel-like shape to this model (main axis on Y direction), for collision purposes.
-		/// The barrel shape is made by lathing an arc of an ellipse around the vertical Y axis.
-		/// The center of the ellipse is on Y=0 level, and it is ofsetted by R_offset from 
-		/// the Y axis in radial direction. The two radii of the ellipse are R_vert (for the 
-		/// vertical direction, i.e. the axis parellel to Y) and R_hor (for the axis that
-		/// is perpendicular to Y). Also, the solid is clamped with two discs on the top and
-		/// the bottom, at levels Y_low and Y_high. 
-  virtual bool AddBarrel (double Y_low, double Y_high, double R_vert, double R_hor, double R_offset, ChVector<>* pos=0, ChMatrix33<>* rot=0)=0;
+	/// Add a barrel-like shape to this model (main axis on Y direction), for collision purposes.
+	/// The barrel shape is made by lathing an arc of an ellipse around the vertical Y axis.
+	/// The center of the ellipse is on Y=0 level, and it is ofsetted by R_offset from 
+	/// the Y axis in radial direction. The two radii of the ellipse are R_vert (for the 
+	/// vertical direction, i.e. the axis parellel to Y) and R_hor (for the axis that
+	/// is perpendicular to Y). Also, the solid is clamped with two discs on the top and
+	/// the bottom, at levels Y_low and Y_high. 
+  virtual bool AddBarrel (double              Y_low,
+                          double              Y_high,
+                          double              R_vert,
+                          double              R_hor,
+                          double              R_offset,
+                          const ChVector<>&   pos = ChVector<>(),
+                          const ChMatrix33<>& rot = ChMatrix33<>(1)
+                          ) = 0;
 
-		/// Add all shapes already contained in another model.
-		/// If possible, child classes implement this so that underlying shapes are 
-		/// shared (not copied) among the models.
+	/// Add all shapes already contained in another model.
+	/// If possible, child classes implement this so that underlying shapes are 
+	/// shared (not copied) among the models.
   virtual bool AddCopyOfAnotherModel (ChCollisionModel* another) = 0;
 
-		/// Add a cluster of convex hulls by a '.chulls' file description. The file is an ascii text that contains
-		/// many lines with "[x] [y] [z]" coordinates of the convex hulls. Hulls are separated by lines with "hull".
-		/// Inherited classes should not need to implement/overload this, because this base implementation 
-		/// basically calls AddConvexHull() n times while parsing the file, that is enough.
-  virtual bool AddConvexHullsFromFile(ChStreamInAscii& mstream, ChVector<>* pos=0, ChMatrix33<>* rot=0);
+	/// Add a cluster of convex hulls by a '.chulls' file description. The file is an ascii text that contains
+	/// many lines with "[x] [y] [z]" coordinates of the convex hulls. Hulls are separated by lines with "hull".
+	/// Inherited classes should not need to implement/overload this, because this base implementation 
+	/// basically calls AddConvexHull() n times while parsing the file, that is enough.
+  virtual bool AddConvexHullsFromFile(ChStreamInAscii&    mstream,
+                                      const ChVector<>&   pos = ChVector<>(),
+                                      const ChMatrix33<>& rot = ChMatrix33<>(1));
 
 
   // OTHER FUNCTIONS
