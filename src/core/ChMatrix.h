@@ -1875,7 +1875,7 @@ public:
 
 					/// Given a 3x3 rotation matrix, computes the corresponding 
 					/// quaternion.
-	ChQuaternion<Real> Get_A_quaternion ()
+	ChQuaternion<Real> Get_A_quaternion () const
 					{
 						ChQuaternion<Real> q;
 						double s, tr;
