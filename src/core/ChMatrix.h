@@ -1511,9 +1511,9 @@ public:
 					/// Return true if this matrix is the identity 3x3 matrix.
 	bool IsIdentity() const
 	{
-		return Get33Element(0,0) == 1 && Get33Element(0,1) == 0 && Get33Element(0,2) == 0 &&
-		       Get33Element(1,0) == 0 && Get33Element(1,1) == 1 && Get33Element(1,2) == 0 &&
-		       Get33Element(2,0) == 0 && Get33Element(2,1) == 0 && Get33Element(2,2) == 1;
+		return this->Get33Element(0,0) == 1 && this->Get33Element(0,1) == 0 && this->Get33Element(0,2) == 0 &&
+		       this->Get33Element(1,0) == 0 && this->Get33Element(1,1) == 1 && this->Get33Element(1,2) == 0 &&
+		       this->Get33Element(2,0) == 0 && this->Get33Element(2,1) == 0 && this->Get33Element(2,2) == 1;
 	}
 
 					/// Multiplies this matrix by a vector, like in coordinate rotation [M]*v. 
