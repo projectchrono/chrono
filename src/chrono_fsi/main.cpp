@@ -1499,7 +1499,7 @@ int main() {
 	printf("numAllParticles %d\n", numAllParticles);
 
 	if (numAllParticles != 0) {
-		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray, ANCF_Beam_Length, flexParametricDist, numAllParticles, cMax, cMin, delT, rigidPos, mQuatRot, spheresVelMas,
+		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray, ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, flexParametricDist, numAllParticles, cMax, cMin, delT, rigidPos, mQuatRot, spheresVelMas,
 				rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, binSize0, channelRadius, channelCenterYZ);
 	}
 	mPosRad.clear();
