@@ -20,7 +20,7 @@ using namespace std;
 //#####################################################################################
 __constant__ int mNumSpheresD;
 __constant__ real_ dTD;
-__constant__ real_ rigid_SPH_massD;
+__constant__ real_ solid_SPH_massD;
 __constant__ int2 updatePortionD;
 __constant__ real3 cMinD;
 __constant__ real3 cMaxD;
@@ -263,7 +263,7 @@ __global__ void SumSurfaceInteractionForces(real3 * totalForcesRigid3, real4 * t
 		return;
 	}
 	real4 dummyVelMas = velMassRigidD[rigidSphereA];
-	real3 derivRigid = rigid_SPH_massD / dummyVelMas.w * R3(totalSurfaceInteractionRigid4[rigidSphereA]);
+	real3 derivRigid = solid_SPH_massD / dummyVelMas.w * R3(totalSurfaceInteractionRigid4[rigidSphereA]);
 	//** tweak 3
 	if (length(derivRigid) > .2 * HSML / (dTD * dTD)) {
 			derivRigid *= ( .2 * HSML / (dTD * dTD) ) / length(derivRigid);
@@ -286,14 +286,13 @@ __global__ void MapForcesOnNodes(
 		real3* flexNodesForcesAllMarkers1,
 		real3* flexNodesForcesAllMarkers2,
 		int* flexIdentifierD,
-//		int2* ANCF_NumNodes_Per_BeamD,
+//		int2* ANCF_ReferenceArrayNodesOnBeamsD,
 		int* ANCF_NumMarkers_Per_BeamD,
 		int* ANCF_NumMarkers_Per_Beam_CumulD, //exclusive scan
 //		int* ANCF_NumNodesMultMarkers_Per_BeamD,
 		int* ANCF_NumNodesMultMarkers_Per_Beam_CumulD, //exclusive scan
 		real_* flexParametricDistD,
-		real4* derivVelRhoD,
-		real_ markerMass)
+		real4* derivVelRhoD)
 {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (index >= numFlex_SphMarkersD) {
@@ -303,7 +302,7 @@ __global__ void MapForcesOnNodes(
 	real_ s = flexParametricDistD[index];
 
 	real3 derivVel = R3( derivVelRhoD[absMarkerIndex] );
-	real3 markerForce = markerMass * derivVel;
+	real3 markerForce = solid_SPH_massD * derivVel;
 
 	int flexBodyIndex = flexIdentifierD[index];
 	int numFlexMarkersPreviousBeamsTotal = ANCF_NumMarkers_Per_Beam_CumulD[flexBodyIndex];
@@ -355,7 +354,7 @@ __global__ void Populate_FlexSPH_MeshPos_LRF_kernel(
 		int* flexIdentifierD,
 		real_* flexParametricDistD,
 		real_* ANCF_Beam_LengthD,
-		int2* ANCF_NumNodes_Per_BeamD,
+		int2* ANCF_ReferenceArrayNodesOnBeamsD,
 		real3 * ANCF_NodesD,
 		real3 * ANCF_SlopesD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -366,7 +365,7 @@ __global__ void Populate_FlexSPH_MeshPos_LRF_kernel(
 	real_ s = flexParametricDistD[index];
 	int flexBodyIndex = flexIdentifierD[index];
 	real_ l = ANCF_Beam_LengthD[flexBodyIndex];
-	int2 nodesInterval = ANCF_NumNodes_Per_BeamD[flexBodyIndex];
+	int2 nodesInterval = ANCF_ReferenceArrayNodesOnBeamsD[flexBodyIndex];
 	int nNodes = nodesInterval.y - nodesInterval.x;
 
 	int indexOfClosestNode = int(s / l) * nNodes;
@@ -383,7 +382,7 @@ __global__ void Populate_FlexSPH_MeshSlope_LRF_kernel(
 		int* flexIdentifierD,
 		real_* flexParametricDistD,
 		real_* ANCF_Beam_LengthD,
-		int2* ANCF_NumNodes_Per_BeamD,
+		int2* ANCF_ReferenceArrayNodesOnBeamsD,
 		real3 * ANCF_NodesD,
 		real3 * ANCF_SlopesD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -394,7 +393,7 @@ __global__ void Populate_FlexSPH_MeshSlope_LRF_kernel(
 	real_ s = flexParametricDistD[index];
 	int flexBodyIndex = flexIdentifierD[index];
 	real_ l = ANCF_Beam_LengthD[flexBodyIndex];
-	int2 nodesInterval = ANCF_NumNodes_Per_BeamD[flexBodyIndex];
+	int2 nodesInterval = ANCF_ReferenceArrayNodesOnBeamsD[flexBodyIndex];
 	int nNodes = nodesInterval.y - nodesInterval.x;
 
 	int indexOfClosestNode = int(s / l) * nNodes;
@@ -527,7 +526,7 @@ __global__ void UpdateRigidBodyAngularVelocity_kernel(
 	torquingTerm.z = (-omega3.y * j1.x + omega3.x * j1.y) * omega3.x + (-omega3.y * j1.y + omega3.x * j2.x) * omega3.y
 			+ (-omega3.y * j1.z + omega3.x * j2.y) * omega3.z;
 
-	torquingTerm = rigid_SPH_massD * LF_totalTorque3[rigidSphereA] - torquingTerm;
+	torquingTerm = solid_SPH_massD * LF_totalTorque3[rigidSphereA] - torquingTerm;
 	//*** from this point j1 and j2 will represent the j_Inverse
 	j1 = jInvD1[rigidSphereA];
 	j2 = jInvD2[rigidSphereA];
@@ -589,7 +588,7 @@ __global__ void UpdateFlexMarkersPosition(
 		real3* flexSPH_MeshSlope_Initial_D,
 		real_* flexParametricDistD,
 		real_* ANCF_Beam_LengthD,
-		int2* ANCF_NumNodes_Per_BeamD,
+		int2* ANCF_ReferenceArrayNodesOnBeamsD,
 		real3 * ANCF_NodesD,
 		real3 * ANCF_SlopesD,
 		real3 * ANCF_NodesVelD,
@@ -675,12 +674,37 @@ void Calc_NumNodesMultMarkers_Per_Beam(
 		thrust::device_vector<int> & ANCF_NumNodesMultMarkers_Per_BeamD,
 		const thrust::device_vector<int> & ANCF_NumMarkers_Per_BeamD,
 		const thrust::host_vector<int2> & ANCF_ReferenceArrayNodesOnBeams,
-		int numFlexBodies) {
+		int numFlexBodies)
+{
 	if (numFlexBodies > 0) {
 		for (int flexIdx = 0; flexIdx < numFlexBodies; flexIdx++) {
 			int2 flexPortion = ANCF_ReferenceArrayNodesOnBeams[flexIdx];
 			int numNodes = flexPortion.y - flexPortion.x;
 			ANCF_NumNodesMultMarkers_Per_BeamD[flexIdx] = numNodes * ANCF_NumMarkers_Per_BeamD[flexIdx];
+		}
+	}
+}
+////--------------------------------------------------------------------------------------------------------------------------------
+void Calc_mapMarkersOnAllBeamNodes_IdentifierD(
+		thrust::device_vector<int2> & mapMarkersOnAllBeamNodes_IdentifierD,
+		const thrust::device_vector<int> & ANCF_NumNodesMultMarkers_Per_Beam_CumulD,
+		const thrust::device_vector<int> & ANCF_NumMarkers_Per_BeamD,
+		const thrust::host_vector<int2> & ANCF_ReferenceArrayNodesOnBeams,
+		int numFlexBodies)
+{
+	if (numFlexBodies > 0) {
+		for (int flexIdx = 0; flexIdx < numFlexBodies; flexIdx++) {
+			int numMarkersOnThisBeam = ANCF_NumMarkers_Per_BeamD[flexIdx];
+			int2 flexPortion = ANCF_ReferenceArrayNodesOnBeams[flexIdx];
+			int numNodes = flexPortion.y - flexPortion.x;
+
+			int2 startWrite2 = ANCF_NumNodesMultMarkers_Per_Beam_CumulD[flexIdx];
+			for (int i = 0; i < numNodes; i++) {
+				int2 flexIdx_nodeIdx_pair = I2(flexIdx, i);
+				int2 writeInterval = I2(startWrite2.x + i * numMarkersOnThisBeam, startWrite2.x + (i + 1) * numMarkersOnThisBeam);
+				thrust::fill(mapMarkersOnAllBeamNodes_IdentifierD.begin() + writeInterval.x,
+						mapMarkersOnAllBeamNodes_IdentifierD.begin() + writeInterval.y, flexIdx_nodeIdx_pair);
+			}
 		}
 	}
 }
@@ -1089,7 +1113,7 @@ void UpdateRigidBody(
 	computeGridSize(numRigidBodies, 128, nBlock_UpdateRigid, nThreads_rigidParticles);
 	cudaMemcpyToSymbolAsync(numRigidBodiesD, &numRigidBodies, sizeof(numRigidBodies)); //can be defined outside of the kernel, and only once
 
-	// copy rigid_SPH_mass to symbol -constant memory
+	// copy solid_SPH_mass to symbol -constant memory
 	thrust::device_vector<real3> LF_totalTorque3(numRigidBodies);
 	MapTorqueToLRFKernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(R3CAST(AD1), R3CAST(AD2), R3CAST(AD3), R3CAST(totalTorque3), R3CAST(LF_totalTorque3));
 	cudaThreadSynchronize();
@@ -1127,6 +1151,7 @@ void UpdateRigidBody(
 void UpdateFlexibleBody(
 		thrust::device_vector<real3> & posRadD,
 		thrust::device_vector<real4> & velMasD,
+		thrust::device_vector<real4> & derivVelRhoD,
 		const int numRigidBodies,
 		const int numFlexBodies,
 		const int numFlex_SphMarkers,
@@ -1135,12 +1160,12 @@ void UpdateFlexibleBody(
 		thrust::device_vector<real3> & ANCF_NodesVelD,
 		thrust::device_vector<real3> & ANCF_SlopesVelD,
 		thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
-		thrust::device_vector<int2> & ANCF_NumNodes_Per_BeamD,
 		thrust::device_vector<int> & ANCF_NumMarkers_Per_BeamD,
 //		thrust::device_vector<int> & ANCF_NumNodesMultMarkers_Per_BeamD,
 		thrust::device_vector<int> & ANCF_NumNodesMultMarkers_Per_Beam_CumulD,
 
 		const thrust::device_vector<int> & flexIdentifierD,
+		const thrust::device_vector<int2> & mapMarkersOnAllBeamNodes_IdentifierD,
 		const thrust::device_vector<real3> & flexSPH_MeshPos_LRF_D,
 		const thrust::device_vector<real_> & flexParametricDistD,
 		const thrust::device_vector<real_> & ANCF_Beam_LengthD,
@@ -1174,17 +1199,16 @@ void UpdateFlexibleBody(
 			I1CAST(ANCF_NumMarkers_Per_Beam_CumulD),
 			I1CAST(ANCF_NumNodesMultMarkers_Per_Beam_CumulD),
 			R1CAST(flexParametricDistD),
-			R4CAST(derivVelRhoD),
-			markerMass);
+			R4CAST(derivVelRhoD));
 
-	if (nodesAndFlexPairIdentifier.size() != flexNodesForcesAllMarkers1.size()) {
+	if (mapMarkersOnAllBeamNodes_IdentifierD.size() != flexNodesForcesAllMarkers1.size()) {
 		printf("we have size inconsistency between flex nodesForces and nodesPair identifier");
 	}
-	thrust::device_vector<int> dummyNodesFlexIdentify(nodesAndFlexPairIdentifier.size());
+	thrust::device_vector<int> dummyNodesFlexIdentify(mapMarkersOnAllBeamNodes_IdentifierD.size());
 	thrust::equal_to<int2> binary_pred_int2; //if binary_pred int2 does not work, you have to either add operator == to custom_cutil_math, or you have to map nodes identifiers from int2 to int
-	(void) thrust::reduce_by_key(nodesAndFlexPairIdentifier.begin(), nodesAndFlexPairIdentifier.end(), flexNodesForcesAllMarkers1.begin(), dummyNodesFlexIdentify.begin(),
+	(void) thrust::reduce_by_key(mapMarkersOnAllBeamNodes_IdentifierD.begin(), mapMarkersOnAllBeamNodes_IdentifierD.end(), flexNodesForcesAllMarkers1.begin(), dummyNodesFlexIdentify.begin(),
 			flexNodesForces1.begin(), binary_pred_int2, thrust::plus<real3>());
-	(void) thrust::reduce_by_key(nodesAndFlexPairIdentifier.begin(), nodesAndFlexPairIdentifier.end(), flexNodesForcesAllMarkers2.begin(), dummyNodesFlexIdentify.begin(),
+	(void) thrust::reduce_by_key(mapMarkersOnAllBeamNodes_IdentifierD.begin(), mapMarkersOnAllBeamNodes_IdentifierD.end(), flexNodesForcesAllMarkers2.begin(), dummyNodesFlexIdentify.begin(),
 			flexNodesForces2.begin(), binary_pred_int2, thrust::plus<real3>());
 	flexNodesForcesAllMarkers1.clear();
 	flexNodesForcesAllMarkers2.clear();
@@ -1212,7 +1236,7 @@ void UpdateFlexibleBody(
 			R3CAST(flexSPH_MeshPos_LRF_D),
 			R1CAST(flexParametricDistD),
 			R1CAST(ANCF_Beam_LengthD),
-			I2CAST(ANCF_NumNodes_Per_BeamD),
+			I2CAST(ANCF_ReferenceArrayNodesOnBeamsD),
 			R3CAST(ANCF_NodesD),
 			R3CAST(ANCF_SlopesD),
 			R3CAST(ANCF_NodesVelD),
@@ -1308,19 +1332,19 @@ void cudaCollisions(
 	thrust::device_vector<real4> derivVelRhoD(mNSpheres);
 	printf("a6 yoho\n");
 		//******************** rigid body some initialization
-	real_ rigid_SPH_mass;																					//____________________________> typical mass, save to constant memory
+	real_ solid_SPH_mass;																					//____________________________> typical mass, save to constant memory
 	int numRigid_SphMarkers = 0;
 	int startRigidMarkers = (referenceArray[1]).y;
 	numRigid_SphMarkers = referenceArray[2 + numRigidBodies - 1].y - startRigidMarkers;
 	thrust::device_vector<int> rigidIdentifierD(numRigid_SphMarkers);
 	if (numRigidBodies > 0) {
 		real4 typicalRigidSPH = mVelMas[referenceArray[2].x];
-		rigid_SPH_mass = typicalRigidSPH.w;
+		solid_SPH_mass = typicalRigidSPH.w;
 	} else {
 		real4 dummyFluid = mVelMas[referenceArray[0].x];
-		rigid_SPH_mass = 100 * dummyFluid.w;
+		solid_SPH_mass = 100 * dummyFluid.w;
 	}
-	cutilSafeCall( cudaMemcpyToSymbolAsync(rigid_SPH_massD, &rigid_SPH_mass, sizeof(rigid_SPH_mass)));
+	cutilSafeCall( cudaMemcpyToSymbolAsync(solid_SPH_massD, &solid_SPH_mass, sizeof(solid_SPH_mass)));
 	cudaMemcpyToSymbolAsync(startRigidMarkersD, &startRigidMarkers, sizeof(startRigidMarkers)); //can be defined outside of the kernel, and only once
 	cudaMemcpyToSymbolAsync(numRigid_SphMarkersD, &numRigid_SphMarkers, sizeof(numRigid_SphMarkers)); //can be defined outside of the kernel, and only once
 
@@ -1366,6 +1390,7 @@ void cudaCollisions(
 	thrust::device_vector<int> ANCF_NumMarkers_Per_Beam_CumulD(numFlexBodies);
 	thrust::device_vector<int> ANCF_NumNodesMultMarkers_Per_BeamD(numFlexBodies);
 	thrust::device_vector<int> ANCF_NumNodesMultMarkers_Per_Beam_CumulD(numFlexBodies);
+	thrust::device_vector<int2> mapMarkersOnAllBeamNodes_IdentifierD(0);
 
 	thrust::device_vector<int> dummySum(flexIdentifierD.size());
 	thrust::device_vector<int> dummyIdentifier(0);
@@ -1374,12 +1399,14 @@ void cudaCollisions(
 	thrust::exclusive_scan(ANCF_NumMarkers_Per_BeamD.begin(), ANCF_NumMarkers_Per_BeamD.end(), ANCF_NumMarkers_Per_Beam_CumulD());
 	dummySum.clear();
 	dummyIdentifier.clear();
-	//*******************
 
 	Calc_NumNodesMultMarkers_Per_Beam(ANCF_NumNodesMultMarkers_Per_BeamD, ANCF_NumMarkers_Per_BeamD, ANCF_ReferenceArrayNodesOnBeams, numFlexBodies);
 	thrust::exclusive_scan(ANCF_NumNodesMultMarkers_Per_BeamD.begin(), ANCF_NumNodesMultMarkers_Per_BeamD.end(), ANCF_NumNodesMultMarkers_Per_Beam_CumulD());
 
+	thrust::device_vector<int2> mapMarkersOnAllBeamNodes_IdentifierD;
+	Calc_mapMarkersOnAllBeamNodes_IdentifierD(ANCF_NumNodesMultMarkers_Per_BeamD, ANCF_NumMarkers_Per_BeamD, ANCF_ReferenceArrayNodesOnBeams, numFlexBodies);
 
+	//*******************
 
 	thrust::device_vector<real3> flexSPH_MeshPos_LRF_D(numFlex_SphMarkers);
 	thrust::device_vector<real3> flexSPH_MeshSlope_Initial_D(numFlex_SphMarkers);  //slope of the beam at BCE marker (associated to BCE marker)
@@ -1389,12 +1416,12 @@ void cudaCollisions(
 	printf("before first kernel\n");
 
 	Populate_FlexSPH_MeshPos_LRF_kernel<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(R3CAST(flexSPH_MeshPos_LRF_D), R3CAST(posRadD), I1CAST(flexIdentifierD), R1CAST(flexParametricDistD), R1CAST(ANCF_Beam_LengthD),
-			I2CAST(ANCF_NumNodes_Per_BeamD), R3CAST(ANCF_NodesD), R3CAST(ANCF_SlopesD));
+			I2CAST(ANCF_ReferenceArrayNodesOnBeamsD), R3CAST(ANCF_NodesD), R3CAST(ANCF_SlopesD));
 	cudaThreadSynchronize();
 		CUT_CHECK_ERROR("Kernel execution failed: Populate_FlexSPH_MeshPos_LRF_kernel");	printf("after first kernel\n");
 
 	Populate_FlexSPH_MeshSlope_LRF_kernel<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(R3CAST(flexSPH_MeshSlope_Initial_D), I1CAST(flexIdentifierD), R1CAST(flexParametricDistD), R1CAST(ANCF_Beam_LengthD),
-				I2CAST(ANCF_NumNodes_Per_BeamD), R3CAST(ANCF_NodesD), R3CAST(ANCF_SlopesD));
+				I2CAST(ANCF_ReferenceArrayNodesOnBeamsD), R3CAST(ANCF_NodesD), R3CAST(ANCF_SlopesD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: Populate_FlexSPH_MeshSlope_LRF_kernel");	printf("after first kernel\n");
 
@@ -1564,6 +1591,7 @@ void cudaCollisions(
 	rigidSPH_MeshPos_LRF_D.clear();
 	flexParametricDistD.clear();
 	flexIdentifierD.clear();
+	mapMarkersOnAllBeamNodes_IdentifierD.clear();
 	flexSPH_MeshPos_LRF_D.clear();
 	flexSPH_MeshSlope_Initial_D.clear();
 	qD1.clear();
