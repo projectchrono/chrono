@@ -5,6 +5,7 @@
 #include <thrust/reduce.h>
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
+#include <thrust/scan.h>
 #include "collideSphereSphere.cuh"
 #include "SDKCollisionSystem.cuh"
 #include "printToFile.cuh"
@@ -317,6 +318,20 @@ __global__ void MapForcesOnNodes(
 	//...
 	///////
 
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+__global__ void Populate_RigidSPH_MeshPos_LRF_kernel(
+		real3* rigidSPH_MeshPos_LRF_D,
+		real3* posRadD,
+		int* rigidIdentifierD,
+		real3* posRigidD) {
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	uint rigidMarkerIndex = index + startRigidMarkersD; // updatePortionD = [start, end] index of the update portion
+	if (index >= numRigid_SphMarkersD) {
+		return;
+	}
+	real3 dist3 = posRadD[rigidMarkerIndex] - posRigidD[rigidIdentifierD[index]];
+	rigidSPH_MeshPos_LRF_D[index] = dist3;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(
@@ -652,6 +667,20 @@ void MakeFlexIdentifier(
 			int2 updatePortion = I2(referencePart); //first two component of the referenceArray denote to the fluid and boundary particles
 			thrust::fill(flexIdentifierD.begin() + (updatePortion.x - startFlexMarkers),
 					flexIdentifierD.begin() + (updatePortion.y - startFlexMarkers), flexIdx);
+		}
+	}
+}
+////--------------------------------------------------------------------------------------------------------------------------------
+void Calc_NumNodesMultMarkers_Per_Beam(
+		thrust::device_vector<int> & ANCF_NumNodesMultMarkers_Per_BeamD,
+		const thrust::device_vector<int> & ANCF_NumMarkers_Per_BeamD,
+		const thrust::host_vector<int2> & ANCF_ReferenceArrayNodesOnBeams,
+		int numFlexBodies) {
+	if (numFlexBodies > 0) {
+		for (int flexIdx = 0; flexIdx < numFlexBodies; flexIdx++) {
+			int2 flexPortion = ANCF_ReferenceArrayNodesOnBeams[flexIdx];
+			int numNodes = flexPortion.y - flexPortion.x;
+			ANCF_NumNodesMultMarkers_Per_BeamD[flexIdx] = numNodes * ANCF_NumMarkers_Per_BeamD[flexIdx];
 		}
 	}
 }
@@ -1331,13 +1360,25 @@ void cudaCollisions(
 	thrust::device_vector<real3> ANCF_VelSlopesD = ANCF_VelSlopes;
 	thrust::device_vector<real_> ANCF_Beam_LengthD = ANCF_Beam_Length;
 	thrust::device_vector<int2> ANCF_ReferenceArrayNodesOnBeamsD = ANCF_ReferenceArrayNodesOnBeams;
-	//*******************
-	thrust::device_vector<int> ANCF_NumMarkers_Per_BeamD;
-	thrust::device_vector<int> ANCF_NumMarkers_Per_Beam_CumulD;
-	thrust::device_vector<int> ANCF_NumNodesMultMarkers_Per_BeamD;
-	thrust::device_vector<int> ANCF_NumNodesMultMarkers_Per_Beam_CumulD;
 
 	//*******************
+	thrust::device_vector<int> ANCF_NumMarkers_Per_BeamD(numFlexBodies);
+	thrust::device_vector<int> ANCF_NumMarkers_Per_Beam_CumulD(numFlexBodies);
+	thrust::device_vector<int> ANCF_NumNodesMultMarkers_Per_BeamD(numFlexBodies);
+	thrust::device_vector<int> ANCF_NumNodesMultMarkers_Per_Beam_CumulD(numFlexBodies);
+
+	thrust::device_vector<int> dummySum(flexIdentifierD.size());
+	thrust::device_vector<int> dummyIdentifier(0);
+	thrust::fill(dummySum.begin(), dummySum.end(), 1);
+	(void) thrust::reduce_by_key(flexIdentifierD.begin(), flexIdentifierD.end(), dummySum.begin(), dummyIdentifier.begin(), ANCF_NumMarkers_Per_BeamD.begin());
+	thrust::exclusive_scan(ANCF_NumMarkers_Per_BeamD.begin(), ANCF_NumMarkers_Per_BeamD.end(), ANCF_NumMarkers_Per_Beam_CumulD());
+	dummySum.clear();
+	dummyIdentifier.clear();
+	//*******************
+
+	Calc_NumNodesMultMarkers_Per_Beam(ANCF_NumNodesMultMarkers_Per_BeamD, ANCF_NumMarkers_Per_BeamD, ANCF_ReferenceArrayNodesOnBeams, numFlexBodies);
+	thrust::exclusive_scan(ANCF_NumNodesMultMarkers_Per_BeamD.begin(), ANCF_NumNodesMultMarkers_Per_BeamD.end(), ANCF_NumNodesMultMarkers_Per_Beam_CumulD());
+
 
 
 	thrust::device_vector<real3> flexSPH_MeshPos_LRF_D(numFlex_SphMarkers);
@@ -1506,6 +1547,13 @@ void cudaCollisions(
 	ANCF_VelSlopesD.clear();
 	ANCF_Beam_LengthD.clear();
 	ANCF_ReferenceArrayNodesOnBeamsD.clear();
+
+	ANCF_NumMarkers_Per_BeamD.clear();
+	ANCF_NumMarkers_Per_Beam_CumulD.clear();
+	ANCF_NumNodesMultMarkers_Per_BeamD.clear();
+	ANCF_NumNodesMultMarkers_Per_Beam_CumulD.clear();
+
+
 
 	posRigidCumulativeD.clear();
 	velMassRigidD.clear();
