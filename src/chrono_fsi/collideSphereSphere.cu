@@ -1321,7 +1321,7 @@ void cudaCollisions(
 	cudaMemcpyToSymbolAsync(numFlex_SphMarkersD, &numFlex_SphMarkers, sizeof(numFlex_SphMarkers)); //can be defined outside of the kernel, and only once
 	//******************************************************************************
 	thrust::device_vector<real_> flexParametricDistD = flexParametricDist;
-	thrust::device_vector<int> flexIdentifierD(numFlexBodies);
+	thrust::device_vector<int> flexIdentifierD(numFlex_SphMarkers);
 
 	MakeFlexIdentifier(flexIdentifierD, numFlexBodies, numFlBcRigid, startFlexMarkers, referenceArray);
 
