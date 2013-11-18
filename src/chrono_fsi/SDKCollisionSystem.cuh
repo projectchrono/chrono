@@ -61,7 +61,7 @@ typedef unsigned int uint;
 struct SimParams {
 		real3 gravity;
 		real_ globalDamping;
-		real_ particleRadius;
+		real_ markerRadius;
 
 		int3 gridSize;
 		real3 worldOrigin;
@@ -215,7 +215,7 @@ void setParameters(SimParams *hostParams);
 
 void computeGridSize(uint n, uint blockSize, uint &numBlocks, uint &numThreads);
 
-void calcHash(uint* gridParticleHash, uint* gridParticleIndex, real3 * pos, int numParticles);
+void calcHash(uint* gridMarkerHash, uint* gridMarkerIndex, real3 * pos, int numMarkers);
 
 void reorderDataAndFindCellStart(
 		uint* cellStart,
@@ -223,12 +223,12 @@ void reorderDataAndFindCellStart(
 		real3* sortedPosRad,
 		real4* sortedVelMas,
 		real4* sortedRhoPreMu,
-		uint* gridParticleHash,
-		uint* gridParticleIndex,
+		uint* gridMarkerHash,
+		uint* gridMarkerIndex,
 		real3* oldPosRad,
 		real4* oldVelMas,
 		real4* oldRhoPreMu,
-		uint numParticles,
+		uint numMarkers,
 		uint numCells);
 
 void reorderArrays(
@@ -236,8 +236,8 @@ void reorderArrays(
 		uint * bodyIndexSortedArrangedOriginalized,
 		real_ * vDot_P,
 		uint * bodyIndexD,
-		uint * gridParticleIndex, // input: sorted particle indices
-		uint numParticles);
+		uint * gridMarkerIndex, // input: sorted particle indices
+		uint numMarkers);
 
 
 void CopyBackSortedToOriginal(
@@ -249,18 +249,18 @@ void CopyBackSortedToOriginal(
 		real3* sortedPosRad,
 		real4* sortedVelMas,
 		real4* sortedRhoPreMu,
-		uint * gridParticleIndex,
-		uint numParticles);
+		uint * gridMarkerIndex,
+		uint numMarkers);
 
 void RecalcVelocity_XSPH(
 		real3* vel_XSPH_D,
 		real3* sortedPosRad,
 		real4* sortedVelMas,
 		real4* sortedRhoPreMu,
-		uint* gridParticleIndex,
+		uint* gridMarkerIndex,
 		uint* cellStart,
 		uint* cellEnd,
-		uint numParticles,
+		uint numMarkers,
 		uint numCells);
 
 void collide(
@@ -269,10 +269,10 @@ void collide(
 		real4* sortedVelMas,
 		real3* vel_XSPH_Sorted_D,
 		real4* sortedRhoPreMu,
-		uint* gridParticleIndex,
+		uint* gridMarkerIndex,
 		uint* cellStart,
 		uint* cellEnd,
-		uint numParticles,
+		uint numMarkers,
 		uint numCells,
 		real_ dT);
 
@@ -285,7 +285,7 @@ void UpdatePosVelP(
 		real4* m_dSortedRhoPreMu,
 		real_* vDot_PSortedNew,
 		real_* vDot_PSorted,
-		uint numParticles);
+		uint numMarkers);
 
 void UpdateBC(
 		real3* m_dSortedPosRadNew,
@@ -302,10 +302,10 @@ void ReCalcDensity(
 		real3* m_dSortedPosRad,
 		real4* m_dSortedVelMas,
 		real4* m_dSortedRhoPreMu,
-		uint* m_dGridParticleIndex,
+		uint* m_dgridMarkerIndex,
 		uint* m_dCellStart,
 		uint* m_dCellEnd,
-		uint numParticles,
+		uint numMarkers,
 		uint numCells);
 
 void CalcCartesianData(
@@ -314,7 +314,7 @@ void CalcCartesianData(
 		real3* sortedPosRad,
 		real4* sortedVelMas,
 		real4* sortedRhoPreMu,
-		uint* gridParticleIndex,
+		uint* gridMarkerIndex,
 		uint* cellStart,
 		uint* cellEnd,
 		uint cartesianGridSize,
@@ -326,10 +326,10 @@ void CalcNumberInterferences(
 		int* contactFluidFromTotal_D,
 		real3* sortedPosRad,
 		real4* sortedRhoPreMu,
-		uint* gridParticleIndex,
+		uint* gridMarkerIndex,
 		uint* cellStart,
 		uint* cellEnd,
-		uint numParticles,
+		uint numMarkers,
 		uint numCells,
 		int2* contactIndicesFTotal,
 		bool flagWrite);
@@ -339,10 +339,10 @@ void FindMinimumDistanceIndices(
 			int * ShortestDistanceIsAvailable,
 			real3* sortedPosRad,
 			real4* sortedRhoPreMu,
-			uint* gridParticleIndex,
+			uint* gridMarkerIndex,
 			uint* cellStart,
 			uint* cellEnd,
-			uint numParticles,
+			uint numMarkers,
 			int numFluidMarkers,
 			int numBoundaryAndRigid);
 
@@ -355,12 +355,12 @@ void CalcJacobianAndResidual(
 		real3* sortedPosRad,
 		real4* sortedVelMas,
 		real4* sortedRhoPreMu,
-		uint* gridParticleIndex,
+		uint* gridMarkerIndex,
 		int * contactFluidFromFluid_D,
 		int * contactFluidFromTotal_D,
 		int2 * contactIndicesFTotal,
 		int totalNumberOfInterferenceFTotal,
-		uint numParticles,
+		uint numMarkers,
 		uint numFluidMarkers);
 
 #endif

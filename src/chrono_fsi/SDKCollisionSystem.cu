@@ -161,7 +161,7 @@ real4 collideCell(
 		real4* sortedRhoPreMu,
 		uint* cellStart,
 		uint* cellEnd,
-		uint* gridParticleIndex) {
+		uint* gridMarkerIndex) {
 
 	uint gridHash = calcGridHash(gridPos);
 	// get start of bucket for this cell
@@ -283,12 +283,12 @@ void calcOnCartesianShare(
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // calculate grid hash value for each particle
-__global__ void calcHashD(uint* gridParticleHash, // output
-		uint* gridParticleIndex, // output
+__global__ void calcHashD(uint* gridMarkerHash, // output
+		uint* gridMarkerIndex, // output
 		real3* posRad, // input: positions
-		uint numParticles) {
+		uint numMarkers) {
 	uint index = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
-	if (index >= numParticles) return;
+	if (index >= numMarkers) return;
 
 	volatile real3 p = posRad[index];
 
@@ -308,8 +308,8 @@ __global__ void calcHashD(uint* gridParticleHash, // output
 	uint hash = calcGridHash(gridPos);
 
 	// store grid hash and particle index
-	gridParticleHash[index] = hash;
-	gridParticleIndex[index] = index;
+	gridMarkerHash[index] = hash;
+	gridMarkerIndex[index] = index;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 
@@ -322,19 +322,19 @@ void reorderDataAndFindCellStartD(
 		real3* sortedPosRad, // output: sorted positions
 		real4* sortedVelMas, // output: sorted velocities
 		real4* sortedRhoPreMu,
-		uint * gridParticleHash, // input: sorted grid hashes
-		uint * gridParticleIndex, // input: sorted particle indices
+		uint * gridMarkerHash, // input: sorted grid hashes
+		uint * gridMarkerIndex, // input: sorted particle indices
 		real3* oldPosRad, // input: sorted position array
 		real4* oldVelMas, // input: sorted velocity array
 		real4* oldRhoPreMu,
-		uint numParticles) {
+		uint numMarkers) {
 	extern __shared__ uint sharedHash[]; // blockSize + 1 elements
 	uint index = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
 
 	uint hash;
 	// handle case when no. of particles not multiple of block size
-	if (index < numParticles) {
-		hash = gridParticleHash[index];
+	if (index < numMarkers) {
+		hash = gridMarkerHash[index];
 
 		// Load hash data into shared memory so that we can look
 		// at neighboring particle's hash value without loading
@@ -343,13 +343,13 @@ void reorderDataAndFindCellStartD(
 
 		if (index > 0 && threadIdx.x == 0) {
 			// first thread in block must load neighbor particle hash
-			sharedHash[0] = gridParticleHash[index - 1];
+			sharedHash[0] = gridMarkerHash[index - 1];
 		}
 	}
 
 	__syncthreads();
 
-	if (index < numParticles) {
+	if (index < numMarkers) {
 		// If this particle has a different cell index to the previous
 		// particle then it must be the first particle in the cell,
 		// so store the index of this particle in the cell.
@@ -361,12 +361,12 @@ void reorderDataAndFindCellStartD(
 			if (index > 0) cellEnd[sharedHash[threadIdx.x]] = index;
 		}
 
-		if (index == numParticles - 1) {
+		if (index == numMarkers - 1) {
 			cellEnd[hash] = index + 1;
 		}
 
 		// Now use the sorted index to reorder the pos and vel data
-		uint sortedIndex = gridParticleIndex[index];
+		uint sortedIndex = gridMarkerIndex[index];
 		real3 posRad = FETCH(oldPosRad, sortedIndex); // macro does either global read or texture fetch
 		real4 velMas = FETCH(oldVelMas, sortedIndex); // see particles_kernel.cuh
 		real4 rhoPreMu = FETCH(oldRhoPreMu, sortedIndex);
@@ -382,12 +382,12 @@ void newVel_XSPH_D(real3* vel_XSPH_Sorted_D, // output: new velocity
 		real3* sortedPosRad, // input: sorted positions
 		real4* sortedVelMas, // input: sorted velocities
 		real4* sortedRhoPreMu,
-		uint* gridParticleIndex, // input: sorted particle indices
+		uint* gridMarkerIndex, // input: sorted particle indices
 		uint* cellStart,
 		uint* cellEnd,
-		uint numParticles) {
+		uint numMarkers) {
 	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
-	if (index >= numParticles) return;
+	if (index >= numMarkers) return;
 
 	// read particle data from sorted arrays
 	real3 posRadA = FETCH(sortedPosRad, index);
@@ -414,7 +414,7 @@ void newVel_XSPH_D(real3* vel_XSPH_Sorted_D, // output: new velocity
 	//sortedVel_XSPH[index] = R3(velMasA) + EPS_XSPH * deltaV;
 
 	// write new velocity back to original unsorted location
-	uint originalIndex = gridParticleIndex[index];
+	uint originalIndex = gridMarkerIndex[index];
 	vel_XSPH_Sorted_D[index] = R3(velMasA) + EPS_XSPH * deltaV;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -424,19 +424,19 @@ void collideD(real4* derivVelRhoD, // output: new velocity
 		real4* sortedVelMas, // input: sorted velocities
 		real3* vel_XSPH_Sorted_D,
 		real4* sortedRhoPreMu,
-		uint* gridParticleIndex, // input: sorted particle indices
+		uint* gridMarkerIndex, // input: sorted particle indices
 		uint* cellStart,
 		uint* cellEnd,
-		uint numParticles) {
+		uint numMarkers) {
 	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
-	if (index >= numParticles) return;
+	if (index >= numMarkers) return;
 
 	// read particle data from sorted arrays
 	real3 posRadA = FETCH(sortedPosRad, index);
 	real4 velMasA = FETCH(sortedVelMas, index);
 	real4 rhoPreMuA = FETCH(sortedRhoPreMu, index);
 
-	uint originalIndex = gridParticleIndex[index];
+	uint originalIndex = gridMarkerIndex[index];
 	real3 vel_XSPH_A = FETCH(vel_XSPH_Sorted_D, index);
 
 	real4 derivVelRho =derivVelRhoD[originalIndex];
@@ -449,7 +449,7 @@ void collideD(real4* derivVelRhoD, // output: new velocity
 		for (int y = -1; y <= 1; y++) {
 			for (int z = -1; z <= 1; z++) {
 				derivVelRho += collideCell(gridPos + I3(x, y, z), index, posRadA, velMasA, vel_XSPH_A, rhoPreMuA, sortedPosRad, sortedVelMas, vel_XSPH_Sorted_D,
-								sortedRhoPreMu, cellStart, cellEnd, gridParticleIndex);
+								sortedRhoPreMu, cellStart, cellEnd, gridMarkerIndex);
 			}
 		}
 	}
@@ -480,12 +480,12 @@ void ReCalcDensityD_F1(
 		real3* sortedPosRad,
 		real4* sortedVelMas,
 		real4* sortedRhoPreMu,
-		uint* gridParticleIndex,
+		uint* gridMarkerIndex,
 		uint* cellStart,
 		uint* cellEnd,
-		uint numParticles) {
+		uint numMarkers) {
 	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
-	if (index >= numParticles) return;
+	if (index >= numMarkers) return;
 
 	// read particle data from sorted arrays
 	real3 posRadA = FETCH(sortedPosRad, index);
@@ -509,7 +509,7 @@ void ReCalcDensityD_F1(
 		}
 	}
 	// write new velocity back to original unsorted location
-	uint originalIndex = gridParticleIndex[index];
+	uint originalIndex = gridMarkerIndex[index];
 
 	real_ newDensity = densityShare + velMasA.w * W3(0); //?$ include the particle in its summation as well
 	if (rhoPreMuA.w < 0) {
@@ -527,7 +527,7 @@ void CalcCartesianDataD(
 		real3* sortedPosRad,
 		real4* sortedVelMas,
 		real4* sortedRhoPreMu,
-		uint* gridParticleIndex,
+		uint* gridMarkerIndex,
 		uint* cellStart,
 		uint* cellEnd) {
 	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
@@ -555,7 +555,7 @@ void CalcCartesianDataD(
 		}
 	}
 	// write new velocity back to original unsorted location
-	uint originalIndex = gridParticleIndex[index];
+	uint originalIndex = gridMarkerIndex[index];
 
 	//real_ newDensity = densityShare + velMasA.w * W3(0); //?$ include the particle in its summation as well
 	//if (rhoPreMuA.w < -.1) { rhoPreMuA.x = newDensity; }
@@ -593,15 +593,15 @@ void setParameters(SimParams *hostParams) {
 	cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, hostParams, sizeof(SimParams)));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void calcHash(uint* gridParticleHash, uint* gridParticleIndex, real3 * posRad, int numParticles) {
+void calcHash(uint* gridMarkerHash, uint* gridMarkerIndex, real3 * posRad, int numMarkers) {
 	uint numThreads, numBlocks;
-	computeGridSize(numParticles, 256, numBlocks, numThreads);
+	computeGridSize(numMarkers, 256, numBlocks, numThreads);
 
 	// execute the kernel
-	calcHashD<<< numBlocks, numThreads >>>(gridParticleHash,
-			gridParticleIndex,
+	calcHashD<<< numBlocks, numThreads >>>(gridMarkerHash,
+			gridMarkerIndex,
 			posRad,
-			numParticles);
+			numMarkers);
 
 	// check if kernel invocation generated an error
 	cudaThreadSynchronize();
@@ -614,23 +614,23 @@ void reorderDataAndFindCellStart(
 		real3* sortedPosRad,
 		real4* sortedVelMas,
 		real4* sortedRhoPreMu,
-		uint* gridParticleHash,
-		uint* gridParticleIndex,
+		uint* gridMarkerHash,
+		uint* gridMarkerIndex,
 		real3* oldPosRad,
 		real4* oldVelMas,
 		real4* oldRhoPreMu,
-		uint numParticles,
+		uint numMarkers,
 		uint numCells) {
 	uint numThreads, numBlocks;
-	computeGridSize(numParticles, 256, numBlocks, numThreads); //?$ 256 is blockSize
+	computeGridSize(numMarkers, 256, numBlocks, numThreads); //?$ 256 is blockSize
 
 	// set all cells to empty
 	cutilSafeCall(cudaMemset(cellStart, 0xffffffff, numCells*sizeof(uint)));
 
 //#if USE_TEX
 //#if 0
-//    cutilSafeCall(cudaBindTexture(0, oldPosTex, oldPosRad, numParticles*sizeof(real4)));
-//    cutilSafeCall(cudaBindTexture(0, oldVelTex, oldVelMas, numParticles*sizeof(real4)));
+//    cutilSafeCall(cudaBindTexture(0, oldPosTex, oldPosRad, numMarkers*sizeof(real4)));
+//    cutilSafeCall(cudaBindTexture(0, oldVelTex, oldVelMas, numMarkers*sizeof(real4)));
 //#endif
 
 	uint smemSize = sizeof(uint) * (numThreads + 1);
@@ -640,12 +640,12 @@ void reorderDataAndFindCellStart(
 			sortedPosRad,
 			sortedVelMas,
 			sortedRhoPreMu,
-			gridParticleHash,
-			gridParticleIndex,
+			gridMarkerHash,
+			gridMarkerIndex,
 			oldPosRad,
 			oldVelMas,
 			oldRhoPreMu,
-			numParticles);
+			numMarkers);
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: reorderDataAndFindCellStartD");
 //#if USE_TEX
@@ -660,31 +660,31 @@ void RecalcVelocity_XSPH(
 		real3* sortedPosRad,
 		real4* sortedVelMas,
 		real4* sortedRhoPreMu,
-		uint* gridParticleIndex,
+		uint* gridMarkerIndex,
 		uint* cellStart,
 		uint* cellEnd,
-		uint numParticles,
+		uint numMarkers,
 		uint numCells) {
 	//#if USE_TEX
-	//    cutilSafeCall(cudaBindTexture(0, oldPosTex, sortedPosRad, numParticles*sizeof(real4)));
-	//    cutilSafeCall(cudaBindTexture(0, oldVelTex, sortedVelMas, numParticles*sizeof(real4)));
+	//    cutilSafeCall(cudaBindTexture(0, oldPosTex, sortedPosRad, numMarkers*sizeof(real4)));
+	//    cutilSafeCall(cudaBindTexture(0, oldVelTex, sortedVelMas, numMarkers*sizeof(real4)));
 	//    cutilSafeCall(cudaBindTexture(0, cellStartTex, cellStart, numCells*sizeof(uint)));
 	//    cutilSafeCall(cudaBindTexture(0, cellEndTex, cellEnd, numCells*sizeof(uint)));    
 	//#endif
 
 	// thread per particle
 	uint numThreads, numBlocks;
-	computeGridSize(numParticles, 64, numBlocks, numThreads);
+	computeGridSize(numMarkers, 64, numBlocks, numThreads);
 
 	// execute the kernel
 	newVel_XSPH_D<<< numBlocks, numThreads >>>(vel_XSPH_Sorted_D,
 			sortedPosRad,
 			sortedVelMas,
 			sortedRhoPreMu,
-			gridParticleIndex,
+			gridMarkerIndex,
 			cellStart,
 			cellEnd,
-			numParticles);
+			numMarkers);
 
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: newVel_XSPH_D");
@@ -703,15 +703,15 @@ void collide(
 		real4* sortedVelMas,
 		real3* vel_XSPH_Sorted_D,
 		real4* sortedRhoPreMu,
-		uint* gridParticleIndex,
+		uint* gridMarkerIndex,
 		uint* cellStart,
 		uint* cellEnd,
-		uint numParticles,
+		uint numMarkers,
 		uint numCells,
 		real_ dT) {
 	//#if USE_TEX
-	//    cutilSafeCall(cudaBindTexture(0, oldPosTex, sortedPosRad, numParticles*sizeof(real4)));
-	//    cutilSafeCall(cudaBindTexture(0, oldVelTex, sortedVelMas, numParticles*sizeof(real4)));
+	//    cutilSafeCall(cudaBindTexture(0, oldPosTex, sortedPosRad, numMarkers*sizeof(real4)));
+	//    cutilSafeCall(cudaBindTexture(0, oldVelTex, sortedVelMas, numMarkers*sizeof(real4)));
 	//    cutilSafeCall(cudaBindTexture(0, cellStartTex, cellStart, numCells*sizeof(uint)));
 	//    cutilSafeCall(cudaBindTexture(0, cellEndTex, cellEnd, numCells*sizeof(uint)));    
 	//#endif
@@ -720,7 +720,7 @@ void collide(
 
 	// thread per particle
 	uint numThreads, numBlocks;
-	computeGridSize(numParticles, 64, numBlocks, numThreads);
+	computeGridSize(numMarkers, 64, numBlocks, numThreads);
 
 	// execute the kernel
 	collideD<<< numBlocks, numThreads >>>(derivVelRhoD,
@@ -728,10 +728,10 @@ void collide(
 			sortedVelMas,
 			vel_XSPH_Sorted_D,
 			sortedRhoPreMu,
-			gridParticleIndex,
+			gridMarkerIndex,
 			cellStart,
 			cellEnd,
-			numParticles);
+			numMarkers);
 
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: collideD");
@@ -751,21 +751,21 @@ void ReCalcDensity(
 		real3* sortedPosRad,
 		real4* sortedVelMas,
 		real4* sortedRhoPreMu,
-		uint* gridParticleIndex,
+		uint* gridMarkerIndex,
 		uint* cellStart,
 		uint* cellEnd,
-		uint numParticles,
+		uint numMarkers,
 		uint numCells) {
 	//#if USE_TEX
-	//    cutilSafeCall(cudaBindTexture(0, oldPosTex, sortedPosRad, numParticles*sizeof(real4)));
-	//    cutilSafeCall(cudaBindTexture(0, oldVelTex, sortedVelMas, numParticles*sizeof(real4)));
+	//    cutilSafeCall(cudaBindTexture(0, oldPosTex, sortedPosRad, numMarkers*sizeof(real4)));
+	//    cutilSafeCall(cudaBindTexture(0, oldVelTex, sortedVelMas, numMarkers*sizeof(real4)));
 	//    cutilSafeCall(cudaBindTexture(0, cellStartTex, cellStart, numCells*sizeof(uint)));
 	//    cutilSafeCall(cudaBindTexture(0, cellEndTex, cellEnd, numCells*sizeof(uint)));    
 	//#endif
 
 	// thread per particle
 	uint numThreads, numBlocks;
-	computeGridSize(numParticles, 64, numBlocks, numThreads);
+	computeGridSize(numMarkers, 64, numBlocks, numThreads);
 
 	// execute the kernel
 	ReCalcDensityD_F1<<< numBlocks, numThreads >>>(oldPosRad,
@@ -774,10 +774,10 @@ void ReCalcDensity(
 			sortedPosRad,
 			sortedVelMas,
 			sortedRhoPreMu,
-			gridParticleIndex,
+			gridMarkerIndex,
 			cellStart,
 			cellEnd,
-			numParticles);
+			numMarkers);
 
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: ReCalcDensityD");
@@ -796,7 +796,7 @@ void CalcCartesianData(
 		real3* sortedPosRad,
 		real4* sortedVelMas,
 		real4* sortedRhoPreMu,
-		uint* gridParticleIndex,
+		uint* gridMarkerIndex,
 		uint* cellStart,
 		uint* cellEnd,
 		uint cartesianGridSize,
@@ -816,7 +816,7 @@ void CalcCartesianData(
 			sortedPosRad,
 			sortedVelMas,
 			sortedRhoPreMu,
-			gridParticleIndex,
+			gridMarkerIndex,
 			cellStart,
 			cellEnd);
 

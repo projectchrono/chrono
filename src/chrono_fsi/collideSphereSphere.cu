@@ -68,10 +68,10 @@ __global__ void UpdateKernelFluid(real3 * posRadD, real4 * velMasD, real3 * vel_
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //copies the sortedVelXSPH to velXSPH according to indexing
-__global__ void Copy_SortedVelXSPH_To_VelXSPH(real3 * vel_XSPH_D, real3 * vel_XSPH_Sorted_D, uint * m_dGridParticleIndex, int numParticles) {
+__global__ void Copy_SortedVelXSPH_To_VelXSPH(real3 * vel_XSPH_D, real3 * vel_XSPH_Sorted_D, uint * m_dGridMarkerIndex, int numMarkers) {
 	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
-	if (index >= numParticles) return;
-	vel_XSPH_D[m_dGridParticleIndex[index]] = vel_XSPH_Sorted_D[index];
+	if (index >= numMarkers) return;
+	vel_XSPH_D[m_dGridMarkerIndex[index]] = vel_XSPH_Sorted_D[index];
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //updates the fluid particles' properties, i.e. velocity, density, pressure, position
@@ -271,14 +271,14 @@ __global__ void SumSurfaceInteractionForces(real3 * totalForcesRigid3, real4 * t
 	totalForcesRigid3[rigidSphereA] = derivRigid;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void CalcTorqueShare(real3* torqueParticlesD, real4* derivVelRhoD, real3* posRadD, int* rigidIdentifierD, real3* posRigidD) {
+__global__ void CalcTorqueShare(real3* torqueMarkersD, real4* derivVelRhoD, real3* posRadD, int* rigidIdentifierD, real3* posRigidD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	uint rigidMarkerIndex = index + startRigidMarkersD;
 	if (index >= numRigid_SphMarkersD) {
 		return;
 	}
 	real3 dist3 = Distance(posRadD[rigidMarkerIndex], posRigidD[rigidIdentifierD[index]]);
-	torqueParticlesD[index] = cross(dist3, R3(derivVelRhoD[rigidMarkerIndex]));
+	torqueMarkersD[index] = cross(dist3, R3(derivVelRhoD[rigidMarkerIndex]));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void MapForcesOnNodes(
@@ -326,7 +326,7 @@ __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(
 		real3* posRigidD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	uint rigidMarkerIndex = index + startRigidMarkersD; // updatePortionD = [start, end] index of the update portion
-	if (index >= numRigid_SphParticlesD) {
+	if (index >= numRigid_SphMarkersD) {
 		return;
 	}
 	real3 dist3 = posRadD[rigidMarkerIndex] - posRigidD[rigidIdentifierD[index]];
@@ -681,22 +681,22 @@ void MapSPH_ToGrid(
 	thrust::device_vector<real4> m_dSortedVelMas(mNSpheres);
 	thrust::device_vector<real4> m_dSortedRhoPreMu(mNSpheres);
 
-	thrust::device_vector<uint> m_dGridParticleHash(mNSpheres);
-	thrust::device_vector<uint> m_dGridParticleIndex(mNSpheres);
+	thrust::device_vector<uint> m_dGridMarkerHash(mNSpheres);
+	thrust::device_vector<uint> m_dGridMarkerIndex(mNSpheres);
 
 	thrust::device_vector<uint> m_dCellStart(m_numGridCells);
 	thrust::device_vector<uint> m_dCellEnd(m_numGridCells);
 
 	// calculate grid hash
-	calcHash(U1CAST(m_dGridParticleHash), U1CAST(m_dGridParticleIndex), R3CAST(posRadD), mNSpheres);
+	calcHash(U1CAST(m_dGridMarkerHash), U1CAST(m_dGridMarkerIndex), R3CAST(posRadD), mNSpheres);
 
-	thrust::sort_by_key(m_dGridParticleHash.begin(), m_dGridParticleHash.end(), m_dGridParticleIndex.begin());
+	thrust::sort_by_key(m_dGridMarkerHash.begin(), m_dGridMarkerHash.end(), m_dGridMarkerIndex.begin());
 
 	// reorder particle arrays into sorted order and find start and end of each cell
-	reorderDataAndFindCellStart(U1CAST(m_dCellStart), U1CAST(m_dCellEnd), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridParticleHash),
-			U1CAST(m_dGridParticleIndex), TCAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), mNSpheres, m_numGridCells);
+	reorderDataAndFindCellStart(U1CAST(m_dCellStart), U1CAST(m_dCellEnd), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridMarkerHash),
+			U1CAST(m_dGridMarkerIndex), TCAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), mNSpheres, m_numGridCells);
 
-	//real_ resolution = 8 * paramsH.particleRadius;
+	//real_ resolution = 8 * paramsH.markerRadius;
 	cartesianGridDims = I3(paramsH.boxDims / resolution) + I3(1);
 //	printf("^^^ bodDim %f %f %f, GridDim %d %d %d, resolution %f \n", paramsH.boxDims.x, paramsH.boxDims.y, paramsH.boxDims.z, cartesianGridDims.x,
 //			cartesianGridDims.y, cartesianGridDims.z, resolution);
@@ -705,7 +705,7 @@ void MapSPH_ToGrid(
 	thrust::device_vector<real4> vel_VelMag_CartD(cartesianGridSize);
 
 	CalcCartesianData(R4CAST(rho_Pres_CartD), R4CAST(vel_VelMag_CartD), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu),
-			U1CAST(m_dGridParticleIndex), U1CAST(m_dCellStart), U1CAST(m_dCellEnd), cartesianGridSize, cartesianGridDims, resolution);
+			U1CAST(m_dGridMarkerIndex), U1CAST(m_dCellStart), U1CAST(m_dCellEnd), cartesianGridSize, cartesianGridDims, resolution);
 
 //	freeArray(m_dSortedPosRad);
 //	freeArray(m_dSortedVelMas);
@@ -714,8 +714,8 @@ void MapSPH_ToGrid(
 	m_dSortedVelMas.clear();
 	m_dSortedRhoPreMu.clear();
 
-	m_dGridParticleHash.clear();
-	m_dGridParticleIndex.clear();
+	m_dGridMarkerHash.clear();
+	m_dGridMarkerIndex.clear();
 
 //	freeArray(m_dCellStart);
 //	freeArray(m_dCellEnd);
@@ -763,35 +763,35 @@ void ForceSPH(
 	thrust::device_vector<real4> m_dSortedRhoPreMu(mNSpheres);
 	thrust::device_vector<real3> vel_XSPH_Sorted_D(mNSpheres);
 
-	thrust::device_vector<uint> m_dGridParticleHash(mNSpheres);
-	thrust::device_vector<uint> m_dGridParticleIndex(mNSpheres);
+	thrust::device_vector<uint> m_dGridMarkerHash(mNSpheres);
+	thrust::device_vector<uint> m_dGridMarkerIndex(mNSpheres);
 
 	thrust::device_vector<uint> m_dCellStart(m_numGridCells);
 	thrust::device_vector<uint> m_dCellEnd(m_numGridCells);
 	// calculate grid hash
-	calcHash(U1CAST(m_dGridParticleHash), U1CAST(m_dGridParticleIndex), R3CAST(posRadD), mNSpheres);
+	calcHash(U1CAST(m_dGridMarkerHash), U1CAST(m_dGridMarkerIndex), R3CAST(posRadD), mNSpheres);
 
-	thrust::sort_by_key(m_dGridParticleHash.begin(), m_dGridParticleHash.end(), m_dGridParticleIndex.begin());
+	thrust::sort_by_key(m_dGridMarkerHash.begin(), m_dGridMarkerHash.end(), m_dGridMarkerIndex.begin());
 
 	// reorder particle arrays into sorted order and find start and end of each cell
-	reorderDataAndFindCellStart(U1CAST(m_dCellStart), U1CAST(m_dCellEnd), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridParticleHash),
-			U1CAST(m_dGridParticleIndex), TCAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), mNSpheres, m_numGridCells);
+	reorderDataAndFindCellStart(U1CAST(m_dCellStart), U1CAST(m_dCellEnd), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridMarkerHash),
+			U1CAST(m_dGridMarkerIndex), TCAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), mNSpheres, m_numGridCells);
 
 	//process collisions
 	real4 totalFluidBodyForce4 = bodyForce4 + R4(Gravity);
 	thrust::fill(derivVelRhoD.begin(), derivVelRhoD.end(), R4(0)); //initialize derivVelRhoD with zero. necessary
 	thrust::fill(derivVelRhoD.begin() + referenceArray[0].x, derivVelRhoD.begin() + referenceArray[0].y, totalFluidBodyForce4); //add body force to fluid particles.
 
-	RecalcVelocity_XSPH(R3CAST(vel_XSPH_Sorted_D), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridParticleIndex), U1CAST(m_dCellStart),
+	RecalcVelocity_XSPH(R3CAST(vel_XSPH_Sorted_D), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridMarkerIndex), U1CAST(m_dCellStart),
 			U1CAST(m_dCellEnd), mNSpheres, m_numGridCells);
 
-	collide(R4CAST(derivVelRhoD), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R3CAST(vel_XSPH_Sorted_D), R4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridParticleIndex), U1CAST(m_dCellStart),
+	collide(R4CAST(derivVelRhoD), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R3CAST(vel_XSPH_Sorted_D), R4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridMarkerIndex), U1CAST(m_dCellStart),
 			U1CAST(m_dCellEnd), mNSpheres, m_numGridCells, dT);
 
 
 	uint nBlock_NumSpheres, nThreads_SphMarkers;
 	computeGridSize(mNSpheres, 256, nBlock_NumSpheres, nThreads_SphMarkers);
-	Copy_SortedVelXSPH_To_VelXSPH<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(R3CAST(vel_XSPH_D), R3CAST(vel_XSPH_Sorted_D), U1CAST(m_dGridParticleIndex), mNSpheres);
+	Copy_SortedVelXSPH_To_VelXSPH<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(R3CAST(vel_XSPH_D), R3CAST(vel_XSPH_Sorted_D), U1CAST(m_dGridMarkerIndex), mNSpheres);
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: Copy_SortedVelXSPH_To_VelXSPH");
 
@@ -801,8 +801,8 @@ void ForceSPH(
 	m_dSortedRhoPreMu.clear();
 	vel_XSPH_Sorted_D.clear();
 
-	m_dGridParticleHash.clear();
-	m_dGridParticleIndex.clear();
+	m_dGridMarkerHash.clear();
+	m_dGridMarkerIndex.clear();
 
 	m_dCellStart.clear();
 	m_dCellEnd.clear();
@@ -828,30 +828,30 @@ void DensityReinitialization(
 	thrust::device_vector<real4> m_dSortedVelMas(mNSpheres);
 	thrust::device_vector<real4> m_dSortedRhoPreMu(mNSpheres);
 
-	thrust::device_vector<uint> m_dGridParticleHash(mNSpheres);
-	thrust::device_vector<uint> m_dGridParticleIndex(mNSpheres);
+	thrust::device_vector<uint> m_dGridMarkerHash(mNSpheres);
+	thrust::device_vector<uint> m_dGridMarkerIndex(mNSpheres);
 
 	thrust::device_vector<uint> m_dCellStart(m_numGridCells);
 	thrust::device_vector<uint> m_dCellEnd(m_numGridCells);
 
 	// calculate grid hash
-	calcHash(U1CAST(m_dGridParticleHash), U1CAST(m_dGridParticleIndex), R3CAST(posRadD), mNSpheres);
+	calcHash(U1CAST(m_dGridMarkerHash), U1CAST(m_dGridMarkerIndex), R3CAST(posRadD), mNSpheres);
 
-	thrust::sort_by_key(m_dGridParticleHash.begin(), m_dGridParticleHash.end(), m_dGridParticleIndex.begin());
+	thrust::sort_by_key(m_dGridMarkerHash.begin(), m_dGridMarkerHash.end(), m_dGridMarkerIndex.begin());
 
 	// reorder particle arrays into sorted order and find start and end of each cell
-	reorderDataAndFindCellStart(U1CAST(m_dCellStart), U1CAST(m_dCellEnd), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridParticleHash),
-			U1CAST(m_dGridParticleIndex), TCAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), mNSpheres, m_numGridCells);
+	reorderDataAndFindCellStart(U1CAST(m_dCellStart), U1CAST(m_dCellEnd), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridMarkerHash),
+			U1CAST(m_dGridMarkerIndex), TCAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), mNSpheres, m_numGridCells);
 
 	ReCalcDensity(R3CAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu),
-			U1CAST(m_dGridParticleIndex), U1CAST(m_dCellStart), U1CAST(m_dCellEnd), mNSpheres, m_numGridCells);
+			U1CAST(m_dGridMarkerIndex), U1CAST(m_dCellStart), U1CAST(m_dCellEnd), mNSpheres, m_numGridCells);
 
 	m_dSortedPosRad.clear();
 	m_dSortedVelMas.clear();
 	m_dSortedRhoPreMu.clear();
 
-	m_dGridParticleHash.clear();
-	m_dGridParticleIndex.clear();
+	m_dGridMarkerHash.clear();
+	m_dGridMarkerIndex.clear();
 
 	m_dCellStart.clear();
 	m_dCellEnd.clear();
@@ -1038,14 +1038,14 @@ void UpdateRigidBody(
 
 
 
-	thrust::device_vector<real3> torqueParticlesD(numRigid_SphMarkers);
-	CalcTorqueShare<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(R3CAST(torqueParticlesD), R4CAST(derivVelRhoD), R3CAST(posRadD), I1CAST(rigidIdentifierD), R3CAST(posRigidD));
+	thrust::device_vector<real3> torqueMarkersD(numRigid_SphMarkers);
+	CalcTorqueShare<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(R3CAST(torqueMarkersD), R4CAST(derivVelRhoD), R3CAST(posRadD), I1CAST(rigidIdentifierD), R3CAST(posRigidD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueShare");
-	(void) thrust::reduce_by_key(rigidIdentifierD.begin(), rigidIdentifierD.end(), torqueParticlesD.begin(), dummyIdentify.begin(),
+	(void) thrust::reduce_by_key(rigidIdentifierD.begin(), rigidIdentifierD.end(), torqueMarkersD.begin(), dummyIdentify.begin(),
 			totalTorque3.begin(), binary_pred, thrust::plus<real3>());
 
-	torqueParticlesD.clear();
+	torqueMarkersD.clear();
 	dummyIdentify.clear();
 
 	//add gravity
@@ -1393,7 +1393,7 @@ void cudaCollisions(
 	//*******************
 	SimParams paramsH;
 	paramsH.gravity = Gravity; //Gravity * sizeScale;;// R3(0, -9.8, 0) * sizeScale; //R3(0, -9800, 0) * sizeScale;
-	paramsH.particleRadius = HSML;
+	paramsH.markerRadius = HSML;
 	paramsH.gridSize = SIDE;
 	//paramsH.numCells = SIDE.x * SIDE.y * SIDE.z;
 	paramsH.worldOrigin = cMinOffsetCollisionPurpose;
