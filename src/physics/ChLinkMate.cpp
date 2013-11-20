@@ -539,14 +539,14 @@ int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body t
 	if (pos_are_relative)
 	{
 		mN = mnorm1;
-		mN.DirToDxDyDz(&mx, &my, &mz);
-		mrot.Set_A_axis(mx,my,mz);
+		mN.DirToDxDyDz(mx, my, mz);
+		mrot.Set_A_axis(mx, my, mz);
 		mfr1.SetRot(mrot);
 		mfr1.SetPos(mpt1);
 
 		mN = mnorm2;
-		mN.DirToDxDyDz(&mx, &my, &mz);
-		mrot.Set_A_axis(mx,my,mz);
+		mN.DirToDxDyDz(mx, my, mz);
+		mrot.Set_A_axis(mx, my, mz);
 		mfr2.SetRot(mrot);
 		mfr2.SetPos(mpt2);
 	}
@@ -556,14 +556,14 @@ int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body t
 		ChVector<> temp=VECT_Z;
 		// from abs to body-rel
 		mN = this->Body1->Dir_World2Body(&mnorm1);
-		mN.DirToDxDyDz(&mx, &my, &mz, &temp);
-		mrot.Set_A_axis(mx,my,mz);
+		mN.DirToDxDyDz(mx, my, mz, temp);
+		mrot.Set_A_axis(mx, my, mz);
 		mfr1.SetRot(mrot);
 		mfr1.SetPos(this->Body1->Point_World2Body(&mpt1));
 
 		mN = this->Body2->Dir_World2Body(&mnorm2);
-		mN.DirToDxDyDz(&mx, &my, &mz, &temp);
-		mrot.Set_A_axis(mx,my,mz);
+		mN.DirToDxDyDz(mx, my, mz, temp);
+		mrot.Set_A_axis(mx, my, mz);
 		mfr2.SetRot(mrot);
 		mfr2.SetPos(this->Body2->Point_World2Body(&mpt2));
 	}
