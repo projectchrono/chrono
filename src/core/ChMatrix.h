@@ -332,12 +332,6 @@ public:
 		/// Copy a matrix "matra" into this matrix. Note that 
 		/// the destination matrix will be resized if necessary.
 	template <class RealB>
-	void CopyFromMatrix(ChMatrix<RealB>& matra)
-		{
-			Resize(matra.GetRows(), matra.GetColumns());
-			ElementsCopy(address, matra.GetAddress(), rows*columns); //memcpy (address, matra.address, (sizeof(Real) * rows * columns));
-		}
-	template <class RealB>
 	void CopyFromMatrix(const ChMatrix<RealB>& matra)
 		{
 			Resize(matra.GetRows(), matra.GetColumns());
@@ -347,7 +341,7 @@ public:
 		/// Copy the transpose of matrix "matra" into this matrix. Note that
 		/// the destination matrix will be resized if necessary.
 	template <class RealB>
-	void CopyFromMatrixT(ChMatrix<RealB>& matra)
+	void CopyFromMatrixT(const ChMatrix<RealB>& matra)
 		{
 			Resize(matra.GetColumns(), matra.GetRows());
 			for (int i=0; i < matra.GetRows(); ++i)
@@ -359,7 +353,7 @@ public:
 		/// part of this matrix. (matra must be square)
 		/// Note that the destination matrix will be resized if necessary.
 	template <class RealB>                                      //    _______                       //
-	void CopyTUpMatrix (ChMatrix<RealB>& matra)                 //    \      |          |\          //
+	void CopyTUpMatrix(const ChMatrix<RealB>& matra)            //    \      |          |\          //
 		{                                                       //      \  A'|   --->   |  \        //
 			Resize(matra.GetRows(), matra.GetColumns());        //        \  |          |this\      //
 			for (int i=0; i<matra.GetRows(); i++){              //          \|          |______\    //
@@ -372,7 +366,7 @@ public:
 		/// part of this matrix. (matra must be square)
 		/// Note that the destination matrix will be resized if necessary.
 	template <class RealB>                                      //                      _______     //
-	void CopyTLwMatrix (ChMatrix<RealB>& matra)                 //    |\                \      |    //
+	void CopyTLwMatrix(const ChMatrix<RealB>& matra)            //    |\                \      |    //
 		{                                                       //    |  \      --->      \this|    //
 			Resize(matra.GetRows(), matra.GetColumns());        //    |A'  \                \  |    //
 			for (int i=0; i<matra.GetRows(); i++){              //    |______\                \|    //
@@ -756,7 +750,7 @@ public:
 		/// The matrix must be 3x4.
 		///  \return The result of the multiplication, i.e. a vector.
 	template <class RealB>
-	ChVector<Real> Matr34_x_Quat(ChQuaternion<RealB> qua)
+	ChVector<Real> Matr34_x_Quat(const ChQuaternion<RealB>& qua)
 		{
 			assert ((rows ==3) && (columns ==4));
 			return ChVector<Real>(  ((Get34Element(0,0)) * (Real)qua.e0)+
@@ -777,7 +771,7 @@ public:
 		/// The matrix must be 3x4.
 		///  \return The result of the multiplication, i.e. a quaternion.
 	template <class RealB>
-	ChQuaternion<Real> Matr34T_x_Vect(ChVector<RealB> va)
+	ChQuaternion<Real> Matr34T_x_Vect(const ChVector<RealB>& va)
 		{
 			assert ((rows ==3) && (columns ==4));
 			return ChQuaternion<Real>(  ((Get34Element(0,0)) * (Real)va.x)+
@@ -798,7 +792,7 @@ public:
 		/// The matrix must be  4x4.
 		///  \return The result of the multiplication, i.e. a quaternion.
 	template <class RealB>
-	ChQuaternion<Real> Matr44_x_Quat(ChQuaternion<RealB> qua)
+	ChQuaternion<Real> Matr44_x_Quat(const ChQuaternion<RealB>& qua)
 		{
 			assert ((rows ==4) && (columns ==4));
 			return ChQuaternion<Real>(  ((Get44Element(0,0)) * (Real)qua.e0)+
@@ -963,10 +957,10 @@ public:
 					Element(i+insrow, j+inscol) = (Real)matra->Element(i+cliprow,j+clipcol);
 		}
 
-					/// Paste a clipped portion of the matrix "matra" into "this", performing a sum with preexisting values,
-					/// inserting the clip (of size nrows, ncolumns) at the location insrow-inscol.
+		/// Paste a clipped portion of the matrix "matra" into "this", performing a sum with preexisting values,
+		/// inserting the clip (of size nrows, ncolumns) at the location insrow-inscol.
 	template <class RealB>
-	void PasteSumClippedMatrix (ChMatrix<RealB>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol)
+	void PasteSumClippedMatrix(ChMatrix<RealB>* matra, int cliprow, int clipcol, int nrows, int ncolumns, int insrow, int inscol)
 		{
 			for (int i=0; i < nrows;++i)
 				for (int j=0; j < ncolumns;++j)
@@ -975,26 +969,25 @@ public:
 
 		/// Paste a vector "va" into the matrix.
 	template <class RealB>
-	void PasteVector(ChVector<RealB> va, int insrow, int inscol)
+	void PasteVector(const ChVector<RealB>& va, int insrow, int inscol)
 		{
 			SetElement(insrow,   inscol, (Real)va.x);
 			SetElement(insrow+1, inscol, (Real)va.y);
 			SetElement(insrow+2, inscol, (Real)va.z);
 		}
 
-
-		/// Paste a vector "va" into the matrix, summing it with preexisting values..
+		/// Paste a vector "va" into the matrix, summing it with preexisting values.
 	template <class RealB>
-	void PasteSumVector(ChVector<RealB> va, int insrow, int inscol)
+	void PasteSumVector(const ChVector<RealB>& va, int insrow, int inscol)
 		{
 			Element(insrow,   inscol) += (Real)va.x;
 			Element(insrow+1, inscol) += (Real)va.y;
 			Element(insrow+2, inscol) += (Real)va.z;
 		}
 
-		/// Paste a vector "va" into the matrix, subtracting it with preexisting values..
+		/// Paste a vector "va" into the matrix, subtracting it from preexisting values.
 	template <class RealB>
-	void PasteSubVector(ChVector<RealB> va, int insrow, int inscol)
+	void PasteSubVector(const ChVector<RealB>& va, int insrow, int inscol)
 		{
 			Element(insrow,   inscol) -= (Real)va.x;
 			Element(insrow+1, inscol) -= (Real)va.y;
@@ -1003,7 +996,7 @@ public:
 
 		/// Paste a quaternion into the matrix.
 	template <class RealB>
-	void PasteQuaternion(ChQuaternion<RealB> qa, int insrow, int inscol)
+	void PasteQuaternion(const ChQuaternion<RealB>& qa, int insrow, int inscol)
 		{
 			SetElement(insrow,   inscol, (Real)qa.e0);
 			SetElement(insrow+1, inscol, (Real)qa.e1);
@@ -1011,9 +1004,9 @@ public:
 			SetElement(insrow+3, inscol, (Real)qa.e3);
 		}
 
-		/// Paste a quaternion into the matrix, summing it with preexisting values..
+		/// Paste a quaternion into the matrix, summing it with preexisting values.
 	template <class RealB>
-	void PasteSumQuaternion(ChQuaternion<RealB> qa, int insrow, int inscol)
+	void PasteSumQuaternion(const ChQuaternion<RealB>& qa, int insrow, int inscol)
 		{
 			Element(insrow,   inscol) += (Real)qa.e0;
 			Element(insrow+1, inscol) += (Real)qa.e1;
@@ -1023,14 +1016,14 @@ public:
 
 		/// Paste a coordsys into the matrix.
 	template <class RealB>
-	void PasteCoordsys(ChCoordsys<RealB> cs, int insrow, int inscol)
+	void PasteCoordsys(const ChCoordsys<RealB>& cs, int insrow, int inscol)
 		{
 			PasteVector(cs.pos, insrow, inscol);
 			PasteQuaternion(cs.rot, insrow+3 ,inscol);
 		}
 
 		/// Returns the vector clipped from insrow, inscol.
-	ChVector<Real> ClipVector(int insrow, int inscol)
+	ChVector<Real> ClipVector(int insrow, int inscol) const
 		{
 			return ChVector<Real>(Element(insrow,   inscol),
 			                      Element(insrow+1, inscol),
@@ -1038,7 +1031,7 @@ public:
 		}
 
 		/// Returns the quaternion clipped from insrow, inscol.
-	ChQuaternion<Real> ClipQuaternion(int insrow, int inscol)
+	ChQuaternion<Real> ClipQuaternion(int insrow, int inscol) const
 		{
 			return ChQuaternion<Real>(Element(insrow,   inscol),
 			                          Element(insrow+1, inscol),
@@ -1047,7 +1040,7 @@ public:
 		}
 
 		/// Returns the coordsys clipped from insrow, inscol.
-	ChCoordsys<Real> ClipCoordsys(int insrow, int inscol)
+	ChCoordsys<Real> ClipCoordsys(int insrow, int inscol) const
 		{
 			return ChCoordsys<Real>(ClipVector(insrow, inscol), ClipQuaternion(insrow+3, inscol));
 		}
@@ -1060,7 +1053,7 @@ public:
 		/// Fills a 4x4 matrix as the "star" matrix, representing quaternion cross product.
 		/// That is, given two quaternions a and b, aXb= [Astar]*b
 	template <class RealB>
-	void Set_Xq_matrix(ChQuaternion<RealB> q)
+	void Set_Xq_matrix(const ChQuaternion<RealB>& q)
 	{
 		Set44Element( 0, 0, (Real)q.e0 );
 		Set44Element( 0, 1,-(Real)q.e1 );
@@ -1546,7 +1539,7 @@ public:
 		/// Multiplies this matrix by a vector, like in coordinate rotation [M]*v.
 		///  \return The result of the multiplication, i.e. a vector.
 	template <class RealB>
-	inline ChVector<Real> Matr_x_Vect(ChVector<RealB> va) const
+	inline ChVector<Real> Matr_x_Vect(const ChVector<RealB>& va) const
 		{
 			return ChVector<Real>(
 			  this->Get33Element(0,0) * (Real)va.x + this->Get33Element(0,1) * (Real)va.y + this->Get33Element(0,2) * (Real)va.z ,
@@ -1557,7 +1550,7 @@ public:
 		/// Multiplies this matrix (transposed) by a vector, as [M]'*v
 		///  \return The result of the multiplication, i.e. a vector.
 	template <class RealB>
-	inline ChVector<Real> MatrT_x_Vect(ChVector<RealB> va) const
+	inline ChVector<Real> MatrT_x_Vect(const ChVector<RealB>& va) const
 		{
 			return ChVector<Real>(
 			  this->Get33Element(0,0) * (Real)va.x + this->Get33Element(1,0) * (Real)va.y + this->Get33Element(2,0) * (Real)va.z ,
