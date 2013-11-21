@@ -18,7 +18,7 @@ using namespace std;
 //#####################################################################################
 #define B_SIZE 128
 //#####################################################################################
-__constant__ int mNumSpheresD;
+__constant__ int numAllMarkersD;
 __constant__ real_ dTD;
 __constant__ real_ solid_SPH_massD;
 __constant__ int2 updatePortionD;
@@ -94,7 +94,7 @@ __global__ void UpdateKernelBoundary(real3 * posRadD, real4 * velMasD, real4 * r
 //applies periodic BC along x
 __global__ void ApplyPeriodicBoundaryXKernel(real3 * posRadD, real4 * rhoPresMuD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	if (index >= mNumSpheresD) {
+	if (index >= numAllMarkersD) {
 		return;
 	}
 	real4 rhoPresMu = rhoPresMuD[index];
@@ -117,7 +117,7 @@ __global__ void ApplyPeriodicBoundaryXKernel(real3 * posRadD, real4 * rhoPresMuD
 //applies periodic BC along y
 __global__ void ApplyPeriodicBoundaryYKernel(real3 * posRadD, real4 * rhoPresMuD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	if (index >= mNumSpheresD) {
+	if (index >= numAllMarkersD) {
 		return;
 	}
 	real4 rhoPresMu = rhoPresMuD[index];
@@ -140,7 +140,7 @@ __global__ void ApplyPeriodicBoundaryYKernel(real3 * posRadD, real4 * rhoPresMuD
 //applies periodic BC along z
 __global__ void ApplyPeriodicBoundaryZKernel(real3 * posRadD, real4 * rhoPresMuD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	if (index >= mNumSpheresD) {
+	if (index >= numAllMarkersD) {
 		return;
 	}
 	real4 rhoPresMu = rhoPresMuD[index];
@@ -1297,7 +1297,7 @@ void cudaCollisions(
 
 	cudaMemcpyToSymbolAsync(cMinD, &cMin, sizeof(cMin));
 	cudaMemcpyToSymbolAsync(cMaxD, &cMax, sizeof(cMax));
-	cudaMemcpyToSymbolAsync(mNumSpheresD, &numAllMarkers, sizeof(numAllMarkers));
+	cudaMemcpyToSymbolAsync(numAllMarkersD, &numAllMarkers, sizeof(numAllMarkers));
 	printf("a2 yoho\n");
 
 	int numRigidBodies = posRigidH.size();
