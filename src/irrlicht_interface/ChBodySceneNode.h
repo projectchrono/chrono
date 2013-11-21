@@ -270,7 +270,7 @@ public:
 	{
 		if (child_mesh)
 			return child_mesh->addShadowVolumeSceneNode(shadowMesh, id, zfailmethod, infinity);
-		return false;
+		return NULL;
 	};
 
 		//
