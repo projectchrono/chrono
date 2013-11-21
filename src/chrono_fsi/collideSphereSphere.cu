@@ -92,16 +92,16 @@ __global__ void UpdateKernelBoundary(real3 * posRadD, real4 * velMasD, real4 * r
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //applies periodic BC along x
-__global__ void ApplyPeriodicBoundaryXKernel(float3 * posRadD, float4 * rhoPresMuD) {
+__global__ void ApplyPeriodicBoundaryXKernel(real3 * posRadD, real4 * rhoPresMuD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (index >= numAllMarkersD) {
 		return;
 	}
-	float4 rhoPresMu = rhoPresMuD[index];
+	real4 rhoPresMu = rhoPresMuD[index];
 	if (fabs(rhoPresMu.w) < .1) {
 		return;
 	} //no need to do anything if it is a boundary particle
-	float3 posRad = posRadD[index];
+	real3 posRad = posRadD[index];
 	if (posRad.x > cMaxD.x) {
 		posRad.x -= (cMaxD.x - cMinD.x);
 		posRadD[index] = posRad;
@@ -123,16 +123,16 @@ __global__ void ApplyPeriodicBoundaryXKernel(float3 * posRadD, float4 * rhoPresM
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //applies periodic BC along y
-__global__ void ApplyPeriodicBoundaryYKernel(float3 * posRadD, float4 * rhoPresMuD) {
+__global__ void ApplyPeriodicBoundaryYKernel(real3 * posRadD, real4 * rhoPresMuD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (index >= numAllMarkersD) {
 		return;
 	}
-	float4 rhoPresMu = rhoPresMuD[index];
+	real4 rhoPresMu = rhoPresMuD[index];
 	if (fabs(rhoPresMu.w) < .1) {
 		return;
 	} //no need to do anything if it is a boundary particle
-	float3 posRad = posRadD[index];
+	real3 posRad = posRadD[index];
 	if (posRad.y > cMaxD.y) {
 		posRad.y -= (cMaxD.y - cMinD.y);
 		posRadD[index] = posRad;
