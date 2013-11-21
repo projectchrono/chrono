@@ -362,8 +362,8 @@ public:
 					// tangent stiffness CKCt:
 					ChMatrixDynamic<> CK(30,30);
 					ChMatrixDynamic<> CKCt(30,30); // the global, corotated, K matrix
-					ChMatrixCorotation::ComputeCK(StiffnessMatrix, this->A, 10, CK);
-					ChMatrixCorotation::ComputeKCt(CK, this->A, 10, CKCt);
+					ChMatrixCorotation<>::ComputeCK(StiffnessMatrix, this->A, 10, CK);
+					ChMatrixCorotation<>::ComputeKCt(CK, this->A, 10, CKCt);
 					
 					// For K stiffness matrix and R damping matrix:
 
@@ -435,7 +435,7 @@ public:
 					FiK_local.MatrScale(-1.0);
 
 						// Fi = C * Fi_local  with C block-diagonal rotations A
-					ChMatrixCorotation::ComputeCK(FiK_local, this->A, 10, Fi);
+					ChMatrixCorotation<>::ComputeCK(FiK_local, this->A, 10, Fi);
 
 				}
 
