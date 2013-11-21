@@ -710,8 +710,8 @@ void Calc_NumNodesMultMarkers_Per_Beam(
 	}
 }
 ////--------------------------------------------------------------------------------------------------------------------------------
-void Calc_mapMarkersOnAllBeamNodes_IdentifierD(
-		thrust::device_vector<int2> & mapMarkersOnAllBeamNodes_IdentifierD,
+void Calc_mapEachMarkerOnAllBeamNodes_IdentifierD(
+		thrust::device_vector<int2> & flexMapEachMarkerOnAllBeamNodes,
 		const thrust::device_vector<int> & ANCF_NumNodesMultMarkers_Per_Beam_CumulD,
 		const thrust::device_vector<int> & ANCF_NumMarkers_Per_BeamD,
 		const thrust::host_vector<int2> & ANCF_ReferenceArrayNodesOnBeams,
@@ -727,8 +727,8 @@ void Calc_mapMarkersOnAllBeamNodes_IdentifierD(
 			for (int i = 0; i < numNodes; i++) {
 				int2 flexIdx_nodeIdx_pair = I2(flexIdx, i);
 				int2 writeInterval = I2(startWrite2.x + i * numMarkersOnThisBeam, startWrite2.x + (i + 1) * numMarkersOnThisBeam);
-				thrust::fill(mapMarkersOnAllBeamNodes_IdentifierD.begin() + writeInterval.x,
-						mapMarkersOnAllBeamNodes_IdentifierD.begin() + writeInterval.y, flexIdx_nodeIdx_pair);
+				thrust::fill(flexMapEachMarkerOnAllBeamNodes.begin() + writeInterval.x,
+						flexMapEachMarkerOnAllBeamNodes.begin() + writeInterval.y, flexIdx_nodeIdx_pair);
 			}
 		}
 	}
@@ -1190,7 +1190,7 @@ void UpdateFlexibleBody(
 		thrust::device_vector<int> & ANCF_NumNodesMultMarkers_Per_Beam_CumulD,
 
 		const thrust::device_vector<int> & flexIdentifierD,
-		const thrust::device_vector<int2> & mapMarkersOnAllBeamNodes_IdentifierD,
+		const thrust::device_vector<int2> & flexMapEachMarkerOnAllBeamNodes,
 		const thrust::device_vector<real3> & flexSPH_MeshPos_LRF_D,
 		const thrust::device_vector<real_> & flexParametricDistD,
 		const thrust::device_vector<real_> & ANCF_Beam_LengthD,
@@ -1207,8 +1207,8 @@ void UpdateFlexibleBody(
 	int numFlBcRigid = 2 + numRigidBodies;
 	int totalNumberOfFlexNodes = ANCF_ReferenceArrayNodesOnBeamsD[ANCF_ReferenceArrayNodesOnBeamsD.size() - 1].y;
 
-	thrust::device_vector<real3> flexNodesForces1();//(totalNumberOfFlexNodes); Size:sum(numNodesOfEachBeam*numSPH_MarkersOfEachBeam)
-	thrust::device_vector<real3> flexNodesForces2();
+	thrust::device_vector<real3> flexNodesForces1(totalNumberOfFlexNodes);//(totalNumberOfFlexNodes); Size:sum(numNodesOfEachBeam*numSPH_MarkersOfEachBeam)
+	thrust::device_vector<real3> flexNodesForces2(totalNumberOfFlexNodes);
 
 	thrust::device_vector<real3> flexNodesForcesAllMarkers1();//(totalNumberOfFlexNodes * totalNumberOfFlexMarkers); Size:sum(numNodesOfEachBeam*numSPH_MarkersOfEachBeam)
 	thrust::device_vector<real3> flexNodesForcesAllMarkers2();//(totalNumberOfFlexNodes * totalNumberOfFlexMarkers);
@@ -1226,14 +1226,14 @@ void UpdateFlexibleBody(
 			R1CAST(flexParametricDistD),
 			R4CAST(derivVelRhoD));
 
-	if (mapMarkersOnAllBeamNodes_IdentifierD.size() != flexNodesForcesAllMarkers1.size()) {
+	if (flexMapEachMarkerOnAllBeamNodes.size() != flexNodesForcesAllMarkers1.size()) {
 		printf("we have size inconsistency between flex nodesForces and nodesPair identifier");
 	}
-	thrust::device_vector<int> dummyNodesFlexIdentify(mapMarkersOnAllBeamNodes_IdentifierD.size());
+	thrust::device_vector<int> dummyNodesFlexIdentify(flexMapEachMarkerOnAllBeamNodes.size());
 	thrust::equal_to<int2> binary_pred_int2; //if binary_pred int2 does not work, you have to either add operator == to custom_cutil_math, or you have to map nodes identifiers from int2 to int
-	(void) thrust::reduce_by_key(mapMarkersOnAllBeamNodes_IdentifierD.begin(), mapMarkersOnAllBeamNodes_IdentifierD.end(), flexNodesForcesAllMarkers1.begin(), dummyNodesFlexIdentify.begin(),
+	(void) thrust::reduce_by_key(flexMapEachMarkerOnAllBeamNodes.begin(), flexMapEachMarkerOnAllBeamNodes.end(), flexNodesForcesAllMarkers1.begin(), dummyNodesFlexIdentify.begin(),
 			flexNodesForces1.begin(), binary_pred_int2, thrust::plus<real3>());
-	(void) thrust::reduce_by_key(mapMarkersOnAllBeamNodes_IdentifierD.begin(), mapMarkersOnAllBeamNodes_IdentifierD.end(), flexNodesForcesAllMarkers2.begin(), dummyNodesFlexIdentify.begin(),
+	(void) thrust::reduce_by_key(flexMapEachMarkerOnAllBeamNodes.begin(), flexMapEachMarkerOnAllBeamNodes.end(), flexNodesForcesAllMarkers2.begin(), dummyNodesFlexIdentify.begin(),
 			flexNodesForces2.begin(), binary_pred_int2, thrust::plus<real3>());
 	flexNodesForcesAllMarkers1.clear();
 	flexNodesForcesAllMarkers2.clear();
@@ -1415,7 +1415,7 @@ void cudaCollisions(
 	thrust::device_vector<int> ANCF_NumMarkers_Per_Beam_CumulD(numFlexBodies);
 	thrust::device_vector<int> ANCF_NumNodesMultMarkers_Per_BeamD(numFlexBodies);
 	thrust::device_vector<int> ANCF_NumNodesMultMarkers_Per_Beam_CumulD(numFlexBodies);
-	thrust::device_vector<int2> mapMarkersOnAllBeamNodes_IdentifierD(0);
+	thrust::device_vector<int2> flexMapEachMarkerOnAllBeamNodes(0);
 
 	thrust::device_vector<int> dummySum(flexIdentifierD.size());
 	thrust::device_vector<int> dummyIdentifier(0);
@@ -1428,8 +1428,7 @@ void cudaCollisions(
 	Calc_NumNodesMultMarkers_Per_Beam(ANCF_NumNodesMultMarkers_Per_BeamD, ANCF_NumMarkers_Per_BeamD, ANCF_ReferenceArrayNodesOnBeams, numFlexBodies);
 	thrust::exclusive_scan(ANCF_NumNodesMultMarkers_Per_BeamD.begin(), ANCF_NumNodesMultMarkers_Per_BeamD.end(), ANCF_NumNodesMultMarkers_Per_Beam_CumulD());
 
-	thrust::device_vector<int2> mapMarkersOnAllBeamNodes_IdentifierD;
-	Calc_mapMarkersOnAllBeamNodes_IdentifierD(ANCF_NumNodesMultMarkers_Per_BeamD, ANCF_NumMarkers_Per_BeamD, ANCF_ReferenceArrayNodesOnBeams, numFlexBodies);
+	Calc_mapEachMarkerOnAllBeamNodes_IdentifierD(ANCF_NumNodesMultMarkers_Per_BeamD, ANCF_NumMarkers_Per_BeamD, ANCF_ReferenceArrayNodesOnBeams, numFlexBodies);
 
 	//*******************
 
@@ -1531,24 +1530,34 @@ void cudaCollisions(
 		thrust::device_vector<real3> AD3_2 = AD3;
 		thrust::device_vector<real4> qD2 = qD1;
 
+		//******** RK2
 		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numAllMarkers, SIDE, 0.5 * delT); //?$ right now, it does not consider gravity or other stuff on rigid bodies. they should be applied at rigid body solver
 		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT); //assumes ...D2 is a copy of ...D
 		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT);		//assumes ...D2 is a copy of ...D
 		UpdateRigidBody(posRadD2, velMasD2, posRigidD2, posRadRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2, derivVelRhoD, rigidIdentifierD,
 				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidMarkers, numRigid_SphMarkers, float(tStep)/stepEnd, 0.5 * delT);
+		// UpdateFlexibleBody
 		ApplyBoundary(posRadD2, rhoPresMuD2, numAllMarkers, posRigidD2, velMassRigidD2, numRigidBodies);
-
+		//*****
 		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numAllMarkers, SIDE, delT);
 		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, delT);
 		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, delT);
 		UpdateRigidBody(posRadD, velMasD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, derivVelRhoD, rigidIdentifierD,
 				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidMarkers, numRigid_SphMarkers, float(tStep)/stepEnd, delT);
-//			/* post_process for Segre-Silberberg */
+		// UpdateFlexibleBody
+		ApplyBoundary(posRadD, rhoPresMuD, numAllMarkers, posRigidD, velMassRigidD, numRigidBodies);
+		//************
+
+
+
+
+//			/* post_process for Segre-Silberberg */ goes before ApplyBoundary
 //			if(tStep >= 0) {
 //				real2 channelCenter = .5 * R2(cMax.y + cMin.y, cMax.z + cMin.z);
 //				FindPassesFromTheEnd(posRigidD, distributionD, numRigidBodies, channelCenter, channelRadius, numberOfSections);
 //			}
-		ApplyBoundary(posRadD, rhoPresMuD, numAllMarkers, posRigidD, velMassRigidD, numRigidBodies);
+
+
 
 		posRadD2.clear();
 		velMasD2.clear();
@@ -1604,7 +1613,7 @@ void cudaCollisions(
 	ANCF_NumMarkers_Per_Beam_CumulD.clear();
 	ANCF_NumNodesMultMarkers_Per_BeamD.clear();
 	ANCF_NumNodesMultMarkers_Per_Beam_CumulD.clear();
-
+	flexMapEachMarkerOnAllBeamNodes.clear();
 
 
 	posRigidCumulativeD.clear();
@@ -1616,7 +1625,6 @@ void cudaCollisions(
 	rigidSPH_MeshPos_LRF_D.clear();
 	flexParametricDistD.clear();
 	flexIdentifierD.clear();
-	mapMarkersOnAllBeamNodes_IdentifierD.clear();
 	flexSPH_MeshPos_LRF_D.clear();
 	flexSPH_MeshSlope_Initial_D.clear();
 	qD1.clear();

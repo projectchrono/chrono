@@ -517,6 +517,7 @@ void CreateFlexBodies(
 		real_ pipeLength,
 		real3 pipeInPoint3,
 		const real_ rhoRigid) {
+	//TODO create mass property of the beams
 
 	int numBeams = 10;
 	int numElementsPerBeam = 4;
@@ -1455,11 +1456,10 @@ int main() {
 		for (int flexBodyIdx = 0; flexBodyIdx < ANCF_ReferenceArrayNodesOnBeams.size(); flexBodyIdx++) {
 			real3 pa3 = ANCF_Nodes[ ANCF_ReferenceArrayNodesOnBeams[flexBodyIdx].x ];
 			real3 pb3 = ANCF_Nodes[ ANCF_ReferenceArrayNodesOnBeams[flexBodyIdx].y - 1 ];
-			int num_FlexMarkers = CreateFlexMarkers(mPosRad, mVelMas, mRhoPresMu,
 
+			int num_FlexMarkers = CreateFlexMarkers(mPosRad, mVelMas, mRhoPresMu,
 					flexBodyIdx,
 					flexParametricDist,
-
 					pa3, //inital point
 					pb3, //end point
 					ANCF_Beam_Length[flexBodyIdx],  //beam length			//thrust::host_vector<real_> &  ANCF_Beam_Length
@@ -1468,20 +1468,6 @@ int main() {
 					rho0,
 					pres,
 					mu);
-
-			// take care of reference array both here and for rigid bodies
-
-
-
-
-
-
-
-
-
-
-
-
 
 			referenceArray.push_back(I3(numAllMarkers, numAllMarkers + num_FlexMarkers, 2));  //map bc : rigidSpheres + 1
 //			referenceArray_Types.push_back(I3(1, rigidSpheres, 0));
