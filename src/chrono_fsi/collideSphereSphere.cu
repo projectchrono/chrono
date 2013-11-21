@@ -92,50 +92,67 @@ __global__ void UpdateKernelBoundary(real3 * posRadD, real4 * velMasD, real4 * r
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //applies periodic BC along x
-__global__ void ApplyPeriodicBoundaryXKernel(real3 * posRadD, real4 * rhoPresMuD) {
+__global__ void ApplyPeriodicBoundaryXKernel(float3 * posRadD, float4 * rhoPresMuD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (index >= numAllMarkersD) {
 		return;
 	}
-	real4 rhoPresMu = rhoPresMuD[index];
+	float4 rhoPresMu = rhoPresMuD[index];
 	if (fabs(rhoPresMu.w) < .1) {
 		return;
 	} //no need to do anything if it is a boundary particle
-	real3 posRad = posRadD[index];
+	float3 posRad = posRadD[index];
 	if (posRad.x > cMaxD.x) {
 		posRad.x -= (cMaxD.x - cMinD.x);
 		posRadD[index] = posRad;
+		if (rhoPresMu.w < -.1) {
+			rhoPresMu.y = rhoPresMu.y + bodyForce4.x * (cMaxD.x - cMinD.x);
+			rhoPresMuD[index] = rhoPresMu;
+		}
 		return;
 	}
 	if (posRad.x < cMinD.x) {
 		posRad.x += (cMaxD.x - cMinD.x);
 		posRadD[index] = posRad;
+		if (rhoPresMu.w < -.1) {
+			rhoPresMu.y = rhoPresMu.y - bodyForce4.x * (cMaxD.x - cMinD.x);
+			rhoPresMuD[index] = rhoPresMu;
+		}
 		return;
 	}
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //applies periodic BC along y
-__global__ void ApplyPeriodicBoundaryYKernel(real3 * posRadD, real4 * rhoPresMuD) {
+__global__ void ApplyPeriodicBoundaryYKernel(float3 * posRadD, float4 * rhoPresMuD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (index >= numAllMarkersD) {
 		return;
 	}
-	real4 rhoPresMu = rhoPresMuD[index];
+	float4 rhoPresMu = rhoPresMuD[index];
 	if (fabs(rhoPresMu.w) < .1) {
 		return;
 	} //no need to do anything if it is a boundary particle
-	real3 posRad = posRadD[index];
+	float3 posRad = posRadD[index];
 	if (posRad.y > cMaxD.y) {
 		posRad.y -= (cMaxD.y - cMinD.y);
 		posRadD[index] = posRad;
+		if (rhoPresMu.w < -.1) {
+			rhoPresMu.y = rhoPresMu.y + bodyForce4.y * (cMaxD.y - cMinD.y);
+			rhoPresMuD[index] = rhoPresMu;
+		}
 		return;
 	}
 	if (posRad.y < cMinD.y) {
 		posRad.y += (cMaxD.y - cMinD.y);
 		posRadD[index] = posRad;
+		if (rhoPresMu.w < -.1) {
+			rhoPresMu.y = rhoPresMu.y - bodyForce4.y * (cMaxD.y - cMinD.y);
+			rhoPresMuD[index] = rhoPresMu;
+		}
 		return;
 	}
 }
+
 //--------------------------------------------------------------------------------------------------------------------------------
 //applies periodic BC along z
 __global__ void ApplyPeriodicBoundaryZKernel(real3 * posRadD, real4 * rhoPresMuD) {
@@ -151,11 +168,19 @@ __global__ void ApplyPeriodicBoundaryZKernel(real3 * posRadD, real4 * rhoPresMuD
 	if (posRad.z > cMaxD.z) {
 		posRad.z -= (cMaxD.z - cMinD.z);
 		posRadD[index] = posRad;
+		if (rhoPresMu.w < -.1) {
+			rhoPresMu.y = rhoPresMu.y + bodyForce4.z * (cMaxD.z - cMinD.z);
+			rhoPresMuD[index] = rhoPresMu;
+		}
 		return;
 	}
 	if (posRad.z < cMinD.z) {
 		posRad.z += (cMaxD.z - cMinD.z);
 		posRadD[index] = posRad;
+		if (rhoPresMu.w < -.1) {
+			rhoPresMu.y = rhoPresMu.y - bodyForce4.z * (cMaxD.z - cMinD.z);
+			rhoPresMuD[index] = rhoPresMu;
+		}
 		return;
 	}
 }
@@ -307,7 +332,7 @@ __global__ void MapForcesOnNodes(
 	int flexBodyIndex = flexIdentifierD[index];
 	int numFlexMarkersPreviousBeamsTotal = ANCF_NumMarkers_Per_Beam_CumulD[flexBodyIndex];
 	int numSavedForcesSoFar = ANCF_NumNodesMultMarkers_Per_Beam_CumulD[flexBodyIndex];
-		int markerIndexOnThisBeam = index - numFlexMarkersPreviousBeamsTotal
+		int markerIndexOnThisBeam = index - numFlexMarkersPreviousBeamsTotal;
 
 		int numMarkersOnThisBeam = ANCF_NumMarkers_Per_BeamD[flexBodyIndex];
 

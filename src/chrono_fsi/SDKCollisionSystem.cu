@@ -176,6 +176,7 @@ real4 collideCell(
 		for (uint j = startIndex; j < endIndex; j++) {
 			if (j != index) { // check not colliding with self
 				real3 posRadB = FETCH(sortedPosRad, j);
+				real3 dist3Alpha = posRadA - posRadB;
 				real3 dist3 = Distance(posRadA, posRadB);
 				real_ rSPH = HSML;
 				real_ d = length(dist3);
@@ -183,15 +184,32 @@ real4 collideCell(
 				real4 velMasB = FETCH(sortedVelMas, j);
 				real4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
 
+				//body force in x direction
+				rhoPresMuB.y = (dist3Alpha.x > 0.5 * paramsD.boxDims.x) ? (rhoPresMuB.y - bodyForce4.x*paramsD.boxDims.x) : rhoPresMuB.y;
+				rhoPresMuB.y = (dist3Alpha.x < -0.5 * paramsD.boxDims.x) ? (rhoPresMuB.y + bodyForce4.x*paramsD.boxDims.x) : rhoPresMuB.y;
+				//body force in x direction
+				rhoPresMuB.y = (dist3Alpha.y > 0.5 * paramsD.boxDims.y) ? (rhoPresMuB.y - bodyForce4.y*paramsD.boxDims.y) : rhoPresMuB.y;
+				rhoPresMuB.y = (dist3Alpha.y < -0.5 * paramsD.boxDims.y) ? (rhoPresMuB.y + bodyForce4.y*paramsD.boxDims.y) : rhoPresMuB.y;
+				//body force in x direction
+				rhoPresMuB.y = (dist3Alpha.z > 0.5 * paramsD.boxDims.z) ? (rhoPresMuB.y - bodyForce4.z*paramsD.boxDims.z) : rhoPresMuB.y;
+				rhoPresMuB.y = (dist3Alpha.z < -0.5 * paramsD.boxDims.z) ? (rhoPresMuB.y + bodyForce4.z*paramsD.boxDims.z) : rhoPresMuB.y;
+
 				if (rhoPresMuA.w < 0  ||  rhoPresMuB.w < 0) {
 					if (rhoPresMuA.w == 0) continue;
 					real_ multViscosit = 1.0f;
-					if ( rhoPresMuB.w == 0 || rhoPresMuB.w > 0 || rhoPresMuA.w > 0) { //**one of them is boundary, the other one is fluid
-						multViscosit = 5.0f;
+
+//					if ( rhoPresMuB.w == 0) { //**one of them is boundary, the other one is fluid
+					if ( rhoPresMuA.w >= 0 ) { //**one of them is boundary, the other one is fluid
+						multViscosit = 20.0f;
+						rhoPresMuA.y = rhoPresMuB.y;
 					}
-					else { //**One of them is fluid, the other one is fluid/solid (boundary was considered previously)
-						multViscosit = 1.0f;
+					if ( rhoPresMuB.w >= 0) { //**one of them is boundary, the other one is fluid
+						multViscosit = 20.0f;
+						rhoPresMuB.y = rhoPresMuA.y;
 					}
+//					else { //**One of them is fluid, the other one is fluid/solid (boundary was considered previously)
+//						multViscosit = 1.0f;
+//					}
 					real4 derivVelRho = R4(0.0f);
 					real3 vel_XSPH_B = FETCH(vel_XSPH_Sorted_D, j);
 					derivVelRho = DifVelocityRho(dist3, d, rSPH, velMasA, vel_XSPH_A, velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB, multViscosit);
