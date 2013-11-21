@@ -136,7 +136,7 @@ public:
 					/// Set the attachment position, in the reference coordinates of the body
 	void SetAttachPositionInBodyCoords(ChVector<> mattach) {attach_position = mattach;}
 					/// Set the attachment position, in the absolute coordinates
-	void SetAttachPositionInAbsoluteCoords(ChVector<> mattach) {attach_position = body->Point_World2Body(&mattach);}
+	void SetAttachPositionInAbsoluteCoords(ChVector<> mattach) {attach_position = body->Point_World2Body(mattach);}
 
 
 				/// Get the reaction torque considered as applied to ChShaft.

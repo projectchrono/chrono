@@ -383,7 +383,7 @@ public:
 						previous_rigidBodyShoe = rigidBodyShoe;
 					}
 					// close track
-					ChVector<> linkpos = firstBodyShoe->GetBody()->Point_Body2World(&joint_displacement);
+					ChVector<> linkpos = firstBodyShoe->GetBody()->Point_Body2World(joint_displacement);
 					ChSharedPtr<ChLinkLockRevolute> link_revolute_shoeshoe(new ChLinkLockRevolute); 
 					link_revolute_shoeshoe->Initialize(firstBodyShoe->GetBody(), previous_rigidBodyShoe->GetBody(), 
 								ChCoordsys<>( linkpos , QUNIT) );
@@ -450,7 +450,7 @@ public:
 			// Create revolute constraint
 			if (previous_shoe)
 			{
-				ChVector<> linkpos = rigidBodyShoe->GetBody()->Point_Body2World(&joint_displacement);
+				ChVector<> linkpos = rigidBodyShoe->GetBody()->Point_Body2World(joint_displacement);
 				ChSharedPtr<ChLinkLockRevolute> link_revolute_shoeshoe(new ChLinkLockRevolute); 
 				link_revolute_shoeshoe->Initialize(rigidBodyShoe->GetBody(), previous_shoe->GetBody(), 
 							ChCoordsys<>( linkpos , QUNIT) );
