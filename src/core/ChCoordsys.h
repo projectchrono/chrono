@@ -61,125 +61,130 @@ class ChCoordsys
 {
 public:
 
-			//
-			// DATA
-			//
+	//
+	// DATA
+	//
 
-	ChVector<Real>		pos;
+	ChVector<Real>      pos;
 	ChQuaternion<Real>  rot;
 
-			//
-			// CONSTRUCTORS
-			//
+	//
+	// CONSTRUCTORS
+	//
 
-	ChCoordsys(): pos(VNULL), rot(QUNIT) {};
+		// Default constructor (identity frame)
+	ChCoordsys()
+		:	pos(ChVector<Real>(0, 0, 0)),
+			rot(ChQuaternion<Real>(1, 0, 0, 0))
+		{};
 
-	explicit ChCoordsys(const ChVector<Real> mv, const ChQuaternion<Real> mq = QUNIT): pos(mv), rot(mq) {};
+		// Construct from position and rotation (as quaternion)
+	ChCoordsys(const ChVector<Real>&     mv,
+	           const ChQuaternion<Real>& mq = ChQuaternion<Real>(1, 0, 0, 0))
+		:	pos(mv),
+			rot(mq)
+		{};
 
+		/// Copy constructor
+	ChCoordsys(const ChCoordsys<Real>& other) : pos(other.pos), rot(other.rot) {};
 
-					/// Copy constructor 
-	ChCoordsys(const ChCoordsys<Real>& other) : pos(other.pos), rot(other.rot)  {};
+	//
+	// OPERATORS OVERLOADING
+	//
 
-			//
-			// OPERATORS OVERLOADING
-			//
-					/// Assignment operator: copy from another coordsys
-	ChCoordsys<Real>& operator=(const ChCoordsys<Real>& other)	
-					{if (&other == this) return *this; pos = other.pos;  rot = other.rot; return *this; }
+		/// Assignment operator: copy from another coordsys
+	ChCoordsys<Real>& operator=(const ChCoordsys<Real>& other)
+		{
+			if (&other == this) return *this; 
+			pos = other.pos;  rot = other.rot; 
+			return *this;
+		}
 
-				
 	bool operator<=(const ChCoordsys<Real>&other) const { return rot<=other.rot && pos<=other.pos;};
 	bool operator>=(const ChCoordsys<Real>&other) const { return rot>=other.rot && pos>=other.pos;};
 
 	bool operator==(const ChCoordsys<Real>& other) const { return rot==other.rot && pos==other.pos;}
 	bool operator!=(const ChCoordsys<Real>& other) const { return rot!=other.rot || pos!=other.pos;}
-	
 
 
-			//
-			// FUNCTIONS
-			//
+	//
+	// FUNCTIONS
+	//
 
-					/// Force to z=0, and z rotation only. No normalization to quaternion, however.
-	void Force2D () 	{
-							pos.z = 0;
-							rot.e1 = 0;
-							rot.e2 = 0;
-						}
+		/// Force to z=0, and z rotation only. No normalization to quaternion, however.
+	void Force2D()
+		{
+			pos.z = 0;
+			rot.e1 = 0;
+			rot.e2 = 0;
+		}
 
-					/// Returns true if coordsys is identical to other coordsys
-	bool	Equals ( const ChCoordsys<Real>& other) const { return rot.Equals(other.rot) && pos.Equals(other.pos);}
+		/// Returns true if coordsys is identical to other coordsys
+	bool Equals(const ChCoordsys<Real>& other) const { return rot.Equals(other.rot) && pos.Equals(other.pos);}
 
-					/// Returns true if coordsys is equal to other coordsys, within a tolerance 'tol'
-	bool	Equals ( const ChCoordsys<Real>& other, Real tol) const
-						{
-							return rot.Equals(other.rot, tol) && pos.Equals(other.pos, tol);
-						}
+		/// Returns true if coordsys is equal to other coordsys, within a tolerance 'tol'
+	bool Equals(const ChCoordsys<Real>& other, Real tol) const
+		{
+			return rot.Equals(other.rot, tol) && pos.Equals(other.pos, tol);
+		}
 
-					/// Sets to no translation and no rotation
-	void    SetIdentity()
-						{
-							pos=VNULL; rot=QUNIT;
-						}
+		/// Sets to no translation and no rotation
+	void SetIdentity()
+		{
+			pos = ChVector<Real>(0, 0, 0);
+			rot = ChQuaternion<Real>(1, 0, 0, 0);
+		}
 
-				// POINT TRANSFORMATIONS, USING POSITION AND ROTATION QUATERNION
+	// POINT TRANSFORMATIONS, USING POSITION AND ROTATION QUATERNION
 
-					/// This function transforms a point from the parent coordinate
-					/// system to a local coordinate system, whose relative position 
-					/// is given by this coodsys, i.e. 'origin' translation and 'alignment' quaternion.
-					/// \return The point in local coordinate, as local=q'*[0,(parent-origin)]*q
+		/// This function transforms a point from the parent coordinate
+		/// system to a local coordinate system, whose relative position 
+		/// is given by this coodsys, i.e. 'origin' translation and 'alignment' quaternion.
+		/// \return The point in local coordinate, as local=q'*[0,(parent-origin)]*q
+	ChVector<Real> TrasformParentToLocal(const ChVector<Real>& parent) const
+		{
+			return rot.RotateBack(parent - pos);
+		}
 
-	ChVector<Real> TrasformParentToLocal (
-								const ChVector<Real>& parent		///< point to transform, given in parent coordinates
-								) const
-						{
-							return rot.RotateBack(parent - pos);
-						}
-
-					/// This function transforms a point from the local coordinate
-					/// system to the parent coordinate system. Relative position of local respect
-					/// to parent is given by this coordys, i.e. 'origin' translation and 'alignment' quaternion.
-					/// \return The point in parent coordinate, as parent=origin +q*[0,(local)]*q'
-
-	ChVector<Real> TrasformLocalToParent (
-								const ChVector<Real>& local			///< point to transform, given in local coordinates
-								) const
-						{
-							return pos + rot.Rotate(local);
-						}
+		/// This function transforms a point from the local coordinate
+		/// system to the parent coordinate system. Relative position of local respect
+		/// to parent is given by this coordys, i.e. 'origin' translation and 'alignment' quaternion.
+		/// \return The point in parent coordinate, as parent=origin +q*[0,(local)]*q'
+	ChVector<Real> TrasformLocalToParent(const ChVector<Real>& local) const
+		{
+			return pos + rot.Rotate(local);
+		}
 
 
+	//
+	// STREAMING
+	//
 
-			//
-			// STREAMING
-			//
-					/// Method to allow serializing transient data into in ascii
-					/// as a readable item, for example   "chrono::GetLog() << myobject;"
+		/// Method to allow serializing transient data into in ascii
+		/// as a readable item, for example   "chrono::GetLog() << myobject;"
 	void StreamOUT(ChStreamOutAscii& mstream)
-						{
-							mstream << "\n" << pos;
-							mstream << "\n" << rot;
-						}
+		{
+			mstream << "\n" << pos;
+			mstream << "\n" << rot;
+		}
 
-					/// Method to allow serializing transient data into a persistent
-					/// binary archive (ex: a file).
+		/// Method to allow serializing transient data into a persistent
+		/// binary archive (ex: a file).
 	void StreamOUT(ChStreamOutBinary& mstream)
-						{
-							mstream << pos;
-							mstream << rot;
-						}
+		{
+			mstream << pos;
+			mstream << rot;
+		}
 
-					/// Operator to allow deserializing a persistent binary archive (ex: a file)
-					/// into transient data.
+		/// Operator to allow deserializing a persistent binary archive (ex: a file)
+		/// into transient data.
 	void StreamIN(ChStreamInBinary& mstream)
-						{
-							mstream >> pos;
-							mstream >> rot;
-						}
-
+		{
+			mstream >> pos;
+			mstream >> rot;
+		}
 
 };
-
 
 
 /// Shortcut for faster use of typical double-precision coordsys.
@@ -198,11 +203,9 @@ typedef ChCoordsys<float>  CoordsysF;
 // STATIC COORDSYS OPERATIONS
 //
 
-			/// Force 3d coordsys to lie on a XY plane (note: no normaliz. on quat)
+/// Force 3d coordsys to lie on a XY plane (note: no normaliz. on quat)
 ChApi 
-Coordsys  Force2Dcsys (Coordsys* cs); 
-
-
+Coordsys  Force2Dcsys(Coordsys* cs); 
 
 
 
@@ -210,14 +213,12 @@ Coordsys  Force2Dcsys (Coordsys* cs);
 // CONSTANTS
 //
 
-
-static const Coordsys CSYSNULL (VNULL,QNULL);
-static const Coordsys CSYSNORM (VNULL,QUNIT); 
+static const Coordsys CSYSNULL(VNULL,QNULL);
+static const Coordsys CSYSNORM(VNULL,QUNIT); 
 
 
 
 } // END_OF_NAMESPACE____
-
 
 
 
