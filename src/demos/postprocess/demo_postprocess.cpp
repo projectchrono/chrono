@@ -249,6 +249,21 @@ int main(int argc, char* argv[])
 	pov_exporter.SetOutputDataFilebase("output/my_state");
 	pov_exporter.SetPictureFilebase("anim/picture");
 
+	// deactivate def light
+pov_exporter.SetLight(VNULL, ChColor(0,0,0), false);
+
+	pov_exporter.SetCustomPOVcommandsScript(" \
+	light_source {   \
+      <2, 10, -3>  \
+	  color rgb<1.8,1.8,1.8> \
+      area_light <5, 0, 0>, <0, 0, 5>, 8, 8 \
+      adaptive 1 \
+      jitter\
+    } \
+	object{ Grid(0.5,0.05, rgb<0.6,0.6,0.6>, rgbt<1,1,1,1>) rotate <0, 0, 90> translate -0.3*y } \
+    plane{<0,1,0>, 0 pigment{color rgb<0.8,0.8,0.8>} translate -0.301*y } \
+    ");
+
 
 			// IMPORTANT! Tell to the POVray exporter that 
 			// he must take care of converting the shapes of
