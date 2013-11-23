@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
 
 			// Define a collision shape 
 	mfloor->GetCollisionModel()->ClearModel();
-	mfloor->GetCollisionModel()->AddBox(10,0.5,10, &ChVector<>(0,-1,0));
+	mfloor->GetCollisionModel()->AddBox(10, 0.5, 10, ChVector<>(0,-1,0));
 	mfloor->GetCollisionModel()->BuildModel();
 	mfloor->SetCollide(true);
 

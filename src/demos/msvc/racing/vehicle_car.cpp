@@ -87,8 +87,8 @@ MySimpleCar::MySimpleCar(ChSystem&  my_system,	///< the chrono::engine physical 
 		// the car truss. Each colliding box must be defined in x y z half-sizes and position of 
 		// box center respect to the truss COG.
 	truss->GetBody()->GetCollisionModel()->ClearModel();
-	truss->GetBody()->GetCollisionModel()->AddBox(0.3, 0.3, 1.5,   &(ChVector<>(0,0.2,0)-truss_COG) ); // just example.. roughly the body
-	truss->GetBody()->GetCollisionModel()->AddBox(0.1, 0.3, 0.1,   &(ChVector<>(0,0.4,0)-truss_COG) ); // just example.. roughly the rollbar
+	truss->GetBody()->GetCollisionModel()->AddBox(0.3, 0.3, 1.5, (ChVector<>(0,0.2,0)-truss_COG) ); // just example.. roughly the body
+	truss->GetBody()->GetCollisionModel()->AddBox(0.1, 0.3, 0.1, (ChVector<>(0,0.4,0)-truss_COG) ); // just example.. roughly the rollbar
 	truss->GetBody()->GetCollisionModel()->BuildModel();
 	truss->GetBody()->SetCollide(true);
 

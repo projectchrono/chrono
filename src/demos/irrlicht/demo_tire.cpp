@@ -89,8 +89,8 @@ ChBodySceneNode* create_wheel(ChVector<> mposition, ChIrrAppInterface& mapplicat
 		ChStreamInAsciiFile myslice("../data/tractor_wheel_slice.chulls");
 		myrot.Q_from_AngAxis(mangle*(CH_C_PI/180.),VECT_X);
 		ChMatrix33<> mm(myrot);
-		mrigidBody->GetBody()->GetCollisionModel()->AddConvexHullsFromFile(myknobs,&ChVector<>(0,0,0),&mm);
-		mrigidBody->GetBody()->GetCollisionModel()->AddConvexHullsFromFile(myslice,&ChVector<>(0,0,0),&mm);
+		mrigidBody->GetBody()->GetCollisionModel()->AddConvexHullsFromFile(myknobs, ChVector<>(0,0,0), mm);
+		mrigidBody->GetBody()->GetCollisionModel()->AddConvexHullsFromFile(myslice, ChVector<>(0,0,0), mm);
 		//break;
 	}
 	

@@ -1397,6 +1397,14 @@ public:
 							ElementsCopy(this->address, msource.GetAddress(), 9); 
 						}
 
+					/// Construct a diagonal 3x3 matrix with all diagonal elements
+					/// equal to the specified value.
+	inline ChMatrix33 (Real val): ChMatrixNM<Real,3,3>()
+	{
+		this->Set33Element(0, 0, val);
+		this->Set33Element(1, 1, val);
+		this->Set33Element(2, 2, val);
+	}
 					/// The constructor which builds a 3x3 matrix given a 
 					/// quaternion representing rotation
 	template <class RealB>
@@ -1499,6 +1507,14 @@ public:
 							this->Reset();
 							this->Set33Element(0,0, 1.0); this->Set33Element(1,1, 1.0); this->Set33Element(2,2, 1.0);
 						}	
+
+					/// Return true if this matrix is the identity 3x3 matrix.
+	bool IsIdentity() const
+	{
+		return this->Get33Element(0,0) == 1 && this->Get33Element(0,1) == 0 && this->Get33Element(0,2) == 0 &&
+		       this->Get33Element(1,0) == 0 && this->Get33Element(1,1) == 1 && this->Get33Element(1,2) == 0 &&
+		       this->Get33Element(2,0) == 0 && this->Get33Element(2,1) == 0 && this->Get33Element(2,2) == 1;
+	}
 
 					/// Multiplies this matrix by a vector, like in coordinate rotation [M]*v. 
 					///  \return The result of the multiplication, i.e. a vector.
@@ -1872,7 +1888,7 @@ public:
 
 					/// Given a 3x3 rotation matrix, computes the corresponding 
 					/// quaternion.
-	ChQuaternion<Real> Get_A_quaternion ()
+	ChQuaternion<Real> Get_A_quaternion () const
 					{
 						ChQuaternion<Real> q;
 						double s, tr;

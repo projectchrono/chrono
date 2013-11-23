@@ -202,11 +202,11 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 		// Clear model. The colliding shape description MUST be between  ClearModel() .. BuildModel() pair.
 	mrigidBody->GetBody()->GetCollisionModel()->ClearModel();
 		// Describe the (invisible) colliding shape by adding five boxes (the walls and floor)
-	mrigidBody->GetBody()->GetCollisionModel()->AddBox(20,1,20, &ChVector<>(  0,-10,  0)); 
-	mrigidBody->GetBody()->GetCollisionModel()->AddBox(1,40,20, &ChVector<>(-11,  0,  0));
-	mrigidBody->GetBody()->GetCollisionModel()->AddBox(1,40,20, &ChVector<>( 11,  0,  0));
-	mrigidBody->GetBody()->GetCollisionModel()->AddBox(20,40,1, &ChVector<>(  0,  0,-11));
-	mrigidBody->GetBody()->GetCollisionModel()->AddBox(20,40,1, &ChVector<>(  0,  0, 11));
+	mrigidBody->GetBody()->GetCollisionModel()->AddBox(20,1,20, ChVector<>(  0,-10,  0)); 
+	mrigidBody->GetBody()->GetCollisionModel()->AddBox(1,40,20, ChVector<>(-11,  0,  0));
+	mrigidBody->GetBody()->GetCollisionModel()->AddBox(1,40,20, ChVector<>( 11,  0,  0));
+	mrigidBody->GetBody()->GetCollisionModel()->AddBox(20,40,1, ChVector<>(  0,  0,-11));
+	mrigidBody->GetBody()->GetCollisionModel()->AddBox(20,40,1, ChVector<>(  0,  0, 11));
 		// Complete the description.
 	mrigidBody->GetBody()->GetCollisionModel()->BuildModel();
  

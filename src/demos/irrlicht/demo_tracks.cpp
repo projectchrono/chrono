@@ -143,8 +143,8 @@ public:
 														chrono::Q_from_AngAxis(CH_C_PI/2, VECT_X) );
 				
 				wheelRF->GetBody()->GetCollisionModel()->ClearModel();
-				wheelRF->GetBody()->GetCollisionModel()->AddCylinder(wheeldiameter/2,wheeldiameter/2, cyl_hthickness, &cyl_displA);
-				wheelRF->GetBody()->GetCollisionModel()->AddCylinder(wheeldiameter/2,wheeldiameter/2, cyl_hthickness, &cyl_displB);
+				wheelRF->GetBody()->GetCollisionModel()->AddCylinder(wheeldiameter/2,wheeldiameter/2, cyl_hthickness, cyl_displA);
+				wheelRF->GetBody()->GetCollisionModel()->AddCylinder(wheeldiameter/2,wheeldiameter/2, cyl_hthickness, cyl_displB);
 				wheelRF->GetBody()->GetCollisionModel()->BuildModel();			// Creates the collision model
 				wheelRF->GetBody()->SetCollide(true);
 				wheelRF->GetBody()->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
@@ -171,8 +171,8 @@ public:
 														chrono::Q_from_AngAxis(CH_C_PI/2, VECT_X) );
 
 				wheelLF->GetBody()->GetCollisionModel()->ClearModel();
-				wheelLF->GetBody()->GetCollisionModel()->AddCylinder(wheeldiameter/2,wheeldiameter/2, cyl_hthickness, &cyl_displA);
-				wheelLF->GetBody()->GetCollisionModel()->AddCylinder(wheeldiameter/2,wheeldiameter/2, cyl_hthickness, &cyl_displB);
+				wheelLF->GetBody()->GetCollisionModel()->AddCylinder(wheeldiameter/2,wheeldiameter/2, cyl_hthickness, cyl_displA);
+				wheelLF->GetBody()->GetCollisionModel()->AddCylinder(wheeldiameter/2,wheeldiameter/2, cyl_hthickness, cyl_displB);
 				wheelLF->GetBody()->GetCollisionModel()->BuildModel();			// Creates the collision model
 				wheelLF->GetBody()->SetCollide(true);
 				wheelLF->GetBody()->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
@@ -198,8 +198,8 @@ public:
 														chrono::Q_from_AngAxis(CH_C_PI/2, VECT_X) );
 				
 				wheelRB->GetBody()->GetCollisionModel()->ClearModel();
-				wheelRB->GetBody()->GetCollisionModel()->AddCylinder(wheeldiameter/2,wheeldiameter/2, cyl_hthickness, &cyl_displA);
-				wheelRB->GetBody()->GetCollisionModel()->AddCylinder(wheeldiameter/2,wheeldiameter/2, cyl_hthickness, &cyl_displB);
+				wheelRB->GetBody()->GetCollisionModel()->AddCylinder(wheeldiameter/2,wheeldiameter/2, cyl_hthickness, cyl_displA);
+				wheelRB->GetBody()->GetCollisionModel()->AddCylinder(wheeldiameter/2,wheeldiameter/2, cyl_hthickness, cyl_displB);
 				wheelRB->GetBody()->GetCollisionModel()->BuildModel();			// Creates the collision model
 				wheelRB->GetBody()->SetCollide(true);
 				wheelRB->GetBody()->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
@@ -227,8 +227,8 @@ public:
 														chrono::Q_from_AngAxis(CH_C_PI/2, VECT_X) );
 				
 				wheelLB->GetBody()->GetCollisionModel()->ClearModel();
-				wheelLB->GetBody()->GetCollisionModel()->AddCylinder(wheeldiameter/2,wheeldiameter/2, cyl_hthickness, &cyl_displA);
-				wheelLB->GetBody()->GetCollisionModel()->AddCylinder(wheeldiameter/2,wheeldiameter/2, cyl_hthickness, &cyl_displB);
+				wheelLB->GetBody()->GetCollisionModel()->AddCylinder(wheeldiameter/2,wheeldiameter/2, cyl_hthickness, cyl_displA);
+				wheelLB->GetBody()->GetCollisionModel()->AddCylinder(wheeldiameter/2,wheeldiameter/2, cyl_hthickness, cyl_displB);
 				wheelLB->GetBody()->GetCollisionModel()->BuildModel();			// Creates the collision model
 				wheelLB->GetBody()->SetCollide(true);
 				wheelLB->GetBody()->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
@@ -290,10 +290,10 @@ public:
 					firstBodyShoe->GetBody()->GetCollisionModel()->SetEnvelope(0.010);		// distance of the outward "collision envelope"
 					firstBodyShoe->GetBody()->GetCollisionModel()->ClearModel();
 					 // ...try to use a concave (simplified) mesh plus automatic convex decomposition?? ...
-					 firstBodyShoe->GetBody()->GetCollisionModel()->AddTriangleMesh(temp_trianglemesh, false, false, &mesh_displacement);	// not static, not convex
+					 firstBodyShoe->GetBody()->GetCollisionModel()->AddTriangleMesh(temp_trianglemesh, false, false, mesh_displacement);	// not static, not convex
 					 // .. or rather use few 'primitive' shapes to approximate with cubes/etc?? 
-					 //firstBodyShoe->GetBody()->GetCollisionModel()->AddBox(shoelength/2, shoethickness/2, shoewidth/2, &mesh_displacement);
-					 //firstBodyShoe->GetBody()->GetCollisionModel()->AddBox(0.04, 0.02, 0.02, &pin_displacement);
+					 //firstBodyShoe->GetBody()->GetCollisionModel()->AddBox(shoelength/2, shoethickness/2, shoewidth/2, mesh_displacement);
+					 //firstBodyShoe->GetBody()->GetCollisionModel()->AddBox(0.04, 0.02, 0.02, pin_displacement);
 					firstBodyShoe->GetBody()->GetCollisionModel()->BuildModel();			// Creates the collision model
 					firstBodyShoe->GetBody()->SetCollide(true);
 

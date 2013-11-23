@@ -180,6 +180,9 @@ public:
 					/// Sets the vector as a null vector
 	void SetNull() { x=y=z=0;};
 
+					/// Returns true if this vector is the null vector
+	bool IsNull() const {return x == 0 && y == 0 && z == 0;}
+
 					/// Returns true if vector is identical to other vector
 	bool	Equals ( const ChVector<Real>& other) const { return (other.x==x) && (other.y==y) && (other.z==z);}
 
@@ -241,11 +244,11 @@ public:
 
 					/// Computes the euclidean norm of the vector,
 					/// that is its length or magnitude
-	double	Length	 () { return sqrt(x*x + y*y + z*z); }
+	double	Length() const { return sqrt(x*x + y*y + z*z); }
 
 					/// Computes the euclidean norm of the vector, squared 
 					/// (i.e. as Length(), but skipping the square root)
-	double	Length2	 () { return (x*x + y*y + z*z); }
+	double	Length2() const { return (x*x + y*y + z*z); }
 
 					/// Computes the infinite norm of the vector, that
 					/// is the maximum absolute value of one of its elements
