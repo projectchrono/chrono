@@ -140,7 +140,7 @@ public:
 				/// Gets the name of the object as C Ascii null-terminated string -for reading only!
 	char* GetName ();
 				/// Sets the name of this object, as ascii string
-	void SetName (char myname[]);
+	void SetName (const char myname[]);
 
 				/// Gets the name of the object as C Ascii null-terminated string.
 	std::string GetNameString ();
