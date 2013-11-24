@@ -110,7 +110,7 @@ char* ChObj::GetName ()
 		return (char*)this->name.c_str();
 }
 
-void ChObj::SetName (char myname[])
+void ChObj::SetName (const char myname[])
 {
 	name = myname;
 }

@@ -2656,7 +2656,7 @@ static NxI32 overhull(Plane *planes,NxI32 planes_count,float3 *verts, NxI32 vert
 			 float3 *&verts_out, NxI32 &verts_count_out,  NxI32 *&faces_out, NxI32 &faces_count_out ,NxF32 inflate)
 {
 	NxI32 i,j;
-	if(verts_count <4) return NULL;
+	if(verts_count < 4) return 0;
 	maxplanes = Min(maxplanes,planes_count);
 	float3 bmin(verts[0]),bmax(verts[0]);
 	for(i=0;i<verts_count;i++)

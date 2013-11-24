@@ -308,10 +308,8 @@ void showVarFun() { };
 
 // build
 ChOptimizerLocal::ChOptimizerLocal()
+		: ChOptimizer() // note: implicit
 {
-	// first, build parent class
-	ChOptimizer::ChOptimizer();
-
 	initial_step = 1.0;
 	arg_tol = 1.e-6;
 	fun_tol = 1.e-7;
@@ -1185,13 +1183,13 @@ int ChOptimizerGenetic::DoOptimize()
 		if (stop_by_stdeviation)
 			if (stdeviation <= stop_stdeviation)
 			{
-				sprintf (err_message, "OK, imposed standard deviation reached in %d generations", generations_done);
+				sprintf (err_message, "OK, imposed standard deviation reached in %ld generations", (long)generations_done);
 				break;
 			}
 		if (stop_by_fitness)
 			if (max_fitness >= stop_fitness)
 			{
-				sprintf (err_message, "OK, imposed max fitness reached in %d generations", generations_done);
+				sprintf (err_message, "OK, imposed max fitness reached in %ld generations", (long)generations_done);
 				break;
 			}
 
@@ -1285,10 +1283,8 @@ int ChOptimizerGenetic::DoOptimize()
 
 // build
 ChOptimizerGradient::ChOptimizerGradient()
+					: ChOptimizer() // note: implicit
 {
-	// first, build parent class
-	ChOptimizer::ChOptimizer();
-
 	initial_step	=1;
 	arg_tol		= 1.e-6;
 	fun_tol		= 1.e-7;
@@ -1494,13 +1490,13 @@ int ChOptimizerGradient::DoOptimize()
 		if (this->fx_evaluations > maxevaluations)
 		{
 //cout << "\n          limit on fx evals----= ";
-			sprintf (err_message, "OK, limit on max number of fx evaluations reached in %d steps", this->grad_evaluations);
+			sprintf (err_message, "OK, limit on max number of fx evaluations reached in %ld steps", (long)this->grad_evaluations);
 			break;
 		}
 		if (this->grad_evaluations > maxgradients)
 		{
 //cout << "\n          limit on max gradients ---- ";
-			sprintf (err_message, "OK, limit on max number of %d gradient evaluations reached.", this->grad_evaluations);
+			sprintf (err_message, "OK, limit on max number of %ld gradient evaluations reached.", (long)this->grad_evaluations);
 			break;
 		}
 	}
@@ -1533,10 +1529,8 @@ end_opt:
 
 // build
 ChOptimizerHybrid::ChOptimizerHybrid()
+				  :ChOptimizer() // note: implicit
 {
-	// first, build parent class
-	ChOptimizer::ChOptimizer();
-
 	genetic_opt = new ChOptimizerGenetic();
 	local_opt = new ChOptimizerLocal();
 
