@@ -38,6 +38,7 @@
 #include "assets/ChTexture.h"
 #include "assets/ChAssetLevel.h"
 #include "unit_POSTPROCESS/ChPovRay.h" 
+#include "unit_POSTPROCESS/ChPovRayAssetCustom.h" 
 #include "core/ChFileutils.h"
 
 
@@ -75,7 +76,7 @@ int main(int argc, char* argv[])
 
 			// Define a collision shape 
 	mfloor->GetCollisionModel()->ClearModel();
-	mfloor->GetCollisionModel()->AddBox(10,0.5,10, &ChVector<>(0,-1,0));
+	mfloor->GetCollisionModel()->AddBox(10,0.5,10, ChVector<>(0,-1,0));
 	mfloor->GetCollisionModel()->BuildModel();
 	mfloor->SetCollide(true);
 
@@ -94,7 +95,6 @@ int main(int argc, char* argv[])
 	ChSharedPtr<ChVisualization> mfloorcolor(new ChVisualization);
 	mfloorcolor->SetColor(ChColor(0.3,0.3,0.6));
 	mfloor->AddAsset(mfloorcolor);
-
 
 
 	//
@@ -135,6 +135,7 @@ int main(int argc, char* argv[])
 	ChSharedPtr<ChVisualization> mvisual(new ChVisualization);
 	mvisual->SetColor(ChColor(0.9,0.4,0.2));
 	mbody->AddAsset(mvisual);
+
 
 			// ==Asset== Attach a level that contains other assets.
 			// Note: a ChAssetLevel can define a rotation/translation respect to paren level,
@@ -235,7 +236,7 @@ int main(int argc, char* argv[])
 	ChPovRay pov_exporter = ChPovRay(&mphysicalSystem);
 
 			// Sets some file names for in-out processes.
-	pov_exporter.SetTemplateFile    ("../data/_template_POV.pov");
+	pov_exporter.SetTemplateFile		("../data/_template_POV.pov");
 	pov_exporter.SetOutputScriptFile    ("rendering_frames.pov");
 	pov_exporter.SetOutputDataFilebase  ("my_state");
 	pov_exporter.SetPictureFilebase     ("picture");
@@ -249,20 +250,31 @@ int main(int argc, char* argv[])
 	pov_exporter.SetOutputDataFilebase("output/my_state");
 	pov_exporter.SetPictureFilebase("anim/picture");
 
-	// deactivate def light
-pov_exporter.SetLight(VNULL, ChColor(0,0,0), false);
+			// --Optional: modify default light
+	pov_exporter.SetLight(ChVector<>(-3,4,2), ChColor(0.15,0.15,0.12), false);
 
+			// --Optional: add further POV commands, for example in this case:
+			//     create an area light for soft shadows
+			//     create a Grid object; Grid() parameters: step, linewidth, linecolor, planecolor
+			//   Remember to use \ at the end of each line for a multiple-line string.
 	pov_exporter.SetCustomPOVcommandsScript(" \
 	light_source {   \
       <2, 10, -3>  \
-	  color rgb<1.8,1.8,1.8> \
-      area_light <5, 0, 0>, <0, 0, 5>, 8, 8 \
+	  color rgb<1.2,1.2,1.2> \
+      area_light <4, 0, 0>, <0, 0, 4>, 8, 8 \
       adaptive 1 \
       jitter\
     } \
-	object{ Grid(0.5,0.05, rgb<0.6,0.6,0.6>, rgbt<1,1,1,1>) rotate <0, 0, 90> translate -0.3*y } \
-    plane{<0,1,0>, 0 pigment{color rgb<0.8,0.8,0.8>} translate -0.301*y } \
+	object{ Grid(1,0.02, rgb<0.7,0.8,0.8>, rgbt<1,1,1,1>) rotate <0, 0, 90>  } \
     ");
+
+			// --Optional: attach additional custom POV commands to some of the rigid bodies,
+			//   using the ChPovRayAssetCustom asset. This asset for example projects a 
+			//   checkered texture to the floor. This POV specific asset won't be rendered 
+			//   by Irrlicht or other interfaces.
+	ChSharedPtr<ChPovRayAssetCustom> mPOVcustom(new ChPovRayAssetCustom);
+	mPOVcustom->SetCommands("pigment { checker rgb<0.9,0.9,0.9>, rgb<0.75,0.8,0.8> }");
+	mfloor->AddAsset(mPOVcustom);
 
 
 			// IMPORTANT! Tell to the POVray exporter that 
