@@ -400,22 +400,27 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 			if((k_asset.IsType<ChObjShapeFile>() ) ||
 			   (k_asset.IsType<ChTriangleMeshShape>() ) ) 
 			{
-				ChTriangleMeshConnected* mytrimesh;
+				ChTriangleMeshConnected* mytrimesh =0;
+				ChTriangleMeshConnected* temp_allocated_loadtrimesh =0;
 
 				if (k_asset.IsType<ChObjShapeFile>() )
 				{
 					ChSharedPtr<ChObjShapeFile> myobjshapeasset(k_asset);
 					try 
 					{
-						ChTriangleMeshConnected loadtrimesh;
+						temp_allocated_loadtrimesh = new (ChTriangleMeshConnected);
 
 						// Load from the .obj file and convert.
-						loadtrimesh.LoadWavefrontMesh( myobjshapeasset->GetFilename(), true, true );
+						temp_allocated_loadtrimesh->LoadWavefrontMesh( myobjshapeasset->GetFilename(), true, true );
 
-						mytrimesh = &loadtrimesh;
+						mytrimesh = temp_allocated_loadtrimesh;
 					}
 					catch (ChException)
 					{
+						if (temp_allocated_loadtrimesh)
+							delete temp_allocated_loadtrimesh; 
+						temp_allocated_loadtrimesh = 0;
+
 						char error[400];
 						sprintf(error,"Asset n.%d: can't read .obj file %s", k,myobjshapeasset->GetFilename().c_str() );
 						throw (ChException(error));
@@ -427,7 +432,6 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 
 					mytrimesh = &mytrimeshshapeasset->GetMesh();
 				}
-
 				
 				// POV macro to build the asset - begin
 				assets_file << "#macro sh_"<< (size_t) k_asset.get_ptr() << "()\n"; //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
@@ -489,6 +493,10 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 				// POV macro - end
 				assets_file << "#end \n";
 				
+
+				if (temp_allocated_loadtrimesh)
+					delete temp_allocated_loadtrimesh;
+				temp_allocated_loadtrimesh=0;
 			}
 
 			// *) asset k of object i is a sphere ?
