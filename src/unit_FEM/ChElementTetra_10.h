@@ -345,7 +345,7 @@ public:
 						F(row, colres)= sum;
 					}
 				ChMatrix33<> S;
-				double det = ChPolarDecomposition::Compute(F, this->A, S, 1E-6);
+				double det = ChPolarDecomposition<>::Compute(F, this->A, S, 1E-6);
 				if (det <0)
 					this->A.MatrScale(-1.0);
 
