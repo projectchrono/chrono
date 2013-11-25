@@ -14,8 +14,8 @@ class ChApiGPU ChCBroadphase {
 		// functions
 		ChCBroadphase();
 		int detectPossibleCollisions(custom_vector<real3> &aabb_data,custom_vector<int2> & fam_data, custom_vector<long long> &potentialCollisions);
-		int setBinsPerAxis(real3 binsPerAxis);
-		real3 getBinsPerAxis();
+		void setBinsPerAxis(int3 binsPerAxis);
+		int3 getBinsPerAxis();
 		void setBodyPerBin(int max, int min) {min_body_per_bin=min;max_body_per_bin=max;}
 
 		private:
@@ -24,7 +24,8 @@ class ChApiGPU ChCBroadphase {
 				real3 max_bounding_point;
 				real3 global_origin;
 				real3 bin_size_vec;
-				real3 bins_per_axis;
+				int3 grid_size;
+
 				uint numAABB;
 				uint last_active_bin, number_of_bin_intersections, number_of_contacts_possible;
 				uint val;

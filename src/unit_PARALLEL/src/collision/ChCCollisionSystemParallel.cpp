@@ -14,7 +14,6 @@ namespace chrono {
 namespace collision {
 ChCollisionSystemParallel::ChCollisionSystemParallel() {
 	collision_envelope = .03;
-	bpa = R3(20, 20, 20);
 	max_body_per_bin = 100;
 	min_body_per_bin = 20;
 
@@ -75,12 +74,7 @@ void ChCollisionSystemParallel::Run() {
 	data_container->host_data.old_norm_rigid_rigid = data_container->host_data.norm_rigid_rigid;
 	data_container->old_number_of_rigid_rigid = data_container->number_of_rigid_rigid;
 	mtimer_cd_broad.start();
-	ChCAABBGenerator aabb_generator;
-	ChCBroadphase broadphase;
-	broadphase.setBinsPerAxis(bpa);
-	broadphase.setBodyPerBin(max_body_per_bin, min_body_per_bin);
 
-	ChCNarrowphase narrowphase;
 	aabb_generator.GenerateAABB(
 			data_container->host_data.typ_rigid,
 			data_container->host_data.ObA_rigid,

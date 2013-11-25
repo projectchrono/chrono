@@ -101,25 +101,33 @@ class ChApiGPU ChCollisionSystemParallel: public ChCollisionSystem {
 		vector<int2> GetOverlappingPairs();
 		void GetOverlappingAABB(vector<bool> &active_id, real3 Amin, real3 Amax);
 
-		void setBinsPerAxis(real3 binsPerAxis) {
+		void setBinsPerAxis(int3 binsPerAxis) {
 
-			bpa = binsPerAxis;
+			broadphase.setBinsPerAxis(binsPerAxis);
 
 		}
 		void setBodyPerBin(int max, int min) {
 			min_body_per_bin = min;
 			max_body_per_bin = max;
+			broadphase.setBodyPerBin(max_body_per_bin, min_body_per_bin);
+
 		}
 		ChGPUDataManager *data_container;
 		ChTimer<double> mtimer_cd_broad, mtimer_cd_narrow;
+
+		ChCAABBGenerator aabb_generator;
+		ChCBroadphase broadphase;
+		ChCNarrowphase narrowphase;
 
 	private:
 		real collision_envelope;
 		/// Update data structures to pass into GPU for collision detection
 		//unsigned int counter;
-		real3 bpa;
+
 		int min_body_per_bin;
 		int max_body_per_bin;
+
+
 
 };
 }     // END_OF_NAMESPACE____

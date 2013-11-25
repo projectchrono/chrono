@@ -53,6 +53,9 @@ class ChApiGPU ChSystemParallel: public ChSystem {
 		void ChangeCollisionSystem(ChCollisionSystem *newcollsystem);
 		void ChangeLcpSystemDescriptor(ChLcpSystemDescriptor* newdescriptor);
 		void ChangeLcpSolverSpeed(ChLcpSolver *newsolver);
+		void RecomputeThreads();
+		void RecomputeBins();
+		void PerturbBins(bool increase, int number = 2);
 		int GetNcontacts() {
 			return gpu_data_manager->number_of_rigid_rigid;
 		}
@@ -87,9 +90,13 @@ class ChApiGPU ChSystemParallel: public ChSystem {
 		int min_threads;
 
 		vector<double> timer_accumulator;
-		double old_timer;
-		bool detect_optimal;
-		uint frame;
+		vector<double> cd_accumulator;
+
+		double old_timer, old_timer_cd;
+		bool detect_optimal_threads ;
+		int detect_optimal_bins;
+		uint frame_threads;
+		uint frame_bins;
 
 };
 }
