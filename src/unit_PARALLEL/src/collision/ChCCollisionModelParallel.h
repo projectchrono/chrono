@@ -61,19 +61,19 @@ class ChApiGPU ChCollisionModelParallel: public ChCollisionModel {
 		virtual bool AddSphere(double radius, const ChVector<> &pos = ChVector<>());
 
 		/// Add an ellipsoid shape to this model, for collision purposes
-		virtual bool AddEllipsoid(double rx, double ry, double rz, const ChVector<> &pos = ChVector<>(), const ChMatrix33<> &rot = ChMatrix33<>(1.0));
+		virtual bool AddEllipsoid(double rx, double ry, double rz, const ChVector<> &pos = ChVector<>(), const ChMatrix33<> &rot = ChMatrix33<>());
 
 		/// Add a box shape to this model, for collision purposes
-		virtual bool AddBox(double hx, double hy, double hz, const ChVector<> &pos = ChVector<>(), const ChMatrix33<> &rot = ChMatrix33<>(1.0));
+		virtual bool AddBox(double hx, double hy, double hz, const ChVector<> &pos = ChVector<>(), const ChMatrix33<> &rot = ChMatrix33<>());
 
 		/// Add a triangle shape to this model, for collision purposes
-		virtual bool AddTriangle(ChVector<> A, ChVector<> B, ChVector<> C, const ChVector<> &pos = ChVector<>(), const ChMatrix33<> &rot = ChMatrix33<>(1.0));
+		virtual bool AddTriangle(ChVector<> A, ChVector<> B, ChVector<> C, const ChVector<> &pos = ChVector<>(), const ChMatrix33<> &rot = ChMatrix33<>());
 
 		/// Add a cylinder to this model (default axis on Y direction), for collision purposes
-		virtual bool AddCylinder(double rx, double ry, double rz, const ChVector<> &pos = ChVector<>(), const ChMatrix33<> &rot = ChMatrix33<>(1.0));
+		virtual bool AddCylinder(double rx, double ry, double rz, const ChVector<> &pos = ChVector<>(), const ChMatrix33<> &rot = ChMatrix33<>());
 
 		/// Add a cone to this model (default axis on Y direction), for collision purposes
-		virtual bool AddCone(double rx, double ry, double rz, const ChVector<> &pos = ChVector<>(), const ChMatrix33<> &rot = ChMatrix33<>(1.0));
+		virtual bool AddCone(double rx, double ry, double rz, const ChVector<> &pos = ChVector<>(), const ChMatrix33<> &rot = ChMatrix33<>());
 
 		/// Add a 2d rectangle shape to this model, for collision purposes
 		virtual bool AddRectangle(double rx, double ry);
