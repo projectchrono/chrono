@@ -83,7 +83,8 @@ bool ChCollisionModelParallel::AddEllipsoid(double rx, double ry, double rz, con
 	tData.A = R3(pos.x, pos.y, pos.z);
 	tData.B = R3(rx, ry, rz);
 	tData.C = R3(0, 0, 0);
-	tData.R = R4(rot.Get_A_quaternion().e0, rot.Get_A_quaternion().e1, rot.Get_A_quaternion().e2, rot.Get_A_quaternion().e3);
+	ChMatrix33<> rotation = rot;
+	tData.R = R4(rotation.Get_A_quaternion().e0, rotation.Get_A_quaternion().e1, rotation.Get_A_quaternion().e2, rotation.Get_A_quaternion().e3);
 	tData.type = ELLIPSOID;
 	mData.push_back(tData);
 	return true;
