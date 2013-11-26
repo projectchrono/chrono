@@ -114,18 +114,18 @@ public:
 					/// Set the 1st anchor endpoint for the distance (expressed in Body1 coordinate system)
 	void       SetEndPoint1Rel(const ChVector<>& mset) {pos1 = mset;}
 					/// Get the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
-	ChVector<> GetEndPoint1Abs() {return Body1->Point_Body2World(&pos1);}
+	ChVector<> GetEndPoint1Abs() {return Body1->Point_Body2World(pos1);}
 					/// Set the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
-	void       SetEndPoint1Abs(ChVector<>& mset) {pos1 = Body1->Point_World2Body(&mset);}
+	void       SetEndPoint1Abs(ChVector<>& mset) {pos1 = Body1->Point_World2Body(mset);}
 
 					/// Get the 2nd anchor endpoint for the distance (expressed in Body2 coordinate system)
 	ChVector<> GetEndPoint2Rel() {return pos2;};
 					/// Set the 2nd anchor endpoint for the distance (expressed in Body2 coordinate system)
 	void       SetEndPoint2Rel(const ChVector<>& mset) {pos2 = mset;}
 					/// Get the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
-	ChVector<> GetEndPoint2Abs() {return Body2->Point_Body2World(&pos2);}
+	ChVector<> GetEndPoint2Abs() {return Body2->Point_Body2World(pos2);}
 					/// Set the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
-	void       SetEndPoint2Abs(ChVector<>& mset) {pos2 = Body2->Point_World2Body(&mset);}
+	void       SetEndPoint2Abs(ChVector<>& mset) {pos2 = Body2->Point_World2Body(mset);}
 
 
 					/// Get the imposed distance
@@ -133,7 +133,7 @@ public:
 					/// Set the imposed distance
 	void   SetImposedDistance(const double mset) {distance = mset;}
 					/// Get the distance currently existing between the two endpoints
-	double GetCurrentDistance() {return (Body1->Point_Body2World(&pos1)-Body2->Point_Body2World(&pos2)).Length(); };
+	double GetCurrentDistance() {return (Body1->Point_Body2World(pos1)-Body2->Point_Body2World(pos2)).Length(); };
 
 
 				//

@@ -327,34 +327,34 @@ void ChBody::ClampSpeed()
 
 //// Utilities for coordinate transformations
 ///
-Vector ChBody::Point_World2Body (Vector* mpoint)
+ChVector<> ChBody::Point_World2Body(const ChVector<>& mpoint)
 {
-    return ChFrame<double>::TrasformParentToLocal(*mpoint);
+    return ChFrame<double>::TrasformParentToLocal(mpoint);
 }
 
-Vector ChBody::Point_Body2World (Vector* mpoint)
+ChVector<> ChBody::Point_Body2World(const ChVector<>& mpoint)
 {
-    return ChFrame<double>::TrasformLocalToParent(*mpoint);
+    return ChFrame<double>::TrasformLocalToParent(mpoint);
 }
 
-Vector ChBody::Dir_World2Body (Vector* mpoint)
+ChVector<> ChBody::Dir_World2Body(const ChVector<>& mpoint)
 {
-    return Amatrix.MatrT_x_Vect (*mpoint);
+    return Amatrix.MatrT_x_Vect(mpoint);
 }
 
-Vector ChBody::Dir_Body2World (Vector* mpoint)
+ChVector<> ChBody::Dir_Body2World(const ChVector<>& mpoint)
 {
-    return Amatrix.Matr_x_Vect (*mpoint);
+    return Amatrix.Matr_x_Vect(mpoint);
 }
 
-Vector ChBody::RelPoint_AbsSpeed(Vector* mrelpoint)
+ChVector<> ChBody::RelPoint_AbsSpeed(const ChVector<>& mrelpoint)
 {
-    return PointSpeedLocalToParent(*mrelpoint);
+    return PointSpeedLocalToParent(mrelpoint);
 }
 
-Vector ChBody::RelPoint_AbsAcc(Vector* mrelpoint)
+ChVector<> ChBody::RelPoint_AbsAcc(const ChVector<>& mrelpoint)
 {
-    return PointAccelerationLocalToParent(*mrelpoint);
+    return PointAccelerationLocalToParent(mrelpoint);
 }
 
 ////
@@ -365,14 +365,14 @@ void ChBody::SetInertia (ChMatrix33<>* newXInertia)
     variables.SetBodyInertia(newXInertia);
 }
 
-void ChBody::SetInertiaXX (Vector iner)
+void ChBody::SetInertiaXX(const ChVector<>& iner)
 {
     variables.GetBodyInertia().SetElement(0,0,iner.x);
     variables.GetBodyInertia().SetElement(1,1,iner.y);
     variables.GetBodyInertia().SetElement(2,2,iner.z);
     variables.GetBodyInertia().FastInvert(&variables.GetBodyInvInertia());
 }
-void ChBody::SetInertiaXY (Vector iner)
+void ChBody::SetInertiaXY(const ChVector<>& iner)
 {
     variables.GetBodyInertia().SetElement(0,1,iner.x);
     variables.GetBodyInertia().SetElement(0,2,iner.y);
@@ -410,21 +410,25 @@ void ChBody::ComputeQInertia (ChMatrixNM<double,4,4>* mQInertia)
     SetMatrix_Gl(Gl, coord.rot);
     GlT.CopyFromMatrixT(Gl);
 
-    res.MatrMultiply (*this->GetXInertia(), Gl);
-    mQInertia->MatrMultiply (GlT, res); // [Iq]=[G'][Ix][G]
+    res.MatrMultiply(this->GetXInertia(), Gl);
+    mQInertia->MatrMultiply(GlT, res); // [Iq]=[G'][Ix][G]
 }
 
 //////
 
 
-void ChBody::To_abs_forcetorque  (Vector force, Vector appl_point, int local, Vector& resultforce, Vector& resulttorque)
+void ChBody::To_abs_forcetorque(const ChVector<>& force,
+                                const ChVector<>& appl_point,
+                                int               local,
+                                ChVector<>&       resultforce,
+                                ChVector<>&       resulttorque)
 {
     if (local)
     {
         // local space
-        ChVector<> mforce_abs = Dir_Body2World(&force);
+        ChVector<> mforce_abs = Dir_Body2World(force);
         resultforce = mforce_abs;
-        resulttorque = Vcross (Dir_Body2World(&appl_point), mforce_abs) ;
+        resulttorque = Vcross (Dir_Body2World(appl_point), mforce_abs) ;
     }
     else
     {
@@ -433,12 +437,14 @@ void ChBody::To_abs_forcetorque  (Vector force, Vector appl_point, int local, Ve
         resulttorque = Vcross (Vsub(appl_point, coord.pos), force) ;
     }
 }
-void ChBody::To_abs_torque (Vector torque, int local, Vector& resulttorque)
+void ChBody::To_abs_torque(const ChVector<>& torque,
+                           int               local,
+                           ChVector<>&       resulttorque)
 {
     if (local)
     {
         // local space
-        resulttorque = Dir_Body2World(&torque);
+        resulttorque = Dir_Body2World(torque);
     }
     else
     {
@@ -448,66 +454,80 @@ void ChBody::To_abs_torque (Vector torque, int local, Vector& resulttorque)
 }
 
 
-void ChBody::Add_as_lagrangian_force(Vector force, Vector appl_point, int local, ChMatrixNM<double,7,1>* mQf)
+void ChBody::Add_as_lagrangian_force(const ChVector<>&       force,
+                                     const ChVector<>&       appl_point,
+                                     int                     local,
+                                     ChMatrixNM<double,7,1>* mQf)
 {
     ChVector<> mabsforce;
     ChVector<> mabstorque;
     To_abs_forcetorque (force, appl_point, local, mabsforce, mabstorque);
     mQf->PasteSumVector(mabsforce,0,0);
-    mQf->PasteSumQuaternion( ChFrame<>::GlT_x_Vect(coord.rot, Dir_World2Body(&mabstorque)) , 3,0);
+    mQf->PasteSumQuaternion( ChFrame<>::GlT_x_Vect(coord.rot, Dir_World2Body(mabstorque)) , 3,0);
 }
 
-void ChBody::Add_as_lagrangian_torque(Vector torque, int local, ChMatrixNM<double,7,1>* mQf)
+void ChBody::Add_as_lagrangian_torque(const ChVector<>&       torque,
+                                      int                     local,
+                                      ChMatrixNM<double,7,1>* mQf)
 {
     ChVector<> mabstorque;
     To_abs_torque (torque, local, mabstorque);
-    mQf->PasteSumQuaternion( ChFrame<>::GlT_x_Vect(coord.rot, Dir_World2Body(&mabstorque)), 3,0);
+    mQf->PasteSumQuaternion( ChFrame<>::GlT_x_Vect(coord.rot, Dir_World2Body(mabstorque)), 3,0);
 }
 
-void ChBody::From_lagrangian_to_forcetorque(ChMatrixNM<double,7,1>* mQf, Vector* mforce, Vector* mtorque)
+void ChBody::From_lagrangian_to_forcetorque(const ChMatrixNM<double,7,1>& mQf,
+                                            ChVector<>&                   mforce,
+                                            ChVector<>&                   mtorque)
 {
-    *mforce = mQf->ClipVector(0,0);
+    mforce = mQf.ClipVector(0,0);
     ChQuaternion<> tempq;
-    tempq = mQf->ClipQuaternion(3,0);
-    *mtorque = ChFrame<>::Gl_x_Quat(coord.rot, tempq);
-    *mtorque = Vmul (*mtorque, 0.25);
+    tempq = mQf.ClipQuaternion(3,0);
+    mtorque = ChFrame<>::Gl_x_Quat(coord.rot, tempq);
+    mtorque *= 0.25;
 }
 
-void ChBody::From_forcetorque_to_lagrangian(Vector* mforce, Vector* mtorque, ChMatrixNM<double,7,1>* mQf)
+void ChBody::From_forcetorque_to_lagrangian(const ChVector<>&       mforce,
+                                            const ChVector<>&       mtorque,
+                                            ChMatrixNM<double,7,1>& mQf)
 {
-    mQf->PasteVector(*mforce, 0,0);
+    mQf.PasteVector(mforce, 0,0);
     ChQuaternion<> tempq;
-    tempq = ChFrame<>::GlT_x_Vect(coord.rot, *mtorque);
-    mQf->PasteQuaternion(tempq,3,0);
+    tempq = ChFrame<>::GlT_x_Vect(coord.rot, mtorque);
+    mQf.PasteQuaternion(tempq,3,0);
 }
 
 //////
 
-void ChBody::Accumulate_force  (Vector force, Vector appl_point, int local)
+void ChBody::Accumulate_force(const ChVector<>& force,
+                              const ChVector<>& appl_point,
+                              int               local)
 {
     ChVector<> mabsforce;
     ChVector<> mabstorque;
-    To_abs_forcetorque (force, appl_point, local, mabsforce, mabstorque);
+    To_abs_forcetorque(force, appl_point, local, mabsforce, mabstorque);
 
-    Force_acc = Vadd (Force_acc, mabsforce);
-    Torque_acc = Vadd (Torque_acc, mabstorque);
+    Force_acc += mabsforce;
+    Torque_acc += mabstorque;
 }
 
-void ChBody::Accumulate_torque (Vector torque, int local)
+void ChBody::Accumulate_torque(const ChVector<>& torque,
+                               int               local)
 {
     ChVector<> mabstorque;
-    To_abs_torque (torque, local, mabstorque);
-    Torque_acc = Vadd (Torque_acc, mabstorque);
+    To_abs_torque(torque, local, mabstorque);
+    Torque_acc += mabstorque;
 }
 
-void ChBody::Accumulate_script_force  (Vector force, Vector appl_point, int local)
+void ChBody::Accumulate_script_force(const ChVector<>& force,
+                                     const ChVector<>& appl_point,
+                                     int               local)
 {
     ChVector<> mabsforce;
     ChVector<> mabstorque;
-    To_abs_forcetorque (force, appl_point, local, mabsforce, mabstorque);
+    To_abs_forcetorque(force, appl_point, local, mabsforce, mabstorque);
 
-    Scr_force = Vadd (Scr_force, mabsforce);
-    Scr_torque = Vadd (Scr_torque, mabstorque);
+    Scr_force += mabsforce;
+    Scr_torque += mabstorque;
 }
 /*
 void ChBody::SetCdim (Vector mcdim)
@@ -517,11 +537,13 @@ void ChBody::SetCdim (Vector mcdim)
     cdim = mcdim;
 }
 */
-void ChBody::Accumulate_script_torque (Vector torque, int local)
+void ChBody::Accumulate_script_torque(const ChVector<>& torque,
+                                      int               local)
 {
     ChVector<> mabstorque;
-    To_abs_torque (torque, local, mabstorque);
-    Scr_torque = Vadd (Scr_torque, mabstorque);
+    To_abs_torque(torque, local, mabstorque);
+
+    Scr_torque += mabstorque;
 }
 
 
@@ -709,7 +731,7 @@ void ChBody::UpdateForces (double mytime)
     // 2b- force caused by accumulation of torques in body's accumulator Force_acc
     if (Vnotnull(&Torque_acc))
     {
-        Xtorque = Dir_World2Body(&Torque_acc); 
+        Xtorque = Dir_World2Body(Torque_acc); 
     }
 
     // 3 - accumulation of other applied forces
@@ -735,7 +757,7 @@ void ChBody::UpdateForces (double mytime)
     }
     if (Vnotnull(&Scr_torque))
     {
-        Xtorque += Dir_World2Body(&Scr_torque);
+        Xtorque += Dir_World2Body(Scr_torque);
     }
 
     if (GetSystem())
@@ -751,34 +773,38 @@ void ChBody::UpdateTime (double mytime)
 }
 
 
-void ChBody::UpdateState (Coordsys mypos, Coordsys mypos_dt)
+void ChBody::UpdateState(const ChCoordsys<>& mypos,
+                         const ChCoordsys<>& mypos_dt)
 {
-    SetCoord (mypos);       // Set the state coordsys,
-    SetCoord_dt (mypos_dt); // automatically updating auxiliary variables
+    SetCoord(mypos);        // Set the state coordsys,
+    SetCoord_dt(mypos_dt);  // automatically updating auxiliary variables
 
-    //TrySleeping();            // See if the body can fall asleep; if so, put it to sleeping
+    //TrySleeping();          // See if the body can fall asleep; if so, put it to sleeping
     ClampSpeed();           // Apply limits (if in speed clamping mode) to speeds.
     ComputeGyro ();         // Set the gyroscopic momentum.
 }
 
 
-void ChBody::UpdateStateTime (Coordsys mypos, Coordsys mypos_dt, double mytime)
+void ChBody::UpdateStateTime(const ChCoordsys<>& mypos,
+                             const ChCoordsys<>& mypos_dt,
+                             double              mytime)
 {
-    UpdateTime (mytime);
-
-    UpdateState (mypos, mypos_dt);
+    UpdateTime(mytime);
+    UpdateState(mypos, mypos_dt);
 }
 
 
-void ChBody::Update (Coordsys mypos, Coordsys mypos_dt, double mytime)
+void ChBody::Update(const ChCoordsys<>& mypos,
+                    const ChCoordsys<>& mypos_dt,
+                    double              mytime)
 {
     UpdateTime (mytime);
 
-     mypos.rot.Normalize();
-    UpdateState (mypos, mypos_dt);
+    ChCoordsys<> pos = mypos;
+    pos.rot.Normalize();
+    UpdateState (pos, mypos_dt);
 
     Update();
-
 }
 
 
@@ -789,9 +815,9 @@ void ChBody::Update (Coordsys mypos, Coordsys mypos_dt, double mytime)
 
 void ChBody::Update()
 {
-    //TrySleeping();            // See if the body can fall asleep; if so, put it to sleeping 
-    ClampSpeed();           // Apply limits (if in speed clamping mode) to speeds.
-    ComputeGyro ();         // Set the gyroscopic momentum.
+    //TrySleeping();         // See if the body can fall asleep; if so, put it to sleeping 
+    ClampSpeed();          // Apply limits (if in speed clamping mode) to speeds.
+    ComputeGyro();         // Set the gyroscopic momentum.
 
         // Also update the children "markers" and
         // "forces" depending on the body current state.
@@ -807,7 +833,7 @@ void ChBody::Update()
 void ChBody::Update (double mytime)
 {
                 // For the body:
-    UpdateTime (mytime);
+    UpdateTime(mytime);
 
     Update();
 }

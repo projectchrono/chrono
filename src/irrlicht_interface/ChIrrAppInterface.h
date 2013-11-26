@@ -114,7 +114,7 @@ public:
 							 if (chrono::collision::ChModelBulletBody* mbomod = dynamic_cast<chrono::collision::ChModelBulletBody*>(mresult.hitModel))
 						 {
 							 app->selectedmover  = new chrono::ChSharedPtr<chrono::ChBody>(mbomod->GetBody());
-							 app->selectedpoint = (*(app->selectedmover))->Point_World2Body(&mresult.abs_hitPoint);
+							 app->selectedpoint = (*(app->selectedmover))->Point_World2Body(mresult.abs_hitPoint);
 							 app->selecteddist = (mfrom - mresult.abs_hitPoint).Length();
 							 app->selectedspring = new chrono::ChSharedPtr<chrono::ChLinkSpring>(new chrono::ChLinkSpring);
 							 app->selectedtruss  = new chrono::ChSharedPtr<chrono::ChBody>(new chrono::ChBody);
@@ -146,7 +146,7 @@ public:
 							chrono::ChVector<> mto  (mline.end.X,   mline.end.Y,   mline.end.Z);
 							chrono::ChVector<> mdir = mto-mfrom; mdir.Normalize();
 							chrono::ChVector<> springP1 = mfrom + mdir * app->selecteddist;
-							chrono::ChVector<> springP2 = (*(app->selectedmover))->Point_Body2World(&app->selectedpoint);
+							chrono::ChVector<> springP2 = (*(app->selectedmover))->Point_Body2World(app->selectedpoint);
 							(*(app->selectedspring))->SetEndPoint1Abs(springP1);
 							(*(app->selectedspring))->SetEndPoint2Abs(springP2);
 							(*(app->selectedspring))->Set_SpringK( 25* (*(app->selectedmover))->GetMass() );

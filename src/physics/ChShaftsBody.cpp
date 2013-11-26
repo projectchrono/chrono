@@ -145,7 +145,7 @@ void ChShaftsBody::ConstraintsBiLoad_Ct(double factor)
 void ChShaftsBody::ConstraintsLoadJacobians()
 {
 		// compute jacobians
-	ChVector<> jacw = this->body->Dir_World2Body(&shaft_dir);
+	ChVector<> jacw = this->body->Dir_World2Body(shaft_dir);
 
 	this->constraint.Get_Cq_a()->ElementN(0)=-1;
 

@@ -210,7 +210,7 @@ public:
 							F(row, colres)= sum;
 						}
 					ChMatrix33<> S;
-					double det = ChPolarDecomposition::Compute(F, this->A, S, 1E-6);
+					double det = ChPolarDecomposition<>::Compute(F, this->A, S, 1E-6);
 					if (det <0)
 						this->A.MatrScale(-1.0);
 
@@ -228,8 +228,8 @@ public:
 					// tangent stiffness CKCt:
 					ChMatrixDynamic<> CK(12,12);
 					ChMatrixDynamic<> CKCt(12,12); // the global, corotated, K matrix
-					ChMatrixCorotation::ComputeCK(StiffnessMatrix, this->A, 4, CK);
-					ChMatrixCorotation::ComputeKCt(CK, this->A, 4, CKCt);
+					ChMatrixCorotation<>::ComputeCK(StiffnessMatrix, this->A, 4, CK);
+					ChMatrixCorotation<>::ComputeKCt(CK, this->A, 4, CKCt);
 
 					// DEBUG
 					/*
@@ -304,7 +304,7 @@ public:
 					FiK_local.MatrScale(-1.0);
 
 						// Fi = C * Fi_local  with C block-diagonal rotations A
-					ChMatrixCorotation::ComputeCK(FiK_local, this->A, 4, Fi);
+					ChMatrixCorotation<>::ComputeCK(FiK_local, this->A, 4, Fi);
 
 				}
 

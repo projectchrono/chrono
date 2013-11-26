@@ -639,7 +639,7 @@ public:
 						this->nodes[7]->GetX0();
 				ChVector<> Ydir = avgY2 - avgY1;
 				ChMatrix33<> rotX0;
-				rotX0.Set_A_Xdir(Xdir.GetNormalized(), &Ydir.GetNormalized());
+				rotX0.Set_A_Xdir(Xdir.GetNormalized(), Ydir.GetNormalized());
 
 				avgX1 = this->nodes[0]->pos + 
 						this->nodes[1]->pos + 
@@ -661,7 +661,7 @@ public:
 						this->nodes[7]->pos;
 				Ydir = avgY2 - avgY1;
 				ChMatrix33<> rotXcurrent;
-				rotXcurrent.Set_A_Xdir(Xdir.GetNormalized(), &Ydir.GetNormalized());
+				rotXcurrent.Set_A_Xdir(Xdir.GetNormalized(), Ydir.GetNormalized());
 
 				this->A.MatrMultiplyT(rotXcurrent,rotX0);
 			}
@@ -699,8 +699,8 @@ public:
 					// tangent stiffness CKCt:
 					ChMatrixDynamic<> CK(3*20, 3*20);
 					ChMatrixDynamic<> CKCt(3*20, 3*20); // the global, corotated, K matrix, for 20 nodes
-					ChMatrixCorotation::ComputeCK(StiffnessMatrix, this->A, 20, CK);
-					ChMatrixCorotation::ComputeKCt(CK, this->A, 20, CKCt);
+					ChMatrixCorotation<>::ComputeCK(StiffnessMatrix, this->A, 20, CK);
+					ChMatrixCorotation<>::ComputeKCt(CK, this->A, 20, CKCt);
 
 					// For K stiffness matrix and R damping matrix:
 
@@ -762,7 +762,7 @@ public:
 					FiK_local.MatrScale(-1.0);
 
 						// Fi = C * Fi_local  with C block-diagonal rotations A
-					ChMatrixCorotation::ComputeCK(FiK_local, this->A, 20, Fi);
+					ChMatrixCorotation<>::ComputeCK(FiK_local, this->A, 20, Fi);
 				}
 
 			//

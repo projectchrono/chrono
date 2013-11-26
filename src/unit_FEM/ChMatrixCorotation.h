@@ -37,29 +37,66 @@ namespace fem
 /// This class provides methods to do either C*K or also C*K*C' , without
 /// explicitly building C, for improved performance.
 
-
-class ChApiFem ChMatrixCorotation
+template<class Real = double>
+class ChMatrixCorotation
 {
 public:
+	static void ComputeCK(const ChMatrix<Real>& K,    /// matrix to pre-corotate
+	                      const ChMatrix33<Real>& R,  /// 3x3 rotation matrix
+	                      const int nblocks,          /// number of rotation blocks
+	                      ChMatrix<Real>& CK);        /// result matrix: C*K
 
-			/// Perform a corotation (warping) of a K matrix by pre-multiplying
-			/// it with a C matrix; C has 3x3 rotation matrices R as diagonal blocks
-	static void ComputeCK(const ChMatrix<>& K,    /// matrix to pre-corotate
-						  const ChMatrix33<>& R,  /// 3x3 rotation matrix
-						  const int	nblocks,	  /// number of rotation blocks
-						  ChMatrix<>& CK);        /// result matrix: C*K
-
-			/// Perform a corotation (warping) of a K matrix by post-multiplying
-			/// it with a transposed C matrix; C has 3x3 rotation matrices R as diagonal blocks
-	static void ComputeKCt(const ChMatrix<>& K,    /// matrix to post-corotate
-						   const ChMatrix33<>& R,  /// 3x3 rotation matrix (will be used transposed)
-						   const int	nblocks,   /// number of rotation blocks
-						   ChMatrix<>& KC);        /// result matrix: C*K
-
+	static void ComputeKCt(const ChMatrix<Real>& K,   /// matrix to post-corotate
+	                       const ChMatrix33<Real>& R, /// 3x3 rotation matrix (will be used transposed)
+	                       const int nblocks,         /// number of rotation blocks
+	                       ChMatrix<Real>& KC);       /// result matrix: C*K
 };
 
+/// Perform a corotation (warping) of a K matrix by pre-multiplying
+/// it with a C matrix; C has 3x3 rotation matrices R as diagonal blocks
+template <class Real>
+void
+ChMatrixCorotation<Real>::ComputeCK(const ChMatrix<Real>& K,    /// matrix to corotate
+                                    const ChMatrix33<Real>& R,  /// 3x3 rotation matrix
+                                    const int nblocks,          /// number of rotation blocks
+                                    ChMatrix<Real>& CK)         /// result matrix: C*K
+{
+	for (int iblock=0; iblock < nblocks; iblock++)
+	{
+		Real sum;
+		for (int colres=0; colres < K.GetColumns(); ++colres)
+			for (int row=0; row < 3; ++row)
+			{
+				sum = 0;
+				for (int col=0; col < 3; ++col)
+					sum += R(row,col)* K((3*iblock)+col,colres);
+				CK((3*iblock)+row, colres) = sum;
+			}
+	}
+}
 
-
+/// Perform a corotation (warping) of a K matrix by post-multiplying
+/// it with a transposed C matrix; C has 3x3 rotation matrices R as diagonal blocks
+template <class Real>
+void
+ChMatrixCorotation<Real>::ComputeKCt(const ChMatrix<Real>& K,    /// matrix to corotate
+                                     const ChMatrix33<Real>& R,  /// 3x3 rotation matrix (will be used transposed)
+                                     const int nblocks,          /// number of rotation blocks
+                                     ChMatrix<Real>& KC)         /// result matrix: C*K
+{
+	for (int iblock=0; iblock < nblocks; iblock++)
+	{
+		Real sum;
+		for (int rowres=0; rowres < K.GetRows(); ++rowres)
+			for (int row=0; row < 3; ++row)
+			{
+				sum = 0;
+				for (int col=0; col < 3; ++col)
+					sum += K(rowres,col+(3*iblock)) * R(row, col);
+				KC(rowres, row+(3*iblock))= sum;
+			}
+	}
+}
 
 
 } // END_OF_NAMESPACE____

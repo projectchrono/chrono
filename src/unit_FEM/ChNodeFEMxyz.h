@@ -43,7 +43,7 @@ public:
 
 	~ChNodeFEMxyz() {};
 
-	ChNodeFEMxyz::ChNodeFEMxyz (const ChNodeFEMxyz& other) :
+	ChNodeFEMxyz (const ChNodeFEMxyz& other) :
 						ChNodeFEMbase(other) 
 	{
 		this->X0 = other.X0;
@@ -54,7 +54,7 @@ public:
 		this->variables = other.variables;
 	}
 
-	ChNodeFEMxyz& ChNodeFEMxyz::operator= (const ChNodeFEMxyz& other)
+	ChNodeFEMxyz& operator= (const ChNodeFEMxyz& other)
 	{
 		if (&other == this) 
 			return *this;
