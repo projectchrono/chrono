@@ -52,9 +52,9 @@ bool ChCollisionModelParallel::AddSphere(double radius, const ChVector<> &pos) {
 	real3 local_inertia = R3(2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius);
 	ChVector<> position = pos;
 
-	inertia.x += local_inertia.x+mass*(position.Length2()-position.x*position.x);
-	inertia.y += local_inertia.y+mass*(position.Length2()-position.y*position.y);
-	inertia.z += local_inertia.z+mass*(position.Length2()-position.z*position.z);
+	inertia.x += local_inertia.x + mass * (position.Length2() - position.x * position.x);
+	inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
+	inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
 
 	model_type = SPHERE;
 	nObjects++;
@@ -70,12 +70,11 @@ bool ChCollisionModelParallel::AddSphere(double radius, const ChVector<> &pos) {
 bool ChCollisionModelParallel::AddEllipsoid(double rx, double ry, double rz, const ChVector<> &pos, const ChMatrix33<> &rot) {
 	double mass = this->GetBody()->GetMass();
 
-	real3 local_inertia =R3(1 / 5.0 * mass * (ry * ry + rz * rz), 1 / 5.0 * mass * (rx * rx + rz * rz), 1 / 5.0 * mass * (rx * rx + ry * ry));
+	real3 local_inertia = R3(1 / 5.0 * mass * (ry * ry + rz * rz), 1 / 5.0 * mass * (rx * rx + rz * rz), 1 / 5.0 * mass * (rx * rx + ry * ry));
 	ChVector<> position = pos;
-	inertia.x += local_inertia.x+mass*(position.Length2()-position.x*position.x);
-	inertia.y += local_inertia.y+mass*(position.Length2()-position.y*position.y);
-	inertia.z += local_inertia.z+mass*(position.Length2()-position.z*position.z);
-
+	inertia.x += local_inertia.x + mass * (position.Length2() - position.x * position.x);
+	inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
+	inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
 
 	model_type = ELLIPSOID;
 	nObjects++;
@@ -92,11 +91,11 @@ bool ChCollisionModelParallel::AddEllipsoid(double rx, double ry, double rz, con
 bool ChCollisionModelParallel::AddBox(double rx, double ry, double rz, const ChVector<> &pos, const ChMatrix33<> &rot) {
 	double mass = this->GetBody()->GetMass();
 
-	real3 local_inertia =R3(1 / 12.0 * mass * (ry * ry + rz * rz), 1 / 12.0 * mass * (rx * rx + rz * rz), 1 / 12.0 * mass * (rx * rx + ry * ry));
+	real3 local_inertia = R3(1 / 12.0 * mass * (ry * ry + rz * rz), 1 / 12.0 * mass * (rx * rx + rz * rz), 1 / 12.0 * mass * (rx * rx + ry * ry));
 	ChVector<> position = pos;
-	inertia.x += local_inertia.x+mass*(position.Length2()-position.x*position.x);
-	inertia.y += local_inertia.y+mass*(position.Length2()-position.y*position.y);
-	inertia.z += local_inertia.z+mass*(position.Length2()-position.z*position.z);
+	inertia.x += local_inertia.x + mass * (position.Length2() - position.x * position.x);
+	inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
+	inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
 
 	model_type = BOX;
 	nObjects++;
@@ -129,11 +128,11 @@ bool ChCollisionModelParallel::AddTriangle(ChVector<> A, ChVector<> B, ChVector<
 bool ChCollisionModelParallel::AddCylinder(double rx, double ry, double rz, const ChVector<> &pos, const ChMatrix33<> &rot) {
 	double mass = this->GetBody()->GetMass();
 
-	real3 local_inertia =R3(1 / 12.0 * mass * (3 * rx * rx + ry * ry), 1 / 2.0 * mass * (rx * rx), 1 / 12.0 * mass * (3 * rx * rx + ry * ry));
+	real3 local_inertia = R3(1 / 12.0 * mass * (3 * rx * rx + ry * ry), 1 / 2.0 * mass * (rx * rx), 1 / 12.0 * mass * (3 * rx * rx + ry * ry));
 	ChVector<> position = pos;
-	inertia.x += local_inertia.x+mass*(position.Length2()-position.x*position.x);
-	inertia.y += local_inertia.y+mass*(position.Length2()-position.y*position.y);
-	inertia.z += local_inertia.z+mass*(position.Length2()-position.z*position.z);
+	inertia.x += local_inertia.x + mass * (position.Length2() - position.x * position.x);
+	inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
+	inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
 	model_type = CYLINDER;
 	nObjects++;
 	bData tData;
@@ -153,14 +152,11 @@ bool ChCollisionModelParallel::AddCone(double rx, double ry, double rz, const Ch
 	real radius = rx;
 	real height = ry;
 
-	real3 local_inertia =R3(
-			(3.0f / 80.0f) * mass * (radius * radius + 4 * height * height),
-			(3.0f / 10.0f) * mass * radius * radius,
-			(3.0f / 80.0f) * mass * (radius * radius + 4 * height * height));
+	real3 local_inertia = R3((3.0f / 80.0f) * mass * (radius * radius + 4 * height * height), (3.0f / 10.0f) * mass * radius * radius, (3.0f / 80.0f) * mass * (radius * radius + 4 * height * height));
 	ChVector<> position = pos;
-	inertia.x += local_inertia.x+mass*(position.Length2()-position.x*position.x);
-	inertia.y += local_inertia.y+mass*(position.Length2()-position.y*position.y);
-	inertia.z += local_inertia.z+mass*(position.Length2()-position.z*position.z);
+	inertia.x += local_inertia.x + mass * (position.Length2() - position.x * position.x);
+	inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
+	inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
 
 	model_type = CONE;
 	nObjects++;
@@ -200,13 +196,7 @@ bool ChCollisionModelParallel::AddCone(double rad, double h) {
 	return false;
 }
 /// Add a triangle mesh to this model
-bool ChCollisionModelParallel::AddTriangleMesh(
-                 const geometry::ChTriangleMesh &trimesh,
-                 bool                            is_static,
-                 bool                            is_convex,
-                 const ChVector<>               &pos,
-                 const ChMatrix33<>             &rot)
-{
+bool ChCollisionModelParallel::AddTriangleMesh(const geometry::ChTriangleMesh &trimesh, bool is_static, bool is_convex, const ChVector<> &pos, const ChMatrix33<> &rot) {
 	model_type = TRIANGLEMESH;
 	nObjects += trimesh.getNumTriangles();
 	bData tData;
