@@ -61,19 +61,19 @@ class ChApiGPU ChCollisionModelParallel: public ChCollisionModel {
 		virtual bool AddSphere(double radius, const ChVector<> &pos = ChVector<>());
 
 		/// Add an ellipsoid shape to this model, for collision purposes
-		virtual bool AddEllipsoid(double rx, double ry, double rz, const ChVector<> &pos = ChVector<>(), const ChMatrix33<> &rot = ChMatrix33<>());
+		virtual bool AddEllipsoid(double rx, double ry, double rz, const ChVector<> &pos, const ChMatrix33<> &rot );
 
 		/// Add a box shape to this model, for collision purposes
-		virtual bool AddBox(double hx, double hy, double hz, const ChVector<> &pos = ChVector<>(), const ChMatrix33<> &rot = ChMatrix33<>());
+		virtual bool AddBox(double hx, double hy, double hz, const ChVector<> &pos , const ChMatrix33<> &rot);
 
 		/// Add a triangle shape to this model, for collision purposes
-		virtual bool AddTriangle(ChVector<> A, ChVector<> B, ChVector<> C, const ChVector<> &pos = ChVector<>(), const ChMatrix33<> &rot = ChMatrix33<>());
+		virtual bool AddTriangle(ChVector<> A, ChVector<> B, ChVector<> C, const ChVector<> &pos , const ChMatrix33<> &rot );
 
 		/// Add a cylinder to this model (default axis on Y direction), for collision purposes
-		virtual bool AddCylinder(double rx, double ry, double rz, const ChVector<> &pos = ChVector<>(), const ChMatrix33<> &rot = ChMatrix33<>());
+		virtual bool AddCylinder(double rx, double ry, double rz, const ChVector<> &pos , const ChMatrix33<> &rot );
 
 		/// Add a cone to this model (default axis on Y direction), for collision purposes
-		virtual bool AddCone(double rx, double ry, double rz, const ChVector<> &pos = ChVector<>(), const ChMatrix33<> &rot = ChMatrix33<>());
+		virtual bool AddCone(double rx, double ry, double rz, const ChVector<> &pos , const ChMatrix33<> &rot);
 
 		/// Add a 2d rectangle shape to this model, for collision purposes
 		virtual bool AddRectangle(double rx, double ry);
@@ -86,7 +86,7 @@ class ChApiGPU ChCollisionModelParallel: public ChCollisionModel {
 		/// Add a cone to this model, for collision purposes
 		virtual bool AddCone(double rad, double h);
 
-		virtual bool AddConvexHull(std::vector<ChVector<double> > &pointlist, const ChVector<>& pos = ChVector<>(), const ChMatrix33<>& rot = ChMatrix33<>(1));
+		virtual bool AddConvexHull(std::vector<ChVector<double> > &pointlist, const ChVector<>& pos , const ChMatrix33<>& rot );
 
 		/// Add a triangle mesh to this model, passing a triangle mesh (do not delete the triangle mesh
 		/// until the collision model, because depending on the implementation of inherited ChCollisionModel
@@ -107,7 +107,7 @@ class ChApiGPU ChCollisionModelParallel: public ChCollisionModel {
 		/// vertical direction, i.e. the axis parellel to Y) and R_hor (for the axis that
 		/// is perpendicular to Y). Also, the solid is clamped with two discs on the top and
 		/// the bottom, at levels Y_low and Y_high.
-		virtual bool AddBarrel(double Y_low, double Y_high, double R_vert, double R_hor, double R_offset, const ChVector<>& pos = ChVector<>(), const ChMatrix33<>& rot = ChMatrix33<>(1));
+		virtual bool AddBarrel(double Y_low, double Y_high, double R_vert, double R_hor, double R_offset, const ChVector<>& pos , const ChMatrix33<>& rot);
 
 		/// Add all shapes already contained in another model.
 		/// Thank to the adoption of shared pointers, underlying shapes are
