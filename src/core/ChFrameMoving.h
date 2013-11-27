@@ -68,8 +68,8 @@ public:
 	//
 
 		/// Construct from pos and rot (as a quaternion)
-	ChFrameMoving(const ChVector<Real>&     mv = ChVector<Real>(0, 0, 0),
-	              const ChQuaternion<Real>& mq = ChQuaternion<Real>(1, 0, 0, 0))
+	explicit ChFrameMoving(const ChVector<Real>&     mv = ChVector<Real>(0, 0, 0),
+	                       const ChQuaternion<Real>& mq = ChQuaternion<Real>(1, 0, 0, 0))
 		:	ChFrame<Real>(mv,mq)
 		{
 			coord_dt.rot = coord_dtdt.rot = ChQuaternion<Real>(0, 0, 0, 0);
@@ -97,7 +97,7 @@ public:
 			coord_dt.rot = coord_dtdt.rot = ChQuaternion<Real>(0, 0, 0, 0);
 		};
 
-		/// Copy constructor, build from another frame
+		/// Copy constructor, build from another moving frame
 	ChFrameMoving(const ChFrameMoving<Real>& other)
 		:	ChFrame<Real>(other),
 			coord_dt(other.coord_dt),

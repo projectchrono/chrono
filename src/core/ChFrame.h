@@ -72,8 +72,8 @@ public:
 	//
 
 		/// Default constructor, or construct from pos and rot (as a quaternion)
-	ChFrame(const ChVector<Real>& mv     = ChVector<Real>(0, 0, 0),
-	        const ChQuaternion<Real>& mq = ChQuaternion<Real>(1, 0, 0, 0))
+	explicit ChFrame(const ChVector<Real>& mv     = ChVector<Real>(0, 0, 0),
+	                 const ChQuaternion<Real>& mq = ChQuaternion<Real>(1, 0, 0, 0))
 		:	coord(mv,mq),
 			Amatrix(mq)
 		{}
@@ -85,7 +85,7 @@ public:
 		{}
 
 		/// Construct from a coordsys
-	ChFrame(const ChCoordsys<Real>& mc)
+	explicit ChFrame(const ChCoordsys<Real>& mc)
 		:	coord(mc),
 			Amatrix(mc.rot)
 		{}

@@ -79,8 +79,8 @@ public:
 		{};
 
 		// Construct from position and rotation (as quaternion)
-	ChCoordsys(const ChVector<Real>&     mv,
-	           const ChQuaternion<Real>& mq = ChQuaternion<Real>(1, 0, 0, 0))
+	explicit ChCoordsys(const ChVector<Real>&     mv,
+	                    const ChQuaternion<Real>& mq = ChQuaternion<Real>(1, 0, 0, 0))
 		:	pos(mv),
 			rot(mq)
 		{};
