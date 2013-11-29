@@ -102,7 +102,7 @@ class RTSCamera : public ICameraSceneNode
       void setMaxZoom(f32 amount); 
 
       //Type Return 
-      virtual ESCENE_NODE_TYPE getType() { return ESNT_CAMERA; } 
+      virtual ESCENE_NODE_TYPE getType() const { return ESNT_CAMERA; } 
 
       //Public Attributes 
       bool atMinDistance; 
