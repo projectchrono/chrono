@@ -91,7 +91,9 @@ public:
 				/// Get the speed of the conveyor belt (upper part, X direction)
 	double GetConveyorSpeed() {return conveyor_speed;}
 
-
+				/// Access the internal body used as the moving belt (a plate with const.vel.)
+	ChBody* GetPlate() {return conveyor_plate;} 
+	
 				/// Number of coordinates of the rigid body =6 (but other 6 variables are
 				/// used internally for the motion of the belt surface, as a rigid 3d plate)
 	virtual int GetDOF  ()   {return 6;}
@@ -129,7 +131,6 @@ public:
 	virtual void AddCollisionModelsToSystem();
 	virtual void RemoveCollisionModelsFromSystem();
 
-	
 
 			//
 			// UPDATE FUNCTIONS
