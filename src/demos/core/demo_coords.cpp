@@ -55,35 +55,35 @@ int main(int argc, char* argv[])
 	// Some methods to achieve coordinate transformations, and some
 	// examples of how to manipulate coordinates and frames, using Chrono features.
 	//
-	// You can use ChTrasform or ChCoordsys or ChFrame functions to transform points 
+	// You can use ChTrasform or ChChCoordsys<> or ChFrame functions to transform points 
 	// from/to local coordinates in 3D, in ascending complexity and capabilities.
 	//
  
  
-	chrono::Vector mvect2;					// resulting (transformed) vectors will go here
-	chrono::Vector mvect3;
+	ChVector<> mvect2;		// resulting (transformed) vectors will go here
+	ChVector<> mvect3;
 						
 						// Define a  POINT  to be transformed, exèressed in
 						// local frame coordinate.
-	chrono::Vector mvect1(2,3,4);			
+	ChVector<> mvect1(2,3,4);			
 
 						// Define a vector representin the TRASLATION of the frame
 						// respect to absolute (world) coordinates.
-	chrono::Vector	   vtraslA(5,6,7);		
+	ChVector<>  vtraslA(5,6,7);		
 
 						// Define a quaternion representing the ROTATION of the frame
 						// respect to absolute (world) coordinates. Must be normalized.
-	chrono::Quaternion qrotA(1, 3, 4, 5);	
+	ChQuaternion<> qrotA(1, 3, 4, 5);	
 	qrotA.Normalize();
 
 						// ..Also create a 3x3 rotation matrix [A] from the quaternion
 						// (at any time you can use mrotA.Set_A_quaternion(qrotA) );
-	chrono::ChMatrix33<> mrotA(qrotA);
+	ChMatrix33<> mrotA(qrotA);
 	
 
-						// ..Also create a coordsystem object, representing both 
+						// ..Also create a ChCoordsys<>tem object, representing both 
 						// translation and rotation.
-	chrono::Coordsys csysA (vtraslA, qrotA);
+	ChCoordsys<> csysA (vtraslA, qrotA);
 
 						// OK!!! Now we are ready to perform the transformation, like in 
 						// linear algebra formula v'=t+[A]*v, so that we will obtain
@@ -105,17 +105,17 @@ int main(int argc, char* argv[])
 
 					// TRASFORM USING THE ChTrasform STATIC METHODS
 
-	mvect2 = chrono::ChTrasform<>::TrasformLocalToParent(mvect1, vtraslA, mrotA);
+	mvect2 = ChTrasform<>::TrasformLocalToParent(mvect1, vtraslA, mrotA);
 	GetLog() << mvect2 << " ..using the ChTrasform- vect and rot.matrix, \n";
 
-	mvect2 = chrono::ChTrasform<>::TrasformLocalToParent(mvect1, vtraslA, qrotA);
+	mvect2 = ChTrasform<>::TrasformLocalToParent(mvect1, vtraslA, qrotA);
 	GetLog() << mvect2 << " ..using the ChTrasform- vect and quat, \n";
 
 
 					// TRASFORM USING A ChCoordys OBJECT
 
 	mvect2 = csysA.TrasformLocalToParent(mvect1); 
-	GetLog() << mvect2 << " ..using a ChCoordsys object, \n";
+	GetLog() << mvect2 << " ..using a ChChCoordsys<> object, \n";
 
 	
 
@@ -139,17 +139,17 @@ int main(int argc, char* argv[])
 	//
 
 
-	chrono::Vector	   v10 (5,6,7);		
-	chrono::Quaternion q10 (1, 3, 4, 5);	q10.Normalize();
-	chrono::ChMatrix33<> m10     (q10);
+	ChVector<>	   v10 (5,6,7);		
+	ChQuaternion<> q10 (1, 3, 4, 5);	q10.Normalize();
+	ChMatrix33<>   m10 (q10);
 
-	chrono::Vector	   v21 (4,1,3);		
-	chrono::Quaternion q21 (3, 2, 1, 5);	q21.Normalize();
-	chrono::ChMatrix33<> m21     (q21);
+	ChVector<>	   v21 (4,1,3);		
+	ChQuaternion<> q21 (3, 2, 1, 5);	q21.Normalize();
+	ChMatrix33<>   m21 (q21);
 	
-	chrono::Vector	   v32 (1,5,1);		
-	chrono::Quaternion q32 (4, 1, 3, 1);	q32.Normalize();
-	chrono::ChMatrix33<> m32     (q32);
+	ChVector<>	   v32 (1,5,1);		
+	ChQuaternion<> q32 (4, 1, 3, 1);	q32.Normalize();
+	ChMatrix33<>   m32 (q32);
 
 					// ...with linear algebra: 
 
@@ -159,9 +159,9 @@ int main(int argc, char* argv[])
 					// ...with ChFrame '>>' operator or "*" operator 
 					// is by far much simplier!
 
-	chrono::ChFrame<> f10 (v10, q10); 
-	chrono::ChFrame<> f21 (v21, q21);
-	chrono::ChFrame<> f32 (v32, q32);
+	ChFrame<> f10 (v10, q10); 
+	ChFrame<> f21 (v21, q21);
+	ChFrame<> f32 (v32, q32);
 
 
 	mvect3 = mvect1 >> f32 >> f21 >> f10;
@@ -177,8 +177,8 @@ int main(int argc, char* argv[])
 					// Not only vectors, but also frames can be transformed
 					// with ">>" or "*" operators.
 
-	chrono::ChFrame<> f_3 (mvect1);
-	chrono::ChFrame<> f_0;
+	ChFrame<> f_3 (mvect1);
+	ChFrame<> f_0;
 	f_0 = f_3 >> f32 >> f21 >> f10;
 	GetLog() << f_0 << " ..triple frame trsf. with ChFrame '>>' operator,  \n";
 	
@@ -211,17 +211,17 @@ int main(int argc, char* argv[])
 
 					// TRASFORM USING THE ChTrasform STATIC METHODS
 
-	mvect1 = chrono::ChTrasform<>::TrasformParentToLocal(mvect2, vtraslA, mrotA);
+	mvect1 = ChTrasform<>::TrasformParentToLocal(mvect2, vtraslA, mrotA);
 	GetLog() << mvect1 << " ..inv, using the ChTrasform- vect and rot.matrix, \n";
 
-	mvect1 = chrono::ChTrasform<>::TrasformParentToLocal(mvect2, vtraslA, qrotA);
+	mvect1 = ChTrasform<>::TrasformParentToLocal(mvect2, vtraslA, qrotA);
 	GetLog() << mvect1 << " ..inv, using the ChTrasform- vect and quat, \n";
 
 
 					// TRASFORM USING A ChCoordys OBJECT
 
 	mvect1 = csysA.TrasformParentToLocal(mvect2); 
-	GetLog() << mvect1 << " ..inv, using a ChCoordsys object, \n";
+	GetLog() << mvect1 << " ..inv, using a ChChCoordsys<> object, \n";
 
 	
 
@@ -282,23 +282,23 @@ int main(int argc, char* argv[])
 	ChFrame<>::SetMatrix_Gw(Gw, qrotA);
 
 	ChFrameMoving<> testa(vtraslA, qrotA);
-	testa.SetPos_dt(Vector(0.5,0.6,0.7));
-	testa.SetWvel_loc(Vector(1.1,2.1,5.1));
-	testa.SetPos_dtdt(Vector(7,8,9));
-	testa.SetWacc_loc(Vector(4.3,5.3,2.3));
+	testa.SetPos_dt(ChVector<>(0.5,0.6,0.7));
+	testa.SetWvel_loc(ChVector<>(1.1,2.1,5.1));
+	testa.SetPos_dtdt(ChVector<>(7,8,9));
+	testa.SetWacc_loc(ChVector<>(4.3,5.3,2.3));
 	GetLog() << testa << "a moving frame";
 
-	Vector locpos(0.1, 3.1, 1.1);
-	Vector locspeed(3.2, 9.2, 7.2);
-	Vector locacc(5.3, 3.3, 2.3);
-	Vector parentpos = locpos >> testa;
+	ChVector<> locpos(0.1, 3.1, 1.1);
+	ChVector<> locspeed(3.2, 9.2, 7.2);
+	ChVector<> locacc(5.3, 3.3, 2.3);
+	ChVector<> parentpos = locpos >> testa;
  
 	ChFrameMoving<> testPl(locpos, QUNIT);
 	testPl.SetPos_dt(locspeed);
 	testPl.SetRot_dt(qrotA);
-	testPl.SetWvel_loc(Vector(0.4, 0.5, 0.6));
+	testPl.SetWvel_loc(ChVector<>(0.4, 0.5, 0.6));
 	testPl.SetPos_dtdt(locacc);
-	testPl.SetWacc_loc(Vector(0.43, 0.53, 0.63));
+	testPl.SetWacc_loc(ChVector<>(0.43, 0.53, 0.63));
 	ChFrameMoving<> testPw;
 	ChFrameMoving<> testX;
 	testa.TrasformLocalToParent(testPl,testPw);
@@ -382,7 +382,7 @@ int main(int argc, char* argv[])
 	GetLog() << "Test ChFrame::SetPos() " <<  CHGLOBALS().t_duration << " \n";
 
 
-//Quaternion mqdt(1, 2, 3, 4);
+//ChQuaternion<> mqdt(1, 2, 3, 4);
 	CHGLOBALS().Timer_START();
 	for (i= 0; i<1000000; i++)
 	{ 
@@ -400,7 +400,7 @@ int main(int argc, char* argv[])
 	GetLog() << "Test ChFrame::SetRot_dtdt() " <<  CHGLOBALS().t_duration << " \n";
 
 
-Vector mv(1, 2, 3);
+ChVector<> mv(1, 2, 3);
 	CHGLOBALS().Timer_START();
 	for (i= 0; i<1000000; i++)
 	{ 
@@ -428,7 +428,7 @@ Vector mv(1, 2, 3);
 	CHGLOBALS().Timer_START();
 	for (i= 0; i<1000000; i++)
 	{ 
-		Vector p= testa.GetWacc_loc();
+		ChVector<> p= testa.GetWacc_loc();
 	}
 	CHGLOBALS().Timer_STOP();
 	GetLog() << "Test ChFrame::GetWacc_loc() " <<  CHGLOBALS().t_duration << " \n";
