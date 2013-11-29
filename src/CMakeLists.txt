@@ -1011,6 +1011,7 @@ IF (BUILD_CH_SDK)
 		irrlicht_interface/ChPovTools.h
 		irrlicht_interface/ChIrrAssetConverter.h
 		irrlicht_interface/ChIrrNode.h
+		irrlicht_interface/ChIrrNodeProxyToAsset.h
 		irrlicht_interface/ChIrrNodeAsset.h
 		irrlicht_interface/ChIrrEffects.h
 	)
