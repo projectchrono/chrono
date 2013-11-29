@@ -62,6 +62,8 @@ public:
 	  			// FUNCTIONS
 				//
 
+	virtual void Update () {};
+
 };
 
 

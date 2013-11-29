@@ -66,8 +66,8 @@ public:
 	  			// FUNCTIONS
 				//
 
-		// Access the coordinate sytem information of the level, for setting/getting its position
-		// and rotation respect to its parent.
+		/// Access the coordinate sytem information of the level, for setting/getting its position
+		/// and rotation respect to its parent.
 	ChFrame<>& GetFrame() {return levelframe;}
 
 
@@ -79,6 +79,9 @@ public:
 
 		/// Add an asset
 	void AddAsset (ChSharedPtr<ChAsset> masset) { this->assets.push_back(masset);}
+
+		/// Updates all children assets, if any. Overrides default behaviour that does nothing.
+	virtual void Update ();
 
 };
 

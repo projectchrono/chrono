@@ -157,6 +157,14 @@ int main(int argc, char* argv[])
 	mcyl->GetCylinderGeometry().rad = 0.3;
 	mbody->AddAsset(mcyl);
 
+			// ==Asset== Attach also a 'triangle mesh' shape
+	ChSharedPtr<ChTriangleMeshShape> mmesh(new ChTriangleMeshShape);
+	mmesh->GetMesh().getCoordsVertices().push_back(ChVector<>(0,1,0));
+	mmesh->GetMesh().getCoordsVertices().push_back(ChVector<>(0,1,0.5));
+	mmesh->GetMesh().getCoordsVertices().push_back(ChVector<>(1,1,0));
+	mmesh->GetMesh().getIndicesVertexes().push_back(ChVector<int>(0,1,2));
+	mbody->AddAsset(mmesh);
+
 			// ==Asset== Attach color. To set colors for all assets  
 			// in the same level, just add this:
 	ChSharedPtr<ChVisualization> mvisual(new ChVisualization);

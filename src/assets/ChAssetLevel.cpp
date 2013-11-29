@@ -27,6 +27,13 @@
 namespace chrono
 {
 
+void ChAssetLevel::Update ()
+{
+	for (unsigned int ia= 0; ia < this->assets.size(); ++ia)
+		assets[ia]->Update();
+}
+
+
 
 } // END_OF_NAMESPACE____
 

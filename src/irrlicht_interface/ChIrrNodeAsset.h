@@ -53,10 +53,6 @@ protected:
 
 	irr::scene::ChIrrNode* mnode;
 
-	//irr::ChIrrAppInterfaceNew* mapp;
-
-	//ChPhysicsItem* mitem;
-
 
 public:
 				//
@@ -77,17 +73,16 @@ public:
 	{
 		UnBind();
 
-		//mitem = aitem.get_ptr();
-		//mapp = &aapp;
-
 		mnode = new irr::scene::ChIrrNode(
 									aitem, 
 									aapp.GetContainer(), 
 									aapp.GetSceneManager(),
 									0);
 		
+		// Grab() to avoid dangling pointer if irrlicht scene is deleted before this obj:
+		//  ***NOT NEEDED! Already done in ctor OF ISceneNode when attaching to parent
+		//mnode->grab(); 
 
-		mnode->grab(); // to avoid dangling pointer if irrlicht scene is deleted before this obj
 	};
 
 	void UnBind()
@@ -100,8 +95,6 @@ public:
 
 			mnode = 0;
 		}
-		//mapp = 0;
-		//mitem = 0;
 	}
 
 
@@ -109,6 +102,14 @@ public:
 	  			// FUNCTIONS
 				//
 	irr::scene::ISceneNode* GetIrrlichtNode() {return mnode;};
+
+	virtual void Update() 
+	{
+		// inherit parent 
+		ChAsset::Update();
+
+		mnode->UpdateAssetsProxies();
+	}
 
 };
 

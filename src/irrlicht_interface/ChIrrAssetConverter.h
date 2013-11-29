@@ -47,6 +47,7 @@
 #include "assets/ChTexture.h"
 #include "assets/ChVisualization.h"
 #include "assets/ChAssetLevel.h"
+#include "assets/ChTriangleMeshShape.h"
 
 namespace irr
 {
@@ -68,8 +69,6 @@ public:
 
 			// shared meshes
 	IAnimatedMesh* sphereMesh;
-	//IAnimatedMesh* cubeMesh;
-	//IAnimatedMesh* cylinderMesh;
 	IMesh* cubeMesh;
 	IMesh* cylinderMesh;
 	irr::scene::ISceneManager* scenemanager;
@@ -289,7 +288,7 @@ public:
 		// 4- populate the ChIrrNode with conversions 
 		// of the geometric assets in this ChPhysicsItem
 
-		irr::scene::ISceneNode* mnode = myirrasset->GetIrrlichtNode();
+		// irr::scene::ISceneNode* mnode = myirrasset->GetIrrlichtNode(); TO REMOVE
 
 		chrono::ChFrame<> bodyframe; // begin with no rotation/translation respect to ChPhysicsItem (ex. a body)
 
@@ -345,7 +344,9 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 				irr::scene::IAnimatedMesh* genericMesh = this->scenemanager->getMesh(myobj->GetFilename().c_str());
 				if (genericMesh)
 				{
-					irr::scene::IAnimatedMeshSceneNode* mchildnode = this->scenemanager->addAnimatedMeshSceneNode(genericMesh,mnode);
+					irr::scene::ISceneNode* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(k_asset, mnode);
+					irr::scene::ISceneNode* mchildnode = this->scenemanager->addAnimatedMeshSceneNode(genericMesh,mproxynode);
+					
 					mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, false);
 
 					mchildnode->setScale(irr::core::vector3df(-1,1,1)); // because of Irrlicht being left handed!!!
@@ -353,10 +354,29 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 					//mflipSurfacesOnX(mchildnode->getMesh()); // this wold be better than disabling back culling, but it does not work!
 				}
 			}
+			if ( k_asset.IsType<chrono::ChTriangleMeshShape>() )
+			{
+				chrono::ChSharedPtr<chrono::ChTriangleMeshShape> mytrimesh(k_asset);
+
+				SMeshBuffer* buffer = new SMeshBuffer();
+				SMesh* newmesh = new SMesh;
+				newmesh->addMeshBuffer(buffer);
+				buffer->drop();
+
+				irr::scene::ChIrrNodeProxyToAsset* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(k_asset, mnode);
+				irr::scene::ISceneNode* anode = mproxynode;
+				irr::scene::ISceneNode* mchildnode = this->scenemanager->addMeshSceneNode(newmesh,mproxynode);
+				newmesh->drop();
+				mproxynode->Update(); // force syncing of triangle positions & face indexes
+				mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false); 
+				//mchildnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true); // vertex w.colors
+			}
 			if ( k_asset.IsType<chrono::ChSphereShape>() && sphereMesh)
 			{
 				chrono::ChSharedPtr<chrono::ChSphereShape> mysphere(k_asset);
-				irr::scene::ISceneNode* mchildnode = this->scenemanager->addAnimatedMeshSceneNode(this->sphereMesh,mnode);
+				irr::scene::ISceneNode* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(k_asset, mnode);
+				irr::scene::ISceneNode* mchildnode = this->scenemanager->addMeshSceneNode(this->sphereMesh,mproxynode);
+
 				double mradius = mysphere->GetSphereGeometry().rad;
 				mchildnode->setScale(core::vector3dfCH(chrono::ChVector<>(mradius,mradius,mradius)));
 				mchildnode->setPosition(core::vector3dfCH(mysphere->GetSphereGeometry().center));
@@ -365,8 +385,9 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 			if ( k_asset.IsType<chrono::ChCylinderShape>() && cylinderMesh)
 			{
 				chrono::ChSharedPtr<chrono::ChCylinderShape> mycylinder(k_asset);
-				//irr::scene::ISceneNode* mchildnode = this->scenemanager->addAnimatedMeshSceneNode(this->cylinderMesh,mnode);
-				irr::scene::ISceneNode* mchildnode = this->scenemanager->addMeshSceneNode(this->cylinderMesh,mnode);
+				irr::scene::ISceneNode* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(k_asset, mnode);
+				irr::scene::ISceneNode* mchildnode = this->scenemanager->addMeshSceneNode(this->cylinderMesh,mproxynode);
+
 				double rad = mycylinder->GetCylinderGeometry().rad;
 				chrono::ChVector<> dir = mycylinder->GetCylinderGeometry().p2 - mycylinder->GetCylinderGeometry().p1;
 				double height = dir.Length();
@@ -384,8 +405,9 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 			if ( k_asset.IsType<chrono::ChBoxShape>() && cubeMesh)
 			{
 				chrono::ChSharedPtr<chrono::ChBoxShape> mybox(k_asset);
-				//irr::scene::ISceneNode* mchildnode = this->scenemanager->addAnimatedMeshSceneNode(this->cubeMesh,mnode);
-				irr::scene::ISceneNode* mchildnode = this->scenemanager->addMeshSceneNode(this->cubeMesh,mnode);
+				irr::scene::ISceneNode* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(k_asset, mnode);
+				irr::scene::ISceneNode* mchildnode = this->scenemanager->addMeshSceneNode(this->cubeMesh,mproxynode);
+
 				chrono::ChCoordsys<> irrboxcoords(mybox->GetBoxGeometry().Pos, mybox->GetBoxGeometry().Rot.Get_A_quaternion());				
 				mchildnode->setScale(core::vector3dfCH(mybox->GetBoxGeometry().Size));
 				ChIrrTools::alignIrrlichtNodeToChronoCsys(mchildnode, irrboxcoords);
@@ -405,7 +427,8 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 			{
 				this->camera_found_in_assets = true;
 				chrono::ChSharedPtr<chrono::ChCamera> mycamera(k_asset);
-				scene::RTSCamera* irrcamera = new scene::RTSCamera(mdevice, mnode, scenemanager,-1, -160.0f, 3.0f, 3.0f); 
+				irr::scene::ISceneNode* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(k_asset, mnode);
+				scene::RTSCamera* irrcamera = new scene::RTSCamera(mdevice, mproxynode, scenemanager,-1, -160.0f, 3.0f, 3.0f); 
 
 				irrcamera->setPosition(core::vector3dfCH(mycamera->GetPosition()));
 				irrcamera->setTarget(core::vector3dfCH(mycamera->GetAimPoint()));
@@ -416,12 +439,11 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 			}
 			if ( k_asset.IsType<chrono::ChAssetLevel>() )
 			{
-				ChSharedPtr<chrono::ChAssetLevel> mylevel(k_asset);
-
+				chrono::ChSharedPtr<chrono::ChAssetLevel> mylevel(k_asset);
 				std::vector< ChSharedPtr<ChAsset> >& subassetlist = mylevel->GetAssets();
 				ChFrame<> subassetframe = mylevel->GetFrame();
-				irr::scene::ISceneNode* subassetnode = scenemanager->addEmptySceneNode(mnode);
-	
+				irr::scene::ISceneNode* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(k_asset, mnode);
+				irr::scene::ISceneNode* subassetnode = scenemanager->addEmptySceneNode(mproxynode);
 				// recurse level...
 				_recursePopulateIrrlicht(subassetlist, subassetframe, subassetnode);
 			}
@@ -436,7 +458,10 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 			ISceneNodeList::ConstIterator it = mnode->getChildren().begin();
 			for (; it != mnode->getChildren().end(); ++it)
 			{
-				(*it)->setMaterialTexture(0,mtextureMap);
+				irr::scene::ISceneNode* mproxynode = (*it); // the ChIrrNodeProxyToAsset contains..
+				irr::scene::ISceneNode* meshnode = *(mproxynode->getChildren().begin()); // ..one child ISceneNode with a mesh
+				if (meshnode) 
+					meshnode->setMaterialTexture(0,mtextureMap);
 			}
 		}
 
@@ -446,14 +471,17 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 			ISceneNodeList::ConstIterator it = mnode->getChildren().begin();
 			for (; it != mnode->getChildren().end(); ++it)
 			{
-				for (unsigned int im =0; im < (*it)->getMaterialCount(); ++im)
-				{
-					(*it)->getMaterial(im).ColorMaterial = irr::video::ECM_NONE;
-					(*it)->getMaterial(im).DiffuseColor.set((irr::u32)(255*mvisual->GetColor().A), 
-														   (irr::u32)(255*mvisual->GetColor().R),
-														   (irr::u32)(255*mvisual->GetColor().G), 
-														   (irr::u32)(255*mvisual->GetColor().B));
-				}
+				irr::scene::ISceneNode* mproxynode = (*it); // the ChIrrNodeProxyToAsset contains..
+				irr::scene::ISceneNode* meshnode = *(mproxynode->getChildren().begin()); // ..one child ISceneNode with a mesh
+				if (meshnode) 
+					for (unsigned int im =0; im < meshnode->getMaterialCount(); ++im)
+					{
+						meshnode->getMaterial(im).ColorMaterial = irr::video::ECM_NONE;
+						meshnode->getMaterial(im).DiffuseColor.set((irr::u32)(255*mvisual->GetColor().A), 
+															   (irr::u32)(255*mvisual->GetColor().R),
+															   (irr::u32)(255*mvisual->GetColor().G), 
+															   (irr::u32)(255*mvisual->GetColor().B));
+					}
 			}
 		}
 

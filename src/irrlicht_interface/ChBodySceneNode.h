@@ -128,7 +128,7 @@ public:
 		child_mesh =0;
 		if (mesh)
 			child_mesh = mgr->addAnimatedMeshSceneNode(mesh, this,-1,
-				irr::core::vector3df(-offset.x,-offset.y,-offset.z) );
+				irr::core::vector3df((irr::f32)-offset.x,(irr::f32)-offset.y,(irr::f32)-offset.z) );
 		
 		if (child_mesh)
 			child_mesh->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
@@ -289,7 +289,7 @@ public:
 
 	IAnimatedMeshSceneNode* GetChildMesh() {return child_mesh;}
 
-	virtual ESCENE_NODE_TYPE getType()   {  return (ESCENE_NODE_TYPE)ESNT_CHBODY; }	
+	virtual ESCENE_NODE_TYPE getType() const {  return (ESCENE_NODE_TYPE)ESNT_CHBODY; }	
 };
 
 

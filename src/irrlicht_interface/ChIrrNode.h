@@ -8,32 +8,18 @@
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
+// File author: A.Tasora
 
 #ifndef CHIRRNODE_H
 #define CHIRRNODE_H
 
-//////////////////////////////////////////////////
-//
-//   ChIrrNode.h
-//
-//   FOR IRRLICHT USERS ONLY!
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-
 #include <irrlicht.h>
 #include <ITimer.h>
 #include "physics/ChSystem.h"
+#include "ChIrrNodeProxyToAsset.h"
 
 
 #define ESNT_CHIRRNODE 1201
-
 
 
 namespace irr
@@ -41,12 +27,21 @@ namespace irr
 namespace scene
 {
 
-
-
 /// Class for Irrlicht visualization. It will be managed by a ChIrrNodeAsset 
-/// asset to be added among the ChBody assets. Such ChIrrNodeAsset can automatically
-/// be populated with Irrlicht meshes that will correspond to shapes that
-/// have been added as assets in ChBody.
+/// asset to be added among the ChBody assets. Such ChIrrNode can automatically
+/// be populated with Irrlicht meshes, each inside a ChIrrNodeProxyToAsset, 
+/// that will correspond to shapes that have been added as ChVisualization assets 
+/// in ChBody.
+/// Example: (with ascii art, with --> shared pointer, ...> raw pointer)
+///
+///   CHRONO side                  IRRLICHT side
+///     ChBody  <.......................
+///        ChIrrNodeAsset  -------->  ChIrrNode
+///        ChBoxShape  <--------------   ChIrrNodeProxyToAsset
+///                                           IMeshSceneNode
+///        ChSphereShape  <------------  ChIrrNodeProxyToAsset
+///                                           IMeshSceneNode
+
 
 class ChIrrNode : public scene::ISceneNode
 {
@@ -54,7 +49,8 @@ class ChIrrNode : public scene::ISceneNode
 
 	core::aabbox3d<f32> Box;
 
-	chrono::ChSharedPtr<chrono::ChPhysicsItem> physicsitem;
+	//chrono::ChSharedPtr<chrono::ChPhysicsItem> physicsitem; //***TO DO*** Circular dependency? switch to simple pointer? 
+	chrono::ChPhysicsItem* physicsitem;
 
 	bool ChronoControlled;
 
@@ -80,9 +76,8 @@ public:
 			setDebugName("ChIrrNode");
 		#endif
 	
-
 		// Set the shared pointer to the owner ChBody
-		physicsitem = mphysicsitem;
+		physicsitem = mphysicsitem.get_ptr();
 		
 		// set an unique identifier
 		static_item_identifier++;
@@ -110,12 +105,13 @@ public:
 
 	virtual void render()
 	{
-
+		// must define member because it is abstract in base class
 	}
 
 	virtual const core::aabbox3d<f32>& getBoundingBox() const
 	{
 		return Box;
+		// must define member because it is abstract in base class
 	}
 
 	virtual void setMaterialTexture (s32 textureLayer, video::ITexture *texture)
@@ -125,13 +121,16 @@ public:
 
 	ISceneNode* clone(ISceneNode* newParent, ISceneManager* newManager)
 	{
-		chrono::GetLog() << "Cloning!\n";
+		//chrono::GetLog() << "Cloning!\n";
 		if (!newParent)
 			newParent = Parent;
 		if (!newManager)
 			newManager = SceneManager;
 
-		ChIrrNode* nb = new ChIrrNode(this->physicsitem,newParent,
+		chrono::ChSharedPtr<chrono::ChPhysicsItem> shphysicsitem(this->physicsitem);
+		shphysicsitem->AddRef(); // trick because shphysicsitem ctor took raw this->physicsitem that is not a new() 
+
+		ChIrrNode* nb = new ChIrrNode(shphysicsitem, newParent,
 			newManager, this->ID);
 
 		nb->cloneMembers(this, newManager);
@@ -224,16 +223,6 @@ public:
 		ISceneNode::OnAnimate(timeMs);
 	}
 
-	/*
-	virtual IShadowVolumeSceneNode* addShadowVolumeSceneNode(const IMesh* shadowMesh=0, s32 id =-1,
-	bool zfailmethod=true, f32 infinity=10000.0f)
-	{
-		if (child_mesh)
-			return child_mesh->addShadowVolumeSceneNode(shadowMesh, id, zfailmethod, infinity);
-		
-		return false;
-	};
-	*/
 
 		//
 		// CHRONO::ENGINE SPECIFIC
@@ -241,7 +230,12 @@ public:
 
 		/// Returns reference to the shared pointer which references the
 		/// ChPhysicsItem (ex. a ChBody) wrapped by this scene node.
-	chrono::ChSharedPtr<chrono::ChPhysicsItem>& GetPhysicsItem() {return physicsitem;}
+	chrono::ChSharedPtr<chrono::ChPhysicsItem> GetPhysicsItem() 
+	{
+		chrono::ChSharedPtr<chrono::ChPhysicsItem> shphysicsitem(this->physicsitem);
+		shphysicsitem->AddRef(); // trick because shphysicsitem ctor took raw this->physicsitem that is not a new() 
+		return shphysicsitem;
+	}
 
 		/// Returns true if the node is moved by Chrono::Engine
 		/// simulation system.
@@ -250,8 +244,32 @@ public:
 		/// system (it follows a ChPhysicsItem that contains a ChIrrNodeAsset, proxy to this).
 	virtual void SetChronoControlled(const bool &controlled) { ChronoControlled = controlled; }
 	
+	
+		/// Updates the children Irr mesh nodes to reflect the ChVisualization assets,
+		/// by spawning the Update() command to all children ChIrrNodeProxyToAsset
+	virtual void UpdateAssetsProxies()
+	{
+		_recurse_update_asset_proxies(this);
+	}
 
-	virtual ESCENE_NODE_TYPE getType()   {  return (ESCENE_NODE_TYPE)ESNT_CHIRRNODE; }	
+	virtual void _recurse_update_asset_proxies(ISceneNode* mnode)
+	{
+		ISceneNodeList::ConstIterator it = mnode->getChildren().begin();
+		for (; it != mnode->getChildren().end(); ++it)
+		{
+			//if (ChIrrNodeProxyToAsset* mproxy = dynamic_cast<ChIrrNodeProxyToAsset*>(*it))
+			if ((*it)->getType() == (ESCENE_NODE_TYPE)ESNT_CHIRRNODEPROXYTOASSET)
+			{
+				ChIrrNodeProxyToAsset* mproxy = (ChIrrNodeProxyToAsset*)(*it);
+				mproxy->Update();
+			}
+
+			if (!(*it)->getChildren().empty())
+				_recurse_update_asset_proxies((*it));
+		}
+	}
+
+	virtual ESCENE_NODE_TYPE getType() const  {  return (ESCENE_NODE_TYPE)ESNT_CHIRRNODE; }	
 };
 
 

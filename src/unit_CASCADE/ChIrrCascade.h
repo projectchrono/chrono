@@ -245,7 +245,7 @@ public:
 
 	IAnimatedMeshSceneNode* GetChildMesh() {return child_mesh;}
 
-	virtual ESCENE_NODE_TYPE getType()   {  return (ESCENE_NODE_TYPE)ESNT_CHBODY; }	
+	virtual ESCENE_NODE_TYPE getType() const  {  return (ESCENE_NODE_TYPE)ESNT_CHBODY; }	
 };
 
 
