@@ -209,8 +209,8 @@ void ChContact::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool d
 			//compute normal rebounce speed 
 			double Ct = 0;
 	//GetLog()<< "Restitution " << (int)this << "\n";
-			Vector Pl1 = bb1->Point_World2Body(&this->p1);
-			Vector Pl2 = bb2->Point_World2Body(&this->p2);
+			Vector Pl1 = bb1->Point_World2Body(this->p1);
+			Vector Pl2 = bb2->Point_World2Body(this->p2);
 			Vector V1_w = bb1->PointSpeedLocalToParent(Pl1);
 			Vector V2_w = bb2->PointSpeedLocalToParent(Pl2);
 			Vector Vrel_w = V2_w-V1_w;

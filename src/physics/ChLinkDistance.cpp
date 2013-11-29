@@ -69,11 +69,11 @@ int ChLinkDistance::Initialize(ChSharedPtr<ChBody>& mbody1,   ///< first body to
 	}
 	else
 	{
-		this->pos1 = this->Body1->Point_World2Body(&mpos1);
-		this->pos2 = this->Body2->Point_World2Body(&mpos2);
+		this->pos1 = this->Body1->Point_World2Body(mpos1);
+		this->pos2 = this->Body2->Point_World2Body(mpos2);
 	}
 	
-	ChVector<> AbsDist = Body1->Point_Body2World(&pos1)-Body2->Point_Body2World(&pos2);
+	ChVector<> AbsDist = Body1->Point_Body2World(pos1)-Body2->Point_Body2World(pos2);
 	this->curr_dist = AbsDist.Length();
 
 	if (auto_distance)
@@ -119,8 +119,8 @@ ChLink* ChLinkDistance::new_Duplicate ()
 ChCoordsys<> ChLinkDistance::GetLinkRelativeCoords()
 {
 	ChVector<> D2local;
-	ChVector<> D2temp=(Vnorm(Body1->Point_Body2World(&pos1)-Body2->Point_Body2World(&pos2)));
-	ChVector<> D2rel = Body2->Dir_World2Body(&D2temp);
+	ChVector<> D2temp=(Vnorm(Body1->Point_Body2World(pos1)-Body2->Point_Body2World(pos2)));
+	ChVector<> D2rel = Body2->Dir_World2Body(D2temp);
 	ChVector<> Vx, Vy, Vz;
 	ChVector<> Vsingul(VECT_Y);
 	ChMatrix33<> rel_matrix;
@@ -138,11 +138,11 @@ void ChLinkDistance::Update (double mytime)
     ChLink::UpdateTime(mytime);
 
 		// compute jacobians
-	ChVector<> AbsDist = Body1->Point_Body2World(&pos1)-Body2->Point_Body2World(&pos2);
+	ChVector<> AbsDist = Body1->Point_Body2World(pos1)-Body2->Point_Body2World(pos2);
 	curr_dist          = AbsDist.Length();
 	ChVector<> D2abs   = Vnorm(AbsDist);
-	ChVector<> D2relB  = Body2->Dir_World2Body(&D2abs);
-	ChVector<> D2relA  = Body1->Dir_World2Body(&D2abs);
+	ChVector<> D2relB  = Body2->Dir_World2Body(D2abs);
+	ChVector<> D2relA  = Body1->Dir_World2Body(D2abs);
 
 	ChVector<> CqAx =  D2abs;
 	ChVector<> CqBx = -D2abs;

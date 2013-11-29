@@ -463,12 +463,12 @@ public:
             // Point/vector transf.(NOTE! you may also use operators of ChMovingFrame)
             //
 
-    ChVector<> Point_World2Body (ChVector<>* mpoint);
-    ChVector<> Point_Body2World (ChVector<>* mpoint);
-    ChVector<> Dir_World2Body (ChVector<>* mpoint);
-    ChVector<> Dir_Body2World (ChVector<>* mpoint);
-    ChVector<> RelPoint_AbsSpeed(ChVector<>* mrelpoint);
-    ChVector<> RelPoint_AbsAcc(ChVector<>* mrelpoint);
+    ChVector<> Point_World2Body(const ChVector<>& mpoint);
+    ChVector<> Point_Body2World(const ChVector<>& mpoint);
+    ChVector<> Dir_World2Body(const ChVector<>& mpoint);
+    ChVector<> Dir_Body2World(const ChVector<>& mpoint);
+    ChVector<> RelPoint_AbsSpeed(const ChVector<>& mrelpoint);
+    ChVector<> RelPoint_AbsAcc(const ChVector<>& mrelpoint);
 
                 /// Mass of the rigid body. Must be positive.
                 /// Try not to mix bodies with too high/too low values of mass, for numerical stability.
@@ -478,14 +478,14 @@ public:
                 /// Set the inertia tensor of the body
     void SetInertia (ChMatrix33<>* newXInertia);
                 /// Set the diagonal part of the inertia tensor (Ixx, Iyy, Izz values)
-    void SetInertiaXX (ChVector<> iner);
+    void SetInertiaXX(const ChVector<>& iner);
                 /// Get the diagonal part of the inertia tensor (Ixx, Iyy, Izz values)
     ChVector<> GetInertiaXX();
                 /// Set the extradiagonal part of the inertia tensor
                 /// (Ixy, Iyz, Izx values, the rest is symmetric)
                 /// Warning about sign: in some books they write the inertia tensor as 
                 /// I=[Ixx, -Ixy, -Ixz; etc.] but here is I=[Ixx, Ixy, Ixz; etc.]
-    void SetInertiaXY (ChVector<> iner);
+    void SetInertiaXY(const ChVector<>& iner);
                 /// Get the extradiagonal part of the inertia tensor
                 /// (Ixy, Iyz, Izx values, the rest is symmetric)
                 /// Warning about sign: in some books they write the inertia tensor as 
@@ -540,13 +540,13 @@ public:
                 /// Transform and adds a cartesian force to a generic 7x1 vector of body lagrangian forces mQf .
                 /// The carthesian force must be passed as vector and application point, and vcan be either in local
                 /// (local = TRUE) or absolute reference (local = FALSE)
-    void Add_as_lagrangian_force(ChVector<> force, ChVector<> appl_point, int local, ChMatrixNM<double,7,1>* mQf);
-    void Add_as_lagrangian_torque(ChVector<> torque, int local, ChMatrixNM<double,7,1>* mQf);
+    void Add_as_lagrangian_force(const ChVector<>& force, const ChVector<>& appl_point, int local, ChMatrixNM<double,7,1>* mQf);
+    void Add_as_lagrangian_torque(const ChVector<>& torque, int local, ChMatrixNM<double,7,1>* mQf);
 
                 /// Given a lagrangian force (in a 7x1 matrix), computes the fore and torque as vectors.
-    void From_lagrangian_to_forcetorque(ChMatrixNM<double,7,1>* mQf, ChVector<>* mforce, ChVector<>* mtorque);
+    void From_lagrangian_to_forcetorque(const ChMatrixNM<double,7,1>& mQf, ChVector<>& mforce, ChVector<>& mtorque);
                 /// Given force and torque as vectors, computes the lagrangian force (in a 7x1 matrix)
-    void From_forcetorque_to_lagrangian(ChVector<>* mforce, ChVector<>* mtorque, ChMatrixNM<double,7,1>* mQf);
+    void From_forcetorque_to_lagrangian(const ChVector<>& mforce, const ChVector<>& mtorque, ChMatrixNM<double,7,1>& mQf);
 
 
             //
@@ -556,11 +556,11 @@ public:
                 /// Trasform generic cartesian force into absolute force+torque applied to body COG.
                 /// If local=1, force & application point are intended as expressed in local
                 /// coordinates, if =0, in absolute.
-    void To_abs_forcetorque  (ChVector<> force, ChVector<> appl_point, int local, ChVector<>& resultforce, ChVector<>& resulttorque);
+    void To_abs_forcetorque(const ChVector<>& force, const ChVector<>& appl_point, int local, ChVector<>& resultforce, ChVector<>& resulttorque);
 
                 /// Trasform generic cartesian torque into absolute torque applied to body COG.
                 /// If local=1, torque is intended as expressed in local coordinates, if =0, in absolute.
-    void To_abs_torque (ChVector<> torque, int local, ChVector<>& resulttorque);
+    void To_abs_torque(const ChVector<>& torque, int local, ChVector<>& resulttorque);
 
                 /// As before, but puts the result into the "accumulators", as increment.
                 /// Forces and torques currently in accumulators will affect the body.
@@ -568,8 +568,8 @@ public:
                 /// integration step. Useful to apply forces to bodies without needing to
                 /// add ChForce() objects. If local=true, force,appl.point or torque are considered
                 /// expressed in body coordinates, otherwise are considered in absolute coordinates.
-    void Accumulate_force  (ChVector<> force, ChVector<> appl_point, int local);
-    void Accumulate_torque (ChVector<> torque, int local);
+    void Accumulate_force(const ChVector<>& force, const ChVector<>& appl_point, int local);
+    void Accumulate_torque(const ChVector<>& torque, int local);
     ChVector<> Get_accumulated_force  () {return Force_acc;};
     ChVector<> Get_accumulated_torque () {return Torque_acc;};
     void Empty_forces_accumulators () {Force_acc = VNULL; Torque_acc = VNULL;};
@@ -581,8 +581,8 @@ public:
     ChVector<>* Get_Scr_torque() {return &Scr_torque;};
     void Set_Scr_force(ChVector<> mf) {Scr_force = mf;};
     void Set_Scr_torque(ChVector<> mf) {Scr_torque = mf;};
-    void Accumulate_script_force (ChVector<> force, ChVector<> appl_point, int local);
-    void Accumulate_script_torque (ChVector<> torque, int local);
+    void Accumulate_script_force(const ChVector<>& force, const ChVector<>& appl_point, int local);
+    void Accumulate_script_torque(const ChVector<>& torque, int local);
 
                 /// Return the gyroscopic torque.
     ChVector<>  Get_gyro() {return gyro;}
@@ -596,7 +596,7 @@ public:
 
                 /// Get the address of the inertia tensor, as a 3x3 matrix,
                 /// expressed in local coordinate system.
-    ChMatrix33<>* GetXInertia () { return &variables.GetBodyInertia();}
+    const ChMatrix33<>& GetXInertia() {return variables.GetBodyInertia();}
 
 
             // Body-specific flag handling
@@ -619,20 +619,20 @@ public:
                 /// Update local time of rigid body, and time-dependant data
     void UpdateTime (double mytime);
                 /// Update all auxiliary data of the rigid body, at given time
-    void UpdateState (ChCoordsys<> mypos, ChCoordsys<> mypos_dt);
+    void UpdateState(const ChCoordsys<>& mypos, const ChCoordsys<>& mypos_dt);
                 /// Update all auxiliary data of the rigid body, at given time and state
-    void UpdateStateTime (ChCoordsys<> mypos, ChCoordsys<> mypos_dt, double mytime);
+    void UpdateStateTime(const ChCoordsys<>& mypos, const ChCoordsys<>& mypos_dt, double mytime);
                 /// Update all auxiliary data of the rigid body and of
                 /// its children (markers, forces..), at given time and state
-    void Update (ChCoordsys<> mypos, ChCoordsys<> mypos_dt, double mytime);
+    void Update(const ChCoordsys<>& mypos, const ChCoordsys<>& mypos_dt, double mytime);
 
 
                 /// Update all auxiliary data of the rigid body and of
                 /// its children (markers, forces..), at given time
-    virtual void Update (double mytime);
+    virtual void Update(double mytime);
                 /// Update all auxiliary data of the rigid body and of
                 /// its children (markers, forces..)
-    virtual void Update ();
+    virtual void Update();
 
 
                 /// Tells to the associated external object ChExternalObject() ,if any,
@@ -655,16 +655,16 @@ public:
     void StreamOUT(ChStreamOutBinary& mstream);
 
                 /// Save data, including child markers and child forces
-    int StreamOUTall (ChStreamOutBinary& m_file);
+    int StreamOUTall(ChStreamOutBinary& m_file);
                 /// Read data, including child markers and child forces
-    int StreamINall  (ChStreamInBinary&  m_file);
+    int StreamINall(ChStreamInBinary&  m_file);
 
 
                 /// Method to allow serialization of transient data in ascii,
                 /// as a readable item, for example   "chrono::GetLog() << myobject;"
     void StreamOUT(ChStreamOutAscii& mstream);
 
-    int  StreamOUTall  (ChStreamOutAscii& mstream);
+    int  StreamOUTall(ChStreamOutAscii& mstream);
 
 };
 

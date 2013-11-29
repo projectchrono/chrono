@@ -393,7 +393,7 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 				double height = dir.Length();
 				dir.Normalize();
 				chrono::ChVector<> mx, my, mz;
-				dir.DirToDxDyDz(&my,&mz,&mx); // y is axis, in cylinder.obj frame
+				dir.DirToDxDyDz(my,mz,mx); // y is axis, in cylinder.obj frame
 				chrono::ChMatrix33<> mrot;
 				mrot.Set_A_axis(mx,my,mz);
 				chrono::ChCoordsys<> irrcylindercoords(mycylinder->GetCylinderGeometry().p1+dir*(0.5*height), mrot.Get_A_quaternion());

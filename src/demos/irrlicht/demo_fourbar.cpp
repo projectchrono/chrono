@@ -306,7 +306,7 @@ int main(int argc, char* argv[])
 
 		// We need to add another point to the array of 3d
 		// points describing the trajectory to be drawn..
-		mtrajectory.push_back(my_body_C->Point_Body2World(&ChVector<>(1,1,0)));
+		mtrajectory.push_back(my_body_C->Point_Body2World(ChVector<>(1,1,0)));
 		// keep only last 150 points..
 		if (mtrajectory.size()>150) mtrajectory.erase(mtrajectory.begin());
 

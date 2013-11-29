@@ -263,6 +263,7 @@ public:
 	{
 		if (child_mesh)
 			return child_mesh->addShadowVolumeSceneNode(shadowMesh, id, zfailmethod, infinity);
+		return NULL;
 	};
 
 	virtual ESCENE_NODE_TYPE getType() const  {  return (ESCENE_NODE_TYPE)ESNT_CHPARTICLES; }

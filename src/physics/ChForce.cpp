@@ -187,7 +187,7 @@ void ChForce::SetVpoint (Vector mypoint)
 			// abs pos
 	vpoint   = mypoint;
 			// rel pos
-	vrelpoint= GetBody()->Point_World2Body(&vpoint);
+	vrelpoint= GetBody()->Point_World2Body(vpoint);
 			// computes initial rest position.
 	Vector displace = VNULL;
 	if (move_x) displace.x = move_x->Get_y(ChTime);
@@ -204,7 +204,7 @@ void ChForce::SetVrelpoint (Vector myrelpoint)
 			// rel pos
 	vrelpoint= myrelpoint;
 			// abs pos
-	vpoint   = GetBody()->Point_Body2World(&vrelpoint);
+	vpoint   = GetBody()->Point_Body2World(vrelpoint);
 			// computes initial rest position.
 	Vector displace = VNULL;
 	if (move_x) displace.x = move_x->Get_y(ChTime);
@@ -222,14 +222,14 @@ void ChForce::SetVrelpoint (Vector myrelpoint)
 void ChForce::SetDir (Vector newf)
 {
 	vdir = Vnorm(newf);
-	vreldir = GetBody()->Dir_World2Body(&vdir);
+	vreldir = GetBody()->Dir_World2Body(vdir);
 	UpdateState(); // update also F
 }
 
 void ChForce::SetRelDir (Vector newf)
 {
 	vreldir = Vnorm(newf);
-	vdir = GetBody()->Dir_Body2World(&vreldir);
+	vdir = GetBody()->Dir_Body2World(vreldir);
 	UpdateState(); // update also F
 }
 
@@ -305,11 +305,11 @@ void ChForce::UpdateState ()
 	{
 	case FPOS_WORLD:
 		vpoint = Vadd (restpos, vmotion);	// Uw
-		vrelpoint = my_body->Point_World2Body(&vpoint); // Uo1 = [A]'(Uw-Xo1)
+		vrelpoint = my_body->Point_World2Body(vpoint); // Uo1 = [A]'(Uw-Xo1)
 		break;
 	case FPOS_BODY:
 		vrelpoint = Vadd (restpos, vmotion);	// Uo1
-		vpoint = my_body->Point_Body2World(&vrelpoint); // Uw = Xo1+[A]Uo1
+		vpoint = my_body->Point_Body2World(vrelpoint); // Uw = Xo1+[A]Uo1
 		break;
 	}
 
@@ -327,20 +327,20 @@ void ChForce::UpdateState ()
 	switch  (align)
 	{
 	case FDIR_WORLD:
-		vreldir = my_body->Dir_World2Body(&vdir);
+		vreldir = my_body->Dir_World2Body(vdir);
 		vectforce = Vmul (vdir, modforce);
 		vectforce = Vadd (vectforce, xyzforce);
 		break;
 	case FDIR_BODY:
-		vdir = my_body->Dir_Body2World(&vreldir);
+		vdir = my_body->Dir_Body2World(vreldir);
 		vectforce = Vmul (vdir, modforce);
-		xyzforce = my_body->Dir_Body2World(&xyzforce);
+		xyzforce = my_body->Dir_Body2World(xyzforce);
 		vectforce = Vadd (vectforce, xyzforce);
 		break;
 	}
 
 	force = vectforce;	// Fw
-	relforce = my_body->Dir_World2Body(&force); // Fo1 = [A]'Fw
+	relforce = my_body->Dir_World2Body(force); // Fo1 = [A]'Fw
 
 	// ====== Update the Qc lagrangian!
 

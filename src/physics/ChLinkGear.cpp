@@ -307,7 +307,7 @@ void ChLinkGear::UpdateTime (double mytime)
 	double offset =  Vdot (this->Get_shaft_dir1(), (contact_pt - this->Get_shaft_pos1()) );
 	ChVector<> moff = this->Get_shaft_dir1() * offset;
 	if (fabs (offset) > 0.0001)
-		this->local_shaft1.SetPos( local_shaft1.GetPos() + Body1->Dir_World2Body(&moff) );
+		this->local_shaft1.SetPos( local_shaft1.GetPos() + Body1->Dir_World2Body(moff) );
 		
 
             // ! Require that the BDF routine of marker won't handle speed and acc.calculus of the moved marker 2!
