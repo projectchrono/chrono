@@ -172,8 +172,15 @@ public:
 				/// The inherited classes, for example the ChLinkMask, often
 				/// implement specialized versions of this Update(time) function,
 				/// because they might need to update inner states, forces, springs, etc.
-				/// This base version, by default, simply updates the item's time.
-	virtual void Update (double mytime) { this->ChTime = mytime; };
+				/// This base version, by default, simply updates the item's time,
+				/// and update the asset tree, if any.
+	virtual void Update (double mytime) 
+		{ 
+			this->ChTime = mytime; 
+
+			for (unsigned int ia= 0; ia < this->assets.size(); ++ia)
+				assets[ia]->Update();
+		};
 
 				/// As above, but does not require updating of time-dependent 
 				/// data. By default, calls Update(mytime) using item's current time. 
