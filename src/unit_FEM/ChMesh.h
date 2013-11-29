@@ -34,6 +34,9 @@ namespace fem
 
 class ChApiFem ChMesh : public ChIndexedNodes
 {
+			// Chrono simulation of RTTI, needed for serialization
+	CH_RTTI(ChMesh,ChIndexedNodes);
+
 private:
 
 	std::vector<ChNodeFEMbase*>	 vnodes;	//  nodes

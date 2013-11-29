@@ -55,5 +55,23 @@ IF (ENABLE_UNIT_IRRLICHT)
 	ADD_DEPENDENCIES (demo_meshless ChronoEngine ChronoEngine_FEM)
 
 	install(TARGETS demo_meshless DESTINATION bin)
+	
+	
+	ADD_EXECUTABLE(demo_FEMvisualize  	demo_FEMvisualize.cpp)
+	SOURCE_GROUP(demos\\fem FILES  		demo_FEMvisualize.cpp)
+	SET_TARGET_PROPERTIES(demo_FEMvisualize PROPERTIES 
+		FOLDER demos
+		LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+		)
+	TARGET_LINK_LIBRARIES(demo_FEMvisualize 
+		${CH_IRRLICHTLIB}
+		ChronoEngine
+		ChronoEngine_FEM
+		)
+	ADD_DEPENDENCIES (demo_FEMvisualize ChronoEngine ChronoEngine_FEM)
+
+	install(TARGETS demo_FEMvisualize DESTINATION bin)
+	
+	
 
 ENDIF()

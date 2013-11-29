@@ -32,15 +32,8 @@ namespace fem
 
 class ChApiFem ChVisualizationFEMmesh: public ChAssetLevel 
 {
-
-	protected:
-		//
-		// DATA
-		//
-
-		ChMesh* FEMmesh;
-
-		enum eChFemDataType {
+	public:
+	 enum eChFemDataType {
 				E_PLOT_NODE_DISP_NORM,
 				E_PLOT_NODE_DISP_X,
 				E_PLOT_NODE_DISP_Y,
@@ -53,25 +46,30 @@ class ChApiFem ChVisualizationFEMmesh: public ChAssetLevel
 				E_PLOT_NODE_ACCEL_X,
 				E_PLOT_NODE_ACCEL_Y,
 				E_PLOT_NODE_ACCEL_Z
-		} fem_data_type;
+		};
+
+	protected:
+		//
+		// DATA
+		//
+
+		ChMesh* FEMmesh;
+
+		eChFemDataType fem_data_type;
 
 		double colorscale_min;
 		double colorscale_max;
 
 	public:
+
+		
+
+
 		//
 		// CONSTRUCTORS
 		//
 
-		ChVisualizationFEMmesh(ChMesh& mymesh) 
-			{
-				FEMmesh = &mymesh;
-				fem_data_type = E_PLOT_NODE_DISP_NORM;
-
-				colorscale_min= 0;
-				colorscale_max= 1;
-			}
-
+		ChVisualizationFEMmesh(ChMesh& mymesh);
 
 		virtual ~ChVisualizationFEMmesh() 
 			{

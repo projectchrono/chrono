@@ -87,66 +87,7 @@ public:
 				/// Computes the local STIFFNESS MATRIX of the element:    
 				/// K = Volume * [B]' * [D] * [B]
 	virtual void ComputeStiffnessMatrix()
-				{
-				/* OLD ALGO
-					ChMatrixDynamic<> MatCoeff(3,3);
-					MatCoeff.PasteVector(nodes[1]->pos,0,0);
-					MatCoeff.PasteVector(nodes[2]->pos,0,1);
-					MatCoeff.PasteVector(nodes[3]->pos,0,2); 
-					MatCoeff.MatrTranspose();
-					ChMatrixDynamic<> MatCoeffB = MatCoeff;
-				MatCoeffB.PasteVector(ChVector<>(1,1,1),0,0);
-					double b1=-MatCoeffB.Det();
-					MatCoeffB.SetElement(0,1,nodes[0]->pos.y);
-					MatCoeffB.SetElement(0,2,nodes[0]->pos.z);
-					double b2=MatCoeffB.Det();
-					MatCoeffB.SetElement(1,1,nodes[1]->pos.y);
-					MatCoeffB.SetElement(1,2,nodes[1]->pos.z);
-					double b3=-MatCoeffB.Det();
-					MatCoeffB.SetElement(2,1,nodes[2]->pos.y);
-					MatCoeffB.SetElement(2,2,nodes[2]->pos.z);
-					double b4=MatCoeffB.Det();
-					ChMatrixDynamic<> MatCoeffC = MatCoeff;
-				MatCoeffC.PasteVector(ChVector<>(1,1,1),0,1);
-					double c1=-MatCoeffC.Det();
-					MatCoeffC.SetElement(0,0,nodes[0]->pos.x);
-					MatCoeffC.SetElement(0,2,nodes[0]->pos.z);
-					double c2=MatCoeffC.Det();
-					MatCoeffC.SetElement(1,0,nodes[1]->pos.x);
-					MatCoeffC.SetElement(1,2,nodes[1]->pos.z);
-					double c3=-MatCoeffC.Det();
-					MatCoeffC.SetElement(2,0,nodes[2]->pos.x);
-					MatCoeffC.SetElement(2,2,nodes[2]->pos.z);
-					double c4=MatCoeffC.Det();
-					ChMatrixDynamic<> MatCoeffD = MatCoeff;
-				MatCoeffD.PasteVector(ChVector<>(1,1,1),0,2);
-					double d1=-MatCoeffD.Det();
-					MatCoeffD.SetElement(0,0,nodes[0]->pos.x);
-					MatCoeffD.SetElement(0,1,nodes[0]->pos.y);
-					double d2=MatCoeffD.Det();
-					MatCoeffD.SetElement(1,0,nodes[1]->pos.x);
-					MatCoeffD.SetElement(1,1,nodes[1]->pos.y);
-					double d3=-MatCoeffD.Det();
-					MatCoeffD.SetElement(2,0,nodes[2]->pos.x);
-					MatCoeffD.SetElement(2,1,nodes[2]->pos.y);
-					double d4=MatCoeffD.Det();
-					//setting matrix B
-					MatrB.Resize(6,12);
-					MatrB.SetElement(0,0,b1);	MatrB.SetElement(0,3,b2);	MatrB.SetElement(0,6,b3);	MatrB.SetElement(0,9,b4);	
-					MatrB.SetElement(1,1,c1);	MatrB.SetElement(1,4,c2);	MatrB.SetElement(1,7,c3);	MatrB.SetElement(1,10,c4);
-					MatrB.SetElement(2,2,d1);	MatrB.SetElement(2,5,d2);	MatrB.SetElement(2,8,d3);	MatrB.SetElement(2,11,d4);	
-					MatrB.SetElement(3,0,c1);	MatrB.SetElement(3,1,b1);	MatrB.SetElement(3,3,c2);	MatrB.SetElement(3,4,b2);	MatrB.SetElement(3,6,c3);	MatrB.SetElement(3,7,b3);	MatrB.SetElement(3,9,c4);	MatrB.SetElement(3,10,b4);
-					MatrB.SetElement(4,1,d1);	MatrB.SetElement(4,2,c1);	MatrB.SetElement(4,4,d2);	MatrB.SetElement(4,5,c2);	MatrB.SetElement(4,7,d3);	MatrB.SetElement(4,8,c3);	MatrB.SetElement(4,10,d4);	MatrB.SetElement(4,11,c4);
-					MatrB.SetElement(5,0,d1);	MatrB.SetElement(5,2,b1);	MatrB.SetElement(5,3,d2);	MatrB.SetElement(5,5,b2);	MatrB.SetElement(5,6,d3);	MatrB.SetElement(5,8,b3);	MatrB.SetElement(5,9,d4);	MatrB.SetElement(5,11,b4);
-					MatrB.MatrDivScale(6*Volume);
-					ChMatrixDynamic<> temp(12,6);
-					temp.MatrTMultiply(MatrB, Material->Get_StressStrainMatrix());
-					StiffnessMatrix.Resize(12,12);
-					StiffnessMatrix.MatrMultiply(temp,MatrB);
-					StiffnessMatrix.MatrScale(Volume);
-				*/
-					// new algo for stiffness matrix computation:
-					
+				{		
 					// M = [ X0_0 X0_1 X0_2 X0_3 ] ^-1
 					//     [ 1    1    1    1    ]
 					mM.PasteVector(nodes[0]->GetX0(), 0,0);
@@ -210,11 +151,11 @@ public:
 							F(row, colres)= sum;
 						}
 					ChMatrix33<> S;
-					double det = ChPolarDecomposition::Compute(F, this->A, S, 1E-6);
+					double det = ChPolarDecomposition<double>::Compute(F, this->A, S, 1E-6);
 					if (det <0)
 						this->A.MatrScale(-1.0);
 
-					GetLog() << "FEM rotation: \n" << A << "\n" ;
+					//GetLog() << "FEM rotation: \n" << A << "\n" ;
 				}
 
 

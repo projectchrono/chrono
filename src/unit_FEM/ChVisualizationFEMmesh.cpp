@@ -23,6 +23,17 @@ namespace fem
 {
 
 
+ChVisualizationFEMmesh::ChVisualizationFEMmesh(ChMesh& mymesh) 
+{
+	FEMmesh = &mymesh;
+	fem_data_type = E_PLOT_NODE_DISP_NORM;
+
+	colorscale_min= 0;
+	colorscale_max= 1;
+
+	ChSharedPtr<ChTriangleMeshShape> new_mesh_asset(new ChTriangleMeshShape);
+	this->AddAsset(new_mesh_asset);
+}
 
 ChVector<float> ChVisualizationFEMmesh::ComputeFalseColor(double mv)
 {   
@@ -91,9 +102,26 @@ double ChVisualizationFEMmesh::ComputeScalarOutput( ChNodeFEMxyz* mnode, ChEleme
 	return 0;
 }
 
+ChVector<float>& FetchOrAllocate(std::vector< ChVector<float > >& mvector, unsigned int& id)
+{
+	if (id > mvector.size())
+	{
+		id = 0;
+		return mvector[0]; // error
+	}
+	if (id ==  mvector.size())
+	{
+		mvector.push_back( ChVector<float>(0,0,0) );
+	}
+	++id;
+	return mvector[id-1];
+}
 
 void ChVisualizationFEMmesh::Update ()
 {
+	if (!this->FEMmesh) 
+		return;
+
 	ChSharedPtr<ChTriangleMeshShape> mesh_asset;
 
 	// try to retrieve previously added mesh asset in sublevel..
@@ -110,6 +138,53 @@ void ChVisualizationFEMmesh::Update ()
 	}
 	geometry::ChTriangleMeshConnected& trianglemesh = mesh_asset->GetMesh();
 
+	unsigned int n_verts = 0;
+	unsigned int n_vcols = 0;
+	unsigned int n_index = 0;
+
+	//
+	// A - Count the needed vertexes and faces
+	//
+
+	for (unsigned int iel=0; iel < this->FEMmesh->GetNelements(); ++iel)
+	{
+		ChElementBase* myel =  this->FEMmesh->GetElement(iel);
+
+		// ELEMENT IS A TETRAHEDRON
+		if (ChElementTetra_4* mytetra = dynamic_cast<ChElementTetra_4*>(myel))
+		{
+			n_verts +=4;
+			n_vcols +=4;
+			n_index +=4;
+		}
+
+		// ELEMENT IS A HEXAEDRON
+
+		//***TO DO*** other types of elements...
+
+	}
+
+	//
+	// B - resize mesh buffers if needed
+	//
+
+	if (trianglemesh.getCoordsVertices().size() != n_verts)
+		trianglemesh.getCoordsVertices().resize(n_verts);
+	if (trianglemesh.getCoordsColors().size() != n_vcols)
+		trianglemesh.getCoordsColors().resize(n_vcols);
+	if (trianglemesh.getIndicesVertexes().size() != n_index)
+		trianglemesh.getIndicesVertexes().resize(n_index);
+	if (trianglemesh.getIndicesColors().size() != n_index)
+		trianglemesh.getIndicesColors().resize(n_index);
+
+	//
+	// C - update mesh buffers 
+	//
+
+	unsigned int i_verts = 0;
+	unsigned int i_vcols = 0;
+	unsigned int i_index = 0;
+	unsigned int i_colindex = 0;
 
 	for (unsigned int iel=0; iel < this->FEMmesh->GetNelements(); ++iel)
 	{
@@ -119,22 +194,47 @@ void ChVisualizationFEMmesh::Update ()
 		if (ChElementTetra_4* mytetra = dynamic_cast<ChElementTetra_4*>(myel))
 		{
 			// vertexes
-			trianglemesh.getCoordsVertices().push_back( ((ChNodeFEMxyz*)mytetra->GetNodeN(0))->GetPos() );
-			trianglemesh.getCoordsVertices().push_back( ((ChNodeFEMxyz*)mytetra->GetNodeN(1))->GetPos() );
-			trianglemesh.getCoordsVertices().push_back( ((ChNodeFEMxyz*)mytetra->GetNodeN(2))->GetPos() );
-			trianglemesh.getCoordsVertices().push_back( ((ChNodeFEMxyz*)mytetra->GetNodeN(3))->GetPos() );
+			unsigned int ivert_el = i_verts;
+
+			trianglemesh.getCoordsVertices()[i_verts] = ((ChNodeFEMxyz*)mytetra->GetNodeN(0))->GetPos(); 
+			++i_verts;
+			trianglemesh.getCoordsVertices()[i_verts] = ((ChNodeFEMxyz*)mytetra->GetNodeN(1))->GetPos(); 
+			++i_verts;
+			trianglemesh.getCoordsVertices()[i_verts] = ((ChNodeFEMxyz*)mytetra->GetNodeN(2))->GetPos(); 
+			++i_verts;
+			trianglemesh.getCoordsVertices()[i_verts] = ((ChNodeFEMxyz*)mytetra->GetNodeN(3))->GetPos(); 
+			++i_verts;
+
 			// colour
-			trianglemesh.getCoordsColors().push_back( ComputeFalseColor( ComputeScalarOutput ( (ChNodeFEMxyz*)mytetra->GetNodeN(0), mytetra ) ));
-			trianglemesh.getCoordsColors().push_back( ComputeFalseColor( ComputeScalarOutput ( (ChNodeFEMxyz*)mytetra->GetNodeN(1), mytetra ) ));
-			trianglemesh.getCoordsColors().push_back( ComputeFalseColor( ComputeScalarOutput ( (ChNodeFEMxyz*)mytetra->GetNodeN(2), mytetra ) ));
-			trianglemesh.getCoordsColors().push_back( ComputeFalseColor( ComputeScalarOutput ( (ChNodeFEMxyz*)mytetra->GetNodeN(3), mytetra ) ));
+			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( (ChNodeFEMxyz*)mytetra->GetNodeN(0), mytetra ) );
+			++i_vcols;
+			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( (ChNodeFEMxyz*)mytetra->GetNodeN(1), mytetra ) );
+			++i_vcols;
+			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( (ChNodeFEMxyz*)mytetra->GetNodeN(2), mytetra ) );
+			++i_vcols;
+			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( (ChNodeFEMxyz*)mytetra->GetNodeN(3), mytetra ) );
+			++i_vcols;
 			// normals: none, defaults to flat triangles. UV: none.
 
-			// faces
-			trianglemesh.getIndicesVertexes().push_back( ChVector<int> (0,1,2) );
-			trianglemesh.getIndicesVertexes().push_back( ChVector<int> (1,2,3) );
-			trianglemesh.getIndicesVertexes().push_back( ChVector<int> (2,3,0) );
-			trianglemesh.getIndicesVertexes().push_back( ChVector<int> (3,0,1) );
+			// faces indexes
+			trianglemesh.getIndicesVertexes()[i_index] = ChVector<int> (0,1,2) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			++i_index;
+			trianglemesh.getIndicesVertexes()[i_index] = ChVector<int> (1,3,2) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			++i_index;
+			trianglemesh.getIndicesVertexes()[i_index] = ChVector<int> (2,3,0) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			++i_index;
+			trianglemesh.getIndicesVertexes()[i_index] = ChVector<int> (3,1,0) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			++i_index;
+
+			// colour indexes
+			trianglemesh.getIndicesColors()[i_colindex]  = ChVector<int> (0,1,2) + ChVector<int> (ivert_el,ivert_el,ivert_el);
+			++i_colindex;
+			trianglemesh.getIndicesColors()[i_colindex]  = ChVector<int> (1,3,2) + ChVector<int> (ivert_el,ivert_el,ivert_el);
+			++i_colindex;
+			trianglemesh.getIndicesColors()[i_colindex]  = ChVector<int> (2,3,0) + ChVector<int> (ivert_el,ivert_el,ivert_el);
+			++i_colindex;
+			trianglemesh.getIndicesColors()[i_colindex]  = ChVector<int> (3,1,0) + ChVector<int> (ivert_el,ivert_el,ivert_el);
+			++i_colindex;
 		}
 
 		// ELEMENT IS A HEXAEDRON
@@ -143,7 +243,9 @@ void ChVisualizationFEMmesh::Update ()
 
 	}
 
-
+	// Finally, update also the children, in case they implemented Update(), 
+	// and do this by calling the parent class implementation of ChAssetLevel
+	ChAssetLevel::Update();
 }
 
 
