@@ -76,6 +76,20 @@ public:
 	void Update(double m_time);
 			
 
+				/// Load tetahedrons from .node and .ele files as saved by TetGen.
+				/// The file format for .node (with point# starting from 1) is:
+				///   [# of points] [dimension (only 3)] [# of attributes (only 0)] [markers (only 0)]
+				///   [node #] [x] [y] [z]
+				///   [node #] [x] [y] [z]   etc.
+				/// The file format for .ele (with tet# starting from 1) is:
+				///   [# of tetahedrons] [dimension (only 4 supported)] [# of attributes (only 0)]
+				///   [tet #] [node #] [node #] [node #] [node #]
+				///   [tet #] [node #] [node #] [node #] [node #]   etc.
+	void LoadFromTetGenFile(char* filename_node,  ///< name of the .node file
+						    char* filename_ele,   ///< name of the .ele  file
+							ChSharedPtr<ChContinuumElastic> my_material); ///< material for the created tetahedrons
+
+
 
 			//
 			// LCP SYSTEM FUNCTIONS        for interfacing all elements with LCP solver

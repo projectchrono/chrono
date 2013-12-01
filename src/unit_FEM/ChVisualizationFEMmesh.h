@@ -34,6 +34,7 @@ class ChApiFem ChVisualizationFEMmesh: public ChAssetLevel
 {
 	public:
 	 enum eChFemDataType {
+				E_PLOT_NONE,
 				E_PLOT_NODE_DISP_NORM,
 				E_PLOT_NODE_DISP_X,
 				E_PLOT_NODE_DISP_Y,
@@ -59,6 +60,9 @@ class ChApiFem ChVisualizationFEMmesh: public ChAssetLevel
 
 		double colorscale_min;
 		double colorscale_max;
+
+		bool shrink_elements;
+		double shrink_factor;
 
 	public:
 
@@ -92,6 +96,9 @@ class ChApiFem ChVisualizationFEMmesh: public ChAssetLevel
 		
 			// Set upper and lower values of the plotted variable for the colorscale plots.
 		void SetColorscaleMinMax(double mmin, double mmax) {colorscale_min = mmin; colorscale_max = mmax;}
+			
+			// Set shrinkage of elements during drawing
+		void SetShrinkElements(bool mshrink, double mfact) {this->shrink_elements = mshrink; shrink_factor = mfact;}
 
 			// Updates the triangle visualization mesh so that it matches with the
 			// FEM mesh (ex. tetrahedrons are converted in 4 surfaces, etc.

@@ -31,6 +31,9 @@ ChVisualizationFEMmesh::ChVisualizationFEMmesh(ChMesh& mymesh)
 	colorscale_min= 0;
 	colorscale_max= 1;
 
+	shrink_elements = false;
+	shrink_factor = 0.9;
+
 	ChSharedPtr<ChTriangleMeshShape> new_mesh_asset(new ChTriangleMeshShape);
 	this->AddAsset(new_mesh_asset);
 }
@@ -71,6 +74,8 @@ double ChVisualizationFEMmesh::ComputeScalarOutput( ChSharedPtr<ChNodeFEMxyz>& m
 {
 	switch (this->fem_data_type)
 	{
+	case E_PLOT_NONE:
+		return 0;
 	case E_PLOT_NODE_DISP_NORM:
 		return (mnode->GetPos()-mnode->GetX0()).Length();
 	case E_PLOT_NODE_DISP_X:
@@ -199,13 +204,26 @@ void ChVisualizationFEMmesh::Update ()
 			// vertexes
 			unsigned int ivert_el = i_verts;
 			
-			trianglemesh.getCoordsVertices()[i_verts] = node0->GetPos(); 
+			ChVector<> p0 = node0->GetPos();
+			ChVector<> p1 = node1->GetPos();
+			ChVector<> p2 = node2->GetPos();
+			ChVector<> p3 = node3->GetPos();
+ 
+			if (this->shrink_elements)
+			{
+				ChVector<> vc = (p0+p1+p2+p3)*(0.25);
+				p0 = vc + this->shrink_factor*(p0-vc);
+				p1 = vc + this->shrink_factor*(p1-vc);
+				p2 = vc + this->shrink_factor*(p2-vc);
+				p3 = vc + this->shrink_factor*(p3-vc);
+			}
+			trianglemesh.getCoordsVertices()[i_verts] = p0; 
 			++i_verts;
-			trianglemesh.getCoordsVertices()[i_verts] = node1->GetPos(); 
+			trianglemesh.getCoordsVertices()[i_verts] = p1; 
 			++i_verts;
-			trianglemesh.getCoordsVertices()[i_verts] = node2->GetPos(); 
+			trianglemesh.getCoordsVertices()[i_verts] = p2; 
 			++i_verts;
-			trianglemesh.getCoordsVertices()[i_verts] = node3->GetPos(); 
+			trianglemesh.getCoordsVertices()[i_verts] = p3; 
 			++i_verts;
 
 			// colour

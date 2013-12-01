@@ -104,6 +104,7 @@ int main(int argc, char* argv[])
 	mnode3->SetPos( mnode3->GetX0() + ChVector<>(0,0.26,0) );
 
 	// Remember to add nodes and elements to the mesh!
+	/*
 	my_mesh->AddNode(mnode1);
 	my_mesh->AddNode(mnode2);
 	my_mesh->AddNode(mnode3);
@@ -112,19 +113,28 @@ int main(int argc, char* argv[])
 	my_mesh->AddNode(mnode6);
 	my_mesh->AddNode(mnode7);
 	my_mesh->AddNode(mnode8);
-
+*/
 				// Create the tetrahedron element, and assign 
 				// nodes and material
 	ChSharedPtr<ChElementTetra_4> melement1( new ChElementTetra_4);
 	melement1->SetNodes(mnode1, mnode2, mnode3, mnode4);
 	melement1->SetMaterial(mmaterial);
 				// Remember to add elements to the mesh!
-	my_mesh->AddElement(melement1);
+//	my_mesh->AddElement(melement1);
 
 	ChSharedPtr<ChElementTetra_4> melement2( new ChElementTetra_4);
 	melement2->SetNodes(mnode3, mnode6, mnode7, mnode8);
 	melement2->SetMaterial(mmaterial);
-	my_mesh->AddElement(melement2);
+//	my_mesh->AddElement(melement2);
+
+try {
+	my_mesh->LoadFromTetGenFile("../data/unit_FEM/beam.node","../data/unit_FEM/beam.ele", mmaterial);
+}
+catch (ChException myerr) {
+		GetLog() << myerr.what();
+}
+ChSharedPtr<ChNodeFEMxyz> mnodelast (my_mesh->GetNode(my_mesh->GetNnodes()-1));
+mnodelast->SetForce( ChVector<>(400,0,0));
 
 				// This is necessary in order to precompute the 
 				// stiffness matrices for all inserted elements in mesh
@@ -139,26 +149,17 @@ int main(int argc, char* argv[])
 	truss->SetBodyFixed(true);
 	my_system.Add(truss);
 	
-				// Create a constraint between a node and the truss
-	ChSharedPtr<ChNodeBody> constraint1(new ChNodeBody);
-	ChSharedPtr<ChNodeBody> constraint2(new ChNodeBody);
-	ChSharedPtr<ChNodeBody> constraint3(new ChNodeBody);
+				// Create constraints between nodes and truss
 
-	constraint1->Initialize(my_mesh,		// node container
-							0,				// index of node in node container 
-							truss);			// body to be connected to
+	for (int iconstr = 0; iconstr < 15; ++iconstr)
+	{
+		ChSharedPtr<ChNodeBody> constraint(new ChNodeBody);
 
-	constraint2->Initialize(my_mesh,		// node container
-							1,				// index of node in node container 
-							truss);			// body to be connected to
-							
-	constraint3->Initialize(my_mesh,		// node container
-							3,				// index of node in node container 
-							truss);			// body to be connected to
-					
-	my_system.Add(constraint1);
-	my_system.Add(constraint2);
-	my_system.Add(constraint3);
+		constraint->Initialize(my_mesh,		// node container
+							iconstr,	// index of node in node container 
+							truss);		// body to be connected to
+		my_system.Add(constraint);
+	}
 
 			// ==Asset== attach a visualization of the FEM mesh.
 			// This will automatically update a triangle mesh (a ChTriangleMeshShape
@@ -171,6 +172,7 @@ int main(int argc, char* argv[])
 	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemesh(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
 	mvisualizemesh->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NODE_SPEED_NORM);
 	mvisualizemesh->SetColorscaleMinMax(0.0,5.8);
+	mvisualizemesh->SetShrinkElements(true,0.85);
 	my_mesh->AddAsset(mvisualizemesh);
 
 
