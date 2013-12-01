@@ -109,12 +109,12 @@ public:
 	std::vector<ChMarker*>* GetMarkerList() {return &marklist;} 
 	std::vector<ChForce*>* GetForceList() {return &forcelist;}
 
-	ChVector<> Point_World2Body (ChVector<>* mpoint);
-	ChVector<> Point_Body2World (ChVector<>* mpoint);
-	ChVector<> Dir_World2Body (ChVector<>* mpoint);
-	ChVector<> Dir_Body2World (ChVector<>* mpoint);
-	ChVector<> RelPoint_AbsSpeed(ChVector<>* mrelpoint);
-	ChVector<> RelPoint_AbsAcc(ChVector<>* mrelpoint);
+	ChVector<> Point_World2Body(const ChVector<>& mpoint);
+    ChVector<> Point_Body2World(const ChVector<>& mpoint);
+    ChVector<> Dir_World2Body(const ChVector<>& mpoint);
+    ChVector<> Dir_Body2World(const ChVector<>& mpoint);
+    ChVector<> RelPoint_AbsSpeed(const ChVector<>& mrelpoint);
+    ChVector<> RelPoint_AbsAcc(const ChVector<>& mrelpoint);
 
 	
 	void   SetMass (double newmass) { if (newmass>0.) variables.SetBodyMass(newmass);}
@@ -141,10 +141,10 @@ public:
 
 	void ComputeGyro ();
 
-	void Add_as_lagrangian_force(ChVector<> force, ChVector<> appl_point, int local, ChMatrixNM<double,7,1>* mQf);
-	void Add_as_lagrangian_torque(ChVector<> torque, int local, ChMatrixNM<double,7,1>* mQf);
-	void From_lagrangian_to_forcetorque(ChMatrixNM<double,7,1>* mQf, ChVector<>* mforce, ChVector<>* mtorque);
-	void From_forcetorque_to_lagrangian(ChVector<>* mforce, ChVector<>* mtorque, ChMatrixNM<double,7,1>* mQf);
+	void Add_as_lagrangian_force(const ChVector<>& force, const ChVector<>& appl_point, int local, ChMatrixNM<double,7,1>* mQf);
+    void Add_as_lagrangian_torque(const ChVector<>& torque, int local, ChMatrixNM<double,7,1>* mQf);
+    void From_lagrangian_to_forcetorque(const ChMatrixNM<double,7,1>& mQf, ChVector<>& mforce, ChVector<>& mtorque);
+    void From_forcetorque_to_lagrangian(const ChVector<>& mforce, const ChVector<>& mtorque, ChMatrixNM<double,7,1>& mQf);
 
 	void To_abs_forcetorque  (ChVector<> force, ChVector<> appl_point, int local, ChVector<>& resultforce, ChVector<>& resulttorque);
 	void To_abs_torque (ChVector<> torque, int local, ChVector<>& resulttorque);
@@ -165,7 +165,7 @@ public:
 	ChVector<>  Get_gyro();
 	ChVector<> Get_Xforce ();
 	ChVector<> Get_Xtorque();
-	ChMatrix33<>* GetXInertia ();
+	const ChMatrix33<>& GetXInertia();
 
 	void UpdateMarkers (double mytime);
 	void UpdateForces (double mytime);
