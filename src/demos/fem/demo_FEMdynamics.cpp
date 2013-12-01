@@ -63,20 +63,20 @@ void test_1()
 				// Create some nodes. These are the classical point-like
 				// nodes with x,y,z degrees of freedom, that can be used 
 				// for many types of FEM elements in space.
-	ChNodeFEMxyz mnodeA(ChVector<>(0,0,0));
-	ChNodeFEMxyz mnodeB(ChVector<>(0,1,0));
+	ChSharedPtr<ChNodeFEMxyz> mnodeA( new ChNodeFEMxyz(ChVector<>(0,0,0)) );
+	ChSharedPtr<ChNodeFEMxyz> mnodeB( new ChNodeFEMxyz(ChVector<>(0,1,0)) );
 				
 				// Default mass for FEM nodes is zero, so set point-like 
 				// masses because the ChElementSpring FEM element that we
 				// are going to use won't add any mass:
-	mnodeA.SetMass(100.0);
-	mnodeB.SetMass(100.0);
+	mnodeA->SetMass(100.0);
+	mnodeB->SetMass(100.0);
 	
 				// For example, set an applied force to a node:
-	mnodeB.SetForce(ChVector<>(0,5,0));
+	mnodeB->SetForce(ChVector<>(0,5,0));
 
 				// For example, set an initial displacement to a node:
-	mnodeB.SetPos( mnodeB.GetX0() + ChVector<>(0,0.1,0) );
+	mnodeB->SetPos( mnodeB->GetX0() + ChVector<>(0,0.1,0) );
 
 
 				// Remember to add nodes and elements to the mesh!
@@ -85,10 +85,10 @@ void test_1()
 
 				// Create some elements of 'spring-damper' type, each connecting
 				// two 3D nodes:
-	ChElementSpring melementA;
-	melementA.SetNodes(&mnodeA, &mnodeB);
-	melementA.SetSpringK(2000);
-	melementA.SetDamperR(100);
+	ChSharedPtr<ChElementSpring> melementA;
+	melementA->SetNodes(mnodeA, mnodeB);
+	melementA->SetSpringK(2000);
+	melementA->SetDamperR(100);
 
 				// Remember to add elements to the mesh!
 	my_mesh->AddElement(melementA);
@@ -128,7 +128,7 @@ void test_1()
 	{
 		my_system.DoStepDynamics(timestep);
 
-		GetLog() << " t=" << my_system.GetChTime() << "  nodeB.pos.y=" << mnodeB.GetPos().y << "  \n";
+		GetLog() << " t=" << my_system.GetChTime() << "  nodeB pos.y=" << mnodeB->GetPos().y << "  \n";
 	}
 
 }
@@ -151,18 +151,18 @@ void test_2()
 				// Create some nodes. These are the classical point-like
 				// nodes with x,y,z degrees of freedom, that can be used 
 				// for many types of FEM elements in space.
-	ChNodeFEMxyz mnodeA(ChVector<>(0,0,0));
-	ChNodeFEMxyz mnodeB(ChVector<>(0,1,0));
+	ChSharedPtr<ChNodeFEMxyz> mnodeA ( new ChNodeFEMxyz(ChVector<>(0,0,0)) );
+	ChSharedPtr<ChNodeFEMxyz> mnodeB ( new ChNodeFEMxyz(ChVector<>(0,1,0)) );
 
 				// Set no point-like masses because mass is already in bar element:
-	mnodeA.SetMass(0.0);	
-	mnodeB.SetMass(0.0);
+	mnodeA->SetMass(0.0);	
+	mnodeB->SetMass(0.0);
 	
 				// For example, set an applied force to a node:
-	//mnodeB.SetForce(ChVector<>(0,5,0));
+	//mnodeB->SetForce(ChVector<>(0,5,0));
 
 				// For example, set an initial displacement to a node:
-	mnodeB.SetPos( mnodeB.GetX0() + ChVector<>(0,0.1,0) );
+	mnodeB->SetPos( mnodeB->GetX0() + ChVector<>(0,0.1,0) );
 
 				// Remember to add nodes and elements to the mesh!
 	my_mesh->AddNode(mnodeA);
@@ -171,13 +171,13 @@ void test_2()
 
 				// Create some elements of 'bar' type, each connecting
 				// two 3D nodes:
-	ChElementBar melementA;
-	melementA.SetNodes(&mnodeA, &mnodeB);
-	melementA.SetBarArea(0.1*0.02);
-	melementA.SetBarYoungModulus(0.01e9); // rubber 0.01e9, steel 200e9
-	melementA.SetBarRaleyghDamping(0.01);
-	melementA.SetBarDensity(2.*0.1/(melementA.GetBarArea()*1.0));
-	//melementA.SetBarDensity(0);
+	ChSharedPtr<ChElementBar> melementA ( new ChElementBar );
+	melementA->SetNodes(mnodeA, mnodeB);
+	melementA->SetBarArea(0.1*0.02);
+	melementA->SetBarYoungModulus(0.01e9); // rubber 0.01e9, steel 200e9
+	melementA->SetBarRaleyghDamping(0.01);
+	melementA->SetBarDensity(2.*0.1/(melementA->GetBarArea()*1.0));
+	//melementA->SetBarDensity(0);
 	
 
 
@@ -222,10 +222,10 @@ void test_2()
 	{
 		my_system.DoStepDynamics(timestep);
 
-		GetLog() << " t=" << my_system.GetChTime() << "  nodeB.pos.y=" << mnodeB.GetPos().y << "  \n";
+		GetLog() << " t=" << my_system.GetChTime() << "  nodeB pos.y=" << mnodeB->GetPos().y << "  \n";
 	}
 
-	GetLog() << " Bar mass = " << melementA.GetMass() << "  restlength = " << melementA.GetRestLength() << "\n";
+	GetLog() << " Bar mass = " << melementA->GetMass() << "  restlength = " << melementA->GetRestLength() << "\n";
 }
 
 void test_2b()
@@ -243,20 +243,20 @@ void test_2b()
 				// Create some nodes. These are the classical point-like
 				// nodes with x,y,z degrees of freedom, that can be used 
 				// for many types of FEM elements in space.
-	ChNodeFEMxyz mnodeA(ChVector<>(0,0,0));
-	ChNodeFEMxyz mnodeB(ChVector<>(0,1,0));
+	ChSharedPtr<ChNodeFEMxyz> mnodeA( new ChNodeFEMxyz(ChVector<>(0,0,0)) );
+	ChSharedPtr<ChNodeFEMxyz> mnodeB( new ChNodeFEMxyz(ChVector<>(0,1,0)) );
 				
 				// Default mass for FEM nodes is zero, so set point-like 
 				// masses because the ChElementSpring FEM element that we
 				// are going to use won't add any mass:
-	mnodeA.SetMass( 0.1);
-	mnodeB.SetMass( 0.1);
+	mnodeA->SetMass( 0.1);
+	mnodeB->SetMass( 0.1);
 	
 				// For example, set an applied force to a node:
-	//mnodeB.SetForce(ChVector<>(0,5,0));
+	//mnodeB->SetForce(ChVector<>(0,5,0));
 
 				// For example, set an initial displacement to a node:
-	mnodeB.SetPos( mnodeB.GetX0() + ChVector<>(0,0.1,0) );
+	mnodeB->SetPos( mnodeB->GetX0() + ChVector<>(0,0.1,0) );
 
 
 				// Remember to add nodes and elements to the mesh!
@@ -265,10 +265,10 @@ void test_2b()
 
 				// Create some elements of 'spring-damper' type, each connecting
 				// two 3D nodes:
-	ChElementSpring melementA;
-	melementA.SetNodes(&mnodeA, &mnodeB);
-	melementA.SetSpringK(20000);
-	melementA.SetDamperR(200);
+	ChSharedPtr<ChElementSpring> melementA ( new ChElementSpring );
+	melementA->SetNodes(mnodeA, mnodeB);
+	melementA->SetSpringK(20000);
+	melementA->SetDamperR(200);
 
 				// Remember to add elements to the mesh!
 	my_mesh->AddElement(melementA);
@@ -308,7 +308,7 @@ void test_2b()
 	{
 		my_system.DoStepDynamics(timestep);
 
-		GetLog() << " t=" << my_system.GetChTime() << "  nodeB.pos.y=" << mnodeB.GetPos().y << "  \n";
+		GetLog() << " t=" << my_system.GetChTime() << "  nodeB pos.y=" << mnodeB->GetPos().y << "  \n";
 	}
 }
 
@@ -337,16 +337,16 @@ void test_3()
 				// Create some nodes. These are the classical point-like
 				// nodes with x,y,z degrees of freedom, that can be used 
 				// for many types of FEM elements in space.
-	ChNodeFEMxyz mnode1(ChVector<>(0,0,0));
-	ChNodeFEMxyz mnode2(ChVector<>(0,0,1));
-	ChNodeFEMxyz mnode3(ChVector<>(0,1,0));
-	ChNodeFEMxyz mnode4(ChVector<>(1,0,0));
+	ChSharedPtr<ChNodeFEMxyz> mnode1( new ChNodeFEMxyz(ChVector<>(0,0,0)) );
+	ChSharedPtr<ChNodeFEMxyz> mnode2( new ChNodeFEMxyz(ChVector<>(0,0,1)) );
+	ChSharedPtr<ChNodeFEMxyz> mnode3( new ChNodeFEMxyz(ChVector<>(0,1,0)) );
+	ChSharedPtr<ChNodeFEMxyz> mnode4( new ChNodeFEMxyz(ChVector<>(1,0,0)) );
 
 				// For example, set a point-like mass at a node:
-	mnode3.SetMass(200);
+	mnode3->SetMass(200);
 
 				// For example, set an initial displacement to a node:
-	mnode3.SetPos( mnode3.GetX0() + ChVector<>(0,0.01,0) );
+	mnode3->SetPos( mnode3->GetX0() + ChVector<>(0,0.01,0) );
 
 	// Remember to add nodes and elements to the mesh!
 	my_mesh->AddNode(mnode1);
@@ -356,9 +356,9 @@ void test_3()
 
 				// Create the tetrahedron element, and assign 
 				// nodes and material
-	ChElementTetra_4 melement1;
-	melement1.SetNodes(&mnode1, &mnode2, &mnode3, &mnode4);
-	melement1.SetMaterial(mmaterial);
+	ChSharedPtr<ChElementTetra_4> melement1 (new ChElementTetra_4);
+	melement1->SetNodes(mnode1, mnode2, mnode3, mnode4);
+	melement1->SetMaterial(mmaterial);
 
 				// Remember to add elements to the mesh!
 	my_mesh->AddElement(melement1);
@@ -409,7 +409,7 @@ void test_3()
 	{
 		my_system.DoStepDynamics(timestep);
 
-		GetLog() << " t =" << my_system.GetChTime() << "  mnode3.pos.y=" << mnode3.GetPos().y << "  \n";
+		GetLog() << " t =" << my_system.GetChTime() << "  mnode3 pos.y=" << mnode3->GetPos().y << "  \n";
 	}
 
 }

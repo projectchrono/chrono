@@ -31,7 +31,7 @@ namespace fem
 class ChApiFem ChElementTetra_4 : public ChTetrahedron
 {
 protected:
-		std::vector<ChNodeFEMxyz*> nodes;
+		std::vector< ChSharedPtr<ChNodeFEMxyz> > nodes;
 		ChSharedPtr<ChContinuumElastic> Material;
 		ChMatrixDynamic<> MatrB;		// matrix of shape function's partial derivatives
 		ChMatrixDynamic<> StiffnessMatrix; // undeformed local stiffness matrix
@@ -45,9 +45,12 @@ public:
 
 	virtual int GetNcoords() {return 12;}
 	virtual int GetNnodes()  {return 4;}
-	virtual ChNodeFEMbase* GetNodeN(int n) {return nodes[n];}
+	virtual ChSharedPtr<ChNodeFEMbase> GetNodeN(int n) {return nodes[n];}
 
-	virtual void SetNodes(ChNodeFEMxyz* nodeA, ChNodeFEMxyz* nodeB, ChNodeFEMxyz* nodeC, ChNodeFEMxyz* nodeD) 
+	virtual void SetNodes(ChSharedPtr<ChNodeFEMxyz> nodeA, 
+						  ChSharedPtr<ChNodeFEMxyz> nodeB, 
+						  ChSharedPtr<ChNodeFEMxyz> nodeC, 
+						  ChSharedPtr<ChNodeFEMxyz> nodeD) 
 				{
 					nodes[0]=nodeA; 
 					nodes[1]=nodeB;

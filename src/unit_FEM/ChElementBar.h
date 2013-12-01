@@ -35,7 +35,7 @@ namespace fem
 class ChApiFem ChElementBar : public ChElementGeneric
 {
 protected:
-	std::vector<ChNodeFEMxyz*> nodes;
+	std::vector< ChSharedPtr<ChNodeFEMxyz> > nodes;
 	double area;
 	double density;
 	double E;
@@ -49,9 +49,9 @@ public:
 
 	virtual int GetNcoords() {return 6;}
 	virtual int GetNnodes()  {return 2;}
-	virtual ChNodeFEMbase* GetNodeN(int n) {return nodes[n];}
+	virtual ChSharedPtr<ChNodeFEMbase> GetNodeN(int n) {return nodes[n];}
 
-	virtual void SetNodes(ChNodeFEMxyz* nodeA, ChNodeFEMxyz* nodeB) 
+	virtual void SetNodes( ChSharedPtr<ChNodeFEMxyz> nodeA, ChSharedPtr<ChNodeFEMxyz> nodeB) 
 				{
 					nodes[0]=nodeA; 
 					nodes[1]=nodeB;

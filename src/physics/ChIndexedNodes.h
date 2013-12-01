@@ -32,6 +32,7 @@
 
 #include <math.h>
 
+#include "core/ChShared.h"
 #include "physics/ChPhysicsItem.h"
 #include "lcp/ChLcpVariablesBodyOwnMass.h"
 
@@ -51,7 +52,7 @@ class ChSystem;
 /// Class for a node, that has some degrees of 
 /// freedom and that contain a proxy to the solver.
 
-class ChApi ChNodeBase    
+class ChApi ChNodeBase : public ChShared  
 {
 public:
 	ChNodeBase ();
@@ -190,7 +191,7 @@ public:
 	virtual unsigned int GetNnodes() =0;
 
 				/// Access the N-th node 
-	virtual ChNodeBase* GetNode(unsigned int n) =0;
+	virtual ChSharedPtr<ChNodeBase> GetNode(unsigned int n) =0;
 
 				/// Add a new node to the particle cluster, passing a 
 				/// vector as initial position.

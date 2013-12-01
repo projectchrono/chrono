@@ -211,8 +211,8 @@ void ChProximityContainerSPH::AccumulateStep1()
 	{
 		ChMatterSPH* mmatA = (ChMatterSPH*)(*iterproximity)->GetModelA()->GetPhysicsItem();
 		ChMatterSPH* mmatB = (ChMatterSPH*)(*iterproximity)->GetModelB()->GetPhysicsItem();
-		ChNodeSPH* mnodeA =(ChNodeSPH*) mmatA->GetNode ( ((ChModelBulletNode*)(*iterproximity)->GetModelA())->GetNodeId()  );
-		ChNodeSPH* mnodeB =(ChNodeSPH*) mmatB->GetNode ( ((ChModelBulletNode*)(*iterproximity)->GetModelB())->GetNodeId()  );
+		ChSharedPtr<ChNodeSPH> mnodeA ( mmatA->GetNode ( ((ChModelBulletNode*)(*iterproximity)->GetModelA())->GetNodeId()  ) );
+		ChSharedPtr<ChNodeSPH> mnodeB ( mmatB->GetNode ( ((ChModelBulletNode*)(*iterproximity)->GetModelB())->GetNodeId()  ) );
 	
 		ChVector<> x_A  = mnodeA->GetPos();
 		ChVector<> x_B  = mnodeB->GetPos();
@@ -240,8 +240,8 @@ void ChProximityContainerSPH::AccumulateStep2()
 	{
 		ChMatterSPH* mmatA = (ChMatterSPH*)(*iterproximity)->GetModelA()->GetPhysicsItem();
 		ChMatterSPH* mmatB = (ChMatterSPH*)(*iterproximity)->GetModelB()->GetPhysicsItem();
-		ChNodeSPH* mnodeA =(ChNodeSPH*) mmatA->GetNode ( ((ChModelBulletNode*)(*iterproximity)->GetModelA())->GetNodeId()  );
-		ChNodeSPH* mnodeB =(ChNodeSPH*) mmatB->GetNode ( ((ChModelBulletNode*)(*iterproximity)->GetModelB())->GetNodeId()  );
+		ChSharedPtr<ChNodeSPH> mnodeA ( mmatA->GetNode ( ((ChModelBulletNode*)(*iterproximity)->GetModelA())->GetNodeId()  ) );
+		ChSharedPtr<ChNodeSPH> mnodeB ( mmatB->GetNode ( ((ChModelBulletNode*)(*iterproximity)->GetModelB())->GetNodeId()  ) );
 	
 		ChVector<> x_A  = mnodeA->GetPos();
 		ChVector<> x_B  = mnodeB->GetPos();

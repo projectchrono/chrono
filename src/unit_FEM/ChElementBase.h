@@ -17,6 +17,7 @@
 #include "physics/ChApidll.h"
 #include "physics/ChContinuumMaterial.h"
 #include "core/ChMath.h"
+#include "core/ChShared.h"
 #include "lcp/ChLcpSystemDescriptor.h"
 #include "ChNodeFEMbase.h"
 
@@ -32,7 +33,7 @@ namespace fem
 /// Base class for all finite elements, that can be
 /// used in the ChMesh physics item.
 
-class ChApiFem ChElementBase
+	class ChApiFem ChElementBase : public ChShared
 {
 protected:
 
@@ -43,7 +44,7 @@ public:
 
 	virtual int GetNcoords() =0;
 	virtual int GetNnodes() =0;
-	virtual ChNodeFEMbase* GetNodeN(int n) =0;
+	virtual ChSharedPtr<ChNodeFEMbase> GetNodeN(int n) =0;
 	
 
 			//

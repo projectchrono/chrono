@@ -191,17 +191,19 @@ void ChMatterMeshless::ResizeNnodes(int newsize)
 	bool oldcoll = this->GetCollide();
 	this->SetCollide(false); // this will remove old particle coll.models from coll.engine, if previously added
 
+	/*
 	for (unsigned int j = 0; j < nodes.size(); j++)
 	{
-		delete (this->nodes[j]);
+		// delete (this->nodes[j]); // *** not needed since shared ptrs
 		this->nodes[j] = 0;
 	}
+	*/
 
 	this->nodes.resize(newsize);
 
 	for (unsigned int j = 0; j < nodes.size(); j++)
 	{
-		this->nodes[j] = new ChNodeMeshless;
+		this->nodes[j] = ChSharedPtr<ChNodeMeshless>(new ChNodeMeshless);
 
 		this->nodes[j]->variables.SetUserData((void*)this); // UserData unuseful in future cuda solver?
 		((ChModelBulletNode*)this->nodes[j]->collision_model)->SetNode(this,j);
@@ -216,7 +218,7 @@ void ChMatterMeshless::ResizeNnodes(int newsize)
 
 void ChMatterMeshless::AddNode(ChVector<double> initial_state)
 {
-	ChNodeMeshless* newp = new ChNodeMeshless;
+	ChSharedPtr<ChNodeMeshless> newp(new ChNodeMeshless);
 
 	newp->SetPos(initial_state);
 	newp->SetPosReference(initial_state);
@@ -277,7 +279,10 @@ void ChMatterMeshless::FillBox (const ChVector<> size,
 
 	for (unsigned int ip = 0; ip < this->GetNnodes(); ip++)
 	{
-		ChNodeMeshless* mnode = (ChNodeMeshless*)(this->GetNode(ip));
+		// downcasting
+		ChSharedPtr<ChNodeMeshless> mnode ( this->nodes[ip] );
+		assert(!mnode.IsNull());
+
 		mnode->SetKernelRadius(kernelrad);
 		mnode->SetCollisionRadius(spacing*0.1); 
 		mnode->SetMass(nodemass);
@@ -347,7 +352,8 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor)
 
 	for (unsigned int j = 0; j < nodes.size(); j++)
 	{
-		ChNodeMeshless* mnode = this->nodes[j];
+		ChSharedPtr<ChNodeMeshless> mnode (this->nodes[j]);
+		assert(!mnode.IsNull());
 
 		// node volume is v=mass/density
 		if (mnode->density>0)
@@ -425,7 +431,8 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor)
 		ChVector<> Gforce = GetSystem()->Get_G_acc() * this->nodes[j]->GetMass();
 		ChVector<> TotForce = this->nodes[j]->UserForce + Gforce; 
 
-		ChNodeMeshless* mnode = this->nodes[j];
+		ChSharedPtr<ChNodeMeshless> mnode (this->nodes[j]);
+		assert(!mnode.IsNull());
 
 		mnode->variables.Get_fb().PasteSumVector(TotForce * factor ,0,0);
 		
@@ -475,7 +482,8 @@ void ChMatterMeshless::VariablesQbIncrementPosition(double dt_step)
  
 	for (unsigned int j = 0; j < nodes.size(); j++)
 	{
-		ChNodeMeshless* mnode = this->nodes[j];
+		ChSharedPtr<ChNodeMeshless> mnode (this->nodes[j]);
+		assert(!mnode.IsNull());
 		
 		// Integrate plastic flow 
 		ChStrainTensor<> strainplasticflow;

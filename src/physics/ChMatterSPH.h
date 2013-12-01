@@ -171,7 +171,7 @@ private:
 			//
 	
 						// The nodes: 
-	std::vector<ChNodeSPH*> nodes;				
+	std::vector< ChSharedPtr<ChNodeSPH> > nodes;				
 
 	ChContinuumSPH material;
 
@@ -215,7 +215,7 @@ public:
 	unsigned int GetNnodes() {return nodes.size();}
 
 				/// Access the N-th node 
-	ChNodeBase* GetNode(unsigned int n) { assert(n<nodes.size()); return nodes[n];}
+	ChSharedPtr<ChNodeBase> GetNode(unsigned int n) { assert(n<nodes.size()); return nodes[n];}
 				
 				/// Resize the node cluster. Also clear the state of 
 				/// previously created particles, if any.

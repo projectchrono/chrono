@@ -28,7 +28,7 @@ namespace fem
 class ChApiFem ChElementHexa_20 : public ChHexahedron
 {
 protected:
-		std::vector<ChNodeFEMxyz*> nodes;
+		std::vector< ChSharedPtr<ChNodeFEMxyz> > nodes;
 		ChSharedPtr<ChContinuumElastic> Material;
 		//std::vector< ChMatrixDynamic<> > MatrB;		// matrices of shape function's partial derivatives (one for each integration point)
 													// we use a vector to keep in memory all the 27 matrices (-> 27 integr. point)
@@ -42,13 +42,13 @@ public:
 
 	virtual int GetNcoords() {return 60;}
 	virtual int GetNnodes()  {return 20;}
-	virtual ChNodeFEMbase* GetNodeN(int n) {return nodes[n];}
+	virtual ChSharedPtr<ChNodeFEMbase> GetNodeN(int n) {return nodes[n];}
 
-	virtual void SetNodes(ChNodeFEMxyz* nodeA, ChNodeFEMxyz* nodeB, ChNodeFEMxyz* nodeC, ChNodeFEMxyz* nodeD,
-						  ChNodeFEMxyz* nodeE, ChNodeFEMxyz* nodeF, ChNodeFEMxyz* nodeG, ChNodeFEMxyz* nodeH,
-						  ChNodeFEMxyz* nodeI, ChNodeFEMxyz* nodeJ, ChNodeFEMxyz* nodeK, ChNodeFEMxyz* nodeL,
-						  ChNodeFEMxyz* nodeM, ChNodeFEMxyz* nodeN, ChNodeFEMxyz* nodeO, ChNodeFEMxyz* nodeP,
-						  ChNodeFEMxyz* nodeQ, ChNodeFEMxyz* nodeR, ChNodeFEMxyz* nodeS, ChNodeFEMxyz* nodeT) 
+	virtual void SetNodes(ChSharedPtr<ChNodeFEMxyz> nodeA, ChSharedPtr<ChNodeFEMxyz> nodeB, ChSharedPtr<ChNodeFEMxyz> nodeC, ChSharedPtr<ChNodeFEMxyz> nodeD,
+						  ChSharedPtr<ChNodeFEMxyz> nodeE, ChSharedPtr<ChNodeFEMxyz> nodeF, ChSharedPtr<ChNodeFEMxyz> nodeG, ChSharedPtr<ChNodeFEMxyz> nodeH,
+						  ChSharedPtr<ChNodeFEMxyz> nodeI, ChSharedPtr<ChNodeFEMxyz> nodeJ, ChSharedPtr<ChNodeFEMxyz> nodeK, ChSharedPtr<ChNodeFEMxyz> nodeL,
+						  ChSharedPtr<ChNodeFEMxyz> nodeM, ChSharedPtr<ChNodeFEMxyz> nodeN, ChSharedPtr<ChNodeFEMxyz> nodeO, ChSharedPtr<ChNodeFEMxyz> nodeP,
+						  ChSharedPtr<ChNodeFEMxyz> nodeQ, ChSharedPtr<ChNodeFEMxyz> nodeR, ChSharedPtr<ChNodeFEMxyz> nodeS, ChSharedPtr<ChNodeFEMxyz> nodeT) 
 				{
 					nodes[0]=nodeA; 
 					nodes[1]=nodeB;

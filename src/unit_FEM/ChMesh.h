@@ -39,8 +39,8 @@ class ChApiFem ChMesh : public ChIndexedNodes
 
 private:
 
-	std::vector<ChNodeFEMbase*>	 vnodes;	//  nodes
-	std::vector<ChElementBase*>	 velements;	//  elements
+	std::vector< ChSharedPtr<ChNodeFEMbase> >	 vnodes;	//  nodes
+	std::vector< ChSharedPtr<ChElementBase> >	 velements;	//  elements
 
 	unsigned int n_dofs; // total degrees of freedom
 
@@ -50,15 +50,15 @@ public:
 	ChMesh() { n_dofs = 0;};
 	~ChMesh() {};
 
-	void AddNode (ChNodeFEMbase& m_node);
-	void AddElement (ChElementBase& m_elem);
+	void AddNode    ( ChSharedPtr<ChNodeFEMbase> m_node);
+	void AddElement ( ChSharedPtr<ChElementBase> m_elem);
 	void ClearNodes ();
 	void ClearElements ();
 	
 				/// Access the N-th node 
-	virtual ChNodeBase* GetNode(unsigned int n) {return vnodes[n];};
+	virtual ChSharedPtr<ChNodeBase>    GetNode(unsigned int n) {return vnodes[n];};
 				/// Access the N-th element 
-	virtual ChElementBase* GetElement(unsigned int n) {return velements[n];};
+	virtual ChSharedPtr<ChElementBase> GetElement(unsigned int n) {return velements[n];};
 
 	unsigned int GetNnodes () {return vnodes.size();}
 	unsigned int GetNelements () {return velements.size();}

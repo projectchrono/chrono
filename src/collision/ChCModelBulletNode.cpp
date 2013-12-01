@@ -56,7 +56,9 @@ void ChModelBulletNode::SyncPosition()
 {
 	assert(nodes);
 
-	ChNodeXYZ* ppointer = (ChNodeXYZ*)nodes->GetNode(this->node_id);
+	// downcast
+	ChSharedPtr<ChNodeXYZ> ppointer	( nodes->GetNode(this->node_id) );
+	if (ppointer.IsNull()) return;
 	
 	assert(ppointer);
 	assert(nodes->GetSystem());

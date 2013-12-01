@@ -136,7 +136,7 @@ private:
 			//
 	
 						// The nodes: 
-	std::vector<ChNodeMeshless*> nodes;				
+	std::vector< ChSharedPtr<ChNodeMeshless> > nodes;				
 
 	//ChContinuumPlasticVonMises material;
 	ChSharedPtr<ChContinuumElastoplastic> material; //* ChContinuumDruckerPrager material; //***TEST***
@@ -183,7 +183,7 @@ public:
 	unsigned int GetNnodes() {return nodes.size();}
 
 				/// Access the N-th node 
-	ChNodeBase* GetNode(unsigned int n) { assert(n<nodes.size()); return nodes[n];}
+	ChSharedPtr<ChNodeBase> GetNode(unsigned int n) { assert(n<nodes.size()); return nodes[n];}
 				
 				/// Resize the node cluster. Also clear the state of 
 				/// previously created particles, if any.

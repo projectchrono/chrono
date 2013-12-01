@@ -67,7 +67,7 @@ ChVector<float> ChVisualizationFEMmesh::ComputeFalseColor(double mv)
 	return(c);
 }
 
-double ChVisualizationFEMmesh::ComputeScalarOutput( ChNodeFEMxyz* mnode, ChElementBase* melement)
+double ChVisualizationFEMmesh::ComputeScalarOutput( ChSharedPtr<ChNodeFEMxyz>& mnode, ChSharedPtr<ChElementBase>& melement)
 {
 	switch (this->fem_data_type)
 	{
@@ -148,10 +148,8 @@ void ChVisualizationFEMmesh::Update ()
 
 	for (unsigned int iel=0; iel < this->FEMmesh->GetNelements(); ++iel)
 	{
-		ChElementBase* myel =  this->FEMmesh->GetElement(iel);
-
 		// ELEMENT IS A TETRAHEDRON
-		if (ChElementTetra_4* mytetra = dynamic_cast<ChElementTetra_4*>(myel))
+		if (this->FEMmesh->GetElement(iel).IsType<ChElementTetra_4>() )
 		{
 			n_verts +=4;
 			n_vcols +=4;
@@ -188,31 +186,36 @@ void ChVisualizationFEMmesh::Update ()
 
 	for (unsigned int iel=0; iel < this->FEMmesh->GetNelements(); ++iel)
 	{
-		ChElementBase* myel =  this->FEMmesh->GetElement(iel);
-
-		// ELEMENT IS A TETRAHEDRON
-		if (ChElementTetra_4* mytetra = dynamic_cast<ChElementTetra_4*>(myel))
+		// ELEMENT IS A TETRAHEDRON?
+		if (this->FEMmesh->GetElement(iel).IsType<ChElementTetra_4>() )
 		{
+			// downcasting 
+			ChSharedPtr<ChElementTetra_4> mytetra ( this->FEMmesh->GetElement(iel) );
+			ChSharedPtr<ChNodeFEMxyz> node0( mytetra->GetNodeN(0) ); 
+			ChSharedPtr<ChNodeFEMxyz> node1( mytetra->GetNodeN(1) );
+			ChSharedPtr<ChNodeFEMxyz> node2( mytetra->GetNodeN(2) );
+			ChSharedPtr<ChNodeFEMxyz> node3( mytetra->GetNodeN(3) );
+
 			// vertexes
 			unsigned int ivert_el = i_verts;
-
-			trianglemesh.getCoordsVertices()[i_verts] = ((ChNodeFEMxyz*)mytetra->GetNodeN(0))->GetPos(); 
+			
+			trianglemesh.getCoordsVertices()[i_verts] = node0->GetPos(); 
 			++i_verts;
-			trianglemesh.getCoordsVertices()[i_verts] = ((ChNodeFEMxyz*)mytetra->GetNodeN(1))->GetPos(); 
+			trianglemesh.getCoordsVertices()[i_verts] = node1->GetPos(); 
 			++i_verts;
-			trianglemesh.getCoordsVertices()[i_verts] = ((ChNodeFEMxyz*)mytetra->GetNodeN(2))->GetPos(); 
+			trianglemesh.getCoordsVertices()[i_verts] = node2->GetPos(); 
 			++i_verts;
-			trianglemesh.getCoordsVertices()[i_verts] = ((ChNodeFEMxyz*)mytetra->GetNodeN(3))->GetPos(); 
+			trianglemesh.getCoordsVertices()[i_verts] = node3->GetPos(); 
 			++i_verts;
 
 			// colour
-			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( (ChNodeFEMxyz*)mytetra->GetNodeN(0), mytetra ) );
+			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( node0, this->FEMmesh->GetElement(iel) ) );
 			++i_vcols;
-			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( (ChNodeFEMxyz*)mytetra->GetNodeN(1), mytetra ) );
+			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( node1, this->FEMmesh->GetElement(iel) ) );
 			++i_vcols;
-			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( (ChNodeFEMxyz*)mytetra->GetNodeN(2), mytetra ) );
+			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( node2, this->FEMmesh->GetElement(iel) ) );
 			++i_vcols;
-			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( (ChNodeFEMxyz*)mytetra->GetNodeN(3), mytetra ) );
+			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( node3, this->FEMmesh->GetElement(iel) ) );
 			++i_vcols;
 			// normals: none, defaults to flat triangles. UV: none.
 

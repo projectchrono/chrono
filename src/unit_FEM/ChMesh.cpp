@@ -51,14 +51,14 @@ void ChMesh::Relax ()
 }
 
 
-void ChMesh::AddNode (ChNodeFEMbase& m_node)
+void ChMesh::AddNode ( ChSharedPtr<ChNodeFEMbase> m_node)
 {
-	this->vnodes.push_back(&m_node);
+	this->vnodes.push_back(m_node);
 }
 
-void ChMesh::AddElement (ChElementBase& m_elem)
+void ChMesh::AddElement ( ChSharedPtr<ChElementBase> m_elem)
 {
-	this->velements.push_back(&m_elem);
+	this->velements.push_back(m_elem);
 }
 
 void ChMesh::ClearElements ()

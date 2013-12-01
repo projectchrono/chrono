@@ -212,17 +212,18 @@ void ChMatterSPH::ResizeNnodes(int newsize)
 	bool oldcoll = this->GetCollide();
 	this->SetCollide(false); // this will remove old particle coll.models from coll.engine, if previously added
 
+	/*
 	for (unsigned int j = 0; j < nodes.size(); j++)
 	{
-		delete (this->nodes[j]);
+		//delete (this->nodes[j]);  ***not needed since using shared ptrs
 		this->nodes[j] = 0;
 	}
-
+	*/  
 	this->nodes.resize(newsize);
 
 	for (unsigned int j = 0; j < nodes.size(); j++)
 	{
-		this->nodes[j] = new ChNodeSPH;
+		this->nodes[j] = ChSharedPtr<ChNodeSPH>(new ChNodeSPH);
 
 		this->nodes[j]->variables.SetUserData((void*)this); // UserData unuseful in future cuda solver?
 		((ChModelBulletNode*)this->nodes[j]->collision_model)->SetNode(this,j);
@@ -237,7 +238,7 @@ void ChMatterSPH::ResizeNnodes(int newsize)
 
 void ChMatterSPH::AddNode(ChVector<double> initial_state)
 {
-	ChNodeSPH* newp = new ChNodeSPH;
+	ChSharedPtr<ChNodeSPH> newp (new ChNodeSPH);
 
 	newp->SetPos(initial_state);
 
@@ -296,7 +297,10 @@ void ChMatterSPH::FillBox (const ChVector<> size,
 
 	for (unsigned int ip = 0; ip < this->GetNnodes(); ip++)
 	{
-		ChNodeSPH* mnode = (ChNodeSPH*)(this->GetNode(ip));
+		// downcasting
+		ChSharedPtr<ChNodeSPH> mnode ( this->nodes[ip] );
+		assert(!mnode.IsNull());
+
 		mnode->SetKernelRadius(kernelrad);
 		mnode->SetCollisionRadius(spacing*0.1); 
 		mnode->SetMass(nodemass);
@@ -361,7 +365,8 @@ void ChMatterSPH::VariablesFbLoadForces(double factor)
 
 	for (unsigned int j = 0; j < nodes.size(); j++)
 	{
-		ChNodeSPH* mnode = this->nodes[j];
+		ChSharedPtr<ChNodeSPH> mnode (this->nodes[j]);
+		assert(!mnode.IsNull());
 
 		// node volume is v=mass/density
 		if (mnode->density)
@@ -389,7 +394,9 @@ void ChMatterSPH::VariablesFbLoadForces(double factor)
 		ChVector<> Gforce = GetSystem()->Get_G_acc() * this->nodes[j]->GetMass();
 		ChVector<> TotForce = this->nodes[j]->UserForce + Gforce; 
 
-		ChNodeSPH* mnode = this->nodes[j];
+		// downcast
+		ChSharedPtr<ChNodeSPH> mnode ( this->nodes[j]);
+		assert (!mnode.IsNull());
 
 		mnode->variables.Get_fb().PasteSumVector(TotForce * factor ,0,0);
 	}

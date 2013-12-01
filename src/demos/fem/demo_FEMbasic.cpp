@@ -68,13 +68,13 @@ void test_1()
 				// nodes with x,y,z degrees of freedom, that can be used 
 				// for many types of FEM elements in space.
 				// While creating them, also set X0 undeformed positions.
-	ChNodeFEMxyz mnodeA(ChVector<>(0,0,0));
-	ChNodeFEMxyz mnodeB(ChVector<>(0,1,0));
-	mnodeA.SetMass(0.0);
-	mnodeB.SetMass(0.0);
+	ChSharedPtr<ChNodeFEMxyz> mnodeA( new ChNodeFEMxyz(ChVector<>(0,0,0)) );
+	ChSharedPtr<ChNodeFEMxyz> mnodeB( new ChNodeFEMxyz(ChVector<>(0,1,0)) );
+	mnodeA->SetMass(0.0);
+	mnodeB->SetMass(0.0);
 	
 				// For example, set an applied force to a node:
-	mnodeB.SetForce(ChVector<>(0,5,0));
+	mnodeB->SetForce(ChVector<>(0,5,0));
 
 				// Remember to add nodes and elements to the mesh!
 	my_mesh->AddNode(mnodeA);
@@ -82,9 +82,9 @@ void test_1()
 
 				// Create some elements of 'spring-damper' type, each connecting
 				// two 3D nodes:
-	ChElementSpring melementA;
-	melementA.SetNodes(&mnodeA, &mnodeB);
-	melementA.SetSpringK(100000);
+	ChSharedPtr<ChElementSpring> melementA( new ChElementSpring );
+	melementA->SetNodes(mnodeA, mnodeB);
+	melementA->SetSpringK(100000);
 
 				// Remember to add elements to the mesh!
 	my_mesh->AddElement(melementA);
@@ -123,8 +123,8 @@ void test_1()
 
 				// Output result
 	GetLog() << "poss after linear static analysis: \n";
-	GetLog() << "  nodeA.pos \n" << mnodeA.GetPos();
-	GetLog() << "  nodeB.pos \n" << mnodeB.GetPos();
+	GetLog() << "  nodeA->pos \n" << mnodeA->GetPos();
+	GetLog() << "  nodeB->pos \n" << mnodeB->GetPos();
 	GetLog() << "Forces after linear static analysis: \n";
 	GetLog() << "  constraintA.react \n" << constraintA->GetReactionOnBody();
 
@@ -159,14 +159,14 @@ void test_2()
 				// nodes with x,y,z degrees of freedom, that can be used 
 				// for many types of FEM elements in space.
 				// While creating them, also set X0 undeformed positions.
-	ChNodeFEMxyz mnode1(ChVector<>(0,0,0));
-	ChNodeFEMxyz mnode2(ChVector<>(0,0,1));
-	ChNodeFEMxyz mnode3(ChVector<>(0,1,0));
-	ChNodeFEMxyz mnode4(ChVector<>(1,0,0));
+	ChSharedPtr<ChNodeFEMxyz> mnode1( new ChNodeFEMxyz(ChVector<>(0,0,0)) );
+	ChSharedPtr<ChNodeFEMxyz> mnode2( new ChNodeFEMxyz(ChVector<>(0,0,1)) );
+	ChSharedPtr<ChNodeFEMxyz> mnode3( new ChNodeFEMxyz(ChVector<>(0,1,0)) );
+	ChSharedPtr<ChNodeFEMxyz> mnode4( new ChNodeFEMxyz(ChVector<>(1,0,0)) );
 
 
 				// For example, set an applied force to a node:
-	mnode3.SetForce(ChVector<>(0, 10000, 0));
+	mnode3->SetForce(ChVector<>(0, 10000, 0));
 
 				// Remember to add nodes and elements to the mesh!
 	my_mesh->AddNode(mnode1);
@@ -176,9 +176,9 @@ void test_2()
 
 				// Create the tetrahedron element, and assign 
 				// nodes and material
-	ChElementTetra_4 melement1;
-	melement1.SetNodes(&mnode1, &mnode2, &mnode3, &mnode4);
-	melement1.SetMaterial(mmaterial);
+	ChSharedPtr<ChElementTetra_4> melement1 (new ChElementTetra_4);
+	melement1->SetNodes(mnode1, mnode2, mnode3, mnode4);
+	melement1->SetMaterial(mmaterial);
 
 				// Remember to add elements to the mesh!
 	my_mesh->AddElement(melement1);
@@ -232,10 +232,10 @@ void test_2()
 
 				// Output result
 	GetLog()<< "Resulting node positions:\n";
-	GetLog()<< mnode1.pos<<"\n";
-	GetLog()<< mnode2.pos<<"\n";
-	GetLog()<< mnode3.pos<<"\n";
-	GetLog()<< mnode4.pos<<"\n";
+	GetLog()<< mnode1->pos<<"\n";
+	GetLog()<< mnode2->pos<<"\n";
+	GetLog()<< mnode3->pos<<"\n";
+	GetLog()<< mnode4->pos<<"\n";
 
 	GetLog()<< "Resulting constraint reactions:\n";
 	GetLog()<< constraint1->GetReactionOnBody();
@@ -271,19 +271,19 @@ void test_3()
 				// nodes with x,y,z degrees of freedom, that can be used 
 				// for many types of FEM elements in space.
 				// While creating them, also set X0 undeformed positions.
-	ChNodeFEMxyz mnode1(ChVector<>(0,0,0));
-	ChNodeFEMxyz mnode2(ChVector<>(0.001,0,0));
-	ChNodeFEMxyz mnode3(ChVector<>(0,0.001,0));
-	ChNodeFEMxyz mnode4(ChVector<>(0,0,0.001));
-	ChNodeFEMxyz mnode5 ((mnode1.pos + mnode2.pos)*0.5); //  nodes at mid length of edges
-	ChNodeFEMxyz mnode6 ((mnode2.pos + mnode3.pos)*0.5);
-	ChNodeFEMxyz mnode7 ((mnode3.pos + mnode1.pos)*0.5);
-	ChNodeFEMxyz mnode8 ((mnode1.pos + mnode4.pos)*0.5);
-	ChNodeFEMxyz mnode9 ((mnode4.pos + mnode2.pos)*0.5);
-	ChNodeFEMxyz mnode10((mnode3.pos + mnode4.pos)*0.5);
+	ChSharedPtr<ChNodeFEMxyz> mnode1(new ChNodeFEMxyz(ChVector<>(0,0,0)) );
+	ChSharedPtr<ChNodeFEMxyz> mnode2(new ChNodeFEMxyz(ChVector<>(0.001,0,0)) );
+	ChSharedPtr<ChNodeFEMxyz> mnode3(new ChNodeFEMxyz(ChVector<>(0,0.001,0)) );
+	ChSharedPtr<ChNodeFEMxyz> mnode4(new ChNodeFEMxyz(ChVector<>(0,0,0.001)) );
+	ChSharedPtr<ChNodeFEMxyz> mnode5 (new ChNodeFEMxyz((mnode1->pos + mnode2->pos)*0.5) ); //  nodes at mid length of edges
+	ChSharedPtr<ChNodeFEMxyz> mnode6 (new ChNodeFEMxyz((mnode2->pos + mnode3->pos)*0.5) );
+	ChSharedPtr<ChNodeFEMxyz> mnode7 (new ChNodeFEMxyz((mnode3->pos + mnode1->pos)*0.5) );
+	ChSharedPtr<ChNodeFEMxyz> mnode8 (new ChNodeFEMxyz((mnode1->pos + mnode4->pos)*0.5) );
+	ChSharedPtr<ChNodeFEMxyz> mnode9 (new ChNodeFEMxyz((mnode4->pos + mnode2->pos)*0.5) );
+	ChSharedPtr<ChNodeFEMxyz> mnode10(new ChNodeFEMxyz((mnode3->pos + mnode4->pos)*0.5) );
 	
 				// For example, set an applied force to a node:
-	mnode3.SetForce(ChVector<>(0, -1000, 0));
+	mnode3->SetForce(ChVector<>(0, -1000, 0));
 
 				// Remember to add nodes and elements to the mesh!
 	my_mesh->AddNode(mnode1);
@@ -299,9 +299,9 @@ void test_3()
 
 				// Create the tetrahedron element, and assign 
 				// it nodes and material
-	ChElementTetra_10 melement1;
-	melement1.SetNodes(&mnode1, &mnode2, &mnode3, &mnode4, &mnode5, &mnode6, &mnode7, &mnode8, &mnode9, &mnode10);
-	melement1.SetMaterial(mmaterial);
+	ChSharedPtr<ChElementTetra_10> melement1 ( new ChElementTetra_10 );
+	melement1->SetNodes(mnode1, mnode2, mnode3, mnode4, mnode5, mnode6, mnode7, mnode8, mnode9, mnode10);
+	melement1->SetMaterial(mmaterial);
 
 				// Remember to add elements to the mesh!
 	my_mesh->AddElement(melement1);
@@ -357,11 +357,11 @@ void test_3()
 				// Output result
 	//GetLog()<<melement1.GetStiffnessMatrix()<<"\n";
 	//GetLog()<<melement1.GetMatrB()<<"\n";
-	GetLog()<<mnode1.GetPos()<<"\n";
-	GetLog()<<mnode2.GetPos()<<"\n";
-	GetLog()<<mnode3.GetPos()<<"\n";
-	GetLog()<<mnode4.GetPos()<<"\n";
-	GetLog()<<"node3 displ: "<< mnode3.GetPos()-mnode3.GetX0()<<"\n";
+	GetLog()<<mnode1->GetPos()<<"\n";
+	GetLog()<<mnode2->GetPos()<<"\n";
+	GetLog()<<mnode3->GetPos()<<"\n";
+	GetLog()<<mnode4->GetPos()<<"\n";
+	GetLog()<<"node3 displ: "<< mnode3->GetPos()-mnode3->GetX0()<<"\n";
 
 }
 
@@ -396,20 +396,20 @@ void test_4()
 	double sx = 0.01;
 	double sy = 0.10;
 	double sz = 0.01;
-	ChNodeFEMxyz mnode1(ChVector<>(0, 0,  0));
-	ChNodeFEMxyz mnode2(ChVector<>(0, 0,  sz));
-	ChNodeFEMxyz mnode3(ChVector<>(sx,0,  sz));
-	ChNodeFEMxyz mnode4(ChVector<>(sx,0,  0));
-	ChNodeFEMxyz mnode5(ChVector<>(0, sy, 0));
-	ChNodeFEMxyz mnode6(ChVector<>(0, sy, sz));
-	ChNodeFEMxyz mnode7(ChVector<>(sx,sy, sz));
-	ChNodeFEMxyz mnode8(ChVector<>(sx,sy, 0));
+	ChSharedPtr<ChNodeFEMxyz> mnode1(new ChNodeFEMxyz(ChVector<>(0, 0,  0)));
+	ChSharedPtr<ChNodeFEMxyz> mnode2(new ChNodeFEMxyz(ChVector<>(0, 0,  sz)));
+	ChSharedPtr<ChNodeFEMxyz> mnode3(new ChNodeFEMxyz(ChVector<>(sx,0,  sz)));
+	ChSharedPtr<ChNodeFEMxyz> mnode4(new ChNodeFEMxyz(ChVector<>(sx,0,  0)));
+	ChSharedPtr<ChNodeFEMxyz> mnode5(new ChNodeFEMxyz(ChVector<>(0, sy, 0)));
+	ChSharedPtr<ChNodeFEMxyz> mnode6(new ChNodeFEMxyz(ChVector<>(0, sy, sz)));
+	ChSharedPtr<ChNodeFEMxyz> mnode7(new ChNodeFEMxyz(ChVector<>(sx,sy, sz)));
+	ChSharedPtr<ChNodeFEMxyz> mnode8(new ChNodeFEMxyz(ChVector<>(sx,sy, 0)));
 
 				// For example, set applied forces to nodes:
-	mnode5.SetForce(ChVector<>(0, -1000, 0));
-	mnode6.SetForce(ChVector<>(0, -1000, 0));
-	mnode7.SetForce(ChVector<>(0, -1000, 0));
-	mnode8.SetForce(ChVector<>(0, -1000, 0));
+	mnode5->SetForce(ChVector<>(0, -1000, 0));
+	mnode6->SetForce(ChVector<>(0, -1000, 0));
+	mnode7->SetForce(ChVector<>(0, -1000, 0));
+	mnode8->SetForce(ChVector<>(0, -1000, 0));
 
 				// Remember to add nodes and elements to the mesh!
 	my_mesh->AddNode(mnode1);
@@ -423,9 +423,9 @@ void test_4()
 
 				// Create the tetrahedron element, and assign 
 				// it nodes and material
-	ChElementHexa_8 melement1;
-	melement1.SetNodes(&mnode1, &mnode2, &mnode3, &mnode4, &mnode5, &mnode6, &mnode7, &mnode8);
-	melement1.SetMaterial(mmaterial);
+	ChSharedPtr<ChElementHexa_8> melement1 (new ChElementHexa_8);
+	melement1->SetNodes(mnode1, mnode2, mnode3, mnode4, mnode5, mnode6, mnode7, mnode8);
+	melement1->SetMaterial(mmaterial);
 
 				// Remember to add elements to the mesh!
 	my_mesh->AddElement(melement1);
@@ -486,14 +486,14 @@ void test_4()
 				// Output result
 	//GetLog()<<melement1.GetStiffnessMatrix()<<"\n";
 	//GetLog()<<melement1.GetMatrB()<<"\n";
-	GetLog()<<mnode1.GetPos()<<"\n";
-	GetLog()<<mnode2.GetPos()<<"\n";
-	GetLog()<<mnode3.GetPos()<<"\n";
-	GetLog()<<mnode4.GetPos()<<"\n";
-	GetLog()<<"node5 displ: "<< mnode5.GetPos()-mnode5.GetX0()<<"\n";
-	GetLog()<<"node6 displ: "<< mnode6.GetPos()-mnode6.GetX0()<<"\n";
-	GetLog()<<"node7 displ: "<< mnode7.GetPos()-mnode7.GetX0()<<"\n";
-	GetLog()<<"node8 displ: "<< mnode8.GetPos()-mnode8.GetX0()<<"\n";
+	GetLog()<<mnode1->GetPos()<<"\n";
+	GetLog()<<mnode2->GetPos()<<"\n";
+	GetLog()<<mnode3->GetPos()<<"\n";
+	GetLog()<<mnode4->GetPos()<<"\n";
+	GetLog()<<"node5 displ: "<< mnode5->GetPos()-mnode5->GetX0()<<"\n";
+	GetLog()<<"node6 displ: "<< mnode6->GetPos()-mnode6->GetX0()<<"\n";
+	GetLog()<<"node7 displ: "<< mnode7->GetPos()-mnode7->GetX0()<<"\n";
+	GetLog()<<"node8 displ: "<< mnode8->GetPos()-mnode8->GetX0()<<"\n";
 }
 
 //////////////////////////////////////////////////////////////////
@@ -526,36 +526,36 @@ void test_5()
 	double sx = 0.01;
 	double sy = 0.1;
 	double sz = 0.01;
-	ChNodeFEMxyz mnode1(ChVector<>(0, 0,  0));
-	ChNodeFEMxyz mnode2(ChVector<>(0, 0,  sz));
-	ChNodeFEMxyz mnode3(ChVector<>(sx,0,  sz));
-	ChNodeFEMxyz mnode4(ChVector<>(sx,0,  0));
-	ChNodeFEMxyz mnode5(ChVector<>(0, sy, 0));
-	ChNodeFEMxyz mnode6(ChVector<>(0, sy, sz));
-	ChNodeFEMxyz mnode7(ChVector<>(sx,sy, sz));
-	ChNodeFEMxyz mnode8(ChVector<>(sx,sy, 0));
-	ChNodeFEMxyz mnode9 ((mnode1.pos + mnode2.pos)*0.5); // in between front face
-	ChNodeFEMxyz mnode10((mnode2.pos + mnode3.pos)*0.5); 
-	ChNodeFEMxyz mnode11((mnode3.pos + mnode4.pos)*0.5); 
-	ChNodeFEMxyz mnode12((mnode1.pos + mnode4.pos)*0.5); 
-	ChNodeFEMxyz mnode13((mnode5.pos + mnode6.pos)*0.5); // in between back face
-	ChNodeFEMxyz mnode14((mnode6.pos + mnode7.pos)*0.5); 
-	ChNodeFEMxyz mnode15((mnode7.pos + mnode8.pos)*0.5); 
-	ChNodeFEMxyz mnode16((mnode8.pos + mnode5.pos)*0.5); 
-	ChNodeFEMxyz mnode17((mnode2.pos + mnode6.pos)*0.5); // in between side edges
-	ChNodeFEMxyz mnode18((mnode3.pos + mnode7.pos)*0.5); 
-	ChNodeFEMxyz mnode19((mnode4.pos + mnode8.pos)*0.5); 
-	ChNodeFEMxyz mnode20((mnode1.pos + mnode5.pos)*0.5); 
+	ChSharedPtr<ChNodeFEMxyz> mnode1(new ChNodeFEMxyz(ChVector<>(0, 0,  0)));
+	ChSharedPtr<ChNodeFEMxyz> mnode2(new ChNodeFEMxyz(ChVector<>(0, 0,  sz)));
+	ChSharedPtr<ChNodeFEMxyz> mnode3(new ChNodeFEMxyz(ChVector<>(sx,0,  sz)));
+	ChSharedPtr<ChNodeFEMxyz> mnode4(new ChNodeFEMxyz(ChVector<>(sx,0,  0)));
+	ChSharedPtr<ChNodeFEMxyz> mnode5(new ChNodeFEMxyz(ChVector<>(0, sy, 0)));
+	ChSharedPtr<ChNodeFEMxyz> mnode6(new ChNodeFEMxyz(ChVector<>(0, sy, sz)));
+	ChSharedPtr<ChNodeFEMxyz> mnode7(new ChNodeFEMxyz(ChVector<>(sx,sy, sz)));
+	ChSharedPtr<ChNodeFEMxyz> mnode8(new ChNodeFEMxyz(ChVector<>(sx,sy, 0)));
+	ChSharedPtr<ChNodeFEMxyz> mnode9 (new ChNodeFEMxyz((mnode1->pos + mnode2->pos)*0.5)); // in between front face
+	ChSharedPtr<ChNodeFEMxyz> mnode10(new ChNodeFEMxyz((mnode2->pos + mnode3->pos)*0.5)); 
+	ChSharedPtr<ChNodeFEMxyz> mnode11(new ChNodeFEMxyz((mnode3->pos + mnode4->pos)*0.5)); 
+	ChSharedPtr<ChNodeFEMxyz> mnode12(new ChNodeFEMxyz((mnode1->pos + mnode4->pos)*0.5)); 
+	ChSharedPtr<ChNodeFEMxyz> mnode13(new ChNodeFEMxyz((mnode5->pos + mnode6->pos)*0.5)); // in between back face
+	ChSharedPtr<ChNodeFEMxyz> mnode14(new ChNodeFEMxyz((mnode6->pos + mnode7->pos)*0.5)); 
+	ChSharedPtr<ChNodeFEMxyz> mnode15(new ChNodeFEMxyz((mnode7->pos + mnode8->pos)*0.5)); 
+	ChSharedPtr<ChNodeFEMxyz> mnode16(new ChNodeFEMxyz((mnode8->pos + mnode5->pos)*0.5)); 
+	ChSharedPtr<ChNodeFEMxyz> mnode17(new ChNodeFEMxyz((mnode2->pos + mnode6->pos)*0.5)); // in between side edges
+	ChSharedPtr<ChNodeFEMxyz> mnode18(new ChNodeFEMxyz((mnode3->pos + mnode7->pos)*0.5)); 
+	ChSharedPtr<ChNodeFEMxyz> mnode19(new ChNodeFEMxyz((mnode4->pos + mnode8->pos)*0.5)); 
+	ChSharedPtr<ChNodeFEMxyz> mnode20(new ChNodeFEMxyz((mnode1->pos + mnode5->pos)*0.5)); 
 
 				// For example, set applied forces to nodes:
-	mnode5.SetForce(ChVector<>(0, -500, 0));
-	mnode6.SetForce(ChVector<>(0, -500, 0));
-	mnode7.SetForce(ChVector<>(0, -500, 0));
-	mnode8.SetForce(ChVector<>(0, -500, 0));
-	mnode13.SetForce(ChVector<>(0, -500, 0));
-	mnode14.SetForce(ChVector<>(0, -500, 0));
-	mnode15.SetForce(ChVector<>(0, -500, 0));
-	mnode16.SetForce(ChVector<>(0, -500, 0));
+	mnode5->SetForce(ChVector<>(0, -500, 0));
+	mnode6->SetForce(ChVector<>(0, -500, 0));
+	mnode7->SetForce(ChVector<>(0, -500, 0));
+	mnode8->SetForce(ChVector<>(0, -500, 0));
+	mnode13->SetForce(ChVector<>(0, -500, 0));
+	mnode14->SetForce(ChVector<>(0, -500, 0));
+	mnode15->SetForce(ChVector<>(0, -500, 0));
+	mnode16->SetForce(ChVector<>(0, -500, 0));
 
 				// Remember to add nodes and elements to the mesh!
 	my_mesh->AddNode(mnode1);
@@ -581,15 +581,15 @@ void test_5()
 
 				// Create the tetrahedron element, and assign 
 				// its nodes and material
-	ChElementHexa_20 melement1;
-	melement1.SetNodes(&mnode1, &mnode2, &mnode3, &mnode4, &mnode5, &mnode6, &mnode7, &mnode8,
-						&mnode9, &mnode10, &mnode11, &mnode12, &mnode13, &mnode14, &mnode15, &mnode16,
-						&mnode17, &mnode18, &mnode19, &mnode20);
-	melement1.SetMaterial(mmaterial);
+	ChSharedPtr<ChElementHexa_20> melement1 (new ChElementHexa_20);
+	melement1->SetNodes(mnode1, mnode2, mnode3, mnode4, mnode5, mnode6, mnode7, mnode8,
+						mnode9, mnode10, mnode11, mnode12, mnode13, mnode14, mnode15, mnode16,
+						mnode17, mnode18, mnode19, mnode20);
+	melement1->SetMaterial(mmaterial);
 
 				// Use this statement to use the reduced integration
 				// Default number of gauss point: 27. Reduced integration -> 8 Gp.
-	melement1.SetReducedIntegrationRule();
+	melement1->SetReducedIntegrationRule();
 
 				// Remember to add elements to the mesh!
 	my_mesh->AddElement(melement1);
@@ -648,11 +648,11 @@ void test_5()
 	my_system.DoStaticLinear();
 
 				// Output some results
-	GetLog()<<"node5 displ: "<< mnode5.GetPos()-mnode5.GetX0()<<"\n";
-	GetLog()<<"node6 displ: "<< mnode6.GetPos()-mnode6.GetX0()<<"\n";
-	GetLog()<<"node7 displ: "<< mnode7.GetPos()-mnode7.GetX0()<<"\n";
-	GetLog()<<"node8 displ: "<< mnode8.GetPos()-mnode8.GetX0()<<"\n";
-	GetLog()<<"Element volume" << melement1.GetVolume() << "\n";
+	GetLog()<<"node5 displ: "<< mnode5->GetPos()-mnode5->GetX0()<<"\n";
+	GetLog()<<"node6 displ: "<< mnode6->GetPos()-mnode6->GetX0()<<"\n";
+	GetLog()<<"node7 displ: "<< mnode7->GetPos()-mnode7->GetX0()<<"\n";
+	GetLog()<<"node8 displ: "<< mnode8->GetPos()-mnode8->GetX0()<<"\n";
+	GetLog()<<"Element volume" << melement1->GetVolume() << "\n";
 
 }
 

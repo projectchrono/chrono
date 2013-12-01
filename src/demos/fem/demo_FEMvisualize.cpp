@@ -88,42 +88,42 @@ int main(int argc, char* argv[])
 				// Create some nodes. These are the classical point-like
 				// nodes with x,y,z degrees of freedom, that can be used 
 				// for many types of FEM elements in space.
-	ChNodeFEMxyz mnode1(ChVector<>(0,0,0));
-	ChNodeFEMxyz mnode2(ChVector<>(0,0,1));
-	ChNodeFEMxyz mnode3(ChVector<>(0,1,0));
-	ChNodeFEMxyz mnode4(ChVector<>(1,0,0));
+	ChSharedPtr<ChNodeFEMxyz> mnode1( new ChNodeFEMxyz(ChVector<>(0,0,0)) );
+	ChSharedPtr<ChNodeFEMxyz> mnode2( new ChNodeFEMxyz(ChVector<>(0,0,1)) );
+	ChSharedPtr<ChNodeFEMxyz> mnode3( new ChNodeFEMxyz(ChVector<>(0,1,0)) );
+	ChSharedPtr<ChNodeFEMxyz> mnode4( new ChNodeFEMxyz(ChVector<>(1,0,0)) );
 
-//ChNodeFEMxyz mnode5(ChVector<>(0,1,0)); //as3
-	ChNodeFEMxyz mnode6(ChVector<>(0,1,1));
-	ChNodeFEMxyz mnode7(ChVector<>(0,2,0));
-	ChNodeFEMxyz mnode8(ChVector<>(1,1,0));
+	ChSharedPtr<ChNodeFEMxyz> mnode6( new ChNodeFEMxyz(ChVector<>(0,1,1)) );
+	ChSharedPtr<ChNodeFEMxyz> mnode7( new ChNodeFEMxyz(ChVector<>(0,2,0)) );
+	ChSharedPtr<ChNodeFEMxyz> mnode8( new ChNodeFEMxyz(ChVector<>(1,1,0)) );
 
 				// For example, set a point-like mass at a node:
-	mnode3.SetMass(200);
+	mnode3->SetMass(200);
 
 				// For example, set an initial displacement to a node:
-	mnode3.SetPos( mnode3.GetX0() + ChVector<>(0,0.26,0) );
+	mnode3->SetPos( mnode3->GetX0() + ChVector<>(0,0.26,0) );
 
 	// Remember to add nodes and elements to the mesh!
 	my_mesh->AddNode(mnode1);
 	my_mesh->AddNode(mnode2);
 	my_mesh->AddNode(mnode3);
 	my_mesh->AddNode(mnode4);
-my_mesh->AddNode(mnode6);
+	
+	my_mesh->AddNode(mnode6);
 	my_mesh->AddNode(mnode7);
 	my_mesh->AddNode(mnode8);
 
 				// Create the tetrahedron element, and assign 
 				// nodes and material
-	ChElementTetra_4 melement1;
-	melement1.SetNodes(&mnode1, &mnode2, &mnode3, &mnode4);
-	melement1.SetMaterial(mmaterial);
+	ChSharedPtr<ChElementTetra_4> melement1( new ChElementTetra_4);
+	melement1->SetNodes(mnode1, mnode2, mnode3, mnode4);
+	melement1->SetMaterial(mmaterial);
 				// Remember to add elements to the mesh!
 	my_mesh->AddElement(melement1);
 
-ChElementTetra_4 melement2;
-	melement2.SetNodes(&mnode3, &mnode6, &mnode7, &mnode8);
-	melement2.SetMaterial(mmaterial);
+	ChSharedPtr<ChElementTetra_4> melement2( new ChElementTetra_4);
+	melement2->SetNodes(mnode3, mnode6, mnode7, mnode8);
+	melement2->SetMaterial(mmaterial);
 	my_mesh->AddElement(melement2);
 
 				// This is necessary in order to precompute the 
@@ -208,7 +208,7 @@ application.AssetUpdate(my_mesh);
 		
 		application.DoStep();
 
-		//	GetLog() << " t =" << my_system.GetChTime() << "  mnode3.pos.y=" << mnode3.GetPos().y << "  \n";
+		//	GetLog() << " t =" << my_system.GetChTime() << "  mnode3 pos.y=" << mnode3->GetPos().y << "  \n";
 
 		application.EndScene();
 		//break;
