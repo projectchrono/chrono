@@ -347,11 +347,11 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 					irr::scene::ISceneNode* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(k_asset, mnode);
 					irr::scene::ISceneNode* mchildnode = this->scenemanager->addAnimatedMeshSceneNode(genericMesh,mproxynode);
 					
-					mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, false);
+					//mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, false);
 
 					mchildnode->setScale(irr::core::vector3df(-1,1,1)); // because of Irrlicht being left handed!!!
-					mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false); // because of Irrlicht being left handed!!!
-					//mflipSurfacesOnX(mchildnode->getMesh()); // this wold be better than disabling back culling, but it does not work!
+					mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, true); // because of Irrlicht being left handed!!!
+					mflipSurfacesOnX(((irr::scene::IAnimatedMeshSceneNode*)mchildnode)->getMesh()); // this wold be better than disabling back culling, but it does not work!
 				}
 			}
 			if ( k_asset.IsType<chrono::ChTriangleMeshShape>() )
