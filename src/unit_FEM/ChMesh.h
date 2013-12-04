@@ -17,7 +17,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "physics/ChPhysicsItem.h"
+#include "physics/ChIndexedNodes.h"
 #include "physics/ChContinuumMaterial.h"
 #include "ChNodeFEMbase.h"
 #include "ChElementBase.h"
