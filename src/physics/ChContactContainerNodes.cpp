@@ -23,6 +23,7 @@
 #include "physics/ChContactContainerNodes.h"
 #include "physics/ChSystem.h"
 #include "physics/ChIndexedNodes.h"
+#include "physics/ChNodeXYZ.h"
 #include "physics/ChBody.h"
 #include "lcp/ChLcpConstraintNodeContactN.h"
 #include "collision/ChCModelBulletBody.h"

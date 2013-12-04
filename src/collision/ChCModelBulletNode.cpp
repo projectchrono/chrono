@@ -23,6 +23,7 @@
  
 #include "ChCModelBulletNode.h" 
 #include "physics/ChIndexedNodes.h"
+#include "physics/ChNodeXYZ.h"
 #include "collision/bullet/btBulletCollisionCommon.h"
 
 

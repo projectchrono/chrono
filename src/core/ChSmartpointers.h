@@ -96,7 +96,6 @@ public:
 			/// Bool type casting, true if the pointer is still bound to an object, or
 			/// false if unbound and invalidated (ex. after unsuccesfull casting). Example:
 			///    if(mysharedptr) {...}
-	operator bool() const { return itsCounter ? itsCounter->ptr!=0 : 0; }
 				// Trick to avoid problems as in  http://www.artima.com/cppsource/safebool2.html
 				// In future C++0x will be simply: 
 				//  explicit operator bool() const { return ptr!=0; }

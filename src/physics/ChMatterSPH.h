@@ -34,6 +34,7 @@
 #include <math.h>
 
 #include "physics/ChIndexedNodes.h"
+#include "physics/ChNodeXYZ.h"
 #include "physics/ChContinuumMaterial.h"
 #include "collision/ChCCollisionModel.h"
 #include "lcp/ChLcpVariablesNode.h"

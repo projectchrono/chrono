@@ -35,6 +35,7 @@
 
 #include "ChApiFEM.h"
 #include "physics/ChIndexedNodes.h"
+#include "physics/ChNodeXYZ.h"
 #include "collision/ChCCollisionModel.h"
 #include "lcp/ChLcpVariablesNode.h"
 #include "physics/ChContinuumMaterial.h"

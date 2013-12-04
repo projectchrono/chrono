@@ -23,6 +23,7 @@
 #include "physics/ChNodeBody.h"
 #include "physics/ChSystem.h"
 #include "physics/ChIndexedNodes.h"
+#include "physics/ChNodeXYZ.h"
 
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
 
