@@ -70,7 +70,7 @@ ChVector<float> ChVisualizationFEMmesh::ComputeFalseColor(double mv)
 	return(c);
 }
 
-double ChVisualizationFEMmesh::ComputeScalarOutput( ChSharedPtr<ChNodeFEMxyz>& mnode, ChSharedPtr<ChElementBase>& melement)
+double ChVisualizationFEMmesh::ComputeScalarOutput( ChSharedPtr<ChNodeFEMxyz> mnode, ChSharedPtr<ChElementBase> melement)
 {
 	switch (this->fem_data_type)
 	{

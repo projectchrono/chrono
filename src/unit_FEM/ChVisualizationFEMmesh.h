@@ -105,7 +105,7 @@ class ChApiFem ChVisualizationFEMmesh: public ChAssetLevel
 		virtual void Update ();
 
 private:
-		double	ComputeScalarOutput( ChSharedPtr<ChNodeFEMxyz>& mnode, ChSharedPtr<ChElementBase>& melement);
+		double	ComputeScalarOutput( ChSharedPtr<ChNodeFEMxyz> mnode, ChSharedPtr<ChElementBase> melement);
 		ChVector<float> ComputeFalseColor(double in);
 
 };
