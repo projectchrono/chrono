@@ -509,8 +509,8 @@ void CreateRigidBodiesPatternPipe_KindaRandom(
 void CreateFlexBodies(
 		thrust::host_vector<real3> & ANCF_Nodes,
 		thrust::host_vector<real3> & ANCF_Slopes,
-		thrust::host_vector<real3> & ANCF_VelNodes,
-		thrust::host_vector<real3> & ANCF_VelSlopes,
+		thrust::host_vector<real3> & ANCF_NodesVel,
+		thrust::host_vector<real3> & ANCF_SlopesVel,
 		thrust::host_vector<real_> & ANCF_Beam_Length,
 		thrust::host_vector<int2> & ANCF_ReferenceArrayNodesOnBeams,
 		real_ pipeRadius,
@@ -540,8 +540,8 @@ void CreateFlexBodies(
 		for (int m = 0; m < numElementsPerBeam + 1; m++) {
 			ANCF_Nodes.push_back(pa3 + m * (beamLength / numElementsPerBeam) * slope3);
 			ANCF_Slopes.push_back(slope3);
-			ANCF_VelNodes.push_back(R3(0));
-			ANCF_VelSlopes.push_back(R3(0));
+			ANCF_NodesVel.push_back(R3(0));
+			ANCF_SlopesVel.push_back(R3(0));
 		}
 		if (i == 0) {
 			ANCF_ReferenceArrayNodesOnBeams.push_back(I2(0, numElementsPerBeam + 1));
@@ -1331,8 +1331,8 @@ int main() {
 	//*** flex bodies
 	thrust::host_vector<real3> ANCF_Nodes;
 	thrust::host_vector<real3> ANCF_Slopes;
-	thrust::host_vector<real3> ANCF_VelNodes;
-	thrust::host_vector<real3> ANCF_VelSlopes;
+	thrust::host_vector<real3> ANCF_NodesVel;
+	thrust::host_vector<real3> ANCF_SlopesVel;
 	thrust::host_vector<real_> ANCF_Beam_Length;
 	thrust::host_vector<int2>  ANCF_ReferenceArrayNodesOnBeams;
 	//*** flex markers
@@ -1357,7 +1357,7 @@ int main() {
 	//**
 //	CreateRigidBodiesFromFile(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, cMin, cMax, fileNameRigids, rhoRigid);
 	//**
-	CreateFlexBodies(ANCF_Nodes, ANCF_Slopes, ANCF_VelNodes, ANCF_VelSlopes,
+	CreateFlexBodies(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
 			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams,
 			channelRadius,
 			cMax.x - cMin.x,
@@ -1410,7 +1410,7 @@ int main() {
 
 		int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(mPosRad, mVelMas, mRhoPresMu, mPosRadBoundary, mVelMasBoundary, mRhoPresMuBoundary, sphMarkerMass,
 				rigidPos, rigidRotMatrix, ellipsoidRadii, r, cMax, cMin, rho0, pres, mu,
-				ANCF_VelNodes, ANCF_ReferenceArrayNodesOnBeams);
+				ANCF_NodesVel, ANCF_ReferenceArrayNodesOnBeams);
 		referenceArray.push_back(I3(0, num_fluidOrBoundaryMarkers.x, -1));  //map fluid -1
 //		referenceArray_Types.push_back((I3(-1, 0, 0)));
 		numAllMarkers += num_fluidOrBoundaryMarkers.x;
@@ -1508,8 +1508,8 @@ int main() {
 
 	ANCF_Nodes.clear();
 	ANCF_Slopes.clear();
-	ANCF_VelNodes.clear();
-	ANCF_VelSlopes.clear();
+	ANCF_NodesVel.clear();
+	ANCF_SlopesVel.clear();
 	ANCF_ReferenceArrayNodesOnBeams.clear();
 	ANCF_Beam_Length.clear();
 	return 0;
