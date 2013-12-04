@@ -367,6 +367,8 @@ IF (BUILD_CH_SDK)
 		physics/ChIndexedParticles.cpp 
 		physics/ChIndexedNodes.cpp 
 		physics/ChNodeBody.cpp 
+		physics/ChNodeBase.cpp
+		physics/ChNodeXYZ.cpp
 		physics/ChMatterSPH.cpp 
 		physics/ChContact.cpp 
 		physics/ChContactRolling.cpp 
@@ -450,6 +452,8 @@ IF (BUILD_CH_SDK)
 		physics/ChMatterSPH.h
 		physics/ChNlsolver.h
 		physics/ChNodeBody.h
+		physics/ChNodeBase.h
+		physics/ChNodeXYZ.h
 		physics/ChObject.h
 		physics/ChParticlesClones.h
 		physics/ChPhysicsItem.h

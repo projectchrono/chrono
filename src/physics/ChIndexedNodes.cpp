@@ -10,15 +10,6 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChIndexedNodes.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
     
 #include <stdlib.h>
 #include <algorithm>
@@ -44,72 +35,6 @@ using namespace geometry;
 ChClassRegisterABSTRACT<ChIndexedNodes> a_registration_ChIndexedNodes;
 
 	
-
-//////////////////////////////////////
-//////////////////////////////////////
-
-/// BASE CLASS FOR NODES
-
-
-ChNodeBase::ChNodeBase()
-{
-}
-
-ChNodeBase::~ChNodeBase()
-{
-}
-
-ChNodeBase::ChNodeBase (const ChNodeBase& other) 
-{
-}
-
-ChNodeBase& ChNodeBase::operator= (const ChNodeBase& other)
-{
-	if (&other == this) 
-		return *this;
-
-	return *this;
-}
-
-
-//////////////////////////////////////
-
-/// CLASS FOR A PARTICLE
-
-
-ChNodeXYZ::ChNodeXYZ()
-{
-	this->pos = VNULL;
-	this->pos_dt = VNULL;
-	this->pos_dtdt = VNULL;
-}
-
-ChNodeXYZ::~ChNodeXYZ()
-{
-}
-
-ChNodeXYZ::ChNodeXYZ (const ChNodeXYZ& other) :
-					ChNodeBase(other) 
-{
-	this->pos = other.pos;
-	this->pos_dt = other.pos_dt;
-	this->pos_dtdt = other.pos_dtdt;
-}
-
-ChNodeXYZ& ChNodeXYZ::operator= (const ChNodeXYZ& other)
-{
-	if (&other == this) 
-		return *this;
-
-	ChNodeBase::operator=(other);
-
-	this->pos = other.pos;
-	this->pos_dt = other.pos_dt;
-	this->pos_dtdt = other.pos_dtdt;
-
-	return *this;
-}
-
 
 
 //////////////////////////////////////

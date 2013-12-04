@@ -15,7 +15,7 @@
 
 
 #include "ChApiFEM.h"
-#include "physics/ChIndexedNodes.h"
+#include "physics/ChNodeBase.h"
 
 
 namespace chrono
