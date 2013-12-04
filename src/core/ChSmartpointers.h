@@ -97,6 +97,18 @@ public:
 			/// false if unbound and invalidated (ex. after unsuccesfull casting). Example:
 			///    if(mysharedptr) {...}
 	operator bool() const { return itsCounter ? itsCounter->ptr!=0 : 0; }
+				// Trick to avoid problems as in  http://www.artima.com/cppsource/safebool2.html
+				// In future C++0x will be simply: 
+				//  explicit operator bool() const { return ptr!=0; }
+	typedef void (ChSmartPtr::*bool_type)() const;
+    void this_type_does_not_support_comparisons() const {}
+	operator bool_type() const 
+	{
+		if (itsCounter)
+			return itsCounter->ptr!=0 ? &ChSmartPtr::this_type_does_not_support_comparisons : 0;
+		else 
+			return 0;
+    }
 
 			/// Assignment form for an already-constructed smart-pointer.
     ChSmartPtr& operator=(const ChSmartPtr& r)
@@ -193,6 +205,21 @@ bool operator<(const ChSmartPtr<T>& left, const ChSmartPtr<T>& right)
 	return *left < *right;
 }
 
+// Trick to avoid problems as in  http://www.artima.com/cppsource/safebool2.html
+// Not needed in future C++0x when we'll use simply: 
+//  explicit operator bool() const { return ptr!=0; }
+template <typename T, typename R > 
+    bool operator!=(const ChSmartPtr< T >& lhs,const R& rhs) {
+	lhs.this_type_does_not_support_comparisons();	
+      return false;	
+    } 
+template <typename T, typename R >
+    bool operator==(const ChSmartPtr< T >& lhs,const R& rhs) {
+	lhs.this_type_does_not_support_comparisons();
+      return false;		
+    }
+
+
 
 
 
@@ -203,13 +230,13 @@ bool operator<(const ChSmartPtr<T>& left, const ChSmartPtr<T>& right)
 ///  Smart pointer to be used with generic objects to be shared
 /// among multiple pointers, without the risk of deleting the 
 /// pointed instance too early, hence avoids dangling pointers.
-///  When compared to the ChSharedPtr, this is a faster version
+///  When compared to the ChSmartPtr, this is a faster version
 /// but requires that you use it only for data which is instanced
 /// from the ChShared class.
 ///  It should be initialized in the following two main ways:
-///    ChSmartPtr<MyClass> foo_pointer(new MyClass);
+///    ChSharedPtr<MyClass> foo_pointer(new MyClass);
 ///       or
-///    ChSmartPtr<MyClass> foo_pointer(another_smart_pointer);
+///    ChSharedPtr<MyClass> foo_pointer(another_smart_pointer);
 ///  Doing so, you will _never_ need to call 'delete', because the reference
 /// count mechanism will automatically delete the instance when no smart pointers 
 /// reference it.
@@ -266,7 +293,16 @@ public:
 			/// Bool type casting, true if the pointer is still bound to an object, or
 			/// false if unbound and invalidated (ex. after unsuccesfull casting). Example:
 			///    if(mysharedptr) {...}
-	operator bool() const { return ptr!=0; }
+				// Trick to avoid problems as in  http://www.artima.com/cppsource/safebool2.html
+				// In future C++0x will be simply: 
+				//  explicit operator bool() const { return ptr!=0; }
+	typedef void (ChSharedPtr::*bool_type)() const;
+    void this_type_does_not_support_comparisons() const {}
+	operator bool_type() const 
+	{
+      return ptr!=0 ? &ChSharedPtr::this_type_does_not_support_comparisons : 0;
+    }
+
 
 			/// Assignment form for an already-constructed smart-pointer.
     ChSharedPtr& operator=(const ChSharedPtr& r)
@@ -360,6 +396,21 @@ bool operator<(const ChSharedPtr<T>& left, const ChSharedPtr<T>& right)
 	return *left < *right;
 }
 
+
+
+// Trick to avoid problems as in  http://www.artima.com/cppsource/safebool2.html
+// Not needed in future C++0x when we'll use simply: 
+//  explicit operator bool() const { return ptr!=0; }
+template <typename T, typename R > 
+    bool operator!=(const ChSharedPtr< T >& lhs,const R& rhs) {
+	lhs.this_type_does_not_support_comparisons();	
+      return false;	
+    } 
+template <typename T, typename R >
+    bool operator==(const ChSharedPtr< T >& lhs,const R& rhs) {
+	lhs.this_type_does_not_support_comparisons();
+      return false;		
+    }
 
 
 
