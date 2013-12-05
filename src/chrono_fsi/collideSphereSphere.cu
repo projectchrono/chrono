@@ -653,6 +653,8 @@ __global__ void UpdateFlexMarkersPosition(
 	real3 A1, A2, A3;
 	RotationMatirixFromQuaternion_kernelD(A1, A2, A3, q);
 	posRadD[absMarkerIndex] = beamPointPos + R3(dot(A1, dist3), dot(A2, dist3), dot(A3, dist3));
+
+	//ask Radu
 	real3 absOmega = Calc_ANCF_Point_Omega(ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
 	velMasD[absMarkerIndex] = beamPointVel + cross(absOmega, dist3);
 }
@@ -733,6 +735,15 @@ void Calc_mapEachMarkerOnAllBeamNodes_IdentifierD(
 		}
 	}
 }
+//--------------------------------------------------------------------------------------------------------------------------------
+Update_ANCF_Beam(
+		thrust::device_vector<real3> & ANCF_NodesD,
+		thrust::device_vector<real3> & ANCF_SlopesD,
+		thrust::device_vector<real3> & ANCF_NodesVelD,
+		thrust::device_vector<real3> & ANCF_SlopesVelD,
+		const thrust::device_vector<real3> & flex_FSI_NodesForces1,
+		const thrust::device_vector<real3> & flex_FSI_NodesForces2,
+		const thrust::device_vector<real_> & ANCF_Beam_LengthD);
 //--------------------------------------------------------------------------------------------------------------------------------
 void MapSPH_ToGrid(
 		real_ resolution,
@@ -1209,8 +1220,10 @@ void UpdateFlexibleBody(
 	int totalNumberOfFlexNodes = ANCF_ReferenceArrayNodesOnBeamsD[ANCF_ReferenceArrayNodesOnBeamsD.size() - 1].y;
 	int totalNumberOfFlexMultNodes = flexMapEachMarkerOnAllBeamNodesD.size();
 
-	thrust::device_vector<real3> flexNodesForces1(totalNumberOfFlexNodes);
-	thrust::device_vector<real3> flexNodesForces2(totalNumberOfFlexNodes);
+	thrust::device_vector<real3> flex_FSI_NodesForces1(totalNumberOfFlexNodes);
+	thrust::device_vector<real3> flex_FSI_NodesForces2(totalNumberOfFlexNodes);
+	thrust::fill(flex_FSI_NodesForces1.begin(), flex_FSI_NodesForces1.end(),0);
+	thrust::fill(flex_FSI_NodesForces2.begin(), flex_FSI_NodesForces2.end(),0);
 
 	thrust::device_vector<real3> flexNodesForcesAllMarkers1(totalNumberOfFlexMultNodes);
 	thrust::device_vector<real3> flexNodesForcesAllMarkers2(totalNumberOfFlexMultNodes);
@@ -1234,13 +1247,22 @@ void UpdateFlexibleBody(
 	thrust::device_vector<int> dummyNodesFlexIdentify(flexMapEachMarkerOnAllBeamNodesD.size());
 	thrust::equal_to<int2> binary_pred_int2; //if binary_pred int2 does not work, you have to either add operator == to custom_cutil_math, or you have to map nodes identifiers from int2 to int
 	(void) thrust::reduce_by_key(flexMapEachMarkerOnAllBeamNodesD.begin(), flexMapEachMarkerOnAllBeamNodesD.end(), flexNodesForcesAllMarkers1.begin(), dummyNodesFlexIdentify.begin(),
-			flexNodesForces1.begin(), binary_pred_int2, thrust::plus<real3>());
+			flex_FSI_NodesForces1.begin(), binary_pred_int2, thrust::plus<real3>());
 	(void) thrust::reduce_by_key(flexMapEachMarkerOnAllBeamNodesD.begin(), flexMapEachMarkerOnAllBeamNodesD.end(), flexNodesForcesAllMarkers2.begin(), dummyNodesFlexIdentify.begin(),
-			flexNodesForces2.begin(), binary_pred_int2, thrust::plus<real3>());
+			flex_FSI_NodesForces2.begin(), binary_pred_int2, thrust::plus<real3>());
 	flexNodesForcesAllMarkers1.clear();
 	flexNodesForcesAllMarkers2.clear();
 
 //	//TODO: update flex bodies here
+
+	Update_ANCF_Beam(
+			ANCF_NodesD,
+			ANCF_SlopesD,
+			ANCF_NodesVelD,
+			ANCF_SlopesVelD,
+			flex_FSI_NodesForces1,
+			flex_FSI_NodesForces2,
+			ANCF_Beam_LengthD);
 
 //	 ....
 //	 ....
@@ -1280,8 +1302,8 @@ void UpdateFlexibleBody(
 	dummyNodesFlexIdentify.clear();
 
 
-	flexNodesForces1.clear();
-	flexNodesForces2.clear();
+	flex_FSI_NodesForces1.clear();
+	flex_FSI_NodesForces2.clear();
 }
 //##############################################################################################################################################
 // the main function, which updates the particles and implements BC
@@ -1411,7 +1433,8 @@ void cudaCollisions(
 	thrust::device_vector<real3> ANCF_NodesVelD = ANCF_NodesVel;
 	thrust::device_vector<real3> ANCF_SlopesVelD = ANCF_SlopesVel;
 	thrust::device_vector<real_> ANCF_Beam_LengthD = ANCF_Beam_Length;
-	thrust::device_vector<int2> ANCF_ReferenceArrayNodesOnBeamsD = ANCF_ReferenceArrayNodesOnBeams;
+	thrust::device_vector<int2> ANCF_ReferenceArrayNodesOnBeamsD = ANCF_ReferenceArrayNodesOnBeams;  //each element refer to a beam. and contains the start and end
+																									// index of nodes in the array of beams nodes (like referenceArray)
 
 	//*******************
 	thrust::device_vector<int> ANCF_NumMarkers_Per_BeamD(numFlexBodies);  //num BCE markers per beam
@@ -1420,7 +1443,7 @@ void cudaCollisions(
 	thrust::device_vector<int> ANCF_NumNodesMultMarkers_Per_Beam_CumulD(numFlexBodies); //exclusive scan of ANCF_NumNodesMultMarkers_Per_BeamD
 	thrust::device_vector<int2> flexMapEachMarkerOnAllBeamNodesD(0); //assume beam i has nN nodes and nM markers. lets j denote the nodes. This array includes
 																	// concequtive chunks of pairs I2(i,j). Each chunk has a length of nM. The total number of chunks
-																	// per beam is nN. In summarry, nN chuncks of I2(i, j) pairs (j changes from 0 to nN), Each chunk with
+																	// per beam is nN. In summary, nN chuncks of I2(i, j) pairs (j changes from 0 to nN), Each chunk with
 																	// with the length of nM
 
 	thrust::device_vector<int> dummySum(flexIdentifierD.size());

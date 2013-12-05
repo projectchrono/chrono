@@ -24,3 +24,16 @@
 //	along with SPH_FSI.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
+__device__ __host__ void shape_fun(real_* S, real_ x, real_ L);
+
+void CalcElasticForces(
+		thrust::device_vector<real3> & flex_FSI_NodesForces1,
+		thrust::device_vector<real3> & flex_FSI_NodesForces2,
+		const thrust::device_vector<real3> & ANCF_NodesD,
+		const thrust::device_vector<real3> & ANCF_SlopesD,
+		const thrust::device_vector<real3> & ANCF_NodesVelD,
+		const thrust::device_vector<real3> & ANCF_SlopesVelD,
+		const thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
+		const thrust::device_vector<real_> & ANCF_Beam_LengthD,
+		const int numFlexBodies
+	);
