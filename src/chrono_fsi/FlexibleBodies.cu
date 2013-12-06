@@ -309,11 +309,11 @@ void CopyNodesTo_e(real_* e, const thrust::device_vector<real3> & ANCF_NodesD, c
 }
 //------------------------------------------------------------------------------
 // Why -= and not += : because M*X2 + K*X = F Therefore, in an explicit method: M*X2 = F - K*X where K*X is our elastic forces (f)
-void Subtract_f_FromForces(thrust::device_vector<real3> & flex_FSI_NodesForces1, thrust::device_vector<real3> & flex_FSI_NodesForces2, real_* f, int nodeIdx) {
-	flex_FSI_NodesForces1[nodeIdx] -= R3(f[0], f[1], f[2]);
-	flex_FSI_NodesForces2[nodeIdx] -= R3(f[3], f[4], f[5]);
-	flex_FSI_NodesForces1[nodeIdx + 1] -= R3(f[6], f[7], f[8]);
-	flex_FSI_NodesForces2[nodeIdx + 1] -= R3(f[9], f[10], f[11]);
+void Add_f_ToForces(thrust::device_vector<real3> & flex_FSI_NodesForces1, thrust::device_vector<real3> & flex_FSI_NodesForces2, real_ k, real_* f, int nodeIdx) {
+	flex_FSI_NodesForces1[nodeIdx] += k * R3(f[0], f[1], f[2]);
+	flex_FSI_NodesForces2[nodeIdx] += k * R3(f[3], f[4], f[5]);
+	flex_FSI_NodesForces1[nodeIdx + 1] += k * R3(f[6], f[7], f[8]);
+	flex_FSI_NodesForces2[nodeIdx + 1] += k * R3(f[9], f[10], f[11]);
 }
 //------------------------------------------------------------------------------
 void CalcElasticForces(
@@ -349,7 +349,7 @@ void CalcElasticForces(
 				kappa_kappa_e(k_ke, gqPoint, le, e);
 				SumArrays(f_e, k_ke, E*I, 12);
 			}
-			Subtract_f_FromForces(flex_FSI_NodesForces1, flex_FSI_NodesForces2, f_e, nodeIdx);
+			Add_f_ToForces(flex_FSI_NodesForces1, flex_FSI_NodesForces2, -1, f_e, nodeIdx);
 		}
 	}
 }

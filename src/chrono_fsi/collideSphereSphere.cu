@@ -8,6 +8,7 @@
 #include <thrust/scan.h>
 #include "collideSphereSphere.cuh"
 #include "SDKCollisionSystem.cuh"
+#include "FlexibleBodies.cuh"
 #include "printToFile.cuh"
 #include <string.h>
 #include <stdio.h>
@@ -33,6 +34,26 @@ __constant__ int numRigid_SphMarkersD;
 __constant__ int numFlex_SphMarkersD;
 
 int maxblock = 65535;
+//--------------------------------------------------------------------------------------------------------------------------------
+__device__ __host__ void Applied_Force(real_* f_a, real_ x, real_ L, real3 F)
+{
+	real_ S[4];
+
+	shape_fun(S, x, L);
+
+	f_a[0]  = F.x*S[0];
+	f_a[1]  = F.y*S[0];
+	f_a[2]  = F.z*S[0];
+	f_a[3]  = F.x*S[1];
+	f_a[4]  = F.y*S[1];
+	f_a[5]  = F.z*S[1];
+	f_a[6]  = F.x*S[2];
+	f_a[7]  = F.y*S[2];
+	f_a[8]  = F.z*S[2];
+	f_a[9]  = F.x*S[3];
+	f_a[10] = F.y*S[3];
+	f_a[11] = F.z*S[3];
+}
 //--------------------------------------------------------------------------------------------------------------------------------
 //updates the fluid particles' properties, i.e. velocity, density, pressure, position
 __global__ void UpdateKernelFluid(real3 * posRadD, real4 * velMasD, real3 * vel_XSPH_D, real4 * rhoPresMuD, real4 * derivVelRhoD) {
@@ -311,12 +332,13 @@ __global__ void MapForcesOnNodes(
 		real3* flexNodesForcesAllMarkers1,
 		real3* flexNodesForcesAllMarkers2,
 		int* flexIdentifierD,
-//		int2* ANCF_ReferenceArrayNodesOnBeamsD,
+		int2* ANCF_ReferenceArrayNodesOnBeamsD,
 		int* ANCF_NumMarkers_Per_BeamD,
 		int* ANCF_NumMarkers_Per_Beam_CumulD, //exclusive scan
 //		int* ANCF_NumNodesMultMarkers_Per_BeamD,
 		int* ANCF_NumNodesMultMarkers_Per_Beam_CumulD, //exclusive scan
 		real_* flexParametricDistD,
+		real_* ANCF_Beam_LengthD,
 		real4* derivVelRhoD)
 {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -329,18 +351,35 @@ __global__ void MapForcesOnNodes(
 	real3 derivVel = R3( derivVelRhoD[absMarkerIndex] );
 	real3 markerForce = solid_SPH_massD * derivVel;
 
-	int flexBodyIndex = flexIdentifierD[index];
-	int numFlexMarkersPreviousBeamsTotal = ANCF_NumMarkers_Per_Beam_CumulD[flexBodyIndex];
-	int numSavedForcesSoFar = ANCF_NumNodesMultMarkers_Per_Beam_CumulD[flexBodyIndex];
-		int markerIndexOnThisBeam = index - numFlexMarkersPreviousBeamsTotal;
-
-		int numMarkersOnThisBeam = ANCF_NumMarkers_Per_BeamD[flexBodyIndex];
-
-	//TODO: Map Marker Force to ANCF Nodes, gives you as many forces as the number of nodes per beam
+//	Map Marker Force to ANCF Nodes, gives you as many forces as the number of nodes per beam
 //	F0, F1, ..., F(m-1) : Forces on nodes 0, 1, 2, ..., m-1
 //	Fi ---> flexNodesForces[numSavedForcesSoFar + (i * numMarkersOnThisBeam + markerIndexOnThisBeam)];
-	//...
-	///////
+//	...
+
+	int flexBodyIndex = flexIdentifierD[index];
+	real_ l = ANCF_Beam_LengthD[flexBodyIndex];
+
+
+	int numFlexMarkersPreviousBeamsTotal = ANCF_NumMarkers_Per_Beam_CumulD[flexBodyIndex];
+	int markerIndexOnThisBeam = index - numFlexMarkersPreviousBeamsTotal;
+	int numMarkersOnThisBeam = ANCF_NumMarkers_Per_BeamD[flexBodyIndex];
+	int numSavedForcesSoFar = ANCF_NumNodesMultMarkers_Per_Beam_CumulD[flexBodyIndex];
+
+	int2 nodesInterval = ANCF_ReferenceArrayNodesOnBeamsD[flexBodyIndex];
+	int nNodes = nodesInterval.y - nodesInterval.x;
+	int indexOfClosestNode = int(s / l * nNodes);
+	if (indexOfClosestNode == nNodes) indexOfClosestNode--;
+
+
+	real_ f_a[12] = {0};
+	Applied_Force(f_a, s, l, markerForce);
+	//left node
+	flexNodesForcesAllMarkers1[numSavedForcesSoFar + indexOfClosestNode * numMarkersOnThisBeam + markerIndexOnThisBeam] = R3(f_a[0], f_a[1], f_a[2]);
+	flexNodesForcesAllMarkers2[numSavedForcesSoFar + indexOfClosestNode * numMarkersOnThisBeam + markerIndexOnThisBeam] = R3(f_a[3], f_a[4], f_a[5]);
+	//right node
+	flexNodesForcesAllMarkers1[numSavedForcesSoFar + (indexOfClosestNode + 1) * numMarkersOnThisBeam + markerIndexOnThisBeam] = R3(f_a[6], f_a[7], f_a[8]);
+	flexNodesForcesAllMarkers2[numSavedForcesSoFar + (indexOfClosestNode + 1) * numMarkersOnThisBeam + markerIndexOnThisBeam] = R3(f_a[9], f_a[10], f_a[11]);
+
 
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -393,7 +432,7 @@ __global__ void Populate_FlexSPH_MeshPos_LRF_kernel(
 	int2 nodesInterval = ANCF_ReferenceArrayNodesOnBeamsD[flexBodyIndex];
 	int nNodes = nodesInterval.y - nodesInterval.x;
 
-	int indexOfClosestNode = int(s / l) * nNodes;
+	int indexOfClosestNode = int(s / l * nNodes);
 	if (indexOfClosestNode == nNodes) indexOfClosestNode--;
 
 	real3 beamPointPos = Calc_ANCF_Point_Pos(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
@@ -421,7 +460,7 @@ __global__ void Populate_FlexSPH_MeshSlope_LRF_kernel(
 	int2 nodesInterval = ANCF_ReferenceArrayNodesOnBeamsD[flexBodyIndex];
 	int nNodes = nodesInterval.y - nodesInterval.x;
 
-	int indexOfClosestNode = int(s / l) * nNodes;
+	int indexOfClosestNode = int(s / l * nNodes);
 	if (indexOfClosestNode == nNodes) indexOfClosestNode--;
 
 	real3 beamPointSlope = Calc_ANCF_Point_Slope(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
@@ -630,7 +669,7 @@ __global__ void UpdateFlexMarkersPosition(
 	int2 nodesInterval = ANCF_ReferenceArrayNodesOnBeamsD[flexBodyIndex];
 	int nNodes = nodesInterval.y - nodesInterval.x;
 
-	int indexOfClosestNode = int(s / l) * nNodes;
+	int indexOfClosestNode = int(s / l * nNodes);
 	if (indexOfClosestNode == nNodes) indexOfClosestNode--;
 
 	real3 beamPointPos = Calc_ANCF_Point_Pos(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
