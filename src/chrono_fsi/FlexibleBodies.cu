@@ -64,6 +64,8 @@ const real_ GQ3_p[3] = {-0.774596669241483	, 0					, 0.774596669241483};
 const real_ GQ3_w[3] = {0.555555555555556	, 0.888888888888889	, 0.555555555555556};
 const real_ GQ4_p[4] = {-0.861136311594053	, -0.339981043584856, 0.339981043584856, 0.861136311594053};
 const real_ GQ4_w[4] = {0.347854845137454	, 0.652145154862546	, 0.652145154862546, 0.347854845137454};
+const real_ GQ5_p[4] = {-0.906179845938664	, -0.538469310105683, 0					,	0.538469310105683, 0.906179845938664};
+const real_ GQ5_w[4] = {0.236926885056189	, 0.478628670499366	, 0.568888888888889	,	0.478628670499366, 0.236926885056189};
 
 
 __device__ __host__ void shape_fun(real_* S, real_ x, real_ L)
@@ -325,7 +327,7 @@ void CalcElasticForces(
 		const thrust::device_vector<real3> & ANCF_SlopesVelD,
 		const thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
 		const thrust::device_vector<real_> & ANCF_Beam_LengthD,
-		const int numFlexBodies,
+		const int numFlexBodies
 	)
 {
 	for (int i = 0; i < numFlexBodies; i++) {
@@ -342,16 +344,50 @@ void CalcElasticForces(
 			real_ e_ee[12];
 			real_ k_ke[12];
 			real_ f_e[12] = {0};
-			for (int k = 0; k < 3; k ++) {
-				real_ gqPoint = le / 2 * ( 1 + GQ3_p[k] );
+			// tension force, GQ 5th order. Maybe 4th order is enough as well.
+			for (int k = 0; k < 5; k ++) {
+				real_ gqPoint = (le - 0) / 2 * GQ5_p[k] + (le + 0) / 2;
 				eps_eps_e(e_ee, gqPoint, le, e);
-				SumArrays(f_e, e_ee, E*A, 12);
+				SumArrays(f_e, e_ee, E * A * (le - 0) / 2 * GQ5_w[k], 12);
+			}
+			// bending force, GQ 3rd order.
+			for (int k = 0; k < 3; k ++) {
+				real_ gqPoint = (le - 0) / 2 * GQ3_p[k] + (le + 0) / 2;
 				kappa_kappa_e(k_ke, gqPoint, le, e);
-				SumArrays(f_e, k_ke, E*I, 12);
+				SumArrays(f_e, k_ke, E * I  * (le - 0) / 2 * GQ3_w[k], 12);
 			}
 			Add_f_ToForces(flex_FSI_NodesForces1, flex_FSI_NodesForces2, -1, f_e, nodeIdx);
 		}
 	}
 }
 //------------------------------------------------------------------------------
-__device__ __host__ void applied_force(real_ x, real_ L, real_* F, real_* Q)
+void Update_ANCF_Beam(
+		thrust::device_vector<real3> & ANCF_NodesD,
+		thrust::device_vector<real3> & ANCF_SlopesD,
+		thrust::device_vector<real3> & ANCF_NodesVelD,
+		thrust::device_vector<real3> & ANCF_SlopesVelD,
+		thrust::device_vector<real3> & flex_FSI_NodesForces1,
+		thrust::device_vector<real3> & flex_FSI_NodesForces2,
+		const thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
+		const thrust::device_vector<real_> & ANCF_Beam_LengthD,
+		const int numFlexBodies
+		)
+{
+	CalcElasticForces(flex_FSI_NodesForces1, flex_FSI_NodesForces2,
+			ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
+			ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, numFlexBodies);
+
+	for (int i = 0; i < numFlexBodies; i++) {
+		real_ l = ANCF_Beam_LengthD[i];
+		int2 nodesPortion = ANCF_ReferenceArrayNodesOnBeamsD[i];
+		int numNodes = nodesPortion.y - nodesPortion.x;
+		int numElements = numNodes - 1;
+		real_ le = l / numElements;
+		real_* f = new real_ [numNodes];
+		for (int j = 0; j < numElements; j++) {
+			int nodeIdx = nodesPortion.x + j;
+
+
+		delete [] f;
+	}
+}
