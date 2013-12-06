@@ -53,6 +53,7 @@
 // Note: these functions make use of the utility functions defined in
 // shapeFunctions.cpp.
 /////////////////////////////////////////////////////////////////////////////
+#include "minv_vec.cuh"
 
 const real_ E = 1e9;
 const real_ I = 1;
@@ -291,7 +292,7 @@ void SumArrays(real_* sum, real_* a, real_ mult, int numComp) {
 	}
 }
 //------------------------------------------------------------------------------
-void CopyNodesTo_e(real_* e, const thrust::device_vector<real3> & ANCF_NodesD, const thrust::device_vector<real3> & ANCF_SlopesD, int nodeIdx) {
+void CopyElementNodesTo_e(real_* e, const thrust::device_vector<real3> & ANCF_NodesD, const thrust::device_vector<real3> & ANCF_SlopesD, int nodeIdx) {
 	real3 ni = ANCF_NodesD[nodeIdx];
 	e[0] = ni.x;
 	e[1] = ni.y;
@@ -318,6 +319,21 @@ void Add_f_ToForces(thrust::device_vector<real3> & flex_FSI_NodesForces1, thrust
 	flex_FSI_NodesForces2[nodeIdx + 1] += k * R3(f[9], f[10], f[11]);
 }
 //------------------------------------------------------------------------------
+void MapBeamDataTo_1D_Array(real_* e, const thrust::device_vector<real3> & beamData1, const thrust::device_vector<real3> & beamData2, int2 nodesPortion) { //beamData1: postion, beamData2: slope
+	int numNodes = nodesPortion.y - nodesPortion.x;
+	for (int j = 0; j < numNodes; j++) {
+		int nodeIdx = nodesPortion.x + j;
+		real3 data1 = beamData1[nodeIdx];
+		e[6 * j + 0] = data1.x;
+		e[6 * j + 1] = data1.y;
+		e[6 * j + 2] = data1.z;
+		real3 data2 = beamData2[nodeIdx];
+		e[6 * j + 3] = data2.x;
+		e[6 * j + 4] = data2.y;
+		e[6 * j + 5] = data2.z;
+	}
+}
+//------------------------------------------------------------------------------
 void CalcElasticForces(
 		thrust::device_vector<real3> & flex_FSI_NodesForces1,
 		thrust::device_vector<real3> & flex_FSI_NodesForces2,
@@ -339,7 +355,7 @@ void CalcElasticForces(
 		for (int j = 0; j < numElements; j++) {
 			int nodeIdx = nodesPortion.x + j;
 			real_ e[12];
-			CopyNodesTo_e(e, ANCF_NodesD, ANCF_SlopesD, nodeIdx);
+			CopyElementNodesTo_e(e, ANCF_NodesD, ANCF_SlopesD, nodeIdx);
 //			CalcElementElasticForces(ANCF_NodesD[nodeIdx], ANCF_SlopesD[nodeIdx], ANCF_NodesD[nodeIdx + 1], ANCF_SlopesD[nodeIdx + 1]);
 			real_ e_ee[12];
 			real_ k_ke[12];
@@ -383,11 +399,28 @@ void Update_ANCF_Beam(
 		int numNodes = nodesPortion.y - nodesPortion.x;
 		int numElements = numNodes - 1;
 		real_ le = l / numElements;
-		real_* f = new real_ [numNodes];
-		for (int j = 0; j < numElements; j++) {
+		real_* f = new real_ [numNodes * 6];
+		MapBeamDataTo_1D_Array(f, flex_FSI_NodesForces1, flex_FSI_NodesForces2, nodesPortion);
+		real_* D2Node = new real_ [numNodes * 6];
+		min_vec(D2Node, f, le, numElements);
+
+
+
+
+
+
+
+
+
+
+
+		for (int j = 0; j < numNodes; j++) {
 			int nodeIdx = nodesPortion.x + j;
+			f[6*j]
+		}
 
 
 		delete [] f;
+		delete [] D2Node;
 	}
 }
