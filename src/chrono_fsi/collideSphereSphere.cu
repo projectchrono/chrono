@@ -1313,6 +1313,7 @@ void UpdateFlexibleBody(
 		const thrust::device_vector<int> & flexIdentifierD,
 		const thrust::device_vector<int2> & flexMapEachMarkerOnAllBeamNodesD,
 		const thrust::device_vector<real3> & flexSPH_MeshPos_LRF_D,
+		const thrust::device_vector<real3> & flexSPH_MeshSlope_Initial_D,
 		const thrust::device_vector<real_> & flexParametricDistD,
 		const thrust::device_vector<real_> & ANCF_Beam_LengthD,
 		const thrust::host_vector<int3> & referenceArray,
@@ -1521,7 +1522,8 @@ void cudaCollisions(
 	uint nThreads_SphMarkers;
 	computeGridSize(numRigid_SphMarkers, 256, nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);
 	printf("before first kernel\n");
-	Populate_RigidSPH_MeshPos_LRF_kernel<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(R3CAST(rigidSPH_MeshPos_LRF_D), R3CAST(posRadD), I1CAST(rigidIdentifierD), R3CAST(posRigidD), startRigidMarkers, numRigid_SphMarkers);
+
+	Populate_RigidSPH_MeshPos_LRF_kernel<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(R3CAST(rigidSPH_MeshPos_LRF_D), R3CAST(posRadD), I1CAST(rigidIdentifierD), R3CAST(posRigidD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueShare");	printf("after first kernel\n");
 	//******************************************************************************
@@ -1703,7 +1705,8 @@ void cudaCollisions(
 
 								paramsH,
 								float(tStep)/stepEnd,
-								0.5 * delT);		ApplyBoundary(posRadD2, rhoPresMuD2, numAllMarkers, posRigidD2, velMassRigidD2, numRigidBodies);
+								0.5 * delT);
+		ApplyBoundary(posRadD2, rhoPresMuD2, numAllMarkers, posRigidD2, velMassRigidD2, numRigidBodies);
 		//*****
 		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numAllMarkers, SIDE, delT);
 		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, delT);
@@ -1722,6 +1725,7 @@ void cudaCollisions(
 						flexIdentifierD,
 						flexMapEachMarkerOnAllBeamNodesD,
 						flexSPH_MeshPos_LRF_D,
+						flexSPH_MeshSlope_Initial_D,
 						flexParametricDistD,
 						ANCF_Beam_LengthD,
 						referenceArray,
