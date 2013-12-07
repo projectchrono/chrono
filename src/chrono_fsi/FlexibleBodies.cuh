@@ -30,16 +30,17 @@
 __device__ __host__ void shape_fun(real_* S, real_ x, real_ L);
 __device__ __host__ void shape_fun_d(real_* Sx, real_ x, real_ L);
 
-void CalcElasticForces(
+void Update_ANCF_Beam(
+		thrust::device_vector<real3> & ANCF_NodesD,
+		thrust::device_vector<real3> & ANCF_SlopesD,
+		thrust::device_vector<real3> & ANCF_NodesVelD,
+		thrust::device_vector<real3> & ANCF_SlopesVelD,
 		thrust::device_vector<real3> & flex_FSI_NodesForces1,
 		thrust::device_vector<real3> & flex_FSI_NodesForces2,
-		const thrust::device_vector<real3> & ANCF_NodesD,
-		const thrust::device_vector<real3> & ANCF_SlopesD,
-		const thrust::device_vector<real3> & ANCF_NodesVelD,
-		const thrust::device_vector<real3> & ANCF_SlopesVelD,
 		const thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
 		const thrust::device_vector<real_> & ANCF_Beam_LengthD,
-		const int numFlexBodies
-	);
+		const int numFlexBodies,
+		real_ dT
+		);
 
 #endif

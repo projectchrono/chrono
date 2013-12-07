@@ -1485,8 +1485,11 @@ int main() {
 	printf("numAllMarkers %d\n", numAllMarkers);
 
 	if (numAllMarkers != 0) {
-		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray, ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, flexParametricDist, numAllMarkers, cMax, cMin, delT, rigidPos, mQuatRot, spheresVelMas,
-				rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, binSize0, channelRadius, channelCenterYZ);
+		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray,
+				rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2,
+				ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel, ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, flexParametricDist,
+				numAllMarkers, cMax, cMin, delT,
+				binSize0, channelRadius, channelCenterYZ);
 	}
 	mPosRad.clear();
 	mVelMas.clear();
