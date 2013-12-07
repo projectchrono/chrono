@@ -1293,15 +1293,13 @@ void UpdateFlexibleBody(
 	flexNodesForcesAllMarkers2.clear();
 
 //	//TODO: update flex bodies here
-
 	Update_ANCF_Beam(
-			ANCF_NodesD,
-			ANCF_SlopesD,
-			ANCF_NodesVelD,
-			ANCF_SlopesVelD,
-			flex_FSI_NodesForces1,
-			flex_FSI_NodesForces2,
-			ANCF_Beam_LengthD);
+			ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
+			flex_FSI_NodesForces1, flex_FSI_NodesForces2,
+			ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD,
+			numFlexBodies, dT
+			);
+
 
 //	 ....
 //	 ....

@@ -8,6 +8,10 @@
 //    Mhat = \int_0^1 { S^T(\xi) S(\xi) d \xi } 
 // As such, the result must be muliplied by 1/(rho * A * le)
 // where le is element length: le = l / numElements
+
+#include "SPHCudaUtils.h"
+#include "minv_vec.cuh"
+
 void min_vec(real_* edd, real_* v, real_ le, int nE) {
 	if (nE == 3) {
 		minv_vec_3(edd, v, le);

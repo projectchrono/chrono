@@ -53,6 +53,7 @@
 // Note: these functions make use of the utility functions defined in
 // shapeFunctions.cpp.
 /////////////////////////////////////////////////////////////////////////////
+#include "SPHCudaUtils.h"
 #include "minv_vec.cuh"
 
 const real_ E = 1e9;
@@ -377,6 +378,26 @@ void CalcElasticForces(
 	}
 }
 //------------------------------------------------------------------------------
+void ItegrateInTime(
+		thrust::device_vector<real3> & ANCF_NodesD,
+		thrust::device_vector<real3> & ANCF_SlopesD,
+		thrust::device_vector<real3> & ANCF_NodesVelD,
+		thrust::device_vector<real3> & ANCF_SlopesVelD,
+		real_* f,
+		int2 nodesPortion,
+		real_ le,
+		real_ dT) {
+	int numNodes = nodesPortion.y - nodesPortion.x;
+	for (int j = 0; j < numNodes; j++) {
+		int nodeIdx = nodesPortion.x + j;
+		ANCF_NodesD[nodeIdx] += dT * ANCF_NodesVelD[nodeIdx];
+		ANCF_SlopesD[nodeIdx] += dT * ANCF_SlopesVelD[nodeIdx];
+
+		ANCF_NodesVelD[nodeIdx] += dT * (1/(rho * A * le)) * R3(f[6 * j + 0], f[6 * j + 1], f[6 * j + 2]);
+		ANCF_SlopesVelD[nodeIdx] += dT * (1/(rho * A * le)) * R3(f[6 * j + 3], f[6 * j + 4], f[6 * j + 5]);
+	}
+}
+//------------------------------------------------------------------------------
 void Update_ANCF_Beam(
 		thrust::device_vector<real3> & ANCF_NodesD,
 		thrust::device_vector<real3> & ANCF_SlopesD,
@@ -386,7 +407,8 @@ void Update_ANCF_Beam(
 		thrust::device_vector<real3> & flex_FSI_NodesForces2,
 		const thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
 		const thrust::device_vector<real_> & ANCF_Beam_LengthD,
-		const int numFlexBodies
+		const int numFlexBodies,
+		real_ dT
 		)
 {
 	CalcElasticForces(flex_FSI_NodesForces1, flex_FSI_NodesForces2,
@@ -404,21 +426,9 @@ void Update_ANCF_Beam(
 		real_* D2Node = new real_ [numNodes * 6];
 		min_vec(D2Node, f, le, numElements);
 
-
-
-
-
-
-
-
-
-
-
-		for (int j = 0; j < numNodes; j++) {
-			int nodeIdx = nodesPortion.x + j;
-			f[6*j]
-		}
-
+		void ItegrateInTime(ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
+				f, nodesPortion,
+				le, dT);
 
 		delete [] f;
 		delete [] D2Node;

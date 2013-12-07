@@ -27,7 +27,6 @@
 #ifndef FLEXIBLEBODIES_CUH
 #define FLEXIBLEBODIES_CUH
 
-
 __device__ __host__ void shape_fun(real_* S, real_ x, real_ L);
 
 void CalcElasticForces(
