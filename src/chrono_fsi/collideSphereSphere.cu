@@ -55,6 +55,98 @@ __device__ __host__ void Applied_Force(real_* f_a, real_ x, real_ L, real3 F)
 	f_a[11] = F.z*S[3];
 }
 //--------------------------------------------------------------------------------------------------------------------------------
+__device__ __host__ inline real3 Calc_ANCF_Point_Pos(
+		real3 * ANCF_NodesD,
+		real3 * ANCF_SlopesD,
+		int indexOfClosestNode,
+		real_ s,
+		real_ l){
+	real_ S[4];
+	shape_fun(S, s, l);
+
+
+	real3 r;
+	real3 ni = ANCF_NodesD[indexOfClosestNode];
+	real3 si = ANCF_SlopesD[indexOfClosestNode];
+	real3 nj = ANCF_NodesD[indexOfClosestNode + 1];
+	real3 sj = ANCF_SlopesD[indexOfClosestNode + 1];
+
+	r.x = S[0]*ni.x + S[1]*si.x + S[2]*nj.x + S[3]*sj.x;
+	r.y = S[0]*ni.y + S[1]*si.y + S[2]*nj.y + S[3]*sj.y;
+	r.z = S[0]*ni.z + S[1]*si.z + S[2]*nj.z + S[3]*sj.z;
+
+	return r;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+__device__ __host__ inline real3 Calc_ANCF_Point_Slope(
+		real3 * ANCF_NodesD,
+		real3 * ANCF_SlopesD,
+		int indexOfClosestNode,
+		real_ s,
+		real_ l){
+	real_ Sx[4];
+	shape_fun_d(Sx, s, l);
+
+
+	real3 rx;
+	real3 ni = ANCF_NodesD[indexOfClosestNode];
+	real3 si = ANCF_SlopesD[indexOfClosestNode];
+	real3 nj = ANCF_NodesD[indexOfClosestNode + 1];
+	real3 sj = ANCF_SlopesD[indexOfClosestNode + 1];
+
+	rx.x = Sx[0]*ni.x + Sx[1]*si.x + Sx[2]*nj.x + Sx[3]*sj.x;
+	rx.y = Sx[0]*ni.y + Sx[1]*si.y + Sx[2]*nj.y + Sx[3]*sj.y;
+	rx.z = Sx[0]*ni.z + Sx[1]*si.z + Sx[2]*nj.z + Sx[3]*sj.z;
+
+	return rx;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+__device__ __host__ inline real3 Calc_ANCF_Point_Vel(
+		real3 * ANCF_NodesVelD,
+		real3 * ANCF_SlopesVelD,
+		int indexOfClosestNode,
+		real_ s,
+		real_ l) {
+	real_ S[4];
+	shape_fun(S, s, l);
+
+
+	real3 rt;
+	real3 nti = ANCF_NodesVelD[indexOfClosestNode];
+	real3 sti = ANCF_SlopesVelD[indexOfClosestNode];
+	real3 ntj = ANCF_NodesVelD[indexOfClosestNode + 1];
+	real3 stj = ANCF_SlopesVelD[indexOfClosestNode + 1];
+
+	rt.x = S[0]*nti.x + S[1]*sti.x + S[2]*ntj.x + S[3]*stj.x;
+	rt.y = S[0]*nti.y + S[1]*sti.y + S[2]*ntj.y + S[3]*stj.y;
+	rt.z = S[0]*nti.z + S[1]*sti.z + S[2]*ntj.z + S[3]*stj.z;
+
+	return rt;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+__device__ __host__ inline real3 Calc_ANCF_Point_Omega(
+		real3 * ANCF_NodesVelD,
+		real3 * ANCF_SlopesVelD,
+		int indexOfClosestNode,
+		real_ s,
+		real_ l){
+	real_ Sx[4];
+	shape_fun_d(Sx, s, l);
+
+
+	real3 omega;
+	real3 nti = ANCF_NodesVelD[indexOfClosestNode];
+	real3 sti = ANCF_SlopesVelD[indexOfClosestNode];
+	real3 ntj = ANCF_NodesVelD[indexOfClosestNode + 1];
+	real3 stj = ANCF_SlopesVelD[indexOfClosestNode + 1];
+
+	omega.x = Sx[0]*nti.x + Sx[1]*sti.x + Sx[2]*ntj.x + Sx[3]*stj.x;
+	omega.y = Sx[0]*nti.y + Sx[1]*sti.y + Sx[2]*ntj.y + Sx[3]*stj.y;
+	omega.z = Sx[0]*nti.z + Sx[1]*sti.z + Sx[2]*ntj.z + Sx[3]*stj.z;
+
+	return omega;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 //updates the fluid particles' properties, i.e. velocity, density, pressure, position
 __global__ void UpdateKernelFluid(real3 * posRadD, real4 * velMasD, real3 * vel_XSPH_D, real4 * rhoPresMuD, real4 * derivVelRhoD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -381,20 +473,6 @@ __global__ void MapForcesOnNodes(
 	flexNodesForcesAllMarkers2[numSavedForcesSoFar + (indexOfClosestNode + 1) * numMarkersOnThisBeam + markerIndexOnThisBeam] = R3(f_a[9], f_a[10], f_a[11]);
 
 
-}
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void Populate_RigidSPH_MeshPos_LRF_kernel(
-		real3* rigidSPH_MeshPos_LRF_D,
-		real3* posRadD,
-		int* rigidIdentifierD,
-		real3* posRigidD) {
-	uint index = blockIdx.x * blockDim.x + threadIdx.x;
-	uint rigidMarkerIndex = index + startRigidMarkersD; // updatePortionD = [start, end] index of the update portion
-	if (index >= numRigid_SphMarkersD) {
-		return;
-	}
-	real3 dist3 = posRadD[rigidMarkerIndex] - posRigidD[rigidIdentifierD[index]];
-	rigidSPH_MeshPos_LRF_D[index] = dist3;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(

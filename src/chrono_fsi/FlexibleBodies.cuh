@@ -28,6 +28,7 @@
 #define FLEXIBLEBODIES_CUH
 
 __device__ __host__ void shape_fun(real_* S, real_ x, real_ L);
+__device__ __host__ void shape_fun_d(real_* Sx, real_ x, real_ L);
 
 void CalcElasticForces(
 		thrust::device_vector<real3> & flex_FSI_NodesForces1,
