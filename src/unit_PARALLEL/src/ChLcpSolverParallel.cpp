@@ -67,14 +67,8 @@ void ChLcpSolverParallel::Preprocess() {
 //			data_container->host_data.gyr_data.data(),
 //			data_container->host_data.trq_data.data());
 
-	host_addForces(
-			data_container->host_data.active_data.data(),
-			data_container->host_data.mass_data.data(),
-			data_container->host_data.inr_data.data(),
-			data_container->host_data.frc_data.data(),
-			data_container->host_data.trq_data.data(),
-			data_container->host_data.vel_data.data(),
-			data_container->host_data.omg_data.data());
+	host_addForces(data_container->host_data.active_data.data(), data_container->host_data.mass_data.data(), data_container->host_data.inr_data.data(), data_container->host_data.frc_data.data(),
+			data_container->host_data.trq_data.data(), data_container->host_data.vel_data.data(), data_container->host_data.omg_data.data());
 #endif
 }
 
@@ -134,41 +128,47 @@ void ChLcpSolverParallel::RunTimeStep(real step) {
 	bilateral.ComputeRHS();
 
 	custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals);
-	thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, rhs_bilateral.begin());
-	thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, data_container->host_data.gamma_bilateral.begin());
-	solver.SolveStab(data_container->host_data.gamma_bilateral, rhs_bilateral, max_iteration/2.0);
-	thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals, data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6);
-
+	if (max_iter_bilateral > 0) {
+		thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, rhs_bilateral.begin());
+		thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, data_container->host_data.gamma_bilateral.begin());
+		solver.SolveStab(data_container->host_data.gamma_bilateral, rhs_bilateral, max_iter_bilateral);
+		thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals, data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6);
+	}
 	//cout<<"Solve normal"<<endl;
 	//solve normal
-	solver.SetMaxIterations(max_iteration / 3.0);
-	solver.SetComplianceParameters(alpha, compliance, complianceT);
-	rigid_rigid.solve_sliding = false;
-	rigid_rigid.solve_spinning = false;
-	rigid_rigid.ComputeRHS();
-	solver.Solve(solver_type);
+	if (max_iter_normal > 0) {
+		solver.SetMaxIterations(max_iter_normal);
+		solver.SetComplianceParameters(alpha, compliance, complianceT);
+		rigid_rigid.solve_sliding = false;
+		rigid_rigid.solve_spinning = false;
+		rigid_rigid.ComputeRHS();
+		solver.Solve(solver_type);
+	}
 	//cout<<"Solve sliding"<<endl;
 	//solve full
-	solver.SetMaxIterations(max_iteration / 3.0);
-	rigid_rigid.solve_sliding = true;
-	rigid_rigid.solve_spinning = false;
-	rigid_rigid.ComputeRHS();
-	solver.Solve(solver_type);
-	//cout<<"Solve Full"<<endl;
-	solver.SetMaxIterations(max_iteration / 3.0);
-	rigid_rigid.solve_sliding = true;
-	rigid_rigid.solve_spinning = true;
-	rigid_rigid.ComputeRHS();
-	solver.Solve(solver_type);
-
-
-	thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, rhs_bilateral.begin());
-	thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, data_container->host_data.gamma_bilateral.begin());
-	solver.SolveStab(data_container->host_data.gamma_bilateral, rhs_bilateral, max_iteration/2.0);
-	thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals, data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6);
-
-
-
+	if (max_iter_sliding > 0) {
+		solver.SetMaxIterations(max_iter_sliding);
+		rigid_rigid.solve_sliding = true;
+		rigid_rigid.solve_spinning = false;
+		rigid_rigid.ComputeRHS();
+		solver.Solve(solver_type);
+	}
+	if (max_iter_spinning > 0) {
+		//cout<<"Solve Full"<<endl;
+		solver.SetMaxIterations(max_iter_spinning);
+		rigid_rigid.solve_sliding = true;
+		rigid_rigid.solve_spinning = true;
+		rigid_rigid.ComputeRHS();
+		solver.Solve(solver_type);
+	}
+	if (max_iter_bilateral > 0) {
+		thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, rhs_bilateral.begin());
+		thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals,
+				data_container->host_data.gamma_bilateral.begin());
+		solver.SolveStab(data_container->host_data.gamma_bilateral, rhs_bilateral, max_iter_bilateral);
+		thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals,
+				data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6);
+	}
 	solver.ComputeImpulses();
 
 	tot_iterations = solver.GetIteration();
@@ -260,27 +260,17 @@ void ChLcpSolverParallel::RunWarmStartPreprocess() {
 
 		thrust::host_vector<long long> res1(data_container->host_data.pair_rigid_rigid.size());
 
-		uint numP = thrust::set_intersection(
-				thrust::omp::par,
-				data_container->host_data.pair_rigid_rigid.begin(),
-				data_container->host_data.pair_rigid_rigid.end(),
-				data_container->host_data.old_pair_rigid_rigid.begin(),
-				data_container->host_data.old_pair_rigid_rigid.end(),
-				res1.begin()) - res1.begin();     //list of persistent contacts
+		uint numP = thrust::set_intersection(thrust::omp::par, data_container->host_data.pair_rigid_rigid.begin(), data_container->host_data.pair_rigid_rigid.end(),
+				data_container->host_data.old_pair_rigid_rigid.begin(), data_container->host_data.old_pair_rigid_rigid.end(), res1.begin()) - res1.begin();     //list of persistent contacts
 
 		if (numP > 0) {
 			res1.resize(numP);
 			thrust::host_vector<uint> temporaryA(numP);
 			thrust::host_vector<uint> temporaryB(numP);
 
-			thrust::lower_bound(
-					thrust::omp::par,
-					data_container->host_data.old_pair_rigid_rigid.begin(),
-					data_container->host_data.old_pair_rigid_rigid.end(),
-					res1.begin(),
-					res1.end(),
+			thrust::lower_bound(thrust::omp::par, data_container->host_data.old_pair_rigid_rigid.begin(), data_container->host_data.old_pair_rigid_rigid.end(), res1.begin(), res1.end(),
 					temporaryA.begin());     //return index of common new contact
-			thrust::lower_bound(thrust::omp::par, data_container->host_data.pair_rigid_rigid.begin(), data_container->host_data.pair_rigid_rigid.end(), res1.begin(), res1.end(), temporaryB.begin());     //return index of common new contact
+			thrust::lower_bound(thrust::omp::par, data_container->host_data.pair_rigid_rigid.begin(), data_container->host_data.pair_rigid_rigid.end(), res1.begin(), res1.end(), temporaryB.begin()); //return index of common new contact
 
 			uint number_of_rigid_rigid = data_container->number_of_rigid_rigid;
 			uint old_number_of_rigid_rigid = data_container->old_number_of_rigid_rigid;
