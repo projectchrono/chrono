@@ -53,8 +53,12 @@
 // Note: these functions make use of the utility functions defined in
 // shapeFunctions.cpp.
 /////////////////////////////////////////////////////////////////////////////
+#include <thrust/host_vector.h>
+#include <thrust/device_vector.h>
 #include "SPHCudaUtils.h"
 #include "minv_vec.cuh"
+#include "FlexibleBodies.cuh"
+
 
 const real_ E = 1e9;
 const real_ I = 1;
@@ -66,29 +70,10 @@ const real_ GQ3_p[3] = {-0.774596669241483	, 0					, 0.774596669241483};
 const real_ GQ3_w[3] = {0.555555555555556	, 0.888888888888889	, 0.555555555555556};
 const real_ GQ4_p[4] = {-0.861136311594053	, -0.339981043584856, 0.339981043584856, 0.861136311594053};
 const real_ GQ4_w[4] = {0.347854845137454	, 0.652145154862546	, 0.652145154862546, 0.347854845137454};
-const real_ GQ5_p[4] = {-0.906179845938664	, -0.538469310105683, 0					,	0.538469310105683, 0.906179845938664};
-const real_ GQ5_w[4] = {0.236926885056189	, 0.478628670499366	, 0.568888888888889	,	0.478628670499366, 0.236926885056189};
+const real_ GQ5_p[5] = {-0.906179845938664	, -0.538469310105683, 0					,	0.538469310105683, 0.906179845938664};
+const real_ GQ5_w[5] = {0.236926885056189	, 0.478628670499366	, 0.568888888888889	,	0.478628670499366, 0.236926885056189};
 
 
-__device__ __host__ void shape_fun(real_* S, real_ x, real_ L)
-{
-	real_ xi = x/L;
-
-	S[0] = 1 - 3*xi*xi + 2*xi*xi*xi;
-	S[1] = L * (xi - 2*xi*xi + xi*xi*xi);
-	S[2] = 3*xi*xi - 2*xi*xi*xi;
-	S[3] = L * (-xi*xi + xi*xi*xi);
-}
-
-__device__ __host__ void shape_fun_d(real_* Sx, real_ x, real_ L)
-{
-	real_ xi = x/L;
-
-	Sx[0] = (6*xi*xi-6*xi)/L;
-	Sx[1] = 1-4*xi+3*xi*xi;
-	Sx[2] = -(6*xi*xi-6*xi)/L;
-	Sx[3] = -2*xi+3*xi*xi;
-}
 
 void
 shape_fun_dd(real_* Sxx, real_ x, real_ L)
@@ -425,7 +410,7 @@ void Update_ANCF_Beam(
 		real_* D2Node = new real_ [numNodes * 6];
 		min_vec(D2Node, f, le, numElements);
 
-		void ItegrateInTime(ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
+		ItegrateInTime(ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
 				f, nodesPortion,
 				le, dT);
 

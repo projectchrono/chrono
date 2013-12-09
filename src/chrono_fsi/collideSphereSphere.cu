@@ -5,7 +5,6 @@
 #include <thrust/reduce.h>
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
-#include <thrust/scan.h>
 #include "collideSphereSphere.cuh"
 #include "SDKCollisionSystem.cuh"
 #include "FlexibleBodies.cuh"
@@ -33,9 +32,10 @@ __constant__ int startFlexMarkersD;
 __constant__ int numRigid_SphMarkersD;
 __constant__ int numFlex_SphMarkersD;
 
+
 int maxblock = 65535;
 //--------------------------------------------------------------------------------------------------------------------------------
-__device__ __host__ void Applied_Force(real_* f_a, real_ x, real_ L, real3 F)
+__device__ __host__ inline void Applied_Force(real_* f_a, real_ x, real_ L, real3 F)
 {
 	real_ S[4];
 
@@ -1292,6 +1292,11 @@ void UpdateRigidBody(
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
 }
+
+bool operator== (const int2 & a , const int2 & b){
+	return (a.x==b.x&&a.y==b.y);
+}
+
 //--------------------------------------------------------------------------------------------------------------------------------
 void UpdateFlexibleBody(
 		thrust::device_vector<real3> & posRadD,
@@ -1333,8 +1338,8 @@ void UpdateFlexibleBody(
 
 	thrust::device_vector<real3> flex_FSI_NodesForces1(totalNumberOfFlexNodes);
 	thrust::device_vector<real3> flex_FSI_NodesForces2(totalNumberOfFlexNodes);
-	thrust::fill(flex_FSI_NodesForces1.begin(), flex_FSI_NodesForces1.end(),0);
-	thrust::fill(flex_FSI_NodesForces2.begin(), flex_FSI_NodesForces2.end(),0);
+	thrust::fill(flex_FSI_NodesForces1.begin(), flex_FSI_NodesForces1.end(),R3(0));
+	thrust::fill(flex_FSI_NodesForces2.begin(), flex_FSI_NodesForces2.end(),R3(0));
 
 	thrust::device_vector<real3> flexNodesForcesAllMarkers1(totalNumberOfFlexMultNodes);
 	thrust::device_vector<real3> flexNodesForcesAllMarkers2(totalNumberOfFlexMultNodes);
@@ -1358,7 +1363,7 @@ void UpdateFlexibleBody(
 	if (flexMapEachMarkerOnAllBeamNodesD.size() != flexNodesForcesAllMarkers1.size()) {
 		printf("we have size inconsistency between flex nodesForces and nodesPair identifier");
 	}
-	thrust::device_vector<int> dummyNodesFlexIdentify(flexMapEachMarkerOnAllBeamNodesD.size());
+	thrust::device_vector<int2> dummyNodesFlexIdentify(flexMapEachMarkerOnAllBeamNodesD.size());
 	thrust::equal_to<int2> binary_pred_int2; //if binary_pred int2 does not work, you have to either add operator == to custom_cutil_math, or you have to map nodes identifiers from int2 to int
 	(void) thrust::reduce_by_key(flexMapEachMarkerOnAllBeamNodesD.begin(), flexMapEachMarkerOnAllBeamNodesD.end(), flexNodesForcesAllMarkers1.begin(), dummyNodesFlexIdentify.begin(),
 			flex_FSI_NodesForces1.begin(), binary_pred_int2, thrust::plus<real3>());
@@ -1565,12 +1570,12 @@ void cudaCollisions(
 	thrust::device_vector<int> dummyIdentifier(0);
 	thrust::fill(dummySum.begin(), dummySum.end(), 1);
 	(void) thrust::reduce_by_key(flexIdentifierD.begin(), flexIdentifierD.end(), dummySum.begin(), dummyIdentifier.begin(), ANCF_NumMarkers_Per_BeamD.begin());
-	thrust::exclusive_scan(ANCF_NumMarkers_Per_BeamD.begin(), ANCF_NumMarkers_Per_BeamD.end(), ANCF_NumMarkers_Per_Beam_CumulD());
+	thrust::exclusive_scan(ANCF_NumMarkers_Per_BeamD.begin(), ANCF_NumMarkers_Per_BeamD.end(), ANCF_NumMarkers_Per_Beam_CumulD.begin());
 	dummySum.clear();
 	dummyIdentifier.clear();
 
 	Calc_NumNodesMultMarkers_Per_Beam(ANCF_NumNodesMultMarkers_Per_BeamD, ANCF_NumMarkers_Per_BeamD, ANCF_ReferenceArrayNodesOnBeams, numFlexBodies);
-	thrust::exclusive_scan(ANCF_NumNodesMultMarkers_Per_BeamD.begin(), ANCF_NumNodesMultMarkers_Per_BeamD.end(), ANCF_NumNodesMultMarkers_Per_Beam_CumulD());
+	thrust::exclusive_scan(ANCF_NumNodesMultMarkers_Per_BeamD.begin(), ANCF_NumNodesMultMarkers_Per_BeamD.end(), ANCF_NumNodesMultMarkers_Per_Beam_CumulD.begin());
 
 	Calc_mapEachMarkerOnAllBeamNodes_IdentifierD(flexMapEachMarkerOnAllBeamNodesD, ANCF_NumNodesMultMarkers_Per_Beam_CumulD, ANCF_NumMarkers_Per_BeamD, ANCF_ReferenceArrayNodesOnBeams, numFlexBodies);
 
@@ -1579,7 +1584,6 @@ void cudaCollisions(
 	thrust::device_vector<real3> flexSPH_MeshPos_LRF_D(numFlex_SphMarkers);
 	thrust::device_vector<real3> flexSPH_MeshSlope_Initial_D(numFlex_SphMarkers);  //slope of the beam at BCE marker (associated to BCE marker)
 	uint nBlocks_numFlex_SphMarkers;
-	uint nThreads_SphMarkers;
 	computeGridSize(numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
 	printf("before first kernel\n");
 
@@ -1699,6 +1703,7 @@ void cudaCollisions(
 								flexIdentifierD,
 								flexMapEachMarkerOnAllBeamNodesD,
 								flexSPH_MeshPos_LRF_D,
+								flexSPH_MeshSlope_Initial_D,
 								flexParametricDistD,
 								ANCF_Beam_LengthD,
 								referenceArray,

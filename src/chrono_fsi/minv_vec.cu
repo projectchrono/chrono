@@ -9,8 +9,12 @@
 // As such, the result must be muliplied by 1/(rho * A * le)
 // where le is element length: le = l / numElements
 
+#include <stdio.h>
 #include "SPHCudaUtils.h"
 #include "minv_vec.cuh"
+
+void minv_vec_3(real_* edd, real_* v, real_ le);
+void minv_vec_4(real_* edd, real_* v, real_ le);
 
 void min_vec(real_* edd, real_* v, real_ le, int nE) {
 	if (nE == 3) {
@@ -19,7 +23,7 @@ void min_vec(real_* edd, real_* v, real_ le, int nE) {
 	else if (nE == 4) {
 		minv_vec_4(edd, v, le);
 	} else {
-		printf("Error!!: Number of beam elements equal to %d is not supported. Code exits!\n;")
+		printf("Error!!: Number of beam elements equal to %d is not supported. Code exits!\n;");
 	}
 }
 

@@ -27,8 +27,25 @@
 #ifndef FLEXIBLEBODIES_CUH
 #define FLEXIBLEBODIES_CUH
 
-__device__ __host__ void shape_fun(real_* S, real_ x, real_ L);
-__device__ __host__ void shape_fun_d(real_* Sx, real_ x, real_ L);
+static __device__ __host__ void shape_fun(real_* S, real_ x, real_ L)
+{
+	real_ xi = x/L;
+
+	S[0] = 1 - 3*xi*xi + 2*xi*xi*xi;
+	S[1] = L * (xi - 2*xi*xi + xi*xi*xi);
+	S[2] = 3*xi*xi - 2*xi*xi*xi;
+	S[3] = L * (-xi*xi + xi*xi*xi);
+}
+
+static __device__ __host__ void shape_fun_d(real_* Sx, real_ x, real_ L)
+{
+	real_ xi = x/L;
+
+	Sx[0] = (6*xi*xi-6*xi)/L;
+	Sx[1] = 1-4*xi+3*xi*xi;
+	Sx[2] = -(6*xi*xi-6*xi)/L;
+	Sx[3] = -2*xi+3*xi*xi;
+}
 
 void Update_ANCF_Beam(
 		thrust::device_vector<real3> & ANCF_NodesD,
