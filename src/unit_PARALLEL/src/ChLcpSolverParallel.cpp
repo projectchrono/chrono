@@ -135,11 +135,8 @@ void ChLcpSolverParallel::RunTimeStep(real step) {
 
 	custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals);
 	thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, rhs_bilateral.begin());
-
 	thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, data_container->host_data.gamma_bilateral.begin());
-
-	solver.SolveStab(data_container->host_data.gamma_bilateral, rhs_bilateral, max_iteration);
-
+	solver.SolveStab(data_container->host_data.gamma_bilateral, rhs_bilateral, max_iteration/2.0);
 	thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals, data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6);
 
 	//cout<<"Solve normal"<<endl;
@@ -163,6 +160,14 @@ void ChLcpSolverParallel::RunTimeStep(real step) {
 	rigid_rigid.solve_spinning = true;
 	rigid_rigid.ComputeRHS();
 	solver.Solve(solver_type);
+
+
+	thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, rhs_bilateral.begin());
+	thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, data_container->host_data.gamma_bilateral.begin());
+	solver.SolveStab(data_container->host_data.gamma_bilateral, rhs_bilateral, max_iteration/2.0);
+	thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals, data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6);
+
+
 
 	solver.ComputeImpulses();
 
