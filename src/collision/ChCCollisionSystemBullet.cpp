@@ -26,6 +26,8 @@
 #include "physics/ChContactContainerBase.h"
 #include "physics/ChProximityContainerBase.h"
 #include "LinearMath/btPoolAllocator.h"
+#include "BulletCollision/CollisionShapes/btSphereShape.h"
+#include "BulletCollision/CollisionShapes/btCylinderShape.h"
 
 namespace chrono 
 {
@@ -33,19 +35,169 @@ namespace collision
 {
 
 
-/*
-void defaultChronoNearCallback(btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher, btDispatcherInfo& dispatchInfo)
+
+// Utility class that we use to override the default cylinder-sphere collision
+// case, because the default behavior in Bullet was using the GJK algorithm, that 
+// gives not 100% precise results if the cylinder is much larger than the sphere:
+class btSphereCylinderCollisionAlgorithm : public btActivatingCollisionAlgorithm
 {
-	btCollisionDispatcher::defaultNearCallback(collisionPair, dispatcher, dispatchInfo);
-	if (broad_callback)
-		broad_callback(collisionPair, dispatcher, dispatchInfo);
-}
-*/
+	bool	m_ownManifold;
+	btPersistentManifold*	m_manifoldPtr;
+	bool	m_isSwapped;
+	
+public:
+	btSphereCylinderCollisionAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,btCollisionObject* col0,btCollisionObject* col1, bool isSwapped)
+		: btActivatingCollisionAlgorithm(ci,col0,col1),
+			m_ownManifold(false),
+			m_manifoldPtr(mf),
+			m_isSwapped(isSwapped)
+			{
+				if (!m_manifoldPtr)
+				{
+					m_manifoldPtr = m_dispatcher->getNewManifold(col0,col1);
+					m_ownManifold = true;
+				}
+			}
+
+	btSphereCylinderCollisionAlgorithm(const btCollisionAlgorithmConstructionInfo& ci)
+		: btActivatingCollisionAlgorithm(ci) {}
+
+	virtual void processCollision (btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
+	{
+		(void)dispatchInfo;
+
+		if (!m_manifoldPtr)
+			return;
+
+		btCollisionObject* sphereObj = m_isSwapped? body1 : body0;
+		btCollisionObject* cylObj = m_isSwapped? body0 : body1;
+
+		resultOut->setPersistentManifold(m_manifoldPtr);
+
+		btSphereShape* sphere0 = (btSphereShape*)sphereObj->getCollisionShape();
+		btCylinderShape* cylinder = (btCylinderShape*)cylObj->getCollisionShape();
+
+		const btTransform&	m44T = cylObj->getWorldTransform();
+		btVector3 diff = m44T.invXform(sphereObj->getWorldTransform().getOrigin()); //col0->getWorldTransform().getOrigin()-  col1->getWorldTransform().getOrigin();
+		btScalar radius0 = sphere0->getRadius();
+		btScalar radius1 = cylinder->getHalfExtentsWithMargin().getX(); //cylinder->getRadius();
+		btScalar H1 = cylinder->getHalfExtentsWithMargin().getY();
+
+		btVector3 r1 = diff; 
+		r1.setY(0);
+
+		btScalar y1 = diff.y();
+
+		btScalar r1_len = r1.length();
+
+		btVector3 pos1;
+		btVector3 normalOnSurfaceB(1,0,0);
+		btScalar dist;
+
+		// Case A
+		if ((y1 <= H1)&&(y1 >= -H1))
+		{
+
+			///iff distance positive, don't generate a new contact
+			if ( r1_len > (radius0+radius1))
+			{
+				resultOut->refreshContactPoints();
+				return;
+			}
+			///distance (negative means penetration)
+			dist = r1_len - (radius0+radius1);
+
+			btVector3 localnormalOnSurfaceB;
+			if (r1_len > SIMD_EPSILON)
+			{
+				localnormalOnSurfaceB = r1 / r1_len;
+				normalOnSurfaceB =  m44T.getBasis() * localnormalOnSurfaceB;
+			}
+			///point on B (worldspace)
+			pos1 = m44T(btVector3(0, y1,0)) + radius1* normalOnSurfaceB;
+		}
+		else
+		{
+			btScalar side = 1;
+			if (y1 < -H1)
+				side = -1;
+
+			if (r1_len > radius1)
+			{
+				// case B
+				btVector3 pos_loc = r1.normalized() * radius1 + btVector3(0, H1*side, 0);
+				pos1 = m44T(pos_loc);
+				btVector3 d = sphereObj->getWorldTransform().getOrigin() - pos1;
+				normalOnSurfaceB = d.normalized();
+				dist = d.length() - radius0;
+			}
+			else
+			{
+				// case C
+				normalOnSurfaceB = m44T.getBasis() * btVector3(0, 1*side, 0);
+				btVector3 pos_loc = r1 + btVector3(0, H1*side, 0);
+				pos1 = m44T(pos_loc);
+				dist = side*(y1 - H1) - radius0;
+			}
+		}
+		/// report a contact. internally this will be kept persistent, and contact reduction is done
+		resultOut->addContactPoint(normalOnSurfaceB,pos1,dist);
+
+		resultOut->refreshContactPoints();
+	}
+
+	virtual btScalar calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
+	{
+		//not yet
+		return btScalar(1.);
+	}
+
+	virtual	void	getAllContactManifolds(btManifoldArray&	manifoldArray)
+	{
+		if (m_manifoldPtr && m_ownManifold)
+		{
+			manifoldArray.push_back(m_manifoldPtr);
+		}
+	}
+	
+	virtual ~btSphereCylinderCollisionAlgorithm()
+		{
+			if (m_ownManifold)
+			{
+				if (m_manifoldPtr)
+					m_dispatcher->releaseManifold(m_manifoldPtr);
+			}
+		}
+
+	struct CreateFunc :public 	btCollisionAlgorithmCreateFunc
+	{
+		virtual	btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci, btCollisionObject* body0,btCollisionObject* body1)
+		{
+			void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btSphereCylinderCollisionAlgorithm));
+			if (!m_swapped)
+			{
+				return new(mem) btSphereCylinderCollisionAlgorithm(0,ci,body0,body1,false);
+			} else
+			{
+				return new(mem) btSphereCylinderCollisionAlgorithm(0,ci,body0,body1,true);
+			}
+		}
+	};
+
+};
+
+
+
+////////////////////////////////////
+////////////////////////////////////
+
+
 
 ChCollisionSystemBullet::ChCollisionSystemBullet(unsigned int max_objects, double scene_size)
 {
 	// btDefaultCollisionConstructionInfo conf_info(...); ***TODO***
 	bt_collision_configuration = new btDefaultCollisionConfiguration(); 
+	
 	bt_dispatcher = new btCollisionDispatcher(bt_collision_configuration);  
 	
 	  //***OLD***
@@ -59,13 +211,16 @@ ChCollisionSystemBullet::ChCollisionSystemBullet(unsigned int max_objects, doubl
 	//bt_broadphase = new btDbvtBroadphase();
 
 
-
 	bt_collision_world = new btCollisionWorld(bt_dispatcher, bt_broadphase, bt_collision_configuration);
 
-	// custom collision for sphere-sphere case ***OBSOLETE***
-	//bt_dispatcher->registerCollisionCreateFunc(SPHERE_SHAPE_PROXYTYPE,SPHERE_SHAPE_PROXYTYPE,new btSphereSphereCollisionAlgorithm::CreateFunc);
+	// custom collision for sphere-sphere case ***OBSOLETE*** // already registered by btDefaultCollisionConfiguration
+	//bt_dispatcher->registerCollisionCreateFunc(SPHERE_SHAPE_PROXYTYPE,SPHERE_SHAPE_PROXYTYPE,new btSphereSphereCollisionAlgorithm::CreateFunc); 
+	
+	// custom collision for cylinder-sphere case, for improved precision
+	bt_dispatcher->registerCollisionCreateFunc(SPHERE_SHAPE_PROXYTYPE, CYLINDER_SHAPE_PROXYTYPE,new btSphereCylinderCollisionAlgorithm::CreateFunc);
+	bt_dispatcher->registerCollisionCreateFunc(CYLINDER_SHAPE_PROXYTYPE, SPHERE_SHAPE_PROXYTYPE,new btSphereCylinderCollisionAlgorithm::CreateFunc);
 
-	// register custom collision for GIMPACT mesh case too
+	// custom collision for GIMPACT mesh case too
 	btGImpactCollisionAlgorithm::registerAlgorithm(bt_dispatcher);
 }
 
