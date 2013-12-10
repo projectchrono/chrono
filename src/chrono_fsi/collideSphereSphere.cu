@@ -804,11 +804,12 @@ void MakeFlexIdentifier(
 	if (numFlexBodies > 0) {
 		for (int flexIdx = 0; flexIdx < numFlexBodies; flexIdx++) {
 			int3 referencePart = referenceArray[numFlBcRigid + flexIdx];
-			if (referencePart.z != 1) {
-				printf("error in accessing rigid bodies. Reference array indexing is wrong\n");
+			if (referencePart.z != 2) {
+				printf("error in accessing flex bodies. Reference array indexing is wrong\n");
 				return;
 			}
 			int2 updatePortion = I2(referencePart); //first two component of the referenceArray denote to the fluid and boundary particles
+			printf("numFlex %d, updatePortion %d %d  flexIdx %d\n", numFlexBodies, updatePortion.x, updatePortion.y, flexIdx);
 			thrust::fill(flexIdentifierD.begin() + (updatePortion.x - startFlexMarkers),
 					flexIdentifierD.begin() + (updatePortion.y - startFlexMarkers), flexIdx);
 		}
@@ -1293,10 +1294,6 @@ void UpdateRigidBody(
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
 }
 
-bool operator== (const int2 & a , const int2 & b){
-	return (a.x==b.x&&a.y==b.y);
-}
-
 //--------------------------------------------------------------------------------------------------------------------------------
 void UpdateFlexibleBody(
 		thrust::device_vector<real3> & posRadD,
@@ -1569,6 +1566,30 @@ void cudaCollisions(
 	thrust::device_vector<int> dummySum(flexIdentifierD.size());
 	thrust::device_vector<int> dummyIdentifier(0);
 	thrust::fill(dummySum.begin(), dummySum.end(), 1);
+
+	printf("\n\n\n");
+	for (int ii = 0; ii < flexIdentifierD.size(); ii++) {
+		int fIdentifier = flexIdentifierD[ii];
+		printf("%d, ", fIdentifier);
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	printf("\n\n\n");
 	(void) thrust::reduce_by_key(flexIdentifierD.begin(), flexIdentifierD.end(), dummySum.begin(), dummyIdentifier.begin(), ANCF_NumMarkers_Per_BeamD.begin());
 	thrust::exclusive_scan(ANCF_NumMarkers_Per_BeamD.begin(), ANCF_NumMarkers_Per_BeamD.end(), ANCF_NumMarkers_Per_Beam_CumulD.begin());
 	dummySum.clear();

@@ -27,7 +27,7 @@
 #ifndef FLEXIBLEBODIES_CUH
 #define FLEXIBLEBODIES_CUH
 
-static __device__ __host__ void shape_fun(real_* S, real_ x, real_ L)
+__device__ __host__ inline void shape_fun(real_* S, real_ x, real_ L)
 {
 	real_ xi = x/L;
 
@@ -37,7 +37,7 @@ static __device__ __host__ void shape_fun(real_* S, real_ x, real_ L)
 	S[3] = L * (-xi*xi + xi*xi*xi);
 }
 
-static __device__ __host__ void shape_fun_d(real_* Sx, real_ x, real_ L)
+__device__ __host__ inline void shape_fun_d(real_* Sx, real_ x, real_ L)
 {
 	real_ xi = x/L;
 

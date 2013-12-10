@@ -631,5 +631,9 @@ __host__ __device__ inline real4 smoothstep(real4 a, real4 b, real4 x)
 	real4 y = clamp((x - a) / (b - a), 0.0, 1.0);
 	return (y*y*(make_real4(3.0) - (make_real4(2.0)*y)));
 }
+//**** some other useful operators
+__host__ __device__ inline bool operator== (const int2 & a , const int2 & b){
+	return (a.x==b.x&&a.y==b.y);
+}
 
 #endif
