@@ -30,6 +30,9 @@ namespace fem
 /// as a NxN block-matrix to be splitted between N nodes.
 /// Helps reducing the complexity of inherited FEM elements because
 /// it implements some bookkeeping for the interface with LCP solver.
+/// This means that most FEM elements inherited from ChElementGeneric
+/// need to implement at most the following two fundamental methods: 
+///	ComputeKRMmatricesGlobal(), ComputeInternalForces()
 
 class ChApiFem ChElementGeneric : public ChElementBase
 {

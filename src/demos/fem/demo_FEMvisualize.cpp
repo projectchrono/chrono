@@ -20,7 +20,6 @@
 
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
-#include "physics/ChNodeBody.h"
 #include "lcp/ChLcpIterativePMINRES.h"
 #include "unit_FEM/ChElementSpring.h"
 #include "unit_FEM/ChElementBar.h"
@@ -29,6 +28,7 @@
 #include "unit_FEM/ChElementHexa_8.h"
 #include "unit_FEM/ChElementHexa_20.h"
 #include "unit_FEM/ChMesh.h"
+#include "unit_FEM/ChNodeBody.h"
 #include "unit_FEM/ChVisualizationFEMmesh.h"
 #include "irrlicht_interface/ChIrrApp.h"
 
@@ -155,9 +155,11 @@ mnodelast->SetForce( ChVector<>(400,0,0));
 	{
 		ChSharedPtr<ChNodeBody> constraint(new ChNodeBody);
 
-		constraint->Initialize(my_mesh,		// node container
-							iconstr,	// index of node in node container 
-							truss);		// body to be connected to
+		//constraint->Initialize(my_mesh,		// node container
+		//					iconstr,	// index of node in node container 
+		//					truss);		// body to be connected to
+		constraint->Initialize(my_mesh->GetNode(iconstr),
+								truss);
 		my_system.Add(constraint);
 	}
 

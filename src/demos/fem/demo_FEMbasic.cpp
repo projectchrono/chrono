@@ -29,7 +29,6 @@
 
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
-#include "physics/ChNodeBody.h"
 #include "lcp/ChLcpIterativePMINRES.h"
 #include "unit_FEM/ChElementSpring.h"
 #include "unit_FEM/ChElementTetra_4.h"
@@ -37,6 +36,7 @@
 #include "unit_FEM/ChElementHexa_8.h"
 #include "unit_FEM/ChElementHexa_20.h"
 #include "unit_FEM/ChMesh.h"
+#include "unit_FEM/ChNodeBody.h"
 
 
 // Remember to use the namespace 'chrono' because all classes 

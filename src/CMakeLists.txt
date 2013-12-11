@@ -360,8 +360,7 @@ IF (BUILD_CH_SDK)
 		physics/ChPhysicsItem.cpp 
 		physics/ChParticlesClones.cpp 
 		physics/ChIndexedParticles.cpp 
-		physics/ChIndexedNodes.cpp 
-		physics/ChNodeBody.cpp 
+		physics/ChIndexedNodes.cpp  
 		physics/ChNodeBase.cpp
 		physics/ChNodeXYZ.cpp
 		physics/ChMatterSPH.cpp 
@@ -446,7 +445,6 @@ IF (BUILD_CH_SDK)
 		physics/ChMaterialSurface.h
 		physics/ChMatterSPH.h
 		physics/ChNlsolver.h
-		physics/ChNodeBody.h
 		physics/ChNodeBase.h
 		physics/ChNodeXYZ.h
 		physics/ChObject.h

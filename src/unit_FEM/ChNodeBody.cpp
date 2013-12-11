@@ -10,25 +10,17 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChNodeBody.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 
-#include "physics/ChNodeBody.h"
+#include "unit_FEM/ChNodeBody.h"
 #include "physics/ChSystem.h"
 #include "physics/ChIndexedNodes.h"
-#include "physics/ChNodeXYZ.h"
 
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
 
-namespace chrono
-{
+
+using namespace chrono;
+using namespace fem;
 
 
 // Register into the object factory, to enable run-time
@@ -47,10 +39,6 @@ ChNodeBody::ChNodeBody ()
 	this->react= VNULL;
 	this->cache_li_speed = VNULL;
 	this->cache_li_pos = VNULL;
-
-	this->nodes = 0;
-	this->node_index = 0;
-	this->body = 0;
 
 	SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
 }
@@ -71,31 +59,40 @@ void ChNodeBody::Copy(ChNodeBody* source)
 	react = source->react;
 	cache_li_speed = source->cache_li_speed;
 	cache_li_pos = source->cache_li_pos;
-
-	this->nodes = 0;
-	this->node_index = 0;
-	this->body = 0;
 }
 
 
 int ChNodeBody::Initialize(ChSharedPtr<ChIndexedNodes> mnodes, ///< nodes container
 						   unsigned int mnode_index, ///< index of the node to join
-						   ChSharedPtr<ChBody>&  mbody,   ///< body to join 
+						   ChSharedPtr<ChBody>  mbody,   ///< body to join 
 						   ChVector<>* mattach 	
 						   )
 {
-	ChIndexedNodes* mm1 = mnodes.get_ptr();
-	ChBody* mm2 = mbody.get_ptr();
-	assert(mm1 && mm2);
-	assert(mm1->GetSystem() == mm2->GetSystem());
+	assert(!mnodes.IsNull());
 
-	this->nodes = mm1;
-	this->node_index = mnode_index;
-	this->body = mm2;
+	ChSharedPtr<ChNodeFEMxyz> anode(mnodes->GetNode(mnode_index)); // downcasting
+	
+	if (anode.IsNull()) 
+		return false; // downcasting wasn't successfull (in a ChIndexedNodes, different types of nodes could be present..)
 
-	this->constraint1.SetVariables(&(mm1->GetNode(node_index)->Variables()), &mm2->Variables());
-	this->constraint2.SetVariables(&(mm1->GetNode(node_index)->Variables()), &mm2->Variables());
-	this->constraint3.SetVariables(&(mm1->GetNode(node_index)->Variables()), &mm2->Variables());
+	return this->Initialize(anode, mbody, mattach);
+}
+
+
+int ChNodeBody::Initialize(ChSharedPtr<ChNodeFEMxyz> anode,  ///< node to join
+						   ChSharedPtr<ChBody>  mbody,		///< body to join 
+						   ChVector<>* mattach 	
+						   )
+{
+	assert(!anode.IsNull() && !mbody.IsNull());
+	//assert(anode->GetSystem() == mbody->GetSystem());
+
+	this->body = mbody;
+	this->mnode = anode;
+
+	this->constraint1.SetVariables(&(this->mnode->Variables()), &(this->body->Variables()));
+	this->constraint2.SetVariables(&(this->mnode->Variables()), &(this->body->Variables()));
+	this->constraint3.SetVariables(&(this->mnode->Variables()), &(this->body->Variables()));
 
 	this->SetSystem(this->body->GetSystem());
 
@@ -106,15 +103,15 @@ int ChNodeBody::Initialize(ChSharedPtr<ChIndexedNodes> mnodes, ///< nodes contai
 	else
 	{
 		// downcasting
-		ChSharedPtr<ChNodeXYZ> mnode (this->nodes->GetNode(this->node_index));
 		if (mnode.IsNull()) return false;
 
-		ChVector<> temp= mnode->GetPos(); // warning, downcast to ChNodeXYZ* 
+		ChVector<> temp= mnode->GetPos(); 
 		this->attach_position = body->Point_World2Body(temp);
 	}
 
 	return true;
 }
+
 
 
 void ChNodeBody::Update (double mytime)
@@ -154,8 +151,6 @@ void ChNodeBody::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
 	//if (!this->IsActive())
 	//	return;
 
-	// downcast
-	ChSharedPtr<ChNodeXYZ> mnode ( nodes->GetNode(this->node_index) );
 	if (mnode.IsNull()) 
 		return;
 
@@ -255,7 +250,7 @@ void ChNodeBody::StreamOUT(ChStreamOutBinary& mstream)
 	ChPhysicsItem::StreamOUT(mstream);
 
 		// stream out all member data
-	mstream << this->node_index;
+	//mstream << this->node_index;
 	mstream << this->attach_position;
 	mstream << this->react;
 }
@@ -269,17 +264,13 @@ void ChNodeBody::StreamIN(ChStreamInBinary& mstream)
 	ChPhysicsItem::StreamIN(mstream);
 
 		// deserialize class
-	mstream >> this->node_index;
+	//mstream >> this->node_index;
 	mstream >> this->attach_position;
 	mstream >> this->react;
 }
 
 
 
-
-
-
-} // END_OF_NAMESPACE____
 
 
 /////////////////////

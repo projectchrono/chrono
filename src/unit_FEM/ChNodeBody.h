@@ -10,8 +10,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHSHAFTSBODY_H
-#define CHSHAFTSBODY_H
+#ifndef CHNODEBODY_H
+#define CHNODEBODY_H
 
 //////////////////////////////////////////////////
 //
@@ -32,6 +32,7 @@
 ///////////////////////////////////////////////////
 
 #include "physics/ChBody.h"
+#include "unit_FEM/ChNodeFEMxyz.h"
 #include "lcp/ChLcpConstraintTwoGeneric.h"
 
 
@@ -39,10 +40,12 @@
 namespace chrono
 {
 
-// Forward references (for parent hierarchy pointer)
+class ChIndexedNodes; // forward ref
 
-class ChIndexedNodes;
-class ChBody;
+namespace fem
+{
+
+
 
 /// Class for creating a constraint between a node point
 /// and a ChBody object (that is, it fixes a 3-DOF point
@@ -50,7 +53,7 @@ class ChBody;
 /// Nodes are 3-DOF points that are used in point-based 
 /// primitives, such as ChMatterSPH or finite elements.
 
-class ChApi ChNodeBody : public ChPhysicsItem {
+class ChApiFem ChNodeBody : public ChPhysicsItem {
 
 						// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChNodeBody,ChPhysicsItem);
@@ -70,9 +73,8 @@ private:
 	ChVector<> cache_li_speed;	// used to cache the last computed value of multiplier (solver warm starting)
 	ChVector<> cache_li_pos;	// used to cache the last computed value of multiplier (solver warm starting)	
 
-	unsigned int node_index;
-	ChIndexedNodes* nodes;
-	ChBody*  body;
+	ChSharedPtr<fem::ChNodeFEMxyz> mnode;
+	ChSharedPtr<ChBody>  body;
 
 	ChVector<> attach_position; 
 
@@ -121,15 +123,30 @@ public:
 			   // Other functions
 
 				/// Use this function after object creation, to initialize it, given  
-				/// the 1D shaft and 3D body to join. 
+				/// the node and body to join. 
 				/// The attachment position is the actual position of the node (unless
 				/// otherwise defines, using the optional 'mattach' parameter).
 				/// Note, mnodes and mbody must belong to the same ChSystem. 
 	virtual int Initialize(ChSharedPtr<ChIndexedNodes> mnodes, ///< nodes container
 						   unsigned int mnode_index, ///< index of the node to join
-						   ChSharedPtr<ChBody>&  mbody,  ///< body to join 
+						   ChSharedPtr<ChBody>   mbody,  ///< body to join 
 						   ChVector<>* mattach=0		 ///< optional: if not null, sets the attachment position in absolute coordinates 
 						   );
+				/// Use this function after object creation, to initialize it, given  
+				/// the node and body to join. 
+				/// The attachment position is the actual position of the node (unless
+				/// otherwise defines, using the optional 'mattach' parameter).
+				/// Note, mnodes and mbody must belong to the same ChSystem. 
+	virtual int Initialize(ChSharedPtr<ChNodeFEMxyz> anode, ///< node to join
+						   ChSharedPtr<ChBody>   mbody,  ///< body to join 
+						   ChVector<>* mattach=0		 ///< optional: if not null, sets the attachment position in absolute coordinates 
+						   );
+
+				/// Get the connected node
+	virtual ChSharedPtr<fem::ChNodeFEMxyz> GetConstrainedNode() { return this->mnode;}
+				
+				/// Get the connected body
+	virtual ChSharedPtr<ChBody> GetConstrainedBody() { return this->body;}
 
 					/// Get the attachment position, in the reference coordinates of the body.
 	ChVector<> GetAttachPosition() {return attach_position;}
@@ -176,6 +193,7 @@ typedef ChSharedPtr<ChNodeBody> ChSharedNodeBodyPtr;
 
 
 
+} // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____
 
 
