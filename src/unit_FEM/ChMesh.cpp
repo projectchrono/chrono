@@ -120,6 +120,12 @@ void ChMesh::LoadFromTetGenFile(char* filename_node, char* filename_ele, ChShare
 		fstream fin(filename_node);
 		if (!fin.good())
 			throw ChException("ERROR opening TetGen .node file: " + std::string(filename_node) + "\n");
+
+		int nnodes = 0;
+		int ndims = 0;
+		int nattrs = 0;
+		int nboundarymark = 0;
+
 		string line;
 		while(getline(fin, line)) 
 		{
@@ -128,8 +134,6 @@ void ChMesh::LoadFromTetGenFile(char* filename_node, char* filename_ele, ChShare
 
 			if(line[0] == '#') continue; // skip comment
 			if(line[0] == 0) continue; // skip empty lines
-
-			int nnodes, ndims, nattrs, nboundarymark;
 
 			if (parse_header)
 			{
@@ -155,7 +159,7 @@ void ChMesh::LoadFromTetGenFile(char* filename_node, char* filename_ele, ChShare
 			{
 				stringstream(line) >> idnode >> x >> y >> z;
 				++added_nodes;
-				if (idnode < 0 || idnode > nnodes)
+				if (idnode <= 0 || idnode > nnodes)
 					throw ChException("ERROR in TetGen .node file. Node ID not in range: \n"+ line +"\n");
 				if (idnode != added_nodes)
 					throw ChException("ERROR in TetGen .node file. Nodes IDs must be sequential (1 2 3 ..): \n"+ line+"\n");
@@ -178,6 +182,9 @@ void ChMesh::LoadFromTetGenFile(char* filename_node, char* filename_ele, ChShare
 		fstream fin(filename_ele);
 		if (!fin.good())
 			throw ChException("ERROR opening TetGen .node file: " + std::string(filename_node) + "\n");
+
+		int ntets, nnodespertet, nattrs = 0;
+
 		string line;
 		while(getline(fin, line)) 
 		{
@@ -186,8 +193,6 @@ void ChMesh::LoadFromTetGenFile(char* filename_node, char* filename_ele, ChShare
 
 			if(line[0] == '#') continue; // skip comment
 			if(line[0] == 0) continue; // skip empty lines
-
-			int ntets, nnodespertet, nattrs;
 
 			if (parse_header)
 			{
@@ -207,7 +212,7 @@ void ChMesh::LoadFromTetGenFile(char* filename_node, char* filename_ele, ChShare
 			if (parse_tet)
 			{
 				stringstream(line) >> idtet >> n1 >> n2 >> n3 >> n4;
-				if (idtet < 0 || idtet > ntets)
+				if (idtet <= 0 || idtet > ntets)
 					throw ChException("ERROR in TetGen .node file. Tetahedron ID not in range: \n"+ line+"\n");
 				if (n1 > totnodes)
 					throw ChException("ERROR in TetGen .node file, ID of 1st node is out of range: \n"+ line+"\n");
@@ -231,7 +236,6 @@ void ChMesh::LoadFromTetGenFile(char* filename_node, char* filename_ele, ChShare
 		} // end while
         
     }// end .ele file
-
 }
 
 
