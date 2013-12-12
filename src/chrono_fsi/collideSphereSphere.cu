@@ -78,6 +78,7 @@ __device__ __host__ inline real3 Calc_ANCF_Point_Pos(
 	return r;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
+// in the calculations that use this function, we have assumed Calc_ANCF_Point_Slope returns the unit vector. theta calculation is based on this assumption. Also cross product
 __device__ __host__ inline real3 Calc_ANCF_Point_Slope(
 		real3 * ANCF_NodesD,
 		real3 * ANCF_SlopesD,
@@ -130,22 +131,23 @@ __device__ __host__ inline real3 Calc_ANCF_Point_Omega(
 		real3 * ANCF_SlopesVelD,
 		int indexOfClosestNode,
 		real_ s,
-		real_ l){
+		real_ l,
+		real3 rX){
 	real_ Sx[4];
 	shape_fun_d(Sx, s, l);
 
 
-	real3 omega;
+	real3 rxt;
 	real3 nti = ANCF_NodesVelD[indexOfClosestNode];
 	real3 sti = ANCF_SlopesVelD[indexOfClosestNode];
 	real3 ntj = ANCF_NodesVelD[indexOfClosestNode + 1];
 	real3 stj = ANCF_SlopesVelD[indexOfClosestNode + 1];
 
-	omega.x = Sx[0]*nti.x + Sx[1]*sti.x + Sx[2]*ntj.x + Sx[3]*stj.x;
-	omega.y = Sx[0]*nti.y + Sx[1]*sti.y + Sx[2]*ntj.y + Sx[3]*stj.y;
-	omega.z = Sx[0]*nti.z + Sx[1]*sti.z + Sx[2]*ntj.z + Sx[3]*stj.z;
+	rxt.x = Sx[0]*nti.x + Sx[1]*sti.x + Sx[2]*ntj.x + Sx[3]*stj.x;
+	rxt.y = Sx[0]*nti.y + Sx[1]*sti.y + Sx[2]*ntj.y + Sx[3]*stj.y;
+	rxt.z = Sx[0]*nti.z + Sx[1]*sti.z + Sx[2]*ntj.z + Sx[3]*stj.z;
 
-	return omega;
+	return cross(rX, rxt)/dot(rX, rX);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //updates the fluid particles' properties, i.e. velocity, density, pressure, position
@@ -543,7 +545,7 @@ __global__ void Populate_FlexSPH_MeshSlope_LRF_kernel(
 	if (indexOfClosestNode == nNodes) indexOfClosestNode--;
 
 	real3 beamPointSlope = Calc_ANCF_Point_Slope(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
-	flexSPH_MeshSlope_Initial_D[index] = beamPointSlope;
+	flexSPH_MeshSlope_Initial_D[index] = beamPointSlope / length(beamPointSlope);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -752,15 +754,12 @@ __global__ void UpdateFlexMarkersPosition(
 	if (indexOfClosestNode == nNodes) indexOfClosestNode--;
 
 	real3 beamPointPos = Calc_ANCF_Point_Pos(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
-	real3 beamPointSlope = Calc_ANCF_Point_Slope(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
-	real3 beamPointOmega;
+	real3 rX = Calc_ANCF_Point_Slope(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	real3 beamPointSlope = rX / length(rX);
 
 	real3 dist3 = flexSPH_MeshPos_LRF_D[index];
 	real3 beamPointSlopeInitial = flexSPH_MeshSlope_Initial_D[index];
-	//Important Important Important Important Important Important Important Important Important
-	//Important Important Important Important Important Important Important Important Important
-	//Important Important Important Important Important Important Important Important Important
-	// Assumed Calc_ANCF_Point_Slope returns the unit vector. theta calculation is based on this assumption. Also cross product
+
 	real_ theta = acos(dot(beamPointSlopeInitial, beamPointSlope));
 	real3 n3 = cross(beamPointSlopeInitial, beamPointSlope);
 	n3 /= length(n3);
@@ -773,7 +772,7 @@ __global__ void UpdateFlexMarkersPosition(
 	//ask Radu
 	real_ markerMass = velMasD[absMarkerIndex].w;
 	real3 beamPointVel = Calc_ANCF_Point_Vel(ANCF_NodesVelD, ANCF_SlopesVelD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
-	real3 absOmega = Calc_ANCF_Point_Omega(ANCF_NodesVelD, ANCF_SlopesVelD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	real3 absOmega = Calc_ANCF_Point_Omega(ANCF_NodesVelD, ANCF_SlopesVelD, indexOfClosestNode, s, l, rX); //interpolation using ANCF beam, cubic hermit equation
 	velMasD[absMarkerIndex] = R4(beamPointVel + cross(absOmega, dist3), markerMass);
 }
 ////--------------------------------------------------------------------------------------------------------------------------------
@@ -809,7 +808,6 @@ void MakeFlexIdentifier(
 				return;
 			}
 			int2 updatePortion = I2(referencePart); //first two component of the referenceArray denote to the fluid and boundary particles
-			printf("numFlex %d, updatePortion %d %d  flexIdx %d\n", numFlexBodies, updatePortion.x, updatePortion.y, flexIdx);
 			thrust::fill(flexIdentifierD.begin() + (updatePortion.x - startFlexMarkers),
 					flexIdentifierD.begin() + (updatePortion.y - startFlexMarkers), flexIdx);
 		}
@@ -1210,7 +1208,7 @@ void UpdateRigidBody(
 		int numRigid_SphMarkers,
 		float fracSimulation,
 		real_ dT) {
-	if (referenceArray.size() < 3) {
+	if (numRigidBodies == 0) {
 		return;
 	}
 	cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(dT));
@@ -1360,7 +1358,7 @@ void UpdateFlexibleBody(
 	if (flexMapEachMarkerOnAllBeamNodesD.size() != flexNodesForcesAllMarkers1.size()) {
 		printf("we have size inconsistency between flex nodesForces and nodesPair identifier");
 	}
-	thrust::device_vector<int2> dummyNodesFlexIdentify(flexMapEachMarkerOnAllBeamNodesD.size());
+	thrust::device_vector<int2> dummyNodesFlexIdentify(totalNumberOfFlexNodes);
 	thrust::equal_to<int2> binary_pred_int2; //if binary_pred int2 does not work, you have to either add operator == to custom_cutil_math, or you have to map nodes identifiers from int2 to int
 	(void) thrust::reduce_by_key(flexMapEachMarkerOnAllBeamNodesD.begin(), flexMapEachMarkerOnAllBeamNodesD.end(), flexNodesForcesAllMarkers1.begin(), dummyNodesFlexIdentify.begin(),
 			flex_FSI_NodesForces1.begin(), binary_pred_int2, thrust::plus<real3>());
@@ -1564,26 +1562,8 @@ void cudaCollisions(
 																	// with the length of nM
 
 	thrust::device_vector<int> dummySum(flexIdentifierD.size());
-	thrust::device_vector<int> dummyIdentifier(0);
+	thrust::device_vector<int> dummyIdentifier(numFlexBodies);
 	thrust::fill(dummySum.begin(), dummySum.end(), 1);
-
-	printf("\n\n\n");
-	for (int ii = 0; ii < flexIdentifierD.size(); ii++) {
-		int fIdentifier = flexIdentifierD[ii];
-		printf("%d, ", fIdentifier);
-	}
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1597,6 +1577,11 @@ void cudaCollisions(
 
 	Calc_NumNodesMultMarkers_Per_Beam(ANCF_NumNodesMultMarkers_Per_BeamD, ANCF_NumMarkers_Per_BeamD, ANCF_ReferenceArrayNodesOnBeams, numFlexBodies);
 	thrust::exclusive_scan(ANCF_NumNodesMultMarkers_Per_BeamD.begin(), ANCF_NumNodesMultMarkers_Per_BeamD.end(), ANCF_NumNodesMultMarkers_Per_Beam_CumulD.begin());
+	int total_NumNodesMultMarkers_Per_Beam = ANCF_NumNodesMultMarkers_Per_Beam_CumulD[numFlexBodies - 1] + ANCF_NumNodesMultMarkers_Per_BeamD[numFlexBodies - 1];
+	flexMapEachMarkerOnAllBeamNodesD.resize(total_NumNodesMultMarkers_Per_Beam);
+
+
+	printf("total_NumNodesMultMarkers_Per_Beam %d\n", total_NumNodesMultMarkers_Per_Beam);
 
 	Calc_mapEachMarkerOnAllBeamNodes_IdentifierD(flexMapEachMarkerOnAllBeamNodesD, ANCF_NumNodesMultMarkers_Per_Beam_CumulD, ANCF_NumMarkers_Per_BeamD, ANCF_ReferenceArrayNodesOnBeams, numFlexBodies);
 
@@ -1707,60 +1692,60 @@ void cudaCollisions(
 		thrust::device_vector<real3> ANCF_SlopesVelD2 = ANCF_SlopesVelD;
 
 		//******** RK2
-		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numAllMarkers, SIDE, 0.5 * delT); //?$ right now, it does not consider gravity or other stuff on rigid bodies. they should be applied at rigid body solver
-		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT); //assumes ...D2 is a copy of ...D
-		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT);		//assumes ...D2 is a copy of ...D
-		UpdateRigidBody(posRadD2, velMasD2, posRigidD2, posRadRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2, derivVelRhoD, rigidIdentifierD,
-				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidMarkers, numRigid_SphMarkers, float(tStep)/stepEnd, 0.5 * delT);
-		UpdateFlexibleBody(posRadD2, velMasD2, derivVelRhoD,
-								numRigidBodies, numFlexBodies, numFlex_SphMarkers,
-								ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
-								ANCF_ReferenceArrayNodesOnBeamsD,
-								ANCF_NumMarkers_Per_BeamD,
-								ANCF_NumMarkers_Per_Beam_CumulD,
-						//		thrust::device_vector<int> & ANCF_NumNodesMultMarkers_Per_BeamD,
-								ANCF_NumNodesMultMarkers_Per_Beam_CumulD,
-
-								flexIdentifierD,
-								flexMapEachMarkerOnAllBeamNodesD,
-								flexSPH_MeshPos_LRF_D,
-								flexSPH_MeshSlope_Initial_D,
-								flexParametricDistD,
-								ANCF_Beam_LengthD,
-								referenceArray,
-
-								paramsH,
-								float(tStep)/stepEnd,
-								0.5 * delT);
-		ApplyBoundary(posRadD2, rhoPresMuD2, numAllMarkers, posRigidD2, velMassRigidD2, numRigidBodies);
-		//*****
-		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numAllMarkers, SIDE, delT);
-		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, delT);
-		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, delT);
-		UpdateRigidBody(posRadD, velMasD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, derivVelRhoD, rigidIdentifierD,
-				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidMarkers, numRigid_SphMarkers, float(tStep)/stepEnd, delT);
-		UpdateFlexibleBody(posRadD, velMasD, derivVelRhoD,
-						numRigidBodies, numFlexBodies, numFlex_SphMarkers,
-						ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
-						ANCF_ReferenceArrayNodesOnBeamsD,
-						ANCF_NumMarkers_Per_BeamD,
-						ANCF_NumMarkers_Per_Beam_CumulD,
-				//		thrust::device_vector<int> & ANCF_NumNodesMultMarkers_Per_BeamD,
-						ANCF_NumNodesMultMarkers_Per_Beam_CumulD,
-
-						flexIdentifierD,
-						flexMapEachMarkerOnAllBeamNodesD,
-						flexSPH_MeshPos_LRF_D,
-						flexSPH_MeshSlope_Initial_D,
-						flexParametricDistD,
-						ANCF_Beam_LengthD,
-						referenceArray,
-
-						paramsH,
-						float(tStep)/stepEnd,
-						delT);
-		ApplyBoundary(posRadD, rhoPresMuD, numAllMarkers, posRigidD, velMassRigidD, numRigidBodies);
-		//************
+//		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numAllMarkers, SIDE, 0.5 * delT); //?$ right now, it does not consider gravity or other stuff on rigid bodies. they should be applied at rigid body solver
+//		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT); //assumes ...D2 is a copy of ...D
+//		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT);		//assumes ...D2 is a copy of ...D
+//		UpdateRigidBody(posRadD2, velMasD2, posRigidD2, posRadRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2, derivVelRhoD, rigidIdentifierD,
+//				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidMarkers, numRigid_SphMarkers, float(tStep)/stepEnd, 0.5 * delT);
+//		UpdateFlexibleBody(posRadD2, velMasD2, derivVelRhoD,
+//								numRigidBodies, numFlexBodies, numFlex_SphMarkers,
+//								ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
+//								ANCF_ReferenceArrayNodesOnBeamsD,
+//								ANCF_NumMarkers_Per_BeamD,
+//								ANCF_NumMarkers_Per_Beam_CumulD,
+//						//		thrust::device_vector<int> & ANCF_NumNodesMultMarkers_Per_BeamD,
+//								ANCF_NumNodesMultMarkers_Per_Beam_CumulD,
+//
+//								flexIdentifierD,
+//								flexMapEachMarkerOnAllBeamNodesD,
+//								flexSPH_MeshPos_LRF_D,
+//								flexSPH_MeshSlope_Initial_D,
+//								flexParametricDistD,
+//								ANCF_Beam_LengthD,
+//								referenceArray,
+//
+//								paramsH,
+//								float(tStep)/stepEnd,
+//								0.5 * delT);
+//		ApplyBoundary(posRadD2, rhoPresMuD2, numAllMarkers, posRigidD2, velMassRigidD2, numRigidBodies);
+//		//*****
+//		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numAllMarkers, SIDE, delT);
+//		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, delT);
+//		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, delT);
+//		UpdateRigidBody(posRadD, velMasD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, derivVelRhoD, rigidIdentifierD,
+//				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidMarkers, numRigid_SphMarkers, float(tStep)/stepEnd, delT);
+//		UpdateFlexibleBody(posRadD, velMasD, derivVelRhoD,
+//						numRigidBodies, numFlexBodies, numFlex_SphMarkers,
+//						ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
+//						ANCF_ReferenceArrayNodesOnBeamsD,
+//						ANCF_NumMarkers_Per_BeamD,
+//						ANCF_NumMarkers_Per_Beam_CumulD,
+//				//		thrust::device_vector<int> & ANCF_NumNodesMultMarkers_Per_BeamD,
+//						ANCF_NumNodesMultMarkers_Per_Beam_CumulD,
+//
+//						flexIdentifierD,
+//						flexMapEachMarkerOnAllBeamNodesD,
+//						flexSPH_MeshPos_LRF_D,
+//						flexSPH_MeshSlope_Initial_D,
+//						flexParametricDistD,
+//						ANCF_Beam_LengthD,
+//						referenceArray,
+//
+//						paramsH,
+//						float(tStep)/stepEnd,
+//						delT);
+//		ApplyBoundary(posRadD, rhoPresMuD, numAllMarkers, posRigidD, velMassRigidD, numRigidBodies);
+//		//************
 
 
 
@@ -1794,13 +1779,13 @@ void cudaCollisions(
 
 		//density re-initialization
 		if (tStep % 10 == 0) {
-			DensityReinitialization(posRadD, velMasD, rhoPresMuD, numAllMarkers, SIDE); //does not work for analytical boundaries (non-meshed) and free surfaces
+//			DensityReinitialization(posRadD, velMasD, rhoPresMuD, numAllMarkers, SIDE); //does not work for analytical boundaries (non-meshed) and free surfaces
 		}
 
 		//************************************************
 		//edit  since yu deleted cyliderRotOmegaJD
 		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, cMax, cMin, paramsH,
-				delT, tStep, channelRadius, channelCenterYZ);
+				delT, tStep, channelRadius, channelCenterYZ, numRigidBodies, numFlexBodies);
 
 //		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
 		//************

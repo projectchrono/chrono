@@ -36,7 +36,9 @@ void PrintToFile(
 		real_ delT,
 		int tStep,
 		real_ channelRadius,
-		real2 channelCenterYZ) {
+		real2 channelCenterYZ,
+		const int numRigidBodies,
+		const int numFlexBodies) {
 	thrust::host_vector<real3> posRadH = posRadD;
 	thrust::host_vector<real4> velMasH = velMasD;
 	thrust::host_vector<real4> rhoPresMuH = rhoPresMuD;
@@ -88,7 +90,7 @@ void PrintToFile(
 		fileNameRigidsSPH<<"zone\n";
 		//fprintf(fileNameRigidsSPH, "zone\n");
 		stringstream ssRigidsSPH;
-		if (referenceArray.size() > 2) {
+		if (numRigidBodies > 0) {
 			const int numRigidBodies = posRigidH.size();
 			int startRigidParticle = (referenceArray[2]).x;
 
@@ -253,7 +255,7 @@ void PrintToFile(
 		real3 aveVel = R3(sumVelocity / (referenceArray[0].y - referenceArray[0].x));
 
 		stringstream ssParticleCenterVsTime;
-		if (referenceArray.size() > 2) {
+		if (numRigidBodies > 0) {
 			for (int j = 0; j < numRigidBodiesInOnePeriod; j++) {
 				real3 p_rigid = posRigidH[j];
 				real3 v_rigid = R3(velMassRigidH[j]);
@@ -323,6 +325,7 @@ void PrintToFile(
 		ofstream fileNameFluidParticles;
 		ofstream fileNameBoundaries;
 		ofstream fileNameFluidBoundaries;
+		ofstream fileNameRigidFlexBCE;
 
 		system("mkdir -p povFiles");
 		int tStepsPovFiles = 2000;
@@ -350,10 +353,14 @@ void PrintToFile(
 			sprintf(nameFluidBoundaries, "povFiles/fluid_boundary");
 			strcat(nameFluidBoundaries, fileCounter);
 			strcat(nameFluidBoundaries, ".csv");
+			char nameRigidFlexBCE[255];
+			sprintf(nameRigidFlexBCE, "povFiles/rigid_flex_BCE");
+			strcat(nameRigidFlexBCE, fileCounter);
+			strcat(nameRigidFlexBCE, ".csv");
 
 			fileNameRigidBodies.open(nameRigid);
 			stringstream ssRigidBodies;
-			if (referenceArray.size() > 2) {
+			if (numRigidBodies > 0) {
 				const int numRigidBodies = posRigidH.size();
 				for (int j = 0; j < numRigidBodies; j++) {
 					real3 p_rigid = posRigidH[j];
@@ -401,6 +408,20 @@ void PrintToFile(
 			}
 			fileNameFluidBoundaries<<ssFluidBoundaryParticles.str();
 			fileNameFluidBoundaries.close();
+
+			fileNameRigidFlexBCE.open(nameRigidFlexBCE);
+			stringstream ssRigidFlexBCE;
+			if (referenceArray.size() > 2) {
+				for (int i = referenceArray[2].x; i < referenceArray[referenceArray.size() - 1].y; i++) {
+					real3 pos = posRadH[i];
+					real3 vel = R3(velMasH[i]);
+					real4 rP = rhoPresMuH[i];
+					real_ velMag = length(vel);
+					ssRigidFlexBCE<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.z<<", "<< rP.w<<endl;
+				}
+			}
+			fileNameRigidFlexBCE<<ssRigidFlexBCE.str();
+			fileNameRigidFlexBCE.close();
 		}
 	posRadH.clear();
 	velMasH.clear();

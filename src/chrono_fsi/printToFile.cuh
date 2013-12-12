@@ -27,7 +27,9 @@ void PrintToFile(
 		real_ delT,
 		int tStep,
 		real_ channelRadius,
-		real2 channelCenterYZ);
+		real2 channelCenterYZ,
+		const int numRigidBodies,
+		const int numFlexBodies);
 
 void PrintToFileDistribution(
 		thrust::device_vector<int> & distributionD,
