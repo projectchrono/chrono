@@ -31,7 +31,8 @@ typedef unsigned int uint;
 //HSML .04 was for the dimensions around 1, .2 is for the dimesions around 11.2
 //#define HSML (0.04f*sizeScale)
 #define HSML (2.0*sizeScale) //I changed it from 0.2
-#define MULT_INITSPACE 1.0;
+#define MULT_INITSPACE 1.0
+#define NUM_BCE_LAYERS 2
 #define BASEPRES 0
 #define nPeriod 1
 #define Gravity R3(0, 0, 0)

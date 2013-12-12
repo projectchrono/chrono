@@ -520,17 +520,17 @@ void CreateFlexBodies(
 	//TODO create mass property of the beams
 
 	int numBeams = 10;
-	int numElementsPerBeam = 4;
+	int numElementsPerBeam = 3;
 	real_ sectionLenght = pipeLength / numBeams;
 	for (int i = 0; i < numBeams; i++) {
 		real_ x = (i + myRand()) * sectionLenght + pipeInPoint3.x;
 		real_ r = myRand() * pipeRadius;
-		real_ theta = myRand() * PI / 180;
+		real_ theta = myRand() * 2 * PI;
 		real3 pa3 = R3(x, r*cos(theta) + pipeInPoint3.y, r*sin(theta) + pipeInPoint3.z);
 
 		x = (i + myRand()) * sectionLenght + pipeInPoint3.x;
 		r = myRand() * pipeRadius;
-		theta = myRand() * PI / 180;
+		theta = myRand() * 2 * PI;
 		real3 pb3 = R3(x, r*cos(theta) + pipeInPoint3.y, r*sin(theta) + pipeInPoint3.z);
 
 		real3 slope3 = pb3 - pa3;
@@ -1091,7 +1091,7 @@ int CreateEllipsoidMarkers(
 	real_ multInitSpace = MULT_INITSPACE;//0.9;//1.0;//0.9;
 	real_ spacing = multInitSpace * sphR;
 	//printf("initSpaceEllipsoid = %f * sphR\n", multInitSpace);
-	for (int k = 0; k < 2; k++) {
+	for (int k = 0; k < NUM_BCE_LAYERS; k++) {
 		real3 r3 = ellipsoidRadii - R3(k * spacing);
 		//printf("r, rigidR, k*spacing %f %f %f\n", r * 1000000, spherePosRad.w * 1000000, k * spacing * 1000000);
 		real_ minR = r3.x;
@@ -1148,7 +1148,6 @@ int CreateFlexMarkers(
 		thrust::host_vector<real4> & mVelMas,
 		thrust::host_vector<real4> & mRhoPresMu,
 
-		int flexBodyIndex,
 		thrust::host_vector<real_> & flexParametricDist,
 
 		real3 pa3, //inital point
@@ -1158,31 +1157,33 @@ int CreateFlexMarkers(
 		real_ sphMarkerMass,
 		real_ rho,
 		real_ pres,
-		real_ mu) {
+		real_ mu,
+		int type) {
 	int num_FlexMarkers = 0;
 	real_ multInitSpace = MULT_INITSPACE;//0.9;//1.0;//0.9;
 	real_ spacing = multInitSpace * sphR;
 
 	real3 n3 = pb3 - pa3;
 	n3 /= length(n3);
+	real3 axis3 = cross(R3(1, 0, 0), n3);
+	axis3 /= length(axis3);
+	real_ angle = acos(n3.x);  //acos(dot(R3(1, 0, 0) , n3));
+	real4 q4 = R4(cos(0.5 * angle), axis3.x * sin(0.5 * angle), axis3.y * sin(0.5 * angle), axis3.z * sin(0.5 * angle));
+
+	printf("type %d: pa %f %f %f, pb %f %f %f, n3 %f %f %f, axis %f %f %f, angle %f, q %f %f %f %f\n", type, pa3.x, pa3.y, pa3.z, pb3.x, pb3.y, pb3.z, n3.x, n3.y, n3.z,
+			axis3.x, axis3.y, axis3.z, angle, q4.x, q4.y, q4.z, q4.w);
+
 	for (real_ s = 0; s <= l; s += spacing) {
 		real3 centerPoint = pa3 + s * n3;
 		mPosRad.push_back(centerPoint);
 		mVelMas.push_back(R4(0, 0, 0, sphMarkerMass));
-		int type = flexBodyIndex + 1;
-		mRhoPresMu.push_back(R4(rho, pres, mu, type));	//take care of type
+		mRhoPresMu.push_back(R4(rho, pres, mu, type));	//take care of type			 /// type needs to be unique, to differentiate flex from other flex as well as other rigids
 		flexParametricDist.push_back(s);
 		num_FlexMarkers++;
-		for (real_ r = spacing; r <= 2 * spacing; r += spacing) {
+		for (real_ r = spacing; r < NUM_BCE_LAYERS * spacing; r += spacing) {
 			real_ deltaTeta = spacing / r;
 			for (real_ teta = .1 * deltaTeta; teta < 2 * PI - .1 * deltaTeta; teta += deltaTeta) {
 				real3 BCE_Pos_local = R3(0, r * cos(teta), r * sin(teta));
-
-				real3 axis3 = cross(R3(1, 0, 0), n3);
-				axis3 /= length(axis3);
-				real_ angle = acos(dot(axis3, n3));
-
-				real4 q4 = R4(cos(0.5 * angle), axis3.x * sin(0.5 * angle), axis3.y * sin(0.5 * angle), axis3.z * sin(0.5 * angle));
 				real3 BCE_Pos_Global = Rotate_By_Quaternion(q4, BCE_Pos_local) + centerPoint;
 				mPosRad.push_back(BCE_Pos_Global);
 				mVelMas.push_back(R4(0, 0, 0, sphMarkerMass));
@@ -1215,7 +1216,7 @@ int CreateCylinderMarkers_XZ(
 	real_ multInitSpace = MULT_INITSPACE;//0.9;
 	real_ spacing = multInitSpace * sphR;
 	printf("initSpaceCylinder = %f * sphR\n", multInitSpace);
-	for (int k = 0; k < 3; k++) {
+	for (int k = 0; k < NUM_BCE_LAYERS; k++) {
 		real_ r = ellipsoidRadii.x - k * spacing;
 		if (r > 0) {
 			real_ deltaTeta = spacing / r;
@@ -1458,7 +1459,6 @@ int main() {
 			real3 pb3 = ANCF_Nodes[ ANCF_ReferenceArrayNodesOnBeams[flexBodyIdx].y - 1 ];
 
 			int num_FlexMarkers = CreateFlexMarkers(mPosRad, mVelMas, mRhoPresMu,
-					flexBodyIdx,
 					flexParametricDist,
 					pa3, //inital point
 					pb3, //end point
@@ -1467,7 +1467,8 @@ int main() {
 					sphMarkerMass,
 					rho0,
 					pres,
-					mu);
+					mu,
+					flexBodyIdx + rigidPos.size() + 1);
 
 			referenceArray.push_back(I3(numAllMarkers, numAllMarkers + num_FlexMarkers, 2));  //map bc : rigidSpheres + 1
 //			referenceArray_Types.push_back(I3(1, rigidSpheres, 0));
