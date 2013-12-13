@@ -38,7 +38,8 @@ typedef unsigned int uint;
 #define Gravity R3(0, 0, 0)
 	//#define bodyForce4 R4(.005, 0, 0, 0)
 //#define bodyForce4 R4(.00001, 0, 0, 0)
-#define bodyForce4 R4(6.4e-9, 0, 0, 0)
+//#define bodyForce4 R4(6.4e-9, 0, 0, 0)
+#define bodyForce4 R4(6.4e-10, 0, 0, 0)
 	//#define bodyForce4 R4(.1, 0, 0, 0)
 	//#define bodyForce4 R4(.0004, 0, 0, 0) //segre. size Scale 1
 	//#define rho0 1180

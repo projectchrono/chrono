@@ -1692,11 +1692,11 @@ void cudaCollisions(
 		thrust::device_vector<real3> ANCF_SlopesVelD2 = ANCF_SlopesVelD;
 
 		//******** RK2
-//		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numAllMarkers, SIDE, 0.5 * delT); //?$ right now, it does not consider gravity or other stuff on rigid bodies. they should be applied at rigid body solver
-//		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT); //assumes ...D2 is a copy of ...D
-//		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT);		//assumes ...D2 is a copy of ...D
-//		UpdateRigidBody(posRadD2, velMasD2, posRigidD2, posRadRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2, derivVelRhoD, rigidIdentifierD,
-//				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidMarkers, numRigid_SphMarkers, float(tStep)/stepEnd, 0.5 * delT);
+		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numAllMarkers, SIDE, 0.5 * delT); //?$ right now, it does not consider gravity or other stuff on rigid bodies. they should be applied at rigid body solver
+		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT); //assumes ...D2 is a copy of ...D
+		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT);		//assumes ...D2 is a copy of ...D
+		UpdateRigidBody(posRadD2, velMasD2, posRigidD2, posRadRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2, derivVelRhoD, rigidIdentifierD,
+				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidMarkers, numRigid_SphMarkers, float(tStep)/stepEnd, 0.5 * delT);
 //		UpdateFlexibleBody(posRadD2, velMasD2, derivVelRhoD,
 //								numRigidBodies, numFlexBodies, numFlex_SphMarkers,
 //								ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
@@ -1717,13 +1717,13 @@ void cudaCollisions(
 //								paramsH,
 //								float(tStep)/stepEnd,
 //								0.5 * delT);
-//		ApplyBoundary(posRadD2, rhoPresMuD2, numAllMarkers, posRigidD2, velMassRigidD2, numRigidBodies);
-//		//*****
-//		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numAllMarkers, SIDE, delT);
-//		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, delT);
-//		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, delT);
-//		UpdateRigidBody(posRadD, velMasD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, derivVelRhoD, rigidIdentifierD,
-//				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidMarkers, numRigid_SphMarkers, float(tStep)/stepEnd, delT);
+		ApplyBoundary(posRadD2, rhoPresMuD2, numAllMarkers, posRigidD2, velMassRigidD2, numRigidBodies);
+		//*****
+		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numAllMarkers, SIDE, delT);
+		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, delT);
+		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, delT);
+		UpdateRigidBody(posRadD, velMasD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, derivVelRhoD, rigidIdentifierD,
+				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidMarkers, numRigid_SphMarkers, float(tStep)/stepEnd, delT);
 //		UpdateFlexibleBody(posRadD, velMasD, derivVelRhoD,
 //						numRigidBodies, numFlexBodies, numFlex_SphMarkers,
 //						ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
@@ -1744,8 +1744,8 @@ void cudaCollisions(
 //						paramsH,
 //						float(tStep)/stepEnd,
 //						delT);
-//		ApplyBoundary(posRadD, rhoPresMuD, numAllMarkers, posRigidD, velMassRigidD, numRigidBodies);
-//		//************
+		ApplyBoundary(posRadD, rhoPresMuD, numAllMarkers, posRigidD, velMassRigidD, numRigidBodies);
+		//************
 
 
 
@@ -1779,7 +1779,7 @@ void cudaCollisions(
 
 		//density re-initialization
 		if (tStep % 10 == 0) {
-//			DensityReinitialization(posRadD, velMasD, rhoPresMuD, numAllMarkers, SIDE); //does not work for analytical boundaries (non-meshed) and free surfaces
+			DensityReinitialization(posRadD, velMasD, rhoPresMuD, numAllMarkers, SIDE); //does not work for analytical boundaries (non-meshed) and free surfaces
 		}
 
 		//************************************************
