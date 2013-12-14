@@ -39,6 +39,8 @@ typedef unsigned int uint;
 	//#define bodyForce4 R4(.005, 0, 0, 0)
 //#define bodyForce4 R4(.00001, 0, 0, 0)
 //#define bodyForce4 R4(6.4e-9, 0, 0, 0)
+// note: for 3D pipe Poiseuille: f = 32*Re*mu^2/(rho^2 * D^3), where f: body force, Re = rho * u_ave * D / mu
+// note: for 2D pipe Poiseuille: f = 12*Re*mu^2/(rho^2 * W^3), where f: body force, Re = rho * u_ave * W / mu
 #define bodyForce4 R4(6.4e-10, 0, 0, 0)
 	//#define bodyForce4 R4(.1, 0, 0, 0)
 	//#define bodyForce4 R4(.0004, 0, 0, 0) //segre. size Scale 1
