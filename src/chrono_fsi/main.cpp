@@ -433,7 +433,7 @@ void CreateRigidBodiesPatternPipe_KindaRandom(
 		const real_ rhoRigid,
 		real3 cMin,
 		real3 cMax,
-		int numParticles) {
+		int numRigidParticles) {
 
 	srand ( time(NULL) );
 	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
@@ -452,7 +452,7 @@ void CreateRigidBodiesPatternPipe_KindaRandom(
 			 }
 		}
 	}
-	int skipCount = totalNumberPossibleParticles / numParticles;
+	int skipCount = totalNumberPossibleParticles / numRigidParticles;
 
 	printf("totalNumberPossibleParticles %d  skipCount %d\n", totalNumberPossibleParticles, skipCount);
 	int particleCounter = 0;
@@ -480,7 +480,7 @@ void CreateRigidBodiesPatternPipe_KindaRandom(
 //				 printf("meetSeed: %s\n",(meetSeed)?"true":"false");
 				 if (!meetSeed) continue;
 //				 printf("ha\n");
-				 if (particleCounter >= numParticles) continue;
+				 if (particleCounter >= numRigidParticles) continue;
 				 particleCounter ++;
 				 real3 pos = R3(cMin.x, channelCenterYZ.x, channelCenterYZ.y) +  R3(i * spaceRigids.x, real_(r  * cos(teta)), real_(r *  sin(teta)) );
 

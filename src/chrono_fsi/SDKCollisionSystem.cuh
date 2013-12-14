@@ -217,7 +217,7 @@ void setParameters(SimParams *hostParams);
 
 void computeGridSize(uint n, uint blockSize, uint &numBlocks, uint &numThreads);
 
-void calcHash(uint* gridMarkerHash, uint* gridMarkerIndex, real3 * pos, int numMarkers);
+void calcHash(uint* gridMarkerHash, uint* gridMarkerIndex, real3 * pos, int numAllMarkers);
 
 void reorderDataAndFindCellStart(
 		uint* cellStart,
@@ -230,7 +230,7 @@ void reorderDataAndFindCellStart(
 		real3* oldPosRad,
 		real4* oldVelMas,
 		real4* oldRhoPreMu,
-		uint numMarkers,
+		uint numAllMarkers,
 		uint numCells);
 
 void reorderArrays(
@@ -239,7 +239,7 @@ void reorderArrays(
 		real_ * vDot_P,
 		uint * bodyIndexD,
 		uint * gridMarkerIndex, // input: sorted particle indices
-		uint numMarkers);
+		uint numAllMarkers);
 
 
 void CopyBackSortedToOriginal(
@@ -252,7 +252,7 @@ void CopyBackSortedToOriginal(
 		real4* sortedVelMas,
 		real4* sortedRhoPreMu,
 		uint * gridMarkerIndex,
-		uint numMarkers);
+		uint numAllMarkers);
 
 void RecalcVelocity_XSPH(
 		real3* vel_XSPH_D,
@@ -262,7 +262,7 @@ void RecalcVelocity_XSPH(
 		uint* gridMarkerIndex,
 		uint* cellStart,
 		uint* cellEnd,
-		uint numMarkers,
+		uint numAllMarkers,
 		uint numCells);
 
 void collide(
@@ -274,7 +274,7 @@ void collide(
 		uint* gridMarkerIndex,
 		uint* cellStart,
 		uint* cellEnd,
-		uint numMarkers,
+		uint numAllMarkers,
 		uint numCells,
 		real_ dT);
 
@@ -287,7 +287,7 @@ void UpdatePosVelP(
 		real4* m_dSortedRhoPreMu,
 		real_* vDot_PSortedNew,
 		real_* vDot_PSorted,
-		uint numMarkers);
+		uint numAllMarkers);
 
 void UpdateBC(
 		real3* m_dSortedPosRadNew,
@@ -307,7 +307,7 @@ void ReCalcDensity(
 		uint* m_dgridMarkerIndex,
 		uint* m_dCellStart,
 		uint* m_dCellEnd,
-		uint numMarkers,
+		uint numAllMarkers,
 		uint numCells);
 
 void CalcCartesianData(
@@ -331,7 +331,7 @@ void CalcNumberInterferences(
 		uint* gridMarkerIndex,
 		uint* cellStart,
 		uint* cellEnd,
-		uint numMarkers,
+		uint numAllMarkers,
 		uint numCells,
 		int2* contactIndicesFTotal,
 		bool flagWrite);
@@ -344,7 +344,7 @@ void FindMinimumDistanceIndices(
 			uint* gridMarkerIndex,
 			uint* cellStart,
 			uint* cellEnd,
-			uint numMarkers,
+			uint numAllMarkers,
 			int numFluidMarkers,
 			int numBoundaryAndRigid);
 
@@ -362,7 +362,7 @@ void CalcJacobianAndResidual(
 		int * contactFluidFromTotal_D,
 		int2 * contactIndicesFTotal,
 		int totalNumberOfInterferenceFTotal,
-		uint numMarkers,
+		uint numAllMarkers,
 		uint numFluidMarkers);
 
 #endif

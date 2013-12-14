@@ -304,9 +304,9 @@ void calcOnCartesianShare(
 __global__ void calcHashD(uint* gridMarkerHash, // output
 		uint* gridMarkerIndex, // output
 		real3* posRad, // input: positions
-		uint numMarkers) {
+		uint numAllMarkers) {
 	uint index = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
-	if (index >= numMarkers) return;
+	if (index >= numAllMarkers) return;
 
 	volatile real3 p = posRad[index];
 
@@ -345,13 +345,13 @@ void reorderDataAndFindCellStartD(
 		real3* oldPosRad, // input: sorted position array
 		real4* oldVelMas, // input: sorted velocity array
 		real4* oldRhoPreMu,
-		uint numMarkers) {
+		uint numAllMarkers) {
 	extern __shared__ uint sharedHash[]; // blockSize + 1 elements
 	uint index = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
 
 	uint hash;
 	// handle case when no. of particles not multiple of block size
-	if (index < numMarkers) {
+	if (index < numAllMarkers) {
 		hash = gridMarkerHash[index];
 
 		// Load hash data into shared memory so that we can look
@@ -367,7 +367,7 @@ void reorderDataAndFindCellStartD(
 
 	__syncthreads();
 
-	if (index < numMarkers) {
+	if (index < numAllMarkers) {
 		// If this particle has a different cell index to the previous
 		// particle then it must be the first particle in the cell,
 		// so store the index of this particle in the cell.
@@ -379,7 +379,7 @@ void reorderDataAndFindCellStartD(
 			if (index > 0) cellEnd[sharedHash[threadIdx.x]] = index;
 		}
 
-		if (index == numMarkers - 1) {
+		if (index == numAllMarkers - 1) {
 			cellEnd[hash] = index + 1;
 		}
 
@@ -403,9 +403,9 @@ void newVel_XSPH_D(real3* vel_XSPH_Sorted_D, // output: new velocity
 		uint* gridMarkerIndex, // input: sorted particle indices
 		uint* cellStart,
 		uint* cellEnd,
-		uint numMarkers) {
+		uint numAllMarkers) {
 	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
-	if (index >= numMarkers) return;
+	if (index >= numAllMarkers) return;
 
 	// read particle data from sorted arrays
 	real3 posRadA = FETCH(sortedPosRad, index);
@@ -445,9 +445,9 @@ void collideD(real4* derivVelRhoD, // output: new velocity
 		uint* gridMarkerIndex, // input: sorted particle indices
 		uint* cellStart,
 		uint* cellEnd,
-		uint numMarkers) {
+		uint numAllMarkers) {
 	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
-	if (index >= numMarkers) return;
+	if (index >= numAllMarkers) return;
 
 	// read particle data from sorted arrays
 	real3 posRadA = FETCH(sortedPosRad, index);
@@ -501,9 +501,9 @@ void ReCalcDensityD_F1(
 		uint* gridMarkerIndex,
 		uint* cellStart,
 		uint* cellEnd,
-		uint numMarkers) {
+		uint numAllMarkers) {
 	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
-	if (index >= numMarkers) return;
+	if (index >= numAllMarkers) return;
 
 	// read particle data from sorted arrays
 	real3 posRadA = FETCH(sortedPosRad, index);
@@ -611,15 +611,15 @@ void setParameters(SimParams *hostParams) {
 	cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, hostParams, sizeof(SimParams)));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void calcHash(uint* gridMarkerHash, uint* gridMarkerIndex, real3 * posRad, int numMarkers) {
+void calcHash(uint* gridMarkerHash, uint* gridMarkerIndex, real3 * posRad, int numAllMarkers) {
 	uint numThreads, numBlocks;
-	computeGridSize(numMarkers, 256, numBlocks, numThreads);
+	computeGridSize(numAllMarkers, 256, numBlocks, numThreads);
 
 	// execute the kernel
 	calcHashD<<< numBlocks, numThreads >>>(gridMarkerHash,
 			gridMarkerIndex,
 			posRad,
-			numMarkers);
+			numAllMarkers);
 
 	// check if kernel invocation generated an error
 	cudaThreadSynchronize();
@@ -637,18 +637,18 @@ void reorderDataAndFindCellStart(
 		real3* oldPosRad,
 		real4* oldVelMas,
 		real4* oldRhoPreMu,
-		uint numMarkers,
+		uint numAllMarkers,
 		uint numCells) {
 	uint numThreads, numBlocks;
-	computeGridSize(numMarkers, 256, numBlocks, numThreads); //?$ 256 is blockSize
+	computeGridSize(numAllMarkers, 256, numBlocks, numThreads); //?$ 256 is blockSize
 
 	// set all cells to empty
 	cutilSafeCall(cudaMemset(cellStart, 0xffffffff, numCells*sizeof(uint)));
 
 //#if USE_TEX
 //#if 0
-//    cutilSafeCall(cudaBindTexture(0, oldPosTex, oldPosRad, numMarkers*sizeof(real4)));
-//    cutilSafeCall(cudaBindTexture(0, oldVelTex, oldVelMas, numMarkers*sizeof(real4)));
+//    cutilSafeCall(cudaBindTexture(0, oldPosTex, oldPosRad, numAllMarkers*sizeof(real4)));
+//    cutilSafeCall(cudaBindTexture(0, oldVelTex, oldVelMas, numAllMarkers*sizeof(real4)));
 //#endif
 
 	uint smemSize = sizeof(uint) * (numThreads + 1);
@@ -663,7 +663,7 @@ void reorderDataAndFindCellStart(
 			oldPosRad,
 			oldVelMas,
 			oldRhoPreMu,
-			numMarkers);
+			numAllMarkers);
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: reorderDataAndFindCellStartD");
 //#if USE_TEX
@@ -681,18 +681,18 @@ void RecalcVelocity_XSPH(
 		uint* gridMarkerIndex,
 		uint* cellStart,
 		uint* cellEnd,
-		uint numMarkers,
+		uint numAllMarkers,
 		uint numCells) {
 	//#if USE_TEX
-	//    cutilSafeCall(cudaBindTexture(0, oldPosTex, sortedPosRad, numMarkers*sizeof(real4)));
-	//    cutilSafeCall(cudaBindTexture(0, oldVelTex, sortedVelMas, numMarkers*sizeof(real4)));
+	//    cutilSafeCall(cudaBindTexture(0, oldPosTex, sortedPosRad, numAllMarkers*sizeof(real4)));
+	//    cutilSafeCall(cudaBindTexture(0, oldVelTex, sortedVelMas, numAllMarkers*sizeof(real4)));
 	//    cutilSafeCall(cudaBindTexture(0, cellStartTex, cellStart, numCells*sizeof(uint)));
 	//    cutilSafeCall(cudaBindTexture(0, cellEndTex, cellEnd, numCells*sizeof(uint)));    
 	//#endif
 
 	// thread per particle
 	uint numThreads, numBlocks;
-	computeGridSize(numMarkers, 64, numBlocks, numThreads);
+	computeGridSize(numAllMarkers, 64, numBlocks, numThreads);
 
 	// execute the kernel
 	newVel_XSPH_D<<< numBlocks, numThreads >>>(vel_XSPH_Sorted_D,
@@ -702,7 +702,7 @@ void RecalcVelocity_XSPH(
 			gridMarkerIndex,
 			cellStart,
 			cellEnd,
-			numMarkers);
+			numAllMarkers);
 
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: newVel_XSPH_D");
@@ -724,12 +724,12 @@ void collide(
 		uint* gridMarkerIndex,
 		uint* cellStart,
 		uint* cellEnd,
-		uint numMarkers,
+		uint numAllMarkers,
 		uint numCells,
 		real_ dT) {
 	//#if USE_TEX
-	//    cutilSafeCall(cudaBindTexture(0, oldPosTex, sortedPosRad, numMarkers*sizeof(real4)));
-	//    cutilSafeCall(cudaBindTexture(0, oldVelTex, sortedVelMas, numMarkers*sizeof(real4)));
+	//    cutilSafeCall(cudaBindTexture(0, oldPosTex, sortedPosRad, numAllMarkers*sizeof(real4)));
+	//    cutilSafeCall(cudaBindTexture(0, oldVelTex, sortedVelMas, numAllMarkers*sizeof(real4)));
 	//    cutilSafeCall(cudaBindTexture(0, cellStartTex, cellStart, numCells*sizeof(uint)));
 	//    cutilSafeCall(cudaBindTexture(0, cellEndTex, cellEnd, numCells*sizeof(uint)));    
 	//#endif
@@ -738,7 +738,7 @@ void collide(
 
 	// thread per particle
 	uint numThreads, numBlocks;
-	computeGridSize(numMarkers, 64, numBlocks, numThreads);
+	computeGridSize(numAllMarkers, 64, numBlocks, numThreads);
 
 	// execute the kernel
 	collideD<<< numBlocks, numThreads >>>(derivVelRhoD,
@@ -749,7 +749,7 @@ void collide(
 			gridMarkerIndex,
 			cellStart,
 			cellEnd,
-			numMarkers);
+			numAllMarkers);
 
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: collideD");
@@ -772,18 +772,18 @@ void ReCalcDensity(
 		uint* gridMarkerIndex,
 		uint* cellStart,
 		uint* cellEnd,
-		uint numMarkers,
+		uint numAllMarkers,
 		uint numCells) {
 	//#if USE_TEX
-	//    cutilSafeCall(cudaBindTexture(0, oldPosTex, sortedPosRad, numMarkers*sizeof(real4)));
-	//    cutilSafeCall(cudaBindTexture(0, oldVelTex, sortedVelMas, numMarkers*sizeof(real4)));
+	//    cutilSafeCall(cudaBindTexture(0, oldPosTex, sortedPosRad, numAllMarkers*sizeof(real4)));
+	//    cutilSafeCall(cudaBindTexture(0, oldVelTex, sortedVelMas, numAllMarkers*sizeof(real4)));
 	//    cutilSafeCall(cudaBindTexture(0, cellStartTex, cellStart, numCells*sizeof(uint)));
 	//    cutilSafeCall(cudaBindTexture(0, cellEndTex, cellEnd, numCells*sizeof(uint)));    
 	//#endif
 
 	// thread per particle
 	uint numThreads, numBlocks;
-	computeGridSize(numMarkers, 64, numBlocks, numThreads);
+	computeGridSize(numAllMarkers, 64, numBlocks, numThreads);
 
 	// execute the kernel
 	ReCalcDensityD_F1<<< numBlocks, numThreads >>>(oldPosRad,
@@ -795,7 +795,7 @@ void ReCalcDensity(
 			gridMarkerIndex,
 			cellStart,
 			cellEnd,
-			numMarkers);
+			numAllMarkers);
 
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: ReCalcDensityD");

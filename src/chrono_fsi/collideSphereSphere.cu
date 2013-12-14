@@ -185,9 +185,9 @@ __global__ void UpdateKernelFluid(real3 * posRadD, real4 * velMasD, real3 * vel_
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //copies the sortedVelXSPH to velXSPH according to indexing
-__global__ void Copy_SortedVelXSPH_To_VelXSPH(real3 * vel_XSPH_D, real3 * vel_XSPH_Sorted_D, uint * m_dGridMarkerIndex, int numMarkers) {
+__global__ void Copy_SortedVelXSPH_To_VelXSPH(real3 * vel_XSPH_D, real3 * vel_XSPH_Sorted_D, uint * m_dGridMarkerIndex, int numAllMarkers) {
 	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
-	if (index >= numMarkers) return;
+	if (index >= numAllMarkers) return;
 	vel_XSPH_D[m_dGridMarkerIndex[index]] = vel_XSPH_Sorted_D[index];
 }
 //--------------------------------------------------------------------------------------------------------------------------------
