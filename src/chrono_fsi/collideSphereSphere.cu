@@ -5,8 +5,8 @@
 #include <thrust/reduce.h>
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
-#include "collideSphereSphere.cuh"
 #include "SDKCollisionSystem.cuh"
+#include "collideSphereSphere.cuh"
 #include "FlexibleBodies.cuh"
 #include "printToFile.cuh"
 #include <string.h>
@@ -22,8 +22,6 @@ __constant__ int numAllMarkersD;
 __constant__ real_ dTD;
 __constant__ real_ solid_SPH_massD;
 __constant__ int2 updatePortionD;
-__constant__ real3 cMinD;
-__constant__ real3 cMaxD;
 __constant__ int2 portionD;
 __constant__ int flagD;
 __constant__ int numRigidBodiesD;
@@ -159,8 +157,8 @@ __global__ void UpdateKernelFluid(real3 * posRadD, real4 * velMasD, real3 * vel_
 	}
 	real3 vel_XSPH = vel_XSPH_D[index];
 	// 1*** let's tweak a little bit :)
-	if (length(vel_XSPH) > .2 * HSML / dTD) {
-		vel_XSPH *= ( .2 * HSML / dTD ) / length(vel_XSPH);
+	if (length(vel_XSPH) > .2 * paramsD.HSML / dTD) {
+		vel_XSPH *= ( .2 * paramsD.HSML / dTD ) / length(vel_XSPH);
 	}
 	// 1*** end tweak
 	real3 posRad = posRadD[index];
@@ -171,8 +169,8 @@ __global__ void UpdateKernelFluid(real3 * posRadD, real4 * velMasD, real3 * vel_
 	real4 velMas = velMasD[index];
 	real3 updatedVelocity = R3(velMas + derivVelRho * dTD);
 	// 2*** let's tweak a little bit :)
-	if (length(updatedVelocity) > .2 * HSML / dTD) {
-		updatedVelocity *= ( .2 * HSML / dTD ) / length(updatedVelocity);
+	if (length(updatedVelocity) > .2 * paramsD.HSML / dTD) {
+		updatedVelocity *= ( .2 * paramsD.HSML / dTD ) / length(updatedVelocity);
 	}
 	// 2*** end tweak
 	velMasD[index] = R4(updatedVelocity, /*rho2 / rhoPresMu.x * */velMas.w); //velMasD updated
@@ -218,20 +216,20 @@ __global__ void ApplyPeriodicBoundaryXKernel(real3 * posRadD, real4 * rhoPresMuD
 		return;
 	} //no need to do anything if it is a boundary particle
 	real3 posRad = posRadD[index];
-	if (posRad.x > cMaxD.x) {
-		posRad.x -= (cMaxD.x - cMinD.x);
+	if (posRad.x > paramsD.cMax.x) {
+		posRad.x -= (paramsD.cMax.x - paramsD.cMin.x);
 		posRadD[index] = posRad;
 		if (rhoPresMu.w < -.1) {
-			rhoPresMu.y = rhoPresMu.y + bodyForce4.x * (cMaxD.x - cMinD.x);
+			rhoPresMu.y = rhoPresMu.y + paramsD.bodyForce4.x * (paramsD.cMax.x - paramsD.cMin.x);
 			rhoPresMuD[index] = rhoPresMu;
 		}
 		return;
 	}
-	if (posRad.x < cMinD.x) {
-		posRad.x += (cMaxD.x - cMinD.x);
+	if (posRad.x < paramsD.cMin.x) {
+		posRad.x += (paramsD.cMax.x - paramsD.cMin.x);
 		posRadD[index] = posRad;
 		if (rhoPresMu.w < -.1) {
-			rhoPresMu.y = rhoPresMu.y - bodyForce4.x * (cMaxD.x - cMinD.x);
+			rhoPresMu.y = rhoPresMu.y - paramsD.bodyForce4.x * (paramsD.cMax.x - paramsD.cMin.x);
 			rhoPresMuD[index] = rhoPresMu;
 		}
 		return;
@@ -249,20 +247,20 @@ __global__ void ApplyPeriodicBoundaryYKernel(real3 * posRadD, real4 * rhoPresMuD
 		return;
 	} //no need to do anything if it is a boundary particle
 	real3 posRad = posRadD[index];
-	if (posRad.y > cMaxD.y) {
-		posRad.y -= (cMaxD.y - cMinD.y);
+	if (posRad.y > paramsD.cMax.y) {
+		posRad.y -= (paramsD.cMax.y - paramsD.cMin.y);
 		posRadD[index] = posRad;
 		if (rhoPresMu.w < -.1) {
-			rhoPresMu.y = rhoPresMu.y + bodyForce4.y * (cMaxD.y - cMinD.y);
+			rhoPresMu.y = rhoPresMu.y + paramsD.bodyForce4.y * (paramsD.cMax.y - paramsD.cMin.y);
 			rhoPresMuD[index] = rhoPresMu;
 		}
 		return;
 	}
-	if (posRad.y < cMinD.y) {
-		posRad.y += (cMaxD.y - cMinD.y);
+	if (posRad.y < paramsD.cMin.y) {
+		posRad.y += (paramsD.cMax.y - paramsD.cMin.y);
 		posRadD[index] = posRad;
 		if (rhoPresMu.w < -.1) {
-			rhoPresMu.y = rhoPresMu.y - bodyForce4.y * (cMaxD.y - cMinD.y);
+			rhoPresMu.y = rhoPresMu.y - paramsD.bodyForce4.y * (paramsD.cMax.y - paramsD.cMin.y);
 			rhoPresMuD[index] = rhoPresMu;
 		}
 		return;
@@ -281,20 +279,20 @@ __global__ void ApplyPeriodicBoundaryZKernel(real3 * posRadD, real4 * rhoPresMuD
 		return;
 	} //no need to do anything if it is a boundary particle
 	real3 posRad = posRadD[index];
-	if (posRad.z > cMaxD.z) {
-		posRad.z -= (cMaxD.z - cMinD.z);
+	if (posRad.z > paramsD.cMax.z) {
+		posRad.z -= (paramsD.cMax.z - paramsD.cMin.z);
 		posRadD[index] = posRad;
 		if (rhoPresMu.w < -.1) {
-			rhoPresMu.y = rhoPresMu.y + bodyForce4.z * (cMaxD.z - cMinD.z);
+			rhoPresMu.y = rhoPresMu.y + paramsD.bodyForce4.z * (paramsD.cMax.z - paramsD.cMin.z);
 			rhoPresMuD[index] = rhoPresMu;
 		}
 		return;
 	}
-	if (posRad.z < cMinD.z) {
-		posRad.z += (cMaxD.z - cMinD.z);
+	if (posRad.z < paramsD.cMin.z) {
+		posRad.z += (paramsD.cMax.z - paramsD.cMin.z);
 		posRadD[index] = posRad;
 		if (rhoPresMu.w < -.1) {
-			rhoPresMu.y = rhoPresMu.y - bodyForce4.z * (cMaxD.z - cMinD.z);
+			rhoPresMu.y = rhoPresMu.y - paramsD.bodyForce4.z * (paramsD.cMax.z - paramsD.cMin.z);
 			rhoPresMuD[index] = rhoPresMu;
 		}
 		return;
@@ -308,13 +306,13 @@ __global__ void ApplyPeriodicBoundaryXKernel_RigidBodies(real3 * posRigidD) {
 		return;
 	}
 	real3 posRigid = posRigidD[index];
-	if (posRigid.x > cMaxD.x) {
-		posRigid.x -= (cMaxD.x - cMinD.x);
+	if (posRigid.x > paramsD.cMax.x) {
+		posRigid.x -= (paramsD.cMax.x - paramsD.cMin.x);
 		posRigidD[index] = posRigid;
 		return;
 	}
-	if (posRigid.x < cMinD.x) {
-		posRigid.x += (cMaxD.x - cMinD.x);
+	if (posRigid.x < paramsD.cMin.x) {
+		posRigid.x += (paramsD.cMax.x - paramsD.cMin.x);
 		posRigidD[index] = posRigid;
 		return;
 	}
@@ -327,13 +325,13 @@ __global__ void ApplyPeriodicBoundaryYKernel_RigidBodies(real3 * posRigidD) {
 		return;
 	}
 	real3 posRigid = posRigidD[index];
-	if (posRigid.y > cMaxD.y) {
-		posRigid.y -= (cMaxD.y - cMinD.y);
+	if (posRigid.y > paramsD.cMax.y) {
+		posRigid.y -= (paramsD.cMax.y - paramsD.cMin.y);
 		posRigidD[index] = posRigid;
 		return;
 	}
-	if (posRigid.y < cMinD.y) {
-		posRigid.y += (cMaxD.y - cMinD.y);
+	if (posRigid.y < paramsD.cMin.y) {
+		posRigid.y += (paramsD.cMax.y - paramsD.cMin.y);
 		posRigidD[index] = posRigid;
 		return;
 	}
@@ -346,13 +344,13 @@ __global__ void ApplyPeriodicBoundaryZKernel_RigidBodies(real3 * posRigidD) {
 		return;
 	}
 	real3 posRigid = posRigidD[index];
-	if (posRigid.z > cMaxD.z) {
-		posRigid.z -= (cMaxD.z - cMinD.z);
+	if (posRigid.z > paramsD.cMax.z) {
+		posRigid.z -= (paramsD.cMax.z - paramsD.cMin.z);
 		posRigidD[index] = posRigid;
 		return;
 	}
-	if (posRigid.z < cMinD.z) {
-		posRigid.z += (cMaxD.z - cMinD.z);
+	if (posRigid.z < paramsD.cMin.z) {
+		posRigid.z += (paramsD.cMax.z - paramsD.cMin.z);
 		posRigidD[index] = posRigid;
 		return;
 	}
@@ -370,7 +368,7 @@ __global__ void PassesFromTheEnd_Kernel(
 		return;
 	}
 	real3 posRigid = posRigidD[index];
-	if ( (posRigid.x > cMaxD.x) || (posRigid.x < cMinD.x) ) {													//assuming the fluid flows in the positive x direction
+	if ( (posRigid.x > paramsD.cMax.x) || (posRigid.x < paramsD.cMin.x) ) {													//assuming the fluid flows in the positive x direction
 		real_ r = length(R2(posRigid.y, posRigid.z) - pipeCenter);
 		uint radPosition = int(r / dR);
 		radialPositions[index] = radPosition;
@@ -406,8 +404,8 @@ __global__ void SumSurfaceInteractionForces(real3 * totalForcesRigid3, real4 * t
 	real4 dummyVelMas = velMassRigidD[rigidSphereA];
 	real3 derivRigid = solid_SPH_massD / dummyVelMas.w * R3(totalSurfaceInteractionRigid4[rigidSphereA]);
 	//** tweak 3
-	if (length(derivRigid) > .2 * HSML / (dTD * dTD)) {
-			derivRigid *= ( .2 * HSML / (dTD * dTD) ) / length(derivRigid);
+	if (length(derivRigid) > .2 * paramsD.HSML / (dTD * dTD)) {
+			derivRigid *= ( .2 * paramsD.HSML / (dTD * dTD) ) / length(derivRigid);
 	}
 	//** end tweak
 	totalForcesRigid3[rigidSphereA] = derivRigid;
@@ -571,7 +569,7 @@ __global__ void UpdateKernelRigidTranstalation(real3 * totalForcesRigid3, real3 
 	real3 dummyPos = posRigidD[rigidSphereA];
 	real4 dummyVelMas = velMassRigidD[rigidSphereA];
 
-	real3 derivV_SPH = totalForcesRigid3[rigidSphereA]; //in fact, totalBodyForce4 is originially sum of dV/dt of sph particles and should be multiplied by m to produce force. gravity is applied in the force kernel
+	real3 derivV_SPH = totalForcesRigid3[rigidSphereA]; //in fact, totalBodyForce4 is originially sum of dV/dt of sph particles and should be multiplied by m to produce force. paramsD.gravity is applied in the force kernel
 
 	real3 deltaPos = R3(dummyVelMas) * dTD;
 	dummyPos += deltaPos;
@@ -593,7 +591,7 @@ __global__ void UpdateKernelRigidTranstalationBeta(real3 * totalForcesRigid3, re
 	real3 dummyPos = posRigidD[rigidSphereA];
 	real4 dummyVelMas = velMassRigidD[rigidSphereA];
 
-	real3 derivV_SPH = totalForcesRigid3[rigidSphereA]; //in fact, totalBodyForce4 is originially sum of dV/dt of sph particles and should be multiplied by m to produce force. gravity is applied in the force kernel
+	real3 derivV_SPH = totalForcesRigid3[rigidSphereA]; //in fact, totalBodyForce4 is originially sum of dV/dt of sph particles and should be multiplied by m to produce force. paramsD.gravity is applied in the force kernel
 	derivV_SPH.y = 0;
 	derivV_SPH.z = 0;
 
@@ -975,7 +973,7 @@ void ForceSPH(
 			U1CAST(m_dGridMarkerIndex), TCAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), numAllMarkers, m_numGridCells);
 
 	//process collisions
-	real4 totalFluidBodyForce4 = bodyForce4 + R4(Gravity);
+	real4 totalFluidBodyForce4 = paramsD.bodyForce4 + R4(paramsD.gravity);
 	thrust::fill(derivVelRhoD.begin(), derivVelRhoD.end(), R4(0)); //initialize derivVelRhoD with zero. necessary
 	thrust::fill(derivVelRhoD.begin() + referenceArray[0].x, derivVelRhoD.begin() + referenceArray[0].y, totalFluidBodyForce4); //add body force to fluid particles.
 
@@ -1245,7 +1243,7 @@ void UpdateRigidBody(
 	torqueMarkersD.clear();
 	dummyIdentify.clear();
 
-	//add gravity
+	//add paramsD.gravity
 	thrust::device_vector<real3> gravityForces3(numRigidBodies);
 	thrust::fill(gravityForces3.begin(), gravityForces3.end(), paramsH.gravity);
 	thrust::transform(totalForcesRigid3.begin(), totalForcesRigid3.end(), gravityForces3.begin(), totalForcesRigid3.begin(), thrust::plus<real3>());
@@ -1381,7 +1379,7 @@ void UpdateFlexibleBody(
 //	 ....
 //	//end
 
-//	//TODO: add gravity to Flex objects
+//	//TODO: add paramsD.gravity to Flex objects
 //	thrust::device_vector<real3> gravityForces3(numRigidBodies);
 //	thrust::fill(gravityForces3.begin(), gravityForces3.end(), paramsH.gravity);
 //	thrust::transform(totalForcesRigid3.begin(), totalForcesRigid3.end(), gravityForces3.begin(), totalForcesRigid3.begin(), thrust::plus<real3>());
@@ -1445,22 +1443,45 @@ void cudaCollisions(
 		const thrust::host_vector<real_> & flexParametricDist,
 
 		int & numAllMarkers,
-		real3 cMax,
-		real3 cMin,
-		real_ delT,
-		real_ binSize0,
 		real_ channelRadius,
-		real2 channelCenterYZ) {
+		real2 channelCenterYZ,
+		SimParams paramsH) {
+	//****************************** bin size adjustement and contact detection stuff *****************************
+	//real_ mBinSize0 = (numAllMarkers == 0) ? mBinSize0 : 2 * paramsD.HSML;
+	//real3 cMinOffsetCollisionPurpose = paramsH.cMin - 3 * R3(0, mBinSize0, mBinSize0);		//periodic bc in x direction
+	//real3 cMaxOffsetCollisionPurpose = paramsH.cMax + 3 * R3(0, mBinSize0, mBinSize0);
+	////real3 cMinOffsetCollisionPurpose = paramsH.cMin - 3 * R3(mBinSize0, mBinSize0, mBinSize0);		//periodic bc in x direction
+	////real3 cMaxOffsetCollisionPurpose = paramsH.cMax + 3 * R3(mBinSize0, mBinSize0, mBinSize0);
+
+	/////printf("side.x %f\n", abs(cMaxOffsetCollisionPurpose.x - cMinOffsetCollisionPurpose.x) / mBinSize);
+	//int3 SIDE = I3(  floor( (cMaxOffsetCollisionPurpose.x - cMinOffsetCollisionPurpose.x) / mBinSize0 ), floor( (cMaxOffsetCollisionPurpose.y - cMinOffsetCollisionPurpose.y) / mBinSize0 ), floor( (cMaxOffsetCollisionPurpose.z - cMinOffsetCollisionPurpose.z) / mBinSize0)  );
+	//real_ mBinSize = (cMaxOffsetCollisionPurpose.x - cMinOffsetCollisionPurpose.x) / SIDE.x;  //this one works when periodic BC is only on x. if it was on y as well (or on z), you would have problem.
+	real3 cMinOffsetCollisionPurpose = paramsH.cMin;// - 3 * R3(0, 0, paramsH.binSize0); //periodic bc in x direction
+	real3 cMaxOffsetCollisionPurpose = paramsH.cMax;// + 3 * R3(0, 0, paramsH.binSize0);
+	int3 SIDE = I3(int((cMaxOffsetCollisionPurpose.x - cMinOffsetCollisionPurpose.x) / paramsH.binSize0 + .1), int((cMaxOffsetCollisionPurpose.y - cMinOffsetCollisionPurpose.y) / paramsH.binSize0 + .1),
+			floor((cMaxOffsetCollisionPurpose.z - cMinOffsetCollisionPurpose.z) / paramsH.binSize0 + .1));
+	real_ mBinSize = paramsH.binSize0; //Best solution in that case may be to change cMax or cMin such that periodic sides be a multiple of binSize
+
+	printf("SIDE: %d, %d, %d\n", SIDE.x, SIDE.y, SIDE.z);
+	//**********************************************************************************************************
+	paramsH.gridSize = SIDE;
+	//paramsH.numCells = SIDE.x * SIDE.y * SIDE.z;
+	paramsH.worldOrigin = cMinOffsetCollisionPurpose;
+	paramsH.cellSize = R3(mBinSize, mBinSize, mBinSize);
+	paramsH.boxDims = cMaxOffsetCollisionPurpose - cMinOffsetCollisionPurpose;
+	printf("boxDims: %f, %f, %f\n", paramsH.boxDims.x, paramsH.boxDims.y, paramsH.boxDims.z);
+
+	setParameters(&paramsH); 														// sets paramsD in SDKCollisionSystem
+	cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &paramsH, sizeof(SimParams))); 	//sets paramsD for this file
+	//*************************************************************************************************************
 	//--------- initialization ---------------
 	//cudaError_t dumDevErr = cudaSetDevice(2);
 	GpuTimer myTotalTime;
 	myTotalTime.Start();
 	printf("a1 yoho\n");
-	//printf("cMin.x, y, z, CMAx.x, y, z, binSize %f %f %f , %f %f %f, %f\n", cMin.x, cMin.y, cMin.z, cMax.x, cMax.y, cMax.z, binSize0); 
+	//printf("cMin.x, y, z, CMAx.x, y, z, binSize %f %f %f , %f %f %f, %f\n", paramsH.cMin.x, paramsH.cMin.y, paramsH.cMin.z, paramsH.cMax.x, paramsH.cMax.y, paramsH.cMax.z, paramsH.binSize0);
 	cudaDeviceSetCacheConfig(cudaFuncCachePreferL1);
 
-	cudaMemcpyToSymbolAsync(cMinD, &cMin, sizeof(cMin));
-	cudaMemcpyToSymbolAsync(cMaxD, &cMax, sizeof(cMax));
 	cudaMemcpyToSymbolAsync(numAllMarkersD, &numAllMarkers, sizeof(numAllMarkers));
 	printf("a2 yoho\n");
 
@@ -1619,45 +1640,14 @@ void cudaCollisions(
 	//printf("rigid body coord %d %f %f\n", i, posRigidH[i].x, posRigidH[i].z);
 	//printf("length %f\n", length(R2(posRigidH[i].x - .003474, posRigidH[i].z - .000673)));
 
-	//****************************** bin size adjustement and contact detection stuff *****************************
-	//real_ mBinSize0 = (numAllMarkers == 0) ? mBinSize0 : 2 * HSML;
-	//real3 cMinOffsetCollisionPurpose = cMin - 3 * R3(0, mBinSize0, mBinSize0);		//periodic bc in x direction
-	//real3 cMaxOffsetCollisionPurpose = cMax + 3 * R3(0, mBinSize0, mBinSize0);
-	////real3 cMinOffsetCollisionPurpose = cMin - 3 * R3(mBinSize0, mBinSize0, mBinSize0);		//periodic bc in x direction
-	////real3 cMaxOffsetCollisionPurpose = cMax + 3 * R3(mBinSize0, mBinSize0, mBinSize0);
-
-	/////printf("side.x %f\n", abs(cMaxOffsetCollisionPurpose.x - cMinOffsetCollisionPurpose.x) / mBinSize);
-	//int3 SIDE = I3(  floor( (cMaxOffsetCollisionPurpose.x - cMinOffsetCollisionPurpose.x) / mBinSize0 ), floor( (cMaxOffsetCollisionPurpose.y - cMinOffsetCollisionPurpose.y) / mBinSize0 ), floor( (cMaxOffsetCollisionPurpose.z - cMinOffsetCollisionPurpose.z) / mBinSize0)  );
-	//real_ mBinSize = (cMaxOffsetCollisionPurpose.x - cMinOffsetCollisionPurpose.x) / SIDE.x;  //this one works when periodic BC is only on x. if it was on y as well (or on z), you would have problem.
-	real3 cMinOffsetCollisionPurpose = cMin;// - 3 * R3(0, 0, binSize0); //periodic bc in x direction
-	real3 cMaxOffsetCollisionPurpose = cMax;// + 3 * R3(0, 0, binSize0);
-	int3 SIDE = I3(int((cMaxOffsetCollisionPurpose.x - cMinOffsetCollisionPurpose.x) / binSize0 + .1), int((cMaxOffsetCollisionPurpose.y - cMinOffsetCollisionPurpose.y) / binSize0 + .1),
-			floor((cMaxOffsetCollisionPurpose.z - cMinOffsetCollisionPurpose.z) / binSize0 + .1));
-	real_ mBinSize = binSize0; //Best solution in that case may be to change cMax or cMin such that periodic sides be a multiple of binSize
-
-	printf("SIDE: %d, %d, %d\n", SIDE.x, SIDE.y, SIDE.z);
-	//*******************
-	SimParams paramsH;
-	paramsH.gravity = Gravity; //Gravity * sizeScale;;// R3(0, -9.8, 0) * sizeScale; //R3(0, -9800, 0) * sizeScale;
-	paramsH.markerRadius = HSML;
-	paramsH.gridSize = SIDE;
-	//paramsH.numCells = SIDE.x * SIDE.y * SIDE.z;
-	paramsH.worldOrigin = cMinOffsetCollisionPurpose;
-	paramsH.cellSize = R3(mBinSize, mBinSize, mBinSize);
-	paramsH.boxDims = cMaxOffsetCollisionPurpose - cMinOffsetCollisionPurpose;
-	printf("boxDims: %f, %f, %f\n", paramsH.boxDims.x, paramsH.boxDims.y, paramsH.boxDims.z);
-
-	setParameters(&paramsH);
-	cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &paramsH, sizeof(SimParams)));
-
-	//********************************************************************************
 	int numberOfSections = 20; //number of sections for measuring the distribution
 	thrust::device_vector<int>  distributionD(numberOfSections);
 
 	FILE *outFileMultipleZones;
 
+	real_ delT = paramsH.dT;
 	int povRayCounter = 0;
-	int stepEnd = 1.0e6;//2.4e6;//600000;//2.4e6 * (.02 * sizeScale) / delT ; //1.4e6 * (.02 * sizeScale) / delT ;//0.7e6 * (.02 * sizeScale) / delT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
+	int stepEnd = 1.0e6;//2.4e6;//600000;//2.4e6 * (.02 * paramsD.sizeScale) / delT ; //1.4e6 * (.02 * paramsD.sizeScale) / delT ;//0.7e6 * (.02 * paramsD.sizeScale) / delT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
 	printf("stepEnd %d\n", stepEnd);
 
 	real_ delTOrig = delT;
@@ -1692,7 +1682,7 @@ void cudaCollisions(
 		thrust::device_vector<real3> ANCF_SlopesVelD2 = ANCF_SlopesVelD;
 
 		//******** RK2
-		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numAllMarkers, SIDE, 0.5 * delT); //?$ right now, it does not consider gravity or other stuff on rigid bodies. they should be applied at rigid body solver
+		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numAllMarkers, SIDE, 0.5 * delT); //?$ right now, it does not consider paramsD.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
 		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT); //assumes ...D2 is a copy of ...D
 		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT);		//assumes ...D2 is a copy of ...D
 		UpdateRigidBody(posRadD2, velMasD2, posRigidD2, posRadRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2, derivVelRhoD, rigidIdentifierD,
@@ -1752,7 +1742,7 @@ void cudaCollisions(
 
 //			/* post_process for Segre-Silberberg */ goes before ApplyBoundary
 //			if(tStep >= 0) {
-//				real2 channelCenter = .5 * R2(cMax.y + cMin.y, cMax.z + cMin.z);
+//				real2 channelCenter = .5 * R2(paramsH.cMax.y + paramsH.cMin.y, paramsH.cMax.z + paramsH.cMin.z);
 //				FindPassesFromTheEnd(posRigidD, distributionD, numRigidBodies, channelCenter, channelRadius, numberOfSections);
 //			}
 
@@ -1784,7 +1774,7 @@ void cudaCollisions(
 
 		//************************************************
 		//edit  since yu deleted cyliderRotOmegaJD
-		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, cMax, cMin, paramsH,
+		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, paramsH,
 				delT, tStep, channelRadius, channelCenterYZ, numRigidBodies, numFlexBodies);
 
 //		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);

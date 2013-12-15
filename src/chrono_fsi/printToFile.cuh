@@ -21,8 +21,6 @@ void PrintToFile(
 		thrust::device_vector<real3> & AD2,
 		thrust::device_vector<real3> & AD3,
 		thrust::device_vector<real3> & omegaLRF_D,
-		real3 cMax,
-		real3 cMin,
 		SimParams paramsH,
 		real_ delT,
 		int tStep,

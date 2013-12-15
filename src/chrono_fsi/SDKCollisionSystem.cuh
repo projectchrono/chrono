@@ -24,55 +24,37 @@ typedef unsigned int uint;
 #define FETCH(t, i) t[i]
 #endif
 
-
-//#define sizeScale .001
-#define sizeScale 1
-
-//HSML .04 was for the dimensions around 1, .2 is for the dimesions around 11.2
-//#define HSML (0.04f*sizeScale)
-#define HSML (2.0*sizeScale) //I changed it from 0.2
-#define MULT_INITSPACE 1.0
-#define NUM_BCE_LAYERS 2
-#define BASEPRES 0
-#define nPeriod 1
-#define Gravity R3(0, 0, 0)
-	//#define bodyForce4 R4(.005, 0, 0, 0)
-//#define bodyForce4 R4(.00001, 0, 0, 0)
-//#define bodyForce4 R4(6.4e-9, 0, 0, 0)
 // note: for 3D pipe Poiseuille: f = 32*Re*mu^2/(rho^2 * D^3), where f: body force, Re = rho * u_ave * D / mu
 // note: for 2D pipe Poiseuille: f = 12*Re*mu^2/(rho^2 * W^3), where f: body force, Re = rho * u_ave * W / mu
-#define bodyForce4 R4(6.4e-10, 0, 0, 0)
-	//#define bodyForce4 R4(.1, 0, 0, 0)
-	//#define bodyForce4 R4(.0004, 0, 0, 0) //segre. size Scale 1
-	//#define rho0 1180
-#define rho0 1000
-//#define mu0 .001f
-//#define mu0 0.05f
-#define mu0 1.0f
-//#define v_Max .1f
-#define v_Max 2e-3
-//#define v_Max .014f //estimated maximum velocity of fluid
-//#define v_Max .0005f //estimated maximum velocity of fluid
-#define EPS_XSPH .5f
-//Integration Properties
-#define dT_EXPLICIT 10
-#define kdT 5
-#define gammaBB 0.5
-
 
 #define PI 3.1415926535897932384626433832795028841971693993751058f
 #define INVPI 0.3183098861837906715377675267450287240689192914809128f
 struct SimParams {
-		real3 gravity;
-		real_ globalDamping;
-		real_ markerRadius;
-
 		int3 gridSize;
 		real3 worldOrigin;
 		real3 cellSize;
 
 		uint numBodies;
 		real3 boxDims;
+
+		real_ sizeScale;
+		real_ HSML;
+		real_ MULT_INITSPACE;
+		int NUM_BCE_LAYERS;
+		real_ BASEPRES;
+		int nPeriod;
+		real3 gravity;
+		real4 bodyForce4;
+		real_ rho0;
+		real_ mu0;
+		real_ v_Max;
+		real_ EPS_XSPH;
+		real_ dT;
+		real_ kdT;
+		real_ gammaBB;
+		real3 cMin;
+		real3 cMax;
+		real_ binSize0;
 };
 struct real3By3 {
 		real3 a; //first row
@@ -93,7 +75,8 @@ __constant__ real_ resolutionD;
 //--------------------------------------------------------------------------------------------------------------------------------
 //3D SPH kernel function, W3_SplineA
 __device__ inline real_ W3_Spline(real_ d) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
-	real_ h = HSML;
+	real_ h = paramsD.HSML;
+//	printf("h is %f \n", h);
 	real_ q = fabs(d) / h;
 	if (q < 1) {
 		return (0.25f / (PI * h * h * h) * (pow(2 - q, 3) - 4 * pow(1 - q, 3)));
@@ -106,7 +89,7 @@ __device__ inline real_ W3_Spline(real_ d) { // d is positive. h is the sph part
 ////--------------------------------------------------------------------------------------------------------------------------------
 ////2D SPH kernel function, W2_SplineA
 //__device__ inline real_ W2_Spline(real_ d) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
-//	real_ h = HSML;
+//	real_ h = paramsD.HSML;
 //	real_ q = fabs(d) / h;
 //	if (q < 1) {
 //		return (5 / (14 * PI * h * h) * (pow(2 - q, 3) - 4 * pow(1 - q, 3)));
@@ -139,7 +122,7 @@ __device__ inline real_ W3_Spline(real_ d) { // d is positive. h is the sph part
 // d: magnitude of the distance of the two particles
 // dW * dist3 gives the gradiant of W3_Quadratic, where dist3 is the distance vector of the two particles, (dist3)a = pos_a - pos_b
 __device__ inline real3 GradW_Spline(real3 d) { // d is positive. r is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
-	real_ h = HSML;
+	real_ h = paramsD.HSML;
 	real_ q = length(d) / h;
 	bool less1 = (q < 1);
 	bool less2 = (q < 2);
@@ -174,7 +157,7 @@ __device__ inline real_ Eos(real_ rho, real_ type) {
 	////******************************
 	//int gama = 1;
 	//if (type < -.1) {
-	//	return 1 * (100000 * (pow(rho / rho0, gama) - 1) + BASEPRES);
+	//	return 1 * (100000 * (pow(rho / paramsD.rho0, gama) - 1) + paramsD.BASEPRES);
 	//	//return 100 * rho;
 	//} 
 	//////else {
@@ -183,10 +166,10 @@ __device__ inline real_ Eos(real_ rho, real_ type) {
 
 	//******************************	
 	int gama = 7;
-	real_ B = 100 * rho0 * v_Max * v_Max / gama; //200;//314e6; //c^2 * rho0 / gama where c = 1484 m/s for water
+	real_ B = 100 * paramsD.rho0 * paramsD.v_Max * paramsD.v_Max / gama; //200;//314e6; //c^2 * paramsD.rho0 / gama where c = 1484 m/s for water
 	if (type < +.1f) {
-		return B * (pow(rho / rho0, gama) - 1); //1 * (B * (pow(rho / rho0, gama) - 1) + BASEPRES);
-	} else return BASEPRES;
+		return B * (pow(rho / paramsD.rho0, gama) - 1); //1 * (B * (pow(rho / paramsD.rho0, gama) - 1) + paramsD.BASEPRES);
+	} else return paramsD.BASEPRES;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //distance between two particles, considering the periodic boundary condition

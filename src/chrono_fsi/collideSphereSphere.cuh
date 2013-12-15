@@ -1,7 +1,7 @@
 #ifndef COLLIDESPHERESPHERE_CUH
 #define COLLIDESPHERESPHERE_CUH
 
-//#include <cutil_inline.h>
+#include "SDKCollisionSystem.cuh" //just for SimParams
 
 void cudaCollisions(
 		thrust::host_vector<real3> & mPosRad,
@@ -29,11 +29,8 @@ void cudaCollisions(
 		const thrust::host_vector<real_> & flexParametricDist,
 
 		int & numAllMarkers,
-		real3 cMax,
-		real3 cMin,
-		real_ delT,
-		real_ binSize0,
 		real_ channelRadius,
-		real2 channelCenterYZ);
+		real2 channelCenterYZ,
+		SimParams paramsH);
 
 #endif

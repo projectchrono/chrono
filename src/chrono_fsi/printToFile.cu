@@ -30,8 +30,6 @@ void PrintToFile(
 		thrust::device_vector<real3> & AD2,
 		thrust::device_vector<real3> & AD3,
 		thrust::device_vector<real3> & omegaLRF_D,
-		real3 cMax,
-		real3 cMin,
 		SimParams paramsH,
 		real_ delT,
 		int tStep,
@@ -133,11 +131,11 @@ void PrintToFile(
 		for (int i = referenceArray[0].x; i < referenceArray[referenceArray.size() - 1].y; i++) {
 			real3 posRad = posRadH[i];
 			real3 pos = posRad;
-			real_ rad = HSML;
+			real_ rad = paramsH.HSML;
 			real3 vel = R3(velMasH[i]);
 			real4 rP = rhoPresMuH[i];
 			real_ velMag = length(vel);
-			if ((pos.y < cMin.y + 0.5 * (cMax.y - cMin.y) + 3 * rad) && (pos.y > cMin.y + 0.5 * (cMax.y - cMin.y) - 3 * rad)) {
+			if ((pos.y < paramsH.cMin.y + 0.5 * (paramsH.cMax.y - paramsH.cMin.y) + 3 * rad) && (pos.y > paramsH.cMin.y + 0.5 * (paramsH.cMax.y - paramsH.cMin.y) - 3 * rad)) {
 				ssSlice<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w<<endl;
 			}
 		}
@@ -148,7 +146,7 @@ void PrintToFile(
 //	ofstream fileNameCartesianTotal;
 //	thrust::host_vector<real4> rho_Pres_CartH(1);
 //	thrust::host_vector<real4> vel_VelMag_CartH(1);
-//	real_ resolution = 2 * HSML;
+//	real_ resolution = 2 * paramsH.HSML;
 //	int3 cartesianGridDims;
 //	int tStepCartesianTotal = 1000000;
 //	int tStepCartesianSlice = 100000;
@@ -226,7 +224,7 @@ void PrintToFile(
 //		for (int k = 0; k < cartesianGridDims.z; k++) {
 //			int index = i + j * cartesianGridDims.x + k * cartesianGridDims.x * cartesianGridDims.y;
 //			real3 gridNodeLoc = resolution * R3(i, j, k) + paramsH.worldOrigin;
-//			if (gridNodeLoc.z > 1 * sizeScale && gridNodeLoc.z < 2 * sizeScale) {
+//			if (gridNodeLoc.z > 1 * paramsH.sizeScale && gridNodeLoc.z < 2 * paramsH.sizeScale) {
 //				ssVelocityProfPoiseuille<<gridNodeLoc.z<<", "<< vel_VelMag_CartH[index].x<<endl;
 //			}
 //		}
@@ -236,7 +234,7 @@ void PrintToFile(
 //	vel_VelMag_CartH.clear();
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	ofstream fileRigidParticleCenterVsTimeAndDistance;
-	int numRigidBodiesInOnePeriod = int(posRigidH.size() / real_(nPeriod) + .5);
+	int numRigidBodiesInOnePeriod = int(posRigidH.size() / real_(paramsH.nPeriod) + .5);
 	int tStepRigidCenterPos = 1000;
 	if (tStep % tStepRigidCenterPos == 0) {
 		if (tStep / tStepRigidCenterPos == 0) {
@@ -289,7 +287,7 @@ void PrintToFile(
 			if (tStep / tStepRigidParticlesDataForTecplot == 0) {
 				fileRigidParticlesDataForTecplot.open("dataRigidParticlesDataForTecplot.txt");
 				fileRigidParticlesDataForTecplot<<"PipeRadius, PipeLength\n";
-				fileRigidParticlesDataForTecplot<<	channelRadius <<", "<< cMax.x - cMin.x<<", "<< posRigidH.size()<<endl;
+				fileRigidParticlesDataForTecplot<<	channelRadius <<", "<< paramsH.cMax.x - paramsH.cMin.x<<", "<< posRigidH.size()<<endl;
 				fileRigidParticlesDataForTecplot<<"variables = \"t(s)\", \"x\", \"y\", \"z\", \"r\", \"CumulX\", \"vX\", \"vY\", \"vZ\", \"velMagnitude\", \"angleAxisXWithPipeAxis\", \"angleAxisYWithPipeAxis\", \"angleAxisZWithPipeAxis\"\n";
 			} else {
 				fileRigidParticlesDataForTecplot.open("dataRigidParticlesDataForTecplot.txt", ios::app);

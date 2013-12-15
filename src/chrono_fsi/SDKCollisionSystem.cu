@@ -50,13 +50,13 @@ __device__ inline real4 DifVelocityRho(
 
 //	//*** Artificial viscosity type 1.1
 //	real_ alpha = .001;
-//	real_ c_ab = 10 * v_Max; //Ma = .1;//sqrt(7.0f * 10000 / ((rhoPresMuA.x + rhoPresMuB.x) / 2.0f));
-//	//real_ h = HSML;
+//	real_ c_ab = 10 * paramsD.v_Max; //Ma = .1;//sqrt(7.0f * 10000 / ((rhoPresMuA.x + rhoPresMuB.x) / 2.0f));
+//	//real_ h = paramsD.HSML;
 //	real_ rho = .5f * (rhoPresMuA.x + rhoPresMuB.x);
 //	real_ nu = alpha * rSPH * c_ab / rho;
 
 //	//*** Artificial viscosity type 1.2
-//	real_ nu = 22.8f * mu0 / 2.0f / (rhoPresMuA.x * rhoPresMuB.x);
+//	real_ nu = 22.8f * paramsD.mu0 / 2.0f / (rhoPresMuA.x * rhoPresMuB.x);
 //	real3 derivV = -velMasB.w * (
 //		rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)
 //		- nu * vAB_Dot_rAB / ( d * d + epsilonMutualDistance * rSPH * rSPH )
@@ -69,20 +69,20 @@ __device__ inline real4 DifVelocityRho(
 	real_ invrhoPresMuBx=1.0f/ rhoPresMuB.x;
 	real_ rAB_Dot_GradW_OverDist = rAB_Dot_GradW / (d * d + epsilonMutualDistance * rSPH * rSPH);
 	real3 derivV = -velMasB.w * (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y * (invrhoPresMuBx * invrhoPresMuBx)) * gradW
-			+ velMasB.w * (8.0f * multViscosity) * mu0 * pow(rhoPresMuA.x + rhoPresMuB.x, -2) * rAB_Dot_GradW_OverDist
+			+ velMasB.w * (8.0f * multViscosity) * paramsD.mu0 * pow(rhoPresMuA.x + rhoPresMuB.x, -2) * rAB_Dot_GradW_OverDist
 					* R3(velMasA - velMasB);
 	real_ zeta = 0;//.05;//.1;
 	real_ derivRho = rhoPresMuA.x * velMasB.w * invrhoPresMuBx * dot(vel_XSPH_A - vel_XSPH_B, gradW);
 //	real_ zeta = 0;//.05;//.1;
 //	real_ derivRho = rhoPresMuA.x * velMasB.w * invrhoPresMuBx * (dot(vel_XSPH_A - vel_XSPH_B, gradW)
-//			+ zeta * rSPH * (10 * v_Max) * 2 * (rhoPresMuB.x / rhoPresMuA.x - 1) * rAB_Dot_GradW_OverDist
+//			+ zeta * rSPH * (10 * paramsD.v_Max) * 2 * (rhoPresMuB.x / rhoPresMuA.x - 1) * rAB_Dot_GradW_OverDist
 //			);
 	return R4(derivV, derivRho);
 
 //	//*** Artificial viscosity type 1.3
 //	real_ rAB_Dot_GradW = dot(dist3, gradW);
 //	real3 derivV = -velMasB.w * (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) * gradW
-//		+ velMasB.w / (rhoPresMuA.x * rhoPresMuB.x) * 2.0f * mu0 * rAB_Dot_GradW / ( d * d + epsilonMutualDistance * rSPH * rSPH ) * R3(velMasA - velMasB);
+//		+ velMasB.w / (rhoPresMuA.x * rhoPresMuB.x) * 2.0f * paramsD.mu0 * rAB_Dot_GradW / ( d * d + epsilonMutualDistance * rSPH * rSPH ) * R3(velMasA - velMasB);
 //	return R4(derivV,
 //		rhoPresMuA.x * velMasB.w / rhoPresMuB.x * dot(vel_XSPH_A - vel_XSPH_B, gradW));
 }
@@ -102,7 +102,7 @@ __device__ inline real3 DifVelocity_SSI_DEM(
 	real_ kD = 40;//20.0; //420.0;				//damping coef.
 	real3 n = dist3 / d; //unit vector B to A
 	real_ m_eff = (velMasA.w * velMasB.w) / (velMasA.w + velMasB.w);
-	real3 force = (/*pow(sizeScale, 3) * */kS * l - kD * m_eff * dot(R3(velMasA - velMasB), n)) * n; //relative velocity at contact is simply assumed as the relative vel of the centers. If you are updating the rotation, this should be modified.
+	real3 force = (/*pow(paramsD.sizeScale, 3) * */kS * l - kD * m_eff * dot(R3(velMasA - velMasB), n)) * n; //relative velocity at contact is simply assumed as the relative vel of the centers. If you are updating the rotation, this should be modified.
 	return force / velMasA.w; //return dV/dT same as SPH
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -134,7 +134,7 @@ real3 deltaVShare(
 				real3 posRadB = FETCH(sortedPosRad, j);
 				real3 dist3 = Distance(posRadA, posRadB);
 				real_ d = length(dist3);
-				if (d > RESOLUTION_LENGTH_MULT * HSML) continue;
+				if (d > RESOLUTION_LENGTH_MULT * paramsD.HSML) continue;
 				real4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
 				if (!( rhoPresMuA.w <0 && rhoPresMuB.w < 0 )) continue;//# A and B must be fluid, accoring to colagrossi (2003), the other phase (i.e. rigid) should not be considered)
 				real_ multRho = 2.0f / (rhoPresMuA.x + rhoPresMuB.x);
@@ -178,21 +178,21 @@ real4 collideCell(
 				real3 posRadB = FETCH(sortedPosRad, j);
 				real3 dist3Alpha = posRadA - posRadB;
 				real3 dist3 = Distance(posRadA, posRadB);
-				real_ rSPH = HSML;
+				real_ rSPH = paramsD.HSML;
 				real_ d = length(dist3);
-				if (d > RESOLUTION_LENGTH_MULT * HSML) continue;
+				if (d > RESOLUTION_LENGTH_MULT * paramsD.HSML) continue;
 				real4 velMasB = FETCH(sortedVelMas, j);
 				real4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
 
 				//body force in x direction
-				rhoPresMuB.y = (dist3Alpha.x > 0.5 * paramsD.boxDims.x) ? (rhoPresMuB.y - bodyForce4.x*paramsD.boxDims.x) : rhoPresMuB.y;
-				rhoPresMuB.y = (dist3Alpha.x < -0.5 * paramsD.boxDims.x) ? (rhoPresMuB.y + bodyForce4.x*paramsD.boxDims.x) : rhoPresMuB.y;
+				rhoPresMuB.y = (dist3Alpha.x > 0.5 * paramsD.boxDims.x) ? (rhoPresMuB.y - paramsD.bodyForce4.x*paramsD.boxDims.x) : rhoPresMuB.y;
+				rhoPresMuB.y = (dist3Alpha.x < -0.5 * paramsD.boxDims.x) ? (rhoPresMuB.y + paramsD.bodyForce4.x*paramsD.boxDims.x) : rhoPresMuB.y;
 				//body force in x direction
-				rhoPresMuB.y = (dist3Alpha.y > 0.5 * paramsD.boxDims.y) ? (rhoPresMuB.y - bodyForce4.y*paramsD.boxDims.y) : rhoPresMuB.y;
-				rhoPresMuB.y = (dist3Alpha.y < -0.5 * paramsD.boxDims.y) ? (rhoPresMuB.y + bodyForce4.y*paramsD.boxDims.y) : rhoPresMuB.y;
+				rhoPresMuB.y = (dist3Alpha.y > 0.5 * paramsD.boxDims.y) ? (rhoPresMuB.y - paramsD.bodyForce4.y*paramsD.boxDims.y) : rhoPresMuB.y;
+				rhoPresMuB.y = (dist3Alpha.y < -0.5 * paramsD.boxDims.y) ? (rhoPresMuB.y + paramsD.bodyForce4.y*paramsD.boxDims.y) : rhoPresMuB.y;
 				//body force in x direction
-				rhoPresMuB.y = (dist3Alpha.z > 0.5 * paramsD.boxDims.z) ? (rhoPresMuB.y - bodyForce4.z*paramsD.boxDims.z) : rhoPresMuB.y;
-				rhoPresMuB.y = (dist3Alpha.z < -0.5 * paramsD.boxDims.z) ? (rhoPresMuB.y + bodyForce4.z*paramsD.boxDims.z) : rhoPresMuB.y;
+				rhoPresMuB.y = (dist3Alpha.z > 0.5 * paramsD.boxDims.z) ? (rhoPresMuB.y - paramsD.bodyForce4.z*paramsD.boxDims.z) : rhoPresMuB.y;
+				rhoPresMuB.y = (dist3Alpha.z < -0.5 * paramsD.boxDims.z) ? (rhoPresMuB.y + paramsD.bodyForce4.z*paramsD.boxDims.z) : rhoPresMuB.y;
 
 				if (rhoPresMuA.w < 0  ||  rhoPresMuB.w < 0) {
 					if (rhoPresMuA.w == 0) continue;
@@ -255,7 +255,7 @@ real_ collideCellDensityReInit_F1(
 				real4 rhoPreMuB = FETCH(sortedRhoPreMu, j);
 				real3 dist3 = Distance(posRadA, posRadB);
 				real_ d = length(dist3);
-				if (d > RESOLUTION_LENGTH_MULT * HSML) continue;
+				if (d > RESOLUTION_LENGTH_MULT * paramsD.HSML) continue;
 				densityShare += velMasB.w * W3(d); //optimize it ?$
 				//if (fabs(W3(d)) < .00000001) {printf("good evening, distance %f %f %f\n", dist3.x, dist3.y, dist3.z);
 				//printf("posRadA %f %f %f, posRadB, %f %f %f\n", posRadA.x, posRadA.y, posRadA.z, posRadB.x, posRadB.y, posRadB.z);
@@ -429,11 +429,11 @@ void newVel_XSPH_D(real3* vel_XSPH_Sorted_D, // output: new velocity
 		}
 	}
 	//   // write new velocity back to original unsorted location
-	//sortedVel_XSPH[index] = R3(velMasA) + EPS_XSPH * deltaV;
+	//sortedVel_XSPH[index] = R3(velMasA) + paramsD.EPS_XSPH * deltaV;
 
 	// write new velocity back to original unsorted location
 	uint originalIndex = gridMarkerIndex[index];
-	vel_XSPH_Sorted_D[index] = R3(velMasA) + EPS_XSPH * deltaV;
+	vel_XSPH_Sorted_D[index] = R3(velMasA) + paramsD.EPS_XSPH * deltaV;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__
@@ -475,8 +475,8 @@ void collideD(real4* derivVelRhoD, // output: new velocity
 	// write new velocity back to original unsorted location
 	// *** let's tweak a little bit :)
 	real3 derivV = R3(derivVelRho);
-	if (length(derivV) > .2 * HSML / (dTD_SDK * dTD_SDK)) {
-		derivV *= ( .2 * HSML / (dTD_SDK * dTD_SDK) ) / length(derivV);
+	if (length(derivV) > .2 * paramsD.HSML / (dTD_SDK * dTD_SDK)) {
+		derivV *= ( .2 * paramsD.HSML / (dTD_SDK * dTD_SDK) ) / length(derivV);
 		derivVelRho = R4(derivV, derivVelRho.w);
 	}
 	if (fabs(derivVelRho.w) > .005 * rhoPreMuA.x / dTD_SDK) {
