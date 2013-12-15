@@ -48,8 +48,8 @@ const real2 r6_2 = R2(2.747, 4.272) * paramsH.sizeScale;												//the larger
 const real_ x_FirstChannel = 8 * paramsH.sizeScale;
 const real_ x_SecondChannel = 2 * paramsH.sizeScale;
 
-const real_ channelRadius = 0.5 * paramsH.sizeScale; //5.6 * paramsH.sizeScale; //1.0 * paramsH.sizeScale; //tube
-const real2 channelCenterYZ = R2(0.5, 0.5);
+real_ channelRadius; //5.6 * paramsH.sizeScale; //1.0 * paramsH.sizeScale; //tube
+real2 channelCenterYZ;
 
 const real_ sPeriod = 5.384 * paramsH.sizeScale;		//serpentine period
 const real_ toleranceZone = 5 * paramsH.HSML;
@@ -1271,6 +1271,12 @@ int main() {
 	paramsH.cMax = R3( paramsH.nPeriod * distance + 0, 1 + .1,  1 + .1) * paramsH.sizeScale;
 	paramsH.binSize0; // will be changed
 
+	// note: for 3D pipe Poiseuille: f = 32*Re*mu^2/(rho^2 * D^3), where f: body force, Re = rho * u_ave * D / mu
+	// note: for 2D pipe Poiseuille: f = 12*Re*mu^2/(rho^2 * W^3), where f: body force, Re = rho * u_ave * W / mu
+	//****************************************************************************************
+	//*** initialize channel
+	channelRadius = 0.5 * paramsH.sizeScale; //5.6 * paramsH.sizeScale; //1.0 * paramsH.sizeScale; //tube
+	channelCenterYZ = R2(0.5, 0.5);
 	//****************************************************************************************
 	//(void) cudaSetDevice(0);
 	int numAllMarkers = 0;

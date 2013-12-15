@@ -632,8 +632,10 @@ void reorderDataAndFindCellStart(
 		real3* sortedPosRad,
 		real4* sortedVelMas,
 		real4* sortedRhoPreMu,
+
 		uint* gridMarkerHash,
 		uint* gridMarkerIndex,
+
 		real3* oldPosRad,
 		real4* oldVelMas,
 		real4* oldRhoPreMu,
@@ -641,6 +643,7 @@ void reorderDataAndFindCellStart(
 		uint numCells) {
 	uint numThreads, numBlocks;
 	computeGridSize(numAllMarkers, 256, numBlocks, numThreads); //?$ 256 is blockSize
+
 
 	// set all cells to empty
 	cutilSafeCall(cudaMemset(cellStart, 0xffffffff, numCells*sizeof(uint)));
