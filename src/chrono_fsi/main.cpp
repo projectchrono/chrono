@@ -1274,6 +1274,7 @@ int main() {
 	paramsH.cMax = R3( paramsH.nPeriod * distance + 0, 11.2 + 2,  11.2 + 2) * paramsH.sizeScale;
 	paramsH.binSize0; // will be changed
 
+
 	// note: for 3D pipe Poiseuille: f = 32*Re*mu^2/(rho^2 * D^3), where f: body force, Re = rho * u_ave * D / mu
 	// note: for 2D pipe Poiseuille: f = 12*Re*mu^2/(rho^2 * W^3), where f: body force, Re = rho * u_ave * W / mu
 	//****************************************************************************************
