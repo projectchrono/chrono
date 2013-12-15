@@ -1519,6 +1519,7 @@ void cudaCollisions(
 		//******************** rigid body some initialization
 	real_ solid_SPH_mass;																					//____________________________> typical mass, save to constant memory
 	int numRigid_SphMarkers = 0;
+	printf("ff1, reference array [0]: %d %d, [1]: %d %d, [2]: %d %d, size %d\n", (referenceArray[0]).x, (referenceArray[0]).y, (referenceArray[1]).x, (referenceArray[1]).y, (referenceArray[2]).x, (referenceArray[2]).y, referenceArray.size());
 	int startRigidMarkers = (referenceArray[1]).y;
 	numRigid_SphMarkers = referenceArray[2 + numRigidBodies - 1].y - startRigidMarkers;
 	thrust::device_vector<int> rigidIdentifierD(numRigid_SphMarkers);
@@ -1542,11 +1543,12 @@ void cudaCollisions(
 	uint nBlocks_numRigid_SphMarkers;
 	uint nThreads_SphMarkers;
 	computeGridSize(numRigid_SphMarkers, 256, nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);
-	printf("before first kernel\n");
+	printf("ff1, before first kernel\n");
 
 	Populate_RigidSPH_MeshPos_LRF_kernel<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(R3CAST(rigidSPH_MeshPos_LRF_D), R3CAST(posRadD), I1CAST(rigidIdentifierD), R3CAST(posRigidD));
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueShare");	printf("after first kernel\n");
+	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueShare");
+	printf("ff1, after first kernel\n");
 	//******************************************************************************
 	//******************** flex body some initialization
 
@@ -1582,6 +1584,7 @@ void cudaCollisions(
 																	// per beam is nN. In summary, nN chuncks of I2(i, j) pairs (j changes from 0 to nN), Each chunk with
 																	// with the length of nM
 
+	printf("ff1, flexIdsize %d, num flex bodies %d\n", flexIdentifierD.size(), numFlexBodies);
 	thrust::device_vector<int> dummySum(flexIdentifierD.size());
 	thrust::device_vector<int> dummyIdentifier(numFlexBodies);
 	thrust::fill(dummySum.begin(), dummySum.end(), 1);
@@ -1595,10 +1598,9 @@ void cudaCollisions(
 	thrust::exclusive_scan(ANCF_NumMarkers_Per_BeamD.begin(), ANCF_NumMarkers_Per_BeamD.end(), ANCF_NumMarkers_Per_Beam_CumulD.begin());
 	dummySum.clear();
 	dummyIdentifier.clear();
-
 	Calc_NumNodesMultMarkers_Per_Beam(ANCF_NumNodesMultMarkers_Per_BeamD, ANCF_NumMarkers_Per_BeamD, ANCF_ReferenceArrayNodesOnBeams, numFlexBodies);
 	thrust::exclusive_scan(ANCF_NumNodesMultMarkers_Per_BeamD.begin(), ANCF_NumNodesMultMarkers_Per_BeamD.end(), ANCF_NumNodesMultMarkers_Per_Beam_CumulD.begin());
-	int total_NumNodesMultMarkers_Per_Beam = ANCF_NumNodesMultMarkers_Per_Beam_CumulD[numFlexBodies - 1] + ANCF_NumNodesMultMarkers_Per_BeamD[numFlexBodies - 1];
+	int total_NumNodesMultMarkers_Per_Beam = (numFlexBodies > 0) ? (ANCF_NumNodesMultMarkers_Per_Beam_CumulD[numFlexBodies - 1] + ANCF_NumNodesMultMarkers_Per_BeamD[numFlexBodies - 1]) : 0;
 	flexMapEachMarkerOnAllBeamNodesD.resize(total_NumNodesMultMarkers_Per_Beam);
 
 

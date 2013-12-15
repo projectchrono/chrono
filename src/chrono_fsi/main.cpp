@@ -38,6 +38,7 @@ using namespace std;
 SimParams paramsH;
 //typedef unsigned int uint;
 
+////************ note: paramsH is zero here. These expressions are wrong
 const real2 r1_2 = R2(1.351, 1.750) * paramsH.sizeScale;
 const real2 r2_2 = R2(1.341, 1.754) * paramsH.sizeScale;
 const real2 r3_2 = R2(2.413, 3.532) * paramsH.sizeScale;
@@ -46,13 +47,15 @@ const real2 r4_2 = R2(0.279, 0.413) * paramsH.sizeScale;
 const real2 r5_2 = R2(1.675, 1.235) * paramsH.sizeScale; //r5_2 = R2(1.727, 1.235);  	//the smaller one
 const real2 r6_2 = R2(2.747, 4.272) * paramsH.sizeScale;												//the larger one
 const real_ x_FirstChannel = 8 * paramsH.sizeScale;
+const real_ sPeriod = 5.384 * paramsH.sizeScale;		//serpentine period
 const real_ x_SecondChannel = 2 * paramsH.sizeScale;
-
+////*************
 real_ channelRadius; //5.6 * paramsH.sizeScale; //1.0 * paramsH.sizeScale; //tube
 real2 channelCenterYZ;
 
-const real_ sPeriod = 5.384 * paramsH.sizeScale;		//serpentine period
-const real_ toleranceZone = 5 * paramsH.HSML;
+//&&& some other definitions for boundary and such
+real_ toleranceZone;
+
 real3 straightChannelBoundaryMin;
 real3 straightChannelBoundaryMax;
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
@@ -1252,31 +1255,33 @@ int main() {
 	paramsH.numBodies;
 	paramsH.boxDims;
 
-	paramsH.sizeScale = 1;
-	paramsH.HSML = 0.02;
+	paramsH.sizeScale = .001;
+	paramsH.HSML = 0.00015;
 	paramsH.MULT_INITSPACE = 1.0;
 	paramsH.NUM_BCE_LAYERS = 2;
 	paramsH.BASEPRES = 0;
 	paramsH.nPeriod = 1;
 	paramsH.gravity = R3(0, 0, 0);
-	paramsH.bodyForce4 = R4(3.2e-5, 0, 0, 0);
-	paramsH.rho0 = 1000;
-	paramsH.mu0 = 1.0f;
-	paramsH.v_Max = 2e-3;
+	paramsH.bodyForce4 = R4(4, 0, 0, 0);
+	paramsH.rho0 = 1180;
+	paramsH.mu0 = .05;
+	paramsH.v_Max = .5;//2e-3;
 	paramsH.EPS_XSPH = .5f;
-	paramsH.dT = .1;
+	paramsH.dT = .000005;//.1;
 	paramsH.kdT = 5;
 	paramsH.gammaBB = 0.5;
-	paramsH.cMin = R3(0, -.1, -.1) * paramsH.sizeScale;
-	paramsH.cMax = R3( paramsH.nPeriod * distance + 0, 1 + .1,  1 + .1) * paramsH.sizeScale;
+	paramsH.cMin = R3(0, -2, -2) * paramsH.sizeScale;
+	paramsH.cMax = R3( paramsH.nPeriod * distance + 0, 11.2 + 2,  11.2 + 2) * paramsH.sizeScale;
 	paramsH.binSize0; // will be changed
 
 	// note: for 3D pipe Poiseuille: f = 32*Re*mu^2/(rho^2 * D^3), where f: body force, Re = rho * u_ave * D / mu
 	// note: for 2D pipe Poiseuille: f = 12*Re*mu^2/(rho^2 * W^3), where f: body force, Re = rho * u_ave * W / mu
 	//****************************************************************************************
 	//*** initialize channel
-	channelRadius = 0.5 * paramsH.sizeScale; //5.6 * paramsH.sizeScale; //1.0 * paramsH.sizeScale; //tube
-	channelCenterYZ = R2(0.5, 0.5);
+	channelRadius = 5.6 * paramsH.sizeScale; //5.6 * paramsH.sizeScale; //1.0 * paramsH.sizeScale; //tube
+	channelCenterYZ = R2(5.6, 5.6) * paramsH.sizeScale;
+	//*** some other definitions for boundary and such
+	toleranceZone = 5 * paramsH.HSML;
 	//****************************************************************************************
 	//(void) cudaSetDevice(0);
 	int numAllMarkers = 0;
@@ -1377,12 +1382,12 @@ int main() {
 	//**
 //	CreateRigidBodiesFromFile(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
 	//**
-	CreateFlexBodies(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
-			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams,
-			channelRadius,
-			paramsH.cMax.x - paramsH.cMin.x,
-			pipeInPoint3,
-			rhoRigid);
+//	CreateFlexBodies(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
+//			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams,
+//			channelRadius,
+//			paramsH.cMax.x - paramsH.cMin.x,
+//			pipeInPoint3,
+//			rhoRigid);
 //	//channelRadius = 1.0 * paramsH.sizeScale;
 //	CreateRigidBodiesPatternPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
 //	CreateRigidBodiesPatternStepPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
