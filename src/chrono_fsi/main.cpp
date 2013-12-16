@@ -1255,32 +1255,31 @@ int main() {
 	paramsH.numBodies;
 	paramsH.boxDims;
 
-	paramsH.sizeScale = .001;
-	paramsH.HSML = 0.00015;
+	paramsH.sizeScale = 1;
+	paramsH.HSML = 0.02;
 	paramsH.MULT_INITSPACE = 1.0;
 	paramsH.NUM_BCE_LAYERS = 2;
 	paramsH.BASEPRES = 0;
 	paramsH.nPeriod = 1;
 	paramsH.gravity = R3(0, 0, 0);
-	paramsH.bodyForce4 = R4(4, 0, 0, 0);
-	paramsH.rho0 = 1180;
-	paramsH.mu0 = .05;
-	paramsH.v_Max = .5;//2e-3;
+	paramsH.bodyForce4 = R4(3.2e-5, 0, 0, 0);
+	paramsH.rho0 = 1000;
+	paramsH.mu0 = 1.0f;
+	paramsH.v_Max = 2e-3;
 	paramsH.EPS_XSPH = .5f;
-	paramsH.dT = .000005;//.1;
+	paramsH.dT = .1;
 	paramsH.kdT = 5;
 	paramsH.gammaBB = 0.5;
-	paramsH.cMin = R3(0, -2, -2) * paramsH.sizeScale;
-	paramsH.cMax = R3( paramsH.nPeriod * distance + 0, 11.2 + 2,  11.2 + 2) * paramsH.sizeScale;
+	paramsH.cMin = R3(0, -.1, -.1) * paramsH.sizeScale;
+	paramsH.cMax = R3( paramsH.nPeriod * distance + 0, 1 + .1,  1 + .1) * paramsH.sizeScale;
 	paramsH.binSize0; // will be changed
-
 
 	// note: for 3D pipe Poiseuille: f = 32*Re*mu^2/(rho^2 * D^3), where f: body force, Re = rho * u_ave * D / mu
 	// note: for 2D pipe Poiseuille: f = 12*Re*mu^2/(rho^2 * W^3), where f: body force, Re = rho * u_ave * W / mu
 	//****************************************************************************************
 	//*** initialize channel
-	channelRadius = 5.6 * paramsH.sizeScale; //5.6 * paramsH.sizeScale; //1.0 * paramsH.sizeScale; //tube
-	channelCenterYZ = R2(5.6, 5.6) * paramsH.sizeScale;
+	channelRadius = 0.5 * paramsH.sizeScale; //5.6 * paramsH.sizeScale; //1.0 * paramsH.sizeScale; //tube
+	channelCenterYZ = R2(0.5, 0.5);
 	//*** some other definitions for boundary and such
 	toleranceZone = 5 * paramsH.HSML;
 	//****************************************************************************************
@@ -1383,12 +1382,13 @@ int main() {
 	//**
 //	CreateRigidBodiesFromFile(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
 	//**
-//	CreateFlexBodies(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
-//			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams,
-//			channelRadius,
-//			paramsH.cMax.x - paramsH.cMin.x,
-//			pipeInPoint3,
-//			rhoRigid);
+	CreateFlexBodies(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
+			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams,
+			channelRadius,
+			paramsH.cMax.x - paramsH.cMin.x,
+			pipeInPoint3,
+			rhoRigid);
+	//**
 //	//channelRadius = 1.0 * paramsH.sizeScale;
 //	CreateRigidBodiesPatternPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
 //	CreateRigidBodiesPatternStepPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
