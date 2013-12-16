@@ -512,17 +512,18 @@ void CreateFlexBodies(
 		const real_ rhoRigid) {
 	//TODO create mass property of the beams
 
-	int numBeams = 10;
+	int numBeams = 1;
 	int numElementsPerBeam = 3;
-	real_ sectionLenght = pipeLength / numBeams;
+	real_ myMargin = paramsH.MULT_INITSPACE * (paramsH.NUM_BCE_LAYERS + 1) * paramsH.HSML;
+	real_ sectionLenght = (pipeLength - 2 * myMargin) / numBeams;
 	for (int i = 0; i < numBeams; i++) {
-		real_ x = (i + myRand()) * sectionLenght + pipeInPoint3.x;
-		real_ r = myRand() * pipeRadius;
+		real_ x = (i + myRand()) * sectionLenght + (pipeInPoint3.x + myMargin);
+		real_ r = myRand() * (pipeRadius - myMargin);
 		real_ theta = myRand() * 2 * PI;
 		real3 pa3 = R3(x, r*cos(theta) + pipeInPoint3.y, r*sin(theta) + pipeInPoint3.z);
 
-		x = (i + myRand()) * sectionLenght + pipeInPoint3.x;
-		r = myRand() * pipeRadius;
+		x = (i + myRand()) * sectionLenght + (pipeInPoint3.x + myMargin);
+		r = myRand() * (pipeRadius - myMargin);
 		theta = myRand() * 2 * PI;
 		real3 pb3 = R3(x, r*cos(theta) + pipeInPoint3.y, r*sin(theta) + pipeInPoint3.z);
 
@@ -960,10 +961,6 @@ int2 CreateFluidMarkers(
 		const thrust::host_vector<real3> & rigidPos,
 		const thrust::host_vector<Rotation> rigidRotMatrix,
 		const thrust::host_vector<real3> & ellipsoidRadii,
-		real_ sphR,
-		real_ rho,
-		real_ pres,
-		real_ mu,
 		const thrust::host_vector<real3> & ANCF_Nodes,
 		const thrust::host_vector<int2> & ANCF_ReferenceArrayNodesOnBeams) {
 	//real2 rad2 = .5 * R2(paramsH.cMax.y - paramsH.cMin.y, paramsH.cMax.z - paramsH.cMin.z);
@@ -973,7 +970,7 @@ int2 CreateFluidMarkers(
 	srand(964);
 	//real_ initSpace0 = 0.9 * sphR; //1.1 * sphR;//1.1 * sphR;//pow(4.0 / 3 * PI, 1.0 / 3) * sphR;
 	real_ multInitSpace = paramsH.MULT_INITSPACE;//0.9;//0.9;
-	real_ initSpace0 = multInitSpace * sphR;
+	real_ initSpace0 = paramsH.MULT_INITSPACE * paramsH.HSML;
 	printf("initSpaceFluid = %f * sphR\n", multInitSpace);
 	int nFX = ceil((paramsH.cMax.x - paramsH.cMin.x) / (initSpace0));
 	real_ initSpaceX = (paramsH.cMax.x - paramsH.cMin.x) / nFX;
@@ -984,8 +981,8 @@ int2 CreateFluidMarkers(
 	real_ initSpaceZ = (paramsH.cMax.z - paramsH.cMin.z) / nFZ;
 	//printf("&&&&& %f   %f %f %f \n", 1.1 * sphR, initSpaceX, initSpaceY, initSpaceZ);
 	printf("nFX Y Z %d %d %d, max distY %f, initSpaceY %f\n", nFX, nFY, nFZ, (nFY - 1) * initSpaceY, initSpaceY);
-	sphMarkerMass = (initSpaceX * initSpaceY * initSpaceZ) * rho;
-	//printf("sphMarkerMass * 1e12 %f\n", (initSpaceX * initSpaceY * initSpaceZ) * rho*1e12);
+	sphMarkerMass = (initSpaceX * initSpaceY * initSpaceZ) * paramsH.rho0;
+	//printf("sphMarkerMass * 1e12 %f\n", (initSpaceX * initSpaceY * initSpaceZ) * paramsH.rho0*1e12);
 
 	//printf("** nFX, nFX, nFX %d %d %d\n", nFX, nFY, nFZ);
 	//printf("paramsH.cMin.z + initSpaceZ * (nFZ - 1) %f paramsH.cMax.z %f initSpaceZ %f initSpace0 %f\n", paramsH.cMin.z + initSpaceZ * (nFZ - 1), paramsH.cMax.z, initSpaceZ, initSpace0);
@@ -1022,7 +1019,7 @@ int2 CreateFluidMarkers(
 					for (int flexID = 0; flexID < ANCF_ReferenceArrayNodesOnBeams.size(); flexID++) {
 						real3 pa3 = ANCF_Nodes[ ANCF_ReferenceArrayNodesOnBeams[flexID].x ];
 						real3 pb3 = ANCF_Nodes[ ANCF_ReferenceArrayNodesOnBeams[flexID].y - 1 ];
-						if (IsInsideStraightFlex(posRad, pa3, pb3, 2 * initSpace0, initSpace0)) { flag = false; }
+						if (IsInsideStraightFlex(posRad, pa3, pb3, (paramsH.NUM_BCE_LAYERS - 1) * initSpace0, initSpace0)) { flag = false; }
 					}
 				}
 				if (flag) {
@@ -1031,7 +1028,7 @@ int2 CreateFluidMarkers(
 							num_FluidMarkers++;
 							mPosRad.push_back(posRad);
 							mVelMas.push_back(R4(0, 0, 0, sphMarkerMass));
-							mRhoPresMu.push_back(R4(rho, pres, mu, -1)); //rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
+							mRhoPresMu.push_back(R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, -1)); //rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
 																		//just note that the type, i.e. mRhoPresMu.w is real_.
 																		//viscosity of the water is .0018
 
@@ -1040,8 +1037,8 @@ int2 CreateFluidMarkers(
 																		//	if (num_FluidMarkers < 1) {
 																		//		num_FluidMarkers ++;
 																		//		mPosRad.push_back(posRad);
-																		//		mVelMas.push_back( R4(0, 0, 0, pow(initSpace, 3) * rho) );
-																		//		mRhoPresMu.push_back(R4(rho, pres, mu, -1));		//rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
+																		//		mVelMas.push_back( R4(0, 0, 0, pow(initSpace, 3) * paramsH.rho0) );
+																		//		mRhoPresMu.push_back(R4(paramsH.rho0, pres, mu, -1));		//rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
 																		//															//just note that the type, i.e. mRhoPresMu.w is real_.
 																		//															//viscosity of the water is .0018
 																		//	}
@@ -1051,7 +1048,7 @@ int2 CreateFluidMarkers(
 						num_BoundaryMarkers++;
 						mPosRadBoundary.push_back(posRad);
 						mVelMasBoundary.push_back(R4(0, 0, 0, sphMarkerMass));
-						mRhoPresMuBoundary.push_back(R4(rho, pres, mu, 0));	//rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
+						mRhoPresMuBoundary.push_back(R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, 0));	//rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
 						//just note that the type, i.e. mRhoPresMu.w is real_.
 						//viscosity of the water is .0018
 					}
@@ -1071,16 +1068,12 @@ int CreateEllipsoidMarkers(
 		real3 ellipsoidRadii,
 		real4 sphereVelMas,
 		real3 rigidBodyOmega,
-		real_ sphR,
 		real_ sphMarkerMass,
-		real_ rho,
-		real_ pres,
-		real_ mu,
 		int type) {
 	int num_RigidBodyMarkers = 0;
 	//real_ spacing = .9 * sphR;
 	real_ multInitSpace = paramsH.MULT_INITSPACE;//0.9;//1.0;//0.9;
-	real_ spacing = multInitSpace * sphR;
+	real_ spacing = multInitSpace * paramsH.HSML;
 	//printf("initSpaceEllipsoid = %f * sphR\n", multInitSpace);
 	for (int k = 0; k < paramsH.NUM_BCE_LAYERS; k++) {
 		real3 r3 = ellipsoidRadii - R3(k * spacing);
@@ -1117,7 +1110,7 @@ int CreateEllipsoidMarkers(
 					//printf("veloc %f %f %f\n", vel.x, vel.y, vel.z);
 					mVelMas.push_back(R4(vel, sphMarkerMass));
 					real_ representedArea = spacing * spacing;
-					mRhoPresMu.push_back(R4(rho, pres, mu, type));					// for rigid body particle, rho represents the represented area
+					mRhoPresMu.push_back(R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type));					// for rigid body particle, rho represents the represented area
 					//																						// for the rigid particles, the fluid properties are those of the contacting fluid particles
 					num_RigidBodyMarkers++;
 					//printf("num_RigidBodyMarkers %d\n", num_RigidBodyMarkers);
@@ -1144,15 +1137,11 @@ int CreateFlexMarkers(
 		real3 pa3, //inital point
 		real3 pb3, //end point
 		real_ l,  //beam length			//thrust::host_vector<real_> &  ANCF_Beam_Length
-		real_ sphR,
 		real_ sphMarkerMass,
-		real_ rho,
-		real_ pres,
-		real_ mu,
 		int type) {
 	int num_FlexMarkers = 0;
 	real_ multInitSpace = paramsH.MULT_INITSPACE;//0.9;//1.0;//0.9;
-	real_ spacing = multInitSpace * sphR;
+	real_ spacing = multInitSpace * paramsH.HSML;
 
 	real3 n3 = pb3 - pa3;
 	n3 /= length(n3);
@@ -1168,7 +1157,7 @@ int CreateFlexMarkers(
 		real3 centerPoint = pa3 + s * n3;
 		mPosRad.push_back(centerPoint);
 		mVelMas.push_back(R4(0, 0, 0, sphMarkerMass));
-		mRhoPresMu.push_back(R4(rho, pres, mu, type));	//take care of type			 /// type needs to be unique, to differentiate flex from other flex as well as other rigids
+		mRhoPresMu.push_back(R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type));	//take care of type			 /// type needs to be unique, to differentiate flex from other flex as well as other rigids
 		flexParametricDist.push_back(s);
 		num_FlexMarkers++;
 		for (real_ r = spacing; r < paramsH.NUM_BCE_LAYERS * spacing; r += spacing) {
@@ -1178,7 +1167,7 @@ int CreateFlexMarkers(
 				real3 BCE_Pos_Global = Rotate_By_Quaternion(q4, BCE_Pos_local) + centerPoint;
 				mPosRad.push_back(BCE_Pos_Global);
 				mVelMas.push_back(R4(0, 0, 0, sphMarkerMass));
-				mRhoPresMu.push_back(R4(rho, pres, mu, type));	//take care of type
+				mRhoPresMu.push_back(R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type));	//take care of type
 				flexParametricDist.push_back(s);
 				num_FlexMarkers++;
 			}
@@ -1195,15 +1184,11 @@ int CreateCylinderMarkers_XZ(
 		real3 ellipsoidRadii,
 		real4 sphereVelMas,
 		real3 rigidBodyOmega,
-		real_ sphR,
 		real_ sphMarkerMass,
-		real_ rho,
-		real_ pres,
-		real_ mu,
 		int type) {
 	int num_RigidBodyMarkers = 0;
 	real_ multInitSpace = paramsH.MULT_INITSPACE;//0.9;
-	real_ spacing = multInitSpace * sphR;
+	real_ spacing = multInitSpace * paramsH.HSML;
 	printf("initSpaceCylinder = %f * sphR\n", multInitSpace);
 	for (int k = 0; k < paramsH.NUM_BCE_LAYERS; k++) {
 		real_ r = ellipsoidRadii.x - k * spacing;
@@ -1219,7 +1204,7 @@ int CreateCylinderMarkers_XZ(
 					real3 vel = R3(sphereVelMas) + cross(rigidBodyOmega, posRadRigid_sphMarker - rigidPos); //assuming LRF is the same as GRF at time zero (rigibodyOmega is in LRF, the second term of the cross is in GRF)
 					mVelMas.push_back(R4(vel, sphMarkerMass));
 					real_ representedArea = spacing * spacing;
-					mRhoPresMu.push_back(R4(rho, pres, mu, type));					// for rigid body particle, rho represents the represented area
+					mRhoPresMu.push_back(R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type));					// for rigid body particle, rho represents the represented area
 					//																						// for the rigid particles, the fluid properties are those of the contacting fluid particles 
 					num_RigidBodyMarkers++;
 					//printf("num_RigidBodyMarkers %d\n", num_RigidBodyMarkers);
@@ -1258,16 +1243,16 @@ int main() {
 	paramsH.sizeScale = 1;
 	paramsH.HSML = 0.02;
 	paramsH.MULT_INITSPACE = 1.0;
-	paramsH.NUM_BCE_LAYERS = 2;
+	paramsH.NUM_BCE_LAYERS = 5;
 	paramsH.BASEPRES = 0;
 	paramsH.nPeriod = 1;
 	paramsH.gravity = R3(0, 0, 0);
-	paramsH.bodyForce4 = R4(3.2e-5, 0, 0, 0);
+	paramsH.bodyForce4 = R4(3.2e-4, 0, 0, 0);
 	paramsH.rho0 = 1000;
 	paramsH.mu0 = 1.0f;
 	paramsH.v_Max = 2e-3;
 	paramsH.EPS_XSPH = .5f;
-	paramsH.dT = .1;
+	paramsH.dT = .01;
 	paramsH.kdT = 5;
 	paramsH.gammaBB = 0.5;
 	paramsH.cMin = R3(0, -.1, -.1) * paramsH.sizeScale;
@@ -1325,8 +1310,6 @@ int main() {
 
 	bool readFromFile = false;  //true;		//true: initializes from file. False: initializes inside the code
 
-	real_ pres = paramsH.BASEPRES;  //0;//100000;
-	real_ mu = paramsH.mu0;
 	real_ rhoRigid;
 	//1---------------------------------------------- Initialization ----------------------------------------
 	//2------------------------------------------- Generating Random Data -----------------------------------
@@ -1419,7 +1402,7 @@ int main() {
 					>> dummyCh >> velMas.z >> dummyCh >> velMas.w >> dummyCh >> rhoPresMu.x >> dummyCh >> rhoPresMu.y >> dummyCh >> rhoPresMu.z
 					>> dummyCh >> type1;
 
-			rhoPresMu.z = mu;
+			rhoPresMu.z = paramsH.mu0;
 			rhoPresMu.w = type1;
 
 			mPosRad.push_back(posRad);
@@ -1435,7 +1418,7 @@ int main() {
 		thrust::host_vector<real4> mRhoPresMuBoundary;
 
 		int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(mPosRad, mVelMas, mRhoPresMu, mPosRadBoundary, mVelMasBoundary, mRhoPresMuBoundary, sphMarkerMass,
-				rigidPos, rigidRotMatrix, ellipsoidRadii, r, paramsH.rho0, pres, mu,
+				rigidPos, rigidRotMatrix, ellipsoidRadii,
 				ANCF_NodesVel, ANCF_ReferenceArrayNodesOnBeams);
 		referenceArray.push_back(I3(0, num_fluidOrBoundaryMarkers.x, -1));  //map fluid -1
 //		referenceArray_Types.push_back((I3(-1, 0, 0)));
@@ -1464,20 +1447,19 @@ int main() {
 		printf("num_RigidBodyMarkers: \n");
 		for (int rigidSpheres = 0; rigidSpheres < rigidPos.size(); rigidSpheres++) {
 			int num_RigidBodyMarkers = CreateEllipsoidMarkers(mPosRad, mVelMas, mRhoPresMu, rigidPos[rigidSpheres], rigidRotMatrix[rigidSpheres], ellipsoidRadii[rigidSpheres], spheresVelMas[rigidSpheres],
-					rigidBodyOmega[rigidSpheres], r, sphMarkerMass, paramsH.rho0, pres, mu, rigidSpheres + 1);		//as type
+					rigidBodyOmega[rigidSpheres], sphMarkerMass, rigidSpheres + 1);		//as type
 //			int num_RigidBodyMarkers = CreateCylinderMarkers_XZ(mPosRad, mVelMas, mRhoPresMu,
 //													rigidPos[rigidSpheres], ellipsoidRadii[rigidSpheres],
 //													 spheresVelMas[rigidSpheres],
 //													 rigidBodyOmega[rigidSpheres],
-//													 r,
 //													sphMarkerMass,
-//													 paramsH.rho0, pres, mu,
 //													 rigidSpheres + 1);		//as type
 			referenceArray.push_back(I3(numAllMarkers, numAllMarkers + num_RigidBodyMarkers, 1));  //rigid type: 1
 //			referenceArray_Types.push_back(I3(1, rigidSpheres, 0));
 			numAllMarkers += num_RigidBodyMarkers;
-			//printf(" %d \n", num_RigidBodyMarkers);
+//			printf(" %d \n", num_RigidBodyMarkers);
 		}
+		int totalNumFlexMarkers = 0;
 		for (int flexBodyIdx = 0; flexBodyIdx < ANCF_ReferenceArrayNodesOnBeams.size(); flexBodyIdx++) {
 			real3 pa3 = ANCF_Nodes[ ANCF_ReferenceArrayNodesOnBeams[flexBodyIdx].x ];
 			real3 pb3 = ANCF_Nodes[ ANCF_ReferenceArrayNodesOnBeams[flexBodyIdx].y - 1 ];
@@ -1487,18 +1469,16 @@ int main() {
 					pa3, //inital point
 					pb3, //end point
 					ANCF_Beam_Length[flexBodyIdx],  //beam length			//thrust::host_vector<real_> &  ANCF_Beam_Length
-					r,
 					sphMarkerMass,
-					paramsH.rho0,
-					pres,
-					mu,
 					flexBodyIdx + rigidPos.size() + 1);
 
 			referenceArray.push_back(I3(numAllMarkers, numAllMarkers + num_FlexMarkers, 2));  //map bc : rigidSpheres + 1
 //			referenceArray_Types.push_back(I3(1, rigidSpheres, 0));
 			numAllMarkers += num_FlexMarkers;
+			totalNumFlexMarkers += num_FlexMarkers;
 			//printf(" %d \n", num_RigidBodyMarkers);
 		}
+		printf("totalNumFlexMarkers: %d\n", totalNumFlexMarkers);
 		printf("\n");
 	}
 

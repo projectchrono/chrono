@@ -61,9 +61,9 @@
 
 
 const real_ E = 1e9;
-const real_ I = 1;
-const real_ rho = 2000;
-const real_ A = 1;
+const real_ I = 7.8e-5;
+const real_ rho = 1000;
+const real_ A = .0314;
 // Gaussian Quadrature. Applied to the [-1, 1] interval. For other intervals it is like this:
 // int_a^b f(x)dx = (b-a)/2 * sum{w_i * f( (b-a)/2*z_i + (a+b)/2 ) }
 const real_ GQ3_p[3] = {-0.774596669241483	, 0					, 0.774596669241483};

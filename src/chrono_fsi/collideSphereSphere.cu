@@ -939,7 +939,7 @@ void ForceSPH(
 		thrust::device_vector<real4> & derivVelRhoD,
 		const thrust::host_vector<int3> & referenceArray,
 		int numAllMarkers,
-		int3 SIDE,
+		SimParams paramsH,
 		real_ dT) {
 	// Part1: contact detection #########################################################################################################################
 	// grid data for sorting method
@@ -949,7 +949,7 @@ void ForceSPH(
 //	uint* m_dCellStart; // index of start of each cell in sorted list
 //	uint* m_dCellEnd; // index of end of cell
 
-	uint m_numGridCells = SIDE.x * SIDE.y * SIDE.z; //m_gridSize = SIDE
+	uint m_numGridCells = paramsH.gridSize.x * paramsH.gridSize.y * paramsH.gridSize.z; //m_gridSize = SIDE
 	//TODO here
 
 	// calculate grid hash
@@ -973,7 +973,7 @@ void ForceSPH(
 			U1CAST(m_dGridMarkerIndex), TCAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), numAllMarkers, m_numGridCells);
 
 	//process collisions
-	real4 totalFluidBodyForce4 = paramsD.bodyForce4 + R4(paramsD.gravity);
+	real4 totalFluidBodyForce4 = paramsH.bodyForce4 + R4(paramsH.gravity);
 	thrust::fill(derivVelRhoD.begin(), derivVelRhoD.end(), R4(0)); //initialize derivVelRhoD with zero. necessary
 	thrust::fill(derivVelRhoD.begin() + referenceArray[0].x, derivVelRhoD.begin() + referenceArray[0].y, totalFluidBodyForce4); //add body force to fluid particles.
 
@@ -1243,7 +1243,7 @@ void UpdateRigidBody(
 	torqueMarkersD.clear();
 	dummyIdentify.clear();
 
-	//add paramsD.gravity
+	//add paramsH.gravity
 	thrust::device_vector<real3> gravityForces3(numRigidBodies);
 	thrust::fill(gravityForces3.begin(), gravityForces3.end(), paramsH.gravity);
 	thrust::transform(totalForcesRigid3.begin(), totalForcesRigid3.end(), gravityForces3.begin(), totalForcesRigid3.begin(), thrust::plus<real3>());
@@ -1379,7 +1379,7 @@ void UpdateFlexibleBody(
 //	 ....
 //	//end
 
-//	//TODO: add paramsD.gravity to Flex objects
+//	//TODO: add paramsH.gravity to Flex objects
 //	thrust::device_vector<real3> gravityForces3(numRigidBodies);
 //	thrust::fill(gravityForces3.begin(), gravityForces3.end(), paramsH.gravity);
 //	thrust::transform(totalForcesRigid3.begin(), totalForcesRigid3.end(), gravityForces3.begin(), totalForcesRigid3.begin(), thrust::plus<real3>());
@@ -1447,7 +1447,7 @@ void cudaCollisions(
 		real2 channelCenterYZ,
 		SimParams paramsH) {
 	//****************************** bin size adjustement and contact detection stuff *****************************
-	//real_ mBinSize0 = (numAllMarkers == 0) ? mBinSize0 : 2 * paramsD.HSML;
+	//real_ mBinSize0 = (numAllMarkers == 0) ? mBinSize0 : 2 * paramsH.HSML;
 	//real3 cMinOffsetCollisionPurpose = paramsH.cMin - 3 * R3(0, mBinSize0, mBinSize0);		//periodic bc in x direction
 	//real3 cMaxOffsetCollisionPurpose = paramsH.cMax + 3 * R3(0, mBinSize0, mBinSize0);
 	////real3 cMinOffsetCollisionPurpose = paramsH.cMin - 3 * R3(mBinSize0, mBinSize0, mBinSize0);		//periodic bc in x direction
@@ -1649,7 +1649,7 @@ void cudaCollisions(
 
 	real_ delT = paramsH.dT;
 	int povRayCounter = 0;
-	int stepEnd = 1.0e6;//2.4e6;//600000;//2.4e6 * (.02 * paramsD.sizeScale) / delT ; //1.4e6 * (.02 * paramsD.sizeScale) / delT ;//0.7e6 * (.02 * paramsD.sizeScale) / delT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
+	int stepEnd = 1.0e6;//2.4e6;//600000;//2.4e6 * (.02 * paramsH.sizeScale) / delT ; //1.4e6 * (.02 * paramsH.sizeScale) / delT ;//0.7e6 * (.02 * paramsH.sizeScale) / delT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
 	printf("stepEnd %d\n", stepEnd);
 
 	real_ delTOrig = delT;
@@ -1684,61 +1684,65 @@ void cudaCollisions(
 		thrust::device_vector<real3> ANCF_SlopesVelD2 = ANCF_SlopesVelD;
 
 		//******** RK2
-		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numAllMarkers, SIDE, 0.5 * delT); //?$ right now, it does not consider paramsD.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
+		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numAllMarkers, paramsH, 0.5 * delT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
 		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT); //assumes ...D2 is a copy of ...D
-		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT);		//assumes ...D2 is a copy of ...D
-		UpdateRigidBody(posRadD2, velMasD2, posRigidD2, posRadRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2, derivVelRhoD, rigidIdentifierD,
-				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidMarkers, numRigid_SphMarkers, float(tStep)/stepEnd, 0.5 * delT);
-		UpdateFlexibleBody(posRadD2, velMasD2, derivVelRhoD,
-								numRigidBodies, numFlexBodies, numFlex_SphMarkers,
-								ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
-								ANCF_ReferenceArrayNodesOnBeamsD,
-								ANCF_NumMarkers_Per_BeamD,
-								ANCF_NumMarkers_Per_Beam_CumulD,
-						//		thrust::device_vector<int> & ANCF_NumNodesMultMarkers_Per_BeamD,
-								ANCF_NumNodesMultMarkers_Per_Beam_CumulD,
+//		UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT);		//assumes ...D2 is a copy of ...D
 
-								flexIdentifierD,
-								flexMapEachMarkerOnAllBeamNodesD,
-								flexSPH_MeshPos_LRF_D,
-								flexSPH_MeshSlope_Initial_D,
-								flexParametricDistD,
-								ANCF_Beam_LengthD,
-								referenceArray,
+//		UpdateRigidBody(posRadD2, velMasD2, posRigidD2, posRadRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2, derivVelRhoD, rigidIdentifierD,
+//				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidMarkers, numRigid_SphMarkers, float(tStep)/stepEnd, 0.5 * delT);
 
-								paramsH,
-								float(tStep)/stepEnd,
-								0.5 * delT);
+//		UpdateFlexibleBody(posRadD2, velMasD2, derivVelRhoD,
+//								numRigidBodies, numFlexBodies, numFlex_SphMarkers,
+//								ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
+//								ANCF_ReferenceArrayNodesOnBeamsD,
+//								ANCF_NumMarkers_Per_BeamD,
+//								ANCF_NumMarkers_Per_Beam_CumulD,
+//						//		thrust::device_vector<int> & ANCF_NumNodesMultMarkers_Per_BeamD,
+//								ANCF_NumNodesMultMarkers_Per_Beam_CumulD,
+//
+//								flexIdentifierD,
+//								flexMapEachMarkerOnAllBeamNodesD,
+//								flexSPH_MeshPos_LRF_D,
+//								flexSPH_MeshSlope_Initial_D,
+//								flexParametricDistD,
+//								ANCF_Beam_LengthD,
+//								referenceArray,
+//
+//								paramsH,
+//								float(tStep)/stepEnd,
+//								0.5 * delT);
 
-//		ApplyBoundary(posRadD2, rhoPresMuD2, numAllMarkers, posRigidD2, velMassRigidD2, numRigidBodies);
+		ApplyBoundary(posRadD2, rhoPresMuD2, numAllMarkers, posRigidD2, velMassRigidD2, numRigidBodies);
 		//*****
-		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numAllMarkers, SIDE, delT);
+		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numAllMarkers, paramsH, delT);
 		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, delT);
 		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, delT);
-		UpdateRigidBody(posRadD, velMasD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, derivVelRhoD, rigidIdentifierD,
-				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidMarkers, numRigid_SphMarkers, float(tStep)/stepEnd, delT);
-		UpdateFlexibleBody(posRadD, velMasD, derivVelRhoD,
-						numRigidBodies, numFlexBodies, numFlex_SphMarkers,
-						ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
-						ANCF_ReferenceArrayNodesOnBeamsD,
-						ANCF_NumMarkers_Per_BeamD,
-						ANCF_NumMarkers_Per_Beam_CumulD,
-				//		thrust::device_vector<int> & ANCF_NumNodesMultMarkers_Per_BeamD,
-						ANCF_NumNodesMultMarkers_Per_Beam_CumulD,
 
-						flexIdentifierD,
-						flexMapEachMarkerOnAllBeamNodesD,
-						flexSPH_MeshPos_LRF_D,
-						flexSPH_MeshSlope_Initial_D,
-						flexParametricDistD,
-						ANCF_Beam_LengthD,
-						referenceArray,
+//		UpdateRigidBody(posRadD, velMasD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, derivVelRhoD, rigidIdentifierD,
+//				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidMarkers, numRigid_SphMarkers, float(tStep)/stepEnd, delT);
 
-						paramsH,
-						float(tStep)/stepEnd,
-						delT);
+//		UpdateFlexibleBody(posRadD, velMasD, derivVelRhoD,
+//						numRigidBodies, numFlexBodies, numFlex_SphMarkers,
+//						ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
+//						ANCF_ReferenceArrayNodesOnBeamsD,
+//						ANCF_NumMarkers_Per_BeamD,
+//						ANCF_NumMarkers_Per_Beam_CumulD,
+//				//		thrust::device_vector<int> & ANCF_NumNodesMultMarkers_Per_BeamD,
+//						ANCF_NumNodesMultMarkers_Per_Beam_CumulD,
+//
+//						flexIdentifierD,
+//						flexMapEachMarkerOnAllBeamNodesD,
+//						flexSPH_MeshPos_LRF_D,
+//						flexSPH_MeshSlope_Initial_D,
+//						flexParametricDistD,
+//						ANCF_Beam_LengthD,
+//						referenceArray,
+//
+//						paramsH,
+//						float(tStep)/stepEnd,
+//						delT);
 
-//		ApplyBoundary(posRadD, rhoPresMuD, numAllMarkers, posRigidD, velMassRigidD, numRigidBodies);
+		ApplyBoundary(posRadD, rhoPresMuD, numAllMarkers, posRigidD, velMassRigidD, numRigidBodies);
 		//************
 
 
