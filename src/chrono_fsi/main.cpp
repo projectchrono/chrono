@@ -589,10 +589,11 @@ bool IsInsideCylinder_3D(real3 sphParPos, real3 pa3, real3 pb3, real_ rad, real_
 	real3 n3Normal = n3 / length(n3);
 	real3 r = sphParPos - pa3;
 	real_ s = dot(r, n3Normal);
-	if (s < 0 || s > length(n3))
+	if (s < 0 || s > length(n3)) {
 		return false;
+	}
 	real3 s3 = s * n3Normal;
-	if (length(sphParPos - s3) < rad + clearance) {
+	if (length(r - s3) < rad + clearance) {
 		return true;
 	} else {
 		return false;
@@ -1017,8 +1018,9 @@ int2 CreateFluidMarkers(
 //						if ( IsInsideCylinder_XZ(posRad, rigidPos[rigidSpheres], ellipsoidRadii[rigidSpheres], initSpace0 ) ) { flag = false;}
 					}
 					for (int flexID = 0; flexID < ANCF_ReferenceArrayNodesOnBeams.size(); flexID++) {
-						real3 pa3 = ANCF_Nodes[ ANCF_ReferenceArrayNodesOnBeams[flexID].x ];
-						real3 pb3 = ANCF_Nodes[ ANCF_ReferenceArrayNodesOnBeams[flexID].y - 1 ];
+						int2 nodesStartEnd2 = ANCF_ReferenceArrayNodesOnBeams[flexID];
+						real3 pa3 = ANCF_Nodes[ nodesStartEnd2.x ];
+						real3 pb3 = ANCF_Nodes[ nodesStartEnd2.y - 1 ];
 						if (IsInsideStraightFlex(posRad, pa3, pb3, (paramsH.NUM_BCE_LAYERS - 1) * initSpace0, initSpace0)) { flag = false; }
 					}
 				}
@@ -1250,7 +1252,7 @@ int main() {
 	paramsH.bodyForce4 = R4(3.2e-4, 0, 0, 0);
 	paramsH.rho0 = 1000;
 	paramsH.mu0 = 1.0f;
-	paramsH.v_Max = 2e-3;
+	paramsH.v_Max = 2e-3; //ff1 change it to 2e-2 later.
 	paramsH.EPS_XSPH = .5f;
 	paramsH.dT = .01;
 	paramsH.kdT = 5;
@@ -1419,7 +1421,7 @@ int main() {
 
 		int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(mPosRad, mVelMas, mRhoPresMu, mPosRadBoundary, mVelMasBoundary, mRhoPresMuBoundary, sphMarkerMass,
 				rigidPos, rigidRotMatrix, ellipsoidRadii,
-				ANCF_NodesVel, ANCF_ReferenceArrayNodesOnBeams);
+				ANCF_Nodes, ANCF_ReferenceArrayNodesOnBeams);
 		referenceArray.push_back(I3(0, num_fluidOrBoundaryMarkers.x, -1));  //map fluid -1
 //		referenceArray_Types.push_back((I3(-1, 0, 0)));
 		numAllMarkers += num_fluidOrBoundaryMarkers.x;
