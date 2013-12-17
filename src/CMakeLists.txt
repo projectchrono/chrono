@@ -304,6 +304,7 @@ IF (BUILD_CH_SDK)
 		core/ChVector.h   
 		core/ChSpmatrix.h 
 		core/ChWrapHashmap.h 
+		core/ChDistribution.h
 		)
 	SOURCE_GROUP(core FILES 
 			${ChronoEngine_core_SOURCES}
