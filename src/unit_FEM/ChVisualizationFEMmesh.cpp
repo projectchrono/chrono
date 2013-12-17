@@ -13,6 +13,9 @@
 
 #include "unit_FEM/ChVisualizationFEMmesh.h"
 #include "unit_FEM/ChElementTetra_4.h"
+#include "unit_FEM/ChElementTetra_10.h"
+#include "unit_FEM/ChElementHexa_8.h"
+#include "unit_FEM/ChElementHexa_20.h"
 #include "assets/ChTriangleMeshShape.h"
 
 
@@ -158,10 +161,16 @@ void ChVisualizationFEMmesh::Update ()
 		{
 			n_verts +=4;
 			n_vcols +=4;
-			n_index +=4;
+			n_index +=4; // n. triangle faces
 		}
 
 		// ELEMENT IS A HEXAEDRON
+		if (this->FEMmesh->GetElement(iel).IsType<ChElementHexa_8>() )
+		{
+			n_verts +=8;
+			n_vcols +=8;
+			n_index +=12; // n. triangle faces
+		}
 
 		//***TO DO*** other types of elements...
 
@@ -191,7 +200,8 @@ void ChVisualizationFEMmesh::Update ()
 
 	for (unsigned int iel=0; iel < this->FEMmesh->GetNelements(); ++iel)
 	{
-		// ELEMENT IS A TETRAHEDRON?
+		// ------------ELEMENT IS A TETRAHEDRON 4 NODES?
+		
 		if (this->FEMmesh->GetElement(iel).IsType<ChElementTetra_4>() )
 		{
 			// downcasting 
@@ -258,9 +268,119 @@ void ChVisualizationFEMmesh::Update ()
 			++i_colindex;
 		}
 
-		// ELEMENT IS A HEXAEDRON
+		// ------------ELEMENT IS A HEXAHEDRON 8 NODES?
+		if (this->FEMmesh->GetElement(iel).IsType<ChElementHexa_8>() )
+		{
+			// downcasting 
+			ChSharedPtr<ChElementHexa_8> mytetra ( this->FEMmesh->GetElement(iel) );
+			ChSharedPtr<ChNodeFEMxyz> node0( mytetra->GetNodeN(0) ); 
+			ChSharedPtr<ChNodeFEMxyz> node1( mytetra->GetNodeN(1) );
+			ChSharedPtr<ChNodeFEMxyz> node2( mytetra->GetNodeN(2) );
+			ChSharedPtr<ChNodeFEMxyz> node3( mytetra->GetNodeN(3) );
+			ChSharedPtr<ChNodeFEMxyz> node4( mytetra->GetNodeN(4) );
+			ChSharedPtr<ChNodeFEMxyz> node5( mytetra->GetNodeN(5) );
+			ChSharedPtr<ChNodeFEMxyz> node6( mytetra->GetNodeN(6) );
+			ChSharedPtr<ChNodeFEMxyz> node7( mytetra->GetNodeN(7) );
 
-		//***TO DO*** other types of elements...
+			// vertexes
+			unsigned int ivert_el = i_verts;
+			
+			ChVector<> p0 = node0->GetPos();
+			ChVector<> p1 = node1->GetPos();
+			ChVector<> p2 = node2->GetPos();
+			ChVector<> p3 = node3->GetPos();
+			ChVector<> p4 = node4->GetPos();
+			ChVector<> p5 = node5->GetPos();
+			ChVector<> p6 = node6->GetPos();
+			ChVector<> p7 = node7->GetPos();
+ 
+			if (this->shrink_elements)
+			{
+				ChVector<> vc = (p0+p1+p2+p3+p4+p5+p6+p7)*(1.0/8.0);
+				p0 = vc + this->shrink_factor*(p0-vc);
+				p1 = vc + this->shrink_factor*(p1-vc);
+				p2 = vc + this->shrink_factor*(p2-vc);
+				p3 = vc + this->shrink_factor*(p3-vc);
+				p4 = vc + this->shrink_factor*(p4-vc);
+				p5 = vc + this->shrink_factor*(p5-vc);
+				p6 = vc + this->shrink_factor*(p6-vc);
+				p7 = vc + this->shrink_factor*(p7-vc);
+			}
+			trianglemesh.getCoordsVertices()[i_verts] = p0; 
+			++i_verts;
+			trianglemesh.getCoordsVertices()[i_verts] = p1; 
+			++i_verts;
+			trianglemesh.getCoordsVertices()[i_verts] = p2; 
+			++i_verts;
+			trianglemesh.getCoordsVertices()[i_verts] = p3; 
+			++i_verts;
+			trianglemesh.getCoordsVertices()[i_verts] = p4; 
+			++i_verts;
+			trianglemesh.getCoordsVertices()[i_verts] = p5; 
+			++i_verts;
+			trianglemesh.getCoordsVertices()[i_verts] = p6; 
+			++i_verts;
+			trianglemesh.getCoordsVertices()[i_verts] = p7; 
+			++i_verts;
+
+			// colour
+			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( node0, this->FEMmesh->GetElement(iel) ) );
+			++i_vcols;
+			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( node1, this->FEMmesh->GetElement(iel) ) );
+			++i_vcols;
+			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( node2, this->FEMmesh->GetElement(iel) ) );
+			++i_vcols;
+			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( node3, this->FEMmesh->GetElement(iel) ) );
+			++i_vcols;
+			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( node4, this->FEMmesh->GetElement(iel) ) );
+			++i_vcols;
+			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( node5, this->FEMmesh->GetElement(iel) ) );
+			++i_vcols;
+			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( node6, this->FEMmesh->GetElement(iel) ) );
+			++i_vcols;
+			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( node7, this->FEMmesh->GetElement(iel) ) );
+			++i_vcols;
+			// normals: none, defaults to flat triangles. UV: none.
+
+			// faces indexes
+			trianglemesh.getIndicesVertexes()[i_index] = ChVector<int> (0,2,1) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			++i_index;
+			trianglemesh.getIndicesVertexes()[i_index] = ChVector<int> (0,3,2) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			++i_index;
+			trianglemesh.getIndicesVertexes()[i_index] = ChVector<int> (4,5,6) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			++i_index;
+			trianglemesh.getIndicesVertexes()[i_index] = ChVector<int> (4,6,7) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			++i_index;
+			trianglemesh.getIndicesVertexes()[i_index] = ChVector<int> (0,7,3) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			++i_index;
+			trianglemesh.getIndicesVertexes()[i_index] = ChVector<int> (0,4,7) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			++i_index;
+			trianglemesh.getIndicesVertexes()[i_index] = ChVector<int> (0,5,4) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			++i_index;
+			trianglemesh.getIndicesVertexes()[i_index] = ChVector<int> (0,1,5) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			++i_index;
+			trianglemesh.getIndicesVertexes()[i_index] = ChVector<int> (3,7,6) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			++i_index;
+			trianglemesh.getIndicesVertexes()[i_index] = ChVector<int> (3,6,2) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			++i_index;
+			trianglemesh.getIndicesVertexes()[i_index] = ChVector<int> (2,5,1) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			++i_index;
+			trianglemesh.getIndicesVertexes()[i_index] = ChVector<int> (2,6,5) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			++i_index;
+			
+
+			// colour indexes
+			for (int ic= 0; ic <7; ++ic)
+			{
+				trianglemesh.getIndicesColors()[i_colindex]  = trianglemesh.getIndicesVertexes()[i_colindex];
+				++i_colindex;
+			}
+		}
+
+
+
+
+		// ------------***TO DO*** other types of elements...
 
 	}
 
