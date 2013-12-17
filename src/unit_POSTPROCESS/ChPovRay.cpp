@@ -463,8 +463,8 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 					assets_file << "  <" << mytrimesh->m_face_v_indices[it].x << "," <<  mytrimesh->m_face_v_indices[it].y << "," <<  mytrimesh->m_face_v_indices[it].z << ">,\n";
 				assets_file <<" }\n";
 
-				if ((mytrimesh->m_face_n_indices.size() != mytrimesh->m_face_v_indices.size()) && 
-					(mytrimesh->m_face_n_indices.size() >0))
+				//if ((mytrimesh->m_face_n_indices.size() != mytrimesh->m_face_v_indices.size()) && 
+				if	(mytrimesh->m_face_n_indices.size() >0) //)
 				{
 					assets_file << " normal_indices {\n";
 					assets_file << (int)mytrimesh->m_face_n_indices.size() << ",\n";
