@@ -59,6 +59,9 @@
 #include "minv_vec.cuh"
 #include "FlexibleBodies.cuh"
 
+#include <cstdio>
+
+
 
 const real_ E = 1e9;
 const real_ I = 7.8e-5;
@@ -298,10 +301,15 @@ void CopyElementNodesTo_e(real_* e, const thrust::device_vector<real3> & ANCF_No
 //------------------------------------------------------------------------------
 // Why -= and not += : because M*X2 + K*X = F Therefore, in an explicit method: M*X2 = F - K*X where K*X is our elastic forces (f)
 void Add_f_ToForces(thrust::device_vector<real3> & flex_FSI_NodesForces1, thrust::device_vector<real3> & flex_FSI_NodesForces2, real_ k, real_* f, int nodeIdx) {
+	real3 f1 = flex_FSI_NodesForces1[nodeIdx];
+	real3 f2 = flex_FSI_NodesForces2[nodeIdx];
+
 	flex_FSI_NodesForces1[nodeIdx] += k * R3(f[0], f[1], f[2]);
 	flex_FSI_NodesForces2[nodeIdx] += k * R3(f[3], f[4], f[5]);
 	flex_FSI_NodesForces1[nodeIdx + 1] += k * R3(f[6], f[7], f[8]);
 	flex_FSI_NodesForces2[nodeIdx + 1] += k * R3(f[9], f[10], f[11]);
+
+
 }
 //------------------------------------------------------------------------------
 void MapBeamDataTo_1D_Array(real_* e, const thrust::device_vector<real3> & beamData1, const thrust::device_vector<real3> & beamData2, int2 nodesPortion) { //beamData1: postion, beamData2: slope
@@ -350,6 +358,8 @@ void CalcElasticForces(
 				real_ gqPoint = (le - 0) / 2 * GQ5_p[k] + (le + 0) / 2;
 				eps_eps_e(e_ee, gqPoint, le, e);
 				SumArrays(f_e, e_ee, E * A * (le - 0) / 2 * GQ5_w[k], 12);
+//				//ff1
+//				printf("(1) f_e %f %f %f %f %f %f %f %f %f %f %f %f\n", f_e[0], f_e[1], f_e[2], f_e[3], f_e[4], f_e[5], f_e[6], f_e[7], f_e[8], f_e[9], f_e[10], f_e[11]);
 			}
 			// bending force, GQ 3rd order.
 			for (int k = 0; k < 3; k ++) {
@@ -395,6 +405,15 @@ void Update_ANCF_Beam(
 		real_ dT
 		)
 {
+//	//ff1
+//	for (int i = 0; i < ANCF_NodesD.size(); i ++) {
+//		real3 node1, slope1;
+//		node1 = ANCF_NodesD[i];
+//		slope1 = ANCF_SlopesD[i];
+//		//ff1
+//		printf("(1) node1 %f %f %f, slope1 %f %f %f \n", node1.x, node1.y, node1.z, slope1.x, slope1.y, slope1.z);
+//	}
+
 	CalcElasticForces(flex_FSI_NodesForces1, flex_FSI_NodesForces2,
 			ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
 			ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, numFlexBodies);
@@ -417,4 +436,12 @@ void Update_ANCF_Beam(
 		delete [] f;
 		delete [] D2Node;
 	}
+//	//ff1
+//		for (int i = 0; i < ANCF_NodesD.size(); i ++) {
+//			real3 node1, slope1;
+//			node1 = ANCF_NodesD[i];
+//			slope1 = ANCF_SlopesD[i];
+//			//ff1
+//			printf("(2) node1 %f %f %f, slope1 %f %f %f \n", node1.x, node1.y, node1.z, slope1.x, slope1.y, slope1.z);
+//		}
 }

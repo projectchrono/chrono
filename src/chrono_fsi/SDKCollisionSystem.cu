@@ -223,6 +223,8 @@ real4 collideCell(
 		}
 	}
 
+	// ff1
+//	if (rhoPresMuA.w > 0) printf("force value %f %f %f\n", 1e20*derivV.x, 1e20*derivV.y, 1e20*derivV.z);
 	return R4(derivV, derivRho);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
