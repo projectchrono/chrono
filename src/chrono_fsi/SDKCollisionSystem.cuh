@@ -26,6 +26,7 @@ typedef unsigned int uint;
 
 #define PI 3.1415926535897932384626433832795028841971693993751058f
 #define INVPI 0.3183098861837906715377675267450287240689192914809128f
+#define EPSILON 1e-8
 struct SimParams {
 		int3 gridSize;
 		real3 worldOrigin;

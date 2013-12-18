@@ -545,7 +545,7 @@ __global__ void Populate_FlexSPH_MeshSlope_LRF_kernel(
 	if (indexOfClosestNode == maxNodeIdx) indexOfClosestNode--;
 
 	real3 beamPointSlope = Calc_ANCF_Point_Slope(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
-	flexSPH_MeshSlope_Initial_D[index] = beamPointSlope / length(beamPointSlope);
+	flexSPH_MeshSlope_Initial_D[index] = normalize(beamPointSlope);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -744,6 +744,11 @@ __global__ void UpdateFlexMarkersPosition(
 		return;
 	}
 	uint absMarkerIndex = index + startFlexMarkersD; // updatePortionD = [start, end] index of the update portion
+
+//		real3 p3 = posRadD[absMarkerIndex];
+//		p3 *= 1.00001;
+
+//		printf("index %d absMarkerIndex %d \n", index, absMarkerIndex);
 	real_ s = flexParametricDistD[index];
 	int flexBodyIndex = flexIdentifierD[index];
 	real_ l = ANCF_Beam_LengthD[flexBodyIndex];
@@ -755,22 +760,63 @@ __global__ void UpdateFlexMarkersPosition(
 	if (indexOfClosestNode == maxNodeIdx) indexOfClosestNode--;
 
 	real3 beamPointPos = Calc_ANCF_Point_Pos(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+
+//		real3 pa = ANCF_NodesD[indexOfClosestNode];
+//		real3 pb = ANCF_NodesD[indexOfClosestNode + 1];
+//		printf(" pa %f %f %f\n pm %f %f %f\n pb %f %f %f\n\n", pa.x, pa.y, pa.z, beamPointPos.x, beamPointPos.y, beamPointPos.z, pb.x, pb.y, pb.z);
+
 	real3 rX = Calc_ANCF_Point_Slope(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
-	real3 beamPointSlope = rX / length(rX);
+	real3 beamPointSlope = normalize(rX);
 
 	real3 dist3 = flexSPH_MeshPos_LRF_D[index];
+//		real3 sphPoint = posRadD[absMarkerIndex];
+//		printf(" pa %f %f %f\n pm %f %f %f\n pb %f %f %f\n\n", beamPointPos.x, beamPointPos.y, beamPointPos.z, dist3.x, dist3.y, dist3.z, sphPoint.x, sphPoint.y, sphPoint.z);
 	real3 beamPointSlopeInitial = flexSPH_MeshSlope_Initial_D[index];
 
-	real_ theta = acos(dot(beamPointSlopeInitial, beamPointSlope));
-	real3 n3 = cross(beamPointSlopeInitial, beamPointSlope);
-	n3 /= length(n3);
+	real_ cosTheta = dot(beamPointSlopeInitial, beamPointSlope);
+	if(cosTheta>1){
+		cosTheta=1;
+	} else if(cosTheta<-1){
+		cosTheta=-1;
+	}
+//	cosTheta *= rminr(.99999999999999999, .99999999999999999/fabs(cosTheta));  //to take care of numerical error and |cosTheta| > 1 situations
+
+	real_ theta = acos(cosTheta);
+	real3 n3;
+	if (fabs(theta) > 1e-6) {
+		n3 = cross(beamPointSlopeInitial, beamPointSlope);
+		n3 = normalize(n3);
+	} else {
+		n3 = R3(1, 0, 0); //does not really matter, it rotates as much as theta almost equal to zero
+	}
 	real4 q = R4(cos(0.5 * theta),
 			n3.x * sin(0.5 * theta), n3.y * sin(0.5 * theta), n3.z * sin(0.5 * theta));
 	real3 A1, A2, A3;
+
+//	printf("theta %f q %f %f %f %f\n", theta, q.x, q.y, q.z, q.w);
+
 	RotationMatirixFromQuaternion_kernelD(A1, A2, A3, q);
+//	printf("theta %f \nA1 %f %f %f \nA2 %f %f %f \nA3 %f %f %f\n\n\n", theta, A1.x, A1.y, A1.z, A2.x, A2.y, A2.z, A3.x, A3.y, A3.z);
+
+//		real3 p1 = posRadD[absMarkerIndex];
+//		real3 p2 = beamPointPos + R3(dot(A1, dist3), dot(A2, dist3), dot(A3, dist3));
+//		real3 pdiff = dist3;// - p2;
+//		printf("length p1 %f length p2 %f length dist3 %f theta %f cosTheta %f beamPointSlopeInitial %f beamPointSlope %f\n", length(p1), length(p2), length(dist3), theta, cosTheta, length(beamPointSlopeInitial), length(beamPointSlope));
+//		if (length(pdiff) > 1e-8) {
+//			printf("diff of calc and real %f %f %f\n", pdiff.x, pdiff.y, pdiff.z);
+//		}
+
+//		real3 pSPH = posRadD[absMarkerIndex];
+//		real3 pa = ANCF_NodesD[0];
+//		real3 pb = ANCF_NodesD[3];
+//		real3 slope3 = normalize(pb-pa);
+//		printf("pb-pa %f %f %f , beamPointSlope %f %f %f \n", slope3.x, slope3.y, slope3.z, beamPointSlope.x, beamPointSlope.y, beamPointSlope.z);
+//		real3 r = pSPH - pa;
+//		beamPointPos = pa + dot(beamPointSlopeInitial, r) * beamPointSlopeInitial;
+
 	posRadD[absMarkerIndex] = beamPointPos + R3(dot(A1, dist3), dot(A2, dist3), dot(A3, dist3));
 
-	//ask Radu
+//	//ask Radu
 	real_ markerMass = velMasD[absMarkerIndex].w;
 	real3 beamPointVel = Calc_ANCF_Point_Vel(ANCF_NodesVelD, ANCF_SlopesVelD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
 	real3 absOmega = Calc_ANCF_Point_Omega(ANCF_NodesVelD, ANCF_SlopesVelD, indexOfClosestNode, s, l, rX); //interpolation using ANCF beam, cubic hermit equation
@@ -1391,7 +1437,6 @@ void UpdateFlexibleBody(
 
 	//################################################### update rigid body things
 	computeGridSize(numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
-	printf("numFlexSPHMarkers %d \n", numFlex_SphMarkers);
 
 	UpdateFlexMarkersPosition<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(
 			R3CAST(posRadD), R4CAST(velMasD),
@@ -1793,6 +1838,8 @@ void cudaCollisions(
 		//************
 		myGpuTimer.Stop();
 		real_ time2 = (real_)myGpuTimer.Elapsed();
+
+		printf("step: %d\n ", tStep);
 		if (tStep % 50 == 0) {
 			printf("step: %d, step Time: %f\n ", tStep, time2);
 			//printf("a \n");

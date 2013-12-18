@@ -349,7 +349,6 @@ void CalcElasticForces(
 			int nodeIdx = nodesPortion.x + j;
 			real_ e[12];
 			CopyElementNodesTo_e(e, ANCF_NodesD, ANCF_SlopesD, nodeIdx);
-//			CalcElementElasticForces(ANCF_NodesD[nodeIdx], ANCF_SlopesD[nodeIdx], ANCF_NodesD[nodeIdx + 1], ANCF_SlopesD[nodeIdx + 1]);
 			real_ e_ee[12];
 			real_ k_ke[12];
 			real_ f_e[12] = {0};
@@ -358,8 +357,6 @@ void CalcElasticForces(
 				real_ gqPoint = (le - 0) / 2 * GQ5_p[k] + (le + 0) / 2;
 				eps_eps_e(e_ee, gqPoint, le, e);
 				SumArrays(f_e, e_ee, E * A * (le - 0) / 2 * GQ5_w[k], 12);
-//				//ff1
-//				printf("(1) f_e %f %f %f %f %f %f %f %f %f %f %f %f\n", f_e[0], f_e[1], f_e[2], f_e[3], f_e[4], f_e[5], f_e[6], f_e[7], f_e[8], f_e[9], f_e[10], f_e[11]);
 			}
 			// bending force, GQ 3rd order.
 			for (int k = 0; k < 3; k ++) {
@@ -392,6 +389,53 @@ void ItegrateInTime(
 	}
 }
 //------------------------------------------------------------------------------
+real3 RotatePoint_Y_Direction(real3 pIn, real3 center, real_ theta) {
+	real3 A1 = R3(cos(theta), 0, -sin(theta));
+	real3 A2 = R3(0, 1, 0);
+	real3 A3 = R3(sin(theta), 0, cos(theta));
+	real3 rIn = pIn - center;
+	return (pIn + R3(dot(A1, rIn), dot(A2, rIn), dot(A3, rIn)));
+}
+//------------------------------------------------------------------------------
+real3 RotateY_Direction(real3 vec, real_ theta) {
+	return RotatePoint_Y_Direction(vec, R3(0), theta);
+}
+//------------------------------------------------------------------------------
+
+void RigidBodyRotation(
+		thrust::device_vector<real3> & ANCF_NodesD,
+		thrust::device_vector<real3> & ANCF_SlopesD,
+		thrust::device_vector<real3> & ANCF_NodesVelD,
+		thrust::device_vector<real3> & ANCF_SlopesVelD,
+		real_* f,
+		int2 nodesPortion,
+		real_ le,
+		real_ dT) {
+	int numNodes = nodesPortion.y - nodesPortion.x;
+	real3 pa = ANCF_NodesD[nodesPortion.x];
+	real3 pb = ANCF_NodesD[nodesPortion.y - 1];
+	real3 pCenter =  0.5 * (pa + pb);
+	real_ omega = 10;
+	real3 omega3 = omega * R3(0, 1, 0);
+	static real_ theta = 0;
+
+	real_ dTheta = omega * dT;
+
+	for (int j = 0; j < numNodes; j++) {
+		int nodeIdx = nodesPortion.x + j;
+		real3 relR = ANCF_NodesD[nodeIdx] - pCenter;
+
+		ANCF_NodesVelD[nodeIdx] = cross(omega3, relR);
+		real3 nodeSlope3 = ANCF_SlopesD[nodeIdx];
+		ANCF_SlopesVelD[nodeIdx] = cross(omega3, nodeSlope3);
+
+		real3 pBefore = ANCF_NodesD[nodeIdx];
+		ANCF_NodesD[nodeIdx] = RotatePoint_Y_Direction(pBefore, pCenter, dTheta);
+
+		ANCF_SlopesD[nodeIdx] = RotateY_Direction(nodeSlope3, dTheta);
+	}
+}
+//------------------------------------------------------------------------------
 void Update_ANCF_Beam(
 		thrust::device_vector<real3> & ANCF_NodesD,
 		thrust::device_vector<real3> & ANCF_SlopesD,
@@ -405,14 +449,6 @@ void Update_ANCF_Beam(
 		real_ dT
 		)
 {
-//	//ff1
-//	for (int i = 0; i < ANCF_NodesD.size(); i ++) {
-//		real3 node1, slope1;
-//		node1 = ANCF_NodesD[i];
-//		slope1 = ANCF_SlopesD[i];
-//		//ff1
-//		printf("(1) node1 %f %f %f, slope1 %f %f %f \n", node1.x, node1.y, node1.z, slope1.x, slope1.y, slope1.z);
-//	}
 
 	CalcElasticForces(flex_FSI_NodesForces1, flex_FSI_NodesForces2,
 			ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
@@ -429,19 +465,19 @@ void Update_ANCF_Beam(
 		real_* D2Node = new real_ [numNodes * 6];
 		min_vec(D2Node, f, le, numElements);
 
-		ItegrateInTime(ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
+//		//ff1 : the followin commented lines are the real algorithm
+//		ItegrateInTime(ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
+//				f, nodesPortion,
+//				le, dT);
+
+		//ff1: dummy, to check rigid body motion and such
+		RigidBodyRotation(ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
 				f, nodesPortion,
 				le, dT);
+
+
 
 		delete [] f;
 		delete [] D2Node;
 	}
-//	//ff1
-//		for (int i = 0; i < ANCF_NodesD.size(); i ++) {
-//			real3 node1, slope1;
-//			node1 = ANCF_NodesD[i];
-//			slope1 = ANCF_SlopesD[i];
-//			//ff1
-//			printf("(2) node1 %f %f %f, slope1 %f %f %f \n", node1.x, node1.y, node1.z, slope1.x, slope1.y, slope1.z);
-//		}
 }
