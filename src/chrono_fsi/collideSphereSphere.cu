@@ -33,19 +33,19 @@ __constant__ int numFlex_SphMarkersD;
 
 int maxblock = 65535;
 //--------------------------------------------------------------------------------------------------------------------------------
-__device__ __host__ inline int IndexOfClosestNode(real_ s, real_ l, int2 nodesInterval) {
+__device__ __host__ inline int IndexOfClosestNode(real_ sOverBeam, real_ lBeam, int2 nodesInterval) {
 	int nNodes = nodesInterval.y - nodesInterval.x;
 	int maxNodeIdx = nNodes - 1;
-	int indexOfClosestNodeLocal = int(s / l * maxNodeIdx);
+	int indexOfClosestNodeLocal = int(sOverBeam / lBeam * maxNodeIdx);
 	if (indexOfClosestNodeLocal == maxNodeIdx) indexOfClosestNodeLocal--;
 	return (indexOfClosestNodeLocal + nodesInterval.x);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-__device__ __host__ inline void Applied_Force(real_* f_a, real_ x, real_ L, real3 F)
+__device__ __host__ inline void Applied_Force(real_* f_a, real_ sE, real_ lE, real3 F)
 {
 	real_ S[4];
 
-	shape_fun(S, x, L);
+	shape_fun(S, sE, lE);
 
 	f_a[0]  = F.x*S[0];
 	f_a[1]  = F.y*S[0];
@@ -65,10 +65,10 @@ __device__ __host__ inline real3 Calc_ANCF_Point_Pos(
 		real3 * ANCF_NodesD,
 		real3 * ANCF_SlopesD,
 		int indexOfClosestNode,
-		real_ s,
-		real_ l){
+		real_ sE,
+		real_ lE){
 	real_ S[4];
-	shape_fun(S, s, l);
+	shape_fun(S, sE, lE);
 
 
 	real3 r;
@@ -92,10 +92,10 @@ __device__ __host__ inline real3 Calc_ANCF_Point_Slope(
 		real3 * ANCF_NodesD,
 		real3 * ANCF_SlopesD,
 		int indexOfClosestNode,
-		real_ s,
-		real_ l){
+		real_ sE,
+		real_ lE){
 	real_ Sx[4];
-	shape_fun_d(Sx, s, l);
+	shape_fun_d(Sx, sE, lE);
 
 
 	real3 rx;
@@ -115,10 +115,10 @@ __device__ __host__ inline real3 Calc_ANCF_Point_Vel(
 		real3 * ANCF_NodesVelD,
 		real3 * ANCF_SlopesVelD,
 		int indexOfClosestNode,
-		real_ s,
-		real_ l) {
+		real_ sE,
+		real_ lE) {
 	real_ S[4];
-	shape_fun(S, s, l);
+	shape_fun(S, sE, lE);
 
 
 	real3 rt;
@@ -139,11 +139,11 @@ __device__ __host__ inline real3 Calc_ANCF_Point_Omega(
 		real3 * ANCF_NodesVelD,
 		real3 * ANCF_SlopesVelD,
 		int indexOfClosestNode,
-		real_ s,
-		real_ l,
+		real_ sE,
+		real_ lE,
 		real3 rX){
 	real_ Sx[4];
-	shape_fun_d(Sx, s, l);
+	shape_fun_d(Sx, sE, lE);
 
 
 	real3 rxt;
@@ -450,7 +450,7 @@ __global__ void MapForcesOnNodes(
 		return;
 	}
 	uint absMarkerIndex = index + startFlexMarkersD;
-	real_ s = flexParametricDistD[index];
+	real_ sOverBeam = flexParametricDistD[index];
 
 	real3 derivVel = R3( derivVelRhoD[absMarkerIndex] );
 	real3 markerForce = solid_SPH_massD * derivVel;
@@ -461,7 +461,7 @@ __global__ void MapForcesOnNodes(
 //	...
 
 	int flexBodyIndex = flexIdentifierD[index];
-	real_ l = ANCF_Beam_LengthD[flexBodyIndex];
+	real_ lBeam = ANCF_Beam_LengthD[flexBodyIndex];
 
 
 	int numFlexMarkersPreviousBeamsTotal = ANCF_NumMarkers_Per_Beam_CumulD[flexBodyIndex];
@@ -470,11 +470,14 @@ __global__ void MapForcesOnNodes(
 	int numSavedForcesSoFar = ANCF_NumNodesMultMarkers_Per_Beam_CumulD[flexBodyIndex];
 
 	int2 nodesInterval = ANCF_ReferenceArrayNodesOnBeamsD[flexBodyIndex];
-	int indexOfClosestNode = IndexOfClosestNode(s, l, nodesInterval);
+	int indexOfClosestNode = IndexOfClosestNode(sOverBeam, lBeam, nodesInterval);
 	int indexOfClosestNodeLocal = indexOfClosestNode - nodesInterval.x;
 
+	int nNodes = nodesInterval.y - nodesInterval.x;
+	real_ lE = lBeam / (nNodes - 1); //Element length
+	real_ sE = fmod(sOverBeam, lE);
 	real_ f_a[12] = {0};
-	Applied_Force(f_a, s, l, markerForce);
+	Applied_Force(f_a, sE, lE, markerForce);
 	//left node
 	flexNodesForcesAllMarkers1[numSavedForcesSoFar + indexOfClosestNodeLocal * numMarkersOnThisBeam + markerIndexOnThisBeam] = R3(f_a[0], f_a[1], f_a[2]);
 	flexNodesForcesAllMarkers2[numSavedForcesSoFar + indexOfClosestNodeLocal * numMarkersOnThisBeam + markerIndexOnThisBeam] = R3(f_a[3], f_a[4], f_a[5]);
@@ -513,14 +516,17 @@ __global__ void Populate_FlexSPH_MeshPos_LRF_kernel(
 		return;
 	}
 	uint absMarkerIndex = index + startFlexMarkersD; // updatePortionD = [start, end] index of the update portion
-	real_ s = flexParametricDistD[index];
+	real_ sOverBeam = flexParametricDistD[index];
 	int flexBodyIndex = flexIdentifierD[index];
-	real_ l = ANCF_Beam_LengthD[flexBodyIndex];
+	real_ lBeam = ANCF_Beam_LengthD[flexBodyIndex];
 	int2 nodesInterval = ANCF_ReferenceArrayNodesOnBeamsD[flexBodyIndex];
 
-	int indexOfClosestNode = IndexOfClosestNode(s, l, nodesInterval);
+	int indexOfClosestNode = IndexOfClosestNode(sOverBeam, lBeam, nodesInterval);
 
-	real3 beamPointPos = Calc_ANCF_Point_Pos(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	int nNodes = nodesInterval.y - nodesInterval.x;
+	real_ lE = lBeam / (nNodes - 1); //Element length
+	real_ sE = fmod(sOverBeam, lE);
+	real3 beamPointPos = Calc_ANCF_Point_Pos(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, sE, lE); //interpolation using ANCF beam, cubic hermit equation
 
 //	//ff1
 //	real3 pa = ANCF_NodesD[nodesInterval.x];
@@ -554,14 +560,17 @@ __global__ void Populate_FlexSPH_MeshSlope_LRF_kernel(
 		return;
 	}
 	uint absMarkerIndex = index + startFlexMarkersD; // updatePortionD = [start, end] index of the update portion
-	real_ s = flexParametricDistD[index];
+	real_ sOverBeam = flexParametricDistD[index];
 	int flexBodyIndex = flexIdentifierD[index];
-	real_ l = ANCF_Beam_LengthD[flexBodyIndex];
+	real_ lBeam = ANCF_Beam_LengthD[flexBodyIndex];
 	int2 nodesInterval = ANCF_ReferenceArrayNodesOnBeamsD[flexBodyIndex];
 
-	int indexOfClosestNode = IndexOfClosestNode(s, l, nodesInterval);
+	int indexOfClosestNode = IndexOfClosestNode(sOverBeam, lBeam, nodesInterval);
 
-	real3 beamPointSlope = Calc_ANCF_Point_Slope(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	int nNodes = nodesInterval.y - nodesInterval.x;
+	real_ lE = lBeam / (nNodes - 1); //Element length
+	real_ sE = fmod(sOverBeam, lE);
+	real3 beamPointSlope = Calc_ANCF_Point_Slope(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, sE, lE); //interpolation using ANCF beam, cubic hermit equation
 	flexSPH_MeshSlope_Initial_D[index] = normalize(beamPointSlope);
 }
 
@@ -766,19 +775,22 @@ __global__ void UpdateFlexMarkersPosition(
 //		p3 *= 1.00001;
 
 //		printf("index %d absMarkerIndex %d \n", index, absMarkerIndex);
-	real_ s = flexParametricDistD[index];
+	real_ sOverBeam = flexParametricDistD[index];
 	int flexBodyIndex = flexIdentifierD[index];
-	real_ l = ANCF_Beam_LengthD[flexBodyIndex];
+	real_ lBeam = ANCF_Beam_LengthD[flexBodyIndex];
 	int2 nodesInterval = ANCF_ReferenceArrayNodesOnBeamsD[flexBodyIndex];
-	int indexOfClosestNode = IndexOfClosestNode(s, l, nodesInterval);
+	int indexOfClosestNode = IndexOfClosestNode(sOverBeam, lBeam, nodesInterval);
 
-	real3 beamPointPos = Calc_ANCF_Point_Pos(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	int nNodes = nodesInterval.y - nodesInterval.x;
+	real_ lE = lBeam / (nNodes - 1); //Element length
+	real_ sE = fmod(sOverBeam, lE);
+	real3 beamPointPos = Calc_ANCF_Point_Pos(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, sE, lE); //interpolation using ANCF beam, cubic hermit equation
 
 //		real3 pa = ANCF_NodesD[indexOfClosestNode];
 //		real3 pb = ANCF_NodesD[indexOfClosestNode + 1];
 //		printf(" pa %f %f %f\n pm %f %f %f\n pb %f %f %f\n\n", pa.x, pa.y, pa.z, beamPointPos.x, beamPointPos.y, beamPointPos.z, pb.x, pb.y, pb.z);
 
-	real3 rX = Calc_ANCF_Point_Slope(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
+	real3 rX = Calc_ANCF_Point_Slope(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, sE, lE); //interpolation using ANCF beam, cubic hermit equation
 	real3 beamPointSlope = normalize(rX);
 
 	real3 dist3 = flexSPH_MeshPos_LRF_D[index];
@@ -836,8 +848,14 @@ __global__ void UpdateFlexMarkersPosition(
 
 //	//ask Radu
 	real_ markerMass = velMasD[absMarkerIndex].w;
-	real3 beamPointVel = Calc_ANCF_Point_Vel(ANCF_NodesVelD, ANCF_SlopesVelD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
-	real3 absOmega = Calc_ANCF_Point_Omega(ANCF_NodesVelD, ANCF_SlopesVelD, indexOfClosestNode, s, l, rX); //interpolation using ANCF beam, cubic hermit equation
+	real3 beamPointVel = Calc_ANCF_Point_Vel(ANCF_NodesVelD, ANCF_SlopesVelD, indexOfClosestNode, sE, lE); //interpolation using ANCF beam, cubic hermit equation
+
+	if (length(rX) < .0001) {
+		printf("small rx, s %f l %f\n", sE, lE);
+	}
+
+
+	real3 absOmega = Calc_ANCF_Point_Omega(ANCF_NodesVelD, ANCF_SlopesVelD, indexOfClosestNode, sE, lE, rX); //interpolation using ANCF beam, cubic hermit equation
 	velMasD[absMarkerIndex] = R4(beamPointVel + cross(absOmega, dist3), markerMass);
 }
 ////--------------------------------------------------------------------------------------------------------------------------------

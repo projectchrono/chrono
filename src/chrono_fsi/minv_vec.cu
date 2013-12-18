@@ -6,28 +6,28 @@
 //
 // Note that the matrix Mhat used for this calculation is just
 //    Mhat = \int_0^1 { S^T(\xi) S(\xi) d \xi } 
-// As such, the result must be muliplied by 1/(rho * A * le)
-// where le is element length: le = l / numElements
+// As such, the result must be muliplied by 1/(rho * A * lE)
+// where lE is element length: lE = l / numElements
 
 #include <stdio.h>
 #include "SPHCudaUtils.h"
 #include "minv_vec.cuh"
 
-void minv_vec_3(real_* edd, real_* v, real_ le);
-void minv_vec_4(real_* edd, real_* v, real_ le);
+void minv_vec_3(real_* edd, real_* v, real_ lE);
+void minv_vec_4(real_* edd, real_* v, real_ lE);
 
-void min_vec(real_* edd, real_* v, real_ le, int nE) {
+void min_vec(real_* edd, real_* v, real_ lE, int nE) {
 	if (nE == 3) {
-		minv_vec_3(edd, v, le);
+		minv_vec_3(edd, v, lE);
 	}
 	else if (nE == 4) {
-		minv_vec_4(edd, v, le);
+		minv_vec_4(edd, v, lE);
 	} else {
 		printf("Error!!: Number of beam elements equal to %d is not supported. Code exits!\n;");
 	}
 }
 
-void minv_vec_3(real_* edd, real_* v, real_ le)
+void minv_vec_3(real_* edd, real_* v, real_ lE)
 {
 	real_ v1  = v[0];
 	real_ v2  = v[1];
@@ -54,8 +54,8 @@ void minv_vec_3(real_* edd, real_* v, real_ le)
 	real_ v23 = v[22];
 	real_ v24 = v[23];
 
-	real_ t2 = 1.0/le;
-	real_ t3 = 1.0/(le*le);
+	real_ t2 = 1.0/lE;
+	real_ t3 = 1.0/(lE*lE);
 
 	edd[0]  = v1*1.386048285594416E1+v7*1.128494603150387+v13*2.367748579274572E-1-v19*2.796445325908692E-1-t2*(v4*8.962202982569892E1+v10*1.296235554368969E1+v16*3.980319615545978+v22*3.753766352645028);
 	edd[1]  = v2*1.386048285594416E1+v8*1.128494603150387+v14*2.367748579274572E-1-v20*2.796445325908692E-1-t2*(v5*8.962202982569892E1+v11*1.296235554368969E1+v17*3.980319615545978+v23*3.753766352645028);
@@ -88,7 +88,7 @@ void minv_vec_3(real_* edd, real_* v, real_ le)
 // Same as above, but for a "noodle" made up of 4 ANCF beam elements
 // In this case, 'v' and 'edd' are of length (4+1)*6 = 30
 //
-void minv_vec_4(real_* edd, real_* v, real_ le)
+void minv_vec_4(real_* edd, real_* v, real_ lE)
 {
 	real_ v1  = v[0];
 	real_ v2  = v[1];
@@ -122,8 +122,8 @@ void minv_vec_4(real_* edd, real_* v, real_ le)
 	real_ v30 = v[29];
 
 
-	real_ t2 = 1.0/le;
-	real_ t3 = 1.0/(le*le);
+	real_ t2 = 1.0/lE;
+	real_ t3 = 1.0/(lE*lE);
 
 	real_ t4 = v16*8.0937E4;
 	real_ t5 = v17*8.0937E4;

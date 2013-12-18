@@ -12,6 +12,6 @@
 #ifndef MINV_VEC_CUH
 #define MINV_VEC_CUH
 
-void min_vec(real_* edd, real_* v, real_ le, int nE);
+void min_vec(real_* edd, real_* v, real_ lE, int nE);
 
 #endif
