@@ -394,7 +394,7 @@ real3 RotatePoint_Y_Direction(real3 pIn, real3 center, real_ theta) {
 	real3 A2 = R3(0, 1, 0);
 	real3 A3 = R3(sin(theta), 0, cos(theta));
 	real3 rIn = pIn - center;
-	return (pIn + R3(dot(A1, rIn), dot(A2, rIn), dot(A3, rIn)));
+	return (center + R3(dot(A1, rIn), dot(A2, rIn), dot(A3, rIn)));
 }
 //------------------------------------------------------------------------------
 real3 RotateY_Direction(real3 vec, real_ theta) {
@@ -417,22 +417,19 @@ void RigidBodyRotation(
 	real3 pCenter =  0.5 * (pa + pb);
 	real_ omega = 10;
 	real3 omega3 = omega * R3(0, 1, 0);
-	static real_ theta = 0;
-
 	real_ dTheta = omega * dT;
 
 	for (int j = 0; j < numNodes; j++) {
 		int nodeIdx = nodesPortion.x + j;
+		real3 pBefore = ANCF_NodesD[nodeIdx];
+		ANCF_NodesD[nodeIdx] = RotatePoint_Y_Direction(pBefore, pCenter, dTheta);
+		real3 nodeSlope3 = ANCF_SlopesD[nodeIdx];
+		ANCF_SlopesD[nodeIdx] = RotateY_Direction(nodeSlope3, dTheta);
+
 		real3 relR = ANCF_NodesD[nodeIdx] - pCenter;
 
 		ANCF_NodesVelD[nodeIdx] = cross(omega3, relR);
-		real3 nodeSlope3 = ANCF_SlopesD[nodeIdx];
 		ANCF_SlopesVelD[nodeIdx] = cross(omega3, nodeSlope3);
-
-		real3 pBefore = ANCF_NodesD[nodeIdx];
-		ANCF_NodesD[nodeIdx] = RotatePoint_Y_Direction(pBefore, pCenter, dTheta);
-
-		ANCF_SlopesD[nodeIdx] = RotateY_Direction(nodeSlope3, dTheta);
 	}
 }
 //------------------------------------------------------------------------------
