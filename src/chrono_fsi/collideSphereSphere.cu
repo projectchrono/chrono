@@ -33,6 +33,14 @@ __constant__ int numFlex_SphMarkersD;
 
 int maxblock = 65535;
 //--------------------------------------------------------------------------------------------------------------------------------
+__device__ __host__ inline int IndexOfClosestNode(real_ s, real_ l, int2 nodesInterval) {
+	int nNodes = nodesInterval.y - nodesInterval.x;
+	int maxNodeIdx = nNodes - 1;
+	int indexOfClosestNodeLocal = int(s / l * maxNodeIdx);
+	if (indexOfClosestNodeLocal == maxNodeIdx) indexOfClosestNodeLocal--;
+	return (indexOfClosestNodeLocal + nodesInterval.x);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 __device__ __host__ inline void Applied_Force(real_* f_a, real_ x, real_ L, real3 F)
 {
 	real_ S[4];
@@ -72,6 +80,9 @@ __device__ __host__ inline real3 Calc_ANCF_Point_Pos(
 	r.x = S[0]*ni.x + S[1]*si.x + S[2]*nj.x + S[3]*sj.x;
 	r.y = S[0]*ni.y + S[1]*si.y + S[2]*nj.y + S[3]*sj.y;
 	r.z = S[0]*ni.z + S[1]*si.z + S[2]*nj.z + S[3]*sj.z;
+
+//	//ff1
+//	printf("n1 %f %f %f, r %f %f %f, n2 %f %f %f\n", ni.x, ni.y, ni.z, r.x, r.y, r.z, nj.x, nj.y, nj.z);
 
 	return r;
 }
@@ -459,20 +470,17 @@ __global__ void MapForcesOnNodes(
 	int numSavedForcesSoFar = ANCF_NumNodesMultMarkers_Per_Beam_CumulD[flexBodyIndex];
 
 	int2 nodesInterval = ANCF_ReferenceArrayNodesOnBeamsD[flexBodyIndex];
-	int nNodes = nodesInterval.y - nodesInterval.x;
-	int maxNodeIdx = nNodes - 1;
-	int indexOfClosestNode = int(s / l * maxNodeIdx);
-	if (indexOfClosestNode == maxNodeIdx) indexOfClosestNode--;
-
+	int indexOfClosestNode = IndexOfClosestNode(s, l, nodesInterval);
+	int indexOfClosestNodeLocal = indexOfClosestNode - nodesInterval.x;
 
 	real_ f_a[12] = {0};
 	Applied_Force(f_a, s, l, markerForce);
 	//left node
-	flexNodesForcesAllMarkers1[numSavedForcesSoFar + indexOfClosestNode * numMarkersOnThisBeam + markerIndexOnThisBeam] = R3(f_a[0], f_a[1], f_a[2]);
-	flexNodesForcesAllMarkers2[numSavedForcesSoFar + indexOfClosestNode * numMarkersOnThisBeam + markerIndexOnThisBeam] = R3(f_a[3], f_a[4], f_a[5]);
+	flexNodesForcesAllMarkers1[numSavedForcesSoFar + indexOfClosestNodeLocal * numMarkersOnThisBeam + markerIndexOnThisBeam] = R3(f_a[0], f_a[1], f_a[2]);
+	flexNodesForcesAllMarkers2[numSavedForcesSoFar + indexOfClosestNodeLocal * numMarkersOnThisBeam + markerIndexOnThisBeam] = R3(f_a[3], f_a[4], f_a[5]);
 	//right node
-	flexNodesForcesAllMarkers1[numSavedForcesSoFar + (indexOfClosestNode + 1) * numMarkersOnThisBeam + markerIndexOnThisBeam] = R3(f_a[6], f_a[7], f_a[8]);
-	flexNodesForcesAllMarkers2[numSavedForcesSoFar + (indexOfClosestNode + 1) * numMarkersOnThisBeam + markerIndexOnThisBeam] = R3(f_a[9], f_a[10], f_a[11]);
+	flexNodesForcesAllMarkers1[numSavedForcesSoFar + (indexOfClosestNodeLocal + 1) * numMarkersOnThisBeam + markerIndexOnThisBeam] = R3(f_a[6], f_a[7], f_a[8]);
+	flexNodesForcesAllMarkers2[numSavedForcesSoFar + (indexOfClosestNodeLocal + 1) * numMarkersOnThisBeam + markerIndexOnThisBeam] = R3(f_a[9], f_a[10], f_a[11]);
 
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -509,16 +517,28 @@ __global__ void Populate_FlexSPH_MeshPos_LRF_kernel(
 	int flexBodyIndex = flexIdentifierD[index];
 	real_ l = ANCF_Beam_LengthD[flexBodyIndex];
 	int2 nodesInterval = ANCF_ReferenceArrayNodesOnBeamsD[flexBodyIndex];
-	int nNodes = nodesInterval.y - nodesInterval.x;
 
-	int maxNodeIdx = nNodes - 1;
-	int indexOfClosestNode = int(s / l * maxNodeIdx);
-	if (indexOfClosestNode == maxNodeIdx) indexOfClosestNode--;
+	int indexOfClosestNode = IndexOfClosestNode(s, l, nodesInterval);
 
 	real3 beamPointPos = Calc_ANCF_Point_Pos(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
 
+//	//ff1
+//	real3 pa = ANCF_NodesD[nodesInterval.x];
+//	real3 pb = ANCF_NodesD[nodesInterval.y - 1];
+//	real3 r3 = normalize(pb - pa);
+//	real3 beamPointPos2 = pa + dot(posRadD[absMarkerIndex] - pa, r3) * r3;
+
+//	//ff1
+//	if (length(pb - pa) > .000001) {
+//		printf("midPoint %f %f %f, midPoin2 %f %f %f\n", beamPointPos.x, beamPointPos.y, beamPointPos.z, beamPointPos2.x, beamPointPos2.y, beamPointPos2.z);
+//	}
+
 	real3 dist3 = posRadD[absMarkerIndex] - beamPointPos;
 	flexSPH_MeshPos_LRF_D[index] = dist3;
+
+//	///ff1
+//		 	 real_ hh = paramsD.HSML;
+//		 	 printf("dist %f \n", length(dist3)/hh);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void Populate_FlexSPH_MeshSlope_LRF_kernel(
@@ -538,11 +558,8 @@ __global__ void Populate_FlexSPH_MeshSlope_LRF_kernel(
 	int flexBodyIndex = flexIdentifierD[index];
 	real_ l = ANCF_Beam_LengthD[flexBodyIndex];
 	int2 nodesInterval = ANCF_ReferenceArrayNodesOnBeamsD[flexBodyIndex];
-	int nNodes = nodesInterval.y - nodesInterval.x;
 
-	int maxNodeIdx = nNodes - 1;
-	int indexOfClosestNode = int(s / l * maxNodeIdx);
-	if (indexOfClosestNode == maxNodeIdx) indexOfClosestNode--;
+	int indexOfClosestNode = IndexOfClosestNode(s, l, nodesInterval);
 
 	real3 beamPointSlope = Calc_ANCF_Point_Slope(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
 	flexSPH_MeshSlope_Initial_D[index] = normalize(beamPointSlope);
@@ -753,11 +770,7 @@ __global__ void UpdateFlexMarkersPosition(
 	int flexBodyIndex = flexIdentifierD[index];
 	real_ l = ANCF_Beam_LengthD[flexBodyIndex];
 	int2 nodesInterval = ANCF_ReferenceArrayNodesOnBeamsD[flexBodyIndex];
-	int nNodes = nodesInterval.y - nodesInterval.x;
-
-	int maxNodeIdx = nNodes - 1;
-	int indexOfClosestNode = int(s / l * maxNodeIdx);
-	if (indexOfClosestNode == maxNodeIdx) indexOfClosestNode--;
+	int indexOfClosestNode = IndexOfClosestNode(s, l, nodesInterval);
 
 	real3 beamPointPos = Calc_ANCF_Point_Pos(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, s, l); //interpolation using ANCF beam, cubic hermit equation
 
@@ -814,6 +827,11 @@ __global__ void UpdateFlexMarkersPosition(
 //		real3 r = pSPH - pa;
 //		beamPointPos = pa + dot(beamPointSlopeInitial, r) * beamPointSlopeInitial;
 
+//	printf("beamPointPos %f %f %f \n", beamPointPos.x, beamPointPos.y, beamPointPos.z);
+
+//		///ff1
+//	 	 real_ hh = paramsD.HSML;
+//	 	 printf("dist %f \n", length(dist3)/hh);
 	posRadD[absMarkerIndex] = beamPointPos + R3(dot(A1, dist3), dot(A2, dist3), dot(A3, dist3));
 
 //	//ask Radu
@@ -1831,7 +1849,11 @@ void cudaCollisions(
 
 		//************************************************
 		//edit  since yu deleted cyliderRotOmegaJD
-		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray, rigidIdentifierD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, paramsH,
+		PrintToFile(posRadD, velMasD, rhoPresMuD,
+				referenceArray, rigidIdentifierD,
+				posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
+				ANCF_NodesD, ANCF_NodesVelD,
+				paramsH,
 				delT, tStep, channelRadius, channelCenterYZ, numRigidBodies, numFlexBodies);
 
 //		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);

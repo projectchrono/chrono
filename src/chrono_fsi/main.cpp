@@ -19,7 +19,6 @@
 #include <vector>
 #include <cstdlib> //for RAND_MAX
 
-
 //for memory leak detection, apparently does not work in conjunction with cuda
 //#define _CRTDBG_MAP_ALLOC
 //#include <stdlib.h>
@@ -45,9 +44,9 @@ const real2 r3_2 = R2(2.413, 3.532) * paramsH.sizeScale;
 const real2 r4_2 = R2(0.279, 0.413) * paramsH.sizeScale;
 
 const real2 r5_2 = R2(1.675, 1.235) * paramsH.sizeScale; //r5_2 = R2(1.727, 1.235);  	//the smaller one
-const real2 r6_2 = R2(2.747, 4.272) * paramsH.sizeScale;												//the larger one
+const real2 r6_2 = R2(2.747, 4.272) * paramsH.sizeScale; //the larger one
 const real_ x_FirstChannel = 8 * paramsH.sizeScale;
-const real_ sPeriod = 5.384 * paramsH.sizeScale;		//serpentine period
+const real_ sPeriod = 5.384 * paramsH.sizeScale; //serpentine period
 const real_ x_SecondChannel = 2 * paramsH.sizeScale;
 ////*************
 real_ channelRadius; //5.6 * paramsH.sizeScale; //1.0 * paramsH.sizeScale; //tube
@@ -60,11 +59,11 @@ real3 straightChannelBoundaryMin;
 real3 straightChannelBoundaryMax;
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 struct Rotation {
-		real_ a00, a01, a02, a10, a11, a12, a20, a21, a22;
+	real_ a00, a01, a02, a10, a11, a12, a20, a21, a22;
 };
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 // first comp of q is rotation, last 3 components are axis of rot
-void CalcQuat2RotationMatrix (Rotation & rotMat, const real4 & q) {
+void CalcQuat2RotationMatrix(Rotation & rotMat, const real4 & q) {
 	rotMat.a00 = 2.0 * (0.5f - q.z * q.z - q.w * q.w);
 	rotMat.a01 = 2.0 * (q.y * q.z - q.x * q.w);
 	rotMat.a02 = 2.0 * (q.y * q.w + q.x * q.z);
@@ -73,26 +72,30 @@ void CalcQuat2RotationMatrix (Rotation & rotMat, const real4 & q) {
 	rotMat.a11 = 2 * (0.5f - q.y * q.y - q.w * q.w);
 	rotMat.a12 = 2 * (q.z * q.w - q.x * q.y);
 
-	rotMat.a20 = 2 *  (q.y * q.w - q.x * q.z);
+	rotMat.a20 = 2 * (q.y * q.w - q.x * q.z);
 	rotMat.a21 = 2 * (q.z * q.w + q.x * q.y);
 	rotMat.a22 = 2 * (0.5f - q.y * q.y - q.z * q.z);
-};
+}
+;
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 // first comp of q is rotation, last 3 components are axis of rot
-real3 Rotate_By_RotationMatrix (const Rotation & rotMat, const real3 & r3) {
+real3 Rotate_By_RotationMatrix(const Rotation & rotMat, const real3 & r3) {
 	return R3(rotMat.a00 * r3.x + rotMat.a01 * r3.y + rotMat.a02 * r3.z,
 			rotMat.a10 * r3.x + rotMat.a11 * r3.y + rotMat.a12 * r3.z,
 			rotMat.a20 * r3.x + rotMat.a21 * r3.y + rotMat.a22 * r3.z);
-};
+}
+;
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 // first comp of q is rotation, last 3 components are axis of rot
-real3 Rotate_By_Quaternion (const real4 & q4, const real3 & r3) {
+real3 Rotate_By_Quaternion(const real4 & q4, const real3 & r3) {
 	Rotation rotMat;
 	CalcQuat2RotationMatrix(rotMat, q4);
 	return Rotate_By_RotationMatrix(rotMat, r3);
-};
+}
+;
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-void ConvertQuatArray2RotArray (thrust::host_vector<Rotation> & rotArray, const thrust::host_vector<real4> & quat) {
+void ConvertQuatArray2RotArray(thrust::host_vector<Rotation> & rotArray,
+		const thrust::host_vector<real4> & quat) {
 	for (int i = 0; i < quat.size(); i++) {
 		Rotation rot;
 		CalcQuat2RotationMatrix(rot, quat[i]);
@@ -101,33 +104,34 @@ void ConvertQuatArray2RotArray (thrust::host_vector<Rotation> & rotArray, const 
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 real_ myRand() {
-	return real_(rand())/RAND_MAX;
+	return real_(rand()) / RAND_MAX;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 real_ Min(real_ a, real_ b) {
 	return (a < b) ? a : b;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-void CreateMassMomentEllipsoid(
-		real_ & mass,
-		real3 & j1,
-		real3 & j2,
-		real_ r1, real_ r2, real_ r3,
-		const real_ rhoRigid) {
-	mass = 4.0 / 3 * PI * r1 * r2 * r3 * rhoRigid;			//for sphere
+void CreateMassMomentEllipsoid(real_ & mass, real3 & j1, real3 & j2, real_ r1,
+		real_ r2, real_ r3, const real_ rhoRigid) {
+	mass = 4.0 / 3 * PI * r1 * r2 * r3 * rhoRigid; //for sphere
 	j1 = .2 * mass * R3(r2 * r2 + r3 * r3, 0.0f, 0.0f);
 	j2 = .2 * mass * R3(r1 * r1 + r3 * r3, 0.0f, r1 * r1 + r2 * r2);
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-void CreateMassMomentCylinder(
-		real_ & mass,
-		real3 & j1,
-		real3 & j2,
-		real_ r1,
+void CreateMassMomentCylinder(real_ & mass, real3 & j1, real3 & j2, real_ r1,
 		const real_ rhoRigid) {
-		mass = PI * pow(r1, 2) * (paramsH.cMax.y - paramsH.cMin.y) * rhoRigid;	//for cylinder
-		j1 = R3(1.0 / 12.0  * mass * (3 * pow(r1, 2) + pow(paramsH.cMax.y - paramsH.cMin.y, 2)), 0, 0);
-		j2 = R3(.5 * mass * pow(r1, 2), 0, 1.0 / 12.0  * mass * (3 * pow(r1, 2) + pow(paramsH.cMax.y - paramsH.cMin.y, 2)));
+	mass = PI * pow(r1, 2) * (paramsH.cMax.y - paramsH.cMin.y) * rhoRigid; //for cylinder
+	j1 =
+			R3(
+					1.0 / 12.0 * mass
+							* (3 * pow(r1, 2)
+									+ pow(paramsH.cMax.y - paramsH.cMin.y, 2)),
+					0, 0);
+	j2 =
+			R3(.5 * mass * pow(r1, 2), 0,
+					1.0 / 12.0 * mass
+							* (3 * pow(r1, 2)
+									+ pow(paramsH.cMax.y - paramsH.cMin.y, 2)));
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CalcInvJ(const real3 j1, const real3 j2, real3 & invJ1, real3 & invJ2) {
@@ -136,12 +140,16 @@ void CalcInvJ(const real3 j1, const real3 j2, real3 & invJ1, real3 & invJ2) {
 	real_ maxComp = max(maxJ3.x, maxJ3.y);
 	maxComp = max(maxComp, maxJ3.z);
 	//********************************************
-	real3 nJ1 = j1 / maxComp;	//nJ1 is normalJ1
-	real3 nJ2 = j2 / maxComp;	//nJ2 is normalJ2
+	real3 nJ1 = j1 / maxComp; //nJ1 is normalJ1
+	real3 nJ2 = j2 / maxComp; //nJ2 is normalJ2
 
-	real_ detJ = 2 * nJ1.z * nJ1.y * nJ2.y - nJ1.z * nJ1.z * nJ2.x - nJ1.y * nJ1.y * nJ2.z + nJ1.x * nJ2.x * nJ2.z - nJ1.x * nJ2.y * nJ2.y;
-	invJ1 = R3(nJ2.x * nJ2.z - nJ2.y * nJ2.y, -nJ1.y * nJ2.z + nJ1.z * nJ2.y, nJ1.y * nJ2.y - nJ1.z * nJ2.x);
-	invJ2 = R3(-nJ1.z * nJ1.z + nJ1.x * nJ2.z, -nJ1.x * nJ2.y + nJ1.z * nJ1.y, -nJ1.y * nJ1.y + nJ1.x * nJ2.x);
+	real_ detJ = 2 * nJ1.z * nJ1.y * nJ2.y - nJ1.z * nJ1.z * nJ2.x
+			- nJ1.y * nJ1.y * nJ2.z + nJ1.x * nJ2.x * nJ2.z
+			- nJ1.x * nJ2.y * nJ2.y;
+	invJ1 = R3(nJ2.x * nJ2.z - nJ2.y * nJ2.y, -nJ1.y * nJ2.z + nJ1.z * nJ2.y,
+			nJ1.y * nJ2.y - nJ1.z * nJ2.x);
+	invJ2 = R3(-nJ1.z * nJ1.z + nJ1.x * nJ2.z, -nJ1.x * nJ2.y + nJ1.z * nJ1.y,
+			-nJ1.y * nJ1.y + nJ1.x * nJ2.x);
 
 	//printf("invJ %f %f %f %f %f %f\n", aa.x, aa.y, aa.z, bb.x, bb.y, bb.z);
 	//printf("invJ %f %f %f %f %f %f\n", 1e12 * j1.x, 1e12 *  j1.y, 1e12 *  j1.z,  1e12 * j2.x,  1e12 * j2.y, 1e12 *  j2.z);
@@ -151,8 +159,7 @@ void CalcInvJ(const real3 j1, const real3 j2, real3 & invJ1, real3 & invJ2) {
 	invJ2 = invJ2 / detJ / maxComp;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-void CreateRigidBodiesRandom(
-		thrust::host_vector<real3> & rigidPos,
+void CreateRigidBodiesRandom(thrust::host_vector<real3> & rigidPos,
 		thrust::host_vector<real4> & mQuatRot,
 		thrust::host_vector<real4> & spheresVelMas,
 		thrust::host_vector<real3> & rigidBodyOmega,
@@ -160,12 +167,10 @@ void CreateRigidBodiesRandom(
 		thrust::host_vector<real3> & rigidBody_J2,
 		thrust::host_vector<real3> & rigidBody_InvJ1,
 		thrust::host_vector<real3> & rigidBody_InvJ2,
-		thrust::host_vector<real3> & ellipsoidRadii,
-		const real3 referenceR,
-		const real_ rhoRigid,
-		int numSpheres) {
+		thrust::host_vector<real3> & ellipsoidRadii, const real3 referenceR,
+		const real_ rhoRigid, int numSpheres) {
 
-	srand ( time(NULL) );
+	srand(time(NULL));
 	real_ num;
 	vector<real_> randLinVec(0);
 	fstream inRandomFile("../randomLinear", ios::in);
@@ -182,27 +187,32 @@ void CreateRigidBodiesRandom(
 //		int index = (int)(randLinVec.size() - 1) * real_ (rand()) / RAND_MAX;
 //		real_ r = (4.5 * paramsH.sizeScale) * randLinVec[index];
 
-
-
-		real_ r = (channelRadius - maxR - 2 * paramsH.HSML) * real_ (rand()) / RAND_MAX;
+		real_ r = (channelRadius - maxR - 2 * paramsH.HSML)
+				* real_(rand()) / RAND_MAX;
 //						real_ r = (channelRadius - maxR - 2 * paramsH.HSML) * (.2);
 
-		printf("sizeRandomLinear %d\n", randLinVec.size() );	//4.5 comes from channelRadius
-		real_ teta = 2 * PI * real_ (rand()) / RAND_MAX;
+		printf("sizeRandomLinear %d\n", randLinVec.size()); //4.5 comes from channelRadius
+		real_ teta = 2 * PI * real_(rand()) / RAND_MAX;
 //						real_ teta = 2 * PI * real_ (.2);
-		real3 pos = R3(paramsH.cMin.x, channelCenterYZ.x, channelCenterYZ.y) + R3( (i + 1.0) * xSpace, real_(r  * cos(teta)), real_(r *  sin(teta)) );
+		real3 pos = R3(paramsH.cMin.x, channelCenterYZ.x, channelCenterYZ.y)
+				+ R3((i + 1.0) * xSpace, real_(r * cos(teta)),
+						real_(r * sin(teta)));
 		rigidPos.push_back(pos);
 
-		real4 dumQuat = R4(1 - 2.0 * real_ (rand()) / RAND_MAX, 1 - 2.0 * real_ (rand()) / RAND_MAX, 1 - 2.0 * real_ (rand()) / RAND_MAX, 1 - 2.0 * real_ (rand()) / RAND_MAX); //generate random quaternion
+		real4 dumQuat = R4(1 - 2.0 * real_(rand()) / RAND_MAX,
+				1 - 2.0 * real_(rand()) / RAND_MAX,
+				1 - 2.0 * real_(rand()) / RAND_MAX,
+				1 - 2.0 * real_(rand()) / RAND_MAX); //generate random quaternion
 //						real4 dumQuat = R4(1,0,0,0);
 
 		dumQuat *= 1.0 / length(dumQuat);
 		mQuatRot.push_back(dumQuat);
 
-		 ellipsoidRadii.push_back(referenceR);
-		 real_ mass;
-		 real3 j1, j2;
-		 CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x, referenceR.y, referenceR.z, rhoRigid);						//create Ellipsoid
+		ellipsoidRadii.push_back(referenceR);
+		real_ mass;
+		real3 j1, j2;
+		CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x, referenceR.y,
+				referenceR.z, rhoRigid); //create Ellipsoid
 
 		spheresVelMas.push_back(R4(0, 0, 0, real_(mass)));
 		rigidBodyOmega.push_back(R3(0, 0, 0));
@@ -217,8 +227,7 @@ void CreateRigidBodiesRandom(
 	randLinVec.clear();
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-void CreateRigidBodiesFromFile(
-		thrust::host_vector<real3> & rigidPos,
+void CreateRigidBodiesFromFile(thrust::host_vector<real3> & rigidPos,
 		thrust::host_vector<real4> & mQuatRot,
 		thrust::host_vector<real4> & spheresVelMas,
 		thrust::host_vector<real3> & rigidBodyOmega,
@@ -227,8 +236,7 @@ void CreateRigidBodiesFromFile(
 		thrust::host_vector<real3> & rigidBody_InvJ1,
 		thrust::host_vector<real3> & rigidBody_InvJ2,
 		thrust::host_vector<real3> & ellipsoidRadii,
-		const string fileNameRigids,
-		const real_ rhoRigid) {
+		const string fileNameRigids, const real_ rhoRigid) {
 
 	fstream ifileSpheres(fileNameRigids.c_str(), ios::in);
 	//rRigidBody = .08 * paramsH.sizeScale;//.06 * paramsH.sizeScale;//.125 * paramsH.sizeScale; // .25 * paramsH.sizeScale; //.06 * paramsH.sizeScale;//.08 * paramsH.sizeScale;//.179 * paramsH.sizeScale;
@@ -237,13 +245,16 @@ void CreateRigidBodiesFromFile(
 	char ch;
 
 	real_ dumRRigidBody1, dumRRigidBody2, dumRRigidBody3;
-	ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> dumRRigidBody1 >> ch >> dumRRigidBody2 >> ch >> dumRRigidBody3;
+	ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> dumRRigidBody1 >> ch
+			>> dumRRigidBody2 >> ch >> dumRRigidBody3;
 	int counterRigid = 0;
 	while (!ifileSpheres.eof()) {
 		//real_ r = rRigidBody * (.75 + .75 * real_(rand())/RAND_MAX);
 		for (int period = 0; period < paramsH.nPeriod; period++) {
-			rigidPos.push_back(R3(x * paramsH.sizeScale + period * sPeriod, y * paramsH.sizeScale, z * paramsH.sizeScale));
-			 mQuatRot.push_back(R4(1, 0, 0, 0));
+			rigidPos.push_back(
+					R3(x * paramsH.sizeScale + period * sPeriod,
+							y * paramsH.sizeScale, z * paramsH.sizeScale));
+			mQuatRot.push_back(R4(1, 0, 0, 0));
 			//real_ r1 = .8 * rRigidBody, r2 = 1.2 * rRigidBody, r3 = 3 * rRigidBody;
 			//real_ r1 = rRigidBody, r2 = rRigidBody, r3 = rRigidBody;
 			real_ r1 = dumRRigidBody1 * paramsH.sizeScale;
@@ -253,7 +264,7 @@ void CreateRigidBodiesFromFile(
 			real_ mass;
 			real3 j1, j2;
 
-			CreateMassMomentEllipsoid(mass, j1, j2, r1, r2, r3, rhoRigid);						//create Ellipsoid
+			CreateMassMomentEllipsoid(mass, j1, j2, r1, r2, r3, rhoRigid); //create Ellipsoid
 			//CreateMassMomentCylinder(mass, j1, j2, r1, paramsH.cMin, paramsH.cMax, rhoRigid);			//create Cylinder
 
 			spheresVelMas.push_back(R4(0, 0, 0, real_(mass)));
@@ -266,14 +277,14 @@ void CreateRigidBodiesFromFile(
 			rigidBody_InvJ1.push_back(invJ1);
 			rigidBody_InvJ2.push_back(invJ2);
 		}
-		ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> dumRRigidBody1 >> ch >> dumRRigidBody2 >> ch >> dumRRigidBody3;
-		counterRigid ++;
+		ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> dumRRigidBody1 >> ch
+				>> dumRRigidBody2 >> ch >> dumRRigidBody3;
+		counterRigid++;
 	}
 	ifileSpheres.close();
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-void CreateRigidBodiesPattern(
-		thrust::host_vector<real3> & rigidPos,
+void CreateRigidBodiesPattern(thrust::host_vector<real3> & rigidPos,
 		thrust::host_vector<real4> & mQuatRot,
 		thrust::host_vector<real4> & spheresVelMas,
 		thrust::host_vector<real3> & rigidBodyOmega,
@@ -281,26 +292,27 @@ void CreateRigidBodiesPattern(
 		thrust::host_vector<real3> & rigidBody_J2,
 		thrust::host_vector<real3> & rigidBody_InvJ1,
 		thrust::host_vector<real3> & rigidBody_InvJ2,
-		thrust::host_vector<real3> & ellipsoidRadii,
-		const real3 referenceR,
-		const real_ rhoRigid,
-		int3 stride) {
+		thrust::host_vector<real3> & ellipsoidRadii, const real3 referenceR,
+		const real_ rhoRigid, int3 stride) {
 
 	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
 	//printf("paramsH.cMin %f %f %f, paramsH.cMax %f %f %f\n", straightChannelBoundaryMin.x, straightChannelBoundaryMin.y, straightChannelBoundaryMin.z, straightChannelBoundaryMax.x, straightChannelBoundaryMax.y, straightChannelBoundaryMax.z);
 	real3 spaceRigids = 2 * (referenceR + 0.6 * R3(paramsH.HSML));
-	real3 n3Rigids = (straightChannelBoundaryMax - straightChannelBoundaryMin) / spaceRigids;
+	real3 n3Rigids = (straightChannelBoundaryMax - straightChannelBoundaryMin)
+			/ spaceRigids;
 	for (int i = 1; i < n3Rigids.x - 1; i += stride.x) {
-		for  (int j = 1; j < n3Rigids.y - 1; j += stride.y) {
-			 for (int k = 1; k < n3Rigids.z - 1; k += stride.z) {
-				 real3 pos = straightChannelBoundaryMin + R3(i, j, k) * spaceRigids;
-				 //printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
-				 rigidPos.push_back(pos);
-				 mQuatRot.push_back(R4(1, 0, 0, 0));
-				 ellipsoidRadii.push_back(referenceR);
-				 real_ mass;
-				 real3 j1, j2;
-				 CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x, referenceR.y, referenceR.z, rhoRigid);						//create Ellipsoid
+		for (int j = 1; j < n3Rigids.y - 1; j += stride.y) {
+			for (int k = 1; k < n3Rigids.z - 1; k += stride.z) {
+				real3 pos = straightChannelBoundaryMin
+						+ R3(i, j, k) * spaceRigids;
+				//printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
+				rigidPos.push_back(pos);
+				mQuatRot.push_back(R4(1, 0, 0, 0));
+				ellipsoidRadii.push_back(referenceR);
+				real_ mass;
+				real3 j1, j2;
+				CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x,
+						referenceR.y, referenceR.z, rhoRigid); //create Ellipsoid
 
 				spheresVelMas.push_back(R4(0, 0, 0, real_(mass)));
 				rigidBodyOmega.push_back(R3(0, 0, 0));
@@ -311,13 +323,12 @@ void CreateRigidBodiesPattern(
 				CalcInvJ(j1, j2, invJ1, invJ2);
 				rigidBody_InvJ1.push_back(invJ1);
 				rigidBody_InvJ2.push_back(invJ2);
-			 }
+			}
 		}
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-void CreateRigidBodiesPatternPipe(
-		thrust::host_vector<real3> & rigidPos,
+void CreateRigidBodiesPatternPipe(thrust::host_vector<real3> & rigidPos,
 		thrust::host_vector<real4> & mQuatRot,
 		thrust::host_vector<real4> & spheresVelMas,
 		thrust::host_vector<real3> & rigidBodyOmega,
@@ -325,8 +336,7 @@ void CreateRigidBodiesPatternPipe(
 		thrust::host_vector<real3> & rigidBody_J2,
 		thrust::host_vector<real3> & rigidBody_InvJ1,
 		thrust::host_vector<real3> & rigidBody_InvJ2,
-		thrust::host_vector<real3> & ellipsoidRadii,
-		const real3 referenceR,
+		thrust::host_vector<real3> & ellipsoidRadii, const real3 referenceR,
 		const real_ rhoRigid) {
 
 	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
@@ -334,18 +344,23 @@ void CreateRigidBodiesPatternPipe(
 	real3 spaceRigids = 2 * (referenceR + 1.1 * R3(paramsH.HSML));
 	real3 n3Rigids = (paramsH.cMax - paramsH.cMin) / spaceRigids;
 	for (int i = 1; i < n3Rigids.x - 1; i++) {
-		for  (real_ r = spaceRigids.x; r < channelRadius - spaceRigids.x; r += spaceRigids.x) {
+		for (real_ r = spaceRigids.x; r < channelRadius - spaceRigids.x; r +=
+				spaceRigids.x) {
 			real_ dTeta = spaceRigids.x / r;
-			 for (real_ teta = 0; teta < 2 * PI - dTeta; teta += dTeta) {
-				 real3 pos = R3(paramsH.cMin.x, channelCenterYZ.x, channelCenterYZ.y) +  R3(i * spaceRigids.x, real_(r  * cos(teta)), real_(r *  sin(teta)) );
+			for (real_ teta = 0; teta < 2 * PI - dTeta; teta += dTeta) {
+				real3 pos = R3(paramsH.cMin.x, channelCenterYZ.x,
+						channelCenterYZ.y)
+						+ R3(i * spaceRigids.x, real_(r * cos(teta)),
+								real_(r * sin(teta)));
 
-				 //printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
-				 rigidPos.push_back(pos);
-				 mQuatRot.push_back(R4(1, 0, 0, 0));
-				 ellipsoidRadii.push_back(referenceR);
-				 real_ mass;
-				 real3 j1, j2;
-				 CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x, referenceR.y, referenceR.z, rhoRigid);						//create Ellipsoid
+				//printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
+				rigidPos.push_back(pos);
+				mQuatRot.push_back(R4(1, 0, 0, 0));
+				ellipsoidRadii.push_back(referenceR);
+				real_ mass;
+				real3 j1, j2;
+				CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x,
+						referenceR.y, referenceR.z, rhoRigid); //create Ellipsoid
 
 				spheresVelMas.push_back(R4(0, 0, 0, real_(mass)));
 				rigidBodyOmega.push_back(R3(0, 0, 0));
@@ -356,13 +371,12 @@ void CreateRigidBodiesPatternPipe(
 				CalcInvJ(j1, j2, invJ1, invJ2);
 				rigidBody_InvJ1.push_back(invJ1);
 				rigidBody_InvJ2.push_back(invJ2);
-			 }
+			}
 		}
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-void CreateRigidBodiesPatternStepPipe(
-		thrust::host_vector<real3> & rigidPos,
+void CreateRigidBodiesPatternStepPipe(thrust::host_vector<real3> & rigidPos,
 		thrust::host_vector<real4> & mQuatRot,
 		thrust::host_vector<real4> & spheresVelMas,
 		thrust::host_vector<real3> & rigidBodyOmega,
@@ -370,8 +384,7 @@ void CreateRigidBodiesPatternStepPipe(
 		thrust::host_vector<real3> & rigidBody_J2,
 		thrust::host_vector<real3> & rigidBody_InvJ1,
 		thrust::host_vector<real3> & rigidBody_InvJ2,
-		thrust::host_vector<real3> & ellipsoidRadii,
-		const real3 referenceR,
+		thrust::host_vector<real3> & ellipsoidRadii, const real3 referenceR,
 		const real_ rhoRigid) {
 
 	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
@@ -381,24 +394,27 @@ void CreateRigidBodiesPatternStepPipe(
 	real_ tubeLength = paramsH.cMax.x - paramsH.cMin.x;
 	real_ r1 = channelRadius;
 	real_ r2 = 0.5 * channelRadius;
-	real_ d1 = paramsH.cMin.x +  .25 * tubeLength;
-	real_ d2 = paramsH.cMin.x +  .75 * tubeLength;
+	real_ d1 = paramsH.cMin.x + .25 * tubeLength;
+	real_ d2 = paramsH.cMin.x + .75 * tubeLength;
 
-	real_ space = max( max(spaceRigids.x, spaceRigids.y) , spaceRigids.z);
+	real_ space = max(max(spaceRigids.x, spaceRigids.y), spaceRigids.z);
 	real_ nX = (d2 - d1) / space;
 	for (int i = 1; i < nX - 1; i++) {
-		for  (real_ r = space; r < r1 -space; r += space) {
+		for (real_ r = space; r < r1 - space; r += space) {
 			real_ dTeta = space / r;
-			 for (real_ teta = 0; teta < 2 * PI - dTeta; teta += dTeta) {
-				 real3 pos = R3(d1, channelCenterYZ.x, channelCenterYZ.y) +  R3(i * space, real_(r  * cos(teta)), real_(r *  sin(teta)) );
+			for (real_ teta = 0; teta < 2 * PI - dTeta; teta += dTeta) {
+				real3 pos = R3(d1, channelCenterYZ.x, channelCenterYZ.y)
+						+ R3(i * space, real_(r * cos(teta)),
+								real_(r * sin(teta)));
 
-				 //printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
-				 rigidPos.push_back(pos);
-				 mQuatRot.push_back(R4(1, 0, 0, 0));
-				 ellipsoidRadii.push_back(referenceR);
-				 real_ mass;
-				 real3 j1, j2;
-				 CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x, referenceR.y, referenceR.z, rhoRigid);						//create Ellipsoid
+				//printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
+				rigidPos.push_back(pos);
+				mQuatRot.push_back(R4(1, 0, 0, 0));
+				ellipsoidRadii.push_back(referenceR);
+				real_ mass;
+				real3 j1, j2;
+				CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x,
+						referenceR.y, referenceR.z, rhoRigid); //create Ellipsoid
 
 				spheresVelMas.push_back(R4(0, 0, 0, real_(mass)));
 				rigidBodyOmega.push_back(R3(0, 0, 0));
@@ -409,7 +425,7 @@ void CreateRigidBodiesPatternStepPipe(
 				CalcInvJ(j1, j2, invJ1, invJ2);
 				rigidBody_InvJ1.push_back(invJ1);
 				rigidBody_InvJ2.push_back(invJ2);
-			 }
+			}
 		}
 	}
 }
@@ -423,67 +439,75 @@ void CreateRigidBodiesPatternPipe_KindaRandom(
 		thrust::host_vector<real3> & rigidBody_J2,
 		thrust::host_vector<real3> & rigidBody_InvJ1,
 		thrust::host_vector<real3> & rigidBody_InvJ2,
-		thrust::host_vector<real3> & ellipsoidRadii,
-		const real3 referenceR,
-		const real_ rhoRigid,
-		int numRigidParticles) {
+		thrust::host_vector<real3> & ellipsoidRadii, const real3 referenceR,
+		const real_ rhoRigid, int numRigidParticles) {
 
-	srand ( time(NULL) );
+	srand(time(NULL));
 	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
 	//printf("paramsH.cMin %f %f %f, paramsH.cMax %f %f %f\n", straightChannelBoundaryMin.x, straightChannelBoundaryMin.y, straightChannelBoundaryMin.z, straightChannelBoundaryMax.x, straightChannelBoundaryMax.y, straightChannelBoundaryMax.z);
 //	real3 spaceRigids = 2 * (referenceR + 2 * R3(paramsH.HSML));
 	real3 spaceRigids = 2 * (referenceR + 1.1 * R3(paramsH.HSML));
 	real3 n3Rigids = (paramsH.cMax - paramsH.cMin) / spaceRigids;
 	int totalNumberPossibleParticles = 0;
-	for (int i = 1; i < n3Rigids.x ; i++) {
+	for (int i = 1; i < n3Rigids.x; i++) {
 		real_ shiftR = real_(i % 4) / 4 * 2 * referenceR.x;
-		for  (real_ r = 0.5 * spaceRigids.x + shiftR; r < channelRadius - 0.5 * spaceRigids.x; r += spaceRigids.x) {
-			if (i == 1) printf("r %f\n", r);
+		for (real_ r = 0.5 * spaceRigids.x + shiftR;
+				r < channelRadius - 0.5 * spaceRigids.x; r += spaceRigids.x) {
+			if (i == 1)
+				printf("r %f\n", r);
 			real_ dTeta = spaceRigids.x / r;
-			 for (real_ teta = 0; teta < 2 * PI - dTeta; teta += dTeta) {
-				 totalNumberPossibleParticles ++;
-			 }
+			for (real_ teta = 0; teta < 2 * PI - dTeta; teta += dTeta) {
+				totalNumberPossibleParticles++;
+			}
 		}
 	}
 	int skipCount = totalNumberPossibleParticles / numRigidParticles;
 
-	printf("totalNumberPossibleParticles %d  skipCount %d\n", totalNumberPossibleParticles, skipCount);
+	printf("totalNumberPossibleParticles %d  skipCount %d\n",
+			totalNumberPossibleParticles, skipCount);
 	int particleCounter = 0;
 	int loopCounter = -1;
 
-	for (int i = 1; i < n3Rigids.x ; i++) {
-		for  (real_ r = 0.5 * spaceRigids.x; r < channelRadius - 0.5 * spaceRigids.x; r += spaceRigids.x) {
+	for (int i = 1; i < n3Rigids.x; i++) {
+		for (real_ r = 0.5 * spaceRigids.x;
+				r < channelRadius - 0.5 * spaceRigids.x; r += spaceRigids.x) {
 			real_ dTeta = spaceRigids.x / r;
-			 for (real_ teta = 0; teta < 2 * PI - dTeta; teta += dTeta) {
-				 loopCounter ++;
-				 int randomSeed = int(skipCount * real_(rand() - 1) / RAND_MAX);
-				 bool goRandom = true;
-				 if (loopCounter < 0.8 * totalNumberPossibleParticles) {
-					 goRandom = true;
-				 } else {
-					 goRandom = false;
-				 }
-				 bool meetSeed;
-				 if (goRandom) {
+			for (real_ teta = 0; teta < 2 * PI - dTeta; teta += dTeta) {
+				loopCounter++;
+				int randomSeed = int(skipCount * real_(rand() - 1) / RAND_MAX);
+				bool goRandom = true;
+				if (loopCounter < 0.8 * totalNumberPossibleParticles) {
+					goRandom = true;
+				} else {
+					goRandom = false;
+				}
+				bool meetSeed;
+				if (goRandom) {
 					// printf("loopCounter %d skipCount %d randomSeed %d\n", loopCounter, skipCount, randomSeed);
-					 meetSeed = (loopCounter % skipCount == randomSeed);
-				 } else {
-					 meetSeed = true;
-				 }
+					meetSeed = (loopCounter % skipCount == randomSeed);
+				} else {
+					meetSeed = true;
+				}
 //				 printf("meetSeed: %s\n",(meetSeed)?"true":"false");
-				 if (!meetSeed) continue;
+				if (!meetSeed)
+					continue;
 //				 printf("ha\n");
-				 if (particleCounter >= numRigidParticles) continue;
-				 particleCounter ++;
-				 real3 pos = R3(paramsH.cMin.x, channelCenterYZ.x, channelCenterYZ.y) +  R3(i * spaceRigids.x, real_(r  * cos(teta)), real_(r *  sin(teta)) );
+				if (particleCounter >= numRigidParticles)
+					continue;
+				particleCounter++;
+				real3 pos = R3(paramsH.cMin.x, channelCenterYZ.x,
+						channelCenterYZ.y)
+						+ R3(i * spaceRigids.x, real_(r * cos(teta)),
+								real_(r * sin(teta)));
 
-				 //printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
-				 rigidPos.push_back(pos);
-				 mQuatRot.push_back(R4(1, 0, 0, 0));
-				 ellipsoidRadii.push_back(referenceR);
-				 real_ mass;
-				 real3 j1, j2;
-				 CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x, referenceR.y, referenceR.z, rhoRigid);						//create Ellipsoid
+				//printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
+				rigidPos.push_back(pos);
+				mQuatRot.push_back(R4(1, 0, 0, 0));
+				ellipsoidRadii.push_back(referenceR);
+				real_ mass;
+				real3 j1, j2;
+				CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x,
+						referenceR.y, referenceR.z, rhoRigid); //create Ellipsoid
 
 				spheresVelMas.push_back(R4(0, 0, 0, real_(mass)));
 				rigidBodyOmega.push_back(R3(0, 0, 0));
@@ -494,54 +518,57 @@ void CreateRigidBodiesPatternPipe_KindaRandom(
 				CalcInvJ(j1, j2, invJ1, invJ2);
 				rigidBody_InvJ1.push_back(invJ1);
 				rigidBody_InvJ2.push_back(invJ2);
-			 }
+			}
 		}
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-void CreateFlexBodies(
-		thrust::host_vector<real3> & ANCF_Nodes,
+void CreateFlexBodies(thrust::host_vector<real3> & ANCF_Nodes,
 		thrust::host_vector<real3> & ANCF_Slopes,
 		thrust::host_vector<real3> & ANCF_NodesVel,
 		thrust::host_vector<real3> & ANCF_SlopesVel,
 		thrust::host_vector<real_> & ANCF_Beam_Length,
 		thrust::host_vector<int2> & ANCF_ReferenceArrayNodesOnBeams,
-		real_ pipeRadius,
-		real_ pipeLength,
-		real3 pipeInPoint3,
+		real_ pipeRadius, real_ pipeLength, real3 pipeInPoint3,
 		const real_ rhoRigid) {
 	//TODO create mass property of the beams
 
-	int numBeams = 1;
+	int numBeams = 10;
 	int numElementsPerBeam = 3;
-	real_ myMargin = paramsH.MULT_INITSPACE * (paramsH.NUM_BCE_LAYERS + 1) * paramsH.HSML;
+	real_ myMargin = paramsH.MULT_INITSPACE * (paramsH.NUM_BCE_LAYERS + 1)
+			* paramsH.HSML;
 	real_ sectionLenght = (pipeLength - 2 * myMargin) / numBeams;
 	for (int i = 0; i < numBeams; i++) {
 		real_ x = (i + myRand()) * sectionLenght + (pipeInPoint3.x + myMargin);
 		real_ r = myRand() * (pipeRadius - myMargin);
 		real_ theta = myRand() * 2 * PI;
-		real3 pa3 = R3(x, r*cos(theta) + pipeInPoint3.y, r*sin(theta) + pipeInPoint3.z);
+		real3 pa3 = R3(x, r * cos(theta) + pipeInPoint3.y,
+				r * sin(theta) + pipeInPoint3.z);
 
 		x = (i + myRand()) * sectionLenght + (pipeInPoint3.x + myMargin);
 		r = myRand() * (pipeRadius - myMargin);
 		theta = myRand() * 2 * PI;
-		real3 pb3 = R3(x, r*cos(theta) + pipeInPoint3.y, r*sin(theta) + pipeInPoint3.z);
+		real3 pb3 = R3(x, r * cos(theta) + pipeInPoint3.y,
+				r * sin(theta) + pipeInPoint3.z);
 
 		real3 slope3 = pb3 - pa3;
 		real_ beamLength = length(slope3);
 		ANCF_Beam_Length.push_back(beamLength);
 		slope3 /= beamLength;
 		for (int m = 0; m < numElementsPerBeam + 1; m++) {
-			ANCF_Nodes.push_back(pa3 + m * (beamLength / numElementsPerBeam) * slope3);
+			ANCF_Nodes.push_back(
+					pa3 + m * (beamLength / numElementsPerBeam) * slope3);
 			ANCF_Slopes.push_back(slope3);
 			ANCF_NodesVel.push_back(R3(0));
 			ANCF_SlopesVel.push_back(R3(0));
 		}
 		if (i == 0) {
-			ANCF_ReferenceArrayNodesOnBeams.push_back(I2(0, numElementsPerBeam + 1));
+			ANCF_ReferenceArrayNodesOnBeams.push_back(
+					I2(0, numElementsPerBeam + 1));
 		} else {
-			int nodesSofar = ANCF_ReferenceArrayNodesOnBeams[i-1].y;
-			ANCF_ReferenceArrayNodesOnBeams.push_back(I2(nodesSofar, nodesSofar + numElementsPerBeam + 1));
+			int nodesSofar = ANCF_ReferenceArrayNodesOnBeams[i - 1].y;
+			ANCF_ReferenceArrayNodesOnBeams.push_back(
+					I2(nodesSofar, nodesSofar + numElementsPerBeam + 1));
 		}
 
 		// mass and stiffness properties of beams
@@ -562,9 +589,12 @@ bool IsInsideSphere(real3 sphParPos, real4 spherePosRad, real_ clearance) {
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-bool IsInsideEllipsoid(real3 sphParPos, real3 rigidPos, Rotation rot, real3 radii, real_ clearance) {
+bool IsInsideEllipsoid(real3 sphParPos, real3 rigidPos, Rotation rot,
+		real3 radii, real_ clearance) {
 	real3 dist3GF = sphParPos - rigidPos;
-	real3 dist3 = dist3GF.x * R3(rot.a00, rot.a01, rot.a02) + dist3GF.y * R3(rot.a10, rot.a11, rot.a12) + dist3GF.z * R3(rot.a20, rot.a21, rot.a22);
+	real3 dist3 = dist3GF.x * R3(rot.a00, rot.a01, rot.a02)
+			+ dist3GF.y * R3(rot.a10, rot.a11, rot.a12)
+			+ dist3GF.z * R3(rot.a20, rot.a21, rot.a22);
 	real3 mappedDist = dist3 / (radii + R3(clearance));
 	if (length(mappedDist) < 1) {
 		return true;
@@ -573,7 +603,8 @@ bool IsInsideEllipsoid(real3 sphParPos, real3 rigidPos, Rotation rot, real3 radi
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-bool IsInsideCylinder_XZ(real3 sphParPos, real3 rigidPos, real3 radii, real_ clearance) {
+bool IsInsideCylinder_XZ(real3 sphParPos, real3 rigidPos, real3 radii,
+		real_ clearance) {
 	real3 dist3 = sphParPos - rigidPos;
 	dist3.y = 0;
 	//if (length(dist3) < spherePosRad.w + 2 * (paramsH.HSML)) {
@@ -584,7 +615,8 @@ bool IsInsideCylinder_XZ(real3 sphParPos, real3 rigidPos, real3 radii, real_ cle
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-bool IsInsideCylinder_3D(real3 sphParPos, real3 pa3, real3 pb3, real_ rad, real_ clearance) {
+bool IsInsideCylinder_3D(real3 sphParPos, real3 pa3, real3 pb3, real_ rad,
+		real_ clearance) {
 	real3 n3 = pb3 - pa3;
 	real3 n3Normal = n3 / length(n3);
 	real3 r = sphParPos - pa3;
@@ -600,7 +632,8 @@ bool IsInsideCylinder_3D(real3 sphParPos, real3 pa3, real3 pb3, real_ rad, real_
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-bool IsInsideStraightFlex(real3 sphParPos, real3 pa3, real3 pb3, real_ rad, real_ clearance) {
+bool IsInsideStraightFlex(real3 sphParPos, real3 pa3, real3 pb3, real_ rad,
+		real_ clearance) {
 	return IsInsideCylinder_3D(sphParPos, pa3, pb3, rad, clearance);
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
@@ -609,7 +642,7 @@ real_ IsInEllipse(real2 pos, real2 radii) {
 //	real2 kk  = pos / radii;
 //	printf("kk.x kk.y   %f %f \n", kk.x, kk.y);
 //	printf("lengthkk %f and the other length %f \n", length(kk), length(pos / radii));
-	return length( pos / radii );
+	return length(pos / radii);
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 real_ IsOutBoundaryEllipsoid(real2 coord, real2 cent2, real2 r2) {
@@ -697,18 +730,17 @@ real_ IsInsideCurveOfSerpentineBeta(real3 posRad) {
 	real_ x, y;
 	real_ distFromWall = 0; //2 * sphR;//0;//2 * sphR;
 	real_ penDist = 0;
-	real_ largePenet = -5*sphR;//like a large number. Should be negative (assume large initial penetration)
+	real_ largePenet = -5 * sphR; //like a large number. Should be negative (assume large initial penetration)
 	real_ penDist2 = 0;
 	bool isOut = false;
 
-	if (posRad.y < -toleranceZone || posRad.y > 1.0 * paramsH.sizeScale + toleranceZone) {
+	if (posRad.y < -toleranceZone
+			|| posRad.y > 1.0 * paramsH.sizeScale + toleranceZone) {
 		return largePenet;
-	}
-	else if (posRad.y < 0) {
+	} else if (posRad.y < 0) {
 		penDist2 = posRad.y;
 		isOut = true;
-	}
-	else if ( posRad.y > 1.0 * paramsH.sizeScale) {
+	} else if (posRad.y > 1.0 * paramsH.sizeScale) {
 		penDist2 = (1.0 * paramsH.sizeScale - posRad.y);
 		isOut = true;
 	}
@@ -719,26 +751,45 @@ real_ IsInsideCurveOfSerpentineBeta(real3 posRad) {
 	y = posRad.z;
 	if (y > 0) {
 		if (x >= 0 && x < r2_2.x) {
-			penDist = IsOutBoundaryEllipsoid(R2(x, y), R2(0, 0), r2_2); if (penDist < 0) return penDist;
+			penDist = IsOutBoundaryEllipsoid(R2(x, y), R2(0, 0), r2_2);
+			if (penDist < 0)
+				return penDist;
 		}
-		if (x >=0 && x< r3_2.x + toleranceZone) {
-			penDist = IsInBoundaryEllipsoid(R2(x, y), R2(0, 0), r3_2); if (penDist < 0) return penDist;
+		if (x >= 0 && x < r3_2.x + toleranceZone) {
+			penDist = IsInBoundaryEllipsoid(R2(x, y), R2(0, 0), r3_2);
+			if (penDist < 0)
+				return penDist;
 		}
-		if (x >= r3_2.x + toleranceZone && x < r3_2.x + 2 * r4_2.x - toleranceZone) {
+		if (x >= r3_2.x + toleranceZone
+				&& x < r3_2.x + 2 * r4_2.x - toleranceZone) {
 			return largePenet;
 		}
-		if (x > r3_2.x + 2 * r4_2.x - toleranceZone && x < 2 * r3_2.x + 2 * r4_2.x) {
-			penDist = IsInBoundaryEllipsoid(R2(x, y), R2(2 * r3_2.x + 2 * r4_2.x, 0), r3_2); if (penDist < 0) return penDist;
+		if (x > r3_2.x + 2 * r4_2.x - toleranceZone
+				&& x < 2 * r3_2.x + 2 * r4_2.x) {
+			penDist = IsInBoundaryEllipsoid(R2(x, y),
+					R2(2 * r3_2.x + 2 * r4_2.x, 0), r3_2);
+			if (penDist < 0)
+				return penDist;
 		}
 		if (x > r2_2.x + 2 * r1_2.x && x < 2 * r3_2.x + 2 * r4_2.x) {
-			penDist = IsOutBoundaryEllipsoid(R2(x, y), R2(2 * r3_2.x + 2 * r4_2.x, 0), r2_2); if (penDist < 0) return penDist;
+			penDist = IsOutBoundaryEllipsoid(R2(x, y),
+					R2(2 * r3_2.x + 2 * r4_2.x, 0), r2_2);
+			if (penDist < 0)
+				return penDist;
 		}
 	} else {
 		if (x > r3_2.x && x < r3_2.x + 2 * r4_2.x) {
-			penDist = IsOutBoundaryEllipsoid(R2(x, y), R2(r3_2.x + r4_2.x, 0), r4_2); if (penDist < 0) return penDist;
+			penDist = IsOutBoundaryEllipsoid(R2(x, y), R2(r3_2.x + r4_2.x, 0),
+					r4_2);
+			if (penDist < 0)
+				return penDist;
 		}
-		if (x > r2_2.x - toleranceZone && x < r2_2.x + 2 * r1_2.x + toleranceZone) {
-			penDist = IsInBoundaryEllipsoid(R2(x, y), R2(r2_2.x + r1_2.x, 0), r1_2); if (penDist < 0) return penDist;
+		if (x > r2_2.x - toleranceZone
+				&& x < r2_2.x + 2 * r1_2.x + toleranceZone) {
+			penDist = IsInBoundaryEllipsoid(R2(x, y), R2(r2_2.x + r1_2.x, 0),
+					r1_2);
+			if (penDist < 0)
+				return penDist;
 		} else {
 			return largePenet;
 		}
@@ -751,28 +802,26 @@ real_ IsInsideCurveOfSerpentineBeta(real3 posRad) {
 real_ IsInsideSerpentine(real3 posRad) {
 	const real_ sphR = paramsH.HSML;
 	real_ x, y;
-	real_ distFromWall = 0;//2 * sphR;//0;//2 * sphR;
+	real_ distFromWall = 0; //2 * sphR;//0;//2 * sphR;
 	real_ penDist = 0;
-	real_ largePenet = -5*sphR;//like a large number. Should be negative (assume large initial penetration)
+	real_ largePenet = -5 * sphR; //like a large number. Should be negative (assume large initial penetration)
 	real_ penDist2 = 0;
 	bool isOut = false;
 
-	if (posRad.y < -toleranceZone || posRad.y > 1.0 * paramsH.sizeScale + toleranceZone) {
+	if (posRad.y < -toleranceZone
+			|| posRad.y > 1.0 * paramsH.sizeScale + toleranceZone) {
 		return largePenet;
-	}
-	else if (posRad.y < 0) {
+	} else if (posRad.y < 0) {
 		penDist2 = posRad.y;
 		isOut = true;
-	}
-	else if ( posRad.y > 1.0 * paramsH.sizeScale) {
+	} else if (posRad.y > 1.0 * paramsH.sizeScale) {
 		penDist2 = (1.0 * paramsH.sizeScale - posRad.y);
 		isOut = true;
 	}
 	//serpentine
 	if (posRad.x < paramsH.nPeriod * sPeriod) {
 		return IsInsideCurveOfSerpentineBeta(posRad);
-	}
-	else {
+	} else {
 		//straight channel
 		x = posRad.x - paramsH.nPeriod * sPeriod;
 		y = posRad.z;
@@ -781,56 +830,101 @@ real_ IsInsideSerpentine(real3 posRad) {
 			if (x < r2_2.x - toleranceZone) {
 				return largePenet;
 			}
-			if (x >= r2_2.x -  toleranceZone && x < r2_2.x + 2 * r1_2.x + toleranceZone) {
-				penDist = IsInBoundaryEllipsoid(R2(x, y), R2(r2_2.x + r1_2.x, 0), r1_2); if (penDist < 0) return penDist;
+			if (x >= r2_2.x - toleranceZone
+					&& x < r2_2.x + 2 * r1_2.x + toleranceZone) {
+				penDist = IsInBoundaryEllipsoid(R2(x, y),
+						R2(r2_2.x + r1_2.x, 0), r1_2);
+				if (penDist < 0)
+					return penDist;
 			}
 			if (x >= r3_2.x && x < r3_2.x + 2 * r4_2.x) {
-				penDist = IsOutBoundaryEllipsoid(R2(x, y), R2(r3_2.x + r4_2.x, 0), r4_2); if (penDist < 0) return penDist;
+				penDist = IsOutBoundaryEllipsoid(R2(x, y),
+						R2(r3_2.x + r4_2.x, 0), r4_2);
+				if (penDist < 0)
+					return penDist;
 			}
 			if (x >= r2_2.x + 2 * r1_2.x + toleranceZone) {
 				return largePenet;
 			}
 		} else {
 			if (x >= 0 && x < r2_2.x) {
-				penDist = IsOutBoundaryEllipsoid(R2(x, y), R2(0, 0), r2_2); if (penDist < 0) return penDist;
+				penDist = IsOutBoundaryEllipsoid(R2(x, y), R2(0, 0), r2_2);
+				if (penDist < 0)
+					return penDist;
 			}
-			if (x >=0 && x< r3_2.x + toleranceZone) {
-				penDist = IsInBoundaryEllipsoid(R2(x, y), R2(0, 0), r3_2); if (penDist < 0) return penDist;
+			if (x >= 0 && x < r3_2.x + toleranceZone) {
+				penDist = IsInBoundaryEllipsoid(R2(x, y), R2(0, 0), r3_2);
+				if (penDist < 0)
+					return penDist;
 			}
-			if (x >= r3_2.x + toleranceZone && x < r3_2.x + 2 * r4_2.x - toleranceZone) {
+			if (x >= r3_2.x + toleranceZone
+					&& x < r3_2.x + 2 * r4_2.x - toleranceZone) {
 				return largePenet;
 			}
-			if (x >= r3_2.x + 2 * r4_2.x - toleranceZone && x <  r3_2.x + 2 * r4_2.x + r6_2.x) {
-				penDist = IsInBoundaryEllipsoid(R2(x, y), R2( r3_2.x + 2 * r4_2.x + r6_2.x, 0), r6_2); if (penDist < 0) return penDist;
+			if (x >= r3_2.x + 2 * r4_2.x - toleranceZone
+					&& x < r3_2.x + 2 * r4_2.x + r6_2.x) {
+				penDist = IsInBoundaryEllipsoid(R2(x, y),
+						R2(r3_2.x + 2 * r4_2.x + r6_2.x, 0), r6_2);
+				if (penDist < 0)
+					return penDist;
 			}
 			if (x >= r2_2.x + 2 * r1_2.x && x < r2_2.x + 2 * r1_2.x + r5_2.x) {
-				penDist = IsOutBoundaryEllipsoid(R2(x, y), R2( r2_2.x + 2 * r1_2.x + r5_2.x, 0), r5_2); if (penDist < 0) return penDist;
+				penDist = IsOutBoundaryEllipsoid(R2(x, y),
+						R2(r2_2.x + 2 * r1_2.x + r5_2.x, 0), r5_2);
+				if (penDist < 0)
+					return penDist;
 			}
 			//****** horizontal walls
 			x = x - (r3_2.x + 2 * r4_2.x + r6_2.x);
 			if (x > 0) {
-				real2 y2_slimHor = R2(2.314, 3.314)  * paramsH.sizeScale;
+				real2 y2_slimHor = R2(2.314, 3.314) * paramsH.sizeScale;
 				real2 y2_endHor = R2(r2_2.y, r3_2.y);
 				if (x < x_FirstChannel) {
-					penDist = y - r5_2.y; if (penDist < 0) return penDist;  //note that y is negative, fabs(y) = -y
-					penDist = -y + r6_2.y; if (penDist < 0) return penDist;
+					penDist = y - r5_2.y;
+					if (penDist < 0)
+						return penDist; //note that y is negative, fabs(y) = -y
+					penDist = -y + r6_2.y;
+					if (penDist < 0)
+						return penDist;
 				}
-				if (x >= x_FirstChannel + toleranceZone &&  x < x_FirstChannel + x_SecondChannel - toleranceZone) {
-					penDist = y - y2_slimHor.x;  if (penDist < 0) return penDist;
-					penDist = -y + y2_slimHor.y; if (penDist < 0) return penDist;
+				if (x >= x_FirstChannel + toleranceZone
+						&& x
+								< x_FirstChannel + x_SecondChannel
+										- toleranceZone) {
+					penDist = y - y2_slimHor.x;
+					if (penDist < 0)
+						return penDist;
+					penDist = -y + y2_slimHor.y;
+					if (penDist < 0)
+						return penDist;
 				}
-				if (x >= x_FirstChannel + x_SecondChannel){
-					penDist = y - y2_endHor.x;  if (penDist < 0) return penDist;
-					penDist = -y + y2_endHor.y; if (penDist < 0) return penDist;
+				if (x >= x_FirstChannel + x_SecondChannel) {
+					penDist = y - y2_endHor.x;
+					if (penDist < 0)
+						return penDist;
+					penDist = -y + y2_endHor.y;
+					if (penDist < 0)
+						return penDist;
 				}
 				//****** vertical walls
 				if (x >= x_FirstChannel && x < x_FirstChannel + toleranceZone) {
-					if (y > r6_2.y + toleranceZone || y < r5_2.y - toleranceZone) {return largePenet;}
-					if (y < y2_slimHor.x || y > y2_slimHor.y) {return x_FirstChannel - x;}
+					if (y > r6_2.y + toleranceZone
+							|| y < r5_2.y - toleranceZone) {
+						return largePenet;
+					}
+					if (y < y2_slimHor.x || y > y2_slimHor.y) {
+						return x_FirstChannel - x;
+					}
 				}
-				if (x >= x_FirstChannel + x_SecondChannel - toleranceZone && x < x_FirstChannel + x_SecondChannel) {
-					if (y > y2_endHor.y + toleranceZone || y < y2_endHor.x - toleranceZone) {return largePenet;}
-					if (y < y2_slimHor.x || y > y2_slimHor.y) {return x - (x_FirstChannel + x_SecondChannel);}
+				if (x >= x_FirstChannel + x_SecondChannel - toleranceZone
+						&& x < x_FirstChannel + x_SecondChannel) {
+					if (y > y2_endHor.y + toleranceZone
+							|| y < y2_endHor.x - toleranceZone) {
+						return largePenet;
+					}
+					if (y < y2_slimHor.x || y > y2_slimHor.y) {
+						return x - (x_FirstChannel + x_SecondChannel);
+					}
 				}
 			}
 		}
@@ -845,7 +939,7 @@ real_ IsInsideStraightChannel(real3 posRad) {
 	real_ penDist1 = 0;
 	real_ penDist2 = 0;
 	//const real_ toleranceZone = 2 * sphR;
-	real_ largePenet = -5 * sphR;		//like a large number. Should be negative (assume large initial penetration)
+	real_ largePenet = -5 * sphR; //like a large number. Should be negative (assume large initial penetration)
 
 	if (posRad.z > straightChannelBoundaryMax.z) {
 		penDist1 = straightChannelBoundaryMax.z - posRad.z;
@@ -863,8 +957,10 @@ real_ IsInsideStraightChannel(real3 posRad) {
 	if (penDist1 < 0 && penDist2 < 0) {
 		return Min(penDist1, penDist2);
 	}
-	if (penDist1 < 0) return penDist1;
-	if (penDist2 < 0) return penDist2;
+	if (penDist1 < 0)
+		return penDist1;
+	if (penDist2 < 0)
+		return penDist2;
 	return -largePenet;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
@@ -872,7 +968,7 @@ real_ IsInsideStraightChannel_XZ(real3 posRad) {
 	const real_ sphR = paramsH.HSML;
 	real_ penDist1 = 0;
 	//const real_ toleranceZone = 2 * sphR;
-	real_ largePenet = -5 * sphR;		//like a large number. Should be negative (assume large initial penetration)
+	real_ largePenet = -5 * sphR; //like a large number. Should be negative (assume large initial penetration)
 
 	//if (posRad.z > 3.0 * paramsH.sizeScale) {penDist1 = 3.0 * paramsH.sizeScale - posRad.z;}
 	if (posRad.z > 2.0 * paramsH.sizeScale) {
@@ -882,7 +978,8 @@ real_ IsInsideStraightChannel_XZ(real3 posRad) {
 		penDist1 = posRad.z - 1.0 * paramsH.sizeScale;
 	}
 
-	if (penDist1 < 0) return penDist1;
+	if (penDist1 < 0)
+		return penDist1;
 	//printf("hey \n");
 	return -largePenet;
 }
@@ -900,7 +997,8 @@ real_ IsInsideTube(real3 posRad) {
 	if (r > channelRadius) {
 		penDist1 = channelRadius - r;
 	}
-	if (penDist1 < 0) return penDist1;
+	if (penDist1 < 0)
+		return penDist1;
 	//printf("hey \n");
 	return -largePenet;
 }
@@ -919,9 +1017,9 @@ real_ IsInsideStepTube(real3 posRad) {
 	real_ tubeLength = paramsH.cMax.x - paramsH.cMin.x;
 	real_ r1 = channelRadius;
 	real_ r2 = 0.5 * channelRadius;
-	real_ d1 = paramsH.cMin.x +  .25 * tubeLength;
-	real_ d2 = paramsH.cMin.x +  .75 * tubeLength;
-	real_ d3 = paramsH.cMin.x +  tubeLength;
+	real_ d1 = paramsH.cMin.x + .25 * tubeLength;
+	real_ d2 = paramsH.cMin.x + .75 * tubeLength;
+	real_ d3 = paramsH.cMin.x + tubeLength;
 	if (posRad.x < d1) {
 		if (r > r2) {
 			penDist1 = r2 - r;
@@ -937,7 +1035,7 @@ real_ IsInsideStepTube(real3 posRad) {
 	}
 	// vertical wall
 	if (r < r1 + toleranceZone) {
-		if (posRad.x < d1 ) {
+		if (posRad.x < d1) {
 			penDist2 = posRad.x - d1;
 		}
 		if (posRad.x > d2) {
@@ -945,20 +1043,20 @@ real_ IsInsideStepTube(real3 posRad) {
 		}
 	}
 
-	if (penDist1 < 0 && penDist2 < 0) return max(penDist1, penDist2); //note: both are negative. max is closer to boundary
-	if (penDist1 < 0) return penDist1; //penDist2 is always either zero or negative
+	if (penDist1 < 0 && penDist2 < 0)
+		return max(penDist1, penDist2); //note: both are negative. max is closer to boundary
+	if (penDist1 < 0)
+		return penDist1; //penDist2 is always either zero or negative
 	//printf("hey \n");
 	return -largePenet;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-int2 CreateFluidMarkers(
-		thrust::host_vector<real3> & mPosRad,
+int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 		thrust::host_vector<real4> & mVelMas,
 		thrust::host_vector<real4> & mRhoPresMu,
 		thrust::host_vector<real3> & mPosRadBoundary,
 		thrust::host_vector<real4> & mVelMasBoundary,
-		thrust::host_vector<real4> & mRhoPresMuBoundary,
-		real_ & sphMarkerMass,
+		thrust::host_vector<real4> & mRhoPresMuBoundary, real_ & sphMarkerMass,
 		const thrust::host_vector<real3> & rigidPos,
 		const thrust::host_vector<Rotation> rigidRotMatrix,
 		const thrust::host_vector<real3> & ellipsoidRadii,
@@ -970,7 +1068,7 @@ int2 CreateFluidMarkers(
 	int num_BoundaryMarkers = 0;
 	srand(964);
 	//real_ initSpace0 = 0.9 * sphR; //1.1 * sphR;//1.1 * sphR;//pow(4.0 / 3 * PI, 1.0 / 3) * sphR;
-	real_ multInitSpace = paramsH.MULT_INITSPACE;//0.9;//0.9;
+	real_ multInitSpace = paramsH.MULT_INITSPACE; //0.9;//0.9;
 	real_ initSpace0 = paramsH.MULT_INITSPACE * paramsH.HSML;
 	printf("initSpaceFluid = %f * sphR\n", multInitSpace);
 	int nFX = ceil((paramsH.cMax.x - paramsH.cMin.x) / (initSpace0));
@@ -981,7 +1079,8 @@ int2 CreateFluidMarkers(
 	int nFZ = ceil((paramsH.cMax.z - paramsH.cMin.z) / (initSpace0));
 	real_ initSpaceZ = (paramsH.cMax.z - paramsH.cMin.z) / nFZ;
 	//printf("&&&&& %f   %f %f %f \n", 1.1 * sphR, initSpaceX, initSpaceY, initSpaceZ);
-	printf("nFX Y Z %d %d %d, max distY %f, initSpaceY %f\n", nFX, nFY, nFZ, (nFY - 1) * initSpaceY, initSpaceY);
+	printf("nFX Y Z %d %d %d, max distY %f, initSpaceY %f\n", nFX, nFY, nFZ,
+			(nFY - 1) * initSpaceY, initSpaceY);
 	sphMarkerMass = (initSpaceX * initSpaceY * initSpaceZ) * paramsH.rho0;
 	//printf("sphMarkerMass * 1e12 %f\n", (initSpaceX * initSpaceY * initSpaceZ) * paramsH.rho0*1e12);
 
@@ -1000,8 +1099,13 @@ int2 CreateFluidMarkers(
 			for (int k = 0; k < nFZ; k++) {
 				real3 posRad;
 //					printf("initSpace X, Y, Z %f %f %f \n", initSpaceX, initSpaceY, initSpaceZ);
-				posRad = paramsH.cMin + R3(i * initSpaceX, j * initSpaceY, k * initSpaceZ)
-								+ R3(.5 * initSpace0)/* + R3(sphR) + initSpace * .05 * (real_(rand()) / RAND_MAX)*/;
+				posRad =
+						paramsH.cMin
+								+ R3(i * initSpaceX, j * initSpaceY,
+										k * initSpaceZ)
+								+ R3(
+										.5
+												* initSpace0)/* + R3(sphR) + initSpace * .05 * (real_(rand()) / RAND_MAX)*/;
 				real_ penDist = 0;
 				bool flag = true;
 				///penDist = IsInsideCurveOfSerpentineBeta(posRad);
@@ -1011,17 +1115,30 @@ int2 CreateFluidMarkers(
 				penDist = IsInsideTube(posRad);
 				///penDist = IsInsideStepTube(posRad);
 
-				if (penDist < -toleranceZone) flag = false;
+				if (penDist < -toleranceZone)
+					flag = false;
 				if (flag) {
-					for (int rigidSpheres = 0; rigidSpheres < rigidPos.size(); rigidSpheres++) {
-						if (IsInsideEllipsoid(posRad, rigidPos[rigidSpheres], rigidRotMatrix[rigidSpheres], ellipsoidRadii[rigidSpheres], initSpace0)) { flag = false; }
+					for (int rigidSpheres = 0; rigidSpheres < rigidPos.size();
+							rigidSpheres++) {
+						if (IsInsideEllipsoid(posRad, rigidPos[rigidSpheres],
+								rigidRotMatrix[rigidSpheres],
+								ellipsoidRadii[rigidSpheres], initSpace0)) {
+							flag = false;
+						}
 //						if ( IsInsideCylinder_XZ(posRad, rigidPos[rigidSpheres], ellipsoidRadii[rigidSpheres], initSpace0 ) ) { flag = false;}
 					}
-					for (int flexID = 0; flexID < ANCF_ReferenceArrayNodesOnBeams.size(); flexID++) {
-						int2 nodesStartEnd2 = ANCF_ReferenceArrayNodesOnBeams[flexID];
-						real3 pa3 = ANCF_Nodes[ nodesStartEnd2.x ];
-						real3 pb3 = ANCF_Nodes[ nodesStartEnd2.y - 1 ];
-						if (IsInsideStraightFlex(posRad, pa3, pb3, (paramsH.NUM_BCE_LAYERS - 1) * initSpace0, initSpace0)) { flag = false; }
+					for (int flexID = 0;
+							flexID < ANCF_ReferenceArrayNodesOnBeams.size();
+							flexID++) {
+						int2 nodesStartEnd2 =
+								ANCF_ReferenceArrayNodesOnBeams[flexID];
+						real3 pa3 = ANCF_Nodes[nodesStartEnd2.x];
+						real3 pb3 = ANCF_Nodes[nodesStartEnd2.y - 1];
+						if (IsInsideStraightFlex(posRad, pa3, pb3,
+								(paramsH.NUM_BCE_LAYERS - 1) * initSpace0,
+								initSpace0)) {
+							flag = false;
+						}
 					}
 				}
 				if (flag) {
@@ -1030,27 +1147,31 @@ int2 CreateFluidMarkers(
 							num_FluidMarkers++;
 							mPosRad.push_back(posRad);
 							mVelMas.push_back(R4(0, 0, 0, sphMarkerMass));
-							mRhoPresMu.push_back(R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, -1)); //rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
-																		//just note that the type, i.e. mRhoPresMu.w is real_.
-																		//viscosity of the water is .0018
+							mRhoPresMu.push_back(
+									R4(paramsH.rho0, paramsH.BASEPRES,
+											paramsH.mu0, -1)); //rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
+							//just note that the type, i.e. mRhoPresMu.w is real_.
+							//viscosity of the water is .0018
 
-																		//if (posRad.x < .98 * paramsH.cMax.x && posRad.x > .96 * paramsH.cMax.x && posRad.y > .48 * paramsH.sizeScale &&  posRad.y < .52 * paramsH.sizeScale
-																		//	&& posRad.z > 1.7 * paramsH.sizeScale &&  posRad.y < 1.75 * paramsH.sizeScale) {
-																		//	if (num_FluidMarkers < 1) {
-																		//		num_FluidMarkers ++;
-																		//		mPosRad.push_back(posRad);
-																		//		mVelMas.push_back( R4(0, 0, 0, pow(initSpace, 3) * paramsH.rho0) );
-																		//		mRhoPresMu.push_back(R4(paramsH.rho0, pres, mu, -1));		//rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
-																		//															//just note that the type, i.e. mRhoPresMu.w is real_.
-																		//															//viscosity of the water is .0018
-																		//	}
+							//if (posRad.x < .98 * paramsH.cMax.x && posRad.x > .96 * paramsH.cMax.x && posRad.y > .48 * paramsH.sizeScale &&  posRad.y < .52 * paramsH.sizeScale
+							//	&& posRad.z > 1.7 * paramsH.sizeScale &&  posRad.y < 1.75 * paramsH.sizeScale) {
+							//	if (num_FluidMarkers < 1) {
+							//		num_FluidMarkers ++;
+							//		mPosRad.push_back(posRad);
+							//		mVelMas.push_back( R4(0, 0, 0, pow(initSpace, 3) * paramsH.rho0) );
+							//		mRhoPresMu.push_back(R4(paramsH.rho0, pres, mu, -1));		//rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
+							//															//just note that the type, i.e. mRhoPresMu.w is real_.
+							//															//viscosity of the water is .0018
+							//	}
 
 						}
 					} else {
 						num_BoundaryMarkers++;
 						mPosRadBoundary.push_back(posRad);
 						mVelMasBoundary.push_back(R4(0, 0, 0, sphMarkerMass));
-						mRhoPresMuBoundary.push_back(R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, 0));	//rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
+						mRhoPresMuBoundary.push_back(
+								R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0,
+										0)); //rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
 						//just note that the type, i.e. mRhoPresMu.w is real_.
 						//viscosity of the water is .0018
 					}
@@ -1061,20 +1182,14 @@ int2 CreateFluidMarkers(
 	return I2(num_FluidMarkers, num_BoundaryMarkers);
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-int CreateEllipsoidMarkers(
-		thrust::host_vector<real3> & mPosRad,
+int CreateEllipsoidMarkers(thrust::host_vector<real3> & mPosRad,
 		thrust::host_vector<real4> & mVelMas,
-		thrust::host_vector<real4> & mRhoPresMu,
-		real3 rigidPos,
-		Rotation rigidRotMatrix,
-		real3 ellipsoidRadii,
-		real4 sphereVelMas,
-		real3 rigidBodyOmega,
-		real_ sphMarkerMass,
-		int type) {
+		thrust::host_vector<real4> & mRhoPresMu, real3 rigidPos,
+		Rotation rigidRotMatrix, real3 ellipsoidRadii, real4 sphereVelMas,
+		real3 rigidBodyOmega, real_ sphMarkerMass, int type) {
 	int num_RigidBodyMarkers = 0;
 	//real_ spacing = .9 * sphR;
-	real_ multInitSpace = paramsH.MULT_INITSPACE;//0.9;//1.0;//0.9;
+	real_ multInitSpace = paramsH.MULT_INITSPACE; //0.9;//1.0;//0.9;
 	real_ spacing = multInitSpace * paramsH.HSML;
 	//printf("initSpaceEllipsoid = %f * sphR\n", multInitSpace);
 	for (int k = 0; k < paramsH.NUM_BCE_LAYERS; k++) {
@@ -1083,41 +1198,69 @@ int CreateEllipsoidMarkers(
 		real_ minR = r3.x;
 		minR = (minR < r3.y) ? minR : r3.y;
 		minR = (minR < r3.z) ? minR : r3.z;
-		if ( minR > 0) {
+		if (minR > 0) {
 			real_ deltaTeta0 = spacing / r3.z;
 			real_ teta = 0.1 * deltaTeta0;
 			while (teta < PI - .1 * deltaTeta0) {
 				real_ deltaPhi0 = spacing / (r3.z * sin(teta));
 				real_ phi = 0.1 * deltaPhi0;
-				real_ currentR = 1 / length(R3(sin(teta) * cos(phi), sin(teta) * sin(phi), cos(teta)) / r3);
-				real_ nextR = 1 / length(R3(sin(teta + spacing / currentR) * cos(phi), sin(teta + spacing / currentR) * sin(phi), cos(teta + spacing / currentR)) / r3);
+				real_ currentR = 1
+						/ length(
+								R3(sin(teta) * cos(phi), sin(teta) * sin(phi),
+										cos(teta)) / r3);
+				real_ nextR = 1
+						/ length(
+								R3(sin(teta + spacing / currentR) * cos(phi),
+										sin(teta + spacing / currentR)
+												* sin(phi),
+										cos(teta + spacing / currentR)) / r3);
 				real_ deltaTeta = spacing / max(currentR, nextR);
 				while (phi < 2 * PI + deltaPhi0) {
-					real3 mult3 = R3(sin(teta) * cos(phi), sin(teta) * sin(phi), cos(teta)) / r3;
+					real3 mult3 = R3(sin(teta) * cos(phi), sin(teta) * sin(phi),
+							cos(teta)) / r3;
 					real_ r = 1 / length(mult3);
-					real3 posRadRigid_sphMarkerLocal = R3(r * sin(teta) * cos(phi), r * sin(teta) * sin(phi), r * cos(teta));
-					real3 posRadRigid_sphMarkerLocalRotate = posRadRigid_sphMarkerLocal.x * R3(rigidRotMatrix.a00, rigidRotMatrix.a10, rigidRotMatrix.a20) +
-							posRadRigid_sphMarkerLocal.y * R3(rigidRotMatrix.a01, rigidRotMatrix.a11, rigidRotMatrix.a21) +
-							posRadRigid_sphMarkerLocal.z * R3(rigidRotMatrix.a02, rigidRotMatrix.a12, rigidRotMatrix.a22);
+					real3 posRadRigid_sphMarkerLocal = R3(
+							r * sin(teta) * cos(phi), r * sin(teta) * sin(phi),
+							r * cos(teta));
+					real3 posRadRigid_sphMarkerLocalRotate =
+							posRadRigid_sphMarkerLocal.x
+									* R3(rigidRotMatrix.a00, rigidRotMatrix.a10,
+											rigidRotMatrix.a20)
+									+ posRadRigid_sphMarkerLocal.y
+											* R3(rigidRotMatrix.a01,
+													rigidRotMatrix.a11,
+													rigidRotMatrix.a21)
+									+ posRadRigid_sphMarkerLocal.z
+											* R3(rigidRotMatrix.a02,
+													rigidRotMatrix.a12,
+													rigidRotMatrix.a22);
 
-					real3 posRadRigid_sphMarker = posRadRigid_sphMarkerLocalRotate + rigidPos;
+					real3 posRadRigid_sphMarker =
+							posRadRigid_sphMarkerLocalRotate + rigidPos;
 
 					mPosRad.push_back(posRadRigid_sphMarker);
 					real_ deltaPhiDum = spacing / (r * sin(teta));
-					real_ rNewDum = 1 / length(R3(sin(teta) * cos(phi + deltaPhiDum), sin(teta) * sin(phi + deltaPhiDum), cos(teta)) / r3);
+					real_ rNewDum = 1
+							/ length(
+									R3(sin(teta) * cos(phi + deltaPhiDum),
+											sin(teta) * sin(phi + deltaPhiDum),
+											cos(teta)) / r3);
 					real_ maxR = max(rNewDum, r);
 					phi += spacing / (maxR * sin(teta));
 
-					real3 vel = R3(sphereVelMas) + cross(rigidBodyOmega, posRadRigid_sphMarker - rigidPos); //assuming LRF is the same as GRF at time zero (rigibodyOmega is in LRF, the second term of the cross is in GRF)
-					//printf("veloc %f %f %f\n", vel.x, vel.y, vel.z);
+					real3 vel = R3(sphereVelMas)
+							+ cross(rigidBodyOmega,
+									posRadRigid_sphMarker - rigidPos); //assuming LRF is the same as GRF at time zero (rigibodyOmega is in LRF, the second term of the cross is in GRF)
+							//printf("veloc %f %f %f\n", vel.x, vel.y, vel.z);
 					mVelMas.push_back(R4(vel, sphMarkerMass));
 					real_ representedArea = spacing * spacing;
-					mRhoPresMu.push_back(R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type));					// for rigid body particle, rho represents the represented area
+					mRhoPresMu.push_back(
+							R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0,
+									type)); // for rigid body particle, rho represents the represented area
 					//																						// for the rigid particles, the fluid properties are those of the contacting fluid particles
 					num_RigidBodyMarkers++;
 					//printf("num_RigidBodyMarkers %d\n", num_RigidBodyMarkers);
 					//printf("y %f\n", y);
-
 
 					//////reCalc deltaTeta and deltaPhi
 				}
@@ -1129,8 +1272,7 @@ int CreateEllipsoidMarkers(
 	return num_RigidBodyMarkers;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-int CreateFlexMarkers(
-		thrust::host_vector<real3> & mPosRad,
+int CreateFlexMarkers(thrust::host_vector<real3> & mPosRad,
 		thrust::host_vector<real4> & mVelMas,
 		thrust::host_vector<real4> & mRhoPresMu,
 
@@ -1138,38 +1280,50 @@ int CreateFlexMarkers(
 
 		real3 pa3, //inital point
 		real3 pb3, //end point
-		real_ l,  //beam length			//thrust::host_vector<real_> &  ANCF_Beam_Length
-		real_ sphMarkerMass,
-		int type) {
+		real_ l, //beam length			//thrust::host_vector<real_> &  ANCF_Beam_Length
+		real_ sphMarkerMass, int type) {
 	int num_FlexMarkers = 0;
-	real_ multInitSpace = paramsH.MULT_INITSPACE;//0.9;//1.0;//0.9;
+	real_ multInitSpace = paramsH.MULT_INITSPACE; //0.9;//1.0;//0.9;
 	real_ spacing = multInitSpace * paramsH.HSML;
 
 	real3 n3 = pb3 - pa3;
 	n3 /= length(n3);
 	real3 axis3 = cross(R3(1, 0, 0), n3);
 	axis3 /= length(axis3);
-	real_ angle = acos(n3.x);  //acos(dot(R3(1, 0, 0) , n3));
-	real4 q4 = R4(cos(0.5 * angle), axis3.x * sin(0.5 * angle), axis3.y * sin(0.5 * angle), axis3.z * sin(0.5 * angle));
+	real_ angle = acos(n3.x); //acos(dot(R3(1, 0, 0) , n3));
+	real4 q4 = R4(cos(0.5 * angle), axis3.x * sin(0.5 * angle),
+			axis3.y * sin(0.5 * angle), axis3.z * sin(0.5 * angle));
 
-	printf("type %d: pa %f %f %f, pb %f %f %f, n3 %f %f %f, axis %f %f %f, angle %f, q %f %f %f %f\n", type, pa3.x, pa3.y, pa3.z, pb3.x, pb3.y, pb3.z, n3.x, n3.y, n3.z,
+	printf(
+			"type %d: pa %f %f %f, pb %f %f %f, n3 %f %f %f, axis %f %f %f, angle %f, q %f %f %f %f\n",
+			type, pa3.x, pa3.y, pa3.z, pb3.x, pb3.y, pb3.z, n3.x, n3.y, n3.z,
 			axis3.x, axis3.y, axis3.z, angle, q4.x, q4.y, q4.z, q4.w);
 
 	for (real_ s = 0; s <= l; s += spacing) {
 		real3 centerPoint = pa3 + s * n3;
 		mPosRad.push_back(centerPoint);
 		mVelMas.push_back(R4(0, 0, 0, sphMarkerMass));
-		mRhoPresMu.push_back(R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type));	//take care of type			 /// type needs to be unique, to differentiate flex from other flex as well as other rigids
+		mRhoPresMu.push_back(
+				R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type)); //take care of type			 /// type needs to be unique, to differentiate flex from other flex as well as other rigids
 		flexParametricDist.push_back(s);
 		num_FlexMarkers++;
-		for (real_ r = spacing; r < paramsH.NUM_BCE_LAYERS * spacing; r += spacing) {
+		for (real_ r = spacing; r < paramsH.NUM_BCE_LAYERS * spacing; r +=
+				spacing) {
 			real_ deltaTeta = spacing / r;
-			for (real_ teta = .1 * deltaTeta; teta < 2 * PI - .1 * deltaTeta; teta += deltaTeta) {
+			for (real_ teta = .1 * deltaTeta; teta < 2 * PI - .1 * deltaTeta;
+					teta += deltaTeta) {
 				real3 BCE_Pos_local = R3(0, r * cos(teta), r * sin(teta));
-				real3 BCE_Pos_Global = Rotate_By_Quaternion(q4, BCE_Pos_local) + centerPoint;
+
+//				///ff1
+//				real_ hh = paramsH.HSML;
+//				printf("dd dist %f \n", length(BCE_Pos_local) / hh);
+
+				real3 BCE_Pos_Global = Rotate_By_Quaternion(q4, BCE_Pos_local)
+						+ centerPoint;
 				mPosRad.push_back(BCE_Pos_Global);
 				mVelMas.push_back(R4(0, 0, 0, sphMarkerMass));
-				mRhoPresMu.push_back(R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type));	//take care of type
+				mRhoPresMu.push_back(
+						R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type)); //take care of type
 				flexParametricDist.push_back(s);
 				num_FlexMarkers++;
 			}
@@ -1178,35 +1332,37 @@ int CreateFlexMarkers(
 	return num_FlexMarkers;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-int CreateCylinderMarkers_XZ(
-		thrust::host_vector<real3> & mPosRad,
+int CreateCylinderMarkers_XZ(thrust::host_vector<real3> & mPosRad,
 		thrust::host_vector<real4> & mVelMas,
-		thrust::host_vector<real4> & mRhoPresMu,
-		real3 rigidPos,
-		real3 ellipsoidRadii,
-		real4 sphereVelMas,
-		real3 rigidBodyOmega,
-		real_ sphMarkerMass,
-		int type) {
+		thrust::host_vector<real4> & mRhoPresMu, real3 rigidPos,
+		real3 ellipsoidRadii, real4 sphereVelMas, real3 rigidBodyOmega,
+		real_ sphMarkerMass, int type) {
 	int num_RigidBodyMarkers = 0;
-	real_ multInitSpace = paramsH.MULT_INITSPACE;//0.9;
+	real_ multInitSpace = paramsH.MULT_INITSPACE; //0.9;
 	real_ spacing = multInitSpace * paramsH.HSML;
 	printf("initSpaceCylinder = %f * sphR\n", multInitSpace);
 	for (int k = 0; k < paramsH.NUM_BCE_LAYERS; k++) {
 		real_ r = ellipsoidRadii.x - k * spacing;
 		if (r > 0) {
 			real_ deltaTeta = spacing / r;
-			for (real_ teta = .1 * deltaTeta; teta < 2 * PI - .1 * deltaTeta; teta += deltaTeta) {
+			for (real_ teta = .1 * deltaTeta; teta < 2 * PI - .1 * deltaTeta;
+					teta += deltaTeta) {
 				//printf("gher %f, %f\n", deltaTeta / 2 / PI, deltaTeta);
-				for (real_ y = paramsH.cMin.y; y < paramsH.cMax.y - .1 * spacing; y += spacing) {
+				for (real_ y = paramsH.cMin.y;
+						y < paramsH.cMax.y - .1 * spacing; y += spacing) {
 					//printf("aha\n");
-					real3 posRadRigid_sphMarker = R3(r * cos(teta), y, r * sin(teta)) + R3(rigidPos.x, 0, rigidPos.z);
+					real3 posRadRigid_sphMarker = R3(r * cos(teta), y,
+							r * sin(teta)) + R3(rigidPos.x, 0, rigidPos.z);
 
 					mPosRad.push_back(posRadRigid_sphMarker);
-					real3 vel = R3(sphereVelMas) + cross(rigidBodyOmega, posRadRigid_sphMarker - rigidPos); //assuming LRF is the same as GRF at time zero (rigibodyOmega is in LRF, the second term of the cross is in GRF)
+					real3 vel = R3(sphereVelMas)
+							+ cross(rigidBodyOmega,
+									posRadRigid_sphMarker - rigidPos); //assuming LRF is the same as GRF at time zero (rigibodyOmega is in LRF, the second term of the cross is in GRF)
 					mVelMas.push_back(R4(vel, sphMarkerMass));
 					real_ representedArea = spacing * spacing;
-					mRhoPresMu.push_back(R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type));					// for rigid body particle, rho represents the represented area
+					mRhoPresMu.push_back(
+							R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0,
+									type)); // for rigid body particle, rho represents the represented area
 					//																						// for the rigid particles, the fluid properties are those of the contacting fluid particles 
 					num_RigidBodyMarkers++;
 					//printf("num_RigidBodyMarkers %d\n", num_RigidBodyMarkers);
@@ -1225,9 +1381,9 @@ int main() {
 	time_t rawtime;
 	struct tm * timeinfo;
 
-	time ( &rawtime );
-	timeinfo = localtime ( &rawtime );
-	printf ( "Job was submittet at date/time is: %s\n", asctime (timeinfo) );
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+	printf("Job was submittet at date/time is: %s\n", asctime(timeinfo));
 
 	fstream inp("dist.txt", ios::in);
 	real_ distance;
@@ -1249,7 +1405,7 @@ int main() {
 	paramsH.BASEPRES = 0;
 	paramsH.nPeriod = 1;
 	paramsH.gravity = R3(0, 0, 0);
-	paramsH.bodyForce4 = R4(3.2e-4, 0, 0, 0);
+	paramsH.bodyForce4 = R4(0); //R4(3.2e-4, 0, 0, 0);
 	paramsH.rho0 = 1000;
 	paramsH.mu0 = 1.0f;
 	paramsH.v_Max = 2e-3; //ff1 change it to 2e-2 later.
@@ -1258,7 +1414,8 @@ int main() {
 	paramsH.kdT = 5;
 	paramsH.gammaBB = 0.5;
 	paramsH.cMin = R3(0, -.1, -.1) * paramsH.sizeScale;
-	paramsH.cMax = R3( paramsH.nPeriod * distance + 0, 1 + .1,  1 + .1) * paramsH.sizeScale;
+	paramsH.cMax = R3(paramsH.nPeriod * distance + 0, 1 + .1, 1 + .1)
+			* paramsH.sizeScale;
 	paramsH.binSize0; // will be changed
 
 	// note: for 3D pipe Poiseuille: f = 32*Re*mu^2/(rho^2 * D^3), where f: body force, Re = rho * u_ave * D / mu
@@ -1274,7 +1431,7 @@ int main() {
 	int numAllMarkers = 0;
 	//********************************************************************************************************
 	//** Initialization
-	real_ r = paramsH.HSML;	//.02;
+	real_ r = paramsH.HSML; //.02;
 
 	//**  reminiscent of the past******************************************************************************
 	//paramsH.cMin = R3(0, -0.2, -1.2) * paramsH.sizeScale; 							//for channel and serpentine
@@ -1284,33 +1441,43 @@ int main() {
 //	paramsH.cMin = R3(0, -.1, -.1) * paramsH.sizeScale;							//for tube
 
 	//paramsH.cMax = R3( paramsH.nPeriod * 4.6 + 0, 1.5,  4.0) * paramsH.sizeScale;  //for only CurvedSerpentine (w/out straight part)
-		///paramsH.cMax = R3( paramsH.nPeriod * sPeriod + 8 * paramsH.sizeScale, 1.5 * paramsH.sizeScale,  4.0 * paramsH.sizeScale);  //for old serpentine
-		///paramsH.cMax = R3( paramsH.nPeriod * sPeriod + r3_2.x + 2 * r4_2.x + r6_2.x + x_FirstChannel + 2 * x_SecondChannel, 1.5 * paramsH.sizeScale,  r6_2.y + 2 * toleranceZone);  //for serpentine
+	///paramsH.cMax = R3( paramsH.nPeriod * sPeriod + 8 * paramsH.sizeScale, 1.5 * paramsH.sizeScale,  4.0 * paramsH.sizeScale);  //for old serpentine
+	///paramsH.cMax = R3( paramsH.nPeriod * sPeriod + r3_2.x + 2 * r4_2.x + r6_2.x + x_FirstChannel + 2 * x_SecondChannel, 1.5 * paramsH.sizeScale,  r6_2.y + 2 * toleranceZone);  //for serpentine
 	///paramsH.cMax = R3( paramsH.nPeriod * sPeriod, 1.5 * paramsH.sizeScale,  4.0 * paramsH.sizeScale);  //for serpentine
 
 	//paramsH.cMax = R3( paramsH.nPeriod * 1.0 + 0, 1.5,  4.0) * paramsH.sizeScale;  //for  straight channel
 //	paramsH.cMax = R3( paramsH.nPeriod * 20.0 + 0, 11.2 + 2,  11.2 + 2) * paramsH.sizeScale;  //for  tube
 
-				//	paramsH.cMax = R3(paramsH.nPeriod * 1.0 + 0, .5,  3.5) * paramsH.sizeScale;  //for straight channel, sphere
-				//	paramsH.cMin = R3(0, -0.1, 0.5) * paramsH.sizeScale;
-				//	paramsH.cMax = R3(paramsH.nPeriod * 1.0 + 0, 1.5, 1.5) * paramsH.sizeScale;  //for tube channel, sphere
-				//	paramsH.cMin = R3(0, -0.5, -0.5) * paramsH.sizeScale;
+	//	paramsH.cMax = R3(paramsH.nPeriod * 1.0 + 0, .5,  3.5) * paramsH.sizeScale;  //for straight channel, sphere
+	//	paramsH.cMin = R3(0, -0.1, 0.5) * paramsH.sizeScale;
+	//	paramsH.cMax = R3(paramsH.nPeriod * 1.0 + 0, 1.5, 1.5) * paramsH.sizeScale;  //for tube channel, sphere
+	//	paramsH.cMin = R3(0, -0.5, -0.5) * paramsH.sizeScale;
 	//**  end of reminiscent of the past   ******************************************************************
 
 	//printf("a1  paramsH.cMax.x, y, z %f %f %f,  binSize %f\n", paramsH.cMax.x, paramsH.cMax.y, paramsH.cMax.z, 2 * paramsH.HSML);
-	int3 side0 = I3(floor((paramsH.cMax.x - paramsH.cMin.x) / (2 * paramsH.HSML)), floor((paramsH.cMax.y - paramsH.cMin.y) / (2 * paramsH.HSML)), floor((paramsH.cMax.z - paramsH.cMin.z) / (2 * paramsH.HSML)));
-	real3 binSize3 = R3((paramsH.cMax.x - paramsH.cMin.x) / side0.x, (paramsH.cMax.y - paramsH.cMin.y) / side0.y, (paramsH.cMax.z - paramsH.cMin.z) / side0.z);
+	int3 side0 = I3(
+			floor((paramsH.cMax.x - paramsH.cMin.x) / (2 * paramsH.HSML)),
+			floor((paramsH.cMax.y - paramsH.cMin.y) / (2 * paramsH.HSML)),
+			floor((paramsH.cMax.z - paramsH.cMin.z) / (2 * paramsH.HSML)));
+	real3 binSize3 = R3((paramsH.cMax.x - paramsH.cMin.x) / side0.x,
+			(paramsH.cMax.y - paramsH.cMin.y) / side0.y,
+			(paramsH.cMax.z - paramsH.cMin.z) / side0.z);
 	paramsH.binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
 //	paramsH.binSize0 = (paramsH.binSize0 > binSize3.z) ? paramsH.binSize0 : binSize3.z;
-	paramsH.binSize0 = binSize3.x;  //for effect of distance. Periodic BC in x direction. we do not care about paramsH.cMax y and z.
+	paramsH.binSize0 = binSize3.x; //for effect of distance. Periodic BC in x direction. we do not care about paramsH.cMax y and z.
 	paramsH.cMax = paramsH.cMin + paramsH.binSize0 * R3(side0);
-	straightChannelBoundaryMin = R3(paramsH.cMin.x, 0.0 * paramsH.sizeScale, 0.0 * paramsH.sizeScale);
-	straightChannelBoundaryMax = R3(paramsH.cMax.x, 11.2 * paramsH.sizeScale, 11.2 * paramsH.sizeScale);
-	printf("paramsH.cMin.x, y, z %f %f %f paramsH.cMax.x, y, z %f %f %f,  binSize %f\n", paramsH.cMin.x, paramsH.cMin.y, paramsH.cMin.z, paramsH.cMax.x, paramsH.cMax.y, paramsH.cMax.z, paramsH.binSize0);
+	straightChannelBoundaryMin = R3(paramsH.cMin.x, 0.0 * paramsH.sizeScale,
+			0.0 * paramsH.sizeScale);
+	straightChannelBoundaryMax = R3(paramsH.cMax.x, 11.2 * paramsH.sizeScale,
+			11.2 * paramsH.sizeScale);
+	printf(
+			"paramsH.cMin.x, y, z %f %f %f paramsH.cMax.x, y, z %f %f %f,  binSize %f\n",
+			paramsH.cMin.x, paramsH.cMin.y, paramsH.cMin.z, paramsH.cMax.x,
+			paramsH.cMax.y, paramsH.cMax.z, paramsH.binSize0);
 	printf("paramsH.HSML %f\n", paramsH.HSML);
 	//printf("side0 %d %d %d \n", side0.x, side0.y, side0.z);
 
-	bool readFromFile = false;  //true;		//true: initializes from file. False: initializes inside the code
+	bool readFromFile = false; //true;		//true: initializes from file. False: initializes inside the code
 
 	real_ rhoRigid;
 	//1---------------------------------------------- Initialization ----------------------------------------
@@ -1321,7 +1488,7 @@ int main() {
 	//--------------------buffer initialization ---------------------------
 	thrust::host_vector<int3> referenceArray;
 //	thrust::host_vector<int3> referenceArray_Types;
-	thrust::host_vector<real3> mPosRad;			//do not set the size here since you are using push back later
+	thrust::host_vector<real3> mPosRad; //do not set the size here since you are using push back later
 	thrust::host_vector<real4> mVelMas;
 	thrust::host_vector<real4> mRhoPresMu;
 
@@ -1344,22 +1511,21 @@ int main() {
 	thrust::host_vector<real3> ANCF_NodesVel;
 	thrust::host_vector<real3> ANCF_SlopesVel;
 	thrust::host_vector<real_> ANCF_Beam_Length;
-	thrust::host_vector<int2>  ANCF_ReferenceArrayNodesOnBeams;
+	thrust::host_vector<int2> ANCF_ReferenceArrayNodesOnBeams;
 	//*** flex markers
 	thrust::host_vector<real_> flexParametricDist;
 
-
-
 	real_ pipeRadius;
 	real_ pipeLength;
-	real3 pipeInPoint3 = R3(paramsH.cMin.x, channelCenterYZ.x, channelCenterYZ.y);
+	real3 pipeInPoint3 = R3(paramsH.cMin.x, channelCenterYZ.x,
+			channelCenterYZ.y);
 
 	////***** here: define rigid bodies
 	string fileNameRigids("spheresPos.dat");
-	rhoRigid = 1.0 * paramsH.rho0;//1.5 * paramsH.rho0; // paramsH.rho0;//1180;//1000; //1050; //originally .079 //.179 for cylinder
+	rhoRigid = 1.0 * paramsH.rho0; //1.5 * paramsH.rho0; // paramsH.rho0;//1180;//1000; //1050; //originally .079 //.179 for cylinder
 
 	//real_ rr = .4 * (real_(rand()) / RAND_MAX + 1);
-	real3 r3Ellipsoid = R3(0.5, 0.5, 0.5) * paramsH.sizeScale;//R3(0.4 * paramsH.sizeScale); //R3(0.8 * paramsH.sizeScale); //real3 r3Ellipsoid = R3(.03 * paramsH.sizeScale); //R3(.05, .03, .02) * paramsH.sizeScale; //R3(.03 * paramsH.sizeScale);
+	real3 r3Ellipsoid = R3(0.5, 0.5, 0.5) * paramsH.sizeScale; //R3(0.4 * paramsH.sizeScale); //R3(0.8 * paramsH.sizeScale); //real3 r3Ellipsoid = R3(.03 * paramsH.sizeScale); //R3(.05, .03, .02) * paramsH.sizeScale; //R3(.03 * paramsH.sizeScale);
 
 	//**
 //	int3 stride = I3(5, 5, 5);
@@ -1368,11 +1534,8 @@ int main() {
 //	CreateRigidBodiesFromFile(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
 	//**
 	CreateFlexBodies(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
-			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams,
-			channelRadius,
-			paramsH.cMax.x - paramsH.cMin.x,
-			pipeInPoint3,
-			rhoRigid);
+			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, channelRadius,
+			paramsH.cMax.x - paramsH.cMin.x, pipeInPoint3, rhoRigid);
 	//**
 //	//channelRadius = 1.0 * paramsH.sizeScale;
 //	CreateRigidBodiesPatternPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
@@ -1382,7 +1545,8 @@ int main() {
 //	CreateRigidBodiesRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, 2); //changed 2 to 4
 //	CreateRigidBodiesPatternPipe_KindaRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, 128);
 	printf("numRigids %d\n", rigidPos.size());
-	printf("rigid Radii %f %f %f\n", r3Ellipsoid.x, r3Ellipsoid.y, r3Ellipsoid.z);
+	printf("rigid Radii %f %f %f\n", r3Ellipsoid.x, r3Ellipsoid.y,
+			r3Ellipsoid.z);
 
 	thrust::host_vector<Rotation> rigidRotMatrix(mQuatRot.size());
 	ConvertQuatArray2RotArray(rigidRotMatrix, mQuatRot);
@@ -1400,8 +1564,10 @@ int main() {
 			real4 velMas = R4(0);
 			real4 rhoPresMu = R4(0);
 			int type1;
-			inp >> posRad.x >> dummyCh >> posRad.y >> dummyCh >> posRad.z >> dummyCh >> velMas.x >> dummyCh >> velMas.y
-					>> dummyCh >> velMas.z >> dummyCh >> velMas.w >> dummyCh >> rhoPresMu.x >> dummyCh >> rhoPresMu.y >> dummyCh >> rhoPresMu.z
+			inp >> posRad.x >> dummyCh >> posRad.y >> dummyCh >> posRad.z
+					>> dummyCh >> velMas.x >> dummyCh >> velMas.y >> dummyCh
+					>> velMas.z >> dummyCh >> velMas.w >> dummyCh >> rhoPresMu.x
+					>> dummyCh >> rhoPresMu.y >> dummyCh >> rhoPresMu.z
 					>> dummyCh >> type1;
 
 			rhoPresMu.z = paramsH.mu0;
@@ -1415,66 +1581,84 @@ int main() {
 		referenceArray.push_back(I3(0, num_FluidMarkers, -1)); //map fluid -1
 //		referenceArray_Types.push_back(I3(-1, 0, 0));
 	} else {
-		thrust::host_vector<real3> mPosRadBoundary;			//do not set the size here since you are using push back later
+		thrust::host_vector<real3> mPosRadBoundary; //do not set the size here since you are using push back later
 		thrust::host_vector<real4> mVelMasBoundary;
 		thrust::host_vector<real4> mRhoPresMuBoundary;
 
-		int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(mPosRad, mVelMas, mRhoPresMu, mPosRadBoundary, mVelMasBoundary, mRhoPresMuBoundary, sphMarkerMass,
-				rigidPos, rigidRotMatrix, ellipsoidRadii,
-				ANCF_Nodes, ANCF_ReferenceArrayNodesOnBeams);
-		referenceArray.push_back(I3(0, num_fluidOrBoundaryMarkers.x, -1));  //map fluid -1
+		int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(mPosRad, mVelMas,
+				mRhoPresMu, mPosRadBoundary, mVelMasBoundary,
+				mRhoPresMuBoundary, sphMarkerMass, rigidPos, rigidRotMatrix,
+				ellipsoidRadii, ANCF_Nodes, ANCF_ReferenceArrayNodesOnBeams);
+		referenceArray.push_back(I3(0, num_fluidOrBoundaryMarkers.x, -1)); //map fluid -1
 //		referenceArray_Types.push_back((I3(-1, 0, 0)));
 		numAllMarkers += num_fluidOrBoundaryMarkers.x;
 		printf("num_FluidMarkers: %d\n", num_fluidOrBoundaryMarkers.x);
 
-		mPosRad.resize(num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
-		mVelMas.resize(num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
-		mRhoPresMu.resize(num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
+		mPosRad.resize(
+				num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
+		mVelMas.resize(
+				num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
+		mRhoPresMu.resize(
+				num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
 		////boundary: type = 0
 		int num_BoundaryMarkers = 0;
 		//printf("size1 %d, %d , numpart %d, numFluid %d \n", mPosRadBoundary.end() - mPosRadBoundary.begin(), mPosRadBoundary.size(), num_fluidOrBoundaryMarkers.y, num_fluidOrBoundaryMarkers.x);
-		thrust::copy(mPosRadBoundary.begin(), mPosRadBoundary.end(), mPosRad.begin() + num_fluidOrBoundaryMarkers.x);
-		thrust::copy(mVelMasBoundary.begin(), mVelMasBoundary.end(), mVelMas.begin() + num_fluidOrBoundaryMarkers.x);
-		thrust::copy(mRhoPresMuBoundary.begin(), mRhoPresMuBoundary.end(), mRhoPresMu.begin() + num_fluidOrBoundaryMarkers.x);
+		thrust::copy(mPosRadBoundary.begin(), mPosRadBoundary.end(),
+				mPosRad.begin() + num_fluidOrBoundaryMarkers.x);
+		thrust::copy(mVelMasBoundary.begin(), mVelMasBoundary.end(),
+				mVelMas.begin() + num_fluidOrBoundaryMarkers.x);
+		thrust::copy(mRhoPresMuBoundary.begin(), mRhoPresMuBoundary.end(),
+				mRhoPresMu.begin() + num_fluidOrBoundaryMarkers.x);
 		mPosRadBoundary.clear();
 		mVelMasBoundary.clear();
 		mRhoPresMuBoundary.clear();
 
-		referenceArray.push_back(I3(numAllMarkers, numAllMarkers + num_fluidOrBoundaryMarkers.y, 0));  //map bc 0
+		referenceArray.push_back(
+				I3(numAllMarkers, numAllMarkers + num_fluidOrBoundaryMarkers.y,
+						0)); //map bc 0
 //		referenceArray_Types.push_back(I3(0, 0, 0));
 		numAllMarkers += num_fluidOrBoundaryMarkers.y;
 		printf("num_BoundaryMarkers: %d\n", num_fluidOrBoundaryMarkers.y);
 
 		//rigid body: type = 1, 2, 3, ...
 		printf("num_RigidBodyMarkers: \n");
-		for (int rigidSpheres = 0; rigidSpheres < rigidPos.size(); rigidSpheres++) {
-			int num_RigidBodyMarkers = CreateEllipsoidMarkers(mPosRad, mVelMas, mRhoPresMu, rigidPos[rigidSpheres], rigidRotMatrix[rigidSpheres], ellipsoidRadii[rigidSpheres], spheresVelMas[rigidSpheres],
-					rigidBodyOmega[rigidSpheres], sphMarkerMass, rigidSpheres + 1);		//as type
+		for (int rigidSpheres = 0; rigidSpheres < rigidPos.size();
+				rigidSpheres++) {
+			int num_RigidBodyMarkers = CreateEllipsoidMarkers(mPosRad, mVelMas,
+					mRhoPresMu, rigidPos[rigidSpheres],
+					rigidRotMatrix[rigidSpheres], ellipsoidRadii[rigidSpheres],
+					spheresVelMas[rigidSpheres], rigidBodyOmega[rigidSpheres],
+					sphMarkerMass, rigidSpheres + 1); //as type
 //			int num_RigidBodyMarkers = CreateCylinderMarkers_XZ(mPosRad, mVelMas, mRhoPresMu,
 //													rigidPos[rigidSpheres], ellipsoidRadii[rigidSpheres],
 //													 spheresVelMas[rigidSpheres],
 //													 rigidBodyOmega[rigidSpheres],
 //													sphMarkerMass,
 //													 rigidSpheres + 1);		//as type
-			referenceArray.push_back(I3(numAllMarkers, numAllMarkers + num_RigidBodyMarkers, 1));  //rigid type: 1
+			referenceArray.push_back(
+					I3(numAllMarkers, numAllMarkers + num_RigidBodyMarkers, 1)); //rigid type: 1
 //			referenceArray_Types.push_back(I3(1, rigidSpheres, 0));
 			numAllMarkers += num_RigidBodyMarkers;
 //			printf(" %d \n", num_RigidBodyMarkers);
 		}
 		int totalNumFlexMarkers = 0;
-		for (int flexBodyIdx = 0; flexBodyIdx < ANCF_ReferenceArrayNodesOnBeams.size(); flexBodyIdx++) {
-			real3 pa3 = ANCF_Nodes[ ANCF_ReferenceArrayNodesOnBeams[flexBodyIdx].x ];
-			real3 pb3 = ANCF_Nodes[ ANCF_ReferenceArrayNodesOnBeams[flexBodyIdx].y - 1 ];
+		for (int flexBodyIdx = 0;
+				flexBodyIdx < ANCF_ReferenceArrayNodesOnBeams.size();
+				flexBodyIdx++) {
+			real3 pa3 =
+					ANCF_Nodes[ANCF_ReferenceArrayNodesOnBeams[flexBodyIdx].x];
+			real3 pb3 =
+					ANCF_Nodes[ANCF_ReferenceArrayNodesOnBeams[flexBodyIdx].y
+							- 1];
 
-			int num_FlexMarkers = CreateFlexMarkers(mPosRad, mVelMas, mRhoPresMu,
-					flexParametricDist,
-					pa3, //inital point
+			int num_FlexMarkers = CreateFlexMarkers(mPosRad, mVelMas,
+					mRhoPresMu, flexParametricDist, pa3, //inital point
 					pb3, //end point
-					ANCF_Beam_Length[flexBodyIdx],  //beam length			//thrust::host_vector<real_> &  ANCF_Beam_Length
-					sphMarkerMass,
-					flexBodyIdx + rigidPos.size() + 1);
+					ANCF_Beam_Length[flexBodyIdx], //beam length			//thrust::host_vector<real_> &  ANCF_Beam_Length
+					sphMarkerMass, flexBodyIdx + rigidPos.size() + 1);
 
-			referenceArray.push_back(I3(numAllMarkers, numAllMarkers + num_FlexMarkers, 2));  //map bc : rigidSpheres + 1
+			referenceArray.push_back(
+					I3(numAllMarkers, numAllMarkers + num_FlexMarkers, 2)); //map bc : rigidSpheres + 1
 //			referenceArray_Types.push_back(I3(1, rigidSpheres, 0));
 			numAllMarkers += num_FlexMarkers;
 			totalNumFlexMarkers += num_FlexMarkers;
@@ -1488,15 +1672,17 @@ int main() {
 
 	thrust::host_vector<uint> bodyIndex(numAllMarkers);
 	thrust::fill(bodyIndex.begin(), bodyIndex.end(), 1);
-	thrust::exclusive_scan(bodyIndex.begin(), bodyIndex.end(), bodyIndex.begin());
+	thrust::exclusive_scan(bodyIndex.begin(), bodyIndex.end(),
+			bodyIndex.begin());
 	printf("numAllMarkers %d\n", numAllMarkers);
 
 	if (numAllMarkers != 0) {
 		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray,
-				rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2,
-				ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel, ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, flexParametricDist,
-				numAllMarkers,
-				channelRadius, channelCenterYZ, paramsH);
+				rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1,
+				rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ANCF_Nodes,
+				ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel, ANCF_Beam_Length,
+				ANCF_ReferenceArrayNodesOnBeams, flexParametricDist,
+				numAllMarkers, channelRadius, channelCenterYZ, paramsH);
 	}
 	mPosRad.clear();
 	mVelMas.clear();

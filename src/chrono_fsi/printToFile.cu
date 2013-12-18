@@ -30,6 +30,10 @@ void PrintToFile(
 		thrust::device_vector<real3> & AD2,
 		thrust::device_vector<real3> & AD3,
 		thrust::device_vector<real3> & omegaLRF_D,
+
+		thrust::device_vector<real3> ANCF_NodesD,
+		thrust::device_vector<real3> ANCF_NodesVelD,
+
 		SimParams paramsH,
 		real_ delT,
 		int tStep,
@@ -46,6 +50,8 @@ void PrintToFile(
 	thrust::host_vector<real4> velMassRigidH = velMassRigidD;
 	thrust::host_vector<real4> qH1 = qD1;
 	thrust::host_vector<real3> omegaLRF_H = omegaLRF_D;
+	thrust::host_vector<real3> ANCF_NodesH = ANCF_NodesD;
+	thrust::host_vector<real3> ANCF_NodesVelH = ANCF_NodesVelD;
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++com
 	ofstream fileNameFluid;
 	int stepSaveFluid = 200000;
@@ -320,6 +326,7 @@ void PrintToFile(
 		}
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++com
 		ofstream fileNameRigidBodies;
+		ofstream fileNameFlexBodies;
 		ofstream fileNameFluidParticles;
 		ofstream fileNameBoundaries;
 		ofstream fileNameFluidBoundaries;
@@ -340,6 +347,10 @@ void PrintToFile(
 			sprintf(nameRigid, "povFiles/rigid");
 			strcat(nameRigid, fileCounter);
 			strcat(nameRigid, ".csv");
+			char nameFlex[255];
+			sprintf(nameFlex, "povFiles/flex");
+			strcat(nameFlex, fileCounter);
+			strcat(nameFlex, ".csv");
 			char nameFluid[255];
 			sprintf(nameFluid, "povFiles/fluid");
 			strcat(nameFluid, fileCounter);
@@ -360,16 +371,29 @@ void PrintToFile(
 			fileNameRigidBodies.open(nameRigid);
 			stringstream ssRigidBodies;
 			if (numRigidBodies > 0) {
-				const int numRigidBodies = posRigidH.size();
 				for (int j = 0; j < numRigidBodies; j++) {
 					real3 p_rigid = posRigidH[j];
 					real4 q_rigid = qH1[j];
 					real4 velMassRigid = velMassRigidH[j];
-					ssRigidBodies<<tStep * delT<<", "<< p_rigid.x<<", "<< p_rigid.y<<", "<< p_rigid.z<<", "<< velMassRigid.x << ", " <<  velMassRigid.y << ", " <<  velMassRigid.z <<", "<< length(R3(velMassRigid)) <<  ", "<< length(R3(velMassRigid)) << ", "<< q_rigid.x<<", "<< q_rigid.y<<", "<< q_rigid.z<<", "<< q_rigid.w<<", "<<endl;
+					ssRigidBodies<<p_rigid.x<<", "<< p_rigid.y<<", "<< p_rigid.z<<", "<< velMassRigid.x << ", " <<  velMassRigid.y << ", " <<  velMassRigid.z <<", "<< length(R3(velMassRigid)) <<  ", "<< length(R3(velMassRigid)) << ", "<< q_rigid.x<<", "<< q_rigid.y<<", "<< q_rigid.z<<", "<< q_rigid.w<<", "<<endl;
 				}
 			}
 			fileNameRigidBodies << ssRigidBodies.str();
 			fileNameRigidBodies.close();
+
+			fileNameFlexBodies.open(nameFlex);
+			stringstream ssFlexBodies;
+			const int numFlexNodes = ANCF_NodesD.size();
+			if (numFlexNodes > 0) {
+				for (int j = 0; j < numFlexNodes; j++) {
+					real3 nodePos = ANCF_NodesD[j];
+					real3 nodeVel = ANCF_NodesVelD[j];
+					ssFlexBodies<<nodePos.x<<", "<< nodePos.y<<", "<< nodePos.z<<", "<< nodeVel.x << ", " <<  nodeVel.y << ", " <<  nodeVel.z <<", "<<endl;
+				}
+			}
+			fileNameFlexBodies << ssFlexBodies.str();
+			fileNameFlexBodies.close();
+
 
 			fileNameFluidParticles.open(nameFluid);
 			stringstream ssFluidParticles;
@@ -431,6 +455,8 @@ void PrintToFile(
 	velMassRigidH.clear();
 	qH1.clear();
 	omegaLRF_H.clear();
+	ANCF_NodesH.clear();
+	ANCF_NodesVelH.clear();
 }
 
 //*******************************************************************************************************************************

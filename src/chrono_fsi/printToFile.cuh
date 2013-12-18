@@ -21,6 +21,8 @@ void PrintToFile(
 		thrust::device_vector<real3> & AD2,
 		thrust::device_vector<real3> & AD3,
 		thrust::device_vector<real3> & omegaLRF_D,
+		thrust::device_vector<real3> ANCF_NodesD,
+		thrust::device_vector<real3> ANCF_NodesVelD,
 		SimParams paramsH,
 		real_ delT,
 		int tStep,

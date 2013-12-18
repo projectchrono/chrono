@@ -415,6 +415,7 @@ void RigidBodyRotation(
 	real3 pa = ANCF_NodesD[nodesPortion.x];
 	real3 pb = ANCF_NodesD[nodesPortion.y - 1];
 	real3 pCenter =  0.5 * (pa + pb);
+//	printf("pCenter %f %f %f\n", pCenter.x, pCenter.y, pCenter.z);
 	real_ omega = 10;
 	real3 omega3 = omega * R3(0, 1, 0);
 	real_ dTheta = omega * dT;
