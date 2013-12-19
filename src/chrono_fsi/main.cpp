@@ -31,6 +31,8 @@
 #include "SDKCollisionSystem.cuh" //just for SimParams
 #include "collideSphereSphere.cuh"
 #include <algorithm>
+#include "FlexibleBodies.cuh"
+
 
 using namespace std;
 
@@ -530,11 +532,12 @@ void CreateFlexBodies(thrust::host_vector<real3> & ANCF_Nodes,
 		thrust::host_vector<real_> & ANCF_Beam_Length,
 		thrust::host_vector<int2> & ANCF_ReferenceArrayNodesOnBeams,
 		real_ pipeRadius, real_ pipeLength, real3 pipeInPoint3,
-		const real_ rhoRigid) {
+		const ANCF_Params & flexParams
+		) {
 	//TODO create mass property of the beams
 
-	int numBeams = 10;
-	int numElementsPerBeam = 3;
+	int numBeams = 2;
+	int numElementsPerBeam = flexParams.ne;
 	real_ myMargin = paramsH.MULT_INITSPACE * (paramsH.NUM_BCE_LAYERS + 1)
 			* paramsH.HSML;
 	real_ sectionLenght = (pipeLength - 2 * myMargin) / numBeams;
@@ -1281,7 +1284,8 @@ int CreateFlexMarkers(thrust::host_vector<real3> & mPosRad,
 		real3 pa3, //inital point
 		real3 pb3, //end point
 		real_ l, //beam length			//thrust::host_vector<real_> &  ANCF_Beam_Length
-		real_ sphMarkerMass, int type) {
+		real_ sphMarkerMass, int type,
+		ANCF_Params flexParams) {
 	int num_FlexMarkers = 0;
 	real_ multInitSpace = paramsH.MULT_INITSPACE; //0.9;//1.0;//0.9;
 	real_ spacing = multInitSpace * paramsH.HSML;
@@ -1307,8 +1311,7 @@ int CreateFlexMarkers(thrust::host_vector<real3> & mPosRad,
 				R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type)); //take care of type			 /// type needs to be unique, to differentiate flex from other flex as well as other rigids
 		flexParametricDist.push_back(s);
 		num_FlexMarkers++;
-		for (real_ r = spacing; r < paramsH.NUM_BCE_LAYERS * spacing; r +=
-				spacing) {
+		for (real_ r = spacing; r < flexParams.r + .1 * spacing; r += spacing) {
 			real_ deltaTeta = spacing / r;
 			for (real_ teta = .1 * deltaTeta; teta < 2 * PI - .1 * deltaTeta;
 					teta += deltaTeta) {
@@ -1401,7 +1404,7 @@ int main() {
 	paramsH.sizeScale = 1;
 	paramsH.HSML = 0.02;
 	paramsH.MULT_INITSPACE = 1.0;
-	paramsH.NUM_BCE_LAYERS = 5;
+	paramsH.NUM_BCE_LAYERS = 2;
 	paramsH.BASEPRES = 0;
 	paramsH.nPeriod = 1;
 	paramsH.gravity = R3(0, 0, 0);
@@ -1410,13 +1413,22 @@ int main() {
 	paramsH.mu0 = 1.0f;
 	paramsH.v_Max = 2e-3; //ff1 change it to 2e-2 later.
 	paramsH.EPS_XSPH = .5f;
-	paramsH.dT = .01;
+	paramsH.dT = .001; //sph alone: .01;
 	paramsH.kdT = 5;
 	paramsH.gammaBB = 0.5;
 	paramsH.cMin = R3(0, -.1, -.1) * paramsH.sizeScale;
 	paramsH.cMax = R3(paramsH.nPeriod * distance + 0, 1 + .1, 1 + .1)
 			* paramsH.sizeScale;
 	paramsH.binSize0; // will be changed
+
+
+	ANCF_Params flexParams;
+	flexParams.E = 1.0e6;
+	flexParams.r = paramsH.HSML * paramsH.MULT_INITSPACE * (paramsH.NUM_BCE_LAYERS - 1);
+	flexParams.rho = 1000;
+	flexParams.ne = 3;
+	flexParams.A = PI * pow(flexParams.r, 2.0f);
+	flexParams.I = .25 * PI * pow(flexParams.r, 4.0f);
 
 	// note: for 3D pipe Poiseuille: f = 32*Re*mu^2/(rho^2 * D^3), where f: body force, Re = rho * u_ave * D / mu
 	// note: for 2D pipe Poiseuille: f = 12*Re*mu^2/(rho^2 * W^3), where f: body force, Re = rho * u_ave * W / mu
@@ -1535,7 +1547,7 @@ int main() {
 	//**
 	CreateFlexBodies(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
 			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, channelRadius,
-			paramsH.cMax.x - paramsH.cMin.x, pipeInPoint3, rhoRigid);
+			paramsH.cMax.x - paramsH.cMin.x, pipeInPoint3, flexParams);
 	//**
 //	//channelRadius = 1.0 * paramsH.sizeScale;
 //	CreateRigidBodiesPatternPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
@@ -1655,7 +1667,8 @@ int main() {
 					mRhoPresMu, flexParametricDist, pa3, //inital point
 					pb3, //end point
 					ANCF_Beam_Length[flexBodyIdx], //beam length			//thrust::host_vector<real_> &  ANCF_Beam_Length
-					sphMarkerMass, flexBodyIdx + rigidPos.size() + 1);
+					sphMarkerMass, flexBodyIdx + rigidPos.size() + 1,
+					flexParams);
 
 			referenceArray.push_back(
 					I3(numAllMarkers, numAllMarkers + num_FlexMarkers, 2)); //map bc : rigidSpheres + 1
@@ -1682,7 +1695,7 @@ int main() {
 				rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ANCF_Nodes,
 				ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel, ANCF_Beam_Length,
 				ANCF_ReferenceArrayNodesOnBeams, flexParametricDist,
-				numAllMarkers, channelRadius, channelCenterYZ, paramsH);
+				numAllMarkers, channelRadius, channelCenterYZ, paramsH, flexParams);
 	}
 	mPosRad.clear();
 	mVelMas.clear();

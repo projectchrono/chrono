@@ -334,7 +334,7 @@ void PrintToFile(
 
 		system("mkdir -p povFiles");
 //		int tStepsPovFiles = 2000;
-		int tStepsPovFiles = 2;
+		int tStepsPovFiles = 2000;
 		if (tStep % tStepsPovFiles == 0) {
 			if (tStep / tStepsPovFiles == 0) {
 						//linux. In windows, it is System instead of system (to invoke a command in the command line)

@@ -2,6 +2,7 @@
 #define COLLIDESPHERESPHERE_CUH
 
 #include "SDKCollisionSystem.cuh" //just for SimParams
+#include "FlexibleBodies.cuh"
 
 void cudaCollisions(
 		thrust::host_vector<real3> & mPosRad,
@@ -31,6 +32,7 @@ void cudaCollisions(
 		int & numAllMarkers,
 		real_ channelRadius,
 		real2 channelCenterYZ,
-		SimParams paramsH);
+		SimParams paramsH,
+		const ANCF_Params & flexParams);
 
 #endif

@@ -1399,6 +1399,7 @@ void UpdateFlexibleBody(
 		const thrust::host_vector<int3> & referenceArray,
 
 		SimParams paramsH,
+		const ANCF_Params & flexParams,
 		float fracSimulation,
 		real_ dT) {
 	if (numFlexBodies == 0) {
@@ -1466,7 +1467,7 @@ void UpdateFlexibleBody(
 			ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
 			flex_FSI_NodesForces1, flex_FSI_NodesForces2,
 			ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD,
-			numFlexBodies, dT
+			numFlexBodies, flexParams, dT
 			);
 
 
@@ -1542,7 +1543,8 @@ void cudaCollisions(
 		int & numAllMarkers,
 		real_ channelRadius,
 		real2 channelCenterYZ,
-		SimParams paramsH) {
+		SimParams paramsH,
+		const ANCF_Params & flexParams) {
 	//****************************** bin size adjustement and contact detection stuff *****************************
 	//real_ mBinSize0 = (numAllMarkers == 0) ? mBinSize0 : 2 * paramsH.HSML;
 	//real3 cMinOffsetCollisionPurpose = paramsH.cMin - 3 * R3(0, mBinSize0, mBinSize0);		//periodic bc in x direction
@@ -1806,6 +1808,7 @@ void cudaCollisions(
 								referenceArray,
 
 								paramsH,
+								flexParams,
 								float(tStep)/stepEnd,
 								0.5 * delT);
 
@@ -1836,6 +1839,7 @@ void cudaCollisions(
 						referenceArray,
 
 						paramsH,
+						flexParams,
 						float(tStep)/stepEnd,
 						delT);
 

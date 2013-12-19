@@ -27,6 +27,17 @@
 #ifndef FLEXIBLEBODIES_CUH
 #define FLEXIBLEBODIES_CUH
 
+#include <thrust/device_vector.h>
+
+struct ANCF_Params {
+	real_ r;
+	real_ E;
+	real_ I;
+	real_ rho;
+	real_ A;
+	int ne; // number of elements per noodle
+};
+
 __device__ __host__ inline void shape_fun(real_* S, real_ x, real_ lE)
 {
 	real_ xi = x/lE;
@@ -57,6 +68,7 @@ void Update_ANCF_Beam(
 		const thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
 		const thrust::device_vector<real_> & ANCF_Beam_LengthD,
 		const int numFlexBodies,
+		const ANCF_Params & flexParams,
 		real_ dT
 		);
 
