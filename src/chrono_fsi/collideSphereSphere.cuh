@@ -25,6 +25,7 @@ void cudaCollisions(
 		const thrust::host_vector<real3> & ANCF_NodesVel,
 		const thrust::host_vector<real3> & ANCF_SlopesVel,
 		const thrust::host_vector<real_> & ANCF_Beam_Length,
+		const thrust::host_vector<bool> & ANCF_IsCantilever,
 		const thrust::host_vector<int2> & ANCF_ReferenceArrayNodesOnBeams,
 
 		const thrust::host_vector<real_> & flexParametricDist,

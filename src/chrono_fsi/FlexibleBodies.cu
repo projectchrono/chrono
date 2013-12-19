@@ -441,6 +441,7 @@ void Update_ANCF_Beam(
 		thrust::device_vector<real3> & flex_FSI_NodesForces2,
 		const thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
 		const thrust::device_vector<real_> & ANCF_Beam_LengthD,
+		const thrust::host_vector<bool> & ANCF_IsCantilever,
 		const int numFlexBodies,
 		const ANCF_Params & flexParams,
 		real_ dT)
@@ -451,14 +452,18 @@ void Update_ANCF_Beam(
 
 	for (int i = 0; i < numFlexBodies; i++) {
 		real_ lBeam = ANCF_Beam_LengthD[i];
+		bool isCantilever = ANCF_IsCantilever[i];
 		int2 nodesPortion = ANCF_ReferenceArrayNodesOnBeamsD[i];
+		if (isCantilever) {
+			nodesPortion.x = nodesPortion.x + 1;
+		}
 		int numNodes = nodesPortion.y - nodesPortion.x;
 		int numElements = numNodes - 1;
 		real_ lE = lBeam / numElements;
 		real_* f = new real_ [numNodes * 6];
 		MapBeamDataTo_1D_Array(f, flex_FSI_NodesForces1, flex_FSI_NodesForces2, nodesPortion);
 		real_* D2Node = new real_ [numNodes * 6];
-		min_vec(D2Node, f, lE, numElements);
+		min_vec(D2Node, f, lE, numElements, isCantilever);
 
 		//ff1 : the followin commented lines are the real algorithm
 		ItegrateInTime(ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,

@@ -531,6 +531,7 @@ void CreateFlexBodies(thrust::host_vector<real3> & ANCF_Nodes,
 		thrust::host_vector<real3> & ANCF_SlopesVel,
 		thrust::host_vector<real_> & ANCF_Beam_Length,
 		thrust::host_vector<int2> & ANCF_ReferenceArrayNodesOnBeams,
+		thrust::host_vector<bool> & ANCF_IsCantilever,
 		real_ pipeRadius, real_ pipeLength, real3 pipeInPoint3,
 		const ANCF_Params & flexParams
 		) {
@@ -573,6 +574,7 @@ void CreateFlexBodies(thrust::host_vector<real3> & ANCF_Nodes,
 			ANCF_ReferenceArrayNodesOnBeams.push_back(
 					I2(nodesSofar, nodesSofar + numElementsPerBeam + 1));
 		}
+		ANCF_IsCantilever.push_back(false);
 
 		// mass and stiffness properties of beams
 //		real3 invJ1, invJ2;
@@ -1524,6 +1526,7 @@ int main() {
 	thrust::host_vector<real3> ANCF_SlopesVel;
 	thrust::host_vector<real_> ANCF_Beam_Length;
 	thrust::host_vector<int2> ANCF_ReferenceArrayNodesOnBeams;
+	thrust::host_vector<bool> ANCF_IsCantilever;
 	//*** flex markers
 	thrust::host_vector<real_> flexParametricDist;
 
@@ -1546,7 +1549,8 @@ int main() {
 //	CreateRigidBodiesFromFile(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
 	//**
 	CreateFlexBodies(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
-			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, channelRadius,
+			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever,
+			channelRadius,
 			paramsH.cMax.x - paramsH.cMin.x, pipeInPoint3, flexParams);
 	//**
 //	//channelRadius = 1.0 * paramsH.sizeScale;
@@ -1694,7 +1698,7 @@ int main() {
 				rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1,
 				rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ANCF_Nodes,
 				ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel, ANCF_Beam_Length,
-				ANCF_ReferenceArrayNodesOnBeams, flexParametricDist,
+				ANCF_IsCantilever, ANCF_ReferenceArrayNodesOnBeams, flexParametricDist,
 				numAllMarkers, channelRadius, channelCenterYZ, paramsH, flexParams);
 	}
 	mPosRad.clear();
@@ -1720,6 +1724,7 @@ int main() {
 	ANCF_NodesVel.clear();
 	ANCF_SlopesVel.clear();
 	ANCF_ReferenceArrayNodesOnBeams.clear();
+	ANCF_IsCantilever.clear();
 	ANCF_Beam_Length.clear();
 	return 0;
 }

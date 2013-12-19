@@ -67,6 +67,7 @@ void Update_ANCF_Beam(
 		thrust::device_vector<real3> & flex_FSI_NodesForces2,
 		const thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
 		const thrust::device_vector<real_> & ANCF_Beam_LengthD,
+		const thrust::host_vector<bool> & ANCF_IsCantilever,
 		const int numFlexBodies,
 		const ANCF_Params & flexParams,
 		real_ dT

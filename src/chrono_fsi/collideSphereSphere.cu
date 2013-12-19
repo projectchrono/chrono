@@ -1396,6 +1396,7 @@ void UpdateFlexibleBody(
 		const thrust::device_vector<real3> & flexSPH_MeshSlope_Initial_D,
 		const thrust::device_vector<real_> & flexParametricDistD,
 		const thrust::device_vector<real_> & ANCF_Beam_LengthD,
+		const thrust::host_vector<bool> & ANCF_IsCantilever,
 		const thrust::host_vector<int3> & referenceArray,
 
 		SimParams paramsH,
@@ -1466,7 +1467,7 @@ void UpdateFlexibleBody(
 	Update_ANCF_Beam(
 			ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
 			flex_FSI_NodesForces1, flex_FSI_NodesForces2,
-			ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD,
+			ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, ANCF_IsCantilever,
 			numFlexBodies, flexParams, dT
 			);
 
@@ -1536,8 +1537,8 @@ void cudaCollisions(
 		const thrust::host_vector<real3> & ANCF_NodesVel,
 		const thrust::host_vector<real3> & ANCF_SlopesVel,
 		const thrust::host_vector<real_> & ANCF_Beam_Length,
+		const thrust::host_vector<bool> & ANCF_IsCantilever,
 		const thrust::host_vector<int2> & ANCF_ReferenceArrayNodesOnBeams,
-
 		const thrust::host_vector<real_> & flexParametricDist,
 
 		int & numAllMarkers,
@@ -1805,6 +1806,7 @@ void cudaCollisions(
 								flexSPH_MeshSlope_Initial_D,
 								flexParametricDistD,
 								ANCF_Beam_LengthD,
+								ANCF_IsCantilever,
 								referenceArray,
 
 								paramsH,
@@ -1836,6 +1838,7 @@ void cudaCollisions(
 						flexSPH_MeshSlope_Initial_D,
 						flexParametricDistD,
 						ANCF_Beam_LengthD,
+						ANCF_IsCantilever,
 						referenceArray,
 
 						paramsH,
