@@ -1405,7 +1405,7 @@ int main() {
 	paramsH.BASEPRES = 0;
 	paramsH.nPeriod = 1;
 	paramsH.gravity = R3(0, 0, 0);
-	paramsH.bodyForce4 = R4(0); //R4(3.2e-4, 0, 0, 0);
+	paramsH.bodyForce4 = R4(3.2e-4, 0, 0, 0);
 	paramsH.rho0 = 1000;
 	paramsH.mu0 = 1.0f;
 	paramsH.v_Max = 2e-3; //ff1 change it to 2e-2 later.

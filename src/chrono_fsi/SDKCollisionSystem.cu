@@ -468,8 +468,8 @@ void collideD(real4* derivVelRhoD, // output: new velocity
 	for (int x = -1; x <= 1; x++) {
 		for (int y = -1; y <= 1; y++) {
 			for (int z = -1; z <= 1; z++) {
-//				derivVelRho += collideCell(gridPos + I3(x, y, z), index, posRadA, velMasA, vel_XSPH_A, rhoPreMuA, sortedPosRad, sortedVelMas, vel_XSPH_Sorted_D,
-//								sortedRhoPreMu, cellStart, cellEnd, gridMarkerIndex);
+				derivVelRho += collideCell(gridPos + I3(x, y, z), index, posRadA, velMasA, vel_XSPH_A, rhoPreMuA, sortedPosRad, sortedVelMas, vel_XSPH_Sorted_D,
+								sortedRhoPreMu, cellStart, cellEnd, gridMarkerIndex);
 			}
 		}
 	}

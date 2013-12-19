@@ -462,15 +462,15 @@ void Update_ANCF_Beam(
 		real_* D2Node = new real_ [numNodes * 6];
 		min_vec(D2Node, f, lE, numElements);
 
-//		//ff1 : the followin commented lines are the real algorithm
-//		ItegrateInTime(ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
-//				f, nodesPortion,
-//				lE, dT);
-
-		//ff1: dummy, to check rigid body motion and such
-		RigidBodyRotation(ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
+		//ff1 : the followin commented lines are the real algorithm
+		ItegrateInTime(ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
 				f, nodesPortion,
 				lE, dT);
+
+//		//ff1: dummy, to check rigid body motion and such
+//		RigidBodyRotation(ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
+//				f, nodesPortion,
+//				lE, dT);
 
 
 
