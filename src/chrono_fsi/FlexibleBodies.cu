@@ -447,7 +447,6 @@ void Update_ANCF_Beam(
 		real_ dT
 		)
 {
-
 	CalcElasticForces(flex_FSI_NodesForces1, flex_FSI_NodesForces2,
 			ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
 			ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, numFlexBodies);

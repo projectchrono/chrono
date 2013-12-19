@@ -850,13 +850,10 @@ __global__ void UpdateFlexMarkersPosition(
 	real_ markerMass = velMasD[absMarkerIndex].w;
 	real3 beamPointVel = Calc_ANCF_Point_Vel(ANCF_NodesVelD, ANCF_SlopesVelD, indexOfClosestNode, sE, lE); //interpolation using ANCF beam, cubic hermit equation
 
-	if (length(rX) < .0001) {
-		printf("small rx, s %f l %f\n", sE, lE);
-	}
-
-
 	real3 absOmega = Calc_ANCF_Point_Omega(ANCF_NodesVelD, ANCF_SlopesVelD, indexOfClosestNode, sE, lE, rX); //interpolation using ANCF beam, cubic hermit equation
-	velMasD[absMarkerIndex] = R4(beamPointVel + cross(absOmega, dist3), markerMass);
+		//ff1
+	//	velMasD[absMarkerIndex] = R4(beamPointVel + cross(absOmega, dist3), markerMass);
+		velMasD[absMarkerIndex] = R4(beamPointVel, markerMass);
 }
 ////--------------------------------------------------------------------------------------------------------------------------------
 void MakeRigidIdentifier(
@@ -1425,6 +1422,21 @@ void UpdateFlexibleBody(
 	uint nBlocks_numFlex_SphMarkers;
 	uint nThreads_SphMarkers;
 	computeGridSize(numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
+
+
+	//ff1 for Radu
+//	for (int i = 0; i < ANCF_Beam_LengthD.size(); i++) {
+//		int2 nodesInterval = ANCF_ReferenceArrayNodesOnBeamsD[i];
+//		real_ lBeam = ANCF_Beam_LengthD[i];
+//		real3 pa, pb;
+//		pa = ANCF_NodesD[nodesInterval.x];
+//		pb = ANCF_NodesD[nodesInterval.y - 1];
+//		real3 sa, sb;
+//		sa = ANCF_SlopesD[nodesInterval.x];
+//		sb = ANCF_SlopesD[nodesInterval.y - 1];
+//		printf("beamNumber %d: beamLength %f, start_pointAndSlope %f %f %f %f %f %f, end_point %f %f %f\n\n", i, lBeam, pa.x, pa.y, pa.z, sa.x, sa.y, sa.z, pb.x, pb.y, pb.z);
+//
+//	}
 
 	MapForcesOnNodes<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(
 			R3CAST(flexNodesForcesAllMarkers1),
