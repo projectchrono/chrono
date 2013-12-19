@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(ChronoEngine_Parallel)
 
 #=============================================================================
-# CHRONO::ENGINE   CMake configuration file for GPU unit
+# CHRONO::ENGINE   CMake configuration file for Chrono_Parallel
 #
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
@@ -12,8 +12,6 @@ find_package("OpenMP" REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 
-
-
 SET(INTEL_OPT "SSE2" CACHE STRING "intel optimizations")
 SET_PROPERTY(CACHE INTEL_OPT PROPERTY STRINGS "SSE2" "SSE3" "SSSE3" "SSE4.1" "SSE4.2" "AVX" "CORE-AVX-I" "CORE-AVX2")
 
@@ -21,7 +19,6 @@ if (${CMAKE_C_COMPILER} MATCHES "icc.*$")
   	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -x${INTEL_OPT}")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -x${INTEL_OPT}")
 endif ()
-
 
 #add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP)
 #add_definitions(-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP)
@@ -31,14 +28,15 @@ endif ()
 # NOTE: to add a new source to this unit, just add its name here and re-run the CMake.
 #
 
-# Visual Studio is great...
+# User specified path to ChronoEngine
+SET(CHRONO_INC       ""   CACHE PATH "Where is ChronoEngine Source located")
+
+# Justin: Visual Studio is great...
 if(MSVC)
-	# ... I love depcrecation warnings ...
-	ADD_DEFINITIONS( "-D_CRT_SECURE_NO_DEPRECATE" )
-	ADD_DEFINITIONS( "-D_SCL_SECURE_NO_DEPRECATE" )
-	# ... and hidden macros that break min/max
-	SET (CH_BUILDFLAGS "/DNOMINMAX")
-	
+	# specify a single Build type, so we can import the correct .lib for Chrono
+	set(CMAKE_BUILD_TYPE "Release" CACHE STRING "For single-configuration generators (e.g. make) set the type of build: Release, Debug, RelWithDebugInfo, MinSizeRel")
+	set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release" "Debug" "RelWithDebugInfo" "MinSizeRel")
+
 	# Windows doesn't automatically pick up Bullet source included in Chrono's build	
 	SET(ChronoEngine_unit_GPU_COLLISION
 		src/collision/ChCAABBGenerator.h
@@ -47,7 +45,6 @@ if(MSVC)
 		src/collision/ChCAABBGenerator.cpp
 		src/collision/ChCBroadphase.cpp
 		src/collision/ChCNarrowphase.cpp
-
 		src/collision/ChCSupportFunctions.h
 		src/collision/ChCCollisionModelParallel.h
 		src/collision/ChCCollisionModelParallel.cpp
@@ -57,8 +54,6 @@ if(MSVC)
 		src/collision/ChCCollisionSystemBulletParallel.cpp
 		src/collision/ChContactContainerParallel.h
 		src/collision/ChContactContainerParallel.cpp
-		# JCM: Windows doesn't automatically pick up Bullet source included in Chrono's build
-
 	# CollisionDispatch	
 		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.h
 		${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.cpp
@@ -157,7 +152,6 @@ if(MSVC)
 		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btSubSimplexConvexCast.cpp	
 		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.h
 		${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.cpp	
-		
 	# gimpact	
 		${CHRONO_INC}/collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.h
 		${CHRONO_INC}/collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.cpp	
@@ -165,7 +159,6 @@ if(MSVC)
 		${CHRONO_INC}/collision/gimpact/GIMPACT/Bullet/btGImpactQuantizedBvh.cpp
 		${CHRONO_INC}/collision/gimpact/GIMPACT/Bullet/btTriangleShapeEx.h
 		${CHRONO_INC}/collision/gimpact/GIMPACT/Bullet/btTriangleShapeEx.cpp
-		
 	# LinearMath	
 		${CHRONO_INC}/collision/bullet/LinearMath/btAlignedAllocator.h
 		${CHRONO_INC}/collision/bullet/LinearMath/btAlignedAllocator.cpp	
@@ -235,8 +228,6 @@ SET(ChronoEngine_unit_GPU_CU
     src/ChDataManager.cpp
    )
   
-
-
 SOURCE_GROUP(unit_GPU FILES
              ${ChronoEngine_unit_GPU_SOURCES}
              ${ChronoEngine_unit_GPU_HEADERS}
@@ -251,21 +242,67 @@ SOURCE_GROUP(unit_GPU\\solver FILES
 SOURCE_GROUP(unit_GPU\\constraints FILES
 	     ${ChronoEngine_unit_GPU_CONSTRAINTS})
 
-# User specified path to ChronoEngine
-SET(CHRONO_INC       ""   CACHE PATH "Where is ChronoEngine Source located")
-
 # Include directories based on user path to ChronoEngine
-# JCM: windows needs you the specify all the subdirectories for bullet collision?
 SET(INC_DIRS ${CHRONO_INC} "${CHRONO_INC}/collision" "${CHRONO_INC}/collision/bullet" "${CHRONO_INC}/collision/bullet/LinearMath" "${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision" )
 
-
-# User specified path to ChronoEngine Libraries
+# User specified path to ChronoEngine Libraries.
 SET(CHRONO_LIB_PATH  ""   CACHE PATH "Where is CHRONOLIB located")
+	
+# set the compiler as a variable
+IF (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_CLANGXX)
+    IF (CMAKE_SIZEOF_VOID_P MATCHES 4)
+        SET (COMPILER "COMPILER_GCC" CACHE STRING "Compiler Type" FORCE)
+    ELSE()
+        SET (COMPILER "COMPILER_GCC_X64" CACHE STRING "Compiler Type" FORCE)
+    ENDIF()
+ENDIF()
 
-# Find required Libraries
-FIND_LIBRARY(CHRONO_LIB NAMES ChronoEngine PATHS ${CHRONO_LIB_PATH} REQUIRED)
+IF (MSVC AND CMAKE_CL_64)
+    SET (COMPILER "COMPILER_MSVC_X64" CACHE STRING "Compiler Type" FORCE)
+ELSEIF(MSVC)
+    SET (COMPILER "COMPILER_MSVC" CACHE STRING "Compiler Type" FORCE)
+ENDIF()
 
-# JCM: don't forget to add {INC_DIRS} to the list
+# Justin: on MSVC Windows, I want to be able to link different libraries
+#	when building Debug/Release
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    IF (MSVC)
+        ADD_DEFINITIONS( "-D_CRT_SECURE_NO_DEPRECATE" )  # avoids deprecation warnings
+        ADD_DEFINITIONS( "-D_SCL_SECURE_NO_DEPRECATE" )  # avoids deprecation warnings
+    ENDIF(MSVC)
+	# find the CE library. First make sure we didn't already find it; if we did, unset the variable
+	# need this to easily switch between Debug and Release build types
+	IF(CHRONO_LIB)
+		unset(CHRONO_LIB CACHE)
+	endif()
+	# find the lib based on the compiler type AND build type, since Chrono puts the .lib files in
+	#	e.g.,	../lib/Release/ChronoEngine.lib
+    IF ("${COMPILER}" STREQUAL "COMPILER_MSVC")
+        SET (BUILDFLAGS "-DWIN32; -DNOMINMAX; -MP")
+		FIND_LIBRARY(CHRONO_LIB NAMES ChronoEngine PATHS ${CHRONO_LIB_PATH}/${CMAKE_BUILD_TYPE} REQUIRED)
+		file(COPY ${CHRONO_LIB_PATH}/../bin/${CMAKE_BUILD_TYPE}/ChronoEngine.dll	DESTINATION ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE})
+    ELSEIF ("${COMPILER}" STREQUAL "COMPILER_MSVC_X64")
+        SET(BUILDFLAGS "-DWIN64; -D_WIN64; -DNOMINMAX; -MP")
+		FIND_LIBRARY(CHRONO_LIB NAMES ChronoEngine PATHS ${CHRONO_LIB_PATH}/${CMAKE_BUILD_TYPE} REQUIRED)
+		file(COPY ${CHRONO_LIB_PATH}/../bin/${CMAKE_BUILD_TYPE}/ChronoEngine.dll	DESTINATION ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE})
+	ELSEIF ("${COMPILER}" STREQUAL "COMPILER_GCC")
+        SET(BUILDFLAGS "-DWIN32 -D_MINGW -D_WINDOWS")
+		FIND_LIBRARY( CHRONO_LIB NAMES ChronoEngine PATHS ${CHRONO_LIB_PATH}/${CMAKE_BUILD_TYPE} REQUIRED)
+		file(COPY ${CHRONO_LIB_PATH}/../bin/${CMAKE_BUILD_TYPE}/ChronoEngine.dll	DESTINATION ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE})
+    ELSEIF ("${COMPILER}" STREQUAL "COMPILER_GCC_X64")
+        SET (BUILDFLAGS "-DWIN64 -D_MINGW -D_WINDOWS -m64")
+		FIND_LIBRARY(CHRONO_LIB NAMES ChronoEngine PATHS ${CHRONO_LIB_PATH}/${CMAKE_BUILD_TYPE} REQUIRED)
+		file(COPY ${CHRONO_LIB_PATH}/../bin/${CMAKE_BUILD_TYPE}/ChronoEngine.dll	DESTINATION ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE})
+    ENDIF()
+	# check if I linked the right library
+	message("found chrono lib: ${CHRONO_LIB}")
+	# copy over lib .dlls on windows
+	file(COPY ${CHRONO_LIB_PATH}/../bin/Release/ChronoEngine.dll DESTINATION "${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}")
+else()
+	# Find Chrono libs
+	FIND_LIBRARY(CHRONO_LIB NAMES ChronoEngine PATHS ${CHRONO_LIB_PATH} REQUIRED)
+endif()
+
 SET(INCLUDE_DIR
 	${CH_CUDA_INC} 
 	${CHRONO_INC} 
@@ -279,7 +316,6 @@ SET(INCLUDE_LIB
     #${CHRONO_LIB_OPENGL}
 	${CHRONO_LIB}
 	)
-
 
 
 #-----------------------------------------------------------------------------
@@ -345,7 +381,6 @@ ENDIF()
 # IF(${CMAKE_CONFIGURATION_TYPES} MATCHES "Debug")
 
 # ENDIF()
-
 
 SET_TARGET_PROPERTIES(ChronoEngine_Parallel PROPERTIES
 					  COMPILE_FLAGS "${CH_BUILDFLAGS}"
