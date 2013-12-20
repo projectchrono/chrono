@@ -1404,18 +1404,18 @@ int main() {
 	paramsH.boxDims;
 
 	paramsH.sizeScale = 1;
-	paramsH.HSML = 0.02;
+	paramsH.HSML = 0.03;
 	paramsH.MULT_INITSPACE = 1.0;
 	paramsH.NUM_BCE_LAYERS = 2;
 	paramsH.BASEPRES = 0;
 	paramsH.nPeriod = 1;
 	paramsH.gravity = R3(0, 0, 0);
-	paramsH.bodyForce4 = R4(3.2e-4, 0, 0, 0);
+	paramsH.bodyForce4 = R4(0);//R4(3.2e-3,0,0,0); /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
 	paramsH.rho0 = 1000;
 	paramsH.mu0 = 1.0f;
-	paramsH.v_Max = 2e-3; //ff1 change it to 2e-2 later.
+	paramsH.v_Max = 0.2; /*0.2 for Re = 100 */ //2e-3;
 	paramsH.EPS_XSPH = .5f;
-	paramsH.dT = .001; //sph alone: .01;
+	paramsH.dT = .0001; //sph alone: .01 for Re 10;
 	paramsH.kdT = 5;
 	paramsH.gammaBB = 0.5;
 	paramsH.cMin = R3(0, -.1, -.1) * paramsH.sizeScale;
