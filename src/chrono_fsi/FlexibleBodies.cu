@@ -372,13 +372,13 @@ void ItegrateInTime(
 		thrust::device_vector<real3> & ANCF_NodesVelD,
 		thrust::device_vector<real3> & ANCF_SlopesVelD,
 		real_* f,
-		int2 nodesPortion,
+		int2 nodesPortionAdjusted,
 		real_ lE,
 		const ANCF_Params & flexParams,
 		real_ dT) {
-	int numNodes = nodesPortion.y - nodesPortion.x;
-	for (int j = 0; j < numNodes; j++) {
-		int nodeIdx = nodesPortion.x + j;
+	int numNodesAdjusted = nodesPortionAdjusted.y - nodesPortionAdjusted.x;
+	for (int j = 0; j < numNodesAdjusted; j++) {
+		int nodeIdx = nodesPortionAdjusted.x + j;
 		ANCF_NodesD[nodeIdx] += dT * ANCF_NodesVelD[nodeIdx];
 		ANCF_SlopesD[nodeIdx] += dT * ANCF_SlopesVelD[nodeIdx];
 
@@ -454,15 +454,18 @@ void Update_ANCF_Beam(
 		real_ lBeam = ANCF_Beam_LengthD[i];
 		bool isCantilever = ANCF_IsCantilever[i];
 		int2 nodesPortion = ANCF_ReferenceArrayNodesOnBeamsD[i];
-		if (isCantilever) {
-			nodesPortion.x = nodesPortion.x + 1;
-		}
 		int numNodes = nodesPortion.y - nodesPortion.x;
 		int numElements = numNodes - 1;
 		real_ lE = lBeam / numElements;
-		real_* f = new real_ [numNodes * 6];
-		MapBeamDataTo_1D_Array(f, flex_FSI_NodesForces1, flex_FSI_NodesForces2, nodesPortion);
-		real_* D2Node = new real_ [numNodes * 6];
+		int2 nodesPortionAdjusted2 = nodesPortion;
+		int numNodesAdjusted = numNodes;
+		if (isCantilever) {
+			nodesPortionAdjusted2.x = nodesPortionAdjusted2.x + 1;
+			numNodesAdjusted = nodesPortionAdjusted2.y - nodesPortionAdjusted2.x;
+		}
+		real_* f = new real_ [numNodesAdjusted * 6];
+		MapBeamDataTo_1D_Array(f, flex_FSI_NodesForces1, flex_FSI_NodesForces2, nodesPortionAdjusted2);
+		real_* D2Node = new real_ [numNodesAdjusted * 6];
 		min_vec(D2Node, f, lE, numElements, isCantilever);
 
 		//ff1 : the followin commented lines are the real algorithm

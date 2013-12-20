@@ -574,7 +574,7 @@ void CreateFlexBodies(thrust::host_vector<real3> & ANCF_Nodes,
 			ANCF_ReferenceArrayNodesOnBeams.push_back(
 					I2(nodesSofar, nodesSofar + numElementsPerBeam + 1));
 		}
-		ANCF_IsCantilever.push_back(false);
+		ANCF_IsCantilever.push_back(true);
 
 		// mass and stiffness properties of beams
 //		real3 invJ1, invJ2;
