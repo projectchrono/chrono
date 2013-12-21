@@ -240,6 +240,7 @@ static real Dot(const custom_vector<real> &x, const custom_vector<real> &y)
 	return answer;
 #else
 	real sum=0;
+#pragma loop count min(256)
 #pragma omp parallel for reduction(+:sum)
 	for(int i=0; i<x.size(); i++) {
 		sum+=x[i]*y[i];
@@ -283,7 +284,7 @@ static real Norm(const custom_vector<real> &x)
 	//return sqrt(Dot(x, x));
 #else
 	real sum=0;
-
+#pragma loop count min(256)
 #pragma omp parallel for reduction(+:sum)
 	for(int i=0; i<x.size(); i++) {
 		real _x = x[i];
