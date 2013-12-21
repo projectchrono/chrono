@@ -364,12 +364,12 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 				buffer->drop();
 
 				irr::scene::ChIrrNodeProxyToAsset* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(k_asset, mnode);
-				irr::scene::ISceneNode* anode = mproxynode;
 				irr::scene::ISceneNode* mchildnode = this->scenemanager->addMeshSceneNode(newmesh,mproxynode);
 				newmesh->drop();
 				mproxynode->Update(); // force syncing of triangle positions & face indexes
-				mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false); 
-				//mchildnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true); // vertex w.colors
+
+				mchildnode->setMaterialFlag(video::EMF_WIREFRAME,		  mytrimesh->IsWireframe() ); 
+				mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
 			}
 			if ( k_asset.IsType<chrono::ChSphereShape>() && sphereMesh)
 			{

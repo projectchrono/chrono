@@ -15,6 +15,7 @@
 
 
 #include "assets/ChAssetLevel.h"
+#include "assets/ChColor.h"
 #include "geometry/ChCTriangleMeshConnected.h"
 #include "unit_FEM/ChMesh.h"
 #include "unit_FEM/ChNodeFEMxyz.h"
@@ -46,7 +47,9 @@ class ChApiFem ChVisualizationFEMmesh: public ChAssetLevel
 				E_PLOT_NODE_ACCEL_NORM,
 				E_PLOT_NODE_ACCEL_X,
 				E_PLOT_NODE_ACCEL_Y,
-				E_PLOT_NODE_ACCEL_Z
+				E_PLOT_NODE_ACCEL_Z,
+				E_PLOT_ELEM_STRAIN_VONMISES,
+				E_PLOT_ELEM_STRESS_VONMISES,
 		};
 
 	protected:
@@ -63,6 +66,16 @@ class ChApiFem ChVisualizationFEMmesh: public ChAssetLevel
 
 		bool shrink_elements;
 		double shrink_factor;
+
+		bool wireframe; 
+
+		bool smooth_faces;
+
+		bool undeformed_reference;
+
+		ChColor meshcolor;
+
+		std::vector<int> normal_accumulators;
 
 	public:
 
@@ -99,6 +112,20 @@ class ChApiFem ChVisualizationFEMmesh: public ChAssetLevel
 			
 			// Set shrinkage of elements during drawing
 		void SetShrinkElements(bool mshrink, double mfact) {this->shrink_elements = mshrink; shrink_factor = mfact;}
+
+			// Set as wireframe visualization
+		void SetWireframe(bool mwireframe) {this->wireframe = mwireframe;}
+
+			// Set color for E_PLOT_NONE mode or for wireframe lines
+		void SetMeshColor(ChColor mcolor) {this->meshcolor = mcolor;}
+
+			// Activate Gourad or Phong smoothing for faces of non-straight elements 
+			// (with a small performance overhead) -NOTE: experimental
+		void SetSmoothFaces(bool msmooth) {this->smooth_faces = msmooth;}
+
+			// If this flag is turned on, the mesh is drawn as it is 
+			// undeformed (the reference position).
+		void SetDrawInUndeformedReference(bool mdu) {this->undeformed_reference = mdu;}
 
 			// Updates the triangle visualization mesh so that it matches with the
 			// FEM mesh (ex. tetrahedrons are converted in 4 surfaces, etc.

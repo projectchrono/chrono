@@ -173,11 +173,11 @@ public:
 					ChVector<> t2 = mmesh->getCoordsVertices()[ mmesh->getIndicesVertexes()[itri].y ];
 					ChVector<> t3 = mmesh->getCoordsVertices()[ mmesh->getIndicesVertexes()[itri].z ];					
 					ChVector<> n1, n2, n3;
-					if ( mmesh->getIndicesNormals().size() == mmesh->getCoordsVertices().size() )
+					if ( mmesh->getIndicesNormals().size() == mmesh->getIndicesVertexes().size() )
 					{
-						n1 = mmesh->getCoordsNormals()[ mmesh->getIndicesVertexes()[itri].x ];
-						n2 = mmesh->getCoordsNormals()[ mmesh->getIndicesVertexes()[itri].y ];
-						n3 = mmesh->getCoordsNormals()[ mmesh->getIndicesVertexes()[itri].z ];
+						n1 = mmesh->getCoordsNormals()[ mmesh->getIndicesNormals()[itri].x ];
+						n2 = mmesh->getCoordsNormals()[ mmesh->getIndicesNormals()[itri].y ];
+						n3 = mmesh->getCoordsNormals()[ mmesh->getIndicesNormals()[itri].z ];
 					}
 					else
 					{
@@ -187,7 +187,14 @@ public:
 					}
 
 					ChVector<> uv1,uv2,uv3;
-					if ( mmesh->getIndicesUV().size() == mmesh->getCoordsVertices().size() )
+					if ( mmesh->getIndicesUV().size() == mmesh->getIndicesVertexes().size() )
+					{
+						uv1 = mmesh->getCoordsUV()[ mmesh->getIndicesUV()[itri].x ];
+						uv2 = mmesh->getCoordsUV()[ mmesh->getIndicesUV()[itri].y ];
+						uv3 = mmesh->getCoordsUV()[ mmesh->getIndicesUV()[itri].z ];
+					}
+					else if ( mmesh->getIndicesUV().size() == 0 && 
+						     (mmesh->getCoordsUV().size()  == mmesh->getCoordsVertices().size() ) )
 					{
 						uv1 = mmesh->getCoordsUV()[ mmesh->getIndicesVertexes()[itri].x ];
 						uv2 = mmesh->getCoordsUV()[ mmesh->getIndicesVertexes()[itri].y ];
@@ -199,15 +206,23 @@ public:
 					}
 
 					ChVector<float> col1,col2,col3;
-					if ( mmesh->getIndicesColors().size() == mmesh->getCoordsVertices().size() )
+					if ( mmesh->getIndicesColors().size() == mmesh->getIndicesVertexes().size() )
+					{
+						col1 = mmesh->getCoordsColors()[ mmesh->getIndicesColors()[itri].x ];
+						col2 = mmesh->getCoordsColors()[ mmesh->getIndicesColors()[itri].y ];
+						col3 = mmesh->getCoordsColors()[ mmesh->getIndicesColors()[itri].z ];
+					}
+					else if ( mmesh->getIndicesColors().size() == 0 && 
+						     (mmesh->getCoordsColors().size() == mmesh->getCoordsVertices().size() ) )
 					{
 						col1 = mmesh->getCoordsColors()[ mmesh->getIndicesVertexes()[itri].x ];
 						col2 = mmesh->getCoordsColors()[ mmesh->getIndicesVertexes()[itri].y ];
 						col3 = mmesh->getCoordsColors()[ mmesh->getIndicesVertexes()[itri].z ];
-					}
-					else
+					} else
 					{
-						col1=col2=col3= ChVector<float>(1.f,1.f,1.f);
+						col1=col2=col3= ChVector<float>( trianglemesh->GetColor().R,
+														 trianglemesh->GetColor().G, 
+														 trianglemesh->GetColor().B);
 					}
 
 					irrmesh->Vertices[0+itri*3] = irr::video::S3DVertex((irr::f32)t1.x, (irr::f32)t1.y, (irr::f32)t1.z, 
@@ -237,8 +252,14 @@ public:
 					irrmesh->Indices[2+itri*3] = 2+itri*3;
 				}
 				irrmesh->setDirty(); // to force update of hardware buffers
-				irrmesh->setHardwareMappingHint(irr::scene::EHM_NEVER);//EHM_DYNAMIC); //for faster hw mapping
+				irrmesh->setHardwareMappingHint(irr::scene::EHM_DYNAMIC);//EHM_NEVER); //EHM_DYNAMIC for faster hw mapping
 				irrmesh->recalculateBoundingBox();
+
+				meshnode->setMaterialFlag(video::EMF_WIREFRAME,			trianglemesh->IsWireframe() ); 
+				meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, trianglemesh->IsBackfaceCull() );
+
+				meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true); // so color shading = vertexes  color
+
 			}
 
 
