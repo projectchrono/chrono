@@ -6,9 +6,11 @@ before_script:
     - mkdir build && cd build && cmake ../src
 script: make
 branches:
+    - except:
+        - feature/mpi
 notifications:
   recipients:
-    - git@aas.io
+    - info@projectchrono.org
   email:
     on_success: change
     on_failure: always
