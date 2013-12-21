@@ -16,6 +16,7 @@
 
 #include "ChElement3D.h"
 #include "ChNodeFEMxyz.h"
+#include "physics/ChTensors.h"
 
 
 namespace chrono
@@ -261,8 +262,34 @@ public:
 	ChSharedPtr<ChContinuumElastic> GetMaterial() {return Material;}
 
 				/// Get the partial derivatives matrix MatrB and the StiffnessMatrix
-	ChMatrixDynamic<>   GetMatrB() { return MatrB;}
-	ChMatrixDynamic<> GetStiffnessMatrix() {return StiffnessMatrix;}
+	ChMatrix<>&  GetMatrB() { return MatrB;}
+	ChMatrix<>&  GetStiffnessMatrix() {return StiffnessMatrix;}
+
+				/// Returns the strain tensor (note that the tetahedron 4 nodes is a linear
+				/// element, thus the strain is constant in the entire volume). 
+				/// The tensor is in the original undeformed unrotated reference.
+	ChStrainTensor<> GetStrain() 
+				{
+					// set up vector of nodal displacements (in local element system) u_l = R*p - p0
+					ChMatrixDynamic<> displ(12,1);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[0]->pos) - nodes[0]->GetX0(), 0, 0); // nodal displacements, local
+					displ.PasteVector(A.MatrT_x_Vect(nodes[1]->pos) - nodes[1]->GetX0(), 3, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[2]->pos) - nodes[2]->GetX0(), 6, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[3]->pos) - nodes[3]->GetX0(), 9, 0);
+
+					ChStrainTensor<> mstrain;
+					mstrain.MatrMultiply(MatrB, displ);
+					return mstrain;
+				}
+				/// Returns the stress tensor (note that the tetahedron 4 nodes is a linear
+				/// element, thus the stress is constant in the entire volume). 
+				/// The tensor is in the original undeformed unrotated reference.
+	ChStressTensor<> GetStress()
+				{
+					ChStressTensor<> mstress;
+					mstress.MatrMultiply(this->Material->Get_StressStrainMatrix(), this->GetStrain());
+					return mstress;
+				}	
 
 
 			//
