@@ -97,67 +97,6 @@ struct host_container {
 
 };
 
-struct device_container {
-
-		custom_vector<real3> device_norm_data;
-		custom_vector<real3> device_cpta_data;
-		custom_vector<real3> device_cptb_data;
-		custom_vector<real> device_dpth_data;
-		custom_vector<int2> device_bids_data;
-
-		custom_vector<real> device_comp_data;
-
-		custom_vector<real3> device_ObA_data;
-		custom_vector<real3> device_ObB_data;
-		custom_vector<real3> device_ObC_data;
-		custom_vector<real4> device_ObR_data;
-		custom_vector<int2> device_fam_data;
-		custom_vector<int> device_typ_data;
-		custom_vector<uint> device_id_data;
-		custom_vector<real3> device_aabb_data;
-		custom_vector<long long> device_pair_data;
-
-		custom_vector<real3> device_vel_data;
-		custom_vector<real3> device_omg_data;
-		custom_vector<real3> device_pos_data;
-		custom_vector<real4> device_rot_data;
-		custom_vector<real3> device_inr_data;
-		custom_vector<real3> device_frc_data;
-		custom_vector<real3> device_trq_data;
-		custom_vector<real3> device_acc_data;
-		custom_vector<bool> device_active_data;
-		custom_vector<real> device_mass_data;
-		custom_vector<real> device_fric_data;
-		custom_vector<real> device_cohesion_data;
-		custom_vector<real> device_compliance_data;
-		custom_vector<real3> device_dem_data;
-		custom_vector<real3> device_lim_data;
-		custom_vector<real3> device_gyr_data;
-
-		custom_vector<real3> device_QXYZ_data,device_QUVW_data;
-		custom_vector<real3> device_JXYZA_data,device_JXYZB_data;
-		custom_vector<real3> device_JUVWA_data,device_JUVWB_data;
-		custom_vector<real> device_rhs_data;
-		custom_vector<int2> device_bidlist_data;
-
-		custom_vector<real3> device_JXYZA_bilateral, device_JXYZB_bilateral;
-		custom_vector<real3> device_JUVWA_bilateral, device_JUVWB_bilateral;
-		custom_vector<real> device_residual_bilateral;
-		custom_vector<real> device_correction_bilateral;
-		custom_vector<int2> device_bids_bilateral;
-		custom_vector<real> device_gamma_bilateral;
-
-		custom_vector<real> device_gam_data;
-		custom_vector<real> device_dgm_data;
-
-		custom_vector<real3> vel_update;
-		custom_vector<real3> omg_update;
-		custom_vector<uint> update_offset;
-		custom_vector<uint> body_number;
-		custom_vector<uint> offset_counter;
-		custom_vector<uint> generic_counter;
-	};
-
 class ChApiGPU ChGPUDataManager {
 	public:
 		ChGPUDataManager();
@@ -172,7 +111,7 @@ class ChApiGPU ChGPUDataManager {
 		void CopyContacts(bool c) {
 			copyContacts = c;
 		}
-		device_container device_data;
+		//device_container device_data;
 		host_container host_data;
 
 		uint number_of_rigid_rigid;

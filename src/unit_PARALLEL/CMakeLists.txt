@@ -189,7 +189,7 @@ endif()
 SET(ChronoEngine_unit_GPU_SOLVER
     src/solver/ChSolverParallel.h
     src/solver/ChSolverParallel.cpp
-    src/solver/ChSolverBlockJacobi.cpp
+    #src/solver/ChSolverBlockJacobi.cpp
     src/solver/ChSolverCG.cpp
     src/solver/ChSolverCGS.cpp
     src/solver/ChSolverGD.cpp

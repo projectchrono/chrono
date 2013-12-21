@@ -40,7 +40,7 @@ namespace chrono {
 				max_iteration = 1000;
 				max_iter_normal = max_iter_sliding = max_iter_spinning = max_iter_bilateral = 100;
 				do_stab = false;
-				solver_type = BLOCK_JACOBI;
+				solver_type = ACCELERATED_PROJECTED_GRADIENT_DESCENT;
 				record_violation_history = true;
 				warm_start = false;
 

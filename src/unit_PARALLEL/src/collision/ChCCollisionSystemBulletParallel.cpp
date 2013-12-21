@@ -185,7 +185,6 @@ void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainerBase* mco
 		//contactManifold->clearManifold();
 	}
 
-	data_container->CopyContactData(HOST_TO_DEVICE);
 	mcontactcontainer->EndAddContact();
 
 }

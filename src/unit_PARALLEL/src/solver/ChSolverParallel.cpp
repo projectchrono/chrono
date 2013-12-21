@@ -144,7 +144,7 @@ void ChSolverParallel::Solve(GPUSOLVERTYPE solver_type) {
 				total_iteration += SolveAPGD(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration);
 			}
 		} else if (solver_type == BLOCK_JACOBI) {
-			SolveJacobi();
+			//SolveJacobi();
 		}
 //		thrust::copy_n(
 //				data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 3,

@@ -143,7 +143,6 @@ void ChCollisionSystemParallel::GetOverlappingAABB(vector<bool> &active_id, real
 vector<int2> ChCollisionSystemParallel::GetOverlappingPairs() {
 	vector<int2> pairs;
 	pairs.resize(data_container->host_data.pair_rigid_rigid.size());
-	data_container->DeviceToHostPairData();
 	for (int i = 0; i < data_container->host_data.pair_rigid_rigid.size(); i++) {
 		int2 pair = I2(int(data_container->host_data.pair_rigid_rigid[i] >> 32), int(data_container->host_data.pair_rigid_rigid[i] & 0xffffffff));
 		pairs[i] = pair;

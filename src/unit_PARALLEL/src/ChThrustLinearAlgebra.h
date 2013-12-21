@@ -46,11 +46,27 @@ struct real3_real3_functor: public thrust::binary_function<real3, real3, real3> 
 };
 static void SEAXPY(const real &a, const custom_vector<real> &x,const custom_vector<real> &y, custom_vector<real> &output)
 {
-	thrust::transform(thrust::omp::par,x.begin(), x.end(), y.begin(), output.begin(), saxpy_functor(a));
+#ifdef SIM_ENABLE_GPU_MODE
+	thrust::transform(x.begin(), x.end(), y.begin(), output.begin(), saxpy_functor(a));
+#else
+#pragma omp parallel for
+	for(int i=0; i<output.size(); i++) {
+		output[i] = a*x[i]+y[i];
+	}
+
+#endif
 }
 static void SEAXMY(const real &a, const custom_vector<real> &x,const custom_vector<real> &y, custom_vector<real> &output)
 {
-	thrust::transform(thrust::omp::par,x.begin(), x.end(), y.begin(), output.begin(), saxmy_functor(a));
+#ifdef SIM_ENABLE_GPU_MODE
+	thrust::transform(x.begin(), x.end(), y.begin(), output.begin(), saxmy_functor(a));
+#else
+#pragma omp parallel for
+	for(int i=0; i<output.size(); i++) {
+		output[i] = a*x[i]-y[i];
+	}
+
+#endif
 }
 
 static custom_vector<real> operator +(const custom_vector<real> &x, const custom_vector<real> &y)
@@ -77,54 +93,101 @@ static void operator +=(custom_vector<real3> &x, const custom_vector<real3> &y)
 
 static void PLUS_EQ(custom_vector<real> &x, const custom_vector<real> &y)
 {
-	thrust::plus<real> op;
-	thrust::transform(thrust::omp::par,x.begin(), x.end(), y.begin(), x.begin(), op);
+#ifdef SIM_ENABLE_GPU_MODE
+	thrust::plus<real3> op;
+	thrust::transform(x.begin(), x.end(), y.begin(), x.begin(), op);
+#else
+#pragma omp parallel for
+	for(int i=0; i<x.size(); i++) {
+		x[i] = x[i]+y[i];
+	}
+#endif
 }
 
 static custom_vector<real> operator -(const custom_vector<real> &x, const custom_vector<real> &y)
 {
 
 	custom_vector<real> temp(x.size());
+#ifdef SIM_ENABLE_GPU_MODE
 
 	thrust::minus<real> op;
-	thrust::transform(thrust::omp::par,x.begin(), x.end(), y.begin(), temp.begin(), op);
+	thrust::transform(x.begin(), x.end(), y.begin(), temp.begin(), op);
 
+#else
+
+#pragma omp parallel for
+	for(int i=0; i<x.size(); i++) {
+		temp[i] = x[i]-y[i];
+	}
+#endif
 	return temp;
 
 }
 
 static void Sub(custom_vector<real> &ans, const custom_vector<real> &x, const custom_vector<real> &y)
 {
+#ifdef SIM_ENABLE_GPU_MODE
+
 	thrust::minus<real> op;
-	thrust::transform(thrust::omp::par,x.begin(), x.end(), y.begin(), ans.begin(), op);
+	thrust::transform(x.begin(), x.end(), y.begin(), ans.begin(), op);
+
+#else
+
+#pragma omp parallel for
+		for(int i=0; i<x.size(); i++) {
+			ans[i] = x[i]-y[i];
+		}
+#endif
+
 }
 
 static custom_vector<real> operator *(const real &x, const custom_vector<real> &y)
 {
 	custom_vector<real> temp(y.size());
-
+#ifdef SIM_ENABLE_GPU_MODE
 	thrust::multiplies<real> op;
-	thrust::transform(thrust::omp::par,y.begin(), y.end(), thrust::make_constant_iterator(x), temp.begin(), op);
+	thrust::transform(y.begin(), y.end(), thrust::make_constant_iterator(x), temp.begin(), op);
+#else
 
+#pragma omp parallel for
+	for(int i=0; i<y.size(); i++) {
+		temp[i] = x*y[i];
+	}
+
+#endif
 	return temp;
 }
 static custom_vector<real> operator *(const custom_vector<real> &y, const real &x)
 {
 	custom_vector<real> temp(y.size());
-
+#ifdef SIM_ENABLE_GPU_MODE
 	thrust::multiplies<real> op;
-	thrust::transform(thrust::omp::par,y.begin(), y.end(), thrust::make_constant_iterator(x), temp.begin(), op);
+	thrust::transform(y.begin(), y.end(), thrust::make_constant_iterator(x), temp.begin(), op);
+#else
 
+#pragma omp parallel for
+	for(int i=0; i<y.size(); i++) {
+		temp[i] = x*y[i];
+	}
+
+#endif
 	return temp;
 }
 
 static custom_vector<real> operator *(const custom_vector<real> &x, const custom_vector<real> &y)
 {
 	custom_vector<real> temp(x.size());
-
+#ifdef SIM_ENABLE_GPU_MODE
 	thrust::multiplies<real> op;
-	thrust::transform(thrust::omp::par,x.begin(), x.end(), y.begin(), temp.begin(), op);
+	thrust::transform(x.begin(), x.end(), y.begin(), temp.begin(), op);
+#else
 
+#pragma omp parallel for
+	for(int i=0; i<x.size(); i++) {
+		temp[i] = x[i]*y[i];
+	}
+
+#endif
 	return temp;
 }
 
@@ -170,10 +233,20 @@ static custom_vector<real> operator /(const custom_vector<real> &x, const custom
 
 static real Dot(const custom_vector<real> &x, const custom_vector<real> &y)
 {
+#ifdef SIM_ENABLE_GPU_MODE
 	thrust::plus<real> binary_op1;
 	thrust::multiplies<real> binary_op2;
-	real answer = thrust::inner_product(thrust::omp::par,x.begin(), x.end(), y.begin(), real(0.0), binary_op1, binary_op2);
+	real answer = thrust::inner_product(x.begin(), x.end(), y.begin(), real(0.0), binary_op1, binary_op2);
 	return answer;
+#else
+	real sum=0;
+#pragma omp parallel for reduction(+:sum)
+	for(int i=0; i<x.size(); i++) {
+		sum+=x[i]*y[i];
+	}
+	return sum;
+#endif
+
 }
 
 struct abs_functor: public thrust::unary_function<real, real> {
