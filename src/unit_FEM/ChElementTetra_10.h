@@ -449,8 +449,8 @@ public:
 	ChSharedPtr<ChContinuumElastic> GetMaterial() {return Material;}
 
 				/// Get the partial derivatives matrix MatrB and the StiffnessMatrix
-	ChMatrixDynamic<>   GetMatrB(int n) { return MatrB[n];}
-	ChMatrixDynamic<> GetStiffnessMatrix() {return StiffnessMatrix;}
+	ChMatrix<>& GetMatrB(int n) { return MatrB[n];}
+	ChMatrix<>& GetStiffnessMatrix() {return StiffnessMatrix;}
 
 
 			//

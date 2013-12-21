@@ -452,7 +452,7 @@ public:
 	ChSharedPtr<ChContinuumElastic> GetMaterial() {return Material;}
 
 				/// Get the StiffnessMatrix
-	ChMatrixDynamic<> GetStiffnessMatrix() {return StiffnessMatrix;}
+	ChMatrix<>& GetStiffnessMatrix() {return StiffnessMatrix;}
 				/// Get the Nth gauss point
 	ChGaussPoint* GetGaussPoint(int N) {return GpVector[N];}
 
