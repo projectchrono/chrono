@@ -36,6 +36,9 @@ namespace chrono
 /// Class for referencing a triangle mesh shape that can be 
 /// visualized in some way. Being a child class of ChAsset, it can
 /// be 'attached' to physics items.
+/// It also defines flags such as 'draw as wireframe', 'do backface culling' etc.
+/// but remember that depending on the type of visualization system 
+/// (POVray, Irrlich,etc.) these flags might not be supported.
 
 class ChApi ChTriangleMeshShape : public ChVisualization {
 
@@ -45,12 +48,19 @@ protected:
 				//
 	geometry::ChTriangleMeshConnected trimesh;
 
+	bool wireframe;
+	bool backface_cull;
+
 public:
 				//
 	  			// CONSTRUCTORS
 				//
 
-	ChTriangleMeshShape ()  {};
+	ChTriangleMeshShape ()  
+			{ 
+				wireframe = false; 
+				backface_cull = false;
+			};
 
 	virtual ~ChTriangleMeshShape () {};
 
@@ -61,6 +71,12 @@ public:
 
 	geometry::ChTriangleMeshConnected& GetMesh()  {return trimesh;}
 	void SetMesh(const geometry::ChTriangleMeshConnected & mesh) {trimesh = mesh;}
+
+	bool IsWireframe() {return wireframe;}
+	void SetWireframe(bool mw) {wireframe = mw;}
+
+	bool IsBackfaceCull() {return backface_cull;}
+	void SetBackfaceCull(bool mbc) {backface_cull = mbc;}
 
 };
 
