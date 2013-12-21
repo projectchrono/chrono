@@ -9,20 +9,12 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
+
 //   Demos code about 
 //
 //     - FEM (introduction to dynamics)
 //
-//	 CHRONO 
-//   ------
-//   Multibody dinamics engine
-// 
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+
   
      
 // Include some headers used by this tutorial...

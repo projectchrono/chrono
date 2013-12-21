@@ -42,12 +42,6 @@ using namespace fem;
 
 
 
-
-
-
-
-
-
 // Do some tests in a single run, inside the main() function.
 // Results will be simply text-formatted outputs in the console..
 
@@ -85,6 +79,7 @@ int main(int argc, char* argv[])
 	mmaterial->Set_RayleighDampingK(0.0001);
 	mmaterial->Set_density(1000);
 
+/*
 				// Create some nodes. These are the classical point-like
 				// nodes with x,y,z degrees of freedom, that can be used 
 				// for many types of FEM elements in space.
@@ -104,7 +99,6 @@ int main(int argc, char* argv[])
 	mnode3->SetPos( mnode3->GetX0() + ChVector<>(0,0.26,0) );
 
 	// Remember to add nodes and elements to the mesh!
-	/*
 	my_mesh->AddNode(mnode1);
 	my_mesh->AddNode(mnode2);
 	my_mesh->AddNode(mnode3);
@@ -113,7 +107,7 @@ int main(int argc, char* argv[])
 	my_mesh->AddNode(mnode6);
 	my_mesh->AddNode(mnode7);
 	my_mesh->AddNode(mnode8);
-*/
+
 				// Create the tetrahedron element, and assign 
 				// nodes and material
 	ChSharedPtr<ChElementTetra_4> melement1( new ChElementTetra_4);
@@ -126,15 +120,58 @@ int main(int argc, char* argv[])
 	melement2->SetNodes(mnode3, mnode6, mnode7, mnode8);
 	melement2->SetMaterial(mmaterial);
 //	my_mesh->AddElement(melement2);
+*/
+				// Load a .node file and a .ele  file from disk, defining a complicate tetahedron mesh.
+				// This is much easier than creating all nodes and elements via C++ programming.
+				// You can generate these files using the TetGen tool.
+	try 
+	{
+		my_mesh->LoadFromTetGenFile("../data/unit_FEM/beam.node","../data/unit_FEM/beam.ele", mmaterial);
+	}
+	catch (ChException myerr) {
+			GetLog() << myerr.what();
+	}
 
-try {
-	my_mesh->LoadFromTetGenFile("../data/unit_FEM/beam.node","../data/unit_FEM/beam.ele", mmaterial);
-}
-catch (ChException myerr) {
-		GetLog() << myerr.what();
-}
-ChSharedPtr<ChNodeFEMxyz> mnodelast (my_mesh->GetNode(my_mesh->GetNnodes()-1));
-mnodelast->SetForce( ChVector<>(400,0,0));
+				// Apply a force to a node
+	ChSharedPtr<ChNodeFEMxyz> mnodelast (my_mesh->GetNode(my_mesh->GetNnodes()-1));
+	mnodelast->SetForce( ChVector<>(400,0,0));
+
+
+	double sx = 0.4;
+	double sy = 0.4;
+	double sz = 0.4;
+	ChSharedPtr<ChNodeFEMxyz> hnode1(new ChNodeFEMxyz(ChVector<>(0, 0,  0)));
+	ChSharedPtr<ChNodeFEMxyz> hnode2(new ChNodeFEMxyz(ChVector<>(0, 0,  sz)));
+	ChSharedPtr<ChNodeFEMxyz> hnode3(new ChNodeFEMxyz(ChVector<>(sx,0,  sz)));
+	ChSharedPtr<ChNodeFEMxyz> hnode4(new ChNodeFEMxyz(ChVector<>(sx,0,  0)));
+	ChSharedPtr<ChNodeFEMxyz> hnode5(new ChNodeFEMxyz(ChVector<>(0, sy, 0)));
+	ChSharedPtr<ChNodeFEMxyz> hnode6(new ChNodeFEMxyz(ChVector<>(0, sy, sz)));
+	ChSharedPtr<ChNodeFEMxyz> hnode7(new ChNodeFEMxyz(ChVector<>(sx,sy, sz)));
+	ChSharedPtr<ChNodeFEMxyz> hnode8(new ChNodeFEMxyz(ChVector<>(sx,sy, 0)));
+
+				// For example, set an initial displacement to a node:
+	hnode8->SetPos( hnode8->GetX0() + ChVector<>(0,0.1,0) );
+
+				// Remember to add nodes and elements to the mesh!
+	my_mesh->AddNode(hnode1);
+	my_mesh->AddNode(hnode2);
+	my_mesh->AddNode(hnode3);
+	my_mesh->AddNode(hnode4);
+	my_mesh->AddNode(hnode5);
+	my_mesh->AddNode(hnode6);
+	my_mesh->AddNode(hnode7);
+	my_mesh->AddNode(hnode8);
+
+				// Create the hexahedron element, and assign 
+				// its nodes and material
+	ChSharedPtr<ChElementHexa_8> helement1 (new ChElementHexa_8);
+	helement1->SetNodes(hnode1, hnode2, hnode3, hnode4, hnode5, hnode6, hnode7, hnode8);
+	helement1->SetMaterial(mmaterial);
+
+				// Remember to add elements to the mesh!
+	my_mesh->AddElement(helement1);
+
+
 
 				// This is necessary in order to precompute the 
 				// stiffness matrices for all inserted elements in mesh
@@ -172,25 +209,36 @@ mnodelast->SetForce( ChVector<>(400,0,0));
 			// Do not forget AddAsset() at the end!
 
 	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemesh(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	mvisualizemesh->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NODE_SPEED_NORM);
-	mvisualizemesh->SetColorscaleMinMax(0.0,5.8);
-	mvisualizemesh->SetShrinkElements(true,0.85);
+	mvisualizemesh->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_ELEM_STRAIN_VONMISES);
+	mvisualizemesh->SetColorscaleMinMax(0.0,0.80);
+	mvisualizemesh->SetShrinkElements(false,0.85);
+	mvisualizemesh->SetSmoothFaces(true);
 	my_mesh->AddAsset(mvisualizemesh);
 
+	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemeshwire(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
+	mvisualizemeshwire->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NONE);
+	mvisualizemeshwire->SetColorscaleMinMax(0.0,4.0);
+	mvisualizemeshwire->SetWireframe(true);
+	my_mesh->AddAsset(mvisualizemeshwire);
+
+	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemeshref(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
+	mvisualizemeshref->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NONE);
+	mvisualizemeshref->SetWireframe(true);
+	mvisualizemeshref->SetDrawInUndeformedReference(true);
+	my_mesh->AddAsset(mvisualizemeshref);
 
 			// ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
 			// in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
 			// If you need a finer control on which item really needs a visualization proxy in 
 			// Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
 
-//	application.AssetBindAll();
-application.AssetBind(my_mesh);
+	application.AssetBindAll();
 
 			// ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
 			// that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
 
-	//application.AssetUpdateAll();
-application.AssetUpdate(my_mesh);
+	application.AssetUpdateAll();
+
 
 	// 
 	// THE SOFT-REAL-TIME CYCLE
