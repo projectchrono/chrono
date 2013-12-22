@@ -1,7 +1,6 @@
 #include "ChSolverParallel.h"
 using namespace chrono;
 
-
 void ChSolverParallel::Project(custom_vector<real> & gamma) {
 	timer_project.start();
 
@@ -14,14 +13,14 @@ void ChSolverParallel::Project(custom_vector<real> & gamma) {
 
 void ChSolverParallel::shurA(custom_vector<real> &x) {
 #pragma omp parallel for
-		for (int i = 0; i < number_of_rigid; i++) {
-			data_container->host_data.QXYZ_data[i] = R3(0);
-			data_container->host_data.QUVW_data[i] = R3(0);
-		}
-		rigid_rigid->ShurA(x);
-		bilateral->ShurA(x);
-
+	for (int i = 0; i < number_of_rigid; i++) {
+		data_container->host_data.QXYZ_data[i] = R3(0);
+		data_container->host_data.QUVW_data[i] = R3(0);
 	}
+	rigid_rigid->ShurA(x);
+	bilateral->ShurA(x);
+
+}
 //=================================================================================================================================
 
 void ChSolverParallel::shurB(custom_vector<real> &x, custom_vector<real> &out) {
@@ -116,7 +115,7 @@ void ChSolverParallel::Solve(GPUSOLVERTYPE solver_type) {
 			total_iteration += SolveMinRes(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration);
 		}
 		//else if(solver_type==QUASAI_MINIMUM_RESIDUAL){SolveQMR(data_container->gpu_data.device_gam_data, rhs, max_iteration);}
-		else if (solver_type == ACCELERATED_PROJECTED_GRADIENT_DESCENT) {
+		else if (solver_type == ACCELERATED_PROJECTED_GRADIENT_DESCENT || solver_type == APGDRS) {
 
 			InitAPGD(data_container->host_data.gamma_data);
 
@@ -141,7 +140,12 @@ void ChSolverParallel::Solve(GPUSOLVERTYPE solver_type) {
 					total_iteration += SolveAPGD(data_container->host_data.gamma_data, data_container->host_data.rhs_data, 4);
 				}
 			} else {
-				total_iteration += SolveAPGD(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration);
+				if(solver_type == ACCELERATED_PROJECTED_GRADIENT_DESCENT) {
+					total_iteration += SolveAPGD(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration);
+				} else {
+					total_iteration += SolveAPGDRS(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration);
+				}
+
 			}
 		} else if (solver_type == BLOCK_JACOBI) {
 			//SolveJacobi();

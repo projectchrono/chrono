@@ -57,10 +57,12 @@ class ChApiGPU ChSolverParallel: public ChBaseParallel {
 		uint SolveBiCGStab(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 		uint SolveMinRes(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 		uint SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
+		uint SolveAPGDRS(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 		void SolveJacobi();
 
 		void InitAPGD(custom_vector<real> &x);
-
+		real Res4(custom_vector<real> mg_tmp2, custom_vector<real> x, custom_vector<real> mb_tmp);
+		void SetAPGDParams(real theta_k, real shrink,real grow);
 
 		void host_process_contacts(
 					real3* JXYZA,
@@ -202,7 +204,9 @@ class ChApiGPU ChSolverParallel: public ChBaseParallel {
 			custom_vector<real> ms, mg_tmp2, mb_tmp,mg_tmp, mg_tmp1;
 			custom_vector<real> mg,ml, mx, my;
 
-
+			real init_theta_k;
+			real step_shrink;
+			real step_grow;
 
 			ChConstraintRigidRigid *rigid_rigid;
 			ChConstraintBilateral *bilateral;

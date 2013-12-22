@@ -195,6 +195,7 @@ SET(ChronoEngine_unit_GPU_SOLVER
     src/solver/ChSolverGD.cpp
     src/solver/ChSolverSD.cpp
     src/solver/ChSolverAPGD.cpp
+    src/solver/ChSolverAPGDRS.cpp
     src/solver/ChSolverMinRes.cpp
     src/solver/ChSolverBiCG.cpp
     src/solver/ChSolverBiCGStab.cpp

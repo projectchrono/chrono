@@ -11,15 +11,35 @@ void ChSolverParallel::InitAPGD(custom_vector<real> &x) {
 	ml.resize(x.size());
 	mx.resize(x.size());
 	my.resize(x.size());
+	step_shrink = .9;
+	step_grow = 2.0;
+	init_theta_k = 1.0;
 
 }
 
+void ChSolverParallel::SetAPGDParams(real theta_k, real shrink,real grow){
+	init_theta_k = theta_k;
+	step_shrink = shrink;
+	step_grow = grow;
+
+}
+
+
+real ChSolverParallel::Res4(custom_vector<real> mg_tmp2, custom_vector<real> x, custom_vector<real> mb_tmp) {
+	real gdiff = 1;
+	SEAXPY(-gdiff, mg_tmp2, x, mb_tmp);     //mb_tmp=x+mg_tmp2*(-gdiff)
+	Project(mb_tmp);
+	ms=mb_tmp-x;
+	mb_tmp = (-1.0 / gdiff) * ms;
+	return Norm(mb_tmp);
+
+}
 uint ChSolverParallel::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
 	bool verbose = false;
 	real gdiff = 1;
 
 	real lastgoodres=10e30;
-	real theta_k=1.0;
+	real theta_k=init_theta_k;
 	real theta_k1=theta_k;
 	real beta_k1=0.0;
 	custom_vector<real> x_initial =x;
@@ -60,9 +80,9 @@ uint ChSolverParallel::SolveAPGD(custom_vector<real> &x, const custom_vector<rea
 			SEAXMY(.5,mg_tmp1,b,ms);//use ms as a temp variable
 			obj2 = Dot(my, ms);
 			Sub(ms,mx,my);//ms = mx - my;
-
+			//cout<<obj1<<" "<<obj2<<endl;
 			while (obj1 > obj2 + Dot(mg, ms) + 0.5 * L_k * powf(Norm(ms), 2.0)) {
-				L_k = 2 * L_k;
+				L_k = step_grow * L_k;
 				t_k = 1.0 / L_k;
 				SEAXPY(-t_k, mg, my, mx);     // mx = my + mg*(t_k);
 				Project(mx);
@@ -83,7 +103,7 @@ uint ChSolverParallel::SolveAPGD(custom_vector<real> &x, const custom_vector<rea
 				my = mx;
 				theta_k1 = 1.0;
 			}
-			L_k = 0.9 * L_k;
+			L_k = step_shrink * L_k;
 			t_k = 1.0 / L_k;
 
 			ml = mx;
@@ -113,11 +133,8 @@ uint ChSolverParallel::SolveAPGD(custom_vector<real> &x, const custom_vector<rea
 //			cout<<"resolved "<<count_resolved<<endl;
 			//cout<<"MINVAL "<<g_proj_norm<<" "<<fmax(real(0.0),-min_val)<<endl;
 			//this is res4
-			SEAXPY(-gdiff, mg_tmp2, x, mb_tmp);//mb_tmp=x+mg_tmp2*(-gdiff)
-			Project(mb_tmp);
-			custom_vector<real> d01=mb_tmp-x;
-			mb_tmp = (-1.0/gdiff)*d01;
-			real g_proj_norm = Norm(mb_tmp);
+
+			real g_proj_norm = Res4(mg_tmp2, x, mb_tmp);
 
 			if(g_proj_norm < lastgoodres) {
 				lastgoodres = g_proj_norm;
