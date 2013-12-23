@@ -25,6 +25,7 @@ __constant__ int2 updatePortionD;
 __constant__ int2 portionD;
 __constant__ int flagD;
 __constant__ int numRigidBodiesD;
+__constant__ int numFlexBodiesD;
 __constant__ int startRigidMarkersD;
 __constant__ int startFlexMarkersD;
 __constant__ int numRigid_SphMarkersD;
@@ -364,6 +365,28 @@ __global__ void ApplyPeriodicBoundaryZKernel_RigidBodies(real3 * posRigidD) {
 		posRigid.z += (paramsD.cMax.z - paramsD.cMin.z);
 		posRigidD[index] = posRigid;
 		return;
+	}
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+//applies periodic BC along x, for ridid bodies
+__global__ void ApplyPeriodicBoundaryKernel_FlexBodies(real3* ANCF_NodesD, int2* ANCF_ReferenceArrayNodesOnBeamsD) {
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	if (index >= numFlexBodiesD) {
+		return;
+	}
+	int2 nodesInterval = ANCF_ReferenceArrayNodesOnBeamsD[index];
+	bool flagX = true, flagY = true, flagZ = true;
+	for (int i = nodesInterval.x; i < nodesInterval.y; i++) {
+		real3 nodePos = ANCF_NodesD[i];
+		if (nodePos.x <= paramsD.cMax.x && nodePos.x >= paramsD.cMin.x) flagX = false;
+		if (nodePos.y <= paramsD.cMax.y && nodePos.y >= paramsD.cMin.y) flagY = false;
+		if (nodePos.z <= paramsD.cMax.z && nodePos.z >= paramsD.cMin.z) flagZ = false;
+	}
+	for (int i = nodesInterval.x; i < nodesInterval.y; i++) {
+		real3 nodePos = ANCF_NodesD[i];
+		if (flagX) nodePos.x = fmod(nodePos.x - paramsD.cMin.x, paramsD.boxDims.x) + paramsD.cMin.x;
+		if (flagY) nodePos.y = fmod(nodePos.y - paramsD.cMin.y, paramsD.boxDims.y) + paramsD.cMin.y;
+		if (flagZ) nodePos.z = fmod(nodePos.z - paramsD.cMin.z, paramsD.boxDims.z) + paramsD.cMin.z;
 	}
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -784,7 +807,6 @@ __global__ void UpdateFlexMarkersPosition(
 	int nNodes = nodesInterval.y - nodesInterval.x;
 	real_ lE = lBeam / (nNodes - 1); //Element length
 	real_ sE = fmod(sOverBeam, lE);
-	real3 beamPointPos = Calc_ANCF_Point_Pos(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, sE, lE); //interpolation using ANCF beam, cubic hermit equation
 
 //		real3 pa = ANCF_NodesD[indexOfClosestNode];
 //		real3 pb = ANCF_NodesD[indexOfClosestNode + 1];
@@ -844,6 +866,7 @@ __global__ void UpdateFlexMarkersPosition(
 //		///ff1
 //	 	 real_ hh = paramsD.HSML;
 //	 	 printf("dist %f \n", length(dist3)/hh);
+	real3 beamPointPos = Calc_ANCF_Point_Pos(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, sE, lE); //interpolation using ANCF beam, cubic hermit equation
 	posRadD[absMarkerIndex] = beamPointPos + R3(dot(A1, dist3), dot(A2, dist3), dot(A3, dist3));
 
 //	//ask Radu
@@ -1184,13 +1207,10 @@ void UpdateBoundary(
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelBoundary");
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ApplyBoundary(
+void ApplyBoundarySPH_Markers(
 		thrust::device_vector<real3> & posRadD,
 		thrust::device_vector<real4> & rhoPresMuD,
-		int numAllMarkers,
-		thrust::device_vector<real3> & posRigidD,
-		thrust::device_vector<real4> & velMassRigidD,
-		int numRigidBodies) {
+		int numAllMarkers) {
 	uint nBlock_NumSpheres, nThreads_SphMarkers;
 	computeGridSize(numAllMarkers, 256, nBlock_NumSpheres, nThreads_SphMarkers);
 	ApplyPeriodicBoundaryXKernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(R3CAST(posRadD), R4CAST(rhoPresMuD));
@@ -1203,10 +1223,13 @@ void ApplyBoundary(
 	ApplyPeriodicBoundaryZKernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(R3CAST(posRadD), R4CAST(rhoPresMuD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: ApplyPeriodicBoundaryXKernel");
-//////////////
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ApplyBoundaryRigid(
+		thrust::device_vector<real3> & posRigidD,
+		int numRigidBodies) {
 	uint nBlock_NumRigids, nThreads_RigidBodies;
 	computeGridSize(numRigidBodies, 128, nBlock_NumRigids, nThreads_RigidBodies);
-
 	cudaMemcpyToSymbolAsync(numRigidBodiesD, &numRigidBodies, sizeof(numRigidBodies)); //can be defined outside of the kernel, and only once
 	ApplyPeriodicBoundaryXKernel_RigidBodies<<<nBlock_NumRigids, nThreads_RigidBodies>>>(R3CAST(posRigidD));
 	cudaThreadSynchronize();
@@ -1217,6 +1240,33 @@ void ApplyBoundary(
 	ApplyPeriodicBoundaryZKernel_RigidBodies<<<nBlock_NumRigids, nThreads_RigidBodies>>>(R3CAST(posRigidD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+void ApplyBoundaryFlex(
+		thrust::device_vector<real3> & ANCF_NodesD,
+		thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
+		int numFlex) {
+	uint nBlock_NumFlex, nThreads_Flex;
+	computeGridSize(numFlex, 128, nBlock_NumFlex, nThreads_Flex);
+	cudaMemcpyToSymbolAsync(numFlexBodiesD, &numFlex, sizeof(numFlex)); //can be defined outside of the kernel, and only once
+	ApplyPeriodicBoundaryKernel_FlexBodies<<<nBlock_NumFlex, nThreads_Flex>>>(R3CAST(ANCF_NodesD), I2CAST(ANCF_ReferenceArrayNodesOnBeamsD)); // x,y,z all implemented in a single kernel
+	cudaThreadSynchronize();
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ApplyBoundary(
+		thrust::device_vector<real3> & posRadD,
+		thrust::device_vector<real4> & rhoPresMuD,
+		int numAllMarkers,
+		thrust::device_vector<real3> & posRigidD,
+		int numRigidBodies,
+		thrust::device_vector<real3> & ANCF_NodesD,
+		thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
+		int numFlex) {
+
+	ApplyBoundarySPH_Markers(posRadD, rhoPresMuD, numAllMarkers);
+	ApplyBoundaryRigid(posRigidD, numRigidBodies);
+
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void FindPassesFromTheEnd(
@@ -1547,28 +1597,17 @@ void cudaCollisions(
 		SimParams paramsH,
 		const ANCF_Params & flexParams) {
 	//****************************** bin size adjustement and contact detection stuff *****************************
-	//real_ mBinSize0 = (numAllMarkers == 0) ? mBinSize0 : 2 * paramsH.HSML;
-	//real3 cMinOffsetCollisionPurpose = paramsH.cMin - 3 * R3(0, mBinSize0, mBinSize0);		//periodic bc in x direction
-	//real3 cMaxOffsetCollisionPurpose = paramsH.cMax + 3 * R3(0, mBinSize0, mBinSize0);
-	////real3 cMinOffsetCollisionPurpose = paramsH.cMin - 3 * R3(mBinSize0, mBinSize0, mBinSize0);		//periodic bc in x direction
-	////real3 cMaxOffsetCollisionPurpose = paramsH.cMax + 3 * R3(mBinSize0, mBinSize0, mBinSize0);
-
-	/////printf("side.x %f\n", abs(cMaxOffsetCollisionPurpose.x - cMinOffsetCollisionPurpose.x) / mBinSize);
-	//int3 SIDE = I3(  floor( (cMaxOffsetCollisionPurpose.x - cMinOffsetCollisionPurpose.x) / mBinSize0 ), floor( (cMaxOffsetCollisionPurpose.y - cMinOffsetCollisionPurpose.y) / mBinSize0 ), floor( (cMaxOffsetCollisionPurpose.z - cMinOffsetCollisionPurpose.z) / mBinSize0)  );
-	//real_ mBinSize = (cMaxOffsetCollisionPurpose.x - cMinOffsetCollisionPurpose.x) / SIDE.x;  //this one works when periodic BC is only on x. if it was on y as well (or on z), you would have problem.
-	real3 cMinOffsetCollisionPurpose = paramsH.cMin;// - 3 * R3(0, 0, paramsH.binSize0); //periodic bc in x direction
-	real3 cMaxOffsetCollisionPurpose = paramsH.cMax;// + 3 * R3(0, 0, paramsH.binSize0);
-	int3 SIDE = I3(int((cMaxOffsetCollisionPurpose.x - cMinOffsetCollisionPurpose.x) / paramsH.binSize0 + .1), int((cMaxOffsetCollisionPurpose.y - cMinOffsetCollisionPurpose.y) / paramsH.binSize0 + .1),
-			floor((cMaxOffsetCollisionPurpose.z - cMinOffsetCollisionPurpose.z) / paramsH.binSize0 + .1));
+	int3 SIDE = I3(int((paramsH.cMax.x - paramsH.cMin.x) / paramsH.binSize0 + .1), int((paramsH.cMax.y - paramsH.cMin.y) / paramsH.binSize0 + .1),
+			int((paramsH.cMax.z - paramsH.cMin.z) / paramsH.binSize0 + .1));
 	real_ mBinSize = paramsH.binSize0; //Best solution in that case may be to change cMax or cMin such that periodic sides be a multiple of binSize
 
 	printf("SIDE: %d, %d, %d\n", SIDE.x, SIDE.y, SIDE.z);
 	//**********************************************************************************************************
 	paramsH.gridSize = SIDE;
 	//paramsH.numCells = SIDE.x * SIDE.y * SIDE.z;
-	paramsH.worldOrigin = cMinOffsetCollisionPurpose;
+	paramsH.worldOrigin = paramsH.cMin;
 	paramsH.cellSize = R3(mBinSize, mBinSize, mBinSize);
-	paramsH.boxDims = cMaxOffsetCollisionPurpose - cMinOffsetCollisionPurpose;
+	paramsH.boxDims = paramsH.cMax - paramsH.cMin;
 	printf("boxDims: %f, %f, %f\n", paramsH.boxDims.x, paramsH.boxDims.y, paramsH.boxDims.z);
 
 	setParameters(&paramsH); 														// sets paramsD in SDKCollisionSystem
@@ -1814,7 +1853,7 @@ void cudaCollisions(
 								float(tStep)/stepEnd,
 								0.5 * delT);
 
-		ApplyBoundary(posRadD2, rhoPresMuD2, numAllMarkers, posRigidD2, velMassRigidD2, numRigidBodies);
+		ApplyBoundary(posRadD2, rhoPresMuD2, numAllMarkers, posRigidD2, numRigidBodies, ANCF_NodesD2, ANCF_ReferenceArrayNodesOnBeamsD, numFlexBodies);
 		//*****
 		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numAllMarkers, paramsH, delT);
 		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, delT);
@@ -1846,7 +1885,7 @@ void cudaCollisions(
 						float(tStep)/stepEnd,
 						delT);
 
-		ApplyBoundary(posRadD, rhoPresMuD, numAllMarkers, posRigidD, velMassRigidD, numRigidBodies);
+		ApplyBoundary(posRadD, rhoPresMuD, numAllMarkers, posRigidD, numRigidBodies, ANCF_NodesD, ANCF_ReferenceArrayNodesOnBeamsD, numFlexBodies);
 		//************
 
 
