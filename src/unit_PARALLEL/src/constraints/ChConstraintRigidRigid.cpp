@@ -481,7 +481,9 @@ void ChConstraintRigidRigid::host_shurA_spinning(int2 *ids, bool *active, real3 
 #pragma omp parallel for
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		real3 gam, gam_roll;
-
+		gam.x = gamma[index + number_of_rigid_rigid * 0];
+		gam.y = gamma[index + number_of_rigid_rigid * 1];
+		gam.z = gamma[index + number_of_rigid_rigid * 2];
 		gam_roll.x = gamma[index + number_of_rigid_rigid * 3];
 		gam_roll.y = gamma[index + number_of_rigid_rigid * 4];
 		gam_roll.z = gamma[index + number_of_rigid_rigid * 5];
@@ -491,17 +493,21 @@ void ChConstraintRigidRigid::host_shurA_spinning(int2 *ids, bool *active, real3 
 		int offset1 = offset[index];
 		int offset2 = offset[index + number_of_rigid_rigid];
 		if (active[b1] != 0) {
-			updateO[offset1] += JUVWA[index + number_of_rigid_rigid * 3] * gam_roll.x + JUVWA[index + number_of_rigid_rigid * 4] * gam_roll.y + JUVWA[index + number_of_rigid_rigid * 5] * gam_roll.z;
+			updateV[offset1] = JXYZA[index + number_of_rigid_rigid * 0] * gam.x + JXYZA[index + number_of_rigid_rigid * 1] * gam.y + JXYZA[index + number_of_rigid_rigid * 2] * gam.z;
+			updateO[offset1] = JUVWA[index + number_of_rigid_rigid * 0] * gam.x + JUVWA[index + number_of_rigid_rigid * 1] * gam.y + JUVWA[index + number_of_rigid_rigid * 2] * gam.z
+					+ JUVWA[index + number_of_rigid_rigid * 3] * gam_roll.x + JUVWA[index + number_of_rigid_rigid * 4] * gam_roll.y + JUVWA[index + number_of_rigid_rigid * 5] * gam_roll.z;
 		}
 		uint b2 = ids[index].y;
 		if (active[b2] != 0) {
-			updateO[offset2] += JUVWB[index + number_of_rigid_rigid * 3] * gam_roll.x + JUVWB[index + number_of_rigid_rigid * 4] * gam_roll.y + JUVWB[index + number_of_rigid_rigid * 5] * gam_roll.z;
+			updateV[offset2] = JXYZB[index + number_of_rigid_rigid * 0] * gam.x + JXYZB[index + number_of_rigid_rigid * 1] * gam.y + JXYZB[index + number_of_rigid_rigid * 2] * gam.z;
+			updateO[offset2] = JUVWB[index + number_of_rigid_rigid * 0] * gam.x + JUVWB[index + number_of_rigid_rigid * 1] * gam.y + JUVWB[index + number_of_rigid_rigid * 2] * gam.z
+					+ JUVWB[index + number_of_rigid_rigid * 3] * gam_roll.x + JUVWB[index + number_of_rigid_rigid * 4] * gam_roll.y + JUVWB[index + number_of_rigid_rigid * 5] * gam_roll.z;
 		}
 
 	}
 }
 
-void ChConstraintRigidRigid::host_shurB(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB,
+void ChConstraintRigidRigid::host_shurB_normal(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB,
 		real3 *QXYZ, real3 *QUVW, real *AX) {
 
 #pragma omp parallel for
@@ -518,13 +524,7 @@ void ChConstraintRigidRigid::host_shurB(int2 *ids, bool *active, real *inv_mass,
 
 			temp.x += dot(XYZ, JXYZA[index + number_of_rigid_rigid * 0]);
 			temp.x += dot(UVW, JUVWA[index + number_of_rigid_rigid * 0]);
-			if (solve_sliding) {
-				temp.y += dot(XYZ, JXYZA[index + number_of_rigid_rigid * 1]);
-				temp.y += dot(UVW, JUVWA[index + number_of_rigid_rigid * 1]);
 
-				temp.z += dot(XYZ, JXYZA[index + number_of_rigid_rigid * 2]);
-				temp.z += dot(UVW, JUVWA[index + number_of_rigid_rigid * 2]);
-			}
 		}
 		if (active[b2] != 0) {
 			real3 XYZ = QXYZ[b2];
@@ -532,26 +532,64 @@ void ChConstraintRigidRigid::host_shurB(int2 *ids, bool *active, real *inv_mass,
 
 			temp.x += dot(XYZ, JXYZB[index + number_of_rigid_rigid * 0]);
 			temp.x += dot(UVW, JUVWB[index + number_of_rigid_rigid * 0]);
-			if (solve_sliding) {
-				temp.y += dot(XYZ, JXYZB[index + number_of_rigid_rigid * 1]);
-				temp.y += dot(UVW, JUVWB[index + number_of_rigid_rigid * 1]);
 
-				temp.z += dot(XYZ, JXYZB[index + number_of_rigid_rigid * 2]);
-				temp.z += dot(UVW, JUVWB[index + number_of_rigid_rigid * 2]);
-			}
 		}
-		AX[index + number_of_rigid_rigid * 0] = temp.x + gamma[index + number_of_rigid_rigid * 0] * compliance[index];
+		AX[index + number_of_rigid_rigid * 0] = temp.x;// + gamma[index + number_of_rigid_rigid * 0] * compliance[index];
+		AX[index + number_of_rigid_rigid * 1] = 0;
+		AX[index + number_of_rigid_rigid * 2] = 0;
+		AX[index + number_of_rigid_rigid * 3] = 0;
+		AX[index + number_of_rigid_rigid * 4] = 0;
+		AX[index + number_of_rigid_rigid * 5] = 0;
 
-		if (solve_sliding) {
-			AX[index + number_of_rigid_rigid * 1] = temp.y + gamma[index + number_of_rigid_rigid * 1] * compliance[index];
-			AX[index + number_of_rigid_rigid * 2] = temp.z + gamma[index + number_of_rigid_rigid * 2] * compliance[index];
-		} else {
-			AX[index + number_of_rigid_rigid * 1] = 0;
-			AX[index + number_of_rigid_rigid * 2] = 0;
-		}
 	}
 }
+void ChConstraintRigidRigid::host_shurB_sliding(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB,
+		real3 *QXYZ, real3 *QUVW, real *AX) {
 
+#pragma omp parallel for
+	for (int index = 0; index < number_of_rigid_rigid; index++) {
+		real3 temp = R3(0);
+
+		int2 id_ = ids[index];
+		uint b1 = id_.x;
+		uint b2 = id_.y;
+
+		if (active[b1] != 0) {
+			real3 XYZ = QXYZ[b1];
+			real3 UVW = QUVW[b1];
+
+			temp.x += dot(XYZ, JXYZA[index + number_of_rigid_rigid * 0]);
+			temp.x += dot(UVW, JUVWA[index + number_of_rigid_rigid * 0]);
+
+			temp.y += dot(XYZ, JXYZA[index + number_of_rigid_rigid * 1]);
+			temp.y += dot(UVW, JUVWA[index + number_of_rigid_rigid * 1]);
+
+			temp.z += dot(XYZ, JXYZA[index + number_of_rigid_rigid * 2]);
+			temp.z += dot(UVW, JUVWA[index + number_of_rigid_rigid * 2]);
+		}
+		if (active[b2] != 0) {
+			real3 XYZ = QXYZ[b2];
+			real3 UVW = QUVW[b2];
+
+			temp.x += dot(XYZ, JXYZB[index + number_of_rigid_rigid * 0]);
+			temp.x += dot(UVW, JUVWB[index + number_of_rigid_rigid * 0]);
+
+			temp.y += dot(XYZ, JXYZB[index + number_of_rigid_rigid * 1]);
+			temp.y += dot(UVW, JUVWB[index + number_of_rigid_rigid * 1]);
+
+			temp.z += dot(XYZ, JXYZB[index + number_of_rigid_rigid * 2]);
+			temp.z += dot(UVW, JUVWB[index + number_of_rigid_rigid * 2]);
+
+		}
+		AX[index + number_of_rigid_rigid * 0] = temp.x;// + gamma[index + number_of_rigid_rigid * 0] * compliance[index];
+		AX[index + number_of_rigid_rigid * 1] = temp.y;// + gamma[index + number_of_rigid_rigid * 1] * compliance[index];
+		AX[index + number_of_rigid_rigid * 2] = temp.z;// + gamma[index + number_of_rigid_rigid * 2] * compliance[index];
+		AX[index + number_of_rigid_rigid * 3] = 0;
+		AX[index + number_of_rigid_rigid * 4] = 0;
+		AX[index + number_of_rigid_rigid * 5] = 0;
+
+	}
+}
 void ChConstraintRigidRigid::host_shurB_spinning(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB,
 		real3 *QXYZ, real3 *QUVW, real *AX) {
 
@@ -563,34 +601,52 @@ void ChConstraintRigidRigid::host_shurB_spinning(int2 *ids, bool *active, real *
 		int2 id_ = ids[index];
 		uint b1 = id_.x;
 		uint b2 = id_.y;
-		if (solve_spinning) {
-			if (active[b1] != 0) {
-				real3 XYZ = QXYZ[b1];
-				real3 UVW = QUVW[b1];
 
-				temp_roll.x += dot(UVW, JUVWA[index + number_of_rigid_rigid * 3]);
-				temp_roll.y += dot(UVW, JUVWA[index + number_of_rigid_rigid * 4]);
-				temp_roll.z += dot(UVW, JUVWA[index + number_of_rigid_rigid * 5]);
+		if (active[b1] != 0) {
+			real3 XYZ = QXYZ[b1];
+			real3 UVW = QUVW[b1];
 
-			}
-			if (active[b2] != 0) {
-				real3 XYZ = QXYZ[b2];
-				real3 UVW = QUVW[b2];
+			temp.x += dot(XYZ, JXYZA[index + number_of_rigid_rigid * 0]);
+			temp.x += dot(UVW, JUVWA[index + number_of_rigid_rigid * 0]);
 
-				temp_roll.x += dot(UVW, JUVWB[index + number_of_rigid_rigid * 3]);
-				temp_roll.y += dot(UVW, JUVWB[index + number_of_rigid_rigid * 4]);
-				temp_roll.z += dot(UVW, JUVWB[index + number_of_rigid_rigid * 5]);
+			temp.y += dot(XYZ, JXYZA[index + number_of_rigid_rigid * 1]);
+			temp.y += dot(UVW, JUVWA[index + number_of_rigid_rigid * 1]);
 
-			}
-			AX[index + number_of_rigid_rigid * 3] = temp_roll.x + gamma[index + number_of_rigid_rigid * 3] * compliance[index];
-			AX[index + number_of_rigid_rigid * 4] = temp_roll.y + gamma[index + number_of_rigid_rigid * 4] * compliance[index];
-			AX[index + number_of_rigid_rigid * 5] = temp_roll.z + gamma[index + number_of_rigid_rigid * 5] * compliance[index];
-		} else {
-			AX[index + number_of_rigid_rigid * 3] = 0;
-			AX[index + number_of_rigid_rigid * 4] = 0;
-			AX[index + number_of_rigid_rigid * 5] = 0;
+			temp.z += dot(XYZ, JXYZA[index + number_of_rigid_rigid * 2]);
+			temp.z += dot(UVW, JUVWA[index + number_of_rigid_rigid * 2]);
+
+			temp_roll.x += dot(UVW, JUVWA[index + number_of_rigid_rigid * 3]);
+			temp_roll.y += dot(UVW, JUVWA[index + number_of_rigid_rigid * 4]);
+			temp_roll.z += dot(UVW, JUVWA[index + number_of_rigid_rigid * 5]);
 
 		}
+		if (active[b2] != 0) {
+			real3 XYZ = QXYZ[b2];
+			real3 UVW = QUVW[b2];
+
+			temp.x += dot(XYZ, JXYZB[index + number_of_rigid_rigid * 0]);
+			temp.x += dot(UVW, JUVWB[index + number_of_rigid_rigid * 0]);
+
+			temp.y += dot(XYZ, JXYZB[index + number_of_rigid_rigid * 1]);
+			temp.y += dot(UVW, JUVWB[index + number_of_rigid_rigid * 1]);
+
+			temp.z += dot(XYZ, JXYZB[index + number_of_rigid_rigid * 2]);
+			temp.z += dot(UVW, JUVWB[index + number_of_rigid_rigid * 2]);
+
+			temp_roll.x += dot(UVW, JUVWB[index + number_of_rigid_rigid * 3]);
+			temp_roll.y += dot(UVW, JUVWB[index + number_of_rigid_rigid * 4]);
+			temp_roll.z += dot(UVW, JUVWB[index + number_of_rigid_rigid * 5]);
+
+		}
+
+		AX[index + number_of_rigid_rigid * 0] = temp.x;// + gamma[index + number_of_rigid_rigid * 0] * compliance[index];
+		AX[index + number_of_rigid_rigid * 1] = temp.y;// + gamma[index + number_of_rigid_rigid * 1] * compliance[index];
+		AX[index + number_of_rigid_rigid * 2] = temp.z;// + gamma[index + number_of_rigid_rigid * 2] * compliance[index];
+
+		AX[index + number_of_rigid_rigid * 3] = temp_roll.x;// + gamma[index + number_of_rigid_rigid * 3] * compliance[index];
+		AX[index + number_of_rigid_rigid * 4] = temp_roll.y;// + gamma[index + number_of_rigid_rigid * 4] * compliance[index];
+		AX[index + number_of_rigid_rigid * 5] = temp_roll.z;// + gamma[index + number_of_rigid_rigid * 5] * compliance[index];
+
 	}
 }
 
@@ -633,7 +689,19 @@ void ChConstraintRigidRigid::host_Offsets(int2* ids, uint* Body) {
 
 void ChConstraintRigidRigid::ShurA(custom_vector<real> &x) {
 
-	if(solve_sliding) {
+	if(solve_spinning) {
+		host_shurA_spinning(
+		data_container->host_data.bids_rigid_rigid.data(),
+		data_container->host_data.active_data.data(),
+		JXYZA_rigid_rigid.data(),
+		JXYZB_rigid_rigid.data(),
+		JUVWA_rigid_rigid.data(),
+		JUVWB_rigid_rigid.data(),
+		x.data(),
+		vel_update.data(),
+		omg_update.data(),
+		update_offset.data());
+	} else if(solve_sliding) {
 		host_shurA_sliding(
 		data_container->host_data.bids_rigid_rigid.data(),
 		data_container->host_data.active_data.data(),
@@ -659,19 +727,7 @@ void ChConstraintRigidRigid::ShurA(custom_vector<real> &x) {
 		update_offset.data());
 
 	}
-	if(solve_spinning) {
-		host_shurA_spinning(
-		data_container->host_data.bids_rigid_rigid.data(),
-		data_container->host_data.active_data.data(),
-		JXYZA_rigid_rigid.data(),
-		JXYZB_rigid_rigid.data(),
-		JUVWA_rigid_rigid.data(),
-		JUVWB_rigid_rigid.data(),
-		x.data(),
-		vel_update.data(),
-		omg_update.data(),
-		update_offset.data());
-	}
+
 	host_Reduce_Shur(
 	data_container->host_data.active_data.data(),
 	data_container->host_data.QXYZ_data.data(),
@@ -685,34 +741,55 @@ void ChConstraintRigidRigid::ShurA(custom_vector<real> &x) {
 
 }
 void ChConstraintRigidRigid::ShurB(custom_vector<real> &x, custom_vector<real> & output) {
-	host_shurB(
-	data_container->host_data.bids_rigid_rigid.data(),
-	data_container->host_data.active_data.data(),
-	data_container->host_data.mass_data.data(),
-	data_container->host_data.inr_data.data(),
-	comp_rigid_rigid.data(),
-	x.data(),
-	JXYZA_rigid_rigid.data(),
-	JXYZB_rigid_rigid.data(),
-	JUVWA_rigid_rigid.data(),
-	JUVWB_rigid_rigid.data(),
-	data_container->host_data.QXYZ_data.data(),
-	data_container->host_data.QUVW_data.data(),
-	output.data());
-	host_shurB_spinning(
-	data_container->host_data.bids_rigid_rigid.data(),
-	data_container->host_data.active_data.data(),
-	data_container->host_data.mass_data.data(),
-	data_container->host_data.inr_data.data(),
-	comp_rigid_rigid.data(),
-	x.data(),
-	JXYZA_rigid_rigid.data(),
-	JXYZB_rigid_rigid.data(),
-	JUVWA_rigid_rigid.data(),
-	JUVWB_rigid_rigid.data(),
-	data_container->host_data.QXYZ_data.data(),
-	data_container->host_data.QUVW_data.data(),
-	output.data());
+	if(solve_spinning) {
+		host_shurB_spinning(
+		data_container->host_data.bids_rigid_rigid.data(),
+		data_container->host_data.active_data.data(),
+		data_container->host_data.mass_data.data(),
+		data_container->host_data.inr_data.data(),
+		comp_rigid_rigid.data(),
+		x.data(),
+		JXYZA_rigid_rigid.data(),
+		JXYZB_rigid_rigid.data(),
+		JUVWA_rigid_rigid.data(),
+		JUVWB_rigid_rigid.data(),
+		data_container->host_data.QXYZ_data.data(),
+		data_container->host_data.QUVW_data.data(),
+		output.data());
+
+	} else if (solve_sliding) {
+		host_shurB_sliding(
+		data_container->host_data.bids_rigid_rigid.data(),
+		data_container->host_data.active_data.data(),
+		data_container->host_data.mass_data.data(),
+		data_container->host_data.inr_data.data(),
+		comp_rigid_rigid.data(),
+		x.data(),
+		JXYZA_rigid_rigid.data(),
+		JXYZB_rigid_rigid.data(),
+		JUVWA_rigid_rigid.data(),
+		JUVWB_rigid_rigid.data(),
+		data_container->host_data.QXYZ_data.data(),
+		data_container->host_data.QUVW_data.data(),
+		output.data());
+
+	} else {
+		host_shurB_normal(
+		data_container->host_data.bids_rigid_rigid.data(),
+		data_container->host_data.active_data.data(),
+		data_container->host_data.mass_data.data(),
+		data_container->host_data.inr_data.data(),
+		comp_rigid_rigid.data(),
+		x.data(),
+		JXYZA_rigid_rigid.data(),
+		JXYZB_rigid_rigid.data(),
+		JUVWA_rigid_rigid.data(),
+		JUVWB_rigid_rigid.data(),
+		data_container->host_data.QXYZ_data.data(),
+		data_container->host_data.QUVW_data.data(),
+		output.data());
+
+	}
 
 }
 void ChConstraintRigidRigid::host_Diag(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real* diag) {
