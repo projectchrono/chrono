@@ -61,7 +61,7 @@ class ChApiGPU ChSolverParallel: public ChBaseParallel {
 		void SolveJacobi();
 
 		void InitAPGD(custom_vector<real> &x);
-		real Res4(custom_vector<real> mg_tmp2, custom_vector<real> x, custom_vector<real> mb_tmp);
+		real Res4(custom_vector<real> &mg_tmp,const  custom_vector<real> &b, custom_vector<real> &x, custom_vector<real>& mb_tmp);
 		void SetAPGDParams(real theta_k, real shrink,real grow);
 
 		void host_process_contacts(

@@ -17,17 +17,22 @@ void ChSolverParallel::InitAPGD(custom_vector<real> &x) {
 
 }
 
-void ChSolverParallel::SetAPGDParams(real theta_k, real shrink,real grow){
+void ChSolverParallel::SetAPGDParams(real theta_k, real shrink, real grow) {
 	init_theta_k = theta_k;
 	step_shrink = shrink;
 	step_grow = grow;
 
 }
 
-
-real ChSolverParallel::Res4(custom_vector<real> mg_tmp2, custom_vector<real> x, custom_vector<real> mb_tmp) {
+real ChSolverParallel::Res4(custom_vector<real> &mg_tmp,const  custom_vector<real> &b, custom_vector<real> &x, custom_vector<real>& mb_tmp) {
 	real gdiff = 1;
-	SEAXPY(-gdiff, mg_tmp2, x, mb_tmp);     //mb_tmp=x+mg_tmp2*(-gdiff)
+
+#pragma omp parallel for
+	for(int i=0; i<x.size(); i++) {
+		real _mg_tmp2_ = mg_tmp[i]-b[i];
+		mb_tmp[i] = -gdiff*_mg_tmp2_+x[i];
+	}
+
 	Project(mb_tmp);
 	ms=mb_tmp-x;
 	mb_tmp = (-1.0 / gdiff) * ms;
@@ -134,7 +139,7 @@ uint ChSolverParallel::SolveAPGD(custom_vector<real> &x, const custom_vector<rea
 			//cout<<"MINVAL "<<g_proj_norm<<" "<<fmax(real(0.0),-min_val)<<endl;
 			//this is res4
 
-			real g_proj_norm = Res4(mg_tmp2, x, mb_tmp);
+			real g_proj_norm = Res4(mg_tmp, b, x, mb_tmp);
 
 			if(g_proj_norm < lastgoodres) {
 				lastgoodres = g_proj_norm;

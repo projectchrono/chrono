@@ -21,7 +21,6 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, const custom_vector<r
 			real _mb_tmp_ = -1.0+x[i];
 			norm_mb_tmp +=_mb_tmp_*_mb_tmp_;
 			mb_tmp[i] = _mb_tmp_;
-
 		}
 		norm_mb_tmp = sqrt(norm_mb_tmp);
 		ShurProduct(mb_tmp,mg_tmp);
@@ -143,8 +142,7 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, const custom_vector<r
 		//cout<<"MINVAL "<<g_proj_norm<<" "<<fmax(real(0.0),-min_val)<<endl;
 		//this is res4
 		if(current_iteration%5==0) {
-			Sub(mg_tmp2,mg_tmp,b);
-			real g_proj_norm = Res4(mg_tmp2, x, mb_tmp);
+			real g_proj_norm = Res4(mg_tmp, b, x, mb_tmp);
 			if(g_proj_norm < lastgoodres) {
 				lastgoodres = g_proj_norm;
 				//ml_candidate = ml;
