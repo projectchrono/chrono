@@ -1898,7 +1898,7 @@ void cudaCollisions(
 		myGpuTimer.Stop();
 		real_ time2 = (real_)myGpuTimer.Elapsed();
 
-//		printf("step: %d\n ", tStep);
+		printf("step: %d\n ", tStep);
 		if (tStep % 50 == 0) {
 			printf("step: %d, step Time: %f\n ", tStep, time2);
 			//printf("a \n");

@@ -525,7 +525,7 @@ void CreateRigidBodiesPatternPipe_KindaRandom(
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-void CreateFlexBodies(thrust::host_vector<real3> & ANCF_Nodes,
+void CreateSomeFlexBodies(thrust::host_vector<real3> & ANCF_Nodes,
 		thrust::host_vector<real3> & ANCF_Slopes,
 		thrust::host_vector<real3> & ANCF_NodesVel,
 		thrust::host_vector<real3> & ANCF_SlopesVel,
@@ -582,6 +582,65 @@ void CreateFlexBodies(thrust::host_vector<real3> & ANCF_Nodes,
 //		rigidBody_InvJ1.push_back(invJ1);
 //		rigidBody_InvJ2.push_back(invJ2);
 
+	}
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+void CreateManyFlexBodies(thrust::host_vector<real3> & ANCF_Nodes,
+		thrust::host_vector<real3> & ANCF_Slopes,
+		thrust::host_vector<real3> & ANCF_NodesVel,
+		thrust::host_vector<real3> & ANCF_SlopesVel,
+		thrust::host_vector<real_> & ANCF_Beam_Length,
+		thrust::host_vector<int2> & ANCF_ReferenceArrayNodesOnBeams,
+		thrust::host_vector<bool> & ANCF_IsCantilever,
+		real_ pipeRadius, real_ pipeLength, real3 pipeInPoint3,
+		const real_ referenceR,
+		const ANCF_Params & flexParams
+		) {
+	//TODO create mass property of the beams
+	int numElementsPerBeam = flexParams.ne;
+	real_ spaceRigids = 2 * (referenceR + 1.1 * paramsH.HSML);
+	int nX = int( (paramsH.cMax.x - paramsH.cMin.x) / spaceRigids );
+	int beamCounter = 0;
+	for (int ix = 1; ix < nX - 1; ix++) {
+		for (real_ r = spaceRigids; r < pipeRadius - spaceRigids; r += spaceRigids) {
+			real_ dTeta = spaceRigids / r;
+			for (real_ teta = 0; teta < 2 * PI - dTeta; teta += dTeta) {
+				real3 pos = R3(paramsH.cMin.x, channelCenterYZ.x,
+						channelCenterYZ.y)
+						+ R3(ix * spaceRigids, real_(r * cos(teta)),
+								real_(r * sin(teta)));
+
+
+				real_ halfLBeam = referenceR;
+				real_ thetaBeam = myRand() * PI;
+				real_ phiBeam = myRand() * 2 * PI;
+				real3 pa3 = pos + halfLBeam * R3(cos(thetaBeam) * cos(phiBeam), cos(thetaBeam) * sin(phiBeam), sin(thetaBeam));
+				real3 pb3 = pos - halfLBeam * R3(cos(thetaBeam) * cos(phiBeam), cos(thetaBeam) * sin(phiBeam), sin(thetaBeam));
+
+				real3 slope3 = pb3 - pa3;
+				real_ beamLength = length(slope3);
+				ANCF_Beam_Length.push_back(beamLength);
+				slope3 /= beamLength;
+				for (int m = 0; m < numElementsPerBeam + 1; m++) {
+					ANCF_Nodes.push_back(
+							pa3 + m * (beamLength / numElementsPerBeam) * slope3);
+					ANCF_Slopes.push_back(slope3);
+					ANCF_NodesVel.push_back(R3(0));
+					ANCF_SlopesVel.push_back(R3(0));
+				}
+				if (beamCounter == 0) {
+					ANCF_ReferenceArrayNodesOnBeams.push_back(
+							I2(0, numElementsPerBeam + 1));
+				} else {
+					int nodesSofar = ANCF_ReferenceArrayNodesOnBeams[beamCounter - 1].y;
+					ANCF_ReferenceArrayNodesOnBeams.push_back(
+							I2(nodesSofar, nodesSofar + numElementsPerBeam + 1));
+				}
+				ANCF_IsCantilever.push_back(false);
+
+				beamCounter ++;
+			}
+		}
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
@@ -1548,10 +1607,16 @@ int main() {
 	//**
 //	CreateRigidBodiesFromFile(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
 	//**
-	CreateFlexBodies(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
+//	CreateSomeFlexBodies(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
+//			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever,
+//			channelRadius,
+//			paramsH.cMax.x - paramsH.cMin.x, pipeInPoint3, flexParams);
+	//**
+	real_ beamLength = 10 * paramsH.HSML;
+	CreateManyFlexBodies(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
 			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever,
 			channelRadius,
-			paramsH.cMax.x - paramsH.cMin.x, pipeInPoint3, flexParams);
+			paramsH.cMax.x - paramsH.cMin.x, pipeInPoint3, 0.5 * beamLength, flexParams);
 	//**
 //	//channelRadius = 1.0 * paramsH.sizeScale;
 //	CreateRigidBodiesPatternPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);

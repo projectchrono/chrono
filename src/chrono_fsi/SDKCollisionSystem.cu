@@ -217,7 +217,7 @@ real4 collideCell(
 					derivRho += derivVelRho.w;
 				}
 				else if (fabs(rhoPresMuA.w - rhoPresMuB.w) > 0) { //implies: one of them is solid/boundary, ther other one is solid/boundary of different type or different solid
-					derivV += DifVelocity_SSI_DEM(dist3, d, rSPH, velMasA, velMasB);
+//					derivV += DifVelocity_SSI_DEM(dist3, d, rSPH, velMasA, velMasB);
 				}
 			}
 		}
@@ -468,8 +468,8 @@ void collideD(real4* derivVelRhoD, // output: new velocity
 	for (int x = -1; x <= 1; x++) {
 		for (int y = -1; y <= 1; y++) {
 			for (int z = -1; z <= 1; z++) {
-//				derivVelRho += collideCell(gridPos + I3(x, y, z), index, posRadA, velMasA, vel_XSPH_A, rhoPreMuA, sortedPosRad, sortedVelMas, vel_XSPH_Sorted_D,
-//								sortedRhoPreMu, cellStart, cellEnd, gridMarkerIndex);
+				derivVelRho += collideCell(gridPos + I3(x, y, z), index, posRadA, velMasA, vel_XSPH_A, rhoPreMuA, sortedPosRad, sortedVelMas, vel_XSPH_Sorted_D,
+								sortedRhoPreMu, cellStart, cellEnd, gridMarkerIndex);
 			}
 		}
 	}
