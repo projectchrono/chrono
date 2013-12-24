@@ -338,7 +338,7 @@ void PrintToFile(
 //		int tStepsPovFiles = 2000;
 		int tStepsPovFiles = 2000;//2000;//2000;//2000;
 
-		if (tStep > 1000) tStepsPovFiles = 2;
+//		if (tStep > 1000) tStepsPovFiles = 2;
 		if (tStep % tStepsPovFiles == 0) {
 			if (tStep / tStepsPovFiles == 0) {
 						//linux. In windows, it is System instead of system (to invoke a command in the command line)

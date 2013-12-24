@@ -862,7 +862,15 @@ __global__ void UpdateFlexMarkersPosition(
 //		///ff1
 //	 	 real_ hh = paramsD.HSML;
 //	 	 printf("dist %f \n", length(dist3)/hh);
+
 	real3 beamPointPos = Calc_ANCF_Point_Pos(ANCF_NodesD, ANCF_SlopesD, indexOfClosestNode, sE, lE); //interpolation using ANCF beam, cubic hermit equation
+//	//ff1
+//	real3 newPos = beamPointPos + R3(dot(A1, dist3), dot(A2, dist3), dot(A3, dist3));
+//	real3 oldPos = posRadD[absMarkerIndex];
+//	if (length(newPos- oldPos) > .001 * paramsD.HSML) {
+//		printf("pos %f %f %f and newPos %f %f %f \n", oldPos.x, oldPos.y, oldPos.z, newPos.x, newPos.y, newPos.z);
+//	}
+
 	posRadD[absMarkerIndex] = beamPointPos + R3(dot(A1, dist3), dot(A2, dist3), dot(A3, dist3));
 
 //	//ask Radu
@@ -1464,12 +1472,12 @@ void UpdateFlexibleBody(
 	thrust::fill(flex_FSI_NodesForces1.begin(), flex_FSI_NodesForces1.end(),R3(0));
 	thrust::fill(flex_FSI_NodesForces2.begin(), flex_FSI_NodesForces2.end(),R3(0));
 
-	thrust::device_vector<real3> flexNodesForcesAllMarkers1(totalNumberOfFlexMultNodes);
-	thrust::device_vector<real3> flexNodesForcesAllMarkers2(totalNumberOfFlexMultNodes);
-
-	uint nBlocks_numFlex_SphMarkers;
-	uint nThreads_SphMarkers;
-	computeGridSize(numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
+//	thrust::device_vector<real3> flexNodesForcesAllMarkers1(totalNumberOfFlexMultNodes);
+//	thrust::device_vector<real3> flexNodesForcesAllMarkers2(totalNumberOfFlexMultNodes);
+//
+//	uint nBlocks_numFlex_SphMarkers;
+//	uint nThreads_SphMarkers;
+//	computeGridSize(numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
 
 
 	//ff1 for Radu
@@ -1541,26 +1549,26 @@ void UpdateFlexibleBody(
 //	//
 
 	//################################################### update rigid body things
-	computeGridSize(numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
+//	computeGridSize(numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
 
 //	int numFlBcRigid = 2;
 //	int totalNumberOfFlexNodes = ANCF_ReferenceArrayNodesOnBeamsD[ANCF_ReferenceArrayNodesOnBeamsD.size() - 1].y;
 
 
 
-	UpdateFlexMarkersPosition<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(
-			R3CAST(posRadD), R4CAST(velMasD),
-			I1CAST(flexIdentifierD),
-			R3CAST(flexSPH_MeshPos_LRF_D),
-			R3CAST(flexSPH_MeshSlope_Initial_D),
-			R1CAST(flexParametricDistD),
-			R1CAST(ANCF_Beam_LengthD),
-			I2CAST(ANCF_ReferenceArrayNodesOnBeamsD),
-			R3CAST(ANCF_NodesD),
-			R3CAST(ANCF_SlopesD),
-			R3CAST(ANCF_NodesVelD),
-			R3CAST(ANCF_SlopesVelD)
-			);
+//	UpdateFlexMarkersPosition<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(
+//			R3CAST(posRadD), R4CAST(velMasD),
+//			I1CAST(flexIdentifierD),
+//			R3CAST(flexSPH_MeshPos_LRF_D),
+//			R3CAST(flexSPH_MeshSlope_Initial_D),
+//			R1CAST(flexParametricDistD),
+//			R1CAST(ANCF_Beam_LengthD),
+//			I2CAST(ANCF_ReferenceArrayNodesOnBeamsD),
+//			R3CAST(ANCF_NodesD),
+//			R3CAST(ANCF_SlopesD),
+//			R3CAST(ANCF_NodesVelD),
+//			R3CAST(ANCF_SlopesVelD)
+//			);
 
 	cudaThreadSynchronize();
 
@@ -1568,8 +1576,8 @@ void UpdateFlexibleBody(
 
 
 	//------------------------ delete stuff
-	flex_FSI_NodesForces1.clear();
-	flex_FSI_NodesForces2.clear();
+//	flex_FSI_NodesForces1.clear();
+//	flex_FSI_NodesForces2.clear();
 }
 //##############################################################################################################################################
 // the main function, which updates the particles and implements BC
@@ -1926,9 +1934,9 @@ void cudaCollisions(
 		ANCF_SlopesVelD2.clear();
 
 		//density re-initialization
-		if (tStep % 10 == 0) {
-			DensityReinitialization(posRadD, velMasD, rhoPresMuD, numAllMarkers, SIDE); //does not work for analytical boundaries (non-meshed) and free surfaces
-		}
+//		if (tStep % 10 == 0) {
+//			DensityReinitialization(posRadD, velMasD, rhoPresMuD, numAllMarkers, SIDE); //does not work for analytical boundaries (non-meshed) and free surfaces
+//		}
 
 		//************************************************
 		//edit  since yu deleted cyliderRotOmegaJD

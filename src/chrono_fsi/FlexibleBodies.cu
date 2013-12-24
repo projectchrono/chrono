@@ -448,9 +448,9 @@ void Update_ANCF_Beam(
 {
 	thrust::host_vector<real3> flex_FSI_NodesForcesH1 = flex_FSI_NodesForces1;
 	thrust::host_vector<real3> flex_FSI_NodesForcesH2 = flex_FSI_NodesForces2;
-	CalcElasticForces(flex_FSI_NodesForcesH1, flex_FSI_NodesForcesH2,
-			ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
-			ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, numFlexBodies, flexParams);
+//	CalcElasticForces(flex_FSI_NodesForcesH1, flex_FSI_NodesForcesH2,
+//			ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
+//			ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, numFlexBodies, flexParams);
 
 	for (int i = 0; i < numFlexBodies; i++) {
 		real_ lBeam = ANCF_Beam_LengthD[i];
