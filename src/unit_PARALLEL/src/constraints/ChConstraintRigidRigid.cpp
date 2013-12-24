@@ -151,7 +151,6 @@ void ChConstraintRigidRigid::host_Project(int2 *ids, real *friction, real *frict
 		if (solve_spinning) {
 			func_Project_rolling(index, number_of_rigid_rigid, ids, friction_roll, friction_spin, cohesion, gamma, solve_spinning);
 		}
-
 	}
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -433,15 +432,15 @@ void ChConstraintRigidRigid::host_shurA_normal(int2 *ids, bool *active, real3 *J
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		real gam;
 		gam = gamma[index + number_of_rigid_rigid * 0];
-		uint b1 = ids[index].x;
+
 
 		int offset1 = offset[index];
 		int offset2 = offset[index + number_of_rigid_rigid];
 
+		uint b1 = ids[index].x;
 		if (active[b1] != 0) {
 			updateV[offset1] = JXYZA[index + number_of_rigid_rigid * 0] * gam;
 			updateO[offset1] = JUVWA[index + number_of_rigid_rigid * 0] * gam;
-
 		}
 		uint b2 = ids[index].y;
 		if (active[b2] != 0) {
@@ -458,11 +457,11 @@ void ChConstraintRigidRigid::host_shurA_sliding(int2 *ids, bool *active, real3 *
 		gam.x = gamma[index + number_of_rigid_rigid * 0];
 		gam.y = gamma[index + number_of_rigid_rigid * 1];
 		gam.z = gamma[index + number_of_rigid_rigid * 2];
-		uint b1 = ids[index].x;
 
 		int offset1 = offset[index];
 		int offset2 = offset[index + number_of_rigid_rigid];
 
+		uint b1 = ids[index].x;
 		if (active[b1] != 0) {
 			updateV[offset1] = JXYZA[index + number_of_rigid_rigid * 0] * gam.x + JXYZA[index + number_of_rigid_rigid * 1] * gam.y + JXYZA[index + number_of_rigid_rigid * 2] * gam.z;
 			updateO[offset1] = JUVWA[index + number_of_rigid_rigid * 0] * gam.x + JUVWA[index + number_of_rigid_rigid * 1] * gam.y + JUVWA[index + number_of_rigid_rigid * 2] * gam.z;
@@ -688,6 +687,8 @@ void ChConstraintRigidRigid::host_Offsets(int2* ids, uint* Body) {
 }
 
 void ChConstraintRigidRigid::ShurA(custom_vector<real> &x) {
+	//ChTimer<double> timer_A;
+	//timer_A.start();
 
 	if(solve_spinning) {
 		host_shurA_spinning(
@@ -738,9 +739,13 @@ void ChConstraintRigidRigid::ShurA(custom_vector<real> &x) {
 	omg_update.data(),
 	body_number.data(),
 	offset_counter.data());
+//timer_A.stop();
+//cout<<"A: "<<timer_A()<<endl;
 
 }
 void ChConstraintRigidRigid::ShurB(custom_vector<real> &x, custom_vector<real> & output) {
+	//ChTimer<double> timer_B;
+	//	timer_B.start();
 	if(solve_spinning) {
 		host_shurB_spinning(
 		data_container->host_data.bids_rigid_rigid.data(),
@@ -790,6 +795,9 @@ void ChConstraintRigidRigid::ShurB(custom_vector<real> &x, custom_vector<real> &
 		output.data());
 
 	}
+
+	//timer_B.stop();
+	//cout<<"B: "<<timer_B()<<endl;
 
 }
 void ChConstraintRigidRigid::host_Diag(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real* diag) {

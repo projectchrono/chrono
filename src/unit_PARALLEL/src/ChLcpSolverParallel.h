@@ -125,6 +125,7 @@ namespace chrono {
 			int3 num_bins_per_axis;
 			real3 origin;
 			real3 bin_size_vec;
+			ChSolverParallel solver;
 		private:
 			real tolerance;
 			real compliance;
@@ -153,7 +154,7 @@ namespace chrono {
 			cudaEvent_t start, stop;
 
 			custom_vector<real> rhs, debug, lambda;
-			ChSolverParallel solver;
+
 			ChConstraintRigidRigid rigid_rigid;
 			ChConstraintBilateral bilateral;
 

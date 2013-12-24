@@ -155,7 +155,7 @@ void ChSolverParallel::Solve(GPUSOLVERTYPE solver_type) {
 //				data_container->number_of_bilaterals,
 //				data_container->host_data.gamma_bilateral.begin());
 
-		cout<<time_shurcompliment<<endl;
+		//cout<<time_shurcompliment<<endl;
 
 		current_iteration = total_iteration;
 
