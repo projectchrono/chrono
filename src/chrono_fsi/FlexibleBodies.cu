@@ -296,7 +296,7 @@ void CopyElementNodesTo_e(real_* e, const thrust::device_vector<real3> & ANCF_No
 }
 //------------------------------------------------------------------------------
 // Why -= and not += : because M*X2 + K*X = F Therefore, in an explicit method: M*X2 = F - K*X where K*X is our elastic forces (f)
-void Add_f_ToForces(thrust::device_vector<real3> & flex_FSI_NodesForces1, thrust::device_vector<real3> & flex_FSI_NodesForces2, real_ k, real_* f, int nodeIdx) {
+void Add_f_ToForces(thrust::host_vector<real3> & flex_FSI_NodesForces1, thrust::host_vector<real3> & flex_FSI_NodesForces2, real_ k, real_* f, int nodeIdx) {
 	real3 f1 = flex_FSI_NodesForces1[nodeIdx];
 	real3 f2 = flex_FSI_NodesForces2[nodeIdx];
 
@@ -308,7 +308,7 @@ void Add_f_ToForces(thrust::device_vector<real3> & flex_FSI_NodesForces1, thrust
 
 }
 //------------------------------------------------------------------------------
-void MapBeamDataTo_1D_Array(real_* e, const thrust::device_vector<real3> & beamData1, const thrust::device_vector<real3> & beamData2, int2 nodesPortion) { //beamData1: postion, beamData2: slope
+void MapBeamDataTo_1D_Array(real_* e, const thrust::host_vector<real3> & beamData1, const thrust::host_vector<real3> & beamData2, int2 nodesPortion) { //beamData1: postion, beamData2: slope
 	int numNodes = nodesPortion.y - nodesPortion.x;
 	for (int j = 0; j < numNodes; j++) {
 		int nodeIdx = nodesPortion.x + j;
@@ -324,8 +324,8 @@ void MapBeamDataTo_1D_Array(real_* e, const thrust::device_vector<real3> & beamD
 }
 //------------------------------------------------------------------------------
 void CalcElasticForces(
-		thrust::device_vector<real3> & flex_FSI_NodesForces1,
-		thrust::device_vector<real3> & flex_FSI_NodesForces2,
+		thrust::host_vector<real3> & flex_FSI_NodesForces1,
+		thrust::host_vector<real3> & flex_FSI_NodesForces2,
 		const thrust::device_vector<real3> & ANCF_NodesD,
 		const thrust::device_vector<real3> & ANCF_SlopesD,
 		const thrust::device_vector<real3> & ANCF_NodesVelD,
@@ -437,8 +437,8 @@ void Update_ANCF_Beam(
 		thrust::device_vector<real3> & ANCF_SlopesD,
 		thrust::device_vector<real3> & ANCF_NodesVelD,
 		thrust::device_vector<real3> & ANCF_SlopesVelD,
-		thrust::device_vector<real3> & flex_FSI_NodesForces1,
-		thrust::device_vector<real3> & flex_FSI_NodesForces2,
+		const thrust::device_vector<real3> & flex_FSI_NodesForces1,
+		const thrust::device_vector<real3> & flex_FSI_NodesForces2,
 		const thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
 		const thrust::device_vector<real_> & ANCF_Beam_LengthD,
 		const thrust::host_vector<bool> & ANCF_IsCantilever,
@@ -446,7 +446,9 @@ void Update_ANCF_Beam(
 		const ANCF_Params & flexParams,
 		real_ dT)
 {
-	CalcElasticForces(flex_FSI_NodesForces1, flex_FSI_NodesForces2,
+	thrust::host_vector<real3> flex_FSI_NodesForcesH1 = flex_FSI_NodesForces1;
+	thrust::host_vector<real3> flex_FSI_NodesForcesH2 = flex_FSI_NodesForces2;
+	CalcElasticForces(flex_FSI_NodesForcesH1, flex_FSI_NodesForcesH2,
 			ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
 			ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, numFlexBodies, flexParams);
 
@@ -464,7 +466,7 @@ void Update_ANCF_Beam(
 			numNodesAdjusted = nodesPortionAdjusted2.y - nodesPortionAdjusted2.x;
 		}
 		real_* f = new real_ [numNodesAdjusted * 6];
-		MapBeamDataTo_1D_Array(f, flex_FSI_NodesForces1, flex_FSI_NodesForces2, nodesPortionAdjusted2);
+		MapBeamDataTo_1D_Array(f, flex_FSI_NodesForcesH1, flex_FSI_NodesForcesH2, nodesPortionAdjusted2);
 		real_* D2Node = new real_ [numNodesAdjusted * 6];
 		min_vec(D2Node, f, lE, numElements, isCantilever);
 

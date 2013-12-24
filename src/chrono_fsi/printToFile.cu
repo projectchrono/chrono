@@ -33,6 +33,7 @@ void PrintToFile(
 
 		thrust::device_vector<real3> ANCF_NodesD,
 		thrust::device_vector<real3> ANCF_NodesVelD,
+		thrust::device_vector<real_> flexParametricDistD,
 
 		SimParams paramsH,
 		real_ delT,
@@ -52,6 +53,7 @@ void PrintToFile(
 	thrust::host_vector<real3> omegaLRF_H = omegaLRF_D;
 	thrust::host_vector<real3> ANCF_NodesH = ANCF_NodesD;
 	thrust::host_vector<real3> ANCF_NodesVelH = ANCF_NodesVelD;
+	thrust::host_vector<real_> flexParametricDist = flexParametricDistD;
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++com
 	ofstream fileNameFluid;
 	int stepSaveFluid = 200000;
@@ -334,7 +336,9 @@ void PrintToFile(
 
 		system("mkdir -p povFiles");
 //		int tStepsPovFiles = 2000;
-		int tStepsPovFiles = 200;//2000;//2000;//2000;
+		int tStepsPovFiles = 2000;//2000;//2000;//2000;
+
+		if (tStep > 1000) tStepsPovFiles = 2;
 		if (tStep % tStepsPovFiles == 0) {
 			if (tStep / tStepsPovFiles == 0) {
 						//linux. In windows, it is System instead of system (to invoke a command in the command line)
@@ -440,7 +444,8 @@ void PrintToFile(
 					real3 vel = R3(velMasH[i]);
 					real4 rP = rhoPresMuH[i];
 					real_ velMag = length(vel);
-					ssRigidFlexBCE<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.z<<", "<< rP.w<<endl;
+					real_ dist = flexParametricDist[i - referenceArray[2].x];
+					ssRigidFlexBCE<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.z<<", "<< rP.w<<", "<<dist<<endl;
 				}
 			}
 			fileNameRigidFlexBCE<<ssRigidFlexBCE.str();
