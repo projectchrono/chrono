@@ -356,11 +356,11 @@ void CalcElasticForces(
 				SumArrays(f_e, e_ee, flexParams.E * flexParams.A * (lE - 0) / 2 * GQ5_w[k], 12);
 			}
 			// bending force, GQ 3rd order.
-//			for (int k = 0; k < 3; k ++) {
-//				real_ gqPoint = (lE - 0) / 2 * GQ3_p[k] + (lE + 0) / 2;
-//				kappa_kappa_e(k_ke, gqPoint, lE, e);
-//				SumArrays(f_e, k_ke, flexParams.E * flexParams.I  * (lE - 0) / 2 * GQ3_w[k], 12);
-//			}
+			for (int k = 0; k < 3; k ++) {
+				real_ gqPoint = (lE - 0) / 2 * GQ3_p[k] + (lE + 0) / 2;
+				kappa_kappa_e(k_ke, gqPoint, lE, e);
+				SumArrays(f_e, k_ke, flexParams.E * flexParams.I  * (lE - 0) / 2 * GQ3_w[k], 12);
+			}
 			Add_f_ToForces(flex_FSI_NodesForces1, flex_FSI_NodesForces2, -1, f_e, nodeIdx);
 		}
 	}
@@ -463,11 +463,11 @@ void Update_ANCF_Beam(
 			ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
 			ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, numFlexBodies, flexParams);
 
-				//	for (int i = 0; i < flex_FSI_NodesForcesH1.size(); i++) {
-				//		real3 f1 = 1e10 * flex_FSI_NodesForcesH1[i];
-				//		real3 f2 = 1e10 * flex_FSI_NodesForcesH2[i];
-				//		printf("my f1 %f %f %f, f2 %f %f %f\n", f1.x, f1.y, f1.z, f2.x, f2.y, f2.z);
-				//	}
+					//	for (int i = 0; i < flex_FSI_NodesForcesH1.size(); i++) {
+					//		real3 f1 = 1e10 * flex_FSI_NodesForcesH1[i];
+					//		real3 f2 = 1e10 * flex_FSI_NodesForcesH2[i];
+					//		printf("my f1 %f %f %f, f2 %f %f %f\n", f1.x, f1.y, f1.z, f2.x, f2.y, f2.z);
+					//	}
 
 	for (int i = 0; i < numFlexBodies; i++) {
 		real_ lBeam = ANCF_Beam_LengthD[i];
