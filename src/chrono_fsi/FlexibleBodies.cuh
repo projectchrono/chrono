@@ -36,6 +36,7 @@ struct ANCF_Params {
 	real_ rho;
 	real_ A;
 	int ne; // number of elements per noodle
+	real3 gravity;
 };
 
 __device__ __host__ inline void shape_fun(real_* S, real_ x, real_ lE)

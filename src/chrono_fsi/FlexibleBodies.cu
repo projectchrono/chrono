@@ -269,6 +269,31 @@ kappa_kappa_e(real_* k_ke, real_ x, real_ L, real_* e)
 	k_ke[11] = -inv_rx_rx_cubed * ( -(Sx[3]*rxx[0]-Sxx[3]*rx[0])*v[1]+(Sx[3]*rxx[1]-Sxx[3]*rx[1])*v[0] + coef*Sx[3]*rx[2] );
 }
 //------------------------------------------------------------------------------
+void gravitational_force(real_* f_g, real_ L, real_ rho, real_ A, real3 g)
+{
+	real_ coef = rho * A * L;
+
+	real_ t5  = coef * g.x / 2.0;
+	real_ t6  = coef * g.y / 2.0;
+	real_ t7  = coef * g.z / 2.0;
+	real_ t8  = coef * g.x * L / 12.0;
+	real_ t9  = coef * g.y * L / 12.0;
+	real_ t10 = coef * g.z * L / 12.0;
+
+	f_g[0]  =  t5;
+	f_g[1]  =  t6;
+	f_g[2]  =  t7;
+	f_g[3]  =  t8;
+	f_g[4]  =  t9;
+	f_g[5]  =  t10;
+	f_g[6]  =  t5;
+	f_g[7]  =  t6;
+	f_g[8]  =  t7;
+	f_g[9]  = -t8;
+	f_g[10] = -t9;
+	f_g[11] = -t10;
+}
+//------------------------------------------------------------------------------
 // sum += mult * a
 void SumArrays(real_* sum, real_* a, real_ mult, int numComp) {
 	for (int k = 0; k < numComp; k++) {
@@ -304,8 +329,6 @@ void Add_f_ToForces(thrust::host_vector<real3> & flex_FSI_NodesForces1, thrust::
 	flex_FSI_NodesForces2[nodeIdx] += k * R3(f[3], f[4], f[5]);
 	flex_FSI_NodesForces1[nodeIdx + 1] += k * R3(f[6], f[7], f[8]);
 	flex_FSI_NodesForces2[nodeIdx + 1] += k * R3(f[9], f[10], f[11]);
-
-
 }
 //------------------------------------------------------------------------------
 void MapBeamDataTo_1D_Array(real_* e, const thrust::host_vector<real3> & beamData1, const thrust::host_vector<real3> & beamData2, int2 nodesPortion) { //beamData1: postion, beamData2: slope
@@ -348,19 +371,24 @@ void CalcElasticForces(
 			CopyElementNodesTo_e(e, ANCF_NodesD, ANCF_SlopesD, nodeIdx);
 			real_ e_ee[12] = {0};
 			real_ k_ke[12] = {0};
+			real_ f_g[12] = {0};
 			real_ f_e[12] = {0};
-			// tension force, GQ 5th order. Maybe 4th order is enough as well.
+			// Elastic Force, 1/2: tension force, GQ 5th order. Maybe 4th order is enough as well.
 			for (int k = 0; k < 5; k ++) {
 				real_ gqPoint = (lE - 0) / 2 * GQ5_p[k] + (lE + 0) / 2;
 				eps_eps_e(e_ee, gqPoint, lE, e);
 				SumArrays(f_e, e_ee, flexParams.E * flexParams.A * (lE - 0) / 2 * GQ5_w[k], 12);
 			}
-			// bending force, GQ 3rd order.
+			// Elastic Force, 2/2: bending force, GQ 3rd order.
 			for (int k = 0; k < 3; k ++) {
 				real_ gqPoint = (lE - 0) / 2 * GQ3_p[k] + (lE + 0) / 2;
 				kappa_kappa_e(k_ke, gqPoint, lE, e);
 				SumArrays(f_e, k_ke, flexParams.E * flexParams.I  * (lE - 0) / 2 * GQ3_w[k], 12);
 			}
+			// Gravitational Foce
+			gravitational_force(f_g, lE, flexParams.rho, flexParams.A, flexParams.gravity);
+			SumArrays(f_e, f_g, -1, 12);
+			// Add element forces to associated nodes
 			Add_f_ToForces(flex_FSI_NodesForces1, flex_FSI_NodesForces2, -1, f_e, nodeIdx);
 		}
 	}
