@@ -1430,14 +1430,22 @@ void UpdateRigidBody(
 void UpdateFlexibleBody(
 		thrust::device_vector<real3> & posRadD,
 		thrust::device_vector<real4> & velMasD,
+
+		thrust::device_vector<real3> & ANCF_NodesD2,
+		thrust::device_vector<real3> & ANCF_SlopesD2,
+		thrust::device_vector<real3> & ANCF_NodesVelD2,
+		thrust::device_vector<real3> & ANCF_SlopesVelD2,
+
 		thrust::device_vector<real4> & derivVelRhoD,
 		const int numRigidBodies,
 		const int numFlexBodies,
 		const int numFlex_SphMarkers,
-		thrust::device_vector<real3> & ANCF_NodesD,
-		thrust::device_vector<real3> & ANCF_SlopesD,
-		thrust::device_vector<real3> & ANCF_NodesVelD,
-		thrust::device_vector<real3> & ANCF_SlopesVelD,
+
+		const thrust::device_vector<real3> & ANCF_NodesD,
+		const thrust::device_vector<real3> & ANCF_SlopesD,
+		const thrust::device_vector<real3> & ANCF_NodesVelD,
+		const thrust::device_vector<real3> & ANCF_SlopesVelD,
+
 		thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
 		thrust::device_vector<int> & ANCF_NumMarkers_Per_BeamD,
 		thrust::device_vector<int> & ANCF_NumMarkers_Per_Beam_CumulD,
@@ -1480,19 +1488,19 @@ void UpdateFlexibleBody(
 //	computeGridSize(numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
 
 
-	//ff1 for Radu
-//	for (int i = 0; i < ANCF_Beam_LengthD.size(); i++) {
-//		int2 nodesInterval = ANCF_ReferenceArrayNodesOnBeamsD[i];
-//		real_ lBeam = ANCF_Beam_LengthD[i];
-//		real3 pa, pb;
-//		pa = ANCF_NodesD[nodesInterval.x];
-//		pb = ANCF_NodesD[nodesInterval.y - 1];
-//		real3 sa, sb;
-//		sa = ANCF_SlopesD[nodesInterval.x];
-//		sb = ANCF_SlopesD[nodesInterval.y - 1];
-//		printf("beamNumber %d: beamLength %f, start_pointAndSlope %f %f %f %f %f %f, end_point %f %f %f\n\n", i, lBeam, pa.x, pa.y, pa.z, sa.x, sa.y, sa.z, pb.x, pb.y, pb.z);
-//
-//	}
+						//ff1 for Radu
+					//	for (int i = 0; i < ANCF_Beam_LengthD.size(); i++) {
+					//		int2 nodesInterval = ANCF_ReferenceArrayNodesOnBeamsD[i];
+					//		real_ lBeam = ANCF_Beam_LengthD[i];
+					//		real3 pa, pb;
+					//		pa = ANCF_NodesD[nodesInterval.x];
+					//		pb = ANCF_NodesD[nodesInterval.y - 1];
+					//		real3 sa, sb;
+					//		sa = ANCF_SlopesD[nodesInterval.x];
+					//		sb = ANCF_SlopesD[nodesInterval.y - 1];
+					//		printf("beamNumber %d: beamLength %f, start_pointAndSlope %f %f %f %f %f %f, end_point %f %f %f\n\n", i, lBeam, pa.x, pa.y, pa.z, sa.x, sa.y, sa.z, pb.x, pb.y, pb.z);
+					//
+					//	}
 
 
 //	//**
@@ -1527,6 +1535,7 @@ void UpdateFlexibleBody(
 	int n = 1;
 	for (int i = 0; i < n; i++) {
 		Update_ANCF_Beam(
+				ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
 				ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
 				flex_FSI_NodesForces1, flex_FSI_NodesForces2,
 				ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, ANCF_IsCantilever,
@@ -1564,10 +1573,10 @@ void UpdateFlexibleBody(
 //			R1CAST(flexParametricDistD),
 //			R1CAST(ANCF_Beam_LengthD),
 //			I2CAST(ANCF_ReferenceArrayNodesOnBeamsD),
-//			R3CAST(ANCF_NodesD),
-//			R3CAST(ANCF_SlopesD),
-//			R3CAST(ANCF_NodesVelD),
-//			R3CAST(ANCF_SlopesVelD)
+//			R3CAST(ANCF_NodesD2),
+//			R3CAST(ANCF_SlopesD2),
+//			R3CAST(ANCF_NodesVelD2),
+//			R3CAST(ANCF_SlopesVelD2)
 //			);
 
 	cudaThreadSynchronize();
@@ -1845,9 +1854,11 @@ void cudaCollisions(
 //		UpdateRigidBody(posRadD2, velMasD2, posRigidD2, posRadRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2, derivVelRhoD, rigidIdentifierD,
 //				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidMarkers, numRigid_SphMarkers, float(tStep)/stepEnd, 0.5 * delT);
 
-		UpdateFlexibleBody(posRadD2, velMasD2, derivVelRhoD,
+		UpdateFlexibleBody(posRadD2, velMasD2,
+				ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
+				derivVelRhoD,
 								numRigidBodies, numFlexBodies, numFlex_SphMarkers,
-								ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
+								ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
 								ANCF_ReferenceArrayNodesOnBeamsD,
 								ANCF_NumMarkers_Per_BeamD,
 								ANCF_NumMarkers_Per_Beam_CumulD,
@@ -1877,9 +1888,11 @@ void cudaCollisions(
 //		UpdateRigidBody(posRadD, velMasD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, derivVelRhoD, rigidIdentifierD,
 //				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidMarkers, numRigid_SphMarkers, float(tStep)/stepEnd, delT);
 
-		UpdateFlexibleBody(posRadD, velMasD, derivVelRhoD,
+		UpdateFlexibleBody(posRadD, velMasD,
+				ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
+				derivVelRhoD,
 						numRigidBodies, numFlexBodies, numFlex_SphMarkers,
-						ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
+						ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
 						ANCF_ReferenceArrayNodesOnBeamsD,
 						ANCF_NumMarkers_Per_BeamD,
 						ANCF_NumMarkers_Per_Beam_CumulD,

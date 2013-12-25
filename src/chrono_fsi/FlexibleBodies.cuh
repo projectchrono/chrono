@@ -59,10 +59,16 @@ __device__ __host__ inline void shape_fun_d(real_* Sx, real_ x, real_ lE)
 }
 
 void Update_ANCF_Beam(
-		thrust::device_vector<real3> & ANCF_NodesD,
-		thrust::device_vector<real3> & ANCF_SlopesD,
-		thrust::device_vector<real3> & ANCF_NodesVelD,
-		thrust::device_vector<real3> & ANCF_SlopesVelD,
+		thrust::device_vector<real3> & ANCF_NodesD2,
+		thrust::device_vector<real3> & ANCF_SlopesD2,
+		thrust::device_vector<real3> & ANCF_NodesVelD2,
+		thrust::device_vector<real3> & ANCF_SlopesVelD2,
+
+		const thrust::device_vector<real3> & ANCF_NodesD,
+		const thrust::device_vector<real3> & ANCF_SlopesD,
+		const thrust::device_vector<real3> & ANCF_NodesVelD,
+		const thrust::device_vector<real3> & ANCF_SlopesVelD,
+
 		const thrust::device_vector<real3> & flex_FSI_NodesForces1,
 		const thrust::device_vector<real3> & flex_FSI_NodesForces2,
 		const thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
