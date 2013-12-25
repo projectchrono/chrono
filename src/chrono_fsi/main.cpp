@@ -1517,7 +1517,7 @@ int main() {
 	paramsH.NUM_BCE_LAYERS = 2;
 	paramsH.BASEPRES = 0;
 	paramsH.nPeriod = 1;
-	paramsH.gravity = R3(-9.81, 0, 0);
+	paramsH.gravity = R3(0, -9.81, 0);
 	paramsH.bodyForce4 = R4(3.2e-4,0,0,0); /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
 	paramsH.rho0 = 1000;
 	paramsH.mu0 = 1.0f;
