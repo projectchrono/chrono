@@ -336,7 +336,7 @@ void PrintToFile(
 
 		system("mkdir -p povFiles");
 //		int tStepsPovFiles = 2000;
-		int tStepsPovFiles = 200;//2000;//2000;//2000;
+		int tStepsPovFiles = 1000;//2000;//2000;//2000;
 
 //		if (tStep > 1000) tStepsPovFiles = 2;
 		if (tStep % tStepsPovFiles == 0) {
