@@ -1480,13 +1480,6 @@ void UpdateFlexibleBody(
 	thrust::fill(flex_FSI_NodesForces1.begin(), flex_FSI_NodesForces1.end(),R3(0));
 	thrust::fill(flex_FSI_NodesForces2.begin(), flex_FSI_NodesForces2.end(),R3(0));
 
-//	thrust::device_vector<real3> flexNodesForcesAllMarkers1(totalNumberOfFlexMultNodes);
-//	thrust::device_vector<real3> flexNodesForcesAllMarkers2(totalNumberOfFlexMultNodes);
-//
-//	uint nBlocks_numFlex_SphMarkers;
-//	uint nThreads_SphMarkers;
-//	computeGridSize(numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
-
 
 						//ff1 for Radu
 					//	for (int i = 0; i < ANCF_Beam_LengthD.size(); i++) {
@@ -1503,33 +1496,39 @@ void UpdateFlexibleBody(
 					//	}
 
 
-//	//**
-//	MapForcesOnNodes<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(
-//			R3CAST(flexNodesForcesAllMarkers1),
-//			R3CAST(flexNodesForcesAllMarkers2),
-//			I1CAST(flexIdentifierD),
-//			I2CAST(ANCF_ReferenceArrayNodesOnBeamsD),
-//			I1CAST(ANCF_NumMarkers_Per_BeamD),
-//			I1CAST(ANCF_NumMarkers_Per_Beam_CumulD),
-//			I1CAST(ANCF_NumNodesMultMarkers_Per_Beam_CumulD),
-//			R1CAST(flexParametricDistD),
-//			R1CAST(ANCF_Beam_LengthD),
-//			R4CAST(derivVelRhoD));
-//
-//	if (flexMapEachMarkerOnAllBeamNodesD.size() != flexNodesForcesAllMarkers1.size()) {
-//		printf("we have size inconsistency between flex nodesForces and nodesPair identifier");
-//	}
-//	thrust::device_vector<int2> dummyNodesFlexIdentify(totalNumberOfFlexNodes);
-//	thrust::equal_to<int2> binary_pred_int2; //if binary_pred int2 does not work, you have to either add operator == to custom_cutil_math, or you have to map nodes identifiers from int2 to int
-//	(void) thrust::reduce_by_key(flexMapEachMarkerOnAllBeamNodesD.begin(), flexMapEachMarkerOnAllBeamNodesD.end(), flexNodesForcesAllMarkers1.begin(), dummyNodesFlexIdentify.begin(),
-//			flex_FSI_NodesForces1.begin(), binary_pred_int2, thrust::plus<real3>());
-//	(void) thrust::reduce_by_key(flexMapEachMarkerOnAllBeamNodesD.begin(), flexMapEachMarkerOnAllBeamNodesD.end(), flexNodesForcesAllMarkers2.begin(), dummyNodesFlexIdentify.begin(),
-//			flex_FSI_NodesForces2.begin(), binary_pred_int2, thrust::plus<real3>());
-//	dummyNodesFlexIdentify.clear();
-//	flexNodesForcesAllMarkers1.clear();
-//	flexNodesForcesAllMarkers2.clear();
-//
-//	//**
+	//**
+	thrust::device_vector<real3> flexNodesForcesAllMarkers1(totalNumberOfFlexMultNodes);
+	thrust::device_vector<real3> flexNodesForcesAllMarkers2(totalNumberOfFlexMultNodes);
+
+	uint nBlocks_numFlex_SphMarkers;
+	uint nThreads_SphMarkers;
+	computeGridSize(numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
+	MapForcesOnNodes<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(
+			R3CAST(flexNodesForcesAllMarkers1),
+			R3CAST(flexNodesForcesAllMarkers2),
+			I1CAST(flexIdentifierD),
+			I2CAST(ANCF_ReferenceArrayNodesOnBeamsD),
+			I1CAST(ANCF_NumMarkers_Per_BeamD),
+			I1CAST(ANCF_NumMarkers_Per_Beam_CumulD),
+			I1CAST(ANCF_NumNodesMultMarkers_Per_Beam_CumulD),
+			R1CAST(flexParametricDistD),
+			R1CAST(ANCF_Beam_LengthD),
+			R4CAST(derivVelRhoD));
+
+	if (flexMapEachMarkerOnAllBeamNodesD.size() != flexNodesForcesAllMarkers1.size()) {
+		printf("we have size inconsistency between flex nodesForces and nodesPair identifier");
+	}
+	thrust::device_vector<int2> dummyNodesFlexIdentify(totalNumberOfFlexNodes);
+	thrust::equal_to<int2> binary_pred_int2; //if binary_pred int2 does not work, you have to either add operator == to custom_cutil_math, or you have to map nodes identifiers from int2 to int
+	(void) thrust::reduce_by_key(flexMapEachMarkerOnAllBeamNodesD.begin(), flexMapEachMarkerOnAllBeamNodesD.end(), flexNodesForcesAllMarkers1.begin(), dummyNodesFlexIdentify.begin(),
+			flex_FSI_NodesForces1.begin(), binary_pred_int2, thrust::plus<real3>());
+	(void) thrust::reduce_by_key(flexMapEachMarkerOnAllBeamNodesD.begin(), flexMapEachMarkerOnAllBeamNodesD.end(), flexNodesForcesAllMarkers2.begin(), dummyNodesFlexIdentify.begin(),
+			flex_FSI_NodesForces2.begin(), binary_pred_int2, thrust::plus<real3>());
+	dummyNodesFlexIdentify.clear();
+	flexNodesForcesAllMarkers1.clear();
+	flexNodesForcesAllMarkers2.clear();
+
+	//**
 
 
 	int n = 1;
@@ -1558,26 +1557,20 @@ void UpdateFlexibleBody(
 //	//
 
 	//################################################### update rigid body things
-//	computeGridSize(numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
-
-//	int numFlBcRigid = 2;
-//	int totalNumberOfFlexNodes = ANCF_ReferenceArrayNodesOnBeamsD[ANCF_ReferenceArrayNodesOnBeamsD.size() - 1].y;
-
-
-
-//	UpdateFlexMarkersPosition<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(
-//			R3CAST(posRadD), R4CAST(velMasD),
-//			I1CAST(flexIdentifierD),
-//			R3CAST(flexSPH_MeshPos_LRF_D),
-//			R3CAST(flexSPH_MeshSlope_Initial_D),
-//			R1CAST(flexParametricDistD),
-//			R1CAST(ANCF_Beam_LengthD),
-//			I2CAST(ANCF_ReferenceArrayNodesOnBeamsD),
-//			R3CAST(ANCF_NodesD2),
-//			R3CAST(ANCF_SlopesD2),
-//			R3CAST(ANCF_NodesVelD2),
-//			R3CAST(ANCF_SlopesVelD2)
-//			);
+	computeGridSize(numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
+	UpdateFlexMarkersPosition<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(
+			R3CAST(posRadD), R4CAST(velMasD),
+			I1CAST(flexIdentifierD),
+			R3CAST(flexSPH_MeshPos_LRF_D),
+			R3CAST(flexSPH_MeshSlope_Initial_D),
+			R1CAST(flexParametricDistD),
+			R1CAST(ANCF_Beam_LengthD),
+			I2CAST(ANCF_ReferenceArrayNodesOnBeamsD),
+			R3CAST(ANCF_NodesD2),
+			R3CAST(ANCF_SlopesD2),
+			R3CAST(ANCF_NodesVelD2),
+			R3CAST(ANCF_SlopesVelD2)
+			);
 
 	cudaThreadSynchronize();
 
@@ -1585,8 +1578,8 @@ void UpdateFlexibleBody(
 
 
 	//------------------------ delete stuff
-//	flex_FSI_NodesForces1.clear();
-//	flex_FSI_NodesForces2.clear();
+	flex_FSI_NodesForces1.clear();
+	flex_FSI_NodesForces2.clear();
 }
 //##############################################################################################################################################
 // the main function, which updates the particles and implements BC
