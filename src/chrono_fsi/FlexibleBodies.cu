@@ -400,8 +400,6 @@ void ItegrateInTime(
 		thrust::device_vector<real3> & ANCF_NodesVelD2,
 		thrust::device_vector<real3> & ANCF_SlopesVelD2,
 
-		const thrust::device_vector<real3> & ANCF_NodesD,
-		const thrust::device_vector<real3> & ANCF_SlopesD,
 		const thrust::device_vector<real3> & ANCF_NodesVelD,
 		const thrust::device_vector<real3> & ANCF_SlopesVelD,
 
@@ -528,7 +526,7 @@ void Update_ANCF_Beam(
 					//ff1 : the followin commented lines are the real algorithm
 		ItegrateInTime(
 				ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
-				ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
+				ANCF_NodesVelD, ANCF_SlopesVelD,
 				D2Node, nodesPortionAdjusted2,
 				lE, flexParams, dT);
 
