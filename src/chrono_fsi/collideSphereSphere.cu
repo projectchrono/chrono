@@ -430,7 +430,7 @@ __global__ void AddToCumulutaiveNumberOfPasses(
 	}
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void SumSurfaceInteractionForces(real3 * totalForcesRigid3, real4 * totalSurfaceInteractionRigid4, real4 * velMassRigidD) {
+__global__ void Calc_SurfaceInducedAcceleration(real3 * totalAccRigid3, real4 * totalSurfaceInteractionRigid4, real4 * velMassRigidD) {
 	uint rigidSphereA = blockIdx.x * blockDim.x + threadIdx.x;
 	if (rigidSphereA >= numRigidBodiesD) {
 		return;
@@ -442,10 +442,10 @@ __global__ void SumSurfaceInteractionForces(real3 * totalForcesRigid3, real4 * t
 			derivRigid *= ( .2 * paramsD.HSML / (dTD * dTD) ) / length(derivRigid);
 	}
 	//** end tweak
-	totalForcesRigid3[rigidSphereA] = derivRigid;
+	totalAccRigid3[rigidSphereA] = derivRigid;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void CalcTorqueShare(real3* torqueMarkersD, real4* derivVelRhoD, real3* posRadD, int* rigidIdentifierD, real3* posRigidD) {
+__global__ void CalcTorqueOf_SPH_Marker_Acceleration(real3* torqueMarkersD, real4* derivVelRhoD, real3* posRadD, int* rigidIdentifierD, real3* posRigidD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	uint rigidMarkerIndex = index + startRigidMarkersD;
 	if (index >= numRigid_SphMarkersD) {
@@ -600,18 +600,20 @@ __global__ void Populate_FlexSPH_MeshSlope_LRF_kernel(
 //--------------------------------------------------------------------------------------------------------------------------------
 //the rigid body torque has been calculated in global RF. This kernel maps it to local RF to be appropriate for the formulas
 //local torque = T' = A' * T
-__global__ void MapTorqueToLRFKernel(real3 * AD1, real3 * AD2, real3 * AD3, real3 * totalTorque3, real3 * LF_totalTorque3) {
+__global__ void MapTorqueToLRFKernel(real3 * AD1, real3 * AD2, real3 * AD3, real3 * totalTorqueOfAcc3, real3 * LF_totalTorqueOfAcc3) {
 	uint rigidSphereA = blockIdx.x * blockDim.x + threadIdx.x;
 	if (rigidSphereA >= numRigidBodiesD) {
 		return;
 	}
-	real3 totalTorqueGRF = totalTorque3[rigidSphereA];
-	LF_totalTorque3[rigidSphereA] = AD1[rigidSphereA] * totalTorqueGRF.x + AD2[rigidSphereA] * totalTorqueGRF.y
+	real3 totalTorqueGRF = totalTorqueOfAcc3[rigidSphereA];
+	LF_totalTorqueOfAcc3[rigidSphereA] = AD1[rigidSphereA] * totalTorqueGRF.x + AD2[rigidSphereA] * totalTorqueGRF.y
 			+ AD3[rigidSphereA] * totalTorqueGRF.z;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //updates the rigid body particles
-__global__ void UpdateKernelRigidTranstalation(real3 * totalForcesRigid3, real3 * posRigidD, real3 * posRigidCumulativeD, real4 * velMassRigidD) {
+__global__ void UpdateKernelRigidTranstalation(
+		real3 * posRigidD2, real3 * posRigidCumulativeD2, real4 * velMassRigidD2,
+		real3 * posRigidD, real3 * posRigidCumulativeD, real4 * velMassRigidD, real3 * totalAccRigid3) {
 	uint rigidSphereA = blockIdx.x * blockDim.x + threadIdx.x;
 	if (rigidSphereA >= numRigidBodiesD) {
 		return;
@@ -620,20 +622,22 @@ __global__ void UpdateKernelRigidTranstalation(real3 * totalForcesRigid3, real3 
 	real3 dummyPos = posRigidD[rigidSphereA];
 	real4 dummyVelMas = velMassRigidD[rigidSphereA];
 
-	real3 derivV_SPH = totalForcesRigid3[rigidSphereA]; //in fact, totalBodyForce4 is originially sum of dV/dt of sph particles and should be multiplied by m to produce force. paramsD.gravity is applied in the force kernel
+	real3 derivV_SPH = totalAccRigid3[rigidSphereA]; //in fact, totalBodyForce4 is originially sum of dV/dt of sph particles and should be multiplied by m to produce force. paramsD.gravity is applied in the force kernel
 
 	real3 deltaPos = R3(dummyVelMas) * dTD;
 	dummyPos += deltaPos;
-	posRigidD[rigidSphereA] = dummyPos;
-	posRigidCumulativeD[rigidSphereA] += deltaPos;
+	posRigidD2[rigidSphereA] = dummyPos;
+	posRigidCumulativeD2[rigidSphereA] += deltaPos;
 
 	real3 deltaVel = derivV_SPH * dTD;
 	dummyVelMas += R4(deltaVel, 0);
-	velMassRigidD[rigidSphereA] = dummyVelMas;
+	velMassRigidD2[rigidSphereA] = dummyVelMas;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //updates the rigid body particles
-__global__ void UpdateKernelRigidTranstalationBeta(real3 * totalForcesRigid3, real3 * posRigidD, real3 * posRigidCumulativeD, real4 * velMassRigidD) {
+__global__ void UpdateKernelRigidTranstalationBeta(
+		real3 * posRigidD2, real3 * posRigidCumulativeD2, real4 * velMassRigidD2,
+		real3 * posRigidD, real3 * posRigidCumulativeD, real4 * velMassRigidD, real3 * totalAccRigid3) {
 	uint rigidSphereA = blockIdx.x * blockDim.x + threadIdx.x;
 	if (rigidSphereA >= numRigidBodiesD) {
 		return;
@@ -642,23 +646,23 @@ __global__ void UpdateKernelRigidTranstalationBeta(real3 * totalForcesRigid3, re
 	real3 dummyPos = posRigidD[rigidSphereA];
 	real4 dummyVelMas = velMassRigidD[rigidSphereA];
 
-	real3 derivV_SPH = totalForcesRigid3[rigidSphereA]; //in fact, totalBodyForce4 is originially sum of dV/dt of sph particles and should be multiplied by m to produce force. paramsD.gravity is applied in the force kernel
+	real3 derivV_SPH = totalAccRigid3[rigidSphereA]; //in fact, totalBodyForce4 is originially sum of dV/dt of sph particles and should be multiplied by m to produce force. paramsD.gravity is applied in the force kernel
 	derivV_SPH.y = 0;
 	derivV_SPH.z = 0;
 
 	real3 deltaPos = R3(dummyVelMas) * dTD;
 	dummyPos += deltaPos;
-	posRigidD[rigidSphereA] = dummyPos;
-	posRigidCumulativeD[rigidSphereA] += deltaPos;
+	posRigidD2[rigidSphereA] = dummyPos;
+	posRigidCumulativeD2[rigidSphereA] += deltaPos;
 
 	real3 deltaVel = derivV_SPH * dTD;
 	dummyVelMas += R4(deltaVel, 0);
-	velMassRigidD[rigidSphereA] = dummyVelMas;
+	velMassRigidD2[rigidSphereA] = dummyVelMas;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //updates the rigid body Quaternion of Rotation
 // A is rotation matrix, A = [AD1; AD2; AD3]
-__global__ void UpdateRigidBodyQuaternion_kernel(real4 * qD, real3 * omegaLRF_D) {
+__global__ void UpdateRigidBodyQuaternion_kernel(real4 * qD2, real4 * qD, real3 * omegaLRF_D) {
 	uint rigidSphereA = blockIdx.x * blockDim.x + threadIdx.x;
 	if (rigidSphereA >= numRigidBodiesD) {
 		return;
@@ -671,7 +675,7 @@ __global__ void UpdateRigidBodyQuaternion_kernel(real4 * qD, real3 * omegaLRF_D)
 
 	q += dTD * qDot;
 	q *= (1.0f / length(q));
-	qD[rigidSphereA] = q;
+	qD2[rigidSphereA] = q;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // first comp of q is rotation, last 3 components are axis of rot
@@ -697,12 +701,13 @@ __global__ void RotationMatirixFromQuaternion_kernel(real3 * AD1, real3 * AD2, r
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void UpdateRigidBodyAngularVelocity_kernel(
-		real3 * LF_totalTorque3,
+		real3 * omegaLRF_D2,
+		real3 * omegaLRF_D,
+		real3 * LF_totalTorqueOfAcc3,
 		real3 * jD1,
 		real3 * jD2,
 		real3 * jInvD1,
-		real3 * jInvD2,
-		real3 * omegaLRF_D) {
+		real3 * jInvD2) {
 	uint rigidSphereA = blockIdx.x * blockDim.x + threadIdx.x;
 	if (rigidSphereA >= numRigidBodiesD) {
 		return;
@@ -720,7 +725,7 @@ __global__ void UpdateRigidBodyAngularVelocity_kernel(
 	torquingTerm.z = (-omega3.y * j1.x + omega3.x * j1.y) * omega3.x + (-omega3.y * j1.y + omega3.x * j2.x) * omega3.y
 			+ (-omega3.y * j1.z + omega3.x * j2.y) * omega3.z;
 
-	torquingTerm = solid_SPH_massD * LF_totalTorque3[rigidSphereA] - torquingTerm;
+	torquingTerm = solid_SPH_massD * LF_totalTorqueOfAcc3[rigidSphereA] - torquingTerm;
 	//*** from this point j1 and j2 will represent the j_Inverse
 	j1 = jInvD1[rigidSphereA];
 	j2 = jInvD2[rigidSphereA];
@@ -1318,18 +1323,30 @@ void FindPassesFromTheEnd(
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void UpdateRigidBody(
+		thrust::device_vector<real3> & posRadD2,
+		thrust::device_vector<real4> & velMasD2,
+		thrust::device_vector<real3> & posRigidD2,
+		thrust::device_vector<real3> & posRigidCumulativeD2,
+		thrust::device_vector<real4> & velMassRigidD2,
+		thrust::device_vector<real4> & qD2,
+		thrust::device_vector<real3> & AD1_2,
+		thrust::device_vector<real3> & AD2_2,
+		thrust::device_vector<real3> & AD3_2,
+		thrust::device_vector<real3> & omegaLRF_D2,
+
 		thrust::device_vector<real3> & posRadD,
-		thrust::device_vector<real4> & velMasD,
-		thrust::device_vector<real3> & posRigidD,
-		thrust::device_vector<real3> & posRigidCumulativeD,
-		thrust::device_vector<real4> & velMassRigidD,
-		thrust::device_vector<real4> & qD,
-		thrust::device_vector<real3> & AD1,
-		thrust::device_vector<real3> & AD2,
-		thrust::device_vector<real3> & AD3,
-		thrust::device_vector<real3> & omegaLRF_D,
-		thrust::device_vector<real4> & derivVelRhoD,
+		const thrust::device_vector<real3> & posRigidD,
+		const thrust::device_vector<real3> & posRigidCumulativeD,
+		const thrust::device_vector<real4> & velMassRigidD,
+		const thrust::device_vector<real4> & qD,
+		const thrust::device_vector<real3> & AD1,
+		const thrust::device_vector<real3> & AD2,
+		const thrust::device_vector<real3> & AD3,
+		const thrust::device_vector<real3> & omegaLRF_D,
+
+		const thrust::device_vector<real4> & derivVelRhoD,
 		const thrust::device_vector<int> & rigidIdentifierD,
+
 		const thrust::device_vector<real3> & rigidSPH_MeshPos_LRF_D,
 		const thrust::host_vector<int3> & referenceArray,
 		const thrust::device_vector<real3> & jD1,
@@ -1346,82 +1363,91 @@ void UpdateRigidBody(
 		return;
 	}
 	cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(dT));
-//g
+	cudaMemcpyToSymbolAsync(numRigidBodiesD, &numRigidBodies, sizeof(numRigidBodies)); //can be defined outside of the kernel, and only once
+	//################################################### make force and torque arrays
+	//####### Force (Acceleration)
 	thrust::device_vector<real4> totalSurfaceInteractionRigid4(numRigidBodies);
-	thrust::device_vector<real3> totalTorque3(numRigidBodies);
+	thrust::device_vector<real3> totalTorqueOfAcc3(numRigidBodies);
 	thrust::fill(totalSurfaceInteractionRigid4.begin(), totalSurfaceInteractionRigid4.end(), R4(0));
 	thrust::device_vector<int> dummyIdentify(numRigidBodies);
 	thrust::equal_to<int> binary_pred;
 
 	(void) thrust::reduce_by_key(rigidIdentifierD.begin(), rigidIdentifierD.end(), derivVelRhoD.begin() + startRigidMarkers, dummyIdentify.begin(),
 			totalSurfaceInteractionRigid4.begin(), binary_pred, thrust::plus<real4>());
+	thrust::device_vector<real3> totalAccRigid3(numRigidBodies);
+	thrust::fill(totalAccRigid3.begin(), totalAccRigid3.end(), R3(0));
 
-	uint nBlocks_numRigid_SphMarkers;
-	uint nThreads_SphMarkers;
-	computeGridSize(numRigid_SphMarkers, 256, nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);
-
-	thrust::device_vector<real3> totalForcesRigid3(numRigidBodies);
-	thrust::fill(totalForcesRigid3.begin(), totalForcesRigid3.end(), R3(0));
-	SumSurfaceInteractionForces<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(R3CAST(totalForcesRigid3), R4CAST(totalSurfaceInteractionRigid4), R4CAST(velMassRigidD));
+	uint nBlock_UpdateRigid;
+	uint nThreads_rigidParticles;
+	computeGridSize(numRigidBodies, 128, nBlock_UpdateRigid, nThreads_rigidParticles);
+	Calc_SurfaceInducedAcceleration<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(
+			R3CAST(totalAccRigid3), R4CAST(totalSurfaceInteractionRigid4), R4CAST(velMassRigidD));
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: SumSurfaceInteractionForces");
+	CUT_CHECK_ERROR("Kernel execution failed: Calc_SurfaceInducedAcceleration");
 	totalSurfaceInteractionRigid4.clear();
-
-
-
-	thrust::device_vector<real3> torqueMarkersD(numRigid_SphMarkers);
-	CalcTorqueShare<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(R3CAST(torqueMarkersD), R4CAST(derivVelRhoD), R3CAST(posRadD), I1CAST(rigidIdentifierD), R3CAST(posRigidD));
-	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueShare");
-	(void) thrust::reduce_by_key(rigidIdentifierD.begin(), rigidIdentifierD.end(), torqueMarkersD.begin(), dummyIdentify.begin(),
-			totalTorque3.begin(), binary_pred, thrust::plus<real3>());
-
-	torqueMarkersD.clear();
-	dummyIdentify.clear();
 
 	//add paramsH.gravity
 	thrust::device_vector<real3> gravityForces3(numRigidBodies);
 	thrust::fill(gravityForces3.begin(), gravityForces3.end(), paramsH.gravity);
-	thrust::transform(totalForcesRigid3.begin(), totalForcesRigid3.end(), gravityForces3.begin(), totalForcesRigid3.begin(), thrust::plus<real3>());
+	thrust::transform(totalAccRigid3.begin(), totalAccRigid3.end(), gravityForces3.begin(), totalAccRigid3.begin(), thrust::plus<real3>());
 	gravityForces3.clear();
 
-	//################################################### update rigid body things
-	uint nBlock_UpdateRigid;
-	uint nThreads_rigidParticles;
-	computeGridSize(numRigidBodies, 128, nBlock_UpdateRigid, nThreads_rigidParticles);
-	cudaMemcpyToSymbolAsync(numRigidBodiesD, &numRigidBodies, sizeof(numRigidBodies)); //can be defined outside of the kernel, and only once
+	//####### Torque
+	uint nBlocks_numRigid_SphMarkers;
+	uint nThreads_SphMarkers;
+	computeGridSize(numRigid_SphMarkers, 256, nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);
+	thrust::device_vector<real3> torqueMarkersD(numRigid_SphMarkers);
+	CalcTorqueOf_SPH_Marker_Acceleration<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(
+			R3CAST(torqueMarkersD), R4CAST(derivVelRhoD), R3CAST(posRadD), I1CAST(rigidIdentifierD), R3CAST(posRigidD));
+	cudaThreadSynchronize();
+	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueOf_SPH_Marker_Acceleration");
+	(void) thrust::reduce_by_key(rigidIdentifierD.begin(), rigidIdentifierD.end(), torqueMarkersD.begin(), dummyIdentify.begin(),
+			totalTorqueOfAcc3.begin(), binary_pred, thrust::plus<real3>());
 
-	// copy solid_SPH_mass to symbol -constant memory
-	thrust::device_vector<real3> LF_totalTorque3(numRigidBodies);
-	MapTorqueToLRFKernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(R3CAST(AD1), R3CAST(AD2), R3CAST(AD3), R3CAST(totalTorque3), R3CAST(LF_totalTorque3));
+	torqueMarkersD.clear();
+	dummyIdentify.clear();
+
+	thrust::device_vector<real3> LF_totalTorqueOfAcc3(numRigidBodies);
+	MapTorqueToLRFKernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(
+			R3CAST(AD1), R3CAST(AD2), R3CAST(AD3), R3CAST(totalTorqueOfAcc3), R3CAST(LF_totalTorqueOfAcc3));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: MapTorqueToLRFKernel");
-	totalTorque3.clear();
+	totalTorqueOfAcc3.clear();
+
+	//################################################### update rigid body motion
+	//####### Translation
 
 	if (fracSimulation <.01) {
-		UpdateKernelRigidTranstalationBeta<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(R3CAST(totalForcesRigid3), R3CAST(posRigidD), R3CAST(posRigidCumulativeD), R4CAST(velMassRigidD));
+		UpdateKernelRigidTranstalationBeta<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(
+				R3CAST(posRigidD2), R3CAST(posRigidCumulativeD2), R4CAST(velMassRigidD2),
+				R3CAST(posRigidD), R3CAST(posRigidCumulativeD), R4CAST(velMassRigidD), R3CAST(totalAccRigid3));
 	} else {
-		UpdateKernelRigidTranstalation<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(R3CAST(totalForcesRigid3), R3CAST(posRigidD), R3CAST(posRigidCumulativeD), R4CAST(velMassRigidD));
+		UpdateKernelRigidTranstalation<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(
+				R3CAST(posRigidD2), R3CAST(posRigidCumulativeD2), R4CAST(velMassRigidD2),
+				R3CAST(posRigidD), R3CAST(posRigidCumulativeD), R4CAST(velMassRigidD), R3CAST(totalAccRigid3));
 	}
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
-	totalForcesRigid3.clear();
+	totalAccRigid3.clear();
 
-	UpdateRigidBodyQuaternion_kernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(R4CAST(qD), R3CAST(omegaLRF_D));
+	//####### Rotation
+	UpdateRigidBodyQuaternion_kernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(R4CAST(qD2), R4CAST(qD), R3CAST(omegaLRF_D));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateRotation");
 
-	RotationMatirixFromQuaternion_kernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(R3CAST(AD1), R3CAST(AD2), R3CAST(AD3), R4CAST(qD));
+	RotationMatirixFromQuaternion_kernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(R3CAST(AD1_2), R3CAST(AD2_2), R3CAST(AD3_2), R4CAST(qD2));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateRotation");
 
-	UpdateRigidBodyAngularVelocity_kernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(R3CAST(LF_totalTorque3), R3CAST(jD1), R3CAST(jD2), R3CAST(jInvD1), R3CAST(jInvD2), R3CAST(omegaLRF_D));
+	UpdateRigidBodyAngularVelocity_kernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(
+			R3CAST(omegaLRF_D2), R3CAST(omegaLRF_D), R3CAST(LF_totalTorqueOfAcc3), R3CAST(jD1), R3CAST(jD2), R3CAST(jInvD1), R3CAST(jInvD2));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
 
-	LF_totalTorque3.clear();
+	LF_totalTorqueOfAcc3.clear();
 	//################################################### update rigid body things
-	UpdateRigidMarkersPosition<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(R3CAST(posRadD), R4CAST(velMasD), R3CAST(rigidSPH_MeshPos_LRF_D), I1CAST(rigidIdentifierD), R3CAST(posRigidD), R4CAST(velMassRigidD), R3CAST(omegaLRF_D), R3CAST(AD1), R3CAST(AD2), R3CAST(AD3));
+	UpdateRigidMarkersPosition<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(R3CAST(posRadD2), R4CAST(velMasD2), R3CAST(rigidSPH_MeshPos_LRF_D),
+			I1CAST(rigidIdentifierD), R3CAST(posRigidD2), R4CAST(velMassRigidD2), R3CAST(omegaLRF_D2), R3CAST(AD1_2), R3CAST(AD2_2), R3CAST(AD3_2));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
 }
@@ -1552,7 +1578,7 @@ void UpdateFlexibleBody(
 //	//TODO: add paramsH.gravity to Flex objects
 //	thrust::device_vector<real3> gravityForces3(numRigidBodies);
 //	thrust::fill(gravityForces3.begin(), gravityForces3.end(), paramsH.gravity);
-//	thrust::transform(totalForcesRigid3.begin(), totalForcesRigid3.end(), gravityForces3.begin(), totalForcesRigid3.begin(), thrust::plus<real3>());
+//	thrust::transform(totalAccRigid3.begin(), totalAccRigid3.end(), gravityForces3.begin(), totalAccRigid3.begin(), thrust::plus<real3>());
 //	gravityForces3.clear();
 //	//
 
@@ -1703,7 +1729,7 @@ void cudaCollisions(
 
 	Populate_RigidSPH_MeshPos_LRF_kernel<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(R3CAST(rigidSPH_MeshPos_LRF_D), R3CAST(posRadD), I1CAST(rigidIdentifierD), R3CAST(posRigidD));
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueShare");
+	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueOf_SPH_Marker_Acceleration");
 	printf("ff1, after first kernel\n");
 	//******************************************************************************
 	//******************** flex body some initialization
@@ -1826,7 +1852,7 @@ void cudaCollisions(
 		thrust::device_vector<real3> vel_XSPH_D(numAllMarkers);
 				//rigids
 		thrust::device_vector<real3> posRigidD2 = posRigidD;
-		thrust::device_vector<real3> posRadRigidCumulativeD2 = posRigidCumulativeD;
+		thrust::device_vector<real3> posRigidCumulativeD2 = posRigidCumulativeD;
 		thrust::device_vector<real4> velMassRigidD2 = velMassRigidD;
 		thrust::device_vector<real3> omegaLRF_D2 = omegaLRF_D;
 				thrust::device_vector<real3> AD1_2 = AD1;
@@ -1843,7 +1869,12 @@ void cudaCollisions(
 		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numAllMarkers, paramsH, 0.5 * delT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
 		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT); //assumes ...D2 is a copy of ...D
 		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT);		//assumes ...D2 is a copy of ...D
-		UpdateRigidBody(posRadD2, velMasD2, posRigidD2, posRadRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2, derivVelRhoD, rigidIdentifierD,
+		UpdateRigidBody(
+				posRadD2, velMasD2,
+				posRigidD2, posRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2,
+				posRadD,
+				posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
+				derivVelRhoD, rigidIdentifierD,
 				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidMarkers, numRigid_SphMarkers, float(tStep)/stepEnd, 0.5 * delT);
 
 		UpdateFlexibleBody(posRadD2, velMasD2,
@@ -1874,7 +1905,12 @@ void cudaCollisions(
 		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numAllMarkers, paramsH, delT);
 		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, delT);
 		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, delT);
-		UpdateRigidBody(posRadD, velMasD, posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D, derivVelRhoD, rigidIdentifierD,
+		UpdateRigidBody(
+				posRadD, velMasD,
+				posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
+				posRadD2,
+				posRigidD2, posRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2,
+				derivVelRhoD, rigidIdentifierD,
 				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidMarkers, numRigid_SphMarkers, float(tStep)/stepEnd, delT);
 
 		UpdateFlexibleBody(posRadD, velMasD,
@@ -1920,7 +1956,7 @@ void cudaCollisions(
 		vel_XSPH_D.clear();
 
 		posRigidD2.clear();
-		posRadRigidCumulativeD2.clear();
+		posRigidCumulativeD2.clear();
 		velMassRigidD2.clear();
 		qD2.clear();
 		AD1_2.clear();
