@@ -873,8 +873,8 @@ __global__ void UpdateFlexMarkersPosition(
 
 	real3 absOmega = Calc_ANCF_Point_Omega(ANCF_NodesVelD, ANCF_SlopesVelD, indexOfClosestNode, sE, lE, rX); //interpolation using ANCF beam, cubic hermit equation
 		//ff1
-	//	velMasD[absMarkerIndex] = R4(beamPointVel + cross(absOmega, dist3), markerMass);
-		velMasD[absMarkerIndex] = R4(beamPointVel, markerMass);
+	//	velMasD[absMarkerIndex] = R4(beamPointVel + cross(absOmega, dist3), markerMass); //wrong
+	velMasD[absMarkerIndex] = R4(beamPointVel, markerMass);
 }
 ////--------------------------------------------------------------------------------------------------------------------------------
 void MakeRigidIdentifier(
@@ -1448,7 +1448,7 @@ void UpdateRigidBody(
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
 
 	LF_totalTorqueOfAcc3.clear();
-	//################################################### update rigid body things
+	//################################################### update BCE markers position
 	//** "posRadD2"/"velMasD2" associated to BCE markers are updated based on new rigid body (position, orientation)/(velocity, angular velocity)
 	UpdateRigidMarkersPosition<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(
 			R3CAST(posRadD2), R4CAST(velMasD2),
@@ -1502,39 +1502,26 @@ void UpdateFlexibleBody(
 	}
 	cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(dT));
 
+	//################################################### make force arrays
 	int numFlBcRigid = 2 + numRigidBodies;
 	int2 totalNumberOfFlexNodes2 = ANCF_ReferenceArrayNodesOnBeamsD[ANCF_ReferenceArrayNodesOnBeamsD.size() - 1];
 	int totalNumberOfFlexNodes = totalNumberOfFlexNodes2.y;
-	int totalNumberOfFlexMultNodes = flexMapEachMarkerOnAllBeamNodesD.size();
+	int totalNumberOfFlexBCEMultNodes = flexMapEachMarkerOnAllBeamNodesD.size();
 
 	thrust::device_vector<real3> flex_FSI_NodesForces1(totalNumberOfFlexNodes);
 	thrust::device_vector<real3> flex_FSI_NodesForces2(totalNumberOfFlexNodes);
 	thrust::fill(flex_FSI_NodesForces1.begin(), flex_FSI_NodesForces1.end(),R3(0));
 	thrust::fill(flex_FSI_NodesForces2.begin(), flex_FSI_NodesForces2.end(),R3(0));
 
-
-						//ff1 for Radu
-					//	for (int i = 0; i < ANCF_Beam_LengthD.size(); i++) {
-					//		int2 nodesInterval = ANCF_ReferenceArrayNodesOnBeamsD[i];
-					//		real_ lBeam = ANCF_Beam_LengthD[i];
-					//		real3 pa, pb;
-					//		pa = ANCF_NodesD[nodesInterval.x];
-					//		pb = ANCF_NodesD[nodesInterval.y - 1];
-					//		real3 sa, sb;
-					//		sa = ANCF_SlopesD[nodesInterval.x];
-					//		sb = ANCF_SlopesD[nodesInterval.y - 1];
-					//		printf("beamNumber %d: beamLength %f, start_pointAndSlope %f %f %f %f %f %f, end_point %f %f %f\n\n", i, lBeam, pa.x, pa.y, pa.z, sa.x, sa.y, sa.z, pb.x, pb.y, pb.z);
-					//
-					//	}
-
-
 	//**
-	thrust::device_vector<real3> flexNodesForcesAllMarkers1(totalNumberOfFlexMultNodes);
-	thrust::device_vector<real3> flexNodesForcesAllMarkers2(totalNumberOfFlexMultNodes);
+	thrust::device_vector<real3> flexNodesForcesAllMarkers1(totalNumberOfFlexBCEMultNodes);
+	thrust::device_vector<real3> flexNodesForcesAllMarkers2(totalNumberOfFlexBCEMultNodes);
 
 	uint nBlocks_numFlex_SphMarkers;
 	uint nThreads_SphMarkers;
 	computeGridSize(numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
+	//** maps each BCE marker FORCE onto all beam nodes. Does not sum them up, writes them next to each other. Assumes the BCE forces
+	//*** at the beam center line. "flexNodesForcesAllMarkers1" and "flexNodesForcesAllMarkers1" are built.
 	MapForcesOnNodes<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(
 			R3CAST(flexNodesForcesAllMarkers1),
 			R3CAST(flexNodesForcesAllMarkers2),
@@ -1552,17 +1539,22 @@ void UpdateFlexibleBody(
 	}
 	thrust::device_vector<int2> dummyNodesFlexIdentify(totalNumberOfFlexNodes);
 	thrust::equal_to<int2> binary_pred_int2; //if binary_pred int2 does not work, you have to either add operator == to custom_cutil_math, or you have to map nodes identifiers from int2 to int
-	(void) thrust::reduce_by_key(flexMapEachMarkerOnAllBeamNodesD.begin(), flexMapEachMarkerOnAllBeamNodesD.end(), flexNodesForcesAllMarkers1.begin(), dummyNodesFlexIdentify.begin(),
-			flex_FSI_NodesForces1.begin(), binary_pred_int2, thrust::plus<real3>());
-	(void) thrust::reduce_by_key(flexMapEachMarkerOnAllBeamNodesD.begin(), flexMapEachMarkerOnAllBeamNodesD.end(), flexNodesForcesAllMarkers2.begin(), dummyNodesFlexIdentify.begin(),
-			flex_FSI_NodesForces2.begin(), binary_pred_int2, thrust::plus<real3>());
+
+	//** Superposes the forces of all BCE markers on nodes onto single force on each node. First 3 nodal coordinates.
+	(void) thrust::reduce_by_key(flexMapEachMarkerOnAllBeamNodesD.begin(), flexMapEachMarkerOnAllBeamNodesD.end(), flexNodesForcesAllMarkers1.begin(),
+			dummyNodesFlexIdentify.begin(), flex_FSI_NodesForces1.begin(),
+			binary_pred_int2, thrust::plus<real3>());
+	//** Superposes the forces of all BCE markers on nodes onto single force on each node. Second 3 nodal coordinates.
+	(void) thrust::reduce_by_key(flexMapEachMarkerOnAllBeamNodesD.begin(), flexMapEachMarkerOnAllBeamNodesD.end(), flexNodesForcesAllMarkers2.begin(),
+			dummyNodesFlexIdentify.begin(), flex_FSI_NodesForces2.begin(),
+			binary_pred_int2, thrust::plus<real3>());
 	dummyNodesFlexIdentify.clear();
 	flexNodesForcesAllMarkers1.clear();
 	flexNodesForcesAllMarkers2.clear();
 
-	//**
-
-
+	//################################################### Update nodal coordinates (integrate in time)
+	//** uses the force values on nodal coordinates to update nodal position and slope and velocities ('2' at the end).
+	//*** it uses the current un-updated nodal coordinates (without '2' at the end) to calculate elastic forces.
 	int n = 1;
 	for (int i = 0; i < n; i++) {
 		Update_ANCF_Beam(
@@ -1573,22 +1565,8 @@ void UpdateFlexibleBody(
 				numFlexBodies, flexParams, dT/n
 				);
 	}
-
-
-//	 ....
-//	 ....
-//	 ....
-//	 ....
-//	//end
-
-//	//TODO: add paramsH.gravity to Flex objects
-//	thrust::device_vector<real3> gravityForces3(numRigidBodies);
-//	thrust::fill(gravityForces3.begin(), gravityForces3.end(), paramsH.gravity);
-//	thrust::transform(totalAccRigid3.begin(), totalAccRigid3.end(), gravityForces3.begin(), totalAccRigid3.begin(), thrust::plus<real3>());
-//	gravityForces3.clear();
-//	//
-
-	//################################################### update rigid body things
+	//################################################### update BCE markers position
+	//** new nodal velocity and positions are used to update BCE markers position and velocities. "posRadD", "velMasD" are updated (only the flex portion)
 	computeGridSize(numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
 	UpdateFlexMarkersPosition<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(
 			R3CAST(posRadD), R4CAST(velMasD),
