@@ -336,7 +336,7 @@ void PrintToFile(
 
 		system("mkdir -p povFiles");
 //		int tStepsPovFiles = 2000;
-		int tStepsPovFiles = 1000;//2000;//2000;//2000;
+		int tStepsPovFiles = 2000;//2000;//2000;//2000;
 
 //		if (tStep > 1000) tStepsPovFiles = 2;
 		if (tStep % tStepsPovFiles == 0) {
@@ -444,8 +444,7 @@ void PrintToFile(
 					real3 vel = R3(velMasH[i]);
 					real4 rP = rhoPresMuH[i];
 					real_ velMag = length(vel);
-					real_ dist = flexParametricDist[i - referenceArray[2].x];
-					ssRigidFlexBCE<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.z<<", "<< rP.w<<", "<<dist<<endl;
+					ssRigidFlexBCE<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.z<<", "<< rP.w<<endl;
 				}
 			}
 			fileNameRigidFlexBCE<<ssRigidFlexBCE.str();
