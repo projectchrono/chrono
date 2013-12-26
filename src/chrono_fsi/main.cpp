@@ -1655,13 +1655,13 @@ int main() {
 //	int3 stride = I3(5, 5, 5);
 //	CreateRigidBodiesPattern(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride);
 	//**
-//	CreateRigidBodiesFromFile(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
+	CreateRigidBodiesFromFile(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
 	//**
-	real_ beamLength = 1;
-	CreateOneFlexBody(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
-			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever,
-			channelRadius,
-			paramsH.cMax.x - paramsH.cMin.x, pipeInPoint3, beamLength, flexParams);
+//	real_ beamLength = 1;
+//	CreateOneFlexBody(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
+//			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever,
+//			channelRadius,
+//			paramsH.cMax.x - paramsH.cMin.x, pipeInPoint3, beamLength, flexParams);
 
 	//**
 //	CreateSomeFlexBodies(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
@@ -1759,7 +1759,8 @@ int main() {
 		printf("num_BoundaryMarkers: %d\n", num_fluidOrBoundaryMarkers.y);
 
 		//rigid body: type = 1, 2, 3, ...
-		printf("num_RigidBodyMarkers: \n");
+//		printf("num_RigidBodyMarkers: \n");
+		int totalNumRigidMarkers = 0;
 		for (int rigidSpheres = 0; rigidSpheres < rigidPos.size();
 				rigidSpheres++) {
 			int num_RigidBodyMarkers = CreateEllipsoidMarkers(mPosRad, mVelMas,
@@ -1778,7 +1779,9 @@ int main() {
 //			referenceArray_Types.push_back(I3(1, rigidSpheres, 0));
 			numAllMarkers += num_RigidBodyMarkers;
 //			printf(" %d \n", num_RigidBodyMarkers);
+			totalNumRigidMarkers += num_RigidBodyMarkers;
 		}
+		printf("totalNumRigidMarkers: %d\n", totalNumRigidMarkers);
 		int totalNumFlexMarkers = 0;
 		for (int flexBodyIdx = 0;
 				flexBodyIdx < ANCF_ReferenceArrayNodesOnBeams.size();
