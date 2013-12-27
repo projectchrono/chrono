@@ -13,33 +13,31 @@ real_ AngleF3F3(real3 a, real3 b) {
 	return acos(dot(a, b));
 }
 //*******************************************************************************************************************************
-//builds the neighbors' list of each particle and finds the force on each particle
-//calculates the interaction force between 1- fluid-fluid, 2- fluid-solid, 3- solid-fluid particles
-//calculates forces from other SPH or solid particles, as wall as boundaries
+
 void PrintToFile(
-		thrust::device_vector<real3> & posRadD,
-		thrust::device_vector<real4> & velMasD,
-		thrust::device_vector<real4> & rhoPresMuD,
+		const thrust::device_vector<real3> & posRadD,
+		const thrust::device_vector<real4> & velMasD,
+		const thrust::device_vector<real4> & rhoPresMuD,
 		const thrust::host_vector<int3> & referenceArray,
 		const thrust::device_vector<int> & rigidIdentifierD,
-		thrust::device_vector<real3> & posRigidD,
-		thrust::device_vector<real3> & posRigidCumulativeD,
-		thrust::device_vector<real4> & velMassRigidD,
-		thrust::device_vector<real4> & qD1,
-		thrust::device_vector<real3> & AD1,
-		thrust::device_vector<real3> & AD2,
-		thrust::device_vector<real3> & AD3,
-		thrust::device_vector<real3> & omegaLRF_D,
+		const thrust::device_vector<real3> & posRigidD,
+		const thrust::device_vector<real3> & posRigidCumulativeD,
+		const thrust::device_vector<real4> & velMassRigidD,
+		const thrust::device_vector<real4> & qD1,
+		const thrust::device_vector<real3> & AD1,
+		const thrust::device_vector<real3> & AD2,
+		const thrust::device_vector<real3> & AD3,
+		const thrust::device_vector<real3> & omegaLRF_D,
 
-		thrust::device_vector<real3> ANCF_NodesD,
-		thrust::device_vector<real3> ANCF_NodesVelD,
-		thrust::device_vector<real_> flexParametricDistD,
+		const thrust::device_vector<real3> & ANCF_NodesD,
+		const thrust::device_vector<real3> & ANCF_NodesVelD,
+		const thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
 
-		SimParams paramsH,
-		real_ delT,
+		const SimParams paramsH,
+		const real_ delT,
 		int tStep,
-		real_ channelRadius,
-		real2 channelCenterYZ,
+		const real_ channelRadius,
+		const real2 channelCenterYZ,
 		const int numRigidBodies,
 		const int numFlexBodies) {
 	thrust::host_vector<real3> posRadH = posRadD;
@@ -53,7 +51,7 @@ void PrintToFile(
 	thrust::host_vector<real3> omegaLRF_H = omegaLRF_D;
 	thrust::host_vector<real3> ANCF_NodesH = ANCF_NodesD;
 	thrust::host_vector<real3> ANCF_NodesVelH = ANCF_NodesVelD;
-	thrust::host_vector<real_> flexParametricDist = flexParametricDistD;
+	thrust::device_vector<int2> ANCF_ReferenceArrayNodesOnBeams = ANCF_ReferenceArrayNodesOnBeamsD;
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++com
 	ofstream fileNameFluid;
 	int stepSaveFluid = 200000;
@@ -289,43 +287,77 @@ void PrintToFile(
 		fileRigidParticleCenterVsTimeAndDistance.close();
 	}
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		ofstream fileRigidParticlesDataForTecplot;
-		int tStepRigidParticlesDataForTecplot = 1000;
-		if (tStep % tStepRigidParticlesDataForTecplot == 0) {
-			if (tStep / tStepRigidParticlesDataForTecplot == 0) {
-				fileRigidParticlesDataForTecplot.open("dataRigidParticlesDataForTecplot.txt");
-				fileRigidParticlesDataForTecplot<<"PipeRadius, PipeLength\n";
-				fileRigidParticlesDataForTecplot<<	channelRadius <<", "<< paramsH.cMax.x - paramsH.cMin.x<<", "<< posRigidH.size()<<endl;
-				fileRigidParticlesDataForTecplot<<"variables = \"t(s)\", \"x\", \"y\", \"z\", \"r\", \"CumulX\", \"vX\", \"vY\", \"vZ\", \"velMagnitude\", \"angleAxisXWithPipeAxis\", \"angleAxisYWithPipeAxis\", \"angleAxisZWithPipeAxis\"\n";
-			} else {
-				fileRigidParticlesDataForTecplot.open("dataRigidParticlesDataForTecplot.txt", ios::app);
-			}
-			fileRigidParticlesDataForTecplot<<"zone\n";
-			stringstream ssRigidParticlesDataForTecplot;
-			for (int j = 0; j < posRigidH.size(); j++) {
-				real3 p_rigid = posRigidH[j];
-
-				//rotate the principal axis
-				real3 aD1 = AD1[j];
-				real3 aD2 = AD2[j];
-				real3 aD3 = AD3[j];
-				real3 axisX = R3(aD1.x, aD2.x, aD3.x);
-				real3 axisY = R3(aD1.y, aD2.y, aD3.y);
-				real3 axisZ = R3(aD1.z, aD2.z, aD3.z);
-
-				real4 q_rigid = qH1[j];
-				real3 p_rigidCumul = posRigidCumulativeH[j];
-				real3 v_rigid = R3(velMassRigidH[j]);
-				real2 dist2 = R2(channelCenterYZ.x - p_rigid.y, channelCenterYZ.y - p_rigid.z);
-				real_ angleAxisXWithPipeAxis = AngleF3F3(axisX, R3(1, 0, 0));
-				real_ angleAxisYWithPipeAxis = AngleF3F3(axisY, R3(1, 0, 0));
-				real_ angleAxisZWithPipeAxis = AngleF3F3(axisZ, R3(1, 0, 0));
-
-				ssRigidParticlesDataForTecplot<<tStep * delT<<", "<<p_rigid.x<<", "<<p_rigid.y<<", "<<p_rigid.z<<", "<<length(dist2) / channelRadius<<", "<<p_rigidCumul.x<<", "<<v_rigid.x<<", "<<v_rigid.y<<", "<<v_rigid.z<<", "<<length(v_rigid)<<", "<<angleAxisXWithPipeAxis<<", "<<angleAxisYWithPipeAxis<<", "<<angleAxisZWithPipeAxis<<endl;
-			}
-			fileRigidParticlesDataForTecplot << ssRigidParticlesDataForTecplot.str();
-			fileRigidParticlesDataForTecplot.close();
+	ofstream flexTipPos;
+	int numFlexBodiesInOnePeriod = int(ANCF_ReferenceArrayNodesOnBeams.size() / real_(paramsH.nPeriod) + .5);
+	int tFlexTipPos = 100;
+	if (tStep % tFlexTipPos == 0) {
+		if (tStep / tFlexTipPos == 0) {
+			flexTipPos.open("dataFlexTip.txt");
+			flexTipPos<<"(t, x, y, z, vx, vy, vz, fluidVelocity\n" << endl;
+		} else {
+			flexTipPos.open("dataFlexTip.txt", ios::app);
 		}
+
+		real4 sumVelocity = R4(0);
+		real4 initSumR4 = R4(0);
+		sumVelocity = thrust::reduce(velMasD.begin() + referenceArray[0].x, velMasD.begin() + referenceArray[0].y, initSumR4, thrust::plus<real4>());
+		real3 aveVel = R3(sumVelocity / (referenceArray[0].y - referenceArray[0].x));
+
+		stringstream ssBeamTipVsTime;
+		if (numFlexBodies > 0) {
+			for (int j = 0; j < numFlexBodiesInOnePeriod; j++) {
+				int2 nodesPortioni2 = ANCF_ReferenceArrayNodesOnBeams[j];
+				real3 p_tip = ANCF_NodesH[nodesPortioni2.y - 1];
+				real3 v_tip = R3(velMassRigidH[j]);
+
+				ssBeamTipVsTime << tStep * delT << ", " <<
+						p_tip.x << ", " << p_tip.y << ", " << p_tip.z << ", " <<
+						v_tip.x << ", " << v_tip.y << ", " << v_tip.z << ", " <<
+						length(aveVel) << ", ";
+			}
+			ssBeamTipVsTime<<endl;
+		}
+		flexTipPos << ssBeamTipVsTime.str();
+		flexTipPos.close();
+	}
+//////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//		ofstream fileRigidParticlesDataForTecplot;
+//		int tStepRigidParticlesDataForTecplot = 1000;
+//		if (tStep % tStepRigidParticlesDataForTecplot == 0) {
+//			if (tStep / tStepRigidParticlesDataForTecplot == 0) {
+//				fileRigidParticlesDataForTecplot.open("dataRigidParticlesDataForTecplot.txt");
+//				fileRigidParticlesDataForTecplot<<"PipeRadius, PipeLength\n";
+//				fileRigidParticlesDataForTecplot<<	channelRadius <<", "<< paramsH.cMax.x - paramsH.cMin.x<<", "<< posRigidH.size()<<endl;
+//				fileRigidParticlesDataForTecplot<<"variables = \"t(s)\", \"x\", \"y\", \"z\", \"r\", \"CumulX\", \"vX\", \"vY\", \"vZ\", \"velMagnitude\", \"angleAxisXWithPipeAxis\", \"angleAxisYWithPipeAxis\", \"angleAxisZWithPipeAxis\"\n";
+//			} else {
+//				fileRigidParticlesDataForTecplot.open("dataRigidParticlesDataForTecplot.txt", ios::app);
+//			}
+//			fileRigidParticlesDataForTecplot<<"zone\n";
+//			stringstream ssRigidParticlesDataForTecplot;
+//			for (int j = 0; j < posRigidH.size(); j++) {
+//				real3 p_rigid = posRigidH[j];
+//
+//				//rotate the principal axis
+//				real3 aD1 = AD1[j];
+//				real3 aD2 = AD2[j];
+//				real3 aD3 = AD3[j];
+//				real3 axisX = R3(aD1.x, aD2.x, aD3.x);
+//				real3 axisY = R3(aD1.y, aD2.y, aD3.y);
+//				real3 axisZ = R3(aD1.z, aD2.z, aD3.z);
+//
+//				real4 q_rigid = qH1[j];
+//				real3 p_rigidCumul = posRigidCumulativeH[j];
+//				real3 v_rigid = R3(velMassRigidH[j]);
+//				real2 dist2 = R2(channelCenterYZ.x - p_rigid.y, channelCenterYZ.y - p_rigid.z);
+//				real_ angleAxisXWithPipeAxis = AngleF3F3(axisX, R3(1, 0, 0));
+//				real_ angleAxisYWithPipeAxis = AngleF3F3(axisY, R3(1, 0, 0));
+//				real_ angleAxisZWithPipeAxis = AngleF3F3(axisZ, R3(1, 0, 0));
+//
+//				ssRigidParticlesDataForTecplot<<tStep * delT<<", "<<p_rigid.x<<", "<<p_rigid.y<<", "<<p_rigid.z<<", "<<length(dist2) / channelRadius<<", "<<p_rigidCumul.x<<", "<<v_rigid.x<<", "<<v_rigid.y<<", "<<v_rigid.z<<", "<<length(v_rigid)<<", "<<angleAxisXWithPipeAxis<<", "<<angleAxisYWithPipeAxis<<", "<<angleAxisZWithPipeAxis<<endl;
+//			}
+//			fileRigidParticlesDataForTecplot << ssRigidParticlesDataForTecplot.str();
+//			fileRigidParticlesDataForTecplot.close();
+//		}
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++com
 		ofstream fileNameRigidBodies;
 		ofstream fileNameFlexBodies;
@@ -461,6 +493,7 @@ void PrintToFile(
 	omegaLRF_H.clear();
 	ANCF_NodesH.clear();
 	ANCF_NodesVelH.clear();
+	ANCF_ReferenceArrayNodesOnBeams.clear();
 }
 
 //*******************************************************************************************************************************

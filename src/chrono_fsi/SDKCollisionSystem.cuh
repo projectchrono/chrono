@@ -48,6 +48,7 @@ struct SimParams {
 		real_ v_Max;
 		real_ EPS_XSPH;
 		real_ dT;
+		real_ tFinal;
 		real_ kdT;
 		real_ gammaBB;
 		real3 cMin;

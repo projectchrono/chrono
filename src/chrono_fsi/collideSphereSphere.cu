@@ -1815,7 +1815,7 @@ void cudaCollisions(
 
 	real_ delT = paramsH.dT;
 	int povRayCounter = 0;
-	int stepEnd = 1.0e6;//2.4e6;//600000;//2.4e6 * (.02 * paramsH.sizeScale) / delT ; //1.4e6 * (.02 * paramsH.sizeScale) / delT ;//0.7e6 * (.02 * paramsH.sizeScale) / delT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
+	int stepEnd = int(paramsH.tFinal/paramsH.dT);//1.0e6;//2.4e6;//600000;//2.4e6 * (.02 * paramsH.sizeScale) / delT ; //1.4e6 * (.02 * paramsH.sizeScale) / delT ;//0.7e6 * (.02 * paramsH.sizeScale) / delT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
 	printf("stepEnd %d\n", stepEnd);
 
 	real_ delTOrig = delT;
@@ -1963,7 +1963,7 @@ void cudaCollisions(
 		PrintToFile(posRadD, velMasD, rhoPresMuD,
 				referenceArray, rigidIdentifierD,
 				posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
-				ANCF_NodesD, ANCF_NodesVelD, flexParametricDistD,
+				ANCF_NodesD, ANCF_NodesVelD, ANCF_ReferenceArrayNodesOnBeamsD,
 				paramsH,
 				delT, tStep, channelRadius, channelCenterYZ, numRigidBodies, numFlexBodies);
 
