@@ -289,7 +289,7 @@ void PrintToFile(
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	ofstream flexTipPos;
 	int numFlexBodiesInOnePeriod = int(ANCF_ReferenceArrayNodesOnBeams.size() / real_(paramsH.nPeriod) + .5);
-	int tFlexTipPos = 100;
+	int tFlexTipPos = 10;
 	if (tStep % tFlexTipPos == 0) {
 		if (tStep / tFlexTipPos == 0) {
 			flexTipPos.open("dataFlexTip.txt");
@@ -308,7 +308,7 @@ void PrintToFile(
 			for (int j = 0; j < numFlexBodiesInOnePeriod; j++) {
 				int2 nodesPortioni2 = ANCF_ReferenceArrayNodesOnBeams[j];
 				real3 p_tip = ANCF_NodesH[nodesPortioni2.y - 1];
-				real3 v_tip = R3(velMassRigidH[j]);
+				real3 v_tip = ANCF_NodesVelH[nodesPortioni2.y - 1];
 
 				ssBeamTipVsTime << tStep * delT << ", " <<
 						p_tip.x << ", " << p_tip.y << ", " << p_tip.z << ", " <<
