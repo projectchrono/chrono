@@ -34,7 +34,7 @@ void PrintToFile(
 		const thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
 
 		const SimParams paramsH,
-		const real_ delT,
+		const real_ realTime,
 		int tStep,
 		const real_ channelRadius,
 		const real2 channelCenterYZ,
@@ -223,7 +223,7 @@ void PrintToFile(
 //		} else {
 //			fileVelocityProfPoiseuille.open("dataVelProfile.txt", ios::app);
 //		}
-//		fileVelocityProfPoiseuille<<"zone T=\"t = "<<delT * tStep<<"\""endl;
+//		fileVelocityProfPoiseuille<<"zone T=\"t = "<< realTime <<"\""endl;
 //		stringstream ssVelocityProfPoiseuille;
 //		int j = cartesianGridDims.y / 2;
 //		int i = cartesianGridDims.x / 2;
@@ -267,13 +267,13 @@ void PrintToFile(
 				//printf("position %f %f %f %f\n", p_rigid.x, p_rigid.y, p_rigid.z,0);
 				real3 p_rigidCumul = posRigidCumulativeH[j];
 //				//***cartesian distance (channel, duct)
-//				ssParticleCenterVsTime << tStep * delT << ", " << p_rigid.y << ", " << p_rigid.z;
+//				ssParticleCenterVsTime << realTime << ", " << p_rigid.y << ", " << p_rigid.z;
 //				ssParticleCenterVsDistance << p_rigidCumul.x << ", " << p_rigid.y << ", " << p_rigid.z;
 
 //				//***radial distance (tube)
 				real2 dist2 = R2(channelCenterYZ.x - p_rigid.y, channelCenterYZ.y - p_rigid.z);
 				printf("center %f %f and radius %f and py and pz %f %f\n", channelCenterYZ.x, channelCenterYZ.y, channelRadius, p_rigid.y, p_rigid.z);
-				ssParticleCenterVsTime << tStep * delT << ", " <<  p_rigidCumul.x << ", " <<
+				ssParticleCenterVsTime << realTime << ", " <<  p_rigidCumul.x << ", " <<
 						length(dist2) / channelRadius << ", " << length(dist2) / channelRadius << ", " <<
 						p_rigidCumul.x << ", " << p_rigid.y << ", " << p_rigid.z << ", " <<
 						v_rigid.x << ", " << v_rigid.y << ", " << v_rigid.z << ", " <<
@@ -310,7 +310,7 @@ void PrintToFile(
 				real3 p_tip = ANCF_NodesH[nodesPortioni2.y - 1];
 				real3 v_tip = ANCF_NodesVelH[nodesPortioni2.y - 1];
 
-				ssBeamTipVsTime << tStep * delT << ", " <<
+				ssBeamTipVsTime << realTime << ", " <<
 						p_tip.x << ", " << p_tip.y << ", " << p_tip.z << ", " <<
 						v_tip.x << ", " << v_tip.y << ", " << v_tip.z << ", " <<
 						length(aveVel) << ", ";
@@ -353,7 +353,7 @@ void PrintToFile(
 //				real_ angleAxisYWithPipeAxis = AngleF3F3(axisY, R3(1, 0, 0));
 //				real_ angleAxisZWithPipeAxis = AngleF3F3(axisZ, R3(1, 0, 0));
 //
-//				ssRigidParticlesDataForTecplot<<tStep * delT<<", "<<p_rigid.x<<", "<<p_rigid.y<<", "<<p_rigid.z<<", "<<length(dist2) / channelRadius<<", "<<p_rigidCumul.x<<", "<<v_rigid.x<<", "<<v_rigid.y<<", "<<v_rigid.z<<", "<<length(v_rigid)<<", "<<angleAxisXWithPipeAxis<<", "<<angleAxisYWithPipeAxis<<", "<<angleAxisZWithPipeAxis<<endl;
+//				ssRigidParticlesDataForTecplot<< realTime <<", "<<p_rigid.x<<", "<<p_rigid.y<<", "<<p_rigid.z<<", "<<length(dist2) / channelRadius<<", "<<p_rigidCumul.x<<", "<<v_rigid.x<<", "<<v_rigid.y<<", "<<v_rigid.z<<", "<<length(v_rigid)<<", "<<angleAxisXWithPipeAxis<<", "<<angleAxisYWithPipeAxis<<", "<<angleAxisZWithPipeAxis<<endl;
 //			}
 //			fileRigidParticlesDataForTecplot << ssRigidParticlesDataForTecplot.str();
 //			fileRigidParticlesDataForTecplot.close();

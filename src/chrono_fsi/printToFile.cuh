@@ -27,7 +27,7 @@ void PrintToFile(
 		const thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
 
 		const SimParams paramsH,
-		const real_ delT,
+		const real_ realTime,
 		int tStep,
 		const real_ channelRadius,
 		const real2 channelCenterYZ,

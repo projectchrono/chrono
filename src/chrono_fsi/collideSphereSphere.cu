@@ -1819,6 +1819,7 @@ void cudaCollisions(
 	printf("stepEnd %d\n", stepEnd);
 
 	real_ delTOrig = delT;
+	real_ realTime = 0;
 	//for (int tStep = 0; tStep < 0; tStep ++) {
 	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
 		//edit  since yu deleted cyliderRotOmegaJD
@@ -1826,7 +1827,7 @@ void cudaCollisions(
 		GpuTimer myGpuTimer;
 		myGpuTimer.Start();
 
-//		if (tStep < 1000) delT = 0.25 * delTOrig; else delT = delTOrig;
+		if (tStep < 1000) delT = 0.25 * delTOrig; else delT = delTOrig;
 		//computations
 				//markers
 		thrust::device_vector<real3> posRadD2 = posRadD;
@@ -1964,7 +1965,7 @@ void cudaCollisions(
 				posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
 				ANCF_NodesD, ANCF_NodesVelD, ANCF_ReferenceArrayNodesOnBeamsD,
 				paramsH,
-				delT, tStep, channelRadius, channelCenterYZ, numRigidBodies, numFlexBodies);
+				realTime, tStep, channelRadius, channelCenterYZ, numRigidBodies, numFlexBodies);
 
 //		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
 		//************
@@ -1977,6 +1978,8 @@ void cudaCollisions(
 			//printf("a \n");
 		}
 		fflush(stdout);
+
+		realTime += delT;
 
 		//_CrtDumpMemoryLeaks(); //for memory leak detection (msdn suggestion for VS) apparently does not work in conjunction with cuda
 
