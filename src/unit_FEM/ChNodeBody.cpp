@@ -61,6 +61,17 @@ void ChNodeBody::Copy(ChNodeBody* source)
 	cache_li_pos = source->cache_li_pos;
 }
 
+ChFrame<> ChNodeBody::GetAssetsFrame(unsigned int nclone)
+{
+	if (this->body)
+	{
+		ChFrame<> pframe(this->attach_position);
+		ChFrame<> linkframe = pframe >> (*this->body);
+		return linkframe;
+	}
+	return ChFrame<>();
+}
+
 
 int ChNodeBody::Initialize(ChSharedPtr<ChIndexedNodes> mnodes, ///< nodes container
 						   unsigned int mnode_index, ///< index of the node to join

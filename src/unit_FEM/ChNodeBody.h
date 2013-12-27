@@ -104,6 +104,7 @@ public:
 				/// Number of scalar costraints 
 	virtual int GetDOC_c  () {return 3;}
 
+	virtual ChFrame<> GetAssetsFrame(unsigned int nclone =0);
 
 			// Override/implement LCP system functions of ChPhysicsItem
 			// (to assembly/manage data for LCP system solver
