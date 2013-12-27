@@ -81,7 +81,7 @@ ChVector<float> ChVisualizationFEMmesh::ComputeFalseColor(double mv)
 	return(c);
 }
 
-double ChVisualizationFEMmesh::ComputeScalarOutput( ChSharedPtr<ChNodeFEMxyz> mnode, ChSharedPtr<ChElementBase> melement)
+double ChVisualizationFEMmesh::ComputeScalarOutput( ChSharedPtr<ChNodeFEMxyz> mnode, int nodeID, ChSharedPtr<ChElementBase> melement)
 {
 	switch (this->fem_data_type)
 	{
@@ -306,13 +306,13 @@ void ChVisualizationFEMmesh::Update ()
 			++i_verts;
 
 			// colour
-			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( node0, this->FEMmesh->GetElement(iel) ) );
+			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( node0, 0, this->FEMmesh->GetElement(iel) ) );
 			++i_vcols;
-			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( node1, this->FEMmesh->GetElement(iel) ) );
+			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( node1, 1, this->FEMmesh->GetElement(iel) ) );
 			++i_vcols;
-			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( node2, this->FEMmesh->GetElement(iel) ) );
+			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( node2, 2, this->FEMmesh->GetElement(iel) ) );
 			++i_vcols;
-			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( node3, this->FEMmesh->GetElement(iel) ) );
+			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( node3, 3, this->FEMmesh->GetElement(iel) ) );
 			++i_vcols;
 
 			// faces indexes
@@ -378,7 +378,7 @@ void ChVisualizationFEMmesh::Update ()
 			// colours and colours indexes
 			for (int in= 0; in <8; ++in)
 			{
-				trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( nodes[in], this->FEMmesh->GetElement(iel) ) );
+				trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( nodes[in], in, this->FEMmesh->GetElement(iel) ) );
 				++i_vcols;
 			}
 

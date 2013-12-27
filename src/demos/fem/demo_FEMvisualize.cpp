@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
 	application.AddTypicalLogo();
 	application.AddTypicalSky();
 	application.AddTypicalLights();
-	application.AddTypicalCamera(core::vector3df(0,2,-3));
+	application.AddTypicalCamera(core::vector3df(0,0.6,-1));
 
 
 
@@ -79,48 +79,11 @@ int main(int argc, char* argv[])
 	mmaterial->Set_RayleighDampingK(0.0001);
 	mmaterial->Set_density(1000);
 
-/*
-				// Create some nodes. These are the classical point-like
-				// nodes with x,y,z degrees of freedom, that can be used 
-				// for many types of FEM elements in space.
-	ChSharedPtr<ChNodeFEMxyz> mnode1( new ChNodeFEMxyz(ChVector<>(0,0,0)) );
-	ChSharedPtr<ChNodeFEMxyz> mnode2( new ChNodeFEMxyz(ChVector<>(0,0,1)) );
-	ChSharedPtr<ChNodeFEMxyz> mnode3( new ChNodeFEMxyz(ChVector<>(0,1,0)) );
-	ChSharedPtr<ChNodeFEMxyz> mnode4( new ChNodeFEMxyz(ChVector<>(1,0,0)) );
 
-	ChSharedPtr<ChNodeFEMxyz> mnode6( new ChNodeFEMxyz(ChVector<>(0,1,1)) );
-	ChSharedPtr<ChNodeFEMxyz> mnode7( new ChNodeFEMxyz(ChVector<>(0,2,0)) );
-	ChSharedPtr<ChNodeFEMxyz> mnode8( new ChNodeFEMxyz(ChVector<>(1,1,0)) );
+	//
+	// Add some TETAHEDRONS:
+	//
 
-				// For example, set a point-like mass at a node:
-	mnode3->SetMass(200);
-
-				// For example, set an initial displacement to a node:
-	mnode3->SetPos( mnode3->GetX0() + ChVector<>(0,0.26,0) );
-
-	// Remember to add nodes and elements to the mesh!
-	my_mesh->AddNode(mnode1);
-	my_mesh->AddNode(mnode2);
-	my_mesh->AddNode(mnode3);
-	my_mesh->AddNode(mnode4);
-	
-	my_mesh->AddNode(mnode6);
-	my_mesh->AddNode(mnode7);
-	my_mesh->AddNode(mnode8);
-
-				// Create the tetrahedron element, and assign 
-				// nodes and material
-	ChSharedPtr<ChElementTetra_4> melement1( new ChElementTetra_4);
-	melement1->SetNodes(mnode1, mnode2, mnode3, mnode4);
-	melement1->SetMaterial(mmaterial);
-				// Remember to add elements to the mesh!
-//	my_mesh->AddElement(melement1);
-
-	ChSharedPtr<ChElementTetra_4> melement2( new ChElementTetra_4);
-	melement2->SetNodes(mnode3, mnode6, mnode7, mnode8);
-	melement2->SetMaterial(mmaterial);
-//	my_mesh->AddElement(melement2);
-*/
 				// Load a .node file and a .ele  file from disk, defining a complicate tetahedron mesh.
 				// This is much easier than creating all nodes and elements via C++ programming.
 				// You can generate these files using the TetGen tool.
@@ -134,43 +97,54 @@ int main(int argc, char* argv[])
 
 				// Apply a force to a node
 	ChSharedPtr<ChNodeFEMxyz> mnodelast (my_mesh->GetNode(my_mesh->GetNnodes()-1));
-	mnodelast->SetForce( ChVector<>(400,0,0));
+	mnodelast->SetForce( ChVector<>(200,0,0));
 
 
-	double sx = 0.4;
-	double sy = 0.4;
-	double sz = 0.4;
-	ChSharedPtr<ChNodeFEMxyz> hnode1(new ChNodeFEMxyz(ChVector<>(0, 0,  0)));
-	ChSharedPtr<ChNodeFEMxyz> hnode2(new ChNodeFEMxyz(ChVector<>(0, 0,  sz)));
-	ChSharedPtr<ChNodeFEMxyz> hnode3(new ChNodeFEMxyz(ChVector<>(sx,0,  sz)));
-	ChSharedPtr<ChNodeFEMxyz> hnode4(new ChNodeFEMxyz(ChVector<>(sx,0,  0)));
-	ChSharedPtr<ChNodeFEMxyz> hnode5(new ChNodeFEMxyz(ChVector<>(0, sy, 0)));
-	ChSharedPtr<ChNodeFEMxyz> hnode6(new ChNodeFEMxyz(ChVector<>(0, sy, sz)));
-	ChSharedPtr<ChNodeFEMxyz> hnode7(new ChNodeFEMxyz(ChVector<>(sx,sy, sz)));
-	ChSharedPtr<ChNodeFEMxyz> hnode8(new ChNodeFEMxyz(ChVector<>(sx,sy, 0)));
+	//
+	// Add some HEXAHEDRONS (isoparametric bricks):
+	//
+
+	double sx = 0.1;
+	double sy = 0.1;
+	double sz = 0.1;
+
+	ChSharedPtr<ChNodeFEMxyz> hnode1_lower;
+	ChSharedPtr<ChNodeFEMxyz> hnode2_lower;
+	ChSharedPtr<ChNodeFEMxyz> hnode3_lower;
+	ChSharedPtr<ChNodeFEMxyz> hnode4_lower;
+
+	for (int ilayer = 0; ilayer < 6; ++ilayer)
+	{
+		double hy = ilayer*sz;
+		ChSharedPtr<ChNodeFEMxyz> hnode1(new ChNodeFEMxyz(ChVector<>(0, hy,  0)));
+		ChSharedPtr<ChNodeFEMxyz> hnode2(new ChNodeFEMxyz(ChVector<>(0, hy,  sz)));
+		ChSharedPtr<ChNodeFEMxyz> hnode3(new ChNodeFEMxyz(ChVector<>(sx,hy,  sz)));
+		ChSharedPtr<ChNodeFEMxyz> hnode4(new ChNodeFEMxyz(ChVector<>(sx,hy,  0)));
+		my_mesh->AddNode(hnode1);
+		my_mesh->AddNode(hnode2);
+		my_mesh->AddNode(hnode3);
+		my_mesh->AddNode(hnode4);
+
+		if (ilayer>0)
+		{
+			ChSharedPtr<ChElementHexa_8> helement1 (new ChElementHexa_8);
+			helement1->SetNodes(hnode1_lower, hnode2_lower, hnode3_lower, hnode4_lower, hnode1, hnode2, hnode3, hnode4);
+			helement1->SetMaterial(mmaterial);
+
+			my_mesh->AddElement(helement1);
+		}
+
+		hnode1_lower = hnode1;
+		hnode2_lower = hnode2;
+		hnode3_lower = hnode3;
+		hnode4_lower = hnode4;
+	}
 
 				// For example, set an initial displacement to a node:
-	hnode8->SetPos( hnode8->GetX0() + ChVector<>(0,0.1,0) );
+	hnode4_lower->SetPos( hnode4_lower->GetX0() + ChVector<>(0.1,0.1,0) );
 
-				// Remember to add nodes and elements to the mesh!
-	my_mesh->AddNode(hnode1);
-	my_mesh->AddNode(hnode2);
-	my_mesh->AddNode(hnode3);
-	my_mesh->AddNode(hnode4);
-	my_mesh->AddNode(hnode5);
-	my_mesh->AddNode(hnode6);
-	my_mesh->AddNode(hnode7);
-	my_mesh->AddNode(hnode8);
-
-				// Create the hexahedron element, and assign 
-				// its nodes and material
-	ChSharedPtr<ChElementHexa_8> helement1 (new ChElementHexa_8);
-	helement1->SetNodes(hnode1, hnode2, hnode3, hnode4, hnode5, hnode6, hnode7, hnode8);
-	helement1->SetMaterial(mmaterial);
-
-				// Remember to add elements to the mesh!
-	my_mesh->AddElement(helement1);
-
+				// Apply a force to a node
+	hnode4_lower->SetForce( ChVector<>(500,0,0));
 
 
 				// This is necessary in order to precompute the 
@@ -187,18 +161,27 @@ int main(int argc, char* argv[])
 	my_system.Add(truss);
 	
 				// Create constraints between nodes and truss
-
-	for (int iconstr = 0; iconstr < 15; ++iconstr)
+				// (for example, fix to ground all nodes which are near y=0
+	for (int inode = 0; inode < my_mesh->GetNnodes(); ++inode)
 	{
-		ChSharedPtr<ChNodeBody> constraint(new ChNodeBody);
+		if (my_mesh->GetNode(inode).IsType<ChNodeFEMxyz>())
+		{
+			ChSharedPtr<ChNodeFEMxyz> mnode ( my_mesh->GetNode(inode) ); // downcast
+			if (mnode->GetPos().y <0.01)
+			{
+				ChSharedPtr<ChNodeBody> constraint(new ChNodeBody);
+				constraint->Initialize(mnode,
+									   truss);
+				my_system.Add(constraint);
 
-		//constraint->Initialize(my_mesh,		// node container
-		//					iconstr,	// index of node in node container 
-		//					truss);		// body to be connected to
-		constraint->Initialize(my_mesh->GetNode(iconstr),
-								truss);
-		my_system.Add(constraint);
+						// For example, attach small cube to show the constraint
+				ChSharedPtr<ChBoxShape> mboxfloor(new ChBoxShape);
+				mboxfloor->GetBoxGeometry().Size = ChVector<>(0.005);
+				constraint->AddAsset(mboxfloor);
+			}
+		}
 	}
+
 
 			// ==Asset== attach a visualization of the FEM mesh.
 			// This will automatically update a triangle mesh (a ChTriangleMeshShape
@@ -209,23 +192,25 @@ int main(int argc, char* argv[])
 			// Do not forget AddAsset() at the end!
 
 	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemesh(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	mvisualizemesh->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_ELEM_STRAIN_VONMISES);
-	mvisualizemesh->SetColorscaleMinMax(0.0,0.80);
-	mvisualizemesh->SetShrinkElements(false,0.85);
+	mvisualizemesh->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NODE_SPEED_NORM);
+	mvisualizemesh->SetColorscaleMinMax(0.0,4.40);
+	mvisualizemesh->SetShrinkElements(true,0.85);
 	mvisualizemesh->SetSmoothFaces(true);
 	my_mesh->AddAsset(mvisualizemesh);
-
+/*
 	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemeshwire(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
 	mvisualizemeshwire->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NONE);
 	mvisualizemeshwire->SetColorscaleMinMax(0.0,4.0);
 	mvisualizemeshwire->SetWireframe(true);
 	my_mesh->AddAsset(mvisualizemeshwire);
-
+*/
 	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemeshref(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
 	mvisualizemeshref->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NONE);
 	mvisualizemeshref->SetWireframe(true);
 	mvisualizemeshref->SetDrawInUndeformedReference(true);
 	my_mesh->AddAsset(mvisualizemeshref);
+
+
 
 			// ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
 			// in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
