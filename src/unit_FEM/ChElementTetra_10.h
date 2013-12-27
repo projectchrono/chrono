@@ -119,7 +119,7 @@ public:
 				/// Computes the matrix of partial derivatives and puts data in "A"
 				///	ID (0,...,3) identifies the integration point; zeta1,...,zeta4 are its four natural coordinates
 				/// note: in case of tetrahedral elements natural coord. vary in the range 0 ... +1
-	virtual void ComputeMatrB(int ID, double zeta1, double zeta2, double zeta3, double zeta4, double& JacobianDet) 
+	virtual void ComputeMatrB(ChMatrixDynamic<>& mmatrB, double zeta1, double zeta2, double zeta3, double zeta4, double& JacobianDet) 
 			{
 				ChMatrixDynamic<> Jacobian(4,4);
 				ComputeJacobian(Jacobian, zeta1, zeta2, zeta3, zeta4);
@@ -127,102 +127,102 @@ public:
 				double Jdet=Jacobian.Det();
 				JacobianDet = Jdet;		// !!! store the Jacobian Determinant: needed for the integration
 		
-				MatrB[ID].SetElement(0,0,(4*zeta1-1)*((Jacobian(2,3)-Jacobian(2,1))*(Jacobian(3,2)-Jacobian(3,1))-(Jacobian(2,2)-Jacobian(2,1))*(Jacobian(3,3)-Jacobian(3,1)))/Jdet);
-				MatrB[ID].SetElement(0,3,(4*zeta2-1)*((Jacobian(2,2)-Jacobian(2,0))*(Jacobian(3,3)-Jacobian(3,2))-(Jacobian(2,2)-Jacobian(2,3))*(Jacobian(3,0)-Jacobian(3,2)))/Jdet);
-				MatrB[ID].SetElement(0,6,(4*zeta3-1)*((Jacobian(2,1)-Jacobian(2,3))*(Jacobian(3,0)-Jacobian(3,3))-(Jacobian(2,0)-Jacobian(2,3))*(Jacobian(3,1)-Jacobian(3,3)))/Jdet);
-				MatrB[ID].SetElement(0,9,(4*zeta4-1)*((Jacobian(2,0)-Jacobian(2,2))*(Jacobian(3,1)-Jacobian(3,0))-(Jacobian(2,0)-Jacobian(2,1))*(Jacobian(3,2)-Jacobian(3,0)))/Jdet);
-				MatrB[ID].SetElement(0,12,4*(zeta1*((Jacobian(2,2)-Jacobian(2,0))*(Jacobian(3,3)-Jacobian(3,2))-(Jacobian(2,2)-Jacobian(2,3))*(Jacobian(3,0)-Jacobian(3,2)))+zeta2*((Jacobian(2,3)-Jacobian(2,1))*(Jacobian(3,2)-Jacobian(3,1))-(Jacobian(2,2)-Jacobian(2,1))*(Jacobian(3,3)-Jacobian(3,1))))/Jdet);
-				MatrB[ID].SetElement(0,15,4*(zeta2*((Jacobian(2,1)-Jacobian(2,3))*(Jacobian(3,0)-Jacobian(3,3))-(Jacobian(2,0)-Jacobian(2,3))*(Jacobian(3,1)-Jacobian(3,3)))+zeta3*((Jacobian(2,2)-Jacobian(2,0))*(Jacobian(3,3)-Jacobian(3,2))-(Jacobian(2,2)-Jacobian(2,3))*(Jacobian(3,0)-Jacobian(3,2))))/Jdet);
-				MatrB[ID].SetElement(0,18,4*(zeta3*((Jacobian(2,3)-Jacobian(2,1))*(Jacobian(3,2)-Jacobian(3,1))-(Jacobian(2,2)-Jacobian(2,1))*(Jacobian(3,3)-Jacobian(3,1)))+zeta1*((Jacobian(2,1)-Jacobian(2,3))*(Jacobian(3,0)-Jacobian(3,3))-(Jacobian(2,0)-Jacobian(2,3))*(Jacobian(3,1)-Jacobian(3,3))))/Jdet);
-				MatrB[ID].SetElement(0,21,4*(zeta1*((Jacobian(2,0)-Jacobian(2,2))*(Jacobian(3,1)-Jacobian(3,0))-(Jacobian(2,0)-Jacobian(2,1))*(Jacobian(3,2)-Jacobian(3,0)))+zeta4*((Jacobian(2,3)-Jacobian(2,1))*(Jacobian(3,2)-Jacobian(3,1))-(Jacobian(2,2)-Jacobian(2,1))*(Jacobian(3,3)-Jacobian(3,1))))/Jdet);
-				MatrB[ID].SetElement(0,24,4*(zeta2*((Jacobian(2,0)-Jacobian(2,2))*(Jacobian(3,1)-Jacobian(3,0))-(Jacobian(2,0)-Jacobian(2,1))*(Jacobian(3,2)-Jacobian(3,0)))+zeta4*((Jacobian(2,2)-Jacobian(2,0))*(Jacobian(3,3)-Jacobian(3,2))-(Jacobian(2,2)-Jacobian(2,3))*(Jacobian(3,0)-Jacobian(3,2))))/Jdet);
-				MatrB[ID].SetElement(0,27,4*(zeta3*((Jacobian(2,0)-Jacobian(2,2))*(Jacobian(3,1)-Jacobian(3,0))-(Jacobian(2,0)-Jacobian(2,1))*(Jacobian(3,2)-Jacobian(3,0)))+zeta4*((Jacobian(2,1)-Jacobian(2,3))*(Jacobian(3,0)-Jacobian(3,3))-(Jacobian(2,0)-Jacobian(2,3))*(Jacobian(3,1)-Jacobian(3,3))))/Jdet);
+				mmatrB.SetElement(0,0,(4*zeta1-1)*((Jacobian(2,3)-Jacobian(2,1))*(Jacobian(3,2)-Jacobian(3,1))-(Jacobian(2,2)-Jacobian(2,1))*(Jacobian(3,3)-Jacobian(3,1)))/Jdet);
+				mmatrB.SetElement(0,3,(4*zeta2-1)*((Jacobian(2,2)-Jacobian(2,0))*(Jacobian(3,3)-Jacobian(3,2))-(Jacobian(2,2)-Jacobian(2,3))*(Jacobian(3,0)-Jacobian(3,2)))/Jdet);
+				mmatrB.SetElement(0,6,(4*zeta3-1)*((Jacobian(2,1)-Jacobian(2,3))*(Jacobian(3,0)-Jacobian(3,3))-(Jacobian(2,0)-Jacobian(2,3))*(Jacobian(3,1)-Jacobian(3,3)))/Jdet);
+				mmatrB.SetElement(0,9,(4*zeta4-1)*((Jacobian(2,0)-Jacobian(2,2))*(Jacobian(3,1)-Jacobian(3,0))-(Jacobian(2,0)-Jacobian(2,1))*(Jacobian(3,2)-Jacobian(3,0)))/Jdet);
+				mmatrB.SetElement(0,12,4*(zeta1*((Jacobian(2,2)-Jacobian(2,0))*(Jacobian(3,3)-Jacobian(3,2))-(Jacobian(2,2)-Jacobian(2,3))*(Jacobian(3,0)-Jacobian(3,2)))+zeta2*((Jacobian(2,3)-Jacobian(2,1))*(Jacobian(3,2)-Jacobian(3,1))-(Jacobian(2,2)-Jacobian(2,1))*(Jacobian(3,3)-Jacobian(3,1))))/Jdet);
+				mmatrB.SetElement(0,15,4*(zeta2*((Jacobian(2,1)-Jacobian(2,3))*(Jacobian(3,0)-Jacobian(3,3))-(Jacobian(2,0)-Jacobian(2,3))*(Jacobian(3,1)-Jacobian(3,3)))+zeta3*((Jacobian(2,2)-Jacobian(2,0))*(Jacobian(3,3)-Jacobian(3,2))-(Jacobian(2,2)-Jacobian(2,3))*(Jacobian(3,0)-Jacobian(3,2))))/Jdet);
+				mmatrB.SetElement(0,18,4*(zeta3*((Jacobian(2,3)-Jacobian(2,1))*(Jacobian(3,2)-Jacobian(3,1))-(Jacobian(2,2)-Jacobian(2,1))*(Jacobian(3,3)-Jacobian(3,1)))+zeta1*((Jacobian(2,1)-Jacobian(2,3))*(Jacobian(3,0)-Jacobian(3,3))-(Jacobian(2,0)-Jacobian(2,3))*(Jacobian(3,1)-Jacobian(3,3))))/Jdet);
+				mmatrB.SetElement(0,21,4*(zeta1*((Jacobian(2,0)-Jacobian(2,2))*(Jacobian(3,1)-Jacobian(3,0))-(Jacobian(2,0)-Jacobian(2,1))*(Jacobian(3,2)-Jacobian(3,0)))+zeta4*((Jacobian(2,3)-Jacobian(2,1))*(Jacobian(3,2)-Jacobian(3,1))-(Jacobian(2,2)-Jacobian(2,1))*(Jacobian(3,3)-Jacobian(3,1))))/Jdet);
+				mmatrB.SetElement(0,24,4*(zeta2*((Jacobian(2,0)-Jacobian(2,2))*(Jacobian(3,1)-Jacobian(3,0))-(Jacobian(2,0)-Jacobian(2,1))*(Jacobian(3,2)-Jacobian(3,0)))+zeta4*((Jacobian(2,2)-Jacobian(2,0))*(Jacobian(3,3)-Jacobian(3,2))-(Jacobian(2,2)-Jacobian(2,3))*(Jacobian(3,0)-Jacobian(3,2))))/Jdet);
+				mmatrB.SetElement(0,27,4*(zeta3*((Jacobian(2,0)-Jacobian(2,2))*(Jacobian(3,1)-Jacobian(3,0))-(Jacobian(2,0)-Jacobian(2,1))*(Jacobian(3,2)-Jacobian(3,0)))+zeta4*((Jacobian(2,1)-Jacobian(2,3))*(Jacobian(3,0)-Jacobian(3,3))-(Jacobian(2,0)-Jacobian(2,3))*(Jacobian(3,1)-Jacobian(3,3))))/Jdet);
 
-				MatrB[ID].SetElement(1,1,(4*zeta1-1)*((Jacobian(1,2)-Jacobian(1,1))*(Jacobian(3,3)-Jacobian(3,1))-(Jacobian(1,3)-Jacobian(1,1))*(Jacobian(3,2)-Jacobian(3,1)))/Jdet);
-				MatrB[ID].SetElement(1,4,(4*zeta2-1)*((Jacobian(1,3)-Jacobian(1,2))*(Jacobian(3,2)-Jacobian(3,0))-(Jacobian(1,0)-Jacobian(1,2))*(Jacobian(3,2)-Jacobian(3,3)))/Jdet);
-				MatrB[ID].SetElement(1,7,(4*zeta3-1)*((Jacobian(1,0)-Jacobian(1,3))*(Jacobian(3,1)-Jacobian(3,3))-(Jacobian(1,1)-Jacobian(1,3))*(Jacobian(3,0)-Jacobian(3,3)))/Jdet);
-				MatrB[ID].SetElement(1,10,(4*zeta4-1)*((Jacobian(1,1)-Jacobian(1,0))*(Jacobian(3,0)-Jacobian(3,2))-(Jacobian(1,2)-Jacobian(1,0))*(Jacobian(3,0)-Jacobian(3,1)))/Jdet);
-				MatrB[ID].SetElement(1,13,4*(zeta1*((Jacobian(1,3)-Jacobian(1,2))*(Jacobian(3,2)-Jacobian(3,0))-(Jacobian(1,0)-Jacobian(1,2))*(Jacobian(3,2)-Jacobian(3,3)))+zeta2*((Jacobian(1,2)-Jacobian(1,1))*(Jacobian(3,3)-Jacobian(3,1))-(Jacobian(1,3)-Jacobian(1,1))*(Jacobian(3,2)-Jacobian(3,1))))/Jdet);
-				MatrB[ID].SetElement(1,16,4*(zeta2*((Jacobian(1,0)-Jacobian(1,3))*(Jacobian(3,1)-Jacobian(3,3))-(Jacobian(1,1)-Jacobian(1,3))*(Jacobian(3,0)-Jacobian(3,3)))+zeta3*((Jacobian(1,3)-Jacobian(1,2))*(Jacobian(3,2)-Jacobian(3,0))-(Jacobian(1,0)-Jacobian(1,2))*(Jacobian(3,2)-Jacobian(3,3))))/Jdet);
-				MatrB[ID].SetElement(1,19,4*(zeta3*((Jacobian(1,2)-Jacobian(1,1))*(Jacobian(3,3)-Jacobian(3,1))-(Jacobian(1,3)-Jacobian(1,1))*(Jacobian(3,2)-Jacobian(3,1)))+zeta1*((Jacobian(1,0)-Jacobian(1,3))*(Jacobian(3,1)-Jacobian(3,3))-(Jacobian(1,1)-Jacobian(1,3))*(Jacobian(3,0)-Jacobian(3,3))))/Jdet);
-				MatrB[ID].SetElement(1,22,4*(zeta1*((Jacobian(1,1)-Jacobian(1,0))*(Jacobian(3,0)-Jacobian(3,2))-(Jacobian(1,2)-Jacobian(1,0))*(Jacobian(3,0)-Jacobian(3,1)))+zeta4*((Jacobian(1,2)-Jacobian(1,1))*(Jacobian(3,3)-Jacobian(3,1))-(Jacobian(1,3)-Jacobian(1,1))*(Jacobian(3,2)-Jacobian(3,1))))/Jdet);
-				MatrB[ID].SetElement(1,25,4*(zeta2*((Jacobian(1,1)-Jacobian(1,0))*(Jacobian(3,0)-Jacobian(3,2))-(Jacobian(1,2)-Jacobian(1,0))*(Jacobian(3,0)-Jacobian(3,1)))+zeta4*((Jacobian(1,3)-Jacobian(1,2))*(Jacobian(3,2)-Jacobian(3,0))-(Jacobian(1,0)-Jacobian(1,2))*(Jacobian(3,2)-Jacobian(3,3))))/Jdet);
-				MatrB[ID].SetElement(1,28,4*(zeta3*((Jacobian(1,1)-Jacobian(1,0))*(Jacobian(3,0)-Jacobian(3,2))-(Jacobian(1,2)-Jacobian(1,0))*(Jacobian(3,0)-Jacobian(3,1)))+zeta4*((Jacobian(1,0)-Jacobian(1,3))*(Jacobian(3,1)-Jacobian(3,3))-(Jacobian(1,1)-Jacobian(1,3))*(Jacobian(3,0)-Jacobian(3,3))))/Jdet);
+				mmatrB.SetElement(1,1,(4*zeta1-1)*((Jacobian(1,2)-Jacobian(1,1))*(Jacobian(3,3)-Jacobian(3,1))-(Jacobian(1,3)-Jacobian(1,1))*(Jacobian(3,2)-Jacobian(3,1)))/Jdet);
+				mmatrB.SetElement(1,4,(4*zeta2-1)*((Jacobian(1,3)-Jacobian(1,2))*(Jacobian(3,2)-Jacobian(3,0))-(Jacobian(1,0)-Jacobian(1,2))*(Jacobian(3,2)-Jacobian(3,3)))/Jdet);
+				mmatrB.SetElement(1,7,(4*zeta3-1)*((Jacobian(1,0)-Jacobian(1,3))*(Jacobian(3,1)-Jacobian(3,3))-(Jacobian(1,1)-Jacobian(1,3))*(Jacobian(3,0)-Jacobian(3,3)))/Jdet);
+				mmatrB.SetElement(1,10,(4*zeta4-1)*((Jacobian(1,1)-Jacobian(1,0))*(Jacobian(3,0)-Jacobian(3,2))-(Jacobian(1,2)-Jacobian(1,0))*(Jacobian(3,0)-Jacobian(3,1)))/Jdet);
+				mmatrB.SetElement(1,13,4*(zeta1*((Jacobian(1,3)-Jacobian(1,2))*(Jacobian(3,2)-Jacobian(3,0))-(Jacobian(1,0)-Jacobian(1,2))*(Jacobian(3,2)-Jacobian(3,3)))+zeta2*((Jacobian(1,2)-Jacobian(1,1))*(Jacobian(3,3)-Jacobian(3,1))-(Jacobian(1,3)-Jacobian(1,1))*(Jacobian(3,2)-Jacobian(3,1))))/Jdet);
+				mmatrB.SetElement(1,16,4*(zeta2*((Jacobian(1,0)-Jacobian(1,3))*(Jacobian(3,1)-Jacobian(3,3))-(Jacobian(1,1)-Jacobian(1,3))*(Jacobian(3,0)-Jacobian(3,3)))+zeta3*((Jacobian(1,3)-Jacobian(1,2))*(Jacobian(3,2)-Jacobian(3,0))-(Jacobian(1,0)-Jacobian(1,2))*(Jacobian(3,2)-Jacobian(3,3))))/Jdet);
+				mmatrB.SetElement(1,19,4*(zeta3*((Jacobian(1,2)-Jacobian(1,1))*(Jacobian(3,3)-Jacobian(3,1))-(Jacobian(1,3)-Jacobian(1,1))*(Jacobian(3,2)-Jacobian(3,1)))+zeta1*((Jacobian(1,0)-Jacobian(1,3))*(Jacobian(3,1)-Jacobian(3,3))-(Jacobian(1,1)-Jacobian(1,3))*(Jacobian(3,0)-Jacobian(3,3))))/Jdet);
+				mmatrB.SetElement(1,22,4*(zeta1*((Jacobian(1,1)-Jacobian(1,0))*(Jacobian(3,0)-Jacobian(3,2))-(Jacobian(1,2)-Jacobian(1,0))*(Jacobian(3,0)-Jacobian(3,1)))+zeta4*((Jacobian(1,2)-Jacobian(1,1))*(Jacobian(3,3)-Jacobian(3,1))-(Jacobian(1,3)-Jacobian(1,1))*(Jacobian(3,2)-Jacobian(3,1))))/Jdet);
+				mmatrB.SetElement(1,25,4*(zeta2*((Jacobian(1,1)-Jacobian(1,0))*(Jacobian(3,0)-Jacobian(3,2))-(Jacobian(1,2)-Jacobian(1,0))*(Jacobian(3,0)-Jacobian(3,1)))+zeta4*((Jacobian(1,3)-Jacobian(1,2))*(Jacobian(3,2)-Jacobian(3,0))-(Jacobian(1,0)-Jacobian(1,2))*(Jacobian(3,2)-Jacobian(3,3))))/Jdet);
+				mmatrB.SetElement(1,28,4*(zeta3*((Jacobian(1,1)-Jacobian(1,0))*(Jacobian(3,0)-Jacobian(3,2))-(Jacobian(1,2)-Jacobian(1,0))*(Jacobian(3,0)-Jacobian(3,1)))+zeta4*((Jacobian(1,0)-Jacobian(1,3))*(Jacobian(3,1)-Jacobian(3,3))-(Jacobian(1,1)-Jacobian(1,3))*(Jacobian(3,0)-Jacobian(3,3))))/Jdet);
 
-				MatrB[ID].SetElement(2,2,(4*zeta1-1)*((Jacobian(1,3)-Jacobian(1,1))*(Jacobian(2,2)-Jacobian(2,1))-(Jacobian(1,2)-Jacobian(1,1))*(Jacobian(2,3)-Jacobian(2,1)))/Jdet);
-				MatrB[ID].SetElement(2,5,(4*zeta2-1)*((Jacobian(1,2)-Jacobian(1,0))*(Jacobian(2,3)-Jacobian(2,2))-(Jacobian(1,2)-Jacobian(1,3))*(Jacobian(2,0)-Jacobian(2,2)))/Jdet);
-				MatrB[ID].SetElement(2,8,(4*zeta3-1)*((Jacobian(1,1)-Jacobian(1,3))*(Jacobian(2,0)-Jacobian(2,3))-(Jacobian(1,0)-Jacobian(1,3))*(Jacobian(2,1)-Jacobian(2,3)))/Jdet);
-				MatrB[ID].SetElement(2,11,(4*zeta4-1)*((Jacobian(1,0)-Jacobian(1,2))*(Jacobian(2,1)-Jacobian(2,0))-(Jacobian(1,0)-Jacobian(1,1))*(Jacobian(2,2)-Jacobian(2,0)))/Jdet);
-				MatrB[ID].SetElement(2,14,4*(zeta1*((Jacobian(1,2)-Jacobian(1,0))*(Jacobian(2,3)-Jacobian(2,2))-(Jacobian(1,2)-Jacobian(1,3))*(Jacobian(2,0)-Jacobian(2,2)))+zeta2*((Jacobian(1,3)-Jacobian(1,1))*(Jacobian(2,2)-Jacobian(2,1))-(Jacobian(1,2)-Jacobian(1,1))*(Jacobian(2,3)-Jacobian(2,1))))/Jdet);
-				MatrB[ID].SetElement(2,17,4*(zeta2*((Jacobian(1,1)-Jacobian(1,3))*(Jacobian(2,0)-Jacobian(2,3))-(Jacobian(1,0)-Jacobian(1,3))*(Jacobian(2,1)-Jacobian(2,3)))+zeta3*((Jacobian(1,2)-Jacobian(1,0))*(Jacobian(2,3)-Jacobian(2,2))-(Jacobian(1,2)-Jacobian(1,3))*(Jacobian(2,0)-Jacobian(2,2))))/Jdet);
-				MatrB[ID].SetElement(2,20,4*(zeta3*((Jacobian(1,3)-Jacobian(1,1))*(Jacobian(2,2)-Jacobian(2,1))-(Jacobian(1,2)-Jacobian(1,1))*(Jacobian(2,3)-Jacobian(2,1)))+zeta1*((Jacobian(1,1)-Jacobian(1,3))*(Jacobian(2,0)-Jacobian(2,3))-(Jacobian(1,0)-Jacobian(1,3))*(Jacobian(2,1)-Jacobian(2,3))))/Jdet);
-				MatrB[ID].SetElement(2,23,4*(zeta1*((Jacobian(1,0)-Jacobian(1,2))*(Jacobian(2,1)-Jacobian(2,0))-(Jacobian(1,0)-Jacobian(1,1))*(Jacobian(2,2)-Jacobian(2,0)))+zeta4*((Jacobian(1,3)-Jacobian(1,1))*(Jacobian(2,2)-Jacobian(2,1))-(Jacobian(1,2)-Jacobian(1,1))*(Jacobian(2,3)-Jacobian(2,1))))/Jdet);
-				MatrB[ID].SetElement(2,26,4*(zeta2*((Jacobian(1,0)-Jacobian(1,2))*(Jacobian(2,1)-Jacobian(2,0))-(Jacobian(1,0)-Jacobian(1,1))*(Jacobian(2,2)-Jacobian(2,0)))+zeta4*((Jacobian(1,2)-Jacobian(1,0))*(Jacobian(2,3)-Jacobian(2,2))-(Jacobian(1,2)-Jacobian(1,3))*(Jacobian(2,0)-Jacobian(2,2))))/Jdet);
-				MatrB[ID].SetElement(2,29,4*(zeta3*((Jacobian(1,0)-Jacobian(1,2))*(Jacobian(2,1)-Jacobian(2,0))-(Jacobian(1,0)-Jacobian(1,1))*(Jacobian(2,2)-Jacobian(2,0)))+zeta4*((Jacobian(1,1)-Jacobian(1,3))*(Jacobian(2,0)-Jacobian(2,3))-(Jacobian(1,0)-Jacobian(1,3))*(Jacobian(2,1)-Jacobian(2,3))))/Jdet);
+				mmatrB.SetElement(2,2,(4*zeta1-1)*((Jacobian(1,3)-Jacobian(1,1))*(Jacobian(2,2)-Jacobian(2,1))-(Jacobian(1,2)-Jacobian(1,1))*(Jacobian(2,3)-Jacobian(2,1)))/Jdet);
+				mmatrB.SetElement(2,5,(4*zeta2-1)*((Jacobian(1,2)-Jacobian(1,0))*(Jacobian(2,3)-Jacobian(2,2))-(Jacobian(1,2)-Jacobian(1,3))*(Jacobian(2,0)-Jacobian(2,2)))/Jdet);
+				mmatrB.SetElement(2,8,(4*zeta3-1)*((Jacobian(1,1)-Jacobian(1,3))*(Jacobian(2,0)-Jacobian(2,3))-(Jacobian(1,0)-Jacobian(1,3))*(Jacobian(2,1)-Jacobian(2,3)))/Jdet);
+				mmatrB.SetElement(2,11,(4*zeta4-1)*((Jacobian(1,0)-Jacobian(1,2))*(Jacobian(2,1)-Jacobian(2,0))-(Jacobian(1,0)-Jacobian(1,1))*(Jacobian(2,2)-Jacobian(2,0)))/Jdet);
+				mmatrB.SetElement(2,14,4*(zeta1*((Jacobian(1,2)-Jacobian(1,0))*(Jacobian(2,3)-Jacobian(2,2))-(Jacobian(1,2)-Jacobian(1,3))*(Jacobian(2,0)-Jacobian(2,2)))+zeta2*((Jacobian(1,3)-Jacobian(1,1))*(Jacobian(2,2)-Jacobian(2,1))-(Jacobian(1,2)-Jacobian(1,1))*(Jacobian(2,3)-Jacobian(2,1))))/Jdet);
+				mmatrB.SetElement(2,17,4*(zeta2*((Jacobian(1,1)-Jacobian(1,3))*(Jacobian(2,0)-Jacobian(2,3))-(Jacobian(1,0)-Jacobian(1,3))*(Jacobian(2,1)-Jacobian(2,3)))+zeta3*((Jacobian(1,2)-Jacobian(1,0))*(Jacobian(2,3)-Jacobian(2,2))-(Jacobian(1,2)-Jacobian(1,3))*(Jacobian(2,0)-Jacobian(2,2))))/Jdet);
+				mmatrB.SetElement(2,20,4*(zeta3*((Jacobian(1,3)-Jacobian(1,1))*(Jacobian(2,2)-Jacobian(2,1))-(Jacobian(1,2)-Jacobian(1,1))*(Jacobian(2,3)-Jacobian(2,1)))+zeta1*((Jacobian(1,1)-Jacobian(1,3))*(Jacobian(2,0)-Jacobian(2,3))-(Jacobian(1,0)-Jacobian(1,3))*(Jacobian(2,1)-Jacobian(2,3))))/Jdet);
+				mmatrB.SetElement(2,23,4*(zeta1*((Jacobian(1,0)-Jacobian(1,2))*(Jacobian(2,1)-Jacobian(2,0))-(Jacobian(1,0)-Jacobian(1,1))*(Jacobian(2,2)-Jacobian(2,0)))+zeta4*((Jacobian(1,3)-Jacobian(1,1))*(Jacobian(2,2)-Jacobian(2,1))-(Jacobian(1,2)-Jacobian(1,1))*(Jacobian(2,3)-Jacobian(2,1))))/Jdet);
+				mmatrB.SetElement(2,26,4*(zeta2*((Jacobian(1,0)-Jacobian(1,2))*(Jacobian(2,1)-Jacobian(2,0))-(Jacobian(1,0)-Jacobian(1,1))*(Jacobian(2,2)-Jacobian(2,0)))+zeta4*((Jacobian(1,2)-Jacobian(1,0))*(Jacobian(2,3)-Jacobian(2,2))-(Jacobian(1,2)-Jacobian(1,3))*(Jacobian(2,0)-Jacobian(2,2))))/Jdet);
+				mmatrB.SetElement(2,29,4*(zeta3*((Jacobian(1,0)-Jacobian(1,2))*(Jacobian(2,1)-Jacobian(2,0))-(Jacobian(1,0)-Jacobian(1,1))*(Jacobian(2,2)-Jacobian(2,0)))+zeta4*((Jacobian(1,1)-Jacobian(1,3))*(Jacobian(2,0)-Jacobian(2,3))-(Jacobian(1,0)-Jacobian(1,3))*(Jacobian(2,1)-Jacobian(2,3))))/Jdet);
 	
-				MatrB[ID].SetElement(3,0,MatrB[ID](1,1));
-				MatrB[ID].SetElement(3,1,MatrB[ID](0,0));
-				MatrB[ID].SetElement(3,3,MatrB[ID](1,4));
-				MatrB[ID].SetElement(3,4,MatrB[ID](0,3));
-				MatrB[ID].SetElement(3,6,MatrB[ID](1,7));
-				MatrB[ID].SetElement(3,7,MatrB[ID](0,6));
-				MatrB[ID].SetElement(3,9,MatrB[ID](1,10));
-				MatrB[ID].SetElement(3,10,MatrB[ID](0,9));
-				MatrB[ID].SetElement(3,12,MatrB[ID](1,13));
-				MatrB[ID].SetElement(3,13,MatrB[ID](0,12));
-				MatrB[ID].SetElement(3,15,MatrB[ID](1,16));
-				MatrB[ID].SetElement(3,16,MatrB[ID](0,15));
-				MatrB[ID].SetElement(3,18,MatrB[ID](1,19));
-				MatrB[ID].SetElement(3,19,MatrB[ID](0,18));
-				MatrB[ID].SetElement(3,21,MatrB[ID](1,22));
-				MatrB[ID].SetElement(3,22,MatrB[ID](0,21));
-				MatrB[ID].SetElement(3,24,MatrB[ID](1,25));
-				MatrB[ID].SetElement(3,25,MatrB[ID](0,24));
-				MatrB[ID].SetElement(3,27,MatrB[ID](1,28));
-				MatrB[ID].SetElement(3,28,MatrB[ID](0,27));
+				mmatrB.SetElement(3,0,mmatrB(1,1));
+				mmatrB.SetElement(3,1,mmatrB(0,0));
+				mmatrB.SetElement(3,3,mmatrB(1,4));
+				mmatrB.SetElement(3,4,mmatrB(0,3));
+				mmatrB.SetElement(3,6,mmatrB(1,7));
+				mmatrB.SetElement(3,7,mmatrB(0,6));
+				mmatrB.SetElement(3,9,mmatrB(1,10));
+				mmatrB.SetElement(3,10,mmatrB(0,9));
+				mmatrB.SetElement(3,12,mmatrB(1,13));
+				mmatrB.SetElement(3,13,mmatrB(0,12));
+				mmatrB.SetElement(3,15,mmatrB(1,16));
+				mmatrB.SetElement(3,16,mmatrB(0,15));
+				mmatrB.SetElement(3,18,mmatrB(1,19));
+				mmatrB.SetElement(3,19,mmatrB(0,18));
+				mmatrB.SetElement(3,21,mmatrB(1,22));
+				mmatrB.SetElement(3,22,mmatrB(0,21));
+				mmatrB.SetElement(3,24,mmatrB(1,25));
+				mmatrB.SetElement(3,25,mmatrB(0,24));
+				mmatrB.SetElement(3,27,mmatrB(1,28));
+				mmatrB.SetElement(3,28,mmatrB(0,27));
 
-				MatrB[ID].SetElement(4,1,MatrB[ID](2,2));
-				MatrB[ID].SetElement(4,2,MatrB[ID](1,1));
-				MatrB[ID].SetElement(4,4,MatrB[ID](2,5));
-				MatrB[ID].SetElement(4,5,MatrB[ID](1,4));
-				MatrB[ID].SetElement(4,7,MatrB[ID](2,8));
-				MatrB[ID].SetElement(4,8,MatrB[ID](1,7));
-				MatrB[ID].SetElement(4,10,MatrB[ID](2,11));
-				MatrB[ID].SetElement(4,11,MatrB[ID](1,10));
-				MatrB[ID].SetElement(4,13,MatrB[ID](2,14));
-				MatrB[ID].SetElement(4,14,MatrB[ID](1,13));
-				MatrB[ID].SetElement(4,16,MatrB[ID](2,17));
-				MatrB[ID].SetElement(4,17,MatrB[ID](1,16));
-				MatrB[ID].SetElement(4,19,MatrB[ID](2,20));
-				MatrB[ID].SetElement(4,20,MatrB[ID](1,19));
-				MatrB[ID].SetElement(4,22,MatrB[ID](2,23));
-				MatrB[ID].SetElement(4,23,MatrB[ID](1,22));
-				MatrB[ID].SetElement(4,25,MatrB[ID](2,26));
-				MatrB[ID].SetElement(4,26,MatrB[ID](1,25));
-				MatrB[ID].SetElement(4,28,MatrB[ID](2,29));
-				MatrB[ID].SetElement(4,29,MatrB[ID](1,28));
+				mmatrB.SetElement(4,1,mmatrB(2,2));
+				mmatrB.SetElement(4,2,mmatrB(1,1));
+				mmatrB.SetElement(4,4,mmatrB(2,5));
+				mmatrB.SetElement(4,5,mmatrB(1,4));
+				mmatrB.SetElement(4,7,mmatrB(2,8));
+				mmatrB.SetElement(4,8,mmatrB(1,7));
+				mmatrB.SetElement(4,10,mmatrB(2,11));
+				mmatrB.SetElement(4,11,mmatrB(1,10));
+				mmatrB.SetElement(4,13,mmatrB(2,14));
+				mmatrB.SetElement(4,14,mmatrB(1,13));
+				mmatrB.SetElement(4,16,mmatrB(2,17));
+				mmatrB.SetElement(4,17,mmatrB(1,16));
+				mmatrB.SetElement(4,19,mmatrB(2,20));
+				mmatrB.SetElement(4,20,mmatrB(1,19));
+				mmatrB.SetElement(4,22,mmatrB(2,23));
+				mmatrB.SetElement(4,23,mmatrB(1,22));
+				mmatrB.SetElement(4,25,mmatrB(2,26));
+				mmatrB.SetElement(4,26,mmatrB(1,25));
+				mmatrB.SetElement(4,28,mmatrB(2,29));
+				mmatrB.SetElement(4,29,mmatrB(1,28));
 
-				MatrB[ID].SetElement(5,0,MatrB[ID](2,2));
-				MatrB[ID].SetElement(5,2,MatrB[ID](0,0));
-				MatrB[ID].SetElement(5,3,MatrB[ID](2,5));
-				MatrB[ID].SetElement(5,5,MatrB[ID](0,3));
-				MatrB[ID].SetElement(5,6,MatrB[ID](2,8));
-				MatrB[ID].SetElement(5,8,MatrB[ID](0,6));
-				MatrB[ID].SetElement(5,9,MatrB[ID](2,11));
-				MatrB[ID].SetElement(5,11,MatrB[ID](0,9));
-				MatrB[ID].SetElement(5,12,MatrB[ID](2,14));
-				MatrB[ID].SetElement(5,14,MatrB[ID](0,12));
-				MatrB[ID].SetElement(5,15,MatrB[ID](2,17));
-				MatrB[ID].SetElement(5,17,MatrB[ID](0,15));
-				MatrB[ID].SetElement(5,18,MatrB[ID](2,20));
-				MatrB[ID].SetElement(5,20,MatrB[ID](0,18));
-				MatrB[ID].SetElement(5,21,MatrB[ID](2,23));
-				MatrB[ID].SetElement(5,23,MatrB[ID](0,21));
-				MatrB[ID].SetElement(5,24,MatrB[ID](2,26));
-				MatrB[ID].SetElement(5,26,MatrB[ID](0,24));
-				MatrB[ID].SetElement(5,27,MatrB[ID](2,29));
-				MatrB[ID].SetElement(5,29,MatrB[ID](0,27));
-				MatrB[ID].MatrScale(2);
+				mmatrB.SetElement(5,0,mmatrB(2,2));
+				mmatrB.SetElement(5,2,mmatrB(0,0));
+				mmatrB.SetElement(5,3,mmatrB(2,5));
+				mmatrB.SetElement(5,5,mmatrB(0,3));
+				mmatrB.SetElement(5,6,mmatrB(2,8));
+				mmatrB.SetElement(5,8,mmatrB(0,6));
+				mmatrB.SetElement(5,9,mmatrB(2,11));
+				mmatrB.SetElement(5,11,mmatrB(0,9));
+				mmatrB.SetElement(5,12,mmatrB(2,14));
+				mmatrB.SetElement(5,14,mmatrB(0,12));
+				mmatrB.SetElement(5,15,mmatrB(2,17));
+				mmatrB.SetElement(5,17,mmatrB(0,15));
+				mmatrB.SetElement(5,18,mmatrB(2,20));
+				mmatrB.SetElement(5,20,mmatrB(0,18));
+				mmatrB.SetElement(5,21,mmatrB(2,23));
+				mmatrB.SetElement(5,23,mmatrB(0,21));
+				mmatrB.SetElement(5,24,mmatrB(2,26));
+				mmatrB.SetElement(5,26,mmatrB(0,24));
+				mmatrB.SetElement(5,27,mmatrB(2,29));
+				mmatrB.SetElement(5,29,mmatrB(0,27));
+				mmatrB.MatrScale(2);
 			}
 
 				/// Computes the local STIFFNESS MATRIX of the element:    
@@ -257,7 +257,7 @@ public:
 				zeta3=0.1381966;
 				zeta4=0.1381966;
 
-				ComputeMatrB(0, zeta1, zeta2, zeta3, zeta4, JacobianDet);
+				ComputeMatrB(this->MatrB[0], zeta1, zeta2, zeta3, zeta4, JacobianDet);
 				BT=MatrB[0];
 				BT.MatrTranspose();
 				temp = (BT * Material->Get_StressStrainMatrix() * MatrB[0]);
@@ -271,7 +271,7 @@ public:
 				zeta3=0.1381966;
 				zeta4=0.1381966;
 
-				ComputeMatrB(1, zeta1, zeta2, zeta3, zeta4, JacobianDet);
+				ComputeMatrB(this->MatrB[1], zeta1, zeta2, zeta3, zeta4, JacobianDet);
 				BT=MatrB[1];
 				BT.MatrTranspose();
 				temp = (BT * Material->Get_StressStrainMatrix() * MatrB[1]);
@@ -285,7 +285,7 @@ public:
 				zeta3=0.58541020;
 				zeta4=0.1381966;
 
-				ComputeMatrB(2, zeta1, zeta2, zeta3, zeta4, JacobianDet);
+				ComputeMatrB(this->MatrB[2], zeta1, zeta2, zeta3, zeta4, JacobianDet);
 				BT=MatrB[2];
 				BT.MatrTranspose();
 				temp = (BT * Material->Get_StressStrainMatrix() * MatrB[2]);
@@ -299,7 +299,7 @@ public:
 				zeta3=0.1381966;
 				zeta4=0.58541020;
 
-				ComputeMatrB(3, zeta1, zeta2, zeta3, zeta4, JacobianDet);
+				ComputeMatrB(this->MatrB[3], zeta1, zeta2, zeta3, zeta4, JacobianDet);
 				BT=MatrB[3];
 				BT.MatrTranspose();
 				temp = (BT * Material->Get_StressStrainMatrix() * MatrB[3]);
@@ -312,6 +312,68 @@ public:
 														//		 in 0 ... +1 -> we have to multiply by: b-a/2 ( = (1-0)/2 = 1/2)
 
 			}
+
+				/// Given the node ID, gets the 4 parameters of the shape function
+	void GetParameterForNodeID(const int nodeID, double& z1, double& z2,  double& z3,  double& z4)
+				{
+					switch (nodeID){
+						case 0:
+							z1 = 1; z2 = 0; z3 = 0; z4 = 0; break;
+						case 1:
+							z1 = 0; z2 = 1; z3 = 0; z4 = 0; break;
+						case 2:
+							z1 = 0; z2 = 0; z3 = 1; z4 = 0; break;
+						case 3:
+							z1 = 0; z2 = 0; z3 = 0; z4 = 1; break;
+						case 4:
+							z1 = 0.5; z2 = 0.5; z3 =   0; z4 =   0; break;
+						case 5:
+							z1 =   0; z2 = 0.5; z3 = 0.5; z4 =   0; break;
+						case 6:
+							z1 = 0.5; z2 =   0; z3 = 0.5; z4 =   0; break;
+						case 7:
+							z1 = 0.5; z2 =   0; z3 =   0; z4 = 0.5; break;
+						case 8:
+							z1 =   0; z2 = 0.5; z3 =   0; z4 = 0.5; break;
+						case 9:
+							z1 =   0; z2 =   0; z3 = 0.5; z4 = 0.5; break;
+						default: break;
+					}
+				}
+
+				/// Returns the strain tensor at given parameters. 
+				/// The tensor is in the original undeformed unrotated reference.
+	ChStrainTensor<> GetStrain(double z1, double z2,  double z3,  double z4) 
+				{
+					// set up vector of nodal displacements (in local element system) u_l = R*p - p0
+					ChMatrixDynamic<> displ(30,1);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[0]->pos) - nodes[0]->GetX0(), 0, 0); // nodal displacements, local
+					displ.PasteVector(A.MatrT_x_Vect(nodes[1]->pos) - nodes[1]->GetX0(), 3, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[2]->pos) - nodes[2]->GetX0(), 6, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[3]->pos) - nodes[3]->GetX0(), 9, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[4]->pos) - nodes[4]->GetX0(),12, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[5]->pos) - nodes[5]->GetX0(),15, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[6]->pos) - nodes[6]->GetX0(),18, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[7]->pos) - nodes[7]->GetX0(),21, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[8]->pos) - nodes[8]->GetX0(),24, 0);
+					displ.PasteVector(A.MatrT_x_Vect(nodes[9]->pos) - nodes[9]->GetX0(),27, 0);
+					
+					double JacobianDet;
+					ChMatrixDynamic<> amatrB(6,30); 
+					ComputeMatrB(amatrB, z1, z2, z3, z4, JacobianDet);
+					
+					ChStrainTensor<> mstrain;
+					mstrain.MatrMultiply(amatrB, displ);
+					return mstrain;
+				}
+				/// Returns the stress tensor at given parameters.  
+				/// The tensor is in the original undeformed unrotated reference.
+	ChStressTensor<> GetStress(double z1, double z2,  double z3,  double z4)
+				{
+					ChStressTensor<> mstress;
+					mstress.MatrMultiply(this->Material->Get_StressStrainMatrix(), this->GetStrain(z1,z2,z3,z4));
+					return mstress;
+				}
 
 	virtual void SetupInitial() 
 			{
