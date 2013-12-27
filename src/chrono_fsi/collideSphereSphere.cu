@@ -1827,7 +1827,7 @@ void cudaCollisions(
 		GpuTimer myGpuTimer;
 		myGpuTimer.Start();
 
-		if (tStep < 1000) delT = 0.25 * delTOrig; else delT = delTOrig;
+//		if (tStep < 1000) delT = 0.25 * delTOrig; else delT = delTOrig;
 		//computations
 				//markers
 		thrust::device_vector<real3> posRadD2 = posRadD;
@@ -1972,7 +1972,7 @@ void cudaCollisions(
 		myGpuTimer.Stop();
 		real_ time2 = (real_)myGpuTimer.Elapsed();
 
-//		printf("step: %d\n ", tStep);
+		printf("step: %d\n ", tStep);
 		if (tStep % 50 == 0) {
 			printf("step: %d, step Time: %f\n ", tStep, time2);
 			//printf("a \n");
