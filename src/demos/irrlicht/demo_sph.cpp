@@ -30,7 +30,6 @@
  
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
-#include "physics/ChNodeBody.h"
 #include "physics/ChProximityContainerSPH.h"
 #include "physics/ChMatterSPH.h"
 #include "physics/ChContactContainerNodes.h"

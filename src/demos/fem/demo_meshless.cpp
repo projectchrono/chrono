@@ -32,16 +32,13 @@
  
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
-#include "physics/ChNodeBody.h"
 #include "physics/ChContactContainerNodes.h"
 #include "unit_FEM/ChMatterMeshless.h"
 #include "unit_FEM/ChProximityContainerMeshless.h"
-//#include "unit_FEM/ChContinuumMaterial.h" //***TEST****
 #include "irrlicht_interface/ChBodySceneNode.h"
 #include "irrlicht_interface/ChBodySceneNodeTools.h" 
 #include "irrlicht_interface/ChIrrAppInterface.h"
 #include "core/ChRealtimeStep.h"
-#include "irrlicht_interface/ChParticlesSceneNode.h" //***TEST****
 
 
 #include <irrlicht.h>
