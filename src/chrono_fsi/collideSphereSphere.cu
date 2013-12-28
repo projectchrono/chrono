@@ -1963,7 +1963,7 @@ void cudaCollisions(
 		PrintToFile(posRadD, velMasD, rhoPresMuD,
 				referenceArray, rigidIdentifierD,
 				posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
-				ANCF_NodesD, ANCF_NodesVelD, ANCF_ReferenceArrayNodesOnBeamsD,
+				ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD, ANCF_ReferenceArrayNodesOnBeamsD,
 				paramsH,
 				realTime, tStep, channelRadius, channelCenterYZ, numRigidBodies, numFlexBodies);
 

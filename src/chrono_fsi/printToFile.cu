@@ -30,7 +30,9 @@ void PrintToFile(
 		const thrust::device_vector<real3> & omegaLRF_D,
 
 		const thrust::device_vector<real3> & ANCF_NodesD,
+		const thrust::device_vector<real3> & ANCF_SlopesD,
 		const thrust::device_vector<real3> & ANCF_NodesVelD,
+		const thrust::device_vector<real3> & ANCF_SlopesVelD,
 		const thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
 
 		const SimParams paramsH,
@@ -50,7 +52,10 @@ void PrintToFile(
 	thrust::host_vector<real4> qH1 = qD1;
 	thrust::host_vector<real3> omegaLRF_H = omegaLRF_D;
 	thrust::host_vector<real3> ANCF_NodesH = ANCF_NodesD;
+	thrust::host_vector<real3> ANCF_SlopesH = ANCF_SlopesD;
 	thrust::host_vector<real3> ANCF_NodesVelH = ANCF_NodesVelD;
+	thrust::host_vector<real3> ANCF_SlopesVelH = ANCF_SlopesVelD;
+
 	thrust::device_vector<int2> ANCF_ReferenceArrayNodesOnBeams = ANCF_ReferenceArrayNodesOnBeamsD;
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++com
 	ofstream fileNameFluid;
@@ -293,7 +298,7 @@ void PrintToFile(
 	if (tStep % tFlexTipPos == 0) {
 		if (tStep / tFlexTipPos == 0) {
 			flexTipPos.open("dataFlexTip.txt");
-			flexTipPos<<"(t, x, y, z, vx, vy, vz, fluidVelocity\n" << endl;
+			flexTipPos<<"(t, x, y, z, vx, vy, vz, thetaX, thetaY, thetaZ, fluidVelocity\n" << endl;
 		} else {
 			flexTipPos.open("dataFlexTip.txt", ios::app);
 		}
@@ -309,6 +314,7 @@ void PrintToFile(
 				int2 nodesPortioni2 = ANCF_ReferenceArrayNodesOnBeams[j];
 				real3 p_tip = ANCF_NodesH[nodesPortioni2.y - 1];
 				real3 v_tip = ANCF_NodesVelH[nodesPortioni2.y - 1];
+				real3 s_tip =
 
 				ssBeamTipVsTime << realTime << ", " <<
 						p_tip.x << ", " << p_tip.y << ", " << p_tip.z << ", " <<
@@ -492,7 +498,9 @@ void PrintToFile(
 	qH1.clear();
 	omegaLRF_H.clear();
 	ANCF_NodesH.clear();
+	ANCF_SlopesH.clear();
 	ANCF_NodesVelH.clear();
+	ANCF_SlopesVelH.clear();
 	ANCF_ReferenceArrayNodesOnBeams.clear();
 }
 

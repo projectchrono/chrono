@@ -23,7 +23,9 @@ void PrintToFile(
 		const thrust::device_vector<real3> & omegaLRF_D,
 
 		const thrust::device_vector<real3> & ANCF_NodesD,
+		const thrust::device_vector<real3> & ANCF_SlopesD,
 		const thrust::device_vector<real3> & ANCF_NodesVelD,
+		const thrust::device_vector<real3> & ANCF_SlopesVelD,
 		const thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
 
 		const SimParams paramsH,
