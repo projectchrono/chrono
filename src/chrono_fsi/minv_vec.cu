@@ -13,27 +13,125 @@
 #include "SPHCudaUtils.h"
 #include "minv_vec.cuh"
 
+void minv_vec_1(real_ lE, real_* v, real_* edd);
+void minv_vec_2(real_ lE, real_* v, real_* edd);
 void minv_vec_3(real_ lE, real_* v, real_* edd);
 void minv_vec_4(real_ lE, real_* v, real_* edd);
 void minv_vec_5(real_ lE, real_* v, real_* edd);
+void minv_vec_weld_1(real_ lE, real_* v, real_* edd);
+void minv_vec_weld_2(real_ lE, real_* v, real_* edd);
 void minv_vec_weld_3(real_ lE, real_* v, real_* edd);
 void minv_vec_weld_4(real_ lE, real_* v, real_* edd);
 void minv_vec_weld_5(real_ lE, real_* v, real_* edd);
 
 void min_vec(real_* edd, real_* v, real_ lE, int nE, bool isCantilever) {
 	if (isCantilever) {
-		if (nE == 3) {	minv_vec_weld_3(lE, v, edd);	}
-		else if (nE == 4) {	minv_vec_weld_4(lE, v, edd);	}
-		else if (nE == 5) {	minv_vec_weld_5(lE, v, edd);	}
-		else {	printf("Error!!: Number of beam elements equal to %d is not supported. Code exits!\n;");}
+		switch(nE) {
+		case 1: minv_vec_weld_1(lE, v, edd); break;
+		case 2: minv_vec_weld_2(lE, v, edd); break;
+		case 3: minv_vec_weld_3(lE, v, edd); break;
+		case 4: minv_vec_weld_4(lE, v, edd); break;
+		case 5: minv_vec_weld_5(lE, v, edd); break;
+		default: printf("Error!!: Number of beam elements equal to %d is not supported. Code exits!\n");
+		}
 	} else {
-		if (nE == 3) {	minv_vec_3(lE, v, edd);	}
-		else if (nE == 4) {	minv_vec_4(lE, v, edd);	}
-		else if (nE == 5) {	minv_vec_5(lE, v, edd);	}
-		else {	printf("Error!!: Number of beam elements equal to %d is not supported. Code exits!\n;");}
+		switch(nE) {
+		case 1: minv_vec_1(lE, v, edd); break;
+		case 2: minv_vec_2(lE, v, edd); break;
+		case 3: minv_vec_3(lE, v, edd); break;
+		case 4: minv_vec_4(lE, v, edd); break;
+		case 5: minv_vec_5(lE, v, edd); break;
+		default: printf("Error!!: Number of beam elements equal to %d is not supported. Code exits!\n");
+		}
 	}
 }
 //******************* Functions Implementations ******************************
+void minv_vec_1(real_ lE, real_* v, real_* edd)
+{
+	real_ v1  = v[0];
+	real_ v2  = v[1];
+	real_ v3  = v[2];
+	real_ v4  = v[3];
+	real_ v5  = v[4];
+	real_ v6  = v[5];
+	real_ v7  = v[6];
+	real_ v8  = v[7];
+	real_ v9  = v[8];
+	real_ v10 = v[9];
+	real_ v11 = v[10];
+	real_ v12 = v[11];
+
+	real_ t2 = 1.0/lE;
+	real_ t3 = 1.0/(lE*lE);
+
+	edd[0]  = v1*1.6E1-v7*4.0-t2*(v4*2.0+v10)*6.0E1;
+	edd[1]  = v2*1.6E1-v8*4.0-t2*(v5*2.0+v11)*6.0E1;
+	edd[2]  = v3*1.6E1-v9*4.0-t2*(v6*2.0+v12)*6.0E1;
+	edd[3]  = -t2*(v1*1.2E2-v7*6.0E1)+t3*(v4*1.2E3+v10*8.4E2);
+	edd[4]  = -t2*(v2*1.2E2-v8*6.0E1)+t3*(v5*1.2E3+v11*8.4E2);
+	edd[5]  = -t2*(v3*1.2E2-v9*6.0E1)+t3*(v6*1.2E3+v12*8.4E2);
+	edd[6]  = v1*-4.0+v7*1.6E1+t2*(v4+v10*2.0)*6.0E1;
+	edd[7]  = v2*-4.0+v8*1.6E1+t2*(v5+v11*2.0)*6.0E1;
+	edd[8]  = v3*-4.0+v9*1.6E1+t2*(v6+v12*2.0)*6.0E1;
+	edd[9]  = -t2*(v1*6.0E1-v7*1.2E2)+t3*(v4*8.4E2+v10*1.2E3);
+	edd[10] = -t2*(v2*6.0E1-v8*1.2E2)+t3*(v5*8.4E2+v11*1.2E3);
+	edd[11] = -t2*(v3*6.0E1-v9*1.2E2)+t3*(v6*8.4E2+v12*1.2E3);
+}
+
+// Same as above for a 2-element beam
+void minv_vec_2(real_ lE, real_* v, real_* edd)
+{
+	real_ v1  = v[0];
+	real_ v2  = v[1];
+	real_ v3  = v[2];
+	real_ v4  = v[3];
+	real_ v5  = v[4];
+	real_ v6  = v[5];
+	real_ v7  = v[6];
+	real_ v8  = v[7];
+	real_ v9  = v[8];
+	real_ v10 = v[9];
+	real_ v11 = v[10];
+	real_ v12 = v[11];
+	real_ v13 = v[12];
+	real_ v14 = v[13];
+	real_ v15 = v[14];
+	real_ v16 = v[15];
+	real_ v17 = v[16];
+	real_ v18 = v[17];
+
+	real_ t2 = 1.0/lE;
+	real_ t3 = 1.0/(lE*lE);
+	real_ t4 = v10*3.0E1;
+	real_ t5 = v11*3.0E1;
+	real_ t6 = v12*3.0E1;
+	real_ t7 = v7*1.2E1;
+	real_ t8 = v10*1.95E2;
+	real_ t9 = v8*1.2E1;
+	real_ t10 = v11*1.95E2;
+	real_ t11 = v9*1.2E1;
+	real_ t12 = v12*1.95E2;
+
+	edd[0]  = v1*1.4E1+v7-v13-t2*(t4+v4*1.83E2+v16*2.7E1)*(1.0/2.0);
+	edd[1]  = v2*1.4E1+v8-v14-t2*(t5+v5*1.83E2+v17*2.7E1)*(1.0/2.0);
+	edd[2]  = v3*1.4E1+v9-v15-t2*(t6+v6*1.83E2+v18*2.7E1)*(1.0/2.0);
+	edd[3]  = -t2*(t7+v1*(1.83E2/2.0)-v13*(2.7E1/2.0))+t3*(t8+v4*7.935E2+v16*(3.63E2/2.0));
+	edd[4]  = -t2*(t9+v2*(1.83E2/2.0)-v14*(2.7E1/2.0))+t3*(t10+v5*7.935E2+v17*(3.63E2/2.0));
+	edd[5]  = -t2*(t11+v3*(1.83E2/2.0)-v15*(2.7E1/2.0))+t3*(t12+v6*7.935E2+v18*(3.63E2/2.0));
+	edd[6]  = v1+v7*2.0+v13-t2*(v4-v16)*1.2E1;
+	edd[7]  = v2+v8*2.0+v14-t2*(v5-v17)*1.2E1;
+	edd[8]  = v3+v9*2.0+v15-t2*(v6-v18)*1.2E1;
+	edd[9]  = t3*(v4*1.95E2+v10*1.5E2+v16*1.95E2)-t2*(v1*1.5E1-v13*1.5E1);
+	edd[10] = t3*(v5*1.95E2+v11*1.5E2+v17*1.95E2)-t2*(v2*1.5E1-v14*1.5E1);
+	edd[11] = t3*(v6*1.95E2+v12*1.5E2+v18*1.95E2)-t2*(v3*1.5E1-v15*1.5E1);
+	edd[12] = -v1+v7+v13*1.4E1+t2*(t4+v4*2.7E1+v16*1.83E2)*(1.0/2.0);
+	edd[13] = -v2+v8+v14*1.4E1+t2*(t5+v5*2.7E1+v17*1.83E2)*(1.0/2.0);
+	edd[14] = -v3+v9+v15*1.4E1+t2*(t6+v6*2.7E1+v18*1.83E2)*(1.0/2.0);
+	edd[15] = t2*(t7-v1*(2.7E1/2.0)+v13*(1.83E2/2.0))+t3*(t8+v4*(3.63E2/2.0)+v16*7.935E2);
+	edd[16] = t2*(t9-v2*(2.7E1/2.0)+v14*(1.83E2/2.0))+t3*(t10+v5*(3.63E2/2.0)+v17*7.935E2);
+	edd[17] = t2*(t11-v3*(2.7E1/2.0)+v15*(1.83E2/2.0))+t3*(t12+v6*(3.63E2/2.0)+v18*7.935E2);
+}
+
 void minv_vec_3(real_ lE, real_* v, real_* edd)
 {
 	real_ v1  = v[0];
@@ -91,8 +189,6 @@ void minv_vec_3(real_ lE, real_* v, real_* edd)
 	edd[22] = t3*(v5*6.6042E4+v11*6.99E4+v17*2.19678E5+v23*1.0071E6-lE*v2*4.921E3+lE*v8*4.138E3+lE*v14*1.7999E4+lE*v20*1.1749E5)*7.628055989930966E-4;
 	edd[23] = t3*(v6*6.6042E4+v12*6.99E4+v18*2.19678E5+v24*1.0071E6-lE*v3*4.921E3+lE*v9*4.138E3+lE*v15*1.7999E4+lE*v21*1.1749E5)*7.628055989930966E-4;
 }
-
-
 
 // Same as above, but for a "noodle" made up of 4 ANCF beam elements
 // In this case, 'v' and 'edd' are of length (4+1)*6 = 30
@@ -265,6 +361,61 @@ void minv_vec_5(real_ lE, real_* v, real_* edd)
 	edd[35] = t3*(v6*1.615477E7+v12*1.708462E7+v18*5.282779E7+v24*1.845631E8+v30*6.6160009E8+v36*3.06619054E9-lE*v3*1.203859E6+lE*v9*1.009206E6+lE*v15*4.201581E6+lE*v21*1.5033886E7+lE*v27*5.5492261E7+lE*v33*3.58069286E8)*2.498456006239311E-7;
 }
 //*****************************************************************************************
+void minv_vec_weld_1(real_ lE, real_* v, real_* edd)
+{
+	real_ v1  = v[0];
+	real_ v2  = v[1];
+	real_ v3  = v[2];
+	real_ v4  = v[3];
+	real_ v5  = v[4];
+	real_ v6  = v[5];
+
+	real_ t2 = 1.0/lE;
+	real_ t3 = 1.0/(lE*lE);
+
+	edd[0] = v1*1.2E1+t2*v4*6.6E1;
+	edd[1] = v2*1.2E1+t2*v5*6.6E1;
+	edd[2] = v3*1.2E1+t2*v6*6.6E1;
+	edd[3] = t3*(v4*7.8E1+lE*v1*1.1E1)*6.0;
+	edd[4] = t3*(v5*7.8E1+lE*v2*1.1E1)*6.0;
+	edd[5] = t3*(v6*7.8E1+lE*v3*1.1E1)*6.0;
+}
+
+// Same as above for a 2-element noodle.
+// In this case, the input vector 'v' and the output vector 'edd'
+// are assumed to be of length (2+1)*6 - 6 = 12
+void minv_vec_weld_2(real_ lE, real_* v, real_* edd)
+{
+	real_ v1  = v[0];
+	real_ v2  = v[1];
+	real_ v3  = v[2];
+	real_ v4  = v[3];
+	real_ v5  = v[4];
+	real_ v6  = v[5];
+	real_ v7  = v[6];
+	real_ v8  = v[7];
+	real_ v9  = v[8];
+	real_ v10 = v[9];
+	real_ v11 = v[10];
+	real_ v12 = v[11];
+
+	real_ t2 = 1.0/lE;
+	real_ t3 = 1.0/(lE*lE);
+
+	edd[0]  = v1*1.775828994244999+v7*1.266100301452453+t2*(v4*2.3E2+v10*9.47E2)*1.644286105782406E-2;
+	edd[1]  = v2*1.775828994244999+v8*1.266100301452453+t2*(v5*2.3E2+v11*9.47E2)*1.644286105782406E-2;
+	edd[2]  = v3*1.775828994244999+v9*1.266100301452453+t2*(v6*2.3E2+v12*9.47E2)*1.644286105782406E-2;
+	edd[3]  = t2*(v1*3.781858043299534+v7*1.047410249383393E1)+t3*(v4*8.58317347218416E1+v10*1.342724033981913E2);
+	edd[4]  = t2*(v2*3.781858043299534+v8*1.047410249383393E1)+t3*(v5*8.58317347218416E1+v11*1.342724033981913E2);
+	edd[5]  = t2*(v3*3.781858043299534+v9*1.047410249383393E1)+t3*(v6*8.58317347218416E1+v12*1.342724033981913E2);
+	edd[6]  = v1*1.266100301452453+v7*1.368046040010962E1+t2*(v4*4.9E1+v10*4.08E2)*2.137571937517128E-1;
+	edd[7]  = v2*1.266100301452453+v8*1.368046040010962E1+t2*(v5*4.9E1+v11*4.08E2)*2.137571937517128E-1;
+	edd[8]  = v3*1.266100301452453+v9*1.368046040010962E1+t2*(v6*4.9E1+v12*4.08E2)*2.137571937517128E-1;
+	edd[9]  = t2*(v1*1.557138942175939E1+v7*8.721293505069882E1)+t3*(v4*1.342724033981913E2+v10*7.35982460948205E2);
+	edd[10] = t2*(v2*1.557138942175939E1+v8*8.721293505069882E1)+t3*(v5*1.342724033981913E2+v11*7.35982460948205E2);
+	edd[11] = t2*(v3*1.557138942175939E1+v9*8.721293505069882E1)+t3*(v6*1.342724033981913E2+v12*7.35982460948205E2);
+}
+
 void minv_vec_weld_3(real_ lE, real_* v, real_* edd)
 {
 	real_ v1  = v[0];

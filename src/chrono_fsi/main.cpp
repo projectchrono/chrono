@@ -1582,7 +1582,7 @@ int main() {
 	paramsH.v_Max = 2e-2; /*0.2 for Re = 100 */ //2e-3;
 	paramsH.EPS_XSPH = .5f;
 	paramsH.dT = .0001; //sph alone: .01 for Re 10;
-	paramsH.tFinal = 2;
+	paramsH.tFinal = 100;
 	paramsH.kdT = 5;
 	paramsH.gammaBB = 0.5;
 	paramsH.cMin = R3(0, -.1, -.1) * paramsH.sizeScale;
