@@ -9,8 +9,14 @@
 using namespace std;
 
 
-real_ AngleF3F3(real3 a, real3 b) {
-	return acos(dot(a, b));
+real_ AngleF3F3(real3 a3, real3 b3) {
+	real_ cosTheta = dot(a3, b3);
+	if(cosTheta>1){
+		cosTheta=1;
+	} else if(cosTheta<-1){
+		cosTheta=-1;
+	}
+	return acos(cosTheta);
 }
 //*******************************************************************************************************************************
 
@@ -247,10 +253,12 @@ void PrintToFile(
 	ofstream fileRigidParticleCenterVsTimeAndDistance;
 	int numRigidBodiesInOnePeriod = int(posRigidH.size() / real_(paramsH.nPeriod) + .5);
 	int tStepRigidCenterPos = 1000;
+
+
 	if (tStep % tStepRigidCenterPos == 0) {
 		if (tStep / tStepRigidCenterPos == 0) {
 			fileRigidParticleCenterVsTimeAndDistance.open("dataRigidCenterVsTimeAndDistance.txt");
-			fileRigidParticleCenterVsTimeAndDistance<<"(t, x, dist[or y], dum[or z],   x_cumul, y, z,   vx, vy, vz,   omega_x, omega_y, omega_z) (sequentially for all particles), average flow velocity (x, y, z, magnitude), channel radius\n" << endl;
+			fileRigidParticleCenterVsTimeAndDistance<<"(t, x, dist[or y], dum[or z],   x_cumul, y, z,   vx, vy, vz, thetaRigid_ZAxis_withX, thetaRigid_ZAxis_withY, thetaRigid_ZAxis_withZ, omega_x, omega_y, omega_z) (sequentially for all particles), average flow velocity (x, y, z, magnitude), channel radius\n" << endl;
 		} else {
 			fileRigidParticleCenterVsTimeAndDistance.open("dataRigidCenterVsTimeAndDistance.txt", ios::app);
 		}
@@ -275,6 +283,16 @@ void PrintToFile(
 //				ssParticleCenterVsTime << realTime << ", " << p_rigid.y << ", " << p_rigid.z;
 //				ssParticleCenterVsDistance << p_rigidCumul.x << ", " << p_rigid.y << ", " << p_rigid.z;
 
+
+				//Calc angle between rigid Z and reference frame
+				real3 aD1 = AD1[j];
+				real3 aD2 = AD2[j];
+				real3 aD3 = AD3[j];
+				real3 axisZ = R3(aD1.z, aD2.z, aD3.z);
+				real_ thetaRigid_ZAxis_withX = AngleF3F3(axisZ, R3(1, 0, 0));
+				real_ thetaRigid_ZAxis_withY = AngleF3F3(axisZ, R3(0, 1, 0));
+				real_ thetaRigid_ZAxis_withZ = AngleF3F3(axisZ, R3(0, 0, 1));
+
 //				//***radial distance (tube)
 				real2 dist2 = R2(channelCenterYZ.x - p_rigid.y, channelCenterYZ.y - p_rigid.z);
 				printf("center %f %f and radius %f and py and pz %f %f\n", channelCenterYZ.x, channelCenterYZ.y, channelRadius, p_rigid.y, p_rigid.z);
@@ -282,6 +300,7 @@ void PrintToFile(
 						length(dist2) / channelRadius << ", " << length(dist2) / channelRadius << ", " <<
 						p_rigidCumul.x << ", " << p_rigid.y << ", " << p_rigid.z << ", " <<
 						v_rigid.x << ", " << v_rigid.y << ", " << v_rigid.z << ", " <<
+						thetaRigid_ZAxis_withX << ", " << thetaRigid_ZAxis_withY << ", " << thetaRigid_ZAxis_withZ << ", " <<
 						omega_rigid.x << ", " << omega_rigid.y << ", " << omega_rigid.z << ", " << aveVel.x << ", " << aveVel.y << ", " << aveVel.z << ", " << length(aveVel) << ", " << channelRadius << ", ";
 			}
 			ssParticleCenterVsTime<<endl;
@@ -294,7 +313,7 @@ void PrintToFile(
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	ofstream flexTipPos;
 	int numFlexBodiesInOnePeriod = int(ANCF_ReferenceArrayNodesOnBeams.size() / real_(paramsH.nPeriod) + .5);
-	int tFlexTipPos = 10;
+	int tFlexTipPos = 1000;
 	if (tStep % tFlexTipPos == 0) {
 		if (tStep / tFlexTipPos == 0) {
 			flexTipPos.open("dataFlexTip.txt");
@@ -314,11 +333,17 @@ void PrintToFile(
 				int2 nodesPortioni2 = ANCF_ReferenceArrayNodesOnBeams[j];
 				real3 p_tip = ANCF_NodesH[nodesPortioni2.y - 1];
 				real3 v_tip = ANCF_NodesVelH[nodesPortioni2.y - 1];
-				real3 s_tip =
+				real3 s_tip = ANCF_SlopesH[nodesPortioni2.y - 1];
+
+				real_ thetaX = AngleF3F3(s_tip, R3(1,0,0));
+				real_ thetaY = AngleF3F3(s_tip, R3(0,1,0));
+				real_ thetaZ = AngleF3F3(s_tip, R3(0,0,1));
+
 
 				ssBeamTipVsTime << realTime << ", " <<
 						p_tip.x << ", " << p_tip.y << ", " << p_tip.z << ", " <<
 						v_tip.x << ", " << v_tip.y << ", " << v_tip.z << ", " <<
+						thetaX << ", " << thetaY << ", " << thetaZ << ", " <<
 						length(aveVel) << ", ";
 			}
 			ssBeamTipVsTime<<endl;
