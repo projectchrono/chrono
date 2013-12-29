@@ -64,6 +64,14 @@ struct Rotation {
 	real_ a00, a01, a02, a10, a11, a12, a20, a21, a22;
 };
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+struct CylinderGeometry {
+	real3 pa3;
+	real3 pb3;
+	real3 center;
+	real_ r;
+	real_ h;
+};
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 // first comp of q is rotation, last 3 components are axis of rot
 void CalcQuat2RotationMatrix(Rotation & rotMat, const real4 & q) {
 	rotMat.a00 = 2.0 * (0.5f - q.z * q.z - q.w * q.w);
@@ -120,20 +128,26 @@ void CreateMassMomentEllipsoid(real_ & mass, real3 & j1, real3 & j2, real_ r1,
 	j2 = .2 * mass * R3(r1 * r1 + r3 * r3, 0.0f, r1 * r1 + r2 * r2);
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-void CreateMassMomentCylinder(real_ & mass, real3 & j1, real3 & j2, real_ r1,
+void CreateMassMomentCylinder2D_XZ(real_ & mass, real3 & j1, real3 & j2, real_ r1,
 		const real_ rhoRigid) {
 	mass = PI * pow(r1, 2) * (paramsH.cMax.y - paramsH.cMin.y) * rhoRigid; //for cylinder
-	j1 =
-			R3(
-					1.0 / 12.0 * mass
-							* (3 * pow(r1, 2)
-									+ pow(paramsH.cMax.y - paramsH.cMin.y, 2)),
-					0, 0);
-	j2 =
-			R3(.5 * mass * pow(r1, 2), 0,
-					1.0 / 12.0 * mass
-							* (3 * pow(r1, 2)
-									+ pow(paramsH.cMax.y - paramsH.cMin.y, 2)));
+	j1 = R3(1.0 / 12.0 * mass * (
+			3 * pow(r1, 2) + pow(paramsH.cMax.y - paramsH.cMin.y, 2)
+			), 0, 0);
+	j2 = R3(.5 * mass * pow(r1, 2), 0,
+					1.0 / 12.0 * mass * (
+							3 * pow(r1, 2)	+ pow(paramsH.cMax.y - paramsH.cMin.y, 2))
+							);
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+void CreateMassMomentCylinder3D_AlongZ(real_ & mass, real3 & j1, real3 & j2, real_ r1, real_ h, const real_ rhoRigid) {
+	mass = PI * pow(r1, 2) * h * rhoRigid; //for cylinder
+	j1 = R3(1.0 / 12.0 * mass * (
+				3 * pow(r1, 2) + pow(h, 2)
+				), 0, 0);
+	j2 = R3(1.0 / 12.0 * mass * (
+			3 * pow(r1, 2) + pow(h, 2)
+			), 0, 0.5 * mass * pow(r1, 2));
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CalcInvJ(const real3 j1, const real3 j2, real3 & invJ1, real3 & invJ2) {
@@ -163,7 +177,7 @@ void CalcInvJ(const real3 j1, const real3 j2, real3 & invJ1, real3 & invJ2) {
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CreateRigidBodiesRandom(thrust::host_vector<real3> & rigidPos,
 		thrust::host_vector<real4> & mQuatRot,
-		thrust::host_vector<real4> & spheresVelMas,
+		thrust::host_vector<real4> & velMassRigidH,
 		thrust::host_vector<real3> & rigidBodyOmega,
 		thrust::host_vector<real3> & rigidBody_J1,
 		thrust::host_vector<real3> & rigidBody_J2,
@@ -216,7 +230,7 @@ void CreateRigidBodiesRandom(thrust::host_vector<real3> & rigidPos,
 		CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x, referenceR.y,
 				referenceR.z, rhoRigid); //create Ellipsoid
 
-		spheresVelMas.push_back(R4(0, 0, 0, real_(mass)));
+		velMassRigidH.push_back(R4(0, 0, 0, real_(mass)));
 		rigidBodyOmega.push_back(R3(0, 0, 0));
 		rigidBody_J1.push_back(j1);
 		rigidBody_J2.push_back(j2);
@@ -231,7 +245,7 @@ void CreateRigidBodiesRandom(thrust::host_vector<real3> & rigidPos,
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CreateRigidBodiesFromFile(thrust::host_vector<real3> & rigidPos,
 		thrust::host_vector<real4> & mQuatRot,
-		thrust::host_vector<real4> & spheresVelMas,
+		thrust::host_vector<real4> & velMassRigidH,
 		thrust::host_vector<real3> & rigidBodyOmega,
 		thrust::host_vector<real3> & rigidBody_J1,
 		thrust::host_vector<real3> & rigidBody_J2,
@@ -267,9 +281,9 @@ void CreateRigidBodiesFromFile(thrust::host_vector<real3> & rigidPos,
 			real3 j1, j2;
 
 			CreateMassMomentEllipsoid(mass, j1, j2, r1, r2, r3, rhoRigid); //create Ellipsoid
-			//CreateMassMomentCylinder(mass, j1, j2, r1, paramsH.cMin, paramsH.cMax, rhoRigid);			//create Cylinder
+			//CreateMassMomentCylinder2D_XZ(mass, j1, j2, r1, paramsH.cMin, paramsH.cMax, rhoRigid);			//create Cylinder
 
-			spheresVelMas.push_back(R4(0, 0, 0, real_(mass)));
+			velMassRigidH.push_back(R4(0, 0, 0, real_(mass)));
 			rigidBodyOmega.push_back(R3(0, 0, 0));
 			rigidBody_J1.push_back(j1);
 			rigidBody_J2.push_back(j2);
@@ -286,9 +300,50 @@ void CreateRigidBodiesFromFile(thrust::host_vector<real3> & rigidPos,
 	ifileSpheres.close();
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+void CreateOne3DRigidCylinder(
+		thrust::host_vector<real3> & rigidPos,
+		thrust::host_vector<real4> & mQuatRot,
+		thrust::host_vector<real4> & velMassRigidH,
+		thrust::host_vector<real3> & rigidBodyOmega,
+		thrust::host_vector<real3> & rigidBody_J1,
+		thrust::host_vector<real3> & rigidBody_J2,
+		thrust::host_vector<real3> & rigidBody_InvJ1,
+		thrust::host_vector<real3> & rigidBody_InvJ2,
+		thrust::host_vector<CylinderGeometry> & cylinderGeom,
+		const string fileNameRigids, const real_ rhoRigid,
+		const real2 cylinderR_H) {
+
+	CylinderGeometry cylGeom;
+	cylGeom.r = cylinderR_H.x;
+	cylGeom.h = cylinderR_H.y;
+	real3 pa3 = R3(.3, .4, .2);
+	real3 pb3 = pa3 + R3(0,0, cylGeom.h);
+	cylGeom.pa3 = pa3;
+	cylGeom.pb3 = pb3;
+	cylGeom.center = 0.5 * (cylGeom.pa3 + cylGeom.pb3);
+	rigidPos.push_back(0.5 * (pa3 + pb3));
+	cylinderGeom.push_back(cylGeom);
+
+	mQuatRot.push_back(R4(1, 0, 0, 0));
+	real_ mass;
+	real3 j1, j2;
+	CreateMassMomentCylinder3D_AlongZ(mass, j1, j2, cylGeom.r, cylGeom.h, rhoRigid);			//create Cylinder
+
+	velMassRigidH.push_back(R4(0, 0, 0, real_(mass)));
+	rigidBodyOmega.push_back(R3(0, 0, 0));
+	rigidBody_J1.push_back(j1);
+	rigidBody_J2.push_back(j2);
+
+	real3 invJ1, invJ2;
+	CalcInvJ(j1, j2, invJ1, invJ2);
+	rigidBody_InvJ1.push_back(invJ1);
+	rigidBody_InvJ2.push_back(invJ2);
+
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CreateRigidBodiesPattern(thrust::host_vector<real3> & rigidPos,
 		thrust::host_vector<real4> & mQuatRot,
-		thrust::host_vector<real4> & spheresVelMas,
+		thrust::host_vector<real4> & velMassRigidH,
 		thrust::host_vector<real3> & rigidBodyOmega,
 		thrust::host_vector<real3> & rigidBody_J1,
 		thrust::host_vector<real3> & rigidBody_J2,
@@ -316,7 +371,7 @@ void CreateRigidBodiesPattern(thrust::host_vector<real3> & rigidPos,
 				CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x,
 						referenceR.y, referenceR.z, rhoRigid); //create Ellipsoid
 
-				spheresVelMas.push_back(R4(0, 0, 0, real_(mass)));
+				velMassRigidH.push_back(R4(0, 0, 0, real_(mass)));
 				rigidBodyOmega.push_back(R3(0, 0, 0));
 				rigidBody_J1.push_back(j1);
 				rigidBody_J2.push_back(j2);
@@ -332,7 +387,7 @@ void CreateRigidBodiesPattern(thrust::host_vector<real3> & rigidPos,
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CreateRigidBodiesPatternPipe(thrust::host_vector<real3> & rigidPos,
 		thrust::host_vector<real4> & mQuatRot,
-		thrust::host_vector<real4> & spheresVelMas,
+		thrust::host_vector<real4> & velMassRigidH,
 		thrust::host_vector<real3> & rigidBodyOmega,
 		thrust::host_vector<real3> & rigidBody_J1,
 		thrust::host_vector<real3> & rigidBody_J2,
@@ -364,7 +419,7 @@ void CreateRigidBodiesPatternPipe(thrust::host_vector<real3> & rigidPos,
 				CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x,
 						referenceR.y, referenceR.z, rhoRigid); //create Ellipsoid
 
-				spheresVelMas.push_back(R4(0, 0, 0, real_(mass)));
+				velMassRigidH.push_back(R4(0, 0, 0, real_(mass)));
 				rigidBodyOmega.push_back(R3(0, 0, 0));
 				rigidBody_J1.push_back(j1);
 				rigidBody_J2.push_back(j2);
@@ -380,7 +435,7 @@ void CreateRigidBodiesPatternPipe(thrust::host_vector<real3> & rigidPos,
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CreateRigidBodiesPatternStepPipe(thrust::host_vector<real3> & rigidPos,
 		thrust::host_vector<real4> & mQuatRot,
-		thrust::host_vector<real4> & spheresVelMas,
+		thrust::host_vector<real4> & velMassRigidH,
 		thrust::host_vector<real3> & rigidBodyOmega,
 		thrust::host_vector<real3> & rigidBody_J1,
 		thrust::host_vector<real3> & rigidBody_J2,
@@ -418,7 +473,7 @@ void CreateRigidBodiesPatternStepPipe(thrust::host_vector<real3> & rigidPos,
 				CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x,
 						referenceR.y, referenceR.z, rhoRigid); //create Ellipsoid
 
-				spheresVelMas.push_back(R4(0, 0, 0, real_(mass)));
+				velMassRigidH.push_back(R4(0, 0, 0, real_(mass)));
 				rigidBodyOmega.push_back(R3(0, 0, 0));
 				rigidBody_J1.push_back(j1);
 				rigidBody_J2.push_back(j2);
@@ -435,7 +490,7 @@ void CreateRigidBodiesPatternStepPipe(thrust::host_vector<real3> & rigidPos,
 void CreateRigidBodiesPatternPipe_KindaRandom(
 		thrust::host_vector<real3> & rigidPos,
 		thrust::host_vector<real4> & mQuatRot,
-		thrust::host_vector<real4> & spheresVelMas,
+		thrust::host_vector<real4> & velMassRigidH,
 		thrust::host_vector<real3> & rigidBodyOmega,
 		thrust::host_vector<real3> & rigidBody_J1,
 		thrust::host_vector<real3> & rigidBody_J2,
@@ -511,7 +566,7 @@ void CreateRigidBodiesPatternPipe_KindaRandom(
 				CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x,
 						referenceR.y, referenceR.z, rhoRigid); //create Ellipsoid
 
-				spheresVelMas.push_back(R4(0, 0, 0, real_(mass)));
+				velMassRigidH.push_back(R4(0, 0, 0, real_(mass)));
 				rigidBodyOmega.push_back(R3(0, 0, 0));
 				rigidBody_J1.push_back(j1);
 				rigidBody_J2.push_back(j2);
@@ -541,7 +596,7 @@ void CreateOneFlexBody(thrust::host_vector<real3> & ANCF_Nodes,
 	int numElementsPerBeam = flexParams.ne;
 	real_ myMargin = paramsH.MULT_INITSPACE * (paramsH.NUM_BCE_LAYERS + 1)
 			* paramsH.HSML;
-	real3 pa3 = R3(.3, .5, .2);
+	real3 pa3 = R3(.3, .4, .2);
 	real3 pb3 = pa3 + R3(0,0,beamLength);
 
 	if (pb3.x > paramsH.cMax.x) {
@@ -1224,8 +1279,10 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 		const thrust::host_vector<real3> & rigidPos,
 		const thrust::host_vector<Rotation> rigidRotMatrix,
 		const thrust::host_vector<real3> & ellipsoidRadii,
+		const thrust::host_vector<CylinderGeometry> & cylinderGeom,
 		const thrust::host_vector<real3> & ANCF_Nodes,
-		const thrust::host_vector<int2> & ANCF_ReferenceArrayNodesOnBeams) {
+		const thrust::host_vector<int2> & ANCF_ReferenceArrayNodesOnBeams,
+		const ANCF_Params & flexParams) {
 //	printf("\n\n\nStraightChannelBoundaries: \n   min: %f %f %f\n   max %f %f %f\n\n\n", straightChannelBoundaryMin.x, straightChannelBoundaryMin.y, straightChannelBoundaryMin.z,
 //			straightChannelBoundaryMax.x, straightChannelBoundaryMax.y, straightChannelBoundaryMax.z);
 //	printf("\n\n\nPipeSpecs: \n   channelRadius: %f \n   channelCenterYZ %f %f\n\n\n", channelRadius, channelCenterYZ.x, channelCenterYZ.y);
@@ -1285,14 +1342,16 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 				if (penDist < -toleranceZone)
 					flag = false;
 				if (flag) {
-					for (int rigidSpheres = 0; rigidSpheres < rigidPos.size();
-							rigidSpheres++) {
-						if (IsInsideEllipsoid(posRad, rigidPos[rigidSpheres],
-								rigidRotMatrix[rigidSpheres],
-								ellipsoidRadii[rigidSpheres], initSpace0)) {
-							flag = false;
-						}
-//						if ( IsInsideCylinder_XZ(posRad, rigidPos[rigidSpheres], ellipsoidRadii[rigidSpheres], initSpace0 ) ) { flag = false;}
+					for (int rigidBodyIdx = 0; rigidBodyIdx < rigidPos.size();
+							rigidBodyIdx++) {
+						//** Ellipsoid
+//						if (IsInsideEllipsoid(posRad, rigidPos[rigidBodyIdx], rigidRotMatrix[rigidBodyIdx], ellipsoidRadii[rigidBodyIdx], initSpace0)) {
+//							flag = false;
+//						}
+						//** Cylinder_XZ
+//						if ( IsInsideCylinder_XZ(posRad, rigidPos[rigidBodyIdx], ellipsoidRadii[rigidBodyIdx], initSpace0 ) ) { flag = false;}
+						//** cylinder3D
+						if (IsInsideCylinder_3D(posRad, cylinderGeom[rigidBodyIdx].pa3, cylinderGeom[rigidBodyIdx].pb3, cylinderGeom[rigidBodyIdx].r, initSpace0)) { flag = false;}
 					}
 					for (int flexID = 0;
 							flexID < ANCF_ReferenceArrayNodesOnBeams.size();
@@ -1302,7 +1361,7 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 						real3 pa3 = ANCF_Nodes[nodesStartEnd2.x];
 						real3 pb3 = ANCF_Nodes[nodesStartEnd2.y - 1];
 						if (IsInsideStraightFlex(posRad, pa3, pb3,
-								(paramsH.NUM_BCE_LAYERS - 1) * initSpace0,
+								flexParams.r,
 								initSpace0)) {
 							flag = false;
 						}
@@ -1439,7 +1498,7 @@ int CreateEllipsoidMarkers(thrust::host_vector<real3> & mPosRad,
 	return num_RigidBodyMarkers;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-int CreateFlexMarkers(thrust::host_vector<real3> & mPosRad,
+int Create3D_CylinderMarkers(thrust::host_vector<real3> & mPosRad,
 		thrust::host_vector<real4> & mVelMas,
 		thrust::host_vector<real4> & mRhoPresMu,
 
@@ -1448,8 +1507,8 @@ int CreateFlexMarkers(thrust::host_vector<real3> & mPosRad,
 		real3 pa3, //inital point
 		real3 pb3, //end point
 		real_ l, //beam length			//thrust::host_vector<real_> &  ANCF_Beam_Length
-		real_ sphMarkerMass, int type,
-		ANCF_Params flexParams) {
+		real_ rad,
+		real_ sphMarkerMass, int type) {
 	int num_FlexMarkers = 0;
 	real_ multInitSpace = paramsH.MULT_INITSPACE; //0.9;//1.0;//0.9;
 	real_ spacing = multInitSpace * paramsH.HSML;
@@ -1479,7 +1538,7 @@ int CreateFlexMarkers(thrust::host_vector<real3> & mPosRad,
 				R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type)); //take care of type			 /// type needs to be unique, to differentiate flex from other flex as well as other rigids
 		flexParametricDist.push_back(s);
 		num_FlexMarkers++;
-		for (real_ r = spacing; r < flexParams.r + .1 * spacing; r += spacing) {
+		for (real_ r = spacing; r < rad + .1 * spacing; r += spacing) {
 			real_ deltaTeta = spacing / r;
 			for (real_ teta = .1 * deltaTeta; teta < 2 * PI - .1 * deltaTeta;
 					teta += deltaTeta) {
@@ -1501,6 +1560,22 @@ int CreateFlexMarkers(thrust::host_vector<real3> & mPosRad,
 		}
 	}
 	return num_FlexMarkers;
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+int CreateFlexMarkers(thrust::host_vector<real3> & mPosRad,
+		thrust::host_vector<real4> & mVelMas,
+		thrust::host_vector<real4> & mRhoPresMu,
+
+		thrust::host_vector<real_> & flexParametricDist,
+
+		real3 pa3, //inital point
+		real3 pb3, //end point
+		real_ l, //beam length			//thrust::host_vector<real_> &  ANCF_Beam_Length
+		real_ rad,
+		real_ sphMarkerMass, int type) {
+	return Create3D_CylinderMarkers(
+			mPosRad, mVelMas, mRhoPresMu, flexParametricDist,
+			pa3, pb3, l, rad, sphMarkerMass,  type);
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 int CreateCylinderMarkers_XZ(thrust::host_vector<real3> & mPosRad,
@@ -1600,6 +1675,9 @@ int main() {
 	flexParams.I = .25 * PI * pow(flexParams.r, 4.0f);
 	flexParams.gravity = paramsH.gravity;
 
+	//3D cylinder params:
+	real_ rhoRigid = 7200; //1.0 * paramsH.rho0;
+
 	// note: for 3D pipe Poiseuille: f = 32*Re*mu^2/(rho^2 * D^3), where f: body force, Re = rho * u_ave * D / mu
 	// note: for 2D pipe Poiseuille: f = 12*Re*mu^2/(rho^2 * W^3), where f: body force, Re = rho * u_ave * W / mu
 	//****************************************************************************************
@@ -1616,8 +1694,6 @@ int main() {
 	//(void) cudaSetDevice(0);
 	int numAllMarkers = 0;
 	//********************************************************************************************************
-	//** Initialization
-	real_ r = paramsH.HSML; //.02;
 
 	//**  reminiscent of the past******************************************************************************
 	//paramsH.cMin = R3(0, -0.2, -1.2) * paramsH.sizeScale; 							//for channel and serpentine
@@ -1662,7 +1738,6 @@ int main() {
 
 	bool readFromFile = false; //true;		//true: initializes from file. False: initializes inside the code
 
-	real_ rhoRigid;
 	//1---------------------------------------------- Initialization ----------------------------------------
 	//2------------------------------------------- Generating Random Data -----------------------------------
 	// This section can be used to generate ellipsoids' specifications and save them into data.txt	
@@ -1680,7 +1755,8 @@ int main() {
 	thrust::host_vector<real3> rigidPos;
 	thrust::host_vector<real4> mQuatRot;
 	thrust::host_vector<real3> ellipsoidRadii;
-	thrust::host_vector<real4> spheresVelMas;
+	thrust::host_vector<CylinderGeometry> cylinderGeom;
+	thrust::host_vector<real4> velMassRigidH;
 	thrust::host_vector<real3> rigidBodyOmega;
 	thrust::host_vector<real3> rigidBody_J1;
 	thrust::host_vector<real3> rigidBody_J2;
@@ -1706,22 +1782,33 @@ int main() {
 
 	////***** here: define rigid bodies
 	string fileNameRigids("spheresPos.dat");
-	rhoRigid = 1.0 * paramsH.rho0; //1.5 * paramsH.rho0; // paramsH.rho0;//1180;//1000; //1050; //originally .079 //.179 for cylinder
 
 	//real_ rr = .4 * (real_(rand()) / RAND_MAX + 1);
 	real3 r3Ellipsoid = R3(0.5, 0.5, 0.5) * paramsH.sizeScale; //R3(0.4 * paramsH.sizeScale); //R3(0.8 * paramsH.sizeScale); //real3 r3Ellipsoid = R3(.03 * paramsH.sizeScale); //R3(.05, .03, .02) * paramsH.sizeScale; //R3(.03 * paramsH.sizeScale);
 
 	//**
 //	int3 stride = I3(5, 5, 5);
-//	CreateRigidBodiesPattern(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride);
+//	CreateRigidBodiesPattern(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride);
 	//**
-//	CreateRigidBodiesFromFile(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
+//	CreateRigidBodiesFromFile(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
 	//**
-	real_ beamLength = .1;
-	CreateOneFlexBody(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
-			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever,
-			channelRadius,
-			paramsH.cMax.x - paramsH.cMin.x, pipeInPoint3, beamLength, flexParams);
+	real2 cylinderR_H = R2(flexParams.r, .1);
+	CreateOne3DRigidCylinder(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
+			rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, cylinderGeom, fileNameRigids, rhoRigid, cylinderR_H);
+	//**
+//	//channelRadius = 1.0 * paramsH.sizeScale;
+//	CreateRigidBodiesPatternPipe(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
+//	CreateRigidBodiesPatternStepPipe(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
+
+	//**
+//	CreateRigidBodiesRandom(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, 2); //changed 2 to 4
+//	CreateRigidBodiesPatternPipe_KindaRandom(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, 128);
+	//**
+//	real_ beamLength = .1;
+//	CreateOneFlexBody(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
+//			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever,
+//			channelRadius,
+//			paramsH.cMax.x - paramsH.cMin.x, pipeInPoint3, beamLength, flexParams);
 
 	//**
 //	CreateSomeFlexBodies(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
@@ -1742,13 +1829,6 @@ int main() {
 //			flexParams);
 	//**
 
-//	//channelRadius = 1.0 * paramsH.sizeScale;
-//	CreateRigidBodiesPatternPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
-//	CreateRigidBodiesPatternStepPipe(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
-
-	//**
-//	CreateRigidBodiesRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, 2); //changed 2 to 4
-//	CreateRigidBodiesPatternPipe_KindaRandom(rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, 128);
 	printf("numRigids %d\n", rigidPos.size());
 	printf("rigid Radii %f %f %f\n", r3Ellipsoid.x, r3Ellipsoid.y,
 			r3Ellipsoid.z);
@@ -1793,7 +1873,8 @@ int main() {
 		int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(mPosRad, mVelMas,
 				mRhoPresMu, mPosRadBoundary, mVelMasBoundary,
 				mRhoPresMuBoundary, sphMarkerMass, rigidPos, rigidRotMatrix,
-				ellipsoidRadii, ANCF_Nodes, ANCF_ReferenceArrayNodesOnBeams);
+				ellipsoidRadii, cylinderGeom, ANCF_Nodes, ANCF_ReferenceArrayNodesOnBeams,
+				flexParams);
 		referenceArray.push_back(I3(0, num_fluidOrBoundaryMarkers.x, -1)); //map fluid -1
 //		referenceArray_Types.push_back((I3(-1, 0, 0)));
 		numAllMarkers += num_fluidOrBoundaryMarkers.x;
@@ -1828,22 +1909,33 @@ int main() {
 		//rigid body: type = 1, 2, 3, ...
 //		printf("num_RigidBodyMarkers: \n");
 		int totalNumRigidMarkers = 0;
-		for (int rigidSpheres = 0; rigidSpheres < rigidPos.size();
-				rigidSpheres++) {
-			int num_RigidBodyMarkers = CreateEllipsoidMarkers(mPosRad, mVelMas,
-					mRhoPresMu, rigidPos[rigidSpheres],
-					rigidRotMatrix[rigidSpheres], ellipsoidRadii[rigidSpheres],
-					spheresVelMas[rigidSpheres], rigidBodyOmega[rigidSpheres],
-					sphMarkerMass, rigidSpheres + 1); //as type
+		for (int rigidBodyIdx = 0; rigidBodyIdx < rigidPos.size();
+				rigidBodyIdx++) {
+			//** Ellipsoid
+//			int num_RigidBodyMarkers = CreateEllipsoidMarkers(mPosRad, mVelMas,
+//					mRhoPresMu, rigidPos[rigidBodyIdx],
+//					rigidRotMatrix[rigidBodyIdx], ellipsoidRadii[rigidBodyIdx],
+//					velMassRigidH[rigidBodyIdx], rigidBodyOmega[rigidBodyIdx],
+//					sphMarkerMass, rigidBodyIdx + 1); //as type
+			//** Cylinder_XZ
 //			int num_RigidBodyMarkers = CreateCylinderMarkers_XZ(mPosRad, mVelMas, mRhoPresMu,
-//													rigidPos[rigidSpheres], ellipsoidRadii[rigidSpheres],
-//													 spheresVelMas[rigidSpheres],
-//													 rigidBodyOmega[rigidSpheres],
+//													rigidPos[rigidBodyIdx], ellipsoidRadii[rigidBodyIdx],
+//													 velMassRigidH[rigidBodyIdx],
+//													 rigidBodyOmega[rigidBodyIdx],
 //													sphMarkerMass,
-//													 rigidSpheres + 1);		//as type
+//													 rigidBodyIdx + 1);		//as type
+			//** Cylinder 3D
+			thrust::host_vector<real_> dummyParamDist;
+			int num_RigidBodyMarkers = Create3D_CylinderMarkers(mPosRad, mVelMas, mRhoPresMu,
+					dummyParamDist,
+					cylinderGeom[rigidBodyIdx].pa3, cylinderGeom[rigidBodyIdx].pb3, cylinderGeom[rigidBodyIdx].h, cylinderGeom[rigidBodyIdx].r,
+					sphMarkerMass,
+					rigidBodyIdx + 1); 		//as type
+			dummyParamDist.clear();
+			//******************************
 			referenceArray.push_back(
 					I3(numAllMarkers, numAllMarkers + num_RigidBodyMarkers, 1)); //rigid type: 1
-//			referenceArray_Types.push_back(I3(1, rigidSpheres, 0));
+//			referenceArray_Types.push_back(I3(1, rigidBodyIdx, 0));
 			numAllMarkers += num_RigidBodyMarkers;
 //			printf(" %d \n", num_RigidBodyMarkers);
 			totalNumRigidMarkers += num_RigidBodyMarkers;
@@ -1863,12 +1955,12 @@ int main() {
 					mRhoPresMu, flexParametricDist, pa3, //inital point
 					pb3, //end point
 					ANCF_Beam_Length[flexBodyIdx], //beam length			//thrust::host_vector<real_> &  ANCF_Beam_Length
-					sphMarkerMass, flexBodyIdx + rigidPos.size() + 1,
-					flexParams);
+					flexParams.r,
+					sphMarkerMass, flexBodyIdx + rigidPos.size() + 1);
 
 			referenceArray.push_back(
-					I3(numAllMarkers, numAllMarkers + num_FlexMarkers, 2)); //map bc : rigidSpheres + 1
-//			referenceArray_Types.push_back(I3(1, rigidSpheres, 0));
+					I3(numAllMarkers, numAllMarkers + num_FlexMarkers, 2)); //map bc : rigidBodyIdx + 1
+//			referenceArray_Types.push_back(I3(1, rigidBodyIdx, 0));
 			numAllMarkers += num_FlexMarkers;
 			totalNumFlexMarkers += num_FlexMarkers;
 			//printf(" %d \n", num_RigidBodyMarkers);
@@ -1887,7 +1979,7 @@ int main() {
 
 	if (numAllMarkers != 0) {
 		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray,
-				rigidPos, mQuatRot, spheresVelMas, rigidBodyOmega, rigidBody_J1,
+				rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1,
 				rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ANCF_Nodes,
 				ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel, ANCF_Beam_Length,
 				ANCF_IsCantilever, ANCF_ReferenceArrayNodesOnBeams, flexParametricDist,
@@ -1904,7 +1996,8 @@ int main() {
 	mQuatRot.clear();
 	rigidRotMatrix.clear();
 	ellipsoidRadii.clear();
-	spheresVelMas.clear();
+	cylinderGeom.clear();
+	velMassRigidH.clear();
 	rigidBodyOmega.clear();
 	rigidBody_J1.clear();
 	rigidBody_J2.clear();
