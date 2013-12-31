@@ -36,8 +36,12 @@ IF(ENABLE_UNIT_FEM)
 		)
 	SET(ChronoEngine_UNIT_FEM_HEADERS
 		ChApiFEM.h  
+		ChContinuumPoisson3D.h
+		ChContinuumThermal.h
+		ChContinuumElectrostatics.h
 		ChNodeFEMbase.h 
-		ChNodeFEMxyz.h 
+		ChNodeFEMxyz.h
+		ChNodeFEMxyzP.h 
 		ChElementBase.h
 		ChElementGeneric.h
 		ChElementSpring.h

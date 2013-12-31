@@ -141,7 +141,7 @@ public:
 			/// Note: is performed every time you change a material parameter
 	void ComputeStressStrainMatrix();
 			/// Get the Elasticity matrix 
-	ChMatrixDynamic<> Get_StressStrainMatrix () {return StressStrainMatrix;}
+	ChMatrixDynamic<>& Get_StressStrainMatrix () {return StressStrainMatrix;}
 
 
 			/// Compute elastic stress from elastic strain
@@ -170,13 +170,13 @@ public:
 					mstrain.YZ() = mstress.YZ() * invhG;
 				}
 
-			/// Set the Rayleigh mass-proportional damping factor, to 
+			/// Set the Rayleigh mass-proportional damping factor alpha, to 
 			/// build damping R as  R=alpha*M + beta*K
 	void   Set_RayleighDampingM (double m_d) {this->damping_M = m_d;}
-			/// Set the Rayleigh mass-proportional damping factor, in R=alpha*M + beta*K
+			/// Set the Rayleigh mass-proportional damping factor alpha, in R=alpha*M + beta*K
 	double Get_RayleighDampingM () {return this->damping_M;}
 
-			/// Set the Rayleigh stiffness-proportional damping factor alpha, to 
+			/// Set the Rayleigh stiffness-proportional damping factor beta, to 
 			/// build damping R as  R=alpha*M + beta*K
 	void   Set_RayleighDampingK (double m_d) {this->damping_K = m_d;}
 			/// Set the Rayleigh stiffness-proportional damping factor beta, in R=alpha*M + beta*K
