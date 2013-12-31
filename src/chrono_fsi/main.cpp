@@ -756,7 +756,7 @@ void CreateManyFlexBodiesChannel(thrust::host_vector<real3> & ANCF_Nodes,
 	int numElementsPerBeam = flexParams.ne;
 	real_ margin = 2 * paramsH.HSML;
 	real_ spaceFlex = 2 * (flexParams.r + margin);
-	real_ beamLength = paramsH.HSML * 20;
+	real_ beamLength = paramsH.HSML * 40;
 	real_ beamLengthWithSpacing = beamLength + 2 * margin;
 
 	real3 n3Flex = R3( (straightChannelBoundaryMax.x - straightChannelBoundaryMin.x) / spaceFlex, (straightChannelBoundaryMax.y - straightChannelBoundaryMin.y) / spaceFlex,
@@ -788,7 +788,7 @@ void CreateManyFlexBodiesChannel(thrust::host_vector<real3> & ANCF_Nodes,
 					ANCF_ReferenceArrayNodesOnBeams.push_back(
 							I2(nodesSofar, nodesSofar + numElementsPerBeam + 1));
 				}
-				ANCF_IsCantilever.push_back(false);
+				ANCF_IsCantilever.push_back(true);
 
 				beamCounter ++;
 
@@ -1334,9 +1334,9 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 				///penDist = IsInsideSerpentine(posRad);
 				//*** straightChannelBoundaryMin   should be taken care of
 				//*** straightChannelBoundaryMax   should be taken care of
-				///penDist = IsInsideStraightChannel(posRad);
+				penDist = IsInsideStraightChannel(posRad);
 				///penDist = IsInsideStraightChannel_XZ(posRad);
-				penDist = IsInsideTube(posRad);
+				///penDist = IsInsideTube(posRad);
 				///penDist = IsInsideStepTube(posRad);
 
 				if (penDist < -toleranceZone)
@@ -1667,10 +1667,10 @@ int main() {
 
 
 	ANCF_Params flexParams;
-	flexParams.E = 2.0e7;
+	flexParams.E = 2.0e5;
 	flexParams.r = paramsH.HSML * paramsH.MULT_INITSPACE * (paramsH.NUM_BCE_LAYERS - 1);
-	flexParams.rho = 7200;
-	flexParams.ne = 2;
+	flexParams.rho = 1000;//7200;
+	flexParams.ne = 4;
 	flexParams.A = PI * pow(flexParams.r, 2.0f);
 	flexParams.I = .25 * PI * pow(flexParams.r, 4.0f);
 	flexParams.gravity = paramsH.gravity;
@@ -1804,11 +1804,11 @@ int main() {
 //	CreateRigidBodiesRandom(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, 2); //changed 2 to 4
 //	CreateRigidBodiesPatternPipe_KindaRandom(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, 128);
 	//**
-	real_ beamLength = .1;
-	CreateOneFlexBody(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
-			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever,
-			channelRadius,
-			paramsH.cMax.x - paramsH.cMin.x, pipeInPoint3, beamLength, flexParams);
+//	real_ beamLength = .1;
+//	CreateOneFlexBody(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
+//			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever,
+//			channelRadius,
+//			paramsH.cMax.x - paramsH.cMin.x, pipeInPoint3, beamLength, flexParams);
 
 	//**
 //	CreateSomeFlexBodies(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
@@ -1824,9 +1824,9 @@ int main() {
 	//**
 	//*** straightChannelBoundaryMin   should be taken care of
 	//*** straightChannelBoundaryMax   should be taken care of
-//	CreateManyFlexBodiesChannel(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
-//			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever,
-//			flexParams);
+	CreateManyFlexBodiesChannel(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
+			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever,
+			flexParams);
 	//**
 
 	printf("numRigids %d\n", rigidPos.size());
