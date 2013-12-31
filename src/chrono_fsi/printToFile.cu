@@ -494,7 +494,7 @@ void PrintToFile(
 				real3 vel = R3(velMasH[i]);
 				real4 rP = rhoPresMuH[i];
 				real_ velMag = length(vel);
-				ssFluidBoundaryParticles<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.z<<", "<< rP.w<<endl;
+				ssFluidBoundaryParticles<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.z<<", "<< rP.w<<", "<<endl;
 			}
 			fileNameFluidBoundaries<<ssFluidBoundaryParticles.str();
 			fileNameFluidBoundaries.close();
@@ -507,7 +507,7 @@ void PrintToFile(
 					real3 vel = R3(velMasH[i]);
 					real4 rP = rhoPresMuH[i];
 					real_ velMag = length(vel);
-					ssRigidFlexBCE<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.z<<", "<< rP.w<<endl;
+					ssRigidFlexBCE<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.z<<", "<< rP.w<<", "<<endl;
 				}
 			}
 			fileNameRigidFlexBCE<<ssRigidFlexBCE.str();
