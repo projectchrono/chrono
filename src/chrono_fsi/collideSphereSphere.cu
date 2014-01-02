@@ -1559,7 +1559,7 @@ void UpdateFlexibleBody(
 	thrust::device_vector<real3> ANCF_SlopesD3(ANCF_SlopesD2.size());
 	thrust::device_vector<real3> ANCF_NodesVelD3(ANCF_NodesVelD2.size());
 	thrust::device_vector<real3> ANCF_SlopesVelD3(ANCF_SlopesVelD2.size());
-	int n = 1;
+	int n = 40;
 	for (int i = 0; i < n; i++) {
 		thrust::copy(ANCF_NodesD2.begin(), ANCF_NodesD2.end(), ANCF_NodesD3.begin());
 		thrust::copy(ANCF_SlopesD2.begin(), ANCF_SlopesD2.end(), ANCF_SlopesD3.begin());
