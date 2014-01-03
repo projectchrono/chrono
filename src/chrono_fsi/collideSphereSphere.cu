@@ -1555,6 +1555,7 @@ void UpdateFlexibleBody(
 	//################################################### Update nodal coordinates (integrate in time)
 	//** uses the force values on nodal coordinates to update nodal position and slope and velocities ('2' at the end).
 	//*** it uses the current un-updated nodal coordinates (without '2' at the end) to calculate elastic forces.
+	//################################### multi-rate
 	thrust::device_vector<real3> ANCF_NodesD3(ANCF_NodesD2.size());
 	thrust::device_vector<real3> ANCF_SlopesD3(ANCF_SlopesD2.size());
 	thrust::device_vector<real3> ANCF_NodesVelD3(ANCF_NodesVelD2.size());
@@ -1581,12 +1582,19 @@ void UpdateFlexibleBody(
 				ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, ANCF_IsCantilever,
 				numFlexBodies, flexParams, dT/(n)
 				);
-
 	}
 	ANCF_NodesD3.clear();
 	ANCF_SlopesD3.clear();
 	ANCF_NodesVelD3.clear();
 	ANCF_SlopesVelD3.clear();
+	//################################### not multi-rate
+	//	Update_ANCF_Beam(
+	//			ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
+	//			ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
+	//			flex_FSI_NodesForces1, flex_FSI_NodesForces2,
+	//			ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, ANCF_IsCantilever,
+	//			numFlexBodies, flexParams, dT
+	//			);
 	//################################################### update BCE markers position
 	//** new nodal velocity and positions are used to update BCE markers position and velocities. "posRadD", "velMasD" are updated (only the flex portion)
 	computeGridSize(numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
