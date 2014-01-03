@@ -317,7 +317,7 @@ void PrintToFile(
 	if (tStep % tFlexTipPos == 0) {
 		if (tStep / tFlexTipPos == 0) {
 			flexTipPos.open("dataFlexTip.txt");
-			flexTipPos<<"(t, x, y, z, vx, vy, vz, thetaX, thetaY, thetaZ, fluidVelocity\n" << endl;
+			flexTipPos<<"(t, x, y, z, vx, vy, vz, vCx, vCy, vCz, thetaX, thetaY, thetaZ, fluidVelocity\n" << endl;
 		} else {
 			flexTipPos.open("dataFlexTip.txt", ios::app);
 		}
@@ -333,6 +333,7 @@ void PrintToFile(
 				int2 nodesPortioni2 = ANCF_ReferenceArrayNodesOnBeams[j];
 				real3 p_tip = ANCF_NodesH[nodesPortioni2.y - 1];
 				real3 v_tip = ANCF_NodesVelH[nodesPortioni2.y - 1];
+				real3 v_C	= ANCF_NodesVelH[(nodesPortioni2.x + nodesPortioni2.y - 1) / 2];
 				real3 s_tip = ANCF_SlopesH[nodesPortioni2.y - 1];
 
 				real_ thetaX = AngleF3F3(s_tip, R3(1,0,0));
@@ -343,6 +344,7 @@ void PrintToFile(
 				ssBeamTipVsTime << realTime << ", " <<
 						p_tip.x << ", " << p_tip.y << ", " << p_tip.z << ", " <<
 						v_tip.x << ", " << v_tip.y << ", " << v_tip.z << ", " <<
+						v_C.x << ", " << v_C.y << ", " << v_C.z << ", " <<
 						thetaX << ", " << thetaY << ", " << thetaZ << ", " <<
 						length(aveVel) << ", ";
 			}
