@@ -1852,7 +1852,7 @@ void cudaCollisions(
 	real_ realTime = 0;
 
 
-	int numPause = 10000;
+	int numPause = 	.05 * paramsH.tFinal/paramsH.dT;
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce4 = R4(0);
 	paramsH_B.gravity = R3(0);
