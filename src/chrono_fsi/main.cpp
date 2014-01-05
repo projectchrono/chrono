@@ -1277,7 +1277,8 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 		thrust::host_vector<real4> & mRhoPresMu,
 		thrust::host_vector<real3> & mPosRadBoundary,
 		thrust::host_vector<real4> & mVelMasBoundary,
-		thrust::host_vector<real4> & mRhoPresMuBoundary, real_ & sphMarkerMass,
+		thrust::host_vector<real4> & mRhoPresMuBoundary,
+		real_ & sphMarkerMass,
 		const thrust::host_vector<real3> & rigidPos,
 		const thrust::host_vector<Rotation> rigidRotMatrix,
 		const thrust::host_vector<real3> & ellipsoidRadii,
@@ -1625,6 +1626,8 @@ int CreateCylinderMarkers_XZ(thrust::host_vector<real3> & mPosRad,
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 int main() {
+
+	printf("fmod %f\n", fmod(-5,4));
 	//****************************************************************************************
 	time_t rawtime;
 	struct tm * timeinfo;

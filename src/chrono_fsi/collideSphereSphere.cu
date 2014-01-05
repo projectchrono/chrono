@@ -375,18 +375,32 @@ __global__ void ApplyPeriodicBoundaryKernel_FlexBodies(real3* ANCF_NodesD, int2*
 		return;
 	}
 	int2 nodesInterval = ANCF_ReferenceArrayNodesOnBeamsD[index];
-	bool flagX = true, flagY = true, flagZ = true;
+
+	bool flagXR = true, flagYR = true, flagZR = true;
+	bool flagXL = true, flagYL = true, flagZL = true;
 	for (int i = nodesInterval.x; i < nodesInterval.y; i++) {
 		real3 nodePos = ANCF_NodesD[i];
-		if (nodePos.x <= paramsD.cMax.x && nodePos.x >= paramsD.cMin.x) flagX = false;
-		if (nodePos.y <= paramsD.cMax.y && nodePos.y >= paramsD.cMin.y) flagY = false;
-		if (nodePos.z <= paramsD.cMax.z && nodePos.z >= paramsD.cMin.z) flagZ = false;
+		//*** max boundary
+		if (nodePos.x <= paramsD.cMax.x) flagXR = false;
+		if (nodePos.y <= paramsD.cMax.y) flagYR = false;
+		if (nodePos.z <= paramsD.cMax.z) flagZR = false;
+		//*** min boundary
+		if (nodePos.x >= paramsD.cMin.x) flagXL = false;
+		if (nodePos.y >= paramsD.cMin.y) flagYL = false;
+		if (nodePos.z >= paramsD.cMin.z) flagZL = false;
 	}
 	for (int i = nodesInterval.x; i < nodesInterval.y; i++) {
 		real3 nodePos = ANCF_NodesD[i];
-		if (flagX) nodePos.x = fmod(nodePos.x - paramsD.cMin.x, paramsD.boxDims.x) + paramsD.cMin.x;
-		if (flagY) nodePos.y = fmod(nodePos.y - paramsD.cMin.y, paramsD.boxDims.y) + paramsD.cMin.y;
-		if (flagZ) nodePos.z = fmod(nodePos.z - paramsD.cMin.z, paramsD.boxDims.z) + paramsD.cMin.z;
+		//*** max boundary
+		if (flagXR) nodePos.x = fmod(nodePos.x - paramsD.cMin.x, paramsD.boxDims.x) + paramsD.cMin.x;
+		if (flagYR) nodePos.y = fmod(nodePos.y - paramsD.cMin.y, paramsD.boxDims.y) + paramsD.cMin.y;
+		if (flagZR) nodePos.z = fmod(nodePos.z - paramsD.cMin.z, paramsD.boxDims.z) + paramsD.cMin.z;
+		//*** min boundary
+		if (flagXL) nodePos.x = fmod(nodePos.x - paramsD.cMin.x, paramsD.boxDims.x) + paramsD.boxDims.x + paramsD.cMin.x;
+		if (flagYL) nodePos.y = fmod(nodePos.y - paramsD.cMin.y, paramsD.boxDims.y) + paramsD.boxDims.y + paramsD.cMin.y;
+		if (flagZL) nodePos.z = fmod(nodePos.z - paramsD.cMin.z, paramsD.boxDims.z) + paramsD.boxDims.z + paramsD.cMin.z;
+		//***
+		ANCF_NodesD[i] = nodePos;
 	}
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1217,10 +1231,10 @@ void ApplyBoundarySPH_Markers(
 	// these are useful anyway for out of bound particles
 	ApplyPeriodicBoundaryYKernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(R3CAST(posRadD), R4CAST(rhoPresMuD));
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: ApplyPeriodicBoundaryXKernel");
+	CUT_CHECK_ERROR("Kernel execution failed: ApplyPeriodicBoundaryYKernel");
 	ApplyPeriodicBoundaryZKernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(R3CAST(posRadD), R4CAST(rhoPresMuD));
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: ApplyPeriodicBoundaryXKernel");
+	CUT_CHECK_ERROR("Kernel execution failed: ApplyPeriodicBoundaryZKernel");
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ApplyBoundaryRigid(
@@ -1264,6 +1278,7 @@ void ApplyBoundary(
 
 	ApplyBoundarySPH_Markers(posRadD, rhoPresMuD, numAllMarkers);
 	ApplyBoundaryRigid(posRigidD, numRigidBodies);
+	ApplyBoundaryFlex(ANCF_NodesD, ANCF_ReferenceArrayNodesOnBeamsD, numFlex);
 
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1719,12 +1734,12 @@ void cudaCollisions(
 	int startRigidMarkers = (referenceArray[1]).y;
 	numRigid_SphMarkers = referenceArray[2 + numRigidBodies - 1].y - startRigidMarkers;
 	thrust::device_vector<int> rigidIdentifierD(numRigid_SphMarkers);
-	if (numRigidBodies > 0) {
-		real4 typicalRigidSPH = mVelMas[referenceArray[2].x];
-		solid_SPH_mass = typicalRigidSPH.w;
+	if (referenceArray.size() > 2) {
+		real4 typical_BCE_MarkerVelMass = mVelMas[referenceArray[2].x];
+		solid_SPH_mass = typical_BCE_MarkerVelMass.w;
 	} else {
 		real4 dummyFluid = mVelMas[referenceArray[0].x];
-		solid_SPH_mass = 100 * dummyFluid.w;
+		solid_SPH_mass = dummyFluid.w;
 	}
 	cutilSafeCall( cudaMemcpyToSymbolAsync(solid_SPH_massD, &solid_SPH_mass, sizeof(solid_SPH_mass)));
 	cudaMemcpyToSymbolAsync(startRigidMarkersD, &startRigidMarkers, sizeof(startRigidMarkers)); //can be defined outside of the kernel, and only once
