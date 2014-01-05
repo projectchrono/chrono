@@ -1851,8 +1851,12 @@ void cudaCollisions(
 	real_ delTOrig = delT;
 	real_ realTime = 0;
 
+
+	int numPause = 10000;
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce4 = R4(0);
+	paramsH_B.gravity = R3(0);
+
 	//for (int tStep = 0; tStep < 0; tStep ++) {
 	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
 		//edit  since yu deleted cyliderRotOmegaJD
@@ -1862,13 +1866,13 @@ void cudaCollisions(
 
 //		if (tStep < 1000) delT = 0.25 * delTOrig; else delT = delTOrig;
 
-//		if (tStep <= 10000) 	{
-//			setParameters(&paramsH_B); 														// sets paramsD in SDKCollisionSystem
-//			cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &paramsH_B, sizeof(SimParams))); 	//sets paramsD for this file
-//		} else {
-//			setParameters(&paramsH); 														// sets paramsD in SDKCollisionSystem
-//			cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &paramsH, sizeof(SimParams))); 	//sets paramsD for this file
-//		}
+		if (tStep <= numPause) 	{
+			setParameters(&paramsH_B); 														// sets paramsD in SDKCollisionSystem
+			cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &paramsH_B, sizeof(SimParams))); 	//sets paramsD for this file
+		} else {
+			setParameters(&paramsH); 														// sets paramsD in SDKCollisionSystem
+			cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &paramsH, sizeof(SimParams))); 	//sets paramsD for this file
+		}
 
 		//computations
 				//markers
@@ -1895,73 +1899,77 @@ void cudaCollisions(
 		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numAllMarkers, paramsH, 0.5 * delT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
 		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT); //assumes ...D2 is a copy of ...D
 		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT);		//assumes ...D2 is a copy of ...D
-		UpdateRigidBody(
-				posRadD2, velMasD2,
-				posRigidD2, posRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2,
-				posRadD,
-				posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
-				derivVelRhoD, rigidIdentifierD,
-				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidMarkers, numRigid_SphMarkers, float(tStep)/stepEnd, 0.5 * delT);
+		if (tStep > numPause) {
+			UpdateRigidBody(
+					posRadD2, velMasD2,
+					posRigidD2, posRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2,
+					posRadD,
+					posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
+					derivVelRhoD, rigidIdentifierD,
+					rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidMarkers, numRigid_SphMarkers, float(tStep)/stepEnd, 0.5 * delT);
 
-		UpdateFlexibleBody(posRadD2, velMasD2,
-				ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
-				derivVelRhoD,
-								numRigidBodies, numFlexBodies, numFlex_SphMarkers,
-								ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
-								ANCF_ReferenceArrayNodesOnBeamsD,
-								ANCF_NumMarkers_Per_BeamD,
-								ANCF_NumMarkers_Per_Beam_CumulD,
-								ANCF_NumNodesMultMarkers_Per_Beam_CumulD,
+			UpdateFlexibleBody(posRadD2, velMasD2,
+					ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
+					derivVelRhoD,
+									numRigidBodies, numFlexBodies, numFlex_SphMarkers,
+									ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
+									ANCF_ReferenceArrayNodesOnBeamsD,
+									ANCF_NumMarkers_Per_BeamD,
+									ANCF_NumMarkers_Per_Beam_CumulD,
+									ANCF_NumNodesMultMarkers_Per_Beam_CumulD,
 
-								flexIdentifierD,
-								flexMapEachMarkerOnAllBeamNodesD,
-								flexSPH_MeshPos_LRF_D,
-								flexSPH_MeshSlope_Initial_D,
-								flexParametricDistD,
-								ANCF_Beam_LengthD,
-								ANCF_IsCantilever,
-								referenceArray,
+									flexIdentifierD,
+									flexMapEachMarkerOnAllBeamNodesD,
+									flexSPH_MeshPos_LRF_D,
+									flexSPH_MeshSlope_Initial_D,
+									flexParametricDistD,
+									ANCF_Beam_LengthD,
+									ANCF_IsCantilever,
+									referenceArray,
 
-								paramsH,
-								flexParams,
-								float(tStep)/stepEnd,
-								0.5 * delT);
+									paramsH,
+									flexParams,
+									float(tStep)/stepEnd,
+									0.5 * delT);
+		}
 		ApplyBoundary(posRadD2, rhoPresMuD2, numAllMarkers, posRigidD2, numRigidBodies, ANCF_NodesD2, ANCF_ReferenceArrayNodesOnBeamsD, numFlexBodies);
 		//*****
 		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numAllMarkers, paramsH, delT);
 		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, delT);
 		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, delT);
-		UpdateRigidBody(
-				posRadD, velMasD,
-				posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
-				posRadD2,
-				posRigidD2, posRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2,
-				derivVelRhoD, rigidIdentifierD,
-				rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidMarkers, numRigid_SphMarkers, float(tStep)/stepEnd, delT);
+		if (tStep > numPause) {
+			UpdateRigidBody(
+					posRadD, velMasD,
+					posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
+					posRadD2,
+					posRigidD2, posRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2,
+					derivVelRhoD, rigidIdentifierD,
+					rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numRigidBodies, startRigidMarkers, numRigid_SphMarkers, float(tStep)/stepEnd, delT);
 
-		UpdateFlexibleBody(posRadD, velMasD,
-				ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
-				derivVelRhoD,
-						numRigidBodies, numFlexBodies, numFlex_SphMarkers,
-						ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
-						ANCF_ReferenceArrayNodesOnBeamsD,
-						ANCF_NumMarkers_Per_BeamD,
-						ANCF_NumMarkers_Per_Beam_CumulD,
-						ANCF_NumNodesMultMarkers_Per_Beam_CumulD,
+			UpdateFlexibleBody(posRadD, velMasD,
+					ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
+					derivVelRhoD,
+							numRigidBodies, numFlexBodies, numFlex_SphMarkers,
+							ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
+							ANCF_ReferenceArrayNodesOnBeamsD,
+							ANCF_NumMarkers_Per_BeamD,
+							ANCF_NumMarkers_Per_Beam_CumulD,
+							ANCF_NumNodesMultMarkers_Per_Beam_CumulD,
 
-						flexIdentifierD,
-						flexMapEachMarkerOnAllBeamNodesD,
-						flexSPH_MeshPos_LRF_D,
-						flexSPH_MeshSlope_Initial_D,
-						flexParametricDistD,
-						ANCF_Beam_LengthD,
-						ANCF_IsCantilever,
-						referenceArray,
+							flexIdentifierD,
+							flexMapEachMarkerOnAllBeamNodesD,
+							flexSPH_MeshPos_LRF_D,
+							flexSPH_MeshSlope_Initial_D,
+							flexParametricDistD,
+							ANCF_Beam_LengthD,
+							ANCF_IsCantilever,
+							referenceArray,
 
-						paramsH,
-						flexParams,
-						float(tStep)/stepEnd,
-						delT);
+							paramsH,
+							flexParams,
+							float(tStep)/stepEnd,
+							delT);
+		}
 		ApplyBoundary(posRadD, rhoPresMuD, numAllMarkers, posRigidD, numRigidBodies, ANCF_NodesD, ANCF_ReferenceArrayNodesOnBeamsD, numFlexBodies);
 		//************
 
