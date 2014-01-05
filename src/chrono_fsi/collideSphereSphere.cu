@@ -1556,45 +1556,45 @@ void UpdateFlexibleBody(
 	//** uses the force values on nodal coordinates to update nodal position and slope and velocities ('2' at the end).
 	//*** it uses the current un-updated nodal coordinates (without '2' at the end) to calculate elastic forces.
 	//################################### multi-rate
-	thrust::device_vector<real3> ANCF_NodesD3(ANCF_NodesD2.size());
-	thrust::device_vector<real3> ANCF_SlopesD3(ANCF_SlopesD2.size());
-	thrust::device_vector<real3> ANCF_NodesVelD3(ANCF_NodesVelD2.size());
-	thrust::device_vector<real3> ANCF_SlopesVelD3(ANCF_SlopesVelD2.size());
-	int n = 40;
-	for (int i = 0; i < n; i++) {
-		thrust::copy(ANCF_NodesD2.begin(), ANCF_NodesD2.end(), ANCF_NodesD3.begin());
-		thrust::copy(ANCF_SlopesD2.begin(), ANCF_SlopesD2.end(), ANCF_SlopesD3.begin());
-		thrust::copy(ANCF_NodesVelD2.begin(), ANCF_NodesVelD2.end(), ANCF_NodesVelD3.begin());
-		thrust::copy(ANCF_SlopesVelD2.begin(), ANCF_SlopesVelD2.end(), ANCF_SlopesVelD3.begin());
-
-		Update_ANCF_Beam(
-				ANCF_NodesD3, ANCF_SlopesD3, ANCF_NodesVelD3, ANCF_SlopesVelD3,
-				ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
-				flex_FSI_NodesForces1, flex_FSI_NodesForces2,
-				ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, ANCF_IsCantilever,
-				numFlexBodies, flexParams, dT/(2*n)
-				);
-
-		Update_ANCF_Beam(
-				ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
-				ANCF_NodesD3, ANCF_SlopesD3, ANCF_NodesVelD3, ANCF_SlopesVelD3,
-				flex_FSI_NodesForces1, flex_FSI_NodesForces2,
-				ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, ANCF_IsCantilever,
-				numFlexBodies, flexParams, dT/(n)
-				);
-	}
-	ANCF_NodesD3.clear();
-	ANCF_SlopesD3.clear();
-	ANCF_NodesVelD3.clear();
-	ANCF_SlopesVelD3.clear();
+//	thrust::device_vector<real3> ANCF_NodesD3(ANCF_NodesD2.size());
+//	thrust::device_vector<real3> ANCF_SlopesD3(ANCF_SlopesD2.size());
+//	thrust::device_vector<real3> ANCF_NodesVelD3(ANCF_NodesVelD2.size());
+//	thrust::device_vector<real3> ANCF_SlopesVelD3(ANCF_SlopesVelD2.size());
+//	int n = 40;
+//	for (int i = 0; i < n; i++) {
+//		thrust::copy(ANCF_NodesD2.begin(), ANCF_NodesD2.end(), ANCF_NodesD3.begin());
+//		thrust::copy(ANCF_SlopesD2.begin(), ANCF_SlopesD2.end(), ANCF_SlopesD3.begin());
+//		thrust::copy(ANCF_NodesVelD2.begin(), ANCF_NodesVelD2.end(), ANCF_NodesVelD3.begin());
+//		thrust::copy(ANCF_SlopesVelD2.begin(), ANCF_SlopesVelD2.end(), ANCF_SlopesVelD3.begin());
+//
+//		Update_ANCF_Beam(
+//				ANCF_NodesD3, ANCF_SlopesD3, ANCF_NodesVelD3, ANCF_SlopesVelD3,
+//				ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
+//				flex_FSI_NodesForces1, flex_FSI_NodesForces2,
+//				ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, ANCF_IsCantilever,
+//				numFlexBodies, flexParams, dT/(2*n)
+//				);
+//
+//		Update_ANCF_Beam(
+//				ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
+//				ANCF_NodesD3, ANCF_SlopesD3, ANCF_NodesVelD3, ANCF_SlopesVelD3,
+//				flex_FSI_NodesForces1, flex_FSI_NodesForces2,
+//				ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, ANCF_IsCantilever,
+//				numFlexBodies, flexParams, dT/(n)
+//				);
+//	}
+//	ANCF_NodesD3.clear();
+//	ANCF_SlopesD3.clear();
+//	ANCF_NodesVelD3.clear();
+//	ANCF_SlopesVelD3.clear();
 	//################################### not multi-rate
-	//	Update_ANCF_Beam(
-	//			ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
-	//			ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
-	//			flex_FSI_NodesForces1, flex_FSI_NodesForces2,
-	//			ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, ANCF_IsCantilever,
-	//			numFlexBodies, flexParams, dT
-	//			);
+		Update_ANCF_Beam(
+				ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
+				ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
+				flex_FSI_NodesForces1, flex_FSI_NodesForces2,
+				ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, ANCF_IsCantilever,
+				numFlexBodies, flexParams, dT
+				);
 	//################################################### update BCE markers position
 	//** new nodal velocity and positions are used to update BCE markers position and velocities. "posRadD", "velMasD" are updated (only the flex portion)
 	computeGridSize(numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
