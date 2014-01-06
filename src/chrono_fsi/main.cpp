@@ -1814,7 +1814,6 @@ int main() {
 			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever,
 			channelRadius,
 			paramsH.cMax.x - paramsH.cMin.x, pipeInPoint3, beamLength, flexParams);
-
 	//**
 //	CreateSomeFlexBodies(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
 //			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever,
