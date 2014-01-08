@@ -41,11 +41,13 @@ IF(ENABLE_UNIT_FEM)
 		ChContinuumElectrostatics.h
 		ChNodeFEMbase.h 
 		ChNodeFEMxyz.h
+		ChNodeFEMxyzrot.h
 		ChNodeFEMxyzP.h 
 		ChElementBase.h
 		ChElementGeneric.h
 		ChElementSpring.h
 		ChElementBar.h 
+		ChElementBeamEuler.h 
 		ChElement3D.h
 		ChElementTetra_4.h
 		ChElementTetra_10.h
