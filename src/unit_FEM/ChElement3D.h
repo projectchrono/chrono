@@ -30,6 +30,7 @@ protected:
 	double Volume;
 
 public:
+
 	double GetVolume() {return Volume;}
 };
 
@@ -38,7 +39,7 @@ public:
 
 		/// Class for corotational elements (elements with rotation 
 		/// matrices that follow the global motion of the element)
-class ChApiFem ChElementCorotational : public ChElement3D
+class ChApiFem ChElementCorotational //: public ChElement3D
 {
 protected:
 	ChMatrix33<> A;	// rotation matrix
@@ -53,7 +54,24 @@ public:
 					/// the rotation matrix A. 
 					/// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
 	virtual void UpdateRotation() = 0; 
+};
 
+
+
+		///
+		/// Class for tetrahedral elements.
+		///
+class ChApiFem ChTetrahedron : public ChElement3D,
+							   public ChElementCorotational																
+																//		  /|\						//
+{																//		 / |  \						//
+protected:														//		/  |	\					//
+																//	   /.  |	  \					//
+public:															//	   \   |.		\				//
+	int ID;														//		\  |	.	  \				//
+																//		 \ |		.	\			//
+																//		  \|__ __ __ __'__\			//
+	  
 	virtual void Update() 
 				{
 					// parent class update:
@@ -61,32 +79,17 @@ public:
 					// always keep updated the rotation matrix A:
 					this->UpdateRotation();
 				};
-};
-
-
-
-		///
-		/// Calss for tetrahedral elements.
-		///
-class ChApiFem ChTetrahedron : public ChElementCorotational  	//		  /|\						//
-{																//		 / |  \						//
-protected:														//		/  |	\					//
-																//	   /.  |	  \					//
-public:															//	   \   |.		\				//
-	int ID;														//		\  |	.	  \				//
-		// Computes the volume of the element					//		 \ |		.	\			//
-		// (and stores the value in this->volume)				//		  \|__ __ __ __'__\			//
-	//virtual double ComputeVolume() = 0;
-
 															
 };																
 
 
 
 		///
-		/// Calss for hexahedral elements.
+		/// Class for hexahedral elements.
 		///
-class ChApiFem ChHexahedron : public ChElementCorotational  	//		    __ __ __ __				//
+class ChApiFem ChHexahedron :  public ChElement3D,
+							   public ChElementCorotational	  	
+																//		    __ __ __ __				//
 {																//		  /			  /|			//				
 protected:														//		 /_|__ __ __ / |			//
 	ChGaussIntegrationRule* ir;									//		|			|  |			//
@@ -95,7 +98,16 @@ protected:														//		 /_|__ __ __ / |			//
 																//		| /			| /				//
 																//		|__ __ __ __|/				//
 public:															
-	int ID;																
+	int ID;		
+
+
+	virtual void Update() 
+				{
+					// parent class update:
+					ChElement3D::Update();
+					// always keep updated the rotation matrix A:
+					this->UpdateRotation();
+				};
 };																			  
 
 

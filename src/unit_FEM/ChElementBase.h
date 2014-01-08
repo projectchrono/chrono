@@ -42,8 +42,18 @@ public:
 	ChElementBase() {};
 	virtual ~ChElementBase() {};
 
+			/// Gets the number of coordinates of the node positions in space; 
+			/// note this is not the coordinates of the field, use GetNdofs() instead
 	virtual int GetNcoords() =0;
+
+			/// Gets the number of nodes used by this element
 	virtual int GetNnodes() =0;
+		
+			/// Gets the number of coordinates in the field used by the referenced nodes,
+			/// this is for example the size (n.of rows/columns) of the local stiffness matrix
+	virtual int GetNdofs() =0;
+
+			/// Access the nth node
 	virtual ChSharedPtr<ChNodeFEMbase> GetNodeN(int n) =0;
 	
 

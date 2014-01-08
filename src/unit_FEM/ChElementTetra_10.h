@@ -42,8 +42,10 @@ public:
 	ChElementTetra_10();
 	virtual ~ChElementTetra_10();
 
-	virtual int GetNcoords() {return 30;}
 	virtual int GetNnodes()  {return 10;}
+	virtual int GetNcoords() {return 10*3;}
+	virtual int GetNdofs()   {return 10*3;}
+
 	virtual ChSharedPtr<ChNodeFEMbase> GetNodeN(int n) {return nodes[n];}
 
 	virtual void SetNodes(ChSharedPtr<ChNodeFEMxyz> nodeA, ChSharedPtr<ChNodeFEMxyz> nodeB, ChSharedPtr<ChNodeFEMxyz> nodeC, ChSharedPtr<ChNodeFEMxyz> nodeD,

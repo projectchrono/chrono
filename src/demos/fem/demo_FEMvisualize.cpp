@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
 	ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
 	mmaterial->Set_E(0.01e9); // rubber 0.01e9, steel 200e9
 	mmaterial->Set_v(0.3);
-	mmaterial->Set_RayleighDampingK(0.0001);
+	mmaterial->Set_RayleighDampingK(0.001);
 	mmaterial->Set_density(1000);
 
 
@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
 
 				// Apply a force to a node
 	ChSharedPtr<ChNodeFEMxyz> mnodelast (my_mesh->GetNode(my_mesh->GetNnodes()-1));
-	mnodelast->SetForce( ChVector<>(200,0,0));
+	mnodelast->SetForce( ChVector<>(100,0,0));
 
 
 	//
@@ -147,6 +147,10 @@ int main(int argc, char* argv[])
 	hnode4_lower->SetForce( ChVector<>(500,0,0));
 
 
+	//
+	// Final touches..
+	// 
+
 				// This is necessary in order to precompute the 
 				// stiffness matrices for all inserted elements in mesh
 	my_mesh->SetupInitial();
@@ -169,6 +173,7 @@ int main(int argc, char* argv[])
 			ChSharedPtr<ChNodeFEMxyz> mnode ( my_mesh->GetNode(inode) ); // downcast
 			if (mnode->GetPos().y <0.01)
 			{
+
 				ChSharedPtr<ChNodeBody> constraint(new ChNodeBody);
 				constraint->Initialize(mnode,
 									   truss);
@@ -178,6 +183,13 @@ int main(int argc, char* argv[])
 				ChSharedPtr<ChBoxShape> mboxfloor(new ChBoxShape);
 				mboxfloor->GetBoxGeometry().Size = ChVector<>(0.005);
 				constraint->AddAsset(mboxfloor);
+				
+				
+				// Otherwise there is an easier method: just set the node as fixed (but 
+				// in this way you do not get infos about reaction forces as with a constraint):
+				//
+				//  mnode->SetFixed(true); 
+
 			}
 		}
 	}
@@ -205,10 +217,22 @@ int main(int argc, char* argv[])
 	my_mesh->AddAsset(mvisualizemeshwire);
 */
 	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemeshref(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	mvisualizemeshref->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NONE);
+	mvisualizemeshref->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_SURFACE);
 	mvisualizemeshref->SetWireframe(true);
 	mvisualizemeshref->SetDrawInUndeformedReference(true);
 	my_mesh->AddAsset(mvisualizemeshref);
+
+	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemeshC(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
+	mvisualizemeshC->SetFEMglyphType(ChVisualizationFEMmesh::E_GLYPH_NODE_DOT_POS);
+	mvisualizemeshC->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NONE);
+	mvisualizemeshC->SetSymbolsThickness(0.006);
+	my_mesh->AddAsset(mvisualizemeshC);
+
+	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemeshD(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
+	mvisualizemeshD->SetFEMglyphType(ChVisualizationFEMmesh::E_GLYPH_NODE_VECT_SPEED);
+	mvisualizemeshD->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NONE);
+	mvisualizemeshD->SetSymbolsScale(0.02);
+	my_mesh->AddAsset(mvisualizemeshD);
 
 
 
@@ -230,12 +254,14 @@ int main(int argc, char* argv[])
 	//
 
 	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES); // <- NEEDED because other solvers can't handle stiffness matrices
+	my_system.SetIterLCPwarmStarting(true); // this helps a lot to speedup convergence in this class of problems
 	my_system.SetIterLCPmaxItersSpeed(40);
 	my_system.SetTolSpeeds(1e-10);
+	//chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
+	//msolver->SetVerbose(true);
+	//msolver->SetDiagonalPreconditioning(true);
 
-	application.SetStepManage(true);
 	application.SetTimestep(0.001);
-	application.SetTryRealtime(false);
 
 	while(application.GetDevice()->run()) 
 	{

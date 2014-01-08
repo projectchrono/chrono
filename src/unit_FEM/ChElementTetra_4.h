@@ -46,8 +46,10 @@ public:
 	ChElementTetra_4();
 	virtual ~ChElementTetra_4();
 
-	virtual int GetNcoords() {return 12;}
 	virtual int GetNnodes()  {return 4;}
+	virtual int GetNcoords() {return 4*3;}
+	virtual int GetNdofs()   {return 4*3;}
+
 	virtual ChSharedPtr<ChNodeFEMbase> GetNodeN(int n) {return nodes[n];}
 
 	virtual void SetNodes(ChSharedPtr<ChNodeFEMxyz> nodeA, 
@@ -129,7 +131,7 @@ public:
 					ComputeStiffnessMatrix();
 				}
 
-				// compute large rotation of element for corotational approach
+				/// compute large rotation of element for corotational approach
 	virtual void UpdateRotation()
 				{
 					
@@ -334,8 +336,10 @@ public:
 
 	virtual ~ChElementTetra_4_P() {};
 
-	virtual int GetNcoords() {return 12;}
 	virtual int GetNnodes()  {return 4;}
+	virtual int GetNcoords() {return 4*3;}
+	virtual int GetNdofs()   {return 4*1;}
+
 	virtual ChSharedPtr<ChNodeFEMbase> GetNodeN(int n) {return nodes[n];}
 
 	virtual void SetNodes(ChSharedPtr<ChNodeFEMxyzP> nodeA, 
@@ -469,7 +473,7 @@ public:
 						double lumped_node_c = (this->GetVolume() * this->GetMaterial()->Get_DtMultiplier() ) / 4.0;
 						for (int id = 0; id < 4; id++)
 						{
-							H(id,id)+= lumped_node_c;
+							H(id,id)+= Rfactor*lumped_node_c;
 						}
 					}
 					//***TO DO*** better per-node lumping, or 4x4 consistent c integration as per mass matrices.
@@ -487,41 +491,22 @@ public:
 				{
 					assert((Fi.GetRows() == 12) && (Fi.GetColumns()==1));
 
-						// set up vector of nodal displacements (in local element system) u_l = R*p - p0
+						// set up vector of nodal fields
 					ChMatrixDynamic<> displ(4,1);
 					displ(0) = nodes[0]->GetP(); 
 					displ(1) = nodes[1]->GetP(); 
 					displ(2) = nodes[2]->GetP(); 
 					displ(3) = nodes[3]->GetP(); 
 
-						// [local Internal Forces] = [Klocal] * displ (...+ [Rlocal] * displ_dt ???)
+						// [local Internal Forces] = [Klocal] * P 
 					ChMatrixDynamic<> FiK_local(4,1);
 					FiK_local.MatrMultiply(StiffnessMatrix, displ);
 
-					//***TO DO*** derivative terms?
-					/* 
-					displ(0) = nodes[0]->GetP_dt(); 
-					displ(1) = nodes[1]->GetP_dt(); 
-					displ(2) = nodes[2]->GetP_dt(); 
-					displ(3) = nodes[3]->GetP_dt();
-					ChMatrixDynamic<> FiR_local(12,1);
-					FiR_local.MatrMultiply(StiffnessMatrix, displ);
-					FiR_local.MatrScale(this->Material->Get_RayleighDampingK());
-					*/
-
-					//***TO DO*** better per-node lumping, or 12x12 consistent mass matrix.
-					/*
-					double lumped_node_mass = (this->GetVolume() * this->Material->Get_density() ) / 4.0;
-					displ.MatrScale(lumped_node_mass * this->Material->Get_RayleighDampingM() ); // reuse 'displ' for performance 
-					FiR_local.MatrInc(displ); 
-					*/
-
-					//FiK_local.MatrInc(FiR_local);
+					//***TO DO*** derivative terms? + [Rlocal] * P_dt ???? ***NO because Poisson  rho dP/dt + div [C] grad P = 0
 
 					FiK_local.MatrScale(-1.0);
-
-						// Fi = C * Fi_local  with C block-diagonal rotations A  ***corotation NOT NEEDED 
-					//ChMatrixCorotation<>::ComputeCK(FiK_local, this->A, 4, Fi);
+ 
+					//ChMatrixCorotation<>::ComputeCK(FiK_local, this->A, 4, Fi);  ***corotation NOT NEEDED 
 					
 					Fi = FiK_local;
 				}

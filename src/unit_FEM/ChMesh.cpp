@@ -106,7 +106,7 @@ void ChMesh::Update (double m_time)
 }
 
 
-void ChMesh::LoadFromTetGenFile(char* filename_node, char* filename_ele, ChSharedPtr<ChContinuumElastic> my_material)
+void ChMesh::LoadFromTetGenFile(char* filename_node, char* filename_ele, ChSharedPtr<ChContinuumMaterial> my_material)
 {
 	int totnodes = 0;
 	int nodes_offset = this->GetNnodes();
@@ -166,8 +166,18 @@ void ChMesh::LoadFromTetGenFile(char* filename_node, char* filename_ele, ChShare
 				if (x == -10e30 || y == -10e30 || z == -10e30 )
 					throw ChException("ERROR in TetGen .node file, in parsing x,y,z coordinates of node: \n"+ line+"\n");
 				
-				ChSharedPtr<ChNodeFEMxyz> mnode( new ChNodeFEMxyz(ChVector<>(x,y,z)) );
-				this->AddNode(mnode);
+				if (my_material.IsType<ChContinuumElastic>() )
+				{
+					ChSharedPtr<ChNodeFEMxyz> mnode( new ChNodeFEMxyz(ChVector<>(x,y,z)) );
+					this->AddNode(mnode);
+				}
+				else if (my_material.IsType<ChContinuumPoisson3D>() )
+				{
+					ChSharedPtr<ChNodeFEMxyzP> mnode( new ChNodeFEMxyzP(ChVector<>(x,y,z)) );
+					this->AddNode(mnode);
+				}
+				else throw ChException("ERROR in TetGen generation. Material type not supported. \n");
+
 			}
 
 		} // end while
@@ -223,14 +233,30 @@ void ChMesh::LoadFromTetGenFile(char* filename_node, char* filename_ele, ChShare
 				if (n4 > totnodes)
 					throw ChException("ERROR in TetGen .node file, ID of 4th node is out of range: \n"+ line+"\n");
 				
-				ChSharedPtr<ChElementTetra_4> mel( new ChElementTetra_4 );
-				mel->SetNodes(
-					this->GetNode(nodes_offset + n1-1), 
-					this->GetNode(nodes_offset + n3-1), 
-					this->GetNode(nodes_offset + n2-1), 
-					this->GetNode(nodes_offset + n4-1) );
-				mel->SetMaterial(my_material);
-				this->AddElement(mel);
+				if (my_material.IsType<ChContinuumElastic>() )
+				{
+					ChSharedPtr<ChElementTetra_4> mel( new ChElementTetra_4 );
+					mel->SetNodes(
+						this->GetNode(nodes_offset + n1-1), 
+						this->GetNode(nodes_offset + n3-1), 
+						this->GetNode(nodes_offset + n2-1), 
+						this->GetNode(nodes_offset + n4-1) );
+					mel->SetMaterial(my_material);
+					this->AddElement(mel);
+				} 
+				else if (my_material.IsType<ChContinuumPoisson3D>() )
+				{
+					ChSharedPtr<ChElementTetra_4_P> mel( new ChElementTetra_4_P );
+					mel->SetNodes(
+						this->GetNode(nodes_offset + n1-1), 
+						this->GetNode(nodes_offset + n3-1), 
+						this->GetNode(nodes_offset + n2-1), 
+						this->GetNode(nodes_offset + n4-1) );
+					mel->SetMaterial(my_material);
+					this->AddElement(mel);
+				}
+				else throw ChException("ERROR in TetGen generation. Material type not supported. \n");
+
 			}
 
 		} // end while

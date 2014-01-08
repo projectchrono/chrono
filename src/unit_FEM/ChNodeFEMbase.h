@@ -35,6 +35,13 @@ public:
 				/// Set the rest position as the actual position.
 	virtual void Relax () =0;
 
+				/// Sets the 'fixed' state of the node. 
+				/// If true, its current field value is not changed by solver.
+	void SetFixed  (bool mev) { Variables().SetDisabled(mev); }
+				/// Gets the 'fixed' state of the node. 
+				/// If true, its current field value is not changed by solver.
+    bool GetFixed()  {return Variables().IsDisabled(); }
+
 };
 
 

@@ -38,7 +38,7 @@ public:
 						X0 = initial_pos;
 						pos = initial_pos;
 						Force = VNULL;
-						variables.SetNodeMass(1.0);
+						variables.SetNodeMass(0.0);
 					}
 
 	~ChNodeFEMxyz() {};
@@ -111,6 +111,11 @@ public:
 				/// Acceleration of the node - in absolute csys.
 	void SetPos_dtdt(const ChVector<>& mposdtdt) {pos_dtdt = mposdtdt;}
 
+				/// Sets the 'fixed' state of the node. If true, it does not move
+                /// respect to the absolute world, despite constraints, forces, etc.
+	void SetFixed  (bool mev) { variables.SetDisabled(mev); }
+				/// Gets the 'fixed' state of the node.
+    bool GetFixed()  {return variables.IsDisabled(); }
 
 
 			//

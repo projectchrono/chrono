@@ -46,7 +46,7 @@ namespace fem
 
 class ChApi ChContinuumMaterial : public ChShared
 {
-private:
+protected:
 	double density;
 
 public:

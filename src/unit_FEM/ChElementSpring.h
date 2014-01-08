@@ -42,8 +42,10 @@ public:
 	ChElementSpring();
 	virtual ~ChElementSpring();
 
-	virtual int GetNcoords() {return 6;}
 	virtual int GetNnodes()  {return 2;}
+	virtual int GetNcoords() {return 2*3;}
+	virtual int GetNdofs()   {return 2*3;}
+
 	virtual ChSharedPtr<ChNodeFEMbase> GetNodeN(int n) {return nodes[n];}
 	
 

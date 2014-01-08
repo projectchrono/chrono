@@ -14,7 +14,7 @@
 #define CHCONTINUUMPOISSON3D_H
 
 
-#include "ChApiFem.h"
+#include "ChApiFEM.h"
 #include "physics/ChContinuumMaterial.h"
 
 

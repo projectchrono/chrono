@@ -26,7 +26,7 @@ namespace fem
 /// Class for thermal fields, for FEM problems involving 
 /// temperature, heat, etc.
 
-class ChApiFem ChContinuumThermal : public ChContinuumPoisson3D
+class ChContinuumThermal : public ChContinuumPoisson3D
 {
 private:
 	double k_thermal_conductivity;
@@ -71,7 +71,7 @@ public:
 	double GetMassSpecificHeatCapacity() { return c_mass_specific_heat_capacity;}
 
 			/// override base: (the dT/dt term has multiplier rho*c with rho=density, c=heat capacity)
-	virtual double Get_DtMultiplier () {return this->density*this->c_mass_specific_heat_capacity;}
+	virtual double Get_DtMultiplier () {return density*this->c_mass_specific_heat_capacity;}
 
 };
 

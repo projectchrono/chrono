@@ -25,7 +25,7 @@ namespace fem
 
 /// Class for material for FEM electrostatic problems
 
-class ChApiFem ChContinuumElectrostatics : public ChContinuumPoisson3D
+class ChContinuumElectrostatics : public ChContinuumPoisson3D
 {
 private:
 	double e_permittivity;

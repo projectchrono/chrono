@@ -756,7 +756,7 @@ IF (BUILD_CH_SDK)
 		lcp/ChLcpVariablesBodySharedMass.cpp 
 		lcp/ChLcpVariablesBodyOwnMass.cpp 
 		lcp/ChLcpVariablesNode.cpp 
-		lcp/ChLcpKstiffnessGeneric.cpp
+		lcp/ChLcpKblockGeneric.cpp
 		lcp/ChLcpSolverDEM.cpp
 	)
 	SET(ChronoEngine_lcp_HEADERS
@@ -797,8 +797,8 @@ IF (BUILD_CH_SDK)
 		lcp/ChLcpVariablesBodySharedMass.h
 		lcp/ChLcpVariablesGeneric.h
 		lcp/ChLcpVariablesNode.h
-		lcp/ChLcpKstiffness.h
-		lcp/ChLcpKstiffnessGeneric.h
+		lcp/ChLcpKblock.h
+		lcp/ChLcpKblockGeneric.h
 		lcp/ChLcpSolverDEM.h
 	)
 	SOURCE_GROUP(lcp FILES  

@@ -16,7 +16,9 @@
 #include "unit_FEM/ChElementTetra_10.h"
 #include "unit_FEM/ChElementHexa_8.h"
 #include "unit_FEM/ChElementHexa_20.h"
+#include "unit_FEM/ChElementBeamEuler.h"
 #include "assets/ChTriangleMeshShape.h"
+#include "assets/ChGlyphs.h"
 
 
 
@@ -30,6 +32,7 @@ ChVisualizationFEMmesh::ChVisualizationFEMmesh(ChMesh& mymesh)
 {
 	FEMmesh = &mymesh;
 	fem_data_type = E_PLOT_NODE_DISP_NORM;
+	fem_glyph = E_GLYPH_NONE;
 
 	colorscale_min= 0;
 	colorscale_max= 1;
@@ -37,16 +40,26 @@ ChVisualizationFEMmesh::ChVisualizationFEMmesh(ChMesh& mymesh)
 	shrink_elements = false;
 	shrink_factor = 0.9;
 
+	symbols_scale = 1.0;
+	symbols_thickness = 0.002;
+
 	wireframe = false;
+
+	zbuffer_hide = true;
 
 	smooth_faces = false;
 
 	meshcolor = ChColor(1,1,1,0);
+	symbolscolor = ChColor(0,0.5,0.5,0);
 
 	undeformed_reference = false;
 
 	ChSharedPtr<ChTriangleMeshShape> new_mesh_asset(new ChTriangleMeshShape);
 	this->AddAsset(new_mesh_asset);
+
+	ChSharedPtr<ChGlyphs> new_glyphs_asset(new ChGlyphs);
+	this->AddAsset(new_glyphs_asset);
+
 }
 
 ChVector<float> ChVisualizationFEMmesh::ComputeFalseColor(double mv)
@@ -85,7 +98,7 @@ double ChVisualizationFEMmesh::ComputeScalarOutput( ChSharedPtr<ChNodeFEMxyz> mn
 {
 	switch (this->fem_data_type)
 	{
-	case E_PLOT_NONE:
+	case E_PLOT_SURFACE:
 		return 1e30; // to force 'white' in false color scale. Hack, to be improved.
 	case E_PLOT_NODE_DISP_NORM:
 		return (mnode->GetPos()-mnode->GetX0()).Length();
@@ -123,6 +136,21 @@ double ChVisualizationFEMmesh::ComputeScalarOutput( ChSharedPtr<ChNodeFEMxyz> mn
 			ChSharedPtr<ChElementTetra_4> mytetra ( melement );
 			return mytetra->GetStress().GetEquivalentVonMises();
 		}
+	default:
+		return 1e30;
+	}
+	//***TO DO*** other types of scalar outputs
+	return 0;
+}
+
+double ChVisualizationFEMmesh::ComputeScalarOutput( ChSharedPtr<ChNodeFEMxyzP> mnode, int nodeID, ChSharedPtr<ChElementBase> melement)
+{
+	switch (this->fem_data_type)
+	{
+	case E_PLOT_SURFACE:
+		return 1e30; // to force 'white' in false color scale. Hack, to be improved.
+	case E_PLOT_NODE_P:
+		return (mnode->GetP());
 	default:
 		return 1e30;
 	}
@@ -178,20 +206,32 @@ void ChVisualizationFEMmesh::Update ()
 		return;
 
 	ChSharedPtr<ChTriangleMeshShape> mesh_asset;
+	ChSharedPtr<ChGlyphs>			 glyphs_asset;
 
-	// try to retrieve previously added mesh asset in sublevel..
-	if (this->GetAssets().size() == 1)
-		if (GetAssets()[0].IsType<ChTriangleMeshShape>() )
-			mesh_asset = GetAssets()[0];
+	// try to retrieve previously added mesh asset and glyhs asset in sublevel..
+	if (this->GetAssets().size() == 2)
+		if (GetAssets()[0].IsType<ChTriangleMeshShape>() &&
+			GetAssets()[1].IsType<ChGlyphs>() )
+		{
+			mesh_asset   = GetAssets()[0];
+			glyphs_asset = GetAssets()[1];
+		}
 
-	// if not available, create it...
+	// if not available, create ...
 	if (mesh_asset.IsNull())
 	{
+		this->GetAssets().resize(0); // this to delete other sub assets that are not in mesh & glyphs, if any
+
 		ChSharedPtr<ChTriangleMeshShape> new_mesh_asset(new ChTriangleMeshShape);
 		this->AddAsset(new_mesh_asset);
 		mesh_asset = new_mesh_asset;
+
+		ChSharedPtr<ChGlyphs> new_glyphs_asset(new ChGlyphs);
+		this->AddAsset(new_glyphs_asset);
+		glyphs_asset = new_glyphs_asset;
 	}
 	geometry::ChTriangleMeshConnected& trianglemesh = mesh_asset->GetMesh();
+
 
 	unsigned int n_verts = 0;
 	unsigned int n_vcols = 0;
@@ -213,6 +253,15 @@ void ChVisualizationFEMmesh::Update ()
 			n_triangles +=4; // n. triangle faces
 		}
 
+		// ELEMENT IS A TETRAHEDRON for scalar field
+		if (this->FEMmesh->GetElement(iel).IsType<ChElementTetra_4_P>() )
+		{
+			n_verts +=4;
+			n_vcols +=4;
+			n_vnorms +=4; // flat faces
+			n_triangles +=4; // n. triangle faces
+		}
+
 		// ELEMENT IS A HEXAEDRON
 		if (this->FEMmesh->GetElement(iel).IsType<ChElementHexa_8>() )
 		{
@@ -225,6 +274,15 @@ void ChVisualizationFEMmesh::Update ()
 		//***TO DO*** other types of elements...
 
 	}
+
+	if (this->fem_data_type == E_PLOT_NONE)
+	{
+		n_verts =0;
+		n_vcols =0;
+		n_vnorms =0;
+		n_triangles =0;
+	}
+
 
 	//
 	// B - resize mesh buffers if needed
@@ -259,7 +317,8 @@ void ChVisualizationFEMmesh::Update ()
 	unsigned int i_triindex = 0;
 	unsigned int i_normindex = 0;
 
-	for (unsigned int iel=0; iel < this->FEMmesh->GetNelements(); ++iel)
+	if (this->fem_data_type != E_PLOT_NONE)
+	 for (unsigned int iel=0; iel < this->FEMmesh->GetNelements(); ++iel)
 	{
 		// ------------ELEMENT IS A TETRAHEDRON 4 NODES?
 		
@@ -335,6 +394,76 @@ void ChVisualizationFEMmesh::Update ()
 				i_vnorms +=4;
 			}
 		}
+
+
+		// ------------ELEMENT IS A TETRAHEDRON 4 NODES -for SCALAR field- ?
+		
+		if (this->FEMmesh->GetElement(iel).IsType<ChElementTetra_4_P>() )
+		{
+			// downcasting 
+			ChSharedPtr<ChElementTetra_4_P> mytetra ( this->FEMmesh->GetElement(iel) );
+			ChSharedPtr<ChNodeFEMxyzP> node0( mytetra->GetNodeN(0) ); 
+			ChSharedPtr<ChNodeFEMxyzP> node1( mytetra->GetNodeN(1) );
+			ChSharedPtr<ChNodeFEMxyzP> node2( mytetra->GetNodeN(2) );
+			ChSharedPtr<ChNodeFEMxyzP> node3( mytetra->GetNodeN(3) );
+
+			unsigned int ivert_el = i_verts;
+			unsigned int inorm_el = i_vnorms;
+
+			// vertexes
+			ChVector<> p0 = node0->GetPos();
+			ChVector<> p1 = node1->GetPos();
+			ChVector<> p2 = node2->GetPos();
+			ChVector<> p3 = node3->GetPos();
+ 
+			if (this->shrink_elements)
+			{
+				ChVector<> vc = (p0+p1+p2+p3)*(0.25);
+				p0 = vc + this->shrink_factor*(p0-vc);
+				p1 = vc + this->shrink_factor*(p1-vc);
+				p2 = vc + this->shrink_factor*(p2-vc);
+				p3 = vc + this->shrink_factor*(p3-vc);
+			}
+			trianglemesh.getCoordsVertices()[i_verts] = p0; 
+			++i_verts;
+			trianglemesh.getCoordsVertices()[i_verts] = p1; 
+			++i_verts;
+			trianglemesh.getCoordsVertices()[i_verts] = p2; 
+			++i_verts;
+			trianglemesh.getCoordsVertices()[i_verts] = p3; 
+			++i_verts;
+
+			// colour
+			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( node0, 0, this->FEMmesh->GetElement(iel) ) );
+			++i_vcols;
+			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( node1, 1, this->FEMmesh->GetElement(iel) ) );
+			++i_vcols;
+			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( node2, 2, this->FEMmesh->GetElement(iel) ) );
+			++i_vcols;
+			trianglemesh.getCoordsColors()[i_vcols] =  ComputeFalseColor( ComputeScalarOutput ( node3, 3, this->FEMmesh->GetElement(iel) ) );
+			++i_vcols;
+
+			// faces indexes
+			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (0,1,2) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			++i_triindex;
+			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (1,3,2) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			++i_triindex;
+			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (2,3,0) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			++i_triindex;
+			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (3,1,0) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			++i_triindex;
+
+			// normals indices (if not defaulting to flat triangles)
+			if (this->smooth_faces)
+			{
+				trianglemesh.getIndicesNormals()[i_triindex-4] = ChVector<int> (0,0,0)+ChVector<int> (inorm_el,inorm_el,inorm_el);
+				trianglemesh.getIndicesNormals()[i_triindex-3] = ChVector<int> (1,1,1)+ChVector<int> (inorm_el,inorm_el,inorm_el);
+				trianglemesh.getIndicesNormals()[i_triindex-2] = ChVector<int> (2,2,2)+ChVector<int> (inorm_el,inorm_el,inorm_el);
+				trianglemesh.getIndicesNormals()[i_triindex-1] = ChVector<int> (3,3,3)+ChVector<int> (inorm_el,inorm_el,inorm_el);
+				i_vnorms +=4;
+			}
+		}
+
 
 		// ------------ELEMENT IS A HEXAHEDRON 8 NODES?
 		if (this->FEMmesh->GetElement(iel).IsType<ChElementHexa_8>() )
@@ -443,6 +572,72 @@ void ChVisualizationFEMmesh::Update ()
 
 	// other flags
 	mesh_asset->SetWireframe( this->wireframe );
+
+
+	//
+	// GLYPHS
+	//
+
+	//***TEST***
+	glyphs_asset->Reserve(0); // unoptimal, should reuse buffers as much as possible
+	
+	glyphs_asset->SetGlyphsSize(this->symbols_thickness);
+
+	glyphs_asset->SetZbufferHide(this->zbuffer_hide);
+
+	if (this->fem_glyph == eChFemGlyphs::E_GLYPH_NODE_DOT_POS)
+	{
+		glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_POINT);
+		for (unsigned int inode=0; inode < this->FEMmesh->GetNnodes(); ++inode)
+			if (this->FEMmesh->GetNode(inode).IsType<ChNodeFEMxyz>())
+			{
+				ChSharedPtr<ChNodeFEMxyz> mynode ( this->FEMmesh->GetNode(inode) );
+				glyphs_asset->SetGlyphPoint(inode,  mynode->GetPos(), this->symbolscolor );
+			}
+	}
+	if (this->fem_glyph == eChFemGlyphs::E_GLYPH_NODE_VECT_SPEED)
+	{
+		glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
+		for (unsigned int inode=0; inode < this->FEMmesh->GetNnodes(); ++inode)
+			if (this->FEMmesh->GetNode(inode).IsType<ChNodeFEMxyz>())
+			{
+				ChSharedPtr<ChNodeFEMxyz> mynode ( this->FEMmesh->GetNode(inode) );
+				glyphs_asset->SetGlyphVector(inode, mynode->GetPos(), mynode->GetPos_dt() * this->symbols_scale, this->symbolscolor );
+			}
+	}
+	if (this->fem_glyph == eChFemGlyphs::E_GLYPH_NODE_VECT_ACCEL)
+	{
+		glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
+		for (unsigned int inode=0; inode < this->FEMmesh->GetNnodes(); ++inode)
+			if (this->FEMmesh->GetNode(inode).IsType<ChNodeFEMxyz>())
+			{
+				ChSharedPtr<ChNodeFEMxyz> mynode ( this->FEMmesh->GetNode(inode) );
+				glyphs_asset->SetGlyphVector(inode, mynode->GetPos(), mynode->GetPos_dtdt() * this->symbols_scale, this->symbolscolor );
+			}
+	}
+	if (this->fem_glyph == eChFemGlyphs::E_GLYPH_ELEM_VECT_DP)
+	{
+		glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
+		for (unsigned int iel=0; iel < this->FEMmesh->GetNelements(); ++iel)
+			if (this->FEMmesh->GetElement(iel).IsType<ChElementTetra_4_P>())
+			{
+				ChSharedPtr<ChElementTetra_4_P> myelement ( this->FEMmesh->GetElement(iel) );
+				ChMatrixNM<double, 3,1> mP = myelement->GetPgradient();
+				ChVector<> mvP(mP(0), mP(1), mP(2) );
+				ChSharedPtr<ChNodeFEMxyzP> n0(myelement->GetNodeN(0));
+				ChSharedPtr<ChNodeFEMxyzP> n1(myelement->GetNodeN(1));
+				ChSharedPtr<ChNodeFEMxyzP> n2(myelement->GetNodeN(2));
+				ChSharedPtr<ChNodeFEMxyzP> n3(myelement->GetNodeN(3));
+
+				ChVector<> mPoint = ( n0->GetPos() + 
+									  n1->GetPos() + 
+									  n2->GetPos() + 
+									  n3->GetPos() ) * 0.25; // to do: better placement in Gauss point
+				glyphs_asset->SetGlyphVector(iel, mPoint, mvP * this->symbols_scale, this->symbolscolor );
+			}
+	}
+
+
 
 	// Finally, update also the children, in case they implemented Update(), 
 	// and do this by calling the parent class implementation of ChAssetLevel

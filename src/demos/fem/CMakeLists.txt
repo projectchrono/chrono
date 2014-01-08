@@ -73,5 +73,21 @@ IF (ENABLE_UNIT_IRRLICHT)
 	install(TARGETS demo_FEMvisualize DESTINATION bin)
 	
 	
+	ADD_EXECUTABLE(demo_FEMthermal  	demo_FEMthermal.cpp)
+	SOURCE_GROUP(demos\\fem FILES  		demo_FEMthermal.cpp)
+	SET_TARGET_PROPERTIES(demo_FEMthermal PROPERTIES 
+		FOLDER demos
+		LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+		)
+	TARGET_LINK_LIBRARIES(demo_FEMthermal 
+		${CH_IRRLICHTLIB}
+		ChronoEngine
+		ChronoEngine_FEM
+		)
+	ADD_DEPENDENCIES (demo_FEMthermal ChronoEngine ChronoEngine_FEM)
+
+	install(TARGETS demo_FEMthermal DESTINATION bin)
+	
+	
 
 ENDIF()

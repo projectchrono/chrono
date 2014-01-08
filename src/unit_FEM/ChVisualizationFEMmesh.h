@@ -19,6 +19,8 @@
 #include "geometry/ChCTriangleMeshConnected.h"
 #include "unit_FEM/ChMesh.h"
 #include "unit_FEM/ChNodeFEMxyz.h"
+#include "unit_FEM/ChNodeFEMxyzP.h"
+#include "unit_FEM/ChNodeFEMxyzrot.h"
 
 
 namespace chrono 
@@ -175,6 +177,7 @@ class ChApiFem ChVisualizationFEMmesh: public ChAssetLevel
 
 private:
 		double	ComputeScalarOutput( ChSharedPtr<ChNodeFEMxyz> mnode, int nodeID, ChSharedPtr<ChElementBase> melement);
+		double	ComputeScalarOutput( ChSharedPtr<ChNodeFEMxyzP> mnode, int nodeID, ChSharedPtr<ChElementBase> melement);
 		ChVector<float> ComputeFalseColor(double in);
 
 };

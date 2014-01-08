@@ -146,7 +146,7 @@ public:
 
 				if (!(mchildnode->getType() == ESNT_MESH))
 					return;
-				IMeshSceneNode* meshnode = (IMeshSceneNode*)mchildnode; // dynamic_cast not enablesd in Irrlicht dll
+				IMeshSceneNode* meshnode = (IMeshSceneNode*)mchildnode; // dynamic_cast not enabled in Irrlicht dll
 
 				IMesh* amesh = meshnode->getMesh();
 				if (amesh->getMeshBufferCount() == 0)
@@ -257,6 +257,7 @@ public:
 				irrmesh->recalculateBoundingBox();
 
 				meshnode->setMaterialFlag(video::EMF_WIREFRAME,			trianglemesh->IsWireframe() ); 
+				meshnode->setMaterialFlag(video::EMF_LIGHTING,			!trianglemesh->IsWireframe() ); // avoid shading for wireframes
 				meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, trianglemesh->IsBackfaceCull() );
 
 				meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true); // so color shading = vertexes  color

@@ -74,7 +74,7 @@ public:
 				{
 					// (This is a default (unoptimal) book keeping so that in children classes you can avoid 
 					// implementing this VariablesFbLoadInternalForces function, unless you need faster code)
-					ChMatrixDynamic<> mFi(this->GetNcoords(), 1);
+					ChMatrixDynamic<> mFi(this->GetNdofs(), 1);
 					this->ComputeInternalForces(mFi);
 					mFi.MatrScale(factor);
 					int stride = 0;
@@ -94,10 +94,10 @@ public:
 					// This is a default (VERY UNOPTIMAL) book keeping so that in children classes you can avoid 
 					// implementing this VariablesFbIncrementMq function, unless you need faster code)
 
-					ChMatrixDynamic<> mMi(this->GetNcoords(), this->GetNcoords());
+					ChMatrixDynamic<> mMi(this->GetNdofs(), this->GetNdofs());
 					this->ComputeKRMmatricesGlobal(mMi, 0, 0, 1.0); // fill M mass matrix 
 					
-					ChMatrixDynamic<> mqi(this->GetNcoords(), 1);
+					ChMatrixDynamic<> mqi(this->GetNdofs(), 1);
 					int stride = 0;
 					for (int in=0; in < this->GetNnodes(); in++)
 					{
@@ -106,7 +106,7 @@ public:
 						stride += nodedofs;
 					}
 
-					ChMatrixDynamic<> mFi(this->GetNcoords(), 1);
+					ChMatrixDynamic<> mFi(this->GetNdofs(), 1);
 					mFi.MatrMultiply(mMi, mqi);
 
 					stride = 0;

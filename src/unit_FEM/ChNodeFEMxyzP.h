@@ -38,8 +38,9 @@ public:
 					{
 						pos = initial_pos;
 						P = 0;
+						P_dt = 0;
 						F = 0;
-						variables.GetMass()(0)= 1.0;
+						variables.GetMass()(0)= 0.0;
 					}
 
 	~ChNodeFEMxyzP() {};
@@ -49,6 +50,7 @@ public:
 	{
 		this->pos = other.pos;
 		this->P = other.P;
+		this->P_dt = other.P_dt;
 		this->F = other.F;
 		this->variables = other.variables;
 	}
@@ -62,6 +64,7 @@ public:
 
 		this->pos = other.pos;
 		this->P = other.P;
+		this->P_dt = other.P_dt;
 		this->F = other.F;
 		this->variables = other.variables;
 		return *this;
@@ -76,6 +79,7 @@ public:
 	virtual void Relax () 
 					{
 						this->P = 0;
+						this->P_dt = 0;
 					}
 
 				/// Position of the node - in absolute csys.
@@ -87,7 +91,12 @@ public:
 	virtual void SetP(double mp) { P = mp;}
 				/// Get the scalar field at node
 	virtual double GetP () {return P;}
-				
+
+				/// Set the scalar field time derivative at node 
+	virtual void SetP_dt(double mp) { P_dt = mp;}
+				/// Get the scalar field time derivative at node
+	virtual double GetP_dt () {return P_dt;}
+
 				/// Set the applied term (right hand term in Poisson formulations)
 	virtual void SetF(double mf) { F = mf;}
 				/// Get the applied term (right hand term in Poisson formulations)
@@ -111,14 +120,16 @@ public:
 
 	virtual void VariablesQbLoadSpeed() 
 					{ 
-						// not really a 'speed', just the field (it fits in incremental solver) 
-						this->variables.Get_qb().SetElement(0,0, this->P);
+						// not really a 'speed', just the field derivative (may be used in incremental solver) 
+						this->variables.Get_qb().SetElement(0,0, this->P_dt);
 					};
 
 	virtual void VariablesQbSetSpeed(double step=0.) 
 					{
-						// not really a 'speed', just the field (it fits in incremental solver) 
-						this->P =  this->variables.Get_qb().GetElement(0,0);
+						if (variables.IsDisabled())
+							return;
+						// not really a 'speed', just the field derivative (may be used in incremental solver) 
+						this->P_dt =  this->variables.Get_qb().GetElement(0,0);
 					};
 
 	virtual void VariablesFbIncrementMq() 
@@ -128,6 +139,9 @@ public:
 
 	virtual void VariablesQbIncrementPosition(double step) 
 					{ 
+						if (variables.IsDisabled())
+							return;
+
 						double pseudospeed = variables.Get_qb().GetElement(0,0);
 
 						// ADVANCE FIELD: pos' = pos + dt * vel
@@ -138,12 +152,12 @@ private:
 	ChLcpVariablesGeneric	variables; /// solver proxy: variable with scalar field P 
 
 	double P;	///< field
+	double P_dt; ///< field derivative, if needed
 
 	double F;	///< applied term 
 	
 	ChVector<> pos;		
 	
-
 
 };
 

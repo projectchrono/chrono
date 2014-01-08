@@ -555,8 +555,8 @@ static void fillChTrimeshFromIrlichtMesh(chrono::geometry::ChTriangleMesh* chTri
 
 // Given a ChTriangleMesh object, computes an Irrlicht mesh. 
 // Note: the ChTriangleMesh is a 'triangle soup', so no connectivity is
-// used. As a consequence, mo Gourad/Phong shading is possible and all
-// triangles will look flat.
+// used. As a consequence, no Gourad/Phong shading is possible and all
+// triangles will look flat. ***OBSOLETE***
 
 
 static void fillIrlichtMeshFromChTrimesh(scene::IMesh* pMesh, chrono::geometry::ChTriangleMesh* chTrimesh, video::SColor clr = video::SColor(255, 255,255,255))

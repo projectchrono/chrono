@@ -40,8 +40,10 @@ public:
 	ChElementHexa_20();
 	virtual ~ChElementHexa_20();
 
-	virtual int GetNcoords() {return 60;}
 	virtual int GetNnodes()  {return 20;}
+	virtual int GetNcoords() {return 20*3;}
+	virtual int GetNdofs()   {return 20*3;}
+
 	virtual ChSharedPtr<ChNodeFEMbase> GetNodeN(int n) {return nodes[n];}
 
 	virtual void SetNodes(ChSharedPtr<ChNodeFEMxyz> nodeA, ChSharedPtr<ChNodeFEMxyz> nodeB, ChSharedPtr<ChNodeFEMxyz> nodeC, ChSharedPtr<ChNodeFEMxyz> nodeD,
