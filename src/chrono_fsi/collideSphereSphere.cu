@@ -34,6 +34,13 @@ __constant__ int numFlex_SphMarkersD;
 
 int maxblock = 65535;
 //--------------------------------------------------------------------------------------------------------------------------------
+// first comp of q is rotation, last 3 components are axis of rot
+__device__ __host__ inline void RotationMatirixFromQuaternion_kernelD(real3 & AD1, real3 & AD2, real3 & AD3, const real4 & q) {
+	AD1 = 2 * R3(0.5f - q.z * q.z - q.w * q.w, q.y * q.z - q.x * q.w, q.y * q.w + q.x * q.z);
+	AD2 = 2 * R3(q.y * q.z + q.x * q.w, 0.5f - q.y * q.y - q.w * q.w, q.z * q.w - q.x * q.y);
+	AD3 = 2 * R3(q.y * q.w - q.x * q.z, q.z * q.w + q.x * q.y, 0.5f - q.y * q.y - q.z * q.z);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 __device__ __host__ inline int IndexOfClosestNode(real_ sOverBeam, real_ lBeam, int2 nodesInterval) {
 	int nNodes = nodesInterval.y - nodesInterval.x;
 	int maxNodeIdx = nNodes - 1;
@@ -682,13 +689,6 @@ __global__ void UpdateRigidBodyQuaternion_kernel(real4 * qD, real3 * omegaLRF_D)
 	qD[rigidSphereA] = q;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-// first comp of q is rotation, last 3 components are axis of rot
-__device__ inline void RotationMatirixFromQuaternion_kernelD(real3 & AD1, real3 & AD2, real3 & AD3, const real4 & q) {
-	AD1 = 2 * R3(0.5f - q.z * q.z - q.w * q.w, q.y * q.z - q.x * q.w, q.y * q.w + q.x * q.z);
-	AD2 = 2 * R3(q.y * q.z + q.x * q.w, 0.5f - q.y * q.y - q.w * q.w, q.z * q.w - q.x * q.y);
-	AD3 = 2 * R3(q.y * q.w - q.x * q.z, q.z * q.w + q.x * q.y, 0.5f - q.y * q.y - q.z * q.z);
-}
-//--------------------------------------------------------------------------------------------------------------------------------
 //updates the rigid body Rotation
 // A is rotation matrix, A = [AD1; AD2; AD3], first comp of q is rotation, last 3 components are axis of rot
 // in wikipedia, last quat comp is the angle, in my version, first one is the angle.
@@ -699,9 +699,11 @@ __global__ void RotationMatirixFromQuaternion_kernel(real3 * AD1, real3 * AD2, r
 		return;
 	}
 	real4 q = qD[rigidSphereA];
-	AD1[rigidSphereA] = 2 * R3(0.5f - q.z * q.z - q.w * q.w, q.y * q.z - q.x * q.w, q.y * q.w + q.x * q.z);
-	AD2[rigidSphereA] = 2 * R3(q.y * q.z + q.x * q.w, 0.5f - q.y * q.y - q.w * q.w, q.z * q.w - q.x * q.y);
-	AD3[rigidSphereA] = 2 * R3(q.y * q.w - q.x * q.z, q.z * q.w + q.x * q.y, 0.5f - q.y * q.y - q.z * q.z);
+	real3 aD1, aD2, aD3;
+	RotationMatirixFromQuaternion_kernelD(aD1, aD2, aD3, q);
+	AD1[rigidSphereA] = aD1;
+	AD2[rigidSphereA] = aD2;
+	AD3[rigidSphereA] = aD3;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void UpdateRigidBodyAngularVelocity_kernel(
