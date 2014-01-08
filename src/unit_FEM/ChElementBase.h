@@ -80,12 +80,12 @@ public:
 			// 
 
 				/// Tell to a system descriptor that there are item(s) of type
-				/// ChLcpKstiffness in this object (for further passing it to a LCP solver)
+				/// ChLcpKblock in this object (for further passing it to a LCP solver)
 				/// Basically does nothing, but inherited classes must specialize this.
 	virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) =0;
 
 				/// Adds the current stiffness K and damping R and mass M matrices in encapsulated
-				/// ChLcpKstiffness item(s), if any. The K, R, M matrices are added with scaling 
+				/// ChLcpKblock item(s), if any. The K, R, M matrices are added with scaling 
 				/// values Kfactor, Rfactor, Mfactor.  
 	virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) =0;
 

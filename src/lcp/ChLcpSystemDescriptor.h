@@ -31,7 +31,7 @@
 
 #include "lcp/ChLcpVariables.h"
 #include "lcp/ChLcpConstraint.h"
-#include "lcp/ChLcpKstiffness.h"
+#include "lcp/ChLcpKblock.h"
 #include <vector>
 #include "parallel/ChOpenMP.h"
 #include "parallel/ChThreadsSync.h"
@@ -41,7 +41,7 @@ namespace chrono
 
 
 /// Base class for collecting objects inherited from ChLcpConstraint ,
-/// ChLcpVariables and, optionally ChLcpKstiffness. These objects
+/// ChLcpVariables and, optionally ChLcpKblock. These objects
 /// can be used to define a sparse representation of the system.
 ///  The problem is described by a variational inequality VI(Z*x-d,K):
 ///
@@ -53,8 +53,8 @@ namespace chrono
 /// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals
 /// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
 /// * case CCP: Y_i are friction cones
-/// Optionally, also objects inherited from ChLcpKstiffness can be added 
-/// too, hence M becomes M+K (but not all solvers handle ChLcpKstiffness!)
+/// Optionally, also objects inherited from ChLcpKblock can be added 
+/// too, hence M becomes M+K (but not all solvers handle ChLcpKblock!)
 /// All LCP solvers require that the description of
 /// the system is passed by means of a ChLcpSystemDescriptor,
 /// where all constraints, variables, masses, known terms 
@@ -76,7 +76,7 @@ protected:
 			//
 		std::vector<ChLcpConstraint*> vconstraints;
 		std::vector<ChLcpVariables*>  vvariables;
-		std::vector<ChLcpKstiffness*>  vstiffness;
+		std::vector<ChLcpKblock*>     vstiffness;
 		
 		int num_threads;
 
@@ -109,7 +109,7 @@ public:
 	std::vector<ChLcpVariables*>& GetVariablesList() {return vvariables;};
 
 		/// Access the vector of stiffness matrix blocks
-	std::vector<ChLcpKstiffness*>& GetKstiffnessList() {return vstiffness;};
+	std::vector<ChLcpKblock*>& GetKblocksList() {return vstiffness;};
 
 
 		/// Begin insertion of items
@@ -126,8 +126,8 @@ public:
 		/// Insert reference to a ChLcpVariables object
 	virtual void InsertVariables(ChLcpVariables* mv) { vvariables.push_back(mv); }
 
-		/// Insert reference to a ChLcpKstiffness object (a piece of K matrix)
-	virtual void InsertKstiffness(ChLcpKstiffness* mk) { vstiffness.push_back(mk); }
+		/// Insert reference to a ChLcpKblock object (a piece of matrix)
+	virtual void InsertKblock(ChLcpKblock* mk) { vstiffness.push_back(mk); }
 
 
 		/// End insertion of items
@@ -278,7 +278,7 @@ public:
 				/// length of the l_i reactions vector; constraints with enabled=false are not handled.
 				/// NOTE! the 'q' data in the ChVariables of the system descriptor is changed by this
 				/// operation, so it may happen that you need to backup them via FromVariablesToVector()
-				/// NOTE! currently this function does NOT support the cases that use also ChLcpKstiffness
+				/// NOTE! currently this function does NOT support the cases that use also ChLcpKblock
 				/// objects, because it would need to invert the global M+K, that is not diagonal,
 				/// for doing = [N]*l = [ [Cq][(M+K)^(-1)][Cq'] - [E] ] * l
 	virtual void ShurComplementProduct(	

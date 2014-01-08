@@ -11,7 +11,7 @@
 
 ///////////////////////////////////////////////////
 //
-//   ChLcpKstiffnessGeneric.cpp
+//   ChLcpKblockGeneric.cpp
 //
 //
 //    file for CHRONO HYPEROCTANT LCP solver 
@@ -22,7 +22,7 @@
 ///////////////////////////////////////////////////
 
  
-#include "ChLcpKstiffnessGeneric.h" 
+#include "ChLcpKblockGeneric.h" 
 
 #include "core/ChMemory.h" // must be after system's include (memory leak debugger).
 
@@ -32,16 +32,16 @@ namespace chrono
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChLcpKstiffnessGeneric> a_registration_ChLcpKstiffnessGeneric;
+ChClassRegister<ChLcpKblockGeneric> a_registration_ChLcpKblockGeneric;
 
 
 
-ChLcpKstiffnessGeneric& ChLcpKstiffnessGeneric::operator=(const ChLcpKstiffnessGeneric& other)
+ChLcpKblockGeneric& ChLcpKblockGeneric::operator=(const ChLcpKblockGeneric& other)
 {
 	if (&other == this) return *this;
 
 	// copy parent class data
-	//ChLcpKstiffness::operator=(other);
+	//ChLcpKblock::operator=(other);
 
 	this->variables = other.variables;
 
@@ -60,7 +60,7 @@ ChLcpKstiffnessGeneric& ChLcpKstiffnessGeneric::operator=(const ChLcpKstiffnessG
 }
 
 
-void  ChLcpKstiffnessGeneric::SetVariables(std::vector<ChLcpVariables*> mvariables)
+void  ChLcpKblockGeneric::SetVariables(std::vector<ChLcpVariables*> mvariables)
 {
 	assert (mvariables.size() >0);
 
@@ -78,7 +78,7 @@ void  ChLcpKstiffnessGeneric::SetVariables(std::vector<ChLcpVariables*> mvariabl
 }
 
 
-void ChLcpKstiffnessGeneric::MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect) 
+void ChLcpKblockGeneric::MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect) 
 {
 	assert(K);
 
@@ -88,32 +88,39 @@ void ChLcpKstiffnessGeneric::MultiplyAndAdd(ChMatrix<double>& result, const ChMa
 		int io = this->GetVariableN(iv)->GetOffset();
 		int in = this->GetVariableN(iv)->Get_ndof();
 
-		int kjo =0;
-		for (unsigned int jv = 0; jv< this->GetNvars(); jv++)
+		if (this->GetVariableN(iv)->IsActive())
 		{
-			int jo = this->GetVariableN(jv)->GetOffset();
-			int jn = this->GetVariableN(jv)->Get_ndof();
-	
-			// Multiply the iv,jv sub block of K
-			for (int r = 0; r< in; r++)
+			int kjo =0;
+			for (unsigned int jv = 0; jv< this->GetNvars(); jv++)
 			{
-				double tot = 0;
-				for (int c = 0; c< jn; c++)
+				int jo = this->GetVariableN(jv)->GetOffset();
+				int jn = this->GetVariableN(jv)->Get_ndof();
+		
+				if (this->GetVariableN(jv)->IsActive())
 				{
-					tot += (*this->K)(kio+r,kjo+c) * vect(jo+c);
+					// Multiply the iv,jv sub block of K
+					for (int r = 0; r< in; r++)
+					{
+						double tot = 0;
+						for (int c = 0; c< jn; c++)
+						{
+							tot += (*this->K)(kio+r,kjo+c) * vect(jo+c);
+						}
+						result(io+r) += tot;
+					}
 				}
-				result(io+r) += tot;
-			}
 
-			kjo += jn;
+				kjo += jn;
+			}
 		}
+
 		kio += in;
 	}
 
 }
 
 
-void ChLcpKstiffnessGeneric::DiagonalAdd(ChMatrix<double>& result)  
+void ChLcpKblockGeneric::DiagonalAdd(ChMatrix<double>& result)  
 {
 	assert(result.GetColumns()==1);
 
@@ -123,10 +130,13 @@ void ChLcpKstiffnessGeneric::DiagonalAdd(ChMatrix<double>& result)
 		int io = this->GetVariableN(iv)->GetOffset();
 		int in = this->GetVariableN(iv)->Get_ndof();
 
-		for (int r = 0; r < in; r++)
+		if (this->GetVariableN(iv)->IsActive())
 		{
-			//GetLog() << "Summing" << result(io+r) << " to " << (*this->K)(kio+r,kio+r) << "\n";
-			result(io+r) += (*this->K)(kio+r,kio+r);
+			for (int r = 0; r < in; r++)
+			{
+				//GetLog() << "Summing" << result(io+r) << " to " << (*this->K)(kio+r,kio+r) << "\n";
+				result(io+r) += (*this->K)(kio+r,kio+r);
+			}
 		}
 		kio += in;
 	}
@@ -134,7 +144,7 @@ void ChLcpKstiffnessGeneric::DiagonalAdd(ChMatrix<double>& result)
 }
 
 
-void ChLcpKstiffnessGeneric::Build_K(ChSparseMatrix& storage, bool add)
+void ChLcpKblockGeneric::Build_K(ChSparseMatrix& storage, bool add)
 {
 	if (!K) 
 		return;
@@ -145,17 +155,26 @@ void ChLcpKstiffnessGeneric::Build_K(ChSparseMatrix& storage, bool add)
 		int io = this->GetVariableN(iv)->GetOffset();
 		int in = this->GetVariableN(iv)->Get_ndof();
 
-		int kjo =0;
-		for (unsigned int jv = 0; jv< this->GetNvars(); jv++)
+		if (this->GetVariableN(iv)->IsActive())
 		{
-			int jo = this->GetVariableN(jv)->GetOffset();
-			int jn = this->GetVariableN(jv)->Get_ndof();
-			if (add)
-				storage.PasteSumClippedMatrix(this->K, kio, kjo, in, jn,  io,jo);
-			else
-				storage.PasteClippedMatrix   (this->K, kio, kjo, in, jn,  io,jo);
-			kjo += jn;
+			int kjo =0;
+			for (unsigned int jv = 0; jv< this->GetNvars(); jv++)
+			{
+				int jo = this->GetVariableN(jv)->GetOffset();
+				int jn = this->GetVariableN(jv)->Get_ndof();
+
+				if (this->GetVariableN(jv)->IsActive())
+				{
+					if (add)
+						storage.PasteSumClippedMatrix(this->K, kio, kjo, in, jn,  io,jo);
+					else
+						storage.PasteClippedMatrix   (this->K, kio, kjo, in, jn,  io,jo);
+				}
+
+				kjo += jn;
+			}
 		}
+
 		kio += in;
 	}
 }
@@ -163,13 +182,13 @@ void ChLcpKstiffnessGeneric::Build_K(ChSparseMatrix& storage, bool add)
 
 
 /*
-void ChLcpKstiffnessGeneric::StreamOUT(ChStreamOutBinary& mstream)
+void ChLcpKblockGeneric::StreamOUT(ChStreamOutBinary& mstream)
 {
 		// class version number
 	mstream.VersionWrite(1);
 
 		// serialize parent class too
-	ChLcpKstiffness::StreamOUT(mstream);
+	ChLcpKblock::StreamOUT(mstream);
 
 		// stream out all member data
 	// NOTHING INTERESTING TO SERIALIZE (the Cq jacobians are not so
@@ -182,13 +201,13 @@ void ChLcpKstiffnessGeneric::StreamOUT(ChStreamOutBinary& mstream)
 
 
 
-void ChLcpKstiffnessGeneric::StreamIN(ChStreamInBinary& mstream)
+void ChLcpKblockGeneric::StreamIN(ChStreamInBinary& mstream)
 {
 		// class version number
 	int version = mstream.VersionRead();
 
 		// deserialize parent class too
-	ChLcpKstiffness::StreamIN(mstream);
+	ChLcpKblock::StreamIN(mstream);
 
 		// stream in all member data
 	// NOTHING INTERESTING TO DESERIALIZE (the Cq jacobians are not so

@@ -721,9 +721,9 @@ protected:
 	virtual void LCPprepare_load(      bool load_jacobians, ///< load jacobians into ChConstraints
 							   bool   load_Mv,		///< load M*v in fb: fb+=M*v (for timestepping where fb=F*h+M*v_old). Also, sets q=v_old.
 							   double F_factor, 	///< load F (forces) in fb: fb+=F*F_factor
-							   double K_factor,		///< load K stiff.matrices, if any ChLcpKstiffness blocks, multiplied by K_factor
-							   double R_factor,		///< load R damp.matrices, if any ChLcpKstiffness blocks, multiplied by R_factor
-							   double M_factor,		///< load M mass.matrices, if any ChLcpKstiffness blocks, multiplied by M_factor (ex in non-lumped-mass FEM)
+							   double K_factor,		///< load K stiff.matrices, if any ChLcpKblock matrices, multiplied by K_factor
+							   double R_factor,		///< load R damp.matrices, if any ChLcpKblock matrices, multiplied by R_factor
+							   double M_factor,		///< load M mass.matrices, if any ChLcpKblock matrices, multiplied by M_factor (ex in non-lumped-mass FEM)
 							   double Ct_factor,	///< load Ct into bi:  bi+= Ct*Ct_factor
 							   double C_factor,		///< load C  into bi:  bi+= C*C_factor, otherwise..
 							   double recovery_clamp,///< if do_clamp=true,  bi+= min(C*C_factor, recovery_clamp); 

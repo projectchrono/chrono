@@ -32,7 +32,7 @@
 #include "lcp/ChLcpVariablesBodyOwnMass.h"
 #include "lcp/ChLcpConstraintTwoGeneric.h"
 #include "lcp/ChLcpConstraintTwoBodies.h"
-#include "lcp/ChLcpKstiffnessGeneric.h"
+#include "lcp/ChLcpKblockGeneric.h"
 #include "lcp/ChLcpSystemDescriptor.h"
 #include "lcp/ChLcpIterativeSOR.h"
 #include "lcp/ChLcpIterativePMINRES.h"
@@ -429,7 +429,7 @@ void test_3()
 
 		// Create two C++ objects representing 'stiffness' between variables:
 
-	ChLcpKstiffnessGeneric mKa;
+	ChLcpKblockGeneric mKa;
 	// set the affected variables (so this K is a 12x12 matrix, relative to 4 6x6 blocks)
 	std::vector<ChLcpVariables*> mvarsa;
 	mvarsa.push_back(&mvarA);
@@ -443,10 +443,10 @@ void test_3()
 	mtempB.CopyFromMatrixT(mtempA);
 	*mKa.Get_K() = -mtempA*mtempB;
 
-	mdescriptor.InsertKstiffness(&mKa);
+	mdescriptor.InsertKblock(&mKa);
 	
 
-	ChLcpKstiffnessGeneric mKb;
+	ChLcpKblockGeneric mKb;
 	// set the affected variables (so this K is a 12x12 matrix, relative to 4 6x6 blocks)
 	std::vector<ChLcpVariables*> mvarsb;
 	mvarsb.push_back(&mvarB);
@@ -455,7 +455,7 @@ void test_3()
 
 	*mKb.Get_K() =  *mKa.Get_K(); 
 	
-	mdescriptor.InsertKstiffness(&mKb);
+	mdescriptor.InsertKblock(&mKb);
 
 
 	mdescriptor.EndInsertion();  // ----- system description ends here

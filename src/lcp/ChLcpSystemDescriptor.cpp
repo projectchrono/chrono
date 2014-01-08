@@ -570,7 +570,7 @@ void ChLcpSystemDescriptor::ShurComplementProduct(
 								)
 {
 	#ifdef CH_DEBUG
-		assert(this->vstiffness.size() == 0); // currently, the case with ChLcpKstiffness items is not supported (only diagonal M is supported, no K)
+		assert(this->vstiffness.size() == 0); // currently, the case with ChLcpKblock items is not supported (only diagonal M is supported, no K)
 		int n_c=CountActiveConstraints();
 		assert(lvector->GetRows()   == n_c);
 		assert(lvector->GetColumns()== 1);

@@ -40,7 +40,7 @@ double ChLcpIterativePMINRES::Solve(
 
 		// If stiffness blocks are used, the Schur complement cannot be esily
 		// used, so fall back to the Solve_SupportingStiffness method, that operates on KKT.
-	if (sysd.GetKstiffnessList().size() > 0)
+	if (sysd.GetKblocksList().size() > 0)
 		return this->Solve_SupportingStiffness(sysd);
 
 
@@ -338,7 +338,7 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 
 	std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
 	std::vector<ChLcpVariables*>&  mvariables	= sysd.GetVariablesList();
-	std::vector<ChLcpKstiffness*>& mstiffness	= sysd.GetKstiffnessList();
+	std::vector<ChLcpKblock*>&     mstiffness	= sysd.GetKblocksList();
 
 	this->tot_iterations = 0;
 
@@ -560,7 +560,7 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 	sysd.FromVectorToUnknowns(mx);  
 
 
-	if (verbose) GetLog() <<"-----\n";
+	if (verbose) GetLog() <<"residual: "<< mr.NormTwo() << " ---\n";
 
 	return maxviolation;
 

@@ -14,7 +14,7 @@
 #define CHELEMENTGENERIC_H
 
 
-#include "lcp/ChLcpKstiffnessGeneric.h"
+#include "lcp/ChLcpKblockGeneric.h"
 #include "lcp/ChLcpVariablesNode.h"
 #include "ChElementBase.h"
 
@@ -37,7 +37,7 @@ namespace fem
 class ChApiFem ChElementGeneric : public ChElementBase
 {
 protected:
-	ChLcpKstiffnessGeneric Kmatr;
+	ChLcpKblockGeneric Kmatr;
 
 public:
 
@@ -45,7 +45,7 @@ public:
 	virtual ~ChElementGeneric() {};
 
 				/// Access the proxy to stiffness, for sparse LCP solver
-	ChLcpKstiffnessGeneric& Kstiffness() {return Kmatr;}
+	ChLcpKblockGeneric& Kstiffness() {return Kmatr;}
 
 
 			//
@@ -53,15 +53,15 @@ public:
 			//
 
 				/// Tell to a system descriptor that there are item(s) of type
-				/// ChLcpKstiffness in this object (for further passing it to a LCP solver)
+				/// ChLcpKblock in this object (for further passing it to a LCP solver)
 				/// Basically does nothing, but inherited classes must specialize this.
 	virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor)
 				{
-					mdescriptor.InsertKstiffness(&Kmatr);
+					mdescriptor.InsertKblock(&Kmatr);
 				}
 
 				/// Adds the current stiffness K and damping R and mass M matrices in encapsulated
-				/// ChLcpKstiffness item(s), if any. The K, R, M matrices are load with scaling 
+				/// ChLcpKblock item(s), if any. The K, R, M matrices are load with scaling 
 				/// values Kfactor, Rfactor, Mfactor. 
 	virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor)
 				{

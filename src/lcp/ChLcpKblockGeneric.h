@@ -9,14 +9,14 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPKSTIFFNESSGENERIC_H
-#define CHLCPKSTIFFNESSGENERIC_H
+#ifndef CHLCPKBLOCKGENERIC_H
+#define CHLCPKBLOCKGENERIC_H
 
 //////////////////////////////////////////////////
 //
-//   ChLcpKstiffnessGeneric.h
+//   ChLcpKblockGeneric.h
 //
-//    Base class for representing a block-sparse stiffness
+//    Base class for representing a block-sparse 
 //   matrix between N vector-variables in a VI problem
 //   Used for building sparse variational problems 
 //   (VI/CCP/LCP/linear problems) described by 
@@ -30,7 +30,7 @@
 ///////////////////////////////////////////////////
 
 
-#include "lcp/ChLcpKstiffness.h"
+#include "lcp/ChLcpKblock.h"
 
 
 namespace chrono
@@ -48,16 +48,16 @@ namespace chrono
 /// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals
 /// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
 /// * case CCP: Y_i are friction cones
-/// Note that 'stiffness' blocks do not necessarily have a physical 
-/// interpretation as stiffness, for example they can represent hessians.
-/// Note that all stiffness blocks in K, all masses and constraint
+/// Note that K blocks often have a physical interpretation as stiffness, 
+/// but not always, for example they can represent hessians.
+/// Note that all blocks in K, all masses and constraint
 /// jacobians Cq are not really assembled in large matrices, so to
-/// exploit sparsity).
+/// exploit sparsity.
 
 
-class ChApi ChLcpKstiffnessGeneric : public ChLcpKstiffness
+class ChApi ChLcpKblockGeneric : public ChLcpKblock
 {
-	CH_RTTI(ChLcpKstiffnessGeneric, ChLcpKstiffness)
+	CH_RTTI(ChLcpKblockGeneric, ChLcpKblock)
 
 private:
 			//
@@ -74,18 +74,18 @@ public:
 			// CONSTRUCTORS
 			//
 
-	ChLcpKstiffnessGeneric()
+	ChLcpKblockGeneric()
 				{
 					K=0;
 				}
 
-	ChLcpKstiffnessGeneric(std::vector<ChLcpVariables*> mvariables)
+	ChLcpKblockGeneric(std::vector<ChLcpVariables*> mvariables)
 				{
 					K=0;
 					this->SetVariables(mvariables);
 				}
 
-	ChLcpKstiffnessGeneric(ChLcpVariables* mvariableA, ChLcpVariables* mvariableB)
+	ChLcpKblockGeneric(ChLcpVariables* mvariableA, ChLcpVariables* mvariableB)
 				{
 					K=0;
 					std::vector<ChLcpVariables*> mvars;
@@ -94,14 +94,14 @@ public:
 					this->SetVariables(mvars);
 				}
 
-	virtual ~ChLcpKstiffnessGeneric()
+	virtual ~ChLcpKblockGeneric()
 				{
 					if (K) delete K; K=0;
 				};
 
 	
 				/// Assignment operator: copy from other object
-	ChLcpKstiffnessGeneric& operator=(const ChLcpKstiffnessGeneric& other);
+	ChLcpKblockGeneric& operator=(const ChLcpKblockGeneric& other);
 
 
 			//
@@ -156,4 +156,4 @@ public:
 
 
 
-#endif  // END of ChLcpKstiffnessGeneric.h
+#endif  // END of ChLcpKblockGeneric.h

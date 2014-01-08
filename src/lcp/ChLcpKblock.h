@@ -9,14 +9,14 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPKSTIFFNESS_H
-#define CHLCPKSTIFFNESS_H
+#ifndef CHLCPKBLOCK_H
+#define CHLCPKBLOCK_H
 
 //////////////////////////////////////////////////
 //
-//   ChLcpKstiffness.h
+//   ChLcpKblock.h
 //
-//    Base class for representing a block-sparse stiffness
+//    Base class for representing a block-sparse 
 //   matrix between some variables in a VI problem.
 //   Used for building sparse variational problems 
 //   (VI/CCP/LCP/linear problems) described by 
@@ -43,7 +43,7 @@ namespace chrono
 
 
 ///  Base class for representing items which introduce block-sparse
-/// 'stiffness matrices', that is blocks that connect some 'variables'
+/// matrices, that is blocks that connect some 'variables'
 /// and build a matrix K in a sparse variational inequality VI(Z*x-d,K):
 ///
 ///  | M+K -Cq'|*|q|- | f|= |0| , l \in Y, C \in Ny, normal cone to Y  
@@ -54,16 +54,16 @@ namespace chrono
 /// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals
 /// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
 /// * case CCP: Y_i are friction cones
-/// Note that 'stiffness' blocks do not necessarily have a physical 
-/// interpretation as stiffness, for example they can represent hessians.
-/// Note that all stiffness blocks in K, all masses and constraint
+/// Note that K blocks often have a physical interpretation as stiffness, 
+/// but not always, for example they can represent hessians.
+/// Note that all blocks in K, all masses and constraint
 /// jacobians Cq are not really assembled in large matrices, so to
-/// exploit sparsity).
+/// exploit sparsity.
 
 
-class ChApi ChLcpKstiffness
+class ChApi ChLcpKblock
 {
-	CH_RTTI_ROOT(ChLcpKstiffness)
+	CH_RTTI_ROOT(ChLcpKblock)
 
 private:
 			//
@@ -75,11 +75,11 @@ public:
 			//
 			// CONSTRUCTORS
 			//
-	ChLcpKstiffness()
+	ChLcpKblock()
 				{
 				}
 
-	virtual ~ChLcpKstiffness()
+	virtual ~ChLcpKblock()
 				{
 				};
 
@@ -123,4 +123,4 @@ public:
 
 
 
-#endif  // END of ChLcpKstiffness.h
+#endif  // END of ChLcpKblock.h
