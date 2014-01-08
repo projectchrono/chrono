@@ -324,7 +324,10 @@ void CreateOne3DRigidCylinder(
 	rigidPos.push_back(0.5 * (pa3 + pb3));
 	cylinderGeom.push_back(cylGeom);
 
-	mQuatRot.push_back(R4(1, 0, 0, 0));
+	real3 slope3 = normalize(pb3 - pa3);
+	real4 q;
+	QuaternionFromAxisVector_CPP(q, slope3);
+	mQuatRot.push_back(q);
 	real_ mass;
 	real3 j1, j2;
 	CreateMassMomentCylinder3D_AlongZ(mass, j1, j2, cylGeom.r, cylGeom.h, rhoRigid);			//create Cylinder
@@ -1626,8 +1629,6 @@ int CreateCylinderMarkers_XZ(thrust::host_vector<real3> & mPosRad,
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 int main() {
-
-	printf("fmod %f\n", fmod(-5,4));
 	//****************************************************************************************
 	time_t rawtime;
 	struct tm * timeinfo;
@@ -1832,15 +1833,12 @@ int main() {
 //			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever,
 //			flexParams);
 	//**
-
-	printf("numRigids %d\n", rigidPos.size());
 	printf("rigid Radii %f %f %f\n", r3Ellipsoid.x, r3Ellipsoid.y,
 			r3Ellipsoid.z);
 
 	thrust::host_vector<Rotation> rigidRotMatrix(mQuatRot.size());
 	ConvertQuatArray2RotArray(rigidRotMatrix, mQuatRot);
 
-	printf("size rigids %d\n", rigidPos.size());
 	// ---------------------------------------------------------------------
 	// initialize fluid particles
 	if (readFromFile) {
@@ -1882,7 +1880,6 @@ int main() {
 		referenceArray.push_back(I3(0, num_fluidOrBoundaryMarkers.x, -1)); //map fluid -1
 //		referenceArray_Types.push_back((I3(-1, 0, 0)));
 		numAllMarkers += num_fluidOrBoundaryMarkers.x;
-		printf("num_FluidMarkers: %d\n", num_fluidOrBoundaryMarkers.x);
 
 		mPosRad.resize(
 				num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
@@ -1908,7 +1905,6 @@ int main() {
 						0)); //map bc 0
 //		referenceArray_Types.push_back(I3(0, 0, 0));
 		numAllMarkers += num_fluidOrBoundaryMarkers.y;
-		printf("num_BoundaryMarkers: %d\n", num_fluidOrBoundaryMarkers.y);
 
 		//rigid body: type = 1, 2, 3, ...
 //		printf("num_RigidBodyMarkers: \n");
@@ -1973,21 +1969,38 @@ int main() {
 		printf("\n");
 	}
 
+	//@@@@@@@@@@@@@@@@@@@@@@@@@ set number of objects once for all @@@@@@@@@@@@@@@@@@@@@@22
+	NumberOfObjects numObjects;
+	numObjects.numFlexBodies = ANCF_Beam_Length.size();
+	numObjects.numRigidBodies = rigidPos.size();
+	numObjects.numFlBcRigid = 2 + numObjects.numRigidBodies;
+	numObjects.numFluidMarkers = (referenceArray[0]).y - (referenceArray[0]).x;
+	numObjects.numBoundaryMarkers = (referenceArray[1]).y - (referenceArray[1]).x;
+	numObjects.startRigidMarkers = (referenceArray[1]).y;
+	numObjects.numRigid_SphMarkers = referenceArray[2 + numObjects.numRigidBodies - 1].y - numObjects.startRigidMarkers;
+	numObjects.startFlexMarkers = (referenceArray[numObjects.numFlBcRigid-1]).y;
+	numObjects.numFlex_SphMarkers = referenceArray[numObjects.numFlBcRigid + numObjects.numFlexBodies - 1].y - numObjects.startFlexMarkers;
+	numObjects.numAllMarkers = numAllMarkers;
+
+	//***** print numbers
+	printf("********************\n numFlexBodies: %d\n numRigidBodies: %d\n numFluidMarkers: %d\n "
+			"numBoundaryMarkers: %d\n numRigid_SphMarkers: %d\n numFlex_SphMarkers: %d\n numAllMarkers: %d\n********************\n",
+			numObjects.numFlexBodies, numObjects.numRigidBodies, numObjects.numFluidMarkers, numObjects.numBoundaryMarkers,
+			numObjects.numRigid_SphMarkers, numObjects.numFlex_SphMarkers, numObjects.numAllMarkers);
+
 	//@@@@@@@@ rigid body
 
 	thrust::host_vector<uint> bodyIndex(numAllMarkers);
 	thrust::fill(bodyIndex.begin(), bodyIndex.end(), 1);
 	thrust::exclusive_scan(bodyIndex.begin(), bodyIndex.end(),
 			bodyIndex.begin());
-	printf("numAllMarkers %d\n", numAllMarkers);
 
 	if (numAllMarkers != 0) {
 		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray,
-				rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1,
-				rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ANCF_Nodes,
-				ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel, ANCF_Beam_Length,
-				ANCF_IsCantilever, ANCF_ReferenceArrayNodesOnBeams, flexParametricDist,
-				numAllMarkers, channelRadius, channelCenterYZ, paramsH, flexParams);
+				rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2,
+				ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel, ANCF_Beam_Length, ANCF_IsCantilever,
+				ANCF_ReferenceArrayNodesOnBeams, flexParametricDist,
+				channelRadius, channelCenterYZ, paramsH, flexParams, numObjects);
 	}
 	mPosRad.clear();
 	mVelMas.clear();

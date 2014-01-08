@@ -4,6 +4,26 @@
 #include "SDKCollisionSystem.cuh" //just for SimParams
 #include "FlexibleBodies.cuh"
 
+struct NumberOfObjects {
+		int numRigidBodies;
+		int numFlexBodies;
+		int numFlBcRigid;
+
+		int numFluidMarkers;
+		int numBoundaryMarkers;
+		int startRigidMarkers;
+		int startFlexMarkers;
+		int numRigid_SphMarkers;
+		int numFlex_SphMarkers;
+		int numAllMarkers;
+};
+
+__constant__ NumberOfObjects numObjectsD;
+
+void QuaternionFromAxisVector_CPP(real4 & q, const real3 & n);
+
+
+
 void cudaCollisions(
 		thrust::host_vector<real3> & mPosRad,
 		thrust::host_vector<real4> & mVelMas,
@@ -30,10 +50,10 @@ void cudaCollisions(
 
 		const thrust::host_vector<real_> & flexParametricDist,
 
-		int & numAllMarkers,
 		real_ channelRadius,
 		real2 channelCenterYZ,
 		SimParams paramsH,
-		const ANCF_Params & flexParams);
+		const ANCF_Params & flexParams,
+		const NumberOfObjects & numObjects);
 
 #endif

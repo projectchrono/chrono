@@ -288,7 +288,7 @@ void PrintToFile(
 				real3 aD1 = AD1[j];
 				real3 aD2 = AD2[j];
 				real3 aD3 = AD3[j];
-				real3 axisZ = R3(aD1.z, aD2.z, aD3.z);
+				real3 axisZ = aD3;
 				real_ thetaRigid_ZAxis_withX = AngleF3F3(axisZ, R3(1, 0, 0));
 				real_ thetaRigid_ZAxis_withY = AngleF3F3(axisZ, R3(0, 1, 0));
 				real_ thetaRigid_ZAxis_withZ = AngleF3F3(axisZ, R3(0, 0, 1));
