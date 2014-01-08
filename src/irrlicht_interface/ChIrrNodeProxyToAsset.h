@@ -20,6 +20,7 @@
 #include "physics/ChSystem.h"
 #include "assets/ChVisualization.h"
 #include "assets/ChTriangleMeshShape.h"
+#include "assets/ChGlyphs.h"
 
 
 #define ESNT_CHIRRNODEPROXYTOASSET 1202
@@ -261,6 +262,178 @@ public:
 				meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true); // so color shading = vertexes  color
 
 			}
+
+
+			if (this->visualization_asset.IsType<ChGlyphs>())
+			{
+				ChSharedPtr<ChGlyphs> mglyphs = this->visualization_asset;
+
+				// Fetch the 1st child, i.e. the mesh
+				irr::scene::ISceneNode* mchildnode = *(this->getChildren().begin()); 
+				if (!mchildnode) 
+					return;
+
+				if (!(mchildnode->getType() == ESNT_MESH))
+					return;
+				IMeshSceneNode* meshnode = (IMeshSceneNode*)mchildnode; // dynamic_cast not enabled in Irrlicht dll
+
+				IMesh* amesh = meshnode->getMesh();
+				if (amesh->getMeshBufferCount() == 0)
+					return;
+
+				SMeshBuffer* irrmesh = (SMeshBuffer*)amesh->getMeshBuffer(0);
+
+				unsigned int ntriangles = 0;
+				unsigned int nvertexes = 0;
+
+				if (mglyphs->GetDrawMode() == ChGlyphs::GLYPH_POINT)
+				{
+					ntriangles =  12 * mglyphs->GetNumberOfGlyphs();
+					nvertexes =   24 * mglyphs->GetNumberOfGlyphs();
+				}
+				if (mglyphs->GetDrawMode() == ChGlyphs::GLYPH_VECTOR)
+				{
+					ntriangles =  1 * mglyphs->GetNumberOfGlyphs();
+					nvertexes =   3 * mglyphs->GetNumberOfGlyphs();
+				}
+
+				// smart inflating of allocated buffers, only if necessary, and once in a while shrinking
+				if (irrmesh->Indices.allocated_size() > (ntriangles*3) * 1.5)
+					irrmesh->Indices.clear();
+				if (irrmesh->Vertices.allocated_size() > nvertexes * 1.5)
+					irrmesh->Vertices.clear();
+
+				irrmesh->Indices.set_used(ntriangles*3);
+				irrmesh->Vertices.set_used(nvertexes); 
+
+				// set buffers
+
+				if (mglyphs->GetDrawMode() == ChGlyphs::GLYPH_POINT)
+				{
+					const u16 u[36] = {   0,1,2,   0,2,3, 
+										  4,6,5,   4,7,6,
+										  8,9,10,  8,10,11, 
+										  12,14,13, 12,15,14,
+										  16,18,17, 16,19,18,
+										  20,21,22, 20,22,23 };
+
+					int itri = 0;
+
+					for (unsigned int ig= 0; ig< mglyphs->points.size(); ++ig)
+					{
+						ChVector<> t1 =  mglyphs->points[ig];
+						ChColor mcol  =  mglyphs->colors[ig];
+						video::SColor clr(255, (irr::u32)(mcol.R *255), (irr::u32)(mcol.G *255), (irr::u32)(mcol.B *255) );
+
+						// create a small cube per each vertex
+						unsigned int voffs = ig*24;
+						irr::f32 s = (irr::f32) (mglyphs->GetGlyphsSize() *0.5);
+
+						irrmesh->Vertices[0+voffs]  = irr::video::S3DVertex(-s,-s,-s,  0, 0,-1, clr, 0, 0);
+						irrmesh->Vertices[1+voffs]  = irr::video::S3DVertex(-s, s,-s,  0, 0,-1, clr, 0, 1);
+						irrmesh->Vertices[2+voffs]  = irr::video::S3DVertex( s, s,-s,  0, 0,-1, clr, 1, 1);
+						irrmesh->Vertices[3+voffs]  = irr::video::S3DVertex( s,-s,-s,  0, 0,-1, clr, 1, 0);
+
+						irrmesh->Vertices[4+voffs]  = irr::video::S3DVertex(-s,-s, s,  0, 0, 1, clr, 0, 0);
+						irrmesh->Vertices[5+voffs]  = irr::video::S3DVertex(-s, s, s,  0, 0, 1, clr, 0, 1);
+						irrmesh->Vertices[6+voffs]  = irr::video::S3DVertex( s, s, s,  0, 0, 1, clr, 1, 1);
+						irrmesh->Vertices[7+voffs]  = irr::video::S3DVertex( s,-s, s,  0, 0, 1, clr, 1, 0);
+
+						irrmesh->Vertices[8+voffs]  = irr::video::S3DVertex(-s,-s,-s, -1, 0, 0, clr, 0, 0);
+						irrmesh->Vertices[9+voffs]  = irr::video::S3DVertex(-s,-s, s, -1, 0, 0, clr, 0, 1);
+						irrmesh->Vertices[10+voffs] = irr::video::S3DVertex(-s, s, s, -1, 0, 0, clr, 1, 1);
+						irrmesh->Vertices[11+voffs] = irr::video::S3DVertex(-s, s,-s, -1, 0, 0, clr, 1, 0);
+
+						irrmesh->Vertices[12+voffs] = irr::video::S3DVertex( s,-s,-s,  1, 0, 0, clr, 0, 0);
+						irrmesh->Vertices[13+voffs] = irr::video::S3DVertex( s,-s, s,  1, 0, 0, clr, 0, 1);
+						irrmesh->Vertices[14+voffs] = irr::video::S3DVertex( s, s, s,  1, 0, 0, clr, 1, 1);
+						irrmesh->Vertices[15+voffs] = irr::video::S3DVertex( s, s,-s,  1, 0, 0, clr, 1, 0);
+
+						irrmesh->Vertices[16+voffs] = irr::video::S3DVertex(-s,-s,-s,  0,-1, 0, clr, 0, 0);
+						irrmesh->Vertices[17+voffs] = irr::video::S3DVertex(-s,-s, s,  0,-1, 0, clr, 0, 1);
+						irrmesh->Vertices[18+voffs] = irr::video::S3DVertex( s,-s, s,  0,-1, 0, clr, 1, 1);
+						irrmesh->Vertices[19+voffs] = irr::video::S3DVertex( s,-s,-s,  0,-1, 0, clr, 1, 0);
+
+						irrmesh->Vertices[20+voffs] = irr::video::S3DVertex(-s, s,-s,  0, 1, 0, clr, 0, 0);
+						irrmesh->Vertices[21+voffs] = irr::video::S3DVertex(-s, s, s,  0, 1, 0, clr, 0, 1);
+						irrmesh->Vertices[22+voffs] = irr::video::S3DVertex( s, s, s,  0, 1, 0, clr, 1, 1);
+						irrmesh->Vertices[23+voffs] = irr::video::S3DVertex( s, s,-s,  0, 1, 0, clr, 1, 0);
+
+						for (u32 i=0; i<24; ++i)
+						{
+							irrmesh->Vertices[i+voffs].Pos += core::vector3df((irr::f32)t1.x, (irr::f32)t1.y, (irr::f32)t1.z);
+							//buffer->BoundingBox.addInternalPoint(buffer->Vertices[i].Pos);
+						}
+
+						for (u32 i=0; i<36; ++i)
+							irrmesh->Indices[i+itri] = u[i]+voffs;
+						itri += 36;
+
+					}
+				}
+
+
+				if (mglyphs->GetDrawMode() == ChGlyphs::GLYPH_VECTOR)
+				{
+					int itri = 0;
+					for (unsigned int ig= 0; ig< mglyphs->points.size(); ++ig)
+					{
+						ChVector<> t1 =  mglyphs->points [ig];
+						ChVector<> t2 =  mglyphs->vectors[ig] + t1;
+						ChColor mcol  =  mglyphs->colors [ig];
+						video::SColor clr(255, (irr::u32)(mcol.R *255), (irr::u32)(mcol.G *255), (irr::u32)(mcol.B *255) );
+
+						// create a  small line (a degenerate triangle) per each vector
+						irrmesh->Vertices[0+ig*3] = irr::video::S3DVertex((irr::f32)t1.x, (irr::f32)t1.y, (irr::f32)t1.z, 
+																		1, 0, 0,
+																		clr,
+																		0, 0);
+						irrmesh->Vertices[1+ig*3] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
+																		1, 0, 0,
+																		clr,
+																		0, 0);
+						irrmesh->Vertices[2+ig*3] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
+																		1, 0, 0,
+																		clr,
+																		0, 0);
+						irrmesh->Indices[0+itri*3] = 0+ig*3;
+						irrmesh->Indices[1+itri*3] = 1+ig*3;
+						irrmesh->Indices[2+itri*3] = 2+ig*3;
+						++itri;
+					}
+				}
+
+				
+
+				irrmesh->setDirty(); // to force update of hardware buffers
+				irrmesh->setHardwareMappingHint(irr::scene::EHM_DYNAMIC);//EHM_NEVER); //EHM_DYNAMIC for faster hw mapping
+				irrmesh->recalculateBoundingBox();
+
+				if (mglyphs->GetDrawMode() == ChGlyphs::GLYPH_VECTOR)
+				{
+					meshnode->setMaterialFlag(video::EMF_WIREFRAME,			true ); 
+					meshnode->setMaterialFlag(video::EMF_LIGHTING,			false ); // avoid shading for wireframe
+					meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false );
+				}
+				else
+				{
+					meshnode->setMaterialFlag(video::EMF_WIREFRAME,			false ); 
+					meshnode->setMaterialFlag(video::EMF_LIGHTING,			true ); 
+					meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, true );
+				}
+
+				if (mglyphs->GetZbufferHide() == true)
+					meshnode->setMaterialFlag(video::EMF_ZBUFFER,			true );
+				else
+					meshnode->setMaterialFlag(video::EMF_ZBUFFER,			false );
+
+
+				meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true); // so color shading = vertexes  color
+
+			}
+
+
+
 
 
 		}

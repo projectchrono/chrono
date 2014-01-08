@@ -36,6 +36,7 @@ class ChApiFem ChVisualizationFEMmesh: public ChAssetLevel
 	public:
 	 enum eChFemDataType {
 				E_PLOT_NONE,
+				E_PLOT_SURFACE,
 				E_PLOT_NODE_DISP_NORM,
 				E_PLOT_NODE_DISP_X,
 				E_PLOT_NODE_DISP_Y,
@@ -50,6 +51,17 @@ class ChApiFem ChVisualizationFEMmesh: public ChAssetLevel
 				E_PLOT_NODE_ACCEL_Z,
 				E_PLOT_ELEM_STRAIN_VONMISES,
 				E_PLOT_ELEM_STRESS_VONMISES,
+				E_PLOT_NODE_P, // scalar field for Poisson problems (ex. temperature if thermal FEM)
+		};
+
+	 enum eChFemGlyphs {
+				E_GLYPH_NONE,
+				E_GLYPH_NODE_DOT_POS,
+				E_GLYPH_NODE_VECT_SPEED,
+				E_GLYPH_NODE_VECT_ACCEL,
+				E_GLYPH_ELEM_TENS_STRAIN_VONMISES,
+				E_GLYPH_ELEM_TENS_STRESS_VONMISES,
+				E_GLYPH_ELEM_VECT_DP, // gradient field for Poisson problems (ex. heat flow if thermal FEM)
 		};
 
 	protected:
@@ -60,20 +72,27 @@ class ChApiFem ChVisualizationFEMmesh: public ChAssetLevel
 		ChMesh* FEMmesh;
 
 		eChFemDataType fem_data_type;
+		eChFemGlyphs   fem_glyph;
 
 		double colorscale_min;
 		double colorscale_max;
+
+		double symbols_scale;
+		double symbols_thickness;
 
 		bool shrink_elements;
 		double shrink_factor;
 
 		bool wireframe; 
 
+		bool zbuffer_hide;
+
 		bool smooth_faces;
 
 		bool undeformed_reference;
 
 		ChColor meshcolor;
+		ChColor symbolscolor;
 
 		std::vector<int> normal_accumulators;
 
@@ -107,17 +126,40 @@ class ChApiFem ChVisualizationFEMmesh: public ChAssetLevel
 			// Set the current data type to be plotted (speeds, forces, etc.)
 		void SetFEMdataType(eChFemDataType mdata) {fem_data_type = mdata;}
 		
+
+			// Returns the current data type to be drawn with glyphs 
+		eChFemGlyphs GetFEMglyphType() {return fem_glyph;}
+			
+			// Set the current data type to be drawn with glyphs 
+		void SetFEMglyphType(eChFemGlyphs mdata) {fem_glyph = mdata;}
+
+
 			// Set upper and lower values of the plotted variable for the colorscale plots.
 		void SetColorscaleMinMax(double mmin, double mmax) {colorscale_min = mmin; colorscale_max = mmax;}
 			
+			// Set the scale for drawing the vector/tensors/etc. symbols
+		void SetSymbolsScale(double mscale) { this->symbols_scale = mscale;}
+		double GetSymbolsScale() {return this->symbols_scale; }
+
+			// Set the thickness of symbols used for drawing the vector/tensors/etc. 
+		void SetSymbolsThickness(double mthick) { this->symbols_thickness = mthick;}
+		double GetSymbolsThickness() {return this->symbols_thickness; }
+
 			// Set shrinkage of elements during drawing
 		void SetShrinkElements(bool mshrink, double mfact) {this->shrink_elements = mshrink; shrink_factor = mfact;}
 
 			// Set as wireframe visualization
 		void SetWireframe(bool mwireframe) {this->wireframe = mwireframe;}
 
-			// Set color for E_PLOT_NONE mode or for wireframe lines
-		void SetMeshColor(ChColor mcolor) {this->meshcolor = mcolor;}
+			// Set the Z buffer enable/disable (for those rendering systems that can do this)
+			// If hide= false, symbols will appear even if hidden by meshes/geometries. Default true.
+		void SetZbufferHide(bool mhide) {this->zbuffer_hide = mhide;}
+
+			// Set color for E_PLOT_SURFACE mode (also for wireframe lines)
+		void SetDefaultMeshColor(ChColor mcolor) {this->meshcolor = mcolor;}
+
+			// Set color for E_GLYPHS_NONE mode or for wireframe lines
+		void SetDefaultSymbolsColor(ChColor mcolor) {this->symbolscolor = mcolor;}
 
 			// Activate Gourad or Phong smoothing for faces of non-straight elements 
 			// (with a small performance overhead) -NOTE: experimental

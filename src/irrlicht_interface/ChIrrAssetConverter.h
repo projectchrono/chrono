@@ -48,6 +48,7 @@
 #include "assets/ChVisualization.h"
 #include "assets/ChAssetLevel.h"
 #include "assets/ChTriangleMeshShape.h"
+#include "assets/ChGlyphs.h"
 
 namespace irr
 {
@@ -370,6 +371,23 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 
 				mchildnode->setMaterialFlag(video::EMF_WIREFRAME,		  mytrimesh->IsWireframe() ); 
 				mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
+			}
+			if ( k_asset.IsType<chrono::ChGlyphs>() )
+			{
+				chrono::ChSharedPtr<chrono::ChGlyphs> myglyphs(k_asset);
+
+				SMeshBuffer* buffer = new SMeshBuffer();
+				SMesh* newmesh = new SMesh;
+				newmesh->addMeshBuffer(buffer);
+				buffer->drop();
+
+				irr::scene::ChIrrNodeProxyToAsset* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(k_asset, mnode);
+				irr::scene::ISceneNode* mchildnode = this->scenemanager->addMeshSceneNode(newmesh,mproxynode);
+				newmesh->drop();
+				mproxynode->Update(); // force syncing of triangle positions & face indexes
+
+				//mchildnode->setMaterialFlag(video::EMF_WIREFRAME,		  mytrimesh->IsWireframe() ); 
+				//mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
 			}
 			if ( k_asset.IsType<chrono::ChSphereShape>() && sphereMesh)
 			{
