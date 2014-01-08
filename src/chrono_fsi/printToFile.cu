@@ -317,7 +317,7 @@ void PrintToFile(
 	if (tStep % tFlexTipPos == 0) {
 		if (tStep / tFlexTipPos == 0) {
 			flexTipPos.open("dataFlexTip.txt");
-			flexTipPos<<"(t, x, y, z, vx, vy, vz, vCx, vCy, vCz, thetaX, thetaY, thetaZ, fluidVelocity\n" << endl;
+			flexTipPos<<"(t, x, y, z, vx, vy, vz, vCx, vCy, vCz, thetaX_tip, thetaY_tip, thetaZ_tip, fluidVelocity\n" << endl;
 		} else {
 			flexTipPos.open("dataFlexTip.txt", ios::app);
 		}
