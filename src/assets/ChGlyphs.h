@@ -30,7 +30,8 @@ class ChApi ChGlyphs : public ChVisualization {
 public:
 	enum eCh_GlyphType{
 						 GLYPH_POINT = 0,
-						 GLYPH_VECTOR
+						 GLYPH_VECTOR,
+						 GLYPH_COORDSYS
 				};
 
 public:
@@ -42,6 +43,7 @@ public:
 	
 		// optional attrs
 	std::vector< ChVector<double> > vectors;
+	std::vector< ChQuaternion<double> > rotations;
 
 protected:
 
@@ -112,6 +114,9 @@ public:
 			/// If the id is more than the reserved amount of glyphs (see Reserve() ) the vectors are inflated.
 	void SetGlyphVector(unsigned int id, ChVector<> mpoint, ChVector<> mvector, ChColor mcolor = ChColor(1,0,0) );
 
+			/// Fast method to set a glyph for GLYPH_COORDSYS draw mode.
+			/// If the id is more than the reserved amount of glyphs (see Reserve() ) the csys are inflated.
+	void SetGlyphCoordsys(unsigned int id, ChCoordsys<> mcoord );
 
 };
 

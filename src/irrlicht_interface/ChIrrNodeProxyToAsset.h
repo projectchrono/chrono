@@ -297,6 +297,11 @@ public:
 					ntriangles =  1 * mglyphs->GetNumberOfGlyphs();
 					nvertexes =   3 * mglyphs->GetNumberOfGlyphs();
 				}
+				if (mglyphs->GetDrawMode() == ChGlyphs::GLYPH_COORDSYS)
+				{
+					ntriangles =  3 * mglyphs->GetNumberOfGlyphs();
+					nvertexes =   9 * mglyphs->GetNumberOfGlyphs();
+				}
 
 				// smart inflating of allocated buffers, only if necessary, and once in a while shrinking
 				if (irrmesh->Indices.allocated_size() > (ntriangles*3) * 1.5)
@@ -404,13 +409,64 @@ public:
 					}
 				}
 
+
+				if (mglyphs->GetDrawMode() == ChGlyphs::GLYPH_COORDSYS)
+				{
+					int itri = 0;
+					for (unsigned int ig= 0; ig< mglyphs->points.size(); ++ig)
+					{
+						ChVector<> t1 =  mglyphs->points [ig];
+		
+						ChVector<> t2;
+
+						// X axis - create a  small line (a degenerate triangle) per each vector
+						t2 =  mglyphs->rotations[ig].Rotate( ChVector<>(1,0,0)*mglyphs->GetGlyphsSize() ) + t1;
+						irrmesh->Vertices[0+ig*9] = irr::video::S3DVertex((irr::f32)t1.x, (irr::f32)t1.y, (irr::f32)t1.z, 
+																		1, 0, 0, video::SColor(255,255,0,0), 0, 0);
+						irrmesh->Vertices[1+ig*9] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
+																		1, 0, 0,	video::SColor(255,255,0,0),	0, 0);
+						irrmesh->Vertices[2+ig*9] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
+																		1, 0, 0,	video::SColor(255,255,0,0),	0, 0);
+						irrmesh->Indices[0+itri*3] = 0+ig*9;
+						irrmesh->Indices[1+itri*3] = 1+ig*9;
+						irrmesh->Indices[2+itri*3] = 2+ig*9;
+						++itri;
+
+						// Y axis
+						t2 =  mglyphs->rotations[ig].Rotate( ChVector<>(0,1,0)*mglyphs->GetGlyphsSize() ) + t1;
+						irrmesh->Vertices[3+ig*9] = irr::video::S3DVertex((irr::f32)t1.x, (irr::f32)t1.y, (irr::f32)t1.z, 
+																		1, 0, 0,	video::SColor(255,255,0,0),	0, 0);
+						irrmesh->Vertices[4+ig*9] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
+																		1, 0, 0,	video::SColor(255,255,0,0),	0, 0);
+						irrmesh->Vertices[5+ig*9] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
+																		1, 0, 0,	video::SColor(255,255,0,0),	0, 0);
+						irrmesh->Indices[0+itri*3] = 3+ig*9;
+						irrmesh->Indices[1+itri*3] = 4+ig*9;
+						irrmesh->Indices[2+itri*3] = 5+ig*9;
+						++itri;
+
+						// Z axis
+						t2 =  mglyphs->rotations[ig].Rotate( ChVector<>(0,0,1)*mglyphs->GetGlyphsSize() ) + t1;
+						irrmesh->Vertices[6+ig*9] = irr::video::S3DVertex((irr::f32)t1.x, (irr::f32)t1.y, (irr::f32)t1.z, 
+																		1, 0, 0,	video::SColor(255,0,0,255), 0, 0);
+						irrmesh->Vertices[7+ig*9] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
+																		1, 0, 0,	video::SColor(255,0,0,255),	0, 0);
+						irrmesh->Vertices[8+ig*9] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
+																		1, 0, 0,	video::SColor(255,0,0,255),	0, 0);
+						irrmesh->Indices[0+itri*3] = 6+ig*9;
+						irrmesh->Indices[1+itri*3] = 7+ig*9;
+						irrmesh->Indices[2+itri*3] = 8+ig*9;
+						++itri;
+					}
+				}
 				
 
 				irrmesh->setDirty(); // to force update of hardware buffers
 				irrmesh->setHardwareMappingHint(irr::scene::EHM_DYNAMIC);//EHM_NEVER); //EHM_DYNAMIC for faster hw mapping
 				irrmesh->recalculateBoundingBox();
 
-				if (mglyphs->GetDrawMode() == ChGlyphs::GLYPH_VECTOR)
+				if (mglyphs->GetDrawMode() == ChGlyphs::GLYPH_VECTOR ||
+					mglyphs->GetDrawMode() == ChGlyphs::GLYPH_COORDSYS )
 				{
 					meshnode->setMaterialFlag(video::EMF_WIREFRAME,			true ); 
 					meshnode->setMaterialFlag(video::EMF_LIGHTING,			false ); // avoid shading for wireframe

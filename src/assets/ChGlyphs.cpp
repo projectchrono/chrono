@@ -25,12 +25,19 @@ void ChGlyphs::Reserve(unsigned int n_glyphs)
 	{
 	case GLYPH_POINT:
 		vectors.resize(0);
+		rotations.resize(0);
 		return;
 	case GLYPH_VECTOR:
 		vectors.resize(n_glyphs);
+		rotations.resize(0);
+		return;
+	case GLYPH_COORDSYS:
+		vectors.resize(0);
+		rotations.resize(n_glyphs);
 		return;
 	default:
 		vectors.resize(n_glyphs);
+		rotations.resize(n_glyphs);
 	}
 }
 
@@ -63,6 +70,20 @@ void ChGlyphs::SetGlyphVector(unsigned int id, ChVector<> mpoint, ChVector<> mve
 	if (colors.size() <= id)
 		colors.resize(id+1);
 	colors[id] = mcolor;
+}
+
+			/// Fast method to set a glyph for GLYPH_COORDSYS draw mode.
+			/// If the id is more than the reserved amount of glyphs (see Reserve() ) the csys are inflated.
+void ChGlyphs::SetGlyphCoordsys(unsigned int id, ChCoordsys<> mcoord )
+{
+	if (points.size() <= id)
+		points.resize(id+1);
+	points[id] = mcoord.pos;
+
+	if (rotations.size() <= id)
+		rotations.resize(id+1);
+	rotations[id] = mcoord.rot;
+
 }
 
 

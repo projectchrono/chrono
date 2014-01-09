@@ -59,6 +59,7 @@ class ChApiFem ChVisualizationFEMmesh: public ChAssetLevel
 	 enum eChFemGlyphs {
 				E_GLYPH_NONE,
 				E_GLYPH_NODE_DOT_POS,
+				E_GLYPH_NODE_CSYS,
 				E_GLYPH_NODE_VECT_SPEED,
 				E_GLYPH_NODE_VECT_ACCEL,
 				E_GLYPH_ELEM_TENS_STRAIN_VONMISES,

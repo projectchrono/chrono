@@ -585,7 +585,7 @@ void ChVisualizationFEMmesh::Update ()
 
 	glyphs_asset->SetZbufferHide(this->zbuffer_hide);
 
-	if (this->fem_glyph == eChFemGlyphs::E_GLYPH_NODE_DOT_POS)
+	if (this->fem_glyph == ChVisualizationFEMmesh::E_GLYPH_NODE_DOT_POS)
 	{
 		glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_POINT);
 		for (unsigned int inode=0; inode < this->FEMmesh->GetNnodes(); ++inode)
@@ -595,7 +595,17 @@ void ChVisualizationFEMmesh::Update ()
 				glyphs_asset->SetGlyphPoint(inode,  mynode->GetPos(), this->symbolscolor );
 			}
 	}
-	if (this->fem_glyph == eChFemGlyphs::E_GLYPH_NODE_VECT_SPEED)
+	if (this->fem_glyph == ChVisualizationFEMmesh::E_GLYPH_NODE_CSYS)
+	{
+		glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_COORDSYS);
+		for (unsigned int inode=0; inode < this->FEMmesh->GetNnodes(); ++inode)
+			if (this->FEMmesh->GetNode(inode).IsType<ChNodeFEMxyzrot>())
+			{
+				ChSharedPtr<ChNodeFEMxyzrot> mynode ( this->FEMmesh->GetNode(inode) );
+				glyphs_asset->SetGlyphCoordsys(inode,  mynode->Frame().GetCoord());
+			}
+	}
+	if (this->fem_glyph == ChVisualizationFEMmesh::E_GLYPH_NODE_VECT_SPEED)
 	{
 		glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
 		for (unsigned int inode=0; inode < this->FEMmesh->GetNnodes(); ++inode)
@@ -605,7 +615,7 @@ void ChVisualizationFEMmesh::Update ()
 				glyphs_asset->SetGlyphVector(inode, mynode->GetPos(), mynode->GetPos_dt() * this->symbols_scale, this->symbolscolor );
 			}
 	}
-	if (this->fem_glyph == eChFemGlyphs::E_GLYPH_NODE_VECT_ACCEL)
+	if (this->fem_glyph == ChVisualizationFEMmesh::E_GLYPH_NODE_VECT_ACCEL)
 	{
 		glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
 		for (unsigned int inode=0; inode < this->FEMmesh->GetNnodes(); ++inode)
@@ -615,7 +625,7 @@ void ChVisualizationFEMmesh::Update ()
 				glyphs_asset->SetGlyphVector(inode, mynode->GetPos(), mynode->GetPos_dtdt() * this->symbols_scale, this->symbolscolor );
 			}
 	}
-	if (this->fem_glyph == eChFemGlyphs::E_GLYPH_ELEM_VECT_DP)
+	if (this->fem_glyph == ChVisualizationFEMmesh::E_GLYPH_ELEM_VECT_DP)
 	{
 		glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
 		for (unsigned int iel=0; iel < this->FEMmesh->GetNelements(); ++iel)
