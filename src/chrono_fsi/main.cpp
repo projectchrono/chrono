@@ -612,7 +612,7 @@ void CreateOneFlexBody(thrust::host_vector<real3> & ANCF_Nodes,
 
 	real3 slope3 = pb3 - pa3;
 	if (fabs(length(slope3) - beamLength) > 1e-8 ) {
-		perror("something wrong: beam lenght\n");
+		perror("Error! something wrong: beam lenght\n");
 		return;
 		exit(0);
 	}
@@ -841,9 +841,11 @@ bool IsInsideCylinder_3D(real3 sphParPos, real3 pa3, real3 pb3, real_ rad,
 		real_ clearance) {
 	real3 n3 = pb3 - pa3;
 	real3 n3Normal = n3 / length(n3);
-	real3 r = sphParPos - pa3;
+	real3 pa3Cleared = pa3 - clearance * n3Normal;
+	real3 pb3Cleared = pb3 + clearance * n3Normal;
+	real3 r = sphParPos - pa3Cleared;
 	real_ s = dot(r, n3Normal);
-	if (s < 0 || s > length(n3)) {
+	if (s < 0 || s > length(pb3Cleared - pa3Cleared)) {
 		return false;
 	}
 	real3 s3 = s * n3Normal;
@@ -1659,7 +1661,7 @@ int main() {
 	paramsH.gravity = R3(0);//R3(0, -9.81, 0);
 	paramsH.bodyForce4 = R4(0);//R4(3.2e-3,0,0,0); /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
 	paramsH.rho0 = 1000;
-	paramsH.mu0 = 1.0f;
+	paramsH.mu0 = .1f;
 	paramsH.v_Max = 1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 	paramsH.EPS_XSPH = .5f;
 	paramsH.dT = .0001; //sph alone: .01 for Re 10;
