@@ -34,10 +34,10 @@ class ChApiFem ChNodeFEMxyzrot : public ChNodeFEMbase
 {
 public:
 
-	ChNodeFEMxyzrot(ChVector<> initial_pos = VNULL)
+	ChNodeFEMxyzrot(ChFrame<> initialf = ChFrame<>() )
 					{
-						X0    = ChFrame<>(initial_pos);
-						frame = ChFrameMoving<>(initial_pos);
+						X0    = ChFrame<>(initialf);
+						frame = ChFrameMoving<>(initialf);
 						
 						Force = VNULL;
 						Torque = VNULL;

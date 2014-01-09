@@ -33,7 +33,7 @@ namespace fem
 /// Base class for all finite elements, that can be
 /// used in the ChMesh physics item.
 
-	class ChApiFem ChElementBase : public ChShared
+class ChApiFem ChElementBase : public ChShared
 {
 protected:
 

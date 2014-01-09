@@ -15,6 +15,7 @@
 
 
 #include "ChElementGeneric.h"
+#include "ChElement3D.h"
 #include "ChNodeFEMxyzrot.h"
 
 
@@ -30,11 +31,12 @@ namespace fem
 /// For this 'basic' implementation, constant section and 
 /// constant material are assumed.
 
-class ChApiFem ChElementBeamEuler : public ChElementGeneric
+class ChApiFem ChElementBeamEuler : public ChElementGeneric,
+								    public ChElementCorotational
 {
 protected:
 	std::vector< ChSharedPtr<ChNodeFEMxyzrot> > nodes;
-	double A;
+	double Area;
 	double Iyy;
 	double Izz;
 	double G;
@@ -44,6 +46,7 @@ protected:
 	double mass;
 	double length;
 	ChMatrixDynamic<> StiffnessMatrix; // undeformed local stiffness matrix
+	ChQuaternion<> q_refrot1;
 
 public:
 
@@ -51,9 +54,7 @@ public:
 				{
 					nodes.resize(2);
 
-					A = 0.01*0.01; // default area: 1cmx1cm
-					Izz = (1.0/12.0)*0.1*pow(0.1,3);
-					Iyy = (1.0/12.0)*0.1*pow(0.1,3);
+					SetAsRectangularSection(0.01, 0.01); // defaults Area, Ixx, Iyy
 				
 					E = 0.01e9;		  // default stiffness: rubber
 					G = 0.3 * E;
@@ -65,6 +66,8 @@ public:
 					mass = 0;		// will be computed by Setup(), later
 
 					this->StiffnessMatrix.Resize(this->GetNdofs(), this->GetNdofs());
+
+					q_refrot1 = QUNIT;
 				}
 
 	virtual ~ChElementBeamEuler() {}
@@ -77,6 +80,9 @@ public:
 
 	virtual void SetNodes( ChSharedPtr<ChNodeFEMxyzrot> nodeA, ChSharedPtr<ChNodeFEMxyzrot> nodeB) 
 				{
+					assert(!nodeA.IsNull());
+					assert(!nodeB.IsNull());
+
 					nodes[0]=nodeA; 
 					nodes[1]=nodeB;
 					std::vector<ChLcpVariables*> mvars;
@@ -85,10 +91,27 @@ public:
 					Kmatr.SetVariables(mvars);
 				}
 
-
 			//
 			// FEM functions
 			//
+
+	virtual void Update() 
+				{
+					// parent class update:
+					ChElementGeneric::Update();
+
+					// always keep updated the rotation matrix A:
+					this->UpdateRotation();
+				};
+
+				/// Compute large rotation of element for corotational approach
+				/// The reference frame of this Euler-Bernoulli beam has X aligned to two nodes and Y parallel to Y of 1st node
+	virtual void UpdateRotation()
+				{
+					ChVector<> mXele = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
+					ChVector<> myele = nodes[0]->Frame().GetA()->Get_A_Yaxis();
+					A.Set_A_Xdir(mXele, myele);
+				}
 
 				/// Fills the D vector (column matrix) with the current 
 				/// field values at the nodes of the element, with proper ordering.
@@ -103,20 +126,16 @@ public:
 					ChVector<> delta_rot_dir;
 					double     delta_rot_angle;
 
-					// Compute corotational frame (x is distance between nodes, y is average of the y of the two nodes)
-					ChMatrix33<> A; 
-					ChVector<> mXele = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
-					ChVector<> myele = ( nodes[0]->Frame().GetA()->Get_A_Yaxis() + nodes[1]->Frame().GetA()->Get_A_Yaxis() );
-					A.Set_A_Xdir(mXele, myele);
+					// corotational frame 
 					ChQuaternion<> quatA = A.Get_A_quaternion();
 
 					// Node 0, displacement (in local element frame, corotated back by A' )
 					mD.PasteVector(A.MatrT_x_Vect(nodes[0]->Frame().GetPos()) - nodes[0]->GetX0().GetPos(), 0, 0);
 
 					// Node 0, x,y,z small rotations (in local element frame, corotated back by A' )
-					//  with quaternion algebra: q_delta = q_reference' * q_corotation' * q_node  
-					//  with linear algebra in SO(3): [A_delta] = [A_ref]'[A_coro.]'[A_node]
-					ChQuaternion<> q_delta0 = nodes[0]->GetX0().GetRot().GetConjugate() % (quatA.GetConjugate() % nodes[0]->Frame().GetRot());
+					//  with quaternion algebra: q_delta = q_corotation' * q_node  
+					//  with linear algebra in SO(3): [A_delta] = [A_coro.]'[A_node]
+					ChQuaternion<> q_delta0 =  quatA.GetConjugate() % nodes[0]->Frame().GetRot();
 						// note, for small incremental rotations this is opposite of ChNodeFEMxyzrot::VariablesQbIncrementPosition 
 					q_delta0.Q_to_AngAxis(delta_rot_angle, delta_rot_dir); 
 					mD.PasteVector(delta_rot_dir*delta_rot_angle, 3, 0);
@@ -125,9 +144,9 @@ public:
 					mD.PasteVector(A.MatrT_x_Vect(nodes[1]->Frame().GetPos()) - nodes[1]->GetX0().GetPos(), 6, 0);
 
 					// Node 1, x,y,z small rotations (in local element frame, corotated back by A' )
-					//  with quaternion algebra: q_delta = q_reference' * q_corotation' * q_node  
-					//  with linear algebra in SO(3): [A_delta] = [A_ref]'[A_coro.]'[A_node]
-					ChQuaternion<> q_delta1 = nodes[1]->GetX0().GetRot().GetConjugate() % (quatA.GetConjugate() % nodes[1]->Frame().GetRot());
+					//  with quaternion algebra: q_delta = q_refrot1' * q_corotation' * q_node  
+					//  with linear algebra in SO(3): [A_delta] = [A_refrot1]'[A_coro.]'[A_node]
+					ChQuaternion<> q_delta1 = this->q_refrot1.GetConjugate() % (quatA.GetConjugate() % nodes[1]->Frame().GetRot());
 						// note, for small incremental rotations this is opposite of ChNodeFEMxyzrot::VariablesQbIncrementPosition 
 					q_delta1.Q_to_AngAxis(delta_rot_angle, delta_rot_dir); 
 					mD.PasteVector(delta_rot_dir*delta_rot_angle, 9, 0);
@@ -144,11 +163,7 @@ public:
 				{
 					mD_dt.Reset(12,1);
 
-					// Compute corotational frame (x is distance between nodes, y is average of the y of the two nodes)
-					ChMatrix33<> A; 
-					ChVector<> mXele = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
-					ChVector<> myele = ( nodes[0]->Frame().GetA()->Get_A_Yaxis() + nodes[1]->Frame().GetA()->Get_A_Yaxis() );
-					A.Set_A_Xdir(mXele, myele);
+					// corotational frame 
 					ChQuaternion<> quatA = A.Get_A_quaternion();
 
 					// Node 0, velocity (in local element frame, corotated back by A' )
@@ -184,7 +199,7 @@ public:
 
 					double h = this->length;
 					double Jpolar = Izz+Iyy;
-					double k_u = E*A/h;
+					double k_u = E*Area/h;
 					double k_f = G*Jpolar/h;
 					
 					double k_w = 12*E*Iyy / (u_xz*h*h*h);
@@ -243,7 +258,7 @@ public:
 				{
 					// Compute rest length, mass:
 					this->length = (nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos()).Length();
-					this->mass   = this->length * this->A * this->density;
+					this->mass   = this->length * this->Area * this->density;
 
 					// Compute local stiffness matrix:
 					ComputeStiffnessMatrix();
@@ -256,19 +271,14 @@ public:
 				{
 					assert((H.GetRows() == 12) && (H.GetColumns()==12));
 
-					// Compute corotational frame (x is distance between nodes, y is average of the y of the two nodes)
-					ChMatrix33<> A; 
-					ChVector<> mXele = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
-					ChVector<> myele = ( nodes[0]->Frame().GetA()->Get_A_Yaxis() + nodes[1]->Frame().GetA()->Get_A_Yaxis() );
-					A.Set_A_Xdir(mXele, myele);
-
+					// Corotational K stiffness:
 					ChMatrixDynamic<> CK(12,12);
 					ChMatrixDynamic<> CKCt(12,12); // the global, corotated, K matrix
-					ChMatrixCorotation<>::ComputeCK(StiffnessMatrix, this->A, 4, CK);
+					ChMatrixCorotation<>::ComputeCK(this->StiffnessMatrix, this->A, 4, CK);
 					ChMatrixCorotation<>::ComputeKCt(CK, this->A, 4, CKCt);
 
 
-					// For K stiffness matrix and R matrix:
+					// For K stiffness matrix and R matrix: scale by factors
 
 					double mkrfactor = Kfactor + Rfactor * this->rdamping;  
 
@@ -340,8 +350,8 @@ public:
 			//
 
 				/// Set the cross sectional area A of the beam (m^2) 
-	void   SetArea(double ma) { this->A = ma;  }
-	double GetArea() {return this->A;}
+	void   SetArea(double ma) { this->Area = ma;  }
+	double GetArea() {return this->Area;}
 
 				/// Set the Iyy moment of inertia of the beam 
 	void   SetIyy(double ma) { this->Iyy = ma;  }
@@ -350,6 +360,17 @@ public:
 				/// Set the Iyy moment of inertia of the beam 
 	void   SetIzz(double ma) { this->Izz = ma;  }
 	double GetIzz() {return this->Izz;}
+
+				/// Shortcut: set area, Ixx and Iyy moment of inertia  
+				/// at once, given the y and z widths of the beam assumed
+				/// with rectangular shape.
+	void   SetAsRectangularSection(double width_y, double width_z) 
+				{ 
+					this->Area = width_y * width_z; 
+					this->Izz = (1.0/12.0)*width_z*pow(width_y,3);
+					this->Iyy = (1.0/12.0)*width_y*pow(width_z,3);
+				}
+
 
 				/// Set the density of the beam (kg/m^3)
 	void   SetDensity(double md) { this->density = md;  }
@@ -362,7 +383,7 @@ public:
 	void   SetGshearModulus(double mG) { this->G = mG; }
 	double GetGshearModulus() {return this->G;}
 
-	/// Set the Raleygh damping ratio r (as in: R = r * K ), to do: also mass-proportional term
+				/// Set the Raleygh damping ratio r (as in: R = r * K ), to do: also mass-proportional term
 	void   SetBeamRaleyghDamping(double mr) { this->rdamping = mr; }
 	double GetBeamRaleyghDamping() {return this->rdamping;}
 
