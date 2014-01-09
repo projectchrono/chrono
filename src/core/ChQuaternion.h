@@ -330,6 +330,12 @@ public:
 		/// Returns a conjugated version of this quaternion.
 	ChQuaternion<Real> GetConjugate() const { return ChQuaternion<Real>(e0, -e1, -e2, -e3); }
 	
+		/// Returns the inverse of the quaternion
+	ChQuaternion<Real> GetInverse() const 
+		{ 
+			return ((this->GetConjugate()).Scale(1.0/this->Length())) ;
+		}
+
 
 	//
 	// TRANSFORMATIONS
