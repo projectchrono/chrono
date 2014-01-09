@@ -1989,10 +1989,17 @@ int main() {
 	numObjects.numAllMarkers = numAllMarkers;
 
 	//***** print numbers
+	printf("********************\n paramsH.HSML: %f\n paramsH.bodyForce4: %f %f %f\n paramsH.gravity: %f %f %f\n paramsH.rho0: %e\n paramsH.mu0: %f\n paramsH.v_Max: %f\n paramsH.dT: %e\n paramsH.tFinal: %f\n",
+			paramsH.HSML, paramsH.bodyForce4.x, paramsH.bodyForce4.y, paramsH.bodyForce4.z, paramsH.gravity.x, paramsH.gravity.y, paramsH.gravity.z,
+			paramsH.rho0, paramsH.mu0, paramsH.v_Max, paramsH.dT, paramsH.tFinal);
+	printf("********************\n flexParams.E: %e\n flexParams.rho: %e\n flexParams.ne: %d\n",
+			flexParams.E, flexParams.rho, flexParams.ne);
 	printf("********************\n numFlexBodies: %d\n numRigidBodies: %d\n numFluidMarkers: %d\n "
-			"numBoundaryMarkers: %d\n numRigid_SphMarkers: %d\n numFlex_SphMarkers: %d\n numAllMarkers: %d\n********************\n",
+			"numBoundaryMarkers: %d\n numRigid_SphMarkers: %d\n numFlex_SphMarkers: %d\n numAllMarkers: %d\n",
 			numObjects.numFlexBodies, numObjects.numRigidBodies, numObjects.numFluidMarkers, numObjects.numBoundaryMarkers,
 			numObjects.numRigid_SphMarkers, numObjects.numFlex_SphMarkers, numObjects.numAllMarkers);
+	printf("********************\n");
+
 
 	//@@@@@@@@ rigid body
 
