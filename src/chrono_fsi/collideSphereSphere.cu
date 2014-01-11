@@ -1988,11 +1988,6 @@ void cudaCollisions(
 		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT); //assumes ...D2 is a copy of ...D
 		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT);		//assumes ...D2 is a copy of ...D
 
-		real4 q1;
-		real4 q2;
-		real3 ad1, ad2;
-
-
 		if (tStep > numPause) {
 			UpdateRigidBody(
 					posRadD2, velMasD2,
