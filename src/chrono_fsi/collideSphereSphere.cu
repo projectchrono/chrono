@@ -728,14 +728,14 @@ __global__ void MapTorqueToLRFKernel(real3 * AD1, real3 * AD2, real3 * AD3, real
 	if (rigidSphereA >= numObjectsD.numRigidBodies) {
 		return;
 	}
-	real3 totalTorqueGRF = totalTorqueOfAcc3[rigidSphereA];
+	real3 totalTorqueGRF = R3(0, 500, 0);//totalTorqueOfAcc3[rigidSphereA];
 	LF_totalTorqueOfAcc3[rigidSphereA] = AD1[rigidSphereA] * totalTorqueGRF.x + AD2[rigidSphereA] * totalTorqueGRF.y
 			+ AD3[rigidSphereA] * totalTorqueGRF.z;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //updates the rigid body particles
 __global__ void UpdateKernelRigidTranstalation(
-		real3 * posRigidD, real3 * posRigidCumulativeD, real4 * velMassRigidD, real3 * totalAccRigid3) {
+		real3 * posRigidD2, real3 * posRigidCumulativeD2, real4 * velMassRigidD2, real4 * velMassRigidD, real3 * totalAccRigid3) {
 	uint rigidSphereA = blockIdx.x * blockDim.x + threadIdx.x;
 	if (rigidSphereA >= numObjectsD.numRigidBodies) {
 		return;
@@ -743,18 +743,17 @@ __global__ void UpdateKernelRigidTranstalation(
 
 	real4 dummyVelMas = velMassRigidD[rigidSphereA];
 	real3 deltaPos = R3(dummyVelMas) * dTD;
-	posRigidD[rigidSphereA] += deltaPos;
-	posRigidCumulativeD[rigidSphereA] += deltaPos;
+	posRigidD2[rigidSphereA] += deltaPos;
+	posRigidCumulativeD2[rigidSphereA] += deltaPos;
 
 	real3 derivV_SPH = totalAccRigid3[rigidSphereA]; //in fact, totalBodyForce4 is originially sum of dV/dt of sph particles and should be multiplied by m to produce force. paramsD.gravity is applied in the force kernel
 	real3 deltaVel = derivV_SPH * dTD;
-	dummyVelMas += R4(deltaVel, 0);
-	velMassRigidD[rigidSphereA] = dummyVelMas;
+	velMassRigidD2[rigidSphereA] += R4(deltaVel, 0);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //updates the rigid body particles
 __global__ void UpdateKernelRigidTranstalationBeta(
-		real3 * posRigidD, real3 * posRigidCumulativeD, real4 * velMassRigidD, real3 * totalAccRigid3) {
+		real3 * posRigidD2, real3 * posRigidCumulativeD2, real4 * velMassRigidD2, real4 * velMassRigidD, real3 * totalAccRigid3) {
 	uint rigidSphereA = blockIdx.x * blockDim.x + threadIdx.x;
 	if (rigidSphereA >= numObjectsD.numRigidBodies) {
 		return;
@@ -762,20 +761,19 @@ __global__ void UpdateKernelRigidTranstalationBeta(
 
 	real4 dummyVelMas = velMassRigidD[rigidSphereA];
 	real3 deltaPos = R3(dummyVelMas) * dTD;
-	posRigidD[rigidSphereA] += deltaPos;
-	posRigidCumulativeD[rigidSphereA] += deltaPos;
+	posRigidD2[rigidSphereA] += deltaPos;
+	posRigidCumulativeD2[rigidSphereA] += deltaPos;
 
 	real3 derivV_SPH = totalAccRigid3[rigidSphereA]; //in fact, totalBodyForce4 is originially sum of dV/dt of sph particles and should be multiplied by m to produce force. paramsD.gravity is applied in the force kernel
 	derivV_SPH.y = 0;
 	derivV_SPH.z = 0;
 	real3 deltaVel = derivV_SPH * dTD;
-	dummyVelMas += R4(deltaVel, 0);
-	velMassRigidD[rigidSphereA] = dummyVelMas;
+	velMassRigidD2[rigidSphereA] += R4(deltaVel, 0);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //updates the rigid body Quaternion of Rotation
 // A is rotation matrix, A = [AD1; AD2; AD3]
-__global__ void UpdateRigidBodyQuaternion_kernel(real4 * qD, real3 * omegaLRF_D) {
+__global__ void UpdateRigidBodyQuaternion_kernel(real4 * qD2, real4 * qD, real3 * omegaLRF_D) {
 	uint rigidSphereA = blockIdx.x * blockDim.x + threadIdx.x;
 	if (rigidSphereA >= numObjectsD.numRigidBodies) {
 		return;
@@ -786,9 +784,10 @@ __global__ void UpdateRigidBodyQuaternion_kernel(real4 * qD, real3 * omegaLRF_D)
 			omega.x * R4(-(q.y), q.x, q.w, -(q.z)) + omega.y * R4(-(q.z), -(q.w), q.x, q.y) + omega.z * R4(-(q.w), q.z, -(q.y), q.x)
 	);
 
-	q += dTD * qDot;
-	q *= (1.0f / length(q));
-	qD[rigidSphereA] = q;
+	real4 q2 = qD2[rigidSphereA];
+	q2 += dTD * qDot;
+	q2 *= (1.0f / length(q));
+	qD2[rigidSphereA] = q2;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //updates the rigid body Rotation
@@ -809,8 +808,9 @@ __global__ void RotationMatirixFromQuaternion_kernel(real3 * AD1, real3 * AD2, r
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void UpdateRigidBodyAngularVelocity_kernel(
-		real3 * omegaLRF_D,
+		real3 * omegaLRF_D2,
 		real3 * LF_totalTorqueOfAcc3,
+		real3 * omegaLRF_D,
 		real3 * jD1,
 		real3 * jD2,
 		real3 * jInvD1,
@@ -844,8 +844,9 @@ __global__ void UpdateRigidBodyAngularVelocity_kernel(
 //		omegaDot3.x = 0;
 //		omegaDot3.z = 0;
 
-	omega3 += omegaDot3 * dTD;
-	omegaLRF_D[rigidSphereA] = omega3;
+	real3 omega3_2 = omegaLRF_D2[rigidSphereA];
+	omega3_2 += omegaDot3 * dTD;
+	omegaLRF_D2[rigidSphereA] = omega3_2;
 //	printf("2: tt %f %f %f\n", omega3.x, omega3.y, omega3.z);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -881,10 +882,10 @@ __global__ void UpdateRigidMarkersPosition(
 	posRadD[rigidMarkerIndex] = p_Rigid + R3(dot(a1, rigidSPH_MeshPos_LRF), dot(a2, rigidSPH_MeshPos_LRF), dot(a3, rigidSPH_MeshPos_LRF));
 
 	//velociy
-	real4 vM = velMasD[rigidMarkerIndex];
 	real4 vM_Rigid = velMassRigidD[rigidBodyIndex];
 	real3 omega3 = omegaLRF_D[rigidBodyIndex];
 	real3 omegaCrossS = cross(omega3, rigidSPH_MeshPos_LRF);
+	real4 vM = velMasD[rigidMarkerIndex];
 	velMasD[rigidMarkerIndex] = R4(R3(vM_Rigid) + R3(dot(a1, omegaCrossS), dot(a2, omegaCrossS), dot(a3, omegaCrossS)), vM.w);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1535,10 +1536,10 @@ void UpdateRigidBody(
 	//** posRigidD2, posRigidCumulativeD2, velMassRigidD2, are updated based on their current value and dT.
 	if (fracSimulation <.01) {
 		UpdateKernelRigidTranstalationBeta<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(
-				R3CAST(posRigidD2), R3CAST(posRigidCumulativeD2), R4CAST(velMassRigidD2), R3CAST(totalAccRigid3));
+				R3CAST(posRigidD2), R3CAST(posRigidCumulativeD2), R4CAST(velMassRigidD2), R4CAST(velMassRigidD), R3CAST(totalAccRigid3));
 	} else {
 		UpdateKernelRigidTranstalation<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(
-				R3CAST(posRigidD2), R3CAST(posRigidCumulativeD2), R4CAST(velMassRigidD2), R3CAST(totalAccRigid3));
+				R3CAST(posRigidD2), R3CAST(posRigidCumulativeD2), R4CAST(velMassRigidD2), R4CAST(velMassRigidD), R3CAST(totalAccRigid3));
 	}
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
@@ -1546,7 +1547,7 @@ void UpdateRigidBody(
 
 	//####### Rotation
 	//** "qD2" is updated based on its current value and dTD.
-	UpdateRigidBodyQuaternion_kernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(R4CAST(qD2), R3CAST(omegaLRF_D));
+	UpdateRigidBodyQuaternion_kernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(R4CAST(qD2), R4CAST(qD), R3CAST(omegaLRF_D));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateRotation");
 
@@ -1557,7 +1558,7 @@ void UpdateRigidBody(
 
 	//** "omegaLRF_D2" is updated based on its current value and dT
 	UpdateRigidBodyAngularVelocity_kernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(
-			R3CAST(omegaLRF_D2), R3CAST(LF_totalTorqueOfAcc3), R3CAST(jD1), R3CAST(jD2), R3CAST(jInvD1), R3CAST(jInvD2));
+			R3CAST(omegaLRF_D2), R3CAST(LF_totalTorqueOfAcc3), R3CAST(omegaLRF_D), R3CAST(jD1), R3CAST(jD2), R3CAST(jInvD1), R3CAST(jInvD2));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
 
@@ -1940,7 +1941,7 @@ void cudaCollisions(
 	real_ delTOrig = delT;
 	real_ realTime = 0;
 
-	int numPause = 	.05 * paramsH.tFinal/paramsH.dT;
+	int numPause = 	-1;//.05 * paramsH.tFinal/paramsH.dT;
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce4 = R4(0);
 	paramsH_B.gravity = R3(0);
@@ -1984,9 +1985,9 @@ void cudaCollisions(
 		thrust::device_vector<real3> ANCF_SlopesVelD2 = ANCF_SlopesVelD;
 
 		//******** RK2
-		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects.numAllMarkers, paramsH, 0.5 * delT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
-		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT); //assumes ...D2 is a copy of ...D
-		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT);		//assumes ...D2 is a copy of ...D
+//		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects.numAllMarkers, paramsH, 0.5 * delT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
+//		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT); //assumes ...D2 is a copy of ...D
+//		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT);		//assumes ...D2 is a copy of ...D
 
 		if (tStep > numPause) {
 			UpdateRigidBody(
@@ -2021,11 +2022,12 @@ void cudaCollisions(
 									float(tStep)/stepEnd,
 									0.5 * delT);
 		}
-		ApplyBoundary(posRadD2, rhoPresMuD2, posRigidD2, ANCF_NodesD2, ANCF_ReferenceArrayNodesOnBeamsD, numObjects);
+//		ApplyBoundary(posRadD2, rhoPresMuD2, posRigidD2, ANCF_NodesD2, ANCF_ReferenceArrayNodesOnBeamsD, numObjects);
 		//*****
-		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects.numAllMarkers, paramsH, delT);
-		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, delT);
-		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, delT);
+//		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects.numAllMarkers, paramsH, delT);
+//		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, delT);
+//		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, delT);
+
 		if (tStep > numPause) {
 			UpdateRigidBody(
 					posRadD, velMasD,
@@ -2059,7 +2061,7 @@ void cudaCollisions(
 							float(tStep)/stepEnd,
 							delT);
 		}
-		ApplyBoundary(posRadD, rhoPresMuD, posRigidD, ANCF_NodesD, ANCF_ReferenceArrayNodesOnBeamsD, numObjects);
+//		ApplyBoundary(posRadD, rhoPresMuD, posRigidD, ANCF_NodesD, ANCF_ReferenceArrayNodesOnBeamsD, numObjects);
 		//************
 
 

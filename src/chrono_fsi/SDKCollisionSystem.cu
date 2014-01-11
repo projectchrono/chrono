@@ -486,7 +486,7 @@ void collideD(real4* derivVelRhoD, // output: new velocity
 	}
 	// *** end tweak
 
-	derivVelRhoD[originalIndex] = derivVelRho;
+//	derivVelRhoD[originalIndex] = derivVelRho;
 
 	//syncthreads();
 }
