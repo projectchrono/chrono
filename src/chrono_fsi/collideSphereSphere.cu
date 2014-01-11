@@ -728,7 +728,7 @@ __global__ void MapTorqueToLRFKernel(real3 * AD1, real3 * AD2, real3 * AD3, real
 	if (rigidSphereA >= numObjectsD.numRigidBodies) {
 		return;
 	}
-	real3 totalTorqueGRF = R3(0, 500, 0);//totalTorqueOfAcc3[rigidSphereA];
+	real3 totalTorqueGRF = totalTorqueOfAcc3[rigidSphereA];
 	LF_totalTorqueOfAcc3[rigidSphereA] = AD1[rigidSphereA] * totalTorqueGRF.x + AD2[rigidSphereA] * totalTorqueGRF.y
 			+ AD3[rigidSphereA] * totalTorqueGRF.z;
 }
@@ -844,7 +844,7 @@ __global__ void UpdateRigidBodyAngularVelocity_kernel(
 //		omegaDot3.x = 0;
 //		omegaDot3.z = 0;
 
-	omegaLRF_D2[rigidSphereA] += omegaDot3 * dTD
+	omegaLRF_D2[rigidSphereA] += omegaDot3 * dTD;
 //	printf("2: tt %f %f %f\n", omega3.x, omega3.y, omega3.z);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1939,7 +1939,7 @@ void cudaCollisions(
 	real_ delTOrig = delT;
 	real_ realTime = 0;
 
-	int numPause = 	-1;//.05 * paramsH.tFinal/paramsH.dT;
+	int numPause = 	.05 * paramsH.tFinal/paramsH.dT;
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce4 = R4(0);
 	paramsH_B.gravity = R3(0);
@@ -1983,9 +1983,9 @@ void cudaCollisions(
 		thrust::device_vector<real3> ANCF_SlopesVelD2 = ANCF_SlopesVelD;
 
 		//******** RK2
-//		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects.numAllMarkers, paramsH, 0.5 * delT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
-//		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT); //assumes ...D2 is a copy of ...D
-//		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT);		//assumes ...D2 is a copy of ...D
+		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects.numAllMarkers, paramsH, 0.5 * delT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
+		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT); //assumes ...D2 is a copy of ...D
+		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT);		//assumes ...D2 is a copy of ...D
 
 		if (tStep > numPause) {
 			UpdateRigidBody(
@@ -2020,11 +2020,11 @@ void cudaCollisions(
 									float(tStep)/stepEnd,
 									0.5 * delT);
 		}
-//		ApplyBoundary(posRadD2, rhoPresMuD2, posRigidD2, ANCF_NodesD2, ANCF_ReferenceArrayNodesOnBeamsD, numObjects);
+		ApplyBoundary(posRadD2, rhoPresMuD2, posRigidD2, ANCF_NodesD2, ANCF_ReferenceArrayNodesOnBeamsD, numObjects);
 		//*****
-//		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects.numAllMarkers, paramsH, delT);
-//		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, delT);
-//		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, delT);
+		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects.numAllMarkers, paramsH, delT);
+		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, delT);
+		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, delT);
 
 		if (tStep > numPause) {
 			UpdateRigidBody(
@@ -2059,7 +2059,7 @@ void cudaCollisions(
 							float(tStep)/stepEnd,
 							delT);
 		}
-//		ApplyBoundary(posRadD, rhoPresMuD, posRigidD, ANCF_NodesD, ANCF_ReferenceArrayNodesOnBeamsD, numObjects);
+		ApplyBoundary(posRadD, rhoPresMuD, posRigidD, ANCF_NodesD, ANCF_ReferenceArrayNodesOnBeamsD, numObjects);
 		//************
 
 

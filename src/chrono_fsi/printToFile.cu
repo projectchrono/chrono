@@ -252,7 +252,7 @@ void PrintToFile(
 //////-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	ofstream fileRigidParticleCenterVsTimeAndDistance;
 	int numRigidBodiesInOnePeriod = int(posRigidH.size() / real_(paramsH.nPeriod) + .5);
-	int tStepRigidCenterPos = 2;
+	int tStepRigidCenterPos = 1000;
 
 
 	if (tStep % tStepRigidCenterPos == 0) {
@@ -400,8 +400,8 @@ void PrintToFile(
 		ofstream fileNameRigidFlexBCE;
 
 		system("mkdir -p povFiles");
-//		int tStepsPovFiles = 2000;
-		int tStepsPovFiles = 2;//2000;//2000;
+
+		int tStepsPovFiles = 2000;
 
 //		if (tStep > 1000) tStepsPovFiles = 2;
 		if (tStep % tStepsPovFiles == 0) {
@@ -488,18 +488,18 @@ void PrintToFile(
 //			fileNameBoundaries << ssBoundary.str();
 //			fileNameBoundaries.close();
 
-//			fileNameFluidBoundaries.open(nameFluidBoundaries);
-//			stringstream ssFluidBoundaryParticles;
-//	//		ssFluidBoundaryParticles.precision(20);
-//			for (int i = referenceArray[0].x; i < referenceArray[1].y; i++) {
-//				real3 pos = posRadH[i];
-//				real3 vel = R3(velMasH[i]);
-//				real4 rP = rhoPresMuH[i];
-//				real_ velMag = length(vel);
-//				ssFluidBoundaryParticles<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.z<<", "<< rP.w<<", "<<endl;
-//			}
-//			fileNameFluidBoundaries<<ssFluidBoundaryParticles.str();
-//			fileNameFluidBoundaries.close();
+			fileNameFluidBoundaries.open(nameFluidBoundaries);
+			stringstream ssFluidBoundaryParticles;
+	//		ssFluidBoundaryParticles.precision(20);
+			for (int i = referenceArray[0].x; i < referenceArray[1].y; i++) {
+				real3 pos = posRadH[i];
+				real3 vel = R3(velMasH[i]);
+				real4 rP = rhoPresMuH[i];
+				real_ velMag = length(vel);
+				ssFluidBoundaryParticles<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.z<<", "<< rP.w<<", "<<endl;
+			}
+			fileNameFluidBoundaries<<ssFluidBoundaryParticles.str();
+			fileNameFluidBoundaries.close();
 
 			fileNameRigidFlexBCE.open(nameRigidFlexBCE);
 			stringstream ssRigidFlexBCE;
