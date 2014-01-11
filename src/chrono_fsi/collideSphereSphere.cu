@@ -844,9 +844,7 @@ __global__ void UpdateRigidBodyAngularVelocity_kernel(
 //		omegaDot3.x = 0;
 //		omegaDot3.z = 0;
 
-	real3 omega3_2 = omegaLRF_D2[rigidSphereA];
-	omega3_2 += omegaDot3 * dTD;
-	omegaLRF_D2[rigidSphereA] = omega3_2;
+	omegaLRF_D2[rigidSphereA] += omegaDot3 * dTD
 //	printf("2: tt %f %f %f\n", omega3.x, omega3.y, omega3.z);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
