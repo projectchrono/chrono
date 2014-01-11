@@ -786,7 +786,7 @@ __global__ void UpdateRigidBodyQuaternion_kernel(real4 * qD2, real4 * qD, real3 
 
 	real4 q2 = qD2[rigidSphereA];
 	q2 += dTD * qDot;
-	q2 *= (1.0f / length(q));
+	q2 *= (1.0f / length(q2));
 	qD2[rigidSphereA] = q2;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1534,7 +1534,7 @@ void UpdateRigidBody(
 	//####### Translation
 
 	//** posRigidD2, posRigidCumulativeD2, velMassRigidD2, are updated based on their current value and dT.
-	if (fracSimulation <.01) {
+	if (fracSimulation <-.01) {
 		UpdateKernelRigidTranstalationBeta<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(
 				R3CAST(posRigidD2), R3CAST(posRigidCumulativeD2), R4CAST(velMassRigidD2), R4CAST(velMassRigidD), R3CAST(totalAccRigid3));
 	} else {
