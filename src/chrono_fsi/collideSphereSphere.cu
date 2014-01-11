@@ -77,20 +77,62 @@ __device__ __host__ inline void RotationMatirixFromAxisVector(real3 & AD1, real3
 		n3x = normalize(cross(n3z, R3(0,1,0)));
 	}
 	n3y = cross(n3z,n3x);
-	AD1 = n3x;
-	AD2 = n3y;
-	AD3 = n3z;
+	AD1 = R3(n3x.x, n3y.x, n3z.x);
+	AD2 = R3(n3x.y, n3y.y, n3z.y);
+	AD3 = R3(n3x.z, n3y.z, n3z.z);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // first comp of q is rotation, last 3 components are axis of rot
-__device__ __host__ inline void QuaternionFromAxisVector(real4 & q, const real3 & n) {
+__device__ __host__ inline void QuaternionFromAxisVector_DeviceHost(real4 & q, const real3 & n) {
 	real3 aD1, aD2, aD3;
 	RotationMatirixFromAxisVector(aD1, aD2, aD3, n);
 	QuaternionFromRotationMatirix(q, aD1, aD2, aD3);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void QuaternionFromAxisVector_CPP(real4 & q, const real3 & n) {
-	QuaternionFromAxisVector(q, n);
+__device__ __host__ inline real3 InverseRotate_By_RotationMatrix_DeviceHost(const real3 & A1, const real3 & A2, const real3 & A3, const real3 & r3) {
+	return R3(	A1.x * r3.x + A2.x * r3.y + A3.x * r3.z,
+				A1.y * r3.x + A2.y * r3.y + A3.y * r3.z,
+				A1.z * r3.x + A2.z * r3.y + A3.z * r3.z);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void QuaternionFromAxisVector(real4 & q, const real3 & n) {
+	QuaternionFromAxisVector_DeviceHost(q, n);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+// first comp of q is rotation, last 3 components are axis of rot
+void CalcQuat2RotationMatrix(Rotation & rotMat, const real4 & q) {
+	rotMat.a00 = 2.0 * (0.5f - q.z * q.z - q.w * q.w);
+	rotMat.a01 = 2.0 * (q.y * q.z - q.x * q.w);
+	rotMat.a02 = 2.0 * (q.y * q.w + q.x * q.z);
+
+	rotMat.a10 = 2 * (q.y * q.z + q.x * q.w);
+	rotMat.a11 = 2 * (0.5f - q.y * q.y - q.w * q.w);
+	rotMat.a12 = 2 * (q.z * q.w - q.x * q.y);
+
+	rotMat.a20 = 2 * (q.y * q.w - q.x * q.z);
+	rotMat.a21 = 2 * (q.z * q.w + q.x * q.y);
+	rotMat.a22 = 2 * (0.5f - q.y * q.y - q.z * q.z);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+// first comp of q is rotation, last 3 components are axis of rot
+real3 Rotate_By_RotationMatrix(const Rotation & rotMat, const real3 & r3) {
+	return R3(rotMat.a00 * r3.x + rotMat.a01 * r3.y + rotMat.a02 * r3.z,
+			rotMat.a10 * r3.x + rotMat.a11 * r3.y + rotMat.a12 * r3.z,
+			rotMat.a20 * r3.x + rotMat.a21 * r3.y + rotMat.a22 * r3.z);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+real3 InverseRotate_By_RotationMatrix(const Rotation & A, const real3 & r3) {
+	real3 AD1 = R3(A.a00, A.a01, A.a02);
+	real3 AD2 = R3(A.a10, A.a11, A.a12);
+	real3 AD3 = R3(A.a20, A.a21, A.a22);
+	return InverseRotate_By_RotationMatrix_DeviceHost(AD1, AD2, AD3, r3);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+// first comp of q is rotation, last 3 components are axis of rot
+real3 Rotate_By_Quaternion(const real4 & q4, const real3 & r3) {
+	Rotation rotMat;
+	CalcQuat2RotationMatrix(rotMat, q4);
+	return Rotate_By_RotationMatrix(rotMat, r3);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __device__ __host__ inline int IndexOfClosestNode(real_ sOverBeam, real_ lBeam, int2 nodesInterval) {
@@ -587,14 +629,22 @@ __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(
 		real3* rigidSPH_MeshPos_LRF_D,
 		real3* posRadD,
 		int* rigidIdentifierD,
-		real3* posRigidD) {
+		real3* posRigidD,
+		real3 * AD1,
+		real3 * AD2,
+		real3 * AD3) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers; // updatePortionD = [start, end] index of the update portion
 	if (index >= numObjectsD.numRigid_SphMarkers) {
 		return;
 	}
-	real3 dist3 = posRadD[rigidMarkerIndex] - posRigidD[rigidIdentifierD[index]];
-	rigidSPH_MeshPos_LRF_D[index] = dist3;
+	int rigidIndex = rigidIdentifierD[index];
+	real3 aD1 = AD1[rigidIndex];
+	real3 aD2 = AD2[rigidIndex];
+	real3 aD3 = AD3[rigidIndex];
+	real3 dist3 = posRadD[rigidMarkerIndex] - posRigidD[rigidIndex];
+	real3 dist3LF = InverseRotate_By_RotationMatrix_DeviceHost(aD1, aD2, aD3, dist3);
+	rigidSPH_MeshPos_LRF_D[index] = InverseRotate_By_RotationMatrix_DeviceHost(aD1, aD2, aD3, dist3);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 
@@ -771,6 +821,7 @@ __global__ void UpdateRigidBodyAngularVelocity_kernel(
 	}
 
 	real3 omega3 = omegaLRF_D[rigidSphereA];
+//	printf("1: tt %f %f %f\n", omega3.x, omega3.y, omega3.z);
 	real3 j1 = jD1[rigidSphereA];
 	real3 j2 = jD2[rigidSphereA];
 	//printf("j j %f %f %f %f %f %f\n", j1.x, j1.y, j1.z, j2.x, j2.y, j2.z);
@@ -781,6 +832,7 @@ __global__ void UpdateRigidBodyAngularVelocity_kernel(
 			+ (omega3.z * j1.z - omega3.x * j2.z) * omega3.z;
 	torquingTerm.z = (-omega3.y * j1.x + omega3.x * j1.y) * omega3.x + (-omega3.y * j1.y + omega3.x * j2.x) * omega3.y
 			+ (-omega3.y * j1.z + omega3.x * j2.y) * omega3.z;
+
 
 	torquingTerm = solid_SPH_massD * LF_totalTorqueOfAcc3[rigidSphereA] - torquingTerm;
 	//*** from this point j1 and j2 will represent the j_Inverse
@@ -794,6 +846,7 @@ __global__ void UpdateRigidBodyAngularVelocity_kernel(
 
 	omega3 += omegaDot3 * dTD;
 	omegaLRF_D[rigidSphereA] = omega3;
+//	printf("2: tt %f %f %f\n", omega3.x, omega3.y, omega3.z);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 //updates the rigid body particles
@@ -1780,12 +1833,25 @@ void cudaCollisions(
 	MakeRigidIdentifier(rigidIdentifierD, numObjects.numRigidBodies, numObjects.startRigidMarkers, referenceArray);
 
 	//******************************************************************************
+	thrust::device_vector<real4> qD1 = mQuatRot;
+	thrust::device_vector<real3> AD1(numObjects.numRigidBodies);
+	thrust::device_vector<real3> AD2(numObjects.numRigidBodies);
+	thrust::device_vector<real3> AD3(numObjects.numRigidBodies);
+	uint nBlock_UpdateRigid;
+	uint nThreads_rigidParticles;
+	computeGridSize(numObjects.numRigidBodies, 128, nBlock_UpdateRigid, nThreads_rigidParticles);
+	RotationMatirixFromQuaternion_kernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(R3CAST(AD1), R3CAST(AD2), R3CAST(AD3), R4CAST(qD1));
+	cudaThreadSynchronize();
+	CUT_CHECK_ERROR("Kernel execution failed: UpdateRotation");
+
+	//******************************************************************************
 	thrust::device_vector<real3> rigidSPH_MeshPos_LRF_D(numObjects.numRigid_SphMarkers);
 	uint nBlocks_numRigid_SphMarkers;
 	uint nThreads_SphMarkers;
 	computeGridSize(numObjects.numRigid_SphMarkers, 256, nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);
 
-	Populate_RigidSPH_MeshPos_LRF_kernel<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(R3CAST(rigidSPH_MeshPos_LRF_D), R3CAST(posRadD), I1CAST(rigidIdentifierD), R3CAST(posRigidD));
+	Populate_RigidSPH_MeshPos_LRF_kernel<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(R3CAST(rigidSPH_MeshPos_LRF_D), R3CAST(posRadD), I1CAST(rigidIdentifierD), R3CAST(posRigidD),
+			R3CAST(AD1), R3CAST(AD2), R3CAST(AD3));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueOf_SPH_Marker_Acceleration");
 	//******************************************************************************
@@ -1857,18 +1923,6 @@ void cudaCollisions(
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: Populate_FlexSPH_MeshSlope_LRF_kernel");
 
-	//******************************************************************************
-	thrust::device_vector<real4> qD1 = mQuatRot;
-	thrust::device_vector<real3> AD1(numObjects.numRigidBodies);
-	thrust::device_vector<real3> AD2(numObjects.numRigidBodies);
-	thrust::device_vector<real3> AD3(numObjects.numRigidBodies);
-	uint nBlock_UpdateRigid;
-	uint nThreads_rigidParticles;
-	computeGridSize(numObjects.numRigidBodies, 128, nBlock_UpdateRigid, nThreads_rigidParticles);
-	RotationMatirixFromQuaternion_kernel<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(R3CAST(AD1), R3CAST(AD2), R3CAST(AD3), R4CAST(qD1));
-	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: UpdateRotation");
-
 	//int i =  rigidIdentifierD[429];
 	//printf("rigid body coord %d %f %f\n", i, posRigidH[i].x, posRigidH[i].z);
 	//printf("length %f\n", length(R2(posRigidH[i].x - .003474, posRigidH[i].z - .000673)));
@@ -1885,7 +1939,6 @@ void cudaCollisions(
 
 	real_ delTOrig = delT;
 	real_ realTime = 0;
-
 
 	int numPause = 	.05 * paramsH.tFinal/paramsH.dT;
 	SimParams paramsH_B = paramsH;
@@ -1934,6 +1987,12 @@ void cudaCollisions(
 		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects.numAllMarkers, paramsH, 0.5 * delT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
 		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT); //assumes ...D2 is a copy of ...D
 		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT);		//assumes ...D2 is a copy of ...D
+
+		real4 q1;
+		real4 q2;
+		real3 ad1, ad2;
+
+
 		if (tStep > numPause) {
 			UpdateRigidBody(
 					posRadD2, velMasD2,

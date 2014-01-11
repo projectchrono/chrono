@@ -4,6 +4,10 @@
 #include "SDKCollisionSystem.cuh" //just for SimParams
 #include "FlexibleBodies.cuh"
 
+struct Rotation {
+	real_ a00, a01, a02, a10, a11, a12, a20, a21, a22;
+};
+
 struct NumberOfObjects {
 		int numRigidBodies;
 		int numFlexBodies;
@@ -20,7 +24,12 @@ struct NumberOfObjects {
 
 __constant__ NumberOfObjects numObjectsD;
 
-void QuaternionFromAxisVector_CPP(real4 & q, const real3 & n);
+void QuaternionFromAxisVector(real4 & q, const real3 & n);
+void CalcQuat2RotationMatrix(Rotation & rotMat, const real4 & q);
+real3 Rotate_By_RotationMatrix(const Rotation & rotMat, const real3 & r3);
+real3 InverseRotate_By_RotationMatrix(const Rotation & A, const real3 & r3);
+real3 Rotate_By_Quaternion(const real4 & q4, const real3 & r3);
+
 
 
 

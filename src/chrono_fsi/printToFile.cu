@@ -401,7 +401,7 @@ void PrintToFile(
 
 		system("mkdir -p povFiles");
 //		int tStepsPovFiles = 2000;
-		int tStepsPovFiles = 2000;//2000;//2000;//2000;
+		int tStepsPovFiles = 2;//2000;//2000;//2000;
 
 //		if (tStep > 1000) tStepsPovFiles = 2;
 		if (tStep % tStepsPovFiles == 0) {
@@ -464,29 +464,29 @@ void PrintToFile(
 			fileNameFlexBodies.close();
 
 
-			fileNameFluidParticles.open(nameFluid);
-			stringstream ssFluidParticles;
-			for (int i = referenceArray[0].x; i < referenceArray[0].y; i++) {
-				real3 pos = posRadH[i];
-				real3 vel = R3(velMasH[i]);
-				real4 rP = rhoPresMuH[i];
-				real_ velMag = length(vel);
-				ssFluidParticles<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w<<", "<<endl;
-			}
-			fileNameFluidParticles<<ssFluidParticles.str();
-			fileNameFluidParticles.close();
+//			fileNameFluidParticles.open(nameFluid);
+//			stringstream ssFluidParticles;
+//			for (int i = referenceArray[0].x; i < referenceArray[0].y; i++) {
+//				real3 pos = posRadH[i];
+//				real3 vel = R3(velMasH[i]);
+//				real4 rP = rhoPresMuH[i];
+//				real_ velMag = length(vel);
+//				ssFluidParticles<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w<<", "<<endl;
+//			}
+//			fileNameFluidParticles<<ssFluidParticles.str();
+//			fileNameFluidParticles.close();
 
-			fileNameBoundaries.open(nameBoundary);
-			stringstream ssBoundary;
-			for (int i = referenceArray[1].x; i < referenceArray[1].y; i++) {
-				real3 pos = posRadH[i];
-				real3 vel = R3(velMasH[i]);
-				real4 rP = rhoPresMuH[i];
-				real_ velMag = length(vel);
-				ssBoundary<<pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w<<", "<<endl;
-			}
-			fileNameBoundaries << ssBoundary.str();
-			fileNameBoundaries.close();
+//			fileNameBoundaries.open(nameBoundary);
+//			stringstream ssBoundary;
+//			for (int i = referenceArray[1].x; i < referenceArray[1].y; i++) {
+//				real3 pos = posRadH[i];
+//				real3 vel = R3(velMasH[i]);
+//				real4 rP = rhoPresMuH[i];
+//				real_ velMag = length(vel);
+//				ssBoundary<<pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w<<", "<<endl;
+//			}
+//			fileNameBoundaries << ssBoundary.str();
+//			fileNameBoundaries.close();
 
 			fileNameFluidBoundaries.open(nameFluidBoundaries);
 			stringstream ssFluidBoundaryParticles;

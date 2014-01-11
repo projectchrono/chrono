@@ -60,10 +60,6 @@ real_ toleranceZone;
 real3 straightChannelBoundaryMin;
 real3 straightChannelBoundaryMax;
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-struct Rotation {
-	real_ a00, a01, a02, a10, a11, a12, a20, a21, a22;
-};
-//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 struct CylinderGeometry {
 	real3 pa3;
 	real3 pb3;
@@ -71,38 +67,7 @@ struct CylinderGeometry {
 	real_ r;
 	real_ h;
 };
-//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-// first comp of q is rotation, last 3 components are axis of rot
-void CalcQuat2RotationMatrix(Rotation & rotMat, const real4 & q) {
-	rotMat.a00 = 2.0 * (0.5f - q.z * q.z - q.w * q.w);
-	rotMat.a01 = 2.0 * (q.y * q.z - q.x * q.w);
-	rotMat.a02 = 2.0 * (q.y * q.w + q.x * q.z);
 
-	rotMat.a10 = 2 * (q.y * q.z + q.x * q.w);
-	rotMat.a11 = 2 * (0.5f - q.y * q.y - q.w * q.w);
-	rotMat.a12 = 2 * (q.z * q.w - q.x * q.y);
-
-	rotMat.a20 = 2 * (q.y * q.w - q.x * q.z);
-	rotMat.a21 = 2 * (q.z * q.w + q.x * q.y);
-	rotMat.a22 = 2 * (0.5f - q.y * q.y - q.z * q.z);
-}
-;
-//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-// first comp of q is rotation, last 3 components are axis of rot
-real3 Rotate_By_RotationMatrix(const Rotation & rotMat, const real3 & r3) {
-	return R3(rotMat.a00 * r3.x + rotMat.a01 * r3.y + rotMat.a02 * r3.z,
-			rotMat.a10 * r3.x + rotMat.a11 * r3.y + rotMat.a12 * r3.z,
-			rotMat.a20 * r3.x + rotMat.a21 * r3.y + rotMat.a22 * r3.z);
-}
-;
-//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-// first comp of q is rotation, last 3 components are axis of rot
-real3 Rotate_By_Quaternion(const real4 & q4, const real3 & r3) {
-	Rotation rotMat;
-	CalcQuat2RotationMatrix(rotMat, q4);
-	return Rotate_By_RotationMatrix(rotMat, r3);
-}
-;
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void ConvertQuatArray2RotArray(thrust::host_vector<Rotation> & rotArray,
 		const thrust::host_vector<real4> & quat) {
@@ -326,8 +291,9 @@ void CreateOne3DRigidCylinder(
 
 	real3 slope3 = normalize(pb3 - pa3);
 	real4 q;
-	QuaternionFromAxisVector_CPP(q, slope3);
+	QuaternionFromAxisVector(q, slope3);
 	mQuatRot.push_back(q);
+//	mQuatRot.push_back(R4(1,0,0,0));
 	real_ mass;
 	real3 j1, j2;
 	CreateMassMomentCylinder3D_AlongZ(mass, j1, j2, cylGeom.r, cylGeom.h, rhoRigid);			//create Cylinder
@@ -599,14 +565,14 @@ void CreateOneFlexBody(thrust::host_vector<real3> & ANCF_Nodes,
 	int numElementsPerBeam = flexParams.ne;
 	real_ myMargin = paramsH.MULT_INITSPACE * (paramsH.NUM_BCE_LAYERS + 1)
 			* paramsH.HSML;
-//	real3 pa3 = R3(.2, .4, .4);
-//	real3 pb3 = pa3 + R3(0, beamLength * cos(PI/6), beamLength * sin(PI/6));
+	real3 pa3 = R3(.2, .4, .4);
+	real3 pb3 = pa3 + R3(0, beamLength * cos(PI/6), beamLength * sin(PI/6));
 
 //	real3 pa3 = R3(.1, .25, .8);
 //	real3 pb3 = pa3 + R3(0,0,beamLength);
 
-	real3 pa3 = R3(.1, .5, .5);
-	real3 pb3 = pa3 + R3(beamLength,0,0);
+//	real3 pa3 = R3(.1, .5, .5);
+//	real3 pb3 = pa3 + R3(beamLength,0,0);
 
 	if (pb3.x > paramsH.cMax.x) {
 		perror("beam end out of bound\n");
@@ -1307,7 +1273,6 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 	//real_ initSpace0 = 0.9 * sphR; //1.1 * sphR;//1.1 * sphR;//pow(4.0 / 3 * PI, 1.0 / 3) * sphR;
 	real_ multInitSpace = paramsH.MULT_INITSPACE; //0.9;//0.9;
 	real_ initSpace0 = paramsH.MULT_INITSPACE * paramsH.HSML;
-	printf("initSpaceFluid = %f * sphR\n", multInitSpace);
 	int nFX = ceil((paramsH.cMax.x - paramsH.cMin.x) / (initSpace0));
 	real_ initSpaceX = (paramsH.cMax.x - paramsH.cMin.x) / nFX;
 	//printf("orig nFx and nFx %f %f\n", (paramsH.cMax.x - paramsH.cMin.x) / initSpace, ceil ((paramsH.cMax.x - paramsH.cMin.x) / (initSpace)));
@@ -1346,9 +1311,9 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 				///penDist = IsInsideSerpentine(posRad);
 				//*** straightChannelBoundaryMin   should be taken care of
 				//*** straightChannelBoundaryMax   should be taken care of
-				///penDist = IsInsideStraightChannel(posRad);
+				penDist = IsInsideStraightChannel(posRad);
 				///penDist = IsInsideStraightChannel_XZ(posRad);
-				penDist = IsInsideTube(posRad);
+				///penDist = IsInsideTube(posRad);
 				///penDist = IsInsideStepTube(posRad);
 
 				if (penDist < -toleranceZone)
@@ -1574,6 +1539,67 @@ int Create3D_CylinderMarkers(thrust::host_vector<real3> & mPosRad,
 	return num_FlexMarkers;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+int Create3D_CylinderMarkersRigid(thrust::host_vector<real3> & mPosRad,
+		thrust::host_vector<real4> & mVelMas,
+		thrust::host_vector<real4> & mRhoPresMu,
+
+		thrust::host_vector<real_> & flexParametricDist,
+
+		real3 pa3, //inital point
+		real3 pb3, //end point
+		real_ l, //beam length			//thrust::host_vector<real_> &  ANCF_Beam_Length
+		real_ rad,
+		real4 q4,
+		real_ sphMarkerMass, int type) {
+	int num_FlexMarkers = 0;
+	real_ multInitSpace = paramsH.MULT_INITSPACE; //0.9;//1.0;//0.9;
+	real_ spacing = multInitSpace * paramsH.HSML;
+
+	real3 n3 = normalize(pb3 - pa3);
+
+//	real3 axis3 = cross(R3(1, 0, 0), n3);
+//	real_ angle;
+//	if (fabs(length(axis3)) < .000001) {
+//		angle = 0;
+//		axis3 = R3(1, 0, 0); //whatever
+//	} else {
+//		axis3 /= length(axis3);
+//		angle = acos(n3.x); //acos(dot(R3(1, 0, 0) , n3));
+//	}
+//	real4 q4 = R4(cos(0.5 * angle), axis3.x * sin(0.5 * angle),
+//			axis3.y * sin(0.5 * angle), axis3.z * sin(0.5 * angle));
+
+//	printf("type %d: pa %f %f %f, pb %f %f %f, n3 %f %f %f, axis %f %f %f, angle %f, q %f %f %f %f\n",
+//			type, pa3.x, pa3.y, pa3.z, pb3.x, pb3.y, pb3.z, n3.x, n3.y, n3.z,
+//			axis3.x, axis3.y, axis3.z, angle, q4.x, q4.y, q4.z, q4.w);
+
+	for (real_ s = 0; s <= l; s += spacing) {
+		real3 centerPoint = pa3 + s * n3;
+		mPosRad.push_back(centerPoint);
+		mVelMas.push_back(R4(0, 0, 0, sphMarkerMass));
+		mRhoPresMu.push_back(
+				R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type)); //take care of type			 /// type needs to be unique, to differentiate flex from other flex as well as other rigids
+		flexParametricDist.push_back(s);
+		num_FlexMarkers++;
+		for (real_ r = spacing; r < rad + .1 * spacing; r += spacing) {
+			real_ deltaTeta = spacing / r;
+			for (real_ teta = .1 * deltaTeta; teta < 2 * PI - .1 * deltaTeta;
+					teta += deltaTeta) {
+				real3 BCE_Pos_local = R3(r * cos(teta), r * sin(teta), 0);
+				real3 BCE_Pos_Global = Rotate_By_Quaternion(q4, BCE_Pos_local)
+						+ centerPoint;
+				mPosRad.push_back(BCE_Pos_Global);
+				mVelMas.push_back(R4(0, 0, 0, sphMarkerMass));
+				mRhoPresMu.push_back(
+						R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type)); //take care of type
+				flexParametricDist.push_back(s);
+				num_FlexMarkers++;
+			}
+		}
+	}
+	return num_FlexMarkers;
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 int CreateFlexMarkers(thrust::host_vector<real3> & mPosRad,
 		thrust::host_vector<real4> & mVelMas,
 		thrust::host_vector<real4> & mRhoPresMu,
@@ -1741,11 +1767,6 @@ int main() {
 	paramsH.binSize0 = binSize3.x; //for effect of distance. Periodic BC in x direction. we do not care about paramsH.cMax y and z.
 	paramsH.cMax = paramsH.cMin + paramsH.binSize0 * R3(side0);
 
-	printf(
-			"paramsH.cMin.x, y, z %f %f %f paramsH.cMax.x, y, z %f %f %f,  binSize %f\n",
-			paramsH.cMin.x, paramsH.cMin.y, paramsH.cMin.z, paramsH.cMax.x,
-			paramsH.cMax.y, paramsH.cMax.z, paramsH.binSize0);
-	printf("paramsH.HSML %f\n", paramsH.HSML);
 	//printf("side0 %d %d %d \n", side0.x, side0.y, side0.z);
 
 	bool readFromFile = false; //true;		//true: initializes from file. False: initializes inside the code
@@ -1804,9 +1825,9 @@ int main() {
 	//**
 //	CreateRigidBodiesFromFile(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
 	//**
-//	real2 cylinderR_H = R2(flexParams.r, .2);
-//	CreateOne3DRigidCylinder(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
-//			rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, cylinderGeom, fileNameRigids, rhoRigid, cylinderR_H);
+	real2 cylinderR_H = R2(flexParams.r, .2);
+	CreateOne3DRigidCylinder(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
+			rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, cylinderGeom, fileNameRigids, rhoRigid, cylinderR_H);
 	//**
 //	//channelRadius = 1.0 * paramsH.sizeScale;
 //	CreateRigidBodiesPatternPipe(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
@@ -1816,11 +1837,11 @@ int main() {
 //	CreateRigidBodiesRandom(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, 2); //changed 2 to 4
 //	CreateRigidBodiesPatternPipe_KindaRandom(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, 128);
 	//**
-	real_ beamLength = 1;
-	CreateOneFlexBody(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
-			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever,
-			channelRadius,
-			paramsH.cMax.x - paramsH.cMin.x, pipeInPoint3, beamLength, flexParams);
+//	real_ beamLength = .2;
+//	CreateOneFlexBody(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
+//			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever,
+//			channelRadius,
+//			paramsH.cMax.x - paramsH.cMin.x, pipeInPoint3, beamLength, flexParams);
 	//**
 //	CreateSomeFlexBodies(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
 //			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever,
@@ -1839,8 +1860,6 @@ int main() {
 //			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever,
 //			flexParams);
 	//**
-	printf("rigid Radii %f %f %f\n", r3Ellipsoid.x, r3Ellipsoid.y,
-			r3Ellipsoid.z);
 
 	thrust::host_vector<Rotation> rigidRotMatrix(mQuatRot.size());
 	ConvertQuatArray2RotArray(rigidRotMatrix, mQuatRot);
@@ -1932,9 +1951,9 @@ int main() {
 //													 rigidBodyIdx + 1);		//as type
 			//** Cylinder 3D
 			thrust::host_vector<real_> dummyParamDist;
-			int num_RigidBodyMarkers = Create3D_CylinderMarkers(mPosRad, mVelMas, mRhoPresMu,
+			int num_RigidBodyMarkers = Create3D_CylinderMarkersRigid(mPosRad, mVelMas, mRhoPresMu,
 					dummyParamDist,
-					cylinderGeom[rigidBodyIdx].pa3, cylinderGeom[rigidBodyIdx].pb3, cylinderGeom[rigidBodyIdx].h, cylinderGeom[rigidBodyIdx].r,
+					cylinderGeom[rigidBodyIdx].pa3, cylinderGeom[rigidBodyIdx].pb3, cylinderGeom[rigidBodyIdx].h, cylinderGeom[rigidBodyIdx].r, mQuatRot[rigidBodyIdx],
 					sphMarkerMass,
 					rigidBodyIdx + 1); 		//as type
 			dummyParamDist.clear();
@@ -1946,7 +1965,6 @@ int main() {
 //			printf(" %d \n", num_RigidBodyMarkers);
 			totalNumRigidMarkers += num_RigidBodyMarkers;
 		}
-		printf("totalNumRigidMarkers: %d\n", totalNumRigidMarkers);
 		int totalNumFlexMarkers = 0;
 		for (int flexBodyIdx = 0;
 				flexBodyIdx < ANCF_ReferenceArrayNodesOnBeams.size();
@@ -1971,8 +1989,6 @@ int main() {
 			totalNumFlexMarkers += num_FlexMarkers;
 			//printf(" %d \n", num_RigidBodyMarkers);
 		}
-		printf("totalNumFlexMarkers: %d\n", totalNumFlexMarkers);
-		printf("\n");
 	}
 
 	//@@@@@@@@@@@@@@@@@@@@@@@@@ set number of objects once for all @@@@@@@@@@@@@@@@@@@@@@22
@@ -1992,6 +2008,11 @@ int main() {
 	printf("********************\n paramsH.HSML: %f\n paramsH.bodyForce4: %f %f %f\n paramsH.gravity: %f %f %f\n paramsH.rho0: %e\n paramsH.mu0: %f\n paramsH.v_Max: %f\n paramsH.dT: %e\n paramsH.tFinal: %f\n",
 			paramsH.HSML, paramsH.bodyForce4.x, paramsH.bodyForce4.y, paramsH.bodyForce4.z, paramsH.gravity.x, paramsH.gravity.y, paramsH.gravity.z,
 			paramsH.rho0, paramsH.mu0, paramsH.v_Max, paramsH.dT, paramsH.tFinal);
+	printf(" paramsH.cMin: %f %f %f, paramsH.cMax: %f %f %f\n binSize: %f\n",
+			paramsH.cMin.x, paramsH.cMin.y, paramsH.cMin.z, paramsH.cMax.x,
+			paramsH.cMax.y, paramsH.cMax.z, paramsH.binSize0);
+	printf(" paramsH.MULT_INITSPACE: %f\n", paramsH.MULT_INITSPACE);
+	printf("********************\n rigid Radii: %f %f %f\n", r3Ellipsoid.x, r3Ellipsoid.y, r3Ellipsoid.z);
 	printf("********************\n flexParams.E: %e\n flexParams.rho: %e\n flexParams.ne: %d\n",
 			flexParams.E, flexParams.rho, flexParams.ne);
 	printf("********************\n numFlexBodies: %d\n numRigidBodies: %d\n numFluidMarkers: %d\n "
