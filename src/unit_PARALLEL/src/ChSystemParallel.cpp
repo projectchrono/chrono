@@ -388,10 +388,11 @@ void ChSystemParallel::UpdateBilaterals() {
 	for (it = linklist.begin(); it != linklist.end(); it++) {
 		(*it)->Update(ChTime);
 		(*it)->ConstraintsBiReset();
-		(*it)->ConstraintsBiLoad_C(1.0 / GetStep(), max_penetration_recovery_speed, true);
+		(*it)->ConstraintsBiLoad_C(1.0 / GetStep(), max_penetration_recovery_speed, false);
 		(*it)->ConstraintsBiLoad_Ct(1);
 		(*it)->ConstraintsFbLoadForces(GetStep());
 		(*it)->ConstraintsLoadJacobians();
+		(*it)->ConstraintsLiLoadSuggestedSpeedSolution();
 		(*it)->InjectConstraints(*this->LCP_descriptor);
 	}
 	unsigned int number_of_bilaterals = 0;
