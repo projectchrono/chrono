@@ -1780,6 +1780,7 @@ void cudaCollisions(
 	setParameters(&paramsH); 														// sets paramsD in SDKCollisionSystem
 	cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &paramsH, sizeof(SimParams))); 	//sets paramsD for this file
 	cutilSafeCall( cudaMemcpyToSymbolAsync(numObjectsD, &numObjects, sizeof(NumberOfObjects)));
+	cutilSafeCall( cudaMemcpyToSymbolAsync(flexParamsD, &flexParams, sizeof(ANCF_Params)));
 	//*************************************************************************************************************
 	//--------- initialization ---------------
 	//cudaError_t dumDevErr = cudaSetDevice(2);
