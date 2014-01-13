@@ -1573,8 +1573,8 @@ void UpdateRigidBody(
 
 //--------------------------------------------------------------------------------------------------------------------------------
 void UpdateFlexibleBody(
-		thrust::device_vector<real3> & posRadD,
-		thrust::device_vector<real4> & velMasD,
+		thrust::device_vector<real3> & posRadD2,
+		thrust::device_vector<real4> & velMasD2,
 
 		thrust::device_vector<real3> & ANCF_NodesD2,
 		thrust::device_vector<real3> & ANCF_SlopesD2,
@@ -1709,7 +1709,7 @@ void UpdateFlexibleBody(
 	//** new nodal velocity and positions are used to update BCE markers position and velocities. "posRadD", "velMasD" are updated (only the flex portion)
 	computeGridSize(numObjects.numFlex_SphMarkers, 256, nBlocks_numFlex_SphMarkers, nThreads_SphMarkers);
 	UpdateFlexMarkersPosition<<<nBlocks_numFlex_SphMarkers, nThreads_SphMarkers>>>(
-			R3CAST(posRadD), R4CAST(velMasD),
+			R3CAST(posRadD2), R4CAST(velMasD2),
 			I1CAST(flexIdentifierD),
 			R3CAST(flexSPH_MeshPos_LRF_D),
 			R3CAST(flexSPH_MeshSlope_Initial_D),
