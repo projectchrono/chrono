@@ -1776,6 +1776,7 @@ int main() {
 
 	bool readFromFile = false; //true;		//true: initializes from file. False: initializes inside the code
 
+
 	//1---------------------------------------------- Initialization ----------------------------------------
 	//2------------------------------------------- Generating Random Data -----------------------------------
 	// This section can be used to generate ellipsoids' specifications and save them into data.txt	
