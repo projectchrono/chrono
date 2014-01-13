@@ -245,9 +245,9 @@ void ChConstraintRigidRigid::ComputeRHS() {
 		uint b2 = data_container->host_data.bids_rigid_rigid[i].y;
 		real compb1 = data_container->host_data.compliance_data[b1];
 		real compb2 = data_container->host_data.compliance_data[b2];
-		if (compliance) {
-			compb1 = compb2 = compliance;
-		}
+//		if (compliance) {
+//			compb1 = compb2 = compliance;
+//		}
 		real comp = (compb1 == 0 || compb2 == 0) ? 0 : (compb1 + compb2) * .5;
 		comp_rigid_rigid[i] = inv_hhpa * comp;
 	}
@@ -533,7 +533,7 @@ void ChConstraintRigidRigid::host_shurB_normal(int2 *ids, bool *active, real *in
 			temp.x += dot(UVW, JUVWB[index + number_of_rigid_rigid * 0]);
 
 		}
-		AX[index + number_of_rigid_rigid * 0] = temp.x;// + gamma[index + number_of_rigid_rigid * 0] * compliance[index];
+		AX[index + number_of_rigid_rigid * 0] = temp.x+ gamma[index + number_of_rigid_rigid * 0] * compliance[index];
 		AX[index + number_of_rigid_rigid * 1] = 0;
 		AX[index + number_of_rigid_rigid * 2] = 0;
 		AX[index + number_of_rigid_rigid * 3] = 0;
@@ -580,9 +580,11 @@ void ChConstraintRigidRigid::host_shurB_sliding(int2 *ids, bool *active, real *i
 			temp.z += dot(UVW, JUVWB[index + number_of_rigid_rigid * 2]);
 
 		}
-		AX[index + number_of_rigid_rigid * 0] = temp.x;// + gamma[index + number_of_rigid_rigid * 0] * compliance[index];
-		AX[index + number_of_rigid_rigid * 1] = temp.y;// + gamma[index + number_of_rigid_rigid * 1] * compliance[index];
-		AX[index + number_of_rigid_rigid * 2] = temp.z;// + gamma[index + number_of_rigid_rigid * 2] * compliance[index];
+		real comp = compliance[index];
+
+		AX[index + number_of_rigid_rigid * 0] = temp.x+ gamma[index + number_of_rigid_rigid * 0] * comp;
+		AX[index + number_of_rigid_rigid * 1] = temp.y+ gamma[index + number_of_rigid_rigid * 1] * comp;
+		AX[index + number_of_rigid_rigid * 2] = temp.z+ gamma[index + number_of_rigid_rigid * 2] * comp;
 		AX[index + number_of_rigid_rigid * 3] = 0;
 		AX[index + number_of_rigid_rigid * 4] = 0;
 		AX[index + number_of_rigid_rigid * 5] = 0;
@@ -637,14 +639,15 @@ void ChConstraintRigidRigid::host_shurB_spinning(int2 *ids, bool *active, real *
 			temp_roll.z += dot(UVW, JUVWB[index + number_of_rigid_rigid * 5]);
 
 		}
+		real comp = compliance[index];
 
-		AX[index + number_of_rigid_rigid * 0] = temp.x;// + gamma[index + number_of_rigid_rigid * 0] * compliance[index];
-		AX[index + number_of_rigid_rigid * 1] = temp.y;// + gamma[index + number_of_rigid_rigid * 1] * compliance[index];
-		AX[index + number_of_rigid_rigid * 2] = temp.z;// + gamma[index + number_of_rigid_rigid * 2] * compliance[index];
+		AX[index + number_of_rigid_rigid * 0] = temp.x + gamma[index + number_of_rigid_rigid * 0] * comp;
+		AX[index + number_of_rigid_rigid * 1] = temp.y + gamma[index + number_of_rigid_rigid * 1] * comp;
+		AX[index + number_of_rigid_rigid * 2] = temp.z + gamma[index + number_of_rigid_rigid * 2] * comp;
 
-		AX[index + number_of_rigid_rigid * 3] = temp_roll.x;// + gamma[index + number_of_rigid_rigid * 3] * compliance[index];
-		AX[index + number_of_rigid_rigid * 4] = temp_roll.y;// + gamma[index + number_of_rigid_rigid * 4] * compliance[index];
-		AX[index + number_of_rigid_rigid * 5] = temp_roll.z;// + gamma[index + number_of_rigid_rigid * 5] * compliance[index];
+		AX[index + number_of_rigid_rigid * 3] = temp_roll.x + gamma[index + number_of_rigid_rigid * 3] * comp;
+		AX[index + number_of_rigid_rigid * 4] = temp_roll.y + gamma[index + number_of_rigid_rigid * 4] * comp;
+		AX[index + number_of_rigid_rigid * 5] = temp_roll.z + gamma[index + number_of_rigid_rigid * 5] * comp;
 
 	}
 }

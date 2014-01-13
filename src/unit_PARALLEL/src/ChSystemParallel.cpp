@@ -388,7 +388,7 @@ void ChSystemParallel::UpdateBilaterals() {
 	for (it = linklist.begin(); it != linklist.end(); it++) {
 		(*it)->Update(ChTime);
 		(*it)->ConstraintsBiReset();
-		(*it)->ConstraintsBiLoad_C(1.0 / GetStep(), max_penetration_recovery_speed, false);
+		(*it)->ConstraintsBiLoad_C(1.0 / GetStep(), max_penetration_recovery_speed, true);
 		(*it)->ConstraintsBiLoad_Ct(1);
 		(*it)->ConstraintsFbLoadForces(GetStep());
 		(*it)->ConstraintsLoadJacobians();
@@ -436,8 +436,8 @@ void ChSystemParallel::UpdateBilaterals() {
 		gpu_data_manager->host_data.residual_bilateral[i] = mbilateral->Get_b_i();     // b_i is residual b
 		gpu_data_manager->host_data.correction_bilateral[i] = 1.0 / mbilateral->Get_g_i();     // eta = 1/g
 		gpu_data_manager->host_data.bids_bilateral[i] = I2(idA, idB);
-		gpu_data_manager->host_data.gamma_bilateral[i] = -mbilateral->Get_l_i();
-		//cout<<"gamma "<<mbilateral->Get_l_i()<<endl;
+		//gpu_data_manager->host_data.gamma_bilateral[i] = -mbilateral->Get_l_i();
+		//cout<<"gamma "<<gpu_data_manager->host_data.gamma_bilateral[i]<<endl;
 
 	}
 }

@@ -127,13 +127,15 @@ void ChLcpSolverParallel::RunTimeStep(real step) {
 	bilateral.ComputeJacobians();
 	bilateral.ComputeRHS();
 
-	custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals);
 	if (max_iter_bilateral > 0) {
+		custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals);
 		thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, rhs_bilateral.begin());
-		thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, data_container->host_data.gamma_bilateral.begin());
+		//thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, data_container->host_data.gamma_bilateral.begin());
 		solver.SolveStab(data_container->host_data.gamma_bilateral, rhs_bilateral, max_iter_bilateral);
-		thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals, data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6);
+
 	}
+	thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals, data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6);
+
 	//cout<<"Solve normal"<<endl;
 	//solve normal
 	if (max_iter_normal > 0) {
@@ -161,19 +163,25 @@ void ChLcpSolverParallel::RunTimeStep(real step) {
 		rigid_rigid.ComputeRHS();
 		solver.Solve(solver_type);
 	}
-	if (max_iter_bilateral > 0) {
-		thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, rhs_bilateral.begin());
-		thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals,
-				data_container->host_data.gamma_bilateral.begin());
-		solver.SolveStab(data_container->host_data.gamma_bilateral, rhs_bilateral, max_iter_bilateral);
-		thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals,
-				data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6);
+
+	thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, data_container->host_data.gamma_bilateral.begin());
+	for (int i = 0; i < data_container->number_of_bilaterals; i++) {
+		data_container->host_data.gamma_bilateral[i] *= .5;
 	}
+
+//	if (max_iter_bilateral > 0) {
+//		thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, rhs_bilateral.begin());
+//		thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals,
+//				data_container->host_data.gamma_bilateral.begin());
+//		solver.SolveStab(data_container->host_data.gamma_bilateral, rhs_bilateral, max_iter_bilateral);
+//		thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals,
+//				data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6);
+//	}
 	solver.ComputeImpulses();
 
 	tot_iterations = solver.GetIteration();
 	residual = solver.GetResidual();
-	data_container->host_data.old_gamma_data = data_container->host_data.gamma_data;
+	//data_container->host_data.old_gamma_data = data_container->host_data.gamma_data;
 	//rhs = data_container->host_data.rhs_data;
 	//lambda = data_container->host_data.gam_data;
 
@@ -270,7 +278,7 @@ void ChLcpSolverParallel::RunWarmStartPreprocess() {
 
 			thrust::lower_bound(thrust::omp::par, data_container->host_data.old_pair_rigid_rigid.begin(), data_container->host_data.old_pair_rigid_rigid.end(), res1.begin(), res1.end(),
 					temporaryA.begin());     //return index of common new contact
-			thrust::lower_bound(thrust::omp::par, data_container->host_data.pair_rigid_rigid.begin(), data_container->host_data.pair_rigid_rigid.end(), res1.begin(), res1.end(), temporaryB.begin()); //return index of common new contact
+			thrust::lower_bound(thrust::omp::par, data_container->host_data.pair_rigid_rigid.begin(), data_container->host_data.pair_rigid_rigid.end(), res1.begin(), res1.end(), temporaryB.begin());     //return index of common new contact
 
 			uint number_of_rigid_rigid = data_container->number_of_rigid_rigid;
 			uint old_number_of_rigid_rigid = data_container->old_number_of_rigid_rigid;
