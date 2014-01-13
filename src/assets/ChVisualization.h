@@ -30,7 +30,7 @@
 
 #include "assets/ChAsset.h"
 #include "assets/ChColor.h"
-
+#include "core/ChMath.h"
 using namespace chrono;
 
 namespace chrono
@@ -77,6 +77,13 @@ public:
 		// If =0, no transparency of surface, it =1 surface is completely transparent.
 	void SetFading(const float mc) {fading = mc;}
 
+				//
+		  		// DATA
+				//
+	/// Rotation of Asset
+	ChMatrix33<> Rot;
+	/// Position of Asset
+	ChVector<> Pos;
 };
 
 
