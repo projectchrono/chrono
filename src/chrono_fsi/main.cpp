@@ -1772,7 +1772,7 @@ int main() {
 	flexParams.A = PI * pow(flexParams.r, 2.0f);
 	flexParams.I = .25 * PI * pow(flexParams.r, 4.0f);
 	flexParams.gravity = paramsH.gravity;
-	flexParams.bobRad = .25;
+	flexParams.bobRad = .125;
 
 	//3D cylinder params:
 	real_ rhoRigid = 7200; //1.0 * paramsH.rho0;
