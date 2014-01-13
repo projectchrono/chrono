@@ -82,6 +82,7 @@ Rotation UnitMatrix() {
 	Rotation I;
 	I.a01 = I.a02 = I.a10 = I.a12 = I.a20 = I.a21 = 0;
 	I.a00 = I.a11 = I.a22 = 1;
+	return I;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 real_ myRand() {
