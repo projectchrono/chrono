@@ -1691,7 +1691,7 @@ int main() {
 	paramsH.gravity = R3(0);//R3(0, -9.81, 0);
 	paramsH.bodyForce4 = R4(3.2e-3,0,0,0); /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
 	paramsH.rho0 = 1000;
-	paramsH.mu0 = .1f;
+	paramsH.mu0 = 1.0f;
 	paramsH.v_Max = 2e-1;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 	paramsH.EPS_XSPH = .5f;
 	paramsH.dT = .0001; //sph alone: .01 for Re 10;
@@ -1702,7 +1702,6 @@ int main() {
 	paramsH.cMax = R3(paramsH.nPeriod * distance + 0, 1 + .1, 1 + .1)
 			* paramsH.sizeScale;
 	paramsH.binSize0; // will be changed
-
 
 	ANCF_Params flexParams;
 	flexParams.E = 2.0e7;
@@ -1770,6 +1769,7 @@ int main() {
 	//printf("side0 %d %d %d \n", side0.x, side0.y, side0.z);
 
 	bool readFromFile = false; //true;		//true: initializes from file. False: initializes inside the code
+
 
 	//1---------------------------------------------- Initialization ----------------------------------------
 	//2------------------------------------------- Generating Random Data -----------------------------------
