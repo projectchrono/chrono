@@ -78,6 +78,12 @@ void ConvertQuatArray2RotArray(thrust::host_vector<Rotation> & rotArray,
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+Rotation UnitMatrix() {
+	Rotation I;
+	I.a01 = I.a02 = I.a10 = I.a12 = I.a20 = I.a21 = 0;
+	I.a00 = I.a11 = I.a22 = 1;
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 real_ myRand() {
 	return real_(rand()) / RAND_MAX;
 }
@@ -831,10 +837,19 @@ bool IsInsideCylinder_3D(real3 sphParPos, real3 pa3, real3 pb3, real_ rad,
 		return false;
 	}
 }
+
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 bool IsInsideStraightFlex(real3 sphParPos, real3 pa3, real3 pb3, real_ rad,
 		real_ clearance) {
 	return IsInsideCylinder_3D(sphParPos, pa3, pb3, rad, clearance);
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+bool IsInsideStraightFlexWithBob(real3 sphParPos, real3 pa3, real3 pb3, real_ rad, real_ bobRad,
+		real_ clearance) {
+	if (IsInsideStraightFlex(sphParPos, pa3, pb3, rad, clearance)) {return true;}
+	Rotation rot = UnitMatrix();
+	if (IsInsideEllipsoid(sphParPos, pb3, rot, R3(bobRad), clearance)) {return true;}
+	return false;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 real_ IsInEllipse(real2 pos, real2 radii) {
@@ -1343,11 +1358,8 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 								ANCF_ReferenceArrayNodesOnBeams[flexID];
 						real3 pa3 = ANCF_Nodes[nodesStartEnd2.x];
 						real3 pb3 = ANCF_Nodes[nodesStartEnd2.y - 1];
-						if (IsInsideStraightFlex(posRad, pa3, pb3,
-								flexParams.r,
-								initSpace0)) {
-							flag = false;
-						}
+						//if (IsInsideStraightFlex(posRad, pa3, pb3, flexParams.r, initSpace0)) { flag = false; }
+						if (IsInsideStraightFlexWithBob(posRad, pa3, pb3, flexParams.r, flexParams.bobRad, initSpace0)) { flag = false; }
 					}
 				}
 				if (flag) {
@@ -1606,6 +1618,26 @@ int Create3D_CylinderMarkersRigid(thrust::host_vector<real3> & mPosRad,
 	return num_FlexMarkers;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+int CreateBobMarkersOnBeam(thrust::host_vector<real3> & mPosRad,
+		thrust::host_vector<real4> & mVelMas,
+		thrust::host_vector<real4> & mRhoPresMu,
+
+		thrust::host_vector<real_> & flexParametricDist,
+
+		real3 pb3, //end point
+		real_ l, //beam length			//thrust::host_vector<real_> &  ANCF_Beam_Length
+		real_ bobRad,
+		real_ sphMarkerMass, int type) {
+	Rotation myRotation = UnitMatrix();
+	int numBobMarkers = CreateEllipsoidMarkers(mPosRad, mVelMas, mRhoPresMu,
+			pb3, myRotation, R3(bobRad), R4(0), R3(0),
+			sphMarkerMass, type); //as type
+	int numFlexParams = flexParametricDist.size();
+	flexParametricDist.resize(numFlexParams + numBobMarkers);
+	thrust::fill(flexParametricDist.begin() + numFlexParams, flexParametricDist.end(), l);
+	return numBobMarkers;
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 int CreateFlexMarkers(thrust::host_vector<real3> & mPosRad,
 		thrust::host_vector<real4> & mVelMas,
 		thrust::host_vector<real4> & mRhoPresMu,
@@ -1615,11 +1647,34 @@ int CreateFlexMarkers(thrust::host_vector<real3> & mPosRad,
 		real3 pa3, //inital point
 		real3 pb3, //end point
 		real_ l, //beam length			//thrust::host_vector<real_> &  ANCF_Beam_Length
-		real_ rad,
+		ANCF_Params flexParams,
 		real_ sphMarkerMass, int type) {
 	return Create3D_CylinderMarkers(
 			mPosRad, mVelMas, mRhoPresMu, flexParametricDist,
-			pa3, pb3, l, rad, sphMarkerMass,  type);
+			pa3, pb3, l, flexParams.r, sphMarkerMass,  type);
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+int CreateFlexMarkersWithBob(thrust::host_vector<real3> & mPosRad,
+		thrust::host_vector<real4> & mVelMas,
+		thrust::host_vector<real4> & mRhoPresMu,
+
+		thrust::host_vector<real_> & flexParametricDist,
+
+		real3 pa3, //inital point
+		real3 pb3, //end point
+		real_ l, //beam length			//thrust::host_vector<real_> &  ANCF_Beam_Length
+		ANCF_Params flexParams,
+		real_ sphMarkerMass, int type) {
+	//** create cylinder
+	int numCylinderMarkers = Create3D_CylinderMarkers(
+			mPosRad, mVelMas, mRhoPresMu, flexParametricDist,
+			pa3, pb3, l, flexParams.r, sphMarkerMass,  type);
+	//** create bob
+	int numBobMarkers = CreateBobMarkersOnBeam(
+			mPosRad, mVelMas, mRhoPresMu, flexParametricDist,
+			pb3, l, flexParams.bobRad, sphMarkerMass,  type);
+
+	return numCylinderMarkers + numBobMarkers;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 int CreateCylinderMarkers_XZ(thrust::host_vector<real3> & mPosRad,
@@ -1717,6 +1772,7 @@ int main() {
 	flexParams.A = PI * pow(flexParams.r, 2.0f);
 	flexParams.I = .25 * PI * pow(flexParams.r, 4.0f);
 	flexParams.gravity = paramsH.gravity;
+	flexParams.bobRad = .25;
 
 	//3D cylinder params:
 	real_ rhoRigid = 7200; //1.0 * paramsH.rho0;
@@ -1775,7 +1831,6 @@ int main() {
 	//printf("side0 %d %d %d \n", side0.x, side0.y, side0.z);
 
 	bool readFromFile = false; //true;		//true: initializes from file. False: initializes inside the code
-
 
 	//1---------------------------------------------- Initialization ----------------------------------------
 	//2------------------------------------------- Generating Random Data -----------------------------------
@@ -1981,11 +2036,19 @@ int main() {
 					ANCF_Nodes[ANCF_ReferenceArrayNodesOnBeams[flexBodyIdx].y
 							- 1];
 
-			int num_FlexMarkers = CreateFlexMarkers(mPosRad, mVelMas,
+//			//**** create single flexible beam
+//			int num_FlexMarkers = CreateFlexMarkers(mPosRad, mVelMas,
+//					mRhoPresMu, flexParametricDist, pa3, //inital point
+//					pb3, //end point
+//					ANCF_Beam_Length[flexBodyIdx], //beam length			//thrust::host_vector<real_> &  ANCF_Beam_Length
+//					flexParams,
+//					sphMarkerMass, flexBodyIdx + rigidPos.size() + 1);
+			//**** create single flexible beam with bob
+			int num_FlexMarkers = CreateFlexMarkersWithBob(mPosRad, mVelMas,
 					mRhoPresMu, flexParametricDist, pa3, //inital point
 					pb3, //end point
 					ANCF_Beam_Length[flexBodyIdx], //beam length			//thrust::host_vector<real_> &  ANCF_Beam_Length
-					flexParams.r,
+					flexParams,
 					sphMarkerMass, flexBodyIdx + rigidPos.size() + 1);
 
 			referenceArray.push_back(
