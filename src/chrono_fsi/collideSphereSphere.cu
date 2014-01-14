@@ -1940,7 +1940,7 @@ void cudaCollisions(
 	real_ realTime = 0;
 
 	int numPause = 	.05 * paramsH.tFinal/paramsH.dT;
-	int pauseRigidFlex = 5 * numPause;
+	int pauseRigidFlex = 1 * numPause;
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce4 = R4(0);
 	paramsH_B.gravity = R3(0);
