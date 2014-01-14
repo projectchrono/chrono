@@ -67,7 +67,6 @@ struct fluidData {
 		real3 velocity;
 };
 __constant__ SimParams paramsD;
-__constant__ ANCF_Params flexParamsD;
 __constant__ int3 cartesianGridDimsD;
 __constant__ real_ resolutionD;
 
