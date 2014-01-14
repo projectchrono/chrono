@@ -584,8 +584,11 @@ void CreateOneFlexBody(thrust::host_vector<real3> & ANCF_Nodes,
 //	//vibration
 //	real3 pa3 = R3(.1, .25, .8);
 //	real3 pb3 = pa3 + R3(0,0,beamLength);
-	real3 pa3 = R3(.1, .5, .5);
-	real3 pb3 = pa3 + R3(beamLength,0,0);
+//	real3 pa3 = R3(.1, .5, .5);
+//	real3 pb3 = pa3 + R3(beamLength,0,0);
+
+	real3 pa3 = R3(.1, .2, .4);
+	real3 pb3 = pa3 + R3(beamLength * cos(PI/6),0,beamLength * sin(PI/6));
 
 	if (pb3.x > paramsH.cMax.x) {
 		perror("beam end out of bound\n");
@@ -1333,9 +1336,9 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 				///penDist = IsInsideSerpentine(posRad);
 				//*** straightChannelBoundaryMin   should be taken care of
 				//*** straightChannelBoundaryMax   should be taken care of
-				///penDist = IsInsideStraightChannel(posRad);
+				penDist = IsInsideStraightChannel(posRad);
 				///penDist = IsInsideStraightChannel_XZ(posRad);
-				penDist = IsInsideTube(posRad);
+				///penDist = IsInsideTube(posRad);
 				///penDist = IsInsideStepTube(posRad);
 
 				if (penDist < -toleranceZone)
@@ -1753,15 +1756,15 @@ int main() {
 	paramsH.gravity = R3(0);//R3(0, -9.81, 0);
 	paramsH.bodyForce4 = R4(3.2e-3,0,0,0); /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
 	paramsH.rho0 = 1000;
-	paramsH.mu0 = .3f;
+	paramsH.mu0 = 1.0f;
 	paramsH.v_Max = 2e-1;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 	paramsH.EPS_XSPH = .5f;
 	paramsH.dT = .0001; //sph alone: .01 for Re 10;
 	paramsH.tFinal = 100;
 	paramsH.kdT = 5;
 	paramsH.gammaBB = 0.5;
-	paramsH.cMin = R3(0, -.1, -.1) * paramsH.sizeScale;
-	paramsH.cMax = R3(paramsH.nPeriod * distance + 0, 1 + .1, 1 + .1)
+	paramsH.cMin = R3(0, 0, -.1) * paramsH.sizeScale;
+	paramsH.cMax = R3(paramsH.nPeriod * distance + 0, .4, 1 + .1)
 			* paramsH.sizeScale;
 	paramsH.binSize0; // will be changed
 
@@ -1789,7 +1792,7 @@ int main() {
 	//****************************************************************************************
 	//*** initialize straight channel
 	straightChannelBoundaryMin = R3(0, 0, 0) * paramsH.sizeScale;
-	straightChannelBoundaryMax = R3(paramsH.nPeriod * distance + 0, 1, 1) * paramsH.sizeScale;
+	straightChannelBoundaryMax = R3(paramsH.nPeriod * distance + 0, .4, 1) * paramsH.sizeScale;
 
 	//(void) cudaSetDevice(0);
 	int numAllMarkers = 0;
@@ -1899,7 +1902,7 @@ int main() {
 //	CreateRigidBodiesRandom(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, 2); //changed 2 to 4
 //	CreateRigidBodiesPatternPipe_KindaRandom(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, 128);
 	//**
-	real_ beamLength = 1;
+	real_ beamLength = .7;
 	CreateOneFlexBody(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
 			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever,
 			channelRadius,

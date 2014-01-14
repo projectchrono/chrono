@@ -1940,6 +1940,7 @@ void cudaCollisions(
 	real_ realTime = 0;
 
 	int numPause = 	.05 * paramsH.tFinal/paramsH.dT;
+	int pauseRigidFlex = 5 * numPause;
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce4 = R4(0);
 	paramsH_B.gravity = R3(0);
@@ -1987,7 +1988,7 @@ void cudaCollisions(
 		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT); //assumes ...D2 is a copy of ...D
 		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT);		//assumes ...D2 is a copy of ...D
 
-		if (tStep > numPause) {
+		if (tStep > pauseRigidFlex) {
 			UpdateRigidBody(
 					posRadD2, velMasD2,
 					posRigidD2, posRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2,
@@ -2026,7 +2027,7 @@ void cudaCollisions(
 		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, delT);
 		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, delT);
 
-		if (tStep > numPause) {
+		if (tStep > pauseRigidFlex) {
 			UpdateRigidBody(
 					posRadD, velMasD,
 					posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
