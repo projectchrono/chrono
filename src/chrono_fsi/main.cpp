@@ -1359,8 +1359,8 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 								ANCF_ReferenceArrayNodesOnBeams[flexID];
 						real3 pa3 = ANCF_Nodes[nodesStartEnd2.x];
 						real3 pb3 = ANCF_Nodes[nodesStartEnd2.y - 1];
-						//if (IsInsideStraightFlex(posRad, pa3, pb3, flexParams.r, initSpace0)) { flag = false; }
-						if (IsInsideStraightFlexWithBob(posRad, pa3, pb3, flexParams.r, flexParams.bobRad, initSpace0)) { flag = false; }
+						if (IsInsideStraightFlex(posRad, pa3, pb3, flexParams.r, initSpace0)) { flag = false; }
+						//if (IsInsideStraightFlexWithBob(posRad, pa3, pb3, flexParams.r, flexParams.bobRad, initSpace0)) { flag = false; }
 					}
 				}
 				if (flag) {
@@ -1773,7 +1773,7 @@ int main() {
 	flexParams.A = PI * pow(flexParams.r, 2.0f);
 	flexParams.I = .25 * PI * pow(flexParams.r, 4.0f);
 	flexParams.gravity = paramsH.gravity;
-	flexParams.bobRad = .125;
+	flexParams.bobRad = .1;
 
 	//3D cylinder params:
 	real_ rhoRigid = 7200; //1.0 * paramsH.rho0;
@@ -2038,19 +2038,19 @@ int main() {
 							- 1];
 
 //			//**** create single flexible beam
-//			int num_FlexMarkers = CreateFlexMarkers(mPosRad, mVelMas,
-//					mRhoPresMu, flexParametricDist, pa3, //inital point
-//					pb3, //end point
-//					ANCF_Beam_Length[flexBodyIdx], //beam length			//thrust::host_vector<real_> &  ANCF_Beam_Length
-//					flexParams,
-//					sphMarkerMass, flexBodyIdx + rigidPos.size() + 1);
-			//**** create single flexible beam with bob
-			int num_FlexMarkers = CreateFlexMarkersWithBob(mPosRad, mVelMas,
+			int num_FlexMarkers = CreateFlexMarkers(mPosRad, mVelMas,
 					mRhoPresMu, flexParametricDist, pa3, //inital point
 					pb3, //end point
 					ANCF_Beam_Length[flexBodyIdx], //beam length			//thrust::host_vector<real_> &  ANCF_Beam_Length
 					flexParams,
 					sphMarkerMass, flexBodyIdx + rigidPos.size() + 1);
+			//**** create single flexible beam with bob
+//			int num_FlexMarkers = CreateFlexMarkersWithBob(mPosRad, mVelMas,
+//					mRhoPresMu, flexParametricDist, pa3, //inital point
+//					pb3, //end point
+//					ANCF_Beam_Length[flexBodyIdx], //beam length			//thrust::host_vector<real_> &  ANCF_Beam_Length
+//					flexParams,
+//					sphMarkerMass, flexBodyIdx + rigidPos.size() + 1);
 
 			referenceArray.push_back(
 					I3(numAllMarkers, numAllMarkers + num_FlexMarkers, 2)); //map bc : rigidBodyIdx + 1
