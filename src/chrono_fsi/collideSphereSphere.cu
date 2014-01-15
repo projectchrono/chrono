@@ -1460,7 +1460,7 @@ void UpdateRigidBody(
 		const thrust::device_vector<real3> & jD2,
 		const thrust::device_vector<real3> & jInvD1,
 		const thrust::device_vector<real3> & jInvD2,
-		SimParams paramsH,
+		real3 gravity,
 		NumberOfObjects numObjects,
 		float fracSimulation,
 		real_ dT) {
@@ -1493,9 +1493,9 @@ void UpdateRigidBody(
 	CUT_CHECK_ERROR("Kernel execution failed: Calc_SurfaceInducedAcceleration");
 	totalSurfaceInteractionRigid4.clear();
 
-	//add paramsH.gravity
+	//add gravity from flex
 	thrust::device_vector<real3> gravityForces3(numObjects.numRigidBodies);
-	thrust::fill(gravityForces3.begin(), gravityForces3.end(), paramsH.gravity);
+	thrust::fill(gravityForces3.begin(), gravityForces3.end(), gravity);
 
 	//** gravity is added to total acceleration of rigid body (so far it only contained FSI forces). "totalAccRigid3" gets modified.
 	thrust::transform(totalAccRigid3.begin(), totalAccRigid3.end(), gravityForces3.begin(), totalAccRigid3.begin(), thrust::plus<real3>());
@@ -1603,7 +1603,6 @@ void UpdateFlexibleBody(
 		const thrust::host_vector<bool> & ANCF_IsCantilever,
 		const thrust::host_vector<int3> & referenceArray,
 
-		SimParams paramsH,
 		const ANCF_Params & flexParams,
 		NumberOfObjects numObjects,
 		float fracSimulation,
@@ -1945,6 +1944,8 @@ void cudaCollisions(
 	paramsH_B.bodyForce4 = R4(0);
 	paramsH_B.gravity = R3(0);
 
+	SimParams currentParamsH = paramsH;
+
 	//for (int tStep = 0; tStep < 0; tStep ++) {
 	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
 		//edit  since yu deleted cyliderRotOmegaJD
@@ -1955,12 +1956,12 @@ void cudaCollisions(
 //		if (tStep < 1000) delT = 0.25 * delTOrig; else delT = delTOrig;
 
 		if (tStep <= numPause) 	{
-			setParameters(&paramsH_B); 														// sets paramsD in SDKCollisionSystem
-			cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &paramsH_B, sizeof(SimParams))); 	//sets paramsD for this file
+			currentParamsH = paramsH_B;
 		} else {
-			setParameters(&paramsH); 														// sets paramsD in SDKCollisionSystem
-			cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &paramsH, sizeof(SimParams))); 	//sets paramsD for this file
+			currentParamsH = paramsH;
 		}
+		setParameters(&currentParamsH); 														// sets paramsD in SDKCollisionSystem
+		cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &currentParamsH, sizeof(SimParams))); 	//sets paramsD for this file
 
 		//computations
 				//markers
@@ -1984,7 +1985,7 @@ void cudaCollisions(
 		thrust::device_vector<real3> ANCF_SlopesVelD2 = ANCF_SlopesVelD;
 
 		//******** RK2
-		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects.numAllMarkers, paramsH, 0.5 * delT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
+		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects.numAllMarkers, currentParamsH, 0.5 * delT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
 		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT); //assumes ...D2 is a copy of ...D
 		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT);		//assumes ...D2 is a copy of ...D
 
@@ -1995,7 +1996,7 @@ void cudaCollisions(
 					posRadD,
 					posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
 					derivVelRhoD, rigidIdentifierD,
-					rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numObjects, float(tStep)/stepEnd, 0.5 * delT);
+					rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, flexParams.gravity, numObjects, float(tStep)/stepEnd, 0.5 * delT);
 
 			UpdateFlexibleBody(posRadD2, velMasD2,
 					ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
@@ -2015,7 +2016,6 @@ void cudaCollisions(
 									ANCF_IsCantilever,
 									referenceArray,
 
-									paramsH,
 									flexParams,
 									numObjects,
 									float(tStep)/stepEnd,
@@ -2023,7 +2023,7 @@ void cudaCollisions(
 		}
 		ApplyBoundary(posRadD2, rhoPresMuD2, posRigidD2, ANCF_NodesD2, ANCF_ReferenceArrayNodesOnBeamsD, numObjects);
 		//*****
-		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects.numAllMarkers, paramsH, delT);
+		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects.numAllMarkers, currentParamsH, delT);
 		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, delT);
 		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, delT);
 
@@ -2034,7 +2034,7 @@ void cudaCollisions(
 					posRadD2,
 					posRigidD2, posRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2,
 					derivVelRhoD, rigidIdentifierD,
-					rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, paramsH, numObjects, float(tStep)/stepEnd, delT);
+					rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, flexParams.gravity, numObjects, float(tStep)/stepEnd, delT);
 
 			UpdateFlexibleBody(posRadD, velMasD,
 					ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
@@ -2054,7 +2054,6 @@ void cudaCollisions(
 							ANCF_IsCantilever,
 							referenceArray,
 
-							paramsH,
 							flexParams,
 							numObjects,
 							float(tStep)/stepEnd,
@@ -2068,7 +2067,7 @@ void cudaCollisions(
 
 					//			/* post_process for Segre-Silberberg */ goes before ApplyBoundary
 					//			if(tStep >= 0) {
-					//				real2 channelCenter = .5 * R2(paramsH.cMax.y + paramsH.cMin.y, paramsH.cMax.z + paramsH.cMin.z);
+					//				real2 channelCenter = .5 * R2(currentParamsH.cMax.y + currentParamsH.cMin.y, currentParamsH.cMax.z + currentParamsH.cMin.z);
 					//				FindPassesFromTheEnd(posRigidD, distributionD, numRigidBodies, channelCenter, channelRadius, numberOfSections);
 					//			}
 
@@ -2104,7 +2103,7 @@ void cudaCollisions(
 				referenceArray, rigidIdentifierD,
 				posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
 				ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD, ANCF_ReferenceArrayNodesOnBeamsD,
-				paramsH,
+				currentParamsH,
 				realTime, tStep, channelRadius, channelCenterYZ, numObjects.numRigidBodies, numObjects.numFlexBodies);
 
 //		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
