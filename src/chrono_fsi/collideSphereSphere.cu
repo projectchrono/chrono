@@ -1669,7 +1669,7 @@ void UpdateFlexibleBody(
 	thrust::device_vector<real3> ANCF_SlopesD3(ANCF_SlopesD2.size());
 	thrust::device_vector<real3> ANCF_NodesVelD3(ANCF_NodesVelD2.size());
 	thrust::device_vector<real3> ANCF_SlopesVelD3(ANCF_SlopesVelD2.size());
-	int n = 10;
+	int n = 50;
 	for (int i = 0; i < n; i++) {
 		thrust::copy(ANCF_NodesD2.begin(), ANCF_NodesD2.end(), ANCF_NodesD3.begin());
 		thrust::copy(ANCF_SlopesD2.begin(), ANCF_SlopesD2.end(), ANCF_SlopesD3.begin());
@@ -1939,7 +1939,7 @@ void cudaCollisions(
 	real_ realTime = 0;
 
 	int numPause = 	.05 * paramsH.tFinal/paramsH.dT;
-	int pauseRigidFlex = 1 * numPause;
+	int pauseRigidFlex = 5 * numPause;
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce4 = R4(0);
 	paramsH_B.gravity = R3(0);
