@@ -612,7 +612,7 @@ void CreateOneFlexBody(thrust::host_vector<real3> & ANCF_Nodes,
 		ANCF_SlopesVel.push_back(R3(0));
 	}
 	ANCF_ReferenceArrayNodesOnBeams.push_back(I2(0, numElementsPerBeam + 1));
-	ANCF_IsCantilever.push_back(false);
+	ANCF_IsCantilever.push_back(true);
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CreateSomeFlexBodies(thrust::host_vector<real3> & ANCF_Nodes,
