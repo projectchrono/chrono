@@ -55,104 +55,68 @@ ChClassRegister<ChBodyDEM> a_registration_ChBodyDEM;
 
 ChBodyDEM::ChBodyDEM ()
 {
-	collision_model=ChBodyDEM::InstanceCollisionModel();
+	collision_model = ChBodyDEM::InstanceCollisionModel();
 
-	//kn=392400.0;
-	//gn=420.0;
-	kn=2e5; //2e5		//2e8
-	gn=7.5e2;   //5		//15000
-	kt=kn;
+	matsurface.SetNull();
+	matsurfaceDEM = ChSharedPtr<ChMaterialSurfaceDEM>(new ChMaterialSurfaceDEM);
 }
 
-
-ChBodyDEM::~ChBodyDEM ()
-{
-
-}
 
 void ChBodyDEM::Copy(ChBodyDEM* source)
 {
-		// copy the parent class data...
+	// copy the parent class data...
 	ChBody::Copy(source);
 
-	kn = source->kn;
-	gn = source->gn;
-	kt = source->kt;
+	matsurfaceDEM = source->matsurfaceDEM;
 }
 
 
-ChCollisionModel* ChBodyDEM::InstanceCollisionModel(){
-	ChCollisionModel* collision_model_t= (ChModelBulletDEM*) new ChModelBulletDEM();
-	((ChModelBulletDEM*)collision_model_t)->SetBody(this);
-	return collision_model_t;
+ChCollisionModel* ChBodyDEM::InstanceCollisionModel()
+{
+	ChModelBulletDEM* collision_model_t = new ChModelBulletDEM();
+
+	collision_model_t->SetBody(this);
+
+	return (ChCollisionModel*) collision_model_t;
 }
 
 //////// FILE I/O
 
 void ChBodyDEM::StreamOUT(ChStreamOutBinary& mstream)
 {
-			// class version number
+	// class version number
 	mstream.VersionWrite(1);
 
-		// serialize parent class too
+	// serialize parent class too
 	ChBody::StreamOUT(mstream);
 
-	mstream << kn;
-	mstream << gn;
-	mstream << kt;
+	matsurfaceDEM->StreamOUT(mstream);
 }
 
 void ChBodyDEM::StreamIN(ChStreamInBinary& mstream)
 {
-		// class version number
+	// class version number
 	int version = mstream.VersionRead();
 
-		// deserialize parent class too
+	// deserialize parent class too
 	ChBody::StreamIN(mstream);
 
-	float ffoo;
-
-	mstream >> ffoo;		SetSpringCoefficient(ffoo);
-	mstream >> ffoo;		SetDampingCoefficient(ffoo);
-	mstream >> kt;
+	matsurfaceDEM->StreamIN(mstream);
 }
 
 
 #define CH_CHUNK_END_DEM 98765
 
-int ChBodyDEM::StreamINall  (ChStreamInBinary& m_file)
+int ChBodyDEM::StreamINall(ChStreamInBinary& m_file)
 {
-	int mchunk = 0;
-
-	// 1) read body class data...
- 
-	ChBody::StreamINall(m_file);
-
-	m_file >> kn;
-	m_file >> gn;
-	m_file >> kt;
-
-	m_file >> mchunk; 
-
-	if (mchunk != CH_CHUNK_END_DEM) return 0;
-
-
+	// TODO
 	return 1;
 }
 
 
-int ChBodyDEM::StreamOUTall  (ChStreamOutBinary& m_file)
+int ChBodyDEM::StreamOUTall(ChStreamOutBinary& m_file)
 {
-
-	// 1) read body class data...
-	ChBody::StreamOUTall(m_file);
-
-	m_file << kn;
-	m_file << gn;
-	m_file << kt;
-
-	m_file << (int)CH_CHUNK_END_DEM;
-
+	// TODO
 	return 1;
 }
 
