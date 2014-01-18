@@ -2,6 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2011-2012 Alessandro Tasora
+// Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be 
@@ -19,10 +20,10 @@
 //   Classes for enforcing constraints between DEM bodies
 //
 //   HEADER file for CHRONO,
-//	 Multibody dynamics engine
+//   Multibody dynamics engine
 //
 // ------------------------------------------------
-//             www.deltaknowledge.com
+//             www.projectchrono.org
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
@@ -30,7 +31,8 @@
 #include "core/ChFrame.h"
 #include "lcp/ChLcpConstraintTwoContactN.h"
 #include "lcp/ChLcpSystemDescriptor.h"
-#include "collision/ChCCollisionModel.h"
+#include "collision/ChCCollisionInfo.h"
+#include "collision/ChCModelBulletDEM.h"
 
 namespace chrono
 {
@@ -43,117 +45,79 @@ namespace chrono
 class ChApi ChContactDEM {
 
 protected:
-				//
-	  			// DATA
-				//
-	collision::ChCollisionModel* modA;	///< model A
-	collision::ChCollisionModel* modB;  ///< model B
+			//
+			// DATA
+			//
 
-	ChVector<> p1;			///< max penetration point on geo1, after refining, in abs space
-	ChVector<> p2;			///< max penetration point on geo2, after refining, in abs space
-	ChVector<float> normal;	///< normal, on surface of master reference (geo1)
+	collision::ChModelBulletDEM*  m_mod1;  ///< first contact model
+	collision::ChModelBulletDEM*  m_mod2;  ///< second contact model
 
-							///< the plane of contact (X is normal direction)
-	ChMatrix33<float> contact_plane;
-	
-	double norm_dist;	    ///< penetration distance (negative if going inside) after refining
-	double knn;  ///< spring coefficient for this contact
-	double gnn;  ///< damping coefficient for this contact
+	ChVector<>  m_p1;           ///< max penetration point on geo1, after refining, in abs space
+	ChVector<>  m_p2;           ///< max penetration point on geo2, after refining, in abs space
+	ChVector<float> m_normal;   ///< normal, on surface of master reference (geo1)
 
-	ChVector<> react_force;
+	ChMatrix33<float> m_contact_plane;   ///< the plane of contact (X is normal direction)
+
+	double m_delta;            ///< penetration distance (negative if going inside) after refining
+
+	ChVector<> m_force;        ///< contact force on body1
 
 public:
-				//
-	  			// CONSTRUCTORS
-				//
+			//
+			// CONSTRUCTORS
+			//
 
-	ChContactDEM ();
+	ChContactDEM() {}
 
-	ChContactDEM (		collision::ChCollisionModel* mmodA,	///< model A
-						collision::ChCollisionModel* mmodB,	///< model B
-						const ChLcpVariablesBody* varA, ///< pass A vars
-						const ChLcpVariablesBody* varB, ///< pass B vars
-						const ChFrame<>* frameA,		///< pass A frame
-						const ChFrame<>* frameB,		///< pass B frame
-						const ChVector<>& vpA,			///< pass coll.point on A, in absolute coordinates
-						const ChVector<>& vpB,			///< pass coll.point on B, in absolute coordinates
-						const ChVector<>& vN, 			///< pass coll.normal, respect to A, in absolute coordinates
-						double mdistance,				///< pass the distance (negative for penetration)
-						float* mreaction_cache,			///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
-						double  mkn,				///< spring coeff.
-						double  mgn,				///< damping coeff.
-						double  mkt,				///< tangential spring coeff.
-						double mfriction			///< friction coeff.
-				);
+	ChContactDEM(collision::ChModelBulletDEM*      mod1,
+	             collision::ChModelBulletDEM*      mod2,
+	             const collision::ChCollisionInfo& cinfo);
 
-	virtual ~ChContactDEM ();
+	~ChContactDEM() {}
 
+			//
+			// FUNCTIONS
+			//
 
-				//
-	  			// FUNCTIONS
-				//
+	// Reuse an existing contact
+	void Reset(collision::ChModelBulletDEM*      mod1,
+	           collision::ChModelBulletDEM*      mod2,
+	           const collision::ChCollisionInfo& cinfo);
 
-					/// Initialize again this constraint.
-	virtual void Reset(	collision::ChCollisionModel* mmodA,	///< model A
-						collision::ChCollisionModel* mmodB,	///< model B
-						const ChLcpVariablesBody* varA, ///< pass A vars
-						const ChLcpVariablesBody* varB, ///< pass B vars
-						const ChFrame<>* frameA,		///< pass A frame
-						const ChFrame<>* frameB,		///< pass B frame
-						const ChVector<>& vpA,			///< pass coll.point on A, in absolute coordinates
-						const ChVector<>& vpB,			///< pass coll.point on B, in absolute coordinates
-						const ChVector<>& vN, 			///< pass coll.normal, respect to A, in absolute coordinates
-						double mdistance,				///< pass the distance (negative for penetration)
-						float* mreaction_cache,			///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
-						double  mkn,				///< spring coeff.
-						double  mgn,				///< damping coeff.
-						double  mkt,				///< tangential spring coeff.
-						double mfriction			///< friction coeff.
-);
+	/// Get the contact coordinate system, expressed in absolute frame.
+	/// This represents the 'main' reference of the link: reaction forces 
+	/// are expressed in this coordinate system. Its origin is point P2.
+	/// (It is the coordinate system of the contact plane and normal)
+	ChCoordsys<> GetContactCoords();
 
+	/// Returns the pointer to a contained 3x3 matrix representing the UV and normal
+	/// directions of the contact. In detail, the X versor (the 1s column of the 
+	/// matrix) represents the direction of the contact normal.
+	ChMatrix33<float>* GetContactPlane() {return &m_contact_plane;}
 
-					/// Get the contact coordinate system, expressed in absolute frame.
-					/// This represents the 'main' reference of the link: reaction forces 
-					/// are expressed in this coordinate system. Its origin is point P2.
-					/// (It is the coordinate system of the contact plane and normal)
-	virtual ChCoordsys<> GetContactCoords();
+	/// Get the contact point 1, in absolute coordinates
+	const ChVector<>& GetContactP1() const {return m_p1;}
 
-					/// Returns the pointer to a contained 3x3 matrix representing the UV and normal
-					/// directions of the contact. In detail, the X versor (the 1s column of the 
-					/// matrix) represents the direction of the contact normal.
-	ChMatrix33<float>* GetContactPlane() {return &contact_plane;};
+	/// Get the contact point 2, in absolute coordinates
+	const ChVector<>& GetContactP2() const {return m_p2;}
 
+	/// Get the contact normal, in absolute coordinates
+	const ChVector<float>& GetContactNormal() const {return m_normal;}
 
-					/// Get the contact point 1, in absolute coordinates
-	virtual ChVector<> GetContactP1() {return p1; };
-
-					/// Get the contact point 2, in absolute coordinates
-	virtual ChVector<> GetContactP2() {return p2; };
-
-					/// Get the contact normal, in absolute coordinates
-	virtual ChVector<float> GetContactNormal()  {return normal; };
-
-					/// Get the contact distance
-	virtual double	   GetContactDistance()  {return norm_dist; };
+	/// Get the contact distance
+	double GetContactDistance() const {return m_delta;}
 	
-					/// Get the contact force, if computed, in absolute coordinates
-	virtual ChVector<> GetContactForce() {return react_force; };
+	/// Get the contact force, if computed, in absolute coordinates
+	const ChVector<>& GetContactForce() const {return m_force;}
 
-					/// Get the spring coefficient
-	virtual double GetSpringStiffness() {return knn; };
-					/// Set the spring coefficient
-	virtual void SetSpringStiffness(float mk) { knn=mk; };
-					/// Get the damping coefficient
-	virtual double GetDampingStiffness() {return gnn; };
-					/// Set the damping coefficient
-	virtual void SetDampingStiffness(float mg) { gnn=mg; };
+	/// Get the collision model 1, with point P1
+	collision::ChCollisionModel* GetModel1() {return (collision::ChCollisionModel*) m_mod1;}
 
-					/// Get the collision model A, with point P1
-	virtual collision::ChCollisionModel* GetModelA() {return this->modA;};
-					/// Get the collision model B, with point P2
-	virtual collision::ChCollisionModel* GetModelB() {return this->modB;};
+	/// Get the collision model 2, with point P2
+	collision::ChCollisionModel* GetModel2() {return (collision::ChCollisionModel*) m_mod2;}
 
-	virtual void ConstraintsFbLoadForces(double factor);
+	/// Apply contact forces to bodies.
+	void ConstraintsFbLoadForces(double factor);
 
 };
 

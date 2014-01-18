@@ -15,11 +15,11 @@
 //   ChContactDEM.cpp
 //
 // ------------------------------------------------
-//             www.deltaknowledge.com
+//             www.projectchrono.org
 // ------------------------------------------------
 ///////////////////////////////////////////////////
- 
-  
+
+
 #include "physics/ChContactDEM.h"
 #include "physics/ChSystem.h"
 #include "physics/ChBodyDEM.h"
@@ -37,166 +37,102 @@ using namespace collision;
 using namespace geometry;
 
 
-ChContactDEM::ChContactDEM ()
-{ 
-	
-}
-
-ChContactDEM::ChContactDEM (		collision::ChCollisionModel* mmodA,	///< model A
-						collision::ChCollisionModel* mmodB,	///< model B
-						const ChLcpVariablesBody* varA, ///< pass A vars
-						const ChLcpVariablesBody* varB, ///< pass B vars
-						const ChFrame<>* frameA,		///< pass A frame
-						const ChFrame<>* frameB,		///< pass B frame
-						const ChVector<>& vpA,			///< pass coll.point on A, in absolute coordinates
-						const ChVector<>& vpB,			///< pass coll.point on B, in absolute coordinates
-						const ChVector<>& vN, 			///< pass coll.normal, respect to A, in absolute coordinates
-						double mdistance,				///< pass the distance (negative for penetration)
-						float* mreaction_cache,			///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
-						double  mkn,				///< spring coeff.
-						double  mgn,				///< damping coeff.
-						double  mkt,				///< tangential spring coeff.
-						double mfriction			///< friction coeff.
-				)
-{ 
-	Reset(	mmodA, mmodB,
-			varA, ///< pass A vars
-			varB, ///< pass B vars
-			frameA,		  ///< pass A frame
-			frameB,		  ///< pass B frame
-			vpA,		  ///< pass coll.point on A
-			vpB,		  ///< pass coll.point on B
-			vN, 		  ///< pass coll.normal, respect to A
-			mdistance,		  ///< pass the distance (negative for penetration)
-			mreaction_cache,	  ///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
-			mkn,
-			mgn,
-			mkt,
-			mfriction
-				);
-}
-
-ChContactDEM::~ChContactDEM ()
+ChContactDEM::ChContactDEM(collision::ChModelBulletDEM*      mod1,
+                           collision::ChModelBulletDEM*      mod2,
+                           const collision::ChCollisionInfo& cinfo)
 {
-
+	Reset(mod1, mod2, cinfo);
 }
 
-void ChContactDEM::Reset(	collision::ChCollisionModel* mmodA,	///< model A
-							collision::ChCollisionModel* mmodB,	///< model B
-							const ChLcpVariablesBody* varA, ///< pass A vars
-							const ChLcpVariablesBody* varB, ///< pass B vars
-							const ChFrame<>* frameA,		///< pass A frame
-							const ChFrame<>* frameB,		///< pass B frame
-							const ChVector<>& vpA,			///< pass coll.point on A, in absolute coordinates
-							const ChVector<>& vpB,			///< pass coll.point on B, in absolute coordinates
-							const ChVector<>& vN, 			///< pass coll.normal, respect to A, in absolute coordinates
-							double mdistance,				///< pass the distance (negative for penetration)
-							float* mreaction_cache,			///< pass the pointer to array of N,U,V reactions: a cache in contact manifold. If not available=0.
-							double  mkn,				///< spring coeff.
-							double  mgn,				///< damping coeff.
-							double  mkt,				///< tangential spring coeff.
-							double mfriction			///< friction coeff.
-				)
+
+void ChContactDEM::Reset(collision::ChModelBulletDEM*      mod1,
+                         collision::ChModelBulletDEM*      mod2,
+                         const collision::ChCollisionInfo& cinfo)
 {
-	assert (varA);
-	assert (varB);
-	assert (frameA);
-	assert (frameB);
+	m_mod1 = mod1;
+	m_mod2 = mod2;
 
+	m_p1 = cinfo.vpA;
+	m_p2 = cinfo.vpB;
+	m_delta = cinfo.distance;
+	m_normal = cinfo.vN;
 
-	this->modA = mmodA;
-	this->modB = mmodB;
+	assert(m_delta < 0);
 
-	ChVector<> VN = vN;
-	ChVector<double> Vx, Vy, Vz;
-	ChVector<double> singul(VECT_Y);
-	XdirToDxDyDz(&VN, &singul, &Vx,  &Vy, &Vz);
-	contact_plane.Set_A_axis(Vx,Vy,Vz);
+	// Contact plane
+	ChVector<> Vx, Vy, Vz;
+	cinfo.vN.DirToDxDyDz(Vx, Vy, Vz);
+	m_contact_plane.Set_A_axis(Vx, Vy, Vz);
 
-	this->p1 = vpA;
-	this->p2 = vpB;
-	this->normal = vN;
-	this->norm_dist = mdistance;
-	this->gnn=mgn;
-	this->knn=mkn;
+	ChBodyDEM* body1 = m_mod1->GetBody();
+	ChBodyDEM* body2 = m_mod2->GetBody();
 
-	react_force = VNULL;
-	if (mdistance<0)
-	{
-		ChModelBulletDEM* modelA = (ChModelBulletDEM*)mmodA;
-		ChBodyDEM* bodyA = modelA->GetBody();
-		ChModelBulletDEM* modelB = (ChModelBulletDEM*)mmodB;
-		ChBodyDEM* bodyB = modelB->GetBody();
+	// Calculate composite material properties
+	double kn, gn, kt, mu;
+	ChMaterialSurfaceDEM::compositeMaterial(body1->GetMaterialSurfaceDEM(),
+	                                        body2->GetMaterialSurfaceDEM(),
+	                                        kn, gn, kt, mu);
 
-		//spring force
-		react_force-=mkn*pow(fabs(mdistance), 1.5)*vN;
+	// Initialize contact force to zero
+	m_force = VNULL;
 
-		//damping force
-		ChVector<> local_pA = bodyA->Point_World2Body(p1);
-		ChVector<> local_pB = bodyB->Point_World2Body(p2);
-		ChVector<> v_BA = (bodyB->RelPoint_AbsSpeed(local_pB))-(bodyA->RelPoint_AbsSpeed(local_pA));
-		ChVector<> v_n = (v_BA.Dot(vN))*vN;
-		react_force+=mgn*pow(fabs(mdistance), 0.5)*v_n;
+	// Normal spring force
+	m_force -= kn * pow(-m_delta, 1.5) * cinfo.vN;
 
-		//Friction force
-		ChVector<> v_t = v_BA-v_n;
+	// Normal damping force
+	ChVector<> p1_loc = body1->Point_World2Body(m_p1);
+	ChVector<> p2_loc = body2->Point_World2Body(m_p2);
+	ChVector<> relvel = (body2->RelPoint_AbsSpeed(p2_loc))-(body1->RelPoint_AbsSpeed(p1_loc));
+	ChVector<> relvel_n = relvel.Dot(cinfo.vN) * cinfo.vN;
+	m_force += gn * pow(-m_delta, 0.5) * relvel_n;
 
-		double dT = bodyA->GetSystem()->GetStep();
-		double slip = v_t.Length()*dT;
-		if (v_t.Length()>1e-4)
-		{
-			v_t.Normalize();
-		}
-		else
-		{
-			v_t.SetNull();
-		}
+	// Tangential force
+	ChVector<> relvel_t = relvel - relvel_n;
+	double     relvel_t_mag = relvel_t.Length();
 
-		double tmppp= (mkt*slip)<(mfriction*react_force.Length()) ? (mkt*slip) : (mfriction*react_force.Length());
-		//double tmppp = mfriction*react_force.Length();
-		react_force+=tmppp*v_t;
+	if (relvel_t_mag > 1e-4) {
+		double dT = body1->GetSystem()->GetStep();
+		double slip = relvel_t_mag * dT;
+		double force_n_mag = m_force.Length();
+		double force_t_mag = kt * slip;
 
-		//bodyA->AccumulateForce(react_force);
-		//bodyB->AccumulateForce(-react_force);
+		if (force_t_mag < mu * force_n_mag)
+			force_t_mag = mu * force_n_mag;
+
+		m_force += (force_t_mag / relvel_t_mag) * relvel_t;
 	}
 }
 
 
 void ChContactDEM::ConstraintsFbLoadForces(double factor)
 {
-	ChModelBulletDEM* modelA = (ChModelBulletDEM*)modA;
-	ChBodyDEM* bodyA = modelA->GetBody();
-	ChModelBulletDEM* modelB = (ChModelBulletDEM*)modB;
-	ChBodyDEM* bodyB = modelB->GetBody();
+	ChBodyDEM* body1 = m_mod1->GetBody();
+	ChBodyDEM* body2 = m_mod2->GetBody();
 
-	ChVector<> pt1_loc = bodyA->Point_World2Body(p1);
-	ChVector<> pt2_loc = bodyB->Point_World2Body(p2);
-	ChVector<> force1_loc = bodyA->Dir_World2Body(react_force);
-	ChVector<> force2_loc = bodyB->Dir_World2Body(react_force);
-	ChVector<> torque1_loc = Vcross(pt1_loc, force1_loc);
-	ChVector<> torque2_loc = Vcross(pt2_loc, -force2_loc);
+	ChVector<> p1_loc = body1->Point_World2Body(m_p1);
+	ChVector<> p2_loc = body2->Point_World2Body(m_p2);
+	ChVector<> force1_loc = body1->Dir_World2Body(m_force);
+	ChVector<> force2_loc = body2->Dir_World2Body(m_force);
+	ChVector<> torque1_loc = Vcross(p1_loc,  force1_loc);
+	ChVector<> torque2_loc = Vcross(p2_loc, -force2_loc);
 
-	//bodyA->To_abs_forcetorque (react_force, p1, 0, mabsforceA, mabstorqueA);
-	//bodyB->To_abs_forcetorque (-react_force, p2, 0, mabsforceB, mabstorqueB);
+	body1->Variables().Get_fb().PasteSumVector(m_force*factor,    0,0);
+	body1->Variables().Get_fb().PasteSumVector(torque1_loc*factor,3,0);
 
-	bodyA->Variables().Get_fb().PasteSumVector( react_force*factor ,0,0);
-	//bodyA->Variables().Get_fb().PasteSumVector( (bodyA->Dir_World2Body(mabstorqueA))*factor,3,0);
-	bodyA->Variables().Get_fb().PasteSumVector( torque1_loc*factor,3,0);
-
-	bodyB->Variables().Get_fb().PasteSumVector( -react_force*factor ,0,0);
-	//bodyB->Variables().Get_fb().PasteSumVector( (bodyB->Dir_World2Body(mabstorqueB))*factor,3,0);
-	bodyB->Variables().Get_fb().PasteSumVector( torque2_loc*factor,3,0);
+	body2->Variables().Get_fb().PasteSumVector(-m_force*factor,   0,0);
+	body2->Variables().Get_fb().PasteSumVector(torque2_loc*factor,3,0);
 }
 
 
 ChCoordsys<> ChContactDEM::GetContactCoords()
 {
 	ChCoordsys<> mcsys;
-	ChQuaternion<float> mrot = this->contact_plane.Get_A_quaternion();
+	ChQuaternion<float> mrot = m_contact_plane.Get_A_quaternion();
 	mcsys.rot.Set(mrot.e0, mrot.e1, mrot.e2, mrot.e3);
-	mcsys.pos = this->p2;
+	mcsys.pos = this->m_p2;
 	return mcsys;
 }
+
 
 } // END_OF_NAMESPACE____
 
