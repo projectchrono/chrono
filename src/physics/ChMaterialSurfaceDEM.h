@@ -27,14 +27,32 @@
 ///////////////////////////////////////////////////
 
 #include "core/ChShared.h"
+#include "core/ChVector.h"
+#include "physics/ChContactDEM.h"
 
 
 namespace chrono
 {
 
+// Forward references
+class ChBodyDEM;
+
+
 class ChApi ChMaterialSurfaceDEM : public ChShared
 {
 public:
+			//
+			// CONTACT FORCE MODELS
+			//
+
+	enum NormalContactModel {
+		DefaultNormal,
+		Flores
+	};
+
+	enum TangentialContactModel {
+		DefaultTangential
+	};
 
 			//
 			// DATA
@@ -45,7 +63,7 @@ public:
 	float normal_stiffness;
 	float normal_damping;
 	float tangential_stiffness;
-
+	float restitution;
 
 			//
 			// CONSTRUCTORS
@@ -56,10 +74,9 @@ public:
 		sliding_friction(0.6f),
 		normal_stiffness(2e5),
 		normal_damping(7.5e2),
-		tangential_stiffness(2e5)
+		tangential_stiffness(2e5),
+		restitution(0.5f)
 	{}
-
-	~ChMaterialSurfaceDEM() {}
 
 	// Copy constructor 
 	ChMaterialSurfaceDEM(const ChMaterialSurfaceDEM& other) 
@@ -69,7 +86,10 @@ public:
 		normal_stiffness = other.normal_stiffness;
 		normal_damping = other.normal_damping;
 		tangential_stiffness = other.tangential_stiffness;
+		restitution = other.restitution;
 	}
+
+	~ChMaterialSurfaceDEM() {}
 
 			//
 			// FUNCTIONS
@@ -93,7 +113,7 @@ public:
 	float GetSfriction() const {return static_friction;}
 	void  SetSfriction(float val) {static_friction = val;}
 
-	/// The sliding ('kinetic')friction coefficient. Default 0.6
+	/// The sliding ('kinetic') friction coefficient. Default 0.6
 	/// Usually in 0..1 range, rarely above. 
 	float GetKfriction() const {return sliding_friction;}
 	void  SetKfriction(float val) {sliding_friction = val;}
@@ -101,18 +121,26 @@ public:
 	/// Set both static friction and kinetic friction at once, with same value.
 	void  SetFriction(float val) {SetSfriction(val); SetKfriction(val);}
 
-	static void compositeMaterial(const ChSharedPtr<ChMaterialSurfaceDEM>& matA,
-	                              const ChSharedPtr<ChMaterialSurfaceDEM>& matB,
-	                              double& kn,
-	                              double& gn,
-	                              double& kt,
-	                              double& mu)
-	{
-		kn = (matA->GetNormalStiffness() + matB->GetNormalStiffness()) / 2;
-		gn = (matA->GetNormalDamping() + matB->GetNormalDamping()) / 2;
-		kt = (matA->GetTangentialStiffness() + matB->GetTangentialStiffness()) / 2;
-		mu = (matA->GetSfriction() + matB->GetSfriction()) / 2;
-	}
+	/// The normal restitution coefficient 
+	float GetRestitution() const {return restitution;}
+	void  SetRestitution(float val) {restitution = val;}
+
+
+	//// Contact force model types.
+	static NormalContactModel     m_normalContactModel;
+	static TangentialContactModel m_tangentialContactModel;
+
+	static void                   SetNormalContactModel(NormalContactModel model) {m_normalContactModel = model;}
+	static NormalContactModel     GetNormalContactModel()                         {return m_normalContactModel;}
+
+	static void                   SetTangentialContactModel(TangentialContactModel model) {m_tangentialContactModel = model;}
+	static TangentialContactModel GetTangentialContactModel()                             {return m_tangentialContactModel;}
+
+	//// Calculate contact forces.
+	static void  CalculateForce(ChBodyDEM*                    body1,
+	                            ChBodyDEM*                    body2,
+	                            const ChContactKinematicsDEM& kdata,
+	                            ChVector<>&                   force);
 
 			//
 			// STREAMING

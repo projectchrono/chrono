@@ -386,6 +386,7 @@ IF (BUILD_CH_SDK)
 		physics/ChBodyDEM.cpp
 		physics/ChContactContainerDEM.cpp
 		physics/ChContactDEM.cpp
+		physics/ChMaterialSurfaceDEM.cpp
 		physics/ChContinuumMaterial.cpp
 	)
 	SET(ChronoEngine_physics_HEADERS

@@ -37,6 +37,23 @@
 namespace chrono
 {
 
+///
+/// Structure with kinematic contact data
+///
+struct ChContactKinematicsDEM {
+	double            delta;           ///< penetration distance (negative if going inside) after refining
+	ChVector<>        p1;              ///< max penetration point on surf1, after refining, in abs frame
+	ChVector<>        p2;              ///< max penetration point on surf2, after refining, in abs frame
+	ChVector<>        normal;          ///< normal, on surface of master reference (surf1)
+	ChMatrix33<float> contact_plane;   ///< the plane of contact (X is normal direction)
+
+	ChVector<>        p1_loc;          ///< max. penetration point on surf1, in local frame
+	ChVector<>        p2_loc;          ///< max. penetration point on surf2, in local frame
+	ChVector<>        relvel;          ///< relative velocity of contact points
+	ChVector<>        relvel_n;        ///< relative normal velocity
+	ChVector<>        relvel_t;        ///< relative tangential velocity
+
+};
 
 ///
 /// Class representing a contact between DEM bodies
@@ -44,7 +61,7 @@ namespace chrono
 
 class ChApi ChContactDEM {
 
-protected:
+private:
 			//
 			// DATA
 			//
@@ -52,15 +69,9 @@ protected:
 	collision::ChModelBulletDEM*  m_mod1;  ///< first contact model
 	collision::ChModelBulletDEM*  m_mod2;  ///< second contact model
 
-	ChVector<>  m_p1;           ///< max penetration point on geo1, after refining, in abs space
-	ChVector<>  m_p2;           ///< max penetration point on geo2, after refining, in abs space
-	ChVector<float> m_normal;   ///< normal, on surface of master reference (geo1)
+	ChContactKinematicsDEM        m_kdata; ///< contact kinematics data
 
-	ChMatrix33<float> m_contact_plane;   ///< the plane of contact (X is normal direction)
-
-	double m_delta;            ///< penetration distance (negative if going inside) after refining
-
-	ChVector<> m_force;        ///< contact force on body1
+	ChVector<>                    m_force; ///< contact force on body1
 
 public:
 			//
@@ -93,19 +104,19 @@ public:
 	/// Returns the pointer to a contained 3x3 matrix representing the UV and normal
 	/// directions of the contact. In detail, the X versor (the 1s column of the 
 	/// matrix) represents the direction of the contact normal.
-	ChMatrix33<float>* GetContactPlane() {return &m_contact_plane;}
+	ChMatrix33<float>* GetContactPlane() {return &m_kdata.contact_plane;}
 
 	/// Get the contact point 1, in absolute coordinates
-	const ChVector<>& GetContactP1() const {return m_p1;}
+	const ChVector<>& GetContactP1() const {return m_kdata.p1;}
 
 	/// Get the contact point 2, in absolute coordinates
-	const ChVector<>& GetContactP2() const {return m_p2;}
+	const ChVector<>& GetContactP2() const {return m_kdata.p2;}
 
 	/// Get the contact normal, in absolute coordinates
-	const ChVector<float>& GetContactNormal() const {return m_normal;}
+	const ChVector<>& GetContactNormal() const {return m_kdata.normal;}
 
 	/// Get the contact distance
-	double GetContactDistance() const {return m_delta;}
+	double GetContactDistance() const {return m_kdata.delta;}
 	
 	/// Get the contact force, if computed, in absolute coordinates
 	const ChVector<>& GetContactForce() const {return m_force;}

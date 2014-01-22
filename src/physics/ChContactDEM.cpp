@@ -45,76 +45,53 @@ ChContactDEM::ChContactDEM(collision::ChModelBulletDEM*      mod1,
 }
 
 
-void ChContactDEM::Reset(collision::ChModelBulletDEM*      mod1,
-                         collision::ChModelBulletDEM*      mod2,
-                         const collision::ChCollisionInfo& cinfo)
+void
+ChContactDEM::Reset(collision::ChModelBulletDEM*      mod1,
+                    collision::ChModelBulletDEM*      mod2,
+                    const collision::ChCollisionInfo& cinfo)
 {
+	assert(cinfo.distance < 0);
+
 	m_mod1 = mod1;
 	m_mod2 = mod2;
 
-	m_p1 = cinfo.vpA;
-	m_p2 = cinfo.vpB;
-	m_delta = cinfo.distance;
-	m_normal = cinfo.vN;
+	ChBodyDEM* body1 = m_mod1->GetBody();
+	ChBodyDEM* body2 = m_mod2->GetBody();
 
-	assert(m_delta < 0);
+	// Calculate and store kinematic data for this contact
+	// TODO: this should really be in cinfo...
+	m_kdata.p1 = cinfo.vpA;
+	m_kdata.p2 = cinfo.vpB;
+	m_kdata.delta = cinfo.distance;
+	m_kdata.normal = cinfo.vN;
 
 	// Contact plane
 	ChVector<> Vx, Vy, Vz;
 	cinfo.vN.DirToDxDyDz(Vx, Vy, Vz);
-	m_contact_plane.Set_A_axis(Vx, Vy, Vz);
+	m_kdata.contact_plane.Set_A_axis(Vx, Vy, Vz);
 
-	ChBodyDEM* body1 = m_mod1->GetBody();
-	ChBodyDEM* body2 = m_mod2->GetBody();
+	m_kdata.p1_loc = body1->Point_World2Body(m_kdata.p1);
+	m_kdata.p2_loc = body2->Point_World2Body(m_kdata.p2);
+	m_kdata.relvel = body2->RelPoint_AbsSpeed(m_kdata.p2_loc)
+	               - body1->RelPoint_AbsSpeed(m_kdata.p1_loc);
+	m_kdata.relvel_n = m_kdata.relvel.Dot(m_kdata.normal) * m_kdata.normal;
+	m_kdata.relvel_t = m_kdata.relvel - m_kdata.relvel_n;
 
-	// Calculate composite material properties
-	double kn, gn, kt, mu;
-	ChMaterialSurfaceDEM::compositeMaterial(body1->GetMaterialSurfaceDEM(),
-	                                        body2->GetMaterialSurfaceDEM(),
-	                                        kn, gn, kt, mu);
-
-	// Initialize contact force to zero
-	m_force = VNULL;
-
-	// Normal spring force
-	m_force -= kn * pow(-m_delta, 1.5) * cinfo.vN;
-
-	// Normal damping force
-	ChVector<> p1_loc = body1->Point_World2Body(m_p1);
-	ChVector<> p2_loc = body2->Point_World2Body(m_p2);
-	ChVector<> relvel = (body2->RelPoint_AbsSpeed(p2_loc))-(body1->RelPoint_AbsSpeed(p1_loc));
-	ChVector<> relvel_n = relvel.Dot(cinfo.vN) * cinfo.vN;
-	m_force += gn * pow(-m_delta, 0.5) * relvel_n;
-
-	// Tangential force
-	ChVector<> relvel_t = relvel - relvel_n;
-	double     relvel_t_mag = relvel_t.Length();
-
-	if (relvel_t_mag > 1e-4) {
-		double dT = body1->GetSystem()->GetStep();
-		double slip = relvel_t_mag * dT;
-		double force_n_mag = m_force.Length();
-		double force_t_mag = kt * slip;
-
-		if (force_t_mag < mu * force_n_mag)
-			force_t_mag = mu * force_n_mag;
-
-		m_force += (force_t_mag / relvel_t_mag) * relvel_t;
-	}
+	// Calculate contact force
+	ChMaterialSurfaceDEM::CalculateForce(body1, body2, m_kdata, m_force);
 }
 
 
-void ChContactDEM::ConstraintsFbLoadForces(double factor)
+void
+ChContactDEM::ConstraintsFbLoadForces(double factor)
 {
 	ChBodyDEM* body1 = m_mod1->GetBody();
 	ChBodyDEM* body2 = m_mod2->GetBody();
 
-	ChVector<> p1_loc = body1->Point_World2Body(m_p1);
-	ChVector<> p2_loc = body2->Point_World2Body(m_p2);
 	ChVector<> force1_loc = body1->Dir_World2Body(m_force);
 	ChVector<> force2_loc = body2->Dir_World2Body(m_force);
-	ChVector<> torque1_loc = Vcross(p1_loc,  force1_loc);
-	ChVector<> torque2_loc = Vcross(p2_loc, -force2_loc);
+	ChVector<> torque1_loc = Vcross(m_kdata.p1_loc,  force1_loc);
+	ChVector<> torque2_loc = Vcross(m_kdata.p2_loc, -force2_loc);
 
 	body1->Variables().Get_fb().PasteSumVector(m_force*factor,    0,0);
 	body1->Variables().Get_fb().PasteSumVector(torque1_loc*factor,3,0);
@@ -124,12 +101,15 @@ void ChContactDEM::ConstraintsFbLoadForces(double factor)
 }
 
 
-ChCoordsys<> ChContactDEM::GetContactCoords()
+ChCoordsys<>
+ChContactDEM::GetContactCoords()
 {
 	ChCoordsys<> mcsys;
-	ChQuaternion<float> mrot = m_contact_plane.Get_A_quaternion();
+	ChQuaternion<float> mrot = m_kdata.contact_plane.Get_A_quaternion();
+
 	mcsys.rot.Set(mrot.e0, mrot.e1, mrot.e2, mrot.e3);
-	mcsys.pos = this->m_p2;
+	mcsys.pos = m_kdata.p2;
+
 	return mcsys;
 }
 
