@@ -125,7 +125,7 @@ void AddContainerWall(ChSharedPtr<ChBodyDEM>& body,
 
 void AddContainer(ChIrrApp& application)
 {
-	// The fixed body
+	// The fixed body (5 walls)
 	ChSharedPtr<ChBodyDEM> fixedBody(new ChBodyDEM);
 
 	fixedBody->SetMass(1.0);
@@ -183,10 +183,8 @@ void AddContainer(ChIrrApp& application)
 int main(int argc, char* argv[])
 {
 	// Simulation and rendering time-step
-	double time_step = 1e-4;
-	double out_step = 2000 * time_step;
-	double time = 0.0;
-	double out_time = 0.0;
+	double time_step = 1e-5;
+	double out_step = 0.02;
 
 	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
 	// global functions are needed. 
@@ -198,7 +196,11 @@ int main(int argc, char* argv[])
 
 	// Create the Irrlicht visualization (open the Irrlicht device, 
 	// bind a simple user interface, etc. etc.)
-	ChIrrApp application(&mphysicalSystem, L"Assets for Irrlicht visualization",core::dimension2d<u32>(800,600),false, true);
+	ChIrrApp application(&mphysicalSystem,
+	                     L"DEM collision demo",
+	                     core::dimension2d<u32>(800,600),
+	                     false,
+	                     true);
 
 	// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
 	application.AddTypicalLogo();
@@ -210,36 +212,29 @@ int main(int argc, char* argv[])
 	AddContainer(application);
 	AddFallingItems(application);
 
-	// Complete ...
+	// Complete asset specification: convert all assets to Irrlicht
 	application.AssetBindAll();
 	application.AssetUpdateAll();
 
 	// Modify some setting of the physical system for the simulation, if you want
-	////ChLcpSolverDEM* mysolver = new ChLcpSolverDEM;
-	////mphysicalSystem.SetLcpSolverType(ChSystem::LCP_DEM);
-	////mphysicalSystem.ChangeLcpSolverSpeed(mysolver);
-	////mysolver->SetMaxIterations(0);
+	mphysicalSystem.SetLcpSolverType(ChSystem::LCP_DEM);
 
-	mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-	mphysicalSystem.SetIterLCPmaxItersSpeed(20);
-	mphysicalSystem.SetIterLCPmaxItersStab(5);
-
+	ChLcpSolverDEM* mysolver = new ChLcpSolverDEM;
+	mphysicalSystem.ChangeLcpSolverSpeed(mysolver);
+	mysolver->SetMaxIterations(50);
 
 	// Use DEM contact
-	// This takes care of the contact between the particles and with the wall
 	ChContactContainerDEM* mycontainer = new ChContactContainerDEM;
 	mphysicalSystem.ChangeContactContainer(mycontainer);
 
 	// The soft-real-time cycle
+	double time = 0;
+	double out_time = 0;
 	while(application.GetDevice()->run()) 
 	{
 		application.BeginScene();
 
 		application.DrawAll();
-
-		////ChIrrTools::drawGrid(application.GetVideoDriver(), 1, 1, 20, 20,
-		////                     ChCoordsys<>(ChVector<>(0,0,0), Q_from_AngX(CH_C_PI_2)),
-		////                     video::SColor(255, 80,100,100), true);
 
 		while (time < out_time) {
 			mphysicalSystem.DoStepDynamics(time_step);
