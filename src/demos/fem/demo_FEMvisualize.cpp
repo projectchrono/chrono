@@ -93,6 +93,7 @@ int main(int argc, char* argv[])
 	}
 	catch (ChException myerr) {
 			GetLog() << myerr.what();
+			return 0;
 	}
 
 				// Apply a force to a node
@@ -229,9 +230,12 @@ int main(int argc, char* argv[])
 	my_mesh->AddAsset(mvisualizemeshC);
 
 	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemeshD(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	mvisualizemeshD->SetFEMglyphType(ChVisualizationFEMmesh::E_GLYPH_NODE_VECT_SPEED);
+	//mvisualizemeshD->SetFEMglyphType(ChVisualizationFEMmesh::E_GLYPH_NODE_VECT_SPEED);
+	mvisualizemeshD->SetFEMglyphType(ChVisualizationFEMmesh::E_GLYPH_ELEM_TENS_STRAIN);
 	mvisualizemeshD->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NONE);
-	mvisualizemeshD->SetSymbolsScale(0.02);
+	mvisualizemeshD->SetSymbolsScale(1);
+	mvisualizemeshD->SetColorscaleMinMax(-0.15,0.15);
+	mvisualizemeshD->SetZbufferHide(false);
 	my_mesh->AddAsset(mvisualizemeshD);
 
 

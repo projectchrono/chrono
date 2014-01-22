@@ -27,7 +27,6 @@
 #include "unit_FEM/ChElementTetra_10.h"
 #include "unit_FEM/ChElementHexa_8.h"
 #include "unit_FEM/ChElementHexa_20.h"
-#include "unit_FEM/ChContinuumThermal.h"
 #include "unit_FEM/ChContinuumElectrostatics.h"
 #include "unit_FEM/ChNodeFEMxyzP.h"
 #include "unit_FEM/ChMesh.h"
@@ -61,13 +60,13 @@ int main(int argc, char* argv[])
 
 	// Create the Irrlicht visualization (open the Irrlicht device, 
 	// bind a simple user interface, etc. etc.)
-	ChIrrApp application(&my_system, L"FEM thermal",core::dimension2d<u32>(800,600),false, true);
+	ChIrrApp application(&my_system, L"FEM electrostatics",core::dimension2d<u32>(800,600),false, true);
 
 	// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
 	application.AddTypicalLogo();
 	application.AddTypicalSky();
 	application.AddTypicalLights(core::vector3df(20,20,20),core::vector3df(-20,20,-20),90,90,irr::video::SColorf(0.5,0.5,0.5));
-	application.AddTypicalCamera(core::vector3df(0,0.7,-1),core::vector3df(0,0.4,0));
+	application.AddTypicalCamera(core::vector3df(0.f,0.2f,-0.3f),core::vector3df(0.0f,0.0f,0.0f));
 
 
 
@@ -77,10 +76,10 @@ int main(int argc, char* argv[])
 	
 				// Create a material, that must be assigned to each element,
 				// and set its parameters
-	ChSharedPtr<ChContinuumThermal> mmaterial(new ChContinuumThermal);
-	mmaterial->SetMassSpecificHeatCapacity(2);
-	mmaterial->SetThermalConductivityK(200);
- 
+	ChSharedPtr<ChContinuumElectrostatics> mmaterial(new ChContinuumElectrostatics);
+	mmaterial->SetPermittivity(1);
+	//mmaterial->SetRelativePermettivity(1000.01);
+
 	//
 	// Add some TETAHEDRONS:
 	//
@@ -88,54 +87,44 @@ int main(int argc, char* argv[])
 				// Load a .node file and a .ele  file from disk, defining a complicate tetahedron mesh.
 				// This is much easier than creating all nodes and elements via C++ programming.
 				// You can generate these files using the TetGen tool.
+
+	std::vector< std::vector< ChSharedPtr<ChNodeFEMbase> > > node_sets;
+
 	try 
 	{
-		my_mesh->LoadFromTetGenFile("../data/unit_FEM/beam.node","../data/unit_FEM/beam.ele", mmaterial);
+		my_mesh->LoadFromAbaqusFile("../data/unit_FEM/electrostatics.INP", mmaterial, node_sets);
 	}
 	catch (ChException myerr) {
 			GetLog() << myerr.what();
 			return 0;
 	}
 
-	for (int inode = 0; inode < my_mesh->GetNnodes(); ++inode)
-	{
-		if (my_mesh->GetNode(inode).IsType<ChNodeFEMxyzP>())
-		{
-			ChSharedPtr<ChNodeFEMxyzP> mnode ( my_mesh->GetNode(inode) ); // downcast
-			mnode->SetPos(mnode->GetPos()*ChVector<>(3,1,3));
-		}
-	}
-
 	//
 	// Set some BOUNDARY CONDITIONS on nodes:
 	//
-
-		// Impose load on the 180th node
-	ChSharedPtr<ChNodeFEMxyzP> mnode3 (my_mesh->GetNode(180));
-	mnode3->SetF( 20 ); // thermal load: heat flux [W] into node
-
-		// Impose field on two top nodes (remember the SetFixed(true); )
-	ChSharedPtr<ChNodeFEMxyzP> mnode1 (my_mesh->GetNode(my_mesh->GetNnodes()-1));
-	mnode1->SetFixed(true); 
-	mnode1->SetP(0.5); // field: temperature [K]
-	ChSharedPtr<ChNodeFEMxyzP> mnode2 (my_mesh->GetNode(my_mesh->GetNnodes()-2));
-	mnode2->SetFixed(true); 
-	mnode2->SetP(0.5); // field: temperature [K]
-
-		// Impose field on the base points:
-	for (int inode = 0; inode < my_mesh->GetNnodes(); ++inode)
+  
+		// Impose potential on all nodes of 1st nodeset (see *NSET section in .imp file) 
+	int nboundary = 0;
+	for (unsigned int inode = 0; inode < node_sets[nboundary].size(); ++inode)
 	{
-		if (my_mesh->GetNode(inode).IsType<ChNodeFEMxyzP>())
+		if (node_sets[nboundary][inode].IsType<ChNodeFEMxyzP>())
 		{
-			ChSharedPtr<ChNodeFEMxyzP> mnode ( my_mesh->GetNode(inode) ); // downcast
-			if (mnode->GetPos().y <0.01)
-			{
-				mnode->SetFixed(true); 
-				mnode->SetP(10);  // field: temperature [K]
-			}
+			ChSharedPtr<ChNodeFEMxyzP> mnode ( node_sets[nboundary][inode] ); // downcast
+			mnode->SetFixed(true); 
+			mnode->SetP(0); // field: potential [V]
 		}
 	}
-
+		// Impose potential on all nodes of 2nd nodeset (see *NSET section in .imp file) 
+	nboundary = 1;
+	for (unsigned int inode = 0; inode < node_sets[nboundary].size(); ++inode)
+	{
+		if (node_sets[nboundary][inode].IsType<ChNodeFEMxyzP>())
+		{
+			ChSharedPtr<ChNodeFEMxyzP> mnode ( node_sets[nboundary][inode] ); // downcast
+			mnode->SetFixed(true); 
+			mnode->SetP(21); // field: potential [V]
+		}
+	}
 
 				// This is necessary in order to precompute the 
 				// stiffness matrices for all inserted elements in mesh
@@ -157,28 +146,28 @@ int main(int argc, char* argv[])
 			// Do not forget AddAsset() at the end!
 
 		// This will paint the colored mesh with temperature scale (E_PLOT_NODE_P is the scalar field of the Poisson problem)
+
 	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemesh(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	mvisualizemesh->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NODE_P);
-	mvisualizemesh->SetColorscaleMinMax(-1,12);
-	mvisualizemesh->SetShrinkElements(false,0.85);
-	mvisualizemesh->SetSmoothFaces(true);
+	mvisualizemesh->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NODE_P); // plot V, potential field
+	mvisualizemesh->SetColorscaleMinMax(-0.1,24);
 	my_mesh->AddAsset(mvisualizemesh);
+
 
 		// This will paint the wireframe
 	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemeshB(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
 	mvisualizemeshB->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_SURFACE);
+	mvisualizemeshB->SetColorscaleMinMax(-0.1,24);
 	mvisualizemeshB->SetWireframe(true);
 	my_mesh->AddAsset(mvisualizemeshB);	
 
-		// This will paint the heat flux as line vectors
+		// This will paint the E vector field as line vectors
 	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemeshC(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
 	mvisualizemeshC->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NONE);
 	mvisualizemeshC->SetFEMglyphType(ChVisualizationFEMmesh::E_GLYPH_ELEM_VECT_DP);
-	mvisualizemeshC->SetSymbolsScale(0.003);
-	mvisualizemeshC->SetDefaultSymbolsColor(ChColor(0.1,0.2,0.2));
+	mvisualizemeshC->SetSymbolsScale(0.00002);
+	mvisualizemeshC->SetDefaultSymbolsColor(ChColor(1.0f,1.0f,0.4f));
 	mvisualizemeshC->SetZbufferHide(false);
 	my_mesh->AddAsset(mvisualizemeshC);
-
 
 
 
@@ -201,18 +190,24 @@ int main(int argc, char* argv[])
 
 	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES); // <- NEEDED because other solvers can't handle stiffness matrices
 	my_system.SetIterLCPwarmStarting(false); // this helps a lot to speedup convergence in this class of problems
-	my_system.SetIterLCPmaxItersSpeed(160);
-
+	my_system.SetIterLCPmaxItersSpeed(538);
+	chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
+	msolver->SetRelTolerance(1e-20);
+	msolver->SetTolerance(1e-20);
+	msolver->SetVerbose(true);
+	msolver->SetDiagonalPreconditioning(true);
+	my_system.SetTolSpeeds(1e-20);
+my_system.SetParallelThreadNumber(1);
 
 	// Note: if you are interested only in a single LINEAR STATIC solution 
 	// (not a transient thermal solution, but rather the steady-state solution), 
-	// at this point you can uncomment the following line:
-	//
- 	//	 my_system.DoStaticLinear();
-	//
-	// Also, in the following while() loop, remove  application.DoStep();
-	// so you can spin the 3D view and look at the solution.
+	// at this point you can do:
 
+ 	my_system.DoStaticLinear();
+
+
+	// Also, in the following while() loop, remove  application.DoStep();
+	// so the loop is used just to keep the 3D view alive, to spin & look at the solution.
 	
 	application.SetTimestep(0.01);
 
@@ -221,22 +216,20 @@ int main(int argc, char* argv[])
 		application.BeginScene();
 
 		application.DrawAll();
-		
-		application.DoStep();
 
 		application.EndScene();
 	}
 
 
-	// Print some node temperatures..
-	for (int inode = 0; inode < my_mesh->GetNnodes(); ++inode)
+	// Print some node potentials V..
+	for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode)
 	{
 		if (my_mesh->GetNode(inode).IsType<ChNodeFEMxyzP>())
 		{
 			ChSharedPtr<ChNodeFEMxyzP> mnode ( my_mesh->GetNode(inode) ); // downcast
-			if (mnode->GetPos().x <0.01)
+			if (mnode->GetP() <6.2 )
 			{
-				GetLog() << "Node at y=" << mnode->GetPos().y << " has T=" << mnode->GetP() << "\n"; 
+				//GetLog() << "Node at y=" << mnode->GetPos().y << " has V=" << mnode->GetP() << "\n"; 
 			}
 		}
 	}

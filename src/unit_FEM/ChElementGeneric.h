@@ -70,54 +70,18 @@ public:
 
 				/// Adds the internal forces, expressed as nodal forces, into the
 				/// encapsulated ChLcpVariables, in the 'fb' part: qf+=forces*factor
-	virtual void VariablesFbLoadInternalForces(double factor=1.) 
-				{
-					// (This is a default (unoptimal) book keeping so that in children classes you can avoid 
-					// implementing this VariablesFbLoadInternalForces function, unless you need faster code)
-					ChMatrixDynamic<> mFi(this->GetNdofs(), 1);
-					this->ComputeInternalForces(mFi);
-					mFi.MatrScale(factor);
-					int stride = 0;
-					for (int in=0; in < this->GetNnodes(); in++)
-					{
-						int nodedofs = GetNodeN(in)->Get_ndof();
-						GetNodeN(in)->Variables().Get_fb().PasteSumClippedMatrix(&mFi, stride,0, nodedofs,1, 0,0);
-						stride += nodedofs;
-					}
-				};
+				/// (This is a default (a bit unoptimal) book keeping so that in children classes you can avoid 
+				/// implementing this VariablesFbLoadInternalForces function, unless you need faster code)
+	virtual void VariablesFbLoadInternalForces(double factor=1.);
+
 
 				/// Adds M*q (internal masses multiplied current 'qb') to Fb, ex. if qb is initialized
 				/// with v_old using VariablesQbLoadSpeed, this method can be used in 
 				/// timestepping schemes that do: M*v_new = M*v_old + forces*dt
-	virtual void VariablesFbIncrementMq() 
-				{
-					// This is a default (VERY UNOPTIMAL) book keeping so that in children classes you can avoid 
-					// implementing this VariablesFbIncrementMq function, unless you need faster code)
+				/// (This is a default (VERY UNOPTIMAL) book keeping so that in children classes you can avoid 
+				/// implementing this VariablesFbIncrementMq function, unless you need faster code.)
+	virtual void VariablesFbIncrementMq();
 
-					ChMatrixDynamic<> mMi(this->GetNdofs(), this->GetNdofs());
-					this->ComputeKRMmatricesGlobal(mMi, 0, 0, 1.0); // fill M mass matrix 
-					
-					ChMatrixDynamic<> mqi(this->GetNdofs(), 1);
-					int stride = 0;
-					for (int in=0; in < this->GetNnodes(); in++)
-					{
-						int nodedofs = GetNodeN(in)->Get_ndof();
-						mqi.PasteMatrix(&GetNodeN(in)->Variables().Get_qb(), stride, 0);
-						stride += nodedofs;
-					}
-
-					ChMatrixDynamic<> mFi(this->GetNdofs(), 1);
-					mFi.MatrMultiply(mMi, mqi);
-
-					stride = 0;
-					for (int in=0; in < this->GetNnodes(); in++)
-					{
-						int nodedofs = GetNodeN(in)->Get_ndof();
-						GetNodeN(in)->Variables().Get_fb().PasteSumClippedMatrix(&mFi, stride,0, nodedofs,1, 0,0);
-						stride += nodedofs;
-					}
-
-				}
 
 };
 

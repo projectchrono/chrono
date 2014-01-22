@@ -156,16 +156,17 @@ public:
 				unsigned int ntriangles = mmesh->getIndicesVertexes().size();
 				unsigned int nvertexes = ntriangles * 3; // this is suboptimal because some vertexes might be shared, but easier now..
 
-				SMeshBuffer* irrmesh = (SMeshBuffer*)amesh->getMeshBuffer(0);
+				//SMeshBuffer* irrmesh = (SMeshBuffer*)amesh->getMeshBuffer(0);
+				CDynamicMeshBuffer* irrmesh = (CDynamicMeshBuffer*)amesh->getMeshBuffer(0);
 
 				// smart inflating of allocated buffers, only if necessary, and once in a while shrinking
-				if (irrmesh->Indices.allocated_size() > (ntriangles*3) * 1.5)
-					irrmesh->Indices.clear();
-				if (irrmesh->Vertices.allocated_size() > nvertexes * 1.5)
-					irrmesh->Vertices.clear();
+				if (irrmesh->getIndexBuffer().allocated_size() > (ntriangles*3) * 1.5)
+					irrmesh->getIndexBuffer().reallocate(0);//clear();
+				if (irrmesh->getVertexBuffer().allocated_size() > nvertexes * 1.5)
+					irrmesh->getVertexBuffer().reallocate(0);
 
-				irrmesh->Indices.set_used(ntriangles*3);
-				irrmesh->Vertices.set_used(nvertexes); 
+				irrmesh->getIndexBuffer().set_used(ntriangles*3);
+				irrmesh->getVertexBuffer().set_used(nvertexes); 
 
 				// set buffers
 				for (unsigned int itri = 0; itri < ntriangles; itri++)
@@ -226,21 +227,21 @@ public:
 														 trianglemesh->GetColor().B);
 					}
 
-					irrmesh->Vertices[0+itri*3] = irr::video::S3DVertex((irr::f32)t1.x, (irr::f32)t1.y, (irr::f32)t1.z, 
+					irrmesh->getVertexBuffer()[0+itri*3] = irr::video::S3DVertex((irr::f32)t1.x, (irr::f32)t1.y, (irr::f32)t1.z, 
 																		(irr::f32)n1.x, (irr::f32)n1.y, (irr::f32)n1.z,
 																		irr::video::SColor(255,
 																		 (irr::u32)(col1.x*255),
 																		 (irr::u32)(col1.y*255),
 																		 (irr::u32)(col1.z*255)),
 																		(irr::f32)uv1.x, (irr::f32)uv1.y);
-					irrmesh->Vertices[1+itri*3] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
+					irrmesh->getVertexBuffer()[1+itri*3] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
 																		(irr::f32)n2.x, (irr::f32)n2.y, (irr::f32)n2.z,
 																		irr::video::SColor(255,
 																		 (irr::u32)(col2.x*255),
 																		 (irr::u32)(col2.y*255),
 																		 (irr::u32)(col2.z*255)),
 																		(irr::f32)uv2.x, (irr::f32)uv2.y);
-					irrmesh->Vertices[2+itri*3] = irr::video::S3DVertex((irr::f32)t3.x, (irr::f32)t3.y, (irr::f32)t3.z, 
+					irrmesh->getVertexBuffer()[2+itri*3] = irr::video::S3DVertex((irr::f32)t3.x, (irr::f32)t3.y, (irr::f32)t3.z, 
 																		(irr::f32)n3.x, (irr::f32)n3.y, (irr::f32)n3.z,
 																		irr::video::SColor(255,
 																		 (irr::u32)(col3.x*255),
@@ -248,9 +249,9 @@ public:
 																		 (irr::u32)(col3.z*255)),
 																		(irr::f32)uv3.x, (irr::f32)uv3.y);
 
-					irrmesh->Indices[0+itri*3] = 0+itri*3;
-					irrmesh->Indices[1+itri*3] = 1+itri*3;
-					irrmesh->Indices[2+itri*3] = 2+itri*3;
+					irrmesh->getIndexBuffer().setValue(0+itri*3, 0+itri*3);
+					irrmesh->getIndexBuffer().setValue(1+itri*3, 1+itri*3);
+					irrmesh->getIndexBuffer().setValue(2+itri*3, 2+itri*3);
 				}
 				irrmesh->setDirty(); // to force update of hardware buffers
 				irrmesh->setHardwareMappingHint(irr::scene::EHM_DYNAMIC);//EHM_NEVER); //EHM_DYNAMIC for faster hw mapping
@@ -282,7 +283,8 @@ public:
 				if (amesh->getMeshBufferCount() == 0)
 					return;
 
-				SMeshBuffer* irrmesh = (SMeshBuffer*)amesh->getMeshBuffer(0);
+				//SMeshBuffer* irrmesh = (SMeshBuffer*)amesh->getMeshBuffer(0);
+				CDynamicMeshBuffer* irrmesh = (CDynamicMeshBuffer*)amesh->getMeshBuffer(0);
 
 				unsigned int ntriangles = 0;
 				unsigned int nvertexes = 0;
@@ -304,19 +306,19 @@ public:
 				}
 
 				// smart inflating of allocated buffers, only if necessary, and once in a while shrinking
-				if (irrmesh->Indices.allocated_size() > (ntriangles*3) * 1.5)
-					irrmesh->Indices.clear();
-				if (irrmesh->Vertices.allocated_size() > nvertexes * 1.5)
-					irrmesh->Vertices.clear();
+				if (irrmesh->getIndexBuffer().allocated_size() > (ntriangles*3) * 1.5)
+					irrmesh->getIndexBuffer().reallocate(0);//clear();
+				if (irrmesh->getVertexBuffer().allocated_size() > nvertexes * 1.5)
+					irrmesh->getVertexBuffer().reallocate(0);
 
-				irrmesh->Indices.set_used(ntriangles*3);
-				irrmesh->Vertices.set_used(nvertexes); 
+				irrmesh->getIndexBuffer().set_used(ntriangles*3);
+				irrmesh->getVertexBuffer().set_used(nvertexes); 
 
 				// set buffers
 
 				if (mglyphs->GetDrawMode() == ChGlyphs::GLYPH_POINT)
 				{
-					const u16 u[36] = {   0,1,2,   0,2,3, 
+					const u32 u[36] = {   0,1,2,   0,2,3, 
 										  4,6,5,   4,7,6,
 										  8,9,10,  8,10,11, 
 										  12,14,13, 12,15,14,
@@ -335,44 +337,44 @@ public:
 						unsigned int voffs = ig*24;
 						irr::f32 s = (irr::f32) (mglyphs->GetGlyphsSize() *0.5);
 
-						irrmesh->Vertices[0+voffs]  = irr::video::S3DVertex(-s,-s,-s,  0, 0,-1, clr, 0, 0);
-						irrmesh->Vertices[1+voffs]  = irr::video::S3DVertex(-s, s,-s,  0, 0,-1, clr, 0, 1);
-						irrmesh->Vertices[2+voffs]  = irr::video::S3DVertex( s, s,-s,  0, 0,-1, clr, 1, 1);
-						irrmesh->Vertices[3+voffs]  = irr::video::S3DVertex( s,-s,-s,  0, 0,-1, clr, 1, 0);
+						irrmesh->getVertexBuffer()[0+voffs]  = irr::video::S3DVertex(-s,-s,-s,  0, 0,-1, clr, 0, 0);
+						irrmesh->getVertexBuffer()[1+voffs]  = irr::video::S3DVertex(-s, s,-s,  0, 0,-1, clr, 0, 1);
+						irrmesh->getVertexBuffer()[2+voffs]  = irr::video::S3DVertex( s, s,-s,  0, 0,-1, clr, 1, 1);
+						irrmesh->getVertexBuffer()[3+voffs]  = irr::video::S3DVertex( s,-s,-s,  0, 0,-1, clr, 1, 0);
 
-						irrmesh->Vertices[4+voffs]  = irr::video::S3DVertex(-s,-s, s,  0, 0, 1, clr, 0, 0);
-						irrmesh->Vertices[5+voffs]  = irr::video::S3DVertex(-s, s, s,  0, 0, 1, clr, 0, 1);
-						irrmesh->Vertices[6+voffs]  = irr::video::S3DVertex( s, s, s,  0, 0, 1, clr, 1, 1);
-						irrmesh->Vertices[7+voffs]  = irr::video::S3DVertex( s,-s, s,  0, 0, 1, clr, 1, 0);
+						irrmesh->getVertexBuffer()[4+voffs]  = irr::video::S3DVertex(-s,-s, s,  0, 0, 1, clr, 0, 0);
+						irrmesh->getVertexBuffer()[5+voffs]  = irr::video::S3DVertex(-s, s, s,  0, 0, 1, clr, 0, 1);
+						irrmesh->getVertexBuffer()[6+voffs]  = irr::video::S3DVertex( s, s, s,  0, 0, 1, clr, 1, 1);
+						irrmesh->getVertexBuffer()[7+voffs]  = irr::video::S3DVertex( s,-s, s,  0, 0, 1, clr, 1, 0);
 
-						irrmesh->Vertices[8+voffs]  = irr::video::S3DVertex(-s,-s,-s, -1, 0, 0, clr, 0, 0);
-						irrmesh->Vertices[9+voffs]  = irr::video::S3DVertex(-s,-s, s, -1, 0, 0, clr, 0, 1);
-						irrmesh->Vertices[10+voffs] = irr::video::S3DVertex(-s, s, s, -1, 0, 0, clr, 1, 1);
-						irrmesh->Vertices[11+voffs] = irr::video::S3DVertex(-s, s,-s, -1, 0, 0, clr, 1, 0);
+						irrmesh->getVertexBuffer()[8+voffs]  = irr::video::S3DVertex(-s,-s,-s, -1, 0, 0, clr, 0, 0);
+						irrmesh->getVertexBuffer()[9+voffs]  = irr::video::S3DVertex(-s,-s, s, -1, 0, 0, clr, 0, 1);
+						irrmesh->getVertexBuffer()[10+voffs] = irr::video::S3DVertex(-s, s, s, -1, 0, 0, clr, 1, 1);
+						irrmesh->getVertexBuffer()[11+voffs] = irr::video::S3DVertex(-s, s,-s, -1, 0, 0, clr, 1, 0);
 
-						irrmesh->Vertices[12+voffs] = irr::video::S3DVertex( s,-s,-s,  1, 0, 0, clr, 0, 0);
-						irrmesh->Vertices[13+voffs] = irr::video::S3DVertex( s,-s, s,  1, 0, 0, clr, 0, 1);
-						irrmesh->Vertices[14+voffs] = irr::video::S3DVertex( s, s, s,  1, 0, 0, clr, 1, 1);
-						irrmesh->Vertices[15+voffs] = irr::video::S3DVertex( s, s,-s,  1, 0, 0, clr, 1, 0);
+						irrmesh->getVertexBuffer()[12+voffs] = irr::video::S3DVertex( s,-s,-s,  1, 0, 0, clr, 0, 0);
+						irrmesh->getVertexBuffer()[13+voffs] = irr::video::S3DVertex( s,-s, s,  1, 0, 0, clr, 0, 1);
+						irrmesh->getVertexBuffer()[14+voffs] = irr::video::S3DVertex( s, s, s,  1, 0, 0, clr, 1, 1);
+						irrmesh->getVertexBuffer()[15+voffs] = irr::video::S3DVertex( s, s,-s,  1, 0, 0, clr, 1, 0);
 
-						irrmesh->Vertices[16+voffs] = irr::video::S3DVertex(-s,-s,-s,  0,-1, 0, clr, 0, 0);
-						irrmesh->Vertices[17+voffs] = irr::video::S3DVertex(-s,-s, s,  0,-1, 0, clr, 0, 1);
-						irrmesh->Vertices[18+voffs] = irr::video::S3DVertex( s,-s, s,  0,-1, 0, clr, 1, 1);
-						irrmesh->Vertices[19+voffs] = irr::video::S3DVertex( s,-s,-s,  0,-1, 0, clr, 1, 0);
+						irrmesh->getVertexBuffer()[16+voffs] = irr::video::S3DVertex(-s,-s,-s,  0,-1, 0, clr, 0, 0);
+						irrmesh->getVertexBuffer()[17+voffs] = irr::video::S3DVertex(-s,-s, s,  0,-1, 0, clr, 0, 1);
+						irrmesh->getVertexBuffer()[18+voffs] = irr::video::S3DVertex( s,-s, s,  0,-1, 0, clr, 1, 1);
+						irrmesh->getVertexBuffer()[19+voffs] = irr::video::S3DVertex( s,-s,-s,  0,-1, 0, clr, 1, 0);
 
-						irrmesh->Vertices[20+voffs] = irr::video::S3DVertex(-s, s,-s,  0, 1, 0, clr, 0, 0);
-						irrmesh->Vertices[21+voffs] = irr::video::S3DVertex(-s, s, s,  0, 1, 0, clr, 0, 1);
-						irrmesh->Vertices[22+voffs] = irr::video::S3DVertex( s, s, s,  0, 1, 0, clr, 1, 1);
-						irrmesh->Vertices[23+voffs] = irr::video::S3DVertex( s, s,-s,  0, 1, 0, clr, 1, 0);
+						irrmesh->getVertexBuffer()[20+voffs] = irr::video::S3DVertex(-s, s,-s,  0, 1, 0, clr, 0, 0);
+						irrmesh->getVertexBuffer()[21+voffs] = irr::video::S3DVertex(-s, s, s,  0, 1, 0, clr, 0, 1);
+						irrmesh->getVertexBuffer()[22+voffs] = irr::video::S3DVertex( s, s, s,  0, 1, 0, clr, 1, 1);
+						irrmesh->getVertexBuffer()[23+voffs] = irr::video::S3DVertex( s, s,-s,  0, 1, 0, clr, 1, 0);
 
 						for (u32 i=0; i<24; ++i)
 						{
-							irrmesh->Vertices[i+voffs].Pos += core::vector3df((irr::f32)t1.x, (irr::f32)t1.y, (irr::f32)t1.z);
+							irrmesh->getVertexBuffer()[i+voffs].Pos += core::vector3df((irr::f32)t1.x, (irr::f32)t1.y, (irr::f32)t1.z);
 							//buffer->BoundingBox.addInternalPoint(buffer->Vertices[i].Pos);
 						}
 
 						for (u32 i=0; i<36; ++i)
-							irrmesh->Indices[i+itri] = u[i]+voffs;
+							irrmesh->getIndexBuffer().setValue(i+itri,  u[i]+voffs);
 						itri += 36;
 
 					}
@@ -390,21 +392,21 @@ public:
 						video::SColor clr(255, (irr::u32)(mcol.R *255), (irr::u32)(mcol.G *255), (irr::u32)(mcol.B *255) );
 
 						// create a  small line (a degenerate triangle) per each vector
-						irrmesh->Vertices[0+ig*3] = irr::video::S3DVertex((irr::f32)t1.x, (irr::f32)t1.y, (irr::f32)t1.z, 
+						irrmesh->getVertexBuffer()[0+ig*3] = irr::video::S3DVertex((irr::f32)t1.x, (irr::f32)t1.y, (irr::f32)t1.z, 
 																		1, 0, 0,
 																		clr,
 																		0, 0);
-						irrmesh->Vertices[1+ig*3] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
+						irrmesh->getVertexBuffer()[1+ig*3] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
 																		1, 0, 0,
 																		clr,
 																		0, 0);
-						irrmesh->Vertices[2+ig*3] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
+						irrmesh->getVertexBuffer()[2+ig*3] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
 																		1, 0, 0,
 																		clr,
 																		0, 0);
-						irrmesh->Indices[0+itri*3] = 0+ig*3;
-						irrmesh->Indices[1+itri*3] = 1+ig*3;
-						irrmesh->Indices[2+itri*3] = 2+ig*3;
+						irrmesh->getIndexBuffer().setValue(0+itri*3, 0+ig*3);
+						irrmesh->getIndexBuffer().setValue(1+itri*3, 1+ig*3);
+						irrmesh->getIndexBuffer().setValue(2+itri*3, 2+ig*3);
 						++itri;
 					}
 				}
@@ -421,41 +423,41 @@ public:
 
 						// X axis - create a  small line (a degenerate triangle) per each vector
 						t2 =  mglyphs->rotations[ig].Rotate( ChVector<>(1,0,0)*mglyphs->GetGlyphsSize() ) + t1;
-						irrmesh->Vertices[0+ig*9] = irr::video::S3DVertex((irr::f32)t1.x, (irr::f32)t1.y, (irr::f32)t1.z, 
+						irrmesh->getVertexBuffer()[0+ig*9] = irr::video::S3DVertex((irr::f32)t1.x, (irr::f32)t1.y, (irr::f32)t1.z, 
 																		1, 0, 0, video::SColor(255,255,0,0), 0, 0);
-						irrmesh->Vertices[1+ig*9] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
+						irrmesh->getVertexBuffer()[1+ig*9] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
 																		1, 0, 0,	video::SColor(255,255,0,0),	0, 0);
-						irrmesh->Vertices[2+ig*9] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
+						irrmesh->getVertexBuffer()[2+ig*9] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
 																		1, 0, 0,	video::SColor(255,255,0,0),	0, 0);
-						irrmesh->Indices[0+itri*3] = 0+ig*9;
-						irrmesh->Indices[1+itri*3] = 1+ig*9;
-						irrmesh->Indices[2+itri*3] = 2+ig*9;
+						irrmesh->getIndexBuffer().setValue(0+itri*3, 0+ig*9);
+						irrmesh->getIndexBuffer().setValue(1+itri*3, 1+ig*9);
+						irrmesh->getIndexBuffer().setValue(2+itri*3, 2+ig*9);
 						++itri;
 
 						// Y axis
 						t2 =  mglyphs->rotations[ig].Rotate( ChVector<>(0,1,0)*mglyphs->GetGlyphsSize() ) + t1;
-						irrmesh->Vertices[3+ig*9] = irr::video::S3DVertex((irr::f32)t1.x, (irr::f32)t1.y, (irr::f32)t1.z, 
-																		1, 0, 0,	video::SColor(255,255,0,0),	0, 0);
-						irrmesh->Vertices[4+ig*9] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
-																		1, 0, 0,	video::SColor(255,255,0,0),	0, 0);
-						irrmesh->Vertices[5+ig*9] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
-																		1, 0, 0,	video::SColor(255,255,0,0),	0, 0);
-						irrmesh->Indices[0+itri*3] = 3+ig*9;
-						irrmesh->Indices[1+itri*3] = 4+ig*9;
-						irrmesh->Indices[2+itri*3] = 5+ig*9;
+						irrmesh->getVertexBuffer()[3+ig*9] = irr::video::S3DVertex((irr::f32)t1.x, (irr::f32)t1.y, (irr::f32)t1.z, 
+																		1, 0, 0,	video::SColor(255,0,255,0),	0, 0);
+						irrmesh->getVertexBuffer()[4+ig*9] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
+																		1, 0, 0,	video::SColor(255,0,255,0),	0, 0);
+						irrmesh->getVertexBuffer()[5+ig*9] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
+																		1, 0, 0,	video::SColor(255,0,255,0),	0, 0);
+						irrmesh->getIndexBuffer().setValue(0+itri*3, 3+ig*9);
+						irrmesh->getIndexBuffer().setValue(1+itri*3, 4+ig*9);
+						irrmesh->getIndexBuffer().setValue(2+itri*3, 5+ig*9);
 						++itri;
 
 						// Z axis
 						t2 =  mglyphs->rotations[ig].Rotate( ChVector<>(0,0,1)*mglyphs->GetGlyphsSize() ) + t1;
-						irrmesh->Vertices[6+ig*9] = irr::video::S3DVertex((irr::f32)t1.x, (irr::f32)t1.y, (irr::f32)t1.z, 
+						irrmesh->getVertexBuffer()[6+ig*9] = irr::video::S3DVertex((irr::f32)t1.x, (irr::f32)t1.y, (irr::f32)t1.z, 
 																		1, 0, 0,	video::SColor(255,0,0,255), 0, 0);
-						irrmesh->Vertices[7+ig*9] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
+						irrmesh->getVertexBuffer()[7+ig*9] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
 																		1, 0, 0,	video::SColor(255,0,0,255),	0, 0);
-						irrmesh->Vertices[8+ig*9] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
+						irrmesh->getVertexBuffer()[8+ig*9] = irr::video::S3DVertex((irr::f32)t2.x, (irr::f32)t2.y, (irr::f32)t2.z, 
 																		1, 0, 0,	video::SColor(255,0,0,255),	0, 0);
-						irrmesh->Indices[0+itri*3] = 6+ig*9;
-						irrmesh->Indices[1+itri*3] = 7+ig*9;
-						irrmesh->Indices[2+itri*3] = 8+ig*9;
+						irrmesh->getIndexBuffer().setValue(0+itri*3, 6+ig*9);
+						irrmesh->getIndexBuffer().setValue(1+itri*3, 7+ig*9);
+						irrmesh->getIndexBuffer().setValue(2+itri*3, 8+ig*9);
 						++itri;
 					}
 				}

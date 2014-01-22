@@ -143,7 +143,7 @@ public:
 			// create and init camera
 			//scene::ICameraSceneNode* camera = device->getSceneManager()->addCameraSceneNodeMaya();
 			//scene::ICameraSceneNode* camera = device->getSceneManager()->addCameraSceneNodeFPS();
-			scene::RTSCamera* camera = new scene::RTSCamera(device, device->getSceneManager()->getRootSceneNode(), device->getSceneManager(),-1, -160.0f, 3.0f, 3.0f); 
+			scene::RTSCamera* camera = new scene::RTSCamera(device, device->getSceneManager()->getRootSceneNode(), device->getSceneManager(),-1, -160.0f, 1.0f, 0.003f); 
 
 			//camera->bindTargetAndRotation(true);
 			camera->setPosition(mpos);

@@ -17,7 +17,8 @@ IF(ENABLE_UNIT_FEM)
 	#
 
 	
-	SET(ChronoEngine_UNIT_FEM_SOURCES 
+	SET(ChronoEngine_UNIT_FEM_SOURCES
+		ChElementGeneric.cpp
 		ChElementSpring.cpp  
 		ChElementBar.cpp  
 		ChElementTetra_4.cpp

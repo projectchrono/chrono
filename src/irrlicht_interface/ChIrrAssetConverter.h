@@ -359,7 +359,8 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 			{
 				chrono::ChSharedPtr<chrono::ChTriangleMeshShape> mytrimesh(k_asset);
 
-				SMeshBuffer* buffer = new SMeshBuffer();
+				CDynamicMeshBuffer * buffer = new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
+			//	SMeshBuffer* buffer = new SMeshBuffer();
 				SMesh* newmesh = new SMesh;
 				newmesh->addMeshBuffer(buffer);
 				buffer->drop();
@@ -376,7 +377,8 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 			{
 				chrono::ChSharedPtr<chrono::ChGlyphs> myglyphs(k_asset);
 
-				SMeshBuffer* buffer = new SMeshBuffer();
+				CDynamicMeshBuffer * buffer = new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
+			//  SMeshBuffer* buffer = new SMeshBuffer();
 				SMesh* newmesh = new SMesh;
 				newmesh->addMeshBuffer(buffer);
 				buffer->drop();
@@ -446,7 +448,7 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 				this->camera_found_in_assets = true;
 				chrono::ChSharedPtr<chrono::ChCamera> mycamera(k_asset);
 				irr::scene::ISceneNode* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(k_asset, mnode);
-				scene::RTSCamera* irrcamera = new scene::RTSCamera(mdevice, mproxynode, scenemanager,-1, -160.0f, 3.0f, 3.0f); 
+				scene::RTSCamera* irrcamera = new scene::RTSCamera(mdevice, mproxynode, scenemanager,-1, -160.0f, 1.0f, 0.003f); 
 
 				irrcamera->setPosition(core::vector3dfCH(mycamera->GetPosition()));
 				irrcamera->setTarget(core::vector3dfCH(mycamera->GetAimPoint()));
