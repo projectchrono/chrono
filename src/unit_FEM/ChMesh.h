@@ -90,7 +90,11 @@ public:
 	void LoadFromTetGenFile(char* filename_node,  ///< name of the .node file
 						    char* filename_ele,   ///< name of the .ele  file
 							ChSharedPtr<ChContinuumMaterial> my_material); ///< material for the created tetahedrons
-
+	
+				/// Load tetahedrons, if any, saved in a .inp file for Abaqus.
+	void LoadFromAbaqusFile(char* filename, 
+							ChSharedPtr<ChContinuumMaterial> my_material,
+							std::vector< std::vector< ChSharedPtr<ChNodeFEMbase> > >& node_sets);
 
 
 			//
