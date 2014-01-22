@@ -50,7 +50,7 @@ class RTSCamera : public ICameraSceneNode
 { 
    public: 
       RTSCamera(IrrlichtDevice* devicepointer,ISceneNode* parent,ISceneManager* smgr,s32 id, 
-         f32 rotateSpeed = -1000.0f,f32 zoomSpeed = 100.0f, f32 translationSpeed = 300.0f); 
+         f32 rotateSpeed = -160.0f,f32 zoomSpeed = 1.0f, f32 translationSpeed = 0.003f); 
 
       virtual ~RTSCamera(); 
 

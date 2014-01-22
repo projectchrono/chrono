@@ -1601,11 +1601,10 @@ public:
 
 		/// Returns 3 eigenvalues and 3 eigenvectors in a 3x3 matrix, 
 		/// Notes:
-		///   - only for cases where eigenvalues are real!! 
-		///   - output eigenvectors as columns of matrix 'eigenvects'
-		///     (which will be resized to 3x3 if not yet so..)
+		///   - only for cases where eigenvalues 'd' are real!! 
+		///   - output eigenvectors as columns of matrix 'v'
 		///   - this original matrix is modified
-	void FastEigen(ChMatrix33<Real>& eigenvects, Real eigenvals[])
+	void FastEigen(ChMatrix33<Real>& v, Real d[])
 		{
 			int n = 3;
 			int j,iq,ip,i;
@@ -1613,9 +1612,6 @@ public:
 			int nrot;
 			Real b[3];
 			Real z[3];
-			Real d[3];
-			ChMatrix33<Real> v;
-			//ChMatrix33<double> vout;
 
 			v.Set33Identity();
 
@@ -1637,10 +1633,6 @@ public:
 
 				if (sm == (Real)0)
 				{
-					//vout.CopyFromMatrix(v);
-					//dout[0] = d[0];
-					//dout[1] = d[1];
-					//dout[2] = d[2];
 					return;
 				}
 	

@@ -62,6 +62,12 @@ ChVisualizationFEMmesh::ChVisualizationFEMmesh(ChMesh& mymesh)
 
 }
 
+ChColor ChVisualizationFEMmesh::ComputeFalseColor2(double mv)
+{
+	ChVector<float> mcol = ComputeFalseColor(mv);
+	return ChColor(mcol.x, mcol.y, mcol.z);
+}
+
 ChVector<float> ChVisualizationFEMmesh::ComputeFalseColor(double mv)
 {   
 	if (mv < this->colorscale_min)
@@ -233,6 +239,8 @@ void ChVisualizationFEMmesh::Update ()
 	geometry::ChTriangleMeshConnected& trianglemesh = mesh_asset->GetMesh();
 
 
+	int beam_resolution = 8;
+
 	unsigned int n_verts = 0;
 	unsigned int n_vcols = 0;
 	unsigned int n_vnorms = 0;
@@ -271,6 +279,15 @@ void ChVisualizationFEMmesh::Update ()
 			n_triangles +=12; // n. triangle faces
 		}
 
+		// ELEMENT IS A BEAM
+		if (this->FEMmesh->GetElement(iel).IsType<ChElementBeamEuler>() )
+		{
+			n_verts +=4*beam_resolution;
+			n_vcols +=4*beam_resolution;
+			n_vnorms +=8*beam_resolution;
+			n_triangles +=8*(beam_resolution-1); // n. triangle faces
+		}
+
 		//***TO DO*** other types of elements...
 
 	}
@@ -304,7 +321,7 @@ void ChVisualizationFEMmesh::Update ()
 		if (normal_accumulators.size() != n_vnorms)
 			normal_accumulators.resize(n_vnorms);
 			
-		TriangleNormalsReset(trianglemesh.getCoordsNormals(), normal_accumulators); //***TODO***
+		TriangleNormalsReset(trianglemesh.getCoordsNormals(), normal_accumulators); 
 	}
 
 	//
@@ -375,22 +392,24 @@ void ChVisualizationFEMmesh::Update ()
 			++i_vcols;
 
 			// faces indexes
-			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (0,1,2) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			ChVector<int> ivert_offset(ivert_el,ivert_el,ivert_el);
+			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (0,1,2) +  ivert_offset;
 			++i_triindex;
-			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (1,3,2) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (1,3,2) +  ivert_offset;
 			++i_triindex;
-			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (2,3,0) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (2,3,0) +  ivert_offset;
 			++i_triindex;
-			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (3,1,0) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (3,1,0) +  ivert_offset;
 			++i_triindex;
 
 			// normals indices (if not defaulting to flat triangles)
 			if (this->smooth_faces)
 			{
-				trianglemesh.getIndicesNormals()[i_triindex-4] = ChVector<int> (0,0,0)+ChVector<int> (inorm_el,inorm_el,inorm_el);
-				trianglemesh.getIndicesNormals()[i_triindex-3] = ChVector<int> (1,1,1)+ChVector<int> (inorm_el,inorm_el,inorm_el);
-				trianglemesh.getIndicesNormals()[i_triindex-2] = ChVector<int> (2,2,2)+ChVector<int> (inorm_el,inorm_el,inorm_el);
-				trianglemesh.getIndicesNormals()[i_triindex-1] = ChVector<int> (3,3,3)+ChVector<int> (inorm_el,inorm_el,inorm_el);
+				ChVector<int> inorm_offset = ChVector<int> (inorm_el,inorm_el,inorm_el);
+				trianglemesh.getIndicesNormals()[i_triindex-4] = ChVector<int> (0,0,0) + inorm_offset;
+				trianglemesh.getIndicesNormals()[i_triindex-3] = ChVector<int> (1,1,1) + inorm_offset;
+				trianglemesh.getIndicesNormals()[i_triindex-2] = ChVector<int> (2,2,2) + inorm_offset;
+				trianglemesh.getIndicesNormals()[i_triindex-1] = ChVector<int> (3,3,3) + inorm_offset;
 				i_vnorms +=4;
 			}
 		}
@@ -444,22 +463,24 @@ void ChVisualizationFEMmesh::Update ()
 			++i_vcols;
 
 			// faces indexes
-			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (0,1,2) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			ChVector<int> ivert_offset(ivert_el,ivert_el,ivert_el);
+			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (0,1,2) +  ivert_offset;
 			++i_triindex;
-			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (1,3,2) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (1,3,2) +  ivert_offset;
 			++i_triindex;
-			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (2,3,0) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (2,3,0) +  ivert_offset;
 			++i_triindex;
-			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (3,1,0) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (3,1,0) +  ivert_offset;
 			++i_triindex;
 
 			// normals indices (if not defaulting to flat triangles)
 			if (this->smooth_faces)
 			{
-				trianglemesh.getIndicesNormals()[i_triindex-4] = ChVector<int> (0,0,0)+ChVector<int> (inorm_el,inorm_el,inorm_el);
-				trianglemesh.getIndicesNormals()[i_triindex-3] = ChVector<int> (1,1,1)+ChVector<int> (inorm_el,inorm_el,inorm_el);
-				trianglemesh.getIndicesNormals()[i_triindex-2] = ChVector<int> (2,2,2)+ChVector<int> (inorm_el,inorm_el,inorm_el);
-				trianglemesh.getIndicesNormals()[i_triindex-1] = ChVector<int> (3,3,3)+ChVector<int> (inorm_el,inorm_el,inorm_el);
+				ChVector<int> inorm_offset = ChVector<int> (inorm_el,inorm_el,inorm_el);
+				trianglemesh.getIndicesNormals()[i_triindex-4] = ChVector<int> (0,0,0) + inorm_offset;
+				trianglemesh.getIndicesNormals()[i_triindex-3] = ChVector<int> (1,1,1) + inorm_offset;
+				trianglemesh.getIndicesNormals()[i_triindex-2] = ChVector<int> (2,2,2) + inorm_offset;
+				trianglemesh.getIndicesNormals()[i_triindex-1] = ChVector<int> (3,3,3) + inorm_offset;
 				i_vnorms +=4;
 			}
 		}
@@ -512,47 +533,159 @@ void ChVisualizationFEMmesh::Update ()
 			}
 
 			// faces indexes
-			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (0,2,1) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			ChVector<int> ivert_offset(ivert_el,ivert_el,ivert_el);
+			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (0,2,1) +  ivert_offset;
 			++i_triindex;
-			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (0,3,2) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (0,3,2) +  ivert_offset;
 			++i_triindex;
-			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (4,5,6) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (4,5,6) +  ivert_offset;
 			++i_triindex;
-			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (4,6,7) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (4,6,7) +  ivert_offset;
 			++i_triindex;
-			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (0,7,3) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (0,7,3) +  ivert_offset;
 			++i_triindex;
-			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (0,4,7) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (0,4,7) +  ivert_offset;
 			++i_triindex;
-			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (0,5,4) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (0,5,4) +  ivert_offset;
 			++i_triindex;
-			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (0,1,5) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (0,1,5) +  ivert_offset;
 			++i_triindex;
-			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (3,7,6) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (3,7,6) +  ivert_offset;
 			++i_triindex;
-			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (3,6,2) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (3,6,2) +  ivert_offset;
 			++i_triindex;
-			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (2,5,1) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (2,5,1) +  ivert_offset;
 			++i_triindex;
-			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (2,6,5) +  ChVector<int> (ivert_el,ivert_el,ivert_el);
+			trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (2,6,5) +  ivert_offset;
 			++i_triindex;
 
 			// normals indices (if not defaulting to flat triangles)
 			if (this->smooth_faces)
 			{
-				trianglemesh.getIndicesNormals()[i_triindex-12] = ChVector<int> (0,2,1)+ChVector<int> (inorm_el,inorm_el,inorm_el);
-				trianglemesh.getIndicesNormals()[i_triindex-11] = ChVector<int> (0,3,2)+ChVector<int> (inorm_el,inorm_el,inorm_el);
-				trianglemesh.getIndicesNormals()[i_triindex-10] = ChVector<int> (4,5,6)+ChVector<int> (inorm_el,inorm_el,inorm_el);
-				trianglemesh.getIndicesNormals()[i_triindex- 9] = ChVector<int> (4,6,7)+ChVector<int> (inorm_el,inorm_el,inorm_el);
-				trianglemesh.getIndicesNormals()[i_triindex- 8] = ChVector<int> (8,  9,10)+ChVector<int> (inorm_el,inorm_el,inorm_el);
-				trianglemesh.getIndicesNormals()[i_triindex- 7] = ChVector<int> (8, 11, 9)+ChVector<int> (inorm_el,inorm_el,inorm_el);
-				trianglemesh.getIndicesNormals()[i_triindex- 6] = ChVector<int> (12, 13, 14)+ChVector<int> (inorm_el,inorm_el,inorm_el);
-				trianglemesh.getIndicesNormals()[i_triindex- 5] = ChVector<int> (12, 15, 13)+ChVector<int> (inorm_el,inorm_el,inorm_el);
-				trianglemesh.getIndicesNormals()[i_triindex- 4] = ChVector<int> (16, 18, 17)+ChVector<int> (inorm_el,inorm_el,inorm_el);
-				trianglemesh.getIndicesNormals()[i_triindex- 3] = ChVector<int> (16, 17, 19)+ChVector<int> (inorm_el,inorm_el,inorm_el);
-				trianglemesh.getIndicesNormals()[i_triindex- 2] = ChVector<int> (20, 21, 23)+ChVector<int> (inorm_el,inorm_el,inorm_el);
-				trianglemesh.getIndicesNormals()[i_triindex- 1] = ChVector<int> (20, 22, 21)+ChVector<int> (inorm_el,inorm_el,inorm_el);
+				ChVector<int> inorm_offset = ChVector<int> (inorm_el,inorm_el,inorm_el);
+				trianglemesh.getIndicesNormals()[i_triindex-12] = ChVector<int> (0,2,1)+inorm_offset;
+				trianglemesh.getIndicesNormals()[i_triindex-11] = ChVector<int> (0,3,2)+inorm_offset;
+				trianglemesh.getIndicesNormals()[i_triindex-10] = ChVector<int> (4,5,6)+inorm_offset;
+				trianglemesh.getIndicesNormals()[i_triindex- 9] = ChVector<int> (4,6,7)+inorm_offset;
+				trianglemesh.getIndicesNormals()[i_triindex- 8] = ChVector<int> (8,  9,10)+inorm_offset;
+				trianglemesh.getIndicesNormals()[i_triindex- 7] = ChVector<int> (8, 11, 9)+inorm_offset;
+				trianglemesh.getIndicesNormals()[i_triindex- 6] = ChVector<int> (12, 13, 14)+inorm_offset;
+				trianglemesh.getIndicesNormals()[i_triindex- 5] = ChVector<int> (12, 15, 13)+inorm_offset;
+				trianglemesh.getIndicesNormals()[i_triindex- 4] = ChVector<int> (16, 18, 17)+inorm_offset;
+				trianglemesh.getIndicesNormals()[i_triindex- 3] = ChVector<int> (16, 17, 19)+inorm_offset;
+				trianglemesh.getIndicesNormals()[i_triindex- 2] = ChVector<int> (20, 21, 23)+inorm_offset;
+				trianglemesh.getIndicesNormals()[i_triindex- 1] = ChVector<int> (20, 22, 21)+inorm_offset;
 				i_vnorms +=24;
+			}		
+		}
+
+
+		// ------------ELEMENT IS A BEAM?
+		if (this->FEMmesh->GetElement(iel).IsType<ChElementBeamEuler>() )
+		{
+			// downcasting 
+			ChSharedPtr<ChElementBeamEuler> mybeam ( this->FEMmesh->GetElement(iel) );
+
+			unsigned int ivert_el = i_verts;
+			unsigned int inorm_el = i_vnorms;
+
+			ChSharedPtr<ChNodeFEMxyzrot> nodes[2];
+
+			// vertexes
+			ChMatrixDynamic<> displ(12,1);
+			ChMatrixNM<double,1,12> N;
+			mybeam->GetField(displ); // for field of corotated element, u_displ will be always 0 at ends
+
+			ChSharedPtr<ChNodeFEMxyzrot> node0(mybeam->GetNodeN(0));
+			ChSharedPtr<ChNodeFEMxyzrot> node1(mybeam->GetNodeN(1));
+
+			for (int in= 0; in < beam_resolution; ++in)
+			{
+				double eta = -1.0+(2.0*in/(beam_resolution-1));
+				mybeam->ShapeFunctions(N, eta); // Evaluate shape functions
+
+				ChVector<> u_displ;
+				ChVector<> u_rotaz;
+
+				u_displ.x = N(0)*displ(0)+N(6)*displ(6);   // x_a   x_b
+				u_displ.y = N(1)*displ(1)+N(7)*displ(7)    // y_a   y_b
+					       +N(5)*displ(5)+N(11)*displ(11); // Rz_a  Rz_b
+				u_displ.z = N(2)*displ(2)+N(8)*displ(8)    // z_a   z_b
+					       +N(4)*displ(4)+N(10)*displ(10); // Ry_a  Ry_b 
+
+				u_rotaz.x = N(3)*displ(3)+N(9)*displ(9);   // Rx_a  Rx_b
+				
+				double dN_ua = (1./(2.*mybeam->GetRestLength()))*(-3. +3*eta*eta);  // slope shape functions are computed here on-the-fly
+				double dN_ub = (1./(2.*mybeam->GetRestLength()))*( 3. -3*eta*eta);
+				double dN_ra =  (1./4.)*(-1. -2*eta + 3*eta*eta);
+				double dN_rb = -(1./4.)*( 1. -2*eta - 3*eta*eta);
+				u_rotaz.y = dN_ua*displ(2)+dN_ub*displ(8)+   // z_a   z_b
+							dN_ra*displ(4)+dN_rb*displ(10);  // Ry_a  Ry_b
+				u_rotaz.z = dN_ua*displ(1)+dN_ub*displ(7)+   // y_a   y_b
+							dN_ra*displ(5)+dN_rb*displ(11);  // Rz_a  Rz_b    
+
+				double zeta = (eta+1.0)/2.0; // 0..1 parameter
+
+				ChQuaternion<> msectionrot;
+				msectionrot.Q_from_AngAxis(u_rotaz.Length(), u_rotaz.GetNormalized());
+
+				ChVector<> P = mybeam->Rotation()* ((1.0-zeta)*node0->GetX0().GetPos() + (zeta)*node1->GetX0().GetPos() + u_displ);
+
+				double y_thick = 0.01;
+				double z_thick = 0.01;
+				trianglemesh.getCoordsVertices()[i_verts] = P + mybeam->Rotation()* msectionrot.Rotate(ChVector<>(0,-y_thick,-z_thick) ); 
+				++i_verts;
+				trianglemesh.getCoordsVertices()[i_verts] = P + mybeam->Rotation()* msectionrot.Rotate(ChVector<>(0, y_thick,-z_thick) ) ; 
+				++i_verts;
+				trianglemesh.getCoordsVertices()[i_verts] = P + mybeam->Rotation()* msectionrot.Rotate(ChVector<>(0, y_thick, z_thick) ) ; 
+				++i_verts;
+				trianglemesh.getCoordsVertices()[i_verts] = P + mybeam->Rotation()* msectionrot.Rotate(ChVector<>(0,-y_thick, z_thick) ) ; 
+				++i_verts;
+
+				trianglemesh.getCoordsColors()[i_vcols] =  ChVector<float>(1,1,1); //***TO DO***
+				++i_vcols;
+				trianglemesh.getCoordsColors()[i_vcols] =  ChVector<float>(1,1,1); //***TO DO***
+				++i_vcols;
+				trianglemesh.getCoordsColors()[i_vcols] =  ChVector<float>(1,1,1); //***TO DO***
+				++i_vcols;
+				trianglemesh.getCoordsColors()[i_vcols] =  ChVector<float>(1,1,1); //***TO DO***
+				++i_vcols;
+
+				if (in>0)
+				{
+					ChVector<int> ivert_offset(ivert_el,ivert_el,ivert_el);
+					ChVector<int> islice_offset((in-1)*4,(in-1)*4,(in-1)*4);
+					trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (4, 0, 1) +  islice_offset + ivert_offset;
+					++i_triindex;
+					trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (4, 1, 5) +  islice_offset + ivert_offset;
+					++i_triindex;
+					trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (5, 1, 2) +  islice_offset + ivert_offset;
+					++i_triindex;
+					trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (5, 2, 6) +  islice_offset + ivert_offset;
+					++i_triindex;
+					trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (6, 2, 3) +  islice_offset + ivert_offset;
+					++i_triindex;
+					trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (6, 3, 7) +  islice_offset + ivert_offset;
+					++i_triindex;
+					trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (7, 3, 0) +  islice_offset + ivert_offset;
+					++i_triindex;
+					trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int> (7, 0, 4) +  islice_offset + ivert_offset;
+					++i_triindex;
+					if (this->smooth_faces)
+					{
+						ChVector<int> islice_normoffset((in-1)*8,(in-1)*8,(in-1)*8); //***TO DO*** fix errors in normals
+						ChVector<int> inorm_offset = ChVector<int> (inorm_el,inorm_el,inorm_el);
+						trianglemesh.getIndicesNormals()[i_triindex- 8] = ChVector<int> (4, 0, 1) +  islice_normoffset + ivert_offset;
+						trianglemesh.getIndicesNormals()[i_triindex- 7] = ChVector<int> (4, 1, 5) +  islice_normoffset + ivert_offset;
+						trianglemesh.getIndicesNormals()[i_triindex- 6] = ChVector<int> (5+8, 1+8, 2+8) +  islice_normoffset + ivert_offset;
+						trianglemesh.getIndicesNormals()[i_triindex- 5] = ChVector<int> (5+8, 2+8, 6+8) +  islice_normoffset + ivert_offset;
+						trianglemesh.getIndicesNormals()[i_triindex- 4] = ChVector<int> (6, 2, 3) +  islice_normoffset + ivert_offset;
+						trianglemesh.getIndicesNormals()[i_triindex- 3] = ChVector<int> (6, 3, 7) +  islice_normoffset + ivert_offset;
+						trianglemesh.getIndicesNormals()[i_triindex- 2] = ChVector<int> (7+8, 3+8, 0+8) +  islice_normoffset + ivert_offset;
+						trianglemesh.getIndicesNormals()[i_triindex- 1] = ChVector<int> (7+8, 0+8, 4+8) +  islice_normoffset + ivert_offset;
+						i_vnorms +=8;
+					}				
+				}
 			}		
 		}
 
@@ -638,7 +771,6 @@ void ChVisualizationFEMmesh::Update ()
 				ChSharedPtr<ChNodeFEMxyzP> n1(myelement->GetNodeN(1));
 				ChSharedPtr<ChNodeFEMxyzP> n2(myelement->GetNodeN(2));
 				ChSharedPtr<ChNodeFEMxyzP> n3(myelement->GetNodeN(3));
-
 				ChVector<> mPoint = ( n0->GetPos() + 
 									  n1->GetPos() + 
 									  n2->GetPos() + 
@@ -646,6 +778,73 @@ void ChVisualizationFEMmesh::Update ()
 				glyphs_asset->SetGlyphVector(iel, mPoint, mvP * this->symbols_scale, this->symbolscolor );
 			}
 	}
+	if (this->fem_glyph == ChVisualizationFEMmesh::E_GLYPH_ELEM_TENS_STRAIN)
+	{
+		glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
+		int nglyvect = 0;
+		for (unsigned int iel=0; iel < this->FEMmesh->GetNelements(); ++iel)
+			if (this->FEMmesh->GetElement(iel).IsType<ChElementTetra_4>())
+			{
+				ChSharedPtr<ChElementTetra_4> myelement ( this->FEMmesh->GetElement(iel) );
+				ChStrainTensor<> mstrain = myelement->GetStrain();
+				//mstrain.Rotate(myelement->Rotation());
+				double e1,e2,e3;
+				ChVector<> v1,v2,v3;
+				mstrain.ComputePrincipalStrains(e1,e2,e3);
+				mstrain.ComputePrincipalStrainsDirections(e1,e2,e3, v1,v2,v3);
+				v1.Normalize();
+				v2.Normalize();
+				v3.Normalize();
+				ChSharedPtr<ChNodeFEMxyz> n0(myelement->GetNodeN(0));
+				ChSharedPtr<ChNodeFEMxyz> n1(myelement->GetNodeN(1));
+				ChSharedPtr<ChNodeFEMxyz> n2(myelement->GetNodeN(2));
+				ChSharedPtr<ChNodeFEMxyz> n3(myelement->GetNodeN(3));
+				ChVector<> mPoint = ( n0->GetPos() + 
+									  n1->GetPos() + 
+									  n2->GetPos() + 
+									  n3->GetPos() ) * 0.25; // to do: better placement in Gauss point
+				glyphs_asset->SetGlyphVector(nglyvect, mPoint, myelement->Rotation()*v1*e1 * this->symbols_scale, ComputeFalseColor2(e1) );
+				++nglyvect;
+				glyphs_asset->SetGlyphVector(nglyvect, mPoint, myelement->Rotation()*v2*e2 * this->symbols_scale, ComputeFalseColor2(e2) );
+				++nglyvect;
+				glyphs_asset->SetGlyphVector(nglyvect, mPoint, myelement->Rotation()*v3*e3 * this->symbols_scale, ComputeFalseColor2(e3) );
+				++nglyvect;
+			}
+	}
+	if (this->fem_glyph == ChVisualizationFEMmesh::E_GLYPH_ELEM_TENS_STRESS)
+	{
+		glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
+		int nglyvect = 0;
+		for (unsigned int iel=0; iel < this->FEMmesh->GetNelements(); ++iel)
+			if (this->FEMmesh->GetElement(iel).IsType<ChElementTetra_4>())
+			{
+				ChSharedPtr<ChElementTetra_4> myelement ( this->FEMmesh->GetElement(iel) );
+				ChStressTensor<> mstress = myelement->GetStress();
+				mstress.Rotate(myelement->Rotation());
+				double e1,e2,e3;
+				ChVector<> v1,v2,v3;
+				mstress.ComputePrincipalStresses(e1,e2,e3);
+				mstress.ComputePrincipalStressesDirections(e1,e2,e3, v1,v2,v3);
+				v1.Normalize();
+				v2.Normalize();
+				v3.Normalize();
+				ChSharedPtr<ChNodeFEMxyz> n0(myelement->GetNodeN(0));
+				ChSharedPtr<ChNodeFEMxyz> n1(myelement->GetNodeN(1));
+				ChSharedPtr<ChNodeFEMxyz> n2(myelement->GetNodeN(2));
+				ChSharedPtr<ChNodeFEMxyz> n3(myelement->GetNodeN(3));
+				ChVector<> mPoint = ( n0->GetPos() + 
+									  n1->GetPos() + 
+									  n2->GetPos() + 
+									  n3->GetPos() ) * 0.25; // to do: better placement in Gauss point
+				glyphs_asset->SetGlyphVector(nglyvect, mPoint, myelement->Rotation()*v1*e1 * this->symbols_scale, ComputeFalseColor2(e1) );
+				++nglyvect;
+				glyphs_asset->SetGlyphVector(nglyvect, mPoint, myelement->Rotation()*v2*e2 * this->symbols_scale, ComputeFalseColor2(e2) );
+				++nglyvect;
+				glyphs_asset->SetGlyphVector(nglyvect, mPoint, myelement->Rotation()*v3*e3 * this->symbols_scale, ComputeFalseColor2(e3) );
+				++nglyvect;
+			}
+	}
+	
 
 
 

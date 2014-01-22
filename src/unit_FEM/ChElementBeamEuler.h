@@ -95,6 +95,31 @@ public:
 			// FEM functions
 			//
 
+				/// Fills the N matrix (single row, 12 columns) with the
+				/// values of shape functions at abscyssa 'eta'.
+				/// Note, eta=-1 at node1, eta=+1 at node2.
+	virtual void ShapeFunctions(ChMatrix<>& N, double eta)
+				{
+					double Nx1 = (1./2.)*(1-eta);
+					double Nx2 = (1./2.)*(1+eta);
+					double Ny1 = (1./4.)*pow((1-eta),2)*(2+eta);
+					double Ny2 = (1./4.)*pow((1+eta),2)*(2-eta);
+					double Nr1 = (this->length/8.)*pow((1-eta),2)*(1+eta);
+					double Nr2 = (this->length/8.)*pow((1+eta),2)*(eta-1);
+					N(0) =Nx1;
+					N(1) =Ny1;
+					N(2) =Ny1;
+					N(3) =Nx1;
+					N(4) =-Nr1;
+					N(5) =Nr1;
+					N(6) =Nx2;
+					N(7) =Ny2;
+					N(8) =Ny2;
+					N(9) =Nx2;
+					N(10)=-Nr2;
+					N(11)=Nr2;
+				};
+
 	virtual void Update() 
 				{
 					// parent class update:

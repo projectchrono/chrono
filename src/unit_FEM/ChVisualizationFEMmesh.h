@@ -62,8 +62,8 @@ class ChApiFem ChVisualizationFEMmesh: public ChAssetLevel
 				E_GLYPH_NODE_CSYS,
 				E_GLYPH_NODE_VECT_SPEED,
 				E_GLYPH_NODE_VECT_ACCEL,
-				E_GLYPH_ELEM_TENS_STRAIN_VONMISES,
-				E_GLYPH_ELEM_TENS_STRESS_VONMISES,
+				E_GLYPH_ELEM_TENS_STRAIN,
+				E_GLYPH_ELEM_TENS_STRESS,
 				E_GLYPH_ELEM_VECT_DP, // gradient field for Poisson problems (ex. heat flow if thermal FEM)
 		};
 
@@ -180,6 +180,7 @@ private:
 		double	ComputeScalarOutput( ChSharedPtr<ChNodeFEMxyz> mnode, int nodeID, ChSharedPtr<ChElementBase> melement);
 		double	ComputeScalarOutput( ChSharedPtr<ChNodeFEMxyzP> mnode, int nodeID, ChSharedPtr<ChElementBase> melement);
 		ChVector<float> ComputeFalseColor(double in);
+		ChColor			ComputeFalseColor2(double in);
 
 };
 

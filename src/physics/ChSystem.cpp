@@ -2532,7 +2532,7 @@ int ChSystem::DoStaticLinear()
 	LCPprepare_inject(*this->LCP_descriptor);
 
 //***DEBUG***
-/*
+
 try
 {
 	chrono::ChSparseMatrix mdMK;
@@ -2557,7 +2557,7 @@ catch(chrono::ChException myexc)
 {
 	chrono::GetLog() << myexc.what();
 }
-*/
+
 
 
 		// Solve the LCP problem.
@@ -2569,7 +2569,7 @@ catch(chrono::ChException myexc)
 							);	
 
 //***DEBUG***
-/*
+
 // **CHECK*** optional check for correctness in result
 chrono::ChMatrixDynamic<double> md;
 GetLcpSystemDescriptor()->BuildDiVector(md);			// d={f;-b}
@@ -2584,7 +2584,7 @@ GetLcpSystemDescriptor()->SystemProduct(mZx, &mx);		// Zx = Z*x
 
 GetLog() << "CHECK: norm of solver residual: ||Z*x-d|| -------------------\n";
 GetLog() << (mZx - md).NormInf() << "\n";
-*/
+
 
 	// Updates the reactions of the constraint, getting them from solver data
 	LCPresult_Li_into_reactions(1.0) ; 

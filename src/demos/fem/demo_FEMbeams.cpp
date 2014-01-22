@@ -23,7 +23,6 @@
 #include "lcp/ChLcpIterativePMINRES.h"
 #include "unit_FEM/ChElementBeamEuler.h"
 #include "unit_FEM/ChMesh.h"
-//#include "unit_FEM/ChNodeBody.h"
 #include "unit_FEM/ChVisualizationFEMmesh.h"
 #include "irrlicht_interface/ChIrrApp.h"
 
@@ -74,7 +73,7 @@ int main(int argc, char* argv[])
 
 	double beam_L  = 0.1;
 	double beam_wy = 0.02;
-	double beam_wz = 0.01;
+	double beam_wz = 0.02;
 
 	ChSharedPtr<ChNodeFEMxyzrot> hnode1(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(0,0,0)) ));
 	ChSharedPtr<ChNodeFEMxyzrot> hnode2(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(beam_L,0,0)) ));
@@ -113,7 +112,9 @@ int main(int argc, char* argv[])
 //	hnode2->SetX0( hnode2->GetX0() >> ChFrame<>(ChVector<>(0,0.01,0)) );
 
 				// Apply a force to a node
-	hnode3->SetForce( ChVector<>(0,-3,0));
+	//hnode3->SetForce( ChVector<>(0,-3,0));
+	//hnode3->SetForce( ChVector<>(0,-3,-3));
+	hnode3->SetTorque( ChVector<>(0, 0, 2));
 
 
 	//
@@ -139,13 +140,19 @@ int main(int argc, char* argv[])
 			// Do not forget AddAsset() at the end!
 
 
-	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemeshC(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	mvisualizemeshC->SetFEMglyphType(ChVisualizationFEMmesh::E_GLYPH_NODE_CSYS);
-	mvisualizemeshC->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NONE);
-	mvisualizemeshC->SetSymbolsThickness(0.006);
-	mvisualizemeshC->SetSymbolsScale(0.01);
-	my_mesh->AddAsset(mvisualizemeshC);
 
+	ChSharedPtr<ChVisualizationFEMmesh> mvisualizebeamA(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
+	mvisualizebeamA->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_SURFACE);
+	//mvisualizebeamA->SetSmoothFaces(true);
+	my_mesh->AddAsset(mvisualizebeamA);
+
+	ChSharedPtr<ChVisualizationFEMmesh> mvisualizebeamC(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
+	mvisualizebeamC->SetFEMglyphType(ChVisualizationFEMmesh::E_GLYPH_NODE_CSYS);
+	mvisualizebeamC->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NONE);
+	mvisualizebeamC->SetSymbolsThickness(0.006);
+	mvisualizebeamC->SetSymbolsScale(0.01);
+	mvisualizebeamC->SetZbufferHide(false);
+	my_mesh->AddAsset(mvisualizebeamC);
 
 
 			// ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
@@ -169,11 +176,9 @@ int main(int argc, char* argv[])
 	my_system.SetIterLCPwarmStarting(true); // this helps a lot to speedup convergence in this class of problems
 	my_system.SetIterLCPmaxItersSpeed(12);
 	my_system.SetTolSpeeds(1e-5);
-	chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
+	//chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
 	//msolver->SetVerbose(true);
-	msolver->SetDiagonalPreconditioning(true);
-
-//my_system.DoStaticLinear();
+	//msolver->SetDiagonalPreconditioning(true);
 
 	application.SetTimestep(0.001);
 
@@ -183,38 +188,40 @@ int main(int argc, char* argv[])
 
 		application.DrawAll();
 		
-//my_system.DoStaticLinear();
 		application.DoStep();
-
-		//GetLog() << " t =" << my_system.GetChTime() << "  hnode2 pos =" << hnode2->Frame().GetPos() << "\n";
 
 		application.EndScene();
 
+		//GetLog() << " node pos =" << hnode3->Frame().GetPos() << "\n";
 	}
 
 
+	/*
+	//***TEST***
 
-ChVector<> delta_rot_dir;
-double     delta_rot_angle;
-hnode2->Frame().GetRot().Q_to_AngAxis(delta_rot_angle, delta_rot_dir);
-GetLog() << " el.inc.rot =" << (delta_rot_angle*delta_rot_dir);
+	ChVector<> delta_rot_dir;
+	double     delta_rot_angle;
+	hnode2->Frame().GetRot().Q_to_AngAxis(delta_rot_angle, delta_rot_dir);
+	GetLog() << " el.inc.rot =" << (delta_rot_angle*delta_rot_dir);
 
-GetLog() << " el.inc.rot (deg)=" << (delta_rot_angle*delta_rot_dir) * ::CH_C_RAD_TO_DEG;
+	GetLog() << " el.inc.rot (deg)=" << (delta_rot_angle*delta_rot_dir) * ::CH_C_RAD_TO_DEG;
 
-ChMatrixDynamic<double> field(12,1);
-belement1->GetField(field);
-for (int r = 0; r<6; ++r)
-	GetLog() << " el.fieldA =" << field(r) << "\n";
-for (int r = 6; r<12; ++r)
-	GetLog() << " el.fieldB =" << field(r) << "\n";
-GetLog() << "\n";
+	ChMatrixDynamic<double> field(12,1);
+	belement1->GetField(field);
+	for (int r = 0; r<6; ++r)
+		GetLog() << " el.fieldA =" << field(r) << "\n";
+	for (int r = 6; r<12; ++r)
+		GetLog() << " el.fieldB =" << field(r) << "\n";
+	GetLog() << "\n";
 
-ChMatrixDynamic<double> iforces(12,1);
-belement1->ComputeInternalForces(iforces);
-for (int r = 0; r<6; ++r)
-	GetLog() << " el.iforcesA =" << field(r) << "\n";
-for (int r = 6; r<12; ++r)
-	GetLog() << " el.iforcesB =" << field(r) << "\n";
+	ChMatrixDynamic<double> iforces(12,1);
+	belement1->ComputeInternalForces(iforces);
+	for (int r = 0; r<6; ++r)
+		GetLog() << " el.iforcesA =" << field(r) << "\n";
+	for (int r = 6; r<12; ++r)
+		GetLog() << " el.iforcesB =" << field(r) << "\n";
+	*/
+
 
 	// Remember this at the end of the program, if you started
 	// with DLL_CreateGlobals();
