@@ -271,6 +271,32 @@ TARGET_LINK_LIBRARIES(demo_soilbin
 	ChronoEngine)
 ADD_DEPENDENCIES(demo_soilbin ChronoEngine)
 
+ADD_EXECUTABLE(demo_ballDEM         demo_ballDEM.cpp)
+SOURCE_GROUP(demos\\irrlicht FILES  demo_ballDEM.cpp)
+SET_TARGET_PROPERTIES(demo_ballDEM PROPERTIES
+	FOLDER demos
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
+	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+	
+	)
+TARGET_LINK_LIBRARIES(demo_ballDEM
+	${CH_IRRLICHTLIB}
+	ChronoEngine)
+ADD_DEPENDENCIES (demo_ballDEM ChronoEngine)
+
+ADD_EXECUTABLE(demo_collisionDEM    demo_collisionDEM.cpp)
+SOURCE_GROUP(demos\\irrlicht FILES  demo_collisionDEM.cpp)
+SET_TARGET_PROPERTIES(demo_collisionDEM PROPERTIES
+	FOLDER demos
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
+	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+	
+	)
+TARGET_LINK_LIBRARIES(demo_collisionDEM
+	${CH_IRRLICHTLIB}
+	ChronoEngine)
+ADD_DEPENDENCIES (demo_collisionDEM ChronoEngine)
+
 install(TARGETS demo_collision DESTINATION bin)
 install(TARGETS demo_benchmark DESTINATION bin)
 install(TARGETS demo_bricks DESTINATION bin)
@@ -290,7 +316,9 @@ install(TARGETS demo_tire DESTINATION bin)
 install(TARGETS demo_tracks DESTINATION bin)
 install(TARGETS demo_convergence DESTINATION bin)
 install(TARGETS demo_irr_assets DESTINATION bin)
-install(TARGETS demo_soilbin	DESTINATION bin)
+install(TARGETS demo_soilbin DESTINATION bin)
+install(TARGETS demo_ballDEM DESTINATION bin)
+install(TARGETS demo_collisionDEM DESTINATION bin)
 
 
 
