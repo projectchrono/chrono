@@ -31,6 +31,7 @@
 #include "core/ChApiCE.h"
 #include "core/ChMath.h"
 #include "core/ChShared.h"
+#include "core/ChLinearAlgebra.h"
 
 namespace chrono 
 {
@@ -44,7 +45,7 @@ namespace fem
 /// rows and three columns, that are symmetric.
 
 template <class Real = double>
-class ChApi ChVoightTensor : public ChMatrixNM<Real,6,1>
+class ChVoightTensor : public ChMatrixNM<Real,6,1>
 {
 public:
 					/// Constructors (default empty)
@@ -155,6 +156,60 @@ public:
 					+this->GetInvariant_I3() );
 	}
 
+			/// Rotate to another reference coordinate system,
+			/// overwriting this tensor in place.
+	void Rotate(ChMatrix33<Real> Rot)
+	{
+		ChMatrix33<Real> T;
+		ChMatrix33<Real> temp;
+			// do  T'= R*T*R'   
+		this->ConvertToMatrix(T);
+		temp.MatrMultiplyT(T, Rot);	
+		T.MatrMultiply(Rot,temp);
+		this->ConvertFromMatrix(T);		// to do, more efficient: unroll matrix multiplications and exploit T simmetry
+	}
+		
+			/// Compute the eigenvalues (closed form method)
+	void ComputeEigenvalues(double& e1, double& e2, double& e3)
+	{
+		double I1 = this->GetInvariant_I1();
+		double I2 = this->GetInvariant_I2();
+		double I3 = this->GetInvariant_I3();
+		double phi = (1./3.)*acos( (2.*I1*I1*I1 - 9.*I1*I2 + 27.*I3) / (2.* pow( (I1*I1-3*I2),(3./2.)))  );
+		double k = (2./3.)*(sqrt(I1*I1-3.*I2));
+		e1 = (I1 / 3.)  + k * cos(phi);
+		e2 = (I1 / 3.)  + k * cos(phi + (2./3.) * chrono::CH_C_PI );
+		e3 = (I1 / 3.)  + k * cos(phi + (4./3.) * chrono::CH_C_PI );
+	}
+
+			/// Compute the eigenvectors and the eigenvalues
+	void ComputeEigenvectors(double& eigval1, 
+							 double& eigval2, 
+							 double& eigval3, 
+							 ChVector<Real>& eigvector1, 
+							 ChVector<Real>& eigvector2,
+							 ChVector<Real>& eigvector3)
+	{
+		ChMatrix33<Real> A;
+		
+		//GetLog() << A << "\n  vals:" << eigval1 << "   " << eigval2 << "   " << eigval3 << "  eigvect1: \n" << eigvector1.GetNormalized();
+this->ConvertToMatrix(A);
+//GetLog() << A ;
+ChMatrix33<>vects;
+double vals[3];
+A.FastEigen(vects, vals);
+eigvector1 = vects.ClipVector(0,0);
+eigvector2 = vects.ClipVector(0,1);
+eigvector3 = vects.ClipVector(0,2);
+eigval1 = vals[0];
+eigval2 = vals[1];
+eigval3 = vals[2];
+//GetLog() << "\n  vals:" << vals[0] << "   " << vals[1] << "   " << vals[2] << "  eigvect1: \n" << eigvector1.GetNormalized();
+/*
+
+*/
+}
+
 		  /// FORMULAS THAT ARE USEFUL FOR YELD CRITERIONS: 
 
 			/// Compute the Von Mises equivalent
@@ -169,9 +224,27 @@ public:
 /// that is with 6 components in a column. 
 
 template <class Real = double>
-class ChApi ChStressTensor : public ChVoightTensor<Real>
+class ChStressTensor : public ChVoightTensor<Real>
 {
 public:
+
+			/// Compute the principal stresses for the given  tensor
+	void ComputePrincipalStresses(double& e1, double& e2, double& e3)
+	{
+		ComputeEigenvalues(e1,e2,e3);
+	}
+
+			/// Compute the directions of the principal stresses,
+			/// i.e. three orthogonal directions for zero shear (diagonal stress)
+	void ComputePrincipalStressesDirections(double& e1, 
+											double& e2, 
+											double& e3, 
+											ChVector<Real>& dir1, 
+											ChVector<Real>& dir2,
+											ChVector<Real>& dir3)
+	{
+		ComputeEigenvectors(e1,e2,e3, dir1,dir2,dir3);
+	}
 
 };
 
@@ -180,9 +253,27 @@ public:
 /// that is with 6 components in a column. 
 
 template <class Real = double>
-class ChApi ChStrainTensor : public ChVoightTensor<Real>
+class ChStrainTensor : public ChVoightTensor<Real>
 {
 public:
+
+			/// Compute the principal strains for the given tensor
+	void ComputePrincipalStrains(double& e1, double& e2, double& e3)
+	{
+		ComputeEigenvalues(e1,e2,e3);
+	}
+
+			/// Compute the directions of the principal strain,
+			/// i.e. three orthogonal directions for zero strain (diagonal strain)
+	void ComputePrincipalStrainsDirections(double& e1, 
+										   double& e2, 
+										   double& e3, 
+											ChVector<Real>& dir1, 
+											ChVector<Real>& dir2,
+											ChVector<Real>& dir3)
+	{
+		ComputeEigenvectors(e1,e2,e3, dir1,dir2,dir3);
+	}
 
 };
 
