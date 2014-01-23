@@ -63,11 +63,9 @@ struct host_container {
 		thrust::host_vector<real3> acc_data;
 		thrust::host_vector<bool> active_data;
 		thrust::host_vector<real> mass_data;
-		thrust::host_vector<real> fric_data;
-		thrust::host_vector<real> fric_roll_data;
-		thrust::host_vector<real> fric_spin_data;
+		thrust::host_vector<real3> fric_data;
 		thrust::host_vector<real> cohesion_data;
-		thrust::host_vector<real> compliance_data;
+		thrust::host_vector<real4> compliance_data;
 		thrust::host_vector<real3> lim_data;
 		thrust::host_vector<real3> dem_data;
 		thrust::host_vector<real3> gyr_data;

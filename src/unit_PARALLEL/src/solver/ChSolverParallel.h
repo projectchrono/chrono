@@ -10,21 +10,20 @@
 #include "constraints/ChConstraintRigidRigid.h"
 #include "constraints/ChConstraintBilateral.h"
 namespace chrono {
-class ChApiGPU ChSolverParallel: public ChBaseParallel {
-	public:
+	class ChApiGPU ChSolverParallel: public ChBaseParallel {
+		public:
 
-		ChSolverParallel() {
-			tolerance = 1e-6;
-			epsilon = 1e-3;
-			alpha = 0;
-			max_iteration = 100;
-			total_iteration = 0;
-			current_iteration = 0;
-
-		}
-		void Setup();
-		void Initial (real step, ChGPUDataManager *data_container_);
-		void Project(custom_vector<real> & gamma);
+			ChSolverParallel() {
+				tolerance = 1e-6;
+				epsilon = 1e-3;
+				alpha = 0;
+				max_iteration = 100;
+				total_iteration = 0;
+				current_iteration = 0;
+			}
+			void Setup();
+			void Initial(real step, ChGPUDataManager *data_container_);
+			void Project(custom_vector<real> & gamma);
 		void shurA(custom_vector<real> &x);
 		void shurB(custom_vector<real> &x, custom_vector<real> &out);
 
@@ -110,34 +109,7 @@ class ChApiGPU ChSolverParallel: public ChBaseParallel {
 			real lcp_omega_bilateral;
 			real lcp_omega_contact;
 
-	//uint SolveAPGD_ALT(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
-	/////APGD specific:
 
-//			real PART_A(const uint size, custom_vector<int2> & ids,
-//
-//					custom_vector<real> & mx,custom_vector<real> & my,custom_vector<real> & ms,
-//					const custom_vector<real> & b,custom_vector<real> & mg,custom_vector<real> & mg_tmp2,
-//
-//					const real & t_k,const real & L_k,
-//
-//					real & obj1,real& obj2,real& min_val
-//			);
-//
-//			real PART_B(const uint size, custom_vector<int2> & ids,
-//					custom_vector<real> & mx,custom_vector<real> & my,custom_vector<real> & ms,
-//					const custom_vector<real> & b,custom_vector<real> & mg,custom_vector<real> & mg_tmp2,
-//					const real & t_k,const real & L_k,
-//
-//					real & obj1,real& obj2,real& min_val);
-//
-//			void partThree_host(const uint size, const custom_vector<real> &mx,
-//					custom_vector<real> &ml,
-//					const custom_vector<real> &mg,
-//					const real &beta_k1,
-//					custom_vector<real> &ms,
-//					custom_vector<real> &my,
-//					real & temp_dot_prod);
-			///////
 
 			int GetIteration() {
 				return current_iteration;

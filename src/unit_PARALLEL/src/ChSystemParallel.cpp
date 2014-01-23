@@ -163,16 +163,16 @@ void ChSystemParallel::PerturbBins(bool increase, int number) {
 
 	if (increase) {
 		int3 grid_size = ((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase.getBinsPerAxis();
-		cout<<"initial: "<<grid_size.x<<" "<<grid_size.y<<" "<<grid_size.z<<endl;
+		cout << "initial: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
 		grid_size.x = grid_size.x + number;
 		grid_size.y = grid_size.y + number;
 		grid_size.z = grid_size.z + number;
-		cout<<"final: "<<grid_size.x<<" "<<grid_size.y<<" "<<grid_size.z<<endl;
+		cout << "final: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
 		((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase.setBinsPerAxis(grid_size);
 	} else {
 
 		int3 grid_size = ((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase.getBinsPerAxis();
-		cout<<"initial: "<<grid_size.x<<" "<<grid_size.y<<" "<<grid_size.z<<endl;
+		cout << "initial: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
 		grid_size.x = grid_size.x - number;
 		grid_size.y = grid_size.y - number;
 		grid_size.z = grid_size.z - number;
@@ -186,7 +186,7 @@ void ChSystemParallel::PerturbBins(bool increase, int number) {
 		if (grid_size.z < 2) {
 			grid_size.z = 2;
 		}
-		cout<<"final: "<<grid_size.x<<" "<<grid_size.y<<" "<<grid_size.z<<endl;
+		cout << "final: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
 		((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase.setBinsPerAxis(grid_size);
 
 	}
@@ -279,11 +279,11 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
 	R3(mbodyvar->Get_fb().ElementN(3), mbodyvar->Get_fb().ElementN(4), mbodyvar->Get_fb().ElementN(5)));     //torques
 	gpu_data_manager->host_data.active_data.push_back(newbody->IsActive());
 	gpu_data_manager->host_data.mass_data.push_back(inv_mass);
-	gpu_data_manager->host_data.fric_data.push_back(newbody->GetKfriction());
-	gpu_data_manager->host_data.fric_roll_data.push_back(newbody->GetMaterialSurface()->GetRollingFriction());
-	gpu_data_manager->host_data.fric_spin_data.push_back(newbody->GetMaterialSurface()->GetSpinningFriction());
+	gpu_data_manager->host_data.fric_data.push_back(R3(newbody->GetKfriction(), newbody->GetMaterialSurface()->GetRollingFriction(), newbody->GetMaterialSurface()->GetSpinningFriction()));
 	gpu_data_manager->host_data.cohesion_data.push_back(newbody->GetMaterialSurface()->GetCohesion());
-	gpu_data_manager->host_data.compliance_data.push_back(newbody->GetMaterialSurface()->GetCompliance());
+	gpu_data_manager->host_data.compliance_data.push_back(
+			R4(newbody->GetMaterialSurface()->GetCompliance(), newbody->GetMaterialSurface()->GetComplianceT(), newbody->GetMaterialSurface()->GetComplianceRolling(),
+					newbody->GetMaterialSurface()->GetComplianceSpinning()));
 	gpu_data_manager->host_data.lim_data.push_back(
 	R3(newbody->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
 	//gpu_data_manager->host_data.pressure_data.push_back(0);
@@ -338,11 +338,9 @@ void ChSystemParallel::UpdateBodies() {
 	real3 *trq_pointer = gpu_data_manager->host_data.trq_data.data();
 	bool *active_pointer = gpu_data_manager->host_data.active_data.data();
 	real *mass_pointer = gpu_data_manager->host_data.mass_data.data();
-	real *fric_pointer = gpu_data_manager->host_data.fric_data.data();
-	real *fric_roll_pointer = gpu_data_manager->host_data.fric_roll_data.data();
-	real *fric_spin_pointer = gpu_data_manager->host_data.fric_spin_data.data();
+	real3 *fric_pointer = gpu_data_manager->host_data.fric_data.data();
 	real *cohesion_pointer = gpu_data_manager->host_data.cohesion_data.data();
-	real *compliance_pointer = gpu_data_manager->host_data.compliance_data.data();
+	real4 *compliance_pointer = gpu_data_manager->host_data.compliance_data.data();
 	real3 *lim_pointer = gpu_data_manager->host_data.lim_data.data();
 
 #pragma omp parallel for
@@ -374,11 +372,13 @@ void ChSystemParallel::UpdateBodies() {
 		trq_pointer[i] = (R3(bodylist[i]->Variables().Get_fb().ElementN(3), bodylist[i]->Variables().Get_fb().ElementN(4), bodylist[i]->Variables().Get_fb().ElementN(5)));     //torques
 		active_pointer[i] = bodylist[i]->IsActive();
 		mass_pointer[i] = 1.0f / bodylist[i]->Variables().GetBodyMass();
-		fric_pointer[i] = bodylist[i]->GetKfriction();
-		fric_roll_pointer[i] = ((bodylist[i]))->GetMaterialSurface()->GetRollingFriction();
-		fric_spin_pointer[i] = ((bodylist[i]))->GetMaterialSurface()->GetSpinningFriction();
-		cohesion_pointer[i] = ((bodylist[i]))->GetMaterialSurface()->GetCohesion();
-		compliance_pointer[i] = ((bodylist[i]))->GetMaterialSurface()->GetCompliance();
+		fric_pointer[i] = R3(bodylist[i]->GetKfriction(), ((bodylist[i]))->GetMaterialSurface()->GetRollingFriction(), ((bodylist[i]))->GetMaterialSurface()->GetSpinningFriction());
+		cohesion_pointer[i] = bodylist[i]->GetMaterialSurface()->GetCohesion();
+		compliance_pointer[i] = R4(
+				bodylist[i]->GetMaterialSurface()->GetCompliance(),
+				bodylist[i]->GetMaterialSurface()->GetComplianceT(),
+				bodylist[i]->GetMaterialSurface()->GetComplianceRolling(),
+				bodylist[i]->GetMaterialSurface()->GetComplianceSpinning());
 		lim_pointer[i] = (R3(bodylist[i]->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
 		bodylist[i]->GetCollisionModel()->SyncPosition();
 	}

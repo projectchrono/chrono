@@ -53,7 +53,7 @@ void Cone_single(real & gamma_n, real & gamma_s, const real & mu) {
 
 }
 
-void func_Project(int &index, uint number_of_contacts, int2 *ids, real *fric, real* cohesion, real *gam) {
+void func_Project(int &index, uint number_of_contacts, int2 *ids, real3 *fric, real* cohesion, real *gam) {
 	int2 body_id = ids[index];
 	real3 gamma;
 	gamma.x = gam[index + number_of_contacts * 0];
@@ -66,7 +66,10 @@ void func_Project(int &index, uint number_of_contacts, int2 *ids, real *fric, re
 	}
 	gamma.x += coh;
 
-	real mu = (fric[body_id.x] == 0 || fric[body_id.y] == 0) ? 0 : (fric[body_id.x] + fric[body_id.y]) * .5;
+	real3 f_a = fric[body_id.x];
+	real3 f_b = fric[body_id.y];
+
+	real mu = (f_a.x == 0 || f_b.x == 0) ? 0 : (f_a.x + f_b.x) * .5;
 	if (mu == 0) {
 		gamma.x = gamma.x < 0 ? 0 : gamma.x - coh;
 		gamma.y = gamma.z = 0;
@@ -86,11 +89,14 @@ void func_Project(int &index, uint number_of_contacts, int2 *ids, real *fric, re
 	gam[index + number_of_contacts * 2] = gamma.z;
 
 }
-void func_Project_rolling(int &index, uint number_of_contacts, int2 *ids, real *fric_roll, real* fric_spin, real* cohesion, real *gam, bool solve_spinning) {
+void func_Project_rolling(int &index, uint number_of_contacts, int2 *ids, real3 *fric, real* cohesion, real *gam, bool solve_spinning) {
 	real3 gamma_roll = R3(0);
 	int2 body_id = ids[index];
-	real rollingfriction = (fric_roll[body_id.x] == 0 || fric_roll[body_id.y] == 0) ? 0 : (fric_roll[body_id.x] + fric_roll[body_id.y]) * .5;
-	real spinningfriction = (fric_spin[body_id.x] == 0 || fric_spin[body_id.y] == 0) ? 0 : (fric_spin[body_id.x] + fric_spin[body_id.y]) * .5;
+	real3 f_a = fric[body_id.x];
+	real3 f_b = fric[body_id.y];
+
+	real rollingfriction = (f_a.y == 0 || f_b.y == 0) ? 0 : (f_a.y + f_b.y) * .5;
+	real spinningfriction = (f_a.z == 0 || f_b.z == 0) ? 0 : (f_a.z + f_b.z) * .5;
 
 //	if(rollingfriction||spinningfriction){
 //		gam[index + number_of_contacts * 1] = 0;
@@ -125,7 +131,7 @@ void func_Project_rolling(int &index, uint number_of_contacts, int2 *ids, real *
 
 }
 
-void ChConstraintRigidRigid::host_Project(int2 *ids, real *friction, real *friction_roll, real *friction_spin, real* cohesion, real *gamma) {
+void ChConstraintRigidRigid::host_Project(int2 *ids, real3 *friction, real* cohesion, real *gamma) {
 #pragma omp parallel for
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		//always project normal
@@ -149,7 +155,7 @@ void ChConstraintRigidRigid::host_Project(int2 *ids, real *friction, real *frict
 
 		}
 		if (solve_spinning) {
-			func_Project_rolling(index, number_of_rigid_rigid, ids, friction_roll, friction_spin, cohesion, gamma, solve_spinning);
+			func_Project_rolling(index, number_of_rigid_rigid, ids, friction, cohesion, gamma, solve_spinning);
 		}
 	}
 }
@@ -159,14 +165,12 @@ void ChConstraintRigidRigid::Project(custom_vector<real> & gamma) {
 	host_Project(
 	data_container->host_data.bids_rigid_rigid.data(),
 	data_container->host_data.fric_data.data(),
-	data_container->host_data.fric_roll_data.data(),
-	data_container->host_data.fric_spin_data.data(),
 	data_container->host_data.cohesion_data.data(),
 	gamma.data());
 }
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-void ChConstraintRigidRigid::host_RHS(int2 *ids, real *correction, real * compliance, bool * active, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs) {
+void ChConstraintRigidRigid::host_RHS(int2 *ids, real *correction, real4 * compliance, bool * active, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs) {
 
 #pragma omp parallel for
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
@@ -192,7 +196,7 @@ void ChConstraintRigidRigid::host_RHS(int2 *ids, real *correction, real * compli
 			}
 		}
 		real bi = 0;
-		if (compliance[index]) {
+		if (compliance[index].x) {
 			bi = inv_hpa * correction[index];
 		} else {
 			bi = fmax(real(1.0) / step_size * correction[index], -contact_recovery_speed);
@@ -205,7 +209,7 @@ void ChConstraintRigidRigid::host_RHS(int2 *ids, real *correction, real * compli
 	}
 }
 
-void ChConstraintRigidRigid::host_RHS_spinning(int2 *ids, real *correction, real * compliance, bool * active, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB,
+void ChConstraintRigidRigid::host_RHS_spinning(int2 *ids, real *correction, real4 * compliance, bool * active, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB,
 		real *rhs) {
 
 #pragma omp parallel for
@@ -243,13 +247,17 @@ void ChConstraintRigidRigid::ComputeRHS() {
 	for (int i = 0; i < number_of_rigid_rigid; i++) {
 		uint b1 = data_container->host_data.bids_rigid_rigid[i].x;
 		uint b2 = data_container->host_data.bids_rigid_rigid[i].y;
-		real compb1 = data_container->host_data.compliance_data[b1];
-		real compb2 = data_container->host_data.compliance_data[b2];
-//		if (compliance) {
-//			compb1 = compb2 = compliance;
-//		}
-		real comp = (compb1 == 0 || compb2 == 0) ? 0 : (compb1 + compb2) * .5;
-		comp_rigid_rigid[i] = inv_hhpa * comp;
+
+
+		real4 compb1 = data_container->host_data.compliance_data[b1];
+		real4 compb2 = data_container->host_data.compliance_data[b2];
+		real4 compab = R4(0.0);
+
+		compab.x = (compb1.x == 0 || compb2.x == 0) ? 0 : (compb1.x + compb2.x) * .5;
+		compab.y = (compb1.y == 0 || compb2.y == 0) ? 0 : (compb1.y + compb2.y) * .5;
+		compab.z = (compb1.z == 0 || compb2.z == 0) ? 0 : (compb1.z + compb2.z) * .5;
+		compab.w = (compb1.w == 0 || compb2.w == 0) ? 0 : (compb1.w + compb2.w) * .5;
+		comp_rigid_rigid[i] = inv_hhpa * compab;
 	}
 	host_RHS(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.dpth_rigid_rigid.data(), comp_rigid_rigid.data(), data_container->host_data.active_data.data(),
 			data_container->host_data.vel_data.data(), data_container->host_data.omg_data.data(), JXYZA_rigid_rigid.data(), JXYZB_rigid_rigid.data(), JUVWA_rigid_rigid.data(),
@@ -433,7 +441,6 @@ void ChConstraintRigidRigid::host_shurA_normal(int2 *ids, bool *active, real3 *J
 		real gam;
 		gam = gamma[index + number_of_rigid_rigid * 0];
 
-
 		int offset1 = offset[index];
 		int offset2 = offset[index + number_of_rigid_rigid];
 
@@ -506,7 +513,7 @@ void ChConstraintRigidRigid::host_shurA_spinning(int2 *ids, bool *active, real3 
 	}
 }
 
-void ChConstraintRigidRigid::host_shurB_normal(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB,
+void ChConstraintRigidRigid::host_shurB_normal(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real4 * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB,
 		real3 *QXYZ, real3 *QUVW, real *AX) {
 
 #pragma omp parallel for
@@ -533,7 +540,9 @@ void ChConstraintRigidRigid::host_shurB_normal(int2 *ids, bool *active, real *in
 			temp.x += dot(UVW, JUVWB[index + number_of_rigid_rigid * 0]);
 
 		}
-		AX[index + number_of_rigid_rigid * 0] = temp.x+ gamma[index + number_of_rigid_rigid * 0] * compliance[index];
+		real4 comp = compliance[index];
+
+		AX[index + number_of_rigid_rigid * 0] = temp.x + gamma[index + number_of_rigid_rigid * 0] * comp.x;
 		AX[index + number_of_rigid_rigid * 1] = 0;
 		AX[index + number_of_rigid_rigid * 2] = 0;
 		AX[index + number_of_rigid_rigid * 3] = 0;
@@ -542,7 +551,7 @@ void ChConstraintRigidRigid::host_shurB_normal(int2 *ids, bool *active, real *in
 
 	}
 }
-void ChConstraintRigidRigid::host_shurB_sliding(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB,
+void ChConstraintRigidRigid::host_shurB_sliding(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real4 * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB,
 		real3 *QXYZ, real3 *QUVW, real *AX) {
 
 #pragma omp parallel for
@@ -580,18 +589,20 @@ void ChConstraintRigidRigid::host_shurB_sliding(int2 *ids, bool *active, real *i
 			temp.z += dot(UVW, JUVWB[index + number_of_rigid_rigid * 2]);
 
 		}
-		real comp = compliance[index];
+		real4 comp = compliance[index];
 
-		AX[index + number_of_rigid_rigid * 0] = temp.x+ gamma[index + number_of_rigid_rigid * 0] * comp;
-		AX[index + number_of_rigid_rigid * 1] = temp.y+ gamma[index + number_of_rigid_rigid * 1] * comp;
-		AX[index + number_of_rigid_rigid * 2] = temp.z+ gamma[index + number_of_rigid_rigid * 2] * comp;
+
+
+		AX[index + number_of_rigid_rigid * 0] = temp.x + gamma[index + number_of_rigid_rigid * 0] * comp.x;
+		AX[index + number_of_rigid_rigid * 1] = temp.y + gamma[index + number_of_rigid_rigid * 1] * comp.y;
+		AX[index + number_of_rigid_rigid * 2] = temp.z + gamma[index + number_of_rigid_rigid * 2] * comp.y;
 		AX[index + number_of_rigid_rigid * 3] = 0;
 		AX[index + number_of_rigid_rigid * 4] = 0;
 		AX[index + number_of_rigid_rigid * 5] = 0;
 
 	}
 }
-void ChConstraintRigidRigid::host_shurB_spinning(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB,
+void ChConstraintRigidRigid::host_shurB_spinning(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real4 * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB,
 		real3 *QXYZ, real3 *QUVW, real *AX) {
 
 #pragma omp parallel for
@@ -639,15 +650,15 @@ void ChConstraintRigidRigid::host_shurB_spinning(int2 *ids, bool *active, real *
 			temp_roll.z += dot(UVW, JUVWB[index + number_of_rigid_rigid * 5]);
 
 		}
-		real comp = compliance[index];
+		real4 comp = compliance[index];
 
-		AX[index + number_of_rigid_rigid * 0] = temp.x + gamma[index + number_of_rigid_rigid * 0] * comp;
-		AX[index + number_of_rigid_rigid * 1] = temp.y + gamma[index + number_of_rigid_rigid * 1] * comp;
-		AX[index + number_of_rigid_rigid * 2] = temp.z + gamma[index + number_of_rigid_rigid * 2] * comp;
+		AX[index + number_of_rigid_rigid * 0] = temp.x + gamma[index + number_of_rigid_rigid * 0] * comp.x;
+		AX[index + number_of_rigid_rigid * 1] = temp.y + gamma[index + number_of_rigid_rigid * 1] * comp.y;
+		AX[index + number_of_rigid_rigid * 2] = temp.z + gamma[index + number_of_rigid_rigid * 2] * comp.y;
 
-		AX[index + number_of_rigid_rigid * 3] = temp_roll.x + gamma[index + number_of_rigid_rigid * 3] * comp;
-		AX[index + number_of_rigid_rigid * 4] = temp_roll.y + gamma[index + number_of_rigid_rigid * 4] * comp;
-		AX[index + number_of_rigid_rigid * 5] = temp_roll.z + gamma[index + number_of_rigid_rigid * 5] * comp;
+		AX[index + number_of_rigid_rigid * 3] = temp_roll.x + gamma[index + number_of_rigid_rigid * 3] * comp.w;
+		AX[index + number_of_rigid_rigid * 4] = temp_roll.y + gamma[index + number_of_rigid_rigid * 4] * comp.z;
+		AX[index + number_of_rigid_rigid * 5] = temp_roll.z + gamma[index + number_of_rigid_rigid * 5] * comp.z;
 
 	}
 }

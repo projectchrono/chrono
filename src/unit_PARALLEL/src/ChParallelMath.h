@@ -121,6 +121,9 @@ static __host__         __device__ real4 make_real4(real d, real a, real b, real
 static __host__         __device__ real4 make_real4(const real3 &rhs) {
 	return R4(0, rhs.x, rhs.y, rhs.z);
 }
+static __host__         __device__ real4 make_real4(const real &rhs) {
+	return R4(rhs, rhs, rhs, rhs);
+}
 ////////Operator - Negate
 
 static __host__         __device__ real3 operator -(const real3 &rhs) {
