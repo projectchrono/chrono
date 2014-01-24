@@ -675,14 +675,14 @@ void ChVisualizationFEMmesh::Update ()
 					{
 						ChVector<int> islice_normoffset((in-1)*8,(in-1)*8,(in-1)*8); //***TO DO*** fix errors in normals
 						ChVector<int> inorm_offset = ChVector<int> (inorm_el,inorm_el,inorm_el);
-						trianglemesh.getIndicesNormals()[i_triindex- 8] = ChVector<int> (4, 0, 1) +  islice_normoffset + ivert_offset;
-						trianglemesh.getIndicesNormals()[i_triindex- 7] = ChVector<int> (4, 1, 5) +  islice_normoffset + ivert_offset;
-						trianglemesh.getIndicesNormals()[i_triindex- 6] = ChVector<int> (5+8, 1+8, 2+8) +  islice_normoffset + ivert_offset;
-						trianglemesh.getIndicesNormals()[i_triindex- 5] = ChVector<int> (5+8, 2+8, 6+8) +  islice_normoffset + ivert_offset;
-						trianglemesh.getIndicesNormals()[i_triindex- 4] = ChVector<int> (6, 2, 3) +  islice_normoffset + ivert_offset;
-						trianglemesh.getIndicesNormals()[i_triindex- 3] = ChVector<int> (6, 3, 7) +  islice_normoffset + ivert_offset;
-						trianglemesh.getIndicesNormals()[i_triindex- 2] = ChVector<int> (7+8, 3+8, 0+8) +  islice_normoffset + ivert_offset;
-						trianglemesh.getIndicesNormals()[i_triindex- 1] = ChVector<int> (7+8, 0+8, 4+8) +  islice_normoffset + ivert_offset;
+						trianglemesh.getIndicesNormals()[i_triindex- 8] = ChVector<int> (8, 0, 1) +  islice_normoffset + inorm_offset;
+						trianglemesh.getIndicesNormals()[i_triindex- 7] = ChVector<int> (8, 1, 9) +  islice_normoffset + inorm_offset;
+						trianglemesh.getIndicesNormals()[i_triindex- 6] = ChVector<int> (9+4, 1+4, 2+4) +  islice_normoffset + inorm_offset;
+						trianglemesh.getIndicesNormals()[i_triindex- 5] = ChVector<int> (9+4, 2+4, 10+4) +  islice_normoffset + inorm_offset;
+						trianglemesh.getIndicesNormals()[i_triindex- 4] = ChVector<int> (10, 2, 3) +  islice_normoffset + inorm_offset;
+						trianglemesh.getIndicesNormals()[i_triindex- 3] = ChVector<int> (10, 3, 11) +  islice_normoffset + inorm_offset;
+						trianglemesh.getIndicesNormals()[i_triindex- 2] = ChVector<int> (11+4, 3+4, 0+4) +  islice_normoffset + inorm_offset;
+						trianglemesh.getIndicesNormals()[i_triindex- 1] = ChVector<int> (11+4, 0+4, 8+4) +  islice_normoffset + inorm_offset;
 						i_vnorms +=8;
 					}				
 				}
