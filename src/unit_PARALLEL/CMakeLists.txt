@@ -275,30 +275,25 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	# need this to easily switch between Debug and Release build types
 	IF(CHRONO_LIB)
 		unset(CHRONO_LIB CACHE)
-	endif()
-	# find the lib based on the compiler type AND build type, since Chrono puts the .lib files in
-	# e.g., ../lib/Release/ChronoEngine.lib
+	ENDIF()
+	# Set compiler flags based on which compiler we're using
 	IF ("${COMPILER}" STREQUAL "COMPILER_MSVC")
 		SET (CH_BUILDFLAGS "-DWIN32; -DNOMINMAX; -MP")
-		FIND_LIBRARY(CHRONO_LIB NAMES ChronoEngine PATHS ${CHRONO_LIB_PATH}/${CMAKE_BUILD_TYPE} REQUIRED)
-		file(COPY ${CHRONO_LIB_PATH}/../bin/${CMAKE_BUILD_TYPE}/ChronoEngine.dll	DESTINATION ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE})
 	ELSEIF ("${COMPILER}" STREQUAL "COMPILER_MSVC_X64")
 		SET(CH_BUILDFLAGS "-DWIN64; -D_WIN64; -DNOMINMAX; -MP")
-		FIND_LIBRARY(CHRONO_LIB NAMES ChronoEngine PATHS ${CHRONO_LIB_PATH}/${CMAKE_BUILD_TYPE} REQUIRED)
-		file(COPY ${CHRONO_LIB_PATH}/../bin/${CMAKE_BUILD_TYPE}/ChronoEngine.dll	DESTINATION ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE})
 	ELSEIF ("${COMPILER}" STREQUAL "COMPILER_GCC")
 		SET(CH_BUILDFLAGS "-DWIN32 -D_MINGW -D_WINDOWS")
-		FIND_LIBRARY( CHRONO_LIB NAMES ChronoEngine PATHS ${CHRONO_LIB_PATH}/${CMAKE_BUILD_TYPE} REQUIRED)
-		file(COPY ${CHRONO_LIB_PATH}/../bin/${CMAKE_BUILD_TYPE}/ChronoEngine.dll	DESTINATION ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE})
 	ELSEIF ("${COMPILER}" STREQUAL "COMPILER_GCC_X64")
 		SET (CH_BUILDFLAGS "-DWIN64 -D_MINGW -D_WINDOWS -m64")
-		FIND_LIBRARY(CHRONO_LIB NAMES ChronoEngine PATHS ${CHRONO_LIB_PATH}/${CMAKE_BUILD_TYPE} REQUIRED)
-		file(COPY ${CHRONO_LIB_PATH}/../bin/${CMAKE_BUILD_TYPE}/ChronoEngine.dll	DESTINATION ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE})
 	ENDIF()
-	# check if I linked the right library
-	message(STATUS "found chrono lib: ${CHRONO_LIB}")
-	# copy over lib .dlls on windows
-	file(COPY ${CHRONO_LIB_PATH}/../bin/Release/ChronoEngine.dll DESTINATION "${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}")
+	# Find the Chrono library based on the build type
+	FIND_LIBRARY(CHRONO_LIB NAMES ChronoEngine PATHS ${CHRONO_LIB_PATH}/${CMAKE_BUILD_TYPE} REQUIRED)
+	# Copy the Chrono DLL from/to appropriate place, based on build type
+	SET(CHRONO_DLL "${CHRONO_LIB_PATH}/../bin/${CMAKE_BUILD_TYPE}/ChronoEngine.dll")
+	FILE(COPY ${CHRONO_DLL} DESTINATION "${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}")
+	# Report what library we use and which DLL was copied
+	MESSAGE(STATUS "Found chrono lib: ${CHRONO_LIB}")
+	MESSAGE(STATUS "Copied chrono dll: ${CHRONO_DLL}")
 ELSE()
 	# Find Chrono libs
 	FIND_LIBRARY(CHRONO_LIB NAMES ChronoEngine PATHS ${CHRONO_LIB_PATH} REQUIRED)
