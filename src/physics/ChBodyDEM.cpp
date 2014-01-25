@@ -53,7 +53,7 @@ ChClassRegister<ChBodyDEM> a_registration_ChBodyDEM;
 /// CLASS FOR SOLID BODIES
 
 
-ChBodyDEM::ChBodyDEM ()
+ChBodyDEM::ChBodyDEM()
 {
 	collision_model = ChBodyDEM::InstanceCollisionModel();
 
@@ -61,6 +61,11 @@ ChBodyDEM::ChBodyDEM ()
 	matsurfaceDEM = ChSharedPtr<ChMaterialSurfaceDEM>(new ChMaterialSurfaceDEM);
 }
 
+ChBodyDEM::ChBodyDEM(ChCollisionModel* new_collision_model)
+{
+	collision_model = new_collision_model;
+	collision_model->SetBody(this);
+}
 
 void ChBodyDEM::Copy(ChBodyDEM* source)
 {

@@ -31,6 +31,7 @@
 
 
 #include "physics/ChBody.h"
+#include "physics/ChPhysicsItem.h"
 #include "physics/ChMaterialSurfaceDEM.h"
 
 
@@ -71,6 +72,7 @@ public:
 			//
 
 	ChBodyDEM();
+	ChBodyDEM(ChCollisionModel* new_collision_model);
 	~ChBodyDEM() {}
 
 	/// Copy from another body
