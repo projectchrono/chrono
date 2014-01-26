@@ -27,7 +27,7 @@
 
 #include "physics/CHbodyDEM.h"
 #include "physics/CHcontactContainerDEM.h"
-#include "collision/CHcModelBulletDEM.h"
+#include "collision/CHcModelBulletBody.h"
 #include "lcp/CHlcpSolverDEM.h"
 
 #define SPH_ID  33

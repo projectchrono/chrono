@@ -565,7 +565,6 @@ IF (BUILD_CH_SDK)
 		collision/ChCModelBulletNode.cpp 
 		collision/ChCCollisionSystemBullet.cpp 
 		collision/ChCConvexDecomposition.cpp 
-		collision/ChCModelBulletDEM.cpp 
 		collision/ChCCollisionUtils.cpp
 	)
 	SET(ChronoEngine_collision_HEADERS
@@ -579,7 +578,6 @@ IF (BUILD_CH_SDK)
 		collision/ChCModelBulletBody.h
 		collision/ChCModelBulletNode.h
 		collision/ChCModelBulletParticle.h 
-		collision/ChCModelBulletDEM.h
 		collision/ChCCollisionUtils.h
 	)
 	SOURCE_GROUP(collision FILES  

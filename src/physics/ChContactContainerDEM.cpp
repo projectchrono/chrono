@@ -24,7 +24,8 @@
 #include "physics/ChSystem.h"
 #include "physics/ChIndexedNodes.h"
 #include "physics/ChBodyDEM.h"
-#include "collision/ChCModelBulletDEM.h"
+
+#include "collision/ChCModelBulletBody.h"
 
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
 
@@ -122,13 +123,12 @@ void ChContactContainerDEM::AddContact(const collision::ChCollisionInfo& mcontac
 	if (mcontact.distance >= 0)
 		return;
 
-	// Return now if the contact models are not DEM.
-	ChModelBulletDEM* mmboA = dynamic_cast<ChModelBulletDEM*>(mcontact.modelA);
-	ChModelBulletDEM* mmboB = dynamic_cast<ChModelBulletDEM*>(mcontact.modelB);
+	// Return now if not expected contact models or no associated bodies.
+	ChModelBulletBody* mmboA = dynamic_cast<ChModelBulletBody*>(mcontact.modelA);
+	ChModelBulletBody* mmboB = dynamic_cast<ChModelBulletBody*>(mcontact.modelB);
 	if (!mmboA || !mmboB)
 		return;
 
-	// Return now if no associated bodies.
 	if (!mmboA->GetBody() || !mmboB->GetBody())
 		return;
 

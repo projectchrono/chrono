@@ -24,7 +24,7 @@
 #include "physics/ChSystem.h"
 #include "physics/ChBodyDEM.h"
 #include "lcp/ChLcpConstraintTwoContactN.h"
-#include "collision/ChCModelBulletDEM.h"
+#include "collision/ChCModelBulletBody.h"
 
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
 
@@ -37,8 +37,8 @@ using namespace collision;
 using namespace geometry;
 
 
-ChContactDEM::ChContactDEM(collision::ChModelBulletDEM*      mod1,
-                           collision::ChModelBulletDEM*      mod2,
+ChContactDEM::ChContactDEM(collision::ChModelBulletBody*     mod1,
+                           collision::ChModelBulletBody*     mod2,
                            const collision::ChCollisionInfo& cinfo)
 {
 	Reset(mod1, mod2, cinfo);
@@ -46,8 +46,8 @@ ChContactDEM::ChContactDEM(collision::ChModelBulletDEM*      mod1,
 
 
 void
-ChContactDEM::Reset(collision::ChModelBulletDEM*      mod1,
-                    collision::ChModelBulletDEM*      mod2,
+ChContactDEM::Reset(collision::ChModelBulletBody*     mod1,
+                    collision::ChModelBulletBody*     mod2,
                     const collision::ChCollisionInfo& cinfo)
 {
 	assert(cinfo.distance < 0);
@@ -55,8 +55,8 @@ ChContactDEM::Reset(collision::ChModelBulletDEM*      mod1,
 	m_mod1 = mod1;
 	m_mod2 = mod2;
 
-	ChBodyDEM* body1 = m_mod1->GetBody();
-	ChBodyDEM* body2 = m_mod2->GetBody();
+	ChBodyDEM* body1 = (ChBodyDEM*) m_mod1->GetBody();
+	ChBodyDEM* body2 = (ChBodyDEM*) m_mod2->GetBody();
 
 	// Calculate and store kinematic data for this contact
 	// TODO: this should really be in cinfo...
@@ -85,8 +85,8 @@ ChContactDEM::Reset(collision::ChModelBulletDEM*      mod1,
 void
 ChContactDEM::ConstraintsFbLoadForces(double factor)
 {
-	ChBodyDEM* body1 = m_mod1->GetBody();
-	ChBodyDEM* body2 = m_mod2->GetBody();
+	ChBodyDEM* body1 = (ChBodyDEM*) m_mod1->GetBody();
+	ChBodyDEM* body2 = (ChBodyDEM*) m_mod2->GetBody();
 
 	ChVector<> force1_loc = body1->Dir_World2Body(m_force);
 	ChVector<> force2_loc = body2->Dir_World2Body(m_force);

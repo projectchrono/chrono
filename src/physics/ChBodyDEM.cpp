@@ -29,7 +29,7 @@
 #include "physics/ChSystem.h"
 
 #include "physics/ChExternalObject.h"
-#include "collision/ChCModelBulletDEM.h"
+#include "collision/ChCModelBulletBody.h"
 #include "core/ChLinearAlgebra.h"
 
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
@@ -64,12 +64,12 @@ ChBodyDEM::ChBodyDEM()
 ChBodyDEM::ChBodyDEM(ChCollisionModel* new_collision_model)
 {
 	collision_model = new_collision_model;
+	collision_model->SetEnvelope(0);
 	collision_model->SetBody(this);
 }
 
 void ChBodyDEM::Copy(ChBodyDEM* source)
 {
-	// copy the parent class data...
 	ChBody::Copy(source);
 
 	matsurfaceDEM = source->matsurfaceDEM;
@@ -78,8 +78,9 @@ void ChBodyDEM::Copy(ChBodyDEM* source)
 
 ChCollisionModel* ChBodyDEM::InstanceCollisionModel()
 {
-	ChModelBulletDEM* collision_model_t = new ChModelBulletDEM();
+	ChModelBulletBody* collision_model_t = new ChModelBulletBody();
 
+	collision_model_t->SetEnvelope(0);
 	collision_model_t->SetBody(this);
 
 	return (ChCollisionModel*) collision_model_t;

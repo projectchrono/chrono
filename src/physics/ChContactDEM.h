@@ -32,7 +32,7 @@
 #include "lcp/ChLcpConstraintTwoContactN.h"
 #include "lcp/ChLcpSystemDescriptor.h"
 #include "collision/ChCCollisionInfo.h"
-#include "collision/ChCModelBulletDEM.h"
+#include "collision/ChCModelBulletBody.h"
 
 namespace chrono
 {
@@ -66,12 +66,12 @@ private:
 			// DATA
 			//
 
-	collision::ChModelBulletDEM*  m_mod1;  ///< first contact model
-	collision::ChModelBulletDEM*  m_mod2;  ///< second contact model
+	collision::ChModelBulletBody*  m_mod1;  ///< first contact model
+	collision::ChModelBulletBody*  m_mod2;  ///< second contact model
 
-	ChContactKinematicsDEM        m_kdata; ///< contact kinematics data
+	ChContactKinematicsDEM        m_kdata;  ///< contact kinematics data
 
-	ChVector<>                    m_force; ///< contact force on body1
+	ChVector<>                    m_force;  ///< contact force on body1
 
 public:
 			//
@@ -80,8 +80,8 @@ public:
 
 	ChContactDEM() {}
 
-	ChContactDEM(collision::ChModelBulletDEM*      mod1,
-	             collision::ChModelBulletDEM*      mod2,
+	ChContactDEM(collision::ChModelBulletBody*     mod1,
+	             collision::ChModelBulletBody*     mod2,
 	             const collision::ChCollisionInfo& cinfo);
 
 	~ChContactDEM() {}
@@ -91,8 +91,8 @@ public:
 			//
 
 	// Reuse an existing contact
-	void Reset(collision::ChModelBulletDEM*      mod1,
-	           collision::ChModelBulletDEM*      mod2,
+	void Reset(collision::ChModelBulletBody*     mod1,
+	           collision::ChModelBulletBody*     mod2,
 	           const collision::ChCollisionInfo& cinfo);
 
 	/// Get the contact coordinate system, expressed in absolute frame.
