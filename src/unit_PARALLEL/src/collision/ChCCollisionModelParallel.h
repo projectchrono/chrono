@@ -133,7 +133,6 @@ public:
 	ChBody *GetBody() const {
 		return mbody;
 	}
-	;
 
 	/// Get the number of objects in this model
 	int GetNObjects() {
@@ -141,6 +140,8 @@ public:
 	}
 	///Get family to not collide with
 	int GetNoCollFamily();
+
+	float getVolume();
 
 	struct bData {
 		real3 A;
@@ -157,6 +158,7 @@ protected:
 	real3 inertia;
 	unsigned int nObjects;
 	int colFam, noCollWith;
+	float total_volume;
 };
 
 } // END_OF_NAMESPACE____

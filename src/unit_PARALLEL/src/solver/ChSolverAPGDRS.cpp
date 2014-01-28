@@ -3,7 +3,7 @@ using namespace chrono;
 
 uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
 	bool verbose = false;
-	real gdiff = 1;
+	real gdiff = 1e-6;
 
 	real lastgoodres=10e30;
 	real theta_k=init_theta_k;

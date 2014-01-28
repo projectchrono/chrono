@@ -64,10 +64,8 @@ namespace chrono {
 			void SetTolerance(real tol) {
 				tolerance = tol;
 			}
-			void SetCompliance(real c, real cT, real a) {
+			void SetCompliance(real a) {
 				data_container->alpha = a;
-				data_container->compliance = c;
-				data_container->complianceT = cT;
 			}
 			void SetContactRecoverySpeed(real recovery_speed) {
 				data_container->contact_recovery_speed = fabs(recovery_speed);

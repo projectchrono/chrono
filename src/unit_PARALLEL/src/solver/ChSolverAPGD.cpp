@@ -25,7 +25,7 @@ void ChSolverParallel::SetAPGDParams(real theta_k, real shrink, real grow) {
 }
 
 real ChSolverParallel::Res4(custom_vector<real> &mg_tmp,const  custom_vector<real> &b, custom_vector<real> &x, custom_vector<real>& mb_tmp) {
-	real gdiff = 1;
+	real gdiff = 1e-6;
 
 #pragma omp parallel for
 	for(int i=0; i<x.size(); i++) {
@@ -35,7 +35,7 @@ real ChSolverParallel::Res4(custom_vector<real> &mg_tmp,const  custom_vector<rea
 
 	Project(mb_tmp);
 	ms=mb_tmp-x;
-	mb_tmp = (-1.0 / gdiff) * ms;
+	mb_tmp = (-1.0 / (gdiff)) * ms;
 	return Norm(mb_tmp);
 
 }

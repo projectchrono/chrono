@@ -121,8 +121,6 @@ class ChApiGPU ChGPUDataManager {
 		uint number_of_updates;
 		real3 min_bounding_point, max_bounding_point;
 		real step_size;
-		real compliance;
-		real complianceT;
 		real alpha;
 		real contact_recovery_speed;
 
