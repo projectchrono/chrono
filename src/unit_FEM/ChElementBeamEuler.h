@@ -14,9 +14,7 @@
 #define CHELEMENTBEAMEULER_H
 
 
-#include "ChElementGeneric.h"
-#include "ChElement3D.h"
-#include "ChNodeFEMxyzrot.h"
+#include "ChElementBeam.h"
 
 
 namespace chrono
@@ -31,21 +29,13 @@ namespace fem
 /// For this 'basic' implementation, constant section and 
 /// constant material are assumed.
 
-class ChApiFem ChElementBeamEuler : public ChElementGeneric,
-								    public ChElementCorotational
+class ChApiFem ChElementBeamEuler : public ChElementBeam
 {
 protected:
 	std::vector< ChSharedPtr<ChNodeFEMxyzrot> > nodes;
-	double Area;
-	double Iyy;
-	double Izz;
-	double G;
-	double E;
-	double density;
-	double rdamping;
-	double mass;
-	double length;
+	
 	ChMatrixDynamic<> StiffnessMatrix; // undeformed local stiffness matrix
+
 	ChQuaternion<> q_refrot1;
 
 public:
@@ -53,17 +43,6 @@ public:
 	ChElementBeamEuler()
 				{
 					nodes.resize(2);
-
-					SetAsRectangularSection(0.01, 0.01); // defaults Area, Ixx, Iyy
-				
-					E = 0.01e9;		  // default stiffness: rubber
-					G = 0.3 * E;
-
-					density = 1000;   // default density: water
-					rdamping = 0.01;  // default raleygh damping.
-
-					length = 0;		// will be computed by Setup(), later
-					mass = 0;		// will be computed by Setup(), later
 
 					this->StiffnessMatrix.Resize(this->GetNdofs(), this->GetNdofs());
 
@@ -119,6 +98,7 @@ public:
 					N(10)=-Nr2;
 					N(11)=Nr2;
 				};
+
 
 	virtual void Update() 
 				{
@@ -370,53 +350,117 @@ public:
 					ChMatrixCorotation<>::ComputeCK(FiK_local, this->A, 4, Fi);
 				}
 
+
 			//
-			// Custom properties functions
+			// Beam-specific functions
 			//
 
-				/// Set the cross sectional area A of the beam (m^2) 
-	void   SetArea(double ma) { this->Area = ma;  }
-	double GetArea() {return this->Area;}
+				/// Gets the xyz displacement of a point on the beam line, 
+				/// and the rotation RxRyRz of section plane, at abscyssa 'eta'.
+				/// Note, eta=-1 at node1, eta=+1 at node2.
+				/// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetField()
+				/// Results are not corotated.
+	virtual void EvaluateSectionDisplacement(const double eta, const ChMatrix<>& displ, ChVector<>& u_displ, ChVector<>& u_rotaz)
+				{
+					ChMatrixNM<double,1,12> N;
 
-				/// Set the Iyy moment of inertia of the beam 
-	void   SetIyy(double ma) { this->Iyy = ma;  }
-	double GetIyy() {return this->Iyy;}
+					this->ShapeFunctions(N, eta); // Evaluate shape functions
 
-				/// Set the Iyy moment of inertia of the beam 
-	void   SetIzz(double ma) { this->Izz = ma;  }
-	double GetIzz() {return this->Izz;}
+					u_displ.x = N(0)*displ(0)+N(6)*displ(6);   // x_a   x_b
+					u_displ.y = N(1)*displ(1)+N(7)*displ(7)    // y_a   y_b
+							   +N(5)*displ(5)+N(11)*displ(11); // Rz_a  Rz_b
+					u_displ.z = N(2)*displ(2)+N(8)*displ(8)    // z_a   z_b
+							   +N(4)*displ(4)+N(10)*displ(10); // Ry_a  Ry_b 
 
-				/// Shortcut: set area, Ixx and Iyy moment of inertia  
-				/// at once, given the y and z widths of the beam assumed
-				/// with rectangular shape.
-	void   SetAsRectangularSection(double width_y, double width_z) 
-				{ 
-					this->Area = width_y * width_z; 
-					this->Izz = (1.0/12.0)*width_z*pow(width_y,3);
-					this->Iyy = (1.0/12.0)*width_y*pow(width_z,3);
+					u_rotaz.x = N(3)*displ(3)+N(9)*displ(9);   // Rx_a  Rx_b
+					
+					double dN_ua = (1./(2.*this->GetRestLength()))*(-3. +3*eta*eta);  // slope shape functions are computed here on-the-fly
+					double dN_ub = (1./(2.*this->GetRestLength()))*( 3. -3*eta*eta);
+					double dN_ra =  (1./4.)*(-1. -2*eta + 3*eta*eta);
+					double dN_rb = -(1./4.)*( 1. -2*eta - 3*eta*eta);
+					u_rotaz.y = dN_ua*displ(2)+dN_ub*displ(8)+   // z_a   z_b
+								dN_ra*displ(4)+dN_rb*displ(10);  // Ry_a  Ry_b
+					u_rotaz.z = dN_ua*displ(1)+dN_ub*displ(7)+   // y_a   y_b
+								dN_ra*displ(5)+dN_rb*displ(11);  // Rz_a  Rz_b    
+				}
+	
+				/// Gets the absolute xyz position of a point on the beam line, 
+				/// and the absolute rotation of section plane, at abscyssa 'eta'.
+				/// Note, eta=-1 at node1, eta=+1 at node2.
+				/// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetField()
+				/// Results are corotated.
+	virtual void EvaluateSectionFrame(const double eta, const ChMatrix<>& displ, ChVector<>& point, ChQuaternion<>& rot)
+				{
+					ChVector<> u_displ;
+					ChVector<> u_rotaz;
+					double Nx1 = (1./2.)*(1-eta);
+					double Nx2 = (1./2.)*(1+eta);
+
+					this->EvaluateSectionDisplacement(eta, displ, u_displ, u_rotaz);
+
+					point = this->Rotation()*  ( Nx1 * this->nodes[0]->GetX0().GetPos() + 
+												 Nx2 * this->nodes[1]->GetX0().GetPos() + 
+												 u_displ);
+					ChQuaternion<> msectionrot;
+					msectionrot.Q_from_AngAxis(u_rotaz.Length(), u_rotaz.GetNormalized());
+					rot = this->Rotation().Get_A_quaternion() % msectionrot;
 				}
 
 
-				/// Set the density of the beam (kg/m^3)
-	void   SetDensity(double md) { this->density = md;  }
-	double GetDensity() {return this->density;}
+				/// Gets the torque at a section along the beam line, at abscyssa 'eta'.
+				/// Note, eta=-1 at node1, eta=+1 at node2.
+				/// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetField()
+				/// Results are not corotated.
+	virtual void EvaluateSectionTorque(const double eta, const ChMatrix<>& displ, ChVector<>& Mtorque)
+				{
+					ChMatrixNM<double,1,12> N;
 
-				/// Set E, the Young elastic modulus (N/m^2) 
-	void   SetYoungModulus(double mE) { this->E = mE; }
-	double GetYoungModulus() {return this->E;}
-				/// Set G, the shear modulus 
-	void   SetGshearModulus(double mG) { this->G = mG; }
-	double GetGshearModulus() {return this->G;}
+					this->ShapeFunctions(N, eta); // Evaluate shape functions
 
-				/// Set the Raleygh damping ratio r (as in: R = r * K ), to do: also mass-proportional term
-	void   SetBeamRaleyghDamping(double mr) { this->rdamping = mr; }
-	double GetBeamRaleyghDamping() {return this->rdamping;}
+					double ddN_ua = (6./(length*length))*(eta);  // curvature shape functions are computed here on-the-fly
+					double ddN_ub =-(6./(length*length))*(eta);
+					double ddN_ra = -(1./length) + ((3.0/length)*eta);
+					double ddN_rb =  (1./length) + ((3.0/length)*eta);
+					double dN_ta = -(1./length)*(eta);
+					double dN_tb =  (1./length)*(eta);
 
-				/// The full mass of the beam, (with const. section, density, etc.)
-	double  GetMass() {return this->mass;}
+					double Jpolar = Izz+Iyy;
 
-				/// The rest length of the bar
-	double  GetRestLength() {return this->length;}
+					Mtorque.y = this->E*this->Iyy*
+								(ddN_ua*displ(2)+ddN_ub*displ(8)+   // z_a   z_b
+								 ddN_ra*displ(4)+ddN_rb*displ(10));  // Ry_a  Ry_b
+					Mtorque.z = this->E*this->Izz*
+								(ddN_ua*displ(1)+ddN_ub*displ(7)+   // y_a   y_b
+								 ddN_ra*displ(5)+ddN_rb*displ(11));  // Rz_a  Rz_b  
+					Mtorque.x = this->G*Jpolar*(dN_ta*displ(3)+dN_tb*displ(9));
+				}
+
+				/// Gets the force (traction x, shear y, shear z) at a section along the beam line, at abscyssa 'eta'.
+				/// Note, eta=-1 at node1, eta=+1 at node2.
+				/// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetField()
+				/// Results are not corotated.
+	virtual void EvaluateSectionForce(const double eta, const ChMatrix<>& displ, ChVector<>& Fforce)
+				{
+					ChMatrixNM<double,1,12> N;
+
+					this->ShapeFunctions(N, eta); // Evaluate shape functions
+
+					double dddN_ua = (12./(length*length*length));  // shear shape functions are computed here on-the-fly
+					double dddN_ub =-(12./(length*length*length));
+					double dddN_ra =  (6.0/(length*length));
+					double dddN_rb =  (6.0/(length*length));
+					double ddN_xa = -(2./length*length);
+					double ddN_xb =  (2./length*length);
+
+					Fforce.z = this->E*this->Iyy*
+								(dddN_ua*displ(2)+dddN_ub*displ(8)+   // z_a   z_b
+								 dddN_ra*displ(4)+dddN_rb*displ(10)); // Ry_a  Ry_b
+					Fforce.y = this->E*this->Izz*
+								(dddN_ua*displ(1)+dddN_ub*displ(7)+   // y_a   y_b
+								 dddN_ra*displ(5)+dddN_rb*displ(11)); // Rz_a  Rz_b  
+					Fforce.x = this->E*this->Area*
+								(ddN_xa*displ(0)+ddN_xb*displ(6));
+				}
 
 
 			//

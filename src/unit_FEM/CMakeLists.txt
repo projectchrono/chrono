@@ -46,12 +46,16 @@ IF(ENABLE_UNIT_FEM)
 		ChNodeFEMxyzP.h 
 		ChElementBase.h
 		ChElementGeneric.h
+		ChElementCorotational.h
 		ChElementSpring.h
 		ChElementBar.h 
+		ChElementBeam.h
 		ChElementBeamEuler.h 
 		ChElement3D.h
+		ChElementTetrahedron.h
 		ChElementTetra_4.h
 		ChElementTetra_10.h
+		ChElementHexahedron.h
 		ChElementHexa_8.h
 		ChElementHexa_20.h
 		ChGaussIntegrationRule.h
