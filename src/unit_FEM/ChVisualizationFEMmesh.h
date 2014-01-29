@@ -53,6 +53,8 @@ class ChApiFem ChVisualizationFEMmesh: public ChAssetLevel
 				E_PLOT_NODE_ACCEL_Z,
 				E_PLOT_ELEM_STRAIN_VONMISES,
 				E_PLOT_ELEM_STRESS_VONMISES,
+				E_PLOT_ELEM_STRAIN_HYDROSTATIC,
+				E_PLOT_ELEM_STRESS_HYDROSTATIC,
 				E_PLOT_NODE_P, // scalar field for Poisson problems (ex. temperature if thermal FEM)
 		};
 

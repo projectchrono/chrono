@@ -145,6 +145,18 @@ double ChVisualizationFEMmesh::ComputeScalarOutput( ChSharedPtr<ChNodeFEMxyz> mn
 			ChSharedPtr<ChElementTetra_4> mytetra ( melement );
 			return mytetra->GetStress().GetEquivalentVonMises();
 		}
+	case E_PLOT_ELEM_STRAIN_HYDROSTATIC:
+		if (melement.IsType<ChElementTetra_4>())
+		{
+			ChSharedPtr<ChElementTetra_4> mytetra ( melement );
+			return mytetra->GetStrain().GetEquivalentMeanHydrostatic();
+		}
+	case E_PLOT_ELEM_STRESS_HYDROSTATIC:
+		if (melement.IsType<ChElementTetra_4>())
+		{
+			ChSharedPtr<ChElementTetra_4> mytetra ( melement );
+			return mytetra->GetStress().GetEquivalentMeanHydrostatic();
+		}
 	default:
 		return 1e30;
 	}
