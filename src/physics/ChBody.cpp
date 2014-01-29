@@ -82,14 +82,12 @@ ChBody::ChBody ()
     Torque_acc = VNULL;
     Scr_force = VNULL;
     Scr_torque = VNULL;
-    cdim = VNULL;
 
     collision_model=InstanceCollisionModel();
 
     matsurface = ChSharedPtr<ChMaterialSurface>(new ChMaterialSurface);
 
     density = 1000.0f;
-    conductivity = 0.2f;
 
     last_coll_pos = CSYSNORM;
 
@@ -123,7 +121,6 @@ ChBody::ChBody (ChCollisionModel* new_collision_model)
     Torque_acc = VNULL;
     Scr_force = VNULL;
     Scr_torque = VNULL;
-    cdim = VNULL;
 
     collision_model=new_collision_model;
     collision_model->SetBody(this);
@@ -131,7 +128,6 @@ ChBody::ChBody (ChCollisionModel* new_collision_model)
     matsurface = ChSharedPtr<ChMaterialSurface>(new ChMaterialSurface);
 
     density = 1000.0f;
-    conductivity = 0.2f;
 
     last_coll_pos = CSYSNORM;
 
@@ -185,11 +181,9 @@ void ChBody::Copy(ChBody* source)
     this->matsurface = source->matsurface;  // also copy-duplicate the material? Let the user handle this..
 
     density = source->density;
-    conductivity = source->conductivity;
 
     Scr_force = source->Scr_force;
     Scr_torque = source->Scr_torque;
-    cdim = source->cdim;
 
     last_coll_pos = source->last_coll_pos;
 
@@ -529,14 +523,7 @@ void ChBody::Accumulate_script_force(const ChVector<>& force,
     Scr_force += mabsforce;
     Scr_torque += mabstorque;
 }
-/*
-void ChBody::SetCdim (Vector mcdim)
-{
-    ChVector<> cdim;
 
-    cdim = mcdim;
-}
-*/
 void ChBody::Accumulate_script_torque(const ChVector<>& torque,
                                       int               local)
 {
@@ -976,7 +963,6 @@ void ChBody::StreamOUT(ChStreamOutBinary& mstream)
     this->collision_model->StreamOUT(mstream); // also  mstream << (*this->collision_model);
 
     this->matsurface->StreamOUT(mstream); 
-    dfoo=(double)conductivity;  mstream << dfoo;
 }
 
 void ChBody::StreamIN(ChStreamInBinary& mstream)
@@ -1066,9 +1052,7 @@ void ChBody::StreamIN(ChStreamInBinary& mstream)
     }
     if (version >=7)
     {
-        double dfoo;
         this->matsurface->StreamIN(mstream);
-        mstream >> dfoo;        conductivity = (float)dfoo;
     }
 }
 
