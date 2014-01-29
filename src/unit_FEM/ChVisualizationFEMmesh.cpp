@@ -97,6 +97,9 @@ ChVector<float> ChVisualizationFEMmesh::ComputeFalseColor(double mv)
 		c.z = 0;
 	}
 
+	if (this->fem_data_type == E_PLOT_SURFACE)
+		c = ChVector<float>(meshcolor.R, meshcolor.G, meshcolor.B);
+
 	return(c);
 }
 
