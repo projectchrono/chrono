@@ -55,6 +55,12 @@ class ChApiFem ChVisualizationFEMmesh: public ChAssetLevel
 				E_PLOT_ELEM_STRESS_VONMISES,
 				E_PLOT_ELEM_STRAIN_HYDROSTATIC,
 				E_PLOT_ELEM_STRESS_HYDROSTATIC,
+				E_PLOT_ELEM_BEAM_MX,
+				E_PLOT_ELEM_BEAM_MY,
+				E_PLOT_ELEM_BEAM_MZ,
+				E_PLOT_ELEM_BEAM_TX,
+				E_PLOT_ELEM_BEAM_TY,
+				E_PLOT_ELEM_BEAM_TZ,
 				E_PLOT_NODE_P, // scalar field for Poisson problems (ex. temperature if thermal FEM)
 		};
 
