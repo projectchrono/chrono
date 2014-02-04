@@ -184,8 +184,8 @@ public:
 					/// Specialized initialization for generic mate, given the two bodies to be connected, the
 					/// positions of the two frames to connect on the bodies (each expressed
 					/// in body or abs. coordinates).
-	virtual int Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
-						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
+	virtual int Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
+						   ChSharedPtr<ChBodyFrame> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChFrame<> mframe1,		///< mate frame (slave), for 1st body (rel. or abs., see flag above)
 						   ChFrame<> mframe2  		///< mate frame (master), for 2nd body (rel. or abs., see flag above) 
@@ -196,8 +196,8 @@ public:
 					/// two bodies, they will represent the X axes of the two frames (Y and Z will
 					/// be built from the X vector via Gramm Schmidt orthonomralization). 
 					/// Use the other ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
-	virtual int Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
-						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
+	virtual int Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
+						   ChSharedPtr<ChBodyFrame> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			///< origin of slave frame 1, for 1st body (rel. or abs., see flag above)
 						   ChVector<> mpt2,  		///< origin of master frame 2, for 2nd body (rel. or abs., see flag above)
@@ -311,8 +311,8 @@ public:
 					/// two points on the two faces, two normals on the faces (each expressed
 					/// in body or abs. coordinates). 
 					/// Use ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
-	virtual int Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
-						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
+	virtual int Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
+						   ChSharedPtr<ChBodyFrame> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			///< point on slave plane, for 1st body (rel. or abs., see flag above)
 						   ChVector<> mpt2,  		///< point on master plane, for 2nd body (rel. or abs., see flag above)
@@ -379,8 +379,8 @@ public:
 					/// Specialized initialization for coaxial mate, given the two bodies to be connected,
 					/// two points, two directions (each expressed in body or abs. coordinates). 
 					/// Use ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
-	virtual int Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
-						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
+	virtual int Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
+						   ChSharedPtr<ChBodyFrame> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			///< point on slave axis, for 1st body (rel. or abs., see flag above)
 						   ChVector<> mpt2, 		///< point on master axis, for 2nd body (rel. or abs., see flag above)
@@ -435,8 +435,8 @@ public:
 					/// Specialized initialization for coincident mate, given the two bodies to be connected,
 					/// and two points (each expressed in body or abs. coordinates). 
 					/// Use ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
-	virtual int Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
-						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
+	virtual int Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
+						   ChSharedPtr<ChBodyFrame> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			///< point, slave, for 1st body (rel. or abs., see flag above)
 						   ChVector<> mpt2  		///< point, master, for 2nd body (rel. or abs., see flag above)
@@ -495,8 +495,8 @@ public:
 					/// Specialized initialization for X distance mate, given the two bodies to be connected,
 					/// and two points (each expressed in body or abs. coordinates). 
 					/// Use ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
-	virtual int Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
-						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
+	virtual int Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
+						   ChSharedPtr<ChBodyFrame> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			///< point, slave, for 1st body (rel. or abs., see flag above)
 						   ChVector<> mpt2,  		///< point, master, for 2nd body (rel. or abs., see flag above)
@@ -558,8 +558,8 @@ public:
 					/// Specialized initialization for parallel mate, given the two bodies to be connected,
 					/// two points and two directions (each expressed in body or abs. coordinates). 
 					/// Use ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
-	virtual int Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
-						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
+	virtual int Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
+						   ChSharedPtr<ChBodyFrame> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			///< point on slave axis, for 1st body (rel. or abs., see flag above)
 						   ChVector<> mpt2,  		///< point on master axis, for 2nd body (rel. or abs., see flag above)
@@ -615,8 +615,8 @@ public:
 					/// Specialized initialization for orthogonal mate, given the two bodies to be connected,
 					/// two points and two directions (each expressed in body or abs. coordinates). 
 					/// Use ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
-	virtual int Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
-						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
+	virtual int Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
+						   ChSharedPtr<ChBodyFrame> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			///< point on slave axis, for 1st body (rel. or abs., see flag above)
 						   ChVector<> mpt2,  		///< point on master axis, for 2nd body (rel. or abs., see flag above)

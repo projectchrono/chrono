@@ -13,36 +13,10 @@
 #ifndef CHLINK_H
 #define CHLINK_H
 
-///////////////////////////////////////////////////
-//
-//   ChLink.h
-//
-//
-//   Base class for "links", i.e. 'joints' (mechanical 
-//   constraints) between two moving parts - that is,a
-//   joint between two ChBody objects.
-//
-//   A single ChLink is basically a container of multiple
-//   scalar constraints of type ChConstraint(), for example
-//   a spherical joint uses three scalar constraints 
-//   ChConstraint(), etc., so that the ChSystem can 
-//   communicate with links through the 'LCP interface' 
-//   member methods (see above). 
-//   Another important method is the Update() one.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 
-
-#include "core/ChLog.h"
-#include "physics/ChPhysicsItem.h"
-#include "physics/ChBody.h"
+#include "physics/ChLinkBase.h"
+#include "physics/ChBodyFrame.h"
 
 
 
@@ -52,26 +26,6 @@ namespace chrono
 
 // Forward references
 class ChSystem;
-
-
-
-
-// Define the link type identifier.
-//
-// Some inherited classes from Link class might override the GetType() function
-// to return a custom LNK_ identifiers. Create your own LNK_ identifier for new
-// link classes. Otherwise the default behaviour would be to return LNK_BASE.
-// This ID info is for maximum speed, to avoid to recognize a link type by RTTI.
-// Not all link classes must have a LNK_ identifer, but it is good if at least 
-// the specialized classes have their one.
-// Note that each class may implement more than one type! (see the ChLinkLock case). 
-//
-// Such LNK_ link identifiers must be _unique_. If you are not sure about uniqueness,
-// do not create them and do not use the GetType() function for your own inherited classes.
-//
-
-#define LNK_BASE		29
-
 
 
 
@@ -90,10 +44,10 @@ class ChSystem;
 /// _nothing_ unless it is specialized by some child class).
 ///
 
-class ChApi ChLink : public ChPhysicsItem 
+class ChApi ChLink : public ChLinkBase 
 {
 
-	CH_RTTI(ChLink,ChPhysicsItem);
+	CH_RTTI(ChLink,ChLinkBase);
 
 protected:
 
@@ -101,16 +55,13 @@ protected:
 	  			// DATA
 				//
 
-	ChBody* Body1;		// body of marker1 (automatically set)
-	ChBody* Body2;		// body of marker2 (automatically set)
+	ChBodyFrame* Body1;		// body of marker1 (automatically set)
+	ChBodyFrame* Body2;		// body of marker2 (automatically set)
 
 
 	Vector react_force;	// store the xyz reactions, expressed in local coordinate system of link;
 	Vector react_torque;// store the torque reactions, expressed in local coordinate system of link;
 
-	bool disabled;		// all constraints of link disabled because of user needs
-	bool valid;			// link data is valid
-	bool broken;		// link is broken because of excessive pulling/pushing.
 
 public:
 				//
@@ -128,37 +79,6 @@ public:
 				//
 
 
-				/// Tells if the link data is currently valid.
-				/// (i.e. pointers to other items are correct)
-	virtual bool IsValid() {return valid;}
-				/// Set the status of link validity
-	virtual void SetValid(bool mon) {valid = mon;}
-
-				/// Tells if all constraints of this link are currently turned
-				/// on or off by the user.
-	virtual bool IsDisabled() {return disabled;}
-				/// User can use this to enable/disable all the constraint of
-				/// the link as desired.
-	virtual void SetDisabled(bool mdis) {disabled = mdis;}
-
-
-				/// Tells if the link is broken, for excess of pulling/pushing.
-	virtual bool IsBroken() {return broken;}
-				/// Ex:3rd party software can set the 'broken' status via this method
-	virtual void SetBroken(bool mon) {broken = mon;}
-
-
-				/// An important function!
-				/// Tells if the link is currently active, in general,
-				/// that is tells if it must be included into the system solver or not.
-				/// This method cumulates the effect of various flags (so a link may
-				/// be not active either because disabled, or broken, or not valid)
-	virtual bool IsActive()
-					{
-						return ( valid &&
-								!disabled &&
-								!broken);
-					}
 
 				/// If this link has been created automatically by 
 				/// collision detection, returns true (false by default). (Was used in the past, now useless)
@@ -173,9 +93,9 @@ public:
 	int GetNumCoords() {return 14;}
 
 				/// Get the constrained body '1', the 'slave' body.
-	ChBody* GetBody1 () {return Body1;}
+	ChBodyFrame* GetBody1 () {return Body1;}
 				/// Get the constrained body '2', the 'master' body.
-	ChBody* GetBody2 () {return Body2;}
+	ChBodyFrame* GetBody2 () {return Body2;}
 
 
 				/// Get the link coordinate system, expressed relative to Body2 (the 'master'

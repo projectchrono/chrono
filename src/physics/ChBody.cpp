@@ -10,15 +10,6 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChBody.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
     
 #include <stdlib.h>
 #include <algorithm>
@@ -411,41 +402,6 @@ void ChBody::ComputeQInertia (ChMatrixNM<double,4,4>* mQInertia)
 //////
 
 
-void ChBody::To_abs_forcetorque(const ChVector<>& force,
-                                const ChVector<>& appl_point,
-                                int               local,
-                                ChVector<>&       resultforce,
-                                ChVector<>&       resulttorque)
-{
-    if (local)
-    {
-        // local space
-        ChVector<> mforce_abs = Dir_Body2World(force);
-        resultforce = mforce_abs;
-        resulttorque = Vcross (Dir_Body2World(appl_point), mforce_abs) ;
-    }
-    else
-    {
-        // absolute space
-        resultforce = force;
-        resulttorque = Vcross (Vsub(appl_point, coord.pos), force) ;
-    }
-}
-void ChBody::To_abs_torque(const ChVector<>& torque,
-                           int               local,
-                           ChVector<>&       resulttorque)
-{
-    if (local)
-    {
-        // local space
-        resulttorque = Dir_Body2World(torque);
-    }
-    else
-    {
-        // absolute space
-        resulttorque = torque;
-    }
-}
 
 
 void ChBody::Add_as_lagrangian_force(const ChVector<>&       force,

@@ -28,6 +28,7 @@
 
 
 #include "physics/ChLink.h"
+#include "physics/ChBody.h"
 #include "physics/ChMarker.h"
 
 

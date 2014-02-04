@@ -19,6 +19,7 @@
 
 #include "core/ChShared.h"
 #include "physics/ChPhysicsItem.h"
+#include "physics/ChVariablesInterface.h"
 #include "lcp/ChLcpVariablesBodyOwnMass.h"
 
 
@@ -50,9 +51,6 @@ public:
 					// FUNCTIONS
 					//
 
-
-			// Access the 'LCP variables' of the node. To be implemented in children classes
-	virtual ChLcpVariables& Variables() =0; 
 
 			/// Get the number of degrees of freedom
 	int Get_ndof() { return this->Variables().Get_ndof();}

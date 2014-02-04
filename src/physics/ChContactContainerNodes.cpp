@@ -154,7 +154,7 @@ void ChContactContainerNodes::AddContact(const collision::ChCollisionInfo& mcont
 	}
 
 	frameA    = mmboA->GetBody();
-	varA      =&mmboA->GetBody()->Variables();
+	varA      =&mmboA->GetBody()->VariablesBody();
 	//fixedA    = mmboA->GetBody()->GetBodyFixed();
 	frictionA = mmboA->GetBody()->GetSfriction();
 	

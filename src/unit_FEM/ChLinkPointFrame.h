@@ -10,12 +10,12 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHNODEBODY_H
-#define CHNODEBODY_H
+#ifndef CHLINKPOINTFRAME_H
+#define CHLINKPOINTFRAME_H
 
 //////////////////////////////////////////////////
 //
-//   ChNodeBody.h
+//   ChLinkPointFrame.h
 //
 //   Class for creating a constraint between a node point
 //   and a ChBody object (that is, it fixes a 3-DOF point
@@ -31,7 +31,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "physics/ChBody.h"
+#include "physics/ChBodyFrame.h"
 #include "physics/ChLinkBase.h"
 #include "unit_FEM/ChNodeFEMxyz.h"
 #include "lcp/ChLcpConstraintTwoGeneric.h"
@@ -48,16 +48,16 @@ namespace fem
 
 
 
-/// Class for creating a constraint between a node point
-/// and a ChBody object (that is, it fixes a 3-DOF point
-/// to a 6-DOF body). 
+/// Class for creating a constraint between a xyz FEM node (point)
+/// and a ChBodyFrame (frame) object (that is, it fixes a 3-DOF point
+/// to a 6-DOF frame). 
 /// Nodes are 3-DOF points that are used in point-based 
 /// primitives, such as ChMatterSPH or finite elements.
 
-class ChApiFem ChNodeBody : public ChLinkBase {
+class ChApiFem ChLinkPointFrame : public ChLinkBase {
 
 						// Chrono simulation of RTTI, needed for serialization
-	CH_RTTI(ChNodeBody,ChLinkBase);
+	CH_RTTI(ChLinkPointFrame,ChLinkBase);
 
 private:
 			//
@@ -75,7 +75,7 @@ private:
 	ChVector<> cache_li_pos;	// used to cache the last computed value of multiplier (solver warm starting)	
 
 	ChSharedPtr<fem::ChNodeFEMxyz> mnode;
-	ChSharedPtr<ChBody>  body;
+	ChSharedPtr<ChBodyFrame>  body;
 
 	ChVector<> attach_position; 
 
@@ -86,12 +86,12 @@ public:
 			//
 
 				/// Build a shaft.
-	ChNodeBody ();
+	ChLinkPointFrame ();
 				/// Destructor
-	~ChNodeBody ();
+	~ChLinkPointFrame ();
 
-				/// Copy from another ChNodeBody. 
-	void Copy(ChNodeBody* source);
+				/// Copy from another ChLinkPointFrame. 
+	void Copy(ChLinkPointFrame* source);
 
 
 			//
@@ -132,33 +132,33 @@ public:
 				/// The attachment position is the actual position of the node (unless
 				/// otherwise defines, using the optional 'mattach' parameter).
 				/// Note, mnodes and mbody must belong to the same ChSystem. 
-	virtual int Initialize(ChSharedPtr<ChIndexedNodes> mnodes, ///< nodes container
-						   unsigned int mnode_index, ///< index of the node to join
-						   ChSharedPtr<ChBody>   mbody,  ///< body to join 
-						   ChVector<>* mattach=0		 ///< optional: if not null, sets the attachment position in absolute coordinates 
+	virtual int Initialize(ChSharedPtr<ChIndexedNodes> mnodes,  ///< nodes container
+						   unsigned int mnode_index,			///< index of the xyz node (point) to join
+						   ChSharedPtr<ChBodyFrame>   mbody,    ///< body (frame) to join 
+						   ChVector<>* mattach=0				///< optional: if not null, sets the attachment position in absolute coordinates 
 						   );
 				/// Use this function after object creation, to initialize it, given  
-				/// the node and body to join. 
+				/// the node and body frame to join. 
 				/// The attachment position is the actual position of the node (unless
 				/// otherwise defines, using the optional 'mattach' parameter).
 				/// Note, mnodes and mbody must belong to the same ChSystem. 
-	virtual int Initialize(ChSharedPtr<ChNodeFEMxyz> anode, ///< node to join
-						   ChSharedPtr<ChBody>   mbody,  ///< body to join 
-						   ChVector<>* mattach=0		 ///< optional: if not null, sets the attachment position in absolute coordinates 
+	virtual int Initialize(ChSharedPtr<ChNodeFEMxyz> anode,  ///< xyz node (point) to join
+						   ChSharedPtr<ChBodyFrame>  mbody,  ///< body (frame) to join 
+						   ChVector<>* mattach=0			 ///< optional: if not null, sets the attachment position in absolute coordinates 
 						   );
 
-				/// Get the connected node
+				/// Get the connected xyz node (point)
 	virtual ChSharedPtr<fem::ChNodeFEMxyz> GetConstrainedNode() { return this->mnode;}
 				
-				/// Get the connected body
-	virtual ChSharedPtr<ChBody> GetConstrainedBody() { return this->body;}
+				/// Get the connected body (frame)
+	virtual ChSharedPtr<ChBodyFrame> GetConstrainedBodyFrame() { return this->body;}
 
 					/// Get the attachment position, in the reference coordinates of the body.
 	ChVector<> GetAttachPosition() {return attach_position;}
 					/// Set the attachment position, in the reference coordinates of the body
 	void SetAttachPositionInBodyCoords(ChVector<> mattach) {attach_position = mattach;}
 					/// Set the attachment position, in the absolute coordinates
-	void SetAttachPositionInAbsoluteCoords(ChVector<> mattach) {attach_position = body->Point_World2Body(mattach);}
+	void SetAttachPositionInAbsoluteCoords(ChVector<> mattach) {attach_position = body->TrasformPointParentToLocal(mattach);}
 
 
 				/// Get the reaction torque considered as applied to ChShaft.
@@ -193,8 +193,6 @@ public:
 };
 
 
-
-typedef ChSharedPtr<ChNodeBody> ChSharedNodeBodyPtr;
 
 
 

@@ -166,7 +166,7 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 	if (ChModelBulletBody* mmboA = dynamic_cast<ChModelBulletBody*>(mcontact.modelA))
 	{
 		frameA = mmboA->GetBody();
-		varA    =&mmboA->GetBody()->Variables();
+		varA    =&mmboA->GetBody()->VariablesBody();
 		inactiveA = !mmboA->GetBody()->IsActive();
 		mmatA = mmboA->GetBody()->GetMaterialSurface();
 	}
@@ -183,7 +183,7 @@ void ChContactContainer::AddContact(const collision::ChCollisionInfo& mcontact)
 	if (ChModelBulletBody* mmboB = dynamic_cast<ChModelBulletBody*>(mcontact.modelB))
 	{
 		frameB = mmboB->GetBody();
-		varB    =&mmboB->GetBody()->Variables();
+		varB    =&mmboB->GetBody()->VariablesBody();
 		inactiveB = !mmboB->GetBody()->IsActive();
 		mmatB = mmboB->GetBody()->GetMaterialSurface();
 	}

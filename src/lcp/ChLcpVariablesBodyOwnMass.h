@@ -107,7 +107,10 @@ public:
 	void    SetBodyMass(const double mmass)
 						{
 							mass = mmass;
-							inv_mass = 1.0 / mass;
+							if (mass)
+								inv_mass = 1.0 / mass;
+							else
+								inv_mass = 1e32;
 						}
 
 

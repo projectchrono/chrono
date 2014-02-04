@@ -320,10 +320,12 @@ IF (BUILD_CH_SDK)
 		physics/ChObject.cpp 
 		physics/ChMarker.cpp 
 		physics/ChForce.cpp 
+		physics/ChBodyFrame.cpp
 		physics/ChBody.cpp
 		physics/ChBodyAuxRef.cpp
 		physics/ChLinkforce.cpp 
-		physics/ChLinkMask.cpp 
+		physics/ChLinkMask.cpp
+		physics/ChLinkBase.cpp  
 		physics/ChLink.cpp 
 		physics/ChLinkDistance.cpp 
 		physics/ChLinkMasked.cpp 
@@ -391,6 +393,7 @@ IF (BUILD_CH_SDK)
 	SET(ChronoEngine_physics_HEADERS
 
 		physics/ChApidll.h
+		physics/ChBodyFrame.h
 		physics/ChBody.h
 		physics/ChBodyAuxRef.h
 		physics/ChConstraint.h
@@ -416,6 +419,7 @@ IF (BUILD_CH_SDK)
 		physics/ChIntegrator.h
 		physics/ChIterative.h
 		physics/ChLimit.h
+		physics/ChLinkBase.h
 		physics/ChLink.h
 		physics/ChLinkBrake.h
 		physics/ChLinkContact.h
@@ -446,6 +450,7 @@ IF (BUILD_CH_SDK)
 		physics/ChMaterialSurface.h
 		physics/ChMatterSPH.h
 		physics/ChNlsolver.h
+		physics/ChVariablesInterface.h
 		physics/ChNodeBase.h
 		physics/ChNodeXYZ.h
 		physics/ChObject.h

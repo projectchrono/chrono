@@ -58,7 +58,7 @@ protected:
 				//
 
 							// the collision pair which generated the link
-	ChCollisionPair	collision_pair;
+	collision::ChCollisionPair	collision_pair;
 
 							// the plane of contact (X is normal direction)
 	ChMatrix33<float> contact_plane;
@@ -76,9 +76,9 @@ public:
 
 	ChLinkFastContact ();
 
-	ChLinkFastContact (ChCollisionPair* mpair, 
-							ChBody* mbody1, 
-							ChBody* mbody2);
+	ChLinkFastContact (collision::ChCollisionPair* mpair, 
+							ChBodyFrame* mbody1, 
+							ChBodyFrame* mbody2);
 
 	virtual ~ChLinkFastContact ();
 	virtual void Copy(ChLinkFastContact* source);
@@ -92,7 +92,7 @@ public:
 	virtual int GetType	() {return LNK_FASTCONTACT;}
 
 					/// Initialize again this constraint.
-	virtual void Reset(ChCollisionPair* mpair, ChBody* mbody1, ChBody* mbody2);
+	virtual void Reset(collision::ChCollisionPair* mpair, ChBodyFrame* mbody1, ChBodyFrame* mbody2);
 
 
 					/// Get the link coordinate system, expressed relative to Body2 (the 'master'
@@ -107,7 +107,7 @@ public:
 	ChMatrix33<float>* GetContactPlane() {return &contact_plane;};
 
 					/// Returns the ChCollisionPair info of this contact.
-	ChCollisionPair* GetCollisionPair() {return &collision_pair;};
+	collision::ChCollisionPair* GetCollisionPair() {return &collision_pair;};
 
 	virtual ChVector<> GetContactP1() {return collision_pair.p1; };
 	virtual ChVector<> GetContactP2() {return collision_pair.p2; };

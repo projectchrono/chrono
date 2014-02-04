@@ -308,7 +308,7 @@ protected:
 					// Internal use only - transforms a Nx7 jacobian matrix for a 
 					// body with rotations expressed as quaternions, into
 					// a Nx6 jacobian matrix for a body with 'w' rotations.
-	static void Transform_Cq_to_Cqw(ChMatrix<>* mCq, ChMatrix<>* mCqw, ChBody* mbody);
+	static void Transform_Cq_to_Cqw(ChMatrix<>* mCq, ChMatrix<>* mCqw, ChBodyFrame* mbody);
 
 };
 

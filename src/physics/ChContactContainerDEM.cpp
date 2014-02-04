@@ -196,7 +196,7 @@ void ChContactContainerDEM::AddContact(const collision::ChCollisionInfo& mcontac
 		if (ChModelBulletDEM* mmboA = dynamic_cast<ChModelBulletDEM*>(mcontact.modelA))
 		{
 			frameA = mmboA->GetBody();
-			varA    =&mmboA->GetBody()->Variables();
+			varA    =&mmboA->GetBody()->VariablesBody();
 			springA = mmboA->GetBody()->GetSpringCoefficient();
 			dampingA= mmboA->GetBody()->GetDampingCoefficient();
 			springAT = mmboA->GetBody()->GetSpringCoefficientTangential();
@@ -206,7 +206,7 @@ void ChContactContainerDEM::AddContact(const collision::ChCollisionInfo& mcontac
 		if (ChModelBulletDEM* mmboB = dynamic_cast<ChModelBulletDEM*>(mcontact.modelB))
 		{
 			frameB = mmboB->GetBody();
-			varB    =&mmboB->GetBody()->Variables();
+			varB    =&mmboB->GetBody()->VariablesBody();
 			springB = mmboB->GetBody()->GetSpringCoefficient();
 			dampingB= mmboB->GetBody()->GetDampingCoefficient();
 			springBT = mmboB->GetBody()->GetSpringCoefficientTangential();

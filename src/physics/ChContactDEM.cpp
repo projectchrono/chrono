@@ -134,7 +134,7 @@ void ChContactDEM::Reset(	collision::ChCollisionModel* mmodA,	///< model A
 		//damping force
 		ChVector<> local_pA = bodyA->Point_World2Body(p1);
 		ChVector<> local_pB = bodyB->Point_World2Body(p2);
-		ChVector<> v_BA = (bodyB->RelPoint_AbsSpeed(local_pB))-(bodyA->RelPoint_AbsSpeed(local_pA));
+		ChVector<> v_BA = (bodyB->PointSpeedLocalToParent(local_pB))-(bodyA->PointSpeedLocalToParent(local_pA));
 		ChVector<> v_n = (v_BA.Dot(vN))*vN;
 		react_force+=mgn*pow(fabs(mdistance), 0.5)*v_n;
 
@@ -171,8 +171,8 @@ void ChContactDEM::ConstraintsFbLoadForces(double factor)
 
 	ChVector<> pt1_loc = bodyA->Point_World2Body(p1);
 	ChVector<> pt2_loc = bodyB->Point_World2Body(p2);
-	ChVector<> force1_loc = bodyA->Dir_World2Body(react_force);
-	ChVector<> force2_loc = bodyB->Dir_World2Body(react_force);
+	ChVector<> force1_loc = bodyA->TrasformDirectionParentToLocal(react_force);
+	ChVector<> force2_loc = bodyB->TrasformDirectionParentToLocal(react_force);
 	ChVector<> torque1_loc = Vcross(pt1_loc, force1_loc);
 	ChVector<> torque2_loc = Vcross(pt2_loc, -force2_loc);
 
@@ -180,11 +180,11 @@ void ChContactDEM::ConstraintsFbLoadForces(double factor)
 	//bodyB->To_abs_forcetorque (-react_force, p2, 0, mabsforceB, mabstorqueB);
 
 	bodyA->Variables().Get_fb().PasteSumVector( react_force*factor ,0,0);
-	//bodyA->Variables().Get_fb().PasteSumVector( (bodyA->Dir_World2Body(mabstorqueA))*factor,3,0);
+	//bodyA->Variables().Get_fb().PasteSumVector( (bodyA->TrasformDirectionParentToLocal(mabstorqueA))*factor,3,0);
 	bodyA->Variables().Get_fb().PasteSumVector( torque1_loc*factor,3,0);
 
 	bodyB->Variables().Get_fb().PasteSumVector( -react_force*factor ,0,0);
-	//bodyB->Variables().Get_fb().PasteSumVector( (bodyB->Dir_World2Body(mabstorqueB))*factor,3,0);
+	//bodyB->Variables().Get_fb().PasteSumVector( (bodyB->TrasformDirectionParentToLocal(mabstorqueB))*factor,3,0);
 	bodyB->Variables().Get_fb().PasteSumVector( torque2_loc*factor,3,0);
 }
 

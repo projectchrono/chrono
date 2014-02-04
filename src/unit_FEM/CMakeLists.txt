@@ -33,7 +33,7 @@ IF(ENABLE_UNIT_FEM)
 		ChPolarDecomposition.cpp
 		ChMatrixCorotation.cpp
 		ChVisualizationFEMmesh.cpp
-		ChNodeBody.cpp
+		ChLinkPointFrame.cpp
 		)
 	SET(ChronoEngine_UNIT_FEM_HEADERS
 		ChApiFEM.h  
@@ -66,7 +66,7 @@ IF(ENABLE_UNIT_FEM)
 		ChPolarDecomposition.h
 		ChMatrixCorotation.h
 		ChVisualizationFEMmesh.h
-		ChNodeBody.h 
+		ChLinkPointFrame.h 
 		)
 	#SET_SOURCE_FILES_PROPERTIES(ChronoEngine_UNIT_FEM_HEADERS PROPERTIES  HEADER_FILE_ONLY)
 	SOURCE_GROUP(unit_FEM FILES 

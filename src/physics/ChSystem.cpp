@@ -1413,8 +1413,8 @@ void ChSystem::WakeUpSleepingBodies()
 			{
 				if (Lpointer->IsRequiringWaking())
 				{
-					Lpointer->GetBody1()->SetSleeping(false);
-					Lpointer->GetBody2()->SetSleeping(false);
+					((ChBody*)Lpointer->GetBody1())->SetSleeping(false);
+					((ChBody*)Lpointer->GetBody2())->SetSleeping(false);
 				}
 				HIER_LINK_NEXT
 			}

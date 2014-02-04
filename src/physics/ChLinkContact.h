@@ -74,7 +74,7 @@ public:
 	virtual int GetType	() {return LNK_CONTACT;}
 
 					/// Initialize again this constraint.
-	virtual void Reset(ChCollisionPair* mpair, ChBody* mbody1, ChBody* mbody2) = 0;
+	virtual void Reset(collision::ChCollisionPair* mpair, ChBodyFrame* mbody1, ChBodyFrame* mbody2) = 0;
 
 					/// Tells IsCreatedByCollisionDetection='true' because this 
 					/// type of constraint is created automatially by ChSystem when 

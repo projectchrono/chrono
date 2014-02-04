@@ -31,11 +31,13 @@ protected:
 public:
 	ChElementCorotational () { A(0,0)=1;  A(1,1)=1;  A(2,2)=1; }
 	
-					/// Access the rotation matrix of the element.
+					/// Access the cumulative rotation matrix of the element,
+					/// The rotation is expressed relative to initial reference 
+					/// position of element.
 	ChMatrix33<>& Rotation() {return A;}
 
 					/// Given the actual position of the nodes, recompute
-					/// the rotation matrix A. 
+					/// the cumulative rotation matrix A. 
 					/// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
 	virtual void UpdateRotation() = 0; 
 };

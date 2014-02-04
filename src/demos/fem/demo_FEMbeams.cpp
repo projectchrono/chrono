@@ -20,6 +20,7 @@
 
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
+#include "physics/ChLinkMate.h"
 #include "lcp/ChLcpIterativePMINRES.h"
 #include "unit_FEM/ChElementBeamEuler.h"
 #include "unit_FEM/ChMesh.h"
@@ -74,7 +75,7 @@ int main(int argc, char* argv[])
 	double beam_L  = 0.1;
 	double beam_wy = 0.02;
 	double beam_wz = 0.02;
-
+/*
 	ChSharedPtr<ChNodeFEMxyzrot> hnode1(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(0,0,0)) ));
 	ChSharedPtr<ChNodeFEMxyzrot> hnode2(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(beam_L,0,0)) ));
 	ChSharedPtr<ChNodeFEMxyzrot> hnode3(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(beam_L*2,0,0)) ));
@@ -90,7 +91,7 @@ int main(int argc, char* argv[])
 	belement1->SetAsRectangularSection(beam_wy, beam_wz);
 	belement1->SetYoungModulus (0.01e9);
 	belement1->SetGshearModulus(0.01e9 * 0.3);
-	belement1->SetBeamRaleyghDamping(0.001);
+	belement1->SetBeamRaleyghDamping(0.000);
 
 	my_mesh->AddElement(belement1);
 
@@ -103,18 +104,81 @@ int main(int argc, char* argv[])
 	belement2->SetAsRectangularSection(beam_wy, beam_wz);
 	belement2->SetYoungModulus (0.01e9);
 	belement2->SetGshearModulus(0.01e9 * 0.3);
-	belement2->SetBeamRaleyghDamping(0.001);
+	belement2->SetBeamRaleyghDamping(0.000);
 
 	my_mesh->AddElement(belement2);
 
 
-				// For example, set an initial displacement to a node:
-//	hnode2->SetX0( hnode2->GetX0() >> ChFrame<>(ChVector<>(0,0.01,0)) );
-
 				// Apply a force to a node
-	//hnode3->SetForce( ChVector<>(0,-3,0));
+	//hnode3->SetForce( ChVector<>(0, -1, 0));
+	//hnode2->SetForce( ChVector<>(0,-6,0));
 	//hnode3->SetForce( ChVector<>(0,-3,-3));
-	hnode3->SetTorque( ChVector<>(0, 0, 2));
+	//hnode3->SetTorque( ChVector<>(0, 0, 0.4));
+
+
+
+				// Fix a body to ground
+	hnode1->SetFixed(true);
+*/
+
+/*
+				// Create also a truss
+				ChSharedPtr<ChBody> truss(new ChBody);
+				truss->SetBodyFixed(true);
+				my_system.Add(truss);
+
+				ChSharedPtr<ChLinkMateGeneric> constraint(new ChLinkMateGeneric);
+				ChFrame<> mfra;
+				constraint->Initialize(hnode1,
+										truss,false, mfra, mfra);
+				my_system.Add(constraint);
+
+						// For example, attach small cube to show the constraint
+				ChSharedPtr<ChBoxShape> mboxfloor(new ChBoxShape);
+				mboxfloor->GetBoxGeometry().Size = ChVector<>(0.005);
+				constraint->AddAsset(mboxfloor);
+*/
+
+
+	ChSharedPtr<ChNodeFEMxyzrot> hnode4(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(2*beam_L,0,0), -CH_C_PI_2, VECT_Y )));
+	ChSharedPtr<ChNodeFEMxyzrot> hnode5(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(2*beam_L,0,beam_L),  -CH_C_PI_2, VECT_Y ) ));
+//ChSharedPtr<ChNodeFEMxyzrot> hnode4(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(2*beam_L,0,0) ) ));
+//ChSharedPtr<ChNodeFEMxyzrot> hnode5(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(2*beam_L+beam_L,0,0) ) ));
+
+	my_mesh->AddNode(hnode4);
+	my_mesh->AddNode(hnode5);
+
+	ChSharedPtr<ChElementBeamEuler> belement3 (new ChElementBeamEuler);
+
+	belement3->SetNodes(hnode4, hnode5);
+
+	belement3->SetAsRectangularSection(beam_wy, beam_wz);
+	belement3->SetYoungModulus (0.01e9);
+	belement3->SetGshearModulus(0.01e9 * 0.3);
+	belement3->SetBeamRaleyghDamping(0.000);
+
+	my_mesh->AddElement(belement3);
+
+	belement3->UpdateRotation();
+	
+hnode4->SetFixed(true);
+hnode5->SetForce( ChVector<>(0,-8,0));
+//hnode5->SetTorque( ChVector<>(1,0,0));
+
+
+
+/*
+	ChSharedPtr<ChLinkMateGeneric> constraint2(new ChLinkMateGeneric);
+	ChFrame<> mfra2;
+	constraint2->Initialize(hnode3,
+						    hnode4,false, hnode3->Frame(), hnode3->Frame());
+	my_system.Add(constraint2);
+
+	// For example, attach small cube to show the constraint
+	ChSharedPtr<ChBoxShape> mboxconstr2(new ChBoxShape);
+	mboxconstr2->GetBoxGeometry().SetLenghts( ChVector<>(beam_wy*1.05) );
+	constraint2->AddAsset(mboxconstr2);
+*/
 
 
 	//
@@ -127,9 +191,8 @@ int main(int argc, char* argv[])
 				// Remember to add the mesh to the system!
 	my_system.Add(my_mesh);
 
-				// Fix a body to ground
-	hnode1->SetFixed(true);
 
+	
 
 			// ==Asset== attach a visualization of the FEM mesh.
 			// This will automatically update a triangle mesh (a ChTriangleMeshShape
@@ -140,10 +203,17 @@ int main(int argc, char* argv[])
 			// Do not forget AddAsset() at the end!
 
 
-
+	/*
 	ChSharedPtr<ChVisualizationFEMmesh> mvisualizebeamA(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
 	mvisualizebeamA->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_SURFACE);
-	//mvisualizebeamA->SetSmoothFaces(true);
+	mvisualizebeamA->SetSmoothFaces(true);
+	my_mesh->AddAsset(mvisualizebeamA);
+	*/
+
+	ChSharedPtr<ChVisualizationFEMmesh> mvisualizebeamA(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
+	mvisualizebeamA->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_SURFACE); //E_PLOT_ELEM_BEAM_TZ);
+	mvisualizebeamA->SetColorscaleMinMax(-6,6);
+	mvisualizebeamA->SetSmoothFaces(true);
 	my_mesh->AddAsset(mvisualizebeamA);
 
 	ChSharedPtr<ChVisualizationFEMmesh> mvisualizebeamC(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
@@ -174,13 +244,37 @@ int main(int argc, char* argv[])
 
 	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES); // <- NEEDED because other solvers can't handle stiffness matrices
 	my_system.SetIterLCPwarmStarting(true); // this helps a lot to speedup convergence in this class of problems
-	my_system.SetIterLCPmaxItersSpeed(12);
+	my_system.SetIterLCPmaxItersSpeed(50);
 	my_system.SetTolSpeeds(1e-5);
 	//chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
 	//msolver->SetVerbose(true);
 	//msolver->SetDiagonalPreconditioning(true);
 
 	application.SetTimestep(0.001);
+application.GetSystem()->Update();
+application.SetPaused(true);
+
+		// Impose displ.
+//hnode5->Frame().SetPos( hnode5->Frame().GetPos() + ChVector<>(0,-0.1, 0) );
+		// Impose rot.
+/*
+ChFrame<>* mf = &hnode5->Frame();
+mf->ConcatenatePostTransformation( ChFrame<>(ChVector<>(0,0,0),  CH_C_DEG_TO_RAD*30.0, VECT_Z ) );
+ChMatrixDynamic<> mfi(12,1);
+belement3->GetField(mfi);
+*/
+
+/*
+ChMatrixDynamic<> mfo(12,1);
+belement3->ComputeInternalForces(mfo);
+*/
+
+GetLog()<< "\n===========STATICS======== \n\n";
+//for (int is = 0; is<10; ++is)
+application.GetSystem()->DoStaticLinear();
+
+ChMatrixDynamic<> mfo(12,1);
+belement3->ComputeInternalForces(mfo);
 
 	while(application.GetDevice()->run()) 
 	{
@@ -195,7 +289,8 @@ int main(int argc, char* argv[])
 		//GetLog() << " node pos =" << hnode3->Frame().GetPos() << "\n";
 	}
 
-
+mfo(12,1);
+belement3->ComputeInternalForces(mfo);
 	/*
 	//***TEST***
 

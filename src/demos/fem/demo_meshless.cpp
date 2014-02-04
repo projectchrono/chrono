@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
 	ChSharedPtr<ChIndexedNodes> mnodes = mymatter;
 	for (int ij = 0; ij < 120; ij++)
 	{
-		ChSharedPtr<ChNodeBody> myjointnodebody(new ChNodeBody);
+		ChSharedPtr<ChLinkPointFrame> myjointnodebody(new ChLinkPointFrame);
 		myjointnodebody->Initialize(mnodes, 
 									ij, 
 									mfloorBody->GetBody());

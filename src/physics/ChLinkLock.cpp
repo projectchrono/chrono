@@ -1397,7 +1397,7 @@ void ChLinkLock::ConstraintsBiLoad_Qc(double factor)
 
 
 template <class Real>
-void Transform_Cq_to_Cqw_row(ChMatrix<>* mCq, int qrow, ChMatrix<Real>* mCqw, int qwrow, ChBody* mbody)
+void Transform_Cq_to_Cqw_row(ChMatrix<>* mCq, int qrow, ChMatrix<Real>* mCqw, int qwrow, ChBodyFrame* mbody)
 {
     // traslational part - not changed
     mCqw->PasteClippedMatrix(mCq, qrow,0, 1,3, qwrow,0);

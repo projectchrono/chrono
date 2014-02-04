@@ -13,6 +13,7 @@
 #ifndef CHELEMENTBEAMEULER_H
 #define CHELEMENTBEAMEULER_H
 
+#define BEAM_VERBOSE
 
 #include "ChElementBeam.h"
 
@@ -38,6 +39,9 @@ protected:
 
 	ChQuaternion<> q_refrot1;
 
+	ChQuaternion<> q_element_abs_rot;
+	ChQuaternion<> q_element_ref_rot;
+
 public:
 
 	ChElementBeamEuler()
@@ -47,6 +51,8 @@ public:
 					this->StiffnessMatrix.Resize(this->GetNdofs(), this->GetNdofs());
 
 					q_refrot1 = QUNIT;
+					q_element_abs_rot = QUNIT;
+					q_element_ref_rot = QUNIT;
 				}
 
 	virtual ~ChElementBeamEuler() {}
@@ -73,6 +79,11 @@ public:
 			//
 			// FEM functions
 			//
+
+				/// Get the absolute rotation of element in space 
+				/// This is not the same of Rotation() , that expresses 
+				/// the accumulated rotation from starting point.
+	ChQuaternion<> GetAbsoluteRotation() {return q_element_abs_rot;}
 
 				/// Fills the N matrix (single row, 12 columns) with the
 				/// values of shape functions at abscyssa 'eta'.
@@ -113,9 +124,23 @@ public:
 				/// The reference frame of this Euler-Bernoulli beam has X aligned to two nodes and Y parallel to Y of 1st node
 	virtual void UpdateRotation()
 				{
-					ChVector<> mXele = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
-					ChVector<> myele = nodes[0]->Frame().GetA()->Get_A_Yaxis();
-					A.Set_A_Xdir(mXele, myele);
+					ChMatrix33<> A0;
+					ChVector<> mXele = nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos();
+					ChVector<> myele = nodes[0]->GetX0().GetA()->Get_A_Yaxis();
+					A0.Set_A_Xdir(mXele, myele);
+					q_element_ref_rot = A0.Get_A_quaternion(); // BETTER IN SetupInitial()
+
+					ChMatrix33<> Aabs;
+					mXele = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
+					myele = nodes[0]->Frame().GetA()->Get_A_Yaxis();
+					Aabs.Set_A_Xdir(mXele, myele);
+					q_element_abs_rot = Aabs.Get_A_quaternion(); 
+
+					A.MatrTMultiply(A0,Aabs);
+		#ifdef BEAM_VERBOSE
+		//GetLog() <<"\n\n\n======UpdateRotation \n A corot:" << A << "\n";
+		GetLog() <<"\n\n\n====== UpdateRotation A abs:" << Aabs << "\n\n";
+		#endif
 				}
 
 				/// Fills the D vector (column matrix) with the current 
@@ -128,6 +153,9 @@ public:
 				{
 					mD.Reset(12,1);
 
+					ChMatrix33<> A0  (this->q_element_ref_rot);
+					ChMatrix33<> Aabs(this->q_element_abs_rot);
+
 					ChVector<> delta_rot_dir;
 					double     delta_rot_angle;
 
@@ -135,27 +163,38 @@ public:
 					ChQuaternion<> quatA = A.Get_A_quaternion();
 
 					// Node 0, displacement (in local element frame, corotated back by A' )
-					mD.PasteVector(A.MatrT_x_Vect(nodes[0]->Frame().GetPos()) - nodes[0]->GetX0().GetPos(), 0, 0);
-
-					// Node 0, x,y,z small rotations (in local element frame, corotated back by A' )
-					//  with quaternion algebra: q_delta = q_corotation' * q_node  
-					//  with linear algebra in SO(3): [A_delta] = [A_coro.]'[A_node]
-					ChQuaternion<> q_delta0 =  quatA.GetConjugate() % nodes[0]->Frame().GetRot();
+					ChVector<> displ = A.MatrT_x_Vect(nodes[0]->Frame().GetPos()) - (nodes[0]->GetX0().GetPos());
+				displ = A0.MatrT_x_Vect(displ);
+					mD.PasteVector(displ, 0, 0);
+	#ifdef BEAM_VERBOSE
+	GetLog() <<"\n\n\n======GetField \ndispl A:" << displ << "\n";
+	#endif
+					// Node 0, x,y,z small rotations (in local element frame
+					ChQuaternion<> q_delta0 =   q_element_abs_rot.GetConjugate() % 
+												nodes[0]->Frame().GetRot();
 						// note, for small incremental rotations this is opposite of ChNodeFEMxyzrot::VariablesQbIncrementPosition 
 					q_delta0.Q_to_AngAxis(delta_rot_angle, delta_rot_dir); 
 					mD.PasteVector(delta_rot_dir*delta_rot_angle, 3, 0);
-
+	#ifdef BEAM_VERBOSE
+	GetLog() <<"rotaz A:" << delta_rot_angle*CH_C_RAD_TO_DEG << " on axis " <<  delta_rot_dir << "\n";
+	#endif 
 					// Node 1, displacement (in local element frame, corotated back by A' )
-					mD.PasteVector(A.MatrT_x_Vect(nodes[1]->Frame().GetPos()) - nodes[1]->GetX0().GetPos(), 6, 0);
-
-					// Node 1, x,y,z small rotations (in local element frame, corotated back by A' )
-					//  with quaternion algebra: q_delta = q_refrot1' * q_corotation' * q_node  
-					//  with linear algebra in SO(3): [A_delta] = [A_refrot1]'[A_coro.]'[A_node]
-					ChQuaternion<> q_delta1 = this->q_refrot1.GetConjugate() % (quatA.GetConjugate() % nodes[1]->Frame().GetRot());
+					displ = A.MatrT_x_Vect(nodes[1]->Frame().GetPos()) - (nodes[1]->GetX0().GetPos());
+				displ = A0.MatrT_x_Vect(displ);
+					mD.PasteVector(displ, 6, 0);
+	#ifdef BEAM_VERBOSE
+	GetLog() <<"displ B:" << displ << "\n";
+	#endif
+					// Node 1, x,y,z small rotations (in local element frame)
+					ChQuaternion<> q_delta1 =   // this->q_refrot1.GetConjugate() %  
+												q_element_abs_rot.GetConjugate() % 
+												nodes[1]->Frame().GetRot();
 						// note, for small incremental rotations this is opposite of ChNodeFEMxyzrot::VariablesQbIncrementPosition 
 					q_delta1.Q_to_AngAxis(delta_rot_angle, delta_rot_dir); 
 					mD.PasteVector(delta_rot_dir*delta_rot_angle, 9, 0);
-
+	#ifdef BEAM_VERBOSE
+	GetLog() <<"rotaz B:" << delta_rot_angle*CH_C_RAD_TO_DEG << " on axis " <<  delta_rot_dir << "\n";
+	#endif
 				}
 
 				/// Fills the Ddt vector (column matrix) with the current 
@@ -168,20 +207,19 @@ public:
 				{
 					mD_dt.Reset(12,1);
 
-					// corotational frame 
-					ChQuaternion<> quatA = A.Get_A_quaternion();
+					ChMatrix33<> Aabs(this->q_element_abs_rot);
 
 					// Node 0, velocity (in local element frame, corotated back by A' )
-					mD_dt.PasteVector(A.MatrT_x_Vect(nodes[0]->Frame().GetPos_dt()),    0, 0);
+					mD_dt.PasteVector(Aabs.MatrT_x_Vect(nodes[0]->Frame().GetPos_dt()),    0, 0);
 
 					// Node 0, x,y,z ang.velocity (in local element frame, corotated back by A' )
-					mD_dt.PasteVector(A.MatrT_x_Vect(nodes[0]->Frame().GetWvel_par() ), 3, 0);
+					mD_dt.PasteVector(Aabs.MatrT_x_Vect(nodes[0]->Frame().GetWvel_par() ), 3, 0);
 
 					// Node 1, velocity (in local element frame, corotated back by A' )
-					mD_dt.PasteVector(A.MatrT_x_Vect(nodes[1]->Frame().GetPos_dt()),    6, 0);
+					mD_dt.PasteVector(Aabs.MatrT_x_Vect(nodes[1]->Frame().GetPos_dt()),    6, 0);
 
 					// Node 1, x,y,z ang.velocity (in local element frame, corotated back by A' )
-					mD_dt.PasteVector(A.MatrT_x_Vect(nodes[1]->Frame().GetWvel_par() ), 9, 0);
+					mD_dt.PasteVector(Aabs.MatrT_x_Vect(nodes[1]->Frame().GetWvel_par() ), 9, 0);
 
 				}
 				
@@ -279,8 +317,10 @@ public:
 					// Corotational K stiffness:
 					ChMatrixDynamic<> CK(12,12);
 					ChMatrixDynamic<> CKCt(12,12); // the global, corotated, K matrix
-					ChMatrixCorotation<>::ComputeCK(this->StiffnessMatrix, this->A, 4, CK);
-					ChMatrixCorotation<>::ComputeKCt(CK, this->A, 4, CKCt);
+				ChMatrix33<> Atoabs(this->q_element_abs_rot);
+				ChMatrix33<> Atolocwel; Atolocwel.Set33Identity();
+					ChMatrixCorotation<>::ComputeCK(this->StiffnessMatrix, Atoabs, Atolocwel, 4, CK);
+					ChMatrixCorotation<>::ComputeKCt(CK, Atoabs, Atolocwel, 4, CKCt);
 
 
 					// For K stiffness matrix and R matrix: scale by factors
@@ -328,10 +368,13 @@ public:
 						// set up vector of nodal displacements and small rotations (in local element system) 
 					ChMatrixDynamic<> displ(12,1);
 					this->GetField(displ);
-					
+
 						// [local Internal Forces] = [Klocal] * displ + [Rlocal] * displ_dt
 					ChMatrixDynamic<> FiK_local(12,1);
 					FiK_local.MatrMultiply(StiffnessMatrix, displ);
+
+GetLog() <<"========\nInternal forces: displ=" << displ << "\n";
+GetLog() <<"Internal forces: FiKlocal=" << FiK_local << "\n";
 
 						// set up vector of nodal velocities (in local element system) 
 					ChMatrixDynamic<> displ_dt(12,1);
@@ -347,7 +390,20 @@ public:
 					FiK_local.MatrScale(-1.0);
 
 						// Fi = C * Fi_local  with C block-diagonal rotations A  , for nodal forces in abs. frame 
-					ChMatrixCorotation<>::ComputeCK(FiK_local, this->A, 4, Fi);
+					ChMatrix33<> Atoabs(this->q_element_abs_rot);
+					ChMatrix33<> Atolocwel; Atolocwel.Set33Identity();
+					ChMatrixCorotation<>::ComputeCK(FiK_local, Atoabs, Atolocwel, 4, Fi);
+#ifdef BEAM_VERBOSE
+GetLog() << "\nInternal forces (local): \n";
+for (int c = 0; c<6; c++)  GetLog() << FiK_local(c) << "  "; 
+GetLog() << "\n";
+for (int c = 6; c<12; c++) GetLog() << FiK_local(c) << "  ";
+GetLog() << "\n\nInternal forces (ABS) : \n";
+for (int c = 0; c<6; c++)  GetLog() << Fi(c) << "  "; 
+GetLog() << "\n";
+for (int c = 6; c<12; c++) GetLog() << Fi(c) << "  ";
+GetLog() << "\n";
+#endif
 				}
 
 
@@ -400,10 +456,11 @@ public:
 
 					point = this->Rotation()*  ( Nx1 * this->nodes[0]->GetX0().GetPos() + 
 												 Nx2 * this->nodes[1]->GetX0().GetPos() + 
-												 u_displ);
+												 this->q_element_ref_rot.Rotate(u_displ));
+
 					ChQuaternion<> msectionrot;
 					msectionrot.Q_from_AngAxis(u_rotaz.Length(), u_rotaz.GetNormalized());
-					rot = this->Rotation().Get_A_quaternion() % msectionrot;
+					rot = this->q_element_abs_rot % msectionrot;
 				}
 
 

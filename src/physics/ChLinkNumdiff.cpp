@@ -208,13 +208,17 @@ void ChLinkNumdiff::UpdateState ()
 
 void ChLinkNumdiff::ImposeCoords(ChMatrix<>* mc, double t)
 {
-    static Coordsys mcsys;
+    ChCoordsys<> mcsys;
+
+	if (!(dynamic_cast<ChBody*>(Body1) &&
+		  dynamic_cast<ChBody*>(Body2)) )
+		throw (ChException("ChLinkNumdiff had pointer to non ChBody item"));
 
     mcsys = mc->ClipCoordsys(0,0);
-    Body1->Update(mcsys, Body1->GetCoord_dt(), t);
+    dynamic_cast<ChBody*>(Body1)->Update(mcsys, Body1->GetCoord_dt(), t);
 
     mcsys = mc->ClipCoordsys(7,0);
-    Body2->Update(mcsys, Body2->GetCoord_dt(), t);
+    dynamic_cast<ChBody*>(Body2)->Update(mcsys, Body2->GetCoord_dt(), t);
 
     // - update the time dependant stuff
     UpdateTime(t);
