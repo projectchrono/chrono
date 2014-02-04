@@ -90,6 +90,15 @@ public:
 			Amatrix(mc.rot)
 		{}
 
+		/// Construct from position mv and rotation of angle alpha around unit vector mu
+	ChFrame(const ChVector<Real>&     mv,
+	        const Real alpha,
+			const ChVector<Real>&     mu)
+		:	coord(mv, alpha, mu)
+		{
+			Amatrix.Set_A_quaternion(coord.rot);
+		}
+
 		/// Copy constructor, build from another frame
 	ChFrame(const ChFrame<Real>& other)
 		:	coord(other.coord),
