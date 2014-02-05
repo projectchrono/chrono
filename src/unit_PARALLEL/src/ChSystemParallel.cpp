@@ -258,7 +258,7 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
 		newbody->AddCollisionModelsToSystem();
 	}
 
-	ChLcpVariablesBodyOwnMass *mbodyvar = &(newbody->Variables());
+	ChLcpVariablesBodyOwnMass *mbodyvar = &(newbody->VariablesBody());
 	real inv_mass = (1.0) / (mbodyvar->GetBodyMass());
 	newbody->GetRot().Normalize();
 	ChMatrix33<> inertia = mbodyvar->GetBodyInvInertia();
@@ -362,7 +362,7 @@ void ChSystemParallel::UpdateBodies() {
 
 #pragma omp parallel for
 	for (int i = 0; i < bodylist.size(); i++) {
-		ChMatrix33<> inertia = bodylist[i]->Variables().GetBodyInvInertia();
+		ChMatrix33<> inertia = bodylist[i]->VariablesBody().GetBodyInvInertia();
 		vel_pointer[i] = (R3(bodylist[i]->Variables().Get_qb().ElementN(0), bodylist[i]->Variables().Get_qb().ElementN(1), bodylist[i]->Variables().Get_qb().ElementN(2)));
 		omg_pointer[i] = (R3(bodylist[i]->Variables().Get_qb().ElementN(3), bodylist[i]->Variables().Get_qb().ElementN(4), bodylist[i]->Variables().Get_qb().ElementN(5)));
 		pos_pointer[i] = (R3(bodylist[i]->GetPos().x, bodylist[i]->GetPos().y, bodylist[i]->GetPos().z));
@@ -371,7 +371,7 @@ void ChSystemParallel::UpdateBodies() {
 		frc_pointer[i] = (R3(bodylist[i]->Variables().Get_fb().ElementN(0), bodylist[i]->Variables().Get_fb().ElementN(1), bodylist[i]->Variables().Get_fb().ElementN(2)));     //forces
 		trq_pointer[i] = (R3(bodylist[i]->Variables().Get_fb().ElementN(3), bodylist[i]->Variables().Get_fb().ElementN(4), bodylist[i]->Variables().Get_fb().ElementN(5)));     //torques
 		active_pointer[i] = bodylist[i]->IsActive();
-		mass_pointer[i] = 1.0f / bodylist[i]->Variables().GetBodyMass();
+		mass_pointer[i] = 1.0f / bodylist[i]->VariablesBody().GetBodyMass();
 		fric_pointer[i] = R3(bodylist[i]->GetKfriction(), ((bodylist[i]))->GetMaterialSurface()->GetRollingFriction(), ((bodylist[i]))->GetMaterialSurface()->GetSpinningFriction());
 		cohesion_pointer[i] = bodylist[i]->GetMaterialSurface()->GetCohesion();
 		compliance_pointer[i] = R4(
