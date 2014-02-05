@@ -40,6 +40,7 @@ namespace chrono {
 				max_iteration = 1000;
 				max_iter_normal = max_iter_sliding = max_iter_spinning = max_iter_bilateral = 100;
 				do_stab = false;
+				collision_inside = false;
 				solver_type = ACCELERATED_PROJECTED_GRADIENT_DESCENT;
 				record_violation_history = true;
 				warm_start = false;
@@ -99,6 +100,9 @@ namespace chrono {
 			void DoStabilization(bool stab) {
 				do_stab = stab;
 			}
+			void DoCollision(bool do_collision) {
+				collision_inside = do_collision;
+			}
 			real GetResidual() {
 				return residual;
 			}
@@ -144,6 +148,7 @@ namespace chrono {
 			uint max_iter_spinning;
 			uint max_iter_bilateral;
 			bool do_stab;
+			bool collision_inside;
 
 			real residual;
 
@@ -153,10 +158,10 @@ namespace chrono {
 
 			custom_vector<real> rhs, debug, lambda;
 
-			ChConstraintRigidRigid rigid_rigid;
-			ChConstraintBilateral bilateral;
+		ChConstraintRigidRigid rigid_rigid;
+		ChConstraintBilateral bilateral;
 
-		};}
+	};}
 
 #endif
 

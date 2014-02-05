@@ -151,6 +151,12 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, const custom_vector<r
 			real maxdeltalambda = CompRes(b,number_of_rigid_rigid);     //NormInf(ms);
 
 			AtIterationEnd(residual, maxdeltalambda, current_iteration);
+			if(collision_inside) {
+				//cout<<"Performing collision update"<<endl;
+				UpdatePosition(x);
+				UpdateContacts();
+			}
+
 		}
 
 		//custom_vector<real> error = (x_initial-x)/x;

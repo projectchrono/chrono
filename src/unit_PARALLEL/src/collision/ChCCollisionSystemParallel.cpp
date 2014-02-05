@@ -93,6 +93,7 @@ void ChCollisionSystemParallel::Run() {
 
 	mtimer_cd_narrow.start();
 	narrowphase.SetCollisionEnvelope(collision_envelope);
+	data_container->collision_envelope = collision_envelope;
 
 	narrowphase.DoNarrowphase(
 			data_container->host_data.typ_rigid,

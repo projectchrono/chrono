@@ -1,4 +1,5 @@
 #include "ChSolverParallel.h"
+
 using namespace chrono;
 
 void ChSolverParallel::Project(custom_vector<real> & gamma) {
@@ -82,11 +83,56 @@ void ChSolverParallel::Setup() {
 	//thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals, data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 3);
 
 }
+void ChSolverParallel::UpdatePosition(custom_vector<real> &x) {
+	if (rigid_rigid->solve_sliding == true|| rigid_rigid->solve_spinning ==true) {
+		return;
+	}
+	shurA(x);
 
+	data_container->host_data.vel_new_data = data_container->host_data.vel_data+data_container->host_data.QXYZ_data;
+	data_container->host_data.omg_new_data + data_container->host_data.omg_data+data_container->host_data.QUVW_data;
+
+#pragma omp parallel for
+	for (int i = 0; i < data_container->number_of_rigid; i++) {
+
+		data_container->host_data.pos_new_data[i] = data_container->host_data.pos_data[i] + data_container->host_data.vel_new_data[i] * step_size;
+		//real3 dp = data_container->host_data.pos_new_data[i]-data_container->host_data.pos_data[i];
+		//cout<<dp<<endl;
+		real4 moldrot = data_container->host_data.rot_data[i];
+		real3 newwel = data_container->host_data.omg_new_data[i];
+
+		M33 A = AMat(moldrot);
+		real3 newwel_abs = MatMult(A, newwel);
+		real mangle = length(newwel_abs) * step_size;
+		newwel_abs = normalize(newwel_abs);
+		real4 mdeltarot = Q_from_AngAxis(mangle, newwel_abs);
+		real4 mnewrot = mdeltarot % moldrot;
+		data_container->host_data.rot_new_data[i] = mnewrot;
+	}
+}
+
+void ChSolverParallel::UpdateContacts() {
+	if (rigid_rigid->solve_sliding == true || rigid_rigid->solve_spinning == true) {
+		return;
+	}
+	collision::ChCNarrowphase narrowphase;
+
+	narrowphase.SetCollisionEnvelope(data_container->collision_envelope);
+
+	narrowphase.UpdateNarrowphase(data_container->host_data.typ_rigid, data_container->host_data.ObA_rigid, data_container->host_data.ObB_rigid, data_container->host_data.ObC_rigid,
+			data_container->host_data.ObR_rigid, data_container->host_data.id_rigid, data_container->host_data.active_data, data_container->host_data.pos_new_data,
+			data_container->host_data.rot_new_data, data_container->number_of_rigid_rigid, data_container->host_data.norm_rigid_rigid, data_container->host_data.cpta_rigid_rigid,
+			data_container->host_data.cptb_rigid_rigid, data_container->host_data.dpth_rigid_rigid, data_container->host_data.bids_rigid_rigid);
+
+	rigid_rigid->UpdateJacobians();
+	rigid_rigid->UpdateRHS();
+
+}
 void ChSolverParallel::ComputeImpulses() {
 	shurA(data_container->host_data.gamma_data);
 	data_container->host_data.vel_data += data_container->host_data.QXYZ_data;
 	data_container->host_data.omg_data += data_container->host_data.QUVW_data;
+
 }
 void ChSolverParallel::Initial(real step, ChGPUDataManager *data_container_) {
 	data_container = data_container_;

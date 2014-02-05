@@ -9,6 +9,7 @@
 #include "ChBaseParallel.h"
 #include "constraints/ChConstraintRigidRigid.h"
 #include "constraints/ChConstraintBilateral.h"
+#include "../collision/ChCNarrowphase.h"
 namespace chrono {
 	class ChApiGPU ChSolverParallel: public ChBaseParallel {
 		public:
@@ -20,6 +21,7 @@ namespace chrono {
 				max_iteration = 100;
 				total_iteration = 0;
 				current_iteration = 0;
+				collision_inside = false;
 			}
 			void Setup();
 			void Initial(real step, ChGPUDataManager *data_container_);
@@ -28,6 +30,8 @@ namespace chrono {
 		void shurB(custom_vector<real> &x, custom_vector<real> &out);
 
 		void ComputeImpulses();
+		void UpdatePosition(custom_vector<real> &x);
+		void UpdateContacts();
 
 		void host_shurA_contacts(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB,real *gamma, real3 *updateV, real3 *updateO,real3 *QXYZ,real3 *QUVW,uint* offset);
 		void host_shurA_bilaterals(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO,real3 *QXYZ,real3 *QUVW,uint* offset);
@@ -109,8 +113,6 @@ namespace chrono {
 			real lcp_omega_bilateral;
 			real lcp_omega_contact;
 
-
-
 			int GetIteration() {
 				return current_iteration;
 			}
@@ -184,7 +186,7 @@ namespace chrono {
 			ChConstraintBilateral *bilateral;
 
 			bool do_stab;
-
+			bool collision_inside;
 
 		protected:
 		}
