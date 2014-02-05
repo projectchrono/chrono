@@ -13,27 +13,10 @@
 #ifndef CHBODY_H
 #define CHBODY_H
 
-//////////////////////////////////////////////////
-//
-//   ChBody.h
-//
-//   Class for rigid bodies, that is rigid moving
-//   parts with mass and maybe collision geometry.
-//   A rigid body encloses markers and forces too
-//
-//   HEADER file for CHRONO,
-//   Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 
 #include <math.h>
 
-#include "core/ChFrameMoving.h"
-#include "core/ChShared.h"
+#include "physics/ChBodyFrame.h"
 #include "physics/ChPhysicsItem.h"
 #include "physics/ChForce.h"
 #include "physics/ChMarker.h"
@@ -75,6 +58,9 @@ typedef ChSharedPtr<ChMarker> ChSharedMarkerPtr;
 #define BF_USESLEEPING      (1L <<10)  // if body remains in same place for too long time, it will be frozen
 #define BF_NOGYROTORQUE     (1L <<11)  // body do not get the gyroscopic (quadratic) term, for low-fi but stable RT simulations.
 
+
+
+
 ///
 /// Class for rigid bodies. A rigid body is an entity which
 /// can move in 3D space, and can be constrained to other rigid
@@ -84,7 +70,11 @@ typedef ChSharedPtr<ChMarker> ChSharedMarkerPtr;
 /// be associated to the body, for collision detection.
 ///
 
-class ChApi ChBody : public ChPhysicsItem , public ChFrameMoving<double> {
+class ChApi ChBody : 
+						public ChPhysicsItem , 
+						public ChBodyFrame
+						//public ChFrameMoving<double> 
+{
 
                         // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChBody,ChPhysicsItem);
@@ -133,10 +123,6 @@ protected:
                         
 
     float density;      // used when doing the 'recompute mass' operation.
-
-    float conductivity; // electric conductivity of material
-
-    ChVector<> cdim;    // characteristic dimension of the body
 
                         // used to store mass matrix and coordinates, as
                         // an interface to the LCP solver.
@@ -259,8 +245,9 @@ public:
                 /// Returns reference to the encapsulated ChLcpVariablesBody,
                 /// representing body variables (pos, speed or accel.- see VariablesLoad...() )
                 /// and forces.
-                /// The ChLcpVariablesBodyOwnMass is the interface ta the LCP system solver.
-    ChLcpVariablesBodyOwnMass& Variables() {return variables;}
+                /// The ChLcpVariablesBodyOwnMass is the interface to the LCP system solver.
+    ChLcpVariablesBodyOwnMass& VariablesBody() {return variables;}
+	ChLcpVariables&			   Variables() {return variables;}
 
 
              // Override/implement LCP system functions of ChPhysicsItem
@@ -401,12 +388,6 @@ public:
     float  GetDensity() {return density;}
     void   SetDensity(float mdensity) {density = mdensity;}
 
-                // Electric conductivity of material
-    float  GetConductivity() {return conductivity;}
-    void   SetConductivity(float mconductivity) {conductivity = mconductivity;}
-                // Caracteristic dimensions of the body 
-    ChVector<> GetCdim() {return cdim;}
-    void   SetCdim(ChVector<> mcdim) {cdim = mcdim;}
 
 
             //
@@ -437,10 +418,8 @@ public:
     void RemoveAllMarkers();
 
                 /// Finds a marker from its ChObject name
-    //ChMarker* SearchMarker (char* m_name); // Old 
     ChSharedPtr<ChMarker> SearchMarker (char* m_name);
                 /// Finds a force from its ChObject name
-    //ChForce*  SearchForce (char* m_name); // Old
     ChSharedPtr<ChForce>  SearchForce (char* m_name);
 
                 /// Gets the list of children markers.
@@ -553,16 +532,8 @@ public:
             // UTILITIES FOR FORCES/TORQUES:
             //
 
-                /// Trasform generic cartesian force into absolute force+torque applied to body COG.
-                /// If local=1, force & application point are intended as expressed in local
-                /// coordinates, if =0, in absolute.
-    void To_abs_forcetorque(const ChVector<>& force, const ChVector<>& appl_point, int local, ChVector<>& resultforce, ChVector<>& resulttorque);
 
-                /// Trasform generic cartesian torque into absolute torque applied to body COG.
-                /// If local=1, torque is intended as expressed in local coordinates, if =0, in absolute.
-    void To_abs_torque(const ChVector<>& torque, int local, ChVector<>& resulttorque);
-
-                /// As before, but puts the result into the "accumulators", as increment.
+                /// Add forces and torques into the "accumulators", as increment.
                 /// Forces and torques currently in accumulators will affect the body.
                 /// It's up to the user to remember to empty them and/or set again at each 
                 /// integration step. Useful to apply forces to bodies without needing to

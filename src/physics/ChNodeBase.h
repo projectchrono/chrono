@@ -19,6 +19,7 @@
 
 #include "core/ChShared.h"
 #include "physics/ChPhysicsItem.h"
+#include "physics/ChVariablesInterface.h"
 #include "lcp/ChLcpVariablesBodyOwnMass.h"
 
 
@@ -32,8 +33,12 @@ using namespace collision;
 
 /// Class for a node, that has some degrees of 
 /// freedom and that contain a proxy to the solver.
+/// It is like a lightweight version of a ChPhysicsItem,
+/// often a ChPhysicsItem is used as a container for a cluster 
+/// of these ChNodeBase.
 
-class ChApi ChNodeBase : public ChShared  
+class ChApi ChNodeBase : public virtual ChShared,
+						 public ChVariablesInterface	
 {
 public:
 	ChNodeBase ();
@@ -46,9 +51,6 @@ public:
 					// FUNCTIONS
 					//
 
-
-			// Access the 'LCP variables' of the node. To be implemented in children classes
-	virtual ChLcpVariables& Variables() =0; 
 
 			/// Get the number of degrees of freedom
 	int Get_ndof() { return this->Variables().Get_ndof();}

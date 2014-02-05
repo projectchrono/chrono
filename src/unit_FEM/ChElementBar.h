@@ -69,6 +69,17 @@ public:
 			// FEM functions
 			//
 
+				/// Fills the D vector (column matrix) with the current 
+				/// field values at the nodes of the element, with proper ordering.
+				/// If the D vector has not the size of this->GetNdofs(), it will be resized.
+	virtual void GetField(ChMatrixDynamic<>& mD)
+				{
+					mD.Reset(this->GetNdofs(),1);
+					mD.PasteVector(this->nodes[0]->GetPos(), 0, 0);
+					mD.PasteVector(this->nodes[1]->GetPos(), 3, 0);
+				}
+
+
 				/// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
 				/// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
 				/// (For the spring matrix there is no need to corotate local matrices: we already know a closed form expression.)

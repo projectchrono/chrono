@@ -490,8 +490,8 @@ void ChLinkWheel::UpdateForces (double mytime)
                         m_rad_force = (m_areas[iu][iv] * m_disp[iu][iv] *
                                          this->rad_k * this->rad_k_def->Get_y(m_disp[iu][iv]) );
                         // radial damping force , proportional to orthogonal speed of compression
-                        vrel_speed = Vsub( Body2->RelPoint_AbsSpeed(Body2->Point_World2Body(m_pos[iu][iv])),
-                                           Body1->RelPoint_AbsSpeed(Body1->Point_World2Body(m_pos[iu][iv]))  ) ;
+                        vrel_speed = Vsub( Body2->PointSpeedLocalToParent(Body2->Point_World2Body(m_pos[iu][iv])),
+                                           Body1->PointSpeedLocalToParent(Body1->Point_World2Body(m_pos[iu][iv]))  ) ;
                         m_rad_speed = Vdot(m_normals[iu][iv], vrel_speed);
                         vrad_speed = Vmul(m_normals[iu][iv], m_rad_speed);
                         vtan_speed = Vsub(vrel_speed, vrad_speed);

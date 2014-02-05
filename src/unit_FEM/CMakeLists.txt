@@ -33,7 +33,7 @@ IF(ENABLE_UNIT_FEM)
 		ChPolarDecomposition.cpp
 		ChMatrixCorotation.cpp
 		ChVisualizationFEMmesh.cpp
-		ChNodeBody.cpp
+		ChLinkPointFrame.cpp
 		)
 	SET(ChronoEngine_UNIT_FEM_HEADERS
 		ChApiFEM.h  
@@ -46,12 +46,16 @@ IF(ENABLE_UNIT_FEM)
 		ChNodeFEMxyzP.h 
 		ChElementBase.h
 		ChElementGeneric.h
+		ChElementCorotational.h
 		ChElementSpring.h
 		ChElementBar.h 
+		ChElementBeam.h
 		ChElementBeamEuler.h 
 		ChElement3D.h
+		ChElementTetrahedron.h
 		ChElementTetra_4.h
 		ChElementTetra_10.h
+		ChElementHexahedron.h
 		ChElementHexa_8.h
 		ChElementHexa_20.h
 		ChGaussIntegrationRule.h
@@ -62,7 +66,7 @@ IF(ENABLE_UNIT_FEM)
 		ChPolarDecomposition.h
 		ChMatrixCorotation.h
 		ChVisualizationFEMmesh.h
-		ChNodeBody.h 
+		ChLinkPointFrame.h 
 		)
 	#SET_SOURCE_FILES_PROPERTIES(ChronoEngine_UNIT_FEM_HEADERS PROPERTIES  HEADER_FILE_ONLY)
 	SOURCE_GROUP(unit_FEM FILES 

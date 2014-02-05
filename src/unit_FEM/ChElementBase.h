@@ -61,6 +61,13 @@ public:
 			// FEM functions
 			//
 
+				/// Fills the D vector (column matrix) with the current 
+				/// field values at the nodes of the element, with proper ordering.
+				/// If the D vector has not the size of this->GetNdofs(), it will be resized.
+				/// For corotational elements, field is assumed in local reference!
+				/// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
+	virtual void GetField(ChMatrixDynamic<>& mD) = 0;
+
 				/// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
 				/// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M, 
 				/// scaled by Mfactor. 

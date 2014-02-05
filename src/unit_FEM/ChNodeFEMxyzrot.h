@@ -15,6 +15,7 @@
 
 
 #include "ChNodeFEMbase.h"
+#include "physics/ChBodyFrame.h"
 #include "core/ChFrameMoving.h"
 #include "lcp/ChLcpVariablesBodyOwnMass.h"
 
@@ -29,16 +30,18 @@ namespace fem
 /// in 3D space, with x,y,z displacement and 3D rotation.
 /// This is the typical node that can be used for beams, etc.
 
-class ChApiFem ChNodeFEMxyzrot : public ChNodeFEMbase
+class ChApiFem ChNodeFEMxyzrot : public ChNodeFEMbase,
+								 public ChBodyFrame
 
 {
 public:
 
-	ChNodeFEMxyzrot(ChFrame<> initialf = ChFrame<>() )
+	ChNodeFEMxyzrot(ChFrame<> initialf = ChFrame<>() ) 	
 					{
+						this->Frame() = initialf;
+
 						X0    = ChFrame<>(initialf);
-						frame = ChFrameMoving<>(initialf);
-						
+
 						Force = VNULL;
 						Torque = VNULL;
 
@@ -49,10 +52,10 @@ public:
 	~ChNodeFEMxyzrot() {};
 
 	ChNodeFEMxyzrot (const ChNodeFEMxyzrot& other) :
-						ChNodeFEMbase(other) 
+						ChNodeFEMbase(other),
+						ChBodyFrame(other)
 	{
 		this->X0 = other.X0;
-		this->frame = other.frame;
 
 		this->Force = other.Force;
 		this->Force = other.Torque;
@@ -66,9 +69,9 @@ public:
 			return *this;
 
 		ChNodeFEMbase::operator=(other);
+		ChBodyFrame::operator=(other);
 
 		this->X0 = other.X0;
-		this->frame = other.frame;
 
 		this->Force = other.Force;
 		this->Force = other.Torque;
@@ -83,14 +86,20 @@ public:
 						return this->variables; 
 					} 
 
+    virtual ChLcpVariablesBodyOwnMass& VariablesBody() 
+					{
+						return this->variables; 
+					}
+
+
 				/// Set the rest position as the actual position.
 	virtual void Relax () 
 					{
-						this->X0 = this->frame; 
-						this->frame.GetPos_dt() = VNULL; 
-						this->frame.GetRot_dtdt() = QNULL;
-						this->frame.GetPos_dtdt() = VNULL; 
-						this->frame.GetRot_dtdt() = QNULL;
+						this->X0 = *this; 
+						this->GetPos_dt() = VNULL; 
+						this->GetRot_dtdt() = QNULL;
+						this->GetPos_dtdt() = VNULL; 
+						this->GetRot_dtdt() = QNULL;
 					}
 
 				/// Get atomic mass of the node.
@@ -118,7 +127,7 @@ public:
 
 				/// Access the frame of the node - in absolute csys,
 				/// with infos on actual position, speed, acceleration, etc.
-	ChFrameMoving<>& Frame() {return frame;}
+	ChFrameMoving<>& Frame() {return *this;}
 
 
 				/// Sets the 'fixed' state of the node. If true, it does not move
@@ -134,7 +143,7 @@ public:
 
 	virtual void VariablesFbLoadForces(double factor=1.) 
 					{ 
-						ChVector<> gyro = Vcross ( frame.GetWvel_loc(), (variables.GetBodyInertia().Matr_x_Vect (frame.GetWvel_loc())));
+						ChVector<> gyro = Vcross ( this->GetWvel_loc(), (variables.GetBodyInertia().Matr_x_Vect (this->GetWvel_loc())));
 
 						this->variables.Get_fb().PasteSumVector( this->Force * factor ,0,0);
 						this->variables.Get_fb().PasteSumVector((this->Torque - gyro)* factor ,3,0);
@@ -143,17 +152,17 @@ public:
 	virtual void VariablesQbLoadSpeed() 
 					{ 
 						// set current speed in 'qb', it can be used by the LCP solver when working in incremental mode
-						this->variables.Get_qb().PasteVector(frame.GetCoord_dt().pos,0,0);
-						this->variables.Get_qb().PasteVector(frame.GetWvel_loc()    ,3,0);
+						this->variables.Get_qb().PasteVector(this->GetCoord_dt().pos,0,0);
+						this->variables.Get_qb().PasteVector(this->GetWvel_loc()    ,3,0);
 					};
 
 	virtual void VariablesQbSetSpeed(double step=0.) 
 					{
-						ChCoordsys<> old_coord_dt = frame.GetCoord_dt();
+						ChCoordsys<> old_coord_dt = this->GetCoord_dt();
 
 						// from 'qb' vector, sets body speed, and updates auxiliary data
-						frame.SetPos_dt(   this->variables.Get_qb().ClipVector(0,0) );
-						frame.SetWvel_loc( this->variables.Get_qb().ClipVector(3,0) );
+						this->SetPos_dt(   this->variables.Get_qb().ClipVector(0,0) );
+						this->SetWvel_loc( this->variables.Get_qb().ClipVector(3,0) );
 
 						// apply limits (if in speed clamping mode) to speeds.
 						//ClampSpeed(); 
@@ -161,8 +170,8 @@ public:
 						// Compute accel. by BDF (approximate by differentiation);
 						if (step)
 						{
-							frame.SetPos_dtdt( (frame.GetCoord_dt().pos - old_coord_dt.pos)  / step);
-							frame.SetRot_dtdt( (frame.GetCoord_dt().rot - old_coord_dt.rot)  / step);
+							this->SetPos_dtdt( (this->GetCoord_dt().pos - old_coord_dt.pos)  / step);
+							this->SetRot_dtdt( (this->GetCoord_dt().rot - old_coord_dt.rot)  / step);
 						}
 					};
 
@@ -183,23 +192,23 @@ public:
 						ChVector<> newwel   = variables.Get_qb().ClipVector(3,0);
 
 						// ADVANCE POSITION: pos' = pos + dt * vel
-						frame.SetPos( frame.GetPos() + newspeed * step);
+						this->SetPos( this->GetPos() + newspeed * step);
 
 						// ADVANCE ROTATION: rot' = [dt*wwel]%rot  (use quaternion for delta rotation)
 						ChQuaternion<> mdeltarot;
-						ChQuaternion<> moldrot = frame.GetRot();
-						ChVector<> newwel_abs = frame.Amatrix * newwel;
+						ChQuaternion<> moldrot = this->GetRot();
+						ChVector<> newwel_abs = this->Amatrix * newwel;
 						double mangle = newwel_abs.Length() * step;
 						newwel_abs.Normalize();
 						mdeltarot.Q_from_AngAxis(mangle, newwel_abs);
 						ChQuaternion<> mnewrot = mdeltarot % moldrot;
-						frame.SetRot( mnewrot );
+						this->SetRot( mnewrot );
 					};
 
 private:
 	ChLcpVariablesBodyOwnMass	variables; /// 3D node variables, with x,y,z displ. and 3D rot.
 
-	ChFrameMoving<> frame;	///< frame
+	//ChFrameMoving<> frame;	///< frame
 
 	ChFrame<> X0;		///< reference frame
 

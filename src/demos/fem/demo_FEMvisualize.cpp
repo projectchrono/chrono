@@ -28,7 +28,7 @@
 #include "unit_FEM/ChElementHexa_8.h"
 #include "unit_FEM/ChElementHexa_20.h"
 #include "unit_FEM/ChMesh.h"
-#include "unit_FEM/ChNodeBody.h"
+#include "unit_FEM/ChLinkPointFrame.h"
 #include "unit_FEM/ChVisualizationFEMmesh.h"
 #include "irrlicht_interface/ChIrrApp.h"
 
@@ -99,6 +99,7 @@ int main(int argc, char* argv[])
 				// Apply a force to a node
 	ChSharedPtr<ChNodeFEMxyz> mnodelast (my_mesh->GetNode(my_mesh->GetNnodes()-1));
 	mnodelast->SetForce( ChVector<>(100,0,0));
+
 
 
 	//
@@ -175,7 +176,7 @@ int main(int argc, char* argv[])
 			if (mnode->GetPos().y <0.01)
 			{
 
-				ChSharedPtr<ChNodeBody> constraint(new ChNodeBody);
+				ChSharedPtr<ChLinkPointFrame> constraint(new ChLinkPointFrame);
 				constraint->Initialize(mnode,
 									   truss);
 				my_system.Add(constraint);
@@ -211,11 +212,11 @@ int main(int argc, char* argv[])
 	mvisualizemesh->SetSmoothFaces(true);
 	my_mesh->AddAsset(mvisualizemesh);
 /*
-	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemeshwire(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	mvisualizemeshwire->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NONE);
-	mvisualizemeshwire->SetColorscaleMinMax(0.0,4.0);
-	mvisualizemeshwire->SetWireframe(true);
-	my_mesh->AddAsset(mvisualizemeshwire);
+	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemeshB(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
+	mvisualizemeshB->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_ELEM_STRAIN_HYDROSTATIC);
+	mvisualizemeshB->SetColorscaleMinMax(-0.02,0.02);
+	//mvisualizemeshB->SetWireframe(true);
+	my_mesh->AddAsset(mvisualizemeshB);
 */
 	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemeshref(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
 	mvisualizemeshref->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_SURFACE);
@@ -228,7 +229,7 @@ int main(int argc, char* argv[])
 	mvisualizemeshC->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NONE);
 	mvisualizemeshC->SetSymbolsThickness(0.006);
 	my_mesh->AddAsset(mvisualizemeshC);
-
+/*
 	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemeshD(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
 	//mvisualizemeshD->SetFEMglyphType(ChVisualizationFEMmesh::E_GLYPH_NODE_VECT_SPEED);
 	mvisualizemeshD->SetFEMglyphType(ChVisualizationFEMmesh::E_GLYPH_ELEM_TENS_STRAIN);
@@ -237,7 +238,7 @@ int main(int argc, char* argv[])
 	mvisualizemeshD->SetColorscaleMinMax(-0.15,0.15);
 	mvisualizemeshD->SetZbufferHide(false);
 	my_mesh->AddAsset(mvisualizemeshD);
-
+*/
 
 
 			// ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
@@ -278,7 +279,6 @@ int main(int argc, char* argv[])
 		//	GetLog() << " t =" << my_system.GetChTime() << "  mnode3 pos.y=" << mnode3->GetPos().y << "  \n";
 
 		application.EndScene();
-		//break;
 	}
 
 

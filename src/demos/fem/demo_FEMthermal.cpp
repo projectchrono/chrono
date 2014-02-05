@@ -31,7 +31,7 @@
 #include "unit_FEM/ChContinuumElectrostatics.h"
 #include "unit_FEM/ChNodeFEMxyzP.h"
 #include "unit_FEM/ChMesh.h"
-#include "unit_FEM/ChNodeBody.h"
+#include "unit_FEM/ChLinkPointFrame.h"
 #include "unit_FEM/ChVisualizationFEMmesh.h"
 #include "irrlicht_interface/ChIrrApp.h"
 

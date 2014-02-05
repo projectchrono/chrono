@@ -114,7 +114,7 @@ void ChLinkMarkers::SetMarker1 (ChMarker* mark1)
 {
     marker1 = mark1;
     if (mark1)
-        Body1=(ChBody*) mark1->GetBody();
+        Body1=(ChBodyFrame*) mark1->GetBody();
     else
         Body1= NULL;
 }
@@ -123,7 +123,7 @@ void ChLinkMarkers::SetMarker2 (ChMarker* mark2)
 {
     marker2 = mark2;
     if (mark2)
-        Body2=(ChBody*) mark2->GetBody();
+        Body2=(ChBodyFrame*) mark2->GetBody();
     else
         Body2= NULL;
 }
@@ -161,7 +161,7 @@ int ChLinkMarkers::Initialize(ChSharedPtr<ChMarker>& mmark1, ChSharedPtr<ChMarke
 	assert(mm1->GetBody()->GetSystem() == mm2->GetBody()->GetSystem());
 
 	ReferenceMarkers(mm1, mm2);
-	SetSystem(this->Body1->GetSystem());
+	//SetSystem(this->Body1->GetSystem());
 	return true;
 }
 	
@@ -186,7 +186,7 @@ int ChLinkMarkers::Initialize(ChSharedPtr<ChBody>& mbody1, ChSharedPtr<ChBody>& 
 	ChMarker* mm2 = mmark2.get_ptr();
 	ReferenceMarkers(mm1, mm2);
 
-	SetSystem(this->Body1->GetSystem());	
+	//SetSystem(this->Body1->GetSystem());	
 	
 	if (pos_are_relative)
 	{
@@ -547,21 +547,21 @@ void ChLinkMarkers::ConstraintsFbLoadForces(double factor)
 								  FALSE,						// from abs. space
 								  mbody_force, mbody_torque);	// resulting force-torque, both in abs coords
 		Body2->Variables().Get_fb().PasteSumVector( mbody_force * -factor , 0,0);
-		Body2->Variables().Get_fb().PasteSumVector( Body2->Dir_World2Body(mbody_torque) * -factor , 3,0);
+		Body2->Variables().Get_fb().PasteSumVector( Body2->TrasformDirectionParentToLocal(mbody_torque) * -factor , 3,0);
 
 		Body1->To_abs_forcetorque(m_abs_force,
 								  marker1->GetAbsCoord().pos,	// absolute application point is always marker1 
 								  FALSE,						// from abs. space
 								  mbody_force, mbody_torque);	// resulting force-torque, both in abs coords
 		Body1->Variables().Get_fb().PasteSumVector( mbody_force *  factor , 0,0);
-		Body1->Variables().Get_fb().PasteSumVector( Body1->Dir_World2Body(mbody_torque) *  factor , 3,0);	
+		Body1->Variables().Get_fb().PasteSumVector( Body1->TrasformDirectionParentToLocal(mbody_torque) *  factor , 3,0);	
 	}
 	if (Vnotnull(&C_torque))
     {
         Vector m_abs_torque = Body2->GetA()->Matr_x_Vect(marker2->GetA()->Matr_x_Vect(C_torque));
 			// load torques in 'fb' vector accumulator of body variables (torques in local coords)
-		Body1->Variables().Get_fb().PasteSumVector( Body1->Dir_World2Body(m_abs_torque) *  factor , 3,0);
-		Body2->Variables().Get_fb().PasteSumVector( Body2->Dir_World2Body(m_abs_torque) * -factor , 3,0);
+		Body1->Variables().Get_fb().PasteSumVector( Body1->TrasformDirectionParentToLocal(m_abs_torque) *  factor , 3,0);
+		Body2->Variables().Get_fb().PasteSumVector( Body2->TrasformDirectionParentToLocal(m_abs_torque) * -factor , 3,0);
 	}
 
 }

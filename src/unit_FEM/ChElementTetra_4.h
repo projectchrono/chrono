@@ -14,7 +14,7 @@
 #define CHELEMENTTETRA4_H
 
 
-#include "ChElement3D.h"
+#include "ChElementTetrahedron.h"
 #include "ChNodeFEMxyz.h"
 #include "ChNodeFEMxyzP.h"
 #include "ChContinuumPoisson3D.h"
@@ -31,7 +31,7 @@ namespace fem
 	/// with constant stress, constant strain.
 	/// It can be easily used for 3D FEM problems.
 
-class ChApiFem ChElementTetra_4 : public ChTetrahedron
+class ChApiFem ChElementTetra_4 : public ChElementTetrahedron
 {
 protected:
 		std::vector< ChSharedPtr<ChNodeFEMxyz> > nodes;
@@ -75,6 +75,20 @@ public:
 			//
 			// FEM functions
 			//
+
+				/// Fills the D vector (displacement) column matrix with the current 
+				/// field values at the nodes of the element, with proper ordering.
+				/// If the D vector has not the size of this->GetNdofs(), it will be resized.
+				/// For corotational elements, field is assumed in local reference!
+	virtual void GetField(ChMatrixDynamic<>& mD)
+				{
+					mD.Reset(this->GetNdofs(),1);
+					mD.PasteVector(A.MatrT_x_Vect(nodes[0]->pos) - nodes[0]->GetX0(), 0, 0);
+					mD.PasteVector(A.MatrT_x_Vect(nodes[1]->pos) - nodes[1]->GetX0(), 3, 0);
+					mD.PasteVector(A.MatrT_x_Vect(nodes[2]->pos) - nodes[2]->GetX0(), 6, 0);
+					mD.PasteVector(A.MatrT_x_Vect(nodes[3]->pos) - nodes[3]->GetX0(), 9, 0);
+				}
+
 
 	double ComputeVolume()
 				{
@@ -226,10 +240,7 @@ public:
 
 						// set up vector of nodal displacements (in local element system) u_l = R*p - p0
 					ChMatrixDynamic<> displ(12,1);
-					displ.PasteVector(A.MatrT_x_Vect(nodes[0]->pos) - nodes[0]->GetX0(), 0, 0); // nodal displacements, local
-					displ.PasteVector(A.MatrT_x_Vect(nodes[1]->pos) - nodes[1]->GetX0(), 3, 0);
-					displ.PasteVector(A.MatrT_x_Vect(nodes[2]->pos) - nodes[2]->GetX0(), 6, 0);
-					displ.PasteVector(A.MatrT_x_Vect(nodes[3]->pos) - nodes[3]->GetX0(), 9, 0);
+					this->GetField(displ); // nodal displacements, local
 
 						// [local Internal Forces] = [Klocal] * displ + [Rlocal] * displ_dt
 					ChMatrixDynamic<> FiK_local(12,1);
@@ -276,10 +287,7 @@ public:
 				{
 					// set up vector of nodal displacements (in local element system) u_l = R*p - p0
 					ChMatrixDynamic<> displ(12,1);
-					displ.PasteVector(A.MatrT_x_Vect(nodes[0]->pos) - nodes[0]->GetX0(), 0, 0); // nodal displacements, local
-					displ.PasteVector(A.MatrT_x_Vect(nodes[1]->pos) - nodes[1]->GetX0(), 3, 0);
-					displ.PasteVector(A.MatrT_x_Vect(nodes[2]->pos) - nodes[2]->GetX0(), 6, 0);
-					displ.PasteVector(A.MatrT_x_Vect(nodes[3]->pos) - nodes[3]->GetX0(), 9, 0);
+					this->GetField(displ);  // nodal displacements, local
 
 					ChStrainTensor<> mstrain;
 					mstrain.MatrMultiply(MatrB, displ);
@@ -315,7 +323,7 @@ public:
 	/// This is a classical element with linear displacement.
 	/// ***EXPERIMENTAL***
 
-class ChApiFem ChElementTetra_4_P : public ChTetrahedron
+class ChApiFem ChElementTetra_4_P : public ChElementTetrahedron
 {
 protected:
 		std::vector< ChSharedPtr<ChNodeFEMxyzP> > nodes;
@@ -365,6 +373,20 @@ public:
 			//
 			// FEM functions
 			//
+
+				/// Fills the D vector column matrix with the current 
+				/// field values at the nodes of the element, with proper ordering.
+				/// If the D vector has not the size of this->GetNdofs(), it will be resized.
+				/// For corotational elements, field is assumed in local reference!
+	virtual void GetField(ChMatrixDynamic<>& mD)
+				{
+					mD.Reset(this->GetNdofs(),1);
+					mD(0) = nodes[0]->GetP();
+					mD(1) = nodes[1]->GetP();
+					mD(2) = nodes[2]->GetP();
+					mD(3) = nodes[3]->GetP();
+				}
+
 
 	double ComputeVolume()
 				{
@@ -493,10 +515,7 @@ public:
 
 						// set up vector of nodal fields
 					ChMatrixDynamic<> displ(4,1);
-					displ(0) = nodes[0]->GetP(); 
-					displ(1) = nodes[1]->GetP(); 
-					displ(2) = nodes[2]->GetP(); 
-					displ(3) = nodes[3]->GetP(); 
+					this->GetField(displ);
 
 						// [local Internal Forces] = [Klocal] * P 
 					ChMatrixDynamic<> FiK_local(4,1);
@@ -530,10 +549,7 @@ public:
 				{
 					// set up vector of nodal displacements (in local element system) u_l = R*p - p0
 					ChMatrixDynamic<> displ(4,1);
-					displ(0) = nodes[0]->GetP(); 
-					displ(1) = nodes[1]->GetP(); 
-					displ(2) = nodes[2]->GetP(); 
-					displ(3) = nodes[3]->GetP();
+					this->GetField(displ);
 
 					ChMatrixNM<double,3,1> mPgrad;
 					mPgrad.MatrMultiply(MatrB, displ);

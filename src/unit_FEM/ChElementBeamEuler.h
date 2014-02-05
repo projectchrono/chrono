@@ -13,10 +13,9 @@
 #ifndef CHELEMENTBEAMEULER_H
 #define CHELEMENTBEAMEULER_H
 
+#define BEAM_VERBOSE
 
-#include "ChElementGeneric.h"
-#include "ChElement3D.h"
-#include "ChNodeFEMxyzrot.h"
+#include "ChElementBeam.h"
 
 
 namespace chrono
@@ -31,22 +30,17 @@ namespace fem
 /// For this 'basic' implementation, constant section and 
 /// constant material are assumed.
 
-class ChApiFem ChElementBeamEuler : public ChElementGeneric,
-								    public ChElementCorotational
+class ChApiFem ChElementBeamEuler : public ChElementBeam
 {
 protected:
 	std::vector< ChSharedPtr<ChNodeFEMxyzrot> > nodes;
-	double Area;
-	double Iyy;
-	double Izz;
-	double G;
-	double E;
-	double density;
-	double rdamping;
-	double mass;
-	double length;
+	
 	ChMatrixDynamic<> StiffnessMatrix; // undeformed local stiffness matrix
+
 	ChQuaternion<> q_refrot1;
+
+	ChQuaternion<> q_element_abs_rot;
+	ChQuaternion<> q_element_ref_rot;
 
 public:
 
@@ -54,20 +48,11 @@ public:
 				{
 					nodes.resize(2);
 
-					SetAsRectangularSection(0.01, 0.01); // defaults Area, Ixx, Iyy
-				
-					E = 0.01e9;		  // default stiffness: rubber
-					G = 0.3 * E;
-
-					density = 1000;   // default density: water
-					rdamping = 0.01;  // default raleygh damping.
-
-					length = 0;		// will be computed by Setup(), later
-					mass = 0;		// will be computed by Setup(), later
-
 					this->StiffnessMatrix.Resize(this->GetNdofs(), this->GetNdofs());
 
 					q_refrot1 = QUNIT;
+					q_element_abs_rot = QUNIT;
+					q_element_ref_rot = QUNIT;
 				}
 
 	virtual ~ChElementBeamEuler() {}
@@ -95,6 +80,11 @@ public:
 			// FEM functions
 			//
 
+				/// Get the absolute rotation of element in space 
+				/// This is not the same of Rotation() , that expresses 
+				/// the accumulated rotation from starting point.
+	ChQuaternion<> GetAbsoluteRotation() {return q_element_abs_rot;}
+
 				/// Fills the N matrix (single row, 12 columns) with the
 				/// values of shape functions at abscyssa 'eta'.
 				/// Note, eta=-1 at node1, eta=+1 at node2.
@@ -120,6 +110,7 @@ public:
 					N(11)=Nr2;
 				};
 
+
 	virtual void Update() 
 				{
 					// parent class update:
@@ -133,9 +124,23 @@ public:
 				/// The reference frame of this Euler-Bernoulli beam has X aligned to two nodes and Y parallel to Y of 1st node
 	virtual void UpdateRotation()
 				{
-					ChVector<> mXele = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
-					ChVector<> myele = nodes[0]->Frame().GetA()->Get_A_Yaxis();
-					A.Set_A_Xdir(mXele, myele);
+					ChMatrix33<> A0;
+					ChVector<> mXele = nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos();
+					ChVector<> myele = nodes[0]->GetX0().GetA()->Get_A_Yaxis();
+					A0.Set_A_Xdir(mXele, myele);
+					q_element_ref_rot = A0.Get_A_quaternion(); // BETTER IN SetupInitial()
+
+					ChMatrix33<> Aabs;
+					mXele = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
+					myele = nodes[0]->Frame().GetA()->Get_A_Yaxis();
+					Aabs.Set_A_Xdir(mXele, myele);
+					q_element_abs_rot = Aabs.Get_A_quaternion(); 
+
+					A.MatrTMultiply(A0,Aabs);
+		#ifdef BEAM_VERBOSE
+		//GetLog() <<"\n\n\n======UpdateRotation \n A corot:" << A << "\n";
+		GetLog() <<"\n\n\n====== UpdateRotation A abs:" << Aabs << "\n\n";
+		#endif
 				}
 
 				/// Fills the D vector (column matrix) with the current 
@@ -148,6 +153,9 @@ public:
 				{
 					mD.Reset(12,1);
 
+					ChMatrix33<> A0  (this->q_element_ref_rot);
+					ChMatrix33<> Aabs(this->q_element_abs_rot);
+
 					ChVector<> delta_rot_dir;
 					double     delta_rot_angle;
 
@@ -155,27 +163,38 @@ public:
 					ChQuaternion<> quatA = A.Get_A_quaternion();
 
 					// Node 0, displacement (in local element frame, corotated back by A' )
-					mD.PasteVector(A.MatrT_x_Vect(nodes[0]->Frame().GetPos()) - nodes[0]->GetX0().GetPos(), 0, 0);
-
-					// Node 0, x,y,z small rotations (in local element frame, corotated back by A' )
-					//  with quaternion algebra: q_delta = q_corotation' * q_node  
-					//  with linear algebra in SO(3): [A_delta] = [A_coro.]'[A_node]
-					ChQuaternion<> q_delta0 =  quatA.GetConjugate() % nodes[0]->Frame().GetRot();
+					ChVector<> displ = A.MatrT_x_Vect(nodes[0]->Frame().GetPos()) - (nodes[0]->GetX0().GetPos());
+				displ = A0.MatrT_x_Vect(displ);
+					mD.PasteVector(displ, 0, 0);
+	#ifdef BEAM_VERBOSE
+	GetLog() <<"\n\n\n======GetField \ndispl A:" << displ << "\n";
+	#endif
+					// Node 0, x,y,z small rotations (in local element frame
+					ChQuaternion<> q_delta0 =   q_element_abs_rot.GetConjugate() % 
+												nodes[0]->Frame().GetRot();
 						// note, for small incremental rotations this is opposite of ChNodeFEMxyzrot::VariablesQbIncrementPosition 
 					q_delta0.Q_to_AngAxis(delta_rot_angle, delta_rot_dir); 
 					mD.PasteVector(delta_rot_dir*delta_rot_angle, 3, 0);
-
+	#ifdef BEAM_VERBOSE
+	GetLog() <<"rotaz A:" << delta_rot_angle*CH_C_RAD_TO_DEG << " on axis " <<  delta_rot_dir << "\n";
+	#endif 
 					// Node 1, displacement (in local element frame, corotated back by A' )
-					mD.PasteVector(A.MatrT_x_Vect(nodes[1]->Frame().GetPos()) - nodes[1]->GetX0().GetPos(), 6, 0);
-
-					// Node 1, x,y,z small rotations (in local element frame, corotated back by A' )
-					//  with quaternion algebra: q_delta = q_refrot1' * q_corotation' * q_node  
-					//  with linear algebra in SO(3): [A_delta] = [A_refrot1]'[A_coro.]'[A_node]
-					ChQuaternion<> q_delta1 = this->q_refrot1.GetConjugate() % (quatA.GetConjugate() % nodes[1]->Frame().GetRot());
+					displ = A.MatrT_x_Vect(nodes[1]->Frame().GetPos()) - (nodes[1]->GetX0().GetPos());
+				displ = A0.MatrT_x_Vect(displ);
+					mD.PasteVector(displ, 6, 0);
+	#ifdef BEAM_VERBOSE
+	GetLog() <<"displ B:" << displ << "\n";
+	#endif
+					// Node 1, x,y,z small rotations (in local element frame)
+					ChQuaternion<> q_delta1 =   // this->q_refrot1.GetConjugate() %  
+												q_element_abs_rot.GetConjugate() % 
+												nodes[1]->Frame().GetRot();
 						// note, for small incremental rotations this is opposite of ChNodeFEMxyzrot::VariablesQbIncrementPosition 
 					q_delta1.Q_to_AngAxis(delta_rot_angle, delta_rot_dir); 
 					mD.PasteVector(delta_rot_dir*delta_rot_angle, 9, 0);
-
+	#ifdef BEAM_VERBOSE
+	GetLog() <<"rotaz B:" << delta_rot_angle*CH_C_RAD_TO_DEG << " on axis " <<  delta_rot_dir << "\n";
+	#endif
 				}
 
 				/// Fills the Ddt vector (column matrix) with the current 
@@ -188,20 +207,19 @@ public:
 				{
 					mD_dt.Reset(12,1);
 
-					// corotational frame 
-					ChQuaternion<> quatA = A.Get_A_quaternion();
+					ChMatrix33<> Aabs(this->q_element_abs_rot);
 
 					// Node 0, velocity (in local element frame, corotated back by A' )
-					mD_dt.PasteVector(A.MatrT_x_Vect(nodes[0]->Frame().GetPos_dt()),    0, 0);
+					mD_dt.PasteVector(Aabs.MatrT_x_Vect(nodes[0]->Frame().GetPos_dt()),    0, 0);
 
 					// Node 0, x,y,z ang.velocity (in local element frame, corotated back by A' )
-					mD_dt.PasteVector(A.MatrT_x_Vect(nodes[0]->Frame().GetWvel_par() ), 3, 0);
+					mD_dt.PasteVector(Aabs.MatrT_x_Vect(nodes[0]->Frame().GetWvel_par() ), 3, 0);
 
 					// Node 1, velocity (in local element frame, corotated back by A' )
-					mD_dt.PasteVector(A.MatrT_x_Vect(nodes[1]->Frame().GetPos_dt()),    6, 0);
+					mD_dt.PasteVector(Aabs.MatrT_x_Vect(nodes[1]->Frame().GetPos_dt()),    6, 0);
 
 					// Node 1, x,y,z ang.velocity (in local element frame, corotated back by A' )
-					mD_dt.PasteVector(A.MatrT_x_Vect(nodes[1]->Frame().GetWvel_par() ), 9, 0);
+					mD_dt.PasteVector(Aabs.MatrT_x_Vect(nodes[1]->Frame().GetWvel_par() ), 9, 0);
 
 				}
 				
@@ -299,8 +317,10 @@ public:
 					// Corotational K stiffness:
 					ChMatrixDynamic<> CK(12,12);
 					ChMatrixDynamic<> CKCt(12,12); // the global, corotated, K matrix
-					ChMatrixCorotation<>::ComputeCK(this->StiffnessMatrix, this->A, 4, CK);
-					ChMatrixCorotation<>::ComputeKCt(CK, this->A, 4, CKCt);
+				ChMatrix33<> Atoabs(this->q_element_abs_rot);
+				ChMatrix33<> Atolocwel; Atolocwel.Set33Identity();
+					ChMatrixCorotation<>::ComputeCK(this->StiffnessMatrix, Atoabs, Atolocwel, 4, CK);
+					ChMatrixCorotation<>::ComputeKCt(CK, Atoabs, Atolocwel, 4, CKCt);
 
 
 					// For K stiffness matrix and R matrix: scale by factors
@@ -348,10 +368,13 @@ public:
 						// set up vector of nodal displacements and small rotations (in local element system) 
 					ChMatrixDynamic<> displ(12,1);
 					this->GetField(displ);
-					
+
 						// [local Internal Forces] = [Klocal] * displ + [Rlocal] * displ_dt
 					ChMatrixDynamic<> FiK_local(12,1);
 					FiK_local.MatrMultiply(StiffnessMatrix, displ);
+
+GetLog() <<"========\nInternal forces: displ=" << displ << "\n";
+GetLog() <<"Internal forces: FiKlocal=" << FiK_local << "\n";
 
 						// set up vector of nodal velocities (in local element system) 
 					ChMatrixDynamic<> displ_dt(12,1);
@@ -367,56 +390,134 @@ public:
 					FiK_local.MatrScale(-1.0);
 
 						// Fi = C * Fi_local  with C block-diagonal rotations A  , for nodal forces in abs. frame 
-					ChMatrixCorotation<>::ComputeCK(FiK_local, this->A, 4, Fi);
-				}
-
-			//
-			// Custom properties functions
-			//
-
-				/// Set the cross sectional area A of the beam (m^2) 
-	void   SetArea(double ma) { this->Area = ma;  }
-	double GetArea() {return this->Area;}
-
-				/// Set the Iyy moment of inertia of the beam 
-	void   SetIyy(double ma) { this->Iyy = ma;  }
-	double GetIyy() {return this->Iyy;}
-
-				/// Set the Iyy moment of inertia of the beam 
-	void   SetIzz(double ma) { this->Izz = ma;  }
-	double GetIzz() {return this->Izz;}
-
-				/// Shortcut: set area, Ixx and Iyy moment of inertia  
-				/// at once, given the y and z widths of the beam assumed
-				/// with rectangular shape.
-	void   SetAsRectangularSection(double width_y, double width_z) 
-				{ 
-					this->Area = width_y * width_z; 
-					this->Izz = (1.0/12.0)*width_z*pow(width_y,3);
-					this->Iyy = (1.0/12.0)*width_y*pow(width_z,3);
+					ChMatrix33<> Atoabs(this->q_element_abs_rot);
+					ChMatrix33<> Atolocwel; Atolocwel.Set33Identity();
+					ChMatrixCorotation<>::ComputeCK(FiK_local, Atoabs, Atolocwel, 4, Fi);
+#ifdef BEAM_VERBOSE
+GetLog() << "\nInternal forces (local): \n";
+for (int c = 0; c<6; c++)  GetLog() << FiK_local(c) << "  "; 
+GetLog() << "\n";
+for (int c = 6; c<12; c++) GetLog() << FiK_local(c) << "  ";
+GetLog() << "\n\nInternal forces (ABS) : \n";
+for (int c = 0; c<6; c++)  GetLog() << Fi(c) << "  "; 
+GetLog() << "\n";
+for (int c = 6; c<12; c++) GetLog() << Fi(c) << "  ";
+GetLog() << "\n";
+#endif
 				}
 
 
-				/// Set the density of the beam (kg/m^3)
-	void   SetDensity(double md) { this->density = md;  }
-	double GetDensity() {return this->density;}
+			//
+			// Beam-specific functions
+			//
 
-				/// Set E, the Young elastic modulus (N/m^2) 
-	void   SetYoungModulus(double mE) { this->E = mE; }
-	double GetYoungModulus() {return this->E;}
-				/// Set G, the shear modulus 
-	void   SetGshearModulus(double mG) { this->G = mG; }
-	double GetGshearModulus() {return this->G;}
+				/// Gets the xyz displacement of a point on the beam line, 
+				/// and the rotation RxRyRz of section plane, at abscyssa 'eta'.
+				/// Note, eta=-1 at node1, eta=+1 at node2.
+				/// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetField()
+				/// Results are not corotated.
+	virtual void EvaluateSectionDisplacement(const double eta, const ChMatrix<>& displ, ChVector<>& u_displ, ChVector<>& u_rotaz)
+				{
+					ChMatrixNM<double,1,12> N;
 
-				/// Set the Raleygh damping ratio r (as in: R = r * K ), to do: also mass-proportional term
-	void   SetBeamRaleyghDamping(double mr) { this->rdamping = mr; }
-	double GetBeamRaleyghDamping() {return this->rdamping;}
+					this->ShapeFunctions(N, eta); // Evaluate shape functions
 
-				/// The full mass of the beam, (with const. section, density, etc.)
-	double  GetMass() {return this->mass;}
+					u_displ.x = N(0)*displ(0)+N(6)*displ(6);   // x_a   x_b
+					u_displ.y = N(1)*displ(1)+N(7)*displ(7)    // y_a   y_b
+							   +N(5)*displ(5)+N(11)*displ(11); // Rz_a  Rz_b
+					u_displ.z = N(2)*displ(2)+N(8)*displ(8)    // z_a   z_b
+							   +N(4)*displ(4)+N(10)*displ(10); // Ry_a  Ry_b 
 
-				/// The rest length of the bar
-	double  GetRestLength() {return this->length;}
+					u_rotaz.x = N(3)*displ(3)+N(9)*displ(9);   // Rx_a  Rx_b
+					
+					double dN_ua = (1./(2.*this->GetRestLength()))*(-3. +3*eta*eta);  // slope shape functions are computed here on-the-fly
+					double dN_ub = (1./(2.*this->GetRestLength()))*( 3. -3*eta*eta);
+					double dN_ra =  (1./4.)*(-1. -2*eta + 3*eta*eta);
+					double dN_rb = -(1./4.)*( 1. -2*eta - 3*eta*eta);
+					u_rotaz.y = dN_ua*displ(2)+dN_ub*displ(8)+   // z_a   z_b
+								dN_ra*displ(4)+dN_rb*displ(10);  // Ry_a  Ry_b
+					u_rotaz.z = dN_ua*displ(1)+dN_ub*displ(7)+   // y_a   y_b
+								dN_ra*displ(5)+dN_rb*displ(11);  // Rz_a  Rz_b    
+				}
+	
+				/// Gets the absolute xyz position of a point on the beam line, 
+				/// and the absolute rotation of section plane, at abscyssa 'eta'.
+				/// Note, eta=-1 at node1, eta=+1 at node2.
+				/// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetField()
+				/// Results are corotated.
+	virtual void EvaluateSectionFrame(const double eta, const ChMatrix<>& displ, ChVector<>& point, ChQuaternion<>& rot)
+				{
+					ChVector<> u_displ;
+					ChVector<> u_rotaz;
+					double Nx1 = (1./2.)*(1-eta);
+					double Nx2 = (1./2.)*(1+eta);
+
+					this->EvaluateSectionDisplacement(eta, displ, u_displ, u_rotaz);
+
+					point = this->Rotation()*  ( Nx1 * this->nodes[0]->GetX0().GetPos() + 
+												 Nx2 * this->nodes[1]->GetX0().GetPos() + 
+												 this->q_element_ref_rot.Rotate(u_displ));
+
+					ChQuaternion<> msectionrot;
+					msectionrot.Q_from_AngAxis(u_rotaz.Length(), u_rotaz.GetNormalized());
+					rot = this->q_element_abs_rot % msectionrot;
+				}
+
+
+				/// Gets the torque at a section along the beam line, at abscyssa 'eta'.
+				/// Note, eta=-1 at node1, eta=+1 at node2.
+				/// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetField()
+				/// Results are not corotated.
+	virtual void EvaluateSectionTorque(const double eta, const ChMatrix<>& displ, ChVector<>& Mtorque)
+				{
+					ChMatrixNM<double,1,12> N;
+
+					this->ShapeFunctions(N, eta); // Evaluate shape functions
+
+					double ddN_ua = (6./(length*length))*(eta);  // curvature shape functions are computed here on-the-fly
+					double ddN_ub =-(6./(length*length))*(eta);
+					double ddN_ra = -(1./length) + ((3.0/length)*eta);
+					double ddN_rb =  (1./length) + ((3.0/length)*eta);
+					double dN_ta = -(1./length)*(eta);
+					double dN_tb =  (1./length)*(eta);
+
+					double Jpolar = Izz+Iyy;
+
+					Mtorque.y = this->E*this->Iyy*
+								(ddN_ua*displ(2)+ddN_ub*displ(8)+   // z_a   z_b
+								 ddN_ra*displ(4)+ddN_rb*displ(10));  // Ry_a  Ry_b
+					Mtorque.z = this->E*this->Izz*
+								(ddN_ua*displ(1)+ddN_ub*displ(7)+   // y_a   y_b
+								 ddN_ra*displ(5)+ddN_rb*displ(11));  // Rz_a  Rz_b  
+					Mtorque.x = this->G*Jpolar*(dN_ta*displ(3)+dN_tb*displ(9));
+				}
+
+				/// Gets the force (traction x, shear y, shear z) at a section along the beam line, at abscyssa 'eta'.
+				/// Note, eta=-1 at node1, eta=+1 at node2.
+				/// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetField()
+				/// Results are not corotated.
+	virtual void EvaluateSectionForce(const double eta, const ChMatrix<>& displ, ChVector<>& Fforce)
+				{
+					ChMatrixNM<double,1,12> N;
+
+					this->ShapeFunctions(N, eta); // Evaluate shape functions
+
+					double dddN_ua = (12./(length*length*length));  // shear shape functions are computed here on-the-fly
+					double dddN_ub =-(12./(length*length*length));
+					double dddN_ra =  (6.0/(length*length));
+					double dddN_rb =  (6.0/(length*length));
+					double ddN_xa = -(2./length*length);
+					double ddN_xb =  (2./length*length);
+
+					Fforce.z = this->E*this->Iyy*
+								(dddN_ua*displ(2)+dddN_ub*displ(8)+   // z_a   z_b
+								 dddN_ra*displ(4)+dddN_rb*displ(10)); // Ry_a  Ry_b
+					Fforce.y = this->E*this->Izz*
+								(dddN_ua*displ(1)+dddN_ub*displ(7)+   // y_a   y_b
+								 dddN_ra*displ(5)+dddN_rb*displ(11)); // Rz_a  Rz_b  
+					Fforce.x = this->E*this->Area*
+								(ddN_xa*displ(0)+ddN_xb*displ(6));
+				}
 
 
 			//

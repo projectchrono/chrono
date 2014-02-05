@@ -222,14 +222,14 @@ void ChForce::SetVrelpoint (Vector myrelpoint)
 void ChForce::SetDir (Vector newf)
 {
 	vdir = Vnorm(newf);
-	vreldir = GetBody()->Dir_World2Body(vdir);
+	vreldir = GetBody()->TrasformDirectionParentToLocal(vdir);
 	UpdateState(); // update also F
 }
 
 void ChForce::SetRelDir (Vector newf)
 {
 	vreldir = Vnorm(newf);
-	vdir = GetBody()->Dir_Body2World(vreldir);
+	vdir = GetBody()->TrasformDirectionLocalToParent(vreldir);
 	UpdateState(); // update also F
 }
 
@@ -327,20 +327,20 @@ void ChForce::UpdateState ()
 	switch  (align)
 	{
 	case FDIR_WORLD:
-		vreldir = my_body->Dir_World2Body(vdir);
+		vreldir = my_body->TrasformDirectionParentToLocal(vdir);
 		vectforce = Vmul (vdir, modforce);
 		vectforce = Vadd (vectforce, xyzforce);
 		break;
 	case FDIR_BODY:
-		vdir = my_body->Dir_Body2World(vreldir);
+		vdir = my_body->TrasformDirectionLocalToParent(vreldir);
 		vectforce = Vmul (vdir, modforce);
-		xyzforce = my_body->Dir_Body2World(xyzforce);
+		xyzforce = my_body->TrasformDirectionLocalToParent(xyzforce);
 		vectforce = Vadd (vectforce, xyzforce);
 		break;
 	}
 
 	force = vectforce;	// Fw
-	relforce = my_body->Dir_World2Body(force); // Fo1 = [A]'Fw
+	relforce = my_body->TrasformDirectionParentToLocal(force); // Fo1 = [A]'Fw
 
 	// ====== Update the Qc lagrangian!
 

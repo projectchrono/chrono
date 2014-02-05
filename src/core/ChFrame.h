@@ -90,6 +90,15 @@ public:
 			Amatrix(mc.rot)
 		{}
 
+		/// Construct from position mv and rotation of angle alpha around unit vector mu
+	ChFrame(const ChVector<Real>&     mv,
+	        const Real alpha,
+			const ChVector<Real>&     mu)
+		:	coord(mv, alpha, mu)
+		{
+			Amatrix.Set_A_quaternion(coord.rot);
+		}
+
 		/// Copy constructor, build from another frame
 	ChFrame(const ChFrame<Real>& other)
 		:	coord(other.coord),
@@ -333,6 +342,11 @@ public:
 		{
 			return ChTrasform<Real>::TrasformLocalToParent(local, coord.pos, Amatrix);
 		}
+	virtual ChVector<Real> TrasformPointLocalToParent(const ChVector<Real>& local) const
+		{
+			return ChTrasform<Real>::TrasformLocalToParent(local, coord.pos, Amatrix);
+		}
+
 
 		/// This function transforms a point from the parent coordinate
 		/// system to local frame coordinate system.
@@ -343,6 +357,10 @@ public:
 		/// \return The point in local frame coordinate
 
 	virtual ChVector<Real> TrasformParentToLocal(const ChVector<Real>& parent) const
+		{
+			return ChTrasform<Real>::TrasformParentToLocal(parent, coord.pos, Amatrix);
+		}
+	virtual ChVector<Real> TrasformPointParentToLocal(const ChVector<Real>& parent) const
 		{
 			return ChTrasform<Real>::TrasformParentToLocal(parent, coord.pos, Amatrix);
 		}
@@ -371,6 +389,29 @@ public:
 		{
 			local.SetCoord(TrasformParentToLocal(parent.coord.pos),
 			               coord.rot.GetConjugate() % parent.coord.rot);
+		}
+
+
+		/// This function transforms a direction from 'this' local coordinate
+		/// system to parent frame coordinate system.
+		/// \return The direction in local frame coordinate
+
+	virtual ChVector<Real> TrasformDirectionParentToLocal (
+			const ChVector<>& mdirection	///< direction to transform, given in parent coordinates
+			) const
+		{
+			return Amatrix.MatrT_x_Vect(mdirection);
+		}
+
+		/// This function transforms a direction from the parent frame coordinate system
+		/// to 'this' local coordinate system.
+		/// \return The direction in parent frame coordinate
+
+	virtual ChVector<Real> TrasformDirectionLocalToParent (
+			const ChVector<>& mdirection
+			) const
+		{
+			return Amatrix.Matr_x_Vect(mdirection);
 		}
 
 

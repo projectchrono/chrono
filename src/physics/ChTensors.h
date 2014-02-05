@@ -218,6 +218,24 @@ eigval3 = vals[2];
 				return sqrt( 0.5*(pow(this->XX()-this->YY(),2.) + pow(this->YY()-this->ZZ(),2.) + pow(this->ZZ()-this->XX(),2.)) + 3.0*( this->XY()*this->XY() + this->XZ()*this->XZ() + this->YZ()*this->YZ()) );
 			}
 
+
+			/// Compute the mean hydrostatic value (aka volumetric, normal)
+	double GetEquivalentMeanHydrostatic() const
+			{	
+				return (this->GetInvariant_I1() /3.);
+			}
+
+			/// Compute the octahedral normal invariant (aka hydrostatic, volumetric)
+	double GetEquivalentOctahedralNormal() const
+			{	
+				return this->GetEquivalentMeanHydrostatic();
+			}
+			/// Compute the octahedral deviatoric invariant (aka shear)
+	double GetEquivalentOctahedralDeviatoric() const
+			{	
+				return sqrt((2./3.)*this->GetInvariant_J2());
+			}
+
 };
 
 /// Class for stress tensors, in compact Voight notation

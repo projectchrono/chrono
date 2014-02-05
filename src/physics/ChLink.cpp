@@ -9,14 +9,6 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChLink.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 
 
@@ -33,8 +25,6 @@ namespace chrono
 
 
 
-using namespace collision;
-using namespace geometry;
 
 
 
@@ -51,10 +41,6 @@ ChLink::ChLink ()
 
     react_force = VNULL;
     react_torque = VNULL;
-
-	broken = false;
-	valid = true;
-    disabled = false;
  
     SetIdentifier(CHGLOBALS().GetUniqueIntID()); // mark with unique ID
 }
@@ -71,7 +57,7 @@ ChLink::~ChLink ()
 void ChLink::Copy(ChLink* source)
 {
     // first copy the parent class data...
-    ChPhysicsItem::Copy(source);
+    ChLinkBase::Copy(source);
 
     Body1 = 0;
     Body2 = 0;
@@ -79,10 +65,6 @@ void ChLink::Copy(ChLink* source)
 
 	react_force = source->react_force;
 	react_torque = source->react_torque;
-
-	broken = source->broken;
-	valid = source->valid;
-    disabled = source->disabled;
 }
 
 
@@ -180,12 +162,10 @@ void ChLink::StreamOUT(ChStreamOutBinary& mstream)
 	mstream.VersionWrite(11);
 
 		// serialize parent class too
-	ChPhysicsItem::StreamOUT(mstream);
+	ChLinkBase::StreamOUT(mstream);
 
 		// stream out all member data
-	mstream << disabled;
-	mstream << valid;
-	mstream << broken;
+	//...
 }
 
 void ChLink::StreamIN(ChStreamInBinary& mstream)
@@ -198,9 +178,13 @@ void ChLink::StreamIN(ChStreamInBinary& mstream)
 	{	
 		ChObj::StreamIN(mstream);
 	}
-	if (version >= 11)
+	if (version == 11)
 	{
 		ChPhysicsItem::StreamIN(mstream);
+	}
+	if (version >= 12)
+	{
+		ChLinkBase::StreamIN(mstream);
 	}
 
 		// deserialize class data
@@ -212,12 +196,14 @@ void ChLink::StreamIN(ChStreamInBinary& mstream)
 		disabled = (mylflag & LF_DISABLED)!=0;
 		broken = (mylflag & LF_BROKEN)!=0;
 	}
-	if(version >=2)
+	if((version >=2) && (version <12))
 	{
 		mstream >> disabled;
 		mstream >> valid;
 		mstream >> broken;
 	}
+
+	//...
 	
 }
 

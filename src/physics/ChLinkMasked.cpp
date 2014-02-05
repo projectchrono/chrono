@@ -453,7 +453,7 @@ void  ChLinkMasked::ConstraintsLiFetchSuggestedPositionSolution()
 
 /////////   4.5- UPDATE Cqw1 and Cqw2
 /////////
-void ChLinkMasked::Transform_Cq_to_Cqw(ChMatrix<>* mCq, ChMatrix<>* mCqw, ChBody* mbody)
+void ChLinkMasked::Transform_Cq_to_Cqw(ChMatrix<>* mCq, ChMatrix<>* mCqw, ChBodyFrame* mbody)
 {
     if (!mCq) return;
 

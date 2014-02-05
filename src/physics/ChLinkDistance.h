@@ -40,7 +40,7 @@ namespace chrono
 
 
 /// Class for enforcing a fixed polar distance 
-/// between two points on two ChBody objects.
+/// between two points on two ChBodyFrame objects.
 /// The two points which are used to define the end points
 /// of the distance are assumed not to move respect to the
 /// two owner ChBody, as well as the amount of the distance
@@ -91,8 +91,8 @@ public:
 					/// Initialize this constraint, given the two bodies to be connected, the
 					/// positions of the two anchor endpoints of the distance (each expressed
 					/// in body or abs. coordinates) and the imposed distance.
-	virtual int Initialize(ChSharedPtr<ChBody>& mbody1,		 ///< first body to link
-						   ChSharedPtr<ChBody>& mbody2,		 ///< second body to link
+	virtual int Initialize(ChSharedPtr<ChBodyFrame> mbody1,		 ///< first frame to link
+						   ChSharedPtr<ChBodyFrame> mbody2,		 ///< second frame to link
 						   bool pos_are_relative,///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpos1,	 ///< position of distance endpoint, for 1st body (rel. or abs., see flag above)
 						   ChVector<> mpos2,	 ///< position of distance endpoint, for 2nd body (rel. or abs., see flag above) 
@@ -114,18 +114,18 @@ public:
 					/// Set the 1st anchor endpoint for the distance (expressed in Body1 coordinate system)
 	void       SetEndPoint1Rel(const ChVector<>& mset) {pos1 = mset;}
 					/// Get the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
-	ChVector<> GetEndPoint1Abs() {return Body1->Point_Body2World(pos1);}
+	ChVector<> GetEndPoint1Abs() {return ((ChFrame<double>*)Body1)->TrasformLocalToParent(pos1);}
 					/// Set the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
-	void       SetEndPoint1Abs(ChVector<>& mset) {pos1 = Body1->Point_World2Body(mset);}
+	void       SetEndPoint1Abs(ChVector<>& mset) {pos1 = ((ChFrame<double>*)Body1)->TrasformParentToLocal(mset);}
 
 					/// Get the 2nd anchor endpoint for the distance (expressed in Body2 coordinate system)
 	ChVector<> GetEndPoint2Rel() {return pos2;};
 					/// Set the 2nd anchor endpoint for the distance (expressed in Body2 coordinate system)
 	void       SetEndPoint2Rel(const ChVector<>& mset) {pos2 = mset;}
 					/// Get the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
-	ChVector<> GetEndPoint2Abs() {return Body2->Point_Body2World(pos2);}
+	ChVector<> GetEndPoint2Abs() {return ((ChFrame<double>*)Body2)->TrasformLocalToParent(pos2);}
 					/// Set the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
-	void       SetEndPoint2Abs(ChVector<>& mset) {pos2 = Body2->Point_World2Body(mset);}
+	void       SetEndPoint2Abs(ChVector<>& mset) {pos2 = ((ChFrame<double>*)Body2)->TrasformParentToLocal(mset);}
 
 
 					/// Get the imposed distance
@@ -133,7 +133,7 @@ public:
 					/// Set the imposed distance
 	void   SetImposedDistance(const double mset) {distance = mset;}
 					/// Get the distance currently existing between the two endpoints
-	double GetCurrentDistance() {return (Body1->Point_Body2World(pos1)-Body2->Point_Body2World(pos2)).Length(); };
+	double GetCurrentDistance() {return (((ChFrame<double>*)Body1)->TrasformLocalToParent(pos1)-((ChFrame<double>*)Body2)->TrasformLocalToParent(pos2)).Length(); };
 
 
 				//

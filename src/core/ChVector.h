@@ -309,7 +309,7 @@ public:
 			}
 
 			// normalize Vz.
-			Vz.Scale(1/mzlen);
+			Vz.Scale(1.0/mzlen);
 
 			// compute Vy.
 			Vy.Cross(Vz, Vx);

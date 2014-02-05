@@ -97,6 +97,9 @@ ChVector<float> ChVisualizationFEMmesh::ComputeFalseColor(double mv)
 		c.z = 0;
 	}
 
+	if (this->fem_data_type == E_PLOT_SURFACE)
+		c = ChVector<float>(meshcolor.R, meshcolor.G, meshcolor.B);
+
 	return(c);
 }
 
@@ -141,6 +144,18 @@ double ChVisualizationFEMmesh::ComputeScalarOutput( ChSharedPtr<ChNodeFEMxyz> mn
 		{
 			ChSharedPtr<ChElementTetra_4> mytetra ( melement );
 			return mytetra->GetStress().GetEquivalentVonMises();
+		}
+	case E_PLOT_ELEM_STRAIN_HYDROSTATIC:
+		if (melement.IsType<ChElementTetra_4>())
+		{
+			ChSharedPtr<ChElementTetra_4> mytetra ( melement );
+			return mytetra->GetStrain().GetEquivalentMeanHydrostatic();
+		}
+	case E_PLOT_ELEM_STRESS_HYDROSTATIC:
+		if (melement.IsType<ChElementTetra_4>())
+		{
+			ChSharedPtr<ChElementTetra_4> mytetra ( melement );
+			return mytetra->GetStress().GetEquivalentMeanHydrostatic();
 		}
 	default:
 		return 1e30;
@@ -581,74 +596,75 @@ void ChVisualizationFEMmesh::Update ()
 
 
 		// ------------ELEMENT IS A BEAM?
-		if (this->FEMmesh->GetElement(iel).IsType<ChElementBeamEuler>() )
+		if (this->FEMmesh->GetElement(iel).IsType<ChElementBeam>() )
 		{
 			// downcasting 
-			ChSharedPtr<ChElementBeamEuler> mybeam ( this->FEMmesh->GetElement(iel) );
+			ChSharedPtr<ChElementBeam> mybeam ( this->FEMmesh->GetElement(iel) );
 
 			unsigned int ivert_el = i_verts;
 			unsigned int inorm_el = i_vnorms;
 
-			ChSharedPtr<ChNodeFEMxyzrot> nodes[2];
-
-			// vertexes
-			ChMatrixDynamic<> displ(12,1);
-			ChMatrixNM<double,1,12> N;
+			// displacements & rotations state of the nodes:
+			ChMatrixDynamic<> displ(mybeam->GetNdofs(),1);
 			mybeam->GetField(displ); // for field of corotated element, u_displ will be always 0 at ends
-
-			ChSharedPtr<ChNodeFEMxyzrot> node0(mybeam->GetNodeN(0));
-			ChSharedPtr<ChNodeFEMxyzrot> node1(mybeam->GetNodeN(1));
 
 			for (int in= 0; in < beam_resolution; ++in)
 			{
 				double eta = -1.0+(2.0*in/(beam_resolution-1));
-				mybeam->ShapeFunctions(N, eta); // Evaluate shape functions
-
-				ChVector<> u_displ;
-				ChVector<> u_rotaz;
-
-				u_displ.x = N(0)*displ(0)+N(6)*displ(6);   // x_a   x_b
-				u_displ.y = N(1)*displ(1)+N(7)*displ(7)    // y_a   y_b
-					       +N(5)*displ(5)+N(11)*displ(11); // Rz_a  Rz_b
-				u_displ.z = N(2)*displ(2)+N(8)*displ(8)    // z_a   z_b
-					       +N(4)*displ(4)+N(10)*displ(10); // Ry_a  Ry_b 
-
-				u_rotaz.x = N(3)*displ(3)+N(9)*displ(9);   // Rx_a  Rx_b
 				
-				double dN_ua = (1./(2.*mybeam->GetRestLength()))*(-3. +3*eta*eta);  // slope shape functions are computed here on-the-fly
-				double dN_ub = (1./(2.*mybeam->GetRestLength()))*( 3. -3*eta*eta);
-				double dN_ra =  (1./4.)*(-1. -2*eta + 3*eta*eta);
-				double dN_rb = -(1./4.)*( 1. -2*eta - 3*eta*eta);
-				u_rotaz.y = dN_ua*displ(2)+dN_ub*displ(8)+   // z_a   z_b
-							dN_ra*displ(4)+dN_rb*displ(10);  // Ry_a  Ry_b
-				u_rotaz.z = dN_ua*displ(1)+dN_ub*displ(7)+   // y_a   y_b
-							dN_ra*displ(5)+dN_rb*displ(11);  // Rz_a  Rz_b    
-
-				double zeta = (eta+1.0)/2.0; // 0..1 parameter
-
+				ChVector<> P;
 				ChQuaternion<> msectionrot;
-				msectionrot.Q_from_AngAxis(u_rotaz.Length(), u_rotaz.GetNormalized());
+				mybeam->EvaluateSectionFrame(eta, displ, P, msectionrot);  // compute abs. pos and rot of section plane
 
-				ChVector<> P = mybeam->Rotation()* ((1.0-zeta)*node0->GetX0().GetPos() + (zeta)*node1->GetX0().GetPos() + u_displ);
+				ChVector<> vresult;
+				double sresult = 0;
+				switch(this->fem_data_type)
+				{
+					case E_PLOT_ELEM_BEAM_MX:
+						mybeam->EvaluateSectionTorque(eta, displ, vresult);
+						sresult = vresult.x; 
+						break;
+					case E_PLOT_ELEM_BEAM_MY:
+						mybeam->EvaluateSectionTorque(eta, displ, vresult);
+						sresult = vresult.y; 
+						break;
+					case E_PLOT_ELEM_BEAM_MZ:
+						mybeam->EvaluateSectionTorque(eta, displ, vresult);
+						sresult = vresult.z; 
+						break;
+					case E_PLOT_ELEM_BEAM_TX:
+						mybeam->EvaluateSectionForce(eta, displ, vresult);
+						sresult = vresult.x; 
+						break;
+					case E_PLOT_ELEM_BEAM_TY:
+						mybeam->EvaluateSectionForce(eta, displ, vresult);
+						sresult = vresult.y; 
+						break;
+					case E_PLOT_ELEM_BEAM_TZ:
+						mybeam->EvaluateSectionForce(eta, displ, vresult);
+						sresult = vresult.z; 
+						break;
+				}
+				ChVector<float> mcol = ComputeFalseColor(sresult);
 
-				double y_thick = 0.01;
-				double z_thick = 0.01;
-				trianglemesh.getCoordsVertices()[i_verts] = P + mybeam->Rotation()* msectionrot.Rotate(ChVector<>(0,-y_thick,-z_thick) ); 
+				double y_thick = 0.5*mybeam->GetDrawThicknessY();
+				double z_thick = 0.5*mybeam->GetDrawThicknessZ();
+				trianglemesh.getCoordsVertices()[i_verts] = P + msectionrot.Rotate(ChVector<>(0,-y_thick,-z_thick) ); 
 				++i_verts;
-				trianglemesh.getCoordsVertices()[i_verts] = P + mybeam->Rotation()* msectionrot.Rotate(ChVector<>(0, y_thick,-z_thick) ) ; 
+				trianglemesh.getCoordsVertices()[i_verts] = P + msectionrot.Rotate(ChVector<>(0, y_thick,-z_thick) ) ; 
 				++i_verts;
-				trianglemesh.getCoordsVertices()[i_verts] = P + mybeam->Rotation()* msectionrot.Rotate(ChVector<>(0, y_thick, z_thick) ) ; 
+				trianglemesh.getCoordsVertices()[i_verts] = P + msectionrot.Rotate(ChVector<>(0, y_thick, z_thick) ) ; 
 				++i_verts;
-				trianglemesh.getCoordsVertices()[i_verts] = P + mybeam->Rotation()* msectionrot.Rotate(ChVector<>(0,-y_thick, z_thick) ) ; 
+				trianglemesh.getCoordsVertices()[i_verts] = P + msectionrot.Rotate(ChVector<>(0,-y_thick, z_thick) ) ; 
 				++i_verts;
 
-				trianglemesh.getCoordsColors()[i_vcols] =  ChVector<float>(1,1,1); //***TO DO***
+				trianglemesh.getCoordsColors()[i_vcols] =  mcol; 
 				++i_vcols;
-				trianglemesh.getCoordsColors()[i_vcols] =  ChVector<float>(1,1,1); //***TO DO***
+				trianglemesh.getCoordsColors()[i_vcols] =  mcol; 
 				++i_vcols;
-				trianglemesh.getCoordsColors()[i_vcols] =  ChVector<float>(1,1,1); //***TO DO***
+				trianglemesh.getCoordsColors()[i_vcols] =  mcol; 
 				++i_vcols;
-				trianglemesh.getCoordsColors()[i_vcols] =  ChVector<float>(1,1,1); //***TO DO***
+				trianglemesh.getCoordsColors()[i_vcols] =  mcol; 
 				++i_vcols;
 
 				if (in>0)

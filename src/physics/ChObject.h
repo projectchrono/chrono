@@ -82,7 +82,7 @@ class ChExternalObject;
 /// unique identifiers are used (hash algorithms, etc.)
 ///
 
-class ChApi ChObj : public ChShared {
+class ChApi ChObj : public virtual ChShared {
 
 						// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChObj, ChShared);

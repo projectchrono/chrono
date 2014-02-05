@@ -27,7 +27,7 @@
 #include "unit_FEM/ChElementHexa_8.h"
 #include "unit_FEM/ChElementHexa_20.h"
 #include "unit_FEM/ChMesh.h"
-#include "unit_FEM/ChNodeBody.h"
+#include "unit_FEM/ChLinkPointFrame.h"
 
 
 // Remember to use the namespace 'chrono' because all classes 
@@ -90,7 +90,7 @@ void test_1()
 	my_system.Add(truss);
 
 				// Create a constraint between a node and the truss
-	ChSharedPtr<ChNodeBody> constraintA(new ChNodeBody);
+	ChSharedPtr<ChLinkPointFrame> constraintA(new ChLinkPointFrame);
 
 	constraintA->Initialize(my_mesh,		// node container
 							0,				// index of node in node container 
@@ -187,9 +187,9 @@ void test_2()
 	my_system.Add(truss);
 	
 				// Create a constraint between a node and the truss
-	ChSharedPtr<ChNodeBody> constraint1(new ChNodeBody);
-	ChSharedPtr<ChNodeBody> constraint2(new ChNodeBody);
-	ChSharedPtr<ChNodeBody> constraint3(new ChNodeBody);
+	ChSharedPtr<ChLinkPointFrame> constraint1(new ChLinkPointFrame);
+	ChSharedPtr<ChLinkPointFrame> constraint2(new ChLinkPointFrame);
+	ChSharedPtr<ChLinkPointFrame> constraint3(new ChLinkPointFrame);
 
 	constraint1->Initialize(my_mesh,		// node container
 							0,				// index of node in node container 
@@ -311,9 +311,9 @@ void test_3()
 	truss->SetBodyFixed(true);
 	
 				// Create a constraint between a node and the truss
-	ChSharedPtr<ChNodeBody> constraint1(new ChNodeBody);
-	ChSharedPtr<ChNodeBody> constraint2(new ChNodeBody);
-	ChSharedPtr<ChNodeBody> constraint3(new ChNodeBody);
+	ChSharedPtr<ChLinkPointFrame> constraint1(new ChLinkPointFrame);
+	ChSharedPtr<ChLinkPointFrame> constraint2(new ChLinkPointFrame);
+	ChSharedPtr<ChLinkPointFrame> constraint3(new ChLinkPointFrame);
 
 	constraint1->Initialize(my_mesh,		// node container
 							0,				// index of node in node container 
@@ -435,22 +435,22 @@ void test_4()
 	truss->SetBodyFixed(true);
 	
 				// Create a constraint between a node and the truss
-	ChSharedPtr<ChNodeBody> constraint1(new ChNodeBody);
+	ChSharedPtr<ChLinkPointFrame> constraint1(new ChLinkPointFrame);
 	constraint1->Initialize(my_mesh,		// node container
 							0,				// index of node in node container 
 							truss);			// body to be connected to
 
-	ChSharedPtr<ChNodeBody> constraint2(new ChNodeBody);
+	ChSharedPtr<ChLinkPointFrame> constraint2(new ChLinkPointFrame);
 	constraint2->Initialize(my_mesh,		// node container
 							1,				// index of node in node container 
 							truss);			// body to be connected to
 						
-	ChSharedPtr<ChNodeBody> constraint3(new ChNodeBody);
+	ChSharedPtr<ChLinkPointFrame> constraint3(new ChLinkPointFrame);
 	constraint3->Initialize(my_mesh,		// node container
 							2,				// index of node in node container 
 							truss);			// body to be connected to
 
-	ChSharedPtr<ChNodeBody> constraint4(new ChNodeBody);
+	ChSharedPtr<ChLinkPointFrame> constraint4(new ChLinkPointFrame);
 	constraint4->Initialize(my_mesh,		// node container
 							3,				// index of node in node container 
 							truss);			// body to be connected to
@@ -599,22 +599,22 @@ void test_5()
 	truss->SetBodyFixed(true);
 	
 				// Create a constraint between a node and the truss
-	ChSharedPtr<ChNodeBody> constraint1(new ChNodeBody);
+	ChSharedPtr<ChLinkPointFrame> constraint1(new ChLinkPointFrame);
 	constraint1->Initialize(my_mesh,		// node container
 							0,				// index of node in node container 
 							truss);			// body to be connected to
 
-	ChSharedPtr<ChNodeBody> constraint2(new ChNodeBody);
+	ChSharedPtr<ChLinkPointFrame> constraint2(new ChLinkPointFrame);
 	constraint2->Initialize(my_mesh,		// node container
 							1,				// index of node in node container 
 							truss);			// body to be connected to
 						
-	ChSharedPtr<ChNodeBody> constraint3(new ChNodeBody);
+	ChSharedPtr<ChLinkPointFrame> constraint3(new ChLinkPointFrame);
 	constraint3->Initialize(my_mesh,		// node container
 							2,				// index of node in node container 
 							truss);			// body to be connected to
 
-	ChSharedPtr<ChNodeBody> constraint4(new ChNodeBody);
+	ChSharedPtr<ChLinkPointFrame> constraint4(new ChLinkPointFrame);
 	constraint4->Initialize(my_mesh,		// node container
 							3,				// index of node in node container 
 							truss);			// body to be connected to

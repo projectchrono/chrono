@@ -349,8 +349,8 @@ void ChLinkMateGeneric::Update (double mytime)
 
 
 
-int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
-						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
+int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
+						   ChSharedPtr<ChBodyFrame> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChFrame<> mpos1,			///< mate frame (slave), for 1st body (rel. or abs., see flag above)
 						   ChFrame<> mpos2  		///< mate frame (master), for 2nd body (rel. or abs., see flag above) 
@@ -361,7 +361,7 @@ int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body t
 
 	this->Body1 = mbody1.get_ptr();
 	this->Body2 = mbody2.get_ptr();
-	this->SetSystem(mbody1->GetSystem());
+	//this->SetSystem(mbody1->GetSystem());
 
 	this->mask->SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
 	
@@ -512,8 +512,8 @@ void ChLinkMateGeneric::ConstraintsFetch_react(double factor)
 }
 
 
-int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
-						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
+int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
+						   ChSharedPtr<ChBodyFrame> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			
 						   ChVector<> mpt2,  		
@@ -526,7 +526,7 @@ int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body t
 
 	this->Body1 = mbody1.get_ptr();
 	this->Body2 = mbody2.get_ptr();
-	this->SetSystem(mbody1->GetSystem());
+	//this->SetSystem(mbody1->GetSystem());
 
 	this->mask->SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
 	
@@ -555,17 +555,17 @@ int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body t
 
 		ChVector<> temp=VECT_Z;
 		// from abs to body-rel
-		mN = this->Body1->Dir_World2Body(mnorm1);
+		mN = this->Body1->TrasformDirectionParentToLocal(mnorm1);
 		mN.DirToDxDyDz(mx, my, mz, temp);
 		mrot.Set_A_axis(mx, my, mz);
 		mfr1.SetRot(mrot);
-		mfr1.SetPos(this->Body1->Point_World2Body(mpt1));
+		mfr1.SetPos(this->Body1->TrasformPointParentToLocal(mpt1));
 
-		mN = this->Body2->Dir_World2Body(mnorm2);
+		mN = this->Body2->TrasformDirectionParentToLocal(mnorm2);
 		mN.DirToDxDyDz(mx, my, mz, temp);
 		mrot.Set_A_axis(mx, my, mz);
 		mfr2.SetRot(mrot);
-		mfr2.SetPos(this->Body2->Point_World2Body(mpt2));
+		mfr2.SetPos(this->Body2->TrasformPointParentToLocal(mpt2));
 	}
 
 	this->frame1 = mfr1;
@@ -678,8 +678,8 @@ void ChLinkMatePlane::SetFlipped(bool doflip)
 }
 
 
-int ChLinkMatePlane::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
-						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
+int ChLinkMatePlane::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
+						   ChSharedPtr<ChBodyFrame> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			///< point on slave plane, for 1st body (rel. or abs., see flag above)
 						   ChVector<> mpt2,  		///< point on master plane, for 2nd body (rel. or abs., see flag above)
@@ -759,8 +759,8 @@ void ChLinkMateCoaxial::SetFlipped(bool doflip)
 }
 
 
-int ChLinkMateCoaxial::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
-						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
+int ChLinkMateCoaxial::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
+						   ChSharedPtr<ChBodyFrame> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			
 						   ChVector<> mpt2,  		
@@ -814,8 +814,8 @@ ChLink* ChLinkMateSpherical::new_Duplicate ()
 }
 
 
-int ChLinkMateSpherical::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
-						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
+int ChLinkMateSpherical::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
+						   ChSharedPtr<ChBodyFrame> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			
 						   ChVector<> mpt2 		
@@ -857,8 +857,8 @@ ChLink* ChLinkMateXdistance::new_Duplicate ()
 }
 
 
-int ChLinkMateXdistance::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
-						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
+int ChLinkMateXdistance::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
+						   ChSharedPtr<ChBodyFrame> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			
 						   ChVector<> mpt2,
@@ -920,8 +920,8 @@ void ChLinkMateParallel::SetFlipped(bool doflip)
 	}
 }
 
-int ChLinkMateParallel::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
-						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
+int ChLinkMateParallel::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
+						   ChSharedPtr<ChBodyFrame> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			
 						   ChVector<> mpt2,  		
@@ -975,8 +975,8 @@ ChLink* ChLinkMateOrthogonal::new_Duplicate ()
 }
 
 
-int ChLinkMateOrthogonal::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
-						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
+int ChLinkMateOrthogonal::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first body to link
+						   ChSharedPtr<ChBodyFrame> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpt1,			
 						   ChVector<> mpt2,  		
@@ -994,8 +994,8 @@ int ChLinkMateOrthogonal::Initialize(ChSharedPtr<ChBody>& mbody1,	///< first bod
 	}
 	else
 	{
-		this->reldir1 = mbody1->Dir_World2Body(mnorm1);
-		this->reldir2 = mbody2->Dir_World2Body(mnorm2);
+		this->reldir1 = mbody1->TrasformDirectionParentToLocal(mnorm1);
+		this->reldir2 = mbody2->TrasformDirectionParentToLocal(mnorm2);
 	}
 
 	// do this asap otherwise the following Update() won't work..
@@ -1023,8 +1023,8 @@ void ChLinkMateOrthogonal::Update (double mtime)
 
 	if (this->Body1 && this->Body2)
 	{
-		mabsD1 = this->Body1->Dir_Body2World(this->reldir1);
-		mabsD2 = this->Body2->Dir_Body2World(this->reldir2);
+		mabsD1 = this->Body1->TrasformDirectionLocalToParent(this->reldir1);
+		mabsD2 = this->Body2->TrasformDirectionLocalToParent(this->reldir2);
 
 		ChVector<> mX = Vcross(mabsD2,mabsD1);
 		double xlen = mX.Length();
