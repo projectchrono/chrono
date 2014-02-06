@@ -357,7 +357,6 @@ int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first bo
 						   )
 {
 	assert(mbody1.get_ptr() != mbody2.get_ptr());
-	assert(mbody1->GetSystem() == mbody2->GetSystem());
 
 	this->Body1 = mbody1.get_ptr();
 	this->Body2 = mbody2.get_ptr();
@@ -522,7 +521,6 @@ int ChLinkMateGeneric::Initialize(ChSharedPtr<ChBodyFrame> mbody1,	///< first bo
 						   )
 {
 	assert(mbody1.get_ptr() != mbody2.get_ptr());
-	assert(mbody1->GetSystem() == mbody2->GetSystem());
 
 	this->Body1 = mbody1.get_ptr();
 	this->Body2 = mbody2.get_ptr();
