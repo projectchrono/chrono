@@ -72,8 +72,8 @@ ChContactDEM::Reset(collision::ChModelBulletBody*     mod1,
 
 	m_kdata.p1_loc = body1->Point_World2Body(m_kdata.p1);
 	m_kdata.p2_loc = body2->Point_World2Body(m_kdata.p2);
-	m_kdata.relvel = body2->RelPoint_AbsSpeed(m_kdata.p2_loc)
-	               - body1->RelPoint_AbsSpeed(m_kdata.p1_loc);
+	m_kdata.relvel = body2->PointSpeedLocalToParent(m_kdata.p2_loc)
+	               - body1->PointSpeedLocalToParent(m_kdata.p1_loc);
 	m_kdata.relvel_n = m_kdata.relvel.Dot(m_kdata.normal) * m_kdata.normal;
 	m_kdata.relvel_t = m_kdata.relvel - m_kdata.relvel_n;
 
