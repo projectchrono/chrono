@@ -388,6 +388,7 @@ IF (BUILD_CH_SDK)
 		physics/ChBodyDEM.cpp
 		physics/ChContactContainerDEM.cpp
 		physics/ChContactDEM.cpp
+		physics/ChMaterialSurfaceDEM.cpp
 		physics/ChContinuumMaterial.cpp
 	)
 	SET(ChronoEngine_physics_HEADERS
@@ -448,6 +449,7 @@ IF (BUILD_CH_SDK)
 		physics/ChMarker.h
 		physics/ChMaterialCouple.h
 		physics/ChMaterialSurface.h
+		physics/ChMaterialSurfaceDEM.h
 		physics/ChMatterSPH.h
 		physics/ChNlsolver.h
 		physics/ChVariablesInterface.h
@@ -568,7 +570,6 @@ IF (BUILD_CH_SDK)
 		collision/ChCModelBulletNode.cpp 
 		collision/ChCCollisionSystemBullet.cpp 
 		collision/ChCConvexDecomposition.cpp 
-		collision/ChCModelBulletDEM.cpp 
 		collision/ChCCollisionUtils.cpp
 	)
 	SET(ChronoEngine_collision_HEADERS
@@ -582,7 +583,6 @@ IF (BUILD_CH_SDK)
 		collision/ChCModelBulletBody.h
 		collision/ChCModelBulletNode.h
 		collision/ChCModelBulletParticle.h 
-		collision/ChCModelBulletDEM.h
 		collision/ChCCollisionUtils.h
 	)
 	SOURCE_GROUP(collision FILES  
