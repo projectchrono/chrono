@@ -2613,6 +2613,72 @@ GetLog() << (mZx - md).NormInf() << "\n";
 
 
 
+// **** PERFORM THE NONLINEAR STATIC ANALYSIS
+
+int ChSystem::DoStaticNonlinear(int nsteps)
+{
+	Setup();
+	Update();
+
+	for (int i=0; i<nsteps; i++)
+	{
+		// reset known-term vectors
+		LCPprepare_reset();
+
+		// Fill known-term vectors with proper terms 0 and -C :
+		//
+		// | K   -Cq'|*|Dpos|- |z*f|= |0| ,  c>=0, l>=0, l*c=0;
+		// | Cq    0 | |l   |  |C  |  |c|
+		//
+		double zfactor = ((double)(i+1.0))/((double)nsteps);
+
+		LCPprepare_load(true,  // Cq 
+				false,	// no addition of [M]*v_old to the known vector
+				1.0*zfactor,	// f  forces
+				1.0,	// K  matrix
+				0,		// no R matrix
+				0,		// no M matrix (for FEM with non-lumped masses, do not add their mass-matrices)
+				0,		// no Ct term
+				1.0,	// C constraint gap violation, if any
+				0.0,	// 
+				false);	// no clamping on -C/dt
+		
+			// make the vectors of pointers to constraint and variables, for LCP solver
+		LCPprepare_inject(*this->LCP_descriptor);
+
+			// Solve the LCP problem.
+			// Solution variables are 'Dpos', delta positions.
+		GetLcpSolverSpeed()->Solve(
+								*this->LCP_descriptor
+								);	
+
+		// Updates the reactions of the constraint, getting them from solver data
+		LCPresult_Li_into_reactions(1.0) ; 
+
+		// Move bodies to updated position
+		HIER_BODY_INIT
+		while HIER_BODY_NOSTOP
+		{
+			Bpointer->VariablesQbIncrementPosition(1.0); // pos+=Dpos
+			Bpointer->Update(this->ChTime);
+			HIER_BODY_NEXT
+		}
+		HIER_OTHERPHYSICS_INIT
+		while HIER_OTHERPHYSICS_NOSTOP
+		{
+			PHpointer->VariablesQbIncrementPosition(1.0); // pos+=Dpos
+			PHpointer->Update(this->ChTime);
+			HIER_OTHERPHYSICS_NEXT
+		}
+
+		Update(); // Update everything
+	}
+
+	return 0;
+}
+
+
+
 // **** PERFORM THE STATIC ANALYSIS, FINDING THE STATIC
 // **** EQUILIBRIUM OF THE SYSTEM, WITH ITERATIVE SOLUTION
 

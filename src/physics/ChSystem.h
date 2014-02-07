@@ -967,6 +967,12 @@ public:
 				/// problems with small deformations.
 	int DoStaticLinear();
 
+				/// Solve the position of static equilibrium (and the
+				/// reactions). This tries to solve the equilibrium for the nonlinear
+				/// problem (large displacements). The larger nsteps, the more the CPU time
+				/// but the less likely the divergence.
+	int DoStaticNonlinear(int nsteps =10);
+
 				/// Finds the position of static equilibrium (and the
 				/// reactions) starting from the current position.
 				/// Since a truncated iterative metod is used, you may need
