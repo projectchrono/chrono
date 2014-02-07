@@ -168,8 +168,11 @@ void AddContainer(ChIrrApp& application)
 	// An engine between the two
 	ChSharedPtr<ChLinkEngine> my_motor(new ChLinkEngine);
 
-	my_motor->Initialize(ChSharedPtr<ChBody>(rotatingBody),
-	                     ChSharedPtr<ChBody>(fixedBody), 
+        ChSharedPtr<ChBody> rotatingBody_(rotatingBody);
+        ChSharedPtr<ChBody> fixedBody_(fixedBody);
+
+	my_motor->Initialize(rotatingBody_,
+	                     fixedBody_, 
 	                     ChCoordsys<>(ChVector<>(0,0,0),
 	                     Q_from_AngAxis(CH_C_PI_2, VECT_X)) );
 	my_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
