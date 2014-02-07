@@ -28,7 +28,6 @@
 #include "physics/ChSystem.h"
 
 #include "physics/ChExternalObject.h"
-#include "collision/ChCModelBulletDEM.h"
 #include "core/ChLinearAlgebra.h"
 
 #include "core/ChMemory.h" // must be last include (memory leak debugger). In .cpp only.
