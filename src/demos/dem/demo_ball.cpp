@@ -22,13 +22,13 @@
 ///////////////////////////////////////////////////
 
 
-#include "physics/CHApidll.h" 
-#include "physics/CHSystem.h"
+#include "physics/ChApidll.h" 
+#include "physics/ChSystem.h"
 
-#include "physics/CHbodyDEM.h"
-#include "physics/CHcontactContainerDEM.h"
-#include "collision/CHcModelBulletBody.h"
-#include "lcp/CHlcpSolverDEM.h"
+#include "physics/ChBodyDEM.h"
+#include "physics/ChContactContainerDEM.h"
+#include "collision/ChCModelBulletBody.h"
+#include "lcp/ChLcpSolverDEM.h"
 
 #define SPH_ID  33
 #define BOX_ID  200
