@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
 	double beam_L  = 0.1;
 	double beam_wy = 0.02;
 	double beam_wz = 0.02;
-/*
+
 	ChSharedPtr<ChNodeFEMxyzrot> hnode1(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(0,0,0)) ));
 	ChSharedPtr<ChNodeFEMxyzrot> hnode2(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(beam_L,0,0)) ));
 	ChSharedPtr<ChNodeFEMxyzrot> hnode3(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(beam_L*2,0,0)) ));
@@ -119,31 +119,12 @@ int main(int argc, char* argv[])
 
 				// Fix a body to ground
 	hnode1->SetFixed(true);
-*/
 
-/*
-				// Create also a truss
-				ChSharedPtr<ChBody> truss(new ChBody);
-				truss->SetBodyFixed(true);
-				my_system.Add(truss);
+			// Create another element 90° to do an "L" shape:
 
-				ChSharedPtr<ChLinkMateGeneric> constraint(new ChLinkMateGeneric);
-				ChFrame<> mfra;
-				constraint->Initialize(hnode1,
-										truss,false, mfra, mfra);
-				my_system.Add(constraint);
+	ChSharedPtr<ChNodeFEMxyzrot> hnode4(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(2*beam_L,0,0), ChQuaternion<>(sqrt(0.5),0,-sqrt(0.5),0) )));// -CH_C_PI_2, VECT_Y )));
+	ChSharedPtr<ChNodeFEMxyzrot> hnode5(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(2*beam_L,0,beam_L),  ChQuaternion<>(sqrt(0.5),0,-sqrt(0.5),0) )));// -CH_C_PI_2, VECT_Y ) ));
 
-						// For example, attach small cube to show the constraint
-				ChSharedPtr<ChBoxShape> mboxfloor(new ChBoxShape);
-				mboxfloor->GetBoxGeometry().Size = ChVector<>(0.005);
-				constraint->AddAsset(mboxfloor);
-*/
-
-
-	ChSharedPtr<ChNodeFEMxyzrot> hnode4(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(2*beam_L,0,0), -CH_C_PI_2, VECT_Y )));
-	ChSharedPtr<ChNodeFEMxyzrot> hnode5(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(2*beam_L,0,beam_L),  -CH_C_PI_2, VECT_Y ) ));
-//ChSharedPtr<ChNodeFEMxyzrot> hnode4(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(2*beam_L,0,0) ) ));
-//ChSharedPtr<ChNodeFEMxyzrot> hnode5(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(2*beam_L+beam_L,0,0) ) ));
 
 	my_mesh->AddNode(hnode4);
 	my_mesh->AddNode(hnode5);
@@ -161,13 +142,13 @@ int main(int argc, char* argv[])
 
 	belement3->UpdateRotation();
 	
-hnode4->SetFixed(true);
-hnode5->SetForce( ChVector<>(0,-8,0));
-//hnode5->SetTorque( ChVector<>(1,0,0));
+	//hnode4->SetFixed(true);
+	//hnode5->SetTorque( ChVector<>(1,0,0));
+	hnode4->SetForce( ChVector<>(0,-2,0));
 
 
+		// Create a constraint between the two segments of the "L":
 
-/*
 	ChSharedPtr<ChLinkMateGeneric> constraint2(new ChLinkMateGeneric);
 	ChFrame<> mfra2;
 	constraint2->Initialize(hnode3,
@@ -178,7 +159,7 @@ hnode5->SetForce( ChVector<>(0,-8,0));
 	ChSharedPtr<ChBoxShape> mboxconstr2(new ChBoxShape);
 	mboxconstr2->GetBoxGeometry().SetLenghts( ChVector<>(beam_wy*1.05) );
 	constraint2->AddAsset(mboxconstr2);
-*/
+
 
 
 	//
@@ -211,8 +192,8 @@ hnode5->SetForce( ChVector<>(0,-8,0));
 	*/
 
 	ChSharedPtr<ChVisualizationFEMmesh> mvisualizebeamA(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
-	mvisualizebeamA->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_SURFACE); //E_PLOT_ELEM_BEAM_TZ);
-	mvisualizebeamA->SetColorscaleMinMax(-6,6);
+	mvisualizebeamA->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_ELEM_BEAM_MZ);
+	mvisualizebeamA->SetColorscaleMinMax(-1,1);
 	mvisualizebeamA->SetSmoothFaces(true);
 	my_mesh->AddAsset(mvisualizebeamA);
 
@@ -244,15 +225,16 @@ hnode5->SetForce( ChVector<>(0,-8,0));
 
 	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES); // <- NEEDED because other solvers can't handle stiffness matrices
 	my_system.SetIterLCPwarmStarting(true); // this helps a lot to speedup convergence in this class of problems
-	my_system.SetIterLCPmaxItersSpeed(50);
+	my_system.SetIterLCPmaxItersSpeed(100);
 	my_system.SetTolSpeeds(1e-5);
 	//chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
 	//msolver->SetVerbose(true);
 	//msolver->SetDiagonalPreconditioning(true);
 
 	application.SetTimestep(0.001);
-application.GetSystem()->Update();
-application.SetPaused(true);
+
+//application.GetSystem()->Update();
+//application.SetPaused(true);
 
 		// Impose displ.
 //hnode5->Frame().SetPos( hnode5->Frame().GetPos() + ChVector<>(0,-0.1, 0) );
@@ -264,17 +246,18 @@ ChMatrixDynamic<> mfi(12,1);
 belement3->GetField(mfi);
 */
 
+
 /*
-ChMatrixDynamic<> mfo(12,1);
-belement3->ComputeInternalForces(mfo);
+belement1->SetDisableCorotate(true);
+belement2->SetDisableCorotate(true);
+belement3->SetDisableCorotate(true);
 */
 
-GetLog()<< "\n===========STATICS======== \n\n";
-//for (int is = 0; is<10; ++is)
-application.GetSystem()->DoStaticLinear();
+GetLog()<< "\n\n\n===========STATICS======== \n\n\n";
 
-ChMatrixDynamic<> mfo(12,1);
-belement3->ComputeInternalForces(mfo);
+//application.GetSystem()->DoStaticNonlinear(25);
+
+
 
 	while(application.GetDevice()->run()) 
 	{
@@ -288,34 +271,6 @@ belement3->ComputeInternalForces(mfo);
 
 		//GetLog() << " node pos =" << hnode3->Frame().GetPos() << "\n";
 	}
-
-mfo(12,1);
-belement3->ComputeInternalForces(mfo);
-	/*
-	//***TEST***
-
-	ChVector<> delta_rot_dir;
-	double     delta_rot_angle;
-	hnode2->Frame().GetRot().Q_to_AngAxis(delta_rot_angle, delta_rot_dir);
-	GetLog() << " el.inc.rot =" << (delta_rot_angle*delta_rot_dir);
-
-	GetLog() << " el.inc.rot (deg)=" << (delta_rot_angle*delta_rot_dir) * ::CH_C_RAD_TO_DEG;
-
-	ChMatrixDynamic<double> field(12,1);
-	belement1->GetField(field);
-	for (int r = 0; r<6; ++r)
-		GetLog() << " el.fieldA =" << field(r) << "\n";
-	for (int r = 6; r<12; ++r)
-		GetLog() << " el.fieldB =" << field(r) << "\n";
-	GetLog() << "\n";
-
-	ChMatrixDynamic<double> iforces(12,1);
-	belement1->ComputeInternalForces(iforces);
-	for (int r = 0; r<6; ++r)
-		GetLog() << " el.iforcesA =" << field(r) << "\n";
-	for (int r = 6; r<12; ++r)
-		GetLog() << " el.iforcesB =" << field(r) << "\n";
-	*/
 
 
 	// Remember this at the end of the program, if you started

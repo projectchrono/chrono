@@ -13,7 +13,7 @@
 #ifndef CHELEMENTBEAMEULER_H
 #define CHELEMENTBEAMEULER_H
 
-#define BEAM_VERBOSE
+//#define BEAM_VERBOSE
 
 #include "ChElementBeam.h"
 
@@ -42,6 +42,8 @@ protected:
 	ChQuaternion<> q_element_abs_rot;
 	ChQuaternion<> q_element_ref_rot;
 
+	bool disable_corotate;
+
 public:
 
 	ChElementBeamEuler()
@@ -53,6 +55,7 @@ public:
 					q_refrot1 = QUNIT;
 					q_element_abs_rot = QUNIT;
 					q_element_ref_rot = QUNIT;
+					disable_corotate = false;
 				}
 
 	virtual ~ChElementBeamEuler() {}
@@ -84,6 +87,13 @@ public:
 				/// This is not the same of Rotation() , that expresses 
 				/// the accumulated rotation from starting point.
 	ChQuaternion<> GetAbsoluteRotation() {return q_element_abs_rot;}
+
+				/// Get the original reference rotation of element in space 
+	ChQuaternion<> GetRefRotation() {return q_element_ref_rot;}
+
+				/// Set this as true to have the beam behave like a non-corotated beam
+				/// (i.e. only for small deformations).
+	void SetDisableCorotate(bool md) {disable_corotate = md;}
 
 				/// Fills the N matrix (single row, 12 columns) with the
 				/// values of shape functions at abscyssa 'eta'.
@@ -124,23 +134,23 @@ public:
 				/// The reference frame of this Euler-Bernoulli beam has X aligned to two nodes and Y parallel to Y of 1st node
 	virtual void UpdateRotation()
 				{
-					ChMatrix33<> A0;
-					ChVector<> mXele = nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos();
-					ChVector<> myele = nodes[0]->GetX0().GetA()->Get_A_Yaxis();
-					A0.Set_A_Xdir(mXele, myele);
-					q_element_ref_rot = A0.Get_A_quaternion(); // BETTER IN SetupInitial()
+					ChMatrix33<> A0(this->q_element_ref_rot); 
 
 					ChMatrix33<> Aabs;
-					mXele = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
-					myele = nodes[0]->Frame().GetA()->Get_A_Yaxis();
-					Aabs.Set_A_Xdir(mXele, myele);
-					q_element_abs_rot = Aabs.Get_A_quaternion(); 
+					if (this->disable_corotate)
+					{
+						Aabs = A0;
+						q_element_abs_rot = q_element_ref_rot;
+					}
+					else
+					{
+						ChVector<> mXele = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
+						ChVector<> myele = nodes[0]->Frame().GetA()->Get_A_Yaxis();
+						Aabs.Set_A_Xdir(mXele, myele);
+						q_element_abs_rot = Aabs.Get_A_quaternion(); 
+					}
 
-					A.MatrTMultiply(A0,Aabs);
-		#ifdef BEAM_VERBOSE
-		//GetLog() <<"\n\n\n======UpdateRotation \n A corot:" << A << "\n";
-		GetLog() <<"\n\n\n====== UpdateRotation A abs:" << Aabs << "\n\n";
-		#endif
+					this->A.MatrTMultiply(A0,Aabs);
 				}
 
 				/// Fills the D vector (column matrix) with the current 
@@ -153,38 +163,33 @@ public:
 				{
 					mD.Reset(12,1);
 
-					ChMatrix33<> A0  (this->q_element_ref_rot);
-					ChMatrix33<> Aabs(this->q_element_abs_rot);
+					//ChMatrix33<> A0  (this->q_element_ref_rot);
+					//ChMatrix33<> Aabs(this->q_element_abs_rot);
 
 					ChVector<> delta_rot_dir;
 					double     delta_rot_angle;
 
-					// corotational frame 
-					ChQuaternion<> quatA = A.Get_A_quaternion();
-
-					// Node 0, displacement (in local element frame, corotated back by A' )
-					ChVector<> displ = A.MatrT_x_Vect(nodes[0]->Frame().GetPos()) - (nodes[0]->GetX0().GetPos());
-				displ = A0.MatrT_x_Vect(displ);
+					// Node 0, displacement (in local element frame, corotated back)
+					//     d = [Atw]' Xt - [A0w]'X0   
+					//ChVector<> displ = Aabs.MatrT_x_Vect(nodes[0]->Frame().GetPos()) - A0.MatrT_x_Vect(nodes[0]->GetX0().GetPos());
+					ChVector<> displ = this->q_element_abs_rot.RotateBack(nodes[0]->Frame().GetPos()) - 
+									   this->q_element_ref_rot.RotateBack(nodes[0]->GetX0().GetPos());
 					mD.PasteVector(displ, 0, 0);
-	#ifdef BEAM_VERBOSE
-	GetLog() <<"\n\n\n======GetField \ndispl A:" << displ << "\n";
-	#endif
-					// Node 0, x,y,z small rotations (in local element frame
+
+					// Node 0, x,y,z small rotations (in local element frame)
 					ChQuaternion<> q_delta0 =   q_element_abs_rot.GetConjugate() % 
 												nodes[0]->Frame().GetRot();
 						// note, for small incremental rotations this is opposite of ChNodeFEMxyzrot::VariablesQbIncrementPosition 
 					q_delta0.Q_to_AngAxis(delta_rot_angle, delta_rot_dir); 
 					mD.PasteVector(delta_rot_dir*delta_rot_angle, 3, 0);
-	#ifdef BEAM_VERBOSE
-	GetLog() <<"rotaz A:" << delta_rot_angle*CH_C_RAD_TO_DEG << " on axis " <<  delta_rot_dir << "\n";
-	#endif 
-					// Node 1, displacement (in local element frame, corotated back by A' )
-					displ = A.MatrT_x_Vect(nodes[1]->Frame().GetPos()) - (nodes[1]->GetX0().GetPos());
-				displ = A0.MatrT_x_Vect(displ);
+ 
+					// Node 1, displacement (in local element frame, corotated back)
+					//     d = [Atw]' Xt - [A0w]'X0 
+					//displ = Aabs.MatrT_x_Vect(nodes[1]->Frame().GetPos()) - A0.MatrT_x_Vect(nodes[1]->GetX0().GetPos());
+					displ			 = this->q_element_abs_rot.RotateBack(nodes[1]->Frame().GetPos()) - 
+									   this->q_element_ref_rot.RotateBack(nodes[1]->GetX0().GetPos());
 					mD.PasteVector(displ, 6, 0);
-	#ifdef BEAM_VERBOSE
-	GetLog() <<"displ B:" << displ << "\n";
-	#endif
+
 					// Node 1, x,y,z small rotations (in local element frame)
 					ChQuaternion<> q_delta1 =   // this->q_refrot1.GetConjugate() %  
 												q_element_abs_rot.GetConjugate() % 
@@ -192,9 +197,6 @@ public:
 						// note, for small incremental rotations this is opposite of ChNodeFEMxyzrot::VariablesQbIncrementPosition 
 					q_delta1.Q_to_AngAxis(delta_rot_angle, delta_rot_dir); 
 					mD.PasteVector(delta_rot_dir*delta_rot_angle, 9, 0);
-	#ifdef BEAM_VERBOSE
-	GetLog() <<"rotaz B:" << delta_rot_angle*CH_C_RAD_TO_DEG << " on axis " <<  delta_rot_dir << "\n";
-	#endif
 				}
 
 				/// Fills the Ddt vector (column matrix) with the current 
@@ -207,19 +209,19 @@ public:
 				{
 					mD_dt.Reset(12,1);
 
-					ChMatrix33<> Aabs(this->q_element_abs_rot);
+					//ChMatrix33<> Aabs(this->q_element_abs_rot);
 
 					// Node 0, velocity (in local element frame, corotated back by A' )
-					mD_dt.PasteVector(Aabs.MatrT_x_Vect(nodes[0]->Frame().GetPos_dt()),    0, 0);
+					mD_dt.PasteVector(this->q_element_abs_rot.RotateBack(nodes[0]->Frame().GetPos_dt()),    0, 0);
 
 					// Node 0, x,y,z ang.velocity (in local element frame, corotated back by A' )
-					mD_dt.PasteVector(Aabs.MatrT_x_Vect(nodes[0]->Frame().GetWvel_par() ), 3, 0);
+					mD_dt.PasteVector(this->q_element_abs_rot.RotateBack(nodes[0]->Frame().GetWvel_par() ), 3, 0);
 
 					// Node 1, velocity (in local element frame, corotated back by A' )
-					mD_dt.PasteVector(Aabs.MatrT_x_Vect(nodes[1]->Frame().GetPos_dt()),    6, 0);
+					mD_dt.PasteVector(this->q_element_abs_rot.RotateBack(nodes[1]->Frame().GetPos_dt()),    6, 0);
 
 					// Node 1, x,y,z ang.velocity (in local element frame, corotated back by A' )
-					mD_dt.PasteVector(Aabs.MatrT_x_Vect(nodes[1]->Frame().GetWvel_par() ), 9, 0);
+					mD_dt.PasteVector(this->q_element_abs_rot.RotateBack(nodes[1]->Frame().GetWvel_par() ), 9, 0);
 
 				}
 				
@@ -303,6 +305,13 @@ public:
 					this->length = (nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos()).Length();
 					this->mass   = this->length * this->Area * this->density;
 
+					// Compute initial rotation
+					ChMatrix33<> A0;
+					ChVector<> mXele = nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos();
+					ChVector<> myele = nodes[0]->GetX0().GetA()->Get_A_Yaxis();
+					A0.Set_A_Xdir(mXele, myele);
+					q_element_ref_rot = A0.Get_A_quaternion(); 
+
 					// Compute local stiffness matrix:
 					ComputeStiffnessMatrix();
 				}
@@ -317,8 +326,9 @@ public:
 					// Corotational K stiffness:
 					ChMatrixDynamic<> CK(12,12);
 					ChMatrixDynamic<> CKCt(12,12); // the global, corotated, K matrix
-				ChMatrix33<> Atoabs(this->q_element_abs_rot);
-				ChMatrix33<> Atolocwel; Atolocwel.Set33Identity();
+					
+					ChMatrix33<> Atoabs(this->q_element_abs_rot);
+					ChMatrix33<> Atolocwel; Atolocwel.Set33Identity();
 					ChMatrixCorotation<>::ComputeCK(this->StiffnessMatrix, Atoabs, Atolocwel, 4, CK);
 					ChMatrixCorotation<>::ComputeKCt(CK, Atoabs, Atolocwel, 4, CKCt);
 
@@ -372,9 +382,6 @@ public:
 						// [local Internal Forces] = [Klocal] * displ + [Rlocal] * displ_dt
 					ChMatrixDynamic<> FiK_local(12,1);
 					FiK_local.MatrMultiply(StiffnessMatrix, displ);
-
-GetLog() <<"========\nInternal forces: displ=" << displ << "\n";
-GetLog() <<"Internal forces: FiKlocal=" << FiK_local << "\n";
 
 						// set up vector of nodal velocities (in local element system) 
 					ChMatrixDynamic<> displ_dt(12,1);
@@ -444,7 +451,7 @@ GetLog() << "\n";
 				/// and the absolute rotation of section plane, at abscyssa 'eta'.
 				/// Note, eta=-1 at node1, eta=+1 at node2.
 				/// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetField()
-				/// Results are corotated.
+				/// Results are corotated (expressed in world reference)
 	virtual void EvaluateSectionFrame(const double eta, const ChMatrix<>& displ, ChVector<>& point, ChQuaternion<>& rot)
 				{
 					ChVector<> u_displ;
@@ -454,9 +461,15 @@ GetLog() << "\n";
 
 					this->EvaluateSectionDisplacement(eta, displ, u_displ, u_rotaz);
 
-					point = this->Rotation()*  ( Nx1 * this->nodes[0]->GetX0().GetPos() + 
-												 Nx2 * this->nodes[1]->GetX0().GetPos() + 
-												 this->q_element_ref_rot.Rotate(u_displ));
+					// Since   d = [Atw]' Xt - [A0w]'X0   , so we have
+					//        Xt = [Atw] (d +  [A0w]'X0)
+
+					point = this->q_element_abs_rot.Rotate 
+							( u_displ +
+							  this->q_element_ref_rot.RotateBack
+							  (Nx1 * this->nodes[0]->GetX0().GetPos() + 
+							   Nx2 * this->nodes[1]->GetX0().GetPos() ) 
+							 );
 
 					ChQuaternion<> msectionrot;
 					msectionrot.Q_from_AngAxis(u_rotaz.Length(), u_rotaz.GetNormalized());
