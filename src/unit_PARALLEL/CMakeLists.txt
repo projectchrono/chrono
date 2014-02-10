@@ -37,6 +37,9 @@ if(MSVC)
 	set(CMAKE_BUILD_TYPE "Release" CACHE STRING "For single-configuration generators (e.g. make) set the type of build: Release, Debug, RelWithDebugInfo, MinSizeRel")
 	set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release" "Debug" "RelWithDebugInfo" "MinSizeRel")
 
+  # set the output directory for DLLs and EXEs
+  SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 	# Windows doesn't automatically pick up Bullet source included in Chrono's build	
 	SET(ChronoEngine_unit_GPU_COLLISION
 		src/collision/ChCAABBGenerator.h
@@ -400,3 +403,7 @@ INSTALL(TARGETS ChronoEngine_Parallel
  CUDA_HOST_COMPILER)
 
 
+SET(BUILD_DEMOS          TRUE    CACHE BOOL   "Turn this ON to generate Chrono::Engine demos")
+IF(BUILD_DEMOS)
+  ADD_SUBDIRECTORY(demos)
+ENDIF()
