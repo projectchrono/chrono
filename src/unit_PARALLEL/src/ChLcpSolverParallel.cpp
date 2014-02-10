@@ -120,13 +120,13 @@ void ChLcpSolverParallel::RunTimeStep(real step) {
 	solver.collision_inside = collision_inside;
 	solver.Initial(step, data_container);
 
+	if (collision_inside) {
+		data_container->host_data.vel_new_data = data_container->host_data.vel_data;
+		data_container->host_data.omg_new_data = data_container->host_data.omg_data;
 
-	data_container->host_data.vel_new_data = data_container->host_data.vel_data;
-	data_container->host_data.omg_new_data = data_container->host_data.omg_data;
-
-	data_container->host_data.pos_new_data= data_container->host_data.pos_data;
-	data_container->host_data.rot_new_data= data_container->host_data.rot_data;
-
+		data_container->host_data.pos_new_data = data_container->host_data.pos_data;
+		data_container->host_data.rot_new_data = data_container->host_data.rot_data;
+	}
 
 	//solve initial
 	//solver.SetComplianceParameters(.2, 1e-3, 1e-3);
