@@ -612,11 +612,11 @@ uint & number_of_contacts
 	dpth_data.resize(number_of_contacts);
 	bids_data.resize(number_of_contacts);
 
-	thrust::sort_by_key(thrust::omp::par,
-	potentialCollisions.begin(),
-	potentialCollisions.end(),
-	thrust::make_zip_iterator(thrust::make_tuple(norm_data.begin(), cpta_data.begin(), cptb_data.begin(), dpth_data.begin(), bids_data.begin()))
-	);
+//	thrust::sort_by_key(thrust::omp::par,
+//	potentialCollisions.begin(),
+//	potentialCollisions.end(),
+//	thrust::make_zip_iterator(thrust::make_tuple(norm_data.begin(), cpta_data.begin(), cptb_data.begin(), dpth_data.begin(), bids_data.begin()))
+//	);
 
 }
 

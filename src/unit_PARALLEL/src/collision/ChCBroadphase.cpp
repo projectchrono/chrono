@@ -129,8 +129,7 @@ inline void __host__ __device__ function_Store_AABB_BIN_Intersection(
 //--------------------------------------------------------------------------
 
 void ChCBroadphase::host_Store_AABB_BIN_Intersection(const real3 *aabb_data, const uint *Bins_Intersected, uint *bin_number, uint *body_number) {
-//#pragma omp parallel
-
+#pragma omp parallel for
 	for (int i = 0; i < numAABB; i++) {
 		function_Store_AABB_BIN_Intersection(i, aabb_data, Bins_Intersected, bin_size_vec,grid_size, numAABB, bin_number, body_number);
 	}

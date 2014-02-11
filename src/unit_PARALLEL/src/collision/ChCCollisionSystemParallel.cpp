@@ -86,7 +86,7 @@ void ChCollisionSystemParallel::Run() {
 			data_container->host_data.rot_data,
 			data_container->host_data.aabb_rigid);
 
-	aabb_generator.GenerateAABBFluid(data_container->host_data.fluid_pos, data_container->fluid_rad, data_container->host_data.aabb_fluid);
+	//aabb_generator.GenerateAABBFluid(data_container->host_data.fluid_pos, data_container->fluid_rad, data_container->host_data.aabb_fluid);
 
 	broadphase.detectPossibleCollisions(data_container->host_data.aabb_rigid, data_container->host_data.fam_rigid, data_container->host_data.pair_rigid_rigid);
 	mtimer_cd_broad.stop();
