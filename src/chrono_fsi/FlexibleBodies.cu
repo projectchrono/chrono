@@ -73,9 +73,8 @@ const real_ GQ5_p[5] = {-0.906179845938664	, -0.538469310105683, 0					,	0.53846
 const real_ GQ5_w[5] = {0.236926885056189	, 0.478628670499366	, 0.568888888888889	,	0.478628670499366, 0.236926885056189};
 
 
-
-void
-shape_fun_dd(real_* Sxx, real_ x, real_ L)
+//------------------------------------------------------------------------------
+__device__ __host__ inline void shape_fun_dd(real_* Sxx, real_ x, real_ L)
 {
 	real_ xi = x/L;
 
@@ -85,8 +84,7 @@ shape_fun_dd(real_* Sxx, real_ x, real_ L)
 	Sxx[3] = (-2+6*xi)/L;
 }
 //------------------------------------------------------------------------------
-void
-eps_eps_e(real_* e_ee, real_ x, real_ L, real_* e)
+__device__ __host__ inline void eps_eps_e(real_* e_ee, real_ x, real_ L, real_* e)
 {
 	real_ e1  = e[0];
 	real_ e2  = e[1];
@@ -133,8 +131,7 @@ eps_eps_e(real_* e_ee, real_ x, real_ L, real_* e)
 	e_ee[11] = eps * Sx[3] * (e3*Sx[0]+e6*Sx[1]+e9*Sx[2]+e12*Sx[3]);
 }
 
-void
-eps_eps_e_ALT(real_* e_ee, real_ x, real_ L, real_* e)
+__device__ __host__ inline void eps_eps_e_ALT(real_* e_ee, real_ x, real_ L, real_* e)
 {
 	real_ e1  = e[0];
 	real_ e2  = e[1];
@@ -195,8 +192,7 @@ eps_eps_e_ALT(real_* e_ee, real_ x, real_ L, real_* e)
 	e_ee[11] = t8*t12*t27;
 }
 
-void
-kappa_kappa_e(real_* k_ke, real_ x, real_ L, real_* e)
+__device__ __host__ inline void kappa_kappa_e(real_* k_ke, real_ x, real_ L, real_* e)
 {
 	real_ e1  = e[0];
 	real_ e2  = e[1];
@@ -269,7 +265,7 @@ kappa_kappa_e(real_* k_ke, real_ x, real_ L, real_* e)
 	k_ke[11] = -inv_rx_rx_cubed * ( -(Sx[3]*rxx[0]-Sxx[3]*rx[0])*v[1]+(Sx[3]*rxx[1]-Sxx[3]*rx[1])*v[0] + coef*Sx[3]*rx[2] );
 }
 //------------------------------------------------------------------------------
-void gravitational_force(real_* f_g, real_ L, real_ rho, real_ A, real3 g)
+__device__ __host__ inline void gravitational_force(real_* f_g, real_ L, real_ rho, real_ A, real3 g)
 {
 	real_ coef = rho * A * L;
 
@@ -295,13 +291,13 @@ void gravitational_force(real_* f_g, real_ L, real_ rho, real_ A, real3 g)
 }
 //------------------------------------------------------------------------------
 // sum += mult * a
-void SumArrays(real_* sum, real_* a, real_ mult, int numComp) {
+__device__ __host__ inline void SumArrays(real_* sum, real_* a, real_ mult, int numComp) {
 	for (int k = 0; k < numComp; k++) {
 		sum[k] += mult * a[k];
 	}
 }
 //------------------------------------------------------------------------------
-void CopyElementNodesTo_e(real_* e, const thrust::device_vector<real3> & ANCF_NodesD, const thrust::device_vector<real3> & ANCF_SlopesD, int nodeIdx) {
+__device__ __host__ inline void CopyElementNodesTo_e(real_* e, const thrust::device_vector<real3> & ANCF_NodesD, const thrust::device_vector<real3> & ANCF_SlopesD, int nodeIdx) {
 	real3 ni = ANCF_NodesD[nodeIdx];
 	e[0] = ni.x;
 	e[1] = ni.y;
@@ -321,17 +317,14 @@ void CopyElementNodesTo_e(real_* e, const thrust::device_vector<real3> & ANCF_No
 }
 //------------------------------------------------------------------------------
 // Why -= and not += : because M*X2 + K*X = F Therefore, in an explicit method: M*X2 = F - K*X where K*X is our elastic forces (f)
-void Add_f_ToForces(thrust::host_vector<real3> & flex_FSI_NodesForces1, thrust::host_vector<real3> & flex_FSI_NodesForces2, real_ k, real_* f, int nodeIdx) {
-	real3 f1 = flex_FSI_NodesForces1[nodeIdx];
-	real3 f2 = flex_FSI_NodesForces2[nodeIdx];
-
+__device__ __host__ inline void Add_f_ToForces(thrust::host_vector<real3> & flex_FSI_NodesForces1, thrust::host_vector<real3> & flex_FSI_NodesForces2, real_ k, real_* f, int nodeIdx) {
 	flex_FSI_NodesForces1[nodeIdx] += k * R3(f[0], f[1], f[2]);
 	flex_FSI_NodesForces2[nodeIdx] += k * R3(f[3], f[4], f[5]);
 	flex_FSI_NodesForces1[nodeIdx + 1] += k * R3(f[6], f[7], f[8]);
 	flex_FSI_NodesForces2[nodeIdx + 1] += k * R3(f[9], f[10], f[11]);
 }
 //------------------------------------------------------------------------------
-void MapBeamDataTo_1D_Array(real_* e, const thrust::host_vector<real3> & beamData1, const thrust::host_vector<real3> & beamData2, int2 nodesPortion) { //beamData1: postion, beamData2: slope
+__device__ __host__ inline void MapBeamDataTo_1D_Array(real_* e, const thrust::host_vector<real3> & beamData1, const thrust::host_vector<real3> & beamData2, int2 nodesPortion) { //beamData1: postion, beamData2: slope
 	int numNodes = nodesPortion.y - nodesPortion.x;
 	for (int j = 0; j < numNodes; j++) {
 		int nodeIdx = nodesPortion.x + j;
@@ -369,10 +362,10 @@ void CalcElasticForces(
 			int nodeIdx = nodesPortion.x + j;
 			real_ e[12];
 			CopyElementNodesTo_e(e, ANCF_NodesD, ANCF_SlopesD, nodeIdx);
+			real_ f_e[12] = {0};
 			real_ e_ee[12] = {0};
 			real_ k_ke[12] = {0};
 			real_ f_g[12] = {0};
-			real_ f_e[12] = {0};
 			// Elastic Force, 1/2: tension force, GQ 5th order. Maybe 4th order is enough as well.
 			for (int k = 0; k < 5; k ++) {
 				real_ gqPoint = (lE - 0) / 2 * GQ5_p[k] + (lE + 0) / 2;
@@ -394,7 +387,7 @@ void CalcElasticForces(
 	}
 }
 //------------------------------------------------------------------------------
-void ItegrateInTime(
+__device__ __host__ inline void ItegrateInTime(
 		thrust::device_vector<real3> & ANCF_NodesD2,
 		thrust::device_vector<real3> & ANCF_SlopesD2,
 		thrust::device_vector<real3> & ANCF_NodesVelD2,

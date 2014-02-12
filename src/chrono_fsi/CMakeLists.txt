@@ -61,7 +61,7 @@ set_compute_capability("20")
 #cuda_add_executable(cudaSPHProjEXE main.cpp)
 #target_link_libraries(cudaSPHProjEXE FSI)
 ####
-cuda_add_executable(cudaSPHProjEXE main.cpp collideSphereSphere.cu SDKCollisionSystem.cu printToFile.cu FlexibleBodies.cu minv_vec.cu)
+cuda_add_executable(cudaSPHProjEXE main.cpp collideSphereSphere.cu SDKCollisionSystem.cu printToFile.cu FlexibleBodies.cu)
 #IF (LIBCUTIL)
 #	cuda_add_executable(cudaSPHProjEXE main.cpp collideSphereSphere.cu SDKCollisionSystem.cu)
 
