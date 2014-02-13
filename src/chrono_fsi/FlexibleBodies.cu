@@ -62,7 +62,10 @@
 
 #include <cstdio>
 
-
+//#####################################################################################
+__constant__ ANCF_Params flexParamsD;
+__constant__ real_ dTD;
+__constant__ int numFlexBodiesD;
 
 // Gaussian Quadrature. Applied to the [-1, 1] interval. For other intervals it is like this:
 // int_a^b f(x)dx = (b-a)/2 * sum{w_i * f( (b-a)/2*z_i + (a+b)/2 ) }
@@ -371,10 +374,10 @@ __global__ void CalcElasticForces(
 		const real3 * ANCF_NodesVelD,
 		const real3 * ANCF_SlopesVelD,
 		const int2 * ANCF_ReferenceArrayNodesOnBeamsD,
-		const real_ * ANCF_Beam_LengthD,
+		const real_ * ANCF_Beam_LengthD
 	)
 {
-	uint i = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
+	uint i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i >= numFlexBodiesD) return;
 
 	real_ l = ANCF_Beam_LengthD[i];
@@ -412,10 +415,10 @@ __global__ void CalcElasticForces(
 }
 //------------------------------------------------------------------------------
 __global__ void SolveAndIntegrateInTime(
-		const real3 * ANCF_NodesD2,
-		const real3 * ANCF_SlopesD2,
-		const real3 * ANCF_NodesVelD2,
-		const real3 * ANCF_SlopesVelD2,
+		real3 * ANCF_NodesD2,
+		real3 * ANCF_SlopesD2,
+		real3 * ANCF_NodesVelD2,
+		real3 * ANCF_SlopesVelD2,
 
 		real3 * flex_FSI_NodesForcesD1,
 		real3 * flex_FSI_NodesForcesD2,
@@ -427,7 +430,7 @@ __global__ void SolveAndIntegrateInTime(
 		const bool * ANCF_IsCantileverD
 	)
 {
-	uint i = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
+	uint i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i >= numFlexBodiesD) return;
 
 
@@ -454,7 +457,6 @@ __global__ void SolveAndIntegrateInTime(
 									//		printf("\n\n\n\n\n");
 
 	min_vec(D2Node, f, lE, numElements, isCantilever);
-
 
 
 

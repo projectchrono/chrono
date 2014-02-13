@@ -23,10 +23,6 @@ __constant__ real_ solid_SPH_massD;
 __constant__ int2 updatePortionD;
 __constant__ int2 portionD;
 __constant__ int flagD;
-
-
-
-int maxblock = 65535;
 //--------------------------------------------------------------------------------------------------------------------------------
 // first comp of q is rotation, last 3 components are axis of rot
 __device__ __host__ inline void RotationMatirixFromQuaternion(real3 & AD1, real3 & AD2, real3 & AD3, const real4 & q) {
@@ -133,6 +129,17 @@ real3 Rotate_By_Quaternion(const real4 & q4, const real3 & r3) {
 	Rotation rotMat;
 	CalcQuat2RotationMatrix(rotMat, q4);
 	return Rotate_By_RotationMatrix(rotMat, r3);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void IntitializeGaussQuadrature(GaussQuadrature & GQ) {
+	GQ.GQ3_p[0] = -0.774596669241483; GQ.GQ3_p[1] = 0; GQ.GQ3_p[2] = 0.774596669241483;
+	GQ.GQ3_w[0] = 0.555555555555556; GQ.GQ3_w[1] = 0.888888888888889; GQ.GQ3_w[2] = 0.555555555555556;
+
+	GQ.GQ4_p[0] = -0.861136311594053; GQ.GQ4_p[1] = -0.339981043584856; GQ.GQ4_p[2] = 0.339981043584856;GQ.GQ4_p[3] = 0.861136311594053;
+	GQ.GQ4_w[0] = 0.347854845137454; GQ.GQ4_w[1] = 0.652145154862546; GQ.GQ4_w[2] = 0.652145154862546; GQ.GQ4_w[3] = 0.347854845137454;
+
+	GQ.GQ5_p[0] = -0.906179845938664; GQ.GQ5_p[1] = -0.538469310105683; GQ.GQ5_p[2] = 0; GQ.GQ5_p[3] = 0.538469310105683; GQ.GQ5_p[4] = 0.906179845938664;
+	GQ.GQ5_w[0] = 0.236926885056189; GQ.GQ5_w[1] = 0.478628670499366; GQ.GQ5_w[2] = 0.568888888888889;	GQ.GQ5_w[3] = 0.478628670499366; GQ.GQ5_w[4] = 0.236926885056189;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __device__ __host__ inline int IndexOfClosestNode(real_ sOverBeam, real_ lBeam, int2 nodesInterval) {
@@ -1855,6 +1862,8 @@ void cudaCollisions(
 	//******************************************************************************
 	//******************** flex body some initialization
 
+	GaussQuadrature GQ;
+	IntitializeGaussQuadrature(GQ);
 //	int totalNumberOfFlexNodes = ANCF_ReferenceArrayNodesOnBeamsD[ANCF_ReferenceArrayNodesOnBeamsD.size() - 1].y;
 	//******************************************************************************
 	thrust::device_vector<real_> flexParametricDistD = flexParametricDist;

@@ -40,10 +40,14 @@ struct ANCF_Params {
 	real_ bobRad;
 };
 
-__constant__ ANCF_Params flexParamsD;
-__constant__ real_ dTD;
-__constant__ int numFlexBodiesD;
-
+struct GaussQuadrature {
+	const real_ GQ3_p[3];
+	const real_ GQ3_w[3];
+	const real_ GQ4_p[4];
+	const real_ GQ4_w[4];
+	const real_ GQ5_p[5];
+	const real_ GQ5_w[5];
+};
 
 __device__ __host__ inline void shape_fun(real_* S, real_ x, real_ lE)
 {
