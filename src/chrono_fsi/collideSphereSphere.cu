@@ -1600,7 +1600,7 @@ void UpdateFlexibleBody(
 		const thrust::device_vector<real3> & flexSPH_MeshSlope_Initial_D,
 		const thrust::device_vector<real_> & flexParametricDistD,
 		const thrust::device_vector<real_> & ANCF_Beam_LengthD,
-		const thrust::host_vector<bool> & ANCF_IsCantilever,
+		const thrust::device_vector<bool> & ANCF_IsCantileverD,
 		const thrust::host_vector<int3> & referenceArray,
 
 		const ANCF_Params & flexParams,
@@ -1680,7 +1680,7 @@ void UpdateFlexibleBody(
 				ANCF_NodesD3, ANCF_SlopesD3, ANCF_NodesVelD3, ANCF_SlopesVelD3,
 				ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
 				flex_FSI_NodesForces1, flex_FSI_NodesForces2,
-				ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, ANCF_IsCantilever,
+				ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, ANCF_IsCantileverD,
 				numObjects.numFlexBodies, flexParams, dT/(2*n)
 				);
 
@@ -1688,7 +1688,7 @@ void UpdateFlexibleBody(
 				ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
 				ANCF_NodesD3, ANCF_SlopesD3, ANCF_NodesVelD3, ANCF_SlopesVelD3,
 				flex_FSI_NodesForces1, flex_FSI_NodesForces2,
-				ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, ANCF_IsCantilever,
+				ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, ANCF_IsCantileverD,
 				numObjects.numFlexBodies, flexParams, dT/(n)
 				);
 	}
@@ -1701,7 +1701,7 @@ void UpdateFlexibleBody(
 //				ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
 //				ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
 //				flex_FSI_NodesForces1, flex_FSI_NodesForces2,
-//				ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, ANCF_IsCantilever,
+//				ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, ANCF_IsCantileverD,
 //				numFlexBodies, flexParams, dT
 //				);
 	//################################################### update BCE markers position
@@ -1867,6 +1867,7 @@ void cudaCollisions(
 	thrust::device_vector<real3> ANCF_NodesVelD = ANCF_NodesVel;
 	thrust::device_vector<real3> ANCF_SlopesVelD = ANCF_SlopesVel;
 	thrust::device_vector<real_> ANCF_Beam_LengthD = ANCF_Beam_Length;
+	thrust::device_vector<bool> ANCF_IsCantileverD = ANCF_IsCantilever;
 	thrust::device_vector<int2> ANCF_ReferenceArrayNodesOnBeamsD = ANCF_ReferenceArrayNodesOnBeams;  //each element refer to a beam. and contains the start and end
 																									// index of nodes in the array of beams nodes (like referenceArray)
 
@@ -2013,7 +2014,7 @@ void cudaCollisions(
 									flexSPH_MeshSlope_Initial_D,
 									flexParametricDistD,
 									ANCF_Beam_LengthD,
-									ANCF_IsCantilever,
+									ANCF_IsCantileverD,
 									referenceArray,
 
 									flexParams,
@@ -2051,7 +2052,7 @@ void cudaCollisions(
 							flexSPH_MeshSlope_Initial_D,
 							flexParametricDistD,
 							ANCF_Beam_LengthD,
-							ANCF_IsCantilever,
+							ANCF_IsCantileverD,
 							referenceArray,
 
 							flexParams,
@@ -2135,6 +2136,7 @@ void cudaCollisions(
 	ANCF_NodesVelD.clear();
 	ANCF_SlopesVelD.clear();
 	ANCF_Beam_LengthD.clear();
+	ANCF_IsCantileverD.clear();
 	ANCF_ReferenceArrayNodesOnBeamsD.clear();
 
 	ANCF_NumMarkers_Per_BeamD.clear();

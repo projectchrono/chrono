@@ -40,6 +40,11 @@ struct ANCF_Params {
 	real_ bobRad;
 };
 
+__constant__ ANCF_Params flexParamsD;
+__constant__ real_ dTD;
+__constant__ int numFlexBodiesD;
+
+
 __device__ __host__ inline void shape_fun(real_* S, real_ x, real_ lE)
 {
 	real_ xi = x/lE;
@@ -75,7 +80,7 @@ void Update_ANCF_Beam(
 		const thrust::device_vector<real3> & flex_FSI_NodesForces2,
 		const thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
 		const thrust::device_vector<real_> & ANCF_Beam_LengthD,
-		const thrust::host_vector<bool> & ANCF_IsCantilever,
+		const thrust::device_vector<bool> & ANCF_IsCantileverD,
 		const int numFlexBodies,
 		const ANCF_Params & flexParams,
 		real_ dT

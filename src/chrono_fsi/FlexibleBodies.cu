@@ -58,6 +58,7 @@
 #include "SPHCudaUtils.h"
 #include "minv_vec.cuh"
 #include "FlexibleBodies.cuh"
+#include "SDKCollisionSystem.cuh" // for computeGridSize
 
 #include <cstdio>
 
@@ -297,7 +298,7 @@ __device__ __host__ inline void SumArrays(real_* sum, real_* a, real_ mult, int 
 	}
 }
 //------------------------------------------------------------------------------
-__device__ __host__ inline void CopyElementNodesTo_e(real_* e, const thrust::device_vector<real3> & ANCF_NodesD, const thrust::device_vector<real3> & ANCF_SlopesD, int nodeIdx) {
+__device__ __host__ inline void CopyElementNodesTo_e(real_* e, const real3 * ANCF_NodesD, const real3 * ANCF_SlopesD, int nodeIdx) {
 	real3 ni = ANCF_NodesD[nodeIdx];
 	e[0] = ni.x;
 	e[1] = ni.y;
@@ -317,14 +318,14 @@ __device__ __host__ inline void CopyElementNodesTo_e(real_* e, const thrust::dev
 }
 //------------------------------------------------------------------------------
 // Why -= and not += : because M*X2 + K*X = F Therefore, in an explicit method: M*X2 = F - K*X where K*X is our elastic forces (f)
-__device__ __host__ inline void Add_f_ToForces(thrust::host_vector<real3> & flex_FSI_NodesForces1, thrust::host_vector<real3> & flex_FSI_NodesForces2, real_ k, real_* f, int nodeIdx) {
-	flex_FSI_NodesForces1[nodeIdx] += k * R3(f[0], f[1], f[2]);
-	flex_FSI_NodesForces2[nodeIdx] += k * R3(f[3], f[4], f[5]);
-	flex_FSI_NodesForces1[nodeIdx + 1] += k * R3(f[6], f[7], f[8]);
-	flex_FSI_NodesForces2[nodeIdx + 1] += k * R3(f[9], f[10], f[11]);
+__device__ __host__ inline void Add_f_ToForces(real3 * flex_FSI_NodesForcesD1, real3 * flex_FSI_NodesForcesD2, real_ k, real_* f, int nodeIdx) {
+	flex_FSI_NodesForcesD1[nodeIdx] += k * R3(f[0], f[1], f[2]);
+	flex_FSI_NodesForcesD2[nodeIdx] += k * R3(f[3], f[4], f[5]);
+	flex_FSI_NodesForcesD1[nodeIdx + 1] += k * R3(f[6], f[7], f[8]);
+	flex_FSI_NodesForcesD2[nodeIdx + 1] += k * R3(f[9], f[10], f[11]);
 }
 //------------------------------------------------------------------------------
-__device__ __host__ inline void MapBeamDataTo_1D_Array(real_* e, const thrust::host_vector<real3> & beamData1, const thrust::host_vector<real3> & beamData2, int2 nodesPortion) { //beamData1: postion, beamData2: slope
+__device__ __host__ inline void MapBeamDataTo_1D_Array(real_* e, const real3 * beamData1, const real3 * beamData2, int2 nodesPortion) { //beamData1: postion, beamData2: slope
 	int numNodes = nodesPortion.y - nodesPortion.x;
 	for (int j = 0; j < numNodes; j++) {
 		int nodeIdx = nodesPortion.x + j;
@@ -339,122 +340,190 @@ __device__ __host__ inline void MapBeamDataTo_1D_Array(real_* e, const thrust::h
 	}
 }
 //------------------------------------------------------------------------------
-void CalcElasticForces(
-		thrust::host_vector<real3> & flex_FSI_NodesForces1,
-		thrust::host_vector<real3> & flex_FSI_NodesForces2,
-		const thrust::device_vector<real3> & ANCF_NodesD,
-		const thrust::device_vector<real3> & ANCF_SlopesD,
-		const thrust::device_vector<real3> & ANCF_NodesVelD,
-		const thrust::device_vector<real3> & ANCF_SlopesVelD,
-		const thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
-		const thrust::device_vector<real_> & ANCF_Beam_LengthD,
-		const int numFlexBodies,
-		const ANCF_Params & flexParams
-	)
-{
-	for (int i = 0; i < numFlexBodies; i++) {
-		real_ l = ANCF_Beam_LengthD[i];
-		int2 nodesPortion = ANCF_ReferenceArrayNodesOnBeamsD[i];
-		int numNodes = nodesPortion.y - nodesPortion.x;
-		int numElements = numNodes - 1;
-		real_ lE = l / numElements;
-		for (int j = 0; j < numElements; j++) {
-			int nodeIdx = nodesPortion.x + j;
-			real_ e[12];
-			CopyElementNodesTo_e(e, ANCF_NodesD, ANCF_SlopesD, nodeIdx);
-			real_ f_e[12] = {0};
-			real_ e_ee[12] = {0};
-			real_ k_ke[12] = {0};
-			real_ f_g[12] = {0};
-			// Elastic Force, 1/2: tension force, GQ 5th order. Maybe 4th order is enough as well.
-			for (int k = 0; k < 5; k ++) {
-				real_ gqPoint = (lE - 0) / 2 * GQ5_p[k] + (lE + 0) / 2;
-				eps_eps_e(e_ee, gqPoint, lE, e);
-				SumArrays(f_e, e_ee, flexParams.E * flexParams.A * (lE - 0) / 2 * GQ5_w[k], 12);
-			}
-			// Elastic Force, 2/2: bending force, GQ 3rd order.
-			for (int k = 0; k < 3; k ++) {
-				real_ gqPoint = (lE - 0) / 2 * GQ3_p[k] + (lE + 0) / 2;
-				kappa_kappa_e(k_ke, gqPoint, lE, e);
-				SumArrays(f_e, k_ke, flexParams.E * flexParams.I  * (lE - 0) / 2 * GQ3_w[k], 12);
-			}
-			// Gravitational Foce
-			gravitational_force(f_g, lE, flexParams.rho, flexParams.A, flexParams.gravity);
-			SumArrays(f_e, f_g, -1, 12);
-			// Add element forces to associated nodes
-			Add_f_ToForces(flex_FSI_NodesForces1, flex_FSI_NodesForces2, -1, f_e, nodeIdx);
-		}
-	}
-}
-//------------------------------------------------------------------------------
 __device__ __host__ inline void ItegrateInTime(
-		thrust::device_vector<real3> & ANCF_NodesD2,
-		thrust::device_vector<real3> & ANCF_SlopesD2,
-		thrust::device_vector<real3> & ANCF_NodesVelD2,
-		thrust::device_vector<real3> & ANCF_SlopesVelD2,
+		real3 * ANCF_NodesD2,
+		real3 * ANCF_SlopesD2,
+		real3 * ANCF_NodesVelD2,
+		real3 * ANCF_SlopesVelD2,
 
-		const thrust::device_vector<real3> & ANCF_NodesVelD,
-		const thrust::device_vector<real3> & ANCF_SlopesVelD,
+		const real3 * ANCF_NodesVelD,
+		const real3 * ANCF_SlopesVelD,
 
 		real_* D2Node,
 		int2 nodesPortionAdjusted,
-		real_ lE,
-		const ANCF_Params & flexParams,
-		real_ dT) {
+		real_ lE) {
 	int numNodesAdjusted = nodesPortionAdjusted.y - nodesPortionAdjusted.x;
 	for (int j = 0; j < numNodesAdjusted; j++) {
 		int nodeIdx = nodesPortionAdjusted.x + j;
-		ANCF_NodesD2[nodeIdx] += dT * ANCF_NodesVelD[nodeIdx];
-		ANCF_SlopesD2[nodeIdx] += dT * ANCF_SlopesVelD[nodeIdx];
+		ANCF_NodesD2[nodeIdx] += dTD * ANCF_NodesVelD[nodeIdx];
+		ANCF_SlopesD2[nodeIdx] += dTD * ANCF_SlopesVelD[nodeIdx];
 
-		ANCF_NodesVelD2[nodeIdx] += dT * (1/(flexParams.rho * flexParams.A * lE)) * R3(D2Node[6 * j + 0], D2Node[6 * j + 1], D2Node[6 * j + 2]);
-		ANCF_SlopesVelD2[nodeIdx] += dT * (1/(flexParams.rho * flexParams.A * lE)) * R3(D2Node[6 * j + 3], D2Node[6 * j + 4], D2Node[6 * j + 5]);
+		ANCF_NodesVelD2[nodeIdx] += dTD * (1/(flexParamsD.rho * flexParamsD.A * lE)) * R3(D2Node[6 * j + 0], D2Node[6 * j + 1], D2Node[6 * j + 2]);
+		ANCF_SlopesVelD2[nodeIdx] += dTD * (1/(flexParamsD.rho * flexParamsD.A * lE)) * R3(D2Node[6 * j + 3], D2Node[6 * j + 4], D2Node[6 * j + 5]);
 	}
 }
 //------------------------------------------------------------------------------
-real3 RotatePoint_Y_Direction(real3 pIn, real3 center, real_ theta) {
-	real3 A1 = R3(cos(theta), 0, -sin(theta));
-	real3 A2 = R3(0, 1, 0);
-	real3 A3 = R3(sin(theta), 0, cos(theta));
-	real3 rIn = pIn - center;
-	return (center + R3(dot(A1, rIn), dot(A2, rIn), dot(A3, rIn)));
-}
-//------------------------------------------------------------------------------
-real3 RotateY_Direction(real3 vec, real_ theta) {
-	return RotatePoint_Y_Direction(vec, R3(0), theta);
-}
-//------------------------------------------------------------------------------
+__global__ void CalcElasticForces(
+		real3 * flex_FSI_NodesForcesD1,
+		real3 * flex_FSI_NodesForcesD2,
+		const real3 * ANCF_NodesD,
+		const real3 * ANCF_SlopesD,
+		const real3 * ANCF_NodesVelD,
+		const real3 * ANCF_SlopesVelD,
+		const int2 * ANCF_ReferenceArrayNodesOnBeamsD,
+		const real_ * ANCF_Beam_LengthD,
+	)
+{
+	uint i = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
+	if (i >= numFlexBodiesD) return;
 
-void RigidBodyRotation(
-		thrust::device_vector<real3> & ANCF_NodesD,
-		thrust::device_vector<real3> & ANCF_SlopesD,
-		thrust::device_vector<real3> & ANCF_NodesVelD,
-		thrust::device_vector<real3> & ANCF_SlopesVelD,
-		int2 nodesPortion,
-		real_ lE,
-		real_ dT) {
+	real_ l = ANCF_Beam_LengthD[i];
+	int2 nodesPortion = ANCF_ReferenceArrayNodesOnBeamsD[i];
 	int numNodes = nodesPortion.y - nodesPortion.x;
-	real3 pa = ANCF_NodesD[nodesPortion.x];
-	real3 pb = ANCF_NodesD[nodesPortion.y - 1];
-	real3 pCenter =  0.5 * (pa + pb);
-						//	printf("pCenter %f %f %f\n", pCenter.x, pCenter.y, pCenter.z);
-	real_ omega = 10;
-	real3 omega3 = omega * R3(0, 1, 0);
-	real_ dTheta = omega * dT;
-
-	for (int j = 0; j < numNodes; j++) {
+	int numElements = numNodes - 1;
+	real_ lE = l / numElements;
+	for (int j = 0; j < numElements; j++) {
 		int nodeIdx = nodesPortion.x + j;
-		real3 pBefore = ANCF_NodesD[nodeIdx];
-		ANCF_NodesD[nodeIdx] = RotatePoint_Y_Direction(pBefore, pCenter, dTheta);
-		real3 nodeSlope3 = ANCF_SlopesD[nodeIdx];
-		ANCF_SlopesD[nodeIdx] = RotateY_Direction(nodeSlope3, dTheta);
-
-		real3 relR = ANCF_NodesD[nodeIdx] - pCenter;
-
-		ANCF_NodesVelD[nodeIdx] = cross(omega3, relR);
-		ANCF_SlopesVelD[nodeIdx] = cross(omega3, nodeSlope3);
+		real_ e[12];
+		CopyElementNodesTo_e(e, ANCF_NodesD, ANCF_SlopesD, nodeIdx);
+		real_ f_e[12] = {0};
+		real_ e_ee[12] = {0};
+		real_ k_ke[12] = {0};
+		real_ f_g[12] = {0};
+		// Elastic Force, 1/2: tension force, GQ 5th order. Maybe 4th order is enough as well.
+		for (int k = 0; k < 5; k ++) {
+			real_ gqPoint = (lE - 0) / 2 * GQ5_p[k] + (lE + 0) / 2;
+			eps_eps_e(e_ee, gqPoint, lE, e);
+			SumArrays(f_e, e_ee, flexParamsD.E * flexParamsD.A * (lE - 0) / 2 * GQ5_w[k], 12);
+		}
+		// Elastic Force, 2/2: bending force, GQ 3rd order.
+		for (int k = 0; k < 3; k ++) {
+			real_ gqPoint = (lE - 0) / 2 * GQ3_p[k] + (lE + 0) / 2;
+			kappa_kappa_e(k_ke, gqPoint, lE, e);
+			SumArrays(f_e, k_ke, flexParamsD.E * flexParamsD.I  * (lE - 0) / 2 * GQ3_w[k], 12);
+		}
+		// Gravitational Foce
+		gravitational_force(f_g, lE, flexParamsD.rho, flexParamsD.A, flexParamsD.gravity);
+		SumArrays(f_e, f_g, -1, 12);
+		// Add element forces to associated nodes
+		Add_f_ToForces(flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2, -1, f_e, nodeIdx);
 	}
+
 }
+//------------------------------------------------------------------------------
+__global__ void IntegrateInTime(
+		const real3 * ANCF_NodesD2,
+		const real3 * ANCF_SlopesD2,
+		const real3 * ANCF_NodesVelD2,
+		const real3 * ANCF_SlopesVelD2,
+
+		real3 * flex_FSI_NodesForcesD1,
+		real3 * flex_FSI_NodesForcesD2,
+		const real3 * ANCF_NodesVelD,
+		const real3 * ANCF_SlopesVelD,
+
+		const int2 * ANCF_ReferenceArrayNodesOnBeamsD,
+		const real_ * ANCF_Beam_LengthD,
+		const bool * ANCF_IsCantileverD
+	)
+{
+	uint i = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
+	if (i >= numFlexBodiesD) return;
+
+
+	real_ lBeam = ANCF_Beam_LengthD[i];
+	bool isCantilever = ANCF_IsCantileverD[i];
+	int2 nodesPortion = ANCF_ReferenceArrayNodesOnBeamsD[i];
+	int numNodes = nodesPortion.y - nodesPortion.x;
+	int numElements = numNodes - 1;
+	real_ lE = lBeam / numElements;
+	int2 nodesPortionAdjusted2 = nodesPortion;
+	if (isCantilever) {
+		nodesPortionAdjusted2.x = nodesPortionAdjusted2.x + 1;
+	}
+	int numNodesAdjusted;
+	numNodesAdjusted = nodesPortionAdjusted2.y - nodesPortionAdjusted2.x;
+	real_* f = new real_ [numNodesAdjusted * 6];
+	MapBeamDataTo_1D_Array(f, flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2, nodesPortionAdjusted2);
+	real_* D2Node = new real_ [numNodesAdjusted * 6];
+
+									//		//ff1
+									//		for (int i = 0; i < numNodesAdjusted * 6; i ++) {
+									//			printf("%e\n", f[i]);
+									//		}
+									//		printf("\n\n\n\n\n");
+
+	min_vec(D2Node, f, lE, numElements, isCantilever);
+
+
+
+
+				//ff1 : the followin commented lines are the real algorithm
+	ItegrateInTime(
+			ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
+			ANCF_NodesVelD, ANCF_SlopesVelD,
+			D2Node, nodesPortionAdjusted2,
+			lE);
+
+//		//ff1: dummy, to check rigid body motion and such
+//		RigidBodyRotation(ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
+//				nodesPortion,
+//				lE, dT);
+
+
+
+	delete [] f;
+	delete [] D2Node;
+
+}
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
+		real3 RotatePoint_Y_Direction(real3 pIn, real3 center, real_ theta) {
+			real3 A1 = R3(cos(theta), 0, -sin(theta));
+			real3 A2 = R3(0, 1, 0);
+			real3 A3 = R3(sin(theta), 0, cos(theta));
+			real3 rIn = pIn - center;
+			return (center + R3(dot(A1, rIn), dot(A2, rIn), dot(A3, rIn)));
+		}
+		//------------------------------------------------------------------------------
+		real3 RotateY_Direction(real3 vec, real_ theta) {
+			return RotatePoint_Y_Direction(vec, R3(0), theta);
+		}
+		//------------------------------------------------------------------------------
+
+		void RigidBodyRotation(
+				thrust::device_vector<real3> & ANCF_NodesD,
+				thrust::device_vector<real3> & ANCF_SlopesD,
+				thrust::device_vector<real3> & ANCF_NodesVelD,
+				thrust::device_vector<real3> & ANCF_SlopesVelD,
+				int2 nodesPortion,
+				real_ lE,
+				real_ dT) {
+			int numNodes = nodesPortion.y - nodesPortion.x;
+			real3 pa = ANCF_NodesD[nodesPortion.x];
+			real3 pb = ANCF_NodesD[nodesPortion.y - 1];
+			real3 pCenter =  0.5 * (pa + pb);
+								//	printf("pCenter %f %f %f\n", pCenter.x, pCenter.y, pCenter.z);
+			real_ omega = 10;
+			real3 omega3 = omega * R3(0, 1, 0);
+			real_ dTheta = omega * dT;
+
+			for (int j = 0; j < numNodes; j++) {
+				int nodeIdx = nodesPortion.x + j;
+				real3 pBefore = ANCF_NodesD[nodeIdx];
+				ANCF_NodesD[nodeIdx] = RotatePoint_Y_Direction(pBefore, pCenter, dTheta);
+				real3 nodeSlope3 = ANCF_SlopesD[nodeIdx];
+				ANCF_SlopesD[nodeIdx] = RotateY_Direction(nodeSlope3, dTheta);
+
+				real3 relR = ANCF_NodesD[nodeIdx] - pCenter;
+
+				ANCF_NodesVelD[nodeIdx] = cross(omega3, relR);
+				ANCF_SlopesVelD[nodeIdx] = cross(omega3, nodeSlope3);
+			}
+		}
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 void Update_ANCF_Beam(
 		thrust::device_vector<real3> & ANCF_NodesD2,
@@ -467,70 +536,29 @@ void Update_ANCF_Beam(
 		const thrust::device_vector<real3> & ANCF_NodesVelD,
 		const thrust::device_vector<real3> & ANCF_SlopesVelD,
 
-		const thrust::device_vector<real3> & flex_FSI_NodesForces1,
-		const thrust::device_vector<real3> & flex_FSI_NodesForces2,
+		const thrust::device_vector<real3> & flex_FSI_NodesForcesD1,
+		const thrust::device_vector<real3> & flex_FSI_NodesForcesD2,
 		const thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
 		const thrust::device_vector<real_> & ANCF_Beam_LengthD,
-		const thrust::host_vector<bool> & ANCF_IsCantilever,
+		const thrust::device_vector<bool> & ANCF_IsCantileverD,
+
 		const int numFlexBodies,
 		const ANCF_Params & flexParams,
 		real_ dT)
 {
-	thrust::host_vector<real3> flex_FSI_NodesForcesH1 = flex_FSI_NodesForces1;
-	thrust::host_vector<real3> flex_FSI_NodesForcesH2 = flex_FSI_NodesForces2;
-	CalcElasticForces(flex_FSI_NodesForcesH1, flex_FSI_NodesForcesH2,
-			ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
-			ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, numFlexBodies, flexParams);
+	//---------------------------------------------
+	cutilSafeCall( cudaMemcpyToSymbolAsync(flexParamsD, &flexParams, sizeof(ANCF_Params)));
+	cutilSafeCall( cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(real_)));
+	cutilSafeCall( cudaMemcpyToSymbolAsync(numFlexBodiesD, &numFlexBodies, sizeof(int))); //This can be updated in the future, to work with numObjectsD
+	//---------------------------------------------
+	//####### Calculate Forces
+	uint nBlock_FlexBodies;
+	uint nThreads_FlexBodies;
+	computeGridSize(numFlexBodies, 128, nBlock_FlexBodies, nThreads_FlexBodies);
 
-					//	for (int i = 0; i < flex_FSI_NodesForcesH1.size(); i++) {
-					//		real3 f1 = 1e10 * flex_FSI_NodesForcesH1[i];
-					//		real3 f2 = 1e10 * flex_FSI_NodesForcesH2[i];
-					//		printf("my f1 %f %f %f, f2 %f %f %f\n", f1.x, f1.y, f1.z, f2.x, f2.y, f2.z);
-					//	}
+	CalcElasticForces<<<nBlock_FlexBodies, nThreads_FlexBodies>>>(
+			R3CAST(flex_FSI_NodesForcesD1), R3CAST(flex_FSI_NodesForcesD2),
+			R3CAST(ANCF_NodesD), R3CAST(ANCF_SlopesD), R3CAST(ANCF_NodesVelD), R3CAST(ANCF_SlopesVelD),
+			I2CAST(ANCF_ReferenceArrayNodesOnBeamsD), R1CAST(ANCF_Beam_LengthD));
 
-	for (int i = 0; i < numFlexBodies; i++) {
-		real_ lBeam = ANCF_Beam_LengthD[i];
-		bool isCantilever = ANCF_IsCantilever[i];
-		int2 nodesPortion = ANCF_ReferenceArrayNodesOnBeamsD[i];
-		int numNodes = nodesPortion.y - nodesPortion.x;
-		int numElements = numNodes - 1;
-		real_ lE = lBeam / numElements;
-		int2 nodesPortionAdjusted2 = nodesPortion;
-		if (isCantilever) {
-			nodesPortionAdjusted2.x = nodesPortionAdjusted2.x + 1;
-		}
-		int numNodesAdjusted;
-		numNodesAdjusted = nodesPortionAdjusted2.y - nodesPortionAdjusted2.x;
-		real_* f = new real_ [numNodesAdjusted * 6];
-		MapBeamDataTo_1D_Array(f, flex_FSI_NodesForcesH1, flex_FSI_NodesForcesH2, nodesPortionAdjusted2);
-		real_* D2Node = new real_ [numNodesAdjusted * 6];
-
-										//		//ff1
-										//		for (int i = 0; i < numNodesAdjusted * 6; i ++) {
-										//			printf("%e\n", f[i]);
-										//		}
-										//		printf("\n\n\n\n\n");
-
-		min_vec(D2Node, f, lE, numElements, isCantilever);
-
-
-
-
-					//ff1 : the followin commented lines are the real algorithm
-		ItegrateInTime(
-				ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
-				ANCF_NodesVelD, ANCF_SlopesVelD,
-				D2Node, nodesPortionAdjusted2,
-				lE, flexParams, dT);
-
-//		//ff1: dummy, to check rigid body motion and such
-//		RigidBodyRotation(ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
-//				nodesPortion,
-//				lE, dT);
-
-
-
-		delete [] f;
-		delete [] D2Node;
-	}
 }
