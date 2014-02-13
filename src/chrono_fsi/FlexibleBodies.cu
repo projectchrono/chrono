@@ -411,7 +411,7 @@ __global__ void CalcElasticForces(
 
 }
 //------------------------------------------------------------------------------
-__global__ void IntegrateInTime(
+__global__ void SolveAndIntegrateInTime(
 		const real3 * ANCF_NodesD2,
 		const real3 * ANCF_SlopesD2,
 		const real3 * ANCF_NodesVelD2,
