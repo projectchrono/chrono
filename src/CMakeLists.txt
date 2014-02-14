@@ -273,6 +273,7 @@ IF (BUILD_CH_SDK)
 		core/ChMatrix.cpp 
 		core/ChMemory.cpp 
 		core/ChSpmatrix.cpp 
+		core/ChQuadrature.cpp
 		)
 	SET(ChronoEngine_core_HEADERS
 		core/ChApiCE.h
@@ -305,6 +306,7 @@ IF (BUILD_CH_SDK)
 		core/ChSpmatrix.h 
 		core/ChWrapHashmap.h 
 		core/ChDistribution.h
+		core/ChQuadrature.h
 		)
 	SOURCE_GROUP(core FILES 
 			${ChronoEngine_core_SOURCES}

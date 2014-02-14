@@ -31,6 +31,7 @@
 #include "core/ChMatrix.h" 
 #include "core/ChLog.h"
 #include "core/ChVector.h"
+#include "core/ChQuadrature.h"
 #include "core/ChException.h"               
  
 using namespace chrono;
@@ -249,6 +250,59 @@ int main(int argc, char* argv[])
 	mvect2 = csysA.TrasformLocalToParent(mvect1); 
 	
 	mvect2 = vtraslA + mrotA*mvect1;
+
+
+
+			// How to use Gauss-Legendre quadrature to compute integrals
+			// of functions in 1D/2D/3D
+
+						// Define a y=f(x) function by inheriting ChIntegrable1D:
+	class MySine1d : public ChIntegrable1D<double>
+	{
+	public: 
+		void Evaluate (double& result, const double x)  {
+			result = sin(x);
+		}
+	};
+						// Create an object from the function class
+	MySine1d mfx;
+						// Invoke 6th order Gauss-Legendre quadrature on 0..PI interval:
+	double qresult;	
+	ChQuadrature::Integrate1D<double>(qresult, mfx,  0, CH_C_PI,  6);
+	
+	GetLog()<< "Quadrature 1d result:" << qresult << " (analytic solution: 2.0) \n";
+
+	
+						// Other quadrature tests, this time in 2D
+
+	class MySine2d : public ChIntegrable2D<double>
+	{
+	public: 
+		void Evaluate (double& result, const double x, const double y) { result = sin(x); }
+	};
+
+	MySine2d mfx2d;
+	ChQuadrature::Integrate2D<double>(qresult, mfx2d, 0, CH_C_PI, -1,1, 6);
+	GetLog()<< "Quadrature 2d result:" << qresult << " (analytic solution: 4.0) \n";
+
+
+						// Other quadrature tests, this time with vector function 
+						// (that is, integrates 2x1 matrix)
+
+	class MySine2dM : public ChIntegrable2D< ChMatrixNM<double,2,1> >
+	{
+	public: 
+		void Evaluate (ChMatrixNM<double,2,1>& result, const double x, const double y) 
+		{ 
+			result(0) = x*y;
+			result(1) = 0.5*y*y;
+		}
+	};
+
+	MySine2dM mfx2dM;
+	ChMatrixNM<double,2,1> resultM;
+	ChQuadrature::Integrate2D< ChMatrixNM<double,2,1> >(resultM, mfx2dM, 0, 1, 0,3, 6);
+	GetLog()<< "Quadrature 2d matrix result:" << resultM << " (analytic solution: 2.25, 4.5) \n";
 
 
 
