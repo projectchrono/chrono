@@ -8,7 +8,7 @@ namespace chrono {
 		public:
 			ChConstraintRigidRigid() {
 			}
-			void Setup(ChGPUDataManager *data_container_) {
+			void Setup(ChParallelDataManager *data_container_) {
 
 				data_container = data_container_;
 				Initialize();

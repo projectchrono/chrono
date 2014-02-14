@@ -30,7 +30,7 @@ namespace chrono {
 
 			ChLcpSolverParallel() {
 				tolerance = 1e-7;
-				alpha = 0;
+				alpha = .2;
 				compliance = 0;
 				complianceT = 0;
 				contact_recovery_speed = .6;
@@ -123,7 +123,7 @@ namespace chrono {
 				}
 			}
 
-			ChGPUDataManager *data_container;
+			ChParallelDataManager *data_container;
 			int3 num_bins_per_axis;
 			real3 origin;
 			real3 bin_size_vec;

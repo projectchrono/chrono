@@ -102,7 +102,7 @@ namespace chrono {
 				btCollisionWorld* GetBulletCollisionWorld() {
 					return bt_collision_world;
 				}
-				ChGPUDataManager* data_container;
+				ChParallelDataManager* data_container;
 
 			private:
 				btCollisionConfiguration* bt_collision_configuration;

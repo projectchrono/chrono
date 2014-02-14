@@ -112,7 +112,7 @@ class ChApiGPU ChCollisionSystemParallel: public ChCollisionSystem {
 			broadphase.setBodyPerBin(max_body_per_bin, min_body_per_bin);
 
 		}
-		ChGPUDataManager *data_container;
+		ChParallelDataManager *data_container;
 		ChTimer<double> mtimer_cd_broad, mtimer_cd_narrow;
 
 		ChCAABBGenerator aabb_generator;

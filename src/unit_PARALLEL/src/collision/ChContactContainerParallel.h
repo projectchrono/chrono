@@ -52,7 +52,7 @@ class ChApiGPU ChContactContainerParallel: public ChContactContainer {
 		// FUNCTIONS
 		//
 
-		ChGPUDataManager* data_container;
+		ChParallelDataManager* data_container;
 };
 
 //////////////////////////////////////////////////////

@@ -110,7 +110,7 @@ void ChLcpSolverParallel::RunTimeStep(real step) {
 	solver.SetMaxIterations(max_iteration);
 	solver.SetTolerance(tolerance);
 
-	solver.SetComplianceParameters(alpha, compliance, complianceT);
+	solver.SetComplianceAlpha(alpha);
 	solver.SetContactRecoverySpeed(contact_recovery_speed);
 	solver.lcp_omega_bilateral = lcp_omega_bilateral;
 	solver.rigid_rigid = &rigid_rigid;
@@ -149,7 +149,7 @@ void ChLcpSolverParallel::RunTimeStep(real step) {
 	//solve normal
 	if (max_iter_normal > 0) {
 		solver.SetMaxIterations(max_iter_normal);
-		solver.SetComplianceParameters(alpha, compliance, complianceT);
+		solver.SetComplianceAlpha(alpha);
 		rigid_rigid.solve_sliding = false;
 		rigid_rigid.solve_spinning = false;
 		rigid_rigid.ComputeRHS();

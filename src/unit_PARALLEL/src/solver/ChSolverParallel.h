@@ -17,14 +17,14 @@ namespace chrono {
 			ChSolverParallel() {
 				tolerance = 1e-6;
 				epsilon = 1e-3;
-				alpha = 0;
+				alpha = .2;
 				max_iteration = 100;
 				total_iteration = 0;
 				current_iteration = 0;
 				collision_inside = false;
 			}
 			void Setup();
-			void Initial(real step, ChGPUDataManager *data_container_);
+			void Initial(real step, ChParallelDataManager *data_container_);
 			void Project(custom_vector<real> & gamma);
 		void shurA(custom_vector<real> &x);
 		void shurB(custom_vector<real> &x, custom_vector<real> &out);
@@ -50,7 +50,7 @@ namespace chrono {
 		void ShurBilaterals( custom_vector<real> &x_t, custom_vector<real> & AX);
 
 		void Solve(GPUSOLVERTYPE solver_type);
-		void VelocityStabilization(ChGPUDataManager *data_container_);
+		void VelocityStabilization(ChParallelDataManager *data_container_);
 		uint SolveStab(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 		uint SolveSD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 		uint SolveGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
@@ -133,10 +133,8 @@ namespace chrono {
 				max_iteration = max_iteration_value;
 			}
 
-			void SetComplianceParameters(const real alpha_value,const real compliance_value,const real complianceT_value) {
+			void SetComplianceAlpha(const real alpha_value) {
 				alpha = alpha_value;
-				compliance = compliance_value;
-				complianceT = complianceT_value;
 			}
 
 			void SetContactRecoverySpeed(const real & recovery_speed) {

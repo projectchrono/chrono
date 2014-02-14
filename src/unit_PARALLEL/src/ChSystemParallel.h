@@ -1,8 +1,8 @@
-#ifndef CH_SYSTEMGPU_H
-#define CH_SYSTEMGPU_H
+#ifndef CH_SYSTEMPARALLEL_H
+#define CH_SYSTEMPARALLEL_H
 //////////////////////////////////////////////////
 //
-//   ChSystemGPU.h
+//   ChSystemParallel.h
 //
 //   GPU Simulation System
 //
@@ -31,74 +31,69 @@
 #include "collision/ChCCollisionSystemParallel.h"
 #include "collision/ChCCollisionSystemBulletParallel.h"
 namespace chrono {
-using namespace chrono;
+	using namespace chrono;
 
-class ChApiGPU ChSystemParallel: public ChSystem {
-	CH_RTTI(ChSystemParallel, ChObj)
-		;
+	class ChApiGPU ChSystemParallel: public ChSystem {
+		CH_RTTI(ChSystemParallel, ChObj)
+			;
 
-	public:
-		ChSystemParallel(unsigned int max_objects = 1000);
-		virtual int Integrate_Y_impulse_Anitescu();
-		double ComputeCollisions();
-		double SolveSystem();
-		double SplitData();
-		void AddBody(ChSharedPtr<ChBody> newbody);
-		void RemoveBody(ChSharedPtr<ChBody> mbody);
-		void RemoveBody(int i);
-		//int Setup();
-		void Update();
-		void UpdateBodies();
-		void UpdateBilaterals();
-		void ChangeCollisionSystem(ChCollisionSystem *newcollsystem);
-		void ChangeLcpSystemDescriptor(ChLcpSystemDescriptor* newdescriptor);
-		void ChangeLcpSolverSpeed(ChLcpSolver *newsolver);
-		void RecomputeThreads();
-		void RecomputeBins();
-		void PerturbBins(bool increase, int number = 2);
-		int GetNcontacts() {
-			return gpu_data_manager->number_of_rigid_rigid;
-		}
-		void SetAABB(real3 aabbmin, real3 aabbmax) {
-			aabb_min = aabbmin;
-			aabb_max = aabbmax;
-			use_aabb_active = true;
-		}
+		public:
+			ChSystemParallel(unsigned int max_objects = 1000);
+			virtual int Integrate_Y_impulse_Anitescu();
 
-		bool GetAABB(real3 &aabbmin, real3 &aabbmax) {
-			aabbmin = aabb_min;
-			aabbmax = aabb_max;
+			void AddBody(ChSharedPtr<ChBody> newbody);
+			void RemoveBody(ChSharedPtr<ChBody> mbody);
+			void RemoveBody(int i);
+			void Update();
+			void UpdateBodies();
+			void UpdateBilaterals();
+			void RecomputeThreads();
+			void RecomputeBins();
+			void PerturbBins(bool increase, int number = 2);
 
-			return use_aabb_active;
-		}
+			void ChangeCollisionSystem(ChCollisionSystem *newcollsystem);
+			void ChangeLcpSystemDescriptor(ChLcpSystemDescriptor* newdescriptor);
+			void ChangeLcpSolverSpeed(ChLcpSolver *newsolver);
 
-		double GetTimerCollision() {
-			return timer_collision;
-		}
-		ChGPUDataManager *gpu_data_manager;
-	private:
-		ChTimer<double> mtimer_lcp, mtimer_step, mtimer_cd_broad, mtimer_cd_narrow, mtimer_cd, mtimer_updt;
+			int GetNcontacts() {
+				return gpu_data_manager->number_of_rigid_rigid;
+			}
+			void SetAABB(real3 aabbmin, real3 aabbmax) {
+				aabb_min = aabbmin;
+				aabb_max = aabbmax;
+				use_aabb_active = true;
+			}
 
-		unsigned int counter;
-		double timer_collision;
-		std::list<ChLink *>::iterator it;
+			bool GetAABB(real3 &aabbmin, real3 &aabbmax) {
+				aabbmin = aabb_min;
+				aabbmax = aabb_max;
 
-		bool use_aabb_active;
-		real3 aabb_min, aabb_max;
-		int max_threads;
-		int current_threads;
-		int min_threads;
+				return use_aabb_active;
+			}
 
-		vector<double> timer_accumulator;
-		vector<double> cd_accumulator;
+			double GetTimerCollision() {
+				return timer_collision;
+			}
+			ChParallelDataManager *gpu_data_manager;
+		private:
+			ChTimer<double> mtimer_lcp, mtimer_step, mtimer_cd_broad, mtimer_cd_narrow, mtimer_cd, mtimer_updt;
 
-		double old_timer, old_timer_cd;
-		bool detect_optimal_threads ;
-		int detect_optimal_bins;
-		uint frame_threads;
-		uint frame_bins;
+			unsigned int counter;
+			double timer_collision;
+			std::list<ChLink *>::iterator it;
 
-};
+			bool use_aabb_active;
+			real3 aabb_min, aabb_max;
+
+			int max_threads, current_threads, min_threads;
+			vector<double> timer_accumulator, cd_accumulator;
+			double old_timer, old_timer_cd;
+			bool detect_optimal_threads;
+			int detect_optimal_bins;
+			uint frame_threads;
+			uint frame_bins;
+
+	};
 }
 
 #endif
