@@ -63,6 +63,7 @@ public:
 	float normal_stiffness;
 	float normal_damping;
 	float tangential_stiffness;
+	float tangential_damping;
 	float restitution;
 
 			//
@@ -75,6 +76,7 @@ public:
 		normal_stiffness(2e5),
 		normal_damping(7.5e2),
 		tangential_stiffness(2e5),
+		tangential_damping(7.5e2),
 		restitution(0.5f)
 	{}
 
@@ -86,6 +88,7 @@ public:
 		normal_stiffness = other.normal_stiffness;
 		normal_damping = other.normal_damping;
 		tangential_stiffness = other.tangential_stiffness;
+		tangential_damping = other.tangential_damping;
 		restitution = other.restitution;
 	}
 
@@ -106,6 +109,10 @@ public:
 	// Tangential stiffness
 	float GetTangentialStiffness() const {return tangential_stiffness;}
 	void  SetTangentialStiffness(float val) {tangential_stiffness = val;}
+
+	// Normal damping coefficient
+	float GetTangentialDamping() const {return tangential_damping;}
+	void  SetTangentialDamping(float val) {tangential_damping = val;}
 
 	/// The static friction coefficient. 
 	/// Usually in 0..1 range, rarely above.
@@ -169,6 +176,8 @@ public:
 		mstream <<   normal_stiffness;
 		mstream <<   normal_damping;
 		mstream <<   tangential_stiffness;
+		mstream <<   tangential_damping;
+		mstream <<   restitution;
 	}
 
 	/// Operator to allow deserializing a persistent binary archive (ex: a file)
@@ -187,6 +196,8 @@ public:
 		mstream >>   normal_stiffness;
 		mstream >>   normal_damping;
 		mstream >>   tangential_stiffness;
+		mstream >>   tangential_damping;
+		mstream >>   restitution;
 	}
 
 };
