@@ -140,9 +140,8 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
 
 	newbody->AddRef();
 	newbody->SetSystem(this);
-	bodylist.push_back((newbody).get_ptr());
-	ChBody *gpubody = ((ChBody *) newbody.get_ptr());
-	gpubody->SetId(counter);
+	newbody->SetId(counter);
+	bodylist.push_back(newbody.get_ptr());
 
 	if (newbody->GetCollide()) {
 		newbody->AddCollisionModelsToSystem();
