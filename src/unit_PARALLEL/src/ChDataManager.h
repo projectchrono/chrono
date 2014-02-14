@@ -41,11 +41,10 @@ namespace chrono {
 			thrust::host_vector<int2> bids_rigid_rigid;
 			thrust::host_vector<long long> pair_rigid_rigid;
 			thrust::host_vector<long long> old_pair_rigid_rigid;
+
 			thrust::host_vector<real> gamma_data;
 			thrust::host_vector<real> old_gamma_data;
 			thrust::host_vector<real> dgm_data;
-
-			thrust::host_vector<real> compliance_rigid_rigid;
 
 			//object data
 			thrust::host_vector<real3> vel_data, vel_new_data;
@@ -58,14 +57,23 @@ namespace chrono {
 			thrust::host_vector<real3> acc_data;
 			thrust::host_vector<bool> active_data;
 			thrust::host_vector<real> mass_data;
-			thrust::host_vector<real3> fric_data;
-			thrust::host_vector<real> cohesion_data;
-			thrust::host_vector<real4> compliance_data;
+
 			thrust::host_vector<real3> lim_data;
 			thrust::host_vector<real3> dem_data;
 			thrust::host_vector<real3> gyr_data;
 			thrust::host_vector<real> pressure_data;
 			thrust::host_vector<real> bin_number;
+
+			// Material properties (DVI)
+			thrust::host_vector<real3> fric_data;
+			thrust::host_vector<real> cohesion_data;
+			thrust::host_vector<real4> compliance_data;
+
+			// Material properties (DEM)
+			thrust::host_vector<real2> kd_n;
+			thrust::host_vector<real2> kd_t;
+			thrust::host_vector<real2> mu;
+			thrust::host_vector<real>  cr;
 
 			thrust::host_vector<real> rhs_data;
 			thrust::host_vector<real> diag;
