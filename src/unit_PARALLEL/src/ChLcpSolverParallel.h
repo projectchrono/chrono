@@ -30,7 +30,7 @@ namespace chrono {
 
 			ChLcpSolverParallel() {
 				tolerance = 1e-7;
-				alpha = 0;
+				alpha = .2;
 				compliance = 0;
 				complianceT = 0;
 				contact_recovery_speed = .6;

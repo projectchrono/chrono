@@ -17,7 +17,7 @@ namespace chrono {
 			ChSolverParallel() {
 				tolerance = 1e-6;
 				epsilon = 1e-3;
-				alpha = 0;
+				alpha = .2;
 				max_iteration = 100;
 				total_iteration = 0;
 				current_iteration = 0;
@@ -133,10 +133,8 @@ namespace chrono {
 				max_iteration = max_iteration_value;
 			}
 
-			void SetComplianceParameters(const real alpha_value,const real compliance_value,const real complianceT_value) {
+			void SetComplianceAlpha(const real alpha_value) {
 				alpha = alpha_value;
-				compliance = compliance_value;
-				complianceT = complianceT_value;
 			}
 
 			void SetContactRecoverySpeed(const real & recovery_speed) {

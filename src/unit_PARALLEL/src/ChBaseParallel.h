@@ -5,7 +5,6 @@
 #include "ChParallelDefines.h"
 #include "ChThrustLinearAlgebra.h"
 #include "ChDataManager.h"
-#include "core/ChTimer.h"
 namespace chrono {
 class ChApiGPU ChBaseParallel {
 	public:
@@ -13,7 +12,6 @@ class ChApiGPU ChBaseParallel {
 		}
 		~ChBaseParallel() {
 		}
-
 		void Initialize();
 	protected:
 		ChParallelDataManager *data_container;
@@ -28,11 +26,8 @@ class ChApiGPU ChBaseParallel {
 		real inv_hpa;
 		real inv_hhpa;
 
-		real compliance;
-		real complianceT;
 		real alpha;
 		real contact_recovery_speed;
-
 };
 
 }
