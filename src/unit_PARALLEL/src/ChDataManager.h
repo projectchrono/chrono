@@ -3,7 +3,7 @@
 
 //////////////////////////////////////////////////
 //
-//   ChGPUDataManager.h
+//   ChParallelDataManager.h
 //
 //   Parallel Data Manager Class
 //
