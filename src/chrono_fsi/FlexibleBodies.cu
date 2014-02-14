@@ -66,16 +66,7 @@
 __constant__ ANCF_Params flexParamsD;
 __constant__ real_ dTD;
 __constant__ int numFlexBodiesD;
-
-// Gaussian Quadrature. Applied to the [-1, 1] interval. For other intervals it is like this:
-// int_a^b f(x)dx = (b-a)/2 * sum{w_i * f( (b-a)/2*z_i + (a+b)/2 ) }
-const real_ GQ3_p[3] = {-0.774596669241483	, 0					, 0.774596669241483};
-const real_ GQ3_w[3] = {0.555555555555556	, 0.888888888888889	, 0.555555555555556};
-const real_ GQ4_p[4] = {-0.861136311594053	, -0.339981043584856, 0.339981043584856, 0.861136311594053};
-const real_ GQ4_w[4] = {0.347854845137454	, 0.652145154862546	, 0.652145154862546, 0.347854845137454};
-const real_ GQ5_p[5] = {-0.906179845938664	, -0.538469310105683, 0					,	0.538469310105683, 0.906179845938664};
-const real_ GQ5_w[5] = {0.236926885056189	, 0.478628670499366	, 0.568888888888889	,	0.478628670499366, 0.236926885056189};
-
+__constant__ GaussQuadrature GQD;
 
 //------------------------------------------------------------------------------
 __device__ __host__ inline void shape_fun_dd(real_* Sxx, real_ x, real_ L)
@@ -395,15 +386,15 @@ __global__ void CalcElasticForces(
 		real_ f_g[12] = {0};
 		// Elastic Force, 1/2: tension force, GQ 5th order. Maybe 4th order is enough as well.
 		for (int k = 0; k < 5; k ++) {
-			real_ gqPoint = (lE - 0) / 2 * GQ5_p[k] + (lE + 0) / 2;
+			real_ gqPoint = (lE - 0) / 2 * GQD.GQ5_p[k] + (lE + 0) / 2;
 			eps_eps_e(e_ee, gqPoint, lE, e);
-			SumArrays(f_e, e_ee, flexParamsD.E * flexParamsD.A * (lE - 0) / 2 * GQ5_w[k], 12);
+			SumArrays(f_e, e_ee, flexParamsD.E * flexParamsD.A * (lE - 0) / 2 * GQD.GQ5_w[k], 12);
 		}
 		// Elastic Force, 2/2: bending force, GQ 3rd order.
 		for (int k = 0; k < 3; k ++) {
-			real_ gqPoint = (lE - 0) / 2 * GQ3_p[k] + (lE + 0) / 2;
+			real_ gqPoint = (lE - 0) / 2 * GQD.GQ3_p[k] + (lE + 0) / 2;
 			kappa_kappa_e(k_ke, gqPoint, lE, e);
-			SumArrays(f_e, k_ke, flexParamsD.E * flexParamsD.I  * (lE - 0) / 2 * GQ3_w[k], 12);
+			SumArrays(f_e, k_ke, flexParamsD.E * flexParamsD.I  * (lE - 0) / 2 * GQD.GQ3_w[k], 12);
 		}
 		// Gravitational Foce
 		gravitational_force(f_g, lE, flexParamsD.rho, flexParamsD.A, flexParamsD.gravity);
@@ -526,6 +517,19 @@ __global__ void SolveAndIntegrateInTime(
 		}
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
+// Gaussian Quadrature. Applied to the [-1, 1] interval. For other intervals it is like this:
+// int_a^b f(x)dx = (b-a)/2 * sum{w_i * f( (b-a)/2*z_i + (a+b)/2 ) }
+void IntitializeGaussQuadrature(GaussQuadrature & GQ) {
+	GQ.GQ3_p[0] = -0.774596669241483; 	GQ.GQ3_p[1] = 0; 					GQ.GQ3_p[2] = 0.774596669241483;
+	GQ.GQ3_w[0] = 0.555555555555556; 	GQ.GQ3_w[1] = 0.888888888888889; 	GQ.GQ3_w[2] = 0.555555555555556;
+
+	GQ.GQ4_p[0] = -0.861136311594053; 	GQ.GQ4_p[1] = -0.339981043584856; 	GQ.GQ4_p[2] = 0.339981043584856;	GQ.GQ4_p[3] = 0.861136311594053;
+	GQ.GQ4_w[0] = 0.347854845137454;	GQ.GQ4_w[1] = 0.652145154862546;	GQ.GQ4_w[2] = 0.652145154862546;	GQ.GQ4_w[3] = 0.347854845137454;
+
+	GQ.GQ5_p[0] = -0.906179845938664;	GQ.GQ5_p[1] = -0.538469310105683;	GQ.GQ5_p[2] = 0;					GQ.GQ5_p[3] = 0.538469310105683;	GQ.GQ5_p[4] = 0.906179845938664;
+	GQ.GQ5_w[0] = 0.236926885056189;	GQ.GQ5_w[1] = 0.478628670499366;	GQ.GQ5_w[2] = 0.568888888888889;	GQ.GQ5_w[3] = 0.478628670499366;	GQ.GQ5_w[4] = 0.236926885056189;
+}
+//------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 void Update_ANCF_Beam(
 		thrust::device_vector<real3> & ANCF_NodesD2,
@@ -549,9 +553,13 @@ void Update_ANCF_Beam(
 		real_ dT)
 {
 	//---------------------------------------------
+	GaussQuadrature GQ;
+	IntitializeGaussQuadrature(GQ);
+	//---------------------------------------------
 	cutilSafeCall( cudaMemcpyToSymbolAsync(flexParamsD, &flexParams, sizeof(ANCF_Params)));
 	cutilSafeCall( cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(real_)));
 	cutilSafeCall( cudaMemcpyToSymbolAsync(numFlexBodiesD, &numFlexBodies, sizeof(int))); //This can be updated in the future, to work with numObjectsD
+	cutilSafeCall( cudaMemcpyToSymbolAsync(GQD, &GQ, sizeof(GaussQuadrature))); //This can be updated in the future, to work with numObjectsD
 	//---------------------------------------------
 	//####### Calculate Forces
 	uint nBlock_FlexBodies;
@@ -562,5 +570,13 @@ void Update_ANCF_Beam(
 			R3CAST(flex_FSI_NodesForcesD1), R3CAST(flex_FSI_NodesForcesD2),
 			R3CAST(ANCF_NodesD), R3CAST(ANCF_SlopesD), R3CAST(ANCF_NodesVelD), R3CAST(ANCF_SlopesVelD),
 			I2CAST(ANCF_ReferenceArrayNodesOnBeamsD), R1CAST(ANCF_Beam_LengthD));
+	cudaThreadSynchronize();
+	CUT_CHECK_ERROR("Kernel execution failed: CalcElasticForces");
 
+	SolveAndIntegrateInTime<<<nBlock_FlexBodies, nThreads_FlexBodies>>>(
+			R3CAST(ANCF_NodesD2), R3CAST(ANCF_SlopesD2), R3CAST(ANCF_NodesVelD2), R3CAST(ANCF_SlopesVelD2),
+			R3CAST(flex_FSI_NodesForcesD1), R3CAST(flex_FSI_NodesForcesD2), R3CAST(ANCF_NodesVelD), R3CAST(ANCF_SlopesVelD),
+			I2CAST(ANCF_ReferenceArrayNodesOnBeamsD), R1CAST(ANCF_Beam_LengthD), BCAST(ANCF_IsCantileverD));
+	cudaThreadSynchronize();
+	CUT_CHECK_ERROR("Kernel execution failed: SolveAndIntegrateInTime");
 }

@@ -33,6 +33,8 @@
 
 #define F1CAST(x) (float*)thrust::raw_pointer_cast(&x[0])
 #define D1CAST(x) (double*)thrust::raw_pointer_cast(&x[0])
+#define BCAST(x) (bool*)thrust::raw_pointer_cast(&x[0])
+
 
 #define I1CAST(x) (int*)thrust::raw_pointer_cast(&x[0])
 #define I2CAST(x) (int2*)thrust::raw_pointer_cast(&x[0])

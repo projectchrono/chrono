@@ -131,17 +131,6 @@ real3 Rotate_By_Quaternion(const real4 & q4, const real3 & r3) {
 	return Rotate_By_RotationMatrix(rotMat, r3);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void IntitializeGaussQuadrature(GaussQuadrature & GQ) {
-	GQ.GQ3_p[0] = -0.774596669241483; GQ.GQ3_p[1] = 0; GQ.GQ3_p[2] = 0.774596669241483;
-	GQ.GQ3_w[0] = 0.555555555555556; GQ.GQ3_w[1] = 0.888888888888889; GQ.GQ3_w[2] = 0.555555555555556;
-
-	GQ.GQ4_p[0] = -0.861136311594053; GQ.GQ4_p[1] = -0.339981043584856; GQ.GQ4_p[2] = 0.339981043584856;GQ.GQ4_p[3] = 0.861136311594053;
-	GQ.GQ4_w[0] = 0.347854845137454; GQ.GQ4_w[1] = 0.652145154862546; GQ.GQ4_w[2] = 0.652145154862546; GQ.GQ4_w[3] = 0.347854845137454;
-
-	GQ.GQ5_p[0] = -0.906179845938664; GQ.GQ5_p[1] = -0.538469310105683; GQ.GQ5_p[2] = 0; GQ.GQ5_p[3] = 0.538469310105683; GQ.GQ5_p[4] = 0.906179845938664;
-	GQ.GQ5_w[0] = 0.236926885056189; GQ.GQ5_w[1] = 0.478628670499366; GQ.GQ5_w[2] = 0.568888888888889;	GQ.GQ5_w[3] = 0.478628670499366; GQ.GQ5_w[4] = 0.236926885056189;
-}
-//--------------------------------------------------------------------------------------------------------------------------------
 __device__ __host__ inline int IndexOfClosestNode(real_ sOverBeam, real_ lBeam, int2 nodesInterval) {
 	int nNodes = nodesInterval.y - nodesInterval.x;
 	int maxNodeIdx = nNodes - 1;
@@ -1861,9 +1850,6 @@ void cudaCollisions(
 	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueOf_SPH_Marker_Acceleration");
 	//******************************************************************************
 	//******************** flex body some initialization
-
-	GaussQuadrature GQ;
-	IntitializeGaussQuadrature(GQ);
 //	int totalNumberOfFlexNodes = ANCF_ReferenceArrayNodesOnBeamsD[ANCF_ReferenceArrayNodesOnBeamsD.size() - 1].y;
 	//******************************************************************************
 	thrust::device_vector<real_> flexParametricDistD = flexParametricDist;
@@ -1948,8 +1934,8 @@ void cudaCollisions(
 	real_ delTOrig = delT;
 	real_ realTime = 0;
 
-	int numPause = 	.05 * paramsH.tFinal/paramsH.dT;
-	int pauseRigidFlex = 5 * numPause;
+	int numPause = 	0;//.05 * paramsH.tFinal/paramsH.dT;
+	int pauseRigidFlex = 0;// 5 * numPause;
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce4 = R4(0);
 	paramsH_B.gravity = R3(0);
