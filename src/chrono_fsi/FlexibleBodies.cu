@@ -382,8 +382,6 @@ __global__ void CalcElasticForces(
 		CopyElementNodesTo_e(e, ANCF_NodesD, ANCF_SlopesD, nodeIdx);
 		real_ f_e[12] = {0};
 		real_ e_ee[12] = {0};
-		real_ k_ke[12] = {0};
-		real_ f_g[12] = {0};
 		// Elastic Force, 1/2: tension force, GQ 5th order. Maybe 4th order is enough as well.
 		for (int k = 0; k < 5; k ++) {
 			real_ gqPoint = (lE - 0) / 2 * GQD.GQ5_p[k] + (lE + 0) / 2;
@@ -391,12 +389,14 @@ __global__ void CalcElasticForces(
 			SumArrays(f_e, e_ee, flexParamsD.E * flexParamsD.A * (lE - 0) / 2 * GQD.GQ5_w[k], 12);
 		}
 		// Elastic Force, 2/2: bending force, GQ 3rd order.
+		real_ k_ke[12] = {0};
 		for (int k = 0; k < 3; k ++) {
 			real_ gqPoint = (lE - 0) / 2 * GQD.GQ3_p[k] + (lE + 0) / 2;
 			kappa_kappa_e(k_ke, gqPoint, lE, e);
 			SumArrays(f_e, k_ke, flexParamsD.E * flexParamsD.I  * (lE - 0) / 2 * GQD.GQ3_w[k], 12);
 		}
 		// Gravitational Foce
+		real_ f_g[12] = {0};
 		gravitational_force(f_g, lE, flexParamsD.rho, flexParamsD.A, flexParamsD.gravity);
 		SumArrays(f_e, f_g, -1, 12);
 		// Add element forces to associated nodes
