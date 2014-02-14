@@ -134,7 +134,7 @@ void ChSolverParallel::ComputeImpulses() {
 	data_container->host_data.omg_data += data_container->host_data.QUVW_data;
 
 }
-void ChSolverParallel::Initial(real step, ChGPUDataManager *data_container_) {
+void ChSolverParallel::Initial(real step, ChParallelDataManager *data_container_) {
 	data_container = data_container_;
 	step_size = step;
 	Setup();
@@ -210,7 +210,7 @@ void ChSolverParallel::Solve(GPUSOLVERTYPE solver_type) {
 	}
 }
 
-void ChSolverParallel::VelocityStabilization(ChGPUDataManager *data_container_) {
+void ChSolverParallel::VelocityStabilization(ChParallelDataManager *data_container_) {
 
 }
 

@@ -155,10 +155,7 @@ enum GPUSOLVERTYPE {
 	APGDRS,
 	BLOCK_JACOBI
 };
-enum GPUCOPYTYPE{
-	HOST_TO_DEVICE,
-	DEVICE_TO_HOST
-};
+
 //enum SHAPE {    SPHERE,
 //                ELLIPSOID,
 //                BOX,

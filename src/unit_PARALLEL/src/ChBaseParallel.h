@@ -16,7 +16,7 @@ class ChApiGPU ChBaseParallel {
 
 		void Initialize();
 	protected:
-		ChGPUDataManager *data_container;
+		ChParallelDataManager *data_container;
 		uint number_of_rigid;
 		uint number_of_rigid_rigid;
 		uint number_of_bilaterals;

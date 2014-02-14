@@ -63,7 +63,7 @@ public:
 			}
 	}
 
-	ChGPUDataManager* data_container;
+	ChParallelDataManager* data_container;
 };
 } // END_OF_NAMESPACE____
 

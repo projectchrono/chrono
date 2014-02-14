@@ -24,7 +24,7 @@ namespace chrono {
 				collision_inside = false;
 			}
 			void Setup();
-			void Initial(real step, ChGPUDataManager *data_container_);
+			void Initial(real step, ChParallelDataManager *data_container_);
 			void Project(custom_vector<real> & gamma);
 		void shurA(custom_vector<real> &x);
 		void shurB(custom_vector<real> &x, custom_vector<real> &out);
@@ -50,7 +50,7 @@ namespace chrono {
 		void ShurBilaterals( custom_vector<real> &x_t, custom_vector<real> & AX);
 
 		void Solve(GPUSOLVERTYPE solver_type);
-		void VelocityStabilization(ChGPUDataManager *data_container_);
+		void VelocityStabilization(ChParallelDataManager *data_container_);
 		uint SolveStab(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 		uint SolveSD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 		uint SolveGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);

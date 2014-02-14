@@ -123,7 +123,7 @@ namespace chrono {
 				}
 			}
 
-			ChGPUDataManager *data_container;
+			ChParallelDataManager *data_container;
 			int3 num_bins_per_axis;
 			real3 origin;
 			real3 bin_size_vec;

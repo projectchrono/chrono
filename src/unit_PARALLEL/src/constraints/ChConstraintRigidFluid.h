@@ -6,7 +6,7 @@
 namespace chrono {
 class ChApiGPU ChConstraintRigidFluid: public ChBaseParallel {
 	public:
-		ChConstraintRigidFluid(ChGPUDataManager *data_container_) {
+		ChConstraintRigidFluid(ChParallelDataManager *data_container_) {
 			data_container = data_container_;
 			Initialize();
 		}

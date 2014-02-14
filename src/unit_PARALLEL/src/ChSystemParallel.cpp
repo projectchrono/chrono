@@ -7,7 +7,7 @@ using namespace chrono;
 ChSystemParallel::ChSystemParallel(unsigned int max_objects) :
 		ChSystem(1000, 10000, false) {
 	counter = 0;
-	gpu_data_manager = new ChGPUDataManager();
+	gpu_data_manager = new ChParallelDataManager();
 	LCP_descriptor = new ChLcpSystemDescriptorParallel();
 	contact_container = new ChContactContainerParallel();
 	collision_system = new ChCollisionSystemParallel();

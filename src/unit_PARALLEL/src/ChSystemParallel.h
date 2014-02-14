@@ -75,7 +75,7 @@ class ChApiGPU ChSystemParallel: public ChSystem {
 		double GetTimerCollision() {
 			return timer_collision;
 		}
-		ChGPUDataManager *gpu_data_manager;
+		ChParallelDataManager *gpu_data_manager;
 	private:
 		ChTimer<double> mtimer_lcp, mtimer_step, mtimer_cd_broad, mtimer_cd_narrow, mtimer_cd, mtimer_updt;
 
