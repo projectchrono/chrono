@@ -411,14 +411,6 @@ public:
 	int GetParallelThreadNumber() {return parallel_thread_number;}
 
 
-				/// Returns true if the GPU is used for the LCP problem (ex. because
-				/// the LCP_ITERATIVE_GPU solver is used)
-	bool GetUseGPU() {return use_GPU;}
-	void SetUseGPU(bool gpu) {use_GPU=gpu;}
-
-
-
-
 				/// Sets the G (gravity) acceleration vector, affecting all the bodies in the system. 
 	void  Set_G_acc (ChVector<> m_acc = ChVector<>(0.0, -9.8, 0.0)) {G_acc = m_acc;}
 				/// Gets the G (gravity) acceleration vector affecting all the bodies in the system. 
@@ -1085,7 +1077,6 @@ protected:
 	double err_constr;	// current value of constraint violation error
 	int auto_assembly;	// keep system automatically assemblated when GUI modifies position of bodies (used by interface)
 	int msteps_collide; // maximum number of steps for bisection rule which rewinds the intgration at the collision event //***DISABLED
-	bool use_GPU;		// if true, the GPU parallel code is used for the LCP problem
 	bool use_sleeping;  // if true, can put to sleep objects that come to rest, to speed up simulation (but decreasing the precision)
 
 	eCh_integrationType integration_type;// integration scheme

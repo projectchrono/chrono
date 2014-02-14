@@ -367,7 +367,6 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
 		SetLcpSolverType(LCP_ITERATIVE_SYMMSOR);
 	}
 	
-	use_GPU = false;
 	use_sleeping = false;
 
 	collision_callback = 0;
@@ -479,7 +478,6 @@ void ChSystem::Copy(ChSystem* source)
 	simplexLCPmaxSteps = source->simplexLCPmaxSteps;
 	SetLcpSolverType(GetLcpSolverType());
 	parallel_thread_number = source->parallel_thread_number;
-	use_GPU = source->use_GPU;
 	use_sleeping = source->use_sleeping;
 	timer_step = source->timer_step;
 	timer_lcp = source->timer_lcp;
@@ -549,8 +547,6 @@ void ChSystem::Clear()
 void ChSystem::SetLcpSolverType(eCh_lcpSolver mval)
 {
 	lcp_solver_type = mval;
-
-	use_GPU = false;
 
 	if (LCP_solver_speed) delete LCP_solver_speed; LCP_solver_speed=0;
 	if (LCP_solver_stab)  delete LCP_solver_stab;  LCP_solver_stab=0;
@@ -2104,12 +2100,10 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 	while HIER_BODY_NOSTOP
 	{
 		// EULERO INTEGRATION: pos+=v_new*dt  (do not do this, if GPU already computed it)
-		if (!use_GPU)
-		{
-			Bpointer->VariablesQbIncrementPosition(this->GetStep());
-			// Set body speed, and approximates the acceleration by differentiation.
-			Bpointer->VariablesQbSetSpeed(this->GetStep());
-		}
+		Bpointer->VariablesQbIncrementPosition(this->GetStep());
+		// Set body speed, and approximates the acceleration by differentiation.
+		Bpointer->VariablesQbSetSpeed(this->GetStep());
+
 		// Now also updates all markers & forces
 		Bpointer->Update(this->ChTime);
 		HIER_BODY_NEXT
@@ -2118,12 +2112,10 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 	while HIER_OTHERPHYSICS_NOSTOP
 	{
 		// EULERO INTEGRATION: pos+=v_new*dt  (do not do this, if GPU already computed it)
-		if (!use_GPU)
-		{
-			PHpointer->VariablesQbIncrementPosition(this->GetStep());
-			// Set body speed, and approximates the acceleration by differentiation.
-			PHpointer->VariablesQbSetSpeed(this->GetStep());
-		}
+		PHpointer->VariablesQbIncrementPosition(this->GetStep());
+		// Set body speed, and approximates the acceleration by differentiation.
+		PHpointer->VariablesQbSetSpeed(this->GetStep());
+
 		// Now also updates all markers & forces
 		PHpointer->Update(this->ChTime);
 		HIER_OTHERPHYSICS_NEXT
@@ -3041,7 +3033,6 @@ void ChSystem::StreamOUT(ChStreamOutBinary& mstream)
 	// v5
 	mstream << parallel_thread_number;
 	mstream << max_penetration_recovery_speed;
-	mstream << use_GPU;
 	// v6   
 	mstream << use_sleeping;
 }
@@ -3106,7 +3097,6 @@ void ChSystem::StreamIN(ChStreamInBinary& mstream)
 	{
 		mstream >> parallel_thread_number;
 		mstream >> max_penetration_recovery_speed;
-		mstream >> use_GPU;
 	}
 	if (version>=6)
 	{
