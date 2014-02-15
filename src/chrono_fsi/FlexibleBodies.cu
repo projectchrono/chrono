@@ -357,6 +357,67 @@ __device__ __host__ inline void ItegrateInTime(
 	}
 }
 //------------------------------------------------------------------------------
+__device__ __host__ inline void SolveAndIntegrateInTimeKernel(
+		real3 * ANCF_NodesD2,
+		real3 * ANCF_SlopesD2,
+		real3 * ANCF_NodesVelD2,
+		real3 * ANCF_SlopesVelD2,
+
+		real3 * flex_FSI_NodesForcesD1,
+		real3 * flex_FSI_NodesForcesD2,
+		const real3 * ANCF_NodesVelD,
+		const real3 * ANCF_SlopesVelD,
+
+		const int2 * ANCF_ReferenceArrayNodesOnBeamsD,
+		const real_ * ANCF_Beam_LengthD,
+		const bool * ANCF_IsCantileverD,
+		uint i
+	)
+{
+	real_ lBeam = ANCF_Beam_LengthD[i];
+	bool isCantilever = ANCF_IsCantileverD[i];
+	int2 nodesPortion = ANCF_ReferenceArrayNodesOnBeamsD[i];
+	int numNodes = nodesPortion.y - nodesPortion.x;
+	int numElements = numNodes - 1;
+	real_ lE = lBeam / numElements;
+	int2 nodesPortionAdjusted2 = nodesPortion;
+	if (isCantilever) {
+		nodesPortionAdjusted2.x = nodesPortionAdjusted2.x + 1;
+	}
+	int numNodesAdjusted;
+	numNodesAdjusted = nodesPortionAdjusted2.y - nodesPortionAdjusted2.x;
+	real_* f = new real_ [numNodesAdjusted * 6];
+	MapBeamDataTo_1D_Array(f, flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2, nodesPortionAdjusted2);
+	real_* D2Node = new real_ [numNodesAdjusted * 6];
+
+									//		//ff1
+									//		for (int i = 0; i < numNodesAdjusted * 6; i ++) {
+									//			printf("%e\n", f[i]);
+									//		}
+									//		printf("\n\n\n\n\n");
+
+	min_vec(D2Node, f, lE, numElements, isCantilever);
+
+
+
+				//ff1 : the followin commented lines are the real algorithm
+	ItegrateInTime(
+			ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
+			ANCF_NodesVelD, ANCF_SlopesVelD,
+			D2Node, nodesPortionAdjusted2,
+			lE);
+
+//		//ff1: dummy, to check rigid body motion and such
+//		RigidBodyRotation(ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
+//				nodesPortion,
+//				lE, dT);
+
+
+
+	delete [] f;
+	delete [] D2Node;
+}
+//------------------------------------------------------------------------------
 __global__ void CalcElasticForces(
 		real3 * flex_FSI_NodesForcesD1,
 		real3 * flex_FSI_NodesForcesD2,
@@ -405,7 +466,7 @@ __global__ void CalcElasticForces(
 
 }
 //------------------------------------------------------------------------------
-__global__ void SolveAndIntegrateInTime(
+__global__ void SolveAndIntegrateInTimeD(
 		real3 * ANCF_NodesD2,
 		real3 * ANCF_SlopesD2,
 		real3 * ANCF_NodesVelD2,
@@ -424,50 +485,34 @@ __global__ void SolveAndIntegrateInTime(
 	uint i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i >= numFlexBodiesD) return;
 
+	SolveAndIntegrateInTimeKernel(
+				ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
+				flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2, ANCF_NodesVelD, ANCF_SlopesVelD,
+				ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, ANCF_IsCantileverD, i);
+}
+//------------------------------------------------------------------------------
+void SolveAndIntegrateInTimeH(
+		real3 * ANCF_NodesD2,
+		real3 * ANCF_SlopesD2,
+		real3 * ANCF_NodesVelD2,
+		real3 * ANCF_SlopesVelD2,
 
-	real_ lBeam = ANCF_Beam_LengthD[i];
-	bool isCantilever = ANCF_IsCantileverD[i];
-	int2 nodesPortion = ANCF_ReferenceArrayNodesOnBeamsD[i];
-	int numNodes = nodesPortion.y - nodesPortion.x;
-	int numElements = numNodes - 1;
-	real_ lE = lBeam / numElements;
-	int2 nodesPortionAdjusted2 = nodesPortion;
-	if (isCantilever) {
-		nodesPortionAdjusted2.x = nodesPortionAdjusted2.x + 1;
+		real3 * flex_FSI_NodesForcesD1,
+		real3 * flex_FSI_NodesForcesD2,
+		const real3 * ANCF_NodesVelD,
+		const real3 * ANCF_SlopesVelD,
+
+		const int2 * ANCF_ReferenceArrayNodesOnBeamsD,
+		const real_ * ANCF_Beam_LengthD,
+		const bool * ANCF_IsCantileverD
+	)
+{
+	for (int i = 0; i < numFlexBodiesD; i++) {
+		SolveAndIntegrateInTimeKernel(
+					ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
+					flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2, ANCF_NodesVelD, ANCF_SlopesVelD,
+					ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, ANCF_IsCantileverD, i);
 	}
-	int numNodesAdjusted;
-	numNodesAdjusted = nodesPortionAdjusted2.y - nodesPortionAdjusted2.x;
-	real_* f = new real_ [numNodesAdjusted * 6];
-	MapBeamDataTo_1D_Array(f, flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2, nodesPortionAdjusted2);
-	real_* D2Node = new real_ [numNodesAdjusted * 6];
-
-									//		//ff1
-									//		for (int i = 0; i < numNodesAdjusted * 6; i ++) {
-									//			printf("%e\n", f[i]);
-									//		}
-									//		printf("\n\n\n\n\n");
-
-	min_vec(D2Node, f, lE, numElements, isCantilever);
-
-
-
-				//ff1 : the followin commented lines are the real algorithm
-	ItegrateInTime(
-			ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
-			ANCF_NodesVelD, ANCF_SlopesVelD,
-			D2Node, nodesPortionAdjusted2,
-			lE);
-
-//		//ff1: dummy, to check rigid body motion and such
-//		RigidBodyRotation(ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
-//				nodesPortion,
-//				lE, dT);
-
-
-
-	delete [] f;
-	delete [] D2Node;
-
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -559,7 +604,8 @@ void Update_ANCF_Beam(
 	cutilSafeCall( cudaMemcpyToSymbolAsync(flexParamsD, &flexParams, sizeof(ANCF_Params)));
 	cutilSafeCall( cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(real_)));
 	cutilSafeCall( cudaMemcpyToSymbolAsync(numFlexBodiesD, &numFlexBodies, sizeof(int))); //This can be updated in the future, to work with numObjectsD
-	cutilSafeCall( cudaMemcpyToSymbolAsync(GQD, &GQ, sizeof(GaussQuadrature))); //This can be updated in the future, to work with numObjectsD
+	cutilSafeCall( cudaMemcpyToSymbolAsync(GQD, &GQ, sizeof(GaussQuadrature))); //This can be updated in the future, to work with numObjects
+
 	//---------------------------------------------
 	//####### Calculate Forces
 	uint nBlock_FlexBodies;
@@ -573,7 +619,7 @@ void Update_ANCF_Beam(
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: CalcElasticForces");
 
-	SolveAndIntegrateInTime<<<nBlock_FlexBodies, nThreads_FlexBodies>>>(
+	SolveAndIntegrateInTimeD<<<nBlock_FlexBodies, nThreads_FlexBodies>>>(
 			R3CAST(ANCF_NodesD2), R3CAST(ANCF_SlopesD2), R3CAST(ANCF_NodesVelD2), R3CAST(ANCF_SlopesVelD2),
 			R3CAST(flex_FSI_NodesForcesD1), R3CAST(flex_FSI_NodesForcesD2), R3CAST(ANCF_NodesVelD), R3CAST(ANCF_SlopesVelD),
 			I2CAST(ANCF_ReferenceArrayNodesOnBeamsD), R1CAST(ANCF_Beam_LengthD), BCAST(ANCF_IsCantileverD));

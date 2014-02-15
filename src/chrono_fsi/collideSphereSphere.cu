@@ -1934,8 +1934,8 @@ void cudaCollisions(
 	real_ delTOrig = delT;
 	real_ realTime = 0;
 
-	int numPause = 	.05 * paramsH.tFinal/paramsH.dT;
-	int pauseRigidFlex = 5 * numPause;
+	int numPause =  0;//	.05 * paramsH.tFinal/paramsH.dT;
+	int pauseRigidFlex = 0;// 5 * numPause;
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce4 = R4(0);
 	paramsH_B.gravity = R3(0);
@@ -2107,7 +2107,7 @@ void cudaCollisions(
 		myGpuTimer.Stop();
 		real_ time2 = (real_)myGpuTimer.Elapsed();
 
-//		printf("step: %d\n ", tStep);
+		printf("step: %d\n ", tStep);
 		if (tStep % 50 == 0) {
 			printf("step: %d, step Time: %f\n ", tStep, time2);
 			//printf("a \n");
