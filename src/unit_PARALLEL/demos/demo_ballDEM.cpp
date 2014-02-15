@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
 	double thickness = .25;     //thickness of container walls
 
 	// Create system
-	ChSystemParallel * msystem = new ChSystemParallel;
+	ChSystemParallelDEM* msystem = new ChSystemParallelDEM();
 
 	// Create a material (will be used by both objects)
 	ChSharedPtr<ChMaterialSurfaceDEM> material;
@@ -102,15 +102,13 @@ int main(int argc, char* argv[])
 	msystem->Set_G_acc(ChVector<>(0, gravity, 0));
 	msystem->SetStep(time_step);
 
-	((ChLcpSolverParallel *) (msystem->GetLcpSolverSpeed()))->SetMaxIteration(max_iteration);
-	((ChLcpSolverParallel *) (msystem->GetLcpSolverSpeed()))->SetTolerance(0);
-	((ChLcpSolverParallel *) (msystem->GetLcpSolverSpeed()))->SetCompliance(0);
-	((ChLcpSolverParallel *) (msystem->GetLcpSolverSpeed()))->SetContactRecoverySpeed(1);
-	((ChLcpSolverParallel *) (msystem->GetLcpSolverSpeed()))->SetSolverType(ACCELERATED_PROJECTED_GRADIENT_DESCENT);
+	((ChLcpSolverParallelDEM*) msystem->GetLcpSolverSpeed())->SetMaxIteration(max_iteration);
+	((ChLcpSolverParallelDEM*) msystem->GetLcpSolverSpeed())->SetTolerance(0);
+	((ChLcpSolverParallelDEM*) msystem->GetLcpSolverSpeed())->SetContactRecoverySpeed(1);
 
-	((ChCollisionSystemParallel *) (msystem->GetCollisionSystem()))->SetCollisionEnvelope(radius * 0.05);
-	((ChCollisionSystemParallel *) (msystem->GetCollisionSystem()))->setBinsPerAxis(I3(10, 10, 10));
-	((ChCollisionSystemParallel *) (msystem->GetCollisionSystem()))->setBodyPerBin(100, 50);
+	((ChCollisionSystemParallel *) msystem->GetCollisionSystem())->SetCollisionEnvelope(radius * 0.05);
+	((ChCollisionSystemParallel *) msystem->GetCollisionSystem())->setBinsPerAxis(I3(10, 10, 10));
+	((ChCollisionSystemParallel *) msystem->GetCollisionSystem())->setBodyPerBin(100, 50);
 
 	omp_set_num_threads(threads);
 
