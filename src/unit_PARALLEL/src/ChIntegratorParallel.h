@@ -1,10 +1,10 @@
 #ifndef CHINTEGRATORGPU_H
 #define CHINTEGRATORGPU_H
 
-#include "ChParallelMath.h"
 #include "ChParallelDefines.h"
-#include "ChThrustLinearAlgebra.h"
 #include "ChDataManager.h"
+#include "math/ChParallelMath.h"
+#include "math/ChThrustLinearAlgebra.h"
 
 namespace chrono {
 	class ChApiGPU ChIntegratorParallel {

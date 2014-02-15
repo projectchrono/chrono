@@ -42,8 +42,6 @@ SET(ChronoEngine_Parallel_HEADERS
     src/ChApiParallel.h
     src/ChBaseParallel.h
     src/ChParallelDefines.h
-    src/ChParallelMath.h
-    src/ChThrustLinearAlgebra.h
     src/ChSystemParallel.h
     src/ChDataManager.h
     src/ChLcpSolverParallel.h
@@ -53,6 +51,15 @@ SET(ChronoEngine_Parallel_HEADERS
 SOURCE_GROUP(core FILES
     ${ChronoEngine_Parallel_SOURCES}
     ${ChronoEngine_Parallel_HEADERS})
+
+SET(ChronoEngine_Parallel_MATH
+    src/math/ChParallelMath.h
+    src/math/ChThrustLinearAlgebra.h
+    )
+
+SOURCE_GROUP(math FILES
+    ${ChronoEngine_Parallel_MATH}
+    )
 
 SET(ChronoEngine_Parallel_SOLVER
     src/solver/ChSolverParallel.h
@@ -230,7 +237,12 @@ ENDIF()
 
 
 # Include directories based on user path to ChronoEngine
-SET(INC_DIRS ${CHRONO_INC} "${CHRONO_INC}/collision" "${CHRONO_INC}/collision/bullet" "${CHRONO_INC}/collision/bullet/LinearMath" "${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision" )
+SET(INC_DIRS
+    ${CHRONO_INC}
+    "${CHRONO_INC}/collision"
+    "${CHRONO_INC}/collision/bullet"
+    "${CHRONO_INC}/collision/bullet/LinearMath"
+    "${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision" )
 
 # User specified path to ChronoEngine Libraries.
 SET(CHRONO_LIB_PATH  ""   CACHE PATH "Where is CHRONOLIB located")
@@ -358,6 +370,7 @@ ADD_LIBRARY(ChronoEngine_Parallel SHARED
             ${ChronoEngine_Parallel_COLLISION}
             ${ChronoEngine_Parallel_CONSTRAINTS}
             ${ChronoEngine_Parallel_SOLVER}
+            ${ChronoEngine_Parallel_MATH}
             ${ChronoEngine_Parallel_SOURCES}
             ${ChronoEngine_Parallel_HEADERS})
 

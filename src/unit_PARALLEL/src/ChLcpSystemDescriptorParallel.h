@@ -14,10 +14,10 @@
 //             www.deltaknowledge.com
 // ------------------------------------------------
 ///////////////////////////////////////////////////
-#include "ChParallelMath.h"
 #include "ChParallelDefines.h"
 #include "ChLcpSolverParallel.h"
 #include "lcp/ChLcpSystemDescriptor.h"
+#include "math/ChParallelMath.h"
 
 namespace chrono {
 

@@ -16,14 +16,14 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "ChParallelMath.h"
 #include "ChParallelDefines.h"
 #include "ChDataManager.h"
-#include "lcp/ChLcpIterativeSolver.h"
 #include "ChIntegratorParallel.h"
+#include "lcp/ChLcpIterativeSolver.h"
 #include "solver/ChSolverParallel.h"
 #include "constraints/ChConstraintRigidRigid.h"
 #include "constraints/ChConstraintBilateral.h"
+#include "math/ChParallelMath.h"
 
 
 namespace chrono {

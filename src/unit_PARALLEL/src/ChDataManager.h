@@ -16,8 +16,8 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "ChParallelMath.h"
 #include "ChParallelDefines.h"
+#include "math/ChParallelMath.h"
 
 namespace chrono {
 

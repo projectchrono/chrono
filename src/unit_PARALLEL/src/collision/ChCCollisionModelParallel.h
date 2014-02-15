@@ -16,11 +16,13 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "collision/ChCCollisionModel.h"
 #include "ChApiParallel.h"
-#include "ChParallelMath.h"
 #include "ChParallelDefines.h"
+#include "math/ChParallelMath.h"
+#include "collision/ChCCollisionModel.h"
+
 using namespace std;
+
 namespace chrono {
 // forward references
 class ChBody;
