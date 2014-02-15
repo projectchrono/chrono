@@ -72,7 +72,7 @@ void ChLcpSolverParallel::Preprocess() {
 #endif
 }
 
-void ChLcpSolverParallel::RunTimeStep(real step) {
+void ChLcpSolverParallelDVI::RunTimeStep(real step) {
 	step_size = step;
 	data_container->step_size = step;
 
@@ -208,7 +208,7 @@ void ChLcpSolverParallel::RunTimeStep(real step) {
 	//integrator.IntegrateSemiImplicit(step, data_container->gpu_data);
 }
 
-void ChLcpSolverParallel::RunWarmStartPostProcess() {
+void ChLcpSolverParallelDVI::RunWarmStartPostProcess() {
 	if (data_container->number_of_rigid_rigid == 0) {
 		return;
 	}
@@ -264,7 +264,8 @@ void ChLcpSolverParallel::RunWarmStartPostProcess() {
 		}
 	}
 }
-void ChLcpSolverParallel::RunWarmStartPreprocess() {
+
+void ChLcpSolverParallelDVI::RunWarmStartPreprocess() {
 	if (data_container->number_of_rigid_rigid == 0) {
 		return;
 	}
@@ -436,5 +437,47 @@ void ChLcpSolverParallel::RunWarmStartPreprocess() {
 //
 //	}
 
+}
+
+
+void ChLcpSolverParallelDEM::RunTimeStep(real step)
+{
+	//// TODO
+/*
+	step_size = step;
+	data_container->step_size = step;
+
+	number_of_constraints = data_container->number_of_bilaterals;
+	number_of_bilaterals = 0;     ///data_container->number_of_bilaterals;
+	number_of_objects = data_container->number_of_rigid;
+	//cout << number_of_constraints << " " << number_of_contacts << " " << number_of_bilaterals << " " << number_of_objects << endl;
+
+	// Include forces and torques (v += m_inv * h * f)
+	Preprocess();
+
+	data_container->host_data.rhs_data.resize(number_of_constraints);
+	data_container->host_data.diag.resize(number_of_constraints);
+
+	data_container->host_data.gamma_data.resize((number_of_constraints));
+
+#pragma omp parallel for
+	for (int i = 0; i < number_of_constraints; i++) {
+		data_container->host_data.gamma_data[i] = 0;
+	}
+
+	bilateral.Setup(data_container);
+
+
+	bilateral.ComputeJacobians();
+	bilateral.ComputeRHS();
+
+	if (max_iter_bilateral > 0) {
+		custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals);
+		thrust::copy_n(data_container->host_data.rhs_data.begin(), data_container->number_of_bilaterals, rhs_bilateral.begin());
+		solver.SolveStab(data_container->host_data.gamma_bilateral, rhs_bilateral, max_iter_bilateral);
+
+	}
+	thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals, data_container->host_data.gamma_data.begin());
+*/
 }
 

@@ -23,6 +23,7 @@
 #include "core/ChTimer.h"
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"
+#include "physics/ChBodyDEM.h"
 #include "physics/ChGlobal.h"
 #include "physics/ChContactContainer.h"
 #include "ChLcpSolverParallel.h"
@@ -30,71 +31,120 @@
 #include "ChDataManager.h"
 #include "collision/ChCCollisionSystemParallel.h"
 #include "collision/ChCCollisionSystemBulletParallel.h"
+
 namespace chrono {
-	using namespace chrono;
 
-	class ChApiGPU ChSystemParallel: public ChSystem {
-		CH_RTTI(ChSystemParallel, ChObj)
-			;
+class ChApiGPU ChSystemParallel: public ChSystem {
+	CH_RTTI(ChSystemParallel, ChSystem);
 
-		public:
-			ChSystemParallel(unsigned int max_objects = 1000);
-			virtual int Integrate_Y_impulse_Anitescu();
+public:
+	ChSystemParallel(unsigned int max_objects);
+	virtual int Integrate_Y_impulse_Anitescu();
 
-			void AddBody(ChSharedPtr<ChBody> newbody);
-			void RemoveBody(ChSharedPtr<ChBody> mbody);
-			void RemoveBody(int i);
-			void Update();
-			void UpdateBodies();
-			void UpdateBilaterals();
-			void RecomputeThreads();
-			void RecomputeBins();
-			void PerturbBins(bool increase, int number = 2);
+	void AddBody(ChSharedPtr<ChBody> newbody);
+	virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody) = 0;
+	void RemoveBody(ChSharedPtr<ChBody> mbody);
+	void RemoveBody(int i);
+	void Update();
+	virtual void UpdateBodies() = 0;
+	void UpdateBilaterals();
+	void RecomputeThreads();
+	void RecomputeBins();
+	void PerturbBins(bool increase, int number = 2);
 
-			void ChangeCollisionSystem(ChCollisionSystem *newcollsystem);
-			void ChangeLcpSystemDescriptor(ChLcpSystemDescriptor* newdescriptor);
-			void ChangeLcpSolverSpeed(ChLcpSolver *newsolver);
+	void ChangeCollisionSystem(ChCollisionSystem *newcollsystem);
 
-			int GetNcontacts() {
-				return gpu_data_manager->number_of_rigid_rigid;
-			}
-			void SetAABB(real3 aabbmin, real3 aabbmax) {
-				aabb_min = aabbmin;
-				aabb_max = aabbmax;
-				use_aabb_active = true;
-			}
+	int GetNcontacts() {
+		return gpu_data_manager->number_of_rigid_rigid;
+	}
 
-			bool GetAABB(real3 &aabbmin, real3 &aabbmax) {
-				aabbmin = aabb_min;
-				aabbmax = aabb_max;
+	void SetAABB(real3 aabbmin, real3 aabbmax) {
+		aabb_min = aabbmin;
+		aabb_max = aabbmax;
+		use_aabb_active = true;
+	}
 
-				return use_aabb_active;
-			}
+	bool GetAABB(real3 &aabbmin, real3 &aabbmax) {
+		aabbmin = aabb_min;
+		aabbmax = aabb_max;
 
-			double GetTimerCollision() {
-				return timer_collision;
-			}
-			ChParallelDataManager *gpu_data_manager;
-		private:
-			ChTimer<double> mtimer_lcp, mtimer_step, mtimer_cd_broad, mtimer_cd_narrow, mtimer_cd, mtimer_updt;
+		return use_aabb_active;
+	}
 
-			unsigned int counter;
-			double timer_collision;
-			std::list<ChLink *>::iterator it;
+	double GetTimerCollision() {
+		return timer_collision;
+	}
 
-			bool use_aabb_active;
-			real3 aabb_min, aabb_max;
+	ChParallelDataManager *gpu_data_manager;
 
-			int max_threads, current_threads, min_threads;
-			vector<double> timer_accumulator, cd_accumulator;
-			double old_timer, old_timer_cd;
-			bool detect_optimal_threads;
-			int detect_optimal_bins;
-			uint frame_threads;
-			uint frame_bins;
+private:
+	ChTimer<double> mtimer_lcp, mtimer_step, mtimer_cd_broad, mtimer_cd_narrow, mtimer_cd, mtimer_updt;
 
-	};
-}
+	unsigned int counter;
+	double timer_collision;
+	std::list<ChLink *>::iterator it;
+
+	bool use_aabb_active;
+	real3 aabb_min, aabb_max;
+
+	int max_threads, current_threads, min_threads;
+	vector<double> timer_accumulator, cd_accumulator;
+	double old_timer, old_timer_cd;
+	bool detect_optimal_threads;
+	int detect_optimal_bins;
+	uint frame_threads;
+	uint frame_bins;
+};
+
+
+class ChApiGPU ChSystemParallelDVI : public ChSystemParallel {
+	CH_RTTI(ChSystemParallelDVI, ChSystemParallel);
+
+public:
+	ChSystemParallelDVI(unsigned int max_objects = 1000);
+
+	virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
+	virtual void UpdateBodies();
+
+	//// TODO: these don't make much sense...
+	void ChangeLcpSystemDescriptor(ChLcpSystemDescriptor* newdescriptor)
+	{
+		assert(newdescriptor);
+		if (this->LCP_descriptor) {
+			delete (this->LCP_descriptor);
+		}
+		this->LCP_descriptor = newdescriptor;
+
+		((ChLcpSystemDescriptorParallelDVI*) this->LCP_descriptor)->data_container = gpu_data_manager;
+	}
+
+	void ChangeLcpSolverSpeed(ChLcpSolver *newsolver)
+	{
+		assert(newsolver);
+		if (this->LCP_solver_speed) {
+			delete (this->LCP_solver_speed);
+		}
+		this->LCP_solver_speed = newsolver;
+
+		((ChLcpSolverParallel*) this->LCP_solver_speed)->data_container = gpu_data_manager;
+	}
+};
+
+
+class ChApiGPU ChSystemParallelDEM : public ChSystemParallel {
+	CH_RTTI(ChSystemParallelDEM, ChSystemParallel);
+
+public:
+	ChSystemParallelDEM(unsigned int max_objects = 1000);
+
+	virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
+	virtual void UpdateBodies();
+};
+
+
+}  // end namespace chrono
+
+
 
 #endif
 
