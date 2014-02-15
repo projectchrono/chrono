@@ -52,7 +52,7 @@ public:
 	void RecomputeBins();
 	void PerturbBins(bool increase, int number = 2);
 
-	void ChangeCollisionSystem(ChCollisionSystem *newcollsystem);
+	virtual void ChangeCollisionSystem(ChCollisionSystem *newcollsystem);
 
 	int GetNcontacts() {
 		return gpu_data_manager->number_of_rigid_rigid;
@@ -139,6 +139,8 @@ public:
 
 	virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
 	virtual void UpdateBodies();
+
+	virtual void ChangeCollisionSystem(ChCollisionSystem *newcollsystem);
 };
 
 
