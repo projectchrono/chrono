@@ -1,8 +1,8 @@
 #ifndef CHC_AABBGENERATOR_H
 #define CHC_AABBGENERATOR_H
 
-#include "../ChParallelMath.h"
-#include "../ChParallelDefines.h"
+#include "math/ChParallelMath.h"
+#include "ChParallelDefines.h"
 #include "collision/ChCCollisionModel.h"
 
 namespace chrono {

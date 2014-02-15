@@ -14,12 +14,12 @@
 //             www.deltaknowledge.com
 // ------------------------------------------------
 ///////////////////////////////////////////////////
-#include "ChParallelMath.h"
-#include "ChParallelDefines.h"
 #include <stdlib.h>
 #include <float.h>
 #include <memory.h>
 #include <algorithm>
+#include "ChParallelDefines.h"
+#include "ChDataManager.h"
 #include "core/ChTimer.h"
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"
@@ -28,9 +28,9 @@
 #include "physics/ChContactContainer.h"
 #include "ChLcpSolverParallel.h"
 #include "ChLcpSystemDescriptorParallel.h"
-#include "ChDataManager.h"
 #include "collision/ChCCollisionSystemParallel.h"
 #include "collision/ChCCollisionSystemBulletParallel.h"
+#include "math/ChParallelMath.h"
 
 namespace chrono {
 

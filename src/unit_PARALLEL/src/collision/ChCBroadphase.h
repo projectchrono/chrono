@@ -1,9 +1,10 @@
 #ifndef CHC_BROADPHASE_H
 #define CHC_BROADPHASE_H
 
-#include "ChParallelMath.h"
+#include "math/ChParallelMath.h"
 #include "ChParallelDefines.h"
-#include "ChCAABBGenerator.h"
+#include "collision/ChCAABBGenerator.h"
+
 namespace chrono {
 namespace collision {
 

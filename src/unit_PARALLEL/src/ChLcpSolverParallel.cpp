@@ -1,5 +1,5 @@
 #include "ChLcpSolverParallel.h"
-#include "ChThrustLinearAlgebra.h"
+#include "math/ChThrustLinearAlgebra.h"
 
 using namespace chrono;
 

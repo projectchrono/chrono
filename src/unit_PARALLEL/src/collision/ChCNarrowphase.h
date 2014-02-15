@@ -1,9 +1,9 @@
 #ifndef CHC_NARROWPHASE_H
 #define CHC_NARROWPHASE_H
 
-#include "ChParallelMath.h"
 #include "ChParallelDefines.h"
-#include "ChCSupportFunctions.h"
+#include "math/ChParallelMath.h"
+#include "collision/ChCSupportFunctions.h"
 
 namespace chrono {
 	namespace collision {

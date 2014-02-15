@@ -1,15 +1,16 @@
 #ifndef CHSOLVERGPU_H
 #define CHSOLVERGPU_H
 
-#include "ChParallelMath.h"
 #include "ChParallelDefines.h"
-#include "ChThrustLinearAlgebra.h"
-#include "ChDataManager.h"
-#include "core/ChTimer.h"
 #include "ChBaseParallel.h"
+#include "ChDataManager.h"
+#include "math/ChParallelMath.h"
+#include "math/ChThrustLinearAlgebra.h"
+#include "core/ChTimer.h"
 #include "constraints/ChConstraintRigidRigid.h"
 #include "constraints/ChConstraintBilateral.h"
-#include "../collision/ChCNarrowphase.h"
+#include "collision/ChCNarrowphase.h"
+
 namespace chrono {
 	class ChApiGPU ChSolverParallel: public ChBaseParallel {
 		public:
