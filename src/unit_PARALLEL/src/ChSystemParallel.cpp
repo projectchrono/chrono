@@ -42,6 +42,8 @@ ChSystemParallelDEM::ChSystemParallelDEM(unsigned int max_objects)
 	LCP_solver_speed = new ChLcpSolverParallelDEM();
 	((ChLcpSystemDescriptorParallelDEM*) (LCP_descriptor))->data_container = gpu_data_manager;
 	((ChLcpSolverParallel*) LCP_solver_speed)->data_container = gpu_data_manager;
+
+	((ChCollisionSystemParallel *) collision_system)->SetCollisionEnvelope(0);
 }
 
 int ChSystemParallel::Integrate_Y_impulse_Anitescu() {
@@ -553,4 +555,10 @@ void ChSystemParallel::ChangeCollisionSystem(ChCollisionSystem *newcollsystem) {
 	} else if (ChCollisionSystemBulletParallel* coll_sys = dynamic_cast<ChCollisionSystemBulletParallel*>(newcollsystem)) {
 		((ChCollisionSystemBulletParallel *) (collision_system))->data_container = gpu_data_manager;
 	}
+}
+
+void ChSystemParallelDEM::ChangeCollisionSystem(ChCollisionSystem* newcollsystem)
+{
+	ChSystemParallel::ChangeCollisionSystem(newcollsystem);
+	((ChCollisionSystemParallel *) collision_system)->SetCollisionEnvelope(0);
 }
