@@ -869,7 +869,7 @@ public:
 				/// The time step can be automatically repeated (or shrunken)
 				/// if too much C violation or local integration error.
 				/// Automatic assemblation of C and Cdt holonomic constraint is done too.
-	int Integrate_Y ();
+	virtual int Integrate_Y ();
 
 	
 				/// As Integrate_Y(), but uses the differential inclusion approach as in Anitescu,
