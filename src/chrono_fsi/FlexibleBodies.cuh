@@ -80,14 +80,14 @@ void Update_ANCF_Beam(
 		const thrust::device_vector<real3> & ANCF_NodesVelD,
 		const thrust::device_vector<real3> & ANCF_SlopesVelD,
 
-		const thrust::device_vector<real3> & flex_FSI_NodesForces1,
-		const thrust::device_vector<real3> & flex_FSI_NodesForces2,
+		const thrust::device_vector<real3> & flex_FSI_NodesForcesD1,
+		const thrust::device_vector<real3> & flex_FSI_NodesForcesD2,
 		const thrust::device_vector<int2> & ANCF_ReferenceArrayNodesOnBeamsD,
 		const thrust::device_vector<real_> & ANCF_Beam_LengthD,
 		const thrust::device_vector<bool> & ANCF_IsCantileverD,
+
 		const int numFlexBodies,
 		const ANCF_Params & flexParams,
-		real_ dT
-		);
+		real_ dT);
 
 #endif
