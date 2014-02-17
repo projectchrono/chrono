@@ -62,11 +62,28 @@
 
 #include <cstdio>
 
-//#####################################################################################
+#define flexGPU true
+#if flexGPU
+#define flexParamsD flexParamsD
+#define dTD dTD
+#define numFlexBodiesD numFlexBodiesD
+#define GQD GQD
+#else
+#define flexParamsD flexParamsH
+#define dTD dTH
+#define numFlexBodiesD numFlexBodiesH
+#define GQD GQH
+#endif
+
 __constant__ ANCF_Params flexParamsD;
 __constant__ real_ dTD;
 __constant__ int numFlexBodiesD;
 __constant__ GaussQuadrature GQD;
+
+ANCF_Params flexParamsH;
+real_ dTH;
+int numFlexBodiesH;
+GaussQuadrature GQH;
 
 //------------------------------------------------------------------------------
 __device__ __host__ inline void Zero12(Elem12 & m) {
@@ -361,34 +378,9 @@ __device__ __host__ inline void Add_f_ToForces(real3 * flex_FSI_NodesForcesD1, r
 //		e[6 * j + 5] = data2.z;
 //	}
 //}
-//------------------------------------------------------------------------------
-__device__ __host__ inline void ItegrateInTimeKernel(
-		real3 * ANCF_NodesD2,
-		real3 * ANCF_SlopesD2,
-		real3 * ANCF_NodesVelD2,
-		real3 * ANCF_SlopesVelD2,
-
-		const real3 * ANCF_NodesVelD,
-		const real3 * ANCF_SlopesVelD,
-		const real3 * ANCF_NodesAccD,
-		const real3 * ANCF_SlopesAccD,
-
-		int2 nodesPortionAdjusted
-		)
-{
-	int numNodesAdjusted = nodesPortionAdjusted.y - nodesPortionAdjusted.x;
-	for (int j = 0; j < numNodesAdjusted; j++) {
-		int nodeIdx = nodesPortionAdjusted.x + j;
-		ANCF_NodesD2[nodeIdx] += dTD * ANCF_NodesVelD[nodeIdx];
-		ANCF_SlopesD2[nodeIdx] += dTD * ANCF_SlopesVelD[nodeIdx];
-
-		ANCF_NodesVelD2[nodeIdx] += dTD * ANCF_NodesAccD[nodeIdx];
-		ANCF_SlopesVelD2[nodeIdx] += dTD * ANCF_SlopesAccD[nodeIdx];
-	}
-}
 
 //------------------------------------------------------------------------------
-__global__ void CalcElasticForces(
+__device__ __host__ inline void CalcElasticForcesKernel(
 		real3 * flex_FSI_NodesForcesD1,
 		real3 * flex_FSI_NodesForcesD2,
 		const real3 * ANCF_NodesD,
@@ -396,12 +388,10 @@ __global__ void CalcElasticForces(
 		const real3 * ANCF_NodesVelD,
 		const real3 * ANCF_SlopesVelD,
 		const int2 * ANCF_ReferenceArrayNodesOnBeamsD,
-		const real_ * ANCF_Beam_LengthD
+		const real_ * ANCF_Beam_LengthD,
+		uint i
 	)
 {
-	uint i = blockIdx.x * blockDim.x + threadIdx.x;
-	if (i >= numFlexBodiesD) return;
-
 	real_ l = ANCF_Beam_LengthD[i];
 	int2 nodesPortion = ANCF_ReferenceArrayNodesOnBeamsD[i];
 	int numNodes = nodesPortion.y - nodesPortion.x;
@@ -436,10 +426,29 @@ __global__ void CalcElasticForces(
 		// Add element forces to associated nodes
 		Add_f_ToForces(flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2, -1, f_e, nodeIdx);
 	}
-
 }
 //------------------------------------------------------------------------------
-__global__ void SolveForAccD(
+__global__ void CalcElasticForcesD(
+		real3 * flex_FSI_NodesForcesD1,
+		real3 * flex_FSI_NodesForcesD2,
+		const real3 * ANCF_NodesD,
+		const real3 * ANCF_SlopesD,
+		const real3 * ANCF_NodesVelD,
+		const real3 * ANCF_SlopesVelD,
+		const int2 * ANCF_ReferenceArrayNodesOnBeamsD,
+		const real_ * ANCF_Beam_LengthD
+	)
+{
+	uint i = blockIdx.x * blockDim.x + threadIdx.x;
+	if (i >= numFlexBodiesD) return;
+
+	CalcElasticForcesKernel(
+			flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2,
+			ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
+			ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, i);
+}
+//------------------------------------------------------------------------------
+__device__ __host__ inline void SolveForAccKernel(
 		real3 * ANCF_NodesAccD,
 		real3 * ANCF_SlopesAccD,
 
@@ -448,12 +457,10 @@ __global__ void SolveForAccD(
 
 		const int2 * ANCF_ReferenceArrayNodesOnBeamsD,
 		const real_ * ANCF_Beam_LengthD,
-		const bool * ANCF_IsCantileverD
+		const bool * ANCF_IsCantileverD,
+		uint i
 	)
 {
-	uint i = blockIdx.x * blockDim.x + threadIdx.x;
-	if (i >= numFlexBodiesD) return;
-
 	int2 nodesPortion = ANCF_ReferenceArrayNodesOnBeamsD[i];
 	int numNodes = nodesPortion.y - nodesPortion.x;
 	int numElements = numNodes - 1;
@@ -471,6 +478,61 @@ __global__ void SolveForAccD(
 			lE,
 			nodesPortion,
 			isCantilever);
+}
+//------------------------------------------------------------------------------
+__global__ void SolveForAccD(
+		real3 * ANCF_NodesAccD,
+		real3 * ANCF_SlopesAccD,
+
+		const real3 * flex_FSI_NodesForcesD1,
+		const real3 * flex_FSI_NodesForcesD2,
+
+		const int2 * ANCF_ReferenceArrayNodesOnBeamsD,
+		const real_ * ANCF_Beam_LengthD,
+		const bool * ANCF_IsCantileverD
+	)
+{
+	uint i = blockIdx.x * blockDim.x + threadIdx.x;
+	if (i >= numFlexBodiesD) return;
+
+	SolveForAccKernel(ANCF_NodesAccD, ANCF_SlopesAccD,
+			flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2,
+			ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, ANCF_IsCantileverD, i);
+
+}
+//------------------------------------------------------------------------------
+__device__ __host__ inline void IntegrateInTimeKernel(
+		real3 * ANCF_NodesD2,
+		real3 * ANCF_SlopesD2,
+		real3 * ANCF_NodesVelD2,
+		real3 * ANCF_SlopesVelD2,
+
+		const real3 * ANCF_NodesVelD,
+		const real3 * ANCF_SlopesVelD,
+		const real3 * ANCF_NodesAccD,
+		const real3 * ANCF_SlopesAccD,
+
+		const int2 * ANCF_ReferenceArrayNodesOnBeamsD,
+		const bool * ANCF_IsCantileverD,
+		uint i
+	)
+{
+	int2 nodesPortion = ANCF_ReferenceArrayNodesOnBeamsD[i];
+	int2 nodesPortionAdjusted2 = nodesPortion;
+	bool isCantilever = ANCF_IsCantileverD[i];
+	if (isCantilever) {
+		nodesPortionAdjusted2.x = nodesPortionAdjusted2.x + 1;
+	}
+
+	int numNodesAdjusted = nodesPortionAdjusted2.y - nodesPortionAdjusted2.x;
+	for (int j = 0; j < numNodesAdjusted; j++) {
+		int nodeIdx = nodesPortionAdjusted2.x + j;
+		ANCF_NodesD2[nodeIdx] += dTD * ANCF_NodesVelD[nodeIdx];
+		ANCF_SlopesD2[nodeIdx] += dTD * ANCF_SlopesVelD[nodeIdx];
+
+		ANCF_NodesVelD2[nodeIdx] += dTD * ANCF_NodesAccD[nodeIdx];
+		ANCF_SlopesVelD2[nodeIdx] += dTD * ANCF_SlopesAccD[nodeIdx];
+	}
 }
 //------------------------------------------------------------------------------
 __global__ void IntegrateInTimeD(
@@ -491,17 +553,11 @@ __global__ void IntegrateInTimeD(
 	uint i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i >= numFlexBodiesD) return;
 
-	int2 nodesPortion = ANCF_ReferenceArrayNodesOnBeamsD[i];
-	int2 nodesPortionAdjusted2 = nodesPortion;
-	bool isCantilever = ANCF_IsCantileverD[i];
-	if (isCantilever) {
-		nodesPortionAdjusted2.x = nodesPortionAdjusted2.x + 1;
-	}
+	IntegrateInTimeKernel(
+			ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
+			ANCF_NodesVelD, ANCF_SlopesVelD, ANCF_NodesAccD, ANCF_SlopesAccD,
+			ANCF_ReferenceArrayNodesOnBeamsD, ANCF_IsCantileverD, i	);
 
-	ItegrateInTimeKernel(
-		ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
-		ANCF_NodesVelD, ANCF_SlopesVelD, ANCF_NodesAccD, ANCF_SlopesAccD,
-		nodesPortionAdjusted2);
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -590,23 +646,29 @@ void Update_ANCF_Beam(
 	GaussQuadrature GQ;
 	IntitializeGaussQuadrature(GQ);
 	//---------------------------------------------
+#if flexGPU
 	cutilSafeCall( cudaMemcpyToSymbolAsync(flexParamsD, &flexParams, sizeof(ANCF_Params)));
 	cutilSafeCall( cudaMemcpyToSymbolAsync(dTD, &dT, sizeof(real_)));
 	cutilSafeCall( cudaMemcpyToSymbolAsync(numFlexBodiesD, &numFlexBodies, sizeof(int))); //This can be updated in the future, to work with numObjectsD
 	cutilSafeCall( cudaMemcpyToSymbolAsync(GQD, &GQ, sizeof(GaussQuadrature))); //This can be updated in the future, to work with numObjects
-
+#else
+	flexParamsD = flexParams;
+	dTD = dT;
+	numFlexBodiesD = numFlexBodies;
+	GQD = GQ;
+#endif
 	//---------------------------------------------
 	//####### Calculate Forces
 	uint nBlock_FlexBodies;
 	uint nThreads_FlexBodies;
 	computeGridSize(numFlexBodies, 128, nBlock_FlexBodies, nThreads_FlexBodies);
 
-	CalcElasticForces<<<nBlock_FlexBodies, nThreads_FlexBodies>>>(
+	CalcElasticForcesD<<<nBlock_FlexBodies, nThreads_FlexBodies>>>(
 			R3CAST(flex_FSI_NodesForcesD1), R3CAST(flex_FSI_NodesForcesD2),
 			R3CAST(ANCF_NodesD), R3CAST(ANCF_SlopesD), R3CAST(ANCF_NodesVelD), R3CAST(ANCF_SlopesVelD),
 			I2CAST(ANCF_ReferenceArrayNodesOnBeamsD), R1CAST(ANCF_Beam_LengthD));
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: CalcElasticForces");
+	CUT_CHECK_ERROR("Kernel execution failed: CalcElasticForcesD");
 
 	int totalNumberOfFlexNodes = flex_FSI_NodesForcesD1.size();
 	thrust::device_vector<real3> ANCF_NodesAccD(totalNumberOfFlexNodes);
