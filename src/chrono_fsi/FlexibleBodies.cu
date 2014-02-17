@@ -69,6 +69,21 @@ __constant__ int numFlexBodiesD;
 __constant__ GaussQuadrature GQD;
 
 //------------------------------------------------------------------------------
+__device__ __host__ inline void Zero12(Elem12 & m) {
+	m.e00 = 0;
+	m.e01 = 0;
+	m.e02 = 0;
+	m.e03 = 0;
+	m.e04 = 0;
+	m.e05 = 0;
+	m.e06 = 0;
+	m.e07 = 0;
+	m.e08 = 0;
+	m.e09 = 0;
+	m.e10 = 0;
+	m.e11 = 0;
+}
+//------------------------------------------------------------------------------
 __device__ __host__ inline void shape_fun_dd(real_* Sxx, real_ x, real_ L)
 {
 	real_ xi = x/L;
@@ -79,21 +94,20 @@ __device__ __host__ inline void shape_fun_dd(real_* Sxx, real_ x, real_ L)
 	Sxx[3] = (-2+6*xi)/L;
 }
 //------------------------------------------------------------------------------
-__device__ __host__ inline void eps_eps_e(real_* e_ee, real_ x, real_ L, real_* e)
+__device__ __host__ inline void eps_eps_e(Elem12 & e_ee, real_ x, real_ L, const Elem12 & e)
 {
-	real_ e1  = e[0];
-	real_ e2  = e[1];
-	real_ e3  = e[2];
-	real_ e4  = e[3];
-	real_ e5  = e[4];
-	real_ e6  = e[5];
-
-	real_ e7  = e[6];
-	real_ e8  = e[7];
-	real_ e9  = e[8];
-	real_ e10 = e[9];
-	real_ e11 = e[10];
-	real_ e12 = e[11];
+	real_ e1  = e.e00;
+	real_ e2  = e.e01;
+	real_ e3  = e.e02;
+	real_ e4  = e.e03;
+	real_ e5  = e.e04;
+	real_ e6  = e.e05;
+	real_ e7  = e.e06;
+	real_ e8  = e.e07;
+	real_ e9  = e.e08;
+	real_ e10 = e.e09;
+	real_ e11 = e.e10;
+	real_ e12 = e.e11;
 
 	real_ Sx[4];
 
@@ -112,35 +126,34 @@ __device__ __host__ inline void eps_eps_e(real_* e_ee, real_ x, real_ L, real_* 
 
 	// Calculate the integrand for Qa (i.e. eps * eps_e), using the
 	// fact that  eps_e = (Sx^T * Sx) * e
-	e_ee[0]  = eps * Sx[0] * (e1*Sx[0]+e4*Sx[1]+e7*Sx[2]+e10*Sx[3]);
-	e_ee[1]  = eps * Sx[0] * (e2*Sx[0]+e5*Sx[1]+e8*Sx[2]+e11*Sx[3]);
-	e_ee[2]  = eps * Sx[0] * (e3*Sx[0]+e6*Sx[1]+e9*Sx[2]+e12*Sx[3]);
-	e_ee[3]  = eps * Sx[1] * (e1*Sx[0]+e4*Sx[1]+e7*Sx[2]+e10*Sx[3]);
-	e_ee[4]  = eps * Sx[1] * (e2*Sx[0]+e5*Sx[1]+e8*Sx[2]+e11*Sx[3]);
-	e_ee[5]  = eps * Sx[1] * (e3*Sx[0]+e6*Sx[1]+e9*Sx[2]+e12*Sx[3]);
-	e_ee[6]  = eps * Sx[2] * (e1*Sx[0]+e4*Sx[1]+e7*Sx[2]+e10*Sx[3]);
-	e_ee[7]  = eps * Sx[2] * (e2*Sx[0]+e5*Sx[1]+e8*Sx[2]+e11*Sx[3]);
-	e_ee[8]  = eps * Sx[2] * (e3*Sx[0]+e6*Sx[1]+e9*Sx[2]+e12*Sx[3]);
-	e_ee[9]  = eps * Sx[3] * (e1*Sx[0]+e4*Sx[1]+e7*Sx[2]+e10*Sx[3]);
-	e_ee[10] = eps * Sx[3] * (e2*Sx[0]+e5*Sx[1]+e8*Sx[2]+e11*Sx[3]);
-	e_ee[11] = eps * Sx[3] * (e3*Sx[0]+e6*Sx[1]+e9*Sx[2]+e12*Sx[3]);
+	e_ee.e00 = eps * Sx[0] * (e1*Sx[0]+e4*Sx[1]+e7*Sx[2]+e10*Sx[3]);
+	e_ee.e01 = eps * Sx[0] * (e2*Sx[0]+e5*Sx[1]+e8*Sx[2]+e11*Sx[3]);
+	e_ee.e02 = eps * Sx[0] * (e3*Sx[0]+e6*Sx[1]+e9*Sx[2]+e12*Sx[3]);
+	e_ee.e03 = eps * Sx[1] * (e1*Sx[0]+e4*Sx[1]+e7*Sx[2]+e10*Sx[3]);
+	e_ee.e04 = eps * Sx[1] * (e2*Sx[0]+e5*Sx[1]+e8*Sx[2]+e11*Sx[3]);
+	e_ee.e05 = eps * Sx[1] * (e3*Sx[0]+e6*Sx[1]+e9*Sx[2]+e12*Sx[3]);
+	e_ee.e06 = eps * Sx[2] * (e1*Sx[0]+e4*Sx[1]+e7*Sx[2]+e10*Sx[3]);
+	e_ee.e07 = eps * Sx[2] * (e2*Sx[0]+e5*Sx[1]+e8*Sx[2]+e11*Sx[3]);
+	e_ee.e08 = eps * Sx[2] * (e3*Sx[0]+e6*Sx[1]+e9*Sx[2]+e12*Sx[3]);
+	e_ee.e09 = eps * Sx[3] * (e1*Sx[0]+e4*Sx[1]+e7*Sx[2]+e10*Sx[3]);
+	e_ee.e10 = eps * Sx[3] * (e2*Sx[0]+e5*Sx[1]+e8*Sx[2]+e11*Sx[3]);
+	e_ee.e11 = eps * Sx[3] * (e3*Sx[0]+e6*Sx[1]+e9*Sx[2]+e12*Sx[3]);
 }
 
-__device__ __host__ inline void eps_eps_e_ALT(real_* e_ee, real_ x, real_ L, real_* e)
+__device__ __host__ inline void eps_eps_e_ALT(Elem12 & e_ee, real_ x, real_ L, const Elem12 & e)
 {
-	real_ e1  = e[0];
-	real_ e2  = e[1];
-	real_ e3  = e[2];
-	real_ e4  = e[3];
-	real_ e5  = e[4];
-	real_ e6  = e[5];
-
-	real_ e7  = e[6];
-	real_ e8  = e[7];
-	real_ e9  = e[8];
-	real_ e10 = e[9];
-	real_ e11 = e[10];
-	real_ e12 = e[11];
+	real_ e1  = e.e00;
+	real_ e2  = e.e01;
+	real_ e3  = e.e02;
+	real_ e4  = e.e03;
+	real_ e5  = e.e04;
+	real_ e6  = e.e05;
+	real_ e7  = e.e06;
+	real_ e8  = e.e07;
+	real_ e9  = e.e08;
+	real_ e10 = e.e09;
+	real_ e11 = e.e10;
+	real_ e12 = e.e11;
 
 	real_ Sx[4];
 
@@ -173,35 +186,34 @@ __device__ __host__ inline void eps_eps_e_ALT(real_* e_ee, real_ x, real_ L, rea
 	real_  t26 = t25*(1.0/2.0);
 	real_  t27 = t18+t20+t26-1.0/2.0;
 
-	e_ee[0]  = t2*t10*t27;
-	e_ee[1]  = t2*t11*t27;
-	e_ee[2]  = t2*t12*t27;
-	e_ee[3]  = t4*t10*t27;
-	e_ee[4]  = t4*t11*t27;
-	e_ee[5]  = t4*t12*t27;
-	e_ee[6]  = t6*t10*t27;
-	e_ee[7]  = t6*t11*t27;
-	e_ee[8]  = t6*t12*t27;
-	e_ee[9]  = t8*t10*t27;
-	e_ee[10] = t8*t11*t27;
-	e_ee[11] = t8*t12*t27;
+	e_ee.e00 = t2*t10*t27;
+	e_ee.e01 = t2*t11*t27;
+	e_ee.e02 = t2*t12*t27;
+	e_ee.e03 = t4*t10*t27;
+	e_ee.e04 = t4*t11*t27;
+	e_ee.e05 = t4*t12*t27;
+	e_ee.e06 = t6*t10*t27;
+	e_ee.e07 = t6*t11*t27;
+	e_ee.e08 = t6*t12*t27;
+	e_ee.e09 = t8*t10*t27;
+	e_ee.e10 = t8*t11*t27;
+	e_ee.e11 = t8*t12*t27;
 }
 
-__device__ __host__ inline void kappa_kappa_e(real_* k_ke, real_ x, real_ L, real_* e)
+__device__ __host__ inline void kappa_kappa_e(Elem12 & k_ke, real_ x, real_ L, const Elem12 & e)
 {
-	real_ e1  = e[0];
-	real_ e2  = e[1];
-	real_ e3  = e[2];
-	real_ e4  = e[3];
-	real_ e5  = e[4];
-	real_ e6  = e[5];
-
-	real_ e7  = e[6];
-	real_ e8  = e[7];
-	real_ e9  = e[8];
-	real_ e10 = e[9];
-	real_ e11 = e[10];
-	real_ e12 = e[11];
+	real_ e1  = e.e00;
+	real_ e2  = e.e01;
+	real_ e3  = e.e02;
+	real_ e4  = e.e03;
+	real_ e5  = e.e04;
+	real_ e6  = e.e05;
+	real_ e7  = e.e06;
+	real_ e8  = e.e07;
+	real_ e9  = e.e08;
+	real_ e10 = e.e09;
+	real_ e11 = e.e10;
+	real_ e12 = e.e11;
 
 	real_ Sx[4];
 	real_ Sxx[4];
@@ -246,21 +258,21 @@ __device__ __host__ inline void kappa_kappa_e(real_* k_ke, real_ x, real_ L, rea
 	real_ k = v_nrm * inv_rx_nrm_cubed;
 
 	// Calculate the integrand for Qk (this is k * k_e)
-	k_ke[0]  = -inv_rx_rx_cubed * ( -(Sx[0]*rxx[1]-Sxx[0]*rx[1])*v[2]+(Sx[0]*rxx[2]-Sxx[0]*rx[2])*v[1] + coef*Sx[0]*rx[0] );
-	k_ke[1]  = -inv_rx_rx_cubed * (  (Sx[0]*rxx[0]-Sxx[0]*rx[0])*v[2]-(Sx[0]*rxx[2]-Sxx[0]*rx[2])*v[0] + coef*Sx[0]*rx[1] );
-	k_ke[2]  = -inv_rx_rx_cubed * ( -(Sx[0]*rxx[0]-Sxx[0]*rx[0])*v[1]+(Sx[0]*rxx[1]-Sxx[0]*rx[1])*v[0] + coef*Sx[0]*rx[2] );
-	k_ke[3]  = -inv_rx_rx_cubed * ( -(Sx[1]*rxx[1]-Sxx[1]*rx[1])*v[2]+(Sx[1]*rxx[2]-Sxx[1]*rx[2])*v[1] + coef*Sx[1]*rx[0] );
-	k_ke[4]  = -inv_rx_rx_cubed * (  (Sx[1]*rxx[0]-Sxx[1]*rx[0])*v[2]-(Sx[1]*rxx[2]-Sxx[1]*rx[2])*v[0] + coef*Sx[1]*rx[1] );
-	k_ke[5]  = -inv_rx_rx_cubed * ( -(Sx[1]*rxx[0]-Sxx[1]*rx[0])*v[1]+(Sx[1]*rxx[1]-Sxx[1]*rx[1])*v[0] + coef*Sx[1]*rx[2] );
-	k_ke[6]  = -inv_rx_rx_cubed * ( -(Sx[2]*rxx[1]-Sxx[2]*rx[1])*v[2]+(Sx[2]*rxx[2]-Sxx[2]*rx[2])*v[1] + coef*Sx[2]*rx[0] );
-	k_ke[7]  = -inv_rx_rx_cubed * (  (Sx[2]*rxx[0]-Sxx[2]*rx[0])*v[2]-(Sx[2]*rxx[2]-Sxx[2]*rx[2])*v[0] + coef*Sx[2]*rx[1] );
-	k_ke[8]  = -inv_rx_rx_cubed * ( -(Sx[2]*rxx[0]-Sxx[2]*rx[0])*v[1]+(Sx[2]*rxx[1]-Sxx[2]*rx[1])*v[0] + coef*Sx[2]*rx[2] );
-	k_ke[9]  = -inv_rx_rx_cubed * ( -(Sx[3]*rxx[1]-Sxx[3]*rx[1])*v[2]+(Sx[3]*rxx[2]-Sxx[3]*rx[2])*v[1] + coef*Sx[3]*rx[0] );
-	k_ke[10] = -inv_rx_rx_cubed * (  (Sx[3]*rxx[0]-Sxx[3]*rx[0])*v[2]-(Sx[3]*rxx[2]-Sxx[3]*rx[2])*v[0] + coef*Sx[3]*rx[1] );
-	k_ke[11] = -inv_rx_rx_cubed * ( -(Sx[3]*rxx[0]-Sxx[3]*rx[0])*v[1]+(Sx[3]*rxx[1]-Sxx[3]*rx[1])*v[0] + coef*Sx[3]*rx[2] );
+	k_ke.e00 = -inv_rx_rx_cubed * ( -(Sx[0]*rxx[1]-Sxx[0]*rx[1])*v[2]+(Sx[0]*rxx[2]-Sxx[0]*rx[2])*v[1] + coef*Sx[0]*rx[0] );
+	k_ke.e01 = -inv_rx_rx_cubed * (  (Sx[0]*rxx[0]-Sxx[0]*rx[0])*v[2]-(Sx[0]*rxx[2]-Sxx[0]*rx[2])*v[0] + coef*Sx[0]*rx[1] );
+	k_ke.e02 = -inv_rx_rx_cubed * ( -(Sx[0]*rxx[0]-Sxx[0]*rx[0])*v[1]+(Sx[0]*rxx[1]-Sxx[0]*rx[1])*v[0] + coef*Sx[0]*rx[2] );
+	k_ke.e03 = -inv_rx_rx_cubed * ( -(Sx[1]*rxx[1]-Sxx[1]*rx[1])*v[2]+(Sx[1]*rxx[2]-Sxx[1]*rx[2])*v[1] + coef*Sx[1]*rx[0] );
+	k_ke.e04 = -inv_rx_rx_cubed * (  (Sx[1]*rxx[0]-Sxx[1]*rx[0])*v[2]-(Sx[1]*rxx[2]-Sxx[1]*rx[2])*v[0] + coef*Sx[1]*rx[1] );
+	k_ke.e05 = -inv_rx_rx_cubed * ( -(Sx[1]*rxx[0]-Sxx[1]*rx[0])*v[1]+(Sx[1]*rxx[1]-Sxx[1]*rx[1])*v[0] + coef*Sx[1]*rx[2] );
+	k_ke.e06 = -inv_rx_rx_cubed * ( -(Sx[2]*rxx[1]-Sxx[2]*rx[1])*v[2]+(Sx[2]*rxx[2]-Sxx[2]*rx[2])*v[1] + coef*Sx[2]*rx[0] );
+	k_ke.e07 = -inv_rx_rx_cubed * (  (Sx[2]*rxx[0]-Sxx[2]*rx[0])*v[2]-(Sx[2]*rxx[2]-Sxx[2]*rx[2])*v[0] + coef*Sx[2]*rx[1] );
+	k_ke.e08 = -inv_rx_rx_cubed * ( -(Sx[2]*rxx[0]-Sxx[2]*rx[0])*v[1]+(Sx[2]*rxx[1]-Sxx[2]*rx[1])*v[0] + coef*Sx[2]*rx[2] );
+	k_ke.e09 = -inv_rx_rx_cubed * ( -(Sx[3]*rxx[1]-Sxx[3]*rx[1])*v[2]+(Sx[3]*rxx[2]-Sxx[3]*rx[2])*v[1] + coef*Sx[3]*rx[0] );
+	k_ke.e10 = -inv_rx_rx_cubed * (  (Sx[3]*rxx[0]-Sxx[3]*rx[0])*v[2]-(Sx[3]*rxx[2]-Sxx[3]*rx[2])*v[0] + coef*Sx[3]*rx[1] );
+	k_ke.e11 = -inv_rx_rx_cubed * ( -(Sx[3]*rxx[0]-Sxx[3]*rx[0])*v[1]+(Sx[3]*rxx[1]-Sxx[3]*rx[1])*v[0] + coef*Sx[3]*rx[2] );
 }
 //------------------------------------------------------------------------------
-__device__ __host__ inline void gravitational_force(real_* f_g, real_ L, real_ rho, real_ A, real3 g)
+__device__ __host__ inline void gravitational_force(Elem12 & f_g, real_ L, real_ rho, real_ A, real3 g)
 {
 	real_ coef = rho * A * L;
 
@@ -271,18 +283,18 @@ __device__ __host__ inline void gravitational_force(real_* f_g, real_ L, real_ r
 	real_ t9  = coef * g.y * L / 12.0;
 	real_ t10 = coef * g.z * L / 12.0;
 
-	f_g[0]  =  t5;
-	f_g[1]  =  t6;
-	f_g[2]  =  t7;
-	f_g[3]  =  t8;
-	f_g[4]  =  t9;
-	f_g[5]  =  t10;
-	f_g[6]  =  t5;
-	f_g[7]  =  t6;
-	f_g[8]  =  t7;
-	f_g[9]  = -t8;
-	f_g[10] = -t9;
-	f_g[11] = -t10;
+	f_g.e00 =  t5;
+	f_g.e01 =  t6;
+	f_g.e02 =  t7;
+	f_g.e03 =  t8;
+	f_g.e04 =  t9;
+	f_g.e05 =  t10;
+	f_g.e06 =  t5;
+	f_g.e07 =  t6;
+	f_g.e08 =  t7;
+	f_g.e09 = -t8;
+	f_g.e10 = -t9;
+	f_g.e11 = -t10;
 }
 //------------------------------------------------------------------------------
 // sum += mult * a
@@ -292,47 +304,63 @@ __device__ __host__ inline void SumArrays(real_* sum, real_* a, real_ mult, int 
 	}
 }
 //------------------------------------------------------------------------------
-__device__ __host__ inline void CopyElementNodesTo_e(real_* e, const real3 * ANCF_NodesD, const real3 * ANCF_SlopesD, int nodeIdx) {
+// sum += mult * a
+__device__ __host__ inline void SumElem12(Elem12 & sum, const Elem12 & a, real_ mult) {
+	sum.e00 += mult * a.e00;
+	sum.e01 += mult * a.e01;
+	sum.e02 += mult * a.e02;
+	sum.e03 += mult * a.e03;
+	sum.e04 += mult * a.e04;
+	sum.e05 += mult * a.e05;
+	sum.e06 += mult * a.e06;
+	sum.e07 += mult * a.e07;
+	sum.e08 += mult * a.e08;
+	sum.e09 += mult * a.e09;
+	sum.e10 += mult * a.e10;
+	sum.e11 += mult * a.e11;
+}
+//------------------------------------------------------------------------------
+__device__ __host__ inline void CopyElementNodesTo_e(Elem12 & e, const real3 * ANCF_NodesD, const real3 * ANCF_SlopesD, int nodeIdx) {
 	real3 ni = ANCF_NodesD[nodeIdx];
-	e[0] = ni.x;
-	e[1] = ni.y;
-	e[2] = ni.z;
+	e.e00 = ni.x;
+	e.e01 = ni.y;
+	e.e02 = ni.z;
 	real3 si = ANCF_SlopesD[nodeIdx];
-	e[3] = si.x;
-	e[4] = si.y;
-	e[5] = si.z;
+	e.e03 = si.x;
+	e.e04 = si.y;
+	e.e05 = si.z;
 	real3 nj = ANCF_NodesD[nodeIdx + 1];
-	e[6] = nj.x;
-	e[7] = nj.y;
-	e[8] = nj.z;
+	e.e06 = nj.x;
+	e.e07 = nj.y;
+	e.e08 = nj.z;
 	real3 sj = ANCF_SlopesD[nodeIdx + 1];
-	e[9] = sj.x;
-	e[10] = sj.y;
-	e[11] = sj.z;
+	e.e09= sj.x;
+	e.e10 = sj.y;
+	e.e11 = sj.z;
 }
 //------------------------------------------------------------------------------
 // Why -= and not += : because M*X2 + K*X = F Therefore, in an explicit method: M*X2 = F - K*X where K*X is our elastic forces (f)
-__device__ __host__ inline void Add_f_ToForces(real3 * flex_FSI_NodesForcesD1, real3 * flex_FSI_NodesForcesD2, real_ k, real_* f, int nodeIdx) {
-	flex_FSI_NodesForcesD1[nodeIdx] += k * R3(f[0], f[1], f[2]);
-	flex_FSI_NodesForcesD2[nodeIdx] += k * R3(f[3], f[4], f[5]);
-	flex_FSI_NodesForcesD1[nodeIdx + 1] += k * R3(f[6], f[7], f[8]);
-	flex_FSI_NodesForcesD2[nodeIdx + 1] += k * R3(f[9], f[10], f[11]);
+__device__ __host__ inline void Add_f_ToForces(real3 * flex_FSI_NodesForcesD1, real3 * flex_FSI_NodesForcesD2, real_ k, const Elem12 & f, int nodeIdx) {
+	flex_FSI_NodesForcesD1[nodeIdx		] += k * R3(f.e00, f.e01, f.e02);
+	flex_FSI_NodesForcesD2[nodeIdx		] += k * R3(f.e03, f.e04, f.e05);
+	flex_FSI_NodesForcesD1[nodeIdx + 1	] += k * R3(f.e06, f.e07, f.e08);
+	flex_FSI_NodesForcesD2[nodeIdx + 1	] += k * R3(f.e09, f.e10, f.e11);
 }
-//------------------------------------------------------------------------------
-__device__ __host__ inline void MapBeamDataTo_1D_Array(real_* e, const real3 * beamData1, const real3 * beamData2, int2 nodesPortion) { //beamData1: postion, beamData2: slope
-	int numNodes = nodesPortion.y - nodesPortion.x;
-	for (int j = 0; j < numNodes; j++) {
-		int nodeIdx = nodesPortion.x + j;
-		real3 data1 = beamData1[nodeIdx];
-		e[6 * j + 0] = data1.x;
-		e[6 * j + 1] = data1.y;
-		e[6 * j + 2] = data1.z;
-		real3 data2 = beamData2[nodeIdx];
-		e[6 * j + 3] = data2.x;
-		e[6 * j + 4] = data2.y;
-		e[6 * j + 5] = data2.z;
-	}
-}
+////------------------------------------------------------------------------------
+//__device__ __host__ inline void MapBeamDataTo_1D_Array(real_* e, const real3 * beamData1, const real3 * beamData2, int2 nodesPortion) { //beamData1: postion, beamData2: slope
+//	int numNodes = nodesPortion.y - nodesPortion.x;
+//	for (int j = 0; j < numNodes; j++) {
+//		int nodeIdx = nodesPortion.x + j;
+//		real3 data1 = beamData1[nodeIdx];
+//		e[6 * j + 0] = data1.x;
+//		e[6 * j + 1] = data1.y;
+//		e[6 * j + 2] = data1.z;
+//		real3 data2 = beamData2[nodeIdx];
+//		e[6 * j + 3] = data2.x;
+//		e[6 * j + 4] = data2.y;
+//		e[6 * j + 5] = data2.z;
+//	}
+//}
 //------------------------------------------------------------------------------
 __device__ __host__ inline void ItegrateInTimeKernel(
 		real3 * ANCF_NodesD2,
@@ -381,27 +409,30 @@ __global__ void CalcElasticForces(
 	real_ lE = l / numElements;
 	for (int j = 0; j < numElements; j++) {
 		int nodeIdx = nodesPortion.x + j;
-		real_ e[12];
+		Elem12 e;
 		CopyElementNodesTo_e(e, ANCF_NodesD, ANCF_SlopesD, nodeIdx);
-		real_ f_e[12] = {0};
-		real_ e_ee[12] = {0};
+		Elem12 f_e, e_ee;
+		Zero12(f_e);
+		Zero12(e_ee);
 		// Elastic Force, 1/2: tension force, GQ 5th order. Maybe 4th order is enough as well.
 		for (int k = 0; k < 5; k ++) {
 			real_ gqPoint = (lE - 0) / 2 * GQD.GQ5_p[k] + (lE + 0) / 2;
 			eps_eps_e(e_ee, gqPoint, lE, e);
-			SumArrays(f_e, e_ee, flexParamsD.E * flexParamsD.A * (lE - 0) / 2 * GQD.GQ5_w[k], 12);
+			SumElem12(f_e, e_ee, flexParamsD.E * flexParamsD.A * (lE - 0) / 2 * GQD.GQ5_w[k]);
 		}
 		// Elastic Force, 2/2: bending force, GQ 3rd order.
-		real_ k_ke[12] = {0};
+		Elem12 k_ke;
+		Zero12(k_ke);
 		for (int k = 0; k < 3; k ++) {
 			real_ gqPoint = (lE - 0) / 2 * GQD.GQ3_p[k] + (lE + 0) / 2;
 			kappa_kappa_e(k_ke, gqPoint, lE, e);
-			SumArrays(f_e, k_ke, flexParamsD.E * flexParamsD.I  * (lE - 0) / 2 * GQD.GQ3_w[k], 12);
+			SumElem12(f_e, k_ke, flexParamsD.E * flexParamsD.I  * (lE - 0) / 2 * GQD.GQ3_w[k]);
 		}
 		// Gravitational Foce
-		real_ f_g[12] = {0};
+		Elem12 f_g;
+		Zero12(f_g);
 		gravitational_force(f_g, lE, flexParamsD.rho, flexParamsD.A, flexParamsD.gravity);
-		SumArrays(f_e, f_g, -1, 12);
+		SumElem12(f_e, f_g, -1);
 		// Add element forces to associated nodes
 		Add_f_ToForces(flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2, -1, f_e, nodeIdx);
 	}

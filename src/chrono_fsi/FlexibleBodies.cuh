@@ -49,6 +49,21 @@ struct GaussQuadrature {
 	real_ GQ5_w[5];
 };
 
+struct Elem12 {
+	real_ e00;
+	real_ e01;
+	real_ e02;
+	real_ e03;
+	real_ e04;
+	real_ e05;
+	real_ e06;
+	real_ e07;
+	real_ e08;
+	real_ e09;
+	real_ e10;
+	real_ e11;
+};
+
 __device__ __host__ inline void shape_fun(real_* S, real_ x, real_ lE)
 {
 	real_ xi = x/lE;
