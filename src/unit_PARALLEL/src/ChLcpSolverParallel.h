@@ -180,6 +180,9 @@ public:
 		max_iter_bilateral = max_iter;
 	}
 
+	void ProcessContacts();
+	void host_CalcContactForces(int* body_id, real3* body_force, real3* body_torque);
+	void host_AddContactForces(uint ct_body_count, int* ct_body_id, real3* ct_body_force, real3* ct_body_torque);
 private:
 	ChSolverParallel solver;
 };
