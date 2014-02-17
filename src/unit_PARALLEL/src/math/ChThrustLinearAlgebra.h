@@ -427,4 +427,17 @@ static summary_stats_data<real> Statistics(const custom_vector<real> &x)
 	summary_stats_data<real> result = thrust::transform_reduce(x.begin(), x.end(), unary_op, init, binary_op);
 	return result;
 }
+
+// Binary operation for adding two-object tuples
+struct sum_tuples {
+	template <typename Tuple> 
+	__host__ __device__
+	Tuple operator()(const Tuple& a, const Tuple& b) const
+	{
+		return Tuple(thrust::get<0>(a) + thrust::get<0>(b),
+		             thrust::get<1>(a) + thrust::get<1>(b));
+	}
+};
+
+
 #endif
