@@ -64,10 +64,14 @@ int main(int argc, char* argv[])
 	int threads = 8;
 
 	double gravity = -9.81;
-	double time_step = .01;
+	double time_step = .001;
 	double time_end = 1;
 
 	int max_iteration = 20;
+
+	// Output
+	bool output_all = false;
+	double out_step = 0.01;
 
 	// Parameters for the falling ball
 	int             ballId = 100;
@@ -75,14 +79,14 @@ int main(int argc, char* argv[])
 	double          mass = 1;
 	ChVector<>      pos(0, 3, 0);
 	ChQuaternion<>  rot(1, 0, 0, 0);
-	ChVector<>      init_vel(0, 0, 10);
+	ChVector<>      init_vel(0, 0, 0);
 
 	// Parameters for the containing bin
 	int    binId = 200;
-	double width = 5;           //width of area with particles
-	double length = 25;         //length of area with particles
-	double height = 2;          //height of the outer walls
-	double thickness = .25;     //thickness of container walls
+	double width = 5;
+	double length = 25;
+	double height = 2;
+	double thickness = .25;
 
 	// Create system
 	ChSystemParallelDEM* msystem = new ChSystemParallelDEM();
@@ -106,7 +110,6 @@ int main(int argc, char* argv[])
 	((ChLcpSolverParallelDEM*) msystem->GetLcpSolverSpeed())->SetTolerance(0);
 	((ChLcpSolverParallelDEM*) msystem->GetLcpSolverSpeed())->SetContactRecoverySpeed(1);
 
-	((ChCollisionSystemParallel *) msystem->GetCollisionSystem())->SetCollisionEnvelope(radius * 0.05);
 	((ChCollisionSystemParallel *) msystem->GetCollisionSystem())->setBinsPerAxis(I3(10, 10, 10));
 	((ChCollisionSystemParallel *) msystem->GetCollisionSystem())->setBodyPerBin(100, 50);
 
@@ -122,6 +125,7 @@ int main(int argc, char* argv[])
 	ball->SetMass(mass);
 	ball->SetPos(pos);
 	ball->SetRot(rot);
+	ball->SetPos_dt(init_vel);
 	ball->SetBodyFixed(false);
 	ball->SetMaterialSurfaceDEM(material);
 
@@ -133,7 +137,7 @@ int main(int argc, char* argv[])
 	ball->GetCollisionModel()->AddSphere(radius, loc_pos);
 	ball->GetCollisionModel()->BuildModel();
 
-	//ball->SetPos_dt(init_vel);
+	ball->SetInertiaXX(0.4*mass*radius*radius*ChVector<>(1,1,1));
 
 	ChSharedPtr<ChSphereShape> sphere_shape = ChSharedPtr<ChAsset>(new ChSphereShape);
 	sphere_shape->SetColor(ChColor(1, 0, 0));
@@ -164,34 +168,35 @@ int main(int argc, char* argv[])
 	//AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(width - thickness, height, 0));
 	//AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, -length + thickness));
 	//AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, length - thickness));
-	ball->GetCollisionModel()->BuildModel();
+	bin->GetCollisionModel()->BuildModel();
 
 	msystem->AddBody(bin);
 
 	// Perform the simulation
 	double time = 0;
+	double out_time = 0;
+
+	double tmp_y = pos.y;
+	double tmp_v = 0;
+	double tmp_an = pos.y;
 
 	while (time < time_end) {
-
-		// Walk the list of bodies in the system and output the ball position
-		std::cout << "Bodies" << std::endl;
-		for (int i = 0; i < msystem->Get_bodylist()->size(); ++i) {
-			ChBody* abody = (ChBody*) msystem->Get_bodylist()->at(i);
-			ChVector<> pos = abody->GetPos();
-			std::cout << "  [" << abody->GetIdentifier() << "]   " << pos.x << "  " << pos.y << "  " << pos.z << std::endl;
+		if (output_all || time >= out_time) {
+			for (int i = 0; i < msystem->Get_bodylist()->size(); ++i) {
+				ChBody* abody = (ChBody*) msystem->Get_bodylist()->at(i);
+				if (abody->GetIdentifier() == ballId) {
+					const ChVector<>& crtpos = abody->GetPos();
+					std::cout << time << "  " << crtpos.y << "  " << tmp_y << "  " << tmp_an << std::endl;
+				}
+			}
+			out_time += out_step;
 		}
 
-		std::cout << "Other" << std::endl;
-		std::list<ChPhysicsItem*>::iterator it = msystem->Get_otherphysicslist()->begin();
-		while (it != msystem->Get_otherphysicslist()->end()) {
-			ChBodyDEM* abody = dynamic_cast<ChBodyDEM*>(*it);
-			ChVector<> pos = abody->GetPos();
-			std::cout << "  [" << abody->GetIdentifier() << "]   " << pos.x << "  " << pos.y << "  " << pos.z << std::endl;
-		}
-
+		tmp_y += tmp_v * time_step;
+		tmp_v += mass * gravity * time_step;
+		tmp_an = pos.y + 0.5 * gravity * time * time;
 
 		msystem->DoStepDynamics(time_step);
-
 		time += time_step;
 	}
 
