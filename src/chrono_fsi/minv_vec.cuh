@@ -513,14 +513,14 @@ __device__ __host__ inline void minv_vec_5(real3 * d2_1, real3 * d2_2, const rea
 //*****************************************************************************************
 __device__ __host__ inline void minv_vec_weld_1(real3 * d2_1, real3 * d2_2, const real3 * f1, const real3 * f2, real_ mult, real_ lE, const int2 & nodesPortion)
 {
-	real3 p0 = f1[nodesPortion.x + 0];
-	real_ v1  = p0.x;
-	real_ v2  = p0.y;
-	real_ v3  = p0.z;
-	real3 s0 = f2[nodesPortion.x + 0];
-	real_ v4  = s0.x;
-	real_ v5  = s0.y;
-	real_ v6  = s0.z;
+	real3 p1 = f1[nodesPortion.x + 1];
+	real_ v1  = p1.x;
+	real_ v2  = p1.y;
+	real_ v3  = p1.z;
+	real3 s1 = f2[nodesPortion.x + 1];
+	real_ v4  = s1.x;
+	real_ v5  = s1.y;
+	real_ v6  = s1.z;
 
 	real_ t2 = 1.0/lE;
 	real_ t3 = 1.0/(lE*lE);
@@ -541,23 +541,23 @@ __device__ __host__ inline void minv_vec_weld_1(real3 * d2_1, real3 * d2_2, cons
 // are assumed to be of length (2+1)*6 - 6 = 12
 __device__ __host__ inline void minv_vec_weld_2(real3 * d2_1, real3 * d2_2, const real3 * f1, const real3 * f2, real_ mult, real_ lE, const int2 & nodesPortion)
 {
-	real3 p0 = f1[nodesPortion.x + 0];
-	real_ v1  = p0.x;
-	real_ v2  = p0.y;
-	real_ v3  = p0.z;
-	real3 s0 = f2[nodesPortion.x + 0];
-	real_ v4  = s0.x;
-	real_ v5  = s0.y;
-	real_ v6  = s0.z;
-
 	real3 p1 = f1[nodesPortion.x + 1];
-	real_ v7  = p1.x;
-	real_ v8  = p1.y;
-	real_ v9  = p1.z;
+	real_ v1  = p1.x;
+	real_ v2  = p1.y;
+	real_ v3  = p1.z;
 	real3 s1 = f2[nodesPortion.x + 1];
-	real_ v10  = s1.x;
-	real_ v11  = s1.y;
-	real_ v12  = s1.z;
+	real_ v4  = s1.x;
+	real_ v5  = s1.y;
+	real_ v6  = s1.z;
+
+	real3 p2 = f1[nodesPortion.x + 2];
+	real_ v7  = p2.x;
+	real_ v8  = p2.y;
+	real_ v9  = p2.z;
+	real3 s2 = f2[nodesPortion.x + 2];
+	real_ v10  = s2.x;
+	real_ v11  = s2.y;
+	real_ v12  = s2.z;
 
 	real_ t2 = 1.0/lE;
 	real_ t3 = 1.0/(lE*lE);
@@ -585,32 +585,32 @@ __device__ __host__ inline void minv_vec_weld_2(real3 * d2_1, real3 * d2_2, cons
 
 __device__ __host__ inline void minv_vec_weld_3(real3 * d2_1, real3 * d2_2, const real3 * f1, const real3 * f2, real_ mult, real_ lE, const int2 & nodesPortion)
 {
-	real3 p0 = f1[nodesPortion.x + 0];
-	real_ v1  = p0.x;
-	real_ v2  = p0.y;
-	real_ v3  = p0.z;
-	real3 s0 = f2[nodesPortion.x + 0];
-	real_ v4  = s0.x;
-	real_ v5  = s0.y;
-	real_ v6  = s0.z;
-
 	real3 p1 = f1[nodesPortion.x + 1];
-	real_ v7  = p1.x;
-	real_ v8  = p1.y;
-	real_ v9  = p1.z;
+	real_ v1  = p1.x;
+	real_ v2  = p1.y;
+	real_ v3  = p1.z;
 	real3 s1 = f2[nodesPortion.x + 1];
-	real_ v10  = s1.x;
-	real_ v11  = s1.y;
-	real_ v12  = s1.z;
+	real_ v4  = s1.x;
+	real_ v5  = s1.y;
+	real_ v6  = s1.z;
 
 	real3 p2 = f1[nodesPortion.x + 2];
-	real_ v13  = p2.x;
-	real_ v14  = p2.y;
-	real_ v15  = p2.z;
+	real_ v7  = p2.x;
+	real_ v8  = p2.y;
+	real_ v9  = p2.z;
 	real3 s2 = f2[nodesPortion.x + 2];
-	real_ v16  = s2.x;
-	real_ v17  = s2.y;
-	real_ v18  = s2.z;
+	real_ v10  = s2.x;
+	real_ v11  = s2.y;
+	real_ v12  = s2.z;
+
+	real3 p3 = f1[nodesPortion.x + 3];
+	real_ v13  = p3.x;
+	real_ v14  = p3.y;
+	real_ v15  = p3.z;
+	real3 s3 = f2[nodesPortion.x + 3];
+	real_ v16  = s3.x;
+	real_ v17  = s3.y;
+	real_ v18  = s3.z;
 
 	real_ t2 = 1.0/lE;
 	real_ t3 = 1.0/(lE*lE);
@@ -653,41 +653,41 @@ __device__ __host__ inline void minv_vec_weld_3(real3 * d2_1, real3 * d2_2, cons
 //
 __device__ __host__ inline void minv_vec_weld_4(real3 * d2_1, real3 * d2_2, const real3 * f1, const real3 * f2, real_ mult, real_ lE, const int2 & nodesPortion)
 {
-	real3 p0 = f1[nodesPortion.x + 0];
-	real_ v1  = p0.x;
-	real_ v2  = p0.y;
-	real_ v3  = p0.z;
-	real3 s0 = f2[nodesPortion.x + 0];
-	real_ v4  = s0.x;
-	real_ v5  = s0.y;
-	real_ v6  = s0.z;
-
 	real3 p1 = f1[nodesPortion.x + 1];
-	real_ v7  = p1.x;
-	real_ v8  = p1.y;
-	real_ v9  = p1.z;
+	real_ v1  = p1.x;
+	real_ v2  = p1.y;
+	real_ v3  = p1.z;
 	real3 s1 = f2[nodesPortion.x + 1];
-	real_ v10  = s1.x;
-	real_ v11  = s1.y;
-	real_ v12  = s1.z;
+	real_ v4  = s1.x;
+	real_ v5  = s1.y;
+	real_ v6  = s1.z;
 
 	real3 p2 = f1[nodesPortion.x + 2];
-	real_ v13  = p2.x;
-	real_ v14  = p2.y;
-	real_ v15  = p2.z;
+	real_ v7  = p2.x;
+	real_ v8  = p2.y;
+	real_ v9  = p2.z;
 	real3 s2 = f2[nodesPortion.x + 2];
-	real_ v16  = s2.x;
-	real_ v17  = s2.y;
-	real_ v18  = s2.z;
+	real_ v10  = s2.x;
+	real_ v11  = s2.y;
+	real_ v12  = s2.z;
 
 	real3 p3 = f1[nodesPortion.x + 3];
-	real_ v19  = p3.x;
-	real_ v20  = p3.y;
-	real_ v21  = p3.z;
+	real_ v13  = p3.x;
+	real_ v14  = p3.y;
+	real_ v15  = p3.z;
 	real3 s3 = f2[nodesPortion.x + 3];
-	real_ v22  = s3.x;
-	real_ v23  = s3.y;
-	real_ v24  = s3.z;
+	real_ v16  = s3.x;
+	real_ v17  = s3.y;
+	real_ v18  = s3.z;
+
+	real3 p4 = f1[nodesPortion.x + 4];
+	real_ v19  = p4.x;
+	real_ v20  = p4.y;
+	real_ v21  = p4.z;
+	real3 s4 = f2[nodesPortion.x + 4];
+	real_ v22  = s4.x;
+	real_ v23  = s4.y;
+	real_ v24  = s4.z;
 
 	real_ t2 = 1.0/lE;
 	real_ t3 = 1.0/(lE*lE);
@@ -739,50 +739,50 @@ __device__ __host__ inline void minv_vec_weld_4(real3 * d2_1, real3 * d2_2, cons
 //
 __device__ __host__ inline void minv_vec_weld_5(real3 * d2_1, real3 * d2_2, const real3 * f1, const real3 * f2, real_ mult, real_ lE, const int2 & nodesPortion)
 {
-	real3 p0 = f1[nodesPortion.x + 0];
-	real_ v1  = p0.x;
-	real_ v2  = p0.y;
-	real_ v3  = p0.z;
-	real3 s0 = f2[nodesPortion.x + 0];
-	real_ v4  = s0.x;
-	real_ v5  = s0.y;
-	real_ v6  = s0.z;
-
 	real3 p1 = f1[nodesPortion.x + 1];
-	real_ v7  = p1.x;
-	real_ v8  = p1.y;
-	real_ v9  = p1.z;
+	real_ v1  = p1.x;
+	real_ v2  = p1.y;
+	real_ v3  = p1.z;
 	real3 s1 = f2[nodesPortion.x + 1];
-	real_ v10  = s1.x;
-	real_ v11  = s1.y;
-	real_ v12  = s1.z;
+	real_ v4  = s1.x;
+	real_ v5  = s1.y;
+	real_ v6  = s1.z;
 
 	real3 p2 = f1[nodesPortion.x + 2];
-	real_ v13  = p2.x;
-	real_ v14  = p2.y;
-	real_ v15  = p2.z;
+	real_ v7  = p2.x;
+	real_ v8  = p2.y;
+	real_ v9  = p2.z;
 	real3 s2 = f2[nodesPortion.x + 2];
-	real_ v16  = s2.x;
-	real_ v17  = s2.y;
-	real_ v18  = s2.z;
+	real_ v10  = s2.x;
+	real_ v11  = s2.y;
+	real_ v12  = s2.z;
 
 	real3 p3 = f1[nodesPortion.x + 3];
-	real_ v19  = p3.x;
-	real_ v20  = p3.y;
-	real_ v21  = p3.z;
+	real_ v13  = p3.x;
+	real_ v14  = p3.y;
+	real_ v15  = p3.z;
 	real3 s3 = f2[nodesPortion.x + 3];
-	real_ v22  = s3.x;
-	real_ v23  = s3.y;
-	real_ v24  = s3.z;
+	real_ v16  = s3.x;
+	real_ v17  = s3.y;
+	real_ v18  = s3.z;
 
 	real3 p4 = f1[nodesPortion.x + 4];
-	real_ v25  = p4.x;
-	real_ v26  = p4.y;
-	real_ v27  = p4.z;
+	real_ v19  = p4.x;
+	real_ v20  = p4.y;
+	real_ v21  = p4.z;
 	real3 s4 = f2[nodesPortion.x + 4];
-	real_ v28  = s4.x;
-	real_ v29  = s4.y;
-	real_ v30  = s4.z;
+	real_ v22  = s4.x;
+	real_ v23  = s4.y;
+	real_ v24  = s4.z;
+
+	real3 p5 = f1[nodesPortion.x + 5];
+	real_ v25  = p5.x;
+	real_ v26  = p5.y;
+	real_ v27  = p5.z;
+	real3 s5 = f2[nodesPortion.x + 5];
+	real_ v28  = s5.x;
+	real_ v29  = s5.y;
+	real_ v30  = s5.z;
 
 	real_ t2 = 1.0/lE;
 	real_ t3 = 1.0/(lE*lE);
