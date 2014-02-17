@@ -30,65 +30,21 @@
 #include "collision/ChCModelBulletBody.h"
 #include "lcp/ChLcpSolverDEM.h"
 
-#define SPH_ID  33
-#define BOX_ID  200
 
-#define SPH_FILENAME "sph_pos.txt"
-#define BOX_FILENAME "box_pos.txt"
-
-// Use the namespace of Chrono
 using namespace chrono;
 
 
-void AddBoundaryBox(ChSystem& mphysicalSystem, 
-                    double D1, 
-                    double D2, 
-                    double D3, 
-                    double th,
-                    ChStreamOutAsciiFile& file)
+void AddWall(ChSharedBodyDEMPtr& body,
+             const ChVector<>&    dim,
+             const ChVector<>&    loc)
 {
-	double hw[5][3] = {{D1,th,D3},   {th,D2,D3},    { th,D2,D3},    {D1,D2,th},    {D1,D2, th}};
-	double o[5][3]  = {{0, -th, 0},  {D1+th,D2,0},  {-D1-th,D2,0},  {0, D2,D3+th}, {0, D2,-D3-th}};
-
-	for (int i = 0; i < 5; i++) {
-		ChSharedPtr<ChBodyDEM> p0(new ChBodyDEM);
-		p0->SetIdentifier(BOX_ID+i);
-		p0->GetCollisionModel()->ClearModel();
-		p0->GetCollisionModel()->AddBox(hw[i][0], hw[i][1], hw[i][2]);
-		p0->GetCollisionModel()->BuildModel();
-		p0->SetCollide(true);
-		p0->SetMass(1.0);
-		p0->SetBodyFixed(true);
-		p0->SetPos(ChVector<>(o[i][0], o[i][1], o[i][2]));
-		mphysicalSystem.Add(p0);
-		file << o[i][0] << ", " << o[i][1] << ", " << o[i][2] << ", ";
-		file << hw[i][0] << ", " << hw[i][1] << ", " << hw[i][2] << "\n";
-	}
-}
-
-
-void AddSphere(ChSystem& mySys, double radius, double mass, double height)
-{
-	ChVector<> pos(0.0, height, 0.0);
-
-	ChSharedPtr<ChBodyDEM> mybody(new ChBodyDEM);
-	mybody->SetIdentifier(SPH_ID);
-
-	mySys.Add(mybody);
-
-	mybody->GetCollisionModel()->ClearModel();
-	mybody->GetCollisionModel()->AddSphere(radius);
-	mybody->GetCollisionModel()->BuildModel();
-	mybody->SetCollide(true);
-
-	mybody->SetPos(pos);
-	mybody->SetInertiaXX((2.0/5.0)*mass*pow(radius,2)*ChVector<>(1,1,1));
-	mybody->SetMass(mass);
+	body->GetCollisionModel()->AddBox(dim.x, dim.y, dim.z, loc);
 }
 
 void OutputSphere(ChStreamOutAsciiFile& file,
                   ChSystem&             sys,
-                  double                time)
+                  double                time,
+                  int                   bodyId)
 {
 	chrono::Vector bodyAngs;
 
@@ -97,85 +53,126 @@ void OutputSphere(ChStreamOutAsciiFile& file,
 	while (abody != sys.Get_otherphysicslist()->end()) {
 		ChBodyDEM* bbb = dynamic_cast<ChBodyDEM*>(*abody);
 
-		if (bbb && bbb->GetIdentifier() == SPH_ID) {
+		if (bbb && bbb->GetIdentifier() == bodyId) {
 			const ChVector<>& bodypos = bbb->GetPos();
 			bodyAngs = bbb->GetRot().Q_to_NasaAngles();
 			file << time << ", ";
 			file << bodypos.x  << ", " << bodypos.y  << ", " << bodypos.z  << ", ";
 			file << bodyAngs.x << ", " << bodyAngs.y << ", " << bodyAngs.z << "\n";
+			std::cout << time << "  " << bodypos.y << std::endl;
 		}
 
 		abody++;
 	}
-
 }
-
 
 int main(int argc, char* argv[])
 {
-	// Fixed boundary parameters
-	double D1 = 3.0;
-	double D2 = 1.0;
-	double D3 = 3.0;
-	double th = 0.05;
-
-	// Ball parameters
-	double radius = 1.0;
-	double mass = 1000;
-	double height = 1.5;
-
-	// Simulation times
-	double time_step = 0.00001;
-	double end_time = 6.0;
+	// Simulation parameters
+	double gravity = -9.81;
+	double time_step = .001;
+	double time_end = 1;
 
 	// Output to file
-	bool output = true;
-	double out_step = 3000 * time_step;
+	bool output_all = false;
+	double out_step = 0.01;
+	ChStreamOutAsciiFile sph_file("sphere_pos.txt");
 
-	// Initialize counters
-	double time = 0.0;
-	double out_time = 0.0;
+	// Parameters for the falling ball
+	int             ballId = 100;
+	double          radius = .5;
+	double          mass = 1;
+	ChVector<>      pos(0, 3, 0);
+	ChQuaternion<>  rot(1, 0, 0, 0);
+	ChVector<>      init_vel(0, 0, 0);
 
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed. 
+	// Parameters for the containing bin
+	int    binId = 200;
+	double width = 5;
+	double length = 25;
+	double height = 2;
+	double thickness = .25;
+
+	// Initialize globals
 	ChGlobals* GLOBAL_Vars = DLL_CreateGlobals();
 
-	// Create a ChronoENGINE physical system
-	ChSystem mphysicalSystem;
-	mphysicalSystem.Set_G_acc(0.38*mphysicalSystem.Get_G_acc());
+	// Create the system
+	ChSystem msystem;
 
-	ChStreamOutAsciiFile box_file(BOX_FILENAME);
-	ChStreamOutAsciiFile sph_file(SPH_FILENAME);
-
-	// Add fixed bodies
-	AddBoundaryBox(mphysicalSystem, D1/2, D2/2, D3/2, th/2, box_file);
-	AddSphere(mphysicalSystem, radius, mass, height);
-
-	// Modify some setting of the physical system for the simulation, if you want
-	mphysicalSystem.SetLcpSolverType(ChSystem::LCP_DEM);
+	msystem.Set_G_acc(ChVector<>(0, gravity, 0));
 
 	// Use the DEM solver
+	msystem.SetLcpSolverType(ChSystem::LCP_DEM);
 	ChLcpSolverDEM* mysolver = new ChLcpSolverDEM;
-	mphysicalSystem.ChangeLcpSolverSpeed(mysolver);
+	msystem.ChangeLcpSolverSpeed(mysolver);
 	mysolver->SetMaxIterations(0);
 
 	// Use DEM contact
-	// This takes care of the contact between the particles and with the wall
 	ChContactContainerDEM* mycontainer = new ChContactContainerDEM;
-	mphysicalSystem.ChangeContactContainer(mycontainer);
+	msystem.ChangeContactContainer(mycontainer);
 
-	// Loop until final time
-	while(time < end_time)  {
-		if(output && time >= out_time) {
-			GetLog() << "Time= "<< time <<" bodies= "<< mphysicalSystem.GetNbodies() << " contacts= " << mphysicalSystem.GetNcontacts() << "\n";
-			OutputSphere(sph_file, mphysicalSystem, time);
+	// Create a material (will be used by both objects)
+	ChSharedPtr<ChMaterialSurfaceDEM> material;
+	material = ChSharedPtr<ChMaterialSurfaceDEM>(new ChMaterialSurfaceDEM);
+	material->SetFriction(0.4f);
+
+	// Create the falling ball
+	ChSharedPtr<ChBodyDEM> ball(new ChBodyDEM);
+
+	ball->SetMass(mass);
+	ball->SetIdentifier(ballId);
+	ball->SetPos(pos);
+	ball->SetRot(rot);
+	ball->SetPos_dt(init_vel);
+	ball->SetBodyFixed(false);
+	ball->SetMaterialSurfaceDEM(material);
+
+	ball->SetCollide(true);
+
+	ball->GetCollisionModel()->ClearModel();
+	ball->GetCollisionModel()->AddSphere(radius);
+	ball->GetCollisionModel()->BuildModel();
+
+	ball->SetInertiaXX(0.4*mass*radius*radius*ChVector<>(1,1,1));
+
+	msystem.Add(ball);  // Note: will be added as "otherPhysics"
+
+	// Create the containing bin
+	ChSharedPtr<ChBodyDEM> bin(new ChBodyDEM);
+
+	bin->SetIdentifier(binId);
+	bin->SetMass(1);
+	bin->SetPos(ChVector<>(0, 0, 0));
+	bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
+	bin->SetCollide(true);
+	bin->SetBodyFixed(true);
+	bin->SetMaterialSurfaceDEM(material);
+
+	bin->GetCollisionModel()->ClearModel();
+	AddWall(bin, ChVector<>(width, thickness, length), ChVector<>(0, 0, 0));
+	//AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(-width + thickness, height, 0));
+	//AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(width - thickness, height, 0));
+	//AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, -length + thickness));
+	//AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, length - thickness));
+	bin->GetCollisionModel()->BuildModel();
+
+	msystem.Add(bin);  // Note: will be added as "otherPhysics"
+
+	// Perform the simulation
+	double time = 0;
+	double out_time = 0;
+
+	while(time <= time_end) {
+		if(output_all || time >= out_time) {
+			OutputSphere(sph_file, msystem, time, ballId);
 			out_time += out_step;
 		}
 
-		mphysicalSystem.DoStepDynamics(time_step);
+		msystem.DoStepDynamics(time_step);
 		time += time_step;
 	}
 	
+	// Delete globals
 	DLL_DeleteGlobals();
 
 	// Note: we do not need to delete mysolver and mycontainer since these will be
