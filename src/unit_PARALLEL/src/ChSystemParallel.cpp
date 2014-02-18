@@ -46,7 +46,7 @@ ChSystemParallelDEM::ChSystemParallelDEM(unsigned int max_objects)
 	((ChCollisionSystemParallel *) collision_system)->SetCollisionEnvelope(0);
 }
 
-int ChSystemParallel::Integrate_Y_impulse_Anitescu() {
+int ChSystemParallel::Integrate_Y() {
 	max_threads = this->GetParallelThreadNumber();
 	min_threads = 1;
 

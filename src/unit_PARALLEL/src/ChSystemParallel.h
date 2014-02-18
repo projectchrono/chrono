@@ -39,7 +39,8 @@ class ChApiGPU ChSystemParallel: public ChSystem {
 
 public:
 	ChSystemParallel(unsigned int max_objects);
-	virtual int Integrate_Y_impulse_Anitescu();
+
+	virtual int Integrate_Y();
 
 	void AddBody(ChSharedPtr<ChBody> newbody);
 	virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody) = 0;
