@@ -439,13 +439,19 @@ __global__ void CalcElasticForcesD(
 		const real_ * ANCF_Beam_LengthD
 	)
 {
+#if flexGPU
 	uint i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i >= numFlexBodiesD) return;
-
-	CalcElasticForcesKernel(
-			flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2,
-			ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
-			ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, i);
+#else
+	for (int i = 0; i < numFlexBodiesD; i++) {
+#endif
+		CalcElasticForcesKernel(
+				flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2,
+				ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
+				ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, i);
+#if !flexGPU
+	}
+#endif
 }
 //------------------------------------------------------------------------------
 __device__ __host__ inline void SolveForAccKernel(
@@ -492,12 +498,20 @@ __global__ void SolveForAccD(
 		const bool * ANCF_IsCantileverD
 	)
 {
+#if flexGPU
 	uint i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i >= numFlexBodiesD) return;
+#else
+	for (int i = 0; i < numFlexBodiesD; i++) {
+#endif
 
-	SolveForAccKernel(ANCF_NodesAccD, ANCF_SlopesAccD,
-			flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2,
-			ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, ANCF_IsCantileverD, i);
+		SolveForAccKernel(ANCF_NodesAccD, ANCF_SlopesAccD,
+				flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2,
+				ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, ANCF_IsCantileverD, i);
+
+#if !flexGPU
+	}
+#endif
 
 }
 //------------------------------------------------------------------------------
@@ -550,13 +564,19 @@ __global__ void IntegrateInTimeD(
 		const bool * ANCF_IsCantileverD
 	)
 {
+#if flexGPU
 	uint i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i >= numFlexBodiesD) return;
-
-	IntegrateInTimeKernel(
-			ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
-			ANCF_NodesVelD, ANCF_SlopesVelD, ANCF_NodesAccD, ANCF_SlopesAccD,
-			ANCF_ReferenceArrayNodesOnBeamsD, ANCF_IsCantileverD, i	);
+#else
+	for (int i = 0; i < numFlexBodiesD; i++) {
+#endif
+		IntegrateInTimeKernel(
+				ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
+				ANCF_NodesVelD, ANCF_SlopesVelD, ANCF_NodesAccD, ANCF_SlopesAccD,
+				ANCF_ReferenceArrayNodesOnBeamsD, ANCF_IsCantileverD, i	);
+#if !flexGPU
+	}
+#endif
 
 }
 //------------------------------------------------------------------------------
