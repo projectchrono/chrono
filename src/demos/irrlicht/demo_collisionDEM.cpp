@@ -23,11 +23,12 @@
 
 
 #include "physics/ChApidll.h" 
-#include "physics/ChSystem.h"
-
+#include "physics/ChSystemDEM.h"
 #include "physics/ChBodyDEM.h"
 #include "physics/ChContactContainerDEM.h"
+
 #include "collision/ChCModelBulletBody.h"
+
 #include "lcp/ChLcpSolverDEM.h"
 
 #include "irrlicht_interface/ChIrrApp.h"
@@ -72,7 +73,7 @@ void AddFallingItems(ChIrrApp& application)
 				sphere->SetColor(ChColor(0.9f, 0.4f, 0.2f));
 				body->AddAsset(sphere);
 
-				application.GetSystem()->Add(body);
+				application.GetSystem()->AddBody(body);
 			}
 
 			// Boxes
@@ -96,7 +97,7 @@ void AddFallingItems(ChIrrApp& application)
 				box->SetColor(ChColor(0.4f, 0.9f, 0.2f));
 				body->AddAsset(box);
 
-				application.GetSystem()->Add(body);
+				application.GetSystem()->AddBody(body);
 			}
 		}
 	}
@@ -141,7 +142,7 @@ void AddContainer(ChIrrApp& application)
 	AddContainerWall(fixedBody, ChVector<>(  0, 0, 10), ChVector<>(20.99, 10,  1));
 	fixedBody->GetCollisionModel()->BuildModel();
 
-	application.GetSystem()->Add(fixedBody);
+	application.GetSystem()->AddBody(fixedBody);
 
 	// The rotating mixer body
 	ChSharedPtr<ChBodyDEM> rotatingBody(new ChBodyDEM);
@@ -163,7 +164,7 @@ void AddContainer(ChIrrApp& application)
 	box->SetFading(0.6f);
 	rotatingBody->AddAsset(box);
 
-	application.GetSystem()->Add(rotatingBody);
+	application.GetSystem()->AddBody(rotatingBody);
 
 	// An engine between the two
 	ChSharedPtr<ChLinkEngine> my_motor(new ChLinkEngine);
@@ -194,7 +195,7 @@ int main(int argc, char* argv[])
 	ChGlobals* GLOBAL_Vars = DLL_CreateGlobals();
 
 	// Create a ChronoENGINE physical system
-	ChSystem mphysicalSystem;
+	ChSystemDEM mphysicalSystem;
 	mphysicalSystem.Set_G_acc(0.38*mphysicalSystem.Get_G_acc());
 
 	// Create the Irrlicht visualization (open the Irrlicht device, 
@@ -219,17 +220,6 @@ int main(int argc, char* argv[])
 	application.AssetBindAll();
 	application.AssetUpdateAll();
 
-	// Modify some setting of the physical system for the simulation, if you want
-	mphysicalSystem.SetLcpSolverType(ChSystem::LCP_DEM);
-
-	ChLcpSolverDEM* mysolver = new ChLcpSolverDEM;
-	mphysicalSystem.ChangeLcpSolverSpeed(mysolver);
-	mysolver->SetMaxIterations(50);
-
-	// Use DEM contact
-	ChContactContainerDEM* mycontainer = new ChContactContainerDEM;
-	mphysicalSystem.ChangeContactContainer(mycontainer);
-
 	// The soft-real-time cycle
 	double time = 0;
 	double out_time = 0;
@@ -250,9 +240,6 @@ int main(int argc, char* argv[])
 
 
 	DLL_DeleteGlobals();
-
-	// Note: we do not need to delete mysolver and mycontainer since these will be
-	// freed in the ChSystem destructor.
 
 	return 0;
 }

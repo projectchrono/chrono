@@ -17,16 +17,9 @@
 //
 //   ChLcpSolverDEM.h
 //
-//  A solver for DEM type simulations, currently
-//  without any support for bilateral constraints.
+//   A solver for DEM type simulations.
 //
-//   HEADER file for CHRONO HYPEROCTANT LCP solver
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
 ///////////////////////////////////////////////////
-
 
 
 #include "ChLcpIterativeSolver.h"
@@ -36,8 +29,7 @@ namespace chrono
 {
 
 
-///  A penalty-based solver for complementarity problem
-/// as arising in DEM formulations.
+/// A penalty-based solver for complementarity problem as arising in DEM formulations.
 /// The problem is described by a variational inequality VI(Z*x-d,K):
 ///
 ///  | M -Cq'|*|q|- | f|= |0| , l \in Y, C \in Ny, normal cone to Y  
@@ -51,41 +43,19 @@ namespace chrono
 
 class ChApi ChLcpSolverDEM : public ChLcpIterativeSolver
 {
-protected:
-			//
-			// DATA
-			//
-
-
 public:
-			//
-			// CONSTRUCTORS
-			//
+	ChLcpSolverDEM(int    mmax_iters  = 50,     ///< max.number of iterations
+	               bool   mwarm_start = false,  ///< uses warm start?
+	               double mtolerance  = 0.0,    ///< tolerance for termination criterion
+	               double momega      = 1.0)    ///< overrelaxation criterion
+	: ChLcpIterativeSolver(mmax_iters, mwarm_start, mtolerance, momega)
+	{}
 
-	ChLcpSolverDEM(
-					int mmax_iters=50,      ///< max.number of iterations
-					bool mwarm_start=false,	///< uses warm start?
-					double mtolerance=0.0,  ///< tolerance for termination criterion
-					double momega=1.0       ///< overrelaxation criterion
-					)
-		: ChLcpIterativeSolver(mmax_iters,mwarm_start, mtolerance,momega)
-		{};
-				
-	virtual ~ChLcpSolverDEM() {};
+	~ChLcpSolverDEM() {}
 
-			//
-			// FUNCTIONS
-			//
-
-				/// Performs the solution of the LCP.
-				/// \return  the maximum constraint violation after termination.
-
-	virtual double Solve(
-				ChLcpSystemDescriptor& sysd		///< system description with constraints and variables	
-				);
-
-
-
+	/// Performs the solution of the LCP.
+	/// \return  the maximum constraint violation after termination.
+	virtual double Solve(ChLcpSystemDescriptor& sysd);
 };
 
 
@@ -94,5 +64,4 @@ public:
 
 
 
-
-#endif  // END of ChLcpIterativeSOR.h
+#endif

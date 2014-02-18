@@ -23,11 +23,12 @@
 
 
 #include "physics/ChApidll.h" 
-#include "physics/ChSystem.h"
-
+#include "physics/ChSystemDEM.h"
 #include "physics/ChBodyDEM.h"
 #include "physics/ChContactContainerDEM.h"
+
 #include "collision/ChCModelBulletBody.h"
+
 #include "lcp/ChLcpSolverDEM.h"
 
 
@@ -48,21 +49,18 @@ void OutputSphere(ChStreamOutAsciiFile& file,
 {
 	chrono::Vector bodyAngs;
 
-	std::list<ChPhysicsItem*>::iterator abody = sys.Get_otherphysicslist()->begin();
+	for (int i = 0; i < sys.Get_bodylist()->size(); ++i) {
+		ChBody* abody = (ChBody*) sys.Get_bodylist()->at(i);
+		assert(typeid(*abody) == typeid(ChBodyDEM));
 
-	while (abody != sys.Get_otherphysicslist()->end()) {
-		ChBodyDEM* bbb = dynamic_cast<ChBodyDEM*>(*abody);
-
-		if (bbb && bbb->GetIdentifier() == bodyId) {
-			const ChVector<>& bodypos = bbb->GetPos();
-			bodyAngs = bbb->GetRot().Q_to_NasaAngles();
+		if (abody->GetIdentifier() == bodyId) {
+			const ChVector<>& bodypos = abody->GetPos();
+			bodyAngs = abody->GetRot().Q_to_NasaAngles();
 			file << time << ", ";
 			file << bodypos.x  << ", " << bodypos.y  << ", " << bodypos.z  << ", ";
 			file << bodyAngs.x << ", " << bodyAngs.y << ", " << bodyAngs.z << "\n";
 			std::cout << time << "  " << bodypos.y << std::endl;
 		}
-
-		abody++;
 	}
 }
 
@@ -97,19 +95,9 @@ int main(int argc, char* argv[])
 	ChGlobals* GLOBAL_Vars = DLL_CreateGlobals();
 
 	// Create the system
-	ChSystem msystem;
+	ChSystemDEM msystem;
 
 	msystem.Set_G_acc(ChVector<>(0, gravity, 0));
-
-	// Use the DEM solver
-	msystem.SetLcpSolverType(ChSystem::LCP_DEM);
-	ChLcpSolverDEM* mysolver = new ChLcpSolverDEM;
-	msystem.ChangeLcpSolverSpeed(mysolver);
-	mysolver->SetMaxIterations(0);
-
-	// Use DEM contact
-	ChContactContainerDEM* mycontainer = new ChContactContainerDEM;
-	msystem.ChangeContactContainer(mycontainer);
 
 	// Create a material (will be used by both objects)
 	ChSharedPtr<ChMaterialSurfaceDEM> material;
@@ -135,7 +123,7 @@ int main(int argc, char* argv[])
 
 	ball->SetInertiaXX(0.4*mass*radius*radius*ChVector<>(1,1,1));
 
-	msystem.Add(ball);  // Note: will be added as "otherPhysics"
+	msystem.AddBody(ball);
 
 	// Create the containing bin
 	ChSharedPtr<ChBodyDEM> bin(new ChBodyDEM);
@@ -156,7 +144,7 @@ int main(int argc, char* argv[])
 	//AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, length - thickness));
 	bin->GetCollisionModel()->BuildModel();
 
-	msystem.Add(bin);  // Note: will be added as "otherPhysics"
+	msystem.AddBody(bin);
 
 	// Perform the simulation
 	double time = 0;

@@ -23,11 +23,12 @@
 
 
 #include "physics/ChApidll.h" 
-#include "physics/ChSystem.h"
-
+#include "physics/ChSystemDEM.h"
 #include "physics/ChBodyDEM.h"
 #include "physics/ChContactContainerDEM.h"
+
 #include "collision/ChCModelBulletBody.h"
+
 #include "lcp/ChLcpSolverDEM.h"
 
 #include "irrlicht_interface/ChIrrApp.h"
@@ -74,7 +75,7 @@ void AddBoundaryBox(ChIrrApp& application,
 	box->SetFading(0.6f);
 	body->AddAsset(box);
 
-	application.GetSystem()->Add(body);
+	application.GetSystem()->AddBody(body);
 }
 
 
@@ -94,7 +95,7 @@ void AddSphere(ChIrrApp& application, double radius, double mass, double height)
 	body->SetInertiaXX((2.0/5.0)*mass*pow(radius,2)*ChVector<>(1,1,1));
 	body->SetMass(mass);
 
-	application.GetSystem()->Add(body);
+	application.GetSystem()->AddBody(body);
 
 	ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
 	sphere->GetSphereGeometry().rad = radius;
@@ -126,7 +127,7 @@ int main(int argc, char* argv[])
 	ChGlobals* GLOBAL_Vars = DLL_CreateGlobals();
 
 	// Create a ChronoENGINE physical system
-	ChSystem mphysicalSystem;
+	ChSystemDEM mphysicalSystem;
 	mphysicalSystem.Set_G_acc(0.38*mphysicalSystem.Get_G_acc());
 
 	// Create the Irrlicht visualization (open the Irrlicht device, 
@@ -147,19 +148,6 @@ int main(int argc, char* argv[])
 	// Complete ...
 	application.AssetBindAll();
 	application.AssetUpdateAll();
-
-	// Modify some setting of the physical system for the simulation, if you want
-	mphysicalSystem.SetLcpSolverType(ChSystem::LCP_DEM);
-
-	// Use the DEM solver
-	ChLcpSolverDEM* mysolver = new ChLcpSolverDEM;
-	mphysicalSystem.ChangeLcpSolverSpeed(mysolver);
-	mysolver->SetMaxIterations(0);
-
-	// Use DEM contact
-	// This takes care of the contact between the particles and with the wall
-	ChContactContainerDEM* mycontainer = new ChContactContainerDEM;
-	mphysicalSystem.ChangeContactContainer(mycontainer);
 
 	// The soft-real-time cycle
 	while(application.GetDevice()->run()) 
@@ -183,9 +171,6 @@ int main(int argc, char* argv[])
 
 
 	DLL_DeleteGlobals();
-
-	// Note: we do not need to delete mysolver and mycontainer since these will be
-	// freed in the ChSystem destructor.
 
 	return 0;
 }
