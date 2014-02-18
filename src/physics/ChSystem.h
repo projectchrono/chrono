@@ -321,7 +321,7 @@ public:
 				/// calls ChangeLcpSolverStab(..) and ChangeLcpSolverSpeed(...), so in 
 				/// future it is better to use directly those two more powerful functions, 
 				/// and this shourtcut will be deprecated.
-	void SetLcpSolverType(eCh_lcpSolver mval);
+	virtual void SetLcpSolverType(eCh_lcpSolver mval);
 				/// Gets the current LCP solver type.
 	eCh_lcpSolver GetLcpSolverType() {return lcp_solver_type;}
 
@@ -386,7 +386,7 @@ public:
 				/// custom lcp solver (suffice it is inherited from ChLcpSolver) and plug
 				/// it into the system using this function. The replaced solver is automatically deleted. 
 				/// When the system is deleted, the custom solver that you plugged will be automatically deleted.
-	void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
+	virtual void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
 
 				/// Access directly the LCP solver, configured to be used for the main differential
 				/// inclusion problem (LCP on speed-impulses). Use mostly for diagnostics.
@@ -579,7 +579,7 @@ public:
 				/// custom contact container (suffice it is inherited from ChContactContainerBase) and plug
 				/// it into the system using this function. The replaced container is automatically deleted. 
 				/// When the system is deleted, the custom container that you plugged will be automatically deleted.
-	void ChangeContactContainer(ChContactContainerBase* newcontainer);
+	virtual void ChangeContactContainer(ChContactContainerBase* newcontainer);
 
 				/// Get the contact container
 	ChContactContainerBase* GetContactContainer() {return contact_container;}

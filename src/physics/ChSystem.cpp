@@ -597,10 +597,6 @@ void ChSystem::SetLcpSolverType(eCh_lcpSolver mval)
 		LCP_solver_speed = new ChLcpIterativeAPGD();
 		LCP_solver_stab = new ChLcpIterativeAPGD();
 		break;
-	case LCP_DEM:
-		LCP_solver_speed = new ChLcpSolverDEM();
-		LCP_solver_stab = new ChLcpSolverDEM();
-		break;
 	default:
 		LCP_solver_speed = new ChLcpIterativeSymmSOR();
 		LCP_solver_stab  = new ChLcpIterativeSymmSOR();
@@ -625,19 +621,7 @@ ChLcpSolver* ChSystem::GetLcpSolverSpeed()
 		iter_solver->SetTolerance(this->tol_speeds); 
 		break;
 	}
-	/*
-	if (lcp_solver_type != LCP_SIMPLEX)
-	{
-		ChLcpIterativeSolver* iter_solver = (ChLcpIterativeSolver*)LCP_solver_speed;
-		iter_solver->SetMaxIterations(GetIterLCPmaxItersSpeed());
-		iter_solver->SetTolerance(this->tol_speeds); 
-	}
-	else 
-	{ 
-		ChLcpSimplexSolver* simplex_solver = (ChLcpSimplexSolver*)LCP_solver_speed;
-		simplex_solver->SetTruncationStep(GetSimplexLCPmaxSteps());
-	}
-	*/
+
 	return LCP_solver_speed;
 }
 
