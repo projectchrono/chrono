@@ -249,7 +249,7 @@ public:
 			/// Compute the principal stresses for the given  tensor
 	void ComputePrincipalStresses(double& e1, double& e2, double& e3)
 	{
-		ComputeEigenvalues(e1,e2,e3);
+		ChVoightTensor<Real>::ComputeEigenvalues(e1,e2,e3);
 	}
 
 			/// Compute the directions of the principal stresses,
@@ -278,7 +278,7 @@ public:
 			/// Compute the principal strains for the given tensor
 	void ComputePrincipalStrains(double& e1, double& e2, double& e3)
 	{
-		ComputeEigenvalues(e1,e2,e3);
+		ChVoightTensor<Real>::ComputeEigenvalues(e1,e2,e3);
 	}
 
 			/// Compute the directions of the principal strain,
