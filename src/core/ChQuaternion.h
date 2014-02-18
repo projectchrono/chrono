@@ -284,15 +284,15 @@ public:
 
 		/// Computes the euclidean norm of the quaternion,
 		/// that is its length or magnitude
-	Real Length() { return sqrt(e0*e0 + e1*e1 + e2*e2 + e3*e3); }
+	Real Length() const { return sqrt(e0*e0 + e1*e1 + e2*e2 + e3*e3); }
 
 		/// Computes the euclidean norm of the quaternion, squared 
 		/// (i.e. as Length(), but skipping the square root)
-	Real Length2() { return (e0*e0 + e1*e1 + e2*e2 + e3*e3); }
+	Real Length2() const { return (e0*e0 + e1*e1 + e2*e2 + e3*e3); }
 
 		/// Computes the infinite norm of the quaternion, that
 		/// is the maximum absolute value of one of its elements
-	Real LengthInf() { return ChMax(ChMax(ChMax(fabs(e0),fabs(e1)), fabs(e2)), fabs(e3)); }
+	Real LengthInf() const { return ChMax(ChMax(ChMax(fabs(e0),fabs(e1)), fabs(e2)), fabs(e3)); }
 
 		/// Normalize this quaternion, so that its euclidean length is 1.
 		/// Returns false if original quaternion had zero length (in such a case
