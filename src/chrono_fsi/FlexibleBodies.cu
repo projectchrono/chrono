@@ -684,6 +684,16 @@ void Update_ANCF_Beam(
 	thrust::host_vector<bool> ANCF_IsCantileverH = ANCF_IsCantileverD;
 
 	//---------------------------------------------
+	int totalNumberOfFlexNodes = flex_FSI_NodesForcesD1.size();
+	thrust::device_vector<real3> ANCF_NodesAccD(totalNumberOfFlexNodes);
+	thrust::device_vector<real3> ANCF_SlopesAccD(totalNumberOfFlexNodes);
+	thrust::fill(ANCF_NodesAccD.begin(), ANCF_NodesAccD.end(), R3(0));
+	thrust::fill(ANCF_SlopesAccD.begin(), ANCF_SlopesAccD.end(), R3(0));
+	thrust::host_vector<real3> ANCF_NodesAccH(totalNumberOfFlexNodes);
+	thrust::host_vector<real3> ANCF_SlopesAccH(totalNumberOfFlexNodes);
+	thrust::copy(ANCF_NodesAccD.begin(), ANCF_NodesAccD.end(),ANCF_NodesAccH.begin());
+	thrust::copy(ANCF_SlopesAccD.begin(), ANCF_SlopesAccD.end(),ANCF_SlopesAccH.begin());
+	//---------------------------------------------
 	GaussQuadrature GQ;
 	IntitializeGaussQuadrature(GQ);
 	//---------------------------------------------
@@ -705,6 +715,8 @@ void Update_ANCF_Beam(
 	uint nThreads_FlexBodies;
 	computeGridSize(numFlexBodies, 128, nBlock_FlexBodies, nThreads_FlexBodies);
 
+
+
 #if flexGPU
 	CalcElasticForcesD __KERNEL__(nBlock_FlexBodies, nThreads_FlexBodies)(
 			R3CAST(flex_FSI_NodesForcesD1), R3CAST(flex_FSI_NodesForcesD2),
@@ -712,40 +724,14 @@ void Update_ANCF_Beam(
 			I2CAST(ANCF_ReferenceArrayNodesOnBeamsD), R1CAST(ANCF_Beam_LengthD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: CalcElasticForcesD");
-#else
-	CalcElasticForcesD(
-			R3CAST(flex_FSI_NodesForcesH1), R3CAST(flex_FSI_NodesForcesH2),
-			R3CAST(ANCF_NodesH), R3CAST(ANCF_SlopesH), R3CAST(ANCF_NodesVelH), R3CAST(ANCF_SlopesVelH),
-			I2CAST(ANCF_ReferenceArrayNodesOnBeamsH), R1CAST(ANCF_Beam_LengthH));
-#endif
 
-	printf("a1\n");
-	int totalNumberOfFlexNodes = flex_FSI_NodesForcesD1.size();
-	thrust::device_vector<real3> ANCF_NodesAccD(totalNumberOfFlexNodes);
-	thrust::device_vector<real3> ANCF_SlopesAccD(totalNumberOfFlexNodes);
-	thrust::fill(ANCF_NodesAccD.begin(), ANCF_NodesAccD.end(),R3(0));
-	thrust::fill(ANCF_SlopesAccD.begin(), ANCF_SlopesAccD.end(),R3(0));
-	thrust::host_vector<real3> ANCF_NodesAccH = ANCF_NodesAccD;
-	thrust::host_vector<real3> ANCF_SlopesAccH = ANCF_SlopesAccD;
-
-#if flexGPU
 	SolveForAccD __KERNEL__(nBlock_FlexBodies, nThreads_FlexBodies)(
 			R3CAST(ANCF_NodesAccD), R3CAST(ANCF_SlopesAccD),
 			R3CAST(flex_FSI_NodesForcesD1), R3CAST(flex_FSI_NodesForcesD2),
 			I2CAST(ANCF_ReferenceArrayNodesOnBeamsD), R1CAST(ANCF_Beam_LengthD), BCAST(ANCF_IsCantileverD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: SolveAndIntegrateInTime");
-#else
-	SolveForAccD(
-			R3CAST(ANCF_NodesAccH), R3CAST(ANCF_SlopesAccH),
-			R3CAST(flex_FSI_NodesForcesH1), R3CAST(flex_FSI_NodesForcesH2),
-			I2CAST(ANCF_ReferenceArrayNodesOnBeamsH), R1CAST(ANCF_Beam_LengthH), BCAST(ANCF_IsCantileverH));
-#endif
 
-	printf("a2\n");
-
-
-#if flexGPU
 	IntegrateInTimeD __KERNEL__(nBlock_FlexBodies, nThreads_FlexBodies)(
 			R3CAST(ANCF_NodesD2), R3CAST(ANCF_SlopesD2), R3CAST(ANCF_NodesVelD2), R3CAST(ANCF_SlopesVelD2),
 			R3CAST(ANCF_NodesVelD), R3CAST(ANCF_SlopesVelD), R3CAST(ANCF_NodesAccD), R3CAST(ANCF_SlopesAccD),
@@ -753,46 +739,48 @@ void Update_ANCF_Beam(
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: IntegrateInTimeD");
 #else
+	CalcElasticForcesD(
+			R3CAST(flex_FSI_NodesForcesH1), R3CAST(flex_FSI_NodesForcesH2),
+			R3CAST(ANCF_NodesH), R3CAST(ANCF_SlopesH), R3CAST(ANCF_NodesVelH), R3CAST(ANCF_SlopesVelH),
+			I2CAST(ANCF_ReferenceArrayNodesOnBeamsH), R1CAST(ANCF_Beam_LengthH));
+
+	SolveForAccD(
+			R3CAST(ANCF_NodesAccH), R3CAST(ANCF_SlopesAccH),
+			R3CAST(flex_FSI_NodesForcesH1), R3CAST(flex_FSI_NodesForcesH2),
+			I2CAST(ANCF_ReferenceArrayNodesOnBeamsH), R1CAST(ANCF_Beam_LengthH), BCAST(ANCF_IsCantileverH));
+
 	IntegrateInTimeD(
 			R3CAST(ANCF_NodesH2), R3CAST(ANCF_SlopesH2), R3CAST(ANCF_NodesVelH2), R3CAST(ANCF_SlopesVelH2),
 			R3CAST(ANCF_NodesVelH), R3CAST(ANCF_SlopesVelH), R3CAST(ANCF_NodesAccH), R3CAST(ANCF_SlopesAccH),
 			I2CAST(ANCF_ReferenceArrayNodesOnBeamsH), BCAST(ANCF_IsCantileverH));
 #endif
 
-	printf("a3\n");
-
-
-	ANCF_NodesAccD.clear();
-	ANCF_SlopesAccD.clear();
-	ANCF_NodesAccH.clear();
-	ANCF_SlopesAccH.clear();
-	printf("a4\n");
-
 	//---------------------------------------------
-
 	thrust::copy(ANCF_NodesH2.begin(), ANCF_NodesH2.end(), ANCF_NodesD2.begin());
 	thrust::copy(ANCF_SlopesH2.begin(), ANCF_SlopesH2.end(), ANCF_SlopesD2.begin());
 	thrust::copy(ANCF_NodesVelH2.begin(), ANCF_NodesVelH2.end(), ANCF_NodesVelD2.begin());
 	thrust::copy(ANCF_SlopesVelH2.begin(), ANCF_SlopesVelH2.end(), ANCF_SlopesVelD2.begin());
-	printf("a5\n");
+	//---------------------------------------------
 
 	ANCF_NodesH2.clear();
 	ANCF_SlopesH2.clear();
 	ANCF_NodesVelH2.clear();
 	ANCF_SlopesVelH2.clear();
-	printf("a6\n");
 
 	ANCF_NodesH.clear();
 	ANCF_SlopesH.clear();
 	ANCF_NodesVelH.clear();
 	ANCF_SlopesVelH.clear();
-	printf("a7\n");
 
 	flex_FSI_NodesForcesH1.clear();
 	flex_FSI_NodesForcesH2.clear();
 	ANCF_ReferenceArrayNodesOnBeamsH.clear();
 	ANCF_Beam_LengthH.clear();
 	ANCF_IsCantileverH.clear();
-	printf("a8\n");
+
+	ANCF_NodesAccD.clear();
+	ANCF_SlopesAccD.clear();
+	ANCF_NodesAccH.clear();
+	ANCF_SlopesAccH.clear();
 
 }
