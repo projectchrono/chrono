@@ -396,7 +396,6 @@ __device__ __host__ inline void CalcElasticForcesKernel(
 	)
 {
 	real_ l = ANCF_Beam_LengthD[i];
-	printf("l, %f\n", l);
 	int2 nodesPortion = ANCF_ReferenceArrayNodesOnBeamsD[i];
 	int numNodes = nodesPortion.y - nodesPortion.x;
 	int numElements = numNodes - 1;
@@ -694,6 +693,7 @@ void Update_ANCF_Beam(
 	cutilSafeCall( cudaMemcpyToSymbolAsync(numFlexBodiesD, &numFlexBodies, sizeof(int))); //This can be updated in the future, to work with numObjectsD
 	cutilSafeCall( cudaMemcpyToSymbolAsync(GQD, &GQ, sizeof(GaussQuadrature))); //This can be updated in the future, to work with numObjects
 #else
+
 	flexParamsD = flexParams;
 	dTD = dT;
 	numFlexBodiesD = numFlexBodies;
@@ -713,12 +713,13 @@ void Update_ANCF_Beam(
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: CalcElasticForcesD");
 #else
-	CalcElasticForcesD __KERNEL__(nBlock_FlexBodies, nThreads_FlexBodies)(
+	CalcElasticForcesD(
 			R3CAST(flex_FSI_NodesForcesH1), R3CAST(flex_FSI_NodesForcesH2),
 			R3CAST(ANCF_NodesH), R3CAST(ANCF_SlopesH), R3CAST(ANCF_NodesVelH), R3CAST(ANCF_SlopesVelH),
 			I2CAST(ANCF_ReferenceArrayNodesOnBeamsH), R1CAST(ANCF_Beam_LengthH));
 #endif
 
+	printf("a1\n");
 	int totalNumberOfFlexNodes = flex_FSI_NodesForcesD1.size();
 	thrust::device_vector<real3> ANCF_NodesAccD(totalNumberOfFlexNodes);
 	thrust::device_vector<real3> ANCF_SlopesAccD(totalNumberOfFlexNodes);
@@ -735,13 +736,14 @@ void Update_ANCF_Beam(
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: SolveAndIntegrateInTime");
 #else
-	SolveForAccD __KERNEL__(nBlock_FlexBodies, nThreads_FlexBodies)(
+	SolveForAccD(
 			R3CAST(ANCF_NodesAccH), R3CAST(ANCF_SlopesAccH),
 			R3CAST(flex_FSI_NodesForcesH1), R3CAST(flex_FSI_NodesForcesH2),
 			I2CAST(ANCF_ReferenceArrayNodesOnBeamsH), R1CAST(ANCF_Beam_LengthH), BCAST(ANCF_IsCantileverH));
-	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: SolveAndIntegrateInTime");
 #endif
+
+	printf("a2\n");
+
 
 #if flexGPU
 	IntegrateInTimeD __KERNEL__(nBlock_FlexBodies, nThreads_FlexBodies)(
@@ -751,18 +753,20 @@ void Update_ANCF_Beam(
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: IntegrateInTimeD");
 #else
-	IntegrateInTimeD __KERNEL__(nBlock_FlexBodies, nThreads_FlexBodies)(
+	IntegrateInTimeD(
 			R3CAST(ANCF_NodesH2), R3CAST(ANCF_SlopesH2), R3CAST(ANCF_NodesVelH2), R3CAST(ANCF_SlopesVelH2),
 			R3CAST(ANCF_NodesVelH), R3CAST(ANCF_SlopesVelH), R3CAST(ANCF_NodesAccH), R3CAST(ANCF_SlopesAccH),
 			I2CAST(ANCF_ReferenceArrayNodesOnBeamsH), BCAST(ANCF_IsCantileverH));
-	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: IntegrateInTimeD");
 #endif
+
+	printf("a3\n");
+
 
 	ANCF_NodesAccD.clear();
 	ANCF_SlopesAccD.clear();
 	ANCF_NodesAccH.clear();
 	ANCF_SlopesAccH.clear();
+	printf("a4\n");
 
 	//---------------------------------------------
 
@@ -770,20 +774,25 @@ void Update_ANCF_Beam(
 	thrust::copy(ANCF_SlopesH2.begin(), ANCF_SlopesH2.end(), ANCF_SlopesD2.begin());
 	thrust::copy(ANCF_NodesVelH2.begin(), ANCF_NodesVelH2.end(), ANCF_NodesVelD2.begin());
 	thrust::copy(ANCF_SlopesVelH2.begin(), ANCF_SlopesVelH2.end(), ANCF_SlopesVelD2.begin());
+	printf("a5\n");
 
 	ANCF_NodesH2.clear();
 	ANCF_SlopesH2.clear();
 	ANCF_NodesVelH2.clear();
 	ANCF_SlopesVelH2.clear();
+	printf("a6\n");
 
 	ANCF_NodesH.clear();
 	ANCF_SlopesH.clear();
 	ANCF_NodesVelH.clear();
 	ANCF_SlopesVelH.clear();
+	printf("a7\n");
 
 	flex_FSI_NodesForcesH1.clear();
 	flex_FSI_NodesForcesH2.clear();
 	ANCF_ReferenceArrayNodesOnBeamsH.clear();
 	ANCF_Beam_LengthH.clear();
 	ANCF_IsCantileverH.clear();
+	printf("a8\n");
+
 }
