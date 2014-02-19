@@ -107,28 +107,6 @@ public:
 	virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
 	virtual void UpdateBodies();
 
-	//// TODO: these don't make much sense...
-	void ChangeLcpSystemDescriptor(ChLcpSystemDescriptor* newdescriptor)
-	{
-		assert(newdescriptor);
-		if (this->LCP_descriptor) {
-			delete (this->LCP_descriptor);
-		}
-		this->LCP_descriptor = newdescriptor;
-
-		((ChLcpSystemDescriptorParallelDVI*) this->LCP_descriptor)->data_container = gpu_data_manager;
-	}
-
-	void ChangeLcpSolverSpeed(ChLcpSolver *newsolver)
-	{
-		assert(newsolver);
-		if (this->LCP_solver_speed) {
-			delete (this->LCP_solver_speed);
-		}
-		this->LCP_solver_speed = newsolver;
-
-		((ChLcpSolverParallel*) this->LCP_solver_speed)->data_container = gpu_data_manager;
-	}
 };
 
 
