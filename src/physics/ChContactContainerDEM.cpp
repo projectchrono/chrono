@@ -77,7 +77,7 @@ void ChContactContainerDEM::ConstraintsFbLoadForces(double factor)
 	std::list<ChContactDEM*>::iterator itercontact = contactlist.begin();
 	while(itercontact != contactlist.end()) {
 		cntct = (ChContactDEM*)(*itercontact);
-		if ((cntct->GetContactDistance()<0)) {
+		if ((cntct->GetContactPenetration() > 0)) {
 			(*itercontact)->ConstraintsFbLoadForces(factor);
 		}
 		++itercontact;
@@ -159,7 +159,7 @@ void ChContactContainerDEM::ReportAllContacts(ChReportContactCallback* mcallback
 		bool proceed = mcallback->ReportContactCallback((*itercontact)->GetContactP1(),
 		                                                (*itercontact)->GetContactP2(),
 		                                                *(*itercontact)->GetContactPlane(),
-		                                                (*itercontact)->GetContactDistance(),
+		                                                (*itercontact)->GetContactPenetration(),
 		                                                0.0,
 		                                                (*itercontact)->GetContactForce(),
 		                                                VNULL, // no react torques

@@ -40,44 +40,36 @@ namespace chrono
 ///
 /// Structure with kinematic contact data
 ///
-struct ChContactKinematicsDEM {
+struct ChContactKinematicsDEM
+{
 	double            delta;           ///< penetration distance (negative if going inside) after refining
 	ChVector<>        p1;              ///< max penetration point on surf1, after refining, in abs frame
 	ChVector<>        p2;              ///< max penetration point on surf2, after refining, in abs frame
 	ChVector<>        normal;          ///< normal, on surface of master reference (surf1)
 	ChMatrix33<float> contact_plane;   ///< the plane of contact (X is normal direction)
-
 	ChVector<>        p1_loc;          ///< max. penetration point on surf1, in local frame
 	ChVector<>        p2_loc;          ///< max. penetration point on surf2, in local frame
-	ChVector<>        relvel;          ///< relative velocity of contact points
-	ChVector<>        relvel_n;        ///< relative normal velocity
-	ChVector<>        relvel_t;        ///< relative tangential velocity
-
 };
 
 ///
 /// Class representing a contact between DEM bodies
 ///
 
-class ChApi ChContactDEM {
-
-private:
-			//
-			// DATA
-			//
-
-	collision::ChModelBulletBody*  m_mod1;  ///< first contact model
-	collision::ChModelBulletBody*  m_mod2;  ///< second contact model
-
-	ChContactKinematicsDEM        m_kdata;  ///< contact kinematics data
-
-	ChVector<>                    m_force;  ///< contact force on body1
-
+class ChApi ChContactDEM
+{
 public:
-			//
-			// CONSTRUCTORS
-			//
 
+	enum NormalForceModel {
+		HuntCrossley
+	};
+
+	enum TangentialForceModel {
+		SimpleCoulombSliding,
+		LinearSpring,
+		LinearDampedSpring
+	};
+
+	/// Constructors
 	ChContactDEM() {}
 
 	ChContactDEM(collision::ChModelBulletBody*     mod1,
@@ -86,11 +78,7 @@ public:
 
 	~ChContactDEM() {}
 
-			//
-			// FUNCTIONS
-			//
-
-	// Reuse an existing contact
+	/// Reuse an existing contact
 	void Reset(collision::ChModelBulletBody*     mod1,
 	           collision::ChModelBulletBody*     mod2,
 	           const collision::ChCollisionInfo& cinfo);
@@ -115,8 +103,8 @@ public:
 	/// Get the contact normal, in absolute coordinates
 	const ChVector<>& GetContactNormal() const {return m_kdata.normal;}
 
-	/// Get the contact distance
-	double GetContactDistance() const {return m_kdata.delta;}
+	/// Get the contact penetration
+	double GetContactPenetration() const {return m_kdata.delta;}
 	
 	/// Get the contact force, if computed, in absolute coordinates
 	const ChVector<>& GetContactForce() const {return m_force;}
@@ -127,9 +115,35 @@ public:
 	/// Get the collision model 2, with point P2
 	collision::ChCollisionModel* GetModel2() {return (collision::ChCollisionModel*) m_mod2;}
 
+	/// Calculate contact force
+	void CalculateForce();
+
 	/// Apply contact forces to bodies.
 	void ConstraintsFbLoadForces(double factor);
 
+	/// Contact force models
+	static NormalForceModel     m_normalForceModel;
+	static TangentialForceModel m_tangentialForceModel;
+
+	static void                 SetNormalContactModel(NormalForceModel model) {m_normalForceModel = model;}
+	static NormalForceModel     GetNormalContactModel()                       {return m_normalForceModel;}
+
+	static void                 SetTangentialForceModel(TangentialForceModel model) {m_tangentialForceModel = model;}
+	static TangentialForceModel GetTangentialForceModel()                           {return m_tangentialForceModel;}
+
+	/// Slip velocity threshold
+	static double m_minSlipVelocity;
+
+	static void SetSlipVelocitythreshold(double vel) {m_minSlipVelocity = vel;}
+
+private:
+
+	collision::ChModelBulletBody*  m_mod1;  ///< first contact model
+	collision::ChModelBulletBody*  m_mod2;  ///< second contact model
+
+	ChContactKinematicsDEM         m_kdata;  ///< contact kinematics data
+
+	ChVector<>                     m_force;  ///< contact force on body1
 };
 
 

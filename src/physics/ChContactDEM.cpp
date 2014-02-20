@@ -32,11 +32,18 @@
 namespace chrono
 {
 
-
 using namespace collision;
 using namespace geometry;
 
 
+// Initialize static members
+ChContactDEM::NormalForceModel     ChContactDEM::m_normalForceModel     = ChContactDEM::HuntCrossley;
+ChContactDEM::TangentialForceModel ChContactDEM::m_tangentialForceModel = ChContactDEM::SimpleCoulombSliding;
+
+double ChContactDEM::m_minSlipVelocity = 1e-4;
+
+// Construct a new DEM contact between two models
+// using the specified contact pair information.
 ChContactDEM::ChContactDEM(collision::ChModelBulletBody*     mod1,
                            collision::ChModelBulletBody*     mod2,
                            const collision::ChCollisionInfo& cinfo)
@@ -58,11 +65,10 @@ ChContactDEM::Reset(collision::ChModelBulletBody*     mod1,
 	ChBodyDEM* body1 = (ChBodyDEM*) m_mod1->GetBody();
 	ChBodyDEM* body2 = (ChBodyDEM*) m_mod2->GetBody();
 
-	// Calculate and store kinematic data for this contact
-	// TODO: this should really be in cinfo...
+	// Contact points, penetration, normal
 	m_kdata.p1 = cinfo.vpA;
 	m_kdata.p2 = cinfo.vpB;
-	m_kdata.delta = cinfo.distance;
+	m_kdata.delta = -cinfo.distance;
 	m_kdata.normal = cinfo.vN;
 
 	// Contact plane
@@ -70,17 +76,87 @@ ChContactDEM::Reset(collision::ChModelBulletBody*     mod1,
 	cinfo.vN.DirToDxDyDz(Vx, Vy, Vz);
 	m_kdata.contact_plane.Set_A_axis(Vx, Vy, Vz);
 
+	// Contact points in local frames
 	m_kdata.p1_loc = body1->Point_World2Body(m_kdata.p1);
 	m_kdata.p2_loc = body2->Point_World2Body(m_kdata.p2);
-	m_kdata.relvel = body2->PointSpeedLocalToParent(m_kdata.p2_loc)
-	               - body1->PointSpeedLocalToParent(m_kdata.p1_loc);
-	m_kdata.relvel_n = m_kdata.relvel.Dot(m_kdata.normal) * m_kdata.normal;
-	m_kdata.relvel_t = m_kdata.relvel - m_kdata.relvel_n;
 
 	// Calculate contact force
-	ChMaterialSurfaceDEM::CalculateForce(body1, body2, m_kdata, m_force);
+	CalculateForce();
 }
 
+
+void
+ChContactDEM::CalculateForce()
+{
+	ChBodyDEM* body1 = (ChBodyDEM*) m_mod1->GetBody();
+	ChBodyDEM* body2 = (ChBodyDEM*) m_mod2->GetBody();
+
+	double dT = body1->GetSystem()->GetStep();
+
+	// Relative velocity at contact
+	ChVector<> vel2         = body2->PointSpeedLocalToParent(m_kdata.p2_loc);
+	ChVector<> vel1         = body1->PointSpeedLocalToParent(m_kdata.p1_loc);
+	ChVector<> relvel       = vel2 - vel1;
+	double     relvel_n_mag = relvel.Dot(m_kdata.normal);
+	ChVector<> relvel_n     = relvel_n_mag * m_kdata.normal;
+	ChVector<> relvel_t     = relvel - relvel_n;
+	double     relvel_t_mag = relvel_t.Length();
+
+	// Calculate effective mass
+	double eff_mass = body1->GetMass() * body2->GetMass() / (body1->GetMass() + body2->GetMass());
+
+	// Calculate effective contact radius
+	//// TODO:  how can I get this with current collision system!?!?!?
+	double eff_radius = 1;
+
+	// Calculate composite material properties
+	ChCompositeMaterialDEM mat = ChMaterialSurfaceDEM::CompositeMaterial(body1->GetMaterialSurfaceDEM(), body2->GetMaterialSurfaceDEM());
+
+	// Normal force
+	double forceN;
+
+	switch (m_normalForceModel) {
+	case HuntCrossley:
+		{
+		double kn = (4.0 / 3) * mat.young_modulus * std::sqrt(eff_radius);
+		double forceN_elastic = kn * m_kdata.delta * std::sqrt(m_kdata.delta);
+		double forceN_dissipation = 1.5f * mat.dissipation * forceN_elastic * relvel_n_mag;
+		forceN = forceN_elastic - forceN_dissipation;
+		}
+		break;
+	}
+
+	m_force = forceN * m_kdata.normal;
+
+	// Tangential force
+	if (relvel_t_mag <= m_minSlipVelocity)
+		return;
+
+	double forceT;
+
+	switch (m_tangentialForceModel) {
+	case SimpleCoulombSliding:
+		forceT = mat.static_friction * std::abs(forceN);
+		break;
+	case LinearSpring:
+		{
+		double kt = 2e7;
+		double slip = relvel_t_mag * dT;
+		forceT = std::min(kt * slip, mat.static_friction * std::abs(forceN));
+		}
+		break;
+	case LinearDampedSpring:
+		////double slip = relvel_t_mag * dT;
+		////double kt = 8 * mat.shear_modulus * std::sqrt(eff_radius);
+		////double forceT_elastic = kt * m_kdata.delta * std::sqrt(slip);
+		////double forceT_dissipation = 0;
+		////forceT = std::min(forceT_elastic + forceT_dissipation, mat.static_friction * std::abs(forceN));
+
+		break;
+	}
+
+	m_force -= (forceT / relvel_t_mag) * relvel_t;
+}
 
 void
 ChContactDEM::ConstraintsFbLoadForces(double factor)
@@ -90,13 +166,13 @@ ChContactDEM::ConstraintsFbLoadForces(double factor)
 
 	ChVector<> force1_loc = body1->Dir_World2Body(m_force);
 	ChVector<> force2_loc = body2->Dir_World2Body(m_force);
-	ChVector<> torque1_loc = Vcross(m_kdata.p1_loc,  force1_loc);
-	ChVector<> torque2_loc = Vcross(m_kdata.p2_loc, -force2_loc);
+	ChVector<> torque1_loc = Vcross(m_kdata.p1_loc, -force1_loc);
+	ChVector<> torque2_loc = Vcross(m_kdata.p2_loc,  force2_loc);
 
-	body1->Variables().Get_fb().PasteSumVector(m_force*factor,    0,0);
+	body1->Variables().Get_fb().PasteSumVector(-m_force*factor,    0,0);
 	body1->Variables().Get_fb().PasteSumVector(torque1_loc*factor,3,0);
 
-	body2->Variables().Get_fb().PasteSumVector(-m_force*factor,   0,0);
+	body2->Variables().Get_fb().PasteSumVector(m_force*factor,   0,0);
 	body2->Variables().Get_fb().PasteSumVector(torque2_loc*factor,3,0);
 }
 

@@ -38,58 +38,54 @@ namespace chrono
 class ChBodyDEM;
 
 
+struct ChCompositeMaterialDEM
+{
+	float young_modulus;
+	float shear_modulus;
+	float static_friction;
+	float restitution;
+	float dissipation;
+};
+
+
 class ChApi ChMaterialSurfaceDEM : public ChShared
 {
 public:
 			//
-			// CONTACT FORCE MODELS
-			//
-
-	enum NormalContactModel {
-		DefaultNormal,
-		Flores
-	};
-
-	enum TangentialContactModel {
-		DefaultTangential
-	};
-
-			//
 			// DATA
 			//
 
+	float young_modulus;
+	float poisson_ratio;
+
 	float static_friction;
 	float sliding_friction;
-	float normal_stiffness;
-	float normal_damping;
-	float tangential_stiffness;
-	float tangential_damping;
+
 	float restitution;
+	float dissipation;
 
 			//
 			// CONSTRUCTORS
 			//
 
-	ChMaterialSurfaceDEM() 
-	:	static_friction(0.6f),
+	ChMaterialSurfaceDEM()
+	:	young_modulus(2e5),
+		poisson_ratio(0.3f),
+		static_friction(0.6f),
 		sliding_friction(0.6f),
-		normal_stiffness(2e5),
-		normal_damping(7.5e2),
-		tangential_stiffness(2e5),
-		tangential_damping(7.5e2),
-		restitution(0.5f)
+		restitution(0.5f),
+		dissipation(0.1f)
 	{}
 
-	// Copy constructor 
+	// Copy constructor
 	ChMaterialSurfaceDEM(const ChMaterialSurfaceDEM& other) 
 	{
+		young_modulus = other.young_modulus;
+		poisson_ratio = other.poisson_ratio;
 		static_friction = other.static_friction;
 		sliding_friction = other.sliding_friction;
-		normal_stiffness = other.normal_stiffness;
-		normal_damping = other.normal_damping;
-		tangential_stiffness = other.tangential_stiffness;
-		tangential_damping = other.tangential_damping;
 		restitution = other.restitution;
+		dissipation = other.dissipation;
 	}
 
 	~ChMaterialSurfaceDEM() {}
@@ -98,56 +94,36 @@ public:
 			// FUNCTIONS
 			//
 
-	// Normal stiffness
-	float GetNormalStiffness() const {return normal_stiffness;}
-	void  SetNormalStiffness(float val) {normal_stiffness = val;}
+	/// Young's modulus and Poisson ratio.
+	float GetYoungModulus() const    {return young_modulus;}
+	void  SetYoungModulus(float val) {young_modulus = val;}
 
-	// Normal damping coefficient
-	float GetNormalDamping() const {return normal_damping;}
-	void  SetNormalDamping(float val) {normal_damping = val;}
+	float GetPoissonRatio() const    {return poisson_ratio;}
+	void  SetPoissonRatio(float val) {poisson_ratio = val;}
 
-	// Tangential stiffness
-	float GetTangentialStiffness() const {return tangential_stiffness;}
-	void  SetTangentialStiffness(float val) {tangential_stiffness = val;}
+	/// Static and kinetic friction coefficients.
+	/// Usually in 0..1 range, rarely above. Default 0.6
+	float GetSfriction() const       {return static_friction;}
+	void  SetSfriction(float val)    {static_friction = val;}
 
-	// Normal damping coefficient
-	float GetTangentialDamping() const {return tangential_damping;}
-	void  SetTangentialDamping(float val) {tangential_damping = val;}
-
-	/// The static friction coefficient. 
-	/// Usually in 0..1 range, rarely above.
-	/// Default 0.6
-	float GetSfriction() const {return static_friction;}
-	void  SetSfriction(float val) {static_friction = val;}
-
-	/// The sliding ('kinetic') friction coefficient. Default 0.6
-	/// Usually in 0..1 range, rarely above. 
-	float GetKfriction() const {return sliding_friction;}
-	void  SetKfriction(float val) {sliding_friction = val;}
+	float GetKfriction() const       {return sliding_friction;}
+	void  SetKfriction(float val)    {sliding_friction = val;}
 
 	/// Set both static friction and kinetic friction at once, with same value.
-	void  SetFriction(float val) {SetSfriction(val); SetKfriction(val);}
+	void  SetFriction(float val)     {SetSfriction(val); SetKfriction(val);}
 
-	/// The normal restitution coefficient 
-	float GetRestitution() const {return restitution;}
-	void  SetRestitution(float val) {restitution = val;}
+	/// Normal restitution coefficient 
+	float GetRestitution() const     {return restitution;}
+	void  SetRestitution(float val)  {restitution = val;}
 
+	/// Dissipation coefficient (Hunt-Crossley model)
+	float GetDissipation() const     {return dissipation;}
+	void  SetDissipation(float val)  {dissipation = val;}
 
-	//// Contact force model types.
-	static NormalContactModel     m_normalContactModel;
-	static TangentialContactModel m_tangentialContactModel;
-
-	static void                   SetNormalContactModel(NormalContactModel model) {m_normalContactModel = model;}
-	static NormalContactModel     GetNormalContactModel()                         {return m_normalContactModel;}
-
-	static void                   SetTangentialContactModel(TangentialContactModel model) {m_tangentialContactModel = model;}
-	static TangentialContactModel GetTangentialContactModel()                             {return m_tangentialContactModel;}
-
-	//// Calculate contact forces.
-	static void  CalculateForce(ChBodyDEM*                    body1,
-	                            ChBodyDEM*                    body2,
-	                            const ChContactKinematicsDEM& kdata,
-	                            ChVector<>&                   force);
+	/// Calculate composite material properties
+	static ChCompositeMaterialDEM
+	CompositeMaterial(const ChSharedPtr<ChMaterialSurfaceDEM>& mat1,
+	                  const ChSharedPtr<ChMaterialSurfaceDEM>& mat2);
 
 			//
 			// STREAMING
@@ -171,13 +147,12 @@ public:
 		//ChShared::StreamOUT(mstream); // nothing 
 
 		// stream out all member data
-		mstream <<   static_friction;
-		mstream <<   sliding_friction;
-		mstream <<   normal_stiffness;
-		mstream <<   normal_damping;
-		mstream <<   tangential_stiffness;
-		mstream <<   tangential_damping;
-		mstream <<   restitution;
+		mstream << young_modulus;
+		mstream << poisson_ratio;
+		mstream << static_friction;
+		mstream << sliding_friction;
+		mstream << restitution;
+		mstream << dissipation;
 	}
 
 	/// Operator to allow deserializing a persistent binary archive (ex: a file)
@@ -191,13 +166,12 @@ public:
 		//ChShared::StreamIN(mstream); // nothing 
 
 		// stream in all member data
-		mstream >>   static_friction;
-		mstream >>   sliding_friction;
-		mstream >>   normal_stiffness;
-		mstream >>   normal_damping;
-		mstream >>   tangential_stiffness;
-		mstream >>   tangential_damping;
-		mstream >>   restitution;
+		mstream >> young_modulus;
+		mstream >> poisson_ratio;
+		mstream >> static_friction;
+		mstream >> sliding_friction;
+		mstream >> restitution;
+		mstream >> dissipation;
 	}
 
 };
