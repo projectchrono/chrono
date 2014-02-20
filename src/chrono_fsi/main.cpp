@@ -612,7 +612,7 @@ void CreateOneFlexBody(thrust::host_vector<real3> & ANCF_Nodes,
 		ANCF_SlopesVel.push_back(R3(0));
 	}
 	ANCF_ReferenceArrayNodesOnBeams.push_back(I2(0, numElementsPerBeam + 1));
-	ANCF_IsCantilever.push_back(true);
+	ANCF_IsCantilever.push_back(false);
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CreateSomeFlexBodies(thrust::host_vector<real3> & ANCF_Nodes,
@@ -1759,7 +1759,7 @@ int main() {
 	paramsH.mu0 = 1.0f;
 	paramsH.v_Max = 1e-1;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 	paramsH.EPS_XSPH = .5f;
-	paramsH.dT = .00005; //sph alone: .01 for Re 10;
+	paramsH.dT = .0001; //sph alone: .01 for Re 10;
 	paramsH.tFinal = 100;
 	paramsH.kdT = 5;
 	paramsH.gammaBB = 0.5;
