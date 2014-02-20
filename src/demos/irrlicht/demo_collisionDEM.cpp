@@ -66,8 +66,6 @@ void AddFallingItems(ChIrrApp& application)
 				body->GetCollisionModel()->BuildModel();
 				body->SetCollide(true);
 
-				body->GetMaterialSurfaceDEM()->SetNormalDamping(100);
-
 				ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
 				sphere->GetSphereGeometry().rad = radius;
 				sphere->SetColor(ChColor(0.9f, 0.4f, 0.2f));
@@ -90,8 +88,6 @@ void AddFallingItems(ChIrrApp& application)
 				body->GetCollisionModel()->BuildModel();
 				body->SetCollide(true);
 
-				body->GetMaterialSurfaceDEM()->SetNormalDamping(100);
-	
 				ChSharedPtr<ChBoxShape> box(new ChBoxShape);
 				box->GetBoxGeometry().Size = hsize;
 				box->SetColor(ChColor(0.4f, 0.9f, 0.2f));
@@ -111,8 +107,6 @@ void AddContainerWall(ChSharedPtr<ChBodyDEM>& body,
 	ChVector<> hsize = 0.5 * size;
 
 	body->GetCollisionModel()->AddBox(hsize.x, hsize.y, hsize.z, pos);
-	
-	body->GetMaterialSurfaceDEM()->SetNormalDamping(100);
 
 	if (visible) {
 		ChSharedPtr<ChBoxShape> box(new ChBoxShape);

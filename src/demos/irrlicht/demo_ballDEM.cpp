@@ -34,8 +34,6 @@
 #include "irrlicht_interface/ChIrrApp.h"
 #include <irrlicht.h>
 
-#define SPH_ID  33
-#define BOX_ID  200
 
 // Use the namespace of Chrono
 using namespace chrono;
@@ -50,106 +48,122 @@ using namespace io;
 using namespace gui;
 
 
-void AddBoundaryBox(ChIrrApp& application,
-                    double width,
-                    double depth,
-                    double height)
+void AddWall(ChSharedBodyDEMPtr&  body,
+             const ChVector<>&    dim,
+             const ChVector<>&    loc)
 {
-	ChVector<> hsize(width/2, height/2, depth/2);
-	ChVector<> pos(0, -height/2, 0);
-	ChSharedPtr<ChBodyDEM> body(new ChBodyDEM);
-
-	body->SetIdentifier(BOX_ID);
-	body->SetMass(1.0);
-	body->SetBodyFixed(true);
-	body->SetPos(pos);
-	body->SetCollide(true);
-
-	body->GetCollisionModel()->ClearModel();
-	body->GetCollisionModel()->AddBox(hsize.x, hsize.y, hsize.z);
-	body->GetCollisionModel()->BuildModel();
+	body->GetCollisionModel()->AddBox(dim.x, dim.y, dim.z, loc);
 
 	ChSharedPtr<ChBoxShape> box(new ChBoxShape);
-	box->GetBoxGeometry().Size = hsize;
+	box->GetBoxGeometry().Size = dim;
+	box->GetBoxGeometry().Pos = loc;
 	box->SetColor(ChColor(1,0,0));
 	box->SetFading(0.6f);
 	body->AddAsset(box);
-
-	application.GetSystem()->AddBody(body);
-}
-
-
-void AddSphere(ChIrrApp& application, double radius, double mass, double height)
-{
-	ChVector<> pos(0.0, height, 0.0);
-
-	ChSharedPtr<ChBodyDEM> body(new ChBodyDEM);
-	body->SetIdentifier(SPH_ID);
-
-	body->GetCollisionModel()->ClearModel();
-	body->GetCollisionModel()->AddSphere(radius);
-	body->GetCollisionModel()->BuildModel();
-	body->SetCollide(true);
-
-	body->SetPos(pos);
-	body->SetInertiaXX((2.0/5.0)*mass*pow(radius,2)*ChVector<>(1,1,1));
-	body->SetMass(mass);
-
-	application.GetSystem()->AddBody(body);
-
-	ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
-	sphere->GetSphereGeometry().rad = radius;
-	sphere->SetColor(ChColor(0.9f, 0.4f, 0.2f));
-	body->AddAsset(sphere);
 }
 
 
 int main(int argc, char* argv[])
 {
-	// Fixed box parameters
-	double D1 = 3.0;
-	double D3 = 3.0;
-	double th = 0.1;
-
-	// Ball parameters
-	double radius = 1.0;
-	double mass = 1000;
-	double height = 1.5;
-
-	// Simulation and rendering time-step
+	// Simulation parameters
+	double gravity = -9.81;
 	double time_step = 0.00001;
 	double out_step = 2000 * time_step;
-	double time = 0.0;
-	double out_time = 0.0;
 
-	// In CHRONO engine, The DLL_CreateGlobals() - DLL_DeleteGlobals(); pair is needed if
-	// global functions are needed. 
+	// Parameters for the falling ball
+	int             ballId = 100;
+	double          radius = 1;
+	double          mass = 1000;
+	ChVector<>      pos(0, 2, 0);
+	ChQuaternion<>  rot(1, 0, 0, 0);
+	ChVector<>      init_vel(0, 0, 0);
+
+	// Parameters for the containing bin
+	int    binId = 200;
+	double width = 2;
+	double length = 2;
+	double height = 1;
+	double thickness = 0.1;
+
+	// Initialize globals
 	ChGlobals* GLOBAL_Vars = DLL_CreateGlobals();
 
-	// Create a ChronoENGINE physical system
-	ChSystemDEM mphysicalSystem;
-	mphysicalSystem.Set_G_acc(0.38*mphysicalSystem.Get_G_acc());
+	// Create the system
+	ChSystemDEM msystem;
 
-	// Create the Irrlicht visualization (open the Irrlicht device, 
-	// bind a simple user interface, etc. etc.)
-	ChIrrApp application(&mphysicalSystem, L"Assets for Irrlicht visualization",core::dimension2d<u32>(800,600),false, true);
+	msystem.Set_G_acc(ChVector<>(0, gravity, 0));
 
-	// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
+	// Create the Irrlicht visualization
+	ChIrrApp application(&msystem, L"DEM demo",core::dimension2d<u32>(800,600),false, true);
+
+	// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene
 	application.AddTypicalLogo();
 	application.AddTypicalSky();
 	application.AddTypicalLights();
 	application.AddTypicalCamera(core::vector3df(0,3,-6));
-	//application.AddTypicalCamera(core::vector3df(0,0,-6));
 
-	// Add fixed and moving bodies
-	AddBoundaryBox(application, D1, D3, th);
-	AddSphere(application, radius, mass, height);
+	// Create a material (will be used by both objects)
+	ChSharedPtr<ChMaterialSurfaceDEM> material;
+	material = ChSharedPtr<ChMaterialSurfaceDEM>(new ChMaterialSurfaceDEM);
+	material->SetDissipation(0.1f);
+	material->SetFriction(0.4f);
 
-	// Complete ...
+	// Create the falling ball
+	ChSharedPtr<ChBodyDEM> ball(new ChBodyDEM);
+
+	ball->SetIdentifier(ballId);
+	ball->SetMass(mass);
+	ball->SetPos(pos);
+	ball->SetRot(rot);
+	ball->SetPos_dt(init_vel);
+	ball->SetBodyFixed(false);
+	ball->SetMaterialSurfaceDEM(material);
+
+	ball->SetCollide(true);
+
+	ball->GetCollisionModel()->ClearModel();
+	ball->GetCollisionModel()->AddSphere(radius);
+	ball->GetCollisionModel()->BuildModel();
+
+	ball->SetInertiaXX(0.4*mass*radius*radius*ChVector<>(1,1,1));
+
+	ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
+	sphere->GetSphereGeometry().rad = radius;
+	sphere->SetColor(ChColor(0.9f, 0.4f, 0.2f));
+	ball->AddAsset(sphere);
+
+	msystem.AddBody(ball);
+
+	// Create container
+	ChSharedPtr<ChBodyDEM> bin(new ChBodyDEM);
+
+	bin->SetIdentifier(binId);
+	bin->SetMass(1);
+	bin->SetPos(ChVector<>(0, 0, 0));
+	bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
+	bin->SetCollide(true);
+	bin->SetBodyFixed(true);
+	bin->SetMaterialSurfaceDEM(material);
+
+	bin->GetCollisionModel()->ClearModel();
+	AddWall(bin, ChVector<>(width, thickness, length), ChVector<>(0, 0, 0));
+	//AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(-width + thickness, height, 0));
+	//AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(width - thickness, height, 0));
+	//AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, -length + thickness));
+	//AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, length - thickness));
+	bin->GetCollisionModel()->BuildModel();
+
+	msystem.AddBody(bin);
+
+
+	// Complete asset construction
 	application.AssetBindAll();
 	application.AssetUpdateAll();
 
 	// The soft-real-time cycle
+	double time = 0.0;
+	double out_time = 0.0;
+
 	while(application.GetDevice()->run()) 
 	{
 		application.BeginScene();
@@ -161,7 +175,7 @@ int main(int argc, char* argv[])
 			video::SColor(255, 80,100,100), true);
 
 		while (time < out_time) {
-			mphysicalSystem.DoStepDynamics(time_step);
+			msystem.DoStepDynamics(time_step);
 			time += time_step;
 		}
 		out_time += out_step;
