@@ -573,9 +573,9 @@ void CreateOneFlexBody(thrust::host_vector<real3> & ANCF_Nodes,
 	real_ myMargin = paramsH.MULT_INITSPACE * (paramsH.NUM_BCE_LAYERS + 1)
 			* paramsH.HSML;
 //
-	//hanging beam
-	real3 pa3 = R3(.1, .25, .8);
-	real3 pb3 = pa3 + R3(0,0,beamLength);
+//	//hanging beam
+//	real3 pa3 = R3(.1, .25, .8);
+//	real3 pb3 = pa3 + R3(0,0,beamLength);
 
 	//beam vs rigid
 //	real3 pa3 = R3(.2, .4, .4);
@@ -587,9 +587,9 @@ void CreateOneFlexBody(thrust::host_vector<real3> & ANCF_Nodes,
 //	real3 pa3 = R3(.1, .5, .5);
 //	real3 pb3 = pa3 + R3(beamLength,0,0);
 
-//	//validation
-//	real3 pa3 = R3(.1, .2, .4);
-//	real3 pb3 = pa3 + R3(beamLength * cos(PI/6),0,beamLength * sin(PI/6));
+	//validation
+	real3 pa3 = R3(.1, .2, .4);
+	real3 pb3 = pa3 + R3(beamLength * cos(PI/6),0,beamLength * sin(PI/6));
 
 	if (pb3.x > paramsH.cMax.x) {
 		perror("beam end out of bound\n");
@@ -613,7 +613,7 @@ void CreateOneFlexBody(thrust::host_vector<real3> & ANCF_Nodes,
 		ANCF_SlopesVel.push_back(R3(0));
 	}
 	ANCF_ReferenceArrayNodesOnBeams.push_back(I2(0, numElementsPerBeam + 1));
-	ANCF_IsCantilever.push_back(true);
+	ANCF_IsCantilever.push_back(false);
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CreateSomeFlexBodies(thrust::host_vector<real3> & ANCF_Nodes,
@@ -1755,7 +1755,7 @@ int main() {
 	paramsH.BASEPRES = 0;
 	paramsH.nPeriod = 1;
 	paramsH.gravity = R3(0);//R3(0, -9.81, 0);
-	paramsH.bodyForce4 = R4(0);;//R4(3.2e-3,0,0,0); /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
+	paramsH.bodyForce4 = R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
 	paramsH.rho0 = 1000;
 	paramsH.mu0 = 1.0f;
 	paramsH.v_Max = 1e-1;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
@@ -1765,7 +1765,7 @@ int main() {
 	paramsH.kdT = 5;
 	paramsH.gammaBB = 0.5;
 	paramsH.cMin = R3(0, 0, -.1) * paramsH.sizeScale;
-	paramsH.cMax = R3(paramsH.nPeriod * distance + 0, .4, 2 + .1)
+	paramsH.cMax = R3(paramsH.nPeriod * distance + 0, .4, 1 + .1)
 			* paramsH.sizeScale;
 	paramsH.binSize0; // will be changed
 
@@ -1776,7 +1776,7 @@ int main() {
 	flexParams.ne = 4;
 	flexParams.A = PI * pow(flexParams.r, 2.0f);
 	flexParams.I = .25 * PI * pow(flexParams.r, 4.0f);
-	flexParams.gravity = R3(9.8, 0, 0);//paramsH.gravity;
+	flexParams.gravity = paramsH.gravity;
 	flexParams.bobRad = .1;
 
 	//3D cylinder params:
@@ -1793,7 +1793,7 @@ int main() {
 	//****************************************************************************************
 	//*** initialize straight channel
 	straightChannelBoundaryMin = R3(0, 0, 0) * paramsH.sizeScale;
-	straightChannelBoundaryMax = R3(paramsH.nPeriod * distance + 0, .4, 2) * paramsH.sizeScale;
+	straightChannelBoundaryMax = R3(paramsH.nPeriod * distance + 0, .4, 1) * paramsH.sizeScale;
 
 	//(void) cudaSetDevice(0);
 	int numAllMarkers = 0;
@@ -1903,7 +1903,7 @@ int main() {
 //	CreateRigidBodiesRandom(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, 2); //changed 2 to 4
 //	CreateRigidBodiesPatternPipe_KindaRandom(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, 128);
 	//**
-	real_ beamLength = 1.0; //0.7
+	real_ beamLength = 0.7;
 	CreateOneFlexBody(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
 			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever,
 			channelRadius,
