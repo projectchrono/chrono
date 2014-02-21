@@ -129,8 +129,11 @@ int main(int argc, char* argv[])
 
 	ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
 	sphere->GetSphereGeometry().rad = radius;
-	sphere->SetColor(ChColor(0.9f, 0.4f, 0.2f));
 	ball->AddAsset(sphere);
+
+	ChSharedPtr<ChTexture> mtexture(new ChTexture);
+	mtexture->SetTextureFilename("../data/bluwhite.png");
+	ball->AddAsset(mtexture);
 
 	msystem.AddBody(ball);
 
