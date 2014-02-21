@@ -35,8 +35,12 @@ ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects)
 	((ChLcpSolverParallel*) LCP_solver_speed)->data_container = gpu_data_manager;
 }
 
-ChSystemParallelDEM::ChSystemParallelDEM(unsigned int max_objects)
-:	ChSystemParallel(max_objects)
+ChSystemParallelDEM::ChSystemParallelDEM(unsigned int                       max_objects,
+                                         ChContactDEM::NormalForceModel     normal_model,
+                                         ChContactDEM::TangentialForceModel tangential_model)
+:	ChSystemParallel(max_objects),
+	normal_force_model(normal_model),
+	tangential_force_model(tangential_model)
 {
 	LCP_descriptor = new ChLcpSystemDescriptorParallelDEM();
 	LCP_solver_speed = new ChLcpSolverParallelDEM();
@@ -219,10 +223,16 @@ void ChSystemParallelDEM::LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody)
 
 	ChSharedPtr<ChMaterialSurfaceDEM>& mat = ((ChBodyDEM*) newbody.get_ptr())->GetMaterialSurfaceDEM();
 
-	gpu_data_manager->host_data.kd_n.push_back(R2(mat->GetNormalStiffness(), mat->GetNormalDamping()));
-	gpu_data_manager->host_data.kd_t.push_back(R2(mat->GetTangentialStiffness(), mat->GetTangentialDamping()));
-	gpu_data_manager->host_data.mu.push_back(R2(mat->GetSfriction(), mat->GetKfriction()));
-	gpu_data_manager->host_data.cr.push_back(mat->GetRestitution());
+	gpu_data_manager->host_data.elastic_moduli.push_back(R2(mat->GetYoungModulus(), mat->GetPoissonRatio()));
+	gpu_data_manager->host_data.mu.push_back(mat->GetSfriction());
+
+	switch (normal_force_model) {
+	case ChContactDEM::HuntCrossley:
+		gpu_data_manager->host_data.alpha.push_back(mat->GetDissipationFactor());
+		break;
+	}
+
+	//gpu_data_manager->host_data.cr.push_back(mat->GetRestitution());
 }
 
 void ChSystemParallel::RemoveBody(ChSharedPtr<ChBody> mbody) {
@@ -328,10 +338,10 @@ void ChSystemParallelDEM::UpdateBodies() {
 	real *mass_pointer = gpu_data_manager->host_data.mass_data.data();
 	real3 *lim_pointer = gpu_data_manager->host_data.lim_data.data();
 
-	real2* kd_n = gpu_data_manager->host_data.kd_n.data();
-	real2* kd_t = gpu_data_manager->host_data.kd_t.data();
-	real2* mu   = gpu_data_manager->host_data.mu.data();
-	real*  cr   = gpu_data_manager->host_data.cr.data();
+	real2* elastic_moduli = gpu_data_manager->host_data.elastic_moduli.data();
+	real*  mu             = gpu_data_manager->host_data.mu.data();
+	real*  alpha          = gpu_data_manager->host_data.alpha.data();
+	real*  cr             = gpu_data_manager->host_data.cr.data();
 
 #pragma omp parallel for
 	for (int i = 0; i < bodylist.size(); i++) {
@@ -371,10 +381,14 @@ void ChSystemParallelDEM::UpdateBodies() {
 
 		ChSharedPtr<ChMaterialSurfaceDEM>& mat = ((ChBodyDEM*) bodylist[i])->GetMaterialSurfaceDEM();
 
-		kd_n[i] = R2(mat->GetNormalStiffness(), mat->GetNormalDamping());
-		kd_t[i] = R2(mat->GetTangentialStiffness(), mat->GetTangentialDamping());
-		mu[i]   = R2(mat->GetSfriction(), mat->GetKfriction());
-		cr[i]   = mat->GetRestitution();
+		elastic_moduli[i] = R2(mat->GetYoungModulus(), mat->GetPoissonRatio());
+		mu[i]             = mat->GetSfriction();
+		switch (normal_force_model) {
+		case ChContactDEM::HuntCrossley:
+			alpha[i] = mat->GetDissipationFactor();
+			break;
+		}
+		//cr[i]             = mat->GetRestitution();
 
 		bodylist[i]->GetCollisionModel()->SyncPosition();
 	}

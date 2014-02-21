@@ -24,6 +24,7 @@
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"
 #include "physics/ChBodyDEM.h"
+#include "physics/ChContactDEM.h"
 #include "physics/ChGlobal.h"
 #include "physics/ChContactContainer.h"
 #include "ChLcpSolverParallel.h"
@@ -114,12 +115,17 @@ class ChApiGPU ChSystemParallelDEM : public ChSystemParallel {
 	CH_RTTI(ChSystemParallelDEM, ChSystemParallel);
 
 public:
-	ChSystemParallelDEM(unsigned int max_objects = 1000);
+	ChSystemParallelDEM(unsigned int                       max_objects = 1000,
+	                    ChContactDEM::NormalForceModel     normal_model = ChContactDEM::HuntCrossley,
+	                    ChContactDEM::TangentialForceModel tangential_model = ChContactDEM::SimpleCoulombSliding);
 
 	virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
 	virtual void UpdateBodies();
 
 	virtual void ChangeCollisionSystem(ChCollisionSystem *newcollsystem);
+
+	ChContactDEM::NormalForceModel      normal_force_model;
+	ChContactDEM::TangentialForceModel  tangential_force_model;
 };
 
 
