@@ -439,6 +439,8 @@ void ChLcpSolverParallelDVI::RunWarmStartPreprocess() {
 
 }
 
+
+//// TODO:  For now, this is hard-coded for Hunt-Crossley with Simple Sliding Friction.
 __host__ __device__ 
 void function_CalcContactForces(
 	int& index,
@@ -447,9 +449,9 @@ void function_CalcContactForces(
 	real4* rot,
 	real3* vel,
 	real3* omg,
-	real2* kd_n,
-	real2* kd_t,
-	real2* mu,
+	real2* elastic_moduli,
+	real* mu,
+	real* alpha,
 	real* cr,
 	long long* pairs,
 	real3* pt1,
@@ -462,6 +464,8 @@ void function_CalcContactForces(
 {
 	// Identify the two bodies in contact
 	int2 pair = I2(int(pairs[index] >> 32), int(pairs[index] & 0xffffffff));
+	int body1 = pair.x;
+	int body2 = pair.y;
 
 	// If the two contact shapes are actually separated, set zero forces and torques
 	if (depth[index] >= 0) {
@@ -479,54 +483,59 @@ void function_CalcContactForces(
 	// ---------------------
 
 	// Express contact point locations in local frames
-	M33 rotmat1 = AMat(rot[pair.x]);
-	real3 pt1_loc = pos[pair.x] + MatTMult(rotmat1, pt1[index]);
+	M33 rotmat1 = AMat(rot[body1]);
+	real3 pt1_loc = pos[body1] + MatTMult(rotmat1, pt1[index]);
 
-	M33 rotmat2 = AMat(rot[pair.y]);
-	real3 pt2_loc = pos[pair.y] + MatTMult(rotmat2, pt2[index]);
+	M33 rotmat2 = AMat(rot[body2]);
+	real3 pt2_loc = pos[body2] + MatTMult(rotmat2, pt2[index]);
 
 	// Calculate relative velocity (in global frame)
-	real3 vel1 = vel[pair.x] + cross(omg[pair.x], pt1[index]);   //// TODO: check this
-	real3 vel2 = vel[pair.y] + cross(omg[pair.y], pt2[index]);   //// TODO: check this
+	real3 vel1 = vel[body1] + cross(omg[body1], pt1[index]);   //// TODO: check this
+	real3 vel2 = vel[body2] + cross(omg[body2], pt2[index]);   //// TODO: check this
 	real3 relvel = vel2 - vel1;
-	real3 relvel_n = dot(relvel, normal[index]) * normal[index];
+	real  relvel_n_mag = dot(relvel, normal[index]);
+	real3 relvel_n = relvel_n_mag * normal[index];
 	real3 relvel_t = relvel - relvel_n;
+	real  relvel_t_mag = length(relvel_t);
+
+	// Calculate composite material properties
+	// ---------------------------------------
+
+	// Effective contact radius
+	//// TODO:  I cannot get this with current collision system!!!
+	real R_eff = 1;
+
+	real Y1 = elastic_moduli[body1].x;
+	real Y2 = elastic_moduli[body2].x;
+	real nu1 = elastic_moduli[body1].y;
+	real nu2 = elastic_moduli[body2].y;
+	real inv_E = (1 - nu1 * nu1) / Y1 + (1 - nu2 * nu2) / Y2;
+	real inv_G = 2 * (2 + nu1) * (1 - nu1) / Y1 + 2 * (2 + nu2) * (1 - nu2) / Y2;
+
+	real E_eff = 1 / inv_E;
+	real G_eff = 1 / inv_G;
+
+	real mu_eff = min(mu[body1], mu[body2]);
+	//real cr_eff = (cr[body1] + cr[body2]) / 2;
+	real alpha_eff = (alpha[body1] + alpha[body2]) / 2;
 
 	// Contact force
 	// -------------
 
-	real3 force = ZERO_VECTOR;
+	// Normal force: Hunt-Crossley
+	real delta = -depth[index];
+	real kn = (4.0 / 3) * E_eff * sqrt(R_eff);
+	real forceN_elastic = kn * delta * sqrt(delta);
+	real forceN_dissipation = 1.5 * alpha_eff * forceN_elastic * relvel_n_mag;
+	real forceN = forceN_elastic - forceN_dissipation;
 
-	// Calculate composite material properties
-	real kn = (kd_n[pair.x].x + kd_n[pair.y].x) / 2;
-	real gn = (kd_n[pair.x].y + kd_n[pair.y].y) / 2;
-	real kt = (kd_t[pair.x].x + kd_t[pair.y].x) / 2;
-	real muS = (mu[pair.x].x + mu[pair.y].x) / 2;
+	real3 force = forceN * normal[index];
 
-	real sqrt_delta = sqrt(-depth[index]);
-	real sqrt_delta3 = sqrt_delta * sqrt_delta * sqrt_delta;
-
-	// Normal spring force
-	force -= kn * sqrt_delta3 * normal[index];
-
-	// Normal damping force
-	force += gn * sqrt_delta * relvel_n;
-
-	// Calculate magnitude of relative tangential velocity
-	real relvel_t_mag = length(relvel_t);
-
+	// Tangential force: Simple Coulomb Sliding
 	if (relvel_t_mag > 1e-4) {
-		// Calculate magnitude of tangential force
-		real slip = relvel_t_mag * dT;
-		real force_t_mag = kt * slip;
-
-		// Apply Coulomb friction law (limit tangential force)
-		real force_t_mag_max = muS * length(force);
-
-		if (force_t_mag < force_t_mag_max)
-			force_t_mag = force_t_mag_max;
-
-		force += (force_t_mag / relvel_t_mag) * relvel_t;
+		real forceT = mu_eff * abs(forceN);
+	
+		force -= (forceT / relvel_t_mag) * relvel_t;
 	}
 
 	// Body forces & torques
@@ -535,14 +544,14 @@ void function_CalcContactForces(
 	// Convert force into the local body frames and calculate induced torques
 	real3 force1_loc = MatTMult(rotmat1, force);
 	real3 force2_loc = MatTMult(rotmat2, force);
-	real3 torque1 = cross(pt1_loc,  force1_loc);
-	real3 torque2 = cross(pt2_loc, -force2_loc);
+	real3 torque1 = cross(pt1_loc, -force1_loc);
+	real3 torque2 = cross(pt2_loc,  force2_loc);
 
 	// Store body forces and torques
-	body_id[2*index] = pair.x;
-	body_id[2*index+1] = pair.y;
-	body_force[2*index] = force;
-	body_force[2*index+1] = -force;
+	body_id[2*index] = body1;
+	body_id[2*index+1] = body2;
+	body_force[2*index] = -force;
+	body_force[2*index+1] = force;
 	body_torque[2*index] = torque1;
 	body_torque[2*index+1] = torque2;
 }
@@ -558,9 +567,9 @@ void ChLcpSolverParallelDEM::host_CalcContactForces(int* body_id, real3* body_fo
 			data_container->host_data.rot_data.data(),
 			data_container->host_data.vel_data.data(),
 			data_container->host_data.omg_data.data(),
-			data_container->host_data.kd_n.data(),
-			data_container->host_data.kd_t.data(),
+			data_container->host_data.elastic_moduli.data(),
 			data_container->host_data.mu.data(),
+			data_container->host_data.alpha.data(),
 			data_container->host_data.cr.data(),
 			data_container->host_data.pair_rigid_rigid.data(),
 			data_container->host_data.cpta_rigid_rigid.data(),
@@ -586,7 +595,7 @@ void ChLcpSolverParallelDEM::ProcessContacts()
 {
 	// Calculate contact forces and torques - per contact basis
 	// --------------------------------------------------------
-	custom_vector<int> body_id(2 * data_container->number_of_rigid_rigid);
+	custom_vector<int>   body_id(2 * data_container->number_of_rigid_rigid);
 	custom_vector<real3> body_force(2 * data_container->number_of_rigid_rigid);
 	custom_vector<real3> body_torque(2 * data_container->number_of_rigid_rigid);
 
