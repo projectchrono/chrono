@@ -158,7 +158,7 @@ void ChContactContainerDEM::ReportAllContacts(ChReportContactCallback* mcallback
 	while(itercontact != contactlist.end()) {
 		bool proceed = mcallback->ReportContactCallback((*itercontact)->GetContactP1(),
 		                                                (*itercontact)->GetContactP2(),
-		                                                *(*itercontact)->GetContactPlane(),
+		                                                (*itercontact)->GetContactPlane(),
 		                                                (*itercontact)->GetContactPenetration(),
 		                                                0.0,
 		                                                (*itercontact)->GetContactForce(),

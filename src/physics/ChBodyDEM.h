@@ -22,10 +22,10 @@
 //   which interact through DEM approach.
 //
 //   HEADER file for CHRONO,
-//	 Multibody dynamics engine
+//   Multibody dynamics engine
 //
 // ------------------------------------------------
-//             www.deltaknowledge.com
+//             www.projectchrono.org
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 

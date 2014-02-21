@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
 	// Create a material (will be used by both objects)
 	ChSharedPtr<ChMaterialSurfaceDEM> material;
 	material = ChSharedPtr<ChMaterialSurfaceDEM>(new ChMaterialSurfaceDEM);
-	material->SetDissipation(0.1f);
+	material->SetDissipationFactor(0.1f);
 	material->SetFriction(0.4f);
 
 	// Create the falling ball

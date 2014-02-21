@@ -17,7 +17,7 @@
 //
 //   ChContactDEM.h
 //
-//   Classes for enforcing constraints between DEM bodies
+//   Class for DEM-based contact between bodies
 //
 //   HEADER file for CHRONO,
 //   Multibody dynamics engine
@@ -29,8 +29,6 @@
 
 
 #include "core/ChFrame.h"
-#include "lcp/ChLcpConstraintTwoContactN.h"
-#include "lcp/ChLcpSystemDescriptor.h"
 #include "collision/ChCCollisionInfo.h"
 #include "collision/ChCModelBulletBody.h"
 
@@ -38,23 +36,8 @@ namespace chrono
 {
 
 ///
-/// Structure with kinematic contact data
-///
-struct ChContactKinematicsDEM
-{
-	double            delta;           ///< penetration distance (negative if going inside) after refining
-	ChVector<>        p1;              ///< max penetration point on surf1, after refining, in abs frame
-	ChVector<>        p2;              ///< max penetration point on surf2, after refining, in abs frame
-	ChVector<>        normal;          ///< normal, on surface of master reference (surf1)
-	ChMatrix33<float> contact_plane;   ///< the plane of contact (X is normal direction)
-	ChVector<>        p1_loc;          ///< max. penetration point on surf1, in local frame
-	ChVector<>        p2_loc;          ///< max. penetration point on surf2, in local frame
-};
-
-///
 /// Class representing a contact between DEM bodies
 ///
-
 class ChApi ChContactDEM
 {
 public:
@@ -69,53 +52,57 @@ public:
 		LinearDampedSpring
 	};
 
-	/// Constructors
+	/// Constructors/destructor
 	ChContactDEM() {}
-
 	ChContactDEM(collision::ChModelBulletBody*     mod1,
 	             collision::ChModelBulletBody*     mod2,
 	             const collision::ChCollisionInfo& cinfo);
 
 	~ChContactDEM() {}
 
-	/// Reuse an existing contact
+	/// This is the worked function for calculating and recording a new
+	/// contact. It calculates and stores kinematic information and the
+	/// resulting contact force and is used to construct a new contact
+	//// or to reset an existing one for reuse.
 	void Reset(collision::ChModelBulletBody*     mod1,
 	           collision::ChModelBulletBody*     mod2,
 	           const collision::ChCollisionInfo& cinfo);
 
 	/// Get the contact coordinate system, expressed in absolute frame.
-	/// This represents the 'main' reference of the link: reaction forces 
-	/// are expressed in this coordinate system. Its origin is point P2.
-	/// (It is the coordinate system of the contact plane and normal)
-	ChCoordsys<> GetContactCoords();
+	/// This is the coordinate system of the contact plane and normal.
+	/// Its origin is at point P2.
+	ChCoordsys<> GetContactCoords() const;
 
-	/// Returns the pointer to a contained 3x3 matrix representing the UV and normal
-	/// directions of the contact. In detail, the X versor (the 1s column of the 
-	/// matrix) represents the direction of the contact normal.
-	ChMatrix33<float>* GetContactPlane() {return &m_kdata.contact_plane;}
+	/// Returns the pointer to a 3x3 matrix representing the normal and
+	/// tangential (UV) directions of the contact. In particular, the X
+	/// unit vector (first column of the matrix) represents the direction
+	/// of the contact normal.
+	const ChMatrix33<float>& GetContactPlane() const {return m_contact_plane;}
 
-	/// Get the contact point 1, in absolute coordinates
-	const ChVector<>& GetContactP1() const {return m_kdata.p1;}
+	/// Get the contact point 1, expressed in absolute coordinates.
+	const ChVector<>& GetContactP1() const {return m_p1;}
 
-	/// Get the contact point 2, in absolute coordinates
-	const ChVector<>& GetContactP2() const {return m_kdata.p2;}
+	/// Get the contact point 2, expressed in absolute coordinates.
+	const ChVector<>& GetContactP2() const {return m_p2;}
 
-	/// Get the contact normal, in absolute coordinates
-	const ChVector<>& GetContactNormal() const {return m_kdata.normal;}
+	/// Get the contact normal, expressed in absolute coordinates.
+	/// The contact normal points from P2 to P1.
+	const ChVector<>& GetContactNormal() const {return m_normal;}
 
-	/// Get the contact penetration
-	double GetContactPenetration() const {return m_kdata.delta;}
+	/// Get the contact penetration (positive if there is overlap).
+	double GetContactPenetration() const {return m_delta;}
 	
-	/// Get the contact force, if computed, in absolute coordinates
+	/// Get the contact force, expressed in absolute coordinates. This is
+	/// the force applied to body 2 (for body 1 it is inverted).
 	const ChVector<>& GetContactForce() const {return m_force;}
 
-	/// Get the collision model 1, with point P1
+	/// Get the collision model 1, with point P1.
 	collision::ChCollisionModel* GetModel1() {return (collision::ChCollisionModel*) m_mod1;}
 
-	/// Get the collision model 2, with point P2
+	/// Get the collision model 2, with point P2.
 	collision::ChCollisionModel* GetModel2() {return (collision::ChCollisionModel*) m_mod2;}
 
-	/// Calculate contact force
+	/// Calculate contact force, expressed in absolute coordinates.
 	void CalculateForce();
 
 	/// Apply contact forces to bodies.
@@ -131,28 +118,31 @@ public:
 	static void                 SetTangentialForceModel(TangentialForceModel model) {m_tangentialForceModel = model;}
 	static TangentialForceModel GetTangentialForceModel()                           {return m_tangentialForceModel;}
 
-	/// Slip velocity threshold
+	/// Slip velocity threshold. No tangential contact forces are generated
+	/// if the magnitude of the tangential relative velocity is below this.
 	static double m_minSlipVelocity;
 
 	static void SetSlipVelocitythreshold(double vel) {m_minSlipVelocity = vel;}
 
 private:
 
-	collision::ChModelBulletBody*  m_mod1;  ///< first contact model
-	collision::ChModelBulletBody*  m_mod2;  ///< second contact model
+	collision::ChModelBulletBody*  m_mod1;          ///< first contact model
+	collision::ChModelBulletBody*  m_mod2;          ///< second contact model
 
-	ChContactKinematicsDEM         m_kdata;  ///< contact kinematics data
+	double                         m_delta;         ///< penetration distance (positive if going inside)
+	ChVector<>                     m_p1;            ///< max penetration point on surf1, in abs frame
+	ChVector<>                     m_p2;            ///< max penetration point on surf2, in abs frame
+	ChVector<>                     m_normal;        ///< normal, on surface of master reference (surf1)
+	ChMatrix33<float>              m_contact_plane; ///< the plane of contact (X is normal direction)
+	ChVector<>                     m_p1_loc;        ///< max. penetration point on surf1, in local frame
+	ChVector<>                     m_p2_loc;        ///< max. penetration point on surf2, in local frame
 
-	ChVector<>                     m_force;  ///< contact force on body1
+	ChVector<>                     m_force;         ///< contact force on body2
 };
 
 
 
-
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-
 } // END_OF_NAMESPACE____
+
 
 #endif

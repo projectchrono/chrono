@@ -19,7 +19,7 @@
 //   Class for material surface data for DEM contact
 //
 //   HEADER file for CHRONO,
-//	 Multibody dynamics engine
+//   Multibody dynamics engine
 //
 // ------------------------------------------------
 //             www.projectchrono.org
@@ -40,11 +40,11 @@ class ChBodyDEM;
 
 struct ChCompositeMaterialDEM
 {
-	float young_modulus;
-	float shear_modulus;
-	float static_friction;
-	float restitution;
-	float dissipation;
+	float E_eff;                ///< Effective elasticity modulus
+	float G_eff;                ///< Effective shear modulus
+	float mu_eff;               ///< Effective coefficient of friction
+	float cr_eff;               ///< Effective coefficient of restitution
+	float alpha_eff;            ///< Effective dissipation factor (Hunt-Crossley)
 };
 
 
@@ -55,14 +55,14 @@ public:
 			// DATA
 			//
 
-	float young_modulus;
-	float poisson_ratio;
+	float young_modulus;         ///< Young's modulus (elastic modulus)
+	float poisson_ratio;         ///< Poisson ratio
 
-	float static_friction;
-	float sliding_friction;
+	float static_friction;       ///< Static coefficient of friction
+	float sliding_friction;      ///< Kinetic coefficient of friction
 
-	float restitution;
-	float dissipation;
+	float restitution;           ///< Coefficient of restitution
+	float dissipation_factor;    ///< Dissipation factor (Hunt-Crossley model)
 
 			//
 			// CONSTRUCTORS
@@ -74,7 +74,7 @@ public:
 		static_friction(0.6f),
 		sliding_friction(0.6f),
 		restitution(0.5f),
-		dissipation(0.1f)
+		dissipation_factor(0.1f)
 	{}
 
 	// Copy constructor
@@ -85,7 +85,7 @@ public:
 		static_friction = other.static_friction;
 		sliding_friction = other.sliding_friction;
 		restitution = other.restitution;
-		dissipation = other.dissipation;
+		dissipation_factor = other.dissipation_factor;
 	}
 
 	~ChMaterialSurfaceDEM() {}
@@ -116,9 +116,9 @@ public:
 	float GetRestitution() const     {return restitution;}
 	void  SetRestitution(float val)  {restitution = val;}
 
-	/// Dissipation coefficient (Hunt-Crossley model)
-	float GetDissipation() const     {return dissipation;}
-	void  SetDissipation(float val)  {dissipation = val;}
+	/// Dissipation factor (Hunt-Crossley model)
+	float GetDissipationFactor() const     {return dissipation_factor;}
+	void  SetDissipationFactor(float val)  {dissipation_factor = val;}
 
 	/// Calculate composite material properties
 	static ChCompositeMaterialDEM
@@ -152,7 +152,7 @@ public:
 		mstream << static_friction;
 		mstream << sliding_friction;
 		mstream << restitution;
-		mstream << dissipation;
+		mstream << dissipation_factor;
 	}
 
 	/// Operator to allow deserializing a persistent binary archive (ex: a file)
@@ -171,7 +171,7 @@ public:
 		mstream >> static_friction;
 		mstream >> sliding_friction;
 		mstream >> restitution;
-		mstream >> dissipation;
+		mstream >> dissipation_factor;
 	}
 
 };
