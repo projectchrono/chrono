@@ -755,7 +755,6 @@ void Update_ANCF_Beam(
 			R3CAST(ANCF_NodesH2), R3CAST(ANCF_SlopesH2), R3CAST(ANCF_NodesVelH2), R3CAST(ANCF_SlopesVelH2),
 			R3CAST(ANCF_NodesVelH), R3CAST(ANCF_SlopesVelH), R3CAST(ANCF_NodesAccH), R3CAST(ANCF_SlopesAccH),
 			I2CAST(ANCF_ReferenceArrayNodesOnBeamsH), BCAST(ANCF_IsCantileverH));
-#endif
 
 	//---------------------------------------------
 	thrust::copy(ANCF_NodesH2.begin(), ANCF_NodesH2.end(), ANCF_NodesD2.begin());
@@ -763,6 +762,8 @@ void Update_ANCF_Beam(
 	thrust::copy(ANCF_NodesVelH2.begin(), ANCF_NodesVelH2.end(), ANCF_NodesVelD2.begin());
 	thrust::copy(ANCF_SlopesVelH2.begin(), ANCF_SlopesVelH2.end(), ANCF_SlopesVelD2.begin());
 	//---------------------------------------------
+#endif
+
 
 	flex_NodesForcesD1.clear();
 	flex_NodesForcesD2.clear();
