@@ -358,11 +358,11 @@ __device__ __host__ inline void CopyElementNodesTo_e(Elem12 & e, const real3 * A
 }
 //------------------------------------------------------------------------------
 // Why -= and not += : because M*X2 + K*X = F Therefore, in an explicit method: M*X2 = F - K*X where K*X is our elastic forces (f)
-__device__ __host__ inline void Add_f_ToForces(real3 * flex_FSI_NodesForcesD1, real3 * flex_FSI_NodesForcesD2, real_ k, const Elem12 & f, int nodeIdx) {
-	flex_FSI_NodesForcesD1[nodeIdx		] += k * R3(f.e00, f.e01, f.e02);
-	flex_FSI_NodesForcesD2[nodeIdx		] += k * R3(f.e03, f.e04, f.e05);
-	flex_FSI_NodesForcesD1[nodeIdx + 1	] += k * R3(f.e06, f.e07, f.e08);
-	flex_FSI_NodesForcesD2[nodeIdx + 1	] += k * R3(f.e09, f.e10, f.e11);
+__device__ __host__ inline void Add_f_ToForces(real3 * flex_NodesForcesD1, real3 * flex_NodesForcesD2, real_ k, const Elem12 & f, int nodeIdx) {
+	flex_NodesForcesD1[nodeIdx		] += k * R3(f.e00, f.e01, f.e02);
+	flex_NodesForcesD2[nodeIdx		] += k * R3(f.e03, f.e04, f.e05);
+	flex_NodesForcesD1[nodeIdx + 1	] += k * R3(f.e06, f.e07, f.e08);
+	flex_NodesForcesD2[nodeIdx + 1	] += k * R3(f.e09, f.e10, f.e11);
 }
 ////------------------------------------------------------------------------------
 //__device__ __host__ inline void MapBeamDataTo_1D_Array(real_* e, const real3 * beamData1, const real3 * beamData2, int2 nodesPortion) { //beamData1: postion, beamData2: slope
@@ -382,8 +382,8 @@ __device__ __host__ inline void Add_f_ToForces(real3 * flex_FSI_NodesForcesD1, r
 
 //------------------------------------------------------------------------------
 __device__ __host__ inline void CalcElasticForcesKernel(
-		real3 * flex_FSI_NodesForcesD1,
-		real3 * flex_FSI_NodesForcesD2,
+		real3 * flex_NodesForcesD1,
+		real3 * flex_NodesForcesD2,
 		const real3 * ANCF_NodesD,
 		const real3 * ANCF_SlopesD,
 		const real3 * ANCF_NodesVelD,
@@ -427,13 +427,13 @@ __device__ __host__ inline void CalcElasticForcesKernel(
 		gravitational_force(f_g, lE, flexParams.rho, flexParams.A, flexParams.gravity);
 		SumElem12(f_e, f_g, -1);
 		// Add element forces to associated nodes
-		Add_f_ToForces(flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2, -1, f_e, nodeIdx);
+		Add_f_ToForces(flex_NodesForcesD1, flex_NodesForcesD2, -1, f_e, nodeIdx);
 	}
 }
 //------------------------------------------------------------------------------
 __GLOBAL__ void CalcElasticForcesD(
-		real3 * flex_FSI_NodesForcesD1,
-		real3 * flex_FSI_NodesForcesD2,
+		real3 * flex_NodesForcesD1,
+		real3 * flex_NodesForcesD2,
 		const real3 * ANCF_NodesD,
 		const real3 * ANCF_SlopesD,
 		const real3 * ANCF_NodesVelD,
@@ -449,7 +449,7 @@ __GLOBAL__ void CalcElasticForcesD(
 	for (int i = 0; i < numFlexBodiesD; i++) {
 #endif
 		CalcElasticForcesKernel(
-				flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2,
+				flex_NodesForcesD1, flex_NodesForcesD2,
 				ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
 				ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, flexParamsD, GQD, i);
 #if !flexGPU
@@ -461,8 +461,8 @@ __device__ __host__ inline void SolveForAccKernel(
 		real3 * ANCF_NodesAccD,
 		real3 * ANCF_SlopesAccD,
 
-		const real3 * flex_FSI_NodesForcesD1,
-		const real3 * flex_FSI_NodesForcesD2,
+		const real3 * flex_NodesForcesD1,
+		const real3 * flex_NodesForcesD2,
 
 		const int2 * ANCF_ReferenceArrayNodesOnBeamsD,
 		const real_ * ANCF_Beam_LengthD,
@@ -482,8 +482,8 @@ __device__ __host__ inline void SolveForAccKernel(
 	min_vec(
 			ANCF_NodesAccD,
 			ANCF_SlopesAccD,
-			flex_FSI_NodesForcesD1,
-			flex_FSI_NodesForcesD2,
+			flex_NodesForcesD1,
+			flex_NodesForcesD2,
 			mult,
 			lE,
 			nodesPortion,
@@ -494,8 +494,8 @@ __GLOBAL__ void SolveForAccD(
 		real3 * ANCF_NodesAccD,
 		real3 * ANCF_SlopesAccD,
 
-		const real3 * flex_FSI_NodesForcesD1,
-		const real3 * flex_FSI_NodesForcesD2,
+		const real3 * flex_NodesForcesD1,
+		const real3 * flex_NodesForcesD2,
 
 		const int2 * ANCF_ReferenceArrayNodesOnBeamsD,
 		const real_ * ANCF_Beam_LengthD,
@@ -510,7 +510,7 @@ __GLOBAL__ void SolveForAccD(
 #endif
 
 		SolveForAccKernel(ANCF_NodesAccD, ANCF_SlopesAccD,
-				flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2,
+				flex_NodesForcesD1, flex_NodesForcesD2,
 				ANCF_ReferenceArrayNodesOnBeamsD, ANCF_Beam_LengthD, ANCF_IsCantileverD, flexParamsD, i);
 
 #if !flexGPU
@@ -667,6 +667,9 @@ void Update_ANCF_Beam(
 		const ANCF_Params & flexParams,
 		real_ dT)
 {
+	thrust::device_vector<real3> flex_NodesForcesD1 = flex_FSI_NodesForcesD1;
+	thrust::device_vector<real3> flex_NodesForcesD2 = flex_FSI_NodesForcesD2;
+
 	thrust::host_vector<real3> ANCF_NodesH2 = ANCF_NodesD2;
 	thrust::host_vector<real3> ANCF_SlopesH2 = ANCF_SlopesD2;
 	thrust::host_vector<real3> ANCF_NodesVelH2 = ANCF_NodesVelD2;
@@ -677,14 +680,14 @@ void Update_ANCF_Beam(
 	thrust::host_vector<real3> ANCF_NodesVelH = ANCF_NodesVelD;
 	thrust::host_vector<real3> ANCF_SlopesVelH = ANCF_SlopesVelD;
 
-	thrust::host_vector<real3> flex_FSI_NodesForcesH1 = flex_FSI_NodesForcesD1;
-	thrust::host_vector<real3> flex_FSI_NodesForcesH2 = flex_FSI_NodesForcesD2;
+	thrust::host_vector<real3> flex_NodesForcesH1 = flex_FSI_NodesForcesD1;
+	thrust::host_vector<real3> flex_NodesForcesH2 = flex_FSI_NodesForcesD2;
 	thrust::host_vector<int2>  ANCF_ReferenceArrayNodesOnBeamsH = ANCF_ReferenceArrayNodesOnBeamsD;
 	thrust::host_vector<real_> ANCF_Beam_LengthH = ANCF_Beam_LengthD;
 	thrust::host_vector<bool> ANCF_IsCantileverH = ANCF_IsCantileverD;
 
 	//---------------------------------------------
-	int totalNumberOfFlexNodes = flex_FSI_NodesForcesD1.size();
+	int totalNumberOfFlexNodes = flex_NodesForcesD1.size();
 	thrust::device_vector<real3> ANCF_NodesAccD(totalNumberOfFlexNodes);
 	thrust::device_vector<real3> ANCF_SlopesAccD(totalNumberOfFlexNodes);
 	thrust::fill(ANCF_NodesAccD.begin(), ANCF_NodesAccD.end(), R3(0));
@@ -709,17 +712,16 @@ void Update_ANCF_Beam(
 	numFlexBodiesD = numFlexBodies;
 	GQD = GQ;
 #endif
+
 	//---------------------------------------------
 	//####### Calculate Forces
 	uint nBlock_FlexBodies;
 	uint nThreads_FlexBodies;
 	computeGridSize(numFlexBodies, 128, nBlock_FlexBodies, nThreads_FlexBodies);
 
-
-
 #if flexGPU
 	CalcElasticForcesD __KERNEL__(nBlock_FlexBodies, nThreads_FlexBodies)(
-			R3CAST(flex_FSI_NodesForcesD1), R3CAST(flex_FSI_NodesForcesD2),
+			R3CAST(flex_NodesForcesD1), R3CAST(flex_NodesForcesD2),
 			R3CAST(ANCF_NodesD), R3CAST(ANCF_SlopesD), R3CAST(ANCF_NodesVelD), R3CAST(ANCF_SlopesVelD),
 			I2CAST(ANCF_ReferenceArrayNodesOnBeamsD), R1CAST(ANCF_Beam_LengthD));
 	cudaThreadSynchronize();
@@ -727,7 +729,7 @@ void Update_ANCF_Beam(
 
 	SolveForAccD __KERNEL__(nBlock_FlexBodies, nThreads_FlexBodies)(
 			R3CAST(ANCF_NodesAccD), R3CAST(ANCF_SlopesAccD),
-			R3CAST(flex_FSI_NodesForcesD1), R3CAST(flex_FSI_NodesForcesD2),
+			R3CAST(flex_NodesForcesD1), R3CAST(flex_NodesForcesD2),
 			I2CAST(ANCF_ReferenceArrayNodesOnBeamsD), R1CAST(ANCF_Beam_LengthD), BCAST(ANCF_IsCantileverD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: SolveAndIntegrateInTime");
@@ -740,13 +742,13 @@ void Update_ANCF_Beam(
 	CUT_CHECK_ERROR("Kernel execution failed: IntegrateInTimeD");
 #else
 	CalcElasticForcesD(
-			R3CAST(flex_FSI_NodesForcesH1), R3CAST(flex_FSI_NodesForcesH2),
+			R3CAST(flex_NodesForcesH1), R3CAST(flex_NodesForcesH2),
 			R3CAST(ANCF_NodesH), R3CAST(ANCF_SlopesH), R3CAST(ANCF_NodesVelH), R3CAST(ANCF_SlopesVelH),
 			I2CAST(ANCF_ReferenceArrayNodesOnBeamsH), R1CAST(ANCF_Beam_LengthH));
 
 	SolveForAccD(
 			R3CAST(ANCF_NodesAccH), R3CAST(ANCF_SlopesAccH),
-			R3CAST(flex_FSI_NodesForcesH1), R3CAST(flex_FSI_NodesForcesH2),
+			R3CAST(flex_NodesForcesH1), R3CAST(flex_NodesForcesH2),
 			I2CAST(ANCF_ReferenceArrayNodesOnBeamsH), R1CAST(ANCF_Beam_LengthH), BCAST(ANCF_IsCantileverH));
 
 	IntegrateInTimeD(
@@ -762,6 +764,9 @@ void Update_ANCF_Beam(
 	thrust::copy(ANCF_SlopesVelH2.begin(), ANCF_SlopesVelH2.end(), ANCF_SlopesVelD2.begin());
 	//---------------------------------------------
 
+	flex_NodesForcesD1.clear();
+	flex_NodesForcesD2.clear();
+
 	ANCF_NodesH2.clear();
 	ANCF_SlopesH2.clear();
 	ANCF_NodesVelH2.clear();
@@ -772,8 +777,8 @@ void Update_ANCF_Beam(
 	ANCF_NodesVelH.clear();
 	ANCF_SlopesVelH.clear();
 
-	flex_FSI_NodesForcesH1.clear();
-	flex_FSI_NodesForcesH2.clear();
+	flex_NodesForcesH1.clear();
+	flex_NodesForcesH2.clear();
 	ANCF_ReferenceArrayNodesOnBeamsH.clear();
 	ANCF_Beam_LengthH.clear();
 	ANCF_IsCantileverH.clear();
