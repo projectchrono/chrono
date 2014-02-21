@@ -11,7 +11,7 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, const custom_vector<r
 	real beta_k1=0.0;
 	custom_vector<real> x_initial =x;
 
-	ml = x;
+	//ml = x;
 	Project(x);
 	ShurProduct(x,mg);
 	real norm_mb_tmp = 0;
@@ -115,7 +115,7 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, const custom_vector<r
 		t_k = 1.0 / L_k;
 
 		//ml = mx;
-		x = mx;
+		//x = mx;
 		theta_k = theta_k1;
 
 		//this is res1
@@ -141,11 +141,11 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, const custom_vector<r
 		//			cout<<"resolved "<<count_resolved<<endl;
 		//cout<<"MINVAL "<<g_proj_norm<<" "<<fmax(real(0.0),-min_val)<<endl;
 		//this is res4
-		if(current_iteration%5==0) {
-			real g_proj_norm = Res4(mg_tmp, b, x, mb_tmp);
+		//if(current_iteration%5==0) {
+			real g_proj_norm = Res4(mg_tmp, b, mx, mb_tmp);
 			if(g_proj_norm < lastgoodres) {
 				lastgoodres = g_proj_norm;
-				//ml_candidate = ml;
+				ml_candidate = mx;
 			}
 			residual=lastgoodres;
 			real maxdeltalambda = CompRes(b,number_of_rigid_rigid);     //NormInf(ms);
@@ -153,11 +153,11 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, const custom_vector<r
 			AtIterationEnd(residual, maxdeltalambda, current_iteration);
 			if(collision_inside) {
 				//cout<<"Performing collision update"<<endl;
-				UpdatePosition(x);
+				UpdatePosition(ml_candidate);
 				UpdateContacts();
 			}
 
-		}
+		//}
 
 		//custom_vector<real> error = (x_initial-x)/x;
 		//x_initial = x;
@@ -174,7 +174,7 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, const custom_vector<r
 		}
 	}
 //cout<<x<<endl;
-//x=ml_candidate;
+x=ml_candidate;
 	return current_iteration;
 }
 

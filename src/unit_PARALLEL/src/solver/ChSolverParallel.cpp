@@ -226,7 +226,6 @@ uint ChSolverParallel::SolveStab(custom_vector<real> &x, const custom_vector<rea
 	xMR = x;
 	norm_rMR = beta;
 	norm_r0 = beta;
-
 	if (beta == 0 || norm_rMR / norm_r0 < tolerance) {return 0;}
 
 	for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
@@ -261,9 +260,9 @@ uint ChSolverParallel::SolveStab(custom_vector<real> &x, const custom_vector<rea
 
 		if (residual < tolerance) {break;}
 	}
-
+	total_iteration +=current_iteration;
+	current_iteration = total_iteration;
 	return current_iteration;
-
 }
 
 //
