@@ -70,10 +70,10 @@ namespace chrono {
 			thrust::host_vector<real4> compliance_data;
 
 			// Material properties (DEM)
-			thrust::host_vector<real2> kd_n;
-			thrust::host_vector<real2> kd_t;
-			thrust::host_vector<real2> mu;
-			thrust::host_vector<real>  cr;
+			thrust::host_vector<real2> elastic_moduli;   // Young's modulus and Poisson ratio
+			thrust::host_vector<real>  mu;               // Coefficient of friction
+			thrust::host_vector<real>  alpha;            // Dissipation factor (Hunt-Crossley)
+			thrust::host_vector<real>  cr;               // Coefficient of restitution
 
 			thrust::host_vector<real> rhs_data;
 			thrust::host_vector<real> diag;
