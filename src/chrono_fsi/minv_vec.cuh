@@ -40,8 +40,8 @@ __device__ __host__ inline void minv_vec_fix_5(real3 * d2_1, real3 * d2_2, const
 __device__ __host__ inline void min_vec(
 		real3 * ANCF_NodesAccD,
 		real3 * ANCF_SlopesAccD,
-		const real3 * flex_FSI_NodesForcesD1,
-		const real3 * flex_FSI_NodesForcesD2,
+		const real3 * flex_NodesForcesD1,
+		const real3 * flex_NodesForcesD2,
 		real_ mult,
 		real_ lE,
 		const int2 & nodesPortion,
@@ -50,20 +50,20 @@ __device__ __host__ inline void min_vec(
 	int nE = nodesPortion.y - nodesPortion.x - 1;
 	if (isCantilever) {
 		switch(nE) {
-		case 1: minv_vec_weld_1(ANCF_NodesAccD, ANCF_SlopesAccD, flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2, mult, lE, nodesPortion); break;
-		case 2: minv_vec_weld_2(ANCF_NodesAccD, ANCF_SlopesAccD, flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2, mult, lE, nodesPortion); break;
-		case 3: minv_vec_weld_3(ANCF_NodesAccD, ANCF_SlopesAccD, flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2, mult, lE, nodesPortion); break;
-		case 4: minv_vec_weld_4(ANCF_NodesAccD, ANCF_SlopesAccD, flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2, mult, lE, nodesPortion); break;
-		case 5: minv_vec_weld_5(ANCF_NodesAccD, ANCF_SlopesAccD, flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2, mult, lE, nodesPortion); break;
+		case 1: minv_vec_weld_1(ANCF_NodesAccD, ANCF_SlopesAccD, flex_NodesForcesD1, flex_NodesForcesD2, mult, lE, nodesPortion); break;
+		case 2: minv_vec_weld_2(ANCF_NodesAccD, ANCF_SlopesAccD, flex_NodesForcesD1, flex_NodesForcesD2, mult, lE, nodesPortion); break;
+		case 3: minv_vec_weld_3(ANCF_NodesAccD, ANCF_SlopesAccD, flex_NodesForcesD1, flex_NodesForcesD2, mult, lE, nodesPortion); break;
+		case 4: minv_vec_weld_4(ANCF_NodesAccD, ANCF_SlopesAccD, flex_NodesForcesD1, flex_NodesForcesD2, mult, lE, nodesPortion); break;
+		case 5: minv_vec_weld_5(ANCF_NodesAccD, ANCF_SlopesAccD, flex_NodesForcesD1, flex_NodesForcesD2, mult, lE, nodesPortion); break;
 		default: printf("Error!!: Number of beam elements equal to %d is not supported. Code exits!\n"); break;
 		}
 	} else {
 		switch(nE) {
-		case 1: minv_vec_1(ANCF_NodesAccD, ANCF_SlopesAccD, flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2, mult, lE, nodesPortion); break;
-		case 2: minv_vec_2(ANCF_NodesAccD, ANCF_SlopesAccD, flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2, mult, lE, nodesPortion); break;
-		case 3: minv_vec_3(ANCF_NodesAccD, ANCF_SlopesAccD, flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2, mult, lE, nodesPortion); break;
-		case 4: minv_vec_4(ANCF_NodesAccD, ANCF_SlopesAccD, flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2, mult, lE, nodesPortion); break;
-		case 5: minv_vec_5(ANCF_NodesAccD, ANCF_SlopesAccD, flex_FSI_NodesForcesD1, flex_FSI_NodesForcesD2, mult, lE, nodesPortion); break;
+		case 1: minv_vec_1(ANCF_NodesAccD, ANCF_SlopesAccD, flex_NodesForcesD1, flex_NodesForcesD2, mult, lE, nodesPortion); break;
+		case 2: minv_vec_2(ANCF_NodesAccD, ANCF_SlopesAccD, flex_NodesForcesD1, flex_NodesForcesD2, mult, lE, nodesPortion); break;
+		case 3: minv_vec_3(ANCF_NodesAccD, ANCF_SlopesAccD, flex_NodesForcesD1, flex_NodesForcesD2, mult, lE, nodesPortion); break;
+		case 4: minv_vec_4(ANCF_NodesAccD, ANCF_SlopesAccD, flex_NodesForcesD1, flex_NodesForcesD2, mult, lE, nodesPortion); break;
+		case 5: minv_vec_5(ANCF_NodesAccD, ANCF_SlopesAccD, flex_NodesForcesD1, flex_NodesForcesD2, mult, lE, nodesPortion); break;
 		default: printf("Error!!: Number of beam elements equal to %d is not supported. Code exits!\n"); break;
 		}
 	}
