@@ -670,21 +670,6 @@ void Update_ANCF_Beam(
 	thrust::device_vector<real3> flex_NodesForcesD1 = flex_FSI_NodesForcesD1;
 	thrust::device_vector<real3> flex_NodesForcesD2 = flex_FSI_NodesForcesD2;
 
-	thrust::host_vector<real3> ANCF_NodesH2 = ANCF_NodesD2;
-	thrust::host_vector<real3> ANCF_SlopesH2 = ANCF_SlopesD2;
-	thrust::host_vector<real3> ANCF_NodesVelH2 = ANCF_NodesVelD2;
-	thrust::host_vector<real3> ANCF_SlopesVelH2 = ANCF_SlopesVelD2;
-
-	thrust::host_vector<real3> ANCF_NodesH = ANCF_NodesD;
-	thrust::host_vector<real3> ANCF_SlopesH = ANCF_SlopesD;
-	thrust::host_vector<real3> ANCF_NodesVelH = ANCF_NodesVelD;
-	thrust::host_vector<real3> ANCF_SlopesVelH = ANCF_SlopesVelD;
-
-	thrust::host_vector<real3> flex_NodesForcesH1 = flex_FSI_NodesForcesD1;
-	thrust::host_vector<real3> flex_NodesForcesH2 = flex_FSI_NodesForcesD2;
-	thrust::host_vector<int2>  ANCF_ReferenceArrayNodesOnBeamsH = ANCF_ReferenceArrayNodesOnBeamsD;
-	thrust::host_vector<real_> ANCF_Beam_LengthH = ANCF_Beam_LengthD;
-	thrust::host_vector<bool> ANCF_IsCantileverH = ANCF_IsCantileverD;
 
 	//---------------------------------------------
 	int totalNumberOfFlexNodes = flex_NodesForcesD1.size();
@@ -692,10 +677,6 @@ void Update_ANCF_Beam(
 	thrust::device_vector<real3> ANCF_SlopesAccD(totalNumberOfFlexNodes);
 	thrust::fill(ANCF_NodesAccD.begin(), ANCF_NodesAccD.end(), R3(0));
 	thrust::fill(ANCF_SlopesAccD.begin(), ANCF_SlopesAccD.end(), R3(0));
-	thrust::host_vector<real3> ANCF_NodesAccH(totalNumberOfFlexNodes);
-	thrust::host_vector<real3> ANCF_SlopesAccH(totalNumberOfFlexNodes);
-	thrust::copy(ANCF_NodesAccD.begin(), ANCF_NodesAccD.end(),ANCF_NodesAccH.begin());
-	thrust::copy(ANCF_SlopesAccD.begin(), ANCF_SlopesAccD.end(),ANCF_SlopesAccH.begin());
 	//---------------------------------------------
 	GaussQuadrature GQ;
 	IntitializeGaussQuadrature(GQ);
@@ -741,6 +722,25 @@ void Update_ANCF_Beam(
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: IntegrateInTimeD");
 #else
+	thrust::host_vector<real3> ANCF_NodesH2 = ANCF_NodesD2;
+	thrust::host_vector<real3> ANCF_SlopesH2 = ANCF_SlopesD2;
+	thrust::host_vector<real3> ANCF_NodesVelH2 = ANCF_NodesVelD2;
+	thrust::host_vector<real3> ANCF_SlopesVelH2 = ANCF_SlopesVelD2;
+
+	thrust::host_vector<real3> ANCF_NodesH = ANCF_NodesD;
+	thrust::host_vector<real3> ANCF_SlopesH = ANCF_SlopesD;
+	thrust::host_vector<real3> ANCF_NodesVelH = ANCF_NodesVelD;
+	thrust::host_vector<real3> ANCF_SlopesVelH = ANCF_SlopesVelD;
+
+	thrust::host_vector<real3> flex_NodesForcesH1 = flex_FSI_NodesForcesD1;
+	thrust::host_vector<real3> flex_NodesForcesH2 = flex_FSI_NodesForcesD2;
+	thrust::host_vector<int2>  ANCF_ReferenceArrayNodesOnBeamsH = ANCF_ReferenceArrayNodesOnBeamsD;
+	thrust::host_vector<real_> ANCF_Beam_LengthH = ANCF_Beam_LengthD;
+	thrust::host_vector<bool> ANCF_IsCantileverH = ANCF_IsCantileverD;
+
+	thrust::host_vector<real3> ANCF_NodesAccH = ANCF_NodesAccD;
+	thrust::host_vector<real3> ANCF_SlopesAccH = ANCF_SlopesAccD;
+	//------------------ CPU code should work on CPU data
 	CalcElasticForcesD(
 			R3CAST(flex_NodesForcesH1), R3CAST(flex_NodesForcesH2),
 			R3CAST(ANCF_NodesH), R3CAST(ANCF_SlopesH), R3CAST(ANCF_NodesVelH), R3CAST(ANCF_SlopesVelH),
@@ -762,12 +762,7 @@ void Update_ANCF_Beam(
 	thrust::copy(ANCF_NodesVelH2.begin(), ANCF_NodesVelH2.end(), ANCF_NodesVelD2.begin());
 	thrust::copy(ANCF_SlopesVelH2.begin(), ANCF_SlopesVelH2.end(), ANCF_SlopesVelD2.begin());
 	//---------------------------------------------
-#endif
-
-
-	flex_NodesForcesD1.clear();
-	flex_NodesForcesD2.clear();
-
+	//------------------ CPU code should work on CPU data
 	ANCF_NodesH2.clear();
 	ANCF_SlopesH2.clear();
 	ANCF_NodesVelH2.clear();
@@ -784,9 +779,15 @@ void Update_ANCF_Beam(
 	ANCF_Beam_LengthH.clear();
 	ANCF_IsCantileverH.clear();
 
-	ANCF_NodesAccD.clear();
-	ANCF_SlopesAccD.clear();
 	ANCF_NodesAccH.clear();
 	ANCF_SlopesAccH.clear();
+#endif
+
+
+	flex_NodesForcesD1.clear();
+	flex_NodesForcesD2.clear();
+
+	ANCF_NodesAccD.clear();
+	ANCF_SlopesAccD.clear();
 
 }
