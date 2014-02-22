@@ -27,8 +27,9 @@ uint ChSolverParallel::SolveCG(custom_vector<real> &x, const custom_vector<real>
         #pragma omp parallel for reduction(+:rsnew)
         for (int i = 0; i < x.size(); i++) {
             x[i] = x[i] + alpha * p[i];
-            r[i] = r[i] - alpha * Ap[i];
-            rsnew += r[i] * r[i];
+            real _r = r[i] - alpha * Ap[i];
+            r[i] = _r;
+            rsnew += _r*_r;
         }
 #endif
         residual = sqrt(rsnew) * normb;

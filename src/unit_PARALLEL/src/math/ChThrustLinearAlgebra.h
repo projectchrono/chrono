@@ -134,9 +134,9 @@ static void Sub(custom_vector<real> &ans, const custom_vector<real> &x, const cu
 #else
 
 #pragma omp parallel for
-		for(int i=0; i<x.size(); i++) {
-			ans[i] = x[i]-y[i];
-		}
+	for(int i=0; i<x.size(); i++) {
+		ans[i] = x[i]-y[i];
+	}
 #endif
 
 }
@@ -264,6 +264,16 @@ static custom_vector<real> Abs(const custom_vector<real> &x)
 	thrust::transform(thrust::omp::par,x.begin(), x.end(),temp.begin() , abs_functor());
 	return temp;
 
+}
+
+static custom_vector<real> max(const real a, const custom_vector<real> &x)
+{
+	custom_vector<real> temp(x.size());
+#pragma omp parallel for
+	for(int i=0; i<x.size(); i++) {
+		temp[i] = max(a,x[i]);
+	}
+	return temp;
 }
 
 template<typename T>
@@ -430,14 +440,11 @@ static summary_stats_data<real> Statistics(const custom_vector<real> &x)
 
 // Binary operation for adding two-object tuples
 struct sum_tuples {
-	template <typename Tuple> 
-	__host__ __device__
-	Tuple operator()(const Tuple& a, const Tuple& b) const
-	{
-		return Tuple(thrust::get<0>(a) + thrust::get<0>(b),
-		             thrust::get<1>(a) + thrust::get<1>(b));
-	}
+		template<typename Tuple>
+		__host__ __device__
+		Tuple operator()(const Tuple& a, const Tuple& b) const {
+			return Tuple(thrust::get<0>(a) + thrust::get<0>(b), thrust::get<1>(a) + thrust::get<1>(b));
+		}
 };
-
 
 #endif

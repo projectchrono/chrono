@@ -62,6 +62,7 @@ namespace chrono {
 		uint SolveMinRes(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 		uint SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 		uint SolveAPGDRS(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
+		uint SolveFN(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 		void SolveJacobi();
 
 		void InitAPGD(custom_vector<real> &x);
@@ -175,7 +176,7 @@ namespace chrono {
 			custom_vector<real> lm;
 
 			custom_vector<real> ms, mg_tmp2, mb_tmp,mg_tmp, mg_tmp1;
-			custom_vector<real> mg,ml, mx, my;
+			custom_vector<real> mg,ml, mx, my,ml_candidate;
 
 			real init_theta_k;
 			real step_shrink;
