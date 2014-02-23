@@ -13,11 +13,11 @@ void ChSolverParallel::Project(custom_vector<real> & gamma) {
 //=================================================================================================================================
 
 void ChSolverParallel::shurA(custom_vector<real> &x) {
-#pragma omp parallel for
-	for (int i = 0; i < number_of_rigid; i++) {
-		data_container->host_data.QXYZ_data[i] = R3(0);
-		data_container->host_data.QUVW_data[i] = R3(0);
-	}
+//#pragma omp parallel for
+//	for (int i = 0; i < number_of_rigid; i++) {
+//		data_container->host_data.QXYZ_data[i] = R3(0);
+//		data_container->host_data.QUVW_data[i] = R3(0);
+//	}
 	rigid_rigid->ShurA(x);
 	bilateral->ShurA(x);
 
@@ -32,9 +32,14 @@ void ChSolverParallel::ShurProduct(custom_vector<real> &x, custom_vector<real> &
 	timer_shurcompliment.start();
 	//Thrust_Fill(output, 0);
 	shurA(x);
+	timer_shurcompliment.stop();
+	time_shurcompliment +=timer_shurcompliment();
+
+	timer_shurcompliment.start();
 	shurB(x,output);
 	timer_shurcompliment.stop();
 	time_shurcompliment +=timer_shurcompliment();
+
 }
 //=================================================================================================================================
 void ChSolverParallel::ShurBilaterals(custom_vector<real> &x_t, custom_vector<real> & AX) {
