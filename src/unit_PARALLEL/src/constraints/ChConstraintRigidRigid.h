@@ -53,9 +53,9 @@ namespace chrono {
 		void UpdateJacobians();
 
 		void host_shurA_normal(
-		int2 *ids, bool *active, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO, uint* offset);
+		int2 *ids, bool *active, real3* norm, real3* ptA, real3* ptB, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO, uint* offset);
 		void host_shurA_sliding(
-		int2 *ids, bool *active, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO, uint* offset);
+		int2 *ids, bool *active, real3* norm, real3* ptA, real3* ptB, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO, uint* offset);
 		void host_shurA_spinning(
 		int2 *ids, bool *active, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO, uint* offset);
 		void host_shurB_normal(
@@ -83,6 +83,8 @@ namespace chrono {
 
 		void ShurA(custom_vector<real> &x);
 		void ShurB(custom_vector<real> &x, custom_vector<real> & output);
+
+		void Build_N();
 
 		bool solve_sliding;
 		bool solve_spinning;
