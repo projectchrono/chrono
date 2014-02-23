@@ -494,28 +494,22 @@ void ChConstraintRigidRigid::UpdateJacobians() {
 
 void ChConstraintRigidRigid::host_shurA_normal(int2 *ids, bool *active, real3* norm, real3* ptA, real3* ptB, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV,
 		real3 *updateO, uint* offset) {
-#pragma omp parallel for
+#pragma omp parallel for schedule(static)
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		real gam;
 		gam = gamma[index + number_of_rigid_rigid * 0];
 
-		int offset1 = offset[index];
-		int offset2 = offset[index + number_of_rigid_rigid];
-
 		real3 U = norm[index];
-//		if (U == R3(0, 0, 0)) {
-//			U = R3(1, 0, 0);
-//		} else {
-//			U = normalize(U);
-//		}
 
 		uint b1 = ids[index].x;
 		if (active[b1] != 0) {
+			int offset1 = offset[index];
 			updateV[offset1] = -U * gam;
 			updateO[offset1] = JUVWA[index + number_of_rigid_rigid * 0] * gam;
 		}
 		uint b2 = ids[index].y;
 		if (active[b2] != 0) {
+			int offset2 = offset[index + number_of_rigid_rigid];
 			updateV[offset2] = U * gam;
 			updateO[offset2] = JUVWB[index + number_of_rigid_rigid * 0] * gam;
 		}
@@ -524,15 +518,12 @@ void ChConstraintRigidRigid::host_shurA_normal(int2 *ids, bool *active, real3* n
 
 void ChConstraintRigidRigid::host_shurA_sliding(int2 *ids, bool *active, real3* norm, real3* ptA, real3* ptB, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV,
 		real3 *updateO, uint* offset) {
-#pragma omp parallel for
+#pragma omp parallel for schedule(static)
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		real3 gam;
 		gam.x = gamma[index + number_of_rigid_rigid * 0];
 		gam.y = gamma[index + number_of_rigid_rigid * 1];
 		gam.z = gamma[index + number_of_rigid_rigid * 2];
-
-		int offset1 = offset[index];
-		int offset2 = offset[index + number_of_rigid_rigid];
 
 		real3 U = norm[index], V, W;
 		Orthogonalize(U, V, W);
@@ -541,12 +532,13 @@ void ChConstraintRigidRigid::host_shurA_sliding(int2 *ids, bool *active, real3* 
 		//read 21
 		uint b1 = ids[index].x;
 		if (active[b1] != 0) {
+			int offset1 = offset[index];
 			updateV[offset1] = -U * gam.x - V * gam.y - W * gam.z;
 			updateO[offset1] = JUVWA[index + number_of_rigid_rigid * 0] * gam.x + JUVWA[index + number_of_rigid_rigid * 1] * gam.y + JUVWA[index + number_of_rigid_rigid * 2] * gam.z;
 		}
 		uint b2 = ids[index].y;
 		if (active[b2] != 0) {
-
+			int offset2 = offset[index + number_of_rigid_rigid];
 			updateV[offset2] = U * gam.x + V * gam.y + W * gam.z;
 			updateO[offset2] = JUVWB[index + number_of_rigid_rigid * 0] * gam.x + JUVWB[index + number_of_rigid_rigid * 1] * gam.y + JUVWB[index + number_of_rigid_rigid * 2] * gam.z;
 
@@ -556,7 +548,7 @@ void ChConstraintRigidRigid::host_shurA_sliding(int2 *ids, bool *active, real3* 
 
 void ChConstraintRigidRigid::host_shurA_spinning(int2 *ids, bool *active, real3* norm, real3* ptA, real3* ptB, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV,
 		real3 *updateO, uint* offset) {
-#pragma omp parallel for
+#pragma omp parallel for schedule(static)
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		real3 gam, gam_roll;
 		gam.x = gamma[index + number_of_rigid_rigid * 0];
@@ -571,15 +563,17 @@ void ChConstraintRigidRigid::host_shurA_spinning(int2 *ids, bool *active, real3*
 		real3 U = norm[index], V, W;
 		Orthogonalize(U, V, W);
 
-		int offset1 = offset[index];
-		int offset2 = offset[index + number_of_rigid_rigid];
+
+
 		if (active[b1] != 0) {
+			int offset1 = offset[index];
 			updateV[offset1] = -U * gam.x - V * gam.y - W * gam.z;
 			updateO[offset1] = JUVWA[index + number_of_rigid_rigid * 0] * gam.x + JUVWA[index + number_of_rigid_rigid * 1] * gam.y + JUVWA[index + number_of_rigid_rigid * 2] * gam.z
 					+ JUVWA[index + number_of_rigid_rigid * 3] * gam_roll.x + JUVWA[index + number_of_rigid_rigid * 4] * gam_roll.y + JUVWA[index + number_of_rigid_rigid * 5] * gam_roll.z;
 		}
 		uint b2 = ids[index].y;
 		if (active[b2] != 0) {
+			int offset2 = offset[index + number_of_rigid_rigid];
 			updateV[offset2] = U * gam.x + V * gam.y + W * gam.z;
 			updateO[offset2] = JUVWB[index + number_of_rigid_rigid * 0] * gam.x + JUVWB[index + number_of_rigid_rigid * 1] * gam.y + JUVWB[index + number_of_rigid_rigid * 2] * gam.z
 					+ JUVWB[index + number_of_rigid_rigid * 3] * gam_roll.x + JUVWB[index + number_of_rigid_rigid * 4] * gam_roll.y + JUVWB[index + number_of_rigid_rigid * 5] * gam_roll.z;
