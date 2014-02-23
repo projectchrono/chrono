@@ -69,6 +69,7 @@ SET(ChronoEngine_Parallel_SOLVER
     src/solver/ChSolverCGS.cpp
     src/solver/ChSolverGD.cpp
     src/solver/ChSolverSD.cpp
+    src/solver/ChSolverFN.cpp
     src/solver/ChSolverAPGD.cpp
     src/solver/ChSolverAPGDRS.cpp
     src/solver/ChSolverMinRes.cpp
