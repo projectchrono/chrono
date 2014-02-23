@@ -19,6 +19,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
+#include <algorithm>
 
 #include "physics/ChMaterialSurfaceDEM.h"
 #include "physics/ChSystem.h"

@@ -19,6 +19,8 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
+#include <cmath>
+#include <algorithm>
 
 #include "physics/ChContactDEM.h"
 #include "physics/ChSystem.h"
