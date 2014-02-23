@@ -49,7 +49,7 @@ static void SEAXPY(const real &a, const custom_vector<real> &x,const custom_vect
 #ifdef SIM_ENABLE_GPU_MODE
 	thrust::transform(x.begin(), x.end(), y.begin(), output.begin(), saxpy_functor(a));
 #else
-#pragma omp parallel for
+#pragma omp parallel for schedule(static, 1000)
 	for(int i=0; i<output.size(); i++) {
 		output[i] = a*x[i]+y[i];
 	}
@@ -61,7 +61,7 @@ static void SEAXMY(const real &a, const custom_vector<real> &x,const custom_vect
 #ifdef SIM_ENABLE_GPU_MODE
 	thrust::transform(x.begin(), x.end(), y.begin(), output.begin(), saxmy_functor(a));
 #else
-#pragma omp parallel for
+#pragma omp parallel for schedule(static, 1000)
 	for(int i=0; i<output.size(); i++) {
 		output[i] = a*x[i]-y[i];
 	}
@@ -97,7 +97,7 @@ static void PLUS_EQ(custom_vector<real> &x, const custom_vector<real> &y)
 	thrust::plus<real3> op;
 	thrust::transform(x.begin(), x.end(), y.begin(), x.begin(), op);
 #else
-#pragma omp parallel for
+#pragma omp parallel for schedule(static, 1000)
 	for(int i=0; i<x.size(); i++) {
 		x[i] = x[i]+y[i];
 	}
@@ -115,7 +115,7 @@ static custom_vector<real> operator -(const custom_vector<real> &x, const custom
 
 #else
 
-#pragma omp parallel for
+#pragma omp parallel for schedule(static, 1000)
 	for(int i=0; i<x.size(); i++) {
 		temp[i] = x[i]-y[i];
 	}
@@ -133,7 +133,7 @@ static void Sub(custom_vector<real> &ans, const custom_vector<real> &x, const cu
 
 #else
 
-#pragma omp parallel for
+#pragma omp parallel for schedule(static, 1000)
 	for(int i=0; i<x.size(); i++) {
 		ans[i] = x[i]-y[i];
 	}
@@ -149,7 +149,7 @@ static custom_vector<real> operator *(const real &x, const custom_vector<real> &
 	thrust::transform(y.begin(), y.end(), thrust::make_constant_iterator(x), temp.begin(), op);
 #else
 
-#pragma omp parallel for
+#pragma omp parallel for schedule(static, 1000)
 	for(int i=0; i<y.size(); i++) {
 		temp[i] = x*y[i];
 	}
@@ -165,7 +165,7 @@ static custom_vector<real> operator *(const custom_vector<real> &y, const real &
 	thrust::transform(y.begin(), y.end(), thrust::make_constant_iterator(x), temp.begin(), op);
 #else
 
-#pragma omp parallel for
+#pragma omp parallel for schedule(static, 1000)
 	for(int i=0; i<y.size(); i++) {
 		temp[i] = x*y[i];
 	}
@@ -182,7 +182,7 @@ static custom_vector<real> operator *(const custom_vector<real> &x, const custom
 	thrust::transform(x.begin(), x.end(), y.begin(), temp.begin(), op);
 #else
 
-#pragma omp parallel for
+#pragma omp parallel for schedule(static, 1000)
 	for(int i=0; i<x.size(); i++) {
 		temp[i] = x[i]*y[i];
 	}
@@ -194,7 +194,7 @@ static custom_vector<real> operator *(const custom_vector<real> &x, const custom
 static custom_vector<real3> operator *(const real &x, const custom_vector<real3> &y)
 {
 	custom_vector<real3> temp(y.size());
-#pragma omp parallel for
+#pragma omp parallel for schedule(static, 1000)
 	for(int i=0; i<y.size(); i++) {
 		temp[i] = x*y[i];
 	}
@@ -241,7 +241,7 @@ static real Dot(const custom_vector<real> &x, const custom_vector<real> &y)
 #else
 	real sum=0;
 
-#pragma omp parallel for reduction(+:sum)
+#pragma omp parallel for reduction(+:sum) schedule(static, 1000)
 	for(int i=0; i<x.size(); i++) {
 		sum+=x[i]*y[i];
 	}
@@ -269,7 +269,7 @@ static custom_vector<real> Abs(const custom_vector<real> &x)
 static custom_vector<real> max(const real a, const custom_vector<real> &x)
 {
 	custom_vector<real> temp(x.size());
-#pragma omp parallel for
+#pragma omp parallel for schedule(static, 1000)
 	for(int i=0; i<x.size(); i++) {
 		temp[i] = max(a,x[i]);
 	}
@@ -295,7 +295,7 @@ static real Norm(const custom_vector<real> &x)
 #else
 	real sum=0;
 
-#pragma omp parallel for reduction(+:sum)
+#pragma omp parallel for reduction(+:sum) schedule(static, 1000)
 	for(int i=0; i<x.size(); i++) {
 		real _x = x[i];
 		sum+=_x*_x;

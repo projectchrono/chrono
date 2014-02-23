@@ -494,7 +494,7 @@ void ChConstraintRigidRigid::UpdateJacobians() {
 
 void ChConstraintRigidRigid::host_shurA_normal(int2 *ids, bool *active, real3* norm, real3* ptA, real3* ptB, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV,
 		real3 *updateO, uint* offset) {
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for schedule(static, 1000)
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		real gam;
 		gam = gamma[index + number_of_rigid_rigid * 0];
@@ -518,7 +518,7 @@ void ChConstraintRigidRigid::host_shurA_normal(int2 *ids, bool *active, real3* n
 
 void ChConstraintRigidRigid::host_shurA_sliding(int2 *ids, bool *active, real3* norm, real3* ptA, real3* ptB, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV,
 		real3 *updateO, uint* offset) {
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for schedule(static, 1000)
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		real3 gam;
 		gam.x = gamma[index + number_of_rigid_rigid * 0];
@@ -548,7 +548,7 @@ void ChConstraintRigidRigid::host_shurA_sliding(int2 *ids, bool *active, real3* 
 
 void ChConstraintRigidRigid::host_shurA_spinning(int2 *ids, bool *active, real3* norm, real3* ptA, real3* ptB, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV,
 		real3 *updateO, uint* offset) {
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for schedule(static, 1000)
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		real3 gam, gam_roll;
 		gam.x = gamma[index + number_of_rigid_rigid * 0];
