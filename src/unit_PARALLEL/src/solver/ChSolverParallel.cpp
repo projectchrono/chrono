@@ -32,9 +32,14 @@ void ChSolverParallel::ShurProduct(custom_vector<real> &x, custom_vector<real> &
 	timer_shurcompliment.start();
 	//Thrust_Fill(output, 0);
 	shurA(x);
+	timer_shurcompliment.stop();
+	time_shurcompliment +=timer_shurcompliment();
+
+	timer_shurcompliment.start();
 	shurB(x,output);
 	timer_shurcompliment.stop();
 	time_shurcompliment +=timer_shurcompliment();
+
 }
 //=================================================================================================================================
 void ChSolverParallel::ShurBilaterals(custom_vector<real> &x_t, custom_vector<real> & AX) {

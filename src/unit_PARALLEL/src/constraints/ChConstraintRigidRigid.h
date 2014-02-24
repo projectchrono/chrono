@@ -42,8 +42,8 @@ namespace chrono {
 			void host_Project(int2 *ids, real3 *friction, real* cohesion, real *gamma);
 			void Project(custom_vector<real> & gamma);
 
-		void host_RHS(int2 *ids, real *correction, real4 * compliance, bool * active, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs);
-		void host_RHS_spinning(int2 *ids, real *correction, real4 * compliance, bool * active, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs);
+		void host_RHS(int2 *ids, real *correction, real4 * compliance, bool * active, real3* norm, real3* ptA, real3* ptB,real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs);
+		void host_RHS_spinning(int2 *ids, real *correction, real4 * compliance, bool * active, real3* norm, real3* ptA, real3* ptB,real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs);
 		void ComputeRHS();
 		void UpdateRHS();
 		void host_Jacobians(real3* norm, real3* ptA, real3* ptB, int2* ids, real4* rot, real3* pos, real3* JXYZA, real3* JXYZB, real3* JUVWA, real3* JUVWB);
@@ -53,17 +53,17 @@ namespace chrono {
 		void UpdateJacobians();
 
 		void host_shurA_normal(
-		int2 *ids, bool *active, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO, uint* offset);
+		int2 *ids, bool *active, real3* norm, real3* ptA, real3* ptB, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO, uint* offset);
 		void host_shurA_sliding(
-		int2 *ids, bool *active, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO, uint* offset);
+		int2 *ids, bool *active, real3* norm, real3* ptA, real3* ptB, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO, uint* offset);
 		void host_shurA_spinning(
-		int2 *ids, bool *active, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO, uint* offset);
+		int2 *ids, bool *active, real3* norm, real3* ptA, real3* ptB, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *gamma, real3 *updateV, real3 *updateO, uint* offset);
 		void host_shurB_normal(
-		int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real4 * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX);
+		int2 *ids, bool *active, real3* norm, real3* ptA, real3* ptB,real *inv_mass, real3 *inv_inertia, real4 * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3*QXYZ, real3 *QUVW, real *AX);
 		void host_shurB_sliding(
-		int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real4 * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX);
+		int2 *ids, bool *active, real3* norm, real3* ptA, real3* ptB,real *inv_mass, real3 *inv_inertia, real4 * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX);
 		void host_shurB_spinning(
-		int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real4 * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX);
+		int2 *ids, bool *active, real3* norm, real3* ptA, real3* ptB,real *inv_mass, real3 *inv_inertia, real4 * compliance, real * gamma, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real3 *QXYZ, real3 *QUVW, real *AX);
 
 		void host_Offsets(int2* ids_contacts, uint* Body);
 
@@ -83,6 +83,8 @@ namespace chrono {
 
 		void ShurA(custom_vector<real> &x);
 		void ShurB(custom_vector<real> &x, custom_vector<real> & output);
+
+		void Build_N();
 
 		bool solve_sliding;
 		bool solve_spinning;
