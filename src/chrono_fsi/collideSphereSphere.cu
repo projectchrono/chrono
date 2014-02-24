@@ -1,5 +1,6 @@
 #include "custom_cutil_math.h"
 #include "SPHCudaUtils.h"
+#include "omp.h"
 #include <thrust/sort.h>
 #include <thrust/scan.h>
 #include <thrust/reduce.h>
@@ -1934,8 +1935,8 @@ void cudaCollisions(
 	real_ delTOrig = delT;
 	real_ realTime = 0;
 
-	int numPause =  .05 * paramsH.tFinal/paramsH.dT;
-	int pauseRigidFlex =  5 * numPause;
+	int numPause =  0;//.05 * paramsH.tFinal/paramsH.dT;
+	int pauseRigidFlex =  0;//5 * numPause;
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce4 = R4(0);
 	paramsH_B.gravity = R3(0);
@@ -1948,6 +1949,8 @@ void cudaCollisions(
 
 		GpuTimer myGpuTimer;
 		myGpuTimer.Start();
+		real_ ompTimerStart = (real_)omp_get_wtime();
+
 
 //		if (tStep < 1000) delT = 0.25 * delTOrig; else delT = delTOrig;
 
@@ -2095,20 +2098,22 @@ void cudaCollisions(
 
 		//************************************************
 		//edit  since yu deleted cyliderRotOmegaJD
-		PrintToFile(posRadD, velMasD, rhoPresMuD,
-				referenceArray, rigidIdentifierD,
-				posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
-				ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD, ANCF_ReferenceArrayNodesOnBeamsD,
-				currentParamsH,
-				realTime, tStep, channelRadius, channelCenterYZ, numObjects.numRigidBodies, numObjects.numFlexBodies);
+//		PrintToFile(posRadD, velMasD, rhoPresMuD,
+//				referenceArray, rigidIdentifierD,
+//				posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
+//				ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD, ANCF_ReferenceArrayNodesOnBeamsD,
+//				currentParamsH,
+//				realTime, tStep, channelRadius, channelCenterYZ, numObjects.numRigidBodies, numObjects.numFlexBodies);
 
 //		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
 		//************
 		myGpuTimer.Stop();
 		real_ time2 = (real_)myGpuTimer.Elapsed();
+		real_ ompTimerEnd = (real_)omp_get_wtime();
 
-		if (tStep % 50 == 0) {
-			printf("step: %d, step Time: %f\n ", tStep, time2);
+
+		if (tStep % 2 == 0) {
+			printf("step: %d, step Time (CUDA): %f, step Time (OMP): %f\n ", tStep, time2, 1000 * (ompTimerEnd - ompTimerStart));
 			//printf("a \n");
 		}
 		fflush(stdout);
