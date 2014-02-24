@@ -2,12 +2,12 @@ cmake_minimum_required (VERSION 2.8)
 
 project (cudaSPHProj)
 
-#find_package("OpenMP")
+find_package("OpenMP")
 
-#if(OPENMP_FOUND)
-#	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-#	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-#endif()
+if(OPENMP_FOUND)
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+endif()
 
 #find_package("MPI")
 
