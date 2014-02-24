@@ -13,11 +13,11 @@ void ChSolverParallel::Project(custom_vector<real> & gamma) {
 //=================================================================================================================================
 
 void ChSolverParallel::shurA(custom_vector<real> &x) {
-//#pragma omp parallel for
-//	for (int i = 0; i < number_of_rigid; i++) {
-//		data_container->host_data.QXYZ_data[i] = R3(0);
-//		data_container->host_data.QUVW_data[i] = R3(0);
-//	}
+#pragma omp parallel for
+	for (int i = 0; i < number_of_rigid; i++) {
+		data_container->host_data.QXYZ_data[i] = R3(0);
+		data_container->host_data.QUVW_data[i] = R3(0);
+	}
 	rigid_rigid->ShurA(x);
 	bilateral->ShurA(x);
 
