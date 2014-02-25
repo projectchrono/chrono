@@ -2119,7 +2119,7 @@ void cudaCollisions(
 
 
 		if (tStep % 2 == 0) {
-			printf("step: %d, step Time (CUDA): %f, step Time (OMP): %f\n ", tStep, time2, 1000 * (t2 - t1));
+			printf("step: %d, step Time (CUDA): %f, step Time (CPU): %f\n ", tStep, time2, 1000 * (t2 - t1));
 			//printf("a \n");
 		}
 		fflush(stdout);
