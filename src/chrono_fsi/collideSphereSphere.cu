@@ -1,6 +1,6 @@
 #include "custom_cutil_math.h"
 #include "SPHCudaUtils.h"
-#include "omp.h"
+#include <sys/time.h>
 #include <thrust/sort.h>
 #include <thrust/scan.h>
 #include <thrust/reduce.h>
@@ -1949,8 +1949,10 @@ void cudaCollisions(
 
 		GpuTimer myGpuTimer;
 		myGpuTimer.Start();
-		real_ ompTimerStart = (real_)omp_get_wtime();
 
+		struct timeval cpuT_start, cpuT_end;
+		struct timezone cpuT_timezone;
+		gettimeofday(&cpuT_start, &cpuT_timezone);
 
 //		if (tStep < 1000) delT = 0.25 * delTOrig; else delT = delTOrig;
 
@@ -2109,11 +2111,15 @@ void cudaCollisions(
 		//************
 		myGpuTimer.Stop();
 		real_ time2 = (real_)myGpuTimer.Elapsed();
-		real_ ompTimerEnd = (real_)omp_get_wtime();
+
+		//cudaDeviceSynchronize();
+		gettimeofday(&cpuT_end, &cpuT_timezone);
+		double t1 = double(cpuT_start.tv_sec)+double(cpuT_start.tv_usec)/(1000*1000);
+		double t2 = double(cpuT_end.tv_sec)+double(cpuT_end.tv_usec)/(1000*1000);
 
 
 		if (tStep % 2 == 0) {
-			printf("step: %d, step Time (CUDA): %f, step Time (OMP): %f\n ", tStep, time2, 1000 * (ompTimerEnd - ompTimerStart));
+			printf("step: %d, step Time (CUDA): %f, step Time (OMP): %f\n ", tStep, time2, 1000 * (t2 - t1));
 			//printf("a \n");
 		}
 		fflush(stdout);
