@@ -1,7 +1,8 @@
 #--------------------------------------------------------------
 # Additional include paths
 
-INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC} )
+SET(UTILITIES ../utils/input_output.h)
+INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}")
 
 
 #--------------------------------------------------------------
@@ -36,17 +37,17 @@ ENDIF()
 
 # Add executables
 
-ADD_EXECUTABLE(demo_ball  demo_ball.cpp)
-#SOURCE_GROUP(demos  demo_ball.cpp)
-SET_TARGET_PROPERTIES(demo_ball PROPERTIES
+ADD_EXECUTABLE(demo_ballDVI  demo_ballDVI.cpp ${UTILITIES})
+SOURCE_GROUP(""  FILES demo_ballDVI.cpp ${UTILITIES})
+SET_TARGET_PROPERTIES(demo_ballDVI PROPERTIES
 	FOLDER demos
 	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_ball ${CHRONO_LIB} ChronoEngine_Parallel)
-ADD_DEPENDENCIES(demo_ball ${CHRONO_LIB} ChronoEngine_Parallel)
+TARGET_LINK_LIBRARIES(demo_ballDVI ${CHRONO_LIB} ChronoEngine_Parallel)
+ADD_DEPENDENCIES(demo_ballDVI ${CHRONO_LIB} ChronoEngine_Parallel)
 
-ADD_EXECUTABLE(demo_ballDEM  demo_ballDEM.cpp)
-#SOURCE_GROUP(demos  demo_ballDEM.cpp)
+ADD_EXECUTABLE(demo_ballDEM  demo_ballDEM.cpp ${UTILITIES})
+SOURCE_GROUP(""  FILES demo_ballDEM.cpp ${UTILITIES})
 SET_TARGET_PROPERTIES(demo_ballDEM PROPERTIES
   FOLDER demos
   COMPILE_FLAGS "${CH_BUILDFLAGS}"
@@ -54,7 +55,7 @@ SET_TARGET_PROPERTIES(demo_ballDEM PROPERTIES
 TARGET_LINK_LIBRARIES(demo_ballDEM ${CHRONO_LIB} ChronoEngine_Parallel)
 ADD_DEPENDENCIES(demo_ballDEM ${CHRONO_LIB} ChronoEngine_Parallel)
 
-install(TARGETS demo_ball DESTINATION bin)
+install(TARGETS demo_ballDVI DESTINATION bin)
 install(TARGETS demo_ballDEM DESTINATION bin)
 
 

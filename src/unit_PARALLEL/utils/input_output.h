@@ -1,0 +1,228 @@
+#ifndef UTILS_INOUT_H
+#define UTILS_INOUT_H
+
+#include <string>
+#include <iostream>
+#include <sstream> 
+#include <fstream>
+
+#include "assets/ChSphereShape.h"
+#include "assets/ChBoxShape.h"
+#include "assets/ChEllipsoidShape.h"
+#include "assets/ChCylinderShape.h"
+#include "assets/ChConeShape.h"
+
+#include "ChParallelDefines.h"
+
+
+// -------------------------------------------------------------------------------
+
+class CSV_writer {
+public:
+	explicit CSV_writer(const std::string& delim = ",") : m_delim(delim) {}
+	~CSV_writer() {}
+
+	void write_to_file(const string& filename)
+	{
+		std::ofstream ofile(filename);
+		ofile << m_ss.str();
+		ofile.close();
+	}
+
+	const std::string&  delim() const {return m_delim;}
+	std::ostringstream& stream() {return m_ss;}
+
+	template <typename T>
+	CSV_writer& operator<< (const T& t)                          {m_ss << t << m_delim; return *this;}
+	
+	CSV_writer& operator<<(std::ostream& (*t)(std::ostream&))    {m_ss << t; return *this;}
+	CSV_writer& operator<<(std::ios& (*t)(std::ios&))            {m_ss << t; return *this;}
+	CSV_writer& operator<<(std::ios_base& (*t)(std::ios_base&))  {m_ss << t; return *this;}
+
+private:
+	std::string m_delim;
+	std::ostringstream m_ss;
+};
+
+
+CSV_writer& operator<< (CSV_writer& out, const ChVector<>& v)
+{
+   out << v.x << v.y << v.z;
+   return out;
+}
+
+CSV_writer& operator<< (CSV_writer& out, const ChQuaternion<>& q)
+{
+   out << q.e0 << q.e1 << q.e2 << q.e3;
+   return out;
+}
+
+CSV_writer& operator<< (CSV_writer& out, const real2& r)
+{
+   out << r.x << r.y;
+   return out;
+}
+
+CSV_writer& operator<< (CSV_writer& out, const real3& r)
+{
+   out << r.x << r.y << r.z ;
+   return out;
+}
+
+CSV_writer& operator<< (CSV_writer& out, const real4& r)
+{
+   out << r.w << r.x << r.y << r.z ;
+   return out;
+}
+
+
+template <typename T>
+void WriteBodies(T*                 mSys,
+                 const std::string& filename,
+                 bool               active_only = false,
+                 bool               dump_vel = false,
+                 const std::string& delim = ",")
+{
+	CSV_writer csv(delim);
+
+	for (int i = 0; i < mSys->Get_bodylist()->size(); i++) {
+		ChBody* abody = mSys->Get_bodylist()->at(i);
+		if (active_only && !abody->IsActive())
+			continue;
+		csv << abody->GetPos() << abody->GetRot();
+		if (dump_vel)
+			csv << abody->GetPos_dt() << abody->GetWvel_loc();
+		csv << std::endl;
+	}
+
+	csv.write_to_file(filename);
+}
+
+//
+//  TODO:  figure out the Chrono inconsistent mess with relative transforms
+//                body -> asset -> shape
+//
+template <typename T>
+void WriteShapesRender(T*                 mSys,
+                       const std::string& filename,
+                       const std::string& delim = ",")
+{
+	CSV_writer csv(delim);
+
+	int index = 0;
+
+	for (int i = 0; i < mSys->Get_bodylist()->size(); i++) {
+		ChBody* abody = mSys->Get_bodylist()->at(i);
+		const Vector& body_pos = abody->GetPos();
+		const Quaternion& body_rot = abody->GetRot();
+
+		for (int j = 0; j < abody->GetAssets().size(); j++) {
+			ChSharedPtr<ChAsset> asset = abody->GetAssets().at(j);
+			ChVisualization* visual_asset = dynamic_cast<ChVisualization*>(asset.get_ptr());
+			if (!visual_asset)
+				continue;
+
+			const Vector& asset_pos = visual_asset->Pos;
+			Quaternion    asset_rot = visual_asset->Rot.Get_A_quaternion();
+
+			Vector     pos = body_pos + body_rot.Rotate(asset_pos);
+			Quaternion rot = body_rot % asset_rot;
+
+			std::string group;
+			std::stringstream geometry;
+
+			if (asset.IsType<ChSphereShape>()) {
+				ChSphereShape* sphere = (ChSphereShape*) asset.get_ptr();
+				group = "g_sphere";
+				geometry << "sphere" << delim << sphere->GetSphereGeometry().rad;
+			} else if (asset.IsType<ChEllipsoidShape>()) {
+				ChEllipsoidShape* ellipsoid = (ChEllipsoidShape*) asset.get_ptr();
+				const Vector& size = ellipsoid->GetEllipsoidGeometry().rad;
+				group = "g_ellipsoid";
+				geometry << "ellipsoid" << delim << size.x << delim << size.y << delim << size.z;
+			} else if (asset.IsType<ChBoxShape>()) {
+				ChBoxShape* box = (ChBoxShape*) asset.get_ptr();
+				const Vector& size = box->GetBoxGeometry().Size;
+				group = "g_box";
+				geometry << "box" << delim << size.x << delim << size.y << delim << size.z;
+			} else if (asset.IsType<ChCylinderShape>()) {
+				ChCylinderShape* cylinder = (ChCylinderShape*) asset.get_ptr();
+				double rad = cylinder->GetCylinderGeometry().rad;
+				double height = cylinder->GetCylinderGeometry().p1.y - cylinder->GetCylinderGeometry().p2.y;
+				group = "g_cylinder";
+				geometry << "cylinder" << delim << rad << delim << height;
+			} else if (asset.IsType<ChConeShape>()) {
+				ChConeShape* cone = (ChConeShape*) asset.get_ptr();
+				const Vector& size = cone->GetConeGeometry().rad;
+				group = "g_cone";
+				geometry << "cone" << delim << size.x << delim << size.y;
+			}
+
+			csv << group << index << pos << rot << geometry.str() << std::endl;
+
+			index++;
+		}
+	}
+
+	csv.write_to_file(filename);
+}
+
+
+template <typename T>
+void WriteShapesPovray(T*                 mSys,
+                       const std::string& filename,
+                       const std::string& delim = ",")
+{
+	CSV_writer csv(delim);
+
+	for (int i = 0; i < mSys->Get_bodylist()->size(); i++) {
+		ChBody* abody = mSys->Get_bodylist()->at(i);
+		const Vector& body_pos = abody->GetPos();
+		const Quaternion& body_rot = abody->GetRot();
+
+		for (int j = 0; j < abody->GetAssets().size(); j++) {
+			ChSharedPtr<ChAsset> asset = abody->GetAssets().at(j);
+			ChVisualization* visual_asset = dynamic_cast<ChVisualization*>(asset.get_ptr());
+			if (!visual_asset)
+				continue;
+
+			const Vector& asset_pos = visual_asset->Pos;
+			Quaternion    asset_rot = visual_asset->Rot.Get_A_quaternion();
+
+			Vector     pos = body_pos + body_rot.Rotate(asset_pos);
+			Quaternion rot = body_rot % asset_rot;
+
+			std::stringstream geometry;
+
+			if (asset.IsType<ChSphereShape>()) {
+				ChSphereShape* sphere = (ChSphereShape*) asset.get_ptr();
+				geometry << SPHERE << delim << sphere->GetSphereGeometry().rad;
+			} else if (asset.IsType<ChEllipsoidShape>()) {
+				ChEllipsoidShape* ellipsoid = (ChEllipsoidShape*) asset.get_ptr();
+				const Vector& size = ellipsoid->GetEllipsoidGeometry().rad;
+				geometry << ELLIPSOID << delim << size.x << delim << size.y << delim << size.z;
+			} else if (asset.IsType<ChBoxShape>()) {
+				ChBoxShape* box = (ChBoxShape*) asset.get_ptr();
+				const Vector& size = box->GetBoxGeometry().Size;
+				geometry << BOX << delim << size.x << delim << size.y << delim << size.z;
+			} else if (asset.IsType<ChCylinderShape>()) {
+				ChCylinderShape* cylinder = (ChCylinderShape*) asset.get_ptr();
+				double rad = cylinder->GetCylinderGeometry().rad;
+				double height = cylinder->GetCylinderGeometry().p1.y - cylinder->GetCylinderGeometry().p2.y;
+				geometry << CYLINDER << delim << rad << delim << height;
+			} else if (asset.IsType<ChConeShape>()) {
+				ChConeShape* cone = (ChConeShape*) asset.get_ptr();
+				const Vector& size = cone->GetConeGeometry().rad;
+				geometry << CONE << delim << size.x << delim << size.y;
+			}
+
+			csv << pos << rot << vel << geometry.str() << std::endl;
+		}
+	}
+
+	csv.write_to_file(filename);
+}
+
+
+
+#endif

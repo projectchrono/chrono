@@ -1,45 +1,14 @@
+#include <stdio.h>
 #include <vector>
-
-#include "lcp/ChLcpVariablesGeneric.h"
-#include "lcp/ChLcpVariablesBody.h"
-#include "lcp/ChLcpConstraintTwoGeneric.h"
-#include "lcp/ChLcpSystemDescriptor.h"
-#include "lcp/ChLcpIterativeSOR.h"
-#include "lcp/ChLcpIterativePMINRES.h"
-#include "lcp/ChLcpIterativeAPGD.h"
-#include "lcp/ChLcpIterativeBB.h"
-#include "lcp/ChLcpSimplexSolver.h"
-#include "lcp/ChLcpIterativeMINRES.h"
-#include "lcp/ChLcpIterativeSOR.h"
-#include "lcp/ChLcpIterativeJacobi.h"
-
-#include "core/ChLinearAlgebra.h"
-#include "core/ChRealtimeStep.h"
-
-#include "physics/ChApidll.h"
-#include "physics/ChSystem.h"
-#include "physics/ChBody.h"
-#include "physics/ChContactContainer.h"
-
-#include "physics/CHBodyDEM.h"
-#include "physics/CHcontactContainerDEM.h"
-#include "lcp/CHlcpSolverDEM.h"
-
-#include "collision/ChCModelBullet.h"
-#include "collision/CHcModelBulletBody.h"
-#include "collision/ChCCollisionSystemBullet.h"
-
-#include "assets/ChSphereShape.h"
-#include "assets/ChBoxShape.h"
+#include <cmath>
 
 #include "ChSystemParallel.h"
 #include "ChLcpSystemDescriptorParallel.h"
 
+#include "utils/input_output.h"
 
 using namespace chrono;
 using namespace geometry;
-using namespace std;
-
 
 void AddWall(ChSharedBodyDEMPtr&  body,
              const ChVector<>&    dim,
@@ -58,20 +27,22 @@ void AddWall(ChSharedBodyDEMPtr&  body,
 }
 
 
-int main(int argc, char* argv[]) 
+int main(int argc, char* argv[])
 {
 	// Simulation parameters
 	int threads = 8;
 
 	double gravity = -9.81;
-	double time_step = .001;
+	double time_step = 0.0001;
 	double time_end = 1;
+	int    num_steps = std::ceil(time_end / time_step);
 
 	int max_iteration = 20;
 
 	// Output
-	bool output_all = false;
-	double out_step = 0.01;
+	char* data_folder = "./DEM";
+	double out_fps = 60;
+	int out_steps = (1 / time_step) / out_fps;
 
 	// Parameters for the falling ball
 	int             ballId = 100;
@@ -110,8 +81,8 @@ int main(int argc, char* argv[])
 	((ChLcpSolverParallelDEM*) msystem->GetLcpSolverSpeed())->SetTolerance(0);
 	((ChLcpSolverParallelDEM*) msystem->GetLcpSolverSpeed())->SetContactRecoverySpeed(1);
 
-	((ChCollisionSystemParallel *) msystem->GetCollisionSystem())->setBinsPerAxis(I3(10, 10, 10));
-	((ChCollisionSystemParallel *) msystem->GetCollisionSystem())->setBodyPerBin(100, 50);
+	((ChCollisionSystemParallel*) msystem->GetCollisionSystem())->setBinsPerAxis(I3(10, 10, 10));
+	((ChCollisionSystemParallel*) msystem->GetCollisionSystem())->setBodyPerBin(100, 50);
 
 	omp_set_num_threads(threads);
 
@@ -164,37 +135,35 @@ int main(int argc, char* argv[])
 
 	bin->GetCollisionModel()->ClearModel();
 	AddWall(bin, ChVector<>(width, thickness, length), ChVector<>(0, 0, 0));
-	//AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(-width + thickness, height, 0));
-	//AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(width - thickness, height, 0));
-	//AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, -length + thickness));
-	//AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, length - thickness));
+	AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(-width + thickness, height, 0));
+	AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(width - thickness, height, 0));
+	AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, -length + thickness));
+	AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, length - thickness));
 	bin->GetCollisionModel()->BuildModel();
 
 	msystem->AddBody(bin);
 
 	// Perform the simulation
 	double time = 0;
-	double out_time = 0;
+	int out_frame = 0;
+	char filename[100];
 
-	double tmp_y = pos.y;
-	double tmp_v = 0;
-	double tmp_an = pos.y;
+	for (int i = 0; i < num_steps; i++) {
 
-	while (time < time_end) {
-		if (output_all || time >= out_time) {
+		if (i % out_steps == 0) {
+			sprintf(filename, "%s/out_%04d.csv", data_folder, out_frame);
+			WriteShapesRender(msystem, filename);
+
 			for (int i = 0; i < msystem->Get_bodylist()->size(); ++i) {
 				ChBody* abody = (ChBody*) msystem->Get_bodylist()->at(i);
 				if (abody->GetIdentifier() == ballId) {
-					const ChVector<>& crtpos = abody->GetPos();
-					std::cout << time << "  " << crtpos.y << "  " << tmp_y << "  " << tmp_an << std::endl;
+					ChVector<> pos = abody->GetPos();
+					std::cout << "Frame: " << out_frame << " Time: " << time << " Height: " << pos.y << std::endl;
 				}
 			}
-			out_time += out_step;
-		}
 
-		tmp_y += tmp_v * time_step;
-		tmp_v += mass * gravity * time_step;
-		tmp_an = pos.y + 0.5 * gravity * time * time;
+			out_frame++;
+		}
 
 		msystem->DoStepDynamics(time_step);
 		time += time_step;
