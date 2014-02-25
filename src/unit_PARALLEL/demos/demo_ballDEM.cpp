@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
 	// Output
 	char* data_folder = "./DEM";
 	double out_fps = 60;
-	int out_steps = (1 / time_step) / out_fps;
+	int out_steps = std::ceil((1 / time_step) / out_fps);
 
 	// Parameters for the falling ball
 	int             ballId = 100;
@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
 	ChVector<>      init_vel(0, 0, 0);
 
 	// Parameters for the containing bin
-	int    binId = 200;
+	int    binId = -200;
 	double width = 5;
 	double length = 25;
 	double height = 2;
@@ -68,7 +68,6 @@ int main(int argc, char* argv[])
 	material->SetFriction(0.4f);
 
 	// Edit system settings
-	msystem->SetIntegrationType(ChSystem::INT_ANITESCU);
 	msystem->SetParallelThreadNumber(threads);
 	msystem->SetMaxiter(max_iteration);
 	msystem->SetIterLCPmaxItersSpeed(max_iteration);

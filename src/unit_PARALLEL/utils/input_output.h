@@ -98,10 +98,18 @@ void WriteBodies(T*                 mSys,
 	csv.write_to_file(filename);
 }
 
-//
-//  TODO:  figure out the Chrono inconsistent mess with relative transforms
-//                body -> asset -> shape
-//
+
+////  TODO:  figure out the Chrono inconsistent mess with relative transforms
+////                body -> asset -> shape
+
+// -------------------------------------------------------------------------------
+// Write CSV output file for the Blender plugin.
+// Each line contains information about one visualization asset shape, as follows:
+//    group,index,p.x,p.y,p.z,q.e0,q.e1,q.e2,q.e3,type,geometry
+// where 'geometry' depends on 'type' (a string).
+// All shapes of the same 'type' are placed in the same 'group', unless the body
+// has a negative identifier, in which case the shapes are tagged as 'individual'
+// -------------------------------------------------------------------------------
 template <typename T>
 void WriteShapesRender(T*                 mSys,
                        const std::string& filename,
@@ -115,6 +123,7 @@ void WriteShapesRender(T*                 mSys,
 		ChBody* abody = mSys->Get_bodylist()->at(i);
 		const Vector& body_pos = abody->GetPos();
 		const Quaternion& body_rot = abody->GetRot();
+		int bodyId = abody->GetIdentifier();
 
 		for (int j = 0; j < abody->GetAssets().size(); j++) {
 			ChSharedPtr<ChAsset> asset = abody->GetAssets().at(j);
@@ -133,28 +142,28 @@ void WriteShapesRender(T*                 mSys,
 
 			if (asset.IsType<ChSphereShape>()) {
 				ChSphereShape* sphere = (ChSphereShape*) asset.get_ptr();
-				group = "g_sphere";
+				group = bodyId < 0 ? "individual" : "g_sphere";
 				geometry << "sphere" << delim << sphere->GetSphereGeometry().rad;
 			} else if (asset.IsType<ChEllipsoidShape>()) {
 				ChEllipsoidShape* ellipsoid = (ChEllipsoidShape*) asset.get_ptr();
 				const Vector& size = ellipsoid->GetEllipsoidGeometry().rad;
-				group = "g_ellipsoid";
+				group = bodyId < 0 ? "individual" : "g_ellipsoid";
 				geometry << "ellipsoid" << delim << size.x << delim << size.y << delim << size.z;
 			} else if (asset.IsType<ChBoxShape>()) {
 				ChBoxShape* box = (ChBoxShape*) asset.get_ptr();
 				const Vector& size = box->GetBoxGeometry().Size;
-				group = "g_box";
+				group = bodyId < 0 ? "individual" : "g_box";
 				geometry << "box" << delim << size.x << delim << size.y << delim << size.z;
 			} else if (asset.IsType<ChCylinderShape>()) {
 				ChCylinderShape* cylinder = (ChCylinderShape*) asset.get_ptr();
 				double rad = cylinder->GetCylinderGeometry().rad;
 				double height = cylinder->GetCylinderGeometry().p1.y - cylinder->GetCylinderGeometry().p2.y;
-				group = "g_cylinder";
+				group = bodyId < 0 ? "individual" : "g_cylinder";
 				geometry << "cylinder" << delim << rad << delim << height;
 			} else if (asset.IsType<ChConeShape>()) {
 				ChConeShape* cone = (ChConeShape*) asset.get_ptr();
 				const Vector& size = cone->GetConeGeometry().rad;
-				group = "g_cone";
+				group = bodyId < 0 ? "individual" : "g_cone";
 				geometry << "cone" << delim << size.x << delim << size.y;
 			}
 
@@ -168,6 +177,17 @@ void WriteShapesRender(T*                 mSys,
 }
 
 
+////  TODO:  figure out the Chrono inconsistent mess with relative transforms
+////                body -> asset -> shape
+////         what velocity is expected here? body or shape? Currently using
+////         body velocity (probably wrong)
+
+// -------------------------------------------------------------------------------
+// Write CSV output file for PovRay.
+// Each line contains information about one visualization asset shape, as follows:
+//    p.x,p.y,p.z,q.e0,q.e1,q.e2,q.e3,v.x,v.y,v.z,type,geometry
+// where 'geometry' depends on 'type' (an enum).
+// -------------------------------------------------------------------------------
 template <typename T>
 void WriteShapesPovray(T*                 mSys,
                        const std::string& filename,
@@ -177,8 +197,9 @@ void WriteShapesPovray(T*                 mSys,
 
 	for (int i = 0; i < mSys->Get_bodylist()->size(); i++) {
 		ChBody* abody = mSys->Get_bodylist()->at(i);
-		const Vector& body_pos = abody->GetPos();
+		const Vector&     body_pos = abody->GetPos();
 		const Quaternion& body_rot = abody->GetRot();
+		const Vector&     body_vel = abody->GetPos_dt();
 
 		for (int j = 0; j < abody->GetAssets().size(); j++) {
 			ChSharedPtr<ChAsset> asset = abody->GetAssets().at(j);
@@ -216,7 +237,7 @@ void WriteShapesPovray(T*                 mSys,
 				geometry << CONE << delim << size.x << delim << size.y;
 			}
 
-			csv << pos << rot << vel << geometry.str() << std::endl;
+			csv << pos << rot << body_vel << geometry.str() << std::endl;
 		}
 	}
 
