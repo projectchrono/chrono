@@ -1,7 +1,9 @@
 #--------------------------------------------------------------
 # Additional include paths
 
-SET(UTILITIES ../utils/input_output.h)
+SET(UTILITIES
+	../utils/input_output.h
+	../utils/generators.h)
 INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}")
 
 
