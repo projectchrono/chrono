@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
 	for (int i = 0; i < num_steps; i++) {
 
 		if (i % out_steps == 0) {
-			sprintf(filename, "%s/out_%04d.csv", data_folder, out_frame);
+			sprintf(filename, "%s/data_%03d.dat", data_folder, out_frame);
 			WriteShapesRender(msystem, filename);
 
 			for (int i = 0; i < msystem->Get_bodylist()->size(); ++i) {
