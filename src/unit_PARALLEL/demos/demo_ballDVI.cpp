@@ -22,6 +22,7 @@ void AddWall(ChSharedBodyPtr&  body,
 	ChSharedPtr<ChBoxShape> box_shape = ChSharedPtr<ChAsset>(new ChBoxShape);
 	box_shape->SetColor(ChColor(1, 0, 0));
 	box_shape->Pos = loc;
+	box_shape->Rot = ChQuaternion<>(1,0,0,0);
 	box_shape->GetBoxGeometry().Size = dim;
 
 	body->GetAssets().push_back(box_shape);
