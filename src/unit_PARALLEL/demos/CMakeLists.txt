@@ -3,7 +3,7 @@
 
 SET(UTILITIES
 	../utils/input_output.h
-	../utils/generators.h)
+	../utils/samplers.h)
 INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}")
 
 

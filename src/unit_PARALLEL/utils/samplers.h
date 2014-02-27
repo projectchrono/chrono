@@ -17,6 +17,27 @@ namespace utils {
 
 const double Pi = 3.1415926535897932384626433832795;
 
+enum SamplingType {
+	REGULAR_GRID,
+	POISSON_DISK
+};
+
+// -------------------------------------------------------------------------------
+// Type definitions
+// -------------------------------------------------------------------------------
+// Until Visual Studio supports alias templates (VS2013 does) if we want to
+// "share" a typedef across different template classes, we use this structure.
+template <typename T>
+struct Types {
+	typedef std::vector<ChVector<T> >  PointVector;
+	typedef std::list<ChVector<T> >    PointList;
+};
+
+// Convenience shrotcuts
+typedef Types<double>::PointVector  PointVectorD;
+typedef Types<float>::PointVector   PointVectorF;
+
+
 
 // -------------------------------------------------------------------------------
 // Grid2D
@@ -85,9 +106,10 @@ private:
 template <typename T = double>
 class PDSampler2D {
 public:
-	typedef std::vector<ChVector<T> >  PointVector;
-	typedef std::list<ChVector<T> >    PointList;
-	typedef std::pair<int, int>        GridLocation;
+	typedef typename Types<T>::PointVector PointVector;
+	typedef typename Types<T>::PointList   PointList;
+
+	typedef std::pair<int, int>            GridLocation;
 
 	PDSampler2D(T   minDist,
 	            int pointsPerIteration = m_ppi_default)
@@ -263,7 +285,7 @@ private:
 template <typename T = double>
 class GridSampler2D {
 public:
-	typedef std::vector<ChVector<T> >  PointVector;
+	typedef typename Types<T>::PointVector PointVector;
 
 	GridSampler2D(T delX,
 	              T delY)
@@ -321,28 +343,6 @@ private:
 	ChVector<T> m_size;
 };
 
-
-
-
-/*
-// Until Visual Studio supports alias templates (VS2013 does) if we want to
-// "share" a typedef across different template classes, we could use:
-
-template <typename T = double>
-struct Types {
-	typedef std::vector<ChVector<T> >  PointVector;
-};
-
-template <typename T = double>
-class Foo {
-	typedef typename Types<T>::PointVector  PointVector;
-
-	PointVector bar;
-};
-
-typedef Types<double>::PointVector  PointVectorD;
-typedef Types<float>::PointVector   PointVectorF;
-*/
 
 
 } // end namespace utils
