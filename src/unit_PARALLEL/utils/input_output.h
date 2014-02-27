@@ -15,8 +15,15 @@
 #include "ChParallelDefines.h"
 
 
-// -------------------------------------------------------------------------------
+namespace chrono {
+namespace utils {
 
+
+// -------------------------------------------------------------------------------
+// CSV_writer
+//
+// Simple class to output to a Comma-Separated Values file.
+// -------------------------------------------------------------------------------
 class CSV_writer {
 public:
 	explicit CSV_writer(const std::string& delim = ",") : m_delim(delim) {}
@@ -76,6 +83,12 @@ CSV_writer& operator<< (CSV_writer& out, const real4& r)
 }
 
 
+// -------------------------------------------------------------------------------
+// WriteBodies
+//
+// This function dumps to a CSV file pody position, orientation, and (optionally)
+// linear and angular velocity. Optionally, only active bodies are processed.
+// -------------------------------------------------------------------------------
 template <typename T>
 void WriteBodies(T*                 mSys,
                  const std::string& filename,
@@ -103,6 +116,8 @@ void WriteBodies(T*                 mSys,
 ////                body -> asset -> shape
 
 // -------------------------------------------------------------------------------
+// WriteShapesRender
+//
 // Write CSV output file for the Blender plugin.
 // Each line contains information about one visualization asset shape, as follows:
 //    group,index,p.x,p.y,p.z,q.e0,q.e1,q.e2,q.e3,type,geometry
@@ -183,6 +198,8 @@ void WriteShapesRender(T*                 mSys,
 ////         body velocity (probably wrong)
 
 // -------------------------------------------------------------------------------
+// WriteShapesPovray
+//
 // Write CSV output file for PovRay.
 // Each line contains information about one visualization asset shape, as follows:
 //    p.x,p.y,p.z,q.e0,q.e1,q.e2,q.e3,v.x,v.y,v.z,type,geometry
@@ -244,6 +261,9 @@ void WriteShapesPovray(T*                 mSys,
 	csv.write_to_file(filename);
 }
 
+
+} // end namespace utils
+} // end namespace chrono
 
 
 #endif

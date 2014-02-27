@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
 
 		if (i % out_steps == 0) {
 			sprintf(filename, "%s/data_%03d.dat", data_folder, out_frame);
-			WriteShapesRender(msystem, filename);
+			utils::WriteShapesRender(msystem, filename);
 
 			for (int i = 0; i < msystem->Get_bodylist()->size(); ++i) {
 				ChBody* abody = (ChBody*) msystem->Get_bodylist()->at(i);
