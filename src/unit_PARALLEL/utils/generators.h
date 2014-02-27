@@ -15,7 +15,7 @@ namespace chrono {
 namespace utils {
 
 
-#define PI (3.1415926535897932384626433832795)
+const double Pi = 3.1415926535897932384626433832795;
 
 
 // -------------------------------------------------------------------------------
@@ -81,6 +81,7 @@ private:
 // Based on "Fast Poisson Disk Sampling in Arbitrary Dimensions" by Robert Bridson
 // http://people.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf
 // -------------------------------------------------------------------------------
+
 template <typename T = double>
 class PDSampler2D {
 public:
@@ -217,7 +218,7 @@ public:
 	ChVector<T> GenerateRandomNeighbor(const ChVector<T>& center)
 	{
 		T radius = m_minDist * (1 + m_realDist(m_generator));
-		T angle = 2 * PI * m_realDist(m_generator);
+		T angle = 2 * Pi * m_realDist(m_generator);
 		return ChVector<T>(center.x + radius * std::cos(angle), center.y + radius * std::sin(angle), m_height);
 	}
 
@@ -252,8 +253,99 @@ private:
 };
 
 
+// -------------------------------------------------------------------------------
+// GridSampler2D
+//
+// A class to generate points in a regular grid within a 2D domain (rectangle or
+// circle). Grid spacing can be different in the two directions.
+// -------------------------------------------------------------------------------
 
-} // end namespace utiles
+template <typename T = double>
+class GridSampler2D {
+public:
+	typedef std::vector<ChVector<T> >  PointVector;
+
+	GridSampler2D(T delX,
+	              T delY)
+	:	m_delX(delX),
+		m_delY(delY)
+	{
+	}
+
+	PointVector SampleCircle(const ChVector<T>& center, T radius)
+	{
+		m_center = center;
+		m_size = ChVector<T>(2 * radius, 2 * radius, 0);
+		m_maxDist2 = radius * radius;
+		return Sample();
+	}
+
+	PointVector SampleRectangle(const ChVector<T>& center, const ChVector<T>& halfDim)
+	{
+		m_center = center;
+		m_size = halfDim * 2;
+		m_maxDist2 = -1;
+		return Sample();
+	}
+
+	PointVector Sample()
+	{
+		T height = m_center.z;
+		ChVector<T> bl = m_center - m_size / 2;
+
+		PointVector out_points;
+
+		int nx = (int) (m_size.x / m_delX) + 1;
+		int ny = (int) (m_size.y / m_delY) + 1;
+
+		for (int i = 0; i < nx; i++) {
+			for (int j = 0; j < ny; j++) {
+				ChVector<T> p = bl + ChVector<T>(i*m_delX, j*m_delY, height);
+				if (m_maxDist2 > 0) {
+					ChVector<T> dist = p - m_center;
+					if (dist.Length2() > m_maxDist2)
+						continue;
+				}
+				out_points.push_back(p);
+			}
+		}
+
+		return out_points;
+	}
+
+private:
+	T  m_delX;
+	T  m_delY;
+	T  m_maxDist2;
+	ChVector<T> m_center;
+	ChVector<T> m_size;
+};
+
+
+
+
+/*
+// Until Visual Studio supports alias templates (VS2013 does) if we want to
+// "share" a typedef across different template classes, we could use:
+
+template <typename T = double>
+struct Types {
+	typedef std::vector<ChVector<T> >  PointVector;
+};
+
+template <typename T = double>
+class Foo {
+	typedef typename Types<T>::PointVector  PointVector;
+
+	PointVector bar;
+};
+
+typedef Types<double>::PointVector  PointVectorD;
+typedef Types<float>::PointVector   PointVectorF;
+*/
+
+
+} // end namespace utils
 } // end namespace chrono
 
 
