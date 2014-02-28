@@ -1312,9 +1312,9 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
 				limit_X->constr_lower.Set_b_i(limit_X->constr_lower.Get_b_i()+ChMax (factor*(-limit_X->Get_min()+relM.pos.x), -recovery_clamp));
 		if (limit_X->constr_upper.IsActive())
 			if (!do_clamp)
-				limit_X->constr_upper.Set_b_i(limit_X->constr_upper.Get_b_i()-factor*(-limit_X->Get_max()+relM.pos.x));
+				limit_X->constr_upper.Set_b_i(limit_X->constr_upper.Get_b_i()+factor*( limit_X->Get_max()-relM.pos.x));
 			else
-				limit_X->constr_upper.Set_b_i(limit_X->constr_upper.Get_b_i()-ChMax (factor*(-limit_X->Get_max()+relM.pos.x), -recovery_clamp));
+				limit_X->constr_upper.Set_b_i(limit_X->constr_upper.Get_b_i()+ChMax (factor*( limit_X->Get_max()-relM.pos.x), -recovery_clamp));
 	}
 	if (limit_Y) if (limit_Y->Get_active())
 	{
@@ -1325,9 +1325,9 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
 				limit_Y->constr_lower.Set_b_i(limit_Y->constr_lower.Get_b_i()+ChMax (factor*(-limit_Y->Get_min()+relM.pos.y), -recovery_clamp));
 		if (limit_Y->constr_upper.IsActive())
 			if (!do_clamp)
-				limit_Y->constr_upper.Set_b_i(limit_Y->constr_upper.Get_b_i()-factor*(-limit_Y->Get_max()+relM.pos.y));
+				limit_Y->constr_upper.Set_b_i(limit_Y->constr_upper.Get_b_i()+factor*( limit_Y->Get_max()-relM.pos.y));
 			else
-				limit_Y->constr_upper.Set_b_i(limit_Y->constr_upper.Get_b_i()-ChMax (factor*(-limit_Y->Get_max()+relM.pos.y), -recovery_clamp));
+				limit_Y->constr_upper.Set_b_i(limit_Y->constr_upper.Get_b_i()+ChMax (factor*( limit_Y->Get_max()-relM.pos.y), -recovery_clamp));
 	}
 	if (limit_Z) if (limit_Z->Get_active())
 	{
@@ -1338,9 +1338,9 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
 				limit_Z->constr_lower.Set_b_i(limit_Z->constr_lower.Get_b_i()+ChMax (factor*(-limit_Z->Get_min()+relM.pos.z), -recovery_clamp));
 		if (limit_Z->constr_upper.IsActive())
 			if (!do_clamp)
-				limit_Z->constr_upper.Set_b_i(limit_Z->constr_upper.Get_b_i()-factor*(-limit_Z->Get_max()+relM.pos.z));
+				limit_Z->constr_upper.Set_b_i(limit_Z->constr_upper.Get_b_i()+factor*( limit_Z->Get_max()-relM.pos.z));
 		else
-				limit_Z->constr_upper.Set_b_i(limit_Z->constr_upper.Get_b_i()-ChMax (factor*(-limit_Z->Get_max()+relM.pos.z), -recovery_clamp));
+				limit_Z->constr_upper.Set_b_i(limit_Z->constr_upper.Get_b_i()+ChMax (factor*( limit_Z->Get_max()-relM.pos.z), -recovery_clamp));
 	}
 	if (limit_Rx) if (limit_Rx->Get_active())
 	{
@@ -1351,9 +1351,9 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
 				limit_Rx->constr_lower.Set_b_i(limit_Rx->constr_lower.Get_b_i()+ChMax (factor*(- sin(0.5*limit_Rx->Get_min()) +relM.rot.e1), -recovery_clamp));
 		if (limit_Rx->constr_upper.IsActive())
 			if (!do_clamp)
-				limit_Rx->constr_upper.Set_b_i(limit_Rx->constr_upper.Get_b_i()-factor*(- sin(0.5*limit_Rx->Get_max()) +relM.rot.e1));
+				limit_Rx->constr_upper.Set_b_i(limit_Rx->constr_upper.Get_b_i()+factor*(   sin(0.5*limit_Rx->Get_max()) -relM.rot.e1));
 		else
-				limit_Rx->constr_upper.Set_b_i(limit_Rx->constr_upper.Get_b_i()-ChMax (factor*(- sin(0.5*limit_Rx->Get_max()) +relM.rot.e1), -recovery_clamp));
+				limit_Rx->constr_upper.Set_b_i(limit_Rx->constr_upper.Get_b_i()+ChMax (factor*(   sin(0.5*limit_Rx->Get_max()) -relM.rot.e1), -recovery_clamp));
 	}
 	if (limit_Ry) if (limit_Ry->Get_active())
 	{
@@ -1364,9 +1364,9 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
 				limit_Ry->constr_lower.Set_b_i(limit_Ry->constr_lower.Get_b_i()+ChMax (factor*(- sin(0.5*limit_Ry->Get_min()) +relM.rot.e2), -recovery_clamp));
 		if (limit_Ry->constr_upper.IsActive())
 			if (!do_clamp)
-				limit_Ry->constr_upper.Set_b_i(limit_Ry->constr_upper.Get_b_i()-factor*(- sin(0.5*limit_Ry->Get_max()) +relM.rot.e2));
+				limit_Ry->constr_upper.Set_b_i(limit_Ry->constr_upper.Get_b_i()+factor*(   sin(0.5*limit_Ry->Get_max()) -relM.rot.e2));
 		else
-				limit_Ry->constr_upper.Set_b_i(limit_Ry->constr_upper.Get_b_i()-ChMax (factor*(- sin(0.5*limit_Ry->Get_max()) +relM.rot.e2), -recovery_clamp));
+				limit_Ry->constr_upper.Set_b_i(limit_Ry->constr_upper.Get_b_i()+ChMax (factor*(  sin(0.5*limit_Ry->Get_max()) -relM.rot.e2), -recovery_clamp));
 	}
 	if (limit_Rz) if (limit_Rz->Get_active())
 	{
@@ -1377,9 +1377,9 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
 				limit_Rz->constr_lower.Set_b_i(limit_Rz->constr_lower.Get_b_i()+ChMax (factor*(- sin(0.5*limit_Rz->Get_min()) +relM.rot.e3), -recovery_clamp));
 		if (limit_Rz->constr_upper.IsActive())
 			if (!do_clamp)
-				limit_Rz->constr_upper.Set_b_i(limit_Rz->constr_upper.Get_b_i()-factor*(- sin(0.5*limit_Rz->Get_max()) +relM.rot.e3));
+				limit_Rz->constr_upper.Set_b_i(limit_Rz->constr_upper.Get_b_i()+factor*(  sin(0.5*limit_Rz->Get_max()) -relM.rot.e3));
 		else
-				limit_Rz->constr_upper.Set_b_i(limit_Rz->constr_upper.Get_b_i()-ChMax (factor*(- sin(0.5*limit_Rz->Get_max()) +relM.rot.e3), -recovery_clamp));
+				limit_Rz->constr_upper.Set_b_i(limit_Rz->constr_upper.Get_b_i()+ChMax (factor*(  sin(0.5*limit_Rz->Get_max()) -relM.rot.e3), -recovery_clamp));
 	}
 }
 
