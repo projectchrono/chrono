@@ -1,5 +1,5 @@
-#ifndef CH_UTILS_GENERATE_H
-#define CH_UTILS_GENERATE_H
+#ifndef CH_UTILS_SAMPLERS_H
+#define CH_UTILS_SAMPLERS_H
 
 #include <random>
 #include <cmath>
@@ -22,9 +22,11 @@ enum SamplingType {
 	POISSON_DISK
 };
 
+
 // -------------------------------------------------------------------------------
 // Type definitions
 // -------------------------------------------------------------------------------
+
 // Until Visual Studio supports alias templates (VS2013 does) if we want to
 // "share" a typedef across different template classes, we use this structure.
 template <typename T>
@@ -38,116 +40,188 @@ typedef Types<double>::PointVector  PointVectorD;
 typedef Types<float>::PointVector   PointVectorF;
 
 
+// -------------------------------------------------------------------------------
+// Sampler
+//
+// Base class for different types of point samplers
+// -------------------------------------------------------------------------------
+
+template <typename T>
+class Sampler {
+public:
+	typedef typename Types<T>::PointVector PointVector;
+
+	PointVector SampleBox(const ChVector<T>& center, const ChVector<T>& halfDim)
+	{
+		m_center = center;
+		m_size = halfDim;
+		return Sample(BOX);
+	}
+
+	PointVector SampleSphere(const ChVector<T>& center, T radius)
+	{
+		m_center = center;
+		m_size = ChVector<T>(radius, radius, radius);
+		return Sample(SPHERE);
+	}
+
+	PointVector SampleCylinder(const ChVector<T>& center, T radius, T halfHeight)
+	{
+		m_center = center;
+		m_size = ChVector<T>(radius, radius, halfHeight);
+		return Sample(CYLINDER);
+	}
+
+protected:
+	enum VolumeType {
+		BOX,
+		SPHERE,
+		CYLINDER
+	};
+
+	virtual PointVector Sample(VolumeType t) = 0;
+
+	// Utility function to check if a point is inside the sampling volume
+	bool accept(VolumeType t, const ChVector<T>& p)
+	{
+		ChVector<T> vec = p - m_center;
+		T fuzz = 1e-6;
+
+		switch (t) {
+		case BOX:
+			return (std::abs(vec.x) <= m_size.x + fuzz) &&
+			       (std::abs(vec.y) <= m_size.y + fuzz) &&
+			       (std::abs(vec.z) <= m_size.z + fuzz);
+		case SPHERE:
+			return (vec.Length2() <= m_size.x * m_size.x);
+		case CYLINDER:
+			return (vec.x * vec.x + vec.y * vec.y <= m_size.x * m_size.x) &&
+			       (std::abs(vec.z) <= m_size.z + fuzz);
+		default:
+			return false;
+		}
+	}
+
+	ChVector<T> m_center;     ///< center of the sampling volume
+	ChVector<T> m_size;       ///< half dimensions of the bounding box of the sampling volume
+};
+
 
 // -------------------------------------------------------------------------------
-// Grid2D
+// PDGrid
 //
-// Simple 2D grid utility class for use by the Poisson Disk sampler.
+// Simple 3D grid utility class for use by the Poisson Disk sampler.
 // -------------------------------------------------------------------------------
+
 template <typename Point = ChVector<double> >
-class Grid2D {
+class PDGrid {
 public:
 	typedef std::pair<Point, bool> Content;
 
-	Grid2D() {}
-	~Grid2D() {}
+	PDGrid() {}
 
 	int GetDimX() const {return m_dimX;}
 	int GetDimY() const {return m_dimY;}
+	int GetDimZ() const {return m_dimZ;}
 
-	void Resize(int dimX, int dimY) {
+	void Resize(int dimX, int dimY, int dimZ) {
 		m_dimX = dimX;
 		m_dimY = dimY;
-		m_data.resize(dimX * dimY, Content(Point(0,0,0), true));
+		m_dimZ = dimZ;
+		m_data.resize(dimX * dimY * dimZ, Content(Point(0,0,0), true));
 	}
 
-	void SetCellPoint(int i, int j, const Point& p) {
-		int ii = index(i, j);
+	void SetCellPoint(int i, int j, int k, const Point& p) {
+		int ii = index(i, j, k);
 		m_data[ii].first = p;
 		m_data[ii].second = false;
 	}
 
-	const Point& GetCellPoint(int i, int j) const
+	const Point& GetCellPoint(int i, int j, int k) const
 	{
-		return m_data[index(i,j)].first;
+		return m_data[index(i,j,k)].first;
 	}
 
-	bool IsCellEmpty(int i, int j) const
+	bool IsCellEmpty(int i, int j, int k) const
 	{
-		if (i < 0 || i >= m_dimX || j < 0 || j >= m_dimY)
+		if (i < 0 || i >= m_dimX || j < 0 || j >= m_dimY || k < 0 || k >= m_dimZ)
 			return true;
 
-		return m_data[index(i,j)].second;
+		return m_data[index(i,j,k)].second;
 	}
 
-	Content&       operator()(int i, int j)        {return m_data[index(i,j)];}
-	const Content& operator()(int i, int j) const  {return m_data[index(i,j)];}
+	Content&       operator()(int i, int j, int k)        {return m_data[index(i,j,k)];}
+	const Content& operator()(int i, int j, int k) const  {return m_data[index(i,j,k)];}
 
 private:
-	int  index(int i, int j) const  {return i * m_dimY + j;}
+	int  index(int i, int j, int k) const  {return i * m_dimY * m_dimZ + j * m_dimZ + k;}
 
 	int                  m_dimX;
 	int                  m_dimY;
+	int                  m_dimZ;
 	std::vector<Content> m_data;
 };
 
 
 // -------------------------------------------------------------------------------
-// PDSampler2D
+// PDSampler
 //
-// A class to sample 2D domains (rectangle or circle) using Poisson Disk Sampling.
-// The sampler produces a set of points uniformly distributed in the specified
-// domain such that no two points are closer than a specified distance.
+// A class to sample 3D domains (box, sphere, or cylinder) using Poisson Disk
+// Sampling. The sampler produces a set of points uniformly distributed in the
+// specified domain such that no two points are closer than a specified distance.
+//
+// 2D domains can also be sampled (rectangle or circle), by setting the size of
+// the domain in the z direction to 0.
 //
 // Based on "Fast Poisson Disk Sampling in Arbitrary Dimensions" by Robert Bridson
 // http://people.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf
 // -------------------------------------------------------------------------------
 
 template <typename T = double>
-class PDSampler2D {
+class PDSampler : public Sampler<T> {
 public:
 	typedef typename Types<T>::PointVector PointVector;
 	typedef typename Types<T>::PointList   PointList;
 
-	typedef std::pair<int, int>            GridLocation;
-
-	PDSampler2D(T   minDist,
-	            int pointsPerIteration = m_ppi_default)
+	PDSampler(T   minDist,
+	          int pointsPerIteration = m_ppi_default)
 	:	m_minDist(minDist),
-		m_cellSize(minDist / std::sqrt(2.0)),
 		m_ppi(pointsPerIteration),
 		m_realDist(0.0, 1.0)
 	{
+		m_gridLoc.resize(3);
 	}
 
-	PointVector SampleCircle(const ChVector<T>& center, T radius)
+private:
+	// This is the worker function for sampling the given domain.
+	virtual PointVector Sample(VolumeType t)
 	{
-		m_center = center;
-		m_size = ChVector<T>(2 * radius, 2 * radius, 0);
-		m_maxDist2 = radius * radius;
-		return Sample();
-	}
-
-	PointVector SampleRectangle(const ChVector<T>& center, const ChVector<T>& halfDim)
-	{
-		m_center = center;
-		m_size = halfDim * 2;
-		m_maxDist2 = -1;
-		return Sample();
-	}
-
-	PointVector Sample()
-	{
-		m_height = m_center.z;
-		m_bl = m_center - m_size / 2;
-		m_tr = m_center + m_size / 2;
-
-		m_grid.Resize((int) (m_size.x / m_cellSize) + 1, (int) (m_size.y / m_cellSize) + 1);
-
 		PointVector out_points;
 
+		// Check 2D/3D. If the size in the z direction is less than the minimum distance,
+		// we switch to a 2D sampling. All sample points will have p.z = m_center.z
+		assert(m_size.x > m_minDist);
+		assert(m_size.y > m_minDist);
+
+		if (m_size.z < m_minDist) {
+			m_2D = true;
+			m_cellSize = m_minDist / std::sqrt(2.0);
+			m_size.z = 0;
+		} else {
+			m_2D = false;
+			m_cellSize = m_minDist / std::sqrt(3.0);
+		}
+
+
+		m_bl = m_center - m_size;
+		m_tr = m_center + m_size;
+
+		m_grid.Resize((int) (2 * m_size.x / m_cellSize) + 1,
+		              (int) (2 * m_size.y / m_cellSize) + 1,
+		              (int) (2 * m_size.z / m_cellSize) + 1);
+
 		// Add the first output point (and initialize active list)
-		AddFirstPoint(out_points);
+		AddFirstPoint(t, out_points);
 
 		// As long as there are active points...
 		while (m_active.size() != 0) {
@@ -161,7 +235,7 @@ public:
 			bool found = false;
 
 			for (int k = 0; k < m_ppi; k++)
-				found |= AddNextPoint(*point, out_points);
+				found |= AddNextPoint(t, *point, out_points);
 
 			// ... if not possible, remove the current active point
 			if (!found)
@@ -171,100 +245,104 @@ public:
 		return out_points;
 	}
 
-	void AddFirstPoint(PointVector& out_points)
+	// This function adds the first point in the volume (randomly)
+	void AddFirstPoint(VolumeType t, PointVector& out_points)
 	{
 		ChVector<T> p;
 
 		// Generate a random point in the domain
-		while (true) {
-			p.x = m_bl.x + m_realDist(m_generator) * m_size.x;
-			p.y = m_bl.y + m_realDist(m_generator) * m_size.y;
-			p.z = m_height;
-
-			if (m_maxDist2 < 0)
-				break;
-
-			ChVector<T> dist = p - m_center;
-			if (dist.Length2() <= m_maxDist2)
-				break;
-		}
+		do {
+			p.x = m_bl.x + m_realDist(m_generator) * 2 * m_size.x;
+			p.y = m_bl.y + m_realDist(m_generator) * 2 * m_size.y;
+			p.z = m_bl.z + m_realDist(m_generator) * 2 * m_size.z;
+		} while (!accept(t, p));
 
 		// Place the point in the grid, add it to the active list, and add it to output.
-		GridLocation index = MapToGrid(p);
+		MapToGrid(p);
 
-		m_grid.SetCellPoint(index.first, index.second, p);
+		m_grid.SetCellPoint(m_gridLoc[0], m_gridLoc[1], m_gridLoc[2], p);
 		m_active.push_back(p);
 		out_points.push_back(p);
 	}
 
-	bool AddNextPoint(const ChVector<T>& point, PointVector& out_points)
+	// Attempt to add a new point close to the specified one.
+	bool AddNextPoint(VolumeType t, const ChVector<T>& point, PointVector& out_points)
 	{
 		// Generate a random candidate point in the neighborhood of the specified point.
 		ChVector<T> q = GenerateRandomNeighbor(point);
 
-		// Check if point is in the domain
-		if (q.x < m_bl.x || q.x > m_tr.x || q.y < m_bl.y || q.y > m_tr.y)
+		// Check if point is in the domain.
+		if (!accept(t, q))
 			return false;
 
-		if (m_maxDist2 > 0) {
-			ChVector<T> dist = q - m_center;
-			if (dist.Length2() > m_maxDist2)
-				return false;
-		}
-
-		// Find grid location for this point
-		GridLocation index = MapToGrid(q);
-
 		// Check distance from candidate point to any existing point in the grid
-		// (note that we only need to check 5x5 surrounding grid cells)
-		for (int i = index.first - 2; i < index.first + 3; i++) {
-			for (int j = index.second - 2; j < index.second + 3; j++) {
-				if (m_grid.IsCellEmpty(i, j))
-					continue;
-				ChVector<T> dist = q - m_grid.GetCellPoint(i, j);
-				if (dist.Length2() < m_minDist * m_minDist)
-					return false;
+		// (note that we only need to check 5x5x5 surrounding grid cells).
+		MapToGrid(q);
+
+		for (int i = m_gridLoc[0] - 2; i < m_gridLoc[0] + 3; i++) {
+			for (int j = m_gridLoc[1] - 2; j < m_gridLoc[1] + 3; j++) {
+				for (int k = m_gridLoc[2] - 2; k < m_gridLoc[2] + 3; k++) {
+					if (m_grid.IsCellEmpty(i, j, k))
+						continue;
+					ChVector<T> dist = q - m_grid.GetCellPoint(i, j, k);
+					if (dist.Length2() < m_minDist * m_minDist)
+						return false;
+				}
 			}
 		}
 
 		// The candidate point is acceptable.
 		// Place it in the grid, add it to the active list, and add it to the output.
-		m_grid.SetCellPoint(index.first, index.second, q);
+		m_grid.SetCellPoint(m_gridLoc[0], m_gridLoc[1], m_gridLoc[2], q);
 		m_active.push_back(q);
 		out_points.push_back(q);
 
 		return true;
 	}
 
-	// Return random point in circular anulus between minDist and 2*minDist
-	ChVector<T> GenerateRandomNeighbor(const ChVector<T>& center)
+	// Return random point in spherical anulus between minDist and 2*minDist
+	// centered at given point
+	ChVector<T> GenerateRandomNeighbor(const ChVector<T>& point)
 	{
-		T radius = m_minDist * (1 + m_realDist(m_generator));
-		T angle = 2 * Pi * m_realDist(m_generator);
-		return ChVector<T>(center.x + radius * std::cos(angle), center.y + radius * std::sin(angle), m_height);
+		T x, y, z;
+
+		if (m_2D) {
+			T radius = m_minDist * (1 + m_realDist(m_generator));
+			T angle = 2 * Pi * m_realDist(m_generator);
+			x = point.x + radius * std::cos(angle);
+			y = point.y + radius * std::sin(angle);
+			z = m_center.z;
+		} else {
+			T radius = m_minDist * (1 + m_realDist(m_generator));
+			T angle1 = 2 * Pi * m_realDist(m_generator);
+			T angle2 = 2 * Pi * m_realDist(m_generator);
+			x = point.x + radius * std::cos(angle1) * std::sin(angle2);
+			y = point.y + radius * std::sin(angle1) * std::sin(angle2);
+			z = point.z + radius * std::cos(angle2);
+		}
+
+		return ChVector<T>(x, y, z);
 	}
 
-	// Map point location to a 2D grid location
-	GridLocation MapToGrid(ChVector<T> point)
+	// Map point location to a 3D grid location
+	void MapToGrid(ChVector<T> point)
 	{
-		return GridLocation((int) ((point.x - m_bl.x) / m_cellSize),
-		                    (int) ((point.y - m_bl.y) / m_cellSize));
+		m_gridLoc[0] = (int) ((point.x - m_bl.x) / m_cellSize);
+		m_gridLoc[1] = (int) ((point.y - m_bl.y) / m_cellSize);
+		m_gridLoc[2] = (int) ((point.z - m_bl.z) / m_cellSize);
 	}
 
-private:
 
-	Grid2D<ChVector<T> >  m_grid;
+	PDGrid<ChVector<T> >  m_grid;
 	PointList             m_active;
 
+	bool        m_2D;          ///< 2D or 3D sampling
 	ChVector<T> m_bl;          ///< bottom-left corner of sampling domain
-	ChVector<T> m_tr;          ///< top-right corner of sampling domain
-	ChVector<T> m_size;        ///< dimensions of sampling domain (length and width)
-	ChVector<T> m_center;      ///< center of sampling domain
-	T           m_height;      ///< height (z coordinate) of sampling domain
+	ChVector<T> m_tr;          ///< top-right corner of sampling domain      REMOVE?
 	T           m_cellSize;    ///< grid cell size
 	T           m_minDist;     ///< minimum distance between generated points
-	T           m_maxDist2;    ///< squared maximum distance from center
 
+	std::vector<int> m_gridLoc;
 	int m_ppi;                 ///< maximum points per iteration
 
 	/// Generate real numbers uniformly distributed in (0,1)
@@ -276,71 +354,45 @@ private:
 
 
 // -------------------------------------------------------------------------------
-// GridSampler2D
+// GridSampler
 //
-// A class to generate points in a regular grid within a 2D domain (rectangle or
-// circle). Grid spacing can be different in the two directions.
+// A class to generate points in a regular grid within a 3D domain. Grid spacing
+// can be different in the three directions.
 // -------------------------------------------------------------------------------
 
 template <typename T = double>
-class GridSampler2D {
+class GridSampler : public Sampler<T> {
 public:
 	typedef typename Types<T>::PointVector PointVector;
 
-	GridSampler2D(T delX,
-	              T delY)
-	:	m_delX(delX),
-		m_delY(delY)
-	{
-	}
+	GridSampler(T spacing) : m_spacing(spacing, spacing, spacing) {}
+	GridSampler(const ChVector<T>& spacing) : m_spacing(spacing) {}
 
-	PointVector SampleCircle(const ChVector<T>& center, T radius)
+private:
+	virtual PointVector Sample(VolumeType t)
 	{
-		m_center = center;
-		m_size = ChVector<T>(2 * radius, 2 * radius, 0);
-		m_maxDist2 = radius * radius;
-		return Sample();
-	}
-
-	PointVector SampleRectangle(const ChVector<T>& center, const ChVector<T>& halfDim)
-	{
-		m_center = center;
-		m_size = halfDim * 2;
-		m_maxDist2 = -1;
-		return Sample();
-	}
-
-	PointVector Sample()
-	{
-		T height = m_center.z;
-		ChVector<T> bl = m_center - m_size / 2;
-
 		PointVector out_points;
 
-		int nx = (int) (m_size.x / m_delX) + 1;
-		int ny = (int) (m_size.y / m_delY) + 1;
+		ChVector<T> bl = m_center - m_size;
+
+		int nx = (int) (2 * m_size.x / m_spacing.x) + 1;
+		int ny = (int) (2 * m_size.y / m_spacing.y) + 1;
+		int nz = (int) (2 * m_size.z / m_spacing.z) + 1;
 
 		for (int i = 0; i < nx; i++) {
 			for (int j = 0; j < ny; j++) {
-				ChVector<T> p = bl + ChVector<T>(i*m_delX, j*m_delY, height);
-				if (m_maxDist2 > 0) {
-					ChVector<T> dist = p - m_center;
-					if (dist.Length2() > m_maxDist2)
-						continue;
+				for (int k = 0; k < nz; k++) {
+					ChVector<T> p = bl + ChVector<T>(i*m_spacing.x, j*m_spacing.y, k*m_spacing.z);
+					if (accept(t, p)) 
+						out_points.push_back(p);
 				}
-				out_points.push_back(p);
 			}
 		}
 
 		return out_points;
 	}
 
-private:
-	T  m_delX;
-	T  m_delY;
-	T  m_maxDist2;
-	ChVector<T> m_center;
-	ChVector<T> m_size;
+	ChVector<T> m_spacing;
 };
 
 
