@@ -15,7 +15,7 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, const custom_vector<r
 	Project(x);
 	ShurProduct(x,mg);
 	real norm_mb_tmp = 0;
-#pragma omp parallel for reduction(+:norm_mb_tmp) schedule(static, 1000)
+#pragma omp parallel for reduction(+:norm_mb_tmp)
 		for(int i=0; i<mg.size(); i++) {
 			mg[i] = mg[i]-b[i];
 			real _mb_tmp_ = -1.0+x[i];
@@ -42,7 +42,7 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, const custom_vector<r
 
 		for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
 			ShurProduct(my,mg_tmp1);
-#pragma omp parallel for schedule(static, 1000)
+#pragma omp parallel for
 		for(int i=0; i<mg.size(); i++) {
 			real _mg_ = mg_tmp1[i]-b[i];
 			mg[i] = _mg_;
@@ -56,7 +56,7 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, const custom_vector<r
 		real dot_mg_ms = 0;
 		real norm_ms = 0;
 
-#pragma omp parallel for reduction(+:obj1,obj2,dot_mg_ms,norm_ms) schedule(static, 1000)
+#pragma omp parallel for reduction(+:obj1,obj2,dot_mg_ms,norm_ms)
 		for(int i=0; i<mg_tmp.size(); i++) {
 			real _mg_tmp_ = mg_tmp[i];
 			real _b_ = b[i];
@@ -82,7 +82,7 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, const custom_vector<r
 
 		ShurProduct(mx,mg_tmp);
 		obj1 = dot_mg_ms = norm_ms =0;
-#pragma omp parallel for reduction(+:obj1,dot_mg_ms,norm_ms) schedule(static, 1000)
+#pragma omp parallel for reduction(+:obj1,dot_mg_ms,norm_ms)
 		for(int i=0; i<x.size(); i++) {
 			real _mg_tmp_ = mg_tmp[i];
 			real _b_ = b[i];
@@ -99,7 +99,7 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, const custom_vector<r
 	theta_k1 = (-pow(theta_k, 2) + theta_k * sqrt(pow(theta_k, 2) + 4)) / 2.0;
 	beta_k1 = theta_k * (1.0 - theta_k) / (pow(theta_k, 2) + theta_k1);
 	real temp_sum=0;
-#pragma omp parallel for reduction(+:temp_sum) schedule(static, 1000)
+#pragma omp parallel for reduction(+:temp_sum)
 		for(int i=0; i<ms.size(); i++) {
 			real _mx_ = mx[i];
 			real _ms_ = _mx_-x[i];
@@ -141,7 +141,7 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, const custom_vector<r
 		//			cout<<"resolved "<<count_resolved<<endl;
 		//cout<<"MINVAL "<<g_proj_norm<<" "<<fmax(real(0.0),-min_val)<<endl;
 		//this is res4
-		//if(current_iteration%5==0) {
+		if(current_iteration%5==0) {
 			real g_proj_norm = Res4(mg_tmp, b, mx, mb_tmp);
 			if(g_proj_norm < lastgoodres) {
 				lastgoodres = g_proj_norm;
@@ -156,8 +156,7 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, const custom_vector<r
 				UpdatePosition(ml_candidate);
 				UpdateContacts();
 			}
-
-		//}
+		}
 
 		//custom_vector<real> error = (x_initial-x)/x;
 		//x_initial = x;
@@ -174,7 +173,7 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, const custom_vector<r
 		}
 	}
 //cout<<x<<endl;
-x=ml_candidate;
+		x=ml_candidate;
 	return current_iteration;
 }
 

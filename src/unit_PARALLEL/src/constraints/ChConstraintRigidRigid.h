@@ -35,6 +35,7 @@ namespace chrono {
 				}
 				solve_sliding = false;
 				solve_spinning = false;
+				count_shur_a_sliding = 0;
 
 			}
 			~ChConstraintRigidRigid() {
@@ -104,6 +105,8 @@ namespace chrono {
 		custom_vector<uint> update_offset;
 		custom_vector<uint> offset_counter;
 		custom_vector<uint> body_number;
+		int count_shur_a_sliding;
+
 	}
 	;
 }
