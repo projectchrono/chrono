@@ -146,7 +146,7 @@ ChContactDEM::CalculateForce()
 		{
 		double kt = 2e7;
 		double slip = relvel_t_mag * dT;
-		forceT = std::min<float>(kt * slip, mat.mu_eff * std::abs(forceN));
+		forceT = std::min<double>(kt * slip, mat.mu_eff * std::abs(forceN));
 		}
 		break;
 	case LinearDampedSpring:
