@@ -19,6 +19,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
+#include <cmath>
 #include <algorithm>
 
 #include "physics/ChMaterialSurfaceDEM.h"
@@ -45,7 +46,7 @@ ChMaterialSurfaceDEM::CompositeMaterial(const ChSharedPtr<ChMaterialSurfaceDEM>&
 	mat.E_eff = 1 / inv_E;
 	mat.G_eff = 1 / inv_G;
 
-	mat.mu_eff    = std::min(mat1->static_friction, mat2->static_friction);
+	mat.mu_eff    = std::min<float>(mat1->static_friction, mat2->static_friction);
 
 	mat.cr_eff    = (mat1->restitution + mat2->restitution) / 2;
 	mat.alpha_eff = (mat1->dissipation_factor + mat2->dissipation_factor) / 2;
