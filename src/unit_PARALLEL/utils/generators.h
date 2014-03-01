@@ -252,8 +252,9 @@ public:
 
 	void writeObjectInfo(const std::string& filename);
 
-	double getTotalMass() const   {return m_totalMass;}
-	double getTotalVolume() const {return m_totalVolume;}
+	int    getTotalNumBodies() const {return m_totalNumBodies;}
+	double getTotalMass() const      {return m_totalMass;}
+	double getTotalVolume() const    {return m_totalVolume;}
 
 private:
 	enum SystemType {
@@ -289,6 +290,7 @@ private:
 
 	std::vector<MixtureIngredientPtr>  m_mixture;
 	std::vector<BodyInfo>              m_bodies;
+	int                                m_totalNumBodies;
 	double                             m_totalMass;
 	double                             m_totalVolume;
 
@@ -549,6 +551,7 @@ MixtureIngredient::calcMinSeparation()
 Generator::Generator(ChSystem* system)
 :	m_system(system),
 	m_mixDist(0,1),
+	m_totalNumBodies(0),
 	m_totalMass(0),
 	m_totalVolume(0)
 {
@@ -729,10 +732,21 @@ void Generator::createObjects(const PointVector& points)
 		// Attach the body to the system and append to list of generated bodies.
 		ChSharedPtr<ChBody>  bodyPtr(body);
 
-		m_system->AddBody(bodyPtr);
+		switch (m_sysType) {
+		case SEQUENTIAL_DVI:
+		case SEQUENTIAL_DEM:
+			m_system->AddBody(bodyPtr);
+			break;
+		case PARALLEL_DVI:
+		case PARALLEL_DEM:
+			((ChSystemParallel*) m_system)->AddBody(bodyPtr);
+			break;
+		}
+
 		m_bodies.push_back(BodyInfo(m_mixture[index]->m_type, density, size, bodyPtr));
 	}
 
+	m_totalNumBodies += points.size();
 }
 
 // Write body information to a CSV file
