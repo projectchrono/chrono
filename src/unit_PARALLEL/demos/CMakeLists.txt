@@ -58,9 +58,29 @@ SET_TARGET_PROPERTIES(demo_ballDEM PROPERTIES
 TARGET_LINK_LIBRARIES(demo_ballDEM ${CHRONO_LIB} ChronoEngine_Parallel)
 ADD_DEPENDENCIES(demo_ballDEM ${CHRONO_LIB} ChronoEngine_Parallel)
 
+ADD_EXECUTABLE(demo_soilbin  demo_soilbin.cpp ${UTILITIES})
+SOURCE_GROUP(""  FILES demo_soilbin.cpp ${UTILITIES})
+SET_TARGET_PROPERTIES(demo_soilbin PROPERTIES
+  FOLDER demos
+  COMPILE_FLAGS "${CH_BUILDFLAGS}"
+  LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+TARGET_LINK_LIBRARIES(demo_soilbin ${CHRONO_LIB} ChronoEngine_Parallel)
+ADD_DEPENDENCIES(demo_soilbin ${CHRONO_LIB} ChronoEngine_Parallel)
+
+ADD_EXECUTABLE(demo_utils  demo_utils.cpp ${UTILITIES})
+SOURCE_GROUP(""  FILES demo_utils.cpp ${UTILITIES})
+SET_TARGET_PROPERTIES(demo_utils PROPERTIES
+  FOLDER demos
+  COMPILE_FLAGS "${CH_BUILDFLAGS}"
+  LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+TARGET_LINK_LIBRARIES(demo_utils ${CHRONO_LIB} ChronoEngine_Parallel)
+ADD_DEPENDENCIES(demo_utils ${CHRONO_LIB} ChronoEngine_Parallel)
+
+
 install(TARGETS demo_ballDVI DESTINATION bin)
 install(TARGETS demo_ballDEM DESTINATION bin)
-
+install(TARGETS demo_soilbin DESTINATION bin)
+install(TARGETS demo_utils DESTINATION bin)
 
 
 
