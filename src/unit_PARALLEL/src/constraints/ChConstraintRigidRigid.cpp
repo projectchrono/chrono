@@ -145,7 +145,7 @@ void func_Project_rolling(int &index, uint number_of_contacts, int2 *ids, real3 
 }
 
 void ChConstraintRigidRigid::host_Project(int2 *ids, real3 *friction, real* cohesion, real *gamma) {
-#pragma omp parallel for
+#pragma omp for
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		//always project normal
 
@@ -174,13 +174,15 @@ void ChConstraintRigidRigid::host_Project(int2 *ids, real3 *friction, real* cohe
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-void ChConstraintRigidRigid::Project(
-real* gamma) {
-	host_Project(
-	data_container->host_data.bids_rigid_rigid.data(),
-	data_container->host_data.fric_data.data(),
-	data_container->host_data.cohesion_data.data(),
-	gamma);
+void ChConstraintRigidRigid::Project(real* gamma) {
+#pragma omp parallel
+	{
+
+	host_Project(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.fric_data.data(), data_container->host_data.cohesion_data.data(), gamma);
+}
+}
+void ChConstraintRigidRigid::Project_NoPar(real* gamma) {
+	host_Project(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.fric_data.data(), data_container->host_data.cohesion_data.data(), gamma);
 }
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -516,6 +518,7 @@ void ChConstraintRigidRigid::host_shurA_sliding(int2 * ids, bool * active, real3
 #pragma omp parallel for
 	for (size_t index = 0; index < number_of_rigid_rigid; index++) {
 		real3 gam(_mm_loadu_ps(&gamma[_index_]));
+
 		real3 U = norm[index], V, W;
 		Orthogonalize(U, V, W);
 		int2 bids = ids[index];
@@ -739,143 +742,49 @@ void ChConstraintRigidRigid::host_Offsets(int2* ids, uint* Body) {
 	}
 }
 
-void ChConstraintRigidRigid::ShurA(
-custom_vector<real> &x) {
-	if(solve_spinning) {
-		host_shurA_spinning(
-		data_container->host_data.bids_rigid_rigid.data(),
-		data_container->host_data.active_data.data(),
-		data_container->host_data.norm_rigid_rigid.data(),
-		data_container->host_data.cpta_rigid_rigid.data(),
-		data_container->host_data.cptb_rigid_rigid.data(),
-		JUA_rigid_rigid.data(),
-		JUB_rigid_rigid.data(),
-		JVA_rigid_rigid.data(),
-		JVB_rigid_rigid.data(),
-		JWA_rigid_rigid.data(),
-		JWB_rigid_rigid.data(),
-		JTA_rigid_rigid.data(),
-		JTB_rigid_rigid.data(),
-		JSA_rigid_rigid.data(),
-		JSB_rigid_rigid.data(),
-		JRA_rigid_rigid.data(),
-		JRB_rigid_rigid.data(),
-		x.data(),
-		vel_update.data(),
-		omg_update.data(),
-		update_offset.data());
-	} else if(solve_sliding) {
-		host_shurA_sliding(
-		data_container->host_data.bids_rigid_rigid.data(),
-		data_container->host_data.active_data.data(),
-		data_container->host_data.norm_rigid_rigid.data(),
-		data_container->host_data.cpta_rigid_rigid.data(),
-		data_container->host_data.cptb_rigid_rigid.data(),
-		JUA_rigid_rigid.data(),
-		JUB_rigid_rigid.data(),
-		JVA_rigid_rigid.data(),
-		JVB_rigid_rigid.data(),
-		JWA_rigid_rigid.data(),
-		JWB_rigid_rigid.data(),
-		x.data(),
-		vel_update.data(),
-		omg_update.data(),
-		update_offset.data());
+void ChConstraintRigidRigid::ShurA(real* x) {
+	if (solve_spinning) {
+		host_shurA_spinning(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.active_data.data(), data_container->host_data.norm_rigid_rigid.data(),
+				data_container->host_data.cpta_rigid_rigid.data(), data_container->host_data.cptb_rigid_rigid.data(), JUA_rigid_rigid.data(), JUB_rigid_rigid.data(),
+				JVA_rigid_rigid.data(), JVB_rigid_rigid.data(), JWA_rigid_rigid.data(), JWB_rigid_rigid.data(), JTA_rigid_rigid.data(), JTB_rigid_rigid.data(),
+				JSA_rigid_rigid.data(), JSB_rigid_rigid.data(), JRA_rigid_rigid.data(), JRB_rigid_rigid.data(), x, vel_update.data(), omg_update.data(), update_offset.data());
+	} else if (solve_sliding) {
+		host_shurA_sliding(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.active_data.data(), data_container->host_data.norm_rigid_rigid.data(),
+				data_container->host_data.cpta_rigid_rigid.data(), data_container->host_data.cptb_rigid_rigid.data(), JUA_rigid_rigid.data(), JUB_rigid_rigid.data(),
+				JVA_rigid_rigid.data(), JVB_rigid_rigid.data(), JWA_rigid_rigid.data(), JWB_rigid_rigid.data(), x, vel_update.data(), omg_update.data(), update_offset.data());
 	} else {
-		host_shurA_normal(
-		data_container->host_data.bids_rigid_rigid.data(),
-		data_container->host_data.active_data.data(),
-		data_container->host_data.norm_rigid_rigid.data(),
-		data_container->host_data.cpta_rigid_rigid.data(),
-		data_container->host_data.cptb_rigid_rigid.data(),
-		JUA_rigid_rigid.data(),
-		JUB_rigid_rigid.data(),
-		x.data(),
-		vel_update.data(),
-		omg_update.data(),
-		update_offset.data());
+		host_shurA_normal(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.active_data.data(), data_container->host_data.norm_rigid_rigid.data(),
+				data_container->host_data.cpta_rigid_rigid.data(), data_container->host_data.cptb_rigid_rigid.data(), JUA_rigid_rigid.data(), JUB_rigid_rigid.data(), x,
+				vel_update.data(), omg_update.data(), update_offset.data());
 
 	}
 
-	host_Reduce_Shur(
-	data_container->host_data.active_data.data(),
-	data_container->host_data.QXYZ_data.data(),
-	data_container->host_data.QUVW_data.data(),
-	data_container->host_data.mass_data.data(),
-	data_container->host_data.inr_data.data(),
-	vel_update.data(),
-	omg_update.data(),
-	body_number.data(),
-	offset_counter.data());
+	host_Reduce_Shur(data_container->host_data.active_data.data(), data_container->host_data.QXYZ_data.data(), data_container->host_data.QUVW_data.data(),
+			data_container->host_data.mass_data.data(), data_container->host_data.inr_data.data(), vel_update.data(), omg_update.data(), body_number.data(), offset_counter.data());
 
 }
-void ChConstraintRigidRigid::ShurB(
-custom_vector<real> &x, custom_vector<real> & output) {
+void ChConstraintRigidRigid::ShurB(real*x, real* output) {
 
-	if(solve_spinning) {
-		host_shurB_spinning(
-		data_container->host_data.bids_rigid_rigid.data(),
-		data_container->host_data.active_data.data(),
-		data_container->host_data.norm_rigid_rigid.data(),
-		data_container->host_data.cpta_rigid_rigid.data(),
-		data_container->host_data.cptb_rigid_rigid.data(),
-		data_container->host_data.mass_data.data(),
-		data_container->host_data.inr_data.data(),
-		comp_rigid_rigid.data(),
-		x.data(),
-		JUA_rigid_rigid.data(),
-		JUB_rigid_rigid.data(),
-		JVA_rigid_rigid.data(),
-		JVB_rigid_rigid.data(),
-		JWA_rigid_rigid.data(),
-		JWB_rigid_rigid.data(),
-		JTA_rigid_rigid.data(),
-		JTB_rigid_rigid.data(),
-		JSA_rigid_rigid.data(),
-		JSB_rigid_rigid.data(),
-		JRA_rigid_rigid.data(),
-		JRB_rigid_rigid.data(),
-		data_container->host_data.QXYZ_data.data(),
-		data_container->host_data.QUVW_data.data(),
-		output.data());
+	if (solve_spinning) {
+		host_shurB_spinning(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.active_data.data(), data_container->host_data.norm_rigid_rigid.data(),
+				data_container->host_data.cpta_rigid_rigid.data(), data_container->host_data.cptb_rigid_rigid.data(), data_container->host_data.mass_data.data(),
+				data_container->host_data.inr_data.data(), comp_rigid_rigid.data(), x, JUA_rigid_rigid.data(), JUB_rigid_rigid.data(), JVA_rigid_rigid.data(),
+				JVB_rigid_rigid.data(), JWA_rigid_rigid.data(), JWB_rigid_rigid.data(), JTA_rigid_rigid.data(), JTB_rigid_rigid.data(), JSA_rigid_rigid.data(),
+				JSB_rigid_rigid.data(), JRA_rigid_rigid.data(), JRB_rigid_rigid.data(), data_container->host_data.QXYZ_data.data(), data_container->host_data.QUVW_data.data(),
+				output);
 
 	} else if (solve_sliding) {
-		host_shurB_sliding(
-		data_container->host_data.bids_rigid_rigid.data(),
-		data_container->host_data.active_data.data(),
-		data_container->host_data.norm_rigid_rigid.data(),
-		data_container->host_data.cpta_rigid_rigid.data(),
-		data_container->host_data.cptb_rigid_rigid.data(),
-		data_container->host_data.mass_data.data(),
-		data_container->host_data.inr_data.data(),
-		comp_rigid_rigid.data(),
-		x.data(),
-		JUA_rigid_rigid.data(),
-		JUB_rigid_rigid.data(),
-		JVA_rigid_rigid.data(),
-		JVB_rigid_rigid.data(),
-		JWA_rigid_rigid.data(),
-		JWB_rigid_rigid.data(),
-		data_container->host_data.QXYZ_data.data(),
-		data_container->host_data.QUVW_data.data(),
-		output.data());
+		host_shurB_sliding(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.active_data.data(), data_container->host_data.norm_rigid_rigid.data(),
+				data_container->host_data.cpta_rigid_rigid.data(), data_container->host_data.cptb_rigid_rigid.data(), data_container->host_data.mass_data.data(),
+				data_container->host_data.inr_data.data(), comp_rigid_rigid.data(), x, JUA_rigid_rigid.data(), JUB_rigid_rigid.data(), JVA_rigid_rigid.data(),
+				JVB_rigid_rigid.data(), JWA_rigid_rigid.data(), JWB_rigid_rigid.data(), data_container->host_data.QXYZ_data.data(), data_container->host_data.QUVW_data.data(),
+				output);
 
 	} else {
-		host_shurB_normal(
-		data_container->host_data.bids_rigid_rigid.data(),
-		data_container->host_data.active_data.data(),
-		data_container->host_data.norm_rigid_rigid.data(),
-		data_container->host_data.cpta_rigid_rigid.data(),
-		data_container->host_data.cptb_rigid_rigid.data(),
-		data_container->host_data.mass_data.data(),
-		data_container->host_data.inr_data.data(),
-		comp_rigid_rigid.data(),
-		x.data(),
-		JUA_rigid_rigid.data(),
-		JUB_rigid_rigid.data(),
-		data_container->host_data.QXYZ_data.data(),
-		data_container->host_data.QUVW_data.data(),
-		output.data());
+		host_shurB_normal(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.active_data.data(), data_container->host_data.norm_rigid_rigid.data(),
+				data_container->host_data.cpta_rigid_rigid.data(), data_container->host_data.cptb_rigid_rigid.data(), data_container->host_data.mass_data.data(),
+				data_container->host_data.inr_data.data(), comp_rigid_rigid.data(), x, JUA_rigid_rigid.data(), JUB_rigid_rigid.data(), data_container->host_data.QXYZ_data.data(),
+				data_container->host_data.QUVW_data.data(), output);
 
 	}
 }

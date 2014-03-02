@@ -27,8 +27,9 @@ namespace chrono {
 			void Setup();
 			void Initial(real step, ChParallelDataManager *data_container_);
 			void Project(real*  gamma);
-		void shurA(custom_vector<real> &x);
-		void shurB(custom_vector<real> &x, custom_vector<real> &out);
+			void Project_NoPar(real*  gamma);
+		void shurA(real*x);
+		void shurB(real* x, real* out);
 
 		void ComputeImpulses();
 		void UpdatePosition(custom_vector<real> &x);
@@ -66,7 +67,7 @@ namespace chrono {
 		void SolveJacobi();
 
 		void InitAPGD(custom_vector<real> &x);
-		real Res4(custom_vector<real> &mg_tmp,const  custom_vector<real> &b, custom_vector<real> &x, custom_vector<real>& mb_tmp);
+		real Res4(const int SIZE, real* mg_tmp, const real* b, real*x, real* mb_tmp);
 		void SetAPGDParams(real theta_k, real shrink,real grow);
 
 		void host_process_contacts(

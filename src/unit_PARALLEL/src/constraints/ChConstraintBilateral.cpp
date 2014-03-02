@@ -165,7 +165,7 @@ void ChConstraintBilateral::host_shurB(
 	}
 
 }
-void ChConstraintBilateral::ShurA(custom_vector<real> &x) {
+void ChConstraintBilateral::ShurA(real* x) {
 	host_shurA(
 			data_container->host_data.bids_bilateral.data(),
 			data_container->host_data.active_data.data(),
@@ -175,7 +175,7 @@ void ChConstraintBilateral::ShurA(custom_vector<real> &x) {
 			data_container->host_data.JXYZB_bilateral.data(),
 			data_container->host_data.JUVWA_bilateral.data(),
 			data_container->host_data.JUVWB_bilateral.data(),
-			x.data(),
+			x,
 			vel_update.data(),
 			omg_update.data(),
 			data_container->host_data.QXYZ_data.data(),
@@ -194,20 +194,20 @@ void ChConstraintBilateral::ShurA(custom_vector<real> &x) {
 			offset_counter.data());
 
 }
-void ChConstraintBilateral::ShurB(custom_vector<real> &x, custom_vector<real> & output) {
+void ChConstraintBilateral::ShurB(real*x, real* output) {
 	host_shurB(
 			data_container->host_data.bids_bilateral.data(),
 			data_container->host_data.active_data.data(),
 			data_container->host_data.mass_data.data(),
 			data_container->host_data.inr_data.data(),
-			x.data(),
+			x,
 			data_container->host_data.JXYZA_bilateral.data(),
 			data_container->host_data.JXYZB_bilateral.data(),
 			data_container->host_data.JUVWA_bilateral.data(),
 			data_container->host_data.JUVWB_bilateral.data(),
 			data_container->host_data.QXYZ_data.data(),
 			data_container->host_data.QUVW_data.data(),
-			output.data());
+			output);
 
 }
 

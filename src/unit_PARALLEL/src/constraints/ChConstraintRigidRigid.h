@@ -55,7 +55,8 @@ namespace chrono {
 
 			void Project(
 					real* gamma);
-
+			void Project_NoPar(
+								real* gamma);
 				void host_RHS(
 				int2 *ids,
 				real *correction,
@@ -251,8 +252,8 @@ namespace chrono {
 				//void host_Diag(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *diag);
 				void Diag();
 
-				void ShurA(custom_vector<real> &x);
-				void ShurB(custom_vector<real> &x, custom_vector<real> &output);
+				void ShurA(real * x);
+				void ShurB(real*x, real*output);
 
 				void Build_N();
 

@@ -10,9 +10,18 @@ void ChSolverParallel::Project(real* gamma) {
 	timer_project.stop();
 	time_project += timer_project();
 }
+
+void ChSolverParallel::Project_NoPar(real* gamma) {
+	timer_project.start();
+
+	rigid_rigid->Project_NoPar(gamma);
+
+	timer_project.stop();
+	time_project += timer_project();
+}
 //=================================================================================================================================
 
-void ChSolverParallel::shurA(custom_vector<real> &x) {
+void ChSolverParallel::shurA(real* x) {
 	timer_shurcompliment.start();
 #pragma omp parallel for
 	for (int i = 0; i < number_of_rigid; i++) {
@@ -27,18 +36,18 @@ void ChSolverParallel::shurA(custom_vector<real> &x) {
 }
 //=================================================================================================================================
 
-void ChSolverParallel::shurB(custom_vector<real> &x, custom_vector<real> &out) {
+void ChSolverParallel::shurB(real*x, real*out) {
 	rigid_rigid->ShurB(x,out);
 	bilateral->ShurB(x,out);
 }
 void ChSolverParallel::ShurProduct(custom_vector<real> &x, custom_vector<real> & output) {
 
 	//Thrust_Fill(output, 0);
-	shurA(x);
+	shurA(x.data());
 
 
 	//timer_shurcompliment.start();
-	shurB(x,output);
+	shurB(x.data(),output.data());
 	//timer_shurcompliment.stop();
 	//time_shurcompliment +=timer_shurcompliment();
 
@@ -94,7 +103,7 @@ void ChSolverParallel::UpdatePosition(custom_vector<real> &x) {
 	if (rigid_rigid->solve_sliding == true|| rigid_rigid->solve_spinning ==true) {
 		return;
 	}
-	shurA(x);
+	shurA(x.data());
 
 	data_container->host_data.vel_new_data = data_container->host_data.vel_data+data_container->host_data.QXYZ_data;
 	data_container->host_data.omg_new_data + data_container->host_data.omg_data+data_container->host_data.QUVW_data;
@@ -136,7 +145,7 @@ void ChSolverParallel::UpdateContacts() {
 
 }
 void ChSolverParallel::ComputeImpulses() {
-	shurA(data_container->host_data.gamma_data);
+	shurA(data_container->host_data.gamma_data.data());
 	data_container->host_data.vel_data += data_container->host_data.QXYZ_data;
 	data_container->host_data.omg_data += data_container->host_data.QUVW_data;
 

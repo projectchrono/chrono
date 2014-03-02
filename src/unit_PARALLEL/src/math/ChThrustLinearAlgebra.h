@@ -11,6 +11,16 @@ static void SEAXPY(const real &a, const custom_vector<real> &x,const custom_vect
 	}
 
 }
+
+static void SEAXPY(int SIZE, const real &a, real* __restrict__  x,real* __restrict__ y, real* __restrict__ output)
+{
+#pragma omp parallel for
+	for(int i=0; i<SIZE; i++) {
+		output[i] = a*x[i]+y[i];
+	}
+
+}
+
 static void SEAXMY(const real &a, const custom_vector<real> &x,const custom_vector<real> &y, custom_vector<real> &output)
 {
 #pragma omp parallel for
