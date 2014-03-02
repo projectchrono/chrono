@@ -196,7 +196,7 @@ private:
 	ChSharedPtr<ChMaterialSurfaceDEM>& getMaterialDEM();
 	ChVector<>                         getSize();
 	double                             getDensity();
-	double                             calcVolume(const ChVector<>& size);
+	void                               calcGeometricProps(const ChVector<>& size, double& volume, ChVector<>& gyration);
 	double                             calcMinSeparation();
 
 	Generator*                         m_generator;
@@ -515,20 +515,29 @@ MixtureIngredient::getDensity()
 	return m_defDensity;
 }
 
-// Calculate the volume of an object of given size created from this ingredient type.
-double
-MixtureIngredient::calcVolume(const ChVector<>& size)
+// Calculate the volume and gyration tensor of an object of given size created
+// from this ingredient type.
+void
+MixtureIngredient::calcGeometricProps(const ChVector<>& size, double& volume, ChVector<>& gyration)
 {
 	switch (m_type) {
 	case SPHERE:
-		return 4.0/3 * Pi * size.x * size.x * size.x;
+		volume = 4.0/3 * Pi * size.x * size.x * size.x;
+		gyration = 2.0/5 * size.x * size.x * ChVector<>(1,1,1);
+		break;
 	case ELLIPSOID:
-		return 4.0/3 * Pi * size.x * size.y * size.z;
+		volume = 4.0/3 * Pi * size.x * size.y * size.z;
+		gyration = 1.0/5 * ChVector<>(size.y * size.y + size.z * size.z,
+		                            size.x * size.x + size.z * size.z,
+		                            size.x * size.x + size.y * size.y);
+		break;
 	case BOX:
-		return 8 * size.x * size.y * size.z;
+		volume = 8 * size.x * size.y * size.z;
+		gyration = 1.0/12 * ChVector<>(size.y * size.y + size.z * size.z,
+		                               size.x * size.x + size.z * size.z,
+		                               size.x * size.x + size.y * size.y);
+		break;
 	}
-
-	return 0;
 }
 
 // Calculate a necessary minimum separation based on the largest possible
@@ -702,13 +711,17 @@ void Generator::createObjects(const PointVector& points)
 		body->SetBodyFixed(false);
 		body->SetCollide(true);
 
-		// Calculate size and density and set mass
+		// Get size and density; calculate geometric properties
 		ChVector<> size = m_mixture[index]->getSize();
 		double     density = m_mixture[index]->getDensity();
-		double     volume = m_mixture[index]->calcVolume(size);
+		double     volume;
+		ChVector<> gyration;
+		m_mixture[index]->calcGeometricProps(size, volume, gyration);
 		double     mass = density * volume;
 
+		// Set mass properties
 		body->SetMass(mass);
+		body->SetInertiaXX(mass * gyration);
 		m_totalMass += mass;
 		m_totalVolume += volume;
 
