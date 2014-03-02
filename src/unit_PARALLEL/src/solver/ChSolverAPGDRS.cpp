@@ -7,7 +7,7 @@ real Func1(const int &SIZE, real* __restrict__ x, real* __restrict__ mb_tmp) {
 
 	real *x_ = (real*) __builtin_assume_aligned(x, 16);
 	real *mb_tmp_ = (real*) __builtin_assume_aligned(mb_tmp, 16);
-//#pragma omp parallel for reduction(+:mb_tmp_norm)
+#pragma omp parallel for reduction(+:mb_tmp_norm)
 	for (int i = 0; i < SIZE; i++) {
 		_mb_tmp_ = x_[i] - 1.0f;
 		mb_tmp_norm += _mb_tmp_ * _mb_tmp_;
@@ -18,7 +18,7 @@ real Func1(const int &SIZE, real* __restrict__ x, real* __restrict__ mb_tmp) {
 }
 void Func2(const size_t &SIZE, const real t_k, real* __restrict__ x, real* __restrict__ mg_tmp1, real* __restrict__ b, real* __restrict__ mg, real* __restrict__ mx,
 		real* __restrict__ my) {
-//#pragma omp parallel for
+#pragma omp parallel for
 	for (int i = 0; i < SIZE; i++) {
 		real _mg_ = mg_tmp1[i] - b[i];
 		mg[i] = _mg_;
@@ -27,14 +27,14 @@ void Func2(const size_t &SIZE, const real t_k, real* __restrict__ x, real* __res
 }
 
 void Func3(const size_t &SIZE, real* __restrict__ mg_tmp, real* __restrict__ mg_tmp1, real* __restrict__ b, real* __restrict__ mg, real* __restrict__ mx, real* __restrict__ my,
-		real & obj1, real & obj2, real & dot_mg_ms, real & norm_ms) {
-	obj1 = 0.0;
-	obj2 = 0.0;
+		real & _obj1, real & _obj2, real & _dot_mg_ms, real & _norm_ms) {
+	real obj1 = 0.0;
+	real obj2 = 0.0;
 
-	dot_mg_ms = 0;
-	norm_ms = 0;
+	real dot_mg_ms = 0;
+	real norm_ms = 0;
 	real _mg_tmp_, _b_, _ms_, _mx_, _my_;
-//#pragma omp parallel for reduction(+:obj1,obj2,dot_mg_ms,norm_ms)
+#pragma omp parallel for reduction(+:obj1,obj2,dot_mg_ms,norm_ms)
 	for (int i = 0; i < SIZE; i++) {
 		_mg_tmp_ = mg_tmp[i];
 		_b_ = b[i];
@@ -50,6 +50,13 @@ void Func3(const size_t &SIZE, real* __restrict__ mg_tmp, real* __restrict__ mg_
 		norm_ms += _ms_ * _ms_;
 	}
 	norm_ms = sqrt(norm_ms);
+
+	_obj1 = obj1;
+	_obj2 = obj2;
+	_dot_mg_ms = dot_mg_ms;
+	_norm_ms = norm_ms;
+
+
 }
 uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &b, const uint max_iter,const int SIZE) {
 	real gdiff = 1e-6;
