@@ -1,30 +1,5 @@
 #include "ChSolverParallel.h"
 using namespace chrono;
-
-real Func1(const int &SIZE, real* __restrict__ x, real* __restrict__ mb_tmp) {
-	real mb_tmp_norm = 0;
-	real _mb_tmp_;
-
-	real *x_ = (real*) __builtin_assume_aligned(x, 16);
-	real *mb_tmp_ = (real*) __builtin_assume_aligned(mb_tmp, 16);
-#pragma omp parallel for reduction(+:mb_tmp_norm)
-	for (int i = 0; i < SIZE; i++) {
-		_mb_tmp_ = x_[i] - 1.0f;
-		mb_tmp_norm += _mb_tmp_ * _mb_tmp_;
-		mb_tmp_[i] = _mb_tmp_;
-	}
-	mb_tmp_norm = sqrt(mb_tmp_norm);
-	return mb_tmp_norm;
-}
-void Func2(const size_t &SIZE, const real t_k, real* __restrict__ x, real* __restrict__ mg_tmp1, real* __restrict__ b, real* __restrict__ mg, real* __restrict__ mx,
-		real* __restrict__ my) {
-#pragma omp parallel for
-	for (int i = 0; i < SIZE; i++) {
-		real _mg_ = mg_tmp1[i] - b[i];
-		mg[i] = _mg_;
-		mx[i] = -t_k * _mg_ + my[i];
-	}
-}
 uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &b, const uint max_iter,const int SIZE) {
 	real gdiff = 1e-6;
 
@@ -99,11 +74,18 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 		while (obj1 > obj2 + dot_mg_ms + 0.5 * L_k * powf(norm_ms, 2.0)) {
 			L_k = step_grow * L_k;
 			t_k = 1.0 / L_k;
-			SEAXPY(SIZE, -t_k, mg.data(), my.data(), mx.data());     // mx = my + mg*(t_k);
-		Project(mx.data());
 
-		ShurProduct(mx,mg_tmp);
-		obj1 = dot_mg_ms = norm_ms =0;
+#pragma omp parallel
+		{
+#pragma omp  for
+		for(int i=0; i<SIZE; i++) {
+			mx.data()[i] = -t_k*mg.data()[i]+ my.data()[i];
+		}
+		Project_NoPar(mx.data());
+	}
+
+	ShurProduct(mx,mg_tmp);
+	obj1 = dot_mg_ms = norm_ms =0;
 #pragma omp parallel for reduction(+:obj1,dot_mg_ms,norm_ms)
 		for(int i=0; i<SIZE; i++) {
 			real _mg_tmp_ = mg_tmp.data()[i];
@@ -144,17 +126,17 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 			residual=lastgoodres;
 			real maxdeltalambda = 0;     //CompRes(b,number_of_rigid_rigid);     //NormInf(ms);
 
-			AtIterationEnd(residual, maxdeltalambda, current_iteration);
-			if(collision_inside) {
-				UpdatePosition(ml_candidate);
-				UpdateContacts();
-			}
-		}
-		if (residual < tolerance) {
-			break;
+		AtIterationEnd(residual, maxdeltalambda, current_iteration);
+		if(collision_inside) {
+			UpdatePosition(ml_candidate);
+			UpdateContacts();
 		}
 	}
-	x=ml_candidate;
-	return current_iteration;
+	if (residual < tolerance) {
+		break;
+	}
+}
+x=ml_candidate;
+return current_iteration;
 }
 
