@@ -2,7 +2,7 @@
 
 using namespace chrono;
 
-void ChSolverParallel::Project(custom_vector<real> & gamma) {
+void ChSolverParallel::Project(real* gamma) {
 	timer_project.start();
 
 	rigid_rigid->Project(gamma);
@@ -196,7 +196,7 @@ void ChSolverParallel::Solve(GPUSOLVERTYPE solver_type) {
 				if(solver_type == ACCELERATED_PROJECTED_GRADIENT_DESCENT) {
 					total_iteration += SolveAPGD(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration);
 				} else {
-					total_iteration += SolveAPGDRS(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration);
+					total_iteration += SolveAPGDRS(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration, number_of_constraints);
 				}
 
 			}

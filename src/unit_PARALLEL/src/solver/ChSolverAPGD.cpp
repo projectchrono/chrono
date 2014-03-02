@@ -33,7 +33,7 @@ real ChSolverParallel::Res4(custom_vector<real> &mg_tmp,const  custom_vector<rea
 		mb_tmp[i] = -gdiff*_mg_tmp2_+x[i];
 	}
 
-	Project(mb_tmp);
+	Project(mb_tmp.data());
 	ms=mb_tmp-x;
 	mb_tmp = (-1.0 / (gdiff)) * ms;
 	return Norm(mb_tmp);
@@ -50,7 +50,7 @@ uint ChSolverParallel::SolveAPGD(custom_vector<real> &x, const custom_vector<rea
 	custom_vector<real> x_initial =x;
 
 	ml = x;
-	Project(x);
+	Project(x.data());
 	ShurProduct(x,mg);
 	Sub(mg,mg,b);     //mg = mg -b;
 
@@ -77,7 +77,7 @@ uint ChSolverParallel::SolveAPGD(custom_vector<real> &x, const custom_vector<rea
 			ShurProduct(my,mg_tmp1);
 			Sub(mg,mg_tmp1,b);     //mg = mg_tmp1-b;
 			SEAXPY(-t_k, mg, my, mx);// mx = my + mg*(t_k);
-			Project(mx);
+			Project(mx.data());
 			ShurProduct(mx,mg_tmp);
 			Sub(mg_tmp2,mg_tmp,b);//mg_tmp2 = mg_tmp-b
 			SEAXMY(.5,mg_tmp,b,ms);//use ms as a temp variable
@@ -90,7 +90,7 @@ uint ChSolverParallel::SolveAPGD(custom_vector<real> &x, const custom_vector<rea
 				L_k = step_grow * L_k;
 				t_k = 1.0 / L_k;
 				SEAXPY(-t_k, mg, my, mx);     // mx = my + mg*(t_k);
-				Project(mx);
+				Project(mx.data());
 
 				ShurProduct(mx,mg_tmp);
 				Sub(mg_tmp2,mg_tmp,b);//mg_tmp2 = mg_tmp-b

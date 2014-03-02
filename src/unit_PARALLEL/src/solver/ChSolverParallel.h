@@ -26,7 +26,7 @@ namespace chrono {
 			}
 			void Setup();
 			void Initial(real step, ChParallelDataManager *data_container_);
-			void Project(custom_vector<real> & gamma);
+			void Project(real*  gamma);
 		void shurA(custom_vector<real> &x);
 		void shurB(custom_vector<real> &x, custom_vector<real> &out);
 
@@ -61,7 +61,7 @@ namespace chrono {
 		uint SolveBiCGStab(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 		uint SolveMinRes(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 		uint SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
-		uint SolveAPGDRS(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
+		uint SolveAPGDRS(custom_vector<real> &x,  custom_vector<real> &b, const uint max_iter, const int SIZE);
 		uint SolveFN(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
 		void SolveJacobi();
 

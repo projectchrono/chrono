@@ -52,7 +52,7 @@ uint ChSolverParallel::SolveMinRes(custom_vector<real> &x, const custom_vector<r
 
 			if (residual < tolerance) {break;}
 		}
-		Project(x);
+		Project(x.data());
 		return current_iteration;
 
 }

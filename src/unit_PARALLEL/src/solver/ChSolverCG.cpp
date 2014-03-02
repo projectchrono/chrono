@@ -42,6 +42,6 @@ uint ChSolverParallel::SolveCG(custom_vector<real> &x, const custom_vector<real>
         AtIterationEnd(residual, 0, current_iteration);
 
     }
-    Project(x);
+    Project(x.data());
     return current_iteration;
 }

@@ -54,7 +54,7 @@ namespace chrono {
 						real *gamma);
 
 			void Project(
-					custom_vector<real> &gamma);
+					real* gamma);
 
 				void host_RHS(
 				int2 *ids,
