@@ -6,11 +6,6 @@ project(ChronoEngine_Parallel)
 #
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
-find_package("OpenMP" REQUIRED)
-
-# Add the OpenMP-specific compiler and linker flags
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 
 
 IF(${CMAKE_C_COMPILER} MATCHES "icc.*$") 
@@ -22,9 +17,17 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   # using Clang
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	SET(GCC_OPT "sse" CACHE STRING "gcc optimizations")
-	SET_PROPERTY(CACHE GCC_OPT PROPERTY STRINGS "mmx" "sse" "sse2" "sse3" "ssse3" "sse4.1" "sse4.2")
+	SET_PROPERTY(CACHE GCC_OPT PROPERTY STRINGS "mmx" "sse" "sse2" "sse3" "ssse3" "sse4.1" "sse4.2" "avx")
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m${GCC_OPT}")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m${GCC_OPT}")
+    
+	find_package("OpenMP" REQUIRED)
+	
+	# Add the OpenMP-specific compiler and linker flags
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+	SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    
+    
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 	SET(INTEL_OPT "SSE2" CACHE STRING "intel optimizations")
 	SET_PROPERTY(CACHE INTEL_OPT PROPERTY STRINGS "SSE2" "SSE3" "SSSE3" "SSE4.1" "SSE4.2" "AVX" "CORE-AVX-I" "CORE-AVX2")

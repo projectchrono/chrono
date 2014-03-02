@@ -55,7 +55,7 @@ uint ChSolverParallel::SolveAPGD(custom_vector<real> &x, const custom_vector<rea
 	Sub(mg,mg,b);     //mg = mg -b;
 
 		thrust::fill(mb_tmp.begin(),mb_tmp.end(),-1.0);
-		PLUS_EQ(mb_tmp,x);//mb_tmp+=x;
+		mb_tmp+=x;
 		ShurProduct(mb_tmp,mg_tmp);
 		real L_k;
 		real mb_tmp_norm = Norm(mb_tmp);
