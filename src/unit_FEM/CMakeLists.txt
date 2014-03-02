@@ -37,6 +37,7 @@ IF(ENABLE_UNIT_FEM)
 		)
 	SET(ChronoEngine_UNIT_FEM_HEADERS
 		ChApiFEM.h  
+		ChBeamSection.h
 		ChContinuumPoisson3D.h
 		ChContinuumThermal.h
 		ChContinuumElectrostatics.h

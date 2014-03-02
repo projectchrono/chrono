@@ -617,31 +617,32 @@ void ChVisualizationFEMmesh::Update ()
 				mybeam->EvaluateSectionFrame(eta, displ, P, msectionrot);  // compute abs. pos and rot of section plane
 
 				ChVector<> vresult;
+				ChVector<> vresultB;
 				double sresult = 0;
 				switch(this->fem_data_type)
 				{
 					case E_PLOT_ELEM_BEAM_MX:
-						mybeam->EvaluateSectionTorque(eta, displ, vresult);
-						sresult = vresult.x; 
+						mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
+						sresult = vresultB.x; 
 						break;
 					case E_PLOT_ELEM_BEAM_MY:
-						mybeam->EvaluateSectionTorque(eta, displ, vresult);
-						sresult = vresult.y; 
+						mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
+						sresult = vresultB.y; 
 						break;
 					case E_PLOT_ELEM_BEAM_MZ:
-						mybeam->EvaluateSectionTorque(eta, displ, vresult);
-						sresult = vresult.z; 
+						mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
+						sresult = vresultB.z; 
 						break;
 					case E_PLOT_ELEM_BEAM_TX:
-						mybeam->EvaluateSectionForce(eta, displ, vresult);
+						mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
 						sresult = vresult.x; 
 						break;
 					case E_PLOT_ELEM_BEAM_TY:
-						mybeam->EvaluateSectionForce(eta, displ, vresult);
+						mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
 						sresult = vresult.y; 
 						break;
 					case E_PLOT_ELEM_BEAM_TZ:
-						mybeam->EvaluateSectionForce(eta, displ, vresult);
+						mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
 						sresult = vresult.z; 
 						break;
 				}

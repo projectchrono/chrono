@@ -26,7 +26,7 @@
 #include "unit_FEM/ChMesh.h"
 #include "unit_FEM/ChVisualizationFEMmesh.h"
 #include "irrlicht_interface/ChIrrApp.h"
-
+#include "core/ChQuadrature.h"
 
 // Remember to use the namespace 'chrono' because all classes 
 // of Chrono::Engine belong to this namespace and its children...
@@ -67,14 +67,25 @@ int main(int argc, char* argv[])
 	ChSharedPtr<ChMesh> my_mesh(new ChMesh);
 	
 
+				// Create a section, i.e. thickness and material properties
+				// for beams. This will be shared among some beams.
+	
+	ChSharedPtr<ChBeamSection> msection(new ChBeamSection);
+
+	double beam_wy = 0.02;
+	double beam_wz = 0.02;
+	msection->SetAsRectangularSection(beam_wy, beam_wz);
+	msection->SetYoungModulus (0.01e9);
+	msection->SetGshearModulus(0.01e9 * 0.3);
+	msection->SetBeamRaleyghDamping(0.000);
+
 
 	//
 	// Add some EULER-BERNOULLI BEAMS:
 	//
 
 	double beam_L  = 0.1;
-	double beam_wy = 0.02;
-	double beam_wz = 0.02;
+	
 
 	ChSharedPtr<ChNodeFEMxyzrot> hnode1(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(0,0,0)) ));
 	ChSharedPtr<ChNodeFEMxyzrot> hnode2(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(beam_L,0,0)) ));
@@ -88,10 +99,8 @@ int main(int argc, char* argv[])
 
 	belement1->SetNodes(hnode1, hnode2);
 
-	belement1->SetAsRectangularSection(beam_wy, beam_wz);
-	belement1->SetYoungModulus (0.01e9);
-	belement1->SetGshearModulus(0.01e9 * 0.3);
-	belement1->SetBeamRaleyghDamping(0.000);
+	belement1->SetSection(msection);
+	belement1->SetDrawThickness(beam_wy, beam_wz);
 
 	my_mesh->AddElement(belement1);
 
@@ -101,10 +110,8 @@ int main(int argc, char* argv[])
 
 	belement2->SetNodes(hnode2, hnode3);
 
-	belement2->SetAsRectangularSection(beam_wy, beam_wz);
-	belement2->SetYoungModulus (0.01e9);
-	belement2->SetGshearModulus(0.01e9 * 0.3);
-	belement2->SetBeamRaleyghDamping(0.000);
+	belement2->SetSection(msection);
+	belement2->SetDrawThickness(beam_wy, beam_wz);
 
 	my_mesh->AddElement(belement2);
 
@@ -133,10 +140,8 @@ int main(int argc, char* argv[])
 
 	belement3->SetNodes(hnode4, hnode5);
 
-	belement3->SetAsRectangularSection(beam_wy, beam_wz);
-	belement3->SetYoungModulus (0.01e9);
-	belement3->SetGshearModulus(0.01e9 * 0.3);
-	belement3->SetBeamRaleyghDamping(0.000);
+	belement3->SetSection(msection);
+	belement3->SetDrawThickness(beam_wy, beam_wz);
 
 	my_mesh->AddElement(belement3);
 
@@ -222,11 +227,10 @@ int main(int argc, char* argv[])
 	// 
 	// THE SOFT-REAL-TIME CYCLE
 	//
-
 	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES); // <- NEEDED because other solvers can't handle stiffness matrices
 	my_system.SetIterLCPwarmStarting(true); // this helps a lot to speedup convergence in this class of problems
-	my_system.SetIterLCPmaxItersSpeed(100);
-	my_system.SetTolSpeeds(1e-5);
+	my_system.SetIterLCPmaxItersSpeed(200);
+	my_system.SetTolSpeeds(1e-8);
 	//chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
 	//msolver->SetVerbose(true);
 	//msolver->SetDiagonalPreconditioning(true);
@@ -234,7 +238,7 @@ int main(int argc, char* argv[])
 	application.SetTimestep(0.001);
 
 //application.GetSystem()->Update();
-//application.SetPaused(true);
+application.SetPaused(true);
 
 		// Impose displ.
 //hnode5->Frame().SetPos( hnode5->Frame().GetPos() + ChVector<>(0,-0.1, 0) );
@@ -247,16 +251,15 @@ belement3->GetField(mfi);
 */
 
 
-/*
-belement1->SetDisableCorotate(true);
-belement2->SetDisableCorotate(true);
-belement3->SetDisableCorotate(true);
-*/
+ChQuadrature::GetStaticTables()->PrintTables(); //***TEST***
+
+
+
 
 GetLog()<< "\n\n\n===========STATICS======== \n\n\n";
 
 //application.GetSystem()->DoStaticNonlinear(25);
-
+//application.GetSystem()->DoStaticLinear();
 
 
 	while(application.GetDevice()->run()) 

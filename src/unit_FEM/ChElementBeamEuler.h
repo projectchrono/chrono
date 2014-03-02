@@ -16,6 +16,7 @@
 //#define BEAM_VERBOSE
 
 #include "ChElementBeam.h"
+#include "ChBeamSection.h"
 
 
 namespace chrono
@@ -35,6 +36,8 @@ class ChApiFem ChElementBeamEuler : public ChElementBeam
 protected:
 	std::vector< ChSharedPtr<ChNodeFEMxyzrot> > nodes;
 	
+	ChSharedPtr<ChBeamSectionAdvanced> section;
+
 	ChMatrixDynamic<> StiffnessMatrix; // undeformed local stiffness matrix
 
 	ChQuaternion<> q_refrot1;
@@ -79,9 +82,17 @@ public:
 					Kmatr.SetVariables(mvars);
 				}
 
+				
+
 			//
 			// FEM functions
 			//
+
+				/// Set the section & material of beam element .
+				/// It is a shared property, so it can be shared between other beams.
+	void   SetSection( ChSharedPtr<ChBeamSectionAdvanced> my_material) { section = my_material; }
+				/// Get the section & material of the element
+	ChSharedPtr<ChBeamSectionAdvanced> GetSection() {return section;}
 
 				/// Get the absolute rotation of element in space 
 				/// This is not the same of Rotation() , that expresses 
@@ -171,7 +182,6 @@ public:
 
 					// Node 0, displacement (in local element frame, corotated back)
 					//     d = [Atw]' Xt - [A0w]'X0   
-					//ChVector<> displ = Aabs.MatrT_x_Vect(nodes[0]->Frame().GetPos()) - A0.MatrT_x_Vect(nodes[0]->GetX0().GetPos());
 					ChVector<> displ = this->q_element_abs_rot.RotateBack(nodes[0]->Frame().GetPos()) - 
 									   this->q_element_ref_rot.RotateBack(nodes[0]->GetX0().GetPos());
 					mD.PasteVector(displ, 0, 0);
@@ -185,7 +195,6 @@ public:
  
 					// Node 1, displacement (in local element frame, corotated back)
 					//     d = [Atw]' Xt - [A0w]'X0 
-					//displ = Aabs.MatrT_x_Vect(nodes[1]->Frame().GetPos()) - A0.MatrT_x_Vect(nodes[1]->GetX0().GetPos());
 					displ			 = this->q_element_abs_rot.RotateBack(nodes[1]->Frame().GetPos()) - 
 									   this->q_element_ref_rot.RotateBack(nodes[1]->GetX0().GetPos());
 					mD.PasteVector(displ, 6, 0);
@@ -209,8 +218,6 @@ public:
 				{
 					mD_dt.Reset(12,1);
 
-					//ChMatrix33<> Aabs(this->q_element_abs_rot);
-
 					// Node 0, velocity (in local element frame, corotated back by A' )
 					mD_dt.PasteVector(this->q_element_abs_rot.RotateBack(nodes[0]->Frame().GetPos_dt()),    0, 0);
 
@@ -231,6 +238,14 @@ public:
 				/// constant material are assumed, so the explicit result of quadrature is used. 
 	virtual void ComputeStiffnessMatrix()
 				{	
+					assert (!section.IsNull());
+
+					double Area = section->Area;
+					double E    = section->E;
+					double Izz  = section->Izz;
+					double Iyy  = section->Iyy;
+					double G    = section->G;
+
 					double om_xz = 0; // For Euler-Bernoulli
 					double om_xy = 0; // For Euler-Bernoulli
 					// double om_xz = ...; // For Reddy's RBT 
@@ -293,6 +308,63 @@ public:
 					for (int r = 0; r < 12; r++)
 						for (int c = r+1; c < 12; c++)
 							StiffnessMatrix(c,r) = StiffnessMatrix(r,c);
+
+					// In case the section is rotated:
+					if (this->section->alpha)
+					{
+						// Do [K]^ = [R][K][R]'
+						ChMatrix33<> Rotsect;
+						Rotsect.Set_A_Rxyz(ChVector<>(-section->alpha,0,0));
+						ChMatrixDynamic<> CKtemp(12,12);
+						ChMatrixCorotation<>::ComputeCK (this->StiffnessMatrix, Rotsect, 4, CKtemp);
+						ChMatrixCorotation<>::ComputeKCt(CKtemp, Rotsect, 4, this->StiffnessMatrix);
+					}
+					// In case the section has a centroid displacement:
+					if (this->section->Cy || this->section->Cz)
+					{
+						// Do [K]" = [T_c][K]^[T_c]'
+
+						for (int i = 0; i<12; ++i)
+							this->StiffnessMatrix(4,i) +=  this->section->Cz * this->StiffnessMatrix(0,i);
+						for (int i = 0; i<12; ++i)
+							this->StiffnessMatrix(5,i) += -this->section->Cy * this->StiffnessMatrix(0,i);
+
+						for (int i = 0; i<12; ++i)
+							this->StiffnessMatrix(10,i) +=  this->section->Cz * this->StiffnessMatrix(6,i);
+						for (int i = 0; i<12; ++i)
+							this->StiffnessMatrix(11,i) += -this->section->Cy * this->StiffnessMatrix(6,i);
+
+						for (int i = 0; i<12; ++i)
+							this->StiffnessMatrix(i,4) +=  this->section->Cz * this->StiffnessMatrix(i,0);
+						for (int i = 0; i<12; ++i)
+							this->StiffnessMatrix(i,5) += -this->section->Cy * this->StiffnessMatrix(i,0);
+
+						for (int i = 0; i<12; ++i)
+							this->StiffnessMatrix(i,10) +=  this->section->Cz * this->StiffnessMatrix(i,6);
+						for (int i = 0; i<12; ++i)
+							this->StiffnessMatrix(i,11) += -this->section->Cy * this->StiffnessMatrix(i,6);
+					}
+
+					// In case the section has a shear center displacement:
+					if (this->section->Sy || this->section->Sz)
+					{
+						// Do [K]° = [T_s][K]"[T_s]'
+
+						for (int i = 0; i<12; ++i)
+							this->StiffnessMatrix(3,i) +=  this->section->Sz * this->StiffnessMatrix(1,i)  
+														  -this->section->Sy * this->StiffnessMatrix(2,i);
+						for (int i = 0; i<12; ++i)
+							this->StiffnessMatrix(9,i) +=  this->section->Sz * this->StiffnessMatrix(7,i)  
+														  -this->section->Sy * this->StiffnessMatrix(8,i);
+
+						for (int i = 0; i<12; ++i)
+							this->StiffnessMatrix(i,3) +=  this->section->Sz * this->StiffnessMatrix(i,1)  
+														  -this->section->Sy * this->StiffnessMatrix(i,2);
+						for (int i = 0; i<12; ++i)
+							this->StiffnessMatrix(i,9) +=  this->section->Sz * this->StiffnessMatrix(i,7)  
+														  -this->section->Sy * this->StiffnessMatrix(i,8);
+					}
+
 				}
 
 
@@ -301,9 +373,11 @@ public:
 
 	virtual void SetupInitial() 
 				{
+					assert (!section.IsNull());
+
 					// Compute rest length, mass:
 					this->length = (nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos()).Length();
-					this->mass   = this->length * this->Area * this->density;
+					this->mass   = this->length * this->section->Area * this->section->density;
 
 					// Compute initial rotation
 					ChMatrix33<> A0;
@@ -322,6 +396,7 @@ public:
 	virtual void ComputeKRMmatricesGlobal	(ChMatrix<>& H, double Kfactor, double Rfactor=0, double Mfactor=0) 
 				{
 					assert((H.GetRows() == 12) && (H.GetColumns()==12));
+					assert (!section.IsNull());
 
 					// Corotational K stiffness:
 					ChMatrixDynamic<> CK(12,12);
@@ -335,7 +410,7 @@ public:
 
 					// For K stiffness matrix and R matrix: scale by factors
 
-					double mkrfactor = Kfactor + Rfactor * this->rdamping;  
+					double mkrfactor = Kfactor + Rfactor * this->section->rdamping;  
 
 					CKCt.MatrScale( mkrfactor );
 
@@ -374,6 +449,7 @@ public:
 	virtual void ComputeInternalForces	(ChMatrixDynamic<>& Fi)
 				{
 					assert((Fi.GetRows() == 12) && (Fi.GetColumns()==12));
+					assert (!section.IsNull());
 
 						// set up vector of nodal displacements and small rotations (in local element system) 
 					ChMatrixDynamic<> displ(12,1);
@@ -389,7 +465,7 @@ public:
 
 					ChMatrixDynamic<> FiR_local(12,1);
 					FiR_local.MatrMultiply(StiffnessMatrix, displ_dt);
-					FiR_local.MatrScale(this->GetBeamRaleyghDamping());
+					FiR_local.MatrScale(this->section->GetBeamRaleyghDamping());
 
 					FiK_local.MatrInc(FiR_local);
 
@@ -477,59 +553,66 @@ GetLog() << "\n";
 				}
 
 
-				/// Gets the torque at a section along the beam line, at abscyssa 'eta'.
+				/// Gets the force (traction x, shear y, shear z) and the
+				/// torque (torsion on x, bending on y, on bending on z) at a section along 
+				/// the beam line, at abscyssa 'eta'.
 				/// Note, eta=-1 at node1, eta=+1 at node2.
-				/// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetField()
-				/// Results are not corotated.
-	virtual void EvaluateSectionTorque(const double eta, const ChMatrix<>& displ, ChVector<>& Mtorque)
+				/// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetField().
+				/// Results are not corotated, and are expressed in the reference system of beam.
+	virtual void EvaluateSectionForceTorque(const double eta, const ChMatrix<>& displ, ChVector<>& Fforce, ChVector<>& Mtorque)
 				{
+					assert (!section.IsNull());
+
+					double Jpolar = section->Izz + section->Iyy;
+
 					ChMatrixNM<double,1,12> N;
 
 					this->ShapeFunctions(N, eta); // Evaluate shape functions
 
-					double ddN_ua = (6./(length*length))*(eta);  // curvature shape functions are computed here on-the-fly
+					// shape function derivatives are computed here on-the-fly
+					double dN_xa = -(1./length);
+					double dN_xb =  (1./length);
+					double ddN_ua = (6./(length*length))*(eta);  
 					double ddN_ub =-(6./(length*length))*(eta);
 					double ddN_ra = -(1./length) + ((3.0/length)*eta);
 					double ddN_rb =  (1./length) + ((3.0/length)*eta);
-					double dN_ta = -(1./length)*(eta);
-					double dN_tb =  (1./length)*(eta);
-
-					double Jpolar = Izz+Iyy;
-
-					Mtorque.y = this->E*this->Iyy*
-								(ddN_ua*displ(2)+ddN_ub*displ(8)+   // z_a   z_b
-								 ddN_ra*displ(4)+ddN_rb*displ(10));  // Ry_a  Ry_b
-					Mtorque.z = this->E*this->Izz*
-								(ddN_ua*displ(1)+ddN_ub*displ(7)+   // y_a   y_b
-								 ddN_ra*displ(5)+ddN_rb*displ(11));  // Rz_a  Rz_b  
-					Mtorque.x = this->G*Jpolar*(dN_ta*displ(3)+dN_tb*displ(9));
-				}
-
-				/// Gets the force (traction x, shear y, shear z) at a section along the beam line, at abscyssa 'eta'.
-				/// Note, eta=-1 at node1, eta=+1 at node2.
-				/// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetField()
-				/// Results are not corotated.
-	virtual void EvaluateSectionForce(const double eta, const ChMatrix<>& displ, ChVector<>& Fforce)
-				{
-					ChMatrixNM<double,1,12> N;
-
-					this->ShapeFunctions(N, eta); // Evaluate shape functions
-
-					double dddN_ua = (12./(length*length*length));  // shear shape functions are computed here on-the-fly
+					double dddN_ua = (12./(length*length*length));  
 					double dddN_ub =-(12./(length*length*length));
 					double dddN_ra =  (6.0/(length*length));
 					double dddN_rb =  (6.0/(length*length));
-					double ddN_xa = -(2./length*length);
-					double ddN_xb =  (2./length*length);
 
-					Fforce.z = this->E*this->Iyy*
-								(dddN_ua*displ(2)+dddN_ub*displ(8)+   // z_a   z_b
-								 dddN_ra*displ(4)+dddN_rb*displ(10)); // Ry_a  Ry_b
-					Fforce.y = this->E*this->Izz*
-								(dddN_ua*displ(1)+dddN_ub*displ(7)+   // y_a   y_b
-								 dddN_ra*displ(5)+dddN_rb*displ(11)); // Rz_a  Rz_b  
-					Fforce.x = this->E*this->Area*
-								(ddN_xa*displ(0)+ddN_xb*displ(6));
+					
+					
+
+					ChMatrixNM<double,6,1> sect_ek; // generalized strains/curvatures;
+
+					// e_x
+					sect_ek(0) = (dN_xa*displ(0)+dN_xb*displ(6));      // x_a   x_b
+					// e_y
+					sect_ek(2) = (dddN_ua*displ(1)+dddN_ub*displ(7)+   // y_a   y_b
+								  dddN_ra*displ(5)+dddN_rb*displ(11)); // Rz_a  Rz_b 
+					// e_z
+					sect_ek(1) = (dddN_ua*displ(2)+dddN_ub*displ(8)+   // z_a   z_b
+								  dddN_ra*displ(4)+dddN_rb*displ(10)); // Ry_a  Ry_b
+					
+					// k_x
+					sect_ek(3) = (dN_xa*displ(3)+dN_xb*displ(9));	 // Rx_a  Rx_b
+					// k_y
+					sect_ek(4) = (ddN_ua*displ(2)+ddN_ub*displ(8)+   // z_a   z_b
+								  ddN_ra*displ(4)+ddN_rb*displ(10));  // Ry_a  Ry_b
+					// k_z 
+					sect_ek(5) = (ddN_ua*displ(1)+ddN_ub*displ(7)+   // y_a   y_b
+								  ddN_ra*displ(5)+ddN_rb*displ(11));  // Rz_a  Rz_b 
+
+					Fforce.x = this->section->E * this->section->Area* sect_ek(0);
+					Fforce.y = this->section->E * this->section->Iyy * sect_ek(1);
+					Fforce.z = this->section->E * this->section->Izz * sect_ek(2);		
+								 
+					Mtorque.x = this->section->G * Jpolar			  * sect_ek(3);
+					Mtorque.y = this->section->E * this->section->Iyy * sect_ek(4);	
+					Mtorque.z = this->section->E * this->section->Izz * sect_ek(5);
+					
+					///***TO DO*** case of displaced shear center or centroid or rotated section axes
 				}
 
 
