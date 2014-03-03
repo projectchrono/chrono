@@ -22,6 +22,8 @@ public:
   inline real3(float a, float b, float c) :  mmvalue(_mm_setr_ps(a,b,c,0)) {}
   inline real3(__m128 m) : mmvalue(m) {}
 
+  inline operator __m128() const { return mmvalue; }
+
   inline real3 operator+(const real3& b) const { return _mm_add_ps(mmvalue, b.mmvalue);}
   inline real3 operator-(const real3& b) const { return _mm_sub_ps(mmvalue, b.mmvalue);}
   inline real3 operator*(const real3& b) const { return _mm_mul_ps(mmvalue, b.mmvalue);}

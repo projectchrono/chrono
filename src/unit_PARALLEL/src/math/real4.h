@@ -6,6 +6,30 @@
 #include "real3.h"
 
 #define R4  real4
+//#define _mm_shufd(xmm, mask) _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(xmm), mask))
+
+static inline real horizontal_add(const __m128 & a) {
+	__m128 t1 = _mm_hadd_ps(a, a);
+	__m128 t2 = _mm_hadd_ps(t1, t1);
+	return _mm_cvtss_f32(t2);
+}
+
+template<int i0, int i1, int i2, int i3>
+static inline __m128i constant4i() {
+	static const union {
+		int i[4];
+		__m128i xmm;
+	} u = { { i0, i1, i2, i3 } };
+	return u.xmm;
+}
+
+template<int i0, int i1, int i2, int i3>
+static inline __m128 change_sign(__m128 const & a) {
+	if ((i0 | i1 | i2 | i3) == 0) return a;
+	__m128i mask = constant4i<i0 ? 0x80000000 : 0, i1 ? 0x80000000 : 0, i2 ? 0x80000000 : 0, i3 ? 0x80000000 : 0>();
+	return _mm_xor_ps(a, _mm_castsi128_ps(mask));     // flip sign bits
+}
+
 
 class __attribute__ ((aligned(16))) real4 {
 public:
@@ -21,6 +45,8 @@ public:
 	inline real4(float a, float b, float c) :  mmvalue(_mm_setr_ps(0, a,b,c)) {}
 	inline real4(float d, float a, float b, float c) :  mmvalue(_mm_setr_ps(d, a,b,c)) {}
 	inline real4(__m128 m) : mmvalue(m) {}
+
+    operator __m128() const { return mmvalue;}
 
 	inline real4 operator+(const real4& b) const { return _mm_add_ps(mmvalue, b.mmvalue);}
 	inline real4 operator-(const real4& b) const { return _mm_sub_ps(mmvalue, b.mmvalue);}
@@ -43,6 +69,17 @@ public:
 	inline real4& operator*=(real b) { *this = *this * b; return *this; }
 	inline real4& operator/=(real b) { *this = *this / b; return *this; }
 
+
+
+
+	inline real dot(const real4 &b) const { __m128 l = _mm_mul_ps(mmvalue,b.mmvalue); return horizontal_add(l); }
+
+	inline real4 inv() const {
+		__m128 l = _mm_mul_ps(mmvalue,mmvalue);
+		real t1 = horizontal_add(l);
+		return real4 (change_sign<0,1,1,1>(mmvalue))/t1;
+	}
+
 };
 
 inline real4 operator+(real a, const real4& b) { return b + a; }
@@ -50,9 +87,16 @@ inline real4 operator-(real a, const real4& b) { return real4(a) - b; }
 inline real4 operator*(real a, const real4& b) { return b * a; }
 inline real4 operator/(real a, const real4& b) { return real4(a) / b; }
 
-
+static inline real dot(const real4 &a, const real4 &b) { return a.dot(b); }
 
 typedef real4 quaternion;
+
+static inline quaternion inv(const quaternion &a) { return a.inv(); }
+
+static inline real4 operator ~ (real4 const & a) {
+    return real4(change_sign<0,1,1,1>(a));
+}
+
 
 static inline ostream &operator<<(ostream &out, real4 &a) {
 	out << "[" << a.w << ", " << a.x << ", " << a.y << ", " << a.z << "]" << endl;
@@ -63,17 +107,13 @@ static inline real3 make_real3(const real4 &rhs) {
 	return R3(rhs.x, rhs.y, rhs.z);
 }
 
-
 static inline bool operator ==(const real4 &a, const real4 &b) {
 	return ((a.w == b.w) && (a.x == b.x) && (a.y == b.y) && (a.z == b.z));
 }
 
-static inline real dot(const real4 &a, const real4 &b) {
-	return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
-}
 
 static inline quaternion normalize(const quaternion &a) {
-	real length = sqrt(a.w * a.w + a.x * a.x + a.y * a.y + a.z * a.z);
+	real length = sqrt(dot(a,a));
 	if (length < ZERO_EPSILON) {
 		return R4(1, 0, 0, 0);
 	}
@@ -94,16 +134,7 @@ static inline quaternion Q_from_AngAxis(const real &angle, const real3 &axis) {
 	return (quat);
 }
 
-static inline quaternion inv(const quaternion &a) {
-	quaternion temp;
-	real t1 = a.w * a.w + a.x * a.x + a.y * a.y + a.z * a.z;
-	t1 = 1.0 / t1;
-	temp.w = t1 * a.w;
-	temp.x = -t1 * a.x;
-	temp.y = -t1 * a.y;
-	temp.z = -t1 * a.z;
-	return temp;
-}
+
 static inline quaternion mult2(const quaternion &qa, const quaternion &qb) {
 	quaternion temp;
 
@@ -114,13 +145,21 @@ static inline quaternion mult2(const quaternion &qa, const quaternion &qb) {
 	return temp;
 }
 static inline quaternion mult(const quaternion &a, const quaternion &b) {
-	quaternion temp;
-
-	temp.w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
-	temp.x = a.w * b.x + b.w * a.x + a.y * b.z - a.z * b.y;
-	temp.y = a.w * b.y + b.w * a.y + a.z * b.x - a.x * b.z;
-	temp.z = a.w * b.z + b.w * a.z + a.x * b.y - a.y * b.x;
-	return temp;
+		__m128 a1123 = _mm_shuffle_ps(a,a,0xE5);
+	    __m128 a2231 = _mm_shuffle_ps(a,a,0x7A);
+	    __m128 b1000 = _mm_shuffle_ps(b,b,0x01);
+	    __m128 b2312 = _mm_shuffle_ps(b,b,0x9E);
+	    __m128 t1    = _mm_mul_ps(a1123, b1000);
+	    __m128 t2    = _mm_mul_ps(a2231, b2312);
+	    __m128 t12   = _mm_add_ps(t1, t2);
+	    __m128 t12m  = change_sign<1,0,0,0>(t12);
+	    __m128 a3312 = _mm_shuffle_ps(a,a,0x9F);
+	    __m128 b3231 = _mm_shuffle_ps(b,b,0x7B);
+	    __m128 a0000 = _mm_shuffle_ps(a,a,0x00);
+	    __m128 t3    = _mm_mul_ps(a3312, b3231);
+	    __m128 t0    = _mm_mul_ps(a0000, b);
+	    __m128 t03   = _mm_sub_ps(t0, t3);
+	    return         _mm_add_ps(t03, t12m);
 }
 
 static inline quaternion lerp(const quaternion &a, const quaternion &b, real alpha) {
@@ -168,12 +207,9 @@ static inline real3 quatRotate(const real3 &v, const quaternion &q) {
 static inline real3 quatRotateMat(const real3 &v, const quaternion &q) {
 
 	real3 result;
-	result.x = (q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z) * v.x + (2 * q.x * q.y - 2 * q.w * q.z) * v.y
-			+ (2 * q.x * q.z + 2 * q.w * q.y) * v.z;
-	result.y = (2 * q.x * q.y + 2 * q.w * q.z) * v.x + (q.w * q.w - q.x * q.x + q.y * q.y - q.z * q.z) * v.y
-			+ (2 * q.y * q.z - 2 * q.w * q.x) * v.z;
-	result.z = (2 * q.x * q.z - 2 * q.w * q.y) * v.x + (2 * q.y * q.z + 2 * q.w * q.x) * v.y
-			+ (q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z) * v.z;
+	result.x = (q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z) * v.x + (2 * q.x * q.y - 2 * q.w * q.z) * v.y + (2 * q.x * q.z + 2 * q.w * q.y) * v.z;
+	result.y = (2 * q.x * q.y + 2 * q.w * q.z) * v.x + (q.w * q.w - q.x * q.x + q.y * q.y - q.z * q.z) * v.y + (2 * q.y * q.z - 2 * q.w * q.x) * v.z;
+	result.z = (2 * q.x * q.z - 2 * q.w * q.y) * v.x + (2 * q.y * q.z + 2 * q.w * q.x) * v.y + (q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z) * v.z;
 	return result;
 }
 static inline real3 quatRotateMatT(const real3 &v, const quaternion &q) {
