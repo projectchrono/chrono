@@ -13,6 +13,20 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 
 
+#find_package("MPI" )
+
+# Add the MPI-specific compiler and linker flags
+# Also, search for #includes in MPI's paths
+
+#list(APPEND CMAKE_C_COMPILE_FLAGS ${MPI_C_COMPILE_FLAGS})
+#list(APPEND CMAKE_C_LINK_FLAGS ${MPI_C_LINK_FLAGS})
+#include_directories(${MPI_C_INCLUDE_PATH})
+
+#list(APPEND CMAKE_CXX_COMPILE_FLAGS ${MPI_CXX_COMPILE_FLAGS})
+#list(APPEND CMAKE_CXX_LINK_FLAGS ${MPI_CXX_LINK_FLAGS})
+#include_directories(${MPI_CXX_INCLUDE_PATH})
+
+
 IF(${CMAKE_C_COMPILER} MATCHES "icc.*$") 
 
 ENDIF()
@@ -404,7 +418,7 @@ SET_TARGET_PROPERTIES(ChronoEngine_Parallel PROPERTIES
                       LINK_FLAGS "${CH_LINKERFLAG_GPU}"
                       COMPILE_DEFINITIONS "CH_API_COMPILE_UNIT_GPU")
 
-TARGET_LINK_LIBRARIES(ChronoEngine_Parallel ${INCLUDE_LIB} ${CUDA_FRAMEWORK})
+TARGET_LINK_LIBRARIES(ChronoEngine_Parallel ${INCLUDE_LIB} ${CUDA_FRAMEWORK} ${MPI_LIBRARIES})
 
 INSTALL(TARGETS ChronoEngine_Parallel
         RUNTIME DESTINATION bin

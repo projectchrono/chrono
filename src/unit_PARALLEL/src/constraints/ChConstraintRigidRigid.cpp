@@ -316,11 +316,13 @@ void ChConstraintRigidRigid::UpdateRHS() {
 
 void inline Compute_Jacobian(const real4& quaternion_rotation, const real3& normal, const real3& tangent_u, const real3& tangent_w, const real3& point, real3& T1, real3& T2,
 		real3& T3) {
-	real3 sbar = quatRotate(point, ~quaternion_rotation);
+	real4 quaternion_conjugate = ~quaternion_rotation;
 
-	T1 = cross(quatRotate(normal, ~quaternion_rotation), sbar);
-	T2 = cross(quatRotate(tangent_u, ~quaternion_rotation), sbar);
-	T3 = cross(quatRotate(tangent_w, ~quaternion_rotation), sbar);
+	real3 sbar = quatRotate(point, quaternion_conjugate);
+
+	T1 = cross(quatRotate(normal, quaternion_conjugate), sbar);
+	T2 = cross(quatRotate(tangent_u, quaternion_conjugate), sbar);
+	T3 = cross(quatRotate(tangent_w, quaternion_conjugate), sbar);
 
 }
 
@@ -353,15 +355,10 @@ void ChConstraintRigidRigid::host_Jacobians(real3* norm, real3* ptA, real3* ptB,
 		Orthogonalize(U, V, W);
 
 		int2 body_id = ids[index];
+
 		real3 T3, T4, T5, T6, T7, T8;
-
-		real3 sbar = ptA[index];
-		real4 E1 = rot[body_id.x];
-		Compute_Jacobian(E1, U, V, W, sbar, T3, T4, T5);
-
-		sbar = ptB[index];
-		real4 E2 = rot[body_id.y];
-		Compute_Jacobian(E2, U, V, W, sbar, T6, T7, T8);
+		Compute_Jacobian(rot[body_id.x], U, V, W, ptA[index], T3, T4, T5);
+		Compute_Jacobian(rot[body_id.y], U, V, W, ptB[index], T6, T7, T8);
 		T6 = -T6;
 		T7 = -T7;
 		T8 = -T8;
@@ -481,33 +478,51 @@ void ChConstraintRigidRigid::UpdateJacobians() {
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-void ChConstraintRigidRigid::host_shurA_normal(int2 * ids, bool * active, real3* norm, real3* ptA, real3* ptB, real3 * JUA, real3 * JUB, real * gamma, real3 * updateV,
-		real3 * updateO, uint* offset) {
+void ChConstraintRigidRigid::host_shurA_normal(int2 * __restrict__ ids, bool * __restrict__ active, real3* __restrict__ norm, real3* __restrict__ ptA, real3* __restrict__ ptB,
+		real3 * __restrict__ JUA, real3 * __restrict__ JUB, real * __restrict__ gamma, real3 * __restrict__ updateV, real3 * __restrict__ updateO, int2* __restrict__ offset) {
 
 	real gam;
 	real3 U;
-	int2 bids;
-	int offset1, offset2;
+	//int myid, nproc, mystart, myend;
+	//int numproc = 8;
+	size_t index;
+	//int n = number_of_rigid_rigid;
+//	MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+//	MPI_Comm_size(MPI_COMM_WORLD, &numproc);
+//	//para_range(0, number_of_rigid_rigid, 8, iproc, ista, iend);
+//
+//	mystart = (n / numproc) * myid;
+//	if (n % numproc > myid) {
+//		mystart += myid;
+//		myend = mystart + (n / numproc) + 1;
+//	} else {
+//		mystart += n % numproc;
+//		myend = mystart + (n / numproc);
+//	}
 #pragma omp parallel for
-	for (size_t index = 0; index < number_of_rigid_rigid; index++) {
+	for (index = 0; index < number_of_rigid_rigid; index++) {
 		gam = gamma[_index_];
 		U = norm[index];
-		bids = ids[index];
-		if (active[bids.x] != 0) {
-			offset1 = offset[index];
-			updateV[offset1] = -U * gam;
-			updateO[offset1] = JUA[index] * gam;
-		}
-		if (active[bids.y] != 0) {
-			offset2 = offset[index + number_of_rigid_rigid];
-			updateV[offset2] = U * gam;
-			updateO[offset2] = JUB[index] * gam;
-		}
+		//int2 bids = ids[index];
+		int2 offsets = offset[index];
+		real3 V = U * gam;
+		//if (active[bids.x] != 0) {
+		//_mm_stream_ps(&updateV[offsets.x].x, -V);
+		//_mm_stream_ps(&updateO[offsets.x].x, JUA[index] * gam);
+		updateV[index] = -V;
+		updateO[index] = JUA[index] * gam;
+		//}
+		//if (active[bids.y] != 0) {
+		//_mm_stream_ps(&updateV[offsets.y].x, V.mmvalue);
+		//_mm_stream_ps(&updateO[offsets.y].x, JUB[index] * gam);
+		updateV[index+number_of_rigid_rigid] = V;
+		updateO[index+number_of_rigid_rigid] = JUB[index] * gam;
+
 	}
 }
 
 void ChConstraintRigidRigid::host_shurA_sliding(int2 * ids, bool * active, real3* norm, real3* ptA, real3* ptB, real4* rot, real3 * JUA, real3 * JUB, real3 * JVA, real3 * JVB,
-		real3 * JWA, real3 * JWB, real * gamma, real3 * updateV, real3 * updateO, uint* offset) {
+		real3 * JWA, real3 * JWB, real * gamma, real3 * updateV, real3 * updateO, int* offset) {
 #pragma omp parallel for
 	for (size_t index = 0; index < number_of_rigid_rigid; index++) {
 		real3 gam(_mm_loadu_ps(&gamma[_index_]));
@@ -519,19 +534,14 @@ void ChConstraintRigidRigid::host_shurA_sliding(int2 * ids, bool * active, real3
 		int2 bids = ids[index];
 		if (active[bids.x] != 0) {
 			int offset1 = offset[index];
-			updateV[offset1] = -U * gam.x - V * gam.y - W * gam.z;
-			E = ~rot[bids.x];
-			sbar = quatRotate(ptA[index], E);
-			updateO[offset1] = cross(quatRotate(U, E), sbar) * gam.x + cross(quatRotate(V, E), sbar) * gam.y + cross(quatRotate(W, E), sbar) * gam.z;
+			updateV[index] = -U * gam.x - V * gam.y - W * gam.z;
+			updateO[index] = JUA[index] * gam.x + JVA[index] * gam.y + JWA[index] * gam.z;
 
 		}
 		if (active[bids.y] != 0) {
 			int offset2 = offset[index + number_of_rigid_rigid];
-			updateV[offset2] = U * gam.x + V * gam.y + W * gam.z;
-
-			real4 E = ~rot[bids.y];
-			sbar = quatRotate(ptB[index], E);
-			updateO[offset2] = -cross(quatRotate(U, E), sbar) * gam.x - cross(quatRotate(V, E), sbar) * gam.y - cross(quatRotate(W, E), sbar) * gam.z;
+			updateV[index+number_of_rigid_rigid] = U * gam.x + V * gam.y + W * gam.z;
+			updateO[index+number_of_rigid_rigid] = JUB[index] * gam.x + JVB[index] * gam.y + JWB[index] * gam.z;
 
 		}
 	}
@@ -539,7 +549,7 @@ void ChConstraintRigidRigid::host_shurA_sliding(int2 * ids, bool * active, real3
 }
 
 void ChConstraintRigidRigid::host_shurA_spinning(int2 * ids, bool * active, real3* norm, real3* ptA, real3* ptB, real4* rot, real3 * JUA, real3 * JUB, real3 * JVA, real3 * JVB,
-		real3 * JWA, real3 * JWB, real3 * JTA, real3 * JTB, real3 * JSA, real3 * JSB, real3 * JRA, real3 * JRB, real * gamma, real3 * updateV, real3 * updateO, uint* offset) {
+		real3 * JWA, real3 * JWB, real3 * JTA, real3 * JTB, real3 * JSA, real3 * JSB, real3 * JRA, real3 * JRB, real * gamma, real3 * updateV, real3 * updateO, int* offset) {
 #pragma omp parallel for
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
 
@@ -552,13 +562,13 @@ void ChConstraintRigidRigid::host_shurA_spinning(int2 * ids, bool * active, real
 		int2 bids = ids[index];
 		if (active[bids.x] != 0) {
 			int offset1 = offset[index];
-			updateV[offset1] = -U * gam.x - V * gam.y - W * gam.z;
-			updateO[offset1] = JUA[index] * gam.x + JVA[index] * gam.y + JWA[index] * gam.z + JTA[index] * gam_roll.x + JSA[index] * gam_roll.y + JRA[index] * gam_roll.z;
+			updateV[index] = -U * gam.x - V * gam.y - W * gam.z;
+			updateO[index] = JUA[index] * gam.x + JVA[index] * gam.y + JWA[index] * gam.z + JTA[index] * gam_roll.x + JSA[index] * gam_roll.y + JRA[index] * gam_roll.z;
 		}
 		if (active[bids.y] != 0) {
 			int offset2 = offset[index + number_of_rigid_rigid];
-			updateV[offset2] = U * gam.x + V * gam.y + W * gam.z;
-			updateO[offset2] = JUB[index] * gam.x + JVB[index] * gam.y + JWB[index] * gam.z + JTB[index] * gam_roll.x + JSB[index] * gam_roll.y + JRB[index] * gam_roll.z;
+			updateV[index+number_of_rigid_rigid] = U * gam.x + V * gam.y + W * gam.z;
+			updateO[index+number_of_rigid_rigid] = JUB[index] * gam.x + JVB[index] * gam.y + JWB[index] * gam.z + JTB[index] * gam_roll.x + JSB[index] * gam_roll.y + JRB[index] * gam_roll.z;
 		}
 
 	}
@@ -710,8 +720,8 @@ void ChConstraintRigidRigid::host_shurB_spinning(int2 * ids, bool * active, real
 	}
 }
 
-void ChConstraintRigidRigid::host_Reduce_Shur(bool* active, real3* QXYZ, real3* QUVW, real * inv_mass, real3 * inv_inertia, real3* updateQXYZ, real3* updateQUVW, uint* d_body_num,
-		uint* counter) {
+void ChConstraintRigidRigid::host_Reduce_Shur(bool* active, real3* QXYZ, real3* QUVW, real * inv_mass, real3 * inv_inertia, real3* updateQXYZ, real3* updateQUVW, int* d_body_num,
+		int* counter, int* reverse_offset) {
 #pragma omp parallel for
 	for (int index = 0; index < number_of_updates; index++) {
 
@@ -724,8 +734,10 @@ void ChConstraintRigidRigid::host_Reduce_Shur(bool* active, real3* QXYZ, real3* 
 			real3 mUpdateO = R3(0);
 
 			for (j = 0; j < end - start; j++) {
-				mUpdateV += updateQXYZ[j + start];
-				mUpdateO += updateQUVW[j + start];
+				int contact_num = reverse_offset[j + start];
+
+				mUpdateV += updateQXYZ[contact_num];
+				mUpdateO += updateQUVW[contact_num];
 			}
 			QXYZ[id] = mUpdateV * inv_mass[id];
 			QUVW[id] = mUpdateO * inv_inertia[id];
@@ -733,7 +745,7 @@ void ChConstraintRigidRigid::host_Reduce_Shur(bool* active, real3* QXYZ, real3* 
 	}
 }
 
-void ChConstraintRigidRigid::host_Offsets(int2* ids, uint* Body) {
+void ChConstraintRigidRigid::host_Offsets(int2* ids, int* Body) {
 #pragma omp parallel for
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		if (index < number_of_rigid_rigid) {
@@ -759,12 +771,12 @@ void ChConstraintRigidRigid::ShurA(real* x) {
 	} else {
 		host_shurA_normal(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.active_data.data(), data_container->host_data.norm_rigid_rigid.data(),
 				data_container->host_data.cpta_rigid_rigid.data(), data_container->host_data.cptb_rigid_rigid.data(), JUA_rigid_rigid.data(), JUB_rigid_rigid.data(), x,
-				vel_update.data(), omg_update.data(), update_offset.data());
+				vel_update.data(), omg_update.data(), update_offset_pairs.data());
 
 	}
 
 	host_Reduce_Shur(data_container->host_data.active_data.data(), data_container->host_data.QXYZ_data.data(), data_container->host_data.QUVW_data.data(),
-			data_container->host_data.mass_data.data(), data_container->host_data.inr_data.data(), vel_update.data(), omg_update.data(), body_number.data(), offset_counter.data());
+			data_container->host_data.mass_data.data(), data_container->host_data.inr_data.data(), vel_update.data(), omg_update.data(), body_number.data(), offset_counter.data(), update_offset_bodies.data());
 
 }
 void ChConstraintRigidRigid::ShurB(real*x, real* output) {
