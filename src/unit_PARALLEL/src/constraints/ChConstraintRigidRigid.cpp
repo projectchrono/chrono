@@ -479,53 +479,21 @@ void ChConstraintRigidRigid::UpdateJacobians() {
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 void ChConstraintRigidRigid::host_shurA_normal(
-		int2 * __restrict__ ids,
-		bool * __restrict__ active,
-		real3* __restrict__ norm,
-		real3* __restrict__ ptA,
-		real3* __restrict__ ptB,
-		real3 * __restrict__ JUA,
-		real3 * __restrict__ JUB,
-		real * __restrict__ gamma,
-		real3 * __restrict__ updateV,
-		real3 * __restrict__ updateO,
-		int2* __restrict__ offset) {
-
-	real gam;
-	real3 U;
-	//int myid, nproc, mystart, myend;
-	//int numproc = 8;
-	//int n = number_of_rigid_rigid;
-//	MPI_Comm_rank(MPI_COMM_WORLD, &myid);
-//	MPI_Comm_size(MPI_COMM_WORLD, &numproc);
-//	//para_range(0, number_of_rigid_rigid, 8, iproc, ista, iend);
-//
-//	mystart = (n / numproc) * myid;
-//	if (n % numproc > myid) {
-//		mystart += myid;
-//		myend = mystart + (n / numproc) + 1;
-//	} else {
-//		mystart += n % numproc;
-//		myend = mystart + (n / numproc);
-//	}
+		int number_of_rigid_rigid,
+		real * gamma,
+		real3* norm,
+		real3 * JUA,
+		real3 * JUB,
+		real3 * updateV,
+		real3 * updateO) {
 	double start = omp_get_wtime();
 #pragma omp parallel for
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
-		gam = gamma[_index_];
-		U = norm[index];
-		//int2 bids = ids[index];
-		//int2 offsets = offset[index];
-		real3 V = U * gam;
-		//if (active[bids.x] != 0) {
-		//_mm_stream_ps(&updateV[offsets.x].x, -V);
-		//_mm_stream_ps(&updateO[offsets.x].x, JUA[index] * gam);
-		updateV[index] = -V;
+		real gam = gamma[index * 6];
+		real3 U = norm[index];
+		updateV[index] = -U * gam;
+		updateV[index + number_of_rigid_rigid] = U * gam;
 		updateO[index] = JUA[index] * gam;
-		///}
-		//if (active[bids.y] != 0) {
-		//_mm_stream_ps(&updateV[offsets.y].x, V.mmvalue);
-		//_mm_stream_ps(&updateO[offsets.y].x, JUB[index] * gam);
-		updateV[index + number_of_rigid_rigid] = V;
 		updateO[index + number_of_rigid_rigid] = JUB[index] * gam;
 		//}
 	}
@@ -788,9 +756,18 @@ void ChConstraintRigidRigid::ShurA(real* x) {
 				JUA_rigid_rigid.data(), JUB_rigid_rigid.data(), JVA_rigid_rigid.data(), JVB_rigid_rigid.data(), JWA_rigid_rigid.data(), JWB_rigid_rigid.data(), x,
 				vel_update.data(), omg_update.data(), update_offset.data());
 	} else {
-		host_shurA_normal(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.active_data.data(), data_container->host_data.norm_rigid_rigid.data(),
-				data_container->host_data.cpta_rigid_rigid.data(), data_container->host_data.cptb_rigid_rigid.data(), JUA_rigid_rigid.data(), JUB_rigid_rigid.data(), x,
-				vel_update.data(), omg_update.data(), update_offset_pairs.data());
+		host_shurA_normal(number_of_rigid_rigid, x,
+		//data_container->host_data.bids_rigid_rigid.data(),
+		//data_container->host_data.active_data.data(),
+				data_container->host_data.norm_rigid_rigid.data(),
+				//data_container->host_data.cpta_rigid_rigid.data(),
+				//data_container->host_data.cptb_rigid_rigid.data(),
+				JUA_rigid_rigid.data(), JUB_rigid_rigid.data(),
+
+				vel_update.data(), omg_update.data()
+				//,
+				//update_offset_pairs.data()
+				);
 
 	}
 

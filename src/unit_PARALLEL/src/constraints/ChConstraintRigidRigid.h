@@ -68,7 +68,22 @@ public:
 	void ComputeJacobians();
 	void UpdateJacobians();
 
-	void host_shurA_normal(int2 * ids, bool *active, real3 *norm, real3 *ptA, real3 *ptB, real3 *JUA, real3 *JUB, real *gamma, real3 *updateV, real3 *updateO, int2 * offset);
+	void host_shurA_normal(
+			int number_of_rigid_rigid,
+			real *gamma,
+			//int2 * ids,
+			//bool *active,
+			real3 *norm,
+			//real3 *ptA,
+			//real3 *ptB,
+			real3 *JUA,
+			real3 *JUB,
+
+			real3 *updateV,
+			real3 *updateO
+			//,
+			//int2 * offset
+			);
 
 	void host_shurA_sliding(int2 *ids, bool *active, real3 *norm, real3 *ptA, real3 *ptB, real4* rot, real3 *JUA, real3 *JUB, real3 *JVA, real3 *JVB, real3 *JWA, real3 *JWB,
 			real *gamma, real3 *updateV, real3 *updateO, int * offset);
