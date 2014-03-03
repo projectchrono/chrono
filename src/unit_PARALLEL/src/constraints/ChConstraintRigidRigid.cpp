@@ -478,15 +478,8 @@ void ChConstraintRigidRigid::UpdateJacobians() {
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-void ChConstraintRigidRigid::host_shurA_normal(
-		int number_of_rigid_rigid,
-		real * gamma,
-		real3* norm,
-		real3 * JUA,
-		real3 * JUB,
-		real3 * updateV,
-		real3 * updateO) {
-	double start = omp_get_wtime();
+void ChConstraintRigidRigid::host_shurA_normal(real * gamma, real3* norm, real3 * JUA, real3 * JUB, real3 * updateV, real3 * updateO) {
+//	double start = omp_get_wtime();
 #pragma omp parallel for
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		real gam = gamma[index * 6];
@@ -497,18 +490,18 @@ void ChConstraintRigidRigid::host_shurA_normal(
 		updateO[index + number_of_rigid_rigid] = JUB[index] * gam;
 		//}
 	}
-	double end = omp_get_wtime();
-
-	double total_time_omp = (end - start) * 1000;
-	double total_flops = 12 * number_of_rigid_rigid / ((end - start)) / 1e9;
-	double total_memory = (7 * 4 * 4 + 1 * 4) * number_of_rigid_rigid / ((end - start)) / 1024.0 / 1024.0 / 1024.0;
-
-	cout<<"SA_STAT: "<<total_time_omp<<" "<<total_flops<<" "<<total_memory<<endl;
+//	double end = omp_get_wtime();
+//
+//	double total_time_omp = (end - start) * 1000;
+//	double total_flops = 12 * number_of_rigid_rigid / ((end - start)) / 1e9;
+//	double total_memory = (7 * 4 * 4 + 1 * 4) * number_of_rigid_rigid / ((end - start)) / 1024.0 / 1024.0 / 1024.0;
+//
+//	cout<<"SA_STAT: "<<total_time_omp<<" "<<total_flops<<" "<<total_memory<<endl;
 
 }
 
-void ChConstraintRigidRigid::host_shurA_sliding(int2 * ids, bool * active, real3* norm, real3* ptA, real3* ptB, real4* rot, real3 * JUA, real3 * JUB, real3 * JVA, real3 * JVB,
-		real3 * JWA, real3 * JWB, real * gamma, real3 * updateV, real3 * updateO, int* offset) {
+void ChConstraintRigidRigid::host_shurA_sliding(int2 * ids, bool * active, real3* norm, real3 * JUA, real3 * JUB, real3 * JVA, real3 * JVB, real3 * JWA, real3 * JWB, real * gamma,
+		real3 * updateV, real3 * updateO) {
 #pragma omp parallel for
 	for (size_t index = 0; index < number_of_rigid_rigid; index++) {
 		real3 gam(_mm_loadu_ps(&gamma[_index_]));
@@ -752,11 +745,10 @@ void ChConstraintRigidRigid::ShurA(real* x) {
 				vel_update.data(), omg_update.data(), update_offset.data());
 	} else if (solve_sliding) {
 		host_shurA_sliding(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.active_data.data(), data_container->host_data.norm_rigid_rigid.data(),
-				data_container->host_data.cpta_rigid_rigid.data(), data_container->host_data.cptb_rigid_rigid.data(), data_container->host_data.rot_data.data(),
 				JUA_rigid_rigid.data(), JUB_rigid_rigid.data(), JVA_rigid_rigid.data(), JVB_rigid_rigid.data(), JWA_rigid_rigid.data(), JWB_rigid_rigid.data(), x,
-				vel_update.data(), omg_update.data(), update_offset.data());
+				vel_update.data(), omg_update.data());
 	} else {
-		host_shurA_normal(number_of_rigid_rigid, x,
+		host_shurA_normal(x,
 		//data_container->host_data.bids_rigid_rigid.data(),
 		//data_container->host_data.active_data.data(),
 				data_container->host_data.norm_rigid_rigid.data(),
