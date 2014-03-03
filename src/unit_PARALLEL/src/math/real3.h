@@ -12,7 +12,7 @@
  class  __attribute__ ((aligned(16))) real3  {
 public:
   union{
-     struct { real x, y, z; };
+     struct { real x, y, z, w; };
      __m128 mmvalue;
   };
 
