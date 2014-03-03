@@ -476,10 +476,10 @@ void ChConstraintRigidRigid::host_shurA_normal(real * gamma, real3* norm, real3 
 		real gam = gamma[index * 6];
 		real3 U = norm[index];
 		updateV[index] = -U * gam;
-		updateV[index + number_of_rigid_rigid] = U * gam;
+		//updateV[index + number_of_rigid_rigid] = U * gam;
 		updateO[index] = JUA[index] * gam;
 		updateO[index + number_of_rigid_rigid] = JUB[index] * gam;
-		//}
+
 	}
 //	double end = omp_get_wtime();
 //
@@ -499,13 +499,14 @@ void ChConstraintRigidRigid::host_shurA_sliding(bool2* contact_active, real3* no
 		real3 U = norm[index], V, W;
 		Orthogonalize(U, V, W);
 		bool2 active = contact_active[index];
+		updateV[index] = -U * gam.x - V * gam.y - W * gam.z;
 		if (active.x != 0) {
-			updateV[index] = -U * gam.x - V * gam.y - W * gam.z;
 			updateO[index] = JUA[index] * gam.x + JVA[index] * gam.y + JWA[index] * gam.z;
 		}
 		if (active.y != 0) {
+			//updateV[index + number_of_rigid_rigid] = U * gam.x + V * gam.y + W * gam.z;
 			updateO[index + number_of_rigid_rigid] = JUB[index] * gam.x + JVB[index] * gam.y + JWB[index] * gam.z;
-			updateV[index + number_of_rigid_rigid] = U * gam.x + V * gam.y + W * gam.z;
+
 		}
 	}
 
@@ -522,13 +523,12 @@ void ChConstraintRigidRigid::host_shurA_spinning(bool2* contact_active, real3* n
 		real3 U = norm[index], V, W;
 		Orthogonalize(U, V, W);
 		bool2 active = contact_active[index];
-
+		updateV[index] = -U * gam.x - V * gam.y - W * gam.z;
 		if (active.x != 0) {
-			updateV[index] = -U * gam.x - V * gam.y - W * gam.z;
 			updateO[index] = JUA[index] * gam.x + JVA[index] * gam.y + JWA[index] * gam.z + JTA[index] * gam_roll.x + JSA[index] * gam_roll.y + JRA[index] * gam_roll.z;
 		}
 		if (active.y != 0) {
-			updateV[index + number_of_rigid_rigid] = U * gam.x + V * gam.y + W * gam.z;
+			//updateV[index + number_of_rigid_rigid] = U * gam.x + V * gam.y + W * gam.z;
 			updateO[index + number_of_rigid_rigid] = JUB[index] * gam.x + JVB[index] * gam.y + JWB[index] * gam.z + JTB[index] * gam_roll.x + JSB[index] * gam_roll.y
 					+ JRB[index] * gam_roll.z;
 		}
@@ -695,8 +695,11 @@ void ChConstraintRigidRigid::host_Reduce_Shur(bool* active, real3* QXYZ, real3* 
 
 			for (j = 0; j < end - start; j++) {
 				int contact_num = reverse_offset[j + start];
-
-				mUpdateV += updateQXYZ[contact_num];
+				if (contact_num >= number_of_rigid_rigid) {
+					mUpdateV += -updateQXYZ[contact_num - number_of_rigid_rigid];
+				} else {
+					mUpdateV += updateQXYZ[contact_num];
+				}
 				mUpdateO += updateQUVW[contact_num];
 			}
 			QXYZ[id] = mUpdateV * inv_mass[id];
