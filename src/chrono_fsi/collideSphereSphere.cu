@@ -1935,8 +1935,8 @@ void cudaCollisions(
 	real_ delTOrig = delT;
 	real_ realTime = 0;
 
-	int numPause =  0;//.05 * paramsH.tFinal/paramsH.dT;
-	int pauseRigidFlex =  0;//5 * numPause;
+	int numPause =  .05 * paramsH.tFinal/paramsH.dT;
+	int pauseRigidFlex =  5 * numPause;
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce4 = R4(0);
 	paramsH_B.gravity = R3(0);
@@ -2100,12 +2100,12 @@ void cudaCollisions(
 
 		//************************************************
 		//edit  since yu deleted cyliderRotOmegaJD
-//		PrintToFile(posRadD, velMasD, rhoPresMuD,
-//				referenceArray, rigidIdentifierD,
-//				posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
-//				ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD, ANCF_ReferenceArrayNodesOnBeamsD,
-//				currentParamsH,
-//				realTime, tStep, channelRadius, channelCenterYZ, numObjects.numRigidBodies, numObjects.numFlexBodies);
+		PrintToFile(posRadD, velMasD, rhoPresMuD,
+				referenceArray, rigidIdentifierD,
+				posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
+				ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD, ANCF_ReferenceArrayNodesOnBeamsD,
+				currentParamsH,
+				realTime, tStep, channelRadius, channelCenterYZ, numObjects.numRigidBodies, numObjects.numFlexBodies);
 
 //		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
 		//************
@@ -2118,7 +2118,7 @@ void cudaCollisions(
 		double t2 = double(cpuT_end.tv_sec)+double(cpuT_end.tv_usec)/(1000*1000);
 
 
-		if (tStep % 2 == 0) {
+		if (tStep % 50 == 0) {
 			printf("step: %d, step Time (CUDA): %f, step Time (CPU): %f\n ", tStep, time2, 1000 * (t2 - t1));
 			//printf("a \n");
 		}
