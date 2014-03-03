@@ -483,11 +483,8 @@ void function_CalcContactForces(
 	// ---------------------
 
 	// Express contact point locations in local frames
-	M33 rotmat1 = AMat(rot[body1]);
-	real3 pt1_loc = pos[body1] + MatTMult(rotmat1, pt1[index]);
-
-	M33 rotmat2 = AMat(rot[body2]);
-	real3 pt2_loc = pos[body2] + MatTMult(rotmat2, pt2[index]);
+	real3 pt1_loc = TransformParentToLocal(pos[body1], rot[body1], pt1[index]);
+	real3 pt2_loc = TransformParentToLocal(pos[body2], rot[body2], pt2[index]);
 
 	// Calculate relative velocity (in global frame)
 	real3 vel1 = vel[body1] + cross(omg[body1], pt1[index]);   //// TODO: check this
@@ -542,17 +539,20 @@ void function_CalcContactForces(
 	// ---------------------
 
 	// Convert force into the local body frames and calculate induced torques
-	real3 force1_loc = MatTMult(rotmat1, force);
-	real3 force2_loc = MatTMult(rotmat2, force);
-	real3 torque1 = cross(pt1_loc, -force1_loc);
-	real3 torque2 = cross(pt2_loc,  force2_loc);
+	real3 force1_loc = quatRotateMatT(force, rot[body1]);
+	real3 force2_loc = quatRotateMatT(force, rot[body2]);
+	real3 torque1_loc = cross(pt1_loc, force1_loc);
+	real3 torque2_loc = cross(pt2_loc, force2_loc);
+
+	real3 torque1 = cross(pt1[index] - pos[body1], force);
+	real3 torque2 = cross(pt2[index] - pos[body2], force);
 
 	// Store body forces and torques
 	body_id[2*index] = body1;
 	body_id[2*index+1] = body2;
 	body_force[2*index] = -force;
 	body_force[2*index+1] = force;
-	body_torque[2*index] = torque1;
+	body_torque[2*index] = -torque1;
 	body_torque[2*index+1] = torque2;
 }
 
