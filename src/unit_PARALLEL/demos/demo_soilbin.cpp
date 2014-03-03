@@ -11,7 +11,8 @@
 using namespace chrono;
 using namespace geometry;
 
-void AddWall(ChSharedBodyDEMPtr&  body,
+template <typename T>
+void AddWall(T&                   body,
              const ChVector<>&    loc,
              const ChVector<>&    dim)
 {
@@ -28,12 +29,36 @@ void AddWall(ChSharedBodyDEMPtr&  body,
 	body->GetAssets().push_back(box_shape);
 }
 
+void OutputFile(ChStreamOutAsciiFile& file,
+                ChSystem&             sys,
+                double                time)
+{
+	chrono::Vector bodyAngs;
+
+	file << time << "     ";
+	std::cout << time << "     ";
+
+	for (int i = 0; i < sys.Get_bodylist()->size(); ++i) {
+		ChBody* abody = (ChBody*) sys.Get_bodylist()->at(i);
+		assert(typeid(*abody) == typeid(ChBodyDEM));
+
+		const ChVector<>& bodypos = abody->GetPos();
+		bodyAngs = abody->GetRot().Q_to_NasaAngles();
+		file << bodypos.x  << "  " << bodypos.y  << "  " << bodypos.z  << "  ";
+		file << bodyAngs.x << "  " << bodyAngs.y << "  " << bodyAngs.z << "       ";
+		std::cout << bodypos.x << "  " << bodypos.y << "  " << bodypos.z << "   |   ";
+	}
+
+	file << "\n";
+	std::cout << std::endl;
+}
+
 
 int main(int argc, char* argv[])
 {
-	// Simulation parameters
 	int threads = 8;
 
+	// Simulation parameters
 	double gravity = -9.81;
 	double time_step = 0.0001;
 	double time_end = 1;
@@ -42,8 +67,8 @@ int main(int argc, char* argv[])
 	int max_iteration = 20;
 
 	// Output
-	char* data_folder = "./DEM";
-	double out_fps = 60;
+	ChStreamOutAsciiFile sph_file("../soilbin_pos.txt");
+	double out_fps = 1000;
 	int out_steps = std::ceil((1 / time_step) / out_fps);
 
 	// Parameters for the falling ball
@@ -53,7 +78,6 @@ int main(int argc, char* argv[])
 	double          volume = (4.0/3) * PI * radius * radius * radius;
 	double          mass = density * volume;
 	ChVector<>      inertia = 0.4 * mass * radius * radius * ChVector<>(1,1,1);
-	ChVector<>      init_vel(0, 0, 0);
 
 	// Parameters for the containing bin
 	int    binId = -200;
@@ -65,13 +89,14 @@ int main(int argc, char* argv[])
 	// Create system
 	ChSystemParallelDEM* msystem = new ChSystemParallelDEM();
 
+	msystem->Set_G_acc(ChVector<>(0, 0, gravity));
+
 	// Edit system settings
 	msystem->SetParallelThreadNumber(threads);
 	msystem->SetMaxiter(max_iteration);
 	msystem->SetIterLCPmaxItersSpeed(max_iteration);
 	msystem->SetTol(1e-3);
 	msystem->SetTolSpeeds(1e-3);
-	msystem->Set_G_acc(ChVector<>(0, 0, gravity));
 	msystem->SetStep(time_step);
 
 	((ChLcpSolverParallelDEM*) msystem->GetLcpSolverSpeed())->SetMaxIteration(max_iteration);
@@ -97,43 +122,67 @@ int main(int argc, char* argv[])
 	binMat->SetFriction(0.4f);
 	binMat->SetDissipationFactor(0.6f);
 
-	// Create the falling balls
-	utils::PDSampler<> my_sampler(radius);
-	utils::PointVectorD
-		points = my_sampler.SampleBox(ChVector<>(0, 0, 2 * hDimZ), ChVector<>(1.8 * hDimX, 1.8 * hDimY, 0));
+	// Create the falling balls (a mixture entirely made out of spheres)
+/*
+	utils::Generator gen(msystem);
 
-	for (int i = 0; i < points.size(); i++) {
-		ChSharedBodyDEMPtr ball = ChSharedBodyDEMPtr(new ChBodyDEM(new ChCollisionModelParallel));
-	
+	utils::MixtureIngredientPtr& m1 = gen.AddMixtureIngredient(utils::SPHERE, 1.0);
+	m1->setDefaultMaterialDEM(ballMat);
+	m1->setDefaultDensity(density);
+	m1->setDefaultSize(radius);
+
+	gen.createObjectsBox(utils::POISSON_DISK,
+	                     4 * radius,
+	                     ChVector<>(0, 0, 3 * hDimZ),
+	                     ChVector<>(0.8 * hDimX, 0.8 * hDimY, hDimZ / 2));
+
+	std::cout << "Number bodies: " << gen.getTotalNumBodies() << std::endl;
+*/
+
+
+
+	////utils::GridSampler<> gs(ChVector<>(0.1, 0.2, 0.3));
+	////utils::PointVectorD points = gs.SampleBox(ChVector<>(0, 0, 2), ChVector<>(1, 2, 0));
+
+	utils::PDSampler<> pd(0.2);
+	utils::PointVectorD points = pd.SampleBox(ChVector<>(0, 0, 2), ChVector<>(1, 2, 0));
+
+	std::cout << "Number points: " << points.size() << std::endl;
+
+	for (int i = 0; i < 1; i++) {
+		ChSharedBodyDEMPtr ball(new ChBodyDEM(new ChCollisionModelParallel));
+
+		ball->SetMaterialSurfaceDEM(ballMat);
+
 		ball->SetIdentifier(ballId);
 		ball->SetMass(mass);
+		ball->SetInertiaXX(inertia);
 		ball->SetPos(points[i]);
-		ball->SetPos_dt(init_vel);
 		ball->SetBodyFixed(false);
-		ball->SetMaterialSurfaceDEM(ballMat);
-	
+		ball->SetRot(ChQuaternion<>(1,0,0,0));
+
 		ball->SetCollide(true);
-		ball->GetCollisionModel()->SetFamily(-15);
-	
+
 		ball->GetCollisionModel()->ClearModel();
 		ball->GetCollisionModel()->AddSphere(radius);
 		ball->GetCollisionModel()->BuildModel();
-	
-		ball->SetInertiaXX(inertia);
-	
+
 		ChSharedPtr<ChSphereShape> sphere_shape = ChSharedPtr<ChAsset>(new ChSphereShape);
 		sphere_shape->SetColor(ChColor(1, 0, 0));
 		sphere_shape->GetSphereGeometry().rad = radius;
-		sphere_shape->Pos = ChVector<>(0);
+		sphere_shape->Pos = ChVector<>(0,0,0);
 		sphere_shape->Rot = ChQuaternion<>(1,0,0,0);
 		ball->GetAssets().push_back(sphere_shape);
-	
+
 		msystem->AddBody(ball);
 	}
 
 
+
 	// Create the containing bin
-	ChSharedBodyDEMPtr bin = ChSharedBodyDEMPtr(new ChBodyDEM(new ChCollisionModelParallel));
+	ChSharedBodyDEMPtr bin(new ChBodyDEM(new ChCollisionModelParallel));
+
+	bin->SetMaterialSurfaceDEM(binMat);
 
 	bin->SetIdentifier(binId);
 	bin->SetMass(1);
@@ -141,10 +190,6 @@ int main(int argc, char* argv[])
 	bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
 	bin->SetCollide(true);
 	bin->SetBodyFixed(true);
-	bin->SetMaterialSurfaceDEM(binMat);
-
-	bin->GetCollisionModel()->SetFamily(-20);
-	bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(-20);
 
 	bin->GetCollisionModel()->ClearModel();
 	AddWall(bin, ChVector<>(0, 0, -hThickness), ChVector<>(hDimX, hDimY, hThickness));
@@ -163,16 +208,10 @@ int main(int argc, char* argv[])
 
 	for (int i = 0; i < num_steps; i++) {
 		if (i % out_steps == 0) {
-			sprintf(filename, "%s/data_%03d.dat", data_folder, out_frame);
-			utils::WriteShapesRender(msystem, filename);
+			////sprintf(filename, "./DEM/data_%03d.dat", data_folder, out_frame);
+			////utils::WriteShapesRender(msystem, filename);
 
-			for (int i = 0; i < msystem->Get_bodylist()->size(); ++i) {
-				ChBody* abody = (ChBody*) msystem->Get_bodylist()->at(i);
-				if (abody->GetIdentifier() == ballId) {
-					ChVector<> pos = abody->GetPos();
-					std::cout << "------ Frame: " << out_frame << " Time: " << time << " Height: " << pos.z << std::endl;
-				}
-			}
+			OutputFile(sph_file, *msystem, time);
 
 			out_frame++;
 		}

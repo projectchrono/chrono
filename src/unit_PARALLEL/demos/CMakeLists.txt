@@ -40,23 +40,14 @@ ENDIF()
 
 # Add executables
 
-ADD_EXECUTABLE(demo_ballDVI  demo_ballDVI.cpp ${UTILITIES})
-SOURCE_GROUP(""  FILES demo_ballDVI.cpp ${UTILITIES})
-SET_TARGET_PROPERTIES(demo_ballDVI PROPERTIES
-	FOLDER demos
-	COMPILE_FLAGS "${CH_BUILDFLAGS}"
-	LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_ballDVI ${CHRONO_LIB} ChronoEngine_Parallel)
-ADD_DEPENDENCIES(demo_ballDVI ${CHRONO_LIB} ChronoEngine_Parallel)
-
-ADD_EXECUTABLE(demo_ballDEM  demo_ballDEM.cpp ${UTILITIES})
-SOURCE_GROUP(""  FILES demo_ballDEM.cpp ${UTILITIES})
-SET_TARGET_PROPERTIES(demo_ballDEM PROPERTIES
+ADD_EXECUTABLE(demo_ball  demo_ball.cpp ${UTILITIES})
+SOURCE_GROUP(""  FILES demo_ball.cpp ${UTILITIES})
+SET_TARGET_PROPERTIES(demo_ball PROPERTIES
   FOLDER demos
   COMPILE_FLAGS "${CH_BUILDFLAGS}"
   LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_ballDEM ${CHRONO_LIB} ChronoEngine_Parallel)
-ADD_DEPENDENCIES(demo_ballDEM ${CHRONO_LIB} ChronoEngine_Parallel)
+TARGET_LINK_LIBRARIES(demo_ball ${CHRONO_LIB} ChronoEngine_Parallel)
+ADD_DEPENDENCIES(demo_ball ${CHRONO_LIB} ChronoEngine_Parallel)
 
 ADD_EXECUTABLE(demo_soilbin  demo_soilbin.cpp ${UTILITIES})
 SOURCE_GROUP(""  FILES demo_soilbin.cpp ${UTILITIES})
@@ -77,8 +68,7 @@ TARGET_LINK_LIBRARIES(demo_utils ${CHRONO_LIB} ChronoEngine_Parallel)
 ADD_DEPENDENCIES(demo_utils ${CHRONO_LIB} ChronoEngine_Parallel)
 
 
-install(TARGETS demo_ballDVI DESTINATION bin)
-install(TARGETS demo_ballDEM DESTINATION bin)
+install(TARGETS demo_ball DESTINATION bin)
 install(TARGETS demo_soilbin DESTINATION bin)
 install(TARGETS demo_utils DESTINATION bin)
 
