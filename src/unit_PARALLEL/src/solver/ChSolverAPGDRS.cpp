@@ -37,23 +37,20 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 
 		for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
 			ShurProduct(my,mg_tmp1);
-#pragma omp parallel
-		{
 
-#pragma omp for
+#pragma omp parallel for
 		for (int i = 0; i < SIZE; i++) {
 			real _mg_ = mg_tmp1.data()[i] - b.data()[i];
 			mg.data()[i] = _mg_;
 			mx.data()[i] = -t_k * _mg_ + my.data()[i];
 		}
 
-		Project_NoPar(mx.data());
-	}
+		Project(mx.data());
 
-	ShurProduct(mx,mg_tmp);
-	obj1=obj2=0.0;
+		ShurProduct(mx,mg_tmp);
+		obj1=obj2=0.0;
 
-	real dot_mg_ms = 0, norm_ms = 0;
+		real dot_mg_ms = 0, norm_ms = 0;
 
 #pragma omp parallel for reduction(+:obj1,obj2,dot_mg_ms,norm_ms)
 		for(int i=0; i<SIZE; i++) {
@@ -75,17 +72,15 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 			L_k = step_grow * L_k;
 			t_k = 1.0 / L_k;
 
-#pragma omp parallel
-		{
-#pragma omp  for
+#pragma omp parallel for
 		for(int i=0; i<SIZE; i++) {
 			mx.data()[i] = -t_k*mg.data()[i]+ my.data()[i];
 		}
-		Project_NoPar(mx.data());
-	}
 
-	ShurProduct(mx,mg_tmp);
-	obj1 = dot_mg_ms = norm_ms =0;
+		Project(mx.data());
+
+		ShurProduct(mx,mg_tmp);
+		obj1 = dot_mg_ms = norm_ms =0;
 #pragma omp parallel for reduction(+:obj1,dot_mg_ms,norm_ms)
 		for(int i=0; i<SIZE; i++) {
 			real _mg_tmp_ = mg_tmp.data()[i];

@@ -17,11 +17,11 @@ class ChApiGPU ChBaseParallel {
 		void Initialize();
 	protected:
 		ChParallelDataManager *data_container;
-		uint number_of_rigid;
-		uint number_of_rigid_rigid;
-		uint number_of_bilaterals;
-		uint number_of_constraints;
-		uint number_of_updates;
+		int number_of_rigid;
+		int number_of_rigid_rigid;
+		int number_of_bilaterals;
+		int number_of_constraints;
+		int number_of_updates;
 
 		real step_size;
 

@@ -27,10 +27,9 @@ void ChSolverParallel::SetAPGDParams(real theta_k, real shrink, real grow) {
 real ChSolverParallel::Res4(const int SIZE, real* mg_tmp, const real* b, real*x, real* mb_tmp) {
 	real gdiff = 1e-6;
 	real sum = 0;
-#pragma omp parallel
-	{
 
-#pragma omp for
+
+#pragma omp parallel for
 	for (int i = 0; i < SIZE; i++) {
 		real _mg_tmp2_ = mg_tmp[i] - b[i];
 		mb_tmp[i] = -gdiff * _mg_tmp2_ + x[i];
@@ -43,13 +42,13 @@ real ChSolverParallel::Res4(const int SIZE, real* mg_tmp, const real* b, real*x,
 	//mb_tmp = (-1.0 / (gdiff)) * ms;
 
 
-#pragma omp for reduction(+:sum)
+#pragma omp parallel for reduction(+:sum)
 	for (int i = 0; i < SIZE; i++) {
 		real _ms_ = mb_tmp[i] - x[i];
 		real _mb_tmp_ = (-1.0f / (gdiff)) * _ms_;
 		sum += _mb_tmp_ * _mb_tmp_;
 	}
-}
+
 	return sqrt(sum);
 
 }

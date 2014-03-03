@@ -478,14 +478,23 @@ void ChConstraintRigidRigid::UpdateJacobians() {
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-void ChConstraintRigidRigid::host_shurA_normal(int2 * __restrict__ ids, bool * __restrict__ active, real3* __restrict__ norm, real3* __restrict__ ptA, real3* __restrict__ ptB,
-		real3 * __restrict__ JUA, real3 * __restrict__ JUB, real * __restrict__ gamma, real3 * __restrict__ updateV, real3 * __restrict__ updateO, int2* __restrict__ offset) {
+void ChConstraintRigidRigid::host_shurA_normal(
+		int2 * __restrict__ ids,
+		bool * __restrict__ active,
+		real3* __restrict__ norm,
+		real3* __restrict__ ptA,
+		real3* __restrict__ ptB,
+		real3 * __restrict__ JUA,
+		real3 * __restrict__ JUB,
+		real * __restrict__ gamma,
+		real3 * __restrict__ updateV,
+		real3 * __restrict__ updateO,
+		int2* __restrict__ offset) {
 
 	real gam;
 	real3 U;
 	//int myid, nproc, mystart, myend;
 	//int numproc = 8;
-	size_t index;
 	//int n = number_of_rigid_rigid;
 //	MPI_Comm_rank(MPI_COMM_WORLD, &myid);
 //	MPI_Comm_size(MPI_COMM_WORLD, &numproc);
@@ -501,7 +510,7 @@ void ChConstraintRigidRigid::host_shurA_normal(int2 * __restrict__ ids, bool * _
 //	}
 	double start = omp_get_wtime();
 #pragma omp parallel for
-	for (index = 0; index < number_of_rigid_rigid; index++) {
+	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		gam = gamma[_index_];
 		U = norm[index];
 		//int2 bids = ids[index];
@@ -524,7 +533,7 @@ void ChConstraintRigidRigid::host_shurA_normal(int2 * __restrict__ ids, bool * _
 
 	double total_time_omp = (end - start) * 1000;
 	double total_flops = 12 * number_of_rigid_rigid / ((end - start)) / 1e9;
-	double total_memory = (8 * 4 * 4) * number_of_rigid_rigid / ((end - start)) / 1024.0 / 1024.0 / 1024.0;
+	double total_memory = (7 * 4 * 4 + 1 * 4) * number_of_rigid_rigid / ((end - start)) / 1024.0 / 1024.0 / 1024.0;
 
 	cout<<"SA_STAT: "<<total_time_omp<<" "<<total_flops<<" "<<total_memory<<endl;
 
