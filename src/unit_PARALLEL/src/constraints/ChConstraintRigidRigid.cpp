@@ -499,26 +499,35 @@ void ChConstraintRigidRigid::host_shurA_normal(int2 * __restrict__ ids, bool * _
 //		mystart += n % numproc;
 //		myend = mystart + (n / numproc);
 //	}
+	double start = omp_get_wtime();
 #pragma omp parallel for
 	for (index = 0; index < number_of_rigid_rigid; index++) {
 		gam = gamma[_index_];
 		U = norm[index];
 		//int2 bids = ids[index];
-		int2 offsets = offset[index];
+		//int2 offsets = offset[index];
 		real3 V = U * gam;
 		//if (active[bids.x] != 0) {
 		//_mm_stream_ps(&updateV[offsets.x].x, -V);
 		//_mm_stream_ps(&updateO[offsets.x].x, JUA[index] * gam);
 		updateV[index] = -V;
 		updateO[index] = JUA[index] * gam;
-		//}
+		///}
 		//if (active[bids.y] != 0) {
 		//_mm_stream_ps(&updateV[offsets.y].x, V.mmvalue);
 		//_mm_stream_ps(&updateO[offsets.y].x, JUB[index] * gam);
-		updateV[index+number_of_rigid_rigid] = V;
-		updateO[index+number_of_rigid_rigid] = JUB[index] * gam;
-
+		updateV[index + number_of_rigid_rigid] = V;
+		updateO[index + number_of_rigid_rigid] = JUB[index] * gam;
+		//}
 	}
+	double end = omp_get_wtime();
+
+	double total_time_omp = (end - start) * 1000;
+	double total_flops = 12 * number_of_rigid_rigid / ((end - start)) / 1e9;
+	double total_memory = (8 * 4 * 4) * number_of_rigid_rigid / ((end - start)) / 1024.0 / 1024.0 / 1024.0;
+
+	cout<<"SA_STAT: "<<total_time_omp<<" "<<total_flops<<" "<<total_memory<<endl;
+
 }
 
 void ChConstraintRigidRigid::host_shurA_sliding(int2 * ids, bool * active, real3* norm, real3* ptA, real3* ptB, real4* rot, real3 * JUA, real3 * JUB, real3 * JVA, real3 * JVB,
@@ -533,15 +542,15 @@ void ChConstraintRigidRigid::host_shurA_sliding(int2 * ids, bool * active, real3
 		Orthogonalize(U, V, W);
 		int2 bids = ids[index];
 		if (active[bids.x] != 0) {
-			int offset1 = offset[index];
+			//int offset1 = offset[index];
 			updateV[index] = -U * gam.x - V * gam.y - W * gam.z;
 			updateO[index] = JUA[index] * gam.x + JVA[index] * gam.y + JWA[index] * gam.z;
 
 		}
 		if (active[bids.y] != 0) {
-			int offset2 = offset[index + number_of_rigid_rigid];
-			updateV[index+number_of_rigid_rigid] = U * gam.x + V * gam.y + W * gam.z;
-			updateO[index+number_of_rigid_rigid] = JUB[index] * gam.x + JVB[index] * gam.y + JWB[index] * gam.z;
+			//int offset2 = offset[index + number_of_rigid_rigid];
+			updateV[index + number_of_rigid_rigid] = U * gam.x + V * gam.y + W * gam.z;
+			updateO[index + number_of_rigid_rigid] = JUB[index] * gam.x + JVB[index] * gam.y + JWB[index] * gam.z;
 
 		}
 	}
@@ -567,8 +576,9 @@ void ChConstraintRigidRigid::host_shurA_spinning(int2 * ids, bool * active, real
 		}
 		if (active[bids.y] != 0) {
 			int offset2 = offset[index + number_of_rigid_rigid];
-			updateV[index+number_of_rigid_rigid] = U * gam.x + V * gam.y + W * gam.z;
-			updateO[index+number_of_rigid_rigid] = JUB[index] * gam.x + JVB[index] * gam.y + JWB[index] * gam.z + JTB[index] * gam_roll.x + JSB[index] * gam_roll.y + JRB[index] * gam_roll.z;
+			updateV[index + number_of_rigid_rigid] = U * gam.x + V * gam.y + W * gam.z;
+			updateO[index + number_of_rigid_rigid] = JUB[index] * gam.x + JVB[index] * gam.y + JWB[index] * gam.z + JTB[index] * gam_roll.x + JSB[index] * gam_roll.y
+					+ JRB[index] * gam_roll.z;
 		}
 
 	}
@@ -776,7 +786,8 @@ void ChConstraintRigidRigid::ShurA(real* x) {
 	}
 
 	host_Reduce_Shur(data_container->host_data.active_data.data(), data_container->host_data.QXYZ_data.data(), data_container->host_data.QUVW_data.data(),
-			data_container->host_data.mass_data.data(), data_container->host_data.inr_data.data(), vel_update.data(), omg_update.data(), body_number.data(), offset_counter.data(), update_offset_bodies.data());
+			data_container->host_data.mass_data.data(), data_container->host_data.inr_data.data(), vel_update.data(), omg_update.data(), body_number.data(), offset_counter.data(),
+			update_offset_bodies.data());
 
 }
 void ChConstraintRigidRigid::ShurB(real*x, real* output) {
