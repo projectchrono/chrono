@@ -85,6 +85,7 @@ public:
 			);
 
 	void host_shurA_sliding(
+			int2 *ids, bool *active,
 			real3 *norm,
 			real3 *JUA,
 			real3 *JUB,
@@ -102,7 +103,7 @@ public:
 	void host_shurB_normal(int2 *ids, bool *active, real3 *norm, real4 *compliance, real *gamma, real3 *JUA, real3 *JUB,
 			real3 *QXYZ, real3 *QUVW, real *AX);
 
-	void host_shurB_sliding(int2 *ids, bool *active, real3 *norm, real3 *ptA, real3 *ptB, real *inv_mass, real3 *inv_inertia, real4 *compliance, real *gamma, real3 *JUA,
+	void host_shurB_sliding(int2 *ids, bool *active, real3 *norm,  real4 *compliance, real *gamma, real3 *JUA,
 			real3 *JUB, real3 *JVA, real3 *JVB, real3 *JWA, real3 *JWB, real3 *QXYZ, real3 *QUVW, real *AX);
 
 	void host_shurB_spinning(int2 *ids, bool *active, real3 *norm, real3 *ptA, real3 *ptB, real *inv_mass, real3 *inv_inertia, real4 *compliance, real *gamma, real3 *JUA,

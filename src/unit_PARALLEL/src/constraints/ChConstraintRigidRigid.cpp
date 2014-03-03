@@ -500,17 +500,22 @@ void ChConstraintRigidRigid::host_shurA_normal(real * gamma, real3* norm, real3 
 
 }
 
-void ChConstraintRigidRigid::host_shurA_sliding(real3* norm, real3 * JUA, real3 * JUB, real3 * JVA, real3 * JVB, real3 * JWA, real3 * JWB, real * gamma, real3 * updateV,
-		real3 * updateO) {
+void ChConstraintRigidRigid::host_shurA_sliding(int2 *ids, bool *active, real3* norm, real3 * JUA, real3 * JUB, real3 * JVA, real3 * JVB, real3 * JWA, real3 * JWB, real * gamma,
+		real3 * updateV, real3 * updateO) {
 #pragma omp parallel for
 	for (size_t index = 0; index < number_of_rigid_rigid; index++) {
 		real3 gam(_mm_loadu_ps(&gamma[_index_]));
 		real3 U = norm[index], V, W;
 		Orthogonalize(U, V, W);
-		updateV[index] = -U * gam.x - V * gam.y - W * gam.z;
-		updateV[index + number_of_rigid_rigid] = U * gam.x + V * gam.y + W * gam.z;
-		updateO[index] = JUA[index] * gam.x + JVA[index] * gam.y + JWA[index] * gam.z;
-		updateO[index + number_of_rigid_rigid] = JUB[index] * gam.x + JVB[index] * gam.y + JWB[index] * gam.z;
+		int2 bids = ids[index];
+		if (active[bids.x] != 0) {
+			updateV[index] = -U * gam.x - V * gam.y - W * gam.z;
+			updateO[index] = JUA[index] * gam.x + JVA[index] * gam.y + JWA[index] * gam.z;
+		}
+		if (active[bids.y] != 0) {
+			updateO[index + number_of_rigid_rigid] = JUB[index] * gam.x + JVB[index] * gam.y + JWB[index] * gam.z;
+			updateV[index + number_of_rigid_rigid] = U * gam.x + V * gam.y + W * gam.z;
+		}
 	}
 
 }
@@ -538,7 +543,6 @@ void ChConstraintRigidRigid::host_shurA_spinning(int2 * ids, bool * active, real
 			updateO[index + number_of_rigid_rigid] = JUB[index] * gam.x + JVB[index] * gam.y + JWB[index] * gam.z + JTB[index] * gam_roll.x + JSB[index] * gam_roll.y
 					+ JRB[index] * gam_roll.z;
 		}
-
 	}
 }
 
@@ -574,8 +578,8 @@ void ChConstraintRigidRigid::host_shurB_normal(int2 * ids, bool * active, real3*
 
 	}
 }
-void ChConstraintRigidRigid::host_shurB_sliding(int2 * ids, bool * active, real3* norm, real3* ptA, real3* ptB, real * inv_mass, real3 * inv_inertia, real4 * compliance,
-		real * gamma, real3 * JUA, real3 * JUB, real3 * JVA, real3 * JVB, real3 * JWA, real3 * JWB, real3 * QXYZ, real3 * QUVW, real * AX) {
+void ChConstraintRigidRigid::host_shurB_sliding(int2 * ids, bool * active, real3* norm, real4 * compliance, real * gamma, real3 * JUA, real3 * JUB, real3 * JVA, real3 * JVB,
+		real3 * JWA, real3 * JWB, real3 * QXYZ, real3 * QUVW, real * AX) {
 
 #pragma omp parallel for
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
@@ -731,8 +735,9 @@ void ChConstraintRigidRigid::ShurA(real* x) {
 				JTA_rigid_rigid.data(), JTB_rigid_rigid.data(), JSA_rigid_rigid.data(), JSB_rigid_rigid.data(), JRA_rigid_rigid.data(), JRB_rigid_rigid.data(), x,
 				vel_update.data(), omg_update.data(), update_offset.data());
 	} else if (solve_sliding) {
-		host_shurA_sliding(data_container->host_data.norm_rigid_rigid.data(), JUA_rigid_rigid.data(), JUB_rigid_rigid.data(), JVA_rigid_rigid.data(), JVB_rigid_rigid.data(),
-				JWA_rigid_rigid.data(), JWB_rigid_rigid.data(), x, vel_update.data(), omg_update.data());
+		host_shurA_sliding(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.active_data.data(), data_container->host_data.norm_rigid_rigid.data(),
+				JUA_rigid_rigid.data(), JUB_rigid_rigid.data(), JVA_rigid_rigid.data(), JVB_rigid_rigid.data(), JWA_rigid_rigid.data(), JWB_rigid_rigid.data(), x,
+				vel_update.data(), omg_update.data());
 	} else {
 		host_shurA_normal(x, data_container->host_data.norm_rigid_rigid.data(), JUA_rigid_rigid.data(), JUB_rigid_rigid.data(), vel_update.data(), omg_update.data());
 
@@ -755,10 +760,8 @@ void ChConstraintRigidRigid::ShurB(real*x, real* output) {
 
 	} else if (solve_sliding) {
 		host_shurB_sliding(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.active_data.data(), data_container->host_data.norm_rigid_rigid.data(),
-				data_container->host_data.cpta_rigid_rigid.data(), data_container->host_data.cptb_rigid_rigid.data(), data_container->host_data.mass_data.data(),
-				data_container->host_data.inr_data.data(), comp_rigid_rigid.data(), x, JUA_rigid_rigid.data(), JUB_rigid_rigid.data(), JVA_rigid_rigid.data(),
-				JVB_rigid_rigid.data(), JWA_rigid_rigid.data(), JWB_rigid_rigid.data(), data_container->host_data.QXYZ_data.data(), data_container->host_data.QUVW_data.data(),
-				output);
+				comp_rigid_rigid.data(), x, JUA_rigid_rigid.data(), JUB_rigid_rigid.data(), JVA_rigid_rigid.data(), JVB_rigid_rigid.data(), JWA_rigid_rigid.data(),
+				JWB_rigid_rigid.data(), data_container->host_data.QXYZ_data.data(), data_container->host_data.QUVW_data.data(), output);
 
 	} else {
 		host_shurB_normal(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.active_data.data(), data_container->host_data.norm_rigid_rigid.data(),
@@ -772,19 +775,19 @@ void ChConstraintRigidRigid::Diag() {
 }
 
 void ChConstraintRigidRigid::Build_N() {
-	//M^-1 * D^T
-	//
-	//D = eacc row is a constraint
+//M^-1 * D^T
+//
+//D = eacc row is a constraint
 
-	//m bodies, n constraints
-	//M: mxm
-	//D:mxn
-	//M*D^T = mxn
-	//D*M*D^T = nxn
+//m bodies, n constraints
+//M: mxm
+//D:mxn
+//M*D^T = mxn
+//D*M*D^T = nxn
 
-	//each constraint has 6 J values, 3 pos, 3 rot
-	//each row of D has two entries with 6 values each, so 12 values
-	//D has 12*n entries
-	//M*D^T has 2*n
+//each constraint has 6 J values, 3 pos, 3 rot
+//each row of D has two entries with 6 values each, so 12 values
+//D has 12*n entries
+//M*D^T has 2*n
 
 }
