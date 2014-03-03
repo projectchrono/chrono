@@ -58,18 +58,19 @@ public:
 	void   SetArea(const double ma) { this->Area = ma;  }
 	double GetArea() const {return this->Area;} 
 
-				/// Set the Iyy moment of inertia of the beam 
+				/// Set the Iyy moment of inertia of the beam (for flexion about y axis)
+				/// Note: some textbook calls this Iyy as Iz
 	void   SetIyy(double ma) { this->Iyy = ma;  }
 	double GetIyy() const {return this->Iyy;}
 
-				/// Set the Iyy moment of inertia of the beam 
+				/// Set the Izz moment of inertia of the beam (for flexion about z axis)
+				/// Note: some textbook calls this Izz as Iy
 	void   SetIzz(double ma) { this->Izz = ma;  }
 	double GetIzz() const {return this->Izz;}
 
 				/// Shortcut: set area, Ixx and Iyy moment of inertia  
 				/// at once, given the y and z widths of the beam assumed
 				/// with rectangular shape.
-				/// Also, sets the y and z width of drawn shape.
 	void   SetAsRectangularSection(double width_y, double width_z) 
 				{ 
 					this->Area = width_y * width_z; 

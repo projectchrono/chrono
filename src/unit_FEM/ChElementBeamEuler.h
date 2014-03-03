@@ -517,7 +517,7 @@ GetLog() << "\n";
 					double dN_ub = (1./(2.*this->GetRestLength()))*( 3. -3*eta*eta);
 					double dN_ra =  (1./4.)*(-1. -2*eta + 3*eta*eta);
 					double dN_rb = -(1./4.)*( 1. -2*eta - 3*eta*eta);
-					u_rotaz.y = dN_ua*displ(2)+dN_ub*displ(8)+   // z_a   z_b
+					u_rotaz.y = -dN_ua*displ(2)-dN_ub*displ(8)+   // z_a   z_b
 								dN_ra*displ(4)+dN_rb*displ(10);  // Ry_a  Ry_b
 					u_rotaz.z = dN_ua*displ(1)+dN_ub*displ(7)+   // y_a   y_b
 								dN_ra*displ(5)+dN_rb*displ(11);  // Rz_a  Rz_b    
@@ -581,18 +581,16 @@ GetLog() << "\n";
 					double dddN_ra =  (6.0/(length*length));
 					double dddN_rb =  (6.0/(length*length));
 
-					
-					
-
-					ChMatrixNM<double,6,1> sect_ek; // generalized strains/curvatures;
+					// generalized strains/curvatures;
+					ChMatrixNM<double,6,1> sect_ek; 
 
 					// e_x
 					sect_ek(0) = (dN_xa*displ(0)+dN_xb*displ(6));      // x_a   x_b
 					// e_y
-					sect_ek(2) = (dddN_ua*displ(1)+dddN_ub*displ(7)+   // y_a   y_b
+					sect_ek(1) = (dddN_ua*displ(1)+dddN_ub*displ(7)+   // y_a   y_b
 								  dddN_ra*displ(5)+dddN_rb*displ(11)); // Rz_a  Rz_b 
 					// e_z
-					sect_ek(1) = (dddN_ua*displ(2)+dddN_ub*displ(8)+   // z_a   z_b
+					sect_ek(2) = (dddN_ua*displ(2)+dddN_ub*displ(8)+   // z_a   z_b
 								  dddN_ra*displ(4)+dddN_rb*displ(10)); // Ry_a  Ry_b
 					
 					// k_x
@@ -604,15 +602,74 @@ GetLog() << "\n";
 					sect_ek(5) = (ddN_ua*displ(1)+ddN_ub*displ(7)+   // y_a   y_b
 								  ddN_ra*displ(5)+ddN_rb*displ(11));  // Rz_a  Rz_b 
 
-					Fforce.x = this->section->E * this->section->Area* sect_ek(0);
-					Fforce.y = this->section->E * this->section->Iyy * sect_ek(1);
-					Fforce.z = this->section->E * this->section->Izz * sect_ek(2);		
-								 
-					Mtorque.x = this->section->G * Jpolar			  * sect_ek(3);
-					Mtorque.y = this->section->E * this->section->Iyy * sect_ek(4);	
-					Mtorque.z = this->section->E * this->section->Izz * sect_ek(5);
-					
-					///***TO DO*** case of displaced shear center or centroid or rotated section axes
+					if (section->alpha ==0 && section->Cy ==0 && section->Cz==0 && section->Sy==0 && section->Sz==0)
+					{
+						// Fast computation:
+						Fforce.x = this->section->E * this->section->Area* sect_ek(0);
+						Fforce.y = this->section->E * this->section->Izz * sect_ek(1);
+						Fforce.z = this->section->E * this->section->Iyy * sect_ek(2);		
+									 
+						Mtorque.x = this->section->G * Jpolar			  * sect_ek(3);
+						Mtorque.y = this->section->E * this->section->Iyy * sect_ek(4);	
+						Mtorque.z = this->section->E * this->section->Izz * sect_ek(5);
+					}
+					else
+					{
+						// Generic computation, by rotating and translating the constitutive
+						// matrix of the beam:
+						ChMatrixNM<double,6,6> Klaw_d;
+						double ca = cos(section->alpha);
+						double sa = sin(section->alpha);
+						double cb = cos(section->alpha); // could be beta if shear custom axes 
+						double sb = sin(section->alpha);
+						double Cy = section->Cy;
+						double Cz = section->Cz;
+						double Sy = section->Sy;
+						double Sz = section->Sz;
+						double Klaw_d0 = this->section->E * this->section->Area;
+						double Klaw_d1 = this->section->E * this->section->Izz;
+						double Klaw_d2 = this->section->E * this->section->Iyy;
+						double Klaw_d3 = this->section->G * Jpolar;
+						double Klaw_d4 = this->section->E * this->section->Iyy;
+						double Klaw_d5 = this->section->E * this->section->Izz;
+						// ..unrolled rotated constitutive matrix..
+						ChMatrixNM<double,6,6> Klaw_r; 
+						Klaw_r(0,0) = Klaw_d0;
+						Klaw_r(1,1) = Klaw_d1 *cb*cb + Klaw_d2 *sb*sb;
+						Klaw_r(2,2) = Klaw_d1 *sb*sb + Klaw_d2 *cb*cb;
+						Klaw_r(1,2) = Klaw_d1 *cb*sb - Klaw_d2 *cb*sb;
+						Klaw_r(2,1) = Klaw_r(1,2);
+						Klaw_r(3,3) = Klaw_d3;
+						Klaw_r(4,4) = Klaw_d4 *ca*ca + Klaw_d5 *sa*sa;
+						Klaw_r(5,5) = Klaw_d4 *sa*sa + Klaw_d5 *ca*ca;
+						Klaw_r(4,5) = Klaw_d4 *ca*sa - Klaw_d5 *ca*sa;
+						Klaw_r(5,4) = Klaw_r(4,5);
+						// ..also translate for Cy Cz
+						for (int i = 0; i<6; ++i)
+							Klaw_r(4,i) +=  Cz * Klaw_r(0,i);
+						for (int i = 0; i<6; ++i)
+							Klaw_r(5,i) += -Cy * Klaw_r(0,i);
+
+						for (int i = 0; i<6; ++i)
+							Klaw_r(i,4) +=  Cz * Klaw_r(i,0);
+						for (int i = 0; i<6; ++i)
+							Klaw_r(i,5) += -Cy * Klaw_r(i,0);
+
+						// ..also translate for Sy Sz
+						for (int i = 0; i<6; ++i)
+							Klaw_r(3,i) +=  Sz * Klaw_r(1,i) -Sy * Klaw_r(2,i);
+						for (int i = 0; i<6; ++i)
+							Klaw_r(i,3) +=  Sz * Klaw_r(i,1) -Sy * Klaw_r(i,2);
+						
+						// .. compute wrench = Klaw_l * sect_ek
+						ChMatrixNM<double,6> wrench;
+						wrench = Klaw_r * sect_ek;
+						Fforce  = wrench.ClipVector(0,0);
+						Mtorque = wrench.ClipVector(3,0);
+
+						// Note: to be checked.
+						// Note: can be improved with more unrolling.
+					}
 				}
 
 

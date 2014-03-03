@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
 				// Create a section, i.e. thickness and material properties
 				// for beams. This will be shared among some beams.
 	
-	ChSharedPtr<ChBeamSection> msection(new ChBeamSection);
+	ChSharedPtr<ChBeamSectionAdvanced> msection(new ChBeamSectionAdvanced);
 
 	double beam_wy = 0.02;
 	double beam_wz = 0.02;
@@ -78,6 +78,7 @@ int main(int argc, char* argv[])
 	msection->SetYoungModulus (0.01e9);
 	msection->SetGshearModulus(0.01e9 * 0.3);
 	msection->SetBeamRaleyghDamping(0.000);
+	msection->SetCentroid(0.0,0.0);
 
 
 	//
@@ -117,10 +118,10 @@ int main(int argc, char* argv[])
 
 
 				// Apply a force to a node
-	//hnode3->SetForce( ChVector<>(0, -1, 0));
+//hnode3->SetForce( ChVector<>(0, -2, 0));
 	//hnode2->SetForce( ChVector<>(0,-6,0));
 	//hnode3->SetForce( ChVector<>(0,-3,-3));
-	//hnode3->SetTorque( ChVector<>(0, 0, 0.4));
+hnode3->SetTorque( ChVector<>(0, -0.3, 0));
 
 
 
@@ -147,10 +148,10 @@ int main(int argc, char* argv[])
 
 	belement3->UpdateRotation();
 	
-	//hnode4->SetFixed(true);
+//hnode4->SetFixed(true);
 	//hnode5->SetTorque( ChVector<>(1,0,0));
-	hnode4->SetForce( ChVector<>(0,-2,0));
-
+	//hnode4->SetForce( ChVector<>(0,-2,0));
+//hnode5->SetForce( ChVector<>(0,-1,0));
 
 		// Create a constraint between the two segments of the "L":
 
@@ -200,6 +201,7 @@ int main(int argc, char* argv[])
 	mvisualizebeamA->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_ELEM_BEAM_MZ);
 	mvisualizebeamA->SetColorscaleMinMax(-1,1);
 	mvisualizebeamA->SetSmoothFaces(true);
+	mvisualizebeamA->SetWireframe(true);
 	my_mesh->AddAsset(mvisualizebeamA);
 
 	ChSharedPtr<ChVisualizationFEMmesh> mvisualizebeamC(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
@@ -229,12 +231,12 @@ int main(int argc, char* argv[])
 	//
 	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES); // <- NEEDED because other solvers can't handle stiffness matrices
 	my_system.SetIterLCPwarmStarting(true); // this helps a lot to speedup convergence in this class of problems
-	my_system.SetIterLCPmaxItersSpeed(200);
-	my_system.SetTolSpeeds(1e-8);
-	//chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
+	my_system.SetIterLCPmaxItersSpeed(600);
+	my_system.SetIterLCPmaxItersStab(600);
+	my_system.SetTolSpeeds(1e-12);
+	chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
 	//msolver->SetVerbose(true);
-	//msolver->SetDiagonalPreconditioning(true);
-
+	msolver->SetDiagonalPreconditioning(true);
 	application.SetTimestep(0.001);
 
 //application.GetSystem()->Update();
@@ -251,7 +253,9 @@ belement3->GetField(mfi);
 */
 
 
-ChQuadrature::GetStaticTables()->PrintTables(); //***TEST***
+//ChQuadrature::GetStaticTables()->PrintTables(); //***TEST***
+
+
 
 
 
@@ -259,7 +263,40 @@ ChQuadrature::GetStaticTables()->PrintTables(); //***TEST***
 GetLog()<< "\n\n\n===========STATICS======== \n\n\n";
 
 //application.GetSystem()->DoStaticNonlinear(25);
-//application.GetSystem()->DoStaticLinear();
+
+belement1->SetDisableCorotate(true);
+belement2->SetDisableCorotate(true);
+belement3->SetDisableCorotate(true);
+application.GetSystem()->DoStaticLinear();
+
+
+
+GetLog() << "BEAM RESULTS (STATIC ANALYSIS) \n\n";
+
+ChVector<> F, M;
+ChMatrixDynamic<> displ;
+
+belement1->GetField(displ);
+GetLog()<< displ;
+for (double eta = -1; eta <= 1; eta += 0.4)
+{	
+	belement1->EvaluateSectionForceTorque(eta, displ, F, M);
+	GetLog() << "  b1_at" << eta <<  " Mx=" << M.x << " My=" << M.y << " Mz=" << M.z << " Tx=" << F.x << " Ty=" << F.y << " Tz=" << F.z << "\n";
+}
+belement2->GetField(displ);
+for (double eta = -1; eta <= 1; eta += 0.4)
+{	
+	belement2->EvaluateSectionForceTorque(eta, displ, F, M);
+	GetLog() << "  b2_at" << eta <<  " Mx=" << M.x << " My=" << M.y << " Mz=" << M.z << " Tx=" << F.x << " Ty=" << F.y << " Tz=" << F.z << "\n";
+}
+belement3->GetField(displ);
+for (double eta = -1; eta <= 1; eta += 0.4)
+{	
+	belement3->EvaluateSectionForceTorque(eta, displ, F, M);
+	GetLog() << "  b3_at" << eta << " Mx=" << M.x << " My=" << M.y << " Mz=" << M.z << " Tx=" << F.x << " Ty=" << F.y << " Tz=" << F.z << "\n";
+}
+
+
 
 
 	while(application.GetDevice()->run()) 
