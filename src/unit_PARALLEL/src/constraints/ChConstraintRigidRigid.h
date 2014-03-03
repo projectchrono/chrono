@@ -35,11 +35,15 @@ public:
 
 			update_offset_pairs.resize(int(number_of_rigid_rigid));
 			update_offset_bodies.resize(int(number_of_rigid_rigid * 2));
+			contact_active_pairs.resize(int(number_of_rigid_rigid));
 #pragma omp parallel for
 			for (int i = 0; i < number_of_rigid_rigid; i++) {
 				update_offset_pairs[i] = I2(update_offset[i], update_offset[i + number_of_rigid_rigid]);
 				update_offset_bodies[update_offset[i]] = i;
 				update_offset_bodies[update_offset[i + number_of_rigid_rigid]] = i + number_of_rigid_rigid;
+				int2 body = data_container->host_data.bids_rigid_rigid[i];
+
+				contact_active_pairs[i] = bool2(data_container->host_data.active_data[body.x], data_container->host_data.active_data[body.y]);
 			}
 		}
 		solve_sliding = false;
@@ -69,18 +73,18 @@ public:
 
 	void host_shurA_normal(real *gamma, real3 *norm, real3 *JUA, real3 *JUB, real3 *updateV, real3 *updateO);
 
-	void host_shurA_sliding(int2 *ids, bool *active, real3 *norm, real3 *JUA, real3 *JUB, real3 *JVA, real3 *JVB, real3 *JWA, real3 *JWB, real *gamma, real3 *updateV,
+	void host_shurA_sliding(bool2 *contact_active, real3 *norm, real3 *JUA, real3 *JUB, real3 *JVA, real3 *JVB, real3 *JWA, real3 *JWB, real *gamma, real3 *updateV,
 			real3 *updateO);
 
-	void host_shurA_spinning(int2 *ids, bool *active, real3 *norm,real3 *JUA, real3 *JUB, real3 *JVA, real3 *JVB, real3 *JWA, real3 *JWB,
+	void host_shurA_spinning(bool2 *contact_active,  real3 *norm,real3 *JUA, real3 *JUB, real3 *JVA, real3 *JVB, real3 *JWA, real3 *JWB,
 			real3 *JTA, real3 *JTB, real3 *JSA, real3 *JSB, real3 *JRA, real3 *JRB, real *gamma, real3 *updateV, real3 *updateO);
 
-	void host_shurB_normal(int2 *ids, bool *active, real3 *norm, real4 *compliance, real *gamma, real3 *JUA, real3 *JUB, real3 *QXYZ, real3 *QUVW, real *AX);
+	void host_shurB_normal(int2 * ids,bool2 *contact_active, real3 *norm, real4 *compliance, real *gamma, real3 *JUA, real3 *JUB, real3 *QXYZ, real3 *QUVW, real *AX);
 
-	void host_shurB_sliding(int2 *ids, bool *active, real3 *norm, real4 *compliance, real *gamma, real3 *JUA, real3 *JUB, real3 *JVA, real3 *JVB, real3 *JWA, real3 *JWB,
+	void host_shurB_sliding(int2 * ids,bool2 *contact_active,  real3 *norm, real4 *compliance, real *gamma, real3 *JUA, real3 *JUB, real3 *JVA, real3 *JVB, real3 *JWA, real3 *JWB,
 			real3 *QXYZ, real3 *QUVW, real *AX);
 
-	void host_shurB_spinning(int2 *ids, bool *active, real3 *norm, real4 *compliance, real *gamma, real3 *JUA,
+	void host_shurB_spinning(int2 * ids,bool2 *contact_active,  real3 *norm, real4 *compliance, real *gamma, real3 *JUA,
 			real3 *JUB, real3 *JVA, real3 *JVB, real3 *JWA, real3 *JWB, real3 *JTA, real3 *JTB, real3 *JSA, real3 *JSB, real3 *JRA, real3 *JRB, real3 *QXYZ, real3 *QUVW, real *AX);
 
 	void host_Offsets(int2 *ids_contacts, int *Body);
@@ -127,6 +131,7 @@ protected:
 	custom_vector<int> update_number;
 	custom_vector<int> update_offset;
 	custom_vector<int2> update_offset_pairs;
+	custom_vector<bool2> contact_active_pairs;
 	custom_vector<int> update_offset_bodies;
 	custom_vector<int> offset_counter;
 	custom_vector<int> body_number;

@@ -20,6 +20,13 @@
 
 typedef unsigned int uint;
 
+
+struct bool2 {
+	bool x, y;
+	bool2(){}
+	bool2(bool a, bool b): x(a), y(b){}
+};
+
 static inline int3 _make_int3(const int &a, const int &b, const int &c) {
 	int3 t;
 	t.x = a;
