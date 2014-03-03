@@ -691,5 +691,23 @@ static inline __host__ __device__ M33 AbsMat(const M33 &A) {
 
 }
 
+
+// Given a frame with origin 'p' and orientation 'q', transform the
+// position vector 'rl' expressed in the local frame into the parent
+// frame:  rp = p + A * rl
+static inline __host__ __device__ real3 TransformLocalToParent(const real3& p, const quaternion& q, const real3& rl)
+{
+	return p + quatRotateMat(rl, q);
+}
+
+
+// Given a frame with origin 'p' and orientation 'q', transform the
+// position vector 'rp' expressed in the parent frame into the local
+// frame:  rl = A^T * (rp - p)
+static inline __host__ __device__ real3 TransformParentToLocal(const real3& p, const quaternion& q, const real3& rp)
+{
+	return quatRotateMatT(rp - p, q);
+}
+
 #endif
 
