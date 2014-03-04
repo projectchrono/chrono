@@ -39,14 +39,11 @@ class ChApiGPU ChCollisionSystemParallel: public ChCollisionSystem {
 	public:
 
 		ChCollisionSystemParallel();
-
-		virtual ~ChCollisionSystemParallel() {
-		}
+		virtual ~ChCollisionSystemParallel();
 
 		/// Clears all data instanced by this algorithm
 		/// if any (like persistent contact manifolds)
-		virtual void Clear(void) {
-		}
+		virtual void Clear(void) {}
 
 		/// Adds a collision model to the collision
 		/// engine (custom data may be allocated).
@@ -72,8 +69,7 @@ class ChApiGPU ChCollisionSystemParallel: public ChCollisionSystem {
 		/// will call in sequence the functions BeginAddContact(), AddContact() (x n times),
 		/// EndAddContact() of the contact container. But if a special container (say, GPU enabled)
 		/// is passed, a more rapid buffer copy might be performed)
-		virtual void ReportContacts(ChContactContainerBase *mcontactcontainer) {
-		}
+		virtual void ReportContacts(ChContactContainerBase *mcontactcontainer) {}
 
 		/// After the Run() has completed, you can call this function to
 		/// fill a 'proximity container' (container of narrow phase pairs), that is
@@ -83,13 +79,26 @@ class ChApiGPU ChCollisionSystemParallel: public ChCollisionSystem {
 		/// will call in sequence the functions BeginAddProximities(), AddProximity() (x n times),
 		/// EndAddProximities() of the proximity container. But if a special container (say, GPU enabled)
 		/// is passed, a more rapid buffer copy might be performed)
-		virtual void ReportProximities(ChProximityContainerBase *mproximitycontainer) {
-		}
+		virtual void ReportProximities(ChProximityContainerBase *mproximitycontainer) {}
 
 		/// Perform a raycast (ray-hit test with the collision models).
 		virtual bool RayHit(const ChVector<> &from, const ChVector<> &to, ChRayhitResult &mresult) {
 			return false;
 		}
+
+		void ChangeBroadphase(ChCBroadphase* new_broadphase) {
+			delete broadphase;
+			broadphase = new_broadphase;
+		}
+
+		ChCBroadphase* GetBroadphase()  {return broadphase;}
+
+		void ChangeNarrowphase(ChCNarrowphase* new_narrowphase) {
+			delete narrowphase;
+			narrowphase = new_narrowphase;
+		}
+
+		ChCNarrowphase* GetNarrowphase()  {return narrowphase;}
 
 		void SetCollisionEnvelope(const real &envelope) {
 			collision_envelope = envelope;
@@ -102,22 +111,21 @@ class ChApiGPU ChCollisionSystemParallel: public ChCollisionSystem {
 		void GetOverlappingAABB(vector<bool> &active_id, real3 Amin, real3 Amax);
 
 		void setBinsPerAxis(int3 binsPerAxis) {
-
-			broadphase.setBinsPerAxis(binsPerAxis);
-
+			broadphase->setBinsPerAxis(binsPerAxis);
 		}
 		void setBodyPerBin(int max, int min) {
 			min_body_per_bin = min;
 			max_body_per_bin = max;
-			broadphase.setBodyPerBin(max_body_per_bin, min_body_per_bin);
+			broadphase->setBodyPerBin(max_body_per_bin, min_body_per_bin);
 
 		}
 		ChParallelDataManager *data_container;
 		ChTimer<double> mtimer_cd_broad, mtimer_cd_narrow;
 
 		ChCAABBGenerator aabb_generator;
-		ChCBroadphase broadphase;
-		ChCNarrowphase narrowphase;
+
+		ChCBroadphase* broadphase;
+		ChCNarrowphase* narrowphase;
 
 	private:
 		real collision_envelope;
@@ -127,11 +135,12 @@ class ChApiGPU ChCollisionSystemParallel: public ChCollisionSystem {
 		int min_body_per_bin;
 		int max_body_per_bin;
 
-
-
 };
+
+
 }     // END_OF_NAMESPACE____
 }     // END_OF_NAMESPACE____
+
 
 #endif
 
