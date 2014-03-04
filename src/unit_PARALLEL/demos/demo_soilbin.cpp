@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
 
 	// Parameters for the falling ball
 	int             ballId = 100;
-	double          radius = .1;
+	double          radius = 0.1;
 	double          density = 2000;
 	double          volume = (4.0/3) * PI * radius * radius * radius;
 	double          mass = density * volume;
@@ -145,7 +145,7 @@ int main(int argc, char* argv[])
 	////utils::PointVectorD points = gs.SampleBox(ChVector<>(0, 0, 2), ChVector<>(1, 2, 0));
 
 	utils::PDSampler<> pd(0.2);
-	utils::PointVectorD points = pd.SampleBox(ChVector<>(0, 0, 2), ChVector<>(1, 2, 0));
+	utils::PointVectorD points = pd.SampleBox(ChVector<>(0, 0, 0.5), ChVector<>(1, 2, 0));
 
 	std::cout << "Number points: " << points.size() << std::endl;
 

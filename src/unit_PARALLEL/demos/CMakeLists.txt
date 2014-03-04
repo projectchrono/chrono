@@ -67,10 +67,19 @@ SET_TARGET_PROPERTIES(demo_utils PROPERTIES
 TARGET_LINK_LIBRARIES(demo_utils ${CHRONO_LIB} ChronoEngine_Parallel)
 ADD_DEPENDENCIES(demo_utils ${CHRONO_LIB} ChronoEngine_Parallel)
 
+ADD_EXECUTABLE(test_collision  test_collision.cpp)
+SOURCE_GROUP(""  FILES test_collision.cpp)
+SET_TARGET_PROPERTIES(test_collision PROPERTIES
+  FOLDER demos
+  COMPILE_FLAGS "${CH_BUILDFLAGS}"
+  LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+TARGET_LINK_LIBRARIES(test_collision ${CHRONO_LIB} ChronoEngine_Parallel)
+ADD_DEPENDENCIES(test_collision ${CHRONO_LIB} ChronoEngine_Parallel)
 
 install(TARGETS demo_ball DESTINATION bin)
 install(TARGETS demo_soilbin DESTINATION bin)
 install(TARGETS demo_utils DESTINATION bin)
+install(TARGETS test_collision DESTINATION bin)
 
 
 

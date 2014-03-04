@@ -93,8 +93,9 @@ int main(int argc, char* argv[])
 	double          mass = density * volume;
 	ChVector<>      inertia = 0.4 * mass * radius * radius * ChVector<>(1,1,1);
 	ChVector<>      initPos(1, -1, 0.5);
-	ChQuaternion<>  initRot(0.89, 0.4, -0.2, 0.088889);
-	ChVector<>      initVel(0.75, 0.2, 0);
+	ChVector<>      initPos2(0.629447, -1.45809, 0.5);
+	ChQuaternion<>  initRot(1,0,0,0);//(0.89, 0.4, -0.2, 0.088889);
+	ChVector<>      initVel(0,0,0);//(0.75, 0.2, 0);
 
 	// Parameters for the containing bin
 	int    binId = -200;
@@ -194,6 +195,34 @@ int main(int argc, char* argv[])
 	ball->GetAssets().push_back(sphere_shape);
 
 	msystem.AddBody(ball);
+
+	// Create a second ball
+#ifdef DEM
+	ChSharedBodyDEMPtr ball2(new ChBodyDEM(new ChCollisionModelParallel));
+	ball2->SetMaterialSurfaceDEM(ballMat);
+#else
+	ChSharedBodyPtr ball2(new ChBody(new ChCollisionModelParallel));
+	ball2->SetMaterialSurface(ballMat);
+#endif
+
+	ball2->SetIdentifier(ballId);
+	ball2->SetMass(mass);
+	ball2->SetInertiaXX(inertia);
+	ball2->SetPos(initPos2);
+	ball2->SetRot(initRot);
+	ball2->SetPos_dt(initVel);
+	ball2->SetBodyFixed(false);
+
+	ball2->SetCollide(true);
+
+	ball2->GetCollisionModel()->ClearModel();
+	ball2->GetCollisionModel()->AddSphere(radius);
+	ball2->GetCollisionModel()->BuildModel();
+
+	ball2->GetAssets().push_back(sphere_shape);
+
+	msystem.AddBody(ball2);
+
 
 	// Create the containing bin
 #ifdef DEM
