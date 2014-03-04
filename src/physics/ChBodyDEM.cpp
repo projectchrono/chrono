@@ -19,7 +19,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-    
+
 #include <stdlib.h>
 #include <algorithm>
 
@@ -66,6 +66,9 @@ ChBodyDEM::ChBodyDEM(ChCollisionModel* new_collision_model)
 	collision_model = new_collision_model;
 	collision_model->SetEnvelope(0);
 	collision_model->SetBody(this);
+
+	matsurface.SetNull();
+	matsurfaceDEM = ChSharedPtr<ChMaterialSurfaceDEM>(new ChMaterialSurfaceDEM);
 }
 
 void ChBodyDEM::Copy(ChBodyDEM* source)
