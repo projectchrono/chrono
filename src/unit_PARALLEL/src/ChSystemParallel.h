@@ -73,6 +73,10 @@ public:
 		return use_aabb_active;
 	}
 
+	void DoThreadTuning(bool m){
+		perform_thread_tuning = m;
+	}
+
 	double GetTimerCollision() {
 		return timer_collision;
 	}
@@ -92,7 +96,7 @@ private:
 	int max_threads, current_threads, min_threads;
 	vector<double> timer_accumulator, cd_accumulator;
 	double old_timer, old_timer_cd;
-	bool detect_optimal_threads;
+	bool detect_optimal_threads, perform_thread_tuning;
 	int detect_optimal_bins;
 	uint frame_threads;
 	uint frame_bins;

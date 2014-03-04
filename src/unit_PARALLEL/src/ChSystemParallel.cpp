@@ -24,6 +24,7 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects)
 	detect_optimal_threads = false;
 	detect_optimal_bins = false;
 	current_threads = 2;
+	perform_thread_tuning = true;
 }
 
 ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects)
@@ -147,8 +148,9 @@ int ChSystemParallel::Integrate_Y() {
 
 	cd_accumulator.insert(cd_accumulator.begin(), mtimer_cd());
 	cd_accumulator.pop_back();
-
-	RecomputeThreads();
+	if (perform_thread_tuning) {
+		RecomputeThreads();
+	}
 	RecomputeBins();
 	//cout << "timer_accumulator " << sum_of_elems / 10.0 << " s: " << timer_accumulator[0] << endl;
 
@@ -175,25 +177,25 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
 	ChMatrix33<>& inertia = mbodyvar.GetBodyInvInertia();
 
 	gpu_data_manager->host_data.vel_data.push_back(
-		R3(mbodyvar.Get_qb().GetElementN(0), mbodyvar.Get_qb().GetElementN(1), mbodyvar.Get_qb().GetElementN(2)));
+	R3(mbodyvar.Get_qb().GetElementN(0), mbodyvar.Get_qb().GetElementN(1), mbodyvar.Get_qb().GetElementN(2)));
 	gpu_data_manager->host_data.acc_data.push_back(R3(0, 0, 0));
 	gpu_data_manager->host_data.omg_data.push_back(
-		R3(mbodyvar.Get_qb().GetElementN(3), mbodyvar.Get_qb().GetElementN(4), mbodyvar.Get_qb().GetElementN(5)));
+	R3(mbodyvar.Get_qb().GetElementN(3), mbodyvar.Get_qb().GetElementN(4), mbodyvar.Get_qb().GetElementN(5)));
 	gpu_data_manager->host_data.pos_data.push_back(
-		R3(newbody->GetPos().x, newbody->GetPos().y, newbody->GetPos().z));
+	R3(newbody->GetPos().x, newbody->GetPos().y, newbody->GetPos().z));
 	gpu_data_manager->host_data.rot_data.push_back(
-		R4(newbody->GetRot().e0, newbody->GetRot().e1, newbody->GetRot().e2, newbody->GetRot().e3));
+	R4(newbody->GetRot().e0, newbody->GetRot().e1, newbody->GetRot().e2, newbody->GetRot().e3));
 	gpu_data_manager->host_data.inr_data.push_back(
-		R3(inertia.GetElement(0, 0), inertia.GetElement(1, 1), inertia.GetElement(2, 2)));
+	R3(inertia.GetElement(0, 0), inertia.GetElement(1, 1), inertia.GetElement(2, 2)));
 	gpu_data_manager->host_data.frc_data.push_back(
-		R3(mbodyvar.Get_fb().ElementN(0), mbodyvar.Get_fb().ElementN(1), mbodyvar.Get_fb().ElementN(2)));     //forces
+	R3(mbodyvar.Get_fb().ElementN(0), mbodyvar.Get_fb().ElementN(1), mbodyvar.Get_fb().ElementN(2)));     //forces
 	gpu_data_manager->host_data.trq_data.push_back(
-		R3(mbodyvar.Get_fb().ElementN(3), mbodyvar.Get_fb().ElementN(4), mbodyvar.Get_fb().ElementN(5)));     //torques
+	R3(mbodyvar.Get_fb().ElementN(3), mbodyvar.Get_fb().ElementN(4), mbodyvar.Get_fb().ElementN(5)));     //torques
 	gpu_data_manager->host_data.active_data.push_back(newbody->IsActive());
 	gpu_data_manager->host_data.mass_data.push_back(inv_mass);
 
 	gpu_data_manager->host_data.lim_data.push_back(
-		R3(newbody->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
+	R3(newbody->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
 	//gpu_data_manager->host_data.pressure_data.push_back(0);
 
 	// Let derived classes load specific material surface data
@@ -211,10 +213,10 @@ void ChSystemParallelDVI::LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody)
 	ChSharedPtr<ChMaterialSurface>& mat = newbody->GetMaterialSurface();
 
 	gpu_data_manager->host_data.fric_data.push_back(
-		R3(mat->GetKfriction(), mat->GetRollingFriction(), mat->GetSpinningFriction()));
+	R3(mat->GetKfriction(), mat->GetRollingFriction(), mat->GetSpinningFriction()));
 	gpu_data_manager->host_data.cohesion_data.push_back(mat->GetCohesion());
 	gpu_data_manager->host_data.compliance_data.push_back(
-		R4(mat->GetCompliance(), mat->GetComplianceT(), mat->GetComplianceRolling(), mat->GetComplianceSpinning()));
+	R4(mat->GetCompliance(), mat->GetComplianceT(), mat->GetComplianceRolling(), mat->GetComplianceSpinning()));
 }
 
 void ChSystemParallelDEM::LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody)
@@ -339,9 +341,9 @@ void ChSystemParallelDEM::UpdateBodies() {
 	real3 *lim_pointer = gpu_data_manager->host_data.lim_data.data();
 
 	real2* elastic_moduli = gpu_data_manager->host_data.elastic_moduli.data();
-	real*  mu             = gpu_data_manager->host_data.mu.data();
-	real*  alpha          = gpu_data_manager->host_data.alpha.data();
-	real*  cr             = gpu_data_manager->host_data.cr.data();
+	real* mu = gpu_data_manager->host_data.mu.data();
+	real* alpha = gpu_data_manager->host_data.alpha.data();
+	real* cr = gpu_data_manager->host_data.cr.data();
 
 #pragma omp parallel for
 	for (int i = 0; i < bodylist.size(); i++) {
@@ -362,11 +364,11 @@ void ChSystemParallelDEM::UpdateBodies() {
 
 #pragma omp parallel for
 	for (int i = 0; i < bodylist.size(); i++) {
-		ChMatrix<>&     qb = bodylist[i]->Variables().Get_qb();
-		ChMatrix<>&     fb = bodylist[i]->Variables().Get_fb();
-		ChVector<>&     pos = bodylist[i]->GetPos();
+		ChMatrix<>& qb = bodylist[i]->Variables().Get_qb();
+		ChMatrix<>& fb = bodylist[i]->Variables().Get_fb();
+		ChVector<>& pos = bodylist[i]->GetPos();
 		ChQuaternion<>& rot = bodylist[i]->GetRot();
-		ChMatrix33<>&   inertia = bodylist[i]->VariablesBody().GetBodyInvInertia();
+		ChMatrix33<>& inertia = bodylist[i]->VariablesBody().GetBodyInvInertia();
 
 		vel_pointer[i] = (R3(qb.ElementN(0), qb.ElementN(1), qb.ElementN(2)));
 		omg_pointer[i] = (R3(qb.ElementN(3), qb.ElementN(4), qb.ElementN(5)));
@@ -382,7 +384,7 @@ void ChSystemParallelDEM::UpdateBodies() {
 		ChSharedPtr<ChMaterialSurfaceDEM>& mat = ((ChBodyDEM*) bodylist[i])->GetMaterialSurfaceDEM();
 
 		elastic_moduli[i] = R2(mat->GetYoungModulus(), mat->GetPoissonRatio());
-		mu[i]             = mat->GetSfriction();
+		mu[i] = mat->GetSfriction();
 		switch (normal_force_model) {
 		case ChContactDEM::HuntCrossley:
 			alpha[i] = mat->GetDissipationFactor();
