@@ -87,12 +87,12 @@ int main(int argc, char* argv[])
 
 	// Parameters for the falling ball
 	int             ballId = 100;
-	double          radius = .1;
+	double          radius = 0.1;
 	double          density = 2000;
 	double          volume = (4.0/3) * CH_C_PI * radius * radius * radius;
 	double          mass = density * volume;
 	ChVector<>      inertia = 0.4 * mass * radius * radius * ChVector<>(1,1,1);
-	ChVector<>      initPos(1, -1, 1.5);//0.075);
+	ChVector<>      initPos(1, -1, 0.5);
 	ChQuaternion<>  initRot(0.89, 0.4, -0.2, 0.088889);
 	ChVector<>      initVel(0.75, 0.2, 0);
 
