@@ -478,16 +478,16 @@ void ChSystemParallel::RecomputeThreads() {
 void ChSystemParallel::PerturbBins(bool increase, int number) {
 
 	if (increase) {
-		int3 grid_size = ((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase.getBinsPerAxis();
+		int3 grid_size = ((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase->getBinsPerAxis();
 		cout << "initial: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
 		grid_size.x = grid_size.x + number;
 		grid_size.y = grid_size.y + number;
 		grid_size.z = grid_size.z + number;
 		cout << "final: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
-		((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase.setBinsPerAxis(grid_size);
+		((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase->setBinsPerAxis(grid_size);
 	} else {
 
-		int3 grid_size = ((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase.getBinsPerAxis();
+		int3 grid_size = ((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase->getBinsPerAxis();
 		cout << "initial: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
 		grid_size.x = grid_size.x - number;
 		grid_size.y = grid_size.y - number;
@@ -503,7 +503,7 @@ void ChSystemParallel::PerturbBins(bool increase, int number) {
 			grid_size.z = 2;
 		}
 		cout << "final: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
-		((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase.setBinsPerAxis(grid_size);
+		((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase->setBinsPerAxis(grid_size);
 
 	}
 

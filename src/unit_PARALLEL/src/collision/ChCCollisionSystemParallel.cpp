@@ -12,12 +12,23 @@
 
 namespace chrono {
 namespace collision {
+
+
 ChCollisionSystemParallel::ChCollisionSystemParallel() {
 	collision_envelope = .03;
 	max_body_per_bin = 100;
 	min_body_per_bin = 20;
 
+	// Default broadphase and narrowphase processing.
+	broadphase = new ChCBroadphase;
+	narrowphase = new ChCNarrowphaseMPR;
 }
+
+ChCollisionSystemParallel::~ChCollisionSystemParallel() {
+	delete narrowphase;
+	delete broadphase;
+}
+
 void ChCollisionSystemParallel::Add(ChCollisionModel *model) {
 	if (model->GetPhysicsItem()->GetCollide() == true) {
 		ChCollisionModelParallel *body = (ChCollisionModelParallel *) model;
@@ -88,30 +99,13 @@ void ChCollisionSystemParallel::Run() {
 
 	//aabb_generator.GenerateAABBFluid(data_container->host_data.fluid_pos, data_container->fluid_rad, data_container->host_data.aabb_fluid);
 
-	broadphase.detectPossibleCollisions(data_container->host_data.aabb_rigid, data_container->host_data.fam_rigid, data_container->host_data.pair_rigid_rigid);
+	broadphase->detectPossibleCollisions(data_container->host_data.aabb_rigid, data_container->host_data.fam_rigid, data_container->host_data.pair_rigid_rigid);
 	mtimer_cd_broad.stop();
 
 	mtimer_cd_narrow.start();
-	narrowphase.SetCollisionEnvelope(collision_envelope);
 	data_container->collision_envelope = collision_envelope;
-
-	narrowphase.DoNarrowphase(
-			data_container->host_data.typ_rigid,
-			data_container->host_data.ObA_rigid,
-			data_container->host_data.ObB_rigid,
-			data_container->host_data.ObC_rigid,
-			data_container->host_data.ObR_rigid,
-			data_container->host_data.id_rigid,
-			data_container->host_data.active_data,
-			data_container->host_data.pos_data,
-			data_container->host_data.rot_data,
-			data_container->host_data.pair_rigid_rigid,
-			data_container->host_data.norm_rigid_rigid,
-			data_container->host_data.cpta_rigid_rigid,
-			data_container->host_data.cptb_rigid_rigid,
-			data_container->host_data.dpth_rigid_rigid,
-			data_container->host_data.bids_rigid_rigid,
-			data_container->number_of_rigid_rigid);
+	narrowphase->SetCollisionEnvelope(collision_envelope);
+	narrowphase->Process(data_container);
 	mtimer_cd_narrow.stop();
 
 }
