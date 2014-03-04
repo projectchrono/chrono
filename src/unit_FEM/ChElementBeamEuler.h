@@ -174,9 +174,6 @@ public:
 				{
 					mD.Reset(12,1);
 
-					//ChMatrix33<> A0  (this->q_element_ref_rot);
-					//ChMatrix33<> Aabs(this->q_element_abs_rot);
-
 					ChVector<> delta_rot_dir;
 					double     delta_rot_angle;
 
@@ -190,9 +187,13 @@ public:
 					ChQuaternion<> q_delta0 =   q_element_abs_rot.GetConjugate() % 
 												nodes[0]->Frame().GetRot();
 						// note, for small incremental rotations this is opposite of ChNodeFEMxyzrot::VariablesQbIncrementPosition 
-					q_delta0.Q_to_AngAxis(delta_rot_angle, delta_rot_dir); 
+					q_delta0.Q_to_AngAxis(delta_rot_angle, delta_rot_dir);
+
+					if (delta_rot_angle > CH_C_PI) 
+						delta_rot_angle -= CH_C_2PI;  // no 0..360 range, use -180..+180
+
 					mD.PasteVector(delta_rot_dir*delta_rot_angle, 3, 0);
- 
+
 					// Node 1, displacement (in local element frame, corotated back)
 					//     d = [Atw]' Xt - [A0w]'X0 
 					displ			 = this->q_element_abs_rot.RotateBack(nodes[1]->Frame().GetPos()) - 
@@ -204,7 +205,11 @@ public:
 												q_element_abs_rot.GetConjugate() % 
 												nodes[1]->Frame().GetRot();
 						// note, for small incremental rotations this is opposite of ChNodeFEMxyzrot::VariablesQbIncrementPosition 
-					q_delta1.Q_to_AngAxis(delta_rot_angle, delta_rot_dir); 
+					q_delta1.Q_to_AngAxis(delta_rot_angle, delta_rot_dir);
+
+					if (delta_rot_angle > CH_C_PI) 
+						delta_rot_angle -= CH_C_2PI;  // no 0..360 range, use -180..+180
+
 					mD.PasteVector(delta_rot_dir*delta_rot_angle, 9, 0);
 				}
 
@@ -304,7 +309,7 @@ public:
 					StiffnessMatrix(7,11) = -k_vp;
 					StiffnessMatrix(8,10) =  k_wt;
 
-					// symm part;
+					// symmetric part;
 					for (int r = 0; r < 12; r++)
 						for (int c = r+1; c < 12; c++)
 							StiffnessMatrix(c,r) = StiffnessMatrix(r,c);
@@ -323,7 +328,8 @@ public:
 					if (this->section->Cy || this->section->Cz)
 					{
 						// Do [K]" = [T_c][K]^[T_c]'
-
+						
+						//***WRONG***? to unroll properly
 						for (int i = 0; i<12; ++i)
 							this->StiffnessMatrix(4,i) +=  this->section->Cz * this->StiffnessMatrix(0,i);
 						for (int i = 0; i<12; ++i)
@@ -350,19 +356,16 @@ public:
 					{
 						// Do [K]° = [T_s][K]"[T_s]'
 
+						//***WRONG***? to unroll properly
 						for (int i = 0; i<12; ++i)
-							this->StiffnessMatrix(3,i) +=  this->section->Sz * this->StiffnessMatrix(1,i)  
-														  -this->section->Sy * this->StiffnessMatrix(2,i);
+							this->StiffnessMatrix(3,i) +=  this->section->Sz * this->StiffnessMatrix(1,i) -this->section->Sy * this->StiffnessMatrix(2,i);
 						for (int i = 0; i<12; ++i)
-							this->StiffnessMatrix(9,i) +=  this->section->Sz * this->StiffnessMatrix(7,i)  
-														  -this->section->Sy * this->StiffnessMatrix(8,i);
+							this->StiffnessMatrix(9,i) +=  this->section->Sz * this->StiffnessMatrix(7,i) -this->section->Sy * this->StiffnessMatrix(8,i);
 
 						for (int i = 0; i<12; ++i)
-							this->StiffnessMatrix(i,3) +=  this->section->Sz * this->StiffnessMatrix(i,1)  
-														  -this->section->Sy * this->StiffnessMatrix(i,2);
+							this->StiffnessMatrix(i,3) +=  this->section->Sz * this->StiffnessMatrix(i,1) -this->section->Sy * this->StiffnessMatrix(i,2);
 						for (int i = 0; i<12; ++i)
-							this->StiffnessMatrix(i,9) +=  this->section->Sz * this->StiffnessMatrix(i,7)  
-														  -this->section->Sy * this->StiffnessMatrix(i,8);
+							this->StiffnessMatrix(i,9) +=  this->section->Sz * this->StiffnessMatrix(i,7) -this->section->Sy * this->StiffnessMatrix(i,8);
 					}
 
 				}
@@ -517,7 +520,7 @@ GetLog() << "\n";
 					double dN_ub = (1./(2.*this->GetRestLength()))*( 3. -3*eta*eta);
 					double dN_ra =  (1./4.)*(-1. -2*eta + 3*eta*eta);
 					double dN_rb = -(1./4.)*( 1. -2*eta - 3*eta*eta);
-					u_rotaz.y = -dN_ua*displ(2)-dN_ub*displ(8)+   // z_a   z_b
+					u_rotaz.y =-dN_ua*displ(2)-dN_ub*displ(8)+   // z_a   z_b   note - sign
 								dN_ra*displ(4)+dN_rb*displ(10);  // Ry_a  Ry_b
 					u_rotaz.z = dN_ua*displ(1)+dN_ub*displ(7)+   // y_a   y_b
 								dN_ra*displ(5)+dN_rb*displ(11);  // Rz_a  Rz_b    
@@ -590,13 +593,13 @@ GetLog() << "\n";
 					sect_ek(1) = (dddN_ua*displ(1)+dddN_ub*displ(7)+   // y_a   y_b
 								  dddN_ra*displ(5)+dddN_rb*displ(11)); // Rz_a  Rz_b 
 					// e_z
-					sect_ek(2) = (dddN_ua*displ(2)+dddN_ub*displ(8)+   // z_a   z_b
+					sect_ek(2) = (-dddN_ua*displ(2)-dddN_ub*displ(8)+   // z_a   z_b   note - sign
 								  dddN_ra*displ(4)+dddN_rb*displ(10)); // Ry_a  Ry_b
 					
 					// k_x
 					sect_ek(3) = (dN_xa*displ(3)+dN_xb*displ(9));	 // Rx_a  Rx_b
 					// k_y
-					sect_ek(4) = (ddN_ua*displ(2)+ddN_ub*displ(8)+   // z_a   z_b
+					sect_ek(4) = (-ddN_ua*displ(2)-ddN_ub*displ(8)+   // z_a   z_b   note - sign
 								  ddN_ra*displ(4)+ddN_rb*displ(10));  // Ry_a  Ry_b
 					// k_z 
 					sect_ek(5) = (ddN_ua*displ(1)+ddN_ub*displ(7)+   // y_a   y_b

@@ -143,9 +143,9 @@ public:
 				/// rotated rectangles, etc., it corresponds to the centroid C, but
 				/// for "L" shaped or "U" shaped beams this is not always true, and
 				/// the shear center accounts for torsion effects when a shear force is applied.
-	void   SetShearCenter(double my, double mz) { this->Cy = my; this->Cz = mz;}
-	double GetShearCenterY() {return this->Cy;}
-	double GetShearCenterZ() {return this->Cz;}
+	void   SetShearCenter(double my, double mz) { this->Sy = my; this->Sz = mz;}
+	double GetShearCenterY() {return this->Sy;}
+	double GetShearCenterZ() {return this->Sz;}
 };
 
 

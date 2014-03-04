@@ -413,7 +413,7 @@ public:
 	void Q_to_AngAxis(Real& a_angle, ChVector<Real>& a_axis)
 		{
 			Real arg, invsine;
-			if (e0 < 0.99999999)
+			if (fabs(e0) < 0.99999999)
 			{
 				arg = acos(e0);
 				a_angle = 2 *arg;
