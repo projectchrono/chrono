@@ -43,11 +43,14 @@ void ChSolverParallel::shurB(real*x, real*out) {
 void ChSolverParallel::ShurProduct(custom_vector<real> &x, custom_vector<real> & output) {
 
 	//Thrust_Fill(output, 0);
+	data_container->system_timer.start("shurA");
 	shurA(x.data());
-
+	data_container->system_timer.stop("shurA");
 
 	//timer_shurcompliment.start();
+	data_container->system_timer.start("shurB");
 	shurB(x.data(),output.data());
+	data_container->system_timer.stop("shurB");
 	//timer_shurcompliment.stop();
 	//time_shurcompliment +=timer_shurcompliment();
 

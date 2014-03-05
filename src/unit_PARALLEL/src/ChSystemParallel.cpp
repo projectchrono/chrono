@@ -25,6 +25,21 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects)
 	detect_optimal_bins = false;
 	current_threads = 2;
 	perform_thread_tuning = true;
+
+	gpu_data_manager->system_timer.AddTimer("step");
+	gpu_data_manager->system_timer.AddTimer("update");
+	gpu_data_manager->system_timer.AddTimer("collision");
+	gpu_data_manager->system_timer.AddTimer("lcp");
+	gpu_data_manager->system_timer.AddTimer("solve");
+	gpu_data_manager->system_timer.AddTimer("stab");
+	gpu_data_manager->system_timer.AddTimer("jacobians");
+	gpu_data_manager->system_timer.AddTimer("rhs");
+	gpu_data_manager->system_timer.AddTimer("shurA");
+	gpu_data_manager->system_timer.AddTimer("shurA_normal");
+	gpu_data_manager->system_timer.AddTimer("shurA_sliding");
+	gpu_data_manager->system_timer.AddTimer("shurA_spinning");
+	gpu_data_manager->system_timer.AddTimer("shurB");
+
 }
 
 ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects)
@@ -54,15 +69,15 @@ ChSystemParallelDEM::ChSystemParallelDEM(unsigned int                       max_
 int ChSystemParallel::Integrate_Y() {
 	max_threads = this->GetParallelThreadNumber();
 	min_threads = 1;
-
-	mtimer_step.start();
+	gpu_data_manager->system_timer.Reset();
+	gpu_data_manager->system_timer.start("step");
 	//=============================================================================================
-	mtimer_updt.start();
+	gpu_data_manager->system_timer.start("update");
 	Setup();
 	Update();
 	//gpu_data_manager->Copy(HOST_TO_DEVICE);
-	mtimer_updt.stop();
-	timer_update = mtimer_updt();
+	gpu_data_manager->system_timer.stop("update");
+
 	//=============================================================================================
 	if (use_aabb_active) {
 		vector<bool> body_active(gpu_data_manager->number_of_rigid, false);
@@ -75,16 +90,16 @@ int ChSystemParallel::Integrate_Y() {
 	}
 
 	//=============================================================================================
-	mtimer_cd.start();
+	gpu_data_manager->system_timer.start("collision");
 	collision_system->Run();
 	collision_system->ReportContacts(this->contact_container);
-	mtimer_cd.stop();
+	gpu_data_manager->system_timer.stop("collision");
 	//=============================================================================================
-	mtimer_lcp.start();
+	gpu_data_manager->system_timer.start("lcp");
 	((ChLcpSolverParallel *) (LCP_solver_speed))->RunTimeStep(GetStep());
-	mtimer_lcp.stop();
+	gpu_data_manager->system_timer.stop("lcp");
 	//=============================================================================================
-	mtimer_updt.start();
+	gpu_data_manager->system_timer.start("update");
 	//gpu_data_manager->Copy(DEVICE_TO_HOST);
 	//std::vector<ChLcpVariables*> vvariables = LCP_descriptor->GetVariablesList();
 
@@ -127,26 +142,29 @@ int ChSystemParallel::Integrate_Y() {
 		bodylist[i]->UpdateMarkers(ChTime);
 	}
 
-	mtimer_updt.stop();
-	timer_update += mtimer_updt();
+	gpu_data_manager->system_timer.stop("update");
+
 	//=============================================================================================
 	ChTime += GetStep();
-	mtimer_step.stop();
-	timer_collision = mtimer_cd();
+	gpu_data_manager->system_timer.stop("step");
+
 	if (ChCollisionSystemParallel* coll_sys = dynamic_cast<ChCollisionSystemParallel*>(collision_system)) {
 		timer_collision_broad = coll_sys->mtimer_cd_broad();
 		timer_collision_narrow = coll_sys->mtimer_cd_narrow();
 	} else {
 		timer_collision_broad = 0;
 		timer_collision_narrow = 0;
-
 	}
-	timer_lcp = mtimer_lcp();
-	timer_step = mtimer_step();     // Time elapsed for step..
+
+	timer_update = gpu_data_manager->system_timer.GetTime("update");
+	timer_collision = gpu_data_manager->system_timer.GetTime("collision");
+	timer_lcp = gpu_data_manager->system_timer.GetTime("lcp");
+	timer_step = gpu_data_manager->system_timer.GetTime("step");
+
 	timer_accumulator.insert(timer_accumulator.begin(), timer_step);
 	timer_accumulator.pop_back();
 
-	cd_accumulator.insert(cd_accumulator.begin(), mtimer_cd());
+	cd_accumulator.insert(cd_accumulator.begin(), timer_collision);
 	cd_accumulator.pop_back();
 	if (perform_thread_tuning) {
 		RecomputeThreads();
@@ -157,6 +175,9 @@ int ChSystemParallel::Integrate_Y() {
 	//cout << "current threads " << current_threads <<" "<<frame_threads<<" "<<detect_optimal_threads<< endl;
 	frame_threads++;
 	frame_bins++;
+
+
+
 	return 1;
 }
 

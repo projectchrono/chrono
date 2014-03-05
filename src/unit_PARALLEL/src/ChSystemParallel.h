@@ -84,7 +84,7 @@ public:
 	ChParallelDataManager *gpu_data_manager;
 
 private:
-	ChTimer<double> mtimer_lcp, mtimer_step, mtimer_cd_broad, mtimer_cd_narrow, mtimer_cd, mtimer_updt;
+	//ChTimer<double> mtimer_lcp, mtimer_step, mtimer_cd_broad, mtimer_cd_narrow, mtimer_cd, mtimer_updt;
 
 	unsigned int counter;
 	double timer_collision;

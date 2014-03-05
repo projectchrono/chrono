@@ -131,11 +131,17 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
 	//solve initial
 	//solver.SetComplianceParameters(.2, 1e-3, 1e-3);
 	//rigid_rigid.solve_sliding = true;
+	data_container->system_timer.start("jacobians");
 	rigid_rigid.ComputeJacobians();
 	//rigid_rigid.ComputeRHS();
 	bilateral.ComputeJacobians();
-	bilateral.ComputeRHS();
+	data_container->system_timer.stop("jacobians");
 
+	data_container->system_timer.start("rhs");
+	bilateral.ComputeRHS();
+	data_container->system_timer.stop("rhs");
+
+	data_container->system_timer.start("stab");
 	if (max_iter_bilateral > 0) {
 		custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals);
 		thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, rhs_bilateral.begin());
@@ -143,6 +149,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
 		solver.SolveStab(data_container->host_data.gamma_bilateral, rhs_bilateral, max_iter_bilateral);
 
 	}
+	data_container->system_timer.stop("stab");
 	thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals, data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6);
 
 	//cout<<"Solve normal"<<endl;
@@ -152,8 +159,12 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
 		solver.SetComplianceAlpha(alpha);
 		rigid_rigid.solve_sliding = false;
 		rigid_rigid.solve_spinning = false;
+		data_container->system_timer.start("rhs");
 		rigid_rigid.ComputeRHS();
+		data_container->system_timer.stop("rhs");
+		data_container->system_timer.start("solve");
 		solver.Solve(solver_type);
+		data_container->system_timer.stop("solve");
 	}
 	//cout<<"Solve sliding"<<endl;
 	//solve full
@@ -161,16 +172,24 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
 		solver.SetMaxIterations(max_iter_sliding);
 		rigid_rigid.solve_sliding = true;
 		rigid_rigid.solve_spinning = false;
+		data_container->system_timer.start("rhs");
 		rigid_rigid.ComputeRHS();
+		data_container->system_timer.stop("rhs");
+		data_container->system_timer.start("solve");
 		solver.Solve(solver_type);
+		data_container->system_timer.stop("solve");
 	}
 	if (max_iter_spinning > 0) {
 		//cout<<"Solve Full"<<endl;
 		solver.SetMaxIterations(max_iter_spinning);
 		rigid_rigid.solve_sliding = true;
 		rigid_rigid.solve_spinning = true;
+		data_container->system_timer.start("rhs");
 		rigid_rigid.ComputeRHS();
+		data_container->system_timer.stop("rhs");
+		data_container->system_timer.start("solve");
 		solver.Solve(solver_type);
+		data_container->system_timer.stop("solve");
 	}
 
 	thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, data_container->host_data.gamma_bilateral.begin());
