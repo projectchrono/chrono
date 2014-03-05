@@ -3,12 +3,9 @@
 using namespace chrono;
 
 void ChSolverParallel::Project(real* gamma) {
-	timer_project.start();
 
 	rigid_rigid->Project(gamma);
 
-	timer_project.stop();
-	time_project += timer_project();
 }
 
 void ChSolverParallel::Project_NoPar(real* gamma) {
@@ -22,37 +19,51 @@ void ChSolverParallel::Project_NoPar(real* gamma) {
 //=================================================================================================================================
 
 void ChSolverParallel::shurA(real* x) {
-	timer_shurcompliment.start();
-#pragma omp parallel for
+
+#pragma omp for
 	for (int i = 0; i < number_of_rigid; i++) {
 		data_container->host_data.QXYZ_data[i] = R3(0);
 		data_container->host_data.QUVW_data[i] = R3(0);
 	}
+
 	rigid_rigid->ShurA(x);
-	timer_shurcompliment.stop();
-		time_shurcompliment +=timer_shurcompliment();
+
 	bilateral->ShurA(x);
 
 }
 //=================================================================================================================================
 
 void ChSolverParallel::shurB(real*x, real*out) {
-	rigid_rigid->ShurB(x,out);
-	bilateral->ShurB(x,out);
+
+	rigid_rigid->ShurB(x, out);
+	bilateral->ShurB(x, out);
+
 }
 void ChSolverParallel::ShurProduct(custom_vector<real> &x, custom_vector<real> & output) {
 
-	//Thrust_Fill(output, 0);
-	data_container->system_timer.start("shurA");
-	shurA(x.data());
-	data_container->system_timer.stop("shurA");
+		//Thrust_Fill(output, 0);
+#pragma omp master
+		{
+		data_container->system_timer.start("shurA");
+		}
+		shurA(x.data());
+#pragma omp master
+		{
+		data_container->system_timer.stop("shurA");
+		}
 
-	//timer_shurcompliment.start();
-	data_container->system_timer.start("shurB");
-	shurB(x.data(),output.data());
-	data_container->system_timer.stop("shurB");
-	//timer_shurcompliment.stop();
-	//time_shurcompliment +=timer_shurcompliment();
+		//timer_shurcompliment.start();
+#pragma omp master
+		{
+		data_container->system_timer.start("shurB");
+		}
+		shurB(x.data(),output.data());
+#pragma omp master
+		{
+		data_container->system_timer.stop("shurB");
+		}
+		//timer_shurcompliment.stop();
+		//time_shurcompliment +=timer_shurcompliment();
 
 }
 //=================================================================================================================================
@@ -148,7 +159,10 @@ void ChSolverParallel::UpdateContacts() {
 
 }
 void ChSolverParallel::ComputeImpulses() {
-	shurA(data_container->host_data.gamma_data.data());
+#pragma omp parallel
+	{
+		shurA(data_container->host_data.gamma_data.data());
+	}
 	data_container->host_data.vel_data += data_container->host_data.QXYZ_data;
 	data_container->host_data.omg_data += data_container->host_data.QUVW_data;
 
@@ -234,38 +248,37 @@ void ChSolverParallel::VelocityStabilization(ChParallelDataManager *data_contain
 }
 
 uint ChSolverParallel::SolveStab(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
-    custom_vector<real> r(x.size()), p, Ap(x.size());
-    real rsold, alpha, rsnew = 0, normb = Norm(b);
-    if (normb == 0.0) {
-        normb = 1;
-    }
-    ShurBilaterals(x,r);
-    p = r = b - r;
-    rsold = Dot(r, r);
-    normb = 1.0 / normb;
-    if (sqrt(rsold) * normb <= tolerance) {
-        return 0;
-    }
-    for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
-        ShurBilaterals(p,Ap);
-        alpha = rsold / Dot(p, Ap);
-        rsnew = 0;
-        #pragma omp parallel for reduction(+:rsnew)
-        for (int i = 0; i < x.size(); i++) {
-            x[i] = x[i] + alpha * p[i];
-            real _r = r[i] - alpha * Ap[i];
-            r[i] = _r;
-            rsnew += _r*_r;
-        }
-        residual = sqrt(rsnew) * normb;
-        if (residual < tolerance) {
-            break;
-        }
-        SEAXPY(rsnew / rsold, p, r, p); //p = r + rsnew / rsold * p;
-        rsold = rsnew;
+	custom_vector<real> r(x.size()), p, Ap(x.size());
+	real rsold, alpha, rsnew = 0, normb = Norm(b);
+	if (normb == 0.0) {
+		normb = 1;
+	}
+	ShurBilaterals(x,r);
+	p = r = b - r;
+	rsold = Dot(r, r);
+	normb = 1.0 / normb;
+	if (sqrt(rsold) * normb <= tolerance) {
+		return 0;
+	}
+	for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
+		ShurBilaterals(p,Ap);
+		alpha = rsold / Dot(p, Ap);
+		rsnew = 0;
+#pragma omp parallel for reduction(+:rsnew)
+		for (int i = 0; i < x.size(); i++) {
+			x[i] = x[i] + alpha * p[i];
+			real _r = r[i] - alpha * Ap[i];
+			r[i] = _r;
+			rsnew += _r*_r;
+		}
+		residual = sqrt(rsnew) * normb;
+		if (residual < tolerance) {
+			break;
+		}
+		SEAXPY(rsnew / rsold, p, r, p);     //p = r + rsnew / rsold * p;
+		rsold = rsnew;
 
-
-    }
+	}
 	total_iteration +=current_iteration;
 	current_iteration = total_iteration;
 	return current_iteration;

@@ -8,37 +8,74 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 	real theta_k1=theta_k;
 	real beta_k1=0.0;
 	real L_k;
+	real t_k;
+	real mb_tmp_norm = 0, mg_tmp_norm = 0;;
+	real obj1=0.0, obj2=0.0;
+	real dot_mg_ms = 0, norm_ms = 0;
+	mg.resize(SIZE);
+	mg_tmp.resize(SIZE);
+	mg_tmp1.resize(SIZE);
 
-	Project(x.data());
-	ShurProduct(x,mg);
-	real mb_tmp_norm = 0;
+#pragma omp parallel
+		{
 
-#pragma omp parallel for reduction(+:mb_tmp_norm)
+#pragma omp  for
+		for(int i=0; i<SIZE; i++) {
+			mg[i] = 0;
+			mg_tmp[i] = 0;
+			mg_tmp1[i] = 0;
+		}
+
+		Project(x.data());
+
+		ShurProduct(x,mg);
+
+#pragma omp  for reduction(+:mb_tmp_norm)
 		for (int i = 0; i < SIZE; i++) {
 			real _mb_tmp_ = x.data()[i] - 1.0f;
 			mb_tmp_norm += _mb_tmp_ * _mb_tmp_;
 			mb_tmp.data()[i] = _mb_tmp_;
 		}
-		mb_tmp_norm = sqrt(mb_tmp_norm);
 
 		ShurProduct(mb_tmp,mg_tmp);
 
-		if (mb_tmp_norm == 0) {
-			L_k = 1;
-		} else {
-			L_k =Norm(mg_tmp) / mb_tmp_norm;
+
+#pragma omp  for reduction(+:mg_tmp_norm)
+		for(int i=0; i<x.size(); i++) {
+			real _x = mg_tmp[i];
+			mg_tmp_norm+=_x*_x;
 		}
 
-		real t_k = 1.0 / L_k;
-		my = x;
-		mx = x;
 
-		real obj1=0.0, obj2=0.0;
+#pragma omp master
+		{
+			mg_tmp_norm =  sqrt(mg_tmp_norm);
+			mb_tmp_norm = sqrt(mb_tmp_norm);
 
-		for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
+			if (mb_tmp_norm == 0) {
+				L_k = 1;
+			} else {
+				L_k =mg_tmp_norm / mb_tmp_norm;
+			}
+
+			t_k = 1.0 / L_k;
+			my = x;
+			mx = x;
+		}
+#pragma omp barrier
+
+	}
+
+	for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
+		obj1=obj2=0.0;
+		dot_mg_ms = 0;
+		norm_ms = 0;
+
+#pragma omp parallel
+		{
 			ShurProduct(my,mg_tmp1);
 
-#pragma omp parallel for
+#pragma omp for
 		for (int i = 0; i < SIZE; i++) {
 			real _mg_ = mg_tmp1.data()[i] - b.data()[i];
 			mg.data()[i] = _mg_;
@@ -46,13 +83,9 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 		}
 
 		Project(mx.data());
-
 		ShurProduct(mx,mg_tmp);
-		obj1=obj2=0.0;
 
-		real dot_mg_ms = 0, norm_ms = 0;
-
-#pragma omp parallel for reduction(+:obj1,obj2,dot_mg_ms,norm_ms)
+#pragma omp for reduction(+:obj1,obj2,dot_mg_ms,norm_ms)
 		for(int i=0; i<SIZE; i++) {
 			real _mg_tmp_ = mg_tmp.data()[i];
 			real _b_ = b.data()[i];
@@ -67,21 +100,27 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 			dot_mg_ms+=mg.data()[i]*_ms_;
 			norm_ms+=_ms_*_ms_;
 		}
-		norm_ms = sqrt(norm_ms);
-		while (obj1 > obj2 + dot_mg_ms + 0.5 * L_k * powf(norm_ms, 2.0)) {
-			L_k = step_grow * L_k;
-			t_k = 1.0 / L_k;
 
-#pragma omp parallel for
+#pragma omp master
+		{
+			norm_ms = sqrt(norm_ms);
+		}
+	}
+
+	while (obj1 > obj2 + dot_mg_ms + 0.5 * L_k * powf(norm_ms, 2.0)) {
+		L_k = step_grow * L_k;
+		t_k = 1.0 / L_k;
+		obj1 = dot_mg_ms = norm_ms =0;
+#pragma omp parallel
+		{
+
+#pragma omp for
 		for(int i=0; i<SIZE; i++) {
 			mx.data()[i] = -t_k*mg.data()[i]+ my.data()[i];
 		}
-
 		Project(mx.data());
-
 		ShurProduct(mx,mg_tmp);
-		obj1 = dot_mg_ms = norm_ms =0;
-#pragma omp parallel for reduction(+:obj1,dot_mg_ms,norm_ms)
+#pragma omp for reduction(+:obj1,dot_mg_ms,norm_ms)
 		for(int i=0; i<SIZE; i++) {
 			real _mg_tmp_ = mg_tmp.data()[i];
 			real _b_ = b.data()[i];
@@ -92,11 +131,13 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 			dot_mg_ms+=mg.data()[i]*_ms_;
 			norm_ms+=_ms_*_ms_;
 		}
-		norm_ms = sqrt(norm_ms);
 	}
-	theta_k1 = (-pow(theta_k, 2) + theta_k * sqrt(pow(theta_k, 2) + 4)) / 2.0;
-	beta_k1 = theta_k * (1.0 - theta_k) / (pow(theta_k, 2) + theta_k1);
-	real temp_sum=0;
+
+	norm_ms = sqrt(norm_ms);
+}
+theta_k1 = (-pow(theta_k, 2) + theta_k * sqrt(pow(theta_k, 2) + 4)) / 2.0;
+beta_k1 = theta_k * (1.0 - theta_k) / (pow(theta_k, 2) + theta_k1);
+real temp_sum=0;
 #pragma omp parallel for reduction(+:temp_sum)
 		for(int i=0; i<SIZE; i++) {
 			real _mx_ = mx.data()[i];
@@ -116,22 +157,23 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 			real g_proj_norm = Res4(SIZE, mg_tmp.data(), b.data(), x.data(), mb_tmp.data());
 			if(g_proj_norm < lastgoodres) {
 				lastgoodres = g_proj_norm;
-				ml_candidate = mx;
+				x = mx;
 			}
 			residual=lastgoodres;
 			real maxdeltalambda = 0;     //CompRes(b,number_of_rigid_rigid);     //NormInf(ms);
 
 		AtIterationEnd(residual, maxdeltalambda, current_iteration);
 		if(collision_inside) {
-			UpdatePosition(ml_candidate);
+			UpdatePosition(x);
 			UpdateContacts();
 		}
 	}
 	if (residual < tolerance) {
 		break;
 	}
+
 }
-x=ml_candidate;
+//x=ml_candidate;
 return current_iteration;
 }
 

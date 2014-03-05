@@ -40,6 +40,7 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects)
 	gpu_data_manager->system_timer.AddTimer("shurA_normal");
 	gpu_data_manager->system_timer.AddTimer("shurA_sliding");
 	gpu_data_manager->system_timer.AddTimer("shurA_spinning");
+	gpu_data_manager->system_timer.AddTimer("shurA_reduce");
 	gpu_data_manager->system_timer.AddTimer("shurB");
 
 }
