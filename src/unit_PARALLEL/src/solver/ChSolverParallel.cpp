@@ -134,14 +134,14 @@ void ChSolverParallel::UpdateContacts() {
 	if (rigid_rigid->solve_sliding == true || rigid_rigid->solve_spinning == true) {
 		return;
 	}
-	collision::ChCNarrowphase narrowphase;
 
+	//// TODO:  This ASSUMES that we are using an MPR narrowphase!!
+	////        Instead of constructing a narrowphaseMPR object here,
+	////        modify so that we can use the CHCNarrowphase object 
+	////        from the CollisionSystemParallel.
+	collision::ChCNarrowphaseMPR narrowphase;
 	narrowphase.SetCollisionEnvelope(data_container->collision_envelope);
-
-	narrowphase.UpdateNarrowphase(data_container->host_data.typ_rigid, data_container->host_data.ObA_rigid, data_container->host_data.ObB_rigid, data_container->host_data.ObC_rigid,
-			data_container->host_data.ObR_rigid, data_container->host_data.id_rigid, data_container->host_data.active_data, data_container->host_data.pos_new_data,
-			data_container->host_data.rot_new_data, data_container->number_of_rigid_rigid, data_container->host_data.norm_rigid_rigid, data_container->host_data.cpta_rigid_rigid,
-			data_container->host_data.cptb_rigid_rigid, data_container->host_data.dpth_rigid_rigid, data_container->host_data.bids_rigid_rigid);
+	narrowphase.Update(data_container);
 
 	rigid_rigid->UpdateJacobians();
 	rigid_rigid->UpdateRHS();

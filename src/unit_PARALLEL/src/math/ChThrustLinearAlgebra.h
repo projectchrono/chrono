@@ -141,7 +141,7 @@ static real Dot(const custom_vector<real> &x, const custom_vector<real> &y)
 struct abs_functor: public thrust::unary_function<real, real> {
 
 		__host__ __device__
-		float operator()(const real &x) const {
+		real operator()(const real &x) const {
 			return fabs(x);
 		}
 };

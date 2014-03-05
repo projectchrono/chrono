@@ -407,7 +407,7 @@ __host__ __device__ void function_MPR_Store(const uint &index, const shape_type 
 	contact_active[index] = 0;
 }
 
-void ChCNarrowphase::host_MPR_Store(const shape_type *obj_data_T, const real3 *obj_data_A, const real3 *obj_data_B, const real3 *obj_data_C, const real4 *obj_data_R, const uint *obj_data_ID,
+void ChCNarrowphaseMPR::host_MPR_Store(const shape_type *obj_data_T, const real3 *obj_data_A, const real3 *obj_data_B, const real3 *obj_data_C, const real4 *obj_data_R, const uint *obj_data_ID,
 		const bool * obj_active, const real3 *body_pos, const real4 *body_rot, long long *contact_pair, uint *contact_active, real3 *norm, real3 *ptA, real3 *ptB, real *contactDepth, int2 *ids) {
 #pragma omp parallel for
 
@@ -511,7 +511,7 @@ __host__ __device__ void function_MPR_Update(const uint &index, const shape_type
 
 }
 
-void ChCNarrowphase::host_MPR_Update(const shape_type *obj_data_T, const real3 *obj_data_A, const real3 *obj_data_B, const real3 *obj_data_C, const real4 *obj_data_R, const uint *obj_data_ID,
+void ChCNarrowphaseMPR::host_MPR_Update(const shape_type *obj_data_T, const real3 *obj_data_A, const real3 *obj_data_B, const real3 *obj_data_C, const real4 *obj_data_R, const uint *obj_data_ID,
 		const bool * obj_active, const real3 *body_pos, const real4 *body_rot, real3 *norm, real3 *ptA, real3 *ptB, real *contactDepth, int2 *ids) {
 //#pragma omp parallel for
 	for (int index = 0; index < total_possible_contacts; index++) {
@@ -519,13 +519,8 @@ void ChCNarrowphase::host_MPR_Update(const shape_type *obj_data_T, const real3 *
 	}
 }
 
-ChCNarrowphase::ChCNarrowphase() {
 
-	collision_envelope = 0;
-
-}
-
-void ChCNarrowphase::DoNarrowphase(const custom_vector<shape_type> &obj_data_T,
+void ChCNarrowphaseMPR::DoNarrowphase(const custom_vector<shape_type> &obj_data_T,
 const custom_vector<real3> &obj_data_A,
 const custom_vector<real3> &obj_data_B,
 const custom_vector<real3> &obj_data_C,
@@ -620,7 +615,7 @@ uint & number_of_contacts
 
 }
 
-void ChCNarrowphase::UpdateNarrowphase(const custom_vector<shape_type> &obj_data_T,
+void ChCNarrowphaseMPR::UpdateNarrowphase(const custom_vector<shape_type> &obj_data_T,
 const custom_vector<real3> &obj_data_A,
 const custom_vector<real3> &obj_data_B,
 const custom_vector<real3> &obj_data_C,
