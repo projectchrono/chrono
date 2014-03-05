@@ -40,7 +40,8 @@ protected:
 
 	ChMatrixDynamic<> StiffnessMatrix; // undeformed local stiffness matrix
 
-	ChQuaternion<> q_refrot1;
+	ChQuaternion<> q_refrotA;
+	ChQuaternion<> q_refrotB;
 
 	ChQuaternion<> q_element_abs_rot;
 	ChQuaternion<> q_element_ref_rot;
@@ -55,7 +56,8 @@ public:
 
 					this->StiffnessMatrix.Resize(this->GetNdofs(), this->GetNdofs());
 
-					q_refrot1 = QUNIT;
+					q_refrotA = QUNIT;
+					q_refrotB = QUNIT;
 					q_element_abs_rot = QUNIT;
 					q_element_ref_rot = QUNIT;
 					disable_corotate = false;
@@ -93,6 +95,21 @@ public:
 	void   SetSection( ChSharedPtr<ChBeamSectionAdvanced> my_material) { section = my_material; }
 				/// Get the section & material of the element
 	ChSharedPtr<ChBeamSectionAdvanced> GetSection() {return section;}
+
+				/// Get the first node (beginning) 
+	ChSharedPtr<ChNodeFEMxyzrot> GetNodeA() {return nodes[0];}
+
+				/// Get the second node (ending)
+	ChSharedPtr<ChNodeFEMxyzrot> GetNodeB() {return nodes[1];}
+
+
+				/// Set the reference rotation of nodeA respect to the element rotation.
+	void  SetNodeAreferenceRot(ChQuaternion<> mrot) { q_refrotA = mrot;}
+	ChQuaternion<> GetNodeAreferenceRot() { return q_refrotA; }
+
+				/// Set the reference rotation of nodeB respect to the element rotation.
+	void  SetNodeBreferenceRot(ChQuaternion<> mrot) { q_refrotB = mrot;}
+	ChQuaternion<> GetNodeBreferenceRot() { return q_refrotB; }
 
 				/// Get the absolute rotation of element in space 
 				/// This is not the same of Rotation() , that expresses 
@@ -185,7 +202,8 @@ public:
 
 					// Node 0, x,y,z small rotations (in local element frame)
 					ChQuaternion<> q_delta0 =   q_element_abs_rot.GetConjugate() % 
-												nodes[0]->Frame().GetRot();
+												nodes[0]->Frame().GetRot() %
+												q_refrotA.GetConjugate() ;
 						// note, for small incremental rotations this is opposite of ChNodeFEMxyzrot::VariablesQbIncrementPosition 
 					q_delta0.Q_to_AngAxis(delta_rot_angle, delta_rot_dir);
 
@@ -201,9 +219,9 @@ public:
 					mD.PasteVector(displ, 6, 0);
 
 					// Node 1, x,y,z small rotations (in local element frame)
-					ChQuaternion<> q_delta1 =   // this->q_refrot1.GetConjugate() %  
-												q_element_abs_rot.GetConjugate() % 
-												nodes[1]->Frame().GetRot();
+					ChQuaternion<> q_delta1 =  	q_element_abs_rot.GetConjugate() % 
+												nodes[1]->Frame().GetRot() % 
+												q_refrotB.GetConjugate();
 						// note, for small incremental rotations this is opposite of ChNodeFEMxyzrot::VariablesQbIncrementPosition 
 					q_delta1.Q_to_AngAxis(delta_rot_angle, delta_rot_dir);
 
@@ -329,7 +347,6 @@ public:
 					{
 						// Do [K]" = [T_c][K]^[T_c]'
 						
-						//***WRONG***? to unroll properly
 						for (int i = 0; i<12; ++i)
 							this->StiffnessMatrix(4,i) +=  this->section->Cz * this->StiffnessMatrix(0,i);
 						for (int i = 0; i<12; ++i)
@@ -356,7 +373,6 @@ public:
 					{
 						// Do [K]° = [T_s][K]"[T_s]'
 
-						//***WRONG***? to unroll properly
 						for (int i = 0; i<12; ++i)
 							this->StiffnessMatrix(3,i) +=  this->section->Sz * this->StiffnessMatrix(1,i) -this->section->Sy * this->StiffnessMatrix(2,i);
 						for (int i = 0; i<12; ++i)
@@ -406,10 +422,15 @@ public:
 					ChMatrixDynamic<> CKCt(12,12); // the global, corotated, K matrix
 					
 					ChMatrix33<> Atoabs(this->q_element_abs_rot);
-					ChMatrix33<> Atolocwel; Atolocwel.Set33Identity();
-					ChMatrixCorotation<>::ComputeCK(this->StiffnessMatrix, Atoabs, Atolocwel, 4, CK);
-					ChMatrixCorotation<>::ComputeKCt(CK, Atoabs, Atolocwel, 4, CKCt);
-
+					ChMatrix33<> AtolocwelA(this->GetNodeA()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
+					ChMatrix33<> AtolocwelB(this->GetNodeB()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
+					std::vector< ChMatrix33<>* > R;
+					R.push_back(&Atoabs);
+					R.push_back(&AtolocwelA);
+					R.push_back(&Atoabs);
+					R.push_back(&AtolocwelB);
+					ChMatrixCorotation<>::ComputeCK(this->StiffnessMatrix, R, 4, CK);
+					ChMatrixCorotation<>::ComputeKCt(CK, R, 4, CKCt);
 
 					// For K stiffness matrix and R matrix: scale by factors
 
@@ -475,21 +496,28 @@ public:
 
 					FiK_local.MatrScale(-1.0);
 
-						// Fi = C * Fi_local  with C block-diagonal rotations A  , for nodal forces in abs. frame 
+						// Fi = C * Fi_local  with C block-diagonal rotations A  , for nodal forces in abs. frame
 					ChMatrix33<> Atoabs(this->q_element_abs_rot);
-					ChMatrix33<> Atolocwel; Atolocwel.Set33Identity();
-					ChMatrixCorotation<>::ComputeCK(FiK_local, Atoabs, Atolocwel, 4, Fi);
-#ifdef BEAM_VERBOSE
-GetLog() << "\nInternal forces (local): \n";
-for (int c = 0; c<6; c++)  GetLog() << FiK_local(c) << "  "; 
-GetLog() << "\n";
-for (int c = 6; c<12; c++) GetLog() << FiK_local(c) << "  ";
-GetLog() << "\n\nInternal forces (ABS) : \n";
-for (int c = 0; c<6; c++)  GetLog() << Fi(c) << "  "; 
-GetLog() << "\n";
-for (int c = 6; c<12; c++) GetLog() << Fi(c) << "  ";
-GetLog() << "\n";
-#endif
+					ChMatrix33<> AtolocwelA(this->GetNodeA()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
+					ChMatrix33<> AtolocwelB(this->GetNodeB()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
+					std::vector< ChMatrix33<>* > R;
+					R.push_back(&Atoabs);
+					R.push_back(&AtolocwelA);
+					R.push_back(&Atoabs);
+					R.push_back(&AtolocwelB);
+					ChMatrixCorotation<>::ComputeCK(FiK_local, R, 4, Fi);
+
+					#ifdef BEAM_VERBOSE
+					GetLog() << "\nInternal forces (local): \n";
+					for (int c = 0; c<6; c++)  GetLog() << FiK_local(c) << "  "; 
+					GetLog() << "\n";
+					for (int c = 6; c<12; c++) GetLog() << FiK_local(c) << "  ";
+					GetLog() << "\n\nInternal forces (ABS) : \n";
+					for (int c = 0; c<6; c++)  GetLog() << Fi(c) << "  "; 
+					GetLog() << "\n";
+					for (int c = 6; c<12; c++) GetLog() << Fi(c) << "  ";
+					GetLog() << "\n";
+					#endif
 				}
 
 

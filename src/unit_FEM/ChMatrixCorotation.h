@@ -55,25 +55,24 @@ public:
 	                       const int nblocks,         /// number of rotation blocks
 	                       ChMatrix<Real>& KC);       /// result matrix: C*K
 
+
+
 		/// Perform a corotation (warping) of a K matrix by pre-multiplying
 		/// it with a C matrix; C has 3x3 rotation matrices R as diagonal blocks
-		/// (special version for beams, because in Chrono the ChBodyFrame has translation 
-		/// expressed in abs. base, and angular vel. in local base)
+		/// (generic version with different rotations)
 	static void ComputeCK(const ChMatrix<Real>& K,    /// matrix to pre-corotate
-	                      const ChMatrix33<Real>& Ro, /// 3x3 rotation matrix for odd blocks, 1,3,5..
-						  const ChMatrix33<Real>& Re, /// 3x3 rotation matrix for even blocks, 2,4,5..
+						  const std::vector< ChMatrix33<Real>* >& R, /// 3x3 rotation matrices
 	                      const int nblocks,          /// number of rotation blocks
 	                      ChMatrix<Real>& CK);        /// result matrix: C*K
 
 		/// Perform a corotation (warping) of a K matrix by post-multiplying
 		/// it with a transposed C matrix; C has 3x3 rotation matrices R as diagonal blocks
-		/// (special version for beams, because in Chrono the ChBodyFrame has translation 
-		/// expressed in abs. base, and angular vel. in local base)
+		/// (generic version with different rotations)
 	static void ComputeKCt(const ChMatrix<Real>& K,   /// matrix to post-corotate
-	                       const ChMatrix33<Real>& Ro, /// 3x3 rotation matrix for odd blocks, 1,3,5.. (used transposed)
-						   const ChMatrix33<Real>& Re, /// 3x3 rotation matrix for even blocks, 2,4,5.. (used transposed)
+	                       const std::vector< ChMatrix33<Real>* >& R, /// 3x3 rotation matrices (used transposed)
 	                       const int nblocks,         /// number of rotation blocks
 	                       ChMatrix<Real>& KC);       /// result matrix: C*K
+
 };
 
 /// Perform a corotation (warping) of a K matrix by pre-multiplying
@@ -123,27 +122,19 @@ ChMatrixCorotation<Real>::ComputeKCt(const ChMatrix<Real>& K,    /// matrix to c
 }
 
 
-/// (special version for beams, because in Chrono the ChBodyFrame has translation 
-/// expressed in abs. base, and angular vel. in local base)
+
+/// generic version
+
 template <class Real>
 void
 ChMatrixCorotation<Real>::ComputeCK(const ChMatrix<Real>& K,    /// matrix to corotate
-                                    const ChMatrix33<Real>& Ro, /// 3x3 rotation matrix for odd blocks, 1,3,5..
-									const ChMatrix33<Real>& Re, /// 3x3 rotation matrix for even blocks, 2,4,5..
-                                    const int nblocks,          /// number of rotation blocks
+								const std::vector< ChMatrix33<Real>* >& R, /// 3x3 rotation matrices 
+								const int nblocks,          /// number of rotation blocks
                                     ChMatrix<Real>& CK)         /// result matrix: C*K
 {
 	for (int iblock=0; iblock < nblocks; iblock++)
 	{
-		const ChMatrix33<>* mR =0;
-		if (iblock % 2 == 0)
-		{			
-			mR=&Ro;
-		}
-		else
-		{
-			mR=&Re;
-		}
+		const ChMatrix33<>* mR = R[iblock];
 
 		Real sum;
 		for (int colres=0; colres < K.GetColumns(); ++colres)		
@@ -157,27 +148,17 @@ ChMatrixCorotation<Real>::ComputeCK(const ChMatrix<Real>& K,    /// matrix to co
 	}
 }
 
-/// (special version for beams, because in Chrono the ChBodyFrame has translation 
-/// expressed in abs. base, and angular vel. in local base)
+/// generic version
 template <class Real>
 void
 ChMatrixCorotation<Real>::ComputeKCt(const ChMatrix<Real>& K,    /// matrix to corotate
-                                     const ChMatrix33<Real>& Ro, /// 3x3 rotation matrix for odd blocks, 1,3,5.. (used transposed)
-									 const ChMatrix33<Real>& Re, /// 3x3 rotation matrix for even blocks, 2,4,5.. (used transposed)
+                                     const std::vector< ChMatrix33<Real>* >& R, /// 3x3 rotation matrices (used transposed)
                                      const int nblocks,          /// number of rotation blocks
                                      ChMatrix<Real>& KC)         /// result matrix: C*K
 {
 	for (int iblock=0; iblock < nblocks; iblock++)
 	{
-		const ChMatrix33<>* mR =0;
-		if (iblock % 2 == 0)
-		{			
-			mR=&Ro;
-		}
-		else
-		{
-			mR=&Re;
-		}
+		const ChMatrix33<>* mR = R[iblock];
 
 		Real sum;
 		for (int rowres=0; rowres < K.GetRows(); ++rowres)		
