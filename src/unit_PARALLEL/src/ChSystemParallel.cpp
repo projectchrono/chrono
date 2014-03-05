@@ -1,7 +1,9 @@
 #include "ChSystemParallel.h"
 #include <omp.h>
 
+
 using namespace chrono;
+
 
 ChSystemParallel::ChSystemParallel(unsigned int max_objects)
 :	ChSystem(1000, 10000, false)
@@ -26,31 +28,9 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects)
 	current_threads = 2;
 }
 
-ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects)
-:	ChSystemParallel(max_objects)
+
+int ChSystemParallel::Integrate_Y()
 {
-	LCP_descriptor = new ChLcpSystemDescriptorParallelDVI();
-	LCP_solver_speed = new ChLcpSolverParallelDVI();
-	((ChLcpSystemDescriptorParallelDVI*) LCP_descriptor)->data_container = gpu_data_manager;
-	((ChLcpSolverParallel*) LCP_solver_speed)->data_container = gpu_data_manager;
-}
-
-ChSystemParallelDEM::ChSystemParallelDEM(unsigned int                       max_objects,
-                                         ChContactDEM::NormalForceModel     normal_model,
-                                         ChContactDEM::TangentialForceModel tangential_model)
-:	ChSystemParallel(max_objects),
-	normal_force_model(normal_model),
-	tangential_force_model(tangential_model)
-{
-	LCP_descriptor = new ChLcpSystemDescriptorParallelDEM();
-	LCP_solver_speed = new ChLcpSolverParallelDEM();
-	((ChLcpSystemDescriptorParallelDEM*) (LCP_descriptor))->data_container = gpu_data_manager;
-	((ChLcpSolverParallel*) LCP_solver_speed)->data_container = gpu_data_manager;
-
-	((ChCollisionSystemParallel *) collision_system)->SetCollisionEnvelope(0);
-}
-
-int ChSystemParallel::Integrate_Y() {
 	max_threads = this->GetParallelThreadNumber();
 	min_threads = 1;
 
@@ -158,7 +138,9 @@ int ChSystemParallel::Integrate_Y() {
 	return 1;
 }
 
-void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
+
+void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody)
+{
 
 	newbody->AddRef();
 	newbody->SetSystem(this);
@@ -204,38 +186,9 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
 	gpu_data_manager->number_of_rigid = counter;
 }
 
-void ChSystemParallelDVI::LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody)
+
+void ChSystemParallel::RemoveBody(ChSharedPtr<ChBody> mbody)
 {
-	assert(typeid(*newbody.get_ptr()) == typeid(ChBody));
-
-	ChSharedPtr<ChMaterialSurface>& mat = newbody->GetMaterialSurface();
-
-	gpu_data_manager->host_data.fric_data.push_back(
-		R3(mat->GetKfriction(), mat->GetRollingFriction(), mat->GetSpinningFriction()));
-	gpu_data_manager->host_data.cohesion_data.push_back(mat->GetCohesion());
-	gpu_data_manager->host_data.compliance_data.push_back(
-		R4(mat->GetCompliance(), mat->GetComplianceT(), mat->GetComplianceRolling(), mat->GetComplianceSpinning()));
-}
-
-void ChSystemParallelDEM::LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody)
-{
-	assert(typeid(*newbody.get_ptr()) == typeid(ChBodyDEM));
-
-	ChSharedPtr<ChMaterialSurfaceDEM>& mat = ((ChBodyDEM*) newbody.get_ptr())->GetMaterialSurfaceDEM();
-
-	gpu_data_manager->host_data.elastic_moduli.push_back(R2(mat->GetYoungModulus(), mat->GetPoissonRatio()));
-	gpu_data_manager->host_data.mu.push_back(mat->GetSfriction());
-
-	switch (normal_force_model) {
-	case ChContactDEM::HuntCrossley:
-		gpu_data_manager->host_data.alpha.push_back(mat->GetDissipationFactor());
-		break;
-	}
-
-	//gpu_data_manager->host_data.cr.push_back(mat->GetRestitution());
-}
-
-void ChSystemParallel::RemoveBody(ChSharedPtr<ChBody> mbody) {
 	assert(std::find<std::vector<ChBody *>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr()) != bodylist.end());
 
 // remove from collision system
@@ -250,7 +203,9 @@ void ChSystemParallel::RemoveBody(ChSharedPtr<ChBody> mbody) {
 	mbody->RemoveRef();
 }
 
-void ChSystemParallel::RemoveBody(int body) {
+
+void ChSystemParallel::RemoveBody(int body)
+{
 	//assert( std::find<std::vector<ChBody*>::iterator>(bodylist.begin(), bodylist.end(), mbody.get_ptr()) != bodylist.end());
 	ChBody *mbody = ((ChBody *) (bodylist[body]));
 
@@ -266,6 +221,7 @@ void ChSystemParallel::RemoveBody(int body) {
 	//mbody->RemoveRef();
 }
 
+
 void ChSystemParallel::Update() {
 	this->LCP_descriptor->BeginInsertion();
 	UpdateBodies();
@@ -273,128 +229,9 @@ void ChSystemParallel::Update() {
 	LCP_descriptor->EndInsertion();
 }
 
-void ChSystemParallelDVI::UpdateBodies() {
-	real3 *vel_pointer = gpu_data_manager->host_data.vel_data.data();
-	real3 *omg_pointer = gpu_data_manager->host_data.omg_data.data();
-	real3 *pos_pointer = gpu_data_manager->host_data.pos_data.data();
-	real4 *rot_pointer = gpu_data_manager->host_data.rot_data.data();
-	real3 *inr_pointer = gpu_data_manager->host_data.inr_data.data();
-	real3 *frc_pointer = gpu_data_manager->host_data.frc_data.data();
-	real3 *trq_pointer = gpu_data_manager->host_data.trq_data.data();
-	bool *active_pointer = gpu_data_manager->host_data.active_data.data();
-	real *mass_pointer = gpu_data_manager->host_data.mass_data.data();
-	real3 *fric_pointer = gpu_data_manager->host_data.fric_data.data();
-	real *cohesion_pointer = gpu_data_manager->host_data.cohesion_data.data();
-	real4 *compliance_pointer = gpu_data_manager->host_data.compliance_data.data();
-	real3 *lim_pointer = gpu_data_manager->host_data.lim_data.data();
 
-#pragma omp parallel for
-	for (int i = 0; i < bodylist.size(); i++) {
-		bodylist[i]->UpdateTime(ChTime);
-		//bodylist[i]->TrySleeping();			// See if the body can fall asleep; if so, put it to sleeping
-		//bodylist[i]->ClampSpeed();     // Apply limits (if in speed clamping mode) to speeds.
-		bodylist[i]->ComputeGyro();     // Set the gyroscopic momentum.
-		bodylist[i]->UpdateForces(ChTime);
-		bodylist[i]->VariablesFbReset();
-		bodylist[i]->VariablesFbLoadForces(GetStep());
-		bodylist[i]->VariablesQbLoadSpeed();
-	}
-
-	for (int i = 0; i < bodylist.size(); i++) {
-		bodylist[i]->UpdateMarkers(ChTime);
-		//bodylist[i]->InjectVariables(*this->LCP_descriptor);
-	}
-
-#pragma omp parallel for
-	for (int i = 0; i < bodylist.size(); i++) {
-		ChMatrix33<> inertia = bodylist[i]->VariablesBody().GetBodyInvInertia();
-		vel_pointer[i] = (R3(bodylist[i]->Variables().Get_qb().ElementN(0), bodylist[i]->Variables().Get_qb().ElementN(1), bodylist[i]->Variables().Get_qb().ElementN(2)));
-		omg_pointer[i] = (R3(bodylist[i]->Variables().Get_qb().ElementN(3), bodylist[i]->Variables().Get_qb().ElementN(4), bodylist[i]->Variables().Get_qb().ElementN(5)));
-		pos_pointer[i] = (R3(bodylist[i]->GetPos().x, bodylist[i]->GetPos().y, bodylist[i]->GetPos().z));
-		rot_pointer[i] = (R4(bodylist[i]->GetRot().e0, bodylist[i]->GetRot().e1, bodylist[i]->GetRot().e2, bodylist[i]->GetRot().e3));
-		inr_pointer[i] = (R3(inertia.GetElement(0, 0), inertia.GetElement(1, 1), inertia.GetElement(2, 2)));
-		frc_pointer[i] = (R3(bodylist[i]->Variables().Get_fb().ElementN(0), bodylist[i]->Variables().Get_fb().ElementN(1), bodylist[i]->Variables().Get_fb().ElementN(2)));     //forces
-		trq_pointer[i] = (R3(bodylist[i]->Variables().Get_fb().ElementN(3), bodylist[i]->Variables().Get_fb().ElementN(4), bodylist[i]->Variables().Get_fb().ElementN(5)));     //torques
-		active_pointer[i] = bodylist[i]->IsActive();
-		mass_pointer[i] = 1.0f / bodylist[i]->VariablesBody().GetBodyMass();
-		fric_pointer[i] = R3(bodylist[i]->GetKfriction(), ((bodylist[i]))->GetMaterialSurface()->GetRollingFriction(), ((bodylist[i]))->GetMaterialSurface()->GetSpinningFriction());
-		cohesion_pointer[i] = bodylist[i]->GetMaterialSurface()->GetCohesion();
-		compliance_pointer[i] = R4(bodylist[i]->GetMaterialSurface()->GetCompliance(), bodylist[i]->GetMaterialSurface()->GetComplianceT(), bodylist[i]->GetMaterialSurface()->GetComplianceRolling(),
-				bodylist[i]->GetMaterialSurface()->GetComplianceSpinning());
-		lim_pointer[i] = (R3(bodylist[i]->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
-		bodylist[i]->GetCollisionModel()->SyncPosition();
-	}
-}
-
-void ChSystemParallelDEM::UpdateBodies() {
-	real3 *vel_pointer = gpu_data_manager->host_data.vel_data.data();
-	real3 *omg_pointer = gpu_data_manager->host_data.omg_data.data();
-	real3 *pos_pointer = gpu_data_manager->host_data.pos_data.data();
-	real4 *rot_pointer = gpu_data_manager->host_data.rot_data.data();
-	real3 *inr_pointer = gpu_data_manager->host_data.inr_data.data();
-	real3 *frc_pointer = gpu_data_manager->host_data.frc_data.data();
-	real3 *trq_pointer = gpu_data_manager->host_data.trq_data.data();
-	bool *active_pointer = gpu_data_manager->host_data.active_data.data();
-	real *mass_pointer = gpu_data_manager->host_data.mass_data.data();
-	real3 *lim_pointer = gpu_data_manager->host_data.lim_data.data();
-
-	real2* elastic_moduli = gpu_data_manager->host_data.elastic_moduli.data();
-	real*  mu             = gpu_data_manager->host_data.mu.data();
-	real*  alpha          = gpu_data_manager->host_data.alpha.data();
-	real*  cr             = gpu_data_manager->host_data.cr.data();
-
-#pragma omp parallel for
-	for (int i = 0; i < bodylist.size(); i++) {
-		bodylist[i]->UpdateTime(ChTime);
-		//bodylist[i]->TrySleeping();     // See if the body can fall asleep; if so, put it to sleeping
-		//bodylist[i]->ClampSpeed();      // Apply limits (if in speed clamping mode) to speeds.
-		bodylist[i]->ComputeGyro();     // Set the gyroscopic momentum.
-		bodylist[i]->UpdateForces(ChTime);
-		bodylist[i]->VariablesFbReset();
-		bodylist[i]->VariablesFbLoadForces(GetStep());
-		bodylist[i]->VariablesQbLoadSpeed();
-	}
-
-	for (int i = 0; i < bodylist.size(); i++) {
-		bodylist[i]->UpdateMarkers(ChTime);
-		//bodylist[i]->InjectVariables(*this->LCP_descriptor);
-	}
-
-#pragma omp parallel for
-	for (int i = 0; i < bodylist.size(); i++) {
-		ChMatrix<>&     qb = bodylist[i]->Variables().Get_qb();
-		ChMatrix<>&     fb = bodylist[i]->Variables().Get_fb();
-		ChVector<>&     pos = bodylist[i]->GetPos();
-		ChQuaternion<>& rot = bodylist[i]->GetRot();
-		ChMatrix33<>&   inertia = bodylist[i]->VariablesBody().GetBodyInvInertia();
-
-		vel_pointer[i] = (R3(qb.ElementN(0), qb.ElementN(1), qb.ElementN(2)));
-		omg_pointer[i] = (R3(qb.ElementN(3), qb.ElementN(4), qb.ElementN(5)));
-		pos_pointer[i] = (R3(pos.x, pos.y, pos.z));
-		rot_pointer[i] = (R4(rot.e0, rot.e1, rot.e2, rot.e3));
-		inr_pointer[i] = (R3(inertia.GetElement(0, 0), inertia.GetElement(1, 1), inertia.GetElement(2, 2)));
-		frc_pointer[i] = (R3(fb.ElementN(0), fb.ElementN(1), fb.ElementN(2)));     //forces
-		trq_pointer[i] = (R3(fb.ElementN(3), fb.ElementN(4), fb.ElementN(5)));     //torques
-		active_pointer[i] = bodylist[i]->IsActive();
-		mass_pointer[i] = 1.0f / bodylist[i]->VariablesBody().GetBodyMass();
-		lim_pointer[i] = (R3(bodylist[i]->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
-
-		ChSharedPtr<ChMaterialSurfaceDEM>& mat = ((ChBodyDEM*) bodylist[i])->GetMaterialSurfaceDEM();
-
-		elastic_moduli[i] = R2(mat->GetYoungModulus(), mat->GetPoissonRatio());
-		mu[i]             = mat->GetSfriction();
-		switch (normal_force_model) {
-		case ChContactDEM::HuntCrossley:
-			alpha[i] = mat->GetDissipationFactor();
-			break;
-		}
-		//cr[i]             = mat->GetRestitution();
-
-		bodylist[i]->GetCollisionModel()->SyncPosition();
-	}
-}
-
-void ChSystemParallel::UpdateBilaterals() {
+void ChSystemParallel::UpdateBilaterals()
+{
 	for (it = linklist.begin(); it != linklist.end(); it++) {
 		(*it)->Update(ChTime);
 		(*it)->ConstraintsBiReset();
@@ -452,7 +289,9 @@ void ChSystemParallel::UpdateBilaterals() {
 	}
 }
 
-void ChSystemParallel::RecomputeThreads() {
+
+void ChSystemParallel::RecomputeThreads()
+{
 	double sum_of_elems = std::accumulate(timer_accumulator.begin(), timer_accumulator.end(), 0.0);
 	if (frame_threads == 50 && detect_optimal_threads == false) {
 		frame_threads = 0;
@@ -475,7 +314,9 @@ void ChSystemParallel::RecomputeThreads() {
 	}
 }
 
-void ChSystemParallel::PerturbBins(bool increase, int number) {
+
+void ChSystemParallel::PerturbBins(bool increase, int number)
+{
 
 	if (increase) {
 		int3 grid_size = ((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase->getBinsPerAxis();
@@ -509,7 +350,8 @@ void ChSystemParallel::PerturbBins(bool increase, int number) {
 
 }
 
-void ChSystemParallel::RecomputeBins() {
+void ChSystemParallel::RecomputeBins()
+{
 	double sum_of_elems_cd = std::accumulate(cd_accumulator.begin(), cd_accumulator.end(), 0.0);
 
 	//if 0 increase and then measure
@@ -555,6 +397,7 @@ void ChSystemParallel::RecomputeBins() {
 
 }
 
+
 void ChSystemParallel::ChangeCollisionSystem(ChCollisionSystem *newcollsystem) {
 	assert(this->GetNbodies() == 0);
 	assert(newcollsystem);
@@ -569,10 +412,4 @@ void ChSystemParallel::ChangeCollisionSystem(ChCollisionSystem *newcollsystem) {
 	} else if (ChCollisionSystemBulletParallel* coll_sys = dynamic_cast<ChCollisionSystemBulletParallel*>(newcollsystem)) {
 		((ChCollisionSystemBulletParallel *) (collision_system))->data_container = gpu_data_manager;
 	}
-}
-
-void ChSystemParallelDEM::ChangeCollisionSystem(ChCollisionSystem* newcollsystem)
-{
-	ChSystemParallel::ChangeCollisionSystem(newcollsystem);
-	((ChCollisionSystemParallel *) collision_system)->SetCollisionEnvelope(0);
 }

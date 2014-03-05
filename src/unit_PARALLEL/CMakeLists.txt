@@ -47,7 +47,11 @@ SET(CHRONO_INC       ""   CACHE PATH "Where is ChronoEngine Source located")
 
 SET(ChronoEngine_Parallel_SOURCES
     src/ChSystemParallel.cpp
+    src/ChSystemParallelDVI.cpp
+    src/ChSystemParallelDEM.cpp
     src/ChLcpSolverParallel.cpp
+    src/ChLcpSolverParallelDVI.cpp
+    src/ChLcpSolverParallelDEM.cpp
     src/ChBaseParallel.cpp
     src/ChDataManager.cpp
     )
