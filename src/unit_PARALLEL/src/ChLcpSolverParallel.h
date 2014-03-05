@@ -181,9 +181,17 @@ public:
 	}
 
 	void ProcessContacts();
-	void host_CalcContactForces(int* body_id, real3* body_force, real3* body_torque);
-	void host_AddContactForces(uint ct_body_count, int* ct_body_id, real3* ct_body_force, real3* ct_body_torque);
+
 private:
+	void host_CalcContactForces(custom_vector<int>&   ext_body_id,
+	                            custom_vector<real3>& ext_body_force,
+	                            custom_vector<real3>& ext_body_torque);
+
+	void host_AddContactForces(uint                        ct_body_count,
+                               const custom_vector<int>&   ct_body_id,
+                               const custom_vector<real3>& ct_body_force,
+                               const custom_vector<real3>& ct_body_torque);
+
 	ChSolverParallel solver;
 };
 
