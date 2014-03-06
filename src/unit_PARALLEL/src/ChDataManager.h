@@ -38,6 +38,7 @@ namespace chrono {
 			thrust::host_vector<real3> cpta_rigid_rigid;
 			thrust::host_vector<real3> cptb_rigid_rigid;
 			thrust::host_vector<real> dpth_rigid_rigid;
+			thrust::host_vector<real> erad_rigid_rigid;
 			thrust::host_vector<int2> bids_rigid_rigid;
 			thrust::host_vector<long long> pair_rigid_rigid;
 			thrust::host_vector<long long> old_pair_rigid_rigid;

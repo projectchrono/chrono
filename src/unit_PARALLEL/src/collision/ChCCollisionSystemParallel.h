@@ -27,6 +27,7 @@
 #include "physics/ChBody.h"
 #include "ChCAABBGenerator.h"
 #include "ChCNarrowphase.h"
+#include "ChCNarrowphaseR.h"
 #include "ChCBroadphase.h"
 namespace chrono {
 namespace collision {
