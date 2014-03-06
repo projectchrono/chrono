@@ -23,6 +23,7 @@ void function_CalcContactForces(int&       index,           // index of this con
                                 real3*     pt2,             // point on shape 2 (per contact)
                                 real3*     normal,          // contact normal (per contact)
                                 real*      depth,           // penetration depth (per contact)
+                                real*      eff_radius,      // effective contact radius (per contact)
                                 int*       ext_body_id,     // [output] body IDs (two per contact)
                                 real3*     ext_body_force,  // [output] body force (two per contact)
                                 real3*     ext_body_torque) // [output] body torque (two per contact)
@@ -66,10 +67,6 @@ void function_CalcContactForces(int&       index,           // index of this con
 	// Calculate composite material properties
 	// ---------------------------------------
 
-	// Effective contact radius
-	//// TODO:  I cannot get this with current collision system!!!
-	real R_eff = 1;
-
 	real Y1 = elastic_moduli[body1].x;
 	real Y2 = elastic_moduli[body2].x;
 	real nu1 = elastic_moduli[body1].y;
@@ -89,7 +86,7 @@ void function_CalcContactForces(int&       index,           // index of this con
 
 	// Normal force: Hunt-Crossley
 	real delta = -depth[index];
-	real kn = (4.0 / 3) * E_eff * sqrt(R_eff);
+	real kn = (4.0 / 3) * E_eff * sqrt(eff_radius[index]);
 	real forceN_elastic = kn * delta * sqrt(delta);
 	real forceN_dissipation = 1.5 * alpha_eff * forceN_elastic * relvel_n_mag;
 	real forceN = forceN_elastic - forceN_dissipation;
@@ -144,6 +141,7 @@ void ChLcpSolverParallelDEM::host_CalcContactForces(custom_vector<int>&   ext_bo
 			data_container->host_data.cptb_rigid_rigid.data(),
 			data_container->host_data.norm_rigid_rigid.data(),
 			data_container->host_data.dpth_rigid_rigid.data(),
+			data_container->host_data.erad_rigid_rigid.data(),
 			ext_body_id.data(),
 			ext_body_force.data(),
 			ext_body_torque.data());
@@ -166,6 +164,11 @@ void ChLcpSolverParallelDEM::host_AddContactForces(uint                        c
 
 void ChLcpSolverParallelDEM::ProcessContacts()
 {
+	// 0. If the narrowphase collision detection does not set the effective contact
+	//    radius, fill it with the value 1.
+	if (!data_container->erad_is_set)
+		data_container->host_data.erad_rigid_rigid.resize(data_container->number_of_rigid_rigid, 1.0);
+
 	// 1. Calculate contact forces and torques - per contact basis
 	//    For each pair of contact shapes that overlap, we calculate and store
 	//    the IDs of the two corresponding bodies and the resulting contact

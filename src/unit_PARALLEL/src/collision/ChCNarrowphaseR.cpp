@@ -17,12 +17,12 @@ const real edge_radius = 0.1;
 void ChCNarrowphaseR::Process(ChParallelDataManager* data_container)
 {
 	// Aliases for readibility
-	custom_vector<real3>&     norm_data  = data_container->host_data.norm_rigid_rigid;
-	custom_vector<real3>&     cpta_data  = data_container->host_data.cpta_rigid_rigid;
-	custom_vector<real3>&     cptb_data  = data_container->host_data.cptb_rigid_rigid;
-	custom_vector<real>&      dpth_data  = data_container->host_data.dpth_rigid_rigid;
-	custom_vector<real>&      erad_data  = data_container->host_data.erad_rigid_rigid;
-	custom_vector<int2>&      bids_data  = data_container->host_data.bids_rigid_rigid;
+	custom_vector<real3>& norm_data = data_container->host_data.norm_rigid_rigid;
+	custom_vector<real3>& cpta_data = data_container->host_data.cpta_rigid_rigid;
+	custom_vector<real3>& cptb_data = data_container->host_data.cptb_rigid_rigid;
+	custom_vector<real>&  dpth_data = data_container->host_data.dpth_rigid_rigid;
+	custom_vector<real>&  erad_data = data_container->host_data.erad_rigid_rigid;
+	custom_vector<int2>&  bids_data = data_container->host_data.bids_rigid_rigid;
 
 	custom_vector<long long>& potentialCollisions = data_container->host_data.pair_rigid_rigid;
 
@@ -48,6 +48,7 @@ void ChCNarrowphaseR::Process(ChParallelDataManager* data_container)
 	uint number_of_contacts = total_possible_contacts - thrust::count(generic_counter.begin(),generic_counter.end(),1);
 
 	data_container->number_of_rigid_rigid = number_of_contacts;
+	data_container->erad_is_set = true;
 
 	// Remove unused array portions
 	thrust::remove_if(norm_data.begin(), norm_data.end(), generic_counter.begin(), thrust::identity<int>());
@@ -58,6 +59,13 @@ void ChCNarrowphaseR::Process(ChParallelDataManager* data_container)
 	thrust::remove_if(bids_data.begin(), bids_data.end(), generic_counter.begin(), thrust::identity<int>());
 	thrust::remove_if(potentialCollisions.begin(), potentialCollisions.end(), generic_counter.begin(), thrust::identity<int>());
 
+	potentialCollisions.resize(number_of_contacts);
+	norm_data.resize(number_of_contacts);
+	cpta_data.resize(number_of_contacts);
+	cptb_data.resize(number_of_contacts);
+	dpth_data.resize(number_of_contacts);
+	erad_data.resize(number_of_contacts);
+	bids_data.resize(number_of_contacts);
 }
 
 
