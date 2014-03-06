@@ -28,7 +28,7 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 
 		Project(x.data());
 
-		ShurProduct(x,mg);
+		//ShurProduct(x,mg);	//mg is never used, only re-written
 
 #pragma omp  for reduction(+:mb_tmp_norm)
 		for (int i = 0; i < SIZE; i++) {
@@ -39,17 +39,15 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 
 		ShurProduct(mb_tmp,mg_tmp);
 
-
-#pragma omp  for reduction(+:mg_tmp_norm)
+#pragma omp for reduction(+:mg_tmp_norm)
 		for(int i=0; i<x.size(); i++) {
 			real _x = mg_tmp[i];
 			mg_tmp_norm+=_x*_x;
 		}
 
-
 #pragma omp master
 		{
-			mg_tmp_norm =  sqrt(mg_tmp_norm);
+			mg_tmp_norm = sqrt(mg_tmp_norm);
 			mb_tmp_norm = sqrt(mb_tmp_norm);
 
 			if (mb_tmp_norm == 0) {
@@ -154,7 +152,7 @@ real temp_sum=0;
 		t_k = 1.0 / L_k;
 		theta_k = theta_k1;
 		if(current_iteration%5==0) {
-			real g_proj_norm = Res4(SIZE, mg_tmp.data(), b.data(), x.data(), mb_tmp.data());
+			real g_proj_norm = Res4(SIZE, mg_tmp.data(), b.data(), mx.data(), mb_tmp.data());
 			if(g_proj_norm < lastgoodres) {
 				lastgoodres = g_proj_norm;
 				x = mx;
@@ -162,18 +160,18 @@ real temp_sum=0;
 			residual=lastgoodres;
 			real maxdeltalambda = 0;     //CompRes(b,number_of_rigid_rigid);     //NormInf(ms);
 
-		AtIterationEnd(residual, maxdeltalambda, current_iteration);
-		if(collision_inside) {
-			UpdatePosition(x);
-			UpdateContacts();
+			AtIterationEnd(residual, maxdeltalambda, current_iteration);
+			if(collision_inside) {
+				UpdatePosition(x);
+				UpdateContacts();
+			}
 		}
-	}
-	if (residual < tolerance) {
-		break;
-	}
+		if (residual < tolerance) {
+			break;
+		}
 
-}
+	}
 //x=ml_candidate;
-return current_iteration;
+	return current_iteration;
 }
 

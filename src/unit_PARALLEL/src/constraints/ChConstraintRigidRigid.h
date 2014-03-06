@@ -57,10 +57,10 @@ public:
 
 	void Project(real* gamma);
 	void Project_NoPar(real* gamma);
-	void host_RHS(int2 *ids, real *correction, real4 * compliance, bool * active, real3* norm, real3 *vel, real3 *omega, real3 *JUA, real3 *JUB, real3 *JVA, real3 *JVB, real3 *JWA,
+	void host_RHS(int2 *ids, real *correction, real  alpha, bool2 * active, real3* norm, real3 *vel, real3 *omega, real3 *JUA, real3 *JUB, real3 *JVA, real3 *JVB, real3 *JWA,
 			real3 *JWB, real *rhs);
 
-	void host_RHS_spinning(int2 *ids, bool * active, real3 *omega, real3 *JTA, real3 *JTB, real3 *JSA, real3 *JSB, real3 *JRA, real3 *JRB, real *rhs);
+	void host_RHS_spinning(int2 *ids, bool2 * active, real3 *omega, real3 *JTA, real3 *JTB, real3 *JSA, real3 *JSB, real3 *JRA, real3 *JRB, real *rhs);
 
 	void ComputeRHS();
 	void UpdateRHS();
@@ -79,12 +79,12 @@ public:
 	void host_shurA_spinning(bool2 *contact_active, real3 *norm, real3 *JUA, real3 *JUB, real3 *JVA, real3 *JVB, real3 *JWA, real3 *JWB, real3 *JTA, real3 *JTB, real3 *JSA,
 			real3 *JSB, real3 *JRA, real3 *JRB, real *gamma, real3 *updateV, real3 *updateO);
 
-	void host_shurB_normal(int2 * ids, bool2 *contact_active, real3 *norm, real4 *compliance, real *gamma, real3 *JUA, real3 *JUB, real3 *QXYZ, real3 *QUVW, real *AX);
+	void host_shurB_normal(const real & alpha, int2 * ids, bool2 *contact_active, real3 *norm, real4 *compliance, real *gamma, real3 *JUA, real3 *JUB, real3 *QXYZ, real3 *QUVW, real *AX);
 
-	void host_shurB_sliding(int2 * ids, bool2 *contact_active, real3 *norm, real4 *compliance, real *gamma, real3 *JUA, real3 *JUB, real3 *JVA, real3 *JVB, real3 *JWA, real3 *JWB,
+	void host_shurB_sliding(const real & alpha, int2 * ids, bool2 *contact_active, real3 *norm, real4 *compliance, real *gamma, real3 *JUA, real3 *JUB, real3 *JVA, real3 *JVB, real3 *JWA, real3 *JWB,
 			real3 *QXYZ, real3 *QUVW, real *AX);
 
-	void host_shurB_spinning(int2 * ids, bool2 *contact_active, real3 *norm, real4 *compliance, real *gamma, real3 *JUA, real3 *JUB, real3 *JVA, real3 *JVB, real3 *JWA, real3 *JWB,
+	void host_shurB_spinning(const real & alpha, int2 * ids, bool2 *contact_active, real3 *norm, real4 *compliance, real *gamma, real3 *JUA, real3 *JUB, real3 *JVA, real3 *JVB, real3 *JWA, real3 *JWB,
 			real3 *JTA, real3 *JTB, real3 *JSA, real3 *JSB, real3 *JRA, real3 *JRB, real3 *QXYZ, real3 *QUVW, real *AX);
 
 	void host_Offsets(int2 *ids_contacts, int *Body);
