@@ -68,7 +68,8 @@ int main(int argc, char* argv[])
 
 	// Output
 	ChStreamOutAsciiFile sph_file("../soilbin_pos.txt");
-	double out_fps = 1000;
+	char* data_folder = "../DEM";
+	double out_fps = 60;
 	int out_steps = std::ceil((1 / time_step) / out_fps);
 
 	// Parameters for the falling ball
@@ -106,19 +107,21 @@ int main(int argc, char* argv[])
 	((ChCollisionSystemParallel*) msystem->GetCollisionSystem())->setBinsPerAxis(I3(10, 10, 10));
 	((ChCollisionSystemParallel*) msystem->GetCollisionSystem())->setBodyPerBin(100, 50);
 
+	((ChCollisionSystemParallel*) msystem->GetCollisionSystem())->ChangeNarrowphase(new ChCNarrowphaseR);
+
 	omp_set_num_threads(threads);
 
 	// Create a material for the balls
 	ChSharedPtr<ChMaterialSurfaceDEM> ballMat;
 	ballMat = ChSharedPtr<ChMaterialSurfaceDEM>(new ChMaterialSurfaceDEM);
-	ballMat->SetYoungModulus(5e4f);
+	ballMat->SetYoungModulus(2e5f);
 	ballMat->SetFriction(0.4f);
 	ballMat->SetDissipationFactor(0.6f);
 
 	// Create a material for the bin
 	ChSharedPtr<ChMaterialSurfaceDEM> binMat;
 	binMat = ChSharedPtr<ChMaterialSurfaceDEM>(new ChMaterialSurfaceDEM);
-	binMat->SetYoungModulus(5e4f);
+	binMat->SetYoungModulus(2e5f);
 	binMat->SetFriction(0.4f);
 	binMat->SetDissipationFactor(0.6f);
 
@@ -145,11 +148,11 @@ int main(int argc, char* argv[])
 	////utils::PointVectorD points = gs.SampleBox(ChVector<>(0, 0, 2), ChVector<>(1, 2, 0));
 
 	utils::PDSampler<> pd(0.2);
-	utils::PointVectorD points = pd.SampleBox(ChVector<>(0, 0, 0.5), ChVector<>(1, 2, 0));
+	utils::PointVectorD points = pd.SampleBox(ChVector<>(0, 0, 1), ChVector<>(1, 2, 0));
 
 	std::cout << "Number points: " << points.size() << std::endl;
 
-	for (int i = 0; i < 1; i++) {
+	for (int i = 0; i < 100; i++) {
 		ChSharedBodyDEMPtr ball(new ChBodyDEM(new ChCollisionModelParallel));
 
 		ball->SetMaterialSurfaceDEM(ballMat);
@@ -208,10 +211,10 @@ int main(int argc, char* argv[])
 
 	for (int i = 0; i < num_steps; i++) {
 		if (i % out_steps == 0) {
-			////sprintf(filename, "./DEM/data_%03d.dat", data_folder, out_frame);
-			////utils::WriteShapesRender(msystem, filename);
+			sprintf(filename, "%s/data_%03d.dat", data_folder, out_frame);
+			utils::WriteShapesRender(msystem, filename);
 
-			OutputFile(sph_file, *msystem, time);
+			//OutputFile(sph_file, *msystem, time);
 
 			out_frame++;
 		}

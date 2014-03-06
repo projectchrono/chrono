@@ -77,10 +77,10 @@ int main(int argc, char* argv[])
 	// Output
 #ifdef DEM
 	ChStreamOutAsciiFile sph_file("../sphere_pos_DEM.txt");
-	char* data_folder = "./DEM";
+	char* data_folder = "../DEM";
 #else
 	ChStreamOutAsciiFile sph_file("../sphere_pos_DVI.txt");
-	char* data_folder = "./DVI";
+	char* data_folder = "../DVI";
 #endif
 	double out_fps = 1000;
 	int out_steps = std::ceil((1 / time_step) / out_fps);
@@ -128,6 +128,8 @@ int main(int argc, char* argv[])
 
 	((ChCollisionSystemParallel*) msystem.GetCollisionSystem())->setBinsPerAxis(I3(10, 10, 10));
 	((ChCollisionSystemParallel*) msystem.GetCollisionSystem())->setBodyPerBin(100, 50);
+
+	((ChCollisionSystemParallel*) msystem.GetCollisionSystem())->ChangeNarrowphase(new ChCNarrowphaseR);
 #else
 	((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIteration(max_iteration);
 	((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetTolerance(0);
@@ -145,7 +147,7 @@ int main(int argc, char* argv[])
 	// Create a material for the balls
 #ifdef DEM
 	ChSharedPtr<ChMaterialSurfaceDEM> ballMat(new ChMaterialSurfaceDEM);
-	ballMat->SetYoungModulus(5e4f);
+	ballMat->SetYoungModulus(2e5f);
 	ballMat->SetFriction(0.4f);
 	ballMat->SetDissipationFactor(0.6f);
 #else
@@ -156,7 +158,7 @@ int main(int argc, char* argv[])
 	// Create a material for the bin
 #ifdef DEM
 	ChSharedPtr<ChMaterialSurfaceDEM> binMat(new ChMaterialSurfaceDEM);
-	binMat->SetYoungModulus(5e4f);
+	binMat->SetYoungModulus(2e5f);
 	binMat->SetFriction(0.4f);
 	binMat->SetDissipationFactor(0.6f);
 #else

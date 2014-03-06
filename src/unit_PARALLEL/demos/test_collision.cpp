@@ -53,22 +53,8 @@ int main(int argc, char* argv[])
 	ChSystemParallelDVI msystem;
 #endif
 
-	// Create the ball body
-#ifdef DEM
-	ChSharedBodyDEMPtr ball(new ChBodyDEM(new ChCollisionModelParallel));
-#else
-	ChSharedBodyPtr ball(new ChBody(new ChCollisionModelParallel));
-#endif
-	ball->SetPos(ball_pos);
-	ball->SetRot(ball_rot);
-	ball->SetBodyFixed(false);
-	ball->SetCollide(true);
 
-	ball->GetCollisionModel()->ClearModel();
-	ball->GetCollisionModel()->AddSphere(ball_radius);
-	ball->GetCollisionModel()->BuildModel();
-
-	msystem.AddBody(ball);
+	((ChCollisionSystemParallel*) msystem.GetCollisionSystem())->ChangeNarrowphase(new ChCNarrowphaseR);
 
 	// Create the box body
 #ifdef DEM
@@ -86,6 +72,25 @@ int main(int argc, char* argv[])
 	bin->GetCollisionModel()->BuildModel();
 
 	msystem.AddBody(bin);
+
+
+	// Create the ball body
+#ifdef DEM
+	ChSharedBodyDEMPtr ball(new ChBodyDEM(new ChCollisionModelParallel));
+#else
+	ChSharedBodyPtr ball(new ChBody(new ChCollisionModelParallel));
+#endif
+	ball->SetPos(ball_pos);
+	ball->SetRot(ball_rot);
+	ball->SetBodyFixed(false);
+	ball->SetCollide(true);
+
+	ball->GetCollisionModel()->ClearModel();
+	ball->GetCollisionModel()->AddSphere(ball_radius);
+	ball->GetCollisionModel()->BuildModel();
+
+	msystem.AddBody(ball);
+
 
 	// Perform the collision detection.
 	msystem.Update();
