@@ -112,9 +112,11 @@ SET(ChronoEngine_Parallel_COLLISION
     src/collision/ChCAABBGenerator.h
     src/collision/ChCBroadphase.h
     src/collision/ChCNarrowphase.h
+    src/collision/ChCNarrowphaseR.h
     src/collision/ChCAABBGenerator.cpp
     src/collision/ChCBroadphase.cpp
     src/collision/ChCNarrowphase.cpp
+    src/collision/ChCNarrowphaseR.cpp
     src/collision/ChCSupportFunctions.h
     src/collision/ChCCollisionModelParallel.h
     src/collision/ChCCollisionModelParallel.cpp
