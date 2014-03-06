@@ -110,14 +110,16 @@ SOURCE_GROUP(constraints FILES
 
 SET(ChronoEngine_Parallel_COLLISION
     src/collision/ChCAABBGenerator.h
-    src/collision/ChCBroadphase.h
-    src/collision/ChCNarrowphase.h
-    src/collision/ChCNarrowphaseR.h
     src/collision/ChCAABBGenerator.cpp
+    src/collision/ChCBroadphase.h
     src/collision/ChCBroadphase.cpp
-    src/collision/ChCNarrowphase.cpp
+    src/collision/ChCNarrowphase.h
+    src/collision/ChCNarrowphaseMPRUtils.h
+    src/collision/ChCNarrowphaseMPR.h
+    src/collision/ChCNarrowphaseMPR.cpp
+    src/collision/ChCNarrowphaseRUtils.h
+    src/collision/ChCNarrowphaseR.h
     src/collision/ChCNarrowphaseR.cpp
-    src/collision/ChCSupportFunctions.h
     src/collision/ChCCollisionModelParallel.h
     src/collision/ChCCollisionModelParallel.cpp
     src/collision/ChCCollisionSystemParallel.h

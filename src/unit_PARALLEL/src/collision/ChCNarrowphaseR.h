@@ -6,7 +6,7 @@
 namespace chrono {
 namespace collision {
 
-// 
+
 class ChApiGPU ChCNarrowphaseR : public ChCNarrowphase {
 public:
 	ChCNarrowphaseR() {}

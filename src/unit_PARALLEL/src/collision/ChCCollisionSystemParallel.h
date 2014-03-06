@@ -16,19 +16,20 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "ChParallelDefines.h"
-#include "ChCCollisionModelParallel.h"
-#include "physics/ChBody.h"
 #include "core/ChTimer.h"
-#include "ChLcpSystemDescriptorParallel.h"
-#include "ChContactContainerParallel.h"
 #include "collision/ChCCollisionSystem.h"
 #include "physics/ChProximityContainerBase.h"
 #include "physics/ChBody.h"
-#include "ChCAABBGenerator.h"
-#include "ChCNarrowphase.h"
-#include "ChCNarrowphaseR.h"
-#include "ChCBroadphase.h"
+
+#include "ChParallelDefines.h"
+#include "ChLcpSystemDescriptorParallel.h"
+#include "collision/ChContactContainerParallel.h"
+#include "collision/ChCCollisionModelParallel.h"
+#include "collision/ChCAABBGenerator.h"
+#include "collision/ChCNarrowphaseMPR.h"
+#include "collision/ChCNarrowphaseR.h"
+#include "collision/ChCBroadphase.h"
+
 namespace chrono {
 namespace collision {
 ///

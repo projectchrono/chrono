@@ -1,8 +1,13 @@
-#include "ChCNarrowphaseR.h"
 #include "collision/ChCCollisionModel.h"
+
+#include "math/ChParallelMath.h"
+#include "collision/ChCNarrowphaseR.h"
+#include "collision/ChCNarrowphaseRUtils.h"
+
 
 using namespace chrono;
 using namespace chrono::collision;
+
 
 //// TODO: what is a good value here?
 ////       Should this even be a constant?  Maybe set it based on object size?
@@ -93,39 +98,6 @@ bool sphere_sphere(const real3& pos1, const real& radius1,
 // ==========================================================================
 //              BOX - SPHERE
 
-// This utility function snaps the provided location to a point on a box with
-// given half-dimensions. The in/out location is assumed to be specified in
-// the frame of the box (which is therefore assumed to be an AABB centered at
-// the origin).  The return code indicates the box axes that caused snapping.
-//   - first bit (least significant) corresponds to x-axis
-//   - second bit corresponds to y-axis
-//   - third bit corresponds to z-axis
-// Therefore:
-//   code = 0 indicates an interior point
-//   code = 1 or code = 2 or code = 4  indicates snapping to a face
-//   code = 3 or code = 5 or code = 6  indicates snapping to an edge
-//   code = 7 indicates snapping to a corner
-__host__ __device__
-uint snap_to_box(const real3& hdims, real3& loc)
-{
-	uint code = 0;
-
-	if (fabs(loc.x) > hdims.x) {
-		code |= 1;
-		loc.x = (loc.x > 0) ? hdims.x : -hdims.x;
-	}
-	if (fabs(loc.y) > hdims.y) {
-		code |= 2;
-		loc.y = (loc.y > 0) ? hdims.y : -hdims.y;
-	}
-	if (fabs(loc.z) > hdims.z) {
-		code |= 4;
-		loc.z = (loc.z > 0) ? hdims.z : -hdims.z;
-	}
-
-	return code;
-}
-
 // Box-sphere narrow phase collision detection.
 // In:  box at position pos1, with orientation rot1, and half-dimensions hdims1
 //      sphere centered at pos2 and with radius2
@@ -166,6 +138,49 @@ bool box_sphere(const real3& pos1, const real4& rot1, const real3& hdims1,
 		eff_radius = radius2;
 
 	return true;
+}
+
+// ==========================================================================
+//              BOX - BOX
+
+// Box-box narrow phase collision detection.
+// In:  box at position pos1, with orientation rot1, and half-dimensions hdims1
+//      box at position pos2, with orientation rot2, and half-dimensions hdims2
+
+__host__ __device__
+bool box_box(const real3& pos1, const real4& rot1, const real3& hdims1,
+             const real3& pos2, const real4& rot2, const real3& hdims2,
+             real3& norm, real& depth,
+             real3& pt1, real3& pt2,
+             real& eff_radius)
+{
+	// Express the second box into the frame of the first box.
+	// (this is a bit cryptic with the functions we have available)
+	real3 pos = quatRotateMatT(pos2 - pos1, rot1);
+	real4 rot = mult(inv(rot1), rot2);
+
+	// Find the direction of closest overlap between boxes. If they don't
+	// overlap, we're done. Note that dir is calculated so that it points from
+	// box2 to box1.
+	real3 dir;
+	if (!box_intersects_box(hdims1, hdims2, pos, rot, dir))
+		return false;
+
+	if (dot(pos, dir) > 0)
+		dir = -dir;
+
+	// Determine the features of the boxes that are interacting.
+	real3 dirI = quatRotateMatT(-dir, rot);
+	real3 corner1 = box_farthest_corner(hdims1, dir);
+	real3 corner2 = box_farthest_corner(hdims2, dirI);
+	uint  code1 = box_closest_feature(dir);
+	uint  code2 = box_closest_feature(dirI);
+	uint  numAxes1 = (code1 & 1) + ((code1 >> 1) & 1) + ((code1 >> 2) & 1);
+	uint  numAxes2 = (code2 & 1) + ((code2 >> 1) & 1) + ((code2 >> 2) & 1);
+
+	//// TODO
+
+	return false;
 }
 
 // ==========================================================================
@@ -280,6 +295,18 @@ void function_process(const uint&       index,           // index of this contac
 			ct_norm[index] = -ct_norm[index];
 			ct_active[index] = 0;
 			ct_body_ids[index] = I2(body2, body1);
+		}
+		return;
+	}
+
+	if (type1 == BOX && type2 == BOX) {
+		if (box_box(X1, R1, Y1,
+			        X2, R2, Y2,
+			        ct_norm[index], ct_depth[index],
+			        ct_pt1[index], ct_pt2[index],
+			        ct_eff_rad[index])) {
+			ct_active[index] = 0;
+			ct_body_ids[index] = I2(body1, body2);
 		}
 		return;
 	}
