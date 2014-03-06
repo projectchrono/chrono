@@ -115,6 +115,9 @@ namespace chrono {
 			real3 min_bounding_point, max_bounding_point;
 			real collision_envelope;
 
+			// Flag indicating whether or not effective contact radius is calculated
+			bool erad_is_set;
+
 			//Solver variables
 			real step_size;
 			real alpha;
