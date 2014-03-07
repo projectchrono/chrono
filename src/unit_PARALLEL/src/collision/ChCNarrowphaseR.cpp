@@ -82,7 +82,7 @@ bool sphere_sphere(const real3& pos1, const real& radius1,
                    real3& pt1, real3& pt2,
                    real& eff_radius)
 {
-	real3 delta = pos1 - pos2;
+	real3 delta = pos2 - pos1;
 	real  dist2 = dot(delta, delta);
 	real  radSum = radius1 + radius2;
 
