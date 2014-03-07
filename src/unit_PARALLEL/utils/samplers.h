@@ -201,25 +201,24 @@ private:
 
 		// Check 2D/3D. If the size in the z direction is less than the minimum distance,
 		// we switch to a 2D sampling. All sample points will have p.z = m_center.z
-		assert(m_size.x > m_minDist);
-		assert(m_size.y > m_minDist);
+		assert(this->m_size.x > m_minDist);
+		assert(this->m_size.y > m_minDist);
 
-		if (m_size.z < m_minDist) {
+		if (this->m_size.z < m_minDist) {
 			m_2D = true;
 			m_cellSize = m_minDist / std::sqrt(2.0);
-			m_size.z = 0;
+			this->m_size.z = 0;
 		} else {
 			m_2D = false;
 			m_cellSize = m_minDist / std::sqrt(3.0);
 		}
 
+		m_bl = this->m_center - this->m_size;
+		m_tr = this->m_center + this->m_size;
 
-		m_bl = m_center - m_size;
-		m_tr = m_center + m_size;
-
-		m_grid.Resize((int) (2 * m_size.x / m_cellSize) + 1,
-		              (int) (2 * m_size.y / m_cellSize) + 1,
-		              (int) (2 * m_size.z / m_cellSize) + 1);
+		m_grid.Resize((int) (2 * this->m_size.x / m_cellSize) + 1,
+		              (int) (2 * this->m_size.y / m_cellSize) + 1,
+		              (int) (2 * this->m_size.z / m_cellSize) + 1);
 
 		// Add the first output point (and initialize active list)
 		AddFirstPoint(t, out_points);
@@ -253,10 +252,10 @@ private:
 
 		// Generate a random point in the domain
 		do {
-			p.x = m_bl.x + m_realDist(m_generator) * 2 * m_size.x;
-			p.y = m_bl.y + m_realDist(m_generator) * 2 * m_size.y;
-			p.z = m_bl.z + m_realDist(m_generator) * 2 * m_size.z;
-		} while (!accept(t, p));
+			p.x = m_bl.x + m_realDist(m_generator) * 2 * this->m_size.x;
+			p.y = m_bl.y + m_realDist(m_generator) * 2 * this->m_size.y;
+			p.z = m_bl.z + m_realDist(m_generator) * 2 * this->m_size.z;
+		} while (!this->accept(t, p));
 
 		// Place the point in the grid, add it to the active list, and add it to output.
 		MapToGrid(p);
@@ -273,7 +272,7 @@ private:
 		ChVector<T> q = GenerateRandomNeighbor(point);
 
 		// Check if point is in the domain.
-		if (!accept(t, q))
+		if (!this->accept(t, q))
 			return false;
 
 		// Check distance from candidate point to any existing point in the grid
@@ -312,7 +311,7 @@ private:
 			T angle = 2 * Pi * m_realDist(m_generator);
 			x = point.x + radius * std::cos(angle);
 			y = point.y + radius * std::sin(angle);
-			z = m_center.z;
+			z = this->m_center.z;
 		} else {
 			T radius = m_minDist * (1 + m_realDist(m_generator));
 			T angle1 = 2 * Pi * m_realDist(m_generator);
@@ -375,17 +374,17 @@ private:
 	{
 		PointVector out_points;
 
-		ChVector<T> bl = m_center - m_size;
+		ChVector<T> bl = this->m_center - this->m_size;
 
-		int nx = (int) (2 * m_size.x / m_spacing.x) + 1;
-		int ny = (int) (2 * m_size.y / m_spacing.y) + 1;
-		int nz = (int) (2 * m_size.z / m_spacing.z) + 1;
+		int nx = (int) (2 * this->m_size.x / m_spacing.x) + 1;
+		int ny = (int) (2 * this->m_size.y / m_spacing.y) + 1;
+		int nz = (int) (2 * this->m_size.z / m_spacing.z) + 1;
 
 		for (int i = 0; i < nx; i++) {
 			for (int j = 0; j < ny; j++) {
 				for (int k = 0; k < nz; k++) {
 					ChVector<T> p = bl + ChVector<T>(i*m_spacing.x, j*m_spacing.y, k*m_spacing.z);
-					if (accept(t, p)) 
+					if (this->accept(t, p)) 
 						out_points.push_back(p);
 				}
 			}
