@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
 
 	// Output
 	ChStreamOutAsciiFile sph_file("../soilbin_pos.txt");
-	char* data_folder = "../DEM";
+	const char* data_folder = "../DEM";
 	double out_fps = 60;
 	int out_steps = std::ceil((1 / time_step) / out_fps);
 
@@ -219,7 +219,7 @@ int main(int argc, char* argv[])
 	cout << "==================================" << endl;
 	cout << "Number of objects: " << numObjects << endl;
 	cout << "Lowest position: " << FindLowest(*msystem) << endl;
-	//cout << "Simulation time: " << exec_time << endl;
+	cout << "Simulation time: " << exec_time << endl;
 	cout << "Number of threads: " << threads << endl;
 
 	return 0;

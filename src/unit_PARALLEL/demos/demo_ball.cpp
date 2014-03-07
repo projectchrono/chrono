@@ -77,10 +77,10 @@ int main(int argc, char* argv[])
 	// Output
 #ifdef DEM
 	ChStreamOutAsciiFile sph_file("../sphere_pos_DEM.txt");
-	char* data_folder = "../DEM";
+	const char* data_folder = "../DEM";
 #else
 	ChStreamOutAsciiFile sph_file("../sphere_pos_DVI.txt");
-	char* data_folder = "../DVI";
+	const char* data_folder = "../DVI";
 #endif
 	double out_fps = 1000;
 	int out_steps = std::ceil((1 / time_step) / out_fps);
