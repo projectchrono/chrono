@@ -9,7 +9,9 @@
 #include "utils/generators.h"
 
 using namespace chrono;
-using namespace geometry;
+
+using std::cout;
+using std::endl;
 
 template <typename T>
 void AddWall(T&                   body,
@@ -36,7 +38,7 @@ void OutputFile(ChStreamOutAsciiFile& file,
 	chrono::Vector bodyAngs;
 
 	file << time << "     ";
-	std::cout << time << "     ";
+	cout << time << "     ";
 
 	for (int i = 0; i < sys.Get_bodylist()->size(); ++i) {
 		ChBody* abody = (ChBody*) sys.Get_bodylist()->at(i);
@@ -46,13 +48,26 @@ void OutputFile(ChStreamOutAsciiFile& file,
 		bodyAngs = abody->GetRot().Q_to_NasaAngles();
 		file << bodypos.x  << "  " << bodypos.y  << "  " << bodypos.z  << "  ";
 		file << bodyAngs.x << "  " << bodyAngs.y << "  " << bodyAngs.z << "       ";
-		std::cout << bodypos.x << "  " << bodypos.y << "  " << bodypos.z << "   |   ";
+		cout << bodypos.x << "  " << bodypos.y << "  " << bodypos.z << "   |   ";
 	}
 
 	file << "\n";
-	std::cout << std::endl;
+	cout << endl;
 }
 
+double FindLowest(ChSystem& sys)
+{
+	double lowest = 1000;
+
+	for (int i = 0; i < sys.Get_bodylist()->size(); ++i) {
+		ChBody* abody = (ChBody*) sys.Get_bodylist()->at(i);
+		if (abody->GetBodyFixed())
+			continue;
+		if (abody->GetPos().z < lowest)
+			lowest = abody->GetPos().z;
+	}
+	return lowest;
+}
 
 int main(int argc, char* argv[])
 {
@@ -90,10 +105,17 @@ int main(int argc, char* argv[])
 	// Create system
 	ChSystemParallelDEM* msystem = new ChSystemParallelDEM();
 
+	// Set number of threads.
+	int max_threads = msystem->GetParallelThreadNumber();
+	if (threads > max_threads)
+		threads = max_threads;
+	msystem->SetParallelThreadNumber(threads);
+	omp_set_num_threads(threads);
+
+	// Set gravitational acceleration
 	msystem->Set_G_acc(ChVector<>(0, 0, gravity));
 
 	// Edit system settings
-	msystem->SetParallelThreadNumber(threads);
 	msystem->SetMaxiter(max_iteration);
 	msystem->SetIterLCPmaxItersSpeed(max_iteration);
 	msystem->SetTol(1e-3);
@@ -108,8 +130,6 @@ int main(int argc, char* argv[])
 	((ChCollisionSystemParallel*) msystem->GetCollisionSystem())->setBodyPerBin(100, 50);
 
 	((ChCollisionSystemParallel*) msystem->GetCollisionSystem())->ChangeNarrowphase(new ChCNarrowphaseR);
-
-	omp_set_num_threads(threads);
 
 	// Create a material for the balls
 	ChSharedPtr<ChMaterialSurfaceDEM> ballMat;
@@ -126,19 +146,25 @@ int main(int argc, char* argv[])
 	binMat->SetDissipationFactor(0.6f);
 
 	// Create the falling balls (a mixture entirely made out of spheres)
-	utils::Generator gen(msystem);
+	int numObjects;
 
-	utils::MixtureIngredientPtr& m1 = gen.AddMixtureIngredient(utils::SPHERE, 1.0);
-	m1->setDefaultMaterialDEM(ballMat);
-	m1->setDefaultDensity(density);
-	m1->setDefaultSize(radius);
+	{
+		utils::Generator gen(msystem);
+	
+		utils::MixtureIngredientPtr& m1 = gen.AddMixtureIngredient(utils::SPHERE, 1.0);
+		m1->setDefaultMaterialDEM(ballMat);
+		m1->setDefaultDensity(density);
+		m1->setDefaultSize(radius);
+	
+		gen.createObjectsBox(utils::POISSON_DISK,
+		                     2.01 * radius,
+		                     ChVector<>(0, 0, 3 * hDimZ),
+		                     ChVector<>(0.8 * hDimX, 0.8 * hDimY, hDimZ));
+	
+		numObjects = gen.getTotalNumBodies();
+	}
 
-	gen.createObjectsBox(utils::POISSON_DISK,
-	                     2.01 * radius,
-	                     ChVector<>(0, 0, 3 * hDimZ),
-	                     ChVector<>(0.8 * hDimX, 0.8 * hDimY, hDimZ / 2));
-
-	std::cout << "Number bodies: " << gen.getTotalNumBodies() << std::endl;
+	cout << "Number bodies: " << numObjects << endl;
 
 	// Create the containing bin
 	ChSharedBodyDEMPtr bin(new ChBodyDEM(new ChCollisionModelParallel));
@@ -172,7 +198,7 @@ int main(int argc, char* argv[])
 			sprintf(filename, "%s/data_%03d.dat", data_folder, out_frame);
 			utils::WriteShapesRender(msystem, filename);
 
-			std::cout << out_frame << "  " << time << std::endl;
+			cout << " --------------------------------- " << out_frame << "  " << time << "  " <<  endl;
 			//OutputFile(sph_file, *msystem, time);
 
 			out_frame++;
@@ -181,6 +207,13 @@ int main(int argc, char* argv[])
 		msystem->DoStepDynamics(time_step);
 		time += time_step;
 	}
+
+	// Final stats
+	cout << "==================================" << endl;
+	cout << "Number of objects: " << numObjects << endl;
+	cout << "Lowest position: " << FindLowest(*msystem) << endl;
+	//cout << "Simulation time: " << exec_time << endl;
+	cout << "Number of threads: " << threads << endl;
 
 	return 0;
 }
