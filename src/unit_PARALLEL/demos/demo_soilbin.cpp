@@ -159,7 +159,7 @@ int main(int argc, char* argv[])
 		gen.createObjectsBox(utils::POISSON_DISK,
 		                     2.01 * radius,
 		                     ChVector<>(0, 0, 3 * hDimZ),
-		                     ChVector<>(0.8 * hDimX, 0.8 * hDimY, hDimZ));
+		                     ChVector<>(0.8 * hDimX, 0.8 * hDimY, 2 * hDimZ));
 	
 		numObjects = gen.getTotalNumBodies();
 	}
@@ -193,12 +193,17 @@ int main(int argc, char* argv[])
 	int out_frame = 0;
 	char filename[100];
 
+	double exec_time = 0;
+
 	for (int i = 0; i < num_steps; i++) {
 		if (i % out_steps == 0) {
 			sprintf(filename, "%s/data_%03d.dat", data_folder, out_frame);
 			utils::WriteShapesRender(msystem, filename);
 
 			cout << " --------------------------------- " << out_frame << "  " << time << "  " <<  endl;
+			cout << "                                   " << FindLowest(*msystem) << endl;
+			cout << "                                   " << exec_time << endl;
+
 			//OutputFile(sph_file, *msystem, time);
 
 			out_frame++;
@@ -206,6 +211,8 @@ int main(int argc, char* argv[])
 
 		msystem->DoStepDynamics(time_step);
 		time += time_step;
+
+		exec_time += msystem->mtimer_step();
 	}
 
 	// Final stats
