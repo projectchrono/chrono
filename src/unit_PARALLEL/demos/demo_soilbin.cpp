@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
 	// Simulation parameters
 	double gravity = -9.81;
 	double time_step = 0.0001;
-	double time_end = 1;
+	double time_end = 5;
 	int    num_steps = std::ceil(time_end / time_step);
 
 	int max_iteration = 20;
@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
 	int    binId = -200;
 	double hDimX = 5;          // length in x direction
 	double hDimY = 2;          // depth in y direction
-	double hDimZ = 0.5;        // height in z direction
+	double hDimZ = 1;        // height in z direction
 	double hThickness = 0.1;   // wall thickness
 
 	// Create system
@@ -114,19 +114,18 @@ int main(int argc, char* argv[])
 	// Create a material for the balls
 	ChSharedPtr<ChMaterialSurfaceDEM> ballMat;
 	ballMat = ChSharedPtr<ChMaterialSurfaceDEM>(new ChMaterialSurfaceDEM);
-	ballMat->SetYoungModulus(2e5f);
+	ballMat->SetYoungModulus(2e6f);
 	ballMat->SetFriction(0.4f);
 	ballMat->SetDissipationFactor(0.6f);
 
 	// Create a material for the bin
 	ChSharedPtr<ChMaterialSurfaceDEM> binMat;
 	binMat = ChSharedPtr<ChMaterialSurfaceDEM>(new ChMaterialSurfaceDEM);
-	binMat->SetYoungModulus(2e5f);
+	binMat->SetYoungModulus(2e6f);
 	binMat->SetFriction(0.4f);
 	binMat->SetDissipationFactor(0.6f);
 
 	// Create the falling balls (a mixture entirely made out of spheres)
-/*
 	utils::Generator gen(msystem);
 
 	utils::MixtureIngredientPtr& m1 = gen.AddMixtureIngredient(utils::SPHERE, 1.0);
@@ -135,52 +134,11 @@ int main(int argc, char* argv[])
 	m1->setDefaultSize(radius);
 
 	gen.createObjectsBox(utils::POISSON_DISK,
-	                     4 * radius,
+	                     2.01 * radius,
 	                     ChVector<>(0, 0, 3 * hDimZ),
 	                     ChVector<>(0.8 * hDimX, 0.8 * hDimY, hDimZ / 2));
 
 	std::cout << "Number bodies: " << gen.getTotalNumBodies() << std::endl;
-*/
-
-
-
-	////utils::GridSampler<> gs(ChVector<>(0.1, 0.2, 0.3));
-	////utils::PointVectorD points = gs.SampleBox(ChVector<>(0, 0, 2), ChVector<>(1, 2, 0));
-
-	utils::PDSampler<> pd(0.2);
-	utils::PointVectorD points = pd.SampleBox(ChVector<>(0, 0, 1), ChVector<>(1, 2, 0));
-
-	std::cout << "Number points: " << points.size() << std::endl;
-
-	for (int i = 0; i < 100; i++) {
-		ChSharedBodyDEMPtr ball(new ChBodyDEM(new ChCollisionModelParallel));
-
-		ball->SetMaterialSurfaceDEM(ballMat);
-
-		ball->SetIdentifier(ballId);
-		ball->SetMass(mass);
-		ball->SetInertiaXX(inertia);
-		ball->SetPos(points[i]);
-		ball->SetBodyFixed(false);
-		ball->SetRot(ChQuaternion<>(1,0,0,0));
-
-		ball->SetCollide(true);
-
-		ball->GetCollisionModel()->ClearModel();
-		ball->GetCollisionModel()->AddSphere(radius);
-		ball->GetCollisionModel()->BuildModel();
-
-		ChSharedPtr<ChSphereShape> sphere_shape = ChSharedPtr<ChAsset>(new ChSphereShape);
-		sphere_shape->SetColor(ChColor(1, 0, 0));
-		sphere_shape->GetSphereGeometry().rad = radius;
-		sphere_shape->Pos = ChVector<>(0,0,0);
-		sphere_shape->Rot = ChQuaternion<>(1,0,0,0);
-		ball->GetAssets().push_back(sphere_shape);
-
-		msystem->AddBody(ball);
-	}
-
-
 
 	// Create the containing bin
 	ChSharedBodyDEMPtr bin(new ChBodyDEM(new ChCollisionModelParallel));
@@ -214,6 +172,7 @@ int main(int argc, char* argv[])
 			sprintf(filename, "%s/data_%03d.dat", data_folder, out_frame);
 			utils::WriteShapesRender(msystem, filename);
 
+			std::cout << out_frame << "  " << time << std::endl;
 			//OutputFile(sph_file, *msystem, time);
 
 			out_frame++;
