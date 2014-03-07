@@ -180,8 +180,9 @@ private:
 template <typename T = double>
 class PDSampler : public Sampler<T> {
 public:
-	typedef typename Types<T>::PointVector PointVector;
-	typedef typename Types<T>::PointList   PointList;
+	typedef typename Types<T>::PointVector  PointVector;
+	typedef typename Types<T>::PointList    PointList;
+	typedef typename Sampler<T>::VolumeType VolumeType;
 
 	PDSampler(T   minDist,
 	          int pointsPerIteration = m_ppi_default)
@@ -228,7 +229,7 @@ private:
 			// ... select one of them at random
 			std::uniform_int_distribution<int> intDist(0, m_active.size()-1);
 
-			PointList::iterator point = m_active.begin();
+			typename PointList::iterator point = m_active.begin();
 			std::advance(point, intDist(m_generator));
 
 			// ... attempt to add points near the active one
@@ -363,7 +364,8 @@ private:
 template <typename T = double>
 class GridSampler : public Sampler<T> {
 public:
-	typedef typename Types<T>::PointVector PointVector;
+	typedef typename Types<T>::PointVector  PointVector;
+	typedef typename Sampler<T>::VolumeType VolumeType;
 
 	GridSampler(T spacing) : m_spacing(spacing, spacing, spacing) {}
 	GridSampler(const ChVector<T>& spacing) : m_spacing(spacing) {}

@@ -192,12 +192,13 @@ private:
 	MixtureIngredient(Generator* generator, MixtureType type, double ratio);
 
 	void                               freeMaterialDist();
-	ChSharedPtr<ChMaterialSurface>&    getMaterialDVI();
-	ChSharedPtr<ChMaterialSurfaceDEM>& getMaterialDEM();
 	ChVector<>                         getSize();
 	double                             getDensity();
 	void                               calcGeometricProps(const ChVector<>& size, double& volume, ChVector<>& gyration);
 	double                             calcMinSeparation();
+
+	void                               setMaterialProperties(ChSharedPtr<ChMaterialSurface>& mat);
+	void                               setMaterialProperties(ChSharedPtr<ChMaterialSurfaceDEM>& mat);
 
 	Generator*                         m_generator;
 
@@ -436,17 +437,10 @@ MixtureIngredient::freeMaterialDist()
 	delete m_dissipationDist;
 }
 
-
-// Return a DVI material surface object created based on attributes of this
-// ingredient.
-ChSharedPtr<ChMaterialSurface>&
-MixtureIngredient::getMaterialDVI()
+// Modify the specified DVI material surface based on attributes of this ingredient.
+void
+MixtureIngredient::setMaterialProperties(ChSharedPtr<ChMaterialSurface>& mat)
 {
-	if (!m_frictionDist && !m_cohesionDist)
-		return m_defMaterialDVI;
-
-	ChSharedPtr<ChMaterialSurface> mat(new ChMaterialSurface);
-
 	if (m_frictionDist)
 		mat->SetFriction(sampleTruncatedDist<float>(*m_frictionDist, m_rengine, m_minFriction, m_maxFriction));
 	else
@@ -456,20 +450,12 @@ MixtureIngredient::getMaterialDVI()
 		mat->SetCohesion(sampleTruncatedDist<float>(*m_cohesionDist, m_rengine, m_minCohesion, m_maxCohesion));
 	else
 		mat->SetCohesion(m_defMaterialDVI->GetCohesion());
-
-	return mat;
 }
 
-// Return a DEM material surface object created based on attributes of this
-// ingredient.
-ChSharedPtr<ChMaterialSurfaceDEM>&
-MixtureIngredient::getMaterialDEM()
+// Modify the specified DEM material surface based on attributes of this ingredient.
+void
+MixtureIngredient::setMaterialProperties(ChSharedPtr<ChMaterialSurfaceDEM>& mat)
 {
-	if (!m_youngDist && !m_poissonDist && !m_frictionDist && !m_dissipationDist)
-		return m_defMaterialDEM;
-
-	ChSharedPtr<ChMaterialSurfaceDEM> mat(new ChMaterialSurfaceDEM);
-
 	if (m_youngDist)
 		mat->SetYoungModulus(sampleTruncatedDist<float>(*m_youngDist, m_rengine, m_minYoung, m_maxYoung));
 	else
@@ -489,8 +475,6 @@ MixtureIngredient::getMaterialDEM()
 		mat->SetDissipationFactor(sampleTruncatedDist<float>(*m_dissipationDist, m_rengine, m_minDissipation, m_maxDissipation));
 	else
 		mat->SetDissipationFactor(m_defMaterialDEM->GetDissipationFactor());
-
-	return mat;
 }
 
 // Return a size for an object created based on attributes of this ingredient.
@@ -689,19 +673,20 @@ void Generator::createObjects(const PointVector& points)
 		switch (m_sysType) {
 		case SEQUENTIAL_DVI:
 			body = new ChBody();
-			body->SetMaterialSurface(m_mixture[index]->getMaterialDVI());
+			m_mixture[index]->setMaterialProperties(body->GetMaterialSurface());
 			break;
 		case SEQUENTIAL_DEM:
 			body = new ChBodyDEM();
-			((ChBodyDEM*) body)->SetMaterialSurfaceDEM(m_mixture[index]->getMaterialDEM());
+			m_mixture[index]->setMaterialProperties(((ChBodyDEM*) body)->GetMaterialSurfaceDEM());
 			break;
 		case PARALLEL_DVI:
 			body = new ChBody(new ChCollisionModelParallel);
-			body->SetMaterialSurface(m_mixture[index]->getMaterialDVI());
+			body->GetMaterialSurface();
+			m_mixture[index]->setMaterialProperties(body->GetMaterialSurface());
 			break;
 		case PARALLEL_DEM:
 			body = new ChBodyDEM(new ChCollisionModelParallel);
-			((ChBodyDEM*) body)->SetMaterialSurfaceDEM(m_mixture[index]->getMaterialDEM());
+			m_mixture[index]->setMaterialProperties(((ChBodyDEM*) body)->GetMaterialSurfaceDEM());
 			break;
 		}
 

@@ -31,7 +31,7 @@ public:
 
 	void write_to_file(const string& filename)
 	{
-		std::ofstream ofile(filename);
+		std::ofstream ofile(filename.c_str());
 		ofile << m_ss.str();
 		ofile.close();
 	}
