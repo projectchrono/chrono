@@ -1,0 +1,19 @@
+// -----------------------------------------------------------------
+// Chrono-Parallel configuration header file
+// -----------------------------------------------------------------
+
+// If SSE support was found, then
+//   #define CHRONO_PARALLEL_HAS_SSE
+// and set the SSE level support, one of the following
+//   #define CHRONO_PARALLEL_SSE "1.0"
+//   #define CHRONO_PARALLEL_SSE "2.0"
+//   #define CHRONO_PARALLEL_SSE "3.0"
+//   #define CHRONO_PARALLEL_SSE "3.1"
+//   #define CHRONO_PARALLEL_SSE "4.1"
+//   #define CHRONO_PARALLEL_SSE "4.2"
+@CHRONO_PARALLEL_HAS_SSE@
+@CHRONO_PARALLEL_SSE_LEVEL@
+
+
+
+
