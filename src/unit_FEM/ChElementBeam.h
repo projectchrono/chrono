@@ -36,9 +36,6 @@ protected:
 	double mass;
 	double length;
 
-	double y_drawsize;
-	double z_drawsize;
-
 public:
 
 	ChElementBeam()
@@ -76,17 +73,7 @@ public:
 				/// Results are not corotated, and are expressed in the reference system of beam.
 	virtual void EvaluateSectionForceTorque(const double eta, const ChMatrix<>& displ, ChVector<>& Fforce, ChVector<>& Mtorque) = 0;
 
-				/// Sets the rectangular thickness of the beam on y and z directions,
-				/// only for drawing/rendering purposes (these thickenss values do NOT
-				/// have any meaning at a physical level, use SetAsRectangularSection() instead
-				/// if you want to affect also the inertias of the beam section).
-	void SetDrawThickness(double thickness_y, double thickness_z)
-				{
-					this->y_drawsize = thickness_y;
-					this->z_drawsize = thickness_z;
-				}
-	double GetDrawThicknessY() {return this->y_drawsize;}
-	double GetDrawThicknessZ() {return this->z_drawsize;}
+
 
 
 				/// The full mass of the beam, (with const. section, density, etc.)

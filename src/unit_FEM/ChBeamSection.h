@@ -35,18 +35,23 @@ public:
 	double Area;
 	double Iyy;
 	double Izz;
+	double J;
 	double G;
 	double E;
 	double density;
 	double rdamping;
+	double Ks_y;
+	double Ks_z;
+
+	double y_drawsize;
+	double z_drawsize;
 
 	ChBeamSection()
 				{
-					
-					SetAsRectangularSection(0.01, 0.01); // defaults Area, Ixx, Iyy
-				
-					E = 0.01e9;		  // default stiffness: rubber
-					G = 0.3 * E;
+					E = 0.01e9;		  // default E stiffness: (almost rubber)
+					SetGwithPoissonRatio(0.3); // default G (low poisson ratio)
+
+					SetAsRectangularSection(0.01, 0.01); // defaults Area, Ixx, Iyy, Ks_y, Ks_z, J
 
 					density = 1000;   // default density: water
 					rdamping = 0.01;  // default raleygh damping.
@@ -68,7 +73,21 @@ public:
 	void   SetIzz(double ma) { this->Izz = ma;  }
 	double GetIzz() const {return this->Izz;}
 
-				/// Shortcut: set area, Ixx and Iyy moment of inertia  
+				/// Set the J torsion constant of the beam (for torsion about x axis)
+	void   SetJ(double ma) { this->J = ma;  }
+	double GetJ() const {return this->J;}
+
+				/// Set the Timoshenko shear coefficient Ks for y shear, usually about 0.8,
+				/// (for elements that use this, ex. the Timoshenko beams, or Reddy's beams)
+	void   SetKsy (double ma) { this->Ks_y = ma;  }
+	double GetKsy() const {return this->Ks_y;}
+
+				/// Set the Timoshenko shear coefficient Ks for z shear, usually about 0.8,
+				/// (for elements that use this, ex. the Timoshenko beams, or Reddy's beams)
+	void   SetKsz (double ma) { this->Ks_z = ma;  }
+	double GetKsz() const {return this->Ks_z;}
+
+				/// Shortcut: set Area, Ixx, Iyy, Ksy, Ksz and J torsion constant 
 				/// at once, given the y and z widths of the beam assumed
 				/// with rectangular shape.
 	void   SetAsRectangularSection(double width_y, double width_z) 
@@ -76,6 +95,41 @@ public:
 					this->Area = width_y * width_z; 
 					this->Izz = (1.0/12.0)*width_z*pow(width_y,3);
 					this->Iyy = (1.0/12.0)*width_y*pow(width_z,3);
+
+					// use Roark's formulas for torsion of rectangular sect:
+					double t = ChMin(width_y, width_z);
+					double b = ChMax(width_y, width_z);
+					this->J = b*pow(t,3)* ( (1.0/3.0) - 0.210 * (t/b)*( 1.0- (1.0/12.0)*pow( (t/b) ,4) ) );
+
+					// set Ks using Timoshenko-Gere formula for solid rect.shapes
+					double poisson  = this->E /(2.0*this->G) - 1.0;
+					this->Ks_y = 10.0*(1.0+poisson) / (12.0+ 11.0*poisson); 
+					this->Ks_z = this->Ks_y;
+
+					this->y_drawsize = width_y;
+					this->z_drawsize = width_z;
+				}
+
+				/// Shortcut: set Area, Ixx, Iyy, Ksy, Ksz and J torsion constant
+				/// at once, given the diameter of the beam assumed
+				/// with circular shape.
+	void   SetAsCircularSection(double diameter) 
+				{ 
+					this->Area = CH_C_PI * pow((0.5*diameter),2);
+					this->Izz = (CH_C_PI/4.0)* pow((0.5*diameter),4);
+					this->Iyy = Izz;
+
+					// exact expression for circular beam J = Ixx , 
+					// where for polar theorem Ixx = Izz+Iyy
+					this->J = Izz + Iyy;
+
+					// set Ks using Timoshenko-Gere formula for solid circular shape
+					double poisson  = this->E /(2.0*this->G) - 1.0;
+					this->Ks_y = 6.0*(1.0+poisson) / (7.0+ 6.0*poisson); 
+					this->Ks_z = this->Ks_y;
+
+					this->y_drawsize = diameter;
+					this->z_drawsize = diameter;
 				}
 
 				/// Set the density of the beam (kg/m^3)
@@ -90,9 +144,25 @@ public:
 	void   SetGshearModulus(double mG) { this->G = mG; }
 	double GetGshearModulus() const {return this->G;}
 
+				/// Set G, the shear modulus, given current E and the specified Poisson ratio
+	void   SetGwithPoissonRatio(double mpoisson) { this->G = this->E/(2.0*(1.0+mpoisson)); }
+
 				/// Set the Raleygh damping ratio r (as in: R = r * K ), to do: also mass-proportional term
 	void   SetBeamRaleyghDamping(double mr) { this->rdamping = mr; }
 	double GetBeamRaleyghDamping() {return this->rdamping;}
+
+
+				/// Sets the rectangular thickness of the beam on y and z directions,
+				/// only for drawing/rendering purposes (these thickenss values do NOT
+				/// have any meaning at a physical level, use SetAsRectangularSection() instead
+				/// if you want to affect also the inertias of the beam section).
+	void SetDrawThickness(double thickness_y, double thickness_z)
+				{
+					this->y_drawsize = thickness_y;
+					this->z_drawsize = thickness_z;
+				}
+	double GetDrawThicknessY() {return this->y_drawsize;}
+	double GetDrawThicknessZ() {return this->z_drawsize;}
 
 };
 
