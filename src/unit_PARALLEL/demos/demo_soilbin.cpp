@@ -76,30 +76,39 @@ int main(int argc, char* argv[])
 	// Simulation parameters
 	double gravity = -9.81;
 	double time_step = 0.0001;
-	double time_end = 5;
+	double time_drop = 5;
+	double time_end = 10;
 	int    num_steps = std::ceil(time_end / time_step);
 
 	int max_iteration = 20;
 
 	// Output
 	ChStreamOutAsciiFile sph_file("../soilbin_pos.txt");
-	const char* data_folder = "../DEM";
-	double out_fps = 60;
+	const char* data_folder = "../SOILBIN";
+	double out_fps = 30;
 	int out_steps = std::ceil((1 / time_step) / out_fps);
 
+	// Parameters for the mixture balls
+	double     radius = 0.1;
+	double     density = 2000;
+	double     volume = (4.0/3) * PI * radius * radius * radius;
+	double     mass = density * volume;
+	ChVector<> inertia = 0.4 * mass * radius * radius * ChVector<>(1,1,1);
+
 	// Parameters for the falling ball
-	int             ballId = 100;
-	double          radius = 0.1;
-	double          density = 2000;
-	double          volume = (4.0/3) * PI * radius * radius * radius;
-	double          mass = density * volume;
-	ChVector<>      inertia = 0.4 * mass * radius * radius * ChVector<>(1,1,1);
+	double     dropHeight = 2.5;
+	int        ballId = 100;
+	double     radius1 = 0.5;
+	double     density1 = 2000;
+	double     volume1 = (4.0/3) * PI * radius1 * radius1 * radius1;
+	double     mass1 = density1 * volume1;
+	ChVector<> inertia1 = 0.4 * mass1 * radius1 * radius1 * ChVector<>(1,1,1);
 
 	// Parameters for the containing bin
 	int    binId = -200;
 	double hDimX = 5;          // length in x direction
 	double hDimY = 2;          // depth in y direction
-	double hDimZ = 1;        // height in z direction
+	double hDimZ = 2;          // height in z direction
 	double hThickness = 0.1;   // wall thickness
 
 	// Create system
@@ -131,7 +140,14 @@ int main(int argc, char* argv[])
 
 	((ChCollisionSystemParallel*) msystem->GetCollisionSystem())->ChangeNarrowphase(new ChCNarrowphaseR);
 
-	// Create a material for the balls
+	// Create a material for the ball mixture
+	ChSharedPtr<ChMaterialSurfaceDEM> ballMixMat;
+	ballMixMat = ChSharedPtr<ChMaterialSurfaceDEM>(new ChMaterialSurfaceDEM);
+	ballMixMat->SetYoungModulus(2e6f);
+	ballMixMat->SetFriction(0.4f);
+	ballMixMat->SetDissipationFactor(0.6f);
+
+	// Create a material for the falling ball
 	ChSharedPtr<ChMaterialSurfaceDEM> ballMat;
 	ballMat = ChSharedPtr<ChMaterialSurfaceDEM>(new ChMaterialSurfaceDEM);
 	ballMat->SetYoungModulus(2e6f);
@@ -152,19 +168,43 @@ int main(int argc, char* argv[])
 		utils::Generator gen(msystem);
 	
 		utils::MixtureIngredientPtr& m1 = gen.AddMixtureIngredient(utils::SPHERE, 1.0);
-		m1->setDefaultMaterialDEM(ballMat);
+		m1->setDefaultMaterialDEM(ballMixMat);
 		m1->setDefaultDensity(density);
 		m1->setDefaultSize(radius);
 	
 		gen.createObjectsBox(utils::POISSON_DISK,
 		                     2.01 * radius,
-		                     ChVector<>(0, 0, 3 * hDimZ),
-		                     ChVector<>(0.8 * hDimX, 0.8 * hDimY, 2 * hDimZ));
+		                     ChVector<>(0, 0, 1.5),
+		                     ChVector<>(0.8 * hDimX, 0.8 * hDimY, 1));
 	
 		numObjects = gen.getTotalNumBodies();
 	}
 
 	cout << "Number bodies: " << numObjects << endl;
+
+	// Create the falling ball, but do not add it to the system
+	ChSharedBodyDEMPtr ball(new ChBodyDEM(new ChCollisionModelParallel));
+
+	ball->SetMaterialSurfaceDEM(binMat);
+
+	ball->SetIdentifier(binId);
+	ball->SetMass(mass1);
+	ball->SetInertiaXX(inertia1);
+	ball->SetPos(ChVector<>(0, 0, dropHeight));
+	ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
+	ball->SetCollide(true);
+	ball->SetBodyFixed(false);
+
+	ball->GetCollisionModel()->ClearModel();
+	ball->GetCollisionModel()->AddSphere(radius1);
+	ball->GetCollisionModel()->BuildModel();
+
+	ChSharedPtr<ChSphereShape> ball_shape = ChSharedPtr<ChAsset>(new ChSphereShape);
+	ball_shape->SetColor(ChColor(0, 0, 1));
+	ball_shape->GetSphereGeometry().rad = radius1;
+	ball_shape->Pos = ChVector<>(0,0,0);
+	ball_shape->Rot = ChQuaternion<>(1,0,0,0);
+	ball->GetAssets().push_back(ball_shape);
 
 	// Create the containing bin
 	ChSharedBodyDEMPtr bin(new ChBodyDEM(new ChCollisionModelParallel));
@@ -180,9 +220,9 @@ int main(int argc, char* argv[])
 
 	bin->GetCollisionModel()->ClearModel();
 	AddWall(bin, ChVector<>(0, 0, -hThickness), ChVector<>(hDimX, hDimY, hThickness));
-	AddWall(bin, ChVector<>(-hDimX-hThickness, 0, hDimZ), ChVector<>(hThickness, hDimY, 2*hDimZ));
+	AddWall(bin, ChVector<>(-hDimX-hThickness, 0, hDimZ), ChVector<>(hThickness, hDimY, hDimZ));
 	AddWall(bin, ChVector<>( hDimX+hThickness, 0, hDimZ), ChVector<>(hThickness, hDimY, hDimZ));
-	AddWall(bin, ChVector<>(0, -hDimY-hThickness, hDimZ), ChVector<>(hDimX, hThickness, 2*hDimZ));
+	AddWall(bin, ChVector<>(0, -hDimY-hThickness, hDimZ), ChVector<>(hDimX, hThickness, hDimZ));
 	AddWall(bin, ChVector<>(0,  hDimY+hThickness, hDimZ), ChVector<>(hDimX, hThickness, hDimZ));
 	bin->GetCollisionModel()->BuildModel();
 
@@ -193,13 +233,26 @@ int main(int argc, char* argv[])
 	int out_frame = 0;
 	char filename[100];
 
+	bool dropped = false;
 	double exec_time = 0;
 
 	for (int i = 0; i < num_steps; i++) {
+		if (!dropped && time >= time_drop) {
+			cout << " >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> DROP BALL" << endl;
+			msystem->AddBody(ball);
+			dropped = true;
+		}
+
 		if (i % out_steps == 0) {
-			sprintf(filename, "%s/data_%03d.dat", data_folder, out_frame);
+			// Output for Renderman
+			sprintf(filename, "%s/RENDERMAN/data_%03d.dat", data_folder, out_frame);
 			utils::WriteShapesRender(msystem, filename);
 
+			// Output for POV-Ray
+			sprintf(filename, "%s/POVRAY/data_%03d.dat", data_folder, out_frame);
+			utils::WriteShapesPovray(msystem, filename);
+
+			// Stats
 			cout << " --------------------------------- " << out_frame << "  " << time << "  " <<  endl;
 			cout << "                                   " << FindLowest(*msystem) << endl;
 			cout << "                                   " << exec_time << endl;
