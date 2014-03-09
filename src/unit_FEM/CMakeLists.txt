@@ -18,6 +18,7 @@ IF(ENABLE_UNIT_FEM)
 
 	
 	SET(ChronoEngine_UNIT_FEM_SOURCES
+		ChBuilderBeam.cpp
 		ChElementGeneric.cpp
 		ChElementSpring.cpp  
 		ChElementBar.cpp  
@@ -38,6 +39,7 @@ IF(ENABLE_UNIT_FEM)
 	SET(ChronoEngine_UNIT_FEM_HEADERS
 		ChApiFEM.h  
 		ChBeamSection.h
+		ChBuilderBeam.h
 		ChContinuumPoisson3D.h
 		ChContinuumThermal.h
 		ChContinuumElectrostatics.h
