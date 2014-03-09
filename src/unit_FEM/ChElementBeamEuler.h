@@ -287,8 +287,7 @@ public:
 					double l_xy = 1+3*om_xy;
 					double e_xy = 1-6*om_xy;
 
-					double h = this->length;
-					double Jpolar = Izz+Iyy;
+					
 					double k_u = E*Area/h;
 					double k_f = G*Jpolar/h;
 					
