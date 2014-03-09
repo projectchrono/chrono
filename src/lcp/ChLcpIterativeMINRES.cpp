@@ -36,6 +36,12 @@ double ChLcpIterativeMINRES::Solve(
 	std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
 	std::vector<ChLcpVariables*>&  mvariables	= sysd.GetVariablesList();
 
+		// If stiffness blocks are used, the Schur complement cannot be esily
+		// used, so fall back to the Solve_SupportingStiffness method, that operates on KKT.
+	if (sysd.GetKblocksList().size() > 0)
+		return this->Solve_SupportingStiffness(sysd);
+
+
 	tot_iterations=0;
 	double maxviolation = 0.;
 	int i_friction_comp = 0;
@@ -371,6 +377,200 @@ double ChLcpIterativeMINRES::Solve(
 }
 
 
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+
+
+
+double ChLcpIterativeMINRES::Solve_SupportingStiffness(
+				ChLcpSystemDescriptor& sysd		///< system description with constraints and variables	
+				)
+{
+	bool do_preconditioning = this->diag_preconditioning;
+
+	std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
+	std::vector<ChLcpVariables*>&  mvariables	= sysd.GetVariablesList();
+	std::vector<ChLcpKblock*>&     mstiffness	= sysd.GetKblocksList();
+
+	this->tot_iterations = 0;
+
+	// Allocate auxiliary vectors;
+	
+	int nv = sysd.CountActiveVariables();
+	int nc = sysd.CountActiveConstraints();
+	int nx = nv+nc;  // total scalar unknowns, in x vector for full KKT system Z*x-d=0
+
+	if (verbose) 
+		GetLog() <<"\n-----Projected MINRES -supporting stiffness-, n.vars nx=" << nx << "  max.iters=" << max_iterations << "\n";
+
+
+	ChMatrixDynamic<> x(nx,1);
+	ChMatrixDynamic<> d(nx,1);
+	ChMatrixDynamic<> p(nx,1);
+	ChMatrixDynamic<> r(nx,1);
+	ChMatrixDynamic<> Zr(nx,1);
+	ChMatrixDynamic<> Zp(nx,1);
+	ChMatrixDynamic<> MZp(nx,1);
+	ChMatrixDynamic<> r_old(nx,1);
+	ChMatrixDynamic<> Zr_old(nx,1);
+
+	ChMatrixDynamic<> tmp(nx,1);
+	ChMatrixDynamic<> mDi (nx,1);
+
+	this->tot_iterations = 0;
+	double maxviolation = 0.;
+
+
+	//
+	// --- Compute a diagonal (scaling) preconditioner for the KKT system:
+    //
+
+	// Initialize the mDi vector with the diagonal of the Z matrix
+	sysd.BuildDiagonalVector(mDi);
+
+	// Pre-invert the values, to avoid wasting time with divisions in the following.
+	// From now, mDi contains the inverse of the diagonal of Z.
+	// Note, for constraints, the diagonal is 0, so set inverse of D as 1 assuming
+	// a constraint preconditioning and assuming the dot product of jacobians is already about 1.
+	for (int nel=0; nel < mDi.GetRows(); nel++)
+	{
+		if (fabs(mDi(nel)) > 1e-9)
+			mDi(nel) = 1.0/mDi(nel);
+		else 
+			mDi(nel) = 1.0;
+	}
+
+
+	//
+	// --- Vector initialization and book-keeping 
+    //
+
+
+	// Initialize the x vector of unknowns x ={q; -l} (if warm starting needed, initialize 
+	// x with current values of q and l in variables and constraints)
+	if (warm_start)
+		sysd.FromUnknownsToVector(x);
+	else
+		x.FillElem(0);
+
+	// Initialize the d vector filling it with {f, -b}
+	sysd.BuildDiVector(d);
+
+
+	//
+	// --- THE P-MINRES ALGORITHM
+	//
+
+	double rel_tol = this->rel_tolerance;
+	double abs_tol = this->tolerance;
+	double rel_tol_d = d.NormInf() * rel_tol;
+
+	//r = d - Z*x; 
+    sysd.SystemProduct(r, &x);				// 1)  r = Z*x ...        #### MATR.MULTIPLICATION!!!### can be avoided if no warm starting!
+	r.MatrNeg();							// 2)  r =-Z*x
+	r.MatrInc(d);							// 3)  r =-Z*x+d
+
+	//r = M(r)								//						   ## Precond
+	if (do_preconditioning)
+		r.MatrScale(mDi);
+  
+	//p = r
+    p = r;									
+    
+	// Zr = Z*r;
+	sysd.SystemProduct(Zr, &r);				// 1)  Zr = Z*r ...        #### MATR.MULTIPLICATION!!!### 
+
+	// Zp = Z*p;
+    Zp = Zr;
+
+
+	//
+	// THE LOOP
+	//
+
+	for (int iter = 0; iter < max_iterations; iter++)
+	{
+		// MZp = M*Z*p
+		MZp = Zp;
+		if (do_preconditioning)
+			MZp.MatrScale(mDi);
+			
+		// alpha = (r' * Zr) / ((Zp)'*(MZp));
+		double rZr   = r.MatrDot(&r,&Zr);		// 1)  z'* Zr
+		double ZpMZp = r.MatrDot(&Zp,&MZp);	// 2)  ZpMZp = (Zp)'*(MZp)
+		
+		double alpha = rZr / ZpMZp;
+
+        // x = x + alpha * p;
+        tmp = p;
+		tmp.MatrScale(alpha);
+		x.MatrInc(tmp);
+
+		double maxdeltaunknowns = tmp.NormTwo(); 
+
+        // Terminate iteration when the projected r is small, if (norm(r,2) <= max(rel_tol_d,abs_tol))
+		double r_proj_resid = r.NormTwo();
+		if (r_proj_resid < ChMax(rel_tol_d, abs_tol) )
+		{
+			if (verbose) 
+				GetLog() << "P(r)-converged! iter=" << iter <<  " |P(r)|=" << r_proj_resid << "\n";
+			break;
+		}
+        
+		// r_old = r;
+        r_old = r;
+        
+		// r = r - alpha * MZp;
+        tmp = MZp;
+		tmp.MatrScale(-alpha);
+		r.MatrInc(tmp);
+        
+        // Zr_old = Zr;
+		Zr_old = Zr;
+        
+		// Zr = Z*r;                                   
+		sysd.SystemProduct(Zr, &r);				// 1)  Zr = Z*r ...        #### MATR.MULTIPLICATION!!!### 
+
+         
+        // beta = (r' * N*r) / (r_old' * N*r_old);
+		double numerator   = r.MatrDot(&r,&Zr);				// 1)  r'* Z *r
+		double denominator = r.MatrDot(&r_old,&Zr_old);	// 2)  r_old'* Z *r_old
+
+		double beta = numerator/denominator;
+
+		// p = r + beta * p;   
+		tmp = p;
+		tmp.MatrScale(beta);
+		p = r;
+		p.MatrInc(tmp);
+
+		// Zp = Zr + beta * Zp;  % avoids multiply for Np=N*p
+		Zp.MatrScale(beta);
+		Zp.MatrInc(Zr);
+
+
+		// ---------------------------------------------
+		// METRICS - convergence, plots, etc
+
+		// For recording into correction/residuals/violation history, if debugging
+		if (this->record_violation_history)
+			AtIterationEnd(r_proj_resid, maxdeltaunknowns, iter);
+	}
+
+
+	// After having solved for unknowns x={q;-l}, now copy those values from x vector to
+	// the q values in ChLcpVariable items and to l values in ChLcpConstraint items
+	sysd.FromVectorToUnknowns(x);  
+
+
+	if (verbose) GetLog() <<"MINRES residual: "<< r.NormTwo() << " ---\n";
+
+	return maxviolation;
+
+}
 
 
 

@@ -58,6 +58,8 @@ protected:
 			//
 	double	feas_tolerance;
 	int		max_fixedpoint_steps;
+	bool    diag_preconditioning;
+	double  rel_tolerance;
 
 public:
 			//
@@ -71,8 +73,10 @@ public:
 				)  
 			: ChLcpIterativeSolver(mmax_iters,mwarm_start, mtolerance,0.2)
 			{
+				rel_tolerance = 0.0;
 				feas_tolerance = 0.2;
 				max_fixedpoint_steps = 6;
+				diag_preconditioning = true;
 			};
 				
 	virtual ~ChLcpIterativeMINRES() {};
@@ -88,6 +92,12 @@ public:
 				ChLcpSystemDescriptor& sysd		///< system description with constraints and variables	 
 				);
 
+				/// Same as Solve(), but this also supports the presence of
+				/// ChLcpKblock blocks. If Solve() is called and stiffness is present,
+				/// Solve() automatically falls back to this function.
+	virtual double Solve_SupportingStiffness(
+				ChLcpSystemDescriptor& sysd		///< system description with constraints and variables	 
+				);
 
 	void   SetFeasTolerance (double mf) {this->feas_tolerance = mf;}
 	double GetFeasTolerance () {return this->feas_tolerance;}
@@ -95,6 +105,11 @@ public:
 	void SetMaxFixedpointSteps (int mm) {this->max_fixedpoint_steps = mm;}
 	int  GetMaxFixedpointSteps () {return this->max_fixedpoint_steps;}
 
+	void   SetRelTolerance (double mrt) {this->rel_tolerance = mrt;}
+	double GetRelTolerance () {return this->rel_tolerance;}
+
+	void SetDiagonalPreconditioning(bool mp) {this->diag_preconditioning = mp;}
+	bool GetDiagonalPreconditioning() {return this->diag_preconditioning;}
 
 };
 

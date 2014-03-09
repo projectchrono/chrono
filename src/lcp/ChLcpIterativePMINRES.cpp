@@ -471,6 +471,9 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 		}
 		 
 		double alpha = zZMr/MZpZp;					// 3)  alpha = (z'*(ZMr))/((MZp)'*(Zp));
+		
+		if (alpha<0)
+			if (verbose) GetLog() << "Rayleygh alpha < 0: " << alpha << "    iter=" << iter << "\n";
 
 		// x = x + alpha * p;
 		mtmp = mp;
@@ -521,11 +524,14 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 		// ZMr = Z*z;                             
 		sysd.SystemProduct(mZMr, &mz);		// ZMr = Z*z;    #### MATR.MULTIPLICATION!!!###
 
+		// Ribiere quotient (for flexible preconditioning)
 		// beta = z'*(ZMr-ZMr_old)/(z_old'*(ZMr_old));
 		mtmp.MatrSub(mZMr,mZMr_old);
 		double numerator = mz.MatrDot(&mz,&mtmp);
 		double denominator = mz_old.MatrDot(&mz_old, &mZMr_old);
-	 
+		// Raleygh quotient (original Minres)
+		//double numerator   = mr.MatrDot(&mz,&mZMr);			// 1)  r'* Z *r
+		//double denominator = mr.MatrDot(&mz_old,&mZMr_old);	// 2)  r_old'* Z *r_old
 		double beta = numerator / denominator;
 		
 		// Robustness improver: restart if beta=0 or too large 
