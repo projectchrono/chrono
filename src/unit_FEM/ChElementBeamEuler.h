@@ -699,8 +699,8 @@ public:
 							Klaw_r(i,3) +=  Sz * Klaw_r(i,1) -Sy * Klaw_r(i,2);
 						
 						// .. compute wrench = Klaw_l * sect_ek
-						ChMatrixNM<double,6> wrench;
-						wrench = Klaw_r * sect_ek;
+						ChMatrixNM<double,6,1> wrench;
+						wrench.MatrMultiply(Klaw_r, sect_ek);
 						Fforce  = wrench.ClipVector(0,0);
 						Mtorque = wrench.ClipVector(3,0);
 
