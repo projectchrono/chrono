@@ -276,10 +276,19 @@ public:
 					double Iyy  = section->Iyy;
 					double G    = section->G;
 
+					double h	= this->length;
+					double Jpolar = section->J;
+
 					double om_xz = 0; // For Euler-Bernoulli
 					double om_xy = 0; // For Euler-Bernoulli
-					// double om_xz = ...; // For Reddy's RBT 
-					// double om_xy = ...; // For Reddy's RBT 
+					if (true)
+					{
+						//***TEST REDDY BEAMS***
+						double Ks_z = section->Ks_z;
+						double Ks_y = section->Ks_y;
+						double om_xz = E*Iyy/(G*Area*Ks_z*h); // For Reddy's RBT 
+						double om_xy = E*Izz/(G*Area*Ks_y*h); // For Reddy's RBT 
+					}
 					double u_xz = 1+12*om_xz;
 					double l_xz = 1+3*om_xz;
 					double e_xz = 1-6*om_xz;
