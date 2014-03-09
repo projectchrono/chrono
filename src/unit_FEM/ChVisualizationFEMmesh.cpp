@@ -601,6 +601,17 @@ void ChVisualizationFEMmesh::Update ()
 			// downcasting 
 			ChSharedPtr<ChElementBeam> mybeam ( this->FEMmesh->GetElement(iel) );
 
+			double y_thick = 0.01; // line thickness default value
+			double z_thick = 0.01; 
+
+			ChSharedPtr<ChElementBeamEuler> mybeameuler ( mybeam );
+			if (!mybeameuler.IsNull())
+			{
+				// if the beam has a section info, use section specific thickness for drawing
+				y_thick = 0.5*mybeameuler->GetSection()->GetDrawThicknessY();
+				z_thick = 0.5*mybeameuler->GetSection()->GetDrawThicknessZ();
+			}
+
 			unsigned int ivert_el = i_verts;
 			unsigned int inorm_el = i_vnorms;
 
@@ -648,8 +659,6 @@ void ChVisualizationFEMmesh::Update ()
 				}
 				ChVector<float> mcol = ComputeFalseColor(sresult);
 
-				double y_thick = 0.5*mybeam->GetDrawThicknessY();
-				double z_thick = 0.5*mybeam->GetDrawThicknessZ();
 				trianglemesh.getCoordsVertices()[i_verts] = P + msectionrot.Rotate(ChVector<>(0,-y_thick,-z_thick) ); 
 				++i_verts;
 				trianglemesh.getCoordsVertices()[i_verts] = P + msectionrot.Rotate(ChVector<>(0, y_thick,-z_thick) ) ; 
