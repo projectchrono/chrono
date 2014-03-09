@@ -105,6 +105,22 @@ IF (ENABLE_UNIT_IRRLICHT)
 	install(TARGETS demo_FEMbeams DESTINATION bin)
 	
 	
+	ADD_EXECUTABLE(demo_FEMbeamsconstr  demo_FEMbeamsconstr.cpp)
+	SOURCE_GROUP(demos\\fem FILES  		demo_FEMbeamsconstr.cpp)
+	SET_TARGET_PROPERTIES(demo_FEMbeamsconstr PROPERTIES 
+		FOLDER demos
+		LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+		)
+	TARGET_LINK_LIBRARIES(demo_FEMbeamsconstr 
+		${CH_IRRLICHTLIB}
+		ChronoEngine
+		ChronoEngine_FEM
+		)
+	ADD_DEPENDENCIES (demo_FEMbeamsconstr ChronoEngine ChronoEngine_FEM)
+
+	install(TARGETS demo_FEMbeamsconstr DESTINATION bin)
+	
+	
 	ADD_EXECUTABLE(demo_FEMelectrostatics  		demo_FEMelectrostatics.cpp)
 	SOURCE_GROUP(demos\\fem FILES  		demo_FEMelectrostatics.cpp)
 	SET_TARGET_PROPERTIES(demo_FEMelectrostatics PROPERTIES 
