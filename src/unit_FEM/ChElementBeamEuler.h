@@ -179,7 +179,7 @@ public:
 						// propose Y_w as absolute dir of the Y axis of B node, removing the effect of Bref-to-B rotation if any:
 						//    Y_w = [R Bref->w ]*[R Bref->B ]'*{0,1,0}
 						ChVector<> myele_wB = nodes[1]->Frame().GetRot().Rotate( q_refrotB.RotateBack( ChVector<>(0,1,0) ) );
-						// Average the two Y directions to have midpoint torsion (ex -30ï¿½ torsion A and +30ï¿½ torsion B= 0ï¿½)
+						// Average the two Y directions to have midpoint torsion (ex -30° torsion A and +30° torsion B= 0°)
 						ChVector<> myele_w = (myele_wA + myele_wB).GetNormalized();
 						Aabs.Set_A_Xdir(mXele_w, myele_w);
 						q_element_abs_rot = Aabs.Get_A_quaternion(); 
@@ -444,6 +444,7 @@ public:
 					R.push_back(&AtolocwelA);
 					R.push_back(&Atoabs);
 					R.push_back(&AtolocwelB);
+
 					ChMatrixCorotation<>::ComputeCK(this->StiffnessMatrix, R, 4, CK);
 					ChMatrixCorotation<>::ComputeKCt(CK, R, 4, CKCt);
 
@@ -464,7 +465,7 @@ public:
 					double lmass = mass*0.5;
 					double lineryz = (1./50.)* mass * pow(length,2); // note: 1/50 can be even less (this is 0 in many texts)
 					double linerx  = (1./2.) * length * section->GetDensity() * (section->GetIyy() + section->GetIzz()); //***TO CHECK***just for test 
-					
+
 					Mloc(0,0) += Mfactor* lmass; //node A x,y,z
 					Mloc(1,1) += Mfactor* lmass;
 					Mloc(2,2) += Mfactor* lmass;
@@ -485,7 +486,7 @@ public:
 					ChMatrixCorotation<>::ComputeKCt(CK, R, 4, CKCt);
 		
 					H.PasteSumMatrix(&CKCt,0,0);
-					
+
 					//***TO DO*** better per-node lumping, or 4x4 consistent mass matrices, maybe with integration if not uniform materials.
 				}
 
@@ -531,15 +532,15 @@ public:
 					ChMatrixCorotation<>::ComputeCK(FiK_local, R, 4, Fi);
 
 					#ifdef BEAM_VERBOSE
-					GetLog() << "\nInternal forces (local): \n";
-					for (int c = 0; c<6; c++)  GetLog() << FiK_local(c) << "  "; 
-					GetLog() << "\n";
-					for (int c = 6; c<12; c++) GetLog() << FiK_local(c) << "  ";
-					GetLog() << "\n\nInternal forces (ABS) : \n";
-					for (int c = 0; c<6; c++)  GetLog() << Fi(c) << "  "; 
-					GetLog() << "\n";
-					for (int c = 6; c<12; c++) GetLog() << Fi(c) << "  ";
-					GetLog() << "\n";
+						GetLog() << "\nInternal forces (local): \n";
+						for (int c = 0; c<6; c++)  GetLog() << FiK_local(c) << "  "; 
+						GetLog() << "\n";
+						for (int c = 6; c<12; c++) GetLog() << FiK_local(c) << "  ";
+						GetLog() << "\n\nInternal forces (ABS) : \n";
+						for (int c = 0; c<6; c++)  GetLog() << Fi(c) << "  "; 
+						GetLog() << "\n";
+						for (int c = 6; c<12; c++) GetLog() << Fi(c) << "  ";
+						GetLog() << "\n";
 					#endif
 				}
 
@@ -656,7 +657,7 @@ public:
 					sect_ek(5) = (ddN_ua*displ(1)+ddN_ub*displ(7)+   // y_a   y_b
 								  ddN_ra*displ(5)+ddN_rb*displ(11));  // Rz_a  Rz_b 
 
-					if (section->alpha ==0 && section->Cy ==0 && section->Cz==0 && section->Sy==0 && section->Sz==0)
+					if (false) //section->alpha ==0 && section->Cy ==0 && section->Cz==0 && section->Sy==0 && section->Sz==0)
 					{
 						// Fast computation:
 						Fforce.x = this->section->E * this->section->Area* sect_ek(0);
@@ -688,6 +689,7 @@ public:
 						double Klaw_d5 = this->section->E * this->section->Izz;
 						// ..unrolled rotated constitutive matrix..
 						ChMatrixNM<double,6,6> Klaw_r; 
+						
 						Klaw_r(0,0) = Klaw_d0;
 						Klaw_r(1,1) = Klaw_d1 *cb*cb + Klaw_d2 *sb*sb;
 						Klaw_r(2,2) = Klaw_d1 *sb*sb + Klaw_d2 *cb*cb;
@@ -698,6 +700,7 @@ public:
 						Klaw_r(5,5) = Klaw_d4 *sa*sa + Klaw_d5 *ca*ca;
 						Klaw_r(4,5) = Klaw_d4 *ca*sa - Klaw_d5 *ca*sa;
 						Klaw_r(5,4) = Klaw_r(4,5);
+						
 						// ..also translate for Cy Cz
 						for (int i = 0; i<6; ++i)
 							Klaw_r(4,i) +=  Cz * Klaw_r(0,i);
