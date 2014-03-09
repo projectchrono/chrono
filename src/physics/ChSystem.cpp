@@ -41,7 +41,7 @@
 #include "lcp/ChLcpIterativeSymmSOR.h"
 #include "lcp/ChLcpIterativeSORmultithread.h"
 #include "lcp/ChLcpIterativeJacobi.h"
-//#include "lcp/ChLcpIterativeMINRES.h"
+#include "lcp/ChLcpIterativeMINRES.h"
 #include "lcp/ChLcpIterativePMINRES.h"
 #include "lcp/ChLcpIterativeBB.h"
 #include "lcp/ChLcpIterativePCG.h"
@@ -596,6 +596,10 @@ void ChSystem::SetLcpSolverType(eCh_lcpSolver mval)
 	case LCP_ITERATIVE_APGD:
 		LCP_solver_speed = new ChLcpIterativeAPGD();
 		LCP_solver_stab = new ChLcpIterativeAPGD();
+		break;
+	case LCP_ITERATIVE_MINRES:
+		LCP_solver_speed = new ChLcpIterativeMINRES();
+		LCP_solver_stab = new ChLcpIterativeMINRES();
 		break;
 	default:
 		LCP_solver_speed = new ChLcpIterativeSymmSOR();

@@ -309,7 +309,9 @@ public:
 						 LCP_ITERATIVE_BARZILAIBORWEIN,
 						 LCP_ITERATIVE_PCG,
 						 LCP_ITERATIVE_APGD,
-						 LCP_DEM};
+						 LCP_DEM,
+						 LCP_ITERATIVE_MINRES,
+					};
 
 				/// Choose the LCP solver type, to be used for the simultaneous
 				/// solution of the constraints in dynamical simulations (as well as 
