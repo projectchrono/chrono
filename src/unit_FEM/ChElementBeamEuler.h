@@ -609,7 +609,7 @@ public:
 				{
 					assert (!section.IsNull());
 
-					double Jpolar = section->Izz + section->Iyy;
+					double Jpolar = section->J;
 
 					ChMatrixNM<double,1,12> N;
 
