@@ -202,7 +202,7 @@ void WriteShapesRender(T*                 mSys,
 //
 // Write CSV output file for PovRay.
 // Each line contains information about one visualization asset shape, as follows:
-//    p.x,p.y,p.z,q.e0,q.e1,q.e2,q.e3,v.x,v.y,v.z,type,geometry
+//    index, x, y, z, e0, e1, e2, e3, type, geometry
 // where 'geometry' depends on 'type' (an enum).
 // -------------------------------------------------------------------------------
 template <typename T>
@@ -211,6 +211,8 @@ void WriteShapesPovray(T*                 mSys,
                        const std::string& delim = ",")
 {
 	CSV_writer csv(delim);
+
+	int index = 0;
 
 	for (int i = 0; i < mSys->Get_bodylist()->size(); i++) {
 		ChBody* abody = mSys->Get_bodylist()->at(i);
@@ -254,7 +256,9 @@ void WriteShapesPovray(T*                 mSys,
 				geometry << CONE << delim << size.x << delim << size.y;
 			}
 
-			csv << pos << rot << body_vel << geometry.str() << std::endl;
+			csv << index << pos << rot << geometry.str() << std::endl;
+
+			index++;
 		}
 	}
 
