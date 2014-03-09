@@ -172,9 +172,16 @@ public:
 					}
 					else
 					{
-						ChVector<> mXele = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
-						ChVector<> myele = nodes[0]->Frame().GetA()->Get_A_Yaxis();
-						Aabs.Set_A_Xdir(mXele, myele);
+						ChVector<> mXele_w = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
+						// propose Y_w as absolute dir of the Y axis of A node, removing the effect of Aref-to-A rotation if any:
+						//    Y_w = [R Aref->w ]*[R Aref->A ]'*{0,1,0}
+						ChVector<> myele_wA = nodes[0]->Frame().GetRot().Rotate( q_refrotA.RotateBack( ChVector<>(0,1,0) ) );
+						// propose Y_w as absolute dir of the Y axis of B node, removing the effect of Bref-to-B rotation if any:
+						//    Y_w = [R Bref->w ]*[R Bref->B ]'*{0,1,0}
+						ChVector<> myele_wB = nodes[1]->Frame().GetRot().Rotate( q_refrotB.RotateBack( ChVector<>(0,1,0) ) );
+						// Average the two Y directions to have midpoint torsion (ex -30� torsion A and +30� torsion B= 0�)
+						ChVector<> myele_w = (myele_wA + myele_wB).GetNormalized();
+						Aabs.Set_A_Xdir(mXele_w, myele_w);
 						q_element_abs_rot = Aabs.Get_A_quaternion(); 
 					}
 
