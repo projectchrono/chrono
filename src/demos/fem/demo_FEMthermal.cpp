@@ -20,7 +20,7 @@
 
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
-#include "lcp/ChLcpIterativePMINRES.h"
+#include "lcp/ChLcpIterativeMINRES.h"
 #include "unit_FEM/ChElementSpring.h"
 #include "unit_FEM/ChElementBar.h"
 #include "unit_FEM/ChElementTetra_4.h"
@@ -45,9 +45,6 @@ using namespace fem;
 
 
 
-
-// Do some tests in a single run, inside the main() function.
-// Results will be simply text-formatted outputs in the console..
 
 int main(int argc, char* argv[])
 {
@@ -199,7 +196,7 @@ int main(int argc, char* argv[])
 	// THE SOFT-REAL-TIME CYCLE
 	//
 
-	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES); // <- NEEDED because other solvers can't handle stiffness matrices
+	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES); // <- NEEDED because other solvers can't handle stiffness matrices
 	my_system.SetIterLCPwarmStarting(false); // this helps a lot to speedup convergence in this class of problems
 	my_system.SetIterLCPmaxItersSpeed(160);
 

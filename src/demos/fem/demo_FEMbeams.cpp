@@ -22,7 +22,9 @@
 #include "physics/ChSystem.h"
 #include "physics/ChLinkMate.h"
 #include "lcp/ChLcpIterativePMINRES.h"
+#include "lcp/ChLcpIterativeMINRES.h"
 #include "unit_FEM/ChElementBeamEuler.h"
+#include "unit_FEM/ChBuilderBeam.h"
 #include "unit_FEM/ChMesh.h"
 #include "unit_FEM/ChVisualizationFEMmesh.h"
 #include "irrlicht_interface/ChIrrApp.h"
@@ -36,9 +38,6 @@ using namespace fem;
 
 
 
-
-// Do some tests in a single run, inside the main() function.
-// Results will be simply text-formatted outputs in the console..
 
 int main(int argc, char* argv[])
 {
@@ -72,13 +71,15 @@ int main(int argc, char* argv[])
 	
 	ChSharedPtr<ChBeamSectionAdvanced> msection(new ChBeamSectionAdvanced);
 
-	double beam_wy = 0.02;
-	double beam_wz = 0.02;
+	double beam_wy = 0.012;
+	double beam_wz = 0.025;
 	msection->SetAsRectangularSection(beam_wy, beam_wz);
 	msection->SetYoungModulus (0.01e9);
 	msection->SetGshearModulus(0.01e9 * 0.3);
 	msection->SetBeamRaleyghDamping(0.000);
-	msection->SetCentroid(0.0,0.0);
+	//msection->SetCentroid(0,0.2); 
+	//msection->SetShearCenter(0,0.1); 
+	//msection->SetSectionRotation(45*CH_C_RAD_TO_DEG);
 
 
 	//
@@ -88,7 +89,7 @@ int main(int argc, char* argv[])
 	double beam_L  = 0.1;
 	
 
-	ChSharedPtr<ChNodeFEMxyzrot> hnode1(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(0,0,0)) ));
+	ChSharedPtr<ChNodeFEMxyzrot> hnode1(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(0,0,0)) )); //, Q_from_AngAxis( -0.5, VECT_Y )) ));
 	ChSharedPtr<ChNodeFEMxyzrot> hnode2(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(beam_L,0,0)) ));
 	ChSharedPtr<ChNodeFEMxyzrot> hnode3(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(beam_L*2,0,0)) ));
 
@@ -99,9 +100,8 @@ int main(int argc, char* argv[])
 	ChSharedPtr<ChElementBeamEuler> belement1 (new ChElementBeamEuler);
 
 	belement1->SetNodes(hnode1, hnode2);
-
+//belement1->SetNodeAreferenceRot( Q_from_AngAxis( -0.5, VECT_Y ) ) ;
 	belement1->SetSection(msection);
-	belement1->SetDrawThickness(beam_wy, beam_wz);
 
 	my_mesh->AddElement(belement1);
 
@@ -112,26 +112,26 @@ int main(int argc, char* argv[])
 	belement2->SetNodes(hnode2, hnode3);
 
 	belement2->SetSection(msection);
-	belement2->SetDrawThickness(beam_wy, beam_wz);
 
 	my_mesh->AddElement(belement2);
 
 
 				// Apply a force to a node
-//hnode3->SetForce( ChVector<>(0, -2, 0));
-	//hnode2->SetForce( ChVector<>(0,-6,0));
+	//hnode3->SetForce( ChVector<>(10, 0, 0) );
 	//hnode3->SetForce( ChVector<>(0,-3,-3));
-hnode3->SetTorque( ChVector<>(0, -0.3, 0));
-
+	hnode3->SetForce( ChVector<>(2,0,0));
+hnode3->SetTorque( ChVector<>(0, -0.02, 0));
 
 
 				// Fix a body to ground
 	hnode1->SetFixed(true);
 
+
+
 			// Create another element 90° to do an "L" shape:
 
-	ChSharedPtr<ChNodeFEMxyzrot> hnode4(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(2*beam_L,0,0), ChQuaternion<>(sqrt(0.5),0,-sqrt(0.5),0) )));// -CH_C_PI_2, VECT_Y )));
-	ChSharedPtr<ChNodeFEMxyzrot> hnode5(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(2*beam_L,0,beam_L),  ChQuaternion<>(sqrt(0.5),0,-sqrt(0.5),0) )));// -CH_C_PI_2, VECT_Y ) ));
+	ChSharedPtr<ChNodeFEMxyzrot> hnode4(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(2*beam_L,0,0), ChQuaternion<>(sqrt(0.5),0,-sqrt(0.5),0) )));
+	ChSharedPtr<ChNodeFEMxyzrot> hnode5(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(2*beam_L,0,beam_L),  ChQuaternion<>(sqrt(0.5),0,-sqrt(0.5),0) )));
 
 
 	my_mesh->AddNode(hnode4);
@@ -142,19 +142,18 @@ hnode3->SetTorque( ChVector<>(0, -0.3, 0));
 	belement3->SetNodes(hnode4, hnode5);
 
 	belement3->SetSection(msection);
-	belement3->SetDrawThickness(beam_wy, beam_wz);
 
 	my_mesh->AddElement(belement3);
 
 	belement3->UpdateRotation();
 	
-//hnode4->SetFixed(true);
 	//hnode5->SetTorque( ChVector<>(1,0,0));
-	//hnode4->SetForce( ChVector<>(0,-2,0));
-//hnode5->SetForce( ChVector<>(0,-1,0));
+	//hnode5->SetForce( ChVector<>(0,-1,0));
+	//hnode5->SetTorque( ChVector<>(0,0,0.05));
+hnode5->SetFixed(true);
 
 		// Create a constraint between the two segments of the "L":
-
+/*
 	ChSharedPtr<ChLinkMateGeneric> constraint2(new ChLinkMateGeneric);
 	ChFrame<> mfra2;
 	constraint2->Initialize(hnode3,
@@ -165,6 +164,42 @@ hnode3->SetTorque( ChVector<>(0, -0.3, 0));
 	ChSharedPtr<ChBoxShape> mboxconstr2(new ChBoxShape);
 	mboxconstr2->GetBoxGeometry().SetLenghts( ChVector<>(beam_wy*1.05) );
 	constraint2->AddAsset(mboxconstr2);
+*/
+
+	//
+	// Add some EULER-BERNOULLI BEAMS (the fast way!)
+	//
+
+				// Shortcut!
+				// This ChBuilderBeam helper object is very useful because it will 
+				// subdivide 'beams' into sequences of finite elements of beam type, ex.
+				// one 'beam' could be made of 5 FEM elements of ChElementBeamEuler class.
+				// If new nodes are needed, it will create them for you.
+	ChBuilderBeam builder;
+
+				// Now, simply use BuildBeam to create a beam from a point to another: 
+	builder.BuildBeam(	my_mesh,		// the mesh where to put the created nodes and elements 
+						msection,		// the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
+						5,				// the number of ChElementBeamEuler to create
+						ChVector<>(0, 0, -0.1),		// the 'A' point in space (beginning of beam)
+						ChVector<>(0.2, 0, -0.1),	// the 'B' point in space (end of beam)
+						ChVector<>(0,1,0));			// the 'Y' up direction of the section for the beam
+	
+				// After having used BuildBeam(), you can retrieve the nodes used for the beam,
+				// For example say you want to fix the A end and apply a force to the B end:
+	builder.GetLastBeamNodes().back()->SetFixed(true);
+	builder.GetLastBeamNodes().front()->SetForce( ChVector<>(0,-1,0));
+
+				// Again, use BuildBeam for creating another beam, this time
+				// it uses one node (the last node created by the last beam) and one point:
+ 	builder.BuildBeam(  my_mesh, 
+						msection, 
+						5, 
+						builder.GetLastBeamNodes().front(), // the 'A' node in space (beginning of beam)
+						ChVector<>(0.2, 0.1, -0.1),	// the 'B' point in space (end of beam)
+						ChVector<>(0,1,0));			// the 'Y' up direction of the section for the beam
+
+
 
 
 
@@ -199,9 +234,9 @@ hnode3->SetTorque( ChVector<>(0, -0.3, 0));
 
 	ChSharedPtr<ChVisualizationFEMmesh> mvisualizebeamA(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
 	mvisualizebeamA->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_ELEM_BEAM_MZ);
-	mvisualizebeamA->SetColorscaleMinMax(-1,1);
+	mvisualizebeamA->SetColorscaleMinMax(-0.4,0.4);
 	mvisualizebeamA->SetSmoothFaces(true);
-	mvisualizebeamA->SetWireframe(true);
+	mvisualizebeamA->SetWireframe(false);
 	my_mesh->AddAsset(mvisualizebeamA);
 
 	ChSharedPtr<ChVisualizationFEMmesh> mvisualizebeamC(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
@@ -229,13 +264,13 @@ hnode3->SetTorque( ChVector<>(0, -0.3, 0));
 	// 
 	// THE SOFT-REAL-TIME CYCLE
 	//
-	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES); // <- NEEDED because other solvers can't handle stiffness matrices
+	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES); // <- NEEDED because other solvers can't handle stiffness matrices
 	my_system.SetIterLCPwarmStarting(true); // this helps a lot to speedup convergence in this class of problems
-	my_system.SetIterLCPmaxItersSpeed(600);
-	my_system.SetIterLCPmaxItersStab(600);
-	my_system.SetTolSpeeds(1e-12);
-	chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
-	//msolver->SetVerbose(true);
+	my_system.SetIterLCPmaxItersSpeed(460);
+	my_system.SetIterLCPmaxItersStab(460);
+	my_system.SetTolSpeeds(1e-13);
+	chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+	msolver->SetVerbose(false);
 	msolver->SetDiagonalPreconditioning(true);
 	application.SetTimestep(0.001);
 
@@ -263,6 +298,8 @@ belement3->GetField(mfi);
 GetLog()<< "\n\n\n===========STATICS======== \n\n\n";
 
 //application.GetSystem()->DoStaticNonlinear(25);
+//application.GetSystem()->DoStaticLinear();
+
 
 belement1->SetDisableCorotate(true);
 belement2->SetDisableCorotate(true);
@@ -296,8 +333,12 @@ for (double eta = -1; eta <= 1; eta += 0.4)
 	GetLog() << "  b3_at" << eta << " Mx=" << M.x << " My=" << M.y << " Mz=" << M.z << " Tx=" << F.x << " Ty=" << F.y << " Tz=" << F.z << "\n";
 }
 
+GetLog() << "Node 3 coordinate y= " << hnode3->Frame().GetPos().y << "    z=" << hnode3->Frame().GetPos().z << "\n";
+GetLog() << "Node 5 coordinate y= " << hnode5->Frame().GetPos().y << "    z=" << hnode5->Frame().GetPos().z << "\n";
 
-
+belement1->SetDisableCorotate(false);
+belement2->SetDisableCorotate(false);
+belement3->SetDisableCorotate(false);
 
 	while(application.GetDevice()->run()) 
 	{

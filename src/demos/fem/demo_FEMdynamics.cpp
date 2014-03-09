@@ -21,7 +21,7 @@
 
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
-#include "lcp/ChLcpIterativePMINRES.h"
+#include "lcp/ChLcpIterativeMINRES.h"
 #include "unit_FEM/ChElementSpring.h"
 #include "unit_FEM/ChElementBar.h"
 #include "unit_FEM/ChElementTetra_4.h"
@@ -391,8 +391,8 @@ void test_3()
 
 				// Perform a dynamic time integration:
 
-	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES); // <- NEEDED because other solvers can't handle stiffness matrices
-	chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
+	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES); // <- NEEDED because other solvers can't handle stiffness matrices
+	chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
 	my_system.SetIterLCPmaxItersSpeed(40);
 	my_system.SetTolSpeeds(1e-10);
 

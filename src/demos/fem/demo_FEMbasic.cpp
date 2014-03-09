@@ -20,7 +20,7 @@
 
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
-#include "lcp/ChLcpIterativePMINRES.h"
+#include "lcp/ChLcpIterativeMINRES.h"
 #include "unit_FEM/ChElementSpring.h"
 #include "unit_FEM/ChElementTetra_4.h"
 #include "unit_FEM/ChElementTetra_10.h"
@@ -103,8 +103,8 @@ void test_1()
 
 
 				// Perform a linear static analysis
-	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES); // <- NEEDED because other solvers can't handle stiffness matrices
-	chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
+	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES); // <- NEEDED because other solvers can't handle stiffness matrices
+	chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
 	msolver->SetDiagonalPreconditioning(true);
 	msolver->SetVerbose(true);
 	my_system.SetIterLCPmaxItersSpeed(40);
@@ -212,8 +212,8 @@ void test_2()
 
 
 				// Perform a linear static analysis
-	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES); // <- NEEDED because other solvers can't handle stiffness matrices
-	chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
+	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES); // <- NEEDED because other solvers can't handle stiffness matrices
+	chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
 	msolver->SetDiagonalPreconditioning(true);
 	msolver->SetVerbose(true);
 	my_system.SetIterLCPmaxItersSpeed(100);
@@ -336,8 +336,8 @@ void test_3()
 
 
 				// Perform a linear static analysis
-	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES); // <- NEEDED because other solvers can't handle stiffness matrices
-	chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
+	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES); // <- NEEDED because other solvers can't handle stiffness matrices
+	chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
 	msolver->SetDiagonalPreconditioning(true);
 	msolver->SetVerbose(true);
 	my_system.SetIterLCPmaxItersSpeed(100);
@@ -465,8 +465,8 @@ void test_4()
 
 
 				// Perform a linear static analysis
-	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES); // <- NEEDED because other solvers can't handle stiffness matrices
-	chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
+	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES); // <- NEEDED because other solvers can't handle stiffness matrices
+	chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
 	msolver->SetDiagonalPreconditioning(true);
 	msolver->SetVerbose(true);
 	my_system.SetIterLCPmaxItersSpeed(100);
@@ -629,8 +629,8 @@ void test_5()
 
 
 				// Perform a linear static analysis
-	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES); // <- NEEDED because other solvers can't handle stiffness matrices
-	chrono::ChLcpIterativePMINRES* msolver = (chrono::ChLcpIterativePMINRES*)my_system.GetLcpSolverSpeed();
+	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES); // <- NEEDED because other solvers can't handle stiffness matrices
+	chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
 	msolver->SetDiagonalPreconditioning(true);
 	msolver->SetVerbose(true);
 	my_system.SetIterLCPmaxItersSpeed(100);
