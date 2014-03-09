@@ -84,16 +84,27 @@ public:
 				case irr::KEY_KEY_I: 
 					app->SetShowInfos(!app->GetShowInfos());
 					return true;
-				case irr::KEY_SPACE: 
+				case irr::KEY_SPACE:
 					app->pause_step = !app->pause_step;
 					return true;
 				case irr::KEY_KEY_P: 
 					app->pause_step = true;
 					app->do_single_step = true;
 					return true;
-				case irr::KEY_SNAPSHOT:
+				case irr::KEY_F12:
 					chrono::GetLog() << "Saving system vector and matrices to dump_xxyy.dat files.\n";
 					app->DumpMatrices();
+					return true;
+				case irr::KEY_SNAPSHOT:
+					if (app->videoframe_save == false)
+					{
+						app->videoframe_save = true;
+						chrono::GetLog() << "Start saving frames to snapshotnnnnn.bmp pictures...\n";
+					} else
+					{
+						app->videoframe_save = false;
+						chrono::GetLog() << "Stop saving frames.\n";
+					}
 					return true;
 				}
 			}
@@ -211,6 +222,7 @@ public:
 								case 5: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_PCG); break;
 								case 6: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_PMINRES); break;
 								case 7: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_APGD); break;
+								case 8: this->app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_MINRES); break;
 							}
 							break;
 						}
@@ -281,6 +293,9 @@ public:
 			this->pause_step = false;
 			this->timestep = 0.01;
 			this->do_single_step = false;
+			this->videoframe_save = false;
+			this->videoframe_num = 0;
+			this->videoframe_each = 1;
 
 			this->user_receiver=0;
 
@@ -374,6 +389,7 @@ public:
 				gad_ccpsolver->addItem(L"Projected PCG");
 				gad_ccpsolver->addItem(L"Projected MINRES");
 				gad_ccpsolver->addItem(L"APGD");
+				gad_ccpsolver->addItem(L"MINRES");
 				gad_ccpsolver->addItem(L" ");
 			gad_ccpsolver->setSelected(5);
 
@@ -481,7 +497,16 @@ public:
 	void SetPaused(bool val) {this->pause_step = val;}
 	bool GetPaused() {return this->pause_step;}
 
-		
+				/// If you turn on this, each frame of the animation will be saved on the disk
+				/// as snapshot0001.bmp, snapshot0002.bmp, etc.
+	void SetVideoframeSave(bool val) {this->videoframe_save = val;}
+	bool GetVideoframeSave() {return this->videoframe_save;}
+
+				/// Set to 1 if you need to save on disk all simulation steps, 
+				/// set to 2 for saving each 2 steps, etc.
+	void SetVideoframeEach(int val) {this->videoframe_each = val;}
+	int  GetVideoframeEach() {return this->videoframe_each;}
+
 				/// Use this function to hook a custom event receiver to the application. See examples.
 	void SetUserEventReceiver(irr::IEventReceiver* mreceiver) {this->user_receiver = mreceiver;}
 
@@ -511,6 +536,19 @@ public:
 				else
 					return;
 
+			if (this->videoframe_save)
+			{
+				if (this->videoframe_num % videoframe_each ==0)
+				{
+					video::IImage* image = this->GetVideoDriver()->createScreenShot();
+					char filename[100];
+					sprintf(filename, "screenshot%05d.bmp", (videoframe_num+1)/videoframe_each);
+					if (image)
+						device->getVideoDriver()->writeImageToFile(image, filename);
+					image->drop();
+				}
+				this->videoframe_num ++;
+			}
 			double dt;
 			if (this->try_realtime)
 				dt = this->m_realtime_timer.SuggestSimulationStep(this->timestep);
@@ -528,7 +566,7 @@ public:
 		{
 			core::stringw str = "World time   =";
 					str += (int) (1000*system->GetChTime());
-					str +=  " s  \n\nCPU step (total)      ="; 
+					str +=  " ms  \n\nCPU step (total)      ="; 
 					str += (int) (1000*system->GetTimerStep());
 					str +=  " ms \n  CPU Collision time =";
 					str += (int) (1000*system->GetTimerCollisionBroad());
@@ -623,6 +661,7 @@ public:
 					case chrono::ChSystem::LCP_ITERATIVE_PCG: 		gad_ccpsolver->setSelected(5); break;
 					case chrono::ChSystem::LCP_ITERATIVE_PMINRES: 	gad_ccpsolver->setSelected(6); break;
 					case chrono::ChSystem::LCP_ITERATIVE_APGD: 		gad_ccpsolver->setSelected(7); break;
+					case chrono::ChSystem::LCP_ITERATIVE_MINRES: 	gad_ccpsolver->setSelected(8); break;
 					default: gad_ccpsolver->setSelected(5); break;
 				}
 				switch(this->GetSystem()->GetIntegrationType())
@@ -791,6 +830,10 @@ private:
 	bool try_realtime;
 	double timestep;
 	bool do_single_step;
+	bool videoframe_save;
+	int  videoframe_num;
+	int  videoframe_each;
+
 	chrono::ChRealtimeStepTimer m_realtime_timer;
 
 	gui::IGUITabControl* gad_tabbed;
