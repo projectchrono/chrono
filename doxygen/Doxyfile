@@ -628,7 +628,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = ../source
+INPUT                  = ../src
 
 # This tag can be used to specify the character encoding of the source files 
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is 
@@ -659,17 +659,15 @@ RECURSIVE              = YES
 # subdirectory from a directory tree whose root is specified with the INPUT tag. 
 # Note that relative paths are relative to directory from which doxygen is run.
 
-EXCLUDE                = ../source/demos \
-                         ../source/testing \
-                         ../source/chjs \
-                         ../source/_obsolete \
-                         ../source/collision/bullet \
-                         ../source/collision/convexdecomposition \
-                         ../source/collision/gimpact \
-                         ../source/thrust \
-                         ../source/unit_GPU \
-                         ../source/collision/edgetempest \
-                         ../source/testing
+EXCLUDE                = ../src/demos \
+                         ../src/collision/bullet \
+                         ../src/collision/convexdecomposition \
+                         ../src/collision/gimpact \
+                         ../src/unit_GPU \
+						 ../src/unit_TESTING \
+						 ../src/unit_JS \
+                         ../src/collision/edgetempest
+						 
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or 
 # directories that are symbolic links (a Unix file system feature) are excluded 
@@ -1485,6 +1483,12 @@ INCLUDE_FILE_PATTERNS  =
 PREDEFINED             = "ChApi = " \
                          "ChApiJS = " \
                          "ChApiMPI = " \
+						 "ChApiPostProcess = " \
+						 "ChApiFEM = " \
+						 "ChApiCASCADE = " \
+						 "ChApiPYPARSER = " \
+						 "ChApiPYTHON = " \
+						 "ChApiCosimulation = " \
                          "ChApiGPU = "
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then 

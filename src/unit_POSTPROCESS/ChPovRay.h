@@ -36,6 +36,8 @@
 #include "assets/ChVisualization.h"
 
 namespace chrono{
+
+/// Namespace with classes for the postprocess unit.
  namespace postprocess{
 
 

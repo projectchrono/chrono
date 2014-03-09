@@ -24,6 +24,8 @@
 
 namespace chrono 
 {
+
+/// Namespace with classes for the FEM unit.
 namespace fem
 {
 
