@@ -459,24 +459,32 @@ public:
 						
 					// For M mass matrix, do mass lumping:
 
+					ChMatrixDynamic<> Mloc(12,12);
+
 					double lmass = mass*0.5;
-					double liner = mass*0.5* pow((this->length* 0.25),2); //***APPROX just for test 
+					double lineryz = (1./50.)* mass * pow(length,2); // note: 1/50 can be even less (this is 0 in many texts)
+					double linerx  = (1./2.) * length * section->GetDensity() * (section->GetIyy() + section->GetIzz()); //***TO CHECK***just for test 
 					
-					H(0,0) += Mfactor* lmass; //node A x,y,z
-					H(1,1) += Mfactor* lmass;
-					H(2,2) += Mfactor* lmass;
+					Mloc(0,0) += Mfactor* lmass; //node A x,y,z
+					Mloc(1,1) += Mfactor* lmass;
+					Mloc(2,2) += Mfactor* lmass;
 
-					H(3,3) += Mfactor* liner; //node A Ixx,Iyy,Izz
-					H(4,4) += Mfactor* liner;
-					H(5,5) += Mfactor* liner;
+					Mloc(6,6) += Mfactor* lmass; //node B x,y,z
+					Mloc(7,7) += Mfactor* lmass;
+					Mloc(8,8) += Mfactor* lmass;
 
-					H(6,6) += Mfactor* lmass; //node B x,y,z
-					H(7,7) += Mfactor* lmass;
-					H(8,8) += Mfactor* lmass;
+					Mloc(3,3) += Mfactor* linerx; //node A Ixx,Iyy,Izz  // NEED COROTATION
+					Mloc(4,4) += Mfactor* lineryz;
+					Mloc(5,5) += Mfactor* lineryz;
 
-					H(9,9) +=  Mfactor* liner; //node B Ixx,Iyy,Izz
-					H(10,10)+= Mfactor* liner;
-					H(11,11)+= Mfactor* liner;
+					Mloc(9,9) +=  Mfactor* linerx; //node B Ixx,Iyy,Izz // NEED COROTATION
+					Mloc(10,10)+= Mfactor* lineryz;
+					Mloc(11,11)+= Mfactor* lineryz;
+
+					ChMatrixCorotation<>::ComputeCK(Mloc, R, 4, CK);
+					ChMatrixCorotation<>::ComputeKCt(CK, R, 4, CKCt);
+		
+					H.PasteSumMatrix(&CKCt,0,0);
 					
 					//***TO DO*** better per-node lumping, or 4x4 consistent mass matrices, maybe with integration if not uniform materials.
 				}
