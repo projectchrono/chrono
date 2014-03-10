@@ -26,7 +26,7 @@ DOXYFILE_ENCODING      = UTF-8
 # identify the project. Note that if you do not use Doxywizard you need 
 # to put quotes around the project name if it contains spaces.
 
-PROJECT_NAME           = ChronoDoc
+PROJECT_NAME           = "Chrono::Engine C++ API"
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number. 
 # This could be handy for archiving the generated documentation or 
@@ -45,14 +45,14 @@ PROJECT_BRIEF          =
 # exceed 55 pixels and the maximum width should not exceed 200 pixels. 
 # Doxygen will copy the logo to the output directory.
 
-PROJECT_LOGO           = 
+PROJECT_LOGO           = logo_chrono_engine_h90.png
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) 
 # base path where the generated documentation will be put. 
 # If a relative path is entered, it will be relative to the location 
 # where doxygen was started. If left blank the current directory will be used.
 
-OUTPUT_DIRECTORY       = ../docs
+OUTPUT_DIRECTORY       = ../../../docs_build
 
 # If the CREATE_SUBDIRS tag is set to YES, then doxygen will create 
 # 4096 sub-directories (in 2 levels) under the output directory of each output 
@@ -664,10 +664,9 @@ EXCLUDE                = ../src/demos \
                          ../src/collision/convexdecomposition \
                          ../src/collision/gimpact \
                          ../src/unit_GPU \
-						 ../src/unit_TESTING \
-						 ../src/unit_JS \
+                         ../src/unit_TESTING \
+                         ../src/unit_JS \
                          ../src/collision/edgetempest
-						 
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or 
 # directories that are symbolic links (a Unix file system feature) are excluded 
@@ -875,7 +874,7 @@ HTML_FOOTER            = ./footer.html
 # the style sheet file to the HTML output directory, so don't put your own 
 # stylesheet in the HTML output directory as well, or it will be erased!
 
-HTML_STYLESHEET        = 
+HTML_STYLESHEET        = ./new_stylesheet.css
 
 # The HTML_EXTRA_FILES tag can be used to specify one or more extra images or 
 # other source files which should be copied to the HTML output directory. Note 
@@ -975,12 +974,12 @@ DOCSET_PUBLISHER_NAME  = Publisher
 
 GENERATE_HTMLHELP      = YES
 
-# If the GENERATE_HTMLHELP tag is set to YES, the ChM_FILE tag can 
+# If the GENERATE_HTMLHELP tag is set to YES, the CHM_FILE tag can 
 # be used to specify the file name of the resulting .chm file. You 
 # can add a path in front of the file if the result should not be 
 # written to the html output directory.
 
-ChM_FILE               = help.chm
+CHM_FILE               = 
 
 # If the GENERATE_HTMLHELP tag is set to YES, the HHC_LOCATION tag can 
 # be used to specify the location (absolute path including file name) of 
@@ -989,17 +988,17 @@ ChM_FILE               = help.chm
 
 HHC_LOCATION           = "C:/Program Files (x86)/HTML Help Workshop/hhc.exe"
 
-# If the GENERATE_HTMLHELP tag is set to YES, the GENERATE_ChI flag 
+# If the GENERATE_HTMLHELP tag is set to YES, the GENERATE_CHI flag 
 # controls if a separate .chi index file is generated (YES) or that 
 # it should be included in the master .chm file (NO).
 
-GENERATE_ChI           = NO
+GENERATE_CHI           = NO
 
-# If the GENERATE_HTMLHELP tag is set to YES, the ChM_INDEX_ENCODING 
+# If the GENERATE_HTMLHELP tag is set to YES, the CHM_INDEX_ENCODING 
 # is used to encode HtmlHelp index (hhk), content (hhc) and project file 
 # content.
 
-ChM_INDEX_ENCODING     = 
+CHM_INDEX_ENCODING     = 
 
 # If the GENERATE_HTMLHELP tag is set to YES, the BINARY_TOC flag 
 # controls whether a binary table of contents is generated (YES) or a 
@@ -1103,7 +1102,7 @@ ENUM_VALUES_PER_LINE   = 4
 # JavaScript, DHTML, CSS and frames is required (i.e. any modern browser). 
 # Windows users are probably better off using the HTML help feature.
 
-GENERATE_TREEVIEW      = NO
+GENERATE_TREEVIEW      = YES
 
 # By enabling USE_INLINE_TREES, doxygen will generate the Groups, Directories, 
 # and Class Hierarchy pages using a tree view instead of an ordered list.
@@ -1483,12 +1482,12 @@ INCLUDE_FILE_PATTERNS  =
 PREDEFINED             = "ChApi = " \
                          "ChApiJS = " \
                          "ChApiMPI = " \
-						 "ChApiPostProcess = " \
-						 "ChApiFEM = " \
-						 "ChApiCASCADE = " \
-						 "ChApiPYPARSER = " \
-						 "ChApiPYTHON = " \
-						 "ChApiCosimulation = " \
+                         "ChApiPostProcess = " \
+                         "ChApiFEM = " \
+                         "ChApiCASCADE = " \
+                         "ChApiPYPARSER = " \
+                         "ChApiPYTHON = " \
+                         "ChApiCosimulation = " \
                          "ChApiGPU = "
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then 
