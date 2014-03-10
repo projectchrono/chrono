@@ -211,44 +211,43 @@ void ReadCheckpoint(ChSystem*          system,
 	// Open input file stream
 	std::ifstream      ifile(filename.c_str());
 	std::string        line;
-	std::istringstream iss;
 
 	while (std::getline(ifile, line)) {
-		iss = std::istringstream(line);
+		std::istringstream iss1(line);
 
 		// Read body type, Id, flags
 		int btype, bid, bfixed, bcollide;
-		iss >> btype >> bid >> bfixed >> bcollide;
+		iss1 >> btype >> bid >> bfixed >> bcollide;
 
 		// Read body mass and inertia
 		double     mass;
 		ChVector<> inertiaXX;
-		iss >> mass >> inertiaXX.x >> inertiaXX.y >> inertiaXX.z;
+		iss1 >> mass >> inertiaXX.x >> inertiaXX.y >> inertiaXX.z;
 
 		// Read body position, orientation, and their time derivatives
 		ChVector<>     bpos, bpos_dt;
 		ChQuaternion<> brot, brot_dt;
-		iss >> bpos.x >> bpos.y >> bpos.z >> brot.e0 >> brot.e1 >> brot.e2 >> brot.e3;
-		iss >> bpos_dt.x >> bpos_dt.y >> bpos_dt.z >> brot_dt.e0 >> brot_dt.e1 >> brot_dt.e2 >> brot_dt.e3;
+		iss1 >> bpos.x >> bpos.y >> bpos.z >> brot.e0 >> brot.e1 >> brot.e2 >> brot.e3;
+		iss1 >> bpos_dt.x >> bpos_dt.y >> bpos_dt.z >> brot_dt.e0 >> brot_dt.e1 >> brot_dt.e2 >> brot_dt.e3;
 
 		// Get the next line in the file (material properties)
 		std::getline(ifile, line);
-		iss = std::istringstream(line);
+		std::istringstream iss2(line);
 
 		// Create the body of the appropriate type, read and apply material properties
 		ChBody* body;
 		if (btype == 0) {
 			body = (stype == 0) ? new ChBody() : new ChBody(new ChCollisionModelParallel);
 			ChSharedPtr<ChMaterialSurface>& mat = body->GetMaterialSurface();
-			iss >> mat->static_friction >> mat->sliding_friction >> mat->rolling_friction >> mat->spinning_friction;
-			iss >> mat->restitution >> mat->cohesion >> mat->dampingf;
-			iss >> mat->compliance >> mat->complianceT >> mat->complianceRoll >> mat->complianceSpin;
+			iss2 >> mat->static_friction >> mat->sliding_friction >> mat->rolling_friction >> mat->spinning_friction;
+			iss2 >> mat->restitution >> mat->cohesion >> mat->dampingf;
+			iss2 >> mat->compliance >> mat->complianceT >> mat->complianceRoll >> mat->complianceSpin;
 		} else {
 			body = (stype == 0) ? new ChBodyDEM() : new ChBodyDEM(new ChCollisionModelParallel);
 			ChSharedPtr<ChMaterialSurfaceDEM>& mat = ((ChBodyDEM*) body)->GetMaterialSurfaceDEM();
-			iss >> mat->young_modulus >> mat->poisson_ratio;
-			iss >> mat->static_friction >> mat->sliding_friction;
-			iss >> mat->restitution >> mat->dissipation_factor;
+			iss2 >> mat->young_modulus >> mat->poisson_ratio;
+			iss2 >> mat->static_friction >> mat->sliding_friction;
+			iss2 >> mat->restitution >> mat->dissipation_factor;
 		}
 
 		// Set body properties and state
@@ -265,17 +264,17 @@ void ReadCheckpoint(ChSystem*          system,
 
 		// Get next line in the file (number of visualization assets)
 		std::getline(ifile, line);
-		iss = std::istringstream(line);
+		std::istringstream iss3(line);
 
 		int numAssets;
-		iss >> numAssets;
+		iss3 >> numAssets;
 
 		// In a loop, read information about each asset and add geometry to the body.
 		body->GetCollisionModel()->ClearModel();
 
 		for (int j = 0; j < numAssets; j++) {
 			std::getline(ifile, line);
-			iss = std::istringstream(line);
+			std::istringstream iss(line);
 
 			// Get relative position and rotation
 			ChVector<>     apos;
