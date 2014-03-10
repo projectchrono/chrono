@@ -9,7 +9,7 @@
 #include "core/ChTimer.h"
 #include "constraints/ChConstraintRigidRigid.h"
 #include "constraints/ChConstraintBilateral.h"
-#include "collision/ChCNarrowphase.h"
+#include "collision/ChCNarrowphaseMPR.h"
 
 namespace chrono {
 	class ChApiGPU ChSolverParallel: public ChBaseParallel {

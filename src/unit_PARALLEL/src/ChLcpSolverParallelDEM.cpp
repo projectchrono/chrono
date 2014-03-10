@@ -6,40 +6,42 @@ using namespace chrono;
 
 
 //// TODO:  For now, this is hard-coded for Hunt-Crossley with Simple Sliding Friction.
-__host__ __device__ 
-void function_CalcContactForces(
-	int& index,
-	real& dT,
-	real3* pos,
-	real4* rot,
-	real3* vel,
-	real3* omg,
-	real2* elastic_moduli,
-	real* mu,
-	real* alpha,
-	real* cr,
-	long long* pairs,
-	real3* pt1,
-	real3* pt2,
-	real3* normal,
-	real* depth,
-	int* body_id,
-	real3* body_force,
-	real3* body_torque)
+__host__ __device__
+void function_CalcContactForces(int&       index,           // index of this contact pair
+                                real&      dT,              // integration time step
+                                real3*     pos,             // body positions
+                                real4*     rot,             // body orientations
+                                real3*     vel,             // body linear velocity (global frame)
+                                real3*     omg,             // body angular velocity (local frame)
+                                real2*     elastic_moduli,  // Young's modulus (per body)
+                                real*      mu,              // coefficient of friction (per body)
+                                real*      alpha,           // disipation coefficient (per body)
+                                real*      cr,              // coefficient of restitution (per body)
+                                long long* pairs,           // shape IDs (per contact pairs)
+                                uint*      body_id,         // body IDs (per shape)
+                                real3*     pt1,             // point on shape 1 (per contact)
+                                real3*     pt2,             // point on shape 2 (per contact)
+                                real3*     normal,          // contact normal (per contact)
+                                real*      depth,           // penetration depth (per contact)
+                                real*      eff_radius,      // effective contact radius (per contact)
+                                int*       ext_body_id,     // [output] body IDs (two per contact)
+                                real3*     ext_body_force,  // [output] body force (two per contact)
+                                real3*     ext_body_torque) // [output] body torque (two per contact)
 {
-	// Identify the two bodies in contact
+	// Identify the two bodies in contact. First, find the IDs of the shapes in
+	// contact, then find the IDs of the associated bodies.
 	int2 pair = I2(int(pairs[index] >> 32), int(pairs[index] & 0xffffffff));
-	int body1 = pair.x;
-	int body2 = pair.y;
+	int body1 = body_id[pair.x];
+	int body2 = body_id[pair.y];
 
 	// If the two contact shapes are actually separated, set zero forces and torques
 	if (depth[index] >= 0) {
-		body_id[2*index] = pair.x;
-		body_id[2*index+1] = pair.y;
-		body_force[2*index] = ZERO_VECTOR;
-		body_force[2*index+1] = ZERO_VECTOR;
-		body_torque[2*index] = ZERO_VECTOR;
-		body_torque[2*index+1] = ZERO_VECTOR;
+		ext_body_id[2*index] = body1;
+		ext_body_id[2*index+1] = body2;
+		ext_body_force[2*index] = ZERO_VECTOR;
+		ext_body_force[2*index+1] = ZERO_VECTOR;
+		ext_body_torque[2*index] = ZERO_VECTOR;
+		ext_body_torque[2*index+1] = ZERO_VECTOR;
 
 		return;
 	}
@@ -65,10 +67,6 @@ void function_CalcContactForces(
 	// Calculate composite material properties
 	// ---------------------------------------
 
-	// Effective contact radius
-	//// TODO:  I cannot get this with current collision system!!!
-	real R_eff = 1;
-
 	real Y1 = elastic_moduli[body1].x;
 	real Y2 = elastic_moduli[body2].x;
 	real nu1 = elastic_moduli[body1].y;
@@ -88,7 +86,7 @@ void function_CalcContactForces(
 
 	// Normal force: Hunt-Crossley
 	real delta = -depth[index];
-	real kn = (4.0 / 3) * E_eff * sqrt(R_eff);
+	real kn = (4.0 / 3) * E_eff * sqrt(eff_radius[index]);
 	real forceN_elastic = kn * delta * sqrt(delta);
 	real forceN_dissipation = 1.5 * alpha_eff * forceN_elastic * relvel_n_mag;
 	real forceN = forceN_elastic - forceN_dissipation;
@@ -111,16 +109,18 @@ void function_CalcContactForces(
 	real3 torque2_loc = cross(pt2_loc, quatRotateMatT(force, rot[body2]));
 
 	// Store body forces and torques
-	body_id[2*index] = body1;
-	body_id[2*index+1] = body2;
-	body_force[2*index] = -force;
-	body_force[2*index+1] = force;
-	body_torque[2*index] = -torque1_loc;
-	body_torque[2*index+1] = torque2_loc;
+	ext_body_id[2*index]   = body1;
+	ext_body_id[2*index+1] = body2;
+	ext_body_force[2*index]   = -force;
+	ext_body_force[2*index+1] =  force;
+	ext_body_torque[2*index]   = -torque1_loc;
+	ext_body_torque[2*index+1] =  torque2_loc;
 }
 
 
-void ChLcpSolverParallelDEM::host_CalcContactForces(int* body_id, real3* body_force, real3* body_torque)
+void ChLcpSolverParallelDEM::host_CalcContactForces(custom_vector<int>&   ext_body_id,
+                                                    custom_vector<real3>& ext_body_force,
+                                                    custom_vector<real3>& ext_body_torque)
 {
 #pragma omp parallel for
 	for (int index = 0; index < data_container->number_of_rigid_rigid; index++) {
@@ -136,18 +136,23 @@ void ChLcpSolverParallelDEM::host_CalcContactForces(int* body_id, real3* body_fo
 			data_container->host_data.alpha.data(),
 			data_container->host_data.cr.data(),
 			data_container->host_data.pair_rigid_rigid.data(),
+			data_container->host_data.id_rigid.data(),
 			data_container->host_data.cpta_rigid_rigid.data(),
 			data_container->host_data.cptb_rigid_rigid.data(),
 			data_container->host_data.norm_rigid_rigid.data(),
 			data_container->host_data.dpth_rigid_rigid.data(),
-			body_id,
-			body_force,
-			body_torque);
+			data_container->host_data.erad_rigid_rigid.data(),
+			ext_body_id.data(),
+			ext_body_force.data(),
+			ext_body_torque.data());
 	}
 }
 
 
-void ChLcpSolverParallelDEM::host_AddContactForces(uint ct_body_count, int* ct_body_id, real3* ct_body_force, real3* ct_body_torque)
+void ChLcpSolverParallelDEM::host_AddContactForces(uint                        ct_body_count,
+                                                   const custom_vector<int>&   ct_body_id,
+                                                   const custom_vector<real3>& ct_body_force,
+                                                   const custom_vector<real3>& ct_body_torque)
 {
 #pragma omp parallel for
 	for (int index = 0; index < ct_body_count; index++) {
@@ -159,38 +164,49 @@ void ChLcpSolverParallelDEM::host_AddContactForces(uint ct_body_count, int* ct_b
 
 void ChLcpSolverParallelDEM::ProcessContacts()
 {
-	// Calculate contact forces and torques - per contact basis
-	// --------------------------------------------------------
-	custom_vector<int>   body_id(2 * data_container->number_of_rigid_rigid);
-	custom_vector<real3> body_force(2 * data_container->number_of_rigid_rigid);
-	custom_vector<real3> body_torque(2 * data_container->number_of_rigid_rigid);
+	// 0. If the narrowphase collision detection does not set the effective contact
+	//    radius, fill it with the value 1.
+	if (!data_container->erad_is_set)
+		data_container->host_data.erad_rigid_rigid.resize(data_container->number_of_rigid_rigid, 1.0);
 
-	host_CalcContactForces(body_id.data(), body_force.data(), body_torque.data());
+	// 1. Calculate contact forces and torques - per contact basis
+	//    For each pair of contact shapes that overlap, we calculate and store
+	//    the IDs of the two corresponding bodies and the resulting contact
+	//    forces and torques on the two bodies.
+	custom_vector<int>   ext_body_id(2 * data_container->number_of_rigid_rigid);
+	custom_vector<real3> ext_body_force(2 * data_container->number_of_rigid_rigid);
+	custom_vector<real3> ext_body_torque(2 * data_container->number_of_rigid_rigid);
 
-	// Calculate contact forces and torques - per body basis
-	// -----------------------------------------------------
+	host_CalcContactForces(ext_body_id, ext_body_force, ext_body_torque);
+
+	// 2. Calculate contact forces and torques - per body basis
+	//    Accumulate the contact forces and torques for all bodies that are involved
+	//    in at least one contact, by reducing the contact forces and torques from
+	//    all contacts these bodies are involved in. The number of bodies that
+	//    experience at least one contact is calculated in 'ct_body_count'.
 	thrust::sort_by_key(
-		body_id.begin(), body_id.end(),
-		thrust::make_zip_iterator(thrust::make_tuple(body_force.begin(), body_torque.begin())));
+		ext_body_id.begin(), ext_body_id.end(),
+		thrust::make_zip_iterator(thrust::make_tuple(ext_body_force.begin(), ext_body_torque.begin())));
 
-	custom_vector<int> ct_body_id(data_container->number_of_rigid);
+	custom_vector<int>   ct_body_id(data_container->number_of_rigid);
 	custom_vector<real3> ct_body_force(data_container->number_of_rigid);
 	custom_vector<real3> ct_body_torque(data_container->number_of_rigid);
 
 	// Reduce contact forces from all contacts and count bodies currently involved in contact
 	uint ct_body_count = thrust::reduce_by_key(
-		body_id.begin(),
-		body_id.end(),
-		thrust::make_zip_iterator(thrust::make_tuple(body_force.begin(), body_torque.begin())),
+		ext_body_id.begin(),
+		ext_body_id.end(),
+		thrust::make_zip_iterator(thrust::make_tuple(ext_body_force.begin(), ext_body_torque.begin())),
 		ct_body_id.begin(),
 		thrust::make_zip_iterator(thrust::make_tuple(ct_body_force.begin(), ct_body_torque.begin())),
 		thrust::equal_to<int>(),
 		sum_tuples()
 		).first - ct_body_id.begin();
 
-	// Add contact forces and torques to existing forces (impulses)
-	// ------------------------------------------------------------
-	host_AddContactForces(ct_body_count, ct_body_id.data(), ct_body_force.data(), ct_body_torque.data());
+	// 3. Add contact forces and torques to existing forces (impulses)
+	//    For all bodies involved in a contact, update the body forces and torques,
+	//    scaled by the integration time step.
+	host_AddContactForces(ct_body_count, ct_body_id, ct_body_force, ct_body_torque);
 }
 
 

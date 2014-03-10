@@ -1,5 +1,9 @@
-#include "ChCNarrowphase.h"
 #include "collision/ChCCollisionModel.h"
+
+#include "math/ChParallelMath.h"
+#include "collision/ChCNarrowphaseMPR.h"
+#include "collision/ChCNarrowphaseMPRUtils.h"
+
 using namespace chrono::collision;
 
 __constant__ uint total_possible_contacts_const;

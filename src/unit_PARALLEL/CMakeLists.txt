@@ -1,11 +1,48 @@
+#=============================================================================
+# CMake configuration file for Chrono_Parallel
+#=============================================================================
+
 cmake_minimum_required(VERSION 2.8)
+
 project(ChronoEngine_Parallel)
 
-#=============================================================================
-# CHRONO::ENGINE   CMake configuration file for Chrono_Parallel
-#
-# Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
-#=============================================================================
+# Location of additional CMAKE modules
+SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
+# ----------------------------------------------------------------------------
+# Figure out SSE level support
+# ----------------------------------------------------------------------------
+FIND_PACKAGE(SSE REQUIRED)
+
+# Set substitution variables for configuration file.
+IF(SSE_FOUND)
+	MESSAGE(STATUS "SSE version: ${SSE_VERSION}")
+    SET(CHRONO_PARALLEL_HAS_SSE 
+        "#define CHRONO_PARALLEL_HAS_SSE")
+    SET(CHRONO_PARALLEL_SSE_LEVEL 
+        "#define CHRONO_PARALLEL_SSE_LEVEL \"${SSE_VERSION}\"")
+ELSE()
+	MESSAGE("No SSE support")
+ENDIF()
+
+# Generate the configuration header file using substitution
+# variables. Place the header file in the binary directory
+# and make sure it can be found at compile time.
+# NOTE:  If more variables will be defined, move the following
+# lines after the last substitution variable is made available. 
+CONFIGURE_FILE(
+  ${PROJECT_SOURCE_DIR}/src/ChConfigParallel.in
+  ${PROJECT_BINARY_DIR}/ChConfigParallel.h
+  )
+INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR})
+
+
+# Set flags depending on SSE support...
+# TODO
+
+# ----------------------------------------------------------------------------
+# OpenMP
+# ----------------------------------------------------------------------------
 find_package("OpenMP" REQUIRED)
 
 # Add the OpenMP-specific compiler and linker flags
@@ -124,12 +161,16 @@ SOURCE_GROUP(constraints FILES
 
 SET(ChronoEngine_Parallel_COLLISION
     src/collision/ChCAABBGenerator.h
-    src/collision/ChCBroadphase.h
-    src/collision/ChCNarrowphase.h
     src/collision/ChCAABBGenerator.cpp
+    src/collision/ChCBroadphase.h
     src/collision/ChCBroadphase.cpp
-    src/collision/ChCNarrowphase.cpp
-    src/collision/ChCSupportFunctions.h
+    src/collision/ChCNarrowphase.h
+    src/collision/ChCNarrowphaseMPRUtils.h
+    src/collision/ChCNarrowphaseMPR.h
+    src/collision/ChCNarrowphaseMPR.cpp
+    src/collision/ChCNarrowphaseRUtils.h
+    src/collision/ChCNarrowphaseR.h
+    src/collision/ChCNarrowphaseR.cpp
     src/collision/ChCCollisionModelParallel.h
     src/collision/ChCCollisionModelParallel.cpp
     src/collision/ChCCollisionSystemParallel.h

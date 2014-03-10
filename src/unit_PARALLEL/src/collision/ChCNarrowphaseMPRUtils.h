@@ -1,5 +1,5 @@
-#ifndef CHC_SUPPORTFUNCTIONS_H
-#define CHC_SUPPORTFUNCTIONS_H
+#ifndef CHC_NARROWPHASE_MPR_UTILS_H
+#define CHC_NARROWPHASE_MPR_UTILS_H
 
 inline real3 GetSupportPoint_Sphere(const real3 &B, const real3 &n) {
 	return B.x * n;
