@@ -12,7 +12,7 @@ SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 # ----------------------------------------------------------------------------
 # Figure out SSE level support
 # ----------------------------------------------------------------------------
-FIND_PACKAGE(SSE REQUIRED)
+FIND_PACKAGE(SSE)
 
 # Set substitution variables for configuration file.
 IF(SSE_FOUND)
