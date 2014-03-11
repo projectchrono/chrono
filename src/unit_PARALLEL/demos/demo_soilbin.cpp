@@ -31,8 +31,8 @@ int threads = 8;
 // Simulation parameters
 double gravity = -9.81;
 double time_step = 0.0001;
-double time_drop = 2;
-double time_end = 4;
+double time_drop = 5;
+double time_end = 10;
 
 int max_iteration = 20;
 
@@ -50,7 +50,7 @@ double     mass = density * vol;
 ChVector<> inertia = 0.4 * mass * radius * radius * ChVector<>(1,1,1);
 
 // Parameters for the falling ball
-double     dropHeight = 2.5;
+double     dropHeight = 5;
 int        ballId = 100;
 double     radius1 = 0.5;
 double     density1 = 2000;
@@ -60,8 +60,8 @@ ChVector<> inertia1 = 0.4 * mass1 * radius1 * radius1 * ChVector<>(1,1,1);
 
 // Parameters for the containing bin
 int    binId = -200;
-double hDimX = 1.5;          // length in x direction
-double hDimY = 1;          // depth in y direction
+double hDimX = 5;          // length in x direction
+double hDimY = 2;          // depth in y direction
 double hDimZ = 2;          // height in z direction
 double hThickness = 0.1;   // wall thickness
 
@@ -111,8 +111,8 @@ void CreateObjects(ChSystemParallel* system)
 
 	gen.createObjectsBox(utils::POISSON_DISK,
 	                     2.01 * radius,
-	                     ChVector<>(0, 0, 1.5),
-	                     ChVector<>(0.8 * hDimX, 0.8 * hDimY, 1));
+	                     ChVector<>(0, 0, 2.5),
+	                     ChVector<>(0.8 * hDimX, 0.8 * hDimY, 2));
 
 	cout << "Number bodies generated: " << gen.getTotalNumBodies() << endl;
 
