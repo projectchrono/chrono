@@ -36,6 +36,8 @@ public:
 			update_offset_pairs.resize(int(number_of_rigid_rigid));
 			update_offset_bodies.resize(int(number_of_rigid_rigid * 2));
 			contact_active_pairs.resize(int(number_of_rigid_rigid));
+			contact_rotation.resize(int(number_of_rigid_rigid * 2));
+
 #pragma omp parallel for
 			for (int i = 0; i < number_of_rigid_rigid; i++) {
 				update_offset_pairs[i] = I2(update_offset[i], update_offset[i + number_of_rigid_rigid]);
@@ -44,6 +46,11 @@ public:
 				int2 body = data_container->host_data.bids_rigid_rigid[i];
 
 				contact_active_pairs[i] = bool2(data_container->host_data.active_data[body.x], data_container->host_data.active_data[body.y]);
+
+				contact_rotation[i] = data_container->host_data.rot_data[body.x];
+				contact_rotation[i+ number_of_rigid_rigid] = data_container->host_data.rot_data[body.y];
+
+
 			}
 		}
 		solve_sliding = false;
@@ -73,10 +80,10 @@ public:
 
 	void host_shurA_normal(real *gamma, real3 *norm, real3 *JUA, real3 *JUB, real3 *updateV, real3 *updateO);
 
-	void host_shurA_sliding(int2 *ids, bool2* contact_active, real3* norm, real3 * ptA, real3 * ptB, real4 * rot, real * gamma,
+	void host_shurA_sliding(bool2* contact_active, real3* norm, real3 * ptA, real3 * ptB, real4 * rot, real * gamma,
 			real3 * updateV, real3 * updateO);
 
-	void host_shurA_spinning(int2 *ids, bool2* contact_active, real3* norm, real3 * ptA, real3 * ptB, real4 * rot, real * gamma, real3 * updateV,
+	void host_shurA_spinning(bool2* contact_active, real3* norm, real3 * ptA, real3 * ptB, real4 * rot, real * gamma, real3 * updateV,
 			real3 * updateO);
 
 	void host_shurB_normal(const real & alpha, int2 * ids, bool2 *contact_active, real3 *norm, real4 *compliance, real *gamma, real3 *JUA, real3 *JUB, real3 *QXYZ, real3 *QUVW, real *AX);
@@ -117,6 +124,7 @@ protected:
 	custom_vector<int> update_offset;
 	custom_vector<int2> update_offset_pairs;
 	custom_vector<bool2> contact_active_pairs;
+	custom_vector<real4> contact_rotation;
 	custom_vector<int> update_offset_bodies;
 	custom_vector<int> offset_counter;
 	custom_vector<int> body_number;

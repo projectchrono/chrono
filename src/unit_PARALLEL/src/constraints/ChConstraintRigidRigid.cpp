@@ -218,7 +218,7 @@ void ChConstraintRigidRigid::host_RHS(int2 *ids, real *correction, real alpha, b
 			real3 omega_b1 = omega[bid.x];
 			real3 vel_b1 = vel[bid.x];
 			real3 T3, T4, T5;
-			Compute_Jacobian(rot[bid.x], U, V, W, ptA[index], T3, T4, T5);
+			Compute_Jacobian(rot[index], U, V, W, ptA[index], T3, T4, T5);
 			temp.x = dot(-U, vel_b1) + dot(T3, omega_b1);
 			if (solve_sliding) {
 				temp.y = dot(-V, vel_b1) + dot(T4, omega_b1);
@@ -229,7 +229,7 @@ void ChConstraintRigidRigid::host_RHS(int2 *ids, real *correction, real alpha, b
 			real3 omega_b2 = omega[bid.y];
 			real3 vel_b2 = vel[bid.y];
 			real3 T6, T7, T8;
-			Compute_Jacobian(rot[bid.y], U, V, W, ptB[index], T6, T7, T8);
+			Compute_Jacobian(rot[index + number_of_rigid_rigid], U, V, W, ptB[index], T6, T7, T8);
 			temp.x += dot(U, vel_b2) + dot(-T6, omega_b2);
 			if (solve_sliding) {
 				temp.y += dot(V, vel_b2) + dot(-T7, omega_b2);
@@ -264,7 +264,7 @@ void ChConstraintRigidRigid::host_RHS_spinning(int2 *ids, bool2 * active, real3 
 
 			if (isactive.x) {
 
-				real4 quat = rot[bid.x];
+				real4 quat = rot[index];
 				real3 TA = quatRotate(U, quat);
 				real3 TB = quatRotate(V, quat);
 				real3 TC = quatRotate(W, quat);
@@ -276,7 +276,7 @@ void ChConstraintRigidRigid::host_RHS_spinning(int2 *ids, bool2 * active, real3 
 			}
 			if (isactive.y) {
 
-				real4 quat = rot[bid.y];
+				real4 quat = rot[index + number_of_rigid_rigid];
 				real3 TA = quatRotate(U, quat);
 				real3 TB = quatRotate(V, quat);
 				real3 TC = quatRotate(W, quat);
@@ -312,23 +312,49 @@ void ChConstraintRigidRigid::ComputeRHS() {
 		compab.w = (compb1.w == 0 || compb2.w == 0) ? 0 : (compb1.w + compb2.w) * .5;
 		comp_rigid_rigid[i] = inv_hhpa * compab;
 	}
-	host_RHS(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.dpth_rigid_rigid.data(), data_container->alpha, contact_active_pairs.data(),
-			data_container->host_data.norm_rigid_rigid.data(), data_container->host_data.vel_data.data(), data_container->host_data.omg_data.data(),
-			data_container->host_data.cpta_rigid_rigid.data(), data_container->host_data.cptb_rigid_rigid.data(), data_container->host_data.rot_data.data(),
+	host_RHS(
+			data_container->host_data.bids_rigid_rigid.data(),
+			data_container->host_data.dpth_rigid_rigid.data(),
+			data_container->alpha,
+			contact_active_pairs.data(),
+			data_container->host_data.norm_rigid_rigid.data(),
+			data_container->host_data.vel_data.data(),
+			data_container->host_data.omg_data.data(),
+			data_container->host_data.cpta_rigid_rigid.data(),
+			data_container->host_data.cptb_rigid_rigid.data(),
+			contact_rotation.data(),
 			data_container->host_data.rhs_data.data());
 
-	host_RHS_spinning(data_container->host_data.bids_rigid_rigid.data(), contact_active_pairs.data(), data_container->host_data.omg_data.data(),
-			data_container->host_data.norm_rigid_rigid.data(), data_container->host_data.rot_data.data(), data_container->host_data.rhs_data.data());
+	host_RHS_spinning(
+			data_container->host_data.bids_rigid_rigid.data(),
+			contact_active_pairs.data(),
+			data_container->host_data.omg_data.data(),
+			data_container->host_data.norm_rigid_rigid.data(),
+			contact_rotation.data(),
+			data_container->host_data.rhs_data.data());
 }
 
 void ChConstraintRigidRigid::UpdateRHS() {
-	host_RHS(data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.dpth_rigid_rigid.data(), data_container->alpha, contact_active_pairs.data(),
-			data_container->host_data.norm_rigid_rigid.data(), data_container->host_data.vel_new_data.data(), data_container->host_data.omg_new_data.data(),
-			data_container->host_data.cpta_rigid_rigid.data(), data_container->host_data.cptb_rigid_rigid.data(), data_container->host_data.rot_data.data(),
+	host_RHS(
+			data_container->host_data.bids_rigid_rigid.data(),
+			data_container->host_data.dpth_rigid_rigid.data(),
+			data_container->alpha,
+			contact_active_pairs.data(),
+			data_container->host_data.norm_rigid_rigid.data(),
+			data_container->host_data.vel_new_data.data(),
+			data_container->host_data.omg_new_data.data(),
+			data_container->host_data.cpta_rigid_rigid.data(),
+			data_container->host_data.cptb_rigid_rigid.data(),
+			contact_rotation.data(),
 			data_container->host_data.rhs_data.data());
 
-	host_RHS_spinning(data_container->host_data.bids_rigid_rigid.data(), contact_active_pairs.data(), data_container->host_data.omg_new_data.data(),
-			data_container->host_data.norm_rigid_rigid.data(), data_container->host_data.rot_data.data(), data_container->host_data.rhs_data.data());
+	host_RHS_spinning(
+			data_container->host_data.bids_rigid_rigid.data(),
+			contact_active_pairs.data(),
+			data_container->host_data.omg_new_data.data(),
+			data_container->host_data.norm_rigid_rigid.data(),
+			contact_rotation.data(),
+			data_container->host_data.rhs_data.data());
 }
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -344,8 +370,8 @@ void ChConstraintRigidRigid::host_Jacobians(real3* norm, real3* ptA, real3* ptB,
 		int2 body_id = ids[index];
 
 		real3 T3, T4, T5, T6, T7, T8;
-		Compute_Jacobian(rot[body_id.x], U, V, W, ptA[index], T3, T4, T5);
-		Compute_Jacobian(rot[body_id.y], U, V, W, ptB[index], T6, T7, T8);
+		Compute_Jacobian(rot[index], U, V, W, ptA[index], T3, T4, T5);
+		Compute_Jacobian(rot[index + number_of_rigid_rigid], U, V, W, ptB[index], T6, T7, T8);
 		T6 = -T6;
 		T7 = -T7;
 		T8 = -T8;
@@ -361,29 +387,29 @@ void ChConstraintRigidRigid::host_Jacobians(real3* norm, real3* ptA, real3* ptB,
 }
 
 void ChConstraintRigidRigid::host_Jacobians_Rolling(real3* norm, int2* ids, real4* rot, real3 *JTA, real3 *JTB, real3 *JSA, real3 *JSB, real3 *JRA, real3 *JRB) {
-#pragma omp parallel for
-	for (int index = 0; index < number_of_rigid_rigid; index++) {
-		real3 U = norm[index], V, W;
-		Orthogonalize(U, V, W);
-
-		int2 body_id = ids[index];
-		real3 T3, T4, T5, T6, T7, T8;
-
-		Compute_Jacobian_Rolling(rot[body_id.x], U, V, W, T3, T4, T5);
-		T3 = -T3;
-		T4 = -T4;
-		T5 = -T5;
-
-		Compute_Jacobian_Rolling(rot[body_id.y], U, V, W, T6, T7, T8);
-
-		JTA[index] = T3;
-		JSA[index] = T4;
-		JRA[index] = T5;
-
-		JTB[index] = T6;
-		JSB[index] = T7;
-		JRB[index] = T8;
-	}
+//#pragma omp parallel for
+//	for (int index = 0; index < number_of_rigid_rigid; index++) {
+//		real3 U = norm[index], V, W;
+//		Orthogonalize(U, V, W);
+//
+//		int2 body_id = ids[index];
+//		real3 T3, T4, T5, T6, T7, T8;
+//
+//		Compute_Jacobian_Rolling(rot[body_id.x], U, V, W, T3, T4, T5);
+//		T3 = -T3;
+//		T4 = -T4;
+//		T5 = -T5;
+//
+//		Compute_Jacobian_Rolling(rot[body_id.y], U, V, W, T6, T7, T8);
+//
+//		JTA[index] = T3;
+//		JSA[index] = T4;
+//		JRA[index] = T5;
+//
+//		JTB[index] = T6;
+//		JSB[index] = T7;
+//		JRB[index] = T8;
+//	}
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -391,8 +417,14 @@ void ChConstraintRigidRigid::ComputeJacobians() {
 	JUA_rigid_rigid.resize(number_of_rigid_rigid);
 	JUB_rigid_rigid.resize(number_of_rigid_rigid);
 
-	host_Jacobians(data_container->host_data.norm_rigid_rigid.data(), data_container->host_data.cpta_rigid_rigid.data(), data_container->host_data.cptb_rigid_rigid.data(),
-			data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.rot_data.data(), JUA_rigid_rigid.data(), JUB_rigid_rigid.data());
+	host_Jacobians(
+			data_container->host_data.norm_rigid_rigid.data(),
+			data_container->host_data.cpta_rigid_rigid.data(),
+			data_container->host_data.cptb_rigid_rigid.data(),
+			data_container->host_data.bids_rigid_rigid.data(),
+			contact_rotation.data(),
+			JUA_rigid_rigid.data(),
+			JUB_rigid_rigid.data());
 
 }
 
@@ -401,15 +433,20 @@ void ChConstraintRigidRigid::UpdateJacobians() {
 	JUA_rigid_rigid.resize(number_of_rigid_rigid);
 	JUB_rigid_rigid.resize(number_of_rigid_rigid);
 
-	host_Jacobians(data_container->host_data.norm_rigid_rigid.data(), data_container->host_data.cpta_rigid_rigid.data(), data_container->host_data.cptb_rigid_rigid.data(),
-			data_container->host_data.bids_rigid_rigid.data(), data_container->host_data.rot_new_data.data(), JUA_rigid_rigid.data(), JUB_rigid_rigid.data());
+	host_Jacobians(
+			data_container->host_data.norm_rigid_rigid.data(),
+			data_container->host_data.cpta_rigid_rigid.data(),
+			data_container->host_data.cptb_rigid_rigid.data(),
+			data_container->host_data.bids_rigid_rigid.data(),
+			data_container->host_data.rot_new_data.data(),
+			JUA_rigid_rigid.data(),
+			JUB_rigid_rigid.data());
 
 }
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 void ChConstraintRigidRigid::host_shurA_normal(real * gamma, real3* norm, real3 * JUA, real3 * JUB, real3 * updateV, real3 * updateO) {
-//	double start = omp_get_wtime();
 #pragma omp  for
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		real gam = gamma[index * 6];
@@ -420,17 +457,9 @@ void ChConstraintRigidRigid::host_shurA_normal(real * gamma, real3* norm, real3 
 		updateO[index + number_of_rigid_rigid] = JUB[index] * gam;
 
 	}
-//	double end = omp_get_wtime();
-//
-//	double total_time_omp = (end - start) * 1000;
-//	double total_flops = 12 * number_of_rigid_rigid / ((end - start)) / 1e9;
-//	double total_memory = (7 * 4 * 4 + 1 * 4) * number_of_rigid_rigid / ((end - start)) / 1024.0 / 1024.0 / 1024.0;
-//
-//	cout<<"SA_STAT: "<<total_time_omp<<" "<<total_flops<<" "<<total_memory<<endl;
-
 }
 
-void ChConstraintRigidRigid::host_shurA_sliding(int2 *ids, bool2* contact_active, real3* norm, real3 * ptA, real3 * ptB, real4 * rot, real * gamma, real3 * updateV,
+void ChConstraintRigidRigid::host_shurA_sliding(bool2* contact_active, real3* norm, real3 * ptA, real3 * ptB, real4 * rot, real * gamma, real3 * updateV,
 		real3 * updateO) {
 #pragma omp  for
 	for (size_t index = 0; index < number_of_rigid_rigid; index++) {
@@ -439,24 +468,22 @@ void ChConstraintRigidRigid::host_shurA_sliding(int2 *ids, bool2* contact_active
 		Orthogonalize(U, V, W);
 		bool2 active = contact_active[index];
 
-		int2 body_id = ids[index];
-
 		updateV[index] = -U * gam.x - V * gam.y - W * gam.z;
 		if (active.x != 0) {
 			real3 T3, T4, T5;
-			Compute_Jacobian(rot[body_id.x], U, V, W, ptA[index], T3, T4, T5);
+			Compute_Jacobian(rot[index], U, V, W, ptA[index], T3, T4, T5);
 			updateO[index] = T3 * gam.x + T4 * gam.y + T5 * gam.z;
 		}
 		if (active.y != 0) {
 			real3 T6, T7, T8;
-			Compute_Jacobian(rot[body_id.y], U, V, W, ptB[index], T6, T7, T8);
+			Compute_Jacobian(rot[index + number_of_rigid_rigid], U, V, W, ptB[index], T6, T7, T8);
 			//updateV[index + number_of_rigid_rigid] = U * gam.x + V * gam.y + W * gam.z;
 			updateO[index + number_of_rigid_rigid] = -T6 * gam.x - T7 * gam.y - T8 * gam.z;
 		}
 	}
 }
 
-void ChConstraintRigidRigid::host_shurA_spinning(int2 *ids, bool2* contact_active, real3* norm, real3 * ptA, real3 * ptB, real4 * rot, real * gamma, real3 * updateV,
+void ChConstraintRigidRigid::host_shurA_spinning(bool2* contact_active, real3* norm, real3 * ptA, real3 * ptB, real4 * rot, real * gamma, real3 * updateV,
 		real3 * updateO) {
 #pragma omp  for
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
@@ -469,10 +496,8 @@ void ChConstraintRigidRigid::host_shurA_spinning(int2 *ids, bool2* contact_activ
 		bool2 active = contact_active[index];
 		updateV[index] = -U * gam.x - V * gam.y - W * gam.z;
 
-		int2 body_id = ids[index];
-
 		if (active.x != 0) {
-			real4 quat = rot[body_id.x];
+			real4 quat = rot[index];
 			real4 quaternion_conjugate = ~quat;
 			real3 sbar = quatRotate(ptA[index], quaternion_conjugate);
 			real3 TA = quatRotate(U, quat);
@@ -487,7 +512,7 @@ void ChConstraintRigidRigid::host_shurA_spinning(int2 *ids, bool2* contact_activ
 		}
 		if (active.y != 0) {
 
-			real4 quat = rot[body_id.y];
+			real4 quat = rot[index + number_of_rigid_rigid];
 			real4 quaternion_conjugate = ~quat;
 			real3 sbar = quatRotate(ptB[index], quaternion_conjugate);
 			real3 TA = quatRotate(U, quat);
@@ -551,7 +576,7 @@ void ChConstraintRigidRigid::host_shurB_sliding(const real & alpha, int2 * ids, 
 			XYZ = QXYZ[bid.x];
 			UVW = QUVW[bid.x];
 			real3 T3, T4, T5;
-			Compute_Jacobian(rot[bid.x], U, V, W, ptA[index], T3, T4, T5);
+			Compute_Jacobian(rot[index], U, V, W, ptA[index], T3, T4, T5);
 			temp.x = dot(XYZ, -U) + dot(UVW, T3);
 			temp.y = dot(XYZ, -V) + dot(UVW, T4);
 			temp.z = dot(XYZ, -W) + dot(UVW, T5);
@@ -561,11 +586,10 @@ void ChConstraintRigidRigid::host_shurB_sliding(const real & alpha, int2 * ids, 
 			XYZ = QXYZ[bid.y];
 			UVW = QUVW[bid.y];
 			real3 T6, T7, T8;
-			Compute_Jacobian(rot[bid.y], U, V, W, ptB[index], T6, T7, T8);
+			Compute_Jacobian(rot[index + number_of_rigid_rigid], U, V, W, ptB[index], T6, T7, T8);
 			temp.x += dot(XYZ, U) + dot(UVW, -T6);
 			temp.y += dot(XYZ, V) + dot(UVW, -T7);
 			temp.z += dot(XYZ, W) + dot(UVW, -T8);
-
 		}
 
 		real4 comp = compliance[index];
@@ -575,10 +599,6 @@ void ChConstraintRigidRigid::host_shurB_sliding(const real & alpha, int2 * ids, 
 		AX[_index_ + 0] = temp.x;
 		AX[_index_ + 1] = temp.y;
 		AX[_index_ + 2] = temp.z;
-//		AX[_index_ + 3] = 0;
-//		AX[_index_ + 4] = 0;
-//		AX[_index_ + 5] = 0;
-
 	}
 }
 void ChConstraintRigidRigid::host_shurB_spinning(const real & alpha, int2 * ids, bool2* contact_active, real3* norm, real4 * compliance, real * gamma, real3 * ptA, real3 * ptB,
@@ -598,7 +618,7 @@ void ChConstraintRigidRigid::host_shurB_spinning(const real & alpha, int2 * ids,
 			real3 XYZ = QXYZ[bid.x];
 			real3 UVW = QUVW[bid.x];
 
-			real4 quat = rot[bid.x];
+			real4 quat = rot[index];
 			real4 quaternion_conjugate = ~quat;
 			real3 sbar = quatRotate(ptA[index], quaternion_conjugate);
 			real3 TA = quatRotate(U, quat);
@@ -627,7 +647,7 @@ void ChConstraintRigidRigid::host_shurB_spinning(const real & alpha, int2 * ids,
 			real3 XYZ = QXYZ[bid.y];
 			real3 UVW = QUVW[bid.y];
 
-			real4 quat = rot[bid.y];
+			real4 quat = rot[index + number_of_rigid_rigid];
 			real4 quaternion_conjugate = ~quat;
 			real3 sbar = quatRotate(ptB[index], quaternion_conjugate);
 			real3 TA = quatRotate(U, quat);
@@ -717,9 +737,15 @@ void ChConstraintRigidRigid::ShurA(real* x) {
 			data_container->system_timer.SetMemory("shurA_spinning", 19 * 4 * 4 * number_of_rigid_rigid);
 			data_container->system_timer.start("shurA_spinning");
 		}
-		host_shurA_spinning(data_container->host_data.bids_rigid_rigid.data(), contact_active_pairs.data(), data_container->host_data.norm_rigid_rigid.data(),
-				data_container->host_data.cpta_rigid_rigid.data(), data_container->host_data.cptb_rigid_rigid.data(), data_container->host_data.rot_data.data(), x,
-				vel_update.data(), omg_update.data());
+		host_shurA_spinning(
+				contact_active_pairs.data(),
+				data_container->host_data.norm_rigid_rigid.data(),
+				data_container->host_data.cpta_rigid_rigid.data(),
+				data_container->host_data.cptb_rigid_rigid.data(),
+				contact_rotation.data(),
+				x,
+				vel_update.data(),
+				omg_update.data());
 #pragma omp master
 		{
 			data_container->system_timer.stop("shurA_spinning");
@@ -730,9 +756,15 @@ void ChConstraintRigidRigid::ShurA(real* x) {
 			data_container->system_timer.SetMemory("shurA_sliding", 12 * 4 * 4 * number_of_rigid_rigid);
 			data_container->system_timer.start("shurA_sliding");
 		}
-		host_shurA_sliding(data_container->host_data.bids_rigid_rigid.data(), contact_active_pairs.data(), data_container->host_data.norm_rigid_rigid.data(),
-				data_container->host_data.cpta_rigid_rigid.data(), data_container->host_data.cptb_rigid_rigid.data(), data_container->host_data.rot_data.data(), x,
-				vel_update.data(), omg_update.data());
+		host_shurA_sliding(
+				contact_active_pairs.data(),
+				data_container->host_data.norm_rigid_rigid.data(),
+				data_container->host_data.cpta_rigid_rigid.data(),
+				data_container->host_data.cptb_rigid_rigid.data(),
+				contact_rotation.data(),
+				x,
+				vel_update.data(),
+				omg_update.data());
 #pragma omp master
 		{
 			data_container->system_timer.stop("shurA_sliding");
@@ -753,8 +785,16 @@ void ChConstraintRigidRigid::ShurA(real* x) {
 	{
 		data_container->system_timer.start("shurA_reduce");
 	}
-	host_Reduce_Shur(data_container->host_data.active_data.data(), data_container->host_data.QXYZ_data.data(), data_container->host_data.QUVW_data.data(),
-			data_container->host_data.mass_data.data(), data_container->host_data.inr_data.data(), vel_update.data(), omg_update.data(), body_number.data(), offset_counter.data(),
+	host_Reduce_Shur(
+			data_container->host_data.active_data.data(),
+			data_container->host_data.QXYZ_data.data(),
+			data_container->host_data.QUVW_data.data(),
+			data_container->host_data.mass_data.data(),
+			data_container->host_data.inr_data.data(),
+			vel_update.data(),
+			omg_update.data(),
+			body_number.data(),
+			offset_counter.data(),
 			update_offset_bodies.data());
 #pragma omp master
 	{
@@ -765,21 +805,49 @@ void ChConstraintRigidRigid::ShurB(real*x, real* output) {
 
 	if (solve_spinning) {
 
-		host_shurB_spinning(data_container->alpha, data_container->host_data.bids_rigid_rigid.data(), contact_active_pairs.data(),
-				data_container->host_data.norm_rigid_rigid.data(), comp_rigid_rigid.data(), x, data_container->host_data.cpta_rigid_rigid.data(),
-				data_container->host_data.cptb_rigid_rigid.data(), data_container->host_data.rot_data.data(), data_container->host_data.QXYZ_data.data(),
-				data_container->host_data.QUVW_data.data(), output);
+		host_shurB_spinning(
+				data_container->alpha,
+				data_container->host_data.bids_rigid_rigid.data(),
+				contact_active_pairs.data(),
+				data_container->host_data.norm_rigid_rigid.data(),
+				comp_rigid_rigid.data(),
+				x,
+				data_container->host_data.cpta_rigid_rigid.data(),
+				data_container->host_data.cptb_rigid_rigid.data(),
+				contact_rotation.data(),
+				data_container->host_data.QXYZ_data.data(),
+				data_container->host_data.QUVW_data.data(),
+				output);
 
 	} else if (solve_sliding) {
 
-		host_shurB_sliding(data_container->alpha, data_container->host_data.bids_rigid_rigid.data(), contact_active_pairs.data(), data_container->host_data.norm_rigid_rigid.data(),
-				comp_rigid_rigid.data(), x, data_container->host_data.cpta_rigid_rigid.data(), data_container->host_data.cptb_rigid_rigid.data(),
-				data_container->host_data.rot_data.data(), data_container->host_data.QXYZ_data.data(), data_container->host_data.QUVW_data.data(), output);
+		host_shurB_sliding(
+				data_container->alpha,
+				data_container->host_data.bids_rigid_rigid.data(),
+				contact_active_pairs.data(),
+				data_container->host_data.norm_rigid_rigid.data(),
+				comp_rigid_rigid.data(),
+				x,
+				data_container->host_data.cpta_rigid_rigid.data(),
+				data_container->host_data.cptb_rigid_rigid.data(),
+				contact_rotation.data(),
+				data_container->host_data.QXYZ_data.data(),
+				data_container->host_data.QUVW_data.data(),
+				output);
 
 	} else {
 
-		host_shurB_normal(data_container->alpha, data_container->host_data.bids_rigid_rigid.data(), contact_active_pairs.data(), data_container->host_data.norm_rigid_rigid.data(),
-				comp_rigid_rigid.data(), x, JUA_rigid_rigid.data(), JUB_rigid_rigid.data(), data_container->host_data.QXYZ_data.data(), data_container->host_data.QUVW_data.data(),
+		host_shurB_normal(
+				data_container->alpha,
+				data_container->host_data.bids_rigid_rigid.data(),
+				contact_active_pairs.data(),
+				data_container->host_data.norm_rigid_rigid.data(),
+				comp_rigid_rigid.data(),
+				x,
+				JUA_rigid_rigid.data(),
+				JUB_rigid_rigid.data(),
+				data_container->host_data.QXYZ_data.data(),
+				data_container->host_data.QUVW_data.data(),
 				output);
 
 	}
