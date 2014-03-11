@@ -734,7 +734,7 @@ void ChConstraintRigidRigid::ShurA(real* x) {
 	if (solve_spinning) {
 #pragma omp master
 		{
-			data_container->system_timer.SetMemory("shurA_spinning", 19 * 4 * 4 * number_of_rigid_rigid);
+			data_container->system_timer.SetMemory("shurA_spinning", (10 * 4 + 2) * 4 * number_of_rigid_rigid);
 			data_container->system_timer.start("shurA_spinning");
 		}
 		host_shurA_spinning(
@@ -753,7 +753,7 @@ void ChConstraintRigidRigid::ShurA(real* x) {
 	} else if (solve_sliding) {
 #pragma omp master
 		{
-			data_container->system_timer.SetMemory("shurA_sliding", 12 * 4 * 4 * number_of_rigid_rigid);
+			data_container->system_timer.SetMemory("shurA_sliding", (9 * 4 + 2) * 4 * number_of_rigid_rigid);
 			data_container->system_timer.start("shurA_sliding");
 		}
 		host_shurA_sliding(
