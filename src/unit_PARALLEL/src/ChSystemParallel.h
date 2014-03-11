@@ -76,6 +76,9 @@ public:
 	void DoThreadTuning(bool m){
 		perform_thread_tuning = m;
 	}
+	void SetMinThreads(int m){
+		min_threads = m;
+	}
 
 	double GetTimerCollision() {
 		return timer_collision;

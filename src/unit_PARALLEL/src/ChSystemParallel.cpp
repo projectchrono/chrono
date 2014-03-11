@@ -44,13 +44,13 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects)
 	gpu_data_manager->system_timer.AddTimer("shurA_reduce");
 	gpu_data_manager->system_timer.AddTimer("shurB");
 
-}
+	min_threads = 1;
 
+}
 
 int ChSystemParallel::Integrate_Y()
 {
 	max_threads = this->GetParallelThreadNumber();
-	min_threads = 1;
 	gpu_data_manager->system_timer.Reset();
 	gpu_data_manager->system_timer.start("step");
 	//=============================================================================================
@@ -318,24 +318,33 @@ void ChSystemParallel::UpdateBilaterals()
 void ChSystemParallel::RecomputeThreads()
 {
 	double sum_of_elems = std::accumulate(timer_accumulator.begin(), timer_accumulator.end(), 0.0);
+
 	if (frame_threads == 50 && detect_optimal_threads == false) {
 		frame_threads = 0;
-		if (current_threads < max_threads) {
+		if (current_threads + 2 < max_threads) {
 			detect_optimal_threads = true;
 			old_timer = sum_of_elems / 10.0;
-			current_threads++;
+			current_threads += 2;
 			omp_set_num_threads(current_threads);
-			cout << "current threads increased" << endl;
+			cout << "current threads increased to " << current_threads << endl;
+		} else {
+			current_threads = max_threads;
+			omp_set_num_threads(max_threads);
+			cout << "current threads increased to " << current_threads << endl;
 		}
 	} else if (frame_threads == 10 && detect_optimal_threads) {
 		double current_timer = sum_of_elems / 10.0;
 		detect_optimal_threads = false;
 		frame_threads = 0;
 		if (old_timer < current_timer) {
-			current_threads--;
+			current_threads -= 2;
 			omp_set_num_threads(current_threads);
-			cout << "current threads reduced back" << endl;
+			cout << "current threads reduced back to " << current_threads << endl;
 		}
+	}
+
+	if (current_threads < min_threads) {
+		omp_set_num_threads(min_threads);
 	}
 }
 
