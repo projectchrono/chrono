@@ -43,10 +43,12 @@ public:
 	inline real4() : mmvalue(_mm_setzero_ps()) {}
 	inline real4(float a) : mmvalue(_mm_set1_ps(a)) {}
 	inline real4(float a, float b, float c) :  mmvalue(_mm_setr_ps(0, a,b,c)) {}
+	inline real4(real3 a) :  mmvalue(_mm_setr_ps(0, a.x,a.y,a.z)) {}
 	inline real4(float d, float a, float b, float c) :  mmvalue(_mm_setr_ps(d, a,b,c)) {}
 	inline real4(__m128 m) : mmvalue(m) {}
 
     operator __m128() const { return mmvalue;}
+    operator real3() const { return real3(x,y,z);}
 
 	inline real4 operator+(const real4& b) const { return _mm_add_ps(mmvalue, b.mmvalue);}
 	inline real4 operator-(const real4& b) const { return _mm_sub_ps(mmvalue, b.mmvalue);}
@@ -201,8 +203,12 @@ static inline quaternion slerp(const quaternion &a, const quaternion &b, real al
 }
 
 static inline real3 quatRotate(const real3 &v, const quaternion &q) {
-	quaternion r = mult(mult(q, R4(0, v.x, v.y, v.z)), inv(q));
-	return R3(r.x, r.y, r.z);
+
+	real3 t = 2 * cross(real3(q.x,q.y,q.z), v);
+	return  v + q.w * t + cross(real3(q.x,q.y,q.z), t);
+
+	//quaternion r = mult(mult(q, R4(0, v.x, v.y, v.z)), inv(q));
+	//return R3(r.x, r.y, r.z);
 }
 static inline real3 quatRotateMat(const real3 &v, const quaternion &q) {
 

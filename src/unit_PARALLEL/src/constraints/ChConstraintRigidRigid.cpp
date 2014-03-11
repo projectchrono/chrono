@@ -465,7 +465,7 @@ void ChConstraintRigidRigid::host_shurA_sliding(int2 *ids, bool2* contact_active
 		if (active.y != 0) {
 			Compute_Jacobian(rot[body_id.y], U, V, W, ptB[index], T6, T7, T8);
 			//updateV[index + number_of_rigid_rigid] = U * gam.x + V * gam.y + W * gam.z;
-			updateO[index + number_of_rigid_rigid] = -T6 * gam.x + -T7 * gam.y + -T8 * gam.z;
+			updateO[index + number_of_rigid_rigid] = -T6 * gam.x -T7 * gam.y -T8 * gam.z;
 		}
 	}
 }
