@@ -241,7 +241,7 @@ void ChConstraintRigidRigid::host_RHS_spinning(int2 *ids, bool2 * active, real3 
 				temp.y = dot(JSA[index], omega_b1);
 				temp.z = dot(JRA[index], omega_b1);
 			}
-			if (isactive.x) {
+			if (isactive.y) {
 				real3 omega_b2 = omega[bid.y];
 				temp.x += dot(JTB[index], omega_b2);
 				temp.y += dot(JSB[index], omega_b2);
