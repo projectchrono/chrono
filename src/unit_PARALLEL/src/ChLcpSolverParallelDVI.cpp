@@ -74,12 +74,14 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
 	bilateral.ComputeRHS();
 	data_container->system_timer.stop("rhs");
 
+
 	if (max_iter_bilateral > 0) {
+		data_container->system_timer.start("stab");
 		custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals);
 		thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, rhs_bilateral.begin());
 		//thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, data_container->host_data.gamma_bilateral.begin());
 		solver.SolveStab(data_container->host_data.gamma_bilateral, rhs_bilateral, max_iter_bilateral);
-
+		data_container->system_timer.stop("stab");
 	}
 	thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals, data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6);
 
