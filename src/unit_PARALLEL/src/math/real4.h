@@ -212,22 +212,22 @@ static inline real3 quatRotate(const real3 &v, const quaternion &q) {
 }
 static inline real3 quatRotateMat(const real3 &v, const quaternion &q) {
 
-	real3 result;
-	result.x = (q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z) * v.x + (2 * q.x * q.y - 2 * q.w * q.z) * v.y + (2 * q.x * q.z + 2 * q.w * q.y) * v.z;
-	result.y = (2 * q.x * q.y + 2 * q.w * q.z) * v.x + (q.w * q.w - q.x * q.x + q.y * q.y - q.z * q.z) * v.y + (2 * q.y * q.z - 2 * q.w * q.x) * v.z;
-	result.z = (2 * q.x * q.z - 2 * q.w * q.y) * v.x + (2 * q.y * q.z + 2 * q.w * q.x) * v.y + (q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z) * v.z;
-	return result;
+//	real3 result;
+//	result.x = (q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z) * v.x + (2 * q.x * q.y - 2 * q.w * q.z) * v.y + (2 * q.x * q.z + 2 * q.w * q.y) * v.z;
+//	result.y = (2 * q.x * q.y + 2 * q.w * q.z) * v.x + (q.w * q.w - q.x * q.x + q.y * q.y - q.z * q.z) * v.y + (2 * q.y * q.z - 2 * q.w * q.x) * v.z;
+//	result.z = (2 * q.x * q.z - 2 * q.w * q.y) * v.x + (2 * q.y * q.z + 2 * q.w * q.x) * v.y + (q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z) * v.z;
+	return quatRotate(v,q);
 }
 static inline real3 quatRotateMatT(const real3 &v, const quaternion &q) {
 
-	real3 result;
-	result.x = (q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z) * v.x + (2 * q.x * q.y + 2 * q.w * q.z) * v.y
-			+ (2 * q.x * q.z - 2 * q.w * q.y) * v.z;
-	result.y = (2 * q.x * q.y - 2 * q.w * q.z) * v.x + (q.w * q.w - q.x * q.x + q.y * q.y - q.z * q.z) * v.y
-			+ (2 * q.y * q.z + 2 * q.w * q.x) * v.z;
-	result.z = (2 * q.x * q.z + 2 * q.w * q.y) * v.x + (2 * q.y * q.z - 2 * q.w * q.x) * v.y
-			+ (q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z) * v.z;
-	return result;
+//	real3 result;
+//	result.x = (q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z) * v.x + (2 * q.x * q.y + 2 * q.w * q.z) * v.y
+//			+ (2 * q.x * q.z - 2 * q.w * q.y) * v.z;
+//	result.y = (2 * q.x * q.y - 2 * q.w * q.z) * v.x + (q.w * q.w - q.x * q.x + q.y * q.y - q.z * q.z) * v.y
+//			+ (2 * q.y * q.z + 2 * q.w * q.x) * v.z;
+//	result.z = (2 * q.x * q.z + 2 * q.w * q.y) * v.x + (2 * q.y * q.z - 2 * q.w * q.x) * v.y
+//			+ (q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z) * v.z;
+	return quatRotate(v,~q);
 }
 static inline quaternion operator %(const quaternion rhs, const quaternion lhs) {
 	return mult(rhs, lhs);
