@@ -73,8 +73,8 @@ public:
 
 	void host_shurA_normal(real *gamma, real3 *norm, real3 *JUA, real3 *JUB, real3 *updateV, real3 *updateO);
 
-	void host_shurA_sliding(bool2 *contact_active, real3 *norm, real3 *JUA, real3 *JUB, real3 *JVA, real3 *JVB, real3 *JWA, real3 *JWB, real *gamma, real3 *updateV,
-			real3 *updateO);
+	void host_shurA_sliding(int2 *ids, bool2* contact_active, real3* norm, real3 * ptA, real3 * ptB, real4 * rot, real * gamma,
+			real3 * updateV, real3 * updateO);
 
 	void host_shurA_spinning(bool2 *contact_active, real3 *norm, real3 *JUA, real3 *JUB, real3 *JVA, real3 *JVB, real3 *JWA, real3 *JWB, real3 *JTA, real3 *JTB, real3 *JSA,
 			real3 *JSB, real3 *JRA, real3 *JRB, real *gamma, real3 *updateV, real3 *updateO);
