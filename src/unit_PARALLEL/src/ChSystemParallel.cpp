@@ -33,6 +33,7 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects)
 	gpu_data_manager->system_timer.AddTimer("collision");
 	gpu_data_manager->system_timer.AddTimer("lcp");
 	gpu_data_manager->system_timer.AddTimer("solve");
+	gpu_data_manager->system_timer.AddTimer("solve_setup");
 	gpu_data_manager->system_timer.AddTimer("stab");
 	gpu_data_manager->system_timer.AddTimer("jacobians");
 	gpu_data_manager->system_timer.AddTimer("rhs");

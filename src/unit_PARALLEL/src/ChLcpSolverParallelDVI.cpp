@@ -31,7 +31,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
 	if (warm_start) {
 		RunWarmStartPreprocess();
 	}
-
+	data_container->system_timer.start("solve_setup");
 	rigid_rigid.Setup(data_container);
 	bilateral.Setup(data_container);
 
@@ -53,7 +53,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
 	solver.do_stab = do_stab;
 	solver.collision_inside = collision_inside;
 	solver.Initial(step, data_container);
-
+	data_container->system_timer.stop("solve_setup");
 	if (collision_inside) {
 		data_container->host_data.vel_new_data = data_container->host_data.vel_data;
 		data_container->host_data.omg_new_data = data_container->host_data.omg_data;
@@ -67,7 +67,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
 	//rigid_rigid.solve_sliding = true;
 	data_container->system_timer.start("jacobians");
 	rigid_rigid.ComputeJacobians();
-	//rigid_rigid.ComputeRHS();
+
 	bilateral.ComputeJacobians();
 	data_container->system_timer.stop("jacobians");
 	data_container->system_timer.start("rhs");
