@@ -57,14 +57,14 @@ public:
 
 	void Project(real* gamma);
 	void Project_NoPar(real* gamma);
-	void host_RHS(int2 *ids, real *correction, real  alpha, bool2 * active, real3* norm, real3 *vel, real3 *omega, real3 *JUA, real3 *JUB, real3 *JVA, real3 *JVB, real3 *JWA,
-			real3 *JWB, real *rhs);
+	void host_RHS(int2 *ids, real *correction, real alpha, bool2 * active, real3* norm, real3 *vel, real3 *omega, real3 *ptA, real3 *ptB, real4 *rot,
+			real *rhs);
 
-	void host_RHS_spinning(int2 *ids, bool2 * active, real3 *omega, real3 *JTA, real3 *JTB, real3 *JSA, real3 *JSB, real3 *JRA, real3 *JRB, real *rhs);
+	void host_RHS_spinning(int2 *ids, bool2 * active, real3 *omega, real3 *norm, real4 * rot, real *rhs);
 
 	void ComputeRHS();
 	void UpdateRHS();
-	void host_Jacobians(real3 *norm, real3 *ptA, real3 *ptB, int2 *ids, real4 *rot, real3* JUA, real3* JUB, real3* JVA, real3* JVB, real3* JWA, real3* JWB);
+	void host_Jacobians(real3 *norm, real3 *ptA, real3 *ptB, int2 *ids, real4 *rot, real3* JUA, real3* JUB);
 
 	void host_Jacobians_Rolling(real3 *norm, int2 *ids, real4 *rot, real3 *JTA, real3 *JTB, real3 *JSA, real3 *JSB, real3 *JRA, real3 *JRB);
 
@@ -76,16 +76,16 @@ public:
 	void host_shurA_sliding(int2 *ids, bool2* contact_active, real3* norm, real3 * ptA, real3 * ptB, real4 * rot, real * gamma,
 			real3 * updateV, real3 * updateO);
 
-	void host_shurA_spinning(bool2 *contact_active, real3 *norm, real3 *JUA, real3 *JUB, real3 *JVA, real3 *JVB, real3 *JWA, real3 *JWB, real3 *JTA, real3 *JTB, real3 *JSA,
-			real3 *JSB, real3 *JRA, real3 *JRB, real *gamma, real3 *updateV, real3 *updateO);
+	void host_shurA_spinning(int2 *ids, bool2* contact_active, real3* norm, real3 * ptA, real3 * ptB, real4 * rot, real * gamma, real3 * updateV,
+			real3 * updateO);
 
 	void host_shurB_normal(const real & alpha, int2 * ids, bool2 *contact_active, real3 *norm, real4 *compliance, real *gamma, real3 *JUA, real3 *JUB, real3 *QXYZ, real3 *QUVW, real *AX);
 
-	void host_shurB_sliding(const real & alpha, int2 * ids, bool2 *contact_active, real3 *norm, real4 *compliance, real *gamma, real3 *JUA, real3 *JUB, real3 *JVA, real3 *JVB, real3 *JWA, real3 *JWB,
-			real3 *QXYZ, real3 *QUVW, real *AX);
+	void host_shurB_sliding(const real & alpha, int2 * ids, bool2* contact_active, real3* norm, real4 * compliance, real * gamma, real3 * ptA, real3 * ptB,
+			real4 * rot,  real3 * QXYZ, real3 * QUVW, real * AX);
 
-	void host_shurB_spinning(const real & alpha, int2 * ids, bool2 *contact_active, real3 *norm, real4 *compliance, real *gamma, real3 *JUA, real3 *JUB, real3 *JVA, real3 *JVB, real3 *JWA, real3 *JWB,
-			real3 *JTA, real3 *JTB, real3 *JSA, real3 *JSB, real3 *JRA, real3 *JRB, real3 *QXYZ, real3 *QUVW, real *AX);
+	void host_shurB_spinning(const real & alpha, int2 * ids, bool2* contact_active, real3* norm, real4 * compliance, real * gamma, real3 * ptA, real3 * ptB,
+			real4 * rot, real3 * QXYZ, real3 * QUVW, real * AX);
 
 	void host_Offsets(int2 *ids_contacts, int *Body);
 
@@ -106,21 +106,6 @@ protected:
 
 	custom_vector<real3> JUA_rigid_rigid;
 	custom_vector<real3> JUB_rigid_rigid;
-
-	custom_vector<real3> JVA_rigid_rigid;
-	custom_vector<real3> JVB_rigid_rigid;
-
-	custom_vector<real3> JWA_rigid_rigid;
-	custom_vector<real3> JWB_rigid_rigid;
-
-	custom_vector<real3> JTA_rigid_rigid;
-	custom_vector<real3> JTB_rigid_rigid;
-
-	custom_vector<real3> JSA_rigid_rigid;
-	custom_vector<real3> JSB_rigid_rigid;
-
-	custom_vector<real3> JRA_rigid_rigid;
-	custom_vector<real3> JRB_rigid_rigid;
 
 	custom_vector<real4> comp_rigid_rigid;
 
