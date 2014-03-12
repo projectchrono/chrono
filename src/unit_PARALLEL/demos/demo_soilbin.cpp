@@ -57,6 +57,7 @@ double     density1 = 2000;
 double     volume1 = (4.0/3) * PI * radius1 * radius1 * radius1;
 double     mass1 = density1 * volume1;
 ChVector<> inertia1 = 0.4 * mass1 * radius1 * radius1 * ChVector<>(1,1,1);
+ChVector<> initvel1(0, 0, 0);
 
 // Parameters for the containing bin
 int    binId = -200;
@@ -160,6 +161,7 @@ ChBody* CreateFallingBall()
 	ball->SetInertiaXX(inertia1);
 	ball->SetPos(ChVector<>(0, 0, dropHeight));
 	ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
+	ball->SetPos_dt(initvel1);
 	ball->SetCollide(true);
 	ball->SetBodyFixed(false);
 
