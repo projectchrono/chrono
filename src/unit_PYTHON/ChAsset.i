@@ -13,4 +13,4 @@ using namespace chrono;
 // Define also the shared pointer chrono::ChShared<ChAsset> 
 // (renamed as 'ChAssetShared' in python)
 
-%DefChSharedPtr(ChAssetShared, ChAsset)
+%DefChSharedPtr(chrono::,ChAsset)

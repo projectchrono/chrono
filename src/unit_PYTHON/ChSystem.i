@@ -311,4 +311,4 @@ class IterPhysicsItems():
 // Define also the shared pointer chrono::ChShared<ChSystem> 
 // (renamed as 'ChSystemShared' in python)
 
-%DefChSharedPtr(ChSystemShared, ChSystem)
+%DefChSharedPtr(chrono::,ChSystem)

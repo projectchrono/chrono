@@ -254,7 +254,7 @@ void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSy
 	sstream << "exported_items = imported_mod.exported_items  \n";
 
 	this->Run(sstream.str().c_str());
-	
+
 	PyObject * module = PyImport_AddModule("__main__"); // borrowed reference
 	if (!module)
 		throw ChException("ERROR. No Python __main__ module?"); 

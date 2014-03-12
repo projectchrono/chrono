@@ -22,5 +22,5 @@
 // Define also the shared pointer chrono::ChShared<ChXxxx> 
 // (renamed as 'ChXxxxShared' in python)
 
-%DefChSharedPtr(ChParticlesClonedShared, ChParticlesClones)
+%DefChSharedPtr(chrono::,ChParticlesClones)
 

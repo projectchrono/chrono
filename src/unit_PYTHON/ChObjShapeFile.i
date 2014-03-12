@@ -13,5 +13,5 @@ using namespace chrono;
 // Define also the shared pointer chrono::ChShared<ChObjShapeFile> 
 // (renamed as 'ChObjShapeFileShared' in python)
 
-%DefChSharedPtr(ChObjShapeFileShared, ChObjShapeFile)
+%DefChSharedPtr(chrono::,ChObjShapeFile)
 

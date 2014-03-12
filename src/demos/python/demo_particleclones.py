@@ -38,7 +38,7 @@ chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001)
 # share the same mass and collision shape, so they are memory efficient
 # in case you want to simulate granular material)
 
-body_particles = chrono.ChParticlesClonedShared()
+body_particles = chrono.ChParticlesClonesShared()
 body_particles.SetMass(0.01);
 inertia = 2/5*(pow(0.005,2))*0.01;
 body_particles.SetInertiaXX(chrono.ChVectorD(inertia,inertia,inertia));

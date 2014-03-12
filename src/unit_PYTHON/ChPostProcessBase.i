@@ -12,4 +12,4 @@
 
 // Define also the shared pointer chrono::ChShared<thisclass> 
 
-//%DefChSharedPtr(ChPostProcessBaseShared, ChPostProcessBase)
+//%DefChSharedPtr(chrono::,ChPostProcessBase)

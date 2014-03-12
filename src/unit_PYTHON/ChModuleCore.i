@@ -83,6 +83,9 @@ using namespace chrono;
 // A before B, ex.because of rule 1), a 'forward reference' to A must be done in
 // B by using the %import keyword that tells Swig that somewhere there's
 // a type B. Otherwise a name mangling is built anyway, but the runtime is not ok.
+// Update: seems that instead than using %import, it is enough to write 
+//  mynamespace { class myclass; }
+// in the .i file, before the %include of the .h, even if already forwarded in .h
 
 //  core/  classes
 %include "ChException.i"
@@ -132,16 +135,18 @@ using namespace chrono;
 %include "ChPhysicsItem.i"
 %include "ChMaterialSurface.i"
 %include "ChMaterialCouple.i"
+%include "ChBodyFrame.i"
+%include "ChMarker.i"
+%include "ChForce.i"
 %include "ChBody.i"
 %include "ChBodyAuxRef.i"
 %include "ChConveyor.i"
 %include "ChIndexedParticles.i"
 %include "ChParticlesClones.i"
-%include "ChMarker.i"
-%include "ChForce.i"
 %include "ChSystem.i"
 %include "ChContactContainerBase.i"
 %include "ChProximityContainerBase.i"
+%include "ChLinkBase.i"
 %include "ChLink.i"
 %include "ChLinkMarkers.i"
 %include "ChLinkMasked.i"
@@ -181,27 +186,40 @@ using namespace chrono;
 // ChSharedPtr<FooBase> because shared ptrs are different classes (not inherited
 // one from the other, just templated versions of a ChSharedPtr<> ).
 // A workaround for this problem is using the (undocumented)
-// function  %types   , that can work here because each templated version
-// of the CSharedPtr has exactly the same data structure, so they can be just
-// cast. 
+// function %types. (More details in chrono_shared_ptr.i)
+// NOTE that for some strange reason, for some classes it is not enough
+// to link it with the parent, but the macro must be called
+// also for other upper ancestors, see the example of ChBody (maybe
+// because it is in a multiple inheritance class tree?) If this is
+// not done, the pointer conversion will slice vtables and fail.
 
-
+%DefChSharedPtrCast(chrono::ChBody, chrono::ChBodyFrame)
 %DefChSharedPtrCast(chrono::ChBody, chrono::ChPhysicsItem)
+
 %DefChSharedPtrCast(chrono::ChConveyor, chrono::ChBody)
+%DefChSharedPtrCast(chrono::ChConveyor, chrono::ChBodyFrame)
+
 %DefChSharedPtrCast(chrono::ChBodyAuxRef, chrono::ChBody)
+%DefChSharedPtrCast(chrono::ChBodyAuxRef, chrono::ChBodyFrame)
+
 %DefChSharedPtrCast(chrono::ChIndexedParticles, chrono::ChPhysicsItem)
 %DefChSharedPtrCast(chrono::ChParticlesClones, chrono::ChIndexedParticles)
 %DefChSharedPtrCast(chrono::ChMarker, chrono::ChPhysicsItem)
 %DefChSharedPtrCast(chrono::ChForce, chrono::ChPhysicsItem)
 %DefChSharedPtrCast(chrono::ChVisualization, chrono::ChAsset)
 %DefChSharedPtrCast(chrono::ChSphereShape, chrono::ChVisualization)
+%DefChSharedPtrCast(chrono::ChSphereShape, chrono::ChAsset)
 %DefChSharedPtrCast(chrono::ChCylinderShape, chrono::ChVisualization)
+%DefChSharedPtrCast(chrono::ChCylinderShape, chrono::ChAsset)
 %DefChSharedPtrCast(chrono::ChBoxShape, chrono::ChVisualization)
+%DefChSharedPtrCast(chrono::ChBoxShape, chrono::ChAsset)
 %DefChSharedPtrCast(chrono::ChObjShapeFile, chrono::ChVisualization)
+%DefChSharedPtrCast(chrono::ChObjShapeFile, chrono::ChAsset)
 %DefChSharedPtrCast(chrono::ChTexture, chrono::ChAsset)
 %DefChSharedPtrCast(chrono::ChCamera, chrono::ChAsset)
 %DefChSharedPtrCast(chrono::ChAssetLevel, chrono::ChAsset)
-%DefChSharedPtrCast(chrono::ChLink, chrono::ChPhysicsItem)
+%DefChSharedPtrCast(chrono::ChLinkBase, chrono::ChPhysicsItem)
+%DefChSharedPtrCast(chrono::ChLink, chrono::ChLinkBase)
 %DefChSharedPtrCast(chrono::ChLinkMarkers, chrono::ChLink)
 %DefChSharedPtrCast(chrono::ChLinkMasked, chrono::ChLinkMarkers)
 %DefChSharedPtrCast(chrono::ChLinkLock, chrono::ChLinkMasked)
@@ -264,6 +282,11 @@ using namespace chrono;
 %DefChSharedPtrDynamicDowncast(ChAsset,ChCylinderShape)
 %DefChSharedPtrDynamicDowncast(ChAsset,ChTexture)
 %DefChSharedPtrDynamicDowncast(ChAsset,ChAssetLevel)
+%DefChSharedPtrDynamicDowncast(ChBodyFrame, ChBody)
+%DefChSharedPtrDynamicDowncast(ChBodyFrame, ChBodyAuxRef)
+%DefChSharedPtrDynamicDowncast(ChBodyFrame, ChConveyor)
+%DefChSharedPtrDynamicDowncast(ChBody, ChBodyFrame)  // <- upcast, for testing & workaround
+%DefChSharedPtrDynamicDowncast(ChBodyAuxRef, ChBodyFrame)  // <- upcast, for testing & workaround
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChBody)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChConveyor)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChBodyAuxRef)

@@ -15,5 +15,5 @@ using namespace chrono;
 // Define also the shared pointer chrono::ChShared<ChIrrNodeAsset> 
 // (renamed as 'ChIrrNodeAssetShared' in python)
 
-%DefChSharedPtr(ChIrrNodeAssetShared, ChIrrNodeAsset)
+%DefChSharedPtr(chrono::,ChIrrNodeAsset)
 

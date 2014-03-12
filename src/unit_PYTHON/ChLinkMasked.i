@@ -21,7 +21,7 @@
 // Define also the shared pointer chrono::ChShared<ChXxxx> 
 // (renamed as 'ChXxxxShared' in python)
 
-%DefChSharedPtr(ChLinkMaskedShared, ChLinkMasked)
+%DefChSharedPtr(chrono::,ChLinkMasked)
 
 
 

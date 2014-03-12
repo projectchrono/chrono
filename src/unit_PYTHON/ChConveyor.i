@@ -20,6 +20,6 @@
 // Define also the shared pointer chrono::ChShared<ChConveyor> 
 // (renamed as 'ChConveyorShared' in python)
 
-%DefChSharedPtr(ChConveyorShared, ChConveyor)
+%DefChSharedPtr(chrono::,ChConveyor)
 
 

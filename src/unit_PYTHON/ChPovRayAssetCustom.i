@@ -13,6 +13,6 @@
 
 
 // Define also the shared pointer 
-//%DefChSharedPtr3(mynamespace::, myclassname)
+//%DefChSharedPtr(mynamespace::, myclassname)
 
-%DefChSharedPtr3(chrono::postprocess::,ChPovRayAssetCustom)
+%DefChSharedPtr(chrono::postprocess::,ChPovRayAssetCustom)

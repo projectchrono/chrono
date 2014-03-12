@@ -12,5 +12,5 @@ using namespace chrono;
 
 // Define also the shared pointer 
 
-%DefChSharedPtr(ChCameraShared, ChCamera)
+%DefChSharedPtr(chrono::,ChCamera)
 

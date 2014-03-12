@@ -14,4 +14,4 @@ using namespace chrono;
 // Define also the shared pointer chrono::ChShared<ChVisualization> 
 // (renamed as 'ChVisualizationShared' in python)
 
-%DefChSharedPtr(ChVisualizationShared, ChVisualization)
+%DefChSharedPtr(chrono::,ChVisualization)

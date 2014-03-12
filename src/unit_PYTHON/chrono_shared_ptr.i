@@ -1,45 +1,30 @@
-//
-// Use as 
-//   %ChSharedPtr(shared_class_name, class_to_share)
-//
-// for example
-//   %ChSharedPtr(ChBodyShared, ChBody)
-
 
 %include "../core/ChSmartpointers.h"
 
 
-// #### THE MACRO ####
+// #######################################################
+// MACRO FOR ENABLING SHARED POINTERS
+//
+// Shared pointers of type chrono::ChSharedPtr<myclass>
+// are supported in this way. You must use this macro after
+// the definition of the class, so that in Python you can
+// use shared objects as other python objects. 
+//
+// Use as 
+//   %DefChSharedPtr(shared_class_namespace, shared_class)
+//
+// for example
+//   %DefChSharedPtr(chrono::fem::,ChMesh)
+//
+// Note 1: upcasting of shared pointers in python is not 
+//  automatic as in c++, but you can make it automatic if 
+//  you use the macro %DefChSharedPtrCast , see below.
+// Note 2: downcasting of shared pointers is not automatic,
+//  unless you use %downcast_output_sharedptr (not suggested
+//  because of code bloat) or you enforce casting manually
+//  using the %DefChSharedPtrDynamicDowncast macro, see below.
 
-%define %DefChSharedPtr(__CHTYPE__Shared, __CHTYPE__)
-
-// Tell SWIG to add a chrono::ChSharedPtr class 
-%template(__CHTYPE__Shared) chrono::ChSharedPtr<__CHTYPE__>;
-
-// Trick to avoid confusion about memory ownership: redefine the
-// original chrono::ChSharedPtr constructor (that SWIG made according
-// to the cpp equivalent) and allow only one type of construction with 
-// no arguments, that also instances one object.
-
-%pythoncode %{
-def __CHTYPE__Shared ## _custominit(self,*args):
-	newsharedobj = __CHTYPE__(*args)
-	newsharedobj.thisown = 0
-	#print 'Debug: init __CHTYPE__ ## Shared '
-	__CHTYPE__Shared.__cppinit__(self, newsharedobj)
-
-setattr(__CHTYPE__Shared, "__cppinit__", __CHTYPE__Shared.__init__)
-setattr(__CHTYPE__Shared, "__init__", __CHTYPE__Shared ## _custominit)
-
-%}
-
-%enddef
-
-
-
-// A MORE RECENT VERSION:  
-
-%define %DefChSharedPtr3(__CHNAMESPACE__, __CHTYPE__)
+%define %DefChSharedPtr(__CHNAMESPACE__, __CHTYPE__)
 
 // Tell SWIG to add a chrono::ChSharedPtr class 
 %template(__CHTYPE__ ## Shared) chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__>;
@@ -60,21 +45,81 @@ setattr(__CHTYPE__ ## Shared, "__init__", __CHTYPE__ ## Shared_custominit)
 
 %}
 
+
+// Typemaps. 
+// Needed because the pointer casting returns new object (a temporary
+// chrono::ChSharedPtr<> that must be used to carry 'type' infos, otherwise
+// the default reinterpret_cast does not work straigt on shared ptr, since
+// the embedded ptr is cast roughly, somethng that fails with classes with 
+// multiple inheritance!)
+
+// The conversion typemap for shared pointers, passed as object
+%typemap(in) chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__> (void *argp = 0, int res = 0) {
+  int newmem = 0;
+  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__ > *), %convertptr_flags, &newmem);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res, "$type", $symname, $argnum); 
+  }
+  if (!argp) {
+    %argument_nullref("$type", $symname, $argnum);
+  } else     {
+	  $1 = *(%reinterpret_cast(argp, chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__ > *) );
+	  if (SWIG_IsNewObj(res)) delete %reinterpret_cast(argp, chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__ > *);
+  }
+}
+
+// The conversion typemap for shared pointers, passed as object
+%typemap(varin) chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__> {
+  void *argp = 0; 
+  int res = 0;
+  int newmem = 0;
+  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__ > *), %convertptr_flags, &newmem);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res, "$type", $symname, $argnum); 
+  }
+  if (!argp) {
+    %argument_nullref("$type", $symname, $argnum);
+  } else {
+	  $1 = *(%reinterpret_cast(argp, chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__ > *) );
+	  if (SWIG_IsNewObj(res)) delete %reinterpret_cast(argp, chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__ > *);
+  }
+}
+
+// To do? also typemaps for in &foo references? for in *foo pointers? for outputs? (see boost_shared_ptr.i)
+
+
 %enddef
 
-// ### MACRO FOR SETTING UP INHERITANCE of ChSharedPtr ###
-//     This enables the UPCASTING (from derived to base)
-//     that will happen automatically in Python
+
+
+// #######################################################
+// MACRO FOR UPCASTING of ChSharedPtr
+//
+// This enables the UPCASTING (from derived to base)
+// that will happen automatically in Python. Ex. if you pass a 
+// subclass to a function that requires base class.
 
 %define %DefChSharedPtrCast(__CHTYPE__, __CHTYPE_BASE__)
 
-%types(chrono::ChSharedPtr<__CHTYPE__> = chrono::ChSharedPtr<__CHTYPE_BASE__>);
+%types(chrono::ChSharedPtr<__CHTYPE__> = chrono::ChSharedPtr<__CHTYPE_BASE__>)
+%{
+  *newmemory = SWIG_CAST_NEW_MEMORY;
+  return (void *) new chrono::ChSharedPtr< __CHTYPE_BASE__ >(*(chrono::ChSharedPtr< __CHTYPE__ > *)$from);
+%}
+
+// (note the creation of a temp. shared ptr for casting without
+// problems even with classes that have multiple inheritance)
 
 %enddef
 
 
-//     This enables the manual DOWNCASTING (from base to derived) 
-//     by calling a python function as for example:  myvis = CastToChVisualizationShared(myasset)
+
+// #######################################################
+// MACRO FOR DOWNCASTING and generic casting of ChSharedPtr
+// 
+// This enables the manual DOWNCASTING (usually from base to derived,
+// but could be also viceversa) by calling a python function.
+// For example:  myvis = CastToChVisualizationShared(myasset)
 
 %define %DefChSharedPtrDynamicDowncast(__CHTYPE_BASE__, __CHTYPE__)
 %inline %{
@@ -89,14 +134,23 @@ setattr(__CHTYPE__ ## Shared, "__init__", __CHTYPE__ ## Shared_custominit)
 %enddef
 
 
+
+
+// #######################################################
+// MACRO FOR AUTOMATIC DOWNCASTING of ChSharedPtr
+// 
+// Utility macro for enabling AUTOMATIC downcasting function 
+// outputs with ChSharedPtr pointers. 
+// Since this creates lot of code bloat, it is suggested to
+// use it sparingly; prefer using the DefChSharedPtrDynamicDowncast
+// trick when possible.
 //
-// Utility macro for enabling AUTOMATIC downcasting function outputs with ChSharedPtr pointers. 
+// Parameters: base class, inherited, inherited, ... (only the 
+//    classes wrapped by the chared ptr)
 //
-// Parameters: base class, inherited, inherited, ... (only the classes wrapped by the chared ptr)
 // Example:
 //   %downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualization, chrono::ChObjShapeFile)
 
-//  (works, but makes some code bloat...)
 
 %define %_shpointers_dispatch(Type) 
 	if ( typeid(*((result).get_ptr()))==typeid(Type) )

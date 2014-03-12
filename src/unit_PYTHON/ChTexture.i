@@ -12,5 +12,5 @@ using namespace chrono;
 
 // Define also the shared pointer 
 
-%DefChSharedPtr(ChTextureShared, ChTexture)
+%DefChSharedPtr(chrono::,ChTexture)
 

@@ -14,4 +14,4 @@
 
 // Define also the shared pointer chrono::ChShared<thisclass> 
 
-//%DefChSharedPtr(ChPovRayShared, ChPovRay)
+//%DefChSharedPtr(chrono::,ChPovRay)
