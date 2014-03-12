@@ -76,8 +76,9 @@ float      Y_c = 2e6;
 float      mu_c = 0.3;
 float      alpha_c = 0.6;
 
-// Height of the generator domain
-double     genHeight = 8e-2;
+// Number of layers and height of one layer for generator domain
+int        numLayers = 4;
+double     layerHeight = 1e-2;
 
 // Drop height (above surface of settled granular material)
 double h = 10e-2;
@@ -129,12 +130,14 @@ int CreateObjects(ChSystemParallel* system)
 
 	double r = 1.01 * r_g;
 
-	gen.createObjectsBox(utils::POISSON_DISK,
-	                     2 * r,
-	                     ChVector<>(0, 0, r + genHeight/2),
-	                     ChVector<>(hDimX - r, hDimY - r, genHeight/2));
-
-	cout << "Number bodies generated: " << gen.getTotalNumBodies() << endl;
+	for (int i = 0; i < numLayers; i++) {
+		double center = r + layerHeight / 2 + i * (r + layerHeight);
+		gen.createObjectsBox(utils::POISSON_DISK,
+		                     2 * r,
+		                     ChVector<>(0, 0, center),
+		                     ChVector<>(hDimX - r, hDimY - r, layerHeight/2));
+		cout << "Layer " << i << "total bodies: " << gen.getTotalNumBodies() << endl;
+	}
 
 	// Create the containing bin
 	ChSharedBodyDEMPtr bin(new ChBodyDEM(new ChCollisionModelParallel));
