@@ -256,6 +256,7 @@ void ReadCheckpoint(ChSystem*          system,
 		body->SetPos_dt(bpos_dt);
 		body->SetRot_dt(brot_dt);
 
+		body->SetIdentifier(bid);
 		body->SetBodyFixed(bfixed);
 		body->SetCollide(bcollide);
 

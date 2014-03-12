@@ -156,10 +156,20 @@ public:
 	Generator(ChSystem* system);
 	~Generator();
 
+	// Add a new mixture ingredient of the specified type and in the given ratio
+	// (note that the ratios are normalized before creating bodies)
 	MixtureIngredientPtr& AddMixtureIngredient(MixtureType type, double ratio);
 
+	// Get/Set the identifier that will be assigned to the next body.
+	// Identifier are incremented for successively created bodies.
+	int  getBodyIdentifier() const   {return m_crtBodyId;}
+	void setBodyIdentifier(int id)   {m_crtBodyId = id;}
+
+	// Create bodies, according to the current mixture setup, with initial positions
+	// given by the specified sampler in the box domain specified by 'pos' and 'hdims'.
 	void createObjectsBox(SamplingType sType, double dist, const ChVector<>& pos, const ChVector<>& hdims);
 
+	// Write information about the bodies created so far to the specified file (CSV format)
 	void writeObjectInfo(const std::string& filename);
 
 	int    getTotalNumBodies() const {return m_totalNumBodies;}
@@ -203,6 +213,8 @@ private:
 	int                                m_totalNumBodies;
 	double                             m_totalMass;
 	double                             m_totalVolume;
+
+	int                                m_crtBodyId;
 
 friend class  MixtureIngredient;
 };
@@ -453,6 +465,7 @@ MixtureIngredient::calcMinSeparation()
 Generator::Generator(ChSystem* system)
 :	m_system(system),
 	m_mixDist(0,1),
+	m_crtBodyId(0),
 	m_totalNumBodies(0),
 	m_totalMass(0),
 	m_totalVolume(0)
@@ -598,6 +611,9 @@ void Generator::createObjects(const PointVector& points)
 			m_mixture[index]->setMaterialProperties(((ChBodyDEM*) body)->GetMaterialSurfaceDEM());
 			break;
 		}
+
+		// Set identifier
+		body->SetIdentifier(m_crtBodyId++);
 
 		// Set position and orientation
 		body->SetPos(points[i]);
