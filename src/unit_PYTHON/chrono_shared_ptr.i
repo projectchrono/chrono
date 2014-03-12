@@ -53,22 +53,18 @@ setattr(__CHTYPE__ ## Shared, "__init__", __CHTYPE__ ## Shared_custominit)
 // the embedded ptr is cast roughly, somethng that fails with classes with 
 // multiple inheritance!)
 
-// The conversion typemap for shared pointers, passed as object
+// The conversion typemap for shared pointers, passed by value
 %typemap(in) chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__> (void *argp = 0, int res = 0) {
   int newmem = 0;
   res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__ > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum); 
   }
-  if (!argp) {
-    %argument_nullref("$type", $symname, $argnum);
-  } else     {
-	  $1 = *(%reinterpret_cast(argp, chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__ > *) );
-	  if (SWIG_IsNewObj(res)) delete %reinterpret_cast(argp, chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__ > *);
-  }
+  $1 = *(%reinterpret_cast(argp, chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__ > *) );
+  if (SWIG_IsNewObj(res)) delete %reinterpret_cast(argp, chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__ > *);
 }
 
-// The conversion typemap for shared pointers, passed as object
+// The conversion typemap for shared pointers, passed by value
 %typemap(varin) chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__> {
   void *argp = 0; 
   int res = 0;
@@ -77,15 +73,85 @@ setattr(__CHTYPE__ ## Shared, "__init__", __CHTYPE__ ## Shared_custominit)
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum); 
   }
-  if (!argp) {
-    %argument_nullref("$type", $symname, $argnum);
+  $1 = *(%reinterpret_cast(argp, chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__ > *) );
+  if (SWIG_IsNewObj(res)) delete %reinterpret_cast(argp, chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__ > *);
+}
+
+
+// The conversion typemap for shared pointers, passed by reference  (simple, defaults to Python refcount for the sh.pointer, no C::E refcount update)
+%typemap(in) chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__> & (void *argp = 0, int res = 0, $*1_ltype tempshared) {
+  int newmem = 0;
+  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__ > *), %convertptr_flags, &newmem);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res, "$type", $symname, $argnum); 
+  }
+  if (newmem & SWIG_CAST_NEW_MEMORY) {
+    if (argp) tempshared = *%reinterpret_cast(argp, $ltype);
+    delete %reinterpret_cast(argp, $ltype);
+    $1 = &tempshared;
   } else {
-	  $1 = *(%reinterpret_cast(argp, chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__ > *) );
-	  if (SWIG_IsNewObj(res)) delete %reinterpret_cast(argp, chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__ > *);
+    $1 = (argp) ? %reinterpret_cast(argp, $ltype) : &tempshared;
   }
 }
 
-// To do? also typemaps for in &foo references? for in *foo pointers? for outputs? (see boost_shared_ptr.i)
+%typemap(varin) chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__> & %{
+#error "varin typemap not implemented for reference to ChSharedPtr"
+%}
+
+
+// The conversion typemap for shared pointers, passed by pointer (simple, defaults to Python refcount for the sh.pointer, no C::E refcount update)
+%typemap(in) chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__> * (void *argp = 0, int res = 0, $*1_ltype tempshared) {
+  int newmem = 0;
+  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__ > *), %convertptr_flags, &newmem);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res, "$type", $symname, $argnum); 
+  }
+  if (newmem & SWIG_CAST_NEW_MEMORY) {
+    if (argp) tempshared = *%reinterpret_cast(argp, $ltype);
+    delete %reinterpret_cast(argp, $ltype);
+    $1 = &tempshared;
+  } else {
+    $1 = (argp) ? %reinterpret_cast(argp, $ltype) : &tempshared;
+  }
+}
+
+%typemap(varin) chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__> * %{
+#error "varin typemap not implemented for pointer to ChSharedPtr"
+%}
+
+
+// The conversion typemap for shared pointers, passed by reference to pointer
+%typemap(in) chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__> *& (void *argp, int res = 0, chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__> tempshared, $*1_ltype temp = 0) {
+  int newmem = 0;
+  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__> *), %convertptr_flags, &newmem);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res, "$type", $symname, $argnum); 
+  }
+  if (argp) tempshared = *%reinterpret_cast(argp, $*ltype);
+  if (newmem & SWIG_CAST_NEW_MEMORY) delete %reinterpret_cast(argp, $*ltype);
+  temp = &tempshared;
+  $1 = &temp;
+}
+
+%typemap(varin) chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__> *& %{
+#error "varin typemap not implemented"
+%}
+
+
+// Typecheck typemaps
+// Note: SWIG_ConvertPtr with void ** parameter set to 0 instead of using SWIG_ConvertPtrAndOwn, so that the casting 
+// function is not called thereby avoiding a possible smart pointer copy constructor call when casting up the inheritance chain.
+%typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER,noblock=1) 
+                      chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__>,
+                      chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__> &,
+                      chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__> *,
+                      chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__> *& {
+  int res = SWIG_ConvertPtr($input, 0, $descriptor(chrono::ChSharedPtr< __CHNAMESPACE__ ## __CHTYPE__> *), 0);
+  $1 = SWIG_CheckState(res);
+}
+
+
+// To do? also typemaps for outputs? (see boost_shared_ptr.i)
 
 
 %enddef
