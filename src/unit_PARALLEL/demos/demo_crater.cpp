@@ -187,7 +187,7 @@ ChSharedBodyDEMPtr CreateFallingBall(ChSystemParallel* system, double z, double 
 	ball->SetIdentifier(Id_b);
 	ball->SetMass(mass_b);
 	ball->SetInertiaXX(inertia_b);
-	ball->SetPos(ChVector<>(0, 0, z + R_b));
+	ball->SetPos(ChVector<>(0, 0, z + r_g + R_b));
 	ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
 	ball->SetPos_dt(ChVector<>(0, 0, -vz));
 	ball->SetCollide(true);
@@ -306,12 +306,15 @@ int main(int argc, char* argv[])
 		time_end = time_dropping;
 
 		// Create the granular material bodies and the container from the checkpoint file.
+		cout << "Read checkpoint data from " << checkpoint_file;
 		utils::ReadCheckpoint(msystem, checkpoint_file);
+		cout << "  done.  Read " << msystem->Get_bodylist()->size() << " bodies." << endl;
 
 		// Create the falling ball just above the granular material with a velocity
 		// given by free fall from the specified height and starting at rest.
 		double z = FindHighest(msystem);
 		double vz = std::sqrt(2 * gravity * h);
+		cout << "Create falling ball with center at" << z + R_b + r_g << " and velocity " << vz << endl;
 		ball = CreateFallingBall(msystem, z, vz);
 	}
 
@@ -336,7 +339,9 @@ int main(int argc, char* argv[])
 			sprintf(filename, "%s/data_%03d.dat", out_folder, out_frame);
 			utils::WriteShapesPovray(msystem, filename);
 
-			cout << " --------------------------------- Frame:          " << out_frame << "  Time: " << time << endl;
+			cout << " --------------------------------- Output frame:   " << out_frame << endl;
+			cout << "                                   Sim frame:      " << sim_frame << endl;
+			cout << "                                   Time:           " << time << endl;
 			cout << "                                   Lowest point:   " << FindLowest(msystem) << endl;
 			cout << "                                   Execution time: " << exec_time << endl;
 
