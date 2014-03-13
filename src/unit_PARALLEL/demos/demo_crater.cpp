@@ -67,8 +67,8 @@ float      alpha_b = 0.1;
 
 // Parameters for the containing bin
 int        binId = -200;
-double     hDimX = 4.5e-2;          // length in x direction
-double     hDimY = 4.5e-2;          // depth in y direction
+double     hDimX = 4e-2;            // length in x direction
+double     hDimY = 4e-2;            // depth in y direction
 double     hDimZ = 7.5e-2;          // height in z direction
 double     hThickness = 0.5e-2;     // wall thickness
 
@@ -131,7 +131,7 @@ int CreateObjects(ChSystemParallel* system)
 	double r = 1.01 * r_g;
 
 	for (int i = 0; i < numLayers; i++) {
-		double center = r + layerHeight / 2 + i * (r + layerHeight);
+		double center = r + layerHeight / 2 + i * (2 * r + layerHeight);
 		gen.createObjectsBox(utils::POISSON_DISK,
 		                     2 * r,
 		                     ChVector<>(0, 0, center),
