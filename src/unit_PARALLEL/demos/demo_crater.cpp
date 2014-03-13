@@ -29,7 +29,7 @@ int threads = 8;
 
 // Simulation parameters
 double gravity = 9.81;
-double time_step = 0.0001;
+double time_step = 1e-5;
 double time_settling_min = 1;
 double time_settling_max = 5;
 double time_dropping = 1;
