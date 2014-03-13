@@ -30,8 +30,8 @@ int threads = 8;
 // Simulation parameters
 double gravity = 9.81;
 double time_step = 1e-5;
-double time_settling_min = 1;
-double time_settling_max = 5;
+double time_settling_min = 0.1;
+double time_settling_max = 0.8;
 double time_dropping = 1;
 
 int max_iteration = 20;
@@ -77,7 +77,7 @@ float      mu_c = 0.3;
 float      alpha_c = 0.6;
 
 // Number of layers and height of one layer for generator domain
-int        numLayers = 4;
+int        numLayers = 10;
 double     layerHeight = 1e-2;
 
 // Drop height (above surface of settled granular material)
