@@ -32,14 +32,15 @@ double gravity = 9.81;
 double time_step = 1e-5;
 double time_settling_min = 0.1;
 double time_settling_max = 0.8;
-double time_dropping = 1;
+double time_dropping = 0.1;
 
 int max_iteration = 20;
 
 // Output
-const char* data_folder = "../CRATER";
+const char* out_folder = "../CRATER/POVRAY";
+const char* height_file = "../CRATER/height.dat";
 const char* checkpoint_file = "../CRATER/settled.dat";
-double out_fps = 30;
+double out_fps = 300;
 
 // Parameters for the granular material
 int        Id_g = 1;
@@ -136,7 +137,7 @@ int CreateObjects(ChSystemParallel* system)
 		                     2 * r,
 		                     ChVector<>(0, 0, center),
 		                     ChVector<>(hDimX - r, hDimY - r, layerHeight/2));
-		cout << "Layer " << i << "total bodies: " << gen.getTotalNumBodies() << endl;
+		cout << "Layer " << i << "  total bodies: " << gen.getTotalNumBodies() << endl;
 	}
 
 	// Create the containing bin
@@ -169,7 +170,7 @@ int CreateObjects(ChSystemParallel* system)
 // Create the falling ball such that its bottom point is at the specified
 // height and its downward initial velocity has the specified magnitude.
 
-void CreateFallingBall(ChSystemParallel* system, double z, double vz)
+ChSharedBodyDEMPtr CreateFallingBall(ChSystemParallel* system, double z, double vz)
 {
 	// Create a material for the falling ball
 	ChSharedPtr<ChMaterialSurfaceDEM> mat_b;
@@ -204,6 +205,8 @@ void CreateFallingBall(ChSystemParallel* system, double z, double vz)
 	ball->GetAssets().push_back(ball_shape);
 
 	system->AddBody(ball);
+
+	return ball;
 }
 
 
@@ -292,6 +295,7 @@ int main(int argc, char* argv[])
 	// - Create granular material and container
 	// - Create falling ball
 	double time_end;
+	ChSharedBodyDEMPtr ball;
 
 	if (problem == SETTLING) {
 		time_end = time_settling_max;
@@ -308,7 +312,7 @@ int main(int argc, char* argv[])
 		// given by free fall from the specified height and starting at rest.
 		double z = FindHighest(msystem);
 		double vz = std::sqrt(2 * gravity * h);
-		CreateFallingBall(msystem, z, vz);
+		ball = CreateFallingBall(msystem, z, vz);
 	}
 
 	// Number of steps
@@ -324,16 +328,22 @@ int main(int argc, char* argv[])
 	int out_frame = 0;
 	int next_out_frame = 0;
 	double exec_time = 0;
+	ChStreamOutAsciiFile hfile(height_file);
 
 	while (time < time_end) {
 		if (sim_frame == next_out_frame) {
 			char filename[100];
-			sprintf(filename, "%s/POVRAY/data_%03d.dat", data_folder, out_frame);
+			sprintf(filename, "%s/data_%03d.dat", out_folder, out_frame);
 			utils::WriteShapesPovray(msystem, filename);
 
-			cout << " --------------------------------- " << out_frame << "  " << time << "  " <<  endl;
-			cout << "                                   " << FindLowest(msystem) << endl;
-			cout << "                                   " << exec_time << endl;
+			cout << " --------------------------------- Frame:          " << out_frame << "  Time: " << time << endl;
+			cout << "                                   Lowest point:   " << FindLowest(msystem) << endl;
+			cout << "                                   Execution time: " << exec_time << endl;
+
+			if (problem == DROPPING) {
+				hfile << time << ball->GetPos().z << "\n";
+				cout << "                                   Ball height:    " << ball->GetPos().z << endl;
+			}
 
 			out_frame++;
 			next_out_frame += out_steps;
