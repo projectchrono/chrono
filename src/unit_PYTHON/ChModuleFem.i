@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////
 //  
-//   ChModulePostprocess.i
+//   ChModuleFem.i
 //
 //   SWIG configuration file.
 //   This is processed by SWIG to create the C::E
@@ -11,10 +11,10 @@
 
 
 // Define the module to be used in Python when typing 
-//  'import ChronoEngine_PYTHON_postprocess as postprocess'
+//  'import ChronoEngine_PYTHON_fem as fem'
 
 
-%module(directors="1") ChronoEngine_PYTHON_postprocess
+%module(directors="1") ChronoEngine_PYTHON_fem
 
 
 // Turn on the documentation of members, for more intuitive IDE typing
@@ -47,20 +47,21 @@
 
 %{
 
-#include "unit_POSTPROCESS/ChPostProcessBase.h"
-#include "unit_POSTPROCESS/ChMitsubaRender.h"
-#include "unit_POSTPROCESS/ChPovRay.h"
-#include "unit_POSTPROCESS/ChPovRayAssetCustom.h"
+#include "unit_FEM/ChNodeFEMbase.h"
+#include "unit_FEM/ChNodeFEMxyz.h"
+#include "unit_FEM/ChNodeFEMxyzP.h"
+#include "unit_FEM/ChNodeFEMxyzrot.h"
+#include "unit_FEM/ChMesh.h"
 
 using namespace chrono;
-using namespace postprocess;
+using namespace fem;
 
 
 %}
 
 
 // Undefine ChApi otherwise SWIG gives a syntax error
-#define ChApiPostProcess 
+#define ChApiFem 
 
 
 // Include other .i configuration files for SWIG. 
@@ -92,13 +93,38 @@ using namespace postprocess;
 // B by using the %import keyword that tells Swig that somewhere there's
 // a type B. Otherwise a name mangling is built anyway, but the runtime is not ok.
 
-//  core/  classes
-%include "ChPostProcessBase.i"
-%include "ChPovRay.i"
+%import  "ChShared.i"
+%import  "ChObject.i"
+%import  "ChFrame.i"
+%import  "ChFrameMoving.i"
+%import  "ChPhysicsItem.i"
+%import  "ChBodyFrame.i"
 
-%import  "ChAsset.i"
-%import  "ChColor.i"
-%include "ChPovRayAssetCustom.i"
+//  core/  classes
+%include "../unit_FEM/ChElementBase.h"
+%DefChSharedPtr(chrono::fem::,ChElementBase)
+
+%include "../unit_FEM/ChNodeFEMbase.h"
+%DefChSharedPtr(chrono::fem::,ChNodeFEMbase)
+
+%include "../unit_FEM/ChNodeFEMxyz.h"
+%DefChSharedPtr(chrono::fem::,ChNodeFEMxyz)
+
+%include "../unit_FEM/ChNodeFEMxyzP.h"
+%DefChSharedPtr(chrono::fem::,ChNodeFEMxyzP)
+
+%include "../unit_FEM/ChNodeFEMxyzrot.h"
+%DefChSharedPtr(chrono::fem::,ChNodeFEMxyzrot)
+
+%include "../unit_FEM/ChMesh.h"
+%DefChSharedPtr(chrono::fem::,ChMesh)
+
+
+//%include "ChPostProcessBase.i"
+//%include "ChPovRay.i"
+
+//%import  "ChColor.i"
+//%include "ChPovRayAssetCustom.i"
 
 
 
@@ -116,7 +142,12 @@ using namespace postprocess;
 // cast. 
 // So, use the %DefChSharedPtrCast(derived,base) macro to enable the upcasting.
 
-%DefChSharedPtrCast(chrono::postprocess::ChPovRayAssetCustom, chrono::ChAsset)
+//%DefChSharedPtrCast(chrono::fem::ChNodeFEMbase, chrono::ChNodeBase)
+%DefChSharedPtrCast(chrono::fem::ChNodeFEMxyz, chrono::fem::ChNodeFEMbase)
+%DefChSharedPtrCast(chrono::fem::ChNodeFEMxyzP, chrono::fem::ChNodeFEMbase)
+%DefChSharedPtrCast(chrono::fem::ChNodeFEMxyzrot, chrono::fem::ChNodeFEMbase)
+%DefChSharedPtrCast(chrono::fem::ChNodeFEMxyzrot, chrono::ChBodyFrame)
+%DefChSharedPtrCast(chrono::fem::ChMesh, chrono::ChPhysicsItem)
 
 //
 // DOWNCASTING OF SHARED POINTERS
@@ -132,7 +163,7 @@ using namespace postprocess;
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
-%DefChSharedPtrDynamicDowncast(ChAsset,ChPovRayAssetCustom)
+%DefChSharedPtrDynamicDowncast(ChMesh,ChPhysicsItem)
 
 
 //
