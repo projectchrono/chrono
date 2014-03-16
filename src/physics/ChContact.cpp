@@ -216,8 +216,11 @@ void ChContact::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool d
 			Vector Vrel_w = V2_w-V1_w;
 			Vector Vrel_cplane = this->contact_plane.MatrT_x_Vect(Vrel_w);
 		 
+			double h = 1.0/factor; // inverse timestep is factor
+
 			double neg_rebounce_speed = Vrel_cplane.x * this->restitution;
 			if (neg_rebounce_speed < -  bb1->GetSystem()->GetMinBounceSpeed() )
+				if (this->norm_dist + neg_rebounce_speed * h  < 0)
 			{
 				// CASE: BOUNCE
 				bounced = true;
