@@ -361,7 +361,7 @@ private:
 	template <class T_other>
     void acquire(const ChSharedPtr<T_other>& r) throw()
 			{ 
-				ptr = (T*)(r.get_ptr());
+				ptr = (T*)(r.get_ptr());// static_cast<T*>(r.get_ptr());
 				if (ptr)
 				{
 					ptr->AddRef();
