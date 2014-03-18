@@ -194,22 +194,40 @@ public:
 	}
 
 private:
+	enum Direction2D {
+		NONE,
+		X_DIR,
+		Y_DIR,
+		Z_DIR
+	};
+
 	// This is the worker function for sampling the given domain.
 	virtual PointVector Sample(VolumeType t)
 	{
 		PointVector out_points;
 
-		// Check 2D/3D. If the size in the z direction is less than the minimum distance,
+		// Check 2D/3D. If the size in one direction (e.g. z) is less than the minimum distance,
 		// we switch to a 2D sampling. All sample points will have p.z = m_center.z
-		assert(this->m_size.x > m_minDist);
-		assert(this->m_size.y > m_minDist);
-
 		if (this->m_size.z < m_minDist) {
-			m_2D = true;
+			assert(this->m_size.x > m_minDist);
+			assert(this->m_size.y > m_minDist);
+			m_2D = Z_DIR;
 			m_cellSize = m_minDist / std::sqrt(2.0);
 			this->m_size.z = 0;
+		} else if (this->m_size.y < m_minDist) {
+			assert(this->m_size.x > m_minDist);
+			assert(this->m_size.z > m_minDist);
+			m_2D = Y_DIR;
+			m_cellSize = m_minDist / std::sqrt(2.0);
+			this->m_size.y = 0;
+		} else if (this->m_size.x < m_minDist) {
+			assert(this->m_size.y > m_minDist);
+			assert(this->m_size.z > m_minDist);
+			m_2D = X_DIR;
+			m_cellSize = m_minDist / std::sqrt(2.0);
+			this->m_size.x = 0;
 		} else {
-			m_2D = false;
+			m_2D = NONE;
 			m_cellSize = m_minDist / std::sqrt(3.0);
 		}
 
@@ -306,19 +324,44 @@ private:
 	{
 		T x, y, z;
 
-		if (m_2D) {
-			T radius = m_minDist * (1 + m_realDist(m_generator));
-			T angle = 2 * Pi * m_realDist(m_generator);
-			x = point.x + radius * std::cos(angle);
-			y = point.y + radius * std::sin(angle);
-			z = this->m_center.z;
-		} else {
-			T radius = m_minDist * (1 + m_realDist(m_generator));
-			T angle1 = 2 * Pi * m_realDist(m_generator);
-			T angle2 = 2 * Pi * m_realDist(m_generator);
-			x = point.x + radius * std::cos(angle1) * std::sin(angle2);
-			y = point.y + radius * std::sin(angle1) * std::sin(angle2);
-			z = point.z + radius * std::cos(angle2);
+		switch (m_2D) {
+		case Z_DIR:
+			{
+				T radius = m_minDist * (1 + m_realDist(m_generator));
+				T angle = 2 * Pi * m_realDist(m_generator);
+				x = point.x + radius * std::cos(angle);
+				y = point.y + radius * std::sin(angle);
+				z = this->m_center.z;
+			}
+			break;
+		case Y_DIR:
+			{
+				T radius = m_minDist * (1 + m_realDist(m_generator));
+				T angle = 2 * Pi * m_realDist(m_generator);
+				x = point.x + radius * std::cos(angle);
+				y = this->m_center.y;
+				z = point.z + radius * std::sin(angle);
+			}
+			break;
+		case X_DIR:
+			{
+				T radius = m_minDist * (1 + m_realDist(m_generator));
+				T angle = 2 * Pi * m_realDist(m_generator);
+				x = this->m_center.x;
+				y = point.y + radius * std::cos(angle);
+				z = point.z + radius * std::sin(angle);
+			}
+			break;
+		case NONE:
+			{
+				T radius = m_minDist * (1 + m_realDist(m_generator));
+				T angle1 = 2 * Pi * m_realDist(m_generator);
+				T angle2 = 2 * Pi * m_realDist(m_generator);
+				x = point.x + radius * std::cos(angle1) * std::sin(angle2);
+				y = point.y + radius * std::sin(angle1) * std::sin(angle2);
+				z = point.z + radius * std::cos(angle2);
+			}
+			break;
 		}
 
 		return ChVector<T>(x, y, z);
@@ -336,7 +379,7 @@ private:
 	PDGrid<ChVector<T> >  m_grid;
 	PointList             m_active;
 
-	bool        m_2D;          ///< 2D or 3D sampling
+	Direction2D m_2D;          ///< 2D or 3D sampling
 	ChVector<T> m_bl;          ///< bottom-left corner of sampling domain
 	ChVector<T> m_tr;          ///< top-right corner of sampling domain      REMOVE?
 	T           m_cellSize;    ///< grid cell size

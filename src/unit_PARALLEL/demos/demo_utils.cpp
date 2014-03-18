@@ -12,7 +12,7 @@
 using namespace chrono;
 using namespace geometry;
 
-const std::string data_folder = "./TEST/";
+const std::string data_folder = "../TEST/";
 
 void writePoints(const std::string          filename,
                  const utils::PointVectorD& points)
@@ -33,8 +33,14 @@ void checkSamplers()
 	// Grid sampler
 	utils::GridSampler<> gs(ChVector<>(0.1, 0.2, 0.3));
 	
+	points = gs.SampleBox(ChVector<>(2, 0, 0), ChVector<>(0, 2, 1));
+	writePoints("GS_rectangleX.out", points);
+
+	points = gs.SampleBox(ChVector<>(0, 3, 0), ChVector<>(1, 0, 2));
+	writePoints("GS_rectangleY.out", points);
+
 	points = gs.SampleBox(ChVector<>(0, 0, 2), ChVector<>(1, 2, 0));
-	writePoints("GS_rectangle.out", points);
+	writePoints("GS_rectangleZ.out", points);
 
 	points = gs.SampleBox(ChVector<>(-1, -2, -3), ChVector<>(1, 1.5, 0.5));
 	writePoints("GS_box.out", points);
@@ -52,8 +58,14 @@ void checkSamplers()
 	// Poisson Disk sampler
 	utils::PDSampler<> pd(0.2);
 
+	points = pd.SampleBox(ChVector<>(2, 0, 0), ChVector<>(0, 2, 1));
+	writePoints("PD_rectangleX.out", points);
+
+	points = pd.SampleBox(ChVector<>(0, 3, 0), ChVector<>(1, 0, 2));
+	writePoints("PD_rectangleY.out", points);
+
 	points = pd.SampleBox(ChVector<>(0, 0, 2), ChVector<>(1, 2, 0));
-	writePoints("PD_rectangle.out", points);
+	writePoints("PD_rectangleZ.out", points);
 
 	points = pd.SampleCylinder(ChVector<>(1, 0, -1), 2, 0);
 	writePoints("PD_circle.out", points);
@@ -123,8 +135,8 @@ void checkGenerators()
 
 int main(int argc, char* argv[])
 {
-	//checkSamplers();
-	checkGenerators();
+	checkSamplers();
+	//checkGenerators();
 
 	return 0;
 }
