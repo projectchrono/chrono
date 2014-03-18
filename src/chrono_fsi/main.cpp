@@ -147,6 +147,108 @@ void CalcInvJ(const real3 j1, const real3 j2, real3 & invJ1, real3 & invJ2) {
 	invJ2 = invJ2 / detJ / maxComp;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+void AddPosVelMass(
+		thrust::host_vector<real3> & rigidPos,
+		thrust::host_vector<real4> & mQuatRot,
+		thrust::host_vector<real4> & velMassRigidH,
+		thrust::host_vector<real3> & rigidBodyOmega,
+		thrust::host_vector<real3> & rigidBody_J1,
+		thrust::host_vector<real3> & rigidBody_J2,
+		thrust::host_vector<real3> & rigidBody_InvJ1,
+		thrust::host_vector<real3> & rigidBody_InvJ2,
+		const real3 & pos,
+		const real4 & q,
+		const real_ & mass,
+		const real3 & j1,
+		const real3 & j2)
+{
+	rigidPos.push_back(pos);
+	mQuatRot.push_back(q);
+	velMassRigidH.push_back(R4(0, 0, 0, real_(mass)));
+	rigidBodyOmega.push_back(R3(0, 0, 0));
+	rigidBody_J1.push_back(j1);
+	rigidBody_J2.push_back(j2);
+
+	real3 invJ1, invJ2;
+	CalcInvJ(j1, j2, invJ1, invJ2);
+	rigidBody_InvJ1.push_back(invJ1);
+	rigidBody_InvJ2.push_back(invJ2);
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+void Add_Ellipsoid_To_Data(
+		thrust::host_vector<real3> & rigidPos,
+		thrust::host_vector<real4> & mQuatRot,
+		thrust::host_vector<real4> & velMassRigidH,
+		thrust::host_vector<real3> & rigidBodyOmega,
+		thrust::host_vector<real3> & rigidBody_J1,
+		thrust::host_vector<real3> & rigidBody_J2,
+		thrust::host_vector<real3> & rigidBody_InvJ1,
+		thrust::host_vector<real3> & rigidBody_InvJ2,
+		thrust::host_vector<real3> & ellipsoidRadii,
+		const real3 & pos,
+		const real4 & q,
+		const real3 referenceR,
+		const real_ rhoRigid)
+{
+	real_ mass;
+	real3 j1, j2;
+	CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x,
+			referenceR.y, referenceR.z, rhoRigid); //create Ellipsoid
+	ellipsoidRadii.push_back(referenceR);
+
+	AddPosVelMass(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
+			rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2,
+			pos, q, mass, j1, j2);
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+void Add_2DCylinder_To_Data(
+		thrust::host_vector<real3> & rigidPos,
+		thrust::host_vector<real4> & mQuatRot,
+		thrust::host_vector<real4> & velMassRigidH,
+		thrust::host_vector<real3> & rigidBodyOmega,
+		thrust::host_vector<real3> & rigidBody_J1,
+		thrust::host_vector<real3> & rigidBody_J2,
+		thrust::host_vector<real3> & rigidBody_InvJ1,
+		thrust::host_vector<real3> & rigidBody_InvJ2,
+		thrust::host_vector<real3> & ellipsoidRadii,
+		const real3 & pos,
+		const real4 & q,
+		const real3 referenceR,
+		const real_ rhoRigid)
+{
+	real_ mass;
+	real3 j1, j2;
+	CreateMassMomentCylinder2D_XZ(mass, j1, j2, referenceR.x, rhoRigid);			//create Cylinder
+	ellipsoidRadii.push_back(referenceR);
+
+	AddPosVelMass(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
+			rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2,
+			pos, q, mass, j1, j2);
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+void Add_3DCylinder_To_Data(
+		thrust::host_vector<real3> & rigidPos,
+		thrust::host_vector<real4> & mQuatRot,
+		thrust::host_vector<real4> & velMassRigidH,
+		thrust::host_vector<real3> & rigidBodyOmega,
+		thrust::host_vector<real3> & rigidBody_J1,
+		thrust::host_vector<real3> & rigidBody_J2,
+		thrust::host_vector<real3> & rigidBody_InvJ1,
+		thrust::host_vector<real3> & rigidBody_InvJ2,
+		const real3 & pos,
+		const real4 & q,
+		const CylinderGeometry & cylGeom,
+		const real_ rhoRigid)
+{
+	real_ mass;
+	real3 j1, j2;
+	CreateMassMomentCylinder3D_AlongZ(mass, j1, j2, cylGeom.r, cylGeom.h, rhoRigid);			//create Cylinder
+
+	AddPosVelMass(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
+			rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2,
+			pos, q, mass, j1, j2);
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CreateRigidBodiesRandom(thrust::host_vector<real3> & rigidPos,
 		thrust::host_vector<real4> & mQuatRot,
 		thrust::host_vector<real4> & velMassRigidH,
@@ -185,32 +287,17 @@ void CreateRigidBodiesRandom(thrust::host_vector<real3> & rigidPos,
 		real3 pos = R3(paramsH.cMin.x, channelCenterYZ.x, channelCenterYZ.y)
 				+ R3((i + 1.0) * xSpace, real_(r * cos(teta)),
 						real_(r * sin(teta)));
-		rigidPos.push_back(pos);
 
 		real4 dumQuat = R4(1 - 2.0 * real_(rand()) / RAND_MAX,
 				1 - 2.0 * real_(rand()) / RAND_MAX,
 				1 - 2.0 * real_(rand()) / RAND_MAX,
 				1 - 2.0 * real_(rand()) / RAND_MAX); //generate random quaternion
 //						real4 dumQuat = R4(1,0,0,0);
-
 		dumQuat *= 1.0 / length(dumQuat);
-		mQuatRot.push_back(dumQuat);
 
-		ellipsoidRadii.push_back(referenceR);
-		real_ mass;
-		real3 j1, j2;
-		CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x, referenceR.y,
-				referenceR.z, rhoRigid); //create Ellipsoid
-
-		velMassRigidH.push_back(R4(0, 0, 0, real_(mass)));
-		rigidBodyOmega.push_back(R3(0, 0, 0));
-		rigidBody_J1.push_back(j1);
-		rigidBody_J2.push_back(j2);
-
-		real3 invJ1, invJ2;
-		CalcInvJ(j1, j2, invJ1, invJ2);
-		rigidBody_InvJ1.push_back(invJ1);
-		rigidBody_InvJ2.push_back(invJ2);
+		Add_Ellipsoid_To_Data(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
+				rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii,
+				pos, dumQuat, referenceR, rhoRigid);
 	}
 	randLinVec.clear();
 }
@@ -239,31 +326,19 @@ void CreateRigidBodiesFromFile(thrust::host_vector<real3> & rigidPos,
 	while (!ifileSpheres.eof()) {
 		//real_ r = rRigidBody * (.75 + .75 * real_(rand())/RAND_MAX);
 		for (int period = 0; period < paramsH.nPeriod; period++) {
-			rigidPos.push_back(
-					R3(x * paramsH.sizeScale + period * sPeriod,
-							y * paramsH.sizeScale, z * paramsH.sizeScale));
-			mQuatRot.push_back(R4(1, 0, 0, 0));
-			//real_ r1 = .8 * rRigidBody, r2 = 1.2 * rRigidBody, r3 = 3 * rRigidBody;
-			//real_ r1 = rRigidBody, r2 = rRigidBody, r3 = rRigidBody;
-			real_ r1 = dumRRigidBody1 * paramsH.sizeScale;
-			real_ r2 = dumRRigidBody2 * paramsH.sizeScale;
-			real_ r3 = dumRRigidBody3 * paramsH.sizeScale;
-			ellipsoidRadii.push_back(R3(r1, r2, r3));
-			real_ mass;
-			real3 j1, j2;
 
-			CreateMassMomentEllipsoid(mass, j1, j2, r1, r2, r3, rhoRigid); //create Ellipsoid
-			//CreateMassMomentCylinder2D_XZ(mass, j1, j2, r1, paramsH.cMin, paramsH.cMax, rhoRigid);			//create Cylinder
+			real3 pos = R3(x * paramsH.sizeScale + period * sPeriod,
+					y * paramsH.sizeScale, z * paramsH.sizeScale);
+			real4 q = R4(1, 0, 0, 0);
+			real3 referenceR = 	R3(dumRRigidBody1, dumRRigidBody2, dumRRigidBody3) * paramsH.sizeScale;
 
-			velMassRigidH.push_back(R4(0, 0, 0, real_(mass)));
-			rigidBodyOmega.push_back(R3(0, 0, 0));
-			rigidBody_J1.push_back(j1);
-			rigidBody_J2.push_back(j2);
+			Add_Ellipsoid_To_Data(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
+							rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii,
+							pos, q, referenceR, rhoRigid);
+//			Add_2DCylinder_To_Data(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
+//							rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii,
+//							pos, q, referenceR, rhoRigid);
 
-			real3 invJ1, invJ2;
-			CalcInvJ(j1, j2, invJ1, invJ2);
-			rigidBody_InvJ1.push_back(invJ1);
-			rigidBody_InvJ2.push_back(invJ2);
 		}
 		ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> dumRRigidBody1 >> ch
 				>> dumRRigidBody2 >> ch >> dumRRigidBody3;
@@ -272,6 +347,7 @@ void CreateRigidBodiesFromFile(thrust::host_vector<real3> & rigidPos,
 	ifileSpheres.close();
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+//Arman!?
 void CreateOne3DRigidCylinder(
 		thrust::host_vector<real3> & rigidPos,
 		thrust::host_vector<real4> & mQuatRot,
@@ -293,28 +369,16 @@ void CreateOne3DRigidCylinder(
 	cylGeom.pa3 = pa3;
 	cylGeom.pb3 = pb3;
 	cylGeom.center = 0.5 * (cylGeom.pa3 + cylGeom.pb3);
-	rigidPos.push_back(0.5 * (pa3 + pb3));
 	cylinderGeom.push_back(cylGeom);
 
+	real3 pos = 0.5 * (pa3 + pb3);
 	real3 slope3 = normalize(pb3 - pa3);
 	real4 q;
 	QuaternionFromAxisVector(q, slope3);
-	mQuatRot.push_back(q);
-//	mQuatRot.push_back(R4(1,0,0,0));
-	real_ mass;
-	real3 j1, j2;
-	CreateMassMomentCylinder3D_AlongZ(mass, j1, j2, cylGeom.r, cylGeom.h, rhoRigid);			//create Cylinder
-
-	velMassRigidH.push_back(R4(0, 0, 0, real_(mass)));
-	rigidBodyOmega.push_back(R3(0, 0, 0));
-	rigidBody_J1.push_back(j1);
-	rigidBody_J2.push_back(j2);
-
-	real3 invJ1, invJ2;
-	CalcInvJ(j1, j2, invJ1, invJ2);
-	rigidBody_InvJ1.push_back(invJ1);
-	rigidBody_InvJ2.push_back(invJ2);
-
+	//real4 q = R4(1,0,0,0);
+	Add_3DCylinder_To_Data(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
+								rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2,
+								pos, q, cylGeom, rhoRigid);
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CreateRigidBodiesPattern(thrust::host_vector<real3> & rigidPos,
@@ -339,23 +403,10 @@ void CreateRigidBodiesPattern(thrust::host_vector<real3> & rigidPos,
 				real3 pos = straightChannelBoundaryMin
 						+ R3(i, j, k) * spaceRigids;
 				//printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
-				rigidPos.push_back(pos);
-				mQuatRot.push_back(R4(1, 0, 0, 0));
-				ellipsoidRadii.push_back(referenceR);
-				real_ mass;
-				real3 j1, j2;
-				CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x,
-						referenceR.y, referenceR.z, rhoRigid); //create Ellipsoid
-
-				velMassRigidH.push_back(R4(0, 0, 0, real_(mass)));
-				rigidBodyOmega.push_back(R3(0, 0, 0));
-				rigidBody_J1.push_back(j1);
-				rigidBody_J2.push_back(j2);
-
-				real3 invJ1, invJ2;
-				CalcInvJ(j1, j2, invJ1, invJ2);
-				rigidBody_InvJ1.push_back(invJ1);
-				rigidBody_InvJ2.push_back(invJ2);
+				real4 q = R4(1, 0, 0, 0);
+				Add_Ellipsoid_To_Data(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
+						rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii,
+						pos, q, referenceR, rhoRigid);
 			}
 		}
 	}
@@ -387,23 +438,10 @@ void CreateRigidBodiesPatternPipe(thrust::host_vector<real3> & rigidPos,
 								real_(r * sin(teta)));
 
 				//printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
-				rigidPos.push_back(pos);
-				mQuatRot.push_back(R4(1, 0, 0, 0));
-				ellipsoidRadii.push_back(referenceR);
-				real_ mass;
-				real3 j1, j2;
-				CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x,
-						referenceR.y, referenceR.z, rhoRigid); //create Ellipsoid
-
-				velMassRigidH.push_back(R4(0, 0, 0, real_(mass)));
-				rigidBodyOmega.push_back(R3(0, 0, 0));
-				rigidBody_J1.push_back(j1);
-				rigidBody_J2.push_back(j2);
-
-				real3 invJ1, invJ2;
-				CalcInvJ(j1, j2, invJ1, invJ2);
-				rigidBody_InvJ1.push_back(invJ1);
-				rigidBody_InvJ2.push_back(invJ2);
+				real4 q = R4(1, 0, 0, 0);
+				Add_Ellipsoid_To_Data(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
+						rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii,
+						pos, q, referenceR, rhoRigid);
 			}
 		}
 	}
@@ -441,23 +479,10 @@ void CreateRigidBodiesPatternStepPipe(thrust::host_vector<real3> & rigidPos,
 								real_(r * sin(teta)));
 
 				//printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
-				rigidPos.push_back(pos);
-				mQuatRot.push_back(R4(1, 0, 0, 0));
-				ellipsoidRadii.push_back(referenceR);
-				real_ mass;
-				real3 j1, j2;
-				CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x,
-						referenceR.y, referenceR.z, rhoRigid); //create Ellipsoid
-
-				velMassRigidH.push_back(R4(0, 0, 0, real_(mass)));
-				rigidBodyOmega.push_back(R3(0, 0, 0));
-				rigidBody_J1.push_back(j1);
-				rigidBody_J2.push_back(j2);
-
-				real3 invJ1, invJ2;
-				CalcInvJ(j1, j2, invJ1, invJ2);
-				rigidBody_InvJ1.push_back(invJ1);
-				rigidBody_InvJ2.push_back(invJ2);
+				real4 q = R4(1, 0, 0, 0);
+				Add_Ellipsoid_To_Data(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
+						rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii,
+						pos, q, referenceR, rhoRigid);
 			}
 		}
 	}
@@ -534,23 +559,10 @@ void CreateRigidBodiesPatternPipe_KindaRandom(
 								real_(r * sin(teta)));
 
 				//printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
-				rigidPos.push_back(pos);
-				mQuatRot.push_back(R4(1, 0, 0, 0));
-				ellipsoidRadii.push_back(referenceR);
-				real_ mass;
-				real3 j1, j2;
-				CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x,
-						referenceR.y, referenceR.z, rhoRigid); //create Ellipsoid
-
-				velMassRigidH.push_back(R4(0, 0, 0, real_(mass)));
-				rigidBodyOmega.push_back(R3(0, 0, 0));
-				rigidBody_J1.push_back(j1);
-				rigidBody_J2.push_back(j2);
-
-				real3 invJ1, invJ2;
-				CalcInvJ(j1, j2, invJ1, invJ2);
-				rigidBody_InvJ1.push_back(invJ1);
-				rigidBody_InvJ2.push_back(invJ2);
+				real4 q = R4(1, 0, 0, 0);
+				Add_Ellipsoid_To_Data(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
+						rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii,
+						pos, q, referenceR, rhoRigid);
 			}
 		}
 	}
