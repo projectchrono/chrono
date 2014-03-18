@@ -2,6 +2,7 @@
 # Additional include paths
 
 SET(UTILITIES
+	../utils/common.h
 	../utils/input_output.h
 	../utils/creators.h
 	../utils/samplers.h

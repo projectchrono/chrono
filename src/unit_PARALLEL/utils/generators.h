@@ -21,6 +21,7 @@
 
 #include "ChSystemParallel.h"
 
+#include "utils/common.h"
 #include "utils/samplers.h"
 #include "utils/creators.h"
 #include "utils/input_output.h"
@@ -161,7 +162,7 @@ public:
 	MixtureIngredientPtr& AddMixtureIngredient(MixtureType type, double ratio);
 
 	// Get/Set the identifier that will be assigned to the next body.
-	// Identifier are incremented for successively created bodies.
+	// Identifiers are incremented for successively created bodies.
 	int  getBodyIdentifier() const   {return m_crtBodyId;}
 	void setBodyIdentifier(int id)   {m_crtBodyId = id;}
 
@@ -177,13 +178,6 @@ public:
 	double getTotalVolume() const    {return m_totalVolume;}
 
 private:
-	enum SystemType {
-		SEQUENTIAL_DVI,
-		SEQUENTIAL_DEM,
-		PARALLEL_DVI,
-		PARALLEL_DEM
-	};
-
 	struct BodyInfo {
 		BodyInfo(MixtureType t, double density, const ChVector<>& size, const ChSharedPtr<ChBody>& b)
 		:	m_type(t),
@@ -603,7 +597,6 @@ void Generator::createObjects(const PointVector& points)
 			break;
 		case PARALLEL_DVI:
 			body = new ChBody(new ChCollisionModelParallel);
-			body->GetMaterialSurface();
 			m_mixture[index]->setMaterialProperties(body->GetMaterialSurface());
 			break;
 		case PARALLEL_DEM:
