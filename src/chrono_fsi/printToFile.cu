@@ -436,46 +436,45 @@ void PrintToFile(
 			sprintf(nameRigidFlexBCE, "povFiles/rigid_flex_BCE");
 			strcat(nameRigidFlexBCE, fileCounter);
 			strcat(nameRigidFlexBCE, ".csv");
-
-//			fileNameRigidBodies.open(nameRigid);
-//			stringstream ssRigidBodies;
-//			if (numRigidBodies > 0) {
-//				for (int j = 0; j < numRigidBodies; j++) {
-//					real3 p_rigid = posRigidH[j];
-//					real4 q_rigid = qH1[j];
-//					real4 velMassRigid = velMassRigidH[j];
-//					ssRigidBodies<<p_rigid.x<<", "<< p_rigid.y<<", "<< p_rigid.z<<", "<< velMassRigid.x << ", " <<  velMassRigid.y << ", " <<  velMassRigid.z <<", "<< length(R3(velMassRigid)) <<  ", "<< length(R3(velMassRigid)) << ", "<< q_rigid.x<<", "<< q_rigid.y<<", "<< q_rigid.z<<", "<< q_rigid.w<<", "<<endl;
-//				}
-//			}
-//			fileNameRigidBodies << ssRigidBodies.str();
-//			fileNameRigidBodies.close();
-//
-//			fileNameFlexBodies.open(nameFlex);
-//			stringstream ssFlexBodies;
-//			const int numFlexNodes = ANCF_NodesD.size();
-//			if (numFlexNodes > 0) {
-//				for (int j = 0; j < numFlexNodes; j++) {
-//					real3 nodePos = ANCF_NodesD[j];
-//					real3 nodeVel = ANCF_NodesVelD[j];
-//					ssFlexBodies<<nodePos.x<<", "<< nodePos.y<<", "<< nodePos.z<<", "<< nodeVel.x << ", " <<  nodeVel.y << ", " <<  nodeVel.z <<", "<<endl;
-//				}
-//			}
-//			fileNameFlexBodies << ssFlexBodies.str();
-//			fileNameFlexBodies.close();
-
-
-//			fileNameFluidParticles.open(nameFluid);
-//			stringstream ssFluidParticles;
-//			for (int i = referenceArray[0].x; i < referenceArray[0].y; i++) {
-//				real3 pos = posRadH[i];
-//				real3 vel = R3(velMasH[i]);
-//				real4 rP = rhoPresMuH[i];
-//				real_ velMag = length(vel);
-//				ssFluidParticles<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w<<", "<<endl;
-//			}
-//			fileNameFluidParticles<<ssFluidParticles.str();
-//			fileNameFluidParticles.close();
-
+//*****************************************************
+			fileNameRigidBodies.open(nameRigid);
+			stringstream ssRigidBodies;
+			if (numRigidBodies > 0) {
+				for (int j = 0; j < numRigidBodies; j++) {
+					real3 p_rigid = posRigidH[j];
+					real4 q_rigid = qH1[j];
+					real4 velMassRigid = velMassRigidH[j];
+					ssRigidBodies<<p_rigid.x<<", "<< p_rigid.y<<", "<< p_rigid.z<<", "<< velMassRigid.x << ", " <<  velMassRigid.y << ", " <<  velMassRigid.z <<", "<< length(R3(velMassRigid)) <<  ", "<< length(R3(velMassRigid)) << ", "<< q_rigid.x<<", "<< q_rigid.y<<", "<< q_rigid.z<<", "<< q_rigid.w<<", "<<endl;
+				}
+			}
+			fileNameRigidBodies << ssRigidBodies.str();
+			fileNameRigidBodies.close();
+//*****************************************************
+			fileNameFlexBodies.open(nameFlex);
+			stringstream ssFlexBodies;
+			const int numFlexNodes = ANCF_NodesD.size();
+			if (numFlexNodes > 0) {
+				for (int j = 0; j < numFlexNodes; j++) {
+					real3 nodePos = ANCF_NodesD[j];
+					real3 nodeVel = ANCF_NodesVelD[j];
+					ssFlexBodies<<nodePos.x<<", "<< nodePos.y<<", "<< nodePos.z<<", "<< nodeVel.x << ", " <<  nodeVel.y << ", " <<  nodeVel.z <<", "<<endl;
+				}
+			}
+			fileNameFlexBodies << ssFlexBodies.str();
+			fileNameFlexBodies.close();
+//*****************************************************
+			fileNameFluidParticles.open(nameFluid);
+			stringstream ssFluidParticles;
+			for (int i = referenceArray[0].x; i < referenceArray[0].y; i++) {
+				real3 pos = posRadH[i];
+				real3 vel = R3(velMasH[i]);
+				real4 rP = rhoPresMuH[i];
+				real_ velMag = length(vel);
+				ssFluidParticles<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w<<", "<<endl;
+			}
+			fileNameFluidParticles<<ssFluidParticles.str();
+			fileNameFluidParticles.close();
+//*****************************************************
 //			fileNameBoundaries.open(nameBoundary);
 //			stringstream ssBoundary;
 //			for (int i = referenceArray[1].x; i < referenceArray[1].y; i++) {
@@ -487,7 +486,7 @@ void PrintToFile(
 //			}
 //			fileNameBoundaries << ssBoundary.str();
 //			fileNameBoundaries.close();
-
+//*****************************************************
 			fileNameFluidBoundaries.open(nameFluidBoundaries);
 			stringstream ssFluidBoundaryParticles;
 	//		ssFluidBoundaryParticles.precision(20);
@@ -500,7 +499,7 @@ void PrintToFile(
 			}
 			fileNameFluidBoundaries<<ssFluidBoundaryParticles.str();
 			fileNameFluidBoundaries.close();
-
+//*****************************************************
 			fileNameRigidFlexBCE.open(nameRigidFlexBCE);
 			stringstream ssRigidFlexBCE;
 			if (referenceArray.size() > 2) {
@@ -514,6 +513,7 @@ void PrintToFile(
 			}
 			fileNameRigidFlexBCE<<ssRigidFlexBCE.str();
 			fileNameRigidFlexBCE.close();
+//*****************************************************
 		}
 	posRadH.clear();
 	velMasH.clear();
