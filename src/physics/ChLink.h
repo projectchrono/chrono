@@ -31,7 +31,7 @@ class ChSystem;
 
 
 ///
-/// Base class for joints betwenn two ChBody objects.
+/// Base class for joints betwenn two ChBodyFrame objects.
 ///
 ///  Links are objects which can be created to constrain two rigid
 /// bodies (i.e. objects from the ChBody class) in 3D space, like with
@@ -55,8 +55,8 @@ protected:
 	  			// DATA
 				//
 
-	ChBodyFrame* Body1;		// body of marker1 (automatically set)
-	ChBodyFrame* Body2;		// body of marker2 (automatically set)
+	ChBodyFrame* Body1;		
+	ChBodyFrame* Body2;		
 
 
 	Vector react_force;	// store the xyz reactions, expressed in local coordinate system of link;
