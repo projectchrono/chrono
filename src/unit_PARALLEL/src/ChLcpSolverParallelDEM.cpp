@@ -17,6 +17,7 @@ void function_CalcContactForces(int&       index,           // index of this con
                                 real*      mu,              // coefficient of friction (per body)
                                 real*      alpha,           // disipation coefficient (per body)
                                 real*      cr,              // coefficient of restitution (per body)
+                                real*      cohesion,        // cohesion force (per body)
                                 long long* pairs,           // shape IDs (per contact pairs)
                                 uint*      body_id,         // body IDs (per shape)
                                 real3*     pt1,             // point on shape 1 (per contact)
@@ -81,6 +82,8 @@ void function_CalcContactForces(int&       index,           // index of this con
 	//real cr_eff = (cr[body1] + cr[body2]) / 2;
 	real alpha_eff = (alpha[body1] + alpha[body2]) / 2;
 
+	real cohesion_eff = min(cohesion[body1], cohesion[body2]);
+
 	// Contact force
 	// -------------
 
@@ -90,6 +93,9 @@ void function_CalcContactForces(int&       index,           // index of this con
 	real forceN_elastic = kn * delta * sqrt(delta);
 	real forceN_dissipation = 1.5 * alpha_eff * forceN_elastic * relvel_n_mag;
 	real forceN = forceN_elastic - forceN_dissipation;
+
+	// Cohesion force
+	forceN -= cohesion_eff;
 
 	real3 force = forceN * normal[index];
 
@@ -135,6 +141,7 @@ void ChLcpSolverParallelDEM::host_CalcContactForces(custom_vector<int>&   ext_bo
 			data_container->host_data.mu.data(),
 			data_container->host_data.alpha.data(),
 			data_container->host_data.cr.data(),
+			data_container->host_data.cohesion_data.data(),
 			data_container->host_data.pair_rigid_rigid.data(),
 			data_container->host_data.id_rigid.data(),
 			data_container->host_data.cpta_rigid_rigid.data(),

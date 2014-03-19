@@ -29,6 +29,7 @@ void ChSystemParallelDEM::LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody)
 
 	gpu_data_manager->host_data.elastic_moduli.push_back(R2(mat->GetYoungModulus(), mat->GetPoissonRatio()));
 	gpu_data_manager->host_data.mu.push_back(mat->GetSfriction());
+	gpu_data_manager->host_data.cohesion_data.push_back(mat->GetCohesion());
 
 	switch (normal_force_model) {
 	case ChContactDEM::HuntCrossley:
@@ -56,6 +57,7 @@ void ChSystemParallelDEM::UpdateBodies() {
 	real*  mu             = gpu_data_manager->host_data.mu.data();
 	real*  alpha          = gpu_data_manager->host_data.alpha.data();
 	real*  cr             = gpu_data_manager->host_data.cr.data();
+	real*  cohesion       = gpu_data_manager->host_data.cohesion_data.data();
 
 #pragma omp parallel for
 	for (int i = 0; i < bodylist.size(); i++) {
@@ -97,12 +99,14 @@ void ChSystemParallelDEM::UpdateBodies() {
 
 		elastic_moduli[i] = R2(mat->GetYoungModulus(), mat->GetPoissonRatio());
 		mu[i]             = mat->GetSfriction();
+		cohesion[i]       = mat->GetCohesion();
+		//cr[i]             = mat->GetRestitution();
+
 		switch (normal_force_model) {
 		case ChContactDEM::HuntCrossley:
 			alpha[i] = mat->GetDissipationFactor();
 			break;
 		}
-		//cr[i]             = mat->GetRestitution();
 
 		bodylist[i]->GetCollisionModel()->SyncPosition();
 	}
