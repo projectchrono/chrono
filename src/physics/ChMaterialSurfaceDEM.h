@@ -45,6 +45,7 @@ struct ChCompositeMaterialDEM
 	float mu_eff;               ///< Effective coefficient of friction
 	float cr_eff;               ///< Effective coefficient of restitution
 	float alpha_eff;            ///< Effective dissipation factor (Hunt-Crossley)
+	float cohesion_eff;         ///< Effective cohesion force
 };
 
 
@@ -64,6 +65,8 @@ public:
 	float restitution;           ///< Coefficient of restitution
 	float dissipation_factor;    ///< Dissipation factor (Hunt-Crossley model)
 
+	float cohesion;              ///< Constant cohesion force
+
 			//
 			// CONSTRUCTORS
 			//
@@ -74,7 +77,8 @@ public:
 		static_friction(0.6f),
 		sliding_friction(0.6f),
 		restitution(0.5f),
-		dissipation_factor(0.1f)
+		dissipation_factor(0.1f),
+		cohesion(0)
 	{}
 
 	// Copy constructor
@@ -86,6 +90,7 @@ public:
 		sliding_friction = other.sliding_friction;
 		restitution = other.restitution;
 		dissipation_factor = other.dissipation_factor;
+		cohesion = other.cohesion;
 	}
 
 	~ChMaterialSurfaceDEM() {}
@@ -119,6 +124,10 @@ public:
 	/// Dissipation factor (Hunt-Crossley model)
 	float GetDissipationFactor() const     {return dissipation_factor;}
 	void  SetDissipationFactor(float val)  {dissipation_factor = val;}
+	
+	// Constant cohesion force
+	float GetCohesion() const        {return cohesion;}
+	void  SetCohesion(float val)     {cohesion = val;}
 
 	/// Calculate composite material properties
 	static ChCompositeMaterialDEM
@@ -153,6 +162,7 @@ public:
 		mstream << sliding_friction;
 		mstream << restitution;
 		mstream << dissipation_factor;
+		mstream << cohesion;
 	}
 
 	/// Operator to allow deserializing a persistent binary archive (ex: a file)
@@ -172,6 +182,7 @@ public:
 		mstream >> sliding_friction;
 		mstream >> restitution;
 		mstream >> dissipation_factor;
+		mstream >> cohesion;
 	}
 
 };
