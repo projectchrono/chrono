@@ -347,7 +347,6 @@ void CreateRigidBodiesFromFile(thrust::host_vector<real3> & rigidPos,
 	ifileSpheres.close();
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-//Arman!?
 void CreateOne3DRigidCylinder(
 		thrust::host_vector<real3> & rigidPos,
 		thrust::host_vector<real4> & mQuatRot,
@@ -402,6 +401,49 @@ void CreateRigidBodiesPattern(thrust::host_vector<real3> & rigidPos,
 			for (int k = 1; k < n3Rigids.z - 1; k += stride.z) {
 				real3 pos = straightChannelBoundaryMin
 						+ R3(i, j, k) * spaceRigids;
+				//printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
+				real4 q = R4(1, 0, 0, 0);
+				Add_Ellipsoid_To_Data(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
+						rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii,
+						pos, q, referenceR, rhoRigid);
+			}
+		}
+	}
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+void CreateRigidBodiesPatternWithinBeams(thrust::host_vector<real3> & rigidPos,
+		thrust::host_vector<real4> & mQuatRot,
+		thrust::host_vector<real4> & velMassRigidH,
+		thrust::host_vector<real3> & rigidBodyOmega,
+		thrust::host_vector<real3> & rigidBody_J1,
+		thrust::host_vector<real3> & rigidBody_J2,
+		thrust::host_vector<real3> & rigidBody_InvJ1,
+		thrust::host_vector<real3> & rigidBody_InvJ2,
+		thrust::host_vector<real3> & ellipsoidRadii, const real3 referenceR,
+		const real_ rhoRigid, int3 stride,
+		const ANCF_Params & flexParams) {
+
+	//*********** this should be the same as the flex
+	real_ margin = 4 * paramsH.HSML;// 2 * paramsH.HSML;
+	real_ spaceFlex = 2 * (flexParams.r + margin);
+	//************************************************
+
+	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
+	//printf("paramsH.cMin %f %f %f, paramsH.cMax %f %f %f\n", straightChannelBoundaryMin.x, straightChannelBoundaryMin.y, straightChannelBoundaryMin.z, straightChannelBoundaryMax.x, straightChannelBoundaryMax.y, straightChannelBoundaryMax.z);
+	real3 spaceRigids = 2 * (referenceR + 2 * R3(paramsH.HSML));
+	real3 n3Rigids = (straightChannelBoundaryMax - straightChannelBoundaryMin)
+			/ spaceRigids;
+	for (int i = 1; i < n3Rigids.x - 1; i += stride.x) {
+		for (int j = 1; j < n3Rigids.y - 1; j += stride.y) {
+			for (int k = 1; k < n3Rigids.z - 1; k += stride.z) {
+				real3 pos = straightChannelBoundaryMin
+						+ R3(i, j, k) * spaceRigids;
+				real2 distFromBeam = R2(fmod(pos.x, spaceFlex), fmod(pos.y, spaceFlex));
+
+				if (distFromBeam.x < referenceR.x + flexParams.r + 2 * paramsH.HSML) continue;
+				if (spaceFlex - distFromBeam.x < referenceR.x + flexParams.r + 2 * paramsH.HSML) continue;
+				if (distFromBeam.y < referenceR.y + flexParams.r + 2 * paramsH.HSML) continue;
+				if (spaceFlex - distFromBeam.y < referenceR.y + flexParams.r + 2 * paramsH.HSML) continue;
 				//printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
 				real4 q = R4(1, 0, 0, 0);
 				Add_Ellipsoid_To_Data(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
@@ -1898,8 +1940,11 @@ int main() {
 	real3 r3Ellipsoid = R3(2 * paramsH.HSML);//R3(0.5, 0.5, 0.5) * paramsH.sizeScale; //R3(0.4 * paramsH.sizeScale); //R3(0.8 * paramsH.sizeScale); //real3 r3Ellipsoid = R3(.03 * paramsH.sizeScale); //R3(.05, .03, .02) * paramsH.sizeScale; //R3(.03 * paramsH.sizeScale);
 
 	//**
-	int3 stride = I3(5, 5, 5);
-	CreateRigidBodiesPattern(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride);
+//	int3 stride = I3(5, 5, 5);
+//	CreateRigidBodiesPattern(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride);
+	//**
+	int3 stride = I3(1, 1, 1);
+	CreateRigidBodiesPatternWithinBeams(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride, flexParams);
 	//**
 //	CreateRigidBodiesFromFile(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
 	//**
