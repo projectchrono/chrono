@@ -56,11 +56,17 @@ void checkSamplers()
 	points = gs.SampleSphere(ChVector<>(1, 1, 1), 1);
 	writePoints("GS_sphere.out", points);
 
-	points = gs.SampleCylinder(ChVector<>(1, 0, -1), 2, 0);
-	writePoints("GS_circle.out", points);
+	points = gs.SampleCylinderX(ChVector<>(1, 0, -1), 2, 0);
+	writePoints("GS_circleX.out", points);
 
-	points = gs.SampleCylinder(ChVector<>(1, 0, -1), 2, 0.5);
-	writePoints("GS_cylinder.out", points);
+	points = gs.SampleCylinderY(ChVector<>(1, 0, -1), 2, 0);
+	writePoints("GS_circleY.out", points);
+
+	points = gs.SampleCylinderZ(ChVector<>(1, 0, -1), 2, 0);
+	writePoints("GS_circleZ.out", points);
+
+	points = gs.SampleCylinderZ(ChVector<>(1, 0, -1), 2, 0.5);
+	writePoints("GS_cylinderZ.out", points);
 
 
 	// Poisson Disk sampler
@@ -75,8 +81,14 @@ void checkSamplers()
 	points = pd.SampleBox(ChVector<>(0, 0, 2), ChVector<>(1, 2, 0));
 	writePoints("PD_rectangleZ.out", points);
 
-	points = pd.SampleCylinder(ChVector<>(1, 0, -1), 2, 0);
-	writePoints("PD_circle.out", points);
+	points = pd.SampleCylinderX(ChVector<>(1, 0, -1), 2, 0);
+	writePoints("PD_circleX.out", points);
+
+	points = pd.SampleCylinderY(ChVector<>(1, 0, -1), 2, 0);
+	writePoints("PD_circleY.out", points);
+
+	points = pd.SampleCylinderZ(ChVector<>(1, 0, -1), 2, 0);
+	writePoints("PD_circleZ.out", points);
 
 	points = pd.SampleBox(ChVector<>(-1, -2, -3), ChVector<>(1, 1.5, 1));
 	writePoints("PD_box.out", points);
@@ -84,8 +96,8 @@ void checkSamplers()
 	points = pd.SampleSphere(ChVector<>(1, 1, 1), 1);
 	writePoints("PD_sphere.out", points);
 
-	points = pd.SampleCylinder(ChVector<>(1, 0, -1), 2, 0.5);
-	writePoints("PD_cylinder.out", points);
+	points = pd.SampleCylinderZ(ChVector<>(1, 0, -1), 2, 0.5);
+	writePoints("PD_cylinderZ.out", points);
 }
 
 void checkGenerators()

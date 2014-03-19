@@ -169,6 +169,21 @@ public:
 	                      const ChVector<>& pos, const ChVector<>& hdims,
 	                      const ChVector<>& vel = ChVector<>(0, 0, 0));
 
+	// Create bodies, according to the current mixture setup, with initial positions
+	// given by the specified sampler in the cylinder domain specified by 'pos', 'radius'
+	// and 'halfHeight'.
+	// Optionally, a constant inital linear velocity can be set for all created bodies.
+	void createObjectsCylinderX(SamplingType sType, double dist,
+	                            const ChVector<>& pos, float radius, float halfHeight,
+	                            const ChVector<>& vel = ChVector<>(0, 0, 0));
+	void createObjectsCylinderY(SamplingType sType, double dist,
+	                            const ChVector<>& pos, float radius, float halfHeight,
+	                            const ChVector<>& vel = ChVector<>(0, 0, 0));
+	void createObjectsCylinderZ(SamplingType sType, double dist,
+	                            const ChVector<>& pos, float radius, float halfHeight,
+	                            const ChVector<>& vel = ChVector<>(0, 0, 0));
+
+
 	// Write information about the bodies created so far to the specified file (CSV format)
 	void writeObjectInfo(const std::string& filename);
 
@@ -518,6 +533,101 @@ void Generator::createObjectsBox(SamplingType      sType,
 		{
 		PDSampler<> sampler(dist);
 		points = sampler.SampleBox(pos, hdims);
+		}
+		break;
+	}
+
+	createObjects(points, vel);
+}
+
+
+// Create objects in a cylindrical domain using the specified type of point
+// sampler and separation distance and the current mixture settings.
+// The types of objects created are selected randomly with probability
+// proportional to the ratio of that ingredient in the mixture.
+void Generator::createObjectsCylinderX(SamplingType sType, double dist,
+                                       const ChVector<>& pos, float radius, float halfHeight,
+                                       const ChVector<>& vel)
+{
+	// Normalize the mixture ratios
+	normalizeMixture();
+
+	// Generate the object locations
+	if (m_sysType == SEQUENTIAL_DEM || m_sysType == PARALLEL_DEM)
+		dist = calcMinSeparation(dist);
+
+	PointVector points;
+	switch (sType) {
+	case REGULAR_GRID:
+		{
+		GridSampler<> sampler(dist);
+		points = sampler.SampleCylinderX(pos, radius, halfHeight);
+		}
+		break;
+	case POISSON_DISK:
+		{
+		PDSampler<> sampler(dist);
+		points = sampler.SampleCylinderX(pos, radius, halfHeight);
+		}
+		break;
+	}
+
+	createObjects(points, vel);
+}
+
+void Generator::createObjectsCylinderY(SamplingType sType, double dist,
+                                       const ChVector<>& pos, float radius, float halfHeight,
+                                       const ChVector<>& vel)
+{
+	// Normalize the mixture ratios
+	normalizeMixture();
+
+	// Generate the object locations
+	if (m_sysType == SEQUENTIAL_DEM || m_sysType == PARALLEL_DEM)
+		dist = calcMinSeparation(dist);
+
+	PointVector points;
+	switch (sType) {
+	case REGULAR_GRID:
+		{
+		GridSampler<> sampler(dist);
+		points = sampler.SampleCylinderY(pos, radius, halfHeight);
+		}
+		break;
+	case POISSON_DISK:
+		{
+		PDSampler<> sampler(dist);
+		points = sampler.SampleCylinderY(pos, radius, halfHeight);
+		}
+		break;
+	}
+
+	createObjects(points, vel);
+}
+
+void Generator::createObjectsCylinderZ(SamplingType sType, double dist,
+                                       const ChVector<>& pos, float radius, float halfHeight,
+                                       const ChVector<>& vel)
+{
+	// Normalize the mixture ratios
+	normalizeMixture();
+
+	// Generate the object locations
+	if (m_sysType == SEQUENTIAL_DEM || m_sysType == PARALLEL_DEM)
+		dist = calcMinSeparation(dist);
+
+	PointVector points;
+	switch (sType) {
+	case REGULAR_GRID:
+		{
+		GridSampler<> sampler(dist);
+		points = sampler.SampleCylinderZ(pos, radius, halfHeight);
+		}
+		break;
+	case POISSON_DISK:
+		{
+		PDSampler<> sampler(dist);
+		points = sampler.SampleCylinderZ(pos, radius, halfHeight);
 		}
 		break;
 	}

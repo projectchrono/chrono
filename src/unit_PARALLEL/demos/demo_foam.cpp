@@ -41,9 +41,9 @@ int        Id_g = 1;
 double     r_g = 0.05;
 double     rho_g = 2000;
 
-float      Y_g = 1e8;
+float      Y_g = 5e6;
 float      mu_g = 0.3;
-float      alpha_g = 0.2;
+float      alpha_g = 0.4;
 float      cohesion_g = 300;
 
 // Parameters for the containing bin
@@ -70,10 +70,15 @@ int SpawnParticles()
 {
 	double dist = 2 * 0.99 * r_g;
 
-	gen->createObjectsBox(utils::POISSON_DISK,
+	////gen->createObjectsBox(utils::POISSON_DISK,
+	////                     dist,
+	////                     ChVector<>(9, 0, 3),
+	////                     ChVector<>(0, 1, 0.5),
+	////                     ChVector<>(-initVel, 0, 0));
+	gen->createObjectsCylinderX(utils::POISSON_DISK,
 	                     dist,
 	                     ChVector<>(9, 0, 3),
-	                     ChVector<>(0, 1, 0.5),
+	                     0.5, 0,
 	                     ChVector<>(-initVel, 0, 0));
 	cout << "  total bodies: " << gen->getTotalNumBodies() << endl;
 

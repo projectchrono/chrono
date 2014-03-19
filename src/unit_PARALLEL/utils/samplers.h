@@ -66,18 +66,34 @@ public:
 		return Sample(SPHERE);
 	}
 
-	PointVector SampleCylinder(const ChVector<T>& center, T radius, T halfHeight)
+	PointVector SampleCylinderX(const ChVector<T>& center, T radius, T halfHeight)
+	{
+		m_center = center;
+		m_size = ChVector<T>(halfHeight, radius, radius);
+		return Sample(CYLINDER_X);
+	}
+
+	PointVector SampleCylinderY(const ChVector<T>& center, T radius, T halfHeight)
+	{
+		m_center = center;
+		m_size = ChVector<T>(radius, halfHeight, radius);
+		return Sample(CYLINDER_Y);
+	}
+
+	PointVector SampleCylinderZ(const ChVector<T>& center, T radius, T halfHeight)
 	{
 		m_center = center;
 		m_size = ChVector<T>(radius, radius, halfHeight);
-		return Sample(CYLINDER);
+		return Sample(CYLINDER_Z);
 	}
 
 protected:
 	enum VolumeType {
 		BOX,
 		SPHERE,
-		CYLINDER
+		CYLINDER_X,
+		CYLINDER_Y,
+		CYLINDER_Z
 	};
 
 	virtual PointVector Sample(VolumeType t) = 0;
@@ -95,7 +111,13 @@ protected:
 			       (std::abs(vec.z) <= m_size.z + fuzz);
 		case SPHERE:
 			return (vec.Length2() <= m_size.x * m_size.x);
-		case CYLINDER:
+		case CYLINDER_X:
+			return (vec.y * vec.y + vec.z * vec.z <= m_size.y * m_size.y) &&
+			       (std::abs(vec.x) <= m_size.x + fuzz);
+		case CYLINDER_Y:
+			return (vec.z * vec.z + vec.x * vec.x <= m_size.z * m_size.z) &&
+			       (std::abs(vec.y) <= m_size.y + fuzz);
+		case CYLINDER_Z:
 			return (vec.x * vec.x + vec.y * vec.y <= m_size.x * m_size.x) &&
 			       (std::abs(vec.z) <= m_size.z + fuzz);
 		default:
