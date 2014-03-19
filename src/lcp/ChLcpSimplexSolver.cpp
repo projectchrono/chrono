@@ -55,6 +55,7 @@ double ChLcpSimplexSolver::Solve(
 {
 	std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
 	std::vector<ChLcpVariables*>&  mvariables	= sysd.GetVariablesList();
+	std::vector<ChLcpKblock*>&     mstiffness	= sysd.GetKblocksList();
 
 	double maxviolation = 0.;
 
@@ -91,6 +92,11 @@ double ChLcpSimplexSolver::Solve(
 	int n_docs = n_c + n_d;
 	int n_vars = n_q + n_docs;
 	
+	int nv = sysd.CountActiveVariables(); // also sets offsets
+	int nc = sysd.CountActiveConstraints();
+	int nx = nv+nc;  // total scalar unknowns, in x vector for full KKT system Z*x-d=0
+
+
 	// --
 	// Reset and resize (if needed) auxiliary vectors
 
@@ -131,6 +137,16 @@ double ChLcpSimplexSolver::Solve(
 		}
 	}  
 	
+	// ..if some stiffness / hessian matrix has been added to M ,
+	// also add it to the sparse M
+	int s_k=0;
+	for (unsigned int ik = 0; ik< mstiffness.size(); ik++)
+	{
+		mstiffness[ik]->Build_K(*MC, true); 
+	}
+
+
+
 	// .. fills M jacobians (only lower part) and 'b' part of B
 	int s_c=0;
 	int s_d=0;
