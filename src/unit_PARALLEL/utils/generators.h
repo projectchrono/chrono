@@ -168,7 +168,10 @@ public:
 
 	// Create bodies, according to the current mixture setup, with initial positions
 	// given by the specified sampler in the box domain specified by 'pos' and 'hdims'.
-	void createObjectsBox(SamplingType sType, double dist, const ChVector<>& pos, const ChVector<>& hdims);
+	// Optionally, a constant inital linear velocity can be set for all created bodies.
+	void createObjectsBox(SamplingType sType, double dist,
+	                      const ChVector<>& pos, const ChVector<>& hdims,
+	                      const ChVector<>& vel = ChVector<>(0, 0, 0));
 
 	// Write information about the bodies created so far to the specified file (CSV format)
 	void writeObjectInfo(const std::string& filename);
@@ -191,10 +194,11 @@ private:
 		ChSharedPtr<ChBody>   m_body;
 	};
 
-	void                               normalizeMixture();
-	int                                selectIngredient();
-	double                             calcMinSeparation(double sep);
-	void                               createObjects(const PointVector& points);
+	void    normalizeMixture();
+	int     selectIngredient();
+	double  calcMinSeparation(double sep);
+	void    createObjects(const PointVector& points,
+	                      const ChVector<>&  vel);
 
 	ChSystem*                          m_system;
 	SystemType                         m_sysType;
@@ -500,7 +504,8 @@ Generator::AddMixtureIngredient(MixtureType type,
 void Generator::createObjectsBox(SamplingType      sType,
                                  double            dist,
                                  const ChVector<>& pos,
-                                 const ChVector<>& hdims)
+                                 const ChVector<>& hdims,
+                                 const ChVector<>& vel)
 {
 	// Normalize the mixture ratios
 	normalizeMixture();
@@ -525,7 +530,7 @@ void Generator::createObjectsBox(SamplingType      sType,
 		break;
 	}
 
-	createObjects(points);
+	createObjects(points, vel);
 }
 
 
@@ -576,7 +581,8 @@ double Generator::calcMinSeparation(double sep)
 }
 
 // Create objects at the specified locations using the current mixture settings.
-void Generator::createObjects(const PointVector& points)
+void Generator::createObjects(const PointVector& points,
+                              const ChVector<>&  vel)
 {
 	for (int i = 0; i < points.size(); i++) {
 
@@ -611,6 +617,7 @@ void Generator::createObjects(const PointVector& points)
 		// Set position and orientation
 		body->SetPos(points[i]);
 		body->SetRot(ChQuaternion<>(1, 0, 0, 0));
+		body->SetPos_dt(vel);
 		body->SetBodyFixed(false);
 		body->SetCollide(true);
 
