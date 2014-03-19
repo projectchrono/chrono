@@ -223,7 +223,7 @@ int ChLinkMateGeneric::RestoreRedundant()
 void ChLinkMateGeneric::Update (double mytime)
 {
     // Inherit time changes of parent class (ChLink), basically doing nothing :)
-    ChLink::UpdateTime(mytime);
+    ChLink::Update(mytime);
 
 	if(this->Body1 && this->Body2)
 	{
