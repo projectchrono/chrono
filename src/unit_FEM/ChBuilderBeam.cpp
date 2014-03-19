@@ -145,9 +145,9 @@ void ChBuilderBeam::BuildBeam (ChSharedPtr<ChMesh> mesh, ///< mesh to store the 
 		ChQuaternion<> elrot = mrot.Get_A_quaternion();
 		element->SetNodeAreferenceRot(elrot.GetConjugate() % element->GetNodeA()->Frame().GetRot() );
 		element->SetNodeBreferenceRot(elrot.GetConjugate() % element->GetNodeB()->Frame().GetRot() );
-GetLog() << "Element n." << i << " with rotations: \n";
-GetLog() << "   Qa=" << element->GetNodeAreferenceRot() << "\n";
-GetLog() << "   Qb=" << element->GetNodeBreferenceRot() << "\n\n";
+		//GetLog() << "Element n." << i << " with rotations: \n";
+		//GetLog() << "   Qa=" << element->GetNodeAreferenceRot() << "\n";
+		//GetLog() << "   Qb=" << element->GetNodeBreferenceRot() << "\n\n";
 		element->SetSection(sect);
 	}
 
