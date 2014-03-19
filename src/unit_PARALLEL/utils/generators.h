@@ -394,6 +394,11 @@ MixtureIngredient::setMaterialProperties(ChSharedPtr<ChMaterialSurfaceDEM>& mat)
 		mat->SetDissipationFactor(sampleTruncatedDist<float>(*m_dissipationDist, m_rengine, m_minDissipation, m_maxDissipation));
 	else
 		mat->SetDissipationFactor(m_defMaterialDEM->GetDissipationFactor());
+
+	if (m_cohesionDist)
+		mat->SetCohesion(sampleTruncatedDist<float>(*m_cohesionDist, m_rengine, m_minCohesion, m_maxCohesion));
+	else
+		mat->SetCohesion(m_defMaterialDEM->GetCohesion());
 }
 
 // Return a size for an object created based on attributes of this ingredient.
@@ -468,15 +473,7 @@ Generator::Generator(ChSystem* system)
 	m_totalMass(0),
 	m_totalVolume(0)
 {
-	// Infer system type
-	if (dynamic_cast<ChSystemParallelDVI*>(system))
-		m_sysType = PARALLEL_DVI;
-	else if (dynamic_cast<ChSystemParallelDEM*>(system))
-		m_sysType = PARALLEL_DEM;
-	else if (dynamic_cast<ChSystemDEM*>(system))
-		m_sysType = SEQUENTIAL_DEM;
-	else
-		m_sysType = SEQUENTIAL_DVI;
+	m_sysType = GetSystemType(system);
 }
 
 // Destructor
