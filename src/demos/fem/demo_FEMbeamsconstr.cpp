@@ -291,7 +291,7 @@ int main(int argc, char* argv[])
 	msolver->SetDiagonalPreconditioning(true);
 
 	application.SetTimestep(0.001);
-	application.SetVideoframeEach(10);
+	application.SetVideoframeSaveInterval(10);
 
 	while(application.GetDevice()->run()) 
 	{
@@ -515,7 +515,7 @@ int main(int argc, char* argv[])
 	msolver->SetDiagonalPreconditioning(true);
 
 	application.SetTimestep(0.001);
-	application.SetVideoframeEach(10);
+	application.SetVideoframeSaveInterval(10);
 
 	while(application.GetDevice()->run()) 
 	{
