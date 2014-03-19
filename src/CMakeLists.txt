@@ -403,6 +403,7 @@ IF (BUILD_CH_SDK)
 		physics/ChBodyFrame.h
 		physics/ChBody.h
 		physics/ChBodyAuxRef.h
+		physics/ChBodyEasy.h
 		physics/ChConstraint.h
 		physics/ChContact.h
 		physics/ChContactContainer.h
