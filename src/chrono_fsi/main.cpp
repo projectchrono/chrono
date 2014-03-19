@@ -380,37 +380,6 @@ void CreateOne3DRigidCylinder(
 								pos, q, cylGeom, rhoRigid);
 }
 ////&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-//void CreateRigidBodiesPattern(thrust::host_vector<real3> & rigidPos,
-//		thrust::host_vector<real4> & mQuatRot,
-//		thrust::host_vector<real4> & velMassRigidH,
-//		thrust::host_vector<real3> & rigidBodyOmega,
-//		thrust::host_vector<real3> & rigidBody_J1,
-//		thrust::host_vector<real3> & rigidBody_J2,
-//		thrust::host_vector<real3> & rigidBody_InvJ1,
-//		thrust::host_vector<real3> & rigidBody_InvJ2,
-//		thrust::host_vector<real3> & ellipsoidRadii, const real3 referenceR,
-//		const real_ rhoRigid, int3 stride) {
-//
-//	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
-//	//printf("paramsH.cMin %f %f %f, paramsH.cMax %f %f %f\n", straightChannelBoundaryMin.x, straightChannelBoundaryMin.y, straightChannelBoundaryMin.z, straightChannelBoundaryMax.x, straightChannelBoundaryMax.y, straightChannelBoundaryMax.z);
-//	real3 spaceRigids = 2 * (referenceR + 0.6 * R3(paramsH.HSML));
-//	real3 n3Rigids = (straightChannelBoundaryMax - straightChannelBoundaryMin)
-//			/ spaceRigids;
-//	for (int i = 1; i < n3Rigids.x - 1; i += stride.x) {
-//		for (int j = 1; j < n3Rigids.y - 1; j += stride.y) {
-//			for (int k = 1; k < n3Rigids.z - 1; k += stride.z) {
-//				real3 pos = straightChannelBoundaryMin
-//						+ R3(i, j, k) * spaceRigids;
-//				//printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
-//				real4 q = R4(1, 0, 0, 0);
-//				Add_Ellipsoid_To_Data(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
-//						rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii,
-//						pos, q, referenceR, rhoRigid);
-//			}
-//		}
-//	}
-//}
-
 void CreateRigidBodiesPattern(thrust::host_vector<real3> & rigidPos,
 		thrust::host_vector<real4> & mQuatRot,
 		thrust::host_vector<real4> & velMassRigidH,
@@ -433,23 +402,10 @@ void CreateRigidBodiesPattern(thrust::host_vector<real3> & rigidPos,
 				real3 pos = straightChannelBoundaryMin
 						+ R3(i, j, k) * spaceRigids;
 				//printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
-				rigidPos.push_back(pos);
-				mQuatRot.push_back(R4(1, 0, 0, 0));
-				ellipsoidRadii.push_back(referenceR);
-				real_ mass;
-				real3 j1, j2;
-				CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x,
-						referenceR.y, referenceR.z, rhoRigid); //create Ellipsoid
-
-				velMassRigidH.push_back(R4(0, 0, 0, real_(mass)));
-				rigidBodyOmega.push_back(R3(0, 0, 0));
-				rigidBody_J1.push_back(j1);
-				rigidBody_J2.push_back(j2);
-
-				real3 invJ1, invJ2;
-				CalcInvJ(j1, j2, invJ1, invJ2);
-				rigidBody_InvJ1.push_back(invJ1);
-				rigidBody_InvJ2.push_back(invJ2);
+				real4 q = R4(1, 0, 0, 0);
+				Add_Ellipsoid_To_Data(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
+						rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii,
+						pos, q, referenceR, rhoRigid);
 			}
 		}
 	}
@@ -1435,24 +1391,23 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 				///penDist = IsInsideSerpentine(posRad);
 				//*** straightChannelBoundaryMin   should be taken care of
 				//*** straightChannelBoundaryMax   should be taken care of
-				penDist = IsInsideStraightChannel(posRad);
-				///penDist = IsInsideStraightChannel_XZ(posRad);
+				///penDist = IsInsideStraightChannel(posRad);
+				penDist = IsInsideStraightChannel_XZ(posRad);
 				///penDist = IsInsideTube(posRad);
 				///penDist = IsInsideStepTube(posRad);
 
 				if (penDist < -toleranceZone)
 					flag = false;
 				if (flag) {
-					for (int rigidBodyIdx = 0; rigidBodyIdx < rigidPos.size();
-							rigidBodyIdx++) {
+					for (int rigidBodyIdx = 0; rigidBodyIdx < rigidPos.size(); rigidBodyIdx++) {
 						//** Ellipsoid
-//						if (IsInsideEllipsoid(posRad, rigidPos[rigidBodyIdx], rigidRotMatrix[rigidBodyIdx], ellipsoidRadii[rigidBodyIdx], initSpace0)) {
-//							flag = false;
-//						}
+						if (IsInsideEllipsoid(posRad, rigidPos[rigidBodyIdx], rigidRotMatrix[rigidBodyIdx], ellipsoidRadii[rigidBodyIdx], initSpace0)) {
+							flag = false;
+						}
 						//** Cylinder_XZ
 //						if ( IsInsideCylinder_XZ(posRad, rigidPos[rigidBodyIdx], ellipsoidRadii[rigidBodyIdx], initSpace0 ) ) { flag = false;}
 						//** cylinder3D
-						if (IsInsideCylinder_3D(posRad, cylinderGeom[rigidBodyIdx].pa3, cylinderGeom[rigidBodyIdx].pb3, cylinderGeom[rigidBodyIdx].r, initSpace0)) { flag = false;}
+//						if (IsInsideCylinder_3D(posRad, cylinderGeom[rigidBodyIdx].pa3, cylinderGeom[rigidBodyIdx].pb3, cylinderGeom[rigidBodyIdx].r, initSpace0)) { flag = false;}
 					}
 					for (int flexID = 0;
 							flexID < ANCF_ReferenceArrayNodesOnBeams.size();
@@ -1981,7 +1936,7 @@ int main() {
 	string fileNameRigids("spheresPos.dat");
 
 	//real_ rr = .4 * (real_(rand()) / RAND_MAX + 1);
-	real3 r3Ellipsoid = R3(2 * paramsH.HSML);//R3(0.5, 0.5, 0.5) * paramsH.sizeScale; //R3(0.4 * paramsH.sizeScale); //R3(0.8 * paramsH.sizeScale); //real3 r3Ellipsoid = R3(.03 * paramsH.sizeScale); //R3(.05, .03, .02) * paramsH.sizeScale; //R3(.03 * paramsH.sizeScale);
+	real3 r3Ellipsoid = R3(3 * paramsH.HSML);//R3(0.5, 0.5, 0.5) * paramsH.sizeScale; //R3(0.4 * paramsH.sizeScale); //R3(0.8 * paramsH.sizeScale); //real3 r3Ellipsoid = R3(.03 * paramsH.sizeScale); //R3(.05, .03, .02) * paramsH.sizeScale; //R3(.03 * paramsH.sizeScale);
 
 	//**
 	int3 stride = I3(5, 5, 5);
@@ -2104,11 +2059,11 @@ int main() {
 		for (int rigidBodyIdx = 0; rigidBodyIdx < rigidPos.size();
 				rigidBodyIdx++) {
 			//** Ellipsoid
-//			int num_RigidBodyMarkers = CreateEllipsoidMarkers(mPosRad, mVelMas,
-//					mRhoPresMu, rigidPos[rigidBodyIdx],
-//					rigidRotMatrix[rigidBodyIdx], ellipsoidRadii[rigidBodyIdx],
-//					velMassRigidH[rigidBodyIdx], rigidBodyOmega[rigidBodyIdx],
-//					sphMarkerMass, rigidBodyIdx + 1); //as type
+			int num_RigidBodyMarkers = CreateEllipsoidMarkers(mPosRad, mVelMas,
+					mRhoPresMu, rigidPos[rigidBodyIdx],
+					rigidRotMatrix[rigidBodyIdx], ellipsoidRadii[rigidBodyIdx],
+					velMassRigidH[rigidBodyIdx], rigidBodyOmega[rigidBodyIdx],
+					sphMarkerMass, rigidBodyIdx + 1); //as type
 			//** Cylinder_XZ
 //			int num_RigidBodyMarkers = CreateCylinderMarkers_XZ(mPosRad, mVelMas, mRhoPresMu,
 //													rigidPos[rigidBodyIdx], ellipsoidRadii[rigidBodyIdx],
@@ -2117,13 +2072,13 @@ int main() {
 //													sphMarkerMass,
 //													 rigidBodyIdx + 1);		//as type
 			//** Cylinder 3D
-			thrust::host_vector<real_> dummyParamDist;
-			int num_RigidBodyMarkers = Create3D_CylinderMarkersRigid(mPosRad, mVelMas, mRhoPresMu,
-					dummyParamDist,
-					cylinderGeom[rigidBodyIdx].pa3, cylinderGeom[rigidBodyIdx].pb3, cylinderGeom[rigidBodyIdx].h, cylinderGeom[rigidBodyIdx].r, mQuatRot[rigidBodyIdx],
-					sphMarkerMass,
-					rigidBodyIdx + 1); 		//as type
-			dummyParamDist.clear();
+//			thrust::host_vector<real_> dummyParamDist;
+//			int num_RigidBodyMarkers = Create3D_CylinderMarkersRigid(mPosRad, mVelMas, mRhoPresMu,
+//					dummyParamDist,
+//					cylinderGeom[rigidBodyIdx].pa3, cylinderGeom[rigidBodyIdx].pb3, cylinderGeom[rigidBodyIdx].h, cylinderGeom[rigidBodyIdx].r, mQuatRot[rigidBodyIdx],
+//					sphMarkerMass,
+//					rigidBodyIdx + 1); 		//as type
+//			dummyParamDist.clear();
 			//******************************
 			referenceArray.push_back(
 					I3(numAllMarkers, numAllMarkers + num_RigidBodyMarkers, 1)); //rigid type: 1
