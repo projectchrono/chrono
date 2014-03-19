@@ -379,7 +379,38 @@ void CreateOne3DRigidCylinder(
 								rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2,
 								pos, q, cylGeom, rhoRigid);
 }
-//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+////&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+//void CreateRigidBodiesPattern(thrust::host_vector<real3> & rigidPos,
+//		thrust::host_vector<real4> & mQuatRot,
+//		thrust::host_vector<real4> & velMassRigidH,
+//		thrust::host_vector<real3> & rigidBodyOmega,
+//		thrust::host_vector<real3> & rigidBody_J1,
+//		thrust::host_vector<real3> & rigidBody_J2,
+//		thrust::host_vector<real3> & rigidBody_InvJ1,
+//		thrust::host_vector<real3> & rigidBody_InvJ2,
+//		thrust::host_vector<real3> & ellipsoidRadii, const real3 referenceR,
+//		const real_ rhoRigid, int3 stride) {
+//
+//	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
+//	//printf("paramsH.cMin %f %f %f, paramsH.cMax %f %f %f\n", straightChannelBoundaryMin.x, straightChannelBoundaryMin.y, straightChannelBoundaryMin.z, straightChannelBoundaryMax.x, straightChannelBoundaryMax.y, straightChannelBoundaryMax.z);
+//	real3 spaceRigids = 2 * (referenceR + 0.6 * R3(paramsH.HSML));
+//	real3 n3Rigids = (straightChannelBoundaryMax - straightChannelBoundaryMin)
+//			/ spaceRigids;
+//	for (int i = 1; i < n3Rigids.x - 1; i += stride.x) {
+//		for (int j = 1; j < n3Rigids.y - 1; j += stride.y) {
+//			for (int k = 1; k < n3Rigids.z - 1; k += stride.z) {
+//				real3 pos = straightChannelBoundaryMin
+//						+ R3(i, j, k) * spaceRigids;
+//				//printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
+//				real4 q = R4(1, 0, 0, 0);
+//				Add_Ellipsoid_To_Data(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
+//						rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii,
+//						pos, q, referenceR, rhoRigid);
+//			}
+//		}
+//	}
+//}
+
 void CreateRigidBodiesPattern(thrust::host_vector<real3> & rigidPos,
 		thrust::host_vector<real4> & mQuatRot,
 		thrust::host_vector<real4> & velMassRigidH,
@@ -402,10 +433,23 @@ void CreateRigidBodiesPattern(thrust::host_vector<real3> & rigidPos,
 				real3 pos = straightChannelBoundaryMin
 						+ R3(i, j, k) * spaceRigids;
 				//printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
-				real4 q = R4(1, 0, 0, 0);
-				Add_Ellipsoid_To_Data(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
-						rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii,
-						pos, q, referenceR, rhoRigid);
+				rigidPos.push_back(pos);
+				mQuatRot.push_back(R4(1, 0, 0, 0));
+				ellipsoidRadii.push_back(referenceR);
+				real_ mass;
+				real3 j1, j2;
+				CreateMassMomentEllipsoid(mass, j1, j2, referenceR.x,
+						referenceR.y, referenceR.z, rhoRigid); //create Ellipsoid
+
+				velMassRigidH.push_back(R4(0, 0, 0, real_(mass)));
+				rigidBodyOmega.push_back(R3(0, 0, 0));
+				rigidBody_J1.push_back(j1);
+				rigidBody_J2.push_back(j2);
+
+				real3 invJ1, invJ2;
+				CalcInvJ(j1, j2, invJ1, invJ2);
+				rigidBody_InvJ1.push_back(invJ1);
+				rigidBody_InvJ2.push_back(invJ2);
 			}
 		}
 	}
