@@ -33,6 +33,7 @@
 
 #include <irrlicht.h>
 #include "physics/ChSystem.h"
+#include "physics/ChLinkMate.h"
 #include "physics/ChFunction.h"
 #include "physics/ChContactContainer.h"
 #include "lcp/ChLcpIterativeSolver.h"
@@ -373,9 +374,9 @@ public:
 					chrono::ChFrame<>* mframe_ref = &(abody->GetFrame_REF_to_abs());
 					
 					chrono::ChVector<> p0 = mframe_cog->GetPos();
-					chrono::ChVector<> px = p0 + mframe_cog->GetA()->Get_A_Xaxis()*0.5;//*scale;
-					chrono::ChVector<> py = p0 + mframe_cog->GetA()->Get_A_Yaxis()*0.5;//*scale;
-					chrono::ChVector<> pz = p0 + mframe_cog->GetA()->Get_A_Zaxis()*0.5;//*scale;
+					chrono::ChVector<> px = p0 + mframe_cog->GetA()->Get_A_Xaxis()*0.5*scale;
+					chrono::ChVector<> py = p0 + mframe_cog->GetA()->Get_A_Yaxis()*0.5*scale;
+					chrono::ChVector<> pz = p0 + mframe_cog->GetA()->Get_A_Zaxis()*0.5*scale;
 
 					mcol=video::SColor(70,125,0,0);  // X red
 					driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(px), mcol );
@@ -385,9 +386,77 @@ public:
 					driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(pz), mcol );
 
 					p0 = mframe_ref->GetPos();
-					px = p0 + mframe_ref->GetA()->Get_A_Xaxis();//*scale;
-					py = p0 + mframe_ref->GetA()->Get_A_Yaxis();//*scale;
-					pz = p0 + mframe_ref->GetA()->Get_A_Zaxis();//*scale;
+					px = p0 + mframe_ref->GetA()->Get_A_Xaxis()*scale;
+					py = p0 + mframe_ref->GetA()->Get_A_Yaxis()*scale;
+					pz = p0 + mframe_ref->GetA()->Get_A_Zaxis()*scale;
+
+					mcol=video::SColor(70,255,0,0);  // X red
+					driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(px), mcol );
+					mcol=video::SColor(70,0,255,0);  // Y green
+					driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(py), mcol );
+					mcol=video::SColor(70,0,0,255);  // Z blue
+					driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(pz), mcol );
+				}
+
+				++myiter;
+			}
+			return 0;
+	}
+
+
+			/// Easy-to-use function which draws coordinate systems of 
+			/// frames used by links
+
+	static int drawAllLinkframes(chrono::ChSystem& mphysicalSystem, 
+							video::IVideoDriver* driver,
+							double scale =0.01)
+	{ 
+			driver->setTransform(video::ETS_WORLD, core::matrix4());
+			video::SMaterial mattransp;
+			mattransp.ZBuffer= true;
+			mattransp.Lighting=false;
+			driver->setMaterial(mattransp);
+
+			chrono::ChSystem::IteratorPhysicsItems myiter = mphysicalSystem.IterBeginPhysicsItems();
+			while (myiter.HasItem())
+			{
+				if ((*myiter).IsType<chrono::ChLinkMarkers>() || 
+					(*myiter).IsType<chrono::ChLinkMateGeneric>() ) //item is inherited from ChBody?
+				{
+					chrono::ChFrame<> frAabs;
+					chrono::ChFrame<> frBabs;
+
+					if ((*myiter).IsType<chrono::ChLinkMarkers>())
+					{
+						chrono::ChSharedPtr<chrono::ChLinkMarkers> mylink (*myiter);
+						frAabs = *mylink->GetMarker1() >> *mylink->GetBody1();
+						frBabs = *mylink->GetMarker2() >> *mylink->GetBody2();
+					}
+					if ((*myiter).IsType<chrono::ChLinkMateGeneric>())
+					{
+						chrono::ChSharedPtr<chrono::ChLinkMateGeneric> mylink (*myiter);
+						frAabs = mylink->GetFrame1() >> *mylink->GetBody1();
+						frBabs = mylink->GetFrame2() >> *mylink->GetBody2();
+					}
+
+					video::SColor mcol;
+					
+					chrono::ChVector<> p0 = frAabs.GetPos();
+					chrono::ChVector<> px = p0 + frAabs.GetA()->Get_A_Xaxis()*0.7*scale;
+					chrono::ChVector<> py = p0 + frAabs.GetA()->Get_A_Yaxis()*0.7*scale;
+					chrono::ChVector<> pz = p0 + frAabs.GetA()->Get_A_Zaxis()*0.7*scale;
+
+					mcol=video::SColor(70,125,0,0);  // X red
+					driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(px), mcol );
+					mcol=video::SColor(70,0,125,0);  // Y green
+					driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(py), mcol );
+					mcol=video::SColor(70,0,0,125);  // Z blue
+					driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(pz), mcol );
+
+					p0 = frBabs.GetPos();
+					px = p0 + frBabs.GetA()->Get_A_Xaxis()*scale;
+					py = p0 + frBabs.GetA()->Get_A_Yaxis()*scale;
+					pz = p0 + frBabs.GetA()->Get_A_Zaxis()*scale;
 
 					mcol=video::SColor(70,255,0,0);  // X red
 					driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(px), mcol );

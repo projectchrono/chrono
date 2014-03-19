@@ -265,6 +265,13 @@ public:
 							this->app->SetTimestep(dt); 
 							break;
 						}
+						if (id == 9921)
+						{	
+							double scale = 0.01;
+							scale = atof( core::stringc( ((gui::IGUIEditBox*)event.GUIEvent.Caller)->getText() ).c_str() );
+							this->app->SetSymbolscale(scale); 
+							break;
+						}
 
 				}
 			} 
@@ -296,6 +303,7 @@ public:
 			this->videoframe_save = false;
 			this->videoframe_num = 0;
 			this->videoframe_each = 1;
+			this->symbolscale = 1.0;
 
 			this->user_receiver=0;
 
@@ -332,6 +340,7 @@ public:
 			gad_tabbed = GetIGUIEnvironment()->addTabControl(core::rect<s32>(2,70,220,476), 0, true, true);
 			gad_tab1 = gad_tabbed->addTab(L"Stats");
 			gad_tab2 = gad_tabbed->addTab(L"System");
+			gad_tab3 = gad_tabbed->addTab(L"Help");
 
 			// create GUI gadgets
 			gad_textFPS = GetIGUIEnvironment()->addStaticText(L"FPS", core::rect<s32>(10,10,200,250), true, true, gad_tab1);
@@ -355,13 +364,21 @@ public:
 				gad_drawcontacts->addItem(L"Don't draw contacts");
 			gad_drawcontacts->setSelected(4);
 
-			gad_plot_aabb = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(10,310, 200,310+20),
+			gad_plot_aabb = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(10,310, 200,310+15),
 								gad_tab1, 9914, L"Draw AABB");
 
-			gad_plot_cogs = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(110,310, 200,310+20),
+			gad_plot_cogs = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(10,325, 200,325+15),
 								gad_tab1, 9915, L"Draw COGs");
 
-			gad_plot_convergence = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(10,340, 200,340+20),
+			gad_plot_linkframes = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(10,340, 200,340+15),
+								gad_tab1, 9920, L"Draw link frames");
+
+			gad_symbolscale      = GetIGUIEnvironment()->addEditBox(L"",core::rect<s32>(170,310, 200,310+15), true,
+								gad_tab1, 9921);
+			gad_symbolscale_info = GetIGUIEnvironment()->addStaticText(L"Symbols scale", core::rect<s32>(110,310, 170,310+15), false, false, gad_tab1);
+			this->SetSymbolscale(this->symbolscale);
+
+			gad_plot_convergence = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(10,355, 200,355+15),
 								gad_tab1, 9902, L"Plot convergence");
 
 			// --
@@ -422,6 +439,23 @@ public:
 								gad_tab2, 9916, L"Realtime step");
 			gad_pause_step    = GetIGUIEnvironment()->addCheckBox(false,core::rect<s32>(10,355, 200,355+15),
 								gad_tab2, 9917, L"Pause physics");
+
+			gad_textHelp = GetIGUIEnvironment()->addStaticText(L"FPS", core::rect<s32>(10,10,200,350), true, true, gad_tab3);
+			core::stringw hstr = "Instructions for interface.\n\n";
+					hstr += "MOUSE \n\n";
+					hstr += " left button: camera rotation \n";
+					hstr += " righ button: camera translate \n";
+					hstr += " wheel rotation: camera forward \n";
+					hstr += " wheel button: drag collision shapes\n";
+					hstr += "\nKEYBOARD\n\n";
+					hstr += " 'i' key: show/hide settings\n";
+					hstr += " arrows keys: camera X/Z translate\n";
+					hstr += " Pg Up/Dw keys: camera Y translate\n";
+					hstr += " 'spacebar' key: stop/start simul.\n";
+					hstr += " 'p' key: advance single step\n";
+					hstr += " 'Print Scr' key: video capture to .bmp's\n";
+					hstr += " 'F12' key: dump sys. matrices on disk\n";
+					gad_textHelp->setText(hstr.c_str());
 
 			///
 
@@ -504,8 +538,18 @@ public:
 
 				/// Set to 1 if you need to save on disk all simulation steps, 
 				/// set to 2 for saving each 2 steps, etc.
-	void SetVideoframeEach(int val) {this->videoframe_each = val;}
-	int  GetVideoframeEach() {return this->videoframe_each;}
+	void SetVideoframeSaveInterval(int val) {this->videoframe_each = val;}
+	int  GetVideoframeSaveInterval() {return this->videoframe_each;}
+
+				/// Set the scale for symbol drawing (link frames, COGs, etc.)
+	void SetSymbolscale(double val) 
+		{
+			this->symbolscale = chrono::ChMax(10e-12, val);
+			char message[50];
+			sprintf(message,"%g", this->symbolscale );
+			this->gad_symbolscale->setText(core::stringw(message).c_str());
+		}
+	double GetSymbolscale() {return this->symbolscale;}
 
 				/// Use this function to hook a custom event receiver to the application. See examples.
 	void SetUserEventReceiver(irr::IEventReceiver* mreceiver) {this->user_receiver = mreceiver;}
@@ -603,7 +647,7 @@ public:
 			}
 
 			int dmode = this->gad_drawcontacts->getSelected();
-			ChIrrTools::drawAllContactPoints(*system, GetVideoDriver(), 1, (ChIrrTools::eCh_ContactsDrawMode)dmode);
+			ChIrrTools::drawAllContactPoints(*system, GetVideoDriver(), this->symbolscale, (ChIrrTools::eCh_ContactsDrawMode)dmode);
 
 			int lmode = this->gad_labelcontacts->getSelected();
 			ChIrrTools::drawAllContactLabels(*system, GetDevice(), (ChIrrTools::eCh_ContactsLabelMode)lmode);
@@ -612,7 +656,10 @@ public:
 				ChIrrTools::drawAllBoundingBoxes(*system, GetVideoDriver());
 
 			if (this->gad_plot_cogs->isChecked())
-				ChIrrTools::drawAllCOGs(*system, GetVideoDriver(), 0.02);
+				ChIrrTools::drawAllCOGs(*system, GetVideoDriver(), this->symbolscale);
+
+			if (this->gad_plot_linkframes->isChecked())
+				ChIrrTools::drawAllLinkframes(*system, GetVideoDriver(), this->symbolscale);
 
 			if (this->gad_plot_convergence->isChecked())
 				ChIrrTools::drawHUDviolation(GetVideoDriver(), GetDevice(), *system,  240,370,300,100, 100.0, 500.0);
@@ -662,7 +709,7 @@ public:
 					case chrono::ChSystem::LCP_ITERATIVE_PMINRES: 	gad_ccpsolver->setSelected(6); break;
 					case chrono::ChSystem::LCP_ITERATIVE_APGD: 		gad_ccpsolver->setSelected(7); break;
 					case chrono::ChSystem::LCP_ITERATIVE_MINRES: 	gad_ccpsolver->setSelected(8); break;
-					default: gad_ccpsolver->setSelected(5); break;
+					default: gad_ccpsolver->setSelected(9); break;
 				}
 				switch(this->GetSystem()->GetIntegrationType())
 				{	
@@ -833,18 +880,21 @@ private:
 	bool videoframe_save;
 	int  videoframe_num;
 	int  videoframe_each;
+	double symbolscale;
 
 	chrono::ChRealtimeStepTimer m_realtime_timer;
 
 	gui::IGUITabControl* gad_tabbed;
 	gui::IGUITab*		 gad_tab1;
 	gui::IGUITab*		 gad_tab2;
+	gui::IGUITab*		 gad_tab3;
 
 	gui::IGUIStaticText* gad_textFPS;
 	gui::IGUIComboBox*   gad_drawcontacts;
 	gui::IGUIComboBox*   gad_labelcontacts;
 	gui::IGUICheckBox*   gad_plot_aabb;
 	gui::IGUICheckBox*   gad_plot_cogs;
+	gui::IGUICheckBox*   gad_plot_linkframes;
 	gui::IGUICheckBox*   gad_plot_convergence;
 
 	gui::IGUIScrollBar*  gad_speed_iternumber;
@@ -869,6 +919,9 @@ private:
 	gui::IGUIStaticText* gad_timestep_info;
 	gui::IGUICheckBox*   gad_try_realtime;
 	gui::IGUICheckBox*   gad_pause_step;
+	gui::IGUIEditBox*    gad_symbolscale;
+	gui::IGUIStaticText* gad_symbolscale_info;
+	gui::IGUIStaticText* gad_textHelp;
 
 	public:
 	chrono::ChSharedPtr<chrono::ChLinkSpring>* selectedspring;
