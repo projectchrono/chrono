@@ -6,7 +6,6 @@
 #include <vector>
 #include <utility>
 #include <string>
-#include <time.h>
 
 #include "core/ChSmartpointers.h"
 #include "core/ChVector.h"
@@ -57,14 +56,13 @@ typedef ChSmartPtr<MixtureIngredient>   MixtureIngredientPtr;
 // -------------------------------------------------------------------------------
 template <typename T>
 T sampleTruncatedDist(std::normal_distribution<T>& distribution,
-                      std::default_random_engine&  generator,
                       T                            minVal,
                       T                            maxVal)
 {
 	T val;
 
 	do {
-		val = distribution(generator);
+		val = distribution(rengine);
 	} while (val < minVal || val > maxVal);
 
 	return val;
@@ -138,8 +136,6 @@ private:
 	ChVector<>                         m_minSize, m_maxSize;
 	std::normal_distribution<>*        m_sizeDist;
 
-	std::default_random_engine         m_rengine;
-
 friend class Generator;
 };
 
@@ -203,7 +199,6 @@ private:
 	ChSystem*                          m_system;
 	SystemType                         m_sysType;
 
-	std::default_random_engine         m_rengine;
 	std::uniform_real_distribution<>   m_mixDist;
 
 	std::vector<MixtureIngredientPtr>  m_mixture;
@@ -361,12 +356,12 @@ void
 MixtureIngredient::setMaterialProperties(ChSharedPtr<ChMaterialSurface>& mat)
 {
 	if (m_frictionDist)
-		mat->SetFriction(sampleTruncatedDist<float>(*m_frictionDist, m_rengine, m_minFriction, m_maxFriction));
+		mat->SetFriction(sampleTruncatedDist<float>(*m_frictionDist, m_minFriction, m_maxFriction));
 	else
 		mat->SetFriction(m_defMaterialDVI->GetSfriction());
 
 	if (m_cohesionDist)
-		mat->SetCohesion(sampleTruncatedDist<float>(*m_cohesionDist, m_rengine, m_minCohesion, m_maxCohesion));
+		mat->SetCohesion(sampleTruncatedDist<float>(*m_cohesionDist, m_minCohesion, m_maxCohesion));
 	else
 		mat->SetCohesion(m_defMaterialDVI->GetCohesion());
 }
@@ -376,27 +371,27 @@ void
 MixtureIngredient::setMaterialProperties(ChSharedPtr<ChMaterialSurfaceDEM>& mat)
 {
 	if (m_youngDist)
-		mat->SetYoungModulus(sampleTruncatedDist<float>(*m_youngDist, m_rengine, m_minYoung, m_maxYoung));
+		mat->SetYoungModulus(sampleTruncatedDist<float>(*m_youngDist, m_minYoung, m_maxYoung));
 	else
 		mat->SetYoungModulus(m_defMaterialDEM->GetYoungModulus());
 
 	if (m_poissonDist)
-		mat->SetPoissonRatio(sampleTruncatedDist<float>(*m_poissonDist, m_rengine, m_minPoisson, m_maxPoisson));
+		mat->SetPoissonRatio(sampleTruncatedDist<float>(*m_poissonDist, m_minPoisson, m_maxPoisson));
 	else
 		mat->SetPoissonRatio(m_defMaterialDEM->GetPoissonRatio());
 
 	if (m_frictionDist)
-		mat->SetFriction(sampleTruncatedDist<float>(*m_frictionDist, m_rengine, m_minFriction, m_maxFriction));
+		mat->SetFriction(sampleTruncatedDist<float>(*m_frictionDist, m_minFriction, m_maxFriction));
 	else
 		mat->SetFriction(m_defMaterialDEM->GetSfriction());
 
 	if (m_dissipationDist)
-		mat->SetDissipationFactor(sampleTruncatedDist<float>(*m_dissipationDist, m_rengine, m_minDissipation, m_maxDissipation));
+		mat->SetDissipationFactor(sampleTruncatedDist<float>(*m_dissipationDist, m_minDissipation, m_maxDissipation));
 	else
 		mat->SetDissipationFactor(m_defMaterialDEM->GetDissipationFactor());
 
 	if (m_cohesionDist)
-		mat->SetCohesion(sampleTruncatedDist<float>(*m_cohesionDist, m_rengine, m_minCohesion, m_maxCohesion));
+		mat->SetCohesion(sampleTruncatedDist<float>(*m_cohesionDist, m_minCohesion, m_maxCohesion));
 	else
 		mat->SetCohesion(m_defMaterialDEM->GetCohesion());
 }
@@ -406,9 +401,9 @@ ChVector<>
 MixtureIngredient::getSize()
 {
 	if (m_sizeDist)
-		return ChVector<>(sampleTruncatedDist<double>(*m_sizeDist, m_rengine, m_minSize.x, m_maxSize.x),
-		                  sampleTruncatedDist<double>(*m_sizeDist, m_rengine, m_minSize.y, m_maxSize.y),
-		                  sampleTruncatedDist<double>(*m_sizeDist, m_rengine, m_minSize.z, m_maxSize.z));
+		return ChVector<>(sampleTruncatedDist<double>(*m_sizeDist, m_minSize.x, m_maxSize.x),
+		                  sampleTruncatedDist<double>(*m_sizeDist, m_minSize.y, m_maxSize.y),
+		                  sampleTruncatedDist<double>(*m_sizeDist, m_minSize.z, m_maxSize.z));
 
 	return m_defSize;
 }
@@ -418,7 +413,7 @@ double
 MixtureIngredient::getDensity()
 {
 	if (m_densityDist)
-		return sampleTruncatedDist<double>(*m_densityDist, m_rengine, m_minDensity, m_maxDensity);
+		return sampleTruncatedDist<double>(*m_densityDist, m_minDensity, m_maxDensity);
 
 	return m_defDensity;
 }
@@ -558,7 +553,7 @@ void Generator::normalizeMixture()
 // type's ratio in the mixture.
 int Generator::selectIngredient()
 {
-	double val = m_mixDist(m_rengine);
+	double val = m_mixDist(rengine);
 
 	for (int i = m_mixture.size() - 1; i >= 0; i--) {
 		if (val > m_mixture[i]->m_cumRatio)

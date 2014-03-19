@@ -6,9 +6,10 @@
 #include <vector>
 #include <list>
 #include <utility>
-#include <time.h>
 
 #include "core/ChVector.h"
+
+#include "utils/common.h"
 
 
 namespace chrono {
@@ -247,7 +248,7 @@ private:
 			std::uniform_int_distribution<int> intDist(0, m_active.size()-1);
 
 			typename PointList::iterator point = m_active.begin();
-			std::advance(point, intDist(m_generator));
+			std::advance(point, intDist(rengine));
 
 			// ... attempt to add points near the active one
 			bool found = false;
@@ -270,9 +271,9 @@ private:
 
 		// Generate a random point in the domain
 		do {
-			p.x = m_bl.x + m_realDist(m_generator) * 2 * this->m_size.x;
-			p.y = m_bl.y + m_realDist(m_generator) * 2 * this->m_size.y;
-			p.z = m_bl.z + m_realDist(m_generator) * 2 * this->m_size.z;
+			p.x = m_bl.x + m_realDist(rengine) * 2 * this->m_size.x;
+			p.y = m_bl.y + m_realDist(rengine) * 2 * this->m_size.y;
+			p.z = m_bl.z + m_realDist(rengine) * 2 * this->m_size.z;
 		} while (!this->accept(t, p));
 
 		// Place the point in the grid, add it to the active list, and add it to output.
@@ -327,8 +328,8 @@ private:
 		switch (m_2D) {
 		case Z_DIR:
 			{
-				T radius = m_minDist * (1 + m_realDist(m_generator));
-				T angle = 2 * Pi * m_realDist(m_generator);
+				T radius = m_minDist * (1 + m_realDist(rengine));
+				T angle = 2 * Pi * m_realDist(rengine);
 				x = point.x + radius * std::cos(angle);
 				y = point.y + radius * std::sin(angle);
 				z = this->m_center.z;
@@ -336,8 +337,8 @@ private:
 			break;
 		case Y_DIR:
 			{
-				T radius = m_minDist * (1 + m_realDist(m_generator));
-				T angle = 2 * Pi * m_realDist(m_generator);
+				T radius = m_minDist * (1 + m_realDist(rengine));
+				T angle = 2 * Pi * m_realDist(rengine);
 				x = point.x + radius * std::cos(angle);
 				y = this->m_center.y;
 				z = point.z + radius * std::sin(angle);
@@ -345,8 +346,8 @@ private:
 			break;
 		case X_DIR:
 			{
-				T radius = m_minDist * (1 + m_realDist(m_generator));
-				T angle = 2 * Pi * m_realDist(m_generator);
+				T radius = m_minDist * (1 + m_realDist(rengine));
+				T angle = 2 * Pi * m_realDist(rengine);
 				x = this->m_center.x;
 				y = point.y + radius * std::cos(angle);
 				z = point.z + radius * std::sin(angle);
@@ -354,9 +355,9 @@ private:
 			break;
 		case NONE:
 			{
-				T radius = m_minDist * (1 + m_realDist(m_generator));
-				T angle1 = 2 * Pi * m_realDist(m_generator);
-				T angle2 = 2 * Pi * m_realDist(m_generator);
+				T radius = m_minDist * (1 + m_realDist(rengine));
+				T angle1 = 2 * Pi * m_realDist(rengine);
+				T angle2 = 2 * Pi * m_realDist(rengine);
 				x = point.x + radius * std::cos(angle1) * std::sin(angle2);
 				y = point.y + radius * std::sin(angle1) * std::sin(angle2);
 				z = point.z + radius * std::cos(angle2);
@@ -389,7 +390,6 @@ private:
 	int m_ppi;                 ///< maximum points per iteration
 
 	/// Generate real numbers uniformly distributed in (0,1)
-	std::default_random_engine         m_generator;
 	std::uniform_real_distribution<T>  m_realDist;
 
 	static const int m_ppi_default = 30;

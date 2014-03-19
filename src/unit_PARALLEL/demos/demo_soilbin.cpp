@@ -15,6 +15,12 @@ using std::endl;
 
 
 // =======================================================================
+// Initialize the random engine
+std::random_device rd;
+std::default_random_engine utils::rengine(rd());
+
+
+// =======================================================================
 enum ProblemType {
 	SETTLING,
 	DROPPING,

@@ -1,6 +1,9 @@
 #ifndef CH_UTILS_COMMON_H
 #define CH_UTILS_COMMON_H
 
+#include <random>
+
+
 namespace chrono {
 namespace utils {
 
@@ -12,13 +15,17 @@ enum SystemType {
 	PARALLEL_DEM
 };
 
+// -------------------------------------------------------------------------------
+// Globals
+// -------------------------------------------------------------------------------
+extern std::default_random_engine rengine;
 
 // -------------------------------------------------------------------------------
 // GetSystemType()
 //
 // This utility function infers the type of the specified ChSystem.
 // -------------------------------------------------------------------------------
-SystemType GetSystemType(ChSystem* system)
+inline SystemType GetSystemType(ChSystem* system)
 {
 	if (dynamic_cast<ChSystemParallelDVI*>(system))
 		return PARALLEL_DVI;
