@@ -796,8 +796,8 @@ void CreateManyFlexBodiesChannel(thrust::host_vector<real3> & ANCF_Nodes,
 		thrust::host_vector<real_> & ANCF_Beam_Length,
 		thrust::host_vector<int2> & ANCF_ReferenceArrayNodesOnBeams,
 		thrust::host_vector<bool> & ANCF_IsCantilever,
-		const ANCF_Params & flexParams
-		) {
+		const ANCF_Params & flexParams)
+{
 	//TODO create mass property of the beams
 	int numElementsPerBeam = flexParams.ne;
 	real_ margin = 4 * paramsH.HSML;// 2 * paramsH.HSML;
@@ -1940,11 +1940,12 @@ int main() {
 	real3 r3Ellipsoid = R3(2 * paramsH.HSML);//R3(0.5, 0.5, 0.5) * paramsH.sizeScale; //R3(0.4 * paramsH.sizeScale); //R3(0.8 * paramsH.sizeScale); //real3 r3Ellipsoid = R3(.03 * paramsH.sizeScale); //R3(.05, .03, .02) * paramsH.sizeScale; //R3(.03 * paramsH.sizeScale);
 
 	//**
-//	int3 stride = I3(5, 5, 5);
-//	CreateRigidBodiesPattern(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride);
+	int3 stride = I3(5, 5, 5);
+	CreateRigidBodiesPattern(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride);
 	//**
-	int3 stride = I3(1, 1, 1);
-	CreateRigidBodiesPatternWithinBeams(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride, flexParams);
+//	int3 stride = I3(1, 1, 1);
+//	CreateRigidBodiesPatternWithinBeams(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride, flexParams);
+
 	//**
 //	CreateRigidBodiesFromFile(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
 	//**
@@ -1979,9 +1980,8 @@ int main() {
 	//**
 	//*** straightChannelBoundaryMin   should be taken care of
 	//*** straightChannelBoundaryMax   should be taken care of
-	CreateManyFlexBodiesChannel(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
-			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever,
-			flexParams);
+//	CreateManyFlexBodiesChannel(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
+//			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever, flexParams);
 	//**
 
 	thrust::host_vector<Rotation> rigidRotMatrix(mQuatRot.size());
