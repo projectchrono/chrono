@@ -424,13 +424,13 @@ void CreateRigidBodiesPatternWithinBeams(thrust::host_vector<real3> & rigidPos,
 		const ANCF_Params & flexParams) {
 
 	//*********** this should be the same as the flex
-	real_ margin = 4 * paramsH.HSML;// 2 * paramsH.HSML;
+	real_ margin = 6 * paramsH.HSML;// 2 * paramsH.HSML;
 	real_ spaceFlex = 2 * (flexParams.r + margin);
 	//************************************************
 
 	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
 	//printf("paramsH.cMin %f %f %f, paramsH.cMax %f %f %f\n", straightChannelBoundaryMin.x, straightChannelBoundaryMin.y, straightChannelBoundaryMin.z, straightChannelBoundaryMax.x, straightChannelBoundaryMax.y, straightChannelBoundaryMax.z);
-	real3 spaceRigids = 2 * (referenceR + 2 * R3(paramsH.HSML));
+	real3 spaceRigids = 2 * (referenceR + .6 * R3(paramsH.HSML));
 	real3 n3Rigids = (straightChannelBoundaryMax - straightChannelBoundaryMin)
 			/ spaceRigids;
 	for (int i = 1; i < n3Rigids.x - 1; i += stride.x) {
@@ -466,7 +466,6 @@ void CreateRigidBodiesPatternPipe(thrust::host_vector<real3> & rigidPos,
 		const real_ rhoRigid) {
 
 	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
-	//printf("paramsH.cMin %f %f %f, paramsH.cMax %f %f %f\n", straightChannelBoundaryMin.x, straightChannelBoundaryMin.y, straightChannelBoundaryMin.z, straightChannelBoundaryMax.x, straightChannelBoundaryMax.y, straightChannelBoundaryMax.z);
 	real3 spaceRigids = 2 * (referenceR + 1.1 * R3(paramsH.HSML));
 	real3 n3Rigids = (paramsH.cMax - paramsH.cMin) / spaceRigids;
 	for (int i = 1; i < n3Rigids.x - 1; i++) {
@@ -501,7 +500,6 @@ void CreateRigidBodiesPatternStepPipe(thrust::host_vector<real3> & rigidPos,
 		const real_ rhoRigid) {
 
 	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
-	//printf("paramsH.cMin %f %f %f, paramsH.cMax %f %f %f\n", straightChannelBoundaryMin.x, straightChannelBoundaryMin.y, straightChannelBoundaryMin.z, straightChannelBoundaryMax.x, straightChannelBoundaryMax.y, straightChannelBoundaryMax.z);
 	real3 spaceRigids = 2 * (referenceR + 2.0 * R3(paramsH.HSML));
 
 	real_ tubeLength = paramsH.cMax.x - paramsH.cMin.x;
@@ -544,7 +542,6 @@ void CreateRigidBodiesPatternPipe_KindaRandom(
 
 	srand(time(NULL));
 	printf("referenceR %f %f %f \n", referenceR.x, referenceR.y, referenceR.z);
-	//printf("paramsH.cMin %f %f %f, paramsH.cMax %f %f %f\n", straightChannelBoundaryMin.x, straightChannelBoundaryMin.y, straightChannelBoundaryMin.z, straightChannelBoundaryMax.x, straightChannelBoundaryMax.y, straightChannelBoundaryMax.z);
 //	real3 spaceRigids = 2 * (referenceR + 2 * R3(paramsH.HSML));
 	real3 spaceRigids = 2 * (referenceR + 1.1 * R3(paramsH.HSML));
 	real3 n3Rigids = (paramsH.cMax - paramsH.cMin) / spaceRigids;
@@ -799,10 +796,12 @@ void CreateManyFlexBodiesChannel(thrust::host_vector<real3> & ANCF_Nodes,
 		const ANCF_Params & flexParams)
 {
 	//TODO create mass property of the beams
-	int numElementsPerBeam = flexParams.ne;
-	real_ margin = 4 * paramsH.HSML;// 2 * paramsH.HSML;
+	//*********** this should be the same as the flex
+	real_ margin = 6 * paramsH.HSML;// 2 * paramsH.HSML;
 	real_ spaceFlex = 2 * (flexParams.r + margin);
-	real_ beamLength = .8 * (paramsH.cMax.z - paramsH.cMin.z);//paramsH.HSML * 40;
+	//************************************************
+	int numElementsPerBeam = flexParams.ne;
+	real_ beamLength = (paramsH.cMax.z - paramsH.cMin.z) - 6 * margin;//paramsH.HSML * 40;
 	real_ beamLengthWithSpacing = beamLength + 2 * margin;
 
 	real3 n3Flex = R3( (straightChannelBoundaryMax.x - straightChannelBoundaryMin.x) / spaceFlex, (straightChannelBoundaryMax.y - straightChannelBoundaryMin.y) / spaceFlex,
@@ -1243,20 +1242,16 @@ real_ IsInsideStraightChannel(real3 posRad) {
 real_ IsInsideStraightChannel_XZ(real3 posRad) {
 	const real_ sphR = paramsH.HSML;
 	real_ penDist1 = 0;
-	//const real_ toleranceZone = 2 * sphR;
 	real_ largePenet = -5 * sphR; //like a large number. Should be negative (assume large initial penetration)
 
-	//if (posRad.z > 3.0 * paramsH.sizeScale) {penDist1 = 3.0 * paramsH.sizeScale - posRad.z;}
-	if (posRad.z > 2.0 * paramsH.sizeScale) {
-		penDist1 = 2.0 * paramsH.sizeScale - posRad.z;
+	if (posRad.z > straightChannelBoundaryMax.z) {
+		penDist1 = straightChannelBoundaryMax.z - posRad.z;
 	}
-	if (posRad.z < 1.0 * paramsH.sizeScale) {
-		penDist1 = posRad.z - 1.0 * paramsH.sizeScale;
+	if (posRad.z < straightChannelBoundaryMin.z) {
+		penDist1 = posRad.z - straightChannelBoundaryMin.z;
 	}
-
 	if (penDist1 < 0)
 		return penDist1;
-	//printf("hey \n");
 	return -largePenet;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
@@ -1391,8 +1386,8 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 				///penDist = IsInsideSerpentine(posRad);
 				//*** straightChannelBoundaryMin   should be taken care of
 				//*** straightChannelBoundaryMax   should be taken care of
-				///penDist = IsInsideStraightChannel(posRad);
-				penDist = IsInsideStraightChannel_XZ(posRad);
+				penDist = IsInsideStraightChannel(posRad);
+				///penDist = IsInsideStraightChannel_XZ(posRad);
 				///penDist = IsInsideTube(posRad);
 				///penDist = IsInsideStepTube(posRad);
 
@@ -1802,7 +1797,7 @@ int main() {
 	paramsH.boxDims;
 
 	paramsH.sizeScale = 1;
-	paramsH.HSML = 0.02;
+	paramsH.HSML = 0.01;
 	paramsH.MULT_INITSPACE = 1.0;
 	paramsH.NUM_BCE_LAYERS = 2;
 	paramsH.BASEPRES = 0;
@@ -1818,7 +1813,7 @@ int main() {
 	paramsH.kdT = 5;
 	paramsH.gammaBB = 0.5;
 	paramsH.cMin = R3(0, 0, -.1) * paramsH.sizeScale;
-	paramsH.cMax = R3(paramsH.nPeriod * distance + 0, 1 + 0, 1 + .1)
+	paramsH.cMax = R3(paramsH.nPeriod * distance + 0, 1, .6 + .1)
 			* paramsH.sizeScale;
 	paramsH.binSize0; // will be changed
 
@@ -1846,7 +1841,7 @@ int main() {
 	//****************************************************************************************
 	//*** initialize straight channel
 	straightChannelBoundaryMin = R3(0, 0, 0) * paramsH.sizeScale;
-	straightChannelBoundaryMax = R3(paramsH.nPeriod * distance + 0, 1, 1) * paramsH.sizeScale;
+	straightChannelBoundaryMax = R3(paramsH.nPeriod * distance + 0, 1, .6) * paramsH.sizeScale;
 
 	//(void) cudaSetDevice(0);
 	int numAllMarkers = 0;
@@ -1936,14 +1931,14 @@ int main() {
 	string fileNameRigids("spheresPos.dat");
 
 	//real_ rr = .4 * (real_(rand()) / RAND_MAX + 1);
-	real3 r3Ellipsoid = R3(3 * paramsH.HSML);//R3(0.5, 0.5, 0.5) * paramsH.sizeScale; //R3(0.4 * paramsH.sizeScale); //R3(0.8 * paramsH.sizeScale); //real3 r3Ellipsoid = R3(.03 * paramsH.sizeScale); //R3(.05, .03, .02) * paramsH.sizeScale; //R3(.03 * paramsH.sizeScale);
+	real3 r3Ellipsoid = R3(2 * paramsH.HSML);//R3(0.5, 0.5, 0.5) * paramsH.sizeScale; //R3(0.4 * paramsH.sizeScale); //R3(0.8 * paramsH.sizeScale); //real3 r3Ellipsoid = R3(.03 * paramsH.sizeScale); //R3(.05, .03, .02) * paramsH.sizeScale; //R3(.03 * paramsH.sizeScale);
 
 	//**
-	int3 stride = I3(5, 5, 5);
-	CreateRigidBodiesPattern(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride);
+//	int3 stride = I3(5, 5, 5);
+//	CreateRigidBodiesPattern(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride);
 	//**
-//	int3 stride = I3(1, 1, 1);
-//	CreateRigidBodiesPatternWithinBeams(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride, flexParams);
+	int3 stride = I3(1, 1, 1);
+	CreateRigidBodiesPatternWithinBeams(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride, flexParams);
 
 	//**
 //	CreateRigidBodiesFromFile(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
@@ -1979,8 +1974,8 @@ int main() {
 	//**
 	//*** straightChannelBoundaryMin   should be taken care of
 	//*** straightChannelBoundaryMax   should be taken care of
-//	CreateManyFlexBodiesChannel(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
-//			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever, flexParams);
+	CreateManyFlexBodiesChannel(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
+			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever, flexParams);
 	//**
 
 	thrust::host_vector<Rotation> rigidRotMatrix(mQuatRot.size());

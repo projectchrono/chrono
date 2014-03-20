@@ -94,7 +94,7 @@ __device__ inline real3 DifVelocity_SSI_DEM(
 				const real4 & velMasA,
 				const real4 & velMasB) {
 //printf("** DifVelocity_SSI_DEM\n");
-	real_ l = 1 * rSPH - d;
+	real_ l = paramsD.MULT_INITSPACE * rSPH - d;
 	if (l < 0) {
 		return R3(0);
 	}
