@@ -440,10 +440,10 @@ void CreateRigidBodiesPatternWithinBeams(thrust::host_vector<real3> & rigidPos,
 						+ R3(i, j, k) * spaceRigids;
 				real2 distFromBeam = R2(fmod(pos.x, spaceFlex), fmod(pos.y, spaceFlex));
 
-				if (distFromBeam.x < referenceR.x + flexParams.r + 2 * paramsH.HSML) continue;
-				if (spaceFlex - distFromBeam.x < referenceR.x + flexParams.r + 2 * paramsH.HSML) continue;
-				if (distFromBeam.y < referenceR.y + flexParams.r + 2 * paramsH.HSML) continue;
-				if (spaceFlex - distFromBeam.y < referenceR.y + flexParams.r + 2 * paramsH.HSML) continue;
+				if (distFromBeam.x < referenceR.x + flexParams.r + 1.2 * paramsH.HSML) continue;
+				if (spaceFlex - distFromBeam.x < referenceR.x + flexParams.r + 1.2 * paramsH.HSML) continue;
+				if (distFromBeam.y < referenceR.y + flexParams.r + 1.2 * paramsH.HSML) continue;
+				if (spaceFlex - distFromBeam.y < referenceR.y + flexParams.r + 1.2 * paramsH.HSML) continue;
 				//printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
 				real4 q = R4(1, 0, 0, 0);
 				Add_Ellipsoid_To_Data(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
@@ -1931,7 +1931,7 @@ int main() {
 	string fileNameRigids("spheresPos.dat");
 
 	//real_ rr = .4 * (real_(rand()) / RAND_MAX + 1);
-	real3 r3Ellipsoid = R3(2 * paramsH.HSML);//R3(0.5, 0.5, 0.5) * paramsH.sizeScale; //R3(0.4 * paramsH.sizeScale); //R3(0.8 * paramsH.sizeScale); //real3 r3Ellipsoid = R3(.03 * paramsH.sizeScale); //R3(.05, .03, .02) * paramsH.sizeScale; //R3(.03 * paramsH.sizeScale);
+	real3 r3Ellipsoid = R3(1.5 * paramsH.HSML);//R3(0.5, 0.5, 0.5) * paramsH.sizeScale; //R3(0.4 * paramsH.sizeScale); //R3(0.8 * paramsH.sizeScale); //real3 r3Ellipsoid = R3(.03 * paramsH.sizeScale); //R3(.05, .03, .02) * paramsH.sizeScale; //R3(.03 * paramsH.sizeScale);
 
 	//**
 //	int3 stride = I3(5, 5, 5);
