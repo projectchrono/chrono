@@ -1943,6 +1943,7 @@ void cudaCollisions(
 
 	SimParams currentParamsH = paramsH;
 
+	int timeSlice = real_(stepEnd)/7;
 	//for (int tStep = 0; tStep < 0; tStep ++) {
 	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
 		//edit  since yu deleted cyliderRotOmegaJD
@@ -1956,10 +1957,31 @@ void cudaCollisions(
 
 //		if (tStep < 1000) delT = 0.25 * delTOrig; else delT = delTOrig;
 
-		if (tStep <= numPause) 	{
+//		if (tStep <= numPause) 	{
+//			currentParamsH = paramsH_B;
+//		} else {
+//			currentParamsH = paramsH;
+//		}
+		if (tStep <= timeSlice) {
 			currentParamsH = paramsH_B;
+		} else if (tStep <= 2 * timeSlice) {
+			currentParamsH.bodyForce4.x = paramsH.bodyForce4.x;
+			currentParamsH.bodyForce4.y = 0;
+		} else if (tStep <= 3 * timeSlice) {
+			currentParamsH.bodyForce4.x = 0;
+			currentParamsH.bodyForce4.y = .5 * paramsH.bodyForce4.x;
+		} else if (tStep <= 4 * timeSlice) {
+			currentParamsH.bodyForce4.x = -.7 * paramsH.bodyForce4.x;
+			currentParamsH.bodyForce4.y = -.5 * paramsH.bodyForce4.x;
+		} else if (tStep <= 5 * timeSlice) {
+			currentParamsH.bodyForce4.x = 1.0 * paramsH.bodyForce4.x;
+			currentParamsH.bodyForce4.y = 0;
+		} else if (tStep <= 5.5 * timeSlice) {
+			currentParamsH.bodyForce4.x = -.5 * paramsH.bodyForce4.x;
+			currentParamsH.bodyForce4.y = -.5 * paramsH.bodyForce4.x;
 		} else {
-			currentParamsH = paramsH;
+			currentParamsH.bodyForce4.x = 1.0 * paramsH.bodyForce4.x;
+			currentParamsH.bodyForce4.y = 0;
 		}
 		setParameters(&currentParamsH); 														// sets paramsD in SDKCollisionSystem
 		cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &currentParamsH, sizeof(SimParams))); 	//sets paramsD for this file
