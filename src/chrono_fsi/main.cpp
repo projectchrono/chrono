@@ -801,7 +801,7 @@ void CreateManyFlexBodiesChannel(thrust::host_vector<real3> & ANCF_Nodes,
 {
 	//TODO create mass property of the beams
 	//*********** this should be the same as the flex
-	real_ margin = 1.2 * paramsH.HSML;// 2 * paramsH.HSML;
+	real_ margin = 4 * paramsH.HSML;// 2 * paramsH.HSML;
 	real_ spaceFlex = 2 * (flexParams.r + margin);
 	//************************************************
 	int numElementsPerBeam = flexParams.ne;
@@ -1801,7 +1801,7 @@ int main() {
 	paramsH.boxDims;
 
 	paramsH.sizeScale = 1;
-	paramsH.HSML = 0.015;
+	paramsH.HSML = 0.01;
 	paramsH.MULT_INITSPACE = 1.0;
 	paramsH.NUM_BCE_LAYERS = 2;
 	paramsH.BASEPRES = 0;
@@ -1941,8 +1941,8 @@ int main() {
 //	int3 stride = I3(5, 5, 5);
 //	CreateRigidBodiesPattern(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride);
 	//**
-//	int3 stride = I3(1, 1, 1);
-//	CreateRigidBodiesPatternWithinBeams(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride, flexParams);
+	int3 stride = I3(1, 1, 1);
+	CreateRigidBodiesPatternWithinBeams(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride, flexParams);
 
 	//**
 //	CreateRigidBodiesFromFile(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
