@@ -424,7 +424,7 @@ void CreateRigidBodiesPatternWithinBeams(thrust::host_vector<real3> & rigidPos,
 		const ANCF_Params & flexParams) {
 
 	//*********** this should be the same as the flex
-	real_ margin = 6 * paramsH.HSML;// 2 * paramsH.HSML;
+	real_ margin = 4 * paramsH.HSML;// 2 * paramsH.HSML;
 	real_ spaceFlex = 2 * (flexParams.r + margin);
 	//************************************************
 
@@ -439,11 +439,15 @@ void CreateRigidBodiesPatternWithinBeams(thrust::host_vector<real3> & rigidPos,
 				real3 pos = straightChannelBoundaryMin
 						+ R3(i, j, k) * spaceRigids;
 				real2 distFromBeam = R2(fmod(pos.x, spaceFlex), fmod(pos.y, spaceFlex));
+				distFromBeam.x = min(distFromBeam.x, spaceFlex - distFromBeam.x);
+				distFromBeam.y = min(distFromBeam.y, spaceFlex - distFromBeam.y);
 
-				if (distFromBeam.x < referenceR.x + flexParams.r + 1.2 * paramsH.HSML) continue;
-				if (spaceFlex - distFromBeam.x < referenceR.x + flexParams.r + 1.2 * paramsH.HSML) continue;
-				if (distFromBeam.y < referenceR.y + flexParams.r + 1.2 * paramsH.HSML) continue;
-				if (spaceFlex - distFromBeam.y < referenceR.y + flexParams.r + 1.2 * paramsH.HSML) continue;
+//				if (distFromBeam.x < referenceR.x + flexParams.r + 1.2 * paramsH.HSML) continue;
+//				if (spaceFlex - distFromBeam.x < referenceR.x + flexParams.r + 1.2 * paramsH.HSML) continue;
+//				if (distFromBeam.y < referenceR.y + flexParams.r + 1.2 * paramsH.HSML) continue;
+//				if (spaceFlex - distFromBeam.y < referenceR.y + flexParams.r + 1.2 * paramsH.HSML) continue;
+				if (length(distFromBeam) < referenceR.x + flexParams.r + 1.2 * paramsH.HSML) continue;
+
 				//printf("rigidPos %f %f %f\n", pos.x, pos.y, pos.z);
 				real4 q = R4(1, 0, 0, 0);
 				Add_Ellipsoid_To_Data(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
@@ -797,12 +801,12 @@ void CreateManyFlexBodiesChannel(thrust::host_vector<real3> & ANCF_Nodes,
 {
 	//TODO create mass property of the beams
 	//*********** this should be the same as the flex
-	real_ margin = 6 * paramsH.HSML;// 2 * paramsH.HSML;
+	real_ margin = 4 * paramsH.HSML;// 2 * paramsH.HSML;
 	real_ spaceFlex = 2 * (flexParams.r + margin);
 	//************************************************
 	int numElementsPerBeam = flexParams.ne;
-	real_ beamLength = (paramsH.cMax.z - paramsH.cMin.z) - 6 * margin;//paramsH.HSML * 40;
-	real_ beamLengthWithSpacing = beamLength + 2 * margin;
+	real_ beamLength = (straightChannelBoundaryMax.z - straightChannelBoundaryMin.z) - 6 * margin;//paramsH.HSML * 40;
+	real_ beamLengthWithSpacing = beamLength + margin;
 
 	real3 n3Flex = R3( (straightChannelBoundaryMax.x - straightChannelBoundaryMin.x) / spaceFlex, (straightChannelBoundaryMax.y - straightChannelBoundaryMin.y) / spaceFlex,
 			(straightChannelBoundaryMax.z - straightChannelBoundaryMin.z) / beamLengthWithSpacing );
@@ -1797,7 +1801,7 @@ int main() {
 	paramsH.boxDims;
 
 	paramsH.sizeScale = 1;
-	paramsH.HSML = 0.01;
+	paramsH.HSML = 0.015;
 	paramsH.MULT_INITSPACE = 1.0;
 	paramsH.NUM_BCE_LAYERS = 2;
 	paramsH.BASEPRES = 0;
@@ -1813,7 +1817,7 @@ int main() {
 	paramsH.kdT = 5;
 	paramsH.gammaBB = 0.5;
 	paramsH.cMin = R3(0, 0, -.1) * paramsH.sizeScale;
-	paramsH.cMax = R3(paramsH.nPeriod * distance + 0, 1, .6 + .1)
+	paramsH.cMax = R3(paramsH.nPeriod * distance + 0, 1, 1 + .1)
 			* paramsH.sizeScale;
 	paramsH.binSize0; // will be changed
 
@@ -1841,7 +1845,7 @@ int main() {
 	//****************************************************************************************
 	//*** initialize straight channel
 	straightChannelBoundaryMin = R3(0, 0, 0) * paramsH.sizeScale;
-	straightChannelBoundaryMax = R3(paramsH.nPeriod * distance + 0, 1, .6) * paramsH.sizeScale;
+	straightChannelBoundaryMax = R3(paramsH.nPeriod * distance + 0, 1, 1) * paramsH.sizeScale;
 
 	//(void) cudaSetDevice(0);
 	int numAllMarkers = 0;
@@ -1931,7 +1935,7 @@ int main() {
 	string fileNameRigids("spheresPos.dat");
 
 	//real_ rr = .4 * (real_(rand()) / RAND_MAX + 1);
-	real3 r3Ellipsoid = R3(1.5 * paramsH.HSML);//R3(0.5, 0.5, 0.5) * paramsH.sizeScale; //R3(0.4 * paramsH.sizeScale); //R3(0.8 * paramsH.sizeScale); //real3 r3Ellipsoid = R3(.03 * paramsH.sizeScale); //R3(.05, .03, .02) * paramsH.sizeScale; //R3(.03 * paramsH.sizeScale);
+	real3 r3Ellipsoid = R3(1.5 * paramsH.HSML, 1.5 * paramsH.HSML, 2 * paramsH.HSML);//R3(0.5, 0.5, 0.5) * paramsH.sizeScale; //R3(0.4 * paramsH.sizeScale); //R3(0.8 * paramsH.sizeScale); //real3 r3Ellipsoid = R3(.03 * paramsH.sizeScale); //R3(.05, .03, .02) * paramsH.sizeScale; //R3(.03 * paramsH.sizeScale);
 
 	//**
 //	int3 stride = I3(5, 5, 5);
