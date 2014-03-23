@@ -121,7 +121,8 @@ void AddConeGeometry(ChBody*               body,
 
 
 // -------------------------------------------------------------------------------
-// CreateBoxContainer
+// CreateBoxContainerDEM
+// CreateBoxContainerDVI
 //
 // Create a fixed body with contact and asset geometry representing a box with 5
 // walls (no top).
@@ -185,6 +186,56 @@ void CreateBoxContainerDEM(ChSystem*                           system,
 	ChSharedPtr<ChBodyDEM>  bodyPtr(body);
 
 	if (sysType == SEQUENTIAL_DEM)
+		system->AddBody(bodyPtr);
+	else
+		((ChSystemParallel*) system)->AddBody(bodyPtr);
+
+}
+
+
+void CreateBoxContainerDVI(ChSystem*                           system,
+                           int                                 id,
+                           ChSharedPtr<ChMaterialSurface>&     mat,
+                           const ChVector<>&                   hdim,
+                           double                              hthick,
+                           const ChVector<>&                   pos = ChVector<>(0,0,0),
+                           const ChQuaternion<>&               rot = ChQuaternion<>(1,0,0,0),
+                           bool                                collide = true)
+{
+	// Infer system type.
+	SystemType sysType = GetSystemType(system);
+	assert(sysType == SEQUENTIAL_DVI || sysType == PARALLEL_DVI);
+
+	// Create the body and set material
+	ChBody* body;
+
+	if (sysType == SEQUENTIAL_DVI)
+		body = new ChBody();
+	else
+		body = new ChBody(new ChCollisionModelParallel);
+
+	body->SetMaterialSurface(mat);
+
+	// Set body properties and geometry.
+	body->SetIdentifier(id);
+	body->SetMass(1);
+	body->SetPos(pos);
+	body->SetRot(rot);
+	body->SetCollide(collide);
+	body->SetBodyFixed(true);
+
+	body->GetCollisionModel()->ClearModel();
+	AddWall(body, ChVector<>(0, 0, -hthick), ChVector<>(hdim.x, hdim.y, hthick));
+	AddWall(body, ChVector<>(-hdim.x-hthick, 0, hdim.z), ChVector<>(hthick, hdim.y, hdim.z));
+	AddWall(body, ChVector<>( hdim.x+hthick, 0, hdim.z), ChVector<>(hthick, hdim.y, hdim.z));
+	AddWall(body, ChVector<>(0, -hdim.y-hthick, hdim.z), ChVector<>(hdim.x, hthick, hdim.z));
+	AddWall(body, ChVector<>(0,  hdim.y+hthick, hdim.z), ChVector<>(hdim.x, hthick, hdim.z));
+	body->GetCollisionModel()->BuildModel();
+
+	// Attach the body to the system.
+	ChSharedPtr<ChBody>  bodyPtr(body);
+
+	if (sysType == SEQUENTIAL_DVI)
 		system->AddBody(bodyPtr);
 	else
 		((ChSystemParallel*) system)->AddBody(bodyPtr);
