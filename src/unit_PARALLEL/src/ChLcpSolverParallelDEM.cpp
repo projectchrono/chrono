@@ -18,8 +18,7 @@ void function_CalcContactForces(int&       index,           // index of this con
                                 real*      alpha,           // disipation coefficient (per body)
                                 real*      cr,              // coefficient of restitution (per body)
                                 real*      cohesion,        // cohesion force (per body)
-                                long long* pairs,           // shape IDs (per contact pairs)
-                                uint*      body_id,         // body IDs (per shape)
+                                int2*      body_id,         // body IDs (per contact)
                                 real3*     pt1,             // point on shape 1 (per contact)
                                 real3*     pt2,             // point on shape 2 (per contact)
                                 real3*     normal,          // contact normal (per contact)
@@ -29,11 +28,9 @@ void function_CalcContactForces(int&       index,           // index of this con
                                 real3*     ext_body_force,  // [output] body force (two per contact)
                                 real3*     ext_body_torque) // [output] body torque (two per contact)
 {
-	// Identify the two bodies in contact. First, find the IDs of the shapes in
-	// contact, then find the IDs of the associated bodies.
-	int2 pair = I2(int(pairs[index] >> 32), int(pairs[index] & 0xffffffff));
-	int body1 = body_id[pair.x];
-	int body2 = body_id[pair.y];
+	// Identify the two bodies in contact.
+	int body1 = body_id[index].x;
+	int body2 = body_id[index].y;
 
 	// If the two contact shapes are actually separated, set zero forces and torques
 	if (depth[index] >= 0) {
@@ -142,8 +139,7 @@ void ChLcpSolverParallelDEM::host_CalcContactForces(custom_vector<int>&   ext_bo
 			data_container->host_data.alpha.data(),
 			data_container->host_data.cr.data(),
 			data_container->host_data.cohesion_data.data(),
-			data_container->host_data.pair_rigid_rigid.data(),
-			data_container->host_data.id_rigid.data(),
+			data_container->host_data.bids_rigid_rigid.data(),
 			data_container->host_data.cpta_rigid_rigid.data(),
 			data_container->host_data.cptb_rigid_rigid.data(),
 			data_container->host_data.norm_rigid_rigid.data(),
