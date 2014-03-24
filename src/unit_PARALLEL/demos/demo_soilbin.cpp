@@ -27,7 +27,7 @@ enum ProblemType {
 	COMPLETE
 };
 
-ProblemType problem = SETTLING;
+ProblemType problem = DROPPING;
 
 // =======================================================================
 // Global problem definitions
@@ -44,7 +44,7 @@ int max_iteration = 20;
 
 // Output
 const char* data_folder = "../SOILBIN";
-const char* checkpoint_file = "../SOILBIN/settled.dat";
+const char* checkpoint_file = "../SOILBIN/settled_hard.dat";
 ChStreamOutAsciiFile sph_file("../SOILBIN/soilbin_pos.txt");
 double out_fps = 30;
 
@@ -56,14 +56,14 @@ double     mass = density * vol;
 ChVector<> inertia = 0.4 * mass * radius * radius * ChVector<>(1,1,1);
 
 // Parameters for the falling ball
-double     dropHeight = 5;
+double     dropHeight = 10;
 int        ballId = 100;
 double     radius1 = 0.5;
 double     density1 = 2000;
 double     volume1 = (4.0/3) * PI * radius1 * radius1 * radius1;
 double     mass1 = density1 * volume1;
 ChVector<> inertia1 = 0.4 * mass1 * radius1 * radius1 * ChVector<>(1,1,1);
-ChVector<> initvel1(0, 0, 0);
+ChVector<> initvel1(0, 0, -30);
 
 // Parameters for the containing bin
 int    binId = -200;
@@ -97,9 +97,9 @@ void CreateObjects(ChSystemParallel* system)
 	// Create a material for the ball mixture
 	ChSharedPtr<ChMaterialSurfaceDEM> ballMixMat;
 	ballMixMat = ChSharedPtr<ChMaterialSurfaceDEM>(new ChMaterialSurfaceDEM);
-	ballMixMat->SetYoungModulus(2e6f);
+	ballMixMat->SetYoungModulus(1e8f);
 	ballMixMat->SetFriction(0.4f);
-	ballMixMat->SetDissipationFactor(0.6f);
+	ballMixMat->SetDissipationFactor(0.1f);
 
 	// Create a material for the bin
 	ChSharedPtr<ChMaterialSurfaceDEM> binMat;
@@ -153,9 +153,9 @@ ChBody* CreateFallingBall()
 	// Create a material for the falling ball
 	ChSharedPtr<ChMaterialSurfaceDEM> ballMat;
 	ballMat = ChSharedPtr<ChMaterialSurfaceDEM>(new ChMaterialSurfaceDEM);
-	ballMat->SetYoungModulus(2e6f);
+	ballMat->SetYoungModulus(1e8f);
 	ballMat->SetFriction(0.4f);
-	ballMat->SetDissipationFactor(0.6f);
+	ballMat->SetDissipationFactor(0.1f);
 
 	// Create the falling ball, but do not add it to the system
 	ChBodyDEM* ball = new ChBodyDEM(new ChCollisionModelParallel);
