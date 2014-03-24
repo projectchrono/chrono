@@ -26,40 +26,50 @@ void ChCNarrowphaseR::Process(ChParallelDataManager* data_container)
 
 	custom_vector<long long>& potentialCollisions = data_container->host_data.pair_rigid_rigid;
 
-	// Number of possible contacts (as reported by broadphase)
-	total_possible_contacts = potentialCollisions.size();
+	// Create a vector to hold the maximum number of contacts produced by each potential
+	// collision pair identified by the broadphase.
+	uint num_potentialCollisions = potentialCollisions.size();
+	custom_vector<uint> contact_index(num_potentialCollisions);
+
+	host_count(data_container, num_potentialCollisions, contact_index);
+
+	// Perform an exclusive scan on the contact_index array and calculate the total number
+	// of possible contacts.
+	int num_potentialContacts = contact_index.back();
+	thrust::exclusive_scan(contact_index.begin(), contact_index.end(), contact_index.begin());
+	num_potentialContacts += contact_index.back();
 
 	// Allocate enough space for all possible contacts
-	norm_data.resize(total_possible_contacts);
-	cpta_data.resize(total_possible_contacts);
-	cptb_data.resize(total_possible_contacts);
-	dpth_data.resize(total_possible_contacts);
-	erad_data.resize(total_possible_contacts);
-	bids_data.resize(total_possible_contacts);
+	norm_data.resize(num_potentialContacts);
+	cpta_data.resize(num_potentialContacts);
+	cptb_data.resize(num_potentialContacts);
+	dpth_data.resize(num_potentialContacts);
+	erad_data.resize(num_potentialContacts);
+	bids_data.resize(num_potentialContacts);
 
 	// Create a vector of flags to indicate whether actual contact exists
-	custom_vector<uint> generic_counter(total_possible_contacts);
-	thrust::fill(generic_counter.begin(), generic_counter.end(), 1);
+	custom_vector<uint> contact_flag(num_potentialContacts);
+	thrust::fill(contact_flag.begin(), contact_flag.end(), 1);
 
-	// Perform actual collision detection
-	host_process(data_container, generic_counter);
+	// Perform actual narrow phase collision detection. For each potential collision between two
+	// shapes, calculate and fill in contact information for contacts that actually occur and set
+	// the corresponding flag to 0.
+	host_process(data_container, num_potentialCollisions, contact_index, contact_flag);
 
 	// Evaluate the number of actual contacts
-	uint number_of_contacts = total_possible_contacts - thrust::count(generic_counter.begin(),generic_counter.end(),1);
+	uint number_of_contacts = num_potentialContacts - thrust::count(contact_flag.begin(), contact_flag.end(), 1);
 
 	data_container->number_of_rigid_rigid = number_of_contacts;
 	data_container->erad_is_set = true;
 
 	// Remove unused array portions
-	thrust::remove_if(norm_data.begin(), norm_data.end(), generic_counter.begin(), thrust::identity<int>());
-	thrust::remove_if(cpta_data.begin(), cpta_data.end(), generic_counter.begin(), thrust::identity<int>());
-	thrust::remove_if(cptb_data.begin(), cptb_data.end(), generic_counter.begin(), thrust::identity<int>());
-	thrust::remove_if(dpth_data.begin(), dpth_data.end(), generic_counter.begin(), thrust::identity<int>());
-	thrust::remove_if(erad_data.begin(), erad_data.end(), generic_counter.begin(), thrust::identity<int>());
-	thrust::remove_if(bids_data.begin(), bids_data.end(), generic_counter.begin(), thrust::identity<int>());
-	thrust::remove_if(potentialCollisions.begin(), potentialCollisions.end(), generic_counter.begin(), thrust::identity<int>());
+	thrust::remove_if(norm_data.begin(), norm_data.end(), contact_flag.begin(), thrust::identity<int>());
+	thrust::remove_if(cpta_data.begin(), cpta_data.end(), contact_flag.begin(), thrust::identity<int>());
+	thrust::remove_if(cptb_data.begin(), cptb_data.end(), contact_flag.begin(), thrust::identity<int>());
+	thrust::remove_if(dpth_data.begin(), dpth_data.end(), contact_flag.begin(), thrust::identity<int>());
+	thrust::remove_if(erad_data.begin(), erad_data.end(), contact_flag.begin(), thrust::identity<int>());
+	thrust::remove_if(bids_data.begin(), bids_data.end(), contact_flag.begin(), thrust::identity<int>());
 
-	potentialCollisions.resize(number_of_contacts);
 	norm_data.resize(number_of_contacts);
 	cpta_data.resize(number_of_contacts);
 	cptb_data.resize(number_of_contacts);
@@ -68,6 +78,41 @@ void ChCNarrowphaseR::Process(ChParallelDataManager* data_container)
 	bids_data.resize(number_of_contacts);
 }
 
+
+// ==========================================================================
+
+__host__ __device__
+void function_count(const int&        icoll,            // index of this potential collision
+                    const shape_type* obj_data_T,       // shape type (per shape)
+                    const long long*  collision_pair,   // encoded shape IDs (per collision pair)
+                    uint*             max_contacts)     // max. number of contacts (per collision pair)
+{
+	// Identify the two candidate shapes and get their types.
+	int2       pair = I2(int(collision_pair[icoll] >> 32), int(collision_pair[icoll] & 0xffffffff));
+	shape_type type1 = obj_data_T[pair.x];
+	shape_type type2 = obj_data_T[pair.y];
+
+	// Set the maximum number of possible contacts for this particular pair
+	if (type1 == SPHERE || type2 == SPHERE)
+		max_contacts[icoll] = 1;
+	else if (type1 == CAPSULE || type2 == CAPSULE)
+		max_contacts[icoll] = 2;
+	else
+		max_contacts[icoll] = 4;
+}
+
+void ChCNarrowphaseR::host_count(ChParallelDataManager* data_container,
+                                 uint                   num_potentialCollisions,
+                                 custom_vector<uint>&   max_contacts)
+{
+#pragma omp parallel for
+	for (int icoll = 0; icoll < num_potentialCollisions; icoll++) {
+		function_count(icoll,
+		               data_container->host_data.typ_rigid.data(),
+		               data_container->host_data.pair_rigid_rigid.data(),
+		               max_contacts.data());
+	}
+}
 
 // ==========================================================================
 //              SPHERE - SPHERE
@@ -194,17 +239,19 @@ bool box_box(const real3& pos1, const real4& rot1, const real3& hdims1,
 // ==========================================================================
 
 // This is the main worker function for narrow phase check of the collision
-// candidate pair 'index'.  This function sets the following for the pair it
-// processes:
-//   - ct_active[index]:  if collision actually occurs, set to 0
-//   - ct_pt1[index]:     contact point on first shape (in global frame)
-//   - ct_pt2[index]:     contact point on second shape (in global frame)
-//   - ct_depth[index]:   penetration distance (negative if overlap exists)
-//   - ct_norm[index]:    contact normal, from ct_pt2 to ct_pt1 (in global frame)
-//   - ct_eff_rad[index]: effective contact radius
-//   - ct_body_ids:       IDs of the bodies for the two contact shapes
+// candidate pair 'icoll'.  Each candidate pair of shapes can result in 0, 1,
+// or more contacts.  For each actual contact, we calculate various geometrical
+// quantities and load them in the output arrays beginning at the 'start_index'
+// for the processed collision pair:
+//   - ct_flag:     if contact actually occurs, set to 0
+//   - ct_pt1:      contact point on first shape (in global frame)
+//   - ct_pt2:      contact point on second shape (in global frame)
+//   - ct_depth:    penetration distance (negative if overlap exists)
+//   - ct_norm:     contact normal, from ct_pt2 to ct_pt1 (in global frame)
+//   - ct_eff_rad:  effective contact radius
+//   - ct_body_ids: IDs of the bodies for the two contact shapes
 __host__ __device__
-void function_process(const uint&       index,           // index of this contact pair candidate
+void function_process(const uint&       icoll,           // index of this contact pair candidate
                       const shape_type* obj_data_T,      // shape type (per shape)
                       const real3*      obj_data_A,      //
                       const real3*      obj_data_B,      // shape geometry and local position (per shape)
@@ -214,17 +261,18 @@ void function_process(const uint&       index,           // index of this contac
                       const bool*       body_active,     // body active (per body)
                       const real3*      body_pos,        // body position (per body)
                       const real4*      body_rot,        // body rotation (per body)
-                      const long long*  contact_pair,    // encoded shape IDs (per contact pair)
-                      uint*             ct_active,       // [output] flag for actual contact (per pair)
-                      real3*            ct_norm,         // [output] contact normal (per pair)
-                      real3*            ct_pt1,          // [output] point on shape1 (per pair)
-                      real3*            ct_pt2,          // [output] point on shape2 (per pair)
-                      real*             ct_depth,        // [output] penetration depth (per pair)
-                      real*             ct_eff_rad,      // [output] effective contact radius (per pair)
-                      int2*             ct_body_ids)     // [output] body IDs (per pair)
+                      const long long*  collision_pair,  // encoded shape IDs (per collision pair)
+                      const uint*       start_index,     // start index in output arrays (per collision pair)
+                      uint*             ct_flag,         // [output] flag for actual contact (per contact pair)
+                      real3*            ct_norm,         // [output] contact normal (per contact pair)
+                      real3*            ct_pt1,          // [output] point on shape1 (per contact pair)
+                      real3*            ct_pt2,          // [output] point on shape2 (per contact pair)
+                      real*             ct_depth,        // [output] penetration depth (per contact pair)
+                      real*             ct_eff_rad,      // [output] effective contact radius (per contact pair)
+                      int2*             ct_body_ids)     // [output] body IDs (per contact pair)
 {
 	// Identify the two candidate shapes and their associated bodies.
-	int2 pair = I2(int(contact_pair[index] >> 32), int(contact_pair[index] & 0xffffffff));
+	int2 pair = I2(int(collision_pair[icoll] >> 32), int(collision_pair[icoll] & 0xffffffff));
 	int shape1 = pair.x;
 	int shape2 = pair.y;
 	int body1  = obj_data_ID[shape1];
@@ -269,6 +317,7 @@ void function_process(const uint&       index,           // index of this contac
 	// Now special-case the collision detection based on the types of the
 	// two candidate shapes.
 	//// TODO: what is the best way to dispatch this?
+	uint index = start_index[icoll];
 
 	if (type1 == SPHERE && type2 == SPHERE) {
 		if (sphere_sphere(X1, Y1.x,
@@ -276,7 +325,7 @@ void function_process(const uint&       index,           // index of this contac
 			              ct_norm[index], ct_depth[index],
 			              ct_pt1[index], ct_pt2[index],
 			              ct_eff_rad[index])) {
-			ct_active[index] = 0;
+			ct_flag[index] = 0;
 			ct_body_ids[index] = I2(body1, body2);
 		}
 		return;
@@ -288,7 +337,7 @@ void function_process(const uint&       index,           // index of this contac
 			           ct_norm[index], ct_depth[index],
 			           ct_pt1[index], ct_pt2[index],
 			           ct_eff_rad[index])) {
-			ct_active[index] = 0;
+			ct_flag[index] = 0;
 			ct_body_ids[index] = I2(body1, body2);
 		}
 		return;
@@ -301,8 +350,8 @@ void function_process(const uint&       index,           // index of this contac
 			           ct_pt2[index], ct_pt1[index],
 			           ct_eff_rad[index])) {
 			ct_norm[index] = -ct_norm[index];
-			ct_active[index] = 0;
-			ct_body_ids[index] = I2(body2, body1);
+			ct_flag[index] = 0;
+			ct_body_ids[index] = I2(body1, body2);
 		}
 		return;
 	}
@@ -313,7 +362,7 @@ void function_process(const uint&       index,           // index of this contac
 			        ct_norm[index], ct_depth[index],
 			        ct_pt1[index], ct_pt2[index],
 			        ct_eff_rad[index])) {
-			ct_active[index] = 0;
+			ct_flag[index] = 0;
 			ct_body_ids[index] = I2(body1, body2);
 		}
 		return;
@@ -323,11 +372,13 @@ void function_process(const uint&       index,           // index of this contac
 // ==========================================================================
 
 void ChCNarrowphaseR::host_process(ChParallelDataManager* data_container,
-                                   custom_vector<uint>&   contact_active)
+                                   uint                   num_potentialCollisions,
+                                   custom_vector<uint>&   contact_index,
+                                   custom_vector<uint>&   contact_flag)
 {
 #pragma omp parallel for
-	for (int index = 0; index < total_possible_contacts; index++) {
-		function_process(index,
+	for (int icoll = 0; icoll < num_potentialCollisions; icoll++) {
+		function_process(icoll,
 		                 data_container->host_data.typ_rigid.data(),
 		                 data_container->host_data.ObA_rigid.data(),
 		                 data_container->host_data.ObB_rigid.data(),
@@ -338,7 +389,8 @@ void ChCNarrowphaseR::host_process(ChParallelDataManager* data_container,
 		                 data_container->host_data.pos_data.data(),
 		                 data_container->host_data.rot_data.data(),
 		                 data_container->host_data.pair_rigid_rigid.data(),
-		                 contact_active.data(),
+		                 contact_index.data(),
+		                 contact_flag.data(),
 		                 data_container->host_data.norm_rigid_rigid.data(),
 		                 data_container->host_data.cpta_rigid_rigid.data(),
 		                 data_container->host_data.cptb_rigid_rigid.data(),
