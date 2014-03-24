@@ -20,7 +20,12 @@ public:
 
 private:
 	void host_process(ChParallelDataManager* data_container,
-	                  custom_vector<uint>&   contact_active);
+	                  uint                   num_potentialCollisions,
+	                  custom_vector<uint>&   contact_index,
+	                  custom_vector<uint>&   contact_flag);
+	void host_count(ChParallelDataManager* data_container,
+                    uint                   num_potentialCollisions,
+                    custom_vector<uint>&   max_contacts);
 };
 
 
