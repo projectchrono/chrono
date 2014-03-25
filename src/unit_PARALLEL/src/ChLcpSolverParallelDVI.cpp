@@ -1,12 +1,9 @@
 #include "ChLcpSolverParallel.h"
 #include "math/ChThrustLinearAlgebra.h"
 
-
 using namespace chrono;
 
-
-void ChLcpSolverParallelDVI::RunTimeStep(real step)
-{
+void ChLcpSolverParallelDVI::RunTimeStep(real step) {
 	step_size = step;
 	data_container->step_size = step;
 
@@ -73,17 +70,19 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
 	data_container->system_timer.start("rhs");
 	bilateral.ComputeRHS();
 	data_container->system_timer.stop("rhs");
-
+	custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals,0);
+	thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, rhs_bilateral.begin());
 
 	if (max_iter_bilateral > 0) {
 		data_container->system_timer.start("stab");
-		custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals);
-		thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, rhs_bilateral.begin());
 		//thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, data_container->host_data.gamma_bilateral.begin());
 		solver.SolveStab(data_container->host_data.gamma_bilateral, rhs_bilateral, max_iter_bilateral);
 		data_container->system_timer.stop("stab");
 	}
-	thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals, data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6);
+	thrust::copy_n(
+			data_container->host_data.gamma_bilateral.begin(),
+			data_container->number_of_bilaterals,
+			data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6);
 
 	//cout<<"Solve normal"<<endl;
 	//solve normal
@@ -97,6 +96,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
 		data_container->system_timer.stop("rhs");
 		solver.Solve(solver_type);
 	}
+
 	//cout<<"Solve sliding"<<endl;
 	//solve full
 	if (max_iter_sliding > 0) {
@@ -119,10 +119,13 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
 		solver.Solve(solver_type);
 	}
 
-	thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, data_container->host_data.gamma_bilateral.begin());
-	for (int i = 0; i < data_container->number_of_bilaterals; i++) {
-		data_container->host_data.gamma_bilateral[i] *= .5;
-	}
+	thrust::copy_n(
+			data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6,
+			data_container->number_of_bilaterals,
+			data_container->host_data.gamma_bilateral.begin());
+//	for (int i = 0; i < data_container->number_of_bilaterals; i++) {
+//		data_container->host_data.gamma_bilateral[i] *= .5;
+//	}
 
 //	if (max_iter_bilateral > 0) {
 //		thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, rhs_bilateral.begin());
@@ -154,9 +157,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step)
 	//integrator.IntegrateSemiImplicit(step, data_container->gpu_data);
 }
 
-
-void ChLcpSolverParallelDVI::RunWarmStartPostProcess()
-{
+void ChLcpSolverParallelDVI::RunWarmStartPostProcess() {
 	if (data_container->number_of_rigid_rigid == 0) {
 		return;
 	}
@@ -213,9 +214,7 @@ void ChLcpSolverParallelDVI::RunWarmStartPostProcess()
 	}
 }
 
-
-void ChLcpSolverParallelDVI::RunWarmStartPreprocess()
-{
+void ChLcpSolverParallelDVI::RunWarmStartPreprocess() {
 	if (data_container->number_of_rigid_rigid == 0) {
 		return;
 	}
@@ -228,17 +227,33 @@ void ChLcpSolverParallelDVI::RunWarmStartPreprocess()
 
 		thrust::host_vector<long long> res1(data_container->host_data.pair_rigid_rigid.size());
 
-		uint numP = thrust::set_intersection(thrust::omp::par, data_container->host_data.pair_rigid_rigid.begin(), data_container->host_data.pair_rigid_rigid.end(),
-				data_container->host_data.old_pair_rigid_rigid.begin(), data_container->host_data.old_pair_rigid_rigid.end(), res1.begin()) - res1.begin();     //list of persistent contacts
+		uint numP = thrust::set_intersection(
+				thrust::omp::par,
+				data_container->host_data.pair_rigid_rigid.begin(),
+				data_container->host_data.pair_rigid_rigid.end(),
+				data_container->host_data.old_pair_rigid_rigid.begin(),
+				data_container->host_data.old_pair_rigid_rigid.end(),
+				res1.begin()) - res1.begin();     //list of persistent contacts
 
 		if (numP > 0) {
 			res1.resize(numP);
 			thrust::host_vector<uint> temporaryA(numP);
 			thrust::host_vector<uint> temporaryB(numP);
 
-			thrust::lower_bound(thrust::omp::par, data_container->host_data.old_pair_rigid_rigid.begin(), data_container->host_data.old_pair_rigid_rigid.end(), res1.begin(), res1.end(),
+			thrust::lower_bound(
+					thrust::omp::par,
+					data_container->host_data.old_pair_rigid_rigid.begin(),
+					data_container->host_data.old_pair_rigid_rigid.end(),
+					res1.begin(),
+					res1.end(),
 					temporaryA.begin());     //return index of common new contact
-			thrust::lower_bound(thrust::omp::par, data_container->host_data.pair_rigid_rigid.begin(), data_container->host_data.pair_rigid_rigid.end(), res1.begin(), res1.end(), temporaryB.begin());     //return index of common new contact
+			thrust::lower_bound(
+					thrust::omp::par,
+					data_container->host_data.pair_rigid_rigid.begin(),
+					data_container->host_data.pair_rigid_rigid.end(),
+					res1.begin(),
+					res1.end(),
+					temporaryB.begin());     //return index of common new contact
 
 			uint number_of_rigid_rigid = data_container->number_of_rigid_rigid;
 			uint old_number_of_rigid_rigid = data_container->old_number_of_rigid_rigid;
