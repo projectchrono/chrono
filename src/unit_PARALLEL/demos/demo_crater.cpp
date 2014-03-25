@@ -26,7 +26,7 @@ enum ProblemType {
 	DROPPING
 };
 
-ProblemType problem = SETTLING;
+ProblemType problem = DROPPING;
 
 // =======================================================================
 // Global problem definitions
@@ -38,7 +38,7 @@ double gravity = 9.81;
 double time_step = 1e-5;
 double time_settling_min = 0.1;
 double time_settling_max = 0.8;
-double time_dropping = 0.1;
+double time_dropping = 0.06;
 
 int max_iteration = 20;
 
@@ -46,7 +46,7 @@ int max_iteration = 20;
 const char* out_folder = "../CRATER/POVRAY";
 const char* height_file = "../CRATER/height.dat";
 const char* checkpoint_file = "../CRATER/settled.dat";
-double out_fps = 300;
+double out_fps = 1200;
 
 // Parameters for the granular material
 int        Id_g = 1;
@@ -63,7 +63,7 @@ float      alpha_g = 0.1;
 // Parameters for the falling ball
 int        Id_b = 0;
 double     R_b = 2.54e-2 / 2;
-double     rho_b = 2000;
+double     rho_b = 700;
 double     vol_b = (4.0/3) * PI * R_b * R_b * R_b;
 double     mass_b = rho_b * vol_b;
 ChVector<> inertia_b = 0.4 * mass_b * R_b * R_b * ChVector<>(1,1,1);
@@ -88,7 +88,7 @@ int        numLayers = 10;
 double     layerHeight = 1e-2;
 
 // Drop height (above surface of settled granular material)
-double h = 10e-2;
+double h = 5e-2;
 
 // =======================================================================
 
@@ -352,7 +352,7 @@ int main(int argc, char* argv[])
 			cout << "                                   Execution time: " << exec_time << endl;
 
 			if (problem == DROPPING) {
-				hfile << time << ball->GetPos().z << "\n";
+				hfile << time << "  " << ball->GetPos().z << "\n";
 				cout << "                                   Ball height:    " << ball->GetPos().z << endl;
 			}
 
