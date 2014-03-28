@@ -457,8 +457,9 @@ void PrintToFile(
 				for (int j = 0; j < numFlexNodes; j++) {
 					real3 nodePos = ANCF_NodesD[j];
 					real3 nodeVel = ANCF_NodesVelD[j];
-					ssFlexBodies<<nodePos.x<<", "<< nodePos.y<<", "<< nodePos.z<<", "<< nodeVel.x << ", " <<  nodeVel.y << ", " <<  nodeVel.z <<", "<<endl;
+					ssFlexBodies<<nodePos.x<<", "<< nodePos.y<<", "<< nodePos.z<<", "<< nodeVel.x << ", " <<  nodeVel.y << ", " <<  nodeVel.z <<", ";
 				}
+				ssFlexBodies<<endl;
 			}
 			fileNameFlexBodies << ssFlexBodies.str();
 			fileNameFlexBodies.close();
