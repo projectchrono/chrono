@@ -837,7 +837,7 @@ void CreateManyFlexBodiesChannel(thrust::host_vector<real3> & ANCF_Nodes,
 					ANCF_ReferenceArrayNodesOnBeams.push_back(
 							I2(nodesSofar, nodesSofar + numElementsPerBeam + 1));
 				}
-				ANCF_IsCantilever.push_back(true);
+				ANCF_IsCantilever.push_back(false);
 
 				beamCounter ++;
 
