@@ -1801,7 +1801,7 @@ int main() {
 	paramsH.boxDims;
 
 	paramsH.sizeScale = 1;
-	paramsH.HSML = 0.01;
+	paramsH.HSML = 0.015;
 	paramsH.MULT_INITSPACE = 1.0;
 	paramsH.NUM_BCE_LAYERS = 2;
 	paramsH.BASEPRES = 0;
@@ -1812,7 +1812,7 @@ int main() {
 	paramsH.mu0 = 1.0f;
 	paramsH.v_Max = 1e-1;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 	paramsH.EPS_XSPH = .5f;
-	paramsH.dT = .0008; //sph alone: .01 for Re 10;
+	paramsH.dT = .0004; //sph alone: .01 for Re 10;
 	paramsH.tFinal = 400;
 	paramsH.kdT = 5;
 	paramsH.gammaBB = 0.5;

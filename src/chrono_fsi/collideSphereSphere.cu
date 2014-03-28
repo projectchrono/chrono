@@ -1957,32 +1957,32 @@ void cudaCollisions(
 
 //		if (tStep < 1000) delT = 0.25 * delTOrig; else delT = delTOrig;
 
-//		if (tStep <= numPause) 	{
-//			currentParamsH = paramsH_B;
-//		} else {
-//			currentParamsH = paramsH;
-//		}
-		if (tStep <= timeSlice) {
+		if (tStep <= numPause) 	{
 			currentParamsH = paramsH_B;
-		} else if (tStep <= 2 * timeSlice) {
-			currentParamsH.bodyForce4.x = paramsH.bodyForce4.x;
-			currentParamsH.bodyForce4.y = 0;
-		} else if (tStep <= 3 * timeSlice) {
-			currentParamsH.bodyForce4.x = 0;
-			currentParamsH.bodyForce4.y = .5 * paramsH.bodyForce4.x;
-		} else if (tStep <= 4 * timeSlice) {
-			currentParamsH.bodyForce4.x = -.7 * paramsH.bodyForce4.x;
-			currentParamsH.bodyForce4.y = -.5 * paramsH.bodyForce4.x;
-		} else if (tStep <= 5 * timeSlice) {
-			currentParamsH.bodyForce4.x = 1.0 * paramsH.bodyForce4.x;
-			currentParamsH.bodyForce4.y = 0;
-		} else if (tStep <= 5.5 * timeSlice) {
-			currentParamsH.bodyForce4.x = -.5 * paramsH.bodyForce4.x;
-			currentParamsH.bodyForce4.y = -.5 * paramsH.bodyForce4.x;
 		} else {
-			currentParamsH.bodyForce4.x = 1.0 * paramsH.bodyForce4.x;
-			currentParamsH.bodyForce4.y = 0;
+			currentParamsH = paramsH;
 		}
+//		if (tStep <= timeSlice) {
+//			currentParamsH = paramsH_B;
+//		} else if (tStep <= 2 * timeSlice) {
+//			currentParamsH.bodyForce4.x = paramsH.bodyForce4.x;
+//			currentParamsH.bodyForce4.y = 0;
+//		} else if (tStep <= 3 * timeSlice) {
+//			currentParamsH.bodyForce4.x = 0;
+//			currentParamsH.bodyForce4.y = .5 * paramsH.bodyForce4.x;
+//		} else if (tStep <= 4 * timeSlice) {
+//			currentParamsH.bodyForce4.x = -.7 * paramsH.bodyForce4.x;
+//			currentParamsH.bodyForce4.y = -.5 * paramsH.bodyForce4.x;
+//		} else if (tStep <= 5 * timeSlice) {
+//			currentParamsH.bodyForce4.x = 1.0 * paramsH.bodyForce4.x;
+//			currentParamsH.bodyForce4.y = 0;
+//		} else if (tStep <= 5.5 * timeSlice) {
+//			currentParamsH.bodyForce4.x = -.5 * paramsH.bodyForce4.x;
+//			currentParamsH.bodyForce4.y = -.5 * paramsH.bodyForce4.x;
+//		} else {
+//			currentParamsH.bodyForce4.x = 1.0 * paramsH.bodyForce4.x;
+//			currentParamsH.bodyForce4.y = 0;
+//		}
 		setParameters(&currentParamsH); 														// sets paramsD in SDKCollisionSystem
 		cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &currentParamsH, sizeof(SimParams))); 	//sets paramsD for this file
 
