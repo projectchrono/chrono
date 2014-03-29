@@ -644,6 +644,60 @@ static inline __host__ __device__ M33 AMat(const real4 &q) {
 	return result;
 
 }
+
+// Return a single axis of the rotation matrix represented by the specified
+// quaternion
+static inline __host__ __device__ real3 AMatU(const real4 &q) {
+	real3 U;
+
+	real e0e0 = q.w * q.w;
+	real e1e1 = q.x * q.x;
+	real e0e2 = q.w * q.y;
+	real e0e3 = q.w * q.z;
+	real e1e2 = q.x * q.y;
+	real e1e3 = q.x * q.z;
+
+	U.x = (e0e0 + e1e1) * 2 - 1;
+	U.y = (e1e2 + e0e3) * 2;
+	U.z = (e1e3 - e0e2) * 2;
+
+	return U;
+}
+
+static inline __host__ __device__ real3 AMatV(const real4 &q) {
+	real3 V;
+
+	real e0e0 = q.w * q.w;
+	real e2e2 = q.y * q.y;
+	real e0e1 = q.w * q.x;
+	real e0e3 = q.w * q.z;
+	real e1e2 = q.x * q.y;
+	real e2e3 = q.y * q.z;
+
+	V.x = (e1e2 - e0e3) * 2;
+	V.y = (e0e0 + e2e2) * 2 - 1;
+	V.z = (e2e3 + e0e1) * 2;
+
+	return V;
+}
+
+static inline __host__ __device__ real3 AMatW(const real4 &q) {
+	real3 W;
+
+	real e0e0 = q.w * q.w;
+	real e3e3 = q.z * q.z;
+	real e0e1 = q.w * q.x;
+	real e0e2 = q.w * q.y;
+	real e1e3 = q.x * q.z;
+	real e2e3 = q.y * q.z;
+
+	W.x = (e1e3 + e0e2) * 2;
+	W.y = (e2e3 - e0e1) * 2;
+	W.z = (e0e0 + e3e3) * 2 - 1;
+
+	return W;
+}
+
 //[U.x,U.y,U.z]
 //[V.x,V.y,V.z]
 //[W.x,W.y,W.z]
