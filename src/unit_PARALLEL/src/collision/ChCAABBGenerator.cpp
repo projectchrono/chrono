@@ -119,13 +119,16 @@ __device__ __host__ void function_ComputeAABB(
 		//cout<<temp_min.x<<" "<<temp_min.y<<" "<<temp_min.z<<"  |  "<<temp_max.x<<" "<<temp_max.y<<" "<<temp_max.z<<endl;
 
 		//}
-	} else if (type == 5) {
+	} else if (type == TRIANGLEMESH) {
 		A = quatRotate(A, body_rot[id]) + position;
 		B = quatRotate(B, body_rot[id]) + position;
 		C = quatRotate(C, body_rot[id]) + position;
 		ComputeAABBTriangle(A, B, C, temp_min, temp_max);
 	} else if (type == ELLIPSOID || type == BOX || type == CYLINDER || type == CONE) {
 		ComputeAABBBox(B, A, position, obj_data_R[index], body_rot[id], temp_min, temp_max);
+	} else if (type == CAPSULE) {
+		real3 B_ = R3(B.x, B.x + B.y, B.z);
+		ComputeAABBBox(B_, A, position, obj_data_R[index], body_rot[id], temp_min, temp_max);
 	} else {
 		return;
 	}
