@@ -145,6 +145,13 @@ public:
                         const ChMatrix33<>& rot = ChMatrix33<>(1)
                         ) = 0;
 
+	/// Add a capsule to this model (default axis in Y direction), for collision purposes
+  virtual bool AddCapsule(double              radius,                 ///< capsule radius
+                          double              hlen,                   ///< half-length of capsule axis
+                          const ChVector<>&   pos = ChVector<>(),     ///< the position of the ellipsoid
+                          const ChMatrix33<>& rot = ChMatrix33<>(1)   ///< the matrix defining rotation (orthogonal)
+                          ) = 0;
+
 	/// Add a convex hull to this model. A convex hull is simply a point cloud that describe
 	/// a convex polytope. Connectivity between the vertexes, as faces/edges in triangle meshes is not necessary.
 	/// Points are passed as a list, that is instantly copied into the model.
