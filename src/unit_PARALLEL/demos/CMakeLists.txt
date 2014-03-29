@@ -64,6 +64,15 @@ SET_TARGET_PROPERTIES(demo_box PROPERTIES
 TARGET_LINK_LIBRARIES(demo_box ${CHRONO_LIB} ChronoEngine_Parallel)
 ADD_DEPENDENCIES(demo_box ${CHRONO_LIB} ChronoEngine_Parallel)
 
+ADD_EXECUTABLE(demo_capsule  demo_capsule.cpp ${UTILITIES})
+SOURCE_GROUP(""  FILES demo_capsule.cpp ${UTILITIES})
+SET_TARGET_PROPERTIES(demo_capsule PROPERTIES
+  FOLDER demos
+  COMPILE_FLAGS "${CH_BUILDFLAGS}"
+  LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+TARGET_LINK_LIBRARIES(demo_capsule ${CHRONO_LIB} ChronoEngine_Parallel)
+ADD_DEPENDENCIES(demo_capsule ${CHRONO_LIB} ChronoEngine_Parallel)
+
 ADD_EXECUTABLE(demo_soilbin  demo_soilbin.cpp ${UTILITIES})
 SOURCE_GROUP(""  FILES demo_soilbin.cpp ${UTILITIES})
 SET_TARGET_PROPERTIES(demo_soilbin PROPERTIES
@@ -111,6 +120,7 @@ ADD_DEPENDENCIES(test_collision ${CHRONO_LIB} ChronoEngine_Parallel)
 
 install(TARGETS demo_ball DESTINATION bin)
 install(TARGETS demo_box DESTINATION bin)
+install(TARGETS demo_capsule DESTINATION bin)
 install(TARGETS demo_soilbin DESTINATION bin)
 install(TARGETS demo_crater DESTINATION bin)
 install(TARGETS demo_foam DESTINATION bin)
