@@ -161,6 +161,52 @@ bool sphere_sphere(const real3& pos1, const real& radius1,
 }
 
 // ==========================================================================
+//              CAPSULE - SPHERE
+
+// Capsule-sphere narrow phase collision detection.
+// In:  capsule at pos1, with orientation rot1
+//              capsule has radius1 and half-length hlen1 (in Y direction)
+//      sphere centered at pos2 with radius2
+__host__ __device__
+bool capsule_sphere(const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1,
+                    const real3& pos2, const real& radius2,
+                    real3& norm, real& depth,
+                    real3& pt1, real3& pt2,
+                    real& eff_radius)
+{
+	// Working in the global frame, project the sphere center onto the
+	// capsule's centerline and clamp the resulting location to the extent
+	// of the capsule length.
+	real3 V = AMatV(rot1);
+	real  alpha = dot(pos2 - pos1, V);
+	alpha = clamp(alpha, -hlen1, hlen1);
+
+	real3 loc = pos1 + alpha * V;
+
+	// Treat the capsule as a sphere centered at the above location. If the
+	// sphere center is farther away than the sum of radii, there is no
+	// contact. Also, ignore contact if the two centers almost coincide,
+	// in which case we couldn't decide on the proper contact direction.
+	real  radSum = radius1 + radius2;
+	real3 delta = pos2 - loc;
+	real  dist2 = dot(delta, delta);
+
+	if (dist2 >= radSum * radSum || dist2 <= 1e-12f)
+		return false;
+
+	// Generate contact information.
+	real dist = sqrt(dist2);
+	norm = delta / dist;
+	pt1 = loc + norm * radius1;
+	pt2 = pos2 - norm * radius2;
+	depth = dist - radSum;
+	eff_radius = radius1 * radius2 / radSum;
+
+	return true;
+}
+
+
+// ==========================================================================
 //              BOX - SPHERE
 
 // Box-sphere narrow phase collision detection.
@@ -337,6 +383,31 @@ void function_process(const uint&       icoll,           // index of this contac
 			              ct_norm[index], ct_depth[index],
 			              ct_pt1[index], ct_pt2[index],
 			              ct_eff_rad[index])) {
+			ct_flag[index] = 0;
+			ct_body_ids[index] = I2(body1, body2);
+		}
+		return;
+	}
+
+	if (type1 == CAPSULE && type2 == SPHERE) {
+		if (capsule_sphere(X1, R1, Y1.x, Y1.y,
+			               X2, Y2.x,
+			               ct_norm[index], ct_depth[index],
+			               ct_pt1[index], ct_pt2[index],
+			               ct_eff_rad[index])) {
+			ct_flag[index] = 0;
+			ct_body_ids[index] = I2(body1, body2);
+		}
+		return;
+	}
+
+	if (type1 == SPHERE && type2 == CAPSULE) {
+		if (capsule_sphere(X2, R2, Y2.x, Y2.y,
+			               X1, Y1.x,
+			               ct_norm[index], ct_depth[index],
+			               ct_pt2[index], ct_pt1[index],
+			               ct_eff_rad[index])) {
+			ct_norm[index] = -ct_norm[index];
 			ct_flag[index] = 0;
 			ct_body_ids[index] = I2(body1, body2);
 		}
