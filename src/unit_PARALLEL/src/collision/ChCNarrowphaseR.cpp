@@ -25,10 +25,22 @@ void ChCNarrowphaseR::Process(ChParallelDataManager* data_container)
 	custom_vector<int2>&  bids_data = data_container->host_data.bids_rigid_rigid;
 
 	custom_vector<long long>& potentialCollisions = data_container->host_data.pair_rigid_rigid;
+	uint num_potentialCollisions = potentialCollisions.size();
+
+	// Return now if no potential collisions.
+	if (num_potentialCollisions == 0) {
+		norm_data.resize(0);
+		cpta_data.resize(0);
+		cptb_data.resize(0);
+		dpth_data.resize(0);
+		erad_data.resize(0);
+		bids_data.resize(0);
+		data_container->number_of_rigid_rigid = 0;
+		return;
+	}
 
 	// Create a vector to hold the maximum number of contacts produced by each potential
 	// collision pair identified by the broadphase.
-	uint num_potentialCollisions = potentialCollisions.size();
 	custom_vector<uint> contact_index(num_potentialCollisions);
 
 	host_count(data_container, num_potentialCollisions, contact_index);
