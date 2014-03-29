@@ -19,6 +19,7 @@
 #include "assets/ChSphereShape.h"
 #include "assets/ChEllipsoidShape.h"
 #include "assets/ChBoxShape.h"
+#include "assets/ChCapsuleShape.h"
 #include "assets/ChCylinderShape.h"
 #include "assets/ChConeShape.h"
 
@@ -35,6 +36,7 @@ namespace utils {
 // AddSphereGeometry
 // AddEllipsoidGeometry
 // AddBoxGeometry
+// AddCapsuleGeometry
 // AddCylinderGeometry
 // AddConeGeometry
 //
@@ -83,6 +85,23 @@ void AddBoxGeometry(ChBody*               body,
 	box->Rot = rot;
 
 	body->GetAssets().push_back(box);
+}
+
+void AddCapsuleGeometry(ChBody*               body,
+                        double                radius,
+                        double                hlen,
+                        const ChVector<>&     pos = ChVector<>(0,0,0),
+                        const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
+{
+	body->GetCollisionModel()->AddCapsule(radius, hlen, pos, rot);
+
+	ChSharedPtr<ChCapsuleShape> capsule = ChSharedPtr<ChAsset>(new ChCapsuleShape);
+	capsule->GetCapsuleGeometry().rad = radius;
+	capsule->GetCapsuleGeometry().hlen = hlen;
+	capsule->Pos = pos;
+	capsule->Rot = rot;
+
+	body->GetAssets().push_back(capsule);
 }
 
 void AddCylinderGeometry(ChBody*               body,

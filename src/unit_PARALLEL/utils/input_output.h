@@ -177,6 +177,11 @@ void WriteCheckpoint(ChSystem*          system,
 			} else if (asset.IsType<ChBoxShape>()) {
 				ChBoxShape* box = (ChBoxShape*) asset.get_ptr();
 				csv << chrono::BOX << box->GetBoxGeometry().Size;
+			} else if (asset.IsType<ChCapsuleShape>()) {
+				ChCapsuleShape* capsule = (ChCapsuleShape*) asset.get_ptr();
+				double rad = capsule->GetCapsuleGeometry().rad;
+				double hlen = capsule->GetCapsuleGeometry().hlen;
+				csv << chrono::CAPSULE << rad << hlen;
 			} else if (asset.IsType<ChCylinderShape>()) {
 				ChCylinderShape* cylinder = (ChCylinderShape*) asset.get_ptr();
 				double rad = cylinder->GetCylinderGeometry().rad;
@@ -309,6 +314,14 @@ void ReadCheckpoint(ChSystem*          system,
 					AddBoxGeometry(body, size, apos, arot);
 				}
 				break;
+			case chrono::CAPSULE:
+				{
+					double radius;
+					double hlen;
+					iss >> radius >> hlen;
+					AddCapsuleGeometry(body, radius, hlen, apos, arot);
+				}
+				break;
 			case chrono::CYLINDER:
 				{
 					double radius, height;
@@ -394,6 +407,12 @@ void WriteShapesRender(ChSystem*          system,
 				const Vector& size = box->GetBoxGeometry().Size;
 				group = bodyId < 0 ? "individual" : "g_box";
 				geometry << "box" << delim << size.x << delim << size.y << delim << size.z;
+			} else if (asset.IsType<ChCapsuleShape>()) {
+				ChCapsuleShape* capsule = (ChCapsuleShape*) asset.get_ptr();
+				double rad = capsule->GetCapsuleGeometry().rad;
+				double hlen = capsule->GetCapsuleGeometry().hlen;
+				group = bodyId < 0 ? "individual" : "g_capsule";
+				geometry << "capsule" << delim << rad << delim << hlen;
 			} else if (asset.IsType<ChCylinderShape>()) {
 				ChCylinderShape* cylinder = (ChCylinderShape*) asset.get_ptr();
 				double rad = cylinder->GetCylinderGeometry().rad;
@@ -419,8 +438,6 @@ void WriteShapesRender(ChSystem*          system,
 
 ////  TODO:  figure out the Chrono inconsistent mess with relative transforms
 ////                body -> asset -> shape
-////         what velocity is expected here? body or shape? Currently using
-////         body velocity (probably wrong)
 
 // -------------------------------------------------------------------------------
 // WriteShapesPovray
@@ -469,6 +486,11 @@ void WriteShapesPovray(ChSystem*          system,
 				ChBoxShape* box = (ChBoxShape*) asset.get_ptr();
 				const Vector& size = box->GetBoxGeometry().Size;
 				geometry << BOX << delim << size.x << delim << size.y << delim << size.z;
+			} else if (asset.IsType<ChCapsuleShape>()) {
+				ChCapsuleShape* capsule = (ChCapsuleShape*) asset.get_ptr();
+				double rad = capsule->GetCapsuleGeometry().rad;
+				double hlen = capsule->GetCapsuleGeometry().hlen;
+				geometry << CAPSULE << delim << rad << delim << hlen;
 			} else if (asset.IsType<ChCylinderShape>()) {
 				ChCylinderShape* cylinder = (ChCylinderShape*) asset.get_ptr();
 				double rad = cylinder->GetCylinderGeometry().rad;
@@ -480,7 +502,7 @@ void WriteShapesPovray(ChSystem*          system,
 				geometry << CONE << delim << size.x << delim << size.y;
 			}
 
-			csv << index << pos << rot << geometry.str() << std::endl;
+			csv << index << body->IsActive() << pos << rot << geometry.str() << std::endl;
 
 			index++;
 		}
