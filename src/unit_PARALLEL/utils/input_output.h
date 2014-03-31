@@ -27,9 +27,11 @@ public:
 	explicit CSV_writer(const std::string& delim = ",") : m_delim(delim) {}
 	~CSV_writer() {}
 
-	void write_to_file(const string& filename)
+	void write_to_file(const string& filename,
+	                   const string& header = "")
 	{
 		std::ofstream ofile(filename.c_str());
+		ofile << header;
 		ofile << m_ss.str();
 		ofile.close();
 	}
@@ -453,7 +455,7 @@ void WriteShapesPovray(ChSystem*          system,
 {
 	CSV_writer csv(delim);
 
-	int index = 0;
+	int count = 0;
 
 	for (int i = 0; i < system->Get_bodylist()->size(); i++) {
 		ChBody* body = system->Get_bodylist()->at(i);
@@ -502,13 +504,16 @@ void WriteShapesPovray(ChSystem*          system,
 				geometry << CONE << delim << size.x << delim << size.y;
 			}
 
-			csv << index << body->IsActive() << pos << rot << geometry.str() << std::endl;
+			csv << body->GetIdentifier() << body->IsActive() << pos << rot << geometry.str() << std::endl;
 
-			index++;
+			count++;
 		}
 	}
 
-	csv.write_to_file(filename);
+	std::stringstream header;
+	header << count << delim << std::endl;
+
+	csv.write_to_file(filename, header.str());
 }
 
 
