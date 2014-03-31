@@ -13,6 +13,7 @@
 #include "ChLcpSystemDescriptorParallel.h"
 
 #include "utils/input_output.h"
+#include "utils/creators.h"
 
 using namespace chrono;
 using namespace geometry;
@@ -50,30 +51,31 @@ int main(int argc, char* argv[])
 
 	// Simulation parameters
 	double gravity = 9.81;
-	double time_step = 0.0005;
-	double time_end = 0.5;
-	double out_fps = 100;
+	double time_step = 0.001;
+	double time_end = 4.0;
+	double out_fps = 50;
 
 	int max_iteration = 20;
 
 	// Output
-	ChStreamOutAsciiFile sph_file("../DEM/capsule_pos_DEM.txt");
-	const char* out_folder = "../DEM/POVRAY";
+	ChStreamOutAsciiFile sph_file("../CAPSULE_DEM/capsule_pos_DEM.txt");
+	const char* out_folder = "../CAPSULE_DEM/POVRAY";
 
 	// Parameters for the falling box
 	int             capsuleId = 100;
-	double          radius = 0.3;
-	double          hlen = 0.4;
+	double          radius = 0.1;
+	double          hlen = 0.2;
 	double          density = 2000;
 	double          volume = 2 * CH_C_PI * radius * radius * (hlen + 2 * radius / 3);
 	double          mass = density * volume;
-	ChVector<>      inertia = mass/12 * ChVector<>(hlen * hlen + radius * radius,
-	                                               radius * radius + radius * radius,
-	                                               radius * radius + hlen * hlen);
-	ChVector<>      initPos(1, -1, 0.5);
+	double          hlen1 = radius + hlen;
+	ChVector<>      inertia = mass * ChVector<>((3 * radius * radius + hlen * hlen) / 12,
+	                                            radius * radius / 2,
+	                                            (3 * radius * radius + hlen * hlen) / 12);
+	ChVector<>      initPos(1, -1, 4);
 	ChVector<>      initVel(0,0,0);
 	ChQuaternion<>  initRot(1,0,0,0);
-	initRot.Q_from_AngAxis(PI/6, ChVector<>(1, 0, 0));
+	initRot.Q_from_AngAxis(PI/3, ChVector<>(1, 0, 0));
 
 	// Parameters for the containing bin
 	int    binId = -200;
@@ -114,9 +116,9 @@ int main(int argc, char* argv[])
 
 	// Create the falling object
 	ChSharedPtr<ChMaterialSurfaceDEM> capsuleMat(new ChMaterialSurfaceDEM);
-	capsuleMat->SetYoungModulus(2e5f);
+	capsuleMat->SetYoungModulus(1e7f);
 	capsuleMat->SetFriction(0.4f);
-	capsuleMat->SetDissipationFactor(0.6f);
+	capsuleMat->SetDissipationFactor(0.1f);
 
 	ChSharedBodyDEMPtr capsule(new ChBodyDEM(new ChCollisionModelParallel));
 	capsule->SetMaterialSurfaceDEM(capsuleMat);
@@ -133,26 +135,45 @@ int main(int argc, char* argv[])
 	capsule->SetCollide(true);
 
 	capsule->GetCollisionModel()->ClearModel();
-	capsule->GetCollisionModel()->AddCapsule(radius, hlen);
+	utils::AddCapsuleGeometry(capsule.get_ptr(), radius, hlen);
 	capsule->GetCollisionModel()->BuildModel();
-
-	ChSharedPtr<ChCapsuleShape> capsule_shape = ChSharedPtr<ChAsset>(new ChCapsuleShape);
-	capsule_shape->GetCapsuleGeometry().rad = radius;
-	capsule_shape->GetCapsuleGeometry().hlen = hlen;
-	capsule_shape->Pos = ChVector<>(0,0,0);
-	capsule_shape->Rot = ChQuaternion<>(1,0,0,0);
-	capsule->GetAssets().push_back(capsule_shape);
 
 	msystem->AddBody(capsule);
 
-/*
+
 	// Create the containing bin
 	ChSharedPtr<ChMaterialSurfaceDEM> binMat(new ChMaterialSurfaceDEM);
-	binMat->SetYoungModulus(2e5f);
+	binMat->SetYoungModulus(1e7f);
 	binMat->SetFriction(0.4f);
-	binMat->SetDissipationFactor(0.6f);
+	binMat->SetDissipationFactor(0.1f);
 
 	utils::CreateBoxContainerDEM(msystem, binId, binMat, ChVector<>(hDimX, hDimY, hDimZ), hThickness);
+
+
+/*
+	// A set of fixed spheres
+	ChSharedBodyDEMPtr bin(new ChBodyDEM(new ChCollisionModelParallel));
+	bin->SetMaterialSurfaceDEM(binMat);
+	bin->SetIdentifier(binId);
+	bin->SetMass(1);
+	bin->SetPos(ChVector<>(0,0,0));
+	bin->SetRot(ChQuaternion<>(1,0,0,0));
+	bin->SetBodyFixed(true);
+	bin->SetCollide(true);
+
+	double spacing = 1.6;
+	double bigR = 2;
+	double offsetZ = -1;
+	bin->GetCollisionModel()->ClearModel();
+	for (int ix = -2; ix < 3; ix++) {
+		for (int iy = -2; iy < 3; iy++) {
+			ChVector<> pos(ix * spacing, iy * spacing, offsetZ);
+			utils::AddSphereGeometry(bin.get_ptr(), bigR, pos);
+		}
+	}
+	bin->GetCollisionModel()->BuildModel();
+
+	msystem->AddBody(bin);
 */
 
 
