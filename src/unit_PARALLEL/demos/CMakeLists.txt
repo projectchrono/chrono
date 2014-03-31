@@ -109,6 +109,15 @@ SET_TARGET_PROPERTIES(demo_utils PROPERTIES
 TARGET_LINK_LIBRARIES(demo_utils ${CHRONO_LIB} ChronoEngine_Parallel)
 ADD_DEPENDENCIES(demo_utils ${CHRONO_LIB} ChronoEngine_Parallel)
 
+ADD_EXECUTABLE(test_scaling  test_scaling.cpp)
+SOURCE_GROUP(""  FILES test_scaling.cpp)
+SET_TARGET_PROPERTIES(test_scaling PROPERTIES
+  FOLDER demos
+  COMPILE_FLAGS "${CH_BUILDFLAGS}"
+  LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+TARGET_LINK_LIBRARIES(test_scaling ${CHRONO_LIB} ChronoEngine_Parallel)
+ADD_DEPENDENCIES(test_scaling ${CHRONO_LIB} ChronoEngine_Parallel)
+
 ADD_EXECUTABLE(test_collision  test_collision.cpp)
 SOURCE_GROUP(""  FILES test_collision.cpp)
 SET_TARGET_PROPERTIES(test_collision PROPERTIES
@@ -126,6 +135,7 @@ install(TARGETS demo_crater DESTINATION bin)
 install(TARGETS demo_foam DESTINATION bin)
 install(TARGETS demo_utils DESTINATION bin)
 install(TARGETS test_collision DESTINATION bin)
+install(TARGETS test_scaling DESTINATION bin)
 
 
 
