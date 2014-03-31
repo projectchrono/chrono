@@ -801,7 +801,7 @@ void CreateManyFlexBodiesChannel(thrust::host_vector<real3> & ANCF_Nodes,
 {
 	//TODO create mass property of the beams
 	//*********** this should be the same as the flex
-	real_ margin = 4 * paramsH.HSML;// 2 * paramsH.HSML;
+	real_ margin = 1.2 * paramsH.HSML;// 2 * paramsH.HSML;
 	real_ spaceFlex = 2 * (flexParams.r + margin);
 	//************************************************
 	int numElementsPerBeam = flexParams.ne;
@@ -1801,18 +1801,18 @@ int main() {
 	paramsH.boxDims;
 
 	paramsH.sizeScale = 1;
-	paramsH.HSML = 0.015;
+	paramsH.HSML = 0.01;
 	paramsH.MULT_INITSPACE = 1.0;
 	paramsH.NUM_BCE_LAYERS = 2;
 	paramsH.BASEPRES = 0;
 	paramsH.nPeriod = 1;
 	paramsH.gravity = R3(0);//R3(0, -9.81, 0);
-	paramsH.bodyForce4 = R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
+	paramsH.bodyForce4 = R4(3.2e-3,0,0,0) * .8;// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
 	paramsH.rho0 = 1000;
 	paramsH.mu0 = 1.0f;
 	paramsH.v_Max = 1e-1;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 	paramsH.EPS_XSPH = .5f;
-	paramsH.dT = .0004; //sph alone: .01 for Re 10;
+	paramsH.dT = .0001; //sph alone: .01 for Re 10;
 	paramsH.tFinal = 400;
 	paramsH.kdT = 5;
 	paramsH.gammaBB = 0.5;
@@ -1941,8 +1941,8 @@ int main() {
 //	int3 stride = I3(5, 5, 5);
 //	CreateRigidBodiesPattern(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride);
 	//**
-	int3 stride = I3(1, 1, 1);
-	CreateRigidBodiesPatternWithinBeams(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride, flexParams);
+//	int3 stride = I3(1, 1, 1);
+//	CreateRigidBodiesPatternWithinBeams(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride, flexParams);
 
 	//**
 //	CreateRigidBodiesFromFile(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
