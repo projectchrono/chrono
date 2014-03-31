@@ -252,6 +252,141 @@ bool box_sphere(const real3& pos1, const real4& rot1, const real3& hdims1,
 }
 
 // ==========================================================================
+//              BOX - CAPSULE
+
+// Box-capsule narrow phase collision detection.
+// In:  box at position pos1, with orientation rot1, and half-dimensions hdims1
+//      capsule at pos2, with orientation rot2
+//              capsule has radius2 and half-length hlen2 (in Y direction)
+// Note: a box-capsule collision may return 0, 1, or 2 contacts
+
+__host__ __device__
+int box_capsule(const real3& pos1, const real4& rot1, const real3& hdims1,
+                 const real3& pos2, const real4& rot2, const real& radius2, const real& hlen2,
+                 real3* norm, real* depth,
+                 real3* pt1, real3* pt2,
+                 real* eff_radius)
+{
+	// Express the capsule in the frame of the box.
+	// (this is a bit cryptic with the functions we have available)
+	real3 pos = quatRotateMatT(pos2 - pos1, rot1);
+	real4 rot = mult(inv(rot1), rot2);
+	real3 V = AMatV(rot);
+
+	// Inflate the box by the radius of the capsule and check if the capsule
+	// centerline intersects the expanded box. We do this by clamping the 
+	// capsule axis to the volume between two parallel faces of the box,
+	// considering in turn the x, y, and z faces
+	real3 hdims1_exp = radius2 + hdims1;
+	real  tMin = -FLT_MAX;  //// TODO: should define a REAL_MAX to be used here
+	real  tMax =  FLT_MAX;
+
+	if (abs(V.x) < 1e-5) {
+		// Capsule axis parallel to the box x-faces
+		if (abs(pos.x) > hdims1_exp.x)
+			return 0;
+	} else {
+		real t1 = (-hdims1_exp.x - pos.x) / V.x;
+		real t2 = ( hdims1_exp.x - pos.x) / V.x;
+
+		tMin = max(tMin, min(t1, t2));
+		tMax = min(tMax, max(t1, t2));
+
+		if (tMin > tMax)
+			return 0;
+	}
+
+	if (abs(V.y) < 1e-5) {
+		// Capsule axis parallel to the box y-faces
+		if (abs(pos.y) > hdims1_exp.y)
+			return 0;
+	} else {
+		real t1 = (-hdims1_exp.y - pos.y) / V.y;
+		real t2 = ( hdims1_exp.y - pos.y) / V.y;
+
+		tMin = max(tMin, min(t1, t2));
+		tMax = min(tMax, max(t1, t2));
+
+		if (tMin > tMax)
+			return 0;
+	}
+
+	if (abs(V.z) < 1e-5) {
+		// Capsule axis parallel to the box z-faces
+		if (abs(pos.z) > hdims1_exp.z)
+			return 0;
+	} else {
+		real t1 = (-hdims1_exp.z - pos.z) / V.z;
+		real t2 = ( hdims1_exp.z - pos.z) / V.z;
+
+		tMin = max(tMin, min(t1, t2));
+		tMax = min(tMax, max(t1, t2));
+
+		if (tMin > tMax)
+			return 0;
+	}
+
+	// Generate the two points where the capsule centerline intersects
+	// the exapanded box (still expressed in the box frame). Snap these
+	// locations onto the original box, then snap back onto the capsule
+	// axis. This reduces the collision problem to 1 or 2 box-sphere
+	// collisions.
+	real3  locs[2] = {pos + tMin * V, pos + tMax * V};
+	real   t[2];
+
+	for (int i = 0; i < 2; i++) {
+		uint code = snap_to_box(hdims1, locs[i]);
+		t[i] = clamp(dot(locs[i]-pos, V), -hlen2, hlen2);
+	}
+
+	// Check if the two sphere centers coincide (i.e. if we should
+	// consider 1 or 2 box-sphere potential contacts)
+	int numSpheres = isEqual(t[0], t[1]) ? 1 : 2;
+
+	// Perform box-sphere tests, and keep track of actual number of contacts.
+	int  j = 0;
+
+	for (int i = 0; i < numSpheres; i++) {
+		// Calculate the center of the corresponding sphere on the capsule
+		// centerline (expressed in the box frame).
+		real3  spherePos = pos + V * t[i];
+
+		// Snap the sphere position to the surface of the box.
+		real3  boxPos = spherePos;
+		uint   code = snap_to_box(hdims1, boxPos);
+
+		// If the sphere doesn't touch the closest point then there is no contact.
+		// Also, ignore contact if the sphere center (almost) coincides with the
+		// closest point, in which case we couldn't decide on the proper contact
+		// direction.
+		real3 delta = spherePos - boxPos;
+		real  dist2 = dot(delta, delta);
+
+		if (dist2 >= radius2 * radius2 || dist2 <= 1e-12)
+			continue;
+
+		// Generate contact information.
+		real  dist = sqrt(dist2);
+
+		*(depth + j) = dist - radius2;
+		*(norm + j) = quatRotateMat(delta / dist, rot1);
+		*(pt1 + j) = TransformLocalToParent(pos1, rot1, boxPos);
+		*(pt2 + j) = TransformLocalToParent(pos1, rot1, spherePos) - (*(norm + j)) * radius2;
+
+		if ((code != 1) & (code != 2) & (code != 4))
+			*(eff_radius + j) = radius2 * edge_radius / (radius2 + edge_radius);
+		else
+			*(eff_radius + j) = radius2;
+
+		j++;
+	}
+
+	// Return the number of actual contacts
+	return j;
+}
+
+
+// ==========================================================================
 //              BOX - BOX
 
 // Box-box narrow phase collision detection.
@@ -259,11 +394,11 @@ bool box_sphere(const real3& pos1, const real4& rot1, const real3& hdims1,
 //      box at position pos2, with orientation rot2, and half-dimensions hdims2
 
 __host__ __device__
-bool box_box(const real3& pos1, const real4& rot1, const real3& hdims1,
-             const real3& pos2, const real4& rot2, const real3& hdims2,
-             real3& norm, real& depth,
-             real3& pt1, real3& pt2,
-             real& eff_radius)
+int box_box(const real3& pos1, const real4& rot1, const real3& hdims1,
+            const real3& pos2, const real4& rot2, const real3& hdims2,
+            real3* norm, real* depth,
+            real3* pt1, real3* pt2,
+            real* eff_radius)
 {
 	// Express the second box into the frame of the first box.
 	// (this is a bit cryptic with the functions we have available)
@@ -275,7 +410,7 @@ bool box_box(const real3& pos1, const real4& rot1, const real3& hdims1,
 	// box2 to box1.
 	real3 dir;
 	if (!box_intersects_box(hdims1, hdims2, pos, rot, dir))
-		return false;
+		return 0;
 
 	if (dot(pos, dir) > 0)
 		dir = -dir;
@@ -291,7 +426,7 @@ bool box_box(const real3& pos1, const real4& rot1, const real3& hdims1,
 
 	//// TODO
 
-	return false;
+	return 0;
 }
 
 // ==========================================================================
@@ -372,8 +507,8 @@ void function_process(const uint&       icoll,           // index of this contac
 		Z2 = TransformLocalToParent(bodyPos2, bodyRot2, Z2);
 	}
 
-	// Now special-case the collision detection based on the types of the
-	// two candidate shapes.
+	// Special-case the collision detection based on the types of the
+	// two potentially colliding shapes.
 	//// TODO: what is the best way to dispatch this?
 	uint index = start_index[icoll];
 
@@ -439,14 +574,47 @@ void function_process(const uint&       icoll,           // index of this contac
 		return;
 	}
 
+	if (type1 == CAPSULE && type2 == CAPSULE) {
+		//// TODO
+		return;
+	}
+
+	if (type1 == BOX && type2 == CAPSULE) {
+		int nC = box_capsule(X1, R1, Y1,
+		                     X2, R2, Y2.x, Y2.y,
+		                     &ct_norm[index], &ct_depth[index],
+		                     &ct_pt1[index], &ct_pt2[index],
+		                     &ct_eff_rad[index]);
+		for (int i = 0; i < nC; i++) {
+			ct_flag[index + i] = 0;
+			ct_body_ids[index + i] = I2(body1, body2);
+		}
+		return;
+	}
+
+	if (type1 == CAPSULE && type2 == BOX) {
+		int nC = box_capsule(X2, R2, Y2,
+		                     X1, R1, Y1.x, Y1.y,
+		                     &ct_norm[index], &ct_depth[index],
+		                     &ct_pt2[index], &ct_pt1[index],
+		                     &ct_eff_rad[index]);
+		for (int i = 0; i < nC; i++) {
+			ct_norm[index + i] = -ct_norm[index + i];
+			ct_flag[index + i] = 0;
+			ct_body_ids[index + i] = I2(body1, body2);
+		}
+		return;
+	}
+
 	if (type1 == BOX && type2 == BOX) {
-		if (box_box(X1, R1, Y1,
-			        X2, R2, Y2,
-			        ct_norm[index], ct_depth[index],
-			        ct_pt1[index], ct_pt2[index],
-			        ct_eff_rad[index])) {
-			ct_flag[index] = 0;
-			ct_body_ids[index] = I2(body1, body2);
+		int nC = box_box(X1, R1, Y1,
+		                 X2, R2, Y2,
+		                 &ct_norm[index], &ct_depth[index],
+		                 &ct_pt1[index], &ct_pt2[index],
+		                 &ct_eff_rad[index]);
+		for (int i = 0; i < nC; i++) {
+			ct_flag[index + i] = 0;
+			ct_body_ids[index + i] = I2(body1, body2);
 		}
 		return;
 	}
