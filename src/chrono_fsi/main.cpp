@@ -93,6 +93,10 @@ real_ Min(real_ a, real_ b) {
 	return (a < b) ? a : b;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+real_ Max(real_ a, real_ b) {
+	return (a < b) ? b : a;
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void CreateMassMomentEllipsoid(real_ & mass, real3 & j1, real3 & j2, real_ r1,
 		real_ r2, real_ r3, const real_ rhoRigid) {
 	mass = 4.0 / 3 * PI * r1 * r2 * r3 * rhoRigid; //for sphere
@@ -608,6 +612,31 @@ void CreateRigidBodiesPatternPipe_KindaRandom(
 						pos, q, referenceR, rhoRigid);
 			}
 		}
+	}
+}
+////&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+void CreateRigidBodiesChannelRandom(thrust::host_vector<real3> & rigidPos,
+		thrust::host_vector<real4> & mQuatRot,
+		thrust::host_vector<real4> & velMassRigidH,
+		thrust::host_vector<real3> & rigidBodyOmega,
+		thrust::host_vector<real3> & rigidBody_J1,
+		thrust::host_vector<real3> & rigidBody_J2,
+		thrust::host_vector<real3> & rigidBody_InvJ1,
+		thrust::host_vector<real3> & rigidBody_InvJ2,
+		thrust::host_vector<real3> & ellipsoidRadii, const real3 referenceR,
+		const real_ rhoRigid, int numRigids) {
+
+	for (int i = 0; i < numRigids; i++) {
+		real_ maxR = Max(referenceR.x, referenceR.y);
+		maxR = Max(maxR, referenceR.z);
+		real3 channelMin = straightChannelBoundaryMin + R3(maxR);
+		real3 channelBox = straightChannelBoundaryMax - straightChannelBoundaryMin - 2 * R3(maxR);
+		real3 pos = R3(myRand(), myRand(), myRand()) *  channelBox + channelMin;
+		real4 q = R4(2 * myRand() - 1, 2 * myRand() - 1, 2 * myRand() - 1, 2 * myRand() - 1);
+		q = normalize(q);
+		Add_Ellipsoid_To_Data(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
+				rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii,
+				pos, q, referenceR, rhoRigid);
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
@@ -1807,17 +1836,17 @@ int main() {
 	paramsH.BASEPRES = 0;
 	paramsH.nPeriod = 1;
 	paramsH.gravity = R3(0);//R3(0, -9.81, 0);
-	paramsH.bodyForce4 = R4(3.2e-3,0,0,0) * .8;// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
+	paramsH.bodyForce4 = R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
 	paramsH.rho0 = 1000;
 	paramsH.mu0 = 1.0f;
 	paramsH.v_Max = 1e-1;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 	paramsH.EPS_XSPH = .5f;
-	paramsH.dT = .0001; //sph alone: .01 for Re 10;
+	paramsH.dT = .001; //sph alone: .01 for Re 10;
 	paramsH.tFinal = 400;
 	paramsH.kdT = 5;
 	paramsH.gammaBB = 0.5;
 	paramsH.cMin = R3(0, 0, -.1) * paramsH.sizeScale;
-	paramsH.cMax = R3(paramsH.nPeriod * distance + 0, 1, 1 + .1)
+	paramsH.cMax = R3(paramsH.nPeriod * distance + 0, .5, 1 + .1)
 			* paramsH.sizeScale;
 	paramsH.binSize0; // will be changed
 
@@ -1845,7 +1874,7 @@ int main() {
 	//****************************************************************************************
 	//*** initialize straight channel
 	straightChannelBoundaryMin = R3(0, 0, 0) * paramsH.sizeScale;
-	straightChannelBoundaryMax = R3(paramsH.nPeriod * distance + 0, 1, 1) * paramsH.sizeScale;
+	straightChannelBoundaryMax = R3(paramsH.nPeriod * distance + 0, .5, 1) * paramsH.sizeScale;
 
 	//(void) cudaSetDevice(0);
 	int numAllMarkers = 0;
@@ -1935,11 +1964,14 @@ int main() {
 	string fileNameRigids("spheresPos.dat");
 
 	//real_ rr = .4 * (real_(rand()) / RAND_MAX + 1);
-	real3 r3Ellipsoid = R3(1.5 * paramsH.HSML, 1.5 * paramsH.HSML, 2 * paramsH.HSML);//R3(0.5, 0.5, 0.5) * paramsH.sizeScale; //R3(0.4 * paramsH.sizeScale); //R3(0.8 * paramsH.sizeScale); //real3 r3Ellipsoid = R3(.03 * paramsH.sizeScale); //R3(.05, .03, .02) * paramsH.sizeScale; //R3(.03 * paramsH.sizeScale);
+	real3 r3Ellipsoid = R3(3 * paramsH.HSML, 2 * paramsH.HSML, 2 * paramsH.HSML);//R3(0.5, 0.5, 0.5) * paramsH.sizeScale; //R3(0.4 * paramsH.sizeScale); //R3(0.8 * paramsH.sizeScale); //real3 r3Ellipsoid = R3(.03 * paramsH.sizeScale); //R3(.05, .03, .02) * paramsH.sizeScale; //R3(.03 * paramsH.sizeScale);
 
 	//**
-//	int3 stride = I3(5, 5, 5);
+//	int3 stride = I3(1, 1, 1);
 //	CreateRigidBodiesPattern(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride);
+	//**
+	int numRigids = 3000;
+	CreateRigidBodiesChannelRandom(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, numRigids);
 	//**
 //	int3 stride = I3(1, 1, 1);
 //	CreateRigidBodiesPatternWithinBeams(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride, flexParams);
@@ -1978,8 +2010,8 @@ int main() {
 	//**
 	//*** straightChannelBoundaryMin   should be taken care of
 	//*** straightChannelBoundaryMax   should be taken care of
-	CreateManyFlexBodiesChannel(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
-			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever, flexParams);
+//	CreateManyFlexBodiesChannel(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
+//			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever, flexParams);
 	//**
 
 	thrust::host_vector<Rotation> rigidRotMatrix(mQuatRot.size());

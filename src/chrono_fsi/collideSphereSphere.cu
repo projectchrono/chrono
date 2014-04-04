@@ -1957,33 +1957,33 @@ void cudaCollisions(
 
 ////		if (tStep < 1000) delT = 0.25 * delTOrig; else delT = delTOrig;
 		//***********
-//		if (tStep <= numPause) 	{
-//			currentParamsH = paramsH_B;
-//		} else {
-//			currentParamsH = paramsH;
-//		}
-		//***********
-		if (tStep <= timeSlice) {
+		if (tStep <= numPause) 	{
 			currentParamsH = paramsH_B;
-		} else if (tStep <= 2 * timeSlice) {
-			currentParamsH.bodyForce4.x = paramsH.bodyForce4.x;
-			currentParamsH.bodyForce4.y = 0;
-		} else if (tStep <= 3 * timeSlice) {
-			currentParamsH.bodyForce4.x = 0;
-			currentParamsH.bodyForce4.y = .5 * paramsH.bodyForce4.x;
-		} else if (tStep <= 4 * timeSlice) {
-			currentParamsH.bodyForce4.x = -.7 * paramsH.bodyForce4.x;
-			currentParamsH.bodyForce4.y = -.5 * paramsH.bodyForce4.x;
-		} else if (tStep <= 5 * timeSlice) {
-			currentParamsH.bodyForce4.x = 1.0 * paramsH.bodyForce4.x;
-			currentParamsH.bodyForce4.y = 0;
-		} else if (tStep <= 5.5 * timeSlice) {
-			currentParamsH.bodyForce4.x = -.5 * paramsH.bodyForce4.x;
-			currentParamsH.bodyForce4.y = -.5 * paramsH.bodyForce4.x;
 		} else {
-			currentParamsH.bodyForce4.x = 1.0 * paramsH.bodyForce4.x;
-			currentParamsH.bodyForce4.y = 0;
+			currentParamsH = paramsH;
 		}
+		//***********
+//		if (tStep <= timeSlice) {
+//			currentParamsH = paramsH_B;
+//		} else if (tStep <= 2 * timeSlice) {
+//			currentParamsH.bodyForce4.x = paramsH.bodyForce4.x;
+//			currentParamsH.bodyForce4.y = 0;
+//		} else if (tStep <= 3 * timeSlice) {
+//			currentParamsH.bodyForce4.x = 0;
+//			currentParamsH.bodyForce4.y = .5 * paramsH.bodyForce4.x;
+//		} else if (tStep <= 4 * timeSlice) {
+//			currentParamsH.bodyForce4.x = -.7 * paramsH.bodyForce4.x;
+//			currentParamsH.bodyForce4.y = -.5 * paramsH.bodyForce4.x;
+//		} else if (tStep <= 5 * timeSlice) {
+//			currentParamsH.bodyForce4.x = 1.0 * paramsH.bodyForce4.x;
+//			currentParamsH.bodyForce4.y = 0;
+//		} else if (tStep <= 5.5 * timeSlice) {
+//			currentParamsH.bodyForce4.x = -.5 * paramsH.bodyForce4.x;
+//			currentParamsH.bodyForce4.y = -.5 * paramsH.bodyForce4.x;
+//		} else {
+//			currentParamsH.bodyForce4.x = 1.0 * paramsH.bodyForce4.x;
+//			currentParamsH.bodyForce4.y = 0;
+//		}
 		//***********
 		setParameters(&currentParamsH); 														// sets paramsD in SDKCollisionSystem
 		cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &currentParamsH, sizeof(SimParams))); 	//sets paramsD for this file
@@ -2015,13 +2015,13 @@ void cudaCollisions(
 		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT);		//assumes ...D2 is a copy of ...D
 
 		if (tStep > pauseRigidFlex) {
-			UpdateRigidBody(
-					posRadD2, velMasD2,
-					posRigidD2, posRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2,
-					posRadD,
-					posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
-					derivVelRhoD, rigidIdentifierD,
-					rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, flexParams.gravity, numObjects, float(tStep)/stepEnd, 0.5 * delT);
+//			UpdateRigidBody(
+//					posRadD2, velMasD2,
+//					posRigidD2, posRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2,
+//					posRadD,
+//					posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
+//					derivVelRhoD, rigidIdentifierD,
+//					rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, flexParams.gravity, numObjects, float(tStep)/stepEnd, 0.5 * delT);
 
 			UpdateFlexibleBody(posRadD2, velMasD2,
 					ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
@@ -2053,13 +2053,13 @@ void cudaCollisions(
 		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, delT);
 
 		if (tStep > pauseRigidFlex) {
-			UpdateRigidBody(
-					posRadD, velMasD,
-					posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
-					posRadD2,
-					posRigidD2, posRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2,
-					derivVelRhoD, rigidIdentifierD,
-					rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, flexParams.gravity, numObjects, float(tStep)/stepEnd, delT);
+//			UpdateRigidBody(
+//					posRadD, velMasD,
+//					posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
+//					posRadD2,
+//					posRigidD2, posRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2,
+//					derivVelRhoD, rigidIdentifierD,
+//					rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, flexParams.gravity, numObjects, float(tStep)/stepEnd, delT);
 
 			UpdateFlexibleBody(posRadD, velMasD,
 					ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
