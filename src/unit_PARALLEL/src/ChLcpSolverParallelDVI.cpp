@@ -95,8 +95,9 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
 		rigid_rigid.ComputeRHS();
 		data_container->system_timer.stop("rhs");
 		solver.Solve(solver_type);
-	}
 
+	}
+	thrust::host_vector<real> g_tmp_n = data_container->host_data.gamma_data;
 	//cout<<"Solve sliding"<<endl;
 	//solve full
 	if (max_iter_sliding > 0) {
@@ -117,6 +118,27 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
 		rigid_rigid.ComputeRHS();
 		data_container->system_timer.stop("rhs");
 		solver.Solve(solver_type);
+	}
+
+//	if (max_iter_normal > 0) {
+//			solver.SetMaxIterations(max_iter_normal/2);
+//			solver.SetComplianceAlpha(alpha);
+//			rigid_rigid.solve_sliding = false;
+//			rigid_rigid.solve_spinning = false;
+//			data_container->system_timer.start("rhs");
+//			rigid_rigid.ComputeRHS();
+//			data_container->system_timer.stop("rhs");
+//			solver.Solve(solver_type);
+//
+//		}
+
+//	thrust::host_vector<real> g_tmp = data_container->host_data.gamma_data;
+
+	for (int i = 0; i < number_of_constraints; i++) {
+		//if (i > data_container->number_of_rigid_rigid && i < data_container->number_of_rigid_rigid * 6) {
+			if (i > data_container->number_of_rigid_rigid * 6 ) {
+			data_container->host_data.gamma_data[i] = g_tmp_n[i];
+		}
 	}
 
 	thrust::copy_n(
