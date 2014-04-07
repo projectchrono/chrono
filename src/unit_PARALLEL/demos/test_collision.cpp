@@ -176,11 +176,16 @@ int main(int argc, char* argv[])
 	//createCapsule(&msystem, ChVector<>(0, 0, 4), ChQuaternion<>(1, 0, 0, 0), 2, 1);
 	//createBox(&msystem, ChVector<>(0, 0, 4), ChQuaternion<>(1, 0, 0, 0), ChVector<>(2, 3, 2));
 
-	createBox(&msystem, ChVector<>(0, 0, -0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(5, 2, 0.1));
-	//createSphere(&msystem, ChVector<>(2, -1, 2), ChQuaternion<>(1, 0, 0, 0), 2.1);
+	//createBox(&msystem, ChVector<>(0, 0, -0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(5, 2, 0.1));
+
+
+	createCapsule(&msystem, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), 1.1, 1);
+
+	//createSphere(&msystem, ChVector<>(0, 0, 3), ChQuaternion<>(1, 0, 0, 0), 2);
+
 	ChQuaternion<> rot;
 	rot.Q_from_AngAxis(PI/2, ChVector<>(1, 0, 0));
-	createCapsule(&msystem, ChVector<>(2, -1, 3), rot, 2.1, 1);
+	createCapsule(&msystem, ChVector<>(0, 0, 4), rot, 2, 1);
 
 
 

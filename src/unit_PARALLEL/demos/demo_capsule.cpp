@@ -147,8 +147,9 @@ int main(int argc, char* argv[])
 	binMat->SetFriction(0.4f);
 	binMat->SetDissipationFactor(0.1f);
 
+/*
 	utils::CreateBoxContainerDEM(msystem, binId, binMat, ChVector<>(hDimX, hDimY, hDimZ), hThickness);
-
+*/
 
 /*
 	// A set of fixed spheres
@@ -175,6 +176,34 @@ int main(int argc, char* argv[])
 
 	msystem->AddBody(bin);
 */
+
+	// A set of fixed capsules
+	ChSharedBodyDEMPtr bin(new ChBodyDEM(new ChCollisionModelParallel));
+	bin->SetMaterialSurfaceDEM(binMat);
+	bin->SetIdentifier(binId);
+	bin->SetMass(1);
+	bin->SetPos(ChVector<>(0,0,0));
+	bin->SetRot(ChQuaternion<>(1,0,0,0));
+	bin->SetBodyFixed(true);
+	bin->SetCollide(true);
+
+	double spacing = 1.5;
+	double bigR = 1;
+	double bigH = 6;
+	double offsetZ = -1;
+
+	ChQuaternion<>  rot(1,0,0,0);
+	rot.Q_from_AngAxis(PI/6, ChVector<>(0, 0, 1));
+
+	bin->GetCollisionModel()->ClearModel();
+	for (int ix = -3; ix < 6; ix++) {
+		ChVector<> pos(ix * spacing, 0, offsetZ);
+		utils::AddCapsuleGeometry(bin.get_ptr(), bigR, bigH, pos, rot);
+	}
+	bin->GetCollisionModel()->BuildModel();
+
+	msystem->AddBody(bin);
+
 
 
 	// Perform the simulation
