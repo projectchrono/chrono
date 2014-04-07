@@ -252,6 +252,127 @@ bool box_sphere(const real3& pos1, const real4& rot1, const real3& hdims1,
 }
 
 // ==========================================================================
+//              CAPSULE - CAPSULE
+
+// Capsule-capsule narrow phase collision detection.
+// In:  capsule at pos1, with orientation rot1
+//              capsule has radius1 and half-length hlen1 (in Y direction)
+//      capsule at pos2, with orientation rot2
+//              capsule has radius2 and half-length hlen2 (in Y direction)
+// Note: a capsule-capsule collision may return 0, 1, or 2 contacts
+
+__host__ __device__
+int capsule_capsule(const real3& pos1, const real4& rot1, const real& radius1, const real& hlen1,
+                    const real3& pos2, const real4& rot2, const real& radius2, const real& hlen2,
+                    real3* norm, real* depth,
+                    real3* pt1, real3* pt2,
+                    real* eff_radius)
+{
+	// Express the second capule in the frame of the first one.
+	real3 pos = quatRotateMatT(pos2 - pos1, rot1);
+	real4 rot = mult(inv(rot1), rot2);
+
+	// Unit vectors along capsule axes.
+	real3 V1 = AMatV(rot1);   // capsule1 in the global frame
+	real3 V2 = AMatV(rot2);   // capsule2 in the global frame
+	real3 V  = AMatV(rot);    // capsule2 in the frame of capsule1
+	
+	// Sum of radii
+	real radSum = radius1 + radius2;
+	real radSum2 = radSum * radSum;
+
+	// If the two capsules intersect, there may be 1 or 2 contacts. Note that 2
+	// contacts are possible only if the two capsules are parallel. Calculate
+	// the pairs of potential contact points, expressed in the global frame.
+	int   numLocs = 0;
+	real3 locs1[2];
+	real3 locs2[2];
+	real  denom = 1 - V.y * V.y;
+
+	if (denom < 1e-4f) {
+		// The two capsules are parallel. If the distance between their axes is
+		// more than the sum of radii, there is no contact.
+		if (pos.x * pos.x + pos.z * pos.z >= radSum2)
+			return 0;
+
+		// Find overlap of the two axes (as signed distances along the axis of
+		// the first capsule).
+		real locs[2] = {min(hlen1, pos.y + hlen2) , max(-hlen1, pos.y - hlen2)};
+
+		if (locs[0] > locs[1]) {
+			// The two axes overlap. Both ends of the overlapping segment represent
+			// potential contacts.
+			numLocs = 2;
+			locs1[0] = pos1 + locs[0] * V1;
+			locs2[0] = TransformLocalToParent(pos1, rot1, R3(pos.x, locs[0], pos.z));
+			locs1[1] = pos1 + locs[1] * V1;
+			locs2[1] = TransformLocalToParent(pos1, rot1, R3(pos.x, locs[1], pos.z));
+		} else {
+			// There is no overlap between axes. The two closest ends represent
+			// a single potential contact.
+			numLocs = 1;
+			locs1[0] = pos1 + locs[pos.y < 0] * V1;
+			locs2[0] = TransformLocalToParent(pos1, rot1, R3(pos.x, locs[pos.y > 0], pos.z));
+		}
+	} else {
+		// The two capsule axes are not parallel. Find the closest points on the
+		// two axes and clamp them to the extents of the their respective capsule.
+		// This pair of points represents a single potential contact.
+		real alpha2 = (V.y * pos.y - dot(V, pos)) / denom;
+		real alpha1 = V.y * alpha2 + pos.y;
+
+		if (alpha1 < -hlen1) {
+			alpha1 = -hlen1;
+			alpha2 = -dot(pos, V) - hlen1 * V.y;
+		} else if (alpha1 > hlen1) {
+			alpha1 = hlen1;
+			alpha2 = -dot(pos, V) + hlen1 * V.y;
+		}
+
+		if (alpha2 < -hlen2) {
+			alpha2 = -hlen2;
+			alpha1 = clamp(pos.y - hlen2 * V.y, -hlen1, hlen1);
+		} else if (alpha2 > hlen2) {
+			alpha2 = hlen2;
+			alpha1 = clamp(pos.y + hlen2 * V.y, -hlen1, hlen1);
+		}
+
+		numLocs = 1;
+		locs1[0] = pos1 + alpha1 * V1;
+		locs2[0] = pos2 + alpha2 * V2;
+	}
+
+	// Check the pairs of locations for actual contact and generate contact
+	// information. Keep track of the actual number of contacts.
+	real effRad = radius1 * radius2 / radSum;
+	int  j = 0;
+
+	for (int i = 0; i < numLocs; i++) {
+		real3 delta = locs2[i] - locs1[i];
+		real  dist2 = dot(delta, delta);
+
+		// If the two sphere centers are separated by more than the sum of their
+		// radii, there is no contact. Also ignore contact if the two centers
+		// almost coincide, in which case we cannot decide on the direction.
+		if (dist2 >= radSum2 || dist2 < 1e-12)
+			continue;
+
+		// Generate contact information.
+		real dist = sqrt(dist2);
+		*(norm + j) = delta / dist;
+		*(pt1 + j) = locs1[i] + (*(norm + j)) * radius1;
+		*(pt2 + j) = locs2[i] - (*(norm + j)) * radius2;
+		*(depth + j) = dist - radSum;
+		*(eff_radius + j) = effRad;
+
+		j++;
+	}
+
+	// Return the number of actual contacts
+	return j;
+}
+
+// ==========================================================================
 //              BOX - CAPSULE
 
 // Box-capsule narrow phase collision detection.
@@ -262,10 +383,10 @@ bool box_sphere(const real3& pos1, const real4& rot1, const real3& hdims1,
 
 __host__ __device__
 int box_capsule(const real3& pos1, const real4& rot1, const real3& hdims1,
-                 const real3& pos2, const real4& rot2, const real& radius2, const real& hlen2,
-                 real3* norm, real* depth,
-                 real3* pt1, real3* pt2,
-                 real* eff_radius)
+                const real3& pos2, const real4& rot2, const real& radius2, const real& hlen2,
+                real3* norm, real* depth,
+                real3* pt1, real3* pt2,
+                real* eff_radius)
 {
 	// Express the capsule in the frame of the box.
 	// (this is a bit cryptic with the functions we have available)
@@ -575,7 +696,15 @@ void function_process(const uint&       icoll,           // index of this contac
 	}
 
 	if (type1 == CAPSULE && type2 == CAPSULE) {
-		//// TODO
+		int nC = capsule_capsule(X1, R1, Y1.x, Y1.y,
+		                         X2, R2, Y2.x, Y2.y,
+		                         &ct_norm[index], &ct_depth[index],
+		                         &ct_pt1[index], &ct_pt2[index],
+		                         &ct_eff_rad[index]);
+		for (int i = 0; i < nC; i++) {
+			ct_flag[index + i] = 0;
+			ct_body_ids[index + i] = I2(body1, body2);
+		}
 		return;
 	}
 
