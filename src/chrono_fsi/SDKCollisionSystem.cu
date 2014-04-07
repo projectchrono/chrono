@@ -217,7 +217,7 @@ real4 collideCell(
 					derivRho += derivVelRho.w;
 				}
 				else if (fabs(rhoPresMuA.w - rhoPresMuB.w) > 0) { //implies: one of them is solid/boundary, ther other one is solid/boundary of different type or different solid
-					//derivV += DifVelocity_SSI_DEM(dist3, d, rSPH, velMasA, velMasB);
+					derivV += DifVelocity_SSI_DEM(dist3, d, rSPH, velMasA, velMasB);
 				}
 			}
 		}
