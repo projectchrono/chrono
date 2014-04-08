@@ -52,13 +52,11 @@ real ChSolverParallel::Res4(const int SIZE, real* mg_tmp, const real* b, real*x,
 }
 uint ChSolverParallel::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
 	bool verbose = false;
-	real gdiff = 1;
-
 	real lastgoodres=10e30;
 	real theta_k=init_theta_k;
 	real theta_k1=theta_k;
 	real beta_k1=0.0;
-	custom_vector<real> x_initial =x;
+	//custom_vector<real> x_initial =x;
 
 	//ml = x;
 
