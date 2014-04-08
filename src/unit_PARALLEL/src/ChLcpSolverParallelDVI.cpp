@@ -78,11 +78,12 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
 		//thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, data_container->host_data.gamma_bilateral.begin());
 		solver.SolveStab(data_container->host_data.gamma_bilateral, rhs_bilateral, max_iter_bilateral);
 		data_container->system_timer.stop("stab");
+		thrust::copy_n(
+					data_container->host_data.gamma_bilateral.begin(),
+					data_container->number_of_bilaterals,
+					data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6);
 	}
-	thrust::copy_n(
-			data_container->host_data.gamma_bilateral.begin(),
-			data_container->number_of_bilaterals,
-			data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6);
+
 
 	//cout<<"Solve normal"<<endl;
 	//solve normal

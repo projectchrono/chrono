@@ -15,17 +15,18 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 	mg_tmp2.resize(SIZE);
 	ml.resize(SIZE);
 
-#pragma omp  parallel for
-		for(int i=0; i<SIZE; i++) {
-			ml[i] = 0;
-		}
+//#pragma omp  parallel for
+//		for(int i=0; i<SIZE; i++) {
+//			ml[i] = 0;
+//		}
+		ml = x;
 		Project(ml.data());
 		ml_candidate = ml;
-		ShurProduct(ml,mg);     //mg is never used, only re-written
+		ShurProduct(ml,mg);//mg is never used, only re-written
 
 #pragma omp parallel for reduction(+:mb_tmp_norm)
 		for (int i = 0; i < SIZE; i++) {
-			real _mb_tmp_ =  -1.0f + ml[i];
+			real _mb_tmp_ = -1.0f + ml[i];
 			mb_tmp_norm += _mb_tmp_ * _mb_tmp_;
 			mb_tmp[i] = _mb_tmp_;
 			mg[i] = mg[i]-b[i];

@@ -95,7 +95,7 @@ void ChSolverParallel::Setup() {
 	}
 #pragma omp parallel for
 	for (int i = 0; i < number_of_constraints; i++) {
-		//data_container->host_data.gamma_data[i] = 0;
+		data_container->host_data.gamma_data[i] = 0;
 	}
 #endif
 	//Thrust_Fill(data_container->host_data.gamma_bilateral, 0);

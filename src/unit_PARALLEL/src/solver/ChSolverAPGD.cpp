@@ -58,12 +58,12 @@ uint ChSolverParallel::SolveAPGD(custom_vector<real> &x, const custom_vector<rea
 	real beta_k1=0.0;
 	//custom_vector<real> x_initial =x;
 
-	//ml = x;
+	ml = x;
 
-#pragma omp  parallel for
-		for(int i=0; i<x.size(); i++) {
-			ml[i] = 0;
-		}
+//#pragma omp  parallel for
+//		for(int i=0; i<x.size(); i++) {
+//			ml[i] = 0;
+//		}
 
 	Project(ml.data());
 
