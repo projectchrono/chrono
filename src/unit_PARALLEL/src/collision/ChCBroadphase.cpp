@@ -4,18 +4,18 @@ using namespace chrono::collision;
 typedef thrust::pair<real3, real3> bbox;
 // reduce a pair of bounding boxes (a,b) to a bounding box containing a and b
 struct bbox_reduction: public thrust::binary_function<bbox, bbox, bbox> {
-		bbox __host__ __device__ operator()(bbox a, bbox b) {
-			real3 ll = R3(fmin(a.first.x, b.first.x), fmin(a.first.y, b.first.y), fmin(a.first.z, b.first.z));     // lower left corner
-			real3 ur = R3(fmax(a.second.x, b.second.x), fmax(a.second.y, b.second.y), fmax(a.second.z, b.second.z));     // upper right corner
-			return bbox(ll, ur);
-		}
+	bbox __host__ __device__ operator()(bbox a, bbox b) {
+		real3 ll = R3(fmin(a.first.x, b.first.x), fmin(a.first.y, b.first.y), fmin(a.first.z, b.first.z));     // lower left corner
+		real3 ur = R3(fmax(a.second.x, b.second.x), fmax(a.second.y, b.second.y), fmax(a.second.z, b.second.z));     // upper right corner
+		return bbox(ll, ur);
+	}
 };
 
 // convert a point to a bbox containing that point, (point) -> (point, point)
 struct bbox_transformation: public thrust::unary_function<real3, bbox> {
-		bbox __host__ __device__ operator()(real3 point) {
-			return bbox(point, point);
-		}
+	bbox __host__ __device__ operator()(real3 point) {
+		return bbox(point, point);
+	}
 };
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -37,7 +37,7 @@ ChCBroadphase::ChCBroadphase() {
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 void ChCBroadphase::setBinsPerAxis(int3 binsPerAxis) {
 	grid_size = binsPerAxis;
-	cout<<"Set BPA: "<<grid_size.x<<" "<<grid_size.y<<" "<<grid_size.z<<endl;
+	cout << "Set BPA: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
 
 }
 int3 ChCBroadphase::getBinsPerAxis() {
@@ -80,7 +80,8 @@ inline uint __host__ __device__ Hash_Index(const T &A, int3 grid_size) {
 }
 
 //Function to Count AABB Bin intersections
-inline void __host__ __device__ function_Count_AABB_BIN_Intersection(const uint &index, const real3 *aabb_data, const real3 &bin_size_vec, const uint &number_of_particles, uint *Bins_Intersected) {
+inline void __host__ __device__ function_Count_AABB_BIN_Intersection(const uint &index, const real3 *aabb_data, const real3 &bin_size_vec, const uint &number_of_particles,
+		uint *Bins_Intersected) {
 	int3 gmin = HashMin(aabb_data[index], bin_size_vec);
 	int3 gmax = HashMin(aabb_data[index + number_of_particles], bin_size_vec);
 	Bins_Intersected[index] = (gmax.x - gmin.x + 1) * (gmax.y - gmin.y + 1) * (gmax.z - gmin.z + 1);
@@ -98,15 +99,8 @@ void ChCBroadphase::host_Count_AABB_BIN_Intersection(const real3 *aabb_data, uin
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //Function to Store AABB Bin Intersections
 
-inline void __host__ __device__ function_Store_AABB_BIN_Intersection(
-		const uint &index,
-		const real3 *aabb_data,
-		const uint *Bins_Intersected,
-		const real3 &bin_size_vec,
-		const int3 &grid_size,
-		const uint &number_of_particles,
-		uint *bin_number,
-		uint *body_number) {
+inline void __host__ __device__ function_Store_AABB_BIN_Intersection(const uint &index, const real3 *aabb_data, const uint *Bins_Intersected, const real3 &bin_size_vec,
+		const int3 &grid_size, const uint &number_of_particles, uint *bin_number, uint *body_number) {
 	uint count = 0, i, j, k;
 	int3 gmin = HashMin(aabb_data[index], bin_size_vec);
 	int3 gmax = HashMin(aabb_data[index + number_of_particles], bin_size_vec);
@@ -118,7 +112,7 @@ inline void __host__ __device__ function_Store_AABB_BIN_Intersection(
 				location.x = i;
 				location.y = j;
 				location.z = k;
-				bin_number[mInd + count] = Hash_Index(location,grid_size);
+				bin_number[mInd + count] = Hash_Index(location, grid_size);
 				body_number[mInd + count] = index;
 				count++;
 			}
@@ -131,7 +125,7 @@ inline void __host__ __device__ function_Store_AABB_BIN_Intersection(
 void ChCBroadphase::host_Store_AABB_BIN_Intersection(const real3 *aabb_data, const uint *Bins_Intersected, uint *bin_number, uint *body_number) {
 #pragma omp parallel for
 	for (int i = 0; i < numAABB; i++) {
-		function_Store_AABB_BIN_Intersection(i, aabb_data, Bins_Intersected, bin_size_vec,grid_size, numAABB, bin_number, body_number);
+		function_Store_AABB_BIN_Intersection(i, aabb_data, Bins_Intersected, bin_size_vec, grid_size, numAABB, bin_number, body_number);
 	}
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -139,15 +133,8 @@ void ChCBroadphase::host_Store_AABB_BIN_Intersection(const real3 *aabb_data, con
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //Function to count AABB AABB intersection
 
-void __host__ __device__ function_Count_AABB_AABB_Intersection(
-		const uint index,
-		const real3 *aabb_data,
-		const uint number_of_particles,
-		const uint *bin_number,
-		const uint *body_number,
-		const uint *bin_start_index,
-		const int2 * fam_data,
-		uint *Num_ContactD) {
+void __host__ __device__ function_Count_AABB_AABB_Intersection(const uint index, const real3 *aabb_data, const uint number_of_particles, const uint *bin_number,
+		const uint *body_number, const uint *bin_start_index, const int2 * fam_data, uint *Num_ContactD) {
 	uint end = bin_start_index[index], count = 0, i = (!index) ? 0 : bin_start_index[index - 1];
 	uint tempa, tempb;
 	real3 Amin, Amax, Bmin, Bmax;
@@ -160,14 +147,14 @@ void __host__ __device__ function_Count_AABB_AABB_Intersection(
 		for (int k = i + 1; k < end; k++) {
 			tempb = body_number[k];
 			if (tempa != tempb) {
-			Bmin = aabb_data[tempb];
-			Bmax = aabb_data[tempb + number_of_particles];
-			bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) && (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
-			if (fam_data[body_number[k]].x != fam_data[body_number[i]].y && fam_data[body_number[i]].x != fam_data[body_number[k]].y) {
-				if (inContact) {
-					count++;
+				Bmin = aabb_data[tempb];
+				Bmax = aabb_data[tempb + number_of_particles];
+				bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) && (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
+				if (fam_data[body_number[k]].x != fam_data[body_number[i]].y && fam_data[body_number[i]].x != fam_data[body_number[k]].y) {
+					if (inContact) {
+						count++;
+					}
 				}
-			}
 			}
 		}
 	}
@@ -176,26 +163,45 @@ void __host__ __device__ function_Count_AABB_AABB_Intersection(
 }
 
 //--------------------------------------------------------------------------
-void ChCBroadphase::host_Count_AABB_AABB_Intersection(const real3 *aabb_data, const uint *bin_number, const uint *body_number, const uint *bin_start_index, const int2 * fam_data, uint *Num_ContactD) {
+void ChCBroadphase::host_Count_AABB_AABB_Intersection(const real3 *aabb_data, const uint *bin_number, const uint *body_number, const uint *bin_start_index, const int2 * fam_data,
+		uint *Num_ContactD) {
 #pragma omp parallel for schedule(dynamic)
-	for (int ind = 0; ind < last_active_bin; ind++) {
-		function_Count_AABB_AABB_Intersection(ind, aabb_data, numAABB, bin_number, body_number, bin_start_index, fam_data, Num_ContactD);
+	for (int index = 0; index < last_active_bin; index++) {
+
+		uint end = bin_start_index[index], count = 0, i = (!index) ? 0 : bin_start_index[index - 1];
+		uint tempa, tempb;
+		real3 Amin, Amax, Bmin, Bmax;
+
+		for (; i < end; i++) {
+			tempa = body_number[i];
+			Amin = aabb_data[tempa];
+			Amax = aabb_data[tempa + numAABB];
+
+			for (int k = i + 1; k < end; k++) {
+				tempb = body_number[k];
+				if (tempa != tempb) {
+					Bmin = aabb_data[tempb];
+					Bmax = aabb_data[tempb + numAABB];
+					bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) && (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
+					if (fam_data[body_number[k]].x != fam_data[body_number[i]].y && fam_data[body_number[i]].x != fam_data[body_number[k]].y) {
+						if (inContact) {
+							count++;
+						}
+					}
+				}
+			}
+		}
+
+		Num_ContactD[index] = count;
+
 	}
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //Function to store AABB-AABB intersections
-inline void __host__ __device__ function_Store_AABB_AABB_Intersection(
-		const uint &index,
-		const real3 *aabb_data,
-		const uint &number_of_particles,
-		const uint *bin_number,
-		const uint *body_number,
-		const uint *bin_start_index,
-		const uint *Num_ContactD,
-		const int2 * fam_data,
-		long long *potential_contacts) {
+inline void __host__ __device__ function_Store_AABB_AABB_Intersection(const uint &index, const real3 *aabb_data, const uint &number_of_particles, const uint *bin_number,
+		const uint *body_number, const uint *bin_start_index, const uint *Num_ContactD, const int2 * fam_data, long long *potential_contacts) {
 	uint end = bin_start_index[index], count = 0, i = (!index) ? 0 : bin_start_index[index - 1], Bin = bin_number[index];
 	uint offset = (!index) ? 0 : Num_ContactD[index - 1];
 
@@ -215,38 +221,32 @@ inline void __host__ __device__ function_Store_AABB_AABB_Intersection(
 		for (int k = i + 1; k < end; k++) {
 			tempb = body_number[k];
 			if (tempa != tempb) {
-			Bmin = aabb_data[tempb];
-			Bmax = aabb_data[tempb + number_of_particles];
-			bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) && (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
-			if (fam_data[body_number[k]].x != fam_data[body_number[i]].y && fam_data[body_number[i]].x != fam_data[body_number[k]].y) {
-				if (inContact == true) {
-					int a = tempa;
-					int b = tempb;
+				Bmin = aabb_data[tempb];
+				Bmax = aabb_data[tempb + number_of_particles];
+				bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) && (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
+				if (fam_data[body_number[k]].x != fam_data[body_number[i]].y && fam_data[body_number[i]].x != fam_data[body_number[k]].y) {
+					if (inContact == true) {
+						int a = tempa;
+						int b = tempb;
 
-					if (b < a) {
-						int t = a;
-						a = b;
-						b = t;
+						if (b < a) {
+							int t = a;
+							a = b;
+							b = t;
+						}
+
+						potential_contacts[offset + count] = ((long long) a << 32 | (long long) b);     //the two indicies of the objects that make up the contact
+						count++;
 					}
-
-					potential_contacts[offset + count] = ((long long) a << 32 | (long long) b);     //the two indicies of the objects that make up the contact
-					count++;
 				}
-			}
 			}
 		}
 	}
 }
 //--------------------------------------------------------------------------
 
-void ChCBroadphase::host_Store_AABB_AABB_Intersection(
-		const real3 *aabb_data,
-		const uint *bin_number,
-		const uint *body_number,
-		const uint *bin_start_index,
-		const uint *Num_ContactD,
-		const int2 * fam_data,
-		long long *potential_contacts) {
+void ChCBroadphase::host_Store_AABB_AABB_Intersection(const real3 *aabb_data, const uint *bin_number, const uint *body_number, const uint *bin_start_index,
+		const uint *Num_ContactD, const int2 * fam_data, long long *potential_contacts) {
 #pragma omp parallel for schedule (dynamic)
 
 	for (int index = 0; index < last_active_bin; index++) {
@@ -319,7 +319,7 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data,cust
 		device_Store_AABB_BIN_Intersection __KERNEL__(BLOCKS(numAABB), THREADS)(CASTR3(aabb_data), CASTU1(Bins_Intersected), CASTU1(bin_number), CASTU1(body_number));
 #else
 		host_Store_AABB_BIN_Intersection(aabb_data.data(), Bins_Intersected.data(),
-				bin_number.data(), body_number.data());
+		bin_number.data(), body_number.data());
 #endif
 #ifdef PRINT_DEBUG_GPU
 		cout<<"DONE WID DAT (device_Store_AABB_BIN_Intersection)"<<endl;
@@ -373,12 +373,12 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data,cust
 #ifdef SIM_ENABLE_GPU_MODE
 		COPY_TO_CONST_MEM(last_active_bin);
 		device_Count_AABB_AABB_Intersection __KERNEL__(BLOCKS(last_active_bin), THREADS)(
-				CASTR3(aabb_data),
-				CASTU1(bin_number),
-				CASTU1(body_number),
-				CASTU1(bin_start_index),
-				CASTI2(fam_data),
-				CASTU1(Num_ContactD));
+		CASTR3(aabb_data),
+		CASTU1(bin_number),
+		CASTU1(body_number),
+		CASTU1(bin_start_index),
+		CASTI2(fam_data),
+		CASTU1(Num_ContactD));
 #else
 		host_Count_AABB_AABB_Intersection(aabb_data.data(), bin_number.data(), body_number.data(), bin_start_index.data(),fam_data.data(), Num_ContactD.data());
 #endif
@@ -391,25 +391,25 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data,cust
 		// STEP 6: Store the possible AABB collision pairs
 #ifdef SIM_ENABLE_GPU_MODE
 		device_Store_AABB_AABB_Intersection __KERNEL__(BLOCKS(last_active_bin), THREADS)(
-				CASTR3(aabb_data),
-				CASTU1(bin_number),
-				CASTU1(body_number),
-				CASTU1(bin_start_index),
-				CASTU1(Num_ContactD),
-				CASTI2(fam_data),
-				CASTLL(potentialCollisions));
+		CASTR3(aabb_data),
+		CASTU1(bin_number),
+		CASTU1(body_number),
+		CASTU1(bin_start_index),
+		CASTU1(Num_ContactD),
+		CASTI2(fam_data),
+		CASTLL(potentialCollisions));
 #else
 		host_Store_AABB_AABB_Intersection(aabb_data.data(),
-				bin_number.data(),
-				body_number.data(),
-				bin_start_index.data(),
-				Num_ContactD.data(),
-				fam_data.data(),
-				potentialCollisions.data());
+		bin_number.data(),
+		body_number.data(),
+		bin_start_index.data(),
+		Num_ContactD.data(),
+		fam_data.data(),
+		potentialCollisions.data());
 #endif
 		thrust::stable_sort(thrust::omp::par,potentialCollisions.begin(), potentialCollisions.end());
 		number_of_contacts_possible = thrust::unique(potentialCollisions.begin(),
-				potentialCollisions.end()) - potentialCollisions.begin();
+		potentialCollisions.end()) - potentialCollisions.begin();
 
 		potentialCollisions.resize(number_of_contacts_possible);
 #ifdef PRINT_DEBUG_GPU
