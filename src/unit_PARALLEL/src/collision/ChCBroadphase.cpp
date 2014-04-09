@@ -88,7 +88,7 @@ inline void __host__ __device__ function_Count_AABB_BIN_Intersection(const uint 
 
 //--------------------------------------------------------------------------
 void ChCBroadphase::host_Count_AABB_BIN_Intersection(const real3 *aabb_data, uint *Bins_Intersected) {
-#pragma omp parallel for schedule(guided)
+#pragma omp parallel for
 	for (int i = 0; i < numAABB; i++) {
 		function_Count_AABB_BIN_Intersection(i, aabb_data, bin_size_vec, numAABB, Bins_Intersected);
 	}
@@ -177,7 +177,7 @@ inline void __host__ __device__ function_Count_AABB_AABB_Intersection(
 
 //--------------------------------------------------------------------------
 void ChCBroadphase::host_Count_AABB_AABB_Intersection(const real3 *aabb_data, const uint *bin_number, const uint *body_number, const uint *bin_start_index, const int2 * fam_data, uint *Num_ContactD) {
-#pragma omp parallel for schedule(dynamic, 100)
+#pragma omp parallel for
 
 	for (int i = 0; i < last_active_bin; i++) {
 		function_Count_AABB_AABB_Intersection(i, aabb_data, numAABB, bin_number, body_number, bin_start_index, fam_data, Num_ContactD);
@@ -248,7 +248,7 @@ void ChCBroadphase::host_Store_AABB_AABB_Intersection(
 		const uint *Num_ContactD,
 		const int2 * fam_data,
 		long long *potential_contacts) {
-#pragma omp parallel for schedule (dynamic, 100)
+#pragma omp parallel for
 
 	for (int index = 0; index < last_active_bin; index++) {
 		function_Store_AABB_AABB_Intersection(index, aabb_data, numAABB, bin_number, body_number, bin_start_index, Num_ContactD, fam_data, potential_contacts);
