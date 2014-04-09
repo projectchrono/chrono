@@ -502,6 +502,9 @@ void WriteShapesPovray(ChSystem*          system,
 				ChConeShape* cone = (ChConeShape*) asset.get_ptr();
 				const Vector& size = cone->GetConeGeometry().rad;
 				geometry << CONE << delim << size.x << delim << size.y;
+			} else if (asset.IsType<ChTriangleMeshShape>()) {
+				ChTriangleMeshShape* mesh = (ChTriangleMeshShape*) asset.get_ptr();
+				geometry << TRIANGLEMESH << delim << "\"" << mesh->GetName() << "\"";
 			}
 
 			csv << body->GetIdentifier() << body->IsActive() << pos << rot << geometry.str() << std::endl;
@@ -516,6 +519,55 @@ void WriteShapesPovray(ChSystem*          system,
 	csv.write_to_file(filename, header.str());
 }
 
+
+// -------------------------------------------------------------------------------
+// WriteMeshPovray
+//
+// Write the triangular mesh from the specified OBJ file as a macro in a PovRay
+// include file.
+// -------------------------------------------------------------------------------
+void WriteMeshPovray(const std::string&    obj_filename,
+                     const std::string&    name,
+                     const std::string&    pov_filename,
+                     const ChVector<>&     pos = ChVector<>(0,0,0),
+                     const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
+{
+	// Read trimesh from OBJ file
+	ChTriangleMeshConnected trimesh;
+	trimesh.LoadWavefrontMesh(obj_filename, false, false);
+
+	// Transform vertices.
+	for (int i = 0; i < trimesh.m_vertices.size(); i++)
+		trimesh.m_vertices[i] = pos + rot.Rotate(trimesh.m_vertices[i]);
+
+	// Open output file.
+	std::ofstream  ofile(pov_filename.c_str());
+
+	ofile << "#macro " << name << "(col)" << std::endl;
+
+	// Write vertices.
+	for (int i = 0; i < trimesh.m_vertices.size(); i++) {
+		ChVector<> v = trimesh.m_vertices[i];
+		ofile << "#local v" << i << " = <" << v.x << ", " << v.y << ", " << v.z << ">;" << std::endl;
+	}
+
+	// Write face connectivity.
+	ofile << "mesh {" << std::endl;
+
+	for (int i = 0; i < trimesh.m_face_v_indices.size(); i++) {
+		ChVector<int> face = trimesh.m_face_v_indices[i];
+		ofile << "   triangle {";
+		ofile << "v" << face.x << ", v" << face.y << ", v" << face.z;
+		ofile << "}" << std::endl;
+	}
+
+	ofile << "   texture {" << std::endl;
+	ofile << "      pigment {color col}" << std::endl;
+	ofile << "      finish  {ambient 0.2  diffuse 0.7}" << std::endl;
+	ofile << "    }" << std::endl;
+	ofile << "}" << std::endl;
+	ofile << "#end" << std::endl;
+}
 
 } // end namespace utils
 } // end namespace chrono

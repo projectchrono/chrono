@@ -22,6 +22,7 @@
 #include "assets/ChCapsuleShape.h"
 #include "assets/ChCylinderShape.h"
 #include "assets/ChConeShape.h"
+#include "assets/ChTriangleMeshShape.h"
 
 #include "ChSystemParallel.h"
 
@@ -138,6 +139,26 @@ void AddConeGeometry(ChBody*               body,
 	body->GetAssets().push_back(cone);
 }
 
+void AddTriangleMeshGeometry(ChBody*               body,
+                             const std::string&    obj_filename,
+                             const std::string&    name,
+                             const ChVector<>&     pos = ChVector<>(0,0,0),
+                             const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
+{
+	ChTriangleMeshConnected trimesh;
+	trimesh.LoadWavefrontMesh(obj_filename, false, false);
+
+	for (int i = 0; i < trimesh.m_vertices.size(); i++)
+		trimesh.m_vertices[i] = pos + rot.Rotate(trimesh.m_vertices[i]);
+
+	body->GetCollisionModel()->AddTriangleMesh(trimesh, false, false);
+
+	ChSharedPtr<ChTriangleMeshShape> trimesh_shape = ChSharedPtr<ChAsset>(new ChTriangleMeshShape);
+	trimesh_shape->SetMesh(trimesh);
+	trimesh_shape->SetName(name);
+
+	body->GetAssets().push_back(trimesh_shape);
+}
 
 // -------------------------------------------------------------------------------
 // CreateBoxContainerDEM
