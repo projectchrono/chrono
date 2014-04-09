@@ -156,6 +156,8 @@ void AddTriangleMeshGeometry(ChBody*               body,
 	ChSharedPtr<ChTriangleMeshShape> trimesh_shape = ChSharedPtr<ChAsset>(new ChTriangleMeshShape);
 	trimesh_shape->SetMesh(trimesh);
 	trimesh_shape->SetName(name);
+	trimesh_shape->Pos = ChVector<>(0,0,0);
+	trimesh_shape->Rot = ChQuaternion<>(1,0,0,0);
 
 	body->GetAssets().push_back(trimesh_shape);
 }
