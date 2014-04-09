@@ -43,7 +43,6 @@ class ChApiGPU ChCBroadphase {
 						uint *body_number);
 				void host_Count_AABB_AABB_Intersection(
 						const real3 *aabb_data,
-						const uint *bin_number,
 						const uint *body_number,
 						const uint *bin_start_index,
 						const int2 * fam_data,

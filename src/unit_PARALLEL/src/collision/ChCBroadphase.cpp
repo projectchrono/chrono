@@ -163,13 +163,18 @@ void __host__ __device__ function_Count_AABB_AABB_Intersection(const uint index,
 }
 
 //--------------------------------------------------------------------------
-void ChCBroadphase::host_Count_AABB_AABB_Intersection(const real3 *aabb_data, const uint *bin_number, const uint *body_number, const uint *bin_start_index, const int2 * fam_data,
-		uint *Num_ContactD) {
+void ChCBroadphase::host_Count_AABB_AABB_Intersection(const real3 *aabb_data, const uint *body_number, const uint *bin_start_index, const int2 * fam_data, uint *Num_ContactD) {
 #pragma omp parallel for schedule(dynamic)
 	for (int index = 0; index < last_active_bin; index++) {
 
-		uint end = bin_start_index[index], count = 0, i = (!index) ? 0 : bin_start_index[index - 1];
-		uint tempa, tempb;
+		int end = bin_start_index[index], count = 0, i;
+		if (!index) {
+			i = 0;
+		} else {
+			i = bin_start_index[index - 1];
+		}
+
+		int tempa, tempb;
 		real3 Amin, Amax, Bmin, Bmax;
 
 		for (; i < end; i++) {
@@ -380,7 +385,7 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data,cust
 		CASTI2(fam_data),
 		CASTU1(Num_ContactD));
 #else
-		host_Count_AABB_AABB_Intersection(aabb_data.data(), bin_number.data(), body_number.data(), bin_start_index.data(),fam_data.data(), Num_ContactD.data());
+		host_Count_AABB_AABB_Intersection(aabb_data.data(), body_number.data(), bin_start_index.data(),fam_data.data(), Num_ContactD.data());
 #endif
 		thrust::inclusive_scan(Num_ContactD.begin(),Num_ContactD.end(), Num_ContactD.begin()); number_of_contacts_possible=Num_ContactD.back();
 		potentialCollisions.resize(number_of_contacts_possible);
