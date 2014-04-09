@@ -252,6 +252,63 @@ bool box_sphere(const real3& pos1, const real4& rot1, const real3& hdims1,
 }
 
 // ==========================================================================
+//              FACE - SPHERE
+
+// Face-sphere narrow phase collision detection.
+// In: triangular face defined by points A1, B1, C1
+//     sphere sphere centered at pos2 and with radius2
+
+__host__ __device__
+bool face_sphere(const real3& A1, const real3& B1, const real3& C1,
+                 const real3& pos2, const real& radius2,
+                 real3& norm, real& depth,
+                 real3& pt1, real3& pt2,
+                 real& eff_radius)
+{
+	// Calculate face normal.
+	real3 nrm1 = face_normal(A1, B1, C1);
+
+	// Calculate signed height of sphere center above face plane. If the
+	// height is larger than the sphere radius or if the sphere center is
+	// below the plane, there is no contact.
+	real h = dot(pos2 - A1, nrm1);
+
+	if (h >= radius2 || h <= 0)
+		return false;
+
+	// Find the closest point on the face to the sphere center and determine
+	// whether or not this location is inside the face or on an edge.
+	real3 faceLoc;
+
+	if (snap_to_face(A1, B1, C1, pos2, faceLoc)) {
+		// Closest face feature is an edge. If the sphere doesn't touch the
+		// closest point then there is no contact. Also, ignore contact if
+		// the sphere center (almost) coincides with the closest point, in
+		// which case we couldn't decide on the proper contact direction.
+		real3 delta = pos2 - faceLoc;
+		real  dist2 = dot(delta, delta);
+
+		if (dist2 >= radius2 * radius2 || dist2 <= 1e-12f)
+			return false;
+
+		real dist = sqrt(dist2);
+		norm = delta / dist;
+		depth = dist - radius2;
+		eff_radius = radius2 * edge_radius / (radius2 + edge_radius);
+	} else {
+		// Closest point on face is inside the face.
+		norm = nrm1;
+		depth = h - radius2;
+		eff_radius = radius2;
+	}
+
+	pt1 = faceLoc;
+	pt2 = pos2 - norm * radius2;
+
+	return true;
+}
+
+// ==========================================================================
 //              CAPSULE - CAPSULE
 
 // Capsule-capsule narrow phase collision detection.
@@ -693,6 +750,29 @@ void function_process(const uint&       icoll,           // index of this contac
 			ct_body_ids[index] = I2(body1, body2);
 		}
 		return;
+	}
+
+	if (type1 == TRIANGLEMESH && type2 == SPHERE) {
+		if (face_sphere(X1, Y1, Z1,
+			            X2, Y2.x,
+			            ct_norm[index], ct_depth[index],
+			            ct_pt1[index], ct_pt2[index],
+			            ct_eff_rad[index])) {
+			ct_flag[index] = 0;
+			ct_body_ids[index] = I2(body1, body2);
+		}
+	}
+
+	if (type1 == SPHERE && type2 == TRIANGLEMESH) {
+		if (face_sphere(X2, Y2, Z2,
+			            X1, Y1.x,
+			            ct_norm[index], ct_depth[index],
+			            ct_pt2[index], ct_pt1[index],
+			            ct_eff_rad[index])) {
+			ct_norm[index] = -ct_norm[index];
+			ct_flag[index] = 0;
+			ct_body_ids[index] = I2(body1, body2);
+		}
 	}
 
 	if (type1 == CAPSULE && type2 == CAPSULE) {
