@@ -75,7 +75,7 @@ class ChApiGPU ChConstraintBilateral: public ChBaseParallel {
 
 		void ShurA(real*x);
 		void ShurB(real*x, real* output);
-		void ShurBilaterals(custom_vector<real> &x_t, custom_vector<real> & AX);
+		void ShurBilaterals(std::vector<real> &x_t, std::vector<real> & AX);
 		void host_Offsets(int2* ids, uint* Body);
 		void host_Reduce_Shur(
 				bool* active,

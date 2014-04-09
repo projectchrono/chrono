@@ -1,8 +1,8 @@
 #include "ChSolverParallel.h"
 using namespace chrono;
 
-uint ChSolverParallel::SolveSD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
-	custom_vector<real> r(x.size()),temp(x.size());
+uint ChSolverParallel::SolveSD(std::vector<real> &x, const std::vector<real> &b, const uint max_iter) {
+	std::vector<real> r(x.size()),temp(x.size());
 	ShurProduct(x,r);
 	r = b - r;
 	real resold = 1, resnew, normb = Norm(b), alpha;

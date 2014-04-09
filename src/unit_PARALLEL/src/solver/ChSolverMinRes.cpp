@@ -1,38 +1,35 @@
 #include "ChSolverParallel.h"
 using namespace chrono;
 
-uint ChSolverParallel::SolveMinRes(custom_vector<real> &x, const custom_vector<real> &mb, const uint max_iter) {
+uint ChSolverParallel::SolveMinRes(std::vector<real> &x, const std::vector<real> &mb, const uint max_iter) {
 	uint N = mb.size();
 	bool verbose = true;
-	custom_vector<real> mr(N, 0), ml(N,0), mp(N,0), mz(N,0), mNMr(N,0), mNp(N,0), mMNp(N,0), mtmp(N,0);
-	custom_vector<real> mz_old;
-	custom_vector<real> mNMr_old;
+	std::vector<real> mr(N, 0), ml(N,0), mp(N,0), mz(N,0), mNMr(N,0), mNp(N,0), mMNp(N,0), mtmp(N,0);
+	std::vector<real> mz_old;
+	std::vector<real> mNMr_old;
 	real grad_diffstep = 0.01;
 	double rel_tol = tolerance;
 	double abs_tol = tolerance;
 
 	double rel_tol_b = NormInf(mb) * rel_tol;
 	//ml = x;
-#pragma omp parallel
-		{
+
 			ShurProduct(ml,mr);
-		}
+
 		mr = mb-mr;
 
 		mr=mr*grad_diffstep+ml;
-#pragma omp parallel
-		{
+
 			Project(mr.data());
-		}
+		
 		mr=(mr-ml)*(1.0/grad_diffstep);
 
 		mp=mr;
 		mz=mp;
-#pragma omp parallel
-		{
+
 			ShurProduct(mz,mNMr);
 			ShurProduct(mp,mNp);
-		}
+		
 		for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
 			mMNp = mNp;
 
@@ -46,18 +43,16 @@ uint ChSolverParallel::SolveMinRes(custom_vector<real> &x, const custom_vector<r
 			mtmp = mp*alpha;
 			ml=ml+mtmp;
 			double maxdeltalambda = Norm(mtmp);
-#pragma omp parallel
-		{
+
 			Project(ml.data());
 			ShurProduct(ml,mr);
-		}
+		
 		mr = mb-mr;
 
 		mr=mr*grad_diffstep+ml;
-#pragma omp parallel
-		{
+
 			Project(mr.data());
-		}
+		
 
 		mr=(mr-ml)*(1.0/grad_diffstep);
 
@@ -73,10 +68,9 @@ uint ChSolverParallel::SolveMinRes(custom_vector<real> &x, const custom_vector<r
 		mz_old = mz;
 		mz = mr;
 		mNMr_old = mNMr;
-#pragma omp parallel
-		{
+
 			ShurProduct(mz,mNMr);
-		}
+		
 		double numerator = Dot(mz,mNMr-mNMr_old);
 		double denominator = Dot(mz_old,mNMr_old);
 		double beta =numerator /numerator;

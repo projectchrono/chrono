@@ -39,7 +39,7 @@ void ChSolverParallel::shurB(real*x, real*out) {
 	bilateral->ShurB(x, out);
 
 }
-void ChSolverParallel::ShurProduct(custom_vector<real> &x, custom_vector<real> & output) {
+void ChSolverParallel::ShurProduct(std::vector<real> &x, std::vector<real> & output) {
 
 	//Thrust_Fill(output, 0);
 
@@ -58,7 +58,7 @@ void ChSolverParallel::ShurProduct(custom_vector<real> &x, custom_vector<real> &
 
 }
 //=================================================================================================================================
-void ChSolverParallel::ShurBilaterals(custom_vector<real> &x_t, custom_vector<real> & AX) {
+void ChSolverParallel::ShurBilaterals(std::vector<real> &x_t, std::vector<real> & AX) {
 	bilateral->ShurBilaterals(x_t,AX);
 }
 //=================================================================================================================================
@@ -104,7 +104,7 @@ void ChSolverParallel::Setup() {
 	//thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals, data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 3);
 
 }
-void ChSolverParallel::UpdatePosition(custom_vector<real> &x) {
+void ChSolverParallel::UpdatePosition(std::vector<real> &x) {
 	if (rigid_rigid->solve_sliding == true|| rigid_rigid->solve_spinning ==true) {
 		return;
 	}
@@ -188,7 +188,7 @@ void ChSolverParallel::Solve(GPUSOLVERTYPE solver_type) {
 
 			if (do_stab) {
 
-				custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals);
+				std::vector<real> rhs_bilateral(data_container->number_of_bilaterals);
 				thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, rhs_bilateral.begin());
 
 				for (int i = 0; i < 4; i ++) {
@@ -237,81 +237,82 @@ void ChSolverParallel::VelocityStabilization(ChParallelDataManager *data_contain
 
 }
 
-uint ChSolverParallel::SolveStab(custom_vector<real> &x, const custom_vector<real> &mb, const uint max_iter) {
+uint ChSolverParallel::SolveStab(vector<real> &x, const std::vector<real> &mb, const uint max_iter) {
 	uint N = mb.size();
-//	bool verbose = false;
-//	custom_vector<real> mr(N, 0), ml(N,0), mp(N,0), mz(N,0), mNMr(N,0), mNp(N,0), mMNp(N,0), mtmp(N,0);
-//	custom_vector<real> mz_old;
-//	custom_vector<real> mNMr_old;
-//	real grad_diffstep = 0.01;
-//	double rel_tol = tolerance;
-//	double abs_tol = tolerance;
-//
-//	double rel_tol_b = NormInf(mb) * rel_tol;
-//	//ml = x;
-//		ShurBilaterals(ml,mr);
-//		mr = mb-mr;
-//		mp=mr;
-//		mz=mr;
-//
-//		ShurBilaterals(mz,mNMr);
-//		ShurBilaterals(mp,mNp);
-//	//mNp = mNMr;
-//		for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
-//			mMNp = mNp;
-//
-//			double zNMr = Dot(mz,mNMr);
-//			double MNpNp = Dot(mMNp, mNp);
-//			if (fabs(MNpNp)<10e-30)
-//			{
-//				if (verbose) {cout << "Iter=" << current_iteration << " Rayleygh quotient alpha breakdown: " << zNMr << " / " << MNpNp << "\n";}
-//				MNpNp=10e-12;
-//			}
-//			double alpha = zNMr/MNpNp;
-//			mtmp = mp*alpha;
-//			ml=ml+mtmp;
-//			double maxdeltalambda = Norm(mtmp);
-//
-//			ShurBilaterals(ml,mr);
-//			mr = mb-mr;
-//
-//			double r_proj_resid = Norm(mr);
-//
-//			if (r_proj_resid < max(rel_tol_b, abs_tol) )
-//			{
-//				if (verbose)
-//				{
-//					cout << "Iter=" << current_iteration << " P(r)-converged!  |P(r)|=" << r_proj_resid << "\n";
-//				}
-//				break;
-//			}
-//
-//			mz_old = mz;
-//			mz = mr;
-//			mNMr_old = mNMr;
-//
-//			ShurBilaterals(mz,mNMr);
-//			double numerator = Dot(mz,mNMr-mNMr_old);
-//			double denominator = Dot(mz_old,mNMr_old);
-//			double beta =numerator /numerator;
-//
-//			if (fabs(denominator)<10e-30 || fabs(numerator)<10e-30)
-//			{
-//				if (verbose)
-//				{
-//					cout << "Iter=" << current_iteration << " Ribiere quotient beta restart: " << numerator << " / " << denominator << "\n";
-//				}
-//				beta =0;
-//			}
-//
-//			mtmp = mp*beta;
-//			mp = mz+mtmp;
-//			mNp = mNp*beta+mNMr;
-//
-//			AtIterationEnd(r_proj_resid, maxdeltalambda, current_iteration);
-//
-//		}
-//		x=ml;
+	bool verbose = false;
+	std::vector<real> mr(N, 0), ml(N,0), mp(N,0), mz(N,0), mNMr(N,0), mNp(N,0), mMNp(N,0), mtmp(N,0);
+	std::vector<real> mz_old;
+	std::vector<real> mNMr_old;
+	real grad_diffstep = 0.01;
+	double rel_tol = tolerance;
+	double abs_tol = tolerance;
+
+	double rel_tol_b = NormInf(mb) * rel_tol;
+	//ml = x;
+		ShurBilaterals(ml,mr);
+		mr = mb-mr;
+		mp=mr;
+		mz=mr;
+
+		ShurBilaterals(mz,mNMr);
+		ShurBilaterals(mp,mNp);
+	//mNp = mNMr;
+		for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
+			mMNp = mNp;
+
+			double zNMr = Dot(mz,mNMr);
+			double MNpNp = Dot(mMNp, mNp);
+			if (fabs(MNpNp)<10e-30)
+			{
+				if (verbose) {cout << "Iter=" << current_iteration << " Rayleygh quotient alpha breakdown: " << zNMr << " / " << MNpNp << "\n";}
+				MNpNp=10e-12;
+			}
+			double alpha = zNMr/MNpNp;
+			mtmp = mp*alpha;
+			ml=ml+mtmp;
+			double maxdeltalambda = Norm(mtmp);
+
+			ShurBilaterals(ml,mr);
+			mr = mb-mr;
+
+			double r_proj_resid = Norm(mr);
+
+			if (r_proj_resid < max(rel_tol_b, abs_tol) )
+			{
+				if (verbose)
+				{
+					cout << "Iter=" << current_iteration << " P(r)-converged!  |P(r)|=" << r_proj_resid << "\n";
+				}
+				break;
+			}
+
+			mz_old = mz;
+			mz = mr;
+			mNMr_old = mNMr;
+
+			ShurBilaterals(mz,mNMr);
+			double numerator = Dot(mz,mNMr-mNMr_old);
+			double denominator = Dot(mz_old,mNMr_old);
+			double beta =numerator /numerator;
+
+			if (fabs(denominator)<10e-30 || fabs(numerator)<10e-30)
+			{
+				if (verbose)
+				{
+					cout << "Iter=" << current_iteration << " Ribiere quotient beta restart: " << numerator << " / " << denominator << "\n";
+				}
+				beta =0;
+			}
+
+			mtmp = mp*beta;
+			mp = mz+mtmp;
+			mNp = mNp*beta+mNMr;
+
+			AtIterationEnd(r_proj_resid, maxdeltalambda, current_iteration);
+
+		}
+		x=ml;
+	/*
 		custom_vector<real> v(N, 0), v_hat(x.size()), w(N, 0), w_old, xMR, v_old, Av(x.size()), w_oold;
 		real beta, c = 1, eta, norm_rMR, norm_r0, c_old = 1, s_old = 0, s = 0, alpha, beta_old, c_oold, s_oold, r1_hat, r1, r2, r3;
 		ShurBilaterals(x,v_hat);
@@ -359,7 +360,7 @@ uint ChSolverParallel::SolveStab(custom_vector<real> &x, const custom_vector<rea
 			AtIterationEnd(residual, maxdeltalambda, current_iteration);
 
 			if (residual < tolerance) {break;}
-		}
+		}*/
 		total_iteration +=current_iteration;
 		current_iteration = total_iteration;
 		return current_iteration;

@@ -32,7 +32,7 @@ namespace chrono {
 		void shurB(real* x, real* out);
 
 		void ComputeImpulses();
-		void UpdatePosition(custom_vector<real> &x);
+		void UpdatePosition(std::vector<real> &x);
 		void UpdateContacts();
 
 		void host_shurA_contacts(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB,real *gamma, real3 *updateV, real3 *updateO,real3 *QXYZ,real3 *QUVW,uint* offset);
@@ -48,25 +48,25 @@ namespace chrono {
 		void host_Offsets(int2 *ids_contacts, int2 *ids_bilaterals, uint *Body);
 		void host_Reduce_Shur(bool* active, real3* QXYZ, real3* QUVW,real *inv_mass, real3 *inv_inertia, real3* updateQXYZ, real3* updateQUVW, uint* d_body_num, uint* counter);
 
-		void ShurProduct( custom_vector<real> &x_t, custom_vector<real> & AX);
-		void ShurBilaterals( custom_vector<real> &x_t, custom_vector<real> & AX);
+		void ShurProduct( std::vector<real> &x_t, std::vector<real> & AX);
+		void ShurBilaterals( std::vector<real> &x_t, std::vector<real> & AX);
 
 		void Solve(GPUSOLVERTYPE solver_type);
 		void VelocityStabilization(ChParallelDataManager *data_container_);
-		uint SolveStab(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
-		uint SolveSD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
-		uint SolveGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
-		uint SolveCG(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
-		uint SolveCGS(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
-		uint SolveBiCG(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
-		uint SolveBiCGStab(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
-		uint SolveMinRes(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
-		uint SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
-		uint SolveAPGDRS(custom_vector<real> &x,  custom_vector<real> &b, const uint max_iter, const int SIZE);
-		uint SolveFN(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter);
+		uint SolveStab(std::vector<real> &x, const std::vector<real> &b, const uint max_iter);
+		uint SolveSD(std::vector<real> &x, const std::vector<real> &b, const uint max_iter);
+		uint SolveGD(std::vector<real> &x, const std::vector<real> &b, const uint max_iter);
+		uint SolveCG(std::vector<real> &x, const std::vector<real> &b, const uint max_iter);
+		uint SolveCGS(std::vector<real> &x, const std::vector<real> &b, const uint max_iter);
+		uint SolveBiCG(std::vector<real> &x, const std::vector<real> &b, const uint max_iter);
+		uint SolveBiCGStab(std::vector<real> &x, const std::vector<real> &b, const uint max_iter);
+		uint SolveMinRes(std::vector<real> &x, const std::vector<real> &b, const uint max_iter);
+		uint SolveAPGD(std::vector<real> &x, const std::vector<real> &b, const uint max_iter);
+		uint SolveAPGDRS(std::vector<real> &x,  std::vector<real> &b, const uint max_iter, const int SIZE);
+		uint SolveFN(std::vector<real> &x, const std::vector<real> &b, const uint max_iter);
 		void SolveJacobi();
 
-		void InitAPGD(custom_vector<real> &x);
+		void InitAPGD(std::vector<real> &x);
 		real Res4(const int SIZE, real* mg_tmp, const real* b, real*x, real* mb_tmp);
 		void SetAPGDParams(real theta_k, real shrink,real grow);
 
@@ -169,15 +169,15 @@ namespace chrono {
 			ChTimer<double>  timer_shurcompliment, timer_project, timer_solver;
 			thrust::host_vector<real> maxd_hist,maxdeltalambda_hist,iter_hist;
 
-			custom_vector<real> temp1;
-			custom_vector<real> temp2;
+			std::vector<real> temp1;
+			std::vector<real> temp2;
 
-			custom_vector<real> obj2_temp;
-			custom_vector<real> obj1_temp;
-			custom_vector<real> lm;
+			std::vector<real> obj2_temp;
+			std::vector<real> obj1_temp;
+			std::vector<real> lm;
 
-			custom_vector<real> ms, mg_tmp2, mb_tmp,mg_tmp, mg_tmp1;
-			custom_vector<real> mg,ml, mx, my,ml_candidate;
+			std::vector<real> ms, mg_tmp2, mb_tmp,mg_tmp, mg_tmp1;
+			std::vector<real> mg,ml, mx, my,ml_candidate;
 
 			real init_theta_k;
 			real step_shrink;

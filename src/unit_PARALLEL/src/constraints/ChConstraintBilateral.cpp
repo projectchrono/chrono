@@ -211,7 +211,7 @@ void ChConstraintBilateral::ShurB(real*x, real* output) {
 
 }
 
-void ChConstraintBilateral::ShurBilaterals(custom_vector<real> &x_t, custom_vector<real> & AX) {
+void ChConstraintBilateral::ShurBilaterals(std::vector<real> &x_t, std::vector<real> & AX) {
 //#pragma omp parallel for
 	for (int i = 0; i < number_of_rigid; i++) {
 		data_container->host_data.QXYZ_data[i] = R3(0);

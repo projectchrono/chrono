@@ -3,7 +3,7 @@ using namespace chrono;
 //Copyright 2011, Kenny Erleben, DIKU
 // Copyright 2012, Michael Andersen, DIKU
 
-custom_vector<real> & fischer(custom_vector<real> y, custom_vector<real> x) {
+custom_vector<real> & fischer(std::vector<real> y, std::vector<real> x) {
 
 	// Auxiliary function used by the Fischer-Newton method
 	// Copyright 2011, Kenny Erleben, DIKU
@@ -17,17 +17,17 @@ custom_vector<real> & fischer(custom_vector<real> y, custom_vector<real> x) {
 	return phi;
 }
 
-custom_vector<real> & phi_lambda(custom_vector<real> a,custom_vector<real> b,real lambda) {
+std::vector<real> & phi_lambda(std::vector<real> a,std::vector<real> b,real lambda) {
 
-	custom_vector<real> phi_l (a.size());
-	phi_l = lambda*fischer(a,b)+(1-lambda)*(max(0,a)*max(0,b));
+	std::vector<real> phi_l (a.size());
+	//phi_l = lambda*fischer(a,b)+(1-lambda)*(max(0,a)*max(0,b));
 	return phi_l;
 
 }
 
-uint ChSolverParallel::SolveFN(custom_vector<real> &x0, const custom_vector<real> &b, const uint max_iter) {
+uint ChSolverParallel::SolveFN(std::vector<real> &x0, const std::vector<real> &b, const uint max_iter) {
 	int N = x0.size();
-	custom_vector<real> Ax(N), phi(N);
+	std::vector<real> Ax(N), phi(N);
 
 	real tol_rel = 0.0001;
 	real eps = .0001;
@@ -42,12 +42,12 @@ uint ChSolverParallel::SolveFN(custom_vector<real> &x0, const custom_vector<real
 		real rho = eps;// Descent direction test parameter used to test if the Newton direction does a good enough job.
 
 		real err = 1e20;// Current error measure
-		custom_vector<real> x = x0;// Current iterate
+		std::vector<real> x = x0;// Current iterate
 		int iter = 1;// Iteration counter
 
 		while (iter <= max_iter ) {
 			ShurProduct(x,Ax);
-			custom_vector<real> y = Ax + b;
+			std::vector<real> y = Ax + b;
 
 			//--- Test all stopping criteria used ------------------------------------
 			phi = phi_lambda(y, x, lambda);// Calculate fischer function

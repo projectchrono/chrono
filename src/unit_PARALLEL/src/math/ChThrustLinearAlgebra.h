@@ -3,7 +3,7 @@
 
 #include "math/ChParallelMath.h"
 
-static void SEAXPY(const real &a, const custom_vector<real> &x,const custom_vector<real> &y, custom_vector<real> &output)
+static void SEAXPY(const real &a, const std::vector<real> &x,const std::vector<real> &y, std::vector<real> &output)
 {
 #pragma omp parallel for
 	for(int i=0; i<output.size(); i++) {
@@ -21,7 +21,7 @@ static void SEAXPY(int SIZE, const real &a, real* __restrict__  x,real* __restri
 
 }
 
-static void SEAXMY(const real &a, const custom_vector<real> &x,const custom_vector<real> &y, custom_vector<real> &output)
+static void SEAXMY(const real &a, const std::vector<real> &x,const std::vector<real> &y, std::vector<real> &output)
 {
 #pragma omp parallel for
 	for(int i=0; i<output.size(); i++) {
@@ -29,9 +29,9 @@ static void SEAXMY(const real &a, const custom_vector<real> &x,const custom_vect
 	}
 }
 template<typename T>
-static custom_vector<T> operator +(const custom_vector<T> &x, const custom_vector<T> &y)
+static std::vector<T> operator +(const std::vector<T> &x, const std::vector<T> &y)
 {
-	custom_vector<T> temp(x.size());
+	std::vector<T> temp(x.size());
 
 #pragma omp parallel for
 	for(int i=0; i<temp.size(); i++) {
@@ -41,7 +41,7 @@ static custom_vector<T> operator +(const custom_vector<T> &x, const custom_vecto
 	return temp;
 }
 template<typename T>
-static void operator +=(custom_vector<T> &x, const custom_vector<T> &y)
+static void operator +=(std::vector<T> &x, const std::vector<T> &y)
 {
 #pragma omp parallel for
 	for(int i=0; i<x.size(); i++) {
@@ -49,10 +49,10 @@ static void operator +=(custom_vector<T> &x, const custom_vector<T> &y)
 	}
 }
 template<typename T>
-static custom_vector<T> operator -(const custom_vector<T> &x, const custom_vector<T> &y)
+static std::vector<T> operator -(const std::vector<T> &x, const std::vector<T> &y)
 {
 
-	custom_vector<T> temp(x.size());
+	std::vector<T> temp(x.size());
 #pragma omp parallel for
 	for(int i=0; i<x.size(); i++) {
 		temp[i] = x[i]-y[i];
@@ -62,7 +62,7 @@ static custom_vector<T> operator -(const custom_vector<T> &x, const custom_vecto
 
 }
 
-static void Sub(custom_vector<real> &ans, const custom_vector<real> &x, const custom_vector<real> &y)
+static void Sub(std::vector<real> &ans, const std::vector<real> &x, const std::vector<real> &y)
 {
 
 #pragma omp parallel for
@@ -72,9 +72,9 @@ static void Sub(custom_vector<real> &ans, const custom_vector<real> &x, const cu
 
 }
 template<typename T, typename U>
-static custom_vector<T> operator *(const custom_vector<T> &y, const U &x)
+static std::vector<T> operator *(const std::vector<T> &y, const U &x)
 {
-	custom_vector<T> temp(y.size());
+	std::vector<T> temp(y.size());
 
 #pragma omp parallel for
 	for(int i=0; i<y.size(); i++) {
@@ -84,9 +84,9 @@ static custom_vector<T> operator *(const custom_vector<T> &y, const U &x)
 	return temp;
 }
 template<typename T, typename U>
-static custom_vector<T> operator *(const custom_vector<T> &x, const custom_vector<U> &y)
+static std::vector<T> operator *(const std::vector<T> &x, const std::vector<U> &y)
 {
-	custom_vector<T> temp(x.size());
+	std::vector<T> temp(x.size());
 
 #pragma omp parallel for
 	for(int i=0; i<x.size(); i++) {
@@ -96,9 +96,9 @@ static custom_vector<T> operator *(const custom_vector<T> &x, const custom_vecto
 	return temp;
 }
 template<typename T, typename U>
-static custom_vector<U> operator *(const T &x, const custom_vector<U> &y)
+static std::vector<U> operator *(const T &x, const std::vector<U> &y)
 {
-	custom_vector<U> temp(y.size());
+	std::vector<U> temp(y.size());
 #pragma omp parallel for
 	for(int i=0; i<y.size(); i++) {
 		temp[i] = x*y[i];
@@ -108,7 +108,7 @@ static custom_vector<U> operator *(const T &x, const custom_vector<U> &y)
 }
 
 template<typename T, typename U>
-static void operator *=(custom_vector<T> &x, const custom_vector<U> &y)
+static void operator *=(std::vector<T> &x, const std::vector<U> &y)
 {
 #pragma omp parallel for
 	for(int i=0; i<x.size(); i++) {
@@ -116,9 +116,9 @@ static void operator *=(custom_vector<T> &x, const custom_vector<U> &y)
 	}
 }
 template<typename T>
-static custom_vector<T> operator /(const custom_vector<T> &x, const custom_vector<T> &y)
+static std::vector<T> operator /(const std::vector<T> &x, const std::vector<T> &y)
 {
-	custom_vector<T> temp(y.size());
+	std::vector<T> temp(y.size());
 #pragma omp parallel for
 	for(int i=0; i<y.size(); i++) {
 		temp[i] = x[i]/y[i];
@@ -127,7 +127,7 @@ static custom_vector<T> operator /(const custom_vector<T> &x, const custom_vecto
 	return temp;
 }
 
-static real Dot(const custom_vector<real> &x, const custom_vector<real> &y)
+static real Dot(const std::vector<real> &x, const std::vector<real> &y)
 {
 	real sum=0;
 #pragma omp parallel for reduction(+:sum)

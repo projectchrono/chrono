@@ -111,8 +111,8 @@ public:
 	bool solve_spinning;
 protected:
 
-	custom_vector<real3> JUA_rigid_rigid;
-	custom_vector<real3> JUB_rigid_rigid;
+	vector<real3> JUA_rigid_rigid;
+	vector<real3> JUB_rigid_rigid;
 
 	custom_vector<real4> comp_rigid_rigid;
 
