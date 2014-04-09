@@ -51,6 +51,8 @@ protected:
 	bool wireframe;
 	bool backface_cull;
 
+	std::string name;
+
 public:
 				//
 	  			// CONSTRUCTORS
@@ -78,6 +80,8 @@ public:
 	bool IsBackfaceCull() {return backface_cull;}
 	void SetBackfaceCull(bool mbc) {backface_cull = mbc;}
 
+	const std::string& GetName() const     {return name;}
+	void SetName(const std::string& mname) {name = mname;}
 };
 
 
