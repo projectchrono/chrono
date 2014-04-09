@@ -52,7 +52,7 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 
 			ShurProduct(my,mg_tmp1);
 
-#pragma omp parallel for
+#pragma omp parallel for simd safelen(4)
 		for (int i = 0; i < SIZE; i++) {
 			real _mg_ = mg_tmp1[i] - b[i];
 			mg[i] = _mg_;
@@ -85,7 +85,7 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 			t_k = 1.0 / L_k;
 			obj1 = dot_mg_ms = norm_ms =0;
 
-#pragma omp parallel for
+#pragma omp parallel for simd safelen(4)
 		for(int i=0; i<SIZE; i++) {
 			mx[i] = -t_k*mg[i]+ my[i];
 		}

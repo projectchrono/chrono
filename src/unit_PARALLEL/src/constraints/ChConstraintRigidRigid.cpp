@@ -460,7 +460,7 @@ void ChConstraintRigidRigid::host_shurA_normal(real * gamma, real3* norm, real3 
 }
 
 void ChConstraintRigidRigid::host_shurA_sliding(bool2* contact_active, real3* norm, real3 * ptA, real3 * ptB, real4 * rot, real * gamma, real3 * updateV, real3 * updateO) {
-#pragma omp parallel for
+#pragma omp parallel for simd safelen(4)
 	for (size_t index = 0; index < number_of_rigid_rigid; index++) {
 		real3 gam(_mm_loadu_ps(&gamma[_index_]));
 		real3 U = norm[index], V, W;
@@ -483,7 +483,7 @@ void ChConstraintRigidRigid::host_shurA_sliding(bool2* contact_active, real3* no
 }
 
 void ChConstraintRigidRigid::host_shurA_spinning(bool2* contact_active, real3* norm, real3 * ptA, real3 * ptB, real4 * rot, real * gamma, real3 * updateV,real3 * updateO) {
-#pragma omp parallel for
+#pragma omp parallel for simd safelen(4)
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
 
 		real3 gam(_mm_loadu_ps(&gamma[_index_]));
@@ -530,7 +530,7 @@ void ChConstraintRigidRigid::host_shurA_spinning(bool2* contact_active, real3* n
 void ChConstraintRigidRigid::host_shurB_normal(const real & alpha, int2 * ids, bool2* contact_active, real3* norm, real4 * compliance, real * gamma, real3 * JUA, real3 * JUB,
 		real3 * QXYZ, real3 * QUVW, real * AX) {
 
-#pragma omp parallel for
+#pragma omp parallel for simd safelen(4)
 	for (size_t index = 0; index < number_of_rigid_rigid; index++) {
 		real temp = 0;
 
@@ -560,7 +560,7 @@ void ChConstraintRigidRigid::host_shurB_normal(const real & alpha, int2 * ids, b
 void ChConstraintRigidRigid::host_shurB_sliding(const real & alpha, int2 * ids, bool2* contact_active, real3* norm, real4 * compliance, real * gamma, real3 * ptA, real3 * ptB,
 		real4 * rot, real3 * QXYZ, real3 * QUVW, real * AX) {
 
-#pragma omp parallel for
+#pragma omp parallel for simd safelen(4)
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		real3 temp = R3(0);
 
@@ -602,7 +602,7 @@ void ChConstraintRigidRigid::host_shurB_sliding(const real & alpha, int2 * ids, 
 void ChConstraintRigidRigid::host_shurB_spinning(const real & alpha, int2 * ids, bool2* contact_active, real3* norm, real4 * compliance, real * gamma, real3 * ptA, real3 * ptB,
 		real4 * rot, real3 * QXYZ, real3 * QUVW, real * AX) {
 
-#pragma omp parallel for
+#pragma omp parallel for simd safelen(4)
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
 		real3 temp = R3(0);
 		real3 temp_roll = R3(0);
