@@ -1,9 +1,14 @@
 #include <stdio.h>
 #include <vector>
 #include <cmath>
+#include <string>
+
+#include "geometry/ChCTriangleMeshConnected.h"
 
 #include "ChSystemParallel.h"
 #include "ChLcpSystemDescriptorParallel.h"
+
+#include "collision/ChCNarrowphaseRUtils.h"
 
 using namespace chrono;
 using namespace geometry;
@@ -141,6 +146,50 @@ createBox(ChSystemParallel* sys,
 
 // ------------------------------------------------------------------------------
 
+void
+createMesh(ChSystemParallel* sys,
+           const ChVector<>& pos,
+           const ChQuaternion<>& rot,
+           const std::string& filename)
+{
+	ChTriangleMeshConnected trimesh;
+	trimesh.LoadWavefrontMesh(filename, true, false);
+
+#ifdef DEM
+	ChSharedBodyDEMPtr body(new ChBodyDEM(new ChCollisionModelParallel));
+#else
+	ChSharedBodyPtr body(new ChBody(new ChCollisionModelParallel));
+#endif
+
+	body->SetPos(pos);
+	body->SetRot(rot);
+	body->SetCollide(true);
+	body->SetBodyFixed(false);
+
+	body->GetCollisionModel()->ClearModel();
+	body->GetCollisionModel()->AddTriangleMesh(trimesh, false, false);
+	body->GetCollisionModel()->BuildModel();
+
+	sys->AddBody(body);
+
+	cout << counter++ << " [mesh]" << endl;
+	for (int i = 0; i < trimesh.getNumTriangles(); i++) {
+		cout << "   face " << i << endl;
+		ChTriangle tri = trimesh.getTriangle(i);
+		real3 A = R3(tri.p1.x, tri.p1.y, tri.p1.z);
+		real3 B = R3(tri.p2.x, tri.p2.y, tri.p2.z);
+		real3 C = R3(tri.p3.x, tri.p3.y, tri.p3.z);
+		real3 nrm = face_normal(A, B, C);
+
+		cout << "      pt1  " << A.x << "  " << A.y << "  " << A.z << endl;
+		cout << "      pt2  " << B.x << "  " << B.y << "  " << B.z << endl;
+		cout << "      pt3  " << C.x << "  " << C.y << "  " << C.z << endl;
+		cout << "      nrm  " << nrm.x << "  " << nrm.y << "  " << nrm.z << endl;
+	}
+}
+
+// ------------------------------------------------------------------------------
+
 int main(int argc, char* argv[])
 {
 	int threads = 8;
@@ -179,13 +228,17 @@ int main(int argc, char* argv[])
 	//createBox(&msystem, ChVector<>(0, 0, -0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(5, 2, 0.1));
 
 
-	createCapsule(&msystem, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), 1.1, 1);
+	//createCapsule(&msystem, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), 1.1, 1);
 
 	//createSphere(&msystem, ChVector<>(0, 0, 3), ChQuaternion<>(1, 0, 0, 0), 2);
 
-	ChQuaternion<> rot;
-	rot.Q_from_AngAxis(PI/2, ChVector<>(1, 0, 0));
-	createCapsule(&msystem, ChVector<>(0, 0, 4), rot, 2, 1);
+	//ChQuaternion<> rot;
+	//rot.Q_from_AngAxis(PI/2, ChVector<>(1, 0, 0));
+	//createCapsule(&msystem, ChVector<>(0, 0, 4), rot, 2, 1);
+
+	//createBox(&msystem, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), ChVector<>(2, 3, 1));
+	createMesh(&msystem, ChVector<>(0,0,0), ChQuaternion<>(1,0,0,0), "../TEST/test.obj");
+	createSphere(&msystem, ChVector<>(1.6, 0, -1), ChQuaternion<>(1, 0, 0, 0), 2);
 
 
 
