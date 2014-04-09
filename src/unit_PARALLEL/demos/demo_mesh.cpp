@@ -18,26 +18,38 @@ int main(int argc, char* argv[])
 
 	// Simulation parameters
 	double gravity = 9.81;
-	double time_step = 0.001;
-	double time_end = 4.0;
-	double out_fps = 25;
+	double time_step = 0.0001;
+	double time_end = 10.0;
+	double out_fps = 30;
 
 	int max_iteration = 20;
 
 	// Input / Output
-	const std::string  obj_mesh_file("../TEST_MESH/tetrahedron.obj");
-	const std::string  mesh_name("tetrahedron");
-	const std::string  pov_mesh_file("../TEST_MESH/tetrahedron.inc");
+	const std::string  obj_mesh_file("../TEST_MESH/box3d.obj");
+	const std::string  mesh_name("box3d");
+	const std::string  pov_mesh_file("../TEST_MESH/box3d.inc");
 	const char* pov_out_folder = "../TEST_MESH/POVRAY";
 
 	// Parameters for the falling body
-	int             bodyId = 100;
-	double          mass = 30;
-	ChVector<>      inertia = ChVector<>(0.2, 0.2, 0.2);
-	ChVector<>      initPos(1, -1, 4);
-	ChVector<>      initVel(0,0,0);
-	ChQuaternion<>  initRot(1,0,0,0);
-	//initRot.Q_from_AngAxis(PI/3, ChVector<>(1, 0, 0));
+	ChVector<>      hdims(1, 1, 1);
+	double          density = 1000;
+	double          volume = 8 * hdims.x * hdims.y * hdims.z;
+	double          mass = density * volume;
+	ChVector<>      inertia = mass/12 * ChVector<>(hdims.y * hdims.y + hdims.z * hdims.z,
+	                                               hdims.x * hdims.x + hdims.z * hdims.z,
+	                                               hdims.x * hdims.x + hdims.y * hdims.y);
+
+	ChVector<>      initPos1( 1.5,  1.5, 4);
+	ChVector<>      initPos2(-1.5, -1.5, 4);
+
+	ChVector<>      initVel1(0,0,0);
+	ChVector<>      initVel2(0,0,0);
+
+	ChQuaternion<>  initRot1(1,0,0,0);
+	initRot1.Q_from_AngAxis(PI/4, ChVector<>(1/sqrt(2.0), 1/sqrt(2.0), 0));
+
+	ChQuaternion<>  initRot2(1,0,0,0);
+	initRot2.Q_from_AngAxis(PI/4, ChVector<>(-1/sqrt(2.0), -1/sqrt(2.0), 0));
 
 	// -------------
 	// Create system
@@ -71,59 +83,70 @@ int main(int argc, char* argv[])
 
 	((ChCollisionSystemParallel*) msystem->GetCollisionSystem())->ChangeNarrowphase(new ChCNarrowphaseR);
 
-	// -------------------------
-	// Create the falling object
-	// -------------------------
+	// --------------------------
+	// Create the falling objects
+	// --------------------------
 
 	ChSharedPtr<ChMaterialSurfaceDEM> bodyMat(new ChMaterialSurfaceDEM);
-	bodyMat->SetYoungModulus(1e7f);
-	bodyMat->SetFriction(0.4f);
-	bodyMat->SetDissipationFactor(0.1f);
+	bodyMat->SetYoungModulus(1e8f);
+	bodyMat->SetFriction(0.5f);
+	bodyMat->SetDissipationFactor(0.4f);
 
-	ChSharedBodyDEMPtr body(new ChBodyDEM(new ChCollisionModelParallel));
-	body->SetMaterialSurfaceDEM(bodyMat);
-	body->SetIdentifier(bodyId);
-	body->SetMass(mass);
-	body->SetInertiaXX(inertia);
-	body->SetPos(initPos);
-	body->SetRot(initRot);
-	body->SetPos_dt(initVel);
-	body->SetBodyFixed(false);
-	body->SetCollide(true);
+	ChSharedBodyDEMPtr body1(new ChBodyDEM(new ChCollisionModelParallel));
+	body1->SetMaterialSurfaceDEM(bodyMat);
+	body1->SetIdentifier(101);
+	body1->SetMass(mass);
+	body1->SetInertiaXX(inertia);
+	body1->SetPos(initPos1);
+	body1->SetRot(initRot1);
+	body1->SetPos_dt(initVel1);
+	body1->SetBodyFixed(false);
+	body1->SetCollide(true);
 
-	body->GetCollisionModel()->ClearModel();
-	utils::AddTriangleMeshGeometry(body.get_ptr(), obj_mesh_file, mesh_name);
-	body->GetCollisionModel()->BuildModel();
+	body1->GetCollisionModel()->ClearModel();
+	utils::AddTriangleMeshGeometry(body1.get_ptr(), obj_mesh_file, mesh_name);
+	body1->GetCollisionModel()->BuildModel();
 
-	body->SetInertiaXX(inertia);
+	body1->SetInertiaXX(inertia);
 
-	msystem->AddBody(body);
+	msystem->AddBody(body1);
 
 	utils::WriteMeshPovray(obj_mesh_file, mesh_name, pov_mesh_file);
 
+
+	ChSharedBodyDEMPtr body2(new ChBodyDEM(new ChCollisionModelParallel));
+	body2->SetMaterialSurfaceDEM(bodyMat);
+	body2->SetIdentifier(102);
+	body2->SetMass(mass);
+	body2->SetInertiaXX(inertia);
+	body2->SetPos(initPos2);
+	body2->SetRot(initRot2);
+	body2->SetPos_dt(initVel2);
+	body2->SetBodyFixed(false);
+	body2->SetCollide(true);
+
+	body2->GetCollisionModel()->ClearModel();
+	utils::AddBoxGeometry(body2.get_ptr(), hdims);
+	body2->GetCollisionModel()->BuildModel();
+
+	body2->SetInertiaXX(inertia);
+
+	msystem->AddBody(body2);
+
+
 	// -------------------------
-	// Create the containing bin
+	// Create the fixed objects
 	// -------------------------
 
 	ChSharedPtr<ChMaterialSurfaceDEM> binMat(new ChMaterialSurfaceDEM);
-	binMat->SetYoungModulus(1e7f);
+	binMat->SetYoungModulus(1e8f);
 	binMat->SetFriction(0.4f);
 	binMat->SetDissipationFactor(0.1f);
-
-	int binId = -200;
-
-/*
-	double hDimX = 5;          // length in x direction
-	double hDimY = 2;          // depth in y direction
-	double hDimZ = 0.5;        // height in z direction
-	double hThickness = 0.1;   // wall thickness
-	utils::CreateBoxContainerDEM(msystem, binId, binMat, ChVector<>(hDimX, hDimY, hDimZ), hThickness);
-*/
 
 	// A set of fixed spheres
 	ChSharedBodyDEMPtr bin(new ChBodyDEM(new ChCollisionModelParallel));
 	bin->SetMaterialSurfaceDEM(binMat);
-	bin->SetIdentifier(binId);
+	bin->SetIdentifier(-100);
 	bin->SetMass(1);
 	bin->SetPos(ChVector<>(0,0,0));
 	bin->SetRot(ChQuaternion<>(1,0,0,0));
@@ -143,35 +166,6 @@ int main(int argc, char* argv[])
 	bin->GetCollisionModel()->BuildModel();
 
 	msystem->AddBody(bin);
-
-/*
-	// A set of fixed capsules
-	ChSharedBodyDEMPtr bin(new ChBodyDEM(new ChCollisionModelParallel));
-	bin->SetMaterialSurfaceDEM(binMat);
-	bin->SetIdentifier(binId);
-	bin->SetMass(1);
-	bin->SetPos(ChVector<>(0,0,0));
-	bin->SetRot(ChQuaternion<>(1,0,0,0));
-	bin->SetBodyFixed(true);
-	bin->SetCollide(true);
-
-	double spacing = 1.5;
-	double bigR = 1;
-	double bigH = 6;
-	double offsetZ = -1;
-
-	ChQuaternion<>  rot(1,0,0,0);
-	rot.Q_from_AngAxis(PI/6, ChVector<>(0, 0, 1));
-
-	bin->GetCollisionModel()->ClearModel();
-	for (int ix = -3; ix < 6; ix++) {
-		ChVector<> pos(ix * spacing, 0, offsetZ);
-		utils::AddCapsuleGeometry(bin.get_ptr(), bigR, bigH, pos, rot);
-	}
-	bin->GetCollisionModel()->BuildModel();
-
-	msystem->AddBody(bin);
-*/
 
 	// ----------------------
 	// Perform the simulation
