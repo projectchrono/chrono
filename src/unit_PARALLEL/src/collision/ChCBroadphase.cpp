@@ -164,7 +164,11 @@ void __host__ __device__ function_Count_AABB_AABB_Intersection(const uint index,
 
 //--------------------------------------------------------------------------
 void ChCBroadphase::host_Count_AABB_AABB_Intersection(const real3 *aabb_data, const uint *body_number, const uint *bin_start_index, const int2 * fam_data, uint *Num_ContactD) {
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel
+
+	{
+
+#pragma omp	for schedule(dynamic)
 	for (int index = 0; index < last_active_bin; index++) {
 
 		int end = bin_start_index[index], count = 0, i;
@@ -200,6 +204,7 @@ void ChCBroadphase::host_Count_AABB_AABB_Intersection(const real3 *aabb_data, co
 		Num_ContactD[index] = count;
 
 	}
+}
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
