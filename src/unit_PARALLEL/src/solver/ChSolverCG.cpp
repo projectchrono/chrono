@@ -2,8 +2,8 @@
 using namespace chrono;
 
 
-uint ChSolverParallel::SolveCG(std::vector<real> &x, const std::vector<real> &b, const uint max_iter) {
-	std::vector<real> r(x.size()), p, Ap(x.size());
+uint ChSolverParallel::SolveCG(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
+    custom_vector<real> r(x.size()), p, Ap(x.size());
     real rsold, alpha, rsnew = 0, normb = Norm(b);
     if (normb == 0.0) {
         normb = 1;

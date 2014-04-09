@@ -1,7 +1,7 @@
 #include "ChSolverParallel.h"
 using namespace chrono;
 
-void ChSolverParallel::InitAPGD(std::vector<real> &x) {
+void ChSolverParallel::InitAPGD(custom_vector<real> &x) {
 	ms.resize(x.size());
 	mg_tmp2.resize(x.size());
 	mb_tmp.resize(x.size());
@@ -50,7 +50,7 @@ real ChSolverParallel::Res4(const int SIZE, real* mg_tmp, const real* b, real*x,
 	return sqrt(sum);
 
 }
-uint ChSolverParallel::SolveAPGD(std::vector<real> &x, const std::vector<real> &b, const uint max_iter) {
+uint ChSolverParallel::SolveAPGD(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
 	bool verbose = false;
 	real lastgoodres=10e30;
 	real theta_k=init_theta_k;

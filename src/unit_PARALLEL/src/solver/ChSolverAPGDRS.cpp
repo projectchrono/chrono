@@ -1,6 +1,6 @@
 #include "ChSolverParallel.h"
 using namespace chrono;
-uint ChSolverParallel::SolveAPGDRS(std::vector<real> &x, std::vector<real> &b, const uint max_iter,const int SIZE) {
+uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &b, const uint max_iter,const int SIZE) {
 	real lastgoodres=10e30;
 	real theta_k=init_theta_k;
 	real theta_k1=theta_k;

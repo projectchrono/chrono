@@ -264,7 +264,7 @@ void ChLcpSolverParallelDEM::RunTimeStep(real step)
 	bilateral.ComputeRHS();
 
 	if (max_iter_bilateral > 0) {
-		std::vector<real> rhs_bilateral(data_container->number_of_bilaterals);
+		custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals);
 		thrust::copy_n(data_container->host_data.rhs_data.begin(), data_container->number_of_bilaterals, rhs_bilateral.begin());
 		solver.SolveStab(data_container->host_data.gamma_bilateral, rhs_bilateral, max_iter_bilateral);
 	}

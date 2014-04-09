@@ -346,7 +346,6 @@ void ChSystemParallel::RecomputeThreads()
 	if (current_threads < min_threads) {
 		current_threads = min_threads;
 		omp_set_num_threads(min_threads);
-		cout << "current threads set to " << current_threads << endl;
 	}
 }
 

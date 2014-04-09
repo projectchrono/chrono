@@ -70,7 +70,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
 	data_container->system_timer.start("rhs");
 	bilateral.ComputeRHS();
 	data_container->system_timer.stop("rhs");
-	std::vector<real> rhs_bilateral(data_container->number_of_bilaterals,0);
+	custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals,0);
 	thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, rhs_bilateral.begin());
 
 	if (max_iter_bilateral > 0) {
@@ -173,8 +173,8 @@ void ChLcpSolverParallelDVI::RunWarmStartPostProcess() {
 	data_container->host_data.bin_number.resize((l + 1) * (w + 1) * (h + 1));
 	thrust::fill(data_container->host_data.bin_number.begin(), data_container->host_data.bin_number.end(), 0);
 
-	//points = (data_container->host_data.cpta_rigid_rigid + data_container->host_data.cptb_rigid_rigid);
-	//points = .5 * points;
+	points = (data_container->host_data.cpta_rigid_rigid + data_container->host_data.cptb_rigid_rigid);
+	points = .5 * points;
 
 	real3 max_point = R3(-FLT_MAX);
 	real3 min_point = R3(FLT_MAX);

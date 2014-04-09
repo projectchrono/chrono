@@ -43,21 +43,21 @@ namespace chrono {
 			thrust::host_vector<long long> pair_rigid_rigid;
 			thrust::host_vector<long long> old_pair_rigid_rigid;
 
-			std::vector<real> gamma_data;
-			std::vector<real> old_gamma_data;
-			std::vector<real> dgm_data;
+			thrust::host_vector<real> gamma_data;
+			thrust::host_vector<real> old_gamma_data;
+			thrust::host_vector<real> dgm_data;
 
 			//object data
-			std::vector<real3> vel_data, vel_new_data;
-			std::vector<real3> omg_data, omg_new_data;
-			std::vector<real3> pos_data, pos_new_data;
-			std::vector<real4> rot_data, rot_new_data;
-			std::vector<real3> inr_data;
-			std::vector<real3> frc_data;
-			std::vector<real3> trq_data;
-			std::vector<real3> acc_data;
+			thrust::host_vector<real3> vel_data, vel_new_data;
+			thrust::host_vector<real3> omg_data, omg_new_data;
+			thrust::host_vector<real3> pos_data, pos_new_data;
+			thrust::host_vector<real4> rot_data, rot_new_data;
+			thrust::host_vector<real3> inr_data;
+			thrust::host_vector<real3> frc_data;
+			thrust::host_vector<real3> trq_data;
+			thrust::host_vector<real3> acc_data;
 			thrust::host_vector<bool> active_data;
-			std::vector<real> mass_data;
+			thrust::host_vector<real> mass_data;
 
 			thrust::host_vector<real3> lim_data;
 			thrust::host_vector<real3> dem_data;
@@ -66,9 +66,9 @@ namespace chrono {
 			thrust::host_vector<real> bin_number;
 
 			// Material properties (DVI)
-			std::vector<real3> fric_data;
-			std::vector<real> cohesion_data;
-			std::vector<real4> compliance_data;
+			thrust::host_vector<real3> fric_data;
+			thrust::host_vector<real> cohesion_data;
+			thrust::host_vector<real4> compliance_data;
 
 			// Material properties (DEM)
 			thrust::host_vector<real2> elastic_moduli;   // Young's modulus and Poisson ratio
@@ -76,16 +76,16 @@ namespace chrono {
 			thrust::host_vector<real>  alpha;            // Dissipation factor (Hunt-Crossley)
 			thrust::host_vector<real>  cr;               // Coefficient of restitution
 
-			std::vector<real> rhs_data;
-			std::vector<real> diag;
-			std::vector<real3> QXYZ_data, QUVW_data;
+			thrust::host_vector<real> rhs_data;
+			thrust::host_vector<real> diag;
+			thrust::host_vector<real3> QXYZ_data, QUVW_data;
 
-			std::vector<real3> JXYZA_bilateral, JXYZB_bilateral;
-			std::vector<real3> JUVWA_bilateral, JUVWB_bilateral;
-			std::vector<real> residual_bilateral;
-			std::vector<real> correction_bilateral;
-			std::vector<int2> bids_bilateral;
-			std::vector<real> gamma_bilateral;
+			thrust::host_vector<real3> JXYZA_bilateral, JXYZB_bilateral;
+			thrust::host_vector<real3> JUVWA_bilateral, JUVWB_bilateral;
+			thrust::host_vector<real> residual_bilateral;
+			thrust::host_vector<real> correction_bilateral;
+			thrust::host_vector<int2> bids_bilateral;
+			thrust::host_vector<real> gamma_bilateral;
 
 //			thrust::host_vector<real3> JXYZA_fluid_fluid, JXYZB_fluid_fluid;
 //			thrust::host_vector<real3> JXYZA_rigid_fluid, JXYZB_rigid_fluid, JUVWB_rigid_fluid;

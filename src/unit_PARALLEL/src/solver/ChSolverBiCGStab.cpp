@@ -1,14 +1,14 @@
 #include "ChSolverParallel.h"
 using namespace chrono;
 
-uint ChSolverParallel::SolveBiCGStab(std::vector<real> &x, const std::vector<real> &b, const uint max_iter) {
+uint ChSolverParallel::SolveBiCGStab(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
 	real rho_1, rho_2, alpha = 1, beta, omega = 1;
-	std::vector<real> p, r(x.size()), phat, s, shat, t(x.size()), v(x.size());
+	custom_vector<real> p, r(x.size()), phat, s, shat, t(x.size()), v(x.size());
 	real normb = Norm(b);
 
 	ShurProduct(x,r);
 	p = r = b - r;
-	std::vector<real> rtilde = r;
+	custom_vector<real> rtilde = r;
 
 	if (normb == 0.0) {normb = 1;}
 

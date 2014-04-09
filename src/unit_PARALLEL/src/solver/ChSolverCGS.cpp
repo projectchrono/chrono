@@ -2,14 +2,14 @@
 using namespace chrono;
 
 
-uint ChSolverParallel::SolveCGS(std::vector<real> &x, const std::vector<real> &b, const uint max_iter) {
+uint ChSolverParallel::SolveCGS(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
 	real rho_1, rho_2, alpha, beta;
-	std::vector<real> r(x.size());
+	custom_vector<real> r(x.size());
 	ShurProduct(x,r);
 	r= b - r;
-	std::vector<real> p = r, phat, q = r, qhat(x.size()), vhat(x.size()), u = r, uhat(x.size());
+		custom_vector<real> p = r, phat, q = r, qhat(x.size()), vhat(x.size()), u = r, uhat(x.size());
 		real normb = Norm(b);
-		std::vector<real> rtilde = r;
+		custom_vector<real> rtilde = r;
 
 		if (normb == 0.0) {normb = 1;}
 
@@ -22,7 +22,7 @@ uint ChSolverParallel::SolveCGS(std::vector<real> &x, const std::vector<real> &b
 
 			if (current_iteration > 0) {
 				beta = rho_1 / rho_2;
-				#pragma omp parallel for
+				#pragma omp parallel for schedule(guided)
 
 				for (int i = 0; i < x.size(); i++) {
 					u[i] = r[i] + beta * q[i]; //u = r + beta * q;
