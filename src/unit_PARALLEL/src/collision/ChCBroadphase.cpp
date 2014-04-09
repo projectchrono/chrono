@@ -140,9 +140,9 @@ void ChCBroadphase::host_Store_AABB_BIN_Intersection(const real3 *aabb_data, con
 //Function to count AABB AABB intersection
 
 inline void __host__ __device__ function_Count_AABB_AABB_Intersection(
-		const uint index,
+		const uint &index,
 		const real3 *aabb_data,
-		const uint number_of_particles,
+		const uint &number_of_particles,
 		const uint *bin_number,
 		const uint *body_number,
 		const uint *bin_start_index,
@@ -178,8 +178,9 @@ inline void __host__ __device__ function_Count_AABB_AABB_Intersection(
 //--------------------------------------------------------------------------
 void ChCBroadphase::host_Count_AABB_AABB_Intersection(const real3 *aabb_data, const uint *bin_number, const uint *body_number, const uint *bin_start_index, const int2 * fam_data, uint *Num_ContactD) {
 #pragma omp parallel for schedule(dynamic)
-	for (int ind = 0; ind < last_active_bin; ind++) {
-		function_Count_AABB_AABB_Intersection(ind, aabb_data, numAABB, bin_number, body_number, bin_start_index, fam_data, Num_ContactD);
+
+	for (int i = 0; i < last_active_bin; i++) {
+		function_Count_AABB_AABB_Intersection(i, aabb_data, numAABB, bin_number, body_number, bin_start_index, fam_data, Num_ContactD);
 	}
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
