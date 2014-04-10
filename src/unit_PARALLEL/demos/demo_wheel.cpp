@@ -36,7 +36,7 @@ int threads = 8;
 
 // Simulation parameters
 double gravity = 9.81;
-double time_step = 1e-5;
+double time_step = 1e-4;
 double time_settling_min = 0.1;
 double time_settling_max = 5;
 double time_simulation = 10;
@@ -164,6 +164,8 @@ ChSharedBodyDEMPtr CreateWheel(ChSystemParallel* system, double z)
 	wheel->GetCollisionModel()->ClearModel();
 	utils::AddTriangleMeshGeometry(wheel.get_ptr(), obj_mesh_file, mesh_name);
 	wheel->GetCollisionModel()->BuildModel();
+
+	wheel->SetInertiaXX(inertia_w);
 
 	system->AddBody(wheel);
 
