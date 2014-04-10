@@ -36,7 +36,8 @@ int threads = 8;
 
 // Simulation parameters
 double gravity = 9.81;
-double time_step = 1e-4;
+double time_step_settling = 4e-5;
+double time_step_simulation = 1e-5;
 double time_settling_min = 0.1;
 double time_settling_max = 5;
 double time_simulation = 10;
@@ -56,7 +57,7 @@ double     vol_g = (4.0/3) * PI * r_g * r_g * r_g;
 double     mass_g = rho_g * vol_g;
 ChVector<> inertia_g = 0.4 * mass_g * r_g * r_g * ChVector<>(1,1,1);
 
-float      Y_g = 1e8;
+float      Y_g = 2e8;
 float      mu_g = 0.5;
 float      alpha_g = 0.3;
 float      cohesion_g = 300;
@@ -67,7 +68,7 @@ const std::string  mesh_name("wheel");
 const std::string  pov_mesh_file("../WHEEL/wheel.inc");
 
 int        Id_w = 0;
-double     mass_w = 60;
+double     mass_w = 600;////60;
 ChVector<> inertia_w = ChVector<>(1.85, 1.85, 3.675);
 
 float      Y_w = 1e8;
@@ -77,8 +78,8 @@ float      cohesion_w = 300;
 
 // Parameters for the containing bin
 int        binId = -200;
-double     hDimX = 4;               // length in x direction
-double     hDimY = 0.5;             // width in y direction
+double     hDimX = 4.0;             // length in x direction
+double     hDimY = 1.0;             // width in y direction
 double     hDimZ = 0.5;             // height in z direction
 double     hThickness = 0.04;       // wall thickness
 
@@ -88,7 +89,7 @@ float      alpha_c = 0.6;
 float      cohesion_c = 1000;
 
 // Height of layer for generator domain
-double     layerHeight = 0.4;
+double     layerHeight = 1.0;
 
 
 // =======================================================================
@@ -185,7 +186,7 @@ bool CheckSettled(ChSystem* sys, double threshold)
 	double t2 = threshold * threshold;
 	for (int i = 0; i < sys->Get_bodylist()->size(); ++i) {
 		ChBody* body = (ChBody*) sys->Get_bodylist()->at(i);
-		if (body->GetIdentifier() > 0) {
+		if (body->GetIdentifier() >= Id_g) {
 			double vel2 = body->GetPos_dt().Length2();
 			if (vel2 > t2)
 				return false;
@@ -193,6 +194,33 @@ bool CheckSettled(ChSystem* sys, double threshold)
 	}
 
 	return true;
+}
+
+// ========================================================================
+// These utility functions find the height of the highest or lowest sphere
+// in the granular mix, respectively.  We only look at bodies whith
+// identifiers larger than Id_g.
+
+double FindHighest(ChSystem* sys)
+{
+	double highest = 0;
+	for (int i = 0; i < sys->Get_bodylist()->size(); ++i) {
+		ChBody* body = (ChBody*) sys->Get_bodylist()->at(i);
+		if (body->GetIdentifier() >= Id_g && body->GetPos().z > highest)
+			highest = body->GetPos().z;
+	}
+	return highest;
+}
+
+double FindLowest(ChSystem* sys)
+{
+	double lowest = DBL_MAX;
+	for (int i = 0; i < sys->Get_bodylist()->size(); ++i) {
+		ChBody* body = (ChBody*) sys->Get_bodylist()->at(i);
+		if (body->GetIdentifier() >= Id_g && body->GetPos().z < lowest)
+			lowest = body->GetPos().z;
+	}
+	return lowest;
 }
 
 // ========================================================================
@@ -217,7 +245,6 @@ int main(int argc, char* argv[])
 	msystem->SetIterLCPmaxItersSpeed(max_iteration);
 	msystem->SetTol(1e-3);
 	msystem->SetTolSpeeds(1e-3);
-	msystem->SetStep(time_step);
 
 	((ChLcpSolverParallelDEM*) msystem->GetLcpSolverSpeed())->SetMaxIteration(max_iteration);
 	((ChLcpSolverParallelDEM*) msystem->GetLcpSolverSpeed())->SetTolerance(0);
@@ -230,14 +257,17 @@ int main(int argc, char* argv[])
 
 
 	// Depending on problem type:
+	// - Select time step
 	// - Select end simulation times
 	// - Create granular material and container
 	// - Create wheel
+	double time_step;
 	double time_end;
-	ChSharedBodyDEMPtr ball;
+	ChSharedBodyDEMPtr wheel;
 
 	switch (problem) {
 	case SETTLING:
+		time_step = time_step_settling;
 		time_end = time_settling_max;
 
 		// Create containing bin and the granular material at randomized initial positions
@@ -246,6 +276,7 @@ int main(int argc, char* argv[])
 		break;
 
 	case SIMULATION:
+		time_step = time_step_simulation;
 		time_end = time_simulation;
 
 		// Create the granular material bodies and the container from the checkpoint file.
@@ -254,17 +285,20 @@ int main(int argc, char* argv[])
 		cout << "  done.  Read " << msystem->Get_bodylist()->size() << " bodies." << endl;
 
 		// Create the wheel.
-		ball = CreateWheel(msystem, 1);
+		double z = FindHighest(msystem);
+		wheel = CreateWheel(msystem, z + r_g + 0.4);
 
 		break;
 	}
+
+	msystem->SetStep(time_step);
 
 	// Number of steps
 	int num_steps = std::ceil(time_end / time_step);
 	int out_steps = std::ceil((1 / time_step) / out_fps);
 
 	// Zero velocity level for settling check (fraction of a grain radius per second)
-	double zero_v = 0.1 * r_g;
+	double zero_v = 0.9 * r_g;
 
 	// Perform the simulation
 	double time = 0;
@@ -284,13 +318,14 @@ int main(int argc, char* argv[])
 			cout << "                                   Time:           " << time << endl;
 			cout << "                                   Execution time: " << exec_time << endl;
 
+			// Check if already settled.
+			if (problem == SETTLING && time > time_settling_min && CheckSettled(msystem, zero_v)) {
+				cout << "Granular material settled...  time = " << time << endl;
+				break;
+			}
+
 			out_frame++;
 			next_out_frame += out_steps;
-		}
-
-		if (problem == SETTLING && time > time_settling_min && CheckSettled(msystem, zero_v)) {
-			cout << "Granular material settled...  time = " << time << endl;
-			break;
 		}
 
 		msystem->DoStepDynamics(time_step);
