@@ -550,7 +550,7 @@ void WriteMeshPovray(const std::string&    obj_filename,
 	// Write vertices.
 	for (int i = 0; i < trimesh.m_vertices.size(); i++) {
 		ChVector<> v = trimesh.m_vertices[i];
-		ofile << "#local v" << i << " = <" << v.x << ", " << v.y << ", " << v.z << ">;" << std::endl;
+		ofile << "#local v" << i << " = <" << v.x << ", " << v.z << ", " << v.y << ">;" << std::endl;
 	}
 
 	// Write face connectivity.
