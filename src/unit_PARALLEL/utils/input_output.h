@@ -153,6 +153,7 @@ void WriteCheckpoint(ChSystem*          system,
 			csv << mat->young_modulus << mat->poisson_ratio;
 			csv << mat->static_friction << mat->sliding_friction;
 			csv << mat->restitution << mat->dissipation_factor;
+			csv << mat->cohesion;
 		}
 
 		csv << std::endl;
@@ -255,6 +256,7 @@ void ReadCheckpoint(ChSystem*          system,
 			iss2 >> mat->young_modulus >> mat->poisson_ratio;
 			iss2 >> mat->static_friction >> mat->sliding_friction;
 			iss2 >> mat->restitution >> mat->dissipation_factor;
+			iss2 >> mat->cohesion;
 		}
 
 		// Set body properties and state
