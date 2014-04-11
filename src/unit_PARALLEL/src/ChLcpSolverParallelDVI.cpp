@@ -88,6 +88,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
 	//cout<<"Solve normal"<<endl;
 	//solve normal
 	if (max_iter_normal > 0) {
+
 		solver.SetMaxIterations(max_iter_normal);
 		solver.SetComplianceAlpha(alpha);
 		rigid_rigid.solve_sliding = false;
@@ -95,8 +96,9 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
 		data_container->system_timer.start("rhs");
 		rigid_rigid.ComputeRHS();
 		data_container->system_timer.stop("rhs");
+		data_container->system_timer.start("solve");
 		solver.Solve(solver_type);
-
+		data_container->system_timer.stop("solve");
 	}
 	//cout<<"Solve sliding"<<endl;
 	if (max_iter_sliding > 0) {
@@ -106,7 +108,9 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
 		data_container->system_timer.start("rhs");
 		rigid_rigid.ComputeRHS();
 		data_container->system_timer.stop("rhs");
+		data_container->system_timer.start("solve");
 		solver.Solve(solver_type);
+		data_container->system_timer.stop("solve");
 	}
 	if (max_iter_spinning > 0) {
 		//cout<<"Solve Full"<<endl;
@@ -116,7 +120,9 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
 		data_container->system_timer.start("rhs");
 		rigid_rigid.ComputeRHS();
 		data_container->system_timer.stop("rhs");
+		data_container->system_timer.start("solve");
 		solver.Solve(solver_type);
+		data_container->system_timer.stop("solve");
 	}
 	thrust::copy_n(
 			data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6,
