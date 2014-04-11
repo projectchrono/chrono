@@ -127,33 +127,30 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 		ml = mx;
 
 		theta_k = theta_k1;
-		//if(current_iteration%2==0) {
-		real g_proj_norm = Res4(number_of_rigid_rigid*6, mg_tmp.data(), b.data(), ml.data(), mb_tmp.data());
-
-		if(number_of_bilaterals>0) {
-
-			real resid_bilat=-1;
-
-			for (int i = number_of_rigid_rigid*6; i < x.size(); i++) {
-				resid_bilat = max(resid_bilat, fabs(mg_tmp2[i]));
+		if(current_iteration%2==0) {
+			real g_proj_norm = Res4(number_of_rigid_rigid*6, mg_tmp.data(), b.data(), ml.data(), mb_tmp.data());
+			if(number_of_bilaterals>0) {
+				real resid_bilat=-1;
+				for (int i = number_of_rigid_rigid*6; i < x.size(); i++) {
+					resid_bilat = max(resid_bilat, fabs(mg_tmp2[i]));
+				}
+				g_proj_norm = max(g_proj_norm,resid_bilat );
 			}
-			g_proj_norm = max(g_proj_norm,resid_bilat );
-			//cout<<resid_bilat<<endl;
-		}
 
-		if(g_proj_norm < lastgoodres) {
-			lastgoodres = g_proj_norm;
-			ml_candidate = ml;
-		}
-		residual=lastgoodres;
-		real maxdeltalambda = 0;     //CompRes(b,number_of_rigid_rigid);     //NormInf(ms);
+			if(g_proj_norm < lastgoodres) {
+				lastgoodres = g_proj_norm;
+				ml_candidate = ml;
+			}
+			residual=lastgoodres;
+			//CompRes(b,number_of_rigid_rigid);     //NormInf(ms);
 
+			if(collision_inside) {
+				UpdatePosition(ml_candidate);
+				UpdateContacts();
+			}
+		}
+		real maxdeltalambda = 0;
 		AtIterationEnd(residual, maxdeltalambda, current_iteration);
-		if(collision_inside) {
-			UpdatePosition(ml_candidate);
-			UpdateContacts();
-		}
-		//}
 		if (residual < tolerance) {
 			break;
 		}

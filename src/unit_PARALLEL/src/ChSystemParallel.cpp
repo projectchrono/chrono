@@ -114,7 +114,7 @@ int ChSystemParallel::Integrate_Y()
 			bodylist[i]->VariablesQbSetSpeed(this->GetStep());
 			bodylist[i]->UpdateTime(ChTime);
 			//TrySleeping();			// See if the body can fall asleep; if so, put it to sleeping
-			//bodylist[i]->ClampSpeed();     // Apply limits (if in speed clamping mode) to speeds.
+			bodylist[i]->ClampSpeed();     // Apply limits (if in speed clamping mode) to speeds.
 			//bodylist[i]->ComputeGyro();     // Set the gyroscopic momentum.
 			//bodylist[i]->UpdateForces(ChTime);
 		}
