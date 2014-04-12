@@ -43,7 +43,11 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects)
 	gpu_data_manager->system_timer.AddTimer("shurA_spinning");
 	gpu_data_manager->system_timer.AddTimer("shurA_reduce");
 	gpu_data_manager->system_timer.AddTimer("shurB");
-
+	gpu_data_manager->system_timer.AddTimer("solverA");
+	gpu_data_manager->system_timer.AddTimer("solverB");
+	gpu_data_manager->system_timer.AddTimer("solverC");
+	gpu_data_manager->system_timer.AddTimer("solverD");
+	gpu_data_manager->system_timer.AddTimer("solverE");
 	min_threads = 1;
 
 }
