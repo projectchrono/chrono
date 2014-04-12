@@ -48,6 +48,7 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects)
 	gpu_data_manager->system_timer.AddTimer("solverC");
 	gpu_data_manager->system_timer.AddTimer("solverD");
 	gpu_data_manager->system_timer.AddTimer("solverE");
+	gpu_data_manager->system_timer.AddTimer("project");
 	min_threads = 1;
 
 }

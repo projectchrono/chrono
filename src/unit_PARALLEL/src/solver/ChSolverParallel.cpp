@@ -3,9 +3,9 @@
 using namespace chrono;
 
 void ChSolverParallel::Project(real* gamma) {
-
+	data_container->system_timer.start("project");
 	rigid_rigid->Project(gamma);
-
+	data_container->system_timer.stop("project");
 }
 
 void ChSolverParallel::Project_NoPar(real* gamma) {
