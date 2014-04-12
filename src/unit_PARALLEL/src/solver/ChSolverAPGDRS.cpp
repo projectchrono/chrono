@@ -55,7 +55,7 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 
 			ShurProduct(my,mg_tmp1);
 
-#pragma omp parallel for simd safelen(4)
+#pragma omp parallel for
 		for (int i = 0; i < SIZE; i++) {
 			real _mg_ = mg_tmp1[i] - b[i];
 			mg[i] = _mg_;
@@ -107,6 +107,9 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 			norm_ms+=_ms_*_ms_;
 			mg_tmp2[i] = _mg_tmp_ -_b_;
 		}
+
+		step_grow+=.5;
+
 		data_container->system_timer.stop("solverC");
 	}
 	data_container->system_timer.start("solverD");
@@ -130,7 +133,7 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 		L_k = step_shrink * L_k;
 		t_k = 1.0 / L_k;
 		ml = mx;
-
+		step_grow = 2.0;
 		theta_k = theta_k1;
 		if(current_iteration%2==0) {
 			real g_proj_norm = Res4(number_of_rigid_rigid*6, mg_tmp.data(), b.data(), ml.data(), mb_tmp.data());
