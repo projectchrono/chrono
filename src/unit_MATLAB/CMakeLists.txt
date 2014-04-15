@@ -29,6 +29,12 @@ IF (ENABLE_UNIT_MATLAB)
                 "${CH_MATLABSDK}/../bin/glnxa64/libeng.so" 
                 "${CH_MATLABSDK}/../bin/glnxa64/libmx.so" 
                 "${CH_MATLABSDK}/../bin/glnxa64/libmat.so")
+                
+    ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+        SET (CH_MATLABLIB 
+                "${CH_MATLABSDK}/../bin/maci64/libeng.dylib" 
+                "${CH_MATLABSDK}/../bin/maci64/libmx.dylib" 
+                "${CH_MATLABSDK}/../bin/maci64/libmat.dylib")
 ENDIF()
 
 SET (CH_MATLABINC    "${CH_MATLABINC}"    PARENT_SCOPE )
