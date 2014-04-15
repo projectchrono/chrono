@@ -47,7 +47,7 @@ int max_iteration = 20;
 // Output
 const char* out_folder = "../WHEEL/POVRAY";
 const char* checkpoint_file = "../WHEEL/settled.dat";
-double out_fps = 50;
+double out_fps = 60;
 
 // Parameters for the granular material
 int        Id_g = 100;
@@ -60,7 +60,7 @@ ChVector<> inertia_g = 0.4 * mass_g * r_g * r_g * ChVector<>(1,1,1);
 float      Y_g = 2e8;
 float      mu_g = 0.5;
 float      alpha_g = 0.3;
-float      cohesion_g = 300;
+float      cohesion_g = 20;
 
 // Parameters for the wheel
 const std::string  obj_mesh_file("../WHEEL/wheel.obj");
@@ -74,7 +74,7 @@ ChVector<> inertia_w = ChVector<>(1.85, 1.85, 3.675);
 float      Y_w = 1e8;
 float      mu_w = 1.0;
 float      alpha_w = 0.3;
-float      cohesion_w = 300;
+float      cohesion_w = 20;
 
 // Parameters for the containing bin
 int        binId = -200;
@@ -86,7 +86,7 @@ double     hThickness = 0.04;       // wall thickness
 float      Y_c = 2e6;
 float      mu_c = 1.0;
 float      alpha_c = 0.6;
-float      cohesion_c = 1000;
+float      cohesion_c = 0;
 
 // Height of layer for generator domain
 double     layerHeight = 1.0;
@@ -312,6 +312,7 @@ int main(int argc, char* argv[])
 			char filename[100];
 			sprintf(filename, "%s/data_%03d.dat", out_folder, out_frame);
 			utils::WriteShapesPovray(msystem, filename);
+			utils::WriteCheckpoint(msystem, checkpoint_file);
 
 			cout << " --------------------------------- Output frame:   " << out_frame << endl;
 			cout << "                                   Sim frame:      " << sim_frame << endl;
