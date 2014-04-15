@@ -197,7 +197,11 @@ namespace chrono {
 		bool ChCollisionModelParallel::AddEllipse(double rx, double ry) {
 			return false;
 		}
-		bool ChCollisionModelParallel::AddCapsule(double len, double rad) {
+		bool ChCollisionModelParallel::AddCapsule(
+				double  radius,
+                double  hlen,
+                const ChVector<> &   pos,
+                const ChMatrix33<> & rot )   {
 			return false;
 		}
 		bool ChCollisionModelParallel::AddCone(double rad, double h) {

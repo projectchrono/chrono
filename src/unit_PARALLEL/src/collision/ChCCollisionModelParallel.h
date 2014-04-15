@@ -83,8 +83,13 @@ public:
 	virtual bool AddDisc(double rad);
 	/// Add a 2d ellipse to this model, for collision purposes
 	virtual bool AddEllipse(double rx, double ry);
-	/// Add a capsule to this model, for collision purposes
-	virtual bool AddCapsule(double len, double rad);
+	/// Add a capsule to this model (default axis in Y direction), for collision purposes
+    virtual bool AddCapsule(double              radius,                 ///< capsule radius
+                          double              hlen,                   ///< half-length of capsule axis
+                          const ChVector<>&   pos = ChVector<>(),     ///< the position of the ellipsoid
+                          const ChMatrix33<>& rot = ChMatrix33<>(1)   ///< the matrix defining rotation (orthogonal)
+                          );
+
 	/// Add a cone to this model, for collision purposes
 	virtual bool AddCone(double rad, double h);
 
