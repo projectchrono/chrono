@@ -16,11 +16,13 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 	mg_tmp2.resize(SIZE);
 	ml.resize(SIZE);
 
+	ml = x;
+
 //#pragma omp  parallel for
 //		for(int i=0; i<SIZE; i++) {
 //			ml[i] = 0;
 //		}
-		ml = x;
+
 		Project(ml.data());
 		ml_candidate = ml;
 		ShurProduct(ml,mg);//mg is never used, only re-written
@@ -107,13 +109,12 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 			norm_ms+=_ms_*_ms_;
 			mg_tmp2[i] = _mg_tmp_ -_b_;
 		}
-
+		norm_ms = sqrt(norm_ms);
 		step_grow+=.5;
 
 		data_container->system_timer.stop("solverC");
 	}
 	data_container->system_timer.start("solverD");
-	norm_ms = sqrt(norm_ms);
 
 	theta_k1 = (-pow(theta_k, 2) + theta_k * sqrt(pow(theta_k, 2) + 4)) / 2.0;
 	beta_k1 = theta_k * (1.0 - theta_k) / (pow(theta_k, 2) + theta_k1);
