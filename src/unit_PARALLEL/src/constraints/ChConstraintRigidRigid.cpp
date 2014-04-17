@@ -198,7 +198,7 @@ void inline Compute_Jacobian(const real4& quat, const real3& U, const real3& V, 
 }
 
 void inline Compute_Jacobian_Rolling(const real4& quat, const real3& U, const real3& V, const real3& W, real3& T1, real3& T2, real3& T3) {
-	real4 quaternion_conjugate = quat;
+	real4 quaternion_conjugate = ~quat;
 
 	T1 = quatRotate(U, quaternion_conjugate);
 	T2 = quatRotate(V, quaternion_conjugate);
@@ -270,9 +270,9 @@ void ChConstraintRigidRigid::host_RHS_spinning(int2 *ids, bool2 * active, real3 
 			if (isactive.x) {
 
 				real4 quat = rot[index];
-				real3 TA = quatRotate(U, quat);
-				real3 TB = quatRotate(V, quat);
-				real3 TC = quatRotate(W, quat);
+
+				real3 TA, TB, TC;
+				Compute_Jacobian_Rolling(quat, U, V, W, TA, TB, TC);
 
 				real3 omega_b1 = omega[bid.x];
 				temp.x = dot(-TA, omega_b1);
@@ -282,9 +282,8 @@ void ChConstraintRigidRigid::host_RHS_spinning(int2 *ids, bool2 * active, real3 
 			if (isactive.y) {
 
 				real4 quat = rot[index + number_of_rigid_rigid];
-				real3 TA = quatRotate(U, quat);
-				real3 TB = quatRotate(V, quat);
-				real3 TC = quatRotate(W, quat);
+				real3 TA, TB, TC;
+				Compute_Jacobian_Rolling(quat, U, V, W, TA, TB, TC);
 
 				real3 omega_b2 = omega[bid.y];
 				temp.x += dot(TA, omega_b2);
@@ -488,11 +487,11 @@ void ChConstraintRigidRigid::host_shurA_sliding(bool2* contact_active, real3* no
 }
 
 void ChConstraintRigidRigid::host_shurA_spinning(bool2* contact_active, real3* norm, real3 * ptA, real3 * ptB, real4 * rot, real * gamma, real3 * updateV, real3 * updateO) {
-#pragma omp parallel for simd safelen(4)
+#pragma omp parallel for
 	for (int index = 0; index < number_of_rigid_rigid; index++) {
 
 		real3 gam(_mm_loadu_ps(&gamma[_index_]));
-		real3 gam_roll(_mm_loadu_ps(&gamma[_index_ + 3]));
+		real3 gam_roll(gamma[_index_ + 3], gamma[_index_ + 4], gamma[_index_ + 5]);
 
 		real3 U = norm[index], V, W;
 		Orthogonalize(U, V, W);
@@ -501,31 +500,17 @@ void ChConstraintRigidRigid::host_shurA_spinning(bool2* contact_active, real3* n
 
 		if (active.x != 0) {
 			real4 quat = rot[index];
-			real4 quaternion_conjugate = ~quat;
-			real3 sbar = quatRotate(ptA[index], quaternion_conjugate);
-			real3 TA = quatRotate(U, quat);
-			real3 TB = quatRotate(V, quat);
-			real3 TC = quatRotate(W, quat);
-
-			real3 T3 = cross(quatRotate(U, quaternion_conjugate), sbar);
-			real3 T4 = cross(quatRotate(V, quaternion_conjugate), sbar);
-			real3 T5 = cross(quatRotate(W, quaternion_conjugate), sbar);
+			real3 T3, T4, T5, TA, TB, TC;
+			Compute_Jacobian(quat, U, V, W, ptA[index], T3, T4, T5);
+			Compute_Jacobian_Rolling(quat, U, V, W, TA, TB, TC);
 
 			updateO[index] = T3 * gam.x + T4 * gam.y + T5 * gam.z - TA * gam_roll.x - TB * gam_roll.y - TC * gam_roll.z;
 		}
 		if (active.y != 0) {
-
 			real4 quat = rot[index + number_of_rigid_rigid];
-			real4 quaternion_conjugate = ~quat;
-			real3 sbar = quatRotate(ptB[index], quaternion_conjugate);
-			real3 TA = quatRotate(U, quat);
-			real3 TB = quatRotate(V, quat);
-			real3 TC = quatRotate(W, quat);
-
-			real3 T6 = cross(quatRotate(U, quaternion_conjugate), sbar);
-			real3 T7 = cross(quatRotate(V, quaternion_conjugate), sbar);
-			real3 T8 = cross(quatRotate(W, quaternion_conjugate), sbar);
-
+			real3 T6, T7, T8, TA, TB, TC;
+			Compute_Jacobian(quat, U, V, W, ptB[index], T6, T7, T8);
+			Compute_Jacobian_Rolling(quat, U, V, W, TA, TB, TC);
 			//updateV[index + number_of_rigid_rigid] = U * gam.x + V * gam.y + W * gam.z;
 			updateO[index + number_of_rigid_rigid] = -T6 * gam.x - T7 * gam.y - T8 * gam.z + TA * gam_roll.x + TB * gam_roll.y + TC * gam_roll.z;
 		}
@@ -622,28 +607,18 @@ void ChConstraintRigidRigid::host_shurB_spinning(const real & alpha, int2 * ids,
 			real3 UVW = QUVW[bid.x];
 
 			real4 quat = rot[index];
-			real4 quaternion_conjugate = ~quat;
-			real3 sbar = quatRotate(ptA[index], quaternion_conjugate);
-			real3 TA = quatRotate(U, quat);
-			real3 TB = quatRotate(V, quat);
-			real3 TC = quatRotate(W, quat);
+			real3 TA, TB, TC;
+			Compute_Jacobian_Rolling(quat, U, V, W, TA, TB, TC);
 
-			real3 T3 = cross(quatRotate(U, quaternion_conjugate), sbar);
-			real3 T4 = cross(quatRotate(V, quaternion_conjugate), sbar);
-			real3 T5 = cross(quatRotate(W, quaternion_conjugate), sbar);
+			real3 T3, T4, T5;
+			Compute_Jacobian(quat, U, V, W, ptA[index], T3, T4, T5);
+			temp.x = dot(XYZ, -U) + dot(UVW, T3);
+			temp.y = dot(XYZ, -V) + dot(UVW, T4);
+			temp.z = dot(XYZ, -W) + dot(UVW, T5);
 
-			temp.x += dot(XYZ, -U);
-			temp.x += dot(UVW, T3);
-
-			temp.y += dot(XYZ, -V);
-			temp.y += dot(UVW, T4);
-
-			temp.z += dot(XYZ, -W);
-			temp.z += dot(UVW, T5);
-
-			temp_roll.x += dot(UVW, -TA);
-			temp_roll.y += dot(UVW, -TB);
-			temp_roll.z += dot(UVW, -TC);
+			temp_roll.x = dot(UVW, -TA);
+			temp_roll.y = dot(UVW, -TB);
+			temp_roll.z = dot(UVW, -TC);
 
 		}
 		if (active.y != 0) {
@@ -651,33 +626,23 @@ void ChConstraintRigidRigid::host_shurB_spinning(const real & alpha, int2 * ids,
 			real3 UVW = QUVW[bid.y];
 
 			real4 quat = rot[index + number_of_rigid_rigid];
-			real4 quaternion_conjugate = ~quat;
-			real3 sbar = quatRotate(ptB[index], quaternion_conjugate);
-			real3 TA = quatRotate(U, quat);
-			real3 TB = quatRotate(V, quat);
-			real3 TC = quatRotate(W, quat);
+			real3 TA, TB, TC;
+			Compute_Jacobian_Rolling(quat, U, V, W, TA, TB, TC);
 
-			real3 T6 = cross(quatRotate(U, quaternion_conjugate), sbar);
-			real3 T7 = cross(quatRotate(V, quaternion_conjugate), sbar);
-			real3 T8 = cross(quatRotate(W, quaternion_conjugate), sbar);
-
-			temp.x += dot(XYZ, U);
-			temp.x += dot(UVW, -T6);
-
-			temp.y += dot(XYZ, V);
-			temp.y += dot(UVW, -T7);
-
-			temp.z += dot(XYZ, W);
-			temp.z += dot(UVW, -T8);
+			real3 T6, T7, T8;
+			Compute_Jacobian(quat, U, V, W, ptB[index], T6, T7, T8);
+			temp.x += dot(XYZ, U) + dot(UVW, -T6);
+			temp.y += dot(XYZ, V) + dot(UVW, -T7);
+			temp.z += dot(XYZ, W) + dot(UVW, -T8);
 
 			temp_roll.x += dot(UVW, TA);
 			temp_roll.y += dot(UVW, TB);
 			temp_roll.z += dot(UVW, TC);
 
 		}
-		real4 comp = compliance[index];
-		real3 gam(_mm_loadu_ps(&gamma[_index_]));
-		real3 gam_roll(_mm_loadu_ps(&gamma[_index_ + 3]));
+		//real4 comp = compliance[index];
+		//real3 gam(_mm_loadu_ps(&gamma[_index_]));
+		//real3 gam_roll(_mm_loadu_ps(&gamma[_index_ + 3]));
 
 		//temp += (alpha) ? gam * real3(comp.x,comp.y,comp.y) : 0;
 		//temp_roll += (alpha) ? gam_roll * real3(comp.w,comp.z,comp.z) : 0;
