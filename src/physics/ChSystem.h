@@ -187,17 +187,8 @@ public:
 				/// Gets the current method for time integration (time stepper).
 	eCh_integrationType GetIntegrationType() {return integration_type;}
 
-				/// Integration order (ONLY if current integration method supports multi-order integration.)
-	void SetOrder (int m_order) {order=m_order;}
-				/// Integration order (ONLY if current integration method supports multi-order integration.)
-	int  GetOrder() {return order;}
 
-				/// Integration substeps (ONLY if current integration method supports multi-step integration.)
-	void SetMultisteps (int m_multisteps) {multisteps=m_multisteps;} 
-				/// Integration substeps (ONLY if current integration method supports multi-step integration.)
-	int  GetMultisteps() {return multisteps;}
-
-				/// Sets iteration limit for assembly constraints. When trying to keep constraints together, 
+				/// Sets outer iteration limit for assembly constraints. When trying to keep constraints together, 
 				/// the iterative process is stopped if this max.number of iterations (or tolerance) is reached.
 	void SetMaxiter (int m_maxiter) {maxiter = m_maxiter;}
 				/// Gets iteration limit for assembly constraints. 
@@ -219,62 +210,14 @@ public:
 	void SetNormType (int m_normtype) {normtype = m_normtype;}
 	int  GetNormType () {return normtype;}
 
-				/// Activate timestep adaption (ONLY if supported by integration method)
-	void SetAdaption (int m_adapt) {adaption = m_adapt;}
-	int  GetAdaption	() {return adaption;}
-
-				/// Activates the stabilization in constraints as a LCP on position level,
-				/// for acceleration/force integration methods where this is optional. (Not yet used). 
-	void SetDynaclose (int m_close) {dynaclose = m_close;}
-	int  GetDynaclose () {return dynaclose;}
-
-				/// Stabilization in constraints as a LCP on position level happens each Ns steps.
-				/// For acceleration/force integration methods where this is optional. (Not yet used). 
-	void SetNsClosePos (int mn) {ns_close_pos = mn;}
-	int  GetNsClosePos () {return ns_close_pos;}
-
-				/// Stabilization in constraints as a LCP on speed level happens each Ns steps.
-				/// For acceleration/force integration methods where this is optional. (Not yet used). 
-	void SetNsCloseSpeed (int mn) {ns_close_speed = mn;}
-	int  GetNsCloseSpeed () {return ns_close_speed;}
-
-				/// Obsolete
-	void   SetDynatol (double m_tol) {if (m_tol < 1) m_tol = 1; dynatol = m_tol;}
-	double GetDynatol () {return dynatol;}
 	
-				/// Obsolete
-	void   SetMonolattol (double m_tol) {if (m_tol < 0) m_tol = 0; monolat_tol = m_tol;}
-	double GetMonolattol () {return monolat_tol;}
-	
-				/// Tolerance for integration methods with adaptive time step.
-				/// For example, some Runge Kutta methods will halve the step if the
-				/// local integration precision is below the tolerance.
-	void   SetIntegrtol (double m_tol) {if (m_tol < 0) m_tol = 0; integr_tol = m_tol;}
-	double GetIntegrtol () {return integr_tol;}
-				
-				/// Obsolete
-	void SetPredict (int m_pr) {predict = m_pr;}
-	int  GetPredict () {return predict;}
-	
-				/// Obsolete
-	void SetPredorder (int m_pr) {predorder = m_pr; } 
-	int  GetPredorder () {return predorder;}
-	
-				/// Obsolete
-	void   SetStifftol (double m_tol) {if (m_tol < 0) m_tol = 0; stifftol = m_tol;}
-	double GetStifftol () {return stifftol;}
-
 				/// Impose the 2D mode. Only for very simple systems. Note that,
 				/// given the speed and efficiency of current LCP solvers and integrators,
 				/// there's no need to force the 2D mode - just use the 3D.  
 	void SetXYmode (int m_mode);	// mode = 1 -> switch to 2D; mode = 0 -> switch to 3D (default)
 	int  GetXYmode () {return modeXY;}
 
-	void SetAutoAssembly (int aas) {auto_assembly = aas;}
-	int  GetAutoAssembly () {return auto_assembly;}
-	
-	void SetMaxStepsCollide(int mval) {msteps_collide = mval;}
-	int  GetMaxStepsCollide() {return msteps_collide;}
+
 	
 				/// For elastic collisions, with objects that have nonzero
 				/// restitution coefficient: objects will rebounce only if their
@@ -292,8 +235,7 @@ public:
 	double GetMaxPenetrationRecoverySpeed() {return max_penetration_recovery_speed;}
 
 
-	double GetErrIntegration () {return err_integr;}
-	double GetErrConstraints () {return err_constr;}
+
 	
 	
 				/// Available types of solvers for the LCP problem. Note: compared to iterative methods,
@@ -606,7 +548,7 @@ public:
 
 				/// Given inserted markers and links, restores the
 				/// pointers of links to markers given the information
-				/// about the marker IDs.
+				/// about the marker IDs. Will be made obsolete in future with new serialization systems.
 	void Reference_LM_byID();
 
 
@@ -689,7 +631,7 @@ public:
 
 				/// Tells to the associated external object of class ChExternalObject() ,
 				/// if any, that all 3D shapes of the system must be updated in order
-				/// to syncronize to the current system's state.
+				/// to syncronize to the current system's state. OBSOLETE
 	void UpdateExternalGeometry ();
 
 
@@ -1057,23 +999,13 @@ protected:
 	double step;		// time step, in seconds
 	double step_min;	// min time step
 	double step_max;	// max time step
-	int order;			// integration order
-	int multisteps;		// multistep number
+
 	double tol;			// tolerance
 	double tol_speeds;	// tolerance for speeds
 	int normtype;		// type of norm
 	int maxiter;		// max iterations for tolerance convergence
-	double st_region;	// stability interval of expl.integrator
-	int adaption;		// adaption of time step, for variable-step integr.
-	int dynaclose;		// true = close constraint clearances during dynamics, as following:
-	int ns_close_pos;	//  each ns steps close position constraints (def = 1, each step);
-	int ns_close_speed;	//  each ns steps close speed constraints (def = 3, each 3 steps);
-	double dynatol;		// integration step repeated and halfed if |C|> (tol * dynatol);
-	double monolat_tol;	// integration step repeated and halfed if |Cmonolateral| > (tol * monolat_tol);
-	double integr_tol;	// integration step repeated and halfed if |Err_integrator| > (tol * integr_tol);
-	double stifftol;	// integration step repeated and halfed if |Ynew - Ypredicted| > (tol * stifftol);
+
 	int predict;		// true = use prediction to guess if system is getting stiff
-	int predorder;		// prediction polynomial order
 	int modeXY;			// if =1, computes everything on XY plane, for simple bidimensional case.
 	double err_integr;	// current value of integration error -if err.extimation is supported by int.method-
 	double err_constr;	// current value of constraint violation error

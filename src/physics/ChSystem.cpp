@@ -321,24 +321,11 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
 	tol_speeds = 1e-6;
 	normtype = NORM_INF;
 	maxiter = 6;
-	order = 1;
-	SetMultisteps(1);
-	dynaclose = 1;
-	ns_close_pos = 1;
-	ns_close_speed = 3;
-	predict = FALSE;
-	SetPredorder(2);
-	dynatol = 10;
-	stifftol = 3.2;
-	monolat_tol = 2.5;
-	integr_tol = 1.0;
-	adaption  = STEP_FIXED;
+
 	SetIntegrationType (INT_ANITESCU);
 	modeXY = FALSE;
-	auto_assembly = FALSE;
 	contact_container = 0;
 
-	msteps_collide = 6;
 	min_bounce_speed = 0.15;
 	max_penetration_recovery_speed = 0.6;
 
@@ -372,8 +359,6 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
 	collision_callback = 0;
 	collisionpoint_callback = 0;
 
-	err_integr = 0.0;
-	err_constr = 0.0;
 
 	Set_G_acc (ChVector<>(0, -9.8, 0));
  
@@ -437,13 +422,10 @@ void ChSystem::Copy(ChSystem* source)
 	step_min = source->GetStepMin();
 	step_max = source->GetStepMax();
 	SetIntegrationType (source->GetIntegrationType());
-	order = source->GetOrder();
-	multisteps = source->GetMultisteps();
 	tol = source->GetTol();
 	tol_speeds = source->tol_speeds;
 	normtype = source->GetNormType();
 	maxiter = source->GetMaxiter();
-	adaption = source->GetAdaption();
 	nbodies = source->GetNbodies();
 	nlinks = source->GetNlinks();
 	nphysicsitems = source->GetNphysicsItems();
@@ -459,18 +441,7 @@ void ChSystem::Copy(ChSystem* source)
 	ncontacts = source->GetNcontacts();
 	nbodies_sleep = source->GetNbodiesSleeping();
 	nbodies_fixed = source->GetNbodiesFixed();
-	dynaclose = source->GetDynaclose();
-	ns_close_pos = source->GetNsClosePos();
-	ns_close_speed = source->GetNsCloseSpeed();
-	dynatol = source->GetDynatol();
-	monolat_tol = source->GetMonolattol();
-	integr_tol = source->GetIntegrtol();
-	predict = source->GetPredict();
-	predorder = source->GetPredorder();
-	stifftol = source->GetStifftol();
 	modeXY = source->modeXY;
-	err_integr = err_constr = 0.0;
-	msteps_collide = source->msteps_collide;
 	min_bounce_speed = source->min_bounce_speed;
 	max_penetration_recovery_speed = source->max_penetration_recovery_speed;
 	iterLCPmaxIters = source->iterLCPmaxIters;
@@ -612,18 +583,10 @@ void ChSystem::SetLcpSolverType(eCh_lcpSolver mval)
 ChLcpSolver* ChSystem::GetLcpSolverSpeed()
 {
 	// in case the solver is iterative, pre-configure it with max.iter.number
-	switch(lcp_solver_type)
+	if (ChLcpIterativeSolver* iter_solver = dynamic_cast<ChLcpIterativeSolver*>(LCP_solver_speed))
 	{
-	case LCP_DEM:
-		break;
-	case LCP_SIMPLEX:
-		((ChLcpSimplexSolver*)LCP_solver_speed)->SetTruncationStep(GetSimplexLCPmaxSteps());
-		break;
-	default:
-		ChLcpIterativeSolver* iter_solver = (ChLcpIterativeSolver*)LCP_solver_speed;
 		iter_solver->SetMaxIterations(GetIterLCPmaxItersSpeed());
-		iter_solver->SetTolerance(this->tol_speeds); 
-		break;
+		iter_solver->SetTolerance(this->tol_speeds);
 	}
 
 	return LCP_solver_speed;
@@ -632,17 +595,12 @@ ChLcpSolver* ChSystem::GetLcpSolverSpeed()
 ChLcpSolver* ChSystem::GetLcpSolverStab()
 {
 	// in case the solver is iterative, pre-configure it with max.iter.number
-	if (lcp_solver_type != LCP_SIMPLEX)
+	if (ChLcpIterativeSolver* iter_solver = dynamic_cast<ChLcpIterativeSolver*>(LCP_solver_stab))
 	{
-		ChLcpIterativeSolver* iter_solver = (ChLcpIterativeSolver*)LCP_solver_stab;
-		iter_solver->SetMaxIterations(GetIterLCPmaxItersStab());
-		iter_solver->SetTolerance(this->tol);
+		iter_solver->SetMaxIterations(GetIterLCPmaxItersSpeed());
+		iter_solver->SetTolerance(this->tol_speeds);
 	}
-	else
-	{
-		ChLcpSimplexSolver* simplex_solver = (ChLcpSimplexSolver*)LCP_solver_stab;
-		simplex_solver->SetTruncationStep(GetSimplexLCPmaxSteps());
-	}
+
 	return LCP_solver_stab;
 }
 
@@ -1309,20 +1267,6 @@ void ChSystem::SetIntegrationType (eCh_integrationType m_integration)
 {									
 	// set integration scheme:
 	integration_type = m_integration;				
-	
-	// set stability region
-	switch (integration_type)
-	{
-		case INT_ANITESCU:
-			SetMultisteps (1);
-			SetOrder (1);
-		case INT_TASORA:
-			SetMultisteps (1);
-			SetOrder (1);
-		default:
-			SetMultisteps (1);
-	}
-	// ......... //
 }
 
 
@@ -2053,7 +1997,7 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 					true,			// adds [M]*v_old to the known vector
 					GetStep(),      // f*dt
 					GetStep()*GetStep(), // dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
-					GetStep(),		// dt*R   (nb only non-Schur based solvers support R matrix blocks)
+				 	GetStep(),		// dt*R   (nb only non-Schur based solvers support R matrix blocks)
 					1.0,			// M (for FEM with non-lumped masses, add their mass-matrixes)
 					1.0,		    // Ct   (needed, for rheonomic motors)
 					1.0/GetStep(),  // C/dt
@@ -2512,31 +2456,7 @@ int ChSystem::DoStaticLinear()
 	LCPprepare_inject(*this->LCP_descriptor);
 
 //***DEBUG***
-
-try
-{
-	chrono::ChSparseMatrix mdMK;
-	chrono::ChSparseMatrix mdCq;
-	chrono::ChSparseMatrix mdE;
-	chrono::ChMatrixDynamic<double> mdf;
-	chrono::ChMatrixDynamic<double> mdb;
-	chrono::ChMatrixDynamic<double> mdfric;
-	this->LCP_descriptor->ConvertToMatrixForm(&mdCq, &mdMK, &mdE, &mdf, &mdb, &mdfric);
-	chrono::ChStreamOutAsciiFile file_MK("dump_MK.dat");
-	mdMK.StreamOUTsparseMatlabFormat(file_MK);
-	chrono::ChStreamOutAsciiFile file_Cq("dump_Cq.dat");
-	mdCq.StreamOUTsparseMatlabFormat(file_Cq);
-	chrono::ChStreamOutAsciiFile file_E("dump_E.dat");
-	mdE.StreamOUTsparseMatlabFormat(file_E);
-	chrono::ChStreamOutAsciiFile file_f("dump_f.dat");
-	mdf.StreamOUTdenseMatlabFormat(file_f);
-	chrono::ChStreamOutAsciiFile file_b("dump_b.dat");
-	mdb.StreamOUTdenseMatlabFormat(file_b);
-} 
-catch(chrono::ChException myexc)
-{
-	chrono::GetLog() << myexc.what();
-}
+this->GetLcpSystemDescriptor()->DumpLastMatrices();
 
 
 
@@ -2583,6 +2503,22 @@ GetLog() << (mZx - md).NormInf() << "\n";
 		PHpointer->VariablesQbIncrementPosition(1.0); // pos+=Dpos
 		PHpointer->Update(this->ChTime);
 		HIER_OTHERPHYSICS_NEXT
+	}
+
+	// Set no body speed and no body accel.
+	{
+		HIER_BODY_INIT
+		while HIER_BODY_NOSTOP
+		{
+			Bpointer->SetNoSpeedNoAcceleration();
+			HIER_BODY_NEXT
+		}
+		HIER_OTHERPHYSICS_INIT
+		while HIER_OTHERPHYSICS_NOSTOP
+		{
+			PHpointer->SetNoSpeedNoAcceleration();
+			HIER_OTHERPHYSICS_NEXT
+		}
 	}
 
 	Update(); // Update everything
@@ -2651,8 +2587,41 @@ int ChSystem::DoStaticNonlinear(int nsteps)
 			HIER_OTHERPHYSICS_NEXT
 		}
 
+		// Set no body speed and no body accel.
+		{
+			HIER_BODY_INIT
+			while HIER_BODY_NOSTOP
+			{
+				Bpointer->SetNoSpeedNoAcceleration();
+				HIER_BODY_NEXT
+			}
+			HIER_OTHERPHYSICS_INIT
+			while HIER_OTHERPHYSICS_NOSTOP
+			{
+				PHpointer->SetNoSpeedNoAcceleration();
+				HIER_OTHERPHYSICS_NEXT
+			}
+		}
+
 		Update(); // Update everything
 	}
+
+	//***DEBUG***
+
+// **CHECK*** optional check for correctness in result
+chrono::ChMatrixDynamic<double> md;
+GetLcpSystemDescriptor()->BuildDiVector(md);			// d={f;-b}
+
+chrono::ChMatrixDynamic<double> mx;
+GetLcpSystemDescriptor()->FromUnknownsToVector(mx);		// x ={q,-l}
+chrono::ChStreamOutAsciiFile file_x("dump_x.dat");
+mx.StreamOUTdenseMatlabFormat(file_x);
+
+chrono::ChMatrixDynamic<double> mZx;
+GetLcpSystemDescriptor()->SystemProduct(mZx, &mx);		// Zx = Z*x
+
+GetLog() << "CHECK: norm of solver residual: ||Z*x-d|| -------------------\n";
+GetLog() << (mZx - md).NormInf() << "\n";
 
 	return 0;
 }
@@ -2838,16 +2807,11 @@ int ChSystem::DoFrameDynamics (double m_endtime)
 									// ***  updating Y, from t to t+dt.
 									// ***  This also changes local ChTime, and may change step
 
-		if (this->adaption == STEP_FIXED) // this because collision detection may rewind time a bit, even if step_fixed
-				step = fixed_step_undo;
-
 		if (last_err) break;
 	}
 
 	if (restore_oldstep)
 		step = old_step; // if timestep was changed to meet the end of frametime, restore pre-last (even for time-varying schemes)
-	if (this->adaption == STEP_FIXED)
-		step = fixed_step_undo;	// anyway, restore original step if no adaption
 
 	if (last_err) return FALSE;
 	return TRUE;
@@ -2923,8 +2887,6 @@ int ChSystem::DoFrameKinematics (double m_endtime)
 		if (restore_oldstep) step = old_step; // if timestep was changed to meet the end of frametime
 	}
 
-	if (this->adaption == STEP_FIXED)
-		step = fixed_step_undo;	// anyway, restore original step if no adaption
 
 	return TRUE;
 }
@@ -2975,7 +2937,7 @@ int ChSystem::DoFullAssembly()
 void ChSystem::StreamOUT(ChStreamOutBinary& mstream)
 {
 			// class version number
-	mstream.VersionWrite(5);
+	mstream.VersionWrite(7);
 
 		// serialize parent class too
 	ChObj::StreamOUT(mstream);
@@ -2989,27 +2951,27 @@ void ChSystem::StreamOUT(ChStreamOutBinary& mstream)
 	mstream << GetNormType();
 	mstream << GetMaxiter();
 	mstream << (int)GetIntegrationType();
-	mstream << GetOrder();
-	mstream << GetMultisteps();
-	mstream << GetAdaption();
-	mstream << 0; //GetBaumgarteStabilize();
-	mstream << GetDynaclose();
-	mstream << GetDynatol();
-	mstream << GetPredict();
-	mstream << GetPredorder();
-	mstream << GetStifftol();
+	mstream << (int)0; // v7
+	mstream << (int)0; // v7
+	mstream << (int)0; // v7
+	mstream << (int)0; //GetBaumgarteStabilize();
+	mstream << (int)0; // v7
+	mstream << (double)0; // v7
+	mstream << (int)0; // v7
+	mstream << (int)0; //v7
+	mstream << (double)0; // v7
 	mstream << G_acc;
 	mstream << GetXYmode();
-	mstream << GetNsClosePos();
-	mstream << GetNsCloseSpeed();
-	mstream << GetMonolattol();
-	mstream << GetIntegrtol();
-	mstream << GetAutoAssembly();
+	mstream << (int)0; // v7
+	mstream << (int)0; // v7
+	mstream << (double)0;// v7
+	mstream << (double)0;// v7
+	mstream << (int)0; // v7
 	mstream << GetScriptForStartFile();
 	mstream << GetScriptForUpdateFile();
 	mstream << GetScriptForStepFile();
 	mstream << GetScriptFor3DStepFile();
-	mstream << GetMaxStepsCollide();
+	mstream << (int)0; // v7
 	mstream << GetMinBounceSpeed();
 	// v2
 	mstream << iterLCPmaxIters;
@@ -3046,27 +3008,27 @@ void ChSystem::StreamIN(ChStreamInBinary& mstream)
 	mstream >> mint;		SetNormType (mint);
 	mstream >> mint;		SetMaxiter(mint);
 	mstream >> mint;		SetIntegrationType ((eCh_integrationType)mint);
-	mstream >> mint;		SetOrder(mint);
-	mstream >> mint;		SetMultisteps(mint);
-	mstream >> mint;		SetAdaption (mint);
+	mstream >> mint;		//SetOrder(mint);
+	mstream >> mint;		//SetMultisteps(mint);
+	mstream >> mint;		//SetAdaption (mint);
 	mstream >> mint;		//SetBaumgarteStabilize(mint);
-	mstream >> mint;		SetDynaclose(mint);
-	mstream >> mdouble;		SetDynatol(mdouble);
-	mstream >> mint;		SetPredict(mint);
-	mstream >> mint;		SetPredorder(mint);
-	mstream >> mdouble;		SetStifftol(mdouble);
+	mstream >> mint;		//SetDynaclose(mint);
+	mstream >> mdouble;		//SetDynatol(mdouble);
+	mstream >> mint;		//SetPredict(mint);
+	mstream >> mint;		//SetPredorder(mint);
+	mstream >> mdouble;		//SetStifftol(mdouble);
 	mstream >> mvector;		Set_G_acc(mvector);
 	mstream >> mint;		SetXYmode(mint);
-	mstream >> mint;		SetNsClosePos(mint);
-	mstream >> mint;		SetNsCloseSpeed(mint);
-	mstream >> mdouble;		SetMonolattol(mdouble);
-	mstream >> mdouble;		SetIntegrtol(mdouble);
-	mstream >> mint;		SetAutoAssembly(mint);
+	mstream >> mint;		//SetNsClosePos(mint);
+	mstream >> mint;		//SetNsCloseSpeed(mint);
+	mstream >> mdouble;		//SetMonolattol(mdouble);
+	mstream >> mdouble;		//SetIntegrtol(mdouble);
+	mstream >> mint;		//SetAutoAssembly(mint);
 	mstream >> buffer;		SetScriptForStartFile(buffer);
 	mstream >> buffer;		SetScriptForUpdateFile(buffer);
 	mstream >> buffer;		SetScriptForStepFile(buffer);
 	mstream >> buffer;		SetScriptFor3DStepFile(buffer);
-	mstream >> mint;		SetMaxStepsCollide(mint);
+	mstream >> mint;		//SetMaxStepsCollide(mint);
 	mstream >> mdouble;		SetMinBounceSpeed(mdouble);
 
 	if (version>=2)
@@ -3289,6 +3251,7 @@ void ChSystem::ShowHierarchy(ChStreamOutAscii& m_file)
 	}
 	m_file << "\n\n";
 }
+
 
 int ChSystem::FileProcessChR (ChStreamInBinary& m_file)
 {
