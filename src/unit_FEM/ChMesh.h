@@ -73,6 +73,9 @@ public:
 				/// Set reference position of nodes as current position, for all nodes.
 	void Relax ();
 
+				/// Set no speed and no accelerations in nodes (but does not change reference positions)
+    void SetNoSpeedNoAcceleration();
+
 				/// Update time dependent data, for all elements. 
 				/// Updates all [A] coord.systems for all (corotational) elements.
 	void Update(double m_time);

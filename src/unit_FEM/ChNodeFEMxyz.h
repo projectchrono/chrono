@@ -78,7 +78,15 @@ public:
 				/// Set the rest position as the actual position.
 	virtual void Relax () 
 					{
-						X0 = this->pos; this->pos_dt=VNULL; this->pos_dtdt=VNULL; 
+						X0 = this->pos; 
+						this->SetNoSpeedNoAcceleration(); 
+					}
+
+				/// Reset to no speed and acceleration.
+	virtual void SetNoSpeedNoAcceleration () 
+					{
+						this->pos_dt=VNULL; 
+						this->pos_dtdt=VNULL; 
 					}
 
 				/// Get mass of the node.

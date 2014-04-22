@@ -96,6 +96,12 @@ public:
 	virtual void Relax () 
 					{
 						this->X0 = *this; 
+						this->SetNoSpeedNoAcceleration();
+					}
+
+				/// Reset to no speed and acceleration.
+	virtual void SetNoSpeedNoAcceleration () 
+					{
 						this->GetPos_dt() = VNULL; 
 						this->GetRot_dtdt() = QNULL;
 						this->GetPos_dtdt() = VNULL; 

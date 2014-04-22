@@ -82,6 +82,12 @@ public:
 						this->P_dt = 0;
 					}
 
+				/// Reset to no speed and acceleration.
+	virtual void SetNoSpeedNoAcceleration () 
+					{
+						this->P_dt = 0;
+					}
+
 				/// Position of the node - in absolute csys.
 	ChVector<> GetPos() {return pos;}
 				/// Position of the node - in absolute csys.

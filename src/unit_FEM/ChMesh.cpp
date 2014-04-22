@@ -64,6 +64,16 @@ void ChMesh::Relax ()
 }
 
 
+void ChMesh::SetNoSpeedNoAcceleration()
+{ 
+	for (unsigned int i=0; i< vnodes.size(); i++)
+	{
+			//    -  set null speeds, null accelerations
+		vnodes[i]->SetNoSpeedNoAcceleration();
+	}
+}
+
+
 void ChMesh::AddNode ( ChSharedPtr<ChNodeFEMbase> m_node)
 {
 	this->vnodes.push_back(m_node);
