@@ -95,6 +95,14 @@ public:
 					chrono::GetLog() << "Saving system vector and matrices to dump_xxyy.dat files.\n";
 					app->DumpMatrices();
 					return true;
+				case irr::KEY_F11:
+					chrono::GetLog() << "---Computing linear static solution---\n";
+					app->GetSystem()->DoStaticLinear();
+					return true;
+				case irr::KEY_F10:
+					chrono::GetLog() << "---Computing NONlinear static solution, 20 steps---\n";
+					app->GetSystem()->DoStaticNonlinear(20);
+					return true;
 				case irr::KEY_SNAPSHOT:
 					if (app->videoframe_save == false)
 					{
@@ -776,30 +784,7 @@ public:
 			this->DoStep(); 
 
 			// Now save the matrices - as they were setup by the previous time stepping scheme.
-			try
-			{
-				chrono::ChSparseMatrix mdM;
-				chrono::ChSparseMatrix mdCq;
-				chrono::ChSparseMatrix mdE;
-				chrono::ChMatrixDynamic<double> mdf;
-				chrono::ChMatrixDynamic<double> mdb;
-				chrono::ChMatrixDynamic<double> mdfric;
-				this->GetSystem()->GetLcpSystemDescriptor()->ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
-				chrono::ChStreamOutAsciiFile file_M("dump_M.dat");
-				mdM.StreamOUTsparseMatlabFormat(file_M);
-				chrono::ChStreamOutAsciiFile file_Cq("dump_Cq.dat");
-				mdCq.StreamOUTsparseMatlabFormat(file_Cq);
-				chrono::ChStreamOutAsciiFile file_E("dump_E.dat");
-				mdE.StreamOUTsparseMatlabFormat(file_E);
-				chrono::ChStreamOutAsciiFile file_f("dump_f.dat");
-				mdf.StreamOUTdenseMatlabFormat(file_f);
-				chrono::ChStreamOutAsciiFile file_b("dump_b.dat");
-				mdb.StreamOUTdenseMatlabFormat(file_b);
-				chrono::ChStreamOutAsciiFile file_fric("dump_fric.dat");
-				mdfric.StreamOUTdenseMatlabFormat(file_fric);
-			} 
-			catch(chrono::ChException myexc)
-			{	chrono::GetLog() << myexc.what(); }
+			this->GetSystem()->GetLcpSystemDescriptor()->DumpLastMatrices();
 
 		}
 
