@@ -29,6 +29,9 @@
 
 
 #include "core/ChMath.h"
+#include "core/ChSpmatrix.h"
+#include "lcp/ChLcpSystemDescriptor.h"
+#include "lcp/ChLcpSolver.h"
 
 // include also the Matlab header..
 #include "engine.h"
@@ -99,18 +102,62 @@ public:
 		/// If a variable with the same name already exist, it is overwritten.
 	bool PutVariable(const ChMatrix<double>& mmatr, char* varname)
 	{
+		ChMatrixDynamic<> transfer; // elements in Matlab are column-major
+		transfer.CopyFromMatrixT(mmatr);
+
 		mxArray *T = NULL;
 		T = mxCreateDoubleMatrix(mmatr.GetRows(), mmatr.GetColumns(), mxREAL);
-		memcpy((char *) mxGetPr(T), (char *) mmatr.GetAddress(), mmatr.GetRows()*mmatr.GetColumns()*sizeof(double));
+		memcpy((char *) mxGetPr(T), (char *) transfer.GetAddress(), mmatr.GetRows()*mmatr.GetColumns()*sizeof(double));
 		engPutVariable(ep, varname, T);
 		mxDestroyArray(T);
 		return true;
 	}
+
+		/// Put a sparse matrix in Matlab environment, specifying its name as variable.
+		/// If a variable with the same name already exist, it is overwritten.
+	bool PutSparseMatrix(const ChSparseMatrix& mmatr, char* varname)
+	{
+		int nels = 0;
+		for(int ii=0; ii<mmatr.GetRows(); ii++)
+			for(int jj=0; jj<mmatr.GetColumns(); jj++)
+			{
+				double elVal = ((ChSparseMatrix&)mmatr).GetElement(ii,jj);
+				if (elVal || (ii+1==((ChSparseMatrix&)mmatr).GetRows() && jj+1==((ChSparseMatrix&)mmatr).GetColumns()))
+					++nels;
+			}
+
+		ChMatrixDynamic<> transfer(nels,3);
+
+		int eln = 0;
+		for(int ii=0; ii<mmatr.GetRows(); ii++)
+			for(int jj=0; jj<mmatr.GetColumns(); jj++)
+			{
+				double elVal = ((ChSparseMatrix&)mmatr).GetElement(ii,jj);
+				if (elVal || (ii+1==((ChSparseMatrix&)mmatr).GetRows() && jj+1==((ChSparseMatrix&)mmatr).GetColumns()))
+				{
+					transfer(eln,0) = ii+1;
+					transfer(eln,1) = jj+1;
+					transfer(eln,2) = elVal;
+					++eln;
+				}
+			}
+
+		this->PutVariable(transfer, varname);
+
+		char buff[100];
+		sprintf(buff, "%s=spconvert(%s)", varname,varname);
+		this->Eval(buff);
+
+		return true;
+	}
+
 		/// Fetch a matrix from Matlab environment, specifying its name as variable.
 		/// The used matrix must be of ChMatrixDynamic<double> type because 
 		/// it might undergo resizing.
 	bool GetVariable(ChMatrixDynamic<double>& mmatr, char* varname)
 	{
+		ChMatrixDynamic<> transfer; // elements in Matlab are column-major
+
 		mxArray* T = engGetVariable(ep, varname);
 		if (T)
 		{
@@ -121,9 +168,12 @@ public:
 				return false;
 			}
 			const mwSize* siz = mxGetDimensions(T);
-			mmatr.Resize(siz[0], siz[1]);
-			memcpy((char *) mmatr.GetAddress(), (char *) mxGetPr(T), mmatr.GetRows()*mmatr.GetColumns()*sizeof(double));
+			transfer.Resize(siz[1],siz[0]);
+			memcpy((char *) transfer.GetAddress(), (char *) mxGetPr(T), transfer.GetRows()*transfer.GetColumns()*sizeof(double));
 			mxDestroyArray(T);
+
+			mmatr.CopyFromMatrixT(transfer);
+
 			return true;
 		}
 		mxDestroyArray(T);
