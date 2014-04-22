@@ -259,6 +259,58 @@ void  ChLcpSystemDescriptor::BuildVectors (ChSparseMatrix* f,
 	this->ConvertToMatrixForm(0,0,0,f,b,0,only_bilaterals,skip_contacts_uv);
 }
 
+void ChLcpSystemDescriptor::DumpLastMatrices(char path[])
+{
+	char filename[300];
+	try
+	{
+		char* numformat = "%.12g";
+		chrono::ChSparseMatrix mdM;
+		chrono::ChSparseMatrix mdCq;
+		chrono::ChSparseMatrix mdE;
+		chrono::ChMatrixDynamic<double> mdf;
+		chrono::ChMatrixDynamic<double> mdb;
+		chrono::ChMatrixDynamic<double> mdfric;
+		this->ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
+
+		sprintf(filename,"%s%s", path, "dump_M.dat");
+		chrono::ChStreamOutAsciiFile file_M(filename);
+		file_M.SetNumFormat(numformat);
+		mdM.StreamOUTsparseMatlabFormat(file_M);
+
+		sprintf(filename,"%s%s", path, "dump_Cq.dat");
+		chrono::ChStreamOutAsciiFile file_Cq(filename);
+		file_Cq.SetNumFormat(numformat);
+		mdCq.StreamOUTsparseMatlabFormat(file_Cq);
+
+		sprintf(filename,"%s%s", path, "dump_E.dat");
+		chrono::ChStreamOutAsciiFile file_E(filename);
+		file_E.SetNumFormat(numformat);
+		mdE.StreamOUTsparseMatlabFormat(file_E);
+
+		sprintf(filename,"%s%s", path, "dump_f.dat");
+		chrono::ChStreamOutAsciiFile file_f(filename);
+		file_f.SetNumFormat(numformat);
+		mdf.StreamOUTdenseMatlabFormat(file_f);
+
+		sprintf(filename,"%s%s", path, "dump_b.dat");
+		chrono::ChStreamOutAsciiFile file_b(filename);
+		file_f.SetNumFormat(numformat);
+		mdb.StreamOUTdenseMatlabFormat(file_b);
+
+		sprintf(filename,"%s%s", path, "dump_fric.dat");
+		chrono::ChStreamOutAsciiFile file_fric(filename);
+		file_fric.SetNumFormat(numformat);
+		mdfric.StreamOUTdenseMatlabFormat(file_fric);
+	} 
+	catch(chrono::ChException myexc)
+	{
+		chrono::GetLog() << myexc.what(); 
+	}
+}
+
+
+
 
 
 int ChLcpSystemDescriptor::BuildFbVector(
@@ -291,12 +343,6 @@ int ChLcpSystemDescriptor::BuildBiVector(
 	#pragma omp parallel for num_threads(this->num_threads)
 	for (int ic = 0; ic< (int)vconstraints.size(); ic++)
 	{
-		/*
-		int rank = CHOMPfunctions::GetThreadNum();
-		int count = CHOMPfunctions::GetNumThreads();
-		GetLog() << "      BuildFbVector thread " << rank << " on " << count << "\n";
-		GetLog().Flush();
-		*/
 		if (vconstraints[ic]->IsActive())
 		{
 			Bvector(vconstraints[ic]->GetOffset()) = vconstraints[ic]->Get_b_i();
@@ -797,12 +843,6 @@ void ChLcpSystemDescriptor::SetNumThreads(int nthreads)
 
 	this->num_threads = nthreads;
 
-	/* not needed?
-	if (locktable)
-		delete[] locktable;
-
-	locktable = new ChMutexSpinlock[100];
-	*/
 }
 
 

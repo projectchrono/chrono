@@ -404,7 +404,7 @@ double ChLcpIterativeMINRES::Solve_SupportingStiffness(
 	int nx = nv+nc;  // total scalar unknowns, in x vector for full KKT system Z*x-d=0
 
 	if (verbose) 
-		GetLog() <<"\n-----Projected MINRES -supporting stiffness-, n.vars nx=" << nx << "  max.iters=" << max_iterations << "\n";
+		GetLog() <<"\n----- MINRES -supporting stiffness-, n.vars nx=" << nx << "  max.iters=" << max_iterations << "\n";
 
 
 	ChMatrixDynamic<> x(nx,1);
@@ -536,7 +536,7 @@ double ChLcpIterativeMINRES::Solve_SupportingStiffness(
 
          
         // beta = (r' * N*r) / (r_old' * N*r_old);
-		double numerator   = r.MatrDot(&r,&Zr);				// 1)  r'* Z *r
+		double numerator   = r.MatrDot(&r,&Zr);			// 1)  r'* Z *r
 		double denominator = r.MatrDot(&r_old,&Zr_old);	// 2)  r_old'* Z *r_old
 
 		double beta = numerator/denominator;

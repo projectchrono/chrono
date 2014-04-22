@@ -39,6 +39,7 @@ IF (ENABLE_UNIT_IRRLICHT)
 
 	INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC} )
 	
+	INCLUDE_DIRECTORIES( ${CH_MATLABINC} )
 	
 	
 	ADD_EXECUTABLE(demo_meshless  	demo_meshless.cpp)
@@ -65,6 +66,7 @@ IF (ENABLE_UNIT_IRRLICHT)
 		)
 	TARGET_LINK_LIBRARIES(demo_FEMvisualize 
 		${CH_IRRLICHTLIB}
+		${CH_MATLABLIB}
 		ChronoEngine
 		ChronoEngine_FEM
 		)
@@ -97,6 +99,7 @@ IF (ENABLE_UNIT_IRRLICHT)
 		)
 	TARGET_LINK_LIBRARIES(demo_FEMbeams 
 		${CH_IRRLICHTLIB}
+		${CH_MATLABLIB}
 		ChronoEngine
 		ChronoEngine_FEM
 		)
@@ -113,12 +116,30 @@ IF (ENABLE_UNIT_IRRLICHT)
 		)
 	TARGET_LINK_LIBRARIES(demo_FEMbeamsconstr 
 		${CH_IRRLICHTLIB}
+		${CH_MATLABLIB}
 		ChronoEngine
 		ChronoEngine_FEM
 		)
 	ADD_DEPENDENCIES (demo_FEMbeamsconstr ChronoEngine ChronoEngine_FEM)
 
 	install(TARGETS demo_FEMbeamsconstr DESTINATION bin)
+	
+	
+	ADD_EXECUTABLE(demo_FEMminiature demo_FEMminiature.cpp)
+	SOURCE_GROUP(demos\\fem FILES  		demo_FEMminiature.cpp)
+	SET_TARGET_PROPERTIES(demo_FEMminiature PROPERTIES 
+		FOLDER demos
+		LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+		)
+	TARGET_LINK_LIBRARIES(demo_FEMminiature 
+		${CH_IRRLICHTLIB}
+		${CH_MATLABLIB}
+		ChronoEngine
+		ChronoEngine_FEM
+		)
+	ADD_DEPENDENCIES (demo_FEMminiature ChronoEngine ChronoEngine_FEM)
+
+	install(TARGETS demo_FEMminiature DESTINATION bin)
 	
 	
 	ADD_EXECUTABLE(demo_FEMelectrostatics  		demo_FEMelectrostatics.cpp)

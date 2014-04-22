@@ -28,7 +28,7 @@
 #include "unit_FEM/ChMesh.h"
 #include "unit_FEM/ChVisualizationFEMmesh.h"
 #include "irrlicht_interface/ChIrrApp.h"
-#include "core/ChQuadrature.h"
+#include "unit_MATLAB/ChMatlabEngine.h"
 
 // Remember to use the namespace 'chrono' because all classes 
 // of Chrono::Engine belong to this namespace and its children...
@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
 	msection->SetYoungModulus (0.01e9);
 	msection->SetGshearModulus(0.01e9 * 0.3);
 	msection->SetBeamRaleyghDamping(0.000);
-	//msection->SetCentroid(0,0.2); 
+	//msection->SetCentroid(0,0.02); 
 	//msection->SetShearCenter(0,0.1); 
 	//msection->SetSectionRotation(45*CH_C_RAD_TO_DEG);
 
@@ -100,72 +100,30 @@ int main(int argc, char* argv[])
 	ChSharedPtr<ChElementBeamEuler> belement1 (new ChElementBeamEuler);
 
 	belement1->SetNodes(hnode1, hnode2);
-//belement1->SetNodeAreferenceRot( Q_from_AngAxis( -0.5, VECT_Y ) ) ;
 	belement1->SetSection(msection);
 
 	my_mesh->AddElement(belement1);
 
 
-
 	ChSharedPtr<ChElementBeamEuler> belement2 (new ChElementBeamEuler);
 
 	belement2->SetNodes(hnode2, hnode3);
-
 	belement2->SetSection(msection);
 
 	my_mesh->AddElement(belement2);
 
 
-				// Apply a force to a node
-	//hnode3->SetForce( ChVector<>(10, 0, 0) );
-	//hnode3->SetForce( ChVector<>(0,-3,-3));
+				// Apply a force or a torque to a node:
 	hnode3->SetForce( ChVector<>(2,0,0));
-hnode3->SetTorque( ChVector<>(0, -0.02, 0));
+	//hnode3->SetTorque( ChVector<>(0, -0.04, 0));
 
 
-				// Fix a body to ground
+				// Fix a node to ground:
 	hnode1->SetFixed(true);
 
 
 
-			// Create another element 90° to do an "L" shape:
-
-	ChSharedPtr<ChNodeFEMxyzrot> hnode4(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(2*beam_L,0,0), ChQuaternion<>(sqrt(0.5),0,-sqrt(0.5),0) )));
-	ChSharedPtr<ChNodeFEMxyzrot> hnode5(new ChNodeFEMxyzrot( ChFrame<>(ChVector<>(2*beam_L,0,beam_L),  ChQuaternion<>(sqrt(0.5),0,-sqrt(0.5),0) )));
-
-
-	my_mesh->AddNode(hnode4);
-	my_mesh->AddNode(hnode5);
-
-	ChSharedPtr<ChElementBeamEuler> belement3 (new ChElementBeamEuler);
-
-	belement3->SetNodes(hnode4, hnode5);
-
-	belement3->SetSection(msection);
-
-	my_mesh->AddElement(belement3);
-
-	belement3->UpdateRotation();
 	
-	//hnode5->SetTorque( ChVector<>(1,0,0));
-	//hnode5->SetForce( ChVector<>(0,-1,0));
-	//hnode5->SetTorque( ChVector<>(0,0,0.05));
-hnode5->SetFixed(true);
-
-		// Create a constraint between the two segments of the "L":
-/*
-	ChSharedPtr<ChLinkMateGeneric> constraint2(new ChLinkMateGeneric);
-	ChFrame<> mfra2;
-	constraint2->Initialize(hnode3,
-						    hnode4,false, hnode3->Frame(), hnode3->Frame());
-	my_system.Add(constraint2);
-
-	// For example, attach small cube to show the constraint
-	ChSharedPtr<ChBoxShape> mboxconstr2(new ChBoxShape);
-	mboxconstr2->GetBoxGeometry().SetLenghts( ChVector<>(beam_wy*1.05) );
-	constraint2->AddAsset(mboxconstr2);
-*/
-
 	//
 	// Add some EULER-BERNOULLI BEAMS (the fast way!)
 	//
@@ -272,23 +230,18 @@ hnode5->SetFixed(true);
 	chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
 	msolver->SetVerbose(false);
 	msolver->SetDiagonalPreconditioning(true);
+	
 	application.SetTimestep(0.001);
+
+// TEST: The Matlab external linear solver, for max precision in benchmarks
+ChMatlabEngine matlab_engine;
+ChLcpMatlabSolver* matlab_solver_stab  = new ChLcpMatlabSolver(matlab_engine);
+ChLcpMatlabSolver* matlab_solver_speed = new ChLcpMatlabSolver(matlab_engine);
+my_system.ChangeLcpSolverStab (matlab_solver_stab);
+my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
 
 //application.GetSystem()->Update();
 application.SetPaused(true);
-
-		// Impose displ.
-//hnode5->Frame().SetPos( hnode5->Frame().GetPos() + ChVector<>(0,-0.1, 0) );
-		// Impose rot.
-/*
-ChFrame<>* mf = &hnode5->Frame();
-mf->ConcatenatePostTransformation( ChFrame<>(ChVector<>(0,0,0),  CH_C_DEG_TO_RAD*30.0, VECT_Z ) );
-ChMatrixDynamic<> mfi(12,1);
-belement3->GetField(mfi);
-*/
-
-
-//ChQuadrature::GetStaticTables()->PrintTables(); //***TEST***
 
 
 
@@ -303,9 +256,7 @@ GetLog()<< "\n\n\n===========STATICS======== \n\n\n";
 
 belement1->SetDisableCorotate(true);
 belement2->SetDisableCorotate(true);
-belement3->SetDisableCorotate(true);
 application.GetSystem()->DoStaticLinear();
-
 
 
 GetLog() << "BEAM RESULTS (STATIC ANALYSIS) \n\n";
@@ -318,27 +269,21 @@ GetLog()<< displ;
 for (double eta = -1; eta <= 1; eta += 0.4)
 {	
 	belement1->EvaluateSectionForceTorque(eta, displ, F, M);
-	GetLog() << "  b1_at" << eta <<  " Mx=" << M.x << " My=" << M.y << " Mz=" << M.z << " Tx=" << F.x << " Ty=" << F.y << " Tz=" << F.z << "\n";
+	GetLog() << "  b1_at " << eta <<  " Mx=" << M.x << " My=" << M.y << " Mz=" << M.z << " Tx=" << F.x << " Ty=" << F.y << " Tz=" << F.z << "\n";
 }
+GetLog()<< "\n";
 belement2->GetField(displ);
 for (double eta = -1; eta <= 1; eta += 0.4)
 {	
 	belement2->EvaluateSectionForceTorque(eta, displ, F, M);
-	GetLog() << "  b2_at" << eta <<  " Mx=" << M.x << " My=" << M.y << " Mz=" << M.z << " Tx=" << F.x << " Ty=" << F.y << " Tz=" << F.z << "\n";
-}
-belement3->GetField(displ);
-for (double eta = -1; eta <= 1; eta += 0.4)
-{	
-	belement3->EvaluateSectionForceTorque(eta, displ, F, M);
-	GetLog() << "  b3_at" << eta << " Mx=" << M.x << " My=" << M.y << " Mz=" << M.z << " Tx=" << F.x << " Ty=" << F.y << " Tz=" << F.z << "\n";
+	GetLog() << "  b2_at " << eta <<  " Mx=" << M.x << " My=" << M.y << " Mz=" << M.z << " Tx=" << F.x << " Ty=" << F.y << " Tz=" << F.z << "\n";
 }
 
-GetLog() << "Node 3 coordinate y= " << hnode3->Frame().GetPos().y << "    z=" << hnode3->Frame().GetPos().z << "\n";
-GetLog() << "Node 5 coordinate y= " << hnode5->Frame().GetPos().y << "    z=" << hnode5->Frame().GetPos().z << "\n";
+GetLog() << "Node 3 coordinate x= " << hnode3->Frame().GetPos().x << "    y=" << hnode3->Frame().GetPos().y << "    z=" << hnode3->Frame().GetPos().z << "\n";
 
 belement1->SetDisableCorotate(false);
 belement2->SetDisableCorotate(false);
-belement3->SetDisableCorotate(false);
+
 
 	while(application.GetDevice()->run()) 
 	{

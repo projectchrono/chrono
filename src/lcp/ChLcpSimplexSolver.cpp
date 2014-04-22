@@ -173,14 +173,31 @@ double ChLcpSimplexSolver::Solve(
 			}
 	}
 
+//***DEBUG***
+double max_err=0; int err_r = -1; int err_c = -1;
+for (int row = 0; row < MC->GetRows(); ++row)
+	for (int col = 0; col < MC->GetColumns(); ++col)
+	{
+		double diff = fabs (MC->GetElement(row,col)-MC->GetElement(col,row));
+		if (diff > max_err)
+		{
+			max_err = diff;
+			err_r = row;
+			err_c = col;
+		}
+	}
+if (max_err > 1e-10)
+	GetLog() << "simplex solver: NONSYMMETRIC MC! error " << max_err << " at " << err_r << "," << err_c << "\n";
+
 	// -- 
 	// Solve the LCP
- 
+
 	MC->SolveLCP(B, X,
 				   n_c, n_d,
 				   truncation_step, 
 				   false,
 				   unilaterals);
+
 
 	// --
 	// Update results into variable-interface objects

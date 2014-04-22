@@ -192,7 +192,7 @@ public:
 				/// Set zero speed (and zero accelerations) in state, without changing the position.
 				/// Child classes should impement this function if GetDOF() > 0.
 				/// It is used by owner ChSystem for some static analysis.
-	void SetNoSpeedNoAcceleration() {};
+	virtual void SetNoSpeedNoAcceleration() {};
 
 
 			// STATISTICS  - override these in child classes if needed

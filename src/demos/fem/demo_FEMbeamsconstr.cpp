@@ -28,6 +28,7 @@
 #include "unit_FEM/ChMesh.h"
 #include "unit_FEM/ChVisualizationFEMmesh.h"
 #include "irrlicht_interface/ChIrrApp.h"
+#include "unit_MATLAB/ChMatlabEngine.h"
 
 
 // Remember to use the namespace 'chrono' because all classes 
@@ -73,7 +74,7 @@ int main(int argc, char* argv[])
 	ChVector<> vC(L,0,0);
 	ChVector<> vB(L,-H,0);
 	ChVector<> vG(L-K,-H,0);
-	ChVector<> vd(0,0,0.001);
+	ChVector<> vd(0,0,0.0001);
 
 
 				// Create a truss:
@@ -118,7 +119,13 @@ int main(int argc, char* argv[])
 	public:
 		ChFunction* new_Duplicate() {return new ChFunction_myf;} 
 
-		double Get_y(double x) {if (x > 0.4) return CH_C_PI; else return - CH_C_PI * (1.0 - cos(CH_C_PI*x/0.4)) / 2.0;} 
+		double Get_y(double x) 
+			{
+					if (x > 0.4) 
+						return CH_C_PI; 
+					else 
+						return - CH_C_PI * (1.0 - cos(CH_C_PI*x/0.4)) / 2.0;
+			} 
 	};
 
 	ChFunction_myf* f_ramp = new ChFunction_myf;
@@ -196,7 +203,7 @@ int main(int argc, char* argv[])
 	my_system.Add(constr_bb);
 
 	constr_bb->SetConstrainedCoords( true, true, true,		// x, y, z
-										true, true, false);   // Rx, Ry, Rz
+										false, false, false);   // Rx, Ry, Rz
 
 				// For example, attach small shape to show the constraint
 	ChSharedPtr<ChSphereShape> msphereconstr2(new ChSphereShape);
@@ -285,10 +292,20 @@ int main(int argc, char* argv[])
 	my_system.SetIterLCPwarmStarting(true); // this helps a lot to speedup convergence in this class of problems
 	my_system.SetIterLCPmaxItersSpeed(600);
 	my_system.SetIterLCPmaxItersStab(600);
-	my_system.SetTolSpeeds(1e-12);
+	my_system.SetTolSpeeds(1e-20);
 	chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
-	//msolver->SetVerbose(true);
-	msolver->SetDiagonalPreconditioning(true);
+	msolver->SetVerbose(true);
+	msolver->SetDiagonalPreconditioning(false);
+
+//my_system.SetLcpSolverType(ChSystem::LCP_SIMPLEX);
+
+//***TEST***
+ChMatlabEngine matlab_engine;
+ChLcpMatlabSolver* matlab_solver_stab  = new ChLcpMatlabSolver(matlab_engine);
+ChLcpMatlabSolver* matlab_solver_speed = new ChLcpMatlabSolver(matlab_engine);
+my_system.ChangeLcpSolverStab (matlab_solver_stab);
+my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
+
 
 	application.SetTimestep(0.001);
 	application.SetVideoframeSaveInterval(10);
@@ -325,7 +342,7 @@ int main(int argc, char* argv[])
 
 	// Create the Irrlicht visualization (open the Irrlicht device, 
 	// bind a simple user interface, etc. etc.)
-	ChIrrApp application(&my_system, L"Beams and constraints",core::dimension2d<u32>(800,600),false, true);
+	ChIrrApp application(&my_system, L"Statics of beam",core::dimension2d<u32>(800,600),false, true);
 
 	// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
 	application.AddTypicalLogo();
@@ -342,43 +359,9 @@ int main(int argc, char* argv[])
 
 				// Attach a 'box' shape asset for visualization.
 	ChSharedPtr<ChBoxShape> mboxtruss(new ChBoxShape);
-	mboxtruss->GetBoxGeometry().Pos  = ChVector<>(-0.01, 0,0);
-	mboxtruss->GetBoxGeometry().SetLenghts( ChVector<>(0.02, 0.2, 0.1) );
+	mboxtruss->GetBoxGeometry().Pos  = ChVector<>(-0.01, 0, 0.4);
+	mboxtruss->GetBoxGeometry().SetLenghts( ChVector<>(0.02, 0.2, 0.8) );
 	my_body_A->AddAsset(mboxtruss);
-				// Attach a 'box' shape asset for visualization.
-	ChSharedPtr<ChBoxShape> mboxguide(new ChBoxShape);
-	mboxguide->GetBoxGeometry().Pos  = ChVector<>(0.5+0.03, 0,0);
-	mboxguide->GetBoxGeometry().SetLenghts( ChVector<>(0.03, 0.5, 0.04) );
-	my_body_A->AddAsset(mboxguide);
-
-
-				// Create a moving object as a slider
-	ChSharedPtr<ChBody>  my_body_B(new ChBody);
-
-	my_body_B->SetPos( ChVector<> (0.5,0,0) );
-
-	my_system.AddBody(my_body_B);
-
-				// Attach a 'box' shape asset for visualization.
-	ChSharedPtr<ChBoxShape> mboxslider(new ChBoxShape);
-	mboxslider->GetBoxGeometry().Pos  = ChVector<>(0.01,0,0);
-	mboxslider->GetBoxGeometry().SetLenghts( ChVector<>(0.02, 0.1, 0.15) );
-	my_body_B->AddAsset(mboxslider);
-
-
-				// Create a slider between the truss
-				// and the slider body:
-	ChSharedPtr<ChLinkLockLock> constraint3(new ChLinkLockLock);
-	constraint3->Initialize(my_body_A,
-						    my_body_B,
-							my_body_B->GetCoord() );
-	my_system.Add(constraint3);
-
-	ChFunction_Ramp* f_ramp = new ChFunction_Ramp;
-	f_ramp->Set_ang(0.1);	// set angular coefficient;
-	f_ramp->Set_y0(0.0);	// set y value for x=0;
-
-	constraint3->SetMotion_Y(f_ramp);
 
 
 		// Create a FEM mesh, that is a container for groups
@@ -386,64 +369,71 @@ int main(int argc, char* argv[])
 	ChSharedPtr<ChMesh> my_mesh(new ChMesh);
 
 
-	for (int i = 0; i < 5; i++)
+	double rotstep = 15;
+	double rotmax  = 90;
+
+	ChMatrixNM<double,3,1> loads;
+	loads(0) = -4.448;
+	loads(1) = -8.896;
+	loads(2) = -13.345;
+
+	double z_spacing = -0.1;
+	double y_spacing = -0.2;
+
+	std::vector< ChSharedPtr< ChNodeFEMxyzrot > > endnodes[3];
+
+
+
+	for (int nload = 0; nload < 3; ++nload)
 	{
-		double z_spacing = -0.1;
-
-		//
-		// Add some EULER-BERNOULLI BEAMS:
-		//
-
-					// Create a section, i.e. thickness and material properties
-					// for beams. This will be shared among some beams.
-		
-		ChSharedPtr<ChBeamSectionAdvanced> msection(new ChBeamSectionAdvanced);
-
-		double beam_wy = 0.06 - 0.01*i;
-		double beam_wz = 0.003;
-		msection->SetAsRectangularSection(beam_wy, beam_wz);
-		msection->SetYoungModulus (200.8e9);
-		msection->SetGshearModulus(200.8e9 * 0.3);
-		msection->SetBeamRaleyghDamping(0.002);
-		//msection->SetCentroid(0.0,0.00002); 
-		msection->SetShearCenter(0.0,0.00004); 
-		//msection->SetSectionRotation(45*CH_C_RAD_TO_DEG);
+		int i = 0;
+		for (int rot = 0; rot <= rotmax; rot+= rotstep)
+		{
+			double rot_rad = rot * CH_C_DEG_TO_RAD;
 
 
-					// This helps creating sequences of nodes and ChElementBeamEuler elements:
-		ChBuilderBeam builder;
+			//
+			// Add some EULER-BERNOULLI BEAMS:
+			//
 
-		builder.BuildBeam(	my_mesh,		// the mesh where to put the created nodes and elements 
-							msection,		// the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
-							10,				// the number of ChElementBeamEuler to create
-							ChVector<>(0, 0, i*z_spacing),	// the 'A' point in space (beginning of beam)
-							ChVector<>(0.5,0,i*z_spacing),	// the 'B' point in space (end of beam)
-							ChVector<>(0,1, 0));		// the 'Y' up direction of the section for the beam
-		
-					// After having used BuildBeam(), you can retrieve the nodes used for the beam,
-					// For example say you want to fix the A end and apply a force to the B end:
-		builder.GetLastBeamNodes().front()->SetFixed(true);
+						// Create a section, i.e. thickness and material properties
+						// for beams. This will be shared among some beams.
+			
+			ChSharedPtr<ChBeamSectionAdvanced> msection(new ChBeamSectionAdvanced);
+
+			double beam_wz = 0.0032024; //3.175;
+			double beam_wy = 0.01237; //12.7;
+			double beam_L  = 0.508;
+			msection->SetDensity(2700); 
+			msection->SetYoungModulus (71.7e9);
+			msection->SetGwithPoissonRatio(0.31);
+			msection->SetBeamRaleyghDamping(0.0);
+			msection->SetAsRectangularSection(beam_wy, beam_wz);
 
 
-					// Create a constraint between the beam end 
-					// and the slider body:
-		ChSharedPtr<ChLinkMateGeneric> constraint2(new ChLinkMateGeneric);
-		constraint2->Initialize(builder.GetLastBeamNodes().back(),
-								my_body_B,
-								false, 
-								builder.GetLastBeamNodes().back()->Frame(),
-								my_body_B->GetFrame_REF_to_abs() 
-								 );
-		my_system.Add(constraint2);
+						// This helps creating sequences of nodes and ChElementBeamEuler elements:
+			ChBuilderBeam builder;
 
-		constraint2->SetConstrainedCoords( false, true, false,			// x, y, z
-											false, false, false);   // Rx, Ry, Rz
+			builder.BuildBeam(	my_mesh,		// the mesh where to put the created nodes and elements 
+								msection,		// the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
+								10,				// the number of ChElementBeamEuler to create
+								ChVector<>(0,      nload*y_spacing, i*z_spacing),	// the 'A' point in space (beginning of beam)
+								ChVector<>(beam_L, nload*y_spacing, i*z_spacing),	// the 'B' point in space (end of beam)
+								ChVector<>(0, 1, 0)
+								//ChVector<>(0, cos(rot_rad), sin(rot_rad))
+								);		// the 'Y' up direction of the section for the beam
+			
+						// After having used BuildBeam(), you can retrieve the nodes used for the beam,
+						// For example say you want to fix the A end and apply a force to the B end:
+			builder.GetLastBeamNodes().front()->SetFixed(true);
 
-					// For example, attach small shape to show the constraint
-		ChSharedPtr<ChSphereShape> msphereconstr2(new ChSphereShape);
-		msphereconstr2->GetSphereGeometry().rad = 0.01;
-		constraint2->AddAsset(msphereconstr2);
+			//builder.GetLastBeamNodes().back()->SetForce(ChVector<> (0, load,0));
+			builder.GetLastBeamNodes().back()->SetForce(ChVector<> (0, loads(nload)*cos(rot_rad), loads(nload)*sin(rot_rad)));
 
+			endnodes[nload].push_back( builder.GetLastBeamNodes().back() );
+
+			++i;
+		}
 	}
 
 
@@ -511,21 +501,61 @@ int main(int argc, char* argv[])
 	my_system.SetIterLCPmaxItersStab(600);
 	my_system.SetTolSpeeds(1e-12);
 	chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
-	//msolver->SetVerbose(true);
 	msolver->SetDiagonalPreconditioning(true);
+
+//my_system.SetLcpSolverType(ChSystem::LCP_SIMPLEX);
+
+//***TEST***
+ChMatlabEngine matlab_engine;
+ChLcpMatlabSolver* matlab_solver_stab  = new ChLcpMatlabSolver(matlab_engine);
+ChLcpMatlabSolver* matlab_solver_speed = new ChLcpMatlabSolver(matlab_engine);
+my_system.ChangeLcpSolverStab (matlab_solver_stab);
+my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
 
 	application.SetTimestep(0.001);
 	application.SetVideoframeSaveInterval(10);
 
+	// Perform nonlinear statics
+	my_system.DoStaticNonlinear(20);
+	my_system.DoStaticNonlinear(10);  // just to be on the safe side :)
+	application.SetPaused(true);
+
+
+	// Output data
+	chrono::ChStreamOutAsciiFile file_out1("benchmark_CE_princeton_L1.dat");
+	for (int i = 0; i < endnodes[0].size() ; ++i)
+	{
+
+		double node_y = endnodes[0][i]->GetPos().y - 0 * y_spacing;
+		double node_z = endnodes[0][i]->GetPos().z - i * z_spacing;
+		double node_a = atan2( endnodes[0][i]->GetA()->Get_A_Yaxis().y, endnodes[0][i]->GetA()->Get_A_Yaxis().z ) - CH_C_PI_2;
+		GetLog() << " Node " << i << " DY=" << node_y << " DZ=" << node_z << "  angle=" << node_a << " [rad]\n";
+		file_out1 << node_y << " " << node_z << " " << node_a << "\n";
+	}
+	chrono::ChStreamOutAsciiFile file_out2("benchmark_CE_princeton_L2.dat");
+	for (int i = 0; i < endnodes[1].size() ; ++i)
+	{
+		double node_y = endnodes[1][i]->GetPos().y - 1 * y_spacing;
+		double node_z = endnodes[1][i]->GetPos().z - i * z_spacing;
+		double node_a = atan2( endnodes[1][i]->GetA()->Get_A_Yaxis().y, endnodes[1][i]->GetA()->Get_A_Yaxis().z ) - CH_C_PI_2;
+		GetLog() << " Node " << i << " DY=" << node_y << " DZ=" << node_z << "  angle=" << node_a << " [rad]\n";
+		file_out2 << node_y << " " << node_z << " " << node_a << "\n";
+	}
+	chrono::ChStreamOutAsciiFile file_out3("benchmark_CE_princeton_L3.dat");
+	for (int i = 0; i < endnodes[2].size() ; ++i)
+	{
+		double node_y = endnodes[2][i]->GetPos().y - 2 * y_spacing;
+		double node_z = endnodes[2][i]->GetPos().z - i * z_spacing;
+		double node_a = atan2( endnodes[2][i]->GetA()->Get_A_Yaxis().y, endnodes[2][i]->GetA()->Get_A_Yaxis().z ) - CH_C_PI_2;
+		GetLog() << " Node " << i << " DY=" << node_y << " DZ=" << node_z << "  angle=" << node_a << " [rad]\n";
+		file_out3 << node_y << " " << node_z << " " << node_a << "\n";
+	}
+
+
+	// 3D view
+
 	while(application.GetDevice()->run()) 
 	{
-		//builder.GetLastBeamNodes().back()->SetTorque(ChVector<> (0,0,0.1*application.GetSystem()->GetChTime() ) );
-	
-		if (application.GetSystem()->GetChTime() > 0.5)
-		{
-			f_ramp->Set_ang(0);
-			f_ramp->Set_y0(0.5 *0.1);
-		}
 
 		application.BeginScene();
 

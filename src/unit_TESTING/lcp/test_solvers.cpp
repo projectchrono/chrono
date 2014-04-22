@@ -54,6 +54,7 @@ using namespace postprocess;
 #define CHMODEL ChModelGPU
 #define CHSYS ChSystemGPU
 uint num_objects=0;
+//**NOTE: instead of using dump_matricies() , there is the new ChSystem::DumpLastMatrices()
 void dump_matricies(ChLcpSystemDescriptor& mdescriptor) {
 	chrono::ChSparseMatrix mdM;
 	chrono::ChSparseMatrix mdCq;
@@ -160,7 +161,9 @@ int main(int argc, char* argv[]) {
 // 	window_manager->CallGlutMainLoop();
 //
 //	//msolver->Solve(*mdescriptor,true);
-//	//dump_matricies(*mdescriptor);
+//   //**NOTE: instead of using dump-dump_matricies() , there is also the new ChSystem::DumpLastMatrices()
+//	// dump_matricies(*mdescriptor);
+	//
 //	//ChLcpIterativePMINRES msolver_krylov(20, false, 0.00001);
 //	//msolver_krylov.Solve(mdescriptor);
 //    

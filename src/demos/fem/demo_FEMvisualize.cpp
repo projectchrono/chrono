@@ -31,6 +31,7 @@
 #include "unit_FEM/ChLinkPointFrame.h"
 #include "unit_FEM/ChVisualizationFEMmesh.h"
 #include "irrlicht_interface/ChIrrApp.h"
+#include "unit_MATLAB/ChMatlabEngine.h"
 
 
 // Remember to use the namespace 'chrono' because all classes 
@@ -102,7 +103,7 @@ int main(int argc, char* argv[])
 	//
 	// Add some HEXAHEDRONS (isoparametric bricks):
 	//
-
+/*
 	double sx = 0.1;
 	double sy = 0.1;
 	double sz = 0.1;
@@ -144,7 +145,7 @@ int main(int argc, char* argv[])
 
 				// Apply a force to a node
 	hnode4_lower->SetForce( ChVector<>(500,0,0));
-
+*/
 
 	//
 	// Final touches..
@@ -263,7 +264,17 @@ int main(int argc, char* argv[])
 	//msolver->SetVerbose(true);
 	//msolver->SetDiagonalPreconditioning(true);
 
+//my_system.SetLcpSolverType(ChSystem::LCP_SIMPLEX);
+//***TEST***
+ChMatlabEngine matlab_engine;
+ChLcpMatlabSolver* matlab_solver_stab  = new ChLcpMatlabSolver(matlab_engine);
+ChLcpMatlabSolver* matlab_solver_speed = new ChLcpMatlabSolver(matlab_engine);
+my_system.ChangeLcpSolverStab (matlab_solver_stab);
+my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
+
 	application.SetTimestep(0.001);
+
+application.SetPaused(true);
 
 	while(application.GetDevice()->run()) 
 	{

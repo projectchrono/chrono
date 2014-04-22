@@ -94,7 +94,7 @@ void ChContinuumElastic::Set_G (double m_G)
 
 void ChContinuumElastic::ComputeStressStrainMatrix()
 {
-	StressStrainMatrix.Resize(6,6);
+	StressStrainMatrix.Reset(6,6);
 	StressStrainMatrix.SetElement(0,0,(E *(1-v))/(1+v)/(1-2*v));
 	//StressStrainMatrix.SetElement(1,1,StressStrainMatrix.GetElement(0,0));	//
 	//StressStrainMatrix.SetElement(2,2,StressStrainMatrix.GetElement(0,0));	//per non ricalcolare; qual'è meglio?

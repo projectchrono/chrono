@@ -381,6 +381,13 @@ public:
 								bool skip_contacts_uv = false);
 
 
+					/// Saves to disk the LAST used matrices of the problem.
+					///  dump_M.dat  has masses and/or stiffness (Matlab sparse format)
+					///  dump_Cq.dat has the jacobians (Matlab sparse format)
+					///  dump_E.dat  has the constr.compliance (Matlab sparse format)
+					///  dump_f.dat  has the applied loads  
+					///  dump_b.dat  has the constraint rhs 
+	virtual void DumpLastMatrices(char path[] = "");
 
 				/// OBSOLETE. Kept only for backward compability. Use rather: ConvertToMatrixForm
 	virtual void BuildMatrices (ChSparseMatrix* Cq,

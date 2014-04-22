@@ -136,6 +136,27 @@ public:
 					StiffnessMatrix.MatrTMultiply(MatrB,EB);
 
 					StiffnessMatrix.MatrScale(Volume);
+
+//***TEST*** SYMMETRIZE TO AVOID ROUNDOFF ASYMMETRY
+for (int row = 0; row < StiffnessMatrix.GetRows()-1; ++row)
+	for (int col = row+1; col < StiffnessMatrix.GetColumns(); ++col)
+		StiffnessMatrix(row,col) = StiffnessMatrix(col,row);
+
+double max_err=0; int err_r = -1; int err_c = -1;
+for (int row = 0; row < StiffnessMatrix.GetRows(); ++row)
+	for (int col = 0; col < StiffnessMatrix.GetColumns(); ++col)
+	{
+		double diff = fabs (StiffnessMatrix.GetElement(row,col)-StiffnessMatrix.GetElement(col,row));
+		if (diff > max_err)
+		{
+			max_err = diff;
+			err_r = row;
+			err_c = col;
+		}
+	}
+if (max_err > 1e-10)
+	GetLog() << "NONSYMMETRIC local stiffness matrix! err " << max_err << " at " << err_r << "," << err_c << "\n";
+
 				}
 
 				/// set up the element's parameters and matrices 
@@ -193,6 +214,63 @@ public:
 					ChMatrixDynamic<> CKCt(12,12); // the global, corotated, K matrix
 					ChMatrixCorotation<>::ComputeCK(StiffnessMatrix, this->A, 4, CK);
 					ChMatrixCorotation<>::ComputeKCt(CK, this->A, 4, CKCt);
+/*
+///***TEST***
+ChMatrixDynamic<> testCKCt(12,12);
+ChMatrixDynamic<> mC(12,12);
+mC.PasteMatrix(&this->A,0,0);
+mC.PasteMatrix(&this->A,3,3);
+mC.PasteMatrix(&this->A,6,6);
+mC.PasteMatrix(&this->A,9,9);
+CK.MatrMultiply(mC,StiffnessMatrix);
+testCKCt.MatrMultiplyT(CK,mC);
+ChMatrixDynamic<> mdiff = testCKCt - CKCt;
+double maxerr=0;
+for (int row = 0; row < mdiff.GetRows()-1; ++row)
+	for (int col = 0; col < mdiff.GetColumns(); ++col)
+		if (fabs(mdiff(col,row)) > maxerr ) maxerr =  fabs(mdiff(col,row));
+if (maxerr > 0) 
+	GetLog() << " !!!corotation symmetry error!!!! "  << maxerr << "\n";
+*/
+
+//***TEST*** SYMMETRIZE TO AVOID ROUNDOFF ASYMMETRY
+for (int row = 0; row < CKCt.GetRows()-1; ++row)
+	for (int col = row+1; col < CKCt.GetColumns(); ++col)
+		CKCt(row,col) = CKCt(col,row);
+
+
+
+//***DEBUG***
+double max_err=0; int err_r = -1; int err_c = -1;
+for (int row = 0; row < StiffnessMatrix.GetRows(); ++row)
+	for (int col = 0; col < StiffnessMatrix.GetColumns(); ++col)
+	{
+		double diff = fabs (StiffnessMatrix.GetElement(row,col)-StiffnessMatrix.GetElement(col,row));
+		if (diff > max_err)
+		{
+			max_err = diff;
+			err_r = row;
+			err_c = col;
+		}
+	}
+if (max_err > 1e-10)
+	GetLog() << "NONSYMMETRIC local stiffness matrix! err " << max_err << " at " << err_r << "," << err_c << "\n";
+max_err=0; err_r = -1; err_c = -1; double maxval = 0;
+for (int row = 0; row < CKCt.GetRows(); ++row)
+	for (int col = 0; col < CKCt.GetColumns(); ++col)
+	{
+		double diff = fabs (CKCt.GetElement(row,col)-CKCt.GetElement(col,row));
+		if (diff > max_err)
+		{
+			max_err = diff;
+			err_r = row;
+			err_c = col;
+		}
+		if (CKCt.GetElement(row,col) > maxval)
+			maxval = CKCt.GetElement(row,col);
+	}
+if (max_err > 1e-10)
+	GetLog() << "NONSYMMETRIC corotated matrix! err " << max_err << " at " << err_r << "," << err_c << ",   maxval=" << maxval<< "\n";
 
 					// DEBUG
 					/*
