@@ -14,11 +14,6 @@ using namespace geometry;
 
 
 // =======================================================================
-// Initialize the random engine
-std::random_device rd;
-std::default_random_engine utils::rengine(rd());
-
-// =======================================================================
 // Global problem definitions
 const std::string data_folder = "../TEST/";
 
