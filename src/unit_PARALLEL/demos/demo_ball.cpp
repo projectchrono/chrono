@@ -2,16 +2,11 @@
 #include <vector>
 #include <cmath>
 
-#include "assets/ChSphereShape.h"
-#include "assets/ChEllipsoidShape.h"
-#include "assets/ChBoxShape.h"
-#include "assets/ChCylinderShape.h"
-#include "assets/ChConeShape.h"
-
 #include "ChSystemParallel.h"
 #include "ChLcpSystemDescriptorParallel.h"
 
 #include "utils/input_output.h"
+#include "utils/creators.h"
 
 using namespace chrono;
 using namespace geometry;
@@ -19,23 +14,6 @@ using namespace geometry;
 //// Comment this for DVI contact
 #define DEM
 
-template <typename T>
-void AddWall(T&                   body,
-             const ChVector<>&    loc,
-             const ChVector<>&    dim)
-{
-	// Append to collision geometry
-	body->GetCollisionModel()->AddBox(dim.x, dim.y, dim.z, loc);
-
-	// Append to assets
-	ChSharedPtr<ChBoxShape> box_shape = ChSharedPtr<ChAsset>(new ChBoxShape);
-	box_shape->SetColor(ChColor(1, 0, 0));
-	box_shape->Pos = loc;
-	box_shape->Rot = ChQuaternion<>(1,0,0,0);
-	box_shape->GetBoxGeometry().Size = dim;
-
-	body->GetAssets().push_back(box_shape);
-}
 
 void OutputFile(ChStreamOutAsciiFile& file,
                 ChSystem&             sys,
@@ -76,11 +54,11 @@ int main(int argc, char* argv[])
 
 	// Output
 #ifdef DEM
-	ChStreamOutAsciiFile sph_file("../sphere_pos_DEM.txt");
-	const char* data_folder = "../DEM";
+	ChStreamOutAsciiFile sph_file("../TEST_BALL/sphere_pos_DEM.txt");
+	const char* data_folder = "../TEST_BALL/POVRAY_DEM";
 #else
-	ChStreamOutAsciiFile sph_file("../sphere_pos_DVI.txt");
-	const char* data_folder = "../DVI";
+	ChStreamOutAsciiFile sph_file("../TEST_BALL/sphere_pos_DVI.txt");
+	const char* data_folder = "../TEST_BALL/POVRAY_DVI";
 #endif
 	double out_fps = 1000;
 	int out_steps = std::ceil((1 / time_step) / out_fps);
@@ -182,19 +160,11 @@ int main(int argc, char* argv[])
 	ball->SetRot(initRot);
 	ball->SetPos_dt(initVel);
 	ball->SetBodyFixed(false);
-
 	ball->SetCollide(true);
 
 	ball->GetCollisionModel()->ClearModel();
-	ball->GetCollisionModel()->AddSphere(radius);
+	utils::AddSphereGeometry(ball.get_ptr(), radius);
 	ball->GetCollisionModel()->BuildModel();
-
-	ChSharedPtr<ChSphereShape> sphere_shape = ChSharedPtr<ChAsset>(new ChSphereShape);
-	sphere_shape->SetColor(ChColor(1, 0, 0));
-	sphere_shape->GetSphereGeometry().rad = radius;
-	sphere_shape->Pos = ChVector<>(0,0,0);
-	sphere_shape->Rot = ChQuaternion<>(1,0,0,0);
-	ball->GetAssets().push_back(sphere_shape);
 
 	msystem.AddBody(ball);
 
@@ -214,43 +184,22 @@ int main(int argc, char* argv[])
 	ball2->SetRot(initRot);
 	ball2->SetPos_dt(initVel);
 	ball2->SetBodyFixed(false);
-
 	ball2->SetCollide(true);
 
 	ball2->GetCollisionModel()->ClearModel();
-	ball2->GetCollisionModel()->AddSphere(radius);
+	utils::AddSphereGeometry(ball2.get_ptr(), radius);
 	ball2->GetCollisionModel()->BuildModel();
-
-	ball2->GetAssets().push_back(sphere_shape);
 
 	msystem.AddBody(ball2);
 
 
 	// Create the containing bin
 #ifdef DEM
-	ChSharedBodyDEMPtr bin(new ChBodyDEM(new ChCollisionModelParallel));
-	bin->SetMaterialSurfaceDEM(binMat);
+	utils::CreateBoxContainerDEM(&msystem, binId, binMat, ChVector<>(hDimX, hDimY, hDimZ), hThickness);
 #else
-	ChSharedBodyPtr bin(new ChBody(new ChCollisionModelParallel));
-	bin->SetMaterialSurface(binMat);
+	utils::CreateBoxContainerDVI(&msystem, binId, binMat, ChVector<>(hDimX, hDimY, hDimZ), hThickness);
 #endif
 
-	bin->SetIdentifier(binId);
-	bin->SetMass(1);
-	bin->SetPos(ChVector<>(0, 0, 0));
-	bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
-	bin->SetCollide(true);
-	bin->SetBodyFixed(true);
-
-	bin->GetCollisionModel()->ClearModel();
-	AddWall(bin, ChVector<>(0, 0, -hThickness), ChVector<>(hDimX, hDimY, hThickness));
-	AddWall(bin, ChVector<>(-hDimX-hThickness, 0, hDimZ), ChVector<>(hThickness, hDimY, 2*hDimZ));
-	AddWall(bin, ChVector<>( hDimX+hThickness, 0, hDimZ), ChVector<>(hThickness, hDimY, hDimZ));
-	AddWall(bin, ChVector<>(0, -hDimY-hThickness, hDimZ), ChVector<>(hDimX, hThickness, 2*hDimZ));
-	AddWall(bin, ChVector<>(0,  hDimY+hThickness, hDimZ), ChVector<>(hDimX, hThickness, hDimZ));
-	bin->GetCollisionModel()->BuildModel();
-
-	msystem.AddBody(bin);
 
 	// Perform the simulation
 	double time = 0;

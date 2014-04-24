@@ -2,13 +2,6 @@
 #include <vector>
 #include <cmath>
 
-#include "assets/ChSphereShape.h"
-#include "assets/ChEllipsoidShape.h"
-#include "assets/ChBoxShape.h"
-#include "assets/ChCylinderShape.h"
-#include "assets/ChConeShape.h"
-#include "assets/ChCapsuleShape.h"
-
 #include "ChSystemParallel.h"
 #include "ChLcpSystemDescriptorParallel.h"
 
@@ -58,8 +51,8 @@ int main(int argc, char* argv[])
 	int max_iteration = 20;
 
 	// Output
-	ChStreamOutAsciiFile sph_file("../CAPSULE_DEM/capsule_pos_DEM.txt");
-	const char* out_folder = "../CAPSULE_DEM/POVRAY";
+	ChStreamOutAsciiFile sph_file("../TEST_CAPSULE/capsule_pos_DEM.txt");
+	const char* out_folder = "../TEST_CAPSULE/POVRAY_DEM";
 
 	// Parameters for the falling box
 	int             capsuleId = 100;

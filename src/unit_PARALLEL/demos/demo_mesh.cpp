@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
 	const std::string  obj_mesh_file("../TEST_MESH/box3d.obj");
 	const std::string  mesh_name("box3d");
 	const std::string  pov_mesh_file("../TEST_MESH/box3d.inc");
-	const char* pov_out_folder = "../TEST_MESH/POVRAY";
+	const char* pov_out_folder = "../TEST_MESH/POVRAY_DEM";
 
 	// Parameters for the falling body
 	ChVector<>      hdims(1, 1, 1);

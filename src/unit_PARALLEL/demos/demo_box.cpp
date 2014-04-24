@@ -2,16 +2,11 @@
 #include <vector>
 #include <cmath>
 
-#include "assets/ChSphereShape.h"
-#include "assets/ChEllipsoidShape.h"
-#include "assets/ChBoxShape.h"
-#include "assets/ChCylinderShape.h"
-#include "assets/ChConeShape.h"
-
 #include "ChSystemParallel.h"
 #include "ChLcpSystemDescriptorParallel.h"
 
 #include "utils/input_output.h"
+#include "utils/creators.h"
 
 using namespace chrono;
 using namespace geometry;
@@ -61,11 +56,11 @@ int main(int argc, char* argv[])
 
 	// Output
 #ifdef DEM
-	ChStreamOutAsciiFile sph_file("../DEM/box_pos_DEM.txt");
-	const char* out_folder = "../DEM/POVRAY";
+	ChStreamOutAsciiFile sph_file("../TEST_BOX/box_pos_DEM.txt");
+	const char* out_folder = "../TEST_BOX/POVRAY_DEM";
 #else
-	ChStreamOutAsciiFile sph_file("../DVI/box_pos_DVI.txt");
-	const char* out_folder = "../DVI/POVRAY";
+	ChStreamOutAsciiFile sph_file("../TEST_BOX/box_pos_DVI.txt");
+	const char* out_folder = "../TEST_BOX/POVRAY_DVI";
 #endif
 
 	// Parameters for the falling box
@@ -158,18 +153,11 @@ int main(int argc, char* argv[])
 	box->SetRot(initRot);
 	box->SetPos_dt(initVel);
 	box->SetBodyFixed(false);
-
 	box->SetCollide(true);
 
 	box->GetCollisionModel()->ClearModel();
-	box->GetCollisionModel()->AddBox(hdims.x, hdims.y, hdims.z);
+	utils::AddBoxGeometry(box.get_ptr(), hdims);
 	box->GetCollisionModel()->BuildModel();
-
-	ChSharedPtr<ChBoxShape> box_shape = ChSharedPtr<ChAsset>(new ChBoxShape);
-	box_shape->GetBoxGeometry().Size = hdims;
-	box_shape->Pos = ChVector<>(0,0,0);
-	box_shape->Rot = ChQuaternion<>(1,0,0,0);
-	box->GetAssets().push_back(box_shape);
 
 	msystem->AddBody(box);
 
