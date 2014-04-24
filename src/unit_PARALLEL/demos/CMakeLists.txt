@@ -7,7 +7,7 @@ SET(LIBRARIES
     ${CHRONO_LIB}
     ChronoEngine_Parallel
     ChronoEngine_Utils
-    )
+)
 
 #--------------------------------------------------------------
 # Always use full RPATH (differentiating between the build and install trees)
@@ -42,119 +42,40 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 ENDIF()
 
 #--------------------------------------------------------------
+# List of all executables
 
-# Add executables
+SET(DEMOS
+    demo_crater
+    demo_foam
+    demo_soilbin
+    demo_wheel
+    test_ball
+    test_box
+    test_capsule
+    test_mesh
+    test_utils
+    test_collision
+    test_scaling
+)
 
-ADD_EXECUTABLE(demo_ball  demo_ball.cpp)
-SOURCE_GROUP(""  FILES demo_ball.cpp)
-SET_TARGET_PROPERTIES(demo_ball PROPERTIES
-  FOLDER demos
-  COMPILE_FLAGS "${CH_BUILDFLAGS}"
-  LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_ball ${LIBRARIES})
-ADD_DEPENDENCIES(demo_ball ${LIBRARIES})
+MESSAGE(STATUS "Executable programs...")
 
-ADD_EXECUTABLE(demo_box  demo_box.cpp)
-SOURCE_GROUP(""  FILES demo_box.cpp)
-SET_TARGET_PROPERTIES(demo_box PROPERTIES
-  FOLDER demos
-  COMPILE_FLAGS "${CH_BUILDFLAGS}"
-  LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_box ${LIBRARIES})
-ADD_DEPENDENCIES(demo_box ${LIBRARIES})
+FOREACH(PROGRAM ${DEMOS})
+    MESSAGE(STATUS "...add ${PROGRAM}")
 
-ADD_EXECUTABLE(demo_capsule  demo_capsule.cpp)
-SOURCE_GROUP(""  FILES demo_capsule.cpp)
-SET_TARGET_PROPERTIES(demo_capsule PROPERTIES
-  FOLDER demos
-  COMPILE_FLAGS "${CH_BUILDFLAGS}"
-  LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_capsule ${LIBRARIES})
-ADD_DEPENDENCIES(demo_capsule ${LIBRARIES})
+    ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
+    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
 
-ADD_EXECUTABLE(demo_mesh  demo_mesh.cpp)
-SOURCE_GROUP(""  FILES demo_mesh.cpp)
-SET_TARGET_PROPERTIES(demo_mesh PROPERTIES
-  FOLDER demos
-  COMPILE_FLAGS "${CH_BUILDFLAGS}"
-  LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_mesh ${LIBRARIES})
-ADD_DEPENDENCIES(demo_mesh ${LIBRARIES})
+    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
+        FOLDER demos
+        COMPILE_FLAGS "${CH_BUILDFLAGS}"
+        LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+    )
 
-ADD_EXECUTABLE(demo_soilbin  demo_soilbin.cpp)
-SOURCE_GROUP(""  FILES demo_soilbin.cpp)
-SET_TARGET_PROPERTIES(demo_soilbin PROPERTIES
-  FOLDER demos
-  COMPILE_FLAGS "${CH_BUILDFLAGS}"
-  LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_soilbin ${LIBRARIES})
-ADD_DEPENDENCIES(demo_soilbin ${LIBRARIES})
+    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
+    ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
 
-ADD_EXECUTABLE(demo_crater  demo_crater.cpp)
-SOURCE_GROUP(""  FILES demo_crater.cpp)
-SET_TARGET_PROPERTIES(demo_crater PROPERTIES
-  FOLDER demos
-  COMPILE_FLAGS "${CH_BUILDFLAGS}"
-  LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_crater ${LIBRARIES})
-ADD_DEPENDENCIES(demo_crater ${LIBRARIES})
+    INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
 
-ADD_EXECUTABLE(demo_foam  demo_foam.cpp)
-SOURCE_GROUP(""  FILES demo_foam.cpp)
-SET_TARGET_PROPERTIES(demo_foam PROPERTIES
-  FOLDER demos
-  COMPILE_FLAGS "${CH_BUILDFLAGS}"
-  LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_foam ${LIBRARIES})
-ADD_DEPENDENCIES(demo_foam ${LIBRARIES})
-
-ADD_EXECUTABLE(demo_wheel  demo_wheel.cpp)
-SOURCE_GROUP(""  FILES demo_wheel.cpp)
-SET_TARGET_PROPERTIES(demo_wheel PROPERTIES
-  FOLDER demos
-  COMPILE_FLAGS "${CH_BUILDFLAGS}"
-  LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_wheel ${LIBRARIES})
-ADD_DEPENDENCIES(demo_wheel ${LIBRARIES})
-
-ADD_EXECUTABLE(demo_utils  demo_utils.cpp)
-SOURCE_GROUP(""  FILES demo_utils.cpp)
-SET_TARGET_PROPERTIES(demo_utils PROPERTIES
-  FOLDER demos
-  COMPILE_FLAGS "${CH_BUILDFLAGS}"
-  LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_utils ${LIBRARIES})
-ADD_DEPENDENCIES(demo_utils ${LIBRARIES})
-
-ADD_EXECUTABLE(test_scaling  test_scaling.cpp)
-SOURCE_GROUP(""  FILES test_scaling.cpp)
-SET_TARGET_PROPERTIES(test_scaling PROPERTIES
-  FOLDER demos
-  COMPILE_FLAGS "${CH_BUILDFLAGS}"
-  LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(test_scaling ${LIBRARIES})
-ADD_DEPENDENCIES(test_scaling ${LIBRARIES})
-
-ADD_EXECUTABLE(test_collision  test_collision.cpp)
-SOURCE_GROUP(""  FILES test_collision.cpp)
-SET_TARGET_PROPERTIES(test_collision PROPERTIES
-  FOLDER demos
-  COMPILE_FLAGS "${CH_BUILDFLAGS}"
-  LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(test_collision ${LIBRARIES})
-ADD_DEPENDENCIES(test_collision ${LIBRARIES})
-
-install(TARGETS demo_ball DESTINATION bin)
-install(TARGETS demo_box DESTINATION bin)
-install(TARGETS demo_capsule DESTINATION bin)
-install(TARGETS demo_mesh DESTINATION bin)
-install(TARGETS demo_soilbin DESTINATION bin)
-install(TARGETS demo_crater DESTINATION bin)
-install(TARGETS demo_foam DESTINATION bin)
-install(TARGETS demo_wheel DESTINATION bin)
-install(TARGETS demo_utils DESTINATION bin)
-install(TARGETS test_collision DESTINATION bin)
-install(TARGETS test_scaling DESTINATION bin)
-
-
+ENDFOREACH(PROGRAM)
 
