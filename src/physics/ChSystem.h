@@ -377,12 +377,12 @@ public:
 			// NOTE! adding/removing items to the system doesn't call Update() automatically.
 				
 				/// Attach a body to this system. Must be an object of exactly ChBody class.
-	void AddBody (ChSharedPtr<ChBody> newbody);
+	virtual void AddBody (ChSharedPtr<ChBody> newbody);
 				/// Attach a link to this system. Must be an object of ChLink or derived classes.
-	void AddLink (ChSharedPtr<ChLink> newlink);
+	virtual void AddLink (ChSharedPtr<ChLink> newlink);
 	void AddLink (ChLink* newlink);  // _internal use
 				/// Attach a ChPhysicsItem object that is not a body or link
-	void AddOtherPhysicsItem (ChSharedPtr<ChPhysicsItem> newitem);
+	virtual void AddOtherPhysicsItem (ChSharedPtr<ChPhysicsItem> newitem);
 				/// Attach a probe to this system. 
 	void AddProbe (ChSharedPtr<ChProbe>& newprobe);
 				/// Attach a control to this system. 
@@ -394,13 +394,13 @@ public:
 	void Add (ChSharedPtr<ChPhysicsItem> newitem);
 
 				/// Remove a body from this system.
-	void RemoveBody (ChSharedPtr<ChBody> mbody); 
+	virtual void RemoveBody (ChSharedPtr<ChBody> mbody); 
 				/// Remove a link from this system.
-	void RemoveLink (ChSharedPtr<ChLink> mlink); 
+	virtual void RemoveLink (ChSharedPtr<ChLink> mlink); 
 				/// Remove a link from this system (faster version, mostly internal use)
 	std::list<ChLink*>::iterator RemoveLinkIter(std::list<ChLink*>::iterator& mlinkiter); 
 				/// Remove a ChPhysicsItem object that is not a body or a link
-	void RemoveOtherPhysicsItem (ChSharedPtr<ChPhysicsItem> mitem);
+	virtual void RemoveOtherPhysicsItem (ChSharedPtr<ChPhysicsItem> mitem);
 				/// Remove whatever type of ChPhysicsItem that was added to the system. 
 				/// (suggestion: use this instead of old RemoveBody(), RemoveLink, etc.)
 	void Remove (ChSharedPtr<ChPhysicsItem> newitem);
