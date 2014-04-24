@@ -46,8 +46,7 @@ void WriteCheckpoint(ChSystem*          system,
 		ChBody* body = system->Get_bodylist()->at(i);
 
 		// Infer body type (0: DVI, 1:DEM)
-		int btype = 0;
-		if (dynamic_cast<ChBodyDEM*>(body))  btype = 1;
+		int btype = (dynamic_cast<ChBodyDEM*>(body)) ? 1 : 0;
 
 		// Write body type, body identifier, the body fixed flag, and the collide flag
 		csv << btype << body->GetIdentifier() << body->GetBodyFixed() << body->GetCollide();
@@ -132,10 +131,8 @@ void WriteCheckpoint(ChSystem*          system,
 void ReadCheckpoint(ChSystem*          system,
                     const std::string& filename)
 {
-	// Infer system type (0: sequential, 1: parallel)
-	int stype = 0;
-	if (dynamic_cast<ChSystemParallelDVI*>(system) || dynamic_cast<ChSystemParallelDEM*>(system))
-		stype = 1;
+	// Infer system type (false: sequential, true: parallel)
+	bool sys_par = dynamic_cast<ChSystemParallelDVI*>(system) || dynamic_cast<ChSystemParallelDEM*>(system);
 
 	// Open input file stream
 	std::ifstream      ifile(filename.c_str());
@@ -166,13 +163,13 @@ void ReadCheckpoint(ChSystem*          system,
 		// Create the body of the appropriate type, read and apply material properties
 		ChBody* body;
 		if (btype == 0) {
-			body = (stype == 0) ? new ChBody() : new ChBody(new ChCollisionModelParallel);
+			body = sys_par ? new ChBody(new ChCollisionModelParallel) : new ChBody();
 			ChSharedPtr<ChMaterialSurface>& mat = body->GetMaterialSurface();
 			iss2 >> mat->static_friction >> mat->sliding_friction >> mat->rolling_friction >> mat->spinning_friction;
 			iss2 >> mat->restitution >> mat->cohesion >> mat->dampingf;
 			iss2 >> mat->compliance >> mat->complianceT >> mat->complianceRoll >> mat->complianceSpin;
 		} else {
-			body = (stype == 0) ? new ChBodyDEM() : new ChBodyDEM(new ChCollisionModelParallel);
+			body = sys_par ? new ChBodyDEM(new ChCollisionModelParallel) : new ChBodyDEM();
 			ChSharedPtr<ChMaterialSurfaceDEM>& mat = ((ChBodyDEM*) body)->GetMaterialSurfaceDEM();
 			iss2 >> mat->young_modulus >> mat->poisson_ratio;
 			iss2 >> mat->static_friction >> mat->sliding_friction;
@@ -267,11 +264,7 @@ void ReadCheckpoint(ChSystem*          system,
 		body->GetCollisionModel()->BuildModel();
 
 		// Attach the body to the system.
-		ChSharedPtr<ChBody>  bodyPtr(body);
-		if (stype == 0)
-			system->AddBody(bodyPtr);
-		else
-			((ChSystemParallel*) system)->AddBody(bodyPtr);
+		system->AddBody(ChSharedPtr<ChBody>(body));
 	}
 }
 

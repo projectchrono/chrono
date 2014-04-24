@@ -66,12 +66,7 @@ void CreateBoxContainerDEM(ChSystem*                           system,
 	body->GetCollisionModel()->BuildModel();
 
 	// Attach the body to the system.
-	ChSharedPtr<ChBodyDEM>  bodyPtr(body);
-
-	if (sysType == SEQUENTIAL_DEM)
-		system->AddBody(bodyPtr);
-	else
-		((ChSystemParallel*) system)->AddBody(bodyPtr);
+	system->AddBody(ChSharedPtr<ChBodyDEM>(body));
 }
 
 void CreateBoxContainerDVI(ChSystem*                           system,
@@ -114,12 +109,7 @@ void CreateBoxContainerDVI(ChSystem*                           system,
 	body->GetCollisionModel()->BuildModel();
 
 	// Attach the body to the system.
-	ChSharedPtr<ChBody>  bodyPtr(body);
-
-	if (sysType == SEQUENTIAL_DVI)
-		system->AddBody(bodyPtr);
-	else
-		((ChSystemParallel*) system)->AddBody(bodyPtr);
+	system->AddBody(ChSharedPtr<ChBody>(body));
 }
 
 

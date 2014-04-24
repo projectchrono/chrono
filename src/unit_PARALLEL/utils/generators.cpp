@@ -533,17 +533,7 @@ void Generator::createObjects(const PointVector& points,
 		// Attach the body to the system and append to list of generated bodies.
 		ChSharedPtr<ChBody>  bodyPtr(body);
 
-		switch (m_sysType) {
-		case SEQUENTIAL_DVI:
-		case SEQUENTIAL_DEM:
-			m_system->AddBody(bodyPtr);
-			break;
-		case PARALLEL_DVI:
-		case PARALLEL_DEM:
-			((ChSystemParallel*) m_system)->AddBody(bodyPtr);
-			break;
-		}
-
+		m_system->AddBody(bodyPtr);
 		m_bodies.push_back(BodyInfo(m_mixture[index]->m_type, density, size, bodyPtr));
 	}
 
