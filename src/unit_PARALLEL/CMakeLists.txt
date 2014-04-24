@@ -468,5 +468,6 @@ mark_as_advanced(FORCE
 
 SET(BUILD_DEMOS          TRUE    CACHE BOOL   "Turn this ON to generate Chrono::Engine demos")
 IF(BUILD_DEMOS)
+  ADD_SUBDIRECTORY(utils)
   ADD_SUBDIRECTORY(demos)
 ENDIF()

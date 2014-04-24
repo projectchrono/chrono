@@ -24,9 +24,9 @@
 #include "assets/ChConeShape.h"
 #include "assets/ChTriangleMeshShape.h"
 
-#include "ChSystemParallel.h"
+//#include "ChSystemParallel.h"
 
-#include "utils/common.h"
+#include "common.h"
 
 
 namespace chrono {
@@ -40,9 +40,11 @@ namespace utils {
 // AddCapsuleGeometry
 // AddCylinderGeometry
 // AddConeGeometry
+// AddTriangleMeshGeometry
 //
 // Utility functions for adding contact and asset geometry shapes to a body
 // -------------------------------------------------------------------------------
+inline
 void AddSphereGeometry(ChBody*               body,
                        double                radius,
                        const ChVector<>&     pos = ChVector<>(0,0,0),
@@ -58,6 +60,7 @@ void AddSphereGeometry(ChBody*               body,
 	body->GetAssets().push_back(sphere);
 }
 
+inline
 void AddEllipsoidGeometry(ChBody*               body,
                           const ChVector<>&     size,
                           const ChVector<>&     pos = ChVector<>(0,0,0),
@@ -73,6 +76,7 @@ void AddEllipsoidGeometry(ChBody*               body,
 	body->GetAssets().push_back(ellipsoid);
 }
 
+inline
 void AddBoxGeometry(ChBody*               body,
                     const ChVector<>&     size,
                     const ChVector<>&     pos = ChVector<>(0,0,0),
@@ -88,6 +92,7 @@ void AddBoxGeometry(ChBody*               body,
 	body->GetAssets().push_back(box);
 }
 
+inline
 void AddCapsuleGeometry(ChBody*               body,
                         double                radius,
                         double                hlen,
@@ -105,6 +110,7 @@ void AddCapsuleGeometry(ChBody*               body,
 	body->GetAssets().push_back(capsule);
 }
 
+inline
 void AddCylinderGeometry(ChBody*               body,
                          double                radius,
                          double                height,
@@ -123,6 +129,7 @@ void AddCylinderGeometry(ChBody*               body,
 	body->GetAssets().push_back(cylinder);
 }
 
+inline
 void AddConeGeometry(ChBody*               body,
                      double                radius,
                      double                height,
@@ -139,6 +146,7 @@ void AddConeGeometry(ChBody*               body,
 	body->GetAssets().push_back(cone);
 }
 
+inline
 void AddTriangleMeshGeometry(ChBody*               body,
                              const std::string&    obj_filename,
                              const std::string&    name,
@@ -169,22 +177,7 @@ void AddTriangleMeshGeometry(ChBody*               body,
 // Create a fixed body with contact and asset geometry representing a box with 5
 // walls (no top).
 // -------------------------------------------------------------------------------
-void AddWall(ChBody*              body,
-             const ChVector<>&    loc,
-             const ChVector<>&    hdim)
-{
-	// Append to collision geometry
-	body->GetCollisionModel()->AddBox(hdim.x, hdim.y, hdim.z, loc);
-
-	// Append to assets
-	ChSharedPtr<ChBoxShape> box_shape = ChSharedPtr<ChAsset>(new ChBoxShape);
-	box_shape->Pos = loc;
-	box_shape->Rot = ChQuaternion<>(1,0,0,0);
-	box_shape->GetBoxGeometry().Size = hdim;
-
-	body->GetAssets().push_back(box_shape);
-}
-
+CH_UTILS_API
 void CreateBoxContainerDEM(ChSystem*                           system,
                            int                                 id,
                            ChSharedPtr<ChMaterialSurfaceDEM>&  mat,
@@ -192,49 +185,9 @@ void CreateBoxContainerDEM(ChSystem*                           system,
                            double                              hthick,
                            const ChVector<>&                   pos = ChVector<>(0,0,0),
                            const ChQuaternion<>&               rot = ChQuaternion<>(1,0,0,0),
-                           bool                                collide = true)
-{
-	// Infer system type.
-	SystemType sysType = GetSystemType(system);
-	assert(sysType == SEQUENTIAL_DEM || sysType == PARALLEL_DEM);
+                           bool                                collide = true);
 
-	// Create the body and set material
-	ChBodyDEM* body;
-
-	if (sysType == SEQUENTIAL_DEM)
-		body = new ChBodyDEM();
-	else
-		body = new ChBodyDEM(new ChCollisionModelParallel);
-
-	body->SetMaterialSurfaceDEM(mat);
-
-	// Set body properties and geometry.
-	body->SetIdentifier(id);
-	body->SetMass(1);
-	body->SetPos(pos);
-	body->SetRot(rot);
-	body->SetCollide(collide);
-	body->SetBodyFixed(true);
-
-	body->GetCollisionModel()->ClearModel();
-	AddWall(body, ChVector<>(0, 0, -hthick), ChVector<>(hdim.x, hdim.y, hthick));
-	AddWall(body, ChVector<>(-hdim.x-hthick, 0, hdim.z), ChVector<>(hthick, hdim.y, hdim.z));
-	AddWall(body, ChVector<>( hdim.x+hthick, 0, hdim.z), ChVector<>(hthick, hdim.y, hdim.z));
-	AddWall(body, ChVector<>(0, -hdim.y-hthick, hdim.z), ChVector<>(hdim.x, hthick, hdim.z));
-	AddWall(body, ChVector<>(0,  hdim.y+hthick, hdim.z), ChVector<>(hdim.x, hthick, hdim.z));
-	body->GetCollisionModel()->BuildModel();
-
-	// Attach the body to the system.
-	ChSharedPtr<ChBodyDEM>  bodyPtr(body);
-
-	if (sysType == SEQUENTIAL_DEM)
-		system->AddBody(bodyPtr);
-	else
-		((ChSystemParallel*) system)->AddBody(bodyPtr);
-
-}
-
-
+CH_UTILS_API
 void CreateBoxContainerDVI(ChSystem*                           system,
                            int                                 id,
                            ChSharedPtr<ChMaterialSurface>&     mat,
@@ -242,47 +195,7 @@ void CreateBoxContainerDVI(ChSystem*                           system,
                            double                              hthick,
                            const ChVector<>&                   pos = ChVector<>(0,0,0),
                            const ChQuaternion<>&               rot = ChQuaternion<>(1,0,0,0),
-                           bool                                collide = true)
-{
-	// Infer system type.
-	SystemType sysType = GetSystemType(system);
-	assert(sysType == SEQUENTIAL_DVI || sysType == PARALLEL_DVI);
-
-	// Create the body and set material
-	ChBody* body;
-
-	if (sysType == SEQUENTIAL_DVI)
-		body = new ChBody();
-	else
-		body = new ChBody(new ChCollisionModelParallel);
-
-	body->SetMaterialSurface(mat);
-
-	// Set body properties and geometry.
-	body->SetIdentifier(id);
-	body->SetMass(1);
-	body->SetPos(pos);
-	body->SetRot(rot);
-	body->SetCollide(collide);
-	body->SetBodyFixed(true);
-
-	body->GetCollisionModel()->ClearModel();
-	AddWall(body, ChVector<>(0, 0, -hthick), ChVector<>(hdim.x, hdim.y, hthick));
-	AddWall(body, ChVector<>(-hdim.x-hthick, 0, hdim.z), ChVector<>(hthick, hdim.y, hdim.z));
-	AddWall(body, ChVector<>( hdim.x+hthick, 0, hdim.z), ChVector<>(hthick, hdim.y, hdim.z));
-	AddWall(body, ChVector<>(0, -hdim.y-hthick, hdim.z), ChVector<>(hdim.x, hthick, hdim.z));
-	AddWall(body, ChVector<>(0,  hdim.y+hthick, hdim.z), ChVector<>(hdim.x, hthick, hdim.z));
-	body->GetCollisionModel()->BuildModel();
-
-	// Attach the body to the system.
-	ChSharedPtr<ChBody>  bodyPtr(body);
-
-	if (sysType == SEQUENTIAL_DVI)
-		system->AddBody(bodyPtr);
-	else
-		((ChSystemParallel*) system)->AddBody(bodyPtr);
-
-}
+                           bool                                collide = true);
 
 
 } // end namespace utils
