@@ -43,17 +43,17 @@ public:
 
 	virtual int Integrate_Y();
 
-	void AddBody(ChSharedPtr<ChBody> newbody);
-	virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody) = 0;
-	void RemoveBody(ChSharedPtr<ChBody> mbody);
+	virtual void AddBody(ChSharedPtr<ChBody> newbody);
+	virtual void RemoveBody(ChSharedPtr<ChBody> mbody);
 	void RemoveBody(int i);
 	void Update();
-	virtual void UpdateBodies() = 0;
 	void UpdateBilaterals();
 	void RecomputeThreads();
 	void RecomputeBins();
 	void PerturbBins(bool increase, int number = 2);
 
+	virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody) = 0;
+	virtual void UpdateBodies() = 0;
 	virtual void ChangeCollisionSystem(ChCollisionSystem *newcollsystem);
 
 	int GetNcontacts() {
