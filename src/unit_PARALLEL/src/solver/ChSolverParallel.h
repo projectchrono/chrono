@@ -23,6 +23,9 @@ namespace chrono {
 				total_iteration = 0;
 				current_iteration = 0;
 				collision_inside = false;
+
+				rigid_rigid = NULL;
+				bilateral = NULL;
 			}
 			void Setup();
 			void Initial(real step, ChParallelDataManager *data_container_);

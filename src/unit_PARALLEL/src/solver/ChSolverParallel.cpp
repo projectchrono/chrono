@@ -19,9 +19,10 @@ void ChSolverParallel::shurA(custom_vector<real> &x) {
 		data_container->host_data.QXYZ_data[i] = R3(0);
 		data_container->host_data.QUVW_data[i] = R3(0);
 	}
-	rigid_rigid->ShurA(x);
+	if (rigid_rigid)
+		rigid_rigid->ShurA(x);
 	timer_shurcompliment.stop();
-		time_shurcompliment +=timer_shurcompliment();
+	time_shurcompliment +=timer_shurcompliment();
 	bilateral->ShurA(x);
 
 }

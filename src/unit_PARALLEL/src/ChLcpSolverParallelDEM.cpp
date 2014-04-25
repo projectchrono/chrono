@@ -234,8 +234,7 @@ void ChLcpSolverParallelDEM::RunTimeStep(real step)
 
 	data_container->host_data.rhs_data.resize(number_of_constraints);
 	data_container->host_data.diag.resize(number_of_constraints);
-
-	data_container->host_data.gamma_data.resize((number_of_constraints));
+	data_container->host_data.gamma_data.resize(number_of_constraints);
 
 #pragma omp parallel for
 	for (int i = 0; i < number_of_constraints; i++) {
@@ -253,12 +252,9 @@ void ChLcpSolverParallelDEM::RunTimeStep(real step)
 	solver.SetMaxIterations(max_iteration);
 	solver.SetTolerance(tolerance);
 
-	//solver.SetComplianceAlpha(alpha);
 	solver.SetContactRecoverySpeed(contact_recovery_speed);
 	solver.lcp_omega_bilateral = lcp_omega_bilateral;
-	//solver.rigid_rigid = &rigid_rigid;
 	solver.bilateral = &bilateral;
-	//solver.lcp_omega_contact = lcp_omega_contact;
 	solver.do_stab = do_stab;
 	solver.collision_inside = collision_inside;
 	solver.Initial(step, data_container);
@@ -273,5 +269,22 @@ void ChLcpSolverParallelDEM::RunTimeStep(real step)
 	}
 
 	thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals, data_container->host_data.gamma_data.begin());
+
+
+	//thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, data_container->host_data.gamma_bilateral.begin());
+	//for (int i = 0; i < data_container->number_of_bilaterals; i++) {
+	//	data_container->host_data.gamma_bilateral[i] *= .5;
+	//}
+
+	solver.ComputeImpulses();
+
+	tot_iterations = solver.GetIteration();
+	residual = solver.GetResidual();
+
+	for (int i = 0; i < solver.iter_hist.size(); i++) {
+		AtIterationEnd(solver.maxd_hist[i], solver.maxdeltalambda_hist[i], solver.iter_hist[i]);
+	}
+
+
 }
 
