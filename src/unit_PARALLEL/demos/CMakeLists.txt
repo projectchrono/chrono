@@ -53,6 +53,7 @@ SET(DEMOS
     test_box
     test_capsule
     test_mesh
+    test_constraints
     test_utils
     test_collision
     test_scaling
