@@ -835,6 +835,7 @@ void CreateManyFlexBodiesChannel(thrust::host_vector<real3> & ANCF_Nodes,
 	//************************************************
 	int numElementsPerBeam = flexParams.ne;
 	real_ beamLength = (straightChannelBoundaryMax.z - straightChannelBoundaryMin.z) - 6 * margin;//paramsH.HSML * 40;
+	printf("beamLength %f\n", beamLength);
 	real_ beamLengthWithSpacing = beamLength + margin;
 
 	real3 n3Flex = R3( (straightChannelBoundaryMax.x - straightChannelBoundaryMin.x) / spaceFlex, (straightChannelBoundaryMax.y - straightChannelBoundaryMin.y) / spaceFlex,
