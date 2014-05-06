@@ -249,17 +249,13 @@ void ChLcpSolverParallelDEM::RunTimeStep(real step)
 	solver.maxdeltalambda_hist.clear();
 	solver.iter_hist.clear();
 
-	solver.SetMaxIterations(max_iteration);
 	solver.SetTolerance(tolerance);
 
-	solver.SetContactRecoverySpeed(contact_recovery_speed);
-	solver.lcp_omega_bilateral = lcp_omega_bilateral;
+	////solver.lcp_omega_bilateral = lcp_omega_bilateral;  //// not used anywhere?
 	solver.bilateral = &bilateral;
-	solver.do_stab = do_stab;
-	solver.collision_inside = collision_inside;
 	solver.Initial(step, data_container);
 
-	bilateral.ComputeJacobians();
+	////bilateral.ComputeJacobians();    //// no-op
 	bilateral.ComputeRHS();
 
 	if (max_iter_bilateral > 0) {
@@ -281,9 +277,9 @@ void ChLcpSolverParallelDEM::RunTimeStep(real step)
 	tot_iterations = solver.GetIteration();
 	residual = solver.GetResidual();
 
-	for (int i = 0; i < solver.iter_hist.size(); i++) {
-		AtIterationEnd(solver.maxd_hist[i], solver.maxdeltalambda_hist[i], solver.iter_hist[i]);
-	}
+	////for (int i = 0; i < solver.iter_hist.size(); i++) {
+	////	AtIterationEnd(solver.maxd_hist[i], solver.maxdeltalambda_hist[i], solver.iter_hist[i]);
+	////}
 
 
 }

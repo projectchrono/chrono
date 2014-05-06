@@ -32,13 +32,9 @@ class ChApiGPU ChLcpSolverParallel : public ChLcpIterativeSolver {
 public:
 	ChLcpSolverParallel() {
 		tolerance = 1e-7;
-		contact_recovery_speed = .6;
 		lcp_omega_bilateral = .2;
 
-		max_iteration = 1000;
 		max_iter_bilateral = 100;
-		do_stab = false;
-		collision_inside = false;
 		record_violation_history = true;
 		warm_start = false;
 	}
@@ -61,20 +57,11 @@ public:
 	void SetTolerance(real tol) {
 		tolerance = tol;
 	}
-	void SetContactRecoverySpeed(real recovery_speed) {
-		data_container->contact_recovery_speed = fabs(recovery_speed);
-	}
 	void SetOmegaBilateral(real mval) {
 		lcp_omega_bilateral = mval;
 	}
 	void SetMaxIterationBilateral(uint max_iter) {
 		max_iter_bilateral = max_iter;
-	}
-	void DoStabilization(bool stab) {
-		do_stab = stab;
-	}
-	void DoCollision(bool do_collision) {
-		collision_inside = do_collision;
 	}
 	real GetResidual() {
 		return residual;
@@ -102,18 +89,14 @@ public:
 
 protected:
 	real tolerance;
-	real contact_recovery_speed;
-	real lcp_omega_bilateral;
+	real lcp_omega_bilateral;  //// TODO: is this used anywhere?
 
 	real step_size;
 	uint number_of_bilaterals;
 	uint number_of_objects;
 	uint number_of_updates;
 	uint number_of_constraints;
-	uint max_iteration;
 	uint max_iter_bilateral;
-	bool do_stab;
-	bool collision_inside;
 
 	real residual;
 
@@ -133,8 +116,12 @@ public:
 		compliance = 0;
 		complianceT = 0;
 		lcp_omega_contact = .2;
+		contact_recovery_speed = .6;
 		solver_type = ACCELERATED_PROJECTED_GRADIENT_DESCENT;
+		do_stab = false;
+		collision_inside = false;
 
+		max_iteration = 1000;
 		max_iter_normal = max_iter_sliding = max_iter_spinning = 100;
 	}
 
@@ -152,6 +139,15 @@ public:
 		max_iteration = max_iter;
 		max_iter_normal = max_iter_sliding = max_iter_spinning = max_iter_bilateral = max_iter;
 	}
+	void SetContactRecoverySpeed(real recovery_speed) {
+		data_container->contact_recovery_speed = fabs(recovery_speed);
+	}
+	void DoStabilization(bool stab) {
+		do_stab = stab;
+	}
+	void DoCollision(bool do_collision) {
+		collision_inside = do_collision;
+	}
 
 	ChSolverParallel solver;
 
@@ -159,10 +155,15 @@ private:
 	GPUSOLVERTYPE solver_type;
 
 	real alpha;
-	real compliance;       //// TODO:  not used?
-	real complianceT;      ////
+	real compliance;         //// TODO:  not used?
+	real complianceT;        ////
 	real lcp_omega_contact;
 
+	real contact_recovery_speed;
+	bool do_stab;
+	bool collision_inside;
+
+	uint max_iteration;
 	uint max_iter_normal;
 	uint max_iter_sliding;
 	uint max_iter_spinning;
@@ -175,10 +176,7 @@ class ChApiGPU ChLcpSolverParallelDEM : public ChLcpSolverParallel {
 public:
 	virtual void RunTimeStep(real step);
 
-	void SetMaxIteration(uint max_iter) {
-		max_iteration = max_iter;
-		max_iter_bilateral = max_iter;
-	}
+	void SetMaxIteration(uint max_iter) {max_iter_bilateral = max_iter;}
 
 	void ProcessContacts();
 
