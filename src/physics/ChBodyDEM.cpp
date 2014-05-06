@@ -55,15 +55,15 @@ ChClassRegister<ChBodyDEM> a_registration_ChBodyDEM;
 
 ChBodyDEM::ChBodyDEM()
 {
-	collision_model = ChBodyDEM::InstanceCollisionModel();
+	collision_model->SetEnvelope(0);
 
 	matsurface.SetNull();
 	matsurfaceDEM = ChSharedPtr<ChMaterialSurfaceDEM>(new ChMaterialSurfaceDEM);
 }
 
 ChBodyDEM::ChBodyDEM(ChCollisionModel* new_collision_model)
+:	ChBody(new_collision_model)
 {
-	collision_model = new_collision_model;
 	collision_model->SetEnvelope(0);
 	collision_model->SetBody(this);
 
@@ -75,19 +75,10 @@ void ChBodyDEM::Copy(ChBodyDEM* source)
 {
 	ChBody::Copy(source);
 
+	matsurface.SetNull();
 	matsurfaceDEM = source->matsurfaceDEM;
 }
 
-
-ChCollisionModel* ChBodyDEM::InstanceCollisionModel()
-{
-	ChModelBulletBody* collision_model_t = new ChModelBulletBody();
-
-	collision_model_t->SetEnvelope(0);
-	collision_model_t->SetBody(this);
-
-	return (ChCollisionModel*) collision_model_t;
-}
 
 //////// FILE I/O
 

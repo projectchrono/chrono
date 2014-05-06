@@ -82,9 +82,6 @@ public:
 			// FUNCTIONS
 			//
 
-	/// Instantiate the collision model
-	virtual ChCollisionModel* InstanceCollisionModel();
-
 	const ChSharedPtr<ChMaterialSurfaceDEM>& GetMaterialSurfaceDEM() const {return matsurfaceDEM;}
 	ChSharedPtr<ChMaterialSurfaceDEM>& GetMaterialSurfaceDEM() {return matsurfaceDEM;}
 	void SetMaterialSurfaceDEM(ChSharedPtr<ChMaterialSurfaceDEM>& mnewsurf) {matsurfaceDEM = mnewsurf;}
