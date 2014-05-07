@@ -22,18 +22,35 @@ int main(int argc, char* argv[])
 	double time_end = 4.0;
 	double out_fps = 50;
 
-	int max_iteration = 20;
+	uint max_iteration = 50;
+	real tolerance = 1e-8;
 
 	const char* out_folder = "../TEST_CONSTRAINTS/POVRAY";
 
-	// Create system
+	// Create system.
+	// --------------
 
 	ChSystemParallelDEM* msystem = new ChSystemParallelDEM();
 
+	// Set gravitational acceleration
 	msystem->Set_G_acc(ChVector<>(0, -gravity, 0));
 
+	// Set number of threads.
+	int max_threads = msystem->GetParallelThreadNumber();
+	if (threads > max_threads)
+		threads = max_threads;
+	msystem->SetParallelThreadNumber(threads);
+	omp_set_num_threads(threads);
+
+	// Specify narrowphase collision detection
 	((ChCollisionSystemParallel*) msystem->GetCollisionSystem())->ChangeNarrowphase(new ChCNarrowphaseR);
 
+	// Set tolerance and maximum number of iterations for bilateral constraint solver
+	((ChLcpSolverParallelDEM*) msystem->GetLcpSolverSpeed())->SetMaxIteration(max_iteration);
+	((ChLcpSolverParallelDEM*) msystem->GetLcpSolverSpeed())->SetTolerance(tolerance);
+
+
+	// Set solver parameters
 	msystem->SetMaxiter(max_iteration);
 	msystem->SetIterLCPmaxItersSpeed(max_iteration);
 	msystem->SetTol(1e-3);
@@ -42,6 +59,7 @@ int main(int argc, char* argv[])
 
 
 	// Create the rigid bodies of the slider-crank mechanical system.
+	// --------------------------------------------------------------
 
 	// Rotation of -90 degrees around z
 	ChVector<> zero(0, 0, 0);
@@ -52,12 +70,14 @@ int main(int argc, char* argv[])
 	// ground
 	ChSharedBodyDEMPtr  ground(new ChBodyDEM(new ChCollisionModelParallel));
 	msystem->AddBody(ground);
+	ground->SetIdentifier(0);
 	ground->SetBodyFixed(true);
 	ground->SetCollide(false);
 
 	// crank
 	ChSharedBodyDEMPtr  crank(new ChBodyDEM(new ChCollisionModelParallel));
 	msystem->AddBody(crank);
+	crank->SetIdentifier(1);
 	crank->SetPos(ChVector<>(1,0,0));
 	crank->SetCollide(false);
 	crank->GetCollisionModel()->ClearModel();
@@ -68,6 +88,7 @@ int main(int argc, char* argv[])
 	// rod
 	ChSharedBodyDEMPtr  rod(new ChBodyDEM(new ChCollisionModelParallel));
 	msystem->AddBody(rod);
+	rod->SetIdentifier(2);
 	rod->SetPos(ChVector<>(4,0,0));
 	rod->SetCollide(false);
 	rod->GetCollisionModel()->ClearModel();
@@ -83,6 +104,7 @@ int main(int argc, char* argv[])
 #endif
 
 	// Create joint constraints. Joint locations are specified in global frame.
+	// ------------------------------------------------------------------------
 
 #ifdef SLIDER_CRANK
 	// Revolute joint between crank and rod
@@ -97,16 +119,23 @@ int main(int argc, char* argv[])
 #endif
 
 	// Engine between ground and crank (also acts as a revolute joint)
-	ChSharedPtr<ChLinkEngine> engine_ground_crank(new ChLinkEngine);
-	engine_ground_crank->Initialize(ground_, crank_, ChCoordsys<>(ChVector<>(0,0,0)));
-	engine_ground_crank->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-	if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(engine_ground_crank->Get_spe_funct()))
-		mfun->Set_yconst(CH_C_PI); // speed w=3.145 rad/sec
-	msystem->AddLink(engine_ground_crank);
+	////ChSharedPtr<ChLinkEngine> engine_ground_crank(new ChLinkEngine);
+	////engine_ground_crank->Initialize(ground_, crank_, ChCoordsys<>(ChVector<>(0,0,0)));
+	////engine_ground_crank->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
+	////if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(engine_ground_crank->Get_spe_funct()))
+	////	mfun->Set_yconst(CH_C_PI); // speed w=3.145 rad/sec
+	////msystem->AddLink(engine_ground_crank);
+
+	// Revolute between ground and crank
+	ChSharedPtr<ChLinkLockRevolute>  rev_ground_crank(new ChLinkLockRevolute);
+	rev_ground_crank->Initialize(ground_, crank_, ChCoordsys<>(ChVector<>(0,0,0)));
+	msystem->AddLink(rev_ground_crank);
 
 
 
-	// Perform the simulation
+	// Perform the simulation.
+	// -----------------------
+
 	int num_steps = std::ceil(time_end / time_step);
 	int out_steps = std::ceil((1 / time_step) / out_fps);
 
