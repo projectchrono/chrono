@@ -228,14 +228,15 @@ void ChLcpSolverParallelDEM::RunTimeStep(real step)
 	// Include forces and torques (update derivatives: v += m_inv * h * f)
 	Preprocess();
 
-
-	//// TODO:  check and clean up everything that has to do with bilateral constraints...
-
+	// Return now if there are no (bilateral) constraints
+	if (number_of_constraints == 0)
+		return;
 
 	data_container->host_data.rhs_data.resize(number_of_constraints);
 	data_container->host_data.diag.resize(number_of_constraints);
 	data_container->host_data.gamma_data.resize(number_of_constraints);
 
+	//// TODO: Is this needed?  If yes, we should initialize gamma_bilateral anyway...
 #pragma omp parallel for
 	for (int i = 0; i < number_of_constraints; i++) {
 		data_container->host_data.gamma_data[i] = 0;
@@ -245,9 +246,9 @@ void ChLcpSolverParallelDEM::RunTimeStep(real step)
 
 	solver.current_iteration = 0;
 	solver.total_iteration = 0;
-	solver.maxd_hist.clear();
-	solver.maxdeltalambda_hist.clear();
-	solver.iter_hist.clear();
+	solver.maxd_hist.clear();               ////
+	solver.maxdeltalambda_hist.clear();     ////  currently not used
+	solver.iter_hist.clear();               ////
 
 	solver.SetTolerance(tolerance);
 
@@ -258,19 +259,9 @@ void ChLcpSolverParallelDEM::RunTimeStep(real step)
 	////bilateral.ComputeJacobians();    //// no-op
 	bilateral.ComputeRHS();
 
-	if (max_iter_bilateral > 0) {
-		custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals);
-		thrust::copy_n(data_container->host_data.rhs_data.begin(), data_container->number_of_bilaterals, rhs_bilateral.begin());
-		solver.SolveStab(data_container->host_data.gamma_bilateral, rhs_bilateral, max_iter_bilateral);
-	}
+	solver.SolveStab(data_container->host_data.gamma_bilateral, data_container->host_data.rhs_data, max_iter_bilateral);
 
 	thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals, data_container->host_data.gamma_data.begin());
-
-
-	//thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, data_container->host_data.gamma_bilateral.begin());
-	//for (int i = 0; i < data_container->number_of_bilaterals; i++) {
-	//	data_container->host_data.gamma_bilateral[i] *= .5;
-	//}
 
 	solver.ComputeImpulses();
 
