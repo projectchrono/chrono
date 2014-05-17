@@ -99,8 +99,8 @@ double ChLcpIterativeSymmSOR::Solve(
 		maxviolation = 0;
 		maxdeltalambda = 0;
 		i_friction_comp = 0;
-
-		for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
+		int dummy = mconstraints.size();
+		for (unsigned int ic = 0; ic < dummy; ic++)
 		{
 			// skip computations if constraint not active.
 			if (mconstraints[ic]->IsActive())
