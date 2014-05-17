@@ -180,6 +180,38 @@ namespace chrono {
 			return true;
 		}
 
+		bool ChCollisionModelParallel::AddCapsule(double radius, double hlen, const ChVector<> &pos, const ChMatrix33<> &rot) {
+			double mass = this->GetBody()->GetMass();
+
+			//// TODO  For now just approximate inertia with that of a cylinder
+			real  hlen1 = radius + hlen;
+			real3 local_inertia = R3(1 / 12.0 * mass * (3 * radius * radius + hlen1 * hlen1),
+			                         1 / 2.0 * mass * (radius * radius),
+			                         1 / 12.0 * mass * (3 * radius * radius + hlen1 * hlen1));
+			ChVector<> position = pos;
+			inertia.x += local_inertia.x + mass * (position.Length2() - position.x * position.x);
+			inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
+			inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
+
+			model_type = CAPSULE;
+			nObjects++;
+
+			bData          tData;
+			ChQuaternion<> q = rot.Get_A_quaternion();
+
+			tData.A = R3(pos.x, pos.y, pos.z);
+			tData.B = R3(radius, hlen, radius);
+			tData.C = R3(0, 0, 0);
+			tData.R = R4(q.e0, q.e1, q.e2, q.e3);
+			tData.type = CAPSULE;
+
+			mData.push_back(tData);
+
+			total_volume += 2 * CH_C_PI * radius * radius * (hlen + 2 * radius / 3);
+
+			return true;
+		}
+
 		bool ChCollisionModelParallel::AddConvexHull(std::vector<ChVector<double> > &pointlist, const ChVector<> &pos, const ChMatrix33<> &rot) {
 			//NOT SUPPORTED
 			return false;
@@ -195,13 +227,6 @@ namespace chrono {
 			return false;
 		}
 		bool ChCollisionModelParallel::AddEllipse(double rx, double ry) {
-			return false;
-		}
-		bool ChCollisionModelParallel::AddCapsule(
-				double  radius,
-                double  hlen,
-                const ChVector<> &   pos,
-                const ChMatrix33<> & rot )   {
 			return false;
 		}
 		bool ChCollisionModelParallel::AddCone(double rad, double h) {

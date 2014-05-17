@@ -7,7 +7,100 @@ namespace collision {
 
 
 // ----------------------------------------------------------------------------
-// This utility function snaps the provided location to a point on a box with
+// This utility function returns the normal to the triangular face defined by
+// the vertices A, B, and C. The face is assumed to be non-degenerate.
+// Note that order of vertices is important!
+__host__ __device__
+real3 face_normal(const real3& A, const real3& B, const real3& C)
+{
+	real3 v1 = B - A;
+	real3 v2 = C - A;
+	real3 n = cross(v1, v2);
+	real len = length(n);
+
+	return n / len;
+}
+
+// ----------------------------------------------------------------------------
+// This utility function takes the location 'P' and snaps it to the closest
+// point on the triangular face with given vertices (A, B, and C). The result
+// is returned in 'res'. Both 'P' and 'res' are assumed to be specified in
+// the same frame as the face vertices. This function returns 'true' if the
+// result is on an edge of this face and 'false' if the result is inside the
+// triangle.
+// Code from Ericson, "Real-time collision detection", 2005, pp. 141
+__host__ __device__
+bool snap_to_face(const real3& A, const real3& B, const real3& C,
+                  const real3& P, real3& res)
+{
+	real3 AB = B - A;
+	real3 AC = C - A;
+
+	// Check if P in vertex region outside A
+	real3 AP = P - A;
+	real d1 = dot(AB, AP);
+	real d2 = dot(AC, AP);
+	if (d1 <= 0 && d2 <= 0) {
+		res = A;               // barycentric coordinates (1,0,0)
+		return true;
+	}
+
+	// Check if P in vertex region outside B
+	real3 BP = P - B;
+	real d3 = dot(AB, BP);
+	real d4 = dot(AC, BP);
+	if (d3 >= 0 && d4 <= d3) {
+		res = B;                // barycentric coordinates (0,1,0)
+		return true;
+	}
+
+	// Check if P in edge region of AB
+	real vc = d1*d4 - d3*d2;
+	if (vc <= 0 && d1 >= 0 && d3 <= 0) {
+		// Return projection of P onto AB
+		real v = d1 / (d1 - d3);
+		res = A + v * AB;      // barycentric coordinates (1-v,v,0)
+		return true;
+	}
+
+	// Check if P in vertex region outside C
+	real3 CP = P - C;
+	real d5 = dot(AB, CP);
+	real d6 = dot(AC, CP);
+	if (d6 >= 0 && d5 <= d6) {
+		res = C;                // barycentric coordinates (0,0,1)
+		return true;
+	}
+
+	// Check if P in edge region of AC
+	real vb = d5*d2 - d1*d6;
+	if (vb <= 0 && d2 >= 0 && d6 <= 0) {
+		// Return projection of P onto AC
+		real w = d2 / (d2 - d6);
+		res = A + w * AC;       // barycentric coordinates (1-w,0,w)
+		return true;
+	}
+
+	// Check if P in edge region of BC
+	real va = d3*d6 - d5*d4;
+	if (va <= 0 && (d4-d3) >= 0 && (d5-d6) >= 0) {
+		// Return projection of P onto BC
+		real w = (d4-d3) / ((d4-d3) + (d5-d6));
+		res = B + w * (C-B);    // barycentric coordinates (0,1-w,w)
+		return true;
+	}
+
+	// P inside face region. Return projection of P onto face
+	// barycentric coordinates (u,v,w)
+	real denom = 1 / (va + vb + vc);
+	real v = vb * denom;
+	real w = vc * denom;
+	res = A + v * AB + w * AC;   // = u*A + v*B + w*C  where  (u = 1 - v - w)
+	return false;
+}
+
+// ----------------------------------------------------------------------------
+// This utility function snaps the specified location to a point on a box with
 // given half-dimensions. The in/out location is assumed to be specified in
 // the frame of the box (which is therefore assumed to be an AABB centered at
 // the origin).  The return code indicates the box axes that caused snapping.
