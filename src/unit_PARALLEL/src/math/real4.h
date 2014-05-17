@@ -233,4 +233,22 @@ static inline quaternion operator %(const quaternion rhs, const quaternion lhs) 
 	return mult(rhs, lhs);
 }
 
+static inline real3 AMatV(const real4 &q) {
+	real3 V;
+
+	real e0e0 = q.w * q.w;
+	real e2e2 = q.y * q.y;
+	real e0e1 = q.w * q.x;
+	real e0e3 = q.w * q.z;
+	real e1e2 = q.x * q.y;
+	real e2e3 = q.y * q.z;
+
+	V.x = (e1e2 - e0e3) * 2;
+	V.y = (e0e0 + e2e2) * 2 - 1;
+	V.z = (e2e3 + e0e1) * 2;
+
+	return V;
+}
+
+
 #endif
