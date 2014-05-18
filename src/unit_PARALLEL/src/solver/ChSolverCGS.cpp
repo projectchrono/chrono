@@ -45,6 +45,6 @@ uint ChSolverParallel::SolveCGS(custom_vector<real> &x, const custom_vector<real
 				break;
 			}
 		}
-		Project(x);
+		Project(x.data());
 		return current_iteration;
 }

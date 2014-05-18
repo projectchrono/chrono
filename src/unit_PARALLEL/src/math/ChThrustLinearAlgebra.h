@@ -3,198 +3,103 @@
 
 #include "math/ChParallelMath.h"
 
-struct saxpy_functor: public thrust::binary_function<real, real, real> {
-		const real a;
-
-		saxpy_functor(real _a) :
-				a(_a) {
-		}
-
-		__host__ __device__
-		real operator()(const real &x, const real &y) const {
-			return a * x + y;
-		}
-};
-
-struct saxmy_functor: public thrust::binary_function<real, real, real> {
-		const real a;
-
-		saxmy_functor(real _a) :
-				a(_a) {
-		}
-
-		__host__ __device__
-		real operator()(const real &x, const real &y) const {
-			return a * x - y;
-		}
-};
-struct scale_real3_functor: public thrust::binary_function<real3, real, real3> {
-		scale_real3_functor() {
-		}
-		__host__ __device__
-		real3 operator()(const real3 & x, const real &y) const {
-			return y * x;
-		}
-};
-struct real3_real3_functor: public thrust::binary_function<real3, real3, real3> {
-		real3_real3_functor() {
-		}
-		__host__ __device__
-		real3 operator()(const real3 & x, const real3 &y) const {
-			return y * x;
-		}
-};
 static void SEAXPY(const real &a, const custom_vector<real> &x,const custom_vector<real> &y, custom_vector<real> &output)
 {
-#ifdef SIM_ENABLE_GPU_MODE
-	thrust::transform(x.begin(), x.end(), y.begin(), output.begin(), saxpy_functor(a));
-#else
-#pragma omp parallel for schedule(static, 1000)
+#pragma omp parallel for simd safelen(4)
 	for(int i=0; i<output.size(); i++) {
 		output[i] = a*x[i]+y[i];
 	}
 
-#endif
 }
+
+static void SEAXPY(int SIZE, const real &a, real* __restrict__  x,real* __restrict__ y, real* __restrict__ output)
+{
+#pragma omp parallel for simd safelen(4)
+	for(int i=0; i<SIZE; i++) {
+		output[i] = a*x[i]+y[i];
+	}
+
+}
+
 static void SEAXMY(const real &a, const custom_vector<real> &x,const custom_vector<real> &y, custom_vector<real> &output)
 {
-#ifdef SIM_ENABLE_GPU_MODE
-	thrust::transform(x.begin(), x.end(), y.begin(), output.begin(), saxmy_functor(a));
-#else
-#pragma omp parallel for schedule(static, 1000)
+#pragma omp parallel for simd safelen(4)
 	for(int i=0; i<output.size(); i++) {
 		output[i] = a*x[i]-y[i];
 	}
-
-#endif
 }
-
-static custom_vector<real> operator +(const custom_vector<real> &x, const custom_vector<real> &y)
+template<typename T>
+static custom_vector<T> operator +(const custom_vector<T> &x, const custom_vector<T> &y)
 {
-	custom_vector<real> temp(x.size());
-	thrust::plus<real> op;
-	thrust::transform(thrust::omp::par,x.begin(), x.end(), y.begin(), temp.begin(), op);
+	custom_vector<T> temp(x.size());
+
+#pragma omp parallel for simd safelen(4)
+	for(int i=0; i<temp.size(); i++) {
+		temp[i] = x[i]+y[i];
+	}
+
 	return temp;
 }
-static custom_vector<real3> operator +(const custom_vector<real3> &x, const custom_vector<real3> &y)
+template<typename T>
+static void operator +=(custom_vector<T> &x, const custom_vector<T> &y)
 {
-	custom_vector<real3> temp(x.size());
-	thrust::plus<real3> op;
-	thrust::transform(thrust::omp::par,x.begin(), x.end(), y.begin(), temp.begin(), op);
-	return temp;
-}
-
-static void operator +=(custom_vector<real3> &x, const custom_vector<real3> &y)
-{
-	thrust::plus<real3> op;
-	thrust::transform(thrust::omp::par,x.begin(), x.end(), y.begin(), x.begin(), op);
-
-}
-
-static void PLUS_EQ(custom_vector<real> &x, const custom_vector<real> &y)
-{
-#ifdef SIM_ENABLE_GPU_MODE
-	thrust::plus<real3> op;
-	thrust::transform(x.begin(), x.end(), y.begin(), x.begin(), op);
-#else
-#pragma omp parallel for schedule(static, 1000)
+#pragma omp parallel for simd safelen(4)
 	for(int i=0; i<x.size(); i++) {
 		x[i] = x[i]+y[i];
 	}
-#endif
 }
-
-static custom_vector<real> operator -(const custom_vector<real> &x, const custom_vector<real> &y)
+template<typename T>
+static custom_vector<T> operator -(const custom_vector<T> &x, const custom_vector<T> &y)
 {
 
-	custom_vector<real> temp(x.size());
-#ifdef SIM_ENABLE_GPU_MODE
-
-	thrust::minus<real> op;
-	thrust::transform(x.begin(), x.end(), y.begin(), temp.begin(), op);
-
-#else
-
-#pragma omp parallel for schedule(static, 1000)
+	custom_vector<T> temp(x.size());
+#pragma omp parallel for simd safelen(4)
 	for(int i=0; i<x.size(); i++) {
 		temp[i] = x[i]-y[i];
 	}
-#endif
+
 	return temp;
 
 }
 
 static void Sub(custom_vector<real> &ans, const custom_vector<real> &x, const custom_vector<real> &y)
 {
-#ifdef SIM_ENABLE_GPU_MODE
 
-	thrust::minus<real> op;
-	thrust::transform(x.begin(), x.end(), y.begin(), ans.begin(), op);
-
-#else
-
-#pragma omp parallel for schedule(static, 1000)
+#pragma omp parallel for simd safelen(4)
 	for(int i=0; i<x.size(); i++) {
 		ans[i] = x[i]-y[i];
 	}
-#endif
 
 }
-
-static custom_vector<real> operator *(const real &x, const custom_vector<real> &y)
+template<typename T, typename U>
+static custom_vector<T> operator *(const custom_vector<T> &y, const U &x)
 {
-	custom_vector<real> temp(y.size());
-#ifdef SIM_ENABLE_GPU_MODE
-	thrust::multiplies<real> op;
-	thrust::transform(y.begin(), y.end(), thrust::make_constant_iterator(x), temp.begin(), op);
-#else
+	custom_vector<T> temp(y.size());
 
-#pragma omp parallel for schedule(static, 1000)
+#pragma omp parallel for simd safelen(4)
 	for(int i=0; i<y.size(); i++) {
 		temp[i] = x*y[i];
 	}
 
-#endif
 	return temp;
 }
-static custom_vector<real> operator *(const custom_vector<real> &y, const real &x)
+template<typename T, typename U>
+static custom_vector<T> operator *(const custom_vector<T> &x, const custom_vector<U> &y)
 {
-	custom_vector<real> temp(y.size());
-#ifdef SIM_ENABLE_GPU_MODE
-	thrust::multiplies<real> op;
-	thrust::transform(y.begin(), y.end(), thrust::make_constant_iterator(x), temp.begin(), op);
-#else
+	custom_vector<T> temp(x.size());
 
-#pragma omp parallel for schedule(static, 1000)
-	for(int i=0; i<y.size(); i++) {
-		temp[i] = x*y[i];
-	}
-
-#endif
-	return temp;
-}
-
-static custom_vector<real> operator *(const custom_vector<real> &x, const custom_vector<real> &y)
-{
-	custom_vector<real> temp(x.size());
-#ifdef SIM_ENABLE_GPU_MODE
-	thrust::multiplies<real> op;
-	thrust::transform(x.begin(), x.end(), y.begin(), temp.begin(), op);
-#else
-
-#pragma omp parallel for schedule(static, 1000)
+#pragma omp parallel for simd safelen(4)
 	for(int i=0; i<x.size(); i++) {
 		temp[i] = x[i]*y[i];
 	}
 
-#endif
 	return temp;
 }
-
-static custom_vector<real3> operator *(const real &x, const custom_vector<real3> &y)
+template<typename T, typename U>
+static custom_vector<U> operator *(const T &x, const custom_vector<U> &y)
 {
-	custom_vector<real3> temp(y.size());
-#pragma omp parallel for schedule(static, 1000)
+	custom_vector<U> temp(y.size());
+#pragma omp parallel for simd safelen(4)
 	for(int i=0; i<y.size(); i++) {
 		temp[i] = x*y[i];
 	}
@@ -202,51 +107,34 @@ static custom_vector<real3> operator *(const real &x, const custom_vector<real3>
 	return temp;
 }
 
-static custom_vector<real3> operator *(const custom_vector<real3> &x, const custom_vector<real> &y)
+template<typename T, typename U>
+static void operator *=(custom_vector<T> &x, const custom_vector<U> &y)
 {
-	custom_vector<real3> temp(x.size());
-	thrust::transform(thrust::omp::par,x.begin(), x.end(), y.begin(), temp.begin(), scale_real3_functor());
-	return temp;
+#pragma omp parallel for simd safelen(4)
+	for(int i=0; i<x.size(); i++) {
+		x[i] = x[i]*y[i];
+	}
 }
-static custom_vector<real3> operator *(const custom_vector<real3> &x, const custom_vector<real3> &y)
+template<typename T>
+static custom_vector<T> operator /(const custom_vector<T> &x, const custom_vector<T> &y)
 {
-	custom_vector<real3> temp(x.size());
-	thrust::transform(thrust::omp::par,x.begin(), x.end(), y.begin(), temp.begin(), real3_real3_functor());
-	return temp;
-}
+	custom_vector<T> temp(y.size());
+#pragma omp parallel for simd safelen(4)
+	for(int i=0; i<y.size(); i++) {
+		temp[i] = x[i]/y[i];
+	}
 
-static void operator *=(custom_vector<real3> &x, const custom_vector<real> &y)
-{
-	thrust::transform(thrust::omp::par,x.begin(), x.end(), y.begin(), x.begin(), scale_real3_functor());
-}
-static void operator *=(custom_vector<real3> &x, const custom_vector<real3> &y)
-{
-	thrust::transform(x.begin(), x.end(), y.begin(), x.begin(), real3_real3_functor());
-}
-static custom_vector<real> operator /(const custom_vector<real> &x, const custom_vector<real> &y)
-{
-	custom_vector<real> temp(x.size());
-	thrust::divides<real> op;
-	thrust::transform(thrust::omp::par,x.begin(), x.end(), y.begin(), temp.begin(), op);
 	return temp;
 }
 
 static real Dot(const custom_vector<real> &x, const custom_vector<real> &y)
 {
-#ifdef SIM_ENABLE_GPU_MODE
-	thrust::plus<real> binary_op1;
-	thrust::multiplies<real> binary_op2;
-	real answer = thrust::inner_product(x.begin(), x.end(), y.begin(), real(0.0), binary_op1, binary_op2);
-	return answer;
-#else
 	real sum=0;
-
-#pragma omp parallel for reduction(+:sum) schedule(static, 1000)
+#pragma omp parallel for reduction(+:sum)
 	for(int i=0; i<x.size(); i++) {
 		sum+=x[i]*y[i];
 	}
 	return sum;
-#endif
 
 }
 
@@ -261,15 +149,16 @@ struct abs_functor: public thrust::unary_function<real, real> {
 static custom_vector<real> Abs(const custom_vector<real> &x)
 {
 	custom_vector<real> temp(x.size());
-	thrust::transform(thrust::omp::par,x.begin(), x.end(),temp.begin() , abs_functor());
+#pragma omp parallel for simd safelen(4)
+	for(int i=0; i<x.size(); i++) {
+		temp[i] = fabs(x[i]);
+	}
 	return temp;
-
 }
 
-static custom_vector<real> max(const real a, const custom_vector<real> &x)
-{
+static custom_vector<real> max(const real a, const custom_vector<real> &x){
 	custom_vector<real> temp(x.size());
-#pragma omp parallel for schedule(static, 1000)
+#pragma omp parallel for simd safelen(4)
 	for(int i=0; i<x.size(); i++) {
 		temp[i] = max(a,x[i]);
 	}
@@ -286,22 +175,14 @@ struct square {
 
 static real Norm(const custom_vector<real> &x)
 {
-#ifdef SIM_ENABLE_GPU_MODE
-	square<real> unary_op;
-	thrust::plus<real> binary_op;
-	real init = 0;
-	return sqrt( thrust::transform_reduce(x.begin(), x.end(), unary_op, init, binary_op) );
-	//return sqrt(Dot(x, x));
-#else
 	real sum=0;
-
-#pragma omp parallel for reduction(+:sum) schedule(static, 1000)
+#pragma omp parallel for reduction(+:sum)
 	for(int i=0; i<x.size(); i++) {
 		real _x = x[i];
 		sum+=_x*_x;
 	}
 	return sqrt(sum);
-#endif
+
 }
 static real NormInf(const custom_vector<real> &x)
 {
@@ -318,6 +199,22 @@ static real CompRes(const custom_vector<real> &res, const uint n_o_c)
 	real minval = res[thrust::min_element(thrust::omp::par,res.begin(),res.begin()+n_o_c)-res.begin()];
 	return fmax(real(0.0),-minval);
 }
+
+template<class T>
+static inline ostream &operator<<(ostream &out, const thrust::device_vector<T> &x) {
+	for (uint i = 0; i < x.size(); i++) {
+		out << x[i] << endl;
+	}
+	return out;
+}
+template<class T>
+static inline ostream &operator<<(ostream &out, const thrust::host_vector<T> &x) {
+	for (uint i = 0; i < x.size(); i++) {
+		out << x[i] << endl;
+	}
+	return out;
+}
+
 
 // This example computes several statistical properties of a data
 // series in a single reduction. The algorithm is described in detail here:
@@ -382,7 +279,8 @@ struct summary_stats_unary_op {
 // approximation to the summary_stats for
 // all values that have been agregated so far
 template<typename T>
-struct summary_stats_binary_op: public thrust::binary_function<const summary_stats_data<T>&, const summary_stats_data<T>&, summary_stats_data<T> > {
+struct summary_stats_binary_op: public thrust::binary_function<const summary_stats_data<T>&,
+		const summary_stats_data<T>&, summary_stats_data<T> > {
 		__host__ __device__
 		summary_stats_data<T> operator()(const summary_stats_data<T>& x, const summary_stats_data<T>& y) const {
 			summary_stats_data<T> result;

@@ -73,14 +73,21 @@ public:
 		return use_aabb_active;
 	}
 
+	void DoThreadTuning(bool m){
+		perform_thread_tuning = m;
+	}
+	void SetMinThreads(int m){
+		min_threads = m;
+	}
+
 	double GetTimerCollision() {
 		return timer_collision;
 	}
 
 	ChParallelDataManager *gpu_data_manager;
-	ChTimer<double> mtimer_lcp, mtimer_step, mtimer_cd_broad, mtimer_cd_narrow, mtimer_cd, mtimer_updt;
 
 private:
+	//ChTimer<double> mtimer_lcp, mtimer_step, mtimer_cd_broad, mtimer_cd_narrow, mtimer_cd, mtimer_updt;
 
 	unsigned int counter;
 	double timer_collision;
@@ -92,7 +99,7 @@ private:
 	int max_threads, current_threads, min_threads;
 	vector<double> timer_accumulator, cd_accumulator;
 	double old_timer, old_timer_cd;
-	bool detect_optimal_threads;
+	bool detect_optimal_threads, perform_thread_tuning;
 	int detect_optimal_bins;
 	uint frame_threads;
 	uint frame_bins;

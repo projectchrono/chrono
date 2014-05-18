@@ -18,7 +18,7 @@
 
 #include "ChParallelDefines.h"
 #include "math/ChParallelMath.h"
-
+#include "ChTimerParallel.h"
 namespace chrono {
 
 	struct host_container {
@@ -122,6 +122,8 @@ namespace chrono {
 			real step_size;
 			real alpha;
 			real contact_recovery_speed;
+
+			ChTimerParallel system_timer;
 
 			//real fluid_rad;
 	};

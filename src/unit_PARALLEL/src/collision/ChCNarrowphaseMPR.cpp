@@ -404,8 +404,8 @@ __host__ __device__ void function_MPR_Store(const uint &index, const shape_type 
 	depth = dot(N, p2 - p1);
 //depth = -(depth - envelope - envelope);
 	norm[index] = N;
-	ptA[index] = p1;
-	ptB[index] = p2;
+	ptA[index] = p1-posA;
+	ptB[index] = p2-posB;
 	contactDepth[index] = depth;
 	ids[index] = I2(ID_A, ID_B);
 	contact_active[index] = 0;

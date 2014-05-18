@@ -48,6 +48,7 @@
 #include <thrust/system/omp/execution_policy.h>
 //#include <thrust/system/tbb/execution_policy.h>
 #include "ChApiParallel.h"
+//#include <mpi.h>
 #include <omp.h>
 #include <vector>
 #include <string.h>

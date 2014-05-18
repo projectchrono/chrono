@@ -26,22 +26,45 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects)
 	detect_optimal_threads = false;
 	detect_optimal_bins = false;
 	current_threads = 2;
-}
+	perform_thread_tuning = true;
 
+	gpu_data_manager->system_timer.AddTimer("step");
+	gpu_data_manager->system_timer.AddTimer("update");
+	gpu_data_manager->system_timer.AddTimer("collision");
+	gpu_data_manager->system_timer.AddTimer("lcp");
+	gpu_data_manager->system_timer.AddTimer("solve");
+	gpu_data_manager->system_timer.AddTimer("solve_setup");
+	gpu_data_manager->system_timer.AddTimer("stab");
+	gpu_data_manager->system_timer.AddTimer("jacobians");
+	gpu_data_manager->system_timer.AddTimer("rhs");
+	gpu_data_manager->system_timer.AddTimer("shurA");
+	gpu_data_manager->system_timer.AddTimer("shurA_normal");
+	gpu_data_manager->system_timer.AddTimer("shurA_sliding");
+	gpu_data_manager->system_timer.AddTimer("shurA_spinning");
+	gpu_data_manager->system_timer.AddTimer("shurA_reduce");
+	gpu_data_manager->system_timer.AddTimer("shurB");
+	gpu_data_manager->system_timer.AddTimer("solverA");
+	gpu_data_manager->system_timer.AddTimer("solverB");
+	gpu_data_manager->system_timer.AddTimer("solverC");
+	gpu_data_manager->system_timer.AddTimer("solverD");
+	gpu_data_manager->system_timer.AddTimer("solverE");
+	gpu_data_manager->system_timer.AddTimer("project");
+	min_threads = 1;
+
+}
 
 int ChSystemParallel::Integrate_Y()
 {
 	max_threads = this->GetParallelThreadNumber();
-	min_threads = 1;
-
-	mtimer_step.start();
+	gpu_data_manager->system_timer.Reset();
+	gpu_data_manager->system_timer.start("step");
 	//=============================================================================================
-	mtimer_updt.start();
+	gpu_data_manager->system_timer.start("update");
 	Setup();
 	Update();
 	//gpu_data_manager->Copy(HOST_TO_DEVICE);
-	mtimer_updt.stop();
-	timer_update = mtimer_updt();
+	gpu_data_manager->system_timer.stop("update");
+
 	//=============================================================================================
 	if (use_aabb_active) {
 		vector<bool> body_active(gpu_data_manager->number_of_rigid, false);
@@ -54,16 +77,16 @@ int ChSystemParallel::Integrate_Y()
 	}
 
 	//=============================================================================================
-	mtimer_cd.start();
+	gpu_data_manager->system_timer.start("collision");
 	collision_system->Run();
 	collision_system->ReportContacts(this->contact_container);
-	mtimer_cd.stop();
+	gpu_data_manager->system_timer.stop("collision");
 	//=============================================================================================
-	mtimer_lcp.start();
+	gpu_data_manager->system_timer.start("lcp");
 	((ChLcpSolverParallel *) (LCP_solver_speed))->RunTimeStep(GetStep());
-	mtimer_lcp.stop();
+	gpu_data_manager->system_timer.stop("lcp");
 	//=============================================================================================
-	mtimer_updt.start();
+	gpu_data_manager->system_timer.start("update");
 	//gpu_data_manager->Copy(DEVICE_TO_HOST);
 	//std::vector<ChLcpVariables*> vvariables = LCP_descriptor->GetVariablesList();
 
@@ -96,7 +119,7 @@ int ChSystemParallel::Integrate_Y()
 			bodylist[i]->VariablesQbSetSpeed(this->GetStep());
 			bodylist[i]->UpdateTime(ChTime);
 			//TrySleeping();			// See if the body can fall asleep; if so, put it to sleeping
-			//bodylist[i]->ClampSpeed();     // Apply limits (if in speed clamping mode) to speeds.
+			bodylist[i]->ClampSpeed();     // Apply limits (if in speed clamping mode) to speeds.
 			//bodylist[i]->ComputeGyro();     // Set the gyroscopic momentum.
 			//bodylist[i]->UpdateForces(ChTime);
 		}
@@ -106,35 +129,42 @@ int ChSystemParallel::Integrate_Y()
 		bodylist[i]->UpdateMarkers(ChTime);
 	}
 
-	mtimer_updt.stop();
-	timer_update += mtimer_updt();
+	gpu_data_manager->system_timer.stop("update");
+
 	//=============================================================================================
 	ChTime += GetStep();
-	mtimer_step.stop();
-	timer_collision = mtimer_cd();
+	gpu_data_manager->system_timer.stop("step");
+
 	if (ChCollisionSystemParallel* coll_sys = dynamic_cast<ChCollisionSystemParallel*>(collision_system)) {
 		timer_collision_broad = coll_sys->mtimer_cd_broad();
 		timer_collision_narrow = coll_sys->mtimer_cd_narrow();
 	} else {
 		timer_collision_broad = 0;
 		timer_collision_narrow = 0;
-
 	}
-	timer_lcp = mtimer_lcp();
-	timer_step = mtimer_step();     // Time elapsed for step..
+
+	timer_update = gpu_data_manager->system_timer.GetTime("update");
+	timer_collision = gpu_data_manager->system_timer.GetTime("collision");
+	timer_lcp = gpu_data_manager->system_timer.GetTime("lcp");
+	timer_step = gpu_data_manager->system_timer.GetTime("step");
+
 	timer_accumulator.insert(timer_accumulator.begin(), timer_step);
 	timer_accumulator.pop_back();
 
-	cd_accumulator.insert(cd_accumulator.begin(), mtimer_cd());
+	cd_accumulator.insert(cd_accumulator.begin(), timer_collision);
 	cd_accumulator.pop_back();
-
-	RecomputeThreads();
+	if (perform_thread_tuning) {
+		RecomputeThreads();
+	}
 	RecomputeBins();
 	//cout << "timer_accumulator " << sum_of_elems / 10.0 << " s: " << timer_accumulator[0] << endl;
 
 	//cout << "current threads " << current_threads <<" "<<frame_threads<<" "<<detect_optimal_threads<< endl;
 	frame_threads++;
 	frame_bins++;
+
+
+
 	return 1;
 }
 
@@ -157,25 +187,25 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody)
 	ChMatrix33<>& inertia = mbodyvar.GetBodyInvInertia();
 
 	gpu_data_manager->host_data.vel_data.push_back(
-		R3(mbodyvar.Get_qb().GetElementN(0), mbodyvar.Get_qb().GetElementN(1), mbodyvar.Get_qb().GetElementN(2)));
+	R3(mbodyvar.Get_qb().GetElementN(0), mbodyvar.Get_qb().GetElementN(1), mbodyvar.Get_qb().GetElementN(2)));
 	gpu_data_manager->host_data.acc_data.push_back(R3(0, 0, 0));
 	gpu_data_manager->host_data.omg_data.push_back(
-		R3(mbodyvar.Get_qb().GetElementN(3), mbodyvar.Get_qb().GetElementN(4), mbodyvar.Get_qb().GetElementN(5)));
+	R3(mbodyvar.Get_qb().GetElementN(3), mbodyvar.Get_qb().GetElementN(4), mbodyvar.Get_qb().GetElementN(5)));
 	gpu_data_manager->host_data.pos_data.push_back(
-		R3(newbody->GetPos().x, newbody->GetPos().y, newbody->GetPos().z));
+	R3(newbody->GetPos().x, newbody->GetPos().y, newbody->GetPos().z));
 	gpu_data_manager->host_data.rot_data.push_back(
-		R4(newbody->GetRot().e0, newbody->GetRot().e1, newbody->GetRot().e2, newbody->GetRot().e3));
+	R4(newbody->GetRot().e0, newbody->GetRot().e1, newbody->GetRot().e2, newbody->GetRot().e3));
 	gpu_data_manager->host_data.inr_data.push_back(
-		R3(inertia.GetElement(0, 0), inertia.GetElement(1, 1), inertia.GetElement(2, 2)));
+	R3(inertia.GetElement(0, 0), inertia.GetElement(1, 1), inertia.GetElement(2, 2)));
 	gpu_data_manager->host_data.frc_data.push_back(
-		R3(mbodyvar.Get_fb().ElementN(0), mbodyvar.Get_fb().ElementN(1), mbodyvar.Get_fb().ElementN(2)));     //forces
+	R3(mbodyvar.Get_fb().ElementN(0), mbodyvar.Get_fb().ElementN(1), mbodyvar.Get_fb().ElementN(2)));     //forces
 	gpu_data_manager->host_data.trq_data.push_back(
-		R3(mbodyvar.Get_fb().ElementN(3), mbodyvar.Get_fb().ElementN(4), mbodyvar.Get_fb().ElementN(5)));     //torques
+	R3(mbodyvar.Get_fb().ElementN(3), mbodyvar.Get_fb().ElementN(4), mbodyvar.Get_fb().ElementN(5)));     //torques
 	gpu_data_manager->host_data.active_data.push_back(newbody->IsActive());
 	gpu_data_manager->host_data.mass_data.push_back(inv_mass);
 
 	gpu_data_manager->host_data.lim_data.push_back(
-		R3(newbody->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
+	R3(newbody->GetLimitSpeed(), .05 / GetStep(), .05 / GetStep()));
 	//gpu_data_manager->host_data.pressure_data.push_back(0);
 
 	// Let derived classes load specific material surface data
@@ -293,24 +323,34 @@ void ChSystemParallel::UpdateBilaterals()
 void ChSystemParallel::RecomputeThreads()
 {
 	double sum_of_elems = std::accumulate(timer_accumulator.begin(), timer_accumulator.end(), 0.0);
+
 	if (frame_threads == 50 && detect_optimal_threads == false) {
 		frame_threads = 0;
-		if (current_threads < max_threads) {
+		if (current_threads + 2 < max_threads) {
 			detect_optimal_threads = true;
 			old_timer = sum_of_elems / 10.0;
-			current_threads++;
+			current_threads += 2;
 			omp_set_num_threads(current_threads);
-			cout << "current threads increased" << endl;
+			cout << "current threads increased to " << current_threads << endl;
+		} else {
+			current_threads = max_threads;
+			omp_set_num_threads(max_threads);
+			cout << "current threads increased to " << current_threads << endl;
 		}
 	} else if (frame_threads == 10 && detect_optimal_threads) {
 		double current_timer = sum_of_elems / 10.0;
 		detect_optimal_threads = false;
 		frame_threads = 0;
 		if (old_timer < current_timer) {
-			current_threads--;
+			current_threads -= 2;
 			omp_set_num_threads(current_threads);
-			cout << "current threads reduced back" << endl;
+			cout << "current threads reduced back to " << current_threads << endl;
 		}
+	}
+
+	if (current_threads < min_threads) {
+		current_threads = min_threads;
+		omp_set_num_threads(min_threads);
 	}
 }
 

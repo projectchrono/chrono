@@ -24,6 +24,6 @@ uint ChSolverParallel::SolveSD(custom_vector<real> &x, const custom_vector<real>
 		}
 		resold = resnew;
 	}
-	Project(x);
+	Project(x.data());
 	return current_iteration;
 }
