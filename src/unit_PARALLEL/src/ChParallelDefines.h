@@ -1,9 +1,9 @@
-#ifndef CHCUDA_H
-#define CHCUDA_H
+#ifndef CHPARALLELDEFINES_H
+#define CHPARALLELDEFINES_H
 
 //////////////////////////////////////////////////
 //
-//   ChCuda.h
+//   ChParallelDefines.h
 //
 ///////////////////////////////////////////////////
 
@@ -20,7 +20,6 @@
 #include <fenv.h>
 #endif
 
-#include <vector_types.h>
 #include <time.h>
 #include <iostream>
 #include <numeric>
@@ -69,10 +68,6 @@ typedef unsigned int uint;
 #define __KERNEL__(...)  <<< __VA_ARGS__ >>>
 #endif
 
-#define Zero_Vector real3(0,0,0)
-#define PI  3.1415926535897932384626433832795
-#define PI_2   (PI / 2.0)
-#define PI_180  (PI / 180.0)
 
 //#define SIM_ENABLE_GPU_MODE
 #ifdef SIM_ENABLE_GPU_MODE
@@ -81,8 +76,8 @@ typedef unsigned int uint;
 #define custom_vector thrust::host_vector
 #endif
 
-
-//#define PRINT_DEBUG_GPU
+//#define PRINT_LEVEL_1
+//#define PRINT_LEVEL_2
 
 //defines to cast thrust vectors as raw pointers
 #define CASTC1(x) (char*)thrust::raw_pointer_cast(&x[0])
@@ -152,22 +147,6 @@ enum GPUSOLVERTYPE {
 	BLOCK_JACOBI
 };
 
-//enum SHAPE {    SPHERE,
-//                ELLIPSOID,
-//                BOX,
-//                CYLINDER,
-//                CONVEXHULL,
-//                TRIANGLEMESH,
-//                BARREL,
-//                RECT,               //Currently implemented on GPU only
-//                DISC,               //Currently implemented on GPU only
-//                ELLIPSE,            //Currently implemented on GPU only
-//                CAPSULE,            //Currently implemented on GPU only
-//                CONE,               //Currently implemented on GPU only
-//                COMPOUND            //Currently implemented on GPU only
-//                };
-
-//typedef int shape_type;
 #define shape_type int
 
 //#define SPHERE 0
@@ -187,20 +166,6 @@ enum GPUSOLVERTYPE {
 #define MIN_ZERO_EPSILON 1.1754943508222875E-38
 #define EPS FLT_EPSILON
 #define kCollideEpsilon  1e-6f
-
-//////////////////////////////////////////////////
-
-//#define CH_CONTACT_VSIZE 4
-//#define CH_CONTACT_HSIZE sizeof(CH_REALNUMBER4)
-//
-//#define CH_BODY_VSIZE 8
-//#define CH_BODY_HSIZE sizeof(CH_REALNUMBER4)
-//
-#define CH_BILATERAL_VSIZE 5
-#define CH_BILATERAL_HSIZE sizeof(CH_REALNUMBER4)
-//
-//#define CH_REDUCTION_VSIZE 2
-//#define CH_REDUCTION_HSIZE sizeof(CH_REALNUMBER4)
 
 #endif
 
