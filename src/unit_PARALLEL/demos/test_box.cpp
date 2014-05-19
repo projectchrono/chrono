@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
 	ChVector<>      initPos(1, -1, 0.5);
 	ChVector<>      initVel(0,0,0);
 	ChQuaternion<>  initRot(1,0,0,0);
-	initRot.Q_from_AngAxis(PI/6, ChVector<>(1, 0, 0));
+	initRot.Q_from_AngAxis(CH_C_PI/6, ChVector<>(1, 0, 0));
 
 	// Parameters for the containing bin
 	int    binId = -200;

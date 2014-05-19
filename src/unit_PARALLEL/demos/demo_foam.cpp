@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
 	utils::CreateBoxContainerDEM(msystem, binId, mat_c, ChVector<>(hDimX, hDimY, hDimZ), hThickness);
 
 	// Create a mixture entirely made out of spheres
-	double     vol_g = (4.0/3) * PI * r_g * r_g * r_g;
+	double     vol_g = (4.0/3) * CH_C_PI * r_g * r_g * r_g;
 	double     mass_g = rho_g * vol_g;
 	ChVector<> inertia_g = 0.4 * mass_g * r_g * r_g * ChVector<>(1,1,1);
 

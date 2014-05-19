@@ -45,7 +45,7 @@ double out_fps = 30;
 // Parameters for the mixture balls
 double     radius = 0.1;
 double     density = 2000;
-double     vol = (4.0/3) * PI * radius * radius * radius;
+double     vol = (4.0/3) * CH_C_PI * radius * radius * radius;
 double     mass = density * vol;
 ChVector<> inertia = 0.4 * mass * radius * radius * ChVector<>(1,1,1);
 
@@ -54,7 +54,7 @@ double     dropHeight = 10;
 int        ballId = 100;
 double     radius1 = 0.5;
 double     density1 = 2000;
-double     volume1 = (4.0/3) * PI * radius1 * radius1 * radius1;
+double     volume1 = (4.0/3) * CH_C_PI * radius1 * radius1 * radius1;
 double     mass1 = density1 * volume1;
 ChVector<> inertia1 = 0.4 * mass1 * radius1 * radius1 * ChVector<>(1,1,1);
 ChVector<> initvel1(0, 0, -30);

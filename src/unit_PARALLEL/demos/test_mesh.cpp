@@ -46,10 +46,10 @@ int main(int argc, char* argv[])
 	ChVector<>      initVel2(0,0,0);
 
 	ChQuaternion<>  initRot1(1,0,0,0);
-	initRot1.Q_from_AngAxis(PI/4, ChVector<>(1/sqrt(2.0), 1/sqrt(2.0), 0));
+	initRot1.Q_from_AngAxis(CH_C_PI/4, ChVector<>(1/sqrt(2.0), 1/sqrt(2.0), 0));
 
 	ChQuaternion<>  initRot2(1,0,0,0);
-	initRot2.Q_from_AngAxis(PI/4, ChVector<>(-1/sqrt(2.0), -1/sqrt(2.0), 0));
+	initRot2.Q_from_AngAxis(CH_C_PI/4, ChVector<>(-1/sqrt(2.0), -1/sqrt(2.0), 0));
 
 	// -------------
 	// Create system

@@ -30,7 +30,7 @@ int max_iteration = 20;
 // Parameters for the mixture balls
 double     radius = 0.1;
 double     density = 2000;
-double     vol = (4.0/3) * PI * radius * radius * radius;
+double     vol = (4.0/3) * CH_C_PI * radius * radius * radius;
 double     mass = density * vol;
 ChVector<> inertia = 0.4 * mass * radius * radius * ChVector<>(1,1,1);
 

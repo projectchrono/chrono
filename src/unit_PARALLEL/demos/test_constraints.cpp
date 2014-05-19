@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
 	// Rotation of -90 degrees around z
 	ChVector<> zero(0, 0, 0);
 	ChQuaternion<> y2x(1, 0, 0, 0);
-	y2x.Q_from_AngAxis(-PI/2, ChVector<>(0, 0, 1));
+	y2x.Q_from_AngAxis(-CH_C_PI/2, ChVector<>(0, 0, 1));
 
 
 	// ground

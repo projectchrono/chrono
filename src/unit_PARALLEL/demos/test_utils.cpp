@@ -104,7 +104,7 @@ void checkGenerators()
 	int             ballId = 100;
 	double          radius = .1;
 	double          density = 2000;
-	double          volume = (4.0/3) * PI * radius * radius * radius;
+	double          volume = (4.0/3) * CH_C_PI * radius * radius * radius;
 	double          mass = density * volume;
 	ChVector<>      inertia = 0.4 * mass * radius * radius * ChVector<>(1,1,1);
 	ChVector<>      init_vel(0, 0, 0);

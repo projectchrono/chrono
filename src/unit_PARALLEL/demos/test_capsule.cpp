@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
 	ChVector<>      initPos(1, -1, 4);
 	ChVector<>      initVel(0,0,0);
 	ChQuaternion<>  initRot(1,0,0,0);
-	initRot.Q_from_AngAxis(PI/3, ChVector<>(1, 0, 0));
+	initRot.Q_from_AngAxis(CH_C_PI/3, ChVector<>(1, 0, 0));
 
 	// Parameters for the containing bin
 	int    binId = -200;
@@ -182,7 +182,7 @@ int main(int argc, char* argv[])
 	double offsetZ = -1;
 
 	ChQuaternion<>  rot(1,0,0,0);
-	rot.Q_from_AngAxis(PI/6, ChVector<>(0, 0, 1));
+	rot.Q_from_AngAxis(CH_C_PI/6, ChVector<>(0, 0, 1));
 
 	bin->GetCollisionModel()->ClearModel();
 	for (int ix = -3; ix < 6; ix++) {
