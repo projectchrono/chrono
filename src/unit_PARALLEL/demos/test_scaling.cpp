@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
 
 	for (int i = 0; i < num_frames1; i++) {
 		msystem->DoStepDynamics(time_step);
-		timeA += msystem->mtimer_step();
+		timeA += msystem->GetTimerStep();
 		ncA += msystem->GetNcontacts();
 	}
 
@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
 
 	for (int i = 0; i < num_frames1; i++) {
 		msystem->DoStepDynamics(time_step);
-		timeB += msystem->mtimer_step();
+		timeB += msystem->GetTimerStep();
 		ncB += msystem->GetNcontacts();
 	}
 
@@ -149,6 +149,9 @@ int main(int argc, char* argv[])
 	cout << "Average num. contacts A: " << double(ncA) / num_frames1 << endl;
 	cout << "Simulation time B: " << timeB << endl;
 	cout << "Average num. contacts B: " << double(ncB) / num_frames1 << endl;
+
+
+	msystem->gpu_data_manager->system_timer.PrintReport();
 
 	return 0;
 }

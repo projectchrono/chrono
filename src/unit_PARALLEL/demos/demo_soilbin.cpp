@@ -319,7 +319,7 @@ int main(int argc, char* argv[])
 		msystem->DoStepDynamics(time_step);
 		time += time_step;
 
-		exec_time += msystem->mtimer_step();
+		exec_time += msystem->GetTimerStep();
 	}
 
 	// Create a checkpoint from the last state

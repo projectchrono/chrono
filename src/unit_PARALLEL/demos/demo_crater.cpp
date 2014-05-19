@@ -359,7 +359,7 @@ int main(int argc, char* argv[])
 
 		time += time_step;
 		sim_frame++;
-		exec_time += msystem->mtimer_step();
+		exec_time += msystem->GetTimerStep();
 	}
 
 	// Create a checkpoint from the last state
