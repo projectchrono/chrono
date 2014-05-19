@@ -16,15 +16,48 @@ FIND_PACKAGE(SSE)
 
 # Set substitution variables for configuration file.
 IF(SSE_FOUND)
-	MESSAGE(STATUS "SSE version: ${SSE_VERSION}")
-    SET(CHRONO_PARALLEL_HAS_SSE 
-        "#define CHRONO_PARALLEL_HAS_SSE")
-    SET(CHRONO_PARALLEL_SSE_LEVEL 
-        "#define CHRONO_PARALLEL_SSE_LEVEL \"${SSE_VERSION}\"")
+  MESSAGE(STATUS "SSE version: ${SSE_VERSION}")
+  SET(CHRONO_PARALLEL_HAS_SSE "#define CHRONO_PARALLEL_HAS_SSE")
+  SET(CHRONO_PARALLEL_SSE_LEVEL "#define CHRONO_PARALLEL_SSE_LEVEL \"${SSE_VERSION}\"")
 ELSE()
-	MESSAGE("No SSE support")
+  MESSAGE("No SSE support")
 ENDIF()
 
+
+# ----------------------------------------------------------------------------
+# OpenMP
+# ----------------------------------------------------------------------------
+find_package("OpenMP" REQUIRED)
+
+# Add the OpenMP-specific compiler and linker flags
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+
+# Determine OpenMP version
+IF(OPENMP_FOUND)
+  INCLUDE(CheckOpenMPVersion)
+  MESSAGE(STATUS "OpenMP version: ${OMP_VERSION}")
+  SET(CHRONO_PARALLEL_OMP_VERSION "#define CHRONO_PARALLEL_OMP_VERSION \"${OMP_VERSION}\"")
+  IF(OMP_20)
+    SET(CHRONO_PARALLEL_OMP_20 "#define CHRONO_PARALLEL_OMP_20")
+  ELSE()
+    SET(CHRONO_PARALLEL_OMP_20 "")
+  ENDIF()
+  IF(OMP_30)
+    SET(CHRONO_PARALLEL_OMP_30 "#define CHRONO_PARALLEL_OMP_30")
+  ELSE()
+    SET(CHRONO_PARALLEL_OMP_30 "")
+  ENDIF()
+  IF(OMP_40)
+    SET(CHRONO_PARALLEL_OMP_40 "#define CHRONO_PARALLEL_OMP_40")
+  ELSE()
+    SET(CHRONO_PARALLEL_OMP_40 "")
+  ENDIF()
+ENDIF()
+
+# ----------------------------------------------------------------------------
+# Generate configuration header file.
+# ----------------------------------------------------------------------------
 # Generate the configuration header file using substitution
 # variables. Place the header file in the binary directory
 # and make sure it can be found at compile time.
@@ -37,19 +70,9 @@ CONFIGURE_FILE(
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR})
 
 
-# Set flags depending on SSE support...
-# TODO
-
 # ----------------------------------------------------------------------------
-# OpenMP
+# MPI
 # ----------------------------------------------------------------------------
-find_package("OpenMP" REQUIRED)
-
-# Add the OpenMP-specific compiler and linker flags
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-
-
 #find_package("MPI" )
 
 # Add the MPI-specific compiler and linker flags
@@ -111,6 +134,7 @@ SET(ChronoEngine_Parallel_HEADERS
     src/ChDataManager.h
     src/ChLcpSolverParallel.h
     src/ChLcpSystemDescriptorParallel.h
+    src/ChTimerParallel.h
     )
 
 SOURCE_GROUP(core FILES
