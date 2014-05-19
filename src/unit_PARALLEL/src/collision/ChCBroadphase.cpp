@@ -239,7 +239,7 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data,cust
 	double startTime = omp_get_wtime();
 	numAABB = aabb_data.size()/2;
 
-#ifdef PRINT_LEVEL_2
+#if PRINT_LEVEL==2
 		cout << "Number of AABBs: "<<numAABB<<endl;
 #endif
 		// STEP 1: Initialization TODO: this could be put in the constructor
@@ -264,7 +264,7 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data,cust
 		bin_size_vec = (fabs(max_bounding_point - global_origin));
 		bin_size_vec = R3(grid_size.x,grid_size.y,grid_size.z)/bin_size_vec;//CHANGED: this was supposed to be reversed, CHANGED BACK this is just the inverse for convenience (saves us the divide later)
 		thrust::transform(aabb_data.begin(), aabb_data.end(), thrust::constant_iterator<real3>(global_origin), aabb_data.begin(), thrust::minus<real3>());
-#ifdef PRINT_LEVEL_2
+#if PRINT_LEVEL==2
 		cout << "Global Origin: (" << global_origin.x << ", " << global_origin.y << ", " << global_origin.z << ")" << endl;
 		cout << "Maximum bounding point: (" << max_bounding_point.x << ", " << max_bounding_point.y << ", " << max_bounding_point.z << ")" << endl;
 		cout << "Bin size vector: (" << bin_size_vec.x << ", " << bin_size_vec.y << ", " << bin_size_vec.z << ")" << endl;
@@ -280,7 +280,7 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data,cust
 		host_Count_AABB_BIN_Intersection(aabb_data.data(), Bins_Intersected.data());
 #endif
 		thrust::inclusive_scan(Bins_Intersected.begin(),Bins_Intersected.end(), Bins_Intersected.begin()); number_of_bin_intersections=Bins_Intersected.back();
-#ifdef PRINT_LEVEL_2
+#if PRINT_LEVEL==2
 		cout << "Number of bin intersections: " << number_of_bin_intersections << endl;
 #endif
 		bin_number.resize(number_of_bin_intersections);
@@ -294,7 +294,7 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data,cust
 		host_Store_AABB_BIN_Intersection(aabb_data.data(), Bins_Intersected.data(),
 		bin_number.data(), body_number.data());
 #endif
-#ifdef PRINT_LEVEL_2
+#if PRINT_LEVEL==2
 		cout<<"DONE WID DAT (device_Store_AABB_BIN_Intersection)"<<endl;
 #endif
 //    for(int i=0; i<bin_number.size(); i++){
@@ -307,7 +307,7 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data,cust
 //    	cout<<bin_number[i]<<" "<<body_number[i]<<endl;
 //    }
 
-#ifdef PRINT_LEVEL_2
+#if PRINT_LEVEL==2
 #endif
 
 		last_active_bin= (thrust::reduce_by_key(bin_number.begin(),bin_number.end(),thrust::constant_iterator<uint>(1),bin_number.begin(),bin_start_index.begin()).second)-bin_start_index.begin();
@@ -322,7 +322,7 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data,cust
 //    bin_number=Output;
 //    bin_start_index=bin_start_index_t;
 
-#ifdef PRINT_LEVEL_2
+#if PRINT_LEVEL==2
 #endif
 ////      //QUESTION: I have no idea what is going on here
 		if(last_active_bin<=0) {number_of_contacts_possible = 0; return 0;}
@@ -335,7 +335,7 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data,cust
 //		}
 
 		bin_start_index.resize(last_active_bin);
-#ifdef PRINT_LEVEL_2
+#if PRINT_LEVEL==2
 		cout <<val<<" "<<grid_size.x<<" "<<grid_size.y<<" "<<grid_size.z<<endl;
 		cout << "Last active bin: " << last_active_bin << endl;
 #endif
@@ -357,7 +357,7 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data,cust
 #endif
 		thrust::inclusive_scan(Num_ContactD.begin(),Num_ContactD.end(), Num_ContactD.begin()); number_of_contacts_possible=Num_ContactD.back();
 		potentialCollisions.resize(number_of_contacts_possible);
-#ifdef PRINT_LEVEL_2
+#if PRINT_LEVEL==2
 		cout << "Number of possible collisions: " << number_of_contacts_possible << endl;
 #endif
 		// END STEP 5
@@ -385,12 +385,12 @@ int ChCBroadphase::detectPossibleCollisions(custom_vector<real3> &aabb_data,cust
 		potentialCollisions.end()) - potentialCollisions.begin();
 
 		potentialCollisions.resize(number_of_contacts_possible);
-#ifdef PRINT_LEVEL_2
+#if PRINT_LEVEL==2
 		cout << "Number of possible collisions: " << number_of_contacts_possible << endl;
 #endif
 		// END STEP 6
 		double endTime = omp_get_wtime();
-#ifdef PRINT_LEVEL_2
+#if PRINT_LEVEL==2
 		printf("Time to detect: %lf seconds\n", (endTime - startTime));
 #endif
 		return 0;

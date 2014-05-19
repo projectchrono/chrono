@@ -76,8 +76,14 @@ typedef unsigned int uint;
 #define custom_vector thrust::host_vector
 #endif
 
-//#define PRINT_LEVEL_1
-//#define PRINT_LEVEL_2
+
+
+//Output Verbosity Level
+//Level 0: none
+//Level 1: basic
+//Level 2: more verbose
+#define PRINT_LEVEL 0
+
 
 //defines to cast thrust vectors as raw pointers
 #define CASTC1(x) (char*)thrust::raw_pointer_cast(&x[0])
