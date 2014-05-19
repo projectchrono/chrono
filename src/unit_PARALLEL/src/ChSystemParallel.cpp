@@ -331,11 +331,15 @@ void ChSystemParallel::RecomputeThreads()
 			old_timer = sum_of_elems / 10.0;
 			current_threads += 2;
 			omp_set_num_threads(current_threads);
+#ifdef PRINT_LEVEL_1
 			cout << "current threads increased to " << current_threads << endl;
+#endif
 		} else {
 			current_threads = max_threads;
 			omp_set_num_threads(max_threads);
+#ifdef PRINT_LEVEL_1
 			cout << "current threads increased to " << current_threads << endl;
+#endif
 		}
 	} else if (frame_threads == 10 && detect_optimal_threads) {
 		double current_timer = sum_of_elems / 10.0;
@@ -344,7 +348,9 @@ void ChSystemParallel::RecomputeThreads()
 		if (old_timer < current_timer) {
 			current_threads -= 2;
 			omp_set_num_threads(current_threads);
+#ifdef PRINT_LEVEL_1
 			cout << "current threads reduced back to " << current_threads << endl;
+#endif
 		}
 	}
 
@@ -360,16 +366,22 @@ void ChSystemParallel::PerturbBins(bool increase, int number)
 
 	if (increase) {
 		int3 grid_size = ((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase->getBinsPerAxis();
+#ifdef PRINT_LEVEL_1
 		cout << "initial: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
+#endif
 		grid_size.x = grid_size.x + number;
 		grid_size.y = grid_size.y + number;
 		grid_size.z = grid_size.z + number;
+#ifdef PRINT_LEVEL_1
 		cout << "final: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
+#endif
 		((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase->setBinsPerAxis(grid_size);
 	} else {
 
 		int3 grid_size = ((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase->getBinsPerAxis();
+#ifdef PRINT_LEVEL_1
 		cout << "initial: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
+#endif
 		grid_size.x = grid_size.x - number;
 		grid_size.y = grid_size.y - number;
 		grid_size.z = grid_size.z - number;
@@ -383,7 +395,9 @@ void ChSystemParallel::PerturbBins(bool increase, int number)
 		if (grid_size.z < 2) {
 			grid_size.z = 2;
 		}
+#ifdef PRINT_LEVEL_1
 		cout << "final: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
+#endif
 		((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase->setBinsPerAxis(grid_size);
 
 	}
@@ -402,15 +416,18 @@ void ChSystemParallel::RecomputeBins()
 		old_timer_cd = sum_of_elems_cd / 10.0;
 
 		PerturbBins(true);
+#ifdef PRINT_LEVEL_1
 		cout << "current bins increased" << endl;
-
+#endif
 	} else if (frame_bins == 10 && detect_optimal_bins == 1) {
 		double current_timer = sum_of_elems_cd / 10.0;
 		//cout << old_timer_cd << " " << current_timer << endl;
 
 		if (old_timer_cd < current_timer) {
 			PerturbBins(false);
+#ifdef PRINT_LEVEL_1
 			cout << "current bins reduced back" << endl;
+#endif
 		}
 		detect_optimal_bins = 2;
 		frame_bins = 0;
@@ -421,14 +438,18 @@ void ChSystemParallel::RecomputeBins()
 		detect_optimal_bins = 3;
 		old_timer_cd = sum_of_elems_cd / 10.0;
 		PerturbBins(false);
+#ifdef PRINT_LEVEL_1
 		cout << "current bins decreased" << endl;
+#endif
 	} else if (frame_bins == 10 && detect_optimal_bins == 3) {
 		double current_timer = sum_of_elems_cd / 10.0;
 		//cout << old_timer_cd << " " << current_timer << endl;
 
 		if (old_timer_cd < current_timer) {
 			PerturbBins(true);
+#ifdef PRINT_LEVEL_1
 			cout << "current bins increased back" << endl;
+#endif
 		}
 
 		detect_optimal_bins = 0;

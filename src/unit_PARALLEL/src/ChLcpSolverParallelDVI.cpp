@@ -155,7 +155,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
 	//RunWarmStartPostProcess();
 	//}
 
-#ifdef PRINT_DEBUG_GPU
+#ifdef PRINT_LEVEL_2
 	cout << "Solve Done: "<<residual << endl;
 #endif
 	//ChIntegratorGPU integrator;
