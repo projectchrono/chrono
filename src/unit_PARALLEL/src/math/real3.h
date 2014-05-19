@@ -9,7 +9,7 @@
   static const __m128 SIGNMASK = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));
 
 
- class  __attribute__ ((aligned(16))) real3  {
+class CHRONO_ALIGN_16 real3  {
 public:
   union{
      struct { real x, y, z, w; };

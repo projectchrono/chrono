@@ -31,7 +31,7 @@ static inline __m128 change_sign(__m128 const & a) {
 }
 
 
-class __attribute__ ((aligned(16))) real4 {
+class CHRONO_ALIGN_16 real4 {
 public:
 	union {
 		struct {
