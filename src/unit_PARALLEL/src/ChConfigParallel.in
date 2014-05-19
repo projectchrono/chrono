@@ -5,15 +5,25 @@
 // If SSE support was found, then
 //   #define CHRONO_PARALLEL_HAS_SSE
 // and set the SSE level support, one of the following
-//   #define CHRONO_PARALLEL_SSE "1.0"
-//   #define CHRONO_PARALLEL_SSE "2.0"
-//   #define CHRONO_PARALLEL_SSE "3.0"
-//   #define CHRONO_PARALLEL_SSE "3.1"
-//   #define CHRONO_PARALLEL_SSE "4.1"
-//   #define CHRONO_PARALLEL_SSE "4.2"
+//   #define CHRONO_PARALLEL_SSE_LEVEL "1.0"
+//   #define CHRONO_PARALLEL_SSE_LEVEL "2.0"
+//   #define CHRONO_PARALLEL_SSE_LEVEL "3.0"
+//   #define CHRONO_PARALLEL_SSE_LEVEL "3.1"
+//   #define CHRONO_PARALLEL_SSE_LEVEL "4.1"
+//   #define CHRONO_PARALLEL_SSE_LEVEL "4.2"
 @CHRONO_PARALLEL_HAS_SSE@
 @CHRONO_PARALLEL_SSE_LEVEL@
 
 
-
-
+// Set the highest OpenMP version supported, one of:
+//   #define CHRONO_PARALLEL_OMP_VERSION "2.0"
+//   #define CHRONO_PARALLEL_OMP_VERSION "3.0"
+//   #define CHRONO_PARALLEL_OMP_VERSION "4.0"
+// and define one or more of the following, as appropriate
+//   #define CHRONO_PARALLEL_OMP_20
+//   #define CHRONO_PARALLEL_OMP_30
+//   #define CHRONO_PARALLEL_OMP_40
+@CHRONO_PARALLEL_OMP_VERSION@
+@CHRONO_PARALLEL_OMP_20@
+@CHRONO_PARALLEL_OMP_30@
+@CHRONO_PARALLEL_OMP_40@
