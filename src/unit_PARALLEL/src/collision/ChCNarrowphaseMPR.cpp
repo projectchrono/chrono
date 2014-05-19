@@ -25,25 +25,25 @@ __device__ __host__ real3 TransformSupportVert(const shape_type &type, const rea
 //M33 invorientation = AMatT(R);
 	real3 rotated_n = quatRotateMatT(n, R);
 	switch (type) {
-		case SPHERE:
+		case ShapeType::SPHERE:
 			localSupport = GetSupportPoint_Sphere(B, rotated_n);
 			break;
-		case ELLIPSOID:
+		case ShapeType::ELLIPSOID:
 			localSupport = GetSupportPoint_Ellipsoid(B, rotated_n);
 			break;
-		case BOX:
+		case ShapeType::BOX:
 			localSupport = GetSupportPoint_Box(B, rotated_n);
 			break;
-		case CYLINDER:
+		case ShapeType::CYLINDER:
 			localSupport = GetSupportPoint_Cylinder(B, rotated_n);
 			break;
-		case RECT:
+		case ShapeType::RECT:
 			localSupport = GetSupportPoint_Plane(B, rotated_n);
 			break;
-		case CONE:
+		case ShapeType::CONE:
 			localSupport = GetSupportPoint_Cone(B, rotated_n);
 			break;
-		case TRIANGLEMESH:
+		case ShapeType::TRIANGLEMESH:
 			return GetSupportPoint_Triangle(A, B, C, n);
 			break;
 	}
