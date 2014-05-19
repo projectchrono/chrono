@@ -168,7 +168,7 @@ const custom_vector<real3> &body_pos,
 const custom_vector<real4> &body_rot,
 custom_vector<real3> &aabb_data) {
 
-#ifdef PRINT_LEVEL_2
+#if PRINT_LEVEL==2
 		cout<<"AABB START"<<endl;
 #endif
 
@@ -198,10 +198,10 @@ custom_vector<real3> &aabb_data) {
 				body_rot.data(),
 				aabb_data.data());
 #endif
-#ifdef PRINT_LEVEL_2
+#if PRINT_LEVEL==2
 		cout<<"AABB END"<<endl;
 #endif
-#ifdef PRINT_LEVEL_2
+#if PRINT_LEVEL==2
 //    for(int i=0; i<numAABB; i++){
 //
 //    	cout<<real3(aabb_data[i]).x<<" "<<real3(aabb_data[i]).y<<" "<<real3(aabb_data[i]).z<<endl;

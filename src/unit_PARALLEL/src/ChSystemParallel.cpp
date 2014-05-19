@@ -32,23 +32,23 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects)
 	gpu_data_manager->system_timer.AddTimer("update");
 	gpu_data_manager->system_timer.AddTimer("collision");
 	gpu_data_manager->system_timer.AddTimer("lcp");
-	gpu_data_manager->system_timer.AddTimer("solve");
-	gpu_data_manager->system_timer.AddTimer("solve_setup");
-	gpu_data_manager->system_timer.AddTimer("stab");
-	gpu_data_manager->system_timer.AddTimer("jacobians");
-	gpu_data_manager->system_timer.AddTimer("rhs");
-	gpu_data_manager->system_timer.AddTimer("shurA");
-	gpu_data_manager->system_timer.AddTimer("shurA_normal");
-	gpu_data_manager->system_timer.AddTimer("shurA_sliding");
-	gpu_data_manager->system_timer.AddTimer("shurA_spinning");
-	gpu_data_manager->system_timer.AddTimer("shurA_reduce");
-	gpu_data_manager->system_timer.AddTimer("shurB");
-	gpu_data_manager->system_timer.AddTimer("solverA");
-	gpu_data_manager->system_timer.AddTimer("solverB");
-	gpu_data_manager->system_timer.AddTimer("solverC");
-	gpu_data_manager->system_timer.AddTimer("solverD");
-	gpu_data_manager->system_timer.AddTimer("solverE");
-	gpu_data_manager->system_timer.AddTimer("project");
+	gpu_data_manager->system_timer.AddTimer("ChLcpSolverParallelDVI_Solve");
+	gpu_data_manager->system_timer.AddTimer("ChLcpSolverParallelDVI_Setup");
+	gpu_data_manager->system_timer.AddTimer("ChLcpSolverParallelDVI_Stab");
+	gpu_data_manager->system_timer.AddTimer("ChLcpSolverParallelDVI_Jacobians");
+	gpu_data_manager->system_timer.AddTimer("ChLcpSolverParallelDVI_RHS");
+	gpu_data_manager->system_timer.AddTimer("ChSolverParallel_shurA");
+	gpu_data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurA_normal");
+	gpu_data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurA_sliding");
+	gpu_data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurA_spinning");
+	gpu_data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurA_reduce");
+	gpu_data_manager->system_timer.AddTimer("ChSolverParallel_shurB");
+	gpu_data_manager->system_timer.AddTimer("ChSolverParallel_solverA");
+	gpu_data_manager->system_timer.AddTimer("ChSolverParallel_solverB");
+	gpu_data_manager->system_timer.AddTimer("ChSolverParallel_solverC");
+	gpu_data_manager->system_timer.AddTimer("ChSolverParallel_solverD");
+	gpu_data_manager->system_timer.AddTimer("ChSolverParallel_solverE");
+	gpu_data_manager->system_timer.AddTimer("ChSolverParallel_Project");
 	min_threads = 1;
 
 }
@@ -331,13 +331,13 @@ void ChSystemParallel::RecomputeThreads()
 			old_timer = sum_of_elems / 10.0;
 			current_threads += 2;
 			omp_set_num_threads(current_threads);
-#ifdef PRINT_LEVEL_1
+#if PRINT_LEVEL==1
 			cout << "current threads increased to " << current_threads << endl;
 #endif
 		} else {
 			current_threads = max_threads;
 			omp_set_num_threads(max_threads);
-#ifdef PRINT_LEVEL_1
+#if PRINT_LEVEL==1
 			cout << "current threads increased to " << current_threads << endl;
 #endif
 		}
@@ -348,7 +348,7 @@ void ChSystemParallel::RecomputeThreads()
 		if (old_timer < current_timer) {
 			current_threads -= 2;
 			omp_set_num_threads(current_threads);
-#ifdef PRINT_LEVEL_1
+#if PRINT_LEVEL==1
 			cout << "current threads reduced back to " << current_threads << endl;
 #endif
 		}
@@ -366,20 +366,20 @@ void ChSystemParallel::PerturbBins(bool increase, int number)
 
 	if (increase) {
 		int3 grid_size = ((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase->getBinsPerAxis();
-#ifdef PRINT_LEVEL_1
+#if PRINT_LEVEL==1
 		cout << "initial: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
 #endif
 		grid_size.x = grid_size.x + number;
 		grid_size.y = grid_size.y + number;
 		grid_size.z = grid_size.z + number;
-#ifdef PRINT_LEVEL_1
+#if PRINT_LEVEL==1
 		cout << "final: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
 #endif
 		((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase->setBinsPerAxis(grid_size);
 	} else {
 
 		int3 grid_size = ((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase->getBinsPerAxis();
-#ifdef PRINT_LEVEL_1
+#if PRINT_LEVEL==1
 		cout << "initial: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
 #endif
 		grid_size.x = grid_size.x - number;
@@ -395,7 +395,7 @@ void ChSystemParallel::PerturbBins(bool increase, int number)
 		if (grid_size.z < 2) {
 			grid_size.z = 2;
 		}
-#ifdef PRINT_LEVEL_1
+#if PRINT_LEVEL==1
 		cout << "final: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
 #endif
 		((ChCollisionSystemParallel *) (GetCollisionSystem()))->broadphase->setBinsPerAxis(grid_size);
@@ -416,7 +416,7 @@ void ChSystemParallel::RecomputeBins()
 		old_timer_cd = sum_of_elems_cd / 10.0;
 
 		PerturbBins(true);
-#ifdef PRINT_LEVEL_1
+#if PRINT_LEVEL==1
 		cout << "current bins increased" << endl;
 #endif
 	} else if (frame_bins == 10 && detect_optimal_bins == 1) {
@@ -425,7 +425,7 @@ void ChSystemParallel::RecomputeBins()
 
 		if (old_timer_cd < current_timer) {
 			PerturbBins(false);
-#ifdef PRINT_LEVEL_1
+#if PRINT_LEVEL==1
 			cout << "current bins reduced back" << endl;
 #endif
 		}
@@ -438,7 +438,7 @@ void ChSystemParallel::RecomputeBins()
 		detect_optimal_bins = 3;
 		old_timer_cd = sum_of_elems_cd / 10.0;
 		PerturbBins(false);
-#ifdef PRINT_LEVEL_1
+#if PRINT_LEVEL==1
 		cout << "current bins decreased" << endl;
 #endif
 	} else if (frame_bins == 10 && detect_optimal_bins == 3) {
@@ -447,7 +447,7 @@ void ChSystemParallel::RecomputeBins()
 
 		if (old_timer_cd < current_timer) {
 			PerturbBins(true);
-#ifdef PRINT_LEVEL_1
+#if PRINT_LEVEL==1
 			cout << "current bins increased back" << endl;
 #endif
 		}
