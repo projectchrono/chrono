@@ -37,8 +37,9 @@ ChCBroadphase::ChCBroadphase() {
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 void ChCBroadphase::setBinsPerAxis(int3 binsPerAxis) {
 	grid_size = binsPerAxis;
+#if PRINT_LEVEL==1
 	cout << "Set BPA: " << grid_size.x << " " << grid_size.y << " " << grid_size.z << endl;
-
+#endif
 }
 int3 ChCBroadphase::getBinsPerAxis() {
 	return grid_size;
