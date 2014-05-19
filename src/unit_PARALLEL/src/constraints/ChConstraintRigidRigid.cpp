@@ -719,8 +719,8 @@ void ChConstraintRigidRigid::ShurA(real* x) {
 
 	if (solve_spinning) {
 
-		data_container->system_timer.SetMemory("shurA_spinning", (10 * 4 + 2) * 4 * number_of_rigid_rigid);
-		data_container->system_timer.start("shurA_spinning");
+		data_container->system_timer.SetMemory("ChConstraintRigidRigid_shurA_spinning", (10 * 4 + 2) * 4 * number_of_rigid_rigid);
+		data_container->system_timer.start("ChConstraintRigidRigid_shurA_spinning");
 
 		host_shurA_spinning(
 				contact_active_pairs.data(),
@@ -732,12 +732,12 @@ void ChConstraintRigidRigid::ShurA(real* x) {
 				vel_update.data(),
 				omg_update.data());
 
-		data_container->system_timer.stop("shurA_spinning");
+		data_container->system_timer.stop("ChConstraintRigidRigid_shurA_spinning");
 
 	} else if (solve_sliding) {
 
-		data_container->system_timer.SetMemory("shurA_sliding", (9 * 4 + 2) * 4 * number_of_rigid_rigid);
-		data_container->system_timer.start("shurA_sliding");
+		data_container->system_timer.SetMemory("ChConstraintRigidRigid_shurA_sliding", (9 * 4 + 2) * 4 * number_of_rigid_rigid);
+		data_container->system_timer.start("ChConstraintRigidRigid_shurA_sliding");
 
 		host_shurA_sliding(
 				contact_active_pairs.data(),
@@ -749,20 +749,20 @@ void ChConstraintRigidRigid::ShurA(real* x) {
 				vel_update.data(),
 				omg_update.data());
 
-		data_container->system_timer.stop("shurA_sliding");
+		data_container->system_timer.stop("ChConstraintRigidRigid_shurA_sliding");
 
 	} else {
 
-		data_container->system_timer.SetMemory("shurA_normal", (6 * 4 * 4 + 1 * 4) * number_of_rigid_rigid);
-		data_container->system_timer.start("shurA_normal");
+		data_container->system_timer.SetMemory("ChConstraintRigidRigid_shurA_normal", (6 * 4 * 4 + 1 * 4) * number_of_rigid_rigid);
+		data_container->system_timer.start("ChConstraintRigidRigid_shurA_normal");
 
 		host_shurA_normal(x, data_container->host_data.norm_rigid_rigid.data(), JUA_rigid_rigid.data(), JUB_rigid_rigid.data(), vel_update.data(), omg_update.data());
 
-		data_container->system_timer.stop("shurA_normal");
+		data_container->system_timer.stop("ChConstraintRigidRigid_shurA_normal");
 
 	}
 
-	data_container->system_timer.start("shurA_reduce");
+	data_container->system_timer.start("ChConstraintRigidRigid_shurA_reduce");
 
 	host_Reduce_Shur(
 			data_container->host_data.active_data.data(),
@@ -776,7 +776,7 @@ void ChConstraintRigidRigid::ShurA(real* x) {
 			offset_counter.data(),
 			update_offset_bodies.data());
 
-	data_container->system_timer.stop("shurA_reduce");
+	data_container->system_timer.stop("ChConstraintRigidRigid_shurA_reduce");
 
 }
 void ChConstraintRigidRigid::ShurB(real*x, real* output) {

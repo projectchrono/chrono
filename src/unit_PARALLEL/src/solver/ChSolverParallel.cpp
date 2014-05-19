@@ -3,9 +3,9 @@
 using namespace chrono;
 
 void ChSolverParallel::Project(real* gamma) {
-	data_container->system_timer.start("project");
+	data_container->system_timer.start("ChSolverParallel_Project");
 	rigid_rigid->Project(gamma);
-	data_container->system_timer.stop("project");
+	data_container->system_timer.stop("ChSolverParallel_Project");
 }
 
 void ChSolverParallel::Project_NoPar(real* gamma) {
@@ -43,15 +43,15 @@ void ChSolverParallel::ShurProduct(custom_vector<real> &x, custom_vector<real> &
 
 	//Thrust_Fill(output, 0);
 
-	data_container->system_timer.start("shurA");
+	data_container->system_timer.start("ChSolverParallel_shurA");
 	shurA(x.data());
-	data_container->system_timer.stop("shurA");
+	data_container->system_timer.stop("ChSolverParallel_shurA");
 
 	//timer_shurcompliment.start();
 
-	data_container->system_timer.start("shurB");
+	data_container->system_timer.start("ChSolverParallel_shurB");
 	shurB(x.data(),output.data());
-	data_container->system_timer.stop("shurB");
+	data_container->system_timer.stop("ChSolverParallel_shurB");
 
 	//timer_shurcompliment.stop();
 	//time_shurcompliment +=timer_shurcompliment();

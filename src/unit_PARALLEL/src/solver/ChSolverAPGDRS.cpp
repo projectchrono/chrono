@@ -3,7 +3,7 @@
 
 using namespace chrono;
 uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &b, const uint max_iter,const int SIZE) {
-	data_container->system_timer.start("solverA");
+	data_container->system_timer.start("ChSolverParallel_solverA");
 	real lastgoodres=10e30;
 	real theta_k=init_theta_k;
 	real theta_k1=theta_k;
@@ -49,10 +49,10 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 		t_k = 1.0 / L_k;
 		my = ml;
 		mx = ml;
-		data_container->system_timer.stop("solverA");
+		data_container->system_timer.stop("ChSolverParallel_solverA");
 
 		for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
-			data_container->system_timer.start("solverB");
+			data_container->system_timer.start("ChSolverParallel_solverB");
 			obj1=obj2=0.0;
 			dot_mg_ms = 0;
 			norm_ms = 0;
@@ -86,9 +86,9 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 		}
 
 		norm_ms = sqrt(norm_ms);
-		data_container->system_timer.stop("solverB");
+		data_container->system_timer.stop("ChSolverParallel_solverB");
 		while (obj1 > obj2 + dot_mg_ms + 0.5 * L_k * powf(norm_ms, 2.0)) {
-			data_container->system_timer.start("solverC");
+			data_container->system_timer.start("ChSolverParallel_solverC");
 			L_k = step_grow * L_k;
 			t_k = 1.0 / L_k;
 			obj1 = dot_mg_ms = norm_ms =0;
@@ -118,9 +118,9 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 		norm_ms = sqrt(norm_ms);
 		step_grow+=.5;
 
-		data_container->system_timer.stop("solverC");
+		data_container->system_timer.stop("ChSolverParallel_solverC");
 	}
-	data_container->system_timer.start("solverD");
+	data_container->system_timer.start("ChSolverParallel_solverD");
 
 	theta_k1 = (-pow(theta_k, 2) + theta_k * sqrt(pow(theta_k, 2) + 4)) / 2.0;
 	beta_k1 = theta_k * (1.0 - theta_k) / (pow(theta_k, 2) + theta_k1);
@@ -169,7 +169,7 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 		if (residual < tolerance) {
 			break;
 		}
-		data_container->system_timer.stop("solverD");
+		data_container->system_timer.stop("ChSolverParallel_solverD");
 	}
 	x=ml_candidate;
 	return current_iteration;
