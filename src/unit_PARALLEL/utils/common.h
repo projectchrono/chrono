@@ -39,7 +39,7 @@ enum SystemType {
 inline
 std::default_random_engine& rengine()
 {
-	static std::default_random_engine* re = new std::default_random_engine(std::random_device());
+	static std::default_random_engine* re = new std::default_random_engine;
 	return *re;
 }
 
