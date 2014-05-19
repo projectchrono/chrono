@@ -1,4 +1,6 @@
+#include "ChConfigParallel.h"
 #include "ChSolverParallel.h"
+
 using namespace chrono;
 uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &b, const uint max_iter,const int SIZE) {
 	data_container->system_timer.start("solverA");
@@ -91,13 +93,17 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 			t_k = 1.0 / L_k;
 			obj1 = dot_mg_ms = norm_ms =0;
 
+#ifdef CHRONO_PARALLEL_OMP_40
 #pragma omp parallel for simd safelen(4)
+#else
+#pragma omp parallel for
+#endif
 		for(int i=0; i<SIZE; i++) {
 			mx[i] = -t_k*mg[i]+ my[i];
 		}
 		Project(mx.data());
 		ShurProduct(mx,mg_tmp);
-#pragma omp  parallelfor reduction(+:obj1,dot_mg_ms,norm_ms)
+#pragma omp  parallel for reduction(+:obj1,dot_mg_ms,norm_ms)
 		for(int i=0; i<SIZE; i++) {
 			real _mg_tmp_ = mg_tmp[i];
 			real _b_ = b[i];

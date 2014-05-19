@@ -1,11 +1,16 @@
 #ifndef CHTHRUSTLINEARALGEBRA_H
 #define CHTHRUSTLINEARALGEBRA_H
 
+#include "ChConfigParallel.h"
 #include "math/ChParallelMath.h"
 
 static void SEAXPY(const real &a, const custom_vector<real> &x,const custom_vector<real> &y, custom_vector<real> &output)
 {
+#ifdef CHRONO_PARALLEL_OMP_40
 #pragma omp parallel for simd safelen(4)
+#else
+#pragma omp parallel for
+#endif
 	for(int i=0; i<output.size(); i++) {
 		output[i] = a*x[i]+y[i];
 	}
@@ -14,7 +19,11 @@ static void SEAXPY(const real &a, const custom_vector<real> &x,const custom_vect
 
 static void SEAXPY(int SIZE, const real &a, real* __restrict__  x,real* __restrict__ y, real* __restrict__ output)
 {
+#ifdef CHRONO_PARALLEL_OMP_40
 #pragma omp parallel for simd safelen(4)
+#else
+#pragma omp parallel for
+#endif
 	for(int i=0; i<SIZE; i++) {
 		output[i] = a*x[i]+y[i];
 	}
@@ -23,7 +32,11 @@ static void SEAXPY(int SIZE, const real &a, real* __restrict__  x,real* __restri
 
 static void SEAXMY(const real &a, const custom_vector<real> &x,const custom_vector<real> &y, custom_vector<real> &output)
 {
+#ifdef CHRONO_PARALLEL_OMP_40
 #pragma omp parallel for simd safelen(4)
+#else
+#pragma omp parallel for
+#endif
 	for(int i=0; i<output.size(); i++) {
 		output[i] = a*x[i]-y[i];
 	}
@@ -33,7 +46,11 @@ static custom_vector<T> operator +(const custom_vector<T> &x, const custom_vecto
 {
 	custom_vector<T> temp(x.size());
 
+#ifdef CHRONO_PARALLEL_OMP_40
 #pragma omp parallel for simd safelen(4)
+#else
+#pragma omp parallel for
+#endif
 	for(int i=0; i<temp.size(); i++) {
 		temp[i] = x[i]+y[i];
 	}
@@ -43,7 +60,11 @@ static custom_vector<T> operator +(const custom_vector<T> &x, const custom_vecto
 template<typename T>
 static void operator +=(custom_vector<T> &x, const custom_vector<T> &y)
 {
+#ifdef CHRONO_PARALLEL_OMP_40
 #pragma omp parallel for simd safelen(4)
+#else
+#pragma omp parallel for
+#endif
 	for(int i=0; i<x.size(); i++) {
 		x[i] = x[i]+y[i];
 	}
@@ -51,9 +72,13 @@ static void operator +=(custom_vector<T> &x, const custom_vector<T> &y)
 template<typename T>
 static custom_vector<T> operator -(const custom_vector<T> &x, const custom_vector<T> &y)
 {
-
 	custom_vector<T> temp(x.size());
+
+#ifdef CHRONO_PARALLEL_OMP_40
 #pragma omp parallel for simd safelen(4)
+#else
+#pragma omp parallel for
+#endif
 	for(int i=0; i<x.size(); i++) {
 		temp[i] = x[i]-y[i];
 	}
@@ -64,8 +89,11 @@ static custom_vector<T> operator -(const custom_vector<T> &x, const custom_vecto
 
 static void Sub(custom_vector<real> &ans, const custom_vector<real> &x, const custom_vector<real> &y)
 {
-
+#ifdef CHRONO_PARALLEL_OMP_40
 #pragma omp parallel for simd safelen(4)
+#else
+#pragma omp parallel for
+#endif
 	for(int i=0; i<x.size(); i++) {
 		ans[i] = x[i]-y[i];
 	}
@@ -76,7 +104,11 @@ static custom_vector<T> operator *(const custom_vector<T> &y, const U &x)
 {
 	custom_vector<T> temp(y.size());
 
+#ifdef CHRONO_PARALLEL_OMP_40
 #pragma omp parallel for simd safelen(4)
+#else
+#pragma omp parallel for
+#endif
 	for(int i=0; i<y.size(); i++) {
 		temp[i] = x*y[i];
 	}
@@ -88,7 +120,11 @@ static custom_vector<T> operator *(const custom_vector<T> &x, const custom_vecto
 {
 	custom_vector<T> temp(x.size());
 
+#ifdef CHRONO_PARALLEL_OMP_40
 #pragma omp parallel for simd safelen(4)
+#else
+#pragma omp parallel for
+#endif
 	for(int i=0; i<x.size(); i++) {
 		temp[i] = x[i]*y[i];
 	}
@@ -99,7 +135,12 @@ template<typename T, typename U>
 static custom_vector<U> operator *(const T &x, const custom_vector<U> &y)
 {
 	custom_vector<U> temp(y.size());
+
+#ifdef CHRONO_PARALLEL_OMP_40
 #pragma omp parallel for simd safelen(4)
+#else
+#pragma omp parallel for
+#endif
 	for(int i=0; i<y.size(); i++) {
 		temp[i] = x*y[i];
 	}
@@ -110,7 +151,11 @@ static custom_vector<U> operator *(const T &x, const custom_vector<U> &y)
 template<typename T, typename U>
 static void operator *=(custom_vector<T> &x, const custom_vector<U> &y)
 {
+#ifdef CHRONO_PARALLEL_OMP_40
 #pragma omp parallel for simd safelen(4)
+#else
+#pragma omp parallel for
+#endif
 	for(int i=0; i<x.size(); i++) {
 		x[i] = x[i]*y[i];
 	}
@@ -119,7 +164,12 @@ template<typename T>
 static custom_vector<T> operator /(const custom_vector<T> &x, const custom_vector<T> &y)
 {
 	custom_vector<T> temp(y.size());
+
+#ifdef CHRONO_PARALLEL_OMP_40
 #pragma omp parallel for simd safelen(4)
+#else
+#pragma omp parallel for
+#endif
 	for(int i=0; i<y.size(); i++) {
 		temp[i] = x[i]/y[i];
 	}
@@ -149,7 +199,12 @@ struct abs_functor: public thrust::unary_function<real, real> {
 static custom_vector<real> Abs(const custom_vector<real> &x)
 {
 	custom_vector<real> temp(x.size());
+
+#ifdef CHRONO_PARALLEL_OMP_40
 #pragma omp parallel for simd safelen(4)
+#else
+#pragma omp parallel for
+#endif
 	for(int i=0; i<x.size(); i++) {
 		temp[i] = fabs(x[i]);
 	}
@@ -158,7 +213,12 @@ static custom_vector<real> Abs(const custom_vector<real> &x)
 
 static custom_vector<real> max(const real a, const custom_vector<real> &x){
 	custom_vector<real> temp(x.size());
+
+#ifdef CHRONO_PARALLEL_OMP_40
 #pragma omp parallel for simd safelen(4)
+#else
+#pragma omp parallel for
+#endif
 	for(int i=0; i<x.size(); i++) {
 		temp[i] = max(a,x[i]);
 	}
