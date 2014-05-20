@@ -232,6 +232,8 @@ void ChLcpSolverParallelDEM::RunTimeStep(real step)
 	if (number_of_constraints == 0)
 		return;
 
+	data_container->system_timer.start("ChLcpSolverParallel_Setup");
+
 	data_container->host_data.rhs_data.resize(number_of_constraints);
 	data_container->host_data.diag.resize(number_of_constraints);
 	data_container->host_data.gamma_data.resize(number_of_constraints);
@@ -243,6 +245,7 @@ void ChLcpSolverParallelDEM::RunTimeStep(real step)
 	}
 
 	bilateral.Setup(data_container);
+
 
 	solver.current_iteration = 0;
 	solver.total_iteration = 0;
@@ -257,9 +260,15 @@ void ChLcpSolverParallelDEM::RunTimeStep(real step)
 	solver.Initial(step, data_container);
 
 	////bilateral.ComputeJacobians();    //// no-op
+	data_container->system_timer.start("ChLcpSolverParallel_RHS");
 	bilateral.ComputeRHS();
+	data_container->system_timer.stop("ChLcpSolverParallel_RHS");
 
+	data_container->system_timer.stop("ChLcpSolverParallel_Setup");
+
+	data_container->system_timer.start("ChLcpSolverParallel_Stab");
 	solver.SolveStab(data_container->host_data.gamma_bilateral, data_container->host_data.rhs_data, max_iter_bilateral);
+	data_container->system_timer.stop("ChLcpSolverParallel_Stab");
 
 	thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals, data_container->host_data.gamma_data.begin());
 
