@@ -166,6 +166,7 @@ void ChConstraintBilateral::host_shurB(
 
 }
 void ChConstraintBilateral::ShurA(real* x) {
+	data_container->system_timer.start("ChConstraintBilateral_shurA_compute");
 	host_shurA(
 			data_container->host_data.bids_bilateral.data(),
 			data_container->host_data.active_data.data(),
@@ -181,7 +182,8 @@ void ChConstraintBilateral::ShurA(real* x) {
 			data_container->host_data.QXYZ_data.data(),
 			data_container->host_data.QUVW_data.data(),
 			update_offset.data());
-
+	data_container->system_timer.stop("ChConstraintBilateral_shurA_compute");
+	data_container->system_timer.start("ChConstraintBilateral_shurA_reduce");
 	host_Reduce_Shur(
 			data_container->host_data.active_data.data(),
 			data_container->host_data.QXYZ_data.data(),
@@ -192,9 +194,10 @@ void ChConstraintBilateral::ShurA(real* x) {
 			omg_update.data(),
 			body_number.data(),
 			offset_counter.data());
-
+	data_container->system_timer.stop("ChConstraintBilateral_shurA_reduce");
 }
 void ChConstraintBilateral::ShurB(real*x, real* output) {
+	data_container->system_timer.start("ChConstraintBilateral_shurB_compute");
 	host_shurB(
 			data_container->host_data.bids_bilateral.data(),
 			data_container->host_data.active_data.data(),
@@ -208,7 +211,7 @@ void ChConstraintBilateral::ShurB(real*x, real* output) {
 			data_container->host_data.QXYZ_data.data(),
 			data_container->host_data.QUVW_data.data(),
 			output);
-
+	data_container->system_timer.stop("ChConstraintBilateral_shurB_compute");
 }
 
 void ChConstraintBilateral::ShurBilaterals(custom_vector<real> &x_t, custom_vector<real> & AX) {

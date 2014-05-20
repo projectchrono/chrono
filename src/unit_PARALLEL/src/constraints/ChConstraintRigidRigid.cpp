@@ -782,7 +782,7 @@ void ChConstraintRigidRigid::ShurA(real* x) {
 void ChConstraintRigidRigid::ShurB(real*x, real* output) {
 
 	if (solve_spinning) {
-
+		data_container->system_timer.start("ChConstraintRigidRigid_shurB_spinning");
 		host_shurB_spinning(
 				data_container->alpha,
 				data_container->host_data.bids_rigid_rigid.data(),
@@ -796,9 +796,9 @@ void ChConstraintRigidRigid::ShurB(real*x, real* output) {
 				data_container->host_data.QXYZ_data.data(),
 				data_container->host_data.QUVW_data.data(),
 				output);
-
+		data_container->system_timer.stop("ChConstraintRigidRigid_shurB_spinning");
 	} else if (solve_sliding) {
-
+		data_container->system_timer.start("ChConstraintRigidRigid_shurB_sliding");
 		host_shurB_sliding(
 				data_container->alpha,
 				data_container->host_data.bids_rigid_rigid.data(),
@@ -812,9 +812,10 @@ void ChConstraintRigidRigid::ShurB(real*x, real* output) {
 				data_container->host_data.QXYZ_data.data(),
 				data_container->host_data.QUVW_data.data(),
 				output);
+		data_container->system_timer.stop("ChConstraintRigidRigid_shurB_sliding");
 
 	} else {
-
+		data_container->system_timer.start("ChConstraintRigidRigid_shurB_normal");
 		host_shurB_normal(
 				data_container->alpha,
 				data_container->host_data.bids_rigid_rigid.data(),
@@ -827,7 +828,7 @@ void ChConstraintRigidRigid::ShurB(real*x, real* output) {
 				data_container->host_data.QXYZ_data.data(),
 				data_container->host_data.QUVW_data.data(),
 				output);
-
+		data_container->system_timer.stop("ChConstraintRigidRigid_shurB_normal");
 	}
 }
 
