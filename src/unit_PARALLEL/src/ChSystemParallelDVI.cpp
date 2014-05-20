@@ -12,6 +12,15 @@ ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects)
 	LCP_solver_speed = new ChLcpSolverParallelDVI();
 	((ChLcpSystemDescriptorParallelDVI*) LCP_descriptor)->data_container = gpu_data_manager;
 	((ChLcpSolverParallel*) LCP_solver_speed)->data_container = gpu_data_manager;
+
+	gpu_data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurA_normal");
+	gpu_data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurA_sliding");
+	gpu_data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurA_spinning");
+	gpu_data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurA_reduce");
+	gpu_data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurB_normal");
+	gpu_data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurB_sliding");
+	gpu_data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurB_spinning");
+
 }
 
 

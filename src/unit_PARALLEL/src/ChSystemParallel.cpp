@@ -39,24 +39,13 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects)
 	gpu_data_manager->system_timer.AddTimer("ChLcpSolverParallel_Jacobians");
 	gpu_data_manager->system_timer.AddTimer("ChLcpSolverParallel_RHS");
 
-	gpu_data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurA_normal");
-	gpu_data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurA_sliding");
-	gpu_data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurA_spinning");
-	gpu_data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurA_reduce");
-	gpu_data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurB_normal");
-	gpu_data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurB_sliding");
-	gpu_data_manager->system_timer.AddTimer("ChConstraintRigidRigid_shurB_spinning");
+
 
 	gpu_data_manager->system_timer.AddTimer("ChConstraintBilateral_shurA_compute");
 	gpu_data_manager->system_timer.AddTimer("ChConstraintBilateral_shurA_reduce");
 	gpu_data_manager->system_timer.AddTimer("ChConstraintBilateral_shurB_compute");
 
-	gpu_data_manager->system_timer.AddTimer("ChSolverParallel_solverA");
-	gpu_data_manager->system_timer.AddTimer("ChSolverParallel_solverB");
-	gpu_data_manager->system_timer.AddTimer("ChSolverParallel_solverC");
-	gpu_data_manager->system_timer.AddTimer("ChSolverParallel_solverD");
-	gpu_data_manager->system_timer.AddTimer("ChSolverParallel_solverE");
-	gpu_data_manager->system_timer.AddTimer("ChSolverParallel_Project");
+
 	gpu_data_manager->system_timer.AddTimer("ChSolverParallel_shurA");
 	gpu_data_manager->system_timer.AddTimer("ChSolverParallel_shurB");
 	min_threads = 1;
