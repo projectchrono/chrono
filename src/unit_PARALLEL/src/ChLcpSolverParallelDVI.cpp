@@ -28,7 +28,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
 	if (warm_start) {
 		RunWarmStartPreprocess();
 	}
-	data_container->system_timer.start("ChLcpSolverParallelDVI_Setup");
+	data_container->system_timer.start("ChLcpSolverParallel_Setup");
 	rigid_rigid.Setup(data_container);
 	bilateral.Setup(data_container);
 
@@ -50,7 +50,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
 	solver.do_stab = do_stab;
 	solver.collision_inside = collision_inside;
 	solver.Initial(step, data_container);
-	data_container->system_timer.stop("ChLcpSolverParallelDVI_Setup");
+	data_container->system_timer.stop("ChLcpSolverParallel_Setup");
 	if (collision_inside) {
 		data_container->host_data.vel_new_data = data_container->host_data.vel_data;
 		data_container->host_data.omg_new_data = data_container->host_data.omg_data;
@@ -62,22 +62,22 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
 	//solve initial
 	//solver.SetComplianceParameters(.2, 1e-3, 1e-3);
 	//rigid_rigid.solve_sliding = true;
-	data_container->system_timer.start("ChLcpSolverParallelDVI_Jacobians");
+	data_container->system_timer.start("ChLcpSolverParallel_Jacobians");
 	rigid_rigid.ComputeJacobians();
 
 	bilateral.ComputeJacobians();
-	data_container->system_timer.stop("ChLcpSolverParallelDVI_Jacobians");
-	data_container->system_timer.start("ChLcpSolverParallelDVI_RHS");
+	data_container->system_timer.stop("ChLcpSolverParallel_Jacobians");
+	data_container->system_timer.start("ChLcpSolverParallel_RHS");
 	bilateral.ComputeRHS();
-	data_container->system_timer.stop("ChLcpSolverParallelDVI_RHS");
+	data_container->system_timer.stop("ChLcpSolverParallel_RHS");
 	custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals,0);
 	thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, rhs_bilateral.begin());
 
 	if (max_iter_bilateral > 0) {
-		data_container->system_timer.start("ChLcpSolverParallelDVI_Stabilize");
+		data_container->system_timer.start("ChLcpSolverParallel_Stab");
 		//thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, data_container->host_data.gamma_bilateral.begin());
 		solver.SolveStab(data_container->host_data.gamma_bilateral, rhs_bilateral, max_iter_bilateral);
-		data_container->system_timer.stop("ChLcpSolverParallelDVI_Stabilize");
+		data_container->system_timer.stop("ChLcpSolverParallel_Stab");
 		thrust::copy_n(
 					data_container->host_data.gamma_bilateral.begin(),
 					data_container->number_of_bilaterals,
@@ -93,36 +93,36 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
 		solver.SetComplianceAlpha(alpha);
 		rigid_rigid.solve_sliding = false;
 		rigid_rigid.solve_spinning = false;
-		data_container->system_timer.start("ChLcpSolverParallelDVI_RHS");
+		data_container->system_timer.start("ChLcpSolverParallel_RHS");
 		rigid_rigid.ComputeRHS();
-		data_container->system_timer.stop("ChLcpSolverParallelDVI_RHS");
-		data_container->system_timer.start("ChLcpSolverParallelDVI_Solve");
+		data_container->system_timer.stop("ChLcpSolverParallel_RHS");
+		data_container->system_timer.start("ChLcpSolverParallel_Solve");
 		solver.Solve(solver_type);
-		data_container->system_timer.stop("ChLcpSolverParallelDVI_Solve");
+		data_container->system_timer.stop("ChLcpSolverParallel_Solve");
 	}
 	//cout<<"Solve sliding"<<endl;
 	if (max_iter_sliding > 0) {
 		solver.SetMaxIterations(max_iter_sliding);
 		rigid_rigid.solve_sliding = true;
 		rigid_rigid.solve_spinning = false;
-		data_container->system_timer.start("ChLcpSolverParallelDVI_RHS");
+		data_container->system_timer.start("ChLcpSolverParallel_RHS");
 		rigid_rigid.ComputeRHS();
-		data_container->system_timer.stop("ChLcpSolverParallelDVI_RHS");
-		data_container->system_timer.start("ChLcpSolverParallelDVI_Solve");
+		data_container->system_timer.stop("ChLcpSolverParallel_RHS");
+		data_container->system_timer.start("ChLcpSolverParallel_Solve");
 		solver.Solve(solver_type);
-		data_container->system_timer.stop("ChLcpSolverParallelDVI_Solve");
+		data_container->system_timer.stop("ChLcpSolverParallel_Solve");
 	}
 	if (max_iter_spinning > 0) {
 		//cout<<"Solve Full"<<endl;
 		solver.SetMaxIterations(max_iter_spinning);
 		rigid_rigid.solve_sliding = true;
 		rigid_rigid.solve_spinning = true;
-		data_container->system_timer.start("ChLcpSolverParallelDVI_RHS");
+		data_container->system_timer.start("ChLcpSolverParallel_RHS");
 		rigid_rigid.ComputeRHS();
-		data_container->system_timer.stop("ChLcpSolverParallelDVI_RHS");
-		data_container->system_timer.start("ChLcpSolverParallelDVI_Solve");
+		data_container->system_timer.stop("ChLcpSolverParallel_RHS");
+		data_container->system_timer.start("ChLcpSolverParallel_Solve");
 		solver.Solve(solver_type);
-		data_container->system_timer.stop("ChLcpSolverParallelDVI_Solve");
+		data_container->system_timer.stop("ChLcpSolverParallel_Solve");
 	}
 	thrust::copy_n(
 			data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6,
