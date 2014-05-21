@@ -1,9 +1,9 @@
 #include "ChSolverParallel.h"
 using namespace chrono;
 
-uint ChSolverParallel::SolveBiCG(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
+uint ChSolverParallel::SolveBiCG(const uint max_iter,const uint size,const custom_vector<real> &b,custom_vector<real> &x) {
 	real rho_1, rho_2, alpha, beta;
-	custom_vector<real> z, ztilde, p, ptilde, q(x.size()), qtilde(x.size()),r(x.size());
+	custom_vector<real> z, ztilde, p, ptilde, q(size), qtilde(size),r(size);
 	real normb = Norm(b);
 	ShurProduct(x,r);
 	r= b - r;

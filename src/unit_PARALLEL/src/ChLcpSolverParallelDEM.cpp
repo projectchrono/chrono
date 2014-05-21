@@ -322,9 +322,11 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
   data_container->system_timer.stop("ChLcpSolverParallel_Setup");
 
   data_container->system_timer.start("ChLcpSolverParallel_Stab");
-  solver.SolveStab(data_container->host_data.gamma_bilateral,
+  solver.SolveStab(max_iter_bilateral,
+                   data_container->number_of_bilaterals,
                    data_container->host_data.rhs_data,
-                   max_iter_bilateral);
+                   data_container->host_data.gamma_bilateral);
+
   data_container->system_timer.stop("ChLcpSolverParallel_Stab");
 
   thrust::copy_n(data_container->host_data.gamma_bilateral.begin(),

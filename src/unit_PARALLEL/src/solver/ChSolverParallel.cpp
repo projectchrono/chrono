@@ -7,6 +7,12 @@ void ChSolverParallel::Initial(
       ChParallelDataManager *data_container_) {
    data_container = data_container_;
    step_size = step;
+
+   //APGD specific
+   step_shrink = .9;
+   step_grow = 2.0;
+   init_theta_k = 1.0;
+
    Setup();
 }
 
@@ -145,46 +151,45 @@ void ChSolverParallel::Solve(
 
    if (number_of_constraints > 0) {
       if (solver_type == STEEPEST_DESCENT) {
-         total_iteration += SolveSD(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration);
+         total_iteration += SolveSD(max_iteration, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
       } else if (solver_type == GRADIENT_DESCENT) {
-         total_iteration += SolveGD(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration);
+         total_iteration += SolveGD(max_iteration, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
       } else if (solver_type == CONJUGATE_GRADIENT) {
-         total_iteration += SolveCG(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration);
+         total_iteration += SolveCG(max_iteration, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
       } else if (solver_type == CONJUGATE_GRADIENT_SQUARED) {
-         total_iteration += SolveCGS(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration);
+         total_iteration += SolveCGS(max_iteration, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
       } else if (solver_type == BICONJUGATE_GRADIENT) {
-         total_iteration += SolveBiCG(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration);
+         total_iteration += SolveBiCG(max_iteration, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
       } else if (solver_type == BICONJUGATE_GRADIENT_STAB) {
-         total_iteration += SolveBiCGStab(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration);
+         total_iteration += SolveBiCGStab(max_iteration, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
       } else if (solver_type == MINIMUM_RESIDUAL) {
-         total_iteration += SolveMinRes(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration);
+         total_iteration += SolveMinRes(max_iteration, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
       } else if (solver_type == QUASAI_MINIMUM_RESIDUAL) {
          // This solver has not been implemented yet
          //SolveQMR(data_container->gpu_data.device_gam_data, rhs, max_iteration);
       } else if (solver_type == ACCELERATED_PROJECTED_GRADIENT_DESCENT || solver_type == APGDRS) {
-         InitAPGD(data_container->host_data.gamma_data);
          if (do_stab) {
             custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals);
             thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, rhs_bilateral.begin());
 
             for (int i = 0; i < 4; i++) {
-               total_iteration += SolveAPGDRS(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration / 8, number_of_constraints);
+               total_iteration += SolveAPGDRS(max_iteration/8, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
 
                thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals,
                               data_container->host_data.gamma_bilateral.begin());
 
-               SolveStab(data_container->host_data.gamma_bilateral, rhs_bilateral, 5);
+               SolveStab(5, number_of_bilaterals,rhs_bilateral,data_container->host_data.gamma_bilateral);
 
                thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals,
                               data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6);
 
-               total_iteration += SolveAPGDRS(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration / 8, number_of_constraints);
+               total_iteration += SolveAPGDRS(max_iteration/8, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
             }
          } else {
             if (solver_type == ACCELERATED_PROJECTED_GRADIENT_DESCENT) {
-               total_iteration += SolveAPGD(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration);
+               total_iteration += SolveAPGD(max_iteration, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
             } else {
-               total_iteration += SolveAPGDRS(data_container->host_data.gamma_data, data_container->host_data.rhs_data, max_iteration, number_of_constraints);
+               total_iteration += SolveAPGDRS(max_iteration, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
             }
 
          }
@@ -201,10 +206,7 @@ void ChSolverParallel::Solve(
    }
 }
 
-uint ChSolverParallel::SolveStab(
-      custom_vector<real> &x,
-      const custom_vector<real> &mb,
-      const uint max_iter) {
+uint ChSolverParallel::SolveStab(const uint max_iter,const uint size,const custom_vector<real> &mb,custom_vector<real> &x) {
    uint N = mb.size();
    //	bool verbose = false;
    //	custom_vector<real> mr(N, 0), ml(N,0), mp(N,0), mz(N,0), mNMr(N,0), mNp(N,0), mMNp(N,0), mtmp(N,0);
