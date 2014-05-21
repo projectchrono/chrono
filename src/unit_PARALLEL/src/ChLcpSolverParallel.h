@@ -25,177 +25,187 @@
 #include "constraints/ChConstraintBilateral.h"
 #include "math/ChParallelMath.h"
 
-
 namespace chrono {
 
 class ChApiGPU ChLcpSolverParallel : public ChLcpIterativeSolver {
-public:
-	ChLcpSolverParallel() {
-		tolerance = 1e-7;
-		lcp_omega_bilateral = .2;
+ public:
+  ChLcpSolverParallel() {
+    tolerance = 1e-7;
+    lcp_omega_bilateral = .2;
 
-		max_iter_bilateral = 100;
-		record_violation_history = true;
-		warm_start = false;
-	}
-	
-	virtual ~ChLcpSolverParallel() {}
+    max_iter_bilateral = 100;
+    record_violation_history = true;
+    warm_start = false;
+  }
 
-	virtual double Solve(ChLcpSystemDescriptor &sysd) {
-		return 0;
-	}
-	void host_addForces(bool* active, real *mass, real3 *inertia, real3 *forces, real3 *torques, real3 *vel, real3 *omega);
+  virtual ~ChLcpSolverParallel() {
+  }
 
-	void host_ComputeGyro(real3 *omega, real3 *inertia, real3 *gyro, real3 *torque);
+  virtual double Solve(ChLcpSystemDescriptor &sysd) {
+    return 0;
+  }
+  void host_addForces(bool* active, real *mass, real3 *inertia, real3 *forces, real3 *torques, real3 *vel, real3 *omega);
 
-	void host_Integrate_Timestep(bool *active, real3 *acc, real4 *rot, real3 *vel, real3 *omega, real3 *pos, real3 *lim);
+  void host_ComputeGyro(real3 *omega, real3 *inertia, real3 *gyro, real3 *torque);
 
-	virtual void RunTimeStep(real step) = 0;
-	void RunStab(real step);
-	void Preprocess();
+  void host_Integrate_Timestep(bool *active, real3 *acc, real4 *rot, real3 *vel, real3 *omega, real3 *pos, real3 *lim);
 
-	void SetTolerance(real tol) {
-		tolerance = tol;
-	}
-	void SetOmegaBilateral(real mval) {
-		lcp_omega_bilateral = mval;
-	}
-	void SetMaxIterationBilateral(uint max_iter) {
-		max_iter_bilateral = max_iter;
-	}
-	real GetResidual() {
-		return residual;
-	}
-	void Dump_Rhs(std::vector<double> &temp) {
-		for (int i = 0; i < rhs.size(); i++) {
-			temp.push_back(rhs[i]);
-		}
-	}
-	void Dump_Shur(std::vector<double> &temp) {
-		for (int i = 0; i < debug.size(); i++) {
-			temp.push_back(debug[i]);
-		}
-	}
-	void Dump_Lambda(std::vector<double> &temp) {
-		for (int i = 0; i < lambda.size(); i++) {
-			temp.push_back(lambda[i]);
-		}
-	}
+  virtual void RunTimeStep(real step) = 0;
+  void RunStab(real step);
+  void Preprocess();
 
-	ChParallelDataManager *data_container;
-	int3 num_bins_per_axis;
-	real3 origin;
-	real3 bin_size_vec;
+  void SetTolerance(real tol) {
+    tolerance = tol;
+  }
+  void SetOmegaBilateral(real mval) {
+    lcp_omega_bilateral = mval;
+  }
+  void SetMaxIterationBilateral(uint max_iter) {
+    max_iter_bilateral = max_iter;
+  }
+  real GetResidual() {
+    return residual;
+  }
+  void Dump_Rhs(std::vector<double> &temp) {
+    for (int i = 0; i < rhs.size(); i++) {
+      temp.push_back(rhs[i]);
+    }
+  }
+  void Dump_Shur(std::vector<double> &temp) {
+    for (int i = 0; i < debug.size(); i++) {
+      temp.push_back(debug[i]);
+    }
+  }
+  void Dump_Lambda(std::vector<double> &temp) {
+    for (int i = 0; i < lambda.size(); i++) {
+      temp.push_back(lambda[i]);
+    }
+  }
 
-protected:
-	real tolerance;
-	real lcp_omega_bilateral;  //// TODO: is this used anywhere?
+  ChParallelDataManager *data_container;
+  int3 num_bins_per_axis;
+  real3 origin;
+  real3 bin_size_vec;
 
-	real step_size;
-	uint number_of_bilaterals;
-	uint number_of_objects;
-	uint number_of_updates;
-	uint number_of_constraints;
-	uint max_iter_bilateral;
+ protected:
+  real tolerance;
+  real lcp_omega_bilateral;  //// TODO: is this used anywhere?
 
-	real residual;
+  real step_size;
+  uint number_of_bilaterals;
+  uint number_of_objects;
+  uint number_of_updates;
+  uint number_of_constraints;
+  uint max_iter_bilateral;
 
-	cudaEvent_t start, stop;
+  real residual;
 
-	custom_vector<real> rhs, debug, lambda;
+  cudaEvent_t start, stop;
 
-	ChConstraintBilateral bilateral;
+  custom_vector<real> rhs, debug, lambda;
+
+  ChConstraintBilateral bilateral;
 };
-
 
 class ChApiGPU ChLcpSolverParallelDVI : public ChLcpSolverParallel {
-public:
-	ChLcpSolverParallelDVI()
-	{
-		alpha = .2;
-		compliance = 0;
-		complianceT = 0;
-		lcp_omega_contact = .2;
-		contact_recovery_speed = .6;
-		solver_type = ACCELERATED_PROJECTED_GRADIENT_DESCENT;
-		do_stab = false;
-		collision_inside = false;
+ public:
+  ChLcpSolverParallelDVI() {
+    alpha = .2;
+    compliance = 0;
+    complianceT = 0;
+    lcp_omega_contact = .2;
+    contact_recovery_speed = .6;
+    solver_type = ACCELERATED_PROJECTED_GRADIENT_DESCENT;
+    do_stab = false;
+    collision_inside = false;
 
-		max_iteration = 1000;
-		max_iter_normal = max_iter_sliding = max_iter_spinning = 100;
-	}
+    max_iteration = 1000;
+    max_iter_normal = max_iter_sliding = max_iter_spinning = 100;
+  }
 
-	virtual void RunTimeStep(real step);
-	void RunWarmStartPostProcess();
-	void RunWarmStartPreprocess();
+  virtual void RunTimeStep(real step);
+  void RunWarmStartPostProcess();
+  void RunWarmStartPreprocess();
 
-	void SetCompliance(real a)                  {data_container->alpha = a;}
-	void SetOmegaContact(real mval)             {lcp_omega_contact = mval;}
-	void SetSolverType(GPUSOLVERTYPE type)      {solver_type = type;}
-	void SetMaxIterationNormal(uint max_iter)   {max_iter_normal = max_iter;}
-	void SetMaxIterationSliding(uint max_iter)  {max_iter_sliding = max_iter;}
-	void SetMaxIterationSpinning(uint max_iter) {max_iter_spinning = max_iter;}
-	void SetMaxIteration(uint max_iter) {
-		max_iteration = max_iter;
-		max_iter_normal = max_iter_sliding = max_iter_spinning = max_iter_bilateral = max_iter;
-	}
-	void SetContactRecoverySpeed(real recovery_speed) {
-		data_container->contact_recovery_speed = fabs(recovery_speed);
-	}
-	void DoStabilization(bool stab) {
-		do_stab = stab;
-	}
-	void DoCollision(bool do_collision) {
-		collision_inside = do_collision;
-	}
+  void SetCompliance(real a) {
+    data_container->alpha = a;
+  }
+  void SetOmegaContact(real mval) {
+    lcp_omega_contact = mval;
+  }
+  void SetSolverType(GPUSOLVERTYPE type) {
+    solver_type = type;
+  }
+  void SetMaxIterationNormal(uint max_iter) {
+    max_iter_normal = max_iter;
+  }
+  void SetMaxIterationSliding(uint max_iter) {
+    max_iter_sliding = max_iter;
+  }
+  void SetMaxIterationSpinning(uint max_iter) {
+    max_iter_spinning = max_iter;
+  }
+  void SetMaxIteration(uint max_iter) {
+    max_iteration = max_iter;
+    max_iter_normal = max_iter_sliding = max_iter_spinning = max_iter_bilateral = max_iter;
+  }
+  void SetContactRecoverySpeed(real recovery_speed) {
+    data_container->contact_recovery_speed = fabs(recovery_speed);
+  }
+  void DoStabilization(bool stab) {
+    do_stab = stab;
+  }
+  void DoCollision(bool do_collision) {
+    collision_inside = do_collision;
+  }
 
-	ChSolverParallel solver;
+  ChSolverParallel solver;
 
-private:
-	GPUSOLVERTYPE solver_type;
+ private:
+  GPUSOLVERTYPE solver_type;
 
-	real alpha;
-	real compliance;         //// TODO:  not used?
-	real complianceT;        ////
-	real lcp_omega_contact;
+  real alpha;
+  real compliance;         //// TODO:  not used?
+  real complianceT;        ////
+  real lcp_omega_contact;
 
-	real contact_recovery_speed;
-	bool do_stab;
-	bool collision_inside;
+  real contact_recovery_speed;
+  bool do_stab;
+  bool collision_inside;
 
-	uint max_iteration;
-	uint max_iter_normal;
-	uint max_iter_sliding;
-	uint max_iter_spinning;
+  uint max_iteration;
+  uint max_iter_normal;
+  uint max_iter_sliding;
+  uint max_iter_spinning;
 
-	ChConstraintRigidRigid rigid_rigid;
+  ChConstraintRigidRigid rigid_rigid;
 };
-
 
 class ChApiGPU ChLcpSolverParallelDEM : public ChLcpSolverParallel {
-public:
-	virtual void RunTimeStep(real step);
+ public:
+  virtual void RunTimeStep(real step);
 
-	void SetMaxIteration(uint max_iter) {max_iter_bilateral = max_iter;}
+  void SetMaxIteration(uint max_iter) {
+    max_iter_bilateral = max_iter;
+  }
 
-	void ProcessContacts();
+  void ProcessContacts();
 
-private:
-	void host_CalcContactForces(custom_vector<int>&   ext_body_id,
-	                            custom_vector<real3>& ext_body_force,
-	                            custom_vector<real3>& ext_body_torque);
+ private:
+  void host_CalcContactForces(custom_vector<int>& ext_body_id,
+  custom_vector<real3>& ext_body_force,
+  custom_vector<real3>& ext_body_torque);
 
-	void host_AddContactForces(uint                        ct_body_count,
-                               const custom_vector<int>&   ct_body_id,
-                               const custom_vector<real3>& ct_body_force,
-                               const custom_vector<real3>& ct_body_torque);
+  void host_AddContactForces(uint ct_body_count,
+  const custom_vector<int>& ct_body_id,
+  const custom_vector<real3>& ct_body_force,
+  const custom_vector<real3>& ct_body_torque);
 
-	ChSolverParallel solver;
+  ChSolverParallel solver;
 };
 
-
-}  // end namespace chrono
-
+}
+  // end namespace chrono
 
 #endif
 

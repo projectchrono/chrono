@@ -55,35 +55,36 @@ using namespace std;
 //using namespace thrust;
 typedef unsigned int uint;
 
-#ifdef __CDT_PARSER__
-#define __host__
-#define __device__
-#define __global__
-#define __constant__
-#define __shared__
-#define CUDA_KERNEL_DIM(...) ()
-#define __KERNEL__(...) ()
-#else
-#define CUDA_KERNEL_DIM(...)  <<< __VA_ARGS__ >>>
-#define __KERNEL__(...)  <<< __VA_ARGS__ >>>
-#endif
-
+//#ifdef __CDT_PARSER__
+//#define __host__
+//#define __device__
+//#define __global__
+//#define __constant__
+//#define __shared__
+//#define CUDA_KERNEL_DIM(...) ()
+//#define __KERNEL__(...) ()
+//#else
+//#define CUDA_KERNEL_DIM(...)  <<< __VA_ARGS__ >>>
+//#define __KERNEL__(...)  <<< __VA_ARGS__ >>>
+//#endif
 
 //#define SIM_ENABLE_GPU_MODE
 #ifdef SIM_ENABLE_GPU_MODE
 #define custom_vector thrust::device_vector
 #else
+#ifndef __CDT_PARSER__
 #define custom_vector thrust::host_vector
+#else
+using namespace thrust;
+#define custom_vector host_vector
 #endif
-
-
+#endif
 
 //Output Verbosity Level
 //Level 0: none
 //Level 1: basic
 //Level 2: more verbose
 #define PRINT_LEVEL 0
-
 
 //defines to cast thrust vectors as raw pointers
 #define CASTC1(x) (char*)thrust::raw_pointer_cast(&x[0])
@@ -140,17 +141,17 @@ typedef unsigned int uint;
 #define DBG(x)                          printf(x);
 
 enum GPUSOLVERTYPE {
-	STEEPEST_DESCENT,
-	GRADIENT_DESCENT,
-	CONJUGATE_GRADIENT,
-	CONJUGATE_GRADIENT_SQUARED,
-	BICONJUGATE_GRADIENT,
-	BICONJUGATE_GRADIENT_STAB,
-	MINIMUM_RESIDUAL,
-	QUASAI_MINIMUM_RESIDUAL,
-	ACCELERATED_PROJECTED_GRADIENT_DESCENT,
-	APGDRS,
-	BLOCK_JACOBI
+   STEEPEST_DESCENT,
+   GRADIENT_DESCENT,
+   CONJUGATE_GRADIENT,
+   CONJUGATE_GRADIENT_SQUARED,
+   BICONJUGATE_GRADIENT,
+   BICONJUGATE_GRADIENT_STAB,
+   MINIMUM_RESIDUAL,
+   QUASAI_MINIMUM_RESIDUAL,
+   ACCELERATED_PROJECTED_GRADIENT_DESCENT,
+   APGDRS,
+   BLOCK_JACOBI
 };
 
 #define shape_type int
