@@ -35,109 +35,106 @@
 
 namespace chrono {
 
-class ChApiGPU ChSystemParallel: public ChSystem {
-	CH_RTTI(ChSystemParallel, ChSystem);
+class ChApiGPU ChSystemParallel : public ChSystem {
+CH_RTTI(ChSystemParallel, ChSystem)
+  ;
 
-public:
-	ChSystemParallel(unsigned int max_objects);
+ public:
+  ChSystemParallel(unsigned int max_objects);
 
-	virtual int Integrate_Y();
+  virtual int Integrate_Y();
 
-	virtual void AddBody(ChSharedPtr<ChBody> newbody);
-	virtual void RemoveBody(ChSharedPtr<ChBody> mbody);
-	void RemoveBody(int i);
-	void Update();
-	void UpdateBilaterals();
-	void RecomputeThreads();
-	void RecomputeBins();
-	void PerturbBins(bool increase, int number = 2);
+  virtual void AddBody(ChSharedPtr<ChBody> newbody);
+  virtual void RemoveBody(ChSharedPtr<ChBody> mbody);
+  void RemoveBody(int i);
+  void Update();
+  void UpdateBilaterals();
+  void RecomputeThreads();
+  void RecomputeBins();
+  void PerturbBins(bool increase, int number = 2);
 
-	virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody) = 0;
-	virtual void UpdateBodies() = 0;
-	virtual void ChangeCollisionSystem(ChCollisionSystem *newcollsystem);
+  virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody) = 0;
+  virtual void UpdateBodies() = 0;
+  virtual void ChangeCollisionSystem(ChCollisionSystem *newcollsystem);
 
-	int GetNcontacts() {
-		return gpu_data_manager->number_of_rigid_rigid;
-	}
+  int GetNcontacts() {
+    return gpu_data_manager->number_of_rigid_rigid;
+  }
 
-	void SetAABB(real3 aabbmin, real3 aabbmax) {
-		aabb_min = aabbmin;
-		aabb_max = aabbmax;
-		use_aabb_active = true;
-	}
+  void SetAABB(real3 aabbmin, real3 aabbmax) {
+    aabb_min = aabbmin;
+    aabb_max = aabbmax;
+    use_aabb_active = true;
+  }
 
-	bool GetAABB(real3 &aabbmin, real3 &aabbmax) {
-		aabbmin = aabb_min;
-		aabbmax = aabb_max;
+  bool GetAABB(real3 &aabbmin, real3 &aabbmax) {
+    aabbmin = aabb_min;
+    aabbmax = aabb_max;
 
-		return use_aabb_active;
-	}
+    return use_aabb_active;
+  }
 
-	void DoThreadTuning(bool m){
-		perform_thread_tuning = m;
-	}
-	void SetMinThreads(int m){
-		min_threads = m;
-	}
+  void DoThreadTuning(bool m) {
+    perform_thread_tuning = m;
+  }
+  void SetMinThreads(int m) {
+    min_threads = m;
+  }
 
-	double GetTimerCollision() {
-		return timer_collision;
-	}
+  double GetTimerCollision() {
+    return timer_collision;
+  }
 
-	ChParallelDataManager *gpu_data_manager;
+  ChParallelDataManager *gpu_data_manager;
 
-private:
+ private:
 
-	unsigned int counter;
-	double timer_collision;
-	std::list<ChLink *>::iterator it;
+  unsigned int counter;
+  double timer_collision;
+  std::list<ChLink *>::iterator it;
 
-	bool use_aabb_active;
-	real3 aabb_min, aabb_max;
+  bool use_aabb_active;
+  real3 aabb_min, aabb_max;
 
-	int max_threads, current_threads, min_threads;
-	vector<double> timer_accumulator, cd_accumulator;
-	double old_timer, old_timer_cd;
-	bool detect_optimal_threads, perform_thread_tuning;
-	int detect_optimal_bins;
-	uint frame_threads;
-	uint frame_bins;
+  int max_threads, current_threads, min_threads;
+  vector<double> timer_accumulator, cd_accumulator;
+  double old_timer, old_timer_cd;
+  bool detect_optimal_threads, perform_thread_tuning;
+  int detect_optimal_bins;
+  uint frame_threads;
+  uint frame_bins;
 };
-
 
 class ChApiGPU ChSystemParallelDVI : public ChSystemParallel {
-	CH_RTTI(ChSystemParallelDVI, ChSystemParallel);
+CH_RTTI(ChSystemParallelDVI, ChSystemParallel)
+  ;
 
-public:
-	ChSystemParallelDVI(unsigned int max_objects = 1000);
+ public:
+  ChSystemParallelDVI(unsigned int max_objects = 1000);
 
-	virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
-	virtual void UpdateBodies();
+  virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
+  virtual void UpdateBodies();
 
 };
-
 
 class ChApiGPU ChSystemParallelDEM : public ChSystemParallel {
-	CH_RTTI(ChSystemParallelDEM, ChSystemParallel);
+CH_RTTI(ChSystemParallelDEM, ChSystemParallel)
+  ;
 
-public:
-	ChSystemParallelDEM(unsigned int                       max_objects = 1000,
-	                    ChContactDEM::NormalForceModel     normal_model = ChContactDEM::HuntCrossley,
-	                    ChContactDEM::TangentialForceModel tangential_model = ChContactDEM::SimpleCoulombSliding);
+ public:
+  ChSystemParallelDEM(unsigned int max_objects = 1000, ChContactDEM::NormalForceModel normal_model = ChContactDEM::HuntCrossley,
+                      ChContactDEM::TangentialForceModel tangential_model = ChContactDEM::SimpleCoulombSliding);
 
-	virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
-	virtual void UpdateBodies();
+  virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
+  virtual void UpdateBodies();
 
-	virtual void ChangeCollisionSystem(ChCollisionSystem *newcollsystem);
+  virtual void ChangeCollisionSystem(ChCollisionSystem *newcollsystem);
 
-	ChContactDEM::NormalForceModel      normal_force_model;
-	ChContactDEM::TangentialForceModel  tangential_force_model;
+  ChContactDEM::NormalForceModel normal_force_model;
+  ChContactDEM::TangentialForceModel tangential_force_model;
 };
 
-
 }  // end namespace chrono
-
-
 
 #endif
 

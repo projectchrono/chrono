@@ -1,9 +1,19 @@
-//=================================================================================================================================
-//File: ChSolverParallel.h
-//Authors: Hammad Mazhar
-//Description: Driver class for all parallel solvers
-//=================================================================================================================================
-
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Hammad Mazhar
+// This file contains the base class used for all parallel iterative solvers.
+// All of the functions are defined here, with the implementation of each solver
+// in it's specific cpp file.
+// =============================================================================
 #ifndef CHSOLVERPARALLEL_H
 #define CHSOLVERPARALLEL_H
 
@@ -18,362 +28,231 @@
 #include "collision/ChCNarrowphaseMPR.h"
 
 namespace chrono {
-    class ChApiGPU ChSolverParallel: public ChBaseParallel {
-        public:
-            ChSolverParallel() {
-                tolerance = 1e-6;
-                epsilon = 1e-3;
-                alpha = .2;
-                max_iteration = 100;
-                total_iteration = 0;
-                current_iteration = 0;
-                collision_inside = false;
-                rigid_rigid = NULL;
-                bilateral = NULL;
+class ChApiGPU ChSolverParallel : public ChBaseParallel {
+ public:
+   ChSolverParallel() {
+      tolerance = 1e-6;
+      epsilon = 1e-3;
+      alpha = .2;
+      max_iteration = 100;
+      total_iteration = 0;
+      current_iteration = 0;
+      collision_inside = false;
+      rigid_rigid = NULL;
+      bilateral = NULL;
+   }
 
-                data_container->system_timer.AddTimer("ChSolverParallel_solverA");
-                data_container->system_timer.AddTimer("ChSolverParallel_solverB");
-                data_container->system_timer.AddTimer("ChSolverParallel_solverC");
-                data_container->system_timer.AddTimer("ChSolverParallel_solverD");
-                data_container->system_timer.AddTimer("ChSolverParallel_solverE");
-                data_container->system_timer.AddTimer("ChSolverParallel_Project");
+   // Set the data container and step size for the solver, run the setup function.
+   // Depending on how the solver was created, this needs to be run every step.
+   void Initial(
+         real step,
+         ChParallelDataManager *data_container_  //
+         );
 
-            }
-            //=================================================================================================================================
-            //At the beginning of the step reset the size/indexing variables, resize for new contact list and clear temporary accumulation variables
-            //=================================================================================================================================
-            void Setup();
+   // At the beginning of the step reset the size/indexing variables,
+   // resize for new contact list and clear temporary accumulation variables
+   void Setup();
 
-            //=================================================================================================================================
-            //
-            //=================================================================================================================================
-            void Initial(
-                real step,
-                ChParallelDataManager *data_container_
-            );
-            void Project(
-                real* gamma
-            );
-            void shurA(
-                real*x
-            );
-            void shurB(
-                real* x,
-                real* out
-            );
+   // Project the lagrange multipliers (gamma) onto the friciton cone.
+   void Project(
+         real* gamma  //Lagrange Multipliers
+         );
 
-            void ComputeImpulses();
-            void UpdatePosition(
-                custom_vector<real> &x
-            );
-            void UpdateContacts();
+   // Compute the first half of the shur matrix vector multiplication (N*x)
+   // Perform M_invDx=M^-1*D*x
+   void shurA(
+         real*x  //Vector that N is multiplied by
+         );
 
-            void host_shurA_contacts(
-                int2 *ids,
-                bool *active,
-                real *inv_mass,
-                real3 *inv_inertia,
-                real3 *JXYZA,
-                real3 *JXYZB,
-                real3 *JUVWA,
-                real3 *JUVWB,
-                real *gamma,
-                real3 *updateV,
-                real3 *updateO,
-                real3 *QXYZ,
-                real3 *QUVW,
-                uint* offset
-            );
-            void host_shurA_bilaterals(
-                int2 *ids,
-                bool *active,
-                real *inv_mass,
-                real3 *inv_inertia,
-                real3 *JXYZA,
-                real3 *JXYZB,
-                real3 *JUVWA,
-                real3 *JUVWB,
-                real *gamma,
-                real3 *updateV,
-                real3 *updateO,
-                real3 *QXYZ,
-                real3 *QUVW,
-                uint* offset
-            );
+   // Compute second half of shur matrix vector multiplication Nx=D*M_invDx
+   void shurB(
+         real* x,   //Vector that contains M_invDx
+         real* out  //N*x
+         );
 
-            void host_shurB_contacts(
-                int2 *ids,
-                bool *active,
-                real *inv_mass,
-                real3 *inv_inertia,
-                real * compliance,
-                real * gamma,
-                real3 *JXYZA,
-                real3 *JXYZB,
-                real3 *JUVWA,
-                real3 *JUVWB,
-                real3 *QXYZ,
-                real3 *QUVW,
-                real *AX);
-            void host_shurB_bilaterals(
-                int2 *ids,
-                bool *active,
-                real *inv_mass,
-                real3 *inv_inertia,
-                real * gamma,
-                real3 *JXYZA,
-                real3 *JXYZB,
-                real3 *JUVWA,
-                real3 *JUVWB,
-                real3 *QXYZ,
-                real3 *QUVW,
-                real *AX
-            );
+   // Perform M^-1*D*gamma and increment the linear and rotational velocity vectors
+   void ComputeImpulses();
 
-            void host_Project(
-                int2 *ids,
-                real *friction,
-                real* cohesion,
-                real *gamma
-            );
-            void host_Offsets(
-                int2 *ids_contacts,
-                int2 *ids_bilaterals,
-                uint *Body
-            );
-            void host_Reduce_Shur(
-                bool* active,
-                real3* QXYZ,
-                real3* QUVW,
-                real *inv_mass,
-                real3 *inv_inertia,
-                real3* updateQXYZ,
-                real3* updateQUVW,
-                uint* d_body_num,
-                uint* counter
-            );
+   // Function that performs time integration to get the new positions
+   // Used when contacts need to be updated within the solver
+   // Function is similar to compute impulses
+   void UpdatePosition(
+         custom_vector<real>& x   //Lagrange multipliers
+         );
 
-            void ShurProduct(
-                custom_vector<real> &x_t,
-                custom_vector<real> & AX
-            );
-            void ShurBilaterals(
-                custom_vector<real> &x_t,
-                custom_vector<real> & AX
-            );
+   // Rerun the narrowphase to get the new contact list, broadphase is not run again here
+   // This assumes that the positions did not drastically change.
+   void UpdateContacts();
 
-            void Solve(GPUSOLVERTYPE solver_type);
-            void VelocityStabilization(ChParallelDataManager *data_container_);
-            uint SolveStab(
-                custom_vector<real> &x,
-                const custom_vector<real> &b,
-                const uint max_iter
-            );
-            uint SolveSD(
-                custom_vector<real> &x,
-                const custom_vector<real> &b,
-                const uint max_iter
-            );
-            uint SolveGD(
-                custom_vector<real> &x,
-                const custom_vector<real> &b,
-                const uint max_iter
-            );
-            uint SolveCG(
-                custom_vector<real> &x,
-                const custom_vector<real> &b,
-                const uint max_iter
-            );
-            uint SolveCGS(
-                custom_vector<real> &x,
-                const custom_vector<real> &b,
-                const uint max_iter
-            );
-            uint SolveBiCG(
-                custom_vector<real> &x,
-                const custom_vector<real> &b,
-                const uint max_iter
-            );
-            uint SolveBiCGStab(
-                custom_vector<real> &x,
-                const custom_vector<real> &b,
-                const uint max_iter
-            );
-            uint SolveMinRes(
-                custom_vector<real> &x,
-                const custom_vector<real> &b,
-                const uint max_iter
-            );
-            uint SolveAPGD(
-                custom_vector<real> &x,
-                const custom_vector<real> &b,
-                const uint max_iter
-            );
-            uint SolveAPGDRS(
-                custom_vector<real> &x,
-                custom_vector<real> &b,
-                const uint max_iter,
-                const int SIZE
-            );
-            uint SolveFN(
-                custom_vector<real> &x,
-                const custom_vector<real> &b,
-                const uint max_iter
-            );
-            void SolveJacobi();
+   // Compute the full shur matrix vector product (N*x) where N=D^T*M^-1*D
+   void ShurProduct(
+         custom_vector<real>& x,  //Vector that will be multiplied by N
+         custom_vector<real>& AX  //Output Result
+         );
 
-            void InitAPGD(
-                custom_vector<real> &x
-            );
-            real Res4(
-                const int SIZE,
-                real* mg_tmp,
-                const real* b,
-                real*x,
-                real* mb_tmp
-            );
-            void SetAPGDParams(
-                real theta_k,
-                real shrink,
-                real grow
-            );
+   // Compute the shur matrix vector product only for the bilaterals (N*x)
+   // where N=D^T*M^-1*D
+   void ShurBilaterals(
+         custom_vector<real> &x,   //Vector that will be multiplied by N
+         custom_vector<real> & AX  //Output Result
+         );
 
-            void host_process_contacts(
-                real3* JXYZA,
-                real3* JXYZB,
-                real3* JUVWA,
-                real3* JUVWB,
-                real * rhs,
-                real *contactDepth,
-                bool *active,
-                int2 *ids,
-                real *Gamma,
-                real *dG,
-                real *mass,
-                real *fric,
-                real3 *inertia,
-                real4 *rot,
-                real3 *vel,
-                real3 *omega,
-                real3 *pos,
-                real3 *updateV,
-                real3 *updateO,
-                uint *offset
-            );
-            void host_Bilaterals(
-                real3* JXYZA,
-                real3* JXYZB,
-                real3* JUVWA,
-                real3* JUVWB,
-                int2* bids,
-                real* gamma,
-                real* eta,
-                real* bi,
-                real *mass,
-                real3 *inertia,
-                real4 *rot,
-                real3 *vel,
-                real3 *omega,
-                real3 *pos,
-                real3 *updateV,
-                real3 *updateO,
-                uint *offset,
-                real *dG
-            );
-            void host_Reduce_Speeds(
-                bool *active,
-                real * mass,
-                real3 *vel,
-                real3 *omega,
-                real3 *updateV,
-                real3 *updateO,
-                uint *d_body_num,
-                uint *counter
-            );
+   // Call this function with an associated solver type to solve the system
+   void Solve(
+         GPUSOLVERTYPE solver_type
+         );
 
-            real lcp_omega_bilateral;
-            real lcp_omega_contact;
+   // Perform velocity stabilization on bilateral constraints
+   uint SolveStab(
+         custom_vector<real> &x,
+         const custom_vector<real> &b,
+         const uint max_iter
+         );
 
-            int GetIteration() {
-                return current_iteration;
-            }
+   // Solve using the steepest descent method
+   uint SolveSD(
+         custom_vector<real> &x,
+         const custom_vector<real> &b,
+         const uint max_iter
+         );
 
-            real GetResidual() {
-                return residual;
-            }
+   // Solve using the gradient descent method
+   uint SolveGD(
+         custom_vector<real> &x,
+         const custom_vector<real> &b,
+         const uint max_iter
+         );
 
-            void AtIterationEnd(real maxd,real maxdeltalambda,int iter) {
-                maxd_hist.push_back(maxd);
-                maxdeltalambda_hist.push_back(maxdeltalambda);
-                iter_hist.push_back(iter);
-            }
+   // Solve using the conjugate gradient method
+   uint SolveCG(
+         custom_vector<real> &x,
+         const custom_vector<real> &b,
+         const uint max_iter
+         );
 
-            void SetTolerance(const real tolerance_value) {
-                tolerance = tolerance_value;
-            }
+   // Solve using the conjugate gradient squared method
+   uint SolveCGS(
+         custom_vector<real> &x,
+         const custom_vector<real> &b,
+         const uint max_iter
+         );
 
-            void SetMaxIterations(const int max_iteration_value) {
-                max_iteration = max_iteration_value;
-            }
+   // Solve using the bi-conjugate gradient method
+   uint SolveBiCG(
+         custom_vector<real> &x,
+         const custom_vector<real> &b,
+         const uint max_iter);
 
-            void SetComplianceAlpha(const real alpha_value) {
-                alpha = alpha_value;
-            }
+   // Solve using the bi-conjugate gradient method with stabilization
+   uint SolveBiCGStab(
+         custom_vector<real> &x,
+         const custom_vector<real> &b,
+         const uint max_iter
+         );
 
-            void SetContactRecoverySpeed(const real & recovery_speed) {
-                contact_recovery_speed = recovery_speed;
-            }
+   // Solve using the minimum residual method
+   uint SolveMinRes(
+         custom_vector<real> &x,
+         const custom_vector<real> &b,
+         const uint max_iter
+         );
 
-            void Dump_Rhs(ostream& out) {
-                //ComputeRHS();
+   // Solve using the Accelerated Projected Gradient Descent Method
+   uint SolveAPGD(
+         custom_vector<real> &x,
+         const custom_vector<real> &b,
+         const uint max_iter
+         );
 
-                for (int i=0; i<data_container->host_data.rhs_data.size(); i++) {
-                    out<<data_container->host_data.rhs_data[i]<<endl;
-                }
-            }
+   // Solve using a more streamlined but harder to read version of the APGD method
+   uint SolveAPGDRS(
+         custom_vector<real> &x,
+         custom_vector<real> &b,
+         const uint max_iter,
+         const int SIZE
+         );
 
-            void Dump_Lambda(std::ostream& out) {
-                //				for (int i=0; i<gpu_data->device_gam_data.size(); i++) {
-                //					out<<gpu_data->device_gam_data[i]<<std::endl;
-                //				}
-            }
+   // Initialize the APGD method so that variables are not recreated
+   void InitAPGD(
+         custom_vector<real> &x);
 
-            void Dump_M() {}
+   // Compute the residual for the solver
+   // TODO: What is the best way to explain this...
+   real Res4(
+         const int SIZE,
+         real* mg_tmp,
+         const real* b,
+         real*x,
+         real* mb_tmp
+         );
 
-            void Dump_D() {}
+   // Set parameters for growing and shrinking the step size
+   void SetAPGDParams(
+         real theta_k,
+         real shrink,
+         real grow
+         );
+   // Get the number of iterations perfomed by the solver
+   int GetIteration() {
+      return current_iteration;
+   }
+   // Get the current residual
+   real GetResidual() {
+      return residual;
+   }
 
-            void Dump_E() {}
+   void AtIterationEnd(
+         real maxd,
+         real maxdeltalambda,
+         int iter) {
+      maxd_hist.push_back(maxd);
+      maxdeltalambda_hist.push_back(maxdeltalambda);
+      iter_hist.push_back(iter);
+   }
 
-            int current_iteration, max_iteration, total_iteration;
-            real residual, epsilon, tolerance;
+   // Set the tolerance for all solvers
+   void SetTolerance(
+         const real tolerance_value) {
+      tolerance = tolerance_value;
+   }
 
-            thrust::host_vector<real> maxd_hist,maxdeltalambda_hist,iter_hist;
+   // Set the maximum number of iterations for all solvers
+   void SetMaxIterations(
+         const int max_iteration_value) {
+      max_iteration = max_iteration_value;
+   }
 
-            custom_vector<real> temp1;
-            custom_vector<real> temp2;
+   // Set the compliance alpha value
+   void SetComplianceAlpha(
+         const real alpha_value) {
+      alpha = alpha_value;
+   }
+   //Set the maximum contact recovery speed, used by RHS computation
+   void SetContactRecoverySpeed(
+         const real & recovery_speed) {
+      contact_recovery_speed = recovery_speed;
+   }
 
-            custom_vector<real> obj2_temp;
-            custom_vector<real> obj1_temp;
-            custom_vector<real> lm;
+   int current_iteration, max_iteration, total_iteration;
+   real residual, epsilon, tolerance;
 
-            custom_vector<real> ms, mg_tmp2, mb_tmp,mg_tmp, mg_tmp1;
-            custom_vector<real> mg,ml, mx, my,ml_candidate;
+   thrust::host_vector<real> maxd_hist, maxdeltalambda_hist, iter_hist;
 
-            real init_theta_k;
-            real step_shrink;
-            real step_grow;
+   custom_vector<real> temp1, temp2;
+   custom_vector<real> obj2_temp, obj1_temp, lm;
+   custom_vector<real> ms, mg_tmp2, mb_tmp, mg_tmp, mg_tmp1;
+   custom_vector<real> mg, ml, mx, my, ml_candidate;
 
-            ChConstraintRigidRigid *rigid_rigid;
-            ChConstraintBilateral *bilateral;
+   real init_theta_k;
+   real step_shrink;
+   real step_grow;
 
-            bool do_stab;
-            bool collision_inside;
+   ChConstraintRigidRigid *rigid_rigid;
+   ChConstraintBilateral *bilateral;
 
-        protected:
-    }
-
-    ;
-
+   bool do_stab;
+   bool collision_inside;
+};
 }
 
 #endif

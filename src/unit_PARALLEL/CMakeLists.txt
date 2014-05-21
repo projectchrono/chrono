@@ -68,16 +68,16 @@ ENDIF()
 # ----------------------------------------------------------------------------
 # Generate configuration header file.
 # ----------------------------------------------------------------------------
-# Generate the configuration header file using substitution
-# variables. Place the header file in the binary directory
-# and make sure it can be found at compile time.
-# NOTE:  If more variables will be defined, move the following
-# lines after the last substitution variable is made available. 
+# Generate the configuration header file using substitution variables.
+# Place the header file in the library output directory and make sure it can
+# be found at compile time.
+# NOTE:  If more variables will be defined, move the following lines after the
+#        last substitution variable is made available. 
 CONFIGURE_FILE(
   ${PROJECT_SOURCE_DIR}/src/ChConfigParallel.in
-  ${PROJECT_BINARY_DIR}/ChConfigParallel.h
+  ${LIBRARY_OUTPUT_PATH}/ChConfigParallel.h
   )
-INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR})
+INCLUDE_DIRECTORIES(${LIBRARY_OUTPUT_PATH})
 
 
 # ----------------------------------------------------------------------------
@@ -168,7 +168,7 @@ SET(ChronoEngine_Parallel_SOLVER
     src/solver/ChSolverCGS.cpp
     src/solver/ChSolverGD.cpp
     src/solver/ChSolverSD.cpp
-    src/solver/ChSolverFN.cpp
+    #src/solver/ChSolverFN.cpp
     src/solver/ChSolverAPGD.cpp
     src/solver/ChSolverAPGDRS.cpp
     src/solver/ChSolverMinRes.cpp
