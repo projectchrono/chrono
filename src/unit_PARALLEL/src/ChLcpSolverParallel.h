@@ -31,7 +31,6 @@ class ChApiGPU ChLcpSolverParallel : public ChLcpIterativeSolver {
  public:
   ChLcpSolverParallel() {
     tolerance = 1e-7;
-    lcp_omega_bilateral = .2;
 
     max_iter_bilateral = 100;
     record_violation_history = true;
@@ -57,9 +56,7 @@ class ChApiGPU ChLcpSolverParallel : public ChLcpIterativeSolver {
   void SetTolerance(real tol) {
     tolerance = tol;
   }
-  void SetOmegaBilateral(real mval) {
-    lcp_omega_bilateral = mval;
-  }
+
   void SetMaxIterationBilateral(uint max_iter) {
     max_iter_bilateral = max_iter;
   }
@@ -89,7 +86,6 @@ class ChApiGPU ChLcpSolverParallel : public ChLcpIterativeSolver {
 
  protected:
   real tolerance;
-  real lcp_omega_bilateral;  //// TODO: is this used anywhere?
 
   real step_size;
   uint number_of_bilaterals;
@@ -111,9 +107,6 @@ class ChApiGPU ChLcpSolverParallelDVI : public ChLcpSolverParallel {
  public:
   ChLcpSolverParallelDVI() {
     alpha = .2;
-    compliance = 0;
-    complianceT = 0;
-    lcp_omega_contact = .2;
     contact_recovery_speed = .6;
     solver_type = ACCELERATED_PROJECTED_GRADIENT_DESCENT;
     do_stab = false;
@@ -129,9 +122,6 @@ class ChApiGPU ChLcpSolverParallelDVI : public ChLcpSolverParallel {
 
   void SetCompliance(real a) {
     data_container->alpha = a;
-  }
-  void SetOmegaContact(real mval) {
-    lcp_omega_contact = mval;
   }
   void SetSolverType(GPUSOLVERTYPE type) {
     solver_type = type;
@@ -165,9 +155,6 @@ class ChApiGPU ChLcpSolverParallelDVI : public ChLcpSolverParallel {
   GPUSOLVERTYPE solver_type;
 
   real alpha;
-  real compliance;         //// TODO:  not used?
-  real complianceT;        ////
-  real lcp_omega_contact;
 
   real contact_recovery_speed;
   bool do_stab;

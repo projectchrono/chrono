@@ -2,8 +2,18 @@
 #include "ChSolverParallel.h"
 
 using namespace chrono;
-uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &b, const uint max_iter,const int SIZE) {
-	data_container->system_timer.start("ChSolverParallel_solverA");
+uint ChSolverParallel::SolveAPGDRS(const uint max_iter,const uint size,const custom_vector<real> &b,custom_vector<real> &x) {
+   ms.resize(size);
+   mg_tmp2.resize(size);
+   mb_tmp.resize(size);
+   mg_tmp.resize(size);
+   mg_tmp1.resize(size);
+   mg.resize(size);
+   ml.resize(size);
+   mx.resize(size);
+   my.resize(size);
+
+   data_container->system_timer.start("ChSolverParallel_solverA");
 	real lastgoodres=10e30;
 	real theta_k=init_theta_k;
 	real theta_k1=theta_k;
@@ -12,11 +22,11 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 	real mb_tmp_norm = 0, mg_tmp_norm = 0;
 	real obj1=0.0, obj2=0.0;
 	real dot_mg_ms = 0, norm_ms = 0;
-	mg.resize(SIZE);
-	mg_tmp.resize(SIZE);
-	mg_tmp1.resize(SIZE);
-	mg_tmp2.resize(SIZE);
-	ml.resize(SIZE);
+	mg.resize(size);
+	mg_tmp.resize(size);
+	mg_tmp1.resize(size);
+	mg_tmp2.resize(size);
+	ml.resize(size);
 
 	ml = x;
 
@@ -30,7 +40,7 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 		ShurProduct(ml,mg);//mg is never used, only re-written
 
 #pragma omp parallel for reduction(+:mb_tmp_norm)
-		for (int i = 0; i < SIZE; i++) {
+		for (int i = 0; i < size; i++) {
 			real _mb_tmp_ = -1.0f + ml[i];
 			mb_tmp_norm += _mb_tmp_ * _mb_tmp_;
 			mb_tmp[i] = _mb_tmp_;
@@ -60,7 +70,7 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 			ShurProduct(my,mg_tmp1);
 
 #pragma omp parallel for
-		for (int i = 0; i < SIZE; i++) {
+		for (int i = 0; i < size; i++) {
 			real _mg_ = mg_tmp1[i] - b[i];
 			mg[i] = _mg_;
 			mx[i] = -t_k * _mg_ + my[i];
@@ -70,7 +80,7 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 		ShurProduct(mx,mg_tmp);
 
 #pragma omp parallel for reduction(+:obj1,obj2,dot_mg_ms,norm_ms)
-		for(int i=0; i<SIZE; i++) {
+		for(int i=0; i<size; i++) {
 			real _mg_tmp_ = mg_tmp[i];
 			real _b_ = b[i];
 			real _ms_ = .5*_mg_tmp_-_b_;
@@ -98,13 +108,13 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 #else
 #pragma omp parallel for
 #endif
-		for(int i=0; i<SIZE; i++) {
+		for(int i=0; i<size; i++) {
 			mx[i] = -t_k*mg[i]+ my[i];
 		}
 		Project(mx.data());
 		ShurProduct(mx,mg_tmp);
 #pragma omp  parallel for reduction(+:obj1,dot_mg_ms,norm_ms)
-		for(int i=0; i<SIZE; i++) {
+		for(int i=0; i<size; i++) {
 			real _mg_tmp_ = mg_tmp[i];
 			real _b_ = b[i];
 			real _ms_ = .5*_mg_tmp_-_b_;
@@ -126,7 +136,7 @@ uint ChSolverParallel::SolveAPGDRS(custom_vector<real> &x, custom_vector<real> &
 	beta_k1 = theta_k * (1.0 - theta_k) / (pow(theta_k, 2) + theta_k1);
 	real dot_mg_ms=0;
 #pragma omp parallel for reduction(+:dot_mg_ms)
-		for(int i=0; i<SIZE; i++) {
+		for(int i=0; i<size; i++) {
 			real _mx_ = mx[i];
 			real _ms_ = _mx_-ml[i];
 			my[i] = beta_k1*_ms_+_mx_;

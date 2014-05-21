@@ -2,8 +2,8 @@
 using namespace chrono;
 
 
-uint ChSolverParallel::SolveCG(custom_vector<real> &x, const custom_vector<real> &b, const uint max_iter) {
-    custom_vector<real> r(x.size()), p, Ap(x.size());
+uint ChSolverParallel::SolveCG(const uint max_iter,const uint size,const custom_vector<real> &b,custom_vector<real> &x) {
+    custom_vector<real> r(size), p, Ap(size);
     real rsold, alpha, rsnew = 0, normb = Norm(b);
     if (normb == 0.0) {
         normb = 1;
@@ -25,7 +25,7 @@ uint ChSolverParallel::SolveCG(custom_vector<real> &x, const custom_vector<real>
         rsnew=Dot(r,r);
 #else
         #pragma omp parallel for reduction(+:rsnew)
-        for (int i = 0; i < x.size(); i++) {
+        for (int i = 0; i < size; i++) {
             x[i] = x[i] + alpha * p[i];
             real _r = r[i] - alpha * Ap[i];
             r[i] = _r;

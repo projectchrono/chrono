@@ -1,104 +1,110 @@
 #include "ChSolverParallel.h"
 using namespace chrono;
 
-uint ChSolverParallel::SolveMinRes(custom_vector<real> &x, const custom_vector<real> &mb, const uint max_iter) {
-	uint N = mb.size();
-	bool verbose = true;
-	custom_vector<real> mr(N, 0), ml(N,0), mp(N,0), mz(N,0), mNMr(N,0), mNp(N,0), mMNp(N,0), mtmp(N,0);
-	custom_vector<real> mz_old;
-	custom_vector<real> mNMr_old;
-	real grad_diffstep = 0.01;
-	double rel_tol = tolerance;
-	double abs_tol = tolerance;
+uint ChSolverParallel::SolveMinRes(
+      const uint max_iter,
+      const uint size,
+      const custom_vector<real> &b,
+      custom_vector<real> &x) {
+   uint N = size;
+   bool verbose = true;
+   custom_vector<real> mr(N, 0), ml(N, 0), mp(N, 0), mz(N, 0), mNMr(N, 0), mNp(N, 0), mMNp(N, 0), mtmp(N, 0);
+   custom_vector<real> mz_old;
+   custom_vector<real> mNMr_old;
+   real grad_diffstep = 0.01;
+   double rel_tol = tolerance;
+   double abs_tol = tolerance;
 
-	double rel_tol_b = NormInf(mb) * rel_tol;
-	//ml = x;
+   double rel_tol_b = NormInf(b) * rel_tol;
+   //ml = x;
 #pragma omp parallel
-		{
-			ShurProduct(ml,mr);
-		}
-		mr = mb-mr;
+   {
+      ShurProduct(ml, mr);
+   }
+   mr = b - mr;
 
-		mr=mr*grad_diffstep+ml;
+   mr = mr * grad_diffstep + ml;
 #pragma omp parallel
-		{
-			Project(mr.data());
-		}
-		mr=(mr-ml)*(1.0/grad_diffstep);
+   {
+      Project(mr.data());
+   }
+   mr = (mr - ml) * (1.0 / grad_diffstep);
 
-		mp=mr;
-		mz=mp;
+   mp = mr;
+   mz = mp;
 #pragma omp parallel
-		{
-			ShurProduct(mz,mNMr);
-			ShurProduct(mp,mNp);
-		}
-		for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
-			mMNp = mNp;
+   {
+      ShurProduct(mz, mNMr);
+      ShurProduct(mp, mNp);
+   }
+   for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
+      mMNp = mNp;
 
-			double zNMr = Dot(mz,mNMr);
-			double MNpNp = Dot(mMNp, mNp);
-			if (fabs(MNpNp)<10e-30){
-				if (verbose) {cout << "Iter=" << current_iteration << " Rayleygh quotient alpha breakdown: " << zNMr << " / " << MNpNp << "\n";}
-				MNpNp=10e-12;
-			}
-			double alpha = zNMr/MNpNp;
-			mtmp = mp*alpha;
-			ml=ml+mtmp;
-			double maxdeltalambda = Norm(mtmp);
+      double zNMr = Dot(mz, mNMr);
+      double MNpNp = Dot(mMNp, mNp);
+      if (fabs(MNpNp) < 10e-30) {
+         if (verbose) {
+            cout << "Iter=" << current_iteration << " Rayleygh quotient alpha breakdown: " << zNMr << " / " << MNpNp << "\n";
+         }
+         MNpNp = 10e-12;
+      }
+      double alpha = zNMr / MNpNp;
+      mtmp = mp * alpha;
+      ml = ml + mtmp;
+      double maxdeltalambda = Norm(mtmp);
 #pragma omp parallel
-		{
-			Project(ml.data());
-			ShurProduct(ml,mr);
-		}
-		mr = mb-mr;
+      {
+         Project(ml.data());
+         ShurProduct(ml, mr);
+      }
+      mr = b - mr;
 
-		mr=mr*grad_diffstep+ml;
+      mr = mr * grad_diffstep + ml;
 #pragma omp parallel
-		{
-			Project(mr.data());
-		}
+      {
+         Project(mr.data());
+      }
 
-		mr=(mr-ml)*(1.0/grad_diffstep);
+      mr = (mr - ml) * (1.0 / grad_diffstep);
 
-		double r_proj_resid = Norm(mr);
+      double r_proj_resid = Norm(mr);
 
-		if (r_proj_resid < max(rel_tol_b, abs_tol) ) {
-			if (verbose) {
-				cout << "Iter=" << current_iteration << " P(r)-converged!  |P(r)|=" << r_proj_resid << "\n";
-			}
-			break;
-		}
+      if (r_proj_resid < max(rel_tol_b, abs_tol)) {
+         if (verbose) {
+            cout << "Iter=" << current_iteration << " P(r)-converged!  |P(r)|=" << r_proj_resid << "\n";
+         }
+         break;
+      }
 
-		mz_old = mz;
-		mz = mr;
-		mNMr_old = mNMr;
+      mz_old = mz;
+      mz = mr;
+      mNMr_old = mNMr;
 #pragma omp parallel
-		{
-			ShurProduct(mz,mNMr);
-		}
-		double numerator = Dot(mz,mNMr-mNMr_old);
-		double denominator = Dot(mz_old,mNMr_old);
-		double beta =numerator /numerator;
+      {
+         ShurProduct(mz, mNMr);
+      }
+      double numerator = Dot(mz, mNMr - mNMr_old);
+      double denominator = Dot(mz_old, mNMr_old);
+      double beta = numerator / numerator;
 
-		if (fabs(denominator)<10e-30 || fabs(numerator)<10e-30) {
-			if (verbose) {
-				cout << "Iter=" << current_iteration << " Ribiere quotient beta restart: " << numerator << " / " << denominator << "\n";
-			}
-			beta =0;
-		}
+      if (fabs(denominator) < 10e-30 || fabs(numerator) < 10e-30) {
+         if (verbose) {
+            cout << "Iter=" << current_iteration << " Ribiere quotient beta restart: " << numerator << " / " << denominator << "\n";
+         }
+         beta = 0;
+      }
 
-		mtmp = mp*beta;
-		mp = mz+mtmp;
-		mNp = mNp*beta+mNMr;
+      mtmp = mp * beta;
+      mp = mz + mtmp;
+      mNp = mNp * beta + mNMr;
 
-		AtIterationEnd(r_proj_resid, maxdeltalambda, current_iteration);
+      AtIterationEnd(r_proj_resid, maxdeltalambda, current_iteration);
 
-	}
-	x=ml;
+   }
+   x = ml;
 
-	//	uint N = b.size();
-//	custom_vector<real> v(N, 0), v_hat(x.size()), w(N, 0), w_old, xMR, v_old, Av(x.size()), w_oold;
+   //	uint N = b.size();
+//	custom_vector<real> v(N, 0), v_hat(size), w(N, 0), w_old, xMR, v_old, Av(size), w_oold;
 //	real beta, c = 1, eta, norm_rMR, norm_r0, c_old = 1, s_old = 0, s = 0, alpha, beta_old, c_oold, s_oold, r1_hat, r1, r2, r3;
 //	ShurProduct(x,v_hat);
 //	v_hat = b - v_hat;
@@ -148,6 +154,6 @@ uint ChSolverParallel::SolveMinRes(custom_vector<real> &x, const custom_vector<r
 //		if (residual < tolerance) {break;}
 //	}
 //	Project(x.data());
-		return current_iteration;
+   return current_iteration;
 
-	}
+}
