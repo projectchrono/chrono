@@ -311,7 +311,6 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
 
   solver.SetTolerance(tolerance);
 
-  ////solver.lcp_omega_bilateral = lcp_omega_bilateral;  //// not used anywhere?
   solver.bilateral = &bilateral;
   solver.Initial(step, data_container);
 
