@@ -10,6 +10,12 @@ project(ChronoEngine_Parallel)
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 # ----------------------------------------------------------------------------
+# Specify output locations for libraries and executables
+# ----------------------------------------------------------------------------
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+
+# ----------------------------------------------------------------------------
 # Figure out SSE level support
 # ----------------------------------------------------------------------------
 FIND_PACKAGE(SSE)
@@ -364,13 +370,9 @@ IF(MSVC)
     # Specify a single Build type, so we can import the correct .lib for Chrono
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "For single-configuration generators (e.g. make) set the type of build: Release, Debug, RelWithDebInfo, MinSizeRel")
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release" "Debug" "RelWithDebInfo" "MinSizeRel")
-
-    # Set the output directory for DLLs and EXEs
-    SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 ENDIF()
 
-# Justin: on MSVC Windows, I want to be able to link different libraries
-# when building Debug/Release
+# Hack to be able to link different libraries depending on build type
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     # find the CE library. First make sure we didn't already find it; if we did, unset the variable
     # need this to easily switch between Debug and Release build types
