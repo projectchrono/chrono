@@ -43,10 +43,8 @@ void ChLcpSolverParallelDVI::RunTimeStep(real step) {
 
   solver.SetComplianceAlpha(alpha);
   solver.SetContactRecoverySpeed(contact_recovery_speed);
-  solver.lcp_omega_bilateral = lcp_omega_bilateral;
   solver.rigid_rigid = &rigid_rigid;
   solver.bilateral = &bilateral;
-  solver.lcp_omega_contact = lcp_omega_contact;
   solver.do_stab = do_stab;
   solver.collision_inside = collision_inside;
   solver.Initial(step, data_container);
