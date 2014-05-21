@@ -90,82 +90,113 @@ class ChApiGPU ChSolverParallel : public ChBaseParallel {
          custom_vector<real>& AX  //Output Result
          );
 
-   // Compute the shur matrix vector product only for the bilaterals (N*x) where N=D^T*M^-1*D
+   // Compute the shur matrix vector product only for the bilaterals (N*x)
+   // where N=D^T*M^-1*D
    void ShurBilaterals(
          custom_vector<real> &x,   //Vector that will be multiplied by N
          custom_vector<real> & AX  //Output Result
          );
 
+   // Call this function with an associated solver type to solve the system
    void Solve(
-         GPUSOLVERTYPE solver_type);
+         GPUSOLVERTYPE solver_type
+         );
 
+   // Perform velocity stabilization on bilateral constraints
    uint SolveStab(
          custom_vector<real> &x,
          const custom_vector<real> &b,
-         const uint max_iter);
+         const uint max_iter
+         );
+
+   // Solve using the steepest descent method
    uint SolveSD(
          custom_vector<real> &x,
          const custom_vector<real> &b,
-         const uint max_iter);
+         const uint max_iter
+         );
+
+   // Solve using the gradient descent method
    uint SolveGD(
          custom_vector<real> &x,
          const custom_vector<real> &b,
-         const uint max_iter);
+         const uint max_iter
+         );
+
+   // Solve using the conjugate gradient method
    uint SolveCG(
          custom_vector<real> &x,
          const custom_vector<real> &b,
-         const uint max_iter);
+         const uint max_iter
+         );
+
+   // Solve using the conjugate gradient squared method
    uint SolveCGS(
          custom_vector<real> &x,
          const custom_vector<real> &b,
-         const uint max_iter);
+         const uint max_iter
+         );
+
+   // Solve using the bi-conjugate gradient method
    uint SolveBiCG(
          custom_vector<real> &x,
          const custom_vector<real> &b,
          const uint max_iter);
+
+   // Solve using the bi-conjugate gradient method with stabilization
    uint SolveBiCGStab(
          custom_vector<real> &x,
          const custom_vector<real> &b,
-         const uint max_iter);
+         const uint max_iter
+         );
+
+   // Solve using the minimum residual method
    uint SolveMinRes(
          custom_vector<real> &x,
          const custom_vector<real> &b,
-         const uint max_iter);
+         const uint max_iter
+         );
+
+   // Solve using the Accelerated Projected Gradient Descent Method
    uint SolveAPGD(
          custom_vector<real> &x,
          const custom_vector<real> &b,
-         const uint max_iter);
+         const uint max_iter
+         );
+
+   // Solve using a more streamlined but harder to read version of the APGD method
    uint SolveAPGDRS(
          custom_vector<real> &x,
          custom_vector<real> &b,
          const uint max_iter,
-         const int SIZE);
-   uint SolveFN(
-         custom_vector<real> &x,
-         const custom_vector<real> &b,
-         const uint max_iter);
-   void SolveJacobi();
+         const int SIZE
+         );
 
+   // Initialize the APGD method so that variables are not recreated
    void InitAPGD(
          custom_vector<real> &x);
+
+   // Compute the residual for the solver
+   // TODO: What is the best way to explain this...
    real Res4(
          const int SIZE,
          real* mg_tmp,
          const real* b,
          real*x,
-         real* mb_tmp);
+         real* mb_tmp
+         );
+
+   // Set parameters for growing and shrinking the step size
    void SetAPGDParams(
          real theta_k,
          real shrink,
-         real grow);
-
-   real lcp_omega_bilateral;
-   real lcp_omega_contact;
-
+         real grow
+         );
+   // Get the number of iterations perfomed by the solver
    int GetIteration() {
       return current_iteration;
    }
-
+   // Get the current residual
    real GetResidual() {
       return residual;
    }
@@ -179,21 +210,24 @@ class ChApiGPU ChSolverParallel : public ChBaseParallel {
       iter_hist.push_back(iter);
    }
 
+   // Set the tolerance for all solvers
    void SetTolerance(
          const real tolerance_value) {
       tolerance = tolerance_value;
    }
 
+   // Set the maximum number of iterations for all solvers
    void SetMaxIterations(
          const int max_iteration_value) {
       max_iteration = max_iteration_value;
    }
 
+   // Set the compliance alpha value
    void SetComplianceAlpha(
          const real alpha_value) {
       alpha = alpha_value;
    }
-
+   //Set the maximum contact recovery speed, used by RHS computation
    void SetContactRecoverySpeed(
          const real & recovery_speed) {
       contact_recovery_speed = recovery_speed;
@@ -205,11 +239,8 @@ class ChApiGPU ChSolverParallel : public ChBaseParallel {
    thrust::host_vector<real> maxd_hist, maxdeltalambda_hist, iter_hist;
 
    custom_vector<real> temp1, temp2;
-
    custom_vector<real> obj2_temp, obj1_temp, lm;
-
    custom_vector<real> ms, mg_tmp2, mb_tmp, mg_tmp, mg_tmp1;
-
    custom_vector<real> mg, ml, mx, my, ml_candidate;
 
    real init_theta_k;
@@ -221,9 +252,7 @@ class ChApiGPU ChSolverParallel : public ChBaseParallel {
 
    bool do_stab;
    bool collision_inside;
-
 };
-
 }
 
 #endif
