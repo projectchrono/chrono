@@ -58,6 +58,7 @@ SET(DEMOS
     test_collision
     test_scaling
     mixerDEM
+    mixerDVI
 )
 
 MESSAGE(STATUS "Executable programs...")
