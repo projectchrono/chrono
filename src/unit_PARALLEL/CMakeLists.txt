@@ -10,6 +10,11 @@ project(ChronoEngine_Parallel)
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 # ----------------------------------------------------------------------------
+#
+# ----------------------------------------------------------------------------
+SET(ENABLE_UTILS  TRUE  CACHE BOOL "Build the ChronoParallel_Utils library") 
+
+# ----------------------------------------------------------------------------
 # Specify output locations for libraries and executables
 # ----------------------------------------------------------------------------
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
@@ -506,3 +511,9 @@ mark_as_advanced(FORCE
     CUDA_HOST_COMPILER)
 
 
+# ----------------------------------------------------------------------------
+# Add subdirectories, depending on user-specified options
+# ----------------------------------------------------------------------------
+IF(ENABLE_UTILS)
+  ADD_SUBDIRECTORY(utils)
+ENDIF()
