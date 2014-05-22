@@ -10,9 +10,10 @@ project(ChronoEngine_Parallel)
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 # ----------------------------------------------------------------------------
-#
+# User-specified for optional modules
 # ----------------------------------------------------------------------------
 SET(ENABLE_UTILS  TRUE  CACHE BOOL "Build the ChronoParallel_Utils library") 
+SET(ENABLE_TESTS  FALSE CACHE BOOL "Build test programs")
 
 # ----------------------------------------------------------------------------
 # Specify output locations for libraries and executables
@@ -516,4 +517,12 @@ mark_as_advanced(FORCE
 # ----------------------------------------------------------------------------
 IF(ENABLE_UTILS)
   ADD_SUBDIRECTORY(utils)
+ENDIF()
+
+IF(ENABLE_TESTS)
+  IF(NOT ENABLE_UTILS)
+    MESSAGE(STATUS "The test programs require building the ChronoParallel_Utils library.")
+  ELSE()
+    ADD_SUBDIRECTORY(tests)
+  ENDIF()
 ENDIF()
