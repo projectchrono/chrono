@@ -7,6 +7,7 @@ SET(LIBRARIES
     ${CHRONO_LIB}
     ChronoEngine_Parallel
     ChronoEngine_Utils
+    ChronoEngine_Utils_OpenGL
 )
 
 #--------------------------------------------------------------

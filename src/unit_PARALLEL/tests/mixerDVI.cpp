@@ -6,9 +6,32 @@
 #include "ChLcpSystemDescriptorParallel.h"
 
 #include "utils/input_output.h"
+// Define this to save the data when using the OpenGL code
+// #define SAVE_DATA
+
+#ifdef CHRONO_PARALLEL_HAS_OPENGL
+#include "utils/opengl/ChOpenGL.h"
+#endif
 
 using namespace chrono;
 using namespace geometry;
+
+const char* out_folder = "../MIXER_DVI/POVRAY";
+int out_steps;
+int out_frame;
+
+template<class T>
+void RunTimeStep(T* mSys, const int frame) {
+#ifdef SAVE_DATA
+   char filename[100];
+   if (frame % out_steps == 0) {
+     sprintf(filename, "%s/data_%03d.dat", out_folder, out_frame);
+     utils::WriteShapesPovray(mSys, filename);
+     out_frame++;
+   }
+
+#endif
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -130,9 +153,9 @@ int main(int argc, char* argv[])
   uint max_iteration = 50;
   real tolerance = 1e-8;
 
-  const char* out_folder = "../MIXER_DVI/POVRAY";
+
   double out_fps = 50;
-  int out_steps = std::ceil((1 / time_step) / out_fps);
+  out_steps = std::ceil((1 / time_step) / out_fps);
 
 
   // Create system
@@ -156,9 +179,14 @@ int main(int argc, char* argv[])
   msystem.SetTol(1e-3);
   msystem.SetTolSpeeds(1e-3);
   msystem.SetStep(time_step);
+  msystem.SetMaxPenetrationRecoverySpeed(1e9);
 
-  ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIteration(max_iteration);
-  ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetTolerance(0);
+  //((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIteration(max_iteration);
+  ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIterationNormal(max_iteration/2);
+  ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIterationSliding(max_iteration/2);
+  ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIterationSpinning(0);
+  ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIterationBilateral(max_iteration);
+  ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetTolerance(1e-3);
   ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetCompliance(0);
   ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetContactRecoverySpeed(1);
   ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetSolverType(ACCELERATED_PROJECTED_GRADIENT_DESCENT);
@@ -177,8 +205,20 @@ int main(int argc, char* argv[])
   // Perform the simulation
   // ----------------------
 
+  // The OpenGL manager will automatically run the simulation
+#ifdef CHRONO_PARALLEL_HAS_OPENGL
+  utils::ChOpenGLManager * window_manager = new  utils::ChOpenGLManager();
+  utils::ChOpenGL openGLView(window_manager, &msystem, 800, 600, 0, 0, "mixerDVI");
+  openGLView.render_camera->camera_position = glm::vec3(0, 5, 10);
+  openGLView.render_camera->camera_look_at = glm::vec3(0, 0, 0);
+  openGLView.render_camera->camera_scale = 1;
+  openGLView.SetCustomCallback(RunTimeStep);
+  openGLView.StartSpinning(window_manager);
+  window_manager->CallGlutMainLoop();
+#endif
+
   double time = 0;
-  int out_frame = 0;
+  out_frame = 0;
   char filename[100];
 
   for (int i = 0; i < num_steps; i++) {
