@@ -71,19 +71,7 @@ IF(OPENMP_FOUND)
   ENDIF()
 ENDIF()
 
-# ----------------------------------------------------------------------------
-# Generate configuration header file.
-# ----------------------------------------------------------------------------
-# Generate the configuration header file using substitution variables.
-# Place the header file in the library output directory and make sure it can
-# be found at compile time.
-# NOTE:  If more variables will be defined, move the following lines after the
-#        last substitution variable is made available. 
-CONFIGURE_FILE(
-  ${PROJECT_SOURCE_DIR}/src/ChConfigParallel.in
-  ${LIBRARY_OUTPUT_PATH}/ChConfigParallel.h
-  )
-INCLUDE_DIRECTORIES(${LIBRARY_OUTPUT_PATH})
+
 
 
 # ----------------------------------------------------------------------------
@@ -516,6 +504,34 @@ mark_as_advanced(FORCE
 # Add subdirectories, depending on user-specified options
 # ----------------------------------------------------------------------------
 IF(ENABLE_UTILS)
+
+SET(ENABLE_OPENGL  TRUE  CACHE BOOL "Build the ChronoParallel_Utils_OpenGL library") 
+IF(${ENABLE_OPENGL})
+    find_package(GLUT)
+    find_package(OpenGL)
+    find_package(GLM)
+
+    #freeglut is not found properly on windows
+    IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+        SET(FREEGLUT_LIB_PATH       "" CACHE PATH "Where is freeglut located")  
+        SET(FREEGLUT_INC_PATH       "" CACHE PATH "Where are the freeglut headers located" )        
+        FIND_LIBRARY( FREEGLUT_LIB NAMES glut glut32 freeglut PATHS ${FREEGLUT_LIB_PATH})
+    ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+        SET(FREEGLUT_LIB_PATH       "/opt/X11/lib/")    
+        SET(FREEGLUT_INC_PATH       "/opt/X11/include/")        
+        FIND_LIBRARY( FREEGLUT_LIB NAMES glut glut32 freeglut PATHS ${FREEGLUT_LIB_PATH})
+    ENDIF()
+
+    IF(${OPENGL_FOUND} AND ${GLM_FOUND})
+        SET(CHRONO_PARALLEL_HAS_OPENGL "#define CHRONO_PARALLEL_HAS_OPENGL")
+    ELSE()
+        #Unable to find everything, turn off OpenGL
+        SET(ENABLE_OPENGL  FALSE  CACHE BOOL "Build the ChronoParallel_Utils_OpenGL library") 
+    ENDIF()
+
+ENDIF()
+
+
   ADD_SUBDIRECTORY(utils)
 ENDIF()
 
@@ -526,3 +542,19 @@ IF(ENABLE_TESTS)
     ADD_SUBDIRECTORY(tests)
   ENDIF()
 ENDIF()
+
+
+# ----------------------------------------------------------------------------
+# Generate configuration header file.
+# ----------------------------------------------------------------------------
+# Generate the configuration header file using substitution variables.
+# Place the header file in the library output directory and make sure it can
+# be found at compile time.
+# NOTE:  If more variables will be defined, move the following lines after the
+#        last substitution variable is made available. 
+CONFIGURE_FILE(
+  ${PROJECT_SOURCE_DIR}/src/ChConfigParallel.in
+  ${LIBRARY_OUTPUT_PATH}/ChConfigParallel.h
+  )
+INCLUDE_DIRECTORIES(${LIBRARY_OUTPUT_PATH})
+
