@@ -290,6 +290,9 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
 
   data_container->system_timer.start("ChLcpSolverParallel_Setup");
 
+  //// HACK
+  data_container->number_of_rigid_rigid = 0;
+
   data_container->host_data.rhs_data.resize(number_of_constraints);
   data_container->host_data.diag.resize(number_of_constraints);
   data_container->host_data.gamma_data.resize(number_of_constraints);
