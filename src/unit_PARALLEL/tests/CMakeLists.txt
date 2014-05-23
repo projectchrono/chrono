@@ -1,6 +1,9 @@
 #--------------------------------------------------------------
 # Additional include paths (for ChronoEngine_Utils)
-INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}"  ${LIBRARY_OUTPUT_PATH} )
+INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}"
+                    ${LIBRARY_OUTPUT_PATH}
+                    ${FREEGLUT_INC_PATH}
+                    ${GLM_INCLUDE_DIRS})
 
 # Libraries (ChronoEngine, ChronoEngine_Parallel, and ChronoEngine_Utils)
 SET(LIBRARIES
