@@ -1,3 +1,29 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Radu Serban, Hammad Mazhar
+// =============================================================================
+//
+// ChronoParallel test program using penalty method for frictional contact.
+//
+// The model simulated here consists of a number of spherical objects falling
+// onto a mixer blade attached through a revolute joint to the ground.
+//
+// The global reference frame has Z up.
+//
+// If available, OpenGL is used for run-time rendering. Otherwise, the 
+// simulation is carried out for a pre-defined duration and output files are
+// generated for post-processing with POV-Ray.
+// =============================================================================
+
 #include <stdio.h>
 #include <vector>
 #include <cmath>
@@ -5,13 +31,15 @@
 #include "ChSystemParallel.h"
 #include "ChLcpSystemDescriptorParallel.h"
 
+#include "utils/creators.h"
 #include "utils/input_output.h"
-// Define this to save the data when using the OpenGL code
-// #define SAVE_DATA
 
 #ifdef CHRONO_PARALLEL_HAS_OPENGL
 #include "utils/opengl/ChOpenGL.h"
 #endif
+
+// Define this to save the data when using the OpenGL code
+//#define SAVE_DATA
 
 using namespace chrono;
 using namespace geometry;
@@ -20,20 +48,24 @@ const char* out_folder = "../MIXER_DVI/POVRAY";
 int out_steps;
 int out_frame;
 
+// -----------------------------------------------------------------------------
+// Callback function invoked at every simulation frame. Generates postprocessing
+// output with a frequency based on the specified FPS rate.
+// -----------------------------------------------------------------------------
 template<class T>
-void RunTimeStep(T* mSys, const int frame) {
-#ifdef SAVE_DATA
-   char filename[100];
-   if (frame % out_steps == 0) {
-     sprintf(filename, "%s/data_%03d.dat", out_folder, out_frame);
-     utils::WriteShapesPovray(mSys, filename);
-     out_frame++;
-   }
-
-#endif
+void SimFrameCallback(T* mSys, const int frame) {
+  char filename[100];
+  if (frame % out_steps == 0) {
+    sprintf(filename, "%s/data_%03d.dat", out_folder, out_frame);
+    utils::WriteShapesPovray(mSys, filename);
+    out_frame++;
+  }
 }
 
 // -----------------------------------------------------------------------------
+// Create a bin consisting of five boxes attached to the ground and a mixer
+// blade attached through a revolute joint to ground. The mixer is constrained
+// to rotate at constant angular velocity.
 // -----------------------------------------------------------------------------
 void AddContainer(ChSystemParallelDVI* sys)
 {
@@ -50,8 +82,8 @@ void AddContainer(ChSystemParallelDVI* sys)
   bin->SetMaterialSurface(mat);
   bin->SetIdentifier(binId);
   bin->SetMass(1);
-  bin->SetPos(ChVector<>(0,0,0));
-  bin->SetRot(ChQuaternion<>(1,0,0,0));
+  bin->SetPos(ChVector<>(0, 0, 0));
+  bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
   bin->SetCollide(true);
   bin->SetBodyFixed(true);
 
@@ -73,8 +105,8 @@ void AddContainer(ChSystemParallelDVI* sys)
   mixer->SetMaterialSurface(mat);
   mixer->SetIdentifier(mixerId);
   mixer->SetMass(10.0);
-  mixer->SetInertiaXX(ChVector<>(50,50,50));
-  mixer->SetPos(ChVector<>(0,0,0.205));
+  mixer->SetInertiaXX(ChVector<>(50, 50, 50));
+  mixer->SetPos(ChVector<>(0, 0, 0.205));
   mixer->SetBodyFixed(false);
   mixer->SetCollide(true);
 
@@ -86,19 +118,19 @@ void AddContainer(ChSystemParallelDVI* sys)
 
   sys->AddBody(mixer);
 
-  // Create an engine between the two bodies
+  // Create an engine between the two bodies, constrained to rotate at 90 deg/s
   ChSharedPtr<ChLinkEngine> motor(new ChLinkEngine);
 
-  motor->Initialize(mixer, bin,
-                    ChCoordsys<>(ChVector<>(0,0,0), ChQuaternion<>(1,0,0,0)));
+  motor->Initialize(mixer, bin, ChCoordsys<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
   motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
   if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(motor->Get_spe_funct()))
-    mfun->Set_yconst(CH_C_PI/2); // speed w=90°/s
+    mfun->Set_yconst(CH_C_PI/2);
 
   sys->AddLink(motor);
 }
 
 // -----------------------------------------------------------------------------
+// Create the falling spherical objects in a unfiorm rectangular grid.
 // -----------------------------------------------------------------------------
 void AddFallingBalls(ChSystemParallel* sys)
 {
@@ -110,7 +142,7 @@ void AddFallingBalls(ChSystemParallel* sys)
   int        ballId = 0;
   double     mass = 1;
   double     radius = 0.15;
-  ChVector<> inertia = (2.0/5.0)*mass*radius*radius*ChVector<>(1,1,1);
+  ChVector<> inertia = (2.0/5.0)*mass*radius*radius*ChVector<>(1, 1, 1);
 
   for (int ix = -2; ix < 3; ix++) {
     for (int iy = -2; iy < 3; iy++) {
@@ -137,6 +169,7 @@ void AddFallingBalls(ChSystemParallel* sys)
 }
 
 // -----------------------------------------------------------------------------
+// Create the system, specify simulation parameters, and run simulation loop.
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
@@ -148,15 +181,11 @@ int main(int argc, char* argv[])
   double gravity = 9.81;
   double time_step = 1e-3;
   double time_end = 1;
-  int    num_steps = std::ceil(time_end / time_step);
+
+  double out_fps = 50;
 
   uint max_iteration = 50;
   real tolerance = 1e-8;
-
-
-  double out_fps = 50;
-  out_steps = std::ceil((1 / time_step) / out_fps);
-
 
   // Create system
   // -------------
@@ -195,7 +224,6 @@ int main(int argc, char* argv[])
   ((ChCollisionSystemParallel*) msystem.GetCollisionSystem())->setBinsPerAxis(I3(10, 10, 10));
   ((ChCollisionSystemParallel*) msystem.GetCollisionSystem())->setBodyPerBin(100, 50);
 
-
   // Create the fixed and moving bodies
   // ----------------------------------
 
@@ -205,33 +233,32 @@ int main(int argc, char* argv[])
   // Perform the simulation
   // ----------------------
 
-  // The OpenGL manager will automatically run the simulation
+  out_steps = std::ceil((1 / time_step) / out_fps);
+  out_frame = 0;
+
 #ifdef CHRONO_PARALLEL_HAS_OPENGL
+  // The OpenGL manager will automatically run the simulation
   utils::ChOpenGLManager * window_manager = new  utils::ChOpenGLManager();
   utils::ChOpenGL openGLView(window_manager, &msystem, 800, 600, 0, 0, "mixerDVI");
   openGLView.render_camera->camera_position = glm::vec3(0, 5, 10);
   openGLView.render_camera->camera_look_at = glm::vec3(0, 0, 0);
   openGLView.render_camera->camera_scale = 1;
-  openGLView.SetCustomCallback(RunTimeStep);
+#ifdef SAVE_DATA
+  openGLView.SetCustomCallback(SimFrameCallback);
+#endif
   openGLView.StartSpinning(window_manager);
   window_manager->CallGlutMainLoop();
-#endif
-
+#else
+  // Run simulation for specified time
+  int    num_steps = std::ceil(time_end / time_step);
   double time = 0;
-  out_frame = 0;
-  char filename[100];
 
   for (int i = 0; i < num_steps; i++) {
-
-    if (i % out_steps == 0) {
-      sprintf(filename, "%s/data_%03d.dat", out_folder, out_frame);
-      utils::WriteShapesPovray(&msystem, filename);
-      out_frame++;
-    }
-
+    SimFrameCallback(&msystem, i);
     msystem.DoStepDynamics(time_step);
     time += time_step;
   }
+#endif
 
   return 0;
 }
