@@ -10,7 +10,7 @@ void ChConstraintBilateral::Project(custom_vector<real> & gamma) {
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 void ChConstraintBilateral::host_RHS(int2 *ids, real *bi, bool * active, real3 *vel, real3 *omega, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real *rhs) {
 #pragma omp parallel for
-	for (int index = 0; index < number_of_bilaterals; index++) {
+	for (int index = 0; index < num_bilaterals; index++) {
 		uint b1 = ids[index].x;
 		uint b2 = ids[index].y;
 		real temp = 0;
@@ -53,11 +53,11 @@ void ChConstraintBilateral::ComputeJacobians() {
 
 void ChConstraintBilateral::host_Offsets(int2* ids, uint* Body) {
 #pragma omp parallel for
-	for (int index = 0; index < number_of_bilaterals; index++) {
-		if (index < number_of_bilaterals) {
+	for (int index = 0; index < num_bilaterals; index++) {
+		if (index < num_bilaterals) {
 			int2 temp_id = ids[index];
 			Body[index] = temp_id.x;
-			Body[index + number_of_bilaterals] = temp_id.y;
+			Body[index + num_bilaterals] = temp_id.y;
 		}
 	}
 }
@@ -104,13 +104,13 @@ void ChConstraintBilateral::host_shurA(
 		real3* QUVW,
 		uint* offset) {
 #pragma omp parallel for
-	for (int index = 0; index < number_of_bilaterals; index++) {
+	for (int index = 0; index < num_bilaterals; index++) {
 		real gam;
 		gam = gamma[index + number_of_rigid_rigid * 6];
 		uint b1 = ids[index].x;
 
 		int offset1 = offset[index];
-		int offset2 = offset[index + number_of_bilaterals];
+		int offset2 = offset[index + num_bilaterals];
 
 		if (active[b1] != 0) {
 			updateV[offset1] = JXYZA[index] * gam;
@@ -140,7 +140,7 @@ void ChConstraintBilateral::host_shurB(
 		real *AX) {
 
 #pragma omp parallel for
-	for (int index = 0; index < number_of_bilaterals; index++) {
+	for (int index = 0; index < num_bilaterals; index++) {
 
 		real temp = 0;
 		uint b1 = ids[index].x;
@@ -221,7 +221,7 @@ void ChConstraintBilateral::ShurBilaterals(custom_vector<real> &x_t, custom_vect
 		data_container->host_data.QUVW_data[i] = R3(0);
 	}
 
-	for (int index = 0; index < number_of_bilaterals; index++) {
+	for (int index = 0; index < num_bilaterals; index++) {
 		real gam;
 		gam = x_t[index];
 		uint b1 = data_container->host_data.bids_bilateral[index].x;
@@ -239,7 +239,7 @@ void ChConstraintBilateral::ShurBilaterals(custom_vector<real> &x_t, custom_vect
 	}
 
 #pragma omp parallel for
-		for (int index = 0; index < number_of_bilaterals; index++) {
+		for (int index = 0; index < num_bilaterals; index++) {
 
 			real temp = 0;
 			uint b1 = data_container->host_data.bids_bilateral[index].x;
@@ -265,7 +265,7 @@ void ChConstraintBilateral::ShurBilaterals(custom_vector<real> &x_t, custom_vect
 	}
 void ChConstraintBilateral::host_Diag(int2 *ids, bool *active, real *inv_mass, real3 *inv_inertia, real3 *JXYZA, real3 *JXYZB, real3 *JUVWA, real3 *JUVWB, real* diag) {
 #pragma omp parallel for
-	for (int index = 0; index < number_of_bilaterals; index++) {
+	for (int index = 0; index < num_bilaterals; index++) {
 		real3 temp = R3(0);
 		int2 id_ = ids[index];
 		uint b1 = id_.x;

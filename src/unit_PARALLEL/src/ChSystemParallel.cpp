@@ -258,28 +258,28 @@ void ChSystemParallel::UpdateBilaterals() {
       (*it)->ConstraintsLiLoadSuggestedSpeedSolution();
       (*it)->InjectConstraints(*this->LCP_descriptor);
    }
-   unsigned int number_of_bilaterals = 0;
+   unsigned int num_bilaterals = 0;
    std::vector<ChLcpConstraint *> &mconstraints = (*this->LCP_descriptor).GetConstraintsList();
    vector<int> mapping;
 
    for (uint ic = 0; ic < mconstraints.size(); ic++) {
       if (mconstraints[ic]->IsActive() == true) {
-         number_of_bilaterals++;
+         num_bilaterals++;
          mapping.push_back(ic);
       }
    }
-   gpu_data_manager->number_of_bilaterals = number_of_bilaterals;
+   gpu_data_manager->num_bilaterals = num_bilaterals;
 
-   gpu_data_manager->host_data.JXYZA_bilateral.resize(number_of_bilaterals);
-   gpu_data_manager->host_data.JXYZB_bilateral.resize(number_of_bilaterals);
-   gpu_data_manager->host_data.JUVWA_bilateral.resize(number_of_bilaterals);
-   gpu_data_manager->host_data.JUVWB_bilateral.resize(number_of_bilaterals);
-   gpu_data_manager->host_data.residual_bilateral.resize(number_of_bilaterals);
-   gpu_data_manager->host_data.correction_bilateral.resize(number_of_bilaterals);
-   gpu_data_manager->host_data.bids_bilateral.resize(number_of_bilaterals);
-   gpu_data_manager->host_data.gamma_bilateral.resize(number_of_bilaterals);
+   gpu_data_manager->host_data.JXYZA_bilateral.resize(num_bilaterals);
+   gpu_data_manager->host_data.JXYZB_bilateral.resize(num_bilaterals);
+   gpu_data_manager->host_data.JUVWA_bilateral.resize(num_bilaterals);
+   gpu_data_manager->host_data.JUVWB_bilateral.resize(num_bilaterals);
+   gpu_data_manager->host_data.residual_bilateral.resize(num_bilaterals);
+   gpu_data_manager->host_data.correction_bilateral.resize(num_bilaterals);
+   gpu_data_manager->host_data.bids_bilateral.resize(num_bilaterals);
+   gpu_data_manager->host_data.gamma_bilateral.resize(num_bilaterals);
 #pragma omp parallel for
-   for (int i = 0; i < number_of_bilaterals; i++) {
+   for (int i = 0; i < num_bilaterals; i++) {
       int cntr = mapping[i];
       ChLcpConstraintTwoBodies *mbilateral = (ChLcpConstraintTwoBodies *) (mconstraints[cntr]);
       int idA = ((ChBody *) ((ChLcpVariablesBody *) (mbilateral->GetVariables_a()))->GetUserData())->GetId();

@@ -160,7 +160,7 @@ ChLcpSolverParallelDEM::host_CalcContactForces(
     custom_vector<real3>&  ext_body_torque)
 {
 #pragma omp parallel for
-  for (int index = 0; index < data_container->number_of_rigid_rigid; index++) {
+  for (int index = 0; index < data_container->num_contacts; index++) {
     function_CalcContactForces(
       index,
       step_size,
@@ -216,15 +216,15 @@ void ChLcpSolverParallelDEM::ProcessContacts()
   // 0. If the narrowphase collision detection does not set the effective
   //    contact radius, fill it with the value 1.
   if (!data_container->erad_is_set)
-    data_container->host_data.erad_rigid_rigid.resize(data_container->number_of_rigid_rigid, 1.0);
+    data_container->host_data.erad_rigid_rigid.resize(data_container->num_contacts, 1.0);
 
   // 1. Calculate contact forces and torques - per contact basis
   //    For each pair of contact shapes that overlap, we calculate and store the
   //    IDs of the two corresponding bodies and the resulting contact forces and
   //    torques on the two bodies.
-  custom_vector<int>   ext_body_id(2 * data_container->number_of_rigid_rigid);
-  custom_vector<real3> ext_body_force(2 * data_container->number_of_rigid_rigid);
-  custom_vector<real3> ext_body_torque(2 * data_container->number_of_rigid_rigid);
+  custom_vector<int>   ext_body_id(2 * data_container->num_contacts);
+  custom_vector<real3> ext_body_force(2 * data_container->num_contacts);
+  custom_vector<real3> ext_body_torque(2 * data_container->num_contacts);
 
   host_CalcContactForces(ext_body_id, ext_body_force, ext_body_torque);
 
@@ -274,11 +274,11 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
   step_size = step;
   data_container->step_size = step;
 
-  number_of_constraints = data_container->number_of_bilaterals;
+  number_of_constraints = data_container->num_bilaterals;
   number_of_objects = data_container->number_of_rigid;
 
   // Calculate contact forces (impulses) and append them to the body forces
-  if (data_container->number_of_rigid_rigid)
+  if (data_container->num_contacts > 0)
     ProcessContacts();
 
   // Include forces and torques (update derivatives: v += m_inv * h * f)
@@ -291,7 +291,7 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
   data_container->system_timer.start("ChLcpSolverParallel_Setup");
 
   //// HACK
-  data_container->number_of_rigid_rigid = 0;
+  data_container->num_contacts = 0;
 
   data_container->host_data.rhs_data.resize(number_of_constraints);
   data_container->host_data.diag.resize(number_of_constraints);
@@ -326,14 +326,14 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
 
   data_container->system_timer.start("ChLcpSolverParallel_Stab");
   solver.SolveStab(max_iter_bilateral,
-                   data_container->number_of_bilaterals,
+                   data_container->num_bilaterals,
                    data_container->host_data.rhs_data,
                    data_container->host_data.gamma_bilateral);
 
   data_container->system_timer.stop("ChLcpSolverParallel_Stab");
 
   thrust::copy_n(data_container->host_data.gamma_bilateral.begin(),
-                 data_container->number_of_bilaterals,
+                 data_container->num_bilaterals,
                  data_container->host_data.gamma_data.begin());
 
   solver.ComputeImpulses();

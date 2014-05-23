@@ -83,7 +83,7 @@ void ChCollisionSystemParallel::Run() {
 
 	data_container->host_data.old_pair_rigid_rigid = data_container->host_data.pair_rigid_rigid;
 	data_container->host_data.old_norm_rigid_rigid = data_container->host_data.norm_rigid_rigid;
-	data_container->old_number_of_rigid_rigid = data_container->number_of_rigid_rigid;
+	data_container->old_num_contacts = data_container->num_contacts;
 	mtimer_cd_broad.start();
 
 	aabb_generator.GenerateAABB(

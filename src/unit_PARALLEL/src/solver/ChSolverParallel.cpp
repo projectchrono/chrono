@@ -169,19 +169,19 @@ void ChSolverParallel::Solve(
          //SolveQMR(data_container->gpu_data.device_gam_data, rhs, max_iteration);
       } else if (solver_type == ACCELERATED_PROJECTED_GRADIENT_DESCENT || solver_type == APGDRS) {
          if (do_stab) {
-            custom_vector<real> rhs_bilateral(data_container->number_of_bilaterals);
-            thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals, rhs_bilateral.begin());
+            custom_vector<real> rhs_bilateral(data_container->num_bilaterals);
+            thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->num_contacts * 6, data_container->num_bilaterals, rhs_bilateral.begin());
 
             for (int i = 0; i < 4; i++) {
                total_iteration += SolveAPGDRS(max_iteration/8, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
 
-               thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6, data_container->number_of_bilaterals,
+               thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->num_contacts * 6, data_container->num_bilaterals,
                               data_container->host_data.gamma_bilateral.begin());
 
-               SolveStab(5, number_of_bilaterals,rhs_bilateral,data_container->host_data.gamma_bilateral);
+               SolveStab(5, num_bilaterals,rhs_bilateral,data_container->host_data.gamma_bilateral);
 
-               thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->number_of_bilaterals,
-                              data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 6);
+               thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->num_bilaterals,
+                              data_container->host_data.gamma_data.begin() + data_container->num_contacts * 6);
 
                total_iteration += SolveAPGDRS(max_iteration/8, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
             }
@@ -198,7 +198,7 @@ void ChSolverParallel::Solve(
       }
       //		thrust::copy_n(
       //				data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 3,
-      //				data_container->number_of_bilaterals,
+      //				data_container->num_bilaterals,
       //				data_container->host_data.gamma_bilateral.begin());
 
       current_iteration = total_iteration;

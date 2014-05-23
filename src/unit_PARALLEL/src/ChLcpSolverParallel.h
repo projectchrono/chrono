@@ -50,7 +50,6 @@ class ChApiGPU ChLcpSolverParallel : public ChLcpIterativeSolver {
   void host_Integrate_Timestep(bool *active, real3 *acc, real4 *rot, real3 *vel, real3 *omega, real3 *pos, real3 *lim);
 
   virtual void RunTimeStep(real step) = 0;
-  void RunStab(real step);
   void Preprocess();
 
   void SetTolerance(real tol) {
@@ -88,7 +87,6 @@ class ChApiGPU ChLcpSolverParallel : public ChLcpIterativeSolver {
   real tolerance;
 
   real step_size;
-  uint number_of_bilaterals;
   uint number_of_objects;
   uint number_of_updates;
   uint number_of_constraints;

@@ -58,7 +58,7 @@ CH_RTTI(ChSystemParallel, ChSystem)
   virtual void ChangeCollisionSystem(ChCollisionSystem *newcollsystem);
 
   int GetNcontacts() {
-    return gpu_data_manager->number_of_rigid_rigid;
+    return gpu_data_manager->num_contacts;
   }
 
   void SetAABB(real3 aabbmin, real3 aabbmax) {

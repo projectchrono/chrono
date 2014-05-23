@@ -3,11 +3,11 @@
 using namespace chrono;
 
 ChParallelDataManager::ChParallelDataManager()
-:	number_of_rigid_rigid(0),
+:	num_contacts(0),
 	number_of_models(0),
 	number_of_rigid(0),
-	number_of_bilaterals(0),
-	number_of_contacts_possible(0),
+  num_unilaterals(0),
+	num_bilaterals(0),
 	erad_is_set(false)
 {
 }

@@ -29,7 +29,7 @@ public:
 		              data_container->host_data.cptb_rigid_rigid,
 		              data_container->host_data.dpth_rigid_rigid,
 		              data_container->host_data.bids_rigid_rigid,
-		              data_container->number_of_rigid_rigid);
+		              data_container->num_contacts);
 	}
 
 	virtual void Update(ChParallelDataManager* data_container)
@@ -43,7 +43,7 @@ public:
 		                  data_container->host_data.active_data,
 		                  data_container->host_data.pos_new_data,
 		                  data_container->host_data.rot_new_data,
-		                  data_container->number_of_rigid_rigid,
+		                  data_container->num_contacts,
 		                  data_container->host_data.norm_rigid_rigid,
 		                  data_container->host_data.cpta_rigid_rigid,
 		                  data_container->host_data.cptb_rigid_rigid,

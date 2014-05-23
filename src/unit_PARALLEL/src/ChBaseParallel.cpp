@@ -3,9 +3,10 @@ using namespace chrono;
 
 void ChBaseParallel::Initialize() {
    number_of_rigid = data_container->number_of_rigid;
-   number_of_rigid_rigid = data_container->number_of_rigid_rigid;
-   number_of_bilaterals = data_container->number_of_bilaterals;
-   number_of_constraints = data_container->number_of_rigid_rigid * 6 + data_container->number_of_bilaterals;
+   number_of_rigid_rigid = data_container->num_contacts;
+   num_unilaterals = data_container->num_unilaterals;
+   num_bilaterals = data_container->num_bilaterals;
+   number_of_constraints = data_container->num_contacts * 6 + data_container->num_bilaterals;
    number_of_updates = 0;
    step_size = data_container->step_size;
    alpha = data_container->alpha;

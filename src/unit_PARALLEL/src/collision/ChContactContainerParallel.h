@@ -20,6 +20,7 @@
 #include <list>
 #include "ChApiParallel.h"
 #include "ChDataManager.h"
+
 namespace chrono {
 /// Class representing a container of many contacts,
 /// implemented as a typical linked list of ChContactGPUsimple
@@ -37,27 +38,17 @@ class ChApiGPU ChContactContainerParallel: public ChContactContainer {
 	protected:
 
 	public:
-		//
-		// CONSTRUCTORS
-		//
 
 		ChContactContainerParallel();
 
 		virtual ~ChContactContainerParallel();
-		int GetNcontacts() {
-			return data_container->number_of_rigid_rigid;
-
-		}
-		//
-		// FUNCTIONS
-		//
+		int GetNcontacts() {return data_container->num_contacts;}
 
 		ChParallelDataManager* data_container;
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-}// END_OF_NAMESPACE____
+
+}
 
 #endif
 

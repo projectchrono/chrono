@@ -159,7 +159,7 @@ uint ChSolverParallel::SolveAPGD(const uint max_iter,const uint size,const custo
 
       real g_proj_norm = Res4(x.size(), mg_tmp.data(), b.data(), ml.data(), mb_tmp.data());
 
-      if (number_of_bilaterals > 0) {
+      if (num_bilaterals > 0) {
 
          real resid_bilat = -1;
 

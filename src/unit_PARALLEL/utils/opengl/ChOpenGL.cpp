@@ -409,7 +409,7 @@ void ChOpenGL::DrawContactsGPU(ChSystemParallel* system_gpu) {
 	if (contact_mode == POINTS) {
 		glBegin (GL_POINTS);
 
-		for (int i = 0; i < coll_sys->data_container->number_of_rigid_rigid; i++) {
+		for (int i = 0; i < coll_sys->data_container->num_contacts; i++) {
 			int2 id = coll_sys->data_container->host_data.bids_rigid_rigid[i];
 
 			real3 vN = coll_sys->data_container->host_data.norm_rigid_rigid[i];
@@ -426,7 +426,7 @@ void ChOpenGL::DrawContactsGPU(ChSystemParallel* system_gpu) {
 	if (contact_mode == LAGRANGE) {
 		glBegin (GL_LINES);
 
-		for (int i = 0; i < coll_sys->data_container->number_of_rigid_rigid; i++) {
+		for (int i = 0; i < coll_sys->data_container->num_contacts; i++) {
 			int2 cid = coll_sys->data_container->host_data.bids_rigid_rigid[i];
 			//real3 vN = coll_sys->data_container->host_norm_data[i];
 			//real3 vpA = coll_sys->data_container->host_cpta_data[i];

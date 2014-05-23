@@ -35,7 +35,7 @@ void ChCNarrowphaseR::Process(ChParallelDataManager* data_container)
 		dpth_data.resize(0);
 		erad_data.resize(0);
 		bids_data.resize(0);
-		data_container->number_of_rigid_rigid = 0;
+		data_container->num_contacts = 0;
 		return;
 	}
 
@@ -71,7 +71,7 @@ void ChCNarrowphaseR::Process(ChParallelDataManager* data_container)
 	// Evaluate the number of actual contacts
 	uint number_of_contacts = num_potentialContacts - thrust::count(contact_flag.begin(), contact_flag.end(), 1);
 
-	data_container->number_of_rigid_rigid = number_of_contacts;
+	data_container->num_contacts = number_of_contacts;
 	data_container->erad_is_set = true;
 
 	// Remove unused array portions
