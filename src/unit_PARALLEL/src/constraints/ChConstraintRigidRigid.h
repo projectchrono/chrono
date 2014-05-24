@@ -12,6 +12,7 @@ public:
 
 		data_container = data_container_;
 		Initialize();
+    num_updates = 0;
 
 		if (number_of_rigid_rigid > 0) {
 			update_number.resize((number_of_rigid_rigid) * 2, 0);
@@ -29,7 +30,7 @@ public:
 			thrust::sort_by_key(thrust::omp::par, body_num.begin(), body_num.end(), update_number.begin());
 			thrust::sort_by_key(thrust::omp::par, update_number.begin(), update_number.end(), update_offset.begin());
 			body_number = body_num;
-			number_of_updates = (thrust::reduce_by_key(body_num.begin(), body_num.end(), thrust::constant_iterator<uint>(1), update_number.begin(), offset_counter.begin()).second)
+			num_updates = (thrust::reduce_by_key(body_num.begin(), body_num.end(), thrust::constant_iterator<uint>(1), update_number.begin(), offset_counter.begin()).second)
 					- offset_counter.begin();
 			thrust::inclusive_scan(offset_counter.begin(), offset_counter.end(), offset_counter.begin());
 
@@ -130,6 +131,7 @@ protected:
 	custom_vector<int> body_number;
 	int count_shur_a_sliding;
 
+  uint num_updates;
 };
 }
 

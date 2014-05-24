@@ -11,6 +11,7 @@ class ChApiGPU ChConstraintBilateral: public ChBaseParallel {
 		void Setup(ChParallelDataManager *data_container_) {
 			data_container = data_container_;
 			Initialize();
+      num_updates = 0;
 
 			if (num_bilaterals > 0) {
 				update_number.resize(2 * num_bilaterals, 0);
@@ -28,7 +29,7 @@ class ChApiGPU ChConstraintBilateral: public ChBaseParallel {
 				thrust::sort_by_key(thrust::omp::par, body_num.begin(), body_num.end(), update_number.begin());
 				thrust::sort_by_key(thrust::omp::par, update_number.begin(), update_number.end(), update_offset.begin());
 				body_number = body_num;
-				number_of_updates = (thrust::reduce_by_key(body_num.begin(), body_num.end(), thrust::constant_iterator<uint>(1), update_number.begin(), offset_counter.begin()).second)
+				num_updates = (thrust::reduce_by_key(body_num.begin(), body_num.end(), thrust::constant_iterator<uint>(1), update_number.begin(), offset_counter.begin()).second)
 						- offset_counter.begin();
 				thrust::inclusive_scan(offset_counter.begin(), offset_counter.end(), offset_counter.begin());
 			}
@@ -97,6 +98,7 @@ class ChApiGPU ChConstraintBilateral: public ChBaseParallel {
 		custom_vector<uint> offset_counter;
 		custom_vector<uint> body_number;
 
+    uint num_updates;
 	}
 	;}
 

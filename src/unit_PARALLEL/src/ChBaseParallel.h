@@ -28,7 +28,6 @@ class ChApiGPU ChBaseParallel {
    uint num_unilaterals;
    uint num_bilaterals;
    uint number_of_constraints;
-   uint number_of_updates;
 
    real step_size;
 

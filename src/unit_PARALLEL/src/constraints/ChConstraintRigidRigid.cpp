@@ -679,7 +679,7 @@ void ChConstraintRigidRigid::host_shurB_spinning(const real & alpha, int2 * ids,
 void ChConstraintRigidRigid::host_Reduce_Shur(bool* active, real3* QXYZ, real3* QUVW, real * inv_mass, real3 * inv_inertia, real3* updateQXYZ, real3* updateQUVW, int* d_body_num,
 		int* counter, int* reverse_offset) {
 #pragma omp parallel for
-	for (int index = 0; index < number_of_updates; index++) {
+	for (int index = 0; index < num_updates; index++) {
 
 		int start = (index == 0) ? 0 : counter[index - 1], end = counter[index];
 		int id = d_body_num[end - 1], j;

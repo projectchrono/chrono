@@ -8,8 +8,6 @@ void ChBaseParallel::Initialize() {
    num_bilaterals = data_container->num_bilaterals;
    number_of_constraints = data_container->num_unilaterals + data_container->num_bilaterals;
 
-   number_of_updates = 0;
-
    step_size = data_container->step_size;
    alpha = data_container->alpha;
    contact_recovery_speed = data_container->contact_recovery_speed;
