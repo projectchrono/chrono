@@ -10,17 +10,17 @@
 #
 
 SET(ChronoEngine_Utils_SOURCES
-    creators.cpp
-    generators.cpp
-    input_output.cpp
+    ChUtilsCreators.cpp
+    ChUtilsGenerators.cpp
+    ChUtilsInputOutput.cpp
     )
 
 SET(ChronoEngine_Utils_HEADERS
-    common.h
-    creators.h
-    generators.h
-    samplers.h
-    input_output.h
+    ChUtilsCommon.h
+    ChUtilsCreators.h
+    ChUtilsGenerators.h
+    ChUtilsSamplers.h
+    ChUtilsInputOutput.h
     )
 
 #
@@ -29,6 +29,7 @@ SET(ChronoEngine_Utils_HEADERS
 
 INCLUDE_DIRECTORIES(
     ${CHRONO_INC}
+    ${CMAKE_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/src
     ${LIBRARY_OUTPUT_PATH} 
     )

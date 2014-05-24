@@ -10,9 +10,9 @@
 
 #include "ChParallelDefines.h"
 
-#include "ChApiUtils.h"
-#include "common.h"
-#include "creators.h"
+#include "utils/ChApiUtils.h"
+#include "utils/ChUtilsCommon.h"
+#include "utils/ChUtilsCreators.h"
 
 
 namespace chrono {

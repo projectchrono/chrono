@@ -31,8 +31,8 @@
 #include "ChSystemParallel.h"
 #include "ChLcpSystemDescriptorParallel.h"
 
-#include "utils/creators.h"
-#include "utils/input_output.h"
+#include "utils/ChUtilsCreators.h"
+#include "utils/ChUtilsInputOutput.h"
 
 #ifdef CHRONO_PARALLEL_HAS_OPENGL
 #include "utils/opengl/ChOpenGL.h"

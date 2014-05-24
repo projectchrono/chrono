@@ -24,8 +24,8 @@
 #include "assets/ChConeShape.h"
 #include "assets/ChTriangleMeshShape.h"
 
-#include "ChApiUtils.h"
-#include "common.h"
+#include "utils/ChApiUtils.h"
+#include "utils/ChUtilsCommon.h"
 
 
 namespace chrono {
