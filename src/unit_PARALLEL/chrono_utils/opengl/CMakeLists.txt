@@ -36,6 +36,7 @@ SET(INCLUDE_DIR
 	${CHRONO_INC}/collision 
 	${CHRONO_INC}/collision/bullet/ 
 	${CMAKE_SOURCE_DIR}
+	${CMAKE_BINARY_DIR}
 	${FREEGLUT_INC_PATH}
 	${GLM_INCLUDE_DIRS}
 	)

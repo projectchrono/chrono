@@ -1,7 +1,7 @@
 #ifndef CHTHRUSTLINEARALGEBRA_H
 #define CHTHRUSTLINEARALGEBRA_H
 
-#include "ChConfigParallel.h"
+#include "chrono_parallel/ChConfigParallel.h"
 #include "chrono_parallel/math/ChParallelMath.h"
 
 static void SEAXPY(const real &a, const custom_vector<real> &x,const custom_vector<real> &y, custom_vector<real> &output)

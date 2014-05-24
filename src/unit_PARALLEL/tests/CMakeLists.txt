@@ -1,7 +1,7 @@
 #--------------------------------------------------------------
 # Additional include paths (for ChronoEngine_Utils)
 INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}"
-                    ${LIBRARY_OUTPUT_PATH}
+                    ${CMAKE_BINARY_DIR}
                     ${FREEGLUT_INC_PATH}
                     ${GLM_INCLUDE_DIRS})
 
