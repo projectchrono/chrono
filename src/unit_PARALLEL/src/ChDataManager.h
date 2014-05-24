@@ -102,14 +102,15 @@ namespace chrono {
 
 			host_container host_data;
 
-			//Indexing variables
-			uint num_contacts;
-			uint old_num_contacts;
-			uint number_of_models;
-			uint number_of_rigid;
+      //Indexing variables
+      uint num_bodies;
+      uint num_models;
+      uint num_contacts;
+      uint old_num_contacts;
       uint num_unilaterals;
-			uint num_bilaterals;
-			uint number_of_updates;
+      uint num_bilaterals;
+      uint num_constraints;
+      uint number_of_updates;
 
 			//Collision variables
 			real3 min_bounding_point, max_bounding_point;

@@ -50,7 +50,7 @@ void ChCollisionSystemParallel::Add(ChCollisionModel *model) {
 			data_container->host_data.fam_rigid.push_back(fam);
 			data_container->host_data.typ_rigid.push_back(body->mData[j].type);
 			data_container->host_data.id_rigid.push_back(body_id);
-			data_container->number_of_models++;
+			data_container->num_models++;
 		}
 	}
 }
@@ -68,7 +68,7 @@ void ChCollisionSystemParallel::Remove(ChCollisionModel *model) {
 //                    data_container->host_ObR_data.erase(data_container->host_ObR_data.begin() + i);
 //                    data_container->host_fam_data.erase(data_container->host_fam_data.begin() + i);
 //                    data_container->host_typ_data.erase(data_container->host_typ_data.begin() + i);
-//                    data_container->number_of_models--;
+//                    data_container->num_models--;
 //                    return;
 //                }
 //            }
@@ -77,7 +77,7 @@ void ChCollisionSystemParallel::Remove(ChCollisionModel *model) {
 }
 
 void ChCollisionSystemParallel::Run() {
-	if (data_container->number_of_models <= 0) {
+	if (data_container->num_models <= 0) {
 		return;
 	}
 

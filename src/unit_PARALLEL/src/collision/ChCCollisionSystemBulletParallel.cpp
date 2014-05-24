@@ -81,7 +81,7 @@ void ChCollisionSystemBulletParallel::Add(ChCollisionModel* model) {
 		((ChModelBullet*) model)->GetBulletModel()->setCompanionId(counter);
 		bt_collision_world->addCollisionObject(((ChModelBullet*) model)->GetBulletModel(), ((ChModelBullet*) model)->GetFamilyGroup(), ((ChModelBullet*) model)->GetFamilyMask());
 		counter++;
-		data_container->number_of_models++;
+		data_container->num_models++;
 	}
 }
 

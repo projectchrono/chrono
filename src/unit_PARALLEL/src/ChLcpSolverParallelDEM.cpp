@@ -238,9 +238,9 @@ void ChLcpSolverParallelDEM::ProcessContacts()
     ext_body_id.begin(), ext_body_id.end(),
     thrust::make_zip_iterator(thrust::make_tuple(ext_body_force.begin(), ext_body_torque.begin())));
 
-  custom_vector<int>   ct_body_id(data_container->number_of_rigid);
-  custom_vector<real3> ct_body_force(data_container->number_of_rigid);
-  custom_vector<real3> ct_body_torque(data_container->number_of_rigid);
+  custom_vector<int>   ct_body_id(data_container->num_bodies);
+  custom_vector<real3> ct_body_force(data_container->num_bodies);
+  custom_vector<real3> ct_body_torque(data_container->num_bodies);
 
   // Reduce contact forces from all contacts and count bodies currently involved
   // in contact. We do this simultaneously for contact forces and torques, using
@@ -274,8 +274,8 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
   step_size = step;
   data_container->step_size = step;
 
-  number_of_constraints = data_container->num_bilaterals;
-  number_of_objects = data_container->number_of_rigid;
+  data_container->num_unilaterals = 0;
+  data_container->num_constraints = data_container->num_bilaterals;
 
   // Calculate contact forces (impulses) and append them to the body forces
   if (data_container->num_contacts > 0)
@@ -285,7 +285,7 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
   Preprocess();
 
   // Return now if there are no (bilateral) constraints
-  if (number_of_constraints == 0)
+  if (data_container->num_constraints == 0)
     return;
 
   data_container->system_timer.start("ChLcpSolverParallel_Setup");
@@ -293,13 +293,13 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
   //// HACK
   data_container->num_contacts = 0;
 
-  data_container->host_data.rhs_data.resize(number_of_constraints);
-  data_container->host_data.diag.resize(number_of_constraints);
-  data_container->host_data.gamma_data.resize(number_of_constraints);
+  data_container->host_data.rhs_data.resize(data_container->num_constraints);
+  data_container->host_data.diag.resize(data_container->num_constraints);
+  data_container->host_data.gamma_data.resize(data_container->num_constraints);
 
   //// TODO: Is this needed?  If yes, then initialize gamma_bilateral!!
 #pragma omp parallel for
-  for (int i = 0; i < number_of_constraints; i++) {
+  for (int i = 0; i < data_container->num_constraints; i++) {
     data_container->host_data.gamma_data[i] = 0;
   }
 

@@ -163,7 +163,7 @@ uint ChSolverParallel::SolveAPGD(const uint max_iter,const uint size,const custo
 
          real resid_bilat = -1;
 
-         for (int i = number_of_rigid_rigid * 6; i < x.size(); i++) {
+         for (int i = num_unilaterals; i < x.size(); i++) {
             resid_bilat = max(resid_bilat, fabs(mg_tmp2[i]));
          }
          g_proj_norm = max(g_proj_norm, resid_bilat);

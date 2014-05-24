@@ -36,7 +36,7 @@ void ChLcpSolverParallel::host_addForces(
     real3* omega)
 {
 #pragma omp parallel for
-  for (int index = 0; index < number_of_objects; index++) {
+  for (int index = 0; index < data_container->num_bodies; index++) {
     function_addForces(index, active, mass, inertia, forces, torques, vel, omega);
   }
 }
@@ -63,25 +63,25 @@ void ChLcpSolverParallel::host_ComputeGyro(
     real3* torque)
 {
 #pragma omp parallel for
-  for (int index = 0; index < number_of_objects; index++) {
+  for (int index = 0; index < data_container->num_bodies; index++) {
     function_ComputeGyro(index, omega, inertia, gyro, torque);
   }
 }
 
 void ChLcpSolverParallel::Preprocess() {
   data_container->number_of_updates = 0;
-  data_container->host_data.gyr_data.resize(number_of_objects);
+  data_container->host_data.gyr_data.resize(data_container->num_bodies);
 
 #ifdef SIM_ENABLE_GPU_MODE
 
-  COPY_TO_CONST_MEM(number_of_rigid);
+  COPY_TO_CONST_MEM(data_container->num_bodies);
 
-  device_ComputeGyro CUDA_KERNEL_DIM(BLOCKS(number_of_rigid), THREADS)(
+  device_ComputeGyro CUDA_KERNEL_DIM(BLOCKS(data_container->num_bodies), THREADS)(
       CASTR3(data_container->device_data.device_omg_data),
       CASTR3(data_container->device_data.device_inr_data),
       CASTR3(data_container->device_data.device_gyr_data),
       CASTR3(data_container->device_data.device_trq_data));
-  device_addForces CUDA_KERNEL_DIM(BLOCKS(number_of_rigid), THREADS)(
+  device_addForces CUDA_KERNEL_DIM(BLOCKS(data_container->num_bodies), THREADS)(
       CASTB1(data_container->device_data.device_active_data),
       CASTR1(data_container->device_data.device_mass_data),
       CASTR3(data_container->device_data.device_inr_data),
@@ -90,11 +90,10 @@ void ChLcpSolverParallel::Preprocess() {
       CASTR3(data_container->device_data.device_vel_data),
       CASTR3(data_container->device_data.device_omg_data));
 #else
-  //	host_ComputeGyro(
-  //			data_container->host_data.omg_data.data(),
-  //			data_container->host_data.inr_data.data(),
-  //			data_container->host_data.gyr_data.data(),
-  //			data_container->host_data.trq_data.data());
+  //host_ComputeGyro(data_container->host_data.omg_data.data(),
+  //                 data_container->host_data.inr_data.data(),
+  //                 data_container->host_data.gyr_data.data(),
+  //                 data_container->host_data.trq_data.data());
 
   host_addForces(data_container->host_data.active_data.data(),
                  data_container->host_data.mass_data.data(),

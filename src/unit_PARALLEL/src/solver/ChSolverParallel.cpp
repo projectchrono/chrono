@@ -110,7 +110,7 @@ void ChSolverParallel::UpdatePosition(
    data_container->host_data.omg_new_data + data_container->host_data.omg_data + data_container->host_data.QUVW_data;
 
 #pragma omp parallel for
-   for (int i = 0; i < data_container->number_of_rigid; i++) {
+   for (int i = 0; i < data_container->num_bodies; i++) {
 
       data_container->host_data.pos_new_data[i] = data_container->host_data.pos_data[i] + data_container->host_data.vel_new_data[i] * step_size;
       //real3 dp = data_container->host_data.pos_new_data[i]-data_container->host_data.pos_data[i];
@@ -170,18 +170,18 @@ void ChSolverParallel::Solve(
       } else if (solver_type == ACCELERATED_PROJECTED_GRADIENT_DESCENT || solver_type == APGDRS) {
          if (do_stab) {
             custom_vector<real> rhs_bilateral(data_container->num_bilaterals);
-            thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->num_contacts * 6, data_container->num_bilaterals, rhs_bilateral.begin());
+            thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->num_unilaterals, data_container->num_bilaterals, rhs_bilateral.begin());
 
             for (int i = 0; i < 4; i++) {
                total_iteration += SolveAPGDRS(max_iteration/8, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
 
-               thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->num_contacts * 6, data_container->num_bilaterals,
+               thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->num_unilaterals, data_container->num_bilaterals,
                               data_container->host_data.gamma_bilateral.begin());
 
                SolveStab(5, num_bilaterals,rhs_bilateral,data_container->host_data.gamma_bilateral);
 
                thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->num_bilaterals,
-                              data_container->host_data.gamma_data.begin() + data_container->num_contacts * 6);
+                              data_container->host_data.gamma_data.begin() + data_container->num_unilaterals);
 
                total_iteration += SolveAPGDRS(max_iteration/8, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
             }

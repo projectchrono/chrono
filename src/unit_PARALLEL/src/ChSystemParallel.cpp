@@ -61,7 +61,7 @@ int ChSystemParallel::Integrate_Y() {
 
    //=============================================================================================
    if (use_aabb_active) {
-      vector<bool> body_active(gpu_data_manager->number_of_rigid, false);
+      vector<bool> body_active(gpu_data_manager->num_bodies, false);
       ((ChCollisionSystemParallel*) collision_system)->GetOverlappingAABB(body_active, aabb_min, aabb_max);
       for (int i = 0; i < bodylist.size(); i++) {
          if (bodylist[i]->IsActive() == true && bodylist[i]->GetCollide() == true) {
@@ -202,9 +202,8 @@ void ChSystemParallel::AddBody(
    // Let derived classes load specific material surface data
    LoadMaterialSurfaceData(newbody);
 
-   //newbody->gpu_data_manager = gpu_data_manager;
    counter++;
-   gpu_data_manager->number_of_rigid = counter;
+   gpu_data_manager->num_bodies = counter;
 }
 
 void ChSystemParallel::RemoveBody(

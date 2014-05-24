@@ -24,7 +24,7 @@ void ChConstraintBilateral::host_RHS(int2 *ids, real *bi, bool * active, real3 *
 			temp += dot(JUVWB[index], omega[b2]);
 
 		}
-		rhs[index + number_of_rigid_rigid * 6] = -temp - bi[index];     //(temp + fmax(inv_hpa * correction[index], real(-recovery_speed)));
+		rhs[index + num_unilaterals] = -temp - bi[index];     //(temp + fmax(inv_hpa * correction[index], real(-recovery_speed)));
 	}
 
 }
@@ -106,7 +106,7 @@ void ChConstraintBilateral::host_shurA(
 #pragma omp parallel for
 	for (int index = 0; index < num_bilaterals; index++) {
 		real gam;
-		gam = gamma[index + number_of_rigid_rigid * 6];
+		gam = gamma[index + num_unilaterals];
 		uint b1 = ids[index].x;
 
 		int offset1 = offset[index];
@@ -161,7 +161,7 @@ void ChConstraintBilateral::host_shurB(
 
 		}
 
-		AX[index + number_of_rigid_rigid * 6] = temp;
+		AX[index + num_unilaterals] = temp;
 	}
 
 }
@@ -289,7 +289,7 @@ void ChConstraintBilateral::host_Diag(int2 *ids, bool *active, real *inv_mass, r
 			eta.x += dot(JUVWB[index] * JUVWB[index], inverse_inertia);
 
 		}
-		diag[index + number_of_rigid_rigid * 6] = eta.x;
+		diag[index + num_unilaterals] = eta.x;
 
 	}
 }
