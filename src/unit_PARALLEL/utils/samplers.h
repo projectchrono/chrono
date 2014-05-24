@@ -9,6 +9,7 @@
 
 #include "core/ChVector.h"
 
+#include "ChApiUtils.h"
 #include "common.h"
 
 

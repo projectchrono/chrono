@@ -10,6 +10,7 @@
 
 #include "ChParallelDefines.h"
 
+#include "ChApiUtils.h"
 #include "common.h"
 #include "creators.h"
 

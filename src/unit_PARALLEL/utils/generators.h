@@ -20,6 +20,7 @@
 
 #include "ChSystemParallel.h"
 
+#include "ChApiUtils.h"
 #include "common.h"
 #include "samplers.h"
 #include "creators.h"

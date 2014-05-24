@@ -24,8 +24,7 @@
 #include "assets/ChConeShape.h"
 #include "assets/ChTriangleMeshShape.h"
 
-//#include "ChSystemParallel.h"
-
+#include "ChApiUtils.h"
 #include "common.h"
 
 

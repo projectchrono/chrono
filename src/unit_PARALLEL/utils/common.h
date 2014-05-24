@@ -3,22 +3,10 @@
 
 #include <random>
 
-#include "core/ChPlatform.h"
 #include "physics/ChSystem.h"
 #include "physics/ChSystemDEM.h"
 
 #include "ChSystemParallel.h"
-
-
-// -------------------------------------------------------------------------------
-// DLL define
-// -------------------------------------------------------------------------------
-#if defined(CH_API_COMPILE_UTILS)
-#define CH_UTILS_API ChApiEXPORT
-#else
-#define CH_UTILS_API ChApiINPORT
-#endif
-
 
 namespace chrono {
 namespace utils {
