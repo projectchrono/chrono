@@ -110,7 +110,6 @@ namespace chrono {
       uint num_unilaterals;
       uint num_bilaterals;
       uint num_constraints;
-      uint number_of_updates;
 
 			//Collision variables
 			real3 min_bounding_point, max_bounding_point;

@@ -69,7 +69,6 @@ void ChLcpSolverParallel::host_ComputeGyro(
 }
 
 void ChLcpSolverParallel::Preprocess() {
-  data_container->number_of_updates = 0;
   data_container->host_data.gyr_data.resize(data_container->num_bodies);
 
 #ifdef SIM_ENABLE_GPU_MODE

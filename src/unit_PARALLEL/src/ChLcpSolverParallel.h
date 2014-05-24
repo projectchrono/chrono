@@ -87,7 +87,6 @@ class ChApiGPU ChLcpSolverParallel : public ChLcpIterativeSolver {
   real tolerance;
 
   real step_size;
-  uint number_of_updates;
   uint max_iter_bilateral;
 
   real residual;
