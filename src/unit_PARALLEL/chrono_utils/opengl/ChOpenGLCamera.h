@@ -20,7 +20,7 @@
 #else
 #include <GL/freeglut.h>
 #endif
-#include "utils/opengl/ChApiOpenGL.h"
+#include "chrono_utils/opengl/ChApiOpenGL.h"
 #include "core/ChClassRegister.h"
 #include "core/ChVector.h"
 #define GLM_FORCE_RADIANS

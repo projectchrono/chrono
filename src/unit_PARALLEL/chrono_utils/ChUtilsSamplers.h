@@ -9,8 +9,8 @@
 
 #include "core/ChVector.h"
 
-#include "utils/ChApiUtils.h"
-#include "utils/ChUtilsCommon.h"
+#include "chrono_utils/ChApiUtils.h"
+#include "chrono_utils/ChUtilsCommon.h"
 
 
 namespace chrono {

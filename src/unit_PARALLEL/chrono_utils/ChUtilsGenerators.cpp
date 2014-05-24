@@ -1,4 +1,4 @@
-#include "utils/ChUtilsGenerators.h"
+#include "chrono_utils/ChUtilsGenerators.h"
 
 namespace chrono {
 namespace utils {

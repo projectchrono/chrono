@@ -30,11 +30,11 @@
 #include <limits>
 #include <time.h>
 #include <math.h>
-#include "utils/opengl/ChApiOpenGL.h"
+#include "chrono_utils/opengl/ChApiOpenGL.h"
 #include "core/ChClassRegister.h"
 #include "physics/ChSystem.h"
-#include "utils/opengl/ChOpenGLCamera.h"
-#include "utils/opengl/ChOpenGLWindow.h"
+#include "chrono_utils/opengl/ChOpenGLCamera.h"
+#include "chrono_utils/opengl/ChOpenGLWindow.h"
 
 
 using namespace std;

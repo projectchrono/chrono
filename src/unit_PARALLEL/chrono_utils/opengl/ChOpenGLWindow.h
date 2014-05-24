@@ -16,7 +16,7 @@
 #ifndef CHOPENGLWINDOW_H
 #define CHOPENGLWINDOW_H
 
-#include "utils/opengl/ChApiOpenGL.h"
+#include "chrono_utils/opengl/ChApiOpenGL.h"
 
 namespace chrono{
 	namespace utils{

@@ -20,11 +20,11 @@
 
 #include "ChSystemParallel.h"
 
-#include "utils/ChApiUtils.h"
-#include "utils/ChUtilsCommon.h"
-#include "utils/ChUtilsSamplers.h"
-#include "utils/ChUtilsCreators.h"
-#include "utils/ChUtilsInputOutput.h"
+#include "chrono_utils/ChApiUtils.h"
+#include "chrono_utils/ChUtilsCommon.h"
+#include "chrono_utils/ChUtilsSamplers.h"
+#include "chrono_utils/ChUtilsCreators.h"
+#include "chrono_utils/ChUtilsInputOutput.h"
 
 
 namespace chrono {

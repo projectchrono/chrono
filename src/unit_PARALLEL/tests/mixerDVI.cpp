@@ -31,11 +31,11 @@
 #include "ChSystemParallel.h"
 #include "ChLcpSystemDescriptorParallel.h"
 
-#include "utils/ChUtilsCreators.h"
-#include "utils/ChUtilsInputOutput.h"
+#include "chrono_utils/ChUtilsCreators.h"
+#include "chrono_utils/ChUtilsInputOutput.h"
 
 #ifdef CHRONO_PARALLEL_HAS_OPENGL
-#include "utils/opengl/ChOpenGL.h"
+#include "chrono_utils/opengl/ChOpenGL.h"
 #endif
 
 // Define this to save the data when using the OpenGL code

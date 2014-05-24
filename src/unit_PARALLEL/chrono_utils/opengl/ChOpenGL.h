@@ -2,9 +2,9 @@
 #define CHOPENGL_H
 #include <string>
 ////#include <unistd.h>
-#include "utils/opengl/ChApiOpenGL.h"
-#include "utils/opengl/ChOpenGLManager.h"
-#include "utils/opengl/ChOpenGLCamera.h"
+#include "chrono_utils/opengl/ChApiOpenGL.h"
+#include "chrono_utils/opengl/ChOpenGLManager.h"
+#include "chrono_utils/opengl/ChOpenGLCamera.h"
 #include "physics/ChSystem.h"
 #include "lcp/ChLcpIterativeSolver.h"
 #include "assets/ChBoxShape.h"
