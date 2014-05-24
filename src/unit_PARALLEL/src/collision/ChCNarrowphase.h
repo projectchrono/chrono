@@ -8,7 +8,7 @@ namespace chrono {
 namespace collision {
 
 
-class ChApiGPU ChCNarrowphase {
+class CH_PARALLEL_API ChCNarrowphase {
 public:
 	         ChCNarrowphase() : collision_envelope(0), total_possible_contacts(0) {}
 	virtual ~ChCNarrowphase() {}

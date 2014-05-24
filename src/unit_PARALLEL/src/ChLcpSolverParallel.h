@@ -27,7 +27,7 @@
 
 namespace chrono {
 
-class ChApiGPU ChLcpSolverParallel : public ChLcpIterativeSolver {
+class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
  public:
   ChLcpSolverParallel() {
     tolerance = 1e-7;
@@ -98,7 +98,7 @@ class ChApiGPU ChLcpSolverParallel : public ChLcpIterativeSolver {
   ChConstraintBilateral bilateral;
 };
 
-class ChApiGPU ChLcpSolverParallelDVI : public ChLcpSolverParallel {
+class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
  public:
   ChLcpSolverParallelDVI() {
     alpha = .2;
@@ -163,7 +163,7 @@ class ChApiGPU ChLcpSolverParallelDVI : public ChLcpSolverParallel {
   ChConstraintRigidRigid rigid_rigid;
 };
 
-class ChApiGPU ChLcpSolverParallelDEM : public ChLcpSolverParallel {
+class CH_PARALLEL_API ChLcpSolverParallelDEM : public ChLcpSolverParallel {
  public:
   virtual void RunTimeStep(real step);
 

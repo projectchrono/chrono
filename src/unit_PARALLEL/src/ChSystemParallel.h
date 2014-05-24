@@ -35,7 +35,7 @@
 
 namespace chrono {
 
-class ChApiGPU ChSystemParallel : public ChSystem {
+class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 CH_RTTI(ChSystemParallel, ChSystem)
   ;
 
@@ -105,7 +105,7 @@ CH_RTTI(ChSystemParallel, ChSystem)
   uint frame_bins;
 };
 
-class ChApiGPU ChSystemParallelDVI : public ChSystemParallel {
+class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
 CH_RTTI(ChSystemParallelDVI, ChSystemParallel)
   ;
 
@@ -117,7 +117,7 @@ CH_RTTI(ChSystemParallelDVI, ChSystemParallel)
 
 };
 
-class ChApiGPU ChSystemParallelDEM : public ChSystemParallel {
+class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
 CH_RTTI(ChSystemParallelDEM, ChSystemParallel)
   ;
 

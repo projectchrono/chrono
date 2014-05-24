@@ -21,7 +21,7 @@
 
 namespace chrono {
 
-class ChApiGPU ChLcpSystemDescriptorParallelDVI : public ChLcpSystemDescriptor {
+class CH_PARALLEL_API ChLcpSystemDescriptorParallelDVI : public ChLcpSystemDescriptor {
 public:
 	ChLcpSystemDescriptorParallelDVI() {}
 	~ChLcpSystemDescriptorParallelDVI() {}
@@ -58,7 +58,7 @@ public:
 };
 
 
-class ChApiGPU ChLcpSystemDescriptorParallelDEM : public ChLcpSystemDescriptor {
+class CH_PARALLEL_API ChLcpSystemDescriptorParallelDEM : public ChLcpSystemDescriptor {
 public:
 	ChLcpSystemDescriptorParallelDEM() {}
 	~ChLcpSystemDescriptorParallelDEM() {}

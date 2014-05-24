@@ -37,7 +37,7 @@ namespace collision {
 /// Contains both the broadphase and the narrow phase methods.
 ///
 
-class ChApiGPU ChCollisionSystemParallel: public ChCollisionSystem {
+class CH_PARALLEL_API ChCollisionSystemParallel: public ChCollisionSystem {
 	public:
 
 		ChCollisionSystemParallel();

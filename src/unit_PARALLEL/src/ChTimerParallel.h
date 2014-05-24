@@ -57,7 +57,7 @@ struct TimerData {
 	}
 };
 
-class ChApiGPU ChTimerParallel {
+class CH_PARALLEL_API ChTimerParallel {
 public:
 	ChTimerParallel() {
 		total_timers = 0;

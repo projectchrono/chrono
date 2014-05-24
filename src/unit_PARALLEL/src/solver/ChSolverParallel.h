@@ -28,7 +28,7 @@
 #include "collision/ChCNarrowphaseMPR.h"
 
 namespace chrono {
-class ChApiGPU ChSolverParallel : public ChBaseParallel {
+class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
  public:
    ChSolverParallel() {
       tolerance = 1e-6;

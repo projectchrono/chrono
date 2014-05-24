@@ -4,7 +4,7 @@
 #include "ChBaseParallel.h"
 
 namespace chrono {
-class ChApiGPU ChConstraintBilateral: public ChBaseParallel {
+class CH_PARALLEL_API ChConstraintBilateral: public ChBaseParallel {
 	public:
 		ChConstraintBilateral() {
 		}

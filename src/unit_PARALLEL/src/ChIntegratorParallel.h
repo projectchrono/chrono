@@ -7,7 +7,7 @@
 #include "math/ChThrustLinearAlgebra.h"
 
 namespace chrono {
-	class ChApiGPU ChIntegratorParallel {
+	class CH_PARALLEL_API ChIntegratorParallel {
 		public:
 
 			ChIntegratorParallel() {

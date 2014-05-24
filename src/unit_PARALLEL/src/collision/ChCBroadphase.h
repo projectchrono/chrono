@@ -8,7 +8,7 @@
 namespace chrono {
 namespace collision {
 
-class ChApiGPU ChCBroadphase {
+class CH_PARALLEL_API ChCBroadphase {
 	public:
 		// variables
 

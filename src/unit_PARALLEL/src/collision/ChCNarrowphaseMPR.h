@@ -8,7 +8,7 @@ namespace collision {
 
 
 // Minkovski Portal Refinement narrowphase collision detection
-class ChApiGPU ChCNarrowphaseMPR : public ChCNarrowphase {
+class CH_PARALLEL_API ChCNarrowphaseMPR : public ChCNarrowphase {
 public:
 	ChCNarrowphaseMPR() {}
 

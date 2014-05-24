@@ -95,7 +95,7 @@ namespace chrono {
 //			thrust::host_vector<real3> aabb_fluid;
 	};
 
-	class ChApiGPU ChParallelDataManager {
+	class CH_PARALLEL_API ChParallelDataManager {
 		public:
 			ChParallelDataManager();
 			~ChParallelDataManager();

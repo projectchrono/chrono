@@ -30,7 +30,7 @@ class ChBody;
 namespace collision {
 ///  A wrapper to uses GPU collision detection
 
-class ChApiGPU ChCollisionModelParallel: public ChCollisionModel {
+class CH_PARALLEL_API ChCollisionModelParallel: public ChCollisionModel {
 public:
 
 	ChCollisionModelParallel();

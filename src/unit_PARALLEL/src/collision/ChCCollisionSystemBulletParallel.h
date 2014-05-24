@@ -51,7 +51,7 @@ namespace chrono {
 /// Contains both the broadphase and the narrow phase methods.
 ///
 
-		class ChApiGPU ChCollisionSystemBulletParallel: public ChCollisionSystem {
+		class CH_PARALLEL_API ChCollisionSystemBulletParallel: public ChCollisionSystem {
 			public:
 
 				ChCollisionSystemBulletParallel(unsigned int max_objects = 16000, double scene_size = 500);

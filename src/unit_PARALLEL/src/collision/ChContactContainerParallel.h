@@ -31,7 +31,7 @@ namespace chrono {
 /// that does not use linked lists of cpu objects but rather
 /// keeps all contact data as GPU buffers on the GPU device.
 
-class ChApiGPU ChContactContainerParallel: public ChContactContainer {
+class CH_PARALLEL_API ChContactContainerParallel: public ChContactContainer {
 	CH_RTTI(ChContactContainerParallel, ChContactContainer)
 		;
 

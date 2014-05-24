@@ -8,7 +8,7 @@
 namespace chrono {
 namespace collision {
 
-class ChApiGPU ChCAABBGenerator {
+class CH_PARALLEL_API ChCAABBGenerator {
 	public:
 		// functions
 		ChCAABBGenerator();

@@ -14,7 +14,7 @@
 
 namespace chrono {
 
-class ChApiGPU ChBaseParallel {
+class CH_PARALLEL_API ChBaseParallel {
  public:
    ChBaseParallel() {
    }
