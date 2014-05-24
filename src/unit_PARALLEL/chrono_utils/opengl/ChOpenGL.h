@@ -13,9 +13,9 @@
 #include "assets/ChConeShape.h"
 #include "assets/ChCylinderShape.h"
 #include "assets/ChTriangleMeshShape.h"
-#include "ChSystemParallel.h"
-#include "collision/ChCCollisionSystemParallel.h"
-#include "collision/ChCCollisionSystemBulletParallel.h"
+#include "chrono_parallel/ChSystemParallel.h"
+#include "chrono_parallel/collision/ChCCollisionSystemParallel.h"
+#include "chrono_parallel/collision/ChCCollisionSystemBulletParallel.h"
 #include "collision/ChCCollisionSystemBullet.h"
 using namespace std;
 

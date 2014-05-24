@@ -8,7 +8,7 @@
 
 #include "physics/ChSystem.h"
 
-#include "ChParallelDefines.h"
+#include "chrono_parallel/ChParallelDefines.h"
 
 #include "chrono_utils/ChApiUtils.h"
 #include "chrono_utils/ChUtilsCommon.h"

@@ -120,25 +120,25 @@ endif()
 SET(CHRONO_INC       ""   CACHE PATH "Where is ChronoEngine Source located")
 
 SET(ChronoEngine_Parallel_SOURCES
-    src/ChSystemParallel.cpp
-    src/ChSystemParallelDVI.cpp
-    src/ChSystemParallelDEM.cpp
-    src/ChLcpSolverParallel.cpp
-    src/ChLcpSolverParallelDVI.cpp
-    src/ChLcpSolverParallelDEM.cpp
-    src/ChBaseParallel.cpp
-    src/ChDataManager.cpp
+    chrono_parallel/ChSystemParallel.cpp
+    chrono_parallel/ChSystemParallelDVI.cpp
+    chrono_parallel/ChSystemParallelDEM.cpp
+    chrono_parallel/ChLcpSolverParallel.cpp
+    chrono_parallel/ChLcpSolverParallelDVI.cpp
+    chrono_parallel/ChLcpSolverParallelDEM.cpp
+    chrono_parallel/ChBaseParallel.cpp
+    chrono_parallel/ChDataManager.cpp
     )
 
 SET(ChronoEngine_Parallel_HEADERS
-    src/ChApiParallel.h
-    src/ChBaseParallel.h
-    src/ChParallelDefines.h
-    src/ChSystemParallel.h
-    src/ChDataManager.h
-    src/ChLcpSolverParallel.h
-    src/ChLcpSystemDescriptorParallel.h
-    src/ChTimerParallel.h
+    chrono_parallel/ChApiParallel.h
+    chrono_parallel/ChBaseParallel.h
+    chrono_parallel/ChParallelDefines.h
+    chrono_parallel/ChSystemParallel.h
+    chrono_parallel/ChDataManager.h
+    chrono_parallel/ChLcpSolverParallel.h
+    chrono_parallel/ChLcpSystemDescriptorParallel.h
+    chrono_parallel/ChTimerParallel.h
     )
 
 SOURCE_GROUP(core FILES
@@ -146,8 +146,13 @@ SOURCE_GROUP(core FILES
     ${ChronoEngine_Parallel_HEADERS})
 
 SET(ChronoEngine_Parallel_MATH
-    src/math/ChParallelMath.h
-    src/math/ChThrustLinearAlgebra.h
+    chrono_parallel/math/ChParallelMath.h
+    chrono_parallel/math/ChThrustLinearAlgebra.h
+    chrono_parallel/math/mat33.h
+    chrono_parallel/math/real.h
+    chrono_parallel/math/real2.h
+    chrono_parallel/math/real3.h
+    chrono_parallel/math/real4.h
     )
 
 SOURCE_GROUP(math FILES
@@ -155,54 +160,54 @@ SOURCE_GROUP(math FILES
     )
 
 SET(ChronoEngine_Parallel_SOLVER
-    src/solver/ChSolverParallel.h
-    src/solver/ChSolverParallel.cpp
-    #src/solver/ChSolverBlockJacobi.cpp
-    src/solver/ChSolverCG.cpp
-    src/solver/ChSolverCGS.cpp
-    src/solver/ChSolverGD.cpp
-    src/solver/ChSolverSD.cpp
-    #src/solver/ChSolverFN.cpp
-    src/solver/ChSolverAPGD.cpp
-    src/solver/ChSolverAPGDRS.cpp
-    src/solver/ChSolverMinRes.cpp
-    src/solver/ChSolverBiCG.cpp
-    src/solver/ChSolverBiCGStab.cpp
+    chrono_parallel/solver/ChSolverParallel.h
+    chrono_parallel/solver/ChSolverParallel.cpp
+    #chrono_parallel/solver/ChSolverBlockJacobi.cpp
+    chrono_parallel/solver/ChSolverCG.cpp
+    chrono_parallel/solver/ChSolverCGS.cpp
+    chrono_parallel/solver/ChSolverGD.cpp
+    chrono_parallel/solver/ChSolverSD.cpp
+    #chrono_parallel/solver/ChSolverFN.cpp
+    chrono_parallel/solver/ChSolverAPGD.cpp
+    chrono_parallel/solver/ChSolverAPGDRS.cpp
+    chrono_parallel/solver/ChSolverMinRes.cpp
+    chrono_parallel/solver/ChSolverBiCG.cpp
+    chrono_parallel/solver/ChSolverBiCGStab.cpp
     )
 
 SOURCE_GROUP(solver FILES
     ${ChronoEngine_Parallel_SOLVER})
 
 SET(ChronoEngine_Parallel_CONSTRAINTS
-    src/constraints/ChConstraintRigidRigid.cpp
-    src/constraints/ChConstraintRigidRigid.h
-    src/constraints/ChConstraintBilateral.cpp
-    src/constraints/ChConstraintBilateral.h
+    chrono_parallel/constraints/ChConstraintRigidRigid.cpp
+    chrono_parallel/constraints/ChConstraintRigidRigid.h
+    chrono_parallel/constraints/ChConstraintBilateral.cpp
+    chrono_parallel/constraints/ChConstraintBilateral.h
     )
 
 SOURCE_GROUP(constraints FILES
     ${ChronoEngine_Parallel_CONSTRAINTS})
 
 SET(ChronoEngine_Parallel_COLLISION
-    src/collision/ChCAABBGenerator.h
-    src/collision/ChCAABBGenerator.cpp
-    src/collision/ChCBroadphase.h
-    src/collision/ChCBroadphase.cpp
-    src/collision/ChCNarrowphase.h
-    src/collision/ChCNarrowphaseMPRUtils.h
-    src/collision/ChCNarrowphaseMPR.h
-    src/collision/ChCNarrowphaseMPR.cpp
-    src/collision/ChCNarrowphaseRUtils.h
-    src/collision/ChCNarrowphaseR.h
-    src/collision/ChCNarrowphaseR.cpp
-    src/collision/ChCCollisionModelParallel.h
-    src/collision/ChCCollisionModelParallel.cpp
-    src/collision/ChCCollisionSystemParallel.h
-    src/collision/ChCCollisionSystemParallel.cpp
-    src/collision/ChCCollisionSystemBulletParallel.h
-    src/collision/ChCCollisionSystemBulletParallel.cpp
-    src/collision/ChContactContainerParallel.h
-    src/collision/ChContactContainerParallel.cpp
+    chrono_parallel/collision/ChCAABBGenerator.h
+    chrono_parallel/collision/ChCAABBGenerator.cpp
+    chrono_parallel/collision/ChCBroadphase.h
+    chrono_parallel/collision/ChCBroadphase.cpp
+    chrono_parallel/collision/ChCNarrowphase.h
+    chrono_parallel/collision/ChCNarrowphaseMPRUtils.h
+    chrono_parallel/collision/ChCNarrowphaseMPR.h
+    chrono_parallel/collision/ChCNarrowphaseMPR.cpp
+    chrono_parallel/collision/ChCNarrowphaseRUtils.h
+    chrono_parallel/collision/ChCNarrowphaseR.h
+    chrono_parallel/collision/ChCNarrowphaseR.cpp
+    chrono_parallel/collision/ChCCollisionModelParallel.h
+    chrono_parallel/collision/ChCCollisionModelParallel.cpp
+    chrono_parallel/collision/ChCCollisionSystemParallel.h
+    chrono_parallel/collision/ChCCollisionSystemParallel.cpp
+    chrono_parallel/collision/ChCCollisionSystemBulletParallel.h
+    chrono_parallel/collision/ChCCollisionSystemBulletParallel.cpp
+    chrono_parallel/collision/ChContactContainerParallel.h
+    chrono_parallel/collision/ChContactContainerParallel.cpp
     )
 
 SOURCE_GROUP(collision FILES
@@ -408,7 +413,7 @@ SET(INCLUDE_DIR
     ${CH_CUDA_INC}
     ${CHRONO_INC}
     ${CHRONO_INC}/collision/bullet/
-    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}
     ${INC_DIRS}
     )
 
@@ -553,7 +558,7 @@ ENDIF()
 # NOTE:  If more variables will be defined, move the following lines after the
 #        last substitution variable is made available. 
 CONFIGURE_FILE(
-  ${PROJECT_SOURCE_DIR}/src/ChConfigParallel.in
+  ${PROJECT_SOURCE_DIR}/chrono_parallel/ChConfigParallel.in
   ${LIBRARY_OUTPUT_PATH}/ChConfigParallel.h
   )
 INCLUDE_DIRECTORIES(${LIBRARY_OUTPUT_PATH})

@@ -30,7 +30,6 @@ SET(ChronoEngine_Utils_HEADERS
 INCLUDE_DIRECTORIES(
     ${CHRONO_INC}
     ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/src
     ${LIBRARY_OUTPUT_PATH} 
     )
 

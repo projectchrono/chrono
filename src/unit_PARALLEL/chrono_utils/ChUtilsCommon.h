@@ -6,7 +6,7 @@
 #include "physics/ChSystem.h"
 #include "physics/ChSystemDEM.h"
 
-#include "ChSystemParallel.h"
+#include "chrono_parallel/ChSystemParallel.h"
 
 namespace chrono {
 namespace utils {
