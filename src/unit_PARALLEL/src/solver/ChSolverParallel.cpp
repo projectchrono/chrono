@@ -197,7 +197,7 @@ void ChSolverParallel::Solve(
          //SolveJacobi();
       }
       //		thrust::copy_n(
-      //				data_container->host_data.gamma_data.begin() + data_container->number_of_rigid_rigid * 3,
+      //				data_container->host_data.gamma_data.begin() + data_container->num_contacts * 3,
       //				data_container->num_bilaterals,
       //				data_container->host_data.gamma_bilateral.begin());
 
@@ -326,7 +326,7 @@ uint ChSolverParallel::SolveStab(const uint max_iter,const uint size,const custo
       eta = -s * eta;
       residual = norm_rMR / norm_r0;
 
-      real maxdeltalambda = CompRes(mb, number_of_rigid_rigid);      //NormInf(ms);
+      real maxdeltalambda = CompRes(mb, num_contacts);      //NormInf(ms);
       AtIterationEnd(residual, maxdeltalambda, current_iteration);
 
       if (residual < tolerance) {

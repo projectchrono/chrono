@@ -147,7 +147,7 @@ uint ChSolverParallel::SolveMinRes(
 //		eta = -s * eta;
 //		residual = norm_rMR / norm_r0;
 //
-//		real maxdeltalambda = CompRes(b,number_of_rigid_rigid);//NormInf(ms);
+//		real maxdeltalambda = CompRes(b,num_contacts);//NormInf(ms);
 //		AtIterationEnd(residual, maxdeltalambda, current_iteration);
 //
 //

@@ -16,13 +16,13 @@ public:
     inv_hpa = 1.0 / (step_size + alpha);
     inv_hhpa = 1.0 / (step_size * (step_size + alpha));
 
-		if (number_of_rigid_rigid > 0) {
-			update_number.resize((number_of_rigid_rigid) * 2, 0);
-			offset_counter.resize((number_of_rigid_rigid) * 2, 0);
-			update_offset.resize((number_of_rigid_rigid) * 2, 0);
-			body_num.resize((number_of_rigid_rigid) * 2, 0);
-			vel_update.resize((number_of_rigid_rigid) * 2);
-			omg_update.resize((number_of_rigid_rigid) * 2);
+		if (num_contacts > 0) {
+			update_number.resize((num_contacts) * 2, 0);
+			offset_counter.resize((num_contacts) * 2, 0);
+			update_offset.resize((num_contacts) * 2, 0);
+			body_num.resize((num_contacts) * 2, 0);
+			vel_update.resize((num_contacts) * 2);
+			omg_update.resize((num_contacts) * 2);
 
 			host_Offsets(data_container->host_data.bids_rigid_rigid.data(), body_num.data());
 
@@ -36,22 +36,22 @@ public:
 					- offset_counter.begin();
 			thrust::inclusive_scan(offset_counter.begin(), offset_counter.end(), offset_counter.begin());
 
-			update_offset_pairs.resize(int(number_of_rigid_rigid));
-			update_offset_bodies.resize(int(number_of_rigid_rigid * 2));
-			contact_active_pairs.resize(int(number_of_rigid_rigid));
-			contact_rotation.resize(int(number_of_rigid_rigid * 2));
+			update_offset_pairs.resize(int(num_contacts));
+			update_offset_bodies.resize(int(num_contacts * 2));
+			contact_active_pairs.resize(int(num_contacts));
+			contact_rotation.resize(int(num_contacts * 2));
 
 #pragma omp parallel for
-			for (int i = 0; i < number_of_rigid_rigid; i++) {
-				update_offset_pairs[i] = I2(update_offset[i], update_offset[i + number_of_rigid_rigid]);
+			for (int i = 0; i < num_contacts; i++) {
+				update_offset_pairs[i] = I2(update_offset[i], update_offset[i + num_contacts]);
 				update_offset_bodies[update_offset[i]] = i;
-				update_offset_bodies[update_offset[i + number_of_rigid_rigid]] = i + number_of_rigid_rigid;
+				update_offset_bodies[update_offset[i + num_contacts]] = i + num_contacts;
 				int2 body = data_container->host_data.bids_rigid_rigid[i];
 
 				contact_active_pairs[i] = bool2(data_container->host_data.active_data[body.x], data_container->host_data.active_data[body.y]);
 
 				contact_rotation[i] = data_container->host_data.rot_data[body.x];
-				contact_rotation[i+ number_of_rigid_rigid] = data_container->host_data.rot_data[body.y];
+				contact_rotation[i+ num_contacts] = data_container->host_data.rot_data[body.y];
 
 
 			}
