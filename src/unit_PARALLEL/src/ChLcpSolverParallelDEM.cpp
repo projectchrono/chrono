@@ -288,23 +288,16 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
   if (data_container->num_constraints == 0)
     return;
 
+  // Perform stabilization of the bilateral constraints. Currently, we only 
+  // project the velocities onto the velocity constraint manifold. This is done
+  // with an oblique projection (using the M-norm).
   data_container->system_timer.start("ChLcpSolverParallel_Setup");
-
-  //// HACK
-  data_container->num_contacts = 0;
 
   data_container->host_data.rhs_data.resize(data_container->num_constraints);
   data_container->host_data.diag.resize(data_container->num_constraints);
   data_container->host_data.gamma_data.resize(data_container->num_constraints);
 
-  //// TODO: Is this needed?  If yes, then initialize gamma_bilateral!!
-#pragma omp parallel for
-  for (int i = 0; i < data_container->num_constraints; i++) {
-    data_container->host_data.gamma_data[i] = 0;
-  }
-
   bilateral.Setup(data_container);
-
 
   solver.current_iteration = 0;
   solver.total_iteration = 0;
@@ -317,25 +310,33 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
   solver.bilateral = &bilateral;
   solver.Initial(step, data_container);
 
-  ////bilateral.ComputeJacobians();    //// no-op
+  ////bilateral.ComputeJacobians();      //// no-op
+
   data_container->system_timer.start("ChLcpSolverParallel_RHS");
   bilateral.ComputeRHS();
   data_container->system_timer.stop("ChLcpSolverParallel_RHS");
 
+  // Set the initial guess for the iterative solver to zero.
+#pragma omp parallel for
+  for (int i = 0; i < data_container->num_constraints; i++) {
+    data_container->host_data.gamma_bilateral[i] = 0;
+  }
+
   data_container->system_timer.stop("ChLcpSolverParallel_Setup");
 
+  // Calculate velocity corrections
   data_container->system_timer.start("ChLcpSolverParallel_Stab");
   solver.SolveStab(max_iter_bilateral,
                    data_container->num_bilaterals,
                    data_container->host_data.rhs_data,
                    data_container->host_data.gamma_bilateral);
-
   data_container->system_timer.stop("ChLcpSolverParallel_Stab");
 
   thrust::copy_n(data_container->host_data.gamma_bilateral.begin(),
                  data_container->num_bilaterals,
                  data_container->host_data.gamma_data.begin());
 
+  // Update velocity (linear and angular)
   solver.ComputeImpulses();
 
   tot_iterations = solver.GetIteration();
