@@ -30,10 +30,6 @@ class ChApiGPU ChBaseParallel {
    uint number_of_constraints;
 
    real step_size;
-
-   real inv_hpa;
-   real inv_hhpa;
-
    real alpha;
    real contact_recovery_speed;
 };

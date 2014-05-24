@@ -24,7 +24,7 @@ void ChConstraintBilateral::host_RHS(int2 *ids, real *bi, bool * active, real3 *
 			temp += dot(JUVWB[index], omega[b2]);
 
 		}
-		rhs[index + num_unilaterals] = -temp - bi[index];     //(temp + fmax(inv_hpa * correction[index], real(-recovery_speed)));
+		rhs[index + num_unilaterals] = -temp - bi[index];
 	}
 
 }

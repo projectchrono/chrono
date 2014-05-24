@@ -11,7 +11,4 @@ void ChBaseParallel::Initialize() {
    step_size = data_container->step_size;
    alpha = data_container->alpha;
    contact_recovery_speed = data_container->contact_recovery_speed;
-
-   inv_hpa = 1.0 / (step_size + alpha);
-   inv_hhpa = 1.0 / (step_size * (step_size + alpha));
 }

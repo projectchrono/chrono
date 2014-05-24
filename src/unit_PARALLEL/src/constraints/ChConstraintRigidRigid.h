@@ -13,6 +13,8 @@ public:
 		data_container = data_container_;
 		Initialize();
     num_updates = 0;
+    inv_hpa = 1.0 / (step_size + alpha);
+    inv_hhpa = 1.0 / (step_size * (step_size + alpha));
 
 		if (number_of_rigid_rigid > 0) {
 			update_number.resize((number_of_rigid_rigid) * 2, 0);
@@ -132,6 +134,9 @@ protected:
 	int count_shur_a_sliding;
 
   uint num_updates;
+
+  real inv_hpa;
+  real inv_hhpa;
 };
 }
 
