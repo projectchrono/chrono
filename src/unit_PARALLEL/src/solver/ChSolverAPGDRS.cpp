@@ -153,10 +153,10 @@ uint ChSolverParallel::SolveAPGDRS(const uint max_iter,const uint size,const cus
 		step_grow = 2.0;
 		theta_k = theta_k1;
 		if(current_iteration%2==0) {
-			real g_proj_norm = Res4(number_of_rigid_rigid*6, mg_tmp.data(), b.data(), ml.data(), mb_tmp.data());
+			real g_proj_norm = Res4(num_unilaterals, mg_tmp.data(), b.data(), ml.data(), mb_tmp.data());
 			if(num_bilaterals > 0) {
 				real resid_bilat=-1;
-				for (int i = number_of_rigid_rigid*6; i < x.size(); i++) {
+				for (int i = num_unilaterals; i < x.size(); i++) {
 					resid_bilat = max(resid_bilat, fabs(mg_tmp2[i]));
 				}
 				g_proj_norm = max(g_proj_norm,resid_bilat );
@@ -167,7 +167,7 @@ uint ChSolverParallel::SolveAPGDRS(const uint max_iter,const uint size,const cus
 				ml_candidate = ml;
 			}
 			residual=lastgoodres;
-			//CompRes(b,number_of_rigid_rigid);     //NormInf(ms);
+			//CompRes(b,num_contacts);     //NormInf(ms);
 
 			if(collision_inside) {
 				UpdatePosition(ml_candidate);

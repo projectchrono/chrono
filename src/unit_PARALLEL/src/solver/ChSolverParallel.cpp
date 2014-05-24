@@ -20,16 +20,16 @@ void ChSolverParallel::Setup() {
    Initialize();
    // Ensure that the size of the data structures is equal to the current number of rigid bodies
    // New rigid bodies could have been added in between time steps
-   data_container->host_data.QXYZ_data.resize(number_of_rigid);
-   data_container->host_data.QUVW_data.resize(number_of_rigid);
+   data_container->host_data.QXYZ_data.resize(num_bodies);
+   data_container->host_data.QUVW_data.resize(num_bodies);
 
 #pragma omp parallel for
-   for (int i = 0; i < number_of_rigid; i++) {
+   for (int i = 0; i < num_bodies; i++) {
       data_container->host_data.QXYZ_data[i] = R3(0);
       data_container->host_data.QUVW_data[i] = R3(0);
    }
 #pragma omp parallel for
-   for (int i = 0; i < number_of_constraints; i++) {
+   for (int i = 0; i < num_constraints; i++) {
       data_container->host_data.gamma_data[i] = 0;
    }
 }
@@ -46,7 +46,7 @@ void ChSolverParallel::shurA(
       real* x) {
 
 #pragma omp parallel for
-   for (int i = 0; i < number_of_rigid; i++) {
+   for (int i = 0; i < num_bodies; i++) {
       data_container->host_data.QXYZ_data[i] = R3(0);
       data_container->host_data.QUVW_data[i] = R3(0);
    }
@@ -149,21 +149,21 @@ void ChSolverParallel::UpdateContacts() {
 void ChSolverParallel::Solve(
       GPUSOLVERTYPE solver_type) {
 
-   if (number_of_constraints > 0) {
+   if (num_constraints > 0) {
       if (solver_type == STEEPEST_DESCENT) {
-         total_iteration += SolveSD(max_iteration, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
+         total_iteration += SolveSD(max_iteration, num_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
       } else if (solver_type == GRADIENT_DESCENT) {
-         total_iteration += SolveGD(max_iteration, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
+         total_iteration += SolveGD(max_iteration, num_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
       } else if (solver_type == CONJUGATE_GRADIENT) {
-         total_iteration += SolveCG(max_iteration, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
+         total_iteration += SolveCG(max_iteration, num_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
       } else if (solver_type == CONJUGATE_GRADIENT_SQUARED) {
-         total_iteration += SolveCGS(max_iteration, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
+         total_iteration += SolveCGS(max_iteration, num_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
       } else if (solver_type == BICONJUGATE_GRADIENT) {
-         total_iteration += SolveBiCG(max_iteration, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
+         total_iteration += SolveBiCG(max_iteration, num_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
       } else if (solver_type == BICONJUGATE_GRADIENT_STAB) {
-         total_iteration += SolveBiCGStab(max_iteration, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
+         total_iteration += SolveBiCGStab(max_iteration, num_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
       } else if (solver_type == MINIMUM_RESIDUAL) {
-         total_iteration += SolveMinRes(max_iteration, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
+         total_iteration += SolveMinRes(max_iteration, num_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
       } else if (solver_type == QUASAI_MINIMUM_RESIDUAL) {
          // This solver has not been implemented yet
          //SolveQMR(data_container->gpu_data.device_gam_data, rhs, max_iteration);
@@ -173,7 +173,7 @@ void ChSolverParallel::Solve(
             thrust::copy_n(data_container->host_data.rhs_data.begin() + data_container->num_unilaterals, data_container->num_bilaterals, rhs_bilateral.begin());
 
             for (int i = 0; i < 4; i++) {
-               total_iteration += SolveAPGDRS(max_iteration/8, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
+               total_iteration += SolveAPGDRS(max_iteration/8, num_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
 
                thrust::copy_n(data_container->host_data.gamma_data.begin() + data_container->num_unilaterals, data_container->num_bilaterals,
                               data_container->host_data.gamma_bilateral.begin());
@@ -183,13 +183,13 @@ void ChSolverParallel::Solve(
                thrust::copy_n(data_container->host_data.gamma_bilateral.begin(), data_container->num_bilaterals,
                               data_container->host_data.gamma_data.begin() + data_container->num_unilaterals);
 
-               total_iteration += SolveAPGDRS(max_iteration/8, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
+               total_iteration += SolveAPGDRS(max_iteration/8, num_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
             }
          } else {
             if (solver_type == ACCELERATED_PROJECTED_GRADIENT_DESCENT) {
-               total_iteration += SolveAPGD(max_iteration, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
+               total_iteration += SolveAPGD(max_iteration, num_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
             } else {
-               total_iteration += SolveAPGDRS(max_iteration, number_of_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
+               total_iteration += SolveAPGDRS(max_iteration, num_constraints, data_container->host_data.rhs_data, data_container->host_data.gamma_data);
             }
 
          }

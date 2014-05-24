@@ -17,7 +17,7 @@ uint ChSolverParallel::SolveSD(const uint max_iter,const uint size,const custom_
 		r = b - r;
 		resnew = Norm(x);
 		residual = abs(resnew - resold);
-		real maxdeltalambda = CompRes(b,number_of_rigid_rigid);//NormInf(ms);
+		real maxdeltalambda = CompRes(b,num_contacts);//NormInf(ms);
 		AtIterationEnd(residual, maxdeltalambda, current_iteration);
 		if (residual < tolerance) {
 			break;
