@@ -9,15 +9,21 @@ project(ChronoEngine_Parallel)
 # Location of additional CMAKE modules
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-# ----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # User-specified for optional modules
-# ----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 SET(ENABLE_UTILS  TRUE  CACHE BOOL "Build the ChronoParallel_Utils library") 
 SET(ENABLE_TESTS  FALSE CACHE BOOL "Build test programs")
 
-# ----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Required Chrono library and headers
+# ------------------------------------------------------------------------------
+SET(CHRONO_INC       ""   CACHE PATH "Location of the Chrono headers")
+SET(CHRONO_LIB_PATH  ""   CACHE PATH "Location of the ChronoEngine library")
+
+# ------------------------------------------------------------------------------
 # Specify output locations for libraries and executables
-# ----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
@@ -25,9 +31,9 @@ IF (MSVC OR XCODE_VERSION)
   SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 ENDIF()
 
-# ----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Figure out SSE level support
-# ----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 FIND_PACKAGE(SSE)
 
 # Set substitution variables for configuration file.
@@ -39,10 +45,27 @@ ELSE()
   MESSAGE("No SSE support")
 ENDIF()
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  # using Clang
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse${SSE_VERSION}")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse${SSE_VERSION}")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xsse${SSE_VERSION}")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -xsse${SSE_VERSION}")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  # using Visual Studio C++
+endif()
 
-# ----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Thrust-related settings
+# ------------------------------------------------------------------------------
+#add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP)
+#add_definitions(-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP)
+
+# ------------------------------------------------------------------------------
 # OpenMP
-# ----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 find_package("OpenMP" REQUIRED)
 
 # Add the OpenMP-specific compiler and linker flags
@@ -71,12 +94,9 @@ IF(OPENMP_FOUND)
   ENDIF()
 ENDIF()
 
-
-
-
-# ----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # MPI
-# ----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #find_package("MPI" )
 
 # Add the MPI-specific compiler and linker flags
@@ -90,343 +110,9 @@ ENDIF()
 #list(APPEND CMAKE_CXX_LINK_FLAGS ${MPI_CXX_LINK_FLAGS})
 #include_directories(${MPI_CXX_INCLUDE_PATH})
 
-
-IF(${CMAKE_C_COMPILER} MATCHES "icc.*$") 
-
-ENDIF()
-
-
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  # using Clang
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse${SSE_VERSION}")
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse${SSE_VERSION}")
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xsse${SSE_VERSION}")
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -xsse${SSE_VERSION}")
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  # using Visual Studio C++
-endif()
-
-#add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP)
-#add_definitions(-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP)
-
-#
-# LIST THE FILES THAT MAKE THE GPU LIBRARY
-# NOTE: to add a new source to this unit, just add its name here and re-run the CMake.
-#
-
-# User specified path to ChronoEngine
-SET(CHRONO_INC       ""   CACHE PATH "Where is ChronoEngine Source located")
-
-SET(ChronoEngine_Parallel_SOURCES
-    chrono_parallel/ChSystemParallel.cpp
-    chrono_parallel/ChSystemParallelDVI.cpp
-    chrono_parallel/ChSystemParallelDEM.cpp
-    chrono_parallel/ChLcpSolverParallel.cpp
-    chrono_parallel/ChLcpSolverParallelDVI.cpp
-    chrono_parallel/ChLcpSolverParallelDEM.cpp
-    chrono_parallel/ChBaseParallel.cpp
-    chrono_parallel/ChDataManager.cpp
-    )
-
-SET(ChronoEngine_Parallel_HEADERS
-    chrono_parallel/ChApiParallel.h
-    chrono_parallel/ChBaseParallel.h
-    chrono_parallel/ChParallelDefines.h
-    chrono_parallel/ChSystemParallel.h
-    chrono_parallel/ChDataManager.h
-    chrono_parallel/ChLcpSolverParallel.h
-    chrono_parallel/ChLcpSystemDescriptorParallel.h
-    chrono_parallel/ChTimerParallel.h
-    )
-
-SOURCE_GROUP(core FILES
-    ${ChronoEngine_Parallel_SOURCES}
-    ${ChronoEngine_Parallel_HEADERS})
-
-SET(ChronoEngine_Parallel_MATH
-    chrono_parallel/math/ChParallelMath.h
-    chrono_parallel/math/ChThrustLinearAlgebra.h
-    chrono_parallel/math/mat33.h
-    chrono_parallel/math/real.h
-    chrono_parallel/math/real2.h
-    chrono_parallel/math/real3.h
-    chrono_parallel/math/real4.h
-    )
-
-SOURCE_GROUP(math FILES
-    ${ChronoEngine_Parallel_MATH}
-    )
-
-SET(ChronoEngine_Parallel_SOLVER
-    chrono_parallel/solver/ChSolverParallel.h
-    chrono_parallel/solver/ChSolverParallel.cpp
-    #chrono_parallel/solver/ChSolverBlockJacobi.cpp
-    chrono_parallel/solver/ChSolverCG.cpp
-    chrono_parallel/solver/ChSolverCGS.cpp
-    chrono_parallel/solver/ChSolverGD.cpp
-    chrono_parallel/solver/ChSolverSD.cpp
-    #chrono_parallel/solver/ChSolverFN.cpp
-    chrono_parallel/solver/ChSolverAPGD.cpp
-    chrono_parallel/solver/ChSolverAPGDRS.cpp
-    chrono_parallel/solver/ChSolverMinRes.cpp
-    chrono_parallel/solver/ChSolverBiCG.cpp
-    chrono_parallel/solver/ChSolverBiCGStab.cpp
-    )
-
-SOURCE_GROUP(solver FILES
-    ${ChronoEngine_Parallel_SOLVER})
-
-SET(ChronoEngine_Parallel_CONSTRAINTS
-    chrono_parallel/constraints/ChConstraintRigidRigid.cpp
-    chrono_parallel/constraints/ChConstraintRigidRigid.h
-    chrono_parallel/constraints/ChConstraintBilateral.cpp
-    chrono_parallel/constraints/ChConstraintBilateral.h
-    )
-
-SOURCE_GROUP(constraints FILES
-    ${ChronoEngine_Parallel_CONSTRAINTS})
-
-SET(ChronoEngine_Parallel_COLLISION
-    chrono_parallel/collision/ChCAABBGenerator.h
-    chrono_parallel/collision/ChCAABBGenerator.cpp
-    chrono_parallel/collision/ChCBroadphase.h
-    chrono_parallel/collision/ChCBroadphase.cpp
-    chrono_parallel/collision/ChCNarrowphase.h
-    chrono_parallel/collision/ChCNarrowphaseMPRUtils.h
-    chrono_parallel/collision/ChCNarrowphaseMPR.h
-    chrono_parallel/collision/ChCNarrowphaseMPR.cpp
-    chrono_parallel/collision/ChCNarrowphaseRUtils.h
-    chrono_parallel/collision/ChCNarrowphaseR.h
-    chrono_parallel/collision/ChCNarrowphaseR.cpp
-    chrono_parallel/collision/ChCCollisionModelParallel.h
-    chrono_parallel/collision/ChCCollisionModelParallel.cpp
-    chrono_parallel/collision/ChCCollisionSystemParallel.h
-    chrono_parallel/collision/ChCCollisionSystemParallel.cpp
-    chrono_parallel/collision/ChCCollisionSystemBulletParallel.h
-    chrono_parallel/collision/ChCCollisionSystemBulletParallel.cpp
-    chrono_parallel/collision/ChContactContainerParallel.h
-    chrono_parallel/collision/ChContactContainerParallel.cpp
-    )
-
-SOURCE_GROUP(collision FILES
-    ${ChronoEngine_Parallel_COLLISION})
-
-# Windows doesn't automatically pick up Bullet sources from Chrono
-IF (MSVC)
-    SET(ChronoEngine_Parallel_COLLISION_BULLET
-    # CollisionDispatch
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btActivatingCollisionAlgorithm.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btActivatingCollisionAlgorithm.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btBoxBoxCollisionAlgorithm.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btBoxBoxCollisionAlgorithm.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btCollisionDispatcher.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btCollisionDispatcher.cpp	
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btCollisionObject.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btCollisionObject.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btCollisionWorld.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btCollisionWorld.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btManifoldResult.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btManifoldResult.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btSphereTriangleCollisionAlgorithm.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btSphereTriangleCollisionAlgorithm.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btEmptyCollisionAlgorithm.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btEmptyCollisionAlgorithm.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btCompoundCollisionAlgorithm.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btCompoundCollisionAlgorithm.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btConvexConcaveCollisionAlgorithm.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btConvexConcaveCollisionAlgorithm.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btConvexPlaneCollisionAlgorithm.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btConvexPlaneCollisionAlgorithm.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btConvexConvexAlgorithm.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btConvexConvexAlgorithm.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/SphereTriangleDetector.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/SphereTriangleDetector.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btBoxBoxDetector.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionDispatch/btBoxBoxDetector.cpp	
-    # CollisionShapes
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btBvhTriangleMeshShape.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btBvhTriangleMeshShape.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btCollisionShape.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btCollisionShape.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btConvexInternalShape.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btConvexInternalShape.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btConcaveShape.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btConcaveShape.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btConvexShape.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btConvexShape.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btOptimizedBvh.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btOptimizedBvh.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btPolyhedralConvexShape.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btSphereShape.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btSphereShape.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btTetrahedronShape.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btTetrahedronShape.cpp	
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btTriangleCallback.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btTriangleCallback.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btTriangleMeshShape.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/CollisionShapes/btTriangleMeshShape.cpp
-    # BroadphaseCollision
-        ${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btAxisSweep3.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btAxisSweep3.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btDbvt.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btDbvt.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btDispatcher.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btDispatcher.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btCollisionAlgorithm.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btDbvtBroadphase.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btDbvtBroadphase.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btOverlappingPairCache.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btOverlappingPairCache.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btMultiSapBroadphase.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btMultiSapBroadphase.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btQuantizedBvh.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/BroadphaseCollision/btQuantizedBvh.cpp	
-    # NarrowPhaseCollision	
-        ${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btContinuousConvexCollision.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btContinuousConvexCollision.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btConvexCast.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btConvexCast.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkConvexCast.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkConvexCast.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkEpa2.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkEpa2.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkEpaPenetrationDepthSolver.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkEpaPenetrationDepthSolver.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkPairDetector.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkPairDetector.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btMinkowskiPenetrationDepthSolver.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btMinkowskiPenetrationDepthSolver.cpp	
-        ${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btPersistentManifold.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btPersistentManifold.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btRaycastCallback.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btRaycastCallback.cpp
-        ${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btSubSimplexConvexCast.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btSubSimplexConvexCast.cpp	
-        ${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.h
-        ${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.cpp	
-    # gimpact
-        ${CHRONO_INC}/collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.h
-        ${CHRONO_INC}/collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.cpp
-        ${CHRONO_INC}/collision/gimpact/GIMPACT/Bullet/btGImpactQuantizedBvh.h
-        ${CHRONO_INC}/collision/gimpact/GIMPACT/Bullet/btGImpactQuantizedBvh.cpp
-        ${CHRONO_INC}/collision/gimpact/GIMPACT/Bullet/btTriangleShapeEx.h
-        ${CHRONO_INC}/collision/gimpact/GIMPACT/Bullet/btTriangleShapeEx.cpp
-    # LinearMath
-        ${CHRONO_INC}/collision/bullet/LinearMath/btAlignedAllocator.h
-        ${CHRONO_INC}/collision/bullet/LinearMath/btAlignedAllocator.cpp
-        ${CHRONO_INC}/collision/bullet/LinearMath/btQuickprof.h
-        ${CHRONO_INC}/collision/bullet/LinearMath/btQuickprof.cpp
-        )
-
-    SOURCE_GROUP(collision\\bullet FILES
-        ${ChronoEngine_Parallel_COLLISION_BULLET})
-
-    SET(ChronoEngine_Parallel_COLLISION
-        ${ChronoEngine_Parallel_COLLISION}
-        ${ChronoEngine_Parallel_COLLISION_BULLET}
-        )
-ENDIF()
-
-
-
-# Include directories based on user path to ChronoEngine
-SET(INC_DIRS
-    ${CHRONO_INC}
-    "${CHRONO_INC}/collision"
-    "${CHRONO_INC}/collision/bullet"
-    "${CHRONO_INC}/collision/bullet/LinearMath"
-    "${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision" )
-
-# User specified path to ChronoEngine Libraries.
-SET(CHRONO_LIB_PATH  ""   CACHE PATH "Where is CHRONOLIB located")
-
-# set the compiler as a variable
-IF(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_CLANGXX)
-    IF(CMAKE_SIZEOF_VOID_P MATCHES 4)
-        SET (COMPILER "COMPILER_GCC" CACHE STRING "Compiler Type" FORCE)
-    ELSE()
-        SET (COMPILER "COMPILER_GCC_X64" CACHE STRING "Compiler Type" FORCE)
-    ENDIF()
-ENDIF()
-
-IF(MSVC AND CMAKE_CL_64)
-    SET (COMPILER "COMPILER_MSVC_X64" CACHE STRING "Compiler Type" FORCE)
-ELSEIF(MSVC)
-    SET (COMPILER "COMPILER_MSVC" CACHE STRING "Compiler Type" FORCE)
-ENDIF()
-
-IF(MSVC)
-    # Avoid deprecation warnings
-    ADD_DEFINITIONS( "-D_CRT_SECURE_NO_DEPRECATE" )  # avoids deprecation warnings
-    ADD_DEFINITIONS( "-D_SCL_SECURE_NO_DEPRECATE" )  # avoids deprecation warnings
-    
-    # Specify a single Build type, so we can import the correct .lib for Chrono
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "For single-configuration generators (e.g. make) set the type of build: Release, Debug, RelWithDebInfo, MinSizeRel")
-    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release" "Debug" "RelWithDebInfo" "MinSizeRel")
-ENDIF()
-
-# Hack to be able to link different libraries depending on build type
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    # find the CE library. First make sure we didn't already find it; if we did, unset the variable
-    # need this to easily switch between Debug and Release build types
-    IF(CHRONO_LIB)
-        UNSET(CHRONO_LIB CACHE)
-    ENDIF()
-
-    # Set compiler flags based on which compiler we're using
-    IF("${COMPILER}" STREQUAL "COMPILER_MSVC")
-        SET(CH_BUILDFLAGS "-DWIN32; -DNOMINMAX; -MP")
-    ELSEIF("${COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-        SET(CH_BUILDFLAGS "-DWIN64; -D_WIN64; -DNOMINMAX; -MP")
-    ELSEIF("${COMPILER}" STREQUAL "COMPILER_GCC")
-        SET(CH_BUILDFLAGS "-DWIN32 -D_MINGW -D_WINDOWS")
-    ELSEIF("${COMPILER}" STREQUAL "COMPILER_GCC_X64")
-        SET(CH_BUILDFLAGS "-DWIN64 -D_MINGW -D_WINDOWS -m64")
-    ENDIF()
-
-    # Find the Chrono library based on the build type
-    FIND_LIBRARY(CHRONO_LIB NAMES ChronoEngine PATHS ${CHRONO_LIB_PATH}/${CMAKE_BUILD_TYPE} REQUIRED)
-
-    # Copy the Chrono DLL from/to appropriate place, based on build type
-    SET(CHRONO_DLL "${CHRONO_LIB_PATH}/../bin/${CMAKE_BUILD_TYPE}/ChronoEngine.dll")
-    FILE(COPY ${CHRONO_DLL} DESTINATION "${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}")
-
-    # Report what library we use and which DLL was copied
-    MESSAGE(STATUS "Found chrono lib: ${CHRONO_LIB}")
-    MESSAGE(STATUS "Copied chrono dll: ${CHRONO_DLL}")
-ELSE()
-    # Find Chrono libs
-    FIND_LIBRARY(CHRONO_LIB NAMES ChronoEngine PATHS ${CHRONO_LIB_PATH} REQUIRED)
-ENDIF()
-
-SET(INCLUDE_DIR
-    ${CH_CUDA_INC}
-    ${CHRONO_INC}
-    ${CHRONO_INC}/collision/bullet/
-    ${CMAKE_SOURCE_DIR}
-    ${INC_DIRS}
-    )
-
-SET(INCLUDE_LIB
-    #${CHRONO_LIB_POSTPROCESS}
-    #${CHRONO_LIB_OPENGL}
-    ${CHRONO_LIB}
-    )
-
-
-#-----------------------------------------------------------------------------
-# In most cases, you do not need to edit the lines below.
-
+# ------------------------------------------------------------------------------
+# CUDA -- required for the Thrust library
+# ------------------------------------------------------------------------------
 # Use the FindCUDA.cmake to find the CUDA toolkit and set many interesting 
 # variables and compilation rules. This saves eons of time.
 # Interesting vars that are set: paths CUDA_SDK_ROOT_DIR and CUDA_TOOLKIT_ROOT_DIR
@@ -456,58 +142,124 @@ ENDIF()
 
 find_library(CH_CUDART NAMES cudart libcudart PATHS ${CUDA_TOOLKIT_LIB_DIR})
 
-SET(CH_CUDA_INC         "${CUDA_TOOLKIT_ROOT_DIR}/include" )
-SET(CH_CUDA_SDK_INC     "${CUDA_SDK_ROOT_DIR}/common/inc"  )
-
 # These need to get straightened out
 # Anything using the SDK should only be used by nvcc, no need to include them for anything being sent to the system compiler
-INCLUDE_DIRECTORIES(${INCLUDE_DIR} ${CUDA_TOOLKIT_INCLUDE})
+INCLUDE_DIRECTORIES(
+    ${CUDA_TOOLKIT_ROOT_DIR}/include
+    ${CUDA_SDK_ROOT_DIR}/common/inc
+    ${CUDA_TOOLKIT_INCLUDE}
+    )
 
-# The library is added to the project, and some custom properties of this target are set.
+# ------------------------------------------------------------------------------
+# Compiler settings
+# ------------------------------------------------------------------------------
 
-ADD_LIBRARY(ChronoEngine_Parallel SHARED
-            ${ChronoEngine_Parallel_COLLISION}
-            ${ChronoEngine_Parallel_CONSTRAINTS}
-            ${ChronoEngine_Parallel_SOLVER}
-            ${ChronoEngine_Parallel_MATH}
-            ${ChronoEngine_Parallel_SOURCES}
-            ${ChronoEngine_Parallel_HEADERS})
+# set the compiler as a variable
+IF(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_CLANGXX)
+    IF(CMAKE_SIZEOF_VOID_P MATCHES 4)
+        SET (COMPILER "COMPILER_GCC" CACHE STRING "Compiler Type" FORCE)
+    ELSE()
+        SET (COMPILER "COMPILER_GCC_X64" CACHE STRING "Compiler Type" FORCE)
+    ENDIF()
+ENDIF()
+
+IF(MSVC AND CMAKE_CL_64)
+    SET (COMPILER "COMPILER_MSVC_X64" CACHE STRING "Compiler Type" FORCE)
+ELSEIF(MSVC)
+    SET (COMPILER "COMPILER_MSVC" CACHE STRING "Compiler Type" FORCE)
+ENDIF()
+
+IF(MSVC)
+    # Avoid deprecation warnings
+    ADD_DEFINITIONS( "-D_CRT_SECURE_NO_DEPRECATE" )  # avoids deprecation warnings
+    ADD_DEFINITIONS( "-D_SCL_SECURE_NO_DEPRECATE" )  # avoids deprecation warnings
+    
+    # Specify a single Build type, so we can import the correct .lib for Chrono
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "For single-configuration generators (e.g. make) set the type of build: Release, Debug, RelWithDebInfo, MinSizeRel")
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release" "Debug" "RelWithDebInfo" "MinSizeRel")
+ENDIF()
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -DWIN32_LEAN_AND_MEAN")
     SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DWIN32_LEAN_AND_MEAN")
-ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    SET_TARGET_PROPERTIES( ChronoEngine_Parallel PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT YES)
-    FIND_LIBRARY(CUDA_FRAMEWORK CUDA)
+    # Set compiler flags based on which compiler we're using
+    IF("${COMPILER}" STREQUAL "COMPILER_MSVC")
+        SET(CH_BUILDFLAGS "-DWIN32; -DNOMINMAX; -MP")
+    ELSEIF("${COMPILER}" STREQUAL "COMPILER_MSVC_X64")
+        SET(CH_BUILDFLAGS "-DWIN64; -D_WIN64; -DNOMINMAX; -MP")
+    ELSEIF("${COMPILER}" STREQUAL "COMPILER_GCC")
+        SET(CH_BUILDFLAGS "-DWIN32 -D_MINGW -D_WINDOWS")
+    ELSEIF("${COMPILER}" STREQUAL "COMPILER_GCC_X64")
+        SET(CH_BUILDFLAGS "-DWIN64 -D_MINGW -D_WINDOWS -m64")
+    ENDIF()
 ENDIF()
 
-SET_TARGET_PROPERTIES(ChronoEngine_Parallel PROPERTIES
-                      COMPILE_FLAGS "${CH_BUILDFLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_GPU}"
-                      COMPILE_DEFINITIONS "CH_API_COMPILE_PARALLEL")
+# ------------------------------------------------------------------------------
+# Find the ChronoEngine library
+# ------------------------------------------------------------------------------
 
-TARGET_LINK_LIBRARIES(ChronoEngine_Parallel ${INCLUDE_LIB} ${CUDA_FRAMEWORK} ${MPI_LIBRARIES})
+# Hack to be able to link different libraries depending on build type
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    # find the CE library. First make sure we didn't already find it; if we did, unset the variable
+    # need this to easily switch between Debug and Release build types
+    IF(CHRONO_LIB)
+        UNSET(CHRONO_LIB CACHE)
+    ENDIF()
 
-INSTALL(TARGETS ChronoEngine_Parallel
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-)
+    # Find the Chrono library based on the build type
+    FIND_LIBRARY(CHRONO_LIB NAMES ChronoEngine PATHS ${CHRONO_LIB_PATH}/${CMAKE_BUILD_TYPE} REQUIRED)
 
-mark_as_advanced(FORCE
-    CUDA_BUILD_CUBIN
-    CUDA_BUILD_EMULATION
-    CUDA_SEPARABLE_COMPILATION
-    CUDA_SDK_ROOT_DIR
-    CUDA_VERBOSE_BUILD
-    CUDA_HOST_COMPILER)
+    # Copy the Chrono DLL from/to appropriate place, based on build type
+    SET(CHRONO_DLL "${CHRONO_LIB_PATH}/../bin/${CMAKE_BUILD_TYPE}/ChronoEngine.dll")
+    FILE(COPY ${CHRONO_DLL} DESTINATION "${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}")
 
+    # Report what library we use and which DLL was copied
+    MESSAGE(STATUS "Found chrono lib: ${CHRONO_LIB}")
+    MESSAGE(STATUS "Copied chrono dll: ${CHRONO_DLL}")
+ELSE()
+    # Find Chrono libs
+    FIND_LIBRARY(CHRONO_LIB NAMES ChronoEngine PATHS ${CHRONO_LIB_PATH} REQUIRED)
+ENDIF()
+
+# ------------------------------------------------------------------------------
+# Add paths to required Chrono headers
+# ------------------------------------------------------------------------------
+INCLUDE_DIRECTORIES(
+     ${CHRONO_INC}
+    "${CHRONO_INC}/collision"
+    "${CHRONO_INC}/collision/bullet"
+    "${CHRONO_INC}/collision/bullet/LinearMath"
+    "${CHRONO_INC}/collision/bullet/BulletCollision/NarrowPhaseCollision"
+    )
+
+# ------------------------------------------------------------------------------
+# Add paths to the top of the source directory and the binary directory
+# ------------------------------------------------------------------------------
+INCLUDE_DIRECTORIES(
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_BINARY_DIR}
+    )
 
 # ----------------------------------------------------------------------------
+# Generate configuration header file.
+# ----------------------------------------------------------------------------
+# Generate the configuration header file using substitution variables.
+# Place the header file in the library output directory and make sure it can
+# be found at compile time.
+
+CONFIGURE_FILE(
+  ${PROJECT_SOURCE_DIR}/cmake/ChConfigParallel.in
+  ${PROJECT_BINARY_DIR}/chrono_parallel/ChConfigParallel.h
+  )
+
+INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR})
+
+# ------------------------------------------------------------------------------
 # Add subdirectories, depending on user-specified options
-# ----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+ADD_SUBDIRECTORY(chrono_parallel)
+
 IF(ENABLE_UTILS)
 
   SET(ENABLE_OPENGL  TRUE  CACHE BOOL "Build the ChronoParallel_Utils_OpenGL library")
@@ -537,6 +289,9 @@ IF(ENABLE_UTILS)
   ENDIF()
 
   ADD_SUBDIRECTORY(chrono_utils)
+  IF(ENABLE_OPENGL)
+    ADD_SUBDIRECTORY(chrono_utils/opengl)
+  ENDIF()
 
 ENDIF()
 
@@ -549,16 +304,3 @@ IF(ENABLE_TESTS)
 ENDIF()
 
 
-# ----------------------------------------------------------------------------
-# Generate configuration header file.
-# ----------------------------------------------------------------------------
-# Generate the configuration header file using substitution variables.
-# Place the header file in the library output directory and make sure it can
-# be found at compile time.
-
-CONFIGURE_FILE(
-  ${PROJECT_SOURCE_DIR}/cmake/ChConfigParallel.in
-  ${PROJECT_BINARY_DIR}/chrono_parallel/ChConfigParallel.h
-  )
-
-INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR})

@@ -1,13 +1,12 @@
 #=============================================================================
-# CMake configuration file for Chrono_Utils
+# CMake configuration file for the ChronoEngine_Utils library
 #
-# Currently this is invoked from the main CMakeLists for chrono-parallel
+# Invoked from the main CMakeLists.txt using ADD_SUBDIRECTORY()
 #=============================================================================
 
-
-#
+# ------------------------------------------------------------------------------
 # LIST THE FILES in the ChronoEngine_Utils LIBRARY
-#
+# ------------------------------------------------------------------------------
 
 SET(ChronoEngine_Utils_SOURCES
     ChUtilsCreators.cpp
@@ -33,30 +32,13 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_BINARY_DIR}
     )
 
-#
+# ------------------------------------------------------------------------------
 # ADD THE ChronoEngine_Utils LIBRARY
-#
+# ------------------------------------------------------------------------------
 
 ADD_LIBRARY(ChronoEngine_Utils SHARED
     ${ChronoEngine_Utils_HEADERS}
     ${ChronoEngine_Utils_SOURCES})
-
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -DWIN32_LEAN_AND_MEAN")
-    SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DWIN32_LEAN_AND_MEAN")
-
-    SET(CH_BUILDFLAGS "-DNOMINMAX")
-ENDIF()
-
-IF(MSVC)
-    # Avoid deprecation warnings
-    ADD_DEFINITIONS( "-D_CRT_SECURE_NO_DEPRECATE" )  # avoids deprecation warnings
-    ADD_DEFINITIONS( "-D_SCL_SECURE_NO_DEPRECATE" )  # avoids deprecation warnings
-    
-    # Set the output directory for DLLs and EXEs
-    SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-ENDIF()
-
 
 SET_TARGET_PROPERTIES(ChronoEngine_Utils PROPERTIES
   COMPILE_FLAGS "${CH_BUILDFLAGS}"
@@ -70,9 +52,4 @@ INSTALL(TARGETS ChronoEngine_Utils
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     )
-
-
-IF(ENABLE_OPENGL)
-    ADD_SUBDIRECTORY(opengl)
-ENDIF()
 

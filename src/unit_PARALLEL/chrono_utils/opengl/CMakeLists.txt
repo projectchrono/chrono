@@ -1,9 +1,12 @@
 #=============================================================================
-# CMake configuration file for Chrono_Utils OpenGL
+# CMake configuration file for the ChronoEngine_Utils_OpenGL library
 #
-# Currently this is invoked from the main CMakeLists for Chrono_Utils
+# Invoked from the main CMakeLists.txt using ADD_SUBDIRECTORY()
 #=============================================================================
 
+# ------------------------------------------------------------------------------
+# LIST THE FILES in the ChronoEngine_Utils_OpenGL LIBRARY
+# ------------------------------------------------------------------------------
 
 SET(ChronoEngine_Utils_OpenGL_SOURCES 
 	ChOpenGL.cpp 
@@ -31,20 +34,17 @@ SOURCE_GROUP(unit_OPENGL FILES
 	${ChronoEngine_Utils_OpenGL_SOURCES} 
 	${ChronoEngine_Utils_OpenGL_HEADERS})
 
-SET(INCLUDE_DIR
-	${CHRONO_INC}
-	${CHRONO_INC}/collision 
-	${CHRONO_INC}/collision/bullet/ 
-	${CMAKE_SOURCE_DIR}
-	${CMAKE_BINARY_DIR}
-	${FREEGLUT_INC_PATH}
-	${GLM_INCLUDE_DIRS}
-	)
+# ------------------------------------------------------------------------------
+# Additional headers
+# ------------------------------------------------------------------------------
+INCLUDE_DIRECTORIES(
+    ${FREEGLUT_INC_PATH}
+    ${GLM_INCLUDE_DIRS}
+    )
 
-INCLUDE_DIRECTORIES(${INCLUDE_DIR} ${CUDA_TOOLKIT_INCLUDE})
-
-# The OPENGL library is added to the project,
-# and some custom properties of this target are set.
+# ------------------------------------------------------------------------------
+# ADD THE ChronoEngine_Utils_OpenGL LIBRARY
+# ------------------------------------------------------------------------------
 
 ADD_LIBRARY(ChronoEngine_Utils_OpenGL SHARED 
 	${ChronoEngine_Utils_OpenGL_SOURCES}
@@ -60,7 +60,7 @@ TARGET_LINK_LIBRARIES(ChronoEngine_Utils_OpenGL
 	${OPENGL_LIBRARIES}
 	${CUDA_FRAMEWORK}
 	${CHRONO_LIB}
-	${CHRONO_PARALLEL_LIB})
+	ChronoEngine_Parallel)
 
 INSTALL(TARGETS ChronoEngine_Utils_OpenGL
 	RUNTIME DESTINATION bin
