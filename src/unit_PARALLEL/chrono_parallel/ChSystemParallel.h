@@ -120,17 +120,19 @@ CH_RTTI(ChSystemParallelDVI, ChSystemParallel)
 };
 
 class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
-CH_RTTI(ChSystemParallelDEM, ChSystemParallel)
-  ;
+  CH_RTTI(ChSystemParallelDEM, ChSystemParallel);
 
- public:
-  ChSystemParallelDEM(unsigned int max_objects = 1000, ChContactDEM::NormalForceModel normal_model = ChContactDEM::HuntCrossley,
+public:
+  ChSystemParallelDEM(unsigned int max_objects = 1000,
+                      ChContactDEM::NormalForceModel normal_model = ChContactDEM::HuntCrossley,
                       ChContactDEM::TangentialForceModel tangential_model = ChContactDEM::SimpleCoulombSliding);
 
   virtual void LoadMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
   virtual void UpdateBodies();
 
   virtual void ChangeCollisionSystem(ChCollisionSystem *newcollsystem);
+
+  double GetTimerProcessContact() const {return gpu_data_manager->system_timer.GetTime("ChLcpSolverParallelDEM_ProcessContact");}
 
   ChContactDEM::NormalForceModel normal_force_model;
   ChContactDEM::TangentialForceModel tangential_force_model;
