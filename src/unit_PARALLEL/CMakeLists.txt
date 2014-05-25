@@ -241,20 +241,6 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_BINARY_DIR}
     )
 
-# ----------------------------------------------------------------------------
-# Generate configuration header file.
-# ----------------------------------------------------------------------------
-# Generate the configuration header file using substitution variables.
-# Place the header file in the library output directory and make sure it can
-# be found at compile time.
-
-CONFIGURE_FILE(
-  ${PROJECT_SOURCE_DIR}/cmake/ChConfigParallel.in
-  ${PROJECT_BINARY_DIR}/chrono_parallel/ChConfigParallel.h
-  )
-
-INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR})
-
 # ------------------------------------------------------------------------------
 # Add subdirectories, depending on user-specified options
 # ------------------------------------------------------------------------------
@@ -303,4 +289,17 @@ IF(ENABLE_TESTS)
   ENDIF()
 ENDIF()
 
+# ----------------------------------------------------------------------------
+# Generate configuration header file.
+# ----------------------------------------------------------------------------
+# Generate the configuration header file using substitution variables.
+# Place the header file in the library output directory and make sure it can
+# be found at compile time.
+
+CONFIGURE_FILE(
+  ${PROJECT_SOURCE_DIR}/cmake/ChConfigParallel.in
+  ${PROJECT_BINARY_DIR}/chrono_parallel/ChConfigParallel.h
+  )
+
+INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR})
 
