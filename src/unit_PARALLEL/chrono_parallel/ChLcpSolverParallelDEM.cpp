@@ -278,8 +278,11 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
   data_container->num_constraints = data_container->num_bilaterals;
 
   // Calculate contact forces (impulses) and append them to the body forces
-  if (data_container->num_contacts > 0)
+  if (data_container->num_contacts > 0) {
+    data_container->system_timer.start("ChLcpSolverParallelDEM_ProcessContact");
     ProcessContacts();
+    data_container->system_timer.stop("ChLcpSolverParallelDEM_ProcessContact");
+  }
 
   // Include forces and torques (update derivatives: v += m_inv * h * f)
   Preprocess();
