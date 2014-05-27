@@ -16,11 +16,12 @@
 #ifndef CHOPENGLWINDOW_H
 #define CHOPENGLWINDOW_H
 
-#include "chrono_utils/opengl/ChApiOpenGL.h"
+#include "utils/opengl/core/ChOpenGLBase.h"
 
 namespace chrono{
 	namespace utils{
-		class CH_UTILS_OPENGL_API ChOpenGLWindow {
+
+		class CH_UTILS_OPENGL_API ChOpenGLWindow:ChOpenGLBase {
 		protected:
 			int windowID;
 		public:
@@ -37,7 +38,7 @@ namespace chrono{
 			virtual void CallBackReshapeFunc(int w, int h);
 			virtual void CallBackSpecialFunc(int key, int x, int y);
 			virtual void CallBackVisibilityFunc(int visible);
-
+			void TakeDown(){}
 			void SetWindowID(int newWindowID);
 			int GetWindowID(void);
 		};

@@ -17,31 +17,18 @@
 #ifndef  CHOPENGLMANAGER_H
 #define  CHOPENGLMANAGER_H
 
-#ifdef __APPLE__
-
-#else
-#include <GL/freeglut.h>
-#endif
-
-#include <string>
-#include <iomanip>
-#include <fstream>
-#include <sstream>
-#include <limits>
-#include <time.h>
-#include <math.h>
-#include "chrono_utils/opengl/ChApiOpenGL.h"
-#include "core/ChClassRegister.h"
+#include "utils/opengl/core/ChOpenGLBase.h"
+#include "utils/opengl/ChOpenGLCamera.h"
+#include "utils/opengl/ChOpenGLWindow.h"
 #include "physics/ChSystem.h"
-#include "chrono_utils/opengl/ChOpenGLCamera.h"
-#include "chrono_utils/opengl/ChOpenGLWindow.h"
+
 
 
 using namespace std;
 namespace chrono{
 	namespace utils{
 #define MAX_NUMBER_OF_WINDOWS 256
-		class CH_UTILS_OPENGL_API ChOpenGLManager {
+		class CH_UTILS_OPENGL_API ChOpenGLManager:ChOpenGLBase {
 		private:
 
 			static void CallBackDisplayFunc(void);
@@ -56,6 +43,8 @@ namespace chrono{
 
 			static int currentIdleWindow;
 			static int idleFunctionEnabled;
+
+			void TakeDown(){}
 
 		public:
 			ChOpenGLManager();

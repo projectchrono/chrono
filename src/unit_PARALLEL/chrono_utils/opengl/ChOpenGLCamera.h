@@ -15,26 +15,11 @@
 
 #ifndef CHOPENGLCAMERA_H
 #define CHOPENGLCAMERA_H
-#ifdef __APPLE__
-#include <GLUT/glut.h>
-#else
-#include <GL/freeglut.h>
-#endif
-#include "chrono_utils/opengl/ChApiOpenGL.h"
-#include "core/ChClassRegister.h"
-#include "core/ChVector.h"
-#define GLM_FORCE_RADIANS
 
-#include <glm/glm.hpp>
-#include <glm/gtx/transform.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "utils/opengl/core/ChOpenGLBase.h"
 
 using namespace std;
 namespace chrono {
-
 	namespace utils{
 
 		enum CameraType {
@@ -44,9 +29,11 @@ namespace chrono {
 			UP, DOWN, LEFT, RIGHT, FORWARD, BACK
 		};
 
-		class CH_UTILS_OPENGL_API ChOpenGLCamera {
+		class CH_UTILS_OPENGL_API ChOpenGLCamera:ChOpenGLBase {
 		public:
-			ChOpenGLCamera();~ChOpenGLCamera();
+			ChOpenGLCamera();
+			~ChOpenGLCamera();
+			void TakeDown(){}
 
 			void Reset();
 	//This function updates the camera

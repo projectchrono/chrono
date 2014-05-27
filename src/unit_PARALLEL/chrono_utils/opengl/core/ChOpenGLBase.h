@@ -1,0 +1,71 @@
+#ifndef CHOPENGLBASE_H
+#define CHOPENGLBASE_H
+
+#include <GL/glew.h>
+
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#else
+#include <GL/freeglut.h>
+#endif
+
+#define GLM_FORCE_RADIANS
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <glm/glm.hpp>
+#include <glm/gtx/transform.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/intersect.hpp>
+#include <glm/gtx/constants.hpp>
+#include <glm/gtx/spline.hpp>
+
+#include <iostream>
+#include <string>
+#include <iomanip>
+#include <fstream>
+#include <sstream>
+#include <limits>
+#include <time.h>
+#include <math.h>
+#include <vector>
+#include <assert.h>
+
+#include "utils/opengl/core/ChApiOpenGL.h"
+
+
+
+namespace chrono {
+	namespace utils{
+
+#ifndef	BAD_GL_VALUE
+#define	BAD_GL_VALUE	GLuint(-1)
+#endif
+
+		class CH_UTILS_OPENGL_API ChOpenGLBase {
+		public:
+			ChOpenGLBase(){}
+			~ChOpenGLBase(){}
+
+		    // Children must implement this function
+			virtual void TakeDown() = 0;
+
+        //Check for opengl Errors and output if error along with input char strings
+			bool GLReturnedError(const char * s) {
+				bool return_error = false;
+				GLenum glerror;
+            //Go through list of errors until no errors remain
+				while ((glerror = glGetError()) != GL_NO_ERROR) {
+					return_error = true;
+					std::cerr << s << ": " << gluErrorString(glerror) << std::endl;
+				}
+				return return_error;
+			}
+		};
+	}
+}
+
+
+#endif  // END of CHOPENGLBASE_H
