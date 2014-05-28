@@ -20,9 +20,8 @@
 #include "chrono_utils/opengl/core/ChOpenGLBase.h"
 #include "chrono_utils/opengl/ChOpenGLCamera.h"
 #include "chrono_utils/opengl/core/ChOpenGLShader.h"
-#include "chrono_utils/opengl/shapes/ChOpenGLSphere.h"
 #include "chrono_utils/opengl/shapes/ChOpenGLCloud.h"
-#include "chrono_utils/opengl/shapes/ChOpenGLFrustum.h"
+#include "chrono_utils/opengl/shapes/ChOpenGLOBJ.h"
 #include "physics/ChSystem.h"
 #include "lcp/ChLcpIterativeSolver.h"
 #include "assets/ChBoxShape.h"
@@ -52,6 +51,7 @@ class CH_UTILS_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
    bool Initialize();
    void Update();
    void Render();
+   void DrawObject(ChBody * abody);
    void TakeDown() {
    }
    void SetWindowSize(glm::ivec2 size){
@@ -101,8 +101,11 @@ class CH_UTILS_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
    ChOpenGLShader main_shader;
    ChOpenGLShader font_shader;
 
-   ChOpenGLSphere sphere;
-   ChOpenGLFrustum frustum;
+   ChOpenGLOBJ sphere;
+   ChOpenGLOBJ box;
+   ChOpenGLOBJ cylinder;
+   ChOpenGLOBJ cone;
+
    ChOpenGLCloud cloud;
 
    int simulation_frame; // The current frame number
