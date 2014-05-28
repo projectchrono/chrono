@@ -5,7 +5,6 @@ using namespace chrono;
 
 void ChLcpSolverParallelDVI::RunTimeStep(
       real step) {
-   step_size = step;
    data_container->step_size = step;
 
    data_container->num_unilaterals = 6 * data_container->num_contacts;

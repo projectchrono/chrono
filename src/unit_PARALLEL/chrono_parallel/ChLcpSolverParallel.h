@@ -87,7 +87,6 @@ class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
  protected:
   real tolerance;
 
-  real step_size;
   uint max_iter_bilateral;
 
   real residual;

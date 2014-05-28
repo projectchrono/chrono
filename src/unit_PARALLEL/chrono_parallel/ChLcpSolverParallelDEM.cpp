@@ -163,7 +163,7 @@ ChLcpSolverParallelDEM::host_CalcContactForces(
   for (int index = 0; index < data_container->num_contacts; index++) {
     function_CalcContactForces(
       index,
-      step_size,
+      data_container->step_size,
       data_container->host_data.pos_data.data(),
       data_container->host_data.rot_data.data(),
       data_container->host_data.vel_data.data(),
@@ -201,8 +201,8 @@ ChLcpSolverParallelDEM::host_AddContactForces(
 {
 #pragma omp parallel for
   for (int index = 0; index < ct_body_count; index++) {
-    data_container->host_data.frc_data[ct_body_id[index]] += step_size * ct_body_force[index];
-    data_container->host_data.trq_data[ct_body_id[index]] += step_size * ct_body_torque[index];
+    data_container->host_data.frc_data[ct_body_id[index]] += data_container->step_size * ct_body_force[index];
+    data_container->host_data.trq_data[ct_body_id[index]] += data_container->step_size * ct_body_torque[index];
   }
 }
 
@@ -271,7 +271,6 @@ void ChLcpSolverParallelDEM::ProcessContacts()
 void
 ChLcpSolverParallelDEM::RunTimeStep(real step)
 {
-  step_size = step;
   data_container->step_size = step;
 
   data_container->num_unilaterals = 0;
