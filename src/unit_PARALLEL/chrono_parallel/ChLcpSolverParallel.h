@@ -91,8 +91,6 @@ class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
 
   real residual;
 
-  cudaEvent_t start, stop;
-
   custom_vector<real> rhs, debug, lambda;
 
   ChConstraintBilateral bilateral;
