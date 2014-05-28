@@ -26,6 +26,7 @@ ChSystemParallel::ChSystemParallel(
    detect_optimal_bins = false;
    current_threads = 2;
    perform_thread_tuning = true;
+   perform_bin_tuning = true;
 
    gpu_data_manager->system_timer.AddTimer("step");
    gpu_data_manager->system_timer.AddTimer("update");
@@ -150,7 +151,9 @@ int ChSystemParallel::Integrate_Y() {
    if (perform_thread_tuning) {
       RecomputeThreads();
    }
-   RecomputeBins();
+   if (perform_bin_tuning) {
+     RecomputeBins();
+   }
    //cout << "timer_accumulator " << sum_of_elems / 10.0 << " s: " << timer_accumulator[0] << endl;
 
    //cout << "current threads " << current_threads <<" "<<frame_threads<<" "<<detect_optimal_threads<< endl;

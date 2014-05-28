@@ -79,6 +79,11 @@ CH_RTTI(ChSystemParallel, ChSystem)
   void DoThreadTuning(bool m) {
     perform_thread_tuning = m;
   }
+
+  void DoBinTuning(bool m) {
+    perform_bin_tuning = m;
+  }
+
   void SetMinThreads(int m) {
     min_threads = m;
   }
@@ -101,7 +106,7 @@ CH_RTTI(ChSystemParallel, ChSystem)
   int max_threads, current_threads, min_threads;
   vector<double> timer_accumulator, cd_accumulator;
   double old_timer, old_timer_cd;
-  bool detect_optimal_threads, perform_thread_tuning;
+  bool detect_optimal_threads, perform_thread_tuning, perform_bin_tuning;
   int detect_optimal_bins;
   uint frame_threads;
   uint frame_bins;
