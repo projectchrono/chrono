@@ -311,7 +311,7 @@ ChLcpSolverParallelDEM::RunTimeStep(real step)
   solver.SetTolerance(tolerance);
 
   solver.bilateral = &bilateral;
-  solver.Initial(step, data_container);
+  solver.Setup(data_container);
 
   ////bilateral.ComputeJacobians();      //// no-op
 
