@@ -1186,7 +1186,13 @@ void ForceSPH(
 	// calculate grid hash
 	calcHash(U1CAST(m_dGridMarkerHash), U1CAST(m_dGridMarkerIndex), R3CAST(posRadD), numAllMarkers);
 
+	GpuTimer myT0;
+	myT0.Start();
 	thrust::sort_by_key(m_dGridMarkerHash.begin(), m_dGridMarkerHash.end(), m_dGridMarkerIndex.begin());
+	myT0.Stop();
+	real_ t0 = (real_)myT0.Elapsed();
+	printf("** Sort by key timer %f, array size %d\n", t0, m_dGridMarkerHash.size());
+
 
 	// reorder particle arrays into sorted order and find start and end of each cell
 	reorderDataAndFindCellStart(U1CAST(m_dCellStart), U1CAST(m_dCellEnd), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridMarkerHash),
@@ -1492,10 +1498,25 @@ void UpdateRigidBody(
 
 	//add gravity from flex
 	thrust::device_vector<real3> gravityForces3(numObjects.numRigidBodies);
+
+	GpuTimer myT1;
+	myT1.Start();
 	thrust::fill(gravityForces3.begin(), gravityForces3.end(), gravity);
+	myT1.Stop();
+	real_ t1 = (real_)myT1.Elapsed();
+	printf("** fill timer %f, array size %d\n", t1, gravityForces3.size());
+
 
 	//** gravity is added to total acceleration of rigid body (so far it only contained FSI forces). "totalAccRigid3" gets modified.
+	GpuTimer myT2;
+	myT2.Start();
 	thrust::transform(totalAccRigid3.begin(), totalAccRigid3.end(), gravityForces3.begin(), totalAccRigid3.begin(), thrust::plus<real3>());
+	myT2.Stop();
+	real_ t2 = (real_)myT2.Elapsed();
+	printf("** transform timer %f, array size %d\n", t2, totalAccRigid3.size());
+
+
+
 	gravityForces3.clear();
 
 	//####### Torque
@@ -1510,8 +1531,15 @@ void UpdateRigidBody(
 			R3CAST(torqueMarkersD), R4CAST(derivVelRhoD), R3CAST(posRadD), I1CAST(rigidIdentifierD), R3CAST(posRigidD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueOf_SPH_Marker_Acceleration");
+
+	GpuTimer myT3;
+	myT3.Start();
 	(void) thrust::reduce_by_key(rigidIdentifierD.begin(), rigidIdentifierD.end(), torqueMarkersD.begin(), dummyIdentify.begin(),
 			totalTorqueOfAcc3.begin(), binary_pred, thrust::plus<real3>());
+	myT3.Stop();
+	real_ t3 = (real_)myT3.Elapsed();
+	printf("** reduce_by_key timer %f, array size %d\n", t3, rigidIdentifierD.size());
+
 
 	torqueMarkersD.clear();
 	dummyIdentify.clear();
@@ -1936,7 +1964,7 @@ void cudaCollisions(
 	real_ realTime = 0;
 
 	int numPause =  .01 * paramsH.tFinal/paramsH.dT;
-	int pauseRigidFlex =  numPause;//5 * numPause;
+	int pauseRigidFlex =  0;//numPause;//5 * numPause;
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce4 = R4(0);
 	paramsH_B.gravity = R3(0);
@@ -2142,7 +2170,7 @@ void cudaCollisions(
 		double t2 = double(cpuT_end.tv_sec)+double(cpuT_end.tv_usec)/(1000*1000);
 
 
-		if (tStep % 50 == 0) {
+		if (tStep % 2 == 0) {
 			printf("step: %d, step Time (CUDA): %f, step Time (CPU): %f\n ", tStep, time2, 1000 * (t2 - t1));
 			//printf("a \n");
 		}
