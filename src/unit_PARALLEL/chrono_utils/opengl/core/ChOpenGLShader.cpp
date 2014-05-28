@@ -13,7 +13,6 @@ ChOpenGLShader::ChOpenGLShader()
 	this->modelview_matrix_handle = BAD_GL_VALUE;
 	this->projection_matrix_handle = BAD_GL_VALUE;
 	this->normal_matrix_handle = BAD_GL_VALUE;
-	this->use_texture_handle = BAD_GL_VALUE;
 	this->time_handle = BAD_GL_VALUE;
 	this->camera_handle= BAD_GL_VALUE;
 	time = 0;
@@ -41,13 +40,6 @@ ChOpenGLShader::ChOpenGLShader()
 		if (this->normal_matrix_handle != BAD_GL_VALUE)
 			glUniformMatrix3fv(this->normal_matrix_handle, 1, GL_FALSE, nm);
 		this->GLReturnedError("Draw - after normal_matrix_handle");
-	}
-//Turn the texture use flag on or off
-	void ChOpenGLShader::ToggleTexture(bool use_texture)
-	{
-		if (this->use_texture_handle != BAD_GL_VALUE)
-			glUniform1i(this->use_texture_handle,  use_texture);
-		this->GLReturnedError("Draw - after use_texture_handle");
 	}
 
 	void ChOpenGLShader::SetTime(float _time)
@@ -77,7 +69,7 @@ ChOpenGLShader::ChOpenGLShader()
 	Added extra hangles as needed
 */
 
-	bool ChOpenGLShader::Initialize(char * vertex_shader_file, char * fragment_shader_file)
+	bool ChOpenGLShader::Initialize(string vertex_shader_file, string fragment_shader_file)
 	{
 		GLint check_value;
 
@@ -125,6 +117,8 @@ ChOpenGLShader::ChOpenGLShader()
 
 		glUseProgram(this->program_id);
 
+
+		CheckGlProgram(this->program_id);
 	//Locate all of the possible default handles that we can have
 
 
@@ -132,7 +126,6 @@ ChOpenGLShader::ChOpenGLShader()
 		this->projection_matrix_handle = GetUniformLocation("projection_matrix");
 		this->normal_matrix_handle = GetUniformLocation("normal_matrix");
 		this->mvp_handle = GetUniformLocation("mvp");
-		this->use_texture_handle = GetUniformLocation("use_texture");
 		this->time_handle = GetUniformLocation("time");
 		this->camera_handle = GetUniformLocation("camera_position");
 
@@ -180,13 +173,13 @@ ChOpenGLShader::ChOpenGLShader()
 	This function is adapted from OpenGL 4.0 Shading Language Cookbook by David Wolff.
 */
 
-	bool ChOpenGLShader::LoadShader(const char * file_name, GLuint shader_id)
+	bool ChOpenGLShader::LoadShader(const string file_name, GLuint shader_id)
 	{
-		assert(file_name != NULL);
+
 		if (GLReturnedError("ChOpenGLShader::LoadShader - on entrance"))
 			return false;
 
-		FILE * file_handle = fopen(file_name, "rb");
+		FILE * file_handle = fopen(file_name.c_str(), "rb");
 		if (file_handle == NULL)
 		{
 			cerr <<  "Cannot open shader: " << file_name << endl;
@@ -226,6 +219,32 @@ ChOpenGLShader::ChOpenGLShader()
 		}
 		return s.str();
 	}
+
+	void ChOpenGLShader::CheckGlProgram(GLuint prog)
+	{
+	   GLint status;
+	   glGetProgramiv(prog, GL_LINK_STATUS, &status);
+	   if (status == GL_FALSE) {
+	      int loglen;
+	      char logbuffer[1000];
+	      glGetProgramInfoLog(prog, sizeof(logbuffer), &loglen, logbuffer);
+	      fprintf(stderr, "OpenGL Program Linker Error at \n%.*s",  loglen, logbuffer);
+	   } else {
+	      int loglen;
+	      char logbuffer[1000];
+	      glGetProgramInfoLog(prog, sizeof(logbuffer), &loglen, logbuffer);
+	      if (loglen > 0) {
+	         fprintf(stderr, "OpenGL Program Link OK at \n%.*s",  loglen, logbuffer);
+	      }
+	      glValidateProgram(prog);
+	      glGetProgramInfoLog(prog, sizeof(logbuffer), &loglen, logbuffer);
+	      if (loglen > 0) {
+	         fprintf(stderr, "OpenGL Program Validation results at \n%.*s", loglen, logbuffer);
+	      }
+	   }
+	}
+
+
 	GLuint ChOpenGLShader::GetUniformLocation(string name){
 		return glGetUniformLocation(program_id, (const GLchar *) name.c_str());
 	}

@@ -16,7 +16,7 @@
 #ifndef CHOPENGLCAMERA_H
 #define CHOPENGLCAMERA_H
 
-#include "utils/opengl/core/ChOpenGLBase.h"
+#include "chrono_utils/opengl/core/ChOpenGLBase.h"
 
 using namespace std;
 namespace chrono {

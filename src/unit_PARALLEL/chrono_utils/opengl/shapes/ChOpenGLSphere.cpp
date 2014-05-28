@@ -46,8 +46,9 @@ bool ChOpenGLSphere::Initialize(int slices, int stacks, ChOpenGLMaterial mat, bo
 			float  x = cos(2*M_PI * s * S) * sin( M_PI * (r) * R );
 			float  y = sin( -M_PI/2.0f + M_PI * r * R );
 			float  z = sin(2*M_PI * s * S) * sin( M_PI * (r) * R );
-			vec2 tx = this->vertices[counter].texture_coordinate;
-			this->vertices[counter]=(ChOpenGLVertexAttributesPADSNT( vec3(x,y,z), mat.ambient_color,mat.diffuse_color,mat.specular_color,mat.glow_color, normalize(vec3(x,y,z)),tx));
+			this->position[counter]=vec3(x,y,z);
+			this->normal[counter]=normalize(vec3(x,y,z));
+			this->color[counter]=mat.ambient_color;
 			counter++;
 		}
 	}

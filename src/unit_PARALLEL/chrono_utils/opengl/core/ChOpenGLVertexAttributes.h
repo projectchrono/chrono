@@ -12,7 +12,7 @@
 	S = Specular
 */
 
-#include "utils/opengl/core/ChOpenGLBase.h"
+#include "chrono_utils/opengl/core/ChOpenGLBase.h"
 	namespace chrono {
 		namespace utils{
 //This class supports ADS lighting with glow and texture coordinates

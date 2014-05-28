@@ -6,11 +6,11 @@ Shader is specified manually (used for deferred shading)
 
 
 #pragma once
-#include "utils/opengl/core/ChOpenGLObject.h"
+#include "chrono_utils/opengl/core/ChOpenGLObject.h"
 
 namespace chrono {
 	namespace utils{
-		class ChOpenGLCloud : public ChOpenGLObject
+		class CH_UTILS_OPENGL_API ChOpenGLCloud : public ChOpenGLObject
 		{
 		public:
 			ChOpenGLCloud();
@@ -20,7 +20,7 @@ namespace chrono {
 			void TakeDown();
 
 		private:
-			std::vector<ChOpenGLVertexAttributesP> vertices;
+			std::vector<glm::vec3> vertices;
 			typedef ChOpenGLObject super;
 		};
 	}

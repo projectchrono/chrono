@@ -12,10 +12,11 @@ SET(ChronoEngine_Utils_OpenGL_SOURCES
 	shapes/ChOpenGLMesh.cpp
 	shapes/ChOpenGLSphere.cpp
 	shapes/ChOpenGLCloud.cpp
+	shapes/ChOpenGLFrustum.cpp
+	shapes/obj/objloader.cpp
+	shapes/obj/tiny_obj_loader.cc
 	ChOpenGLViewer.cpp 
-	ChOpenGLWorld.cpp 
 	ChOpenGLCamera.cpp
-	ChOpenGLManager.cpp
 	ChOpenGLWindow.cpp
 
 	)
@@ -27,10 +28,11 @@ SET(ChronoEngine_Utils_OpenGL_HEADERS
 	core/ChOpenGLVertexAttributes.h
 	shapes/ChOpenGLSphere.h
 	shapes/ChOpenGLCloud.h
+	shapes/ChOpenGLFrustum.h
+	shapes/obj/objloader.h
+	shapes/obj/tiny_obj_loader.h
 	ChOpenGLViewer.h 
-	ChOpenGLWorld.h
 	ChOpenGLCamera.h
-	ChOpenGLManager.h
 	ChOpenGLWindow.h
 
 	)
@@ -52,8 +54,9 @@ SET(INCLUDE_DIR
 	${CHRONO_INC}/collision/bullet/ 
 	${CMAKE_SOURCE_DIR}/src
 	${CMAKE_SOURCE_DIR}
-	${FREEGLUT_INC_PATH}
 	${GLM_INCLUDE_DIRS}
+	${FREETYPE_INCLUDE_DIR_freetype2}
+	${FREETYPE_INCLUDE_DIR_ft2build}
 	)
 
 INCLUDE_DIRECTORIES(${INCLUDE_DIR} ${CUDA_TOOLKIT_INCLUDE})
@@ -70,9 +73,9 @@ SET_TARGET_PROPERTIES(ChronoEngine_Utils_OpenGL PROPERTIES
 	COMPILE_DEFINITIONS "CH_API_COMPILE_UTILS_OPENGL")
 
 TARGET_LINK_LIBRARIES(ChronoEngine_Utils_OpenGL
-	${FREEGLUT_LIB}
-	${GLUT_LIBRARY}
 	${GLEW_LIBRARY}
+	${GLFW_LIBRARY}
+	${FREETYPE_LIBRARY}
 	${OPENGL_LIBRARIES}
 	${CUDA_FRAMEWORK}
 	${CHRONO_LIB}

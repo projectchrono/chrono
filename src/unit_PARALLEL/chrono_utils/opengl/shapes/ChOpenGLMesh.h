@@ -8,7 +8,7 @@
 */
 
 
-#include "utils/opengl/core/ChOpenGLObject.h"
+#include "chrono_utils/opengl/core/ChOpenGLObject.h"
 
 	namespace chrono {
 		namespace utils{
@@ -24,10 +24,13 @@
 				void RecomputeNormals();
 				void TakeDown();
 			protected:
-				std::vector<ChOpenGLVertexAttributesPADSNT> vertices;
+				//std::vector<ChOpenGLVertexAttributesPCN> vertices;
+				std::vector<glm::vec3> position;
+				std::vector<glm::vec3> normal;
+				std::vector<glm::vec3> color;
 				typedef ChOpenGLObject super;
 			};
 		}
 	}
 
-	#endif  // END of CHOPENGLBASE_H
+	#endif  // END of CHOPENGLMESH_H

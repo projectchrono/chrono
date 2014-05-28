@@ -4,9 +4,10 @@
 #include <GL/glew.h>
 
 #ifdef __APPLE__
-#include <GLUT/glut.h>
+#define GLFW_INCLUDE_GLCOREARB
+#include <GLFW/glfw3.h>
 #else
-#include <GL/freeglut.h>
+#include <GL/glfw3.h>
 #endif
 
 #define GLM_FORCE_RADIANS
@@ -33,7 +34,7 @@
 #include <vector>
 #include <assert.h>
 
-#include "utils/opengl/core/ChApiOpenGL.h"
+#include "chrono_utils/opengl/core/ChApiOpenGL.h"
 
 
 

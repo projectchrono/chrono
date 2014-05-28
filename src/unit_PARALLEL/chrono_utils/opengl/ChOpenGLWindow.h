@@ -16,32 +16,66 @@
 #ifndef CHOPENGLWINDOW_H
 #define CHOPENGLWINDOW_H
 
-#include "utils/opengl/core/ChOpenGLBase.h"
+#include "chrono_utils/opengl/core/ChApiOpenGL.h"
+#include "chrono_utils/opengl/ChOpenGLViewer.h"
+using namespace std;
 
-namespace chrono{
-	namespace utils{
+namespace chrono {
+namespace utils {
+class CH_UTILS_OPENGL_API ChOpenGLWindow  {
+ public:
+   static ChOpenGLWindow& getInstance() {
+      static ChOpenGLWindow instance;
+      return instance;
+   }
 
-		class CH_UTILS_OPENGL_API ChOpenGLWindow:ChOpenGLBase {
-		protected:
-			int windowID;
-		public:
+   static GLFWwindow* Initialize(glm::ivec2 size,char * title, ChOpenGLViewer* viewer);
+   static void SetPointer(GLFWwindow* window, void* pointer);
+   static void StartDrawLoop(GLFWwindow* window);
+   static bool GLUGetError(string err = "") {
+      bool return_error = false;
+      GLenum glerror;
+      //Go through list of errors until no errors remain
+      while ((glerror = glGetError()) != GL_NO_ERROR) {
+         return_error = true;
+         std::cerr << err << " - " << gluErrorString(glerror) << std::endl;
+      }
+      return return_error;
+   }
 
-			ChOpenGLWindow(void);
-			~ChOpenGLWindow();
+   static void GLFWGetVersion(GLFWwindow* main_window) {
+      int major, minor, rev;
+      major = glfwGetWindowAttrib(main_window, GLFW_CONTEXT_VERSION_MAJOR);
+      minor = glfwGetWindowAttrib(main_window, GLFW_CONTEXT_VERSION_MINOR);
+      rev = glfwGetWindowAttrib(main_window, GLFW_CONTEXT_REVISION);
+      fprintf(stdout, "Version: %d.%d.%d\n", major, minor, rev);
 
-			virtual void CallBackDisplayFunc();
-			virtual void CallBackIdleFunc(void);
-			virtual void CallBackKeyboardFunc(unsigned char key, int x, int y);
-			virtual void CallBackMotionFunc(int x, int y);
-			virtual void CallBackMouseFunc(int button, int state, int x, int y);
-			virtual void CallBackPassiveMotionFunc(int x, int y);
-			virtual void CallBackReshapeFunc(int w, int h);
-			virtual void CallBackSpecialFunc(int key, int x, int y);
-			virtual void CallBackVisibilityFunc(int visible);
-			void TakeDown(){}
-			void SetWindowID(int newWindowID);
-			int GetWindowID(void);
-		};
-	}
+      const GLubyte* vendor = glGetString(GL_VENDOR);
+      const GLubyte* renderer = glGetString(GL_RENDERER);
+      const GLubyte* version = glGetString(GL_VERSION);
+      const GLubyte* glsl_ver = glGetString(GL_SHADING_LANGUAGE_VERSION);
+
+      printf("%s : %s (%s)\n >> GLSL: %s\n", vendor, renderer, version, glsl_ver);
+
+   }
+   void StartSpinning();
+
+   glm::ivec2 window_size;
+   glm::ivec2 window_position;
+   float window_aspect;
+   int interval;
+
+ private:
+   ChOpenGLWindow(){}
+   ~ChOpenGLWindow(){}
+   ChOpenGLWindow(ChOpenGLWindow const&);   // Don't Implement.
+   void operator=(ChOpenGLWindow const&);   // Don't implement
+   static void CallbackError( int error, const char* description);
+   static void CallbackReshape(GLFWwindow* window,int w,int h);
+   static void CallbackKeyboard(GLFWwindow* window, int key, int scancode, int action, int mode);
+   static void CallbackMouseButton(GLFWwindow* window, int button, int action, int mods);
+   static void CallbackMousePos(GLFWwindow* window, double x, double y);
+};
+}
 }
 #endif   // END of CHOPENGLWINDOW_H

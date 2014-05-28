@@ -35,7 +35,7 @@
 #include "chrono_utils/ChUtilsInputOutput.h"
 
 #ifdef CHRONO_PARALLEL_HAS_OPENGL
-#include "chrono_utils/opengl/ChOpenGL.h"
+#include "chrono_utils/opengl/ChOpenGLViewer.h"
 #endif
 
 // Define this to save the data when using the OpenGL code
@@ -239,16 +239,16 @@ int main(int argc, char* argv[])
 
 #ifdef CHRONO_PARALLEL_HAS_OPENGL
   // The OpenGL manager will automatically run the simulation
-  utils::ChOpenGLManager * window_manager = new  utils::ChOpenGLManager();
-  utils::ChOpenGL openGLView(window_manager, &msystem, 800, 600, 0, 0, "mixerDEM");
-  openGLView.render_camera->camera_position = glm::vec3(0, 5, 10);
-  openGLView.render_camera->camera_look_at = glm::vec3(0, 0, 0);
-  openGLView.render_camera->camera_scale = 1;
+//  utils::ChOpenGLManager * window_manager = new  utils::ChOpenGLManager();
+//  utils::ChOpenGL openGLView(window_manager, &msystem, 800, 600, 0, 0, "mixerDEM");
+//  openGLView.render_camera->camera_position = glm::vec3(0, 5, 10);
+//  openGLView.render_camera->camera_look_at = glm::vec3(0, 0, 0);
+//  openGLView.render_camera->camera_scale = 1;
 #ifdef SAVE_DATA
   openGLView.SetCustomCallback(SimFrameCallback);
 #endif
-  openGLView.StartSpinning(window_manager);
-  window_manager->CallGlutMainLoop();
+ // openGLView.StartSpinning(window_manager);
+  //window_manager->CallGlutMainLoop();
 #else
   // Run simulation for specified time
   int    num_steps = std::ceil(time_end / time_step);
