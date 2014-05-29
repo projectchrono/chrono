@@ -9,8 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Implementation of GL window class based on GlutMaster code by George Stetten 
-// and Korin Crawford.
+// OpenGL window singleton, this class manages the opengl context and window
 // Authors: Hammad Mazhar
 // =============================================================================
 #ifndef CHOPENGLWINDOW_H
@@ -24,94 +23,106 @@ namespace chrono {
 namespace utils {
 class CH_UTILS_OPENGL_API ChOpenGLWindow {
  public:
+
+   // Get the unique instance for the OpenGL window
+   // Call this function to get a pointer to the window
    static ChOpenGLWindow& getInstance() {
       static ChOpenGLWindow instance;
       return instance;
    }
 
+   // Initialize the window and set up the opengl viewer class
    void Initialize(
-         int size_x,
-         int size_y,
-         char * title,
-         ChSystem * msystem);
+         int size_x,          //Width of window in pixels
+         int size_y,          //Height of window in pixels
+         char * title,        //Window title string
+         ChSystem * msystem   //The ChSystem that is attached to this window
+         );
+   // This starts the drawing loop and takes control away from the main program
+   // This function is the easiest way to start rendering
    void StartDrawLoop();
+
+   // Perform a dynamics step, the user needs to use this so that pausing the simulation works correctly
    void DoStepDynamics(
-         double time_step);
+         double time_step  //The step size
+         );
+
+   // Render the ChSystem and the HUD
    void Render();
+
+   //Check if the glfw context is still valid and the window has not been closed
    bool Active() {
       return !glfwWindowShouldClose(window);
    }
+   //Set the camera position, look at and up vectors
    void SetCamera(
-         ChVector<> position,
-         ChVector<> look_at,
-         ChVector<> up) {
+         ChVector<> position,  //The position of the camera
+         ChVector<> look_at,   //The point that the camera is looking at
+         ChVector<> up         //The up vector associated with the camera
+         ) {
       viewer->render_camera.camera_position = glm::vec3(position.x, position.y, position.z);
       viewer->render_camera.camera_look_at = glm::vec3(look_at.x, look_at.y, look_at.z);
       viewer->render_camera.camera_up = glm::vec3(up.x, up.y, up.z);
    }
 
+   //Checks if there are any errors in the opengl context
    static bool GLUGetError(
-         string err = "") {
-      bool return_error = false;
-      GLenum glerror;
-      //Go through list of errors until no errors remain
-      while ((glerror = glGetError()) != GL_NO_ERROR) {
-         return_error = true;
-         std::cerr << err << " - " << gluErrorString(glerror) << std::endl;
-      }
-      return return_error;
-   }
-
+         string err = ""     //User specified error string that prints before the gl error
+         );
+   //Provides the version of the opengl context along with driver information
    static void GLFWGetVersion(
-         GLFWwindow* main_window) {
-      int major, minor, rev;
-      major = glfwGetWindowAttrib(main_window, GLFW_CONTEXT_VERSION_MAJOR);
-      minor = glfwGetWindowAttrib(main_window, GLFW_CONTEXT_VERSION_MINOR);
-      rev = glfwGetWindowAttrib(main_window, GLFW_CONTEXT_REVISION);
-      fprintf(stdout, "Version: %d.%d.%d\n", major, minor, rev);
-
-      const GLubyte* vendor = glGetString(GL_VENDOR);
-      const GLubyte* renderer = glGetString(GL_RENDERER);
-      const GLubyte* version = glGetString(GL_VERSION);
-      const GLubyte* glsl_ver = glGetString(GL_SHADING_LANGUAGE_VERSION);
-
-      printf("%s : %s (%s)\n >> GLSL: %s\n", vendor, renderer, version, glsl_ver);
-
-   }
+         GLFWwindow* main_window  //A pointer to the window/context to get the information from
+         );
 
  private:
+   // Singleton constructor should be private so that a user cannot call it
    ChOpenGLWindow() {
    }
+   // Singleton destructor should be private so that a user cannot call it
    ~ChOpenGLWindow() {
    }
+
    ChOpenGLWindow(
          ChOpenGLWindow const&);   // Don't Implement.
    void operator=(
          ChOpenGLWindow const&);   // Don't implement
+
+   // GLFW error callback, returns error string
    static void CallbackError(
          int error,
          const char* description);
+
+   // GLFW reshape callback, handles window resizing events
    static void CallbackReshape(
          GLFWwindow* window,
          int w,
          int h);
+
+   // GLFW keyboard callback, handles keyboard events
    static void CallbackKeyboard(
          GLFWwindow* window,
          int key,
          int scancode,
          int action,
          int mode);
+
+   // GLFW mouse button callback, handles mouse button events
    static void CallbackMouseButton(
          GLFWwindow* window,
          int button,
          int action,
          int mods);
+
+   // GLFW mouse position callback, handles events generated by changes in mouse position
    static void CallbackMousePos(
          GLFWwindow* window,
          double x,
          double y);
 
+   //Pointer to the opengl viewer that handles rendering, text and user interaction
    ChOpenGLViewer *viewer;
+
+   //Pointer to the opengl context
    GLFWwindow* window;
 };
 }

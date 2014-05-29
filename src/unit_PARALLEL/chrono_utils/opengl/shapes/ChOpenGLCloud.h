@@ -1,27 +1,39 @@
-/*Based on code provided by: Perry Kivolowitz
-Background object class
-Draws a quad without any attached shader
-Shader is specified manually (used for deferred shading)
-*/
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Generic renderable point cloud. Based on code provided by Perry Kivolowitz.
+// Authors: Hammad Mazhar
+// =============================================================================
 
+#ifndef CHOPENGLCLOUD_H
+#define CHOPENGLCLOUD_H
 
-#pragma once
 #include "chrono_utils/opengl/core/ChOpenGLObject.h"
 
 namespace chrono {
-	namespace utils{
-		class CH_UTILS_OPENGL_API ChOpenGLCloud : public ChOpenGLObject
-		{
-		public:
-			ChOpenGLCloud();
-			virtual bool Initialize(const std::vector<glm::vec3>& data);
-	//Not used but needed because of inheritance
-			virtual void Draw(const glm::mat4 & projection, const glm::mat4 & modelview);
-			void TakeDown();
+namespace utils {
+class CH_UTILS_OPENGL_API ChOpenGLCloud : public ChOpenGLObject {
+ public:
+   ChOpenGLCloud();
+   virtual bool Initialize(
+         const std::vector<glm::vec3>& data);
+   virtual void Draw(
+         const glm::mat4 & projection,
+         const glm::mat4 & modelview);
+   void TakeDown();
 
-		private:
-			std::vector<glm::vec3> vertices;
-			typedef ChOpenGLObject super;
-		};
-	}
+ private:
+   std::vector<glm::vec3> vertices;
+   typedef ChOpenGLObject super;
+};
 }
+}
+#endif  // END of CHOPENGLCLOUD_H

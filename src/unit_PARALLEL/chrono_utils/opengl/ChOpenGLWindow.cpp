@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Implementation of OpenGL class
+// OpenGL window singleton, this class manages the opengl context and window
 // Authors: Hammad Mazhar
 // =============================================================================
 
@@ -101,6 +101,35 @@ void ChOpenGLWindow::Render() {
    GLUGetError("After Render");
    glfwSwapBuffers(window);
    glfwPollEvents();
+}
+
+bool ChOpenGLWindow::GLUGetError(
+      string err) {
+   bool return_error = false;
+   GLenum glerror;
+   //Go through list of errors until no errors remain
+   while ((glerror = glGetError()) != GL_NO_ERROR) {
+      return_error = true;
+      std::cerr << err << " - " << gluErrorString(glerror) << std::endl;
+   }
+   return return_error;
+}
+
+void ChOpenGLWindow::GLFWGetVersion(
+      GLFWwindow* main_window) {
+   int major, minor, rev;
+   major = glfwGetWindowAttrib(main_window, GLFW_CONTEXT_VERSION_MAJOR);
+   minor = glfwGetWindowAttrib(main_window, GLFW_CONTEXT_VERSION_MINOR);
+   rev = glfwGetWindowAttrib(main_window, GLFW_CONTEXT_REVISION);
+   fprintf(stdout, "Version: %d.%d.%d\n", major, minor, rev);
+
+   const GLubyte* vendor = glGetString(GL_VENDOR);
+   const GLubyte* renderer = glGetString(GL_RENDERER);
+   const GLubyte* version = glGetString(GL_VERSION);
+   const GLubyte* glsl_ver = glGetString(GL_SHADING_LANGUAGE_VERSION);
+
+   printf("%s : %s (%s)\n >> GLSL: %s\n", vendor, renderer, version, glsl_ver);
+
 }
 
 void ChOpenGLWindow::CallbackError(

@@ -12,7 +12,7 @@ SET(ChronoEngine_Utils_OpenGL_SOURCES
 	shapes/ChOpenGLMesh.cpp
 	shapes/ChOpenGLCloud.cpp
 	shapes/ChOpenGLOBJ.cpp
-	shapes/obj/objloader.cpp
+	shapes/obj/ChOpenGLOBJLoader.cpp
 	shapes/obj/tiny_obj_loader.cc
 	ChOpenGLViewer.cpp 
 	ChOpenGLCamera.cpp
@@ -27,7 +27,7 @@ SET(ChronoEngine_Utils_OpenGL_HEADERS
 	core/ChOpenGLVertexAttributes.h
 	shapes/ChOpenGLCloud.h
 	shapes/ChOpenGLOBJ.h
-	shapes/obj/objloader.h
+	shapes/obj/ChOpenGLOBJLoader.h
 	shapes/obj/tiny_obj_loader.h
 	ChOpenGLViewer.h 
 	ChOpenGLCamera.h

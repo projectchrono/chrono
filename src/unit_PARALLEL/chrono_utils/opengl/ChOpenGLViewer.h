@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Implementation of OpenGL class 
+// OpenGL viewer, this class draws the system to the screen and handles input
 // Authors: Hammad Mazhar
 // =============================================================================
 

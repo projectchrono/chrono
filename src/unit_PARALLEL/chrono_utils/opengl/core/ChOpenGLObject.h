@@ -1,3 +1,20 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Object() is a sample base class upon which drawable objects might
+// be derived. It assumes that all drawable objects have some geometry
+// to buffer. Based on code provided by Perry Kivolowitz
+// Authors: Hammad Mazhar
+// =============================================================================
+
 #ifndef CHOPENGLOBJECT_H
 #define CHOPENGLOBJECT_H
 

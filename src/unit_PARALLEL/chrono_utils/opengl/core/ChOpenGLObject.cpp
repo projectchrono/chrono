@@ -1,14 +1,19 @@
-/*	Perry Kivolowitz - University of Wisconsin - Madison 
- Computer Sciences Department
-
- A sample hello world like program demonstrating modern OpenGL techniques.
-
- Object() is a sample base class upon which drawable objects might
- be derived. It assumes that all drawable objects have some geometry
- to buffer.
-
- Created:	2/25/13
- */
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Object() is a sample base class upon which drawable objects might
+// be derived. It assumes that all drawable objects have some geometry
+// to buffer. Based on code provided by Perry Kivolowitz
+// Authors: Hammad Mazhar
+// =============================================================================
 
 #include "chrono_utils/opengl/core/ChOpenGLObject.h"
 
@@ -43,10 +48,10 @@ void ChOpenGLObject::TakeDown() {
    //clear the indicies
    this->vertex_indices.clear();
 
+   //check if handle is valid, if it is delete the associated vertex arrays
    if (this->vertex_array_handle != GLuint(-1))
       glDeleteVertexArrays(1, &this->vertex_array_handle);
 
-   //check if handle is valid, if it is delete the associated vertex arrays
    if (this->vertex_position_handle != GLuint(-1))
       glDeleteVertexArrays(1, &this->vertex_position_handle);
 

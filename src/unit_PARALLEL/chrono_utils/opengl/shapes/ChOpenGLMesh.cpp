@@ -1,12 +1,17 @@
-/*  Perry Kivolowitz - University of Wisconsin - Madison
- Computer Sciences Department
-
- A sample hello world like program demonstrating modern
- OpenGL techniques.
-
- Created:    2/25/13
- Updates:
- */
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Generic renderable mesh. Based on code provided by Perry Kivolowitz.
+// Authors: Hammad Mazhar
+// =============================================================================
 
 #include <iostream>
 #include "ChOpenGLMesh.h"

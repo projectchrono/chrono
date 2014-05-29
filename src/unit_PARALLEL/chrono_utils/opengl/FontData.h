@@ -58,6 +58,7 @@ typedef struct
     size_t tex_width;
     size_t tex_height;
     size_t tex_depth;
+    // This needs to be unsigned otherwise a lot of -Wnarrowing warnings appear (one for each char...)
     unsigned char tex_data[65536];
     float size;
     float height;

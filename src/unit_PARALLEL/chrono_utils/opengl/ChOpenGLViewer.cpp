@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Implementation of OpenGL class 
+// OpenGL viewer, this class draws the system to the screen and handles input
 // Authors: Hammad Mazhar
 // =============================================================================
 
@@ -54,8 +54,8 @@ bool ChOpenGLViewer::Initialize() {
       return 0;
    }
 
-   ChOpenGLMaterial white(glm::vec3(.1, .1, .1), glm::vec3(1, 1, 1), glm::vec3(1, 1, 1), glm::vec3(1, 1, 1));
-   ChOpenGLMaterial red(glm::vec3(.1, 0, 0), glm::vec3(1, 0, 0), glm::vec3(1, 1, 1), glm::vec3(1, 1, 1));
+   ChOpenGLMaterial white(glm::vec3(.1, .1, .1), glm::vec3(1, 1, 1),  glm::vec3(1, 1, 1));
+   ChOpenGLMaterial red(glm::vec3(.1, 0, 0), glm::vec3(1, 0, 0),  glm::vec3(1, 1, 1));
    if (!main_shader.Initialize("phong.vert", "phong.frag")) {
       return 0;
    }
