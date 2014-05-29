@@ -54,14 +54,6 @@ void ChOpenGLViewer::TakeDown() {
 
 bool ChOpenGLViewer::Initialize() {
 
-   if (FT_Init_FreeType(&ft)) {
-      fprintf(stderr, "Could not init freetype library\n");
-      return 0;
-   }
-   if (FT_New_Face(ft, "monaco.ttf", 0, &face)) {
-      fprintf(stderr, "Could not open font %s\n", "monaco.ttf");
-      return 0;
-   }
    if (!font_shader.Initialize("text.vert", "text.frag")) {
       return 0;
    }
@@ -234,7 +226,6 @@ void ChOpenGLViewer::DrawObject(
 
 void ChOpenGLViewer::RenderText(
       const std::string &str,
-      FT_Face face,
       float x,
       float y,
       float sx,
@@ -298,37 +289,36 @@ void ChOpenGLViewer::DisplayHUD() {
    float sx = 1. / window_size.x;
    float sy = 1. / window_size.y;
 
-   FT_Set_Pixel_Sizes(face, 0, 20);
    char buffer[50];
 
    sprintf(buffer, "Time:  %04f", physics_system->GetChTime());
-   RenderText(buffer, face, -1, -0.925, sx, sy);
+   RenderText(buffer, -1, -0.925, sx, sy);
 
    sprintf(buffer, "Step  :  %04f", physics_system->GetTimerStep());
-   RenderText(buffer, face, -1, 0.925 - .06 * 0, sx, sy);
+   RenderText(buffer, -1, 0.925 - .06 * 0, sx, sy);
    sprintf(buffer, "Broad :  %04f", physics_system->GetTimerCollisionBroad());
-   RenderText(buffer, face, -1, 0.925 - .06 * 1, sx, sy);
+   RenderText(buffer, -1, 0.925 - .06 * 1, sx, sy);
    sprintf(buffer, "Narrow:  %04f", physics_system->GetTimerCollisionNarrow());
-   RenderText(buffer, face, -1, 0.925 - .06 * 2, sx, sy);
+   RenderText(buffer, -1, 0.925 - .06 * 2, sx, sy);
    sprintf(buffer, "Solver:  %04f", physics_system->GetTimerLcp());
-   RenderText(buffer, face, -1, 0.925 - .06 * 3, sx, sy);
+   RenderText(buffer, -1, 0.925 - .06 * 3, sx, sy);
    sprintf(buffer, "Update:  %04f", physics_system->GetTimerUpdate());
-   RenderText(buffer, face, -1, 0.925 - .06 * 4, sx, sy);
+   RenderText(buffer, -1, 0.925 - .06 * 4, sx, sy);
 
    vector<double> history = ((ChLcpIterativeSolver*) (physics_system->GetLcpSolverSpeed()))->GetViolationHistory();
    vector<double> dlambda = ((ChLcpIterativeSolver*) (physics_system->GetLcpSolverSpeed()))->GetDeltalambdaHistory();
 
    sprintf(buffer, "Iters   :  %04d", history.size());
-   RenderText(buffer, face, .6, 0.925 - .06 * 0, sx, sy);
+   RenderText(buffer, .6, 0.925 - .06 * 0, sx, sy);
    sprintf(buffer, "Bodies  :  %04d", physics_system->GetNbodiesTotal());
-   RenderText(buffer, face, .6, 0.925 - .06 * 1, sx, sy);
+   RenderText(buffer, .6, 0.925 - .06 * 1, sx, sy);
    sprintf(buffer, "Contacts:  %04d", physics_system->GetNcontacts());
-   RenderText(buffer, face, .6, 0.925 - .06 * 2, sx, sy);
+   RenderText(buffer, .6, 0.925 - .06 * 2, sx, sy);
 
    sprintf(buffer, "Residual:  %04f", history[history.size() - 1]);
-   RenderText(buffer, face, .6, 0.925 - .06 * 4, sx, sy);
+   RenderText(buffer, .6, 0.925 - .06 * 4, sx, sy);
    sprintf(buffer, "Correct :  %04f", dlambda[dlambda.size() - 1]);
-   RenderText(buffer, face, .6, 0.925 - .06 * 5, sx, sy);
+   RenderText(buffer, .6, 0.925 - .06 * 5, sx, sy);
 
    glBindTexture(GL_TEXTURE_2D, 0);
    glUseProgram(0);

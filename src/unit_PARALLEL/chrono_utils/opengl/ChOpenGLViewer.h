@@ -32,9 +32,6 @@
 #include "assets/ChTriangleMeshShape.h"
 #include "chrono_parallel/ChSystemParallel.h"
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
-
 namespace chrono {
 namespace utils {
 
@@ -72,7 +69,6 @@ class CH_UTILS_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
 //         glm::vec3 pos);
    void RenderText(
          const std::string &str,
-         FT_Face face,
          float x,
          float y,
          float sx,
@@ -149,8 +145,6 @@ class CH_UTILS_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
 
    glm::mat4 model, view, projection, modelview;
 
-   FT_Library ft;
-   FT_Face face;
    GLuint vbo, vao;
    GLuint texture_handle;
    GLuint texture, sampler;
