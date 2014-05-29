@@ -41,18 +41,13 @@ class CH_PARALLEL_API ChSolverParallel : public ChBaseParallel {
       bilateral = NULL;
    }
 
-   // Set the data container and step size for the solver, run the setup function.
-   // Depending on how the solver was created, this needs to be run every step.
-   void Initial(
-         real step,  //time step
-         ChParallelDataManager *data_container_  //pointer to data container
-         );
-
    // At the beginning of the step reset the size/indexing variables,
    // resize for new contact list and clear temporary accumulation variables
-   void Setup();
+   void Setup(
+     ChParallelDataManager *data_container_  //pointer to data container
+     );
 
-   // Project the lagrange multipliers (gamma) onto the friciton cone.
+   // Project the lagrange multipliers (gamma) onto the friction cone.
    void Project(
          real* gamma  //Lagrange Multipliers
          );

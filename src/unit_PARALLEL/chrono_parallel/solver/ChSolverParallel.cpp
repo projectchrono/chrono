@@ -2,36 +2,29 @@
 
 using namespace chrono;
 
-void ChSolverParallel::Initial(
-      real step,
-      ChParallelDataManager *data_container_) {
-   data_container = data_container_;
-   step_size = step;
+void ChSolverParallel::Setup(ChParallelDataManager *data_container_) {
+  data_container = data_container_;
+  Initialize();
 
    //APGD specific
    step_shrink = .9;
    step_grow = 2.0;
    init_theta_k = 1.0;
 
-   Setup();
-}
-
-void ChSolverParallel::Setup() {
-   Initialize();
-   // Ensure that the size of the data structures is equal to the current number of rigid bodies
-   // New rigid bodies could have been added in between time steps
-   data_container->host_data.QXYZ_data.resize(num_bodies);
-   data_container->host_data.QUVW_data.resize(num_bodies);
+  // Ensure that the size of the data structures is equal to the current number
+  // of rigid bodies. New bodies could have been added in between time steps.
+  data_container->host_data.QXYZ_data.resize(num_bodies);
+  data_container->host_data.QUVW_data.resize(num_bodies);
 
 #pragma omp parallel for
-   for (int i = 0; i < num_bodies; i++) {
-      data_container->host_data.QXYZ_data[i] = R3(0);
-      data_container->host_data.QUVW_data[i] = R3(0);
-   }
+  for (int i = 0; i < num_bodies; i++) {
+    data_container->host_data.QXYZ_data[i] = R3(0);
+    data_container->host_data.QUVW_data[i] = R3(0);
+  }
 #pragma omp parallel for
-   for (int i = 0; i < num_constraints; i++) {
-      data_container->host_data.gamma_data[i] = 0;
-   }
+  for (int i = 0; i < num_constraints; i++) {
+    data_container->host_data.gamma_data[i] = 0;
+  }
 }
 
 void ChSolverParallel::Project(

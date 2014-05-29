@@ -5,7 +5,6 @@ using namespace chrono;
 
 void ChLcpSolverParallelDVI::RunTimeStep(
       real step) {
-   step_size = step;
    data_container->step_size = step;
 
    data_container->num_unilaterals = 6 * data_container->num_contacts;
@@ -44,7 +43,7 @@ void ChLcpSolverParallelDVI::RunTimeStep(
    solver.bilateral = &bilateral;
    solver.do_stab = do_stab;
    solver.collision_inside = collision_inside;
-   solver.Initial(step, data_container);
+   solver.Setup(data_container);
    data_container->system_timer.stop("ChLcpSolverParallel_Setup");
    if (collision_inside) {
       data_container->host_data.vel_new_data = data_container->host_data.vel_data;
