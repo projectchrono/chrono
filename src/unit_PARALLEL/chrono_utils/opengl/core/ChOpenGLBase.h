@@ -22,8 +22,9 @@
 #define GLFW_INCLUDE_GLCOREARB
 #include <GLFW/glfw3.h>
 #else
-#include <GL/glfw3.h>
+#include <GLFW/glfw3.h>
 #endif
+
 
 #define GLM_FORCE_RADIANS
 #define _CRT_SECURE_NO_WARNINGS

@@ -2,7 +2,10 @@
 # Additional include paths (for ChronoEngine_Utils)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}
                     ${CMAKE_BINARY_DIR}
-                    ${GLM_INCLUDE_DIRS})
+                    ${GLM_INCLUDE_DIRS}
+                    ${GLEW_INCLUDE_DIR}
+                    ${GLFW_INCLUDE_DIR}
+)
 
 # Libraries
 SET(LIBRARIES

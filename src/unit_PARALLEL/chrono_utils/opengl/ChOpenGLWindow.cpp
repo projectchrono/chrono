@@ -15,7 +15,7 @@
 
 #include "ChOpenGLWindow.h"
 
-using namespace glm;
+//using namespace glm;
 using namespace chrono;
 using namespace chrono::utils;
 
@@ -156,7 +156,7 @@ void ChOpenGLWindow::CallbackReshape(
    ChOpenGLViewer* pointer = ((ChOpenGLViewer *) (glfwGetWindowUserPointer(window)));
 
    if (h > 0) {
-      pointer->window_size = ivec2(w, h);
+      pointer->window_size = glm::ivec2(w, h);
       pointer->window_aspect = float(w) / float(h);
    }
 
