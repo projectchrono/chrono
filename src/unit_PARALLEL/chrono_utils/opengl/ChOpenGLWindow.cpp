@@ -19,12 +19,10 @@ using namespace glm;
 using namespace chrono;
 using namespace chrono::utils;
 
-GLFWwindow* ChOpenGLWindow::Initialize(
+void ChOpenGLWindow::Initialize(
       ivec2 size,
       char * title,
-      ChOpenGLViewer* viewer) {
-
-   GLFWwindow* window;
+      ChSystem * msystem) {
 
    if (!glfwInit()) {
       cout << "could not initialize glfw- exiting" << endl;
@@ -52,17 +50,19 @@ GLFWwindow* ChOpenGLWindow::Initialize(
       fprintf(stdout, "Failed to initialize GLEW\n");
       fprintf(stdout, "%s\n", glewGetErrorString(err));
       glfwTerminate();
-      return 0;
+      return;
    }
 
-   glfwSetErrorCallback (CallbackError);
+   glfwSetErrorCallback(CallbackError);
    glfwSetFramebufferSizeCallback(window, CallbackReshape);
    glfwSetKeyCallback(window, CallbackKeyboard);
    glfwSetMouseButtonCallback(window, CallbackMouseButton);
-   glfwSetCursorPosCallback(window,CallbackMousePos );
+   glfwSetCursorPosCallback(window, CallbackMousePos);
 
    GLUGetError("Initialize GLEW");
    GLFWGetVersion(window);
+
+   viewer = new ChOpenGLViewer(msystem);
    viewer->Initialize();
    if (size.y > 0) {
       viewer->window_size = size;
@@ -71,39 +71,35 @@ GLFWwindow* ChOpenGLWindow::Initialize(
 
    glfwSetWindowUserPointer(window, viewer);
    GLUGetError("Initialize Viewer ");
-   return window;
 }
 
-void ChOpenGLWindow::SetPointer(
-      GLFWwindow* window,
-      void* pointer) {
-
-   glfwSetWindowUserPointer(window, pointer);
-}
-
-void ChOpenGLWindow::StartDrawLoop(
-      GLFWwindow* window) {
-   GLUGetError("STARTLOOP");
+void ChOpenGLWindow::StartDrawLoop() {
+   GLUGetError("Start Draw Loop");
    ChOpenGLViewer* pointer = ((ChOpenGLViewer *) (glfwGetWindowUserPointer(window)));
-
-   while (!glfwWindowShouldClose(window)) {
-      //glEnable(GL_POINT_SMOOTH);
-      //glEnable(GL_BLEND);
-      //glEnable(GL_ALPHA_TEST);
-      //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      //glEnable(GL_CULL_FACE);
-      glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-      //glViewport(0, 0, pointer->window_size.x, pointer->window_size.y);
-
-      GLUGetError("SingletonRender");
-
+   while (Active()) {
       pointer->Update();
-      GLUGetError("AfterUpdate");
-      pointer->Render();
-      glfwSwapBuffers(window);
-      glfwPollEvents();
+      Render();
    }
+}
+void ChOpenGLWindow::DoStepDynamics(
+      double time_step) {
+   ChOpenGLViewer* pointer = ((ChOpenGLViewer *) (glfwGetWindowUserPointer(window)));
+   pointer->Update();
+}
+void ChOpenGLWindow::Render() {
+   //glEnable(GL_POINT_SMOOTH);
+   glEnable(GL_BLEND);
+   //glEnable(GL_ALPHA_TEST);
+   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+   //glEnable(GL_CULL_FACE);
+   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+   ChOpenGLViewer* pointer = ((ChOpenGLViewer *) (glfwGetWindowUserPointer(window)));
+   GLUGetError("Before Render");
+   pointer->Render();
+   GLUGetError("After Render");
+   glfwSwapBuffers(window);
+   glfwPollEvents();
 }
 
 void ChOpenGLWindow::CallbackError(
@@ -136,35 +132,33 @@ void ChOpenGLWindow::CallbackKeyboard(
 
    ChOpenGLViewer* pointer = ((ChOpenGLViewer *) (glfwGetWindowUserPointer(window)));
 
-   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS){
+   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
       glfwSetWindowShouldClose(window, GL_TRUE);
    }
-   if(action==GLFW_PRESS||action==GLFW_REPEAT){
+   if (action == GLFW_PRESS || action == GLFW_REPEAT) {
       pointer->HandleInput(key, 0, 0);
    }
 }
 
-
-void ChOpenGLWindow::CallbackMouseButton(GLFWwindow* window, int button, int state, int mods){
+void ChOpenGLWindow::CallbackMouseButton(
+      GLFWwindow* window,
+      int button,
+      int state,
+      int mods) {
    ChOpenGLViewer* pointer = ((ChOpenGLViewer *) (glfwGetWindowUserPointer(window)));
    double x, y;
-   glfwGetCursorPos (window,&x,&y );
+   glfwGetCursorPos(window, &x, &y);
 
    pointer->render_camera.SetPos(button, state, x, y);
 
-
 }
-void ChOpenGLWindow::CallbackMousePos(GLFWwindow* window, double x, double y){
+void ChOpenGLWindow::CallbackMousePos(
+      GLFWwindow* window,
+      double x,
+      double y) {
    ChOpenGLViewer* pointer = ((ChOpenGLViewer *) (glfwGetWindowUserPointer(window)));
 
    pointer->render_camera.Move2D(x, y);
 
 }
-
-void ChOpenGLWindow::StartSpinning() {
-
-   //window_manager->SetIdleToCurrentWindow();
-   //window_manager->EnableIdleFunction();
-}
-
 

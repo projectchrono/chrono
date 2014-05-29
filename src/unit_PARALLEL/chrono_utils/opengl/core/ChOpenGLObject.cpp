@@ -32,7 +32,9 @@ ChOpenGLObject::~ChOpenGLObject() {
    assert(this->vertex_array_handle == GLuint(-1));
    assert(this->vertex_position_handle == GLuint(-1));
    assert(this->vertex_normal_handle == GLuint(-1));
-   assert(this->vertex_color_handle == GLuint(-1));
+   assert(this->vertex_ambient_handle == GLuint(-1));
+   assert(this->vertex_diffuse_handle == GLuint(-1));
+   assert(this->vertex_specular_handle == GLuint(-1));
    assert(this->vertex_coordinate_handle == GLuint(-1));
    assert(this->vertex_element_handle == GLuint(-1));
 }
@@ -51,10 +53,15 @@ void ChOpenGLObject::TakeDown() {
    if (this->vertex_normal_handle != GLuint(-1))
       glDeleteVertexArrays(1, &this->vertex_normal_handle);
 
-   if (this->vertex_position_handle != GLuint(-1))
-      glDeleteVertexArrays(1, &this->vertex_color_handle);
+   if (this->vertex_ambient_handle != GLuint(-1))
+      glDeleteVertexArrays(1, &this->vertex_ambient_handle);
 
-   //check if handle is valid, if it is delete the associated vertex arrays
+   if (this->vertex_diffuse_handle != GLuint(-1))
+      glDeleteVertexArrays(1, &this->vertex_diffuse_handle);
+
+   if (this->vertex_specular_handle != GLuint(-1))
+      glDeleteVertexArrays(1, &this->vertex_specular_handle);
+
    if (this->vertex_coordinate_handle != GLuint(-1))
       glDeleteBuffers(1, &this->vertex_coordinate_handle);
 
@@ -67,7 +74,9 @@ void ChOpenGLObject::TakeDown() {
 bool ChOpenGLObject::PostGLInitialize(
       GLuint * position_ptr,
       GLuint * normal_ptr,
-      GLuint * color_ptr,
+      GLuint * ambient_ptr,
+      GLuint * diffuse_ptr,
+      GLuint * specular_ptr,
       GLsizeiptr size) {
    //once all of out data is ready, generate the vertex buffers and bind them
    glGenVertexArrays(1, &vertex_array_handle);
@@ -81,9 +90,17 @@ bool ChOpenGLObject::PostGLInitialize(
    glBindBuffer(GL_ARRAY_BUFFER, vertex_normal_handle);
    glBufferData(GL_ARRAY_BUFFER, size, normal_ptr, GL_STATIC_DRAW);
 
-   glGenBuffers(1, &vertex_color_handle);
-   glBindBuffer(GL_ARRAY_BUFFER, vertex_color_handle);
-   glBufferData(GL_ARRAY_BUFFER, size, color_ptr, GL_STATIC_DRAW);
+   glGenBuffers(1, &vertex_ambient_handle);
+   glBindBuffer(GL_ARRAY_BUFFER, vertex_ambient_handle);
+   glBufferData(GL_ARRAY_BUFFER, size, ambient_ptr, GL_STATIC_DRAW);
+
+   glGenBuffers(1, &vertex_diffuse_handle);
+   glBindBuffer(GL_ARRAY_BUFFER, vertex_diffuse_handle);
+   glBufferData(GL_ARRAY_BUFFER, size, diffuse_ptr, GL_STATIC_DRAW);
+
+   glGenBuffers(1, &vertex_specular_handle);
+   glBindBuffer(GL_ARRAY_BUFFER, vertex_specular_handle);
+   glBufferData(GL_ARRAY_BUFFER, size, specular_ptr, GL_STATIC_DRAW);
 
    glGenBuffers(1, &vertex_element_handle);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vertex_element_handle);
@@ -106,6 +123,7 @@ void ChOpenGLObject::AttachShader(
 }
 
 void ChOpenGLObject::InternalInitialize() {
-   this->vertex_position_handle = this->vertex_normal_handle = this->vertex_color_handle = GLuint(-1);
+   this->vertex_position_handle = this->vertex_normal_handle = GLuint(-1);
+   this->vertex_ambient_handle = this->vertex_diffuse_handle = this->vertex_specular_handle = GLuint(-1);
    this->vertex_array_handle = this->vertex_coordinate_handle = this->vertex_coordinate_handle = GLuint(-1);
 }

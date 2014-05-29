@@ -30,7 +30,9 @@ class CH_UTILS_OPENGL_API ChOpenGLMesh : public ChOpenGLObject {
    //std::vector<ChOpenGLVertexAttributesPCN> vertices;
    std::vector<glm::vec3> position;
    std::vector<glm::vec3> normal;
-   std::vector<glm::vec3> color;
+   std::vector<glm::vec3> color_ambient;
+   std::vector<glm::vec3> color_diffuse;
+   std::vector<glm::vec3> color_specular;
    std::vector<glm::vec2> texcoord;
    typedef ChOpenGLObject super;
 };

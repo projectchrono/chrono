@@ -35,31 +35,49 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-using namespace std;
-
 namespace chrono {
 namespace utils {
 
-enum SimState{PAUSED, RUNNING};
+enum RenderMode {
+   POINTS,
+   WIREFRAME,
+   SOLID
+};
 
+struct point {
+   GLfloat x;
+   GLfloat y;
+   GLfloat s;
+   GLfloat t;
+};
 
 class CH_UTILS_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
  public:
 
-   ChOpenGLViewer(ChSystem * system);
+   ChOpenGLViewer(
+         ChSystem * system);
    ~ChOpenGLViewer();
    bool Initialize();
    void Update();
    void Render();
-   void DrawObject(ChBody * abody);
+   void DrawObject(
+         ChBody * abody);
    void TakeDown() {
    }
-   void SetWindowSize(glm::ivec2 size){
+   void SetWindowSize(
+         glm::ivec2 size) {
    }
 //   void DrawString(
 //         string line,
 //         glm::vec3 pos);
-
+   void RenderText(
+         const std::string &str,
+         FT_Face face,
+         float x,
+         float y,
+         float sx,
+         float sy);
+   void DisplayHUD();
    void HandleInput(
          unsigned char key,
          int x,
@@ -84,6 +102,21 @@ class CH_UTILS_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
          case 'E':
             render_camera.Move(UP);
             break;
+         case GLFW_KEY_SPACE:
+            pause_sim = !pause_sim;
+            break;
+         case 'P':
+            pause_vis = !pause_vis;
+            break;
+         case '1':
+            render_mode = POINTS;
+            break;
+         case '2':
+            render_mode = WIREFRAME;
+            break;
+         case '3':
+            render_mode = SOLID;
+            break;
          default:
             break;
       }
@@ -96,7 +129,6 @@ class CH_UTILS_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
 
    ChOpenGLCamera render_camera;
    ChSystem * physics_system;
-   SimState simulation_state;
 
    ChOpenGLShader main_shader;
    ChOpenGLShader font_shader;
@@ -108,15 +140,20 @@ class CH_UTILS_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
 
    ChOpenGLCloud cloud;
 
-   int simulation_frame; // The current frame number
-   float simulation_h; // The simulation step size
-   float simulation_time; // The current simulation time
+   int simulation_frame;  // The current frame number
+   float simulation_h;  // The simulation step size
+   float simulation_time;  // The current simulation time
+   bool pause_sim;
+   bool pause_vis;
+   RenderMode render_mode;
 
-   glm::mat4 model, view, projection,modelview;
+   glm::mat4 model, view, projection, modelview;
 
    FT_Library ft;
    FT_Face face;
-   string fontfilename;
+   GLuint vbo, vao;
+   GLuint texture_handle;
+   GLuint texture{0}, sampler{0};
 
 };
 }

@@ -14,8 +14,8 @@
 // =============================================================================
 
 #include "ChOpenGLViewer.h"
-
-//using namespace glm;
+#include "VeraMono.h"
+//using namespace std;
 using namespace chrono;
 using namespace chrono::utils;
 
@@ -31,62 +31,86 @@ ChOpenGLViewer::ChOpenGLViewer(
 
    simulation_frame = 0;
    simulation_time = 0;
+   pause_sim = 0;
+   pause_vis = 0;
+   render_mode = WIREFRAME;
 
 }
 
 ChOpenGLViewer::~ChOpenGLViewer() {
-
 }
 
 bool ChOpenGLViewer::Initialize() {
-   fontfilename = "FreeSans.ttf";
+
    if (FT_Init_FreeType(&ft)) {
       fprintf(stderr, "Could not init freetype library\n");
       return 0;
    }
-
-   if (FT_New_Face(ft, fontfilename.c_str(), 0, &face)) {
-      fprintf(stderr, "Could not open font %s\n", fontfilename.c_str());
+   if (FT_New_Face(ft, "monaco.ttf", 0, &face)) {
+      fprintf(stderr, "Could not open font %s\n", "monaco.ttf");
       return 0;
    }
-//   if (!font_shader.Initialize("text.vert", "text.frag")) {
-//      return 0;
-//   }
+   if (!font_shader.Initialize("text.vert", "text.frag")) {
+      return 0;
+   }
 
-   ChOpenGLMaterial white(glm::vec3(1), glm::vec3(1), glm::vec3(1, 1, 1), glm::vec3(1, 1, 1));
-   ChOpenGLMaterial red(glm::vec3(1, 0, 0), glm::vec3(1, 0, 0), glm::vec3(1, 1, 1), glm::vec3(1, 1, 1));
+   ChOpenGLMaterial white(glm::vec3(.1, .1, .1), glm::vec3(1, 1, 1), glm::vec3(1, 1, 1), glm::vec3(1, 1, 1));
+   ChOpenGLMaterial red(glm::vec3(.1, 0, 0), glm::vec3(1, 0, 0), glm::vec3(1, 1, 1), glm::vec3(1, 1, 1));
    if (!main_shader.Initialize("phong.vert", "phong.frag")) {
       return 0;
    }
 
    sphere.Initialize("sphere.obj", white, &main_shader);
-   box.Initialize("box.obj", white, &main_shader);
+   box.Initialize("box.obj", red, &main_shader);
    cylinder.Initialize("cylinder.obj", white, &main_shader);
    cone.Initialize("cone.obj", white, &main_shader);
 
+   // Initialize vbo and vao for text
+   glGenBuffers(1, &vbo);
+   glGenVertexArrays(1, &vao);
+   glGenTextures(1, &texture);
+   glGenSamplers(1, &sampler);
+   glSamplerParameteri(sampler, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+   glSamplerParameteri(sampler, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+   glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+   glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+
+
+   //get the uniform location for the texture from shader
+   texture_handle = font_shader.GetUniformLocation("tex");
+
 }
 void ChOpenGLViewer::Update() {
-   render_camera.aspect = window_aspect;
-   render_camera.window_width = window_size.x;
-   render_camera.window_height = window_size.y;
-   render_camera.Update();
-   model, view, projection, modelview;
-   render_camera.GetMatricies(projection, view, model);
-
+   if (pause_sim == true) {
+      return;
+   }
    physics_system->DoStepDynamics(physics_system->GetStep());
 
-   cout << physics_system->GetChTime() << endl;
 }
 void ChOpenGLViewer::Render() {
-   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-   // DisplayHUD()
+   if (pause_vis == false) {
 
-   for (int i = 0; i < physics_system->Get_bodylist()->size(); i++) {
-      ChBody* abody = (ChBody*) physics_system->Get_bodylist()->at(i);
-      DrawObject(abody);
+      render_camera.aspect = window_aspect;
+      render_camera.window_width = window_size.x;
+      render_camera.window_height = window_size.y;
+      render_camera.Update();
+      model, view, projection, modelview;
+      render_camera.GetMatricies(projection, view, model);
+
+      if (render_mode == WIREFRAME) {
+         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      } else {
+         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      }
+
+      for (int i = 0; i < physics_system->Get_bodylist()->size(); i++) {
+         ChBody* abody = (ChBody*) physics_system->Get_bodylist()->at(i);
+         DrawObject(abody);
+      }
    }
-
+   //DisplayHUD();
 }
 
 void ChOpenGLViewer::DrawObject(
@@ -198,49 +222,85 @@ void ChOpenGLViewer::DrawObject(
    }
 }
 
-//void ChOpenGLViewer::DrawString(
-//      string line,
-//      glm::vec3 pos) {
-//
-//   glPointSize(GLfloat(1));
-//   glLineWidth(GLfloat(1));
-//   glm::mat4 mv(1.0);
-//   glGetFloatv(GL_PROJECTION_MATRIX, glm::value_ptr(mv));
-//   glm::mat4 m(1.0f);
-//   //translate and scale text so that it is infront of everything
-//   m = glm::translate(m, glm::vec3(pos.x, pos.y, -5.5));
-//   m = glm::scale(m, glm::vec3(.1, .1, .1));
-//   glMultMatrixf(glm::value_ptr(m));
-//   for (unsigned int i = 0; i < line.size(); i++) {
-//      glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, line[i]);
-//   }
-//   glLoadMatrixf(glm::value_ptr(mv));
-//
-//}
 
-//void ChOpenGLViewer::DisplayHUD() {
-//
-//   glDisable(GL_LIGHTING);
-//   glDisable( GL_POINT_SMOOTH);
-//   glColor3f(1.0, 1.0, 1.0);
-//   glm::mat4 mv(1.0);
-//   glGetFloatv(GL_PROJECTION_MATRIX, glm::value_ptr(mv));
-//   glViewport(0, 0, window_size.x, window_size.y);
-//   glm::mat4 projection = glm::ortho(0.f, float(window_size.x), 0.f, float(window_size.y), -10.0f, 10.f);
-//   glm::mat4 view = glm::mat4(1.0f);
-//   glm::mat4 model = glm::mat4(1.0f);
-//   glm::mat4 MVP = projection * view * model;
-//   glLoadMatrixf(glm::value_ptr(MVP));
-//   DrawString("Hello", glm::vec3(0, 100, -5.5));
-//
-////   main_world.render_camera.GetMatricies(projection, view, model);
-////   glm::mat4 mvp = projection * view * model;     //Compute the mvp matrix
-////
-////   glLoadMatrixf(glm::value_ptr(mvp));
-//
-//   glLoadMatrixf(glm::value_ptr(mv));
-//
-//   glEnable(GL_LIGHTING);
-//   glEnable( GL_POINT_SMOOTH);
-//   //glTranslated(0, -150, 0);
-//}
+
+void ChOpenGLViewer::RenderText(
+      const std::string &str,
+      FT_Face face,
+      float x,
+      float y,
+      float sx,
+      float sy) {
+
+   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+   const FT_GlyphSlot glyph = face->glyph;
+
+   for (auto c : str) {
+      if (FT_Load_Char(face, c, FT_LOAD_RENDER) != 0)
+         continue;
+
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, glyph->bitmap.width, glyph->bitmap.rows, 0, GL_RED, GL_UNSIGNED_BYTE, glyph->bitmap.buffer);
+
+      const float vx = x + glyph->bitmap_left * sx;
+      const float vy = y + glyph->bitmap_top * sy;
+      const float w = glyph->bitmap.width * sx;
+      const float h = glyph->bitmap.rows * sy;
+
+      struct {
+         float x, y, s, t;
+      } data[6] = { { vx, vy, 0, 0 }, { vx, vy - h, 0, 1 }, { vx + w, vy, 1, 0 }, { vx + w, vy, 1, 0 }, { vx, vy - h, 0, 1 }, { vx + w, vy - h, 1, 1 } };
+
+      glBufferData(GL_ARRAY_BUFFER, 24 * sizeof(float), data, GL_DYNAMIC_DRAW);
+      glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+      glDrawArrays(GL_TRIANGLES, 0, 6);
+
+      x += (glyph->advance.x >> 6) * sx;
+      y += (glyph->advance.y >> 6) * sy;
+   }
+
+   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+
+
+}
+
+void ChOpenGLViewer::DisplayHUD() {
+   GLReturnedError("Start text");
+   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+   glActiveTexture(GL_TEXTURE0);
+   glBindTexture(GL_TEXTURE_2D, texture);
+   glBindSampler(0, sampler);
+   glBindVertexArray(vao);
+   glEnableVertexAttribArray(0);
+   glBindBuffer(GL_ARRAY_BUFFER, vbo);
+   font_shader.Use();
+   glUniform1i(texture_handle, 0);
+
+   float sx = 2.0 / window_size.x;
+   float sy = 2.0 / window_size.y;
+
+   FT_Set_Pixel_Sizes(face, 0, 20);
+   char buffer[50];
+
+   sprintf(buffer, "Time:  %04f", physics_system->GetChTime());
+   RenderText(buffer, face, -1, -0.95, sx, sy);
+
+   sprintf(buffer, "Step  :  %04f", physics_system->GetTimerStep());
+   RenderText(buffer, face, -1, 0.925-.06*0, sx, sy);
+   sprintf(buffer, "Broad :  %04f", physics_system->GetTimerCollisionBroad());
+   RenderText(buffer, face, -1, 0.925-.06*1, sx, sy);
+   sprintf(buffer, "Narrow:  %04f", physics_system->GetTimerCollisionNarrow());
+   RenderText(buffer, face, -1, 0.925-.06*2, sx, sy);
+   sprintf(buffer, "Solver:  %04f", physics_system->GetTimerLcp());
+   RenderText(buffer, face, -1, 0.925-.06*3, sx, sy);
+   sprintf(buffer, "Update:  %04f", physics_system->GetTimerUpdate());
+   RenderText(buffer, face, -1, 0.925-.06*4, sx, sy);
+
+   sprintf(buffer, "Iters:  %04d", ((ChLcpIterativeSolver*) (physics_system->GetLcpSolverSpeed()))->GetTotalIterations());
+   RenderText(buffer, face, .7, 0.925-.06*4, sx, sy);
+
+   glBindTexture(GL_TEXTURE_2D, 0);
+   glUseProgram(0);
+   GLReturnedError("End text");
+
+}

@@ -40,7 +40,9 @@ bool ChOpenGLMesh::Initialize(
    this->vertex_indices = indices;
 
    for (unsigned int i = 0; i < vertices.size(); i++) {
-      this->color.push_back(mat.ambient_color);
+      this->color_ambient.push_back(mat.ambient_color);
+      this->color_diffuse.push_back(mat.diffuse_color);
+      this->color_specular.push_back(mat.specular_color);
 
    }
 
@@ -58,7 +60,8 @@ bool ChOpenGLMesh::PostInitialize() {
    if (this->GLReturnedError("ChOpenGLMesh::PostInitialize - on entry"))
       return false;
    //Generation complete bind everything!
-   if (!this->PostGLInitialize((GLuint*) (&this->position[0]), (GLuint*) (&this->normal[0]), (GLuint*) (&this->color[0]), this->position.size() * sizeof(vec3))) {
+   if (!this->PostGLInitialize((GLuint*) (&this->position[0]), (GLuint*) (&this->normal[0]), (GLuint*) (&this->color_ambient[0]), (GLuint*) (&this->color_diffuse[0]),
+                               (GLuint*) (&this->color_specular[0]), this->position.size() * sizeof(vec3))) {
       return false;
    }
 
@@ -71,7 +74,9 @@ void ChOpenGLMesh::TakeDown() {
    //Clean up the vertex arrtibute data
    this->position.clear();
    this->normal.clear();
-   this->color.clear();
+   this->color_ambient.clear();
+   this->color_diffuse.clear();
+   this->color_specular.clear();
    super::TakeDown();
 }
 
@@ -115,8 +120,16 @@ void ChOpenGLMesh::Draw(
    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);  // Normal
 
    glEnableVertexAttribArray(2);
-   glBindBuffer(GL_ARRAY_BUFFER, vertex_color_handle);
+   glBindBuffer(GL_ARRAY_BUFFER, vertex_ambient_handle);
    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);  // Color Ambient
+
+   glEnableVertexAttribArray(3);
+   glBindBuffer(GL_ARRAY_BUFFER, vertex_diffuse_handle);
+   glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);  // Color Ambient
+
+   glEnableVertexAttribArray(4);
+   glBindBuffer(GL_ARRAY_BUFFER, vertex_specular_handle);
+   glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);  // Color Ambient
 
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->vertex_element_handle);
 
@@ -127,6 +140,8 @@ void ChOpenGLMesh::Draw(
    glDisableVertexAttribArray(0);
    glDisableVertexAttribArray(1);
    glDisableVertexAttribArray(2);
+   glDisableVertexAttribArray(3);
+   glDisableVertexAttribArray(4);
    glBindVertexArray(0);
    glBindBuffer(GL_ARRAY_BUFFER, 0);
 

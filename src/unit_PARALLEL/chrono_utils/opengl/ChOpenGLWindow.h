@@ -22,17 +22,25 @@ using namespace std;
 
 namespace chrono {
 namespace utils {
-class CH_UTILS_OPENGL_API ChOpenGLWindow  {
+class CH_UTILS_OPENGL_API ChOpenGLWindow {
  public:
    static ChOpenGLWindow& getInstance() {
       static ChOpenGLWindow instance;
       return instance;
    }
 
-   static GLFWwindow* Initialize(glm::ivec2 size,char * title, ChOpenGLViewer* viewer);
-   static void SetPointer(GLFWwindow* window, void* pointer);
-   static void StartDrawLoop(GLFWwindow* window);
-   static bool GLUGetError(string err = "") {
+   void Initialize(
+         glm::ivec2 size,
+         char * title,
+         ChSystem * msystem);
+   void StartDrawLoop();
+   void DoStepDynamics(double time_step);
+   void Render();
+   bool Active(){
+      return !glfwWindowShouldClose(window);
+   }
+   static bool GLUGetError(
+         string err = "") {
       bool return_error = false;
       GLenum glerror;
       //Go through list of errors until no errors remain
@@ -43,7 +51,8 @@ class CH_UTILS_OPENGL_API ChOpenGLWindow  {
       return return_error;
    }
 
-   static void GLFWGetVersion(GLFWwindow* main_window) {
+   static void GLFWGetVersion(
+         GLFWwindow* main_window) {
       int major, minor, rev;
       major = glfwGetWindowAttrib(main_window, GLFW_CONTEXT_VERSION_MAJOR);
       minor = glfwGetWindowAttrib(main_window, GLFW_CONTEXT_VERSION_MINOR);
@@ -58,23 +67,41 @@ class CH_UTILS_OPENGL_API ChOpenGLWindow  {
       printf("%s : %s (%s)\n >> GLSL: %s\n", vendor, renderer, version, glsl_ver);
 
    }
-   void StartSpinning();
-
-   glm::ivec2 window_size;
-   glm::ivec2 window_position;
-   float window_aspect;
-   int interval;
 
  private:
-   ChOpenGLWindow(){}
-   ~ChOpenGLWindow(){}
-   ChOpenGLWindow(ChOpenGLWindow const&);   // Don't Implement.
-   void operator=(ChOpenGLWindow const&);   // Don't implement
-   static void CallbackError( int error, const char* description);
-   static void CallbackReshape(GLFWwindow* window,int w,int h);
-   static void CallbackKeyboard(GLFWwindow* window, int key, int scancode, int action, int mode);
-   static void CallbackMouseButton(GLFWwindow* window, int button, int action, int mods);
-   static void CallbackMousePos(GLFWwindow* window, double x, double y);
+   ChOpenGLWindow() {
+   }
+   ~ChOpenGLWindow() {
+   }
+   ChOpenGLWindow(
+         ChOpenGLWindow const&);   // Don't Implement.
+   void operator=(
+         ChOpenGLWindow const&);   // Don't implement
+   static void CallbackError(
+         int error,
+         const char* description);
+   static void CallbackReshape(
+         GLFWwindow* window,
+         int w,
+         int h);
+   static void CallbackKeyboard(
+         GLFWwindow* window,
+         int key,
+         int scancode,
+         int action,
+         int mode);
+   static void CallbackMouseButton(
+         GLFWwindow* window,
+         int button,
+         int action,
+         int mods);
+   static void CallbackMousePos(
+         GLFWwindow* window,
+         double x,
+         double y);
+
+   ChOpenGLViewer *viewer;
+   GLFWwindow* window;
 };
 }
 }

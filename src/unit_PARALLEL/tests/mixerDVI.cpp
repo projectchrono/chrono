@@ -243,33 +243,23 @@ int main(
    // The OpenGL manager will automatically run the simulation
 
    utils::ChOpenGLWindow &gl_window = utils::ChOpenGLWindow::getInstance();
-   utils::ChOpenGLViewer *viewer = new utils::ChOpenGLViewer(&msystem);
-   GLFWwindow* window = gl_window.Initialize(glm::ivec2(1280, 720), "lol", viewer);
-
-   //gl_window.SetPointer(window, viewer);
-   gl_window.StartDrawLoop(window);
-
-   // utils::ChOpenGLManager * window_manager = new  utils::ChOpenGLManager();
-   // utils::ChOpenGLViewer openGLView(window_manager, &msystem, glm::ivec2(800, 600), glm::ivec2(0, 0), "mixerDVI");
-   //openGLView.render_camera->camera_position = glm::vec3(0, 5, 10);
-   //openGLView.render_camera->camera_look_at = glm::vec3(0, 0, 0);
-   ////openGLView.render_camera->camera_scale = 1;
-#ifdef SAVE_DATA
-   openGLView.SetCustomCallback(SimFrameCallback);
+   gl_window.Initialize(glm::ivec2(1280, 720), "mixerDVI", &msystem);
+   //gl_window.StartDrawLoop();
 #endif
-   //openGLView.StartSpinning(window_manager);
-   //window_manager->CallGlutMainLoop();
-#else
    // Run simulation for specified time
    int num_steps = std::ceil(time_end / time_step);
    double time = 0;
 
    for (int i = 0; i < num_steps; i++) {
       SimFrameCallback(&msystem, i);
-      msystem.DoStepDynamics(time_step);
+#ifdef CHRONO_PARALLEL_HAS_OPENGL
+      if (gl_window.Active()) {
+         gl_window.DoStepDynamics(time_step);
+         gl_window.Render();
+      }
+#endif
       time += time_step;
    }
-#endif
 
    return 0;
 }

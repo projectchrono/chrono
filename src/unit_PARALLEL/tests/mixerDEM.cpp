@@ -35,7 +35,7 @@
 #include "chrono_utils/ChUtilsInputOutput.h"
 
 #ifdef CHRONO_PARALLEL_HAS_OPENGL
-#include "chrono_utils/opengl/ChOpenGLViewer.h"
+#include "chrono_utils/opengl/ChOpenGLWindow.h"
 #endif
 
 // Define this to save the data when using the OpenGL code
@@ -238,28 +238,26 @@ int main(int argc, char* argv[])
   out_frame = 0;
 
 #ifdef CHRONO_PARALLEL_HAS_OPENGL
-  // The OpenGL manager will automatically run the simulation
-//  utils::ChOpenGLManager * window_manager = new  utils::ChOpenGLManager();
-//  utils::ChOpenGL openGLView(window_manager, &msystem, 800, 600, 0, 0, "mixerDEM");
-//  openGLView.render_camera->camera_position = glm::vec3(0, 5, 10);
-//  openGLView.render_camera->camera_look_at = glm::vec3(0, 0, 0);
-//  openGLView.render_camera->camera_scale = 1;
-#ifdef SAVE_DATA
-  openGLView.SetCustomCallback(SimFrameCallback);
-#endif
- // openGLView.StartSpinning(window_manager);
-  //window_manager->CallGlutMainLoop();
-#else
-  // Run simulation for specified time
-  int    num_steps = std::ceil(time_end / time_step);
-  double time = 0;
+   // The OpenGL manager will automatically run the simulation
 
-  for (int i = 0; i < num_steps; i++) {
-    SimFrameCallback(&msystem, i);
-    msystem.DoStepDynamics(time_step);
-    time += time_step;
-  }
+   utils::ChOpenGLWindow &gl_window = utils::ChOpenGLWindow::getInstance();
+   gl_window.Initialize(glm::ivec2(1280, 720), "mixerDEM", &msystem);
+   //gl_window.StartDrawLoop();
 #endif
+   // Run simulation for specified time
+   int num_steps = std::ceil(time_end / time_step);
+   double time = 0;
+
+   for (int i = 0; i < num_steps; i++) {
+      SimFrameCallback(&msystem, i);
+#ifdef CHRONO_PARALLEL_HAS_OPENGL
+      if (gl_window.Active()) {
+         gl_window.DoStepDynamics(time_step);
+         gl_window.Render();
+      }
+#endif
+      time += time_step;
+   }
 
   return 0;
 }
