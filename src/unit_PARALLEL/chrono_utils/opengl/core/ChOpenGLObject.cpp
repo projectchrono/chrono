@@ -128,6 +128,7 @@ void ChOpenGLObject::AttachShader(
 }
 
 void ChOpenGLObject::InternalInitialize() {
+   this->vertex_element_handle = GLuint(-1);
    this->vertex_position_handle = this->vertex_normal_handle = GLuint(-1);
    this->vertex_ambient_handle = this->vertex_diffuse_handle = this->vertex_specular_handle = GLuint(-1);
    this->vertex_array_handle = this->vertex_coordinate_handle = this->vertex_coordinate_handle = GLuint(-1);
