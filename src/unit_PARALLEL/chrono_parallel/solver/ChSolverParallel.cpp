@@ -320,7 +320,7 @@ uint ChSolverParallel::SolveStab(const uint max_iter,const uint size,const custo
       residual = norm_rMR / norm_r0;
 
       real maxdeltalambda = CompRes(mb, num_contacts);      //NormInf(ms);
-      AtIterationEnd(residual, maxdeltalambda, current_iteration);
+      AtIterationEnd(residual, maxdeltalambda, iter_hist.size()+current_iteration);
 
       if (residual < tolerance) {
          break;

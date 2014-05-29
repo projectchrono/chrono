@@ -175,7 +175,7 @@ uint ChSolverParallel::SolveAPGDRS(const uint max_iter,const uint size,const cus
 			}
 		}
 		real maxdeltalambda = 0;
-		AtIterationEnd(residual, maxdeltalambda, current_iteration);
+		AtIterationEnd(residual, maxdeltalambda, iter_hist.size()+current_iteration);
 		if (residual < tolerance) {
 			break;
 		}

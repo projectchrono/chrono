@@ -2,8 +2,9 @@
 # Additional include paths (for ChronoEngine_Utils)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}
                     ${CMAKE_BINARY_DIR}
-                    ${FREEGLUT_INC_PATH}
-                    ${GLM_INCLUDE_DIRS})
+                    ${GLM_INCLUDE_DIRS}
+                    ${FREETYPE_INCLUDE_DIR_freetype2}
+					${FREETYPE_INCLUDE_DIR_ft2build})
 
 # Libraries
 SET(LIBRARIES
