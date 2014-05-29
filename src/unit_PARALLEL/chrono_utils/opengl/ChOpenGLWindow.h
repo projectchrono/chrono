@@ -92,6 +92,10 @@ class CH_UTILS_OPENGL_API ChOpenGLWindow {
          int error,
          const char* description);
 
+   // GLFW close callback, called when window is closed
+   static void CallbackClose(
+         GLFWwindow* window);
+
    // GLFW reshape callback, handles window resizing events
    static void CallbackReshape(
          GLFWwindow* window,

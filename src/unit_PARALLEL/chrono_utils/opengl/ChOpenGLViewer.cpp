@@ -40,6 +40,18 @@ ChOpenGLViewer::ChOpenGLViewer(
 ChOpenGLViewer::~ChOpenGLViewer() {
 }
 
+void ChOpenGLViewer::TakeDown() {
+   render_camera.TakeDown();
+   main_shader.TakeDown();
+   font_shader.TakeDown();
+   sphere.TakeDown();
+   box.TakeDown();
+   cylinder.TakeDown();
+   cone.TakeDown();
+   cloud.TakeDown();
+
+}
+
 bool ChOpenGLViewer::Initialize() {
 
    if (FT_Init_FreeType(&ft)) {
@@ -54,8 +66,8 @@ bool ChOpenGLViewer::Initialize() {
       return 0;
    }
 
-   ChOpenGLMaterial white(glm::vec3(.1, .1, .1), glm::vec3(1, 1, 1),  glm::vec3(1, 1, 1));
-   ChOpenGLMaterial red(glm::vec3(.1, 0, 0), glm::vec3(1, 0, 0),  glm::vec3(1, 1, 1));
+   ChOpenGLMaterial white(glm::vec3(.1, .1, .1), glm::vec3(1, 1, 1), glm::vec3(1, 1, 1));
+   ChOpenGLMaterial red(glm::vec3(.1, 0, 0), glm::vec3(1, 0, 0), glm::vec3(1, 1, 1));
    if (!main_shader.Initialize("phong.vert", "phong.frag")) {
       return 0;
    }
@@ -317,7 +329,6 @@ void ChOpenGLViewer::DisplayHUD() {
    RenderText(buffer, face, .6, 0.925 - .06 * 4, sx, sy);
    sprintf(buffer, "Correct :  %04f", dlambda[dlambda.size() - 1]);
    RenderText(buffer, face, .6, 0.925 - .06 * 5, sx, sy);
-
 
    glBindTexture(GL_TEXTURE_2D, 0);
    glUseProgram(0);

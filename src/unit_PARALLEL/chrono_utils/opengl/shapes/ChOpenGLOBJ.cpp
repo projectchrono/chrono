@@ -64,7 +64,16 @@ bool ChOpenGLOBJ::PostInitialize() {
 }
 
 void ChOpenGLOBJ::TakeDown() {
+   for (unsigned int i = 0; i < meshes.size(); i++) {
+      meshes[i].TakeDown();
+   }
 
+   meshes.clear();
+   vertices.clear();
+   normals.clear();
+   texcoords.clear();
+   indices.clear();
+   names.clear();
 
 }
 

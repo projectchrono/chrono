@@ -31,6 +31,7 @@ class ChOpenGLOBJLoader : public ChOpenGLBase {
          std::vector<std::vector<GLuint> > &indices,
          std::vector<std::string> & names);
    void TakeDown() {
+
    }
 
  private:

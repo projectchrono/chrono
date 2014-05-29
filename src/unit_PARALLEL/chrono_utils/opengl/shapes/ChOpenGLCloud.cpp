@@ -60,6 +60,7 @@ bool ChOpenGLCloud::Initialize(
 }
 
 void ChOpenGLCloud::TakeDown() {
+   vertices.clear();
    super::TakeDown();
 }
 

@@ -82,6 +82,8 @@ void ChOpenGLMesh::TakeDown() {
    this->color_ambient.clear();
    this->color_diffuse.clear();
    this->color_specular.clear();
+   this->texcoord.clear();
+
    super::TakeDown();
 }
 

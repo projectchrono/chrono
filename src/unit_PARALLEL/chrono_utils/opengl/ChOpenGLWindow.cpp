@@ -55,6 +55,7 @@ void ChOpenGLWindow::Initialize(
    }
 
    glfwSetErrorCallback(CallbackError);
+   glfwSetWindowCloseCallback(window, CallbackClose);
    glfwSetFramebufferSizeCallback(window, CallbackReshape);
    glfwSetKeyCallback(window, CallbackKeyboard);
    glfwSetMouseButtonCallback(window, CallbackMouseButton);
@@ -136,6 +137,15 @@ void ChOpenGLWindow::CallbackError(
       int error,
       const char* description) {
    fputs(description, stderr);
+}
+
+void ChOpenGLWindow::CallbackClose(
+      GLFWwindow* window) {
+
+   ChOpenGLViewer* pointer = ((ChOpenGLViewer *) (glfwGetWindowUserPointer(window)));
+   pointer->TakeDown();
+   glfwSetWindowShouldClose(window, GL_TRUE);
+
 }
 
 void ChOpenGLWindow::CallbackReshape(

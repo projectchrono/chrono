@@ -57,13 +57,13 @@ class CH_UTILS_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
    ChOpenGLViewer(
          ChSystem * system);
    ~ChOpenGLViewer();
+   void TakeDown();
    bool Initialize();
    void Update();
    void Render();
    void DrawObject(
          ChBody * abody);
-   void TakeDown() {
-   }
+
    void SetWindowSize(
          glm::ivec2 size) {
    }
@@ -153,7 +153,7 @@ class CH_UTILS_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
    FT_Face face;
    GLuint vbo, vao;
    GLuint texture_handle;
-   GLuint texture { 0 }, sampler { 0 };
+   GLuint texture, sampler;
 
 };
 }
