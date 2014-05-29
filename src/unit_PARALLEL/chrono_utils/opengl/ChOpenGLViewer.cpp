@@ -14,7 +14,7 @@
 // =============================================================================
 
 #include "ChOpenGLViewer.h"
-#include "VeraMono.h"
+#include "FontData.h"
 //using namespace std;
 using namespace chrono;
 using namespace chrono::utils;
@@ -75,8 +75,6 @@ bool ChOpenGLViewer::Initialize() {
    glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
    glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-
-
    //get the uniform location for the texture from shader
    texture_handle = font_shader.GetUniformLocation("tex");
 
@@ -110,7 +108,7 @@ void ChOpenGLViewer::Render() {
          DrawObject(abody);
       }
    }
-   //DisplayHUD();
+   DisplayHUD();
 }
 
 void ChOpenGLViewer::DrawObject(
@@ -222,8 +220,6 @@ void ChOpenGLViewer::DrawObject(
    }
 }
 
-
-
 void ChOpenGLViewer::RenderText(
       const std::string &str,
       FT_Face face,
@@ -232,34 +228,44 @@ void ChOpenGLViewer::RenderText(
       float sx,
       float sy) {
 
-   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-   const FT_GlyphSlot glyph = face->glyph;
+   //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-   for (auto c : str) {
-      if (FT_Load_Char(face, c, FT_LOAD_RENDER) != 0)
+   for (int i = 0; i < str.size(); i++) {
+
+      texture_glyph_t *glyph = 0;
+      for (int j = 0; j < font_data.glyphs_count; ++j) {
+         if (font_data.glyphs[j].charcode == str[i]) {
+            glyph = &font_data.glyphs[j];
+            break;
+         }
+      }
+      if (!glyph) {
          continue;
+      }
+      //float x_ = x + 24 * i;
+      //float y_ = y;
+      x += glyph->kerning[0].kerning;
+      float x0 = (float) (x + glyph->offset_x * sx);
+      float y0 = (float) (y + glyph->offset_y * sy);
+      float x1 = (float) (x0 + glyph->width * sx);
+      float y1 = (float) (y0 - glyph->height * sy);
 
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, glyph->bitmap.width, glyph->bitmap.rows, 0, GL_RED, GL_UNSIGNED_BYTE, glyph->bitmap.buffer);
-
-      const float vx = x + glyph->bitmap_left * sx;
-      const float vy = y + glyph->bitmap_top * sy;
-      const float w = glyph->bitmap.width * sx;
-      const float h = glyph->bitmap.rows * sy;
+      float s0 = glyph->s0;
+      float t0 = glyph->t0;
+      float s1 = glyph->s1;
+      float t1 = glyph->t1;
 
       struct {
          float x, y, s, t;
-      } data[6] = { { vx, vy, 0, 0 }, { vx, vy - h, 0, 1 }, { vx + w, vy, 1, 0 }, { vx + w, vy, 1, 0 }, { vx, vy - h, 0, 1 }, { vx + w, vy - h, 1, 1 } };
+      } data[6] = { { x0, y0, s0, t0 }, { x0, y1, s0, t1 }, { x1, y1, s1, t1 }, { x0, y0, s0, t0 }, { x1, y1, s1, t1 }, { x1, y0, s1, t0 } };
 
       glBufferData(GL_ARRAY_BUFFER, 24 * sizeof(float), data, GL_DYNAMIC_DRAW);
       glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
       glDrawArrays(GL_TRIANGLES, 0, 6);
-
-      x += (glyph->advance.x >> 6) * sx;
-      y += (glyph->advance.y >> 6) * sy;
+      x += (glyph->advance_x * sx);
    }
 
-   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-
+   // glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
 }
 
@@ -269,6 +275,7 @@ void ChOpenGLViewer::DisplayHUD() {
 
    glActiveTexture(GL_TEXTURE0);
    glBindTexture(GL_TEXTURE_2D, texture);
+   glTexImage2D( GL_TEXTURE_2D, 0, GL_R8, font_data.tex_width, font_data.tex_height, 0, GL_RED, GL_UNSIGNED_BYTE, font_data.tex_data);
    glBindSampler(0, sampler);
    glBindVertexArray(vao);
    glEnableVertexAttribArray(0);
@@ -276,28 +283,41 @@ void ChOpenGLViewer::DisplayHUD() {
    font_shader.Use();
    glUniform1i(texture_handle, 0);
 
-   float sx = 2.0 / window_size.x;
-   float sy = 2.0 / window_size.y;
+   float sx = 1. / window_size.x;
+   float sy = 1. / window_size.y;
 
    FT_Set_Pixel_Sizes(face, 0, 20);
    char buffer[50];
 
    sprintf(buffer, "Time:  %04f", physics_system->GetChTime());
-   RenderText(buffer, face, -1, -0.95, sx, sy);
+   RenderText(buffer, face, -1, -0.925, sx, sy);
 
    sprintf(buffer, "Step  :  %04f", physics_system->GetTimerStep());
-   RenderText(buffer, face, -1, 0.925-.06*0, sx, sy);
+   RenderText(buffer, face, -1, 0.925 - .06 * 0, sx, sy);
    sprintf(buffer, "Broad :  %04f", physics_system->GetTimerCollisionBroad());
-   RenderText(buffer, face, -1, 0.925-.06*1, sx, sy);
+   RenderText(buffer, face, -1, 0.925 - .06 * 1, sx, sy);
    sprintf(buffer, "Narrow:  %04f", physics_system->GetTimerCollisionNarrow());
-   RenderText(buffer, face, -1, 0.925-.06*2, sx, sy);
+   RenderText(buffer, face, -1, 0.925 - .06 * 2, sx, sy);
    sprintf(buffer, "Solver:  %04f", physics_system->GetTimerLcp());
-   RenderText(buffer, face, -1, 0.925-.06*3, sx, sy);
+   RenderText(buffer, face, -1, 0.925 - .06 * 3, sx, sy);
    sprintf(buffer, "Update:  %04f", physics_system->GetTimerUpdate());
-   RenderText(buffer, face, -1, 0.925-.06*4, sx, sy);
+   RenderText(buffer, face, -1, 0.925 - .06 * 4, sx, sy);
 
-   sprintf(buffer, "Iters:  %04d", ((ChLcpIterativeSolver*) (physics_system->GetLcpSolverSpeed()))->GetTotalIterations());
-   RenderText(buffer, face, .7, 0.925-.06*4, sx, sy);
+   vector<double> history = ((ChLcpIterativeSolver*) (physics_system->GetLcpSolverSpeed()))->GetViolationHistory();
+   vector<double> dlambda = ((ChLcpIterativeSolver*) (physics_system->GetLcpSolverSpeed()))->GetDeltalambdaHistory();
+
+   sprintf(buffer, "Iters   :  %04d", history.size());
+   RenderText(buffer, face, .6, 0.925 - .06 * 0, sx, sy);
+   sprintf(buffer, "Bodies  :  %04d", physics_system->GetNbodiesTotal());
+   RenderText(buffer, face, .6, 0.925 - .06 * 1, sx, sy);
+   sprintf(buffer, "Contacts:  %04d", physics_system->GetNcontacts());
+   RenderText(buffer, face, .6, 0.925 - .06 * 2, sx, sy);
+
+   sprintf(buffer, "Residual:  %04f", history[history.size() - 1]);
+   RenderText(buffer, face, .6, 0.925 - .06 * 4, sx, sy);
+   sprintf(buffer, "Correct :  %04f", dlambda[dlambda.size() - 1]);
+   RenderText(buffer, face, .6, 0.925 - .06 * 5, sx, sy);
+
 
    glBindTexture(GL_TEXTURE_2D, 0);
    glUseProgram(0);

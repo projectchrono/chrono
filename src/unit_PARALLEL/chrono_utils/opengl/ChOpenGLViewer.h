@@ -153,7 +153,7 @@ class CH_UTILS_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
    FT_Face face;
    GLuint vbo, vao;
    GLuint texture_handle;
-   GLuint texture{0}, sampler{0};
+   GLuint texture { 0 }, sampler { 0 };
 
 };
 }

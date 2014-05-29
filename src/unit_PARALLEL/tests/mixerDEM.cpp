@@ -241,7 +241,8 @@ int main(int argc, char* argv[])
    // The OpenGL manager will automatically run the simulation
 
    utils::ChOpenGLWindow &gl_window = utils::ChOpenGLWindow::getInstance();
-   gl_window.Initialize(glm::ivec2(1280, 720), "mixerDEM", &msystem);
+   gl_window.Initialize(1280, 720, "mixerDEM", &msystem);
+   gl_window.SetCamera(ChVector<>(0,-10,0), ChVector<>(0,0,0),ChVector<>(0,0,1));
    //gl_window.StartDrawLoop();
 #endif
    // Run simulation for specified time

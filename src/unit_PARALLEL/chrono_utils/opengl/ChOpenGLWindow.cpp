@@ -20,7 +20,8 @@ using namespace chrono;
 using namespace chrono::utils;
 
 void ChOpenGLWindow::Initialize(
-      ivec2 size,
+      int size_x,
+      int size_y,
       char * title,
       ChSystem * msystem) {
 
@@ -28,13 +29,13 @@ void ChOpenGLWindow::Initialize(
       cout << "could not initialize glfw- exiting" << endl;
       exit(EXIT_FAILURE);
    }
-   glfwWindowHint(GLFW_SAMPLES, 4);
+   //glfwWindowHint(GLFW_SAMPLES, 4);
    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-   window = glfwCreateWindow(size.x, size.y, "window", NULL, NULL);
+   window = glfwCreateWindow(size_x, size_y, "window", NULL, NULL);
    if (!window) {
       cout << "could not create window - exiting" << endl;
       glfwTerminate();
@@ -64,9 +65,9 @@ void ChOpenGLWindow::Initialize(
 
    viewer = new ChOpenGLViewer(msystem);
    viewer->Initialize();
-   if (size.y > 0) {
-      viewer->window_size = size;
-      viewer->window_aspect = float(size.x) / float(size.y);
+   if (size_y > 0) {
+      viewer->window_size = glm::ivec2(size_x, size_y);
+      viewer->window_aspect = float(size_x) / float(size_y);
    }
 
    glfwSetWindowUserPointer(window, viewer);

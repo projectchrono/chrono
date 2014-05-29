@@ -187,7 +187,7 @@ int main(
 
    double out_fps = 50;
 
-   uint max_iteration = 50;
+   uint max_iteration = 30;
    real tolerance = 1e-8;
 
    // Create system
@@ -214,14 +214,14 @@ int main(
    msystem.SetMaxPenetrationRecoverySpeed(1e9);
 
    //((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIteration(max_iteration);
-   ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIterationNormal(max_iteration / 2);
-   ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIterationSliding(max_iteration / 2);
+   ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIterationNormal(max_iteration / 3);
+   ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIterationSliding(max_iteration / 3);
    ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIterationSpinning(0);
-   ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIterationBilateral(max_iteration);
+   ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIterationBilateral(max_iteration/3);
    ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetTolerance(1e-3);
    ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetCompliance(0);
    ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetContactRecoverySpeed(1);
-   ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetSolverType(ACCELERATED_PROJECTED_GRADIENT_DESCENT);
+   ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetSolverType(APGDRS);
 
    ((ChCollisionSystemParallel*) msystem.GetCollisionSystem())->SetCollisionEnvelope(0.01);
    ((ChCollisionSystemParallel*) msystem.GetCollisionSystem())->setBinsPerAxis(I3(10, 10, 10));
@@ -243,7 +243,8 @@ int main(
    // The OpenGL manager will automatically run the simulation
 
    utils::ChOpenGLWindow &gl_window = utils::ChOpenGLWindow::getInstance();
-   gl_window.Initialize(glm::ivec2(1280, 720), "mixerDVI", &msystem);
+   gl_window.Initialize(1280, 720, "mixerDVI", &msystem);
+   gl_window.SetCamera(ChVector<>(0,-10,0), ChVector<>(0,0,0),ChVector<>(0,0,1));
    //gl_window.StartDrawLoop();
 #endif
    // Run simulation for specified time

@@ -30,15 +30,26 @@ class CH_UTILS_OPENGL_API ChOpenGLWindow {
    }
 
    void Initialize(
-         glm::ivec2 size,
+         int size_x,
+         int size_y,
          char * title,
          ChSystem * msystem);
    void StartDrawLoop();
-   void DoStepDynamics(double time_step);
+   void DoStepDynamics(
+         double time_step);
    void Render();
-   bool Active(){
+   bool Active() {
       return !glfwWindowShouldClose(window);
    }
+   void SetCamera(
+         ChVector<> position,
+         ChVector<> look_at,
+         ChVector<> up) {
+      viewer->render_camera.camera_position = glm::vec3(position.x, position.y, position.z);
+      viewer->render_camera.camera_look_at = glm::vec3(look_at.x, look_at.y, look_at.z);
+      viewer->render_camera.camera_up = glm::vec3(up.x, up.y, up.z);
+   }
+
    static bool GLUGetError(
          string err = "") {
       bool return_error = false;
