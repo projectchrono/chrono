@@ -1807,6 +1807,9 @@ int CreateCylinderMarkers_XZ(thrust::host_vector<real3> & mPosRad,
 	//printf("num_RigidBodyMarkers %f\n", num_RigidBodyMarkers);
 	return num_RigidBodyMarkers;
 }
+
+
+
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 int main() {
 	//****************************************************************************************
@@ -1975,7 +1978,7 @@ int main() {
 //	int numRigids = 3000;
 //	CreateRigidBodiesChannelRandom(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, numRigids);
 	//**
-//	int3 stride = I3(1, 1, 1);;
+//	int3 stride = I3(1, 1, 1);
 //	CreateRigidBodiesPatternWithinBeams(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride, flexParams);
 
 	//**
@@ -2152,6 +2155,13 @@ int main() {
 			totalNumFlexMarkers += num_FlexMarkers;
 			//printf(" %d \n", num_RigidBodyMarkers);
 		}
+		//**************************************
+		//******** write data to file  *********
+		WriteEverythingToFile(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray,
+				rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2,
+				ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel, ANCF_Beam_Length, ANCF_IsCantilever,
+				ANCF_ReferenceArrayNodesOnBeams, flexParametricDist,
+				channelRadius, channelCenterYZ, paramsH, flexParams, numObjects);
 	}
 
 	//@@@@@@@@@@@@@@@@@@@@@@@@@ set number of objects once for all @@@@@@@@@@@@@@@@@@@@@@22
