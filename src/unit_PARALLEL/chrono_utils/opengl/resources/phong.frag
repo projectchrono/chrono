@@ -10,9 +10,9 @@ float shininess = 100.0;
 flat in vec3 color_ambient;
 flat in vec3 color_diffuse;
 flat in vec3 color_specular;
-
+vec3 light_pos = vec3(100,100,100);
 in vec3 normal;
-in vec3 light_dir;
+
 in vec3 eye_vec;
 
 void main()
@@ -20,8 +20,8 @@ void main()
 	vec3 final_color = color_ambient;
 	
 	vec3 N = normalize(normal);
-	vec3 L = normalize(light_dir);
-	vec3 E = normalize(eye_vec);
+	vec3 L = normalize(light_pos-eye_vec);
+	vec3 E = normalize(-eye_vec);
 	
 	float lambertTerm = dot(N,L);
 	
