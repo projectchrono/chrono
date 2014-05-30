@@ -40,6 +40,7 @@ void WriteEverythingToFile(
 
 		const thrust::host_vector<real_> & ANCF_Beam_Length,
 		const thrust::host_vector<bool> & ANCF_IsCantilever,
+
 		const thrust::host_vector<int2> & ANCF_ReferenceArrayNodesOnBeams,
 		const thrust::host_vector<real_> & flexParametricDist,
 
@@ -65,12 +66,16 @@ void WriteEverythingToFile(
 	outMarker.close();
 	//****
 	ofstream refArray;
-	refArray.open("checkPointRefrenceArray.txt");
-	refArray << " # \n";
+	refArray.open("checkPointRefrenceArrays.txt");
+	refArray << " referenceArray \n #\n";
 	for (int i=0; i < referenceArray.size(); i++) {
 		int3 ref3 = referenceArray[i];
 		refArray << ref3.x << ", " << ref3.y << ", " << ref3.z << endl;
 	}
+
+	refArray <<"@"<<endl;
+	refArray << " ANCF_ReferenceArrayNodesOnBeams \n #\n";
+
 	refArray.close();
 	//****
 	ofstream rigidData;
@@ -105,16 +110,15 @@ void WriteEverythingToFile(
 		flexData << n.x << ", " << n.y << ", " << n.z << ", " << s.x << ", " << s.y << ", " << s.z << ", " <<
 				nV.x << ", " << nV.y << ", " << nV.z << ", " << sV.x << ", " << sV.y << ", " << sV.z << ", " << endl;
 	}
-	flexData.close();
 
-	ofstream flexData2;
-	flexData2.open("checkPointFlexData2.txt");
-	flexData2 << "length, isCantilever,\n"
-	flexData2 << " # \n";
+	flexData << "@"<< endl;
+
+	flexData << "length, isCantilever,\n"
+	flexData << " # \n";
 	for (int i=0; i < ANCF_Beam_Length.size(); i++) {
-		flexData2 << ANCF_Beam_Length[i] << ", " << ANCF_IsCantilever[i] << ", " << endl;
+		flexData << ANCF_Beam_Length[i] << ", " << ANCF_IsCantilever[i] << ", " << endl;
 	}
-	flexData2.close();
+	flexData.close();
 	//****
 	ofstream flexData;
 	flexData.open("checkPointFlexData.txt");
