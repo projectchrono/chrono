@@ -65,8 +65,12 @@ bool ChOpenGLMesh::PostInitialize() {
    if (this->GLReturnedError("ChOpenGLMesh::PostInitialize - on entry"))
       return false;
    //Generation complete bind everything!
-   if (!this->PostGLInitialize((GLuint*) (&this->position[0]), (GLuint*) (&this->normal[0]), (GLuint*) (&this->color_ambient[0]), (GLuint*) (&this->color_diffuse[0]),
-                               (GLuint*) (&this->color_specular[0]), this->position.size() * sizeof(vec3))) {
+   if (!this->PostGLInitialize((GLuint*) (&this->position[0]),
+                               (GLuint*) (&this->normal[0]),
+                               (GLuint*) (&this->color_ambient[0]),
+                               (GLuint*) (&this->color_diffuse[0]),
+                               (GLuint*) (&this->color_specular[0]),
+                               this->position.size() * sizeof(vec3))) {
       return false;
    }
 
@@ -132,11 +136,11 @@ void ChOpenGLMesh::Draw(
 
    glEnableVertexAttribArray(3);
    glBindBuffer(GL_ARRAY_BUFFER, vertex_diffuse_handle);
-   glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);  // Color Ambient
+   glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);  // Color Diffuse
 
    glEnableVertexAttribArray(4);
    glBindBuffer(GL_ARRAY_BUFFER, vertex_specular_handle);
-   glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);  // Color Ambient
+   glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);  // Color Specular
 
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->vertex_element_handle);
 

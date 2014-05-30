@@ -4,6 +4,32 @@
 # Currently this is invoked from the main CMakeLists for Chrono_Utils
 #=============================================================================
 
+add_executable(embedfile embedfile.cpp)
+
+add_custom_command(
+  OUTPUT  ${CMAKE_BINARY_DIR}/text_vert.h
+  COMMAND embedfile text_vert ${CMAKE_SOURCE_DIR}/chrono_utils/opengl/resources/text.vert ${CMAKE_BINARY_DIR}/text_vert.h
+  DEPENDS ${CMAKE_SOURCE_DIR}/chrono_utils/opengl/resources/text.vert
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+add_custom_command(
+  OUTPUT  ${CMAKE_BINARY_DIR}/text_frag.h
+  COMMAND embedfile text_frag ${CMAKE_SOURCE_DIR}/chrono_utils/opengl/resources/text.frag ${CMAKE_BINARY_DIR}/text_frag.h
+  DEPENDS ${CMAKE_SOURCE_DIR}/chrono_utils/opengl/resources/text.frag
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+add_custom_command(
+  OUTPUT  ${CMAKE_BINARY_DIR}/phong_vert.h
+  COMMAND embedfile phong_vert ${CMAKE_SOURCE_DIR}/chrono_utils/opengl/resources/phong.vert ${CMAKE_BINARY_DIR}/phong_vert.h
+  DEPENDS ${CMAKE_SOURCE_DIR}/chrono_utils/opengl/resources/phong.vert
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+add_custom_command(
+  OUTPUT  ${CMAKE_BINARY_DIR}/phong_frag.h
+  COMMAND embedfile phong_frag ${CMAKE_SOURCE_DIR}/chrono_utils/opengl/resources/phong.frag ${CMAKE_BINARY_DIR}/phong_frag.h
+  DEPENDS ${CMAKE_SOURCE_DIR}/chrono_utils/opengl/resources/phong.frag
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
 
 SET(ChronoEngine_Utils_OpenGL_SOURCES 
 	core/ChOpenGLShader.cpp
@@ -17,7 +43,6 @@ SET(ChronoEngine_Utils_OpenGL_SOURCES
 	ChOpenGLViewer.cpp 
 	ChOpenGLCamera.cpp
 	ChOpenGLWindow.cpp
-
 	)
 
 SET(ChronoEngine_Utils_OpenGL_HEADERS
@@ -32,7 +57,10 @@ SET(ChronoEngine_Utils_OpenGL_HEADERS
 	ChOpenGLViewer.h 
 	ChOpenGLCamera.h
 	ChOpenGLWindow.h
-
+	${CMAKE_BINARY_DIR}/text_frag.h
+	${CMAKE_BINARY_DIR}/text_vert.h
+	${CMAKE_BINARY_DIR}/phong_frag.h
+	${CMAKE_BINARY_DIR}/phong_vert.h
 	)
 
 IF (MSVC)

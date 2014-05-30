@@ -83,11 +83,48 @@ void ChOpenGLShader::Use() {
 
 }
 
-// The shader initialization code is lifted liberally from the GLSL 4.0 Cookbook.
-// Added extra handles as needed
-bool ChOpenGLShader::Initialize(
+bool ChOpenGLShader::CompileStrings(
+      string shader_name,
+      const char * vertex_shader,
+      const char * fragment_shader) {
+   GLint check_value;
+
+   stringstream ss;
+   ss << shader_name << "Initialize - on entrance";
+
+   if (GLReturnedError(ss.str().c_str()))
+      return false;
+   //Create our vertex shader, read it from the file and compile it.
+   //Check if compilation was successful
+   this->vertex_shader_id = glCreateShader(GL_VERTEX_SHADER);
+   this->LoadShaderString(vertex_shader, this->vertex_shader_id);
+   glCompileShader(this->vertex_shader_id);
+   glGetShaderiv(this->vertex_shader_id, GL_COMPILE_STATUS, &check_value);
+   if (check_value != GL_TRUE) {
+      cerr << this->GetShaderLog(vertex_shader_id);
+      cerr << "GLSL compilation failed - vertex shader: " << shader_name << endl;
+      return false;
+   }
+
+   if (GLReturnedError("ChOpenGLShader::Initialize - after processing vertex shader"))
+      return false;
+   //Create our fragment shader, read it from the file and compile it.
+   //Check if compilation was successful
+   this->fragment_shader_id = glCreateShader(GL_FRAGMENT_SHADER);
+   this->LoadShaderString(fragment_shader, this->fragment_shader_id);
+   glCompileShader(this->fragment_shader_id);
+   glGetShaderiv(this->fragment_shader_id, GL_COMPILE_STATUS, &check_value);
+   if (check_value != GL_TRUE) {
+      cerr << this->GetShaderLog(fragment_shader_id);
+      cerr << "GLSL compilation failed - fragment shader: " << shader_name << endl;
+      return false;
+   }
+
+}
+bool ChOpenGLShader::CompileFiles(
       string vertex_shader_file,
       string fragment_shader_file) {
+
    GLint check_value;
 
    stringstream ss;
@@ -120,6 +157,10 @@ bool ChOpenGLShader::Initialize(
       cerr << "GLSL compilation failed - fragment shader: " << fragment_shader_file << endl;
       return false;
    }
+
+}
+
+void ChOpenGLShader::CompleteInit() {
    //Attach the shaders to the program and link
    this->program_id = glCreateProgram();
    glAttachShader(this->program_id, this->vertex_shader_id);
@@ -143,10 +184,38 @@ bool ChOpenGLShader::Initialize(
    this->camera_handle = GetUniformLocation("camera_position");
 
    glUseProgram(0);
+}
+
+// The shader initialization code is lifted liberally from the GLSL 4.0 Cookbook.
+// Added extra handles as needed
+bool ChOpenGLShader::InitializeFiles(
+      string vertex_shader_file,
+      string fragment_shader_file) {
+
+   if (CompileFiles(vertex_shader_file, fragment_shader_file)) {
+      CompleteInit();
+   } else {
+      cerr << "Cannot compile shader: " << vertex_shader_file << " " << fragment_shader_file;
+      exit(0);
+   }
+   return !GLReturnedError("ChOpenGLShader::Initialize - on exit");
+}
+// The shader initialization code is lifted liberally from the GLSL 4.0 Cookbook.
+// Added extra handles as needed
+bool ChOpenGLShader::InitializeStrings(
+      string name,
+      const char * vertex_shader,
+      const char * fragment_shader) {
+
+   if (CompileStrings(name, vertex_shader, fragment_shader)) {
+      CompleteInit();
+   } else {
+      cerr << "Cannot compile shader: " << name;
+      exit(0);
+   }
 
    return !GLReturnedError("ChOpenGLShader::Initialize - on exit");
 }
-
 void ChOpenGLShader::CustomSetup() {
 }
 
@@ -178,7 +247,6 @@ void ChOpenGLShader::TakeDown() {
 }
 
 // This function is adapted from OpenGL 4.0 Shading Language Cookbook by David Wolff.
-
 bool ChOpenGLShader::LoadShader(
       const string file_name,
       GLuint shader_id) {
@@ -200,6 +268,19 @@ bool ChOpenGLShader::LoadShader(
    buffer[length] = 0;
    glShaderSource(shader_id, 1, (const char **) &buffer, NULL);
    delete[] buffer;
+
+   return !GLReturnedError("ChOpenGLShader::LoadShader - on exit");
+}
+
+// This function is adapted from OpenGL 4.0 Shading Language Cookbook by David Wolff.
+bool ChOpenGLShader::LoadShaderString(
+      const char * shader_string,
+      GLuint shader_id) {
+
+   if (GLReturnedError("ChOpenGLShader::LoadShader - on entrance"))
+      return false;
+
+   glShaderSource(shader_id, 1, &shader_string, NULL);
 
    return !GLReturnedError("ChOpenGLShader::LoadShader - on exit");
 }

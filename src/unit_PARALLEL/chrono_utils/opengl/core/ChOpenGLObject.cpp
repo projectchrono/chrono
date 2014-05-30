@@ -121,7 +121,8 @@ bool ChOpenGLObject::Initialize() {
    this->InternalInitialize();
    return true;
 }
-//attaches a shader to the object. This can be used in the draw call of any inherited classes
+// Attaches a shader to the object. This can be used in the draw call of any
+// inherited classes
 void ChOpenGLObject::AttachShader(
       ChOpenGLShader * new_shader) {
    shader = new_shader;
@@ -129,7 +130,11 @@ void ChOpenGLObject::AttachShader(
 
 void ChOpenGLObject::InternalInitialize() {
    this->vertex_element_handle = GLuint(-1);
-   this->vertex_position_handle = this->vertex_normal_handle = GLuint(-1);
-   this->vertex_ambient_handle = this->vertex_diffuse_handle = this->vertex_specular_handle = GLuint(-1);
-   this->vertex_array_handle = this->vertex_coordinate_handle = this->vertex_coordinate_handle = GLuint(-1);
+   this->vertex_position_handle = GLuint(-1);
+   this->vertex_normal_handle = GLuint(-1);
+   this->vertex_ambient_handle = GLuint(-1);
+   this->vertex_diffuse_handle = GLuint(-1);
+   this->vertex_specular_handle = GLuint(-1);
+   this->vertex_array_handle = GLuint(-1);
+   this->vertex_coordinate_handle = GLuint(-1);
 }

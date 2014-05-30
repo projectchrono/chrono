@@ -15,6 +15,11 @@
 
 #include "ChOpenGLViewer.h"
 #include "FontData.h"
+#include "text_frag.h"
+#include "text_vert.h"
+#include "phong_frag.h"
+#include "phong_vert.h"
+
 //using namespace std;
 using namespace chrono;
 using namespace chrono::utils;
@@ -53,13 +58,13 @@ void ChOpenGLViewer::TakeDown() {
 
 bool ChOpenGLViewer::Initialize() {
 
-   if (!font_shader.Initialize("text.vert", "text.frag")) {
+   if (!font_shader.InitializeStrings("text", text_vert, text_frag)) {
       return 0;
    }
 
    ChOpenGLMaterial white(glm::vec3(.1, .1, .1), glm::vec3(1, 1, 1), glm::vec3(1, 1, 1));
    ChOpenGLMaterial red(glm::vec3(.1, 0, 0), glm::vec3(1, 0, 0), glm::vec3(1, 1, 1));
-   if (!main_shader.Initialize("phong.vert", "phong.frag")) {
+   if (!main_shader.InitializeStrings("phong", phong_vert, phong_frag)) {
       return 0;
    }
 
@@ -328,45 +333,45 @@ void ChOpenGLViewer::DisplayHUD() {
 }
 
 void ChOpenGLViewer::HandleInput(
-        unsigned char key,
-        int x,
-        int y) {
-     //printf("%f,%f,%f\n", render_camera.camera_position.x, render_camera.camera_position.y, render_camera.camera_position.z);
-     switch (key) {
-        case 'W':
-           render_camera.Move(FORWARD);
-           break;
-        case 'S':
-           render_camera.Move(BACK);
-           break;
-        case 'D':
-           render_camera.Move(RIGHT);
-           break;
-        case 'A':
-           render_camera.Move(LEFT);
-           break;
-        case 'Q':
-           render_camera.Move(DOWN);
-           break;
-        case 'E':
-           render_camera.Move(UP);
-           break;
-        case GLFW_KEY_SPACE:
-           pause_sim = !pause_sim;
-           break;
-        case 'P':
-           pause_vis = !pause_vis;
-           break;
-        case '1':
-           render_mode = POINTS;
-           break;
-        case '2':
-           render_mode = WIREFRAME;
-           break;
-        case '3':
-           render_mode = SOLID;
-           break;
-        default:
-           break;
-     }
-  }
+      unsigned char key,
+      int x,
+      int y) {
+   //printf("%f,%f,%f\n", render_camera.camera_position.x, render_camera.camera_position.y, render_camera.camera_position.z);
+   switch (key) {
+      case 'W':
+         render_camera.Move(FORWARD);
+         break;
+      case 'S':
+         render_camera.Move(BACK);
+         break;
+      case 'D':
+         render_camera.Move(RIGHT);
+         break;
+      case 'A':
+         render_camera.Move(LEFT);
+         break;
+      case 'Q':
+         render_camera.Move(DOWN);
+         break;
+      case 'E':
+         render_camera.Move(UP);
+         break;
+      case GLFW_KEY_SPACE:
+         pause_sim = !pause_sim;
+         break;
+      case 'P':
+         pause_vis = !pause_vis;
+         break;
+      case '1':
+         render_mode = POINTS;
+         break;
+      case '2':
+         render_mode = WIREFRAME;
+         break;
+      case '3':
+         render_mode = SOLID;
+         break;
+      default:
+         break;
+   }
+}
