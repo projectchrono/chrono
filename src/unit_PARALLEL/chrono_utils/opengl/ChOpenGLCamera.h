@@ -91,6 +91,7 @@ namespace chrono {
 			float camera_scale;
 			float camera_heading;
 			float camera_pitch;
+			float camera_mouse_scale;
 
 			float max_pitch_rate;
 			float max_heading_rate;

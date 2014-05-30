@@ -41,13 +41,6 @@ enum RenderMode {
    SOLID
 };
 
-struct point {
-   GLfloat x;
-   GLfloat y;
-   GLfloat s;
-   GLfloat t;
-};
-
 class CH_UTILS_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
  public:
 
@@ -64,9 +57,6 @@ class CH_UTILS_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
    void SetWindowSize(
          glm::ivec2 size) {
    }
-//   void DrawString(
-//         string line,
-//         glm::vec3 pos);
    void RenderText(
          const std::string &str,
          float x,
@@ -77,46 +67,7 @@ class CH_UTILS_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
    void HandleInput(
          unsigned char key,
          int x,
-         int y) {
-      //printf("%f,%f,%f\n", render_camera.camera_position.x, render_camera.camera_position.y, render_camera.camera_position.z);
-      switch (key) {
-         case 'W':
-            render_camera.Move(FORWARD);
-            break;
-         case 'S':
-            render_camera.Move(BACK);
-            break;
-         case 'D':
-            render_camera.Move(RIGHT);
-            break;
-         case 'A':
-            render_camera.Move(LEFT);
-            break;
-         case 'Q':
-            render_camera.Move(DOWN);
-            break;
-         case 'E':
-            render_camera.Move(UP);
-            break;
-         case GLFW_KEY_SPACE:
-            pause_sim = !pause_sim;
-            break;
-         case 'P':
-            pause_vis = !pause_vis;
-            break;
-         case '1':
-            render_mode = POINTS;
-            break;
-         case '2':
-            render_mode = WIREFRAME;
-            break;
-         case '3':
-            render_mode = SOLID;
-            break;
-         default:
-            break;
-      }
-   }
+         int y);
 
    glm::ivec2 window_size;
    glm::ivec2 window_position;

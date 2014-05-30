@@ -49,7 +49,6 @@ void ChOpenGLViewer::TakeDown() {
    cylinder.TakeDown();
    cone.TakeDown();
    cloud.TakeDown();
-
 }
 
 bool ChOpenGLViewer::Initialize() {
@@ -111,8 +110,10 @@ void ChOpenGLViewer::Render() {
          ChBody* abody = (ChBody*) physics_system->Get_bodylist()->at(i);
          DrawObject(abody);
       }
+      DisplayHUD();
+
    }
-   DisplayHUD();
+
 }
 
 void ChOpenGLViewer::DrawObject(
@@ -314,14 +315,58 @@ void ChOpenGLViewer::DisplayHUD() {
    RenderText(buffer, .6, 0.925 - .06 * 1, sx, sy);
    sprintf(buffer, "Contacts:  %04d", physics_system->GetNcontacts());
    RenderText(buffer, .6, 0.925 - .06 * 2, sx, sy);
-
-   sprintf(buffer, "Residual:  %04f", history[history.size() - 1]);
-   RenderText(buffer, .6, 0.925 - .06 * 4, sx, sy);
-   sprintf(buffer, "Correct :  %04f", dlambda[dlambda.size() - 1]);
-   RenderText(buffer, .6, 0.925 - .06 * 5, sx, sy);
-
+   if (history.size() > 0) {
+      sprintf(buffer, "Residual:  %04f", history[history.size() - 1]);
+      RenderText(buffer, .6, 0.925 - .06 * 4, sx, sy);
+      sprintf(buffer, "Correct :  %04f", dlambda[dlambda.size() - 1]);
+      RenderText(buffer, .6, 0.925 - .06 * 5, sx, sy);
+   }
    glBindTexture(GL_TEXTURE_2D, 0);
    glUseProgram(0);
    GLReturnedError("End text");
 
 }
+
+void ChOpenGLViewer::HandleInput(
+        unsigned char key,
+        int x,
+        int y) {
+     //printf("%f,%f,%f\n", render_camera.camera_position.x, render_camera.camera_position.y, render_camera.camera_position.z);
+     switch (key) {
+        case 'W':
+           render_camera.Move(FORWARD);
+           break;
+        case 'S':
+           render_camera.Move(BACK);
+           break;
+        case 'D':
+           render_camera.Move(RIGHT);
+           break;
+        case 'A':
+           render_camera.Move(LEFT);
+           break;
+        case 'Q':
+           render_camera.Move(DOWN);
+           break;
+        case 'E':
+           render_camera.Move(UP);
+           break;
+        case GLFW_KEY_SPACE:
+           pause_sim = !pause_sim;
+           break;
+        case 'P':
+           pause_vis = !pause_vis;
+           break;
+        case '1':
+           render_mode = POINTS;
+           break;
+        case '2':
+           render_mode = WIREFRAME;
+           break;
+        case '3':
+           render_mode = SOLID;
+           break;
+        default:
+           break;
+     }
+  }

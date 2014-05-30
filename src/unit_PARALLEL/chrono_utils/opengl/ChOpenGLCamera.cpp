@@ -25,11 +25,12 @@ ChOpenGLCamera::ChOpenGLCamera() {
    camera_position = glm::vec3(0, 0, 0);
    camera_position_delta = glm::vec3(0, 0, 0);
    camera_look_at = glm::vec3(0, 0, 1);
-   camera_direction= glm::vec3(0, 0, 1);
+   camera_direction = glm::vec3(0, 0, 1);
    camera_up = glm::vec3(0, 1, 0);
    camera_scale = .5f;
    camera_pitch = 0;
    camera_heading = 0;
+   camera_mouse_scale = .02f;
    max_pitch_rate = 5;
    max_heading_rate = 5;
    move_camera = false;
@@ -156,7 +157,7 @@ void ChOpenGLCamera::ChangePitch(
    } else if (degrees > max_pitch_rate) {
       degrees = max_pitch_rate;
    }
-   camera_pitch += degrees/10.0;
+   camera_pitch += degrees * camera_mouse_scale;
 
    //Check bounds for the camera pitch
    if (camera_pitch > 360.0f) {
@@ -176,9 +177,9 @@ void ChOpenGLCamera::ChangeHeading(
    //This controls how the heading is changed if the camera is pointed straight up or down
    //The heading delta direction changes
    if (camera_pitch > 90 && camera_pitch < 270 || (camera_pitch < -90 && camera_pitch > -270)) {
-      camera_heading -= degrees/10.0;
+      camera_heading -= degrees * camera_mouse_scale;
    } else {
-      camera_heading += degrees/10.0;
+      camera_heading += degrees * camera_mouse_scale;
    }
    //Check bounds for the camera heading
    if (camera_heading > 360.0f) {

@@ -30,8 +30,8 @@ void ChOpenGLWindow::Initialize(
       exit(EXIT_FAILURE);
    }
    //glfwWindowHint(GLFW_SAMPLES, 4);
-   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
@@ -73,6 +73,7 @@ void ChOpenGLWindow::Initialize(
 
    glfwSetWindowUserPointer(window, viewer);
    GLUGetError("Initialize Viewer ");
+   poll_frame = 0;
 }
 
 void ChOpenGLWindow::StartDrawLoop() {
@@ -89,19 +90,22 @@ void ChOpenGLWindow::DoStepDynamics(
    pointer->Update();
 }
 void ChOpenGLWindow::Render() {
-   //glEnable(GL_POINT_SMOOTH);
-   glEnable(GL_BLEND);
-   //glEnable(GL_ALPHA_TEST);
-   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-   //glEnable(GL_CULL_FACE);
-   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
    ChOpenGLViewer* pointer = ((ChOpenGLViewer *) (glfwGetWindowUserPointer(window)));
-   GLUGetError("Before Render");
-   pointer->Render();
-   GLUGetError("After Render");
-   glfwSwapBuffers(window);
+   if (pointer->pause_vis == false) {
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      //glEnable(GL_CULL_FACE);
+      glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      GLUGetError("Before Render");
+      pointer->Render();
+      GLUGetError("After Render");
+      glfwSwapBuffers(window);
+   }
+
    glfwPollEvents();
+
 }
 
 bool ChOpenGLWindow::GLUGetError(
