@@ -32,6 +32,7 @@
 #include "collideSphereSphere.cuh"
 #include <algorithm>
 #include "FlexibleBodies.cuh"
+#include "checkPoint.cuh"
 
 
 using namespace std;
@@ -1834,7 +1835,7 @@ int main() {
 	paramsH.boxDims;
 
 	paramsH.sizeScale = 1;
-	paramsH.HSML = 0.015;
+	paramsH.HSML = 0.02;
 	paramsH.MULT_INITSPACE = 1.0;
 	paramsH.NUM_BCE_LAYERS = 2;
 	paramsH.BASEPRES = 0;
@@ -1971,8 +1972,8 @@ int main() {
 	real3 r3Ellipsoid = R3(1.5 * paramsH.HSML, 1.5 * paramsH.HSML, 2 * paramsH.HSML);//R3(0.5, 0.5, 0.5) * paramsH.sizeScale; //R3(0.4 * paramsH.sizeScale); //R3(0.8 * paramsH.sizeScale); //real3 r3Ellipsoid = R3(.03 * paramsH.sizeScale); //R3(.05, .03, .02) * paramsH.sizeScale; //R3(.03 * paramsH.sizeScale);
 
 	//**
-//	int3 stride = I3(1, 1, 1);
-//	CreateRigidBodiesPattern(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride);
+	int3 stride = I3(2, 2, 2);
+	CreateRigidBodiesPattern(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride);
 
 	//**
 //	int numRigids = 3000;
@@ -2156,12 +2157,6 @@ int main() {
 			//printf(" %d \n", num_RigidBodyMarkers);
 		}
 		//**************************************
-		//******** write data to file  *********
-		WriteEverythingToFile(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray,
-				rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2,
-				ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel, ANCF_Beam_Length, ANCF_IsCantilever,
-				ANCF_ReferenceArrayNodesOnBeams, flexParametricDist,
-				channelRadius, channelCenterYZ, paramsH, flexParams, numObjects);
 	}
 
 	//@@@@@@@@@@@@@@@@@@@@@@@@@ set number of objects once for all @@@@@@@@@@@@@@@@@@@@@@22
@@ -2202,6 +2197,13 @@ int main() {
 	thrust::exclusive_scan(bodyIndex.begin(), bodyIndex.end(),
 			bodyIndex.begin());
 
+	//******** write data to file  ******************************************************************************************
+	WriteEverythingToFile(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray,
+			rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2,
+			ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel, ANCF_Beam_Length, ANCF_IsCantilever,
+			ANCF_ReferenceArrayNodesOnBeams, flexParametricDist,
+			channelRadius, channelCenterYZ, paramsH, flexParams, numObjects, 0);
+	//***********************************************************************************************************************
 	if (numAllMarkers != 0) {
 		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray,
 				rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2,

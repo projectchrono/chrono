@@ -14,9 +14,17 @@
 
 #include <iostream>
 #include <fstream>
+#include <string>
+#include <sstream>
+#include "custom_cutil_math.h"
+#include "SPHCudaUtils.h"
+#include "collideSphereSphere.cuh"
+#include <thrust/host_vector.h>
+#include "checkPoint.cuh"
+
 using namespace std;
 
-//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void WriteEverythingToFile(
 		thrust::host_vector<real3> & mPosRad,
 		thrust::host_vector<real4> & mVelMas,
@@ -48,14 +56,16 @@ void WriteEverythingToFile(
 		real2 channelCenterYZ,
 		SimParams paramsH,
 		const ANCF_Params & flexParams,
-		const NumberOfObjects & numObjects) {
+		const NumberOfObjects & numObjects,
+		real_ time) {
 
-	//****
+	//*******************************************************************
 	ofstream outMarker;
 	outMarker.open("checkPointMarkersData.txt");
+	outMarker << time << endl;
 	outMarker << "x, y, z, vx, vy, vz, m, rho, p, mu, type, index,\n # \n";
 	for (int i=0; i < mPosRad.size(); i++) {
-		real3 p = R3(mPosRad[i]);
+		real3 p = mPosRad[i];
 		real4 vM = mVelMas[i];
 		real4 rPMtype = mRhoPresMu[i];
 		uint index = bodyIndex[i];
@@ -64,24 +74,32 @@ void WriteEverythingToFile(
 
 	}
 	outMarker.close();
-	//****
-	ofstream refArray;
-	refArray.open("checkPointRefrenceArrays.txt");
-	refArray << " referenceArray \n #\n";
+
+	//*******************************************************************
+	ofstream outRefArray;
+	outRefArray.open("checkPointRefrenceArrays.txt");
+	outRefArray << time << endl;
+	outRefArray << " referenceArray \n #\n";
 	for (int i=0; i < referenceArray.size(); i++) {
 		int3 ref3 = referenceArray[i];
-		refArray << ref3.x << ", " << ref3.y << ", " << ref3.z << endl;
+		outRefArray << ref3.x << ", " << ref3.y << ", " << ref3.z << endl;
 	}
 
-	refArray <<"@"<<endl;
-	refArray << " ANCF_ReferenceArrayNodesOnBeams \n #\n";
+	outRefArray <<"@"<<endl;
+	outRefArray << " ANCF_ReferenceArrayNodesOnBeams \n #\n";
+	for (int i=0; i < ANCF_ReferenceArrayNodesOnBeams.size(); i ++) {
+		int2 ref2 = ANCF_ReferenceArrayNodesOnBeams[i];
+		outRefArray << ref2.x << ", " << ref2.y << endl;
+	}
 
-	refArray.close();
-	//****
-	ofstream rigidData;
-	rigidData.open("checkPointRigidData.txt");
-	rigidData << "x, y, z, q0, q1, q2, q3, Vx, Vy, Vz, mass, om0, om1, om2, j00, j01, j02, j11, j12, j22, invj00, invj01, invj02, invj11, invj12, invj22, \n"
-	rigidData << " # \n";
+	outRefArray.close();
+
+	//*******************************************************************
+	ofstream outRigidData;
+	outRigidData.open("checkPointRigidData.txt");
+	outRigidData << time << endl;
+	outRigidData << "x, y, z, q0, q1, q2, q3, Vx, Vy, Vz, mass, om0, om1, om2, j00, j01, j02, j11, j12, j22, invj00, invj01, invj02, invj11, invj12, invj22, \n";
+	outRigidData << " # \n";
 	for (int i=0; i < posRigidH.size(); i++) {
 		real3 p = posRigidH[i];
 		real4 q = mQuatRot[i];
@@ -91,49 +109,393 @@ void WriteEverythingToFile(
 		real3 j2 = jH2[i];
 		real3 invj1 = jInvH1[i];
 		real3 invj2 = jInvH2[i];
-		rigidData << p.x << ", " << p.y << ", " << p.z << ", " << q.x << ", " << q.y << ", " << q.z << ", " << q.w << ", " <<
+		outRigidData << p.x << ", " << p.y << ", " << p.z << ", " << q.x << ", " << q.y << ", " << q.z << ", " << q.w << ", " <<
 				vM.x << ", " << vM.y << ", " << vM.z << ", " << vM.w << ", " << om.x << ", " << om.y << ", " << om.z << ", " <<
 				j1.x << ", " << j1.y << ", " << j1.z << ", " << j2.x << ", " << j2.y << ", " << j2.z << ", " <<
 				invj1.x << ", " << invj1.y << ", " << invj1.z << ", " << invj2.x << ", " << invj2.y << ", " << invj2.z << ", " <<endl;
 	}
-	rigidData.close();
-	//****
-	ofstream flexData;
-	flexData.open("checkPointFlexData1.txt");
-	flexData << "nx, ny, nz, sx, sy, sz, nVx, nVy, nVz, sVx, sVy, sVz,\n"
-	flexData << " # \n";
+	outRigidData.close();
+
+	//*******************************************************************
+	ofstream outFlexData;
+	outFlexData.open("checkPointFlexData.txt");
+	outFlexData << time << endl;
+	outFlexData << "nx, ny, nz, sx, sy, sz, nVx, nVy, nVz, sVx, sVy, sVz,\n";
+	outFlexData << " # \n";
 	for (int i=0; i < ANCF_Nodes.size(); i++) {
 		real3 n = ANCF_Nodes[i];
 		real3 s = ANCF_Slopes[i];
 		real3 nV = ANCF_NodesVel[i];
 		real3 sV = ANCF_SlopesVel[i];
-		flexData << n.x << ", " << n.y << ", " << n.z << ", " << s.x << ", " << s.y << ", " << s.z << ", " <<
+		outFlexData << n.x << ", " << n.y << ", " << n.z << ", " << s.x << ", " << s.y << ", " << s.z << ", " <<
 				nV.x << ", " << nV.y << ", " << nV.z << ", " << sV.x << ", " << sV.y << ", " << sV.z << ", " << endl;
 	}
 
-	flexData << "@"<< endl;
+	outFlexData << "@"<< endl;
 
-	flexData << "length, isCantilever,\n"
-	flexData << " # \n";
+	outFlexData << "length, isCantilever,\n";
+	outFlexData << " # \n";
 	for (int i=0; i < ANCF_Beam_Length.size(); i++) {
-		flexData << ANCF_Beam_Length[i] << ", " << ANCF_IsCantilever[i] << ", " << endl;
+		outFlexData << ANCF_Beam_Length[i] << ", " << ANCF_IsCantilever[i] << ", " << endl;
 	}
-	flexData.close();
-	//****
-	ofstream flexData;
-	flexData.open("checkPointFlexData.txt");
-	flexData << "nx, ny, nz, sx, sy, sz, nVx, nVy, nVz, sVx, sVy, sVz,\n"
-	flexData << " # \n";
-	for (int i=0; i < ANCF_Nodes.size(); i++) {
-		real3 n = ANCF_Nodes[i];
-		real3 s = ANCF_Slopes[i];
-		real3 nV = ANCF_NodesVel[i];
-		real3 sV = ANCF_SlopesVel[i];
-		flexData << n.x << ", " << n.y << ", " << n.z << ", " << s.x << ", " << s.y << ", " << s.z << ", " <<
-				nV.x << ", " << nV.y << ", " << nV.z << ", " << sV.x << ", " << sV.y << ", " << sV.z << ", " << endl;
+
+	outFlexData << "@"<< endl;
+
+	outFlexData << "parametric distance,\n";
+	outFlexData << " # \n";
+	for (int i=0; i < flexParametricDist.size(); i++) {
+		outFlexData << flexParametricDist[i] << endl;
 	}
-	flexData.close();
-	//****
+
+	outFlexData.close();
+
+	//*******************************************************************
+	ofstream outProbParams;
+	outProbParams.open("checkPointParameters.txt");
+	outProbParams << time << endl;
+	outProbParams << "All parameters required for the problems,\n";
+	outProbParams << " # \n";
+
+	outProbParams << paramsH.gridSize.x << ", " << paramsH.gridSize.y << ", " << paramsH.gridSize.z << endl;
+	outProbParams << paramsH.worldOrigin.x << ", " << paramsH.worldOrigin.y << ", " << paramsH.worldOrigin.z << endl ;
+	outProbParams << paramsH.cellSize.x << ", " << paramsH.cellSize.y << ", " << paramsH.cellSize.z << endl;
+	outProbParams << paramsH.numBodies << endl;
+	outProbParams << paramsH.boxDims.x << ", " << paramsH.boxDims.y << ", " << paramsH.boxDims.z << endl;
+	outProbParams << paramsH.sizeScale << endl;
+	outProbParams << paramsH.HSML << endl;
+	outProbParams << paramsH.MULT_INITSPACE << endl;
+	outProbParams << paramsH.NUM_BCE_LAYERS << endl;
+	outProbParams << paramsH.BASEPRES << endl;
+	outProbParams << paramsH.nPeriod << endl;
+	outProbParams << paramsH.gravity.x << ", " << paramsH.gravity.y << ", " << paramsH.gravity.z << endl;
+	outProbParams << paramsH.bodyForce4.x << ", " << paramsH.bodyForce4.y << ", " << paramsH.bodyForce4.z << ", " << paramsH.bodyForce4.w << endl;
+	outProbParams << paramsH.rho0 << endl;
+	outProbParams << paramsH.mu0 << endl;
+	outProbParams << paramsH.v_Max << endl;
+	outProbParams << paramsH.EPS_XSPH << endl;
+	outProbParams << paramsH.dT << endl;
+	outProbParams << paramsH.tFinal << endl;
+	outProbParams << paramsH.kdT << endl;
+	outProbParams << paramsH.gammaBB << endl;
+	outProbParams << paramsH.cMin.x << ", "  << paramsH.cMin.y << ", " << paramsH.cMin.z << endl;
+	outProbParams << paramsH.cMax.x << ", " << paramsH.cMax.y << ", " << paramsH.cMax.z << endl;
+	outProbParams << paramsH.binSize0 << endl;
 
 
+	outProbParams << "#" <<endl;
+
+	outProbParams << flexParams.r << endl;
+	outProbParams << flexParams.E << endl;
+	outProbParams << flexParams.I << endl;
+	outProbParams << flexParams.rho << endl;
+	outProbParams << flexParams.A << endl;
+	outProbParams << flexParams.ne << endl;
+	outProbParams << flexParams.gravity.x << ", " << flexParams.gravity.y << ", " << flexParams.gravity.z << endl;
+	outProbParams << flexParams.bobRad << endl;
+
+	outProbParams << "#" <<endl;
+
+	outProbParams << channelRadius << endl;
+	outProbParams << channelCenterYZ.x << ", " << channelCenterYZ.y << endl;
+
+	outProbParams << "#" <<endl;
+
+	outProbParams << numObjects.numRigidBodies         << endl;
+	outProbParams << numObjects.numFlexBodies          << endl;
+	outProbParams << numObjects.numFlBcRigid           << endl;
+	outProbParams << numObjects.numFluidMarkers        << endl;
+	outProbParams << numObjects.numBoundaryMarkers     << endl;
+	outProbParams << numObjects.startRigidMarkers      << endl;
+	outProbParams << numObjects.startFlexMarkers       << endl;
+	outProbParams << numObjects.numRigid_SphMarkers    << endl;
+	outProbParams << numObjects.numFlex_SphMarkers     << endl;
+	outProbParams << numObjects.numAllMarkers          << endl;
+
+
+	outProbParams.close();
+	//****
 }
+
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+void ReadEverythingFromFile(
+		bool shouldIRead,
+		thrust::host_vector<real3> & mPosRad,
+		thrust::host_vector<real4> & mVelMas,
+		thrust::host_vector<real4> & mRhoPresMu,
+		thrust::host_vector<uint> & bodyIndex,
+		thrust::host_vector<int3> & referenceArray,
+
+		thrust::host_vector<real3> & posRigidH,
+		thrust::host_vector<real4> & mQuatRot,
+		thrust::host_vector<real4> & velMassRigidH,
+		thrust::host_vector<real3> & omegaLRF_H,
+		thrust::host_vector<real3> & jH1,
+		thrust::host_vector<real3> & jH2,
+		thrust::host_vector<real3> & jInvH1,
+		thrust::host_vector<real3> & jInvH2,
+
+		thrust::host_vector<real3> & ANCF_Nodes,
+		thrust::host_vector<real3> & ANCF_Slopes,
+		thrust::host_vector<real3> & ANCF_NodesVel,
+		thrust::host_vector<real3> & ANCF_SlopesVel,
+
+		thrust::host_vector<real_> & ANCF_Beam_Length,
+		thrust::host_vector<bool> & ANCF_IsCantilever,
+
+		thrust::host_vector<int2> & ANCF_ReferenceArrayNodesOnBeams,
+		thrust::host_vector<real_> & flexParametricDist,
+
+		real_ & channelRadius,
+		real2 & channelCenterYZ,
+		SimParams & paramsH,
+		ANCF_Params & flexParams,
+		NumberOfObjects & numObjects) {
+
+	if (!shouldIRead) return;
+	//*******************************************************************
+	ifstream inMarker;
+	inMarker.open("checkPointMarkersData.txt");
+	if (!inMarker) {
+		cout << "Error! Unable to open file: " << "checkPointMarkersData.txt" << endl;
+	}
+	char ch = '!';
+	while (ch != '#') {
+		inMarker >> ch;
+	}
+	while (inMarker.good()) {
+		real3 p ;
+		real4 vM ;
+		real4 rPMtype ;
+		uint index;
+		char ddCh;
+		inMarker >> p.x >> ddCh >> p.y >> ddCh >> p.z >> ddCh >> vM.x >> ddCh >> vM.y >> ddCh >> vM.z >> ddCh
+				>> vM.w >> ddCh >> rPMtype.x >> ddCh >> rPMtype.y >> ddCh >> rPMtype.z >> ddCh >> rPMtype.w >> ddCh >> index >> ddCh;
+		mPosRad.push_back(p);
+		mVelMas.push_back(vM) ;
+		mRhoPresMu.push_back(rPMtype);
+		bodyIndex.push_back(index);
+	}
+	inMarker.close();
+
+	//*******************************************************************
+	ifstream inRefArray;
+	inRefArray.open("checkPointRefrenceArrays.txt");
+	if (!inRefArray) {
+		cout << "Error! Unable to open file: " << "checkPointRefrenceArrays.txt" << endl;
+	}
+	ch = '!';
+	while (ch != '#') {
+		inRefArray >> ch;
+	}
+	while (inRefArray.good()) {
+		string s;
+		getline(inRefArray, s);
+		if (s.find_first_of("@") < s.size()) {
+			break;
+		}
+		stringstream ss(s);
+		int3 ref3;
+		char ddCh;
+		ss >> ref3.x >> ddCh >> ref3.y >> ddCh >> ref3.z;
+//		ss >> ref3.x;
+//		if (ss.peek() == ',') ss.ignore();
+//		ss >> ref3.y;
+//		if (ss.peek() == ',') ss.ignore();
+//		ss >> ref3.z;
+		referenceArray.push_back(ref3);
+	}
+
+	ch = '!';
+	while (ch != '#') {
+		inRefArray >> ch;
+	}
+
+	while (inRefArray.good()) {
+		string s;
+		getline(inRefArray, s);
+		if (s.find_first_of("@") < s.size()) {
+			break;
+		}
+		stringstream ss(s);
+		int2 ref2;
+		char ddCh;
+		ss >> ref2.x >> ddCh >> ref2.y;
+//		ss >> ref2.x;
+//		if (ss.peek() == ',') ss.ignore();
+//		ss >> ref2.y;
+		ANCF_ReferenceArrayNodesOnBeams.push_back(ref2);
+	}
+	inRefArray.close();
+
+	//*******************************************************************
+	ifstream inRigidData;
+	inRigidData.open("checkPointRigidData.txt");
+	if (!inRigidData) {
+		cout << "Error! Unable to open file: " << "checkPointRigidData.txt" << endl;
+	}
+	ch = '!';
+	while (ch != '#') {
+		inRigidData >> ch;
+	}
+	while (inRigidData.good()) {
+		real3 p 	;
+		real4 q 	;
+		real4 vM 	;
+		real3 om 	;
+		real3 j1 	;
+		real3 j2 	;
+		real3 invj1 ;
+		real3 invj2 ;
+		char ddCh;
+		inRigidData >> p.x >> ddCh >> p.y >> ddCh >> p.z >> ddCh >> q.x >> ddCh >> q.y >> ddCh >> q.z >> ddCh >> q.w >> ddCh >>
+						vM.x >> ddCh >> vM.y >> ddCh >> vM.z >> ddCh >> vM.w >> ddCh >> om.x >> ddCh >> om.y >> ddCh >> om.z >> ddCh >>
+						j1.x >> ddCh >> j1.y >> ddCh >> j1.z >> ddCh >> j2.x >> ddCh >> j2.y >> ddCh >> j2.z >> ddCh >>
+						invj1.x >> ddCh >> invj1.y >> ddCh >> invj1.z >> ddCh >> invj2.x >> ddCh >> invj2.y >> ddCh >> invj2.z >> ddCh;
+		posRigidH.push_back(p) 	;
+		mQuatRot.push_back(q )	;
+		velMassRigidH.push_back(vM )	;
+		omegaLRF_H.push_back(om )	;
+		jH1.push_back(j1 )	;
+		jH2.push_back(j2 )	;
+		jInvH1.push_back(invj1) ;
+		jInvH2.push_back(invj2 );
+	}
+	inRigidData.close();
+
+	//*******************************************************************
+	ifstream inFlexData;
+	inFlexData.open("checkPointFlexData.txt");
+	if (!inFlexData) {
+		cout << "Error! Unable to open file: " << "checkPointFlexData.txt" << endl;
+	}
+	ch = '!';
+	while (ch != '#') {
+		inFlexData >> ch;
+	}
+	while (inFlexData.good()) {
+		string st;
+		getline(inRefArray, st);
+		if (st.find_first_of("@") < st.size()) {
+			break;
+		}
+		stringstream ss(st);
+		real3 n ;
+		real3 s ;
+		real3 nV;
+		real3 sV;
+		char ddCh;
+		ss >> n.x >> ddCh >> n.y >> ddCh >> n.z >> ddCh >> s.x >> ddCh >> s.y >> ddCh >> s.z >> ddCh >>
+				nV.x >> ddCh >> nV.y >> ddCh >> nV.z >> ddCh >> sV.x >> ddCh >> sV.y >> ddCh >> sV.z >> ddCh;
+		ANCF_Nodes.push_back(n);
+		ANCF_Slopes.push_back(s);
+		ANCF_NodesVel.push_back(nV);
+		ANCF_SlopesVel.push_back(sV);
+	}
+
+	while (ch != '#') {
+		inFlexData >> ch;
+	}
+	while (inFlexData.good()) {
+		string s;
+		getline(inRefArray, s);
+		if (s.find_first_of("@") < s.size()) {
+			break;
+		}
+		stringstream ss(s);
+		real_ l;
+		int a1;
+		char ddCh;
+		ss >> l >> ddCh >> a1;
+		ANCF_Beam_Length.push_back(l);
+		if (a1 == 0) {
+			ANCF_IsCantilever.push_back(false);
+		} else {
+			ANCF_IsCantilever.push_back(true);
+		}
+	}
+
+	while (ch != '#') {
+		inFlexData >> ch;
+	}
+	while (inFlexData.good()) {
+		real_ dist;
+		inFlexData >> dist;
+		flexParametricDist.push_back(dist);
+	}
+	inFlexData.close();
+
+	//*******************************************************************
+	ifstream inProbParams;
+	inProbParams.open("checkPointParameters.txt");
+	if (!inProbParams) {
+		cout << "Error! Unable to open file: " << "checkPointParameters.txt" << endl;
+	}
+	ch = '!';
+	while (ch != '#') {
+		inProbParams >> ch;
+	}
+	char ddCh;
+
+	inProbParams >> paramsH.gridSize.x >> ddCh >> paramsH.gridSize.y >> ddCh >> paramsH.gridSize.z ;
+	inProbParams >> paramsH.worldOrigin.x >> ddCh >> paramsH.worldOrigin.y >> ddCh >> paramsH.worldOrigin.z  ;
+	inProbParams >> paramsH.cellSize.x >> ddCh >> paramsH.cellSize.y >> ddCh >> paramsH.cellSize.z ;
+	inProbParams >> paramsH.numBodies ;
+	inProbParams >> paramsH.boxDims.x >> ddCh >> paramsH.boxDims.y >> ddCh >> paramsH.boxDims.z ;
+	inProbParams >> paramsH.sizeScale ;
+	inProbParams >> paramsH.HSML ;
+	inProbParams >> paramsH.MULT_INITSPACE ;
+	inProbParams >> paramsH.NUM_BCE_LAYERS;
+	inProbParams >> paramsH.BASEPRES ;
+	inProbParams >> paramsH.nPeriod ;
+	inProbParams >> paramsH.gravity.x >> ddCh >> paramsH.gravity.y >> ddCh >> paramsH.gravity.z ;
+	inProbParams >> paramsH.bodyForce4.x >> ddCh >> paramsH.bodyForce4.y >> ddCh >> paramsH.bodyForce4.z >> ddCh >> paramsH.bodyForce4.w ;
+	inProbParams >> paramsH.rho0 ;
+	inProbParams >> paramsH.mu0 ;
+	inProbParams >> paramsH.v_Max ;
+	inProbParams >> paramsH.EPS_XSPH;
+	inProbParams >> paramsH.dT;
+	inProbParams >> paramsH.tFinal ;
+	inProbParams >> paramsH.kdT ;
+	inProbParams >> paramsH.gammaBB ;
+	inProbParams >> paramsH.cMin.x >> ddCh  >> paramsH.cMin.y >> ddCh >> paramsH.cMin.z ;
+	inProbParams >> paramsH.cMax.x >> ddCh >> paramsH.cMax.y >> ddCh >> paramsH.cMax.z ;
+	inProbParams >> paramsH.binSize0 ;
+
+
+	inProbParams >> ddCh;
+
+	inProbParams >> flexParams.r ;
+	inProbParams >> flexParams.E ;
+	inProbParams >> flexParams.I ;
+	inProbParams >> flexParams.rho ;
+	inProbParams >> flexParams.A ;
+	inProbParams >> flexParams.ne ;
+	inProbParams >> flexParams.gravity.x >> ddCh >> flexParams.gravity.y >> ddCh >> flexParams.gravity.z ;
+	inProbParams >> flexParams.bobRad ;
+
+	inProbParams >> ddCh ;
+
+	inProbParams >> channelRadius ;
+	inProbParams >> channelCenterYZ.x >> ddCh >> channelCenterYZ.y ;
+
+	inProbParams >> ddCh;
+
+	inProbParams >> numObjects.numRigidBodies         ;
+	inProbParams >> numObjects.numFlexBodies          ;
+	inProbParams >> numObjects.numFlBcRigid           ;
+	inProbParams >> numObjects.numFluidMarkers        ;
+	inProbParams >> numObjects.numBoundaryMarkers     ;
+	inProbParams >> numObjects.startRigidMarkers      ;
+	inProbParams >> numObjects.startFlexMarkers       ;
+	inProbParams >> numObjects.numRigid_SphMarkers    ;
+	inProbParams >> numObjects.numFlex_SphMarkers     ;
+	inProbParams >> numObjects.numAllMarkers          ;
+
+
+	inProbParams.close();
+	//****
+}
+
