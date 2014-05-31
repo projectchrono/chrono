@@ -256,6 +256,32 @@ void ReadEverythingFromFile(
 
 	if (!shouldIRead) return;
 	//*******************************************************************
+	mPosRad.clear();
+	mVelMas.clear();
+	mRhoPresMu.clear();
+	bodyIndex.clear();
+	referenceArray.clear();
+
+	posRigidH.clear();
+	mQuatRot.clear();
+	velMassRigidH.clear();
+	omegaLRF_H.clear();
+	jH1.clear();
+	jH2.clear();
+	jInvH1.clear();
+	jInvH2.clear();
+
+	ANCF_Nodes.clear();
+	ANCF_Slopes.clear();
+	ANCF_NodesVel.clear();
+	ANCF_SlopesVel.clear();
+
+	ANCF_Beam_Length.clear();
+	ANCF_IsCantilever.clear();
+
+	ANCF_ReferenceArrayNodesOnBeams.clear();
+	flexParametricDist.clear();
+	//*******************************************************************
 	ifstream inMarker;
 	inMarker.open("checkPointMarkersData.txt");
 	if (!inMarker) {
