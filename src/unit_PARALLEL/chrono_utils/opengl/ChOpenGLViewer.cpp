@@ -236,9 +236,6 @@ void ChOpenGLViewer::RenderText(
       float y,
       float sx,
       float sy) {
-
-   //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
    for (int i = 0; i < str.size(); i++) {
 
       texture_glyph_t *glyph = 0;
@@ -251,8 +248,6 @@ void ChOpenGLViewer::RenderText(
       if (!glyph) {
          continue;
       }
-      //float x_ = x + 24 * i;
-      //float y_ = y;
       x += glyph->kerning[0].kerning;
       float x0 = (float) (x + glyph->offset_x * sx);
       float y0 = (float) (y + glyph->offset_y * sy);
@@ -264,18 +259,13 @@ void ChOpenGLViewer::RenderText(
       float s1 = glyph->s1;
       float t1 = glyph->t1;
 
-      struct {
-         float x, y, s, t;
-      } data[6] = { { x0, y0, s0, t0 }, { x0, y1, s0, t1 }, { x1, y1, s1, t1 }, { x0, y0, s0, t0 }, { x1, y1, s1, t1 }, { x1, y0, s1, t0 } };
+      struct {float x, y, s, t;} data[6] = { { x0, y0, s0, t0 }, { x0, y1, s0, t1 }, { x1, y1, s1, t1 }, { x0, y0, s0, t0 }, { x1, y1, s1, t1 }, { x1, y0, s1, t0 } };
 
       glBufferData(GL_ARRAY_BUFFER, 24 * sizeof(float), data, GL_DYNAMIC_DRAW);
       glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
       glDrawArrays(GL_TRIANGLES, 0, 6);
       x += (glyph->advance_x * sx);
    }
-
-   // glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-
 }
 
 void ChOpenGLViewer::DisplayHUD() {

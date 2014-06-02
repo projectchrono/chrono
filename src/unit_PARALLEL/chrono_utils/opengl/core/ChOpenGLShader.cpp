@@ -195,7 +195,7 @@ bool ChOpenGLShader::InitializeFiles(
    if (CompileFiles(vertex_shader_file, fragment_shader_file)) {
       CompleteInit();
    } else {
-      cerr << "Cannot compile shader: " << vertex_shader_file << " " << fragment_shader_file;
+      cerr << "Unable to compile shader: " << vertex_shader_file << " " << fragment_shader_file;
       exit(0);
    }
    return !GLReturnedError("ChOpenGLShader::Initialize - on exit");
@@ -210,7 +210,7 @@ bool ChOpenGLShader::InitializeStrings(
    if (CompileStrings(name, vertex_shader, fragment_shader)) {
       CompleteInit();
    } else {
-      cerr << "Cannot compile shader: " << name;
+      cerr << "Unable to compile shader: " << name;
       exit(0);
    }
 
@@ -220,7 +220,7 @@ void ChOpenGLShader::CustomSetup() {
 }
 
 void ChOpenGLShader::TakeDown() {
-   //Cleanup teh shader
+   //Cleanup the shader
 
    GLint temp;
    GLsizei size;
