@@ -16,6 +16,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <cstdlib> //for atof
 #include "custom_cutil_math.h"
 #include "SPHCudaUtils.h"
 #include "collideSphereSphere.cuh"
@@ -82,16 +83,16 @@ void WriteEverythingToFile(
 	outRefArray << " referenceArray \n #\n";
 	for (int i=0; i < referenceArray.size(); i++) {
 		int3 ref3 = referenceArray[i];
-		outRefArray << ref3.x << ", " << ref3.y << ", " << ref3.z << endl;
+		outRefArray << ref3.x << "," << ref3.y << "," << ref3.z << endl;
 	}
 
 	outRefArray <<"@"<<endl;
 	outRefArray << " ANCF_ReferenceArrayNodesOnBeams \n #\n";
 	for (int i=0; i < ANCF_ReferenceArrayNodesOnBeams.size(); i ++) {
 		int2 ref2 = ANCF_ReferenceArrayNodesOnBeams[i];
-		outRefArray << ref2.x << ", " << ref2.y << endl;
+		outRefArray << ref2.x << "," << ref2.y << endl;
 	}
-
+	outRefArray <<"@"<<endl;
 	outRefArray.close();
 
 	//*******************************************************************
@@ -99,18 +100,18 @@ void WriteEverythingToFile(
 	outRigidData.open("checkPointRigidData.txt");
 	outRigidData << time << endl;
 	outRigidData << "x, y, z, q0, q1, q2, q3, Vx, Vy, Vz, mass, om0, om1, om2, j00, j01, j02, j11, j12, j22, invj00, invj01, invj02, invj11, invj12, invj22, \n";
-	outRigidData << " # \n";
+	outRigidData << " #\n";
 	for (int i=0; i < posRigidH.size(); i++) {
-		real3 p = posRigidH[i];
-		real4 q = mQuatRot[i];
-		real4 vM = velMassRigidH[i];
+		real3 pR = posRigidH[i];
+		real4 qR = mQuatRot[i];
+		real4 vMR = velMassRigidH[i];
 		real3 om = omegaLRF_H[i];
 		real3 j1 = jH1[i];
 		real3 j2 = jH2[i];
 		real3 invj1 = jInvH1[i];
 		real3 invj2 = jInvH2[i];
-		outRigidData << p.x << ", " << p.y << ", " << p.z << ", " << q.x << ", " << q.y << ", " << q.z << ", " << q.w << ", " <<
-				vM.x << ", " << vM.y << ", " << vM.z << ", " << vM.w << ", " << om.x << ", " << om.y << ", " << om.z << ", " <<
+		outRigidData << pR.x << ", " << pR.y << ", " << pR.z << ", " << qR.x << ", " << qR.y << ", " << qR.z << ", " << qR.w << ", " <<
+				vMR.x << ", " << vMR.y << ", " << vMR.z << ", " << vMR.w << ", " << om.x << ", " << om.y << ", " << om.z << ", " <<
 				j1.x << ", " << j1.y << ", " << j1.z << ", " << j2.x << ", " << j2.y << ", " << j2.z << ", " <<
 				invj1.x << ", " << invj1.y << ", " << invj1.z << ", " << invj2.x << ", " << invj2.y << ", " << invj2.z << ", " <<endl;
 	}
@@ -121,32 +122,33 @@ void WriteEverythingToFile(
 	outFlexData.open("checkPointFlexData.txt");
 	outFlexData << time << endl;
 	outFlexData << "nx, ny, nz, sx, sy, sz, nVx, nVy, nVz, sVx, sVy, sVz,\n";
-	outFlexData << " # \n";
+	outFlexData << " #\n";
 	for (int i=0; i < ANCF_Nodes.size(); i++) {
 		real3 n = ANCF_Nodes[i];
 		real3 s = ANCF_Slopes[i];
 		real3 nV = ANCF_NodesVel[i];
 		real3 sV = ANCF_SlopesVel[i];
-		outFlexData << n.x << ", " << n.y << ", " << n.z << ", " << s.x << ", " << s.y << ", " << s.z << ", " <<
-				nV.x << ", " << nV.y << ", " << nV.z << ", " << sV.x << ", " << sV.y << ", " << sV.z << ", " << endl;
+		outFlexData << n.x << "," << n.y << "," << n.z << "," << s.x << "," << s.y << "," << s.z << "," <<
+				nV.x << "," << nV.y << "," << nV.z << "," << sV.x << "," << sV.y << "," << sV.z << "," << endl;
 	}
 
 	outFlexData << "@"<< endl;
 
 	outFlexData << "length, isCantilever,\n";
-	outFlexData << " # \n";
+	outFlexData << " #\n";
 	for (int i=0; i < ANCF_Beam_Length.size(); i++) {
-		outFlexData << ANCF_Beam_Length[i] << ", " << ANCF_IsCantilever[i] << ", " << endl;
+		outFlexData << ANCF_Beam_Length[i] << "," << ANCF_IsCantilever[i] << "," << endl;
 	}
 
 	outFlexData << "@"<< endl;
 
 	outFlexData << "parametric distance,\n";
-	outFlexData << " # \n";
+	outFlexData << " #\n";
 	for (int i=0; i < flexParametricDist.size(); i++) {
 		outFlexData << flexParametricDist[i] << endl;
 	}
 
+	outFlexData << "@"<< endl;
 	outFlexData.close();
 
 	//*******************************************************************
@@ -154,7 +156,7 @@ void WriteEverythingToFile(
 	outProbParams.open("checkPointParameters.txt");
 	outProbParams << time << endl;
 	outProbParams << "All parameters required for the problems,\n";
-	outProbParams << " # \n";
+	outProbParams << " #\n";
 
 	outProbParams << paramsH.gridSize.x << ", " << paramsH.gridSize.y << ", " << paramsH.gridSize.z << endl;
 	outProbParams << paramsH.worldOrigin.x << ", " << paramsH.worldOrigin.y << ", " << paramsH.worldOrigin.z << endl ;
@@ -281,7 +283,10 @@ void ReadEverythingFromFile(
 
 	ANCF_ReferenceArrayNodesOnBeams.clear();
 	flexParametricDist.clear();
+	char ddCh;
+	string ddSt;
 	//*******************************************************************
+	printf("reading marker data\n");
 	ifstream inMarker;
 	inMarker.open("checkPointMarkersData.txt");
 	if (!inMarker) {
@@ -291,22 +296,28 @@ void ReadEverythingFromFile(
 	while (ch != '#') {
 		inMarker >> ch;
 	}
+//	inMarker.ignore(numeric_limits<streamsize>::max(), '\n');
+	getline(inMarker, ddSt);
+
+	real3 p ;
+	real4 vM ;
+	real4 rPMtype ;
+	uint index;
+	inMarker >> p.x >> ddCh >> p.y >> ddCh >> p.z >> ddCh >> vM.x >> ddCh >> vM.y >> ddCh >> vM.z >> ddCh
+			>> vM.w >> ddCh >> rPMtype.x >> ddCh >> rPMtype.y >> ddCh >> rPMtype.z >> ddCh >> rPMtype.w >> ddCh >> index >> ddCh;
 	while (inMarker.good()) {
-		real3 p ;
-		real4 vM ;
-		real4 rPMtype ;
-		uint index;
-		char ddCh;
-		inMarker >> p.x >> ddCh >> p.y >> ddCh >> p.z >> ddCh >> vM.x >> ddCh >> vM.y >> ddCh >> vM.z >> ddCh
-				>> vM.w >> ddCh >> rPMtype.x >> ddCh >> rPMtype.y >> ddCh >> rPMtype.z >> ddCh >> rPMtype.w >> ddCh >> index >> ddCh;
 		mPosRad.push_back(p);
 		mVelMas.push_back(vM) ;
 		mRhoPresMu.push_back(rPMtype);
 		bodyIndex.push_back(index);
+
+		inMarker >> p.x >> ddCh >> p.y >> ddCh >> p.z >> ddCh >> vM.x >> ddCh >> vM.y >> ddCh >> vM.z >> ddCh
+				>> vM.w >> ddCh >> rPMtype.x >> ddCh >> rPMtype.y >> ddCh >> rPMtype.z >> ddCh >> rPMtype.w >> ddCh >> index >> ddCh;
 	}
 	inMarker.close();
 
 	//*******************************************************************
+	printf("reading reference array data\n");
 	ifstream inRefArray;
 	inRefArray.open("checkPointRefrenceArrays.txt");
 	if (!inRefArray) {
@@ -316,47 +327,52 @@ void ReadEverythingFromFile(
 	while (ch != '#') {
 		inRefArray >> ch;
 	}
+//	inRefArray.ignore(numeric_limits<streamsize>::max(), '\n');
+	getline(inRefArray, ddSt);
 	while (inRefArray.good()) {
 		string s;
 		getline(inRefArray, s);
-		if (s.find_first_of("@") < s.size()) {
+		if (s.find("@") != string::npos) {
 			break;
 		}
-		stringstream ss(s);
-		int3 ref3;
-		char ddCh;
-		ss >> ref3.x >> ddCh >> ref3.y >> ddCh >> ref3.z;
+		istringstream ss(s);
+		string s1,s2,s3;
+		getline(ss, s1, ',');
+		getline(ss, s2, ',');
+		getline(ss, s3, ',');
 //		ss >> ref3.x;
 //		if (ss.peek() == ',') ss.ignore();
 //		ss >> ref3.y;
 //		if (ss.peek() == ',') ss.ignore();
 //		ss >> ref3.z;
-		referenceArray.push_back(ref3);
+		referenceArray.push_back(I3(atoi(s1.c_str()), atoi(s2.c_str()), atoi(s3.c_str())));
 	}
 
 	ch = '!';
 	while (ch != '#') {
 		inRefArray >> ch;
 	}
-
+//	inRefArray.ignore(numeric_limits<streamsize>::max(), '\n');
+	getline(inRefArray, ddSt);
 	while (inRefArray.good()) {
 		string s;
 		getline(inRefArray, s);
-		if (s.find_first_of("@") < s.size()) {
+		if (s.find("@") != string::npos) {
 			break;
 		}
-		stringstream ss(s);
-		int2 ref2;
-		char ddCh;
-		ss >> ref2.x >> ddCh >> ref2.y;
+		istringstream ss(s);
+		string s1,s2;
+		getline(ss, s1, ',');
+		getline(ss, s2, ',');
 //		ss >> ref2.x;
 //		if (ss.peek() == ',') ss.ignore();
 //		ss >> ref2.y;
-		ANCF_ReferenceArrayNodesOnBeams.push_back(ref2);
+		ANCF_ReferenceArrayNodesOnBeams.push_back(I2(atoi(s1.c_str()), atoi(s2.c_str())));
 	}
 	inRefArray.close();
 
 	//*******************************************************************
+	printf("reading rigid data\n");
 	ifstream inRigidData;
 	inRigidData.open("checkPointRigidData.txt");
 	if (!inRigidData) {
@@ -366,32 +382,38 @@ void ReadEverythingFromFile(
 	while (ch != '#') {
 		inRigidData >> ch;
 	}
+	getline(inRigidData, ddSt);
+//	inRigidData.ignore(numeric_limits<streamsize>::max(), '\n');
+	real3 pR 	;
+	real4 qR 	;
+	real4 vMR 	;
+	real3 om 	;
+	real3 j1 	;
+	real3 j2 	;
+	real3 invj1 ;
+	real3 invj2 ;
+	inRigidData >> pR.x >> ddCh >> pR.y >> ddCh >> pR.z >> ddCh >> qR.x >> ddCh >> qR.y >> ddCh >> qR.z >> ddCh >> qR.w >> ddCh >>
+					vMR.x >> ddCh >> vMR.y >> ddCh >> vMR.z >> ddCh >> vMR.w >> ddCh >> om.x >> ddCh >> om.y >> ddCh >> om.z >> ddCh >>
+					j1.x >> ddCh >> j1.y >> ddCh >> j1.z >> ddCh >> j2.x >> ddCh >> j2.y >> ddCh >> j2.z >> ddCh >>
+					invj1.x >> ddCh >> invj1.y >> ddCh >> invj1.z >> ddCh >> invj2.x >> ddCh >> invj2.y >> ddCh >> invj2.z >> ddCh;
 	while (inRigidData.good()) {
-		real3 p 	;
-		real4 q 	;
-		real4 vM 	;
-		real3 om 	;
-		real3 j1 	;
-		real3 j2 	;
-		real3 invj1 ;
-		real3 invj2 ;
-		char ddCh;
-		inRigidData >> p.x >> ddCh >> p.y >> ddCh >> p.z >> ddCh >> q.x >> ddCh >> q.y >> ddCh >> q.z >> ddCh >> q.w >> ddCh >>
-						vM.x >> ddCh >> vM.y >> ddCh >> vM.z >> ddCh >> vM.w >> ddCh >> om.x >> ddCh >> om.y >> ddCh >> om.z >> ddCh >>
-						j1.x >> ddCh >> j1.y >> ddCh >> j1.z >> ddCh >> j2.x >> ddCh >> j2.y >> ddCh >> j2.z >> ddCh >>
-						invj1.x >> ddCh >> invj1.y >> ddCh >> invj1.z >> ddCh >> invj2.x >> ddCh >> invj2.y >> ddCh >> invj2.z >> ddCh;
-		posRigidH.push_back(p) 	;
-		mQuatRot.push_back(q )	;
-		velMassRigidH.push_back(vM )	;
+		posRigidH.push_back(pR) 	;
+		mQuatRot.push_back(qR )	;
+		velMassRigidH.push_back(vMR )	;
 		omegaLRF_H.push_back(om )	;
 		jH1.push_back(j1 )	;
 		jH2.push_back(j2 )	;
 		jInvH1.push_back(invj1) ;
 		jInvH2.push_back(invj2 );
+		inRigidData >> pR.x >> ddCh >> pR.y >> ddCh >> pR.z >> ddCh >> qR.x >> ddCh >> qR.y >> ddCh >> qR.z >> ddCh >> qR.w >> ddCh >>
+						vMR.x >> ddCh >> vMR.y >> ddCh >> vMR.z >> ddCh >> vMR.w >> ddCh >> om.x >> ddCh >> om.y >> ddCh >> om.z >> ddCh >>
+						j1.x >> ddCh >> j1.y >> ddCh >> j1.z >> ddCh >> j2.x >> ddCh >> j2.y >> ddCh >> j2.z >> ddCh >>
+						invj1.x >> ddCh >> invj1.y >> ddCh >> invj1.z >> ddCh >> invj2.x >> ddCh >> invj2.y >> ddCh >> invj2.z >> ddCh;
 	}
 	inRigidData.close();
 
 	//*******************************************************************
+	printf("reading flex data\n");
 	ifstream inFlexData;
 	inFlexData.open("checkPointFlexData.txt");
 	if (!inFlexData) {
@@ -401,59 +423,89 @@ void ReadEverythingFromFile(
 	while (ch != '#') {
 		inFlexData >> ch;
 	}
+//	inFlexData.ignore(numeric_limits<streamsize>::max(), '\n');
+	getline(inFlexData, ddSt);
 	while (inFlexData.good()) {
 		string st;
-		getline(inRefArray, st);
-		if (st.find_first_of("@") < st.size()) {
+		getline(inFlexData, st);
+		if (st.find("@") != string::npos) {
 			break;
 		}
-		stringstream ss(st);
-		real3 n ;
-		real3 s ;
-		real3 nV;
-		real3 sV;
-		char ddCh;
-		ss >> n.x >> ddCh >> n.y >> ddCh >> n.z >> ddCh >> s.x >> ddCh >> s.y >> ddCh >> s.z >> ddCh >>
-				nV.x >> ddCh >> nV.y >> ddCh >> nV.z >> ddCh >> sV.x >> ddCh >> sV.y >> ddCh >> sV.z >> ddCh;
-		ANCF_Nodes.push_back(n);
-		ANCF_Slopes.push_back(s);
-		ANCF_NodesVel.push_back(nV);
-		ANCF_SlopesVel.push_back(sV);
+
+		istringstream ss(st);
+
+		string snx,sny,snz, ssx,ssy,ssz, sNVx,sNVy,sNVz, sVVx,sVVy,sVVz;
+		getline(ss, snx, ',');
+		getline(ss, sny, ',');
+		getline(ss, snz, ',');
+
+		getline(ss, ssx, ',');
+		getline(ss, ssy, ',');
+		getline(ss, ssz, ',');
+
+		getline(ss, sNVx, ',');
+		getline(ss, sNVy, ',');
+		getline(ss, sNVz, ',');
+
+		getline(ss, sVVx, ',');
+		getline(ss, sVVy, ',');
+		getline(ss, sVVz, ',');
+
+		ANCF_Nodes.push_back(R3(atof(snx.c_str()), atof(sny.c_str()), atof(snz.c_str())));
+		ANCF_Slopes.push_back(R3(atof(ssx.c_str()), atof(ssy.c_str()), atof(ssz.c_str())));
+		ANCF_NodesVel.push_back(R3(atof(sNVx.c_str()), atof(sNVy.c_str()), atof(sNVz.c_str())));
+		ANCF_SlopesVel.push_back(R3(atof(sVVx.c_str()), atof(sVVy.c_str()), atof(sVVz.c_str())));
 	}
 
+	ch = '!';
 	while (ch != '#') {
 		inFlexData >> ch;
 	}
+//	inFlexData.ignore(numeric_limits<streamsize>::max(), '\n');
+	getline(inFlexData, ddSt);
 	while (inFlexData.good()) {
 		string s;
-		getline(inRefArray, s);
-		if (s.find_first_of("@") < s.size()) {
+		getline(inFlexData, s);
+		if (s.find("@") != string::npos) {
 			break;
 		}
-		stringstream ss(s);
-		real_ l;
-		int a1;
-		char ddCh;
-		ss >> l >> ddCh >> a1;
-		ANCF_Beam_Length.push_back(l);
-		if (a1 == 0) {
+		istringstream ss(s);
+
+		string sl,sa1;
+		getline(ss, sl, ',');
+		getline(ss, sa1, ',');
+
+		ANCF_Beam_Length.push_back(atof(sl.c_str()));
+		if (atoi(sa1.c_str()) == 0) {
 			ANCF_IsCantilever.push_back(false);
 		} else {
 			ANCF_IsCantilever.push_back(true);
 		}
 	}
 
+	ch = '!';
 	while (ch != '#') {
 		inFlexData >> ch;
 	}
+//	inFlexData.ignore(numeric_limits<streamsize>::max(), '\n');
+	getline(inFlexData, ddSt);
 	while (inFlexData.good()) {
-		real_ dist;
-		inFlexData >> dist;
-		flexParametricDist.push_back(dist);
+		string s;
+		getline(inFlexData, s);
+		if (s.find("@") != string::npos) {
+			break;
+		}
+		istringstream ss(s);
+
+		string sdist;
+		ss >> sdist;
+
+		flexParametricDist.push_back(real_(atof(sdist.c_str())));
 	}
 	inFlexData.close();
 
 	//*******************************************************************
+	printf("reading parameters\n");
 	ifstream inProbParams;
 	inProbParams.open("checkPointParameters.txt");
 	if (!inProbParams) {
@@ -463,7 +515,8 @@ void ReadEverythingFromFile(
 	while (ch != '#') {
 		inProbParams >> ch;
 	}
-	char ddCh;
+	getline(inProbParams, ddSt);
+//	inProbParams.ignore(numeric_limits<streamsize>::max(), '\n');
 
 	inProbParams >> paramsH.gridSize.x >> ddCh >> paramsH.gridSize.y >> ddCh >> paramsH.gridSize.z ;
 	inProbParams >> paramsH.worldOrigin.x >> ddCh >> paramsH.worldOrigin.y >> ddCh >> paramsH.worldOrigin.z  ;

@@ -1879,7 +1879,7 @@ int main() {
 			//***		paramsH.boxDims;
 
 		paramsH.sizeScale = 1;
-		paramsH.HSML = 0.02;
+		paramsH.HSML = 0.03;
 		paramsH.MULT_INITSPACE = 1.0;
 		paramsH.NUM_BCE_LAYERS = 2;
 		paramsH.BASEPRES = 0;
@@ -2158,23 +2158,6 @@ int main() {
 		numObjects.numFlex_SphMarkers = referenceArray[numObjects.numFlBcRigid + numObjects.numFlexBodies - 1].y - numObjects.startFlexMarkers;
 		numObjects.numAllMarkers = numAllMarkers;
 
-		//***** print numbers
-		printf("********************\n paramsH.HSML: %f\n paramsH.bodyForce4: %f %f %f\n paramsH.gravity: %f %f %f\n paramsH.rho0: %e\n paramsH.mu0: %f\n paramsH.v_Max: %f\n paramsH.dT: %e\n paramsH.tFinal: %f\n",
-				paramsH.HSML, paramsH.bodyForce4.x, paramsH.bodyForce4.y, paramsH.bodyForce4.z, paramsH.gravity.x, paramsH.gravity.y, paramsH.gravity.z,
-				paramsH.rho0, paramsH.mu0, paramsH.v_Max, paramsH.dT, paramsH.tFinal);
-		printf(" paramsH.cMin: %f %f %f, paramsH.cMax: %f %f %f\n binSize: %f\n",
-				paramsH.cMin.x, paramsH.cMin.y, paramsH.cMin.z, paramsH.cMax.x,
-				paramsH.cMax.y, paramsH.cMax.z, paramsH.binSize0);
-		printf(" paramsH.MULT_INITSPACE: %f\n", paramsH.MULT_INITSPACE);
-		printf("********************\n rigid Radii: %f %f %f\n", r3Ellipsoid.x, r3Ellipsoid.y, r3Ellipsoid.z);
-		printf("********************\n flexParams.E: %e\n flexParams.rho: %e\n flexParams.ne: %d\n",
-				flexParams.E, flexParams.rho, flexParams.ne);
-		printf("********************\n numFlexBodies: %d\n numRigidBodies: %d\n numFluidMarkers: %d\n "
-				"numBoundaryMarkers: %d\n numRigid_SphMarkers: %d\n numFlex_SphMarkers: %d\n numAllMarkers: %d\n",
-				numObjects.numFlexBodies, numObjects.numRigidBodies, numObjects.numFluidMarkers, numObjects.numBoundaryMarkers,
-				numObjects.numRigid_SphMarkers, numObjects.numFlex_SphMarkers, numObjects.numAllMarkers);
-		printf("********************\n");
-
 
 		//@@@@@@@@ rigid body
 		bodyIndex.resize(numAllMarkers);
@@ -2185,7 +2168,23 @@ int main() {
 		cylinderGeom.clear();
 		ellipsoidRadii.clear();
 		rigidRotMatrix.clear();
+		printf("********************\n rigid Radii: %f %f %f\n", r3Ellipsoid.x, r3Ellipsoid.y, r3Ellipsoid.z);
 	}
+	//***** print numbers
+	printf("********************\n paramsH.HSML: %f\n paramsH.bodyForce4: %f %f %f\n paramsH.gravity: %f %f %f\n paramsH.rho0: %e\n paramsH.mu0: %f\n paramsH.v_Max: %f\n paramsH.dT: %e\n paramsH.tFinal: %f\n",
+			paramsH.HSML, paramsH.bodyForce4.x, paramsH.bodyForce4.y, paramsH.bodyForce4.z, paramsH.gravity.x, paramsH.gravity.y, paramsH.gravity.z,
+			paramsH.rho0, paramsH.mu0, paramsH.v_Max, paramsH.dT, paramsH.tFinal);
+	printf(" paramsH.cMin: %f %f %f, paramsH.cMax: %f %f %f\n binSize: %f\n",
+			paramsH.cMin.x, paramsH.cMin.y, paramsH.cMin.z, paramsH.cMax.x,
+			paramsH.cMax.y, paramsH.cMax.z, paramsH.binSize0);
+	printf(" paramsH.MULT_INITSPACE: %f\n", paramsH.MULT_INITSPACE);
+	printf("********************\n flexParams.E: %e\n flexParams.rho: %e\n flexParams.ne: %d\n",
+			flexParams.E, flexParams.rho, flexParams.ne);
+	printf("********************\n numFlexBodies: %d\n numRigidBodies: %d\n numFluidMarkers: %d\n "
+			"numBoundaryMarkers: %d\n numRigid_SphMarkers: %d\n numFlex_SphMarkers: %d\n numAllMarkers: %d\n",
+			numObjects.numFlexBodies, numObjects.numRigidBodies, numObjects.numFluidMarkers, numObjects.numBoundaryMarkers,
+			numObjects.numRigid_SphMarkers, numObjects.numFlex_SphMarkers, numObjects.numAllMarkers);
+	printf("********************\n");
 	//******** write data to file  ******************************************************************************************
 	WriteEverythingToFile(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray,
 			rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2,
