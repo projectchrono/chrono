@@ -23,7 +23,6 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 
-
 #include "ChOpenGLVertexAttributes.h"
 
 using namespace glm;
@@ -62,6 +61,38 @@ ChOpenGLVertexAttributesPADSNT::ChOpenGLVertexAttributesPADSNT(
    this->color_specular = other.color_specular;
    this->normal = other.normal;
    this->texture_coordinate = other.texture_coordinate;
+
+}
+
+ChOpenGLVertexAttributesPADSN::ChOpenGLVertexAttributesPADSN() {
+   this->position = vec3(0.0f);
+   this->color_ambient = vec3(0.0f);
+   this->color_diffuse = vec3(0.0f);
+   this->color_specular = vec3(0.0f);
+   this->normal = vec3(0.0f);
+
+}
+ChOpenGLVertexAttributesPADSN::ChOpenGLVertexAttributesPADSN(
+      const glm::vec3 & p,
+      const glm::vec3 & c_a,
+      const glm::vec3 & c_d,
+      const glm::vec3 & c_s,
+      const glm::vec3 & n) {
+   this->position = p;
+   this->color_ambient = c_a;
+   this->color_diffuse = c_d;
+   this->color_specular = c_s;
+   this->normal = n;
+
+}
+ChOpenGLVertexAttributesPADSN::ChOpenGLVertexAttributesPADSN(
+      const ChOpenGLVertexAttributesPADSN & other) {
+
+   this->position = other.position;
+   this->color_ambient = other.color_ambient;
+   this->color_diffuse = other.color_diffuse;
+   this->color_specular = other.color_specular;
+   this->normal = other.normal;
 
 }
 

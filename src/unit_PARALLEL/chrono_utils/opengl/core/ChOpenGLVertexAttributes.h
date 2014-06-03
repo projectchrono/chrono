@@ -50,6 +50,25 @@ class CH_UTILS_OPENGL_API ChOpenGLVertexAttributesPADSNT {
    glm::vec2 texture_coordinate;
 };
 
+
+class CH_UTILS_OPENGL_API ChOpenGLVertexAttributesPADSN {
+ public:
+   ChOpenGLVertexAttributesPADSN();
+   ChOpenGLVertexAttributesPADSN(
+         const glm::vec3 & p,
+         const glm::vec3 & c_a,
+         const glm::vec3 & c_d,
+         const glm::vec3 & c_s,
+         const glm::vec3 & n);
+   ChOpenGLVertexAttributesPADSN(
+         const ChOpenGLVertexAttributesPADSN & other);
+   glm::vec3 position;
+   glm::vec3 normal;
+   glm::vec3 color_ambient;
+   glm::vec3 color_diffuse;
+   glm::vec3 color_specular;
+};
+
 class CH_UTILS_OPENGL_API ChOpenGLVertexAttributesPCNT {
  public:
    ChOpenGLVertexAttributesPCNT();

@@ -23,7 +23,7 @@
  */
 
 #include "chrono_utils/opengl/core/ChOpenGLObject.h"
-
+#include "chrono_utils/opengl/core/ChOpenGLVertexAttributes.h"
 namespace chrono {
 namespace utils {
 class CH_UTILS_OPENGL_API ChOpenGLMesh : public ChOpenGLObject {
@@ -42,13 +42,7 @@ class CH_UTILS_OPENGL_API ChOpenGLMesh : public ChOpenGLObject {
 
    void TakeDown();
  protected:
-   //std::vector<ChOpenGLVertexAttributesPCN> vertices;
-   std::vector<glm::vec3> position;
-   std::vector<glm::vec3> normal;
-   std::vector<glm::vec3> color_ambient;
-   std::vector<glm::vec3> color_diffuse;
-   std::vector<glm::vec3> color_specular;
-   std::vector<glm::vec2> texcoord;
+   std::vector<ChOpenGLVertexAttributesPADSN> data;
    typedef ChOpenGLObject super;
 };
 }

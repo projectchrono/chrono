@@ -39,16 +39,10 @@ bool ChOpenGLMesh::Initialize(
       return false;
    }
 
-   this->position = vertices;
-   this->normal = normals;
-   this->texcoord = texcoords;
    this->vertex_indices = indices;
 
    for (unsigned int i = 0; i < vertices.size(); i++) {
-      this->color_ambient.push_back(mat.ambient_color);
-      this->color_diffuse.push_back(mat.diffuse_color);
-      this->color_specular.push_back(mat.specular_color);
-
+      this->data.push_back(ChOpenGLVertexAttributesPADSN(vertices[i], mat.ambient_color, mat.diffuse_color, mat.specular_color, normals[i]));
    }
 
    PostInitialize();
@@ -65,14 +59,25 @@ bool ChOpenGLMesh::PostInitialize() {
    if (this->GLReturnedError("ChOpenGLMesh::PostInitialize - on entry"))
       return false;
    //Generation complete bind everything!
-   if (!this->PostGLInitialize((GLuint*) (&this->position[0]),
-                               (GLuint*) (&this->normal[0]),
-                               (GLuint*) (&this->color_ambient[0]),
-                               (GLuint*) (&this->color_diffuse[0]),
-                               (GLuint*) (&this->color_specular[0]),
-                               this->position.size() * sizeof(vec3))) {
+   if (!this->PostGLInitialize((GLuint*) (&this->data[0]), this->data.size() * sizeof(ChOpenGLVertexAttributesPADSN))) {
       return false;
    }
+
+
+   glEnableVertexAttribArray(0);
+   glEnableVertexAttribArray(1);
+   glEnableVertexAttribArray(2);
+   glEnableVertexAttribArray(3);
+   glEnableVertexAttribArray(4);
+
+   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(ChOpenGLVertexAttributesPADSN), (GLvoid *) (sizeof(vec3) * 0));  //Position
+   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(ChOpenGLVertexAttributesPADSN), (GLvoid *) (sizeof(vec3) * 1));  // Normal
+   glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(ChOpenGLVertexAttributesPADSN), (GLvoid *) (sizeof(vec3) * 2));  // Color Ambient
+   glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(ChOpenGLVertexAttributesPADSN), (GLvoid *) (sizeof(vec3) * 3));  // Color Diffuse
+   glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(ChOpenGLVertexAttributesPADSN), (GLvoid *) (sizeof(vec3) * 4));  // Color Specular
+
+   glBindBuffer(GL_ARRAY_BUFFER, 0);
+   glBindVertexArray(0);
 
    if (this->GLReturnedError("ChOpenGLMesh::PostInitialize - on exit"))
       return false;
@@ -81,12 +86,7 @@ bool ChOpenGLMesh::PostInitialize() {
 }
 void ChOpenGLMesh::TakeDown() {
    //Clean up the vertex arrtibute data
-   this->position.clear();
-   this->normal.clear();
-   this->color_ambient.clear();
-   this->color_diffuse.clear();
-   this->color_specular.clear();
-   this->texcoord.clear();
+   this->data.clear();
 
    super::TakeDown();
 }
@@ -121,38 +121,13 @@ void ChOpenGLMesh::Draw(
    this->GLReturnedError("ChOpenGLMesh::Draw - after common setup");
    //Bind and draw! (in this case we draw as triangles)
    glBindVertexArray(this->vertex_array_handle);
-
-   glEnableVertexAttribArray(0);
-   glBindBuffer(GL_ARRAY_BUFFER, vertex_position_handle);
-   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);  // Position
-
-   glEnableVertexAttribArray(1);
-   glBindBuffer(GL_ARRAY_BUFFER, vertex_normal_handle);
-   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);  // Normal
-
-   glEnableVertexAttribArray(2);
-   glBindBuffer(GL_ARRAY_BUFFER, vertex_ambient_handle);
-   glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);  // Color Ambient
-
-   glEnableVertexAttribArray(3);
-   glBindBuffer(GL_ARRAY_BUFFER, vertex_diffuse_handle);
-   glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);  // Color Diffuse
-
-   glEnableVertexAttribArray(4);
-   glBindBuffer(GL_ARRAY_BUFFER, vertex_specular_handle);
-   glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);  // Color Specular
-
+   glBindBuffer(GL_ARRAY_BUFFER, vertex_data_handle);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->vertex_element_handle);
 
    this->GLReturnedError("ChOpenGLMesh::Draw - before draw");
    glDrawElements(GL_TRIANGLES, this->vertex_indices.size(), GL_UNSIGNED_INT, (void*) 0);
    this->GLReturnedError("ChOpenGLMesh::Draw - after draw");
    //unbind everything and cleanup
-   glDisableVertexAttribArray(0);
-   glDisableVertexAttribArray(1);
-   glDisableVertexAttribArray(2);
-   glDisableVertexAttribArray(3);
-   glDisableVertexAttribArray(4);
    glBindVertexArray(0);
    glBindBuffer(GL_ARRAY_BUFFER, 0);
 

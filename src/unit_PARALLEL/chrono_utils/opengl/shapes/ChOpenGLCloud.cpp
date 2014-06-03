@@ -30,8 +30,8 @@ bool ChOpenGLCloud::Initialize(
    if (this->GLReturnedError("Background::Initialize - on entry"))
       return false;
 
-   if (vertex_position_handle != GLuint(-1)) {
-      glDeleteBuffers(1, &vertex_position_handle);
+   if (vertex_data_handle != GLuint(-1)) {
+      glDeleteBuffers(1, &vertex_data_handle);
    }
 
    if (!super::Initialize()) {
@@ -46,8 +46,8 @@ bool ChOpenGLCloud::Initialize(
    }
    glBindVertexArray(vertex_array_handle);
 
-   glGenBuffers(1, &vertex_position_handle);
-   glBindBuffer(GL_ARRAY_BUFFER, vertex_position_handle);
+   glGenBuffers(1, &vertex_data_handle);
+   glBindBuffer(GL_ARRAY_BUFFER, vertex_data_handle);
    glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(vec3), &this->vertices[0], GL_STATIC_DRAW);
 
    glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -85,7 +85,7 @@ void ChOpenGLCloud::Draw(
    glBindVertexArray(this->vertex_array_handle);
 
    glEnableVertexAttribArray(0);
-   glBindBuffer(GL_ARRAY_BUFFER, vertex_position_handle);
+   glBindBuffer(GL_ARRAY_BUFFER, vertex_data_handle);
    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);  // Position
 
    glDrawElements(GL_POINTS, this->vertex_indices.size(), GL_UNSIGNED_INT, (void*) 0);

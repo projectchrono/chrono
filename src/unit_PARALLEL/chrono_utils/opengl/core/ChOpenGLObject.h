@@ -32,11 +32,7 @@ class CH_UTILS_OPENGL_API ChOpenGLObject : public ChOpenGLBase {
    virtual void TakeDown();
    virtual bool Initialize();
    virtual bool PostGLInitialize(
-         GLuint * position_ptr,
-         GLuint * normal_ptr,
-         GLuint * ambient_ptr,
-         GLuint * diffuse_ptr,
-         GLuint * specular_ptr,
+         const GLvoid * ptr,
          GLsizeiptr size);
    virtual void Draw(
          const glm::mat4 & projection,
@@ -46,12 +42,7 @@ class CH_UTILS_OPENGL_API ChOpenGLObject : public ChOpenGLBase {
 
  protected:
    GLuint vertex_array_handle;
-   GLuint vertex_coordinate_handle;
-   GLuint vertex_position_handle;
-   GLuint vertex_normal_handle;
-   GLuint vertex_ambient_handle;
-   GLuint vertex_diffuse_handle;
-   GLuint vertex_specular_handle;
+   GLuint vertex_data_handle;
    GLuint vertex_element_handle;
    std::vector<GLuint> vertex_indices;
    ChOpenGLShader * shader;

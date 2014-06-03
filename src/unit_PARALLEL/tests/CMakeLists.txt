@@ -55,6 +55,10 @@ SET(DEMOS
     mixerDVI
 )
 
+IF(ENABLE_OPENGL)
+    SET(DEMOS ${DEMOS} benchmarkOpenGL)
+ENDIF()
+
 MESSAGE(STATUS "Executable programs...")
 
 FOREACH(PROGRAM ${DEMOS})

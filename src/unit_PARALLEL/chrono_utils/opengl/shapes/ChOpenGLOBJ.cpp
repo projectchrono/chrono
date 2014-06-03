@@ -39,29 +39,13 @@ bool ChOpenGLOBJ::Initialize(
       meshes[i].AttachShader(shader);
    }
 
-   PostInitialize();
-
    if (this->GLReturnedError("ChOpenGLOBJ::Initialize - on exit")) {
       return false;
    }
 
    return true;
-
 }
 
-bool ChOpenGLOBJ::PostInitialize() {
-   if (this->GLReturnedError("ChOpenGLOBJ::PostInitialize - on entry"))
-      return false;
-   //Generation complete bind everything!
-//   if (!this->PostGLInitialize((GLuint*) (&this->position[0]), (GLuint*) (&this->normal[0]), (GLuint*) (&this->color[0]), this->position.size() * sizeof(vec3))) {
-//      return false;
-//   }
-
-   if (this->GLReturnedError("ChOpenGLOBJ::PostInitialize - on exit"))
-      return false;
-
-   return true;
-}
 
 void ChOpenGLOBJ::TakeDown() {
    for (unsigned int i = 0; i < meshes.size(); i++) {
