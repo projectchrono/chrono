@@ -820,7 +820,7 @@ void CreateManyFlexBodiesPipe(thrust::host_vector<real3> & ANCF_Nodes,
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-void CreateManyFlexBodiesChannel(thrust::host_vector<real3> & ANCF_Nodes,
+void CreateManyFlexBodiesChannelGoodWithRigids(thrust::host_vector<real3> & ANCF_Nodes,
 		thrust::host_vector<real3> & ANCF_Slopes,
 		thrust::host_vector<real3> & ANCF_NodesVel,
 		thrust::host_vector<real3> & ANCF_SlopesVel,
@@ -1984,15 +1984,15 @@ int main() {
 		real3 r3Ellipsoid = R3(1.5 * paramsH.HSML, 1.5 * paramsH.HSML, 2 * paramsH.HSML);//R3(0.5, 0.5, 0.5) * paramsH.sizeScale; //R3(0.4 * paramsH.sizeScale); //R3(0.8 * paramsH.sizeScale); //real3 r3Ellipsoid = R3(.03 * paramsH.sizeScale); //R3(.05, .03, .02) * paramsH.sizeScale; //R3(.03 * paramsH.sizeScale);
 
 		//**
-		int3 stride = I3(1, 1, 1);
-		CreateRigidBodiesPattern(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride);
+//		int3 stride = I3(1, 1, 1);
+//		CreateRigidBodiesPattern(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride);
 
 		//**
 	//	int numRigids = 3000;
 	//	CreateRigidBodiesChannelRandom(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, numRigids);
 		//**
-	//	int3 stride = I3(1, 1, 1);
-	//	CreateRigidBodiesPatternWithinBeams(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride, flexParams);
+		int3 stride = I3(1, 1, 1);
+		CreateRigidBodiesPatternWithinBeams(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride, flexParams);
 
 		//**
 	//	CreateRigidBodiesFromFile(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
@@ -2028,8 +2028,8 @@ int main() {
 		//**
 		//*** straightChannelBoundaryMin   should be taken care of
 		//*** straightChannelBoundaryMax   should be taken care of
-	//	CreateManyFlexBodiesChannel(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
-	//			ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever, flexParams);
+		CreateManyFlexBodiesChannelGoodWithRigids(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
+				ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever, flexParams);
 		//**
 
 		thrust::host_vector<Rotation> rigidRotMatrix(mQuatRot.size());
