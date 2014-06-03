@@ -2192,7 +2192,7 @@ int main() {
 			ANCF_ReferenceArrayNodesOnBeams, flexParametricDist,
 			channelRadius, channelCenterYZ, paramsH, flexParams, numObjects, 0);
 	//***********************************************************************************************************************
-	if (numAllMarkers != 0) {
+	if (numObjects.numAllMarkers != 0) {
 		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray,
 				rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2,
 				ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel, ANCF_Beam_Length, ANCF_IsCantilever,
