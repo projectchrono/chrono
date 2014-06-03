@@ -105,8 +105,6 @@ void ChOpenGLMesh::Draw(
       const mat4 & modelview) {
    if (this->GLReturnedError("ChOpenGLMesh::Draw - on entry"))
       return;
-
-   glEnable(GL_DEPTH_TEST);
    //compute the mvp matrix and normal matricies
    mat4 mvp = projection * modelview;
    mat3 nm = inverse(transpose(mat3(modelview)));

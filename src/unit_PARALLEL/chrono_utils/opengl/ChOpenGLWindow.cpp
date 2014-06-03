@@ -65,11 +65,13 @@ void ChOpenGLWindow::Initialize(
    GLFWGetVersion(window);
 
    viewer = new ChOpenGLViewer(msystem);
-   viewer->Initialize();
+
+   glfwGetFramebufferSize(window, &size_x, &size_y);
    if (size_y > 0) {
       viewer->window_size = glm::ivec2(size_x, size_y);
       viewer->window_aspect = float(size_x) / float(size_y);
    }
+   viewer->Initialize();
 
    glfwSetWindowUserPointer(window, viewer);
    GLUGetError("Initialize Viewer ");
@@ -94,6 +96,7 @@ void ChOpenGLWindow::Render() {
    ChOpenGLViewer* pointer = ((ChOpenGLViewer *) (glfwGetWindowUserPointer(window)));
    if (pointer->pause_vis == false) {
       glEnable(GL_BLEND);
+      glEnable(GL_DEPTH_TEST);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       glEnable(GL_CULL_FACE);
       glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -158,13 +161,11 @@ void ChOpenGLWindow::CallbackReshape(
       int h) {
 
    ChOpenGLViewer* pointer = ((ChOpenGLViewer *) (glfwGetWindowUserPointer(window)));
-
    if (h > 0) {
       pointer->window_size = glm::ivec2(w, h);
       pointer->window_aspect = float(w) / float(h);
    }
 
-   pointer->SetWindowSize(pointer->window_size);
 }
 
 void ChOpenGLWindow::CallbackKeyboard(

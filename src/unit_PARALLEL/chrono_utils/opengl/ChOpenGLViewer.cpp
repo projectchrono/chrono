@@ -39,6 +39,8 @@ ChOpenGLViewer::ChOpenGLViewer(
    pause_sim = 0;
    pause_vis = 0;
    render_mode = WIREFRAME;
+   old_time = current_time = 0;
+   time_total = time_text = time_geometry = 0;
 
 }
 
@@ -95,9 +97,9 @@ void ChOpenGLViewer::Update() {
 
 }
 void ChOpenGLViewer::Render() {
-
+   render_timer.start();
    if (pause_vis == false) {
-
+      geometry_timer.start();
       render_camera.aspect = window_aspect;
       render_camera.window_width = window_size.x;
       render_camera.window_height = window_size.y;
@@ -115,9 +117,19 @@ void ChOpenGLViewer::Render() {
          ChBody* abody = (ChBody*) physics_system->Get_bodylist()->at(i);
          DrawObject(abody);
       }
+      geometry_timer.stop();
+      time_geometry = .5 * geometry_timer() + .5 * time_geometry;
+      text_timer.start();
       DisplayHUD();
-
+      text_timer.stop();
+      time_text = .5 * text_timer() + .5 * time_text;
    }
+   render_timer.stop();
+   time_total = .5 * render_timer() + .5 * time_total;
+   current_time = time_total;
+   current_time = current_time * 0.5 + old_time * 0.5;
+   old_time = current_time;
+   fps = 1.0 / current_time;
 
 }
 
@@ -259,7 +271,9 @@ void ChOpenGLViewer::RenderText(
       float s1 = glyph->s1;
       float t1 = glyph->t1;
 
-      struct {float x, y, s, t;} data[6] = { { x0, y0, s0, t0 }, { x0, y1, s0, t1 }, { x1, y1, s1, t1 }, { x0, y0, s0, t0 }, { x1, y1, s1, t1 }, { x1, y0, s1, t0 } };
+      struct {
+         float x, y, s, t;
+      } data[6] = { { x0, y0, s0, t0 }, { x0, y1, s0, t1 }, { x1, y1, s1, t1 }, { x0, y0, s0, t0 }, { x1, y1, s1, t1 }, { x1, y0, s1, t0 } };
 
       glBufferData(GL_ARRAY_BUFFER, 24 * sizeof(float), data, GL_DYNAMIC_DRAW);
       glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
@@ -282,24 +296,24 @@ void ChOpenGLViewer::DisplayHUD() {
    font_shader.Use();
    glUniform1i(texture_handle, 0);
 
-   float sx = 1. / window_size.x;
-   float sy = 1. / window_size.y;
+   float sx = 2. / window_size.x;
+   float sy = 2. / window_size.y;
 
    char buffer[50];
 
    sprintf(buffer, "Time:  %04f", physics_system->GetChTime());
-   RenderText(buffer, -1, -0.925, sx, sy);
+   RenderText(buffer, -.95, -0.95, sx, sy);
 
    sprintf(buffer, "Step  :  %04f", physics_system->GetTimerStep());
-   RenderText(buffer, -1, 0.925 - .06 * 0, sx, sy);
+   RenderText(buffer, -.95, 0.925 - .06 * 0, sx, sy);
    sprintf(buffer, "Broad :  %04f", physics_system->GetTimerCollisionBroad());
-   RenderText(buffer, -1, 0.925 - .06 * 1, sx, sy);
+   RenderText(buffer, -.95, 0.925 - .06 * 1, sx, sy);
    sprintf(buffer, "Narrow:  %04f", physics_system->GetTimerCollisionNarrow());
-   RenderText(buffer, -1, 0.925 - .06 * 2, sx, sy);
+   RenderText(buffer, -.95, 0.925 - .06 * 2, sx, sy);
    sprintf(buffer, "Solver:  %04f", physics_system->GetTimerLcp());
-   RenderText(buffer, -1, 0.925 - .06 * 3, sx, sy);
+   RenderText(buffer, -.95, 0.925 - .06 * 3, sx, sy);
    sprintf(buffer, "Update:  %04f", physics_system->GetTimerUpdate());
-   RenderText(buffer, -1, 0.925 - .06 * 4, sx, sy);
+   RenderText(buffer, -.95, 0.925 - .06 * 4, sx, sy);
 
    vector<double> history = ((ChLcpIterativeSolver*) (physics_system->GetLcpSolverSpeed()))->GetViolationHistory();
    vector<double> dlambda = ((ChLcpIterativeSolver*) (physics_system->GetLcpSolverSpeed()))->GetDeltalambdaHistory();
@@ -316,6 +330,16 @@ void ChOpenGLViewer::DisplayHUD() {
       sprintf(buffer, "Correct :  %04f", dlambda[dlambda.size() - 1]);
       RenderText(buffer, .6, 0.925 - .06 * 5, sx, sy);
    }
+
+   sprintf(buffer, "FPS     : %04d", int(fps));
+   RenderText(buffer, .6, -0.925 + .06 * 0, sx, sy);
+   sprintf(buffer, "Total   : %04f", time_total);
+   RenderText(buffer, .6, -0.925 + .06 * 1, sx, sy);
+   sprintf(buffer, "Text    : %04f", time_text);
+   RenderText(buffer, .6, -0.925 + .06 * 2, sx, sy);
+   sprintf(buffer, "Geometry: %04f", time_geometry);
+   RenderText(buffer, .6, -0.925 + .06 * 3, sx, sy);
+
    glBindTexture(GL_TEXTURE_2D, 0);
    glUseProgram(0);
    GLReturnedError("End text");

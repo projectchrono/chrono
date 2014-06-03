@@ -23,6 +23,7 @@
 #include "chrono_utils/opengl/shapes/ChOpenGLCloud.h"
 #include "chrono_utils/opengl/shapes/ChOpenGLOBJ.h"
 #include "physics/ChSystem.h"
+#include "core/ChTimer.h"
 #include "lcp/ChLcpIterativeSolver.h"
 #include "assets/ChBoxShape.h"
 #include "assets/ChSphereShape.h"
@@ -53,10 +54,6 @@ class CH_UTILS_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
    void Render();
    void DrawObject(
          ChBody * abody);
-
-   void SetWindowSize(
-         glm::ivec2 size) {
-   }
    void RenderText(
          const std::string &str,
          float x,
@@ -99,7 +96,9 @@ class CH_UTILS_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
    GLuint vbo, vao;
    GLuint texture_handle;
    GLuint texture, sampler;
-
+   ChTimer<double> render_timer, text_timer, geometry_timer;
+   float old_time, current_time;
+   float time_geometry, time_text, time_total, fps;
 };
 }
 }

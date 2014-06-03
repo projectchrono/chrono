@@ -74,11 +74,12 @@ void ChOpenGLShader::Use() {
    assert(this->program_id != BAD_GL_VALUE);
    glUseProgram(this->program_id);
 
-   if (this->time_handle != BAD_GL_VALUE)
+   if (this->time_handle != BAD_GL_VALUE) {
       glUniform1f(this->time_handle, time);
-   if (this->camera_handle != BAD_GL_VALUE)
+   }
+   if (this->camera_handle != BAD_GL_VALUE) {
       glUniform3fv(this->camera_handle, 1, glm::value_ptr(camera_pos));
-
+   }
    this->GLReturnedError("Draw - after time_handle");
 
 }
