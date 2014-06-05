@@ -1186,12 +1186,12 @@ void ForceSPH(
 	// calculate grid hash
 	calcHash(U1CAST(m_dGridMarkerHash), U1CAST(m_dGridMarkerIndex), R3CAST(posRadD), numAllMarkers);
 
-//	GpuTimer myT0;
-//	myT0.Start();
+	GpuTimer myT0;
+	myT0.Start();
 	thrust::sort_by_key(m_dGridMarkerHash.begin(), m_dGridMarkerHash.end(), m_dGridMarkerIndex.begin());
-//	myT0.Stop();
-//	real_ t0 = (real_)myT0.Elapsed();
-//	printf("** Sort by key timer %f, array size %d\n", t0, m_dGridMarkerHash.size());
+	myT0.Stop();
+	real_ t0 = (real_)myT0.Elapsed();
+	printf("(0) ** Sort by key timer %f, array size %d\n", t0, m_dGridMarkerHash.size());
 
 
 	// reorder particle arrays into sorted order and find start and end of each cell
@@ -1201,7 +1201,12 @@ void ForceSPH(
 	//process collisions
 	real4 totalFluidBodyForce4 = paramsH.bodyForce4 + R4(paramsH.gravity);
 	thrust::fill(derivVelRhoD.begin(), derivVelRhoD.end(), R4(0)); //initialize derivVelRhoD with zero. necessary
+	GpuTimer myT1;
+	myT1.Start();
 	thrust::fill(derivVelRhoD.begin() + referenceArray[0].x, derivVelRhoD.begin() + referenceArray[0].y, totalFluidBodyForce4); //add body force to fluid particles.
+	myT1.Stop();
+	real_ t1 = (real_)myT1.Elapsed();
+	printf("(1) *** fill timer %f, array size %d\n", t1, referenceArray[0].y - referenceArray[0].x);
 
 	RecalcVelocity_XSPH(R3CAST(vel_XSPH_Sorted_D), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridMarkerIndex), U1CAST(m_dCellStart),
 			U1CAST(m_dCellEnd), numAllMarkers, m_numGridCells);
@@ -1499,21 +1504,15 @@ void UpdateRigidBody(
 	//add gravity from flex
 	thrust::device_vector<real3> gravityForces3(numObjects.numRigidBodies);
 
-//	GpuTimer myT1;
-//	myT1.Start();
 	thrust::fill(gravityForces3.begin(), gravityForces3.end(), gravity);
-//	myT1.Stop();
-//	real_ t1 = (real_)myT1.Elapsed();
-//	printf("** fill timer %f, array size %d\n", t1, gravityForces3.size());
-
 
 	//** gravity is added to total acceleration of rigid body (so far it only contained FSI forces). "totalAccRigid3" gets modified.
-//	GpuTimer myT2;
-//	myT2.Start();
+	GpuTimer myT2;
+	myT2.Start();
 	thrust::transform(totalAccRigid3.begin(), totalAccRigid3.end(), gravityForces3.begin(), totalAccRigid3.begin(), thrust::plus<real3>());
-//	myT2.Stop();
-//	real_ t2 = (real_)myT2.Elapsed();
-//	printf("** transform timer %f, array size %d\n", t2, totalAccRigid3.size());
+	myT2.Stop();
+	real_ t2 = (real_)myT2.Elapsed();
+	printf("(2) ** transform timer %f, array size %d\n", t2, totalAccRigid3.size());
 
 
 
@@ -1532,13 +1531,13 @@ void UpdateRigidBody(
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: CalcTorqueOf_SPH_Marker_Acceleration");
 
-//	GpuTimer myT3;
-//	myT3.Start();
+	GpuTimer myT3;
+	myT3.Start();
 	(void) thrust::reduce_by_key(rigidIdentifierD.begin(), rigidIdentifierD.end(), torqueMarkersD.begin(), dummyIdentify.begin(),
 			totalTorqueOfAcc3.begin(), binary_pred, thrust::plus<real3>());
-//	myT3.Stop();
-//	real_ t3 = (real_)myT3.Elapsed();
-//	printf("** reduce_by_key timer %f, array size %d\n", t3, rigidIdentifierD.size());
+	myT3.Stop();
+	real_ t3 = (real_)myT3.Elapsed();
+	printf("(3) ** reduce_by_key timer %f, array size %d\n", t3, rigidIdentifierD.size());
 
 
 	torqueMarkersD.clear();
@@ -1963,7 +1962,7 @@ void cudaCollisions(
 	real_ delTOrig = delT;
 	real_ realTime = 0;
 
-	int numPause =  .01 * paramsH.tFinal/paramsH.dT;
+	int numPause =  0;//.01 * paramsH.tFinal/paramsH.dT;
 	int pauseRigidFlex =  numPause;//5 * numPause;
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce4 = R4(0);
@@ -1985,33 +1984,33 @@ void cudaCollisions(
 
 ////		if (tStep < 1000) delT = 0.25 * delTOrig; else delT = delTOrig;
 		//***********
-//		if (tStep <= numPause) 	{
-//			currentParamsH = paramsH_B;
-//		} else {
-//			currentParamsH = paramsH;
-//		}
-		//***********
-		if (tStep <= timeSlice) {
+		if (tStep <= numPause) 	{
 			currentParamsH = paramsH_B;
-		} else if (tStep <= 2 * timeSlice) {
-			currentParamsH.bodyForce4.x = paramsH.bodyForce4.x;
-			currentParamsH.bodyForce4.y = 0;
-		} else if (tStep <= 3 * timeSlice) {
-			currentParamsH.bodyForce4.x = 0;
-			currentParamsH.bodyForce4.y = .5 * paramsH.bodyForce4.x;
-		} else if (tStep <= 4 * timeSlice) {
-			currentParamsH.bodyForce4.x = -.7 * paramsH.bodyForce4.x;
-			currentParamsH.bodyForce4.y = -.5 * paramsH.bodyForce4.x;
-		} else if (tStep <= 5 * timeSlice) {
-			currentParamsH.bodyForce4.x = 1.0 * paramsH.bodyForce4.x;
-			currentParamsH.bodyForce4.y = 0;
-		} else if (tStep <= 5.5 * timeSlice) {
-			currentParamsH.bodyForce4.x = -.5 * paramsH.bodyForce4.x;
-			currentParamsH.bodyForce4.y = -.5 * paramsH.bodyForce4.x;
 		} else {
-			currentParamsH.bodyForce4.x = 1.0 * paramsH.bodyForce4.x;
-			currentParamsH.bodyForce4.y = 0;
+			currentParamsH = paramsH;
 		}
+		//***********
+//		if (tStep <= timeSlice) {
+//			currentParamsH = paramsH_B;
+//		} else if (tStep <= 2 * timeSlice) {
+//			currentParamsH.bodyForce4.x = paramsH.bodyForce4.x;
+//			currentParamsH.bodyForce4.y = 0;
+//		} else if (tStep <= 3 * timeSlice) {
+//			currentParamsH.bodyForce4.x = 0;
+//			currentParamsH.bodyForce4.y = .5 * paramsH.bodyForce4.x;
+//		} else if (tStep <= 4 * timeSlice) {
+//			currentParamsH.bodyForce4.x = -.7 * paramsH.bodyForce4.x;
+//			currentParamsH.bodyForce4.y = -.5 * paramsH.bodyForce4.x;
+//		} else if (tStep <= 5 * timeSlice) {
+//			currentParamsH.bodyForce4.x = 1.0 * paramsH.bodyForce4.x;
+//			currentParamsH.bodyForce4.y = 0;
+//		} else if (tStep <= 5.5 * timeSlice) {
+//			currentParamsH.bodyForce4.x = -.5 * paramsH.bodyForce4.x;
+//			currentParamsH.bodyForce4.y = -.5 * paramsH.bodyForce4.x;
+//		} else {
+//			currentParamsH.bodyForce4.x = 1.0 * paramsH.bodyForce4.x;
+//			currentParamsH.bodyForce4.y = 0;
+//		}
 		//***********
 		setParameters(&currentParamsH); 														// sets paramsD in SDKCollisionSystem
 		cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &currentParamsH, sizeof(SimParams))); 	//sets paramsD for this file
@@ -2152,14 +2151,14 @@ void cudaCollisions(
 
 		//************************************************
 		//edit  since yu deleted cyliderRotOmegaJD
-		PrintToFile(posRadD, velMasD, rhoPresMuD,
-				referenceArray, rigidIdentifierD,
-				posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
-				ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD, ANCF_ReferenceArrayNodesOnBeamsD,
-				currentParamsH,
-				realTime, tStep, channelRadius, channelCenterYZ, numObjects.numRigidBodies, numObjects.numFlexBodies);
+//		PrintToFile(posRadD, velMasD, rhoPresMuD,
+//				referenceArray, rigidIdentifierD,
+//				posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
+//				ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD, ANCF_ReferenceArrayNodesOnBeamsD,
+//				currentParamsH,
+//				realTime, tStep, channelRadius, channelCenterYZ, numObjects.numRigidBodies, numObjects.numFlexBodies);
 
-//		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
+////		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
 		//************
 		myGpuTimer.Stop();
 		real_ time2 = (real_)myGpuTimer.Elapsed();

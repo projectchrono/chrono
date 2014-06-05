@@ -1827,7 +1827,7 @@ int main() {
 	inp.close();
 	printf("distance, %f\n", distance);
 
-	bool readFromFile = false; //true;		//true: initializes from file. False: initializes inside the code
+	bool readFromFile = true; //true;		//true: initializes from file. False: initializes inside the code
 
 	//*** Arrays definition
 	thrust::host_vector<int3> referenceArray;
@@ -1879,7 +1879,7 @@ int main() {
 			//***		paramsH.boxDims;
 
 		paramsH.sizeScale = 1;
-		paramsH.HSML = 0.03;
+		paramsH.HSML = 0.01;
 		paramsH.MULT_INITSPACE = 1.0;
 		paramsH.NUM_BCE_LAYERS = 2;
 		paramsH.BASEPRES = 0;
@@ -1891,7 +1891,7 @@ int main() {
 		paramsH.v_Max = 1e-1;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 		paramsH.EPS_XSPH = .5f;
 		paramsH.dT = .0002; //sph alone: .01 for Re 10;
-		paramsH.tFinal = 400;//20 * paramsH.dT; //400
+		paramsH.tFinal = 20 * paramsH.dT; //400
 		paramsH.kdT = 5;
 		paramsH.gammaBB = 0.5;
 		paramsH.cMin = R3(0, 0, -.1) * paramsH.sizeScale;
@@ -1984,15 +1984,15 @@ int main() {
 		real3 r3Ellipsoid = R3(1.5 * paramsH.HSML, 1.5 * paramsH.HSML, 2 * paramsH.HSML);//R3(0.5, 0.5, 0.5) * paramsH.sizeScale; //R3(0.4 * paramsH.sizeScale); //R3(0.8 * paramsH.sizeScale); //real3 r3Ellipsoid = R3(.03 * paramsH.sizeScale); //R3(.05, .03, .02) * paramsH.sizeScale; //R3(.03 * paramsH.sizeScale);
 
 		//**
-//		int3 stride = I3(1, 1, 1);
-//		CreateRigidBodiesPattern(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride);
+		int3 stride = I3(1, 1, 1);
+		CreateRigidBodiesPattern(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride);
 
 		//**
 	//	int numRigids = 3000;
 	//	CreateRigidBodiesChannelRandom(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, numRigids);
 		//**
-		int3 stride = I3(1, 1, 1);
-		CreateRigidBodiesPatternWithinBeams(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride, flexParams);
+//		int3 stride = I3(1, 1, 1);
+//		CreateRigidBodiesPatternWithinBeams(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride, flexParams);
 
 		//**
 	//	CreateRigidBodiesFromFile(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
@@ -2028,8 +2028,8 @@ int main() {
 		//**
 		//*** straightChannelBoundaryMin   should be taken care of
 		//*** straightChannelBoundaryMax   should be taken care of
-		CreateManyFlexBodiesChannelGoodWithRigids(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
-				ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever, flexParams);
+//		CreateManyFlexBodiesChannelGoodWithRigids(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
+//				ANCF_Beam_Length, ANCF_ReferenceArrayNodesOnBeams, ANCF_IsCantilever, flexParams);
 		//**
 
 		thrust::host_vector<Rotation> rigidRotMatrix(mQuatRot.size());
@@ -2169,6 +2169,14 @@ int main() {
 		ellipsoidRadii.clear();
 		rigidRotMatrix.clear();
 		printf("********************\n rigid Radii: %f %f %f\n", r3Ellipsoid.x, r3Ellipsoid.y, r3Ellipsoid.z);
+
+		//******** write data to file  ******************************************************************************************
+		WriteEverythingToFile(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray,
+				rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2,
+				ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel, ANCF_Beam_Length, ANCF_IsCantilever,
+				ANCF_ReferenceArrayNodesOnBeams, flexParametricDist,
+				channelRadius, channelCenterYZ, paramsH, flexParams, numObjects, 0);
+		//***********************************************************************************************************************
 	}
 	//***** print numbers
 	printf("********************\n paramsH.HSML: %f\n paramsH.bodyForce4: %f %f %f\n paramsH.gravity: %f %f %f\n paramsH.rho0: %e\n paramsH.mu0: %f\n paramsH.v_Max: %f\n paramsH.dT: %e\n paramsH.tFinal: %f\n",
@@ -2185,13 +2193,6 @@ int main() {
 			numObjects.numFlexBodies, numObjects.numRigidBodies, numObjects.numFluidMarkers, numObjects.numBoundaryMarkers,
 			numObjects.numRigid_SphMarkers, numObjects.numFlex_SphMarkers, numObjects.numAllMarkers);
 	printf("********************\n");
-	//******** write data to file  ******************************************************************************************
-	WriteEverythingToFile(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray,
-			rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2,
-			ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel, ANCF_Beam_Length, ANCF_IsCantilever,
-			ANCF_ReferenceArrayNodesOnBeams, flexParametricDist,
-			channelRadius, channelCenterYZ, paramsH, flexParams, numObjects, 0);
-	//***********************************************************************************************************************
 	if (numObjects.numAllMarkers != 0) {
 		cudaCollisions(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray,
 				rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2,
