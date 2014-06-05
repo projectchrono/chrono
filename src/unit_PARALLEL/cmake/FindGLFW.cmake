@@ -20,7 +20,7 @@
 # Allow the user to select to link to a shared library or to a static library.
 
 #Search for the include file...
-FIND_PATH(GLFW_INCLUDE_DIR GLFW/glfw3.h DOC "Path to GLFW include directory."
+FIND_PATH(GLFW_INCLUDE_DIR glfw3.h DOC "Path to GLFW include directory."
   HINTS
   $ENV{GLFW_ROOT}
   PATH_SUFFIX include/GL include/GLFW #For finding the include file under the root of the glfw expanded archive, typically on Windows.
@@ -30,6 +30,8 @@ FIND_PATH(GLFW_INCLUDE_DIR GLFW/glfw3.h DOC "Path to GLFW include directory."
   # By default headers are under GL subfolder
   /usr/include/GL
   /usr/local/include/GL
+  /usr/include/GLFW
+  /usr/local/include/GLFW
   ${GLFW_ROOT_DIR}/include/ # added by ptr
  
 )
