@@ -1827,7 +1827,7 @@ int main() {
 	inp.close();
 	printf("distance, %f\n", distance);
 
-	bool readFromFile = true; //true;		//true: initializes from file. False: initializes inside the code
+	bool readFromFile = false; //true;		//true: initializes from file. False: initializes inside the code
 
 	//*** Arrays definition
 	thrust::host_vector<int3> referenceArray;
@@ -1891,7 +1891,7 @@ int main() {
 		paramsH.v_Max = 1e-1;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 		paramsH.EPS_XSPH = .5f;
 		paramsH.dT = .0002; //sph alone: .01 for Re 10;
-		paramsH.tFinal = 20 * paramsH.dT; //400
+		paramsH.tFinal = 400;//20 * paramsH.dT; //400
 		paramsH.kdT = 5;
 		paramsH.gammaBB = 0.5;
 		paramsH.cMin = R3(0, 0, -.1) * paramsH.sizeScale;
@@ -1984,8 +1984,8 @@ int main() {
 		real3 r3Ellipsoid = R3(1.5 * paramsH.HSML, 1.5 * paramsH.HSML, 2 * paramsH.HSML);//R3(0.5, 0.5, 0.5) * paramsH.sizeScale; //R3(0.4 * paramsH.sizeScale); //R3(0.8 * paramsH.sizeScale); //real3 r3Ellipsoid = R3(.03 * paramsH.sizeScale); //R3(.05, .03, .02) * paramsH.sizeScale; //R3(.03 * paramsH.sizeScale);
 
 		//**
-		int3 stride = I3(1, 1, 1);
-		CreateRigidBodiesPattern(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride);
+//		int3 stride = I3(1, 1, 1);
+//		CreateRigidBodiesPattern(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride);
 
 		//**
 	//	int numRigids = 3000;
