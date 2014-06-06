@@ -56,7 +56,6 @@ real_ channelRadius; //5.6 * paramsH.sizeScale; //1.0 * paramsH.sizeScale; //tub
 real2 channelCenterYZ;
 
 //&&& some other definitions for boundary and such
-real_ toleranceZone;
 
 real3 straightChannelBoundaryMin;
 real3 straightChannelBoundaryMax;
@@ -990,7 +989,7 @@ real_ IsInBoundaryEllipsoid(real2 coord, real2 cent2, real2 r2) {
 //	real_ penDist2 = 0;
 //	bool isOut = false;
 //
-//	if (posRad.y < -toleranceZone || posRad.y > 1.0 * paramsH.sizeScale + toleranceZone) {
+//	if (posRad.y < -paramsH.toleranceZone || posRad.y > 1.0 * paramsH.sizeScale + paramsH.toleranceZone) {
 //		return largePenet;
 //	}
 //	else if (posRad.y < 0) {
@@ -1006,7 +1005,7 @@ real_ IsInBoundaryEllipsoid(real2 coord, real2 cent2, real2 r2) {
 //	x = fmod(posRad.x, sPeriod); //posRad.x - int(posRad.x / sPeriod) * sPeriod; //fmod
 //	y = posRad.z;
 //	if (x >= 0 && x < 1.3 * paramsH.sizeScale) {
-//		if (y < -3 * toleranceZone) return largePenet;
+//		if (y < -3 * paramsH.toleranceZone) return largePenet;
 //		if (y < 0) return (x - 1.3 * paramsH.sizeScale);
 //		penDist = IsOutBoundaryCircle(R2(x, y), R2(0, 0), r1); if (penDist < 0) return penDist;
 //		penDist = IsInBoundaryCircle(R2(x, y), R2(0, 1.0 * paramsH.sizeScale), r3); if (penDist < 0) return penDist;
@@ -1023,7 +1022,7 @@ real_ IsInBoundaryEllipsoid(real2 coord, real2 cent2, real2 r2) {
 //		if (y > 1.0 * paramsH.sizeScale) { penDist = IsInBoundaryCircle(R2(x, y), R2(4.6 * paramsH.sizeScale, 1.0 * paramsH.sizeScale), r3); if (penDist < 0) return penDist; }
 //		else if (y < 0) { penDist = IsInBoundaryCircle(R2(x, y), R2(2.3 * paramsH.sizeScale, 0), r2); if (penDist < 0) return penDist; }
 //	} else if (x >= 3.3 * paramsH.sizeScale && x < 4.6 * paramsH.sizeScale) {
-//		if (y < -3 * toleranceZone) return largePenet;
+//		if (y < -3 * paramsH.toleranceZone) return largePenet;
 //		if (y < 0) return 3.3 * paramsH.sizeScale - x;
 //		penDist = IsOutBoundaryCircle(R2(x, y), R2(4.6 * paramsH.sizeScale, 0), r1); if (penDist < 0) return penDist;
 //		penDist = IsInBoundaryCircle(R2(x, y), R2(4.6 * paramsH.sizeScale, 1.0 * paramsH.sizeScale), r3); if (penDist < 0) return penDist;
@@ -1042,8 +1041,8 @@ real_ IsInsideCurveOfSerpentineBeta(real3 posRad) {
 	real_ penDist2 = 0;
 	bool isOut = false;
 
-	if (posRad.y < -toleranceZone
-			|| posRad.y > 1.0 * paramsH.sizeScale + toleranceZone) {
+	if (posRad.y < -paramsH.toleranceZone
+			|| posRad.y > 1.0 * paramsH.sizeScale + paramsH.toleranceZone) {
 		return largePenet;
 	} else if (posRad.y < 0) {
 		penDist2 = posRad.y;
@@ -1063,16 +1062,16 @@ real_ IsInsideCurveOfSerpentineBeta(real3 posRad) {
 			if (penDist < 0)
 				return penDist;
 		}
-		if (x >= 0 && x < r3_2.x + toleranceZone) {
+		if (x >= 0 && x < r3_2.x + paramsH.toleranceZone) {
 			penDist = IsInBoundaryEllipsoid(R2(x, y), R2(0, 0), r3_2);
 			if (penDist < 0)
 				return penDist;
 		}
-		if (x >= r3_2.x + toleranceZone
-				&& x < r3_2.x + 2 * r4_2.x - toleranceZone) {
+		if (x >= r3_2.x + paramsH.toleranceZone
+				&& x < r3_2.x + 2 * r4_2.x - paramsH.toleranceZone) {
 			return largePenet;
 		}
-		if (x > r3_2.x + 2 * r4_2.x - toleranceZone
+		if (x > r3_2.x + 2 * r4_2.x - paramsH.toleranceZone
 				&& x < 2 * r3_2.x + 2 * r4_2.x) {
 			penDist = IsInBoundaryEllipsoid(R2(x, y),
 					R2(2 * r3_2.x + 2 * r4_2.x, 0), r3_2);
@@ -1092,8 +1091,8 @@ real_ IsInsideCurveOfSerpentineBeta(real3 posRad) {
 			if (penDist < 0)
 				return penDist;
 		}
-		if (x > r2_2.x - toleranceZone
-				&& x < r2_2.x + 2 * r1_2.x + toleranceZone) {
+		if (x > r2_2.x - paramsH.toleranceZone
+				&& x < r2_2.x + 2 * r1_2.x + paramsH.toleranceZone) {
 			penDist = IsInBoundaryEllipsoid(R2(x, y), R2(r2_2.x + r1_2.x, 0),
 					r1_2);
 			if (penDist < 0)
@@ -1116,8 +1115,8 @@ real_ IsInsideSerpentine(real3 posRad) {
 	real_ penDist2 = 0;
 	bool isOut = false;
 
-	if (posRad.y < -toleranceZone
-			|| posRad.y > 1.0 * paramsH.sizeScale + toleranceZone) {
+	if (posRad.y < -paramsH.toleranceZone
+			|| posRad.y > 1.0 * paramsH.sizeScale + paramsH.toleranceZone) {
 		return largePenet;
 	} else if (posRad.y < 0) {
 		penDist2 = posRad.y;
@@ -1135,11 +1134,11 @@ real_ IsInsideSerpentine(real3 posRad) {
 		y = posRad.z;
 
 		if (y < 0) {
-			if (x < r2_2.x - toleranceZone) {
+			if (x < r2_2.x - paramsH.toleranceZone) {
 				return largePenet;
 			}
-			if (x >= r2_2.x - toleranceZone
-					&& x < r2_2.x + 2 * r1_2.x + toleranceZone) {
+			if (x >= r2_2.x - paramsH.toleranceZone
+					&& x < r2_2.x + 2 * r1_2.x + paramsH.toleranceZone) {
 				penDist = IsInBoundaryEllipsoid(R2(x, y),
 						R2(r2_2.x + r1_2.x, 0), r1_2);
 				if (penDist < 0)
@@ -1151,7 +1150,7 @@ real_ IsInsideSerpentine(real3 posRad) {
 				if (penDist < 0)
 					return penDist;
 			}
-			if (x >= r2_2.x + 2 * r1_2.x + toleranceZone) {
+			if (x >= r2_2.x + 2 * r1_2.x + paramsH.toleranceZone) {
 				return largePenet;
 			}
 		} else {
@@ -1160,16 +1159,16 @@ real_ IsInsideSerpentine(real3 posRad) {
 				if (penDist < 0)
 					return penDist;
 			}
-			if (x >= 0 && x < r3_2.x + toleranceZone) {
+			if (x >= 0 && x < r3_2.x + paramsH.toleranceZone) {
 				penDist = IsInBoundaryEllipsoid(R2(x, y), R2(0, 0), r3_2);
 				if (penDist < 0)
 					return penDist;
 			}
-			if (x >= r3_2.x + toleranceZone
-					&& x < r3_2.x + 2 * r4_2.x - toleranceZone) {
+			if (x >= r3_2.x + paramsH.toleranceZone
+					&& x < r3_2.x + 2 * r4_2.x - paramsH.toleranceZone) {
 				return largePenet;
 			}
-			if (x >= r3_2.x + 2 * r4_2.x - toleranceZone
+			if (x >= r3_2.x + 2 * r4_2.x - paramsH.toleranceZone
 					&& x < r3_2.x + 2 * r4_2.x + r6_2.x) {
 				penDist = IsInBoundaryEllipsoid(R2(x, y),
 						R2(r3_2.x + 2 * r4_2.x + r6_2.x, 0), r6_2);
@@ -1195,10 +1194,10 @@ real_ IsInsideSerpentine(real3 posRad) {
 					if (penDist < 0)
 						return penDist;
 				}
-				if (x >= x_FirstChannel + toleranceZone
+				if (x >= x_FirstChannel + paramsH.toleranceZone
 						&& x
 								< x_FirstChannel + x_SecondChannel
-										- toleranceZone) {
+										- paramsH.toleranceZone) {
 					penDist = y - y2_slimHor.x;
 					if (penDist < 0)
 						return penDist;
@@ -1215,19 +1214,19 @@ real_ IsInsideSerpentine(real3 posRad) {
 						return penDist;
 				}
 				//****** vertical walls
-				if (x >= x_FirstChannel && x < x_FirstChannel + toleranceZone) {
-					if (y > r6_2.y + toleranceZone
-							|| y < r5_2.y - toleranceZone) {
+				if (x >= x_FirstChannel && x < x_FirstChannel + paramsH.toleranceZone) {
+					if (y > r6_2.y + paramsH.toleranceZone
+							|| y < r5_2.y - paramsH.toleranceZone) {
 						return largePenet;
 					}
 					if (y < y2_slimHor.x || y > y2_slimHor.y) {
 						return x_FirstChannel - x;
 					}
 				}
-				if (x >= x_FirstChannel + x_SecondChannel - toleranceZone
+				if (x >= x_FirstChannel + x_SecondChannel - paramsH.toleranceZone
 						&& x < x_FirstChannel + x_SecondChannel) {
-					if (y > y2_endHor.y + toleranceZone
-							|| y < y2_endHor.x - toleranceZone) {
+					if (y > y2_endHor.y + paramsH.toleranceZone
+							|| y < y2_endHor.x - paramsH.toleranceZone) {
 						return largePenet;
 					}
 					if (y < y2_slimHor.x || y > y2_slimHor.y) {
@@ -1248,7 +1247,6 @@ real_ IsInsideStraightChannel(real3 posRad) {
 	const real_ sphR = paramsH.HSML;
 	real_ penDist1 = 0;
 	real_ penDist2 = 0;
-	//const real_ toleranceZone = 2 * sphR;
 	real_ largePenet = -5 * sphR; //like a large number. Should be negative (assume large initial penetration)
 
 	if (posRad.z > straightChannelBoundaryMax.z) {
@@ -1291,10 +1289,8 @@ real_ IsInsideStraightChannel_XZ(real3 posRad) {
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 real_ IsInsideTube(real3 posRad) {
-	const real_ sphR = paramsH.HSML;
 	real_ penDist1 = 0;
-	//const real_ toleranceZone = 2 * sphR;
-	real_ largePenet = -5 * sphR; //like a large number. Should be negative (assume large initial penetration)
+	real_ largePenet = -5 * paramsH.HSML; //like a large number. Should be negative (assume large initial penetration)
 	real2 centerLine = R2(channelCenterYZ.x, channelCenterYZ.y);
 	real_ r = length(R2(posRad.y, posRad.z) - centerLine);
 //printf("ch R %f\n", channelRadius);
@@ -1313,7 +1309,6 @@ real_ IsInsideStepTube(real3 posRad) {
 	const real_ sphR = paramsH.HSML;
 	real_ penDist1 = 0;
 	real_ penDist2 = 0;
-	//const real_ toleranceZone = 2 * sphR;
 	real_ largePenet = -5 * sphR; //like a large number. Should be negative (assume large initial penetration)
 	real2 centerLine = R2(channelCenterYZ.x, channelCenterYZ.y);
 	real_ r = length(R2(posRad.y, posRad.z) - centerLine);
@@ -1340,7 +1335,7 @@ real_ IsInsideStepTube(real3 posRad) {
 		}
 	}
 	// vertical wall
-	if (r < r1 + toleranceZone) {
+	if (r < r1 + paramsH.toleranceZone) {
 		if (posRad.x < d1) {
 			penDist2 = posRad.x - d1;
 		}
@@ -1421,12 +1416,12 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 				///penDist = IsInsideSerpentine(posRad);
 				//*** straightChannelBoundaryMin   should be taken care of
 				//*** straightChannelBoundaryMax   should be taken care of
-				penDist = IsInsideStraightChannel(posRad);
+				///penDist = IsInsideStraightChannel(posRad);
 				///penDist = IsInsideStraightChannel_XZ(posRad);
-				///penDist = IsInsideTube(posRad);
+				penDist = IsInsideTube(posRad);
 				///penDist = IsInsideStepTube(posRad);
 
-				if (penDist < -toleranceZone)
+				if (penDist < -paramsH.toleranceZone)
 					flag = false;
 				if (flag) {
 					for (int rigidBodyIdx = 0; rigidBodyIdx < rigidPos.size(); rigidBodyIdx++) {
@@ -1478,11 +1473,17 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 						num_BoundaryMarkers++;
 						mPosRadBoundary.push_back(posRad);
 						mVelMasBoundary.push_back(R4(0, 0, 0, sphMarkerMass));
-						mRhoPresMuBoundary.push_back(
-								R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0,
-										0)); //rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
-						//just note that the type, i.e. mRhoPresMu.w is real_.
-						//viscosity of the water is .0018
+						if (-penDist / (paramsH.NUM_BOUNDARY_LAYERS * paramsH.HSML) <= 2 ) {
+							mRhoPresMuBoundary.push_back(
+									R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0,
+											0)); //rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
+							//just note that the type, i.e. mRhoPresMu.w is real_.
+							//viscosity of the water is .0018
+						} else {
+							mRhoPresMuBoundary.push_back(
+									R4(paramsH.rho0, paramsH.LARGE_PRES, paramsH.mu0,
+																		0));
+						}
 					}
 				}
 			}
@@ -1879,10 +1880,13 @@ int main() {
 			//***		paramsH.boxDims;
 
 		paramsH.sizeScale = 1;
-		paramsH.HSML = 0.01;
+		paramsH.HSML = 0.02;
 		paramsH.MULT_INITSPACE = 1.0;
+		paramsH.NUM_BOUNDARY_LAYERS = 4;
+		paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);
 		paramsH.NUM_BCE_LAYERS = 2;
 		paramsH.BASEPRES = 0;
+		paramsH.LARGE_PRES = 1e5;
 		paramsH.nPeriod = 1;
 		paramsH.gravity = R3(0);//R3(0, -9.81, 0);
 		paramsH.bodyForce4 = R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
@@ -1890,12 +1894,12 @@ int main() {
 		paramsH.mu0 = 1.0f;
 		paramsH.v_Max = 1e-1;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 		paramsH.EPS_XSPH = .5f;
-		paramsH.dT = .0002; //sph alone: .01 for Re 10;
-		paramsH.tFinal = 400;//20 * paramsH.dT; //400
+		paramsH.dT = .001; //sph alone: .01 for Re 10;
+		paramsH.tFinal = 100;//20 * paramsH.dT; //400
 		paramsH.kdT = 5;
 		paramsH.gammaBB = 0.5;
-		paramsH.cMin = R3(0, 0, -.1) * paramsH.sizeScale;
-		paramsH.cMax = R3(paramsH.nPeriod * distance + 0, 1, 1 + .1)
+		paramsH.cMin = R3(0, -.1, -.1) * paramsH.sizeScale;
+		paramsH.cMax = R3(paramsH.nPeriod * distance + 0, 1 + .1, 1 + .1)
 				* paramsH.sizeScale;
 		paramsH.binSize0; // will be changed
 
@@ -1918,7 +1922,6 @@ int main() {
 		channelRadius = 0.5 * paramsH.sizeScale; //5.6 * paramsH.sizeScale; //1.0 * paramsH.sizeScale; //tube
 		channelCenterYZ = R2(0.5, 0.5);
 		//*** some other definitions for boundary and such
-		toleranceZone = 5 * paramsH.HSML;
 		//****************************************************************************************
 		//*** initialize straight channel
 		straightChannelBoundaryMin = R3(0, 0, 0) * paramsH.sizeScale;
@@ -1995,7 +1998,7 @@ int main() {
 //		CreateRigidBodiesPatternWithinBeams(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride, flexParams);
 
 		//**
-	//	CreateRigidBodiesFromFile(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
+		CreateRigidBodiesFromFile(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
 		//**
 	//	real2 cylinderR_H = R2(flexParams.r, .2);
 	//	CreateOne3DRigidCylinder(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,

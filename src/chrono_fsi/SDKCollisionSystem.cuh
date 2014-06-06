@@ -38,8 +38,11 @@ struct SimParams {
 		real_ sizeScale;
 		real_ HSML;
 		real_ MULT_INITSPACE;
+		int NUM_BOUNDARY_LAYERS;
+		real_ toleranceZone;
 		int NUM_BCE_LAYERS;
 		real_ BASEPRES;
+		real_ LARGE_PRES;
 		int nPeriod;
 		real3 gravity;
 		real4 bodyForce4;
