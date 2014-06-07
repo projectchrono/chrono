@@ -1413,16 +1413,17 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 
 				if (penDist < -paramsH.toleranceZone)
 					flag = false;
+				real_ fluidDistanceFromSolidSurface = paramsH.MULT_INITSPACE * paramsH.HSML - paramsH.solidSurfaceAdjust;
 				if (flag) {
 					for (int rigidBodyIdx = 0; rigidBodyIdx < rigidPos.size(); rigidBodyIdx++) {
 						//** Ellipsoid
-						if (IsInsideEllipsoid(posRad, rigidPos[rigidBodyIdx], rigidRotMatrix[rigidBodyIdx], ellipsoidRadii[rigidBodyIdx], paramsH.solidSurfaceAdjust)) {
+						if (IsInsideEllipsoid(posRad, rigidPos[rigidBodyIdx], rigidRotMatrix[rigidBodyIdx], ellipsoidRadii[rigidBodyIdx], fluidDistanceFromSolidSurface)) {
 							flag = false;
 						}
 						//** Cylinder_XZ
-//						if ( IsInsideCylinder_XZ(posRad, rigidPos[rigidBodyIdx], ellipsoidRadii[rigidBodyIdx], paramsH.solidSurfaceAdjust ) ) { flag = false;}
+//						if ( IsInsideCylinder_XZ(posRad, rigidPos[rigidBodyIdx], ellipsoidRadii[rigidBodyIdx], fluidDistanceFromSolidSurface ) ) { flag = false;}
 						//** cylinder3D
-//						if (IsInsideCylinder_3D(posRad, cylinderGeom[rigidBodyIdx].pa3, cylinderGeom[rigidBodyIdx].pb3, cylinderGeom[rigidBodyIdx].r, paramsH.solidSurfaceAdjust)) { flag = false;}
+//						if (IsInsideCylinder_3D(posRad, cylinderGeom[rigidBodyIdx].pa3, cylinderGeom[rigidBodyIdx].pb3, cylinderGeom[rigidBodyIdx].r, fluidDistanceFromSolidSurface)) { flag = false;}
 					}
 					for (int flexID = 0;
 							flexID < ANCF_ReferenceArrayNodesOnBeams.size();
@@ -1431,8 +1432,8 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 								ANCF_ReferenceArrayNodesOnBeams[flexID];
 						real3 pa3 = ANCF_Nodes[nodesStartEnd2.x];
 						real3 pb3 = ANCF_Nodes[nodesStartEnd2.y - 1];
-						if (IsInsideStraightFlex(posRad, pa3, pb3, flexParams.r, paramsH.solidSurfaceAdjust)) { flag = false; }
-						//if (IsInsideStraightFlexWithBob(posRad, pa3, pb3, flexParams.r, flexParams.bobRad, paramsH.solidSurfaceAdjust)) { flag = false; }
+						if (IsInsideStraightFlex(posRad, pa3, pb3, flexParams.r, fluidDistanceFromSolidSurface)) { flag = false; }
+						//if (IsInsideStraightFlexWithBob(posRad, pa3, pb3, flexParams.r, flexParams.bobRad, fluidDistanceFromSolidSurface)) { flag = false; }
 					}
 				}
 				if (flag) {
@@ -1882,7 +1883,7 @@ int main() {
 		paramsH.BASEPRES = 0;
 		paramsH.LARGE_PRES = 1e5;
 		paramsH.nPeriod = 1;
-		paramsH.gravity = R3(0);//R3(0, -9.81, 0);
+		paramsH.gravity = R3(0);//R3(0, -.5, 0);//R3(0);//R3(0, -9.81, 0);
 		paramsH.bodyForce4 = R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
 		paramsH.rho0 = 1000;
 		paramsH.mu0 = 1.0f;
