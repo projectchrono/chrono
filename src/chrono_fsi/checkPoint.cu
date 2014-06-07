@@ -169,6 +169,7 @@ void WriteEverythingToFile(
 	outProbParams << paramsH.NUM_BOUNDARY_LAYERS << endl;
 	outProbParams << paramsH.toleranceZone << endl;
 	outProbParams << paramsH.NUM_BCE_LAYERS << endl;
+	outProbParams << paramsH.solidSurfaceAdjust << endl;
 	outProbParams << paramsH.BASEPRES << endl;
 	outProbParams << paramsH.LARGE_PRES << endl;
 	outProbParams << paramsH.nPeriod << endl;
@@ -532,6 +533,7 @@ void ReadEverythingFromFile(
 	inProbParams >> paramsH.NUM_BOUNDARY_LAYERS;
 	inProbParams >> paramsH.toleranceZone;
 	inProbParams >> paramsH.NUM_BCE_LAYERS;
+	inProbParams >> paramsH.solidSurfaceAdjust;
 	inProbParams >> paramsH.BASEPRES ;
 	inProbParams >> paramsH.LARGE_PRES ;
 	inProbParams >> paramsH.nPeriod ;

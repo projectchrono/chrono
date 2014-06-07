@@ -876,15 +876,6 @@ void CreateManyFlexBodiesChannelGoodWithRigids(thrust::host_vector<real3> & ANCF
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-bool IsInsideSphere(real3 sphParPos, real4 spherePosRad, real_ clearance) {
-	real3 dist3 = sphParPos - R3(spherePosRad);
-	if (length(dist3) < spherePosRad.w + clearance) {
-		return true;
-	} else {
-		return false;
-	}
-}
-//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 bool IsInsideEllipsoid(real3 sphParPos, real3 rigidPos, Rotation rot,
 		real3 radii, real_ clearance) {
 	real3 dist3GF = sphParPos - rigidPos;
@@ -1375,7 +1366,6 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 	int num_FluidMarkers = 0;
 	int num_BoundaryMarkers = 0;
 	srand(964);
-	//real_ initSpace0 = 0.9 * sphR; //1.1 * sphR;//1.1 * sphR;//pow(4.0 / 3 * PI, 1.0 / 3) * sphR;
 	real_ multInitSpace = paramsH.MULT_INITSPACE; //0.9;//0.9;
 	real_ initSpace0 = paramsH.MULT_INITSPACE * paramsH.HSML;
 	int nFX = ceil((paramsH.cMax.x - paramsH.cMin.x) / (initSpace0));
@@ -1426,13 +1416,13 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 				if (flag) {
 					for (int rigidBodyIdx = 0; rigidBodyIdx < rigidPos.size(); rigidBodyIdx++) {
 						//** Ellipsoid
-						if (IsInsideEllipsoid(posRad, rigidPos[rigidBodyIdx], rigidRotMatrix[rigidBodyIdx], ellipsoidRadii[rigidBodyIdx], initSpace0)) {
+						if (IsInsideEllipsoid(posRad, rigidPos[rigidBodyIdx], rigidRotMatrix[rigidBodyIdx], ellipsoidRadii[rigidBodyIdx], paramsH.solidSurfaceAdjust)) {
 							flag = false;
 						}
 						//** Cylinder_XZ
-//						if ( IsInsideCylinder_XZ(posRad, rigidPos[rigidBodyIdx], ellipsoidRadii[rigidBodyIdx], initSpace0 ) ) { flag = false;}
+//						if ( IsInsideCylinder_XZ(posRad, rigidPos[rigidBodyIdx], ellipsoidRadii[rigidBodyIdx], paramsH.solidSurfaceAdjust ) ) { flag = false;}
 						//** cylinder3D
-//						if (IsInsideCylinder_3D(posRad, cylinderGeom[rigidBodyIdx].pa3, cylinderGeom[rigidBodyIdx].pb3, cylinderGeom[rigidBodyIdx].r, initSpace0)) { flag = false;}
+//						if (IsInsideCylinder_3D(posRad, cylinderGeom[rigidBodyIdx].pa3, cylinderGeom[rigidBodyIdx].pb3, cylinderGeom[rigidBodyIdx].r, paramsH.solidSurfaceAdjust)) { flag = false;}
 					}
 					for (int flexID = 0;
 							flexID < ANCF_ReferenceArrayNodesOnBeams.size();
@@ -1441,8 +1431,8 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 								ANCF_ReferenceArrayNodesOnBeams[flexID];
 						real3 pa3 = ANCF_Nodes[nodesStartEnd2.x];
 						real3 pb3 = ANCF_Nodes[nodesStartEnd2.y - 1];
-						if (IsInsideStraightFlex(posRad, pa3, pb3, flexParams.r, initSpace0)) { flag = false; }
-						//if (IsInsideStraightFlexWithBob(posRad, pa3, pb3, flexParams.r, flexParams.bobRad, initSpace0)) { flag = false; }
+						if (IsInsideStraightFlex(posRad, pa3, pb3, flexParams.r, paramsH.solidSurfaceAdjust)) { flag = false; }
+						//if (IsInsideStraightFlexWithBob(posRad, pa3, pb3, flexParams.r, flexParams.bobRad, paramsH.solidSurfaceAdjust)) { flag = false; }
 					}
 				}
 				if (flag) {
@@ -1499,11 +1489,10 @@ int CreateEllipsoidMarkers(thrust::host_vector<real3> & mPosRad,
 		real3 rigidBodyOmega, real_ sphMarkerMass, int type) {
 	int num_RigidBodyMarkers = 0;
 	//real_ spacing = .9 * sphR;
-	real_ multInitSpace = paramsH.MULT_INITSPACE; //0.9;//1.0;//0.9;
-	real_ spacing = multInitSpace * paramsH.HSML;
+	real_ spacing = paramsH.MULT_INITSPACE * paramsH.HSML;
 	//printf("initSpaceEllipsoid = %f * sphR\n", multInitSpace);
 	for (int k = 0; k < paramsH.NUM_BCE_LAYERS; k++) {
-		real3 r3 = ellipsoidRadii - R3(k * spacing);
+		real3 r3 = ellipsoidRadii - R3(k * spacing + paramsH.solidSurfaceAdjust);
 		//printf("r, rigidR, k*spacing %f %f %f\n", r * 1000000, spherePosRad.w * 1000000, k * spacing * 1000000);
 		real_ minR = r3.x;
 		minR = (minR < r3.y) ? minR : r3.y;
@@ -1594,8 +1583,7 @@ int Create3D_CylinderMarkers(thrust::host_vector<real3> & mPosRad,
 		real_ rad,
 		real_ sphMarkerMass, int type) {
 	int num_FlexMarkers = 0;
-	real_ multInitSpace = paramsH.MULT_INITSPACE; //0.9;//1.0;//0.9;
-	real_ spacing = multInitSpace * paramsH.HSML;
+	real_ spacing = paramsH.MULT_INITSPACE * paramsH.HSML;
 
 	real3 n3 = normalize(pb3 - pa3);
 	real3 axis3 = cross(R3(1, 0, 0), n3);
@@ -1622,24 +1610,28 @@ int Create3D_CylinderMarkers(thrust::host_vector<real3> & mPosRad,
 				R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type)); //take care of type			 /// type needs to be unique, to differentiate flex from other flex as well as other rigids
 		flexParametricDist.push_back(s);
 		num_FlexMarkers++;
-		for (real_ r = spacing; r < rad + .1 * spacing; r += spacing) {
-			real_ deltaTeta = spacing / r;
-			for (real_ teta = .1 * deltaTeta; teta < 2 * PI - .1 * deltaTeta;
-					teta += deltaTeta) {
-				real3 BCE_Pos_local = R3(0, r * cos(teta), r * sin(teta));
+//	** 	for (real_ r = spacing; r < rad + .1 * spacing; r += spacing) {
+		for (int k = 0; k < paramsH.NUM_BCE_LAYERS; k++) {
+			real_ r = rad - (k * spacing + paramsH.solidSurfaceAdjust);
+			if (r > 0) {
+				real_ deltaTeta = spacing / r;
+				for (real_ teta = .1 * deltaTeta; teta < 2 * PI - .1 * deltaTeta;
+						teta += deltaTeta) {
+					real3 BCE_Pos_local = R3(0, r * cos(teta), r * sin(teta));
 
-//				///ff1
-//				real_ hh = paramsH.HSML;
-//				printf("dd dist %f \n", length(BCE_Pos_local) / hh);
+	//				///ff1
+	//				real_ hh = paramsH.HSML;
+	//				printf("dd dist %f \n", length(BCE_Pos_local) / hh);
 
-				real3 BCE_Pos_Global = Rotate_By_Quaternion(q4, BCE_Pos_local)
-						+ centerPoint;
-				mPosRad.push_back(BCE_Pos_Global);
-				mVelMas.push_back(R4(0, 0, 0, sphMarkerMass));
-				mRhoPresMu.push_back(
-						R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type)); //take care of type
-				flexParametricDist.push_back(s);
-				num_FlexMarkers++;
+					real3 BCE_Pos_Global = Rotate_By_Quaternion(q4, BCE_Pos_local)
+							+ centerPoint;
+					mPosRad.push_back(BCE_Pos_Global);
+					mVelMas.push_back(R4(0, 0, 0, sphMarkerMass));
+					mRhoPresMu.push_back(
+							R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type)); //take care of type
+					flexParametricDist.push_back(s);
+					num_FlexMarkers++;
+				}
 			}
 		}
 	}
@@ -1658,7 +1650,7 @@ int Create3D_CylinderMarkersRigid(thrust::host_vector<real3> & mPosRad,
 		real_ rad,
 		real4 q4,
 		real_ sphMarkerMass, int type) {
-	int num_FlexMarkers = 0;
+	int num_BCEMarkers = 0;
 	real_ multInitSpace = paramsH.MULT_INITSPACE; //0.9;//1.0;//0.9;
 	real_ spacing = multInitSpace * paramsH.HSML;
 
@@ -1687,24 +1679,28 @@ int Create3D_CylinderMarkersRigid(thrust::host_vector<real3> & mPosRad,
 		mRhoPresMu.push_back(
 				R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type)); //take care of type			 /// type needs to be unique, to differentiate flex from other flex as well as other rigids
 		flexParametricDist.push_back(s);
-		num_FlexMarkers++;
-		for (real_ r = spacing; r < rad + .1 * spacing; r += spacing) {
-			real_ deltaTeta = spacing / r;
-			for (real_ teta = .1 * deltaTeta; teta < 2 * PI - .1 * deltaTeta;
-					teta += deltaTeta) {
-				real3 BCE_Pos_local = R3(r * cos(teta), r * sin(teta), 0);
-				real3 BCE_Pos_Global = Rotate_By_Quaternion(q4, BCE_Pos_local)
-						+ centerPoint;
-				mPosRad.push_back(BCE_Pos_Global);
-				mVelMas.push_back(R4(0, 0, 0, sphMarkerMass));
-				mRhoPresMu.push_back(
-						R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type)); //take care of type
-				flexParametricDist.push_back(s);
-				num_FlexMarkers++;
+		num_BCEMarkers++;
+//	**	for (real_ r = spacing; r < rad + .1 * spacing; r += spacing) {
+		for (int k = 0; k < paramsH.NUM_BCE_LAYERS; k++) { //check this in the future
+			real_ r = rad - (k * spacing + paramsH.solidSurfaceAdjust);
+			if (r > 0) {
+				real_ deltaTeta = spacing / r;
+				for (real_ teta = .1 * deltaTeta; teta < 2 * PI - .1 * deltaTeta;
+						teta += deltaTeta) {
+					real3 BCE_Pos_local = R3(r * cos(teta), r * sin(teta), 0);
+					real3 BCE_Pos_Global = Rotate_By_Quaternion(q4, BCE_Pos_local)
+							+ centerPoint;
+					mPosRad.push_back(BCE_Pos_Global);
+					mVelMas.push_back(R4(0, 0, 0, sphMarkerMass));
+					mRhoPresMu.push_back(
+							R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type)); //take care of type
+					flexParametricDist.push_back(s);
+					num_BCEMarkers++;
+				}
 			}
 		}
 	}
-	return num_FlexMarkers;
+	return num_BCEMarkers;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 int CreateBobMarkersOnBeam(thrust::host_vector<real3> & mPosRad,
@@ -1776,7 +1772,7 @@ int CreateCylinderMarkers_XZ(thrust::host_vector<real3> & mPosRad,
 	real_ spacing = multInitSpace * paramsH.HSML;
 	printf("initSpaceCylinder = %f * sphR\n", multInitSpace);
 	for (int k = 0; k < paramsH.NUM_BCE_LAYERS; k++) {
-		real_ r = ellipsoidRadii.x - k * spacing;
+		real_ r = ellipsoidRadii.x -(k * spacing + paramsH.solidSurfaceAdjust);
 		if (r > 0) {
 			real_ deltaTeta = spacing / r;
 			for (real_ teta = .1 * deltaTeta; teta < 2 * PI - .1 * deltaTeta;
@@ -1809,9 +1805,6 @@ int CreateCylinderMarkers_XZ(thrust::host_vector<real3> & mPosRad,
 	//printf("num_RigidBodyMarkers %f\n", num_RigidBodyMarkers);
 	return num_RigidBodyMarkers;
 }
-
-
-
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 int main() {
 	//****************************************************************************************
@@ -1885,6 +1878,7 @@ int main() {
 		paramsH.NUM_BOUNDARY_LAYERS = 4;
 		paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);
 		paramsH.NUM_BCE_LAYERS = 2;
+		paramsH.solidSurfaceAdjust = .5 * (paramsH.HSML * paramsH.MULT_INITSPACE);
 		paramsH.BASEPRES = 0;
 		paramsH.LARGE_PRES = 1e5;
 		paramsH.nPeriod = 1;

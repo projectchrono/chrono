@@ -41,6 +41,7 @@ struct SimParams {
 		int NUM_BOUNDARY_LAYERS;
 		real_ toleranceZone;
 		int NUM_BCE_LAYERS;
+		real_ solidSurfaceAdjust;
 		real_ BASEPRES;
 		real_ LARGE_PRES;
 		int nPeriod;
