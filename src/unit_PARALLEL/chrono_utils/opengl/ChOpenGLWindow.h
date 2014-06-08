@@ -52,9 +52,7 @@ class CH_UTILS_OPENGL_API ChOpenGLWindow {
    void Render();
 
    //Check if the glfw context is still valid and the window has not been closed
-   bool Active() {
-      return !glfwWindowShouldClose(window);
-   }
+   bool Active();
 
    //Set the camera position, look at and up vectors
    void SetCamera(

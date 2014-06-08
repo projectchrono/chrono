@@ -111,11 +111,15 @@ void ChOpenGLWindow::Render() {
 
 }
 
+bool ChOpenGLWindow::Active() {
+   return !glfwWindowShouldClose(window);
+}
+
 bool ChOpenGLWindow::GLUGetError(
       string err) {
    bool return_error = false;
    GLenum glerror;
-   //Go through list of errors until no errors remain
+//Go through list of errors until no errors remain
    while ((glerror = glGetError()) != GL_NO_ERROR) {
       return_error = true;
       std::cerr << err << " - " << gluErrorString(glerror) << std::endl;
