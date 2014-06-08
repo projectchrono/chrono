@@ -137,7 +137,7 @@ static inline quaternion Q_from_AngAxis(const real &angle, const real3 &axis) {
 }
 
 
-static inline quaternion mult2(const quaternion &qa, const quaternion &qb) {
+static inline quaternion mult_classic(const quaternion &qa, const quaternion &qb) {
 	quaternion temp;
 
 	temp.w = qa.w * qb.w - qa.x * qb.x - qa.y * qb.y - qa.z * qb.z;
@@ -206,9 +206,9 @@ static inline real3 quatRotate(const real3 &v, const quaternion &q) {
 
 	real3 t = 2 * cross(real3(q.x,q.y,q.z), v);
 	return  v + q.w * t + cross(real3(q.x,q.y,q.z), t);
-
+	//return v+2.0*cross(cross(v,real3(q.x,q.y,q.z))+q.w*v, real3(q.x,q.y,q.z));
 	//quaternion r = mult(mult(q, R4(0, v.x, v.y, v.z)), inv(q));
-	//return R3(r.x, r.y, r.z);
+	//return real3(r.x, r.y, r.z);
 }
 static inline real3 quatRotateMat(const real3 &v, const quaternion &q) {
 

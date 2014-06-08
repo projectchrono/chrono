@@ -6,6 +6,9 @@ cmake_minimum_required(VERSION 2.8)
 
 project(ChronoEngine_Parallel)
 
+# Enable CTest
+enable_testing()
+
 # Location of additional CMAKE modules
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
@@ -14,7 +17,7 @@ SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 # ------------------------------------------------------------------------------
 SET(ENABLE_UTILS  TRUE  CACHE BOOL "Build the ChronoParallel_Utils library") 
 SET(ENABLE_TESTS  FALSE CACHE BOOL "Build test programs")
-
+SET(ENABLE_UNIT_TESTING  FALSE CACHE BOOL "Build unit tests")
 # ------------------------------------------------------------------------------
 # Required Chrono library and headers
 # ------------------------------------------------------------------------------
@@ -277,6 +280,11 @@ IF(ENABLE_TESTS)
     ADD_SUBDIRECTORY(tests)
   ENDIF()
 ENDIF()
+
+IF(ENABLE_UNIT_TESTING)
+  ADD_SUBDIRECTORY(unit_testing)
+ENDIF()
+
 
 # ----------------------------------------------------------------------------
 # Generate configuration header file.

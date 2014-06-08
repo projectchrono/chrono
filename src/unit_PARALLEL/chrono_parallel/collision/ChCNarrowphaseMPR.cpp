@@ -322,12 +322,12 @@ __host__ __device__ void function_MPR_Store(const uint &index, const shape_type 
 	}
 
 	real3 posA = body_pos[ID_A], posB = body_pos[ID_B];     //Get the global object position
-	real4 rotA = body_rot[ID_A], rotB = body_rot[ID_B];     //Get the global object rotation
+	real4 rotA = normalize(body_rot[ID_A]), rotB = normalize(body_rot[ID_B]);     //Get the global object rotation
 	real3 A_X = obj_data_A[pair.x], B_X = obj_data_A[pair.y];
 	real3 A_Y = obj_data_B[pair.x], B_Y = obj_data_B[pair.y];
 	real3 A_Z = obj_data_C[pair.x], B_Z = obj_data_C[pair.y];
-	real4 A_R = (mult(rotA, obj_data_R[pair.x]));
-	real4 B_R = (mult(rotB, obj_data_R[pair.y]));
+	real4 A_R = normalize(mult(rotA, obj_data_R[pair.x]));
+	real4 B_R = normalize(mult(rotB, obj_data_R[pair.y]));
 
 	real envelope = collision_envelope;
 

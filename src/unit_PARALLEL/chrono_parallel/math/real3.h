@@ -15,7 +15,7 @@
 class CHRONO_ALIGN_16 real3  {
 public:
   union{
-     struct { real x, y, z, w; };
+     struct { real x, y, z; };
      __m128 mmvalue;
   };
 
@@ -52,7 +52,7 @@ public:
   inline real dot(const real3 &b) const {return _mm_cvtss_f32(_mm_dp_ps(mmvalue, b.mmvalue, 0x71));}
   inline real length() const  {return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(mmvalue, mmvalue, 0x71)));}
   inline real rlength() const  {return _mm_cvtss_f32(_mm_rsqrt_ss(_mm_dp_ps(mmvalue, mmvalue, 0x71)));}
-  inline real3 normalize() const {return _mm_mul_ps(mmvalue, _mm_rsqrt_ps(_mm_dp_ps(mmvalue, mmvalue, 0x7F)));}
+  inline real3 normalize() const {return _mm_div_ps(mmvalue, _mm_sqrt_ps(_mm_dp_ps(mmvalue, mmvalue, 0x7F)));}
 
   inline real3 cross(const real3 &b) const {
 	  return _mm_sub_ps(
