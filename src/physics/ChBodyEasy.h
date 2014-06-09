@@ -145,7 +145,6 @@ public:
 		this->AddAsset( vshape );
 		
 		double mmass =  mdensity * (Xsize * Ysize * Zsize);
-		GetLog() << " computed mass " << mmass*100000 << "\n";
 		this->SetMass( mmass );
 		this->SetInertiaXX( ChVector<> (  (1.0/12.0) * mmass * ( pow(Ysize,2) + pow (Zsize,2) ) ,
 										  (1.0/12.0) * mmass * ( pow(Xsize,2) + pow (Zsize,2) ),
@@ -157,7 +156,6 @@ public:
 			GetCollisionModel()->BuildModel();
 			SetCollide(true);
 		}
-		GetLog() << "  set mass " << this->GetMass()*1000000 << "\n";
 	}
 
 };
