@@ -19,7 +19,6 @@
 #include <memory.h>
 #include <algorithm>
 
-#include "core/ChTimer.h"
 #include "physics/ChSystem.h"
 #include "physics/ChBody.h"
 #include "physics/ChBodyDEM.h"

@@ -16,8 +16,6 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "core/ChTimer.h"
-
 #include "physics/ChProximityContainerBase.h"
 #include "physics/ChBody.h"
 
@@ -124,7 +122,6 @@ class CH_PARALLEL_API ChCollisionSystemParallel: public ChCollisionSystem {
 
 		}
 		ChParallelDataManager *data_container;
-		ChTimer<double> mtimer_cd_broad, mtimer_cd_narrow;
 
 		ChCAABBGenerator aabb_generator;
 

@@ -31,6 +31,8 @@ ChSystemParallel::ChSystemParallel(
    gpu_data_manager->system_timer.AddTimer("step");
    gpu_data_manager->system_timer.AddTimer("update");
    gpu_data_manager->system_timer.AddTimer("collision");
+   gpu_data_manager->system_timer.AddTimer("collision_broad");
+   gpu_data_manager->system_timer.AddTimer("collision_narrow");
    gpu_data_manager->system_timer.AddTimer("lcp");
 
    gpu_data_manager->system_timer.AddTimer("ChLcpSolverParallel_Solve");
@@ -131,8 +133,8 @@ int ChSystemParallel::Integrate_Y() {
    gpu_data_manager->system_timer.stop("step");
 
    if (ChCollisionSystemParallel* coll_sys = dynamic_cast<ChCollisionSystemParallel*>(collision_system)) {
-      timer_collision_broad = coll_sys->mtimer_cd_broad();
-      timer_collision_narrow = coll_sys->mtimer_cd_narrow();
+      timer_collision_broad = gpu_data_manager->system_timer.GetTime("collision_broad");
+      timer_collision_narrow = gpu_data_manager->system_timer.GetTime("collision_narrow");
    } else {
       timer_collision_broad = 0;
       timer_collision_narrow = 0;

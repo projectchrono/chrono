@@ -84,7 +84,7 @@ void ChCollisionSystemParallel::Run() {
 	data_container->host_data.old_pair_rigid_rigid = data_container->host_data.pair_rigid_rigid;
 	data_container->host_data.old_norm_rigid_rigid = data_container->host_data.norm_rigid_rigid;
 	data_container->old_num_contacts = data_container->num_contacts;
-	mtimer_cd_broad.start();
+  data_container->system_timer.start("collision_broad");
 
 	aabb_generator.GenerateAABB(
 			data_container->host_data.typ_rigid,
@@ -100,13 +100,13 @@ void ChCollisionSystemParallel::Run() {
 	//aabb_generator.GenerateAABBFluid(data_container->host_data.fluid_pos, data_container->fluid_rad, data_container->host_data.aabb_fluid);
 
 	broadphase->detectPossibleCollisions(data_container->host_data.aabb_rigid, data_container->host_data.fam_rigid, data_container->host_data.pair_rigid_rigid);
-	mtimer_cd_broad.stop();
+  data_container->system_timer.stop("collision_broad");
 
-	mtimer_cd_narrow.start();
+  data_container->system_timer.start("collision_narrow");
 	data_container->collision_envelope = collision_envelope;
 	narrowphase->SetCollisionEnvelope(collision_envelope);
 	narrowphase->Process(data_container);
-	mtimer_cd_narrow.stop();
+  data_container->system_timer.stop("collision_narrow");
 
 }
 

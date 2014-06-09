@@ -10,14 +10,14 @@
 //
 // =============================================================================
 // Authors: Hammad Mazhar
+// =============================================================================
+//
 // This file contains the base class used for all parallel iterative solvers.
 // All of the functions are defined here, with the implementation of each solver
 // in it's specific cpp file.
 // =============================================================================
 #ifndef CHSOLVERPARALLEL_H
 #define CHSOLVERPARALLEL_H
-
-#include "core/ChTimer.h"
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/ChBaseParallel.h"
