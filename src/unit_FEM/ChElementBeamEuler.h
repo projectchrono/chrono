@@ -63,7 +63,7 @@ public:
 					q_element_abs_rot = QUNIT;
 					q_element_ref_rot = QUNIT;
 					disable_corotate = false;
-					disable_projector = false;
+					disable_projector = true; //***TO DO*** see why projectors work worse... ex. see lateral buckling test
 					force_symmetric_stiffness = false;
 				}
 
