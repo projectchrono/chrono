@@ -170,7 +170,7 @@ private:
 	template <class T_other>
     void acquire(const ChSmartPtr<T_other> &r) throw()
 			{ 
-				itsCounter = r.itsCounter;
+				itsCounter = ((ChSmartPtr<T>*)&r)->itsCounter;//(ChSmartPtr<T>::ChCounter*)r.itsCounter;
 				if (itsCounter) ++itsCounter->count;
 			}
 
