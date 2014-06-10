@@ -172,7 +172,6 @@ enum GPUSOLVERTYPE {
 #define Vector_ZERO_EPSILON 1e-8
 #define MIN_ZERO_EPSILON 1.1754943508222875E-38
 #define EPS FLT_EPSILON
-#define kCollideEpsilon  1e-6f
 
 #endif
 

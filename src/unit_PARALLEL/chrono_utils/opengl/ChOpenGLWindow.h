@@ -44,7 +44,7 @@ class CH_UTILS_OPENGL_API ChOpenGLWindow {
 
    // Perform a dynamics step, the user needs to use this so that pausing the
    // simulation works correctly
-   void DoStepDynamics(
+   bool DoStepDynamics(
          double time_step  //The step size
          );
 

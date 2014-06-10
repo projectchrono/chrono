@@ -28,7 +28,7 @@ ChOpenGLShader::ChOpenGLShader() {
    this->fragment_shader_id = BAD_GL_VALUE;
    this->program_id = BAD_GL_VALUE;
    this->modelview_matrix_handle = BAD_GL_VALUE;
-   this->projection_matrix_handle = BAD_GL_VALUE;
+   //this->projection_matrix_handle = BAD_GL_VALUE;
    this->normal_matrix_handle = BAD_GL_VALUE;
    this->time_handle = BAD_GL_VALUE;
    this->camera_handle = BAD_GL_VALUE;
@@ -48,15 +48,18 @@ void ChOpenGLShader::CommonSetup(
       const GLfloat * modelview,
       const GLfloat * mvp,
       const GLfloat * nm) {
-   if (this->projection_matrix_handle != BAD_GL_VALUE)
-      glUniformMatrix4fv(this->projection_matrix_handle, 1, GL_FALSE, projection);
-   this->GLReturnedError("Draw - after projection_matrix_handle");
+  // if (this->projection_matrix_handle != BAD_GL_VALUE)
+  //    glUniformMatrix4fv(this->projection_matrix_handle, 1, GL_FALSE, projection);
+  // this->GLReturnedError("Draw - after projection_matrix_handle");
+
    if (this->modelview_matrix_handle != BAD_GL_VALUE)
       glUniformMatrix4fv(this->modelview_matrix_handle, 1, GL_FALSE, modelview);
    this->GLReturnedError("Draw - after modelview_matrix_handle");
+
    if (this->mvp_handle != BAD_GL_VALUE)
       glUniformMatrix4fv(this->mvp_handle, 1, GL_FALSE, mvp);
    this->GLReturnedError("Draw - after mvp_handle");
+
    if (this->normal_matrix_handle != BAD_GL_VALUE)
       glUniformMatrix3fv(this->normal_matrix_handle, 1, GL_FALSE, nm);
    this->GLReturnedError("Draw - after normal_matrix_handle");
@@ -178,7 +181,7 @@ void ChOpenGLShader::CompleteInit() {
    //Locate all of the possible default handles that we can have
 
    this->modelview_matrix_handle = GetUniformLocation("modelview_matrix");
-   this->projection_matrix_handle = GetUniformLocation("projection_matrix");
+   //this->projection_matrix_handle = GetUniformLocation("projection_matrix");
    this->normal_matrix_handle = GetUniformLocation("normal_matrix");
    this->mvp_handle = GetUniformLocation("mvp");
    this->time_handle = GetUniformLocation("time");

@@ -86,10 +86,10 @@ void ChOpenGLWindow::StartDrawLoop() {
       Render();
    }
 }
-void ChOpenGLWindow::DoStepDynamics(
+bool ChOpenGLWindow::DoStepDynamics(
       double time_step) {
    ChOpenGLViewer* pointer = ((ChOpenGLViewer *) (glfwGetWindowUserPointer(window)));
-   pointer->Update();
+   return pointer->Update();
 }
 void ChOpenGLWindow::Render() {
 

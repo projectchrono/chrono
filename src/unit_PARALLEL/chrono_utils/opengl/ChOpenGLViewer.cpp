@@ -20,6 +20,9 @@
 #include "phong_frag.h"
 #include "phong_vert.h"
 
+#include "cloud_frag.h"
+#include "cloud_vert.h"
+
 //using namespace std;
 using namespace chrono;
 using namespace chrono::utils;
@@ -70,6 +73,10 @@ bool ChOpenGLViewer::Initialize() {
       return 0;
    }
 
+   if (!cloud_shader.InitializeStrings("cloud", cloud_vert, cloud_frag)) {
+      return 0;
+   }
+
    sphere.Initialize("sphere.obj", white, &main_shader);
    box.Initialize("box.obj", red, &main_shader);
    cylinder.Initialize("cylinder.obj", white, &main_shader);
@@ -88,13 +95,25 @@ bool ChOpenGLViewer::Initialize() {
    //get the uniform location for the texture from shader
    texture_handle = font_shader.GetUniformLocation("tex");
 
+   cloud_data.resize(physics_system->Get_bodylist()->size());
+   for (int i = 0; i < physics_system->Get_bodylist()->size(); i++) {
+      ChBody* abody = (ChBody*) physics_system->Get_bodylist()->at(i);
+
+      ChVector<> pos = abody->GetPos();
+      cloud_data[i] = glm::vec3(pos.x, pos.y, pos.z);
+   }
+   cloud.Initialize(cloud_data);
+   cloud.AttachShader(&cloud_shader);
+
+   glPointSize(10);
+
 }
-void ChOpenGLViewer::Update() {
+bool ChOpenGLViewer::Update() {
    if (pause_sim == true) {
-      return;
+      return false;
    }
    physics_system->DoStepDynamics(physics_system->GetStep());
-
+   return true;
 }
 void ChOpenGLViewer::Render() {
    render_timer.start();
@@ -113,9 +132,20 @@ void ChOpenGLViewer::Render() {
          glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
       }
 
+      cloud_data.resize(physics_system->Get_bodylist()->size());
       for (int i = 0; i < physics_system->Get_bodylist()->size(); i++) {
          ChBody* abody = (ChBody*) physics_system->Get_bodylist()->at(i);
-         DrawObject(abody);
+         if (render_mode != POINTS) {
+            DrawObject(abody);
+         } else {
+            ChVector<> pos = abody->GetPos();
+            cloud_data[i] = glm::vec3(pos.x, pos.y, pos.z);
+         }
+      }
+      if (render_mode == POINTS) {
+          cloud.Update(cloud_data);
+         glm::mat4 model(1);
+         cloud.Draw(projection, view * model);
       }
       geometry_timer.stop();
       time_geometry = .5 * geometry_timer() + .5 * time_geometry;
@@ -194,9 +224,9 @@ void ChOpenGLViewer::DrawObject(
          ChCylinderShape * cylinder_shape = ((ChCylinderShape *) (asset.get_ptr()));
          double rad = cylinder_shape->GetCylinderGeometry().rad;
          double height = cylinder_shape->GetCylinderGeometry().p1.y - cylinder_shape->GetCylinderGeometry().p2.y;
-         Quaternion rott = chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X);
+         //Quaternion rott(1,0,0,0);
          Quaternion lrot = visual_asset->Rot.Get_A_quaternion();
-         lrot = lrot % rott;
+         //lrot = lrot % rott;
          lrot = rot % lrot;
 
          lrot.Q_to_AngAxis(angle, axis);

@@ -29,7 +29,7 @@ class CH_UTILS_OPENGL_API ChOpenGLCloud : public ChOpenGLObject {
          const glm::mat4 & projection,
          const glm::mat4 & modelview);
    void TakeDown();
-
+   void Update( const std::vector<glm::vec3>& data);
  private:
    std::vector<glm::vec3> vertices;
    typedef ChOpenGLObject super;

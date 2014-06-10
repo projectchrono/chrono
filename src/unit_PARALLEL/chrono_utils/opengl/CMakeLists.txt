@@ -31,6 +31,19 @@ add_custom_command(
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 
+add_custom_command(
+  OUTPUT  ${CMAKE_BINARY_DIR}/cloud_vert.h
+  COMMAND embedfile cloud_vert ${CMAKE_SOURCE_DIR}/chrono_utils/opengl/resources/cloud.vert ${CMAKE_BINARY_DIR}/cloud_vert.h
+  DEPENDS ${CMAKE_SOURCE_DIR}/chrono_utils/opengl/resources/cloud.vert
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+add_custom_command(
+  OUTPUT  ${CMAKE_BINARY_DIR}/cloud_frag.h
+  COMMAND embedfile cloud_frag ${CMAKE_SOURCE_DIR}/chrono_utils/opengl/resources/cloud.frag ${CMAKE_BINARY_DIR}/cloud_frag.h
+  DEPENDS ${CMAKE_SOURCE_DIR}/chrono_utils/opengl/resources/cloud.frag
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+
 SET(ChronoEngine_Utils_OpenGL_SOURCES 
 	core/ChOpenGLShader.cpp
 	core/ChOpenGLObject.cpp
@@ -61,6 +74,8 @@ SET(ChronoEngine_Utils_OpenGL_HEADERS
 	${CMAKE_BINARY_DIR}/text_vert.h
 	${CMAKE_BINARY_DIR}/phong_frag.h
 	${CMAKE_BINARY_DIR}/phong_vert.h
+	${CMAKE_BINARY_DIR}/cloud_frag.h
+    ${CMAKE_BINARY_DIR}/cloud_vert.h
 	)
 
 IF (MSVC)

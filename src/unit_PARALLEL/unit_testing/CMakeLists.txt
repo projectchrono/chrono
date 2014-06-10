@@ -48,9 +48,8 @@ ENDIF()
 SET(TESTS
     test_real3
     test_real4
+    test_mpr
 )
-
-
 
 MESSAGE(STATUS "Executable programs...")
 

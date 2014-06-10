@@ -2,9 +2,9 @@
 
 layout (location = 0) out vec4 FragColor;
 
-uniform mat4 mvp;
-uniform mat4 modelview_matrix;
-uniform mat3 normal_matrix;
+//uniform mat4 mvp;
+//uniform mat4 modelview_matrix;
+//uniform mat3 normal_matrix;
 
 float shininess = 100.0;
 
