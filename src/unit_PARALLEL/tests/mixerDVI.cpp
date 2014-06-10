@@ -38,30 +38,19 @@
 #include "chrono_utils/opengl/ChOpenGLWindow.h"
 #endif
 
-// Define this to save the data when using the OpenGL code
-//#define SAVE_DATA
-
 using namespace chrono;
-using namespace geometry;
 
 const char* out_folder = "../MIXER_DVI/POVRAY";
-int out_steps;
-int out_frame;
 
 // -----------------------------------------------------------------------------
-// Callback function invoked at every simulation frame. Generates postprocessing
-// output with a frequency based on the specified FPS rate.
+// Generate postprocessing output with current system state.
 // -----------------------------------------------------------------------------
-template<class T>
-void SimFrameCallback(
-      T* mSys,
-      const int frame) {
-   char filename[100];
-   if (frame % out_steps == 0) {
-      sprintf(filename, "%s/data_%03d.dat", out_folder, out_frame);
-      utils::WriteShapesPovray(mSys, filename);
-      out_frame++;
-   }
+void OutputData(ChSystemParallel* sys, int out_frame, double time)
+{
+  char filename[100];
+  sprintf(filename, "%s/data_%03d.dat", out_folder, out_frame);
+  utils::WriteShapesPovray(sys, filename);
+  std::cout << "time = " << time << std::flush << std::endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -70,198 +59,206 @@ void SimFrameCallback(
 // to rotate at constant angular velocity.
 // -----------------------------------------------------------------------------
 void AddContainer(
-      ChSystemParallelDVI* sys) {
-   // IDs for the two bodies
-   int binId = -200;
-   int mixerId = -201;
+  ChSystemParallelDVI* sys) {
+    // IDs for the two bodies
+    int binId = -200;
+    int mixerId = -201;
 
-   // Create a common material
-   ChSharedPtr<ChMaterialSurface> mat(new ChMaterialSurface);
-   mat->SetFriction(0.4f);
+    // Create a common material
+    ChSharedPtr<ChMaterialSurface> mat(new ChMaterialSurface);
+    mat->SetFriction(0.4f);
 
-   // Create the containing bin (2 x 2 x 1)
-   ChSharedBodyPtr bin(new ChBody(new ChCollisionModelParallel));
-   bin->SetMaterialSurface(mat);
-   bin->SetIdentifier(binId);
-   bin->SetMass(1);
-   bin->SetPos(ChVector<>(0, 0, 0));
-   bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
-   bin->SetCollide(true);
-   bin->SetBodyFixed(true);
+    // Create the containing bin (2 x 2 x 1)
+    ChSharedBodyPtr bin(new ChBody(new ChCollisionModelParallel));
+    bin->SetMaterialSurface(mat);
+    bin->SetIdentifier(binId);
+    bin->SetMass(1);
+    bin->SetPos(ChVector<>(0, 0, 0));
+    bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
+    bin->SetCollide(true);
+    bin->SetBodyFixed(true);
 
-   ChVector<> hdim(1, 1, 0.5);
-   double hthick = 0.1;
+    ChVector<> hdim(1, 1, 0.5);
+    double hthick = 0.1;
 
-   bin->GetCollisionModel()->ClearModel();
-   utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, -hthick));
-   utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(-hdim.x - hthick, 0, hdim.z));
-   utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(hdim.x + hthick, 0, hdim.z));
-   utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, -hdim.y - hthick, hdim.z));
-   utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, hdim.y + hthick, hdim.z));
-   bin->GetCollisionModel()->BuildModel();
+    bin->GetCollisionModel()->ClearModel();
+    utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, -hthick));
+    utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(-hdim.x - hthick, 0, hdim.z));
+    utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(hdim.x + hthick, 0, hdim.z));
+    utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, -hdim.y - hthick, hdim.z));
+    utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, hdim.y + hthick, hdim.z));
+    bin->GetCollisionModel()->BuildModel();
 
-   sys->AddBody(bin);
+    sys->AddBody(bin);
 
-   // The rotating mixer body (1.6 x 0.2 x 0.4)
-   ChSharedBodyPtr mixer(new ChBody(new ChCollisionModelParallel));
-   mixer->SetMaterialSurface(mat);
-   mixer->SetIdentifier(mixerId);
-   mixer->SetMass(10.0);
-   mixer->SetInertiaXX(ChVector<>(50, 50, 50));
-   mixer->SetPos(ChVector<>(0, 0, 0.205));
-   mixer->SetBodyFixed(false);
-   mixer->SetCollide(true);
+    // The rotating mixer body (1.6 x 0.2 x 0.4)
+    ChSharedBodyPtr mixer(new ChBody(new ChCollisionModelParallel));
+    mixer->SetMaterialSurface(mat);
+    mixer->SetIdentifier(mixerId);
+    mixer->SetMass(10.0);
+    mixer->SetInertiaXX(ChVector<>(50, 50, 50));
+    mixer->SetPos(ChVector<>(0, 0, 0.205));
+    mixer->SetBodyFixed(false);
+    mixer->SetCollide(true);
 
-   ChVector<> hsize(0.8, 0.1, 0.2);
+    ChVector<> hsize(0.8, 0.1, 0.2);
 
-   mixer->GetCollisionModel()->ClearModel();
-   utils::AddBoxGeometry(mixer.get_ptr(), hsize);
-   mixer->GetCollisionModel()->BuildModel();
+    mixer->GetCollisionModel()->ClearModel();
+    utils::AddBoxGeometry(mixer.get_ptr(), hsize);
+    mixer->GetCollisionModel()->BuildModel();
 
-   sys->AddBody(mixer);
+    sys->AddBody(mixer);
 
-   // Create an engine between the two bodies, constrained to rotate at 90 deg/s
-   ChSharedPtr<ChLinkEngine> motor(new ChLinkEngine);
+    // Create an engine between the two bodies, constrained to rotate at 90 deg/s
+    ChSharedPtr<ChLinkEngine> motor(new ChLinkEngine);
 
-   motor->Initialize(mixer, bin, ChCoordsys<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
-   motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-   if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(motor->Get_spe_funct()))
+    motor->Initialize(mixer, bin, ChCoordsys<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
+    motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
+    if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(motor->Get_spe_funct()))
       mfun->Set_yconst(CH_C_PI / 2);
 
-   sys->AddLink(motor);
+    sys->AddLink(motor);
 }
 
 // -----------------------------------------------------------------------------
 // Create the falling spherical objects in a unfiorm rectangular grid.
 // -----------------------------------------------------------------------------
 void AddFallingBalls(
-      ChSystemParallel* sys) {
-   // Common material
-   ChSharedPtr<ChMaterialSurface> ballMat(new ChMaterialSurface);
-   ballMat->SetFriction(0.4f);
+  ChSystemParallel* sys) {
+    // Common material
+    ChSharedPtr<ChMaterialSurface> ballMat(new ChMaterialSurface);
+    ballMat->SetFriction(0.4f);
 
-   // Create the falling balls
-   int ballId = 0;
-   double mass = 1;
-   double radius = 0.15;
-   ChVector<> inertia = (2.0 / 5.0) * mass * radius * radius * ChVector<>(1, 1, 1);
+    // Create the falling balls
+    int ballId = 0;
+    double mass = 1;
+    double radius = 0.15;
+    ChVector<> inertia = (2.0 / 5.0) * mass * radius * radius * ChVector<>(1, 1, 1);
 
-   for (int ix = -2; ix < 3; ix++) {
+    for (int ix = -2; ix < 3; ix++) {
       for (int iy = -2; iy < 3; iy++) {
-         ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
+        ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
 
-         ChSharedBodyPtr ball(new ChBody(new ChCollisionModelParallel));
-         ball->SetMaterialSurface(ballMat);
+        ChSharedBodyPtr ball(new ChBody(new ChCollisionModelParallel));
+        ball->SetMaterialSurface(ballMat);
 
-         ball->SetIdentifier(ballId++);
-         ball->SetMass(mass);
-         ball->SetInertiaXX(inertia);
-         ball->SetPos(pos);
-         ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-         ball->SetBodyFixed(false);
-         ball->SetCollide(true);
+        ball->SetIdentifier(ballId++);
+        ball->SetMass(mass);
+        ball->SetInertiaXX(inertia);
+        ball->SetPos(pos);
+        ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
+        ball->SetBodyFixed(false);
+        ball->SetCollide(true);
 
-         ball->GetCollisionModel()->ClearModel();
-         utils::AddSphereGeometry(ball.get_ptr(), radius);
-         ball->GetCollisionModel()->BuildModel();
+        ball->GetCollisionModel()->ClearModel();
+        utils::AddSphereGeometry(ball.get_ptr(), radius);
+        ball->GetCollisionModel()->BuildModel();
 
-         sys->AddBody(ball);
+        sys->AddBody(ball);
       }
-   }
+    }
 }
 
 // -----------------------------------------------------------------------------
 // Create the system, specify simulation parameters, and run simulation loop.
 // -----------------------------------------------------------------------------
-int main(
-      int argc,
-      char* argv[]) {
-   int threads = 8;
+int main(int argc, char* argv[])
+{
+  int threads = 8;
 
-   // Simulation parameters
-   // ---------------------
+  // Simulation parameters
+  // ---------------------
 
-   double gravity = 9.81;
-   double time_step = 1e-3;
-   double time_end = 1;
+  double gravity = 9.81;
+  double time_step = 1e-3;
+  double time_end = 1;
 
-   double out_fps = 50;
+  double out_fps = 50;
 
-   uint max_iteration = 30;
-   real tolerance = 1e-8;
+  uint max_iteration = 30;
+  real tolerance = 1e-8;
 
-   // Create system
-   // -------------
+  // Create system
+  // -------------
 
-   ChSystemParallelDVI msystem;
+  ChSystemParallelDVI msystem;
 
-   // Set number of threads.
-   int max_threads = msystem.GetParallelThreadNumber();
-   if (threads > max_threads)
-      threads = max_threads;
-   msystem.SetParallelThreadNumber(threads);
-   omp_set_num_threads(threads);
+  // Set number of threads.
+  int max_threads = msystem.GetParallelThreadNumber();
+  if (threads > max_threads)
+    threads = max_threads;
+  msystem.SetParallelThreadNumber(threads);
+  omp_set_num_threads(threads);
 
-   // Set gravitational acceleration
-   msystem.Set_G_acc(ChVector<>(0, 0, -gravity));
+  // Set gravitational acceleration
+  msystem.Set_G_acc(ChVector<>(0, 0, -gravity));
 
-   // Set solver parameters
-   msystem.SetMaxiter(max_iteration);
-   msystem.SetIterLCPmaxItersSpeed(max_iteration);
-   msystem.SetTol(1e-3);
-   msystem.SetTolSpeeds(1e-3);
-   msystem.SetStep(time_step);
-   msystem.SetMaxPenetrationRecoverySpeed(1e9);
+  // Set solver parameters
+  msystem.SetMaxiter(max_iteration);
+  msystem.SetIterLCPmaxItersSpeed(max_iteration);
+  msystem.SetTol(1e-3);
+  msystem.SetTolSpeeds(1e-3);
+  msystem.SetStep(time_step);
+  msystem.SetMaxPenetrationRecoverySpeed(1e9);
 
-   //((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIteration(max_iteration);
-   ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIterationNormal(max_iteration / 3);
-   ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIterationSliding(max_iteration / 3);
-   ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIterationSpinning(0);
-   ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIterationBilateral(max_iteration/3);
-   ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetTolerance(1e-3);
-   ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetCompliance(0);
-   ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetContactRecoverySpeed(1);
-   ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetSolverType(APGDRS);
+  //((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIteration(max_iteration);
+  ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIterationNormal(max_iteration / 3);
+  ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIterationSliding(max_iteration / 3);
+  ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIterationSpinning(0);
+  ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetMaxIterationBilateral(max_iteration/3);
+  ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetTolerance(1e-3);
+  ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetCompliance(0);
+  ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetContactRecoverySpeed(1);
+  ((ChLcpSolverParallelDVI*) msystem.GetLcpSolverSpeed())->SetSolverType(APGDRS);
 
-   ((ChCollisionSystemParallel*) msystem.GetCollisionSystem())->SetCollisionEnvelope(0.01);
-   ((ChCollisionSystemParallel*) msystem.GetCollisionSystem())->setBinsPerAxis(I3(10, 10, 10));
-   ((ChCollisionSystemParallel*) msystem.GetCollisionSystem())->setBodyPerBin(100, 50);
+  ((ChCollisionSystemParallel*) msystem.GetCollisionSystem())->SetCollisionEnvelope(0.01);
+  ((ChCollisionSystemParallel*) msystem.GetCollisionSystem())->setBinsPerAxis(I3(10, 10, 10));
+  ((ChCollisionSystemParallel*) msystem.GetCollisionSystem())->setBodyPerBin(100, 50);
 
-   // Create the fixed and moving bodies
-   // ----------------------------------
+  // Create the fixed and moving bodies
+  // ----------------------------------
 
-   AddContainer(&msystem);
-   AddFallingBalls(&msystem);
+  AddContainer(&msystem);
+  AddFallingBalls(&msystem);
 
-   // Perform the simulation
-   // ----------------------
-
-   out_steps = std::ceil((1 / time_step) / out_fps);
-   out_frame = 0;
+  // Perform the simulation
+  // ----------------------
 
 #ifdef CHRONO_PARALLEL_HAS_OPENGL
-   // The OpenGL manager will automatically run the simulation
+  utils::ChOpenGLWindow &gl_window = utils::ChOpenGLWindow::getInstance();
+  gl_window.Initialize(1280, 720, "mixerDVI", &msystem);
+  gl_window.SetCamera(ChVector<>(0,-10,0), ChVector<>(0,0,0),ChVector<>(0,0,1));
 
-   utils::ChOpenGLWindow &gl_window = utils::ChOpenGLWindow::getInstance();
-   gl_window.Initialize(1280, 720, "mixerDVI", &msystem);
-   gl_window.SetCamera(ChVector<>(0,-10,0), ChVector<>(0,0,0),ChVector<>(0,0,1));
-   //gl_window.StartDrawLoop();
+  // Uncomment the following two lines for the OpenGL manager to automatically
+  // run the simulation in an infinite loop.
+  //gl_window.StartDrawLoop();
+  //return 0;
 #endif
-   // Run simulation for specified time
-   int num_steps = std::ceil(time_end / time_step);
-   double time = 0;
 
-   for (int i = 0; i < num_steps; i++) {
-      SimFrameCallback(&msystem, i);
+  // Run simulation for specified time
+  int num_steps = std::ceil(time_end / time_step);
+  int out_steps = std::ceil((1 / time_step) / out_fps);
+  double time = 0;
+  int out_frame = 0;
+
+  for (int i = 0; i < num_steps; i++) {
+    if (i % out_steps == 0) {
+      OutputData(&msystem, out_frame, time);
+      out_frame++;
+    }
+
 #ifdef CHRONO_PARALLEL_HAS_OPENGL
-      if (gl_window.Active()) {
-         gl_window.DoStepDynamics(time_step);
-         gl_window.Render();
-      }
+    if (gl_window.Active()) {
+      gl_window.DoStepDynamics(time_step);
+      gl_window.Render();
+    }
+#else
+    msystem.DoStepDynamics(time_step);
 #endif
-      time += time_step;
-   }
 
-   return 0;
+    time += time_step;
+  }
+
+  return 0;
 }
 

@@ -38,28 +38,19 @@
 #include "chrono_utils/opengl/ChOpenGLWindow.h"
 #endif
 
-// Define this to save the data when using the OpenGL code
-//#define SAVE_DATA
-
 using namespace chrono;
-using namespace geometry;
 
 const char* out_folder = "../MIXER_DEM/POVRAY";
-int out_steps;
-int out_frame;
 
 // -----------------------------------------------------------------------------
-// Callback function invoked at every simulation frame. Generates postprocessing
-// output with a frequency based on the specified FPS rate.
+// Generate postprocessing output with current system state.
 // -----------------------------------------------------------------------------
-template<class T>
-void SimFrameCallback(T* mSys, const int frame) {
+void OutputData(ChSystemParallel* sys, int out_frame, double time)
+{
   char filename[100];
-  if (frame % out_steps == 0) {
-    sprintf(filename, "%s/data_%03d.dat", out_folder, out_frame);
-    utils::WriteShapesPovray(mSys, filename);
-    out_frame++;
-  }
+  sprintf(filename, "%s/data_%03d.dat", out_folder, out_frame);
+  utils::WriteShapesPovray(sys, filename);
+  std::cout << "time = " << time << std::flush << std::endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -234,31 +225,40 @@ int main(int argc, char* argv[])
   // Perform the simulation
   // ----------------------
 
-  out_steps = std::ceil((1 / time_step) / out_fps);
-  out_frame = 0;
+#ifdef CHRONO_PARALLEL_HAS_OPENGL
+  utils::ChOpenGLWindow &gl_window = utils::ChOpenGLWindow::getInstance();
+  gl_window.Initialize(1280, 720, "mixerDEM", &msystem);
+  gl_window.SetCamera(ChVector<>(0,-10,0), ChVector<>(0,0,0),ChVector<>(0,0,1));
+
+  // Uncomment the following two lines for the OpenGL manager to automatically
+  // run the simulation in an infinite loop.
+  //gl_window.StartDrawLoop();
+  //return 0;
+#endif
+
+  // Run simulation for specified time
+  int num_steps = std::ceil(time_end / time_step);
+  int out_steps = std::ceil((1 / time_step) / out_fps);
+  double time = 0;
+  int out_frame = 0;
+
+  for (int i = 0; i < num_steps; i++) {
+    if (i % out_steps == 0) {
+      OutputData(&msystem, out_frame, time);
+      out_frame++;
+    }
 
 #ifdef CHRONO_PARALLEL_HAS_OPENGL
-   // The OpenGL manager will automatically run the simulation
-
-   utils::ChOpenGLWindow &gl_window = utils::ChOpenGLWindow::getInstance();
-   gl_window.Initialize(1280, 720, "mixerDEM", &msystem);
-   gl_window.SetCamera(ChVector<>(0,-10,0), ChVector<>(0,0,0),ChVector<>(0,0,1));
-   //gl_window.StartDrawLoop();
+    if (gl_window.Active()) {
+      gl_window.DoStepDynamics(time_step);
+      gl_window.Render();
+    }
+#else
+    msystem.DoStepDynamics(time_step);
 #endif
-   // Run simulation for specified time
-   int num_steps = std::ceil(time_end / time_step);
-   double time = 0;
 
-   for (int i = 0; i < num_steps; i++) {
-      SimFrameCallback(&msystem, i);
-#ifdef CHRONO_PARALLEL_HAS_OPENGL
-      if (gl_window.Active()) {
-         gl_window.DoStepDynamics(time_step);
-         gl_window.Render();
-      }
-#endif
-      time += time_step;
-   }
+    time += time_step;
+  }
 
   return 0;
 }
