@@ -227,11 +227,6 @@ bool CollideAndFindPoint(
    }
 
 // Phase One: Identify a portal
-
-   int phase1 = 0;
-   int phase2 = 0;
-   int max_iterations = 30;
-
    while (true) {
 
       // Obtain the support point in a direction perpendicular to the existing plane

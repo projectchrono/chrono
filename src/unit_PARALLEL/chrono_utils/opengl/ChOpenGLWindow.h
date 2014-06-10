@@ -54,6 +54,9 @@ class CH_UTILS_OPENGL_API ChOpenGLWindow {
    //Check if the glfw context is still valid and the window has not been closed
    bool Active();
 
+   //Check if the simulation is running or paused
+   bool Running();
+
    //Set the camera position, look at and up vectors
    void SetCamera(
          ChVector<> pos,   //The position of the camera

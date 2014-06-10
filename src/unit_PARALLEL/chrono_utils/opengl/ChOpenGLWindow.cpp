@@ -115,6 +115,14 @@ bool ChOpenGLWindow::Active() {
    return !glfwWindowShouldClose(window);
 }
 
+bool ChOpenGLWindow::Running() {
+   ChOpenGLViewer* pointer = ((ChOpenGLViewer *) (glfwGetWindowUserPointer(window)));
+   if (pointer->pause_sim == true) {
+      return false;
+   }
+   return true;
+}
+
 bool ChOpenGLWindow::GLUGetError(
       string err) {
    bool return_error = false;
