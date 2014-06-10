@@ -330,6 +330,49 @@ void CreateRigidBodiesFromFile(thrust::host_vector<real3> & rigidPos,
 	int counterRigid = 0;
 	while (!ifileSpheres.eof()) {
 		//real_ r = rRigidBody * (.75 + .75 * real_(rand())/RAND_MAX);
+
+		real3 pos = R3(x * paramsH.sizeScale,
+				y * paramsH.sizeScale, z * paramsH.sizeScale);
+		real4 q = R4(1, 0, 0, 0);
+		real3 referenceR = 	R3(dumRRigidBody1, dumRRigidBody2, dumRRigidBody3) * paramsH.sizeScale;
+
+		Add_Ellipsoid_To_Data(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
+						rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii,
+						pos, q, referenceR, rhoRigid);
+//			Add_2DCylinder_To_Data(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
+//							rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii,
+//							pos, q, referenceR, rhoRigid);
+
+		ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> dumRRigidBody1 >> ch
+				>> dumRRigidBody2 >> ch >> dumRRigidBody3;
+		counterRigid++;
+	}
+	ifileSpheres.close();
+}
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+void CreateRigidBodiesFromFileSerpentine(thrust::host_vector<real3> & rigidPos,
+		thrust::host_vector<real4> & mQuatRot,
+		thrust::host_vector<real4> & velMassRigidH,
+		thrust::host_vector<real3> & rigidBodyOmega,
+		thrust::host_vector<real3> & rigidBody_J1,
+		thrust::host_vector<real3> & rigidBody_J2,
+		thrust::host_vector<real3> & rigidBody_InvJ1,
+		thrust::host_vector<real3> & rigidBody_InvJ2,
+		thrust::host_vector<real3> & ellipsoidRadii,
+		const string fileNameRigids, const real_ rhoRigid) {
+
+	fstream ifileSpheres(fileNameRigids.c_str(), ios::in);
+	//rRigidBody = .08 * paramsH.sizeScale;//.06 * paramsH.sizeScale;//.125 * paramsH.sizeScale; // .25 * paramsH.sizeScale; //.06 * paramsH.sizeScale;//.08 * paramsH.sizeScale;//.179 * paramsH.sizeScale;
+
+	real_ x, y, z;
+	char ch;
+
+	real_ dumRRigidBody1, dumRRigidBody2, dumRRigidBody3;
+	ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> dumRRigidBody1 >> ch
+			>> dumRRigidBody2 >> ch >> dumRRigidBody3;
+	int counterRigid = 0;
+	while (!ifileSpheres.eof()) {
+		//real_ r = rRigidBody * (.75 + .75 * real_(rand())/RAND_MAX);
 		for (int period = 0; period < paramsH.nPeriod; period++) {
 
 			real3 pos = R3(x * paramsH.sizeScale + period * sPeriod,
@@ -1888,9 +1931,9 @@ int main() {
 		paramsH.bodyForce4 = R4(2.4e-5,0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
 		paramsH.rho0 = 1000;
 		paramsH.mu0 = 1.0f;
-		paramsH.v_Max = 1.8e-2;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
+		paramsH.v_Max = 18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 		paramsH.EPS_XSPH = .5f;
-		paramsH.dT = 1e-5;//.001; //sph alone: .01 for Re 10;
+		paramsH.dT = .5e-5;//.001; //sph alone: .01 for Re 10;
 		paramsH.tFinal = 20;//20 * paramsH.dT; //400
 		paramsH.kdT = 5;
 		paramsH.gammaBB = 0.5;
@@ -1964,6 +2007,7 @@ int main() {
 
 		//printf("side0 %d %d %d \n", side0.x, side0.y, side0.z);
 
+		printf("sizes *** nP * sP + xFistChannel + xSecondChannel %f \n ", 7 * sPeriod + (r3_2.x + 2 * r4_2.x + r6_2.x) + x_FirstChannel + x_SecondChannel);
 
 		//1---------------------------------------------- Initialization ----------------------------------------
 		//2------------------------------------------- Generating Random Data -----------------------------------
@@ -1997,6 +2041,8 @@ int main() {
 
 		//**
 		CreateRigidBodiesFromFile(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
+		//**
+//		CreateRigidBodiesFromFileSerpentine(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
 		//**
 	//	real2 cylinderR_H = R2(flexParams.r, .2);
 	//	CreateOne3DRigidCylinder(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
