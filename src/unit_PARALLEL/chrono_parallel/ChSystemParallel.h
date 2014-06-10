@@ -58,8 +58,20 @@ CH_RTTI(ChSystemParallel, ChSystem)
   virtual void UpdateBodies() = 0;
   virtual void ChangeCollisionSystem(ChCollisionSystem *newcollsystem);
 
+  virtual void PrintStepStats() {
+    gpu_data_manager->system_timer.PrintReport();
+  }
+
+  int GetNumBodies() {
+    return gpu_data_manager->num_bodies;
+  }
+
   int GetNcontacts() {
     return gpu_data_manager->num_contacts;
+  }
+
+  int GetNumBilaterals() {
+    return gpu_data_manager->num_bilaterals;
   }
 
   void SetAABB(real3 aabbmin, real3 aabbmax) {
@@ -135,6 +147,8 @@ public:
   virtual void UpdateBodies();
 
   virtual void ChangeCollisionSystem(ChCollisionSystem *newcollsystem);
+
+  virtual void PrintStepStats();
 
   double GetTimerProcessContact() const {return gpu_data_manager->system_timer.GetTime("ChLcpSolverParallelDEM_ProcessContact");}
 

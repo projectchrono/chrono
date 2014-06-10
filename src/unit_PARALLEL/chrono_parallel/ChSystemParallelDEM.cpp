@@ -121,3 +121,31 @@ void ChSystemParallelDEM::ChangeCollisionSystem(ChCollisionSystem* newcollsystem
   ChSystemParallel::ChangeCollisionSystem(newcollsystem);
   ((ChCollisionSystemParallel *) collision_system)->SetCollisionEnvelope(0);
 }
+
+void ChSystemParallelDEM::PrintStepStats()
+{
+  double timer_solver_setup = gpu_data_manager->system_timer.GetTime("ChLcpSolverParallel_Setup");
+  double timer_solver_rhs   = gpu_data_manager->system_timer.GetTime("ChLcpSolverParallel_RHS");
+  double timer_solver_stab  = gpu_data_manager->system_timer.GetTime("ChLcpSolverParallel_Stab");
+
+  std::cout << std::endl;
+  std::cout << "System Information" << std::endl;
+  std::cout << "------------------" << std::endl;
+  std::cout << "  Number of bodies     " << GetNumBodies() << std::endl;
+  std::cout << "  Number of contacts   " << GetNcontacts() << std::endl;
+  std::cout << "  Number of bilaterals " << GetNumBilaterals() << std::endl;
+  std::cout << std::endl;
+  std::cout << "Timing Information" << std::endl;
+  std::cout << "------------------" << std::endl;
+  std::cout << "Simulation time        " << GetTimerStep() << std::endl;
+  std::cout << "  Collision detection    " << GetTimerCollision() << std::endl;
+  std::cout << "    broad phase            " << GetTimerCollisionBroad() << std::endl;
+  std::cout << "    narrow phase           " << GetTimerCollisionNarrow() << std::endl;
+  std::cout << "  Update                 " << GetTimerUpdate() << std::endl;
+  std::cout << "  Solver                 " << GetTimerLcp() << std::endl;
+  std::cout << "    contact force calc     " << GetTimerProcessContact() << std::endl;
+  std::cout << "    setup                  " << timer_solver_setup << std::endl;
+  std::cout << "      RHS                    " << timer_solver_rhs << std::endl;
+  std::cout << "    stabilization          " << timer_solver_stab << std::endl;
+  std::cout << std::endl;
+}
