@@ -1879,15 +1879,15 @@ int main() {
 		paramsH.NUM_BOUNDARY_LAYERS = 4;
 		paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);
 		paramsH.NUM_BCE_LAYERS = 2;
-		paramsH.solidSurfaceAdjust = .5 * (paramsH.HSML * paramsH.MULT_INITSPACE);
+		paramsH.solidSurfaceAdjust = .6 * (paramsH.HSML * paramsH.MULT_INITSPACE);
 		paramsH.BASEPRES = 0;
 		paramsH.LARGE_PRES = 1e5;
 		paramsH.nPeriod = 1;
-		paramsH.gravity = R3(0);//R3(0, -.5, 0);//R3(0);//R3(0, -9.81, 0);
+		paramsH.gravity = R3(0, 0, 0);//R3(0);//R3(0, -9.81, 0);
 		paramsH.bodyForce4 = R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
 		paramsH.rho0 = 1000;
 		paramsH.mu0 = 1.0f;
-		paramsH.v_Max = 1e-1;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
+		paramsH.v_Max = 2e-1;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 		paramsH.EPS_XSPH = .5f;
 		paramsH.dT = .001; //sph alone: .01 for Re 10;
 		paramsH.tFinal = 100;//20 * paramsH.dT; //400
@@ -1910,8 +1910,8 @@ int main() {
 		//3D cylinder params:
 		real_ rhoRigid = 1.0 * paramsH.rho0;//7200; //1.0 * paramsH.rho0;
 
-		// note: for 3D pipe Poiseuille: f = 32*Re*mu^2/(rho^2 * D^3), where f: body force, Re = rho * u_ave * D / mu
-		// note: for 2D pipe Poiseuille: f = 12*Re*mu^2/(rho^2 * W^3), where f: body force, Re = rho * u_ave * W / mu
+		// note: for 3D pipe Poiseuille: f = 32*Re*mu^2/(rho^2 * D^3), where f: body force, Re = rho * u_ave * D / mu --> V=rho * D^2 f / (32 mu)
+		// note: for 2D pipe Poiseuille: f = 12*Re*mu^2/(rho^2 * W^3), where f: body force, Re = rho * u_ave * W / mu --> V=rho * W^2 f / (12 mu)
 		//****************************************************************************************
 		//*** initialize pipe
 		channelRadius = 0.5 * paramsH.sizeScale; //5.6 * paramsH.sizeScale; //1.0 * paramsH.sizeScale; //tube
