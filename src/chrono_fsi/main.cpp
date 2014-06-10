@@ -1508,7 +1508,7 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 						num_BoundaryMarkers++;
 						mPosRadBoundary.push_back(posRad);
 						mVelMasBoundary.push_back(R4(0, 0, 0, sphMarkerMass));
-						if (-penDist / (paramsH.NUM_BOUNDARY_LAYERS * paramsH.HSML) <= 2 ) {
+						if (-penDist / (paramsH.MULT_INITSPACE * paramsH.HSML) <= 2 ) {
 							mRhoPresMuBoundary.push_back(
 									R4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0,
 											0)); //rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
@@ -1925,7 +1925,7 @@ int main() {
 		paramsH.NUM_BCE_LAYERS = 2;
 		paramsH.solidSurfaceAdjust = .6 * (paramsH.HSML * paramsH.MULT_INITSPACE);
 		paramsH.BASEPRES = 0;
-		paramsH.LARGE_PRES = 1e5;
+		paramsH.LARGE_PRES = 1e3;
 		paramsH.nPeriod = 7;
 		paramsH.gravity = R3(0, 0, 0);//R3(0);//R3(0, -9.81, 0);
 		paramsH.bodyForce4 = R4(2.4e-5,0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
