@@ -10,7 +10,7 @@ float shininess = 100.0;
 
 flat in vec3 color_ambient;
 flat in vec3 color_diffuse;
-flat in vec3 color_specular;
+vec3 color_specular = vec3(1,1,1);
 
 vec3 light_pos = vec3(100,100,100);
 in vec3 normal;

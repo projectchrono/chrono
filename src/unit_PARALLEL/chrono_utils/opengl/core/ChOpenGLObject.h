@@ -44,6 +44,10 @@ class CH_UTILS_OPENGL_API ChOpenGLObject : public ChOpenGLBase {
    GLuint vertex_array_handle;
    GLuint vertex_data_handle;
    GLuint vertex_element_handle;
+   GLuint vertex_ambient_handle;
+   GLuint vertex_diffuse_handle;
+   GLuint vertex_specular_handle;
+   GLuint vertex_model_handle;
    std::vector<GLuint> vertex_indices;
    ChOpenGLShader * shader;
  private:

@@ -46,7 +46,6 @@ bool ChOpenGLOBJ::Initialize(
    return true;
 }
 
-
 void ChOpenGLOBJ::TakeDown() {
    for (unsigned int i = 0; i < meshes.size(); i++) {
       meshes[i].TakeDown();
@@ -60,15 +59,20 @@ void ChOpenGLOBJ::TakeDown() {
    names.clear();
 
 }
-
+void ChOpenGLOBJ::Update(
+      std::vector<glm::mat4> & model) {
+   for (unsigned int i = 0; i < meshes.size(); i++) {
+      meshes[i].Update(model);
+   }
+}
 void ChOpenGLOBJ::Draw(
       const mat4 & projection,
-      const mat4 & modelview) {
+      const mat4 & view) {
    if (this->GLReturnedError("ChOpenGLOBJ::Draw - on entry"))
       return;
 
    for (unsigned int i = 0; i < meshes.size(); i++) {
-      meshes[i].Draw(projection, modelview);
+      meshes[i].Draw(projection, view);
    }
 
    if (this->GLReturnedError("ChOpenGLOBJ::Draw - on exit"))

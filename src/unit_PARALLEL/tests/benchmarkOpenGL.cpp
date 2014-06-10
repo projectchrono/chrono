@@ -39,10 +39,11 @@ void AddMixture(
    int Id_g = 1;
 
    gen = new utils::Generator(sys);
-   utils::MixtureIngredientPtr& m1 = gen->AddMixtureIngredient(utils::SPHERE, .5);
-   utils::MixtureIngredientPtr& m3 = gen->AddMixtureIngredient(utils::BOX, .5);
+   //utils::MixtureIngredientPtr& m1 = gen->AddMixtureIngredient(utils::SPHERE, .5);
+   utils::MixtureIngredientPtr& m2 = gen->AddMixtureIngredient(utils::BOX, 1.0);
+   m2->setDefaultSize(ChVector<>(1,.5,1));
    gen->setBodyIdentifier(Id_g);
-   gen->createObjectsCylinderX(utils::REGULAR_GRID, 2, ChVector<>(0, 0, 0), 20, 20, ChVector<>(0, 0, 0));
+   gen->createObjectsCylinderX(utils::REGULAR_GRID, 2, ChVector<>(0, 0, 0), 20,20, ChVector<>(0, 0, 0));
 }
 
 // -----------------------------------------------------------------------------
@@ -58,7 +59,7 @@ int main(
    // Create the fixed bodies
    // ----------------------------------
    AddMixture(&msystem);
-
+   msystem.DoFullAssembly();
    // Render everything
    // ----------------------------------
    utils::ChOpenGLWindow &gl_window = utils::ChOpenGLWindow::getInstance();

@@ -36,13 +36,19 @@ class CH_UTILS_OPENGL_API ChOpenGLMesh : public ChOpenGLObject {
          std::vector<GLuint> &indices,
          ChOpenGLMaterial mat);
    bool PostInitialize();
+   void Update(std::vector<glm::mat4> & model);
    virtual void Draw(
          const glm::mat4 & projection,
-         const glm::mat4 & modelview);
+         const glm::mat4 & view);
 
    void TakeDown();
  protected:
-   std::vector<ChOpenGLVertexAttributesPADSN> data;
+   std::vector<ChOpenGLVertexAttributesPN> data;
+   glm::vec3 ambient;
+   glm::vec3 specular;
+   glm::vec3 diffuse;
+   int size;
+
    typedef ChOpenGLObject super;
 };
 }

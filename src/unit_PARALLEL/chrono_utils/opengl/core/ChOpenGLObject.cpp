@@ -37,6 +37,10 @@ ChOpenGLObject::~ChOpenGLObject() {
    assert(this->vertex_array_handle == GLuint(-1));
    assert(this->vertex_data_handle == GLuint(-1));
    assert(this->vertex_element_handle == GLuint(-1));
+   assert(this->vertex_ambient_handle == GLuint(-1));
+   assert(this->vertex_diffuse_handle == GLuint(-1));
+   assert(this->vertex_specular_handle == GLuint(-1));
+   assert(this->vertex_model_handle == GLuint(-1));
 }
 //clear all of the internal data structures used by object
 void ChOpenGLObject::TakeDown() {
@@ -52,6 +56,18 @@ void ChOpenGLObject::TakeDown() {
 
    if (this->vertex_element_handle != GLuint(-1))
       glDeleteBuffers(1, &this->vertex_element_handle);
+
+   if (this->vertex_ambient_handle != GLuint(-1))
+      glDeleteBuffers(1, &this->vertex_ambient_handle);
+
+   if (this->vertex_diffuse_handle != GLuint(-1))
+      glDeleteBuffers(1, &this->vertex_diffuse_handle);
+
+   if (this->vertex_specular_handle != GLuint(-1))
+      glDeleteBuffers(1, &this->vertex_specular_handle);
+
+   if (this->vertex_model_handle != GLuint(-1))
+      glDeleteBuffers(1, &this->vertex_model_handle);
 
    this->InternalInitialize();
 }
@@ -71,8 +87,8 @@ bool ChOpenGLObject::PostGLInitialize(
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vertex_element_handle);
    glBufferData(GL_ELEMENT_ARRAY_BUFFER, vertex_indices.size() * sizeof(GLuint), &vertex_indices[0], GL_STATIC_DRAW);
 
-  // glBindBuffer(GL_ARRAY_BUFFER, 0);
-  // glBindVertexArray(0);
+   // glBindBuffer(GL_ARRAY_BUFFER, 0);
+   // glBindVertexArray(0);
 
    return !this->GLReturnedError("ChOpenGLObject::PostGLInitialize - on exit");
 }
@@ -93,4 +109,8 @@ void ChOpenGLObject::InternalInitialize() {
 
    this->vertex_array_handle = GLuint(-1);
    this->vertex_data_handle = GLuint(-1);
+   this->vertex_ambient_handle = GLuint(-1);
+   this->vertex_diffuse_handle = GLuint(-1);
+   this->vertex_specular_handle = GLuint(-1);
+   this->vertex_model_handle = GLuint(-1);
 }

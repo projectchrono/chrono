@@ -27,9 +27,8 @@ ChOpenGLShader::ChOpenGLShader() {
    this->vertex_shader_id = BAD_GL_VALUE;
    this->fragment_shader_id = BAD_GL_VALUE;
    this->program_id = BAD_GL_VALUE;
-   this->modelview_matrix_handle = BAD_GL_VALUE;
-   //this->projection_matrix_handle = BAD_GL_VALUE;
-   this->normal_matrix_handle = BAD_GL_VALUE;
+   this->view_matrix_handle = BAD_GL_VALUE;
+   this->projection_matrix_handle = BAD_GL_VALUE;
    this->time_handle = BAD_GL_VALUE;
    this->camera_handle = BAD_GL_VALUE;
    time = 0;
@@ -45,24 +44,15 @@ ChOpenGLShader::ChOpenGLShader() {
 
 void ChOpenGLShader::CommonSetup(
       const GLfloat * projection,
-      const GLfloat * modelview,
-      const GLfloat * mvp,
-      const GLfloat * nm) {
-  // if (this->projection_matrix_handle != BAD_GL_VALUE)
-  //    glUniformMatrix4fv(this->projection_matrix_handle, 1, GL_FALSE, projection);
-  // this->GLReturnedError("Draw - after projection_matrix_handle");
+      const GLfloat * view) {
+   if (this->projection_matrix_handle != BAD_GL_VALUE)
+      glUniformMatrix4fv(this->projection_matrix_handle, 1, GL_FALSE, projection);
+   this->GLReturnedError("Draw - after projection_matrix_handle");
 
-   if (this->modelview_matrix_handle != BAD_GL_VALUE)
-      glUniformMatrix4fv(this->modelview_matrix_handle, 1, GL_FALSE, modelview);
-   this->GLReturnedError("Draw - after modelview_matrix_handle");
+   if (this->view_matrix_handle != BAD_GL_VALUE)
+      glUniformMatrix4fv(this->view_matrix_handle, 1, GL_FALSE, view);
+   this->GLReturnedError("Draw - after view_matrix_handle");
 
-   if (this->mvp_handle != BAD_GL_VALUE)
-      glUniformMatrix4fv(this->mvp_handle, 1, GL_FALSE, mvp);
-   this->GLReturnedError("Draw - after mvp_handle");
-
-   if (this->normal_matrix_handle != BAD_GL_VALUE)
-      glUniformMatrix3fv(this->normal_matrix_handle, 1, GL_FALSE, nm);
-   this->GLReturnedError("Draw - after normal_matrix_handle");
 }
 
 void ChOpenGLShader::SetTime(
@@ -83,7 +73,7 @@ void ChOpenGLShader::Use() {
    if (this->camera_handle != BAD_GL_VALUE) {
       glUniform3fv(this->camera_handle, 1, glm::value_ptr(camera_pos));
    }
-   this->GLReturnedError("Draw - after time_handle");
+   this->GLReturnedError("ChOpenGLShader::Use - exit");
 
 }
 
@@ -179,11 +169,8 @@ void ChOpenGLShader::CompleteInit() {
 
    CheckGlProgram(this->program_id);
    //Locate all of the possible default handles that we can have
-
-   this->modelview_matrix_handle = GetUniformLocation("modelview_matrix");
-   //this->projection_matrix_handle = GetUniformLocation("projection_matrix");
-   this->normal_matrix_handle = GetUniformLocation("normal_matrix");
-   this->mvp_handle = GetUniformLocation("mvp");
+   this->projection_matrix_handle = GetUniformLocation("projection_matrix");
+   this->view_matrix_handle = GetUniformLocation("view_matrix");
    this->time_handle = GetUniformLocation("time");
    this->camera_handle = GetUniformLocation("camera_position");
 

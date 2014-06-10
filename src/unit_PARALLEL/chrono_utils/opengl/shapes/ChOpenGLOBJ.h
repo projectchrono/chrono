@@ -29,6 +29,7 @@ class CH_UTILS_OPENGL_API ChOpenGLOBJ : public ChOpenGLBase {
          std::string filename,
          ChOpenGLMaterial mat,
          ChOpenGLShader * shader);
+   void Update(std::vector<glm::mat4> & model);
    virtual void Draw(
          const glm::mat4 & projection,
          const glm::mat4 & modelview);

@@ -50,19 +50,15 @@ class CH_UTILS_OPENGL_API ChOpenGLShader : public ChOpenGLBase {
    virtual void CustomSetup();
    void CommonSetup(
          const GLfloat * projection,
-         const GLfloat * modelview,
-         const GLfloat * mvp,
-         const GLfloat * nm);
+         const GLfloat * view);
    void SetTime(
          float _time);
    void SetCamera(
          glm::vec3 campos);
    GLuint GetUniformLocation(
          std::string name);
-   GLuint modelview_matrix_handle;
+   GLuint view_matrix_handle;
    GLuint projection_matrix_handle;
-   GLuint normal_matrix_handle;
-   GLuint mvp_handle;
    GLuint time_handle, camera_handle;
    GLuint vertex_shader_id;
    GLuint fragment_shader_id;

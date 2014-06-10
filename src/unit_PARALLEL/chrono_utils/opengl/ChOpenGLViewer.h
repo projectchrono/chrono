@@ -54,6 +54,7 @@ class CH_UTILS_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
    void Render();
    void DrawObject(
          ChBody * abody);
+   void GenerateFontIndex();
    void RenderText(
          const std::string &str,
          float x,
@@ -78,6 +79,8 @@ class CH_UTILS_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
    ChOpenGLShader cloud_shader;
    ChOpenGLShader font_shader;
 
+   std::map<char, int> char_index;
+
    ChOpenGLOBJ sphere;
    ChOpenGLOBJ box;
    ChOpenGLOBJ cylinder;
@@ -100,6 +103,13 @@ class CH_UTILS_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
    ChTimer<double> render_timer, text_timer, geometry_timer;
    float old_time, current_time;
    float time_geometry, time_text, time_total, fps;
+
+   vector<glm::mat4> model_box;
+   vector<glm::mat4> model_sphere;
+   vector<glm::mat4> model_cylinder;
+   vector<glm::mat4> model_cone;
+
+
 };
 }
 }
