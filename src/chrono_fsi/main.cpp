@@ -1902,13 +1902,13 @@ int main() {
 		paramsH.NUM_BCE_LAYERS = 2;
 		paramsH.solidSurfaceAdjust = .6 * (paramsH.HSML * paramsH.MULT_INITSPACE);
 		paramsH.BASEPRES = 0;
-		paramsH.LARGE_PRES = 0;
+		paramsH.LARGE_PRES = 1000;
 		paramsH.nPeriod = 7;
 		paramsH.gravity = R3(0, 0, 0);//R3(0);//R3(0, -9.81, 0);
-		paramsH.bodyForce4 = R4(0);//R4(2.4e-5,0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
+		paramsH.bodyForce4 = R4(2.4e-5,0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
 		paramsH.rho0 = 1000;
-		paramsH.mu0 = 1.0f;
-		paramsH.v_Max = 18e-4;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
+		paramsH.mu0 = .001;
+		paramsH.v_Max = 18e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 		paramsH.EPS_XSPH = .5f;
 		paramsH.dT = 1e-5;//.001; //sph alone: .01 for Re 10;
 		paramsH.tFinal = 20;//20 * paramsH.dT; //400
