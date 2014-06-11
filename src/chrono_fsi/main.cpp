@@ -319,7 +319,6 @@ void CreateRigidBodiesFromFile(thrust::host_vector<real3> & rigidPos,
 		const string fileNameRigids, const real_ rhoRigid) {
 
 	fstream ifileSpheres(fileNameRigids.c_str(), ios::in);
-	//rRigidBody = .08 * paramsH.sizeScale;//.06 * paramsH.sizeScale;//.125 * paramsH.sizeScale; // .25 * paramsH.sizeScale; //.06 * paramsH.sizeScale;//.08 * paramsH.sizeScale;//.179 * paramsH.sizeScale;
 
 	real_ x, y, z;
 	char ch;
@@ -331,10 +330,9 @@ void CreateRigidBodiesFromFile(thrust::host_vector<real3> & rigidPos,
 	while (!ifileSpheres.eof()) {
 		//real_ r = rRigidBody * (.75 + .75 * real_(rand())/RAND_MAX);
 
-		real3 pos = R3(x * paramsH.sizeScale,
-				y * paramsH.sizeScale, z * paramsH.sizeScale);
+		real3 pos = R3(x, y, z);
 		real4 q = R4(1, 0, 0, 0);
-		real3 referenceR = 	R3(dumRRigidBody1, dumRRigidBody2, dumRRigidBody3) * paramsH.sizeScale;
+		real3 referenceR = 	R3(dumRRigidBody1, dumRRigidBody2, dumRRigidBody3);
 
 		Add_Ellipsoid_To_Data(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
 						rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii,
@@ -350,7 +348,7 @@ void CreateRigidBodiesFromFile(thrust::host_vector<real3> & rigidPos,
 	ifileSpheres.close();
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-void CreateRigidBodiesFromFileSerpentine(thrust::host_vector<real3> & rigidPos,
+void CreateRigidBodiesFromFileSerpentinePeriodic(thrust::host_vector<real3> & rigidPos,
 		thrust::host_vector<real4> & mQuatRot,
 		thrust::host_vector<real4> & velMassRigidH,
 		thrust::host_vector<real3> & rigidBodyOmega,
@@ -362,7 +360,6 @@ void CreateRigidBodiesFromFileSerpentine(thrust::host_vector<real3> & rigidPos,
 		const string fileNameRigids, const real_ rhoRigid) {
 
 	fstream ifileSpheres(fileNameRigids.c_str(), ios::in);
-	//rRigidBody = .08 * paramsH.sizeScale;//.06 * paramsH.sizeScale;//.125 * paramsH.sizeScale; // .25 * paramsH.sizeScale; //.06 * paramsH.sizeScale;//.08 * paramsH.sizeScale;//.179 * paramsH.sizeScale;
 
 	real_ x, y, z;
 	char ch;
@@ -375,17 +372,13 @@ void CreateRigidBodiesFromFileSerpentine(thrust::host_vector<real3> & rigidPos,
 		//real_ r = rRigidBody * (.75 + .75 * real_(rand())/RAND_MAX);
 		for (int period = 0; period < paramsH.nPeriod; period++) {
 
-			real3 pos = R3(x * paramsH.sizeScale + period * sPeriod,
-					y * paramsH.sizeScale, z * paramsH.sizeScale);
+			real3 pos = R3(x + period * sPeriod, y , z);
 			real4 q = R4(1, 0, 0, 0);
-			real3 referenceR = 	R3(dumRRigidBody1, dumRRigidBody2, dumRRigidBody3) * paramsH.sizeScale;
+			real3 referenceR = 	R3(dumRRigidBody1, dumRRigidBody2, dumRRigidBody3);
 
 			Add_Ellipsoid_To_Data(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
 							rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii,
 							pos, q, referenceR, rhoRigid);
-//			Add_2DCylinder_To_Data(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
-//							rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii,
-//							pos, q, referenceR, rhoRigid);
 
 		}
 		ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> dumRRigidBody1 >> ch
@@ -1024,43 +1017,43 @@ real_ IsInBoundaryEllipsoid(real2 coord, real2 cent2, real2 r2) {
 //	real_ penDist2 = 0;
 //	bool isOut = false;
 //
-//	if (posRad.y < -paramsH.toleranceZone || posRad.y > 1.0 * paramsH.sizeScale + paramsH.toleranceZone) {
+//	if (posRad.y < -paramsH.toleranceZone || posRad.y > 1.0 * mm + paramsH.toleranceZone) {
 //		return largePenet;
 //	}
 //	else if (posRad.y < 0) {
 //		penDist2 = posRad.y;
 //		isOut = true;
 //	}
-//	else if ( posRad.y > 1.0 * paramsH.sizeScale) {
-//		penDist2 = (1.0 * paramsH.sizeScale - posRad.y);
+//	else if ( posRad.y > 1.0 * mm) {
+//		penDist2 = (1.0 * mm - posRad.y);
 //		isOut = true;
 //	}
 //	//serpentine
-//	real_ r1 = 1.3 * paramsH.sizeScale, r2 = 1.0 * paramsH.sizeScale, r3=2.0 * paramsH.sizeScale, r4 = 0.3 * paramsH.sizeScale;
+//	real_ r1 = 1.3 * mm, r2 = 1.0 * mm, r3=2.0 * mm, r4 = 0.3 * mm;
 //	x = fmod(posRad.x, sPeriod); //posRad.x - int(posRad.x / sPeriod) * sPeriod; //fmod
 //	y = posRad.z;
-//	if (x >= 0 && x < 1.3 * paramsH.sizeScale) {
+//	if (x >= 0 && x < 1.3 * mm) {
 //		if (y < -3 * paramsH.toleranceZone) return largePenet;
-//		if (y < 0) return (x - 1.3 * paramsH.sizeScale);
+//		if (y < 0) return (x - 1.3 * mm);
 //		penDist = IsOutBoundaryCircle(R2(x, y), R2(0, 0), r1); if (penDist < 0) return penDist;
-//		penDist = IsInBoundaryCircle(R2(x, y), R2(0, 1.0 * paramsH.sizeScale), r3); if (penDist < 0) return penDist;
-//	} else if (x >= 1.3 * paramsH.sizeScale && x < 2.0 * paramsH.sizeScale) {
-//		if (y > 1.0 * paramsH.sizeScale) { penDist = IsInBoundaryCircle(R2(x, y), R2(0, 1.0 * paramsH.sizeScale), r3); if (penDist < 0) return penDist; }
-//		else if (y < 0) { penDist = IsInBoundaryCircle(R2(x, y), R2(2.3 * paramsH.sizeScale, 0), r2); if (penDist < 0) return penDist; }
-//	} else if (x >= 2.0 * paramsH.sizeScale && x < 2.6 * paramsH.sizeScale) {
-//		if (y < .55 * paramsH.sizeScale) {
-//			penDist = IsInBoundaryCircle(R2(x, y), R2(2.3 * paramsH.sizeScale, 0), r2); if (penDist < 0) return penDist;
-//			penDist = IsOutBoundaryCircle(R2(x, y), R2(2.3 * paramsH.sizeScale, .55 * paramsH.sizeScale), r4); if (penDist < 0) return penDist; }
-//		else if (y < 2 * paramsH.sizeScale) { penDist = IsOutBoundaryCircle(R2(x, y), R2(2.3 * paramsH.sizeScale, y), r4); if (penDist < 0) return penDist; }
+//		penDist = IsInBoundaryCircle(R2(x, y), R2(0, 1.0 * mm), r3); if (penDist < 0) return penDist;
+//	} else if (x >= 1.3 * mm && x < 2.0 * mm) {
+//		if (y > 1.0 * mm) { penDist = IsInBoundaryCircle(R2(x, y), R2(0, 1.0 * mm), r3); if (penDist < 0) return penDist; }
+//		else if (y < 0) { penDist = IsInBoundaryCircle(R2(x, y), R2(2.3 * mm, 0), r2); if (penDist < 0) return penDist; }
+//	} else if (x >= 2.0 * mm && x < 2.6 * mm) {
+//		if (y < .55 * mm) {
+//			penDist = IsInBoundaryCircle(R2(x, y), R2(2.3 * mm, 0), r2); if (penDist < 0) return penDist;
+//			penDist = IsOutBoundaryCircle(R2(x, y), R2(2.3 * mm, .55 * mm), r4); if (penDist < 0) return penDist; }
+//		else if (y < 2 * mm) { penDist = IsOutBoundaryCircle(R2(x, y), R2(2.3 * mm, y), r4); if (penDist < 0) return penDist; }
 //		else return largePenet;
-//	} else if (x >= 2.6 * paramsH.sizeScale && x < 3.3 * paramsH.sizeScale) {
-//		if (y > 1.0 * paramsH.sizeScale) { penDist = IsInBoundaryCircle(R2(x, y), R2(4.6 * paramsH.sizeScale, 1.0 * paramsH.sizeScale), r3); if (penDist < 0) return penDist; }
-//		else if (y < 0) { penDist = IsInBoundaryCircle(R2(x, y), R2(2.3 * paramsH.sizeScale, 0), r2); if (penDist < 0) return penDist; }
-//	} else if (x >= 3.3 * paramsH.sizeScale && x < 4.6 * paramsH.sizeScale) {
+//	} else if (x >= 2.6 * mm && x < 3.3 * mm) {
+//		if (y > 1.0 * mm) { penDist = IsInBoundaryCircle(R2(x, y), R2(4.6 * mm, 1.0 * mm), r3); if (penDist < 0) return penDist; }
+//		else if (y < 0) { penDist = IsInBoundaryCircle(R2(x, y), R2(2.3 * mm, 0), r2); if (penDist < 0) return penDist; }
+//	} else if (x >= 3.3 * mm && x < 4.6 * mm) {
 //		if (y < -3 * paramsH.toleranceZone) return largePenet;
-//		if (y < 0) return 3.3 * paramsH.sizeScale - x;
-//		penDist = IsOutBoundaryCircle(R2(x, y), R2(4.6 * paramsH.sizeScale, 0), r1); if (penDist < 0) return penDist;
-//		penDist = IsInBoundaryCircle(R2(x, y), R2(4.6 * paramsH.sizeScale, 1.0 * paramsH.sizeScale), r3); if (penDist < 0) return penDist;
+//		if (y < 0) return 3.3 * mm - x;
+//		penDist = IsOutBoundaryCircle(R2(x, y), R2(4.6 * mm, 0), r1); if (penDist < 0) return penDist;
+//		penDist = IsInBoundaryCircle(R2(x, y), R2(4.6 * mm, 1.0 * mm), r3); if (penDist < 0) return penDist;
 //	}
 //	if (!isOut)
 //		return -largePenet;
@@ -1328,15 +1321,12 @@ real_ IsInsideTube(real3 posRad) {
 	real_ largePenet = -5 * paramsH.HSML; //like a large number. Should be negative (assume large initial penetration)
 	real2 centerLine = R2(channelCenterYZ.x, channelCenterYZ.y);
 	real_ r = length(R2(posRad.y, posRad.z) - centerLine);
-//printf("ch R %f\n", channelRadius);
-	//if (posRad.z > 3.0 * paramsH.sizeScale) {penDist1 = 3.0 * paramsH.sizeScale - posRad.z;}
 
 	if (r > channelRadius) {
 		penDist1 = channelRadius - r;
 	}
 	if (penDist1 < 0)
 		return penDist1;
-	//printf("hey \n");
 	return -largePenet;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
@@ -1347,8 +1337,6 @@ real_ IsInsideStepTube(real3 posRad) {
 	real_ largePenet = -5 * sphR; //like a large number. Should be negative (assume large initial penetration)
 	real2 centerLine = R2(channelCenterYZ.x, channelCenterYZ.y);
 	real_ r = length(R2(posRad.y, posRad.z) - centerLine);
-//printf("ch R %f\n", channelRadius);
-	//if (posRad.z > 3.0 * paramsH.sizeScale) {penDist1 = 3.0 * paramsH.sizeScale - posRad.z;}
 
 	real_ tubeLength = paramsH.cMax.x - paramsH.cMin.x;
 	real_ r1 = channelRadius;
@@ -1491,17 +1479,6 @@ int2 CreateFluidMarkers(thrust::host_vector<real3> & mPosRad,
 											paramsH.mu0, -1)); //rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
 							//just note that the type, i.e. mRhoPresMu.w is real_.
 							//viscosity of the water is .0018
-
-							//if (posRad.x < .98 * paramsH.cMax.x && posRad.x > .96 * paramsH.cMax.x && posRad.y > .48 * paramsH.sizeScale &&  posRad.y < .52 * paramsH.sizeScale
-							//	&& posRad.z > 1.7 * paramsH.sizeScale &&  posRad.y < 1.75 * paramsH.sizeScale) {
-							//	if (num_FluidMarkers < 1) {
-							//		num_FluidMarkers ++;
-							//		mPosRad.push_back(posRad);
-							//		mVelMas.push_back( R4(0, 0, 0, pow(initSpace, 3) * paramsH.rho0) );
-							//		mRhoPresMu.push_back(R4(paramsH.rho0, pres, mu, -1));		//rho, pressure, viscosity for water at standard condition, last component is the particle type: -1: fluid, 0: boundary, 1, 2, 3, .... rigid bodies.
-							//															//just note that the type, i.e. mRhoPresMu.w is real_.
-							//															//viscosity of the water is .0018
-							//	}
 
 						}
 					} else {
@@ -1917,7 +1894,7 @@ int main() {
 			//***		paramsH.numBodies;
 			//***		paramsH.boxDims;
 
-		paramsH.sizeScale = 1;
+		paramsH.sizeScale = 1; //don't change it.
 		paramsH.HSML = 0.0001;
 		paramsH.MULT_INITSPACE = 1.0;
 		paramsH.NUM_BOUNDARY_LAYERS = 4;
@@ -1925,15 +1902,15 @@ int main() {
 		paramsH.NUM_BCE_LAYERS = 2;
 		paramsH.solidSurfaceAdjust = .6 * (paramsH.HSML * paramsH.MULT_INITSPACE);
 		paramsH.BASEPRES = 0;
-		paramsH.LARGE_PRES = 1e3;
+		paramsH.LARGE_PRES = 0;
 		paramsH.nPeriod = 7;
 		paramsH.gravity = R3(0, 0, 0);//R3(0);//R3(0, -9.81, 0);
-		paramsH.bodyForce4 = R4(2.4e-5,0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
+		paramsH.bodyForce4 = R4(0);//R4(2.4e-5,0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
 		paramsH.rho0 = 1000;
 		paramsH.mu0 = 1.0f;
-		paramsH.v_Max = 18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
+		paramsH.v_Max = 18e-4;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 		paramsH.EPS_XSPH = .5f;
-		paramsH.dT = .5e-5;//.001; //sph alone: .01 for Re 10;
+		paramsH.dT = 1e-5;//.001; //sph alone: .01 for Re 10;
 		paramsH.tFinal = 20;//20 * paramsH.dT; //400
 		paramsH.kdT = 5;
 		paramsH.gammaBB = 0.5;
@@ -2026,8 +2003,7 @@ int main() {
 		string fileNameRigids("spheresPos.dat");
 
 		//real_ rr = .4 * (real_(rand()) / RAND_MAX + 1);
-		real3 r3Ellipsoid = R3(1.5 * paramsH.HSML, 1.5 * paramsH.HSML, 2 * paramsH.HSML);//R3(0.5, 0.5, 0.5) * paramsH.sizeScale; //R3(0.4 * paramsH.sizeScale); //R3(0.8 * paramsH.sizeScale); //real3 r3Ellipsoid = R3(.03 * paramsH.sizeScale); //R3(.05, .03, .02) * paramsH.sizeScale; //R3(.03 * paramsH.sizeScale);
-
+		real3 r3Ellipsoid = R3(1.5 * paramsH.HSML, 1.5 * paramsH.HSML, 2 * paramsH.HSML);
 		//**
 //		int3 stride = I3(1, 1, 1);
 //		CreateRigidBodiesPattern(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride);
@@ -2042,7 +2018,7 @@ int main() {
 		//**
 		CreateRigidBodiesFromFile(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
 		//**
-//		CreateRigidBodiesFromFileSerpentine(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
+//		CreateRigidBodiesFromFileSerpentinePeriodic(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
 		//**
 	//	real2 cylinderR_H = R2(flexParams.r, .2);
 	//	CreateOne3DRigidCylinder(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega,
