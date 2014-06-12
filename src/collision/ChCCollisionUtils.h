@@ -28,7 +28,8 @@
 
 
 #include "physics/ChBody.h"
-
+#include "LinearMath/btConvexHull.h"
+#include "geometry/ChCTriangleMeshConnected.h"
 
 namespace chrono 
 {
@@ -75,6 +76,16 @@ public:
 								   Vector& Bprojected);
 
 
+};
+
+
+/// Wrapper for using andexporting the Bullet implementation of the convex hull library.
+class ChApi ChConvexHullLibraryWrapper
+{
+public:
+	ChConvexHullLibraryWrapper();
+
+	void ComputeHull(std::vector< ChVector<> >& points, geometry::ChTriangleMeshConnected& vshape);
 };
 
 

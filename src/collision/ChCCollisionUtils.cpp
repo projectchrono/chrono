@@ -34,7 +34,7 @@
 #include "geometry/ChCTriangle.h"
 #include "geometry/ChCSphere.h"
 #include "geometry/ChCBox.h"
-
+#include "geometry/ChCTriangleMeshConnected.h"
 
 namespace chrono
 {
@@ -198,6 +198,60 @@ int DegenerateTriangle(Vector Dx, Vector Dy)
 }
 
 
+
+ChConvexHullLibraryWrapper::ChConvexHullLibraryWrapper()
+{
+}
+
+void ChConvexHullLibraryWrapper::ComputeHull(std::vector< ChVector<> >& points, geometry::ChTriangleMeshConnected& vshape)
+{
+	HullLibrary hl;
+	HullResult  hresult;
+	HullDesc    desc;
+
+	desc.SetHullFlag(QF_TRIANGLES);
+
+	btVector3* btpoints = new btVector3[points.size()];
+	for (int ip = 0; ip < points.size(); ++ip)
+	{
+		btpoints[ip].setX( points[ip].x );
+		btpoints[ip].setY( points[ip].y );
+		btpoints[ip].setZ( points[ip].z );
+	}
+	desc.mVcount       = points.size();
+	desc.mVertices     = btpoints;
+	desc.mVertexStride = sizeof( btVector3 );
+
+	HullError hret = hl.CreateConvexHull(desc,hresult);
+
+	if ( hret == QE_OK )
+	{
+		vshape.Clear();
+
+		vshape.getIndicesVertexes().resize(hresult.mNumFaces);
+		for (int it= 0; it < hresult.mNumFaces; ++it)
+		{
+			hresult;
+			vshape.getIndicesVertexes()[it] = 
+				ChVector<int> ( hresult.m_Indices[it*3+0],
+								hresult.m_Indices[it*3+1],
+								hresult.m_Indices[it*3+2] );
+		}
+		vshape.getCoordsVertices().resize(hresult.mNumOutputVertices);
+		for (int iv= 0; iv < hresult.mNumOutputVertices; ++iv)
+		{
+			hresult;
+			vshape.getCoordsVertices()[iv] = 
+				ChVector<>    ( hresult.m_OutputVertices[iv].x(),
+								hresult.m_OutputVertices[iv].y(),
+								hresult.m_OutputVertices[iv].z() );
+		}
+	}
+
+	delete[] btpoints;
+
+	hl.ReleaseResult(hresult);
+}
 
 
 
