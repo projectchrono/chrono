@@ -137,6 +137,9 @@ public:
 		this->getIndicesColors().clear();
 	}
 
+			/// Compute barycenter, mass, inertia tensor
+	void ComputeMassProperties (bool bodyCoords, double& mass, ChVector<>& center, ChMatrix33<>& inertia);
+
 
 		//
 		// OVERRIDE BASE CLASS FUNCTIONS

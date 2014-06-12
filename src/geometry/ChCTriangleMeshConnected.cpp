@@ -838,6 +838,139 @@ private:
 };
 
 
+// Following function is a modified version of: 
+
+// Geometric Tools, LLC
+// Copyright (c) 1998-2014
+// Distributed under the Boost Software License, Version 1.0.
+// http://www.boost.org/LICENSE_1_0.txt
+// http://www.geometrictools.com/License/Boost/LICENSE_1_0.txt
+//
+// File Version: 5.0.1 (2010/10/01)
+
+void ChTriangleMeshConnected::ComputeMassProperties (bool bodyCoords, double& mass, ChVector<>& center, ChMatrix33<>& inertia)
+//void ComputeMassProperties (const Vector3<Real>* vertices, int numTriangles,
+//    const int* indices, bool bodyCoords, Real& mass, Vector3<Real>& center,
+ //   Matrix3<Real>& inertia)
+{
+    const double oneDiv6 = (double)(1.0/6.0);
+    const double oneDiv24 = (double)(1.0/24.0);
+    const double oneDiv60 = (double)(1.0/60.0);
+    const double oneDiv120 = (double)(1.0/120.0);
+
+    // order:  1, x, y, z, x^2, y^2, z^2, xy, yz, zx
+    double integral[10] = { (double)0.0, (double)0.0, (double)0.0, (double)0.0,
+        (double)0.0, (double)0.0, (double)0.0, (double)0.0, (double)0.0, (double)0.0 };
+
+    int i;
+    for (i = 0; i < this->getNumTriangles(); i++)
+    {
+        // Get vertices of triangle i.
+        ChVector<double> v0 = this->m_vertices[m_face_v_indices[i].x];
+        ChVector<double> v1 = this->m_vertices[m_face_v_indices[i].y];
+        ChVector<double> v2 = this->m_vertices[m_face_v_indices[i].z];
+
+        // Get cross product of edges and normal vector.
+        ChVector<double> V1mV0 = v1 - v0;
+        ChVector<double> V2mV0 = v2 - v0;
+        ChVector<double> N = Vcross(V1mV0,V2mV0);
+
+        // Compute integral terms.
+        double tmp0, tmp1, tmp2;
+        double f1x, f2x, f3x, g0x, g1x, g2x;
+        tmp0 = v0.x + v1.x;
+        f1x = tmp0 + v2.x;
+        tmp1 = v0.x*v0.x;
+        tmp2 = tmp1 + v1.x*tmp0;
+        f2x = tmp2 + v2.x*f1x;
+        f3x = v0.x*tmp1 + v1.x*tmp2 + v2.x*f2x;
+        g0x = f2x + v0.x*(f1x + v0.x);
+        g1x = f2x + v1.x*(f1x + v1.x);
+        g2x = f2x + v2.x*(f1x + v2.x);
+
+        double f1y, f2y, f3y, g0y, g1y, g2y;
+        tmp0 = v0.y + v1.y;
+        f1y = tmp0 + v2.y;
+        tmp1 = v0.y*v0.y;
+        tmp2 = tmp1 + v1.y*tmp0;
+        f2y = tmp2 + v2.y*f1y;
+        f3y = v0.y*tmp1 + v1.y*tmp2 + v2.y*f2y;
+        g0y = f2y + v0.y*(f1y + v0.y);
+        g1y = f2y + v1.y*(f1y + v1.y);
+        g2y = f2y + v2.y*(f1y + v2.y);
+
+        double f1z, f2z, f3z, g0z, g1z, g2z;
+        tmp0 = v0.z + v1.z;
+        f1z = tmp0 + v2.z;
+        tmp1 = v0.z*v0.z;
+        tmp2 = tmp1 + v1.z*tmp0;
+        f2z = tmp2 + v2.z*f1z;
+        f3z = v0.z*tmp1 + v1.z*tmp2 + v2.z*f2z;
+        g0z = f2z + v0.z*(f1z + v0.z);
+        g1z = f2z + v1.z*(f1z + v1.z);
+        g2z = f2z + v2.z*(f1z + v2.z);
+
+        // Update integrals.
+        integral[0] += N.x*f1x;
+        integral[1] += N.x*f2x;
+        integral[2] += N.y*f2y;
+        integral[3] += N.z*f2z;
+        integral[4] += N.x*f3x;
+        integral[5] += N.y*f3y;
+        integral[6] += N.z*f3z;
+        integral[7] += N.x*(v0.y*g0x + v1.y*g1x + v2.y*g2x);
+        integral[8] += N.y*(v0.z*g0y + v1.z*g1y + v2.z*g2y);
+        integral[9] += N.z*(v0.x*g0z + v1.x*g1z + v2.x*g2z);
+    }
+
+    integral[0] *= oneDiv6;
+    integral[1] *= oneDiv24;
+    integral[2] *= oneDiv24;
+    integral[3] *= oneDiv24;
+    integral[4] *= oneDiv60;
+    integral[5] *= oneDiv60;
+    integral[6] *= oneDiv60;
+    integral[7] *= oneDiv120;
+    integral[8] *= oneDiv120;
+    integral[9] *= oneDiv120;
+
+    // mass
+    mass = integral[0];
+
+    // center of mass
+    center = ChVector<double>(integral[1], integral[2], integral[3])/mass;
+
+    // inertia relative to world origin
+    inertia[0][0] = integral[5] + integral[6];
+    inertia[0][1] = -integral[7];
+    inertia[0][2] = -integral[9];
+    inertia[1][0] = inertia[0][1];
+    inertia[1][1] = integral[4] + integral[6];
+    inertia[1][2] = -integral[8];
+    inertia[2][0] = inertia[0][2];
+    inertia[2][1] = inertia[1][2];
+    inertia[2][2] = integral[4] + integral[5];
+
+    // inertia relative to center of mass
+    if (bodyCoords)
+    {
+        inertia[0][0] -= mass*(center.y*center.y +
+            center.z*center.z);
+        inertia[0][1] += mass*center.x*center.y;
+        inertia[0][2] += mass*center.z*center.x;
+        inertia[1][0] = inertia[0][1];
+        inertia[1][1] -= mass*(center.z*center.z +
+            center.x*center.x);
+        inertia[1][2] += mass*center.y*center.z;
+        inertia[2][0] = inertia[0][2];
+        inertia[2][1] = inertia[1][2];
+        inertia[2][2] -= mass*(center.x*center.x +
+            center.y*center.y);
+    }
+}
+
+
+
 using namespace WAVEFRONT;
 
 
@@ -881,6 +1014,7 @@ void ChTriangleMeshConnected::LoadWavefrontMesh(std::string filename, bool load_
 		this->m_face_u_indices.push_back(ChVector<int> (obj.mIndexesTexels[iit], obj.mIndexesTexels[iit+1], obj.mIndexesTexels[iit+2]));
 	}
 }
+
 
 
 /*
