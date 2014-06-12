@@ -41,6 +41,7 @@ ChOpenGLViewer::ChOpenGLViewer(
    simulation_time = 0;
    pause_sim = 0;
    pause_vis = 0;
+   view_contacts = 0;
    render_mode = POINTS;
    old_time = current_time = 0;
    time_total = time_text = time_geometry = 0;
@@ -104,6 +105,9 @@ bool ChOpenGLViewer::Initialize() {
    }
    cloud.Initialize(cloud_data);
    cloud.AttachShader(&cloud_shader);
+
+   contacts.Initialize(cloud_data);
+   contacts.AttachShader(&cloud_shader);
 
    glPointSize(10);
    GenerateFontIndex();
@@ -169,6 +173,9 @@ void ChOpenGLViewer::Render() {
          glm::mat4 model(1);
          cloud.Draw(projection, view * model);
       }
+
+      RenderContacts();
+
       geometry_timer.stop();
       time_geometry = .5 * geometry_timer() + .5 * time_geometry;
       text_timer.start();
@@ -405,6 +412,33 @@ void ChOpenGLViewer::DisplayHUD() {
 
 }
 
+void ChOpenGLViewer::RenderContacts() {
+   if (view_contacts == false) {
+      return;
+   }
+
+   if (ChSystemParallel* system = dynamic_cast<ChSystemParallel*>(physics_system)) {
+      ChParallelDataManager * data_manager = system->gpu_data_manager;
+      contact_data.resize(data_manager->num_contacts * 2);
+      for (int i = 0; i < data_manager->num_contacts; i++) {
+         int2 ID = data_manager->host_data.bids_rigid_rigid[i];
+
+         real3 cpta = data_manager->host_data.cpta_rigid_rigid[i] + data_manager->host_data.pos_data[ID.x];
+         real3 cptb = data_manager->host_data.cptb_rigid_rigid[i] + data_manager->host_data.pos_data[ID.y];
+
+         contact_data[i] = glm::vec3(cpta.x, cpta.y, cpta.z);
+         contact_data[i + data_manager->num_contacts] = glm::vec3(cptb.x, cptb.y, cptb.z);
+      }
+
+      contacts.Update(contact_data);
+      glm::mat4 model(1);
+      contacts.Draw(projection, view * model);
+   } else {
+      return;
+   }
+
+}
+
 void ChOpenGLViewer::HandleInput(
       unsigned char key,
       int x,
@@ -443,6 +477,9 @@ void ChOpenGLViewer::HandleInput(
          break;
       case '3':
          render_mode = SOLID;
+         break;
+      case 'C':
+         view_contacts = !view_contacts;
          break;
       default:
          break;

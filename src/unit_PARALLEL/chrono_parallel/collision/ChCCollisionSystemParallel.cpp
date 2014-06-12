@@ -15,7 +15,7 @@ namespace collision {
 
 
 ChCollisionSystemParallel::ChCollisionSystemParallel() {
-	collision_envelope = .03;
+	collision_envelope = 0;
 	max_body_per_bin = 100;
 	min_body_per_bin = 20;
 

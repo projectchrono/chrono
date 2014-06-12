@@ -77,6 +77,10 @@ class CH_UTILS_OPENGL_API ChOpenGLWindow {
          GLFWwindow* main_window  //A pointer to the window/context
          );
 
+   // Pointer to the opengl viewer that handles rendering, text and user
+   // interaction
+   ChOpenGLViewer *viewer;
+
  private:
    // Singleton constructor should be private so that a user cannot call it
    ChOpenGLWindow() {
@@ -126,10 +130,6 @@ class CH_UTILS_OPENGL_API ChOpenGLWindow {
          GLFWwindow* window,
          double x,
          double y);
-
-   // Pointer to the opengl viewer that handles rendering, text and user
-   // interaction
-   ChOpenGLViewer *viewer;
 
    //Pointer to the opengl context
    GLFWwindow* window;

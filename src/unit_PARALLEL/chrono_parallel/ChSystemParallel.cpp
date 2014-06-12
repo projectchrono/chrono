@@ -59,9 +59,7 @@ int ChSystemParallel::Integrate_Y() {
    gpu_data_manager->system_timer.start("update");
    Setup();
    Update();
-   //gpu_data_manager->Copy(HOST_TO_DEVICE);
    gpu_data_manager->system_timer.stop("update");
-
    //=============================================================================================
    if (use_aabb_active) {
       vector<bool> body_active(gpu_data_manager->num_bodies, false);

@@ -6,7 +6,7 @@
 
 using namespace chrono::collision;
 
-#define MPR_TOLERANCE  1e-6f
+#define MPR_TOLERANCE  0
 #define MAX_ITERATIONS  1000
 struct support {
    real3 v, v1, v2;
@@ -16,6 +16,29 @@ struct support {
 struct simplex {
    support s0, s1, s2, s3, s4;
 };
+
+bool chrono::collision::SphereSphere(
+      const real3 &A_X,
+      const real3 &B_X,
+      const real3 &A_Y,
+      const real3 &B_Y,
+      real3 & N,
+      real & depth,
+      real3 & p1,
+      real3 & p2) {
+   real3 relpos = B_X - A_X;
+   real d2 = dot(relpos, relpos);
+   real collide_dist = A_Y.x + B_Y.x;
+   if (d2 <= collide_dist * collide_dist) {
+      //depth = sqrtf(d2)-collide_dist;
+      N = normalize(relpos);
+      p1 = A_X + N * A_Y.x;
+      p2 = B_X - N * B_Y.x;
+      depth = dot(N, p2 - p1);
+      return true;
+   }
+   return false;
+}
 
 __device__ __host__ real3 GetCenter(
       const shape_type &type,
@@ -35,12 +58,8 @@ __device__ __host__ real3 TransformSupportVert(
       const real3 &B,
       const real3 &C,
       const real4 &R,
-      const real3 &b) {
+      const real3 &n) {
    real3 localSupport;
-   real3 n = normalize(b);
-
-//M33 orientation = AMat(R);
-//M33 invorientation = AMatT(R);
    real3 rotated_n = quatRotateMatT(n, R);
    switch (type) {
       case chrono::collision::SPHERE:
@@ -129,10 +148,16 @@ void ExpandPortal(
 
 }
 
+real3 PortalDir(
+      simplex & portal) {
+   return normalize(cross((portal.s2.v - portal.s1.v), (portal.s3.v - portal.s1.v)));
+
+}
+
 void FindPos(
       simplex & portal,
       real3 & point) {
-   real3 n = cross((portal.s2.v - portal.s1.v), (portal.s3.v - portal.s1.v));
+   real3 n = PortalDir(portal);
    // Compute the barycentric coordinates of the origin
    real b0 = dot(cross(portal.s1.v, portal.s2.v), portal.s3.v);
    real b1 = dot(cross(portal.s3.v, portal.s2.v), portal.s0.v);
@@ -149,13 +174,386 @@ void FindPos(
    }
 
    real inv = 1.0f / sum;
-   point = (b0 * portal.s0.v1 + b1 * portal.s1.v1 + b2 * portal.s2.v1 + b3 * portal.s3.v1) + (b0 * portal.s0.v2 + b1 * portal.s1.v2 + b2 * portal.s2.v2 + b3 * portal.s3.v2);
-   point = point * inv * 0.5f;
+   real3 p1 = (b0 * portal.s0.v1 + b1 * portal.s1.v1 + b2 * portal.s2.v1 + b3 * portal.s3.v1) * inv;
+   real3 p2 = (b0 * portal.s0.v2 + b1 * portal.s1.v2 + b2 * portal.s2.v2 + b3 * portal.s3.v2) * inv;
+   point = (p1 + p2) * 0.5f;
 
 }
 
+int portalEncapsulesOrigin(
+      simplex & portal,
+      real3 n) {
+
+   return dot(n, portal.s1.v) >= 0.0;
+
+}
+
+int portalCanEncapsulesOrigin(
+      simplex & portal,
+      real3 n) {
+
+   return dot(portal.s4.v, n) >= 0.0;
+
+}
+
+int portalReachTolerance(
+      simplex & portal,
+      real3 n) {
+
+   real dv1 = dot(portal.s1.v, n);
+   real dv2 = dot(portal.s2.v, n);
+   real dv3 = dot(portal.s3.v, n);
+   real dv4 = dot(portal.s4.v, n);
+
+   real dot1 = dv4 - dv1;
+   real dot2 = dv4 - dv2;
+   real dot3 = dv4 - dv3;
+
+   dot1 = fmin(dot1, dot2);
+   dot1 = fmin(dot1, dot3);
+
+   return isEqual(dot1, MPR_TOLERANCE) || dot1 < MPR_TOLERANCE;
+
+}
+
+real Vec3PointSegmentDist2(
+      const real3 & P,
+      const real3 & x0,
+      const real3 & b) {
+   real dist, t;
+   real3 d, a;
+   d = b - x0;     // direction of segment
+   a = x0 - P;     // precompute vector from P to x0
+   t = -(1.f) * dot(a, d);
+   t = t / dot(d, d);
+
+   if (t < 0.0f || IsZero(t)) {
+      dist = dot(x0 - P, x0 - P);
+
+   } else if (t > 1.0f || isEqual(t, 1.0f)) {
+      dist = dot(b - P, b - P);
+
+   } else {
+      d = d * t;
+      d = d * a;
+      d = dot(d, d);
+   }
+
+   return dist;
+}
+__device__ __host__ real Vec3PointTriDist2(
+      const real3 & P,
+      const real3 & V0,
+      const real3 & V1,
+      const real3 & V2) {
+//   real3 d1, d2, a;
+//   real u, v, w, p, q, r;
+//   real s, t, dist, dist2;
+//
+//   d1 = B - x0;
+//   d2 = C - x0;
+//   a = x0 - P;
+//
+//   u = dot(a, a);
+//   v = dot(d1, d1);
+//   w = dot(d2, d2);
+//   p = dot(a, d1);
+//   q = dot(a, d2);
+//   r = dot(d1, d2);
+//
+//   s = (q * r - w * p) / (w * v - r * r);
+//   t = (-s * r - q) / w;
+//
+//   if ((IsZero(s) || s > 0.0f) && (isEqual(s, 1.0f) || s < 1.0f) && (IsZero(t) || t > 0.0f) && (isEqual(t, 1.0f) || t < 1.0f) && (isEqual(t + s, 1.0f) || t + s < 1.0f)) {
+//
+//      dist = s * s * v;
+//      dist += t * t * w;
+//      dist += 2.f * s * t * r;
+//      dist += 2.f * s * p;
+//      dist += 2.f * t * q;
+//      dist += u;
+//
+//   } else {
+//
+//      dist = Vec3PointSegmentDist2(P, x0, B);
+//      dist2 = Vec3PointSegmentDist2(P, x0, C);
+//
+//      if (dist2 < dist) {
+//         dist = dist2;
+//      }
+//
+//      dist2 = Vec3PointSegmentDist2(P, B, C);
+//
+//      if (dist2 < dist) {
+//         dist = dist2;
+//
+//      }
+//   }
+//
+//   return dist;
+
+   real3 diff = V0 - P;
+   real3 edge0 = V1 - V0;
+   real3 edge1 = V2 - V0;
+   real a00 = dot(edge0, edge0);
+   real a01 = dot(edge0, edge1);
+   real a11 = dot(edge1, edge1);
+   real b0 = dot(diff, edge0);
+   real b1 = dot(diff, edge1);
+   real c = dot(diff, diff);
+   real det = fabs(a00 * a11 - a01 * a01);
+   real s = a01 * b1 - a11 * b0;
+   real t = a01 * b0 - a00 * b1;
+   real sqrDistance;
+
+   if (s + t <= det) {
+      if (s < (real) 0) {
+         if (t < (real) 0)  // region 4
+               {
+            if (b0 < (real) 0) {
+               t = (real) 0;
+               if (-b0 >= a00) {
+                  s = (real) 1;
+                  sqrDistance = a00 + ((real) 2) * b0 + c;
+               } else {
+                  s = -b0 / a00;
+                  sqrDistance = b0 * s + c;
+               }
+            } else {
+               s = (real) 0;
+               if (b1 >= (real) 0) {
+                  t = (real) 0;
+                  sqrDistance = c;
+               } else if (-b1 >= a11) {
+                  t = (real) 1;
+                  sqrDistance = a11 + ((real) 2) * b1 + c;
+               } else {
+                  t = -b1 / a11;
+                  sqrDistance = b1 * t + c;
+               }
+            }
+         } else  // region 3
+         {
+            s = (real) 0;
+            if (b1 >= (real) 0) {
+               t = (real) 0;
+               sqrDistance = c;
+            } else if (-b1 >= a11) {
+               t = (real) 1;
+               sqrDistance = a11 + ((real) 2) * b1 + c;
+            } else {
+               t = -b1 / a11;
+               sqrDistance = b1 * t + c;
+            }
+         }
+      } else if (t < (real) 0)  // region 5
+            {
+         t = (real) 0;
+         if (b0 >= (real) 0) {
+            s = (real) 0;
+            sqrDistance = c;
+         } else if (-b0 >= a00) {
+            s = (real) 1;
+            sqrDistance = a00 + ((real) 2) * b0 + c;
+         } else {
+            s = -b0 / a00;
+            sqrDistance = b0 * s + c;
+         }
+      } else  // region 0
+      {
+         // minimum at interior point
+         real invDet = ((real) 1) / det;
+         s *= invDet;
+         t *= invDet;
+         sqrDistance = s * (a00 * s + a01 * t + ((real) 2) * b0) + t * (a01 * s + a11 * t + ((real) 2) * b1) + c;
+      }
+   } else {
+      real tmp0, tmp1, numer, denom;
+
+      if (s < (real) 0)  // region 2
+            {
+         tmp0 = a01 + b0;
+         tmp1 = a11 + b1;
+         if (tmp1 > tmp0) {
+            numer = tmp1 - tmp0;
+            denom = a00 - ((real) 2) * a01 + a11;
+            if (numer >= denom) {
+               s = (real) 1;
+               t = (real) 0;
+               sqrDistance = a00 + ((real) 2) * b0 + c;
+            } else {
+               s = numer / denom;
+               t = (real) 1 - s;
+               sqrDistance = s * (a00 * s + a01 * t + ((real) 2) * b0) + t * (a01 * s + a11 * t + ((real) 2) * b1) + c;
+            }
+         } else {
+            s = (real) 0;
+            if (tmp1 <= (real) 0) {
+               t = (real) 1;
+               sqrDistance = a11 + ((real) 2) * b1 + c;
+            } else if (b1 >= (real) 0) {
+               t = (real) 0;
+               sqrDistance = c;
+            } else {
+               t = -b1 / a11;
+               sqrDistance = b1 * t + c;
+            }
+         }
+      } else if (t < (real) 0)  // region 6
+            {
+         tmp0 = a01 + b1;
+         tmp1 = a00 + b0;
+         if (tmp1 > tmp0) {
+            numer = tmp1 - tmp0;
+            denom = a00 - ((real) 2) * a01 + a11;
+            if (numer >= denom) {
+               t = (real) 1;
+               s = (real) 0;
+               sqrDistance = a11 + ((real) 2) * b1 + c;
+            } else {
+               t = numer / denom;
+               s = (real) 1 - t;
+               sqrDistance = s * (a00 * s + a01 * t + ((real) 2) * b0) + t * (a01 * s + a11 * t + ((real) 2) * b1) + c;
+            }
+         } else {
+            t = (real) 0;
+            if (tmp1 <= (real) 0) {
+               s = (real) 1;
+               sqrDistance = a00 + ((real) 2) * b0 + c;
+            } else if (b0 >= (real) 0) {
+               s = (real) 0;
+               sqrDistance = c;
+            } else {
+               s = -b0 / a00;
+               sqrDistance = b0 * s + c;
+            }
+         }
+      } else  // region 1
+      {
+         numer = a11 + b1 - a01 - b0;
+         if (numer <= (real) 0) {
+            s = (real) 0;
+            t = (real) 1;
+            sqrDistance = a11 + ((real) 2) * b1 + c;
+         } else {
+            denom = a00 - ((real) 2) * a01 + a11;
+            if (numer >= denom) {
+               s = (real) 1;
+               t = (real) 0;
+               sqrDistance = a00 + ((real) 2) * b0 + c;
+            } else {
+               s = numer / denom;
+               t = (real) 1 - s;
+               sqrDistance = s * (a00 * s + a01 * t + ((real) 2) * b0) + t * (a01 * s + a11 * t + ((real) 2) * b1) + c;
+            }
+         }
+      }
+   }
+
+   // Account for numerical round-off error.
+   if (sqrDistance < (real) 0) {
+      sqrDistance = (real) 0;
+   }
+
+   //mClosestPoint0 = P;
+   //mClosestPoint1 = V0 + s * edge0 + t * edge1;
+   //mTriangleBary[1] = s;
+   //mTriangleBary[2] = t;
+   //mTriangleBary[0] = (real) 1 - s - t;
+   return sqrDistance;
+
+}
+
+void FindPenetration(
+      shape_type typeA,
+      real3 A_X,
+      real3 A_Y,
+      real3 A_Z,
+      real4 A_R,
+      shape_type typeB,
+      real3 B_X,
+      real3 B_Y,
+      real3 B_Z,
+      real4 B_R,
+      simplex & portal,
+      real & depth,
+      real3 & dir,
+      real3 & point) {
+   real3 zero = real3(0);
+
+   for (int i = 0; i < MAX_ITERATIONS; i++) {
+
+      real3 n = PortalDir(portal);
+      MPRSupport(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, n, portal.s4);
+
+      real delta = dot((portal.s4.v - portal.s3.v), n);
+
+      if (portalReachTolerance(portal, n) || i == MAX_ITERATIONS) {
+         depth = -sqrtf(Vec3PointTriDist2(zero, portal.s1.v, portal.s2.v, portal.s3.v));
+         if (depth != depth) {
+            depth = 0;
+         }
+         dir = n;
+         FindPos(portal, point);
+
+         return;
+      }
+      ExpandPortal(portal);
+   }
+
+//   real3 n = PortalDir(portal);
+//   depth = -sqrtf(Vec3PointTriDist2(zero, portal.s1.v, portal.s2.v, portal.s3.v));
+//   if (depth != depth) {
+//      depth = 0;
+//   }
+//   dir = n;
+//   FindPos(portal, point);
+}
+
+bool FindPortal(
+      shape_type typeA,
+      real3 A_X,
+      real3 A_Y,
+      real3 A_Z,
+      real4 A_R,
+      shape_type typeB,
+      real3 B_X,
+      real3 B_Y,
+      real3 B_Z,
+      real4 B_R,
+      simplex & portal,
+      real3 n) {
+
+   // Phase One: Identify a portal
+   while (true) {
+
+      // Obtain the support point in a direction perpendicular to the existing plane
+      // Note: This point is guaranteed to lie off the plane
+      MPRSupport(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, n, portal.s3);
+
+      if (dot(portal.s3.v, n) <= 0.0) {
+         //cout << "FAIL C" << endl;
+         return false;
+      }
+      // If origin is outside (v1,v0,v3), then eliminate v2 and loop
+      if (dot(cross(portal.s1.v, portal.s3.v), portal.s0.v) < 0.0) {
+         portal.s2 = portal.s3;
+         n = normalize(cross((portal.s1.v - portal.s0.v), (portal.s3.v - portal.s0.v)));
+         continue;
+      }
+      // If origin is outside (v3,v0,v2), then eliminate v1 and loop
+      if (dot(cross(portal.s3.v, portal.s2.v), portal.s0.v) < 0.0) {
+         portal.s1 = portal.s3;
+         n = normalize(cross((portal.s3.v - portal.s0.v), (portal.s2.v - portal.s0.v)));
+         continue;
+      }
+      break;
+   }
+   return true;
+
+}
 //Code for Convex-Convex Collision detection, adopted from xeno-collide
-bool CollideAndFindPoint(
+bool chrono::collision::CollideAndFindPoint(
       shape_type typeA,
       real3 A_X,
       real3 A_Y,
@@ -180,12 +578,12 @@ bool CollideAndFindPoint(
       portal.s0.v = R3(1, 0, 0);
 
 // v1 = support in direction of origin
-//n = normalize(-v0);
    n = normalize(-portal.s0.v);
    MPRSupport(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, n, portal.s1);
 
-   if (dot(portal.s1.v, n) <= 0.0) {
+   if (dot(portal.s1.v, n) < 0.0) {
       //no contact
+      //cout << "FAIL A " << dot(portal.s1.v, n) << endl;
       return false;
    }
 
@@ -195,21 +593,20 @@ bool CollideAndFindPoint(
    if (IsZero(n)) {
       if (IsZero(portal.s1.v)) {
          depth = 0;
-         point = (portal.s1.v1 + portal.s1.v2) * .5;
-         n = real3(0);
+         n = portal.s1.v - portal.s0.v;
       } else {
-         point = (portal.s1.v1 + portal.s1.v2) * .5;
          n = portal.s1.v;
-         depth = length(n);
-         n = normalize(n);
+         depth = -length(n);
       }
+      point = (portal.s1.v1 + portal.s1.v2) * .5;
+      n = normalize(n);
       returnNormal = n;
-
       //n = portal.s1.v - portal.s0.v;
       //n = normalize(n);
+      //cout << "EXIT A" << endl;
       return true;
    }
-
+   n = normalize(n);
    MPRSupport(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, n, portal.s2);
 
    if (dot(portal.s2.v, n) <= 0.0) {
@@ -218,76 +615,83 @@ bool CollideAndFindPoint(
    }
 
 // Determine whether origin is on + or - side of plane (v1,v0,v2)
-   n = (cross((portal.s1.v - portal.s0.v), (portal.s2.v - portal.s0.v)));
-
+   n = normalize(cross((portal.s1.v - portal.s0.v), (portal.s2.v - portal.s0.v)));
 // If the origin is on the - side of the plane, reverse the direction of the plane
    if (dot(n, portal.s0.v) > 0.0) {
       Swap(portal.s1, portal.s2);
       n = -n;
    }
 
-// Phase One: Identify a portal
-   while (true) {
-
-      // Obtain the support point in a direction perpendicular to the existing plane
-      // Note: This point is guaranteed to lie off the plane
-      MPRSupport(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, n, portal.s3);
-
-      if (dot(portal.s3.v, n) <= 0.0) {
-         return false;
-      }
-      // If origin is outside (v1,v0,v3), then eliminate v2 and loop
-      if (dot(cross(portal.s1.v, portal.s3.v), portal.s0.v) < 0.0) {
-         portal.s2 = portal.s3;
-         n = cross((portal.s1.v - portal.s0.v), (portal.s3.v - portal.s0.v));
-         continue;
-      }
-      // If origin is outside (v3,v0,v2), then eliminate v1 and loop
-      if (dot(cross(portal.s3.v, portal.s2.v), portal.s0.v) < 0.0) {
-         portal.s1 = portal.s3;
-         n = cross((portal.s3.v - portal.s0.v), (portal.s2.v - portal.s0.v));
-         continue;
-      }
-      break;
+   if (!FindPortal(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, portal, n)) {
+      return false;
    }
-
    // Phase Two: Refine the portal
    // We are now inside of a wedge...
    bool hit = false;
-   for (int i = 0; i < MAX_ITERATIONS; i++) {
+   for (int i = 0; i < 100; i++) {
 
       // Compute normal of the wedge face
-      n = cross((portal.s2.v - portal.s1.v), (portal.s3.v - portal.s1.v));
-      n = normalize(n);
+      n = PortalDir(portal);
 
       // Compute distance from origin to wedge face
       // If the origin is inside the wedge, we have a hit
-      if (dot(n, portal.s1.v) >= 0.0 && !hit) {
+      if (portalEncapsulesOrigin(portal, n) >= 0.0 && !hit) {
+         //cout << "HIT" << endl;
          hit = true;     // HIT!!!
+         //break;
       }
-
       // Find the support point in the direction of the wedge face
       MPRSupport(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, n, portal.s4);
-      real delta = dot((portal.s4.v - portal.s3.v), n);
-      depth = dot(portal.s4.v, n);
 
       // If the boundary is thin enough or the origin is outside the support plane for the newly discovered vertex, then we can terminate
-      if (delta <= MPR_TOLERANCE || depth <= 0.0) {
+      if (portalReachTolerance(portal, n) || !portalEncapsulesOrigin(portal, n)) {
+         // cout << "Find New" << endl;
+         if (!FindPortal(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, portal, n)) {
+            break;
+         }
+
          break;
       }
       ExpandPortal(portal);
    }
-
    if (hit) {
-      FindPos(portal, point);
-      returnNormal = normalize(n);
+      //depth = dot(portal.s4.v, n);
+      FindPenetration(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, portal, depth, returnNormal, point);
+      //
+      if(depth>0){return false;}
+      //cout<<A_X<<A_Y<<B_X<<B_Y<<endl;//
+
+      //cout<<portal.s0.v<<portal.s1.v<<portal.s2.v<<portal.s3.v<<portal.s4.v<<endl;
+      //n = PortalDir(portal);
+      //FindPos(portal, point);
+      //returnNormal = normalize(n);
+      //exit(0);
    }
    return hit;
 
+}
+void chrono::collision::GetPoints(
+      shape_type A_T,
+      real3 A_X,
+      real3 A_Y,
+      real3 A_Z,
+      real4 A_R,
+      shape_type B_T,
+      real3 B_X,
+      real3 B_Y,
+      real3 B_Z,
+      real4 B_R,
+      real3 &N,
+      real3 p0,
+      real3 & p1,
+      real3 & p2) {
+
+   p1 = dot((TransformSupportVert(A_T, A_X, A_Y, A_Z, A_R, -N) - p0), N) * N + p0;
+   p2 = dot((TransformSupportVert(B_T, B_X, B_Y, B_Z, B_R, N) - p0), N) * N + p0;
+   N = -N;
 
 }
-
-__host__ __device__ void function_MPR_Store(
+void ChCNarrowphaseMPR::function_MPR_Store(
       const uint &index,
       const shape_type *obj_data_T,
       const real3 *obj_data_A,
@@ -311,7 +715,6 @@ __host__ __device__ void function_MPR_Store(
 
    long long p = contact_pair[index];
    int2 pair = I2(int(p >> 32), int(p & 0xffffffff));
-   shape_type A_T = obj_data_T[pair.x], B_T = obj_data_T[pair.y];     //Get the type data for each object in the collision pair
    uint ID_A = obj_data_ID[pair.x];
    uint ID_B = obj_data_ID[pair.y];
 
@@ -322,13 +725,14 @@ __host__ __device__ void function_MPR_Store(
       return;
    }
 
+   shape_type A_T = obj_data_T[pair.x], B_T = obj_data_T[pair.y];     //Get the type data for each object in the collision pair
    real3 posA = body_pos[ID_A], posB = body_pos[ID_B];     //Get the global object position
-   real4 rotA = normalize(body_rot[ID_A]), rotB = normalize(body_rot[ID_B]);     //Get the global object rotation
+   real4 rotA = (body_rot[ID_A]), rotB = (body_rot[ID_B]);     //Get the global object rotation
    real3 A_X = obj_data_A[pair.x], B_X = obj_data_A[pair.y];
    real3 A_Y = obj_data_B[pair.x], B_Y = obj_data_B[pair.y];
    real3 A_Z = obj_data_C[pair.x], B_Z = obj_data_C[pair.y];
-   real4 A_R = normalize(mult(rotA, obj_data_R[pair.x]));
-   real4 B_R = normalize(mult(rotB, obj_data_R[pair.y]));
+   real4 A_R = (mult(rotA, obj_data_R[pair.x]));
+   real4 B_R = (mult(rotB, obj_data_R[pair.y]));
 
    real envelope = collision_envelope;
 
@@ -354,56 +758,25 @@ __host__ __device__ void function_MPR_Store(
    real depth = 0;
 
    if (A_T == SPHERE && B_T == SPHERE) {
-
-      real3 relpos = B_X - A_X;
-      real d2 = dot(relpos, relpos);
-      real collide_dist = A_Y.x + B_Y.x;
-      if (d2 <= collide_dist * collide_dist) {
-         real dist = A_Y.x + B_Y.x;
-         N = normalize(relpos);
-         p1 = A_X + N * A_Y.x;
-         p2 = B_X - N * B_Y.x;
-         //depth = length(relpos) - dist;
-
-         //if (ID_A == 0 && ID_B == 36) {
-
-         //cout << "OMG: " << depth << endl;
-
-         //}
-
-      } else {
+      if (!SphereSphere(A_X, B_X, A_Y, B_Y, N, depth, p1, p2)) {
          return;
       }
-
    } else {
-
       if (!CollideAndFindPoint(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, N, p0, depth)) {
-//
-//             if (ID_A == 1 && ID_B == 1004) {
-//                cout << A_X.x << " " << A_X.y << " " << A_X.z << " | ";
-//                cout << B_X.x << " " << B_X.y << " " << B_X.z << " || ";
-//                cout << A_Y.x << " " << A_Y.y << " " << A_Y.z << " | ";
-//                cout << B_Y.x << " " << B_Y.y << " " << B_Y.z << " || ";
-//                cout << N.x << " " << N.y << " " << N.z << " | " << depth;
-//
-//             }
          return;
-
       }
-      p1 = dot((TransformSupportVert(A_T, A_X, A_Y, A_Z, A_R, -N) - p0), N) * N + p0;
-      p2 = dot((TransformSupportVert(B_T, B_X, B_Y, B_Z, B_R, N) - p0), N) * N + p0;
-      N = -N;
-
+      GetPoints(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, N, p0, p1, p2);
    }
-//cout << p1.x << " " << p1.y << " " << p1.z << "||" << p2.x << " " << p2.y << " " << p2.z
-//    << "||" << p0.x << " " << p0.y << " " << p0.z
-//    << "||" << N.x << " " << N.y << " " << N.z<< endl;
-
+   //if(depth>0){swap(p1,p2); depth = -depth;}
+   //cout << N << p0 << p1 << p2 << depth << endl;
    p1 = p1 - (N) * envelope;
    p2 = p2 + (N) * envelope;
 
    depth = dot(N, p2 - p1);
-//depth = -(depth - envelope - envelope);
+   if(depth>envelope){
+      return;
+   }
+
    norm[index] = N;
    ptA[index] = p1 - posA;
    ptB[index] = p2 - posB;
@@ -437,7 +810,7 @@ void ChCNarrowphaseMPR::host_MPR_Store(
    }
 }
 
-__host__ __device__ void function_MPR_Update(
+void ChCNarrowphaseMPR::function_MPR_Update(
       const uint &index,
       const shape_type *obj_data_T,
       const real3 *obj_data_A,
@@ -499,25 +872,7 @@ __host__ __device__ void function_MPR_Update(
    real depth = 0;
 
    if (A_T == SPHERE && B_T == SPHERE) {
-
-      real3 relpos = B_X - A_X;
-      real d2 = dot(relpos, relpos);
-      real collide_dist = A_Y.x + B_Y.x;
-      if (d2 <= collide_dist * collide_dist) {
-         real dist = A_Y.x + B_Y.x;
-         N = normalize(relpos);
-         p1 = A_X + N * A_Y.x;
-         p2 = B_X - N * B_Y.x;
-         //depth = length(relpos) - dist;
-
-         //if (ID_A == 0 && ID_B == 36) {
-
-         //cout << "OMG: " << depth << endl;
-
-         //}
-
-      } else {
-         //contactDepth[index] = 0;
+      if (!SphereSphere(A_X, B_X, A_Y, B_Y, N, depth, p1, p2)) {
          return;
       }
    } else {
@@ -527,9 +882,7 @@ __host__ __device__ void function_MPR_Update(
          return;
       }
 
-      p1 = dot((TransformSupportVert(A_T, A_X, A_Y, A_Z, A_R, -N) - p0), N) * N + p0;
-      p2 = dot((TransformSupportVert(B_T, B_X, B_Y, B_Z, B_R, N) - p0), N) * N + p0;
-      N = -N;
+      GetPoints(A_T, A_X, A_Y, A_Z, A_R, B_T, B_X, B_Y, B_Z, B_R, N, p0, p1, p2);
 
    }
 

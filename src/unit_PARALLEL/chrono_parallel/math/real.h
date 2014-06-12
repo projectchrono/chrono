@@ -2,9 +2,9 @@
 #define REAL_H
 
 #include "chrono_parallel/ChParallelDefines.h"
-
+#include <float.h>
 typedef float real;
-#define ZERO_EPSILON 1e-8
+#define ZERO_EPSILON FLT_EPSILON
 
 
 static inline real clamp(const real & a, const real & clamp_min, const real & clamp_max) {

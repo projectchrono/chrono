@@ -19,7 +19,8 @@
 #include <vector>
 #include <cmath>
 #include <iostream>
-#define COMPARE_EPS 1e-7
+#include <float.h>
+#define COMPARE_EPS FLT_EPSILON*2
 
 void StrictEqual(const float & x, const float & y){
    if(x!=y){
