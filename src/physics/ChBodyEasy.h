@@ -17,7 +17,8 @@
 #include "assets/ChCylinderShape.h"
 #include "assets/ChBoxShape.h"
 #include "assets/ChSphereShape.h"
-
+#include "assets/ChTriangleMeshShape.h"
+#include "collision/ChCCollisionUtils.h"
 
 namespace chrono
 {
@@ -160,6 +161,65 @@ public:
 
 };
 
+
+
+/// Easy-to-use class for quick creation of rigid bodies with a 
+/// convex hull shape. 
+/// Compared to the base ChBody class, this class also does
+/// automatically, at object creation, the following tasks that
+/// you would normally do by hand if using ChBody:
+/// - a visualization shape is created and added,
+/// - a collision shape is created and added, if collision is desired,
+/// - mass and moment of inertia is automatically set, according to the geometry.
+
+class ChBodyEasyConvexHull : public ChBody {
+
+	
+public:
+
+		
+		/// Creates a ChBody plus adds a visualization shape and, optionally,
+		/// a collision shape. Mass and inertia are set automatically depending
+		/// on density.
+		/// Convex hull is defined with a set of points. 
+	ChBodyEasyConvexHull ( std::vector< ChVector<> >& points, double mdensity, bool collide = false)
+	{
+		ChSharedPtr<ChTriangleMeshShape> vshape (new ChTriangleMeshShape() );
+		ChConvexHullLibraryWrapper lh;
+		lh.ComputeHull(points, vshape->GetMesh());
+		this->AddAsset( vshape );
+
+		double mass;
+		ChVector<> baricenter;
+		ChMatrix33<> inertia;
+		vshape->GetMesh().ComputeMassProperties(true, mass, baricenter, inertia);
+
+		// Translate the convex hull barycenter so that body origin is also baricenter
+		for (unsigned int i = 0; i< vshape->GetMesh().getCoordsVertices().size(); ++i)
+			vshape->GetMesh().getCoordsVertices()[i] -= baricenter;
+
+		this->SetMass( mass * mdensity );
+		this->SetInertia( &(inertia * mdensity) );
+		
+		if (collide)
+		{
+			// avoid passing to collision the inner points discarded by convex hull 
+			// processor, so use mesh vertexes instead of all argument points
+			std::vector< ChVector<> > points_reduced; 
+			points_reduced.resize(vshape->GetMesh().getCoordsVertices().size());
+			for (unsigned int i = 0; i< vshape->GetMesh().getCoordsVertices().size(); ++i)
+				points_reduced[i] = vshape->GetMesh().getCoordsVertices()[i];
+
+			GetCollisionModel()->SetSafeMargin(0.0001);
+			//GetCollisionModel()->SetEnvelope(0.002);
+			GetCollisionModel()->ClearModel();
+			GetCollisionModel()->AddConvexHull(points_reduced);
+			GetCollisionModel()->BuildModel();
+			SetCollide(true);
+		}
+	}
+
+};
 
 
 
