@@ -57,7 +57,6 @@ class ChApi ChTriangleMesh : public ChGeometry
 		// DATA
 		// 
 
-	//std::vector<ChTriangle>	m_triangles;
 	
 
 public:
