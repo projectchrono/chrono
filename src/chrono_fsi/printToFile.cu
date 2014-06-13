@@ -494,11 +494,12 @@ void PrintToFile(
 			fileNameFluidBoundaries.open(nameFluidBoundaries);
 			stringstream ssFluidBoundaryParticles;
 	//		ssFluidBoundaryParticles.precision(20);
-			for (int i = referenceArray[0].x; i < referenceArray[1].y; i++) {
+			for (int i = referenceArray[1].x; i < referenceArray[1].y; i++) {
 				real3 pos = posRadH[i];
 				real3 vel = R3(velMasH[i]);
 				real4 rP = rhoPresMuH[i];
 				real_ velMag = length(vel);
+				if (pos.y > .0002 && pos.y < .0008)
 				ssFluidBoundaryParticles<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.z<<", "<< rP.w<<", "<<endl;
 			}
 			fileNameFluidBoundaries<<ssFluidBoundaryParticles.str();

@@ -1061,11 +1061,10 @@ real_ IsInBoundaryEllipsoid(real2 coord, real2 cent2, real2 r2) {
 //}
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 real_ IsInsideCurveOfSerpentineBeta(real3 posRad) {
-	const real_ sphR = paramsH.HSML;
 	real_ x, y;
 	real_ distFromWall = 0; //2 * sphR;//0;//2 * sphR;
 	real_ penDist = 0;
-	real_ largePenet = -5 * sphR; //like a large number. Should be negative (assume large initial penetration)
+	real_ largePenet = -paramsH.MULT_INITSPACE * paramsH.HSML * paramsH.NUM_BCE_LAYERS * 2; //like a large number. Should be negative (assume large initial penetration)
 	real_ penDist2 = 0;
 	bool isOut = false;
 
@@ -1090,22 +1089,44 @@ real_ IsInsideCurveOfSerpentineBeta(real3 posRad) {
 			if (penDist < 0)
 				return penDist;
 		}
+		real_ penDist3 = 1, penDist4 = 1;
 		if (x >= 0 && x < r3_2.x + paramsH.toleranceZone) {
-			penDist = IsInBoundaryEllipsoid(R2(x, y), R2(0, 0), r3_2);
-			if (penDist < 0)
-				return penDist;
+			penDist3 = IsInBoundaryEllipsoid(R2(x, y), R2(0, 0), r3_2);
+		}
+		if (x > r3_2.x + 2 * r4_2.x - paramsH.toleranceZone
+				&& x < 2 * r3_2.x + 2 * r4_2.x) {
+			penDist4 = IsInBoundaryEllipsoid(R2(x, y),
+					R2(2 * r3_2.x + 2 * r4_2.x, 0), r3_2);
+		}
+		if (penDist3 < 0 && penDist4 < 0) {
+			return max(penDist3, penDist4);
+		}
+		if (penDist3 < 0) {
+			return penDist3;
+		}
+		if (penDist4 < 0) {
+			return penDist4;
 		}
 		if (x >= r3_2.x + paramsH.toleranceZone
 				&& x < r3_2.x + 2 * r4_2.x - paramsH.toleranceZone) {
 			return largePenet;
 		}
-		if (x > r3_2.x + 2 * r4_2.x - paramsH.toleranceZone
-				&& x < 2 * r3_2.x + 2 * r4_2.x) {
-			penDist = IsInBoundaryEllipsoid(R2(x, y),
-					R2(2 * r3_2.x + 2 * r4_2.x, 0), r3_2);
-			if (penDist < 0)
-				return penDist;
-		}
+//		if (x >= 0 && x < r3_2.x + paramsH.toleranceZone) {
+//			penDist = IsInBoundaryEllipsoid(R2(x, y), R2(0, 0), r3_2);
+//			if (penDist < 0)
+//				return penDist;
+//		}
+//		if (x >= r3_2.x + paramsH.toleranceZone
+//				&& x < r3_2.x + 2 * r4_2.x - paramsH.toleranceZone) {
+//			return largePenet;
+//		}
+//		if (x > r3_2.x + 2 * r4_2.x - paramsH.toleranceZone
+//				&& x < 2 * r3_2.x + 2 * r4_2.x) {
+//			penDist = IsInBoundaryEllipsoid(R2(x, y),
+//					R2(2 * r3_2.x + 2 * r4_2.x, 0), r3_2);
+//			if (penDist < 0)
+//				return penDist;
+//		}
 		if (x > r2_2.x + 2 * r1_2.x && x < 2 * r3_2.x + 2 * r4_2.x) {
 			penDist = IsOutBoundaryEllipsoid(R2(x, y),
 					R2(2 * r3_2.x + 2 * r4_2.x, 0), r2_2);
@@ -1135,11 +1156,10 @@ real_ IsInsideCurveOfSerpentineBeta(real3 posRad) {
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 real_ IsInsideSerpentine(real3 posRad) {
-	const real_ sphR = paramsH.HSML;
 	real_ x, y;
 	real_ distFromWall = 0; //2 * sphR;//0;//2 * sphR;
 	real_ penDist = 0;
-	real_ largePenet = -5 * sphR; //like a large number. Should be negative (assume large initial penetration)
+	real_ largePenet = -paramsH.MULT_INITSPACE * paramsH.HSML * paramsH.NUM_BCE_LAYERS * 2; //like a large number. Should be negative (assume large initial penetration)
 	real_ penDist2 = 0;
 	bool isOut = false;
 
@@ -1187,22 +1207,53 @@ real_ IsInsideSerpentine(real3 posRad) {
 				if (penDist < 0)
 					return penDist;
 			}
+
+
+			real_ penDist3=1, penDist4=1;
 			if (x >= 0 && x < r3_2.x + paramsH.toleranceZone) {
-				penDist = IsInBoundaryEllipsoid(R2(x, y), R2(0, 0), r3_2);
-				if (penDist < 0)
-					return penDist;
+				penDist3 = IsInBoundaryEllipsoid(R2(x, y), R2(0, 0), r3_2);
+//						if (penDist1 < 0)
+//							return penDist1;
+			}
+			if (x >= r3_2.x + 2 * r4_2.x - paramsH.toleranceZone
+					&& x < r3_2.x + 2 * r4_2.x + r6_2.x) {
+				penDist4 = IsInBoundaryEllipsoid(R2(x, y),
+						R2(r3_2.x + 2 * r4_2.x + r6_2.x, 0), r6_2);
+//								if (penDist2 < 0)
+//									return penDist2;
+			}
+			if (penDist3 < 0 && penDist4 < 0) {
+							return max(penDist3, penDist4);
+			}
+			if (penDist3 < 0) {
+				return penDist3;
+			}
+			if (penDist4 < 0) {
+				return penDist4;
 			}
 			if (x >= r3_2.x + paramsH.toleranceZone
 					&& x < r3_2.x + 2 * r4_2.x - paramsH.toleranceZone) {
 				return largePenet;
 			}
-			if (x >= r3_2.x + 2 * r4_2.x - paramsH.toleranceZone
-					&& x < r3_2.x + 2 * r4_2.x + r6_2.x) {
-				penDist = IsInBoundaryEllipsoid(R2(x, y),
-						R2(r3_2.x + 2 * r4_2.x + r6_2.x, 0), r6_2);
-				if (penDist < 0)
-					return penDist;
-			}
+
+
+
+//			if (x >= 0 && x < r3_2.x + paramsH.toleranceZone) {
+//				penDist = IsInBoundaryEllipsoid(R2(x, y), R2(0, 0), r3_2);
+//				if (penDist < 0)
+//					return penDist;
+//			}
+//			if (x >= r3_2.x + paramsH.toleranceZone
+//					&& x < r3_2.x + 2 * r4_2.x - paramsH.toleranceZone) {
+//				return largePenet;
+//			}
+//			if (x >= r3_2.x + 2 * r4_2.x - paramsH.toleranceZone
+//					&& x < r3_2.x + 2 * r4_2.x + r6_2.x) {
+//				penDist = IsInBoundaryEllipsoid(R2(x, y),
+//						R2(r3_2.x + 2 * r4_2.x + r6_2.x, 0), r6_2);
+//				if (penDist < 0)
+//					return penDist;
+//			}
 			if (x >= r2_2.x + 2 * r1_2.x && x < r2_2.x + 2 * r1_2.x + r5_2.x) {
 				penDist = IsOutBoundaryEllipsoid(R2(x, y),
 						R2(r2_2.x + 2 * r1_2.x + r5_2.x, 0), r5_2);
@@ -1895,22 +1946,22 @@ int main() {
 			//***		paramsH.boxDims;
 
 		paramsH.sizeScale = 1; //don't change it.
-		paramsH.HSML = 0.0001;
+		paramsH.HSML = 0.0002;
 		paramsH.MULT_INITSPACE = 1.0;
-		paramsH.NUM_BOUNDARY_LAYERS = 4;
+		paramsH.NUM_BOUNDARY_LAYERS = 3;
 		paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);
 		paramsH.NUM_BCE_LAYERS = 2;
 		paramsH.solidSurfaceAdjust = .6 * (paramsH.HSML * paramsH.MULT_INITSPACE);
 		paramsH.BASEPRES = 0;
-		paramsH.LARGE_PRES = 1000;
-		paramsH.nPeriod = 7;
+		paramsH.LARGE_PRES = 10000;
+		paramsH.nPeriod = 3;
 		paramsH.gravity = R3(0, 0, 0);//R3(0);//R3(0, -9.81, 0);
-		paramsH.bodyForce4 = R4(2.4e-5,0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
+		paramsH.bodyForce4 = R4(5e-5,0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
 		paramsH.rho0 = 1000;
 		paramsH.mu0 = .001;
-		paramsH.v_Max = 18e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
+		paramsH.v_Max = 18e-5;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 		paramsH.EPS_XSPH = .5f;
-		paramsH.dT = 1e-5;//.001; //sph alone: .01 for Re 10;
+		paramsH.dT = 4e-5;//.001; //sph alone: .01 for Re 10;
 		paramsH.tFinal = 20;//20 * paramsH.dT; //400
 		paramsH.kdT = 5;
 		paramsH.gammaBB = 0.5;
@@ -1949,7 +2000,7 @@ int main() {
 
 		//**  reminiscent of the past******************************************************************************
 		//paramsH.cMin = R3(0, -0.2, -1.2) * paramsH.sizeScale; 							//for channel and serpentine
-		paramsH.cMin = R3(0, -2 * paramsH.toleranceZone, -2 * mm); 							//for channel and serpentine
+		paramsH.cMin = R3(0, -2 * paramsH.toleranceZone, -2.5 * mm); 							//for channel and serpentine
 	//	paramsH.cMin = R3(0, -2, -2) * paramsH.sizeScale;							//for tube
 
 	//	paramsH.cMin = R3(0, -.1, -.1) * paramsH.sizeScale;							//for tube
