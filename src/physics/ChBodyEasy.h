@@ -36,7 +36,7 @@ namespace chrono
 /// Compared to the base ChBody class, this class also does
 /// automatically, at object creation, the following tasks that
 /// you would normally do by hand if using ChBody:
-/// - a visualization shape is created and added,
+/// - a visualization shape is created and added, if visualization asset is desired
 /// - a collision shape is created and added, if collision is desired,
 /// - mass and moment of inertia is automatically set, according to the geometry.
 
@@ -50,12 +50,8 @@ public:
 		/// a collision shape. Mass and inertia are set automatically depending
 		/// on density.
 		/// Sphere is assumed with center at body reference coordsystem.
-	ChBodyEasySphere ( double radius, double mdensity, bool collide = false)
-	{
-		ChSharedPtr<ChSphereShape> vshape (new ChSphereShape() );
-		vshape->GetSphereGeometry().rad = radius;
-		this->AddAsset( vshape );
-		
+	ChBodyEasySphere ( double radius, double mdensity, bool collide = false, bool visual_asset = true)
+	{	
 		double mmass =  mdensity * ( (4.0/3.0) * CH_C_PI* pow (radius,3) );
 		double inertia = (2.0/5.0)* mmass * pow (radius,2);
 
@@ -69,6 +65,12 @@ public:
 			GetCollisionModel()->BuildModel();
 			SetCollide(true);
 		}
+		if (visual_asset)
+		{
+			ChSharedPtr<ChSphereShape> vshape (new ChSphereShape() );
+			vshape->GetSphereGeometry().rad = radius;
+			this->AddAsset( vshape );
+		}
 	}
 
 };
@@ -79,7 +81,7 @@ public:
 /// Compared to the base ChBody class, this class also does
 /// automatically, at object creation, the following tasks that
 /// you would normally do by hand if using ChBody:
-/// - a visualization shape is created and added,
+/// - a visualization shape is created and added, if visualization asset is desired
 /// - a collision shape is created and added, if collision is desired,
 /// - mass and moment of inertia is automatically set, according to the geometry.
 
@@ -89,18 +91,12 @@ class ChBodyEasyCylinder : public ChBody {
 public:
 
 		
-		/// Creates a ChBody plus adds a visualization shape and, optionally,
+		/// Creates a ChBody plus adds an optional visualization shape and, optionally,
 		/// a collision shape. Mass and inertia are set automatically depending
 		/// on density.
 		/// Cylinder is assumed with body Y axis as vertical, and reference is at half height.
-	ChBodyEasyCylinder ( double radius, double height, double mdensity, bool collide = false)
-	{
-		ChSharedPtr<ChCylinderShape> vshape (new ChCylinderShape() );
-		vshape->GetCylinderGeometry().p1 = ChVector<> (0,-height*0.5, 0);
-		vshape->GetCylinderGeometry().p2 = ChVector<> (0, height*0.5, 0);
-		vshape->GetCylinderGeometry().rad = radius;
-		this->AddAsset( vshape );
-		
+	ChBodyEasyCylinder ( double radius, double height, double mdensity, bool collide = false, bool visual_asset = true)
+	{	
 		double mmass =  mdensity * (CH_C_PI* pow (radius,2) * height);
 		this->SetMass( mmass );
 		this->SetInertiaXX( ChVector<> ( (1.0/12.0)*mmass * (3*pow (radius,2) + pow (height,2)) ,
@@ -112,6 +108,14 @@ public:
 			GetCollisionModel()->AddCylinder(radius,  radius,  height*0.5);  // radius x, radiusz, height on y
 			GetCollisionModel()->BuildModel();
 			SetCollide(true);
+		}
+		if (visual_asset)
+		{
+			ChSharedPtr<ChCylinderShape> vshape (new ChCylinderShape() );
+			vshape->GetCylinderGeometry().p1 = ChVector<> (0,-height*0.5, 0);
+			vshape->GetCylinderGeometry().p2 = ChVector<> (0, height*0.5, 0);
+			vshape->GetCylinderGeometry().rad = radius;
+			this->AddAsset( vshape );
 		}
 	}
 
@@ -125,7 +129,7 @@ public:
 /// Compared to the base ChBody class, this class also does
 /// automatically, at object creation, the following tasks that
 /// you would normally do by hand if using ChBody:
-/// - a visualization shape is created and added,
+/// - a visualization shape is created and added, if visualization asset is desired
 /// - a collision shape is created and added, if collision is desired,
 /// - mass and moment of inertia is automatically set, according to the geometry.
 
@@ -135,16 +139,12 @@ class ChBodyEasyBox : public ChBody {
 public:
 
 		
-		/// Creates a ChBody plus adds a visualization shape and, optionally,
+		/// Creates a ChBody plus adds an optional visualization shape and, optionally,
 		/// a collision shape. Mass and inertia are set automatically depending
 		/// on density.
 		/// Box is assumed centered, ie. and reference of body in the middle.
-	ChBodyEasyBox ( double Xsize, double Ysize, double Zsize, double mdensity, bool collide = false)
+	ChBodyEasyBox ( double Xsize, double Ysize, double Zsize, double mdensity, bool collide = false, bool visual_asset = true)
 	{
-		ChSharedPtr<ChBoxShape> vshape (new ChBoxShape() );
-		vshape->GetBoxGeometry().SetLenghts( ChVector<> (Xsize,Ysize,Zsize) );
-		this->AddAsset( vshape );
-		
 		double mmass =  mdensity * (Xsize * Ysize * Zsize);
 		this->SetMass( mmass );
 		this->SetInertiaXX( ChVector<> (  (1.0/12.0) * mmass * ( pow(Ysize,2) + pow (Zsize,2) ) ,
@@ -157,6 +157,12 @@ public:
 			GetCollisionModel()->BuildModel();
 			SetCollide(true);
 		}
+		if (visual_asset)
+		{
+			ChSharedPtr<ChBoxShape> vshape (new ChBoxShape() );
+			vshape->GetBoxGeometry().SetLenghts( ChVector<> (Xsize,Ysize,Zsize) );
+			this->AddAsset( vshape );
+		}
 	}
 
 };
@@ -168,7 +174,7 @@ public:
 /// Compared to the base ChBody class, this class also does
 /// automatically, at object creation, the following tasks that
 /// you would normally do by hand if using ChBody:
-/// - a visualization shape is created and added,
+/// - a visualization shape is created and added, if visualization asset is desired
 /// - a collision shape is created and added, if collision is desired,
 /// - mass and moment of inertia is automatically set, according to the geometry.
 
@@ -178,23 +184,26 @@ class ChBodyEasyConvexHull : public ChBody {
 public:
 
 		
-		/// Creates a ChBody plus adds a visualization shape and, optionally,
+		/// Creates a ChBody plus adds an optional visualization shape and, optionally,
 		/// a collision shape. Mass and inertia are set automatically depending
 		/// on density.
 		/// Convex hull is defined with a set of points. 
-	ChBodyEasyConvexHull ( std::vector< ChVector<> >& points, double mdensity, bool collide = false)
+	ChBodyEasyConvexHull ( std::vector< ChVector<> >& points, double mdensity, bool collide = false, bool visual_asset= true)
 	{
 		ChSharedPtr<ChTriangleMeshShape> vshape (new ChTriangleMeshShape() );
 		ChConvexHullLibraryWrapper lh;
 		lh.ComputeHull(points, vshape->GetMesh());
-		this->AddAsset( vshape );
+		if (visual_asset)
+		{	
+			this->AddAsset( vshape );
+		}
 
 		double mass;
 		ChVector<> baricenter;
 		ChMatrix33<> inertia;
 		vshape->GetMesh().ComputeMassProperties(true, mass, baricenter, inertia);
 
-		// Translate the convex hull barycenter so that body origin is also baricenter
+		// Translate the convex hull baricenter so that body origin is also baricenter
 		for (unsigned int i = 0; i< vshape->GetMesh().getCoordsVertices().size(); ++i)
 			vshape->GetMesh().getCoordsVertices()[i] -= baricenter;
 
@@ -221,6 +230,91 @@ public:
 
 };
 
+
+/// Easy-to-use class for quick creation of rigid bodies with a 
+/// shape made of a cluster of spheres. 
+/// Compared to the base ChBody class, this class also does
+/// automatically, at object creation, the following tasks that
+/// you would normally do by hand if using ChBody:
+/// - a visualization shape is created and added, if visualization asset is desired
+/// - a collision shape is created and added, if collision is desired,
+/// - mass and moment of inertia is automatically set, according to the geometry.
+/// NOTE! mass and inertia are computed as if spheres are not intersecting! If you
+/// need a more precise mass/inertia estimation when spheres are intersecting, change
+/// mass and inertia after creation using more advanced formulas.
+
+class ChBodyEasyClusterOfSpheres : public ChBody {
+
+	
+public:
+
+		
+		/// Creates a ChBody plus adds an optional visualization shape and, optionally,
+		/// a collision shape. Mass and inertia are set automatically depending
+		/// on density.
+		/// The cluster of spheres will be displaced so that their center of mass 
+		/// corresponds to the origin of the ChBody.
+	ChBodyEasyClusterOfSpheres ( std::vector< ChVector<> >& positions,
+								 std::vector< double >& radii, 
+								 double mdensity, 
+								 bool collide = false, 
+								 bool visual_asset = true)
+	{	
+		assert (positions.size() == radii.size());
+
+		double totmass = 0;
+		ChMatrix33<> totinertia;
+		ChVector<> baricenter = VNULL;
+		totinertia.Reset();
+		for (unsigned int i= 0; i< positions.size(); ++i)
+		{
+			double sphmass = mdensity * ( (4.0/3.0) * CH_C_PI* pow (radii[i],3) );
+			double sphinertia = (2.0/5.0)* sphmass * pow (radii[i],2);
+			baricenter = (baricenter*totmass + positions[i]*sphmass)/(totmass+sphmass);
+			totmass += sphmass;
+			// Huygens-Steiner parallel axis theorem:
+			totinertia(0,0) += sphinertia + sphmass* (positions[i].Length2() - positions[i].x*positions[i].x);
+			totinertia(1,1) += sphinertia + sphmass* (positions[i].Length2() - positions[i].y*positions[i].y);
+			totinertia(2,2) += sphinertia + sphmass* (positions[i].Length2() - positions[i].z*positions[i].z);
+			totinertia(0,1) += sphmass* ( - positions[i].x*positions[i].y);
+			totinertia(0,2) += sphmass* ( - positions[i].x*positions[i].z);
+			totinertia(1,2) += sphmass* ( - positions[i].y*positions[i].z);
+			totinertia(1,0) = totinertia(0,1);
+			totinertia(2,0) = totinertia(0,2);
+			totinertia(2,1) = totinertia(1,2);
+		}
+
+		this->SetMass( totmass );
+		this->SetInertia( &totinertia );
+
+		// Translate the cluster baricenter so that body origin is also baricenter
+		std::vector< ChVector<> > offset_positions = positions;
+		for (unsigned int i = 0; i< positions.size(); ++i)
+			offset_positions[i] -= baricenter;
+
+		if (collide)
+		{
+			GetCollisionModel()->ClearModel();
+			for (unsigned int i= 0; i< positions.size(); ++i)
+			{
+				GetCollisionModel()->AddSphere(radii[i],offset_positions[i]);  // radius, radius, height on y
+			}
+			GetCollisionModel()->BuildModel();
+			SetCollide(true);
+		}
+		if (visual_asset)
+		{
+			for (unsigned int i= 0; i< positions.size(); ++i)
+			{
+				ChSharedPtr<ChSphereShape> vshape (new ChSphereShape() );
+				vshape->GetSphereGeometry().rad = radii[i];
+				vshape->GetSphereGeometry().center = offset_positions[i];
+				this->AddAsset( vshape );
+			}
+		}
+	}
+
+};
 
 
 
