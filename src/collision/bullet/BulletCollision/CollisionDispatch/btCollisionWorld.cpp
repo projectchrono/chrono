@@ -12,7 +12,7 @@ subject to the following restrictions:
 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 */
-
+#include "core/ChLog.h"
 #include "btCollisionWorld.h"
 #include "btCollisionDispatcher.h"
 #include "BulletCollision/CollisionDispatch/btCollisionObject.h"
@@ -140,15 +140,15 @@ void	btCollisionWorld::addCollisionObject(btCollisionObject* collisionObject,sho
 }
 
 
-
+ 
 void	btCollisionWorld::updateSingleAabb(btCollisionObject* colObj)
 {
 	btVector3 minAabb,maxAabb;
 	colObj->getCollisionShape()->getAabb(colObj->getWorldTransform(), minAabb,maxAabb);
 	//need to increase the aabb for contact thresholds
 	btVector3 contactThreshold(gContactBreakingThreshold,gContactBreakingThreshold,gContactBreakingThreshold);
-	minAabb -= contactThreshold;
-	maxAabb += contactThreshold;
+	//minAabb -= contactThreshold; ***ALEX***  not needed because in C::E the margin also includes the contact breaking layer
+	//maxAabb += contactThreshold; ***ALEX***  not needed because in C::E the margin also includes the contact breaking layer
 
 	btBroadphaseInterface* bp = (btBroadphaseInterface*)m_broadphasePairCache;
 

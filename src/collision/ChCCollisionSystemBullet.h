@@ -97,6 +97,11 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem
 					// For Bullet related stuff
 	btCollisionWorld* GetBulletCollisionWorld() {return bt_collision_world;}
 
+					// Tweak the default contact breaking/merging threshold tolerance
+					// of Bullet (is it the static gContactBreakingThreshold scalar in Bullet).
+					// Call it only once, before running the simulation.
+	static void SetContactBreakingThreshold(double threshold);
+
 private:
 	btCollisionConfiguration* bt_collision_configuration;
 	btCollisionDispatcher*  bt_dispatcher;

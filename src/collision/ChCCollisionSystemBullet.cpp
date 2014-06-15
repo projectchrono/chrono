@@ -29,6 +29,10 @@
 #include "BulletCollision/CollisionShapes/btSphereShape.h"
 #include "BulletCollision/CollisionShapes/btCylinderShape.h"
 
+
+extern btScalar gContactBreakingThreshold;
+
+
 namespace chrono 
 {
 namespace collision 
@@ -403,6 +407,10 @@ bool ChCollisionSystemBullet::RayHit(const ChVector<>& from, const ChVector<>& t
 
 
 
+void ChCollisionSystemBullet::SetContactBreakingThreshold(double threshold)
+{
+	gContactBreakingThreshold = threshold;
+}
 
 
 } // END_OF_NAMESPACE____

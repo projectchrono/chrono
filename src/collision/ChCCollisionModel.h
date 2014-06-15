@@ -257,6 +257,7 @@ public:
 		/// this 'safe margin' inward range, collision detection is still fast 
 		/// and reliable (beyond this, for deep penetrations, CD still works, 
 		/// but might be slower and less reliable)
+		/// Call this BEFORE adding the shapes into the model.
 		/// Side effect: think at the margin as a radius of a 'smoothing' fillet
 		/// on all corners of the shapes - that's why you cannot exceed with this...
   virtual void SetSafeMargin(double amargin)
@@ -275,7 +276,8 @@ public:
 		/// surface, and it is used to detect contacts a bit before shapes
 		/// come into contact, i.e. when dist>0. However contact points will stay
 		/// on the true surface of the geometry, not on the external surface of the 
-		/// envelope.
+		/// envelope. 
+		/// Call this BEFORE adding the shapes into the model.
 		/// Side effect: AABB are 'expanded' outward by this amount, so if you
 		/// exagerate with this value, CD might be slower and too sensible.
 		/// On the other hand, if you set this value to 0, contacts are detected
@@ -296,8 +298,19 @@ public:
 			return model_type;
 		}
 
+		/// Using this function BEFORE you start creating collision shapes,
+		/// it will make all following collision shapes to take this collision
+		/// envelope (safe outward layer) as default. 
+		/// Easier than calling SetEnvelope() all the times.
   static void SetDefaultSuggestedEnvelope(double menv);
+
+		/// Using this function BEFORE you start creating collision shapes,
+		/// it will make all following collision shapes to take this collision
+		/// margin (inward penetration layer) as default. If you call it again later, it will have no effect,
+		/// except for shapes created later.
+		/// Easier than calling SetMargin() all the times.
   static void SetDefaultSuggestedMargin(double mmargin);
+
   static double GetDefaultSuggestedEnvelope();
   static double GetDefaultSuggestedMargin();
 
