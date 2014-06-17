@@ -103,10 +103,17 @@ int main(int argc, char* argv[])
 	//
 	// Add some HEXAHEDRONS (isoparametric bricks):
 	//
-/*
+
+	ChVector<> hexpos(0,0,0);
 	double sx = 0.1;
 	double sy = 0.1;
 	double sz = 0.1;
+for (int e = 0; e<8; ++e)
+{
+	double angle = e*(2*CH_C_PI/8.0);
+	hexpos.z = 0.3*cos(angle);
+	hexpos.x = 0.3*sin(angle);
+	ChMatrix33<> hexrot(Q_from_AngAxis(angle, VECT_Y));
 
 	ChSharedPtr<ChNodeFEMxyz> hnode1_lower;
 	ChSharedPtr<ChNodeFEMxyz> hnode2_lower;
@@ -116,10 +123,10 @@ int main(int argc, char* argv[])
 	for (int ilayer = 0; ilayer < 6; ++ilayer)
 	{
 		double hy = ilayer*sz;
-		ChSharedPtr<ChNodeFEMxyz> hnode1(new ChNodeFEMxyz(ChVector<>(0, hy,  0)));
-		ChSharedPtr<ChNodeFEMxyz> hnode2(new ChNodeFEMxyz(ChVector<>(0, hy,  sz)));
-		ChSharedPtr<ChNodeFEMxyz> hnode3(new ChNodeFEMxyz(ChVector<>(sx,hy,  sz)));
-		ChSharedPtr<ChNodeFEMxyz> hnode4(new ChNodeFEMxyz(ChVector<>(sx,hy,  0)));
+		ChSharedPtr<ChNodeFEMxyz> hnode1(new ChNodeFEMxyz(hexpos+hexrot*ChVector<>(0, hy,  0)));
+		ChSharedPtr<ChNodeFEMxyz> hnode2(new ChNodeFEMxyz(hexpos+hexrot*ChVector<>(0, hy,  sz)));
+		ChSharedPtr<ChNodeFEMxyz> hnode3(new ChNodeFEMxyz(hexpos+hexrot*ChVector<>(sx,hy,  sz)));
+		ChSharedPtr<ChNodeFEMxyz> hnode4(new ChNodeFEMxyz(hexpos+hexrot*ChVector<>(sx,hy,  0)));
 		my_mesh->AddNode(hnode1);
 		my_mesh->AddNode(hnode2);
 		my_mesh->AddNode(hnode3);
@@ -141,11 +148,11 @@ int main(int argc, char* argv[])
 	}
 
 				// For example, set an initial displacement to a node:
-	hnode4_lower->SetPos( hnode4_lower->GetX0() + ChVector<>(0.1,0.1,0) );
+	hnode4_lower->SetPos( hnode4_lower->GetX0() + hexrot*ChVector<>(0.1,0.1,0) );
 
 				// Apply a force to a node
-	hnode4_lower->SetForce( ChVector<>(500,0,0));
-*/
+	hnode4_lower->SetForce( hexrot*ChVector<>(500,0,0));
+}
 
 	//
 	// Final touches..
@@ -205,7 +212,7 @@ int main(int argc, char* argv[])
 
 	ChSharedPtr<ChVisualizationFEMmesh> mvisualizemesh(new ChVisualizationFEMmesh(*(my_mesh.get_ptr())));
 	mvisualizemesh->SetFEMdataType(ChVisualizationFEMmesh::E_PLOT_NODE_SPEED_NORM);
-	mvisualizemesh->SetColorscaleMinMax(0.0,4.40);
+	mvisualizemesh->SetColorscaleMinMax(0.0,5.50);
 	mvisualizemesh->SetShrinkElements(true,0.85);
 	mvisualizemesh->SetSmoothFaces(true);
 	my_mesh->AddAsset(mvisualizemesh);

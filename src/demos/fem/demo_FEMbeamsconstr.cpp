@@ -92,7 +92,9 @@ int main(int argc, char* argv[])
 
 
 
-				// Create a moving object as a crank
+	// Create body for crank
+
+
 	ChSharedPtr<ChBody>  body_crank(new ChBody);
 
 	body_crank->SetPos( (vB+vG)*0.5 );
@@ -107,7 +109,7 @@ int main(int argc, char* argv[])
 
 
 				// Create a motor between the truss
-				// and the slider body:
+				// and the crank:
 	ChSharedPtr<ChLinkEngine> constr_motor(new ChLinkEngine);
 	constr_motor->Initialize(body_truss,
 						     body_crank,
@@ -147,7 +149,7 @@ int main(int argc, char* argv[])
 	double beam_wz = 0.01;
 	msection1->SetDensity(2700); 
 	msection1->SetYoungModulus (73.0e9);
-	msection1->SetGwithPoissonRatio(0.32);
+	msection1->SetGwithPoissonRatio(0.3);
 	msection1->SetAsRectangularSection(beam_wy, beam_wz);
 	msection1->SetBeamRaleyghDamping(0.000);
 
@@ -156,7 +158,7 @@ int main(int argc, char* argv[])
 
 	builder.BuildBeam(	my_mesh,		// the mesh where to put the created nodes and elements 
 						msection1,		// the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
-						13,				// the number of ChElementBeamEuler to create
+						16,				// the number of ChElementBeamEuler to create
 						vA,	// the 'A' point in space (beginning of beam)
 						vC,	// the 'B' point in space (end of beam)
 						ChVector<>(0,1, 0));		// the 'Y' up direction of the section for the beam
@@ -166,19 +168,18 @@ int main(int argc, char* argv[])
 	builder.GetLastBeamNodes().front()->SetFixed(true);
 
 	ChSharedPtr<ChNodeFEMxyzrot> node_tip = builder.GetLastBeamNodes().back();
-
+	ChSharedPtr<ChNodeFEMxyzrot> node_mid = builder.GetLastBeamNodes()[7];
 
 		// Create the vertical beam
 
 	ChSharedPtr<ChBeamSectionAdvanced> msection2(new ChBeamSectionAdvanced);
 
-	double hbeam_wy = 0.024;
-	double hbeam_wz = 0.024;
+	double hbeam_d = 0.024;
 	msection2->SetDensity(2700); 
 	msection2->SetYoungModulus (73.0e9);
-	msection1->SetGwithPoissonRatio(0.32);
+	msection1->SetGwithPoissonRatio(0.3);
 	msection2->SetBeamRaleyghDamping(0.000);
-	msection2->SetAsRectangularSection(hbeam_wy, hbeam_wz);
+	msection2->SetAsCircularSection(hbeam_d);
 
 	builder.BuildBeam(	my_mesh,		// the mesh where to put the created nodes and elements 
 						msection2,		// the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
@@ -211,19 +212,56 @@ int main(int argc, char* argv[])
 	constr_bb->AddAsset(msphereconstr2);
 
 
-		// Create a constraint between the vertical beam and the crank:
+				// Create a beam as a crank
+
+	ChSharedPtr<ChBeamSectionAdvanced> msection3(new ChBeamSectionAdvanced);
+
+	double crankbeam_d = 0.048;
+	msection3->SetDensity(2700); 
+	msection3->SetYoungModulus (73.0e9);
+	msection3->SetGwithPoissonRatio(0.3);
+	msection3->SetBeamRaleyghDamping(0.000);
+	msection3->SetAsCircularSection(crankbeam_d);
+
+	builder.BuildBeam(	my_mesh,		// the mesh where to put the created nodes and elements 
+						msection3,		// the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
+						3,				// the number of ChElementBeamEuler to create
+						vG+vd,			// the 'A' point in space (beginning of beam)
+						vB+vd,			// the 'B' point in space (end of beam)
+						ChVector<>(0,1, 0));	// the 'Y' up direction of the section for the beam
+	
+	ChSharedPtr<ChNodeFEMxyzrot> node_crankG  = builder.GetLastBeamNodes().front();
+	ChSharedPtr<ChNodeFEMxyzrot> node_crankB  = builder.GetLastBeamNodes().back();
+
+
+		// Create a constraint between the crank beam and body crank:
+
+	ChSharedPtr<ChLinkMateGeneric> constr_cbd(new ChLinkMateGeneric);
+	constr_cbd->Initialize( node_crankG,
+							body_crank,
+							false, 
+							node_crankG->Frame(),
+							node_crankG->Frame() 
+							 );
+	my_system.Add(constr_cbd);
+
+	constr_cbd->SetConstrainedCoords( true, true, true,		// x, y, z
+									  true, true, true);   // Rx, Ry, Rz
+
+		// Create a constraint between the vertical beam and the crank beam:
 
 	ChSharedPtr<ChLinkMateGeneric> constr_bc(new ChLinkMateGeneric);
 	constr_bc->Initialize(  node_down,
-							body_crank,
+							node_crankB,
 							false, 
-							node_down->Frame(),
-							node_down->Frame() 
+							node_crankB->Frame(),
+							node_crankB->Frame() 
 							 );
 	my_system.Add(constr_bc);
 
 	constr_bc->SetConstrainedCoords( true, true, true,		// x, y, z
 									 true, true, false);   // Rx, Ry, Rz
+
 
 				// For example, attach small shape to show the constraint
 	ChSharedPtr<ChSphereShape> msphereconstr3(new ChSphereShape);
@@ -307,8 +345,11 @@ my_system.ChangeLcpSolverStab (matlab_solver_stab);
 my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
 
 
-	application.SetTimestep(0.001);
+	application.SetTimestep(0.0005);
 	application.SetVideoframeSaveInterval(10);
+
+	// Output data
+	chrono::ChStreamOutAsciiFile file_out1("benchmark_CE_buckling_mid.dat");
 
 	while(application.GetDevice()->run()) 
 	{
@@ -321,6 +362,10 @@ my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
 		ChIrrTools::drawGrid(application.GetVideoDriver(), 0.05, 0.05, 20, 20, ChCoordsys<>(VNULL, CH_C_PI_2, VECT_Z), video::SColor(50,90,90,90), true );
 
 		application.DoStep();
+
+		file_out1 << application.GetSystem()->GetChTime() << " " << node_mid->GetPos().z << " " << node_mid->GetWvel_par().x << "\n";
+		if (application.GetSystem()->GetChTime() > 0.4) 
+			break;
 
 		application.EndScene();
 
