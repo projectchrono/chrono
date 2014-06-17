@@ -164,6 +164,7 @@ class RTSCamera : public ICameraSceneNode
 
 ////////////////////////////////////
 
+inline
 RTSCamera::RTSCamera(IrrlichtDevice* devicepointer,ISceneNode* parent,ISceneManager* smgr,s32 id, 
     f32 rs,f32 zs,f32 ts) 
 	: ICameraSceneNode(parent,smgr,id,core::vector3df(1.0f,1.0f,1.0f),core::vector3df(0.0f,0.0f,0.0f), 
@@ -216,10 +217,12 @@ RTSCamera::RTSCamera(IrrlichtDevice* devicepointer,ISceneNode* parent,ISceneMana
    smgr->setActiveCamera(this); 
 } 
 
+inline
 RTSCamera::~RTSCamera() 
 { 
 } 
 
+inline 
 bool RTSCamera::OnEvent(const SEvent& event) 
 { 
    if (!InputReceiverEnabled) 
@@ -288,6 +291,7 @@ bool RTSCamera::OnEvent(const SEvent& event)
    return false; 
 } 
 
+inline
 void RTSCamera::OnRegisterSceneNode() 
 { 
 	video::IVideoDriver* driver = SceneManager->getVideoDriver(); 
@@ -324,6 +328,7 @@ void RTSCamera::OnRegisterSceneNode()
       ISceneNode::OnRegisterSceneNode(); 
 } 
 
+inline
 void RTSCamera::render() 
 { 
    video::IVideoDriver* driver = SceneManager->getVideoDriver(); 
@@ -333,6 +338,7 @@ void RTSCamera::render()
    driver->setTransform(video::ETS_VIEW,View); 
 } 
 
+inline
 void RTSCamera::OnAnimate(u32 timeMs) 
 { 
    animate(); 
@@ -343,104 +349,120 @@ void RTSCamera::OnAnimate(u32 timeMs)
    //TODO Add Animators 
 } 
 
+inline
 void RTSCamera::setInputReceiverEnabled(bool enabled) 
 { 
    InputReceiverEnabled = enabled; 
 } 
 
+inline
 bool RTSCamera::isInputReceiverEnabled() const
 { 
    _IRR_IMPLEMENT_MANAGED_MARSHALLING_BUGFIX; 
    return InputReceiverEnabled; 
 } 
 
+inline
 const core::aabbox3d<f32>& RTSCamera::getBoundingBox() const 
 { 
    return BBox; 
 } 
 
+inline
 const core::matrix4& RTSCamera::getProjectionMatrix() const
 { 
    return Projection; 
 } 
 
+inline
 const SViewFrustum* RTSCamera::getViewFrustum() const 
 { 
    return &ViewArea; 
 } 
 
-
+inline
 const core::matrix4& RTSCamera::getViewMatrix() const
 { 
    return View; 
 } 
 
-
+inline
 void RTSCamera::setViewMatrixAffector(const core::matrix4& affector)
 {
 	Affector = affector;
 }
 
+inline
 const core::matrix4& RTSCamera::getViewMatrixAffector() const
 {
 	return Affector;
 }
 
-
+inline
 f32 RTSCamera::getNearValue() const
 { 
    return ZNear; 
 } 
 
+inline
 f32 RTSCamera::getFarValue() const 
 { 
    return ZFar; 
 } 
 
+inline
 f32 RTSCamera::getAspectRatio() const 
 { 
    return Aspect; 
 } 
 
+inline
 f32 RTSCamera::getFOV() const
 { 
    return Fovy; 
 } 
 
+inline
 void RTSCamera::setNearValue(f32 f) 
 { 
    ZNear = f; 
    recalculateProjectionMatrix(); 
 } 
 
+inline
 void RTSCamera::setFarValue(f32 f) 
 { 
    ZFar = f; 
    recalculateProjectionMatrix(); 
 } 
 
+inline
 void RTSCamera::setAspectRatio(f32 f) 
 { 
    Aspect = f; 
    recalculateProjectionMatrix(); 
 } 
 
+inline
 void RTSCamera::setFOV(f32 f) 
 { 
    Fovy = f; 
    recalculateProjectionMatrix(); 
 } 
 
+inline
 void RTSCamera::setUpVector(const core::vector3df& pos) 
 { 
    UpVector = pos; 
 } 
 
+inline
 void RTSCamera::setProjectionMatrix(const core::matrix4& projection, bool isOrthogonal) 
 { 
    Projection = projection; 
 } 
 
+inline
 void RTSCamera::setPosition(const core::vector3df& pos) 
 { 
    Pos = pos; 
@@ -449,27 +471,32 @@ void RTSCamera::setPosition(const core::vector3df& pos)
    ISceneNode::setPosition(pos); 
 } 
 
+inline
 void RTSCamera::setTarget(const core::vector3df& pos) 
 { 
    Target = oldTarget = pos; 
    updateAnimationState(); 
 } 
 
+inline
 void RTSCamera::setZoomSpeed(f32 value) 
 { 
    zoomSpeed = value; 
 } 
 
+inline
 void RTSCamera::setTranslateSpeed(f32 value) 
 { 
    translateSpeed = value; 
 } 
 
+inline
 void RTSCamera::setRotationSpeed(f32 value) 
 { 
    rotateSpeed = value; 
 } 
 
+inline
 void RTSCamera::pointCameraAtNode(ISceneNode* selectednode) 
 { 
    core::vector3df totarget = getPosition() - getTarget(); 
@@ -478,21 +505,25 @@ void RTSCamera::pointCameraAtNode(ISceneNode* selectednode)
    updateAnimationState(); 
 } 
 
+inline
 void RTSCamera::setMinZoom(f32 amount) 
 { 
    targetMinDistance = amount; 
 } 
 
+inline
 void RTSCamera::setMaxZoom(f32 amount) 
 { 
    targetMaxDistance = amount; 
 } 
 
+inline
 void RTSCamera::recalculateProjectionMatrix() 
 { 
    Projection.buildProjectionMatrixPerspectiveFovLH(Fovy,Aspect,ZNear,ZFar);   // Right hand camera: use "..RH" here and in the following
 } 
 
+inline
 void RTSCamera::recalculateViewArea() 
 { 
    core::matrix4 mat = Projection * View; 
@@ -502,28 +533,33 @@ void RTSCamera::recalculateViewArea()
    ViewArea.recalculateBoundingBox(); 
 } 
 
+inline
 void RTSCamera::allKeysUp() 
 { 
    for(int i = 0;i < KEY_KEY_CODES_COUNT;i++) 
       Keys[i] = false; 
 } 
 
+inline
 void RTSCamera::allMouseKeysUp() 
 { 
    for (s32 i=0; i<3; ++i) 
       MouseKeys[i] = false; 
 } 
 
+inline
 bool RTSCamera::isKeyDown(s32 key) 
 { 
    return Keys[key]; 
 } 
 
+inline
 bool RTSCamera::isMouseKeyDown(s32 key) 
 { 
    return MouseKeys[key]; 
 } 
 
+inline
 void RTSCamera::animate() 
 { 
    //Rotation Vals 
@@ -732,6 +768,7 @@ void RTSCamera::animate()
 
 } 
 
+inline
 void RTSCamera::updateAnimationState() 
 { 
    core::vector3df pos(Pos - Target); 

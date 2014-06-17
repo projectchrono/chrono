@@ -156,6 +156,7 @@ struct SDefineExp
 	bool Inverse;
 };
 
+inline
 core::array<SDefineExp> grabDefineExpressions(core::stringc &shaderProgram)
 {
 	s32 CurrentSearchPos = 1;
@@ -293,9 +294,11 @@ core::array<SDefineExp> grabDefineExpressions(core::stringc &shaderProgram)
 	return DefineArray;
 }
 
+inline
 CShaderPreprocessor::CShaderPreprocessor(irr::video::IVideoDriver* driverIn) : driver(driverIn) 
 {initDefineMap();};
 
+inline
 void CShaderPreprocessor::initDefineMap()
 {
 	if(driver->queryFeature(EVDF_TEXTURE_NPOT))
@@ -325,6 +328,7 @@ void CShaderPreprocessor::initDefineMap()
 	//DefineMap[driver->getVendorInfo()] = "";
 }
 
+inline
 void CShaderPreprocessor::addShaderDefine(const core::stringc name, const core::stringc value)
 {
 	// No need for this as its already inited at startup.
@@ -335,12 +339,14 @@ void CShaderPreprocessor::addShaderDefine(const core::stringc name, const core::
 	DefineMap[name] = value;
 }
 
+inline
 void CShaderPreprocessor::removeShaderDefine(const core::stringc name)
 {
 	DefineMap.remove(name);
 }
 
 //! PreProcesses a shader using Irrlicht's built-in shader preprocessor.
+inline
 core::stringc CShaderPreprocessor::ppShader(core::stringc shaderProgram)
 {
 	core::array<SDefineExp> DefineArray = grabDefineExpressions(shaderProgram);
@@ -412,6 +418,7 @@ core::stringc CShaderPreprocessor::ppShader(core::stringc shaderProgram)
 	return shaderProgram;
 }
 
+inline
 std::string getFileContent(const std::string pFile)
 {
 	std::ifstream File(pFile.c_str(), std::ios::in);
@@ -429,6 +436,7 @@ std::string getFileContent(const std::string pFile)
 }
 
 //! PreProcesses a shader using Irrlicht's built-in shader preprocessor.
+inline
 core::stringc CShaderPreprocessor::ppShaderFF(core::stringc shaderProgram)
 {
 	return ppShader(getFileContent(shaderProgram.c_str()).c_str());
@@ -528,7 +536,9 @@ enum E_SHADER_EXTENSION
 	ESE_COUNT
 };
 
-const char* LIGHT_MODULATE_P[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n"
+//***ALEX***
+// from ... const char* LIGHT_MODULATE_P ... to ... const char* const LIGHT_MODULATE_P .. to avoid multiple defined symbols
+const char* const LIGHT_MODULATE_P[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n"
 "uniform sampler2D ScreenMapSampler;\n"
 ""
 "void main() "
@@ -551,7 +561,7 @@ const char* LIGHT_MODULATE_P[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n
 "}"};
 
 
-const char* SHADOW_PASS_1P[ESE_COUNT] = {"void main() "
+const char* const SHADOW_PASS_1P[ESE_COUNT] = {"void main() "
 "{"
 "	vec4 vInfo = gl_TexCoord[0];\n"
 "	float depth = vInfo.z / vInfo.x;\n"
@@ -564,7 +574,7 @@ const char* SHADOW_PASS_1P[ESE_COUNT] = {"void main() "
 "	return float4(depth, depth * depth, 0.0, 0.0);\n"
 "}"};
 
-const char* SHADOW_PASS_1PT[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n"
+const char* const SHADOW_PASS_1PT[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n"
 ""
 "void main() "
 "{"
@@ -588,7 +598,7 @@ const char* SHADOW_PASS_1PT[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n"
 "	return float4(depth, depth * depth, 0.0, alpha);\n"
 "}"};
 
-const char* SHADOW_PASS_1V[ESE_COUNT] = {"uniform mat4 mWorldViewProj;\n"
+const char* const SHADOW_PASS_1V[ESE_COUNT] = {"uniform mat4 mWorldViewProj;\n"
 "uniform float MaxD;\n"
 ""
 "void main()"
@@ -623,7 +633,7 @@ const char* SHADOW_PASS_1V[ESE_COUNT] = {"uniform mat4 mWorldViewProj;\n"
 "	return(OUT);\n"
 "}"};
 
-const char* SHADOW_PASS_2P[ESE_COUNT] = {"uniform sampler2D ShadowMapSampler;\n"
+const char* const SHADOW_PASS_2P[ESE_COUNT] = {"uniform sampler2D ShadowMapSampler;\n"
 "uniform vec4 LightColour;\n"
 "varying float lightVal;\n"
 ""
@@ -791,7 +801,7 @@ const char* SHADOW_PASS_2P[ESE_COUNT] = {"uniform sampler2D ShadowMapSampler;\n"
 "	return finalCol;\n"
 "}"};
 
-const char* SHADOW_PASS_2V[ESE_COUNT] = {"struct VS_OUTPUT "
+const char* const SHADOW_PASS_2V[ESE_COUNT] = {"struct VS_OUTPUT "
 "{"
 "	vec4 Position;\n"
 "	vec4 ShadowMapSamplingPos;\n"
@@ -868,7 +878,7 @@ const char* SHADOW_PASS_2V[ESE_COUNT] = {"struct VS_OUTPUT "
 "}"};
 
 
-const char* SIMPLE_P[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n"
+const char* const SIMPLE_P[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n"
 ""
 "void main() "
 "{		"
@@ -885,7 +895,7 @@ const char* SIMPLE_P[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n"
 "}"};
 
 
-const char* WHITE_WASH_P[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n"
+const char* const WHITE_WASH_P[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n"
 ""
 "void main() "
 "{"
@@ -904,7 +914,7 @@ const char* WHITE_WASH_P[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n"
 "}"};
 
 
-const char* WHITE_WASH_P_ADD[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n"
+const char* const WHITE_WASH_P_ADD[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n"
 "float luminance(vec3 color)"
 "{"
 "	return clamp(color.r * 0.3 + color.g * 0.59 + color.b * 0.11, 0.0, 1.0);\n"
@@ -932,7 +942,7 @@ const char* WHITE_WASH_P_ADD[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n
 "	return float4(1.0, 1.0, 1.0, luminance(diffuseTex.rgb));\n"
 "}"};
 
-const char* SCREEN_QUAD_V[ESE_COUNT] = {"uniform float screenX, screenY; \n"
+const char* const SCREEN_QUAD_V[ESE_COUNT] = {"uniform float screenX, screenY; \n"
 "uniform vec3 LineStarts0, LineStarts1, LineStarts2, LineStarts3; \n"
 "uniform vec3 LineEnds0, LineEnds1, LineEnds2, LineEnds3; \n"
 "void main() \n" 
@@ -980,7 +990,7 @@ const char* SCREEN_QUAD_V[ESE_COUNT] = {"uniform float screenX, screenY; \n"
 "} \n"};
 
 
-const char* VSM_BLUR_P[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n"
+const char* const VSM_BLUR_P[ESE_COUNT] = {"uniform sampler2D ColorMapSampler;\n"
 "\n"
 "vec2 offsetArray[5];\n"
 "\n"
@@ -1532,7 +1542,7 @@ private:
 
 ////////////////////////////////// EffectHandler.cpp
 
-
+inline
 EffectHandler::EffectHandler(IrrlichtDevice* dev, const irr::core::dimension2du& screenRTTSize,
 	const bool useVSMShadows, const bool useRoundSpotLights, const bool use32BitDepthBuffers)
 : device(dev), smgr(dev->getSceneManager()), driver(dev->getVideoDriver()),
@@ -1665,7 +1675,7 @@ AmbientColour(0x0), use32BitDepth(use32BitDepthBuffers), useVSM(useVSMShadows)
 	}
 }
 
-
+inline
 EffectHandler::~EffectHandler()
 {
 	if(ScreenRTT)
@@ -1681,7 +1691,7 @@ EffectHandler::~EffectHandler()
 		driver->removeTexture(DepthRTT);
 }
 
-
+inline
 void EffectHandler::setScreenRenderTargetResolution(const irr::core::dimension2du& resolution)
 {
 	bool tempTexFlagMipMaps = driver->getTextureCreationFlag(ETCF_CREATE_MIP_MAPS);
@@ -1714,7 +1724,7 @@ void EffectHandler::setScreenRenderTargetResolution(const irr::core::dimension2d
 	ScreenRTTSize = resolution;
 }
 
-
+inline
 void EffectHandler::enableDepthPass(bool enableDepthPass)
 {
 	DepthPass = enableDepthPass;
@@ -1723,7 +1733,7 @@ void EffectHandler::enableDepthPass(bool enableDepthPass)
 		DepthRTT = driver->addRenderTargetTexture(ScreenRTTSize, "depthRTT", use32BitDepth ? ECF_G32R32F : ECF_G16R16F);
 }
 
-
+inline
 void EffectHandler::addPostProcessingEffect(irr::s32 MaterialType, IPostProcessingRenderCallback* callback)
 {
 	SPostProcessingPair pPair(MaterialType, 0);
@@ -1731,21 +1741,21 @@ void EffectHandler::addPostProcessingEffect(irr::s32 MaterialType, IPostProcessi
 	PostProcessingRoutines.push_back(pPair);
 }
 
-
+inline
 void EffectHandler::addShadowToNode(irr::scene::ISceneNode *node, E_FILTER_TYPE filterType, E_SHADOW_MODE shadowMode)
 {
 	SShadowNode snode = {node, shadowMode, filterType};
 	ShadowNodeArray.push_back(snode);
 }
 
-
+inline
 void EffectHandler::addNodeToDepthPass(irr::scene::ISceneNode *node)
 {
 	if(DepthPassArray.binary_search(node) == -1)
 		DepthPassArray.push_back(node);
 }
 
-
+inline
 void EffectHandler::removeNodeFromDepthPass(irr::scene::ISceneNode *node)
 {
 	s32 i = DepthPassArray.binary_search(node);
@@ -1754,7 +1764,7 @@ void EffectHandler::removeNodeFromDepthPass(irr::scene::ISceneNode *node)
 		DepthPassArray.erase(i);
 }
 
-
+inline
 void EffectHandler::update(irr::video::ITexture* outputTarget)
 {
 	if(shadowsUnsupported || smgr->getActiveCamera() == 0)
@@ -1976,7 +1986,7 @@ void EffectHandler::update(irr::video::ITexture* outputTarget)
 	}
 }
 
-
+inline
 irr::video::ITexture* EffectHandler::getShadowMapTexture(const irr::u32 resolution, const bool secondary)
 {
 	// Using Irrlicht cache now.
@@ -1998,7 +2008,7 @@ irr::video::ITexture* EffectHandler::getShadowMapTexture(const irr::u32 resoluti
 	return shadowMapTexture;
 }
 
-
+inline
 irr::video::ITexture* EffectHandler::generateRandomVectorTexture(const irr::core::dimension2du& dimensions,
 	const irr::core::stringc& name)
 {
@@ -2028,7 +2038,7 @@ irr::video::ITexture* EffectHandler::generateRandomVectorTexture(const irr::core
 	return randTexture;
 }
 
-
+inline
 EffectHandler::SPostProcessingPair EffectHandler::obtainScreenQuadMaterialFromFile(const irr::core::stringc& filename, 
 	irr::video::E_MATERIAL_TYPE baseMaterial)
 {
@@ -2060,7 +2070,7 @@ EffectHandler::SPostProcessingPair EffectHandler::obtainScreenQuadMaterialFromFi
 	return pPair;
 }
 
-
+inline
 void EffectHandler::setPostProcessingEffectConstant(const irr::s32 materialType, const irr::core::stringc& name,
 	const f32* data, const irr::u32 count)
 {
@@ -2071,7 +2081,7 @@ void EffectHandler::setPostProcessingEffectConstant(const irr::s32 materialType,
 		PostProcessingRoutines[matIndex].callback->uniformDescriptors[name] = ScreenQuadCB::SUniformDescriptor(data, count);
 }
 
-
+inline
 s32 EffectHandler::addPostProcessingEffectFromFile(const irr::core::stringc& filename,
 	IPostProcessingRenderCallback* callback)
 {
@@ -2087,6 +2097,7 @@ s32 EffectHandler::addPostProcessingEffectFromFile(const irr::core::stringc& fil
 
 ///////////////ScreenQuadCB impl.
 
+inline
 void ScreenQuadCB::OnSetConstants(irr::video::IMaterialRendererServices* services, irr::s32 userData)
 	{
 		if(services->getVideoDriver()->getDriverType() == irr::video::EDT_OPENGL)
