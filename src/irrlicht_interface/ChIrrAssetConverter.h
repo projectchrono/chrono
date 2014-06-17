@@ -46,6 +46,7 @@
 #include "assets/ChObjShapeFile.h"
 #include "assets/ChTexture.h"
 #include "assets/ChVisualization.h"
+#include "assets/ChColorAsset.h"
 #include "assets/ChAssetLevel.h"
 #include "assets/ChTriangleMeshShape.h"
 #include "assets/ChGlyphs.h"
@@ -332,8 +333,8 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 							irr::scene::ISceneNode* mnode)
 	{
 		chrono::ChSharedPtr<chrono::ChTexture> mtexture; // def no texture in level
-		chrono::ChSharedPtr<chrono::ChVisualization> mvisual; // def no visualiz. settings in level
-
+		chrono::ChSharedPtr<chrono::ChColorAsset> mcolor; // def no visualiz. settings in level
+	
 		// Scan assets in object and copy them as Irrlicht meshes in the ISceneNode
 		for (unsigned int k = 0; k < assetlist.size(); k++)
 		{
@@ -438,9 +439,9 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 			{
 				mtexture = k_asset;
 			}
-			if ( k_asset.IsType<chrono::ChVisualization>() )
+			if ( k_asset.IsType<chrono::ChColorAsset>() )
 			{
-				mvisual = k_asset;
+				mcolor = k_asset;
 			}
 
 			if ( k_asset.IsType<chrono::ChCamera>() )
@@ -486,7 +487,7 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 		}
 
 		// if a visualization setting (color) has been set, apply it to all nodes of this level
-		if (!mvisual.IsNull())
+		if (!mcolor.IsNull())
 		{
 			ISceneNodeList::ConstIterator it = mnode->getChildren().begin();
 			for (; it != mnode->getChildren().end(); ++it)
@@ -497,10 +498,10 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 					for (unsigned int im =0; im < meshnode->getMaterialCount(); ++im)
 					{
 						meshnode->getMaterial(im).ColorMaterial = irr::video::ECM_NONE;
-						meshnode->getMaterial(im).DiffuseColor.set((irr::u32)(255*mvisual->GetColor().A), 
-															   (irr::u32)(255*mvisual->GetColor().R),
-															   (irr::u32)(255*mvisual->GetColor().G), 
-															   (irr::u32)(255*mvisual->GetColor().B));
+						meshnode->getMaterial(im).DiffuseColor.set((irr::u32)(255*mcolor->GetColor().A), 
+															   (irr::u32)(255*mcolor->GetColor().R),
+															   (irr::u32)(255*mcolor->GetColor().G), 
+															   (irr::u32)(255*mcolor->GetColor().B));
 					}
 			}
 		}

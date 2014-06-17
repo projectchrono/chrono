@@ -548,6 +548,7 @@ IF (BUILD_CH_SDK)
 		assets/ChCamera.cpp
 		assets/ChAssetLevel.cpp
 		assets/ChGlyphs.cpp
+		assets/ChColorAsset.cpp
 	)
 	SET(ChronoEngine_assets_HEADERS
 		assets/ChAsset.h
@@ -567,6 +568,7 @@ IF (BUILD_CH_SDK)
 		assets/ChMaterial.h
 		assets/ChGlyphs.h
 		#assets/ChGenericRender.h
+		assets/ChColorAsset.h
 	)
 	SOURCE_GROUP(assets FILES  
 			${ChronoEngine_assets_SOURCES}

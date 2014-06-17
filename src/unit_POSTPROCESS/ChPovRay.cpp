@@ -31,6 +31,7 @@
 #include "assets/ChTexture.h"
 #include "assets/ChAssetLevel.h"
 #include "assets/ChCamera.h"
+#include "assets/ChColorAsset.h"
 #include "ChPovRayAssetCustom.h"
 #include "physics/ChParticlesClones.h"
 #include "physics/ChLinkMate.h"
@@ -514,7 +515,9 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 				assets_file << ","  << myobjshapeasset->GetSphereGeometry().center.y;
 				assets_file << ","  << myobjshapeasset->GetSphereGeometry().center.z << ">\n";
 				assets_file << " "  << myobjshapeasset->GetSphereGeometry().rad << "\n";
-
+				
+				//assets_file << "pigment {rgb<" << myobjshapeasset->GetColor().R << "," <<  myobjshapeasset->GetColor().G << "," << myobjshapeasset->GetColor().B << "> }\n";
+				
 				assets_file <<"}\n";
 
 				// POV macro - end 
@@ -618,6 +621,25 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 				assets_file << "#end \n";
 			}
 
+			// *) asset k of object i is a color ?
+			if (k_asset.IsType<ChColorAsset>() )
+			{
+				ChSharedPtr<ChColorAsset> myobjasset(k_asset);
+
+				// POV macro to build the asset - begin
+				assets_file << "#macro cm_"<< (size_t) k_asset.get_ptr() << "()\n";
+
+				// add POV  pigment
+				assets_file <<" pigment {color rgbt <" << 
+					myobjasset->GetColor().R << "," << 
+					myobjasset->GetColor().G << "," << 
+					myobjasset->GetColor().B << "," << 
+					myobjasset->GetFading() << "> }\n";
+
+				// POV macro - end 
+				assets_file << "#end \n";
+			}
+
 			// *) asset k of object i is a level with sub assets? ?
 			if ( k_asset.IsType<ChAssetLevel>() )
 			{
@@ -665,15 +687,17 @@ void ChPovRay::_recurseExportObjData( std::vector< ChSharedPtr<ChAsset> >& asset
 		ChSharedPtr<ChAsset> k_asset = assetlist[k];
 
 		// 1) asset k of object i references an .obj wavefront mesh?
-		if ( k_asset.IsType<ChObjShapeFile>() ||
+		if ( k_asset.IsType<ChObjShapeFile>() || 
+			 k_asset.IsType<ChTriangleMeshShape>() ||
 			 k_asset.IsType<ChSphereShape>() ||
 			 k_asset.IsType<ChCylinderShape>() ||
 			 k_asset.IsType<ChBoxShape>() )
 		{
-			mfilepov << "sh_"<< (size_t) k_asset.get_ptr() << "()\n"; // "(";
+			mfilepov << "sh_"<< (size_t) k_asset.get_ptr() << "()\n";
 		}
 		if ( k_asset.IsType<ChPovRayAssetCustom>() || 
-			 k_asset.IsType<ChTexture>() )
+			 k_asset.IsType<ChTexture>() || 
+			 k_asset.IsType<ChColorAsset>() )
 		{
 			mfilepov << "cm_"<< (size_t) k_asset.get_ptr() << "()\n";
 		}

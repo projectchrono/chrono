@@ -120,6 +120,7 @@ using namespace chrono;
 %include "ChAsset.i"
 %include "ChColor.i"
 %include "ChVisualization.i"
+%include "ChColorAsset.i"
 %include "ChObjShapeFile.i"
 %include "ChBoxShape.i"
 %include "ChSphereShape.i"
@@ -128,7 +129,7 @@ using namespace chrono;
 %include "ChCamera.i"
 %include "ChAssetLevel.i"
   // enable _automatic_ downcasting from ChAsset to derived classes (shared pointers versions)
-%downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualization, chrono::ChObjShapeFile, chrono::ChBoxShape, chrono::ChSphereShape, chrono::ChCylinderShape, chrono::ChTexture, chrono::ChAssetLevel, chrono::ChCamera)
+%downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualization, chrono::ChObjShapeFile, chrono::ChBoxShape, chrono::ChSphereShape, chrono::ChCylinderShape, chrono::ChTexture, chrono::ChAssetLevel, chrono::ChCamera, chrono::ChColorAsset)
 
 // physics/  classes
 %include "ChObject.i"
