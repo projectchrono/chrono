@@ -45,7 +45,7 @@ namespace scene
 
 class ChIrrNode : public scene::ISceneNode
 {
-	static int static_item_identifier;
+	//static int static_item_identifier;
 
 	core::aabbox3d<f32> Box;
 
@@ -80,8 +80,8 @@ public:
 		physicsitem = mphysicsitem.get_ptr();
 		
 		// set an unique identifier
-		static_item_identifier++;
-		GetPhysicsItem()->SetIdentifier(static_item_identifier);
+		//static_item_identifier++;
+		//GetPhysicsItem()->SetIdentifier(static_item_identifier);
 
 	}
 
@@ -275,7 +275,7 @@ public:
 
 
 // Initialize static counter
-int ChIrrNode::static_item_identifier = 0;
+//int ChIrrNode::static_item_identifier = 0;
 
 
 
