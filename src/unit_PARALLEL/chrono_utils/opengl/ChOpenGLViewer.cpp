@@ -42,6 +42,8 @@ ChOpenGLViewer::ChOpenGLViewer(
    pause_sim = 0;
    pause_vis = 0;
    view_contacts = 0;
+   view_help = 0;
+   use_vsync = 0;
    render_mode = POINTS;
    old_time = current_time = 0;
    time_total = time_text = time_geometry = 0;
@@ -361,47 +363,73 @@ void ChOpenGLViewer::DisplayHUD() {
    text_data.clear();
 
    char buffer[50];
+   if (view_help) {
+      RenderText("Press h to exit help", -.95, 0.925 - .06 * 0, sx, sy);
+      RenderText("W: Forward", -.95, 0.925 - .06 * 1, sx, sy);
+      RenderText("A: Strafe Left", -.95, 0.925 - .06 * 2, sx, sy);
+      RenderText("S: Back", -.95, 0.925 - .06 * 3, sx, sy);
+      RenderText("D: Strafe Right", -.95, 0.925 - .06 * 4, sx, sy);
+      RenderText("Q: Down", -.95, 0.925 - .06 * 5, sx, sy);
+      RenderText("E: Up", -.95, 0.925 - .06 * 6, sx, sy);
 
-   sprintf(buffer, "Time:  %04f", physics_system->GetChTime());
-   RenderText(buffer, -.95, -0.95, sx, sy);
+      RenderText("Mouse Look (Click and hold left mouse button)", -.95, 0.925 - .06 * 7, sx, sy);
 
-   sprintf(buffer, "Step  :  %04f", physics_system->GetTimerStep());
-   RenderText(buffer, -.95, 0.925 - .06 * 0, sx, sy);
-   sprintf(buffer, "Broad :  %04f", physics_system->GetTimerCollisionBroad());
-   RenderText(buffer, -.95, 0.925 - .06 * 1, sx, sy);
-   sprintf(buffer, "Narrow:  %04f", physics_system->GetTimerCollisionNarrow());
-   RenderText(buffer, -.95, 0.925 - .06 * 2, sx, sy);
-   sprintf(buffer, "Solver:  %04f", physics_system->GetTimerLcp());
-   RenderText(buffer, -.95, 0.925 - .06 * 3, sx, sy);
-   sprintf(buffer, "Update:  %04f", physics_system->GetTimerUpdate());
-   RenderText(buffer, -.95, 0.925 - .06 * 4, sx, sy);
+      RenderText("1: Point Cloud (default)", -.95, 0.925 - .06 * 9, sx, sy);
+      RenderText("2: Wireframe (slow)", -.95, 0.925 - .06 * 10, sx, sy);
+      RenderText("3: Solid", -.95, 0.925 - .06 * 11, sx, sy);
 
-   vector<double> history = ((ChLcpIterativeSolver*) (physics_system->GetLcpSolverSpeed()))->GetViolationHistory();
-   vector<double> dlambda = ((ChLcpIterativeSolver*) (physics_system->GetLcpSolverSpeed()))->GetDeltalambdaHistory();
+      RenderText("C: Show/Hide Contacts (DVI only)", -.95, 0.925 - .06 * 13, sx, sy);
 
-   sprintf(buffer, "Iters   :  %04d", history.size());
-   RenderText(buffer, .6, 0.925 - .06 * 0, sx, sy);
-   sprintf(buffer, "Bodies  :  %04d", physics_system->GetNbodiesTotal());
-   RenderText(buffer, .6, 0.925 - .06 * 1, sx, sy);
-   sprintf(buffer, "Contacts:  %04d", physics_system->GetNcontacts());
-   RenderText(buffer, .6, 0.925 - .06 * 2, sx, sy);
-   if (history.size() > 0) {
-      sprintf(buffer, "Residual:  %04f", history[history.size() - 1]);
-      RenderText(buffer, .6, 0.925 - .06 * 4, sx, sy);
-      sprintf(buffer, "Correct :  %04f", dlambda[dlambda.size() - 1]);
-      RenderText(buffer, .6, 0.925 - .06 * 5, sx, sy);
+      RenderText("Space: Pause Simulation (not rendering)", -.95, 0.925 - .06 * 15, sx, sy);
+      RenderText("P: Pause Rendering (not simulation)", -.95, 0.925 - .06 * 16, sx, sy);
+
+      //RenderText("V: Enable/Disable Vsync ", -.95, 0.925 - .06 * 18, sx, sy);
+
+      RenderText("Escape: Exit ", -.95, 0.925 - .06 * 20, sx, sy);
+
+   } else {
+      sprintf(buffer, "Press h for help");
+      RenderText(buffer, -.95, -0.95, sx, sy);
+
+      sprintf(buffer, "Time:  %04f", physics_system->GetChTime());
+      RenderText(buffer, -.95, 0.925, sx, sy);
+
+      vector<double> history = ((ChLcpIterativeSolver*) (physics_system->GetLcpSolverSpeed()))->GetViolationHistory();
+      vector<double> dlambda = ((ChLcpIterativeSolver*) (physics_system->GetLcpSolverSpeed()))->GetDeltalambdaHistory();
+
+      sprintf(buffer, "Iters   :  %04d", history.size());
+      RenderText(buffer, .6, 0.925 - .06 * 0, sx, sy);
+      sprintf(buffer, "Bodies  :  %04d", physics_system->GetNbodiesTotal());
+      RenderText(buffer, .6, 0.925 - .06 * 1, sx, sy);
+      sprintf(buffer, "Contacts:  %04d", physics_system->GetNcontacts());
+      RenderText(buffer, .6, 0.925 - .06 * 2, sx, sy);
+      if (history.size() > 0) {
+         sprintf(buffer, "Residual:  %04f", history[history.size() - 1]);
+         RenderText(buffer, .6, 0.925 - .06 * 4, sx, sy);
+         sprintf(buffer, "Correct :  %04f", dlambda[dlambda.size() - 1]);
+         RenderText(buffer, .6, 0.925 - .06 * 5, sx, sy);
+      }
+
+      sprintf(buffer, "Step  :  %04f", physics_system->GetTimerStep());
+      RenderText(buffer, .6, -0.925 + .06 * 9, sx, sy);
+      sprintf(buffer, "Broad :  %04f", physics_system->GetTimerCollisionBroad());
+      RenderText(buffer, .6, -0.925 + .06 * 8, sx, sy);
+      sprintf(buffer, "Narrow:  %04f", physics_system->GetTimerCollisionNarrow());
+      RenderText(buffer, .6, -0.925 + .06 * 7, sx, sy);
+      sprintf(buffer, "Solver:  %04f", physics_system->GetTimerLcp());
+      RenderText(buffer, .6, -0.925 + .06 * 6, sx, sy);
+      sprintf(buffer, "Update:  %04f", physics_system->GetTimerUpdate());
+      RenderText(buffer, .6, -0.925 + .06 * 5, sx, sy);
+
+      sprintf(buffer, "FPS     : %04d", int(fps));
+      RenderText(buffer, .6, -0.925 + .06 * 0, sx, sy);
+      sprintf(buffer, "Total   : %04f", time_total);
+      RenderText(buffer, .6, -0.925 + .06 * 1, sx, sy);
+      sprintf(buffer, "Text    : %04f", time_text);
+      RenderText(buffer, .6, -0.925 + .06 * 2, sx, sy);
+      sprintf(buffer, "Geometry: %04f", time_geometry);
+      RenderText(buffer, .6, -0.925 + .06 * 3, sx, sy);
    }
-
-   sprintf(buffer, "FPS     : %04d", int(fps));
-   RenderText(buffer, .6, -0.925 + .06 * 0, sx, sy);
-   sprintf(buffer, "Total   : %04f", time_total);
-   RenderText(buffer, .6, -0.925 + .06 * 1, sx, sy);
-   sprintf(buffer, "Text    : %04f", time_text);
-   RenderText(buffer, .6, -0.925 + .06 * 2, sx, sy);
-   sprintf(buffer, "Geometry: %04f", time_geometry);
-   RenderText(buffer, .6, -0.925 + .06 * 3, sx, sy);
-
-
    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
    glActiveTexture(GL_TEXTURE0);
@@ -419,7 +447,6 @@ void ChOpenGLViewer::DisplayHUD() {
    glBindTexture(GL_TEXTURE_2D, 0);
    glUseProgram(0);
    GLReturnedError("End text");
-
 
 }
 
@@ -491,6 +518,17 @@ void ChOpenGLViewer::HandleInput(
          break;
       case 'C':
          view_contacts = !view_contacts;
+         break;
+      case 'H':
+         view_help = !view_help;
+         break;
+      case 'V':
+//         use_vsync = !use_vsync;
+//         if (use_vsync) {
+//            glfwSwapInterval(1);
+//         } else {
+//            glfwSwapInterval(0);
+//         }
          break;
       default:
          break;

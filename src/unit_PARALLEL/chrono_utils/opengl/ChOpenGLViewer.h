@@ -96,7 +96,8 @@ class CH_UTILS_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
    float simulation_time;  // The current simulation time
    bool pause_sim;
    bool pause_vis;
-   bool view_contacts;
+   bool view_contacts, view_help;
+   bool use_vsync;
    RenderMode render_mode;
 
    glm::mat4 model, view, projection, modelview;
