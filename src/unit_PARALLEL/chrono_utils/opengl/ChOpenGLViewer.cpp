@@ -72,6 +72,23 @@ bool ChOpenGLViewer::Initialize() {
 
    ChOpenGLMaterial white(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec3(1, 1, 1));
    ChOpenGLMaterial red(glm::vec3(0, 0, 0), glm::vec3(1, 0, 0), glm::vec3(1, 1, 1));
+
+   ChOpenGLMaterial slate(glm::vec3(0, 0, 0), glm::vec3(85.0f, 98.0f, 112.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial pacifica(glm::vec3(0, 0, 0), glm::vec3(78.0f, 205.0f, 196.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial apple(glm::vec3(0, 0, 0), glm::vec3(199.0f, 244.0f, 100.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial cherry(glm::vec3(0, 0, 0), glm::vec3(255.0f, 107.0f, 107.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial pillow(glm::vec3(0, 0, 0), glm::vec3(196.0f, 77.0f, 88.0f) / 255.0f, glm::vec3(1, 1, 1));
+
+   ChOpenGLMaterial elated(glm::vec3(0, 0, 0), glm::vec3(255.0f, 171.0f, 25.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial greyslate(glm::vec3(0, 0, 0), glm::vec3(158.0f, 158.0f, 158.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial darkred(glm::vec3(0, 0, 0), glm::vec3(193.0f, 21.0f, 21.0f) / 255.0f, glm::vec3(1, 1, 1));
+
+   ChOpenGLMaterial t1(glm::vec3(0, 0, 0), glm::vec3(236.0f, 208.0f, 120.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial t2(glm::vec3(0, 0, 0), glm::vec3(217.0f, 91.0f, 67.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial t3(glm::vec3(0, 0, 0), glm::vec3(192.0f, 41.0f, 66.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial t4(glm::vec3(0, 0, 0), glm::vec3(84.0f, 36.0f, 55.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial t5(glm::vec3(0, 0, 0), glm::vec3(83.0f, 119.0f, 122.0f) / 255.0f, glm::vec3(1, 1, 1));
+
    if (!main_shader.InitializeStrings("phong", phong_vert, phong_frag)) {
       return 0;
    }
@@ -80,9 +97,9 @@ bool ChOpenGLViewer::Initialize() {
       return 0;
    }
 
-   sphere.Initialize("sphere.obj", white, &main_shader);
-   box.Initialize("box.obj", red, &main_shader);
-   cylinder.Initialize("cylinder.obj", white, &main_shader);
+   sphere.Initialize("sphere.obj", slate, &main_shader);
+   box.Initialize("box.obj", t3, &main_shader);
+   cylinder.Initialize("cylinder.obj", apple, &main_shader);
    cone.Initialize("cone.obj", white, &main_shader);
 
    // Initialize vbo and vao for text
@@ -96,7 +113,8 @@ bool ChOpenGLViewer::Initialize() {
    glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
    //get the uniform location for the texture from shader
-   texture_handle = font_shader.GetUniformLocation("tex");
+   text_texture_handle = font_shader.GetUniformLocation("tex");
+   text_color_handle = font_shader.GetUniformLocation("color");
 
    glActiveTexture(GL_TEXTURE0);
    glBindTexture(GL_TEXTURE_2D, texture);
@@ -109,11 +127,9 @@ bool ChOpenGLViewer::Initialize() {
       ChVector<> pos = abody->GetPos();
       cloud_data[i] = glm::vec3(pos.x, pos.y, pos.z);
    }
-   cloud.Initialize(cloud_data);
-   cloud.AttachShader(&cloud_shader);
+   cloud.Initialize(cloud_data, white, &cloud_shader);
 
-   contacts.Initialize(cloud_data);
-   contacts.AttachShader(&cloud_shader);
+   contacts.Initialize(cloud_data, darkred, &cloud_shader);
 
    glPointSize(10);
    GenerateFontIndex();
@@ -389,7 +405,7 @@ void ChOpenGLViewer::DisplayHUD() {
 
    } else {
       sprintf(buffer, "Press h for help");
-      RenderText(buffer, -.95, -0.95, sx, sy);
+      RenderText(buffer, 0, 0.925, sx, sy);
 
       sprintf(buffer, "Time:  %04f", physics_system->GetChTime());
       RenderText(buffer, -.95, 0.925, sx, sy);
@@ -435,12 +451,15 @@ void ChOpenGLViewer::DisplayHUD() {
    glActiveTexture(GL_TEXTURE0);
    glBindTexture(GL_TEXTURE_2D, texture);
 
+   ChOpenGLMaterial text(glm::vec3(0, 0, 0), glm::vec3(236.0f, 208.0f, 120.0f) / 255.0f, glm::vec3(1, 1, 1));
+
    glBindSampler(0, sampler);
    glBindVertexArray(vao);
    glEnableVertexAttribArray(0);
    glBindBuffer(GL_ARRAY_BUFFER, vbo);
    font_shader.Use();
-   glUniform1i(texture_handle, 0);
+   glUniform1i(text_texture_handle, 0);
+   glUniform3fv(text_color_handle,1, glm::value_ptr(text.diffuse_color));
    glBufferData(GL_ARRAY_BUFFER, text_data.size() * sizeof(glm::vec4), &this->text_data[0], GL_STATIC_DRAW);
    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
    glDrawArrays(GL_TRIANGLES, 0, text_data.size());

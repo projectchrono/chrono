@@ -26,7 +26,9 @@ ChOpenGLCloud::ChOpenGLCloud()
 }
 
 bool ChOpenGLCloud::Initialize(
-      const std::vector<glm::vec3>& data) {
+      const std::vector<glm::vec3>& data,
+      ChOpenGLMaterial mat,
+      ChOpenGLShader * _shader) {
    if (this->GLReturnedError("Background::Initialize - on entry"))
       return false;
 
@@ -53,6 +55,10 @@ bool ChOpenGLCloud::Initialize(
    if (this->GLReturnedError("Cloud::Initialize - on exit"))
       return false;
 
+   this->AttachShader(_shader);
+   color_handle = this->shader->GetUniformLocation("color");
+
+   color = glm::vec4(mat.diffuse_color,1);
    return true;
 }
 void ChOpenGLCloud::Update(
@@ -76,15 +82,15 @@ void ChOpenGLCloud::Draw(
       return;
    glEnable(GL_DEPTH_TEST);
    //compute the mvp matrix and normal matricies
-  // mat4 mvp = projection * modelview;
-  // mat3 nm = inverse(transpose(mat3(modelview)));
+   // mat4 mvp = projection * modelview;
+   // mat3 nm = inverse(transpose(mat3(modelview)));
 
    //Enable the shader
    shader->Use();
    this->GLReturnedError("ChOpenGLCloud::Draw - after use");
    //Send our common uniforms to the shader
    shader->CommonSetup(value_ptr(projection), value_ptr(view));
-
+   glUniform4fv(color_handle,1, glm::value_ptr(color));
    this->GLReturnedError("ChOpenGLCloud::Draw - after common setup");
    //Bind and draw! (in this case we draw as triangles)
    glBindVertexArray(this->vertex_array_handle);

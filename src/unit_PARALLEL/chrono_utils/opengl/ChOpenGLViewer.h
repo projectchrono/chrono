@@ -103,7 +103,7 @@ class CH_UTILS_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
    glm::mat4 model, view, projection, modelview;
 
    GLuint vbo, vao;
-   GLuint texture_handle;
+   GLuint text_texture_handle, text_color_handle;
    GLuint texture, sampler;
    ChTimer<double> render_timer, text_timer, geometry_timer;
    float old_time, current_time;
