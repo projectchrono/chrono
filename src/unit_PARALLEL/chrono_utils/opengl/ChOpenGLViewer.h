@@ -112,6 +112,7 @@ class CH_UTILS_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
    vector<glm::mat4> model_sphere;
    vector<glm::mat4> model_cylinder;
    vector<glm::mat4> model_cone;
+   vector<glm::vec4> text_data;
 
 
 };

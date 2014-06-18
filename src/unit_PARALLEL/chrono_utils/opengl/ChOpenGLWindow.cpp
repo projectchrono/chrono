@@ -43,6 +43,9 @@ void ChOpenGLWindow::Initialize(
    }
    glfwMakeContextCurrent(window);
 
+   //Disable vsync!!
+   glfwSwapInterval(0);
+
    GLUGetError("Initialize GLFW");
 
    glewExperimental = GL_TRUE;
@@ -192,6 +195,7 @@ void ChOpenGLWindow::CallbackKeyboard(
    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
       glfwSetWindowShouldClose(window, GL_TRUE);
    }
+
    if (action == GLFW_PRESS || action == GLFW_REPEAT) {
       pointer->HandleInput(key, 0, 0);
    }

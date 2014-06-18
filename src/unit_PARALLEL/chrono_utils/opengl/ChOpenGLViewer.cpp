@@ -96,6 +96,10 @@ bool ChOpenGLViewer::Initialize() {
    //get the uniform location for the texture from shader
    texture_handle = font_shader.GetUniformLocation("tex");
 
+   glActiveTexture(GL_TEXTURE0);
+   glBindTexture(GL_TEXTURE_2D, texture);
+   glTexImage2D( GL_TEXTURE_2D, 0, GL_R8, font_data.tex_width, font_data.tex_height, 0, GL_RED, GL_UNSIGNED_BYTE, font_data.tex_data);
+   glBindTexture(GL_TEXTURE_2D, 0);
    cloud_data.resize(physics_system->Get_bodylist()->size());
    for (int i = 0; i < physics_system->Get_bodylist()->size(); i++) {
       ChBody* abody = (ChBody*) physics_system->Get_bodylist()->at(i);
@@ -319,7 +323,6 @@ void ChOpenGLViewer::RenderText(
       float sx,
       float sy) {
    for (int i = 0; i < str.size(); i++) {
-
       texture_glyph_t *glyph = 0;
       glyph = &font_data.glyphs[char_index[str[i]]];
 
@@ -337,33 +340,25 @@ void ChOpenGLViewer::RenderText(
       float s1 = glyph->s1;
       float t1 = glyph->t1;
 
-      struct {
-         float x, y, s, t;
-      } data[6] = { { x0, y0, s0, t0 }, { x0, y1, s0, t1 }, { x1, y1, s1, t1 }, { x0, y0, s0, t0 }, { x1, y1, s1, t1 }, { x1, y0, s1, t0 } };
+      text_data.push_back(glm::vec4(x0, y0, s0, t0));
+      text_data.push_back(glm::vec4(x0, y1, s0, t1));
+      text_data.push_back(glm::vec4(x1, y1, s1, t1));
+      text_data.push_back(glm::vec4(x0, y0, s0, t0));
+      text_data.push_back(glm::vec4(x1, y1, s1, t1));
+      text_data.push_back(glm::vec4(x1, y0, s1, t0));
 
-      glBufferData(GL_ARRAY_BUFFER, 24 * sizeof(float), data, GL_DYNAMIC_DRAW);
-      glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-      glDrawArrays(GL_TRIANGLES, 0, 6);
       x += (glyph->advance_x * sx);
    }
 }
 
 void ChOpenGLViewer::DisplayHUD() {
-   GLReturnedError("Start text");
-   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-   glActiveTexture(GL_TEXTURE0);
-   glBindTexture(GL_TEXTURE_2D, texture);
-   glTexImage2D( GL_TEXTURE_2D, 0, GL_R8, font_data.tex_width, font_data.tex_height, 0, GL_RED, GL_UNSIGNED_BYTE, font_data.tex_data);
-   glBindSampler(0, sampler);
-   glBindVertexArray(vao);
-   glEnableVertexAttribArray(0);
-   glBindBuffer(GL_ARRAY_BUFFER, vbo);
-   font_shader.Use();
-   glUniform1i(texture_handle, 0);
+   GLReturnedError("Start text");
 
    float sx = 2. / window_size.x;
    float sy = 2. / window_size.y;
+   text_data.reserve(300);
+   text_data.clear();
 
    char buffer[50];
 
@@ -406,9 +401,25 @@ void ChOpenGLViewer::DisplayHUD() {
    sprintf(buffer, "Geometry: %04f", time_geometry);
    RenderText(buffer, .6, -0.925 + .06 * 3, sx, sy);
 
+
+   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+   glActiveTexture(GL_TEXTURE0);
+   glBindTexture(GL_TEXTURE_2D, texture);
+
+   glBindSampler(0, sampler);
+   glBindVertexArray(vao);
+   glEnableVertexAttribArray(0);
+   glBindBuffer(GL_ARRAY_BUFFER, vbo);
+   font_shader.Use();
+   glUniform1i(texture_handle, 0);
+   glBufferData(GL_ARRAY_BUFFER, text_data.size() * sizeof(glm::vec4), &this->text_data[0], GL_STATIC_DRAW);
+   glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+   glDrawArrays(GL_TRIANGLES, 0, text_data.size());
    glBindTexture(GL_TEXTURE_2D, 0);
    glUseProgram(0);
    GLReturnedError("End text");
+
 
 }
 
