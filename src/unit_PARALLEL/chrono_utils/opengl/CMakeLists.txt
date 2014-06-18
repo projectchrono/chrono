@@ -59,6 +59,7 @@ SET(ChronoEngine_Utils_OpenGL_SOURCES
 	)
 
 SET(ChronoEngine_Utils_OpenGL_HEADERS
+    core/ChOpenGLBase.h
 	core/ChApiOpenGL.h
 	core/ChOpenGLShader.h
 	core/ChOpenGLObject.h
