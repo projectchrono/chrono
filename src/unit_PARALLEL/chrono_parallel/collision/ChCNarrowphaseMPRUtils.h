@@ -6,6 +6,7 @@ inline real3 GetSupportPoint_Sphere(
       const real3 &n) {
    real3 b = real3(B.x);
    return b * b * n / length(b * n);
+   //the ellipsoid support function provides a cleaner solution for some reason
    //return B.x * n;
 }
 inline real3 GetSupportPoint_Triangle(

@@ -21,7 +21,14 @@
 #include <iostream>
 #include <float.h>
 #include <chrono_parallel/math/ChParallelMath.h>
-float COMPARE_EPS = FLT_EPSILON*5;
+#include <core/ChVector.h>
+
+using namespace chrono;
+real3 ToReal3(
+      ChVector<> & a) {
+   return real3(a.x, a.y, a.z);
+
+}
 
 void StrictEqual(
       const float & x,
@@ -42,7 +49,8 @@ void StrictEqual(
 
 void WeakEqual(
       const float & x,
-      const float & y) {
+      const float & y,
+      float COMPARE_EPS = FLT_EPSILON * 5) {
    if (fabs(x - y) > COMPARE_EPS) {
       std::cout << x << " does not equal " << y << " " << fabs(x - y) << std::endl;
       exit(1);
@@ -51,8 +59,10 @@ void WeakEqual(
 
 void WeakEqual(
       const real3 & a,
-      const real3 & b) {
-   WeakEqual(a.x, b.x);
-   WeakEqual(a.y, b.y);
-   WeakEqual(a.z, b.z);
+      const real3 & b,
+      float COMPARE_EPS = FLT_EPSILON * 5) {
+   WeakEqual(a.x, b.x, COMPARE_EPS);
+   WeakEqual(a.y, b.y, COMPARE_EPS);
+   WeakEqual(a.z, b.z, COMPARE_EPS);
 }
+
