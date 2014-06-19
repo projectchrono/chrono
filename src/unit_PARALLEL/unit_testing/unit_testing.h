@@ -22,11 +22,48 @@
 #include <float.h>
 #include <chrono_parallel/math/ChParallelMath.h>
 #include <core/ChVector.h>
-
+#include <core/ChQuaternion.h>
+#include <core/ChMatrix.h>
 using namespace chrono;
 real3 ToReal3(
-      ChVector<> & a) {
+      const ChVector<> & a) {
    return real3(a.x, a.y, a.z);
+
+}
+
+ChVector<> ToChVector(
+      const real3 & a) {
+   return ChVector<>(a.x, a.y, a.z);
+
+}
+
+ChQuaternion<> ToChQuaternion(
+      real4 & a) {
+   return ChQuaternion<>(a.w, a.x, a.y, a.z);
+
+}
+
+ChMatrix33<> ToChMatrix33(
+      const M33 & a) {
+
+   ChMatrix33<> tmp;
+   tmp.PasteVector(ToChVector(a.U), 0, 0);
+   tmp.PasteVector(ToChVector(a.V), 0, 1);
+   tmp.PasteVector(ToChVector(a.W), 0, 2);
+
+   return tmp;
+
+}
+
+M33 ToM33(
+      const ChMatrix33<> & a) {
+
+   M33 tmp;
+   tmp.U = ToReal3(a.ClipVector(0, 0));
+   tmp.V = ToReal3(a.ClipVector(0, 1));
+   tmp.W = ToReal3(a.ClipVector(0, 2));
+
+   return tmp;
 
 }
 
@@ -45,6 +82,14 @@ void StrictEqual(
    StrictEqual(a.x, b.x);
    StrictEqual(a.y, b.y);
    StrictEqual(a.z, b.z);
+}
+
+void StrictEqual(
+      const M33 & a,
+      const M33 & b) {
+   StrictEqual(a.U, b.U);
+   StrictEqual(a.V, b.V);
+   StrictEqual(a.W, b.W);
 }
 
 void WeakEqual(
@@ -66,3 +111,11 @@ void WeakEqual(
    WeakEqual(a.z, b.z, COMPARE_EPS);
 }
 
+void WeakEqual(
+      const M33 & a,
+      const M33 & b,
+      float COMPARE_EPS = FLT_EPSILON * 5) {
+   WeakEqual(a.U, b.U, COMPARE_EPS);
+   WeakEqual(a.V, b.V, COMPARE_EPS);
+   WeakEqual(a.W, b.W, COMPARE_EPS);
+}

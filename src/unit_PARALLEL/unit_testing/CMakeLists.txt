@@ -48,8 +48,10 @@ ENDIF()
 SET(TESTS
     test_real3
     test_real4
+    test_mat33
     test_mpr
     test_gravity
+    test_jacobians
 )
 
 MESSAGE(STATUS "Executable programs...")
