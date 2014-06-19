@@ -73,21 +73,23 @@ bool ChOpenGLViewer::Initialize() {
    ChOpenGLMaterial white(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec3(1, 1, 1));
    ChOpenGLMaterial red(glm::vec3(0, 0, 0), glm::vec3(1, 0, 0), glm::vec3(1, 1, 1));
 
-   ChOpenGLMaterial slate(glm::vec3(0, 0, 0), glm::vec3(85.0f, 98.0f, 112.0f) / 255.0f, glm::vec3(1, 1, 1));
-   ChOpenGLMaterial pacifica(glm::vec3(0, 0, 0), glm::vec3(78.0f, 205.0f, 196.0f) / 255.0f, glm::vec3(1, 1, 1));
-   ChOpenGLMaterial apple(glm::vec3(0, 0, 0), glm::vec3(199.0f, 244.0f, 100.0f) / 255.0f, glm::vec3(1, 1, 1));
-   ChOpenGLMaterial cherry(glm::vec3(0, 0, 0), glm::vec3(255.0f, 107.0f, 107.0f) / 255.0f, glm::vec3(1, 1, 1));
-   ChOpenGLMaterial pillow(glm::vec3(0, 0, 0), glm::vec3(196.0f, 77.0f, 88.0f) / 255.0f, glm::vec3(1, 1, 1));
+  float ambient = .5;
 
-   ChOpenGLMaterial elated(glm::vec3(0, 0, 0), glm::vec3(255.0f, 171.0f, 25.0f) / 255.0f, glm::vec3(1, 1, 1));
-   ChOpenGLMaterial greyslate(glm::vec3(0, 0, 0), glm::vec3(158.0f, 158.0f, 158.0f) / 255.0f, glm::vec3(1, 1, 1));
-   ChOpenGLMaterial darkred(glm::vec3(0, 0, 0), glm::vec3(193.0f, 21.0f, 21.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial slate(glm::vec3(85.0f, 98.0f, 112.0f) / 255.0f*ambient, glm::vec3(85.0f, 98.0f, 112.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial pacifica(glm::vec3(78.0f, 205.0f, 196.0f) / 255.0f*ambient, glm::vec3(78.0f, 205.0f, 196.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial apple(glm::vec3(199.0f, 244.0f, 100.0f) / 255.0f*ambient, glm::vec3(199.0f, 244.0f, 100.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial cherry(glm::vec3(255.0f, 107.0f, 107.0f) / 255.0f*ambient, glm::vec3(255.0f, 107.0f, 107.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial pillow(glm::vec3(196.0f, 77.0f, 88.0f) / 255.0f*ambient, glm::vec3(196.0f, 77.0f, 88.0f) / 255.0f, glm::vec3(1, 1, 1));
 
-   ChOpenGLMaterial t1(glm::vec3(0, 0, 0), glm::vec3(236.0f, 208.0f, 120.0f) / 255.0f, glm::vec3(1, 1, 1));
-   ChOpenGLMaterial t2(glm::vec3(0, 0, 0), glm::vec3(217.0f, 91.0f, 67.0f) / 255.0f, glm::vec3(1, 1, 1));
-   ChOpenGLMaterial t3(glm::vec3(0, 0, 0), glm::vec3(192.0f, 41.0f, 66.0f) / 255.0f, glm::vec3(1, 1, 1));
-   ChOpenGLMaterial t4(glm::vec3(0, 0, 0), glm::vec3(84.0f, 36.0f, 55.0f) / 255.0f, glm::vec3(1, 1, 1));
-   ChOpenGLMaterial t5(glm::vec3(0, 0, 0), glm::vec3(83.0f, 119.0f, 122.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial elated(glm::vec3(255.0f, 171.0f, 25.0f) / 255.0f*ambient, glm::vec3(255.0f, 171.0f, 25.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial greyslate(glm::vec3(158.0f, 158.0f, 158.0f) / 255.0f*ambient, glm::vec3(158.0f, 158.0f, 158.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial darkred(glm::vec3(193.0f, 21.0f, 21.0f) / 255.0f*ambient, glm::vec3(193.0f, 21.0f, 21.0f) / 255.0f, glm::vec3(1, 1, 1));
+
+   ChOpenGLMaterial t1(glm::vec3(236.0f, 208.0f, 120.0f) / 255.0f*ambient, glm::vec3(236.0f, 208.0f, 120.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial t2(glm::vec3(217.0f, 91.0f, 67.0f) / 255.0f*ambient, glm::vec3(217.0f, 91.0f, 67.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial t3(glm::vec3(192.0f, 41.0f, 66.0f) / 255.0f*ambient, glm::vec3(192.0f, 41.0f, 66.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial t4(glm::vec3(84.0f, 36.0f, 55.0f) / 255.0f*ambient, glm::vec3(84.0f, 36.0f, 55.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial t5(glm::vec3(83.0f, 119.0f, 122.0f) / 255.0f*ambient, glm::vec3(83.0f, 119.0f, 122.0f) / 255.0f, glm::vec3(1, 1, 1));
 
    if (!main_shader.InitializeStrings("phong", phong_vert, phong_frag)) {
       return 0;
