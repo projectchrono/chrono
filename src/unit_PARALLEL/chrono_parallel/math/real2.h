@@ -17,7 +17,7 @@ static inline real2 make_real2(const real &a, const real &b) {
 	return t;
 }
 
-static inline ostream &operator<<(ostream &out, real2 &a) {
+static inline ostream &operator<<(ostream &out,const real2 &a) {
 	out << "[" << a.x << ", " << a.y << "]" << endl;
 	return out;
 }

@@ -74,7 +74,7 @@ inline float length(const real3& a) { return a.length(); }
 inline float rlength(const real3& a) { return a.rlength(); }
 inline real3 normalize(const real3& a) { return a.normalize(); }
 
-static inline ostream &operator<<(ostream &out, real3 &a) {
+static inline ostream &operator<<(ostream &out, const real3 &a) {
 	out << "[" << a.x << ", " << a.y << ", " << a.z << "]" << endl;
 	return out;
 }

@@ -100,7 +100,7 @@ static inline real4 operator ~ (real4 const & a) {
 }
 
 
-static inline ostream &operator<<(ostream &out, real4 &a) {
+static inline ostream &operator<<(ostream &out,const real4 &a) {
 	out << "[" << a.w << ", " << a.x << ", " << a.y << ", " << a.z << "]" << endl;
 	return out;
 }
