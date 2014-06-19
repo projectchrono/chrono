@@ -7,16 +7,16 @@ namespace chrono {
 namespace collision {
 
 bool CollideAndFindPoint(
-      shape_type typeA,
-      real3 A_X,
-      real3 A_Y,
-      real3 A_Z,
-      real4 A_R,
-      shape_type typeB,
-      real3 B_X,
-      real3 B_Y,
-      real3 B_Z,
-      real4 B_R,
+      const shape_type &typeA,
+      const real3 &A_X,
+      const real3 &A_Y,
+      const real3 &A_Z,
+      const real4 &A_R,
+      const shape_type &typeB,
+      const real3 &B_X,
+      const real3 &B_Y,
+      const real3 &B_Z,
+      const real4 &B_R,
       real3 &returnNormal,
       real3 &point,
       real &depth);

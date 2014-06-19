@@ -89,14 +89,14 @@ __device__ __host__ real3 TransformSupportVert(
 }
 
 void FindCenter(
-      shape_type typeA,
-      real3 A_X,
-      real3 A_Y,
-      real3 A_Z,
-      shape_type typeB,
-      real3 B_X,
-      real3 B_Y,
-      real3 B_Z,
+      const shape_type &typeA,
+      const real3 &A_X,
+      const real3 &A_Y,
+      const real3 &A_Z,
+      const shape_type &typeB,
+      const real3 &B_X,
+      const real3 &B_Y,
+      const real3 &B_Z,
       simplex & portal) {
 
    // v0 = center of Minkowski sum
@@ -107,16 +107,16 @@ void FindCenter(
 }
 
 void MPRSupport(
-      shape_type typeA,
-      real3 A_X,
-      real3 A_Y,
-      real3 A_Z,
-      real4 A_R,
-      shape_type typeB,
-      real3 B_X,
-      real3 B_Y,
-      real3 B_Z,
-      real4 B_R,
+      const shape_type &typeA,
+      const real3 &A_X,
+      const real3 &A_Y,
+      const real3 &A_Z,
+      const real4 &A_R,
+      const shape_type &typeB,
+      const real3 &B_X,
+      const real3 &B_Y,
+      const real3 &B_Z,
+      const real4 &B_R,
       const real3 & n,
       support & s) {
 
@@ -149,13 +149,13 @@ void ExpandPortal(
 }
 
 real3 PortalDir(
-      simplex & portal) {
+      const simplex & portal) {
    return normalize(cross((portal.s2.v - portal.s1.v), (portal.s3.v - portal.s1.v)));
 
 }
 
 void FindPos(
-      simplex & portal,
+      const simplex & portal,
       real3 & point) {
    real3 n = PortalDir(portal);
    // Compute the barycentric coordinates of the origin
@@ -181,24 +181,24 @@ void FindPos(
 }
 
 int portalEncapsulesOrigin(
-      simplex & portal,
-      real3 n) {
+      const simplex & portal,
+      const real3 & n) {
 
    return dot(n, portal.s1.v) >= 0.0;
 
 }
 
 int portalCanEncapsulesOrigin(
-      simplex & portal,
-      real3 n) {
+      const simplex & portal,
+      const real3 &n) {
 
    return dot(portal.s4.v, n) >= 0.0;
 
 }
 
 int portalReachTolerance(
-      simplex & portal,
-      real3 n) {
+      const simplex & portal,
+      const real3 &n) {
 
    real dv1 = dot(portal.s1.v, n);
    real dv2 = dot(portal.s2.v, n);
@@ -465,35 +465,36 @@ __device__ __host__ real Vec3PointTriDist2(
 }
 
 void FindPenetration(
-      shape_type typeA,
-      real3 A_X,
-      real3 A_Y,
-      real3 A_Z,
-      real4 A_R,
-      shape_type typeB,
-      real3 B_X,
-      real3 B_Y,
-      real3 B_Z,
-      real4 B_R,
+      const shape_type & typeA,
+      const real3 & A_X,
+      const real3 & A_Y,
+      const real3 & A_Z,
+      const real4 & A_R,
+      const shape_type & typeB,
+      const real3 & B_X,
+      const real3 & B_Y,
+      const real3 & B_Z,
+      const real4 & B_R,
       simplex & portal,
       real & depth,
-      real3 & dir,
+      real3 & n,
       real3 & point) {
    real3 zero = real3(0);
 
    for (int i = 0; i < MAX_ITERATIONS; i++) {
 
-      real3 n = PortalDir(portal);
+      n = PortalDir(portal);
+      //cout<<"PortalDir"<<n<<endl;
       MPRSupport(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, n, portal.s4);
 
       real delta = dot((portal.s4.v - portal.s3.v), n);
 
       if (portalReachTolerance(portal, n) || i == MAX_ITERATIONS) {
-         depth = -sqrtf(Vec3PointTriDist2(zero, portal.s1.v, portal.s2.v, portal.s3.v));
-         if (depth != depth) {
-            depth = 0;
-         }
-         dir = n;
+         //depth = -sqrtf(Vec3PointTriDist2(zero, portal.s1.v, portal.s2.v, portal.s3.v));
+         //if (depth != depth) {
+         //   depth = 0;
+         //}
+         //dir = n;
          FindPos(portal, point);
 
          return;
@@ -511,18 +512,18 @@ void FindPenetration(
 }
 
 bool FindPortal(
-      shape_type typeA,
-      real3 A_X,
-      real3 A_Y,
-      real3 A_Z,
-      real4 A_R,
-      shape_type typeB,
-      real3 B_X,
-      real3 B_Y,
-      real3 B_Z,
-      real4 B_R,
+      const shape_type & typeA,
+      const real3 &A_X,
+      const real3 &A_Y,
+      const real3 &A_Z,
+      const real4 &A_R,
+      const shape_type &typeB,
+      const real3 &B_X,
+      const real3 &B_Y,
+      const real3 &B_Z,
+      const real4 &B_R,
       simplex & portal,
-      real3 n) {
+      real3 & n) {
 
    // Phase One: Identify a portal
    while (true) {
@@ -554,16 +555,16 @@ bool FindPortal(
 }
 //Code for Convex-Convex Collision detection, adopted from xeno-collide
 bool chrono::collision::CollideAndFindPoint(
-      shape_type typeA,
-      real3 A_X,
-      real3 A_Y,
-      real3 A_Z,
-      real4 A_R,
-      shape_type typeB,
-      real3 B_X,
-      real3 B_Y,
-      real3 B_Z,
-      real4 B_R,
+      const shape_type &typeA,
+      const real3 &A_X,
+      const real3 &A_Y,
+      const real3 &A_Z,
+      const real4 &A_R,
+      const shape_type &typeB,
+      const real3 &B_X,
+      const real3 &B_Y,
+      const real3 &B_Z,
+      const real4 &B_R,
       real3 &returnNormal,
       real3 &point,
       real &depth) {
@@ -574,9 +575,9 @@ bool chrono::collision::CollideAndFindPoint(
    FindCenter(typeA, A_X, A_Y, A_Z, typeB, B_X, B_Y, B_Z, portal);
 
 // Avoid case where centers overlap -- any direction is fine in this case
-   if (IsZero(portal.s0.v))
+   if (IsZero(portal.s0.v)) {
       portal.s0.v = R3(1, 0, 0);
-
+   }
 // v1 = support in direction of origin
    n = normalize(-portal.s0.v);
    MPRSupport(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, n, portal.s1);
@@ -607,8 +608,8 @@ bool chrono::collision::CollideAndFindPoint(
       return true;
    }
    n = normalize(n);
-   MPRSupport(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, n, portal.s2);
 
+   MPRSupport(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, n, portal.s2);
    if (dot(portal.s2.v, n) <= 0.0) {
       //cout << "FAIL B" << endl;
       return false;
@@ -621,44 +622,43 @@ bool chrono::collision::CollideAndFindPoint(
       Swap(portal.s1, portal.s2);
       n = -n;
    }
-
+//   cout << n << " " << portal.s0.v << portal.s1.v << portal.s2.v << (portal.s1.v - portal.s0.v) << (portal.s2.v - portal.s0.v)
+//        << cross((portal.s1.v - portal.s0.v), (portal.s2.v - portal.s0.v)) << endl;
    if (!FindPortal(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, portal, n)) {
       return false;
    }
    // Phase Two: Refine the portal
    // We are now inside of a wedge...
    bool hit = false;
-   for (int i = 0; i < 100; i++) {
-
+   for (int i = 0; i < MAX_ITERATIONS; i++) {
       // Compute normal of the wedge face
       n = PortalDir(portal);
-
-      // Compute distance from origin to wedge face
-      // If the origin is inside the wedge, we have a hit
-      if (portalEncapsulesOrigin(portal, n) >= 0.0 && !hit) {
-         //cout << "HIT" << endl;
-         hit = true;     // HIT!!!
-         //break;
-      }
       // Find the support point in the direction of the wedge face
       MPRSupport(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, n, portal.s4);
 
       // If the boundary is thin enough or the origin is outside the support plane for the newly discovered vertex, then we can terminate
       if (portalReachTolerance(portal, n) || !portalEncapsulesOrigin(portal, n)) {
-         // cout << "Find New" << endl;
-         if (!FindPortal(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, portal, n)) {
-            break;
+         //FindPortal(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, portal, n);
+         // Compute distance from origin to wedge face
+         // If the origin is inside the wedge, we have a hit
+         if (portalEncapsulesOrigin(portal, n) >= 0.0 && !hit) {
+            //cout << "Hit" << n << endl;
+            hit = true;     // HIT!!!
          }
-
          break;
       }
       ExpandPortal(portal);
+
    }
    if (hit) {
       //depth = dot(portal.s4.v, n);
       FindPenetration(typeA, A_X, A_Y, A_Z, A_R, typeB, B_X, B_Y, B_Z, B_R, portal, depth, returnNormal, point);
+      //cout<<returnNormal<<endl;
+
       //
-      if(depth>0){return false;}
+//      if (depth > 0) {
+//         return false;
+//      }
       //cout<<A_X<<A_Y<<B_X<<B_Y<<endl;//
 
       //cout<<portal.s0.v<<portal.s1.v<<portal.s2.v<<portal.s3.v<<portal.s4.v<<endl;
@@ -773,7 +773,7 @@ void ChCNarrowphaseMPR::function_MPR_Store(
    p2 = p2 + (N) * envelope;
 
    depth = dot(N, p2 - p1);
-   if(depth>envelope){
+   if (depth > envelope) {
       return;
    }
 

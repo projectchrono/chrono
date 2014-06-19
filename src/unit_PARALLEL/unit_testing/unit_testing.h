@@ -20,18 +20,39 @@
 #include <cmath>
 #include <iostream>
 #include <float.h>
-#define COMPARE_EPS FLT_EPSILON*2
+#include <chrono_parallel/math/ChParallelMath.h>
+float COMPARE_EPS = FLT_EPSILON*5;
 
-void StrictEqual(const float & x, const float & y){
-   if(x!=y){
-      std::cout<<x<<" does not equal "<<y<<std::endl;
-      exit(1); 
+void StrictEqual(
+      const float & x,
+      const float & y) {
+   if (x != y) {
+      std::cout << x << " does not equal " << y << std::endl;
+      exit(1);
    }
 }
 
-void WeakEqual(const float & x, const float & y){
-   if(fabs(x-y)>COMPARE_EPS){
-      std::cout<<x<<" does not equal "<<y<<" "<<fabs(x-y)<<std::endl;
-      exit(1); 
+void StrictEqual(
+      const real3 & a,
+      const real3 & b) {
+   StrictEqual(a.x, b.x);
+   StrictEqual(a.y, b.y);
+   StrictEqual(a.z, b.z);
+}
+
+void WeakEqual(
+      const float & x,
+      const float & y) {
+   if (fabs(x - y) > COMPARE_EPS) {
+      std::cout << x << " does not equal " << y << " " << fabs(x - y) << std::endl;
+      exit(1);
    }
+}
+
+void WeakEqual(
+      const real3 & a,
+      const real3 & b) {
+   WeakEqual(a.x, b.x);
+   WeakEqual(a.y, b.y);
+   WeakEqual(a.z, b.z);
 }
