@@ -38,8 +38,14 @@ ChVector<> ToChVector(
 }
 
 ChQuaternion<> ToChQuaternion(
-      real4 & a) {
+      const real4 & a) {
    return ChQuaternion<>(a.w, a.x, a.y, a.z);
+
+}
+
+real4 ToReal4(
+      const ChQuaternion<> & a) {
+   return real4(a.e0, a.e1, a.e2, a.e3);
 
 }
 
@@ -85,6 +91,15 @@ void StrictEqual(
 }
 
 void StrictEqual(
+      const real4 & a,
+      const real4 & b) {
+   StrictEqual(a.w, b.w);
+   StrictEqual(a.x, b.x);
+   StrictEqual(a.y, b.y);
+   StrictEqual(a.z, b.z);
+}
+
+void StrictEqual(
       const M33 & a,
       const M33 & b) {
    StrictEqual(a.U, b.U);
@@ -106,6 +121,16 @@ void WeakEqual(
       const real3 & a,
       const real3 & b,
       float COMPARE_EPS = FLT_EPSILON * 5) {
+   WeakEqual(a.x, b.x, COMPARE_EPS);
+   WeakEqual(a.y, b.y, COMPARE_EPS);
+   WeakEqual(a.z, b.z, COMPARE_EPS);
+}
+
+void WeakEqual(
+      const real4 & a,
+      const real4 & b,
+      float COMPARE_EPS = FLT_EPSILON * 5) {
+   WeakEqual(a.w, b.w, COMPARE_EPS);
    WeakEqual(a.x, b.x, COMPARE_EPS);
    WeakEqual(a.y, b.y, COMPARE_EPS);
    WeakEqual(a.z, b.z, COMPARE_EPS);

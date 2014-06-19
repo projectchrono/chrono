@@ -158,6 +158,15 @@ int main(
       real3 c = cross(a,b);
       StrictEqual(c.x,3.0);  StrictEqual(c.y,3.0); StrictEqual(c.z,-3.0);
    }
+   { // float 3 cross
+      real3 a = normalize(real3(rand(), rand(), rand()));
+      real3 b = normalize(real3(rand(), rand(), rand()));
+      real3 ans1 = cross(a,b);
+      ChVector<float> ans2;
+      ans2.Cross(ToChVector(a),ToChVector(b));
+      StrictEqual(ans1,ToReal3(ans2));
+   }
+
    { // float 3 length
       real3 a(1.0, 2.0, -3.0);
       real c = length(a);

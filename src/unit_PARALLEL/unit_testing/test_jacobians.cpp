@@ -58,6 +58,9 @@ int main(
       StrictEqual(n, ToReal3(Vx));
       StrictEqual(v, ToReal3(Vy));
       StrictEqual(w, ToReal3(Vz));
+
+      //====================================================================
+
       real3 T3, T4, T5;
       Compute_Jacobian(A_R, n, v, w, p1, T3, T4, T5);
       real3 T6, T7, T8;
@@ -90,10 +93,11 @@ int main(
       Jr1.MatrTranspose();
       Jr2.MatrTranspose();
 
+      cout << "Contact Planes Sphere Sphere\n";
+
       //cout << n << v << w;
       //cout << -ToReal3(contact_plane.ClipVector(0, 0)) << -ToReal3(contact_plane.ClipVector(0, 1)) << -ToReal3(contact_plane.ClipVector(0, 2));
       //cout<<ToReal3(contact_plane.ClipVector(0,0))<<ToReal3(contact_plane.ClipVector(0,1))<<ToReal3(contact_plane.ClipVector(0,2));
-      cout << "Contact Planes Sphere Sphere\n";
       StrictEqual(-n, ToReal3(Jx1.ClipVector(0, 0)));
       StrictEqual(-v, ToReal3(Jx1.ClipVector(0, 1)));
       StrictEqual(-w, ToReal3(Jx1.ClipVector(0, 2)));
@@ -102,10 +106,12 @@ int main(
       StrictEqual(v, ToReal3(Jx2.ClipVector(0, 1)));
       StrictEqual(w, ToReal3(Jx2.ClipVector(0, 2)));
 
-      cout << T3 << T4 << T5<<endl;
-      cout << ToReal3(Jr1.ClipVector(0, 0)) << ToReal3(Jr1.ClipVector(0, 1)) << ToReal3(Jr1.ClipVector(0, 2))<<endl;
-      //cout<<ToReal3(Jr2.ClipVector(0,0))<<ToReal3(Jr2.ClipVector(0,1))<<ToReal3(Jr2.ClipVector(0,2));
       cout << "Jacobians Sphere Sphere\n";
+
+      cout << T3 << T4 << T5 << endl;
+      cout << ToReal3(Jr1.ClipVector(0, 0)) << ToReal3(Jr1.ClipVector(0, 1)) << ToReal3(Jr1.ClipVector(0, 2)) << endl;
+      //cout<<ToReal3(Jr2.ClipVector(0,0))<<ToReal3(Jr2.ClipVector(0,1))<<ToReal3(Jr2.ClipVector(0,2));
+
       WeakEqual(T3, ToReal3(Jr1.ClipVector(0, 0)), FLT_EPSILON);
       WeakEqual(T4, ToReal3(Jr1.ClipVector(0, 1)), FLT_EPSILON);
       WeakEqual(T5, ToReal3(Jr1.ClipVector(0, 2)), FLT_EPSILON);
@@ -113,6 +119,8 @@ int main(
       WeakEqual(-T6, ToReal3(Jr2.ClipVector(0, 0)), FLT_EPSILON);
       WeakEqual(-T7, ToReal3(Jr2.ClipVector(0, 1)), FLT_EPSILON);
       WeakEqual(-T8, ToReal3(Jr2.ClipVector(0, 2)), FLT_EPSILON);
+
+      //====================================================================
 
       real3 TA, TB, TC;
       Compute_Jacobian_Rolling(A_R, n, v, w, TA, TB, TC);
