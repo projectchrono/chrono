@@ -8,6 +8,21 @@
 
 struct M33 {
    real3 U, V, W;
+   inline M33()
+         :
+           U(0),
+           V(0),
+           W(0) {
+   }
+   inline M33(
+         real3 u,
+         real3 v,
+         real3 w)
+         :
+           U(u),
+           V(v),
+           W(w) {
+   }
 
    inline M33 operator*(
          const M33& B) const {
@@ -209,6 +224,25 @@ static inline M33 AbsMat(
 
    return result;
 
+}
+
+static inline M33 Transpose(
+      const M33 &A) {
+
+   M33 result;
+
+   result.U = real3(A.U.x, A.V.x, A.W.x);
+   result.V = real3(A.U.y, A.V.y, A.W.y);
+   result.W = real3(A.U.z, A.V.z, A.W.z);
+
+   return result;
+}
+
+static inline ostream &operator<<(
+      ostream &out,
+      const M33 &a) {
+   out << a.U << a.V << a.W << endl;
+   return out;
 }
 
 //[U.x,V.x,W.x]

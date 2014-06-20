@@ -68,8 +68,14 @@ int main(
 
       ChMatrix33<float> Jx1, Jx2, Jr1, Jr2;
       ChMatrix33<float> Ps1, Ps2, Jtemp;
-      Ps1.Set_X_matrix(ToChVector(p1));
-      Ps2.Set_X_matrix(ToChVector(p2));
+      ChMatrix33<float> A1 = ChMatrix33<float>(ToChQuaternion(A_R));
+      ChMatrix33<float> A2 = ChMatrix33<float>(ToChQuaternion(B_R));
+
+      ChVector<float> Pl1 = ChTrasform<float>::TrasformParentToLocal(ToChVector(p1), ChVector<float>(0, 0, 0), A1);
+      ChVector<float> Pl2 = ChTrasform<float>::TrasformParentToLocal(ToChVector(p2), ChVector<float>(0, 0, 0), A2);
+
+      Ps1.Set_X_matrix(Pl1);
+      Ps2.Set_X_matrix(Pl2);
 
       ChMatrix33<float> contact_plane;
       contact_plane.Set_A_axis(Vx, Vy, Vz);
@@ -78,13 +84,11 @@ int main(
       Jx2.CopyFromMatrixT(contact_plane);
       Jx1.MatrNeg();
 
-      ChMatrix33<float> A1 = ChMatrix33<float>(ToChQuaternion(A_R));
-      ChMatrix33<float> A2 = ChMatrix33<float>(ToChQuaternion(B_R));
-
       Jtemp.MatrMultiply(A1, Ps1);
       Jr1.MatrTMultiply(contact_plane, Jtemp);
 
       Jtemp.MatrMultiply(A2, Ps2);
+
       Jr2.MatrTMultiply(contact_plane, Jtemp);
       Jr2.MatrNeg();
 
@@ -96,7 +100,7 @@ int main(
       cout << "Contact Planes Sphere Sphere\n";
 
       //cout << n << v << w;
-      //cout << -ToReal3(contact_plane.ClipVector(0, 0)) << -ToReal3(contact_plane.ClipVector(0, 1)) << -ToReal3(contact_plane.ClipVector(0, 2));
+      //cout << ToReal3(Jx1.ClipVector(0, 0)) << ToReal3(Jx1.ClipVector(0, 1)) << ToReal3(Jx1.ClipVector(0, 2));
       //cout<<ToReal3(contact_plane.ClipVector(0,0))<<ToReal3(contact_plane.ClipVector(0,1))<<ToReal3(contact_plane.ClipVector(0,2));
       StrictEqual(-n, ToReal3(Jx1.ClipVector(0, 0)));
       StrictEqual(-v, ToReal3(Jx1.ClipVector(0, 1)));
@@ -108,17 +112,17 @@ int main(
 
       cout << "Jacobians Sphere Sphere\n";
 
-      cout << T3 << T4 << T5 << endl;
-      cout << ToReal3(Jr1.ClipVector(0, 0)) << ToReal3(Jr1.ClipVector(0, 1)) << ToReal3(Jr1.ClipVector(0, 2)) << endl;
+      //cout << T3 << T4 << T5 << endl;
+      //cout << ToReal3(Jr1.ClipVector(0, 0)) << ToReal3(Jr1.ClipVector(0, 1)) << ToReal3(Jr1.ClipVector(0, 2)) << endl;
       //cout<<ToReal3(Jr2.ClipVector(0,0))<<ToReal3(Jr2.ClipVector(0,1))<<ToReal3(Jr2.ClipVector(0,2));
 
-      WeakEqual(T3, ToReal3(Jr1.ClipVector(0, 0)), FLT_EPSILON);
-      WeakEqual(T4, ToReal3(Jr1.ClipVector(0, 1)), FLT_EPSILON);
-      WeakEqual(T5, ToReal3(Jr1.ClipVector(0, 2)), FLT_EPSILON);
+      WeakEqual(T3, ToReal3(Jr1.ClipVector(0, 0)), FLT_EPSILON * 10);
+      WeakEqual(T4, ToReal3(Jr1.ClipVector(0, 1)), FLT_EPSILON * 10);
+      WeakEqual(T5, ToReal3(Jr1.ClipVector(0, 2)), FLT_EPSILON * 10);
 
-      WeakEqual(-T6, ToReal3(Jr2.ClipVector(0, 0)), FLT_EPSILON);
-      WeakEqual(-T7, ToReal3(Jr2.ClipVector(0, 1)), FLT_EPSILON);
-      WeakEqual(-T8, ToReal3(Jr2.ClipVector(0, 2)), FLT_EPSILON);
+      WeakEqual(-T6, ToReal3(Jr2.ClipVector(0, 0)), FLT_EPSILON * 10);
+      WeakEqual(-T7, ToReal3(Jr2.ClipVector(0, 1)), FLT_EPSILON * 10);
+      WeakEqual(-T8, ToReal3(Jr2.ClipVector(0, 2)), FLT_EPSILON * 10);
 
       //====================================================================
 
@@ -141,17 +145,15 @@ int main(
       //cout << ToReal3(Jro2.ClipVector(0, 0)) << ToReal3(Jro2.ClipVector(0, 1)) << ToReal3(Jro2.ClipVector(0, 2));
 
       cout << "Rolling Sphere Sphere\n";
-      WeakEqual(-TA, ToReal3(Jro1.ClipVector(0, 0)), FLT_EPSILON);
-      WeakEqual(-TB, ToReal3(Jro1.ClipVector(0, 1)), FLT_EPSILON);
-      WeakEqual(-TC, ToReal3(Jro1.ClipVector(0, 2)), FLT_EPSILON);
+      WeakEqual(-TA, ToReal3(Jro1.ClipVector(0, 0)), FLT_EPSILON * 5);
+      WeakEqual(-TB, ToReal3(Jro1.ClipVector(0, 1)), FLT_EPSILON * 5);
+      WeakEqual(-TC, ToReal3(Jro1.ClipVector(0, 2)), FLT_EPSILON * 5);
 
-      WeakEqual(TD, ToReal3(Jro2.ClipVector(0, 0)), FLT_EPSILON);
-      WeakEqual(TE, ToReal3(Jro2.ClipVector(0, 1)), FLT_EPSILON);
-      WeakEqual(TF, ToReal3(Jro2.ClipVector(0, 2)), FLT_EPSILON);
+      WeakEqual(TD, ToReal3(Jro2.ClipVector(0, 0)), FLT_EPSILON * 5);
+      WeakEqual(TE, ToReal3(Jro2.ClipVector(0, 1)), FLT_EPSILON * 5);
+      WeakEqual(TF, ToReal3(Jro2.ClipVector(0, 2)), FLT_EPSILON * 5);
 
    }
-
-   return 0;
 
    {
 
@@ -196,8 +198,15 @@ int main(
 
       ChMatrix33<> Jx1, Jx2, Jr1, Jr2;
       ChMatrix33<> Ps1, Ps2, Jtemp;
-      Ps1.Set_X_matrix(ToChVector(p1));
-      Ps2.Set_X_matrix(ToChVector(p2));
+
+      ChMatrix33<float> A1 = ChMatrix33<>(ToChQuaternion(A_R));
+      ChMatrix33<float> A2 = ChMatrix33<>(ToChQuaternion(B_R));
+
+      ChVector<float> Pl1 = ChTrasform<float>::TrasformParentToLocal(ToChVector(p1), ChVector<float>(0, 0, 0), A1);
+      ChVector<float> Pl2 = ChTrasform<float>::TrasformParentToLocal(ToChVector(p2), ChVector<float>(0, 0, 0), A2);
+
+      Ps1.Set_X_matrix(Pl1);
+      Ps2.Set_X_matrix(Pl2);
 
       ChMatrix33<float> contact_plane;
       contact_plane.Set_A_axis(Vx, Vy, Vz);
@@ -206,8 +215,7 @@ int main(
       Jx2.CopyFromMatrixT(contact_plane);
       Jx1.MatrNeg();
 
-      ChMatrix33<> A1 = ChMatrix33<>(ToChQuaternion(A_R));
-      ChMatrix33<> A2 = ChMatrix33<>(ToChQuaternion(B_R));
+
 
       Jtemp.MatrMultiply(A1, Ps1);
       Jr1.MatrTMultiply(contact_plane, Jtemp);
@@ -233,11 +241,11 @@ int main(
       WeakEqual(v, ToReal3(Jx2.ClipVector(0, 1)), FLT_EPSILON * 2);
       WeakEqual(w, ToReal3(Jx2.ClipVector(0, 2)), FLT_EPSILON * 2);
 
-      cout << T3 << T4 << T5 << endl;
-      cout << ToReal3(Jr1.ClipVector(0, 0)) << ToReal3(Jr1.ClipVector(0, 1)) << ToReal3(Jr1.ClipVector(0, 2)) << endl;
+      //cout << T3 << T4 << T5 << endl;
+     // cout << ToReal3(Jr1.ClipVector(0, 0)) << ToReal3(Jr1.ClipVector(0, 1)) << ToReal3(Jr1.ClipVector(0, 2)) << endl;
 
-      cout << T6 << T7 << T8 << endl;
-      cout << ToReal3(Jr2.ClipVector(0, 0)) << ToReal3(Jr2.ClipVector(0, 1)) << ToReal3(Jr2.ClipVector(0, 2)) << endl;
+      //cout << T6 << T7 << T8 << endl;
+      //cout << ToReal3(Jr2.ClipVector(0, 0)) << ToReal3(Jr2.ClipVector(0, 1)) << ToReal3(Jr2.ClipVector(0, 2)) << endl;
 
       WeakEqual(T3, ToReal3(Jr1.ClipVector(0, 0)), FLT_EPSILON * 2);
       WeakEqual(T4, ToReal3(Jr1.ClipVector(0, 1)), FLT_EPSILON * 2);
@@ -266,13 +274,13 @@ int main(
       //cout << ToReal3(Jro2.ClipVector(0, 0)) << ToReal3(Jro2.ClipVector(0, 1)) << ToReal3(Jro2.ClipVector(0, 2));
 
       cout << "Rolling Sphere Box\n";
-      WeakEqual(-TA, ToReal3(Jro1.ClipVector(0, 0)), FLT_EPSILON);
-      WeakEqual(-TB, ToReal3(Jro1.ClipVector(0, 1)), FLT_EPSILON);
-      WeakEqual(-TC, ToReal3(Jro1.ClipVector(0, 2)), FLT_EPSILON);
+      WeakEqual(-TA, ToReal3(Jro1.ClipVector(0, 0)), FLT_EPSILON* 2);
+      WeakEqual(-TB, ToReal3(Jro1.ClipVector(0, 1)), FLT_EPSILON* 2);
+      WeakEqual(-TC, ToReal3(Jro1.ClipVector(0, 2)), FLT_EPSILON* 2);
 
-      WeakEqual(TD, ToReal3(Jro2.ClipVector(0, 0)), FLT_EPSILON);
-      WeakEqual(TE, ToReal3(Jro2.ClipVector(0, 1)), FLT_EPSILON);
-      WeakEqual(TF, ToReal3(Jro2.ClipVector(0, 2)), FLT_EPSILON);
+      WeakEqual(TD, ToReal3(Jro2.ClipVector(0, 0)), FLT_EPSILON* 2);
+      WeakEqual(TE, ToReal3(Jro2.ClipVector(0, 1)), FLT_EPSILON* 2);
+      WeakEqual(TF, ToReal3(Jro2.ClipVector(0, 2)), FLT_EPSILON* 2);
 
    }
 

@@ -230,6 +230,18 @@ void chrono::Compute_Jacobian(
    T2 = cross(quatRotate(V, quaternion_conjugate), sbar);
    T3 = cross(quatRotate(W, quaternion_conjugate), sbar);
 
+
+//  M33 X =  XMatrix(sbar);
+//  M33 R = AMat(quat);
+//
+//  M33 T = R*X;
+//  M33 C(U,V,W);
+//  M33 Res = Transpose(MatTMult(C,T));
+//
+//  T1 = Res.U;
+//  T2 = Res.V;
+//  T3 = Res.W;
+
 }
 
 void chrono::Compute_Jacobian_Rolling(
