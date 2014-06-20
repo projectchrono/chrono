@@ -114,8 +114,8 @@ int main(
       ChQuaternion<float> R2 = ToChQuaternion(R1);
 
       ChVector<float> Res2 = R2.Rotate(ToChVector(V));
-      WeakEqual(Res1a, ToReal3(Res2), FLT_EPSILON*2);
-      WeakEqual(Res1b, ToReal3(Res2), FLT_EPSILON*2);
+      WeakEqual(Res1a, ToReal3(Res2), FLT_EPSILON*5);
+      WeakEqual(Res1b, ToReal3(Res2), FLT_EPSILON*5);
    }
    // =============================================================================
    {
