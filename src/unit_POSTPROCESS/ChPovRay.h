@@ -44,6 +44,10 @@ namespace chrono{
 /// Class for post processing implementation that generates
 /// scripts for POVray. The script can be used in POVray to
 /// render photo-realistic animations. 
+/// It will convert only objects that contain supported 
+/// visualization assets AND that are flagged by attaching 
+/// a ChPovRayAsset to them (the ChPovRay::Add() function is
+/// a shortcut for adding such ChPovRayAsset).
 
 class ChApiPostProcess ChPovRay : public ChPostProcessBase
 {
@@ -60,18 +64,25 @@ public:
 		SYMBOL_SPHERE_NOSCALE
 		};
 
+		/// Add a ChPhysicsItem object to the list of objects 
+		/// to render (if it has some associated ChAsset object).
+		/// Note that this simply 'flags' the object as renderable
+		/// but attaching a ChPovRayAsset to it.
+	virtual void Add(ChSharedPtr<ChPhysicsItem> mitem);
+
+		/// Remove a ChPhysicsItem object from the list of objects to render
+	virtual void Remove(ChSharedPtr<ChPhysicsItem> mitem);
+
 		/// Add all ChPhysicsItem objects in the system to 
-		/// the list of objects to render (if they have some
-		/// associated ChAsset object). Call this at the
+		/// the list of objects to render. Call this at the
 		/// beginning of the simulation, for instance.
 	virtual void AddAll();
 
-		/// Add a ChPhysicsItem object to the list of objects 
-		/// to render (if it has some associated ChAsset object)
-	virtual void Add(ChSharedPtr<ChPhysicsItem> mitem);
-
 		/// Remove all ChPhysicsItem objects that were previously added.
 	virtual void RemoveAll();
+
+		/// Tell if a ChPhysicsItem has been already added.
+	virtual bool IsAdded(ChSharedPtr<ChPhysicsItem> mitem);
 
 		/// Set the filename of the template for the script generation
 		/// If not set, it defaults to "../data/_template_POV.pov"
@@ -202,7 +213,8 @@ public:
 	virtual void ExportData(const std::string &filename);
 
 protected:			
-
+	
+	virtual void SetupLists();
 	virtual void ExportAssets();
 	void _recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetlist, ChStreamOutAsciiFile& assets_file);
 

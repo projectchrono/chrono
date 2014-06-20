@@ -29,6 +29,7 @@ IF(ENABLE_UNIT_POSTPROCESS)
 	SET(ChronoEngine_UNIT_POSTPROCESS_HEADERS
 		ChApiPostProcess.h 
 		ChPovRay.h
+		ChPovRayAsset.h
 		ChPovRayAssetCustom.h
 		ChMitsubaRender.h
 		ChPostProcessBase.h

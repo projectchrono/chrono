@@ -22,6 +22,7 @@
     
   
 #include "ChPovRay.h"
+#include "ChPovRayAsset.h"
 #include "geometry/ChCTriangleMeshConnected.h"
 #include "assets/ChObjShapeFile.h"
 #include "assets/ChTriangleMeshShape.h"
@@ -81,39 +82,121 @@ ChPovRay::ChPovRay(ChSystem* system) : ChPostProcessBase(system)
 	this->contacts_do_colormap = true;
 }
 
+
+void ChPovRay::Add(ChSharedPtr<ChPhysicsItem> mitem)
+{
+	// flag as renderable by adding a ChPovAsset into assets of the item
+	if (!this->IsAdded(mitem))
+	{
+		ChSharedPtr<ChPovRayAsset> mpov_asset(new ChPovRayAsset);
+		mitem->AddAsset(mpov_asset);
+	}
+}
+
+void ChPovRay::Remove(ChSharedPtr<ChPhysicsItem> mitem)
+{
+	// unflag as renderable by removing the ChPovAsset from assets of the item
+	std::vector< ChSharedPtr<ChAsset> > assetlist = mitem->GetAssets();
+	std::vector< ChSharedPtr<ChAsset> >::iterator iasset = assetlist.begin();
+	while(iasset != assetlist.end())
+	{
+		if ( (*iasset).IsType<ChPovRayAsset>() )
+		{
+			assetlist.erase(iasset);
+			return;
+		}
+		iasset++;
+	}
+}
+
 void ChPovRay::AddAll()
 {
 	ChSystem::IteratorBodies myiter = mSystem->IterBeginBodies();
 	while (myiter != mSystem->IterEndBodies())
 	{	
-		this->mdata.push_back((*myiter));
+		this->Add((*myiter));
 		++myiter;
 	}
 	ChSystem::IteratorOtherPhysicsItems myiterp = mSystem->IterBeginOtherPhysicsItems();
 	while (myiterp != mSystem->IterEndOtherPhysicsItems())
 	{	
-		this->mdata.push_back((*myiterp));
+		this->Add((*myiterp));
 		++myiterp;
 	}
 	ChSystem::IteratorLinks myiterl = mSystem->IterBeginLinks();
 	while (myiterl != mSystem->IterEndLinks())
 	{	
-		this->mdata.push_back((*myiterl));
+		this->Add((*myiterl));
 		++myiterl;
 	}
-
-}
-
-void ChPovRay::Add(ChSharedPtr<ChPhysicsItem> mitem)
-{
-	this->mdata.push_back(mitem);
 }
 
 void ChPovRay::RemoveAll()
 {
-	this->mdata.clear();
+	ChSystem::IteratorBodies myiter = mSystem->IterBeginBodies();
+	while (myiter != mSystem->IterEndBodies())
+	{	
+		this->Remove((*myiter));
+		++myiter;
+	}
+	ChSystem::IteratorOtherPhysicsItems myiterp = mSystem->IterBeginOtherPhysicsItems();
+	while (myiterp != mSystem->IterEndOtherPhysicsItems())
+	{	
+		this->Remove((*myiterp));
+		++myiterp;
+	}
+	ChSystem::IteratorLinks myiterl = mSystem->IterBeginLinks();
+	while (myiterl != mSystem->IterEndLinks())
+	{	
+		this->Remove((*myiterl));
+		++myiterl;
+	}
 }
 
+bool ChPovRay::IsAdded(ChSharedPtr<ChPhysicsItem> mitem)
+{
+	std::vector< ChSharedPtr<ChAsset> > assetlist = mitem->GetAssets();
+
+	for (unsigned int k = 0; k < assetlist.size(); k++)
+	{
+		ChSharedPtr<ChAsset> k_asset = assetlist[k];
+		if ( k_asset.IsType<ChPovRayAsset>() )
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+void ChPovRay::SetupLists()
+{
+	// reset the list of items to render
+	mdata.clear();
+
+	// scan all items in ChSystem to see which were marked by a ChPovAsset asset
+	ChSystem::IteratorBodies myiter = mSystem->IterBeginBodies();
+	while (myiter != mSystem->IterEndBodies())
+	{	
+		if (this->IsAdded(*myiter))
+			this->mdata.push_back(*myiter);
+		++myiter;
+	}
+	ChSystem::IteratorOtherPhysicsItems myiterp = mSystem->IterBeginOtherPhysicsItems();
+	while (myiterp != mSystem->IterEndOtherPhysicsItems())
+	{	
+		if (this->IsAdded(*myiterp))
+			this->mdata.push_back(*myiterp);
+		++myiterp;
+	}
+	ChSystem::IteratorLinks myiterl = mSystem->IterBeginLinks();
+	while (myiterl != mSystem->IterEndLinks())
+	{	
+		if (this->IsAdded(*myiterl))
+			this->mdata.push_back(*myiterl);
+		++myiterl;
+	}
+}
 
 
 std::string replaceOnce(
@@ -197,6 +280,8 @@ void ChPovRay::ExportScript(const std::string &filename)
 	this->out_script_filename = filename;
 	
 	pov_assets.clear();
+
+	this->SetupLists();
 
 	// Generate the _assets.pov script (initial state, it will be populated later by
 	// appending assets as they enter the exporter, only once if shared, using ExportAssets() )
@@ -745,10 +830,17 @@ void ChPovRay::_recurseExportObjData( std::vector< ChSharedPtr<ChAsset> >& asset
 
 void ChPovRay::ExportData(const std::string &filename)
 {
+	// Regenerate the list of objects that need POV rendering, by
+	// scanning all ChPhysicsItems in the ChSystem that have a ChPovRayAsse attached.
+	// Note that SetupLists() happens at each ExportData (i.e. at each timestep)
+	// because maybe some object has been added or deleted during the simulation.
+
+	this->SetupLists();
+
 	// Populate the assets (because maybe that during the 
 	// animation someone created an object with asset, after
-	// the initial call to ExportScript() - but already present
-	// assets won't be appended)
+	// the initial call to ExportScript() - but note that already present
+	// assets won't be appended!)
 
 	this->ExportAssets();
 
