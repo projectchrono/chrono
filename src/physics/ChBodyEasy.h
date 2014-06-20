@@ -55,6 +55,7 @@ public:
 		double mmass =  mdensity * ( (4.0/3.0) * CH_C_PI* pow (radius,3) );
 		double inertia = (2.0/5.0)* mmass * pow (radius,2);
 
+		this->SetDensity( (float)mdensity );
 		this->SetMass( mmass );
 		this->SetInertiaXX( ChVector<> ( inertia,inertia,inertia) );
 
@@ -98,6 +99,8 @@ public:
 	ChBodyEasyCylinder ( double radius, double height, double mdensity, bool collide = false, bool visual_asset = true)
 	{	
 		double mmass =  mdensity * (CH_C_PI* pow (radius,2) * height);
+		
+		this->SetDensity( (float)mdensity );
 		this->SetMass( mmass );
 		this->SetInertiaXX( ChVector<> ( (1.0/12.0)*mmass * (3*pow (radius,2) + pow (height,2)) ,
 										  0.5*mmass * pow (radius,2) ,
@@ -146,6 +149,8 @@ public:
 	ChBodyEasyBox ( double Xsize, double Ysize, double Zsize, double mdensity, bool collide = false, bool visual_asset = true)
 	{
 		double mmass =  mdensity * (Xsize * Ysize * Zsize);
+
+		this->SetDensity( (float)mdensity );
 		this->SetMass( mmass );
 		this->SetInertiaXX( ChVector<> (  (1.0/12.0) * mmass * ( pow(Ysize,2) + pow (Zsize,2) ) ,
 										  (1.0/12.0) * mmass * ( pow(Xsize,2) + pow (Zsize,2) ),
@@ -207,6 +212,7 @@ public:
 		for (unsigned int i = 0; i< vshape->GetMesh().getCoordsVertices().size(); ++i)
 			vshape->GetMesh().getCoordsVertices()[i] -= baricenter;
 
+		this->SetDensity( (float)mdensity );
 		this->SetMass( mass * mdensity );
 		this->SetInertia( &(inertia * mdensity) );
 		
@@ -284,6 +290,7 @@ public:
 			totinertia(2,1) = totinertia(1,2);
 		}
 
+		this->SetDensity( (float)mdensity );
 		this->SetMass( totmass );
 		this->SetInertia( &totinertia );
 
