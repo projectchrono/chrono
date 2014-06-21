@@ -61,6 +61,72 @@ public:
 };
 
 
+// Define a hierarchy of classes, just for this example.
+// Note the 'virtual'! (otherwise dynamic casting won't work)
+// These will be handled via ChSharedPtr, in Example 6 below.
+class cTestA : public ChShared
+{
+public:  
+	cTestA () {}
+	virtual ~cTestA () {}
+	virtual void PrintMe () 
+		{	GetLog() <<"     Hallo! I am a cTestA object!\n"; }
+};
+
+	// This is inherited from cTestA
+class cTestB : public cTestA
+{
+public:  
+	cTestB () {} 
+	virtual ~cTestB () {}
+	virtual void PrintMe () 
+		{	GetLog() <<"     Hallo! I am a cTestB object!\n"; }
+};
+
+	// This is NOT inherited from cTestA, it is completely unrelated
+class cTestC : public ChShared
+{
+public:  
+	cTestC ()  {}
+	virtual ~cTestC () {}
+	virtual void PrintMe () 
+		{	GetLog() <<"     Hallo! I am a cTestC object!\n"; }
+};
+
+
+// Also, just for this test, define the same hierarchy of three classes 
+// but his time without having ChShared as super base. 
+// Note the 'virtual'! (otherwise dynamic casting won't work)
+// These will be handled via ChSmartPtr in Example 7 below.
+class ccTestA
+{
+public:  
+	ccTestA () {} 
+	virtual ~ccTestA () {}
+	virtual void PrintMe () 
+		{	GetLog() <<"     Hallo! I am a ccTestA object!\n"; }
+};
+
+	// This is inherited from cTestA
+class ccTestB : public ccTestA
+{
+public:  
+	ccTestB () {} 
+	virtual ~ccTestB () {}
+	virtual void PrintMe () 
+		{	GetLog() <<"     Hallo! I am a ccTestB object!\n"; }
+};
+
+	// This is NOT inherited from ccTestA, it is completely unrelated
+class ccTestC  
+{
+public:  
+	ccTestC () {} 
+	virtual ~ccTestC () {}
+	virtual void PrintMe () 
+		{	GetLog() <<"     Hallo! I am a ccTestC object!\n"; }
+};
+
 
 
 int main(int argc, char* argv[])
@@ -218,38 +284,8 @@ int main(int argc, char* argv[])
 
 		GetLog() << "\n Example: casting between ChSharedPtr pointers \n";
 
-			// Define a hierarchy of classes, just for this example.
-			// Note the 'virtual'! (otherwise dynamic casting won't work)
-		class cTestA : public ChShared
-		{
-		public:  
-			cTestA () {}
-			virtual ~cTestA () {}
-			virtual void PrintMe () 
-				{	GetLog() <<"     Hallo! I am a cTestA object!\n"; }
-		};
 
-			// This is inherited from cTestA
-		class cTestB : public cTestA
-		{
-		public:  
-			cTestB () {} 
-			virtual ~cTestB () {}
-			virtual void PrintMe () 
-				{	GetLog() <<"     Hallo! I am a cTestB object!\n"; }
-		};
-
-			// This is NOT inherited from cTestA, it is completely unrelated
-		class cTestC : public ChShared
-		{
-		public:  
-			cTestC ()  {}
-			virtual ~cTestC () {}
-			virtual void PrintMe () 
-				{	GetLog() <<"     Hallo! I am a cTestC object!\n"; }
-		};
-
-			// Now instantiate three objects from the three classes, 
+			// Instantiate three objects from three classes, where cTestB is a specialization of cTestA,
 			// and manage them via shared pointers, as learned in previous examples:
 		ChSharedPtr<cTestA> pA(new cTestA);
 		ChSharedPtr<cTestB> pB(new cTestB);
@@ -316,76 +352,45 @@ int main(int argc, char* argv[])
 
 		GetLog() << "\n Example: casting between ChSmartPtr pointers \n";
 
-			// Define a hierarchy of classes (without having ChShared as super base: here we use ChSmartPtr)
-			// Note the 'virtual'! (otherwise dynamic casting won't work)
-		class cTestA
-		{
-		public:  
-			cTestA () {} 
-			virtual ~cTestA () {}
-			virtual void PrintMe () 
-				{	GetLog() <<"     Hallo! I am a cTestA object!\n"; }
-		};
-
-			// This is inherited from cTestA
-		class cTestB : public cTestA
-		{
-		public:  
-			cTestB () {} 
-			virtual ~cTestB () {}
-			virtual void PrintMe () 
-				{	GetLog() <<"     Hallo! I am a cTestB object!\n"; }
-		};
-
-			// This is NOT inherited from cTestA, it is completely unrelated
-		class cTestC : public ChShared
-		{
-		public:  
-			cTestC () {} 
-			virtual ~cTestC () {}
-			virtual void PrintMe () 
-				{	GetLog() <<"     Hallo! I am a cTestC object!\n"; }
-		};
-
-		ChSmartPtr<cTestA> pA(new cTestA);
-		ChSmartPtr<cTestB> pB(new cTestB);
-		ChSmartPtr<cTestC> pC(new cTestC);
+		ChSmartPtr<ccTestA> pA(new ccTestA);
+		ChSmartPtr<ccTestB> pB(new ccTestB);
+		ChSmartPtr<ccTestC> pC(new ccTestC);
 
 			// Test 1: convert a shared pointer between two different UNRELATED classes:
-		//ChSmartPtr<cTestA> pAn(pC);  // NO! compile-time error! "Types pointed to are unrelated.."
-		//ChSmartPtr<cTestA> pAn = pC; // NO! compile-time error! "Types pointed to are unrelated.."
+		//ChSmartPtr<ccTestA> pAn(pC);  // NO! compile-time error! "Types pointed to are unrelated.."
+		//ChSmartPtr<ccTestA> pAn = pC; // NO! compile-time error! "Types pointed to are unrelated.."
 
 			// Test 2: convert a shared pointer from a CHILD class to a PARENT class (UPCASTING):
-		ChSmartPtr<cTestA> pAn(pB);    // OK! because cTestA is base class of cTestB, upcasting is automatic
-		ChSmartPtr<cTestA> qAn = pB;   // OK! another way of doing the same...
+		ChSmartPtr<ccTestA> pAn(pB);    // OK! because ccTestA is base class of ccTestB, upcasting is automatic
+		ChSmartPtr<ccTestA> qAn = pB;   // OK! another way of doing the same...
 
 			// Test 3: convert a shared pointer from a PARENT class to a CHILD class (DOWNCASTING):
-		//ChSmartPtr<cTestB> pBnk(pA);  // NO! compile-time error! "Cast from base to derived requires dynamic_cast.."
-		//ChSmartPtr<cTestB> qBn = pA;  // NO! compile-time error! "Cast from base to derived requires dynamic_cast.."
+		//ChSmartPtr<ccTestB> pBnk(pA);  // NO! compile-time error! "Cast from base to derived requires dynamic_cast.."
+		//ChSmartPtr<ccTestB> qBn = pA;  // NO! compile-time error! "Cast from base to derived requires dynamic_cast.."
 
-		ChSmartPtr<cTestB> pBn (pAn.DynamicCastTo<cTestB>());
+		ChSmartPtr<ccTestB> pBn (pAn.DynamicCastTo<ccTestB>());
 		if (pBn)
 			GetLog() << "Test: DynamicCastTo  pAn->pBn was successfull \n";
 
-		ChSmartPtr<cTestB> pBnn = dynamic_cast_chshared<cTestB>(pAn);
+		ChSmartPtr<ccTestB> pBnn = dynamic_cast_chshared<ccTestB>(pAn);
 		if (pBnn)
 			GetLog() << "Test: dynamic_cast_chshared  pAn->pBnn was successfull \n";
 
-		ChSmartPtr<cTestB> pBm(pA.DynamicCastTo<cTestB>());
+		ChSmartPtr<ccTestB> pBm(pA.DynamicCastTo<ccTestB>());
 		if (pBm.IsNull())
 			GetLog() << "Test: DynamicCastTo test pA->pBm failed, pA belongs to parent class.\n";
 
 			// Test 4: static casting. This is like static_cast<>() for C++ pointers.
 			// This fast casting happens at compile time, but unlike dynamic casting it does 
 			// not ensure that downcasting is correct.  Alternative: use static_cast_chshared<>()
-		ChSmartPtr<cTestB> pBs = pAn.StaticCastTo<cTestB>();  // OK downcasting. Correctness is up to you.
-		ChSmartPtr<cTestA> pAs = pB .StaticCastTo<cTestA>();  // OK upcasting. But superfluous.
-		//ChSmartPtr<cTestB> pBz = pC.StaticCastTo<cTestB>(); // NO! compile-time error! "Types pointed to are unrelated.."
+		ChSmartPtr<ccTestB> pBs = pAn.StaticCastTo<ccTestB>();  // OK downcasting. Correctness is up to you.
+		ChSmartPtr<ccTestA> pAs = pB .StaticCastTo<ccTestA>();  // OK upcasting. But superfluous.
+		//ChSmartPtr<ccTestB> pBz = pC.StaticCastTo<ccTestB>(); // NO! compile-time error! "Types pointed to are unrelated.."
 		
 
-		pA ->PrintMe(); // will print that he references a cTestA object 
-		pAn->PrintMe(); // will print that he references a cTestB object 
-		pBn->PrintMe(); // will print that he references a cTestB object 
+		pA ->PrintMe(); // will print that he references a ccTestA object 
+		pAn->PrintMe(); // will print that he references a ccTestB object 
+		pBn->PrintMe(); // will print that he references a ccTestB object 
 	}
 
    
