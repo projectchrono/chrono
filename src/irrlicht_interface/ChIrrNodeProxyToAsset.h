@@ -53,7 +53,7 @@ class ChIrrNodeProxyToAsset : public scene::ISceneNode
 private:
 	core::aabbox3d<f32> Box;
 
-	chrono::ChSharedPtr<chrono::ChVisualization> visualization_asset;
+	chrono::ChSharedPtr<chrono::ChAsset> visualization_asset;
 
 	bool do_update;
 
@@ -61,7 +61,7 @@ public:
 
 		
 	ChIrrNodeProxyToAsset( 
-					chrono::ChSharedPtr<chrono::ChVisualization> myvisualization,   ///< pointer to the Chrono::Engine visualization asset
+					chrono::ChSharedPtr<chrono::ChAsset> myvisualization,   ///< pointer to the Chrono::Engine visualization asset
 					ISceneNode* parent  ///< the parent node in Irrlicht hierarchy
 					)
 		:	scene::ISceneNode(parent, parent->getSceneManager(), 0) , 						 
@@ -116,8 +116,8 @@ public:
 		//
 
 		/// Returns reference to the shared pointer which references the
-		/// ChVisualization asset to whom this is a proxy
-	chrono::ChSharedPtr<chrono::ChVisualization>& GetVisualizationAsset() {return this->visualization_asset;}
+		/// ChAsset asset to whom this is a proxy
+	chrono::ChSharedPtr<chrono::ChAsset>& GetVisualizationAsset() {return this->visualization_asset;}
 
 		/// Returns true if the node must recompute the mesh for each time
 		/// that an Update is called.
@@ -126,7 +126,7 @@ public:
 		/// that an Update is called.
 	virtual void SetUpdateEnabled(const bool mup) { this->do_update = mup; }
 	
-		/// Updates the child mesh to reflect the ChVisualization asset
+		/// Updates the child mesh to reflect the ChAsset
 	virtual void Update()
 		{
 			if (!this->do_update) 
@@ -137,7 +137,7 @@ public:
 
 			if (this->visualization_asset.IsType<ChTriangleMeshShape>())
 			{
-				ChSharedPtr<ChTriangleMeshShape> trianglemesh = this->visualization_asset;
+				ChSharedPtr<ChTriangleMeshShape> trianglemesh = this->visualization_asset.DynamicCastTo<ChTriangleMeshShape>();
 
 				// Fetch the 1st child, i.e. the mesh
 				irr::scene::ISceneNode* mchildnode = *(this->getChildren().begin()); 
@@ -268,7 +268,7 @@ public:
 
 			if (this->visualization_asset.IsType<ChGlyphs>())
 			{
-				ChSharedPtr<ChGlyphs> mglyphs = this->visualization_asset;
+				ChSharedPtr<ChGlyphs> mglyphs = this->visualization_asset.DynamicCastTo<ChGlyphs>();
 
 				// Fetch the 1st child, i.e. the mesh
 				irr::scene::ISceneNode* mchildnode = *(this->getChildren().begin()); 

@@ -136,7 +136,7 @@ public:
 			// asset k of object i references a proxy to an irrlicht node?
 			if ( k_asset.IsType<chrono::ChIrrNodeAsset>() )
 			{
-				myirrasset = k_asset;
+				myirrasset = k_asset.DynamicCastTo<chrono::ChIrrNodeAsset>();
 			}
 		}
 		return myirrasset;
@@ -342,11 +342,11 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 
 			if ( k_asset.IsType<chrono::ChObjShapeFile>() )
 			{
-				chrono::ChSharedPtr<chrono::ChObjShapeFile> myobj(k_asset);
+				chrono::ChSharedPtr<chrono::ChObjShapeFile> myobj(k_asset.DynamicCastTo<chrono::ChObjShapeFile>());
 				irr::scene::IAnimatedMesh* genericMesh = this->scenemanager->getMesh(myobj->GetFilename().c_str());
 				if (genericMesh)
 				{
-					irr::scene::ISceneNode* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(k_asset, mnode);
+					irr::scene::ISceneNode* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(myobj, mnode);
 					irr::scene::ISceneNode* mchildnode = this->scenemanager->addAnimatedMeshSceneNode(genericMesh,mproxynode);
 					
 					//mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, false);
@@ -358,7 +358,7 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 			}
 			if ( k_asset.IsType<chrono::ChTriangleMeshShape>() )
 			{
-				chrono::ChSharedPtr<chrono::ChTriangleMeshShape> mytrimesh(k_asset);
+				chrono::ChSharedPtr<chrono::ChTriangleMeshShape> mytrimesh(k_asset.DynamicCastTo<chrono::ChTriangleMeshShape>());
 
 				CDynamicMeshBuffer * buffer = new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
 			//	SMeshBuffer* buffer = new SMeshBuffer();
@@ -366,7 +366,7 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 				newmesh->addMeshBuffer(buffer);
 				buffer->drop();
 
-				irr::scene::ChIrrNodeProxyToAsset* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(k_asset, mnode);
+				irr::scene::ChIrrNodeProxyToAsset* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(mytrimesh, mnode);
 				irr::scene::ISceneNode* mchildnode = this->scenemanager->addMeshSceneNode(newmesh,mproxynode);
 				newmesh->drop();
 				mproxynode->Update(); // force syncing of triangle positions & face indexes
@@ -376,7 +376,7 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 			}
 			if ( k_asset.IsType<chrono::ChGlyphs>() )
 			{
-				chrono::ChSharedPtr<chrono::ChGlyphs> myglyphs(k_asset);
+				chrono::ChSharedPtr<chrono::ChGlyphs> myglyphs(k_asset.DynamicCastTo<chrono::ChGlyphs>());
 
 				CDynamicMeshBuffer * buffer = new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
 			//  SMeshBuffer* buffer = new SMeshBuffer();
@@ -384,7 +384,7 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 				newmesh->addMeshBuffer(buffer);
 				buffer->drop();
 
-				irr::scene::ChIrrNodeProxyToAsset* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(k_asset, mnode);
+				irr::scene::ChIrrNodeProxyToAsset* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(myglyphs, mnode);
 				irr::scene::ISceneNode* mchildnode = this->scenemanager->addMeshSceneNode(newmesh,mproxynode);
 				newmesh->drop();
 				mproxynode->Update(); // force syncing of triangle positions & face indexes
@@ -394,8 +394,8 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 			}
 			if ( k_asset.IsType<chrono::ChSphereShape>() && sphereMesh)
 			{
-				chrono::ChSharedPtr<chrono::ChSphereShape> mysphere(k_asset);
-				irr::scene::ISceneNode* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(k_asset, mnode);
+				chrono::ChSharedPtr<chrono::ChSphereShape> mysphere(k_asset.DynamicCastTo<chrono::ChSphereShape>());
+				irr::scene::ISceneNode* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(mysphere, mnode);
 				irr::scene::ISceneNode* mchildnode = this->scenemanager->addMeshSceneNode(this->sphereMesh,mproxynode);
 
 				double mradius = mysphere->GetSphereGeometry().rad;
@@ -405,8 +405,8 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 			}
 			if ( k_asset.IsType<chrono::ChCylinderShape>() && cylinderMesh)
 			{
-				chrono::ChSharedPtr<chrono::ChCylinderShape> mycylinder(k_asset);
-				irr::scene::ISceneNode* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(k_asset, mnode);
+				chrono::ChSharedPtr<chrono::ChCylinderShape> mycylinder(k_asset.DynamicCastTo<chrono::ChCylinderShape>());
+				irr::scene::ISceneNode* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(mycylinder, mnode);
 				irr::scene::ISceneNode* mchildnode = this->scenemanager->addMeshSceneNode(this->cylinderMesh,mproxynode);
 
 				double rad = mycylinder->GetCylinderGeometry().rad;
@@ -425,8 +425,8 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 			}
 			if ( k_asset.IsType<chrono::ChBoxShape>() && cubeMesh)
 			{
-				chrono::ChSharedPtr<chrono::ChBoxShape> mybox(k_asset);
-				irr::scene::ISceneNode* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(k_asset, mnode);
+				chrono::ChSharedPtr<chrono::ChBoxShape> mybox(k_asset.DynamicCastTo<chrono::ChBoxShape>());
+				irr::scene::ISceneNode* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(mybox, mnode);
 				irr::scene::ISceneNode* mchildnode = this->scenemanager->addMeshSceneNode(this->cubeMesh,mproxynode);
 
 				chrono::ChCoordsys<> irrboxcoords(mybox->GetBoxGeometry().Pos, mybox->GetBoxGeometry().Rot.Get_A_quaternion());				
@@ -437,18 +437,18 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 
 			if ( k_asset.IsType<chrono::ChTexture>() )
 			{
-				mtexture = k_asset;
+				mtexture = k_asset.DynamicCastTo<chrono::ChTexture>();
 			}
 			if ( k_asset.IsType<chrono::ChColorAsset>() )
 			{
-				mcolor = k_asset;
+				mcolor = k_asset.DynamicCastTo<chrono::ChColorAsset>();
 			}
 
 			if ( k_asset.IsType<chrono::ChCamera>() )
 			{
 				this->camera_found_in_assets = true;
-				chrono::ChSharedPtr<chrono::ChCamera> mycamera(k_asset);
-				irr::scene::ISceneNode* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(k_asset, mnode);
+				chrono::ChSharedPtr<chrono::ChCamera> mycamera(k_asset.DynamicCastTo<chrono::ChCamera>());
+				irr::scene::ISceneNode* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(mycamera, mnode);
 				scene::RTSCamera* irrcamera = new scene::RTSCamera(mdevice, mproxynode, scenemanager,-1, -160.0f, 1.0f, 0.003f); 
 
 				irrcamera->setPosition(core::vector3dfCH(mycamera->GetPosition()));
@@ -460,10 +460,10 @@ void mflipSurfacesOnX(scene::IMesh* mesh) const
 			}
 			if ( k_asset.IsType<chrono::ChAssetLevel>() )
 			{
-				chrono::ChSharedPtr<chrono::ChAssetLevel> mylevel(k_asset);
+				chrono::ChSharedPtr<chrono::ChAssetLevel> mylevel(k_asset.DynamicCastTo<chrono::ChAssetLevel>());
 				std::vector< ChSharedPtr<ChAsset> >& subassetlist = mylevel->GetAssets();
 				ChFrame<> subassetframe = mylevel->GetFrame();
-				irr::scene::ISceneNode* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(k_asset, mnode);
+				irr::scene::ISceneNode* mproxynode = new irr::scene::ChIrrNodeProxyToAsset(mylevel, mnode);
 				irr::scene::ISceneNode* subassetnode = scenemanager->addEmptySceneNode(mproxynode);
 				// recurse level...
 				_recursePopulateIrrlicht(subassetlist, subassetframe, subassetnode);

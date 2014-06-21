@@ -203,11 +203,11 @@ int main(int argc, char* argv[])
 		{ 
 			if ( (*myiter).IsType<ChMatterMeshless>() )
 			{
-				ChSharedPtr<ChMatterMeshless> mymatter(*myiter);
+				ChSharedPtr<ChMatterMeshless> mymatter( (*myiter).DynamicCastTo<ChMatterMeshless>() );
 
 				for (unsigned int ip = 0; ip < mymatter->GetNnodes(); ip++)
 				{
-					ChSharedPtr<ChNodeMeshless> mnode (mymatter->GetNode(ip));
+					ChSharedPtr<ChNodeMeshless> mnode (mymatter->GetNode(ip).DynamicCastTo<ChNodeMeshless>() );
 					ChVector<> mv = mnode->GetPos();
 					float rad = (float)mnode->GetKernelRadius(); 
 					core::vector3df mpos((irr::f32)mv.x, (irr::f32)mv.y, (irr::f32)mv.z);

@@ -159,7 +159,7 @@ void ChContactContainerNodes::AddContact(const collision::ChCollisionInfo& mcont
 	frictionA = mmboA->GetBody()->GetSfriction();
 	
 	// downcast
-	ChSharedPtr<ChNodeXYZ> mnode ( mmnoB->GetNodes()->GetNode(mmnoB->GetNodeId()) );
+	ChSharedPtr<ChNodeXYZ> mnode ( mmnoB->GetNodes()->GetNode(mmnoB->GetNodeId()).DynamicCastTo<ChNodeXYZ>() );
 	if (mnode.IsNull()) 
 		return;
 

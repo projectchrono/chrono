@@ -975,26 +975,26 @@ void ChSystem::RemoveOtherPhysicsItem (ChSharedPtr<ChPhysicsItem> mitem)
 
 void ChSystem::Add (ChSharedPtr<ChPhysicsItem> newitem)
 {
-	if (dynamic_cast<ChBody*>(newitem.get_ptr()))// old was: (typeid(*newitem.get_ptr())==typeid(ChBody))
+	if (newitem.IsType<ChBody>())// old was: (typeid(*newitem.get_ptr())==typeid(ChBody))
 	{
-		AddBody((ChSharedPtr<ChBody>)newitem);
+		AddBody( newitem.DynamicCastTo<ChBody>() );
 	}else
-		if (dynamic_cast<ChLink*>(newitem.get_ptr()))
+		if (newitem.IsType<ChLink>())
 		{
-			AddLink((ChSharedPtr<ChLink>)newitem);
+			AddLink( newitem.DynamicCastTo<ChLink>() );
 		}else
 			  AddOtherPhysicsItem(newitem);
 }
 
 void ChSystem::Remove (ChSharedPtr<ChPhysicsItem> newitem)
 {
-	if (dynamic_cast<ChBody*>(newitem.get_ptr()))// old was: (typeid(*newitem.get_ptr())==typeid(ChBody))
+	if (newitem.IsType<ChBody>())// old was: (typeid(*newitem.get_ptr())==typeid(ChBody))
 	{
-		RemoveBody((ChSharedPtr<ChBody>)newitem);
+		RemoveBody( newitem.DynamicCastTo<ChBody>() );
 	}else
-		if (dynamic_cast<ChLink*>(newitem.get_ptr()))
+		if (newitem.IsType<ChLink>())
 		{
-			RemoveLink((ChSharedPtr<ChLink>)newitem);
+			RemoveLink( newitem.DynamicCastTo<ChLink>() );
 		}else
 			  RemoveOtherPhysicsItem(newitem);
 }

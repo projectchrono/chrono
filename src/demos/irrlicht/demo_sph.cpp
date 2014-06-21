@@ -248,7 +248,7 @@ int main(int argc, char* argv[])
 			{
 				for (unsigned int ip = 0; ip < myfluid->GetNnodes(); ip++)
 				{
-					ChSharedPtr<ChNodeSPH> mnode (myfluid->GetNode(ip));
+					ChSharedPtr<ChNodeSPH> mnode (myfluid->GetNode(ip).DynamicCastTo<ChNodeSPH>() );
 					ChVector<> mv = mnode->GetPos();
 					float rad = (float)mnode->GetKernelRadius(); 
 					core::vector3df mpos((irr::f32)mv.x, (irr::f32)mv.y, (irr::f32)mv.z);

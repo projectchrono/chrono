@@ -301,7 +301,7 @@ public:
 			{
 				if ((*myiter).IsType<chrono::ChBody>()) //item is inherited from ChBody?
 				{
-					chrono::ChSharedPtr<chrono::ChBody> abody (*myiter);
+					chrono::ChSharedPtr<chrono::ChBody> abody ((*myiter).DynamicCastTo<chrono::ChBody>());
 
 					video::SColor mcol;
 					if (abody->GetSleeping()) 
@@ -367,7 +367,7 @@ public:
 			{
 				if ((*myiter).IsType<chrono::ChBody>()) //item is inherited from ChBody?
 				{
-					chrono::ChSharedPtr<chrono::ChBody> abody (*myiter);
+					chrono::ChSharedPtr<chrono::ChBody> abody ((*myiter).DynamicCastTo<chrono::ChBody>());
 
 					video::SColor mcol;
 					chrono::ChFrame<>* mframe_cog = &(abody->GetFrame_COG_to_abs());
@@ -428,13 +428,13 @@ public:
 
 					if ((*myiter).IsType<chrono::ChLinkMarkers>())
 					{
-						chrono::ChSharedPtr<chrono::ChLinkMarkers> mylink (*myiter);
+						chrono::ChSharedPtr<chrono::ChLinkMarkers> mylink ((*myiter).DynamicCastTo<chrono::ChLinkMarkers>());
 						frAabs = *mylink->GetMarker1() >> *mylink->GetBody1();
 						frBabs = *mylink->GetMarker2() >> *mylink->GetBody2();
 					}
 					if ((*myiter).IsType<chrono::ChLinkMateGeneric>())
 					{
-						chrono::ChSharedPtr<chrono::ChLinkMateGeneric> mylink (*myiter);
+						chrono::ChSharedPtr<chrono::ChLinkMateGeneric> mylink ((*myiter).DynamicCastTo<chrono::ChLinkMateGeneric>());
 						frAabs = mylink->GetFrame1() >> *mylink->GetBody1();
 						frBabs = mylink->GetFrame2() >> *mylink->GetBody2();
 					}

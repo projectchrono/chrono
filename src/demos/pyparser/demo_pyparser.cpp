@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
 		while (myiterp != my_system.IterEndOtherPhysicsItems())
 		{	
 			if ((*myiterp)->GetNameString() == "brick_1-8")
-				mbody = (*myiterp);
+				mbody = (*myiterp).DynamicCastTo<ChBodyAuxRef>();
 
 			++myiterp;
 		}

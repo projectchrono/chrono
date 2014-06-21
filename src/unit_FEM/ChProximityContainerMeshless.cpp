@@ -194,8 +194,8 @@ void ChProximityContainerMeshless::AccumulateStep1()
 	{
 		ChMatterMeshless* mmatA = (ChMatterMeshless*)(*iterproximity)->GetModelA()->GetPhysicsItem();
 		ChMatterMeshless* mmatB = (ChMatterMeshless*)(*iterproximity)->GetModelB()->GetPhysicsItem();
-		ChSharedPtr<ChNodeMeshless> mnodeA = mmatA->GetNode ( ((ChModelBulletNode*)(*iterproximity)->GetModelA())->GetNodeId()  );
-		ChSharedPtr<ChNodeMeshless> mnodeB = mmatB->GetNode ( ((ChModelBulletNode*)(*iterproximity)->GetModelB())->GetNodeId()  );
+		ChSharedPtr<ChNodeMeshless> mnodeA = mmatA->GetNode ( ((ChModelBulletNode*)(*iterproximity)->GetModelA())->GetNodeId()  ).DynamicCastTo<ChNodeMeshless>();
+		ChSharedPtr<ChNodeMeshless> mnodeB = mmatB->GetNode ( ((ChModelBulletNode*)(*iterproximity)->GetModelB())->GetNodeId()  ).DynamicCastTo<ChNodeMeshless>();
 	
 		ChVector<> x_A  = mnodeA->GetPos();
 		ChVector<> x_B  = mnodeB->GetPos();
@@ -263,8 +263,8 @@ void ChProximityContainerMeshless::AccumulateStep2()
 	{
 		ChMatterMeshless* mmatA = (ChMatterMeshless*)(*iterproximity)->GetModelA()->GetPhysicsItem();
 		ChMatterMeshless* mmatB = (ChMatterMeshless*)(*iterproximity)->GetModelB()->GetPhysicsItem();
-		ChSharedPtr<ChNodeMeshless> mnodeA = mmatA->GetNode ( ((ChModelBulletNode*)(*iterproximity)->GetModelA())->GetNodeId()  );
-		ChSharedPtr<ChNodeMeshless> mnodeB = mmatB->GetNode ( ((ChModelBulletNode*)(*iterproximity)->GetModelB())->GetNodeId()  );
+		ChSharedPtr<ChNodeMeshless> mnodeA = mmatA->GetNode ( ((ChModelBulletNode*)(*iterproximity)->GetModelA())->GetNodeId()  ).DynamicCastTo<ChNodeMeshless>();
+		ChSharedPtr<ChNodeMeshless> mnodeB = mmatB->GetNode ( ((ChModelBulletNode*)(*iterproximity)->GetModelB())->GetNodeId()  ).DynamicCastTo<ChNodeMeshless>();
 	
 		ChVector<> x_A  = mnodeA->GetPos();
 		ChVector<> x_B  = mnodeB->GetPos();

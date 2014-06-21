@@ -115,10 +115,10 @@ int main(int argc, char* argv[])
 	    (!myitemC.IsNull() && myitemC.IsType<ChBody>() ))
 	{
 				// Downcast to specialized type (after we checked with IsType<...> this is safe)
-		ChSharedPtr<ChBody> mescape_wheel = myitemE;	
-		ChSharedPtr<ChBody> mtruss		  = myitemA;	 
-		ChSharedPtr<ChBody> mbalance	  = myitemB;
-		ChSharedPtr<ChBody> manchor		  = myitemC;
+		ChSharedPtr<ChBody> mescape_wheel = myitemE.DynamicCastTo<ChBody>();	
+		ChSharedPtr<ChBody> mtruss		  = myitemA.DynamicCastTo<ChBody>();	 
+		ChSharedPtr<ChBody> mbalance	  = myitemB.DynamicCastTo<ChBody>();
+		ChSharedPtr<ChBody> manchor		  = myitemC.DynamicCastTo<ChBody>();
 
 				// Set a constant torque to escape wheel, in a 
 				// very simple way:

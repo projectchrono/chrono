@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
 	{
 		if (node_sets[nboundary][inode].IsType<ChNodeFEMxyzP>())
 		{
-			ChSharedPtr<ChNodeFEMxyzP> mnode ( node_sets[nboundary][inode] ); // downcast
+			ChSharedPtr<ChNodeFEMxyzP> mnode ( node_sets[nboundary][inode].DynamicCastTo<ChNodeFEMxyzP>() ); // downcast
 			mnode->SetFixed(true); 
 			mnode->SetP(0); // field: potential [V]
 		}
@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
 	{
 		if (node_sets[nboundary][inode].IsType<ChNodeFEMxyzP>())
 		{
-			ChSharedPtr<ChNodeFEMxyzP> mnode ( node_sets[nboundary][inode] ); // downcast
+			ChSharedPtr<ChNodeFEMxyzP> mnode ( node_sets[nboundary][inode].DynamicCastTo<ChNodeFEMxyzP>() ); // downcast
 			mnode->SetFixed(true); 
 			mnode->SetP(21); // field: potential [V]
 		}
@@ -223,7 +223,7 @@ my_system.SetParallelThreadNumber(1);
 	{
 		if (my_mesh->GetNode(inode).IsType<ChNodeFEMxyzP>())
 		{
-			ChSharedPtr<ChNodeFEMxyzP> mnode ( my_mesh->GetNode(inode) ); // downcast
+			ChSharedPtr<ChNodeFEMxyzP> mnode ( my_mesh->GetNode(inode).DynamicCastTo<ChNodeFEMxyzP>() ); // downcast
 			if (mnode->GetP() <6.2 )
 			{
 				//GetLog() << "Node at y=" << mnode->GetPos().y << " has V=" << mnode->GetP() << "\n"; 

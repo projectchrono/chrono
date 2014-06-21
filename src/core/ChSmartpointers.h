@@ -49,6 +49,10 @@ namespace chrono
 template <class T> 
 class ChSmartPtr
 {
+
+	// Make all ChSmartPtr as friend classes, so that they can access each other itsCounter quickly, in casting
+	template <typename TT> friend class ChSmartPtr;
+
 public:
     typedef T element_type;
 
@@ -71,19 +75,11 @@ public:
 
 			/// Copy constructor and converter for the case 
 			///  ChSmartPtr<MyClassA> pointerA(pointerB);
-			/// when pointerB comes from a class MyClassB which is inherited from MyClassA. 
-			/// If casting is not possible, the created shared pointer is invalidated (IsNull() = true).
-			/// Warnings! - upcast (MyClassA is parent of MyClassB) exactness and..
-			///			  - downcast (MyClassA is child of MyClassB) exactness  
-			///				is done in runtime with dynamic_cast; MyClassA & MyClassB must be polimorphic.
-			///           - MyClassA & MyClassB MUST have virtual destructors, if you want to use casting!
+			/// when pointerB comes from a class MyClassB which is inherited from MyClassA.
 	template <class T_other>
 	ChSmartPtr(const ChSmartPtr<T_other>& r) throw()
 			{
-				if (dynamic_cast<T*>(r.get_ptr()))
-					acquire (r);
-				else
-					itsCounter = 0;
+				acquire (r);
 			}
 
 			/// Destructor decrements the reference count and automatically delete only 
@@ -153,8 +149,51 @@ public:
 			/// Tells if the referenced object is inherited from a specific class
 			/// and can be cast with copy constructor, for example 
 			///   if (ptrA.IsType<classB>() ) { ChSharedPtr<classB> ptrB (ptrA); }
+			/// NOTE: this requires polymorphism: classA & classB MUST have 'virtual' destructors
 	template <class T_other>
 	bool IsType() { return itsCounter ? dynamic_cast<T_other*>(this->get_ptr()) : false ;}
+
+			/// This works like dynamic_cast, but for shared pointers. 
+			/// If it does not succeed, returns an empty pointer.
+			/// For example
+			/// ChSharedPtr<classA> ma = mb.DynamicCastTo<classA>();
+			/// NOTE: this requires polymorphism: classA & classB MUST have 'virtual' destructors
+	template <class T_other>
+	ChSmartPtr<T_other> DynamicCastTo() const
+			{
+				ChSmartPtr<T_other> result;
+				if (itsCounter) 
+				{
+					if (dynamic_cast<T_other*>(this->itsCounter->ptr))
+					{
+						result.itsCounter = ((ChSmartPtr<T_other>*)this)->itsCounter; // This casting is a weird hack, might be improved..
+						++itsCounter->count;
+					}
+				}
+				return result;
+			}
+
+			/// This works like static_cast, but for shared pointers. 
+			/// For example
+			/// ChSharedPtr<classA> ma = mb.StaticCastTo<classA>();
+			/// NOTE: no check on correctness of casting (use DynamicCastTo if this is required)
+	template <class T_other>
+	ChSmartPtr<T_other> StaticCastTo() const
+			{
+				ChSmartPtr<T_other> result;
+				if (itsCounter) 
+				{
+					static_cast<T_other*>(this->itsCounter->ptr); // just to popup errors in compile time.
+					{
+						result.itsCounter = ((ChSmartPtr<T_other>*)this)->itsCounter; // This casting is a weird hack, might be improved..
+						++itsCounter->count;
+					}
+				}
+				return result;
+			}
+
+			/// Tells how many references to the pointed object. (Return 0 if empty pointer).
+	int ReferenceCounter() { return itsCounter ? itsCounter->count : 0 ;}
 
 private:
 
@@ -170,7 +209,8 @@ private:
 	template <class T_other>
     void acquire(const ChSmartPtr<T_other> &r) throw()
 			{ 
-				itsCounter = ((ChSmartPtr<T>*)&r)->itsCounter;//(ChSmartPtr<T>::ChCounter*)r.itsCounter;
+				T_other* source_ptr=0; T* dest_ptr = source_ptr; // Just to popup compile-time cast errors.
+				itsCounter = ((ChSmartPtr<T>*)&r)->itsCounter; // This casting is a weird hack, might be improved..
 				if (itsCounter) ++itsCounter->count;
 			}
 
@@ -187,6 +227,25 @@ private:
 				}
 			}
 };
+
+
+// Equivalent of dynamic_cast<>() for the ChSmartPtr
+
+template<typename Tout, typename Tin>
+inline ChSmartPtr<Tout>
+dynamic_cast_chshared(const ChSmartPtr<Tin>& __r)
+{
+	return __r.DynamicCastTo<Tout>();
+}
+
+// Equivalent of static_cast<>() for the ChSmartPtr
+
+template<typename Tout, typename Tin>
+inline ChSmartPtr<Tout>
+static_cast_chshared(const ChSmartPtr<Tin>& __r)
+{
+	return __r.StaticCastTo<Tout>();
+}
 
 // Comparisons operators are required for using the shared pointer
 // class in an STL container
@@ -244,6 +303,8 @@ template <typename T, typename R >
 template <class T> 
 class ChSharedPtr
 {
+	// Make all ChSharedPtr as friend classes, so that they can access each other ptr quickly, in casting
+	template <typename TT> friend class ChSharedPtr;
 
 public:
     typedef T element_type;
@@ -266,19 +327,11 @@ public:
 
 			/// Copy constructor and converter for the case 
 			///  ChSharedPtr<MyClassA> pointerA(pointerB);
-			/// when pointerB comes from a class MyClassB which is inherited from MyClassA or viceversa.
-			/// If casting is not possible, the created shared pointer is invalidated (IsNull() = true). 
-			/// Warnings! - upcast (MyClassA is parent of MyClassB) exactness and..
-			///			  - downcast (MyClassA is child of MyClassB) exactness  
-			///				is done in runtime with dynamic_cast; MyClassA & MyClassB must be polimorphic.
-			///           - MyClassA & MyClassB MUST have virtual destructors, if you want to use casting!
+			/// when pointerB type is a class MyClassB which is inherited from MyClassA.
 	template <class T_other>
 	ChSharedPtr(const ChSharedPtr<T_other>& r) throw()
 			{
-				if (dynamic_cast<T*>(r.get_ptr()))
-					acquire (r);
-				else
-					ptr = 0;
+				acquire (r);
 			}
 
 			/// Destructor decrements the reference count and automatically delete only 
@@ -349,9 +402,41 @@ public:
 			/// Tells if the referenced object is inherited from a specific class
 			/// and can be cast with copy constructor, for example 
 			///   if (ptrA.IsType<classB>() ) { ChSharedPtr<classB> ptrB (ptrA); }
+			/// NOTE: this requires polymorphism: classA & classB MUST have 'virtual' destructors
 	template <class T_other>
 	bool IsType() { if (dynamic_cast<T_other*>(ptr)) return true; else return false; }
-		//return (bool)dynamic_cast<T_other*>(ptr); }
+
+			/// This works like dynamic_cast, but for shared pointers. 
+			/// If it does not succeed, returns an empty pointer.
+			/// For example
+			/// ChSharedPtr<classA> ma = mb.DynamicCastTo<classA>();
+			/// NOTE: this requires polymorphism: classA & classB MUST have 'virtual' destructors
+	template <class T_other>
+	ChSharedPtr<T_other> DynamicCastTo() const
+			{
+				ChSharedPtr<T_other> result; 
+				if (result.ptr = dynamic_cast<T_other*>(this->ptr))
+				{
+					result.ptr->AddRef();
+				}
+				return result;
+			}
+
+			/// This works like static_cast, but for shared pointers. 
+			/// For example
+			/// ChSharedPtr<classA> ma = mb.StaticCastTo<classA>();
+			/// NOTE: no runtime check on correctness of casting (use DynamicCastTo if required)
+	template <class T_other>
+	ChSharedPtr<T_other> StaticCastTo() const
+			{
+				ChSharedPtr<T_other> result; 
+				result.ptr = static_cast<T_other*>(this->ptr);
+				result.ptr->AddRef();
+				return result;
+			}
+
+			/// Tells how many references to the pointed object. (Return 0 if empty pointer).
+	int ReferenceCounter() { return ptr ? ptr->ReferenceCount() : 0 ;}
 
 private:
 
@@ -361,7 +446,7 @@ private:
 	template <class T_other>
     void acquire(const ChSharedPtr<T_other>& r) throw()
 			{ 
-				ptr = (T*)(r.get_ptr());// static_cast<T*>(r.get_ptr());
+				ptr = r.ptr;
 				if (ptr)
 				{
 					ptr->AddRef();
@@ -378,6 +463,28 @@ private:
 				}
 			}
 };
+
+
+/// Equivalent of dynamic_cast<>() for the ChSharedPtr, for example:
+///  ChSharedPtr<classB> pB = dynamic_cast_chshared<classB>(pA);
+/// NOTE: this requires polymorphism: classA & classB MUST have 'virtual' destructors
+
+template<typename Tout, typename Tin>
+inline ChSharedPtr<Tout>
+dynamic_cast_chshared(const ChSharedPtr<Tin>& __r)
+{
+	return __r.DynamicCastTo<Tout>();
+}
+
+/// Equivalent of static_cast<>() for the ChSharedPtr, for example:
+///  ChSharedPtr<classB> pB = static_cast_chshared<classB>(pA);
+
+template<typename Tout, typename Tin>
+inline ChSharedPtr<Tout>
+static_cast_chshared(const ChSharedPtr<Tin>& __r)
+{
+	return __r.StaticCastTo<Tout>();
+}
 
 // Comparisons operators are required for using the shared pointer
 // class in an STL container

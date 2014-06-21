@@ -671,9 +671,9 @@ void ChMatterMeshless::StreamIN(ChStreamInBinary& mstream)
 
 
 		// stream in all member data
-	ChContinuumMaterial* mmat;
+	ChContinuumElastoplastic* mmat;
 	mstream.AbstractReadCreate(&mmat);
-	this->material = ChSharedPtr<ChContinuumMaterial>(mmat);
+	this->material = ChSharedPtr<ChContinuumElastoplastic>(mmat);
 
 	//***TO DO*** unstream nodes
 }

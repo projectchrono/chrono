@@ -58,7 +58,7 @@ void ChModelBulletNode::SyncPosition()
 	assert(nodes);
 
 	// downcast
-	ChSharedPtr<ChNodeXYZ> ppointer	( nodes->GetNode(this->node_id) );
+	ChSharedPtr<ChNodeXYZ> ppointer	( nodes->GetNode(this->node_id).DynamicCastTo<ChNodeXYZ>() );
 	if (ppointer.IsNull()) return;
 	
 	assert(ppointer);

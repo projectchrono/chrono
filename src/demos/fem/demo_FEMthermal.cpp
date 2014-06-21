@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
 	{
 		if (my_mesh->GetNode(inode).IsType<ChNodeFEMxyzP>())
 		{
-			ChSharedPtr<ChNodeFEMxyzP> mnode ( my_mesh->GetNode(inode) ); // downcast
+			ChSharedPtr<ChNodeFEMxyzP> mnode ( my_mesh->GetNode(inode).DynamicCastTo<ChNodeFEMxyzP>() ); // downcast
 			mnode->SetPos(mnode->GetPos()*ChVector<>(3,1,3));
 		}
 	}
@@ -108,14 +108,14 @@ int main(int argc, char* argv[])
 	//
 
 		// Impose load on the 180th node
-	ChSharedPtr<ChNodeFEMxyzP> mnode3 (my_mesh->GetNode(180));
+	ChSharedPtr<ChNodeFEMxyzP> mnode3 (my_mesh->GetNode(180).DynamicCastTo<ChNodeFEMxyzP>() );
 	mnode3->SetF( 20 ); // thermal load: heat flux [W] into node
 
 		// Impose field on two top nodes (remember the SetFixed(true); )
-	ChSharedPtr<ChNodeFEMxyzP> mnode1 (my_mesh->GetNode(my_mesh->GetNnodes()-1));
+	ChSharedPtr<ChNodeFEMxyzP> mnode1 (my_mesh->GetNode(my_mesh->GetNnodes()-1).DynamicCastTo<ChNodeFEMxyzP>());
 	mnode1->SetFixed(true); 
 	mnode1->SetP(0.5); // field: temperature [K]
-	ChSharedPtr<ChNodeFEMxyzP> mnode2 (my_mesh->GetNode(my_mesh->GetNnodes()-2));
+	ChSharedPtr<ChNodeFEMxyzP> mnode2 (my_mesh->GetNode(my_mesh->GetNnodes()-2).DynamicCastTo<ChNodeFEMxyzP>());
 	mnode2->SetFixed(true); 
 	mnode2->SetP(0.5); // field: temperature [K]
 
@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
 	{
 		if (my_mesh->GetNode(inode).IsType<ChNodeFEMxyzP>())
 		{
-			ChSharedPtr<ChNodeFEMxyzP> mnode ( my_mesh->GetNode(inode) ); // downcast
+			ChSharedPtr<ChNodeFEMxyzP> mnode ( my_mesh->GetNode(inode).DynamicCastTo<ChNodeFEMxyzP>() ); // downcast
 			if (mnode->GetPos().y <0.01)
 			{
 				mnode->SetFixed(true); 
@@ -230,7 +230,7 @@ int main(int argc, char* argv[])
 	{
 		if (my_mesh->GetNode(inode).IsType<ChNodeFEMxyzP>())
 		{
-			ChSharedPtr<ChNodeFEMxyzP> mnode ( my_mesh->GetNode(inode) ); // downcast
+			ChSharedPtr<ChNodeFEMxyzP> mnode ( my_mesh->GetNode(inode).DynamicCastTo<ChNodeFEMxyzP>() ); // downcast
 			if (mnode->GetPos().x <0.01)
 			{
 				GetLog() << "Node at y=" << mnode->GetPos().y << " has T=" << mnode->GetP() << "\n"; 
