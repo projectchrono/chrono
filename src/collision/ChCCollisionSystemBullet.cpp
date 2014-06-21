@@ -409,7 +409,7 @@ bool ChCollisionSystemBullet::RayHit(const ChVector<>& from, const ChVector<>& t
 
 void ChCollisionSystemBullet::SetContactBreakingThreshold(double threshold)
 {
-	gContactBreakingThreshold = threshold;
+	gContactBreakingThreshold = (btScalar)threshold;
 }
 
 

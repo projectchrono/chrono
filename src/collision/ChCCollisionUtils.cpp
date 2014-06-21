@@ -212,11 +212,11 @@ void ChConvexHullLibraryWrapper::ComputeHull(std::vector< ChVector<> >& points, 
 	desc.SetHullFlag(QF_TRIANGLES);
 
 	btVector3* btpoints = new btVector3[points.size()];
-	for (int ip = 0; ip < points.size(); ++ip)
+	for (unsigned int ip = 0; ip < points.size(); ++ip)
 	{
-		btpoints[ip].setX( points[ip].x );
-		btpoints[ip].setY( points[ip].y );
-		btpoints[ip].setZ( points[ip].z );
+		btpoints[ip].setX( (btScalar)points[ip].x );
+		btpoints[ip].setY( (btScalar)points[ip].y );
+		btpoints[ip].setZ( (btScalar)points[ip].z );
 	}
 	desc.mVcount       = points.size();
 	desc.mVertices     = btpoints;
@@ -229,7 +229,7 @@ void ChConvexHullLibraryWrapper::ComputeHull(std::vector< ChVector<> >& points, 
 		vshape.Clear();
 
 		vshape.getIndicesVertexes().resize(hresult.mNumFaces);
-		for (int it= 0; it < hresult.mNumFaces; ++it)
+		for (unsigned int it= 0; it < hresult.mNumFaces; ++it)
 		{
 			hresult;
 			vshape.getIndicesVertexes()[it] = 
@@ -238,7 +238,7 @@ void ChConvexHullLibraryWrapper::ComputeHull(std::vector< ChVector<> >& points, 
 								hresult.m_Indices[it*3+2] );
 		}
 		vshape.getCoordsVertices().resize(hresult.mNumOutputVertices);
-		for (int iv= 0; iv < hresult.mNumOutputVertices; ++iv)
+		for (unsigned int iv= 0; iv < hresult.mNumOutputVertices; ++iv)
 		{
 			hresult;
 			vshape.getCoordsVertices()[iv] = 

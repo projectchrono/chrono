@@ -37,7 +37,7 @@ namespace collision
 int GetIndex(ChVector<double> vertex, std::vector< ChVector<double> >& vertexOUT, double tol)
 {
 	// Suboptimal: search vertexes with same position and reuse, (in future: adopt hash map..)
-	for (int iv = 0; iv < vertexOUT.size(); iv++)
+	for (unsigned int iv = 0; iv < vertexOUT.size(); iv++)
 	{
 		if ( vertex.Equals(vertexOUT[iv],tol) )
 		{
@@ -55,7 +55,7 @@ void FuseMesh(std::vector< ChVector<double> >& vertexIN,  std::vector< ChVector<
 {
 	vertexOUT.clear();
 	triangleOUT.clear();
-	for (int it = 0; it < triangleIN.size(); it++)
+	for (unsigned int it = 0; it < triangleIN.size(); it++)
 	{
 		unsigned int i1 =  GetIndex( vertexIN[triangleIN[it].x], vertexOUT, tol );
 		unsigned int i2 =  GetIndex( vertexIN[triangleIN[it].y], vertexOUT, tol );
@@ -657,8 +657,9 @@ bool ChConvexDecompositionHACDv2::GetConvexHullResult(unsigned int hullIndex, st
 					ChVector<double> point(p[0], p[1], p[2]);
 					convexhull.push_back(point);
 				}
+				return true;
 			}
-
+			return false;
 		}
 
 	/// Get the n-th computed convex hull, by filling a ChTriangleMesh object
