@@ -235,7 +235,7 @@ template<typename Tout, typename Tin>
 inline ChSmartPtr<Tout>
 dynamic_cast_chshared(const ChSmartPtr<Tin>& __r)
 {
-	return __r.DynamicCastTo<Tout>();
+	return __r.template DynamicCastTo<Tout>();
 }
 
 // Equivalent of static_cast<>() for the ChSmartPtr
@@ -244,7 +244,7 @@ template<typename Tout, typename Tin>
 inline ChSmartPtr<Tout>
 static_cast_chshared(const ChSmartPtr<Tin>& __r)
 {
-	return __r.StaticCastTo<Tout>();
+	return __r.template StaticCastTo<Tout>();
 }
 
 // Comparisons operators are required for using the shared pointer
@@ -473,7 +473,7 @@ template<typename Tout, typename Tin>
 inline ChSharedPtr<Tout>
 dynamic_cast_chshared(const ChSharedPtr<Tin>& __r)
 {
-	return __r.DynamicCastTo<Tout>();
+	return __r.template DynamicCastTo<Tout>();
 }
 
 /// Equivalent of static_cast<>() for the ChSharedPtr, for example:
@@ -483,7 +483,7 @@ template<typename Tout, typename Tin>
 inline ChSharedPtr<Tout>
 static_cast_chshared(const ChSharedPtr<Tin>& __r)
 {
-	return __r.StaticCastTo<Tout>();
+	return __r.template StaticCastTo<Tout>();
 }
 
 // Comparisons operators are required for using the shared pointer
