@@ -191,10 +191,7 @@ setattr(__CHTYPE__ ## Shared, "__init__", __CHTYPE__ ## Shared_custominit)
 %inline %{
   chrono::ChSharedPtr<__CHTYPE__> CastTo ## __CHTYPE__ ## Shared (chrono::ChSharedPtr<__CHTYPE_BASE__> in_obj) 
   {
-	if (in_obj.IsType<__CHTYPE__>())
-		return chrono::ChSharedPtr<__CHTYPE__>(in_obj);
-	else
-		return chrono::ChSharedPtr<__CHTYPE__>(0);
+	  return (in_obj.DynamicCastTo<__CHTYPE__>());
   }
 %}
 %enddef
@@ -218,19 +215,20 @@ setattr(__CHTYPE__ ## Shared, "__init__", __CHTYPE__ ## Shared_custominit)
 //   %downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualization, chrono::ChObjShapeFile)
 
 
+
 %define %_shpointers_dispatch(Type) 
-	if ( typeid(*((result).get_ptr()))==typeid(Type) )
-		return(SWIG_NewPointerObj((new chrono::ChSharedPtr<Type>(static_cast< const chrono::ChSharedPtr<Type>& >(result))), $descriptor(chrono::ChSharedPtr<Type> *), SWIG_POINTER_OWN |  0 ));
+	if ( result.IsType<Type>() )
+		return(SWIG_NewPointerObj((new chrono::ChSharedPtr<Type>(result.DynamicCastTo<Type>() )), $descriptor(chrono::ChSharedPtr<Type> *), SWIG_POINTER_OWN |  0 ));
 %enddef
 
 %define %_shpointers_dispatchR(Type) 
-	if ( typeid(*((result)->get_ptr()))==typeid(Type) )
-		return(SWIG_NewPointerObj((new chrono::ChSharedPtr<Type>(static_cast< const chrono::ChSharedPtr<Type>& >(*result))), $descriptor(chrono::ChSharedPtr<Type> *), SWIG_POINTER_OWN |  0 ));
+	if ( (*result).IsType<Type>() )
+		return(SWIG_NewPointerObj((new chrono::ChSharedPtr<Type>((*result).DynamicCastTo<Type>() )), $descriptor(chrono::ChSharedPtr<Type> *), SWIG_POINTER_OWN |  0 ));
 %enddef
 
 %define %_shpointers_dispatchP(Type) 
-	if ( typeid(*((result).get_ptr()))==typeid(Type) )
-		return(SWIG_NewPointerObj((new chrono::ChSharedPtr<Type>(static_cast< const chrono::ChSharedPtr<Type>& >(*result))), $descriptor(chrono::ChSharedPtr<Type> *), SWIG_POINTER_OWN |  0 ));
+	if ( (*result)->IsType<Type>() )
+		return(SWIG_NewPointerObj((new chrono::ChSharedPtr<Type>((*result).DynamicCastTo<Type>() )), $descriptor(chrono::ChSharedPtr<Type> *), SWIG_POINTER_OWN |  0 ));
 %enddef
 
 
@@ -238,19 +236,15 @@ setattr(__CHTYPE__ ## Shared, "__init__", __CHTYPE__ ## Shared_custominit)
 %define %downcast_output_sharedptr(OutType,Types...)
 %typemap(out) chrono::ChSharedPtr<OutType> {
   %formacro(%_shpointers_dispatch, Types)
-    return(SWIG_NewPointerObj((new chrono::ChSharedPtr<OutType>(static_cast< const chrono::ChSharedPtr<OutType>& >(result))), $descriptor(chrono::ChSharedPtr<OutType> *), SWIG_POINTER_OWN |  0 ));
+    return(SWIG_NewPointerObj((new chrono::ChSharedPtr<OutType>(result.StaticCastTo<OutType>() )), $descriptor(chrono::ChSharedPtr<OutType> *), SWIG_POINTER_OWN |  0 ));
 }
 %typemap(out) chrono::ChSharedPtr<OutType>& {
   %formacro(%_shpointers_dispatchR, Types)
-    return(SWIG_NewPointerObj((new chrono::ChSharedPtr<OutType>(static_cast< const chrono::ChSharedPtr<OutType>& >(*result))), $descriptor(chrono::ChSharedPtr<OutType> *), SWIG_POINTER_OWN |  0 ));
+    return(SWIG_NewPointerObj ((new chrono::ChSharedPtr<OutType>((*result).StaticCastTo<OutType>() )), $descriptor(chrono::ChSharedPtr<OutType> *), SWIG_POINTER_OWN |  0 ));
 }
 %typemap(out) chrono::ChSharedPtr<OutType>* {
 	if ($owner) delete $1;
   %formacro(%_shpointers_dispatchR, Types)
-    return(SWIG_NewPointerObj((new chrono::ChSharedPtr<OutType>(static_cast< const chrono::ChSharedPtr<OutType>& >(*result))), $descriptor(chrono::ChSharedPtr<OutType> *), SWIG_POINTER_OWN |  0 ));
+    return(SWIG_NewPointerObj  ((new chrono::ChSharedPtr<OutType>((*result).StaticCastTo<OutType>() )), $descriptor(chrono::ChSharedPtr<OutType> *), SWIG_POINTER_OWN |  0 ));
 }
 %enddef
-
-
-
-

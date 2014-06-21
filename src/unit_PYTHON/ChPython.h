@@ -47,7 +47,7 @@ public:
 
 			/// Execute a program.
 			/// If fails, it throws an exception, so it is wise to put it inside try..catch blocks.
-	void Run(const char* program) throw(ChException);
+	void Run(const char* program);
 
 
 			/// Retrieve a value of an existing floating point variable. 
@@ -96,7 +96,7 @@ public:
 			/// in a C++ program, call this function: it will parse the .py textblock and add the created
 			/// items to the ChSystem.
 			/// If fails, it throws an exception, so it is wise to put it inside try..catch blocks.
-	void ImportSolidWorksSystem(const char* solidworks_py_file, ChSystem& msystem) throw(ChException); 
+	void ImportSolidWorksSystem(const char* solidworks_py_file, ChSystem& msystem); 
 
 };
 

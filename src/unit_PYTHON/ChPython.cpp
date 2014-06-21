@@ -52,7 +52,7 @@ ChPythonEngine::~ChPythonEngine()
 	Py_Finalize();
 }
 
-void ChPythonEngine::Run(const char* program) throw(ChException)
+void ChPythonEngine::Run(const char* program)
 {
 	/*
 	// Redirect stdout to one std::string buffer.
@@ -234,7 +234,7 @@ typedef struct {
 */
 
 
-void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSystem& msystem) throw(ChException)
+void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSystem& msystem)
 {
 	std::ostringstream sstream;
 
