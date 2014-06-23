@@ -314,35 +314,35 @@ static IMesh* createCubeMesh(const core::vector3df& size)
 
 	buffer->Vertices.reallocate(24);
 
-	buffer->Vertices.push_back(video::S3DVertex(0,0,0,  0, 0,-1, clr, 0, 0));
-	buffer->Vertices.push_back(video::S3DVertex(0,1,0,  0, 0,-1, clr, 0, 1));
-	buffer->Vertices.push_back(video::S3DVertex(1,1,0,  0, 0,-1, clr, 1, 1));
-	buffer->Vertices.push_back(video::S3DVertex(1,0,0,  0, 0,-1, clr, 1, 0));
+	buffer->Vertices.push_back(video::S3DVertex(0,0,0,  0, 0,-1, clr, 0.75f, 0.666f));
+	buffer->Vertices.push_back(video::S3DVertex(0,1,0,  0, 0,-1, clr, 0.75f, 0.333f));
+	buffer->Vertices.push_back(video::S3DVertex(1,1,0,  0, 0,-1, clr, 1.00f, 0.333f));
+	buffer->Vertices.push_back(video::S3DVertex(1,0,0,  0, 0,-1, clr, 1.00f, 0.666f));
 
-	buffer->Vertices.push_back(video::S3DVertex(0,0,1,  0, 0, 1, clr, 0, 0));
-	buffer->Vertices.push_back(video::S3DVertex(0,1,1,  0, 0, 1, clr, 0, 1));
-	buffer->Vertices.push_back(video::S3DVertex(1,1,1,  0, 0, 1, clr, 1, 1));
-	buffer->Vertices.push_back(video::S3DVertex(1,0,1,  0, 0, 1, clr, 1, 0));
+	buffer->Vertices.push_back(video::S3DVertex(0,0,1,  0, 0, 1, clr, 0.25f, 0.333f));
+	buffer->Vertices.push_back(video::S3DVertex(0,1,1,  0, 0, 1, clr, 0.25f, 0.666f));
+	buffer->Vertices.push_back(video::S3DVertex(1,1,1,  0, 0, 1, clr, 0.50f, 0.666f));
+	buffer->Vertices.push_back(video::S3DVertex(1,0,1,  0, 0, 1, clr, 0.50f, 0.333f));
 
-	buffer->Vertices.push_back(video::S3DVertex(0,0,0, -1, 0, 0, clr, 0, 0));
-	buffer->Vertices.push_back(video::S3DVertex(0,0,1, -1, 0, 0, clr, 0, 1));
-	buffer->Vertices.push_back(video::S3DVertex(0,1,1, -1, 0, 0, clr, 1, 1));
-	buffer->Vertices.push_back(video::S3DVertex(0,1,0, -1, 0, 0, clr, 1, 0));
+	buffer->Vertices.push_back(video::S3DVertex(0,0,0, -1, 0, 0, clr, 0.00f, 0.333f));
+	buffer->Vertices.push_back(video::S3DVertex(0,0,1, -1, 0, 0, clr, 0.25f, 0.333f));
+	buffer->Vertices.push_back(video::S3DVertex(0,1,1, -1, 0, 0, clr, 0.25f, 0.666f));
+	buffer->Vertices.push_back(video::S3DVertex(0,1,0, -1, 0, 0, clr, 0.00f, 0.666f));
 
-	buffer->Vertices.push_back(video::S3DVertex(1,0,0,  1, 0, 0, clr, 0, 0));
-	buffer->Vertices.push_back(video::S3DVertex(1,0,1,  1, 0, 0, clr, 0, 1));
-	buffer->Vertices.push_back(video::S3DVertex(1,1,1,  1, 0, 0, clr, 1, 1));
-	buffer->Vertices.push_back(video::S3DVertex(1,1,0,  1, 0, 0, clr, 1, 0));
+	buffer->Vertices.push_back(video::S3DVertex(1,0,0,  1, 0, 0, clr, 0.50f, 0.666f));
+	buffer->Vertices.push_back(video::S3DVertex(1,0,1,  1, 0, 0, clr, 0.75f, 0.666f));
+	buffer->Vertices.push_back(video::S3DVertex(1,1,1,  1, 0, 0, clr, 0.75f, 0.333f));
+	buffer->Vertices.push_back(video::S3DVertex(1,1,0,  1, 0, 0, clr, 0.50f, 0.333f));
 
-    buffer->Vertices.push_back(video::S3DVertex(0,0,0,  0,-1, 0, clr, 0, 0));
-	buffer->Vertices.push_back(video::S3DVertex(0,0,1,  0,-1, 0, clr, 0, 1));
-	buffer->Vertices.push_back(video::S3DVertex(1,0,1,  0,-1, 0, clr, 1, 1));
-	buffer->Vertices.push_back(video::S3DVertex(1,0,0,  0,-1, 0, clr, 1, 0));
+    buffer->Vertices.push_back(video::S3DVertex(0,0,0,  0,-1, 0, clr, 0.25f, 0.000f));
+	buffer->Vertices.push_back(video::S3DVertex(0,0,1,  0,-1, 0, clr, 0.25f, 0.333f));
+	buffer->Vertices.push_back(video::S3DVertex(1,0,1,  0,-1, 0, clr, 0.50f, 0.333f));
+	buffer->Vertices.push_back(video::S3DVertex(1,0,0,  0,-1, 0, clr, 0.50f, 0.000f));
 
-	buffer->Vertices.push_back(video::S3DVertex(0,1,0,  0, 1, 0, clr, 0, 0));
-	buffer->Vertices.push_back(video::S3DVertex(0,1,1,  0, 1, 0, clr, 0, 1));
-	buffer->Vertices.push_back(video::S3DVertex(1,1,1,  0, 1, 0, clr, 1, 1));
-	buffer->Vertices.push_back(video::S3DVertex(1,1,0,  0, 1, 0, clr, 1, 0));
+	buffer->Vertices.push_back(video::S3DVertex(0,1,0,  0, 1, 0, clr, 0.25f, 1.000f));
+	buffer->Vertices.push_back(video::S3DVertex(0,1,1,  0, 1, 0, clr, 0.25f, 0.666f));
+	buffer->Vertices.push_back(video::S3DVertex(1,1,1,  0, 1, 0, clr, 0.50f, 0.666f));
+	buffer->Vertices.push_back(video::S3DVertex(1,1,0,  0, 1, 0, clr, 0.50f, 1.000f));
 
 	// Recalculate bounding box
 	buffer->BoundingBox.reset(0,0,0);
