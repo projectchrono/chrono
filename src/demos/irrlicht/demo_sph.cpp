@@ -30,12 +30,13 @@
  
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
+#include "physics/ChNodeBody.h"
 #include "physics/ChProximityContainerSPH.h"
 #include "physics/ChMatterSPH.h"
 #include "physics/ChContactContainerNodes.h"
 #include "irrlicht_interface/ChBodySceneNode.h"
 #include "irrlicht_interface/ChBodySceneNodeTools.h" 
-#include "irrlicht_interface/ChIrrAppInterface.h"
+#include "irrlicht_interface/ChIrrApp.h"
 #include "core/ChRealtimeStep.h"
 
 #include <irrlicht.h>
@@ -248,7 +249,7 @@ int main(int argc, char* argv[])
 			{
 				for (unsigned int ip = 0; ip < myfluid->GetNnodes(); ip++)
 				{
-					ChSharedPtr<ChNodeSPH> mnode (myfluid->GetNode(ip).DynamicCastTo<ChNodeSPH>() );
+					ChNodeSPH* mnode = (ChNodeSPH*)(myfluid->GetNode(ip));
 					ChVector<> mv = mnode->GetPos();
 					float rad = (float)mnode->GetKernelRadius(); 
 					core::vector3df mpos((irr::f32)mv.x, (irr::f32)mv.y, (irr::f32)mv.z);
