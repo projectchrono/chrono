@@ -427,7 +427,8 @@ public:
       bool operator!=(const IteratorBodies& other);
       IteratorBodies& operator++();
       ChSharedPtr<ChBody> operator*();
-	  IteratorBodies(){};
+	  IteratorBodies(){}
+	  ~IteratorBodies(){}
 	 private:
 	    std::vector<ChBody*>::iterator node_;
     };
@@ -442,6 +443,7 @@ public:
     public:
       IteratorLinks(std::list<ChLink*>::iterator p) : node_(p) {}
       IteratorLinks& operator=(const IteratorLinks& other);
+	  ~IteratorLinks(){}
       bool operator==(const IteratorLinks& other);
       bool operator!=(const IteratorLinks& other);
       IteratorLinks& operator++();
@@ -461,6 +463,7 @@ public:
     public:
       IteratorOtherPhysicsItems(std::list<ChPhysicsItem*>::iterator p) : node_(p) {}
       IteratorOtherPhysicsItems& operator=(const IteratorOtherPhysicsItems& other);
+	  ~IteratorOtherPhysicsItems(){}
       bool operator==(const IteratorOtherPhysicsItems& other);
       bool operator!=(const IteratorOtherPhysicsItems& other);
       IteratorOtherPhysicsItems& operator++();
@@ -483,6 +486,7 @@ public:
      public:
       IteratorPhysicsItems(ChSystem* msys);
 	  IteratorPhysicsItems();
+	  ~IteratorPhysicsItems();
       IteratorPhysicsItems& operator=(const IteratorPhysicsItems& other);
 	  bool operator==(const IteratorPhysicsItems& other); 
 	  bool operator!=(const IteratorPhysicsItems& other); 
