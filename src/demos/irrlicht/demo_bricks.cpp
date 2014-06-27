@@ -309,7 +309,10 @@ int main(int argc, char* argv[])
 		application.GetVideoDriver()->endScene();  
 	}
 	 
- 
+
+ 	// Remember this at the end of the program, if you started
+	// with DLL_CreateGlobals();
+	DLL_DeleteGlobals();
 
 	return 0;
 }

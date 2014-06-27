@@ -15,9 +15,7 @@
 //   Demo code about  
 //
 //     - collisions and contacts 
-//     - use the easy ChBodySceneNode class for 
-//       managing Irrlicht objects which encapsulates 
-//       ChBody items.
+//     - use Irrlicht to display objects.
 // 
 //       (This is just a possible method of integration 
 //       of Chrono::Engine + Irrlicht: many others
@@ -36,13 +34,9 @@
  
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
-#include "irrlicht_interface/ChBodySceneNode.h"
-#include "irrlicht_interface/ChBodySceneNodeTools.h" 
-#include "irrlicht_interface/ChIrrAppInterface.h"
-#include "core/ChRealtimeStep.h"
-#include "lcp/ChLcpIterativeMINRES.h"
-
-#include <irrlicht.h>
+#include "physics/ChBodyEasy.h"
+#include "assets/ChTexture.h"
+#include "irrlicht_interface/ChIrrApp.h"
  
 
 
@@ -70,175 +64,165 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 	for (int bi = 0; bi < 29; bi++) 
 	{    
 		// Create a bunch of ChronoENGINE rigid bodies (spheres and
-		// boxes) which will fall..
-		// Falling bodies are Irrlicht nodes of the special class ChBodySceneNode, 
-		// which encapsulates ChBody items).  
-		// Note that ChBodySceneNode have collision turned ON by default (so if you
-		// want to have them 'transparent' to collision detection, you may use
-		// mrigidBody->GetBody()->SetCollide(false) if you need..) 
+		// boxes etc.) which will fall..
 
   
-		mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easySphere(
-											&mphysicalSystem, msceneManager,
-											1.0,
-											ChVector<>(-5+ChRandom()*10, 4+bi*0.05, -5+ChRandom()*10),
-											1.1);
-   
-		mrigidBody->GetBody()->SetFriction(0.2f); 
-		mrigidBody->GetBody()->SetImpactC(1.0f); 
-		mrigidBody->addShadowVolumeSceneNode();
+		ChSharedPtr<ChBodyEasySphere> msphereBody(new ChBodyEasySphere(
+											1.1,		// radius size
+											1000,		// density
+											true,		// collide enable?
+											true));		// visualization?
+		msphereBody->SetPos( ChVector<>(-5+ChRandom()*10, 4+bi*0.05, -5+ChRandom()*10) );
+		msphereBody->SetFriction(0.2f);
+
+		mphysicalSystem.Add(msphereBody);
+
+		// optional, attach a texture for better visualization
+		ChSharedPtr<ChTexture> mtexture(new ChTexture());
+		mtexture->SetTextureFilename("../data/bluwhite.png");
+		msphereBody->AddAsset(mtexture);
 
 
-		video::ITexture* sphereMap = driver->getTexture("../data/bluwhite.png");
-		mrigidBody->setMaterialTexture(0,	sphereMap);
-
-		mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											&mphysicalSystem, msceneManager,
-											1.0,
-											ChVector<>(-5+ChRandom()*10, 4+bi*0.05, -5+ChRandom()*10),
-											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(1.5,1.5,1.5) );
-
-		mrigidBody->GetBody()->SetInertiaXX(ChVector<>(1.2,1.2,1.2));
-		mrigidBody->GetBody()->SetFriction(0.2f);
-		mrigidBody->addShadowVolumeSceneNode(); 
-
-		video::ITexture* boxMap = driver->getTexture("../data/rubick.jpg");
-		mrigidBody->setMaterialTexture(0,	boxMap);
+	
+		ChSharedPtr<ChBodyEasyBox> mboxBody(new ChBodyEasyBox(
+											1.5, 1.5, 1.5, // x,y,z size
+											 100,		// density
+											true,		// collide enable?
+											true));		// visualization?
+		mboxBody->SetPos( ChVector<>(-5+ChRandom()*10, 4+bi*0.05, -5+ChRandom()*10) );
+		
+		mphysicalSystem.Add(mboxBody);
+		
+		// optional, attach a texture for better visualization
+		ChSharedPtr<ChTexture> mtexturebox(new ChTexture());
+		mtexturebox->SetTextureFilename("../data/cubetexture_bluwhite.png");
+		mboxBody->AddAsset(mtexturebox);
 
 
-		mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyCylinder(
-											&mphysicalSystem, msceneManager,
-											1.0,
-											ChVector<>(-5+ChRandom()*10, 4+bi*0.05, -5+ChRandom()*10),
-											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(1.5,0.5,1.5) );
 
-		mrigidBody->GetBody()->SetInertiaXX(ChVector<>(1.2,1.2,1.2));
-		mrigidBody->GetBody()->SetFriction(0.2f);
-		mrigidBody->addShadowVolumeSceneNode();
-
-		video::ITexture* cylinderMap = driver->getTexture("../data/pinkwhite.png");
-		mrigidBody->setMaterialTexture(0,	cylinderMap);
+		ChSharedPtr<ChBodyEasyCylinder> mcylBody(new ChBodyEasyCylinder(
+											0.75, 0.5,  // radius, height
+											100,		// density
+											true,		// collide enable?
+											true));		// visualization?
+		mcylBody->SetPos( ChVector<>(-5+ChRandom()*10, 4+bi*0.05, -5+ChRandom()*10) );
+		
+		mphysicalSystem.Add(mcylBody);
+		
+		// optional, attach a texture for better visualization
+		ChSharedPtr<ChTexture> mtexturecyl(new ChTexture());
+		mtexturecyl->SetTextureFilename("../data/pinkwhite.png");
+		mcylBody->AddAsset(mtexturecyl);
 
 	} 
-
-
 
 
 
 	// Create the five walls of the rectangular container, using
 	// fixed rigid bodies of 'box' type:
 
-	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											&mphysicalSystem, msceneManager,
-											100.0,
-											ChVector<>(0,-5,0),
-											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(20,1,20) );
-	mrigidBody->GetBody()->SetBodyFixed(true);
+	ChSharedPtr<ChBodyEasyBox> floorBody(new ChBodyEasyBox( 20,1,20,  1000,	true, true));
+	floorBody->SetPos( ChVector<>(0,-5,0) );
+	floorBody->SetBodyFixed(true);
 
-	video::ITexture* cubeMap = driver->getTexture("../data/concrete.jpg");
-	mrigidBody->setMaterialTexture(0,	cubeMap);
+	mphysicalSystem.Add(floorBody);
 
 
-	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											&mphysicalSystem, msceneManager,
-											100.0,
-											ChVector<>(-10,0,0),
-											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(1,10,20.99) );
-	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->setMaterialTexture(0,	cubeMap);
+	ChSharedPtr<ChBodyEasyBox> wallBody1(new ChBodyEasyBox(1,10,20.99,  1000, true,	true));
+	wallBody1->SetPos( ChVector<>(-10,0,0) );
+	wallBody1->SetBodyFixed(true);
+
+	mphysicalSystem.Add(wallBody1);
 
 
-	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											&mphysicalSystem, msceneManager,
-											100.0,
-											ChVector<>(10,0,0),
-											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(1,10,20.99) );
-	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->setMaterialTexture(0,	cubeMap);
+	ChSharedPtr<ChBodyEasyBox> wallBody2(new ChBodyEasyBox(	1,10,20.99,  1000, true, true));
+	wallBody2->SetPos( ChVector<>(10,0,0) );
+	wallBody2->SetBodyFixed(true);
 
-	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											&mphysicalSystem, msceneManager,
-											100.0,
-											ChVector<>(0,0,-10),
-											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(20.99,10,1) );
-	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->setMaterialTexture(0,	cubeMap);
+	mphysicalSystem.Add(wallBody2);
 
-	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											&mphysicalSystem, msceneManager,
-											100.0,
-											ChVector<>(0,0, 10),
-											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(20.99,10,1) );
-	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->setMaterialTexture(0,	cubeMap);
+
+	ChSharedPtr<ChBodyEasyBox> wallBody3(new ChBodyEasyBox( 20.99,10,1,  1000,	true, true));	
+	wallBody3->SetPos( ChVector<>(0,0,-10) );
+	wallBody3->SetBodyFixed(true);
+
+	mphysicalSystem.Add(wallBody3);
+
+
+	ChSharedPtr<ChBodyEasyBox> wallBody4(new ChBodyEasyBox( 20.99,10,1,  1000,	true, true));
+	wallBody4->SetPos( ChVector<>(0,0,10) );
+	wallBody4->SetBodyFixed(true);
+
+	mphysicalSystem.Add(wallBody4);
+
+
+	// optional, attach  textures for better visualization
+	ChSharedPtr<ChTexture> mtexturewall(new ChTexture());
+	mtexturewall->SetTextureFilename("../data/concrete.jpg"); 
+	wallBody1->AddAsset(mtexturewall); // note: most assets can be shared
+	wallBody2->AddAsset(mtexturewall);
+	wallBody3->AddAsset(mtexturewall);
+	wallBody4->AddAsset(mtexturewall);
+	floorBody->AddAsset(mtexturewall);
+
+	// Add the rotating mixer 
+	ChSharedPtr<ChBodyEasyBox> rotatingBody(new ChBodyEasyBox(
+											10,5,1,     // x,y,z size
+											4000,		// density
+											true,		// collide enable?
+											true));		// visualization?
+	rotatingBody->SetPos( ChVector<>(0,-1.6,0) );
+	rotatingBody->SetFriction(0.4f);
+
+	mphysicalSystem.Add(rotatingBody);
+			
+	// .. an engine between mixer and truss	
+	ChSharedPtr<ChLinkEngine> my_motor(new ChLinkEngine);
+	my_motor->Initialize(rotatingBody, floorBody, 
+							 ChCoordsys<>(ChVector<>(0,0,0),
+							 Q_from_AngAxis(CH_C_PI_2, VECT_X)) );
+	my_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
+	if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(my_motor->Get_spe_funct()))
+		mfun->Set_yconst(CH_C_PI/2.0); // speed w=90°/s
+	mphysicalSystem.AddLink(my_motor);
  
-/* 
+	/*
+
 	/// NOTE: Instead of creating five separate 'box' bodies to make
 	/// the walls of the bowl, you could have used a single body
 	/// made of five box shapes, which build a single collision description,
 	/// as in the alternative approach:
 
-		// optional: maybe that you want to add a mesh for Irrlicht 3D viewing, maybe a
-		// mesh representing the 5 walls, and use it for this ChBodySceneNode
-	IAnimatedMesh* wallsMesh = msceneManager->getMesh("../data/nice_box_with_walls.obj");
-
-		// create a plain ChBodySceneNode (no colliding shape nor visualization mesh is used yet)
-	mrigidBody = (ChBodySceneNode*)addChBodySceneNode(
-											&mphysicalSystem, msceneManager,
-											wallsMesh, 1.0, 
-											ChVector<>(0,0,0)  );
+		// create a plain ChBody (no colliding shape nor visualization mesh is used yet)
+	ChSharedPtr<ChBodyEasyBox> mrigidBody(new ChBody);
 
 		// set the ChBodySceneNode as fixed body, and turn collision ON, otherwise no collide by default
-	mrigidBody->GetBody()->SetBodyFixed(true);	
-	mrigidBody->GetBody()->SetCollide(true);	 
+	mrigidBody->SetBodyFixed(true);	
+	mrigidBody->SetCollide(true);	 
 		
 		// Clear model. The colliding shape description MUST be between  ClearModel() .. BuildModel() pair.
-	mrigidBody->GetBody()->GetCollisionModel()->ClearModel();
+	mrigidBody->GetCollisionModel()->ClearModel();
 		// Describe the (invisible) colliding shape by adding five boxes (the walls and floor)
-	mrigidBody->GetBody()->GetCollisionModel()->AddBox(20,1,20, ChVector<>(  0,-10,  0)); 
-	mrigidBody->GetBody()->GetCollisionModel()->AddBox(1,40,20, ChVector<>(-11,  0,  0));
-	mrigidBody->GetBody()->GetCollisionModel()->AddBox(1,40,20, ChVector<>( 11,  0,  0));
-	mrigidBody->GetBody()->GetCollisionModel()->AddBox(20,40,1, ChVector<>(  0,  0,-11));
-	mrigidBody->GetBody()->GetCollisionModel()->AddBox(20,40,1, ChVector<>(  0,  0, 11));
-		// Complete the description.
-	mrigidBody->GetBody()->GetCollisionModel()->BuildModel();
- 
- */ 
+	mrigidBody->GetCollisionModel()->AddBox(20,1,20, ChVector<>(  0,-10,  0)); 
+	mrigidBody->GetCollisionModel()->AddBox(1,40,20, ChVector<>(-11,  0,  0));
+	mrigidBody->GetCollisionModel()->AddBox(1,40,20, ChVector<>( 11,  0,  0));
+	mrigidBody->GetCollisionModel()->AddBox(20,40,1, ChVector<>(  0,  0,-11));
+	mrigidBody->GetCollisionModel()->AddBox(20,40,1, ChVector<>(  0,  0, 11));
+		// Complete the description of collision shape.
+	mrigidBody->GetCollisionModel()->BuildModel();
 
-	// Add the rotating mixer 
-	ChBodySceneNode* rotatingBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											&mphysicalSystem, msceneManager,
-											1.0,
-											ChVector<>(0,-1.6,0),
-											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(10,5.5,1) ); 
-	rotatingBody->GetBody()->SetMass(10);
-	rotatingBody->GetBody()->SetInertiaXX(ChVector<>(50,50,50));
-	rotatingBody->GetBody()->SetFriction(0.2f);
-	rotatingBody->addShadowVolumeSceneNode();
-
-	video::ITexture* mixerMap = driver->getTexture("C:\\Users\\Andrea\\Desktop\\troll.png");
-	rotatingBody->setMaterialTexture(0,	mixerMap);
-
-	// .. an engine between mixer and truss	
-	ChSharedPtr<ChLinkEngine> my_motor(new ChLinkEngine);
-	my_motor->Initialize(rotatingBody->GetBody(), mrigidBody->GetBody(), 
-				ChCoordsys<>(ChVector<>(0,0,0),
-							 Q_from_AngAxis(CH_C_PI_2, VECT_X)) );
-	my_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-	if (ChFunction_Const* mfun = dynamic_cast<ChFunction_Const*>(my_motor->Get_spe_funct()))
-		mfun->Set_yconst(CH_C_PI/2); // speed w=90°/s
-	mphysicalSystem.AddLink(my_motor);
+		// Attach some visualization shapes if needed:
+	ChSharedPtr<ChBoxShape> vshape (new ChBoxShape() );
+	vshape->GetBoxGeometry().SetLenghts( ChVector<> (20,1,20) );
+	vshape->GetBoxGeometry().Pos = ChVector<> (0,-5,0);
+	this->AddAsset( vshape );
+	// etc. for other 4 box shapes.. 
+	*/
 
 
-	// Add also an oddly shaped object, loading from a mesh saved in '.X' fileformat.
+	/*
+	// Add also an oddly shaped object, loading from a mesh saved in '.X' fileformat. 
+	// ***OBSOLETE*** the addChBodySceneNode_xxxx methods will be deprecated in future
 	ChBodySceneNode* meshBody = (ChBodySceneNode*)addChBodySceneNode_easyGenericMesh(&mphysicalSystem, msceneManager,
 												1.0, ChVector<>(0,2,0),
 												QUNIT, 
@@ -246,9 +230,11 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 												false,	// not static 
 												true);	// true=convex; false=concave(do convex decomposition of concave mesh)
 	meshBody->addShadowVolumeSceneNode();
+	*/
 
 	/*
 	// Add also a 'barrel' type object
+	// ***OBSOLETE*** the addChBodySceneNode_xxxx methods will be deprecated in future
 	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBarrel(
 											&mphysicalSystem, msceneManager,
 											1.0,
@@ -294,7 +280,7 @@ int main(int argc, char* argv[])
 
 	// Create the Irrlicht visualization (open the Irrlicht device, 
 	// bind a simple user interface, etc. etc.)
-	ChIrrAppInterface application(&mphysicalSystem, L"Collisions between objects",core::dimension2d<u32>(800,600),false);
+	ChIrrApp application(&mphysicalSystem, L"Collisions between objects",core::dimension2d<u32>(800,600),false);
 
 	// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
 	ChIrrWizard::add_typical_Logo(application.GetDevice());
@@ -307,6 +293,13 @@ int main(int argc, char* argv[])
 
 	create_some_falling_items(mphysicalSystem, application.GetSceneManager(), application.GetVideoDriver());
  
+
+	// Use this function for adding a ChIrrNodeAsset to all items
+	// Otherwise use application.AssetBind(myitem); on a per-item basis.
+	application.AssetBindAll();
+
+	// Use this function for 'converting' assets into Irrlicht meshes 
+	application.AssetUpdateAll();
 
 
 	// Modify some setting of the physical system for the simulation, if you want
