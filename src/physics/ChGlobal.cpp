@@ -32,10 +32,9 @@ namespace chrono
 
 //
 //
-// The global object pointer, and global functions
+// The global functions
 //
 
-ChGlobals* GLOBAL_Vars =0;
  
 
 

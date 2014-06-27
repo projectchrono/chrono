@@ -82,12 +82,6 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-///
-///  DECLARE THAT THERE'S A GLOBAL POINTER TO A "GLOBAL_Vars" OBJECT!!!
-///  
-
-extern
-ChGlobals* GLOBAL_Vars;  ///***OBSOLETE*** better use the following..
 
 
 	/// Global function to get the current ChGlobals object

@@ -36,13 +36,10 @@ static ChGlobals* my_dll_globals = 0;
 
 extern ChGlobals* DLL_CreateGlobals()
 {
-	//if (GLOBAL_Vars==0)
-	//	GLOBAL_Vars = new ChGlobals;  //***OBOSLETE*** GLOBAL_Vars will disappear soon
 	if (my_dll_globals==0)
 	{
 		my_dll_globals = new ChGlobals;
 		SetCHGLOBALS (my_dll_globals);
-		GLOBAL_Vars = my_dll_globals;  //***OBOSLETE*** GLOBAL_Vars will disappear soon
 	}
 
 	return my_dll_globals;
