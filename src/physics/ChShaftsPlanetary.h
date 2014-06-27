@@ -135,9 +135,9 @@ public:
 				/// input gear, and the gear with inner teeth that usually is kept fixed (but the
 				/// ChShaftsPlanetary does not require that one shaft is fixed - it's up to you) 
 				/// Each shaft must belong to the same ChSystem. 
-	virtual int Initialize(ChSharedPtr<ChShaft>& mshaft1, ///< first  shaft to join (carrier wheel -usually the output)
-						   ChSharedPtr<ChShaft>& mshaft2, ///< second shaft to join (wheel -usually the input)
-						   ChSharedPtr<ChShaft>& mshaft3  ///< third  shaft to join (wheel -other input, or fixed)
+	virtual int Initialize(ChSharedPtr<ChShaft> mshaft1, ///< first  shaft to join (carrier wheel -usually the output)
+						   ChSharedPtr<ChShaft> mshaft2, ///< second shaft to join (wheel -usually the input)
+						   ChSharedPtr<ChShaft> mshaft3  ///< third  shaft to join (wheel -other input, or fixed)
 						   );
 
 				/// Get the first shaft

@@ -75,7 +75,7 @@ void ChShaftsMotor::Copy(ChShaftsMotor* source)
 }
 
 
-int ChShaftsMotor::Initialize(ChSharedPtr<ChShaft>& mshaft1, ChSharedPtr<ChShaft>& mshaft2)
+int ChShaftsMotor::Initialize(ChSharedPtr<ChShaft> mshaft1, ChSharedPtr<ChShaft> mshaft2)
 {
 	// Parent class initialize
 	if (!ChShaftsCouple::Initialize(mshaft1, mshaft2)) return false;

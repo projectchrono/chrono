@@ -151,7 +151,7 @@ int ChLinkMarkers::ReferenceMarkers(ChMarker* mark1, ChMarker* mark2)
 }
 
 
-int ChLinkMarkers::Initialize(ChSharedPtr<ChMarker>& mmark1, ChSharedPtr<ChMarker>& mmark2)
+int ChLinkMarkers::Initialize(ChSharedPtr<ChMarker> mmark1, ChSharedPtr<ChMarker> mmark2)
 {
 	ChMarker* mm1 = mmark1.get_ptr();
 	ChMarker* mm2 = mmark2.get_ptr();
@@ -165,13 +165,13 @@ int ChLinkMarkers::Initialize(ChSharedPtr<ChMarker>& mmark1, ChSharedPtr<ChMarke
 	return true;
 }
 	
-int ChLinkMarkers::Initialize(ChSharedPtr<ChBody>& mbody1, ChSharedPtr<ChBody>& mbody2,  ChCoordsys<> mpos)
+int ChLinkMarkers::Initialize(ChSharedPtr<ChBody> mbody1, ChSharedPtr<ChBody> mbody2,  ChCoordsys<> mpos)
 {
 	return Initialize(mbody1,mbody2,false,mpos,mpos);
 	
 }
 
-int ChLinkMarkers::Initialize(ChSharedPtr<ChBody>& mbody1, ChSharedPtr<ChBody>& mbody2, bool pos_are_relative, ChCoordsys<> mpos1, ChCoordsys<> mpos2)
+int ChLinkMarkers::Initialize(ChSharedPtr<ChBody> mbody1, ChSharedPtr<ChBody> mbody2, bool pos_are_relative, ChCoordsys<> mpos1, ChCoordsys<> mpos2)
 {
 	assert(mbody1.get_ptr() != mbody2.get_ptr());
 	assert(mbody1->GetSystem() == mbody2->GetSystem());

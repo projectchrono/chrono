@@ -103,8 +103,8 @@ public:
 					/// in body or abs. coordinates) and the imposed rest length of the spring.
 					/// NOTE! As in ChLinkMarkers::Initialize(), the two markers are automatically 
 					/// created and placed inside the two connected bodies.
-	virtual int Initialize(ChSharedPtr<ChBody>& mbody1,	///< first body to link
-						   ChSharedPtr<ChBody>& mbody2, ///< second body to link
+	virtual int Initialize(ChSharedPtr<ChBody> mbody1,	///< first body to link
+						   ChSharedPtr<ChBody> mbody2, ///< second body to link
 						   bool pos_are_relative,	///< true: following posit. are considered relative to bodies. false: pos.are absolute
 						   ChVector<> mpos1,		///< position of spring endpoint, for 1st body (rel. or abs., see flag above)
 						   ChVector<> mpos2,		///< position of spring endpoint, for 2nd body (rel. or abs., see flag above) 
