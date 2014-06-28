@@ -66,13 +66,12 @@ __device__ inline real4 DifVelocityRho(
 
 	//*** Artificial viscosity type 2
 	real_ rAB_Dot_GradW = dot(dist3, gradW);
-	real_ invrhoPresMuBx=1.0f/ rhoPresMuB.x;
 	real_ rAB_Dot_GradW_OverDist = rAB_Dot_GradW / (d * d + epsilonMutualDistance * rSPH * rSPH);
-	real3 derivV = -velMasB.w * (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y * (invrhoPresMuBx * invrhoPresMuBx)) * gradW
+	real3 derivV = -velMasB.w * (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) * gradW
 			+ velMasB.w * (8.0f * multViscosity) * paramsD.mu0 * pow(rhoPresMuA.x + rhoPresMuB.x, -2) * rAB_Dot_GradW_OverDist
 					* R3(velMasA - velMasB);
 	real_ zeta = 0;//.05;//.1;
-	real_ derivRho = rhoPresMuA.x * velMasB.w * invrhoPresMuBx * dot(vel_XSPH_A - vel_XSPH_B, gradW);
+	real_ derivRho = rhoPresMuA.x * velMasB.w / rhoPresMuB.x * dot(vel_XSPH_A - vel_XSPH_B, gradW);
 //	real_ zeta = 0;//.05;//.1;
 //	real_ derivRho = rhoPresMuA.x * velMasB.w * invrhoPresMuBx * (dot(vel_XSPH_A - vel_XSPH_B, gradW)
 //			+ zeta * rSPH * (10 * paramsD.v_Max) * 2 * (rhoPresMuB.x / rhoPresMuA.x - 1) * rAB_Dot_GradW_OverDist

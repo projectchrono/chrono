@@ -1975,6 +1975,18 @@ void cudaCollisions(
 	int timeSlice = real_(stepEnd)/7;
 	//for (int tStep = 0; tStep < 0; tStep ++) {
 	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
+		//************************************************
+		//edit  since yu deleted cyliderRotOmegaJD
+		PrintToFile(posRadD, velMasD, rhoPresMuD,
+				referenceArray, rigidIdentifierD,
+				posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
+				ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD, ANCF_ReferenceArrayNodesOnBeamsD,
+				currentParamsH,
+				realTime, tStep, channelRadius, channelCenterYZ, numObjects.numRigidBodies, numObjects.numFlexBodies);
+
+////		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
+		//************
+
 		//edit  since yu deleted cyliderRotOmegaJD
 
 		GpuTimer myGpuTimer;
@@ -2150,17 +2162,6 @@ void cudaCollisions(
 			DensityReinitialization(posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, SIDE); //does not work for analytical boundaries (non-meshed) and free surfaces
 		}
 
-		//************************************************
-		//edit  since yu deleted cyliderRotOmegaJD
-		PrintToFile(posRadD, velMasD, rhoPresMuD,
-				referenceArray, rigidIdentifierD,
-				posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
-				ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD, ANCF_ReferenceArrayNodesOnBeamsD,
-				currentParamsH,
-				realTime, tStep, channelRadius, channelCenterYZ, numObjects.numRigidBodies, numObjects.numFlexBodies);
-
-////		PrintToFileDistribution(distributionD, channelRadius, numberOfSections, tStep);
-		//************
 		myGpuTimer.Stop();
 		real_ time2 = (real_)myGpuTimer.Elapsed();
 

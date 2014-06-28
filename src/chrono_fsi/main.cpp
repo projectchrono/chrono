@@ -1953,7 +1953,7 @@ int main() {
 		paramsH.NUM_BCE_LAYERS = 2;
 		paramsH.solidSurfaceAdjust = .6 * (paramsH.HSML * paramsH.MULT_INITSPACE);
 		paramsH.BASEPRES = 0;
-		paramsH.LARGE_PRES = 10000;
+		paramsH.LARGE_PRES = 0;//10000;
 		paramsH.nPeriod = 7;
 		paramsH.gravity = R3(0, 0, 0);//R3(0);//R3(0, -9.81, 0);
 		paramsH.bodyForce4 = R4(.1,0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
