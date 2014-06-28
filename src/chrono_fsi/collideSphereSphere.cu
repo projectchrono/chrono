@@ -1968,6 +1968,7 @@ void cudaCollisions(
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce4 = R4(0);
 	paramsH_B.gravity = R3(0);
+	paramsH_B.dT = .1 * paramsH.dT;
 
 	SimParams currentParamsH = paramsH;
 
