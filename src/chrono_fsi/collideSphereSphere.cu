@@ -1954,26 +1954,24 @@ void cudaCollisions(
 
 	FILE *outFileMultipleZones;
 
-	real_ delT = paramsH.dT;
 	int povRayCounter = 0;
-	int stepEnd = int(paramsH.tFinal/paramsH.dT);//1.0e6;//2.4e6;//600000;//2.4e6 * (.02 * paramsH.sizeScale) / delT ; //1.4e6 * (.02 * paramsH.sizeScale) / delT ;//0.7e6 * (.02 * paramsH.sizeScale) / delT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
+	int stepEnd = int(paramsH.tFinal/paramsH.dT);//1.0e6;//2.4e6;//600000;//2.4e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ; //1.4e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ;//0.7e6 * (.02 * paramsH.sizeScale) / currentParamsH.dT ;//0.7e6;//2.5e6; //200000;//10000;//50000;//100000;
 	printf("stepEnd %d\n", stepEnd);
 
-	real_ delTOrig = delT;
+	real_ delTOrig = paramsH.dT;
 	real_ realTime = 0;
 
-	int numPause =  .005 * paramsH.tFinal/paramsH.dT;
-	int pauseRigidFlex = 10 * numPause;//numPause;
-	printf("numPause %d\n", numPause);
-	printf("pauseRigidFlex %d\n", pauseRigidFlex);
+	real_ timePause = .005 * paramsH.tFinal;
+	real_ timePauseRigidFlex = 10 * timePause;
+	printf("timePause %f\n", timePause);
+	printf("timePauseRigidFlex %f\n", timePauseRigidFlex);
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce4 = R4(0);
 	paramsH_B.gravity = R3(0);
 
 	SimParams currentParamsH = paramsH;
 
-	int timeSlice = real_(stepEnd)/7;
-	//for (int tStep = 0; tStep < 0; tStep ++) {
+	real_ timeSlice = real_(paramsH.tFinal)/7;
 	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
 		//************************************************
 		//edit  since yu deleted cyliderRotOmegaJD
@@ -1996,29 +1994,28 @@ void cudaCollisions(
 		struct timezone cpuT_timezone;
 		gettimeofday(&cpuT_start, &cpuT_timezone);
 
-////		if (tStep < 1000) delT = 0.25 * delTOrig; else delT = delTOrig;
 		//***********
-		if (tStep <= numPause) 	{
+		if (realTime <= timePause) 	{
 			currentParamsH = paramsH_B;
 		} else {
 			currentParamsH = paramsH;
 		}
 		//***********
-//		if (tStep <= timeSlice) {
+//		if (realTime <= timeSlice) {
 //			currentParamsH = paramsH_B;
-//		} else if (tStep <= 2 * timeSlice) {
+//		} else if (realTime <= 2 * timeSlice) {
 //			currentParamsH.bodyForce4.x = paramsH.bodyForce4.x;
 //			currentParamsH.bodyForce4.y = 0;
-//		} else if (tStep <= 3 * timeSlice) {
+//		} else if (realTime <= 3 * timeSlice) {
 //			currentParamsH.bodyForce4.x = 0;
 //			currentParamsH.bodyForce4.y = .5 * paramsH.bodyForce4.x;
-//		} else if (tStep <= 4 * timeSlice) {
+//		} else if (realTime <= 4 * timeSlice) {
 //			currentParamsH.bodyForce4.x = -.7 * paramsH.bodyForce4.x;
 //			currentParamsH.bodyForce4.y = -.5 * paramsH.bodyForce4.x;
-//		} else if (tStep <= 5 * timeSlice) {
+//		} else if (realTime <= 5 * timeSlice) {
 //			currentParamsH.bodyForce4.x = 1.0 * paramsH.bodyForce4.x;
 //			currentParamsH.bodyForce4.y = 0;
-//		} else if (tStep <= 5.5 * timeSlice) {
+//		} else if (realTime <= 5.5 * timeSlice) {
 //			currentParamsH.bodyForce4.x = -.5 * paramsH.bodyForce4.x;
 //			currentParamsH.bodyForce4.y = -.5 * paramsH.bodyForce4.x;
 //		} else {
@@ -2051,18 +2048,18 @@ void cudaCollisions(
 		thrust::device_vector<real3> ANCF_SlopesVelD2 = ANCF_SlopesVelD;
 
 		//******** RK2
-		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects.numAllMarkers, currentParamsH, 0.5 * delT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
-		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT); //assumes ...D2 is a copy of ...D
-		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * delT);		//assumes ...D2 is a copy of ...D
+		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects.numAllMarkers, currentParamsH, 0.5 * currentParamsH.dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
+		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT); //assumes ...D2 is a copy of ...D
+		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT);		//assumes ...D2 is a copy of ...D
 
-		if (tStep > pauseRigidFlex) {
+		if (realTime > timePauseRigidFlex) {
 			UpdateRigidBody(
 					posRadD2, velMasD2,
 					posRigidD2, posRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2,
 					posRadD,
 					posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
 					derivVelRhoD, rigidIdentifierD,
-					rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, flexParams.gravity, numObjects, float(tStep)/stepEnd, 0.5 * delT);
+					rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, flexParams.gravity, numObjects, realTime / (paramsH.tFinal), 0.5 * currentParamsH.dT);
 
 			UpdateFlexibleBody(posRadD2, velMasD2,
 					ANCF_NodesD2, ANCF_SlopesD2, ANCF_NodesVelD2, ANCF_SlopesVelD2,
@@ -2084,23 +2081,23 @@ void cudaCollisions(
 
 									flexParams,
 									numObjects,
-									float(tStep)/stepEnd,
-									0.5 * delT);
+									realTime / (paramsH.tFinal),
+									0.5 * currentParamsH.dT);
 		}
 		ApplyBoundary(posRadD2, rhoPresMuD2, posRigidD2, ANCF_NodesD2, ANCF_ReferenceArrayNodesOnBeamsD, numObjects);
 //		//*****
-		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects.numAllMarkers, currentParamsH, delT);
-		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, delT);
-		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, delT);
+		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects.numAllMarkers, currentParamsH, currentParamsH.dT);
+		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, currentParamsH.dT);
+		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, currentParamsH.dT);
 
-		if (tStep > pauseRigidFlex) {
+		if (realTime > timePauseRigidFlex) {
 			UpdateRigidBody(
 					posRadD, velMasD,
 					posRigidD, posRigidCumulativeD, velMassRigidD, qD1, AD1, AD2, AD3, omegaLRF_D,
 					posRadD2,
 					posRigidD2, posRigidCumulativeD2, velMassRigidD2, qD2, AD1_2, AD2_2, AD3_2, omegaLRF_D2,
 					derivVelRhoD, rigidIdentifierD,
-					rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, flexParams.gravity, numObjects, float(tStep)/stepEnd, delT);
+					rigidSPH_MeshPos_LRF_D, referenceArray, jD1, jD2, jInvD1, jInvD2, flexParams.gravity, numObjects, realTime / (paramsH.tFinal), currentParamsH.dT);
 
 			UpdateFlexibleBody(posRadD, velMasD,
 					ANCF_NodesD, ANCF_SlopesD, ANCF_NodesVelD, ANCF_SlopesVelD,
@@ -2122,8 +2119,8 @@ void cudaCollisions(
 
 							flexParams,
 							numObjects,
-							float(tStep)/stepEnd,
-							delT);
+							realTime / (paramsH.tFinal),
+							currentParamsH.dT);
 		}
 		ApplyBoundary(posRadD, rhoPresMuD, posRigidD, ANCF_NodesD, ANCF_ReferenceArrayNodesOnBeamsD, numObjects);
 		//************
@@ -2172,12 +2169,12 @@ void cudaCollisions(
 
 
 		if (tStep % 50 == 0) {
-			printf("step: %d, step Time (CUDA): %f, step Time (CPU): %f\n ", tStep, time2, 1000 * (t2 - t1));
+			printf("step: %d, realTime: %f, step Time (CUDA): %f, step Time (CPU): %f\n ", tStep, realTime, time2, 1000 * (t2 - t1));
 			//printf("a \n");
 		}
 		fflush(stdout);
 
-		realTime += delT;
+		realTime += currentParamsH.dT;
 
 		//_CrtDumpMemoryLeaks(); //for memory leak detection (msdn suggestion for VS) apparently does not work in conjunction with cuda
 
