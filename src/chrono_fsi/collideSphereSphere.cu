@@ -1964,6 +1964,8 @@ void cudaCollisions(
 
 	int numPause =  .005 * paramsH.tFinal/paramsH.dT;
 	int pauseRigidFlex = 10 * numPause;//numPause;
+	printf("numPause %d\n", numPause);
+	printf("pauseRigidFlex %d\n", pauseRigidFlex);
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce4 = R4(0);
 	paramsH_B.gravity = R3(0);
@@ -2122,7 +2124,6 @@ void cudaCollisions(
 					//				real2 channelCenter = .5 * R2(currentParamsH.cMax.y + currentParamsH.cMin.y, currentParamsH.cMax.z + currentParamsH.cMin.z);
 					//				FindPassesFromTheEnd(posRigidD, distributionD, numRigidBodies, channelCenter, channelRadius, numberOfSections);
 					//			}
-
 
 
 		posRadD2.clear();
