@@ -1962,7 +1962,7 @@ void cudaCollisions(
 	real_ realTime = 0;
 
 	real_ timePause = .005 * paramsH.tFinal;
-	real_ timePauseRigidFlex = 10 * timePause;
+	real_ timePauseRigidFlex = 6 * timePause;
 	printf("timePause %f\n", timePause);
 	printf("timePauseRigidFlex %f\n", timePauseRigidFlex);
 	SimParams paramsH_B = paramsH;
