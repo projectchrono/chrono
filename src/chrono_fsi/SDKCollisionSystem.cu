@@ -198,26 +198,26 @@ real4 collideCell(
 				rhoPresMuB.y = (dist3Alpha.z < -0.5 * paramsD.boxDims.z) ? (rhoPresMuB.y + paramsD.bodyForce4.z*paramsD.boxDims.z) : rhoPresMuB.y;
 
 				if (rhoPresMuA.w < 0  ||  rhoPresMuB.w < 0) {
-					if (rhoPresMuA.w == 0) continue;
-					real_ multViscosit = 1.0f;
-
-//					if ( rhoPresMuB.w == 0) { //**one of them is boundary, the other one is fluid
-					if ( rhoPresMuA.w >= 0 ) { //**one of them is boundary, the other one is fluid
-						multViscosit = 5.0f;
-						rhoPresMuA.y = rhoPresMuB.y;
-					}
-					if ( rhoPresMuB.w >= 0) { //**one of them is boundary, the other one is fluid
-						multViscosit = 5.0f;
-						rhoPresMuB.y = rhoPresMuA.y;
-					}
-//					else { //**One of them is fluid, the other one is fluid/solid (boundary was considered previously)
-//						multViscosit = 1.0f;
+//					if (rhoPresMuA.w == 0) continue;
+//					real_ multViscosit = 1.0f;
+//
+////					if ( rhoPresMuB.w == 0) { //**one of them is boundary, the other one is fluid
+//					if ( rhoPresMuA.w >= 0 ) { //**one of them is boundary, the other one is fluid
+//						multViscosit = 5.0f;
+//						rhoPresMuA.y = rhoPresMuB.y;
 //					}
-					real4 derivVelRho = R4(0.0f);
-					real3 vel_XSPH_B = FETCH(vel_XSPH_Sorted_D, j);
-					derivVelRho = DifVelocityRho(dist3, d, rSPH, velMasA, vel_XSPH_A, velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB, multViscosit);
-					derivV += R3(derivVelRho);
-					derivRho += derivVelRho.w;
+//					if ( rhoPresMuB.w >= 0) { //**one of them is boundary, the other one is fluid
+//						multViscosit = 5.0f;
+//						rhoPresMuB.y = rhoPresMuA.y;
+//					}
+////					else { //**One of them is fluid, the other one is fluid/solid (boundary was considered previously)
+////						multViscosit = 1.0f;
+////					}
+//					real4 derivVelRho = R4(0.0f);
+//					real3 vel_XSPH_B = FETCH(vel_XSPH_Sorted_D, j);
+//					derivVelRho = DifVelocityRho(dist3, d, rSPH, velMasA, vel_XSPH_A, velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB, multViscosit);
+//					derivV += R3(derivVelRho);
+//					derivRho += derivVelRho.w;
 				}
 				else if (fabs(rhoPresMuA.w - rhoPresMuB.w) > 0) { //implies: one of them is solid/boundary, ther other one is solid/boundary of different type or different solid
 //					derivV += DifVelocity_SSI_DEM(dist3, d, rSPH, velMasA, velMasB);
