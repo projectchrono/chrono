@@ -1961,7 +1961,7 @@ int main() {
 		paramsH.mu0 = .001;
 		paramsH.v_Max = 50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 		paramsH.EPS_XSPH = .5f;
-		paramsH.dT = 1e-4;//.001; //sph alone: .01 for Re 10;
+		paramsH.dT = 5e-5;//.001; //sph alone: .01 for Re 10;
 		paramsH.tFinal = 200;//20 * paramsH.dT; //400
 		paramsH.kdT = 5;
 		paramsH.gammaBB = 0.5;
