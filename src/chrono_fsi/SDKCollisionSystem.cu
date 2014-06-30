@@ -226,7 +226,7 @@ real4 collideCell(
 					if (rhoPresMuA.w > 0 && rhoPresMuA.w <= numObjectsD.numRigidBodies) { //i.e. rigid
 						uint originalIndex = gridMarkerIndex[index];
 						uint BCE_Index = originalIndex - numObjectsD.startRigidMarkers;
-						real3 s3 = Distance(posRadA, posRigidD[rigidIdentifierD[BCE_Index]]);
+						real3 s3 = Distance(posRadA, posRigidD[rigidIdentifierD[BCE_Index]]);  //assume convex.
 						derivV += (dot(dV, s3) > 0) ? (-dV) : (dV); //fancy check: if a go within b, dV becomes attractive force, so it should change sign to become repulsive.
 					} else { // flex or boundary. boundary is not important. but flex is not supported yet
 						derivV += dV; //flex doesn't support fancy check as rigid
