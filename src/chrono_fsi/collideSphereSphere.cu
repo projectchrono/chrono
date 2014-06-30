@@ -1965,14 +1965,15 @@ void cudaCollisions(
 	real_ delTOrig = paramsH.dT;
 	real_ realTime = 0;
 
-	real_ timePause = 0;//.001 * paramsH.tFinal; // keep it as small as possible. the time step will be 1/10 * dT
-	real_ timePauseRigidFlex = 0;//30 * timePause;
-	printf("\ntimePause %f\n", timePause);
-	printf("timePauseRigidFlex %f\n\n", timePauseRigidFlex);
+	real_ timePause = .001 * paramsH.tFinal; // keep it as small as possible. the time step will be 1/10 * dT
+	real_ timePauseRigidFlex = .02 * paramsH.tFinal;
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce4 = R4(0);
 	paramsH_B.gravity = R3(0);
 	paramsH_B.dT = .1 * paramsH.dT;
+
+	printf("\ntimePause %f, numPause %d\n", timePause, timePause/paramsH_B.dT);
+	printf("timePauseRigidFlex %f, numPauseRigidFlex %d\n\n", timePauseRigidFlex, (timePauseRigidFlex-timePause)/paramsH.dT + timePause/paramsH_B.dT);
 
 	SimParams currentParamsH = paramsH;
 

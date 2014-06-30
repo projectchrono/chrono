@@ -97,8 +97,8 @@ __device__ inline real3 DifVelocity_SSI_DEM(
 	if (l < 0) {
 		return R3(0);
 	}
-	real_ kS =  6;//3; //50; //1000.0; //392400.0;	//spring. 50 worked almost fine. I am using 30 to be sure!
-	real_ kD = 20;//40.0;//20.0; //420.0;				//damping coef.
+	real_ kS =  .006;//6;//3; //50; //1000.0; //392400.0;	//spring. 50 worked almost fine. I am using 30 to be sure!
+	real_ kD = .04;//20;//40.0;//20.0; //420.0;				//damping coef.
 	real3 n = dist3 / d; //unit vector B to A
 	real_ m_eff = (velMasA.w * velMasB.w) / (velMasA.w + velMasB.w);
 	real3 force = (/*pow(paramsD.sizeScale, 3) * */kS * l - kD * m_eff * dot(R3(velMasA - velMasB), n)) * n; //relative velocity at contact is simply assumed as the relative vel of the centers. If you are updating the rotation, this should be modified.
@@ -198,26 +198,26 @@ real4 collideCell(
 				rhoPresMuB.y = (dist3Alpha.z < -0.5 * paramsD.boxDims.z) ? (rhoPresMuB.y + paramsD.bodyForce4.z*paramsD.boxDims.z) : rhoPresMuB.y;
 
 				if (rhoPresMuA.w < 0  ||  rhoPresMuB.w < 0) {
-//					if (rhoPresMuA.w == 0) continue;
-//					real_ multViscosit = 1.0f;
-//
-////					if ( rhoPresMuB.w == 0) { //**one of them is boundary, the other one is fluid
-//					if ( rhoPresMuA.w >= 0 ) { //**one of them is boundary, the other one is fluid
-//						multViscosit = 5.0f;
-//						rhoPresMuA.y = rhoPresMuB.y;
+					if (rhoPresMuA.w == 0) continue;
+					real_ multViscosit = 1.0f;
+
+//					if ( rhoPresMuB.w == 0) { //**one of them is boundary, the other one is fluid
+					if ( rhoPresMuA.w >= 0 ) { //**one of them is boundary, the other one is fluid
+						multViscosit = 5.0f;
+						rhoPresMuA.y = rhoPresMuB.y;
+					}
+					if ( rhoPresMuB.w >= 0) { //**one of them is boundary, the other one is fluid
+						multViscosit = 5.0f;
+						rhoPresMuB.y = rhoPresMuA.y;
+					}
+//					else { //**One of them is fluid, the other one is fluid/solid (boundary was considered previously)
+//						multViscosit = 1.0f;
 //					}
-//					if ( rhoPresMuB.w >= 0) { //**one of them is boundary, the other one is fluid
-//						multViscosit = 5.0f;
-//						rhoPresMuB.y = rhoPresMuA.y;
-//					}
-////					else { //**One of them is fluid, the other one is fluid/solid (boundary was considered previously)
-////						multViscosit = 1.0f;
-////					}
-//					real4 derivVelRho = R4(0.0f);
-//					real3 vel_XSPH_B = FETCH(vel_XSPH_Sorted_D, j);
-//					derivVelRho = DifVelocityRho(dist3, d, rSPH, velMasA, vel_XSPH_A, velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB, multViscosit);
-//					derivV += R3(derivVelRho);
-//					derivRho += derivVelRho.w;
+					real4 derivVelRho = R4(0.0f);
+					real3 vel_XSPH_B = FETCH(vel_XSPH_Sorted_D, j);
+					derivVelRho = DifVelocityRho(dist3, d, rSPH, velMasA, vel_XSPH_A, velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB, multViscosit);
+					derivV += R3(derivVelRho);
+					derivRho += derivVelRho.w;
 				}
 				else if (fabs(rhoPresMuA.w - rhoPresMuB.w) > 0) { //implies: one of them is solid/boundary, ther other one is solid/boundary of different type or different solid
 //					derivV += DifVelocity_SSI_DEM(dist3, d, rSPH, velMasA, velMasB);

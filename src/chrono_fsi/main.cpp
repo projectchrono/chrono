@@ -169,7 +169,7 @@ void AddPosVelMass(
 {
 	rigidPos.push_back(pos);
 	mQuatRot.push_back(q);
-	velMassRigidH.push_back(R4(.004, 0, -.002, real_(mass)));
+	velMassRigidH.push_back(R4(0, 0, 0, real_(mass)));
 	rigidBodyOmega.push_back(R3(0, 0, 0));
 	rigidBody_J1.push_back(j1);
 	rigidBody_J2.push_back(j2);
@@ -1956,12 +1956,12 @@ int main() {
 		paramsH.LARGE_PRES = 0;//10000;
 		paramsH.nPeriod = 7;
 		paramsH.gravity = R3(0, 0, 0);//R3(0);//R3(0, -9.81, 0);
-		paramsH.bodyForce4 = R4(0,0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
+		paramsH.bodyForce4 = R4(.1,0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
 		paramsH.rho0 = 1000;
 		paramsH.mu0 = .001;
 		paramsH.v_Max = 50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 		paramsH.EPS_XSPH = .5f;
-		paramsH.dT = 1e-3;//.001; //sph alone: .01 for Re 10;
+		paramsH.dT = 1e-4;//.001; //sph alone: .01 for Re 10;
 		paramsH.tFinal = 200;//20 * paramsH.dT; //400
 		paramsH.kdT = 5;
 		paramsH.gammaBB = 0.5;
