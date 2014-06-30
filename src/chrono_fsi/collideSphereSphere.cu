@@ -1155,6 +1155,10 @@ void ForceSPH(
 		thrust::device_vector<real4> & velMasD,
 		thrust::device_vector<real3> & vel_XSPH_D,
 		thrust::device_vector<real4> & rhoPresMuD,
+
+		const thrust::device_vector<real3> & posRigidD,
+		const thrust::device_vector<int> & rigidIdentifierD,
+
 		thrust::device_vector<uint> & bodyIndexD,
 		thrust::device_vector<real4> & derivVelRhoD,
 		const thrust::host_vector<int3> & referenceArray,
@@ -1211,7 +1215,7 @@ void ForceSPH(
 	RecalcVelocity_XSPH(R3CAST(vel_XSPH_Sorted_D), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridMarkerIndex), U1CAST(m_dCellStart),
 			U1CAST(m_dCellEnd), numAllMarkers, m_numGridCells);
 
-	collide(R4CAST(derivVelRhoD), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R3CAST(vel_XSPH_Sorted_D), R4CAST(m_dSortedRhoPreMu), U1CAST(m_dGridMarkerIndex), U1CAST(m_dCellStart),
+	collide(R4CAST(derivVelRhoD), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R3CAST(vel_XSPH_Sorted_D), R4CAST(m_dSortedRhoPreMu), R3CAST(posRigidD), I1CAST(rigidIdentifierD), U1CAST(m_dGridMarkerIndex), U1CAST(m_dCellStart),
 			U1CAST(m_dCellEnd), numAllMarkers, m_numGridCells, dT);
 
 
@@ -1785,7 +1789,7 @@ void cudaCollisions(
 		real2 channelCenterYZ,
 		SimParams paramsH,
 		const ANCF_Params & flexParams,
-		const NumberOfObjects & numObjects) {
+		NumberOfObjects & numObjects) {
 	//****************************** bin size adjustement and contact detection stuff *****************************
 	int3 SIDE = I3(int((paramsH.cMax.x - paramsH.cMin.x) / paramsH.binSize0 + .1), int((paramsH.cMax.y - paramsH.cMin.y) / paramsH.binSize0 + .1),
 			int((paramsH.cMax.z - paramsH.cMin.z) / paramsH.binSize0 + .1));
@@ -1800,7 +1804,7 @@ void cudaCollisions(
 	paramsH.boxDims = paramsH.cMax - paramsH.cMin;
 	printf("boxDims: %f, %f, %f\n", paramsH.boxDims.x, paramsH.boxDims.y, paramsH.boxDims.z);
 
-	setParameters(&paramsH); 														// sets paramsD in SDKCollisionSystem
+	setParameters(&paramsH, &numObjects); 														// sets paramsD in SDKCollisionSystem
 	cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &paramsH, sizeof(SimParams))); 	//sets paramsD for this file
 	cutilSafeCall( cudaMemcpyToSymbolAsync(numObjectsD, &numObjects, sizeof(NumberOfObjects)));
 	//*************************************************************************************************************
@@ -1961,8 +1965,8 @@ void cudaCollisions(
 	real_ delTOrig = paramsH.dT;
 	real_ realTime = 0;
 
-	real_ timePause = .001 * paramsH.tFinal; // keep it as small as possible. the time step will be 1/10 * dT
-	real_ timePauseRigidFlex = 30 * timePause;
+	real_ timePause = 0;//.001 * paramsH.tFinal; // keep it as small as possible. the time step will be 1/10 * dT
+	real_ timePauseRigidFlex = 0;//30 * timePause;
 	printf("\ntimePause %f\n", timePause);
 	printf("timePauseRigidFlex %f\n\n", timePauseRigidFlex);
 	SimParams paramsH_B = paramsH;
@@ -2024,7 +2028,7 @@ void cudaCollisions(
 //			currentParamsH.bodyForce4.y = 0;
 //		}
 		//***********
-		setParameters(&currentParamsH); 														// sets paramsD in SDKCollisionSystem
+		setParameters(&currentParamsH, &numObjects); 														// sets paramsD in SDKCollisionSystem
 		cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &currentParamsH, sizeof(SimParams))); 	//sets paramsD for this file
 
 		//computations
@@ -2049,7 +2053,7 @@ void cudaCollisions(
 		thrust::device_vector<real3> ANCF_SlopesVelD2 = ANCF_SlopesVelD;
 
 		//******** RK2
-		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, bodyIndexD, derivVelRhoD, referenceArray, numObjects.numAllMarkers, currentParamsH, 0.5 * currentParamsH.dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
+		ForceSPH(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, posRigidD, rigidIdentifierD, bodyIndexD, derivVelRhoD, referenceArray, numObjects.numAllMarkers, currentParamsH, 0.5 * currentParamsH.dT); //?$ right now, it does not consider paramsH.gravity or other stuff on rigid bodies. they should be applied at rigid body solver
 		UpdateFluid(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT); //assumes ...D2 is a copy of ...D
 		//UpdateBoundary(posRadD2, velMasD2, rhoPresMuD2, derivVelRhoD, referenceArray, 0.5 * currentParamsH.dT);		//assumes ...D2 is a copy of ...D
 
@@ -2087,7 +2091,7 @@ void cudaCollisions(
 		}
 		ApplyBoundary(posRadD2, rhoPresMuD2, posRigidD2, ANCF_NodesD2, ANCF_ReferenceArrayNodesOnBeamsD, numObjects);
 //		//*****
-		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, bodyIndexD, derivVelRhoD, referenceArray, numObjects.numAllMarkers, currentParamsH, currentParamsH.dT);
+		ForceSPH(posRadD2, velMasD2, vel_XSPH_D, rhoPresMuD2, posRigidD2, rigidIdentifierD, bodyIndexD, derivVelRhoD, referenceArray, numObjects.numAllMarkers, currentParamsH, currentParamsH.dT);
 		UpdateFluid(posRadD, velMasD, vel_XSPH_D, rhoPresMuD, derivVelRhoD, referenceArray, currentParamsH.dT);
 		//UpdateBoundary(posRadD, velMasD, rhoPresMuD, derivVelRhoD, referenceArray, currentParamsH.dT);
 

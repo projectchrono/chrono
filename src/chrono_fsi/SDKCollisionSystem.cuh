@@ -59,6 +59,19 @@ struct SimParams {
 		real3 cMax;
 		real_ binSize0;
 };
+struct NumberOfObjects {
+		int numRigidBodies;
+		int numFlexBodies;
+		int numFlBcRigid;
+
+		int numFluidMarkers;
+		int numBoundaryMarkers;
+		int startRigidMarkers;
+		int startFlexMarkers;
+		int numRigid_SphMarkers;
+		int numFlex_SphMarkers;
+		int numAllMarkers;
+};
 struct real3By3 {
 		real3 a; //first row
 		real3 b; //second row
@@ -71,6 +84,7 @@ struct fluidData {
 		real3 velocity;
 };
 __constant__ SimParams paramsD;
+__constant__ NumberOfObjects numObjectsD;
 __constant__ int3 cartesianGridDimsD;
 __constant__ real_ resolutionD;
 
@@ -200,7 +214,7 @@ __device__ inline real3 Distance(real4 posRadA, real3 posRadB) {
 //--------------------------------------------------------------------------------------------------------------------------------
 void allocateArray(void **devPtr, size_t size);
 void freeArray(void *devPtr);
-void setParameters(SimParams *hostParams);
+void setParameters(SimParams *hostParams, NumberOfObjects *numObjects);
 
 void computeGridSize(uint n, uint blockSize, uint &numBlocks, uint &numThreads);
 
@@ -258,6 +272,8 @@ void collide(
 		real4* sortedVelMas,
 		real3* vel_XSPH_Sorted_D,
 		real4* sortedRhoPreMu,
+		real3* posRigidD,
+		int* rigidIdentifierD,
 		uint* gridMarkerIndex,
 		uint* cellStart,
 		uint* cellEnd,

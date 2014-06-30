@@ -98,7 +98,7 @@ __device__ inline real3 DifVelocity_SSI_DEM(
 		return R3(0);
 	}
 	real_ kS =  6;//3; //50; //1000.0; //392400.0;	//spring. 50 worked almost fine. I am using 30 to be sure!
-	real_ kD = 40;//20.0; //420.0;				//damping coef.
+	real_ kD = 20;//20.0; //420.0;				//damping coef.
 	real3 n = dist3 / d; //unit vector B to A
 	real_ m_eff = (velMasA.w * velMasB.w) / (velMasA.w + velMasB.w);
 	real3 force = (/*pow(paramsD.sizeScale, 3) * */kS * l - kD * m_eff * dot(R3(velMasA - velMasB), n)) * n; //relative velocity at contact is simply assumed as the relative vel of the centers. If you are updating the rotation, this should be modified.
@@ -158,6 +158,10 @@ real4 collideCell(
 		real4* sortedVelMas,
 		real3* vel_XSPH_Sorted_D,
 		real4* sortedRhoPreMu,
+
+		real3* posRigidD,
+		int* rigidIdentifierD,
+
 		uint* cellStart,
 		uint* cellEnd,
 		uint* gridMarkerIndex) {
@@ -216,7 +220,17 @@ real4 collideCell(
 					derivRho += derivVelRho.w;
 				}
 				else if (fabs(rhoPresMuA.w - rhoPresMuB.w) > 0) { //implies: one of them is solid/boundary, ther other one is solid/boundary of different type or different solid
-					derivV += DifVelocity_SSI_DEM(dist3, d, rSPH, velMasA, velMasB);
+//					derivV += DifVelocity_SSI_DEM(dist3, d, rSPH, velMasA, velMasB);
+					real3 dV = DifVelocity_SSI_DEM(dist3, d, rSPH, velMasA, velMasB);
+
+					if (rhoPresMuA.w > 0 && rhoPresMuA.w <= numObjectsD.numRigidBodies) { //i.e. rigid
+						uint originalIndex = gridMarkerIndex[index];
+						uint BCE_Index = originalIndex - numObjectsD.startRigidMarkers;
+						real3 s3 = Distance(posRadA, posRigidD[rigidIdentifierD[BCE_Index]]);
+						derivV += (dot(dV, s3) > 0) ? (-dV) : (dV); //fancy check: if a go within b, dV becomes attractive force, so it should change sign to become repulsive.
+					} else { // flex or boundary. boundary is not important. but flex is not supported yet
+						derivV += dV; //flex doesn't support fancy check as rigid
+					}
 				}
 			}
 		}
@@ -443,6 +457,10 @@ void collideD(real4* derivVelRhoD, // output: new velocity
 		real4* sortedVelMas, // input: sorted velocities
 		real3* vel_XSPH_Sorted_D,
 		real4* sortedRhoPreMu,
+
+		real3* posRigidD,
+		int* rigidIdentifierD,
+
 		uint* gridMarkerIndex, // input: sorted particle indices
 		uint* cellStart,
 		uint* cellEnd,
@@ -468,7 +486,7 @@ void collideD(real4* derivVelRhoD, // output: new velocity
 		for (int y = -1; y <= 1; y++) {
 			for (int z = -1; z <= 1; z++) {
 				derivVelRho += collideCell(gridPos + I3(x, y, z), index, posRadA, velMasA, vel_XSPH_A, rhoPreMuA, sortedPosRad, sortedVelMas, vel_XSPH_Sorted_D,
-								sortedRhoPreMu, cellStart, cellEnd, gridMarkerIndex);
+								sortedRhoPreMu, posRigidD, rigidIdentifierD, cellStart, cellEnd, gridMarkerIndex);
 			}
 		}
 	}
@@ -607,9 +625,10 @@ void computeGridSize(uint n, uint blockSize, uint &numBlocks, uint &numThreads) 
 	numBlocks = iDivUp(n2, numThreads);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void setParameters(SimParams *hostParams) {
+void setParameters(SimParams *hostParams, NumberOfObjects *numObjects) {
 	// copy parameters to constant memory
 	cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, hostParams, sizeof(SimParams)));
+	cutilSafeCall( cudaMemcpyToSymbolAsync(numObjectsD, numObjects, sizeof(NumberOfObjects)));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void calcHash(uint* gridMarkerHash, uint* gridMarkerIndex, real3 * posRad, int numAllMarkers) {
@@ -725,6 +744,8 @@ void collide(
 		real4* sortedVelMas,
 		real3* vel_XSPH_Sorted_D,
 		real4* sortedRhoPreMu,
+		real3* posRigidD,
+		int* rigidIdentifierD,
 		uint* gridMarkerIndex,
 		uint* cellStart,
 		uint* cellEnd,
@@ -750,6 +771,8 @@ void collide(
 			sortedVelMas,
 			vel_XSPH_Sorted_D,
 			sortedRhoPreMu,
+			posRigidD,
+			rigidIdentifierD,
 			gridMarkerIndex,
 			cellStart,
 			cellEnd,

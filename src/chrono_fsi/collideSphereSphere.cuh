@@ -8,22 +8,6 @@ struct Rotation {
 	real_ a00, a01, a02, a10, a11, a12, a20, a21, a22;
 };
 
-struct NumberOfObjects {
-		int numRigidBodies;
-		int numFlexBodies;
-		int numFlBcRigid;
-
-		int numFluidMarkers;
-		int numBoundaryMarkers;
-		int startRigidMarkers;
-		int startFlexMarkers;
-		int numRigid_SphMarkers;
-		int numFlex_SphMarkers;
-		int numAllMarkers;
-};
-
-__constant__ NumberOfObjects numObjectsD;
-
 void QuaternionFromAxisVector(real4 & q, const real3 & n);
 void CalcQuat2RotationMatrix(Rotation & rotMat, const real4 & q);
 real3 Rotate_By_RotationMatrix(const Rotation & rotMat, const real3 & r3);
@@ -63,6 +47,6 @@ void cudaCollisions(
 		real2 channelCenterYZ,
 		SimParams paramsH,
 		const ANCF_Params & flexParams,
-		const NumberOfObjects & numObjects);
+		NumberOfObjects & numObjects);
 
 #endif
