@@ -93,7 +93,7 @@ __device__ inline real3 DifVelocity_SSI_DEM(
 				const real4 & velMasA,
 				const real4 & velMasB) {
 //printf("** DifVelocity_SSI_DEM\n");
-	real_ l = paramsD.MULT_INITSPACE * rSPH - d;
+	real_ l = paramsD.MULT_INITSPACE * rSPH - d; //penetration distance
 	if (l < 0) {
 		return R3(0);
 	}
@@ -103,6 +103,29 @@ __device__ inline real3 DifVelocity_SSI_DEM(
 	real_ m_eff = (velMasA.w * velMasB.w) / (velMasA.w + velMasB.w);
 	real3 force = (/*pow(paramsD.sizeScale, 3) * */kS * l - kD * m_eff * dot(R3(velMasA - velMasB), n)) * n; //relative velocity at contact is simply assumed as the relative vel of the centers. If you are updating the rotation, this should be modified.
 	return force / velMasA.w; //return dV/dT same as SPH
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+__device__ inline real3 DifVelocity_SSI_Lubrication(
+				const real3 & dist3,
+				const real_ & d,
+				const real_ & rSPH,
+				const real4 & velMasA,
+				const real4 & velMasB) {
+//printf("** DifVelocity_SSI_DEM\n");
+	real_ Delta_c = paramsD.HSML;
+	real_ s = d - paramsD.MULT_INITSPACE * paramsD.HSML;
+	if (s > Delta_c) return R3(0);
+
+	real_ Delta_i = .1 * Delta_c;
+	real_ mult=0;
+	if (s > Delta_i) {
+		mult = 1/s - 1/Delta_c;
+	} else {
+		mult = 1/Delta_i - 1/Delta_c;
+	}
+	real3 n = dist3 / d; //unit vector B to A
+	real3 force = -(mult * 1.5 * PI * paramsD.mu0 * paramsD.HSML * paramsD.HSML) * dot(R3(velMasA - velMasB), n) * n;
+	return force / velMasA.w;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // collide a particle against all other particles in a given cell
@@ -220,8 +243,9 @@ real4 collideCell(
 					derivRho += derivVelRho.w;
 				}
 				else if (fabs(rhoPresMuA.w - rhoPresMuB.w) > 0) { //implies: one of them is solid/boundary, ther other one is solid/boundary of different type or different solid
-//					derivV += DifVelocity_SSI_DEM(dist3, d, rSPH, velMasA, velMasB);
-					real3 dV = DifVelocity_SSI_DEM(dist3, d, rSPH, velMasA, velMasB);
+//					real3 dV = DifVelocity_SSI_DEM(dist3, d, rSPH, velMasA, velMasB);
+					real3 dV = DifVelocity_SSI_Lubrication(dist3, d, rSPH, velMasA, velMasB);
+
 
 					if (rhoPresMuA.w > 0 && rhoPresMuA.w <= numObjectsD.numRigidBodies) { //i.e. rigid
 						uint originalIndex = gridMarkerIndex[index];
