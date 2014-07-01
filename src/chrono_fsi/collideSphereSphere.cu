@@ -1972,8 +1972,8 @@ void cudaCollisions(
 	paramsH_B.gravity = R3(0);
 	paramsH_B.dT = .1 * paramsH.dT;
 
-	printf("\ntimePause %f, numPause %d\n", timePause, timePause/paramsH_B.dT);
-	printf("timePauseRigidFlex %f, numPauseRigidFlex %d\n\n", timePauseRigidFlex, (timePauseRigidFlex-timePause)/paramsH.dT + timePause/paramsH_B.dT);
+	printf("\ntimePause %f, numPause %d\n", timePause, int(timePause/paramsH_B.dT));
+	printf("timePauseRigidFlex %f, numPauseRigidFlex %d\n\n", timePauseRigidFlex, int((timePauseRigidFlex-timePause)/paramsH.dT + timePause/paramsH_B.dT));
 
 	SimParams currentParamsH = paramsH;
 

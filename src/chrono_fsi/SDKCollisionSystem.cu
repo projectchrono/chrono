@@ -97,8 +97,8 @@ __device__ inline real3 DifVelocity_SSI_DEM(
 	if (l < 0) {
 		return R3(0);
 	}
-	real_ kS =  .006;//6;//3; //50; //1000.0; //392400.0;	//spring. 50 worked almost fine. I am using 30 to be sure!
-	real_ kD = .04;//20;//40.0;//20.0; //420.0;				//damping coef.
+	real_ kS =  6;//.006;//6;//3; //50; //1000.0; //392400.0;	//spring. 50 worked almost fine. I am using 30 to be sure!
+	real_ kD = 40;//.04;//20;//40.0;//20.0; //420.0;				//damping coef.
 	real3 n = dist3 / d; //unit vector B to A
 	real_ m_eff = (velMasA.w * velMasB.w) / (velMasA.w + velMasB.w);
 	real3 force = (/*pow(paramsD.sizeScale, 3) * */kS * l - kD * m_eff * dot(R3(velMasA - velMasB), n)) * n; //relative velocity at contact is simply assumed as the relative vel of the centers. If you are updating the rotation, this should be modified.
