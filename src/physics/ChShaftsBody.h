@@ -34,7 +34,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "physics/ChBody.h"
+#include "physics/ChBodyFrame.h"
 #include "physics/ChShaft.h"
 #include "lcp/ChLcpConstraintTwoGeneric.h"
 
@@ -46,7 +46,7 @@ namespace chrono
 // Forward references (for parent hierarchy pointer)
 
 class ChShaft;
-class ChBody;
+class ChBodyFrame;
 
 /// Class for creating a constraint between a 3D
 /// ChBody object and a 1D ChShaft object. A rotation
@@ -77,7 +77,7 @@ private:
 	float cache_li_pos;		// used to cache the last computed value of multiplier (solver warm starting)	
 
 	ChShaft* shaft;
-	ChBody*  body;
+	ChBodyFrame*  body;
 
 	ChVector<> shaft_dir;
 
@@ -128,15 +128,16 @@ public:
 				/// Use this function after object creation, to initialize it, given  
 				/// the 1D shaft and 3D body to join. 
 				/// Each item must belong to the same ChSystem. 
-	virtual int Initialize(ChSharedPtr<ChShaft> mshaft, ///< shaft to join 
-						   ChSharedPtr<ChBody>  mbody,  ///< body to join 
+				/// Direction is expressed in the local coordinates of the body.
+	virtual int Initialize(ChSharedPtr<ChShaft> mshaft,		 ///< shaft to join 
+						   ChSharedPtr<ChBodyFrame>  mbody,  ///< body to join 
 						   ChVector<>& mdir			 ///< the direction of the shaft on 3D body (applied on COG: pure torque)
 						   );
 
 				/// Get the shaft
 	ChShaft* GetShaft() {return shaft;}
 				/// Get the body
-	ChBody*  GetBody() {return body;}
+	ChBodyFrame*  GetBody() {return body;}
 
 				/// Set the direction of the shaft respect to 3D body, as a 
 				/// normalized vector expressed in the coordinates of the body.
@@ -151,7 +152,8 @@ public:
 				/// Get the reaction torque considered as applied to ChShaft.
 	double GetTorqueReactionOnShaft() {return -(torque_react);}
 
-				/// Get the reaction torque considered as applied to ChBody.
+				/// Get the reaction torque considered as applied to ChBody,
+				/// expressed in the coordinates of the body.
 	ChVector<> GetTorqueReactionOnBody() {return (shaft_dir*torque_react);}
 
 	

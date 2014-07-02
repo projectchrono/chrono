@@ -77,10 +77,10 @@ void ChShaftsBody::Copy(ChShaftsBody* source)
 }
 
 
-int ChShaftsBody::Initialize(ChSharedPtr<ChShaft> mshaft, ChSharedPtr<ChBody> mbody, ChVector<>& mdir)
+int ChShaftsBody::Initialize(ChSharedPtr<ChShaft> mshaft, ChSharedPtr<ChBodyFrame> mbody, ChVector<>& mdir)
 {
 	ChShaft* mm1 = mshaft.get_ptr();
-	ChBody* mm2 = mbody.get_ptr();
+	ChBodyFrame* mm2 = mbody.get_ptr();
 	assert(mm1 && mm2);
 	assert(mm1->GetSystem() == mm2->GetSystem());
 
@@ -145,7 +145,8 @@ void ChShaftsBody::ConstraintsBiLoad_Ct(double factor)
 void ChShaftsBody::ConstraintsLoadJacobians()
 {
 		// compute jacobians
-	ChVector<> jacw = this->body->TrasformDirectionParentToLocal(shaft_dir);
+	//ChVector<> jacw = this->body->TrasformDirectionParentToLocal(shaft_dir);
+	ChVector<> jacw = shaft_dir;
 
 	this->constraint.Get_Cq_a()->ElementN(0)=-1;
 
