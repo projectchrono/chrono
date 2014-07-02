@@ -89,9 +89,7 @@ int ChShaftsGearboxAngled::Initialize(ChSharedPtr<ChShaft> mshaft1, ///< first (
 	ChBodyFrame* mm3 = mbody.get_ptr();
 	assert(mm1 && mm2 && mm3);
 	assert(mm1 != mm2);
-	assert(mm1 != mm3);
-	assert(mm3 != mm2);
-	assert((mm1->GetSystem() == mm2->GetSystem()) &&( mm1->GetSystem() == mm3->GetSystem()) );
+	assert((mm1->GetSystem() == mm2->GetSystem() ) );
 
 	this->shaft1 = mm1;
 	this->shaft2 = mm2;
