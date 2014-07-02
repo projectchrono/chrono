@@ -3411,7 +3411,7 @@ ChSystem::IteratorPhysicsItems::IteratorPhysicsItems()
 	this->stage   = 9999;  
 }
 
-//~ChSystem::IteratorPhysicsItems::IteratorPhysicsItems() {}
+ChSystem::IteratorPhysicsItems::~IteratorPhysicsItems() {}
 /*
 void ChSystem::IteratorPhysicsItems::RewindToBegin()
 {

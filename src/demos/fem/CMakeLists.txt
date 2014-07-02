@@ -57,24 +57,6 @@ IF (ENABLE_UNIT_IRRLICHT)
 
 	install(TARGETS demo_meshless DESTINATION bin)
 	
-	
-	ADD_EXECUTABLE(demo_FEMvisualize  	demo_FEMvisualize.cpp)
-	SOURCE_GROUP(demos\\fem FILES  		demo_FEMvisualize.cpp)
-	SET_TARGET_PROPERTIES(demo_FEMvisualize PROPERTIES 
-		FOLDER demos
-		LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-		)
-	TARGET_LINK_LIBRARIES(demo_FEMvisualize 
-		${CH_IRRLICHTLIB}
-		${CH_MATLABLIB}
-		ChronoEngine
-		ChronoEngine_FEM
-		)
-	ADD_DEPENDENCIES (demo_FEMvisualize ChronoEngine ChronoEngine_FEM)
-
-	install(TARGETS demo_FEMvisualize DESTINATION bin)
-	
-	
 	ADD_EXECUTABLE(demo_FEMthermal  	demo_FEMthermal.cpp)
 	SOURCE_GROUP(demos\\fem FILES  		demo_FEMthermal.cpp)
 	SET_TARGET_PROPERTIES(demo_FEMthermal PROPERTIES 
@@ -90,57 +72,77 @@ IF (ENABLE_UNIT_IRRLICHT)
 
 	install(TARGETS demo_FEMthermal DESTINATION bin)
 	
+	# for demos that use Matlab
+	IF(ENABLE_UNIT_MABLAB)
 	
-	ADD_EXECUTABLE(demo_FEMbeams  		demo_FEMbeams.cpp)
-	SOURCE_GROUP(demos\\fem FILES  		demo_FEMbeams.cpp)
-	SET_TARGET_PROPERTIES(demo_FEMbeams PROPERTIES 
-		FOLDER demos
-		LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-		)
-	TARGET_LINK_LIBRARIES(demo_FEMbeams 
-		${CH_IRRLICHTLIB}
-		${CH_MATLABLIB}
-		ChronoEngine
-		ChronoEngine_FEM
-		)
-	ADD_DEPENDENCIES (demo_FEMbeams ChronoEngine ChronoEngine_FEM)
+		ADD_EXECUTABLE(demo_FEMvisualize  	demo_FEMvisualize.cpp)
+		SOURCE_GROUP(demos\\fem FILES  		demo_FEMvisualize.cpp)
+		SET_TARGET_PROPERTIES(demo_FEMvisualize PROPERTIES 
+			FOLDER demos
+			LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+			)
+		TARGET_LINK_LIBRARIES(demo_FEMvisualize 
+			${CH_IRRLICHTLIB}
+			${CH_MATLABLIB}
+			ChronoEngine
+			ChronoEngine_FEM
+			)
+		ADD_DEPENDENCIES (demo_FEMvisualize ChronoEngine ChronoEngine_FEM)
 
-	install(TARGETS demo_FEMbeams DESTINATION bin)
+		install(TARGETS demo_FEMvisualize DESTINATION bin)
 	
 	
-	ADD_EXECUTABLE(demo_FEMbeamsconstr  demo_FEMbeamsconstr.cpp)
-	SOURCE_GROUP(demos\\fem FILES  		demo_FEMbeamsconstr.cpp)
-	SET_TARGET_PROPERTIES(demo_FEMbeamsconstr PROPERTIES 
-		FOLDER demos
-		LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-		)
-	TARGET_LINK_LIBRARIES(demo_FEMbeamsconstr 
-		${CH_IRRLICHTLIB}
-		${CH_MATLABLIB}
-		ChronoEngine
-		ChronoEngine_FEM
-		)
-	ADD_DEPENDENCIES (demo_FEMbeamsconstr ChronoEngine ChronoEngine_FEM)
+		ADD_EXECUTABLE(demo_FEMbeams  		demo_FEMbeams.cpp)
+		SOURCE_GROUP(demos\\fem FILES  		demo_FEMbeams.cpp)
+		SET_TARGET_PROPERTIES(demo_FEMbeams PROPERTIES 
+			FOLDER demos
+			LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+			)
+		TARGET_LINK_LIBRARIES(demo_FEMbeams 
+			${CH_IRRLICHTLIB}
+			${CH_MATLABLIB}
+			ChronoEngine
+			ChronoEngine_FEM
+			)
+		ADD_DEPENDENCIES (demo_FEMbeams ChronoEngine ChronoEngine_FEM)
 
-	install(TARGETS demo_FEMbeamsconstr DESTINATION bin)
-	
-	
-	ADD_EXECUTABLE(demo_FEMminiature demo_FEMminiature.cpp)
-	SOURCE_GROUP(demos\\fem FILES  		demo_FEMminiature.cpp)
-	SET_TARGET_PROPERTIES(demo_FEMminiature PROPERTIES 
-		FOLDER demos
-		LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-		)
-	TARGET_LINK_LIBRARIES(demo_FEMminiature 
-		${CH_IRRLICHTLIB}
-		${CH_MATLABLIB}
-		ChronoEngine
-		ChronoEngine_FEM
-		)
-	ADD_DEPENDENCIES (demo_FEMminiature ChronoEngine ChronoEngine_FEM)
+		install(TARGETS demo_FEMbeams DESTINATION bin)
 
-	install(TARGETS demo_FEMminiature DESTINATION bin)
+		
+		ADD_EXECUTABLE(demo_FEMbeamsconstr  demo_FEMbeamsconstr.cpp)
+		SOURCE_GROUP(demos\\fem FILES  		demo_FEMbeamsconstr.cpp)
+		SET_TARGET_PROPERTIES(demo_FEMbeamsconstr PROPERTIES 
+			FOLDER demos
+			LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+			)
+		TARGET_LINK_LIBRARIES(demo_FEMbeamsconstr 
+			${CH_IRRLICHTLIB}
+			${CH_MATLABLIB}
+			ChronoEngine
+			ChronoEngine_FEM
+			)
+		ADD_DEPENDENCIES (demo_FEMbeamsconstr ChronoEngine ChronoEngine_FEM)
+
+		install(TARGETS demo_FEMbeamsconstr DESTINATION bin)
 	
+	
+		ADD_EXECUTABLE(demo_FEMminiature demo_FEMminiature.cpp)
+		SOURCE_GROUP(demos\\fem FILES  		demo_FEMminiature.cpp)
+		SET_TARGET_PROPERTIES(demo_FEMminiature PROPERTIES 
+			FOLDER demos
+			LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+			)
+		TARGET_LINK_LIBRARIES(demo_FEMminiature 
+			${CH_IRRLICHTLIB}
+			${CH_MATLABLIB}
+			ChronoEngine
+			ChronoEngine_FEM
+			)
+		ADD_DEPENDENCIES (demo_FEMminiature ChronoEngine ChronoEngine_FEM)
+
+		install(TARGETS demo_FEMminiature DESTINATION bin)
+	
+	ENDIF()
 	
 	ADD_EXECUTABLE(demo_FEMelectrostatics  		demo_FEMelectrostatics.cpp)
 	SOURCE_GROUP(demos\\fem FILES  		demo_FEMelectrostatics.cpp)
