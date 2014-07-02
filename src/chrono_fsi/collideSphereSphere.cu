@@ -409,6 +409,23 @@ __global__ void ApplyPeriodicBoundaryZKernel(real3 * posRadD, real4 * rhoPresMuD
 	}
 }
 //--------------------------------------------------------------------------------------------------------------------------------
+//applies periodic BC along x
+__global__ void SetOutputPressureToZero_X(real3 * posRadD, real4 * rhoPresMuD) {
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	if (index >= numObjectsD.numAllMarkers) {
+		return;
+	}
+	real4 rhoPresMu = rhoPresMuD[index];
+	if (rhoPresMu.w > -.1) {
+		return;
+	} //no need to do anything if it is a boundary particle
+	real3 posRad = posRadD[index];
+	if (posRad.x > (paramsD.cMax.x - paramsD.HSML * 4)) {
+		rhoPresMu.x = paramsD.rho0;
+		rhoPresMu.y = paramsD.BASEPRES;
+	}
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 //applies periodic BC along x, for ridid bodies
 __global__ void ApplyPeriodicBoundaryXKernel_RigidBodies(real3 * posRigidD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -1360,6 +1377,10 @@ void ApplyBoundarySPH_Markers(
 	ApplyPeriodicBoundaryZKernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(R3CAST(posRadD), R4CAST(rhoPresMuD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: ApplyPeriodicBoundaryZKernel");
+
+	SetOutputPressureToZero_X<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(R3CAST(posRadD), R4CAST(rhoPresMuD));
+	cudaThreadSynchronize();
+	CUT_CHECK_ERROR("Kernel execution failed: SetOutputPressureToZero");
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ApplyBoundaryRigid(
