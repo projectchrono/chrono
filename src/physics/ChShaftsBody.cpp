@@ -82,7 +82,6 @@ int ChShaftsBody::Initialize(ChSharedPtr<ChShaft> mshaft, ChSharedPtr<ChBodyFram
 	ChShaft* mm1 = mshaft.get_ptr();
 	ChBodyFrame* mm2 = mbody.get_ptr();
 	assert(mm1 && mm2);
-	assert(mm1->GetSystem() == mm2->GetSystem());
 
 	this->shaft = mm1;
 	this->body = mm2;
