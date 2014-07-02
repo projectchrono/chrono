@@ -56,6 +56,11 @@ class ChShaft;
 ///  While traditional gear reducers have one input and one
 ///  output, the planetary gear have two inputs and one 
 ///  output (or, if you prefer, one input and two outputs).
+///  Note that you can use this class also to make a 
+///  gearbox if you are interested in knowing the reaction
+///  torque transmitted to the truss (whereas the basic ChLinkGear
+///  cannot do this because it has only in and out); in this case
+///  you just use the shaft n.1 as truss and fix it.
 
 class ChApi ChShaftsPlanetary : public ChPhysicsItem {
 
@@ -135,16 +140,16 @@ public:
 				/// input gear, and the gear with inner teeth that usually is kept fixed (but the
 				/// ChShaftsPlanetary does not require that one shaft is fixed - it's up to you) 
 				/// Each shaft must belong to the same ChSystem. 
-	virtual int Initialize(ChSharedPtr<ChShaft> mshaft1, ///< first  shaft to join (carrier wheel -usually the output)
-						   ChSharedPtr<ChShaft> mshaft2, ///< second shaft to join (wheel -usually the input)
-						   ChSharedPtr<ChShaft> mshaft3  ///< third  shaft to join (wheel -other input, or fixed)
+	virtual int Initialize(ChSharedPtr<ChShaft> mshaft1, ///< first  shaft to join (carrier wheel)
+						   ChSharedPtr<ChShaft> mshaft2, ///< second shaft to join (wheel)
+						   ChSharedPtr<ChShaft> mshaft3  ///< third  shaft to join (wheel)
 						   );
 
-				/// Get the first shaft
+				/// Get the first shaft (carrier wheel)
 	ChShaft* GetShaft1() {return shaft1;}
-				/// Get the second shaft
+				/// Get the second shaft 
 	ChShaft* GetShaft2() {return shaft2;}
-				/// Get the third shaft
+				/// Get the third shaft 
 	ChShaft* GetShaft3() {return shaft3;}
 
 
@@ -159,19 +164,24 @@ public:
 				/// Setting the transmission ratios r1 r2 r3 for  r1*w1 + r2*w2 + r3*w3 = 0
 				/// may be cumbersome, but when you deal with typical planetary devices, this
 				/// function provides a shortcut to setting them for you, given a single 
-				/// parameter 't0', that is the speed ratio t'=w3'/w2' of the inverted planetary.
+				/// parameter t0, that is the speed ratio t'=w3'/w2' of the inverted planetary.
 				/// That ratio is simple to get: to invert the planetary, imagine to hold fixed 
-				/// the wheel of shaft 1 (that is w1' =0), move the shaft 2 and see which is 
-				/// the speed of shaft 3, to get the ratio t'=w3'/w2'. Generally, shaft 1 is
+				/// the carrier of shaft 1 (that is w1' =0), move the shaft 2 and see which is 
+				/// the speed of shaft 3, to get the ratio t0=w3'/w2'. Generally, shaft 1 is
 				/// called the 'carrier'. For example, in normal operation of an epicycloidal 
 				/// reducer, the carrier (shaft 1) is used as output, shaft 2 is the input, and
 				/// shaft 3 is hold fixed to get one degree of freedom only; but in 'inverted' operation
-				/// imagine the carrier is fixed, so t' can be easily got as t'=-z2/z3, with z=n.of teeth.
-				/// In a car differential, again with shaft 1 as carrier, one can see that t'=w3'/w2'
-				/// so t'=-1.     See the Willis theory for more details on these formulas.
-				/// Note that t' must be different from 1 (singularity)
-				/// Once you get t', simply use this function and it will set r1 r2 r3 automatically.
-	void   SetTransmissionRatios(double t0) { r1=(1.-t0); r2=t0; r3=-1.0;}
+				/// imagine the carrier is fixed, so t0 can be easily got as t0=-z2/z3, with z=n.of teeth.
+				/// In a car differential, again with shaft 1 as carrier, one can see that t0=w3'/w2'
+				/// so t0=-1.     See the Willis theory for more details on these formulas.
+				/// Note that t0 should be different from 1 (singularity).
+				/// Once you get t0, simply use this function and it will set r1 r2 r3 automatically.
+	void   SetTransmissionRatioOrdinary(double t0) { r1=(1.-t0); r2=t0; r3=-1.0;}
+		
+				/// Get the t0 transmission ratio of the equivalent ordinary 
+				/// gearbox, ie. the inverted planetary, that is the ratio  t0=w3'/w2' assuming
+				/// that the carrier (shaft 1) is hold fixed. 
+	double GetTransmissionRatioOrdinary() { return -r2/r3;}
 
 				/// Get the transmission ratio r1, as in  r1*w1+r2*w2+r3*w3 = 0
 	double GetTransmissionR1() {return this->r1;}
