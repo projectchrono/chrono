@@ -45,6 +45,10 @@ namespace chrono
 ///  of power trains. This is more efficient than 
 ///  simulating power trains modeled with full 3D ChBody
 ///  objects. 
+///  Note that this really simple constraint does not
+///  provide a way to trasmit a reaction force to the truss,
+///  if this is needed, just use the ChShaftsPlanetary with
+///  a fixed carrier shaft, or the ChShaftGearbox.
 
 class ChApi ChShaftsGear : public ChShaftsCouple {
 

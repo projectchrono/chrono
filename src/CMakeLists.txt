@@ -382,6 +382,8 @@ IF (BUILD_CH_SDK)
 		physics/ChProximityContainerSPH.cpp  
 		physics/ChShaft.cpp 
 		physics/ChShaftsGear.cpp 
+		physics/ChShaftsGearbox.cpp 
+		physics/ChShaftsGearboxAngled.cpp 
 		physics/ChShaftsClutch.cpp 
 		physics/ChShaftsPlanetary.cpp 
 		physics/ChShaftsMotor.cpp 
@@ -477,6 +479,8 @@ IF (BUILD_CH_SDK)
 		physics/ChShaftsClutch.h
 		physics/ChShaftsCouple.h
 		physics/ChShaftsGear.h
+		physics/ChShaftsGearbox.h
+		physics/ChShaftsGearboxAngled.h
 		physics/ChShaftsMotor.h
 		physics/ChShaftsPlanetary.h
 		physics/ChShaftsTorsionSpring.h

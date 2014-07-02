@@ -289,9 +289,9 @@ int main(int argc, char* argv[])
 				// so called 'Willis' case. Imagine we hold fixed the carrier (shaft B in epic. reducers),
 				// and leave free the truss C (the outer gear with inner teeth in our reducer); which is 
 				// the transmission ratio t0 that we get? It is simply t0=-Za/Zc, with Z = num of teeth of gears.
-				// So just use the following to set all the ratios automatically:
+				// So just use the following to set all the three ratios automatically:
 		double t0 =-50.0/100.0;  // suppose, in the reducer, that pinion A has 50 teeth and truss has 100 inner teeth.
-		my_shaft_planetaryBAC->SetTransmissionRatios(t0);
+		my_shaft_planetaryBAC->SetTransmissionRatioOrdinary(t0);
 		my_system.Add(my_shaft_planetaryBAC);
 
 
