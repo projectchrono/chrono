@@ -97,8 +97,8 @@ __device__ inline real3 DifVelocity_SSI_DEM(
 	if (l < 0) {
 		return R3(0);
 	}
-	real_ kS =  6;//.006;//6;//3; //50; //1000.0; //392400.0;	//spring. 50 worked almost fine. I am using 30 to be sure!
-	real_ kD = 40;//.04;//20;//40.0;//20.0; //420.0;				//damping coef.
+	real_ kS =  .006;//6;//.006;//6;//3; //50; //1000.0; //392400.0;	//spring. 50 worked almost fine. I am using 30 to be sure!
+	real_ kD = .04;//40;//.04;//20;//40.0;//20.0; //420.0;				//damping coef.
 	real3 n = dist3 / d; //unit vector B to A
 	real_ m_eff = (velMasA.w * velMasB.w) / (velMasA.w + velMasB.w);
 	real3 force = (/*pow(paramsD.sizeScale, 3) * */kS * l - kD * m_eff * dot(R3(velMasA - velMasB), n)) * n; //relative velocity at contact is simply assumed as the relative vel of the centers. If you are updating the rotation, this should be modified.
@@ -233,6 +233,10 @@ real4 collideCell(
 						multViscosit = 5.0f;
 						rhoPresMuB.y = rhoPresMuA.y;
 					}
+					if (length(posRadA - posRadB) > (RESOLUTION_LENGTH_MULT + 1) * paramsD.HSML) { //i.e. at periodic BC. project pressure up the periodic boundary
+						rhoPresMuB.x = rhoPresMuA.x;
+						rhoPresMuB.y = rhoPresMuA.y;
+					}
 //					else { //**One of them is fluid, the other one is fluid/solid (boundary was considered previously)
 //						multViscosit = 1.0f;
 //					}
@@ -243,8 +247,8 @@ real4 collideCell(
 					derivRho += derivVelRho.w;
 				}
 				else if (fabs(rhoPresMuA.w - rhoPresMuB.w) > 0) { //implies: one of them is solid/boundary, ther other one is solid/boundary of different type or different solid
-//					real3 dV = DifVelocity_SSI_DEM(dist3, d, rSPH, velMasA, velMasB);
-					real3 dV = DifVelocity_SSI_Lubrication(dist3, d, rSPH, velMasA, velMasB);
+					real3 dV = DifVelocity_SSI_DEM(dist3, d, rSPH, velMasA, velMasB);
+//					real3 dV = DifVelocity_SSI_Lubrication(dist3, d, rSPH, velMasA, velMasB);
 
 
 					if (rhoPresMuA.w > 0 && rhoPresMuA.w <= numObjectsD.numRigidBodies) { //i.e. rigid
@@ -303,6 +307,40 @@ real_ collideCellDensityReInit_F1(
 		}
 	}
 	return densityShare;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+// collide a particle against all other particles in a given cell
+__device__
+void projectTheClosestFluidMarker(
+		real3 & distRhoPress,
+		int3 gridPos,
+		uint index,
+		real3 posRadA,
+		real3* sortedPosRad,
+		real4* sortedRhoPreMu,
+		uint* cellStart,
+		uint* cellEnd) {
+
+	//?c2 printf("grid pos %d %d %d \n", gridPos.x, gridPos.y, gridPos.z);
+	uint gridHash = calcGridHash(gridPos);
+	// get start of bucket for this cell
+	uint startIndex = FETCH(cellStart, gridHash);
+	if (startIndex != 0xffffffff) { // cell is not empty
+		// iterate over particles in this cell
+		uint endIndex = FETCH(cellEnd, gridHash);
+
+		for (uint j = startIndex; j < endIndex; j++) {
+			if (j == index) continue;
+			real4 rhoPreMuB = FETCH(sortedRhoPreMu, j);
+			if (rhoPreMuB.w > -.1) continue; //we don't care about the closest non-fluid marker
+			real3 posRadB = FETCH(sortedPosRad, j);
+			real3 dist3 = Distance(posRadA, posRadB);
+			real_ d = length(dist3);
+			if (distRhoPress.x > d) {
+				distRhoPress = R3(d, rhoPreMuB.x, rhoPreMuB.y);
+			}
+		}
+	}
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // collide a particle against all other particles in a given cell
@@ -582,6 +620,46 @@ void ReCalcDensityD_F1(
 //--------------------------------------------------------------------------------------------------------------------------------
 //without normalization
 __global__
+void ProjectDensityPressureToBCandBCE_D(
+		real4* oldRhoPreMu,
+		real3* sortedPosRad,
+		real4* sortedRhoPreMu,
+		uint* gridMarkerIndex,
+		uint* cellStart,
+		uint* cellEnd,
+		uint numAllMarkers) {
+	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
+	if (index >= numAllMarkers) return;
+
+	// read particle data from sorted arrays
+	real3 posRadA = FETCH(sortedPosRad, index);
+	real4 rhoPreMuA = FETCH(sortedRhoPreMu, index);
+
+	if (rhoPreMuA.w < -.1) return;
+
+	// get address in grid
+	int3 gridPos = calcGridPos(posRadA);
+
+	real3 distRhoPress = R3((RESOLUTION_LENGTH_MULT + 2) * paramsD.HSML, rhoPreMuA.x, rhoPreMuA.y); //(large distance, rhoA, pA)
+	// examine neighbouring cells
+	for (int z = -1; z <= 1; z++) {
+		for (int y = -1; y <= 1; y++) {
+			for (int x = -1; x <= 1; x++) {
+				int3 neighbourPos = gridPos + I3(x, y, z);
+				projectTheClosestFluidMarker(distRhoPress, neighbourPos, index, posRadA, sortedPosRad, sortedRhoPreMu, cellStart,
+						cellEnd);
+			}
+		}
+	}
+	// write new velocity back to original unsorted location
+	uint originalIndex = gridMarkerIndex[index];
+	rhoPreMuA.x = distRhoPress.y;
+	rhoPreMuA.y = distRhoPress.z;
+	oldRhoPreMu[originalIndex] = rhoPreMuA;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+//without normalization
+__global__
 void CalcCartesianDataD(
 		real4* rho_Pres_CartD,
 		real4* vel_VelMag_CartD,
@@ -823,8 +901,7 @@ void ReCalcDensity(
 		uint* gridMarkerIndex,
 		uint* cellStart,
 		uint* cellEnd,
-		uint numAllMarkers,
-		uint numCells) {
+		uint numAllMarkers) {
 	//#if USE_TEX
 	//    cutilSafeCall(cudaBindTexture(0, oldPosTex, sortedPosRad, numAllMarkers*sizeof(real4)));
 	//    cutilSafeCall(cudaBindTexture(0, oldVelTex, sortedVelMas, numAllMarkers*sizeof(real4)));
@@ -842,6 +919,46 @@ void ReCalcDensity(
 			oldRhoPreMu,
 			sortedPosRad,
 			sortedVelMas,
+			sortedRhoPreMu,
+			gridMarkerIndex,
+			cellStart,
+			cellEnd,
+			numAllMarkers);
+
+	cudaThreadSynchronize();
+	CUT_CHECK_ERROR("Kernel execution failed: ReCalcDensityD");
+
+	//#if USE_TEX
+	//    cutilSafeCall(cudaUnbindTexture(oldPosTex));
+	//    cutilSafeCall(cudaUnbindTexture(oldVelTex));
+	//    cutilSafeCall(cudaUnbindTexture(cellStartTex));
+	//    cutilSafeCall(cudaUnbindTexture(cellEndTex));
+	//#endif
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ProjectDensityPressureToBCandBCE(
+		real4* oldRhoPreMu,
+		real3* sortedPosRad,
+		real4* sortedRhoPreMu,
+		uint* gridMarkerIndex,
+		uint* cellStart,
+		uint* cellEnd,
+		uint numAllMarkers) {
+	//#if USE_TEX
+	//    cutilSafeCall(cudaBindTexture(0, oldPosTex, sortedPosRad, numAllMarkers*sizeof(real4)));
+	//    cutilSafeCall(cudaBindTexture(0, oldVelTex, sortedVelMas, numAllMarkers*sizeof(real4)));
+	//    cutilSafeCall(cudaBindTexture(0, cellStartTex, cellStart, numCells*sizeof(uint)));
+	//    cutilSafeCall(cudaBindTexture(0, cellEndTex, cellEnd, numCells*sizeof(uint)));
+	//#endif
+
+	// thread per particle
+	uint numThreads, numBlocks;
+	computeGridSize(numAllMarkers, 64, numBlocks, numThreads);
+
+	// execute the kernel
+	ProjectDensityPressureToBCandBCE_D<<< numBlocks, numThreads >>>(
+			oldRhoPreMu,
+			sortedPosRad,
 			sortedRhoPreMu,
 			gridMarkerIndex,
 			cellStart,

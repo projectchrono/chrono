@@ -1225,6 +1225,13 @@ void ForceSPH(
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: Copy_SortedVelXSPH_To_VelXSPH");
 
+	// set the pressure and density of BC and BCE markers to those of the nearest fluid marker.
+	// I put it here to use the already determined proximity computation
+	//********************************************************************************************************************************
+	ProjectDensityPressureToBCandBCE(R4CAST(rhoPresMuD), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedRhoPreMu),
+				U1CAST(m_dGridMarkerIndex), U1CAST(m_dCellStart), U1CAST(m_dCellEnd), numAllMarkers);
+	//********************************************************************************************************************************
+
 	////
 	m_dSortedPosRad.clear();
 	m_dSortedVelMas.clear();
@@ -1274,7 +1281,7 @@ void DensityReinitialization(
 			U1CAST(m_dGridMarkerIndex), TCAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), numAllMarkers, m_numGridCells);
 
 	ReCalcDensity(R3CAST(posRadD), R4CAST(velMasD), R4CAST(rhoPresMuD), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedVelMas), R4CAST(m_dSortedRhoPreMu),
-			U1CAST(m_dGridMarkerIndex), U1CAST(m_dCellStart), U1CAST(m_dCellEnd), numAllMarkers, m_numGridCells);
+			U1CAST(m_dGridMarkerIndex), U1CAST(m_dCellStart), U1CAST(m_dCellEnd), numAllMarkers);
 
 	m_dSortedPosRad.clear();
 	m_dSortedVelMas.clear();
@@ -1393,7 +1400,6 @@ void ApplyBoundary(
 	ApplyBoundarySPH_Markers(posRadD, rhoPresMuD, numObjects.numAllMarkers);
 	ApplyBoundaryRigid(posRigidD, numObjects.numRigidBodies);
 	ApplyBoundaryFlex(ANCF_NodesD, ANCF_ReferenceArrayNodesOnBeamsD, numObjects.numFlexBodies);
-
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void FindPassesFromTheEnd(

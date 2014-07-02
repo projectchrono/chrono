@@ -310,8 +310,16 @@ void ReCalcDensity(
 		uint* m_dgridMarkerIndex,
 		uint* m_dCellStart,
 		uint* m_dCellEnd,
-		uint numAllMarkers,
-		uint numCells);
+		uint numAllMarkers);
+
+void ProjectDensityPressureToBCandBCE(
+		real4* oldRhoPreMu,
+		real3* sortedPosRad,
+		real4* sortedRhoPreMu,
+		uint* gridMarkerIndex,
+		uint* cellStart,
+		uint* cellEnd,
+		uint numAllMarkers);
 
 void CalcCartesianData(
 		real4* rho_Pres_CartD,
