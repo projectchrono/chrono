@@ -1245,8 +1245,8 @@ void ForceSPH(
 	// set the pressure and density of BC and BCE markers to those of the nearest fluid marker.
 	// I put it here to use the already determined proximity computation
 	//********************************************************************************************************************************
-	ProjectDensityPressureToBCandBCE(R4CAST(rhoPresMuD), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedRhoPreMu),
-				U1CAST(m_dGridMarkerIndex), U1CAST(m_dCellStart), U1CAST(m_dCellEnd), numAllMarkers);
+//	ProjectDensityPressureToBCandBCE(R4CAST(rhoPresMuD), R3CAST(m_dSortedPosRad), R4CAST(m_dSortedRhoPreMu),
+//				U1CAST(m_dGridMarkerIndex), U1CAST(m_dCellStart), U1CAST(m_dCellEnd), numAllMarkers);
 	//********************************************************************************************************************************
 
 	////
@@ -1378,9 +1378,9 @@ void ApplyBoundarySPH_Markers(
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: ApplyPeriodicBoundaryZKernel");
 
-	SetOutputPressureToZero_X<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(R3CAST(posRadD), R4CAST(rhoPresMuD));
-	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Kernel execution failed: SetOutputPressureToZero");
+//	SetOutputPressureToZero_X<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(R3CAST(posRadD), R4CAST(rhoPresMuD));
+//	cudaThreadSynchronize();
+//	CUT_CHECK_ERROR("Kernel execution failed: SetOutputPressureToZero");
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ApplyBoundaryRigid(
@@ -1992,7 +1992,7 @@ void cudaCollisions(
 	real_ delTOrig = paramsH.dT;
 	real_ realTime = 0;
 
-	real_ timePause = .001 * paramsH.tFinal; // keep it as small as possible. the time step will be 1/10 * dT
+	real_ timePause = 0;//.001 * paramsH.tFinal; // keep it as small as possible. the time step will be 1/10 * dT
 	real_ timePauseRigidFlex = .02 * paramsH.tFinal;
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce4 = R4(0);
