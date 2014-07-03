@@ -2189,7 +2189,7 @@ void cudaCollisions(
 
 		//density re-initialization
 		if (tStep % 10 == 0) {
-			DensityReinitialization(posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, SIDE); //does not work for analytical boundaries (non-meshed) and free surfaces
+//			DensityReinitialization(posRadD, velMasD, rhoPresMuD, numObjects.numAllMarkers, SIDE); //does not work for analytical boundaries (non-meshed) and free surfaces
 		}
 
 		myGpuTimer.Stop();
