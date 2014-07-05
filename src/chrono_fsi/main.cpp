@@ -1951,7 +1951,7 @@ int main() {
 		paramsH.NUM_BOUNDARY_LAYERS = 3;
 		paramsH.toleranceZone = paramsH.NUM_BOUNDARY_LAYERS * (paramsH.HSML * paramsH.MULT_INITSPACE);
 		paramsH.NUM_BCE_LAYERS = 2;
-		paramsH.solidSurfaceAdjust =  .6 * (paramsH.HSML * paramsH.MULT_INITSPACE); // 0.6 for bouyant, under gravity
+		paramsH.solidSurfaceAdjust = .6 * (paramsH.HSML * paramsH.MULT_INITSPACE); // 0.6 for bouyant, under gravity
 		paramsH.BASEPRES = 0;
 		paramsH.LARGE_PRES = 0;//10000;
 		paramsH.nPeriod = 7;
