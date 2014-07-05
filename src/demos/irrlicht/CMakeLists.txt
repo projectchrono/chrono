@@ -297,6 +297,20 @@ TARGET_LINK_LIBRARIES(demo_collisionDEM
 	ChronoEngine)
 ADD_DEPENDENCIES (demo_collisionDEM ChronoEngine)
 
+ADD_EXECUTABLE(demo_emitter    demo_emitter.cpp)
+SOURCE_GROUP(demos\\irrlicht FILES  demo_emitter.cpp)
+SET_TARGET_PROPERTIES(demo_emitter PROPERTIES
+	FOLDER demos
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
+	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+	
+	)
+TARGET_LINK_LIBRARIES(demo_emitter
+	${CH_IRRLICHTLIB}
+	ChronoEngine)
+ADD_DEPENDENCIES (demo_emitter ChronoEngine)
+
+
 install(TARGETS demo_collision DESTINATION bin)
 install(TARGETS demo_benchmark DESTINATION bin)
 install(TARGETS demo_bricks DESTINATION bin)
@@ -319,6 +333,7 @@ install(TARGETS demo_irr_assets DESTINATION bin)
 install(TARGETS demo_soilbin DESTINATION bin)
 install(TARGETS demo_ballDEM DESTINATION bin)
 install(TARGETS demo_collisionDEM DESTINATION bin)
+install(TARGETS demo_emitter DESTINATION bin)
 
 
 

@@ -645,6 +645,20 @@ IF (BUILD_CH_SDK)
 			${ChronoEngine_collision_edgetempest_HEADERS}
 			)
 
+	SET(ChronoEngine_particlefactory_SOURCES
+	)
+	SET(ChronoEngine_particlefactory_HEADERS
+		particlefactory/ChParticleEmitter.h
+		particlefactory/ChRandomShapeCreator.h
+		particlefactory/ChRandomParticlePosition.h
+		particlefactory/ChRandomParticleAlignment.h
+		particlefactory/ChRandomParticleVelocity.h
+	)
+	SOURCE_GROUP(particlefactory FILES  
+			${ChronoEngine_particlefactory_SOURCES}
+			${ChronoEngine_particlefactory_HEADERS}
+			)
+			
 	SET(ChronoEngine_pneumatica_SOURCES
 		pneumatica/assepneumatico.cpp 
 		pneumatica/pistone.cpp 
@@ -1070,6 +1084,8 @@ IF (BUILD_CH_SDK)
 		${ChronoEngine_collision_convexdecompHACDv2_SOURCES}
 		${ChronoEngine_pneumatica_SOURCES}
 		${ChronoEngine_pneumatica_HEADERS}
+		${ChronoEngine_particlefactory_SOURCES}
+		${ChronoEngine_particlefactory_HEADERS}
 		${ChronoEngine_motion_functions_SOURCES}
 		${ChronoEngine_motion_functions_HEADERS}
 		${ChronoEngine_parallel_SOURCES}
@@ -1155,6 +1171,7 @@ INSTALL(FILES ${ChronoEngine_assets_HEADERS} DESTINATION include/assets)
 INSTALL(FILES ${ChronoEngine_collision_edgetempest_HEADERS} DESTINATION include/collision/edgetempest)
 INSTALL(FILES ${ChronoEngine_collision_convexdecompJR_HEADERS} DESTINATION include/collision/convexdecompJR)
 INSTALL(FILES ${ChronoEngine_pneumatica_HEADERS} DESTINATION include/pneumatica)
+INSTALL(FILES ${ChronoEngine_particlefactory_HEADERS} DESTINATION include/particlefactory)
 INSTALL(FILES ${ChronoEngine_motion_functions_HEADERS} DESTINATION include/motion_functions)
 INSTALL(FILES ${ChronoEngine_parallel_HEADERS} DESTINATION include/parallel)
 INSTALL(FILES ${ChronoEngine_collision_bullet_HEADERS} DESTINATION include/collision/bullet)
