@@ -33,7 +33,6 @@ __device__ uint calcGridHash(int3 gridPos) {
 __device__ inline real4 DifVelocityRho(
 		const real3 & dist3,
 		const real_ & d,
-		const real_ & rSPH,
 		const real4 & velMasA,
 		const real3 & vel_XSPH_A,
 		const real4 & velMasB,
@@ -53,20 +52,20 @@ __device__ inline real4 DifVelocityRho(
 //	real_ c_ab = 10 * paramsD.v_Max; //Ma = .1;//sqrt(7.0f * 10000 / ((rhoPresMuA.x + rhoPresMuB.x) / 2.0f));
 //	//real_ h = paramsD.HSML;
 //	real_ rho = .5f * (rhoPresMuA.x + rhoPresMuB.x);
-//	real_ nu = alpha * rSPH * c_ab / rho;
+//	real_ nu = alpha * paramsD.HSML * c_ab / rho;
 
 //	//*** Artificial viscosity type 1.2
 //	real_ nu = 22.8f * paramsD.mu0 / 2.0f / (rhoPresMuA.x * rhoPresMuB.x);
 //	real3 derivV = -velMasB.w * (
 //		rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)
-//		- nu * vAB_Dot_rAB / ( d * d + epsilonMutualDistance * rSPH * rSPH )
+//		- nu * vAB_Dot_rAB / ( d * d + epsilonMutualDistance * paramsD.HSML * paramsD.HSML )
 //		) * gradW;
 //	return R4(derivV,
 //		rhoPresMuA.x * velMasB.w / rhoPresMuB.x * dot(vel_XSPH_A - vel_XSPH_B, gradW));
 
 	//*** Artificial viscosity type 2
 	real_ rAB_Dot_GradW = dot(dist3, gradW);
-	real_ rAB_Dot_GradW_OverDist = rAB_Dot_GradW / (d * d + epsilonMutualDistance * rSPH * rSPH);
+	real_ rAB_Dot_GradW_OverDist = rAB_Dot_GradW / (d * d + epsilonMutualDistance * paramsD.HSML * paramsD.HSML);
 	real3 derivV = -velMasB.w * (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) * gradW
 			+ velMasB.w * (8.0f * multViscosity) * paramsD.mu0 * pow(rhoPresMuA.x + rhoPresMuB.x, -2) * rAB_Dot_GradW_OverDist
 					* R3(velMasA - velMasB);
@@ -74,14 +73,14 @@ __device__ inline real4 DifVelocityRho(
 	real_ derivRho = rhoPresMuA.x * velMasB.w / rhoPresMuB.x * dot(vel_XSPH_A - vel_XSPH_B, gradW);
 //	real_ zeta = 0;//.05;//.1;
 //	real_ derivRho = rhoPresMuA.x * velMasB.w * invrhoPresMuBx * (dot(vel_XSPH_A - vel_XSPH_B, gradW)
-//			+ zeta * rSPH * (10 * paramsD.v_Max) * 2 * (rhoPresMuB.x / rhoPresMuA.x - 1) * rAB_Dot_GradW_OverDist
+//			+ zeta * paramsD.HSML * (10 * paramsD.v_Max) * 2 * (rhoPresMuB.x / rhoPresMuA.x - 1) * rAB_Dot_GradW_OverDist
 //			);
 	return R4(derivV, derivRho);
 
 //	//*** Artificial viscosity type 1.3
 //	real_ rAB_Dot_GradW = dot(dist3, gradW);
 //	real3 derivV = -velMasB.w * (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) * gradW
-//		+ velMasB.w / (rhoPresMuA.x * rhoPresMuB.x) * 2.0f * paramsD.mu0 * rAB_Dot_GradW / ( d * d + epsilonMutualDistance * rSPH * rSPH ) * R3(velMasA - velMasB);
+//		+ velMasB.w / (rhoPresMuA.x * rhoPresMuB.x) * 2.0f * paramsD.mu0 * rAB_Dot_GradW / ( d * d + epsilonMutualDistance * paramsD.HSML * paramsD.HSML ) * R3(velMasA - velMasB);
 //	return R4(derivV,
 //		rhoPresMuA.x * velMasB.w / rhoPresMuB.x * dot(vel_XSPH_A - vel_XSPH_B, gradW));
 }
@@ -89,11 +88,10 @@ __device__ inline real4 DifVelocityRho(
 __device__ inline real3 DifVelocity_SSI_DEM(
 				const real3 & dist3,
 				const real_ & d,
-				const real_ & rSPH,
 				const real4 & velMasA,
 				const real4 & velMasB) {
 //printf("** DifVelocity_SSI_DEM\n");
-	real_ l = paramsD.MULT_INITSPACE * rSPH - d; //penetration distance
+	real_ l = paramsD.MULT_INITSPACE * paramsD.HSML - d; //penetration distance
 	if (l < 0) {
 		return R3(0);
 	}
@@ -108,7 +106,6 @@ __device__ inline real3 DifVelocity_SSI_DEM(
 __device__ inline real3 DifVelocity_SSI_Lubrication(
 				const real3 & dist3,
 				const real_ & d,
-				const real_ & rSPH,
 				const real4 & velMasA,
 				const real4 & velMasB) {
 //printf("** DifVelocity_SSI_DEM\n");
@@ -204,9 +201,9 @@ real4 collideCell(
 				real3 posRadB = FETCH(sortedPosRad, j);
 				real3 dist3Alpha = posRadA - posRadB;
 				real3 dist3 = Distance(posRadA, posRadB);
-				real_ rSPH = paramsD.HSML;
 				real_ d = length(dist3);
 				if (d > RESOLUTION_LENGTH_MULT * paramsD.HSML) continue;
+
 				real4 velMasB = FETCH(sortedVelMas, j);
 				real4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
 
@@ -244,13 +241,13 @@ real4 collideCell(
 //					}
 					real4 derivVelRho = R4(0.0f);
 					real3 vel_XSPH_B = FETCH(vel_XSPH_Sorted_D, j);
-					derivVelRho = DifVelocityRho(dist3, d, rSPH, velMasA, vel_XSPH_A, velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB, multViscosit);
+					derivVelRho = DifVelocityRho(dist3, d, velMasA, vel_XSPH_A, velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB, multViscosit);
 					derivV += R3(derivVelRho);
 					derivRho += derivVelRho.w;
 				}
 				else if (fabs(rhoPresMuA.w - rhoPresMuB.w) > 0) { //implies: one of them is solid/boundary, ther other one is solid/boundary of different type or different solid
-//					real3 dV = DifVelocity_SSI_DEM(dist3, d, rSPH, velMasA, velMasB);
-					real3 dV = DifVelocity_SSI_Lubrication(dist3, d, rSPH, velMasA, velMasB);
+//					real3 dV = DifVelocity_SSI_DEM(dist3, d, velMasA, velMasB);
+					real3 dV = DifVelocity_SSI_Lubrication(dist3, d, velMasA, velMasB);
 
 
 					if (rhoPresMuA.w > 0 && rhoPresMuA.w <= numObjectsD.numRigidBodies) { //i.e. rigid
