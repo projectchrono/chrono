@@ -1630,6 +1630,8 @@ void ChSystem::LCPprepare_load(bool load_jacobians,
 			PHpointer->ConstraintsBiLoad_C(C_factor, recovery_clamp, do_clamp);
 		if (Ct_factor)
 			PHpointer->ConstraintsBiLoad_Ct(Ct_factor);			// Ct
+		if (F_factor)
+			PHpointer->ConstraintsFbLoadForces(F_factor);		// f*dt
 		if (load_jacobians)
 			PHpointer->ConstraintsLoadJacobians();
 		if (K_factor || R_factor || M_factor)
