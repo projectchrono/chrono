@@ -115,10 +115,13 @@ public:
 			   // Other functions
 
 				/// Use this function after gear creation, to initialize it, given  
-				/// two shafts to join. 
+				/// two shafts to join. The first shaft is the 'output' shaft of the motor,
+				/// the second is the 'truss', often fixed and not rotating. 
+				/// The torque is applied to the output shaft, while the truss shafts 
+				/// gets the same torque but with opposite sign.
 				/// Each shaft must belong to the same ChSystem. 
-	virtual int Initialize(ChSharedPtr<ChShaft> mshaft1, ///< first  shaft to join
-						   ChSharedPtr<ChShaft> mshaft2  ///< second shaft to join 
+	virtual int Initialize(ChSharedPtr<ChShaft> mshaft1, ///< first  shaft to join (motor output shaft)
+						   ChSharedPtr<ChShaft> mshaft2  ///< second shaft to join (motor truss)
 						   );
 
 

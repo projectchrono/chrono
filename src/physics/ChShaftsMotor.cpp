@@ -97,6 +97,7 @@ void ChShaftsMotor::Update (double mytime)
 	
 		// update class data
 	// ...
+
 }
 
 
@@ -123,7 +124,6 @@ void ChShaftsMotor::ConstraintsBiLoad_C(double factor, double recovery_clamp, bo
 {
 	//if (!this->IsActive())
 	//	return;
-
 	if (motor_mode != MOT_MODE_TORQUE)
 	{
 		double res;
