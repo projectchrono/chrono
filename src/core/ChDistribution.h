@@ -19,6 +19,10 @@
 #include "core/ChMatrix.h"
 
 
+namespace chrono
+{
+
+
 
 /// Base class for all random distributions
 
@@ -393,6 +397,7 @@ private:
 };
 
 
+} // end of namespace
 
 
-#endif  // END of ChMath.h 
+#endif  
