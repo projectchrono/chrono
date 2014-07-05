@@ -39,6 +39,8 @@
 #include "physics/ChShaftsPlanetary.h"
 #include "physics/ChShaftsBody.h"
 #include "physics/ChShaftsTorsionSpring.h"
+#include "physics/ChShaftsTorqueConverter.h"
+#include "physics/ChShaftsMotor.h"
 
 using namespace chrono;
 
@@ -350,7 +352,7 @@ int main(int argc, char* argv[])
 	}
 
 
-	if (true)
+	if (false)
 	{
 		//
 		// EXAMPLE 4: 
@@ -443,6 +445,137 @@ int main(int argc, char* argv[])
 					 << my_shaftbody_connection->GetTorqueReactionOnBody().x << " "
 					 << my_shaftbody_connection->GetTorqueReactionOnBody().y << " "
 					 << my_shaftbody_connection->GetTorqueReactionOnBody().z << " "
+					 << "\n";
+		}
+
+	}
+
+
+	if (true)
+	{
+		//
+		// EXAMPLE 5: 
+		//
+
+		GetLog() << " Example: torque converter and thermal engine \n";
+
+				// In this example we use a torque converter.
+				// The torque converter is represented by a ChShaftsTorqueConverter
+				// object, that connects three '1D items' of ChShaft class: 
+				// - the input shaft A, ie. the impeller connected to the engine
+				// - the output shaft B, i.e. the turbine connected to the gears and wheels
+				// - the stator C, that does not rotate and transmits reaction to the truss.
+				// In the following scheme, the torque converter is represented as [ tc ],
+				// and we also add a thermal engine, shown with [ e ], and a breaking torque Tb
+				// (C is shown as * because fixed).
+				// 
+				//   D           A             B           
+				//   *---[ e ]---||---[ tc ]---||  Tb 
+				//                    [    ]---*
+				//                             C
+				//          
+
+				// The physical system: it contains all physical objects.
+		ChSystem my_system; 
+
+				// Create 'A', a 1D shaft 
+		ChSharedShaftPtr my_shaftA(new ChShaft);
+		my_shaftA->SetInertia(1.5);
+		my_system.Add(my_shaftA);
+
+				// Create 'B', a 1D shaft 
+		ChSharedShaftPtr my_shaftB(new ChShaft);
+		my_shaftB->SetInertia(3.2);
+		my_shaftB->SetAppliedTorque(-5); // apply const braking torque
+		my_system.Add(my_shaftB);
+
+				// Create 'C', a 1D shaft, fixed 
+		ChSharedShaftPtr my_shaftC(new ChShaft);
+		my_shaftC->SetShaftFixed(true);
+		my_system.Add(my_shaftC);
+
+				// Create 'D', a 1D shaft, fixed 
+		ChSharedShaftPtr my_shaftD(new ChShaft);
+		my_shaftD->SetShaftFixed(true);
+		my_system.Add(my_shaftD);
+
+
+				// Make the torque converter and connect the shafts: 
+				// A (input),B (output), C(truss stator)
+		ChSharedPtr<ChShaftsTorqueConverter> my_torqueconverter(new ChShaftsTorqueConverter);
+		my_torqueconverter->Initialize(my_shaftA, my_shaftB, my_shaftC);
+		my_system.Add(my_torqueconverter);
+
+		ChSmartPtr<ChFunction_Recorder> mK(new ChFunction_Recorder);
+		mK->AddPoint(0.0,  15);
+		mK->AddPoint(0.25, 15);
+		mK->AddPoint(0.50, 15);
+		mK->AddPoint(0.75, 16);
+		mK->AddPoint(0.90, 18);
+		mK->AddPoint(1.00, 35);
+		my_torqueconverter->SetCurveCapacityFactor(mK);
+		
+		ChSmartPtr<ChFunction_Recorder> mT(new ChFunction_Recorder);
+		mT->AddPoint(0.0,  2.00);
+		mT->AddPoint(0.25, 1.80);
+		mT->AddPoint(0.50, 1.50);
+		mT->AddPoint(0.75, 1.15);
+		mT->AddPoint(1.00, 1.00);
+		my_torqueconverter->SetCurveTorqueRatio(mT);
+		
+		
+	
+				// Make the thermal engine, acting on shaft A, the input to
+				// the torque converter. Note that the thermal engine also 
+				// requires another shaft D, that is used to transmit the
+				// reaction torque back to a truss.
+		ChSharedPtr<ChShaftsMotor> my_motor(new ChShaftsMotor);
+		my_motor->Initialize(my_shaftA, my_shaftD);
+		my_motor->SetMotorMode(ChShaftsMotor::MOT_MODE_TORQUE);
+		my_motor->SetMotorTorque(30);
+		my_system.Add(my_motor); //***TODO*** use thermal engine
+
+
+
+		GetLog() << "\n\n\nHere's the system hierarchy: \n\n ";
+		my_system.ShowHierarchy( GetLog()); 
+
+		// Perform a very simple simulation loop..
+		double chronoTime = 0;
+		while(chronoTime<4.5)
+		{
+			chronoTime +=0.01; 
+
+				// PERFORM SIMULATION UP TO chronoTime
+			my_system.DoFrameDynamics(chronoTime);
+
+				// Print something on the console..
+			GetLog() << "Time: "
+					 << chronoTime
+					 << "\n"
+					 << "  shaft A rot: " 
+					 << my_shaftA->GetPos() 
+					 << "  speed: " 
+					 << my_shaftA->GetPos_dt()
+					 << "  accel: " 
+					 << my_shaftA->GetPos_dtdt()
+					 << "\n"
+					 << "  shaft B rot: " 
+					 << my_shaftB->GetPos() 
+					 << "  speed: " 
+					 << my_shaftB->GetPos_dt()
+					 << "  accel: " 
+					 << my_shaftB->GetPos_dtdt()
+					 << "\n"
+					 << "  T.Converter: "
+					 << "  R="
+					 << my_torqueconverter->GetSpeedRatio()
+					 << "  Tin="
+					 << my_torqueconverter->GetTorqueReactionOnInput()
+					 << "  Tout="
+					 << my_torqueconverter->GetTorqueReactionOnOutput()
+					 << "  Tstator="
+					 << my_torqueconverter->GetTorqueReactionOnStator()
 					 << "\n";
 		}
 

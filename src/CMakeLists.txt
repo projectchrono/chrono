@@ -389,6 +389,7 @@ IF (BUILD_CH_SDK)
 		physics/ChShaftsMotor.cpp 
 		physics/ChShaftsBody.cpp 
 		physics/ChShaftsTorsionSpring.cpp 
+		physics/ChShaftsTorqueConverter.cpp
 		physics/ChConveyor.cpp 
 		physics/ChFx.cpp 
 		physics/ChAssembly.cpp
@@ -484,6 +485,7 @@ IF (BUILD_CH_SDK)
 		physics/ChShaftsMotor.h
 		physics/ChShaftsPlanetary.h
 		physics/ChShaftsTorsionSpring.h
+		physics/ChShaftsTorqueConverter.h
 		physics/ChSolver.h
 		physics/ChSolvmin.h
 		physics/ChStack.h
