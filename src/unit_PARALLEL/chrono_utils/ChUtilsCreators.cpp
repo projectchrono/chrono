@@ -18,7 +18,7 @@ void AddWall(ChBody*              body,
 	body->GetCollisionModel()->AddBox(hdim.x, hdim.y, hdim.z, loc);
 
 	// Append to assets
-	ChSharedPtr<ChBoxShape> box_shape = ChSharedPtr<ChAsset>(new ChBoxShape);
+	ChSharedPtr<ChBoxShape> box_shape(new ChBoxShape);
 	box_shape->Pos = loc;
 	box_shape->Rot = ChQuaternion<>(1,0,0,0);
 	box_shape->GetBoxGeometry().Size = hdim;

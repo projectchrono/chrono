@@ -51,7 +51,7 @@ void AddSphereGeometry(ChBody*               body,
 {
 	body->GetCollisionModel()->AddSphere(radius, pos);
 
-	ChSharedPtr<ChSphereShape> sphere = ChSharedPtr<ChAsset>(new ChSphereShape);
+	ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
 	sphere->GetSphereGeometry().rad = radius;
 	sphere->Pos = pos;
 	sphere->Rot = rot;
@@ -67,7 +67,7 @@ void AddEllipsoidGeometry(ChBody*               body,
 {
 	body->GetCollisionModel()->AddEllipsoid(size.x, size.y, size.z, pos, rot);
 
-	ChSharedPtr<ChEllipsoidShape> ellipsoid = ChSharedPtr<ChAsset>(new ChEllipsoidShape);
+	ChSharedPtr<ChEllipsoidShape> ellipsoid(new ChEllipsoidShape);
 	ellipsoid->GetEllipsoidGeometry().rad = size;
 	ellipsoid->Pos = pos;
 	ellipsoid->Rot = rot;
@@ -83,7 +83,7 @@ void AddBoxGeometry(ChBody*               body,
 {
 	body->GetCollisionModel()->AddBox(size.x, size.y, size.z, pos, rot);
 
-	ChSharedPtr<ChBoxShape> box = ChSharedPtr<ChAsset>(new ChBoxShape);
+	ChSharedPtr<ChBoxShape> box(new ChBoxShape);
 	box->GetBoxGeometry().Size = size;
 	box->Pos = pos;
 	box->Rot = rot;
@@ -100,7 +100,7 @@ void AddCapsuleGeometry(ChBody*               body,
 {
 	body->GetCollisionModel()->AddCapsule(radius, hlen, pos, rot);
 
-	ChSharedPtr<ChCapsuleShape> capsule = ChSharedPtr<ChAsset>(new ChCapsuleShape);
+	ChSharedPtr<ChCapsuleShape> capsule(new ChCapsuleShape);
 	capsule->GetCapsuleGeometry().rad = radius;
 	capsule->GetCapsuleGeometry().hlen = hlen;
 	capsule->Pos = pos;
@@ -118,7 +118,7 @@ void AddCylinderGeometry(ChBody*               body,
 {
 	body->GetCollisionModel()->AddCylinder(radius, radius, height, pos, rot);
 
-	ChSharedPtr<ChCylinderShape> cylinder = ChSharedPtr<ChAsset>(new ChCylinderShape);
+	ChSharedPtr<ChCylinderShape> cylinder(new ChCylinderShape);
 	cylinder->GetCylinderGeometry().rad = radius;
 	cylinder->GetCylinderGeometry().p1 = ChVector<>(0,  height / 2, 0);
 	cylinder->GetCylinderGeometry().p2 = ChVector<>(0, -height / 2, 0);
@@ -137,7 +137,7 @@ void AddConeGeometry(ChBody*               body,
 {
 	body->GetCollisionModel()->AddCone(radius, radius, height, pos, rot);
 
-	ChSharedPtr<ChConeShape> cone = ChSharedPtr<ChAsset>(new ChConeShape);
+	ChSharedPtr<ChConeShape> cone(new ChConeShape);
 	cone->GetConeGeometry().rad = ChVector<>(radius, height, radius);
 	cone->Pos = pos;
 	cone->Rot = rot;
@@ -160,7 +160,7 @@ void AddTriangleMeshGeometry(ChBody*               body,
 
 	body->GetCollisionModel()->AddTriangleMesh(trimesh, false, false);
 
-	ChSharedPtr<ChTriangleMeshShape> trimesh_shape = ChSharedPtr<ChAsset>(new ChTriangleMeshShape);
+	ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
 	trimesh_shape->SetMesh(trimesh);
 	trimesh_shape->SetName(name);
 	trimesh_shape->Pos = ChVector<>(0,0,0);
