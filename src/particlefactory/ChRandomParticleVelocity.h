@@ -80,6 +80,40 @@ private:
 
 
 
+	/// Generator of random particle velocities with any direction.
+	/// Modulus is constant by default, too, but it can be set as 
+	/// randomized via a statistical distribution.
+class ChRandomParticleVelocityAnyDirection : public ChRandomParticleVelocity
+{
+public:
+	ChRandomParticleVelocityAnyDirection() 
+			{
+				modulus = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(0.1));
+			}
+
+			/// Function that creates a random velocity each
+			/// time it is called.
+	virtual ChVector<> RandomVelocity() 
+			{
+				ChVector<> random_direction (ChRandom()-0.5, ChRandom()-0.5, ChRandom()-0.5);
+				random_direction.Normalize();
+
+				return random_direction*modulus->GetRandom();
+			}
+
+			/// Set the statistical distribution for the modulus of velocities
+	void SetModulusDistribution(ChSmartPtr<ChDistribution> mdistr) {modulus = mdistr;}
+			/// Set the modulus of velocities as a constant value
+	void SetModulusDistribution(double mval) 
+			{
+				modulus = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(mval));
+			}
+private:
+	ChSmartPtr<ChDistribution> modulus;
+};
+
+
+
 
 
 } // end of namespace
