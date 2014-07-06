@@ -100,7 +100,7 @@ public:
 	virtual ChVector<> RandomPosition() 
 		{ 
 			ChVector<> mpos;
-			geometry->Evaluate(mpos, ChRandom(), ChRandom());
+			geometry->Evaluate(mpos, ChRandom(), ChRandom(), ChRandom());
 			return mpos; 
 		}
 
