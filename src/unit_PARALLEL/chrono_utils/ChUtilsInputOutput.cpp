@@ -78,8 +78,14 @@ void WriteCheckpoint(ChSystem*          system,
 
 		csv << std::endl;
 
-		// Write number of assets
-		csv << body->GetAssets().size() << std::endl;
+    // Write number of visual assets
+    int num_visual_assets = 0;
+    for (int j = 0; j < body->GetAssets().size(); j++) {
+      ChSharedPtr<ChAsset> asset = body->GetAssets().at(j);
+      if (dynamic_cast<ChVisualization*>(asset.get_ptr()))
+        num_visual_assets++;
+    }
+    csv << num_visual_assets << std::endl;
 
 		// Loop over each asset and, for visual assets, write its data on a separate line
 		for (int j = 0; j < body->GetAssets().size(); j++) {
