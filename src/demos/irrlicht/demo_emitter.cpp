@@ -120,8 +120,8 @@ int main(int argc, char* argv[])
 	// ---Initialize the randomizer for positions
 	ChSharedPtr<ChRandomParticlePositionRectangleOutlet> emitter_positions (new ChRandomParticlePositionRectangleOutlet);
 	emitter_positions->Outlet() = ChCoordsys<>( ChVector<>(0,3,0), Q_from_AngAxis(CH_C_PI_2,VECT_X) ); // center and alignment of the outlet
-	emitter_positions->OutletWidth() = 3.0;    // default x outlet size, from CAD;
-	emitter_positions->OutletHeight() = 4.5; // default y outlet size, from CAD;
+	emitter_positions->OutletWidth() = 3.0;  
+	emitter_positions->OutletHeight() = 4.5; 
 	emitter.SetParticlePositioner(emitter_positions);
 
 

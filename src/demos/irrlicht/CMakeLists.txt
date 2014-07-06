@@ -277,7 +277,6 @@ SET_TARGET_PROPERTIES(demo_ballDEM PROPERTIES
 	FOLDER demos
 	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	
 	)
 TARGET_LINK_LIBRARIES(demo_ballDEM
 	${CH_IRRLICHTLIB}
@@ -290,7 +289,6 @@ SET_TARGET_PROPERTIES(demo_collisionDEM PROPERTIES
 	FOLDER demos
 	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	
 	)
 TARGET_LINK_LIBRARIES(demo_collisionDEM
 	${CH_IRRLICHTLIB}
@@ -303,12 +301,24 @@ SET_TARGET_PROPERTIES(demo_emitter PROPERTIES
 	FOLDER demos
 	COMPILE_FLAGS "${CH_BUILDFLAGS}"
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	
 	)
 TARGET_LINK_LIBRARIES(demo_emitter
 	${CH_IRRLICHTLIB}
 	ChronoEngine)
 ADD_DEPENDENCIES (demo_emitter ChronoEngine)
+
+
+ADD_EXECUTABLE(demo_emit_cluster    demo_emit_cluster.cpp)
+SOURCE_GROUP(demos\\irrlicht FILES  demo_emit_cluster.cpp)
+SET_TARGET_PROPERTIES(demo_emit_cluster PROPERTIES
+	FOLDER demos
+	COMPILE_FLAGS "${CH_BUILDFLAGS}"
+	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+	)
+TARGET_LINK_LIBRARIES(demo_emit_cluster
+	${CH_IRRLICHTLIB}
+	ChronoEngine)
+ADD_DEPENDENCIES (demo_emit_cluster ChronoEngine)
 
 
 install(TARGETS demo_collision DESTINATION bin)
@@ -334,6 +344,7 @@ install(TARGETS demo_soilbin DESTINATION bin)
 install(TARGETS demo_ballDEM DESTINATION bin)
 install(TARGETS demo_collisionDEM DESTINATION bin)
 install(TARGETS demo_emitter DESTINATION bin)
+install(TARGETS demo_emit_cluster DESTINATION bin)
 
 
 
