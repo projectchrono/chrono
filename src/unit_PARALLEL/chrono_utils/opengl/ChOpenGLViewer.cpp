@@ -170,18 +170,22 @@ void ChOpenGLViewer::Render() {
             ChBody* abody = (ChBody*) physics_system->Get_bodylist()->at(i);
             DrawObject(abody);
          }
-         box.Update(model_box);
-         box.Draw(projection, view);
-
-         sphere.Update(model_sphere);
-         sphere.Draw(projection, view);
-
-         cone.Update(model_cone);
-         cone.Draw(projection, view);
-
-         cylinder.Update(model_cylinder);
-         cylinder.Draw(projection, view);
-
+		 if(model_box.size()>0){
+			box.Update(model_box);
+			box.Draw(projection, view);
+		 }
+		 if(model_sphere.size()>0){
+			sphere.Update(model_sphere);
+			sphere.Draw(projection, view);
+		 }
+		 if(model_cone.size()>0){
+			cone.Update(model_cone);
+			cone.Draw(projection, view);
+		 }
+		 if(model_cylinder.size()>0){
+			cylinder.Update(model_cylinder);
+			cylinder.Draw(projection, view);
+		 }
       } else {
          cloud_data.resize(physics_system->Get_bodylist()->size());
 #pragma omp parallel for
