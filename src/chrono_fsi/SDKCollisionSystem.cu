@@ -95,8 +95,8 @@ __device__ inline real3 DifVelocity_SSI_DEM(
 	if (l < 0) {
 		return R3(0);
 	}
-	real_ kS =  6;//.006;//6;//3; //50; //1000.0; //392400.0;	//spring. 50 worked almost fine. I am using 30 to be sure!
-	real_ kD = 40;//.04;//20;//40.0;//20.0; //420.0;				//damping coef.
+	real_ kS =  .00006;//6;//3; //50; //1000.0; //392400.0;	//spring. 50 worked almost fine. I am using 30 to be sure!
+	real_ kD = 40;//20;//40.0;//20.0; //420.0;				//damping coef. // 40 is good don't change it.
 	real3 n = dist3 / d; //unit vector B to A
 	real_ m_eff = (velMasA.w * velMasB.w) / (velMasA.w + velMasB.w);
 	real3 force = (/*pow(paramsD.sizeScale, 3) * */kS * l - kD * m_eff * dot(R3(velMasA - velMasB), n)) * n; //relative velocity at contact is simply assumed as the relative vel of the centers. If you are updating the rotation, this should be modified.
@@ -108,7 +108,7 @@ __device__ inline real3 DifVelocity_SSI_Lubrication(
 				const real_ & d,
 				const real4 & velMasA,
 				const real4 & velMasB) {
-//printf("** DifVelocity_SSI_DEM\n");
+//printf("** DifVelocity_SSI_Lubrication\n");
 	real_ Delta_c = paramsD.HSML;
 	real_ s = d - paramsD.MULT_INITSPACE * paramsD.HSML;
 	if (s > Delta_c) return R3(0);
@@ -218,36 +218,37 @@ real4 collideCell(
 				rhoPresMuB.y = (dist3Alpha.z < -0.5 * paramsD.boxDims.z) ? (rhoPresMuB.y + paramsD.bodyForce4.z*paramsD.boxDims.z) : rhoPresMuB.y;
 
 				if (rhoPresMuA.w < 0  ||  rhoPresMuB.w < 0) {
-					if (rhoPresMuA.w == 0) continue;
-					real_ multViscosit = 1.0f;
-
-//					if ( rhoPresMuB.w == 0) { //**one of them is boundary, the other one is fluid
-					if ( rhoPresMuA.w >= 0 ) { //**one of them is boundary, the other one is fluid
-						multViscosit = 5.0f;
-						rhoPresMuA.y = rhoPresMuB.y;
-					}
-					if ( rhoPresMuB.w >= 0) { //**one of them is boundary, the other one is fluid
-						multViscosit = 5.0f;
-						rhoPresMuB.y = rhoPresMuA.y;
-					}
-					//*** modify the pressure at the periodic boundary
-//					if (length(posRadA - posRadB) > (RESOLUTION_LENGTH_MULT + 1) * paramsD.HSML) { //i.e. at periodic BC. project pressure up the periodic boundary
-//						rhoPresMuB.x = rhoPresMuA.x;
+//					if (rhoPresMuA.w == 0) continue;
+//					real_ multViscosit = 1.0f;
+//
+////					if ( rhoPresMuB.w == 0) { //**one of them is boundary, the other one is fluid
+//					if ( rhoPresMuA.w >= 0 ) { //**one of them is boundary, the other one is fluid
+//						multViscosit = 5.0f;
+//						rhoPresMuA.y = rhoPresMuB.y;
+//					}
+//					if ( rhoPresMuB.w >= 0) { //**one of them is boundary, the other one is fluid
+//						multViscosit = 5.0f;
 //						rhoPresMuB.y = rhoPresMuA.y;
 //					}
-					//*** end modify the pressure at the boundary
-//					else { //**One of them is fluid, the other one is fluid/solid (boundary was considered previously)
-//						multViscosit = 1.0f;
-//					}
-					real4 derivVelRho = R4(0.0f);
-					real3 vel_XSPH_B = FETCH(vel_XSPH_Sorted_D, j);
-					derivVelRho = DifVelocityRho(dist3, d, velMasA, vel_XSPH_A, velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB, multViscosit);
-					derivV += R3(derivVelRho);
-					derivRho += derivVelRho.w;
+//					//*** modify the pressure at the periodic boundary
+////					if (length(posRadA - posRadB) > (RESOLUTION_LENGTH_MULT + 1) * paramsD.HSML) { //i.e. at periodic BC. project pressure up the periodic boundary
+////						rhoPresMuB.x = rhoPresMuA.x;
+////						rhoPresMuB.y = rhoPresMuA.y;
+////					}
+//					//*** end modify the pressure at the boundary
+////					else { //**One of them is fluid, the other one is fluid/solid (boundary was considered previously)
+////						multViscosit = 1.0f;
+////					}
+//					real4 derivVelRho = R4(0.0f);
+//					real3 vel_XSPH_B = FETCH(vel_XSPH_Sorted_D, j);
+//					derivVelRho = DifVelocityRho(dist3, d, velMasA, vel_XSPH_A, velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB, multViscosit);
+//					derivV += R3(derivVelRho);
+//					derivRho += derivVelRho.w;
 				}
 				else if (fabs(rhoPresMuA.w - rhoPresMuB.w) > 0) { //implies: one of them is solid/boundary, ther other one is solid/boundary of different type or different solid
 //					real3 dV = DifVelocity_SSI_DEM(dist3, d, velMasA, velMasB);
 					real3 dV = DifVelocity_SSI_Lubrication(dist3, d, velMasA, velMasB);
+//					printf("** A B %d %d, typeA typeB %f %f, dV %f %f %f\n", index, j, rhoPresMuA.w, rhoPresMuB.w, dV.x, dV.y, dV.z);
 
 
 					if (rhoPresMuA.w > 0 && rhoPresMuA.w <= numObjectsD.numRigidBodies) { //i.e. rigid

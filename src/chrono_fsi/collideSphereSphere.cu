@@ -566,11 +566,11 @@ __global__ void Calc_SurfaceInducedAcceleration(real3 * totalAccRigid3, real4 * 
 	}
 	real4 dummyVelMas = velMassRigidD[rigidSphereA];
 	real3 derivRigid = solid_SPH_massD / dummyVelMas.w * R3(totalSurfaceInteractionRigid4[rigidSphereA]);
-	//** tweak 3
-	if (length(derivRigid) > .2 * paramsD.HSML / (dTD * dTD)) {
-			derivRigid *= ( .2 * paramsD.HSML / (dTD * dTD) ) / length(derivRigid);
-	}
-	//** end tweak
+//	//** tweak 3
+//	if (length(derivRigid) > .2 * paramsD.HSML / (dTD * dTD)) {
+//			derivRigid *= ( .2 * paramsD.HSML / (dTD * dTD) ) / length(derivRigid);
+//	}
+//	//** end tweak
 	totalAccRigid3[rigidSphereA] = derivRigid;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1530,6 +1530,7 @@ void UpdateRigidBody(
 			R3CAST(totalAccRigid3), R4CAST(totalSurfaceInteractionRigid4), R4CAST(velMassRigidD));
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: Calc_SurfaceInducedAcceleration");
+
 	totalSurfaceInteractionRigid4.clear();
 
 	//add gravity from flex
@@ -1544,8 +1545,6 @@ void UpdateRigidBody(
 //	myT2.Stop();
 //	real_ t2 = (real_)myT2.Elapsed();
 //	printf("(2) ** transform timer %f, array size %d\n", t2, totalAccRigid3.size());
-
-
 
 	gravityForces3.clear();
 
@@ -1594,6 +1593,8 @@ void UpdateRigidBody(
 		UpdateKernelRigidTranstalation<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(
 				R3CAST(posRigidD2), R3CAST(posRigidCumulativeD2), R4CAST(velMassRigidD2), R4CAST(velMassRigidD), R3CAST(totalAccRigid3));
 	}
+
+
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: UpdateKernelRigid");
 	totalAccRigid3.clear();
@@ -1992,8 +1993,8 @@ void cudaCollisions(
 	real_ delTOrig = paramsH.dT;
 	real_ realTime = 0;
 
-	real_ timePause = .0002 * paramsH.tFinal; // keep it as small as possible. the time step will be 1/10 * dT
-	real_ timePauseRigidFlex = .004 * paramsH.tFinal;
+	real_ timePause = 0;//.0002 * paramsH.tFinal; // keep it as small as possible. the time step will be 1/10 * dT
+	real_ timePauseRigidFlex = 0;//.004 * paramsH.tFinal;
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce4 = R4(0);
 	paramsH_B.gravity = R3(0);
@@ -2201,7 +2202,7 @@ void cudaCollisions(
 		double t2 = double(cpuT_end.tv_sec)+double(cpuT_end.tv_usec)/(1000*1000);
 
 
-		if (tStep % 50 == 0) {
+		if (tStep % 1 == 0) {
 			printf("step: %d, realTime: %f, step Time (CUDA): %f, step Time (CPU): %f\n ", tStep, realTime, time2, 1000 * (t2 - t1));
 			//printf("a \n");
 		}
