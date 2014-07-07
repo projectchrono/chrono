@@ -1993,8 +1993,8 @@ void cudaCollisions(
 	real_ delTOrig = paramsH.dT;
 	real_ realTime = 0;
 
-	real_ timePause = 0;//.0002 * paramsH.tFinal; // keep it as small as possible. the time step will be 1/10 * dT
-	real_ timePauseRigidFlex = 0;//.004 * paramsH.tFinal;
+	real_ timePause = .0002 * paramsH.tFinal; // keep it as small as possible. the time step will be 1/10 * dT
+	real_ timePauseRigidFlex = .004 * paramsH.tFinal;
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce4 = R4(0);
 	paramsH_B.gravity = R3(0);
@@ -2202,7 +2202,7 @@ void cudaCollisions(
 		double t2 = double(cpuT_end.tv_sec)+double(cpuT_end.tv_usec)/(1000*1000);
 
 
-		if (tStep % 1 == 0) {
+		if (tStep % 50 == 0) {
 			printf("step: %d, realTime: %f, step Time (CUDA): %f, step Time (CPU): %f\n ", tStep, realTime, time2, 1000 * (t2 - t1));
 			//printf("a \n");
 		}

@@ -401,7 +401,7 @@ void PrintToFile(
 
 		system("mkdir -p povFiles");
 
-		int tStepsPovFiles = 50;//2000;
+		int tStepsPovFiles = 1000;//2000;
 
 //		if (tStep > 1000) tStepsPovFiles = 2;
 		if (tStep % tStepsPovFiles == 0) {
@@ -437,47 +437,47 @@ void PrintToFile(
 			strcat(nameRigidFlexBCE, fileCounter);
 			strcat(nameRigidFlexBCE, ".csv");
 //*****************************************************
-//			fileNameRigidBodies.open(nameRigid);
-//			stringstream ssRigidBodies;
-//			if (numRigidBodies > 0) {
-//				for (int j = 0; j < numRigidBodies; j++) {
-//					real3 p_rigid = posRigidH[j];
-//					real4 q_rigid = qH1[j];
-//					real4 velMassRigid = velMassRigidH[j];
-//					ssRigidBodies<<p_rigid.x<<", "<< p_rigid.y<<", "<< p_rigid.z<<", "<< velMassRigid.x << ", " <<  velMassRigid.y << ", " <<  velMassRigid.z <<", "<< length(R3(velMassRigid)) <<  ", "<< length(R3(velMassRigid)) << ", "<< q_rigid.x<<", "<< q_rigid.y<<", "<< q_rigid.z<<", "<< q_rigid.w<<", "<<endl;
-//				}
-//			}
-//			fileNameRigidBodies << ssRigidBodies.str();
-//			fileNameRigidBodies.close();
+			fileNameRigidBodies.open(nameRigid);
+			stringstream ssRigidBodies;
+			if (numRigidBodies > 0) {
+				for (int j = 0; j < numRigidBodies; j++) {
+					real3 p_rigid = posRigidH[j];
+					real4 q_rigid = qH1[j];
+					real4 velMassRigid = velMassRigidH[j];
+					ssRigidBodies<<p_rigid.x<<", "<< p_rigid.y<<", "<< p_rigid.z<<", "<< velMassRigid.x << ", " <<  velMassRigid.y << ", " <<  velMassRigid.z <<", "<< length(R3(velMassRigid)) <<  ", "<< length(R3(velMassRigid)) << ", "<< q_rigid.x<<", "<< q_rigid.y<<", "<< q_rigid.z<<", "<< q_rigid.w<<", "<<endl;
+				}
+			}
+			fileNameRigidBodies << ssRigidBodies.str();
+			fileNameRigidBodies.close();
 //*****************************************************
-//			fileNameFlexBodies.open(nameFlex);
-//			stringstream ssFlexBodies;
-//			const int numFlexNodes = ANCF_NodesD.size();
-//			if (numFlexNodes > 0) {
-//				for (int j = 0; j < numFlexNodes; j++) {
-//					real3 nodePos = ANCF_NodesD[j];
-//					real3 nodeSlo = ANCF_SlopesD[j];
-//					real3 nodeVel = ANCF_NodesVelD[j];
-//					real3 nodeSloVel = ANCF_SlopesVelD[j];
-//					ssFlexBodies << nodePos.x<<", "<< nodePos.y<<", "<< nodePos.z<<", " << nodeSlo.x<<", "<< nodeSlo.y<<", "<< nodeSlo.z<<", "
-//							<< nodeVel.x << ", " <<  nodeVel.y << ", " <<  nodeVel.z <<", "<< nodeSloVel.x << ", " <<  nodeSloVel.y << ", " <<  nodeSloVel.z <<", ";
-//				}
-//				ssFlexBodies<<endl;
-//			}
-//			fileNameFlexBodies << ssFlexBodies.str();
-//			fileNameFlexBodies.close();
+			fileNameFlexBodies.open(nameFlex);
+			stringstream ssFlexBodies;
+			const int numFlexNodes = ANCF_NodesD.size();
+			if (numFlexNodes > 0) {
+				for (int j = 0; j < numFlexNodes; j++) {
+					real3 nodePos = ANCF_NodesD[j];
+					real3 nodeSlo = ANCF_SlopesD[j];
+					real3 nodeVel = ANCF_NodesVelD[j];
+					real3 nodeSloVel = ANCF_SlopesVelD[j];
+					ssFlexBodies << nodePos.x<<", "<< nodePos.y<<", "<< nodePos.z<<", " << nodeSlo.x<<", "<< nodeSlo.y<<", "<< nodeSlo.z<<", "
+							<< nodeVel.x << ", " <<  nodeVel.y << ", " <<  nodeVel.z <<", "<< nodeSloVel.x << ", " <<  nodeSloVel.y << ", " <<  nodeSloVel.z <<", ";
+				}
+				ssFlexBodies<<endl;
+			}
+			fileNameFlexBodies << ssFlexBodies.str();
+			fileNameFlexBodies.close();
 //*****************************************************
-//			fileNameFluidParticles.open(nameFluid);
-//			stringstream ssFluidParticles;
-//			for (int i = referenceArray[0].x; i < referenceArray[0].y; i++) {
-//				real3 pos = posRadH[i];
-//				real3 vel = R3(velMasH[i]);
-//				real4 rP = rhoPresMuH[i];
-//				real_ velMag = length(vel);
-//				ssFluidParticles<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w<<", "<<endl;
-//			}
-//			fileNameFluidParticles<<ssFluidParticles.str();
-//			fileNameFluidParticles.close();
+			fileNameFluidParticles.open(nameFluid);
+			stringstream ssFluidParticles;
+			for (int i = referenceArray[0].x; i < referenceArray[0].y; i++) {
+				real3 pos = posRadH[i];
+				real3 vel = R3(velMasH[i]);
+				real4 rP = rhoPresMuH[i];
+				real_ velMag = length(vel);
+				ssFluidParticles<< pos.x<<", "<< pos.y<<", "<< pos.z<<", "<< vel.x<<", "<< vel.y<<", "<< vel.z<<", "<< velMag<<", "<< rP.x<<", "<< rP.y<<", "<< rP.w<<", "<<endl;
+			}
+			fileNameFluidParticles<<ssFluidParticles.str();
+			fileNameFluidParticles.close();
 //*****************************************************
 //			fileNameBoundaries.open(nameBoundary);
 //			stringstream ssBoundary;

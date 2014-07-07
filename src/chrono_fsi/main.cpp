@@ -167,10 +167,11 @@ void AddPosVelMass(
 		const real3 & j1,
 		const real3 & j2)
 {
-	static int i = 0;
 	rigidPos.push_back(pos);
 	mQuatRot.push_back(q);
-	real4 velMas = R4(0.004 * pow(-1,i), 0, 0, real_(mass));
+//	static int i = 0;
+//	real4 velMas = R4(0.004 * pow(-1,i), 0, 0, real_(mass));
+	real4 velMas = R4(0.004, 0, 0, real_(mass));
 	velMassRigidH.push_back(velMas);
 	rigidBodyOmega.push_back(R3(0, 0, 0));
 	rigidBody_J1.push_back(j1);
@@ -180,7 +181,7 @@ void AddPosVelMass(
 	CalcInvJ(j1, j2, invJ1, invJ2);
 	rigidBody_InvJ1.push_back(invJ1);
 	rigidBody_InvJ2.push_back(invJ2);
-	i++;
+//	i++;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 void Add_Ellipsoid_To_Data(
@@ -1959,12 +1960,12 @@ int main() {
 		paramsH.LARGE_PRES = 0;//10000;
 		paramsH.nPeriod = 7;
 		paramsH.gravity = R3(0, 0, 0);//R3(0);//R3(0, -9.81, 0);
-		paramsH.bodyForce4 = R4(0,0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
+		paramsH.bodyForce4 = R4(.1,0,0,0);//R4(3.2e-3,0,0,0);// R4(0);;// /*Re = 100 */ //R4(3.2e-4, 0, 0, 0);/*Re = 100 */
 		paramsH.rho0 = 1000;
 		paramsH.mu0 = .001;
 		paramsH.v_Max = 50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 		paramsH.EPS_XSPH = .5f;
-		paramsH.dT = .5e-4;//.001; //sph alone: .01 for Re 10;
+		paramsH.dT = 1e-4;//.001; //sph alone: .01 for Re 10;
 		paramsH.tFinal = 1000;//20 * paramsH.dT; //400
 		paramsH.kdT = 5;
 		paramsH.gammaBB = 0.5;
