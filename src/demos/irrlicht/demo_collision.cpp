@@ -35,6 +35,7 @@
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
 #include "physics/ChBodyEasy.h"
+#include "physics/ChParticlesClones.h" 
 #include "assets/ChTexture.h"
 #include "irrlicht_interface/ChIrrApp.h"
  
@@ -248,17 +249,24 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 	*/
 
 	/*
-	// Add also few spherical particles
-	 ChParticlesSceneNode* mParticles = (ChParticlesSceneNode*)addChParticlesSceneNode_easySpheres(
-												&mphysicalSystem, application.GetSceneManager(),
-												0.8, // mass
-												0.4 // radius
-												);
-
-	 for (int np = 0; np <10; np++) 
-	 {
-		 mParticles->GetParticles()->AddParticle(ChCoordsys<>(ChVector<>(-1,np,0), QUNIT));
-	 }
+	// OPTIONAL TEST: Add also few spherical particles 
+	// using the memory-saving 'particle clones':
+	 ChSharedPtr<ChParticlesClones> mparticles(new ChParticlesClones);
+		// We want to visualize this particle clones stuff, so:
+	ChSharedPtr<ChSphereShape> mspherepart(new ChSphereShape);
+	mspherepart->GetSphereGeometry().rad = 0.4;
+	mparticles->AddAsset(mspherepart);
+		// Note: coll. shape, if needed, must be specified before creating particles
+	mparticles->GetCollisionModel()->ClearModel();
+	mparticles->GetCollisionModel()->AddSphere(0.4);
+	mparticles->GetCollisionModel()->BuildModel();
+	mparticles->SetCollide(true);
+		// Add particles here
+	for (int bi = 0; bi < 10; bi++) 
+	{  
+		mparticles->AddParticle(ChCoordsys<>(ChVector<>(ChRandom(), ChRandom(), ChRandom())));
+	}
+	mphysicalSystem.Add(mparticles);
 	*/
 
 } 
