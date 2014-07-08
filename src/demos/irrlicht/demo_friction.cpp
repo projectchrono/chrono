@@ -16,6 +16,7 @@
 //
 //     - using rolling friction (not only sliding and
 //       static friction, available in all objects by default)
+//     - optional sharing of some assets (visualization stuff)
 //
 //	 CHRONO    
 //   ------
@@ -29,11 +30,9 @@
   
  
 #include "physics/ChApidll.h" 
-#include "irrlicht_interface/ChBodySceneNodeTools.h" 
-#include "irrlicht_interface/ChIrrAppInterface.h"
-#include "core/ChRealtimeStep.h"
-
-#include <irrlicht.h>
+#include "physics/ChSystem.h" 
+#include "physics/ChBodyEasy.h"  
+#include "irrlicht_interface/ChIrrApp.h"
 
 // Use the namespace of Chrono
 
@@ -41,7 +40,6 @@ using namespace chrono;
 
 // Use the main namespaces of Irrlicht
 using namespace irr;
-
 using namespace core;
 using namespace scene;
 using namespace video;
@@ -52,15 +50,11 @@ using namespace gui;
 
 void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneManager, IVideoDriver* driver)
 {
-	ChBodySceneNode* mrigidBody; 
-
-	video::ITexture* sphereMapP = driver->getTexture("../data/pinkwhite.png");
-	video::ITexture* sphereMapB = driver->getTexture("../data/bluwhite.png");
-
 	double mradius = 0.5;
 	double density = 1000;
-	double mmass = (4./3.)*CH_C_PI*pow(mradius,3.)*density; 
-	double minert = (2./5.)* mmass * pow(mradius,2.);
+
+	// Create a texture asset. It can be shared between bodies.
+	ChSharedPtr<ChTexture> textureasset (new ChTexture("../data/bluwhite.png"));
 
 	// Create some spheres that roll horizontally, 
 	// with increasing rolling friction values
@@ -70,28 +64,25 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
 		double initial_angspeed = 10;
 		double initial_linspeed = initial_angspeed*mradius;
 
-		mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easySphere(
-											mphysicalSystem, msceneManager,
-											mmass, // mass
-											ChVector<>(-7, mradius-0.5, -5+bi*mradius*2.5), // pos
-											mradius, // radius
-											20,  // hslices
-											15); // vslices
-    
-		// set moment of inertia too (otherwise default is 1,1,1).
-		mrigidBody->GetBody()->SetInertiaXX(ChVector<>(minert,minert,minert));
-		// set initial velocity: rolling in horizontal direction
-		mrigidBody->GetBody()->SetWvel_par(ChVector<>(0,0,-initial_angspeed));
-		mrigidBody->GetBody()->SetPos_dt(ChVector<>(initial_linspeed,0,0));
+		ChSharedPtr<ChBodyEasySphere> msphereBody(new ChBodyEasySphere(
+											mradius,	// radius size
+											1000,		// density
+											true,		// collide enable?
+											true));		// visualization?
+		// Set some properties
+		msphereBody->SetPos( ChVector<>(-7, mradius-0.5, -5+bi*mradius*2.5) );
+		msphereBody->SetFriction(0.4f);
+		msphereBody->AddAsset(textureasset); // assets can be shared
 
-		mrigidBody->GetBody()->SetFriction(0.4);
+		// Set initial speed: rolling in horizontal direction, 
+		msphereBody->SetWvel_par(ChVector<>(0,0,-initial_angspeed));
+		msphereBody->SetPos_dt(ChVector<>(initial_linspeed,0,0));
 
 		// Set a non zero value of rolling friction to have a rolling resisting torque:
-		mrigidBody->GetBody()->SetRollingFriction( ((double)bi/10.)*0.2 );
+		msphereBody->SetRollingFriction( ((double)bi/10.)*0.05 );
 
-		// Some aesthetics for 3d view..
-		mrigidBody->addShadowVolumeSceneNode();
-		mrigidBody->setMaterialTexture(0,	sphereMapP);
+		// Add to the system
+		mphysicalSystem->Add(msphereBody);
 
 	} 
 
@@ -99,111 +90,99 @@ void create_some_falling_items(ChSystem* mphysicalSystem, ISceneManager* msceneM
 	// with increasing spinning friction values
 	for (int bi = 0; bi < 10; bi++) 
 	{    
-		mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easySphere(
-											mphysicalSystem, msceneManager,
-											mmass, // mass
-											ChVector<>(-8, 1+mradius-0.5, -5+bi*mradius*2.5), // pos
-											mradius, // radius
-											20,  // hslices
-											15); // vslices
-    
-		// set moment of inertia too (otherwise default is 1,1,1).
-		mrigidBody->GetBody()->SetInertiaXX(ChVector<>(minert,minert,minert));
-		// set initial speed: spinning in vertical direction
-		mrigidBody->GetBody()->SetWvel_par(ChVector<>(0, 20,0));
+		ChSharedPtr<ChBodyEasySphere> msphereBody(new ChBodyEasySphere(
+											mradius,	// radius size
+											1000,		// density
+											true,		// collide enable?
+											true));		// visualization?
+		// Set some properties
+		msphereBody->SetPos( ChVector<>(-8, 1+mradius-0.5, -5+bi*mradius*2.5) );
+		msphereBody->SetFriction(0.4f);
+		msphereBody->AddAsset(textureasset); // assets can be shared
 
-		mrigidBody->GetBody()->SetFriction(0.4); 
+		// Set initial speed: spinning in vertical direction
+		msphereBody->SetWvel_par(ChVector<>(0, 20,0));
 
 		// Set a non zero value of spinning friction that brakes the spinning on vertical axis
 		// of the contact: 
-		mrigidBody->GetBody()->SetSpinningFriction( ((double)bi/10.)*0.1 );
+		msphereBody->SetSpinningFriction( ((double)bi/10.)*0.02 );
+
+		// Add to the system
+		mphysicalSystem->Add(msphereBody);
+
 
 		// Notes: 
 		// - setting nonzero spinning frition and/or setting nonzero rolling friction 
 		//   affects the speed of the solver (each contact eats 2x of CPU time repsect to the
 		//   case of simple sliding/staic contact)
 		// - avoid using zero spinning friction with nonzero rolling friction.
-
-		// Some aesthetics for 3d view..
-		mrigidBody->addShadowVolumeSceneNode();
-		mrigidBody->setMaterialTexture(0,	sphereMapB);
-
 	}
 
-	
-	/*
-	// Create a cluster of particle clones too, for other test
-	ChParticlesSceneNode* mnodes = (ChParticlesSceneNode*)addChParticlesSceneNode_easySpheres(
-											&mphysicalSystem, msceneManager,
-											mmass, mradius, 12,6);
-	mnodes->GetParticles()->SetInertiaXX(ChVector<>(minert,minert,minert));
-	mnodes->GetParticles()->SetFriction(0.4);
-	mnodes->GetParticles()->SetRollingFriction( 0.1 );
-	mnodes->setMaterialTexture(0,	sphereMapB);
-	for (int bi = 0; bi < 17; bi++) 
-	{  
-		mnodes->GetParticles()->AddParticle(ChCoordsys<>(ChVector<>(ChRandom(), ChRandom(), ChRandom())));
-	}
-	*/
 
 
 	// Create the five walls of the rectangular container, using
 	// fixed rigid bodies of 'box' type:
  
 		// floor:
-	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											mphysicalSystem, msceneManager,
-											1000.0,
-											ChVector<>(0,-1,0),
-											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(20,1,20) );
-	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->GetBody()->SetRollingFriction(1);	// the min. of the two coeff. of the two contact surfaces will be used
-	mrigidBody->GetBody()->SetSpinningFriction(1);  // the min. of the two coeff. of the two contact surfaces will be used
+
+	ChSharedPtr<ChBodyEasyBox> mfloorBody (new ChBodyEasyBox(
+											20,1,20, // x,y,z size
+											2000,		// density
+											true,		// collide enable?
+											true));		// visualization?
+	mfloorBody->SetPos(ChVector<>(0,-1,0));
+	mfloorBody->SetBodyFixed(true);
+	mfloorBody->SetRollingFriction(1);	 // the min. of the two coeff. of the two contact surfaces will be used
+	mfloorBody->SetSpinningFriction(1);  // the min. of the two coeff. of the two contact surfaces will be used
+
+	mfloorBody->AddAsset( ChSharedPtr<ChTexture>(new ChTexture("../data/blu.png")) );
+
+	mphysicalSystem->Add(mfloorBody);
+
+		// four walls:
+
+	ChSharedPtr<ChBodyEasyBox> mwallBody1 (new ChBodyEasyBox(
+											1,2,20.99,  // x,y,z size
+											2000,		// density
+											true,		// collide enable?
+											true));		// visualization?
+	mwallBody1->SetPos(ChVector<>(-10,0,0));
+	mwallBody1->SetBodyFixed(true);
+	mwallBody1->AddAsset( ChSharedPtr<ChColorAsset>(new ChColorAsset(0.6,0.3,0)) );
+	mphysicalSystem->Add(mwallBody1);
 
 
-	video::ITexture* cubeMap = driver->getTexture("../data/blu.png");
-	mrigidBody->setMaterialTexture(0,	cubeMap);
-
-	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											mphysicalSystem, msceneManager,
-											100.0,
-											ChVector<>(-10,0,0),
-											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(1,2,20.99) );
-	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->setMaterialTexture(0,	cubeMap);
+	ChSharedPtr<ChBodyEasyBox> mwallBody2 (new ChBodyEasyBox(
+											1,2,20.99,  // x,y,z size
+											2000,		// density
+											true,		// collide enable?
+											true));		// visualization?
+	mwallBody2->SetPos(ChVector<>(10,0,0));
+	mwallBody2->SetBodyFixed(true);
+	mwallBody2->AddAsset( ChSharedPtr<ChColorAsset>(new ChColorAsset(0.6,0.3,0)) );
+	mphysicalSystem->Add(mwallBody2);
 
 
-	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											mphysicalSystem, msceneManager,
-											100.0,
-											ChVector<>(10,0,0),
-											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(1,2,20.99) );
-	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->setMaterialTexture(0,	cubeMap);
-
-	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											mphysicalSystem, msceneManager,
-											100.0,
-											ChVector<>(0,0,-10),
-											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(20.99,2,1) );
-	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->setMaterialTexture(0,	cubeMap);
-
-	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											mphysicalSystem, msceneManager,
-											100.0,
-											ChVector<>(0,0, 10),
-											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(20.99,2,1) );
-	mrigidBody->GetBody()->SetBodyFixed(true);
-	mrigidBody->setMaterialTexture(0,	cubeMap);
- 
+	ChSharedPtr<ChBodyEasyBox> mwallBody3 (new ChBodyEasyBox(
+											20.99,2,1,  // x,y,z size
+											2000,		// density
+											true,		// collide enable?
+											true));		// visualization?
+	mwallBody3->SetPos(ChVector<>(0,0,-10));
+	mwallBody3->SetBodyFixed(true);
+	mwallBody3->AddAsset( ChSharedPtr<ChColorAsset>(new ChColorAsset(0.6,0.3,0)) );
+	mphysicalSystem->Add(mwallBody3);
 
 
+	ChSharedPtr<ChBodyEasyBox> mwallBody4 (new ChBodyEasyBox(
+											20.99,2,1,  // x,y,z size
+											2000,		// density
+											true,		// collide enable?
+											true));		// visualization?
+	mwallBody4->SetPos(ChVector<>(0,0,10));
+	mwallBody4->SetBodyFixed(true);
+	mwallBody4->AddAsset( ChSharedPtr<ChColorAsset>(new ChColorAsset(0.6,0.3,0)) );
+	mphysicalSystem->Add(mwallBody4);
 
 } 
      
@@ -223,7 +202,7 @@ int main(int argc, char* argv[])
 
 	// Create the Irrlicht visualization (open the Irrlicht device, 
 	// bind a simple user interface, etc. etc.)
-	ChIrrAppInterface application(&mphysicalSystem, L"Contacts with rolling friction",core::dimension2d<u32>(800,600),false, true);
+	ChIrrApp application(&mphysicalSystem, L"Contacts with rolling friction",core::dimension2d<u32>(800,600),false, true);
 
 
 	// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
@@ -236,6 +215,12 @@ int main(int argc, char* argv[])
 	// Create all the rigid bodies.
 	create_some_falling_items(&mphysicalSystem, application.GetSceneManager(), application.GetVideoDriver());
     
+
+	// Use this function for adding a ChIrrNodeAsset to all already created items.
+	// Otherwise use application.AssetBind(myitem); on a per-item basis.
+	application.AssetBindAll();
+	application.AssetUpdateAll();
+
 
 	// Modify some setting of the physical system for the simulation, if you want
 	mphysicalSystem.SetIterLCPmaxItersSpeed(26);

@@ -126,11 +126,11 @@ int main(int argc, char* argv[])
 	DLL_CreateGlobals();
 
 	// Create the IRRLICHT context (device, etc.)
-	IrrlichtDevice* device = createDevice(video::EDT_DIRECT3D9, core::dimension2d<u32>(640, 480));
+	IrrlichtDevice* device = createDevice(video::EDT_DIRECT3D9, core::dimension2d<u32>(800, 600));
 	if (device == 0)
 	{
 		GetLog() << "Cannot use DirectX - switch to OpenGL \n"; 
-		device = createDevice(video::EDT_OPENGL, core::dimension2d<u32>(640, 480));
+		device = createDevice(video::EDT_OPENGL, core::dimension2d<u32>(800, 600));
 		if (!device) return 1;
 	}
 
