@@ -41,6 +41,11 @@ public:
 		fading = 0;
 	};
 
+	ChColorAsset(float mR, float mG, float mB, float mA = 0)
+	{
+		color = ChColor(mR, mG, mB, mA);
+	}
+
 	~ChColorAsset() {};
 
 		/// Get the color of the surface. This information could be used by visualization postprocessing.
