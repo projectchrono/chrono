@@ -15,6 +15,7 @@
 //   Demo code about   
 //   
 //     - collisions and contacts 
+//     - sharing a ChMaterialSurface property between bodies
 //
 //       (This is just a possible method of integration
 //       of Chrono::Engine + Irrlicht: many others 
@@ -212,7 +213,6 @@ void create_jengatower_bodies(ChSystem& mphysicalSystem)
 											1000,		// density
 											true,		// collide enable?
 											true));		// visualization?
-	mrigidBall->SetPos(ChVector<>(0,-2,0));
 	mrigidBall->SetMaterialSurface(mmaterial);
 	mrigidBall->SetPos(ChVector<>(0, 3, -8));
 	mrigidBall->SetPos_dt(ChVector<>(0,0,2)); // set initial speed 

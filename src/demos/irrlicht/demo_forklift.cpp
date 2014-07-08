@@ -26,7 +26,13 @@
 // ------------------------------------------------ 
 ///////////////////////////////////////////////////
  
-  
+//  ***NOTE*** this demo uses the old method of creating
+//  objects using  addChBodySceneNode(...)  and similar
+//  functions. These are considered obsolete: in order to
+//  have the code uncoupled from the Irrlicht visualization 
+//  system, now the preferred way is using ChAsset items 
+//  as in demo_collision.cpp etc.
+
  
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"

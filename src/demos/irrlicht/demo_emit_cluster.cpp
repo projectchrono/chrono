@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
 
 
 	// ---Initialize the randomizer for CREATED SHAPES, with statistical distribution
-
+/*
 	 // Create a ChRandomShapeCreator object (ex. here for sphere particles)
 	ChSharedPtr<ChRandomShapeCreatorSpheres> mcreator_spheres(new ChRandomShapeCreatorSpheres);
 	mcreator_spheres->SetDiameterDistribution( ChSmartPtr<ChZhangDistribution>  (new ChZhangDistribution(0.6, 0.23)) );
@@ -185,15 +185,15 @@ int main(int argc, char* argv[])
 
 	 // Finally, tell to the emitter that it must use the creator above:
 	emitter.SetParticleCreator(mcreator_spheres);
-
-	/* 
+*/
+	
 	// ..as an alternative: create odd shapes with convex hulls, like faceted fragments:
 	ChSharedPtr<ChRandomShapeCreatorConvexHulls> mcreator_hulls(new ChRandomShapeCreatorConvexHulls);
 	mcreator_hulls->SetNpoints(15);
 	mcreator_hulls->SetChordDistribution( ChSmartPtr<ChZhangDistribution>  (new ChZhangDistribution(1.3, 0.4)) );
 	mcreator_hulls->SetDensityDistribution ( ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1600)) );
 	emitter.SetParticleCreator(mcreator_hulls);
-	*/
+	
 
 
 

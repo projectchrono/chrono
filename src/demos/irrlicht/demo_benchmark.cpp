@@ -88,6 +88,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem,
 		// Bodies are Irrlicht nodes of the special class ChBodySceneNode, 
 		// which encapsulates ChBody items).
 
+		//***OSOLETE*** the addChBodySceneNode_easyXXX functions are deprecated, use ChBodyEasyXXX instead.
 		mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easySphere(
 											&mphysicalSystem, msceneManager,
 											spheremass,
@@ -119,6 +120,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem,
   
 	// Create the four walls 
 
+	//***OSOLETE*** the addChBodySceneNode_easyXXX functions are deprecated, use ChBodyEasyXXX instead.
 	mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
 											&mphysicalSystem, msceneManager,
 											200.0,
