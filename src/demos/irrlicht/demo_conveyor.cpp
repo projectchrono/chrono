@@ -29,13 +29,10 @@
  
 #include "physics/ChApidll.h" 
 #include "physics/ChSystem.h"
+#include "physics/ChBodyEasy.h"
 #include "physics/ChConveyor.h"
-#include "irrlicht_interface/ChBodySceneNode.h"
-#include "irrlicht_interface/ChBodySceneNodeTools.h" 
-#include "irrlicht_interface/ChIrrAppInterface.h"
-#include "core/ChRealtimeStep.h"
+#include "irrlicht_interface/ChIrrApp.h"
 
-#include <irrlicht.h>
  
 
 
@@ -58,7 +55,7 @@ using namespace gui;
 
 double STATIC_flow = 100;
 double STATIC_speed = 2;
-
+std::vector< ChSharedPtr<ChBody> > particlelist;
 
 
 // Define a MyEventReceiver class which will be used to manage input
@@ -130,9 +127,10 @@ private:
 };
 
 
+
 // Function that creates debris that fall on the conveyor belt, to be called at each dt
 
-void create_debris(ChIrrAppInterface& application, double dt, double particles_second, ISceneNode* parent)
+void create_debris(ChIrrApp& application, double dt, double particles_second)
 {
 	double xnozzlesize = 0.2;
 	double znozzlesize = 0.56;
@@ -163,18 +161,23 @@ void create_debris(ChIrrAppInterface& application, double dt, double particles_s
 
 		if (rand_fract < box_fraction)
 		{
-			mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easySphere(
-												application.GetSystem(), application.GetSceneManager(),
-												sphmass,
-												ChVector<>(-0.5*xnozzlesize+ChRandom()*xnozzlesize, ynozzle+i*0.005, -0.5*znozzlesize+ChRandom()*znozzlesize),
-												sphrad, 
-												15,8, parent);
-			mrigidBody->GetBody()->SetInertiaXX(ChVector<>(sphinertia,sphinertia,sphinertia));
-			mrigidBody->GetBody()->SetFriction(0.2f); 
-			mrigidBody->GetBody()->SetImpactC(0.8); 
+			ChSharedPtr<ChBodyEasySphere> mrigidBody (new ChBodyEasySphere(
+											sphrad,		// size
+											1,		    // density
+											true,		// collide enable?
+											true));		// visualization?
+			mrigidBody->SetPos( ChVector<>(-0.5*xnozzlesize+ChRandom()*xnozzlesize, ynozzle+i*0.005, -0.5*znozzlesize+ChRandom()*znozzlesize) );
+			mrigidBody->SetFriction(0.2f);
+			mrigidBody->SetImpactC(0.8f); 
+			mrigidBody->AddAsset( ChSharedPtr<ChTexture>(new ChTexture("../data/bluwhite.png")) );
 
-			mrigidBody->addShadowVolumeSceneNode();
-			mrigidBody->setMaterialTexture(0,	bluwhiteMap);
+			application.GetSystem()->Add(mrigidBody);
+
+			// This will make particle's visualization assets visible in Irrlicht:
+			application.AssetBind(mrigidBody);
+			application.AssetUpdate(mrigidBody);
+
+			particlelist.push_back(mrigidBody);
 		}
 
 		if ((rand_fract > box_fraction) && 
@@ -183,38 +186,45 @@ void create_debris(ChIrrAppInterface& application, double dt, double particles_s
 			double xscale = 1.3*(1-0.8*ChRandom()); // for oddly-shaped boxes..
 			double yscale = 1.3*(1-0.8*ChRandom());
 			double zscale = 1.3*(1-0.8*ChRandom());
-			mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-												application.GetSystem(), application.GetSceneManager(),
-												sphmass,
-												ChVector<>(-0.5*xnozzlesize+ChRandom()*xnozzlesize, ynozzle+i*0.005, -0.5*znozzlesize+ChRandom()*znozzlesize),
-												ChQuaternion<>(1,0,0,0), 
-												ChVector<>(sphrad*2*xscale,
-														   sphrad*2*yscale,
-														   sphrad*2*zscale) , 
-												parent);
 
-			mrigidBody->GetBody()->SetInertiaXX(ChVector<>(sphinertia,sphinertia,sphinertia));
-			mrigidBody->GetBody()->SetFriction(0.4f);
+			ChSharedPtr<ChBodyEasyBox> mrigidBody (new ChBodyEasyBox(
+											sphrad*2*xscale,
+											sphrad*2*yscale,
+											sphrad*2*zscale,	
+											1,		    // density
+											true,		// collide enable?
+											true));		// visualization?
+			mrigidBody->SetPos( ChVector<>(-0.5*xnozzlesize+ChRandom()*xnozzlesize, ynozzle+i*0.005, -0.5*znozzlesize+ChRandom()*znozzlesize) );
+			mrigidBody->SetFriction(0.4f);
+			mrigidBody->AddAsset( ChSharedPtr<ChTexture>(new ChTexture("../data/cubetexture_bluwhite.png")) );
 
-			mrigidBody->addShadowVolumeSceneNode(); 
-			mrigidBody->setMaterialTexture(0,	bluwhiteMap);
+			application.GetSystem()->Add(mrigidBody);
+
+			// This will make particle's visualization assets visible in Irrlicht:
+			application.AssetBind(mrigidBody);
+			application.AssetUpdate(mrigidBody);
+
+			particlelist.push_back(mrigidBody);
 		}
 
 		if (rand_fract > box_fraction+cyl_fraction)
 		{
-			mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyCylinder(
-												application.GetSystem(), application.GetSceneManager(),
-												sphmass,
-												ChVector<>(-0.5*xnozzlesize+ChRandom()*xnozzlesize, ynozzle+i*0.005, -0.5*znozzlesize+ChRandom()*znozzlesize),
-												ChQuaternion<>(1,0,0,0), 
-												ChVector<>(sphrad*2,sphrad*1.2,sphrad*2),
-												parent);
+			ChSharedPtr<ChBodyEasyCylinder> mrigidBody (new ChBodyEasyCylinder(
+											sphrad,sphrad*2,	// rad, height
+											1,		    // density
+											true,		// collide enable?
+											true));		// visualization?
+			mrigidBody->SetPos( ChVector<>(-0.5*xnozzlesize+ChRandom()*xnozzlesize, ynozzle+i*0.005, -0.5*znozzlesize+ChRandom()*znozzlesize) );
+			mrigidBody->SetFriction(0.2f);
+			mrigidBody->AddAsset( ChSharedPtr<ChTexture>(new ChTexture("../data/pinkwhite.png")) );
 
-			mrigidBody->GetBody()->SetInertiaXX(ChVector<>(sphinertia,sphinertia,sphinertia));
-			mrigidBody->GetBody()->SetFriction(0.4f);
+			application.GetSystem()->Add(mrigidBody);
 
-			mrigidBody->addShadowVolumeSceneNode();
-			mrigidBody->setMaterialTexture(0,	pinkwhiteMap);
+			// This will make particle's visualization assets visible in Irrlicht:
+			application.AssetBind(mrigidBody);
+			application.AssetUpdate(mrigidBody);
+
+			particlelist.push_back(mrigidBody);
 		}
 	
 	}
@@ -224,17 +234,12 @@ void create_debris(ChIrrAppInterface& application, double dt, double particles_s
   
 // Function that deletes old debris (to avoid infinite creation that fills memory)
 
-void purge_debris(ChIrrAppInterface& application, ISceneNode* parent, int nmaxparticles = 100)
+void purge_debris(ChIrrAppInterface& application, int nmaxparticles = 100)
 {
-	ISceneNodeList::ConstIterator it = parent->getChildren().begin();
-	for (; it != parent->getChildren().end(); ++it)
+	while (particlelist.size() > nmaxparticles)
 	{
-		if (parent->getChildren().size() > nmaxparticles)
-		{
-			ISceneNode* todelete = (*it);
-			++it;
-			parent->removeChild(todelete);
-		}
+		application.GetSystem()->Remove(particlelist[0]);	// remove from physical simulation
+		particlelist.erase(particlelist.begin());			// remove also from our particle list (will also automatically delete object thank to shared pointer)
 	}
 }
  
@@ -252,7 +257,7 @@ int main(int argc, char* argv[])
 
 	// Create the Irrlicht visualization (open the Irrlicht device, 
 	// bind a simple user interface, etc. etc.)
-	ChIrrAppInterface application(&mphysicalSystem, L"Conveyor belt",core::dimension2d<u32>(800,600),false);
+	ChIrrApp application(&mphysicalSystem, L"Conveyor belt",core::dimension2d<u32>(800,600),false);
 
 
 	// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
@@ -292,16 +297,7 @@ int main(int argc, char* argv[])
 	mfence2->GetBody()->SetBodyFixed(true);
 	mfence2->GetBody()->SetFriction(0.1);
 
-/*
-ChBodySceneNode* convbase = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-											&mphysicalSystem, application.GetSceneManager(),
-											1.0,
-											ChVector<>(0,0, 0),
-											ChQuaternion<>(1,0,0,0), 
-											ChVector<>(2,0.05,0.6) );
-	convbase->GetBody()->SetBodyFixed(true);
-	convbase->GetBody()->SetFriction(0.1);
-*/
+
 
 	// Create the conveyor belt (this is a pure Chrono::Engine object, 
 	// because an Irrlicht 'SceneNode' wrapper is not yet available, so it is invisible - no 3D preview)
@@ -337,10 +333,10 @@ ChBodySceneNode* convbase = (ChBodySceneNode*)addChBodySceneNode_easyBox(
 		if (!application.GetPaused())
 		{
 			// Continuosly create debris that fall on the conveyor belt
-			create_debris(application, application.GetTimestep(), STATIC_flow, parent);
+			create_debris(application, application.GetTimestep(), STATIC_flow);
 
 			// Limit the max number of debris particles on the scene, deleting the oldest ones, for performance
-			purge_debris (application, parent, 300);
+			purge_debris (application, 300);
 
 			// Maybe the user played with the slider and changed STATIC_speed...
 		 	mconveyor->SetConveyorSpeed(STATIC_speed);
