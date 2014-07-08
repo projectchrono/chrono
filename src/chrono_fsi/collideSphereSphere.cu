@@ -1838,8 +1838,8 @@ void cudaCollisions(
 	paramsH.boxDims = paramsH.cMax - paramsH.cMin;
 	printf("boxDims: %f, %f, %f\n", paramsH.boxDims.x, paramsH.boxDims.y, paramsH.boxDims.z);
 
-	setParameters(&paramsH, &numObjects);
-	setParameters2(&paramsH, &numObjects);// sets paramsD in SDKCollisionSystem
+	setParameters(&paramsH, &numObjects);// sets paramsD in SDKCollisionSystem
+	setParameters2(&paramsH, &numObjects);// sets paramsD in contactForces
 	cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &paramsH, sizeof(SimParams))); 	//sets paramsD for this file
 	cutilSafeCall( cudaMemcpyToSymbolAsync(numObjectsD, &numObjects, sizeof(NumberOfObjects)));
 	//*************************************************************************************************************
@@ -2064,8 +2064,8 @@ void cudaCollisions(
 //			currentParamsH.bodyForce4.y = 0;
 //		}
 		//***********
-		setParameters(&currentParamsH, &numObjects);
-		setParameters2(&currentParamsH, &numObjects);// sets paramsD in SDKCollisionSystem
+		setParameters(&currentParamsH, &numObjects);// sets paramsD in SDKCollisionSystem
+		setParameters2(&currentParamsH, &numObjects);// sets paramsD in contactForces
 		cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &currentParamsH, sizeof(SimParams))); 	//sets paramsD for this file
 
 		//computations
