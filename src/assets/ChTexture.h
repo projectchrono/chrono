@@ -56,6 +56,8 @@ public:
 				//
 
 	ChTexture () { filename = ""; };
+	ChTexture (const char* mfilename) { filename = mfilename; };
+	ChTexture (const std::string mfilename) { filename = mfilename; };
 
 	virtual ~ChTexture () {};
 
