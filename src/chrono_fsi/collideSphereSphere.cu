@@ -1,4 +1,5 @@
 #include "custom_cutil_math.h"
+#include "contactForces.cuh"
 #include "SPHCudaUtils.h"
 #include <sys/time.h>
 #include <thrust/sort.h>
@@ -1533,6 +1534,11 @@ void UpdateRigidBody(
 
 	totalSurfaceInteractionRigid4.clear();
 
+	Add_ContactForces(
+			R3CAST(totalAccRigid3), R3CAST(posRigidD), R4CAST(velMassRigidD));
+
+
+
 	//add gravity from flex
 	thrust::device_vector<real3> gravityForces3(numObjects.numRigidBodies);
 
@@ -1832,7 +1838,8 @@ void cudaCollisions(
 	paramsH.boxDims = paramsH.cMax - paramsH.cMin;
 	printf("boxDims: %f, %f, %f\n", paramsH.boxDims.x, paramsH.boxDims.y, paramsH.boxDims.z);
 
-	setParameters(&paramsH, &numObjects); 														// sets paramsD in SDKCollisionSystem
+	setParameters(&paramsH, &numObjects);
+	setParameters2(&paramsH, &numObjects);// sets paramsD in SDKCollisionSystem
 	cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &paramsH, sizeof(SimParams))); 	//sets paramsD for this file
 	cutilSafeCall( cudaMemcpyToSymbolAsync(numObjectsD, &numObjects, sizeof(NumberOfObjects)));
 	//*************************************************************************************************************
@@ -2057,7 +2064,8 @@ void cudaCollisions(
 //			currentParamsH.bodyForce4.y = 0;
 //		}
 		//***********
-		setParameters(&currentParamsH, &numObjects); 														// sets paramsD in SDKCollisionSystem
+		setParameters(&currentParamsH, &numObjects);
+		setParameters2(&currentParamsH, &numObjects);// sets paramsD in SDKCollisionSystem
 		cutilSafeCall( cudaMemcpyToSymbolAsync(paramsD, &currentParamsH, sizeof(SimParams))); 	//sets paramsD for this file
 
 		//computations

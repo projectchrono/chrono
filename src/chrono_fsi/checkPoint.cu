@@ -186,6 +186,7 @@ void WriteEverythingToFile(
 	outProbParams << paramsH.cMin.x << ", "  << paramsH.cMin.y << ", " << paramsH.cMin.z << endl;
 	outProbParams << paramsH.cMax.x << ", " << paramsH.cMax.y << ", " << paramsH.cMax.z << endl;
 	outProbParams << paramsH.binSize0 << endl;
+	outProbParams << paramsH.rigidRadius.x << ", "  << paramsH.rigidRadius.y << ", " << paramsH.rigidRadius.z << endl;
 
 
 	outProbParams << "#" <<endl;
@@ -550,6 +551,7 @@ void ReadEverythingFromFile(
 	inProbParams >> paramsH.cMin.x >> ddCh  >> paramsH.cMin.y >> ddCh >> paramsH.cMin.z ;
 	inProbParams >> paramsH.cMax.x >> ddCh >> paramsH.cMax.y >> ddCh >> paramsH.cMax.z ;
 	inProbParams >> paramsH.binSize0 ;
+	inProbParams >> paramsH.rigidRadius.x >> ddCh  >> paramsH.rigidRadius.y >> ddCh >> paramsH.rigidRadius.z;
 
 
 	inProbParams >> ddCh;

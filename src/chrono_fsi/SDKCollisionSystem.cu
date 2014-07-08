@@ -246,17 +246,17 @@ real4 collideCell(
 					derivRho += derivVelRho.w;
 				}
 				else if (fabs(rhoPresMuA.w - rhoPresMuB.w) > 0) { //implies: one of them is solid/boundary, ther other one is solid/boundary of different type or different solid
-//					real3 dV = DifVelocity_SSI_DEM(dist3, d, velMasA, velMasB);
-					real3 dV = DifVelocity_SSI_Lubrication(dist3, d, velMasA, velMasB);
-
-					if (rhoPresMuA.w > 0 && rhoPresMuA.w <= numObjectsD.numRigidBodies) { //i.e. rigid
-						uint originalIndex = gridMarkerIndex[index];
-						uint BCE_Index = originalIndex - numObjectsD.startRigidMarkers;
-						real3 s3 = Distance(posRadA, posRigidD[rigidIdentifierD[BCE_Index]]);  //assume convex.
-						derivV += (dot(dV, s3) > 0) ? (-dV) : (dV); //fancy check: if a go within b, dV becomes attractive force, so it should change sign to become repulsive.
-					} else { // flex or boundary. boundary is not important. but flex is not supported yet
-						derivV += dV; //flex doesn't support fancy check as rigid
-					}
+////					real3 dV = DifVelocity_SSI_DEM(dist3, d, velMasA, velMasB);
+//					real3 dV = DifVelocity_SSI_Lubrication(dist3, d, velMasA, velMasB);
+//
+//					if (rhoPresMuA.w > 0 && rhoPresMuA.w <= numObjectsD.numRigidBodies) { //i.e. rigid
+//						uint originalIndex = gridMarkerIndex[index];
+//						uint BCE_Index = originalIndex - numObjectsD.startRigidMarkers;
+//						real3 s3 = Distance(posRadA, posRigidD[rigidIdentifierD[BCE_Index]]);  //assume convex.
+//						derivV += (dot(dV, s3) > 0) ? (-dV) : (dV); //fancy check: if a go within b, dV becomes attractive force, so it should change sign to become repulsive.
+//					} else { // flex or boundary. boundary is not important. but flex is not supported yet
+//						derivV += dV; //flex doesn't support fancy check as rigid
+//					}
 				}
 			}
 		}

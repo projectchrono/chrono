@@ -58,6 +58,8 @@ struct SimParams {
 		real3 cMin;
 		real3 cMax;
 		real_ binSize0;
+
+		real3 rigidRadius;
 };
 struct NumberOfObjects {
 		int numRigidBodies;

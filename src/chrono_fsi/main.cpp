@@ -311,6 +311,7 @@ void CreateRigidBodiesRandom(thrust::host_vector<real3> & rigidPos,
 	randLinVec.clear();
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+// note: spheres radius should be similar
 void CreateRigidBodiesFromFile(thrust::host_vector<real3> & rigidPos,
 		thrust::host_vector<real4> & mQuatRot,
 		thrust::host_vector<real4> & velMassRigidH,
@@ -320,7 +321,8 @@ void CreateRigidBodiesFromFile(thrust::host_vector<real3> & rigidPos,
 		thrust::host_vector<real3> & rigidBody_InvJ1,
 		thrust::host_vector<real3> & rigidBody_InvJ2,
 		thrust::host_vector<real3> & ellipsoidRadii,
-		const string fileNameRigids, const real_ rhoRigid) {
+		const string fileNameRigids, const real_ rhoRigid,
+		SimParams & paramsH) {
 
 	fstream ifileSpheres(fileNameRigids.c_str(), ios::in);
 
@@ -348,10 +350,12 @@ void CreateRigidBodiesFromFile(thrust::host_vector<real3> & rigidPos,
 		ifileSpheres >> x >> ch >> y >> ch >> z >> ch >> dumRRigidBody1 >> ch
 				>> dumRRigidBody2 >> ch >> dumRRigidBody3;
 		counterRigid++;
+		paramsH.rigidRadius = R3(dumRRigidBody1, dumRRigidBody2, dumRRigidBody3);
 	}
 	ifileSpheres.close();
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+// note: paramsH.rigidRadius is not initialized here
 void CreateRigidBodiesFromFileSerpentinePeriodic(thrust::host_vector<real3> & rigidPos,
 		thrust::host_vector<real4> & mQuatRot,
 		thrust::host_vector<real4> & velMassRigidH,
@@ -2058,20 +2062,20 @@ int main() {
 		string fileNameRigids("spheresPos.dat");
 
 		//real_ rr = .4 * (real_(rand()) / RAND_MAX + 1);
-		real3 r3Ellipsoid = R3(1.5 * paramsH.HSML, 1.5 * paramsH.HSML, 2 * paramsH.HSML);
+		paramsH.rigidRadius = R3(1.5 * paramsH.HSML, 1.5 * paramsH.HSML, 2 * paramsH.HSML);
 		//**
 //		int3 stride = I3(1, 1, 1);
-//		CreateRigidBodiesPattern(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride);
+//		CreateRigidBodiesPattern(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, paramsH.rigidRadius, rhoRigid, stride);
 
 		//**
 	//	int numRigids = 3000;
-	//	CreateRigidBodiesChannelRandom(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, numRigids);
+	//	CreateRigidBodiesChannelRandom(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, paramsH.rigidRadius, rhoRigid, numRigids);
 		//**
 //		int3 stride = I3(1, 1, 1);
-//		CreateRigidBodiesPatternWithinBeams(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, stride, flexParams);
+//		CreateRigidBodiesPatternWithinBeams(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, paramsH.rigidRadius, rhoRigid, stride, flexParams);
 
 		//**
-		CreateRigidBodiesFromFile(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
+		CreateRigidBodiesFromFile(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid, paramsH);
 		//**
 //		CreateRigidBodiesFromFileSerpentinePeriodic(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, fileNameRigids, rhoRigid);
 		//**
@@ -2080,12 +2084,12 @@ int main() {
 	//			rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, cylinderGeom, fileNameRigids, rhoRigid, cylinderR_H);
 		//**
 	//	//channelRadius = 1.0 * paramsH.sizeScale;
-	//	CreateRigidBodiesPatternPipe(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
-	//	CreateRigidBodiesPatternStepPipe(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid);
+	//	CreateRigidBodiesPatternPipe(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, paramsH.rigidRadius, rhoRigid);
+	//	CreateRigidBodiesPatternStepPipe(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, paramsH.rigidRadius, rhoRigid);
 
 		//**
-	//	CreateRigidBodiesRandom(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, 2); //changed 2 to 4
-	//	CreateRigidBodiesPatternPipe_KindaRandom(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, r3Ellipsoid, rhoRigid, 128);
+	//	CreateRigidBodiesRandom(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, paramsH.rigidRadius, rhoRigid, 2); //changed 2 to 4
+	//	CreateRigidBodiesPatternPipe_KindaRandom(rigidPos, mQuatRot, velMassRigidH, rigidBodyOmega, rigidBody_J1, rigidBody_J2, rigidBody_InvJ1, rigidBody_InvJ2, ellipsoidRadii, paramsH.rigidRadius, rhoRigid, 128);
 		//**
 	//	real_ beamLength = 0.7;
 	//	CreateOneFlexBody(ANCF_Nodes, ANCF_Slopes, ANCF_NodesVel, ANCF_SlopesVel,
@@ -2246,7 +2250,7 @@ int main() {
 		cylinderGeom.clear();
 		ellipsoidRadii.clear();
 		rigidRotMatrix.clear();
-		printf("********************\n rigid Radii: %f %f %f\n", r3Ellipsoid.x, r3Ellipsoid.y, r3Ellipsoid.z);
+		printf("********************\n rigid Radii: %f %f %f\n", paramsH.rigidRadius.x, paramsH.rigidRadius.y, paramsH.rigidRadius.z);
 
 		//******** write data to file  ******************************************************************************************
 		WriteEverythingToFile(mPosRad, mVelMas, mRhoPresMu, bodyIndex, referenceArray,
