@@ -35,7 +35,7 @@ class CH_UTILS_OPENGL_API ChOpenGLWindow {
    void Initialize(
          int size_x,          //Width of window in pixels
          int size_y,          //Height of window in pixels
-         char * title,        //Window title string
+         const char * title,  //Window title string
          ChSystem * msystem   //The ChSystem that is attached to this window
          );
    // This starts the drawing loop and takes control away from the main program
