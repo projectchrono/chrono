@@ -22,7 +22,7 @@ using namespace chrono::utils;
 void ChOpenGLWindow::Initialize(
       int size_x,
       int size_y,
-      char * title,
+      const char * title,
       ChSystem * msystem) {
 
    if (!glfwInit()) {
@@ -35,7 +35,7 @@ void ChOpenGLWindow::Initialize(
    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-   window = glfwCreateWindow(size_x, size_y, "window", NULL, NULL);
+   window = glfwCreateWindow(size_x, size_y, title, NULL, NULL);
    if (!window) {
       cout << "could not create window - exiting" << endl;
       glfwTerminate();
