@@ -57,6 +57,9 @@ class CH_UTILS_OPENGL_API ChOpenGLWindow {
    //Check if the simulation is running or paused
    bool Running();
 
+   //Pause simulation
+   void Pause();
+
    //Set the camera position, look at and up vectors
    void SetCamera(
          ChVector<> pos,   //The position of the camera

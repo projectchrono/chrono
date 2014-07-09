@@ -41,6 +41,7 @@ ChOpenGLViewer::ChOpenGLViewer(
    simulation_time = 0;
    pause_sim = 0;
    pause_vis = 0;
+   single_step = 0;
    view_contacts = 0;
    view_help = 0;
    use_vsync = 0;
@@ -138,10 +139,12 @@ bool ChOpenGLViewer::Initialize() {
 
 }
 bool ChOpenGLViewer::Update() {
-   if (pause_sim == true) {
+   if (pause_sim == true && single_step==false) {
       return false;
    }
+
    physics_system->DoStepDynamics(physics_system->GetStep());
+   single_step=false;
    return true;
 }
 void ChOpenGLViewer::Render() {
@@ -404,7 +407,7 @@ void ChOpenGLViewer::DisplayHUD() {
 
       RenderText("Space: Pause Simulation (not rendering)", -.95, 0.925 - .06 * 15, sx, sy);
       RenderText("P: Pause Rendering (not simulation)", -.95, 0.925 - .06 * 16, sx, sy);
-
+      RenderText(".: Single Step ", -.95, 0.925 - .06 * 18, sx, sy);
       //RenderText("V: Enable/Disable Vsync ", -.95, 0.925 - .06 * 18, sx, sy);
 
       RenderText("Escape: Exit ", -.95, 0.925 - .06 * 20, sx, sy);
@@ -554,6 +557,9 @@ void ChOpenGLViewer::HandleInput(
 //         } else {
 //            glfwSwapInterval(0);
 //         }
+         break;
+      case GLFW_KEY_PERIOD:
+         single_step = true;
          break;
       default:
          break;
