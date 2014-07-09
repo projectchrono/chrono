@@ -43,7 +43,7 @@ void InitObject_(ChSharedPtr<CHBODY> &body, double mass, ChVector<> pos, ChQuate
 	//body->SetUseSleeping(true);
 }
 
-void AddCollisionGeometry_(ChSharedPtr<CHBODY> &body, ShapeType type, ChVector<> dim, ChVector<> lPos, ChQuaternion<> lRot) {
+void AddCollisionGeometry_(ChSharedPtr<CHBODY> &body, int type, ChVector<> dim, ChVector<> lPos, ChQuaternion<> lRot) {
 	ChMatrix33<> *rotation = new ChMatrix33<>(lRot);
 	CHMODEL * model = (CHMODEL*) body->GetCollisionModel();
 	if (type == SPHERE) {
