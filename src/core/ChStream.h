@@ -187,7 +187,7 @@ public:
 	virtual void Format(char* formatString, ...);
 
 			/// Set the formatting string (ex "%f" or "%g" etc.) for float->text conversion
-	void SetNumFormat (char* mf)
+	void SetNumFormat (const char* mf)
 				{
 					if (strlen(mf) < 10)
 						strcpy(number_format, mf);
@@ -253,7 +253,7 @@ public:
 
 
 			/// Set the formatting string (ex "%f" or "%g" etc.) for text->float conversion
-	void SetNumFormat (char* mf)
+	void SetNumFormat (const char* mf)
 				{
 					if (strlen(mf) < 10)
 						strcpy(number_format, mf);

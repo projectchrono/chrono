@@ -259,12 +259,12 @@ void  ChLcpSystemDescriptor::BuildVectors (ChSparseMatrix* f,
 	this->ConvertToMatrixForm(0,0,0,f,b,0,only_bilaterals,skip_contacts_uv);
 }
 
-void ChLcpSystemDescriptor::DumpLastMatrices(char path[])
+void ChLcpSystemDescriptor::DumpLastMatrices(const char* path)
 {
 	char filename[300];
 	try
 	{
-		char* numformat = "%.12g";
+		const char* numformat = "%.12g";
 		chrono::ChSparseMatrix mdM;
 		chrono::ChSparseMatrix mdCq;
 		chrono::ChSparseMatrix mdE;
