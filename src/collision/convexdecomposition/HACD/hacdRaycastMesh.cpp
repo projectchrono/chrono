@@ -16,6 +16,7 @@
 #include <math.h>
 #include <assert.h>
 #include <limits>
+#include <algorithm>
 #include <hacdManifoldMesh.h>
 namespace HACD
 {
