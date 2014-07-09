@@ -17,6 +17,7 @@
 #include "irrlicht_interface/ChBodySceneNodeTools.h" 
 #include "irrlicht_interface/ChIrrAppInterface.h"
 #include "core/ChRealtimeStep.h"
+#include <algorithm>
 
 #include <irrlicht.h>
 
