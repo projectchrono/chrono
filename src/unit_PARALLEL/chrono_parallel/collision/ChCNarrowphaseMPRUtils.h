@@ -110,19 +110,78 @@ inline real3 GetSupportPoint_Cone(
       }
    }
 }
+inline real3 GetSupportPoint_Seg(
+      const real3 &B,
+      const real3 &n) {
+   real3 result = R3(0, 0, 0);
+   result.x = sign(n.x) * B.x;
 
-inline real3 GetSupportPoint_Disc(
+   return result;
+
+}
+inline real3 GetSupportPoint_Capsule(
+      const real3 &B,
+      const real3 &n) {
+   return GetSupportPoint_Seg(B, n) + GetSupportPoint_Sphere(R3(B.y), n);
+
+}
+
+inline real3 GetSupportPoint_Disk(
       const real3 &B,
       const real3 &n) {
    real3 n2 = R3(n.x, n.y, 0);
    n2 = normalize(n2);
 
-   real3 result1 = B.x * n2;
+   real3 result = B.x * n2;
 
-   return result1;
+   return result;
 
 }
+inline real3 GetSupportPoint_RoundedDisk(
+      const real3 &B,
+      const real3 &n) {
 
+   return GetSupportPoint_Disk(B, n) + GetSupportPoint_Sphere(R3(B.y), n);
+
+}
+inline real3 GetSupportPoint_Rect(
+      const real3 &B,
+      const real3 &n) {
+   real3 result = R3(0, 0, 0);
+   result.x = sign(n.x) * B.x;
+   result.z = sign(n.z) * B.z;
+   return result;
+
+}
+inline real3 GetSupportPoint_RoundedRect(
+      const real3 &B,
+      const real3 &n) {
+
+   return GetSupportPoint_Rect(B, n) + GetSupportPoint_Sphere(R3(B.y), n);
+
+}
+inline real3 GetSupportPoint_RoundedBox(
+      const real3 &B,
+      const real3 &C,
+      const real3 &n) {
+
+   return GetSupportPoint_Box(B, n) + GetSupportPoint_Sphere(R3(C.x), n);
+
+}
+inline real3 GetSupportPoint_RoundedCylinder(
+      const real3 &B,
+      const real3 &n) {
+
+   return GetSupportPoint_Cylinder(B, n) + GetSupportPoint_Sphere(R3(B.z), n);
+
+}
+inline real3 GetSupportPoint_RoundedCone(
+      const real3 &B,
+      const real3 &n) {
+
+   return GetSupportPoint_Cone(B, n) + GetSupportPoint_Sphere(R3(B.z), n);
+
+}
 inline real3 GetCenter_Sphere() {
    return ZERO_VECTOR;
 }
