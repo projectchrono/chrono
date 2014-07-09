@@ -49,22 +49,20 @@ class ChBody;
 namespace collision
 {
 /// Shape types that can be created. Used so that shape type can be determined without going to bullet
-/// Both GPU and CPU Collision Models use this enum
-enum ShapeType
-{
-	SPHERE,
-	ELLIPSOID,
-	BOX,
-	CYLINDER,
-	CONVEXHULL,
-	TRIANGLEMESH,
-	BARREL,
-	RECT,				//Currently implemented on GPU only
-	DISC,				//Currently implemented on GPU only
-	ELLIPSE,			//Currently implemented on GPU only
-	CAPSULE,			//Currently implemented on GPU only
-	CONE,				//Currently implemented on GPU only
-	COMPOUND			//Currently implemented on GPU only
+/// Both Parallel and CPU Collision Models use this enum
+enum ShapeType {
+   SPHERE,
+   ELLIPSOID,
+   BOX,
+   CYLINDER,
+   CONVEXHULL,
+   TRIANGLEMESH,
+   BARREL,
+   CAPSULE,       //Currently implemented in parallel only
+   CONE,          //Currently implemented on parallel only
+   ROUNDEDBOX,    //Currently implemented on parallel only
+   ROUNDEDCYL,    //Currently implemented on parallel only
+   ROUNDEDCONE    //Currently implemented on parallel only
 };
 
 
