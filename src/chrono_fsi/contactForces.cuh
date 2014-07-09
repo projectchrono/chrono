@@ -30,46 +30,55 @@ __device__ inline real_ IsInEllipse(real2 pos, real2 radii) {
 	return length(pos / radii);
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-__device__ inline real_ IsOutBoundaryEllipsoid(real2 coord, real2 cent2, real2 r2) {
+__device__ inline real_ IsOutBoundaryEllipsoid(real2 & n2, real2 coord, real2 cent2, real2 r2) {
 	real2 relDist2 = coord - cent2;
 //	printf("**** relDist %f %f  r2 %f %f\n", relDist2.x, relDist2.y, r2.x, r2.y);
 	real_ criteria = IsInEllipse(relDist2, r2);
 	if (criteria < 1) {
 //		printf("yeap my friend\n");
 		real_ x = relDist2.x / criteria;
-		return -1 * length(relDist2 - R2(x, relDist2.y / relDist2.x * x));
+		real2 penet2 = relDist2 - R2(x, relDist2.y / relDist2.x * x); 	// a vector from boundary ellipsoid to the objects contact point.
+																		// but the contact point is inside the boundary ellipse
+		n2 = -1 * penet2 / length(penet2);
+		return -1 * length(penet2);
 	} else {
 //		printf("creiteria %f\n", criteria);
 		return 1; //a positive number implying it is outside
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-__device__ inline real_ IsInBoundaryEllipsoid(real2 coord, real2 cent2, real2 r2) {
+__device__ inline real_ IsInBoundaryEllipsoid(real2 & n2, real2 coord, real2 cent2, real2 r2) {
 	real2 relDist2 = coord - cent2;
 //	printf("**** relDist %f %f  r2 %f %f\n", relDist2.x, relDist2.y, r2.x, r2.y);
 	real_ criteria = IsInEllipse(relDist2, r2);
 	if (criteria > 1) {
 //		printf("neap my friend\n");
 		real_ x = relDist2.x / criteria;
-		return -1 * length(relDist2 - R2(x, relDist2.y / relDist2.x * x));
+		real2 penet2 = relDist2 - R2(x, relDist2.y / relDist2.x * x); 	// a vector from boundary ellipsoid to the objects contact point.
+																		// but the contact point is inside the boundary ellipse
+		n2 = -1 * penet2 / length(penet2);
+		return -1 * length(penet2);
 	} else {
 //		printf("creiteria %f\n", criteria);
 		return 1; //a positive number implying it is outside
 	}
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-__device__ inline real_ ContactWith_YPlanes(real3 posRad, real_ rRigidDEM) {
+__device__ inline real_ ContactWith_YPlanes(real3 & n3, real3 posRad, real_ rRigidDEM) {
 	if (posRad.y < 0 + rRigidDEM) {
+		n3 = R3(0, 1, 0);
 		return (posRad.y - rRigidDEM);
 	}
 	if (posRad.y > 1.0 * serpGeomD.mm - rRigidDEM) {
+		n3 = R3(0, -1, 0);
 		return (1.0 * serpGeomD.mm - rRigidDEM - posRad.y);
 	}
+	n3 = R3(1, 0, 0); // just because. no penetration
 	return 1;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 //return +: no interpenetration. -: there is interpenetration and the value is the amount of interpenetration
-__device__ inline real_ ContactWithSerpentineCurveBeta(real3 posRad, real_ rRigidDEM) {
+__device__ inline real_ ContactWithSerpentineCurveBeta(real2 & n2, real3 posRad, real_ rRigidDEM) {
 	real_ x, y;
 	real_ penDist = 0;
 
@@ -80,70 +89,91 @@ __device__ inline real_ ContactWithSerpentineCurveBeta(real3 posRad, real_ rRigi
 	y = posRad.z;
 	if (y > 0) {
 		if (x >= 0 && x < serpGeomD.r3_2.x + serpGeomD.r4_2.x) {
-			penDist = IsOutBoundaryEllipsoid(R2(x, y), R2(0, 0), serpGeomD.r2_2 + R2(rRigidDEM));
-			if (penDist < 0)
+			penDist = IsOutBoundaryEllipsoid(n2, R2(x, y), R2(0, 0), serpGeomD.r2_2 + R2(rRigidDEM));
+			if (penDist < 0) {
 				return penDist;
-			penDist = IsInBoundaryEllipsoid(R2(x, y), R2(0, 0), serpGeomD.r3_2 - R2(rRigidDEM));
-			if (penDist < 0)
+			}
+			penDist = IsInBoundaryEllipsoid(n2, R2(x, y), R2(0, 0), serpGeomD.r3_2 - R2(rRigidDEM));
+			if (penDist < 0) {
 				return penDist;
+			}
 		}
 		if (x >= serpGeomD.r3_2.x + serpGeomD.r4_2.x && x < 2 * serpGeomD.r3_2.x + 2 * serpGeomD.r4_2.x) {
-			penDist = IsOutBoundaryEllipsoid(R2(x, y), R2(2 * serpGeomD.r3_2.x + 2 * serpGeomD.r4_2.x, 0), serpGeomD.r2_2 + R2(rRigidDEM));
-			if (penDist < 0)
+			penDist = IsOutBoundaryEllipsoid(n2, R2(x, y), R2(2 * serpGeomD.r3_2.x + 2 * serpGeomD.r4_2.x, 0), serpGeomD.r2_2 + R2(rRigidDEM));
+			if (penDist < 0) {
 				return penDist;
-			penDist = IsInBoundaryEllipsoid(R2(x, y), R2(2 * serpGeomD.r3_2.x + 2 * serpGeomD.r4_2.x, 0), serpGeomD.r3_2 - R2(rRigidDEM));
-			if (penDist < 0)
+			}
+			penDist = IsInBoundaryEllipsoid(n2, R2(x, y), R2(2 * serpGeomD.r3_2.x + 2 * serpGeomD.r4_2.x, 0), serpGeomD.r3_2 - R2(rRigidDEM));
+			if (penDist < 0) {
 				return penDist;
+			}
 		}
 	} else {
-		penDist = IsOutBoundaryEllipsoid(R2(x, y), R2(serpGeomD.r3_2.x + serpGeomD.r4_2.x, 0), serpGeomD.r4_2 + R2(rRigidDEM));
-		if (penDist < 0)
+		penDist = IsOutBoundaryEllipsoid(n2, R2(x, y), R2(serpGeomD.r3_2.x + serpGeomD.r4_2.x, 0), serpGeomD.r4_2 + R2(rRigidDEM));
+		if (penDist < 0) {
 			return penDist;
-		penDist = IsInBoundaryEllipsoid(R2(x, y), R2(serpGeomD.r3_2.x + serpGeomD.r4_2.x, 0), serpGeomD.r1_2 - R2(rRigidDEM));
-		if (penDist < 0)
+		}
+		penDist = IsInBoundaryEllipsoid(n2, R2(x, y), R2(serpGeomD.r3_2.x + serpGeomD.r4_2.x, 0), serpGeomD.r1_2 - R2(rRigidDEM));
+		if (penDist < 0) {
 			return penDist;
+		}
 	}
 	return 1;
 }
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 // for DEM, rRigidDEM is sphere radius
 // for markers initialization , rRigidDEM = 0
-__device__ inline real_ ContactWithSerpentineCurve(real3 posRad, real_ rRigidDEM) {
+__device__ inline real_ ContactWithSerpentineCurve(real3 & n3, real3 posRad, real_ rRigidDEM) {
 	real_ x, y;
 	real_ penDist = 0;
+	real2 n2;
 
 	//serpentine
 	if (posRad.x < paramsD.nPeriod * serpGeomD.sPeriod) {
-		return (ContactWithSerpentineCurveBeta(posRad, rRigidDEM));
+		penDist = ContactWithSerpentineCurveBeta(n2, posRad, rRigidDEM);
+		n3 = R3(n2.x, 0, n2.y);
+		return penDist;
 	} else {
 		//straight channel
 		x = posRad.x - paramsD.nPeriod * serpGeomD.sPeriod;
 		y = posRad.z;
 
 		if (y < 0) {
-			penDist = IsOutBoundaryEllipsoid(R2(x, y), R2(serpGeomD.r3_2.x + serpGeomD.r4_2.x, 0), serpGeomD.r4_2 + R2(rRigidDEM));
-			if (penDist < 0)
+			penDist = IsOutBoundaryEllipsoid(n2, R2(x, y), R2(serpGeomD.r3_2.x + serpGeomD.r4_2.x, 0), serpGeomD.r4_2 + R2(rRigidDEM));
+			if (penDist < 0) {
+				n3 = R3(n2.x, 0, n2.y);
 				return penDist;
-			penDist = IsInBoundaryEllipsoid(R2(x, y), R2(serpGeomD.r3_2.x + serpGeomD.r4_2.x, 0), serpGeomD.r1_2 - R2(rRigidDEM));
-			if (penDist < 0)
+			}
+			penDist = IsInBoundaryEllipsoid(n2, R2(x, y), R2(serpGeomD.r3_2.x + serpGeomD.r4_2.x, 0), serpGeomD.r1_2 - R2(rRigidDEM));
+			if (penDist < 0) {
+				n3 = R3(n2.x, 0, n2.y);
 				return penDist;
+			}
 		} else {
 			if (x < serpGeomD.r3_2.x + 2 * serpGeomD.r4_2.x + serpGeomD.r6_2.x) {
 				if (x < serpGeomD.r3_2.x + serpGeomD.r4_2.x) {
-					penDist = IsOutBoundaryEllipsoid(R2(x, y), R2(0, 0), serpGeomD.r2_2 + R2(rRigidDEM));
-					if (penDist < 0)
+					penDist = IsOutBoundaryEllipsoid(n2, R2(x, y), R2(0, 0), serpGeomD.r2_2 + R2(rRigidDEM));
+					if (penDist < 0) {
+						n3 = R3(n2.x, 0, n2.y);
 						return penDist;
-					penDist = IsInBoundaryEllipsoid(R2(x, y), R2(0, 0), serpGeomD.r3_2 - R2(rRigidDEM));
-					if (penDist < 0)
+					}
+					penDist = IsInBoundaryEllipsoid(n2, R2(x, y), R2(0, 0), serpGeomD.r3_2 - R2(rRigidDEM));
+					if (penDist < 0) {
+						n3 = R3(n2.x, 0, n2.y);
 						return penDist;
+					}
 				}
 				if (x >= serpGeomD.r3_2.x + serpGeomD.r4_2.x && x < serpGeomD.r3_2.x + 2 * serpGeomD.r4_2.x + serpGeomD.r6_2.x) {
-					penDist = IsOutBoundaryEllipsoid(R2(x, y), R2(serpGeomD.r2_2.x + 2 * serpGeomD.r1_2.x + serpGeomD.r5_2.x, 0), serpGeomD.r5_2 + R2(rRigidDEM));
-					if (penDist < 0)
+					penDist = IsOutBoundaryEllipsoid(n2, R2(x, y), R2(serpGeomD.r2_2.x + 2 * serpGeomD.r1_2.x + serpGeomD.r5_2.x, 0), serpGeomD.r5_2 + R2(rRigidDEM));
+					if (penDist < 0) {
+						n3 = R3(n2.x, 0, n2.y);
 						return penDist;
-					penDist = IsInBoundaryEllipsoid(R2(x, y), R2(serpGeomD.r3_2.x + 2 * serpGeomD.r4_2.x + serpGeomD.r6_2.x, 0), serpGeomD.r6_2 - R2(rRigidDEM));
-					if (penDist < 0)
+					}
+					penDist = IsInBoundaryEllipsoid(n2, R2(x, y), R2(serpGeomD.r3_2.x + 2 * serpGeomD.r4_2.x + serpGeomD.r6_2.x, 0), serpGeomD.r6_2 - R2(rRigidDEM));
+					if (penDist < 0) {
+						n3 = R3(n2.x, 0, n2.y);
 						return penDist;
+					}
 				}
 			} else {
 				//horizontal walls
@@ -152,34 +182,54 @@ __device__ inline real_ ContactWithSerpentineCurve(real3 posRad, real_ rRigidDEM
 				real2 y2_endHor = R2(serpGeomD.r2_2.y, serpGeomD.r3_2.y);
 				if (x < serpGeomD.x_FirstChannel) {
 					penDist = y - (serpGeomD.r5_2.y + rRigidDEM);
-					if (penDist < 0)
+					if (penDist < 0) {
+						n2 = R2(0, 1);
+						n3 = R3(n2.x, 0, n2.y);
 						return penDist; //note that y is negative, fabs(y) = -y
+					}
 					penDist = -y + serpGeomD.r6_2.y - rRigidDEM;
-					if (penDist < 0)
+					if (penDist < 0) {
+						n2 = R2(0, -1);
+						n3 = R3(n2.x, 0, n2.y);
 						return penDist;
+					}
 				}
 				if (x >= serpGeomD.x_FirstChannel
 						&& x < serpGeomD.x_FirstChannel + serpGeomD.x_SecondChannel) {
 					penDist = y - (y2_slimHor.x + rRigidDEM);
-					if (penDist < 0)
+					if (penDist < 0) {
+						n2 = R2(0, 1);
+						n3 = R3(n2.x, 0, n2.y);
 						return penDist;
+					}
 					penDist = -y + y2_slimHor.y - rRigidDEM;
-					if (penDist < 0)
+					if (penDist < 0) {
+						n2 = R2(0, -1);
+						n3 = R3(n2.x, 0, n2.y);
 						return penDist;
+					}
 				}
 				if (x >= serpGeomD.x_FirstChannel + serpGeomD.x_SecondChannel) {
 					penDist = y - (y2_endHor.x + rRigidDEM);
-					if (penDist < 0)
+					if (penDist < 0) {
+						n2 = R2(0, 1);
+						n3 = R3(n2.x, 0, n2.y);
 						return penDist;
+					}
 					penDist = -y + y2_endHor.y - rRigidDEM;
-					if (penDist < 0)
+					if (penDist < 0) {
+						n2 = R2(0, -1);
+						n3 = R3(n2.x, 0, n2.y);
 						return penDist;
+					}
 				}
 				//****** vertical walls
 				if (x > 0 && x < serpGeomD.x_FirstChannel + .5 * serpGeomD.x_SecondChannel) {
 					if (y < y2_slimHor.x || y > y2_slimHor.y) {
 						penDist = serpGeomD.x_FirstChannel - rRigidDEM - x;
 						if (penDist < 0) {
+							n2 = R2(-1, 0);
+							n3 = R3(n2.x, 0, n2.y);
 							return penDist;
 						}
 					}
@@ -188,6 +238,8 @@ __device__ inline real_ ContactWithSerpentineCurve(real3 posRad, real_ rRigidDEM
 					if (y < y2_slimHor.x || y > y2_slimHor.y) {
 						penDist = (serpGeomD.x_FirstChannel + serpGeomD.x_SecondChannel) + rRigidDEM - x;
 						if (penDist < 0) {
+							n2 = R2(1, 0);
+							n3 = R3(n2.x, 0, n2.y);
 							return penDist;
 						}
 					}

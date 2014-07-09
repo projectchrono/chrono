@@ -1,8 +1,21 @@
 #include "contactForces.cuh"
 
 //--------------------------------------------------------------------------------------------------------------------------------
-__device__ inline real3 DEM_Force(real_ penetration, real_ rRigidDEM1, real_ rRigidDEM2, real4 velMasRigidA, real4 velMasRigidB) {
-	return R3(0);
+// Hunt-Crossley model
+__device__ inline real3 DEM_Force(real_ penetration, real3 n3, real_ rRigidDEM1, real_ rRigidDEM2, real4 velMasRigidA, real4 velMasRigidB) {
+	real_ E = 1e8;
+
+	real_ E_eff = 0.5 * E;
+	real_ r_eff = rRigidDEM1 * rRigidDEM2 / (rRigidDEM1 + rRigidDEM2);
+	real_ Kn = 4.0/3 * E_eff * sqrt(r_eff);
+	real_ Fe = Kn * powf(fabs(penetration), 1.5);
+
+	real_ alpha_eff = 1;
+	real3 v_n = dot( R3(velMasRigidA - velMasRigidB) , n3) * n3;
+
+	real3 demForce = Fe * n3 -  1.5 * alpha_eff * Fe * v_n;
+
+	return demForce;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void Add_ContactForcesD(real3 * totalAccRigid3, real3 * posRigidD, real4 * velMassRigidD) {
@@ -12,16 +25,17 @@ __global__ void Add_ContactForcesD(real3 * totalAccRigid3, real3 * posRigidD, re
 	}
 	real3 posRigidA = posRigidD[rigidSphereA];
 	real4 dummyVelMasA = velMassRigidD[rigidSphereA];
+	real3 n3;
 
 	real3 force3 = R3(0);
-	real_ penDist = ContactWith_YPlanes(posRigidA, paramsD.rigidRadius.x);
+	real_ penDist = ContactWith_YPlanes(n3, posRigidA, paramsD.rigidRadius.x);
 	if (penDist < 0) {
-		force3 += DEM_Force(-penDist, paramsD.rigidRadius.x, 20 * paramsD.rigidRadius.x, dummyVelMasA, R4(0));
+		force3 += DEM_Force(-penDist, n3, paramsD.rigidRadius.x, 20 * paramsD.rigidRadius.x, dummyVelMasA, R4(0));
 	}
 
-	penDist = ContactWithSerpentineCurve(posRigidA, paramsD.rigidRadius.x);
+	penDist = ContactWithSerpentineCurve(n3, posRigidA, paramsD.rigidRadius.x);
 	if (penDist < 0) {
-		force3 += DEM_Force(-penDist, paramsD.rigidRadius.x, 20 * paramsD.rigidRadius.x, dummyVelMasA, R4(0)); //approximate the curve with straight line
+		force3 += DEM_Force(-penDist, n3, paramsD.rigidRadius.x, 20 * paramsD.rigidRadius.x, dummyVelMasA, R4(0)); //approximate the curve with straight line
 	}
 
 
@@ -33,7 +47,8 @@ __global__ void Add_ContactForcesD(real3 * totalAccRigid3, real3 * posRigidD, re
 		real4 dummyVelMasB = velMassRigidD[rigidSphereB];
 		penDist = length(posRigidB - posRigidA) - 2 * paramsD.rigidRadius.x;
 		if (penDist < 0) {
-			force3 += DEM_Force(-penDist, paramsD.rigidRadius.x, paramsD.rigidRadius.x, dummyVelMasA, dummyVelMasB);
+			n3 = (posRigidA - posRigidB) / length(posRigidB - posRigidA);
+			force3 += DEM_Force(-penDist, n3, paramsD.rigidRadius.x, paramsD.rigidRadius.x, dummyVelMasA, dummyVelMasB);
 		}
 	}
 
