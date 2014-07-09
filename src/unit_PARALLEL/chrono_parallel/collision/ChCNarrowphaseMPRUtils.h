@@ -117,7 +117,6 @@ inline real3 GetSupportPoint_Seg(
    result.x = sign(n.x) * B.x;
 
    return result;
-
 }
 inline real3 GetSupportPoint_Capsule(
       const real3 &B,
@@ -137,13 +136,7 @@ inline real3 GetSupportPoint_Disk(
    return result;
 
 }
-inline real3 GetSupportPoint_RoundedDisk(
-      const real3 &B,
-      const real3 &n) {
 
-   return GetSupportPoint_Disk(B, n) + GetSupportPoint_Sphere(R3(B.y), n);
-
-}
 inline real3 GetSupportPoint_Rect(
       const real3 &B,
       const real3 &n) {
@@ -153,13 +146,7 @@ inline real3 GetSupportPoint_Rect(
    return result;
 
 }
-inline real3 GetSupportPoint_RoundedRect(
-      const real3 &B,
-      const real3 &n) {
 
-   return GetSupportPoint_Rect(B, n) + GetSupportPoint_Sphere(R3(B.y), n);
-
-}
 inline real3 GetSupportPoint_RoundedBox(
       const real3 &B,
       const real3 &C,

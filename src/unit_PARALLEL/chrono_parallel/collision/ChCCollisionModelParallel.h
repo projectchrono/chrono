@@ -128,29 +128,6 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
          const ChVector<> &pos = ChVector<>(),
          const ChMatrix33<> &rot = ChMatrix33<>(1));
 
-   /// Add a 2d rectangle shape to this model, for collision purposes
-   virtual bool AddRectangle(
-         double rx,
-         double ry);
-   /// Add a 2d rectangle shape to this model, for collision purposes
-   virtual bool AddRoundedRectangle(
-         double rx,
-         double ry,
-         double sphere_r);
-
-   /// Add a 2d disk to this model, for collision purposes
-   virtual bool AddDisc(
-         double rad);
-
-   /// Add a 2d disk to this model, for collision purposes
-   virtual bool AddRoundedDisk(
-         double rad,
-         double sphere_r);
-
-   /// Add a 2d ellipse to this model, for collision purposes
-   virtual bool AddEllipse(
-         double rx,
-         double ry);
    /// Add a cone to this model, for collision purposes
    virtual bool AddCone(
          double rad,

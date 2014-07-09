@@ -319,32 +319,7 @@ bool ChCollisionModelParallel::AddBarrel(
    //NOT SUPPORTED
    return false;
 }
-bool ChCollisionModelParallel::AddRectangle(
-      double rx,
-      double ry) {
-   return false;
-}
-bool ChCollisionModelParallel::AddRoundedRectangle(
-      double rx,
-      double ry,
-      double sphere_r) {
-   return false;
-}
-bool ChCollisionModelParallel::AddDisc(
-      double rad) {
-   return false;
-}
-bool ChCollisionModelParallel::AddRoundedDisk(
-      double rad,
-      double sphere_r) {
-   return false;
-}
 
-bool ChCollisionModelParallel::AddEllipse(
-      double rx,
-      double ry) {
-   return false;
-}
 bool ChCollisionModelParallel::AddCone(
       double rad,
       double h) {
