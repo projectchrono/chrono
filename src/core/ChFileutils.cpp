@@ -27,6 +27,7 @@
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
 	#include <direct.h>
+	#include <errno.h>
 #else
 	#include <sys/types.h>
 	#include <sys/stat.h>
@@ -37,7 +38,7 @@ namespace chrono
 {
 
 
-void ChFileutils::Change_file_ext (char fid1[], char fid[], char ext[], int force)
+void ChFileutils::Change_file_ext (char* fid1, const char* fid, const char* ext, int force)
 {
   int i,l;
   char *p,*q;
@@ -61,7 +62,7 @@ void ChFileutils::Change_file_ext (char fid1[], char fid[], char ext[], int forc
 }
 
 /* ----- cut off extension on a file identifier ----- */
-void ChFileutils::Cut_file_ext (char fid[])
+void ChFileutils::Cut_file_ext (char* fid)
 {
   int i,l;
 
@@ -71,7 +72,7 @@ void ChFileutils::Cut_file_ext (char fid[])
 }
 
 /* ----- getext: get extension on a file identifier ----- */
-void ChFileutils::Get_file_ext (char fid[], char ext[])
+void ChFileutils::Get_file_ext (const char* fid, char* ext)
 {
   int i,l,k;
 
@@ -88,7 +89,7 @@ void ChFileutils::Get_file_ext (char fid[], char ext[])
 
 /* ----- get_file_size ------- */
 
-int ChFileutils::Get_file_size (char fname[])
+int ChFileutils::Get_file_size (const char* fname)
 {
   int m,i;
   FILE *fp;
@@ -109,18 +110,18 @@ int ChFileutils::Get_file_size (char fname[])
 }
 
 
-bool ChFileutils::MakeDirectory (char dirname[])
+int ChFileutils::MakeDirectory (const char* dirname)
 {
-	#if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
-		int res = _mkdir(dirname);   // Windows
-	#else 
-		int res = mkdir(dirname, 0777); // Linux
-	#endif
-	
-		if (res ==0)
-			return true;
-		else
-			return false;
+#if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
+  int res = _mkdir(dirname);      // Windows
+#else 
+  int res = mkdir(dirname, 0777); // Linux
+#endif
+
+  if (res == 0)
+    return 0;
+
+  return (errno == EEXIST) ? 1 : -1;
 }
 
 
