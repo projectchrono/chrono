@@ -224,8 +224,8 @@ public:
 	const ChVector<Real>& GetPos() const { return coord.pos; }
 
 		/// Return the current rotation as a quaternion
-	ChQuaternion<Real>&      GetRot()       { return coord.rot; }
-	const ChQuaternion<Real> GetRot() const { return coord.rot; }
+	ChQuaternion<Real>&       GetRot()       { return coord.rot; }
+	const ChQuaternion<Real>& GetRot() const { return coord.rot; }
 
 		/// Return the current rotation as a 3x3 matrix
 	ChMatrix33<Real>*       GetA()       { return &Amatrix; }
@@ -278,7 +278,7 @@ public:
 
 		/// Impose the rotation as a 3x3 matrix.
 		/// Note: the rotation matrix must be already orthogonal!
-	virtual void SetRot(ChMatrix33<Real>& mA)
+	virtual void SetRot(const ChMatrix33<Real>& mA)
 		{
 			coord.rot = mA.Get_A_quaternion();
 			Amatrix.CopyFromMatrix(mA);
@@ -342,6 +342,7 @@ public:
 		{
 			return ChTrasform<Real>::TrasformLocalToParent(local, coord.pos, Amatrix);
 		}
+
 	virtual ChVector<Real> TrasformPointLocalToParent(const ChVector<Real>& local) const
 		{
 			return ChTrasform<Real>::TrasformLocalToParent(local, coord.pos, Amatrix);
@@ -360,6 +361,7 @@ public:
 		{
 			return ChTrasform<Real>::TrasformParentToLocal(parent, coord.pos, Amatrix);
 		}
+
 	virtual ChVector<Real> TrasformPointParentToLocal(const ChVector<Real>& parent) const
 		{
 			return ChTrasform<Real>::TrasformParentToLocal(parent, coord.pos, Amatrix);
@@ -397,7 +399,7 @@ public:
 		/// \return The direction in local frame coordinate
 
 	virtual ChVector<Real> TrasformDirectionParentToLocal (
-			const ChVector<>& mdirection	///< direction to transform, given in parent coordinates
+			const ChVector<>& mdirection  ///< direction to transform, given in parent coordinates
 			) const
 		{
 			return Amatrix.MatrT_x_Vect(mdirection);
