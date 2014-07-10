@@ -121,8 +121,8 @@ public:
 
 	virtual ~ChLcpVariables()
 				{
-					if (qb) delete qb;
-					if (fb) delete fb;
+					delete qb;
+					delete fb;
 				};
 
 
