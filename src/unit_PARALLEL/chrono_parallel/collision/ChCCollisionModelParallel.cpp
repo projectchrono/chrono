@@ -149,13 +149,13 @@ bool ChCollisionModelParallel::AddTriangle(
 }
 bool ChCollisionModelParallel::AddCylinder(
       double rx,
-      double ry,
       double rz,
+      double hy,
       const ChVector<> &pos,
       const ChMatrix33<> &rot) {
    double mass = this->GetBody()->GetMass();
 
-   real3 local_inertia = R3(1 / 12.0 * mass * (3 * rx * rx + ry * ry), 1 / 2.0 * mass * (rx * rx), 1 / 12.0 * mass * (3 * rx * rx + ry * ry));
+   real3 local_inertia = R3(1 / 12.0 * mass * (3 * rx * rx + hy * hy), 1 / 2.0 * mass * (rx * rz), 1 / 12.0 * mass * (3 * rz * rz + hy * hy));
    ChVector<> position = pos;
    inertia.x += local_inertia.x + mass * (position.Length2() - position.x * position.x);
    inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
@@ -164,54 +164,55 @@ bool ChCollisionModelParallel::AddCylinder(
    nObjects++;
    bData tData;
    tData.A = R3(pos.x, pos.y, pos.z);
-   tData.B = R3(rx, ry, rz);
+   tData.B = R3(rx, hy, rz);
    tData.C = R3(0, 0, 0);
    ChMatrix33<> rotation = rot;
 
    tData.R = R4(rotation.Get_A_quaternion().e0, rotation.Get_A_quaternion().e1, rotation.Get_A_quaternion().e2, rotation.Get_A_quaternion().e3);
    tData.type = CYLINDER;
    mData.push_back(tData);
-   total_volume += CH_C_PI * rx * rx * ry * 2;
+   total_volume += CH_C_PI * rx * rz * hy * 2;
    return true;
 }
 
 bool ChCollisionModelParallel::AddRoundedCylinder(
       double rx,
-      double ry,
+      double rz,
+      double hy,
       double sphere_r,
       const ChVector<> &pos,
       const ChMatrix33<> &rot) {
    double mass = this->GetBody()->GetMass();
 
-   real3 local_inertia = R3(1 / 12.0 * mass * (3 * rx * rx + ry * ry), 1 / 2.0 * mass * (rx * rx), 1 / 12.0 * mass * (3 * rx * rx + ry * ry));
+   real3 local_inertia = R3(1 / 12.0 * mass * (3 * rx * rx + hy * hy), 1 / 2.0 * mass * (rx * rz), 1 / 12.0 * mass * (3 * rz * rz + hy * hy));
    ChVector<> position = pos;
    inertia.x += local_inertia.x + mass * (position.Length2() - position.x * position.x);
    inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
    inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
-   model_type = CYLINDER;
+   model_type = ROUNDEDCYL;
    nObjects++;
    bData tData;
    tData.A = R3(pos.x, pos.y, pos.z);
-   tData.B = R3(rx, ry, sphere_r);
-   tData.C = R3(0, 0, 0);
+   tData.B = R3(rx, hy, rz);
+   tData.C = R3(sphere_r, 0, 0);
    ChMatrix33<> rotation = rot;
 
    tData.R = R4(rotation.Get_A_quaternion().e0, rotation.Get_A_quaternion().e1, rotation.Get_A_quaternion().e2, rotation.Get_A_quaternion().e3);
-   tData.type = CYLINDER;
+   tData.type = ROUNDEDCYL;
    mData.push_back(tData);
-   total_volume += CH_C_PI * rx * rx * ry * 2;
+   total_volume += CH_C_PI * rx * rz * hy * 2;
    return true;
 }
 
 bool ChCollisionModelParallel::AddCone(
       double rx,
-      double ry,
       double rz,
+      double hy,
       const ChVector<> &pos,
       const ChMatrix33<> &rot) {
    double mass = this->GetBody()->GetMass();
    real radius = rx;
-   real height = ry;
+   real height = hy;
 
    real3 local_inertia = R3((3.0f / 80.0f) * mass * (radius * radius + 4 * height * height), (3.0f / 10.0f) * mass * radius * radius,
                             (3.0f / 80.0f) * mass * (radius * radius + 4 * height * height));
@@ -224,27 +225,28 @@ bool ChCollisionModelParallel::AddCone(
    nObjects++;
    bData tData;
    tData.A = R3(pos.x, pos.y, pos.z);
-   tData.B = R3(radius, height, radius);
+   tData.B = R3(rx, height, rz);
    tData.C = R3(0, 0, 0);
    ChMatrix33<> rotation = rot;
 
    tData.R = R4(rotation.Get_A_quaternion().e0, rotation.Get_A_quaternion().e1, rotation.Get_A_quaternion().e2, rotation.Get_A_quaternion().e3);
    tData.type = CONE;
    mData.push_back(tData);
-   total_volume += 1 / 3.0 * rx * ry * 2;
+   total_volume += 1 / 3.0 * rx * hy * 2;
    return true;
 }
 
 bool ChCollisionModelParallel::AddRoundedCone(
       double rx,
-      double ry,
+      double rz,
+      double hy,
       double sphere_r,
       const ChVector<> &pos,
       const ChMatrix33<> &rot) {
    double mass = this->GetBody()->GetMass();
    real radius = rx;
-   real height = ry;
-   real sphereradius = sphere_r;
+   real height = hy;
+
    real3 local_inertia = R3((3.0f / 80.0f) * mass * (radius * radius + 4 * height * height), (3.0f / 10.0f) * mass * radius * radius,
                             (3.0f / 80.0f) * mass * (radius * radius + 4 * height * height));
    ChVector<> position = pos;
@@ -252,18 +254,18 @@ bool ChCollisionModelParallel::AddRoundedCone(
    inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
    inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
 
-   model_type = CONE;
+   model_type = ROUNDEDCONE;
    nObjects++;
    bData tData;
    tData.A = R3(pos.x, pos.y, pos.z);
-   tData.B = R3(radius, height, sphereradius);
-   tData.C = R3(0, 0, 0);
+   tData.B = R3(rx, height, rz);
+   tData.C = R3(sphere_r, 0, 0);
    ChMatrix33<> rotation = rot;
 
    tData.R = R4(rotation.Get_A_quaternion().e0, rotation.Get_A_quaternion().e1, rotation.Get_A_quaternion().e2, rotation.Get_A_quaternion().e3);
-   tData.type = CONE;
+   tData.type = ROUNDEDCONE;
    mData.push_back(tData);
-   total_volume += 1 / 3.0 * rx * ry * 2;
+   total_volume += 1 / 3.0 * rx * hy * 2;
    return true;
 }
 
@@ -320,11 +322,6 @@ bool ChCollisionModelParallel::AddBarrel(
    return false;
 }
 
-bool ChCollisionModelParallel::AddCone(
-      double rad,
-      double h) {
-   return false;
-}
 /// Add a triangle mesh to this model
 bool ChCollisionModelParallel::AddTriangleMesh(
       const geometry::ChTriangleMesh &trimesh,

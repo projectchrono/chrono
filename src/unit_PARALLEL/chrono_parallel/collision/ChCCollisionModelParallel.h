@@ -100,24 +100,26 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
    /// Add a rounded cylinder to this model (default axis on Y direction), for collision purposes
    virtual bool AddRoundedCylinder(
          double rx,
-         double ry,
          double rz,
+         double hy,
+         double sphere_r,
          const ChVector<> &pos = ChVector<>(),
          const ChMatrix33<> &rot = ChMatrix33<>(1));
 
    /// Add a cone to this model (default axis on Y direction), for collision purposes
    virtual bool AddCone(
          double rx,
-         double ry,
          double rz,
-         const ChVector<> &pos = ChVector<>(),
-         const ChMatrix33<> &rot = ChMatrix33<>(1));
+         double hy,
+         const ChVector<>& pos = ChVector<>(),
+         const ChMatrix33<>& rot = ChMatrix33<>(1));
 
    /// Add a rounded cone to this model (default axis on Y direction), for collision purposes
    virtual bool AddRoundedCone(
          double rx,
-         double ry,
          double rz,
+         double hy,
+         double sphere_r,
          const ChVector<> &pos = ChVector<>(),
          const ChMatrix33<> &rot = ChMatrix33<>(1));
 
@@ -127,11 +129,6 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
          double hlen,
          const ChVector<> &pos = ChVector<>(),
          const ChMatrix33<> &rot = ChMatrix33<>(1));
-
-   /// Add a cone to this model, for collision purposes
-   virtual bool AddCone(
-         double rad,
-         double h);
 
    virtual bool AddConvexHull(
          std::vector<ChVector<double> > &pointlist,
