@@ -177,7 +177,7 @@ void ChMarker::SetMotion_axis (Vector m_axis)
 
 // Coordinate setting, for user access
 
-void ChMarker::Impose_Rel_Coord (Coordsys m_coord)
+void ChMarker::Impose_Rel_Coord (const Coordsys& m_coord)
 {
 	Quaternion qtemp;
 				// set the actual coordinates
@@ -192,7 +192,7 @@ void ChMarker::Impose_Rel_Coord (Coordsys m_coord)
 	UpdateState () ;
 }
 
-void ChMarker::Impose_Abs_Coord (Coordsys m_coord)
+void ChMarker::Impose_Abs_Coord (const Coordsys& m_coord)
 {
 	ChBody* my_body;
 	my_body = GetBody();

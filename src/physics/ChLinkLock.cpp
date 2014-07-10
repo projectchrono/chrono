@@ -444,9 +444,9 @@ void ChLinkLock::UpdateTime (double time)
         vangles_dtdt.x = motion_ang->Get_y_dxdx(time);
         vangles_dtdt.y = motion_ang2->Get_y_dxdx(time);
         vangles_dtdt.z = motion_ang3->Get_y_dxdx(time);
-        deltaC.rot = Angle_to_Quat(angleset, &vangles);
-        deltaC_dt.rot = AngleDT_to_QuatDT(angleset, &vangles_dt, &deltaC.rot);
-        deltaC_dtdt.rot = AngleDTDT_to_QuatDTDT(angleset, &vangles_dtdt, &deltaC.rot);
+        deltaC.rot = Angle_to_Quat(angleset, vangles);
+        deltaC_dt.rot = AngleDT_to_QuatDT(angleset, vangles_dt, deltaC.rot);
+        deltaC_dtdt.rot = AngleDTDT_to_QuatDTDT(angleset, vangles_dtdt, deltaC.rot);
         break;
     }
 }

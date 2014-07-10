@@ -710,11 +710,11 @@ ChApi Vector        VaxisXfromQuat (const Quaternion& quat);
 
 // Angle conversion utilities
 
-ChApi Vector     Quat_to_Angle (int angset, Quaternion* mquat);
-ChApi Vector     Angle_to_Angle(int setfrom, int setto, Vector* mangles);
-ChApi Quaternion Angle_to_Quat (int angset, Vector* mangles);
-ChApi Quaternion AngleDT_to_QuatDT (int angset, Vector* mangles, Quaternion* q);
-ChApi Quaternion AngleDTDT_to_QuatDTDT (int angset, Vector* mangles, Quaternion* q);
+ChApi Vector     Quat_to_Angle (int angset, const Quaternion& mquat);
+ChApi Vector     Angle_to_Angle(int setfrom, int setto, const Vector& mangles);
+ChApi Quaternion Angle_to_Quat (int angset, const Vector& mangles);
+ChApi Quaternion AngleDT_to_QuatDT (int angset, const Vector& mangles, const Quaternion& q);
+ChApi Quaternion AngleDTDT_to_QuatDTDT (int angset, const Vector& mangles, const Quaternion& q);
 
 
 

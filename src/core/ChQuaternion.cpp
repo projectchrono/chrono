@@ -315,7 +315,7 @@ Quaternion  ImmQ_dtdt_complete (Quaternion* mq, Quaternion* mqdt, Vector* qimm_d
 //  ANGLE CONVERSION UTILITIES
 
 
-Quaternion Angle_to_Quat (int angset, Vector* mangles)
+Quaternion Angle_to_Quat (int angset, const Vector& mangles)
 {
 	Quaternion res;
 	ChMatrix33<> Acoord;
@@ -323,31 +323,31 @@ Quaternion Angle_to_Quat (int angset, Vector* mangles)
 	switch (angset)
 	{
 	case ANGLESET_EULERO:
-		Acoord.Set_A_Eulero(*mangles);
+		Acoord.Set_A_Eulero(mangles);
 		break;
 	case ANGLESET_CARDANO:
-		Acoord.Set_A_Cardano(*mangles);
+		Acoord.Set_A_Cardano(mangles);
 		break;
 	case ANGLESET_HPB:
-		Acoord.Set_A_Hpb(*mangles);
+		Acoord.Set_A_Hpb(mangles);
 		break;
 	case ANGLESET_RXYZ:
-		Acoord.Set_A_Rxyz(*mangles);
+		Acoord.Set_A_Rxyz(mangles);
 		break;
 	case ANGLESET_RODRIGUEZ:
-		Acoord.Set_A_Rodriguez(*mangles);
+		Acoord.Set_A_Rodriguez(mangles);
 		break;
 	}
 	res = Acoord.Get_A_quaternion();
 	return res;
 }
 
-Vector Quat_to_Angle (int angset, Quaternion* mquat)
+Vector Quat_to_Angle (int angset, const Quaternion& mquat)
 {
 	Vector res;
 	ChMatrix33<> Acoord;
 
-	Acoord.Set_A_quaternion(*mquat);
+	Acoord.Set_A_quaternion(mquat);
 
 	switch (angset)
 	{
@@ -370,21 +370,21 @@ Vector Quat_to_Angle (int angset, Quaternion* mquat)
 	return res;
 }
 
-Quaternion AngleDT_to_QuatDT (int angset, Vector* mangles, Quaternion* q)
+Quaternion AngleDT_to_QuatDT (int angset, const Vector& mangles, const Quaternion& q)
 {
 	Quaternion res;
 	Quaternion q2;
 	Vector ang1, ang2;
 
 	ang1 = Quat_to_Angle (angset, q);
-	ang2 = Vadd(ang1, Vmul(*mangles,CH_LOWTOL));
-	q2 = Angle_to_Quat(angset, &ang2);
-	res = Qscale (Qsub(q2, *q), (1/CH_LOWTOL));
+	ang2 = Vadd(ang1, Vmul(mangles,CH_LOWTOL));
+	q2 = Angle_to_Quat(angset, ang2);
+	res = Qscale (Qsub(q2, q), (1/CH_LOWTOL));
 
 	return res;
 }
 
-Quaternion AngleDTDT_to_QuatDTDT (int angset, Vector* mangles, Quaternion* q)
+Quaternion AngleDTDT_to_QuatDTDT (int angset, const Vector& mangles, const Quaternion& q)
 {
 	Quaternion res;
 	Quaternion qa, qb;
@@ -392,16 +392,16 @@ Quaternion AngleDTDT_to_QuatDTDT (int angset, Vector* mangles, Quaternion* q)
 	double hsquared = CH_LOWTOL;
 
 	ang0 = Quat_to_Angle (angset, q);
-	angA = Vsub(ang0, Vmul(*mangles, hsquared));
-	angB = Vadd(ang0, Vmul(*mangles, hsquared));
-	qa = Angle_to_Quat(angset, &angA);
-	qb = Angle_to_Quat(angset, &angB);
-	res = Qscale (Qadd(Qadd(qa,qb),Qscale(*q,-2)), 1/hsquared);
+	angA = Vsub(ang0, Vmul(mangles, hsquared));
+	angB = Vadd(ang0, Vmul(mangles, hsquared));
+	qa = Angle_to_Quat(angset, angA);
+	qb = Angle_to_Quat(angset, angB);
+	res = Qscale (Qadd(Qadd(qa,qb),Qscale(q,-2)), 1/hsquared);
 
 	return res;
 }
 
-Vector	Angle_to_Angle(int setfrom, int setto, Vector* mangles)
+Vector Angle_to_Angle(int setfrom, int setto, const Vector& mangles)
 {
 	Vector res;
 	ChMatrix33<> Acoord;
@@ -409,19 +409,19 @@ Vector	Angle_to_Angle(int setfrom, int setto, Vector* mangles)
 	switch (setfrom)
 	{
 	case ANGLESET_EULERO:
-		Acoord.Set_A_Eulero(*mangles);
+		Acoord.Set_A_Eulero(mangles);
 		break;
 	case ANGLESET_CARDANO:
-		Acoord.Set_A_Cardano(*mangles);
+		Acoord.Set_A_Cardano(mangles);
 		break;
 	case ANGLESET_HPB:
-		Acoord.Set_A_Hpb(*mangles);
+		Acoord.Set_A_Hpb(mangles);
 		break;
 	case ANGLESET_RXYZ:
-		Acoord.Set_A_Rxyz(*mangles);
+		Acoord.Set_A_Rxyz(mangles);
 		break;
 	case ANGLESET_RODRIGUEZ:
-		Acoord.Set_A_Rodriguez(*mangles);
+		Acoord.Set_A_Rodriguez(mangles);
 		break;
 	}
 

@@ -147,12 +147,12 @@ public:
 				/// Set body-relative coord. and update auxiliary variables
 				/// Also, current position becomes the 'resting position' coordinates
 				/// for the current time.
-	void Impose_Rel_Coord (Coordsys m_coord);
+	void Impose_Rel_Coord (const Coordsys& m_coord);
 
 				/// Set absolute coordinates  and update auxiliary variables
 				/// Also, current position becomes the 'resting position' coordinates
 				/// for the current time.
-	void Impose_Abs_Coord (Coordsys m_coord);
+	void Impose_Abs_Coord (const Coordsys& m_coord);
 
 
 				/// Get the 'resting position' (that is, the position which the
