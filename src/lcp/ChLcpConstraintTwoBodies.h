@@ -43,12 +43,9 @@ namespace chrono
 {
 
 
-///  This class is inherited by the base ChLcpConstraintTwo(),
-/// that is implements the functionality for a constraint between 
-/// a couple of two objects of type ChLcpVariablesBody(). 
-/// Important note, it reports 
-/// IsGPUcompatible() as 'true' because here we're sure that 
-/// jacobians are 1x6 and 1x6, as required by the GPU solver.
+/// This class inherits from the base ChLcpConstraintTwo(),
+/// that implements the functionality for a constraint between
+/// a couple of two objects of type ChLcpVariablesBody().
 
 class ChApi ChLcpConstraintTwoBodies : public ChLcpConstraintTwo
 {
@@ -113,9 +110,6 @@ public:
 			//
 			// FUNCTIONS
 			//
-				
-				/// Return true because this is the constraint type supported by GPU solver
-	virtual bool IsGPUcompatible() {return true;}
 
 
 				/// Access jacobian matrix
