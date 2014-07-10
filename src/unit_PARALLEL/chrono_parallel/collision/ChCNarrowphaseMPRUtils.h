@@ -57,17 +57,30 @@ inline real3 GetSupportPoint_Ellipsoid(
 inline real3 GetSupportPoint_Cylinder(
       const real3 &B,
       const real3 &n) {
-   real3 u = R3(0, 1, 0);
-   real3 w = n - (dot(u, n)) * u;
-   real3 result;
-
-   if (length(w) != 0) {
-      result = sign(dot(u, n)) * B.y * u + B.x * normalize(w);
+//   real3 u = R3(0, 1, 0);
+//   real3 w = n - (dot(u, n)) * u;
+//   real3 result;
+//
+//   if (length(w) != 0) {
+//      result = sign(dot(u, n)) * B.y * u + B.x * normalize(w);
+//   } else {
+//      result = sign(dot(u, n)) * B.y * u;
+//   }
+//return result;
+   real s = sqrt(n.x * n.x + n.z * n.z);
+   real3 tmp;
+   if (s != 0) {
+      tmp.x = n.x * B.x / s;
+      tmp.y = n.y < 0.0 ? -B.y : B.y;
+      tmp.z = n.z * B.z / s;
    } else {
-      result = sign(dot(u, n)) * B.y * u;
-   }
+      tmp.x = B.x;
+      tmp.y = n.y < 0.0 ? -B.y : B.y;
+      tmp.z = 0;
 
-   return result;
+   }
+   return tmp;
+
 }
 inline real3 GetSupportPoint_Plane(
       const real3 &B,
@@ -95,11 +108,10 @@ inline real3 GetSupportPoint_Cone(
    } else {
       real s = sqrt(n.x * n.x + n.z * n.z);
       if (s > 1e-9) {
-         real d = radius / s;
          real3 tmp;
-         tmp.x = n.x * d;
+         tmp.x = n.x * B.x / s;
          tmp.y = -height / 2.0;
-         tmp.z = n.z * d;
+         tmp.z = n.z * B.z / s;
          return tmp;
       } else {
          real3 tmp;
