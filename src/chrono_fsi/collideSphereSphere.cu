@@ -1534,10 +1534,6 @@ void UpdateRigidBody(
 
 	totalSurfaceInteractionRigid4.clear();
 
-	Add_ContactForces(
-			R3CAST(totalAccRigid3), R3CAST(posRigidD), R4CAST(velMassRigidD));
-
-
 
 	//add gravity from flex
 	thrust::device_vector<real3> gravityForces3(numObjects.numRigidBodies);
@@ -1587,9 +1583,12 @@ void UpdateRigidBody(
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Kernel execution failed: MapTorqueToLRFKernel");
 	totalTorqueOfAcc3.clear();
+	Add_ContactForces(
+			R3CAST(totalAccRigid3), R3CAST(posRigidD), R4CAST(velMassRigidD));
 
 	//################################################### update rigid body motion
 	//####### Translation
+
 
 	//** posRigidD2, posRigidCumulativeD2, velMassRigidD2, are updated based on their current value and dT.
 	if (fracSimulation <-.01) {
@@ -2000,8 +1999,8 @@ void cudaCollisions(
 	real_ delTOrig = paramsH.dT;
 	real_ realTime = 0;
 
-	real_ timePause = .0002 * paramsH.tFinal; // keep it as small as possible. the time step will be 1/10 * dT
-	real_ timePauseRigidFlex = .004 * paramsH.tFinal;
+	real_ timePause = 0;//.0002 * paramsH.tFinal; // keep it as small as possible. the time step will be 1/10 * dT
+	real_ timePauseRigidFlex = 0;//.004 * paramsH.tFinal;
 	SimParams paramsH_B = paramsH;
 	paramsH_B.bodyForce4 = R4(0);
 	paramsH_B.gravity = R3(0);

@@ -3,14 +3,14 @@
 //--------------------------------------------------------------------------------------------------------------------------------
 // Hunt-Crossley model
 __device__ inline real3 DEM_Force(real_ penetration, real3 n3, real_ rRigidDEM1, real_ rRigidDEM2, real4 velMasRigidA, real4 velMasRigidB) {
-	real_ E = 1e8;
+	real_ E = 1e3;
 
 	real_ E_eff = 0.5 * E;
 	real_ r_eff = rRigidDEM1 * rRigidDEM2 / (rRigidDEM1 + rRigidDEM2);
 	real_ Kn = 4.0/3 * E_eff * sqrt(r_eff);
 	real_ Fe = Kn * powf(fabs(penetration), 1.5);
 
-	real_ alpha_eff = 1;
+	real_ alpha_eff = .6;
 	real3 v_n = dot( R3(velMasRigidA - velMasRigidB) , n3) * n3;
 
 	real3 demForce = Fe * n3 -  1.5 * alpha_eff * Fe * v_n;
@@ -47,6 +47,7 @@ __global__ void Add_ContactForcesD(real3 * totalAccRigid3, real3 * posRigidD, re
 		real4 dummyVelMasB = velMassRigidD[rigidSphereB];
 		penDist = length(posRigidB - posRigidA) - 2 * paramsD.rigidRadius.x;
 		if (penDist < 0) {
+			printf("a24 %f\n", penDist);
 			n3 = (posRigidA - posRigidB) / length(posRigidB - posRigidA);
 			force3 += DEM_Force(-penDist, n3, paramsD.rigidRadius.x, paramsD.rigidRadius.x, dummyVelMasA, dummyVelMasB);
 		}
@@ -69,7 +70,6 @@ void Add_ContactForces(
 		real4* velMassRigidD) {
 	NumberOfObjects numObjectsH;
 	cudaMemcpyFromSymbolAsync(&numObjectsH, numObjectsD, sizeof(NumberOfObjects));
-	printf("*** numObjectsH %d\n", numObjectsH.numRigidBodies);
 
 	//**********************************************************************
 	SerpentineParams serpGeom;
