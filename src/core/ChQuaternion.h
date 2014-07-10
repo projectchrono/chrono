@@ -665,33 +665,33 @@ typedef ChQuaternion<float>  QuaternionF;
 // these functions - use the member functions or operators of 
 // the ChQuaternion class instead!
 
-ChApi double        Qlenght (Quaternion q);
-ChApi Quaternion    Qadd (Quaternion qa, Quaternion qb);
-ChApi Quaternion    Qsub (Quaternion qa, Quaternion qb);
-ChApi Quaternion    Qscale (Quaternion q, double fact);
-ChApi Quaternion    Qnorm (Quaternion q);
-ChApi Quaternion    Q_from_AngAxis (double angle, Vector axis);
-ChApi Quaternion    Q_from_NasaAngles(Vector RxRyRz);
-ChApi Vector        Q_to_NasaAngles(Quaternion mq);
+ChApi double        Qlenght (const Quaternion& q);
+ChApi Quaternion    Qadd (const Quaternion& qa, const Quaternion& qb);
+ChApi Quaternion    Qsub (const Quaternion& qa, const Quaternion& qb);
+ChApi Quaternion    Qscale (const Quaternion& q, double fact);
+ChApi Quaternion    Qnorm (const Quaternion& q);
+ChApi Quaternion    Q_from_AngAxis (double angle, const Vector& axis);
+ChApi Quaternion    Q_from_NasaAngles(const Vector& RxRyRz);
+ChApi Vector        Q_to_NasaAngles(const Quaternion& mq);
 ChApi Quaternion    Q_from_AngZ (double angleZ);
 ChApi Quaternion    Q_from_AngX (double angleX);
 ChApi Quaternion    Q_from_AngY (double angleY);
 ChApi void          Q_to_AngAxis (Quaternion* quat, double* a_angle, Vector* a_axis);
-ChApi Quaternion    Qdt_from_Wrel (Vector w, Quaternion q);
-ChApi Quaternion    Qdt_from_Wabs (Vector w, Quaternion q);
-ChApi Quaternion    Qdt_from_AngAxis (Quaternion quat, double angle_dt, Vector axis);
-ChApi Quaternion    Qdtdt_from_Aabs (Vector a, Quaternion q, Quaternion q_dt);
-ChApi Quaternion    Qdtdt_from_Arel (Vector a, Quaternion q, Quaternion q_dt);
-ChApi Quaternion    Qdtdt_from_AngAxis (double angle_dtdt, Vector axis, Quaternion q, Quaternion q_dt);
-ChApi Quaternion    Qconjugate (Quaternion q);
-ChApi Quaternion    Qcross (Quaternion qa, Quaternion qb);
+ChApi Quaternion    Qdt_from_Wrel (const Vector& w, const Quaternion& q);
+ChApi Quaternion    Qdt_from_Wabs (const Vector& w, const Quaternion& q);
+ChApi Quaternion    Qdt_from_AngAxis (const Quaternion& quat, double angle_dt, const Vector& axis);
+ChApi Quaternion    Qdtdt_from_Aabs (const Vector& a, const Quaternion& q, const Quaternion& q_dt);
+ChApi Quaternion    Qdtdt_from_Arel (const Vector& a, const Quaternion& q, const Quaternion& q_dt);
+ChApi Quaternion    Qdtdt_from_AngAxis (double angle_dtdt, const Vector& axis, const Quaternion& q, const Quaternion& q_dt);
+ChApi Quaternion    Qconjugate (const Quaternion& q);
+ChApi Quaternion    Qcross (const Quaternion& qa, const Quaternion& qb);
 ChApi bool          Qequal (const Quaternion& qa, const Quaternion& qb);
 ChApi int           Qnotnull (Quaternion* qa);
 ChApi Quaternion    ImmQ_complete (Vector* qimm);
 ChApi Quaternion    ImmQ_dt_complete (Quaternion* mq, Vector* qimm_dt);
 ChApi Quaternion    ImmQ_dtdt_complete (Quaternion* mq, Quaternion* mqdt, Vector* qimm_dtdt);
 
-ChApi Vector        VaxisXfromQuat (Quaternion quat);
+ChApi Vector        VaxisXfromQuat (const Quaternion& quat);
 
 
 //

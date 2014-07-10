@@ -41,12 +41,12 @@ namespace chrono
 
 
 
-double Qlenght (Quaternion q)
+double Qlenght (const Quaternion& q)
 {
 	return (sqrt (pow(q.e0, 2) + pow(q.e1, 2) + pow(q.e2, 2) + pow(q.e3, 2)));
 }
 
-Quaternion Qscale (Quaternion q, double fact)
+Quaternion Qscale (const Quaternion& q, double fact)
 {
 	Quaternion result;
 	result.e0= q.e0 * fact;
@@ -56,7 +56,7 @@ Quaternion Qscale (Quaternion q, double fact)
 	return result;
 }
 
-Quaternion Qadd (Quaternion qa, Quaternion qb)
+Quaternion Qadd (const Quaternion& qa, const Quaternion& qb)
 {
 	Quaternion result;
 	result.e0= qa.e0 + qb.e0;
@@ -66,7 +66,7 @@ Quaternion Qadd (Quaternion qa, Quaternion qb)
 	return result;
 }
 
-Quaternion Qsub (Quaternion qa, Quaternion qb)
+Quaternion Qsub (const Quaternion& qa, const Quaternion& qb)
 {
 	Quaternion result;
 	result.e0= qa.e0 - qb.e0;
@@ -77,7 +77,7 @@ Quaternion Qsub (Quaternion qa, Quaternion qb)
 }
 // returns the norm two of the quaternion. Eulero's parameters have norm = 1
 
-Quaternion Qnorm (Quaternion q)
+Quaternion Qnorm (const Quaternion& q)
 {
 	double invlenght;
 	invlenght = 1/(Qlenght(q));
@@ -86,7 +86,7 @@ Quaternion Qnorm (Quaternion q)
 
 // The conjugate of the quaternion [s,v1,v2,v3] is [s,-v1,-v2,-v3]
 
-Quaternion Qconjugate (Quaternion q)
+Quaternion Qconjugate (const Quaternion& q)
 {
 	Quaternion res;
 	res.e0= q.e0;
@@ -100,7 +100,7 @@ Quaternion Qconjugate (Quaternion q)
 // Returns the product of two quaternions. It is NONcommutative! (like cross
 // product in vectors.
 
-Quaternion Qcross (Quaternion qa, Quaternion qb)
+Quaternion Qcross (const Quaternion& qa, const Quaternion& qb)
 {
 	Quaternion res;
 	res.e0= qa.e0 * qb.e0 - qa.e1 * qb.e1 - qa.e2 * qb.e2 - qa.e3 * qb.e3;
@@ -115,7 +115,7 @@ Quaternion Qcross (Quaternion qa, Quaternion qb)
 // defined in _abs_ coords. The axis is supposed to be fixed, i.e.
 // it is constant during rotation! And must be normalized!
 
-Quaternion Q_from_AngAxis (double angle, Vector axis)
+Quaternion Q_from_AngAxis (double angle, const Vector& axis)
 {
 	Quaternion quat;
 	double halfang;
@@ -136,7 +136,7 @@ Quaternion  Q_from_AngZ (double angleZ) { return Q_from_AngAxis (angleZ, VECT_Z)
 Quaternion  Q_from_AngX (double angleX) { return Q_from_AngAxis (angleX, VECT_X);}
 Quaternion  Q_from_AngY (double angleY) { return Q_from_AngAxis (angleY, VECT_Y);}
 
-Quaternion  Q_from_NasaAngles(Vector mang)
+Quaternion  Q_from_NasaAngles(const Vector& mang)
 {
 	Quaternion mq;
 	double c1 = cos(mang.z/2);
@@ -153,7 +153,7 @@ Quaternion  Q_from_NasaAngles(Vector mang)
 	mq.e3 =s1*c2*c3 - c1*s2*s3;
 	return mq;
 }
-Vector      Q_to_NasaAngles(Quaternion q1)
+Vector      Q_to_NasaAngles(const Quaternion& q1)
 {
 	Vector mnasa;
 	double sqw = q1.e0*q1.e0;
@@ -197,9 +197,9 @@ void Q_to_AngAxis (Quaternion* quat, double* a_angle, Vector* a_axis)
 //	Gets the four quaternion dq/dt from the vector of angular speed,
 // with w specified in _absolute_ coords.
 
-Quaternion Qdt_from_Wabs (Vector w, Quaternion q)
+Quaternion Qdt_from_Wabs (const Vector& w, const Quaternion& q)
 {
-	static Quaternion qw;
+	Quaternion qw;
 	double half = 0.5;
 
 	qw.e0=0; qw.e1=w.x; qw.e2=w.y; qw.e3=w.z;
@@ -210,9 +210,9 @@ Quaternion Qdt_from_Wabs (Vector w, Quaternion q)
 //	Gets the four quaternion dq/dt from the vector of angular speed,
 // with w specified in _local_ coords.
 
-Quaternion Qdt_from_Wrel (Vector w, Quaternion q)
+Quaternion Qdt_from_Wrel (const Vector& w, const Quaternion& q)
 {
-	static Quaternion qw;
+	Quaternion qw;
 	double half = 0.5;
 
 	qw.e0=0; qw.e1=w.x; qw.e2=w.y; qw.e3=w.z;
@@ -223,7 +223,7 @@ Quaternion Qdt_from_Wrel (Vector w, Quaternion q)
 //	Gets the quaternion ddq/dtdt from the vector of angular acceleration
 //  with a specified in _absolute_ coords.
 
-Quaternion Qdtdt_from_Aabs (Vector a, Quaternion q, Quaternion q_dt)
+Quaternion Qdtdt_from_Aabs (const Vector& a, const Quaternion& q, const Quaternion& q_dt)
 {
 	Quaternion ret;
 	ret.Qdtdt_from_Aabs(a,q,q_dt);
@@ -234,7 +234,7 @@ Quaternion Qdtdt_from_Aabs (Vector a, Quaternion q, Quaternion q_dt)
 //	Gets the quaternion ddq/dtdt from the vector of angular acceleration
 //  with a specified in _relative_ coords.
 
-Quaternion Qdtdt_from_Arel (Vector a, Quaternion q, Quaternion q_dt)
+Quaternion Qdtdt_from_Arel (const Vector& a, const Quaternion& q, const Quaternion& q_dt)
 {
 	Quaternion ret;
 	ret.Qdtdt_from_Arel(a,q,q_dt);
@@ -244,7 +244,7 @@ Quaternion Qdtdt_from_Arel (Vector a, Quaternion q, Quaternion q_dt)
 // Gets the dquaternion/dt from a quaternion, a speed of
 // rotation and an axis, defined in _abs_ coords.
 
-Quaternion Qdt_from_AngAxis (Quaternion quat, double angle_dt, Vector axis)
+Quaternion Qdt_from_AngAxis (const Quaternion& quat, double angle_dt, const Vector& axis)
 {
 	Vector W;
 
@@ -256,7 +256,7 @@ Quaternion Qdt_from_AngAxis (Quaternion quat, double angle_dt, Vector axis)
 // Gets the ddquaternion/dtdt from a quaternion, an angular
 // acceleration and an axis, defined in _abs_ coords.
 
-Quaternion Qdtdt_from_AngAxis (double angle_dtdt, Vector axis, Quaternion q, Quaternion q_dt)
+Quaternion Qdtdt_from_AngAxis (double angle_dtdt, const Vector& axis, const Quaternion& q, const Quaternion& q_dt)
 {
 	Vector Acc;
 
@@ -454,7 +454,7 @@ Vector	Angle_to_Angle(int setfrom, int setto, Vector* mangles)
 
 // Get the X axis of a coordsystem, given the quaternion which
 // represents the alignment of the coordsystem.
-Vector VaxisXfromQuat (Quaternion quat)
+Vector VaxisXfromQuat (const Quaternion& quat)
 {
 	Vector res;
 	res.x = (pow(quat.e0,2) + pow(quat.e1,2))*2 - 1;

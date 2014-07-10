@@ -410,7 +410,7 @@ void Vset(ChVector<RealA>* v, RealA mx, RealA my, RealA mz)
 }
 
 template <class RealA, class RealB>
-ChVector<RealA> Vadd(ChVector<RealA> va, ChVector<RealB> vb)
+ChVector<RealA> Vadd(const ChVector<RealA>& va, const ChVector<RealB>& vb)
 {
 	ChVector<RealA> result;
 	result.x = va.x + vb.x;
@@ -420,7 +420,7 @@ ChVector<RealA> Vadd(ChVector<RealA> va, ChVector<RealB> vb)
 }
 
 template <class RealA, class RealB>
-ChVector<RealA> Vsub(ChVector<RealA> va, ChVector<RealB> vb)
+ChVector<RealA> Vsub(const ChVector<RealA>& va, const ChVector<RealB>& vb)
 {
 	ChVector<RealA> result;
 	result.x = va.x - vb.x;
@@ -430,7 +430,7 @@ ChVector<RealA> Vsub(ChVector<RealA> va, ChVector<RealB> vb)
 }
 
 template <class RealA, class RealB>
-ChVector<RealA> Vcross(ChVector<RealA> va, ChVector<RealB> vb)
+ChVector<RealA> Vcross(const ChVector<RealA>& va, const ChVector<RealB>& vb)
 {
 	ChVector<RealA> result;
 	result.x = (va.y * vb.z)-(va.z * vb.y);
@@ -440,7 +440,7 @@ ChVector<RealA> Vcross(ChVector<RealA> va, ChVector<RealB> vb)
 }
 
 template <class RealA, class RealB>
-ChVector<RealA> Vmul(ChVector<RealA> va, RealB fact)
+ChVector<RealA> Vmul(const ChVector<RealA>& va, RealB fact)
 {
 	ChVector<RealA> result;
 	result.x = va.x * (RealA)fact;
@@ -450,13 +450,13 @@ ChVector<RealA> Vmul(ChVector<RealA> va, RealB fact)
 }
 
 template <class RealA>
-RealA Vlenght(ChVector<RealA> va)
+RealA Vlenght(const ChVector<RealA>& va)
 {
 	return (RealA)va.Length();
 }
 
 template <class RealA>
-ChVector<RealA> Vnorm(ChVector<RealA> va)
+ChVector<RealA> Vnorm(const ChVector<RealA>& va)
 {
 	ChVector<RealA> result(va);
 	result.Normalize();
