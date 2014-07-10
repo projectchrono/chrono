@@ -88,7 +88,7 @@ class ChApi ChObj : public virtual ChShared {
 	CH_RTTI(ChObj, ChShared);
 
 private:
-			// 
+			//
 			// DATA
 			//
 
@@ -96,7 +96,7 @@ private:
 	std::string name;
 
 				// ID for referencing
-	int identifier;				
+	int identifier;
 
 
 				// Reference to an external object associated to this item,
@@ -114,7 +114,7 @@ public:
 			//	CONSTRUCTORS/DELETION
 			// 
 
-	ChObj();							
+	ChObj();
 	virtual ~ChObj();
 
 	void Copy(ChObj* source);
@@ -123,8 +123,8 @@ public:
 			// FUNCTIONS
 			//
 
-				/// Gets the numerical identifier of the object. 
-	int  GetIdentifier () { return identifier; }	
+				/// Gets the numerical identifier of the object.
+	int  GetIdentifier () const { return identifier; }
 				/// Sets the numerical identifier of the object.
 	void SetIdentifier (int id) { identifier = id; }
 
@@ -132,29 +132,27 @@ public:
 	ChObj* GetAddrFromID (ChObj** ChList, int myID);
 
 				/// Gets the simulation time of this object
-	double GetChTime () { return ChTime; }	
+	double GetChTime () const { return ChTime; }
 				/// Sets the simulation time of this object.
 	void   SetChTime (double m_time) { ChTime = m_time; }
 
 
 				/// Gets the name of the object as C Ascii null-terminated string -for reading only!
-	char* GetName ();
+	char* GetName () const;
 				/// Sets the name of this object, as ascii string
 	void SetName (const char myname[]);
 
 				/// Gets the name of the object as C Ascii null-terminated string.
-	std::string GetNameString ();
+	std::string GetNameString () const;
 				/// Sets the name of this object, as std::string 
 	void SetNameString (std::string& myname);
 
-
-	
 
 				/// Returns a reference to the ChExternalObject object associated
 				/// to this item. The external object can be used to handle 
 				/// external objects when encapsulating other 3d engines or apps.
 				/// Return value may be null.
-	ChExternalObject* GetExternalObject() {return external_obj;}
+	ChExternalObject* GetExternalObject() const {return external_obj;}
 
 				/// Sets the ChExternalObject of this object (the m_obj will be cloned)
 	void   SetExternalObject(ChExternalObject* m_obj);
