@@ -275,13 +275,9 @@ bool  Qequal (const Quaternion& qa, const Quaternion& qb)
 
 // Returns TRUE if quaternion is not null;
 
-int  Qnotnull  (Quaternion* qa)
+bool  Qnotnull  (const Quaternion& qa)
 {
-	if (qa->e0) return 1;
-	if (qa->e1) return 1;
-	if (qa->e2) return 1;
-	if (qa->e3) return 1;
-	return 0;
+  return (qa.e0 != 0) || (qa.e1 != 0) || (qa.e2 != 0) || (qa.e3 != 0);
 }
 
 // Given the immaginary (vectorial) {e1 e2 e3} part of a quaternion, tries to find the

@@ -686,7 +686,7 @@ ChApi Quaternion    Qdtdt_from_AngAxis (double angle_dtdt, const Vector& axis, c
 ChApi Quaternion    Qconjugate (const Quaternion& q);
 ChApi Quaternion    Qcross (const Quaternion& qa, const Quaternion& qb);
 ChApi bool          Qequal (const Quaternion& qa, const Quaternion& qb);
-ChApi int           Qnotnull (Quaternion* qa);
+ChApi bool          Qnotnull (const Quaternion& qa);
 ChApi Quaternion    ImmQ_complete (Vector* qimm);
 ChApi Quaternion    ImmQ_dt_complete (Quaternion* mq, Vector* qimm_dt);
 ChApi Quaternion    ImmQ_dtdt_complete (Quaternion* mq, Quaternion* mqdt, Vector* qimm_dtdt);
