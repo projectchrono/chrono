@@ -47,7 +47,7 @@ __global__ void Add_ContactForcesD(real3 * totalAccRigid3, real3 * posRigidD, re
 		real4 dummyVelMasB = velMassRigidD[rigidSphereB];
 		penDist = length(posRigidB - posRigidA) - 2 * paramsD.rigidRadius.x;
 		if (penDist < 0) {
-			printf("a24 %f\n", penDist);
+//			printf("a24 %f\n", penDist);
 			n3 = (posRigidA - posRigidB) / length(posRigidB - posRigidA);
 			force3 += DEM_Force(-penDist, n3, paramsD.rigidRadius.x, paramsD.rigidRadius.x, dummyVelMasA, dummyVelMasB);
 		}

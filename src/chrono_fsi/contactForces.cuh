@@ -67,12 +67,12 @@ __device__ inline real_ IsInBoundaryEllipsoid(real2 & n2, real2 coord, real2 cen
 __device__ inline real_ ContactWith_YPlanes(real3 & n3, real3 posRad, real_ rRigidDEM) {
 	if (posRad.y < 0 + rRigidDEM) {
 		n3 = R3(0, 1, 0);
-		if (posRad.y - rRigidDEM < 0) printf("a22 %f\n", posRad.y - rRigidDEM);
+//		if (posRad.y - rRigidDEM < 0) printf("a22 %f\n", posRad.y - rRigidDEM);
 		return (posRad.y - rRigidDEM);
 	}
 	if (posRad.y > 1.0 * serpGeomD.mm - rRigidDEM) {
 		n3 = R3(0, -1, 0);
-		if (1.0 * serpGeomD.mm - rRigidDEM - posRad.y < 0) printf("a22 %f\n", 1.0 * serpGeomD.mm - rRigidDEM - posRad.y);
+//		if (1.0 * serpGeomD.mm - rRigidDEM - posRad.y < 0) printf("a22 %f\n", 1.0 * serpGeomD.mm - rRigidDEM - posRad.y);
 		return (1.0 * serpGeomD.mm - rRigidDEM - posRad.y);
 	}
 	n3 = R3(1, 0, 0); // just because. no penetration
@@ -93,36 +93,36 @@ __device__ inline real_ ContactWithSerpentineCurveBeta(real2 & n2, real3 posRad,
 		if (x >= 0 && x < serpGeomD.r3_2.x + serpGeomD.r4_2.x) {
 			penDist = IsOutBoundaryEllipsoid(n2, R2(x, y), R2(0, 0), serpGeomD.r2_2 + R2(rRigidDEM));
 			if (penDist < 0) {
-				printf("a16 %f\n", penDist);
+//				printf("a16 %f\n", penDist);
 				return penDist;
 			}
 			penDist = IsInBoundaryEllipsoid(n2, R2(x, y), R2(0, 0), serpGeomD.r3_2 - R2(rRigidDEM));
 			if (penDist < 0) {
-				printf("a17 %f\n", penDist);
+//				printf("a17 %f\n", penDist);
 				return penDist;
 			}
 		}
 		if (x >= serpGeomD.r3_2.x + serpGeomD.r4_2.x && x < 2 * serpGeomD.r3_2.x + 2 * serpGeomD.r4_2.x) {
 			penDist = IsOutBoundaryEllipsoid(n2, R2(x, y), R2(2 * serpGeomD.r3_2.x + 2 * serpGeomD.r4_2.x, 0), serpGeomD.r2_2 + R2(rRigidDEM));
 			if (penDist < 0) {
-				printf("a18 %f\n", penDist);
+//				printf("a18 %f\n", penDist);
 				return penDist;
 			}
 			penDist = IsInBoundaryEllipsoid(n2, R2(x, y), R2(2 * serpGeomD.r3_2.x + 2 * serpGeomD.r4_2.x, 0), serpGeomD.r3_2 - R2(rRigidDEM));
 			if (penDist < 0) {
-				printf("a19 %f\n", penDist);
+//				printf("a19 %f\n", penDist);
 				return penDist;
 			}
 		}
 	} else {
 		penDist = IsOutBoundaryEllipsoid(n2, R2(x, y), R2(serpGeomD.r3_2.x + serpGeomD.r4_2.x, 0), serpGeomD.r4_2 + R2(rRigidDEM));
 		if (penDist < 0) {
-			printf("a20 %f\n", penDist);
+//			printf("a20 %f\n", penDist);
 			return penDist;
 		}
 		penDist = IsInBoundaryEllipsoid(n2, R2(x, y), R2(serpGeomD.r3_2.x + serpGeomD.r4_2.x, 0), serpGeomD.r1_2 - R2(rRigidDEM));
 		if (penDist < 0) {
-			printf("a21 %f\n", penDist);
+//			printf("a21 %f\n", penDist);
 			return penDist;
 		}
 	}
@@ -140,7 +140,7 @@ __device__ inline real_ ContactWithSerpentineCurve(real3 & n3, real3 posRad, rea
 	if (posRad.x < paramsD.nPeriod * serpGeomD.sPeriod) {
 		penDist = ContactWithSerpentineCurveBeta(n2, posRad, rRigidDEM);
 		n3 = R3(n2.x, 0, n2.y);
-		if (penDist < 0) printf("a1 %f\n", penDist);
+//		if (penDist < 0) printf("a1 %f\n", penDist);
 		return penDist;
 	} else {
 		//straight channel
@@ -151,13 +151,13 @@ __device__ inline real_ ContactWithSerpentineCurve(real3 & n3, real3 posRad, rea
 			penDist = IsOutBoundaryEllipsoid(n2, R2(x, y), R2(serpGeomD.r3_2.x + serpGeomD.r4_2.x, 0), serpGeomD.r4_2 + R2(rRigidDEM));
 			if (penDist < 0) {
 				n3 = R3(n2.x, 0, n2.y);
-				printf("a2 %f\n", penDist);
+//				printf("a2 %f\n", penDist);
 				return penDist;
 			}
 			penDist = IsInBoundaryEllipsoid(n2, R2(x, y), R2(serpGeomD.r3_2.x + serpGeomD.r4_2.x, 0), serpGeomD.r1_2 - R2(rRigidDEM));
 			if (penDist < 0) {
 				n3 = R3(n2.x, 0, n2.y);
-				printf("a3 %f\n", penDist);
+//				printf("a3 %f\n", penDist);
 				return penDist;
 			}
 		} else {
@@ -166,13 +166,13 @@ __device__ inline real_ ContactWithSerpentineCurve(real3 & n3, real3 posRad, rea
 					penDist = IsOutBoundaryEllipsoid(n2, R2(x, y), R2(0, 0), serpGeomD.r2_2 + R2(rRigidDEM));
 					if (penDist < 0) {
 						n3 = R3(n2.x, 0, n2.y);
-						printf("a4 %f\n", penDist);
+//						printf("a4 %f\n", penDist);
 						return penDist;
 					}
 					penDist = IsInBoundaryEllipsoid(n2, R2(x, y), R2(0, 0), serpGeomD.r3_2 - R2(rRigidDEM));
 					if (penDist < 0) {
 						n3 = R3(n2.x, 0, n2.y);
-						printf("a5 %f\n", penDist);
+//						printf("a5 %f\n", penDist);
 						return penDist;
 					}
 				}
@@ -180,13 +180,13 @@ __device__ inline real_ ContactWithSerpentineCurve(real3 & n3, real3 posRad, rea
 					penDist = IsOutBoundaryEllipsoid(n2, R2(x, y), R2(serpGeomD.r2_2.x + 2 * serpGeomD.r1_2.x + serpGeomD.r5_2.x, 0), serpGeomD.r5_2 + R2(rRigidDEM));
 					if (penDist < 0) {
 						n3 = R3(n2.x, 0, n2.y);
-						printf("a6 %f\n", penDist);
+//						printf("a6 %f\n", penDist);
 						return penDist;
 					}
 					penDist = IsInBoundaryEllipsoid(n2, R2(x, y), R2(serpGeomD.r3_2.x + 2 * serpGeomD.r4_2.x + serpGeomD.r6_2.x, 0), serpGeomD.r6_2 - R2(rRigidDEM));
 					if (penDist < 0) {
 						n3 = R3(n2.x, 0, n2.y);
-						printf("a7 %f\n", penDist);
+//						printf("a7 %f\n", penDist);
 						return penDist;
 					}
 				}
@@ -200,14 +200,14 @@ __device__ inline real_ ContactWithSerpentineCurve(real3 & n3, real3 posRad, rea
 					if (penDist < 0) {
 						n2 = R2(0, 1);
 						n3 = R3(n2.x, 0, n2.y);
-						printf("a8 %f\n", penDist);
+//						printf("a8 %f\n", penDist);
 						return penDist; //note that y is negative, fabs(y) = -y
 					}
 					penDist = -y + serpGeomD.r6_2.y - rRigidDEM;
 					if (penDist < 0) {
 						n2 = R2(0, -1);
 						n3 = R3(n2.x, 0, n2.y);
-						printf("a9 %f\n", penDist);
+//						printf("a9 %f\n", penDist);
 						return penDist;
 					}
 				}
@@ -217,14 +217,14 @@ __device__ inline real_ ContactWithSerpentineCurve(real3 & n3, real3 posRad, rea
 					if (penDist < 0) {
 						n2 = R2(0, 1);
 						n3 = R3(n2.x, 0, n2.y);
-						printf("a10 %f\n", penDist);
+//						printf("a10 %f\n", penDist);
 						return penDist;
 					}
 					penDist = -y + y2_slimHor.y - rRigidDEM;
 					if (penDist < 0) {
 						n2 = R2(0, -1);
 						n3 = R3(n2.x, 0, n2.y);
-						printf("a11 %f\n", penDist);
+//						printf("a11 %f\n", penDist);
 						return penDist;
 					}
 				}
@@ -233,14 +233,14 @@ __device__ inline real_ ContactWithSerpentineCurve(real3 & n3, real3 posRad, rea
 					if (penDist < 0) {
 						n2 = R2(0, 1);
 						n3 = R3(n2.x, 0, n2.y);
-						printf("a12 %f\n", penDist);
+//						printf("a12 %f\n", penDist);
 						return penDist;
 					}
 					penDist = -y + y2_endHor.y - rRigidDEM;
 					if (penDist < 0) {
 						n2 = R2(0, -1);
 						n3 = R3(n2.x, 0, n2.y);
-						printf("a13 %f\n", penDist);
+//						printf("a13 %f\n", penDist);
 						return penDist;
 					}
 				}
@@ -251,7 +251,7 @@ __device__ inline real_ ContactWithSerpentineCurve(real3 & n3, real3 posRad, rea
 						if (penDist < 0) {
 							n2 = R2(-1, 0);
 							n3 = R3(n2.x, 0, n2.y);
-							printf("a14 %f\n", penDist);
+//							printf("a14 %f\n", penDist);
 							return penDist;
 						}
 					}
@@ -262,7 +262,7 @@ __device__ inline real_ ContactWithSerpentineCurve(real3 & n3, real3 posRad, rea
 						if (penDist < 0) {
 							n2 = R2(1, 0);
 							n3 = R3(n2.x, 0, n2.y);
-							printf("a15 %f\n", penDist);
+//							printf("a15 %f\n", penDist);
 							return penDist;
 						}
 					}
