@@ -1248,7 +1248,8 @@ void ChSystem::Reference_LM_byID()
 			else
 			{
 				Lpointer->SetValid(false);
-				malink->SetMarkers(0,0); // however marker IDs will survive!!
+				malink->SetMarker1(0);  // note: marker ID is maintained
+				malink->SetMarker2(0);  // note: marker ID is maintained
 				iterlink = RemoveLinkIter(iterlink); // may delete it...
 			}
 		}

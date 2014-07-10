@@ -129,15 +129,10 @@ void ChLinkMarkers::SetMarker2 (ChMarker* mark2)
 }
 
 
-void ChLinkMarkers::SetMarkers (ChMarker* mark1, ChMarker* mark2)
-{
-    SetMarker1 (mark1);
-    SetMarker2 (mark2);
-}
-
 int ChLinkMarkers::ReferenceMarkers(ChMarker* mark1, ChMarker* mark2)
 {
-	this->SetMarkers (mark1, mark2);
+	this->SetMarker1(mark1);
+  this->SetMarker2(mark2);
 
 	if (mark1)
 		SetMarkID1(mark1->GetIdentifier());
@@ -186,8 +181,6 @@ int ChLinkMarkers::Initialize(ChSharedPtr<ChBody> mbody1, ChSharedPtr<ChBody> mb
 	ChMarker* mm2 = mmark2.get_ptr();
 	ReferenceMarkers(mm1, mm2);
 
-	//SetSystem(this->Body1->GetSystem());	
-	
 	if (pos_are_relative)
 	{
 		mmark1->Impose_Rel_Coord(mpos1);

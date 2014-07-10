@@ -107,9 +107,6 @@ public:
 	virtual void SetMarker1 (ChMarker* mark1);
 					/// Set the 2nd referenced marker (the 'master' marker, owned by 2nd body)
 	virtual void SetMarker2 (ChMarker* mark2);
-					/// Set both constrained markers at once. Note that also Body1 and Body2 are
-					/// automatically set (they are of course the owners of the two markers)
-	void SetMarkers (ChMarker* mark1, ChMarker* mark2);
 					/// Exchange the master and the slave marker. The same happens for 
 					/// body1 and body2, automatically.
 	void SwapMainSlaveMarkers();
@@ -119,7 +116,7 @@ public:
 	int GetMarkID1() {return markID1;}
 	int GetMarkID2() {return markID2;}
 
-					/// Shortcut: performs  SetMarkers(), and SetMarkID1() SetMarkID2() at once.
+					/// Shortcut: set markers and marker IDs at once.
 	int ReferenceMarkers(ChMarker* mark1, ChMarker* mark2);
 
 					/// Use this function after link creation, to initialize the link from 
