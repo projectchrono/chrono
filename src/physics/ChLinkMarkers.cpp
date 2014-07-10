@@ -165,13 +165,13 @@ int ChLinkMarkers::Initialize(ChSharedPtr<ChMarker> mmark1, ChSharedPtr<ChMarker
 	return true;
 }
 	
-int ChLinkMarkers::Initialize(ChSharedPtr<ChBody> mbody1, ChSharedPtr<ChBody> mbody2,  ChCoordsys<> mpos)
+int ChLinkMarkers::Initialize(ChSharedPtr<ChBody> mbody1, ChSharedPtr<ChBody> mbody2,  const ChCoordsys<>& mpos)
 {
 	return Initialize(mbody1,mbody2,false,mpos,mpos);
 	
 }
 
-int ChLinkMarkers::Initialize(ChSharedPtr<ChBody> mbody1, ChSharedPtr<ChBody> mbody2, bool pos_are_relative, ChCoordsys<> mpos1, ChCoordsys<> mpos2)
+int ChLinkMarkers::Initialize(ChSharedPtr<ChBody> mbody1, ChSharedPtr<ChBody> mbody2, bool pos_are_relative, const ChCoordsys<>& mpos1, const ChCoordsys<>& mpos2)
 {
 	assert(mbody1.get_ptr() != mbody2.get_ptr());
 	assert(mbody1->GetSystem() == mbody2->GetSystem());
