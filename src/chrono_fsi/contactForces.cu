@@ -28,14 +28,15 @@ __global__ void Add_ContactForcesD(real3 * totalAccRigid3, real3 * posRigidD, re
 	real3 n3;
 
 	real3 force3 = R3(0);
-	real_ penDist = ContactWith_YPlanes(n3, posRigidA, paramsD.rigidRadius.x);
+	real_ rad = paramsD.rigidRadius.x + paramsD.HSML;
+	real_ penDist = ContactWith_YPlanes(n3, posRigidA, rad);
 	if (penDist < 0) {
-		force3 += DEM_Force(-penDist, n3, paramsD.rigidRadius.x, 20 * paramsD.rigidRadius.x, dummyVelMasA, R4(0));
+		force3 += DEM_Force(-penDist, n3, rad, 20 * rad, dummyVelMasA, R4(0));
 	}
 
-	penDist = ContactWithSerpentineCurve(n3, posRigidA, paramsD.rigidRadius.x);
+	penDist = ContactWithSerpentineCurve(n3, posRigidA, rad);
 	if (penDist < 0) {
-		force3 += DEM_Force(-penDist, n3, paramsD.rigidRadius.x, 20 * paramsD.rigidRadius.x, dummyVelMasA, R4(0)); //approximate the curve with straight line
+		force3 += DEM_Force(-penDist, n3, rad, 20 * rad, dummyVelMasA, R4(0)); //approximate the curve with straight line
 	}
 
 
@@ -45,11 +46,11 @@ __global__ void Add_ContactForcesD(real3 * totalAccRigid3, real3 * posRigidD, re
 		}
 		real3 posRigidB = posRigidD[rigidSphereB];
 		real4 dummyVelMasB = velMassRigidD[rigidSphereB];
-		penDist = length(posRigidB - posRigidA) - 2 * paramsD.rigidRadius.x;
+		penDist = length(posRigidB - posRigidA) - 2 * rad;
 		if (penDist < 0) {
 //			printf("a24 %f\n", penDist);
 			n3 = (posRigidA - posRigidB) / length(posRigidB - posRigidA);
-			force3 += DEM_Force(-penDist, n3, paramsD.rigidRadius.x, paramsD.rigidRadius.x, dummyVelMasA, dummyVelMasB);
+			force3 += DEM_Force(-penDist, n3, rad, rad, dummyVelMasA, dummyVelMasB);
 		}
 	}
 
