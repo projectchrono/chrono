@@ -44,8 +44,6 @@ void ChCylinder::StreamOUT(ChStreamOutBinary& mstream)
 	ChGeometry::StreamOUT(mstream);
 
 		// stream out all member data
-	mstream << p1;
-	mstream << p2;
 	mstream << rad;
 }
 
@@ -58,8 +56,6 @@ void ChCylinder::StreamIN(ChStreamInBinary& mstream)
 	ChGeometry::StreamIN(mstream);
 
 		// stream in all member data
-	mstream >> p1;
-	mstream >> p2;
 	mstream >> rad;
 }
 

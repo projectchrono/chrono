@@ -125,9 +125,7 @@ int main(int argc, char* argv[])
 
 			// ==Asset== Attach also a 'cylinder' shape 
 	ChSharedPtr<ChCylinderShape> mcyl(new ChCylinderShape);
-	mcyl->GetCylinderGeometry().p1  = ChVector<>(2,-0.2,0);
-	mcyl->GetCylinderGeometry().p2  = ChVector<>(2.2,0.5,0);
-	mcyl->GetCylinderGeometry().rad = 0.3;
+	mcyl->GetCylinderGeometry().rad = ChVector<>(.3,.7,.3);
 	mbody->AddAsset(mcyl);
 
 			// ==Asset== Attach color. To set colors for all assets  

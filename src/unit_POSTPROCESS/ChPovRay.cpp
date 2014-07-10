@@ -636,13 +636,21 @@ void ChPovRay::_recurseExportAssets(std::vector< ChSharedPtr<ChAsset> >& assetli
 				// POV will make the sphere
 				assets_file << "cylinder  {\n";
 
-				assets_file << " <" << myobjshapeasset->GetCylinderGeometry().p1.x;
-				assets_file << ","  << myobjshapeasset->GetCylinderGeometry().p1.y;
-				assets_file << ","  << myobjshapeasset->GetCylinderGeometry().p1.z << ">,\n";
-				assets_file << " <" << myobjshapeasset->GetCylinderGeometry().p2.x;
-				assets_file << ","  << myobjshapeasset->GetCylinderGeometry().p2.y;
-				assets_file << ","  << myobjshapeasset->GetCylinderGeometry().p2.z << ">,\n";
-				assets_file << " "  << myobjshapeasset->GetCylinderGeometry().rad << "\n";
+				assets_file << " <0, -1, 0>, \n" << 0;
+				assets_file << " <0,  1, 0>, \n" << 0;
+				assets_file << " 1 \n";
+				assets_file << "scale <"<<myobjshapeasset->GetCylinderGeometry().rad.x;
+				assets_file << ","<<myobjshapeasset->GetCylinderGeometry().rad.y;
+				assets_file << ","<<myobjshapeasset->GetCylinderGeometry().rad.z << ">\n";
+
+				ChQuaternion<> boxrot = myobjshapeasset->Rot.Get_A_quaternion();
+				assets_file << " quatRotation(<" << boxrot.e0;
+				assets_file << "," << boxrot.e1;
+				assets_file << "," << boxrot.e2;
+				assets_file << "," << boxrot.e3 << ">) \n";
+				assets_file << " translate  <" << myobjshapeasset->Pos.x;
+				assets_file << "," << myobjshapeasset->Pos.y;
+				assets_file << "," << myobjshapeasset->Pos.z << "> \n";
 
 				assets_file <<"}\n";
 

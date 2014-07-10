@@ -50,13 +50,11 @@ class ChApi ChCone: public ChGeometry {
 		//
 
 		ChCone() {
-			center = VNULL;
 			rad = 0;
 		};
 
 		ChCone(Vector& mc, Vector mrad)
 		{
-			center = mc;
 			rad = mrad;
 		}
 
@@ -67,7 +65,6 @@ class ChApi ChCone: public ChGeometry {
 
 		void Copy (const ChCone* source)
 		{
-			center = source->center;
 			rad = source->rad;
 		};
 
@@ -91,7 +88,7 @@ class ChApi ChCone: public ChGeometry {
 
 					}
 
-					virtual Vector Baricenter() {return center;};
+					virtual Vector Baricenter() {return ChVector<>(0,0.25*rad.y,0);};
 
 					virtual void CovarianceMatrix(ChMatrix33<>& C)
 					{
@@ -104,8 +101,6 @@ class ChApi ChCone: public ChGeometry {
 					//
 					// DATA
 					//
-
-					Vector center;
 
 					Vector rad;
 
