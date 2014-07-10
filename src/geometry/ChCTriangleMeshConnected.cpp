@@ -985,6 +985,8 @@ void ChTriangleMeshConnected::LoadWavefrontMesh(std::string filename, bool load_
 	
 	GeometryInterface emptybm; // BuildMesh bm;
 
+	m_filename = filename;
+
 	OBJ obj;
 
 	obj.LoadMesh(filename.c_str(), &emptybm, true);
