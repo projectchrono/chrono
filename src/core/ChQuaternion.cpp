@@ -268,13 +268,9 @@ Quaternion Qdtdt_from_AngAxis (double angle_dtdt, Vector axis, Quaternion q, Qua
 
 // Returns TRUE if two quaternions are equal
 
-int  Qequal  (Quaternion* qa, Quaternion* qb)
+bool  Qequal (const Quaternion& qa, const Quaternion& qb)
 {
-	if ((qa->e0 == qb->e0) &&
-		(qa->e1 == qb->e1) &&
-		(qa->e2 == qb->e2) &&
-		(qa->e3 == qb->e3)) return 1;
-	else return 0;
+  return qa == qb;
 }
 
 // Returns TRUE if quaternion is not null;

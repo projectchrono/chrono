@@ -464,7 +464,7 @@ ChVector<RealA> Vnorm(ChVector<RealA> va)
 }
 
 template <class RealA, class RealB>
-bool Vequal(ChVector<RealA>* va, ChVector<RealB>* vb)
+bool Vequal(const ChVector<RealA>& va, const ChVector<RealB>& vb)
 {
 	return (va==vb);
 }
@@ -538,7 +538,7 @@ void XdirToDxDyDz(ChVector<RealA>* mVxdir,
 
 	mdefVsingular = VECT_Y;
 
-	if (Vequal(mVxdir, &mVnull))
+	if (Vequal(*mVxdir, mVnull))
 		*Vx = VECT_X;
 	else
 		*Vx = Vnorm(*mVxdir);

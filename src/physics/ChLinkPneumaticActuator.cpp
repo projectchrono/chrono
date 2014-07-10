@@ -149,7 +149,7 @@ void ChLinkPneumaticActuator::UpdateTime (double mytime)
     Vector mx = Vnorm (absdist);
 
     Vector my = ma.Get_A_Yaxis();
-    if (Vequal(&mx, &my))
+    if (Vequal(mx, my))
         if  (mx.x == 1.0)   my = VECT_Y;
         else                my = VECT_X;
     Vector mz = Vnorm (Vcross(mx, my));
