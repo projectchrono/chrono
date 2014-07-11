@@ -169,16 +169,18 @@ inline real3 GetSupportPoint_RoundedBox(
 }
 inline real3 GetSupportPoint_RoundedCylinder(
       const real3 &B,
+      const real3 &C,
       const real3 &n) {
 
-   return GetSupportPoint_Cylinder(B, n) + GetSupportPoint_Sphere(R3(B.z), n);
+   return GetSupportPoint_Cylinder(B, n) + GetSupportPoint_Sphere(R3(C.x), n);
 
 }
 inline real3 GetSupportPoint_RoundedCone(
       const real3 &B,
+      const real3 &C,
       const real3 &n) {
 
-   return GetSupportPoint_Cone(B, n) + GetSupportPoint_Sphere(R3(B.z), n);
+   return GetSupportPoint_Cone(B, n) + GetSupportPoint_Sphere(R3(C.x), n);
 
 }
 inline real3 GetCenter_Sphere() {

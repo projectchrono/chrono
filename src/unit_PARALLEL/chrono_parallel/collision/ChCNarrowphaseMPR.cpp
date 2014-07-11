@@ -81,13 +81,13 @@ __device__ __host__ real3 TransformSupportVert(
          localSupport = GetSupportPoint_Capsule(B, rotated_n);
          break;
       case chrono::collision::ROUNDEDBOX:
-         localSupport = GetSupportPoint_RoundedBox(B,C, rotated_n);
+         localSupport = GetSupportPoint_RoundedBox(B, C, rotated_n);
          break;
       case chrono::collision::ROUNDEDCYL:
-         localSupport = GetSupportPoint_RoundedCylinder(B, rotated_n);
+         localSupport = GetSupportPoint_RoundedCylinder(B, C, rotated_n);
          break;
       case chrono::collision::ROUNDEDCONE:
-         localSupport = GetSupportPoint_RoundedCone(B, rotated_n);
+         localSupport = GetSupportPoint_RoundedCone(B, C, rotated_n);
          break;
       case chrono::collision::TRIANGLEMESH:
          return GetSupportPoint_Triangle(A, B, C, n);
@@ -745,18 +745,18 @@ void ChCNarrowphaseMPR::function_MPR_Store(
 
    real envelope = collision_envelope;
 
-   if (A_T == SPHERE || A_T == ELLIPSOID || A_T == BOX || A_T == CYLINDER || A_T == CONE) {
+   if (A_T != TRIANGLEMESH) {
       A_X = quatRotate(A_X, rotA) + posA;
-   } else if (A_T == TRIANGLEMESH) {
+   } else  {
       envelope = 0;
       A_X = quatRotate(A_X, rotA) + posA;
       A_Y = quatRotate(A_Y, rotA) + posA;
       A_Z = quatRotate(A_Z, rotA) + posA;
    }
 
-   if (B_T == SPHERE || B_T == ELLIPSOID || B_T == BOX || B_T == CYLINDER || B_T == CONE) {
+   if (B_T != TRIANGLEMESH) {
       B_X = quatRotate(B_X, rotB) + posB;
-   } else if (B_T == TRIANGLEMESH) {
+   } else  {
       envelope = 0;
       B_X = quatRotate(B_X, rotB) + posB;
       B_Y = quatRotate(B_Y, rotB) + posB;

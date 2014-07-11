@@ -126,7 +126,9 @@ __device__ __host__ void function_ComputeAABB(
 		ComputeAABBTriangle(A, B, C, temp_min, temp_max);
 	} else if (type == ELLIPSOID || type == BOX || type == CYLINDER || type == CONE) {
 		ComputeAABBBox(B, A, position, obj_data_R[index], body_rot[id], temp_min, temp_max);
-	} else if (type == CAPSULE) {
+	} else if (type == ROUNDEDBOX || type == ROUNDEDCYL || type == ROUNDEDCONE) {
+      ComputeAABBBox(B+C.x, A, position, obj_data_R[index], body_rot[id], temp_min, temp_max);
+   } else if (type == CAPSULE) {
 		real3 B_ = R3(B.x, B.x + B.y, B.z);
 		ComputeAABBBox(B_, A, position, obj_data_R[index], body_rot[id], temp_min, temp_max);
 	} else {
