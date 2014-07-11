@@ -107,9 +107,6 @@ public:
 	virtual void SetMarker1 (ChMarker* mark1);
 					/// Set the 2nd referenced marker (the 'master' marker, owned by 2nd body)
 	virtual void SetMarker2 (ChMarker* mark2);
-					/// Set both constrained markers at once. Note that also Body1 and Body2 are
-					/// automatically set (they are of course the owners of the two markers)
-	void SetMarkers (ChMarker* mark1, ChMarker* mark2);
 					/// Exchange the master and the slave marker. The same happens for 
 					/// body1 and body2, automatically.
 	void SwapMainSlaveMarkers();
@@ -119,7 +116,7 @@ public:
 	int GetMarkID1() {return markID1;}
 	int GetMarkID2() {return markID2;}
 
-					/// Shortcut: performs  SetMarkers(), and SetMarkID1() SetMarkID2() at once.
+					/// Shortcut: set markers and marker IDs at once.
 	int ReferenceMarkers(ChMarker* mark1, ChMarker* mark2);
 
 					/// Use this function after link creation, to initialize the link from 
@@ -128,8 +125,8 @@ public:
 					/// must belong to the same ChSystem. 
 					/// The position of mark2 is used as link's position and main reference.
 	virtual int Initialize(ChSharedPtr<ChMarker> mark1, ///< first  marker to join
-						   ChSharedPtr<ChMarker> mark2	 ///< second marker to join (master)
-						   );
+	                       ChSharedPtr<ChMarker> mark2  ///< second marker to join (master)
+	                       );
 
 					/// Use this function after link creation, to initialize the link from 
 					/// two joined rigid bodies. 
@@ -138,9 +135,9 @@ public:
 					/// you can use GetMarker1() and GetMarker2() to access them.
 					/// To specify the (absolute) position of link and markers, use 'mpos'.
 	virtual int Initialize(ChSharedPtr<ChBody> mbody1, ///< first  body to join
-						   ChSharedPtr<ChBody> mbody2, ///< second body to join 
-						   ChCoordsys<> mpos		///< the current absolute pos.& alignment.
-						   );
+	                       ChSharedPtr<ChBody> mbody2, ///< second body to join 
+	                       const ChCoordsys<>& mpos    ///< the current absolute pos.& alignment.
+	                       );
 
 					/// Use this function after link creation, to initialize the link from 
 					/// two joined rigid bodies. 
@@ -149,11 +146,11 @@ public:
 					/// you can use GetMarker1() and GetMarker2() to access them.
 					/// To specify the (absolute) position of link and markers, use 'mpos'.
 	virtual int Initialize(ChSharedPtr<ChBody> mbody1, ///< first  body to join
-						   ChSharedPtr<ChBody> mbody2, ///< second body to join  
-						   bool pos_are_relative,	///< if =true, following two positions are relative to bodies. If false, are absolute.
-						   ChCoordsys<> mpos1, 		///< the position & alignment of 1st marker (relative to body1 cords, or absolute)
-						   ChCoordsys<> mpos2		///< the position & alignment of 2nd marker (relative to body2 cords, or absolute)
-						   );
+	                       ChSharedPtr<ChBody> mbody2, ///< second body to join  
+	                       bool pos_are_relative,      ///< if =true, following two positions are relative to bodies. If false, are absolute.
+	                       const ChCoordsys<>& mpos1,  ///< the position & alignment of 1st marker (relative to body1 cords, or absolute)
+	                       const ChCoordsys<>& mpos2   ///< the position & alignment of 2nd marker (relative to body2 cords, or absolute)
+	                       );
 
 					/// Get the link coordinate system, expressed relative to Body2 (the 'master'
 					/// body). This represents the 'main' reference of the link: reaction forces 

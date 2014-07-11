@@ -127,6 +127,34 @@ public:
                           const ChVector<>&   pos = ChVector<>(),
                           const ChMatrix33<>& rot = ChMatrix33<>(1)) {return false;}
 
+  /// Add a rounded box shape to this model, for collision purposes
+  virtual bool AddRoundedBox(double hx,
+                             double hy,
+                             double hz,
+                             double sphere_r,
+                             const ChVector<> &pos = ChVector<>(),
+                             const ChMatrix33<> &rot = ChMatrix33<>(1)
+                             ){return false;}
+
+
+  /// Add a rounded cylinder to this model (default axis on Y direction), for collision purposes
+  virtual bool AddRoundedCylinder(double rx,
+                                  double rz,
+                                  double hy,
+                                  double sphere_r,
+                                  const ChVector<> &pos = ChVector<>(),
+                                  const ChMatrix33<> &rot = ChMatrix33<>(1)
+                                  ){return false;}
+
+  /// Add a rounded cone to this model (default axis on Y direction), for collision purposes
+  virtual bool AddRoundedCone(double rx,
+                              double rz,
+                              double hy,
+                              double sphere_r,
+                              const ChVector<> &pos = ChVector<>(),
+                              const ChMatrix33<> &rot = ChMatrix33<>(1)
+                              ){return false;}
+
 	/// Add a convex hull to this model. A convex hull is simply a point cloud that describe
 	/// a convex polytope. Connectivity between the vertexes, as faces/edges in triangle meshes is not necessary.
 	/// Points are passed as a list, that is instantly copied into the model.

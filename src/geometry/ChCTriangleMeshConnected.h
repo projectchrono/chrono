@@ -66,8 +66,13 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh
 	std::vector< ChVector<int> >	m_face_u_indices;
 	std::vector< ChVector<int> >	m_face_col_indices;
 	
+	   //file string if loading an obj file.
+	std::string m_filename;
+
 public:
-	ChTriangleMeshConnected () {};
+	ChTriangleMeshConnected () {
+	   m_filename = "";
+	};
 
 
 		//

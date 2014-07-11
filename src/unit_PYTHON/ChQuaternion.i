@@ -114,32 +114,32 @@ public:
 typedef ChQuaternion<double> Quaternion;
 typedef ChQuaternion<float>  QuaternionF;
 
-double		Qlenght (Quaternion q);
-Quaternion	Qadd (Quaternion qa, Quaternion qb);
-Quaternion	Qsub (Quaternion qa, Quaternion qb);
-Quaternion	Qscale (Quaternion q, double fact);
-Quaternion	Qnorm (Quaternion q);
-Quaternion	Q_from_AngAxis (double angle, chrono::Vector axis);
-Quaternion	Q_from_NasaAngles(chrono::Vector RxRyRz);
-chrono::Vector Q_to_NasaAngles(Quaternion mq);
+double		Qlenght (const Quaternion& q);
+Quaternion	Qadd (const Quaternion& qa, const Quaternion& qb);
+Quaternion	Qsub (const Quaternion& qa, const Quaternion& qb);
+Quaternion	Qscale (const Quaternion& q, double fact);
+Quaternion	Qnorm (const Quaternion& q);
+Quaternion	Q_from_AngAxis (double angle, const chrono::Vector& axis);
+Quaternion	Q_from_NasaAngles(const chrono::Vector& RxRyRz);
+chrono::Vector Q_to_NasaAngles(const Quaternion& mq);
 Quaternion	Q_from_AngZ (double angleZ);
 Quaternion	Q_from_AngX (double angleX);
 Quaternion	Q_from_AngY (double angleY);
 void			Q_to_AngAxis (Quaternion* quat, double* a_angle, chrono::Vector* a_axis);
-Quaternion	Qdt_from_Wrel (chrono::Vector w, Quaternion q);
-Quaternion	Qdt_from_Wabs (chrono::Vector w, Quaternion q);
-Quaternion	Qdt_from_AngAxis (Quaternion quat, double angle_dt, chrono::Vector axis);
+Quaternion	Qdt_from_Wrel (const chrono::Vector& w, const Quaternion& q);
+Quaternion	Qdt_from_Wabs (const chrono::Vector& w, const Quaternion& q);
+Quaternion	Qdt_from_AngAxis (const Quaternion& quat, double angle_dt, const chrono::Vector& axis);
 Quaternion	Qdtdt_from_Aabs (chrono::Vector a, Quaternion q, Quaternion q_dt);
 Quaternion	Qdtdt_from_Arel (chrono::Vector a, Quaternion q, Quaternion q_dt);
-Quaternion	Qdtdt_from_AngAxis (double angle_dtdt, chrono::Vector axis, Quaternion q, Quaternion q_dt);
-Quaternion	Qconjugate (Quaternion q);
-Quaternion	Qcross (Quaternion qa, Quaternion qb);
-int			Qequal (Quaternion* qa, Quaternion* qb);
-int			Qnotnull (Quaternion* qa);
+Quaternion	Qdtdt_from_AngAxis (double angle_dtdt, const chrono::Vector& axis, const Quaternion& q, const Quaternion& q_dt);
+Quaternion	Qconjugate (const Quaternion& q);
+Quaternion	Qcross (const Quaternion& qa, const Quaternion& qb);
+bool		Qequal (const Quaternion& qa, const Quaternion& qb);
+bool		Qnotnull (const Quaternion& qa);
 Quaternion	ImmQ_complete (chrono::Vector* qimm);
 Quaternion	ImmQ_dt_complete (Quaternion* mq, chrono::Vector* qimm_dt);
 Quaternion	ImmQ_dtdt_complete (Quaternion* mq, Quaternion* mqdt, chrono::Vector* qimm_dtdt);
-chrono::Vector	 VaxisXfromQuat (Quaternion quat);
+chrono::Vector	 VaxisXfromQuat (const Quaternion& quat);
 
 
 #define ANGLESET_ANGLE_AXIS		0
@@ -150,11 +150,11 @@ chrono::Vector	 VaxisXfromQuat (Quaternion quat);
 #define ANGLESET_RODRIGUEZ		5
 #define ANGLESET_QUATERNION		6
 
-chrono::Vector     Quat_to_Angle (int angset, Quaternion* mquat);
-chrono::Vector	 Angle_to_Angle(int setfrom, int setto, chrono::Vector* mangles);
-Quaternion Angle_to_Quat (int angset, chrono::Vector* mangles);
-Quaternion AngleDT_to_QuatDT (int angset, chrono::Vector* mangles, Quaternion* q);
-Quaternion AngleDTDT_to_QuatDTDT (int angset, chrono::Vector* mangles, Quaternion* q);
+chrono::Vector     Quat_to_Angle (int angset, const chrono::Quaternion& mquat);
+chrono::Vector	 Angle_to_Angle(int setfrom, int setto, const chrono::Vector& mangles);
+Quaternion Angle_to_Quat (int angset, const chrono::Vector& mangles);
+Quaternion AngleDT_to_QuatDT (int angset, const chrono::Vector& mangles, const chrono::Quaternion& q);
+Quaternion AngleDTDT_to_QuatDTDT (int angset, const chrono::Vector& mangles, const chrono::Quaternion& q);
 
 };
 

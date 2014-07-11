@@ -44,7 +44,10 @@ class ChCollisionModel;
 class ChBody;
 
 
-
+///***OBSOLETE*** 
+/// [This was used for the Realsoft3D version of Chrono, with GUI, 
+///  but a more modern approach would be to have this object wrapper
+///  as a ChAsset.] Will be removed in future releases.
 ///
 ///  This class is used by ChObj as an interface to external
 /// object, that is 3rd party objects which may 'encapsulate'

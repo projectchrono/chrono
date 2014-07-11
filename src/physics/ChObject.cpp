@@ -48,11 +48,9 @@ namespace chrono
 ChClassRegister<ChObj> a_registration_ChObj;
 
 
-ChObj::ChObj ()						// builder
+ChObj::ChObj ()
 {
 	name.clear();
-	//next= 0;
-	//prev= 0;
 
 	ChTime = 0;
 	identifier = 0;
@@ -102,7 +100,7 @@ void ChObj::SetNoExternalObject()
 // OTHER FUNCTIONS
 //
 
-char* ChObj::GetName ()
+char* ChObj::GetName () const
 {
 	if (this->external_obj)
 		return external_obj->GetName();
@@ -116,7 +114,7 @@ void ChObj::SetName (const char myname[])
 }
 
 
-std::string ChObj::GetNameString ()
+std::string ChObj::GetNameString () const
 {
 	if (this->external_obj)
 		return std::string(external_obj->GetName());
