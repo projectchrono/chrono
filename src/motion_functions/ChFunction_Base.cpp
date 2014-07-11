@@ -322,7 +322,7 @@ int ChFunction::FileAsciiPairsSave(ChStreamOutAscii& m_file, double mxmin, doubl
 	if (msamples>=100000) throw (ChException("Warning! Too many points should be saved"));
 	if (mxmax<=mxmin) throw (ChException("Warning! Cannot save ChFunction if Xmax < Xmin"));
 
-	m_file.SetNumFormat((char* )"%0.8f");
+	m_file.SetNumFormat("%0.8f");
 	
 	double period = (mxmax-mxmin)/((double)msamples-1);
 	

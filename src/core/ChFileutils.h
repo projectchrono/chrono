@@ -38,22 +38,20 @@ public:
 			/// Set extension on a file identifier.
 			///   - force=1 forces change even if fid already has an extension
 			///   - force=0 does not change the extension if there already is one
-	static void Change_file_ext (char fid1[], char fid[], char ext[], int force);
+	static void Change_file_ext (char* fid1, const char* fid, const char* ext, int force);
 
 			/// Cut off extension on a file identifier.
-	static void Cut_file_ext (char fid[]);
-
+	static void Cut_file_ext (char* fid);
 
 			/// Get extension on a file identifier.
-	static void Get_file_ext (char fid[], char ext[]);
-
-
+	static void Get_file_ext (const char* fid, char* ext);
 
 			/// Get file size.
-	static int Get_file_size (char fname[]);
+	static int Get_file_size (const char* fname);
 	
-			/// Create a directory (return true if successful)
-	static bool MakeDirectory (char dirname[]);
+			/// Create a directory
+			/// Return 0 if successful, 1 if the directory exists, -1 otherwise
+	static int MakeDirectory (const char* dirname);
 
 };
 

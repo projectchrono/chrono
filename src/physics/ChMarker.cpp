@@ -177,7 +177,7 @@ void ChMarker::SetMotion_axis (Vector m_axis)
 
 // Coordinate setting, for user access
 
-void ChMarker::Impose_Rel_Coord (Coordsys m_coord)
+void ChMarker::Impose_Rel_Coord (const Coordsys& m_coord)
 {
 	Quaternion qtemp;
 				// set the actual coordinates
@@ -192,7 +192,7 @@ void ChMarker::Impose_Rel_Coord (Coordsys m_coord)
 	UpdateState () ;
 }
 
-void ChMarker::Impose_Abs_Coord (Coordsys m_coord)
+void ChMarker::Impose_Abs_Coord (const Coordsys& m_coord)
 {
 	ChBody* my_body;
 	my_body = GetBody();
@@ -354,8 +354,8 @@ void ChMarker::UpdatedExternalTime (double prevtime, double mtime)
 	// otherwise see if a BDF is needed, cause an external 3rd party is moving the marker
 	this->motion_type = M_MOTION_FUNCTIONS;
 
-	if (  (!(Vequal(&coord.pos, &last_rel_coord.pos))||
-		   !(Qequal(&coord.rot, &last_rel_coord.rot)) )
+	if (  (!(Vequal(coord.pos, last_rel_coord.pos))||
+	       !(Qequal(coord.rot, last_rel_coord.rot)) )
 	     && (fabs(mstep) < 0.1)
 	     && (mstep != 0)
 	   ) // if POSITION or ROTATION ("rel_pos") has been changed in acceptable time step,.

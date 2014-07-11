@@ -1248,7 +1248,8 @@ void ChSystem::Reference_LM_byID()
 			else
 			{
 				Lpointer->SetValid(false);
-				malink->SetMarkers(0,0); // however marker IDs will survive!!
+				malink->SetMarker1(0);  // note: marker ID is maintained
+				malink->SetMarker2(0);  // note: marker ID is maintained
 				iterlink = RemoveLinkIter(iterlink); // may delete it...
 			}
 		}
@@ -1995,16 +1996,16 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 	// | Cq              0 | |l    |  | -C/dt +min(-C/dt,vlim)|   |c|
 	//
 
-	LCPprepare_load(true,		    // Cq,
-					true,			// adds [M]*v_old to the known vector
-					GetStep(),      // f*dt
-					GetStep()*GetStep(), // dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
-				 	GetStep(),		// dt*R   (nb only non-Schur based solvers support R matrix blocks)
-					1.0,			// M (for FEM with non-lumped masses, add their mass-matrixes)
-					1.0,		    // Ct   (needed, for rheonomic motors)
-					1.0/GetStep(),  // C/dt
-					max_penetration_recovery_speed,	 // vlim, max penetrations recovery speed (positive for exiting)
-					true);			// do above max. clamping on -C/dt
+	LCPprepare_load(true,                           // Cq,
+	                true,                           // adds [M]*v_old to the known vector
+	                step,                           // f*dt
+	                step*step,                      // dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
+	                step,                           // dt*R   (nb only non-Schur based solvers support R matrix blocks)
+	                1.0,                            // M (for FEM with non-lumped masses, add their mass-matrixes)
+	                1.0,                            // Ct   (needed, for rheonomic motors)
+	                1.0/step,                       // C/dt
+	                max_penetration_recovery_speed, // vlim, max penetrations recovery speed (positive for exiting)
+	                true);                          // do above max. clamping on -C/dt
 
 	// if warm start is used, can exploit cached multipliers from last step...
 	LCPprepare_Li_from_speed_cache(); 
@@ -2025,7 +2026,7 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 	LCPresult_Li_into_speed_cache();
 
 	// updates the reactions of the constraint
-	LCPresult_Li_into_reactions(1.0/this->GetStep()) ; // R = l/dt  , approximately
+	LCPresult_Li_into_reactions(1.0/step) ; // R = l/dt  , approximately
  
 	// perform an Eulero integration step (1st order stepping as pos+=v_new*dt)
 
@@ -2034,9 +2035,9 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 	while HIER_BODY_NOSTOP
 	{
 		// EULERO INTEGRATION: pos+=v_new*dt  (do not do this, if GPU already computed it)
-		Bpointer->VariablesQbIncrementPosition(this->GetStep());
+		Bpointer->VariablesQbIncrementPosition(step);
 		// Set body speed, and approximates the acceleration by differentiation.
-		Bpointer->VariablesQbSetSpeed(this->GetStep());
+		Bpointer->VariablesQbSetSpeed(step);
 
 		// Now also updates all markers & forces
 		Bpointer->Update(this->ChTime);
@@ -2046,16 +2047,16 @@ int ChSystem::Integrate_Y_impulse_Anitescu()
 	while HIER_OTHERPHYSICS_NOSTOP
 	{
 		// EULERO INTEGRATION: pos+=v_new*dt  (do not do this, if GPU already computed it)
-		PHpointer->VariablesQbIncrementPosition(this->GetStep());
+		PHpointer->VariablesQbIncrementPosition(step);
 		// Set body speed, and approximates the acceleration by differentiation.
-		PHpointer->VariablesQbSetSpeed(this->GetStep());
+		PHpointer->VariablesQbSetSpeed(step);
 
 		// Now also updates all markers & forces
 		PHpointer->Update(this->ChTime);
 		HIER_OTHERPHYSICS_NEXT
 	}
  
-	this->ChTime = ChTime + GetStep();
+	this->ChTime = ChTime + step;
 
 	// Executes custom processing at the end of step
 	CustomEndOfStep();
@@ -2133,16 +2134,16 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 	// | Cq  0 | |l    |  |  - Ct +min(-C/dt,0) |   |c|
 	//
 
-	LCPprepare_load(true,			// Cq
-					true,			// adds [M]*v_old to the known vector
-					GetStep(),      // f*dt
-					GetStep()*GetStep(), // dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
-					GetStep(),		// dt*R   (nb only non-Schur based solvers support K matrix blocks)
-					1.0,			// M (for FEM with non-lumped masses, add their mass-matrices)
-					1.0,			// Ct      (needed, for rheonomic motors)
-					1.0/GetStep(),  // C/dt
-					0.0,			// max constr.recovery speed (positive for exiting) 
-					true);			// do above max. clamping on -C/dt
+	LCPprepare_load(true,      // Cq
+	                true,      // adds [M]*v_old to the known vector
+	                step,      // f*dt
+	                step*step, // dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
+	                step,      // dt*R   (nb only non-Schur based solvers support K matrix blocks)
+	                1.0,       // M (for FEM with non-lumped masses, add their mass-matrices)
+	                1.0,       // Ct      (needed, for rheonomic motors)
+	                1.0/step,  // C/dt
+	                0.0,       // max constr.recovery speed (positive for exiting) 
+	                true);     // do above max. clamping on -C/dt
 
 	// if warm start is used, can exploit cached multipliers from last step...
 	LCPprepare_Li_from_speed_cache();
@@ -2162,7 +2163,7 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 	LCPresult_Li_into_speed_cache();
 
 	// updates the reactions of the constraint
-	LCPresult_Li_into_reactions(1.0/this->GetStep()); // R = l/dt  , approximately
+	LCPresult_Li_into_reactions(1.0/step); // R = l/dt  , approximately
 
 
 	// perform an Eulero integration step (1st order stepping as pos+=v_new*dt)
@@ -2172,9 +2173,9 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 	while HIER_BODY_NOSTOP
 	{
 		// EULERO INTEGRATION: pos+=v_new*dt
-		Bpointer->VariablesQbIncrementPosition(this->GetStep());
+		Bpointer->VariablesQbIncrementPosition(step);
 		// Set body speed, and approximates the acceleration by differentiation.
-		Bpointer->VariablesQbSetSpeed(this->GetStep());
+		Bpointer->VariablesQbSetSpeed(step);
 
 		// Now also updates all markers & forces
 		//Bpointer->UpdateALL(this->ChTime); // not needed - will be done later anyway
@@ -2184,16 +2185,16 @@ int ChSystem::Integrate_Y_impulse_Tasora()
 	while HIER_OTHERPHYSICS_NOSTOP
 	{
 		// EULERO INTEGRATION: pos+=v_new*dt
-		PHpointer->VariablesQbIncrementPosition(this->GetStep());
+		PHpointer->VariablesQbIncrementPosition(step);
 		// Set body speed, and approximates the acceleration by differentiation.
-		PHpointer->VariablesQbSetSpeed(this->GetStep());
+		PHpointer->VariablesQbSetSpeed(step);
 
 		// Now also updates all markers & forces
 		//PHpointer->UpdateALL(this->ChTime); // not needed - will be done later anyway
 		HIER_OTHERPHYSICS_NEXT
 	}
 
-	this->ChTime = ChTime + GetStep();
+	this->ChTime = ChTime + step;
  
 
 	// 2-
@@ -2661,7 +2662,7 @@ int ChSystem::DoStaticRelaxing ()
 				}
 
 				double m_undotime = this->GetChTime();
-				DoFrameDynamics(m_undotime + (this->GetStep()*1.8)*( ((double)STATIC_MAX_STEPS-(double)m_iter))/(double)STATIC_MAX_STEPS );
+				DoFrameDynamics(m_undotime + (step*1.8)*( ((double)STATIC_MAX_STEPS-(double)m_iter))/(double)STATIC_MAX_STEPS );
 				this->SetChTime(m_undotime);
 			}
 

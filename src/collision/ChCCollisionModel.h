@@ -49,22 +49,20 @@ class ChBody;
 namespace collision
 {
 /// Shape types that can be created. Used so that shape type can be determined without going to bullet
-/// Both GPU and CPU Collision Models use this enum
-enum ShapeType
-{
-	SPHERE,
-	ELLIPSOID,
-	BOX,
-	CYLINDER,
-	CONVEXHULL,
-	TRIANGLEMESH,
-	BARREL,
-	RECT,				//Currently implemented on GPU only
-	DISC,				//Currently implemented on GPU only
-	ELLIPSE,			//Currently implemented on GPU only
-	CAPSULE,			//Currently implemented on GPU only
-	CONE,				//Currently implemented on GPU only
-	COMPOUND			//Currently implemented on GPU only
+/// Both Parallel and CPU Collision Models use this enum
+enum ShapeType {
+   SPHERE,
+   ELLIPSOID,
+   BOX,
+   CYLINDER,
+   CONVEXHULL,
+   TRIANGLEMESH,
+   BARREL,
+   CAPSULE,       //Currently implemented in parallel only
+   CONE,          //Currently implemented on parallel only
+   ROUNDEDBOX,    //Currently implemented on parallel only
+   ROUNDEDCYL,    //Currently implemented on parallel only
+   ROUNDEDCONE    //Currently implemented on parallel only
 };
 
 
@@ -151,6 +149,35 @@ public:
                           const ChVector<>&   pos = ChVector<>(),     ///< the position of the ellipsoid
                           const ChMatrix33<>& rot = ChMatrix33<>(1)   ///< the matrix defining rotation (orthogonal)
                           ) = 0;
+
+  /// Add a rounded box shape to this model, for collision purposes
+  virtual bool AddRoundedBox(double hx,
+                             double hy,
+                             double hz,
+                             double sphere_r,
+                             const ChVector<> &pos = ChVector<>(),
+                             const ChMatrix33<> &rot = ChMatrix33<>(1)
+                             ) = 0;
+
+
+  /// Add a rounded cylinder to this model (default axis on Y direction), for collision purposes
+  virtual bool AddRoundedCylinder(double rx,
+                                  double rz,
+                                  double hy,
+                                  double sphere_r,
+                                  const ChVector<> &pos = ChVector<>(),
+                                  const ChMatrix33<> &rot = ChMatrix33<>(1)
+                                  ) = 0;
+
+  /// Add a rounded cone to this model (default axis on Y direction), for collision purposes
+  virtual bool AddRoundedCone(double rx,
+                              double rz,
+                              double hy,
+                              double sphere_r,
+                              const ChVector<> &pos = ChVector<>(),
+                              const ChMatrix33<> &rot = ChMatrix33<>(1)
+                              ) = 0;
+
 
 	/// Add a convex hull to this model. A convex hull is simply a point cloud that describe
 	/// a convex polytope. Connectivity between the vertexes, as faces/edges in triangle meshes is not necessary.

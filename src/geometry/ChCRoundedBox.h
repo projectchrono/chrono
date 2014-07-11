@@ -10,15 +10,15 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHC_BOX_H
-#define CHC_BOX_H
+#ifndef CHC_ROUNDEDBOX_H
+#define CHC_ROUNDEDBOX_H
 
 //////////////////////////////////////////////////
 //  
-//   ChCBox.h
+//   ChCRoundedBox.h
 // 
-//   Header for the box geometry, used for collision
-//   detection an other stuff.
+//   Header for the rounded box geometry, used for
+//   collision detection and other stuff.
 //
 //   HEADER file for CHRONO,
 //	 Multibody dynamics engine
@@ -41,17 +41,17 @@ namespace geometry
 {
 
 
-#define CH_GEOCLASS_BOX   3
+#define CH_GEOCLASS_ROUNDEDBOX   16
 
 ///
 /// A box.
 /// Geometric object for collisions and such.
 ///
 
-class ChApi ChBox : public ChGeometry{
+class ChApi ChRoundedBox : public ChGeometry{
 
 							// Chrono simulation of RTTI, needed for serialization
-	CH_RTTI(ChBox,ChGeometry);
+	CH_RTTI(ChRoundedBox,ChGeometry);
 
 public:
 
@@ -59,30 +59,32 @@ public:
 		// CONSTRUCTORS
 		//
 
-	ChBox() 
+	ChRoundedBox() 
 				{
 					Pos= VNULL;
 					Size = VNULL;
 					Rot.Set33Identity();
+					radsphere = 0;
 				};
 					
 			/// Build from pos, rotation, xyzlengths 
-	ChBox(const ChVector<>& mpos, const ChMatrix33<>& mrot, const ChVector<>& mlengths)
+	ChRoundedBox(ChVector<>& mpos, ChMatrix33<>& mrot, ChVector<>& mlengths, double mradsphere) 
 				{
 					Pos = mpos; Size = 0.5*mlengths;
 					Rot.CopyFromMatrix(mrot);
+					radsphere = mradsphere;
 				}
 
 			/// Build from first corner and three other neighbouring corners
-	ChBox(ChVector<>& mC0, ChVector<>& mC1, ChVector<>& mC2, ChVector<>& mC3);
+	ChRoundedBox(ChVector<>& mC0, ChVector<>& mC1, ChVector<>& mC2, ChVector<>& mC3);
 
 
-	ChBox(ChBox & source)
+	ChRoundedBox(ChRoundedBox & source)
 				{
 					Copy(&source);
 				}
 
-	void Copy (ChBox* source) 
+	void Copy (ChRoundedBox* source) 
 				{
 					Pos = source->Pos;
 					Size = source->Size;
@@ -91,7 +93,7 @@ public:
 
 	ChGeometry* Duplicate () 
 				{
-					ChGeometry* mgeo = new ChBox(); 
+					ChGeometry* mgeo = new ChRoundedBox(); 
 					mgeo->Copy(this); return mgeo;
 				};
 
@@ -99,7 +101,7 @@ public:
 		// OVERRIDE BASE CLASS FUNCTIONS
 		//
 
-	virtual int GetClassType () {return CH_GEOCLASS_BOX;};
+	virtual int GetClassType () {return CH_GEOCLASS_ROUNDEDBOX;};
 
 	virtual void GetBoundingBox(double& xmin, double& xmax, 
 					    double& ymin, double& ymax, 
@@ -142,7 +144,7 @@ public:
 
 		/// Set the x y z lenghts of this box (that is, double
 		/// the Size values)
-	void SetLenghts(const ChVector<>& mlen){ Size = 0.5*mlen;}
+	void SetLenghts(ChVector<>& mlen){ Size = 0.5*mlen;}
 
 
 	
@@ -182,6 +184,8 @@ public:
 	ChVector<> Pos;
 			/// Hemi size (extension of box from center to corner)
 	ChVector<> Size;
+			/// Radius of sweeping sphere
+	double radsphere;
 };
 
 

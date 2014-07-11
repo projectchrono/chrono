@@ -363,10 +363,6 @@ public:
 				/// inherited classes!
 	virtual void Build_CqT(ChSparseMatrix& storage, int inscol) =0;
 
-				/// Return true only if this constraint can be used by the special GPU 
-				/// solver (for example, constraint with two jacobians of 6 elements each). 
-	virtual bool IsGPUcompatible() {return false;}
-
 				/// Set offset in global q vector (set automatically by ChLcpSystemDescriptor)
 	void SetOffset(int moff) {offset = moff;}
 				/// Get offset in global q vector 

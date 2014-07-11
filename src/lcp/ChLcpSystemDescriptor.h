@@ -387,7 +387,7 @@ public:
 					///  dump_E.dat  has the constr.compliance (Matlab sparse format)
 					///  dump_f.dat  has the applied loads  
 					///  dump_b.dat  has the constraint rhs 
-	virtual void DumpLastMatrices(char path[] = "");
+	virtual void DumpLastMatrices(const char* path = "");
 
 				/// OBSOLETE. Kept only for backward compability. Use rather: ConvertToMatrixForm
 	virtual void BuildMatrices (ChSparseMatrix* Cq,

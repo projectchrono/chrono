@@ -123,7 +123,7 @@ ChFile_ps::ChFile_ps(char m_name[],
 					 double h,
 					 char* m_prolog_file)  : ChStreamOutAsciiFile(m_name)
 {
-	this->SetNumFormat((char*)"%g");
+	this->SetNumFormat("%g");
 
 	strcpy (prolog_file, m_prolog_file);
 

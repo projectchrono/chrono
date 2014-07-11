@@ -44,7 +44,7 @@ ChLcpVariables& ChLcpVariables::operator=(const ChLcpVariables& other)
 	}
 	else
 	{
-		if (qb) delete qb;
+		delete qb;
 		qb=NULL;
 	}
 
@@ -56,7 +56,7 @@ ChLcpVariables& ChLcpVariables::operator=(const ChLcpVariables& other)
 	}
 	else
 	{
-		if (fb) delete fb;
+		delete fb;
 		fb=NULL;
 	}
 

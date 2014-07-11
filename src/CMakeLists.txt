@@ -517,6 +517,10 @@ IF (BUILD_CH_SDK)
 		geometry/ChCLinePoly.cpp 
 		geometry/ChCTriangle.cpp 
 		geometry/ChCTriangleMeshConnected.cpp 
+		geometry/ChCRoundedBox.cpp
+		geometry/ChCRoundedCylinder.cpp
+		geometry/ChCRoundedCone.cpp
+
 	)
 	SET(ChronoEngine_geometry_HEADERS
 		geometry/ChCGeometry.h
@@ -533,6 +537,9 @@ IF (BUILD_CH_SDK)
 		geometry/ChCTriangleMesh.h
 		geometry/ChCTriangleMeshSoup.h
 		geometry/ChCTriangleMeshConnected.h
+		geometry/ChCRoundedBox.h
+		geometry/ChCRoundedCylinder.h
+		geometry/ChCRoundedCone.h
 	)
 	SOURCE_GROUP(geometry FILES  
 			${ChronoEngine_geometry_SOURCES}
@@ -555,6 +562,9 @@ IF (BUILD_CH_SDK)
 		assets/ChAssetLevel.cpp
 		assets/ChGlyphs.cpp
 		assets/ChColorAsset.cpp
+		assets/ChRoundedCylinderShape.cpp
+		assets/ChRoundedBoxShape.cpp
+		assets/ChRoundedConeShape.cpp
 	)
 	SET(ChronoEngine_assets_HEADERS
 		assets/ChAsset.h
@@ -575,6 +585,9 @@ IF (BUILD_CH_SDK)
 		assets/ChGlyphs.h
 		#assets/ChGenericRender.h
 		assets/ChColorAsset.h
+		assets/ChRoundedCylinderShape.h
+		assets/ChRoundedBoxShape.h
+		assets/ChRoundedConeShape.h
 	)
 	SOURCE_GROUP(assets FILES  
 			${ChronoEngine_assets_SOURCES}

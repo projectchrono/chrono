@@ -129,15 +129,10 @@ void ChLinkMarkers::SetMarker2 (ChMarker* mark2)
 }
 
 
-void ChLinkMarkers::SetMarkers (ChMarker* mark1, ChMarker* mark2)
-{
-    SetMarker1 (mark1);
-    SetMarker2 (mark2);
-}
-
 int ChLinkMarkers::ReferenceMarkers(ChMarker* mark1, ChMarker* mark2)
 {
-	this->SetMarkers (mark1, mark2);
+	this->SetMarker1(mark1);
+  this->SetMarker2(mark2);
 
 	if (mark1)
 		SetMarkID1(mark1->GetIdentifier());
@@ -165,13 +160,13 @@ int ChLinkMarkers::Initialize(ChSharedPtr<ChMarker> mmark1, ChSharedPtr<ChMarker
 	return true;
 }
 	
-int ChLinkMarkers::Initialize(ChSharedPtr<ChBody> mbody1, ChSharedPtr<ChBody> mbody2,  ChCoordsys<> mpos)
+int ChLinkMarkers::Initialize(ChSharedPtr<ChBody> mbody1, ChSharedPtr<ChBody> mbody2,  const ChCoordsys<>& mpos)
 {
 	return Initialize(mbody1,mbody2,false,mpos,mpos);
 	
 }
 
-int ChLinkMarkers::Initialize(ChSharedPtr<ChBody> mbody1, ChSharedPtr<ChBody> mbody2, bool pos_are_relative, ChCoordsys<> mpos1, ChCoordsys<> mpos2)
+int ChLinkMarkers::Initialize(ChSharedPtr<ChBody> mbody1, ChSharedPtr<ChBody> mbody2, bool pos_are_relative, const ChCoordsys<>& mpos1, const ChCoordsys<>& mpos2)
 {
 	assert(mbody1.get_ptr() != mbody2.get_ptr());
 	assert(mbody1->GetSystem() == mbody2->GetSystem());
@@ -186,8 +181,6 @@ int ChLinkMarkers::Initialize(ChSharedPtr<ChBody> mbody1, ChSharedPtr<ChBody> mb
 	ChMarker* mm2 = mmark2.get_ptr();
 	ReferenceMarkers(mm1, mm2);
 
-	//SetSystem(this->Body1->GetSystem());	
-	
 	if (pos_are_relative)
 	{
 		mmark1->Impose_Rel_Coord(mpos1);
@@ -261,8 +254,7 @@ void ChLinkMarkers::UpdateRelMarkerCoords()
     Quaternion temp2=marker2->GetCoord_dt().rot;
 
 
-    if ((Qnotnull(&temp1))||
-        (Qnotnull(&temp2)) )
+    if (Qnotnull(temp1) || Qnotnull(temp2))
     {
       q_AD =                    //  q'qqq + qqqq'
        Qadd (
@@ -310,7 +302,7 @@ void ChLinkMarkers::UpdateRelMarkerCoords()
                             // q_8 = q''qqq + 2q'q'qq + 2q'qq'q + 2q'qqq'
                             //     + 2qq'q'q + 2qq'qq' + 2qqq'q' + qqqq''
     temp2=marker2->GetCoord_dtdt().rot;
-    if (Qnotnull(&temp2))
+    if (Qnotnull(temp2))
     q_8=Qcross(Qconjugate(marker2->GetCoord_dtdt().rot),
         Qcross(Qconjugate(Body2->GetCoord().rot),
         Qcross(Body1->GetCoord().rot,
@@ -318,7 +310,7 @@ void ChLinkMarkers::UpdateRelMarkerCoords()
     else
     q_8 = QNULL;
     temp1=marker1->GetCoord_dtdt().rot;
-    if (Qnotnull(&temp1))
+    if (Qnotnull(temp1))
     {
      qtemp1=Qcross(Qconjugate(marker2->GetCoord().rot),
         Qcross(Qconjugate(Body2->GetCoord().rot),
@@ -327,7 +319,7 @@ void ChLinkMarkers::UpdateRelMarkerCoords()
      q_8= Qadd (q_8, qtemp1);
     }
     temp2=marker2->GetCoord_dt().rot;
-    if (Qnotnull(&temp2))
+    if (Qnotnull(temp2))
     {
      qtemp1=Qcross(Qconjugate(marker2->GetCoord_dt().rot),
         Qcross(Qconjugate(Body2->GetCoord_dt().rot),
@@ -337,7 +329,7 @@ void ChLinkMarkers::UpdateRelMarkerCoords()
      q_8= Qadd (q_8, qtemp1);
     }
     temp2=marker2->GetCoord_dt().rot;
-    if (Qnotnull(&temp2))
+    if (Qnotnull(temp2))
     {
      qtemp1=Qcross(Qconjugate(marker2->GetCoord_dt().rot),
         Qcross(Qconjugate(Body2->GetCoord().rot),
@@ -348,8 +340,7 @@ void ChLinkMarkers::UpdateRelMarkerCoords()
     }
     temp1=marker1->GetCoord_dt().rot;
     temp2=marker2->GetCoord_dt().rot;
-    if ((Qnotnull(&temp2))&&
-        (Qnotnull(&temp1)))
+    if (Qnotnull(temp2) && Qnotnull(temp1))
     {
      qtemp1=Qcross(Qconjugate(marker2->GetCoord_dt().rot),
         Qcross(Qconjugate(Body2->GetCoord().rot),
@@ -366,7 +357,7 @@ void ChLinkMarkers::UpdateRelMarkerCoords()
     qtemp1= Qscale (qtemp1, 2);             // 2( q'm2 * q_dt'o2 * q_dt,o1 * q,m1)
     q_8= Qadd (q_8, qtemp1);
     temp1=marker1->GetCoord_dt().rot;
-    if (Qnotnull(&temp1))
+    if (Qnotnull(temp1))
     {
     qtemp1=Qcross(Qconjugate(marker2->GetCoord().rot),
         Qcross(Qconjugate(Body2->GetCoord_dt().rot),
@@ -376,7 +367,7 @@ void ChLinkMarkers::UpdateRelMarkerCoords()
     q_8= Qadd (q_8, qtemp1);
     }
     temp1=marker1->GetCoord_dt().rot;
-    if (Qnotnull(&temp1))
+    if (Qnotnull(temp1))
     {
     qtemp1=Qcross(Qconjugate(marker2->GetCoord().rot),
         Qcross(Qconjugate(Body2->GetCoord().rot),
