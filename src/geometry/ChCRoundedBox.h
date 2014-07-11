@@ -10,8 +10,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHC_BOX_H
-#define CHC_BOX_H
+#ifndef CHC_ROUNDEDBOX_H
+#define CHC_ROUNDEDBOX_H
 
 //////////////////////////////////////////////////
 //  
