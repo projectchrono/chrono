@@ -51,8 +51,6 @@ ChClassRegister<ChObj> a_registration_ChObj;
 ChObj::ChObj ()						// builder
 {
 	name.clear();
-	//next= 0;
-	//prev= 0;
 
 	ChTime = 0;
 	identifier = 0;
