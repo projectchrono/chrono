@@ -67,7 +67,7 @@ public:
 				};
 					
 			/// Build from pos, rotation, xyzlengths 
-	ChBox(ChVector<>& mpos, ChMatrix33<>& mrot, ChVector<>& mlengths) 
+	ChBox(const ChVector<>& mpos, const ChMatrix33<>& mrot, const ChVector<>& mlengths)
 				{
 					Pos = mpos; Size = 0.5*mlengths;
 					Rot.CopyFromMatrix(mrot);
@@ -142,7 +142,7 @@ public:
 
 		/// Set the x y z lenghts of this box (that is, double
 		/// the Size values)
-	void SetLenghts(ChVector<>& mlen){ Size = 0.5*mlen;}
+	void SetLenghts(const ChVector<>& mlen){ Size = 0.5*mlen;}
 
 
 	
