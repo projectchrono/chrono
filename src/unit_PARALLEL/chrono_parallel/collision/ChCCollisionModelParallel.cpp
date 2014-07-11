@@ -127,6 +127,37 @@ bool ChCollisionModelParallel::AddBox(
    total_volume += rx * 2 * ry * 2 * rz * 2;
    return true;
 }
+
+bool ChCollisionModelParallel::AddRoundedBox(
+      double rx,
+      double ry,
+      double rz,
+      double sphere_r,
+      const ChVector<> &pos,
+      const ChMatrix33<> &rot) {
+   double mass = this->GetBody()->GetMass();
+
+   real3 local_inertia = R3(1 / 12.0 * mass * (ry * ry + rz * rz), 1 / 12.0 * mass * (rx * rx + rz * rz), 1 / 12.0 * mass * (rx * rx + ry * ry));
+   ChVector<> position = pos;
+   inertia.x += local_inertia.x + mass * (position.Length2() - position.x * position.x);
+   inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
+   inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
+
+   model_type = ROUNDEDBOX;
+   nObjects++;
+   bData tData;
+   tData.A = R3(pos.x, pos.y, pos.z);
+   tData.B = R3(rx, ry, rz);
+   tData.C = R3(sphere_r, 0, 0);
+   ChMatrix33<> rotation = rot;
+
+   tData.R = R4(rotation.Get_A_quaternion().e0, rotation.Get_A_quaternion().e1, rotation.Get_A_quaternion().e2, rotation.Get_A_quaternion().e3);
+   tData.type = ROUNDEDBOX;
+   mData.push_back(tData);
+   total_volume += rx * 2 * ry * 2 * rz * 2;
+   return true;
+}
+
 bool ChCollisionModelParallel::AddTriangle(
       ChVector<> A,
       ChVector<> B,

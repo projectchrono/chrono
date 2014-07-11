@@ -81,6 +81,15 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
          const ChVector<> &pos = ChVector<>(),
          const ChMatrix33<> &rot = ChMatrix33<>(1));
 
+   /// Add a rounded box shape to this model, for collision purposes
+   virtual bool AddRoundedBox(
+         double hx,
+         double hy,
+         double hz,
+         double sphere_r,
+         const ChVector<> &pos = ChVector<>(),
+         const ChMatrix33<> &rot = ChMatrix33<>(1));
+
    /// Add a triangle shape to this model, for collision purposes
    virtual bool AddTriangle(
          ChVector<> A,
