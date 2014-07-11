@@ -113,10 +113,9 @@ void WriteCheckpoint(ChSystem*          system,
 				csv << chrono::CAPSULE << rad << hlen;
 			} else if (asset.IsType<ChCylinderShape>()) {
 				ChCylinderShape* cylinder = (ChCylinderShape*) asset.get_ptr();
-				double radx = cylinder->GetCylinderGeometry().rad.x;
-				double height = cylinder->GetCylinderGeometry().rad.y;
-				double radz = cylinder->GetCylinderGeometry().rad.z;
-				csv << chrono::CYLINDER << radx << height <<radz;
+				double rad = cylinder->GetCylinderGeometry().rad;
+				double height = cylinder->GetCylinderGeometry().p1.y - cylinder->GetCylinderGeometry().p2.y;
+				csv << chrono::CYLINDER << rad << height;
 			} else if (asset.IsType<ChConeShape>()) {
 				ChConeShape* cone = (ChConeShape*) asset.get_ptr();
 				csv << chrono::CONE << cone->GetConeGeometry().rad.x << cone->GetConeGeometry().rad.y;
@@ -253,16 +252,16 @@ void ReadCheckpoint(ChSystem*          system,
 				break;
 			case chrono::CYLINDER:
 				{
-					double radiusx, height, radiusz;
-					iss >> radiusx >> height >> radiusz;
-					AddCylinderGeometry(body, radiusx, height, radiusz, apos, arot);
+					double radius, height;
+					iss >> radius >> height;
+					AddCylinderGeometry(body, radius, height, apos, arot);
 				}
 				break;
 			case chrono::CONE:
 				{
-					double radiusx, height, radiusz;
-					iss >> radiusx >> height >> radiusz;
-					AddConeGeometry(body, radiusx, height, radiusz, apos, arot);
+					double radius, height;
+					iss >> radius >> height;
+					AddConeGeometry(body, radius, height, apos, arot);
 				}
 				break;
 			}
@@ -340,14 +339,15 @@ void WriteShapesRender(ChSystem*          system,
 				geometry << "capsule" << delim << rad << delim << hlen;
 			} else if (asset.IsType<ChCylinderShape>()) {
 				ChCylinderShape* cylinder = (ChCylinderShape*) asset.get_ptr();
-				Vector size = cylinder->GetCylinderGeometry().rad;
+				double rad = cylinder->GetCylinderGeometry().rad;
+				double height = cylinder->GetCylinderGeometry().p1.y - cylinder->GetCylinderGeometry().p2.y;
 				group = bodyId < 0 ? "individual" : "g_cylinder";
-				geometry << "cylinder" << delim << size.x << delim << size.y << delim << size.z;
+				geometry << "cylinder" << delim << rad << delim << height;
 			} else if (asset.IsType<ChConeShape>()) {
 				ChConeShape* cone = (ChConeShape*) asset.get_ptr();
 				const Vector& size = cone->GetConeGeometry().rad;
 				group = bodyId < 0 ? "individual" : "g_cone";
-				geometry << "cone" << delim << size.x << delim << size.y << delim << size.z;
+				geometry << "cone" << delim << size.x << delim << size.y;
 			}
 
 			csv << group << index << pos << rot << geometry.str() << std::endl;
@@ -417,12 +417,13 @@ void WriteShapesPovray(ChSystem*          system,
 				geometry << CAPSULE << delim << rad << delim << hlen;
 			} else if (asset.IsType<ChCylinderShape>()) {
 				ChCylinderShape* cylinder = (ChCylinderShape*) asset.get_ptr();
-				Vector size = cylinder->GetCylinderGeometry().rad;
-				geometry << CYLINDER << delim << size.x << delim << size.y << delim << size.z;
+				double rad = cylinder->GetCylinderGeometry().rad;
+				double height = cylinder->GetCylinderGeometry().p1.y - cylinder->GetCylinderGeometry().p2.y;
+				geometry << CYLINDER << delim << rad << delim << height;
 			} else if (asset.IsType<ChConeShape>()) {
 				ChConeShape* cone = (ChConeShape*) asset.get_ptr();
 				const Vector& size = cone->GetConeGeometry().rad;
-				geometry << CONE << delim << size.x << delim << size.y<< delim << size.z;
+				geometry << CONE << delim << size.x << delim << size.y;
 			} else if (asset.IsType<ChTriangleMeshShape>()) {
 				ChTriangleMeshShape* mesh = (ChTriangleMeshShape*) asset.get_ptr();
 				geometry << TRIANGLEMESH << delim << "\"" << mesh->GetName() << "\"";

@@ -114,16 +114,17 @@ void AddCapsuleGeometry(ChBody*               body,
 
 inline
 void AddCylinderGeometry(ChBody*               body,
-                         double                radiusx,
+                         double                radius,
                          double                height,
-                         double                radiusz,
                          const ChVector<>&     pos = ChVector<>(0,0,0),
                          const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
 {
-	body->GetCollisionModel()->AddCylinder(radiusx, radiusz, height, pos, rot);
+	body->GetCollisionModel()->AddCylinder(radius, radius, height, pos, rot);
 
 	ChSharedPtr<ChCylinderShape> cylinder(new ChCylinderShape);
-	cylinder->GetCylinderGeometry().rad = ChVector<>(radiusx,height,radiusz);
+	cylinder->GetCylinderGeometry().rad = radius;
+	cylinder->GetCylinderGeometry().p1 = ChVector<>(0,  height / 2, 0);
+	cylinder->GetCylinderGeometry().p2 = ChVector<>(0, -height / 2, 0);
 	cylinder->Pos = pos;
 	cylinder->Rot = rot;
 
@@ -132,16 +133,15 @@ void AddCylinderGeometry(ChBody*               body,
 
 inline
 void AddConeGeometry(ChBody*               body,
-                     double                radiusx,
+                     double                radius,
                      double                height,
-                     double                radiusz,
                      const ChVector<>&     pos = ChVector<>(0,0,0),
                      const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
 {
-	body->GetCollisionModel()->AddCone(radiusx, radiusz, height, pos, rot);
+	body->GetCollisionModel()->AddCone(radius, radius, height, pos, rot);
 
 	ChSharedPtr<ChConeShape> cone(new ChConeShape);
-	cone->GetConeGeometry().rad = ChVector<>(radiusx, height, radiusz);
+	cone->GetConeGeometry().rad = ChVector<>(radius, height, radius);
 	cone->Pos = pos;
 	cone->Rot = rot;
 

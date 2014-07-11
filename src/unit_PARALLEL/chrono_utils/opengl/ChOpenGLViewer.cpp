@@ -282,9 +282,8 @@ void ChOpenGLViewer::DrawObject(
 
       } else if (asset.IsType<ChCylinderShape>()) {
          ChCylinderShape * cylinder_shape = ((ChCylinderShape *) (asset.get_ptr()));
-         double radx = cylinder_shape->GetCylinderGeometry().rad.x;
-         double radz = cylinder_shape->GetCylinderGeometry().rad.z;
-         double height = cylinder_shape->GetCylinderGeometry().rad.y;
+         double rad = cylinder_shape->GetCylinderGeometry().rad;
+         double height = cylinder_shape->GetCylinderGeometry().p1.y - cylinder_shape->GetCylinderGeometry().p2.y;
          //Quaternion rott(1,0,0,0);
          Quaternion lrot = visual_asset->Rot.Get_A_quaternion();
          //lrot = lrot % rott;
@@ -294,7 +293,7 @@ void ChOpenGLViewer::DrawObject(
          ChVector<> pos_final = pos + center;
          model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x, pos_final.y, pos_final.z));
          model = glm::rotate(model, float(angle), glm::vec3(axis.x, axis.y, axis.z));
-         model = glm::scale(model, glm::vec3(radx, height, radz));
+         model = glm::scale(model, glm::vec3(rad, height, rad));
          model_cylinder.push_back(model);
 
       } else if (asset.IsType<ChConeShape>()) {
