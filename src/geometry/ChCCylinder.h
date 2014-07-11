@@ -59,12 +59,15 @@ public:
 
 	ChCylinder() 
 				{
+					p1= VNULL;
+					p2= ChVector<>(0,1,0);
 					rad = 0.1;
 				};
 	
 	ChCylinder(ChVector<>& mp1, ChVector<>& mp2, double mrad) 
 				{
-
+					p1 = mp1;
+					p2 = mp2;
 					rad = mrad;
 				}
 
@@ -75,7 +78,8 @@ public:
 
 	void Copy (const ChCylinder* source) 
 				{
-
+					p1 = source->p1;
+					p2 = source->p2;
 					rad = source->rad;
 				};
 
@@ -97,7 +101,7 @@ public:
 						double& zmin, double& zmax,
 						ChMatrix33<>* Rot = NULL)
 				{
-		Vector dims = rad;
+		Vector dims = Vector(rad, p2.y - p1.y, rad);
 		Vector trsfCenter = Baricenter();
 							if (Rot)
 							{
@@ -113,15 +117,15 @@ public:
 
 				}
 	
-	virtual ChVector<> Baricenter() {return ChVector<>(0);};
+	virtual ChVector<> Baricenter() {return (p1+p2)*0.5;};
 
 			//***TO DO***  obsolete/unused
 	virtual void CovarianceMatrix(ChMatrix33<>& C) 
 				{
 					C.Reset();
-					C(0,0)= 1;
-					C(1,1)= 1;
-					C(2,2)= 1;
+					C(0,0)= p1.x*p1.x;
+					C(1,1)= p1.y*p1.y;
+					C(2,2)= p1.z*p1.z;
 				};
 
 				/// This is a solid
@@ -135,7 +139,11 @@ public:
 		// DATA
 		//
 
-	ChVector<> rad;
+	ChVector<> p1;
+	ChVector<> p2;
+
+	double rad;
+
 
 		//
 		// STREAMING

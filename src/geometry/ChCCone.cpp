@@ -45,6 +45,7 @@ void ChCone::StreamOUT(ChStreamOutBinary& mstream)
 	ChGeometry::StreamOUT(mstream);
 
 		// stream out all member data
+	mstream << center;
 	mstream << rad;
 }
 
@@ -57,6 +58,7 @@ void ChCone::StreamIN(ChStreamInBinary& mstream)
 	ChGeometry::StreamIN(mstream);
 
 		// stream in all member data
+	mstream >> center;
 	mstream >> rad;
 }
 
