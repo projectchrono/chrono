@@ -20,6 +20,7 @@
 
 #ifdef __APPLE__
 #define GLFW_INCLUDE_GLCOREARB
+#define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED //fixes warnings
 #endif
 #include <glfw3.h>
 
@@ -30,6 +31,7 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/intersect.hpp>
