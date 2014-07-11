@@ -30,6 +30,9 @@
 #include "assets/ChEllipsoidShape.h"
 #include "assets/ChConeShape.h"
 #include "assets/ChCylinderShape.h"
+#include "assets/ChRoundedBoxShape.h"
+#include "assets/ChRoundedConeShape.h"
+#include "assets/ChRoundedCylinderShape.h"
 #include "assets/ChTriangleMeshShape.h"
 #include "chrono_parallel/ChSystemParallel.h"
 

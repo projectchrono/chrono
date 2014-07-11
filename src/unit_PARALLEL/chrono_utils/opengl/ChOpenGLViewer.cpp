@@ -74,23 +74,23 @@ bool ChOpenGLViewer::Initialize() {
    ChOpenGLMaterial white(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec3(1, 1, 1));
    ChOpenGLMaterial red(glm::vec3(0, 0, 0), glm::vec3(1, 0, 0), glm::vec3(1, 1, 1));
 
-  float ambient = .5;
+   float ambient = .5;
 
-   ChOpenGLMaterial slate(glm::vec3(85.0f, 98.0f, 112.0f) / 255.0f*ambient, glm::vec3(85.0f, 98.0f, 112.0f) / 255.0f, glm::vec3(1, 1, 1));
-   ChOpenGLMaterial pacifica(glm::vec3(78.0f, 205.0f, 196.0f) / 255.0f*ambient, glm::vec3(78.0f, 205.0f, 196.0f) / 255.0f, glm::vec3(1, 1, 1));
-   ChOpenGLMaterial apple(glm::vec3(199.0f, 244.0f, 100.0f) / 255.0f*ambient, glm::vec3(199.0f, 244.0f, 100.0f) / 255.0f, glm::vec3(1, 1, 1));
-   ChOpenGLMaterial cherry(glm::vec3(255.0f, 107.0f, 107.0f) / 255.0f*ambient, glm::vec3(255.0f, 107.0f, 107.0f) / 255.0f, glm::vec3(1, 1, 1));
-   ChOpenGLMaterial pillow(glm::vec3(196.0f, 77.0f, 88.0f) / 255.0f*ambient, glm::vec3(196.0f, 77.0f, 88.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial slate(glm::vec3(85.0f, 98.0f, 112.0f) / 255.0f * ambient, glm::vec3(85.0f, 98.0f, 112.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial pacifica(glm::vec3(78.0f, 205.0f, 196.0f) / 255.0f * ambient, glm::vec3(78.0f, 205.0f, 196.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial apple(glm::vec3(199.0f, 244.0f, 100.0f) / 255.0f * ambient, glm::vec3(199.0f, 244.0f, 100.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial cherry(glm::vec3(255.0f, 107.0f, 107.0f) / 255.0f * ambient, glm::vec3(255.0f, 107.0f, 107.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial pillow(glm::vec3(196.0f, 77.0f, 88.0f) / 255.0f * ambient, glm::vec3(196.0f, 77.0f, 88.0f) / 255.0f, glm::vec3(1, 1, 1));
 
-   ChOpenGLMaterial elated(glm::vec3(255.0f, 171.0f, 25.0f) / 255.0f*ambient, glm::vec3(255.0f, 171.0f, 25.0f) / 255.0f, glm::vec3(1, 1, 1));
-   ChOpenGLMaterial greyslate(glm::vec3(158.0f, 158.0f, 158.0f) / 255.0f*ambient, glm::vec3(158.0f, 158.0f, 158.0f) / 255.0f, glm::vec3(1, 1, 1));
-   ChOpenGLMaterial darkred(glm::vec3(193.0f, 21.0f, 21.0f) / 255.0f*ambient, glm::vec3(193.0f, 21.0f, 21.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial elated(glm::vec3(255.0f, 171.0f, 25.0f) / 255.0f * ambient, glm::vec3(255.0f, 171.0f, 25.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial greyslate(glm::vec3(158.0f, 158.0f, 158.0f) / 255.0f * ambient, glm::vec3(158.0f, 158.0f, 158.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial darkred(glm::vec3(193.0f, 21.0f, 21.0f) / 255.0f * ambient, glm::vec3(193.0f, 21.0f, 21.0f) / 255.0f, glm::vec3(1, 1, 1));
 
-   ChOpenGLMaterial t1(glm::vec3(236.0f, 208.0f, 120.0f) / 255.0f*ambient, glm::vec3(236.0f, 208.0f, 120.0f) / 255.0f, glm::vec3(1, 1, 1));
-   ChOpenGLMaterial t2(glm::vec3(217.0f, 91.0f, 67.0f) / 255.0f*ambient, glm::vec3(217.0f, 91.0f, 67.0f) / 255.0f, glm::vec3(1, 1, 1));
-   ChOpenGLMaterial t3(glm::vec3(192.0f, 41.0f, 66.0f) / 255.0f*ambient, glm::vec3(192.0f, 41.0f, 66.0f) / 255.0f, glm::vec3(1, 1, 1));
-   ChOpenGLMaterial t4(glm::vec3(84.0f, 36.0f, 55.0f) / 255.0f*ambient, glm::vec3(84.0f, 36.0f, 55.0f) / 255.0f, glm::vec3(1, 1, 1));
-   ChOpenGLMaterial t5(glm::vec3(83.0f, 119.0f, 122.0f) / 255.0f*ambient, glm::vec3(83.0f, 119.0f, 122.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial t1(glm::vec3(236.0f, 208.0f, 120.0f) / 255.0f * ambient, glm::vec3(236.0f, 208.0f, 120.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial t2(glm::vec3(217.0f, 91.0f, 67.0f) / 255.0f * ambient, glm::vec3(217.0f, 91.0f, 67.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial t3(glm::vec3(192.0f, 41.0f, 66.0f) / 255.0f * ambient, glm::vec3(192.0f, 41.0f, 66.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial t4(glm::vec3(84.0f, 36.0f, 55.0f) / 255.0f * ambient, glm::vec3(84.0f, 36.0f, 55.0f) / 255.0f, glm::vec3(1, 1, 1));
+   ChOpenGLMaterial t5(glm::vec3(83.0f, 119.0f, 122.0f) / 255.0f * ambient, glm::vec3(83.0f, 119.0f, 122.0f) / 255.0f, glm::vec3(1, 1, 1));
 
    if (!main_shader.InitializeStrings("phong", phong_vert, phong_frag)) {
       return 0;
@@ -139,12 +139,12 @@ bool ChOpenGLViewer::Initialize() {
 
 }
 bool ChOpenGLViewer::Update() {
-   if (pause_sim == true && single_step==false) {
+   if (pause_sim == true && single_step == false) {
       return false;
    }
 
    physics_system->DoStepDynamics(physics_system->GetStep());
-   single_step=false;
+   single_step = false;
    return true;
 }
 void ChOpenGLViewer::Render() {
@@ -173,22 +173,22 @@ void ChOpenGLViewer::Render() {
             ChBody* abody = (ChBody*) physics_system->Get_bodylist()->at(i);
             DrawObject(abody);
          }
-		 if(model_box.size()>0){
-			box.Update(model_box);
-			box.Draw(projection, view);
-		 }
-		 if(model_sphere.size()>0){
-			sphere.Update(model_sphere);
-			sphere.Draw(projection, view);
-		 }
-		 if(model_cone.size()>0){
-			cone.Update(model_cone);
-			cone.Draw(projection, view);
-		 }
-		 if(model_cylinder.size()>0){
-			cylinder.Update(model_cylinder);
-			cylinder.Draw(projection, view);
-		 }
+         if (model_box.size() > 0) {
+            box.Update(model_box);
+            box.Draw(projection, view);
+         }
+         if (model_sphere.size() > 0) {
+            sphere.Update(model_sphere);
+            sphere.Draw(projection, view);
+         }
+         if (model_cone.size() > 0) {
+            cone.Update(model_cone);
+            cone.Draw(projection, view);
+         }
+         if (model_cylinder.size() > 0) {
+            cylinder.Update(model_cylinder);
+            cylinder.Draw(projection, view);
+         }
       } else {
          cloud_data.resize(physics_system->Get_bodylist()->size());
 #pragma omp parallel for
@@ -305,6 +305,56 @@ void ChOpenGLViewer::DrawObject(
          model = glm::rotate(model, float(angle), glm::vec3(axis.x, axis.y, axis.z));
          model = glm::scale(model, glm::vec3(rad.x, rad.y, rad.z));
          model_cone.push_back(model);
+
+      } else if (asset.IsType<ChRoundedBoxShape>()) {
+         ChRoundedBoxShape * shape = ((ChRoundedBoxShape *) (asset.get_ptr()));
+         Vector rad = shape->GetRoundedBoxGeometry().Size;
+         double radsphere = shape->GetRoundedBoxGeometry().radsphere;
+         ChVector<> pos_final = pos + center;
+         model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x, pos_final.y, pos_final.z));
+         model = glm::rotate(model, float(angle), glm::vec3(axis.x, axis.y, axis.z));
+         model = glm::scale(model, glm::vec3(rad.x, rad.y, rad.z));
+         model_box.push_back(model);
+
+         glm::vec3 local  = glm::rotate(glm::vec3(rad.x, rad.y, rad.z) ,float(angle), glm::vec3(axis.x, axis.y, axis.z));
+         model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
+         model = glm::scale(model, glm::vec3(radsphere));
+         model_sphere.push_back(model);
+
+         local  = glm::rotate(glm::vec3(rad.x, rad.y, -rad.z) ,float(angle), glm::vec3(axis.x, axis.y, axis.z));
+         model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
+         model = glm::scale(model, glm::vec3(radsphere));
+         model_sphere.push_back(model);
+
+         local  = glm::rotate(glm::vec3(-rad.x, rad.y, rad.z) ,float(angle), glm::vec3(axis.x, axis.y, axis.z));
+         model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
+         model = glm::scale(model, glm::vec3(radsphere));
+         model_sphere.push_back(model);
+
+         local  = glm::rotate(glm::vec3(-rad.x, rad.y, -rad.z) ,float(angle), glm::vec3(axis.x, axis.y, axis.z));
+         model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
+         model = glm::scale(model, glm::vec3(radsphere));
+         model_sphere.push_back(model);
+
+         local  = glm::rotate(glm::vec3(rad.x, -rad.y, rad.z) ,float(angle), glm::vec3(axis.x, axis.y, axis.z));
+         model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
+         model = glm::scale(model, glm::vec3(radsphere));
+         model_sphere.push_back(model);
+
+         local  = glm::rotate(glm::vec3(rad.x, -rad.y, -rad.z) ,float(angle), glm::vec3(axis.x, axis.y, axis.z));
+         model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
+         model = glm::scale(model, glm::vec3(radsphere));
+         model_sphere.push_back(model);
+
+         local  = glm::rotate(glm::vec3(-rad.x, -rad.y, rad.z) ,float(angle), glm::vec3(axis.x, axis.y, axis.z));
+         model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
+         model = glm::scale(model, glm::vec3(radsphere));
+         model_sphere.push_back(model);
+
+         local  = glm::rotate(glm::vec3(-rad.x, -rad.y, -rad.z) ,float(angle), glm::vec3(axis.x, axis.y, axis.z));
+         model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
+         model = glm::scale(model, glm::vec3(radsphere));
+         model_sphere.push_back(model);
 
       } else if (asset.IsType<ChTriangleMeshShape>()) {
          ChTriangleMeshShape * trimesh_shape = ((ChTriangleMeshShape *) (asset.get_ptr()));
@@ -469,7 +519,7 @@ void ChOpenGLViewer::DisplayHUD() {
    glBindBuffer(GL_ARRAY_BUFFER, vbo);
    font_shader.Use();
    glUniform1i(text_texture_handle, 0);
-   glUniform3fv(text_color_handle,1, glm::value_ptr(text.diffuse_color));
+   glUniform3fv(text_color_handle, 1, glm::value_ptr(text.diffuse_color));
    glBufferData(GL_ARRAY_BUFFER, text_data.size() * sizeof(glm::vec4), &this->text_data[0], GL_STATIC_DRAW);
    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
    glDrawArrays(GL_TRIANGLES, 0, text_data.size());

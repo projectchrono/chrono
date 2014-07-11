@@ -23,6 +23,9 @@
 #include "assets/ChCylinderShape.h"
 #include "assets/ChConeShape.h"
 #include "assets/ChTriangleMeshShape.h"
+#include "assets/ChRoundedBoxShape.h"
+#include "assets/ChRoundedConeShape.h"
+#include "assets/ChRoundedCylinderShape.h"
 
 #include "chrono_utils/ChApiUtils.h"
 #include "chrono_utils/ChUtilsCommon.h"
@@ -167,6 +170,23 @@ void AddTriangleMeshGeometry(ChBody*               body,
 	trimesh_shape->Rot = ChQuaternion<>(1,0,0,0);
 
 	body->GetAssets().push_back(trimesh_shape);
+}
+
+inline
+void AddRoundedBoxGeometry(ChBody*        body,
+                    const ChVector<>&     size,
+                    const double&         radius,
+                    const ChVector<>&     pos = ChVector<>(0,0,0),
+                    const ChQuaternion<>& rot = ChQuaternion<>(1,0,0,0))
+{
+   body->GetCollisionModel()->AddRoundedBox(size.x, size.y, size.z, radius, pos, rot);
+
+   ChSharedPtr<ChRoundedBoxShape> box(new ChRoundedBoxShape);
+   box->GetRoundedBoxGeometry().Size = size;
+   box->GetRoundedBoxGeometry().radsphere = radius;
+   box->Pos = pos;
+   box->Rot = rot;
+   body->GetAssets().push_back(box);
 }
 
 // -------------------------------------------------------------------------------
